@@ -926,6 +926,9 @@
 				RelativePath=".\DlgLaneRange.h">
 			</File>
 			<File
+				RelativePath=".\DlgLaneTollCriteria.h">
+			</File>
+			<File
 				RelativePath="DlgLayerOptions.h">
 			</File>
 			<File
@@ -6185,6 +6188,9 @@
 			</File>
 			<File
 				RelativePath=".\DlgLaneRange.cpp">
+			</File>
+			<File
+				RelativePath=".\DlgLaneTollCriteria.cpp">
 			</File>
 			<File
 				RelativePath="DlgLayerOptions.cpp">

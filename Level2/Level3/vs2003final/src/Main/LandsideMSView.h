@@ -34,6 +34,7 @@ class CSimEngSettingDlg;
 class CDlgVehicleOperationNonRelated;
 class CDlgCurbsideStrategy;
 class CDlgParkingLotStrategy;
+class CDlgLaneTollCriteria;
 namespace airside_engine
 {
 	class Simulation;
@@ -95,6 +96,7 @@ private:
 	 CDlgSpeedControl* m_pSpeedControlDlg;
 	 CDlgParkingSpotSpec* m_pParkingSpotSpecDlg;
 	 CDlgLaneAvailabilitySpecification* m_pLaneAvailabilitySpecificationDlg;
+	 CDlgLaneTollCriteria* m_pLaneTollGateDlg;
 	 CDlgLaneChangeCriteria* m_pLaneChangeCriteriaDlg;
 	 CDlgIntersectionTrafficControlManagement* m_pIntersectionTrafficCtrlDlg;
 	 CDlgCurbsideStrategy* m_pCurbsideStrategyDlg;

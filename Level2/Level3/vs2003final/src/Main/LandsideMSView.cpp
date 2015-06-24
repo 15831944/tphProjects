@@ -70,6 +70,7 @@
 #include "VehicleTypeDefDlg.h"
 #include "DlgVehicleDistribution.h"
 #include "DlgLandsideLayoutOptions.h"
+#include "DlgLaneTollCriteria.h"
 
 #define S_LAND_ENTRY_OFFSET _T("Land Entry Offset")
 #define S_LAND_PAXRELATEDATA _T("Passenger related data")
@@ -107,6 +108,7 @@ CLandsideMSView::CLandsideMSView()
 ,m_pServiceTimeDlg(NULL)
 ,m_pInitConDitionDlg(NULL)
 ,m_pSimEngSettingDlg(NULL)
+,m_pLaneTollGateDlg(NULL)
 {
 	m_hRightClkItem = NULL;
 	m_hLevelRoot = NULL;
@@ -188,6 +190,11 @@ CLandsideMSView::~CLandsideMSView()
 	if (m_pSimEngSettingDlg != NULL)
 	{
 		delete m_pSimEngSettingDlg;
+	}
+	if (m_pLaneTollGateDlg != NULL)
+	{
+		delete m_pLaneTollGateDlg;
+		m_pLaneTollGateDlg = NULL;
 	}
 }
 
@@ -948,17 +955,20 @@ void CLandsideMSView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 			dlg.DoModal();
 		}		
 		
-		s = CString(_T("Lane Availability"));
+	//	s = CString(_T("Lane Availability"));
+		s = CString(_T("Lane / Toll Gate Allocation Criteria"));
 		if (strNodeName.Compare(s) == 0)
 		{
-			if (m_pLaneAvailabilitySpecificationDlg != NULL)
+			if (m_pLaneTollGateDlg != NULL)
 			{
-				delete m_pLaneAvailabilitySpecificationDlg;
+				delete m_pLaneTollGateDlg;
 			}
-			m_pLaneAvailabilitySpecificationDlg = new CDlgLaneAvailabilitySpecification(GetDocument()->GetInputLandside(),this);
-			m_pLaneAvailabilitySpecificationDlg->Create(CDlgLaneAvailabilitySpecification::IDD);
-			m_pLaneAvailabilitySpecificationDlg->CenterWindow();
-			m_pLaneAvailabilitySpecificationDlg->ShowWindow(SW_SHOWNORMAL);
+		/*	m_pLaneAvailabilitySpecificationDlg = new CDlgLaneAvailabilitySpecification(GetDocument()->GetInputLandside(),this);
+			m_pLaneAvailabilitySpecificationDlg->Create(CDlgLaneAvailabilitySpecification::IDD);*/
+			m_pLaneTollGateDlg = new CDlgLaneTollCriteria(GetDocument(),this);
+			m_pLaneTollGateDlg->Create(CDlgLaneTollCriteria::IDD);
+			m_pLaneTollGateDlg->CenterWindow();
+			m_pLaneTollGateDlg->ShowWindow(SW_SHOWNORMAL);
 		}
 
 		s = CString(_T("Lane Change Criteria"));
@@ -1591,7 +1601,8 @@ void CLandsideMSView::InitTree()
 		
 
 		//Lane Availability
-		nodeManagement.AddChild(_T("Lane Availability"));
+		//nodeManagement.AddChild(_T("Lane Availability"));
+		nodeManagement.AddChild(_T("Lane / Toll Gate Allocation Criteria"));
 		
 
 		//Lane changes
