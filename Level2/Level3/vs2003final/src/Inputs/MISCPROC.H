@@ -11,21 +11,43 @@
 #include "CapacityAttributes.h"
 #include "PROCIDList.h"
 
+#define USE_NOTHING				0
+#define USE_PIPE_SYSTEM			1
+#define USE_USER_SELECTED_PIPES	2
+
+typedef std::vector<int>PIPES;
+
 class INPUTS_TRANSFER MiscProcessorIDWithOne2OneFlag : public ProcessorID
 {
 private:
 	bool m_bOne2OneFlag;
-
+	// Route condition
+	int m_iTypeOfUsingPipe;	// m_iTypeOfUsingPipe = 0 use nothing
+							// m_iTypeOfUsingPipe = 1 use pipe system
+							// m_iTypeOfUsingPipe = 2 use user selected pipes
+	PIPES m_vUsedPipes;
 public:
 	// construct
-	MiscProcessorIDWithOne2OneFlag() { m_bOne2OneFlag = false;}
-	MiscProcessorIDWithOne2OneFlag( ProcessorID& entry, bool bFlag = false):ProcessorID(entry)	{ m_bOne2OneFlag = bFlag; }
+	MiscProcessorIDWithOne2OneFlag() { m_bOne2OneFlag = false; m_iTypeOfUsingPipe = USE_NOTHING; }
+	MiscProcessorIDWithOne2OneFlag( ProcessorID& entry, bool bFlag = false)
+		:ProcessorID(entry)	{ m_bOne2OneFlag = bFlag; m_iTypeOfUsingPipe = USE_NOTHING; }
 	MiscProcessorIDWithOne2OneFlag( MiscProcessorIDWithOne2OneFlag& entry ){ *this = entry; }
 	virtual ~MiscProcessorIDWithOne2OneFlag() {};
 	
 	// get and set
 	bool getOne2OneFlag() const { return m_bOne2OneFlag;}
-	void setOne2OneFlag( bool _bFlag ) { m_bOne2OneFlag = _bFlag;	}
+	void setOne2OneFlag( bool _bFlag ) { m_bOne2OneFlag = _bFlag; }
+
+	// Route condition
+	void SetTypeOfUsingPipe( int _iType ) { m_iTypeOfUsingPipe = _iType; };
+	int GetTypeOfUsingPipe() const { return m_iTypeOfUsingPipe;	};
+
+	void AddUsedPipe(int _iIdxOfPipe ){ m_vUsedPipes .push_back( _iIdxOfPipe );};
+	void ClearAllPipe(){ m_vUsedPipes.clear();};
+	bool IfUseThisPipe(int nCurPipeIndex)const;
+	PIPES& GetPipeVector() { return m_vUsedPipes;};
+	int GetUsedPipeCount() const { return m_vUsedPipes.size();	};
+	int GetPipeAt( int _iIdx ) const ;
 
 	// read and write
 	int readData (ArctermFile& file);

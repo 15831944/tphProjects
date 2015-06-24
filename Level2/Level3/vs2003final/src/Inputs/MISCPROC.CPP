@@ -23,6 +23,12 @@ int MiscProcessorIDWithOne2OneFlag::writeData (ArctermFile& file) const
 	return ProcessorID::writeProcessorID( file );
 }
 
+int MiscProcessorIDWithOne2OneFlag::GetPipeAt( int _iIdx ) const
+{
+	ASSERT( _iIdx >=0 && _iIdx < static_cast<int>(m_vUsedPipes.size()) );
+	return m_vUsedPipes.at( _iIdx );
+}
+
 //////////////////////////////////////////////////////////////////////////
 void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne/*= true*/ )
 {

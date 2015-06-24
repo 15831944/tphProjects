@@ -30,6 +30,7 @@
 
 #include "..\inputs\MobileElemTypeStrDB.h"
 #include "..\inputs\CapacityAttributes.h"
+#include "..\Inputs\PipeDataSet.h"
 #include "Floor2.h"
 
 
@@ -46,6 +47,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 #define  STR_ALL_NOPAX _T("ALL NON-PAX") 
 #define  STR_COMBINATION _T("COMBINATION")
+#define EDIT_PIPE_AUTO		1
+#define EDIT_PIPE_MANUAL	2
 /////////////////////////////////////////////////////////////////////////////
 // CProcDataPage property page
 UINT nIDCaption[] = { IDS_POINT_PROCESSOR,
@@ -141,6 +144,8 @@ BEGIN_MESSAGE_MAP(CProcDataPage, CResizablePage)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_DATA, OnSelchangedTreeData)
 	ON_WM_SIZE()
 	ON_COMMAND(ID_LINKAGE_ONETOONE, OnLinkageOnetoone)
+	ON_COMMAND(ID_LINKAGE_EDITPIPE, OnButtonEditPipeManual)
+	ON_COMMAND(ID_LINKAGE_EDITPIPE_AUTO, OnButtonEditPipeAuto)
 	ON_COMMAND(ID_EDIT_OR_SPIN_VALUE, OnEditOrSpinValue)
 	ON_NOTIFY_EX( TTN_NEEDTEXT, 0, OnToolTipText )
 	//}}AFX_MSG_MAP
@@ -1182,7 +1187,11 @@ void CProcDataPage::InitToolbar()
 	m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD );
 	m_ToolBar.GetToolBarCtrl().HideButton( ID_TOOLBARBUTTONEDIT );
 	m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL);
-	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );		
+	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
+	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE, FALSE );
+	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE_AUTO, FALSE );
+	m_ToolBar.GetToolBarCtrl().HideButton(ID_LINKAGE_EDITPIPE_AUTO_DISABLE);
+	SetImgOfButtonEditPipeAuto( USE_NOTHING );
 	if(m_nProcDataType==Elevator)
 	{
 		m_ToolBar.GetToolBarCtrl().HideButton( ID_LINKAGE_ONETOONE);		
@@ -2882,6 +2891,7 @@ void CProcDataPage::ReloadWaitAreaList(MiscData *_pMiscData, bool _bReloadLoader
     {
 		const MiscProcessorIDWithOne2OneFlag* pProcID = (MiscProcessorIDWithOne2OneFlag*)pProcIDList->getID( i );
         pProcID->printID( str );
+		strcat(str, GetPipeString(pProcID));
 		if( pProcID->getOne2OneFlag() )
 			strcat(str ,"{1:1}");
 		
@@ -3474,6 +3484,8 @@ void CProcDataPage::SetToolBarState(const HTREEITEM hItem )
 	m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE );
 	m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE );
 	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
+	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE, FALSE );
+	m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE_AUTO, FALSE );
 	COOLTREE_NODE_INFO* pCNI=m_TreeData.GetItemNodeInfo(hItem);
 	if(pCNI->net==NET_EDITSPIN_WITH_VALUE||pCNI->net==NET_EDIT_WITH_VALUE)
 	{
@@ -3492,6 +3504,22 @@ void CProcDataPage::SetToolBarState(const HTREEITEM hItem )
 		{
 			m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE );
 			m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, TRUE );
+			if(m_TreeData.GetParentItem(hItem) == m_hWaitArea )
+			{
+				MiscData* pMiscData = GetCurMiscData();
+				if( pMiscData == NULL )
+					return;
+
+				ProcessorIDList* pProcIDList = pMiscData->getWaitAreaList();
+				if( !pProcIDList )
+					return;
+
+				int nDBIdx = m_TreeData.GetItemData(hItem);
+				MiscProcessorIDWithOne2OneFlag* pProc = (MiscProcessorIDWithOne2OneFlag*)pProcIDList->getItem( nDBIdx );
+				SetImgOfButtonEditPipeAuto(pProc->GetTypeOfUsingPipe());
+				m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE, TRUE );
+				m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE_AUTO, TRUE );
+			}
 		}
 	}
 	else
@@ -4197,4 +4225,150 @@ void CProcDataPage::ReloadStandConnectorList(MiscData* _pMiscData)
 void CProcDataPage::InitSpecificBehvaior()
 {
 	
+}
+
+void CProcDataPage::OnButtonEditPipeManual()
+{
+	EditPipe(EDIT_PIPE_MANUAL);
+}
+
+void CProcDataPage::OnButtonEditPipeAuto()
+{
+	EditPipe(EDIT_PIPE_AUTO);
+}
+
+void CProcDataPage::EditPipe(int editPipeOrder)
+{
+	HTREEITEM hItem = m_hCurrentSelItem;
+	if( hItem == NULL )
+		return;
+
+	HTREEITEM hParentItem = m_TreeData.GetParentItem( hItem );	
+	if( hParentItem == m_hWaitArea )
+	{
+		MiscData* pMiscData = GetCurMiscData();
+		if( pMiscData == NULL )
+			return;
+
+		ProcessorIDList* pProcIDList = pMiscData->getWaitAreaList();
+		if( !pProcIDList )
+			return;
+
+		int nDBIdx = m_TreeData.GetItemData(hItem);
+		MiscProcessorIDWithOne2OneFlag* pProc = (MiscProcessorIDWithOne2OneFlag*)pProcIDList->getItem( nDBIdx );
+		if(editPipeOrder == EDIT_PIPE_MANUAL)
+		{
+			CPaxFlowSelectPipes dlg( m_pInTerm, pProc->GetPipeVector(), pProc->GetTypeOfUsingPipe() );
+			if( dlg.DoModal() == IDOK )
+			{
+				PaxFlowEditPipManual(pProc, &dlg);
+			}
+		}
+		else if(editPipeOrder == EDIT_PIPE_AUTO)
+		{
+			PaxFlowEditPipeAuto(pProc);
+		}
+		else
+		{
+			return;
+		}
+		ReloadWaitAreaList( pMiscData );	
+		SetModified();
+	}
+}
+
+CString CProcDataPage::GetPipeString( const MiscProcessorIDWithOne2OneFlag* pProc )
+{
+	CString sReturnStr = "";
+	if( pProc->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM )// via pipe system
+	{
+		sReturnStr = " [ Via :Pipe System ] ";
+		return sReturnStr;
+	}
+	else if(pProc->GetTypeOfUsingPipe() == USE_NOTHING )
+		return "";
+
+	int iCount = pProc->GetUsedPipeCount();	
+	if( iCount <=0 )
+		return "";
+
+	sReturnStr = " [ Via :";
+	InputTerminal* pTerm = m_pInTerm;
+	for( int i=0; i < iCount-1; ++i )
+	{
+		sReturnStr += pTerm->m_pPipeDataSet->GetPipeAt( pProc->GetPipeAt(i) )->GetPipeName();
+		sReturnStr += " --> ";
+	}
+	sReturnStr += pTerm->m_pPipeDataSet->GetPipeAt( pProc->GetPipeAt(iCount-1))->GetPipeName();
+	sReturnStr += " ] ";
+	return sReturnStr;
+}
+
+void CProcDataPage::PaxFlowEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc, CPaxFlowSelectPipes* pSelectPipeDlg)
+{
+	ASSERT( pProc );
+	ASSERT(pSelectPipeDlg->m_bSelectPipe );
+
+	if (pSelectPipeDlg->m_vPipeIdx.size() <= 0) 
+	{
+		pProc->SetTypeOfUsingPipe( USE_NOTHING );
+		SetImgOfButtonEditPipeAuto( USE_NOTHING );
+	}
+	else
+	{
+		pProc->SetTypeOfUsingPipe( USE_USER_SELECTED_PIPES );
+		SetImgOfButtonEditPipeAuto( USE_USER_SELECTED_PIPES );
+	}
+	pProc->GetPipeVector() = pSelectPipeDlg->m_vPipeIdx;
+	return;
+}
+
+void CProcDataPage::PaxFlowEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pProc )
+{
+	int typeOfUsingPipe = pProc->GetTypeOfUsingPipe();
+	switch(typeOfUsingPipe)
+	{
+	case USE_NOTHING:
+		typeOfUsingPipe = USE_PIPE_SYSTEM;
+		break;
+	case USE_PIPE_SYSTEM:
+		typeOfUsingPipe = USE_NOTHING;
+		break;
+	case USE_USER_SELECTED_PIPES:
+		typeOfUsingPipe = USE_NOTHING;
+		break;
+	default:
+		return;
+		break;
+	}
+	pProc->GetPipeVector().clear();
+	pProc->SetTypeOfUsingPipe( typeOfUsingPipe );
+	SetImgOfButtonEditPipeAuto( typeOfUsingPipe );
+	return;
+}
+
+void CProcDataPage::SetImgOfButtonEditPipeAuto( int typeOfUsingPipe )
+{
+	if( typeOfUsingPipe!=USE_NOTHING && 
+		typeOfUsingPipe!=USE_PIPE_SYSTEM &&
+		typeOfUsingPipe!=USE_USER_SELECTED_PIPES )
+		return;
+	TBBUTTONINFO tbBtnInfo;
+	tbBtnInfo.cbSize=sizeof( TBBUTTONINFO );
+	tbBtnInfo.dwMask=TBIF_IMAGE;
+	CImageList* pIL = m_ToolBar.GetToolBarCtrl().GetImageList();
+	switch(typeOfUsingPipe)
+	{
+	case USE_NOTHING:
+		tbBtnInfo.iImage = 5;
+		break;
+	case USE_PIPE_SYSTEM:
+	case USE_USER_SELECTED_PIPES:
+		tbBtnInfo.iImage = pIL->GetImageCount()-1;
+		break;
+	default:
+		return;
+		break;
+	}
+	m_ToolBar.GetToolBarCtrl().SetButtonInfo( ID_LINKAGE_EDITPIPE_AUTO,&tbBtnInfo );
 }
