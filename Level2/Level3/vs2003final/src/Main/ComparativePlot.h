@@ -67,9 +67,9 @@ private:
 	bool Draw3DChart(const CComparativeThroughputReport& _reportData);
 	bool Draw3DChart(const CComparativeSpaceDensityReport& _reportData);
 	bool Draw3DChart(const CComparativePaxCountReport& _reportData);
-/*	bool Draw3DChart(const CComparativeAcOperationReport& _reportData);
+	bool Draw3DChart(const CComparativeAcOperationReport& _reportData);
 	bool Draw3DChart(const CComparativeTimeTerminalReport& _reportData);
-	bool Draw3DChart(const CComparativeDistanceTravelReport & _reportData);*/
+/*	bool Draw3DChart(const CComparativeDistanceTravelReport & _reportData);*/
 
 	ThreeDChartType m_iType;
 	CARC3DChart& m_3DChart;

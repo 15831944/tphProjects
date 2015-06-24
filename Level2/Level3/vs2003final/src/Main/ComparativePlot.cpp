@@ -1084,23 +1084,52 @@ bool CComparativePlot_new::Draw3DChart(const CComparativePaxCountReport& _report
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-/*
+
 bool CComparativePlot_new::Draw3DChart(const CComparativeAcOperationReport& _reportData)
 {
-	if(m_pChart == NULL)
-		return false;
-
 	const AcOperationMap& mapPaxDens = _reportData.GetResult();
 
-	// Update data
-	m_pChart->LabelCollection()->GetAt(0)->Text = " AcOperation Report ";
-	m_pChart->Axes(N3DCHARTLib::atLeftAxis)->Title = "Number of Operation";
-	m_pChart->Axes(N3DCHARTLib::atCategoriesAxis)->Title = "Time of Day";
+	C2DChartData c2dGraphData;
+	// Update Title
+	c2dGraphData.m_strChartTitle = _T(" AcOperation Report ");
+	c2dGraphData.m_strYtitle = _T("Number of Operation");
+	c2dGraphData.m_strXtitle = _T("Time of Day");
 
-	TCHAR sTime[64]	= _T("");
+	//set footer
+	CString strFooter;
+	c2dGraphData.m_strFooter = strFooter;
+
+	// Alloc data space
+	if( mapPaxDens.size()>0)
+	{
+		int simCount = mapPaxDens.begin()->second.size();
+		std::vector<double> vSegmentData(mapPaxDens.size());
+		vSegmentData.clear();
+		for(int nSeg = 0; nSeg < simCount; nSeg++)
+		{
+			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+		}	
+	}
+
+	// Insert legend.
+	for(int i=0; i<(int)m_vModelList.size(); i++)
+	{
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strLegend;
+			strLegend.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			c2dGraphData.m_vrLegend.push_back(strLegend);
+		}
+	}
+
+	// Insert data
+	CString XTickTitle;
+	std::vector<CString> vXTickTitle;
+	CString sTime;
 	int nXTick = 0;
 
-	for( AcOperationMap::const_iterator iterLine = mapPaxDens.begin(); iterLine != mapPaxDens.end(); iterLine++, nXTick++)
+	for( PaxDensMap::const_iterator iterLine = mapPaxDens.begin(); iterLine != mapPaxDens.end(); iterLine++, nXTick++)
 	{
 		const std::vector<int>& vLength = iterLine->second;
 
@@ -1109,76 +1138,93 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeAcOperationReport& _rep
 		{
 			ElapsedTime t = iterLine->first;
 			t.set(t.asSeconds() % WholeDay);
-			t.printTime(sTime, FALSE);
-			if(t.asSeconds() == 0)
-			{
-				t.set(WholeDay);
-				t.printTime(sTime, FALSE);
-			}
-
-			m_pChart->Categories()->Add(_bstr_t(sTime), VARIANT_TRUE);
+			t.printTime(sTime.GetBuffer(32), FALSE);
+			sTime.ReleaseBuffer();
+			XTickTitle = sTime;
 		}
 		else
 		{
-			m_pChart->Categories()->Add(_bstr_t(""), VARIANT_TRUE);
+			XTickTitle = _T("");
 		}
+		vXTickTitle.push_back(XTickTitle);
 		//set data
-		for(int nRow = 0; nRow < (int)vLength.size(); nRow++)
-		{			
-			m_pChart->DataAt(nXTick, 0, nRow)->Value1 = vLength[nRow];
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}
 	}
-
-	return true;
-}
-
-bool CComparativePlot_new::Update3DChart(ThreeDChartType iType)
-{
-	m_iType = iType;
+	c2dGraphData.m_vrXTickTitle = vXTickTitle;
+	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
 
 bool CComparativePlot_new::Draw3DChart(const CComparativeTimeTerminalReport& _reportData)
 {
-	if(m_pChart == NULL)
-		return false;
-
 	const QTimeMap& mapQTime = _reportData.GetResult();
 
-	// Update data
-	m_pChart->LabelCollection()->GetAt(0)->Text = " Terminal Time Report ";
-	m_pChart->Axes(N3DCHARTLib::atLeftAxis)->Title = "Passenger Count";
-	m_pChart->Axes(N3DCHARTLib::atCategoriesAxis)->Title = "Time";
+	C2DChartData c2dGraphData;
+	// Update Title
+	c2dGraphData.m_strChartTitle = _T(" Terminal Time Report ");
+	c2dGraphData.m_strYtitle = _T("Passenger Count");
+	c2dGraphData.m_strXtitle = _T("Time");
 
-	TCHAR sTime[64]	= _T("");
-	int nXTick = 0;
-	CString strTimeLabel;
+	//set footer
+	CString strFooter;
+	c2dGraphData.m_strFooter = strFooter;
 
+	// Alloc data space
+	if( mapQTime.size()>0)
+	{
+		const std::vector<int>& vLength = mapQTime.begin()->second;
+		std::vector<double> vSegmentData(mapQTime.size());
+		vSegmentData.clear();
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			//c2dGraphData.m_vrLegend.push_back(mapQTime.first);
+			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+		}	
+	}
+
+	// Insert legend.
+	for(int i=0; i<(int)m_vModelList.size(); i++)
+	{
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			c2dGraphData.m_vrLegend.push_back(strColText);
+		}
+	}
+
+	// Insert data
+	CString XTickTitle;
+	std::vector<CString> vXTickTitle;
 	ElapsedTime tDuration, tPrev;
 	tDuration.set(0, 0, 0);
-
+	int nXTick = 0;
 	for( QTimeMap::const_iterator iterLine = mapQTime.begin(); iterLine != mapQTime.end(); iterLine++, nXTick++)
 	{
 		const std::vector<int>& vLength = iterLine->second;
 
-		//set row label
 		if (tDuration.asSeconds() == 0)
 			tDuration = iterLine->first;
 		tPrev = iterLine->first - tDuration;
-		strTimeLabel = tPrev.printTime();
-		strTimeLabel += _T(" - ");
-		strTimeLabel += iterLine->first.printTime();
-		m_pChart->Categories()->Add(_bstr_t(strTimeLabel), VARIANT_TRUE);
-
-		//set data
-		for(int nRow = 0; nRow < (int)vLength.size(); nRow++)
-		{			
-			m_pChart->DataAt(nXTick, 0, nRow)->Value1 = vLength[nRow];
+		XTickTitle = tPrev.printTime();
+		XTickTitle += _T(" - ");
+		XTickTitle += iterLine->first.printTime();
+		vXTickTitle.push_back(XTickTitle);
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}
 	}
 
+	c2dGraphData.m_vrXTickTitle = vXTickTitle;
+	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
+/*
 bool CComparativePlot_new::Draw3DChart(const CComparativeDistanceTravelReport & _reportData)
 {
 	if(m_pChart == NULL)
@@ -1224,3 +1270,8 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeDistanceTravelReport & 
 
 }
 */
+bool CComparativePlot_new::Update3DChart(ThreeDChartType iType)
+{
+	m_iType = iType;
+	return true;
+}
