@@ -7,6 +7,7 @@
 #include "probab.h"
 #include "inputs\resourcepool.h"
 #include "in_term.h"
+#include "..\Inputs\PipeDataSet.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -14,6 +15,7 @@
 CProcToResource::CProcToResource()
 {
 	m_proServiceTime = new ConstantDistribution(0);
+	m_iTypeOfUsingPipe = 0;
 }
 
 CProcToResource::CProcToResource( const CProcToResource& _prc2Res )
@@ -21,16 +23,19 @@ CProcToResource::CProcToResource( const CProcToResource& _prc2Res )
 	m_procID = _prc2Res.m_procID;
 	m_mobileCon = _prc2Res.m_mobileCon;
 	m_strResourcePoolName = _prc2Res.m_strResourcePoolName;
+	m_iTypeOfUsingPipe = _prc2Res.m_iTypeOfUsingPipe;
+	m_vUsedPipes = _prc2Res.m_vUsedPipes;
 	m_proServiceTime = ProbabilityDistribution::CopyProbDistribution( _prc2Res.m_proServiceTime);
 }
 
-CProcToResource::CProcToResource( const ProcessorID& _id, const CMobileElemConstraint& _mob,  const CString& _strName , ProbabilityDistribution* _pro) 
-				: m_procID( _id ), m_mobileCon( _mob),  m_strResourcePoolName( _strName)
+CProcToResource::CProcToResource( const ProcessorID& _id, const CMobileElemConstraint& _mob, const CString& _strName, ProbabilityDistribution* _pro) 
+				: m_procID( _id ), m_mobileCon( _mob), m_strResourcePoolName( _strName)
 {
 	if( _pro )
 		m_proServiceTime = _pro;
 	else
 		m_proServiceTime = new ConstantDistribution(0);
+	m_iTypeOfUsingPipe = 0;
 }
 
 CProcToResource& CProcToResource::operator=( const CProcToResource& _prc2Res )
@@ -42,6 +47,8 @@ CProcToResource& CProcToResource::operator=( const CProcToResource& _prc2Res )
 		m_strResourcePoolName = _prc2Res.m_strResourcePoolName;
 		if( m_proServiceTime )
 			delete m_proServiceTime;
+		m_iTypeOfUsingPipe = _prc2Res.m_iTypeOfUsingPipe;
+		m_vUsedPipes = _prc2Res.m_vUsedPipes;
 		m_proServiceTime = ProbabilityDistribution::CopyProbDistribution( _prc2Res.m_proServiceTime);
 	}
 	
@@ -113,7 +120,37 @@ bool CProcToResource::operator==( const CProcToResource& _proc2Res ) const
 	return m_procID == _proc2Res.m_procID && m_mobileCon == _proc2Res.m_mobileCon;
 }
 
+int CProcToResource::GetPipeAt( int _iIdx ) const
+{
+	ASSERT( _iIdx >=0 && _iIdx < static_cast<int>(m_vUsedPipes.size()) );
+	return m_vUsedPipes.at( _iIdx );
+}
 
+CString CProcToResource::GetPipeString(InputTerminal* pTerm)
+{
+	CString sReturnStr = "";
+	if( GetTypeOfUsingPipe() == USE_PIPE_SYSTEM )// via pipe system
+	{
+		sReturnStr = " [ Via :Pipe System ] ";
+		return sReturnStr;
+	}
+	if(GetTypeOfUsingPipe() == USE_NOTHING )
+		return "None";
+
+	int iCount = GetUsedPipeCount();	
+	if( iCount <=0 )
+		return "None";
+
+	sReturnStr = " [ Via :";
+	for( int i=0; i < iCount-1; ++i )
+	{
+		sReturnStr += pTerm->m_pPipeDataSet->GetPipeAt( GetPipeAt(i) )->GetPipeName();
+		sReturnStr += " --> ";
+	}
+	sReturnStr += pTerm->m_pPipeDataSet->GetPipeAt( GetPipeAt(iCount-1))->GetPipeName();
+	sReturnStr += " ] ";
+	return sReturnStr;
+}
 
 /************************************************************************/
 /*                      CProcToResourceDataSet                          */

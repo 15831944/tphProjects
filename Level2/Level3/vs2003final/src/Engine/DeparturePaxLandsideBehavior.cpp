@@ -420,7 +420,7 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 
 					CPoint2008 startPos;
 					startPos.init(getPoint().n[VX],getPoint().n[VY],getPoint().n[VZ]);
-
+				
 					//get passenger current floor
 					//the landside floor is 1,2,3....
 					//the terminal floor is 100,200, 300
@@ -565,7 +565,7 @@ void DeparturePaxLandsideBehavior::processEntryTerminal( ElapsedTime p_time, dou
 		Point ptTerm(location[VX],location[VY],ifloor*SCALE_FACTOR);
 		pTermPhase->setLocation( ptTerm  );	
 		pTermPhase->setDestination(ptTerm);
-		pTermPhase->SetWalkOnBridge(TRUE);
+	//	pTermPhase->SetWalkOnBridge(TRUE);
 		pTermPhase->setLandsideSelectedProc(m_vLinkTerminalProc);
 
 		WriteLogEntry(p_time);

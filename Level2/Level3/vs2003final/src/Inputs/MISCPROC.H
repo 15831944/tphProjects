@@ -39,15 +39,15 @@ public:
 	void setOne2OneFlag( bool _bFlag ) { m_bOne2OneFlag = _bFlag; }
 
 	// Route condition
-	void SetTypeOfUsingPipe( int _iType ) { m_iTypeOfUsingPipe = _iType; };
-	int GetTypeOfUsingPipe() const { return m_iTypeOfUsingPipe;	};
+	void SetTypeOfUsingPipe( int _iType ) { m_iTypeOfUsingPipe = _iType; }
+	int GetTypeOfUsingPipe() const { return m_iTypeOfUsingPipe;	}
 
-	void AddUsedPipe(int _iIdxOfPipe ){ m_vUsedPipes .push_back( _iIdxOfPipe );};
-	void ClearAllPipe(){ m_vUsedPipes.clear();};
+	void AddUsedPipe(int _iIdxOfPipe ){ m_vUsedPipes .push_back( _iIdxOfPipe );}
+	void ClearAllPipe(){ m_vUsedPipes.clear();}
 	bool IfUseThisPipe(int nCurPipeIndex)const;
-	PIPES& GetPipeVector() { return m_vUsedPipes;};
-	int GetUsedPipeCount() const { return m_vUsedPipes.size();	};
-	int GetPipeAt( int _iIdx ) const ;
+	PIPES& GetPipeVector() { return m_vUsedPipes;}
+	int GetUsedPipeCount() const { return m_vUsedPipes.size();	}
+	int GetPipeAt( int _iIdx ) const;
 
 	// read and write
 	int readData (ArctermFile& file);

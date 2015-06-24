@@ -20,6 +20,9 @@
 class CResourcePool;
 class ProbabilityDistribution;
 
+#define USE_NOTHING				0
+#define USE_PIPE_SYSTEM			1
+#define USE_USER_SELECTED_PIPES	2
 typedef std::vector<int> PIPES;
 class CProcToResource  
 {
@@ -55,6 +58,17 @@ public:
 	void setServiceTime( ProbabilityDistribution* _pro );
 	
 	long getRandomServiceTime( void ) const;
+
+	// Route condition
+	void SetTypeOfUsingPipe( int _iType ) { m_iTypeOfUsingPipe = _iType; }
+	int GetTypeOfUsingPipe() const { return m_iTypeOfUsingPipe;	}
+
+	void AddUsedPipe(int _iIdxOfPipe ){ m_vUsedPipes .push_back( _iIdxOfPipe );}
+	void ClearAllPipe(){ m_vUsedPipes.clear();}
+	PIPES& GetPipeVector() { return m_vUsedPipes;}
+	int GetUsedPipeCount() const { return m_vUsedPipes.size();	}
+	int GetPipeAt( int _iIdx ) const ;
+	CString GetPipeString(InputTerminal* pTerm);
 
 	// operator
 	bool operator<( const CProcToResource& _proc2Res )  const;

@@ -18,7 +18,7 @@
 #include "passengertypedialog.h"
 #include <Common/ProbabilityDistribution.h>
 #include <Inputs/PROCIDList.h>
-#include ".\proctorespooldlg.h"
+#include "..\Main\PaxFlowSelectPipes.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -155,26 +155,33 @@ void CProcToResPoolDlg::InitListCtrl()
 	
 	LV_COLUMNEX	lvc;
 	lvc.mask = LVCF_WIDTH | LVCF_TEXT ;
-	char columnLabel[5][128];
+	char columnLabel[6][128];
 	strcpy( columnLabel[0], "Processor" );		
 	strcpy( columnLabel[1], "Pax Type" );
 	strcpy( columnLabel[2], "Resource Pool" );
 	strcpy( columnLabel[3], "Service Time(Sec)" );
-	strcpy( columnLabel[4], "Pipe" );
+	strcpy( columnLabel[4], "Pipe Option" );
+	strcpy( columnLabel[5], "Pipe Information" );
 	
-	int DefaultColumnWidth[] = { 130,150, 150, 150, 150 };
+	int DefaultColumnWidth[] = { 130,150, 150, 150, 150, 200 };
 	int nFormat[] = {	LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_DROPDOWN , 
-		LVCFMT_CENTER | LVCFMT_DROPDOWN , LVCFMT_CENTER | LVCFMT_DROPDOWN };
+		LVCFMT_CENTER | LVCFMT_DROPDOWN , LVCFMT_CENTER | LVCFMT_DROPDOWN,LVCFMT_CENTER | LVCFMT_NOEDIT };
 	
 	// init distribution string list
 	CStringList strDistList;
 	CStringList strPoolList;
+	CStringList strPipeOptionList;
+	strPipeOptionList.InsertAfter(strPipeOptionList.GetTailPosition(), "None");
+	strPipeOptionList.InsertAfter(strPipeOptionList.GetTailPosition(), "Auto Pipe");
+	strPipeOptionList.InsertAfter(strPipeOptionList.GetTailPosition(), "Select Pipe...");
 	InitListString( strDistList, strPoolList );
 
-	for( int i=0; i<5; i++ )
+	for( int i=0; i<6; i++ )
 	{
 		if( i==2 )
 			lvc.csList = &strPoolList;
+		else if( i==4 )
+			lvc.csList = &strPipeOptionList;
 		else
 			lvc.csList = &strDistList;
 		lvc.pszText = columnLabel[i];
@@ -237,6 +244,15 @@ void CProcToResPoolDlg::ReloadData( void )
 		// service time
 		iter->getProServiceTime()->screenPrint( szBuffer );
 		m_listData.SetItemText( _idx, 3, szBuffer );
+
+		// pipe
+		if(iter->GetTypeOfUsingPipe() == USE_NOTHING)
+			m_listData.SetItemText( _idx, 4, "None");
+		else if(iter->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
+			m_listData.SetItemText( _idx, 4, "Auto Pipe");
+		else if(iter->GetTypeOfUsingPipe() == USE_USER_SELECTED_PIPES)
+			m_listData.SetItemText( _idx, 4, "Select Pipe...");
+		m_listData.SetItemText( _idx, 5, iter->GetPipeString(GetInputTerminal()));
 	}
 }
 
@@ -409,6 +425,39 @@ LRESULT CProcToResPoolDlg::OnInplaceCombox( WPARAM wParam, LPARAM lParam)
 		
 		_proc2Res->setServiceTime( pDist );	
 	}
+	else if( plvItem->iSubItem == 4)		// pipe option list
+	{
+		if(strcmp(plvItem->pszText,"None") == 0)
+		{
+			_proc2Res->SetTypeOfUsingPipe(USE_NOTHING);
+			_proc2Res->ClearAllPipe();
+		}
+		else if(strcmp(plvItem->pszText,"Auto Pipe") == 0)
+		{
+			_proc2Res->SetTypeOfUsingPipe(USE_PIPE_SYSTEM);
+			_proc2Res->ClearAllPipe();
+		}
+		else if(strcmp(plvItem->pszText,"Select Pipe...") == 0)
+		{
+			CPaxFlowSelectPipes dlg( GetInputTerminal(), _proc2Res->GetPipeVector(), _proc2Res->GetTypeOfUsingPipe() );
+			if( dlg.DoModal() == IDOK )
+			{
+				ASSERT(dlg.m_bSelectPipe );
+
+				if (dlg.m_vPipeIdx.size() <= 0) 
+				{
+					_proc2Res->SetTypeOfUsingPipe( USE_NOTHING );
+				}
+				else
+				{
+					_proc2Res->SetTypeOfUsingPipe( USE_USER_SELECTED_PIPES );
+				}
+				_proc2Res->GetPipeVector() = dlg.m_vPipeIdx;
+			}
+		}
+		CString pipeText = _proc2Res->GetPipeString(GetInputTerminal());
+		m_listData.SetItemText( plvItem->iItem, plvItem->iSubItem+1 , pipeText );
+	}
 	//////////////////////////////////////////////////////////////////////////
 	// enable save button
 	m_btnSave.EnableWindow( TRUE );
@@ -485,5 +534,3 @@ void CProcToResPoolDlg::OnCancel()
 	
 	CDialog::OnCancel();
 }
-
-
