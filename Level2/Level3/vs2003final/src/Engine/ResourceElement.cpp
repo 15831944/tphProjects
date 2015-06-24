@@ -141,14 +141,13 @@ void ResourceElement::handleArrivalProcessor( const ElapsedTime& _time )
 	}
 	
 	// write log entry
-	ElapsedTime nextTime = _time + serviceTime;
-	writeLogEntry( nextTime, false );
+	writeLogEntry( _time + serviceTime, false );
 
 	// then let the resource back to base
 // 	m_CurrentRequestItem.init();
 // 	setDestination( m_pOwnPool->getServiceLocation() );
 	setState( Resource_Leave_Processor );
-	generateEvent( nextTime,false );
+	generateEvent( _time + serviceTime,false );
 }
 
 ElapsedTime ResourceElement::moveTime(void)const
@@ -186,11 +185,7 @@ ElapsedTime ResourceElement::moveTime(void)const
 // processor leave processor
 void ResourceElement::handleLeaveProcessor(  const ElapsedTime& _time )
 {
-	setDestination( m_pOwnPool->getServiceLocation() );
-	setState( Resource_Back_To_Base );
-	ElapsedTime nextTime = _time + moveTime();
-	generateEvent( nextTime, false );
-	writeLogEntry( nextTime, false );
+	walkAlongShortestPath( m_pOwnPool->getServiceLocation(), _time);
 	if (m_pOwnPool->getPoolType() == PostServiceType)
 	{
 		m_CurrentRequestItem.request_proc->makeAvailable(NULL,_time,false);
@@ -204,6 +199,28 @@ void ResourceElement::handleBackToBase( const ElapsedTime& _time )
 	// now the the resource back to base
 	setState( Resource_Stay_In_Base );
 	m_pOwnPool->resourceBackToBase( this, _time );
+}
+
+// process walking on pipe
+void ResourceElement::handleWalkOnPipe( const ElapsedTime& _time )
+{
+	if(!m_vPipePointList.empty())
+	{
+		setDestination(m_vPipePointList.front().pt);
+		m_vPipePointList.erase(m_vPipePointList.begin());
+	}
+	else
+	{
+		if(getPreState() == Resource_Stay_In_Base)
+			setState(Resource_Arrival_Processor);
+		else if(getPreState() == Resource_Leave_Processor)
+			setState(Resource_Back_To_Base);
+		else
+			return;
+		setDestination(m_ptDestOfPipe);
+	}
+	generateEvent( _time + moveTime(), false );
+	writeLogEntry( _time + moveTime(), false );
 }
 
 //Writes the element's current location, state to the log file.
@@ -279,12 +296,12 @@ void ResourceElement::generateEvent (ElapsedTime eventTime,bool bNoLog)
 	m_prevEventTime = aMove->getTime();
 }
 
-void ResourceElement::WalkAlongShortestPath(Point destPoint, const ElapsedTime _curTime)
+void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime _curTime)
 {
-	m_ptFinalDest = destPoint;
+	m_ptDestOfPipe = _destPoint;
 	// if not same floor, need not move in pipe
 	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
-	int iEntryFloor = (int)(destPoint.getZ() / SCALE_FACTOR);
+	int iEntryFloor = (int)(_destPoint.getZ() / SCALE_FACTOR);
 	if (iCurFloor != iEntryFloor)
 		return;
 
@@ -293,30 +310,19 @@ void ResourceElement::WalkAlongShortestPath(Point destPoint, const ElapsedTime _
 		return;
 
 	CGraphVertexList shortestPath;
-	if (!pPipeMgr->getShortestPathFromLib(location, destPoint, shortestPath))
+	if (!pPipeMgr->getShortestPathFromLib(location, _destPoint, shortestPath))
 		return;
 
 	int nVertexCount = shortestPath.getCount();
 	if (nVertexCount < 3)
 		return;
 
-	PTONSIDEWALK LogPointList;
+	PTONSIDEWALK logPointList;
 	int iPercent = random(100);
-	m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
-	int tempSize = (int)LogPointList.size();
-	for(int i=0; i<tempSize; i++)
-	{
-		DistanceUnit x = LogPointList[i].getX();
-		DistanceUnit y = LogPointList[i].getY();
-		DistanceUnit z = LogPointList[i].getZ();
-	}
-	WritePipeLogs( LogPointList, _curTime);
-}
+	m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, logPointList );
 
-void ResourceElement::WritePipeLogs( PTONSIDEWALK& _vPointList, const ElapsedTime _eventTime,  bool _bNeedCheckEvacuation )
-{
 	m_vPipePointList.clear();
-	for (PTONSIDEWALK::iterator iter = _vPointList.begin(); iter != _vPointList.end(); iter++)
+	for (PTONSIDEWALK::iterator iter = logPointList.begin(); iter != logPointList.end(); iter++)
 	{
 		PipePointInformation pipeInfor;
 		if (m_vPipePointList.empty())
@@ -325,68 +331,14 @@ void ResourceElement::WritePipeLogs( PTONSIDEWALK& _vPointList, const ElapsedTim
 		}
 		else
 		{
-			PipePointInformation pipeInfor111 = m_vPipePointList.back();
-			pipeInfor.m_nPrePipe = pipeInfor111.m_nCurPipe;//todo
+			pipeInfor.m_nPrePipe = m_vPipePointList.back().m_nCurPipe;
 		}
 
 		pipeInfor.pt = iter->GetPointOnSideWalk();
 		pipeInfor.m_nCurPipe = iter->GetPipeIdx();
 		m_vPipePointList.push_back(pipeInfor);
 	}
-
 	setState(WalkOnPipe);
-	generateEvent(_eventTime,false);
-}
-
-void ResourceElement::handleWalkOnPipe( const ElapsedTime& _time )
-{
-	if(m_vPipePointList.empty())
-		return;
-
-	int xxxx = m_vPipePointList.size();
-	Point curPoint = location;
-	Point tempPoint;
-	for(int i=0; i<xxxx; i++)
-	{
-		tempPoint = m_vPipePointList[i].pt;
-	}
-	setDestination(m_vPipePointList.front().pt);
-	ElapsedTime nextTime = _time + moveTime();
-	generateEvent( nextTime, false );
-	writeLogEntry( nextTime, false );
-	m_vPipePointList.erase(m_vPipePointList.begin());
-	if(m_vPipePointList.empty())
-	{
-		short preState = getPreState();
-		if(getPreState() == Resource_Stay_In_Base)
-		{
-			Point curPoint = location;
-			setDestination(m_ptFinalDest);
-			nextTime = nextTime + moveTime();
-			setState(Resource_Arrival_Processor);
-			generateEvent( nextTime, false );
-			writeLogEntry( nextTime, false );
-		}
-		else if(getPreState() == Resource_Leave_Processor)
-		{
-			setState(Resource_Back_To_Base);
-		}
-	}
-}
-
-void ResourceElement::setState( short newState )
-{
-	static int x = 0;
-	x++;
-	if(x == 40 || newState == 42)
-	{
-		int xx = 0;
-	}
-	MobileElement::setState(newState);
-}
-
-void ResourceElement::setDestination( Point p )
-{
-	m_ptDestination = p;
+	generateEvent(_curTime,false);
 }
 

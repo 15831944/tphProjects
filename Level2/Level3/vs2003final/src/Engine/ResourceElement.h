@@ -13,7 +13,6 @@
 #include "MOBILE.H"
 #include "results\resourceelementlogentry.h"
 #include "inputs\resourcepool.h"
-#include "Inputs\TimePointOnSideWalk.h"
 // declare
 class Terminal;
 
@@ -45,8 +44,9 @@ private:
 
 	//Current destination, used for
 	Point m_ptDestination;
-	//Final destination
-	Point m_ptFinalDest;
+	//Final destination of pipe
+	Point m_ptDestOfPipe;
+	//Point list of pipe
 	std::vector<PipePointInformation> m_vPipePointList;
 // interface 
 public:
@@ -88,24 +88,22 @@ public:
 	// processor back to bas
 	virtual void handleBackToBase( const ElapsedTime& _time );
 
-	//Sets Element's destination
+	// process walking on pipe
 	virtual void handleWalkOnPipe(const ElapsedTime& _time );
 
 	//Generates the next movement event for the receiver based on its current state and adds it to the event list.
     virtual void generateEvent (ElapsedTime eventTime,bool bNoLog);
 
 	//Sets Element's destination
-	virtual void setDestination (Point p);
+	virtual void setDestination (Point p){m_ptDestination = p;}
 
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
 
-	virtual void setState(short newState);
-
-	void WalkAlongShortestPath(Point entryPoint, const ElapsedTime _curTime);
+	// automatic pipe
+	void walkAlongShortestPath(Point entryPoint, const ElapsedTime _curTime);
 
 	ElapsedTime moveTime (void) const;
-private:
-	void WritePipeLogs( PTONSIDEWALK& _vPointList, const ElapsedTime _eventTime,  bool _bNeedCheckEvacuation = false );
+	
 };
 
 #endif // !defined(AFX_RESOURCEELEMENT_H__F9F00B47_F1F5_4155_A378_183EC0EB0932__INCLUDED_)

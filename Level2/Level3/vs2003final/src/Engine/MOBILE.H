@@ -88,7 +88,7 @@ public:
     DistanceUnit getSpeed (void) const { return speed; }
 
     //Sets current event type.
-    virtual void setState (short newState) { m_iPreState = state; state = newState; }
+    void setState (short newState) { m_iPreState = state; state = newState; }
 
     //Sets travelling speed.
     void setSpeed (DistanceUnit p_speed) { speed = p_speed; }

@@ -239,7 +239,14 @@ bool TowingServiceEvent::TowingToDestination()
 
 	//no available taxi route, show error message
 	CString strWarn;
-	strWarn.Format("There is no available Towing route for flight from %s to %s ",pFlight->GetResource()->PrintResource(), m_pTowTruck->GetReleasePoint()->PrintResource());
+	if (m_pTowTruck->GetReleasePoint())
+	{
+		strWarn.Format("There is no available Towing route for flight from %s to %s ",pFlight->GetResource()->PrintResource(), m_pTowTruck->GetReleasePoint()->PrintResource());
+	}
+	else
+	{
+		strWarn.Format("There is no release point for flight. You should define release point for flight in Push back & tow operation specification");
+	}
 	CString strError = _T("DEFINE ERROR");
 	AirsideSimErrorShown::SimWarning(pFlight,strWarn,strError);
 
