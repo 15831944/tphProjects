@@ -44,7 +44,9 @@ private:
 	Point location;       
 
 	//Current destination, used for
-	Point m_ptDestination;      
+	Point m_ptDestination;
+	//Final destination
+	Point m_ptFinalDest;
 	std::vector<PipePointInformation> m_vPipePointList;
 // interface 
 public:
@@ -93,9 +95,11 @@ public:
     virtual void generateEvent (ElapsedTime eventTime,bool bNoLog);
 
 	//Sets Element's destination
-	virtual void setDestination (Point p){m_ptDestination = p;}
+	virtual void setDestination (Point p);
 
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
+
+	virtual void setState(short newState);
 
 	void WalkAlongShortestPath(Point entryPoint, const ElapsedTime _curTime);
 

@@ -42,11 +42,7 @@ MobileElement::~MobileElement ()
 void MobileElement::setBehavior(MobElementBehavior* _behavior)
 {
 	ASSERT( _behavior != NULL);
-	int xxx = getID();
-	if(xxx == 15)
-	{
-		int xxx2 = 0;
-	}
+
 	//check the behavior is exist or not, only 1 behavior could be exist at same time
 	int nBehaviorCount = (int)m_vBehavior.size();
 	for (int nBehavior = 0; nBehavior < nBehaviorCount; ++nBehavior)
@@ -60,7 +56,7 @@ void MobileElement::setBehavior(MobElementBehavior* _behavior)
 			return;
 		}
 	}
-	MobElementBehavior::BehaviorType behaviorType = _behavior->getBehaviorType();
+
 	m_vBehavior.push_back(_behavior);
 	//if(m_spPrevBehavior != NULL)
 	//	delete m_spPrevBehavior;
