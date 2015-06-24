@@ -762,6 +762,7 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 		}	
 	}
 
+	// Insert legend.
 	for(int i=0; i<(int)m_vModelList.size(); i++)
 	{
 		CModelToCompare *pModel = m_vModelList[i];
@@ -803,8 +804,7 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 
 bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportData)
 {
-	const QTimeMap& mapQTime = _reportData.GetResult();
-
+	const QLengthMap& mapQLength = _reportData.GetResult();
 	C2DChartData c2dGraphData;
 	// Update Title
 	c2dGraphData.m_strChartTitle = _T(" Queue Length Report ");
@@ -816,18 +816,18 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportD
 	c2dGraphData.m_strFooter = strFooter;
 
 	// Alloc data space
-	if( mapQTime.size()>0)
+	if( mapQLength.size()>0)
 	{
-		const std::vector<int>& vLength = mapQTime.begin()->second;
-		std::vector<double> vSegmentData(mapQTime.size());
+		int simCount = mapQLength.begin()->second.size();
+		std::vector<double> vSegmentData(mapQLength.size());
 		vSegmentData.clear();
-		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		for(int nSeg = 0; nSeg < simCount; nSeg++)
 		{
-			//c2dGraphData.m_vrLegend.push_back(mapQTime.first);
 			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
 		}	
 	}
 
+	// Insert legend.
 	for(int i=0; i<(int)m_vModelList.size(); i++)
 	{
 		CModelToCompare *pModel = m_vModelList[i];
@@ -844,7 +844,6 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportD
 	std::vector<CString> vXTickTitle;
 	CString sTime;
 	int nXTick = 0;
-	const QLengthMap& mapQLength = _reportData.GetResult();
 
 	for( QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine != mapQLength.end(); iterLine++, nXTick++)
 	{
@@ -874,47 +873,74 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportD
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-/*
+
 bool CComparativePlot_new::Draw3DChart(const CComparativeThroughputReport& _reportData)
 {
-	if(m_pChart == NULL)
-		return false;
-
 	const std::vector<CompThroughputData>& vData = _reportData.GetResult();
+	C2DChartData c2dGraphData;
+	// Update Title
+	c2dGraphData.m_strChartTitle = _T(" Throughput Report ");
+	c2dGraphData.m_strYtitle = _T("Units Served");
+	c2dGraphData.m_strXtitle = _T("Time of Day");
 
-	// Update data
-	m_pChart->LabelCollection()->GetAt(0)->Text = " Throughput Report ";
-	m_pChart->Axes(N3DCHARTLib::atLeftAxis)->Title = "Units Served";
-	m_pChart->Axes(N3DCHARTLib::atCategoriesAxis)->Title = "Time of Day";
+	//set footer
+	CString strFooter;
+	c2dGraphData.m_strFooter = strFooter;
+	
+	// Alloc data space
+	if( vData.size()>0)
+	{
+		int simCount = vData.begin()->vPaxServed.size();
+		std::vector<double> vSimData(vData.size());
+		vSimData.clear();
+		for(int nSim = 0; nSim < simCount; nSim++)
+		{
+			c2dGraphData.m_vr2DChartData.push_back(vSimData);
+		}	
+	}	
 
+	// Insert legend.
+	for(int i=0; i<(int)m_vModelList.size(); i++)
+	{
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strLegend;
+			strLegend.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			c2dGraphData.m_vrLegend.push_back(strLegend);
+		}
+	}
+	
+	// Insert data
+	CString XTickTitle;
+	std::vector<CString> vXTickTitle;
+	CString sTime;
 	int nXTick = 0;
 
-	CString strTime;
-	for( std::vector<CompThroughputData>::const_iterator iterLine = vData.begin(); 
+	for(std::vector<CompThroughputData>::const_iterator iterLine = vData.begin(); 
 		iterLine != vData.end(); iterLine++, nXTick++)
-	{		
-		const std::vector<int>& vLength = iterLine->vPaxServed;
-
+	{
 		//set row label
 		ElapsedTime t = iterLine->etStart;
 		t.set(t.asSeconds() % WholeDay);
-		strTime = t.printTime(0);
-		strTime += "~";
+		XTickTitle = t.printTime(0);
+		XTickTitle += "~";
 		t = iterLine->etEnd;
 		t.set(t.asSeconds() % WholeDay);
-		strTime += t.printTime(0);
-		m_pChart->Categories()->Add(_bstr_t(strTime), VARIANT_TRUE);
-
+		XTickTitle += t.printTime(0);
+		vXTickTitle.push_back(XTickTitle);
 		//set data
-		for(int nRow = 0; nRow < (int)vLength.size(); nRow++)
-		{			
-			m_pChart->DataAt(nXTick, 0, nRow)->Value1 = vLength[nRow];
+		const std::vector<int>& vLength = iterLine->vPaxServed;
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}
 	}
-
+	c2dGraphData.m_vrXTickTitle = vXTickTitle;
+	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-
+/*
 bool CComparativePlot_new::Draw3DChart(const CComparativeSpaceDensityReport& _reportData)
 {
 	if(m_pChart == NULL)
