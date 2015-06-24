@@ -667,49 +667,39 @@ void CComparativePlot_new::Init3DChart()
 }
 void CComparativePlot_new::UniformAppearances()
 {
-	//using namespace N3DCHARTLib;
-
-// 	if (m_pChart == NULL)
-// 		return ;
-
-// 	IDualBarPresentGroupPtr pBar = m_pChart->PresentGroups()->GetAt(0);
-// 	IDualLinePresentGroupPtr pLine = m_pChart->PresentGroups()->GetAt(1);
-// 	pBar->Common()->UniformAppearances()->RemoveAll();
-// 	pLine->Common()->UniformAppearances()->RemoveAll();
-
 	int nIndex = 0;
 	CString strText;
 
-	size_t nModelsCount = m_vModelList.size();
-	std::vector<COLORREF> vUniqueColors, vGradientColors;
-	GetUniqueColors(vUniqueColors, 7);
-
-	for(size_t i = 0; i < nModelsCount; i++)
-	{
-		CModelToCompare* pModel = m_vModelList[i];
-		size_t nResultCount = pModel->GetSimResultCount();
-		GetGradientColors(vGradientColors, vUniqueColors[i], RGB(255, 255, 255), nResultCount);
-
-		for (size_t j= 0; j < nResultCount; ++j)
-		{
-			strText.Format(_T("%s(%s)"), pModel->GetModelName(), pModel->GetSimResult(j));
-			COLORREF color = vGradientColors[j];
+// 	size_t nSimCount = m_.size();
+// 	std::vector<COLORREF> vUniqueColors, vGradientColors;
+// 	GetUniqueColors(vUniqueColors, 7);
+// 
+// 	for(size_t i = 0; i < nSimCount; i++)
+// 	{
+// 		CModelToCompare* pModel = m_vModelList[i];
+// 		size_t nResultCount = pModel->GetSimResultCount();
+// 		GetGradientColors(vGradientColors, vUniqueColors[i], RGB(255, 255, 255), nResultCount);
+// 
+// 		for (size_t j= 0; j < nResultCount; ++j)
+// 		{
+// 			strText.Format(_T("%s(%s)"), pModel->GetModelName(), pModel->GetSimResult(j));
+// 			COLORREF color = vGradientColors[j];
 
 // 			pBar->Common()->UniformAppearances()->Add(_bstr_t(strText));
 // 			pBar->Common()->UniformAppearances()->GetAt(nIndex)->FillEffect()->SetSolidColor(color);
 
 			// Need 2 appearances for each line, one for the line part of the line and one for the data point. 
-			for(int m = 0; m < 2; ++m)
-			{
+// 			for(int m = 0; m < 2; ++m)
+// 			{
 				//IDualAppearancePtr pApperance = pLine->Common()->UniformAppearances()->Add(_bstr_t(strText));
 // 				pApperance->FillEffect()->Color = color;
 // 				pApperance->Border()->Color = color;
 // 				pApperance->Border()->Width = 3;
-			}
+// 			}
 
-			nIndex++;
-		}
-	}
+// 			nIndex++;
+// 		}
+// 	}
 
 	switch(m_iType)
 	{
@@ -763,15 +753,11 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 	}
 
 	// Insert legend.
-	for(int i=0; i<(int)m_vModelList.size(); i++)
+	std::vector<CString> vSimName = _reportData.GetSimNameList();
+	int simNameCount = vSimName.size();
+	for(int i=0; i<simNameCount; i++)
 	{
-		CModelToCompare *pModel = m_vModelList[i];
-		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
-		{
-			CString strColText = _T("");
-			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
-			c2dGraphData.m_vrLegend.push_back(strColText);
-		}
+		c2dGraphData.m_vrLegend.push_back(vSimName[i]);
 	}
 
 	// Insert data

@@ -44,19 +44,17 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 	if(!IsWindowVisible())
 		return;
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
-	CInputParameter* inputParam = pCompProj->GetInputParam();
-	CReportsManager* reportsManager = inputParam->GetReportsManagerPtr();
-	std::vector<CReportToCompare>& vReportList = reportsManager->GetReportsList();
+ 	CInputParameter* inputParam = pCompProj->GetInputParam();
 
 	CModelsManager* modelsManager = inputParam->GetModelsManagerPtr();
 	std::vector<CModelToCompare *>& vModelList = modelsManager->GetModelsList();
-	const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
-	const CmpReportResultVector& vReport = crrList.GetReportResult();
+	const CComparativeReportResultList &resultList = pCompProj->GetCompReportResultList();
+	const CmpReportResultVector& vResult = resultList.GetReportResult();
 
-	for(int i = 0; i < static_cast<int>(vReport.size()); i++)
+	for(int i = 0; i < static_cast<int>(vResult.size()); i++)
 	{
 		CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart, vModelList);
-		cmpPlot.Draw3DChart(*vReport[i]);
+		cmpPlot.Draw3DChart(*vResult[i]);
 		break;
 	}
 }
