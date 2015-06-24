@@ -12,6 +12,7 @@
 #include "SelectALTObjectDialog.h"
 #include "../Common/AirportDatabase.h"
 #include "../Inputs/OperatingDoorSpec.h"
+#include "../AirsideGUI/DlgStandFamily.h"
 
 #include "DleACTypeDoorSelection.h"
 // DlgOperatingDoorSpecification dialog
@@ -412,12 +413,17 @@ void DlgOperatingDoorSpecification::AddNewStandItem( HTREEITEM hSelItem,FltOpera
 	if(vAirport.size()<1) 
 		return ;
 
-	CSelectALTObjectDialog objDlg(0,vAirport.at(0));
-	objDlg.SetType( ALT_STAND );
-	if(objDlg.DoModal() != IDOK ) return;
+	//CSelectALTObjectDialog objDlg(0,vAirport.at(0));
+	//objDlg.SetType( ALT_STAND );
+	//if(objDlg.DoModal() != IDOK ) return;
+	CDlgStandFamily objDlg(pDoc->GetProjectID());
+	if(objDlg.DoModal()!=IDOK) return ;
 
 	CString pnewIDstr;
-	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+	pnewIDstr = objDlg.GetSelStandFamilyName();
+	if (pnewIDstr.IsEmpty())
+		return;
 
 	StandOperatingDoorData* pStandData = new StandOperatingDoorData;
 	pStandData->SetStandName( ALTObjectID((const char*)pnewIDstr));
@@ -592,12 +598,17 @@ void DlgOperatingDoorSpecification::EditStandItem( HTREEITEM hSelItem,FltOperati
 	if(vAirport.size()<1) 
 		return ;
 
-	CSelectALTObjectDialog objDlg(0,vAirport.at(0));
-	objDlg.SetType( ALT_STAND );
-	if(objDlg.DoModal() != IDOK ) return;
+	//CSelectALTObjectDialog objDlg(0,vAirport.at(0));
+	//objDlg.SetType( ALT_STAND );
+	//if(objDlg.DoModal() != IDOK ) return;
+	CDlgStandFamily objDlg(pDoc->GetProjectID());
+	if(objDlg.DoModal()!=IDOK) return ;
 
 	CString pnewIDstr;
-	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+	pnewIDstr = objDlg.GetSelStandFamilyName();
+	if (pnewIDstr.IsEmpty())
+		return;
 
 
 	pStandData->SetStandName( ALTObjectID((const char*)pnewIDstr));

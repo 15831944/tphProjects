@@ -7,6 +7,7 @@
 #include "SelectStandDialog.h"
 #include "../InputAirside/InputAirside.h"
 #include "Common/UnitPiece.h"
+#include "../AirsideGUI/DlgStandFamily.h"
 
 static const char consSpeTypes[][32] = {_T("OneStandOnly"), _T("ConcurrentUse"), _T("MidOrSides")};
 
@@ -182,11 +183,16 @@ void DlgAdjacencyConstraintSpec::OnNewItem()
 	if(vAirport.size()<1) return ;
 
 
-	CSelectStandDialog objDlg(0,vAirport.at(0));
-	if(objDlg.DoModal() != IDOK ) return;
+	//CSelectStandDialog objDlg(0,vAirport.at(0));
+	//if(objDlg.DoModal() != IDOK ) return;
+	CDlgStandFamily objDlg(m_nProjectID);
+	if(objDlg.DoModal()!=IDOK) return ;
 
 	CString pnewIDstr;
-	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+	pnewIDstr = objDlg.GetSelStandFamilyName();
+	if (pnewIDstr.IsEmpty())
+		return;
 
 	
 	AdjacencyConstraintSpecDate pAdjacencyConSpec;
@@ -381,11 +387,17 @@ LRESULT DlgAdjacencyConstraintSpec::OnDoubleClick( WPARAM wParam, LPARAM lParam 
 
 	if (nCollumn == 1) //  Stand1
 	{
-		CSelectStandDialog objDlg(0,vAirport.at(0));
-		if(objDlg.DoModal() != IDOK ) return 0;
+	/*	CSelectStandDialog objDlg(0,vAirport.at(0));
+		if(objDlg.DoModal() != IDOK ) return 0;*/
+		CDlgStandFamily objDlg(m_nProjectID);
+		if(objDlg.DoModal()!=IDOK) return 0;
+
 
 		CString pnewIDstr;
-		if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+	//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+		pnewIDstr = objDlg.GetSelStandFamilyName();
+		if (pnewIDstr.IsEmpty())
+			return 0;
 
 	
 		conItem.SetFirstGate(ALTObjectID((const char*)pnewIDstr));
@@ -395,12 +407,16 @@ LRESULT DlgAdjacencyConstraintSpec::OnDoubleClick( WPARAM wParam, LPARAM lParam 
 	{
 		if (conItem.m_FirstGate.IsBlank())
 			return 0;	
-		CSelectStandDialog objDlg(0,vAirport.at(0));
-		if(objDlg.DoModal() != IDOK ) return 0;
+	/*	CSelectStandDialog objDlg(0,vAirport.at(0));
+		if(objDlg.DoModal() != IDOK ) return 0;*/
+		CDlgStandFamily objDlg(m_nProjectID);
+		if(objDlg.DoModal()!=IDOK) return 0;
 
 		CString pnewIDstr;
-		if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
-
+	//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+		pnewIDstr = objDlg.GetSelStandFamilyName();
+		if (pnewIDstr.IsEmpty())
+			return 0;
 
 		conItem.SetSecondGate(ALTObjectID((const char*)pnewIDstr));
 		SetListItemContent(nItem, conItem);
@@ -410,11 +426,16 @@ LRESULT DlgAdjacencyConstraintSpec::OnDoubleClick( WPARAM wParam, LPARAM lParam 
 		if (conItem.m_FirstGate.IsBlank() || conItem.m_SecondGate.IsBlank())
 			return 0;
 	
-		CSelectStandDialog objDlg(0,vAirport.at(0));
-		if(objDlg.DoModal() != IDOK ) return 0;
+		//CSelectStandDialog objDlg(0,vAirport.at(0));
+		//if(objDlg.DoModal() != IDOK ) return 0;
+		CDlgStandFamily objDlg(m_nProjectID);
+		if(objDlg.DoModal()!=IDOK) return 0;
 
 		CString pnewIDstr;
-		if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+	//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+		pnewIDstr = objDlg.GetSelStandFamilyName();
+		if (pnewIDstr.IsEmpty())
+			return 0;
 
 
 		conItem.SetThirdGate(ALTObjectID((const char*)pnewIDstr));

@@ -580,12 +580,11 @@ bool CRosterWizardDlg::getTimeFromString( const CString& _strItem, ElapsedTime& 
 		return false;
 
 	// get minutes
-	CString strMin = strTime.Right( strTime.GetLength() - pos - 1 );
-	pos = strMin.Find(':');
+	CString strMinSecond = strTime.Right( strTime.GetLength() - pos - 1 );
+	pos = strMinSecond.Find(':');
 	if( pos == -1 )
 		return false;
-	strMin = strMin.Left(pos);
-	CString strSec = strMin.Right(strMin.GetLength() - pos - 1);
+	CString strMin = strMinSecond.Left(pos);
 	for( i=0; i<strMin.GetLength(); i++ )
 		if( !isNumeric( strMin[i] ) )
 			return false;
@@ -593,6 +592,7 @@ bool CRosterWizardDlg::getTimeFromString( const CString& _strItem, ElapsedTime& 
 	if( imin<0 || imin>59 )
 		return false;
 	
+	CString strSec = strMinSecond.Right(strMinSecond.GetLength() - pos - 1);	
 	for( i=0; i<strSec.GetLength(); i++ )
 		if( !isNumeric( strSec[i] ) )
 			return false;

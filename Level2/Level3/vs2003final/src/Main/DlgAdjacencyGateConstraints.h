@@ -8,7 +8,7 @@ class InputTerminal;
 class CDlgAdjacencyGateConstraints : public CToolTipDialog
 {
 public:
-	CDlgAdjacencyGateConstraints(InputTerminal* pInTerm, AdjacencyGateConstraintList* pAdjGateConstraints, CWnd* pParent = NULL);
+	CDlgAdjacencyGateConstraints(InputTerminal* pInTerm,AdjacencyGateConstraintList* pAdjGateConstraints,int nProjID,CWnd* pParent = NULL);
 	virtual ~CDlgAdjacencyGateConstraints();
 	enum { IDD = IDD_ADJACENCYGATE_CONSTRAINTS };
 
@@ -27,6 +27,7 @@ protected:
 	void SetListItemContent(int nIndex,AdjacencyGateConstraint& conItem);
 	CString GetProjPath();
 
+	int m_nProjID;
 	InputTerminal*	m_pInputTerminal;
 	AdjacencyGateConstraintList* m_pAdjGateConstraints;
 	CToolBar		m_wndToolBar;

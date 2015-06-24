@@ -16,6 +16,7 @@
 #include "ProcesserDialog.h"
 #include "SelectALTObjectDialog.h"
 #include <Common/ProbabilityDistribution.h>
+#include "..\AirsideGUI\DlgStandFamily.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -661,25 +662,28 @@ void CBoardingCallDlg::OnChangeProcessor()
 
 	CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
 
-	CSelectALTObjectDialog objDlg(0,pDoc->GetCurrentAirport());
-	objDlg.SetType(ALT_STAND);
-	std::vector<CString> strList;
+	/*CSelectALTObjectDialog objDlg(0,pDoc->GetCurrentAirport());
+	objDlg.SetType(ALT_STAND);*/
+	CDlgStandFamily objDlg(pDoc->GetProjectID());
+//	std::vector<CString> strList;
+	CString strStand;
 	if(objDlg.DoModal()==IDOK) {
-		int nIdCount = objDlg.GetObjectIDStringList(strList);
-		for(int i =0;i<nIdCount;i++){
-			CString strTreeItem;
-			if(strList.at(i).IsEmpty()){
-				strTreeItem  = "Stand:";
-			}else {
-				strTreeItem.Format("Stand: %s", strList.at(i));
-			}
-			ProcessorID procID;
-			procID.SetStrDict( GetInputTerminal()->inStrDict );
-			procID.setID(strList.at(i));
-			pEntry->setProcID( procID );
-
-			m_tree.SetItemText(hCurSelItem,strTreeItem);
+	//	int nIdCount = objDlg.GetObjectIDStringList(strList);
+	//	for(int i =0;i<nIdCount;i++){
+		strStand = objDlg.GetSelStandFamilyName();
+		CString strTreeItem;
+		if(strStand.IsEmpty()){
+			strTreeItem  = "Stand:";
+		}else {
+			strTreeItem.Format("Stand: %s", strStand);
 		}
+		ProcessorID procID;
+		procID.SetStrDict( GetInputTerminal()->inStrDict );
+		procID.setID(strStand);
+		pEntry->setProcID( procID );
+
+		m_tree.SetItemText(hCurSelItem,strTreeItem);
+	//	}
 		m_btnSave.EnableWindow(TRUE);
 	}
 

@@ -33,6 +33,8 @@
 #include "..\Inputs\PipeDataSet.h"
 #include "Floor2.h"
 
+#include "..\AirsideGUI\DlgStandFamily.h"
+
 
 #include "..\engine\proclist.h"
 
@@ -4100,8 +4102,9 @@ void CProcDataPage::AddStandConnector()
 	if(vAirport.size()<1) return ;
 
 
-	CSelectALTObjectDialog dlg(0,vAirport.at(0));
-	dlg.SetType(ALT_STAND);
+//	CSelectALTObjectDialog dlg(0,vAirport.at(0));
+	//dlg.SetType(ALT_STAND);
+	CDlgStandFamily dlg(pDoc->GetProjectID());
 	if( dlg.DoModal() == IDCANCEL )
 		return;	
 
@@ -4109,24 +4112,34 @@ void CProcDataPage::AddStandConnector()
 	if( pMiscData == NULL )
 		return;
 
-	std::vector<CString> standList;
+//	std::vector<CString> standList;
 	ProcessorID id;	
 	ProcessorIDList idList;
 	ProcessorIDList idListShow;
 
-	if( !dlg.GetObjectIDStringList(standList) )
-		return;	
+	CString strStand;
+	strStand = dlg.GetSelStandFamilyName();
+	if (strStand.IsEmpty())
+		return;
+	
+// 	if( !dlg.GetObjectIDStringList(standList) )
+// 		return;	
 
-	for (int i = 0; i < (int)standList.size(); i++)
-	{
-		ProcessorID standID;
-		standID.SetStrDict(m_pInTerm->inStrDict);
-		standID.setID(standList.at(i));
-		idList.Add(&standID);
-	}
+	//for (int i = 0; i < (int)standList.size(); i++)
+	//{
+	//	ProcessorID standID;
+	//	standID.SetStrDict(m_pInTerm->inStrDict);
+	//	standID.setID(standList.at(i));
+	//	idList.Add(&standID);
+	//}
+
+	ProcessorID standID;
+	standID.SetStrDict(m_pInTerm->inStrDict);
+	standID.setID(strStand);
+	idList.Add(&standID);
 
 	int nIDcount = idList.getCount();
-	for(i = 0; i < nIDcount; i++)
+	for(int i = 0; i < nIDcount; i++)
 	{
 		if (!SelectStand(*(idList.getID(i))))  // check if exist
 		{

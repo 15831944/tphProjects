@@ -10,7 +10,7 @@ class DlgACTypeStandConstraint : public CXTResizeDialog
 	DECLARE_DYNAMIC(DlgACTypeStandConstraint)
 
 public:
-	DlgACTypeStandConstraint(InputTerminal* pTerminal,int nAirportID,ACTypeStandConstraintList* pConstraints,CWnd* pParent = NULL);   // standard constructor
+	DlgACTypeStandConstraint(InputTerminal* pTerminal,int nAirportID,int nProjID,ACTypeStandConstraintList* pConstraints,CWnd* pParent = NULL);   // standard constructor
 	virtual ~DlgACTypeStandConstraint();
 
 // Dialog Data
@@ -33,6 +33,7 @@ public:
 protected:
 	void OnInitTreeCtrl();
 
+
 	void AddACTypes();
 	void DelACType();
 private:
@@ -42,5 +43,6 @@ private:
 	HTREEITEM m_hRclickItem;
 	ACTypeStandConstraintList* m_pACTypeStandConstraints;
 	int m_nAirportID;
+	int m_nProjID;
 
 };

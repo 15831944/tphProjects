@@ -14,14 +14,16 @@
 #include "../Common/ALTObjectID.h"
 #include "../Database/ADODatabase.h"
 #include "DlgImportACTypeConstraintFromFile.h"
+#include "../AirsideGUI/DlgStandFamily.h"
 // DlgACTypeStandConstraint dialog
 
 IMPLEMENT_DYNAMIC(DlgACTypeStandConstraint, CXTResizeDialog)
-DlgACTypeStandConstraint::DlgACTypeStandConstraint(InputTerminal* pTerminal,int nAirportID,ACTypeStandConstraintList* pConstraints, CWnd* pParent /*=NULL*/)
+DlgACTypeStandConstraint::DlgACTypeStandConstraint(InputTerminal* pTerminal,int nAirportID,int nProjID,ACTypeStandConstraintList* pConstraints, CWnd* pParent /*=NULL*/)
 	: CXTResizeDialog(DlgACTypeStandConstraint::IDD, pParent)
 	,m_pInputTerminal(pTerminal)
 	,m_nAirportID(nAirportID)
 	,m_pACTypeStandConstraints(pConstraints)
+	,m_nProjID(nProjID)
 {
 }
 
@@ -249,13 +251,17 @@ void DlgACTypeStandConstraint::AddNewItem()
 		InputAirside::GetAirportList(pDoc->GetProjectID(),vAirport);
 		if(vAirport.size()<1) return ;
 
-		CSelectALTObjectDialog objDlg(0,vAirport[0]);
-		objDlg.SetType(ALT_STAND);
+	/*	CSelectALTObjectDialog objDlg(0,vAirport[0]);
+		objDlg.SetType(ALT_STAND);*/
+		CDlgStandFamily objDlg(m_nProjID);
 		if(objDlg.DoModal()!=IDOK) return ;
 
 		CString newIDstr;
-		if( !objDlg.GetObjectIDString(newIDstr) )  
-			return;	
+	/*	if( !objDlg.GetObjectIDString(newIDstr) )  
+			return;	*/
+		newIDstr = objDlg.GetSelStandFamilyName();
+		if (newIDstr.IsEmpty())
+			return;
 		ACTypeStandConstraint* pData = new ACTypeStandConstraint;
 		ALTObjectID GroupName(newIDstr.GetString());
 		pData->m_StandGroup.setName(GroupName);

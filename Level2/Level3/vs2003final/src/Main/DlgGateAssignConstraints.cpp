@@ -11,6 +11,7 @@
 #include "DlgACTypeStandConstraint.h"
 #include "DlgAdjacencyConstraintSpec.h"
 #include "DlgAssignmentConstraintSpec.h"
+#include "../AirsideGUI/DlgStandFamily.h"
 
 static const UINT ID_NEW_GATECONSTRAINT = 10;
 static const UINT ID_DEL_GATECONSTRAINT = 11;
@@ -290,13 +291,17 @@ void CDlgGateAssignConstraints::OnCmdNewItem()
 	// check if the process id has exist in the list ctrl
 
 
-	CSelectALTObjectDialog objDlg(0,m_nAirportID);
-	objDlg.SetType(ALT_STAND);
+	/*CSelectALTObjectDialog objDlg(0,m_nAirportID);
+	objDlg.SetType(ALT_STAND);*/
+	CDlgStandFamily objDlg(m_nProjectID);
 	if(objDlg.DoModal()!=IDOK) return ;
 
 	std::vector<CString> vConstraints;
 	CString objIDstr;
-	if( !objDlg.GetObjectIDString(objIDstr) )return;
+	objIDstr = objDlg.GetSelStandFamilyName();
+	if (objIDstr.IsEmpty())
+		return;
+//	if( !objDlg.GetObjectIDString(objIDstr) )return;
 
 	for (int i=0; i < m_wndListCtrl.GetItemCount(); i++ )
 	{
@@ -353,13 +358,18 @@ void CDlgGateAssignConstraints::OnCmdEditItem()
 		return;
 
 
-	CSelectALTObjectDialog objDlg(0,m_nAirportID);
-	objDlg.SetType(ALT_STAND);
+	/*CSelectALTObjectDialog objDlg(0,m_nAirportID);
+	objDlg.SetType(ALT_STAND);*/
+	CDlgStandFamily objDlg(m_nProjectID);
 	if(objDlg.DoModal()!=IDOK) return ;
 
 	std::vector<CString> vConstraints;
 	CString objIDstr;
-	if( !objDlg.GetObjectIDString(objIDstr) )return;
+	objIDstr = objDlg.GetSelStandFamilyName();
+	if (objIDstr.IsEmpty())
+		return;
+	
+//	if( !objDlg.GetObjectIDString(objIDstr) )return;
 
 	for (int i=0; i < m_wndListCtrl.GetItemCount(); i++ )
 	{
@@ -411,12 +421,12 @@ void CDlgGateAssignConstraints::OnAdjacencyCon()
  	{
  		if (m_pConstraints->GetStandAdjConstraint().GetUseFlag() == 1)
  		{
-			CDlgAdjacencyGateConstraints dlg(m_pInputTerminal,&m_pConstraints->GetStandAdjConstraint().GetAdjConstraints(),this);
+			CDlgAdjacencyGateConstraints dlg(m_pInputTerminal,&m_pConstraints->GetStandAdjConstraint().GetAdjConstraints(),m_nProjectID,this);
 			dlg.DoModal();
  		}
  		else
 		{
-			DlgAdjacencyConstraintSpec dlg(m_pInputTerminal, &m_pConstraints->GetStandAdjConstraint().GetAdjConstraintSpec(),m_nProjectID, this);
+			DlgAdjacencyConstraintSpec dlg(m_pInputTerminal,&m_pConstraints->GetStandAdjConstraint().GetAdjConstraintSpec(),m_nProjectID, this);
 			dlg.DoModal();
  			
  		}		
@@ -518,7 +528,7 @@ BOOL CDlgGateAssignConstraints::FindSameConstraints(std::vector<CString>&vConstr
 void CDlgGateAssignConstraints::OnBnClickedButtonActypeconstraint()
 {
 	// TODO: Add your control notification handler code here
-	DlgACTypeStandConstraint dlg(m_pInputTerminal, m_nAirportID, m_pConstraints->GetACTypeStandConstraints(), this);
+	DlgACTypeStandConstraint dlg(m_pInputTerminal, m_nAirportID, m_nProjectID,m_pConstraints->GetACTypeStandConstraints(), this);
 	dlg.DoModal();
 	m_pConstraints->GetACTypeStandConstraints()->RemoveAll();
 	m_pConstraints->GetACTypeStandConstraints()->ReadData();

@@ -23,6 +23,7 @@
 #include "inputs\schedule.h"
 #include <Inputs/PROCIDList.h>
 #include "./SelectALTObjectDialog.h"
+#include "../AirsideGUI/DlgStandFamily.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -478,14 +479,16 @@ void CBagDevDlg::OnBagassignAdd()
 		//	
 		//}
 		CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();			
-		CSelectALTObjectDialog objDlg(pDoc->GetProjectID(),m_nAirportID);
-
-		objDlg.SetType( ALT_STAND );
+	//	CSelectALTObjectDialog objDlg(pDoc->GetProjectID(),m_nAirportID);
+	//	objDlg.SetType( ALT_STAND );
+		CDlgStandFamily objDlg(pDoc->GetProjectID());
+	
 		if(objDlg.DoModal() == IDOK )
 		{
 			ProcessorID procID;
 			procID.SetStrDict(GetInputTerminal()->inStrDict);
-			procID.setID(_T(objDlg.GetSelectString()));
+		//	procID.setID(_T(objDlg.GetSelectString()));
+			procID.setID(_T(objDlg.GetSelStandFamilyName()));
 			GetInputTerminal()->bagGateAssignDB->addEntry( procID );
 			LoadTree2();
 			m_btnSave.EnableWindow();
@@ -987,15 +990,17 @@ void CBagDevDlg::OnPeoplemoverNew()
 	if(m_nFligtPriority==1)
 	{
 		CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();			
-		CSelectALTObjectDialog objDlg(pDoc->GetProjectID(),m_nAirportID);
+	//	CSelectALTObjectDialog objDlg(pDoc->GetProjectID(),m_nAirportID);
 
-		objDlg.SetType( ALT_STAND );
+	//	objDlg.SetType( ALT_STAND );
+		CDlgStandFamily objDlg(pDoc->GetProjectID());
 		if(objDlg.DoModal() == IDOK )
 		{
 			CGateLagTimeDB* pGateLagTimeDB = GetInputTerminal()->bagData->getGateLagTimeDB();
 			ProcessorID procID;
 			procID.SetStrDict(GetInputTerminal()->inStrDict);
-			procID.setID(objDlg.GetSelectString().GetBuffer());
+		//	procID.setID(objDlg.GetSelectString().GetBuffer());
+			procID.setID(objDlg.GetSelStandFamilyName().GetBuffer());
 
 			if( ! pGateLagTimeDB->FindEntry( procID  ) )
 			{

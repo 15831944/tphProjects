@@ -5,6 +5,7 @@
 #include "TermPlanDoc.h"
 #include "SelectStandDialog.h"
 #include "../InputAirside/InputAirside.h"
+#include "../AirsideGUI/DlgStandFamily.h"
 
 static const UINT ID_NEW_ADJACENCYGATECONSTRAINT = 10;
 static const UINT ID_DEL_ADJACENCYGATECONSTRAINT = 11;
@@ -13,11 +14,12 @@ static const UINT ID_EDIT_ADJACENCYGATECONSTRAINT = 12;
 static const char constraintTypes[][32] = {_T("Height(m)"), _T("Len(m)"), _T("Span(m)"), _T("MZFW(lbs)"),
 											_T("OEW(lbs)"), _T("MTOW(lbs)"), _T("MLW(lbs)"), _T("Capacity")};
 
-CDlgAdjacencyGateConstraints::CDlgAdjacencyGateConstraints(InputTerminal* pInTerm, AdjacencyGateConstraintList* pAdjGateConstraints, CWnd* pParent /*=NULL*/)
+CDlgAdjacencyGateConstraints::CDlgAdjacencyGateConstraints(InputTerminal* pInTerm, AdjacencyGateConstraintList* pAdjGateConstraints,int nProjID,CWnd* pParent /*=NULL*/)
  : CToolTipDialog(IDD, pParent)
  , m_pInputTerminal(pInTerm)
  , m_pAdjGateConstraints(pAdjGateConstraints)
 {
+	m_nProjID = nProjID;
 }
 
 CDlgAdjacencyGateConstraints::~CDlgAdjacencyGateConstraints()
@@ -212,11 +214,16 @@ void CDlgAdjacencyGateConstraints::OnCmdNewItem()
 	if(vAirport.size()<1) return ;
 	
 
-	CSelectStandDialog objDlg(0,vAirport.at(0));
-	if(objDlg.DoModal() != IDOK ) return;
+	//CSelectStandDialog objDlg(0,vAirport.at(0));
+	//if(objDlg.DoModal() != IDOK ) return;
+	CDlgStandFamily objDlg(m_nProjID);
+	if(objDlg.DoModal()!=IDOK) return ;
 
 	CString pnewIDstr;
-	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+	pnewIDstr = objDlg.GetSelStandFamilyName();
+	if (pnewIDstr.IsEmpty())
+		return;
 
 	GateAssignmentConstraint* pCon = new GateAssignmentConstraint;
 	pCon->SetGate( ALTObjectID((const char*)pnewIDstr));
@@ -260,11 +267,17 @@ void CDlgAdjacencyGateConstraints::OnCmdEditItem()
 	InputAirside::GetAirportList(pDoc->GetProjectID(),vAirport);
 	if(vAirport.size()<1) return ;
 
-	CSelectStandDialog objDlg(0,vAirport.at(0));
-	if(objDlg.DoModal() != IDOK ) return;
+	//CSelectStandDialog objDlg(0,vAirport.at(0));
+	//if(objDlg.DoModal() != IDOK ) return;
+
+	CDlgStandFamily objDlg(m_nProjID);
+	if(objDlg.DoModal()!=IDOK) return ;
 
 	CString pnewIDstr;
-	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+	pnewIDstr = objDlg.GetSelStandFamilyName();
+	if (pnewIDstr.IsEmpty())
+		return;
 
 	
 	AdjacencyGateConstraint& conItem = m_pAdjGateConstraints->GetItem(nSelItem);
@@ -496,11 +509,16 @@ LRESULT CDlgAdjacencyGateConstraints::OnCollumnIndex(WPARAM wParam,  LPARAM lPar
 		InputAirside::GetAirportList(pDoc->GetProjectID(),vAirport);
 		if(vAirport.size()<1) return 0 ;
 
-		CSelectStandDialog objDlg(0,vAirport.at(0));
-		if(objDlg.DoModal() != IDOK ) return 0;
+		//CSelectStandDialog objDlg(0,vAirport.at(0));
+		//if(objDlg.DoModal() != IDOK ) return 0;
+		CDlgStandFamily objDlg(m_nProjID);
+		if(objDlg.DoModal()!=IDOK) return 0;
 
 		CString pnewIDstr;
-		if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+	//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+		pnewIDstr = objDlg.GetSelStandFamilyName();
+		if (pnewIDstr.IsEmpty())
+			return 0;
 
 		int nItem = GetSelectedListItem();
 		if (nItem < 0)
@@ -522,12 +540,16 @@ LRESULT CDlgAdjacencyGateConstraints::OnCollumnIndex(WPARAM wParam,  LPARAM lPar
 		InputAirside::GetAirportList(pDoc->GetProjectID(),vAirport);
 		if(vAirport.size()<1) return 0;
 
-		CSelectStandDialog objDlg(0,vAirport.at(0));
-		if(objDlg.DoModal() != IDOK ) return 0;
+		/*CSelectStandDialog objDlg(0,vAirport.at(0));
+		if(objDlg.DoModal() != IDOK ) return 0;*/
+		CDlgStandFamily objDlg(m_nProjID);
+		if(objDlg.DoModal()!=IDOK) return 0;
 
 		CString pnewIDstr;
-		if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
-
+		//if( !objDlg.GetObjectIDString(pnewIDstr) )  return 0;
+		pnewIDstr = objDlg.GetSelStandFamilyName();
+		if (pnewIDstr.IsEmpty())
+			return 0;
 		
 		CString strNewProc = pnewIDstr;
 		int nItem = GetSelectedListItem();
