@@ -579,7 +579,11 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 	}
 	else if(hItem == m_hProjDesc)
 	{
-		strItemText.Format("Description: %s", m_pReportManager->GetCmpReport()->GetComparativeProject()->GetDescription());
+		CString strDesc = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetDescription();
+		if(strDesc.IsEmpty())
+			strItemText = "Description";
+		else
+			strItemText.Format("Description: %s", strDesc);
 		m_propTree.SetItemText(hItem, strItemText);
 	}
 	else if(hItem == m_hModelRoot)
@@ -1089,7 +1093,7 @@ void CCmpParametersWnd::OnCrdEditReport1()
 
 			pRManager->AddReport(report);
 
-			UpdateParaItem(m_pItemReports);
+			UpdateParaItem(m_hReportRoot);
 		}
 	}
 }
@@ -1111,11 +1115,6 @@ void CCmpParametersWnd::OnCrdDelete()
 	}
 
 	UpdateParaItem(m_pItemReports);
-}
-
-void CCmpParametersWnd::OnCrdDelete1() 
-{
-
 }
 
 void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
@@ -1195,6 +1194,17 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 		if(hCurItem == m_hProjName)
 		{
 			CString strOriName = m_pReportManager->GetCmpReport()->GetOriginProjName();
+			if(strValue.IsEmpty())
+			{
+				ReleaseCapture();
+				MessageBox("The name is empty, please set the project name!");
+				if(strOriName.IsEmpty())
+					strItemText = "Name";
+				else
+					strItemText.Format("Name: %s", strOriName);
+				m_propTree.SetItemText(hCurItem, strItemText);
+				return 0;
+			}
 			if (strValue.CompareNoCase(strOriName) == 0)
 			{
 				ReleaseCapture();
@@ -1206,7 +1216,10 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 			{
 				ReleaseCapture();
 				MessageBox("The name is already exists, please rename!");
-				strItemText.Format("Name: %s", strOriName);
+				if(strOriName.IsEmpty())
+					strItemText = "Name";
+				else
+					strItemText.Format("Name: %s", strOriName);
 				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
@@ -1216,7 +1229,16 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 		}
 		else if(hCurItem == m_hProjDesc)
 		{
-			strItemText.Format("Description: %s", strValue);
+			if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName().IsEmpty())
+			{
+				MessageBox("The name is empty, please set the project name!");
+				m_propTree.SetItemText(hCurItem, "Description");
+				return 0;
+			}
+			if(strValue.IsEmpty())
+				strItemText = "Description";
+			else
+				strItemText.Format("Description: %s", strValue);
 			m_propTree.SetItemText(hCurItem, strItemText);
 			pComProj->SetDescription(strValue);
 		}
@@ -1290,8 +1312,8 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 				HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 				HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
 				CString strModelName = m_propTree.GetItemText(hSubItem);
-				int iPos = strModelName.ReverseFind(':');
-				strModelName = strModelName.Right(strModelName.GetLength() - iPos -1);
+				CString strPadding = "Name: ";
+				strModelName = strModelName.Right(strModelName.GetLength() - strPadding.GetLength());
 				if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->DeleteModel(strModelName))
 				{
 					UpdateParaItem(m_hModelRoot);

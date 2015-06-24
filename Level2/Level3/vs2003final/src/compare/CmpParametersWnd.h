@@ -69,7 +69,6 @@ protected:
 	CString GetRegularDateTime(LPCTSTR elaptimestr, bool needsec = true);
 	void RunCompareReport();
 	BOOL CheckData();
-	void OnCrdDelete1();
 	void OnCrdEditReport1();
 	void RemoveItem(CXTPPropertyGridItem* pItem);
 	void UpdateParaItem(CXTPPropertyGridItem* pItem);
