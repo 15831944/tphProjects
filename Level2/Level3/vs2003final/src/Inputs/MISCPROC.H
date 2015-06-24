@@ -64,12 +64,10 @@ public:
 	virtual ~MiscProcessorIDList() {};
 
 	// read and wite 
-	virtual void readIDList (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true , bool _bUseOfPipe = true );
+	virtual void readIDList (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true );
 	virtual void writeIDList (ArctermFile& p_file) const;
-
-	// data compatible for version 3.70
-	virtual void readObsoleteIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne );
-	virtual void readCurVersionIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne, bool _bWithPipe );
+private:
+	void readIDListWithPipe(char* pBuf, MiscProcessorIDWithOne2OneFlag* procId);
 
 };
 //////////////////////////////////////////////////////////////////////////
