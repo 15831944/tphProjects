@@ -349,7 +349,7 @@ void ResourceElement::processPipe(EntityEvents _status, Point _destPoint, const 
 	}
 	else if(procToRes.GetTypeOfUsingPipe() == USE_USER_SELECTED_PIPES)
 	{
-		walkAlongUserPath(_destPoint, procToRes.GetPipeVector(), _curTime);
+		walkAlongUserDefinePath(_destPoint, procToRes.GetPipeVector(), _curTime);
 	}
 }
 
@@ -406,7 +406,7 @@ void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime 
 	generateEvent(_curTime,false);
 }
 
-void ResourceElement::walkAlongUserPath(Point _destPoint, std::vector<int> pipeList, const ElapsedTime _curTime)
+void ResourceElement::walkAlongUserDefinePath(Point _destPoint, std::vector<int> pipeList, const ElapsedTime _curTime)
 {
 	int nPipeCount = pipeList.size();
 	if( nPipeCount == 0 )
@@ -432,7 +432,7 @@ void ResourceElement::walkAlongUserPath(Point _destPoint, std::vector<int> pipeL
 		return;
 	}
 
-	writeLogEntry( _curTime, false ); // on leave server.
+	writeLogEntry( _curTime, false );
 
 	CPointToPipeXPoint entryPoint;
 	CPointToPipeXPoint exitPoint;

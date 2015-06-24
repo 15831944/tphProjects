@@ -16,6 +16,7 @@ CProcToResource::CProcToResource()
 {
 	m_proServiceTime = new ConstantDistribution(0);
 	m_iTypeOfUsingPipe = 0;
+	m_vUsedPipes.clear();
 }
 
 CProcToResource::CProcToResource( const CProcToResource& _prc2Res )
@@ -36,6 +37,7 @@ CProcToResource::CProcToResource( const ProcessorID& _id, const CMobileElemConst
 	else
 		m_proServiceTime = new ConstantDistribution(0);
 	m_iTypeOfUsingPipe = 0;
+	m_vUsedPipes.clear();
 }
 
 CProcToResource& CProcToResource::operator=( const CProcToResource& _prc2Res )
@@ -314,7 +316,7 @@ void CProcToResourceDataSet::clear (void)
 void CProcToResourceDataSet::readObsoleteData (ArctermFile& p_file)
 {
 	float version = p_file.getVersion();
-	if((version-2.2f) < 0.00001f && (2.2f-version) < 0.00001f)
+	if(-0.00001f < (version-2.2f) && (version-2.2f) < 0.00001f) // version 2.20
 	{
 		readObsoleteData22(p_file);
 	}
@@ -436,7 +438,7 @@ void CProcToResourceDataSet::writeData (ArctermFile& p_file) const
 		p_file.writeField( const_iter->getResourcePoolName() );
 		// service time
 		const_iter->getProServiceTime()->writeDistribution( p_file );
-
+		// pipe
 		int typeOfPipe = const_iter->GetTypeOfUsingPipe();
 		memset(pipeBuf, 0, 16);
 		itoa(typeOfPipe, pipeBuf, 10);
