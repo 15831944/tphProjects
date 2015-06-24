@@ -1,0 +1,27 @@
+// ACDetails.cpp: implementation of the CACDetails class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include "TermPlan.h"
+#include "ACDetails.h"
+
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[]=__FILE__;
+#define new DEBUG_NEW
+#endif
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+
+CACDetails::CACDetails()
+{
+
+}
+
+CACDetails::~CACDetails()
+{
+
+}
