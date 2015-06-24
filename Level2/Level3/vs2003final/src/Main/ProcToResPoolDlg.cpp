@@ -117,15 +117,6 @@ void CProcToResPoolDlg::OnSize(UINT nType, int cx, int cy)
 	if(m_listData)
 	{
 		CRect btnrc;
-		CRect tmpRect;
-		CRect clientRect;
-		GetClientRect(clientRect);
-		m_btnSave.GetWindowRect(tmpRect);
-		ScreenToClient(tmpRect);
-		m_listData.GetWindowRect(tmpRect);
-		ScreenToClient(tmpRect);
-
-
 		m_btnCancel.GetWindowRect( &btnrc );
 		m_ToolBar.MoveWindow(11, 16, cx-24, 26);
 		m_listData.MoveWindow(11, 42, cx-24, cy-80-btnrc.Height());
