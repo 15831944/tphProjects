@@ -100,10 +100,10 @@ int CCmpParametersWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rtEmpty.SetRectEmpty();
 
 	m_wndPropGrid.Create(rtEmpty, this, 11);
-	m_treex.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER| TVS_HASBUTTONS | TVS_LINESATROOT | 
+	m_propTree.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER| TVS_HASBUTTONS | TVS_LINESATROOT | 
 				   TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
    				   CRect(0, 0, 0, 0), this, 222);
-	m_treex.SetFont(&m_font);
+	m_propTree.SetFont(&m_font);
 	m_wndPropGrid.SetTheme(xtpGridThemeSimple);
 	m_wndPropGrid.ShowHelp(FALSE);
 	m_wndPropGrid.SetPropertySort(xtpGridSortNoSort);
@@ -125,8 +125,8 @@ void CCmpParametersWnd::OnSize(UINT nType, int cx, int cy)
 
 	if (::IsWindow(m_wndPropGrid.m_hWnd))
 		m_wndPropGrid.MoveWindow(0, 0, cx, (cy - BUTTON_AREA_HEIGHT)/2);
-	if (::IsWindow(m_treex.m_hWnd))
-		m_treex.MoveWindow(0, (cy - BUTTON_AREA_HEIGHT)/2, cx, (cy - BUTTON_AREA_HEIGHT)/2);
+	if (::IsWindow(m_propTree.m_hWnd))
+		m_propTree.MoveWindow(0, (cy - BUTTON_AREA_HEIGHT)/2, cx, (cy - BUTTON_AREA_HEIGHT)/2);
 
 	int x = 0, y = 0;
 	x = cx - 15 - BUTTON_WIDTH;
@@ -168,17 +168,17 @@ void CCmpParametersWnd::InitParaWnd()
 //	m_pItemSpace = m_pItemReports->AddChildItem(new CXTPPropertyGridItemCategory(_T("Space")));
 	m_pItemReports->Expand();
 	COOLTREE_NODE_INFO cni;
-	InitNodeInfo(this, cni);
+	InitCooltreeNodeInfo(this, cni);
 
-	m_hBasicInfo = m_treex.InsertItem(_T("Basic Info"), cni, FALSE, FALSE, TVI_ROOT);
-	m_hModelRoot = m_treex.InsertItem(_T("Models"),cni, FALSE, FALSE, TVI_ROOT);
-	m_hReportRoot = m_treex.InsertItem(_T("Reports"),cni, FALSE, FALSE, TVI_ROOT);
+	m_hBasicInfo = m_propTree.InsertItem(_T("Basic Info"), cni, FALSE, FALSE, TVI_ROOT);
+	m_hModelRoot = m_propTree.InsertItem(_T("Models"),cni, FALSE, FALSE, TVI_ROOT);
+	m_hReportRoot = m_propTree.InsertItem(_T("Reports"),cni, FALSE, FALSE, TVI_ROOT);
 
 	cni.net = NET_EDIT_WITH_VALUE;
-	m_hProjName = m_treex.InsertItem(_T("Name"), cni, FALSE, FALSE,m_hBasicInfo, TVI_LAST);
-	m_hProjDesc = m_treex.InsertItem(_T("Description"),cni, FALSE, FALSE, m_hBasicInfo, TVI_LAST);
+	m_hProjName = m_propTree.InsertItem(_T("Name"), cni, FALSE, FALSE,m_hBasicInfo, TVI_LAST);
+	m_hProjDesc = m_propTree.InsertItem(_T("Description"),cni, FALSE, FALSE, m_hBasicInfo, TVI_LAST);
 
-	m_treex.Expand(m_hBasicInfo, TVE_EXPAND);
+	m_propTree.Expand(m_hBasicInfo, TVE_EXPAND);
 }
 
 BOOL CCmpParametersWnd::CheckData()
@@ -271,10 +271,10 @@ void CCmpParametersWnd::RemoveSubItem( HTREEITEM hItem )
 	if(hItem == NULL)
 		return;
 	HTREEITEM hChildItem;
-	while((hChildItem = m_treex.GetChildItem(hItem)) != NULL)
+	while((hChildItem = m_propTree.GetChildItem(hItem)) != NULL)
 	{
 		RemoveSubItem(hChildItem);
-		m_treex.DeleteItem(hChildItem);
+		m_propTree.DeleteItem(hChildItem);
 	}
 }
 
@@ -322,7 +322,7 @@ void CCmpParametersWnd::UpdateParaItem(CXTPPropertyGridItem* pItem)
 			//add simulation result
 			CXTPPropertyGridItem* pSimResultItem = pModel->AddChildItem(new CXTPPropertyGridItem(_T("SimResult")));
 			int nSimCount = pModelToCompare->GetSimResultCount();
-			CString strSimResult = _T("");
+			CString strSimResult;
 			for (int j = 0; j < nSimCount; ++j)
 			{
 				strSimResult += pModelToCompare->GetSimResult(j);
@@ -575,30 +575,30 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 	if(hItem == m_hProjName)
 	{
 		strItemText.Format("Name: %s", m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName());
-		m_treex.SetItemText(hItem, strItemText);
+		m_propTree.SetItemText(hItem, strItemText);
 	}
 	else if(hItem == m_hProjDesc)
 	{
 		strItemText.Format("Description: %s", m_pReportManager->GetCmpReport()->GetComparativeProject()->GetDescription());
-		m_treex.SetItemText(hItem, strItemText);
+		m_propTree.SetItemText(hItem, strItemText);
 	}
 	else if(hItem == m_hModelRoot)
 	{
 		RemoveSubItem(m_hModelRoot);
 		COOLTREE_NODE_INFO cni;
-		InitNodeInfo(this, cni);
+		InitCooltreeNodeInfo(this, cni);
 		CModelsManager* pManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 		for(int i = 0; i < (int)pManager->GetModelsList().size(); i++)
 		{
 
 			CString strModel = "";
 			strModel.Format("Model-%d", i);
-			HTREEITEM hModel = m_treex.InsertItem(strModel, cni, FALSE, FALSE, m_hModelRoot);
+			HTREEITEM hModel = m_propTree.InsertItem(strModel, cni, FALSE, FALSE, m_hModelRoot);
 
 			CModelToCompare *pModelToCompare = pManager->GetModelsList().at(i);
 			CString strName = pModelToCompare->GetUniqueName();
 			strItemText.Format("Name: %s", strName);
-			m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
+			m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
 			int nSimCount = pModelToCompare->GetSimResultCount();
 			CString strSimResult;
 			for (int j = 0; j < nSimCount; ++j)
@@ -607,35 +607,30 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 				strSimResult += ",";
 			}
 			strSimResult.TrimRight(_T(","));
-			strItemText = _T("");
 			strItemText.Format("SimResult: %s", strSimResult);
-			HTREEITEM hSimResultItem = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
+			HTREEITEM hSimResultItem = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
 			CString strPath = pModelToCompare->GetModelLocation();
 			int nLenName = strName.GetLength();
 			int nLenPath = strPath.GetLength();
 			strPath = strPath.Left(nLenPath-nLenName-1);
-			strItemText = _T("");
 			strItemText.Format("Path: %s", strPath);
-			HTREEITEM hPathItem = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
-			m_treex.Expand(hModel, TVE_EXPAND);
+			HTREEITEM hPathItem = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
+			m_propTree.Expand(hModel, TVE_EXPAND);
 		}
-		m_treex.Expand(m_hModelRoot, TVE_EXPAND);
+		m_propTree.Expand(m_hModelRoot, TVE_EXPAND);
 	}
 	else if(hItem == m_hReportRoot)
 	{
 		RemoveSubItem(m_hReportRoot);
 		COOLTREE_NODE_INFO cni;
-		InitNodeInfo(this, cni);
+		InitCooltreeNodeInfo(this, cni);
 		CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 		std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 		for (int i = 0; i < static_cast<int>(vReports.size()); i++)
 		{
 			const CReportToCompare& report = vReports.at(i);
-
-
-			HTREEITEM hItem2 = m_treex.InsertItem(report.GetName(), cni, FALSE, FALSE, m_hReportRoot);
+			HTREEITEM hItem2 = m_propTree.InsertItem(report.GetName(), cni, FALSE, FALSE, m_hReportRoot);
 			CReportParamToCompare param = report.GetParameter();
-
 			int iIndex = -1;
 			switch (report.GetCategory())
 			{
@@ -669,24 +664,20 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 				continue;
 			}
 			CString strTemp = s_szReportCategoryName[iIndex];
-			strItemText = _T("");
 			strItemText.Format("Report Type: %s", strTemp);
-			HTREEITEM hRepName = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2);
+			HTREEITEM hRepName = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2);
 
 			strTemp = GetRegularDateTime(param.GetStartTime().printTime());
-			strItemText = _T("");
 			strItemText.Format("Start Time: %s", strTemp);
-			HTREEITEM hRepStartTime = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepName);
+			HTREEITEM hRepStartTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepName);
 
 			strTemp = GetRegularDateTime(param.GetEndTime().printTime());
-			strItemText = _T("");
 			strItemText.Format("End Time: %s", strTemp);
-			HTREEITEM hRepEndTime = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepStartTime);
+			HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepStartTime);
 
 			strTemp = param.GetInterval().printTime();
-			strItemText = _T("");
 			strItemText.Format("Interval: %s", strTemp);
-			HTREEITEM hInterval = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepEndTime);
+			HTREEITEM hInterval = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepEndTime);
 
 			//write Model Parameter
 			std::vector<CModelParameter> vModelParam;
@@ -698,17 +689,16 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 			{
 				CModelParameter& modelParam = vModelParam[nModelParam];
 				CString strModelName = pModelManager->GetModelsList().at(nModelParam)->GetModelName();
-				HTREEITEM hModelItem = m_treex.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
+				HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
 
 				if(iIndex == 3)
 				{
-					strItemText = _T("");
 					CString strTemp = modelParam.GetArea();
 					if(strTemp.IsEmpty())
 						strItemText = "Areas";
 					else
 						strItemText.Format("Areas: %s", strTemp);
-					HTREEITEM hAreas = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
+					HTREEITEM hAreas = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
 				}
 
 				if(report.GetCategory() == ENUM_QUEUETIME_REP ||
@@ -721,14 +711,14 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 					if (modelParam.GetPaxType(vPaxType))
 					{
 						strTemp = _T("Passanger Type");
-						HTREEITEM hPaxItem = m_treex.InsertItem("Passenger Type", cni, FALSE, FALSE, hModelItem);
+						HTREEITEM hPaxItem = m_propTree.InsertItem("Passenger Type", cni, FALSE, FALSE, hModelItem);
 						CString strPax;
 						for (int i = 0; i < static_cast<int>(vPaxType.size()); i++)
 						{
 							vPaxType[i].screenPrint(strPax);
-							m_treex.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
+							m_propTree.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
 						}
-						m_treex.Expand(hPaxItem, TVE_EXPAND);
+						m_propTree.Expand(hPaxItem, TVE_EXPAND);
 					}	
 				}
 				if (report.GetCategory() == ENUM_DURATION_REP ||
@@ -738,20 +728,20 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 					CReportParameter::FROM_TO_PROCS _fromtoProcs;
 					modelParam.GetFromToProcs(_fromtoProcs);
 
-					HTREEITEM hFromToItem = m_treex.InsertItem("From To Processors", cni, FALSE, FALSE, hModelItem);
-					HTREEITEM hFromItem = m_treex.InsertItem("From", cni, FALSE, FALSE, hFromToItem);
-					HTREEITEM hToItem = m_treex.InsertItem("To", cni, FALSE, FALSE, hFromToItem);
+					HTREEITEM hFromToItem = m_propTree.InsertItem("From To Processors", cni, FALSE, FALSE, hModelItem);
+					HTREEITEM hFromItem = m_propTree.InsertItem("From", cni, FALSE, FALSE, hFromToItem);
+					HTREEITEM hToItem = m_propTree.InsertItem("To", cni, FALSE, FALSE, hFromToItem);
 
 					for (int nFrom = 0; nFrom < (int)_fromtoProcs.m_vFromProcs.size(); ++ nFrom)
 					{
 						CString strProc = _fromtoProcs.m_vFromProcs.at(nFrom).GetIDString();
-						m_treex.InsertItem(strProc, cni, FALSE, FALSE, hFromItem);
+						m_propTree.InsertItem(strProc, cni, FALSE, FALSE, hFromItem);
 					}
 
 					for (int nTo = 0; nTo < (int)_fromtoProcs.m_vToProcs.size(); ++ nTo)
 					{
 						CString strProc = _fromtoProcs.m_vToProcs.at(nTo).GetIDString();
-						m_treex.InsertItem(strProc, cni, FALSE, FALSE, hToItem);
+						m_propTree.InsertItem(strProc, cni, FALSE, FALSE, hToItem);
 					}
 				}
 				else if(report.GetCategory() != ENUM_ACOPERATION_REP)
@@ -759,21 +749,21 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 					std::vector<ProcessorID> vProcGroup;
 					if (modelParam.GetProcessorID(vProcGroup))
 					{
-						HTREEITEM hProcTypeItem = m_treex.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
+						HTREEITEM hProcTypeItem = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
 						char szProc[128];
 						for (int i = 0; i < static_cast<int>(vProcGroup.size()); i++)
 						{
 							memset(szProc, 0, sizeof(szProc) / sizeof(char));
 							vProcGroup[i].printID(szProc);
-							m_treex.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
+							m_propTree.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
 						}
-						m_treex.Expand(hProcTypeItem, TVE_EXPAND);
+						m_propTree.Expand(hProcTypeItem, TVE_EXPAND);
 					}
 				}
-				m_treex.Expand(hModelItem, TVE_EXPAND);
+				m_propTree.Expand(hModelItem, TVE_EXPAND);
 			}
 		}
-		m_treex.Expand(m_hReportRoot, TVE_EXPAND);
+		m_propTree.Expand(m_hReportRoot, TVE_EXPAND);
 	}
 	m_pReportManager->GetCmpReport()->SetModifyFlag(TRUE);
 	m_pReportManager->GetCmpReport()->SaveProject();
@@ -1065,7 +1055,7 @@ void CCmpParametersWnd::OnCrdEditReport1()
 	CWaitCursor wc;
 
 	BOOL bFound = FALSE;
-	CString strReportName = m_treex.GetItemText(m_treex.GetSelectedItem());
+	CString strReportName = m_propTree.GetItemText(m_propTree.GetSelectedItem());
 	CModelsManager* pMManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 	CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
@@ -1131,10 +1121,10 @@ void CCmpParametersWnd::OnCrdDelete1()
 void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
 {
 	CPoint pt = point;
-	m_treex.ScreenToClient( &pt );
+	m_propTree.ScreenToClient( &pt );
 
 	UINT iRet;
-	HTREEITEM hCurItem = m_treex.HitTest( pt, &iRet );
+	HTREEITEM hCurItem = m_propTree.HitTest( pt, &iRet );
 	if(hCurItem == NULL)
 		return ;
 
@@ -1156,7 +1146,7 @@ void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
 		menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
 		menuReport.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
 	}
-	HTREEITEM hPareItem = m_treex.GetParentItem(hCurItem);
+	HTREEITEM hPareItem = m_propTree.GetParentItem(hCurItem);
 	if(hPareItem == NULL) return;
 	if(hPareItem == m_hModelRoot)
 	{
@@ -1186,15 +1176,15 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 	{
 		HTREEITEM hCurItem=(HTREEITEM)wParam;
 		CComparativeProject* pComProj = m_pReportManager->GetCmpReport()->GetComparativeProject();
-		if(m_treex.GetSelectedItem() == m_hProjName)
+		if(m_propTree.GetSelectedItem() == m_hProjName)
 		{
 			CString strValue = pComProj->GetName();
-			m_treex.GetEditWnd(hCurItem)->SetWindowText(strValue);
+			m_propTree.GetEditWnd(hCurItem)->SetWindowText(strValue);
 		}
-		else if(m_treex.GetSelectedItem() == m_hProjDesc)
+		else if(m_propTree.GetSelectedItem() == m_hProjDesc)
 		{
 			CString strValue = pComProj->GetDescription();
-			m_treex.GetEditWnd(hCurItem)->SetWindowText(strValue);
+			m_propTree.GetEditWnd(hCurItem)->SetWindowText(strValue);
 		}
 	}
 	if(message == UM_CEW_EDITSPIN_END)
@@ -1209,7 +1199,7 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 			{
 				ReleaseCapture();
 				strItemText.Format("Name: %s", strOriName);
-				m_treex.SetItemText(hCurItem, strItemText);
+				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
 			if(m_pReportManager->GetCmpReport()->ProjExists(strValue))
@@ -1217,17 +1207,17 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 				ReleaseCapture();
 				MessageBox("The name is already exists, please rename!");
 				strItemText.Format("Name: %s", strOriName);
-				m_treex.SetItemText(hCurItem, strItemText);
+				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
 			strItemText.Format("Name: %s", strValue.MakeUpper());
-			m_treex.SetItemText(hCurItem, strItemText);
+			m_propTree.SetItemText(hCurItem, strItemText);
 			pComProj->SetName(strValue);
 		}
 		else if(hCurItem == m_hProjDesc)
 		{
 			strItemText.Format("Description: %s", strValue);
-			m_treex.SetItemText(hCurItem, strItemText);
+			m_propTree.SetItemText(hCurItem, strItemText);
 			pComProj->SetDescription(strValue);
 		}
 		m_pReportManager->GetCmpReport()->SetModifyFlag(TRUE);
@@ -1236,7 +1226,7 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 	return CWnd::DefWindowProc(message, wParam, lParam);
 }
 
-void CCmpParametersWnd::InitNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/ )
+void CCmpParametersWnd::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/ )
 {
 	CNI.bEnable=TRUE;
 	CNI.dwItemData=NULL;
@@ -1266,7 +1256,7 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 	if(nID == MENU_UNAVAILABLE)
 		return;
 	int x = 0;
-	HTREEITEM hCurItem = m_treex.GetSelectedItem();
+	HTREEITEM hCurItem = m_propTree.GetSelectedItem();
 	if(hCurItem == NULL) return;
 	if(hCurItem == m_hModelRoot)
 	{
@@ -1290,16 +1280,16 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 			break;
 		}
 	}
-	HTREEITEM hPareItem = m_treex.GetParentItem(hCurItem);
+	HTREEITEM hPareItem = m_propTree.GetParentItem(hCurItem);
 	if(hPareItem == m_hModelRoot)
 	{
 		switch(nID)
 		{
 		case MENU_DELETE_MODEL:
 			{
-				HTREEITEM hSelItem = m_treex.GetSelectedItem();
-				HTREEITEM hSubItem = m_treex.GetChildItem(hSelItem);
-				CString strModelName = m_treex.GetItemText(hSubItem);
+				HTREEITEM hSelItem = m_propTree.GetSelectedItem();
+				HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
+				CString strModelName = m_propTree.GetItemText(hSubItem);
 				int iPos = strModelName.ReverseFind(':');
 				strModelName = strModelName.Right(strModelName.GetLength() - iPos -1);
 				if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->DeleteModel(strModelName))
@@ -1322,8 +1312,8 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 			break;
 		case MENU_DELETE_REPORT:
 			{
-				HTREEITEM hSelItem = m_treex.GetSelectedItem();
-				CString strReportName = m_treex.GetItemText(hSelItem);
+				HTREEITEM hSelItem = m_propTree.GetSelectedItem();
+				CString strReportName = m_propTree.GetItemText(hSelItem);
 				CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 				std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 				std::vector<CReportToCompare>::iterator iter;

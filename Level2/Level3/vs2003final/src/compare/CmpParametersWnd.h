@@ -26,7 +26,7 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
 	CXTPPropertyGrid m_wndPropGrid;
-	CCoolTree m_treex;
+	CCoolTree m_propTree;
 	CButton m_btnRun;
 	CButton m_btnCancel;
 	CCmpReportManager* m_pReportManager;
@@ -81,7 +81,7 @@ protected:
 public:
 	afx_msg void OnTimer(UINT nIDEvent);
 private:
-	void InitNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify=TRUE);
+	void InitCooltreeNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify=TRUE);
 };
 
 
