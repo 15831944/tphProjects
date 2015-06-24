@@ -44,20 +44,15 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 {
 	if(!IsWindowVisible())
 		return;
-	switch(m_categoryType)
-	{
-	case 0:
-	case -1:
-		{
-			CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
-			CInputParameter* inputParam = pCompProj->GetInputParam();
-			CReportsManager* reportsManager = inputParam->GetReportsManagerPtr();
-			std::vector<CReportToCompare>& vReportList = reportsManager->GetReportsList();
+	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
+	CInputParameter* inputParam = pCompProj->GetInputParam();
+	CReportsManager* reportsManager = inputParam->GetReportsManagerPtr();
+	std::vector<CReportToCompare>& vReportList = reportsManager->GetReportsList();
 
-			CModelsManager* modelsManager = inputParam->GetModelsManagerPtr();
-			std::vector<CModelToCompare *>& vModelList = modelsManager->GetModelsList();
-			const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
-			const CmpReportResultVector& vReport = crrList.GetReportResult();
+	CModelsManager* modelsManager = inputParam->GetModelsManagerPtr();
+	std::vector<CModelToCompare *>& vModelList = modelsManager->GetModelsList();
+	const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
+	const CmpReportResultVector& vReport = crrList.GetReportResult();
 
 			for(int i = 0; i < static_cast<int>(vReport.size()); i++)
 			{
@@ -65,11 +60,6 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 				cmpPlot.Draw3DChart(*vReport[i]);
 				break;
 			}
-		}
-		break;
-	default:
-		break;
-	}
 }
 
 void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)

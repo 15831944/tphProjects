@@ -224,7 +224,7 @@ void CCmpReportTreeView::RunCompareReport()
 	//__statusBar = &(pFram->m_wndStatusBar);
 	m_pCmpReport->Run(this->GetSafeHwnd(), (CCompRepLogBar*)pWnd,_ShowCopyInfo);
 	((CCompRepLogBar*)pWnd)->SetProgressPos( 0);
-
+	GetDocument()->UpdateAllViews(this);
 //	m_pReportManager->DisplayReport();
 }
 
