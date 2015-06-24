@@ -747,26 +747,6 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 
 	//set footer
 	CString strFooter;
-	// 	strFooter.Format(_T("SCHEDULE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
-	// 	bool bCommaFlag = true;
-	// 	CAirsideFlightDelayParam* pairsideFlightDelayParam = (CAirsideFlightDelayParam*)pParameter;
-	// 	for (int i=0; i<(int)pairsideFlightDelayParam->getFlightConstraintCount(); i++)
-	// 	{
-	// 		FlightConstraint fltCons = pairsideFlightDelayParam->getFlightConstraint(i);
-	// 
-	// 		CString strFlight(_T(""));
-	// 		fltCons.screenPrint(strFlight.GetBuffer(1024));
-	// 
-	// 		if (bCommaFlag)
-	// 		{
-	// 			bCommaFlag = false;
-	// 			strFooter.AppendFormat("%s", strFlight);
-	// 		}
-	// 		else
-	// 		{
-	// 			strFooter.AppendFormat(",%s", strFlight);
-	// 		}
-	// 	}
 	c2dGraphData.m_strFooter = strFooter;
 
 	// Alloc data space
@@ -814,28 +794,57 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 		{
 			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}
-		
 	}
 
 	c2dGraphData.m_vrXTickTitle = vXTickTitle;
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-/*
+
 bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportData)
 {
-	if(m_pChart == NULL)
-		return false;
+	const QTimeMap& mapQTime = _reportData.GetResult();
 
-	const QLengthMap& mapQLength = _reportData.GetResult();
+	C2DChartData c2dGraphData;
+	// Update Title
+	c2dGraphData.m_strChartTitle = _T(" Queue Length Report ");
+	c2dGraphData.m_strYtitle = _T("Queue Length");
+	c2dGraphData.m_strXtitle = _T("Time");
 
-	// Update data
-	m_pChart->LabelCollection()->GetAt(0)->Text = " Queue Length Report ";
-	m_pChart->Axes(N3DCHARTLib::atLeftAxis)->Title = "Queue Length";
-	m_pChart->Axes(N3DCHARTLib::atCategoriesAxis)->Title = "Time";
+	//set footer
+	CString strFooter;
+	c2dGraphData.m_strFooter = strFooter;
 
-	TCHAR sTime[64]	= _T("");
+	// Alloc data space
+	if( mapQTime.size()>0)
+	{
+		const std::vector<int>& vLength = mapQTime.begin()->second;
+		std::vector<double> vSegmentData(mapQTime.size());
+		vSegmentData.clear();
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			//c2dGraphData.m_vrLegend.push_back(mapQTime.first);
+			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+		}	
+	}
+
+	for(int i=0; i<(int)m_vModelList.size(); i++)
+	{
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strLegend;
+			strLegend.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			c2dGraphData.m_vrLegend.push_back(strLegend);
+		}
+	}
+
+	// Insert data
+	CString XTickTitle;
+	std::vector<CString> vXTickTitle;
+	CString sTime;
 	int nXTick = 0;
+	const QLengthMap& mapQLength = _reportData.GetResult();
 
 	for( QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine != mapQLength.end(); iterLine++, nXTick++)
 	{
@@ -846,23 +855,26 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportD
 		{
 			ElapsedTime t = iterLine->first;
 			t.set(t.asSeconds() % WholeDay);
-			t.printTime(sTime, FALSE);
-			m_pChart->Categories()->Add(_bstr_t(sTime), VARIANT_TRUE);
+			t.printTime(sTime.GetBuffer(32), FALSE);
+			sTime.ReleaseBuffer();
+			XTickTitle = sTime;
 		}
 		else
 		{
-			m_pChart->Categories()->Add(_bstr_t(""), VARIANT_TRUE);
+			XTickTitle = _T("");
 		}
+		vXTickTitle.push_back(XTickTitle);
 		//set data
-		for(int nRow = 0; nRow < (int)vLength.size(); nRow++)
-		{			
-			m_pChart->DataAt(nXTick, 0, nRow)->Value1 = vLength[nRow];
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}
 	}
-
+	c2dGraphData.m_vrXTickTitle = vXTickTitle;
+	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-
+/*
 bool CComparativePlot_new::Draw3DChart(const CComparativeThroughputReport& _reportData)
 {
 	if(m_pChart == NULL)
