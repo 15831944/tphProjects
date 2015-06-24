@@ -1,0 +1,98 @@
+
+material toll_station/_trim03_1
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 0.596078 0.580392 0.572549 1
+		}
+
+	}
+
+}
+
+material toll_station/_LightGray_
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 0.662745 0.662745 0.662745 1
+		}
+
+	}
+
+}
+
+material toll_station/_Dark_Green_Glas
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 0.631373 0.698039 0.501961 1.51
+		}
+
+	}
+
+}
+
+material toll_station/SketchUp_Default
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 0.784314 0.784314 0.784314 1
+		}
+
+	}
+
+}
+
+material toll_station/_Goldenrod_
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 0.854902 0.647059 0.12549 1
+		}
+
+	}
+
+}
+
+material toll_station/_Red_
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 1 0 0 1
+		}
+
+	}
+
+}
+
+material toll_station/_Ivory_
+{
+	technique
+	{
+		pass
+		{
+			ambient 0.117647 0.117647 0.117647 1
+			diffuse 1 1 0.941177 1
+		}
+
+	}
+
+}

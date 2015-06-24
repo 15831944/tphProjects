@@ -82,6 +82,7 @@ void LandsideIntersectionPropDlgImpl::LoadTreeSubItemLaneLinkages( HTREEITEM pre
 	ItemStringSectionColor isscStringColor;	
 	HTREEITEM hItemTemp = 0;
 	m_hLinkageItems.clear();
+	m_hCrossOverItems.clear();
 
 	int iPathCount = pNode->getLinageCount();
 	for(int i = 0;i < iPathCount; i++)
@@ -149,6 +150,27 @@ void LandsideIntersectionPropDlgImpl::LoadTreeSubItemLaneLinkages( HTREEITEM pre
 			m_treeProp.SetItemDataEx(item, aoidDataEx);
 			//unsigned int v = (unsigned int)i;
 			//m_treeProp.SetItemData(hLink, (v << 16) + (unsigned int)linkage.getGroupID());
+
+			CString strCrossOver = "Crossover light:";
+			if(linkage.isCrossOver)
+				strCrossOver += "Yes";
+			else
+				strCrossOver += "No";
+			HTREEITEM hCrossOver = m_treeProp.InsertItem(strCrossOver,hLink);
+			m_hCrossOverItems.push_back(hCrossOver);
+			m_treeProp.SetItemText(hCrossOver, strCrossOver);
+
+			aoidDataEx.lSize = sizeof(aoidDataEx);
+			aoidDataEx.dwptrItemData = (DWORD)&linkage;
+			aoidDataEx.vrItemStringSectionColorShow.clear();
+			isscStringColor.colorSection = RGB(0,0,255); 
+			if(linkage.isCrossOver)
+				isscStringColor.strSection= "Yes";
+			else
+				isscStringColor.strSection= "No";
+			aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
+
+			m_treeProp.SetItemDataEx(hCrossOver, aoidDataEx);
 		}
 	}
 }
@@ -178,34 +200,51 @@ BOOL LandsideIntersectionPropDlgImpl::OnDefWindowProc( UINT message, WPARAM wPar
 				Update3D();
 			}
 		}
-		else if(!strText.IsEmpty())
+		std::vector<HTREEITEM>::iterator it;
+		it = std::find(m_hCrossOverItems.begin(),m_hCrossOverItems.end(),m_hRClickItem);
+		if (it != m_hCrossOverItems.end()&&!strText.IsEmpty())
 		{
 			LandsideIntersectionNode* pIntersection = getIntersection();
-			HTREEITEM item = m_treeProp.GetParentItem(m_hRClickItem);
-		
-			std::vector<HTREEITEM>::iterator it;
-			it = std::find(m_hLinkageItems.begin(), m_hLinkageItems.end(), item);
-			if (it != m_hLinkageItems.end())
-			{
-				int index = it - m_hLinkageItems.begin();
-				//pIntersection->setNewGroupID(index,selitem);
-				pIntersection->setNewGroupName(index,strText);
-			}
-
+			int index = it - m_hCrossOverItems.begin();
+			if(!strText.Compare("No"))
+				pIntersection->getLinkage(index).isCrossOver = false;
+			else
+				pIntersection->getLinkage(index).isCrossOver = true;
+			//pIntersection->setNewGroupName(index,strText);
 			AirsideObjectTreeCtrlItemDataEx *dataEx=GetTreeCtrl().GetItemDataEx(m_hRClickItem);
 
-			CString strID,strGroupID;
-			//	strGroupID.Format(_T("%d"),selitem);
+			CString strCrossover;
+			strCrossover="Crossover light:"+strText;
+			ItemStringSectionColor isscStringColor;	
+			dataEx->vrItemStringSectionColorShow.clear();
+			isscStringColor.colorSection = RGB(0,0,255); 
+			isscStringColor.strSection = strText;
+			dataEx->vrItemStringSectionColorShow.push_back(isscStringColor);
+
+			GetTreeCtrl().SetItemText(m_hRClickItem,strCrossover);
+			Update3D();
+
+			return TRUE;
+		}
+
+		it = std::find(m_hLinkageItems.begin(), m_hLinkageItems.end(), GetTreeCtrl().GetParentItem(m_hRClickItem));
+		if (it != m_hLinkageItems.end()&&!strText.IsEmpty())
+		{
+			LandsideIntersectionNode* pIntersection = getIntersection();
+			int index = it - m_hLinkageItems.begin();
+			pIntersection->setNewGroupName(index,strText);
+			AirsideObjectTreeCtrlItemDataEx *dataEx=GetTreeCtrl().GetItemDataEx(m_hRClickItem);
+
+			CString strID;
 			strID=GROUP_ID+strText;
 			ItemStringSectionColor isscStringColor;	
 			dataEx->vrItemStringSectionColorShow.clear();
 			isscStringColor.colorSection = RGB(0,0,255); 
-			isscStringColor.strSection = strGroupID;
+			isscStringColor.strSection = strText;
 			dataEx->vrItemStringSectionColorShow.push_back(isscStringColor);
 
 			GetTreeCtrl().SetItemText(m_hRClickItem,strID);
 			Update3D();
-
 		}
 			
 	}
@@ -229,6 +268,13 @@ void LandsideIntersectionPropDlgImpl::OnDoubleClickPropTree( HTREEITEM hTreeItem
 		return;
 	}
 	std::vector<HTREEITEM>::iterator it;
+	it = std::find(m_hCrossOverItems.begin(),m_hCrossOverItems.end(),m_hRClickItem);
+	if (it != m_hCrossOverItems.end())
+	{
+		OnEditCrossOver(hTreeItem);
+		return;
+	}
+
 	it = std::find(m_hLinkageItems.begin(), m_hLinkageItems.end(), GetTreeCtrl().GetParentItem(m_hRClickItem));
 	if (it != m_hLinkageItems.end())
 	{
@@ -346,6 +392,16 @@ void LandsideIntersectionPropDlgImpl::OnEditGroupID(HTREEITEM& item)
 	m_treeProp.SetComboWidth(200);
 	m_treeProp.SetEditableComboString(item,vGroupName);
 //	GetTreeCtrl().m_comboBox.SetCurSel(nCurSel);
+}
+
+void LandsideIntersectionPropDlgImpl::OnEditCrossOver(HTREEITEM& item)
+{
+	CAirsideObjectTreeCtrl& m_treeProp = GetTreeCtrl();
+	std::vector<CString> vCrossStyle;
+	vCrossStyle.insert(vCrossStyle.begin(),"No");
+	vCrossStyle.insert(vCrossStyle.begin()+1,"Yes");
+	m_treeProp.SetComboWidth(200);
+	m_treeProp.SetEditableComboString(item,vCrossStyle);
 }
 
 void LandsideIntersectionPropDlgImpl::OnPropDelete()

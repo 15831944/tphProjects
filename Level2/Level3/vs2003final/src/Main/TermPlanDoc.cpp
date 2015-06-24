@@ -385,6 +385,8 @@ BEGIN_MESSAGE_MAP(CTermPlanDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_LAYOUT_HIDEPROCTAGS, OnUpdateHideProcTags)
 	ON_COMMAND(ID_SCALE_SIZE,OnAnimScaleSize)
 	ON_UPDATE_COMMAND_UI(ID_SCALE_SIZE,OnUpdateAnimScaleSize)
+	ON_COMMAND(ID_TOOLLIGHT,OnTrafficLight)
+	ON_UPDATE_COMMAND_UI(ID_TOOLLIGHT,OnUpdateTrafficLight)
 	ON_COMMAND(ID_ANIMATION_HIDEACTAGS, OnHideACTags)
 	ON_UPDATE_COMMAND_UI(ID_ANIMATION_HIDEACTAGS, OnUpdateHideACTags)
 	ON_COMMAND(ID_CTX_INVISIBLEREGIONS, OnEditInvisibleregions)
@@ -471,6 +473,8 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 	m_animData.nAnimSpeed		= 100; //10x
 
 	m_bHideACTags				= FALSE;
+	
+	m_bHideTrafficLight			= TRUE;
 
 	m_vFlow.clear();
 	m_vProcess.clear();
@@ -9803,6 +9807,18 @@ void CTermPlanDoc::OnAnimScaleSize()
 void CTermPlanDoc::OnUpdateAnimScaleSize(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(m_displayoverrides.m_pbProcDisplayOverrides[PDP_DISP_VehicleSCALE]);
+}
+
+void CTermPlanDoc::OnTrafficLight()
+{
+	m_bHideTrafficLight = !m_bHideTrafficLight;
+	UpdateAllViews(NULL,VM_UPDATE_TRAFFICLIGHT);
+}
+
+void CTermPlanDoc::OnUpdateTrafficLight(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(!m_bHideTrafficLight);
+	//pCmdUI->Enable(!m_bHideTrafficLight);
 }
 
 CSurfaceMaterialLib& CTermPlanDoc::GetSurfaceMaterialLib()

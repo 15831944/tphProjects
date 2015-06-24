@@ -50,6 +50,7 @@ public:
 
 	virtual int GetActiveLevel()const;
 
+	virtual BOOL GetbHideTrafficLight()const;
 
 	CRenderFloorList GetFloorList() const;
 

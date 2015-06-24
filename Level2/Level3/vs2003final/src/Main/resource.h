@@ -1444,9 +1444,14 @@
 #define IDC_EDIT_PDD_ATT2               1095
 #define IDR_CTX_LANDSIDELAYOUT          1095
 #define IDC_EDIT_PDD_ATT3               1096
+#define IDB_TOOLBAR_LIGHT_HOT           1096
 #define IDC_EDIT_PDD_ATT4               1097
+#define IDB_TOOLBAR_LIGHT_NORMAL        1097
 #define IDC_CMB_PDTYPE                  1098
+#define IDB_TOOLBAR_LIGHT_DISABLE       1098
+#define ID_TOOLLIGHT                    1099
 #define IDC_PROJLIST                    1100
+#define IDB_BITMAP13                    1100
 #define IDC_LST_AIRPORTS                1101
 #define IDC_LIST_AIRPORTS               1101
 #define IDC_TREE_SECTORS                1102
@@ -5416,7 +5421,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1096
+#define _APS_NEXT_RESOURCE_VALUE        1101
 #define _APS_NEXT_COMMAND_VALUE         35324
 #define _APS_NEXT_CONTROL_VALUE         2405
 #define _APS_NEXT_SYMED_VALUE           486

@@ -305,6 +305,7 @@ public:
 	
 	BOOL m_bLayoutLocked;
 	BOOL m_bHideACTags;
+	BOOL m_bHideTrafficLight;
 	
 	BOOL m_bUnselectOnButonUp;
 	
@@ -742,6 +743,8 @@ protected:
 	afx_msg void OnHideACTags();
 	afx_msg void OnAnimScaleSize();
 	afx_msg void OnUpdateAnimScaleSize(CCmdUI* pCmdUI);
+	afx_msg void OnTrafficLight();
+	afx_msg void OnUpdateTrafficLight(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateHideProcTags(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateHideACTags(CCmdUI* pCmdUI);
 	afx_msg void OnHideTaxiwayProc();

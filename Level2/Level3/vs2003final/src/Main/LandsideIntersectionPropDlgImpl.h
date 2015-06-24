@@ -23,11 +23,13 @@ protected:
 	HTREEITEM m_hLaneLinkages;
 	HTREEITEM m_hNodeType;	
 	std::vector<HTREEITEM> m_hLinkageItems;
+	std::vector<HTREEITEM> m_hCrossOverItems;
 	BOOL OnDefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	void LoadTreeSubItemLaneLinkages( HTREEITEM preItem,LandsideIntersectionNode* path );
 
 	void OnNodeTypeCombo();
 	void OnEditGroupID(HTREEITEM& item);
+	void OnEditCrossOver(HTREEITEM& item);
 
 
 	bool isInInitTree;

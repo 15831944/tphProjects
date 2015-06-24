@@ -806,6 +806,12 @@ int CLandsideEditContext::GetActiveLevel() const
 	return floorlist.GetActiveFloorLevel();
 }
 
+BOOL CLandsideEditContext::GetbHideTrafficLight()const
+{
+	CTermPlanDoc* pDoc = (CTermPlanDoc*)mpParentDoc;
+	return pDoc->m_bHideTrafficLight;
+}
+
 CRenderFloorList CLandsideEditContext::GetFloorList() const
 {
 	CTermPlanDoc* pDoc = (CTermPlanDoc*)mpParentDoc;

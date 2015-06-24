@@ -611,6 +611,10 @@ void CDlgRosterGranttChart::OnDblClickItemGtchartctrl(long nIndexLine, long nInd
 	{
 		pFlight->setProcAssinCount(pFlight->getProcAssignCount() + 1);
 	}
+	else
+	{
+		pFlight->setProcAssinCount(1);
+	}
 	
 	//FreshProcessorRoster(nIndexLine);
 	AddFlightIntoList(pFlight);
@@ -1283,7 +1287,7 @@ void CDlgRosterGranttChart::AddFlightIntoList( RosterAssignFlight* pUnassignFlig
 	m_listctrlFlightList.SetItemData(nRowIndex,(DWORD_PTR)pUnassignFlight);
 	m_listctrlFlightList.EnsureVisible(nRowIndex,FALSE);
 
-	if( !pUnassignFlight->isFailedAssign() )
+	if( !pUnassignFlight->getPaxType() )
 	{
 		m_listctrlFlightList.SetItemColor(nRowIndex,::GetSysColor(COLOR_WINDOWFRAME),RGB(235,235,235));
 	}

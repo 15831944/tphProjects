@@ -2982,6 +2982,9 @@
 				RelativePath=".\Res\bmp00051.bmp">
 			</File>
 			<File
+				RelativePath=".\Res\bmp00052.bmp">
+			</File>
+			<File
 				RelativePath="Res\bmp_seldefined.bmp">
 			</File>
 			<File
@@ -3673,6 +3676,15 @@
 			</File>
 			<File
 				RelativePath=".\Res\ToolbarChartHot.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\toollight.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\toollight_G.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\toollight_W.bmp">
 			</File>
 			<File
 				RelativePath="Res\tra_n1.bmp">

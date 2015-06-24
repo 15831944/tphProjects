@@ -42,8 +42,6 @@ int CAnimationBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CToolBar24X24::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	//InitImageList(IDB_TOOLBAR_ANIMATION_NORMAL,IDB_TOOLBAR_ANIMATION_HOT,
-	//	IDB_TOOLBAR_ANIMATION_DISABLE,RGB(255,0,255));
 	InitImageList(IDB_TOOLBAR_ANIMATION_NORMAL,IDB_TOOLBAR_ANIMATION_HOT,
 		IDB_TOOLBAR_ANIMATION_DISABLE,RGB(255,0,255));
 	AppendImageList(IDB_TOOLBAR_ANIMATION_SPEED_NORMAL,IDB_TOOLBAR_ANIMATION_SPEED_HOT,
@@ -58,6 +56,9 @@ int CAnimationBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		IDB_TOOLBAR_HIDEACTAGS_DISABLED,RGB(255,0,255));
 	AppendImageList(IDB_TOOLBAR_SCALE_NORMAL,IDB_TOOLBAR_SCALE_HOT,
 		IDB_TOOLBAR_SCALE_DISABLE,RGB(255,0,255));
+	////////////////////////////
+	AppendImageList(IDB_TOOLBAR_LIGHT_NORMAL,IDB_TOOLBAR_LIGHT_HOT,
+		IDB_TOOLBAR_LIGHT_DISABLE,RGB(255,0,255));
 	SetImageList();
 	
 	static const int BUTTONCOUNT = 14;
@@ -133,22 +134,41 @@ int CAnimationBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		AddButton(&tbb,0,TRUE);
 	}
 
-	TBBUTTON tbbb;
-	CToolBar24X24::InitTBBUTTON(tbbb) ;
-	tbbb.iBitmap = -1;
-	tbbb.idCommand = 0;
-	tbbb.fsStyle = TBSTYLE_SEP;
-	tbbb.fsState = TBSTATE_INDETERMINATE;
-	AddButton(&tbbb);
+	{
+		TBBUTTON tbbb;
+		CToolBar24X24::InitTBBUTTON(tbbb) ;
+		tbbb.iBitmap = -1;
+		tbbb.idCommand = 0;
+		tbbb.fsStyle = TBSTYLE_SEP;
+		tbbb.fsState = TBSTATE_INDETERMINATE;
+		AddButton(&tbbb);
 
-	TBBUTTON tb;
-	CToolBar24X24::InitTBBUTTON(tb) ;
-	tb.iBitmap = 17;
-	tb.idCommand = ID_SCALE_SIZE;
-	AddButton(&tb);
-    SetWindowText (_T ("Animation"));
-	EnableDocking(CBRS_ALIGN_ANY);
+		TBBUTTON tb;
+		CToolBar24X24::InitTBBUTTON(tb) ;
+		tb.iBitmap = 17;
+		tb.idCommand = ID_SCALE_SIZE;
+		AddButton(&tb);		
+	}
+
+	{
+		/*TBBUTTON tbbb;
+		CToolBar24X24::InitTBBUTTON(tbbb) ;
+		tbbb.iBitmap = -1;
+		tbbb.idCommand = 0;
+		tbbb.fsStyle = TBSTYLE_SEP;
+		tbbb.fsState = TBSTATE_INDETERMINATE;
+		AddButton(&tbbb);*/
+
+		TBBUTTON tb;
+		CToolBar24X24::InitTBBUTTON(tb) ;
+		tb.iBitmap = 18;
+		tb.idCommand = ID_TOOLLIGHT;
+		AddButton(&tb);
+	}
 	
+
+	SetWindowText (_T ("Animation"));
+	EnableDocking(CBRS_ALIGN_ANY);
 	return 0;
 }
 

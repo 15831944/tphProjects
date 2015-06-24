@@ -11875,6 +11875,10 @@ IDB_TOOLBAR_SCALE_NORMAL BITMAP                  "res\\bmp00048.bmp"
 IDB_TOOLBAR_A_NORMAL    BITMAP                  "res\\bmp00051.bmp"
 IDB_TOOLBAR_A_HOT       BITMAP                  "res\\bmp00050.bmp"
 IDB_TOOLBAR_A_DISABLE   BITMAP                  "res\\bmp00049.bmp"
+IDB_TOOLBAR_LIGHT_HOT   BITMAP                  "Res\\toollight.bmp"
+IDB_TOOLBAR_LIGHT_NORMAL BITMAP                  "Res\\toollight_G.bmp"
+IDB_TOOLBAR_LIGHT_DISABLE BITMAP                  "Res\\toollight_W.bmp"
+IDR_TOOLBAR8            BITMAP                  "res\\bmp00052.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -23049,6 +23053,11 @@ BEGIN
     ID_BUT_AIROUTE          "Show AirRoute\nShow AirRoute"
     ID_BUT_ALLPROCESSORTYPE "All Processor Type\nAll Processor Type"
     IDS_TVNN_LANDSIDE_AREAS "Areas"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_TOOLLIGHT            "Traffic Light\nTraffic Light"
 END
 
 #endif    // English (U.S.) resources
