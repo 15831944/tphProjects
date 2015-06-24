@@ -5,6 +5,7 @@
 #include "termplan.h"
 #include "PaxBulkEdit.h"
 #include ".\paxbulkedit.h"
+#include "..\Common\elaptime.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -47,6 +48,7 @@ void CPaxBulkEdit::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_FREQ_ENDDAY, m_editFreqEndDay);
 	DDX_Control(pDX, IDC_SPIN_FREQ_STARTDAY, m_spinFreqStartDay);
 	DDX_Control(pDX, IDC_SPIN_FREQ_ENDDAY, m_spinFreqEndDay);
+	DDX_Control(pDX, IDC_LIST_DATA, m_wndListCtrl);
 }
 
 
@@ -55,7 +57,11 @@ BEGIN_MESSAGE_MAP(CPaxBulkEdit, CDialog)
 	ON_BN_CLICKED(IDC_RADIO_after, OnRADIOafter)
 	ON_BN_CLICKED(IDC_RADIO_before, OnRADIObefore)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1, OnDeltaposSpin1)
+	ON_NOTIFY(LVN_ENDLABELEDIT, IDC_LIST_DATA, OnLvnEndlabeleditPercent)
 	//}}AFX_MSG_MAP
+	ON_NOTIFY(NM_KILLFOCUS, IDC_m_FrequencyTime, OnNMKillfocusmFrequencytime)
+	ON_NOTIFY(NM_KILLFOCUS, IDC_BeginRangeTime, OnNMKillfocusBeginrangetime)
+	ON_NOTIFY(NM_KILLFOCUS, IDC_EndRangeTime, OnNMKillfocusEndrangetime)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -101,7 +107,8 @@ BOOL CPaxBulkEdit::OnInitDialog()
 		pRadioAfter->SetCheck(0);
 	}
 
-
+	InitListCtrlHeader();
+	SetListCtrlContent();
 	UpdateData(true);
 	return true;
 }
@@ -143,6 +150,16 @@ void CPaxBulkEdit::OnOK()
 		}
 	}
 
+	int iPercent = 0;
+	for (int i = 0; i < (int)m_vBulkPercent.size(); i++)
+	{
+		iPercent += m_vBulkPercent[i];
+	}
+	if (iPercent != 100)
+	{
+		AfxMessageBox("The Sum of percent is not equal to 100");
+		return;
+	}
 	CDialog::OnOK();
 }
 
@@ -150,6 +167,7 @@ void CPaxBulkEdit::OnRADIOafter()
 {
 	// TODO: Add your control notification handler code here
 	m_BeforeCheck = false;
+	UpdatePercentData();
 	((CButton*)GetDlgItem(IDC_RADIO_before))->SetCheck(m_BeforeCheck);
 	((CButton*)GetDlgItem(IDC_RADIO_after))->SetCheck(!m_BeforeCheck);
 	
@@ -159,6 +177,7 @@ void CPaxBulkEdit::OnRADIObefore()
 {
 	// TODO: Add your control notification handler code here
 	m_BeforeCheck = true;
+	UpdatePercentData();
 	((CButton*)GetDlgItem(IDC_RADIO_before))->SetCheck(m_BeforeCheck);
 	((CButton*)GetDlgItem(IDC_RADIO_after))->SetCheck(!m_BeforeCheck);
 }
@@ -207,4 +226,138 @@ void CPaxBulkEdit::InitTimeValues(int& dayFreqStart, int& dayFreqEnd)
 
 	dayFreqStart++;
 	dayFreqEnd++;
+}
+
+void CPaxBulkEdit::InitListCtrlHeader()
+{
+	DWORD dwStyle = m_wndListCtrl.GetExtendedStyle();
+	dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES;
+	m_wndListCtrl.SetExtendedStyle( dwStyle );
+	m_wndListCtrl.SetSpinDisplayType(1);
+	CRect rect;
+	m_wndListCtrl.GetClientRect(&rect);
+	char* columnLabel[] = {	"Train", "Prob Will Try(%)"};
+	int DefaultColumnWidth[] = {rect.Width()/5,rect.Width()/2};
+	int nColFormat[] = 
+	{	
+		LVCFMT_NOEDIT,
+			LVCFMT_EDIT
+	};
+	CStringList strList;
+	LV_COLUMNEX lvc;
+	lvc.csList = &strList;
+	lvc.mask = LVCF_WIDTH | LVCF_TEXT ;
+	for (int i = 0; i < 2; i++)
+	{
+		lvc.fmt = nColFormat[i];
+		lvc.pszText = columnLabel[i];
+		lvc.cx = DefaultColumnWidth[i];
+		m_wndListCtrl.InsertColumn(i, &lvc);
+	}
+}
+
+void CPaxBulkEdit::SetListCtrlContent()
+{
+	m_wndListCtrl.DeleteAllItems();
+	int nCount = (int)m_vBulkPercent.size();
+	for (int i = 0; i < nCount; i++)
+	{
+		int iPercent = m_vBulkPercent[i];
+		CString strTrain;
+		strTrain.Format(_T("%d"),i + 1);
+		m_wndListCtrl.InsertItem(i,strTrain);
+		CString strPercent;
+		strPercent.Format(_T("%d"),iPercent);
+		m_wndListCtrl.SetItemText(i,1,strPercent);
+		m_wndListCtrl.SetItemData(i,(DWORD)iPercent);
+	}
+
+	if (m_wndListCtrl.GetItemCount()>0)
+	{
+		m_wndListCtrl.SetFocus();
+		m_wndListCtrl.SetItemState(0,LVIS_SELECTED,LVIS_SELECTED);
+	}
+}
+
+void CPaxBulkEdit::OnLvnEndlabeleditPercent( NMHDR *pNMHDR, LRESULT *pResult )
+{
+	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	if(!pDispInfo)
+		return;	 
+	
+	int nItem = pDispInfo->item.iItem;
+	if (nItem == LB_ERR)
+		return;
+	
+	int iPercent = atoi(m_wndListCtrl.GetItemText(nItem, 1));
+	m_vBulkPercent[nItem] = iPercent;
+	*pResult = 0;
+}
+
+void CPaxBulkEdit::UpdatePercentData()
+{
+	UpdateData(TRUE);
+	m_wndListCtrl.DeleteAllItems();
+	m_vBulkPercent.clear();
+	ElapsedTime eTimeRangeBegin;
+	ElapsedTime eTimeRangeEnd;
+	ElapsedTime eFrequencyTime;
+	eTimeRangeBegin.set(m_BeginRangeTime.GetHour(),m_BeginRangeTime.GetMinute(),m_BeginRangeTime.GetSecond());
+	eTimeRangeEnd.set(m_EndRangeTime.GetHour(),m_EndRangeTime.GetMinute(),m_EndRangeTime.GetSecond());
+	eFrequencyTime.set(m_FrequencyTime.GetHour(),m_FrequencyTime.GetMinute(),m_FrequencyTime.GetSecond());
+
+	if (eFrequencyTime.asMinutes() == 0)
+		return;
+	
+	if (eTimeRangeBegin < eTimeRangeEnd)
+	{
+		std::swap(eTimeRangeBegin,eTimeRangeEnd);
+	}
+	
+	int nBulkCount= ( eTimeRangeBegin.asMinutes() - eTimeRangeEnd.asMinutes() )/eFrequencyTime.asMinutes() +1;
+	for (int i = 0; i < nBulkCount; i++)
+	{
+		int iPercent;
+		if (i == 0)
+		{
+			iPercent = 100;
+		}
+		else
+		{
+			iPercent = 0;
+		}
+
+		CString strTrain;
+		strTrain.Format(_T("%d"),i + 1);
+		m_wndListCtrl.InsertItem(i,strTrain);
+		CString strPercent;
+		strPercent.Format(_T("%d"),iPercent);
+		m_wndListCtrl.SetItemText(i,1,strPercent);
+		m_wndListCtrl.SetItemData(i,(DWORD)iPercent);
+		m_vBulkPercent.push_back(iPercent);
+	}
+}
+
+
+
+void CPaxBulkEdit::OnNMKillfocusmFrequencytime(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	UpdatePercentData();
+	*pResult = 0;
+}
+
+void CPaxBulkEdit::OnNMKillfocusBeginrangetime(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	UpdatePercentData();
+	*pResult = 0;
+}
+
+void CPaxBulkEdit::OnNMKillfocusEndrangetime(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO: Add your control notification handler code here
+	UpdatePercentData();
+	*pResult = 0;
 }

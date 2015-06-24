@@ -3167,10 +3167,33 @@ void Processor::AddReclaimFlowPairProcessor(int nIndex)
 	}
 }
 
+void Processor::AddLandsideFacilityFlowPair(int nIndex)
+{
+	if (std::find(m_vLandsidePairProc.begin(),m_vLandsidePairProc.end(),nIndex) == m_vLandsidePairProc.end())
+	{
+		m_vLandsidePairProc.push_back(nIndex);
+	}
+}
+
+void Processor::notifyLandsideFacilityFlowPair(const CMobileElemConstraint& mobileType)
+{
+	for (int i = 0; i < (int)m_vLandsidePairProc.size(); i++)
+	{
+		int nProcIndex = m_vLandsidePairProc.at(i);
+		Processor* pProc = m_pTerm->procList->getProcessor(nProcIndex);
+		if (pProc == NULL || pProc == this)
+		{
+			return;
+		}
+		pProc->GetLandsideDrection().Insert(m_landsideDirection,mobileType);
+	}
+}
+
 void Processor::ClearGateAndReclaim()
 {
 	m_direction.GetPaxDirection().clear();
 	m_reclaimDirection.GetPaxDirection().clear();
+	m_landsideDirection.GetPaxDirection().clear();
 }
 /************************************************************************/
 /*                                                                      */

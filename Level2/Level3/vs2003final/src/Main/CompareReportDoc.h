@@ -9,6 +9,7 @@
 
 #include "../compare/ComparativeProject.h"
 #include "../Engine/terminal.h"
+#include "..\Compare\CmpReport.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CCompareReportDoc document
@@ -50,6 +51,7 @@ public:
 	BOOL LoadProject(const CString& strName, const CString& strDesc);
 	BOOL SaveProject();
 	CComparativeProject* GetComparativeProject();
+	CCmpReport* GetCmpReport(){ return &this->m_cmpReport; }
 	virtual ~CCompareReportDoc();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -64,6 +66,7 @@ protected:
 	Terminal m_terminalForReportParam;
 	
 	CComparativeProject* m_compProject;
+	CCmpReport m_cmpReport;
 	//{{AFX_MSG(CCompareReportDoc)
 		// NOTE - the ClassWizard will add and remove member functions here.
 	//}}AFX_MSG

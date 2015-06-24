@@ -196,7 +196,7 @@ void CMonitor::DoTLOSCheck( const ProcessorID* _pWhichProc , const ElapsedTime& 
 	// really want to open processor, but no processor can be opened. 
 	// so dynamic created proc if necessary
 	int nUpperQueueLength = pServiceItem->getTheNearestPax(tempPaxType)->m_iUpperQueueLength;
-	if( (iQLengthAction == 1 || iQTimeAction == 1 ) && !bReallyOpenProc && nMinQLen >= nUpperQueueLength)
+	if( (iQLengthAction == 1 || iQTimeAction == 1 ) && !bReallyOpenProc /*&& nMinQLen >= nUpperQueueLength*/)
 	{
 		
 		Processor* pDynamicCreatedProc = m_pTerm->procList->DynamicCreateProcByTLOS( _pWhichProc, m_pTerm );

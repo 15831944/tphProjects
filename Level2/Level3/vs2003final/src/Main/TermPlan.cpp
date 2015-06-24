@@ -93,6 +93,8 @@
 #include "LandsideReportChildSplitFrame.h"
 #include "LandsideReportListView.h"
 #include "Common/ARCGUID.h"
+#include "CmpReportChildFrameSplit.h"
+#include "CmpReportGraphView.h"
 //#ifndef _DEBUG
 #define _SECURITY_ENABLED_
 //#endif
@@ -346,8 +348,8 @@ BOOL CTermPlanApp::InitInstance()
 	m_pCompareReportTemplate2 = new CNewMultiDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CCompareReportDoc),		// Document class
-		RUNTIME_CLASS(CMDIChildWnd),		// frame class
-		RUNTIME_CLASS(CCompareReportView));		// view class
+		RUNTIME_CLASS(CCmpReportChildFrameSplit),		// frame class
+		RUNTIME_CLASS(CCompareReportView));//CCmpReportGraphView));		// view class
 	AddDocTemplate(m_pCompareReportTemplate2);
 
 // 	m_pProcessDefineTemplate = new CNewMultiDocTemplate(

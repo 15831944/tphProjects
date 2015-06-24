@@ -178,7 +178,7 @@ void LandsideIntersectionInSim::GenerateCtrlEvents(CIntersectionTrafficControlIn
 				{
 					if( CCrossWalkInSim* pCross =pResManager->m_vTrafficObjectList.getItem(k)->toCrossWalk())
 					{
-						if (pCross->GetLinkIntersectionID()==pIntersection->getID() && pCross->GetLinkGroup()==nGroupNum)
+						if (pCross->GetLinkIntersectionID()==pIntersection->getID() && pCross->GetLinkGroup()==groupID /*nGroupNum*/)
 						{
 							pLinkGroupInSim->AddLinkCrossWalk(pCross);
 							//pCross->InitLogEntry(pOutput);

@@ -1,14 +1,9 @@
-// ParametersWnd.cpp : implementation file
-//
-
 #include "stdafx.h"
-#include "CmpParametersWnd.h"
-#include ".\cmpparameterswnd.h"
+#include "TermPlan.h"
+#include "CmpReportTreeView.h"
 
-#include "ReportDef.h"
-#include "InputParameter.h"
-
-
+#include "..\compare\ReportDef.h"
+#include "..\compare\InputParameter.h"
 #include "..\Main\CompRepLogBar.h"
 #include "..\main\resource.h"
 #include "..\main\ModelSelectionDlg.h"
@@ -17,7 +12,7 @@
 
 #include "..\common\elaptime.h"
 #include "..\common\SimAndReportManager.h"
-#include "../compare/ModelToCompare.h"
+#include "..\compare\ModelToCompare.h"
 #include "..\common\EchoSystem.h"
 
 static const UINT ID_RUN = 101;
@@ -32,29 +27,8 @@ static const UINT MENU_EDIT_REPORT = 207;
 static const UINT MENU_DELETE_REPORT = 208;
 static const UINT MENU_UNAVAILABLE = 220;
 
-
-IMPLEMENT_DYNAMIC(CCmpParametersWnd, CWnd)
-CCmpParametersWnd::CCmpParametersWnd()
-{
-	LOGFONT lf;
-	::ZeroMemory(&lf, sizeof(LOGFONT));
-	lf.lfHeight = 8;
-	strcpy(lf.lfFaceName, "MS Sans Serif");
-	m_font.CreateFontIndirect(&lf);
-	m_pSubMenu = NULL;
-}
-
-CCmpParametersWnd::~CCmpParametersWnd()
-{
-	if(m_font.m_hObject != NULL)
-	{
-		m_font.DeleteObject();
-		m_font.m_hObject = NULL;
-	}
-}
-
-
-BEGIN_MESSAGE_MAP(CCmpParametersWnd, CWnd)
+IMPLEMENT_DYNCREATE(CCmpReportTreeView, CView)
+BEGIN_MESSAGE_MAP(CCmpReportTreeView, CView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_ERASEBKGND()
@@ -65,12 +39,43 @@ BEGIN_MESSAGE_MAP(CCmpParametersWnd, CWnd)
 	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
+CCmpReportTreeView::CCmpReportTreeView()
+{
+	LOGFONT lf;
+	::ZeroMemory(&lf, sizeof(LOGFONT));
+	lf.lfHeight = 8;
+	strcpy(lf.lfFaceName, "MS Sans Serif");
+	m_font.CreateFontIndirect(&lf);
+	m_pSubMenu = NULL;
+}
 
+CCmpReportTreeView::~CCmpReportTreeView()
+{
+	if(m_font.m_hObject != NULL)
+	{
+		m_font.DeleteObject();
+		m_font.m_hObject = NULL;
+	}
+}
 
-// CParametersWnd message handlers
+void CCmpReportTreeView::OnDraw(CDC* pDC)
+{
+	CDocument* pDoc = GetDocument();
+}
 
+#ifdef _DEBUG
+void CCmpReportTreeView::AssertValid() const
+{
+	CView::AssertValid();
+}
 
-int CCmpParametersWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
+void CCmpReportTreeView::Dump(CDumpContext& dc) const
+{
+	CView::Dump(dc);
+}
+#endif //_DEBUG
+
+int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -78,8 +83,8 @@ int CCmpParametersWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect emptyRect;
 	emptyRect.SetRectEmpty();
 	m_propTree.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER| TVS_HASBUTTONS | TVS_LINESATROOT | 
-				   TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
-   				   emptyRect, this, 11);
+		TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
+		emptyRect, this, 11);
 	m_propTree.SetFont(&m_font);
 
 	m_btnRun.Create(_T("Run"), WS_VISIBLE|WS_CHILD, emptyRect, this, ID_RUN);
@@ -93,7 +98,19 @@ int CCmpParametersWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-void CCmpParametersWnd::OnSize(UINT nType, int cx, int cy)
+
+void CCmpReportTreeView::OnInitialUpdate()
+{
+	CView::OnInitialUpdate();
+	InitParaWnd();
+}
+
+void CCmpReportTreeView::OnUpdate()
+{
+	UpdateParaWnd();
+}
+
+void CCmpReportTreeView::OnSize(UINT nType, int cx, int cy)
 {
 	CWnd::OnSize(nType, cx, cy);
 
@@ -110,7 +127,7 @@ void CCmpParametersWnd::OnSize(UINT nType, int cx, int cy)
 		m_btnRun.MoveWindow(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
 }
 
-BOOL CCmpParametersWnd::OnEraseBkgnd(CDC* pDC)
+BOOL CCmpReportTreeView::OnEraseBkgnd(CDC* pDC)
 {
 	CRect rectClient;
 	GetClientRect(&rectClient);
@@ -120,7 +137,7 @@ BOOL CCmpParametersWnd::OnEraseBkgnd(CDC* pDC)
 	return CWnd::OnEraseBkgnd(pDC);
 }
 
-void CCmpParametersWnd::InitParaWnd()
+void CCmpReportTreeView::InitParaWnd()
 {
 	COOLTREE_NODE_INFO cni;
 	InitCooltreeNodeInfo(this, cni);
@@ -136,9 +153,9 @@ void CCmpParametersWnd::InitParaWnd()
 	m_propTree.Expand(m_hBasicInfo, TVE_EXPAND);
 }
 
-BOOL CCmpParametersWnd::CheckData()
+BOOL CCmpReportTreeView::CheckData()
 {
-	CInputParameter* pInputParam = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam();
+	CInputParameter* pInputParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
 	//	Any models
 	if (!pInputParam->GetModelsManagerPtr()->GetModelsList().size())
 	{
@@ -155,18 +172,18 @@ BOOL CCmpParametersWnd::CheckData()
 
 	return TRUE;
 }
-void CCmpParametersWnd::OnRun()
+void CCmpReportTreeView::OnRun()
 {
 	if (CheckData())
 	{
-		if (m_pReportManager->GetCmpReport()->SaveProject())
+		if (m_pCmpReport->SaveProject())
 			SetTimer(100, 500, NULL);
 		else
 			AfxMessageBox(_T("Save data failed!"));
 	}
 }
 
-CStatusBarXP* __statusBar = NULL;
+//CStatusBarXP* __statusBar = NULL;//todo
 
 static void CALLBACK _ShowCopyInfo(LPCTSTR strPath)
 {
@@ -176,13 +193,13 @@ static void CALLBACK _ShowCopyInfo(LPCTSTR strPath)
 	fileName = strFilePath.Mid(nPos + 1);
 	CString strMsg;
 	strMsg = _T("Copying   ") + fileName;
-	__statusBar->SetPaneText(0,strMsg);
+	//__statusBar->SetPaneText(0,strMsg);
 }
-void CCmpParametersWnd::RunCompareReport()
+void CCmpReportTreeView::RunCompareReport()
 {
 	CMainFrame* pFram = (CMainFrame*)AfxGetMainWnd();
 	CWnd* pWnd = &(pFram->m_wndCompRepLogBar);
-	((CCompRepLogBar*)pWnd)->m_pProj = m_pReportManager->GetCmpReport()->GetComparativeProject();
+	((CCompRepLogBar*)pWnd)->m_pProj = m_pCmpReport->GetComparativeProject();
 	((CCompRepLogBar*)pWnd)->SetParentIndex(1);
 
 	pFram->ShowControlBar((CToolBar*) pWnd, TRUE, FALSE);//!bIsShown
@@ -192,14 +209,14 @@ void CCmpParametersWnd::RunCompareReport()
 	pFram->ChangeSize(rc1, rc2, 1);
 
 	((CCompRepLogBar*)pWnd)->DeleteLogText();
-	__statusBar = &(pFram->m_wndStatusBar);
-	m_pReportManager->GetCmpReport()->Run(this->GetSafeHwnd(), (CCompRepLogBar*)pWnd,_ShowCopyInfo);
+	//__statusBar = &(pFram->m_wndStatusBar);
+	m_pCmpReport->Run(this->GetSafeHwnd(), (CCompRepLogBar*)pWnd,_ShowCopyInfo);
 	((CCompRepLogBar*)pWnd)->SetProgressPos( 0);
 
-	m_pReportManager->DisplayReport();
+//	m_pReportManager->DisplayReport();
 }
 
-void CCmpParametersWnd::RemoveSubItem( HTREEITEM hItem )
+void CCmpReportTreeView::RemoveSubItem( HTREEITEM hItem )
 {
 	if(hItem == NULL)
 		return;
@@ -211,19 +228,19 @@ void CCmpParametersWnd::RemoveSubItem( HTREEITEM hItem )
 	}
 }
 
-void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
+void CCmpReportTreeView::UpdateParaItem( HTREEITEM hItem )
 {
 	CString strItemText;
 	if(hItem == NULL)
 		return;
 	if(hItem == m_hProjName)
 	{
-		strItemText.Format("Name: %s", m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName());
+		strItemText.Format("Name: %s", m_pCmpReport->GetComparativeProject()->GetName());
 		m_propTree.SetItemText(hItem, strItemText);
 	}
 	else if(hItem == m_hProjDesc)
 	{
-		CString strDesc = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetDescription();
+		CString strDesc = m_pCmpReport->GetComparativeProject()->GetDescription();
 		if(strDesc.IsEmpty())
 			strItemText = "Description";
 		else
@@ -235,7 +252,7 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 		RemoveSubItem(m_hModelRoot);
 		COOLTREE_NODE_INFO cni;
 		InitCooltreeNodeInfo(this, cni);
-		CModelsManager* pManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+		CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 		for(int i = 0; i < (int)pManager->GetModelsList().size(); i++)
 		{
 
@@ -272,7 +289,7 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 		RemoveSubItem(m_hReportRoot);
 		COOLTREE_NODE_INFO cni;
 		InitCooltreeNodeInfo(this, cni);
-		CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
+		CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 		std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 		for (int i = 0; i < static_cast<int>(vReports.size()); i++)
 		{
@@ -331,7 +348,7 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 			std::vector<CModelParameter> vModelParam;
 			int nModelParamCount = param.GetModelParameter(vModelParam);
 
-			CModelsManager* pModelManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+			CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 
 			for (int nModelParam = 0; nModelParam< nModelParamCount; ++nModelParam)
 			{
@@ -413,11 +430,11 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 		}
 		m_propTree.Expand(m_hReportRoot, TVE_EXPAND);
 	}
-	m_pReportManager->GetCmpReport()->SetModifyFlag(TRUE);
-	m_pReportManager->GetCmpReport()->SaveProject();
+	m_pCmpReport->SetModifyFlag(TRUE);
+	m_pCmpReport->SaveProject();
 }
 
-void CCmpParametersWnd::UpdateParaWnd()
+void CCmpReportTreeView::UpdateParaWnd()
 {
 	UpdateParaItem(m_hProjName);
 	UpdateParaItem(m_hProjDesc);
@@ -425,9 +442,9 @@ void CCmpParametersWnd::UpdateParaWnd()
 	UpdateParaItem(m_hReportRoot);
 }
 
-CString CCmpParametersWnd::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
+CString CCmpReportTreeView::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
 {
-	CModelsManager* pModelManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 
 	if((int)pModelManager->GetModelsList().size()  == 0)
 		return "";
@@ -461,9 +478,8 @@ CString CCmpParametersWnd::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
 	return retstr;
 }
 
-void CCmpParametersWnd::OnTimer(UINT nIDEvent)
+void CCmpReportTreeView::OnTimer(UINT nIDEvent)
 {
-	// TODO: Add your message handler code here and/or call default
 	if(nIDEvent == 100)
 	{
 		KillTimer(nIDEvent);
@@ -473,11 +489,11 @@ void CCmpParametersWnd::OnTimer(UINT nIDEvent)
 	CWnd::OnTimer(nIDEvent);
 }
 
-void CCmpParametersWnd::AddModel()
+void CCmpReportTreeView::AddModel()
 {
 	CWaitCursor wc;
 
-	CModelsManager* pManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 	CModelSelectionDlg dlg(pManager,this);
 	wc.Restore();
 	if(dlg.DoModal() == IDOK)
@@ -486,34 +502,34 @@ void CCmpParametersWnd::AddModel()
 	}
 }
 
-void CCmpParametersWnd::DeleteModel()
+void CCmpReportTreeView::DeleteModel()
 {			
 	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 	HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
 	CString strModelName = m_propTree.GetItemText(hSubItem);
 	CString strPadding = "Name: ";
 	strModelName = strModelName.Right(strModelName.GetLength() - strPadding.GetLength());
-	if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->DeleteModel(strModelName))
+	if(m_pCmpReport->GetComparativeProject()->GetInputParam()->DeleteModel(strModelName))
 	{
 		UpdateParaItem(m_hModelRoot);
 		UpdateParaItem(m_hReportRoot);
 	}
 }
 
-void CCmpParametersWnd::AddReport()
+void CCmpReportTreeView::AddReport()
 {
 	CWaitCursor wc;
 	CReportProperty dlg(this);
-	dlg.m_strProjName = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName();
-	CModelsManager* pMManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	dlg.m_strProjName = m_pCmpReport->GetComparativeProject()->GetName();
+	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 	CString strError = pMManager->InitTerminal(NULL,dlg.m_strProjName,NULL);
 	if (!strError.IsEmpty())
 	{
 		AfxMessageBox(_T("Cann't load project:") + strError);
 		return;
 	}
-	
-	CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
+
+	CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 
 	dlg.SetManager(pMManager,pRManager);
 
@@ -533,14 +549,14 @@ void CCmpParametersWnd::AddReport()
 	}
 }
 
-void CCmpParametersWnd::EditReport()
+void CCmpReportTreeView::EditReport()
 {
 	CWaitCursor wc;
 
 	BOOL bFound = FALSE;
 	CString strReportName = m_propTree.GetItemText(m_propTree.GetSelectedItem());
-	CModelsManager* pMManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-	CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
+	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 	std::vector<CReportToCompare>::iterator iter;
 	CReportToCompare report;
@@ -557,7 +573,7 @@ void CCmpParametersWnd::EditReport()
 	if (bFound)
 	{
 		CReportProperty dlg(this);
-		dlg.m_strProjName = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName();
+		dlg.m_strProjName = m_pCmpReport->GetComparativeProject()->GetName();
 		dlg.SetManager(pMManager,pRManager);
 
 		dlg.SetProjName(dlg.m_strProjName);
@@ -577,11 +593,11 @@ void CCmpParametersWnd::EditReport()
 	}
 }
 
-void CCmpParametersWnd::DeleteReport()
+void CCmpReportTreeView::DeleteReport()
 {
 	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 	CString strReportName = m_propTree.GetItemText(hSelItem);
-	CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
+	CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 	std::vector<CReportToCompare>::iterator iter;
 	for (iter = vReports.begin(); iter != vReports.end(); iter++)
@@ -595,7 +611,7 @@ void CCmpParametersWnd::DeleteReport()
 	UpdateParaItem(m_hReportRoot);
 }
 
-void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
+void CCmpReportTreeView::OnContextMenu( CWnd* pWnd, CPoint point )
 {
 	CPoint pt = point;
 	m_propTree.ScreenToClient( &pt );
@@ -646,13 +662,13 @@ void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
 	}
 }
 
-LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
+LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
 {
 	CString strItemText;
 	if(message == UM_CEW_EDIT_BEGIN)
 	{
 		HTREEITEM hCurItem=(HTREEITEM)wParam;
-		CComparativeProject* pComProj = m_pReportManager->GetCmpReport()->GetComparativeProject();
+		CComparativeProject* pComProj = m_pCmpReport->GetComparativeProject();
 		if(m_propTree.GetSelectedItem() == m_hProjName)
 		{
 			CString strValue = pComProj->GetName();
@@ -672,10 +688,10 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 	{
 		HTREEITEM hCurItem = (HTREEITEM)wParam;
 		CString strValue=*((CString*)lParam);
-		CComparativeProject* pComProj = m_pReportManager->GetCmpReport()->GetComparativeProject();
+		CComparativeProject* pComProj = m_pCmpReport->GetComparativeProject();
 		if(hCurItem == m_hProjName)
 		{
-			CString strOriName = m_pReportManager->GetCmpReport()->GetOriginProjName();
+			CString strOriName = m_pCmpReport->GetOriginProjName();
 			if(strValue.IsEmpty())
 			{
 				ReleaseCapture();
@@ -694,7 +710,7 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
-			if(m_pReportManager->GetCmpReport()->ProjExists(strValue))
+			if(m_pCmpReport->ProjExists(strValue))
 			{
 				ReleaseCapture();
 				MessageBox("The name is already exists, please rename!");
@@ -711,7 +727,7 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 		}
 		else if(hCurItem == m_hProjDesc)
 		{
-			if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName().IsEmpty())
+			if(m_pCmpReport->GetComparativeProject()->GetName().IsEmpty())
 			{
 				MessageBox("The name is empty, please set the project name!");
 				m_propTree.SetItemText(hCurItem, "Description");
@@ -724,13 +740,13 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 			m_propTree.SetItemText(hCurItem, strItemText);
 			pComProj->SetDescription(strValue);
 		}
-		m_pReportManager->GetCmpReport()->SetModifyFlag(TRUE);
-		m_pReportManager->GetCmpReport()->SaveProject();
+		m_pCmpReport->SetModifyFlag(TRUE);
+		m_pCmpReport->SaveProject();
 	}
 	return CWnd::DefWindowProc(message, wParam, lParam);
 }
 
-void CCmpParametersWnd::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/ )
+void CCmpReportTreeView::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/ )
 {
 	CNI.bEnable=TRUE;
 	CNI.dwItemData=NULL;
@@ -755,7 +771,7 @@ void CCmpParametersWnd::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& 
 	CNI.bInvalidData = FALSE;
 }
 
-void CCmpParametersWnd::OnChooseMenu( UINT nID )
+void CCmpReportTreeView::OnChooseMenu( UINT nID )
 {
 	if(nID == MENU_UNAVAILABLE)
 		return;

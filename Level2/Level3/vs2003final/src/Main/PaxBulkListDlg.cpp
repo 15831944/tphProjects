@@ -185,6 +185,7 @@ void CPaxBulkListDlg::OnOK()
 void CPaxBulkListDlg::ReloadList()
 {
 	m_PaxBulkListCtr.DeleteAllItems();
+	m_vBulkPercent.clear();
 	int nNum=m_pPaxBulk->m_vectBulkInfo.size();
 	for( int i=0; i<nNum ; i++ )
 	{
@@ -211,6 +212,8 @@ void CPaxBulkListDlg::ReloadList()
 
 		m_PaxBulkListCtr.SetItemText(i,7,paxBulk.m_TimeRangeBegin.printTime());
 		m_PaxBulkListCtr.SetItemText(i,8,paxBulk.m_TimeRangeEnd.printTime());
+
+		m_vBulkPercent.push_back(MakeString(paxBulk.m_vBulkPercent));
 	}
 }
 
@@ -275,8 +278,10 @@ void CPaxBulkListDlg::OnProcessorDataAdd()
 				addBulk.m_TimeRangeBegin.set(editDlg.m_BeginRangeTime.GetHour(),editDlg.m_BeginRangeTime.GetMinute(),editDlg.m_BeginRangeTime.GetSecond());
 				addBulk.m_TimeRangeEnd.set(editDlg.m_EndRangeTime.GetHour(),editDlg.m_EndRangeTime.GetMinute(),editDlg.m_EndRangeTime.GetSecond());
 			}
+			addBulk.m_vBulkPercent = editDlg.m_vBulkPercent;
 			m_pPaxBulk->m_vectBulkInfo.push_back( addBulk );
             
+			m_vBulkPercent.push_back(MakeString(editDlg.m_vBulkPercent));
 		    ReloadList();
 		}
 	}		
@@ -350,6 +355,7 @@ void CPaxBulkListDlg::EditOneBulk()
 		{
 			editDlg.m_EndRangeTime.ParseDateTime(strRangeEnd);
 		}
+		editDlg.m_vBulkPercent = ParseString(m_vBulkPercent[idx]);
 		if(editDlg.DoModal()==IDOK)
 		{
 			char temp[20];
@@ -383,6 +389,7 @@ void CPaxBulkListDlg::EditOneBulk()
 				strRangeEnd = editDlg.m_EndRangeTime.Format("%H:%M:%S");
 			}
 			
+			m_vBulkPercent[idx] = MakeString(editDlg.m_vBulkPercent);
 			m_PaxBulkListCtr.SetItemText(idx, 1,strCapacity );
 			m_PaxBulkListCtr.SetItemText(idx,2,strFrequecy);
 			m_PaxBulkListCtr.SetItemText(idx,3,strStartDay); // "Start Day",
@@ -467,6 +474,8 @@ void CPaxBulkListDlg::GetListData()
 		if (strcmp( strTime ,"") == 0)	strTime="00:00:00";
 		strTime=strTime+":0";
 		paxBulk.m_TimeRangeEnd.SetTime(strTime);
+
+		paxBulk.m_vBulkPercent = ParseString(m_vBulkPercent[nItem]);
 	}	
 }
 
@@ -569,4 +578,46 @@ void CPaxBulkListDlg::OnRButtonDown(UINT nFlags, CPoint point)
 	// TODO: Add your message handler code here and/or call default
 	OnLButtonDown(nFlags,point) ;
 	CDialog::OnRButtonDown(nFlags, point);
+}
+
+CString CPaxBulkListDlg::MakeString( const std::vector<int>& vPercent )
+{
+	CString strPercent;
+	int nCount = (int)vPercent.size();
+	for (int i = 0; i < nCount; i++)
+	{
+		int iPercent = vPercent.at(i);
+		if (strPercent.IsEmpty())
+		{
+			strPercent.Format(_T("%d"),iPercent);
+		}
+		else
+		{
+			CString strValue;
+			strValue.Format(_T("%d"),iPercent);
+			strPercent += CString(_T(",")) + strValue;
+		}
+	}
+	return strPercent;
+}
+
+std::vector<int> CPaxBulkListDlg::ParseString( const CString& strPercent )
+{
+	CString strLeft;
+	CString strRight = strPercent;
+	std::vector<int> vPercent;
+	int nPos = strPercent.Find(',');
+	while(nPos != -1)
+	{
+		strLeft = strRight.Left(nPos);
+		vPercent.push_back(atoi(strLeft));
+		strRight = strRight.Right(strRight.GetLength() - nPos - 1);
+		nPos = strRight.Find(',');
+	}
+
+	if (strRight.IsEmpty() == FALSE)
+	{
+		vPercent.push_back(atoi(strRight));
+	}
+	return vPercent;
 }

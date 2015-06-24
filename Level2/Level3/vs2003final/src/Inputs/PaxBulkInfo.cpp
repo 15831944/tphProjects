@@ -9,6 +9,7 @@
 #include "common\termfile.h"
 #include "../Common/ARCTracker.h"
 #include <algorithm>
+#include "..\Common\UTIL.H"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -20,52 +21,187 @@ bool CPaxBulk::fits( const CMobileElemConstraint& _const)
 	if(m_mobileElemConst.fitex( _const)==false)return false;
 	return true;
 }
+
+bool CPaxBulk::GetStartEndRange( long& iStart, long& iEnd, long lIndex,const ElapsedTime& flyTime )
+{
+	long iBulkCount = (long)m_vBulkPercent.size();
+	ElapsedTime startTime = m_TimeStart + m_TimeFrequency * lIndex;
+	ElapsedTime beginFlyTime = m_TimeRangeBegin + flyTime;
+	for (long i = 0; i < iBulkCount; i++)
+	{
+		ElapsedTime enterTime = beginFlyTime + m_TimeFrequency*i;
+		CString strEnterTime;
+		strEnterTime = enterTime.printTime();
+		if (enterTime < m_TimeStart)
+			continue;
+		
+		if (enterTime > m_TimeEnd)
+			continue;
+		
+		if (enterTime < startTime)
+			continue;
+
+		if (iStart == -1)
+		{
+			iStart = i;
+			continue;
+		}
+
+		if (iEnd == -1)
+		{
+			iEnd = i;
+			continue;
+		}
+
+		iStart = MIN(iStart,i);
+		iEnd = MAX(iEnd,i);
+	}
+
+	if (iStart == -1 || iEnd == -1)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool CPaxBulk::GetRangeStartIndex( long& nIndex,const ElapsedTime& flyTime )
+{
+	std::vector<int>::iterator iter;
+	for( iter=m_vBulkSeats.begin();iter!=m_vBulkSeats.end(); )
+	{
+		
+		if( m_TimeStart +m_TimeFrequency * nIndex < m_TimeRangeBegin + flyTime)
+		{
+			iter++ ;
+			nIndex++ ;
+			continue ;
+		}
+		if(m_TimeStart +m_TimeFrequency * nIndex > m_TimeRangeEnd + flyTime)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	return false;
+}
 //either all shuttle buses have departed or passenger can't take later bus, return false;
 //or return true;
 bool CPaxBulk::takeCurrentBulk(ElapsedTime& time , long& nIndex, int _nPaxGroup,const ElapsedTime& flyTime)
 {
 	nIndex=0;
-	bool bReturn=false;
-	std::vector<int>::iterator iter;
-	for( iter=m_vBulkSeats.begin();iter!=m_vBulkSeats.end(); )
-	{
-		if( *iter >0) 
-		{
-			if( m_TimeStart +m_TimeFrequency * nIndex < m_TimeRangeBegin + flyTime)
-			{
-				iter++ ;
-				nIndex++ ;
-				continue ;
-			}
-			if(m_TimeStart +m_TimeFrequency * nIndex > m_TimeRangeEnd + flyTime)
-			{
-				bReturn=false;
-				break;
-			}
+	//bool bReturn=false;
+	//std::vector<int>::iterator iter;
+	//for( iter=m_vBulkSeats.begin();iter!=m_vBulkSeats.end(); )
+	//{
+	//	if( *iter >0) 
+	//	{
+	//		if( m_TimeStart +m_TimeFrequency * nIndex < m_TimeRangeBegin + flyTime)
+	//		{
+	//			iter++ ;
+	//			nIndex++ ;
+	//			continue ;
+	//		}
+	//		if(m_TimeStart +m_TimeFrequency * nIndex > m_TimeRangeEnd + flyTime)
+	//		{
+	//			bReturn=false;
+	//			break;
+	//		}
+	//
+	//		if(*iter - _nPaxGroup < 0)
+	//		{
+	//			iter ++;
+	//			nIndex ++;
+	//			continue;
+	//		}
+	//	//	*iter -= _nPaxGroup;
+	//		//*iter -=min( *iter, _nPaxGroup);//allow over loading.
+	//			//if(*iter <=0) m_nBulkTimes--;
+	//		bReturn=true;
+	//		//time= m_TimeStart + (m_TimeFrequency * nIndex  );
+	//		break;
+	//	}
+	//	else
+	//	{
+	//		iter++ ;
+	//		nIndex++ ;
+	//	}
+	//}
+
+	//if (bReturn == false)//doesn't find
+	//{
+	//	return false;
+	//}
+
+	if (GetRangeStartIndex(nIndex,flyTime) == false)
+		return false;
 	
-			if(*iter - _nPaxGroup < 0)
-			{
-				iter ++;
-				nIndex ++;
-				continue;
-			}
-			*iter -= _nPaxGroup;
-			//*iter -=min( *iter, _nPaxGroup);//allow over loading.
-				//if(*iter <=0) m_nBulkTimes--;
-			bReturn=true;
-			time= m_TimeStart + (m_TimeFrequency * nIndex  );
-			break;
-		}
-		else
-		{
-			iter++ ;
-			nIndex++ ;
-		}
+
+	long iStart = -1;
+	long iEnd = -1;
+	if (GetStartEndRange(iStart,iEnd,nIndex,flyTime) == false)
+		return false;
+	
+	int percentAll = 0;
+	int nPercentCount = (int)m_vBulkPercent.size();
+	for (int i = iStart; i <= iEnd; i++)
+	{
+		percentAll += m_vBulkPercent[i];
 	}
 
-	return bReturn;
+	//if(percentAll<=0)
+	//	return false;
+
+	int randP = random(percentAll);
+	int iPercent = 0;
+	for (int j = iStart; j <= iEnd; j++)
+	{
+		iPercent += m_vBulkPercent[j];
+		if (randP < iPercent)
+		{
+			long lInterVal = nIndex + j - iStart;
+			if (m_vBulkSeats[lInterVal] - _nPaxGroup < 0)
+			{
+				return false;
+			}
+			m_vBulkSeats[lInterVal] -= _nPaxGroup;
+			time= m_TimeStart + (m_TimeFrequency * lInterVal );
+			return true;
+		}
+	}
+	return false;
 }
-CPaxBulkInfo::CPaxBulkInfo():DataSet (PassengerBulkFile, 2.3f)
+
+bool CPaxBulk::TimeOverLap(const ElapsedTime& flyTime) const
+{
+	ElapsedTime startFlyTime = flyTime + m_TimeRangeBegin;
+	ElapsedTime endFlyTime = flyTime + m_TimeRangeEnd;
+
+	if (startFlyTime >= m_TimeStart && startFlyTime <= m_TimeEnd)
+	{
+		return true;
+	}
+
+	if (endFlyTime >= m_TimeStart && endFlyTime <= m_TimeEnd)
+	{
+		return true;
+	}
+
+	if (m_TimeStart >= startFlyTime && m_TimeStart <= endFlyTime)
+	{
+		return true;
+	}
+
+	if (m_TimeEnd >= startFlyTime && m_TimeEnd <= endFlyTime)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+
+CPaxBulkInfo::CPaxBulkInfo():DataSet (PassengerBulkFile, 2.4f)
 {
 }
 
@@ -94,6 +230,16 @@ void CPaxBulkInfo::readData( ArctermFile& p_file )
 		p_file.getInteger(sec);
 	    paxBulk.m_TimeFrequency.set(sec);
 		p_file.getInteger(paxBulk.m_nCapacity);	
+
+		int iPercentCount = 0;
+		p_file.getInteger(iPercentCount);
+		for (int j = 0; j < iPercentCount; j++)
+		{
+			int iPercent = 0;
+			p_file.getInteger(iPercent);
+			paxBulk.m_vBulkPercent.push_back(iPercent);
+		}
+
 		m_vectBulkInfo.push_back( paxBulk );
 	}
 	SortData() ;
@@ -112,22 +258,52 @@ public:
 };
 void CPaxBulkInfo::readObsoleteData(ArctermFile&p_file)
 {
-	p_file.reset();
-	p_file.skipLines (3);		
-	while (p_file.getLine())			
+	if (m_fVersion < 2.40)
 	{
-		CPaxBulk paxBulk;
-		paxBulk.m_mobileElemConst.SetInputTerminal(GetInputTerminal());
-		paxBulk.m_mobileElemConst.readConstraint(p_file);
-		p_file.getTime( paxBulk.m_TimeRangeBegin);
-		p_file.getTime( paxBulk.m_TimeRangeEnd);
-		p_file.getTime( paxBulk.m_TimeStart);
-		p_file.getTime( paxBulk.m_TimeEnd);
-		p_file.getTime(paxBulk.m_TimeFrequency);
-		p_file.getInteger(paxBulk.m_nCapacity);	
-		m_vectBulkInfo.push_back( paxBulk );
+		p_file.reset();
+		p_file.skipLines (3);		
+		while (p_file.getLine())			
+		{
+			CPaxBulk paxBulk;
+			paxBulk.m_mobileElemConst.SetInputTerminal(GetInputTerminal());
+			paxBulk.m_mobileElemConst.readConstraint(p_file);
+			long sec;
+			p_file.getInteger(sec);
+			paxBulk.m_TimeRangeBegin.set(sec);
+			p_file.getInteger(sec);
+			paxBulk.m_TimeRangeEnd.set(sec);
+			p_file.getInteger(sec);
+			paxBulk.m_TimeStart.set(sec);
+			p_file.getInteger(sec);
+			paxBulk.m_TimeEnd.set(sec);
+			p_file.getInteger(sec);
+			paxBulk.m_TimeFrequency.set(sec);
+			p_file.getInteger(paxBulk.m_nCapacity);	
+			m_vectBulkInfo.push_back( paxBulk );
+		}
+		SortData() ;
 	}
-	SortData() ;
+
+	if (m_fVersion < 2.30)
+	{
+		p_file.reset();
+		p_file.skipLines (3);		
+		while (p_file.getLine())			
+		{
+			CPaxBulk paxBulk;
+			paxBulk.m_mobileElemConst.SetInputTerminal(GetInputTerminal());
+			paxBulk.m_mobileElemConst.readConstraint(p_file);
+			p_file.getTime( paxBulk.m_TimeRangeBegin);
+			p_file.getTime( paxBulk.m_TimeRangeEnd);
+			p_file.getTime( paxBulk.m_TimeStart);
+			p_file.getTime( paxBulk.m_TimeEnd);
+			p_file.getTime(paxBulk.m_TimeFrequency);
+			p_file.getInteger(paxBulk.m_nCapacity);	
+			m_vectBulkInfo.push_back( paxBulk );
+		}
+		SortData() ;
+	}
+	
 	
 }
 void CPaxBulkInfo::SortData()
@@ -158,6 +334,14 @@ void CPaxBulkInfo::writeData( ArctermFile& p_file ) const
 
 
 		p_file.writeInt(m_vectBulkInfo[i].m_nCapacity);	
+
+		int iPercentCount = (int)m_vectBulkInfo[i].m_vBulkPercent.size();
+		p_file.writeInt(iPercentCount);
+		for (int j = 0; j < iPercentCount; j++)
+		{
+			int iPercent = m_vectBulkInfo[i].m_vBulkPercent[j];
+			p_file.writeInt(iPercent);
+		}
 		p_file.writeLine();
 	}	
 }
@@ -219,10 +403,13 @@ int CPaxBulkInfo::findValuedBulk(ElapsedTime&time,long& nfreqIndex,int group,con
 	{
 		if(iterBulk->fits( _const))
 		{
-			if(!((iterBulk->m_TimeStart  <= iterBulk->m_TimeRangeBegin + flyTime && iterBulk->m_TimeEnd >=iterBulk->m_TimeRangeBegin+flyTime)
+		/*	if(!((iterBulk->m_TimeStart  <= iterBulk->m_TimeRangeBegin + flyTime && iterBulk->m_TimeEnd >=iterBulk->m_TimeRangeBegin+flyTime)
 				||(iterBulk->m_TimeStart  <= iterBulk->m_TimeRangeEnd + flyTime && iterBulk->m_TimeEnd >=iterBulk->m_TimeRangeEnd+flyTime)))
-              continue;
+              continue;*/
 			
+			if (iterBulk->TimeOverLap(flyTime) == false)
+				continue;
+
 			if(iterBulk->takeCurrentBulk(time,nfreqIndex,group,flyTime))
 			{
 				nResultBulk = iterBulk->m_nBulkIndex;

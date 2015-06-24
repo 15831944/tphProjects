@@ -141,6 +141,7 @@ protected:
 
 	std::vector<int> m_vGateFlowPairProcs;//parent of the gate processor
 	std::vector<int> m_vReclaimFlowPairProcs;//parent of the reclaim processor
+	std::vector<int> m_vLandsidePairProc;//parent of landside processor
 
 	// backup
 	bool m_bBackup;
@@ -182,6 +183,8 @@ public:
 	void AddGateFlowPairProcessor(int nIndex);
 	void notifyGateFlowPair(const CMobileElemConstraint& mobileType);
 	void AddReclaimFlowPairProcessor(int nIndex);
+	void AddLandsideFacilityFlowPair(int nIndex);
+	void notifyLandsideFacilityFlowPair(const CMobileElemConstraint& mobileType);
 	void notifyReclaimFlowPair(const CMobileElemConstraint& mobileType);
 	void clearGateAndReclaimFlowPair();
 	

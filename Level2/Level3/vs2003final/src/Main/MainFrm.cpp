@@ -4999,6 +4999,7 @@ void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NU
 	{
 		pReport->GetReportManager()->GetCmpReport()->LoadProject(strName, strDesc);
 		pReport->UpdateAllWnds();
+//		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
 	}
 
 	pDoc->UpdateAllViews(NULL);

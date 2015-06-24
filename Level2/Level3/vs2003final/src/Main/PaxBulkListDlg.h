@@ -31,7 +31,7 @@ public:
 	CStatic	m_staticToolBar;
 	CPaxBulkListCtrl  m_PaxBulkListCtr;
 	//}}AFX_DATA
-
+	std::vector<CString> m_vBulkPercent;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -39,6 +39,9 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
+
+	CString MakeString(const std::vector<int>& vPercent);
+	std::vector<int> ParseString(const CString& strPercent);
 
 // Implementation
 protected:

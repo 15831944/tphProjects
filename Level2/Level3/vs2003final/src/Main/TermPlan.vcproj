@@ -500,6 +500,18 @@
 				RelativePath="CLicense.h">
 			</File>
 			<File
+				RelativePath=".\CmpReportChildFrameSplit.h">
+			</File>
+			<File
+				RelativePath=".\CmpReportGraphView.h">
+			</File>
+			<File
+				RelativePath=".\CmpReportListView.h">
+			</File>
+			<File
+				RelativePath=".\CmpReportTreeView.h">
+			</File>
+			<File
 				RelativePath="color.h">
 			</File>
 			<File
@@ -5147,6 +5159,18 @@
 						UsePrecompiledHeader="0"
 						PrecompiledHeaderFile=""/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CmpReportChildFrameSplit.cpp">
+			</File>
+			<File
+				RelativePath=".\CmpReportGraphView.cpp">
+			</File>
+			<File
+				RelativePath=".\CmpReportListView.cpp">
+			</File>
+			<File
+				RelativePath=".\CmpReportTreeView.cpp">
 			</File>
 			<File
 				RelativePath="ColorBox.cpp">

@@ -405,9 +405,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\ReportChildFrameSplit.cpp">
-			</File>
-			<File
 				RelativePath="ReportParamToCompare.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -557,9 +554,6 @@
 			</File>
 			<File
 				RelativePath="ModelToCompare.h">
-			</File>
-			<File
-				RelativePath=".\ReportChildFrameSplit.h">
 			</File>
 			<File
 				RelativePath="ReportDef.h">

@@ -1,25 +1,31 @@
 #pragma once
-
 #include ".\MFCExControl\CoolTree.h"
-#include "CmpReportManager.h"
+#include "..\Compare\CmpReportManager.h"
 
-class CCmpParametersWnd : public CWnd
+class CCmpReportTreeView : public CView
 {
-	DECLARE_DYNAMIC(CCmpParametersWnd)
+	DECLARE_DYNCREATE(CCmpReportTreeView)
+
+protected:
+	CCmpReportTreeView();
+	virtual ~CCmpReportTreeView();
 
 public:
-	CCmpParametersWnd();
-	virtual ~CCmpParametersWnd();
+	virtual void OnDraw(CDC* pDC);
+#ifdef _DEBUG
+	virtual void AssertValid() const;
+	virtual void Dump(CDumpContext& dc) const;
+#endif
 
-	void SetReportManager(CCmpReportManager* pRptManager)
-	{
-		m_pReportManager = pRptManager;
-	}
+protected:
+	DECLARE_MESSAGE_MAP()
+public:
+
+	void SetCmpReport(CCmpReport* pCmpReport){ m_pCmpReport = pCmpReport; }
 	void InitParaWnd();
 	void UpdateParaWnd();
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 protected:
-	DECLARE_MESSAGE_MAP()
 	CCoolTree m_propTree;
 	CButton m_btnRun;
 	CButton m_btnCancel;
@@ -54,10 +60,12 @@ protected:
 
 public:
 	afx_msg void OnTimer(UINT nIDEvent);
+	virtual void OnInitialUpdate();
+	virtual void OnUpdate();
 private:
 	void InitCooltreeNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify=TRUE);
 protected:
-	CCmpReportManager* m_pReportManager;
+	CCmpReport* m_pCmpReport;
 };
 
 

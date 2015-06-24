@@ -8,7 +8,7 @@
 #endif // _MSC_VER > 1000
 // PaxBulkEdit.h : header file
 //
-
+#include "../MFCExControl/ListCtrlEx.h"
 /////////////////////////////////////////////////////////////////////////////
 // CPaxBulkEdit dialog
 
@@ -40,7 +40,9 @@ protected:
 
 public:
 	virtual BOOL OnInitDialog();
-
+	void InitListCtrlHeader();
+	void SetListCtrlContent();
+	void UpdatePercentData();
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CPaxBulkEdit)
@@ -57,6 +59,10 @@ protected:
 	afx_msg void OnRADIOafter();
 	afx_msg void OnRADIObefore();
 	afx_msg void OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnLvnEndlabeleditPercent(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMKillfocusmFrequencytime(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMKillfocusBeginrangetime(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMKillfocusEndrangetime(NMHDR *pNMHDR, LRESULT *pResult);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:
@@ -70,8 +76,11 @@ public:
 	COleDateTime m_freqEndTime;
 	COleDateTime m_BeginRangeTime;
 	COleDateTime m_EndRangeTime;
+	CListCtrlEx m_wndListCtrl;
+	std::vector<int> m_vBulkPercent;
 
 	void InitTimeValues(int& dayFreqStart, int& dayFreqEnd);
+	
 };
 
 //{{AFX_INSERT_LOCATION}}

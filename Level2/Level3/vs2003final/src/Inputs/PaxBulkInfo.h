@@ -27,12 +27,17 @@ public:
 	int   m_nCapacity;
 	std::vector<int> m_vBulkSeats;// use to flag how many  bulk seats can be used.
 	int m_nBulkIndex; // car index
+	std::vector<int> m_vBulkPercent;
 public:
 	bool fits(const CMobileElemConstraint& _const);
 
 	//either all shuttle buses have departed or passenger can't take later bus, return false;
 	//or return true;
 	bool takeCurrentBulk(ElapsedTime& time ,long& nIndex, int _nPaxGroup,const ElapsedTime& flyTime);
+	bool GetRangeStartIndex(long& nIndex,const ElapsedTime& flyTime);
+	bool GetStartEndRange(long& iStart, long& iEnd, long lIndex,const ElapsedTime& flyTime);
+
+	bool TimeOverLap(const ElapsedTime& flyTime)const;
 
 	CPaxBulk()
 	{

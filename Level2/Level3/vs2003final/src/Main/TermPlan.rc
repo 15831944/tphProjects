@@ -1398,42 +1398,37 @@ BEGIN
                     WS_EX_STATICEDGE
 END
 
-IDD_DIALOG_EDITBULK DIALOGEX 0, 0, 179, 194
+IDD_DIALOG_EDITBULK DIALOGEX 0, 0, 176, 304
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "BulkEdit"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     EDITTEXT        IDC_CAPACITY,77,18,88,12,ES_AUTOHSCROLL
     CONTROL         "DateTimePicker2",IDC_m_FrequencyTime,"SysDateTimePick32",
-                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,77,45,88,
-                    12
+                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP,77,45,88,12
     CONTROL         "DateTimePicker2",IDC_StartTime,"SysDateTimePick32",
-                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,114,63,51,
-                    12
+                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP,114,63,51,12
     CONTROL         "DateTimePicker2",IDC_EndTime,"SysDateTimePick32",
-                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,114,80,51,
-                    12
+                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP,114,80,51,12
     CONTROL         "DateTimePicker2",IDC_BeginRangeTime,"SysDateTimePick32",
-                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,77,130,88,
-                    12
+                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP,77,130,88,12
     CONTROL         "DateTimePicker2",IDC_EndRangeTime,"SysDateTimePick32",
-                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,77,153,88,
-                    12
+                    DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP,77,153,88,12
     LTEXT           "StartTime",IDC_STATIC,16,65,31,8
     LTEXT           "EndTime",IDC_STATIC,16,82,31,8
     LTEXT           "BeginRangeTime",IDC_STATIC,16,132,58,8
     LTEXT           "EndRangeTime",IDC_STATIC,16,155,54,8
-    GROUPBOX        "",IDC_STATIC,7,36,165,66
-    GROUPBOX        "",IDC_STATIC,7,8,165,31
-    GROUPBOX        "",IDC_STATIC,7,100,165,72
+    GROUPBOX        "",IDC_STATIC,7,36,162,66
+    GROUPBOX        "",IDC_STATIC,7,8,162,31
+    GROUPBOX        "",IDC_STATIC,7,100,162,72
     LTEXT           "Capacity",IDC_STATIC,16,20,32,8
     LTEXT           "TimeFrequency",IDC_STATIC,16,47,52,8
     CONTROL         "before",IDC_RADIO_before,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP,23,111,36,10
     CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_ARROWKEYS,153,19,11,11
-    DEFPUSHBUTTON   "OK",IDOK,83,174,43,13
-    PUSHBUTTON      "Cancel",IDCANCEL,129,174,43,13
+    DEFPUSHBUTTON   "OK",IDOK,82,284,43,13
+    PUSHBUTTON      "Cancel",IDCANCEL,126,284,43,13
     LTEXT           "Day",IDC_STATIC,60,65,14,8
     EDITTEXT        IDC_EDIT_FREQ_STARTDAY,77,63,34,12,ES_AUTOHSCROLL
     CONTROL         "",IDC_SPIN_FREQ_STARTDAY,"msctls_updown32",
@@ -1446,6 +1441,9 @@ BEGIN
                     11,14
     CONTROL         "after",IDC_RADIO_after,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP,82,111,30,10
+    CONTROL         "",IDC_LIST_DATA,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,
+                    175,162,104,WS_EX_LEFTSCROLLBAR
 END
 
 IDD_DIALOG_GATE_ASSING_SUMMARY DIALOGEX 0, 0, 455, 242
@@ -9024,9 +9022,9 @@ BEGIN
     IDD_DIALOG_EDITBULK, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 172
+        RIGHTMARGIN, 169
         TOPMARGIN, 7
-        BOTTOMMARGIN, 187
+        BOTTOMMARGIN, 297
     END
 
     IDD_DIALOG_GATE_ASSING_SUMMARY, DIALOG

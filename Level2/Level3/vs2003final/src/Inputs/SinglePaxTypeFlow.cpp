@@ -1216,11 +1216,11 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 					}
 				}
 				//nProcCount -3 = 
-				for (int nProc = nProcCount -3; nProc >= 0; nProc --)
-				{
-					const ProcessorID& procID = _vProc[nProc].GetProcID();
-					CString strID = procID.GetIDString();
-					GroupIndex group = m_pTerm->procList->getGroupIndex(procID);
+			//	for (int nProc = nProcCount -3; nProc >= 0; nProc --)
+			//	{
+				//	const ProcessorID& procID = _vProc[nProc].GetProcID();
+				//	CString strID = procID.GetIDString();
+					GroupIndex group = m_pTerm->procList->getGroupIndex(lastProcID);
 					if(group.start >= 0)
 					{
 						for (int nProcIndex = group.start; nProcIndex <= group.end; nProcIndex++)
@@ -1233,7 +1233,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 						}					
 					}
 
-				}
+			//	}
 			}
 		}
 		//terminal processor
@@ -1304,6 +1304,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 					{
 						pReslutProc->AddGateFlowPairProcessor(m);
 						pReslutProc->AddReclaimFlowPairProcessor(m);
+						pReslutProc->AddLandsideFacilityFlowPair(m);
 					}
 				}
 			}
@@ -1315,6 +1316,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 					{
 						m_pTerm->procList->getProcessor( n )->AddGateFlowPairProcessor(m);
 						m_pTerm->procList->getProcessor( n )->AddReclaimFlowPairProcessor(m);
+						m_pTerm->procList->getProcessor( n )->AddLandsideFacilityFlowPair(m);
 					}
 				}
 			}
@@ -1344,6 +1346,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 
  				m_pTerm->procList->getProcessor( n )->notifyGateFlowPair(*m_pPaxConstrain);
  				m_pTerm->procList->getProcessor( n )->notifyReclaimFlowPair(*m_pPaxConstrain);
+				m_pTerm->procList->getProcessor( n )->notifyLandsideFacilityFlowPair(*m_pPaxConstrain);
  			}
 
 			_vProc.pop_back();

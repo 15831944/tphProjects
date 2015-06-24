@@ -193,6 +193,7 @@ bool VisitorLandsideBehavior::WriteVisitorTrack( const ARCVector3& pax_pre_locat
 	//	PreTrack = m_pPerson->getLogEntry().getEvent( lLogCount-1 );	
 	//}
 
+
 	if(  PreTrack == NULL || PreTrack->followowner == false )
 	{
 		if( getPoint() != getDest() )
@@ -219,12 +220,12 @@ bool VisitorLandsideBehavior::WriteVisitorTrack( const ARCVector3& pax_pre_locat
 			// add the first log entry
 			evntItem.x = static_cast<float>(getPoint().n[VX]);
 			evntItem.y = static_cast<float>(getPoint().n[VY]);
-			evntItem.z = static_cast<short>(getPoint().n[VZ]);
-
+			//evntItem.z = static_cast<short>(getPoint().n[VZ]);
+			
 			//if the previous item is terminal log
 			//here need to set the flag to real Z
-			evntItem.m_IsRealZ = TRUE;
-			evntItem.m_RealZ= static_cast<float>(getPoint().n[VZ]);
+			//evntItem.m_IsRealZ = TRUE;
+			//evntItem.m_RealZ= static_cast<float>(getPoint().n[VZ]);
 		
 			m_pPerson->getLogEntry().addEvent (evntItem);
 		}

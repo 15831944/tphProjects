@@ -267,8 +267,8 @@ protected:
 	void ReloadStandConnectorList(MiscData* _pMiscData);
 	
 	//Disallowed Non-Passenger Item
-	void DelDisallowedNonPax(HTREEITEM hItem);
-	void ReloadDisallowedNonPax();
+	void DelDisallowedNonPaxItem(HTREEITEM hItem);
+	void ReloadDisallowedNonPaxItem();
 	//----------------- Value Functions -------------------------------
 	virtual void SetValue( MiscData* _pMiscData );
 	void SetSpinRange();

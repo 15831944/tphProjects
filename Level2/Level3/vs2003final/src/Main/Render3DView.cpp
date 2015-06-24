@@ -2338,7 +2338,7 @@ void CRender3DView::UpdateLandsideVehicleTraces()
 {
 	CTermPlanDoc *pDoc=GetDocument();
 	bool bShow = pDoc->m_bShowTracers ? true : false;
-	GetModelEditScene().RenderVehicleTraces(pDoc->m_tempVehicleTracerData,bShow);
+	GetModelEditScene().RenderVehicleTraces(&pDoc->m_tempVehicleTracerData,bShow);
 }
 
 void CRender3DView::UpdateLandsideTrafficLightAnima()

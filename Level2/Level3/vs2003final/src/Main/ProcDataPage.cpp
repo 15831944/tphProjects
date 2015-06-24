@@ -375,6 +375,7 @@ void CProcDataPage::OnSelchangeListProcessor()
 		SetTree();
 	}
 	ReloadCapacityList();
+	ReloadDisallowedNonPaxItem();
 	// TODO: Add your control notification handler code here
 	ReLoadDetailed();	
 }
@@ -1300,7 +1301,7 @@ void CProcDataPage::OnToolbarbuttondel()
 	else if (hParentItem == m_hStandConnect)
 		DelStandConnector(hItem);
 	else if (hParentItem == m_hDisallowedNonPaxItem)
-		DelDisallowedNonPax(hItem);
+		DelDisallowedNonPaxItem(hItem);
 }
 
 void CProcDataPage::AddGate()
@@ -2507,7 +2508,7 @@ void CProcDataPage::InsertTreeForBehavior()
 	cni.nt=NT_NORMAL;
 	cni.net=NET_COMBOBOX;
 	
-	ReloadDisallowedNonPax();
+	ReloadDisallowedNonPaxItem();
 	cni.nt=NT_CHECKBOX;
 	cni.net=NET_EDITSPIN_WITH_VALUE;
 	//m_hPopulationCapacity=m_TreeData.InsertItem("Population Capacity:  0",cni,TRUE,FALSE,m_hOtherBehavior);
@@ -3812,7 +3813,7 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 		}
 
 		CMobileElemTypeStrDB* pMobElement = m_pInTerm->m_pMobElemTypeStrDB;
-		for (int i =0; i< pMobElement->GetCount(); i++)
+		for (int i =1; i< pMobElement->GetCount(); i++)
 		{
 			CString strMobElement = pMobElement->GetString(i);
 			if(std::find(vPaxDefined.begin(), vPaxDefined.end(), strMobElement) != vPaxDefined.end())
@@ -3946,6 +3947,7 @@ void CProcDataPage::OnSelectMobileElementType(UINT nID)
 
 		m_TreeData.SetItemData(hTreeItemDisallowedNonPax,1);
 		m_TreeData.Expand(m_hDisallowedNonPaxItem,TVE_EXPAND);
+		SetModified();
 	}
 	return;
 }
@@ -4327,7 +4329,7 @@ void CProcDataPage::ReloadStandConnectorList(MiscData* _pMiscData)
 	m_TreeData.SelectItem(m_hStandConnect);
 }
 
-void CProcDataPage::DelDisallowedNonPax( HTREEITEM hItem )
+void CProcDataPage::DelDisallowedNonPaxItem( HTREEITEM hItem )
 {
 	if(hItem == NULL)
 		return ;
@@ -4361,6 +4363,7 @@ void CProcDataPage::DelDisallowedNonPax( HTREEITEM hItem )
 		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
 	}
 	m_TreeData.SetFocus();
+	SetModified();
 }
 
 
@@ -4513,7 +4516,7 @@ void CProcDataPage::SetImgOfButtonEditPipeAuto( int typeOfUsingPipe )
 	m_ToolBar.GetToolBarCtrl().SetButtonInfo( ID_LINKAGE_EDITPIPE_AUTO,&tbBtnInfo );
 }
 
-void CProcDataPage::ReloadDisallowedNonPax()
+void CProcDataPage::ReloadDisallowedNonPaxItem()
 {
 	if(m_hTreeItemCapacity == NULL)
 		return;
@@ -4554,5 +4557,5 @@ void CProcDataPage::ReloadDisallowedNonPax()
 		HTREEITEM hTreeItemPaxCapacity = m_TreeData.InsertItem(treeItemText, cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
 		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
 	}
-
 }
+
