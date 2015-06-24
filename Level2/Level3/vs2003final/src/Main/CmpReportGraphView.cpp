@@ -3,6 +3,7 @@
 #include "CmpReportGraphView.h"
 #include "CompareReportDoc.h"
 #include "ComparativePlot.h"
+#include ".\cmpreportgraphview.h"
 
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
@@ -24,13 +25,14 @@ void CCmpReportGraphView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHART_TYPE_COMBO, m_comboChartType);
-	DDX_Control(pDX, IDC_CHART_SELECT_COMBO, m_comboChartSelect);
+	DDX_Control(pDX, IDC_REPORT_LIST_COMBO, m_comboReportList);
 	DDX_Control(pDX, IDC_STATIC_TOOLBARCONTENTER, m_toolbarContent);
 }
 
 BEGIN_MESSAGE_MAP(CCmpReportGraphView, CFormView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
+	ON_CBN_SELCHANGE(IDC_REPORT_LIST_COMBO, OnCbnSelchangeReportListCombo)
 END_MESSAGE_MAP()
 
 void CCmpReportGraphView::OnInitialUpdate()
@@ -45,18 +47,27 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 		return;
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
  	CInputParameter* inputParam = pCompProj->GetInputParam();
-
-	CModelsManager* modelsManager = inputParam->GetModelsManagerPtr();
-	std::vector<CModelToCompare *>& vModelList = modelsManager->GetModelsList();
 	const CComparativeReportResultList &resultList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vResult = resultList.GetReportResult();
 
+	CString selectedReport;
+	m_comboReportList.GetWindowText(selectedReport);
+	m_comboReportList.ResetContent();
 	for(int i = 0; i < static_cast<int>(vResult.size()); i++)
 	{
-		CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart, vModelList);
-		cmpPlot.Draw3DChart(*vResult[i]);
-		break;
+		m_comboReportList.AddString(vResult[i]->GetCmpReportName());
+		int nIndex = m_comboReportList.SelectString( 0, selectedReport);
+		if(nIndex == CB_ERR)
+		{
+			m_comboReportList.SetCurSel(0);
+		}
+		else
+		{
+			m_comboReportList.SetCurSel(nIndex);
+		}
 	}
+	m_comboReportList.GetWindowText(selectedReport);
+	Draw3DChartByReportName(selectedReport);
 }
 
 void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)
@@ -102,3 +113,28 @@ void CCmpReportGraphView::Dump(CDumpContext& dc) const
 }
 #endif //_DEBUG
 
+
+void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
+{
+	CString selectedReport;
+	m_comboReportList.GetWindowText(selectedReport);
+	if(!selectedReport.IsEmpty())
+		Draw3DChartByReportName(selectedReport);
+}
+
+void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
+{
+	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
+	CInputParameter* inputParam = pCompProj->GetInputParam();
+	const CComparativeReportResultList &resultList = pCompProj->GetCompReportResultList();
+	const CmpReportResultVector& vResult = resultList.GetReportResult();
+	for(int i = 0; i < static_cast<int>(vResult.size()); i++)
+	{
+		CString xxxx = vResult[i]->GetCmpReportName();
+		if(selectedReport.CompareNoCase(vResult[i]->GetCmpReportName()) == 0)
+		{
+			CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart);
+			cmpPlot.Draw3DChart(*vResult[i]);
+		}
+	}
+}

@@ -571,7 +571,7 @@ bool CComparativePlot::Draw3DChart(const CComparativeDistanceTravelReport & _rep
 
 }
 
-bool CComparativePlot_new::Draw3DChart(const CComparativeReportResult& _reportData)
+bool CComparativePlot_new::Draw3DChart(CComparativeReportResult& _reportData)
 {
 // 	if(m_pChart == NULL)
 // 		return false;
@@ -585,28 +585,28 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeReportResult& _reportDa
 		switch(_reportData.GetReportType())
 		{
 		case QueueTimeReport:
-			bResult = Draw3DChart((const CComparativeQTimeReport&)_reportData);
+			bResult = Draw3DChart((CComparativeQTimeReport&)_reportData);
 			break;
 		case QueueLengthReport:
-			bResult = Draw3DChart((const CComparativeQLengthReport&)_reportData);
+			bResult = Draw3DChart((CComparativeQLengthReport&)_reportData);
 			break;
 		case ThroughtputReport:
-			bResult = Draw3DChart((const CComparativeThroughputReport&)_reportData);
+			bResult = Draw3DChart((CComparativeThroughputReport&)_reportData);
 			break;
 		case SpaceDensityReport:
-			bResult = Draw3DChart((const CComparativeSpaceDensityReport&)_reportData);
+			bResult = Draw3DChart((CComparativeSpaceDensityReport&)_reportData);
 			break;
 		case PaxCountReport:
-			bResult = Draw3DChart((const CComparativePaxCountReport&)_reportData);
+			bResult = Draw3DChart((CComparativePaxCountReport&)_reportData);
 			break;
 		case AcOperationReport:
-			bResult = Draw3DChart((const CComparativeAcOperationReport&)_reportData);
+			bResult = Draw3DChart((CComparativeAcOperationReport&)_reportData);
 			break;
 		case TimeTerminalReport:
-			bResult = Draw3DChart((const CComparativeTimeTerminalReport&)_reportData);
+			bResult = Draw3DChart((CComparativeTimeTerminalReport&)_reportData);
 			break;
 		case DistanceTravelReport:
-			bResult = Draw3DChart((const CComparativeDistanceTravelReport&)_reportData);
+			bResult = Draw3DChart((CComparativeDistanceTravelReport&)_reportData);
 			break;
 
 		default:
@@ -725,7 +725,7 @@ void CComparativePlot_new::UniformAppearances()
 }
 
 
-bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportData)
+bool CComparativePlot_new::Draw3DChart(CComparativeQTimeReport& _reportData)
 {
 	const QTimeMap& mapQTime = _reportData.GetResult();
 
@@ -753,7 +753,7 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 	}
 
 	// Insert legend.
-	std::vector<CString> vSimName = _reportData.GetSimNameList();
+	std::vector<CString> vSimName  =  _reportData.GetSimNameList();
 	int simNameCount = vSimName.size();
 	for(int i=0; i<simNameCount; i++)
 	{
@@ -788,6 +788,7 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 	return true;
 }
 
+/*
 bool CComparativePlot_new::Draw3DChart(const CComparativeQLengthReport& _reportData)
 {
 	const QLengthMap& mapQLength = _reportData.GetResult();
@@ -1275,7 +1276,7 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeDistanceTravelReport & 
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-
+*/
 bool CComparativePlot_new::Update3DChart(ThreeDChartType iType)
 {
 	m_iType = iType;

@@ -472,6 +472,23 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		pResult->m_ReportStartTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameter().GetStartTime();
 		pResult->m_ReportEndTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameter().GetEndTime();//elapsetime.
 
+		pResult->SetCmpReportName(vReports[i].GetName());
+		std::vector<CModelToCompare*>& vModels = m_inputParam.GetModelsManagerPtr()->GetModelsList();
+		CString simName;
+		for(std::vector<CModelToCompare*>::iterator itor=vModels.begin();
+			itor!=vModels.end(); itor++)
+		{
+			for(int i=0; i<(*itor)->GetSimResultCount(); i++)
+			{
+				simName = _T("");
+				simName += (*itor)->GetModelName();
+				simName += ("(");
+				simName += (*itor)->GetSimResult(i);
+				simName += (")");
+				pResult->AddSimName(simName);
+			}
+		}
+
 		std::vector<std::string> vstrOutput;
 		for (unsigned j = 0; j < vReports[i].m_vstrOutput.size(); j++)
 		{

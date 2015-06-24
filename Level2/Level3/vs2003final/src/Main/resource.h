@@ -3298,6 +3298,7 @@
 #define IDC_STATIC_DRIVE                2401
 #define IDC_COMBO_DATA                  2402
 #define IDC_LIST_ROSTER_ASIGN_SUMMARY   2404
+#define IDC_REPORT_LIST_COMBO           2406
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5427,7 +5428,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1101
 #define _APS_NEXT_COMMAND_VALUE         35324
-#define _APS_NEXT_CONTROL_VALUE         2406
+#define _APS_NEXT_CONTROL_VALUE         2407
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

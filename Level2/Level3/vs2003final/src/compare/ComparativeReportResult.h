@@ -27,7 +27,8 @@ class CComparativeReportResult
 {
 protected:
 	std::vector<std::string> m_vSampleRepPaths;
-
+	CString m_cmpReportName;
+	std::vector<CString> m_vSimName;
 public:
 	ElapsedTime m_ReportStartTime, m_ReportEndTime;
 public:
@@ -41,6 +42,10 @@ public:
 	virtual bool LoadReport(const std::string& _sPath) = 0;
 	virtual int	 GetReportType() const = 0;
 	int GetSampleCount() const { return m_vSampleRepPaths.size() ;}
+	CString GetCmpReportName(){ return m_cmpReportName; }
+	void SetCmpReportName(CString name){ m_cmpReportName = name; }
+	std::vector<CString> GetSimNameList() { return m_vSimName; }
+	void AddSimName(CString simName){  m_vSimName.push_back(simName); }
 };
 
 #endif // !defined(AFX_COMPARATIVEREPORTRESULT_H__DC538420_6819_405C_85E8_CB6EDC3E8A49__INCLUDED_)

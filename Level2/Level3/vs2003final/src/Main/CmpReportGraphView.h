@@ -22,7 +22,7 @@ public:
 	CToolBar	m_ToolBar;
 	CStatic		m_toolbarContent;
 	CComboBox	m_comboChartType;
-	CComboBox	m_comboChartSelect;
+	CComboBox	m_comboReportList;
 public:
 	virtual void OnInitialUpdate();
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
@@ -34,6 +34,10 @@ protected:
 	CCmpReport* m_pCmpReport;
 	int m_categoryType;
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnCbnSelchangeReportListCombo();
+private:
+	void Draw3DChartByReportName(CString &reportSelected);
 };
 
 

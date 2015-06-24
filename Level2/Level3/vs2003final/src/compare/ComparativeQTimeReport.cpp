@@ -110,11 +110,22 @@ bool CComparativeQTimeReport::SaveReport(const std::string& _sPath) const
 
 		file.writeField("QTime Report");
 		file.writeLine();
-		
-		int nSampleCount = m_vSampleRepPaths.size();
+
+		//write comparative report name
+		file.writeField(m_cmpReportName);
+		file.writeLine();
 
 		//write original sample count
+		int nSampleCount = m_vSampleRepPaths.size();
 		file.writeInt( nSampleCount );
+		file.writeLine();
+
+		//write simulation name
+		int count = m_vSimName.size();
+		for(int i=0; i<count; i++)
+		{
+			file.writeField(m_vSimName[i]);
+		}
 		file.writeLine();
 
 		//write original sample path
@@ -161,18 +172,30 @@ bool CComparativeQTimeReport::LoadReport(const std::string& _sPath)
 	{
 		ArctermFile file;
 		file.openFile( _sPath.c_str(), READ);
+
+		// get report name
+		file.getField(m_cmpReportName.GetBuffer(256), 256);
+		m_cmpReportName.ReleaseBuffer();
+
 		//get model number
 		int nSampleCount =0;
 		if (file.getInteger( nSampleCount )==false || nSampleCount<=0)
 			return false;
 
-		char sSamplePath[MAX_PATH]="";
+		//get simulation name list
+		char buffer[MAX_PATH]="";
+		file.getLine();
+		for(int i=0; i<nSampleCount; i++)
+		{
+			file.getField(buffer, MAX_PATH);
+			m_vSimName.push_back(CString(buffer));
+		}
 		//get sample file name
 		for(int i=0; i<nSampleCount; i++)
 		{
 			file.getLine();
-			file.getField(sSamplePath, MAX_PATH);
-			m_vSampleRepPaths.push_back(std::string(sSamplePath));
+			file.getField(buffer, MAX_PATH);
+			m_vSampleRepPaths.push_back(std::string(buffer));
 		}
 		file.skipLine();
 		ElapsedTime time(0L);
