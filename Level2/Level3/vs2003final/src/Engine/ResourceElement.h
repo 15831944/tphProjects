@@ -13,6 +13,7 @@
 #include "MOBILE.H"
 #include "results\resourceelementlogentry.h"
 #include "inputs\resourcepool.h"
+#include "Inputs\TimePointOnSideWalk.h"
 // declare
 class Terminal;
 
@@ -24,7 +25,12 @@ class ResourceElement : public MobileElement
 public:
 	ResourceElement( Terminal* _pTerm, CResourcePool* _pool, int _poolIdx, long _id, double _speed, int _index_in_pool );
 	virtual ~ResourceElement();
-
+	struct PipePointInformation 
+	{
+		Point pt;
+		int m_nPrePipe;
+		int m_nCurPipe;
+	};
 // data member
 private:
 	Terminal*		m_pTerm;
@@ -39,7 +45,7 @@ private:
 
 	//Current destination, used for
 	Point m_ptDestination;      
-	
+	std::vector<PipePointInformation> m_vPipePointList;
 // interface 
 public:
 	// get current service pax
@@ -80,6 +86,9 @@ public:
 	// processor back to bas
 	virtual void handleBackToBase( const ElapsedTime& _time );
 
+	//Sets Element's destination
+	virtual void handleWalkOnPipe(const ElapsedTime& _time );
+
 	//Generates the next movement event for the receiver based on its current state and adds it to the event list.
     virtual void generateEvent (ElapsedTime eventTime,bool bNoLog);
 
@@ -88,8 +97,11 @@ public:
 
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
 
+	void WalkAlongShortestPath(Point entryPoint, const ElapsedTime _curTime);
+
 	ElapsedTime moveTime (void) const;
-	
+private:
+	void WritePipeLogs( PTONSIDEWALK& _vPointList, const ElapsedTime _eventTime,  bool _bNeedCheckEvacuation = false );
 };
 
 #endif // !defined(AFX_RESOURCEELEMENT_H__F9F00B47_F1F5_4155_A378_183EC0EB0932__INCLUDED_)

@@ -563,6 +563,14 @@ void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 	bool bUsedPipe = false;
 	if(!m_vPipePointList.empty())
 	{
+		int xxxx = m_vPipePointList.size();
+		for(int i=0; i<xxxx; i++)
+		{
+			Point tempPoint = m_vPipePointList[i].pt;
+			DistanceUnit x = tempPoint.getX();
+			DistanceUnit y = tempPoint.getY();
+			y = tempPoint.getY();
+		}
 		setDestination(m_vPipePointList.front().pt);
 
 		//write landside walkway with pipe log
@@ -960,6 +968,14 @@ void TerminalMobElementBehavior::writeLogEntry( ElapsedTime time, bool _bBackup,
 
 void TerminalMobElementBehavior::generateEvent( ElapsedTime eventTime,bool bNoLog )
 {
+	long precisely = eventTime.getPrecisely();
+	if(precisely == 1350000L || 
+		((-20L)<(precisely - 1351851L) && (precisely - 1351851L)<20L) ||
+		((-20L)<(precisely - 1354749L) && (precisely - 1354749L)<20L) ||
+		((-20L)<(precisely - 1357658L) && (precisely - 1357658L)<20L))
+	{
+		int xxx = 0;
+	}
 	if(m_pPerson)
 		m_pPerson->generateEvent(eventTime,bNoLog);
 
@@ -1082,6 +1098,7 @@ void TerminalMobElementBehavior::setDestination( Point p)
 }
 void TerminalMobElementBehavior::setState (short newState)
 {
+	short curState = m_pPerson->getState();
 	m_pPerson->setState(newState);
 }
 
@@ -3259,12 +3276,29 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 	PTONSIDEWALK pointList;
 	int nPercent = random( 100 );
 	int nMidPoint = vMidPoint.size();
-
 	if( nMidPoint == 0 )
 	{	
 		m_bUserPipes = false;
-		pPipe->GetPointListForLog( vPipeList2[0],entryPoint, exitPoint, nPercent,pointList );
-
+		//pPipe->GetPointListForLog( vPipeList2[0],entryPoint, exitPoint, nPercent,pointList );
+		int sizeOfPointList = pointList.size();
+		for(int i=0; i<sizeOfPointList; i++)
+		{
+			DistanceUnit x = pointList[i].getX();
+			DistanceUnit y = pointList[i].getY();
+			DistanceUnit z = pointList[i].getZ();
+			pointList[i].setX(-4000);
+			pointList[i].setY(4000);
+			pointList[i].setZ(z);
+		}
+		CTimePointOnSideWalk temp;
+		temp.init(-4000,4000,0);
+		pointList.push_back(temp);
+		temp.init(-4000,6000,0);
+		pointList.push_back(temp);
+		temp.init(-2000,6000,0);
+		pointList.push_back(temp);
+		temp.init(-2000,4000,0);
+		pointList.push_back(temp);
 		WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());		
 		pointList.clear();
 	}
@@ -4741,8 +4775,9 @@ void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, c
 	PTONSIDEWALK LogPointList;
 	int iPercent = random(100);
 	m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
-
-	setDestination(LogPointList.at(0).GetPointOnSideWalk());
+	int tempSize = (int)LogPointList.size();
+	Point tempPoint = LogPointList.at(0).GetPointOnSideWalk();
+	setDestination(tempPoint);
 
 	//LogPointList.erase(LogPointList.begin());
 

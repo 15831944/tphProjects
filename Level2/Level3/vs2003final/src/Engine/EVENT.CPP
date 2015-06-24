@@ -191,6 +191,11 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
 			
 			//debugfile.Log(eventNumber).Log("{").Log(nextEvent->getTypeName());
             // process the event
+			ElapsedTime tttttime = nextEvent->getTime();
+			if(tttttime == 1271820L)
+			{
+				int aaaaaaaa = 0;
+			}
             if (nextEvent->process(_pEngine))
                 delete nextEvent;
 

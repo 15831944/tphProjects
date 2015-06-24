@@ -11,6 +11,8 @@
 #include "../Common/ARCTracker.h"
 #include "../Main/TermPlanDoc.h"
 #include "../Main/Floor2.h"
+#include "../Inputs/PipeGraph.h"
+#include "../Inputs/PipeDataSet.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -90,7 +92,10 @@ int ResourceElement::move (ElapsedTime currentTime,bool bNoLog)
 		writeLogEntry( currentTime, false );
 		handleBackToBase( currentTime );
 		break;
-
+	case WalkOnPipe:
+		writeLogEntry( currentTime, false );
+		handleWalkOnPipe( currentTime );
+		break;
 	default:
 		//assert(0);
 		break;
@@ -270,3 +275,213 @@ void ResourceElement::generateEvent (ElapsedTime eventTime,bool bNoLog)
     aMove->addEvent();
 	m_prevEventTime = aMove->getTime();
 }
+
+void ResourceElement::WalkAlongShortestPath(Point destPoint, const ElapsedTime _curTime)
+{
+	// if not same floor, need not move in pipe
+	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
+	int iEntryFloor = (int)(destPoint.getZ() / SCALE_FACTOR);
+	if (iCurFloor != iEntryFloor)
+		return;
+
+
+//	Point outPoint = location;
+//	Point entryPoint;
+	// if no pipe , need not to move in pipe
+	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
+	if (!pPipeMgr->checkCanMoveByPipe(iEntryFloor))
+		return;
+
+
+	CGraphVertexList shortestPath;
+	if (!pPipeMgr->getShortestPathFromLib(location, destPoint, shortestPath))
+		return;
+
+	int nVertexCount = shortestPath.getCount();
+	if (nVertexCount < 3)
+		return;
+
+//	writeLogEntry( _curTime, false );
+
+	setState( WalkOnPipe );
+
+	// get the real path, and write log
+	PTONSIDEWALK LogPointList;
+	int iPercent = random(100);
+	m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
+	int tempSize = (int)LogPointList.size();
+	for(int i=0; i<tempSize; i++)
+	{
+		DistanceUnit x = LogPointList[i].getX();
+		DistanceUnit y = LogPointList[i].getY();
+		DistanceUnit z = LogPointList[i].getZ();
+	}
+	//Point tempPoint2 = LogPointList.at(0).GetPointOnSideWalk();
+	//setDestination(tempPoint2);
+
+	//_curTime += moveTime();
+	WritePipeLogs( LogPointList, _curTime);
+}
+
+void ResourceElement::WritePipeLogs( PTONSIDEWALK& _vPointList, const ElapsedTime _eventTime,  bool _bNeedCheckEvacuation )
+{
+	m_vPipePointList.clear();
+	for (PTONSIDEWALK::iterator iter = _vPointList.begin(); iter != _vPointList.end(); iter++)
+	{
+		PipePointInformation pipeInfor;
+		if (m_vPipePointList.empty())
+		{
+			pipeInfor.m_nPrePipe = -1;
+		}
+		else
+		{
+			PipePointInformation pipeInfor111 = m_vPipePointList.back();
+			pipeInfor.m_nPrePipe = pipeInfor111.m_nCurPipe;//todo
+		}
+
+		pipeInfor.pt = iter->GetPointOnSideWalk();
+		pipeInfor.m_nCurPipe = iter->GetPipeIdx();
+		m_vPipePointList.push_back(pipeInfor);
+	}
+
+	setState(WalkOnPipe);
+	generateEvent(_eventTime,false);
+
+	//if(!m_bEvacuationWhenInPipe && !m_bUserPipes)
+	//	return;
+
+/*	CTimePointOnSideWalk tempPoint, prePoint;
+//	ElapsedTime timeFireTime = getEngine()->GetFireEvacuation();
+
+//	if( _bNeedCheckEvacuation && m_bEvacuationWhenInPipe)
+//		return;
+
+	int iMovingSideWalkIdx = -1;
+	int iPipeIndex = -1;
+	prePoint.SetOnSideWalkFlag( false );
+	prePoint.SetPoint( location );
+
+	ElapsedTime tTime = _eventTime;
+	for( UINT m=0; m<_vPointList.size(); m++ )
+	{
+		tempPoint = _vPointList[m];
+
+		setDestination( tempPoint);
+
+		if( tempPoint.GetOnSideWalkFlag() )
+		{
+			if( tempPoint.GetSideWalkIdx() != iMovingSideWalkIdx )
+			{
+				setDestination( tempPoint);
+
+				//processBillboard(_eventTime);
+
+				_eventTime += moveTime();
+				//				writeLogEntry( _eventTime );
+				iMovingSideWalkIdx = tempPoint.GetSideWalkIdx();
+			}
+
+			_eventTime += tempPoint.GetTime();	
+		}
+		else
+		{
+			//if when firing, the person is in pipe.
+			if( _bNeedCheckEvacuation && _eventTime + moveTime() >= timeFireTime )
+			{
+				Point strandPoint;
+				if( prePoint.GetOnSideWalkFlag() )
+				{
+					strandPoint = tempPoint.GetPoint();
+				}
+				else
+				{
+					Point vPoint( prePoint.GetPoint(), tempPoint.GetPoint() );
+					double detaTime = ( timeFireTime - _eventTime ).asSeconds();
+					double dLength = detaTime * m_pPerson->speed;
+					vPoint.length( dLength );
+
+					strandPoint= prePoint.GetPoint() + vPoint;
+				}
+
+				strandPoint.setZ( prePoint.GetPoint().getZ() );
+				setDestination( strandPoint );
+				if (getEngine()->IsLandSel())
+				{
+					bool bCreateNew = (tempPoint.GetPipeIdx() != iPipeIndex ? true : false);
+					if (tempPoint.GetPipeIdx() != iPipeIndex)
+					{
+						CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( tempPoint.GetPipeIdx() );
+						pPipe->WritePipePax(getEngine()->GetLandsideSimulation(),getLocation(),strandPoint.GetPoint(),m_pPerson->getID(),_eventTime,timeFireTime + 62l);
+					}
+				}
+
+				writeLogEntry( timeFireTime, false );
+				long lReflectTime = random( 60 );
+				writeLogEntry( timeFireTime + lReflectTime + 2l, false );
+
+				setState( EvacuationFire );
+				SetFireEvacuateFlag( true );
+				generateEvent( timeFireTime + lReflectTime + 2l ,false);
+
+
+				m_bEvacuationWhenInPipe = true;
+				m_bUserPipes = false;
+				break;
+			}	
+			else
+			{
+				processBillboard(_eventTime);
+			}
+
+			_eventTime += moveTime();
+		}
+		writeLogEntry( _eventTime, false );
+		//write landside crosswalk
+		{
+			if (getEngine()->IsLandSel())
+			{
+				bool bCreateNew = (tempPoint.GetPipeIdx() != iPipeIndex ? true : false);
+				if (tempPoint.GetPipeIdx() != iPipeIndex)
+				{
+					CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( tempPoint.GetPipeIdx() );
+					pPipe->WritePipePax(getEngine()->GetLandsideSimulation(),getLocation(),tempPoint.GetPoint(),m_pPerson->getID(),tTime,_eventTime);
+				}
+				tTime = _eventTime;
+			}
+
+		}
+
+		prePoint = tempPoint;
+	}*/
+}
+
+void ResourceElement::handleWalkOnPipe( const ElapsedTime& _time )
+{
+	if(m_vPipePointList.empty())
+		return;
+
+	int xxxx = m_vPipePointList.size();
+	Point curPoint = location;
+	Point tempPoint;
+	for(int i=0; i<xxxx; i++)
+	{
+		tempPoint = m_vPipePointList[i].pt;
+	}
+	setDestination(m_vPipePointList.front().pt);
+	writeLogEntry( _time, false );
+	m_vPipePointList.erase(m_vPipePointList.begin());
+	if(m_vPipePointList.empty())
+	{
+		if(getPreState() == Resource_Stay_In_Base)
+		{
+			setState(Resource_Arrival_Processor);
+		}
+		else if(getPreState() == Resource_Leave_Processor)
+		{
+			setState(Resource_Back_To_Base);
+		}
+	}
+	long mTime = moveTime().getPrecisely();
+	generateEvent( _time + moveTime(),false );
+}
+

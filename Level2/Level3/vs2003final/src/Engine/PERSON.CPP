@@ -294,6 +294,7 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 	eventNumber;
     
 	TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior *)getBehavior(MobElementBehavior::TerminalBehavior);
+	int xxxx = getID();
 	if (spTerminalBehavior == NULL)
 	{
 		return 0;
@@ -1099,7 +1100,11 @@ void Person::setAirsideLocation( const CPoint2008& _ptLocation )
 		spAirsideBehavior->setLocation(_ptLocation);
 	}
 }
-
+void Person::setState (short newState)
+{ 
+	short curState = getState();
+	MobileElement::setState(newState); 
+}
 void Person::setTerminalLocation( const Point& _ptLocation )
 {
 	PLACE_METHOD_TRACK_STRING();

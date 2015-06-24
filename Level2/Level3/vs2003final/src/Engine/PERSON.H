@@ -220,6 +220,8 @@ public:
 //write entry terminal and exit terminal log
 	virtual void writeTerminalBeginLogEntry(ElapsedTime curTime);
 	virtual void writeTerminalEndLogEntry(ElapsedTime curTime);
+	//Sets current event type.
+	virtual void setState (short newState);
 protected:
 	//// base on what the next processor, creat the log for the passenger.
 	//void ProcessPipe( Processor* _pNextProc, ElapsedTime& _curTime, CFlowItemEx* _pPrevFlowItem );
