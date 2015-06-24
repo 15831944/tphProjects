@@ -179,6 +179,7 @@ bool CComparativeQTimeReport::LoadReport(const std::string& _sPath)
 
 		//get model number
 		int nSampleCount =0;
+		file.getLine();
 		if (file.getInteger( nSampleCount )==false || nSampleCount<=0)
 			return false;
 

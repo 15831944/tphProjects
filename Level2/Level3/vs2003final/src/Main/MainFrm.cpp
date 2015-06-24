@@ -79,7 +79,6 @@
 #include "Floors.h"
 #include "Shlwapi.h"
 #include "AirsideReportView.h"
-#include "CompareReportView.h"
 #include "LogSettingDlg.h"
 #include "LogDisplayDlg.h"
 #include "AirsideMSView.h"
@@ -92,7 +91,6 @@
 //#include "../InputAirside/AirsideImportExportManager.h"
 //#include "AirsideGround.h"
 #include "MultiRunRepControlView.h"
-#include "../compare/CmpReportCtrl.h"
 #include "common/MultiRunReport.h"
 
 #include "ImportExportManager.h"
@@ -4980,20 +4978,6 @@ void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NU
 	theApp.m_pCompareReportTemplate2->InitialUpdateFrame(pNewFrame, pDoc);
 	pNewFrame->ShowWindow(SW_MAXIMIZE);
 
-	POSITION pos = pDoc->GetFirstViewPosition();
-	CView * pTempView =	NULL;
-	CCompareReportView* pCmpReportView = NULL;
-	while (pos != NULL)
-	{
-		pTempView = pDoc->GetNextView(pos);
-
-		if (pTempView->IsKindOf(RUNTIME_CLASS(CCompareReportView)))
-		{
-			pCmpReportView = (CCompareReportView *)pTempView;
-			break;
-		}
-	}
-
 	if (!strName.IsEmpty())// && !strDesc.IsEmpty())
 	{
 		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
@@ -5012,19 +4996,6 @@ void CMainFrame::OnComparativerun()
 	assert( pDoc!= NULL );
 	if (pDoc == NULL)
 		return;
-
-	POSITION pos = pDoc->GetFirstViewPosition();
-
-	CView * pTempView;
-	while (pos != NULL)
-	{
-		pTempView = pDoc->GetNextView(pos);
-		
-		if (pTempView->IsKindOf(RUNTIME_CLASS(CCompareReportView)))
-		{
-//			((CCompareReportView2 *)pTempView)->RunCompReport();
-		}
-	}
 }
 
 void CMainFrame::ChangeSize(const CRect rcWnd, const CRect rcClient, UINT nIndex)

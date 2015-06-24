@@ -76,7 +76,7 @@ bool CComparativeQLengthReport::SaveReport(const std::string& _sPath) const
 		ArctermFile file;
 		if(file.openFile( _sPath.c_str(),WRITE)==false) return false;
 
-		file.writeField("Comparative Report");
+		file.writeField("QLength Report");
 		file.writeLine();
 
 		//write comparative report name

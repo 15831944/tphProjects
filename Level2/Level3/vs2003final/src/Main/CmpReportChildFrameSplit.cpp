@@ -1,17 +1,9 @@
 #include "stdafx.h"
-#include "TermPlan.h"
 #include "CmpReportChildFrameSplit.h"
 #include "CmpReportTreeView.h"
 #include "CmpReportListView.h"
 #include "CmpReportGraphView.h"
-#include "CompareReportView.h"
 #include "CompareReportDoc.h"
-#include "ReportChildFrameSplit.h"
-#include "RepControlView.h"
-#include "RepListView.h"
-#include "common\dataset.h"
-#include "RepGraphView.h"
-#include "CmpReportGraphView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

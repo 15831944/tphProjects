@@ -1,9 +1,7 @@
 #include "stdafx.h"
-#include "TermPlan.h"
 #include "CmpReportGraphView.h"
 #include "CompareReportDoc.h"
-#include "ComparativePlot.h"
-#include ".\cmpreportgraphview.h"
+#include ".\compare\ComparativePlot.h"
 
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
@@ -67,7 +65,14 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 		}
 	}
 	m_comboReportList.GetWindowText(selectedReport);
-	Draw3DChartByReportName(selectedReport);
+	if(!selectedReport.IsEmpty())
+	{
+		m_pCmpReport->SetCurReport(selectedReport);
+		Draw3DChartByReportName(selectedReport);
+		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+		pDoc->SetModifiedFlag(TRUE);
+		pDoc->UpdateAllViews(this);
+	}
 }
 
 void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)
@@ -119,7 +124,13 @@ void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 	CString selectedReport;
 	m_comboReportList.GetWindowText(selectedReport);
 	if(!selectedReport.IsEmpty())
+	{
+		m_pCmpReport->SetCurReport(selectedReport);
 		Draw3DChartByReportName(selectedReport);
+		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+		pDoc->SetModifiedFlag(TRUE);
+		pDoc->UpdateAllViews(this);
+	}
 }
 
 void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
@@ -130,7 +141,6 @@ void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
 	const CmpReportResultVector& vResult = resultList.GetReportResult();
 	for(int i = 0; i < static_cast<int>(vResult.size()); i++)
 	{
-		CString xxxx = vResult[i]->GetCmpReportName();
 		if(selectedReport.CompareNoCase(vResult[i]->GetCmpReportName()) == 0)
 		{
 			CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart);

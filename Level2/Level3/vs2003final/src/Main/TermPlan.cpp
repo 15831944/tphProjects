@@ -35,7 +35,6 @@
 #include "MathematicFrame.h"
 #include "XPStyle/NewMenu.h"
 #include "AirsideReportView.h"
-#include "CompareReportView.h"
 #include "../InputAirside/ALTAirport.h"
 #include "NodeViewFrame.h"
 #include "AirsideMSView.h"
@@ -347,9 +346,9 @@ BOOL CTermPlanApp::InitInstance()
 
 	m_pCompareReportTemplate2 = new CNewMultiDocTemplate(
 		IDR_MAINFRAME,
-		RUNTIME_CLASS(CCompareReportDoc),		// Document class
-		RUNTIME_CLASS(CCmpReportChildFrameSplit),		// frame class
-		RUNTIME_CLASS(CCmpReportListView));//CCmpReportGraphView));		// view class
+		RUNTIME_CLASS(CCompareReportDoc),
+		RUNTIME_CLASS(CCmpReportChildFrameSplit),
+		RUNTIME_CLASS(CCmpReportListView));
 	AddDocTemplate(m_pCompareReportTemplate2);
 
 // 	m_pProcessDefineTemplate = new CNewMultiDocTemplate(

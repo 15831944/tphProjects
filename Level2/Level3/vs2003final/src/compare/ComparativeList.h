@@ -16,7 +16,7 @@ class CModelToCompare;
 class CComparativeList  
 {
 public:
-	CComparativeList(Terminal* pTerminal, CListCtrl& listCtrl, const std::vector<CModelToCompare*>& vModelList)
+	CComparativeList(Terminal* pTerminal, CListCtrl& listCtrl)
 	 : m_pTerminal(pTerminal)
 	 , m_listCtrl(listCtrl)
 	{

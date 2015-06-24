@@ -2,7 +2,7 @@
 
 #include "..\MFCExControl\SortableHeaderCtrl.h"
 #include "..\MFCExControl\XListCtrl.h"
-#include "..\Compare\CmpReportManager.h"
+#include "..\Compare\CmpReport.h"
 
 
 class CCmpReportListView : public CFormView

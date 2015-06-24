@@ -132,22 +132,7 @@
 				RelativePath=".\Cmp3DChartWnd.cpp">
 			</File>
 			<File
-				RelativePath=".\CmpDisplay.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpParametersWnd.cpp">
-			</File>
-			<File
 				RelativePath=".\CmpReport.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpReportCtrl.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpReportFrameWnd.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpReportManager.cpp">
 			</File>
 			<File
 				RelativePath=".\ComparativeAcOperationReport.cpp">
@@ -160,6 +145,9 @@
 			</File>
 			<File
 				RelativePath=".\ComparativePaxCountReport.cpp">
+			</File>
+			<File
+				RelativePath=".\ComparativePlot.cpp">
 			</File>
 			<File
 				RelativePath="ComparativeProject.cpp">
@@ -487,22 +475,7 @@
 				RelativePath=".\Cmp3DChartWnd.h">
 			</File>
 			<File
-				RelativePath=".\CmpDisplay.h">
-			</File>
-			<File
-				RelativePath=".\CmpParametersWnd.h">
-			</File>
-			<File
 				RelativePath=".\CmpReport.h">
-			</File>
-			<File
-				RelativePath=".\CmpReportCtrl.h">
-			</File>
-			<File
-				RelativePath=".\CmpReportFrameWnd.h">
-			</File>
-			<File
-				RelativePath=".\CmpReportManager.h">
 			</File>
 			<File
 				RelativePath=".\ComparativeAcOperationReport.h">
@@ -515,6 +488,9 @@
 			</File>
 			<File
 				RelativePath=".\ComparativePaxCountReport.h">
+			</File>
+			<File
+				RelativePath=".\ComparativePlot.h">
 			</File>
 			<File
 				RelativePath="ComparativeProject.h">

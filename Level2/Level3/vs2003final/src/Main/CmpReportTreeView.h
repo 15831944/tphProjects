@@ -1,6 +1,6 @@
 #pragma once
 #include ".\MFCExControl\CoolTree.h"
-#include "..\Compare\CmpReportManager.h"
+#include "..\Compare\CmpReport.h"
 
 class CCmpReportTreeView : public CFormView
 {
