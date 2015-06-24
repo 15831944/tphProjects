@@ -16,7 +16,7 @@
 #include "inputs\resourcepool.h"
 // declare
 class Terminal;
-
+typedef std::vector<int> PIPES;
 /************************************************************************/
 /*                       ResourceElement                                */
 /************************************************************************/
@@ -115,13 +115,13 @@ private:
 	CString ClacTimeString(const ElapsedTime& _curTime);
 
 	// no pipe
-	void walkStraightly(Point _destPoint, const ElapsedTime _curTime);
+	void walkStraight(Point _destPoint, const ElapsedTime _curTime);
 
 	// automatic pipe
 	void walkAlongShortestPath(Point _destPoint, const ElapsedTime _curTime);
 
 	// user defined pipe
-	void walkAlongUserPath(Point _destPoint, std::vector<int> userPipe, const ElapsedTime _curTime);
+	void walkAlongUserDefinePath(Point _destPoint, PIPES userPipe, const ElapsedTime _curTime);
 };
 
 #endif // !defined(AFX_RESOURCEELEMENT_H__F9F00B47_F1F5_4155_A378_183EC0EB0932__INCLUDED_)

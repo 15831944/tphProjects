@@ -309,13 +309,13 @@ void ResourceElement::processPipe(EntityEvents _status, Point _destPoint, const 
 	int iEntryFloor = (int)(_destPoint.getZ() / SCALE_FACTOR);
 	if (iCurFloor != iEntryFloor)
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 		return;
 	}
 	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
 	if (!pPipeMgr->checkCanMoveByPipe(iEntryFloor))
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 		return;
 	}
 
@@ -341,7 +341,7 @@ void ResourceElement::processPipe(EntityEvents _status, Point _destPoint, const 
 
 	if(procToRes.GetTypeOfUsingPipe() == USE_NOTHING)
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 	}
 	else if(procToRes.GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
 	{
@@ -353,7 +353,7 @@ void ResourceElement::processPipe(EntityEvents _status, Point _destPoint, const 
 	}
 }
 
-void ResourceElement::walkStraightly(Point _destPoint, const ElapsedTime _curTime)
+void ResourceElement::walkStraight(Point _destPoint, const ElapsedTime _curTime)
 {
 	if(m_statusBeforeEnterPipe == Resource_Stay_In_Base)
 		setState(Resource_Arrival_Processor);
@@ -370,14 +370,14 @@ void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime 
 	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
 	if (!pPipeMgr->getShortestPathFromLib(location, _destPoint, shortestPath))
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 		return;
 	}
 
 	int nVertexCount = shortestPath.getCount();
 	if (nVertexCount < 3)
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 		return;
 	}
 
@@ -406,12 +406,12 @@ void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime 
 	generateEvent(_curTime,false);
 }
 
-void ResourceElement::walkAlongUserDefinePath(Point _destPoint, std::vector<int> pipeList, const ElapsedTime _curTime)
+void ResourceElement::walkAlongUserDefinePath(Point _destPoint, PIPES pipeList, const ElapsedTime _curTime)
 {
 	int nPipeCount = pipeList.size();
 	if( nPipeCount == 0 )
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 		return;
 	}
 
@@ -428,7 +428,7 @@ void ResourceElement::walkAlongUserDefinePath(Point _destPoint, std::vector<int>
 	nPipeCount = workingPipeList.size();
 	if( nPipeCount == 0 )
 	{
-		walkStraightly(_destPoint, _curTime);
+		walkStraight(_destPoint, _curTime);
 		return;
 	}
 

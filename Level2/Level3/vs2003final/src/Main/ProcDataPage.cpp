@@ -305,6 +305,10 @@ void CProcDataPage::ReLoadDetailed()
 	else
 		m_TreeData.SetCheckStatus(m_hWaitInQueue,FALSE);
 
+	if(pMiscData->getDisallowNonPaxItemFlag())
+		m_TreeData.SetCheckStatus(m_disallowedNonPaxItem,TRUE);
+	else
+		m_TreeData.SetCheckStatus(m_disallowedNonPaxItem,FALSE);
 	ReloadGateList( pMiscData );
 	ReloadLinkedDestList(pMiscData);
 	ReloadWaitAreaList(pMiscData, m_nProcDataType == ConveyorProc);
@@ -1293,8 +1297,10 @@ void CProcDataPage::OnToolbarbuttondel()
 	}
 	else if (hParentItem == m_hConnectBridge)
 		DelBridgeConnector(hItem);
-	else if (hParentItem = m_hStandConnect)
+	else if (hParentItem == m_hStandConnect)
 		DelStandConnector(hItem);
+	else if (hParentItem == m_disallowedNonPaxItem)
+		DelDisallowedNonPaxItem(hItem);
 }
 
 void CProcDataPage::AddGate()
@@ -1657,7 +1663,11 @@ void CProcDataPage::OnSelchangedTreeData(NMHDR* pNMHDR, LRESULT* pResult)
 	m_hCurrentSelItem = hItem;
 //	HTREEITEM  hItem2=(HTREEITEM)pNMTreeView->itemOld.hItem;
 	
-	// TODO: Add your control notification handler code here	
+	// TODO: Add your control notification handler code here
+	if(m_TreeData.GetParentItem(hItem) == m_disallowedNonPaxItem)
+	{
+		m_preDisallowedNonPaxItem = m_TreeData.GetItemText(hItem);
+	}
 	SetToolBarState( hItem );		
 	*pResult = 0;
 }
@@ -1999,6 +2009,16 @@ LRESULT CProcDataPage::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			}
 		}
+		else if( hItem == m_disallowedNonPaxItem)
+		{
+			MiscData* pMiscData = GetCurMiscData();
+			if(pMiscData)
+			{
+				BOOL bCheck = IsCheckTreeItem(m_disallowedNonPaxItem);
+				pMiscData->setDisallowNonPaxItemFlag(bCheck ? true : false );
+				SetModified();	
+			}
+		}
 	}
 
 	if(message==UM_CEW_EDITSPIN_BEGIN)
@@ -2053,39 +2073,54 @@ LRESULT CProcDataPage::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	if(message==UM_CEW_COMBOBOX_BEGIN)
 	{
-			CWnd* pWnd=m_TreeData.GetEditWnd((HTREEITEM)wParam);
-			CComboBox* pCB=(CComboBox*)pWnd;
-			if(m_nProcDataType==ConveyorProc)
+		HTREEITEM hItem = (HTREEITEM)wParam;
+		CWnd* pWnd=m_TreeData.GetEditWnd(hItem);
+		CComboBox* pCB=(CComboBox*)pWnd;
+		if(m_nProcDataType==ConveyorProc)
+		{
+			if(pCB->GetCount()==0)
 			{
-				if(pCB->GetCount()==0)
+				CProcDataSheet* pWnd=(CProcDataSheet*)GetParent();
+				CView* pView=(CView*)(pWnd->m_pParent);
+				
+				CTermPlanDoc* pDoc	= (CTermPlanDoc*)(pView->GetDocument());
+				int nAreaCount = pDoc->GetTerminal().m_pAreas->m_vAreas.size();
+				for( int i=0; i<nAreaCount; i++ )
 				{
-					CProcDataSheet* pWnd=(CProcDataSheet*)GetParent();
-					CView* pView=(CView*)(pWnd->m_pParent);
-					
-					CTermPlanDoc* pDoc	= (CTermPlanDoc*)(pView->GetDocument());
-					int nAreaCount = pDoc->GetTerminal().m_pAreas->m_vAreas.size();
-					for( int i=0; i<nAreaCount; i++ )
-					{
-						pCB->AddString( pDoc->GetTerminal().m_pAreas->m_vAreas[i]->name );
-					}
+					pCB->AddString( pDoc->GetTerminal().m_pAreas->m_vAreas[i]->name );
 				}
 			}
-			else
-			{
-				if(pCB->GetCount()==0)
-				{
-					
-					int nCount = m_pInTerm->m_pMobElemTypeStrDB->GetCount();
-					
-					CString strFloor;
-					for(int i=1;i<nCount;i++)
-					{
-						strFloor=m_pInTerm->m_pMobElemTypeStrDB->GetString(i);
-						pCB->AddString(strFloor);
-					}		
-				}
+		}
+		else if(m_TreeData.GetParentItem(hItem) == m_disallowedNonPaxItem)
+		{
+			ReloadNonPaxItems(hItem);
+		}		
+	}
+	if(message == UM_CEW_COMBOBOX_SELCHANGE)
+	{
+		HTREEITEM hItem = (HTREEITEM)wParam;
+		CString itemText = m_TreeData.GetItemText(hItem);
+		MiscData* pMiscData = GetCurMiscData();
 
-			}			
+		// modify existing disallowed Non-Passenger Item.
+		if(strcmp(m_preDisallowedNonPaxItem, "[New Non-Passenger Mobile Element]") != 0)
+		{
+			if(pMiscData->isItemDisallowed(m_preDisallowedNonPaxItem))
+			{
+				*(pMiscData->findDisallowedNonPaxItem(m_preDisallowedNonPaxItem)) = itemText;
+			}
+		}
+		// add new disallowed Non-Passenger Item.
+		else
+		{
+			pMiscData->addDisallowedNonPaxItem(itemText);
+			COOLTREE_NODE_INFO cni;
+			CCoolTree::InitNodeInfo(this,cni);
+			cni.nt=NT_NORMAL;
+			cni.net=NET_COMBOBOX;
+			m_TreeData.InsertItem("[New Non-Passenger Mobile Element]",cni,FALSE,FALSE,m_disallowedNonPaxItem);
+		}
+		m_preDisallowedNonPaxItem = itemText;
 	}
 	if(message==UM_CEW_EDITSPIN_END)
 	{
@@ -2487,11 +2522,21 @@ void CProcDataPage::InsertTreeForBehavior()
 	m_hDisallowGroups=m_TreeData.InsertItem("Disallow Groups",cni,TRUE,FALSE,m_hOtherBehavior);
 	m_hWaitInQueue = m_TreeData.InsertItem("WaitInQueueToOpen",cni,TRUE,FALSE,m_hOtherBehavior);
 
-	HTREEITEM hDNPME=m_TreeData.InsertItem("Disallow Non-Passenger Mobile Element",cni,FALSE,FALSE,m_hOtherBehavior);
+	m_disallowedNonPaxItem=m_TreeData.InsertItem("Disallow Non-Passenger Mobile Element",cni,FALSE,FALSE,m_hOtherBehavior);
 	cni.nt=NT_NORMAL;
 	cni.net=NET_COMBOBOX;
-	
-	m_TreeData.InsertItem("[New Non-Passenger Mobile Element]",cni,FALSE,FALSE,hDNPME);
+
+	MiscData* pMiscData = GetCurMiscData();
+	if(pMiscData)
+	{
+		int count = pMiscData->getCountOfDisallowedNonPaxItem();
+		for(int i=0; i<count; i++)
+		{
+			m_TreeData.InsertItem(pMiscData->getDisallowedNonPaxItemAt(i),cni,FALSE,FALSE,m_disallowedNonPaxItem);
+		}
+	}
+	m_TreeData.InsertItem("[New Non-Passenger Mobile Element]",cni,FALSE,FALSE,m_disallowedNonPaxItem);
+
 	cni.nt=NT_CHECKBOX;
 	cni.net=NET_EDITSPIN_WITH_VALUE;
 	//m_hPopulationCapacity=m_TreeData.InsertItem("Population Capacity:  0",cni,TRUE,FALSE,m_hOtherBehavior);
@@ -2598,7 +2643,7 @@ void CProcDataPage::InsertTreeForBehavior()
 			m_TreeData.SetEnableStatus(m_hLinkedDestItem,TRUE);			
 			
 			m_TreeData.SetEnableStatus(m_hDisallowGroups,FALSE);
-			m_TreeData.SetEnableStatus(hDNPME,FALSE);
+			m_TreeData.SetEnableStatus(m_disallowedNonPaxItem,FALSE);
 		//	m_TreeData.SetEnableStatus(m_hPopulationCapacity,FALSE);
 			m_TreeData.SetEnableStatus(m_hTerminateTime,FALSE);
 			m_TreeData.SetEnableStatus(m_hRecycleFreq,TRUE);
@@ -4383,3 +4428,47 @@ void CProcDataPage::SetImgOfButtonEditPipeAuto( int typeOfUsingPipe )
 	}
 	m_ToolBar.GetToolBarCtrl().SetButtonInfo( ID_LINKAGE_EDITPIPE_AUTO,&tbBtnInfo );
 }
+
+void CProcDataPage::ReloadNonPaxItems(HTREEITEM hItem)
+{
+	CWnd* pWnd=m_TreeData.GetEditWnd(hItem);
+	CComboBox* pCB=(CComboBox*)pWnd;
+	// clear all combobox droplist content.
+	int cboxCount = pCB->GetCount();
+	for(int i=cboxCount; i>0; i--)
+	{
+		pCB->DeleteString(i-1);
+	}
+	int allCount = m_pInTerm->m_pMobElemTypeStrDB->GetCount();
+	MiscData* pMiscData = GetCurMiscData();
+	CString strFloor;
+	for(int i=0; i<allCount; i++)
+	{
+		strFloor=m_pInTerm->m_pMobElemTypeStrDB->GetString(i);
+		if(!pMiscData->isItemDisallowed(strFloor))
+			pCB->AddString(strFloor);
+	}		
+}
+
+
+void CProcDataPage::DelDisallowedNonPaxItem( HTREEITEM hItem )
+{
+	CString str = m_TreeData.GetItemText(hItem);
+	// "[New Non-Passenger Mobile Element]" will never be deleted.
+	if(strcmp("[New Non-Passenger Mobile Element]", m_TreeData.GetItemText(hItem)) == 0)
+		return;
+
+	// delete item from disallowed Non-Passenger Item list.
+	GetCurMiscData()->delDisallowedNonPaxItem(str);
+
+	HTREEITEM nextItem = m_TreeData.GetNextItem(hItem, TVGN_NEXT);
+	HTREEITEM prevItem = m_TreeData.GetNextItem(hItem, TVGN_PREVIOUS);
+	// delete selected item from tree.
+	m_TreeData.DeleteItem(hItem);
+	// if the next sibling item is "[New Non-Passenger Mobile Element]", and the previous sibling item exists, select the previous one.
+	if(strcmp("[New Non-Passenger Mobile Element]", m_TreeData.GetItemText(nextItem))==0  &&  prevItem!=NULL )
+	{
+		m_TreeData.SelectItem(prevItem);
+	}
+}
+

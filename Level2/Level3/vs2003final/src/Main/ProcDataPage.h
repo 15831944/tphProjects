@@ -145,6 +145,7 @@ public:
 	HTREEITEM m_hOtherBehavior;
 	HTREEITEM m_hLinkage;
 	HTREEITEM m_hWaitInQueue;
+	HTREEITEM m_disallowedNonPaxItem;
 
 	void AddDependentProcessors();
 	void DeleteDependentProcessors(HTREEITEM hItem);
@@ -177,6 +178,7 @@ private:
 	void SetCapacityValue( int _iValue );
 	void EditPipe(int order);
 	void SetImgOfButtonEditPipeAuto( int orderaasaa );
+	void ReloadNonPaxItems(HTREEITEM hItem);
 // Implementation
 protected:
 	void DelGreetingHall();
@@ -249,7 +251,8 @@ protected:
 	// Hightlight the proc in the list. if not exist, return false.
 	bool SelectEntryProc(ProcessorID _id);
 
-
+	// previous item text of Disallowed Non-Passenger Item combobox
+	CString m_preDisallowedNonPaxItem;
 
 	//------------- Gate Related Functions -------------------------------
 
@@ -271,7 +274,8 @@ protected:
 	virtual void SetValue( MiscData* _pMiscData );
 	void SetSpinRange();
 
-
+	// delete disallowed Non-Passenger Item from its list.
+	void DelDisallowedNonPaxItem(HTREEITEM hItem);
 
 	// Set Conveyor Type in Misc Data;
 	void SetConveyorType( HTREEITEM _hItem );

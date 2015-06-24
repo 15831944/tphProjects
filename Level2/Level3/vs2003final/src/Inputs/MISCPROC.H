@@ -16,6 +16,7 @@
 #define USE_USER_SELECTED_PIPES	2
 
 typedef std::vector<int>PIPES;
+typedef std::vector<CString> NONPAXLIST;
 
 class INPUTS_TRANSFER MiscProcessorIDWithOne2OneFlag : public ProcessorID
 {
@@ -132,7 +133,8 @@ protected:
 	MiscProcessorIDList* m_pDependentProcList;
 	MiscProcessorIDList* m_pBridgeConnectorList;
 
-
+	bool m_bDisallowNonPaxItem;
+	NONPAXLIST* m_disallowedNonPaxItemList;
 
 public:
 	void SetInputTerminal( InputTerminal* _pInTerm ){ m_pInTerm = _pInTerm; }
@@ -155,6 +157,7 @@ public:
 		m_bUseDependentProc = entry.m_bUseDependentProc;
 		*m_pDependentProcList = *(entry.m_pDependentProcList);
 		*m_pBridgeConnectorList = *(entry.m_pBridgeConnectorList);
+		*m_disallowedNonPaxItemList = *(entry.m_disallowedNonPaxItemList);
 	}
     virtual ~MiscData () 
 	{ 
@@ -237,6 +240,9 @@ public:
 	void readObsoleteMiscData(ArctermFile& p_file);
     void writeMiscData (ArctermFile& p_file) const;
 
+	void readDisallowedNonPaxItem( ArctermFile &p_file );
+	void writeDisallowedNonPaxItem( ArctermFile &p_file ) const;
+
     virtual void readSpecificData ( ArctermFile& p_file ) {};
     virtual void writeSpecificData (ArctermFile& p_file) const {};
 
@@ -255,6 +261,20 @@ public:
 	void delCurbSide(int nIndex);
 	bool existCurbSide(const ALTObjectID &p_item);
 	ALTObjectID &getCurbSide(int nIndex)const;
+
+	// Disallowed Non-Passenger Item
+	bool getDisallowNonPaxItemFlag() const{ return m_bDisallowNonPaxItem; }
+	void setDisallowNonPaxItemFlag(bool bDisallowNonPaxItem){ m_bDisallowNonPaxItem = bDisallowNonPaxItem; } 
+
+	CString getDisallowedNonPaxItemAt(int index){ return (*m_disallowedNonPaxItemList)[index]; }
+	void addDisallowedNonPaxItem(CString str){ m_disallowedNonPaxItemList->push_back(str); }
+	void delDisallowedNonPaxItem(CString str){ m_disallowedNonPaxItemList->erase(std::remove(m_disallowedNonPaxItemList->begin(), m_disallowedNonPaxItemList->end(), str), m_disallowedNonPaxItemList->end());}
+	void clearDisallowedNonPaxItem(){ m_disallowedNonPaxItemList->clear();}
+	NONPAXLIST* getALlDisallowedNonPaxItem(){ return m_disallowedNonPaxItemList; }
+	int getCountOfDisallowedNonPaxItem(){ return m_disallowedNonPaxItemList->size(); }
+	NONPAXLIST::iterator findDisallowedNonPaxItem(CString str);
+	bool isItemDisallowed(CString str);
+
 private:
 	void readObsoleteMiscData24 (ArctermFile& p_file);
 	void readObsoleteMiscData25 (ArctermFile& p_file);
@@ -269,6 +289,7 @@ private:
 	void readObsoleteMiscData34(ArctermFile&p_file);
 	void readObsoleteMiscData35(ArctermFile&p_file);
 	void readObsoleteMiscData37(ArctermFile&p_file);
+	void readObsoleteMiscData38(ArctermFile&p_file);
 	void ConvertCapacityIssueIfNeed(float fFileVersion);
 	//void readObsoleteMiscData32(ArctermFile&p_file)/*3.2 */;
 
