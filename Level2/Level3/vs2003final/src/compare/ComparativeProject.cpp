@@ -38,9 +38,7 @@
 #include "../Reports/ReportParaWithArea.h"
 #include "ModelToCompare.h"
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+#define SIMULATION_INFO_SPLITTER _T("-_-")
 
 CComparativeProject::CComparativeProject()
 {
@@ -333,11 +331,11 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					TransferLogFiles(pCmpModel,pCmpModel->GetLocalPath(),strSimResult,_ShowCopyInfo);
 					
 					vModels[i]->GetTerminal()->GetSimReportManager()->SetCurrentSimResult(strSimResult);
-					CMutiRunReportAgent temp;
-					temp.Init(pCmpModel->GetLocalPath(),vModels[i]->GetTerminal());
+					CMutiRunReportAgent tempMultiRunAgent;
+					tempMultiRunAgent.Init(pCmpModel->GetLocalPath(),vModels[i]->GetTerminal());
 
-					temp.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
-					temp.GenerateAll();
+					tempMultiRunAgent.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
+					tempMultiRunAgent.GenerateAll();
 					CString strReportPath = vModels[i]->GetTerminal()->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
 				
 					strReportPath = SaveTempReport(strReportPath, i, j, nResult);
@@ -477,7 +475,7 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		{
 			// TRACE("%s\n", vReports[i].m_vstrOutput[j]);
 			std::string tstr = vReports[i].m_vstrOutput[j];
-			vstrOutput.push_back( tstr );//vReports[i].m_vstrOutput[i].GetBuffer(0)
+			vstrOutput.push_back( tstr );
 		}
 		pResult->AddSamplePath(vstrOutput);
 	
@@ -511,12 +509,17 @@ CString CComparativeProject::SaveTempReport(const CString &strReportPath, int iM
 
 	int nPos = strReportPath.ReverseFind(_T('\\'));
 	CString strName = strReportPath.Mid(nPos + 1, strReportPath.GetLength() - nPos);
-	strDest = strPath + _T("\\") + strName;
-
-	strDest.Format(_T("%s%s%d%d%d%s"), strPath, _T("\\"), iModelIndex,nSimResult ,iReportIndex, strName);
-
-	//if (m_fo.Copy(strReportPath, strPath))
-	//	return strDest;
+	std::vector<CModelToCompare*>& vModels = m_inputParam.GetModelsManagerPtr()->GetModelsList();
+	std::vector<CReportToCompare>& vReports = m_inputParam.GetReportsManagerPtr()->GetReportsList();
+	strDest = strPath; 
+	strDest += _T("\\");
+	strDest += vModels[iModelIndex]->GetModelName();
+	strDest += SIMULATION_INFO_SPLITTER;
+	strDest += vModels[iModelIndex]->GetSimResult(nSimResult);
+	strDest += SIMULATION_INFO_SPLITTER;
+	strDest += vReports[iReportIndex].GetName();
+	strDest += SIMULATION_INFO_SPLITTER;
+	strDest += strName;
 
 	if (CopyFile(strReportPath, strDest, FALSE))
 		return strDest;

@@ -50,7 +50,7 @@ class CComparativePlot_new
 public:
 	CComparativePlot_new(ThreeDChartType iType,	CARC3DChart& pChart, const std::vector<CModelToCompare*>& vModelList)
 		: m_iType(iType)
-		, m_pChart(pChart)
+		, m_3DChart(pChart)
 		, m_vModelList(vModelList)
 	{
 	}
@@ -72,7 +72,7 @@ private:
 	bool Draw3DChart(const CComparativeDistanceTravelReport & _reportData);*/
 
 	ThreeDChartType m_iType;
-	CARC3DChart& m_pChart;
+	CARC3DChart& m_3DChart;
 	const std::vector<CModelToCompare*>& m_vModelList;
 };
 
