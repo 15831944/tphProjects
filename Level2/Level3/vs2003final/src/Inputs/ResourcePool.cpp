@@ -246,12 +246,12 @@ bool CResourcePool::handleRequestIfCan( const ElapsedTime& _time,const PoolType&
 	ResourceElement* _pResource = m_FreeResourceElementList.front();
 	_pResource->writeLogEntry( _time, false );
 	// make sure resource pool to Resource_Stay_In_Base
-	_pResource->setCurrentRequestItem( m_ResourceRequestList.front() );
 	_pResource->WalkAlongShortestPath( m_ResourceRequestList.front().request_point, _time);
 	if (!bWait && m_emPoolType == PostServiceType)
 	{
 		m_ResourceRequestList.front().request_proc->noticeReleasePax(m_ResourceRequestList.front().request_mob,_time);
 	}
+	_pResource->setCurrentRequestItem( m_ResourceRequestList.front() );
 	// remove resource and request from list
 	m_FreeResourceElementList.pop_front();
 	m_ResourceRequestList.pop_front();
