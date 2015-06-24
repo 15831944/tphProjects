@@ -1,0 +1,169 @@
+//////////////////////////////////////////////////////////////////////
+// AutoCADLayerSettingsLayer.h: interface for the 
+// CAutoCADLayerSettingsLayer class.
+//
+// Private Members:
+//   CString m_LayerName : The ARCport layer name to use/save
+//	 bool m_ShowLayer : value to indicate if layer is shown or hidden.
+//	 int m_DisplayColor : color to display the layer in
+//	 int m_AutoCADFileLayer : value to link our settings to the autoCAD file
+//								layer the settings belong to.
+//
+//
+//	Written By: Cary Feldstein
+//	December 6, 2005
+//////////////////////////////////////////////////////////////////////
+
+#ifndef AUTOCADLAYERSETTINGSLAYER_H
+#define AUTOCADLAYERSETTINGSLAYER_H
+
+
+class CAutoCADLayerSettingsLayer
+{
+
+private: 
+
+	CString m_LayerName;
+	bool m_ShowLayer;
+	int m_DisplayColor;
+	int m_AutoCADFileLayer;
+	
+public:
+
+	//////////////////////////////////////////////////////////////////////
+	// Construction/Destruction
+	//////////////////////////////////////////////////////////////////////
+	
+	CAutoCADLayerSettingsLayer( CString LayerName, bool ShowLayer, int DisplayColor, int LayerNum );
+	~CAutoCADLayerSettingsLayer();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: setLayerName
+	// 
+	// sets the layer name
+	//
+	// Parameters: 
+	//		1) CString LayerName : The name to set the layer to.
+	//		
+	// Return Value: None
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	void setLayerName (CString LayerName);
+	
+	//////////////////////////////////////////////////////////////////////
+	// Function: hideLayer
+	// 
+	// makes the layer not visable 
+	//
+	// Parameters: None
+	//		
+	// Return Value: None
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	void hideLayer();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: showLayer
+	// 
+	// makes the layer not visable 
+	//
+	// Parameters: None
+	//		
+	// Return Value: None
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	void showLayer();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: getLayerName
+	// 
+	// returns the layer name
+	//
+	// Parameters: None
+	//		
+	// Return Value: CString
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	CString getLayerName();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: setColor
+	// 
+	// sets the layers color value.
+	//
+	// Parameters: 
+	//		1) int Color : the color value to use
+	//		
+	// Return Value: None
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	void setColor (int Color);
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: getColor
+	// 
+	// returns the layer's current color value
+	//
+	// Parameters: None
+	//		
+	// Return Value: int
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	int getColor();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: getDisplaySetting
+	// 
+	// returns the layer's visability setting
+	//
+	// Parameters: None
+	//		
+	// Return Value: bool
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	bool getDisplaySetting();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: getAutoCADFileLayerNum
+	// 
+	// returns the layer's AutoCADFile index to match up with drawing file.
+	//
+	// Parameters: None
+	//		
+	// Return Value: int
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	int getAutoCADFileLayerNum();
+
+	//////////////////////////////////////////////////////////////////////
+	// Function: setAutoCADFileLayerNum
+	// 
+	// sets the layer's AutoCADFile index to match up with drawing file.
+	//
+	// Parameters: int num : The layer number to set
+	//		
+	// Return Value: None
+	//
+	// Exceptions: None
+	//
+	//////////////////////////////////////////////////////////////////////
+	void setAutoCADFileLayerNum(int num);
+};
+
+#endif
