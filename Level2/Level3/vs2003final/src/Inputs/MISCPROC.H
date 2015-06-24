@@ -68,7 +68,9 @@ public:
 	virtual void writeIDList (ArctermFile& p_file) const;
 
 	// data compatible for version 3.70
-	virtual void readIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true );
+	virtual void readObsoleteIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne );
+	virtual void readCurVersionIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne, bool _bWithPipe );
+
 };
 //////////////////////////////////////////////////////////////////////////
 class INPUTS_TRANSFER MiscProcessorIDWithLevel : public ProcessorID

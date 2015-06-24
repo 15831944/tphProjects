@@ -32,6 +32,17 @@ int MiscProcessorIDWithOne2OneFlag::GetPipeAt( int _iIdx ) const
 //////////////////////////////////////////////////////////////////////////
 void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne/*= true*/ , bool _bWithPipe/*= true*/ )
 {
+	float fFileVersion = p_file.getVersion();
+	if( fFileVersion < (3.7f + 0.0001f) )// The version is 3.7 or earlier.
+	{
+		readObsoleteIDList37(p_file, _pInTerm , _bWithOneToOne);
+		return;
+	}
+	readCurVersionIDList(p_file, _pInTerm , _bWithOneToOne , _bWithPipe);
+}
+
+void MiscProcessorIDList::readCurVersionIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne , bool _bWithPipe )
+{
 	clear();
     char *str1, *str2, *str3, str[1024];
     p_file.getField (str, 1024);
@@ -73,18 +84,18 @@ void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTe
 						str4[i] = ',';
 					}
 				}
-				ArctermFile ___file;
-				___file.InitDataFromString( str4 );
-				int _type, _count, _pipeId;
-				___file.getInteger(_type); // Get the type of using  pipe.
-				id->SetTypeOfUsingPipe(_type);
-				if( _type == USE_USER_SELECTED_PIPES ) // Type of using pipe is Manual.
+				ArctermFile tempFile;
+				tempFile.InitDataFromString( str4 );
+				int typeOfUsingPipe, countOfPipe, pipeId;
+				tempFile.getInteger(typeOfUsingPipe); // Get the type of using  pipe.
+				id->SetTypeOfUsingPipe(typeOfUsingPipe);
+				if( typeOfUsingPipe == USE_USER_SELECTED_PIPES ) // Type of using pipe is Manual.
 				{
-					___file.getInteger(_count); // Get the count of pipes.
-					for(int i=0; i<_count; i++)
+					tempFile.getInteger(countOfPipe); // Get the count of pipes.
+					for(int i=0; i<countOfPipe; i++)
 					{
-						___file.getInteger(_pipeId);
-						id->AddUsedPipe(_pipeId);
+						tempFile.getInteger(pipeId);
+						id->AddUsedPipe(pipeId);
 					}
 				}
 			}
@@ -98,7 +109,7 @@ void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTe
     }
 }
 
-void MiscProcessorIDList::readIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne/*= true*/ )
+void MiscProcessorIDList::readObsoleteIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne )
 {
 	clear();
 	char *str1, *str2, *str3, str[1024];
@@ -568,69 +579,6 @@ void MiscData::readObsoleteMiscData33( ArctermFile&p_file )	//3.3
 
 }
 
-void MiscData::readObsoleteMiscData37(ArctermFile&p_file)
-{
-	p_file.getInteger( m_nCyclicFreq );
-	p_file.getInteger(m_lQueueCapacity);
-	int nCapaAttrCount;
-	p_file.getInteger( nCapaAttrCount);
-	for (int i=0; i<nCapaAttrCount; i++)
-	{
-		CapacityAttribute* pCapaAttr = new CapacityAttribute;
-		p_file.getInteger(pCapaAttr->m_nMobElementIndex);
-		p_file.getInteger(pCapaAttr->m_nCapacity);
-		m_pCapacityAttributes->AddCapacityAttribute(pCapaAttr);
-		if(p_file.getVersion() > 3.2)
-		{
-			TCHAR name[1024] = {0} ;
-			int version = 0 ;
-			p_file.getInteger(version) ;
-			pCapaAttr->m_Type = (CapacityAttributes::CapacityType)version ;
-			p_file.getField(name ,1024) ;
-			pCapaAttr->m_Name = name ;
-			//p_file.getLine() ;
-			int size = 0 ;
-			p_file.getInteger(size) ;
-			//p_file.getLine() ;
-			CString strname ;
-			for (int i = 0 ;i < size ;i++)
-			{
-				p_file.getField(name ,1024) ;
-				pCapaAttr->AddCombinationContainTypeString(CString(name)) ;
-			}
-		}
-		p_file.getLine() ;
-	}
-	p_file.getInteger( m_lTerminateTime);
-
-	char disallowGroup;
-	char visitors;
-	char cWaitInQueue;
-	p_file.getChar( disallowGroup );
-	m_bDisallowGroup = disallowGroup == 'Y' ? true : false;
-
-	p_file.getChar (visitors);
-	visitorFlag = (visitors == 'Y');
-
-	p_file.getChar(cWaitInQueue);
-	m_bWaitInQueue = cWaitInQueue == 'N' ? false : true;
-
-	assert( m_pInTerm );
-	gateList->readIDList (p_file, m_pInTerm );
-	m_pWaitAreaList->readIDList37 (p_file, m_pInTerm );
-	m_pLinkedDestList->readIDList37 (p_file,  m_pInTerm);
-
-	char cUseDependentProc;
-	p_file.getChar( cUseDependentProc );
-	m_bUseDependentProc = cUseDependentProc == 'Y' ? true : false;
-	m_pDependentProcList->readIDList(p_file, m_pInTerm);
-
-	readSpecificData (p_file);
-	p_file.getInteger(m_nGroupSerTimeModIndex);
-	p_file.getInteger(m_nGroupSerTimeModSum);
-
-}
-
 //MobElemTypeStrDB.TXT
 void MiscData::ConvertCapacityIssueIfNeed(float fFileVersion)
 {
@@ -735,7 +683,7 @@ void MiscData::readObsoleteMiscData (ArctermFile& p_file )
 
 	if ((fFileVersion - 0.0001)<3.7f && (fFileVersion + 0.0001)>3.7f)//fFileVersion==3.7f
 	{
-		readObsoleteMiscData37(p_file);
+		readMiscData(p_file);
 		return;
 	}
 

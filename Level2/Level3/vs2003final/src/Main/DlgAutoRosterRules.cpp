@@ -136,6 +136,10 @@ BOOL CDlgAutoRosterRules::OnInitDialog()
 
 	SetResize(IDOK,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
 	SetResize(IDCANCEL,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
+	SetResize(IDC_BUTTON_SHOWGRANTTCHART,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
+
+
+
 
 	m_ctlCloseTime.SetFormat("HH:mm:ss");
 	m_ctlOpenTime.SetFormat("HH:mm:ss");
