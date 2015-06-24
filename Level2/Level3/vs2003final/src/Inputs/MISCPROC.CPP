@@ -30,7 +30,7 @@ int MiscProcessorIDWithOne2OneFlag::GetPipeAt( int _iIdx ) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne/*= true*/ )
+void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne/*= true*/ , bool _bWithPipe/*= true*/ )
 {
 	clear();
     char *str1, *str2, *str3, str[1024];
@@ -57,6 +57,37 @@ void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTe
 
 			id->setID (str1);
 			id->setOne2OneFlag( str3[1] == 'Y' ? true : false );
+
+			if( _bWithPipe )
+			{
+				str3 += 1;
+				char* str4 = strstr( str3, "@" );
+				if( str4 )
+					str4[0] = '\0';
+				str4 ++;
+				int iStrlen = strlen(str4);
+				for(int i=0; i<iStrlen; i++)
+				{
+					if(str4[i] == '-')
+					{
+						str4[i] = ',';
+					}
+				}
+				ArctermFile ___file;
+				___file.InitDataFromString( str4 );
+				int _type, _count, _pipeId;
+				___file.getInteger(_type); // Get the type of using  pipe.
+				id->SetTypeOfUsingPipe(_type);
+				if( _type == USE_USER_SELECTED_PIPES ) // Type of using pipe is Manual.
+				{
+					___file.getInteger(_count); // Get the count of pipes.
+					for(int i=0; i<_count; i++)
+					{
+						___file.getInteger(_pipeId);
+						id->AddUsedPipe(_pipeId);
+					}
+				}
+			}
 		}
 		else
 		{	
@@ -65,6 +96,43 @@ void MiscProcessorIDList::readIDList (ArctermFile& p_file, InputTerminal* _pInTe
 		}
         addItem (id);
     }
+}
+
+void MiscProcessorIDList::readIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm , bool _bWithOneToOne/*= true*/ )
+{
+	clear();
+	char *str1, *str2, *str3, str[1024];
+	p_file.getField (str, 1024);
+	if (!str[0])
+		return;
+
+	str2 = str - 1;
+	MiscProcessorIDWithOne2OneFlag *id;
+	while (str2)
+	{
+		str1 = str2 + 1;
+		str2 = strstr (str1, ";");
+		if (str2)
+			str2[0] = '\0';
+
+		id = new MiscProcessorIDWithOne2OneFlag;
+		id->SetStrDict( _pInTerm->inStrDict );
+		if( _bWithOneToOne )
+		{
+			str3 = strstr( str1, "@" );
+			if( str3 )
+				str3[0] = '\0';
+
+			id->setID (str1);
+			id->setOne2OneFlag( str3[1] == 'Y' ? true : false );
+		}
+		else
+		{	
+			id->setID( str1 );
+			id->setOne2OneFlag( false );
+		}
+		addItem (id);
+	}
 }
 
 void MiscProcessorIDList::writeIDList (ArctermFile& p_file) const
@@ -77,6 +145,24 @@ void MiscProcessorIDList::writeIDList (ArctermFile& p_file) const
 		pProc = (MiscProcessorIDWithOne2OneFlag*)getItem (0);
 		pProc->printID (str);
 		strcat( str, pProc->getOne2OneFlag() ? "@Y" : "@N" );
+		char tempBuf[256];
+		int type = pProc->GetTypeOfUsingPipe();
+		itoa(type, tempBuf, 10);
+		strcat( str, "@");
+		strcat( str, tempBuf );
+		if( type == USE_USER_SELECTED_PIPES )
+		{
+			int count = pProc->GetUsedPipeCount();
+			itoa(count, tempBuf, 10);
+			strcat( str, "-");
+			strcat( str, tempBuf );
+			for(int i=0; i<count; i++)
+			{
+				itoa(pProc->GetPipeAt(i), tempBuf, 10);
+				strcat( str, "-");
+				strcat( str, tempBuf);
+			}
+		}
 	}
 
     for (int i = 1; i < getCount(); i++)
@@ -85,6 +171,24 @@ void MiscProcessorIDList::writeIDList (ArctermFile& p_file) const
 		pProc = (MiscProcessorIDWithOne2OneFlag*)getItem (i);
         pProc->printID (str + strlen (str));
 		strcat( str, pProc->getOne2OneFlag() ? "@Y" : "@N" );
+		strcat( str, "@");
+		char tempBuf[256];
+		int type = pProc->GetTypeOfUsingPipe();
+		itoa(type, tempBuf, 10);
+		strcat( str, tempBuf );
+		if( type == USE_USER_SELECTED_PIPES )
+		{
+			int count = pProc->GetUsedPipeCount();
+			itoa(count, tempBuf, 10);
+			strcat( str, "-");
+			strcat( str, tempBuf );
+			for(int i=0; i<count; i++)
+			{
+				itoa(pProc->GetPipeAt(i), tempBuf, 10);
+				strcat( str, "-");
+				strcat( str, tempBuf);
+			}
+		}
     }
     p_file.writeField (str);
 	
@@ -486,6 +590,70 @@ void MiscData::readObsoleteMiscData33( ArctermFile&p_file )	//3.3
 	p_file.getInteger(m_nGroupSerTimeModSum);
 
 }
+
+void MiscData::readObsoleteMiscData37(ArctermFile&p_file)
+{
+	p_file.getInteger( m_nCyclicFreq );
+	p_file.getInteger(m_lQueueCapacity);
+	int nCapaAttrCount;
+	p_file.getInteger( nCapaAttrCount);
+	for (int i=0; i<nCapaAttrCount; i++)
+	{
+		CapacityAttribute* pCapaAttr = new CapacityAttribute;
+		p_file.getInteger(pCapaAttr->m_nMobElementIndex);
+		p_file.getInteger(pCapaAttr->m_nCapacity);
+		m_pCapacityAttributes->AddCapacityAttribute(pCapaAttr);
+		if(p_file.getVersion() > 3.2)
+		{
+			TCHAR name[1024] = {0} ;
+			int version = 0 ;
+			p_file.getInteger(version) ;
+			pCapaAttr->m_Type = (CapacityAttributes::CapacityType)version ;
+			p_file.getField(name ,1024) ;
+			pCapaAttr->m_Name = name ;
+			//p_file.getLine() ;
+			int size = 0 ;
+			p_file.getInteger(size) ;
+			//p_file.getLine() ;
+			CString strname ;
+			for (int i = 0 ;i < size ;i++)
+			{
+				p_file.getField(name ,1024) ;
+				pCapaAttr->AddCombinationContainTypeString(CString(name)) ;
+			}
+		}
+		p_file.getLine() ;
+	}
+	p_file.getInteger( m_lTerminateTime);
+
+	char disallowGroup;
+	char visitors;
+	char cWaitInQueue;
+	p_file.getChar( disallowGroup );
+	m_bDisallowGroup = disallowGroup == 'Y' ? true : false;
+
+	p_file.getChar (visitors);
+	visitorFlag = (visitors == 'Y');
+
+	p_file.getChar(cWaitInQueue);
+	m_bWaitInQueue = cWaitInQueue == 'N' ? false : true;
+
+	assert( m_pInTerm );
+	gateList->readIDList (p_file, m_pInTerm );
+	m_pWaitAreaList->readIDList37 (p_file, m_pInTerm );
+	m_pLinkedDestList->readIDList37 (p_file,  m_pInTerm);
+
+	char cUseDependentProc;
+	p_file.getChar( cUseDependentProc );
+	m_bUseDependentProc = cUseDependentProc == 'Y' ? true : false;
+	m_pDependentProcList->readIDList(p_file, m_pInTerm);
+
+	readSpecificData (p_file);
+	p_file.getInteger(m_nGroupSerTimeModIndex);
+	p_file.getInteger(m_nGroupSerTimeModSum);
+
+}
+
 //MobElemTypeStrDB.TXT
 void MiscData::ConvertCapacityIssueIfNeed(float fFileVersion)
 {
@@ -585,6 +753,12 @@ void MiscData::readObsoleteMiscData (ArctermFile& p_file )
 	if ((fFileVersion - 0.0001)<3.6f && (fFileVersion + 0.0001)>3.6f)//fFileVersion==3.6f
 	{
 		readObsoleteMiscData35(p_file);
+		return;
+	}
+
+	if ((fFileVersion - 0.0001)<3.7f && (fFileVersion + 0.0001)>3.7f)//fFileVersion==3.7f
+	{
+		readObsoleteMiscData37(p_file);
 		return;
 	}
 

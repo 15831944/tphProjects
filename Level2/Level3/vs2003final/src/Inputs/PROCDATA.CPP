@@ -291,7 +291,7 @@ void MiscProcessorData::replaceAllEntries (const ProcessorID& oldID,
 *		m_pDependentProcList( cann't start new service if follow processors are occupied)
 *****/
 
-MiscDatabase::MiscDatabase() : DataSet ( MiscProcessorDataFile,(float) 3.7 )
+MiscDatabase::MiscDatabase() : DataSet ( MiscProcessorDataFile,(float) 3.8 )
 {
 	for (int i = 0; i < PROC_TYPES; i++)
 		databases[i] = new MiscProcessorData;

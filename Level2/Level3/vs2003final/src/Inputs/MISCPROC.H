@@ -64,8 +64,11 @@ public:
 	virtual ~MiscProcessorIDList() {};
 
 	// read and wite 
-	virtual void readIDList (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true );
-    virtual void writeIDList (ArctermFile& p_file) const;
+	virtual void readIDList (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true , bool _bUseOfPipe = true );
+	virtual void writeIDList (ArctermFile& p_file) const;
+
+	// data compatible version 3.70
+	virtual void readIDList37 (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true );
 };
 //////////////////////////////////////////////////////////////////////////
 class INPUTS_TRANSFER MiscProcessorIDWithLevel : public ProcessorID
@@ -265,6 +268,7 @@ private:
 	void readObsoleteMiscData33(ArctermFile&p_file);
 	void readObsoleteMiscData34(ArctermFile&p_file);
 	void readObsoleteMiscData35(ArctermFile&p_file);
+	void readObsoleteMiscData37(ArctermFile&p_file);
 	void ConvertCapacityIssueIfNeed(float fFileVersion);
 	//void readObsoleteMiscData32(ArctermFile&p_file)/*3.2 */;
 
