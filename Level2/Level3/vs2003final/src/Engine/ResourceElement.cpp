@@ -6,7 +6,6 @@
 #include "terminal.h"
 #include "results\ResourceElementLog.h"
 #include "process.h"
-#include "common\states.h"
 #include "engine\movevent.h"
 #include "../Common/ARCTracker.h"
 #include "../Main/TermPlanDoc.h"
@@ -40,6 +39,9 @@ ResourceElement::ResourceElement( Terminal* _pTerm, CResourcePool* _pool, int _p
 	m_ptDestination = location = _pool->getServiceLocation();
 
 	m_CurrentRequestItem.init();
+
+	m_vPipePointList.clear();
+	m_statusBeforeEnterPipe = EVENT_ENUM_MAX;
 }
 
 ResourceElement::~ResourceElement()
@@ -185,10 +187,9 @@ ElapsedTime ResourceElement::moveTime(void)const
 }
 
 // processor leave processor
-void ResourceElement::handleLeaveProcessor(  const ElapsedTime& _time )
+void ResourceElement::handleLeaveProcessor( const ElapsedTime& _time )
 {
-	setState(Resource_Leave_Processor);
-	processPipe( m_pOwnPool->getServiceLocation(), _time);
+	processPipe(Resource_Leave_Processor, m_pOwnPool->getServiceLocation(), _time);
 	if (m_pOwnPool->getPoolType() == PostServiceType)
 	{
 		m_CurrentRequestItem.request_proc->makeAvailable(NULL,_time,false);
@@ -214,9 +215,9 @@ void ResourceElement::handleWalkOnPipe( const ElapsedTime& _time )
 	}
 	else
 	{
-		if(getPreState() == Resource_Stay_In_Base)
+		if(m_statusBeforeEnterPipe == Resource_Stay_In_Base)
 			setState(Resource_Arrival_Processor);
-		else if(getPreState() == Resource_Leave_Processor)
+		else if(m_statusBeforeEnterPipe == Resource_Leave_Processor)
 			setState(Resource_Back_To_Base);
 		else
 			return;
@@ -299,8 +300,25 @@ void ResourceElement::generateEvent (ElapsedTime eventTime,bool bNoLog)
 	m_prevEventTime = aMove->getTime();
 }
 
-void ResourceElement::processPipe(Point _destPoint, const ElapsedTime _curTime)
+void ResourceElement::processPipe(EntityEvents _status, Point _destPoint, const ElapsedTime _curTime)
 {
+	m_ptDestOfPipe = _destPoint;
+	m_statusBeforeEnterPipe = _status;
+	// if not same floor, need not move in pipe
+	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
+	int iEntryFloor = (int)(_destPoint.getZ() / SCALE_FACTOR);
+	if (iCurFloor != iEntryFloor)
+	{
+		walkStraightly(_destPoint, _curTime);
+		return;
+	}
+	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
+	if (!pPipeMgr->checkCanMoveByPipe(iEntryFloor))
+	{
+		walkStraightly(_destPoint, _curTime);
+		return;
+	}
+
 	PROC2RESSET& proc2ResList = m_pTerm->m_pProcToResourceDB->getProc2ResList();
 	PROC2RESSET::iterator iter;
 	CProcToResource procToRes;
@@ -320,15 +338,10 @@ void ResourceElement::processPipe(Point _destPoint, const ElapsedTime _curTime)
 			procToRes = *iter;
 		}
 	}
+
 	if(procToRes.GetTypeOfUsingPipe() == USE_NOTHING)
 	{
-		if(getPreState() == Resource_Stay_In_Base)
-			setState(Resource_Arrival_Processor);
-		else if(getPreState() == Resource_Leave_Processor)
-			setState(Resource_Back_To_Base);
-		setDestination(_destPoint);
-		generateEvent( _curTime + moveTime(), false );
-		writeLogEntry( _curTime + moveTime(), false );
+		walkStraightly(_destPoint, _curTime);
 	}
 	else if(procToRes.GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
 	{
@@ -340,26 +353,33 @@ void ResourceElement::processPipe(Point _destPoint, const ElapsedTime _curTime)
 	}
 }
 
+void ResourceElement::walkStraightly(Point _destPoint, const ElapsedTime _curTime)
+{
+	if(m_statusBeforeEnterPipe == Resource_Stay_In_Base)
+		setState(Resource_Arrival_Processor);
+	else if(m_statusBeforeEnterPipe == Resource_Leave_Processor)
+		setState(Resource_Back_To_Base);
+	setDestination(_destPoint);
+	generateEvent( _curTime + moveTime(), false );
+	writeLogEntry( _curTime + moveTime(), false );
+}
+
 void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime _curTime)
 {
-	m_ptDestOfPipe = _destPoint;
-	// if not same floor, need not move in pipe
-	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
-	int iEntryFloor = (int)(_destPoint.getZ() / SCALE_FACTOR);
-	if (iCurFloor != iEntryFloor)
-		return;
-
-	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
-	if (!pPipeMgr->checkCanMoveByPipe(iEntryFloor))
-		return;
-
 	CGraphVertexList shortestPath;
+	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
 	if (!pPipeMgr->getShortestPathFromLib(location, _destPoint, shortestPath))
+	{
+		walkStraightly(_destPoint, _curTime);
 		return;
+	}
 
 	int nVertexCount = shortestPath.getCount();
 	if (nVertexCount < 3)
+	{
+		walkStraightly(_destPoint, _curTime);
 		return;
+	}
 
 	PTONSIDEWALK logPointList;
 	int iPercent = random(100);
@@ -388,35 +408,29 @@ void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime 
 
 void ResourceElement::walkAlongUserPath(Point _destPoint, std::vector<int> pipeList, const ElapsedTime _curTime)
 {
-	m_ptDestOfPipe = _destPoint;
-	Point ptFrom = location;
-	Point ptTo = _destPoint;
-	// if not same floor, need not move in pipe
-	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
-	int iEntryFloor = (int)(_destPoint.getZ() / SCALE_FACTOR);
-	if (iCurFloor != iEntryFloor)
-		return;
-
-	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
-	if (!pPipeMgr->checkCanMoveByPipe(iEntryFloor))
-		return;
-
 	int nPipeCount = pipeList.size();
 	if( nPipeCount == 0 )
+	{
+		walkStraightly(_destPoint, _curTime);
 		return;
+	}
 
 	std::vector<int> workingPipeList;
 	for( int i=0; i<nPipeCount; i++ )
 	{
 		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList[i] );
-		if( pPipe->GetZ() == ptFrom.getZ() )
+		if( pPipe->GetZ() == location.getZ() )
 		{
 			workingPipeList.push_back( pipeList[i] );
 		}
 	}
+
 	nPipeCount = workingPipeList.size();
 	if( nPipeCount == 0 )
+	{
+		walkStraightly(_destPoint, _curTime);
 		return;
+	}
 
 	writeLogEntry( _curTime, false ); // on leave server.
 
@@ -431,11 +445,11 @@ void ResourceElement::walkAlongUserPath(Point _destPoint, std::vector<int> pipeL
 		if( i == 0 )
 		{
 			pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[0] );
-			entryPoint = pPipe1->GetIntersectionPoint( ptFrom );
+			entryPoint = pPipe1->GetIntersectionPoint( location );
 
 			if( nPipeCount == 1 )
 			{
-				exitPoint = pPipe1->GetIntersectionPoint( ptTo );
+				exitPoint = pPipe1->GetIntersectionPoint( _destPoint );
 			}
 			else
 			{
@@ -454,7 +468,7 @@ void ResourceElement::walkAlongUserPath(Point _destPoint, std::vector<int> pipeL
 		}
 		else if( i == nPipeCount - 1 )
 		{
-			exitPoint = pPipe1->GetIntersectionPoint( ptTo );
+			exitPoint = pPipe1->GetIntersectionPoint( _destPoint );
 			vMidPoint[vMidPoint.size()-1].SetOutInc( exitPoint );
 		}
 		else

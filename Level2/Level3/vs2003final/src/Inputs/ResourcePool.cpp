@@ -247,8 +247,7 @@ bool CResourcePool::handleRequestIfCan( const ElapsedTime& _time,const PoolType&
 	_pResource->writeLogEntry( _time, false );
 	// make sure resource pool to Resource_Stay_In_Base
 	_pResource->setCurrentRequestItem(m_ResourceRequestList.front());
-	_pResource->setState(Resource_Stay_In_Base);
-	_pResource->processPipe( m_ResourceRequestList.front().request_point, _time);
+	_pResource->processPipe(Resource_Stay_In_Base, m_ResourceRequestList.front().request_point, _time);
 	if (!bWait && m_emPoolType == PostServiceType)
 	{
 		m_ResourceRequestList.front().request_proc->noticeReleasePax(m_ResourceRequestList.front().request_mob,_time);

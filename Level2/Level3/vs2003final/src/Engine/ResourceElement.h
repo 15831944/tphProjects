@@ -11,6 +11,7 @@
 
 // include
 #include "MOBILE.H"
+#include "common\states.h"
 #include "results\resourceelementlogentry.h"
 #include "inputs\resourcepool.h"
 // declare
@@ -48,6 +49,8 @@ private:
 	Point m_ptDestOfPipe;
 	//Point list of pipe
 	std::vector<PipePointInformation> m_vPipePointList;
+	//Status before enter pipe.
+	EntityEvents m_statusBeforeEnterPipe;
 // interface 
 public:
 	// get current service pax
@@ -94,18 +97,25 @@ public:
 	//Generates the next movement event for the receiver based on its current state and adds it to the event list.
     virtual void generateEvent (ElapsedTime eventTime,bool bNoLog);
 
-	//Sets Element's destination
+	// sets Element's destination
 	virtual void setDestination (Point p){m_ptDestination = p;}
 
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
 	
-	void processPipe(Point _destPoint, const ElapsedTime _curTime);
+	// process pipe, 
+	// in:
+	// status: the status before enter pipe.
+	// _destPoint: the destination's coordinate.
+	void processPipe(EntityEvents _status, Point _destPoint, const ElapsedTime _curTime);
 
 	//Calculate the moving time.
 	ElapsedTime moveTime (void) const;
 private:
 
 	CString ClacTimeString(const ElapsedTime& _curTime);
+
+	// no pipe
+	void walkStraightly(Point _destPoint, const ElapsedTime _curTime);
 
 	// automatic pipe
 	void walkAlongShortestPath(Point _destPoint, const ElapsedTime _curTime);
