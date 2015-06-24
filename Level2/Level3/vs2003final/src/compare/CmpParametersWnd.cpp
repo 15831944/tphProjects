@@ -42,21 +42,7 @@ CCmpParametersWnd::CCmpParametersWnd()
 	lf.lfHeight = 8;
 	strcpy(lf.lfFaceName, "MS Sans Serif");
 	m_font.CreateFontIndirect(&lf);
-
 	m_pSubMenu = NULL;
-
-	m_pSelItem = NULL;
-
-	m_pItemBasicInfo = NULL;
-	m_pItemName = NULL;
-	m_pItemDesc = NULL;
-
-	m_pItemModels = NULL;
-
-	m_pItemReports = NULL;
-	m_pItemPassenger = NULL;
-	m_pItemProcessor = NULL;
-	m_pItemSpace = NULL;
 }
 
 CCmpParametersWnd::~CCmpParametersWnd()
@@ -74,14 +60,8 @@ BEGIN_MESSAGE_MAP(CCmpParametersWnd, CWnd)
 	ON_WM_SIZE()
 	ON_WM_ERASEBKGND()
 	ON_COMMAND(ID_RUN, OnRun)
-	ON_MESSAGE(XTPWM_PROPERTYGRID_NOTIFY, OnGridNotify)
 	ON_WM_TIMER()
-	
-	ON_COMMAND(ID_CRA_ADDNEWMODE, OnCraAddNewModel)
-	ON_COMMAND(ID_CRB_DELETE, OnCrbDelete)
-	ON_COMMAND(ID_CRC_ADDNEWREPORT, OnCrcAddNewReport)
-	ON_COMMAND(ID_CRD_EDIT, OnCrdEditReport)
-	ON_COMMAND(ID_CRD_DELETE, OnCrdDelete)
+
 	ON_COMMAND_RANGE(MENU_ADD_MODEL, MENU_UNAVAILABLE, OnChooseMenu)
 	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
@@ -96,20 +76,15 @@ int CCmpParametersWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	CRect rtEmpty;
-	rtEmpty.SetRectEmpty();
-
-	m_wndPropGrid.Create(rtEmpty, this, 11);
+	CRect emptyRect;
+	emptyRect.SetRectEmpty();
 	m_propTree.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER| TVS_HASBUTTONS | TVS_LINESATROOT | 
 				   TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
-   				   CRect(0, 0, 0, 0), this, 222);
+   				   emptyRect, this, 11);
 	m_propTree.SetFont(&m_font);
-	m_wndPropGrid.SetTheme(xtpGridThemeSimple);
-	m_wndPropGrid.ShowHelp(FALSE);
-	m_wndPropGrid.SetPropertySort(xtpGridSortNoSort);
 
-	m_btnRun.Create(_T("Run"), WS_VISIBLE|WS_CHILD, rtEmpty, this, ID_RUN);
-	m_btnCancel.Create(_T("Cancel"), WS_VISIBLE|WS_CHILD, rtEmpty, this, ID_CANCEL);
+	m_btnRun.Create(_T("Run"), WS_VISIBLE|WS_CHILD, emptyRect, this, ID_RUN);
+	m_btnCancel.Create(_T("Cancel"), WS_VISIBLE|WS_CHILD, emptyRect, this, ID_CANCEL);
 
 	m_btnRun.SetFont(&m_font);
 	m_btnCancel.SetFont(&m_font);
@@ -123,10 +98,8 @@ void CCmpParametersWnd::OnSize(UINT nType, int cx, int cy)
 {
 	CWnd::OnSize(nType, cx, cy);
 
-	if (::IsWindow(m_wndPropGrid.m_hWnd))
-		m_wndPropGrid.MoveWindow(0, 0, cx, (cy - BUTTON_AREA_HEIGHT)/2);
 	if (::IsWindow(m_propTree.m_hWnd))
-		m_propTree.MoveWindow(0, (cy - BUTTON_AREA_HEIGHT)/2, cx, (cy - BUTTON_AREA_HEIGHT)/2);
+		m_propTree.MoveWindow(0, 0, cx, (cy - BUTTON_AREA_HEIGHT));
 
 	int x = 0, y = 0;
 	x = cx - 15 - BUTTON_WIDTH;
@@ -150,23 +123,6 @@ BOOL CCmpParametersWnd::OnEraseBkgnd(CDC* pDC)
 
 void CCmpParametersWnd::InitParaWnd()
 {
-	if (!::IsWindow(m_wndPropGrid.m_hWnd))
-		return ;
-
-	m_wndPropGrid.ResetContent();
-
-	m_pItemBasicInfo = m_wndPropGrid.AddCategory(_T("Basic Info"));
-	m_pItemName = m_pItemBasicInfo->AddChildItem(new CXTPPropertyGridItem(_T("Name")));
-	m_pItemDesc = m_pItemBasicInfo->AddChildItem(new CXTPPropertyGridItem(_T("Description")));
-	m_pItemBasicInfo->Expand();
-
-	m_pItemModels = m_wndPropGrid.AddCategory(_T("Models"));
-
-	m_pItemReports = m_wndPropGrid.AddCategory(_T("Reports"));
-//	m_pItemPassenger = m_pItemReports->AddChildItem(new CXTPPropertyGridItemCategory(_T("Passenger")));
-//	m_pItemProcessor = m_pItemReports->AddChildItem(new CXTPPropertyGridItemCategory(_T("Processor")));
-//	m_pItemSpace = m_pItemReports->AddChildItem(new CXTPPropertyGridItemCategory(_T("Space")));
-	m_pItemReports->Expand();
 	COOLTREE_NODE_INFO cni;
 	InitCooltreeNodeInfo(this, cni);
 
@@ -244,28 +200,6 @@ void CCmpParametersWnd::RunCompareReport()
 	m_pReportManager->DisplayReport();
 }
 
-void CCmpParametersWnd::RemoveItem(CXTPPropertyGridItem* pItem)
-{
-	if(pItem == NULL)
-		return ;
-
-	if(pItem->HasChilds())
-	{
-		CXTPPropertyGridItems* pChilds = pItem->GetChilds();
-		for(int i = pChilds->GetCount()-1; i >= 0; i--)
-		{
-			CString str = pChilds->GetAt(i)->GetCaption();
-			if(pChilds->GetAt(i)->HasChilds())
-			{
-				RemoveItem(pChilds->GetAt(i));
-				pChilds->RemoveAt(i);
-			}
-			else
-				pChilds->RemoveAt(i);
-		}
-	}
-}
-
 void CCmpParametersWnd::RemoveSubItem( HTREEITEM hItem )
 {
 	if(hItem == NULL)
@@ -276,295 +210,6 @@ void CCmpParametersWnd::RemoveSubItem( HTREEITEM hItem )
 		RemoveSubItem(hChildItem);
 		m_propTree.DeleteItem(hChildItem);
 	}
-}
-
-void CCmpParametersWnd::UpdateParaItem(CXTPPropertyGridItem* pItem)
-{
-	if(pItem == NULL)
-		return;
-
-	if(pItem == m_pItemName)
-	{
-		pItem->SetValue(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName());
-	}
-	else if(pItem == m_pItemDesc)
-	{
-		pItem->SetValue(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetDescription());
-	}
-	else if(pItem == m_pItemModels)
-	{
-		//RemoveItem(m_pItemModels);
-		if(pItem->HasChilds())
-		{
-			CXTPPropertyGridItems* pChilds = pItem->GetChilds();
-			for(int i = pChilds->GetCount()-1; i >= 0; i--)
-			{
-				CString str = pChilds->GetAt(i)->GetCaption();
-				RemoveItem(pChilds->GetAt(i));
-				pChilds->RemoveAt(i);
-			}
-		}
-
-		CModelsManager* pManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-		for(int i = 0; i < (int)pManager->GetModelsList().size(); i++)
-		{
-			CString strModel = "";
-			strModel.Format("Model-%d", i);
-			CXTPPropertyGridItem* pModel = pItem->AddChildItem( new CXTPPropertyGridItemCategory(strModel) );
-
-			CXTPPropertyGridItem* pModelName = pModel->AddChildItem(new CXTPPropertyGridItem(_T("Name")));
-
-			CModelToCompare *pModelToCompare = pManager->GetModelsList().at(i);
-			CString strName = pModelToCompare->GetUniqueName();
-			pModelName->SetValue( strName );
-			pModelName->SetReadOnly(TRUE);
-
-			//add simulation result
-			CXTPPropertyGridItem* pSimResultItem = pModel->AddChildItem(new CXTPPropertyGridItem(_T("SimResult")));
-			int nSimCount = pModelToCompare->GetSimResultCount();
-			CString strSimResult;
-			for (int j = 0; j < nSimCount; ++j)
-			{
-				strSimResult += pModelToCompare->GetSimResult(j);
-				strSimResult += ",";
-			}
-			strSimResult.TrimRight(_T(","));
-			pSimResultItem->SetValue( strSimResult );
-			pSimResultItem->SetReadOnly(TRUE);
-
-			CXTPPropertyGridItem* pModelPath = pModel->AddChildItem(new CXTPPropertyGridItem(_T("Path")));
-			CString strPath = pModelToCompare->GetModelLocation();
-			int nLenName = strName.GetLength();
-			int nLenPath = strPath.GetLength();
-			strPath = strPath.Left(nLenPath-nLenName-1);
-			pModelPath->SetValue( strPath );
-			
-			pModelPath->SetReadOnly(TRUE);
-
-			pModel->Expand();
-		}
-		pItem->Expand();
-	}
-	else if(pItem == m_pItemReports)
-	{
-		RemoveItem(m_pItemReports);
-		//if(pItem->HasChilds())
-		//{
-		//	CXTPPropertyGridItems* pChilds = pItem->GetChilds();
-		//	for(int i = pChilds->GetCount()-1; i >= 0; i--)
-		//	{
-		//		CString str = pChilds->GetAt(i)->GetCaption();
-		//		RemoveItem(pChilds->GetAt(i));
-		//	}
-		//}
-		CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-		std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-		for (int i = 0; i < static_cast<int>(vReports.size()); i++)
-		{
-			const CReportToCompare& report = vReports.at(i);
-			//int nRepNodeIndex = -1;
-			//switch (report.GetCategory())
-			//{
-			//case ENUM_QUEUELENGTH_REP:
-			//case ENUM_THROUGHPUT_REP:
-			//	nRepNodeIndex = 1;
-			//	break;
-
-			//case ENUM_QUEUETIME_REP:
-			//case ENUM_DURATION_REP:
-			//case ENUM_DISTANCE_REP:
-			//	nRepNodeIndex = 0;
-			//	break;
-
-			//case ENUM_ACOPERATION_REP:
-			//case ENUM_PAXCOUNT_REP:
-			//case ENUM_PAXDENS_REP:
-			//	nRepNodeIndex = 2;
-			//	break;
-
-			//default:
-			//	break;
-			//}
-			//if(nRepNodeIndex < 0)
-			//	return;
-
-			//CXTPPropertyGridItems* pChilds = pItem->GetChilds();
-			//CXTPPropertyGridItem* pChild = pChilds->GetAt(nRepNodeIndex);
-			//pChild = pChild->AddChildItem(new CXTPPropertyGridItemCategory(report.GetName()));
-			CXTPPropertyGridItem* pChild = m_pItemReports->AddChildItem(new CXTPPropertyGridItemCategory(report.GetName()));
-
-			CXTPPropertyGridItem* pPItem = NULL;
-			CReportParamToCompare param = report.GetParameter();
-			CString strTemp;
-			strTemp = _T("Report Type");
-			pPItem = pChild->AddChildItem(new CXTPPropertyGridItem(strTemp));
-
-			int iIndex = -1;
-			switch (report.GetCategory())
-			{
-			case ENUM_QUEUELENGTH_REP:
-				iIndex = 0;
-				break;
-			case ENUM_QUEUETIME_REP:
-				iIndex = 1;
-				break;
-			case ENUM_THROUGHPUT_REP:
-				iIndex = 2;
-				break;
-			case ENUM_PAXDENS_REP:
-				iIndex = 3;
-				break;
-			case ENUM_PAXCOUNT_REP:
-				iIndex = 4;
-				break;	
-			case ENUM_ACOPERATION_REP:
-				iIndex = 5;
-				break;
-			case ENUM_DURATION_REP:
-				iIndex = 6;
-				break;
-			case ENUM_DISTANCE_REP:
-				iIndex = 7;
-				break;
-			}
-			if (iIndex == -1)
-			{
-				continue;
-			}
-			strTemp = s_szReportCategoryName[iIndex];
-			pPItem->SetValue(strTemp);
-			pPItem->SetReadOnly(TRUE);
-
-			strTemp = _T("Start Time");
-			pPItem = pChild->AddChildItem(new CXTPPropertyGridItem(strTemp));
-			strTemp = GetRegularDateTime(param.GetStartTime().printTime());
-			pPItem->SetValue(strTemp);
-			pPItem->SetReadOnly(TRUE);
-
-			strTemp = _T("End Time");
-			pPItem = pChild->AddChildItem(new CXTPPropertyGridItem(strTemp));
-			strTemp = GetRegularDateTime(param.GetEndTime().printTime());
-			pPItem->SetValue(strTemp);
-			pPItem->SetReadOnly(TRUE);
-
-			strTemp = _T("Interval");
-			pPItem = pChild->AddChildItem(new CXTPPropertyGridItem(strTemp));
-			strTemp = param.GetInterval().printTime();
-			pPItem->SetValue(strTemp);
-			pPItem->SetReadOnly(TRUE);
-
-			//write Model Parameter
-			std::vector<CModelParameter> vModelParam;
-			int nModelParamCount = param.GetModelParameter(vModelParam);
-			
-			CModelsManager* pModelManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-
-			for (int nModelParam = 0; nModelParam< nModelParamCount; ++nModelParam)
-			{
-				CModelParameter& modelParam = vModelParam[nModelParam];
-
-				CString strModelName = pModelManager->GetModelsList().at(nModelParam)->GetModelName();
-
-				CXTPPropertyGridItem* pModelItem = pChild->AddChildItem(new CXTPPropertyGridItemCategory(strModelName));
-//				pModelItem->SetReadOnly(TRUE);
-
-				if(iIndex == 3)
-				{
-					strTemp = _T("Areas");
-					pPItem = pModelItem->AddChildItem(new CXTPPropertyGridItem(strTemp));
-					strTemp = modelParam.GetArea();
-					pPItem->SetValue(strTemp);
-					pPItem->SetReadOnly(TRUE);
-				}
-
-				if(report.GetCategory() == ENUM_QUEUETIME_REP ||
-					report.GetCategory() == ENUM_DURATION_REP ||
-					report.GetCategory() == ENUM_DISTANCE_REP ||
-					report.GetCategory() == ENUM_ACOPERATION_REP||
-					report.GetCategory() == ENUM_PAXDENS_REP )
-				{
-					std::vector<CMobileElemConstraint> vPaxType;
-					if (modelParam.GetPaxType(vPaxType))
-					{
-						strTemp = _T("Passanger Type");
-						pPItem = pModelItem->AddChildItem(new CXTPPropertyGridItemCategory(strTemp));
-
-						CString strPax;
-						for (int i = 0; i < static_cast<int>(vPaxType.size()); i++)
-						{
-							vPaxType[i].screenPrint(strPax);
-							CXTPPropertyGridItem* pTempItem = pPItem->AddChildItem(new CXTPPropertyGridItem(""));
-							pTempItem->SetValue(strPax);
-							pTempItem->SetReadOnly(TRUE);
-						}
-						pPItem->Expand();
-					}	
-				}
-				if (report.GetCategory() == ENUM_DURATION_REP ||
-					report.GetCategory() == ENUM_DISTANCE_REP)
-				{
-					// from or to processor
-
-					CReportParameter::FROM_TO_PROCS _fromtoProcs;
-					modelParam.GetFromToProcs(_fromtoProcs);
-
-					strTemp = _T("From To Processors");
-					CXTPPropertyGridItem *pFromToItem = pModelItem->AddChildItem(new CXTPPropertyGridItemCategory(strTemp));
-					CXTPPropertyGridItem *pFromItem = pFromToItem->AddChildItem(new CXTPPropertyGridItemCategory("From"));
-					CXTPPropertyGridItem *pToItem = pFromToItem->AddChildItem(new CXTPPropertyGridItemCategory("To"));
-
-					for (int nFrom = 0; nFrom < (int)_fromtoProcs.m_vFromProcs.size(); ++ nFrom)
-					{
-						CString strProc = _fromtoProcs.m_vFromProcs.at(nFrom).GetIDString();
-						CXTPPropertyGridItem* pTempItem = pFromItem->AddChildItem(new CXTPPropertyGridItem(""));
-						pTempItem->SetValue(strProc);
-						pTempItem->SetReadOnly(TRUE);
-					}
-				
-					for (int nTo = 0; nTo < (int)_fromtoProcs.m_vToProcs.size(); ++ nTo)
-					{
-						CString strProc = _fromtoProcs.m_vToProcs.at(nTo).GetIDString();
-						CXTPPropertyGridItem* pTempItem = pToItem->AddChildItem(new CXTPPropertyGridItem(""));
-						pTempItem->SetValue(strProc);
-						pTempItem->SetReadOnly(TRUE);
-
-					}
-				}
-				else if(report.GetCategory() != ENUM_ACOPERATION_REP)
-				{
-					std::vector<ProcessorID> vProcGroup;
-					if (modelParam.GetProcessorID(vProcGroup))
-					{
-						char szProc[128];
-						strTemp = _T("Processor Type");
-						pPItem = pModelItem->AddChildItem(new CXTPPropertyGridItemCategory(strTemp));
-
-						for (int i = 0; i < static_cast<int>(vProcGroup.size()); i++)
-						{
-							memset(szProc, 0, sizeof(szProc) / sizeof(char));
-							vProcGroup[i].printID(szProc);
-							CXTPPropertyGridItem* pTempItem = pPItem->AddChildItem(new CXTPPropertyGridItem(""));
-							pTempItem->SetValue(szProc);
-							pTempItem->SetReadOnly(TRUE);
-						}
-						pPItem->Expand();
-					}
-				}
-
-
-
-				pModelItem->Expand();
-			}
-
-		
-			pChild->Expand();
-			pChild->GetParentItem()->Expand();
-		}
-		pItem->Expand();
-	}
-
-	m_pReportManager->GetCmpReport()->SetModifyFlag(TRUE);
-	m_pReportManager->GetCmpReport()->SaveProject();
 }
 
 void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
@@ -775,108 +420,10 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 
 void CCmpParametersWnd::UpdateParaWnd()
 {
-	if (!::IsWindow(m_wndPropGrid.m_hWnd))
-		return ;
-
-	UpdateParaItem(m_pItemName);
-	UpdateParaItem(m_pItemDesc);
-	UpdateParaItem(m_pItemModels);
-	UpdateParaItem(m_pItemReports);
 	UpdateParaItem(m_hProjName);
 	UpdateParaItem(m_hProjDesc);
 	UpdateParaItem(m_hModelRoot);
 	UpdateParaItem(m_hReportRoot);
-}
-
-LRESULT CCmpParametersWnd::OnGridNotify(WPARAM wParam, LPARAM lParam)
-{
-	CXTPPropertyGridItem* pItem = (CXTPPropertyGridItem*)lParam;
-	if(pItem == NULL)
-		return 0;
-
-	if (wParam == XTP_PGN_ITEMVALUE_CHANGED)
-	{
-		if(pItem == m_pItemName)
-		{
-			if(m_pReportManager->GetCmpReport()->ProjExists(pItem->GetValue()))
-			{
-				ReleaseCapture();
-				MessageBox("The name is already exists, please rename!");
-				pItem->SetValue(m_pReportManager->GetCmpReport()->GetOriginProjName());
-				return 0;
-			}
-
-			CComparativeProject *pProject = m_pReportManager->GetCmpReport()->GetComparativeProject();
-
-			pProject->SetName(pItem->GetValue());
-//			m_pReportManager->GetCmpReport()->GetComparativeProject()->SetName(pItem->GetValue());
-
-		}
-		else if(pItem == m_pItemDesc)
-		{
-			if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName().IsEmpty())
-			{
-				MessageBox("The name is empty, please set the project name!");
-				ReleaseCapture();
-				pItem->SetValue(_T(""));
-				return 0;
-			}
-			m_pReportManager->GetCmpReport()->GetComparativeProject()->SetDescription(pItem->GetValue());
-		}
-		m_pReportManager->GetCmpReport()->SetModifyFlag(TRUE);
-		m_pReportManager->GetCmpReport()->SaveProject();
-	}
-	else if(wParam == XTP_PGN_RCLICK)
-	{
-		m_pSelItem = pItem;
-		m_pSelItem->Select();
-
-		CPoint point;
-		GetCursorPos(&point);
-		CMenu* pMenu=NULL;
-
-		if(pItem != NULL)
-		{
-			if(pItem == m_pItemModels)
-			{
-				CComparativeProject *pProject = m_pReportManager->GetCmpReport()->GetComparativeProject();
-
-				if(pProject == NULL ||pProject->GetName().IsEmpty())
-				{
-					MessageBox("The name is empty, please set the project name!");
-					return 0;
-				}
-				pMenu = m_nMenu.GetSubMenu(0);
-			}
-			else if(pItem == m_pItemReports)
-			{
-				if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName().IsEmpty())
-				{
-					MessageBox("The name is empty, please set the project name!");
-					return 0;
-				}
-				pMenu = m_nMenu.GetSubMenu(2);
-			}
-			else if(pItem->GetParentItem() == m_pItemModels)
-			{
-				pMenu = m_nMenu.GetSubMenu(1);
-			}
-			else if(pItem->GetParentItem() != NULL)
-			{
-				if(pItem->GetParentItem() == m_pItemReports)
-				{
-					pMenu = m_nMenu.GetSubMenu(3);
-				}
-			}
-		}
-
-		if (pMenu != NULL)
-		{
-			pMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);	
-		}
-	}
-
-	return 0;
 }
 
 CString CCmpParametersWnd::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
@@ -927,52 +474,38 @@ void CCmpParametersWnd::OnTimer(UINT nIDEvent)
 	CWnd::OnTimer(nIDEvent);
 }
 
-void CCmpParametersWnd::OnCraAddNewModel()
+void CCmpParametersWnd::AddModel()
 {
 	CWaitCursor wc;
 
 	CModelsManager* pManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-//	dlg.GetModelsManager().SetModels(pManager->GetModelsList());
 	CModelSelectionDlg dlg(pManager,this);
 	wc.Restore();
 	if(dlg.DoModal() == IDOK)
 	{
-	//	pManager->SetModels(dlg.GetModelsManager().GetModelsList());
-
-		UpdateParaItem(m_pItemModels);
 		UpdateParaItem(m_hModelRoot);
 	}
 }
 
-void CCmpParametersWnd::OnCrbDelete() 
-{
-	CXTPPropertyGridItems* pChilds = m_pSelItem->GetChilds();
-	CXTPPropertyGridItem* pChild = pChilds->GetAt(0);
-
-	CString strModelUniqueName =  pChild->GetValue();
-
-	strModelUniqueName.Trim();
-	// TODO: Add your command handler code here
-	if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->DeleteModel(strModelUniqueName))
+void CCmpParametersWnd::DeleteModel()
+{			
+	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
+	HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
+	CString strModelName = m_propTree.GetItemText(hSubItem);
+	CString strPadding = "Name: ";
+	strModelName = strModelName.Right(strModelName.GetLength() - strPadding.GetLength());
+	if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->DeleteModel(strModelName))
 	{
-		UpdateParaItem(m_pItemModels);
-		UpdateParaItem(m_pItemReports);
+		UpdateParaItem(m_hModelRoot);
+		UpdateParaItem(m_hReportRoot);
 	}
 }
 
-void CCmpParametersWnd::OnCrcAddNewReport()
+void CCmpParametersWnd::AddReport()
 {
 	CWaitCursor wc;
-	//if (!m_pReportManager->GetCmpReport()->InitTerminal())
-	//{
-	//	AfxMessageBox(_T("Initialize terminal failed."));
-	//	wc.Restore();
-	//	return ;
-	//}
-
 	CReportProperty dlg(this);
 	dlg.m_strProjName = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName();
-//	dlg.m_pTerminal = &(m_pReportManager->GetCmpReport()->GetTerminal());
 	CModelsManager* pMManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 	CString strError = pMManager->InitTerminal(NULL,dlg.m_strProjName,NULL);
 	if (!strError.IsEmpty())
@@ -996,65 +529,12 @@ void CCmpParametersWnd::OnCrcAddNewReport()
 	if(dlg.DoModal() == IDOK)
 	{
 		const CReportToCompare& report = dlg.GetReport();
-
 		pRManager->AddReport(report);
-
-		UpdateParaItem(m_pItemReports);
 		UpdateParaItem(m_hReportRoot);
 	}
 }
 
-void CCmpParametersWnd::OnCrdEditReport()
-{
-	CWaitCursor wc;
-	//if (!m_pReportManager->GetCmpReport()->InitTerminal())
-	//{
-	//	AfxMessageBox(_T("Initialize terminal failed."));
-	//	wc.Restore();
-	//	return ;
-	//}
-
-	BOOL bFound = FALSE;
-	CModelsManager* pMManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-	CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-	std::vector<CReportToCompare>::iterator iter;
-	CReportToCompare report;
-	for (iter = vReports.begin(); iter != vReports.end(); iter++)
-	{
-		if (iter->GetName() == m_pSelItem->GetCaption())
-		{
-			report = *iter;
-			bFound = TRUE;
-			break;
-		}
-	}
-
-	if (bFound)
-	{
-		CReportProperty dlg(this);
-		dlg.m_strProjName = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName();
-//		dlg.m_pTerminal = &(m_pReportManager->GetCmpReport()->GetTerminal());
-		dlg.SetManager(pMManager,pRManager);
-
-		dlg.SetProjName(dlg.m_strProjName);
-		dlg.GetReport() = report;
-		wc.Restore();
-
-		if(dlg.DoModal() == IDOK)
-		{
-			const CReportToCompare& report = dlg.GetReport();
-			
-			vReports.erase(iter);
-
-			pRManager->AddReport(report);
-
-			UpdateParaItem(m_pItemReports);
-		}
-	}
-}
-
-void CCmpParametersWnd::OnCrdEditReport1()
+void CCmpParametersWnd::EditReport()
 {
 	CWaitCursor wc;
 
@@ -1098,23 +578,22 @@ void CCmpParametersWnd::OnCrdEditReport1()
 	}
 }
 
-void CCmpParametersWnd::OnCrdDelete() 
+void CCmpParametersWnd::DeleteReport()
 {
-	// TODO: Add your command handler code here
+	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
+	CString strReportName = m_propTree.GetItemText(hSelItem);
 	CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-
 	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 	std::vector<CReportToCompare>::iterator iter;
 	for (iter = vReports.begin(); iter != vReports.end(); iter++)
 	{
-		if (iter->GetName() == m_pSelItem->GetCaption())
+		if (iter->GetName() == strReportName)
 		{
 			vReports.erase(iter);
 			break;
-	    }
+		}
 	}
-
-	UpdateParaItem(m_pItemReports);
+	UpdateParaItem(m_hReportRoot);
 }
 
 void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
@@ -1179,11 +658,15 @@ LRESULT CCmpParametersWnd::DefWindowProc( UINT message, WPARAM wParam, LPARAM lP
 		{
 			CString strValue = pComProj->GetName();
 			m_propTree.GetEditWnd(hCurItem)->SetWindowText(strValue);
+			m_propTree.GetEditWnd(hCurItem)->SetFocus();
+			((CEdit*)m_propTree.GetEditWnd(hCurItem))->SetSel(0, -1, true); 
 		}
 		else if(m_propTree.GetSelectedItem() == m_hProjDesc)
 		{
 			CString strValue = pComProj->GetDescription();
 			m_propTree.GetEditWnd(hCurItem)->SetWindowText(strValue);
+			m_propTree.GetEditWnd(hCurItem)->SetFocus();
+			((CEdit*)m_propTree.GetEditWnd(hCurItem))->SetSel(0, -1, true);
 		}
 	}
 	if(message == UM_CEW_EDITSPIN_END)
@@ -1285,7 +768,7 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 		switch(nID)
 		{
 		case MENU_ADD_MODEL:
-			OnCraAddNewModel();
+			AddModel();
 			break;
 		default:
 			break;
@@ -1296,7 +779,7 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 		switch(nID)
 		{
 		case MENU_ADD_REPORT:
-			OnCrcAddNewReport();
+			AddReport();
 			break;
 		default:
 			break;
@@ -1308,19 +791,8 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 		switch(nID)
 		{
 		case MENU_DELETE_MODEL:
-			{
-				HTREEITEM hSelItem = m_propTree.GetSelectedItem();
-				HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
-				CString strModelName = m_propTree.GetItemText(hSubItem);
-				CString strPadding = "Name: ";
-				strModelName = strModelName.Right(strModelName.GetLength() - strPadding.GetLength());
-				if(m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->DeleteModel(strModelName))
-				{
-					UpdateParaItem(m_hModelRoot);
-					UpdateParaItem(m_hReportRoot);
-				}
-				break;
-			}
+			DeleteModel();
+			break;
 		default:
 			break;
 		}
@@ -1330,26 +802,11 @@ void CCmpParametersWnd::OnChooseMenu( UINT nID )
 		switch(nID)
 		{
 		case MENU_EDIT_REPORT:
-			OnCrdEditReport1();
+			EditReport();
 			break;
 		case MENU_DELETE_REPORT:
-			{
-				HTREEITEM hSelItem = m_propTree.GetSelectedItem();
-				CString strReportName = m_propTree.GetItemText(hSelItem);
-				CReportsManager* pRManager = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-				std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-				std::vector<CReportToCompare>::iterator iter;
-				for (iter = vReports.begin(); iter != vReports.end(); iter++)
-				{
-					if (iter->GetName() == strReportName)
-					{
-						vReports.erase(iter);
-						break;
-					}
-				}
-				UpdateParaItem(m_hReportRoot);
-				break;
-			}
+			DeleteReport();
+			break;
 		default:
 			break;
 		}
