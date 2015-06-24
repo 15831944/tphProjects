@@ -4329,12 +4329,10 @@ void CProcDataPage::ProcDataPageEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pP
 	switch(typeOfUsingPipe)
 	{
 	case USE_NOTHING:
+	case USE_USER_SELECTED_PIPES:
 		typeOfUsingPipe = USE_PIPE_SYSTEM;
 		break;
 	case USE_PIPE_SYSTEM:
-		typeOfUsingPipe = USE_NOTHING;
-		break;
-	case USE_USER_SELECTED_PIPES:
 		typeOfUsingPipe = USE_NOTHING;
 		break;
 	default:
@@ -4360,10 +4358,10 @@ void CProcDataPage::SetImgOfButtonEditPipeAuto( int typeOfUsingPipe )
 	switch(typeOfUsingPipe)
 	{
 	case USE_NOTHING:
+	case USE_USER_SELECTED_PIPES:
 		tbBtnInfo.iImage = 5;
 		break;
 	case USE_PIPE_SYSTEM:
-	case USE_USER_SELECTED_PIPES:
 		tbBtnInfo.iImage = pIL->GetImageCount()-1;
 		break;
 	default:

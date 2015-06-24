@@ -3119,10 +3119,8 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 			pIDWithOne2One = (MiscProcessorIDWithOne2OneFlag*)(pMiscProcessorIDList->getItem(i));
 		}
 	}
-	//if( pIDWithOne2One = NULL ) 
-	//    return;
 	std::vector<int> vPipeList1;
-	if(pIDWithOne2One->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM || USE_NOTHING)
+	if(pIDWithOne2One->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
 	{
 		WalkAlongShortestPath( _pNextProc,ptTo, _curTime );
 		return;
