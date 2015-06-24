@@ -98,12 +98,20 @@ public:
 	virtual void setDestination (Point p){m_ptDestination = p;}
 
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
+	
+	void processPipe(Point _destPoint, const ElapsedTime _curTime);
+
+	//Calculate the moving time.
+	ElapsedTime moveTime (void) const;
+private:
+
+	CString ClacTimeString(const ElapsedTime& _curTime);
 
 	// automatic pipe
-	void walkAlongShortestPath(Point entryPoint, const ElapsedTime _curTime);
+	void walkAlongShortestPath(Point _destPoint, const ElapsedTime _curTime);
 
-	ElapsedTime moveTime (void) const;
-	
+	// user defined pipe
+	void walkAlongUserPath(Point _destPoint, std::vector<int> userPipe, const ElapsedTime _curTime);
 };
 
 #endif // !defined(AFX_RESOURCEELEMENT_H__F9F00B47_F1F5_4155_A378_183EC0EB0932__INCLUDED_)

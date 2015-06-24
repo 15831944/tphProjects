@@ -13,6 +13,8 @@
 #include "../Main/Floor2.h"
 #include "../Inputs/PipeGraph.h"
 #include "../Inputs/PipeDataSet.h"
+#include "../Inputs/ProcToResource.h"
+#include "../Inputs/Simparameter.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -185,7 +187,8 @@ ElapsedTime ResourceElement::moveTime(void)const
 // processor leave processor
 void ResourceElement::handleLeaveProcessor(  const ElapsedTime& _time )
 {
-	walkAlongShortestPath( m_pOwnPool->getServiceLocation(), _time);
+	setState(Resource_Leave_Processor);
+	processPipe( m_pOwnPool->getServiceLocation(), _time);
 	if (m_pOwnPool->getPoolType() == PostServiceType)
 	{
 		m_CurrentRequestItem.request_proc->makeAvailable(NULL,_time,false);
@@ -296,6 +299,47 @@ void ResourceElement::generateEvent (ElapsedTime eventTime,bool bNoLog)
 	m_prevEventTime = aMove->getTime();
 }
 
+void ResourceElement::processPipe(Point _destPoint, const ElapsedTime _curTime)
+{
+	PROC2RESSET& proc2ResList = m_pTerm->m_pProcToResourceDB->getProc2ResList();
+	PROC2RESSET::iterator iter;
+	CProcToResource procToRes;
+	for( iter = proc2ResList.begin(); iter!=proc2ResList.end(); ++iter )
+	{
+		if(strcmp(iter->getResourcePoolName(), m_pOwnPool->getPoolName()) != 0)
+			continue;
+		ProcessorID process = iter->getProcessorID();
+		ProcessorID reqProc = *(m_CurrentRequestItem.request_proc->getID());
+		if(process == reqProc)
+		{
+			procToRes = *iter;
+			break;
+		}
+		if(process.idFits(reqProc))
+		{
+			procToRes = *iter;
+		}
+	}
+	if(procToRes.GetTypeOfUsingPipe() == USE_NOTHING)
+	{
+		if(getPreState() == Resource_Stay_In_Base)
+			setState(Resource_Arrival_Processor);
+		else if(getPreState() == Resource_Leave_Processor)
+			setState(Resource_Back_To_Base);
+		setDestination(_destPoint);
+		generateEvent( _curTime + moveTime(), false );
+		writeLogEntry( _curTime + moveTime(), false );
+	}
+	else if(procToRes.GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
+	{
+		walkAlongShortestPath(_destPoint, _curTime);
+	}
+	else if(procToRes.GetTypeOfUsingPipe() == USE_USER_SELECTED_PIPES)
+	{
+		walkAlongUserPath(_destPoint, procToRes.GetPipeVector(), _curTime);
+	}
+}
+
 void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime _curTime)
 {
 	m_ptDestOfPipe = _destPoint;
@@ -340,5 +384,178 @@ void ResourceElement::walkAlongShortestPath(Point _destPoint, const ElapsedTime 
 	}
 	setState(WalkOnPipe);
 	generateEvent(_curTime,false);
+}
+
+void ResourceElement::walkAlongUserPath(Point _destPoint, std::vector<int> pipeList, const ElapsedTime _curTime)
+{
+	m_ptDestOfPipe = _destPoint;
+	Point ptFrom = location;
+	Point ptTo = _destPoint;
+	// if not same floor, need not move in pipe
+	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
+	int iEntryFloor = (int)(_destPoint.getZ() / SCALE_FACTOR);
+	if (iCurFloor != iEntryFloor)
+		return;
+
+	CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
+	if (!pPipeMgr->checkCanMoveByPipe(iEntryFloor))
+		return;
+
+	int nPipeCount = pipeList.size();
+	if( nPipeCount == 0 )
+		return;
+
+	std::vector<int> workingPipeList;
+	for( int i=0; i<nPipeCount; i++ )
+	{
+		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList[i] );
+		if( pPipe->GetZ() == ptFrom.getZ() )
+		{
+			workingPipeList.push_back( pipeList[i] );
+		}
+	}
+	nPipeCount = workingPipeList.size();
+	if( nPipeCount == 0 )
+		return;
+
+	writeLogEntry( _curTime, false ); // on leave server.
+
+	CPointToPipeXPoint entryPoint;
+	CPointToPipeXPoint exitPoint;
+	std::vector<CMobPipeToPipeXPoint> vMidPoint;	// num count should be nPipeCount - 1
+
+	CPipe* pPipe1 = NULL;
+	CPipe* pPipe2 = NULL;
+	for( i=0; i<nPipeCount; i++ )
+	{
+		if( i == 0 )
+		{
+			pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[0] );
+			entryPoint = pPipe1->GetIntersectionPoint( ptFrom );
+
+			if( nPipeCount == 1 )
+			{
+				exitPoint = pPipe1->GetIntersectionPoint( ptTo );
+			}
+			else
+			{
+				pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[1] );
+				CMobPipeToPipeXPoint midPt;
+				if( pPipe1->GetIntersectionPoint( pPipe2, entryPoint, midPt ) )
+				{
+					vMidPoint.push_back( midPt );
+				}
+				else
+				{
+					kill(_curTime);
+					throw new ARCPipeNotIntersectError( pPipe1->GetPipeName(),pPipe2->GetPipeName(),"", ClacTimeString(_curTime));
+				}
+			}
+		}
+		else if( i == nPipeCount - 1 )
+		{
+			exitPoint = pPipe1->GetIntersectionPoint( ptTo );
+			vMidPoint[vMidPoint.size()-1].SetOutInc( exitPoint );
+		}
+		else
+		{
+			pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[i+1] );
+			CMobPipeToPipeXPoint midPt;
+			if( pPipe1->GetIntersectionPoint( pPipe2, vMidPoint[vMidPoint.size()-1], midPt ) )
+			{
+				vMidPoint[vMidPoint.size()-1].SetOutInc( midPt );
+				vMidPoint.push_back( midPt );
+			}
+			else
+			{
+				kill(_curTime);
+				throw new ARCPipeNotIntersectError( pPipe1->GetPipeName(),pPipe2->GetPipeName(),"", ClacTimeString(_curTime));
+			}
+		}
+		pPipe1 = pPipe2;
+	}
+
+	ElapsedTime eventTime = _curTime;
+
+	// process entry point
+	CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[0] );
+
+	PTONSIDEWALK allPtList, partialPtList;
+	int nPercent = random( 100 );
+	int nMidPoint = vMidPoint.size();
+
+	if( nMidPoint == 0 )
+	{	
+		// add entry point and exit point only.
+		pPipe->GetPointListForLog( workingPipeList[0],entryPoint, exitPoint, nPercent, allPtList );
+	}
+	else
+	{
+		// add entry point
+		pPipe->GetPointListForLog( workingPipeList[0],entryPoint, vMidPoint[0], nPercent, allPtList );
+		// add mid point
+		for( int i=1; i<nMidPoint; i++ )
+		{
+			pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[i] );
+			if( vMidPoint[i-1].OrderChanged() )
+				nPercent = 100 - nPercent;
+
+			pPipe->GetPointListForLog( workingPipeList[0],vMidPoint[i-1], vMidPoint[i], nPercent ,partialPtList );
+			copy(partialPtList.begin(), partialPtList.end(), back_inserter(allPtList));
+		}
+		// add exit point
+		pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( workingPipeList[nPipeCount-1] );
+		if( vMidPoint[i-1].OrderChanged() )
+			nPercent = 100 - nPercent;
+		pPipe->GetPointListForLog( workingPipeList[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,partialPtList );
+		copy(partialPtList.begin(), partialPtList.end(), back_inserter(allPtList));
+	}
+
+	m_vPipePointList.clear();
+	for (PTONSIDEWALK::iterator iter = allPtList.begin(); iter != allPtList.end(); iter++)
+	{
+		PipePointInformation pipeInfor;
+		if (m_vPipePointList.empty())
+		{
+			pipeInfor.m_nPrePipe = -1;
+		}
+		else
+		{
+			pipeInfor.m_nPrePipe = m_vPipePointList.back().m_nCurPipe;
+		}
+
+		pipeInfor.pt = iter->GetPointOnSideWalk();
+		pipeInfor.m_nCurPipe = iter->GetPipeIdx();
+		m_vPipePointList.push_back(pipeInfor);
+	}
+	setState(WalkOnPipe);
+	generateEvent(_curTime,false);
+}
+
+CString ResourceElement::ClacTimeString(const ElapsedTime& _curTime)
+{
+	char str[64];
+	ElapsedTime tmptime(_curTime.asSeconds() % WholeDay);
+	tmptime.printTime ( str );
+
+	CStartDate sDate = m_pTerm->m_pSimParam->GetStartDate();
+	bool bAbsDate;
+	COleDateTime date;
+	int nDtIdx;
+	COleDateTime time;
+	CString sDateTimeStr;
+	sDate.GetDateTime( _curTime, bAbsDate, date, nDtIdx, time );
+	if( bAbsDate )
+	{
+		sDateTimeStr = date.Format(_T("%Y-%m-%d"));
+	}
+	else
+	{
+		sDateTimeStr.Format("Day %d", nDtIdx + 1 );
+	}
+	sDateTimeStr += " ";
+	sDateTimeStr += str;
+
+	return sDateTimeStr;
 }
 
