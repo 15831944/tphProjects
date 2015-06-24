@@ -1,0 +1,5 @@
+// Microsoft Visual C++ generated Help ID include file.
+// Used by TermPlan.rc
+//
+#define HIDC_BTN_ECONOMIC2_SAVE         0x815c0482    // IDD_DIALOG_ECONOMIC2 [English (U.S.)]
+#define HIDC_RADIO_PORTAL               0x81420529    // IDD_DIALOG_FLIGHTTYPE [English (U.S.)]

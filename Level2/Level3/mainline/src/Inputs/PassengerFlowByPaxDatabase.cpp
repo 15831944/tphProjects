@@ -1,0 +1,20 @@
+// PassengerFlowByPaxDatabase.cpp: implementation of the CPassengerFlowByPaxDatabase class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include "PassengerFlowByPaxDatabase.h"
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+
+CPassengerFlowByPaxDatabase::CPassengerFlowByPaxDatabase()
+{
+
+}
+
+CPassengerFlowByPaxDatabase::~CPassengerFlowByPaxDatabase()
+{
+
+}

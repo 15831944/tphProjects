@@ -1,0 +1,1961 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DCBDD45F-688E-40DD-BC87-E3D98B78D08C}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <BrowseInformation>
+      </BrowseInformation>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Lib>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>..\;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <Lib>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="accessq.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="AdjacentStation.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="AirfieldProcessor.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Airside\AirsideCircuitFlightInSim.cpp" />
+    <ClCompile Include="Airside\AirsideCircuitFlightProcess.cpp" />
+    <ClCompile Include="Airside\AirsideCircuitFlightProcess2.cpp" />
+    <ClCompile Include="Airside\AirsideFlightInSim.cpp" />
+    <ClCompile Include="AirsideLogDatabase.cpp" />
+    <ClCompile Include="Airside\AirsideTrainFlightTypeManagerInSim.cpp" />
+    <ClCompile Include="Airside\AirTrafficController.cpp" />
+    <ClCompile Include="Airside\FlightTerminateEvent.cpp" />
+    <ClCompile Include="anServeProcList.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ApronProc.cpp" />
+    <ClCompile Include="ARCportEngine.cpp" />
+    <ClCompile Include="Arp.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ASSEVENT.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="AutoCreateProcessorContainer.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="AutoRoster.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="AvoidDensityEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="BAGENTER.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="BAGGAGE.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="BaggageProcUtil.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="BARRIER.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="BillboardProc.cpp" />
+    <ClCompile Include="BOARDCAL.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="BoardingCallPolicy.cpp" />
+    <ClCompile Include="BoostPathFinder.cpp" />
+    <ClCompile Include="BridgeConnector.cpp" />
+    <ClCompile Include="BusBoardingCall.cpp" />
+    <ClCompile Include="Car.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="CarFollowingModel.cpp" />
+    <ClCompile Include="CloverLeafProc.cpp" />
+    <ClCompile Include="CongestionAreaCell.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="congestionAreaEvent.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="CongestionAreaGrid.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="CongestionAreaManager.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="ContourProc.cpp" />
+    <ClCompile Include="ContourTree.cpp" />
+    <ClCompile Include="ConvergePair.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ConvertACGateToStandHelper.cpp" />
+    <ClCompile Include="conveyor.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ConveyorStepItEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="core\Observer.cpp" />
+    <ClCompile Include="core\State.cpp" />
+    <ClCompile Include="CorralServiceEvent.cpp" />
+    <ClCompile Include="CorridorGraphMgr.cpp" />
+    <ClCompile Include="DeiceBayProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Airside\DeiceVehicleServiceRequest.cpp" />
+    <ClCompile Include="DEP_SINK.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="DEP_SRCE.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="DependentProcessorList.cpp" />
+    <ClCompile Include="DoorAssignmentInSim.cpp" />
+    <ClCompile Include="ElevatorMoveEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ElevatorProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ENTRY.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="EntryPointInSim.cpp" />
+    <ClCompile Include="Escalator.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="EVENT.CPP" />
+    <ClCompile Include="ExceedMaxTimeCheckEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FacilityBehaviorsInSim.cpp" />
+    <ClCompile Include="FetchPersonInQueueEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Airside\FilletTaxiwayInSim.cpp" />
+    <ClCompile Include="FireEvacuationEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FIXEDQ.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FixProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FlightArrDepEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FlightDelaysUtility.cpp" />
+    <ClCompile Include="Airside\FlightGroundRouteResourceManager.cpp" />
+    <ClCompile Include="FlightItemBoardingCallMgr.cpp" />
+    <ClCompile Include="Airside\FlightPlanGenericRouteInSim.cpp" />
+    <ClCompile Include="Airside\FlightPlanSpecificRouteInSim.cpp" />
+    <ClCompile Include="FlightsBoardingCallManager.cpp" />
+    <ClCompile Include="FLOORCHG.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FlowBelt.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FLowChannelList.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="FltOperatingDoorSpecInSim.cpp" />
+    <ClCompile Include="GATE.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="GREET.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="GroupFollowerInfo.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="GroupInfo.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="GroupLeaderInfo.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="HOLD.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Airside\HoldInTaxiRouteInSim.cpp" />
+    <ClCompile Include="HoldProc.cpp" />
+    <ClCompile Include="IDModel.cpp" />
+    <ClCompile Include="IntegratedStation.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="IntersectionProc.cpp" />
+    <ClCompile Include="LandControlDevice.cpp" />
+    <ClCompile Include="LandfieldProcessor.cpp" />
+    <ClCompile Include="LandsideBusStationInSim.cpp" />
+    <ClCompile Include="LandsideCellPhoneProcess.cpp" />
+    <ClCompile Include="LandsideCurbsideInSim.cpp" />
+    <ClCompile Include="LandsideDecisionPointInSim.cpp" />
+    <ClCompile Include="LandsideExternalNodeInSim.cpp" />
+    <ClCompile Include="LandsideIntersectionInSim.cpp" />
+    <ClCompile Include="LandsideLayoutObjectInSim.cpp" />
+    <ClCompile Include="LandsideParkingLotInSim.cpp" />
+    <ClCompile Include="LandsidePaxSericeInSim.cpp" />
+    <ClCompile Include="LandsidePaxTypeLinkageInSimManager.cpp" />
+    <ClCompile Include="LandsideQueueProcess.cpp" />
+    <ClCompile Include="LandsideResidentPaxDirectionManager.cpp" />
+    <ClCompile Include="LandsideResidentVehicleGetOffEvent.cpp" />
+    <ClCompile Include="LandsideResidentVehicleInSim.cpp" />
+    <ClCompile Include="LandsideResourceInSim.cpp" />
+    <ClCompile Include="LandsideResourceManager.cpp" />
+    <ClCompile Include="LandsideRoundaboutInSim.cpp" />
+    <ClCompile Include="LandsideSimErrorShown.cpp" />
+    <ClCompile Include="LandsideSimTimeStepEvent.cpp" />
+    <ClCompile Include="LandsideSimTimeStepManager.cpp" />
+    <ClCompile Include="LandsideSimulation.cpp" />
+    <ClCompile Include="LandsideStrategyStateInSim.cpp" />
+    <ClCompile Include="LandsideStretchInSim.cpp" />
+    <ClCompile Include="LandsideStretchSegmentInSim.cpp" />
+    <ClCompile Include="LandsideTaxiPoolInSim.cpp" />
+    <ClCompile Include="LandsideTaxiQueueInSim.cpp" />
+    <ClCompile Include="LandsideTerminalLinkageInSim.cpp" />
+    <ClCompile Include="LandsideVehicleEntryInfo.cpp" />
+    <ClCompile Include="LandsideVehicleEvent.cpp" />
+    <ClCompile Include="LandsideVehicleInSim.cpp" />
+    <ClCompile Include="LandsideVehicleLeadToInSimManager.cpp" />
+    <ClCompile Include="LandsideVehicleServiceEndEvent.cpp" />
+    <ClCompile Include="Landside\LandsideNonPaxVehicleInSim.cpp" />
+    <ClCompile Include="Landside\LandsideNonPaxVehicleManager.cpp" />
+    <ClCompile Include="Landside\LandsidePath.cpp" />
+    <ClCompile Include="Landside\LandsidePaxVehicleInSim.cpp" />
+    <ClCompile Include="Landside\LandsidePaxVehicleManager.cpp" />
+    <ClCompile Include="Landside\LandsidePrivateVehicleInSim.cpp" />
+    <ClCompile Include="Landside\LandsidePublicExtBusInSim.cpp" />
+    <ClCompile Include="Landside\LandsideTaxiInSim.cpp" />
+    <ClCompile Include="Landside\Process_MoveInRoad.cpp" />
+    <ClCompile Include="Landside\RensidentVehicleDeployor.cpp" />
+    <ClCompile Include="Landside\State_InBusStation.cpp" />
+    <ClCompile Include="Landside\State_InCurbside.cpp" />
+    <ClCompile Include="Landside\State_InParkingLot.cpp" />
+    <ClCompile Include="Landside\State_LandsideVehicle.cpp" />
+    <ClCompile Include="Landside\State_MoveInRoad.cpp" />
+    <ClCompile Include="Landside\State_TaxiInQueue.cpp" />
+    <ClCompile Include="LaneAdapterProc.cpp" />
+    <ClCompile Include="LaneParkingSpot.cpp" />
+    <ClCompile Include="LaneSegInSim.cpp" />
+    <ClCompile Include="LineParkingProc.cpp" />
+    <ClCompile Include="LINEPROC.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="LINEQ.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Loader.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="LogContainer.cpp" />
+    <ClCompile Include="MOBILE.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="MobileDynamics.cpp" />
+    <ClCompile Include="MobileElementEntrySimulationEvent.cpp" />
+    <ClCompile Include="MobileElementExitSystemEvent.cpp" />
+    <ClCompile Include="MobileElementGenerator.cpp" />
+    <ClCompile Include="MobileElementGroup.cpp" />
+    <ClCompile Include="Monitor.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="MOVEVENT.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="MovingSideWalk.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="MovingTrace.cpp" />
+    <ClCompile Include="MovingTrain.cpp" />
+    <ClCompile Include="NFIXEDQ.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="NodeProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="NoseInParkingProc.cpp" />
+    <ClCompile Include="OnboardCellFreeMoveEvent.cpp" />
+    <ClCompile Include="OnboardPaxCellMoveToSeatEvent.cpp" />
+    <ClCompile Include="OnboardPaxFreeMovingConflict.cpp" />
+    <ClCompile Include="OverPassProc.cpp" />
+    <ClCompile Include="PAX.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PaxBusBeginServerEvent.cpp" />
+    <ClCompile Include="PaxCircleSensor.cpp" />
+    <ClCompile Include="PERSON.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PersonOnStation.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PointAndBagsInBagProcessor.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PROCESS.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ProcessorCapacity.cpp" />
+    <ClCompile Include="ProcessorCapacityInSimulation.cpp" />
+    <ClCompile Include="ProcessorDistributionTransformer.cpp" />
+    <ClCompile Include="ProcessorOccupantsState.cpp" />
+    <ClCompile Include="ProcGroupIdxTree.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ProcGroupIdxTreeNode.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="proclist.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PROCQ.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Pusher.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PusherCheckMaxWaitTimeEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="PusherScheduleEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="RailwayInfo.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="RailwayInfoKey.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ResourceElement.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="RetailProcessor.cpp" />
+    <ClCompile Include="RoundAboutProc.cpp" />
+    <ClCompile Include="Rule.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="RunwayProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Scanner.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ScheduleStepEvent.cpp" />
+    <ClCompile Include="SeatAssignmentInSim.cpp" />
+    <ClCompile Include="SectorProc.cpp" />
+    <ClCompile Include="SEQUENCQ.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="ServiceSlot.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SEvent.cpp" />
+    <ClCompile Include="SimClock.cpp" />
+    <ClCompile Include="SimFlowMobItem.cpp" />
+    <ClCompile Include="SimFlowSync.cpp" />
+    <ClCompile Include="SimFlowSyncItem.cpp" />
+    <ClCompile Include="SimMobileElemList.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="SimpleConveyor.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Sorter.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Splitter.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="Stair.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="StandProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StopSignProc.cpp" />
+    <ClCompile Include="StretchProc.cpp" />
+    <ClCompile Include="Airside\TaxiInTempParkingDelay.cpp" />
+    <ClCompile Include="TaxiwayProc.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="TaxiwayTrafficGraph.cpp" />
+    <ClCompile Include="Airside\TempParkingInSim.cpp" />
+    <ClCompile Include="Term_err.cpp" />
+    <ClCompile Include="TERMINAL.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="TerminalEvent.cpp" />
+    <ClCompile Include="TerminalTrainEntryEvent.cpp" />
+    <ClCompile Include="TLOSEvent.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="TollGateProc.cpp" />
+    <ClCompile Include="TrafficlightProc.cpp" />
+    <ClCompile Include="TrainTrafficGraph.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="TURNARND.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="TurnaroundVisitor.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="TurnOffProc.cpp" />
+    <ClCompile Include="UnderPassProc.cpp" />
+    <ClCompile Include="VISITOR.CPP">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">EnableFastChecks</BasicRuntimeChecks>
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </BrowseInformation>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="YieldSignProc.cpp" />
+    <ClCompile Include="OnBoard\AgentsAnalyst.cpp" />
+    <ClCompile Include="OnBoard\carrierSpaceDiagnosis.cpp" />
+    <ClCompile Include="OnBoard\CarrierSpaceRenderer.cpp" />
+    <ClCompile Include="CarryonStoragePrioritiesInSim.cpp" />
+    <ClCompile Include="CarryonVolumeInSim.cpp" />
+    <ClCompile Include="OnBoard\DeplaneAgent.cpp" />
+    <ClCompile Include="OnBoard\EnplaneAgent.cpp" />
+    <ClCompile Include="OnBoard\LocatorSite.cpp" />
+    <ClCompile Include="OnBoard\MobileAgent.cpp" />
+    <ClCompile Include="OnBoard\OnBoardCandidateFlights.cpp" />
+    <ClCompile Include="OnBoard\OnBoardCarrierSpaces.cpp" />
+    <ClCompile Include="OnBoard\OnBoardEntryEvent.cpp" />
+    <ClCompile Include="OnBoard\OnBoardEvent.cpp" />
+    <ClCompile Include="OnBoard\OnBoardSimEngineConfig.cpp" />
+    <ClCompile Include="TargetLocationVariableInSim.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierCabin.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierDeck.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierDoor.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierElement.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierGround.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierMiscDevice.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierSeat.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierSpace.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierStair.cpp" />
+    <ClCompile Include="OnBoard\carrierSpace\carrierStorage.cpp" />
+    <ClCompile Include="OnBoard\PathFinding\HexMap.cpp" />
+    <ClCompile Include="OnBoard\PathFinding\IMap.cpp" />
+    <ClCompile Include="OnBoard\PathFinding\OBColor.cpp" />
+    <ClCompile Include="OnBoard\PathFinding\Pathfinder.cpp" />
+    <ClCompile Include="OnBoard\PathFinding\PathNode.cpp" />
+    <ClCompile Include="OnBoard\PathFinding\RectMap.cpp" />
+    <ClCompile Include="OnBoard\Services\AffinityGroupAssignmentService.cpp" />
+    <ClCompile Include="OnBoard\Services\BroadcastService.cpp" />
+    <ClCompile Include="OnBoard\Services\SeatAssignmentService.cpp" />
+    <ClCompile Include="GroundInSim.cpp" />
+    <ClCompile Include="OnboardAircraftElementInSim.cpp" />
+    <ClCompile Include="OnboardCellFreeMoveLogic.cpp" />
+    <ClCompile Include="OnboardCellGraph.cpp" />
+    <ClCompile Include="OnboardCellInSim.cpp" />
+    <ClCompile Include="OnboardCellSeatGivePlaceLogic.cpp" />
+    <ClCompile Include="OnboardCloseDoorEvent.cpp" />
+    <ClCompile Include="OnBoardCorridorInSim.cpp" />
+    <ClCompile Include="OnboardDeckGroundInSim.cpp" />
+    <ClCompile Include="OnBoardDeviceInSim.cpp" />
+    <ClCompile Include="OnboardDoorInSim.cpp" />
+    <ClCompile Include="OnboardElementSpace.cpp" />
+    <ClCompile Include="OnboardFlightInSim.cpp" />
+    <ClCompile Include="OnBoardingElevatorInSim.cpp" />
+    <ClCompile Include="OnBoardingEscalatorInSim.cpp" />
+    <ClCompile Include="OnBoardingStairInSim.cpp" />
+    <ClCompile Include="OnboardPaxCellStepEvent.cpp" />
+    <ClCompile Include="OnBoardPaxInformation.cpp" />
+    <ClCompile Include="OnboardSeatGroupInSim.cpp" />
+    <ClCompile Include="OnboardSeatInSim.cpp" />
+    <ClCompile Include="OnboardSeatRowInSim.cpp" />
+    <ClCompile Include="OnboardSimulation.cpp" />
+    <ClCompile Include="OnboardStorageInSim.cpp" />
+    <ClCompile Include="OnboardWallInSim.cpp" />
+    <ClCompile Include="PaxCellLocation.cpp" />
+    <ClCompile Include="PaxOnboardFreeMovingLogic.cpp" />
+    <ClCompile Include="PaxOnboardRoute.cpp" />
+    <ClCompile Include="AirsideMobElementBehavior.cpp" />
+    <ClCompile Include="OnBoard\DeplaneAgentBehavior.cpp" />
+    <ClCompile Include="OnBoard\EnplaneAgentBehavior.cpp" />
+    <ClCompile Include="MobElementEntryEvent.cpp" />
+    <ClCompile Include="MobElementLifeCycleManager.cpp" />
+    <ClCompile Include="MobElementsDiagnosis.cpp" />
+    <ClCompile Include="PaxDeplaneBehavior.cpp" />
+    <ClCompile Include="PaxEnplaneBehavior.cpp" />
+    <ClCompile Include="PaxOnboardBaseBehavior.cpp" />
+    <ClCompile Include="PaxTerminalBehavior.cpp" />
+    <ClCompile Include="ServiceObject.cpp" />
+    <ClCompile Include="SimEngineConfig.cpp" />
+    <ClCompile Include="SimEngineTransferService.cpp" />
+    <ClCompile Include="SimulationDiagnoseDelivery.cpp" />
+    <ClCompile Include="TerminalMobElementBehavior.cpp" />
+    <ClCompile Include="TurnaroundPaxTerminalBehavior.cpp" />
+    <ClCompile Include="TurnaroundVisitorTerminalBehavior.cpp" />
+    <ClCompile Include="VisitorTerminalBehavior.cpp" />
+    <ClCompile Include="Airside\DeicingProcessInSim.cpp" />
+    <ClCompile Include="Airside\ProcessInSim.cpp" />
+    <ClCompile Include="Airside\Agentbind.cpp" />
+    <ClCompile Include="Airside\AircraftClassificationManager.cpp" />
+    <ClCompile Include="Airside\AircraftInitSurfaceSettingInSim.cpp" />
+    <ClCompile Include="Airside\AircraftSectorManager.cpp" />
+    <ClCompile Include="Airside\AirHoldInInSim.cpp" />
+    <ClCompile Include="Airside\AirportResourceManager.cpp" />
+    <ClCompile Include="Airside\AirportStatus.cpp" />
+    <ClCompile Include="Airside\AirportStatusManager.cpp" />
+    <ClCompile Include="Airside\AirRoutePointInSim.cpp" />
+    <ClCompile Include="Airside\AirsideEvent.cpp" />
+    <ClCompile Include="Airside\AirsideFlightConflict.cpp" />
+    <ClCompile Include="Airside\AirsideFlightDelay.cpp" />
+    <ClCompile Include="Airside\AirsideFlightRunwayDelay.cpp" />
+    <ClCompile Include="Airside\AirsideFlightStairsLog.cpp" />
+    <ClCompile Include="Airside\AirsideFlightState.cpp" />
+    <ClCompile Include="Airside\AirsideFollowMeCarInSim.cpp" />
+    <ClCompile Include="Airside\AirsideFollowMeCarServiceEvent.cpp" />
+    <ClCompile Include="Airside\AirsideItinerantFlightInSim.cpp" />
+    <ClCompile Include="Airside\AirsideMeetingPointInSim.cpp" />
+    <ClCompile Include="Airside\AirsideMobElementWriteLogEvent.cpp" />
+    <ClCompile Include="Airside\AirsideMobElementWriteLogItem.cpp" />
+    <ClCompile Include="Airside\AirsideMobileElement.cpp" />
+    <ClCompile Include="Airside\AirsideMobileElementEvent.cpp" />
+    <ClCompile Include="Airside\AirsideObserver.cpp" />
+    <ClCompile Include="Airside\AirsidePassengerBusStrategy.cpp" />
+    <ClCompile Include="Airside\AirsidePaxBusInSim.cpp" />
+    <ClCompile Include="Airside\AirsideRemoveFlightFromQueueEvent.cpp" />
+    <ClCompile Include="Airside\AirsideReportingAreaInSim.cpp" />
+    <ClCompile Include="Airside\AirsideResource.cpp" />
+    <ClCompile Include="Airside\AirsideResourceManager.cpp" />
+    <ClCompile Include="Airside\AirsideSimulation.cpp" />
+    <ClCompile Include="Airside\AirsideTowTruckInSim.cpp" />
+    <ClCompile Include="Airside\AirsideVehicleInSim.cpp" />
+    <ClCompile Include="Airside\AirsideVehicleState.cpp" />
+    <ClCompile Include="Airside\AirspaceHoldInSim.cpp" />
+    <ClCompile Include="Airside\AirspaceResource.cpp" />
+    <ClCompile Include="Airside\AirspaceResourceManager.cpp" />
+    <ClCompile Include="Airside\ApproachSeparationInSim.cpp" />
+    <ClCompile Include="Airside\ARCMobileElement.cpp" />
+    <ClCompile Include="Airside\ArrivalDelayTriggerInSim.cpp" />
+    <ClCompile Include="Airside\ArrivalDelayTriggersDelay.cpp" />
+    <ClCompile Include="Airside\CheckRunwayWaveCrossEvent.cpp" />
+    <ClCompile Include="Airside\Clearance.cpp" />
+    <ClCompile Include="Airside\ClosetRunwayStrategyInSim.cpp" />
+    <ClCompile Include="Airside\CommonInSim.cpp" />
+    <ClCompile Include="Airside\ConflictConcernIntersectionInAirspace.cpp" />
+    <ClCompile Include="Airside\DeicepadGroup.cpp" />
+    <ClCompile Include="Airside\DeiceResourceManager.cpp" />
+    <ClCompile Include="Airside\DeiceRouteInSim.cpp" />
+    <ClCompile Include="Airside\DeiceVehicleInSim.cpp" />
+    <ClCompile Include="Airside\DepatureFlightTerminalEvent.cpp" />
+    <ClCompile Include="Airside\DynamicConflictGraph.cpp" />
+    <ClCompile Include="Airside\DynamicStandAssignmentInSim.cpp" />
+    <ClCompile Include="Airside\FinalApproachController.cpp" />
+    <ClCompile Include="Airside\FindFlightShortestPath.cpp" />
+    <ClCompile Include="Airside\FlightApplyForTowServiceEvent.cpp" />
+    <ClCompile Include="Airside\FlightArrivalStandEvent.cpp" />
+    <ClCompile Include="Airside\FlightBirthEvent.cpp" />
+    <ClCompile Include="Airside\FlightBirthTerminalEvent.cpp" />
+    <ClCompile Include="Airside\FlightConflictAtWaypointDelay.cpp" />
+    <ClCompile Include="Airside\FlightDeiceStrategyDecision.cpp" />
+    <ClCompile Include="Airside\FlightExitStandEvent.cpp" />
+    <ClCompile Include="Airside\FlightGroundRouteFinder.cpp" />
+    <ClCompile Include="Airside\FlightGroundRouteFinderStrategy.cpp" />
+    <ClCompile Include="Airside\FlightInHoldEvent.cpp" />
+    <ClCompile Include="Airside\FlightMovementEvent.cpp" />
+    <ClCompile Include="Airside\FlightMoveToMeetingPointEvent.cpp" />
+    <ClCompile Include="Airside\FlightOnToDeice.cpp" />
+    <ClCompile Include="Airside\FlightPerformanceManager.cpp" />
+    <ClCompile Include="Airside\FlightPerformancesInSim.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="Airside\FlightPlanedRunwayStrategyInSim.cpp" />
+    <ClCompile Include="Airside\FlightPlanInSim.cpp" />
+    <ClCompile Include="Airside\FlightRouteSegInSim.cpp" />
+    <ClCompile Include="Airside\FlightRunwayTakeOffEvent.cpp" />
+    <ClCompile Include="Airside\FlightServiceEvent.cpp" />
+    <ClCompile Include="Airside\FlightServiceInformation.cpp" />
+    <ClCompile Include="Airside\FlightServiceManagerInSim.cpp" />
+    <ClCompile Include="Airside\FlightServiceReqirementInSim.cpp" />
+    <ClCompile Include="Airside\FlightServiceRoute.cpp" />
+    <ClCompile Include="Airside\FlightTypeRunwayAssignmentStrategiesInSim.cpp" />
+    <ClCompile Include="Airside\FollowMeCarConnectionInSim.cpp" />
+    <ClCompile Include="Airside\GroundIntersectionNodeInSim.cpp" />
+    <ClCompile Include="Airside\HeadingAirRouteSegInSim.cpp" />
+    <ClCompile Include="Airside\HoldPositionInSim.cpp" />
+    <ClCompile Include="Airside\HoldShortLineInSim.cpp" />
+    <ClCompile Include="Airside\In_OutBoundRouteAssignmentInSim.cpp" />
+    <ClCompile Include="Airside\InboundStatus.cpp" />
+    <ClCompile Include="Airside\IntersectionNodeInSim.cpp" />
+    <ClCompile Include="Airside\InTrailSeparationInSim.cpp" />
+    <ClCompile Include="Airside\ManagedRunwayStrategyInSim.cpp" />
+    <ClCompile Include="Airside\NotifyRunwayWaveCrossEvent.cpp" />
+    <ClCompile Include="Airside\OccupiedAssignedStandActionInSim.cpp" />
+    <ClCompile Include="Airside\OutboundStatus.cpp" />
+    <ClCompile Include="Airside\PaxBusParkingInSim.cpp" />
+    <ClCompile Include="Airside\PaxBusParkingResourceManager.cpp" />
+    <ClCompile Include="Airside\PaxBusServiceGateEvent.cpp" />
+    <ClCompile Include="Airside\PaxBusServiceRequest.cpp" />
+    <ClCompile Include="Airside\Push_TowOperationSpecInSim.cpp" />
+    <ClCompile Include="Airside\PushbackClearanceDelay.cpp" />
+    <ClCompile Include="Airside\PushBackClearanceInSim.cpp" />
+    <ClCompile Include="Airside\QueueToTakeoffPos.cpp" />
+    <ClCompile Include="Airside\ReleasePointToStretchRouteData.cpp" />
+    <ClCompile Include="Airside\RemoveAirsideMobileElementEventEvent.cpp" />
+    <ClCompile Include="Airside\ResourceEntryEvent.cpp" />
+    <ClCompile Include="Airside\RouteResource.cpp" />
+    <ClCompile Include="Airside\RunwayAssignmentStrategyInSim.cpp" />
+    <ClCompile Include="Airside\RunwayCrossSpecificationInSim.cpp" />
+    <ClCompile Include="Airside\RunwayExitAssignmentStrategiesInSim.cpp" />
+    <ClCompile Include="Airside\RunwayInSim.cpp" />
+    <ClCompile Include="Airside\RunwayOccupancyStatus.cpp" />
+    <ClCompile Include="Airside\RunwayRelatedIntersectionNodeInSim.cpp" />
+    <ClCompile Include="Airside\RunwayResourceManager.cpp" />
+    <ClCompile Include="Airside\RunwaysController.cpp" />
+    <ClCompile Include="Airside\RunwaySegInSim.cpp" />
+    <ClCompile Include="Airside\RunwayTakeoffPositionAssignInSim.cpp" />
+    <ClCompile Include="Airside\SID_STARAssignmentInSim.cpp" />
+    <ClCompile Include="Airside\SideStepIntervention.cpp" />
+    <ClCompile Include="Airside\SimAgent.cpp" />
+    <ClCompile Include="Airside\StandAssignmentRegisterInSim.cpp" />
+    <ClCompile Include="Airside\StandBufferInSim.cpp" />
+    <ClCompile Include="Airside\StandInSim.cpp" />
+    <ClCompile Include="Airside\StandLeadInLineInSim.cpp" />
+    <ClCompile Include="Airside\StandLeadOutLineInSim.cpp" />
+    <ClCompile Include="Airside\StandResourceManager.cpp" />
+    <ClCompile Include="Airside\StartPositionInSim.cpp" />
+    <ClCompile Include="Airside\TakeoffQueueInSim.cpp" />
+    <ClCompile Include="Airside\TakeoffQueueStatus.cpp" />
+    <ClCompile Include="Airside\TakeoffSeparationInSim.cpp" />
+    <ClCompile Include="Airside\TakeoffSequencingInSim.cpp" />
+    <ClCompile Include="Airside\TaxiInboundRouteInSim.cpp" />
+    <ClCompile Include="Airside\TaxiOutboundRouteInSim.cpp" />
+    <ClCompile Include="Airside\TaxiRouteInSim.cpp" />
+    <ClCompile Include="Airside\TaxiToReleasePointInSim.cpp" />
+    <ClCompile Include="Airside\TaxiTostandRouteInSim.cpp" />
+    <ClCompile Include="Airside\TaxiwayConflictResolutionInEngine.cpp" />
+    <ClCompile Include="Airside\TaxiwayConstraintsManager.cpp" />
+    <ClCompile Include="Airside\TaxiwayDirectionLockDelay.cpp" />
+    <ClCompile Include="Airside\TaxiwayResource.cpp" />
+    <ClCompile Include="Airside\TaxiwayResourceManager.cpp" />
+    <ClCompile Include="Airside\TaxiwaySegConstraintsProperties.cpp" />
+    <ClCompile Include="Airside\TaxiwayToPoolRouteFinder.cpp" />
+    <ClCompile Include="Airside\TemporaryParkingInSim.cpp" />
+    <ClCompile Include="Airside\TempParkingSegmentsInSim.cpp" />
+    <ClCompile Include="Airside\TowingServiceEvent.cpp" />
+    <ClCompile Include="Airside\TowTruckServiceRequest.cpp" />
+    <ClCompile Include="Airside\VehicleBirthEvent.cpp" />
+    <ClCompile Include="Airside\VehicleMoveEvent.cpp" />
+    <ClCompile Include="VehicleParkingPlaceMgrInSim.cpp" />
+    <ClCompile Include="Airside\VehiclePoolInSim.cpp" />
+    <ClCompile Include="Airside\VehiclePoolResourceManager.cpp" />
+    <ClCompile Include="Airside\VehiclePoolsManagerInSim.cpp" />
+    <ClCompile Include="Airside\VehicleRequestDispatcher.cpp" />
+    <ClCompile Include="Airside\VehicleRoadIntersectionInSim.cpp" />
+    <ClCompile Include="Airside\VehicleRouteInSim.cpp" />
+    <ClCompile Include="Airside\VehicleRoutePathFinder.cpp" />
+    <ClCompile Include="Airside\VehicleRouteResourceManager.cpp" />
+    <ClCompile Include="Airside\VehicleRouteUserDefineInSim.cpp" />
+    <ClCompile Include="Airside\VehicleServiceDelay.cpp" />
+    <ClCompile Include="Airside\VehicleServiceRequest.cpp" />
+    <ClCompile Include="Airside\VehicleStretchInSim.cpp" />
+    <ClCompile Include="Airside\VehicleStretchLaneInSim.cpp" />
+    <ClCompile Include="Airside\WakeUpFlightWaitingLandingEvent.cpp" />
+    <ClCompile Include="Airside\WakeUpFlightWaitingTakeOffEvent.cpp" />
+    <ClCompile Include="Airside\WakeUpRunwayEvent.cpp" />
+    <ClCompile Include="Airside\WeatherInSim.cpp" />
+    <ClCompile Include="ArrivalPaxLandsideBehavior.cpp" />
+    <ClCompile Include="CrossWalkInSim.cpp" />
+    <ClCompile Include="DeparturePaxLandsideBehavior.cpp" />
+    <ClCompile Include="LandsideBaseBehavior.cpp" />
+    <ClCompile Include="LandsideConflictMoveEvent.cpp" />
+    <ClCompile Include="LandsideObjectInSim.cpp" />
+    <ClCompile Include="LandsideParkingLotGraph.cpp" />
+    <ClCompile Include="LandsideTrafficSystem.cpp" />
+    <ClCompile Include="PaxLandsideBehavior.cpp" />
+    <ClCompile Include="TrafficObjectmanagerInSim.cpp" />
+    <ClCompile Include="VisitorLandsideBehavior.cpp" />
+    <ClCompile Include="WalkwayInSim.cpp" />
+    <ClCompile Include="core\SAgent.cpp" />
+    <ClCompile Include="core\SGoal.cpp" />
+    <ClCompile Include="core\SSignal.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Airside\AirsideCircuitFlightInSim.h" />
+    <ClInclude Include="Airside\AirsideCircuitFlightProcess.h" />
+    <ClInclude Include="Airside\AirsideCircuitFlightProcess2.h" />
+    <ClInclude Include="Airside\AirsideTrainFlightTypeManagerInSim.h" />
+    <ClInclude Include="ASSEVENT.H" />
+    <ClInclude Include="ACCESSQ.H" />
+    <ClInclude Include="AdjacentStation.h" />
+    <ClInclude Include="AirfieldProcessor.h" />
+    <ClInclude Include="Airside\AirsideFlightInSim.h" />
+    <ClInclude Include="AirsideLogDatabase.h" />
+    <ClInclude Include="Airside\AirTrafficController.h" />
+    <ClInclude Include="anServeProcList.h" />
+    <ClInclude Include="ApronProc.h" />
+    <ClInclude Include="ARCportEngine.h" />
+    <ClInclude Include="Arp.h" />
+    <ClInclude Include="AutoCreateProcessorContainer.h" />
+    <ClInclude Include="AutoRoster.h" />
+    <ClInclude Include="AvoidDensityEvent.h" />
+    <ClInclude Include="BAGENTER.H" />
+    <ClInclude Include="BAGGAGE.H" />
+    <ClInclude Include="BaggageProcUtil.h" />
+    <ClInclude Include="BARRIER.H" />
+    <ClInclude Include="BillboardProc.h" />
+    <ClInclude Include="BOARDCAL.H" />
+    <ClInclude Include="BoardingCallPolicy.h" />
+    <ClInclude Include="BoostPathFinder.h" />
+    <ClInclude Include="BridgeConnector.h" />
+    <ClInclude Include="BusBoardingCall.h" />
+    <ClInclude Include="Car.h" />
+    <ClInclude Include="CarFollowingModel.h" />
+    <ClInclude Include="CloverLeafProc.h" />
+    <ClInclude Include="CongestionAreaCell.h" />
+    <ClInclude Include="congestionAreaEvent.h" />
+    <ClInclude Include="CongestionAreaGrid.h" />
+    <ClInclude Include="CongestionAreaManager.h" />
+    <ClInclude Include="ContourProc.h" />
+    <ClInclude Include="ContourTree.h" />
+    <ClInclude Include="ConvergePair.h" />
+    <ClInclude Include="ConvertACGateToStandHelper.h" />
+    <ClInclude Include="conveyor.h" />
+    <ClInclude Include="ConveyorStepItEvent.h" />
+    <ClInclude Include="core\Observer.h" />
+    <ClInclude Include="core\State.h" />
+    <ClInclude Include="CorralServiceEvent.h" />
+    <ClInclude Include="CorridorGraphMgr.h" />
+    <ClInclude Include="DeiceBayProc.h" />
+    <ClInclude Include="Airside\DeiceRouteInSim.h" />
+    <ClInclude Include="DEP_SINK.H" />
+    <ClInclude Include="DEP_SRCE.H" />
+    <ClInclude Include="DependentProcessorList.h" />
+    <ClInclude Include="DoorAssignmentInSim.h" />
+    <ClInclude Include="ElevatorMoveEvent.h" />
+    <ClInclude Include="ElevatorProc.h" />
+    <ClInclude Include="EngineConfig.h" />
+    <ClInclude Include="ENTRY.H" />
+    <ClInclude Include="Escalator.h" />
+    <ClInclude Include="EVENT.H" />
+    <ClInclude Include="ExceedMaxTimeCheckEvent.h" />
+    <ClInclude Include="FacilityBehaviorsInSim.h" />
+    <ClInclude Include="FetchPersonInQueueEvent.h" />
+    <ClInclude Include="Airside\FilletTaxiwayInSim.h" />
+    <ClInclude Include="FireEvacuationEvent.h" />
+    <ClInclude Include="FIXEDQ.H" />
+    <ClInclude Include="FixProc.h" />
+    <ClInclude Include="FlightArrDepEvent.h" />
+    <ClInclude Include="FlightDelaysUtility.h" />
+    <ClInclude Include="Airside\FlightGroundRouteResourceManager.h" />
+    <ClInclude Include="FlightItemBoardingCallMgr.h" />
+    <ClInclude Include="Airside\FlightPlanGenericRouteInSim.h" />
+    <ClInclude Include="Airside\FlightPlanSpecificRouteInSim.h" />
+    <ClInclude Include="FlightsBoardingCallManager.h" />
+    <ClInclude Include="FLOORCHG.H" />
+    <ClInclude Include="FlowBelt.h" />
+    <ClInclude Include="FltOperatingDoorSpecInSim.h" />
+    <ClInclude Include="GATE.H" />
+    <ClInclude Include="GREET.H" />
+    <ClInclude Include="GroupFollowerInfo.h" />
+    <ClInclude Include="GroupInfo.h" />
+    <ClInclude Include="GroupLeaderInfo.h" />
+    <ClInclude Include="HOLD.H" />
+    <ClInclude Include="HoldProc.h" />
+    <ClInclude Include="IDModel.h" />
+    <ClInclude Include="IntegratedStation.h" />
+    <ClInclude Include="IntersectionProc.h" />
+    <ClInclude Include="LandControlDevice.h" />
+    <ClInclude Include="LandfieldProcessor.h" />
+    <ClInclude Include="LandsideBusStationInSim.h" />
+    <ClInclude Include="LandsideCellPhoneProcess.h" />
+    <ClInclude Include="LandsideCurbsideInSim.h" />
+    <ClInclude Include="LandsideDecisionPointInSim.h" />
+    <ClInclude Include="LandsideExternalNodeInSim.h" />
+    <ClInclude Include="LandsideIntersectionInSim.h" />
+    <ClInclude Include="LandsideLayoutObjectInSim.h" />
+    <ClInclude Include="LandsideParkingLotInSim.h" />
+    <ClInclude Include="LandsidePaxSericeInSim.h" />
+    <ClInclude Include="LandsidePaxTypeLinkageInSimManager.h" />
+    <ClInclude Include="LandsideQueueProcess.h" />
+    <ClInclude Include="LandsideResidentPaxDirectionManager.h" />
+    <ClInclude Include="LandsideResidentVehicleGetOffEvent.h" />
+    <ClInclude Include="LandsideResidentVehicleInSim.h" />
+    <ClInclude Include="LandsideResourceInSim.h" />
+    <ClInclude Include="LandsideResourceManager.h" />
+    <ClInclude Include="LandsideRoundaboutInSim.h" />
+    <ClInclude Include="LandsideSimErrorShown.h" />
+    <ClInclude Include="LandsideSimTimeStepEvent.h" />
+    <ClInclude Include="LandsideSimTimeStepManager.h" />
+    <ClInclude Include="LandsideSimulation.h" />
+    <ClInclude Include="LandsideStrategyStateInSim.h" />
+    <ClInclude Include="LandsideStretchInSim.h" />
+    <ClInclude Include="LandsideStretchSegmentInSim.h" />
+    <ClInclude Include="LandsideTaxiPoolInSim.h" />
+    <ClInclude Include="LandsideTaxiQueueInSim.h" />
+    <ClInclude Include="LandsideTerminalLinkageInSim.h" />
+    <ClInclude Include="LandsideVehicleEntryInfo.h" />
+    <ClInclude Include="LandsideVehicleEvent.h" />
+    <ClInclude Include="LandsideVehicleInSim.h" />
+    <ClInclude Include="LandsideVehicleInSpotState.h" />
+    <ClInclude Include="LandsideVehicleLeadToInSimManager.h" />
+    <ClInclude Include="LandsideVehicleMoveInRoad.h" />
+    <ClInclude Include="LandsideVehicleServiceEndEvent.h" />
+    <ClInclude Include="LandsideVehicleStateMovement.h" />
+    <ClInclude Include="Landside\Goal_PublicBus.h" />
+    <ClInclude Include="Landside\LandsideNonPaxVehicleInSim.h" />
+    <ClInclude Include="Landside\LandsideNonPaxVehicleManager.h" />
+    <ClInclude Include="Landside\LandsidePath.h" />
+    <ClInclude Include="Landside\LandsidePaxVehicleInSim.h" />
+    <ClInclude Include="Landside\LandsidePaxVehicleManager.h" />
+    <ClInclude Include="Landside\LandsidePrivateVehicleInSim.h" />
+    <ClInclude Include="Landside\LandsidePublicExtBusInSim.h" />
+    <ClInclude Include="Landside\LandsideTaxiInSim.h" />
+    <ClInclude Include="Landside\Process_MoveInRoad.h" />
+    <ClInclude Include="Landside\RensidentVehicleDeployor.h" />
+    <ClInclude Include="Landside\State_InBusStation.h" />
+    <ClInclude Include="Landside\State_InCurbside.h" />
+    <ClInclude Include="Landside\State_InParkingLot.h" />
+    <ClInclude Include="Landside\State_LandsideVehicle.h" />
+    <ClInclude Include="Landside\State_MoveInRoad.h" />
+    <ClInclude Include="Landside\State_TaxiInQueue.h" />
+    <ClInclude Include="LaneAdapterProc.h" />
+    <ClInclude Include="LaneParkingSpot.h" />
+    <ClInclude Include="LaneSegInSim.h" />
+    <ClInclude Include="LineParkingProc.h" />
+    <ClInclude Include="LINEPROC.H" />
+    <ClInclude Include="LINEQ.H" />
+    <ClInclude Include="Loader.h" />
+    <ClInclude Include="LogContainer.h" />
+    <ClInclude Include="MOBILE.H" />
+    <ClInclude Include="MobileDynamics.h" />
+    <ClInclude Include="MobileElementEntrySimulationEvent.h" />
+    <ClInclude Include="MobileElementExitSystemEvent.h" />
+    <ClInclude Include="MobileElementGenerator.h" />
+    <ClInclude Include="MobileElementGroup.h" />
+    <ClInclude Include="Monitor.h" />
+    <ClInclude Include="MOVEVENT.H" />
+    <ClInclude Include="MovingSideWalk.h" />
+    <ClInclude Include="MovingTrace.h" />
+    <ClInclude Include="MovingTrain.h" />
+    <ClInclude Include="NFIXEDQ.H" />
+    <ClInclude Include="NodeProc.h" />
+    <ClInclude Include="NoseInParkingProc.h" />
+    <ClInclude Include="OnboardCellFreeMoveEvent.h" />
+    <ClInclude Include="OnboardPaxCellMoveToSeatEvent.h" />
+    <ClInclude Include="OnboardPaxFreeMovingConflict.h" />
+    <ClInclude Include="OverPassProc.h" />
+    <ClInclude Include="PAX.H" />
+    <ClInclude Include="PaxBusBeginServerEvent.h" />
+    <ClInclude Include="PaxCircleSensor.h" />
+    <ClInclude Include="PaxMovingFromSeatToCorridorLogic.h" />
+    <ClInclude Include="PaxOnboardFreeMovingLogic.h" />
+    <ClInclude Include="PaxOnboardRoute.h" />
+    <ClInclude Include="PERSON.H" />
+    <ClInclude Include="PersonOnStation.h" />
+    <ClInclude Include="PointAndBagsInBagProcessor.h" />
+    <ClInclude Include="PROCESS.H" />
+    <ClInclude Include="ProcessorCapacity.h" />
+    <ClInclude Include="ProcessorCapacityInSimulation.h" />
+    <ClInclude Include="ProcessorDistributionTransformer.h" />
+    <ClInclude Include="ProcessorOccupantsState.h" />
+    <ClInclude Include="ProcGroupIdxTree.h" />
+    <ClInclude Include="ProcGroupIdxTreeNode.h" />
+    <ClInclude Include="PROCLIST.H" />
+    <ClInclude Include="PROCQ.H" />
+    <ClInclude Include="Pusher.h" />
+    <ClInclude Include="PusherCheckMaxWaitTimeEvent.h" />
+    <ClInclude Include="PusherScheduleEvent.h" />
+    <ClInclude Include="RailwayInfo.h" />
+    <ClInclude Include="RailwayInfoKey.h" />
+    <ClInclude Include="ResourceElement.h" />
+    <ClInclude Include="RetailProcessor.h" />
+    <ClInclude Include="RoundAboutProc.h" />
+    <ClInclude Include="Rule.h" />
+    <ClInclude Include="RunwayProc.h" />
+    <ClInclude Include="Scanner.h" />
+    <ClInclude Include="ScheduleStepEvent.h" />
+    <ClInclude Include="SeatAssignmentInSim.h" />
+    <ClInclude Include="SectorProc.h" />
+    <ClInclude Include="SEQUENCQ.H" />
+    <ClInclude Include="ServiceSlot.h" />
+    <ClInclude Include="SEvent.H" />
+    <ClInclude Include="SimClock.h" />
+    <ClInclude Include="SimFlowMobItem.h" />
+    <ClInclude Include="SimFlowSync.h" />
+    <ClInclude Include="SimFlowSyncItem.h" />
+    <ClInclude Include="SimMobileElemList.h" />
+    <ClInclude Include="SimpleConveyor.h" />
+    <ClInclude Include="Sorter.h" />
+    <ClInclude Include="Splitter.h" />
+    <ClInclude Include="Stair.h" />
+    <ClInclude Include="StandProc.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="StopSignProc.h" />
+    <ClInclude Include="StretchProc.h" />
+    <ClInclude Include="Airside\TaxiInTempParkingDelay.h" />
+    <ClInclude Include="TaxiwayProc.h" />
+    <ClInclude Include="TaxiwayTrafficGraph.h" />
+    <ClInclude Include="Airside\TempParkingInSim.h" />
+    <ClInclude Include="Term_err.h" />
+    <ClInclude Include="TERMINAL.H" />
+    <ClInclude Include="TerminalEvent.h" />
+    <ClInclude Include="TerminalTrainEntryEvent.h" />
+    <ClInclude Include="TLOSEvent.h" />
+    <ClInclude Include="TollGateProc.h" />
+    <ClInclude Include="TracePredef.h" />
+    <ClInclude Include="TrafficlightProc.h" />
+    <ClInclude Include="TrainTrafficGraph.h" />
+    <ClInclude Include="TURNARND.H" />
+    <ClInclude Include="TurnaroundVisitor.h" />
+    <ClInclude Include="TurnOffProc.h" />
+    <ClInclude Include="UnderPassProc.h" />
+    <ClInclude Include="VISITOR.H" />
+    <ClInclude Include="YieldSignProc.h" />
+    <ClInclude Include="OnBoard\AgentsAnalyst.h" />
+    <ClInclude Include="OnBoard\carrierSpaceDiagnosis.h" />
+    <ClInclude Include="OnBoard\CarrierSpaceRenderer.h" />
+    <ClInclude Include="CarryonStoragePrioritiesInSim.h" />
+    <ClInclude Include="CarryonVolumeInSim.h" />
+    <ClInclude Include="OnBoard\DeplaneAgent.h" />
+    <ClInclude Include="OnBoard\EnplaneAgent.h" />
+    <ClInclude Include="OnBoard\LocatorSite.h" />
+    <ClInclude Include="OnBoard\MobileAgent.h" />
+    <ClInclude Include="OnBoard\OnBoardCandidateFlights.h" />
+    <ClInclude Include="OnBoard\OnBoardCarrierSpaces.h" />
+    <ClInclude Include="OnBoard\OnBoardDefs.h" />
+    <ClInclude Include="OnBoard\OnBoardEntryEvent.h" />
+    <ClInclude Include="OnBoard\OnBoardEvent.h" />
+    <ClInclude Include="OnBoard\OnBoardMsg.h" />
+    <ClInclude Include="OnBoard\OnBoardSimEngineConfig.h" />
+    <ClInclude Include="TargetLocationVariableInSim.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierCabin.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierDeck.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierDefs.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierDoor.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierElement.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierGround.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierMiscDevice.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierSeat.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierSpace.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierStair.h" />
+    <ClInclude Include="OnBoard\carrierSpace\carrierStorage.h" />
+    <ClInclude Include="OnBoard\PathFinding\BinHeap.h" />
+    <ClInclude Include="OnBoard\PathFinding\HexMap.h" />
+    <ClInclude Include="OnBoard\PathFinding\IMap.h" />
+    <ClInclude Include="OnBoard\PathFinding\OBColor.h" />
+    <ClInclude Include="OnBoard\PathFinding\OBPoint.h" />
+    <ClInclude Include="OnBoard\PathFinding\OBRect.h" />
+    <ClInclude Include="OnBoard\PathFinding\Pathfinder.h" />
+    <ClInclude Include="OnBoard\PathFinding\PathFinderListener.h" />
+    <ClInclude Include="OnBoard\PathFinding\PathNode.h" />
+    <ClInclude Include="OnBoard\PathFinding\RectMap.h" />
+    <ClInclude Include="OnBoard\Services\AffinityGroupAssignmentService.h" />
+    <ClInclude Include="OnBoard\Services\BroadcastService.h" />
+    <ClInclude Include="OnBoard\Services\SeatAssignmentService.h" />
+    <ClInclude Include="EntryPointInSim.h" />
+    <ClInclude Include="GroundInSim.h" />
+    <ClInclude Include="OnboardAircraftElementInSim.h" />
+    <ClInclude Include="OnboardCellFreeMoveLogic.h" />
+    <ClInclude Include="OnboardCellGraph.h" />
+    <ClInclude Include="OnboardCellInSim.h" />
+    <ClInclude Include="OnboardCellSeatGivePlaceLogic.h" />
+    <ClInclude Include="OnboardCloseDoorEvent.h" />
+    <ClInclude Include="OnBoardCorridorInSim.h" />
+    <ClInclude Include="OnboardDeckGroundInSim.h" />
+    <ClInclude Include="OnBoardDeviceInSim.h" />
+    <ClInclude Include="OnboardDoorInSim.h" />
+    <ClInclude Include="OnboardElementSpace.h" />
+    <ClInclude Include="OnboardFlightInSim.h" />
+    <ClInclude Include="OnBoardingElevatorInSim.h" />
+    <ClInclude Include="OnBoardingEscalatorInSim.h" />
+    <ClInclude Include="OnBoardingStairInSim.h" />
+    <ClInclude Include="OnboardPaxCellStepEvent.h" />
+    <ClInclude Include="OnBoardPaxInformation.h" />
+    <ClInclude Include="OnboardSeatGroupInSim.h" />
+    <ClInclude Include="OnboardSeatInSim.h" />
+    <ClInclude Include="OnboardSeatRowInSim.h" />
+    <ClInclude Include="OnboardSimulation.h" />
+    <ClInclude Include="OnboardStorageInSim.h" />
+    <ClInclude Include="OnboardWallInSim.h" />
+    <ClInclude Include="PaxCellLocation.h" />
+    <ClInclude Include="AirsideMobElementBehavior.h" />
+    <ClInclude Include="OnBoard\DeplaneAgentBehavior.h" />
+    <ClInclude Include="OnBoard\EnplaneAgentBehavior.h" />
+    <ClInclude Include="MobElementBehavior.h" />
+    <ClInclude Include="MobElementEntryEvent.h" />
+    <ClInclude Include="MobElementLifecycleManager.h" />
+    <ClInclude Include="MobElementsDiagnosis.h" />
+    <ClInclude Include="PaxDeplaneBehavior.h" />
+    <ClInclude Include="PaxEnplaneBehavior.h" />
+    <ClInclude Include="PaxOnboardBaseBehavior.h" />
+    <ClInclude Include="PaxTerminalBehavior.h" />
+    <ClInclude Include="ServiceObject.h" />
+    <ClInclude Include="SimEngineConfig.h" />
+    <ClInclude Include="SimEngineTransferService.h" />
+    <ClInclude Include="SimulationDiagnoseDelivery.h" />
+    <ClInclude Include="TerminalMobElementBehavior.h" />
+    <ClInclude Include="TurnaroundPaxTerminalBehavior.h" />
+    <ClInclude Include="TurnaroundVisitorTerminalBehavior.h" />
+    <ClInclude Include="VisitorTerminalBehavior.h" />
+    <ClInclude Include="Airside\DeicingProcessInSim.h" />
+    <ClInclude Include="Airside\ProcessInSim.h" />
+    <ClInclude Include="Airside\Agentbind.h" />
+    <ClInclude Include="Airside\AircraftClassificationManager.h" />
+    <ClInclude Include="Airside\AircraftInitSurfaceSettingInSim.h" />
+    <ClInclude Include="Airside\AircraftSectorManager.h" />
+    <ClInclude Include="Airside\AirHoldInInSim.h" />
+    <ClInclude Include="Airside\AirportResourceManager.h" />
+    <ClInclude Include="Airside\AirportStatus.h" />
+    <ClInclude Include="Airside\AirportStatusManager.h" />
+    <ClInclude Include="Airside\AirRoutePointInSim.h" />
+    <ClInclude Include="Airside\AirsideEngineCommon.h" />
+    <ClInclude Include="Airside\AirsideEvent.h" />
+    <ClInclude Include="Airside\AirsideFlightConflict.h" />
+    <ClInclude Include="Airside\AirsideFlightDeiceRequirment.h" />
+    <ClInclude Include="Airside\AirsideFlightDelay.h" />
+    <ClInclude Include="Airside\AirsideFlightRunwayDelay.h" />
+    <ClInclude Include="Airside\AirsideFlightStairsLog.h" />
+    <ClInclude Include="Airside\AirsideFlightState.h" />
+    <ClInclude Include="Airside\AirsideFollowMeCarInSim.h" />
+    <ClInclude Include="Airside\AirsideFollowMeCarServiceEvent.h" />
+    <ClInclude Include="Airside\AirsideItinerantFlightInSim.h" />
+    <ClInclude Include="Airside\AirsideMeetingPointInSim.h" />
+    <ClInclude Include="Airside\AirsideMobElementWriteLogEvent.h" />
+    <ClInclude Include="Airside\AirsideMobElementWriteLogItem.h" />
+    <ClInclude Include="Airside\AirsideMobileElement.h" />
+    <ClInclude Include="Airside\AirsideMobileElementEvent.h" />
+    <ClInclude Include="Airside\AirsideObserver.h" />
+    <ClInclude Include="Airside\AirsidePassengerBusStrategy.h" />
+    <ClInclude Include="Airside\AirsidePaxBusInSim.h" />
+    <ClInclude Include="Airside\AirsideRemoveFlightFromQueueEvent.h" />
+    <ClInclude Include="Airside\AirsideReportingAreaInSim.h" />
+    <ClInclude Include="Airside\AirsideResource.h" />
+    <ClInclude Include="Airside\AirsideResourceManager.h" />
+    <ClInclude Include="Airside\AirsideSimConfig.h" />
+    <ClInclude Include="Airside\AirsideSimulation.h" />
+    <ClInclude Include="Airside\AirsideTowTruckInSim.h" />
+    <ClInclude Include="Airside\AirsideVehicleInSim.h" />
+    <ClInclude Include="Airside\AirsideVehicleState.h" />
+    <ClInclude Include="Airside\AirspaceHoldInSim.h" />
+    <ClInclude Include="Airside\AirspaceResource.h" />
+    <ClInclude Include="Airside\AirspaceResourceManager.h" />
+    <ClInclude Include="Airside\ApproachSeparationInSim.h" />
+    <ClInclude Include="Airside\ARCMobileElement.h" />
+    <ClInclude Include="Airside\ArrivalDelayTriggerInSim.h" />
+    <ClInclude Include="Airside\ArrivalDelayTriggersDelay.h" />
+    <ClInclude Include="Airside\CheckRunwayWaveCrossEvent.h" />
+    <ClInclude Include="Airside\Clearance.h" />
+    <ClInclude Include="Airside\ClosetRunwayStrategyInSim.h" />
+    <ClInclude Include="Airside\CommonInSim.h" />
+    <ClInclude Include="Airside\ConflictConcernIntersectionInAirspace.h" />
+    <ClInclude Include="Airside\DeicepadGroup.h" />
+    <ClInclude Include="Airside\DeiceResourceManager.h" />
+    <ClInclude Include="Airside\DeiceVehicleInSim.h" />
+    <ClInclude Include="Airside\DeiceVehicleServiceRequest.h" />
+    <ClInclude Include="Airside\DepatureFlightTerminalEvent.h" />
+    <ClInclude Include="Airside\DynamicConflictGraph.h" />
+    <ClInclude Include="Airside\DynamicStandAssignmentInSim.h" />
+    <ClInclude Include="Airside\FinalApproachController.h" />
+    <ClInclude Include="Airside\FindFlightShortestPath.h" />
+    <ClInclude Include="Airside\FlightApplyForTowServiceEvent.h" />
+    <ClInclude Include="Airside\FlightArrivalStandEvent.h" />
+    <ClInclude Include="Airside\FlightBirthEvent.h" />
+    <ClInclude Include="Airside\FlightBirthTerminalEvent.h" />
+    <ClInclude Include="Airside\FlightConflictAtWaypointDelay.h" />
+    <ClInclude Include="Airside\FlightExitStandEvent.h" />
+    <ClInclude Include="Airside\FlightGetClearanceEvent.h" />
+    <ClInclude Include="Airside\FlightGroundRouteFinder.h" />
+    <ClInclude Include="Airside\FlightGroundRouteFinderStrategy.h" />
+    <ClInclude Include="Airside\FlightInHoldEvent.h" />
+    <ClInclude Include="Airside\FlightInTaxiRouteSeperation.h" />
+    <ClInclude Include="Airside\FlightMovementEvent.h" />
+    <ClInclude Include="Airside\FlightMoveToMeetingPointEvent.h" />
+    <ClInclude Include="Airside\FlightOnToDeice.h" />
+    <ClInclude Include="Airside\FlightPerformanceManager.h" />
+    <ClInclude Include="Airside\FlightPerformancesInSim.h" />
+    <ClInclude Include="Airside\FlightPlanedRunwayStrategyInSim.h" />
+    <ClInclude Include="Airside\FlightPlanInSim.h" />
+    <ClInclude Include="Airside\FlightRouteSegInSim.h" />
+    <ClInclude Include="Airside\FlightRunwayTakeOffEvent.h" />
+    <ClInclude Include="Airside\FlightServiceEvent.h" />
+    <ClInclude Include="Airside\FlightServiceInformation.h" />
+    <ClInclude Include="Airside\FlightServiceManagerInSim.h" />
+    <ClInclude Include="Airside\FlightServiceReqirementInSim.h" />
+    <ClInclude Include="Airside\FlightServiceRoute.h" />
+    <ClInclude Include="Airside\FlightTerminateEvent.h" />
+    <ClInclude Include="Airside\FlightTypeRunwayAssignmentStrategiesInSim.h" />
+    <ClInclude Include="Airside\FollowMeCarConnectionInSim.h" />
+    <ClInclude Include="Airside\GatePlaner.h" />
+    <ClInclude Include="Airside\GroundIntersection.h" />
+    <ClInclude Include="Airside\GroundIntersectionNodeInSim.h" />
+    <ClInclude Include="Airside\HeadingAirRouteSegInSim.h" />
+    <ClInclude Include="Airside\HoldInTaxiRouteInSim.h" />
+    <ClInclude Include="Airside\HoldPositionInSim.h" />
+    <ClInclude Include="Airside\HoldShortLineInSim.h" />
+    <ClInclude Include="Airside\In_OutBoundRouteAssignmentInSim.h" />
+    <ClInclude Include="Airside\InboundStatus.h" />
+    <ClInclude Include="Airside\IntersectionNodeInSim.h" />
+    <ClInclude Include="Airside\InTrailSeparationInSim.h" />
+    <ClInclude Include="Airside\ManagedRunwayStrategyInSim.h" />
+    <ClInclude Include="Airside\NotifyRunwayWaveCrossEvent.h" />
+    <ClInclude Include="Airside\OccupiedAssignedStandActionInSim.h" />
+    <ClInclude Include="Airside\OutboundStatus.h" />
+    <ClInclude Include="Airside\PaxBusParkingInSim.h" />
+    <ClInclude Include="Airside\PaxBusParkingResourceManager.h" />
+    <ClInclude Include="Airside\PaxBusServiceGateEvent.h" />
+    <ClInclude Include="Airside\PaxBusServiceRequest.h" />
+    <ClInclude Include="Airside\ProcessGenerator.h" />
+    <ClInclude Include="Airside\Push_TowOperationSpecInSim.h" />
+    <ClInclude Include="Airside\PushbackClearanceDelay.h" />
+    <ClInclude Include="Airside\PushBackClearanceInSim.h" />
+    <ClInclude Include="Airside\QueueToTakeoffPos.h" />
+    <ClInclude Include="Airside\ReleasePointToStretchRouteData.h" />
+    <ClInclude Include="Airside\ReleaseResourceLockEvent.h" />
+    <ClInclude Include="Airside\RemoveAirsideMobileElementEventEvent.h" />
+    <ClInclude Include="Airside\ResourceEntryEvent.h" />
+    <ClInclude Include="Airside\ResourceManager.h" />
+    <ClInclude Include="Airside\ResourcePlaner.h" />
+    <ClInclude Include="Airside\ResourcePlanerManager.h" />
+    <ClInclude Include="Airside\RouteResource.h" />
+    <ClInclude Include="Airside\RunwayAssignmentStrategyInSim.h" />
+    <ClInclude Include="Airside\RunwayCrossSpecificationInSim.h" />
+    <ClInclude Include="Airside\RunwayExitAssignmentStrategiesInSim.h" />
+    <ClInclude Include="Airside\RunwayInSim.h" />
+    <ClInclude Include="Airside\RunwayOccupancyStatus.h" />
+    <ClInclude Include="Airside\RunwayRelatedIntersectionNodeInSim.h" />
+    <ClInclude Include="Airside\RunwayResourceManager.h" />
+    <ClInclude Include="Airside\RunwaysController.h" />
+    <ClInclude Include="Airside\RunwaySegInSim.h" />
+    <ClInclude Include="Airside\RunwayTakeoffPositionAssignInSim.h" />
+    <ClInclude Include="Airside\SID_STARAssignmentInSim.h" />
+    <ClInclude Include="Airside\SideStepIntervention.h" />
+    <ClInclude Include="Airside\SimAgent.h" />
+    <ClInclude Include="Airside\SimulationErrorShow.h" />
+    <ClInclude Include="Airside\StandAssignmentRegisterInSim.h" />
+    <ClInclude Include="Airside\StandBufferInSim.h" />
+    <ClInclude Include="Airside\StandInSim.h" />
+    <ClInclude Include="Airside\StandLeadInLineInSim.h" />
+    <ClInclude Include="Airside\StandLeadOutLineInSim.h" />
+    <ClInclude Include="Airside\StandResourceManager.h" />
+    <ClInclude Include="Airside\StartPositionInSim.h" />
+    <ClInclude Include="Airside\TakeoffQueueInSim.h" />
+    <ClInclude Include="Airside\TakeoffQueueStatus.h" />
+    <ClInclude Include="Airside\TakeoffSeparationInSim.h" />
+    <ClInclude Include="Airside\TakeoffSequencingInSim.h" />
+    <ClInclude Include="Airside\TaxiInboundRouteInSim.h" />
+    <ClInclude Include="Airside\TaxiOutboundRouteInSim.h" />
+    <ClInclude Include="Airside\TaxiRouteInSim.h" />
+    <ClInclude Include="Airside\TaxiToReleasePointInSim.h" />
+    <ClInclude Include="Airside\TaxiTostandRouteInSim.h" />
+    <ClInclude Include="Airside\TaxiwayConflictResolutionInEngine.h" />
+    <ClInclude Include="Airside\TaxiwayConstraintsManager.h" />
+    <ClInclude Include="Airside\TaxiwayDirectionLockDelay.h" />
+    <ClInclude Include="Airside\TaxiwayResource.h" />
+    <ClInclude Include="Airside\TaxiwayResourceManager.h" />
+    <ClInclude Include="Airside\TaxiwaySegConstraintsProperties.h" />
+    <ClInclude Include="Airside\TaxiwayToPoolRouteFinder.h" />
+    <ClInclude Include="Airside\TemporaryParkingInSim.h" />
+    <ClInclude Include="Airside\TempParkingSegmentsInSim.h" />
+    <ClInclude Include="Airside\TowingServiceEvent.h" />
+    <ClInclude Include="Airside\TowTruckServiceRequest.h" />
+    <ClInclude Include="Airside\VehicleBirthEvent.h" />
+    <ClInclude Include="Airside\VehicleMoveEvent.h" />
+    <ClInclude Include="Airside\VehicleOperation.h" />
+    <ClInclude Include="VehicleParkingPlaceMgrInSim.h" />
+    <ClInclude Include="Airside\VehiclePoolInSim.h" />
+    <ClInclude Include="Airside\VehiclePoolResourceManager.h" />
+    <ClInclude Include="Airside\VehiclePoolsManagerInSim.h" />
+    <ClInclude Include="Airside\VehicleRequestDispatcher.h" />
+    <ClInclude Include="Airside\VehicleRoadIntersectionInSim.h" />
+    <ClInclude Include="Airside\VehicleRouteInSim.h" />
+    <ClInclude Include="Airside\VehicleRoutePathFinder.h" />
+    <ClInclude Include="Airside\VehicleRouteResourceManager.h" />
+    <ClInclude Include="Airside\VehicleRouteUserDefineInSim.h" />
+    <ClInclude Include="Airside\VehicleServiceDelay.h" />
+    <ClInclude Include="Airside\VehicleServiceRequest.h" />
+    <ClInclude Include="Airside\VehicleStretchInSim.h" />
+    <ClInclude Include="Airside\VehicleStretchLaneInSim.h" />
+    <ClInclude Include="Airside\WakeUpFlightWaitingLandingEvent.h" />
+    <ClInclude Include="Airside\WakeUpFlightWaitingTakeOffEvent.h" />
+    <ClInclude Include="Airside\WakeUpRunwayEvent.h" />
+    <ClInclude Include="Airside\WeatherInSim.h" />
+    <ClInclude Include="ArrivalPaxLandsideBehavior.h" />
+    <ClInclude Include="CrossWalkInSim.h" />
+    <ClInclude Include="DeparturePaxLandsideBehavior.h" />
+    <ClInclude Include="LandsideBaseBehavior.h" />
+    <ClInclude Include="LandsideConflictMoveEvent.h" />
+    <ClInclude Include="LandsideObjectInSim.h" />
+    <ClInclude Include="LandsideParkingLotGraph.h" />
+    <ClInclude Include="LandsideTrafficSystem.h" />
+    <ClInclude Include="PaxLandsideBehavior.h" />
+    <ClInclude Include="TrafficObjectmanagerInSim.h" />
+    <ClInclude Include="VisitorLandsideBehavior.h" />
+    <ClInclude Include="WalkwayInSim.h" />
+    <ClInclude Include="core\SAgent.h" />
+    <ClInclude Include="core\SGoal.h" />
+    <ClInclude Include="core\SSignal.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

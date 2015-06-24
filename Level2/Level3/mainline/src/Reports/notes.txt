@@ -1,0 +1,215 @@
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$          How Service Time Report Works          $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+
+Input:
+
+Passenger Type
+Processor Type
+
+
+
+Output:
+
+Passenger Type
+Minimum
+Average
+Maximum
+Count
+
+
+
+void CServiceReport::getAverageServiceTime(const PassengerConstraint &aConst)
+{
+    ServiceElement element;
+	element.initReport(this);
+	element.SetEventLog(m_pTerm->m_pPaxEventLog);
+    long paxCount = m_pTerm->paxLog->getCount();
+    for (long i = 0; i < paxCount; i++)
+    {
+        m_pTerm->paxLog->getItem (element, i);
+        if (element.fits (aConst))
+        {
+            element.calculateServiceTime (m_startTime, m_endTime);
+            if (!element.getProcCount())
+                continue;
+
+            count++;
+        }
+    }
+}
+
+
+
+
+// Mobile Element information
+typedef struct
+{
+    long    id;                 // Mobile Element identification
+    long    startTime;          // First hit time
+    long    endTime;            // Last hit time
+    long    startPos;           // pointer to start of track in binary file
+    long    endPos;             // pointer to end of track in binary file
+    char    intrinsic;          // basic type
+    short   paxType[MAX_PAX_TYPES];  // type description
+    short   arrFlight;          // index of element's arriving flight in list
+    short   depFlight;          // index of element's departing flight in list
+    char    groupSize;          // size of group (1+)
+    char    groupMember;        // element's group member number (0+)
+    char    bagCount;           // number of bags (group), -1 if none
+    char    cartCount;          // number of carts (group), -1 if none
+    long    visitorID;          // pax's visitor or visitor's pax, -1 if none
+    long    indexNum;           // index of pax in log
+} PaxDescStruct;                // 45 bytes
+
+
+// Tracking information
+typedef struct
+{
+    long    time;               // current hit time (1/18.2 of second)
+    float   x;                  // x position of hit in nm
+    float   y;                  // x position of hit in nm
+    short   z;                  // z position of hit (floor)
+    char    state;              // state of element at this hit (states.h)
+    short   procNumber;         // index of current processor
+} PaxEventStruct;               // 17 bytes
+
+
+
+template <class LOG_STRUCT, class EVENT_STRUCT> class LogItem
+{
+protected:
+    LOG_STRUCT item;
+    EVENT_STRUCT *eventList;
+}
+
+
+class RESULTS_TRANSFER PaxLogEntry : public LogItem<PaxDescStruct,PaxEventStruct>
+{
+} 
+
+
+class RESULTS_TRANSFER OutputPaxEntry : public PaxLogEntry
+{
+}
+
+
+class ReportPaxEntry : public OutputPaxEntry
+{
+}
+
+int ReportPaxEntry::usesSelectedProc(ElapsedTime p_start, ElapsedTime p_end)
+{
+    PaxEvent track;
+    int trackCount = getCount();
+    for (int i = 1; i < trackCount; i++)
+    {
+        track.init (getEvent(i));
+
+        if (track.getTime() > p_end)
+            break;
+
+        if (track.getTime() < p_start)
+            continue;
+
+        if (isValidProc (track.getProc()))
+            return 1;
+    }
+    return 0;
+}
+
+
+int ReportPaxEntry::isValidProc (int p_ndx) const 
+{	
+	return (report)?report->ProcFitsSpecs (p_ndx): TRUE; 
+}
+
+
+
+class ServiceElement : public ReportPaxEntry
+{
+protected:
+    ElapsedTime totalTime;
+    int procCount;
+};
+
+
+
+void ServiceElement::calculateServiceTime (ElapsedTime p_start,  ElapsedTime p_end)
+{
+    totalTime = 0l;
+    procCount = 0;
+
+	loadEvents();	// LOAD EVENT LIST INTO this.eventList;
+	if( usesSelectedProc (p_start, p_end) )
+    {
+		PaxEvent track1, track2;
+		track2.init (getEvent(0));
+		int trackCount = getCount();
+
+		for (int i = 1; i < trackCount; i++)
+        {
+			track1 = track2;
+			track2.init (getEvent(i));
+
+            if (track1.getState() == ArriveAtServer &&
+                report->getProcType (track1.getProc()) != HoldAreaProc &&
+                isValidProc (track1.getProc()))
+            {
+				totalTime += track2.getTime() - track1.getTime();
+				procCount++;
+            }
+        }
+    }
+	clearLog();
+}
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$          How to calculate the retail fee        $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+input:
+
+
+1.	list of processor type	
+		list of pax type with it value.
+
+2.  Pax log list
+
+
+
+output:
+
+
+cal all the value
+
+
+
+method:
+
+
+for each paxlog
+	for each track
+		found the matched processor
+			check if the pax type is match one of thest.
+				calculate the value.
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$          Bag life cycle		          $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Start Time : When the bag appears
+End   Time : When the bag is got by the pax from the bag-processor
+
+
+
+
+
+

@@ -1,0 +1,164 @@
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$        How to use ProcessorDatabase 
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+
+class ProcessorDataElement
+{
+protected:
+
+    ProcessorID procID;
+}
+
+class ProcessorDatabase : public SortedContainer<ProcessorDataElement>
+{
+    // returns ProcessorDataElement that corresponds to passed procID
+    ProcessorDataElement *lookup (const ProcessorID& procID) const;
+
+}
+
+class CProcEconomicDataElement : public ProcessorDataElement  
+{
+}
+
+class CProcEconDatabase : public ProcessorDatabase, public DataSet  
+{
+}
+
+class ProcAssignEntry : public ProcessorDataElement
+{
+}
+
+class ProcAssignDatabase : public ProcessorDatabase, public DataSet
+{
+    ProcAssignSchedule *getDatabase (int index) const
+        { return ((ProcAssignEntry *)getItem(index))->getSchedule(); };	
+}
+
+
+class MiscProcessorData : public ProcessorDatabase
+{
+}
+
+
+class ProcessorHierarchy : public ProcessorDatabase, public DataSet
+{
+}
+
+
+
+
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$      Processor related operations           $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+// returns TRUE if receiver is equal to p_id
+int ProcessorID::operator == (const ProcessorID& p_id) const
+{
+    return !memcmp ((void *)id, (void *)(p_id.id), compareLength);
+}
+
+
+
+// returns TRUE if checkID is a member of or == to receiver
+//  this id could hold _checkID
+int ProcessorID::fits (const ProcessorID& checkID) const
+{
+    for (int i = 0; i < idLength(); i++)
+        if (id[i] != checkID.id[i])
+            return FALSE;
+
+    return TRUE;
+}
+
+
+// scans backwards in the list of processor entries for an entry
+// belonging to curEntry's super-group
+// since the entries are sorted by processor ID, any entry's ancestor
+// will be before it in the list
+ProcessorDataElement *ProcessorDatabase::getAncestor (int start, const ProcessorDataElement& curEntry) const
+
+
+
+// set ancestor for each ProcessorDataElement
+void ProcessorDatabase::buildHierarchy (void) const
+{
+	curEntry->closestAncestor =	getAncestor (i, *curEntry);
+}
+
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$      Passenger Constraint as Datamember     $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+1. Define data memeber:
+
+    PassengerConstraint m_flight;
+
+
+2. copy, just use =
+
+    void init (float p_proportion, GateProcessor *p_proc, const PassengerConstraint& p_type) 
+	{ percent = p_proportion;
+          gate = p_proc; flight = p_type; }
+
+
+3. get 
+
+    virtual const PassengerConstraint &getType (void) const { return type; }
+
+
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$      Probability as Datamember              $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+1. Define data memeber:
+
+    ProbabilityDistribution *value;
+
+
+2. copy
+
+    void initialize (Constraint *p_const, ProbabilityDistribution *p_prob)
+        { clear(); constraint = p_const; value = p_prob; };
+
+
+    double vals[3] = {0, 1, 2};
+    unsigned char probs[3] = {20, 70, 100};
+    defaultDist = new EmpiricalDistribution (3, vals, probs);
+    anEntry = new ConstraintEntry;
+    anEntry->initialize (new PassengerConstraint, defaultDist);
+
+
+3. get
+
+	const ProbabilityDistribution *getValue (void) const { return value; }
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$      Base on the Passenger Constraint, How to Get record from Parents         $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+1. How to compare the the Constraint.
+
+
+Sort by the CriteriaCount, total number of criteria items.
+
+Sort by Total Precedence
