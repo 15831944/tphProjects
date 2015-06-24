@@ -1,6 +1,7 @@
 #pragma once
 #include "..\AirsideReport\CARC3DChart.h"
 #include ".\compare\CmpReport.h"
+#include "afxwin.h"
 
 class CCmpReportGraphView : public CFormView
 {
@@ -18,7 +19,10 @@ public:
 #endif
 public:
 	CARC3DChart	m_3DChart;
-	CComboBox	m_comboCategory;
+	CToolBar	m_ToolBar;
+	CStatic		m_toolbarContent;
+	CComboBox	m_comboChartType;
+	CComboBox	m_comboChartSelect;
 public:
 	virtual void OnInitialUpdate();
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);

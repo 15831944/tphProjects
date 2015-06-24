@@ -23,6 +23,9 @@ CCmpReportGraphView::~CCmpReportGraphView()
 void CCmpReportGraphView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_CHART_TYPE_COMBO, m_comboChartType);
+	DDX_Control(pDX, IDC_CHART_SELECT_COMBO, m_comboChartSelect);
+	DDX_Control(pDX, IDC_STATIC_TOOLBARCONTENTER, m_toolbarContent);
 }
 
 BEGIN_MESSAGE_MAP(CCmpReportGraphView, CFormView)
@@ -34,10 +37,6 @@ void CCmpReportGraphView::OnInitialUpdate()
 {
 	CFormView::OnInitialUpdate();
 	m_pCmpReport = ((CCompareReportDoc*)GetDocument())->GetCmpReport();
-	int ret = m_comboCategory.AddString("option1");
-	ret = m_comboCategory.AddString("option2");
-	ret = m_comboCategory.AddString("option3");
-	ret = m_comboCategory.AddString("option4");
 }
 
 void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHint*/)
@@ -66,23 +65,17 @@ void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)
 {
 	CFormView::OnSize(nType, cx, cy);
 
-	CRect rcClient;
-	GetClientRect(&rcClient);
-	CRect rcChart;
-	rcChart.right  = rcClient.right - 10;
-	rcChart.left   = rcClient.left+10;
-	rcChart.top    = rcClient.top+80;
-	rcChart.bottom = rcClient.bottom;
-
-	m_3DChart.m_p3DChart->MoveWindow(rcChart);
-
-
-	CRect comboboxRect;
-	comboboxRect.left	= rcClient.left+10;
-	comboboxRect.right  = rcClient.left+80;
-	comboboxRect.top    = rcClient.top+10;
-	comboboxRect.bottom = rcClient.top+200;
-	m_comboCategory.MoveWindow(comboboxRect);
+	if(IsWindowVisible())
+	{
+		CRect rcClient;
+		GetClientRect(&rcClient);
+		CRect rcChart;
+		rcChart.right  = rcClient.right - 10;
+		rcChart.left   = rcClient.left+10;
+		rcChart.top    = rcClient.top+50;
+		rcChart.bottom = rcClient.bottom;
+		m_3DChart.m_p3DChart->MoveWindow(rcChart);
+	}
 }
 
 int CCmpReportGraphView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -91,7 +84,9 @@ int CCmpReportGraphView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	if(!m_3DChart.Create(0,0,WS_CHILD | WS_VISIBLE ,CRect(0,0,100,100),this,COMPARE_REPORT_GRAPH_CHART_CTRL) )
 		return -1;
-	if(!m_comboCategory.Create(WS_CHILD|WS_VISIBLE|CBS_DROPDOWNLIST, CRect(0,0,0,0), this, COMPARE_REPORT_GRAPH_COMBOBOX1))
+	if (!m_ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
+		/*| CBRS_GRIPPER*/ | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+		!m_ToolBar.LoadToolBar(IDR_REPORTTOOLBAR))
 		return -1;
 	return 0;
 }
