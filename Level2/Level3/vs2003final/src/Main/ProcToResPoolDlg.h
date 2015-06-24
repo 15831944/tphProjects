@@ -8,6 +8,7 @@
 //
 
 #include "..\MFCExControl\listctrlex.h"
+#include "afxwin.h"
 // declare
 class InputTerminal;
 class CTermPlanDoc;
@@ -26,6 +27,8 @@ public:
 	CStatic	m_staticToolbar;
 	CListCtrlEx	m_listData;
 	CButton	m_btnSave;
+	CButton m_btnOk;
+	CButton m_btnCancel;
 	//}}AFX_DATA
 
 
@@ -47,6 +50,7 @@ protected:
 	afx_msg void OnToolbarbuttondel();
 	afx_msg void OnItemchangedListData(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg LRESULT OnDblclkListData(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	virtual void OnOK();
 	afx_msg void OnButtonSave();
 	virtual void OnCancel();

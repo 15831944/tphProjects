@@ -18,6 +18,7 @@
 #include "passengertypedialog.h"
 #include <Common/ProbabilityDistribution.h>
 #include <Inputs/PROCIDList.h>
+#include ".\proctorespooldlg.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -46,6 +47,8 @@ void CProcToResPoolDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_DATA, m_listData);
 	DDX_Control(pDX, IDC_BUTTON_SAVE, m_btnSave);
 	//}}AFX_DATA_MAP
+	DDX_Control(pDX, IDOK, m_btnOk);
+	DDX_Control(pDX, IDCANCEL, m_btnCancel);
 }
 
 
@@ -60,6 +63,7 @@ BEGIN_MESSAGE_MAP(CProcToResPoolDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE, OnButtonSave)
 	//}}AFX_MSG_MAP
 	ON_MESSAGE( WM_INPLACE_COMBO_KILLFOUCUS, OnInplaceCombox)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -107,6 +111,35 @@ BOOL CProcToResPoolDlg::OnInitDialog()
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
 
+void CProcToResPoolDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialog::OnSize(nType, cx, cy);
+	if(m_listData)
+	{
+		CRect btnrc;
+		CRect tmpRect;
+		CRect clientRect;
+		GetClientRect(clientRect);
+		m_btnSave.GetWindowRect(tmpRect);
+		ScreenToClient(tmpRect);
+		m_listData.GetWindowRect(tmpRect);
+		ScreenToClient(tmpRect);
+
+
+		m_btnCancel.GetWindowRect( &btnrc );
+		m_ToolBar.MoveWindow(11, 16, cx-24, 26);
+		m_listData.MoveWindow(11, 42, cx-24, cy-80-btnrc.Height());
+		m_btnSave.MoveWindow(cx-11-10-11-3*btnrc.Width(),cy-11-btnrc.Height(),btnrc.Width(),btnrc.Height());
+		m_btnOk.MoveWindow( cx-11-10-2*btnrc.Width(),cy-11-btnrc.Height(),btnrc.Width(),btnrc.Height() );
+		m_btnCancel.MoveWindow( cx-11-btnrc.Width(),cy-11-btnrc.Height(),btnrc.Width(),btnrc.Height() );
+
+		CRect wndRect;
+		GetWindowRect(wndRect);
+		ScreenToClient(wndRect);
+		InvalidateRect(&wndRect);
+	}
+}
+
 void CProcToResPoolDlg::InitToolBar()
 {
 	CRect mRect;
@@ -131,21 +164,23 @@ void CProcToResPoolDlg::InitListCtrl()
 	
 	LV_COLUMNEX	lvc;
 	lvc.mask = LVCF_WIDTH | LVCF_TEXT ;
-	char columnLabel[4][128];
+	char columnLabel[5][128];
 	strcpy( columnLabel[0], "Processor" );		
 	strcpy( columnLabel[1], "Pax Type" );
 	strcpy( columnLabel[2], "Resource Pool" );
 	strcpy( columnLabel[3], "Service Time(Sec)" );
+	strcpy( columnLabel[4], "Pipe" );
 	
-	int DefaultColumnWidth[] = { 130,150, 150,270 };
-	int nFormat[] = {	LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_DROPDOWN , LVCFMT_CENTER | LVCFMT_DROPDOWN };
+	int DefaultColumnWidth[] = { 130,150, 150, 150, 150 };
+	int nFormat[] = {	LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_DROPDOWN , 
+		LVCFMT_CENTER | LVCFMT_DROPDOWN , LVCFMT_CENTER | LVCFMT_DROPDOWN };
 	
 	// init distribution string list
 	CStringList strDistList;
 	CStringList strPoolList;
 	InitListString( strDistList, strPoolList );
 
-	for( int i=0; i<4; i++ )
+	for( int i=0; i<5; i++ )
 	{
 		if( i==2 )
 			lvc.csList = &strPoolList;
@@ -459,3 +494,5 @@ void CProcToResPoolDlg::OnCancel()
 	
 	CDialog::OnCancel();
 }
+
+

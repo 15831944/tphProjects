@@ -20,7 +20,7 @@
 class CResourcePool;
 class ProbabilityDistribution;
 
-
+typedef std::vector<int> PIPES;
 class CProcToResource  
 {
 public:
@@ -36,6 +36,11 @@ private:
 	CMobileElemConstraint m_mobileCon;
 	CString		m_strResourcePoolName;
 	ProbabilityDistribution* m_proServiceTime;
+	int m_iTypeOfUsingPipe;	
+	// m_iTypeOfUsingPipe = 0 use nothing
+	// m_iTypeOfUsingPipe = 1 use pipe system
+	// m_iTypeOfUsingPipe = 2 use user selected pipes
+	PIPES m_vUsedPipes;
 
 public:
 	// get & set
