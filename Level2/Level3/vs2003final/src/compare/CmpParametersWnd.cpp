@@ -27,19 +27,11 @@ static const int BUTTON_AREA_HEIGHT = 50;
 static const int BUTTON_HEIGHT = 22;
 static const int BUTTON_WIDTH = 80;
 static const UINT MENU_ADD_MODEL = 200;
-static const UINT MENU_MODEL_COMMENTS = 201;
-static const UINT MENU_MODEL_HELP = 202;
 static const UINT MENU_ADD_REPORT = 203;
-static const UINT MENU_REPORT_COMMENTS = 204;
-static const UINT MENU_REPORT_HELP = 205;
-static const UINT MENU_EDIT_MODEL = 206;
-static const UINT MENU_DELETE_MODEL = 207;
-static const UINT XX9 = 208;
-static const UINT XX10 = 209;
-static const UINT MENU_EDIT_REPORT = 210;
-static const UINT MENU_DELETE_REPORT = 211;
-static const UINT XX13 = 212;
-static const UINT MENU_UNAVAILABLE = 213;
+static const UINT MENU_DELETE_MODEL = 206;
+static const UINT MENU_EDIT_REPORT = 207;
+static const UINT MENU_DELETE_REPORT = 208;
+static const UINT MENU_UNAVAILABLE = 220;
 
 
 IMPLEMENT_DYNAMIC(CCmpParametersWnd, CWnd)
@@ -90,7 +82,7 @@ BEGIN_MESSAGE_MAP(CCmpParametersWnd, CWnd)
 	ON_COMMAND(ID_CRC_ADDNEWREPORT, OnCrcAddNewReport)
 	ON_COMMAND(ID_CRD_EDIT, OnCrdEditReport)
 	ON_COMMAND(ID_CRD_DELETE, OnCrdDelete)
-	ON_COMMAND_RANGE(200, 256, OnChooseMenu)
+	ON_COMMAND_RANGE(MENU_ADD_MODEL, MENU_UNAVAILABLE, OnChooseMenu)
 	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
@@ -108,10 +100,9 @@ int CCmpParametersWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rtEmpty.SetRectEmpty();
 
 	m_wndPropGrid.Create(rtEmpty, this, 11);
-	m_treex.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER
-   | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_HASLINES
-   | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
-   CRect(0, 0, 0, 0), this, 222);
+	m_treex.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER| TVS_HASBUTTONS | TVS_LINESATROOT | 
+				   TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
+   				   CRect(0, 0, 0, 0), this, 222);
 	m_treex.SetFont(&m_font);
 	m_wndPropGrid.SetTheme(xtpGridThemeSimple);
 	m_wndPropGrid.ShowHelp(FALSE);
@@ -681,25 +672,21 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 			strItemText = _T("");
 			strItemText.Format("Report Type: %s", strTemp);
 			HTREEITEM hRepName = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2);
-			//pPItem->SetReadOnly(TRUE);
 
 			strTemp = GetRegularDateTime(param.GetStartTime().printTime());
 			strItemText = _T("");
 			strItemText.Format("Start Time: %s", strTemp);
 			HTREEITEM hRepStartTime = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepName);
-			//pPItem->SetReadOnly(TRUE);
 
 			strTemp = GetRegularDateTime(param.GetEndTime().printTime());
 			strItemText = _T("");
 			strItemText.Format("End Time: %s", strTemp);
 			HTREEITEM hRepEndTime = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepStartTime);
-			//pPItem->SetReadOnly(TRUE);
 
 			strTemp = param.GetInterval().printTime();
 			strItemText = _T("");
 			strItemText.Format("Interval: %s", strTemp);
 			HTREEITEM hInterval = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepEndTime);
-			//pPItem->SetReadOnly(TRUE);
 
 			//write Model Parameter
 			std::vector<CModelParameter> vModelParam;
@@ -710,11 +697,8 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 			for (int nModelParam = 0; nModelParam< nModelParamCount; ++nModelParam)
 			{
 				CModelParameter& modelParam = vModelParam[nModelParam];
-
 				CString strModelName = pModelManager->GetModelsList().at(nModelParam)->GetModelName();
-
 				HTREEITEM hModelItem = m_treex.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
-				//				pModelItem->SetReadOnly(TRUE);
 
 				if(iIndex == 3)
 				{
@@ -725,7 +709,6 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 					else
 						strItemText.Format("Areas: %s", strTemp);
 					HTREEITEM hAreas = m_treex.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
-					//pPItem->SetReadOnly(TRUE);
 				}
 
 				if(report.GetCategory() == ENUM_QUEUETIME_REP ||
@@ -744,7 +727,6 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 						{
 							vPaxType[i].screenPrint(strPax);
 							m_treex.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
-							//pTempItem->SetReadOnly(TRUE);
 						}
 						m_treex.Expand(hPaxItem, TVE_EXPAND);
 					}	
@@ -753,7 +735,6 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 					report.GetCategory() == ENUM_DISTANCE_REP)
 				{
 					// from or to processor
-
 					CReportParameter::FROM_TO_PROCS _fromtoProcs;
 					modelParam.GetFromToProcs(_fromtoProcs);
 
@@ -765,14 +746,12 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 					{
 						CString strProc = _fromtoProcs.m_vFromProcs.at(nFrom).GetIDString();
 						m_treex.InsertItem(strProc, cni, FALSE, FALSE, hFromItem);
-						//pTempItem->SetReadOnly(TRUE);
 					}
 
 					for (int nTo = 0; nTo < (int)_fromtoProcs.m_vToProcs.size(); ++ nTo)
 					{
 						CString strProc = _fromtoProcs.m_vToProcs.at(nTo).GetIDString();
 						m_treex.InsertItem(strProc, cni, FALSE, FALSE, hToItem);
-						//pTempItem->SetReadOnly(TRUE);
 					}
 				}
 				else if(report.GetCategory() != ENUM_ACOPERATION_REP)
@@ -787,7 +766,6 @@ void CCmpParametersWnd::UpdateParaItem( HTREEITEM hItem )
 							memset(szProc, 0, sizeof(szProc) / sizeof(char));
 							vProcGroup[i].printID(szProc);
 							m_treex.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
-							//pTempItem->SetReadOnly(TRUE);
 						}
 						m_treex.Expand(hProcTypeItem, TVE_EXPAND);
 					}
@@ -1085,12 +1063,6 @@ void CCmpParametersWnd::OnCrdEditReport()
 void CCmpParametersWnd::OnCrdEditReport1()
 {
 	CWaitCursor wc;
-	//if (!m_pReportManager->GetCmpReport()->InitTerminal())
-	//{
-	//	AfxMessageBox(_T("Initialize terminal failed."));
-	//	wc.Restore();
-	//	return ;
-	//}
 
 	BOOL bFound = FALSE;
 	CString strReportName = m_treex.GetItemText(m_treex.GetSelectedItem());
@@ -1113,7 +1085,6 @@ void CCmpParametersWnd::OnCrdEditReport1()
 	{
 		CReportProperty dlg(this);
 		dlg.m_strProjName = m_pReportManager->GetCmpReport()->GetComparativeProject()->GetName();
-		//		dlg.m_pTerminal = &(m_pReportManager->GetCmpReport()->GetTerminal());
 		dlg.SetManager(pMManager,pRManager);
 
 		dlg.SetProjName(dlg.m_strProjName);
@@ -1159,7 +1130,6 @@ void CCmpParametersWnd::OnCrdDelete1()
 
 void CCmpParametersWnd::OnContextMenu( CWnd* pWnd, CPoint point )
 {
-//	m_treex.SetFocus();
 	CPoint pt = point;
 	m_treex.ScreenToClient( &pt );
 
