@@ -1224,52 +1224,72 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeTimeTerminalReport& _re
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
-/*
+
 bool CComparativePlot_new::Draw3DChart(const CComparativeDistanceTravelReport & _reportData)
 {
-	if(m_pChart == NULL)
-		return false;
-
 	const DistanceMap& mapDistance = _reportData.GetResult();
 
-	// Update data
-	m_pChart->LabelCollection()->GetAt(0)->Text = " Distance Travel Report ";
-	m_pChart->Axes(N3DCHARTLib::atLeftAxis)->Title = "Passenger Count";
-	m_pChart->Axes(N3DCHARTLib::atCategoriesAxis)->Title = "Distance";
+	C2DChartData c2dGraphData;
+	// Update Title
+	c2dGraphData.m_strChartTitle = _T(" Distance Travel Report ");
+	c2dGraphData.m_strYtitle = _T("Passenger Count");
+	c2dGraphData.m_strXtitle = _T("Distance");
 
-	TCHAR sTime[64]	= _T("");
+	//set footer
+	CString strFooter;
+	c2dGraphData.m_strFooter = strFooter;
+
+	// Alloc data space
+	if( mapDistance.size()>0)
+	{
+		const std::vector<int>& vLength = mapDistance.begin()->second;
+		std::vector<double> vSegmentData(mapDistance.size());
+		vSegmentData.clear();
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			//c2dGraphData.m_vrLegend.push_back(mapQTime.first);
+			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+		}	
+	}
+
+	// Insert legend.
+	for(int i=0; i<(int)m_vModelList.size(); i++)
+	{
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			c2dGraphData.m_vrLegend.push_back(strColText);
+		}
+	}
+
+	// Insert data
+	CString XTickTitle;
+	std::vector<CString> vXTickTitle;
+	LONG tDuration = 0L, tPrev = 0L;
 	int nXTick = 0;
-	CString strLabel;
-
-	long tDuration, tPrev;
-	tDuration = 0;
-
 	for( DistanceMap::const_iterator iterLine = mapDistance.begin(); iterLine != mapDistance.end(); iterLine++, nXTick++)
 	{
 		const std::vector<int>& vLength = iterLine->second;
 
-		//set row label
 		if (tDuration == 0)
 			tDuration = iterLine->first;
 
 		tPrev = iterLine->first - tDuration;
-
-		CString strTemp;
-		strTemp.Format("%d - %d",tPrev,iterLine->first);
-
-		m_pChart->Categories()->Add(_bstr_t(strTemp), VARIANT_TRUE);
-
-		//set data
-		for(int nRow = 0; nRow < (int)vLength.size(); nRow++)
-		{			
-			m_pChart->DataAt(nXTick, 0, nRow)->Value1 = vLength[nRow];
+		XTickTitle.Format("%d - %d",tPrev,iterLine->first);
+		vXTickTitle.push_back(XTickTitle);
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}
 	}
 
+	c2dGraphData.m_vrXTickTitle = vXTickTitle;
+	m_3DChart.DrawChart(c2dGraphData);
 	return true;
-
 }
-*/
+
 bool CComparativePlot_new::Update3DChart(ThreeDChartType iType)
 {
 	m_iType = iType;
