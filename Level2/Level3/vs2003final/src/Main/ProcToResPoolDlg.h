@@ -9,7 +9,6 @@
 
 #include "..\MFCExControl\listctrlex.h"
 #include "inputs\ProcToResource.h"
-#include "afxwin.h"
 // declare
 class InputTerminal;
 class CTermPlanDoc;
@@ -67,6 +66,7 @@ private:
 	void InitListString( CStringList& _strDistList, CStringList& _strPoolList );
 	InputTerminal* GetInputTerminal();
 	CString GetProjPath();
+
 	void ReloadData( void );
 };
 

@@ -114,7 +114,7 @@ BOOL CProcToResPoolDlg::OnInitDialog()
 void CProcToResPoolDlg::OnSize(UINT nType, int cx, int cy)
 {
 	CDialog::OnSize(nType, cx, cy);
-	if(m_listData)
+	if(m_ToolBar && m_btnSave && m_btnOk && m_btnCancel && m_listData)
 	{
 		CRect btnrc;
 		m_btnCancel.GetWindowRect( &btnrc );
@@ -160,10 +160,10 @@ void CProcToResPoolDlg::InitListCtrl()
 	strcpy( columnLabel[1], "Pax Type" );
 	strcpy( columnLabel[2], "Resource Pool" );
 	strcpy( columnLabel[3], "Service Time(Sec)" );
-	strcpy( columnLabel[4], "Pipe Option" );
+	strcpy( columnLabel[4], "Type Of Using Pipe" );
 	strcpy( columnLabel[5], "Pipe Information" );
 	
-	int DefaultColumnWidth[] = { 130,150, 150, 150, 150, 200 };
+	int DefaultColumnWidth[] = { 130,150, 150, 150, 105, 180 };
 	int nFormat[] = {	LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_NOEDIT, LVCFMT_CENTER | LVCFMT_DROPDOWN , 
 		LVCFMT_CENTER | LVCFMT_DROPDOWN , LVCFMT_CENTER | LVCFMT_DROPDOWN,LVCFMT_CENTER | LVCFMT_NOEDIT };
 	
@@ -305,6 +305,14 @@ void CProcToResPoolDlg::OnToolbarbuttonadd()
 				// service time
 				prco2Res.getProServiceTime()->screenPrint( szBuffer );
 				m_listData.SetItemText( _idx, 3, szBuffer );
+				// pipe
+				if(prco2Res.GetTypeOfUsingPipe() == USE_NOTHING)
+					m_listData.SetItemText( _idx, 4, "None");
+				else if(prco2Res.GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
+					m_listData.SetItemText( _idx, 4, "Auto Pipe");
+				else if(prco2Res.GetTypeOfUsingPipe() == USE_USER_SELECTED_PIPES)
+					m_listData.SetItemText( _idx, 4, "Select Pipe...");
+				m_listData.SetItemText( _idx, 5, prco2Res.GetPipeString(GetInputTerminal()));
 				//////////////////////////////////////////////////////////////////////////
 				// enable save button
 				m_btnSave.EnableWindow( TRUE );				
@@ -425,7 +433,7 @@ LRESULT CProcToResPoolDlg::OnInplaceCombox( WPARAM wParam, LPARAM lParam)
 		
 		_proc2Res->setServiceTime( pDist );	
 	}
-	else if( plvItem->iSubItem == 4)		// pipe option list
+	else if( plvItem->iSubItem == 4)		// Type Of Using Pipe list
 	{
 		if(strcmp(plvItem->pszText,"None") == 0)
 		{

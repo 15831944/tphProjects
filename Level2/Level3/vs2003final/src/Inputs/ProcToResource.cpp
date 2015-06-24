@@ -156,7 +156,7 @@ CString CProcToResource::GetPipeString(InputTerminal* pTerm)
 /*                      CProcToResourceDataSet                          */
 /************************************************************************/
 
-CProcToResourceDataSet::CProcToResourceDataSet():DataSet( ProcessorToResourcePoolFile )
+CProcToResourceDataSet::CProcToResourceDataSet():DataSet( ProcessorToResourcePoolFile, 2.3f )
 {
 	m_Proc2ResList.clear();
 }
@@ -311,6 +311,48 @@ void CProcToResourceDataSet::clear (void)
 	m_Proc2ResList.clear();
 }
 
+void CProcToResourceDataSet::readObsoleteData (ArctermFile& p_file)
+{
+	float version = p_file.getVersion();
+	if((version-2.2f) < 0.00001f && (2.2f-version) < 0.00001f)
+	{
+		readObsoleteData22(p_file);
+	}
+}
+
+void CProcToResourceDataSet::readObsoleteData22 (ArctermFile& p_file)
+{
+	char szBuffer[512];
+	int _iCount;
+
+	p_file.getLine();
+	p_file.getInteger( _iCount );
+
+	for( int i=0; i< _iCount; i++ )
+	{
+		p_file.getLine();
+		// processor
+		ProcessorID procID;
+		procID.SetStrDict( m_pInTerm->inStrDict);
+		procID.readProcessorID( p_file );
+		// mobile type
+		CMobileElemConstraint mob_con(m_pInTerm);
+		//mob_con.SetInputTerminal( m_pInTerm );
+		p_file.getField( szBuffer,512 );
+		mob_con.readConstraintWithVersion( szBuffer );	
+		// resource name
+		CString strResourceName;
+		p_file.getField( szBuffer,512 );
+		strResourceName = szBuffer;
+		// service 
+		p_file.setToField(3);
+		ProbabilityDistribution* _pro = NULL;
+		_pro = GetTerminalRelateProbDistribution (p_file,m_pInTerm);
+
+		m_Proc2ResList.insert( CProcToResource(procID, mob_con,  strResourceName, _pro) );
+	}
+}
+
 void CProcToResourceDataSet::readData (ArctermFile& p_file)
 {
 	char szBuffer[512];
@@ -340,7 +382,34 @@ void CProcToResourceDataSet::readData (ArctermFile& p_file)
 		ProbabilityDistribution* _pro = NULL;
 		_pro = GetTerminalRelateProbDistribution (p_file,m_pInTerm);
 
-		m_Proc2ResList.insert( CProcToResource( procID, mob_con,  strResourceName, _pro ) );
+		CProcToResource procToRes(procID, mob_con,  strResourceName, _pro);
+
+		// pipe
+		p_file.getField(szBuffer, 512);
+		int iStrlen = strlen(szBuffer);
+		for(int i=0; i<iStrlen; i++)
+		{
+			if(szBuffer[i] == '-')
+			{
+				szBuffer[i] = ',';
+			}
+		}
+		ArctermFile tempFile;
+		tempFile.InitDataFromString(szBuffer);
+		int typeOfUsingPipe, countOfPipe, pipeId;
+		tempFile.getInteger(typeOfUsingPipe); // Get the type of using  pipe.
+		procToRes.SetTypeOfUsingPipe(typeOfUsingPipe);
+		if( typeOfUsingPipe == USE_USER_SELECTED_PIPES ) // Type of using pipe is Manual.
+		{
+			tempFile.getInteger(countOfPipe); // Get the count of pipes.
+			for(int i=0; i<countOfPipe; i++)
+			{
+				tempFile.getInteger(pipeId);
+				procToRes.AddUsedPipe(pipeId);
+			}
+		}
+
+		m_Proc2ResList.insert( procToRes );
 	}
 
 }
@@ -349,6 +418,7 @@ void CProcToResourceDataSet::writeData (ArctermFile& p_file) const
 {
 	//char szBuffer[512]; matt
 	char szBuffer[5120];
+	char pipeBuf[16];
 
 	int _iCount = m_Proc2ResList.size();
 	p_file.writeInt( _iCount );
@@ -366,6 +436,27 @@ void CProcToResourceDataSet::writeData (ArctermFile& p_file) const
 		p_file.writeField( const_iter->getResourcePoolName() );
 		// service time
 		const_iter->getProServiceTime()->writeDistribution( p_file );
+
+		int typeOfPipe = const_iter->GetTypeOfUsingPipe();
+		memset(pipeBuf, 0, 16);
+		itoa(typeOfPipe, pipeBuf, 10);
+		memset(szBuffer, 0, 5120);
+		strncpy( szBuffer, pipeBuf, 16 );
+		if( typeOfPipe == USE_USER_SELECTED_PIPES )
+		{
+			int count = const_iter->GetUsedPipeCount();
+			memset(pipeBuf, 0, 16);
+			itoa(count, pipeBuf, 10);
+			strcat( szBuffer, "-");
+			strcat( szBuffer, pipeBuf );
+			for(int i=0; i<count; i++)
+			{
+				itoa(const_iter->GetPipeAt(i), pipeBuf, 10);
+				strcat( szBuffer, "-");
+				strcat( szBuffer, pipeBuf);
+			}
+		}
+		p_file.writeField( szBuffer );
 		p_file.writeLine();
 	}
 }

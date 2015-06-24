@@ -118,9 +118,12 @@ public:
 	//read and write file
 	virtual void clear (void);
     virtual void readData (ArctermFile& p_file);
+	virtual void readObsoleteData (ArctermFile& p_file);
     virtual void writeData (ArctermFile& p_file) const;
 	
 	virtual const char *getTitle (void) const;
     virtual const char *getHeaders (void) const;	
+private:
+	void readObsoleteData22 (ArctermFile& p_file);
 };
 #endif // !defined(AFX_PROCTORESOURCE_H__636CEE79_1491_433D_9CAF_762986B317B4__INCLUDED_)
