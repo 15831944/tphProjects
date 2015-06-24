@@ -4261,12 +4261,12 @@ void CProcDataPage::EditPipe(int editPipeOrder)
 			CPaxFlowSelectPipes dlg( m_pInTerm, pProc->GetPipeVector(), pProc->GetTypeOfUsingPipe() );
 			if( dlg.DoModal() == IDOK )
 			{
-				PaxFlowEditPipManual(pProc, &dlg);
+				ProcDataPageEditPipManual(pProc, &dlg);
 			}
 		}
 		else if(editPipeOrder == EDIT_PIPE_AUTO)
 		{
-			PaxFlowEditPipeAuto(pProc);
+			ProcDataPageEditPipeAuto(pProc);
 		}
 		else
 		{
@@ -4304,7 +4304,7 @@ CString CProcDataPage::GetPipeString( const MiscProcessorIDWithOne2OneFlag* pPro
 	return sReturnStr;
 }
 
-void CProcDataPage::PaxFlowEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc, CPaxFlowSelectPipes* pSelectPipeDlg)
+void CProcDataPage::ProcDataPageEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc, CPaxFlowSelectPipes* pSelectPipeDlg)
 {
 	ASSERT( pProc );
 	ASSERT(pSelectPipeDlg->m_bSelectPipe );
@@ -4323,7 +4323,7 @@ void CProcDataPage::PaxFlowEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc, 
 	return;
 }
 
-void CProcDataPage::PaxFlowEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pProc )
+void CProcDataPage::ProcDataPageEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pProc )
 {
 	int typeOfUsingPipe = pProc->GetTypeOfUsingPipe();
 	switch(typeOfUsingPipe)

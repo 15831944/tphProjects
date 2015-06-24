@@ -139,35 +139,12 @@ void MiscProcessorIDList::writeIDList (ArctermFile& p_file) const
 {
 	char str[1024] = "";
 	MiscProcessorIDWithOne2OneFlag* pProc = NULL;
+    int procCount = getCount();
 
-    if (getCount())
-	{	
-		pProc = (MiscProcessorIDWithOne2OneFlag*)getItem (0);
-		pProc->printID (str);
-		strcat( str, pProc->getOne2OneFlag() ? "@Y" : "@N" );
-		char tempBuf[256];
-		int type = pProc->GetTypeOfUsingPipe();
-		itoa(type, tempBuf, 10);
-		strcat( str, "@");
-		strcat( str, tempBuf );
-		if( type == USE_USER_SELECTED_PIPES )
-		{
-			int count = pProc->GetUsedPipeCount();
-			itoa(count, tempBuf, 10);
-			strcat( str, "-");
-			strcat( str, tempBuf );
-			for(int i=0; i<count; i++)
-			{
-				itoa(pProc->GetPipeAt(i), tempBuf, 10);
-				strcat( str, "-");
-				strcat( str, tempBuf);
-			}
-		}
-	}
-
-    for (int i = 1; i < getCount(); i++)
+    for (int i = 0; i < procCount; i++)
     {
-		strcat (str, ";");
+		if(i > 0)
+			strcat (str, ";");
 		pProc = (MiscProcessorIDWithOne2OneFlag*)getItem (i);
         pProc->printID (str + strlen (str));
 		strcat( str, pProc->getOne2OneFlag() ? "@Y" : "@N" );

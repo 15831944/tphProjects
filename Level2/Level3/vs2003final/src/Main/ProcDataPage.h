@@ -277,9 +277,9 @@ protected:
 	void SetConveyorType( HTREEITEM _hItem );
 
 	// Set Pipe type.
-	void PaxFlowEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc,CPaxFlowSelectPipes* pSelectPipeDlg);
+	void ProcDataPageEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc,CPaxFlowSelectPipes* pSelectPipeDlg);
 	CString GetPipeString( const MiscProcessorIDWithOne2OneFlag* _pArcInfo );
-	void PaxFlowEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pProc );
+	void ProcDataPageEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pProc );
 	// Generated message map functions
 	//{{AFX_MSG(CProcDataPage)
 	virtual BOOL OnInitDialog();
