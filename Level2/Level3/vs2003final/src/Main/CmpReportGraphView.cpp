@@ -145,6 +145,7 @@ void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
 		{
 			CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart);
 			cmpPlot.Draw3DChart(*vResult[i]);
+			break;
 		}
 	}
 }
