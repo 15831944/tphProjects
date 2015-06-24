@@ -656,7 +656,10 @@
 #define IDD_DIALOG_CURBSIDESTRATEGY     484
 #define IDD_DIALOG_LAYOUTOPTIONS        485
 #define IDD_DIALOG_LANETOLLCRITERIA     486
+#define IDD_CMPREPORTTREEVIEW           487
 #define IDR_OUTLOOK_BAR                 488
+#define IDD_CMPREPORTLISTVIEW           489
+#define IDD_CMPREPORTGRAPHVIEW          490
 #define IDD_DIALOG_ASSIGNFLIGHT_TO_PRO  492
 #define IDD_DIALOG_EVENTSDATA           494
 #define IDR_PROCASSIGN                  500
@@ -5424,7 +5427,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1101
 #define _APS_NEXT_COMMAND_VALUE         35324
-#define _APS_NEXT_CONTROL_VALUE         2405
-#define _APS_NEXT_SYMED_VALUE           487
+#define _APS_NEXT_CONTROL_VALUE         2406
+#define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

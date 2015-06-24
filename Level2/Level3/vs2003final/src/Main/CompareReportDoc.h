@@ -51,7 +51,7 @@ public:
 	BOOL LoadProject(const CString& strName, const CString& strDesc);
 	BOOL SaveProject();
 	CComparativeProject* GetComparativeProject();
-	CCmpReport* GetCmpReport(){ return &this->m_cmpReport; }
+	CCmpReport* GetCmpReport(){ return &m_cmpReport; }
 	virtual ~CCompareReportDoc();
 #ifdef _DEBUG
 	virtual void AssertValid() const;

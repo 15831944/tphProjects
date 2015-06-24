@@ -14,6 +14,7 @@
 #include "..\common\SimAndReportManager.h"
 #include "..\compare\ModelToCompare.h"
 #include "..\common\EchoSystem.h"
+#include "CompareReportDoc.h"
 
 static const UINT ID_RUN = 101;
 static const UINT ID_CANCEL = 102;
@@ -27,8 +28,8 @@ static const UINT MENU_EDIT_REPORT = 207;
 static const UINT MENU_DELETE_REPORT = 208;
 static const UINT MENU_UNAVAILABLE = 220;
 
-IMPLEMENT_DYNCREATE(CCmpReportTreeView, CView)
-BEGIN_MESSAGE_MAP(CCmpReportTreeView, CView)
+IMPLEMENT_DYNCREATE(CCmpReportTreeView, CFormView)
+BEGIN_MESSAGE_MAP(CCmpReportTreeView, CFormView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_ERASEBKGND()
@@ -40,6 +41,7 @@ BEGIN_MESSAGE_MAP(CCmpReportTreeView, CView)
 END_MESSAGE_MAP()
 
 CCmpReportTreeView::CCmpReportTreeView()
+	: CFormView(CCmpReportTreeView::IDD)
 {
 	LOGFONT lf;
 	::ZeroMemory(&lf, sizeof(LOGFONT));
@@ -47,6 +49,7 @@ CCmpReportTreeView::CCmpReportTreeView()
 	strcpy(lf.lfFaceName, "MS Sans Serif");
 	m_font.CreateFontIndirect(&lf);
 	m_pSubMenu = NULL;
+	m_pCmpReport = NULL;
 }
 
 CCmpReportTreeView::~CCmpReportTreeView()
@@ -62,22 +65,26 @@ void CCmpReportTreeView::OnDraw(CDC* pDC)
 {
 	CDocument* pDoc = GetDocument();
 }
+void CCmpReportTreeView::DoDataExchange(CDataExchange* pDX)
+{
+	CFormView::DoDataExchange(pDX);
+}
 
 #ifdef _DEBUG
 void CCmpReportTreeView::AssertValid() const
 {
-	CView::AssertValid();
+	CFormView::AssertValid();
 }
 
 void CCmpReportTreeView::Dump(CDumpContext& dc) const
 {
-	CView::Dump(dc);
+	CFormView::Dump(dc);
 }
 #endif //_DEBUG
 
 int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	if (CWnd::OnCreate(lpCreateStruct) == -1)
+	if (CFormView::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
 	CRect emptyRect;
@@ -102,17 +109,22 @@ int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CCmpReportTreeView::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
+	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+	m_pCmpReport = pDoc->GetCmpReport();
 	InitParaWnd();
 }
 
-void CCmpReportTreeView::OnUpdate()
+void CCmpReportTreeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
-	UpdateParaWnd();
+	CView* pTemp = this;
+	if(m_pCmpReport && m_pCmpReport->GetComparativeProject()->GetName())
+		UpdateParaWnd();
 }
 
 void CCmpReportTreeView::OnSize(UINT nType, int cx, int cy)
 {
-	CWnd::OnSize(nType, cx, cy);
+	CDocument* pDoc = GetDocument();
+	CFormView::OnSize(nType, cx, cy);
 
 	if (::IsWindow(m_propTree.m_hWnd))
 		m_propTree.MoveWindow(0, 0, cx, (cy - BUTTON_AREA_HEIGHT));
@@ -134,7 +146,7 @@ BOOL CCmpReportTreeView::OnEraseBkgnd(CDC* pDC)
 	rectClient.top = rectClient.bottom - BUTTON_AREA_HEIGHT;
 	pDC->FillSolidRect(&rectClient, ::GetSysColor(COLOR_BTNFACE));
 
-	return CWnd::OnEraseBkgnd(pDC);
+	return CFormView::OnEraseBkgnd(pDC);
 }
 
 void CCmpReportTreeView::InitParaWnd()
@@ -235,7 +247,11 @@ void CCmpReportTreeView::UpdateParaItem( HTREEITEM hItem )
 		return;
 	if(hItem == m_hProjName)
 	{
-		strItemText.Format("Name: %s", m_pCmpReport->GetComparativeProject()->GetName());
+		CString strName = m_pCmpReport->GetComparativeProject()->GetName();
+		if(strName.IsEmpty())
+			strItemText = "Name";
+		else
+			strItemText.Format("Name: %s", m_pCmpReport->GetComparativeProject()->GetName());
 		m_propTree.SetItemText(hItem, strItemText);
 	}
 	else if(hItem == m_hProjDesc)
@@ -430,8 +446,8 @@ void CCmpReportTreeView::UpdateParaItem( HTREEITEM hItem )
 		}
 		m_propTree.Expand(m_hReportRoot, TVE_EXPAND);
 	}
-	m_pCmpReport->SetModifyFlag(TRUE);
-	m_pCmpReport->SaveProject();
+//	m_pCmpReport->SetModifyFlag(TRUE);
+//	m_pCmpReport->SaveProject();
 }
 
 void CCmpReportTreeView::UpdateParaWnd()
@@ -499,6 +515,8 @@ void CCmpReportTreeView::AddModel()
 	if(dlg.DoModal() == IDOK)
 	{
 		UpdateParaItem(m_hModelRoot);
+		m_pCmpReport->SetModifyFlag(TRUE);
+		m_pCmpReport->SaveProject();
 	}
 }
 
@@ -513,6 +531,8 @@ void CCmpReportTreeView::DeleteModel()
 	{
 		UpdateParaItem(m_hModelRoot);
 		UpdateParaItem(m_hReportRoot);
+		m_pCmpReport->SetModifyFlag(TRUE);
+		m_pCmpReport->SaveProject();
 	}
 }
 
@@ -546,6 +566,8 @@ void CCmpReportTreeView::AddReport()
 		const CReportToCompare& report = dlg.GetReport();
 		pRManager->AddReport(report);
 		UpdateParaItem(m_hReportRoot);
+		m_pCmpReport->SetModifyFlag(TRUE);
+		m_pCmpReport->SaveProject();
 	}
 }
 
@@ -583,12 +605,11 @@ void CCmpReportTreeView::EditReport()
 		if(dlg.DoModal() == IDOK)
 		{
 			const CReportToCompare& report = dlg.GetReport();
-
 			vReports.erase(iter);
-
 			pRManager->AddReport(report);
-
 			UpdateParaItem(m_hReportRoot);
+			m_pCmpReport->SetModifyFlag(TRUE);
+			m_pCmpReport->SaveProject();
 		}
 	}
 }
@@ -609,6 +630,8 @@ void CCmpReportTreeView::DeleteReport()
 		}
 	}
 	UpdateParaItem(m_hReportRoot);
+	m_pCmpReport->SetModifyFlag(TRUE);
+	m_pCmpReport->SaveProject();
 }
 
 void CCmpReportTreeView::OnContextMenu( CWnd* pWnd, CPoint point )
@@ -673,14 +696,12 @@ LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM l
 		{
 			CString strValue = pComProj->GetName();
 			m_propTree.GetEditWnd(hCurItem)->SetWindowText(strValue);
-			m_propTree.GetEditWnd(hCurItem)->SetFocus();
 			((CEdit*)m_propTree.GetEditWnd(hCurItem))->SetSel(0, -1, true); 
 		}
 		else if(m_propTree.GetSelectedItem() == m_hProjDesc)
 		{
 			CString strValue = pComProj->GetDescription();
 			m_propTree.GetEditWnd(hCurItem)->SetWindowText(strValue);
-			m_propTree.GetEditWnd(hCurItem)->SetFocus();
 			((CEdit*)m_propTree.GetEditWnd(hCurItem))->SetSel(0, -1, true);
 		}
 	}
@@ -743,7 +764,7 @@ LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM l
 		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
 	}
-	return CWnd::DefWindowProc(message, wParam, lParam);
+	return CFormView::DefWindowProc(message, wParam, lParam);
 }
 
 void CCmpReportTreeView::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/ )

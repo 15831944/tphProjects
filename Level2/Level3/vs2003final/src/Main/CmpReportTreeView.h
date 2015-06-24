@@ -2,7 +2,7 @@
 #include ".\MFCExControl\CoolTree.h"
 #include "..\Compare\CmpReportManager.h"
 
-class CCmpReportTreeView : public CView
+class CCmpReportTreeView : public CFormView
 {
 	DECLARE_DYNCREATE(CCmpReportTreeView)
 
@@ -12,12 +12,15 @@ protected:
 
 public:
 	virtual void OnDraw(CDC* pDC);
+	enum { IDD = IDD_CMPREPORTTREEVIEW };
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
 protected:
+	virtual void DoDataExchange(CDataExchange* pDX);
+
 	DECLARE_MESSAGE_MAP()
 public:
 
@@ -61,7 +64,7 @@ protected:
 public:
 	afx_msg void OnTimer(UINT nIDEvent);
 	virtual void OnInitialUpdate();
-	virtual void OnUpdate();
+	virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
 private:
 	void InitCooltreeNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify=TRUE);
 protected:

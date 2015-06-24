@@ -178,6 +178,7 @@
 #include "ARCportLayoutEditor.h"
 #include "Common/IEnvModeEditContext.h"
 #include "DlgAnimationSpeed.h"
+#include "CompareReportDoc.h"
 
 //IMPL_CHLOE_SYSTEM()
 //
@@ -4993,13 +4994,9 @@ void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NU
 		}
 	}
 
-	CCmpReportCtrl* pReport = pCmpReportView->GetReportWnd();
-	pReport->InitWindow();	
 	if (!strName.IsEmpty())// && !strDesc.IsEmpty())
 	{
-		pReport->GetReportManager()->GetCmpReport()->LoadProject(strName, strDesc);
-		pReport->UpdateAllWnds();
-//		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
+		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
 	}
 
 	pDoc->UpdateAllViews(NULL);
