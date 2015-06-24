@@ -383,7 +383,7 @@ void LandsideCurbSideInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior,
 	ElapsedTime eNextTime = eEventTime + dt;
 	pPaxBehvior->WriteLogEntry(eNextTime);
 	pPaxBehvior->getPerson()->setState(WaitingForVehicle);
-	AddWaitingPax(pPaxBehvior);
+	AddWaitingPax(pPaxBehvior->GetPersonID());
 
 	LandsideVehicleInSim* pVehicle = pPaxBehvior->getVehicle();
 	if(!pVehicle)
@@ -432,7 +432,7 @@ void LandsideCurbSideInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior,
 
 void LandsideCurbSideInSim::PassengerMoveOut( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	DelWaitingPax(pPaxBehvior);
+	DelWaitingPax(pPaxBehvior->GetPersonID());
 }
 
 bool LandsideCurbSideInSim::IsHaveCapacityAndFull( LandsideVehicleInSim*pVeh ) const

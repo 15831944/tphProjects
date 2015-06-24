@@ -7,6 +7,8 @@
 #include "FlightPriorityDlg.h"
 #include "../Common/AirsideFlightType.h"
 #include "DlgNewFlightType.h"
+#include "../InputAirside/ALTAirport.h"
+#include "InputAirside/InputAirside.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -18,7 +20,7 @@ static char THIS_FILE[] = __FILE__;
 // CFlightGateSelectionDlg dialog
 
 
-CFlightGateSelectionDlg::CFlightGateSelectionDlg(CWnd* pParent /*=NULL*/, int nAirportID, int nIndex)
+CFlightGateSelectionDlg::CFlightGateSelectionDlg(CWnd* pParent /*=NULL*/, int nProjID,int nAirportID, int nIndex)
 	: CDialog(CFlightGateSelectionDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CFlightGateSelectionDlg
@@ -29,7 +31,7 @@ CFlightGateSelectionDlg::CFlightGateSelectionDlg(CWnd* pParent /*=NULL*/, int nA
 	m_bChanged = false;
 	m_nIndex = nIndex;	
 	m_nAirportID = nAirportID;
-	
+	m_nProjID = nProjID;
 }
  
 
@@ -70,8 +72,74 @@ void CFlightGateSelectionDlg::OnButtonFlightsectorSelection()
 	m_edtFlightSector.SetWindowText(strFlight);
 }
 
+HTREEITEM CFlightGateSelectionDlg::FindObjNode(HTREEITEM hParentItem,const CString& strNodeText)
+{
+	HTREEITEM hRetItem = NULL;
+
+	HTREEITEM hChildItem = m_treeALTobject.GetChildItem(hParentItem);
+
+	//find
+	while (hChildItem)
+	{
+		CString strItemText = m_treeALTobject.GetItemText(hChildItem);
+		if(strItemText.CompareNoCase(strNodeText) == 0)
+		{
+			hRetItem = hChildItem;
+			break;
+		}
+		hChildItem = m_treeALTobject.GetNextSiblingItem(hChildItem);
+	}
+	return hRetItem;
+}
+
+void CFlightGateSelectionDlg::AddObjectToTree(HTREEITEM hObjRoot,ALTObject* pObject)
+{
+	ASSERT(hObjRoot);
+
+	ALTObjectID objName;
+	pObject->getObjName(objName);
+	HTREEITEM hParentItem = hObjRoot;
+	bool bObjNode = false;
+	CString strNodeName = _T("");
+
+	for (int nLevel =0; nLevel< OBJECT_STRING_LEVEL; ++nLevel)
+	{
+		if (nLevel != OBJECT_STRING_LEVEL -1 )
+		{
+			HTREEITEM hItem = FindObjNode(hParentItem,objName.m_val[nLevel].c_str());
+			if (hItem != NULL)
+			{
+				hParentItem = hItem;
+				continue;
+			}
+			if (objName.m_val[nLevel+1] != _T(""))
+			{
+				HTREEITEM hTreeItem = m_treeALTobject.InsertItem(objName.m_val[nLevel].c_str(),hParentItem);
+				//				m_treeALTobject.Expand(hParentItem, TVE_EXPAND);
+				hParentItem = hTreeItem;
+
+				continue;
+			}
+			else //objNode
+			{
+				HTREEITEM hTreeItem = m_treeALTobject.InsertItem(objName.m_val[nLevel].c_str(),hParentItem);
+				//				m_treeALTobject.Expand(hParentItem, TVE_EXPAND);
+				break;
+			}
+
+		}
+		else
+		{
+			HTREEITEM hTreeItem = m_treeALTobject.InsertItem(objName.m_val[nLevel].c_str(),hParentItem);
+			//			m_treeALTobject.Expand(hParentItem, TVE_EXPAND);
+			break;
+		}
+	}
+}
+
 void CFlightGateSelectionDlg::ReloadDatabase()
 {
+	HTREEITEM hStandFamily = m_treeALTobject.InsertItem(_T("Stand Family:"));
 	if( m_nIndex >= 0 )
 	{
 		m_flight = ((CFlightPriorityDlg *)GetParent())->m_vectFlightGate[m_nIndex].flight;
@@ -86,7 +154,30 @@ void CFlightGateSelectionDlg::ReloadDatabase()
 	
 	//m_treeProc.LoadData(GetInputTerminal(), NULL, GateProc);
 
-	m_treeALTobject.LoadData(m_nAirportID,ALT_STAND);
+//	m_treeALTobject.LoadData(m_nAirportID,ALT_STAND);
+	{
+		std::vector<int> vAirportIds;
+		InputAirside::GetAirportList(m_nProjID, vAirportIds);
+		for (std::vector<int>::iterator iterAirportID = vAirportIds.begin(); iterAirportID != vAirportIds.end(); ++iterAirportID)
+		{
+			ALTAirport airport;
+			airport.ReadAirport(*iterAirportID);
+			airport.getName();
+			//HTREEITEM hAirport = m_treeALTobject.InsertItem(airport.getName(),hStandFamily);
+
+			//m_treeALTobject.SetItemData(hAirport, *iterAirportID);
+			ALTObjectList vStands;
+			ALTAirport::GetStandList(*iterAirportID,vStands);
+
+			for(int i = 0;i< (int)vStands.size(); ++i)
+			{
+				Stand * pStand =(Stand*) vStands.at(i).get();
+				AddObjectToTree(hStandFamily,pStand);
+			}
+
+		}
+		m_treeALTobject.Expand(hStandFamily, TVE_EXPAND);
+	}
 }
 
 extern CTermPlanApp theApp;

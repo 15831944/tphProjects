@@ -237,7 +237,7 @@ bool LandsideSimulation::Initialize( CARCportEngine *pEngine, const IFloorDataSe
 
 	return true;
 }
-void LandsideSimulation::End(const ElapsedTime& endTime,bool bCancel)
+void LandsideSimulation::End(CARCportEngine *pEngine,const ElapsedTime& endTime,bool bCancel)
 {
 	//flush vehicles
 	for(size_t i=0;i<m_vVehicleList.size();i++)
@@ -267,7 +267,7 @@ void LandsideSimulation::End(const ElapsedTime& endTime,bool bCancel)
 	}
 
 	//flush on pax
-	m_resManagerInst->FlushOnResourcePax(endTime);
+	m_resManagerInst->FlushOnResourcePax(pEngine,endTime);
 	
 }
 

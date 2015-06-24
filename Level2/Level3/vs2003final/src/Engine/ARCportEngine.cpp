@@ -955,7 +955,7 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 
 				//flush landside log
 				if(m_pLandsideSim){
-					m_pLandsideSim->End(simTime,m_bCancel);
+					m_pLandsideSim->End(this,simTime,m_bCancel);
 					m_pLandsideSim->SaveLog(_csProjPath);
 					cpputil::autoPtrReset(m_pLandsideSim);
 				}

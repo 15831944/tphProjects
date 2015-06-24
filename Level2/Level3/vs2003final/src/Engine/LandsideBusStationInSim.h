@@ -68,7 +68,7 @@ public:
 	void AddWaitingBus(LandsideVehicleInSim* pBus);
 	void DelWaitingBus(LandsideVehicleInSim* pBus);
 	void NoticeWaitingPax(const ElapsedTime &time, LandsideVehicleInSim* pBus, LandsideSimulation* pSimulation);
-	bool HavePaxWaitingForThisBus(LandsideVehicleInSim *pBus);
+	//bool HavePaxWaitingForThisBus(LandsideVehicleInSim *pBus);
 	LaneParkingSpotsGroup& getParkingSpot();
 
 	virtual CPath2008 GetQueue();

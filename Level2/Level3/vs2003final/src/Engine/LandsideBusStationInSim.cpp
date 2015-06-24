@@ -110,18 +110,18 @@ void LandsideBusStationInSim::NoticeWaitingPax(const ElapsedTime &time,LandsideV
 // 	}
 	
 }
-bool LandsideBusStationInSim::HavePaxWaitingForThisBus(LandsideVehicleInSim *pBus)
-{
-	std::vector<PaxLandsideBehavior*>::iterator iter=m_vWaitingPax.begin();
-	for (;iter!=m_vWaitingPax.end();++iter)
-	{
-		/*if (((PaxLandsideBehavior*)(*iter))->GetVehicleType()->GetID()==pBus->GetVehicleItemDetail()->GetID())
-		{
-			return true;
-		}*/
-	}
-	return false;
-}
+//bool LandsideBusStationInSim::HavePaxWaitingForThisBus(LandsideVehicleInSim *pBus)
+//{
+//	std::vector<Pax*>::iterator iter=m_vWaitingPax.begin();
+//	for (;iter!=m_vWaitingPax.end();++iter)
+//	{
+//		/*if (((PaxLandsideBehavior*)(*iter))->GetVehicleType()->GetID()==pBus->GetVehicleItemDetail()->GetID())
+//		{
+//			return true;
+//		}*/
+//	}
+//	return false;
+//}
 void LandsideBusStationInSim::InitRelateWithOtherObject(LandsideResourceManager* allRes)
 {
 	if(!m_pBusStation->getStrech())
@@ -249,14 +249,14 @@ LandsideParkingLotInSim * LandsideBusStationInSim::getEmbeddedParkingLotInSim() 
 
 void LandsideBusStationInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	AddWaitingPax(pPaxBehvior);
+	AddWaitingPax(pPaxBehvior->GetPersonID());
 	pPaxBehvior->setResource(this);
 	m_queueProcessSys->EnterQueueProcess(pPaxBehvior,LandsideLeaveQueue,eTime);
 }
 
 void LandsideBusStationInSim::PassengerMoveOut( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	DelWaitingPax(pPaxBehvior);	
+	DelWaitingPax(pPaxBehvior->GetPersonID());	
 }
 
 void LandsideBusStationInSim::AddWaitingBus( LandsideVehicleInSim* pBus )

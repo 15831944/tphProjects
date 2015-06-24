@@ -216,7 +216,8 @@ void CDlgStandAssignment::OnButtonPriorityGate()
 	if(vAirport.empty()) 
 		return ;
 
-	CGatePriorityDlg gatePriorityDlg( GetInputTerminal(),vAirport.at(0) );
+//	CGatePriorityDlg gatePriorityDlg( GetInputTerminal(),vAirport.at(0) );
+	CGatePriorityDlg gatePriorityDlg( GetInputTerminal(),vAirport.at(0),m_nPrjID );
 	if(gatePriorityDlg.DoModal() != IDOK)
 		return;
 

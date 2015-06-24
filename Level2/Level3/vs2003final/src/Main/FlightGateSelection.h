@@ -26,10 +26,11 @@ public:
 private:
 	int m_nIndex;
 	int m_nAirportID;
+	int m_nProjID;
 
 // Construction
 public:
-	CFlightGateSelectionDlg(CWnd* pParent, int nAirportID, int nIndex = -1);   // standard constructor
+	CFlightGateSelectionDlg(CWnd* pParent, int nProjID,int nAirportID, int nIndex = -1);   // standard constructor
 
 // Dialog Data
 	//{{AFX_DATA(CFlightGateSelectionDlg)
@@ -49,6 +50,8 @@ public:
 // Implementation
 protected:
 	void ReloadDatabase();
+	void AddObjectToTree(HTREEITEM hObjRoot,ALTObject* pObject);
+	HTREEITEM FindObjNode(HTREEITEM hParentItem,const CString& strNodeText);
 	InputTerminal* GetInputTerminal();
 	// Generated message map functions
 	//{{AFX_MSG(CFlightGateSelectionDlg)

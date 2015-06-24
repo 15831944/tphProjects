@@ -113,7 +113,7 @@ public:
 	LandsideTaxiQueueInSim* getRandomTaxiQueue(const ALTObjectID& id);
 	LandsideParkingLotInSim* getRandomParkinglot(const ALTObjectID& id);
 
-	void FlushOnResourcePax(const ElapsedTime& endTime);
+	void FlushOnResourcePax(CARCportEngine* pEngine, const ElapsedTime& endTime);
 
 	CWalkwayInSim *GetWalkwayInSim(const ALTObjectID& walkWayID) const;
 	//

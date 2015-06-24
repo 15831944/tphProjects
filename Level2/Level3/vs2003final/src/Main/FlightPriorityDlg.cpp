@@ -196,7 +196,7 @@ void CFlightPriorityDlg::OnPeoplemoverDelete()
 void CFlightPriorityDlg::OnPeoplemoverNew()
 {
 	//Popup the dialog and make the selection
-	CFlightGateSelectionDlg flightGateSelectionDlg(this,m_nAirportID);
+	CFlightGateSelectionDlg flightGateSelectionDlg(this,m_nprjID,m_nAirportID);
 	if(flightGateSelectionDlg.DoModal() != IDOK)
 		return;
 

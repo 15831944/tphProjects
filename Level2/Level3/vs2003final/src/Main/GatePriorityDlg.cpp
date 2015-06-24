@@ -9,6 +9,7 @@
 #include "ProcesserDialog.h"
 #include "inputs\in_term.h"
 #include ".\SelectALTObjectDialog.h"
+#include "..\AirsideGUI\DlgStandFamily.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,7 +21,7 @@ static char THIS_FILE[] = __FILE__;
 // CGatePriorityDlg dialog
 
 
-CGatePriorityDlg::CGatePriorityDlg(InputTerminal* _pInTerm,int nAirportID, CWnd* pParent /*=NULL*/)
+CGatePriorityDlg::CGatePriorityDlg(InputTerminal* _pInTerm,int nAirportID, int nProjectID,CWnd* pParent /*=NULL*/)
 	: CDialog(CGatePriorityDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CGatePriorityDlg)
@@ -30,6 +31,7 @@ CGatePriorityDlg::CGatePriorityDlg(InputTerminal* _pInTerm,int nAirportID, CWnd*
 	m_bPaintInit = false;
 	m_pInTerm = _pInTerm;
 	m_nAirportID = nAirportID;
+	m_nProjID = nAirportID;
 }
 
 
@@ -228,12 +230,17 @@ void CGatePriorityDlg::OnPeoplemoverNew()
 
 	//m_listctrlData.SetItemState( iNewIndex, LVIS_SELECTED, LVIS_SELECTED );
 	
-	CSelectALTObjectDialog objDlg(0,m_nAirportID);
-	objDlg.SetType( ALT_STAND );
+	/*CSelectALTObjectDialog objDlg(0,m_nAirportID);
+	objDlg.SetType( ALT_STAND );*/
+	CDlgStandFamily  objDlg(m_nProjID);
 	if(objDlg.DoModal() != IDOK ) return;
 
 	CString pnewIDstr;
-	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
+	pnewIDstr = objDlg.GetSelStandFamilyName();
+	if (pnewIDstr.IsEmpty())
+		return;
+	
+//	if( !objDlg.GetObjectIDString(pnewIDstr) )  return;
 	////check the objid has exist in the list ctrl
 	//for(int i =0 ;i < m_listctrlData.GetItemCount();i++)	
 
@@ -447,12 +454,12 @@ void CGatePriorityDlg::OnButtonEdit()
 	/*CGateSelectionDlg *gateSelectionDlg = new CGateSelectionDlg(this, nSel);
 	gateSelectionDlg->DoModal();
 	delete gateSelectionDlg;*/
-	CSelectALTObjectDialog objDlg(0,m_nAirportID);
-	objDlg.SetType( ALT_STAND );	
-	objDlg.SetSelectString(m_listctrlData.GetItemText(nSel,1));
+/*	CSelectALTObjectDialog objDlg(0,m_nAirportID);
+	objDlg.SetType( ALT_STAND );*/	
+	CDlgStandFamily  objDlg(m_nProjID);
 	if(objDlg.DoModal() == IDOK )
 	{		
-		m_listctrlData.SetItemText(nSel, 1, objDlg.GetSelectString());		
+		m_listctrlData.SetItemText(nSel, 1, objDlg.GetSelStandFamilyName());		
 	}		
 }
 
@@ -463,12 +470,13 @@ void CGatePriorityDlg::OnDblclkListGatePriority(NMHDR* pNMHDR, LRESULT* pResult)
 	if(nSel == -1)
 		return;
 
-	CSelectALTObjectDialog objDlg(0,m_nAirportID);
-	objDlg.SetType( ALT_STAND );
-	objDlg.SetSelectString(m_listctrlData.GetItemText(nSel,1));
+	//CSelectALTObjectDialog objDlg(0,m_nAirportID);
+	//objDlg.SetType( ALT_STAND );
+	//objDlg.SetSelectString(m_listctrlData.GetItemText(nSel,1));
+	CDlgStandFamily  objDlg(m_nProjID);
 	if(objDlg.DoModal() == IDOK )
 	{		
-		m_listctrlData.SetItemText(nSel, 1, objDlg.GetSelectString());		
+		m_listctrlData.SetItemText(nSel, 1, objDlg.GetSelStandFamilyName());		
 	}		
 
 	*pResult = 0;

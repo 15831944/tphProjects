@@ -38,9 +38,10 @@ protected:
 		void ResetOrder();
 		InputTerminal* m_pInTerm;
 		int m_nAirportID;
+		int m_nProjID;
 // Construction
 public:
-	CGatePriorityDlg(InputTerminal* _pInTerm,int nAirportID, CWnd* pParent = NULL);   // standard constructor
+	CGatePriorityDlg(InputTerminal* _pInTerm,int nAirportID, int nProjectID,CWnd* pParent = NULL);   // standard constructor
 
 // Dialog Data
 	//{{AFX_DATA(CGatePriorityDlg)

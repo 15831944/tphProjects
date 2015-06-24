@@ -51,7 +51,7 @@ public:
 	//create log files
 	virtual bool Initialize(CARCportEngine *pEngine,const IFloorDataSet& floorlist,CString _sprjPath); // do some initialization before engine start
 	virtual void Start(CARCportEngine *pEngine);
-	virtual void End(const ElapsedTime& t, bool bCancel);
+	virtual void End(CARCportEngine *pEngine,const ElapsedTime& t, bool bCancel);
 
 	void SaveLog(CString _sProjPath);
 

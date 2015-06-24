@@ -142,7 +142,7 @@ CString CALTObjectTreeCtrl::GetTreeItemFullString( HTREEITEM hItem )
 
 	reslt = GetItemText(hItem);
 	HTREEITEM parentItem = hItem;
-	while( parentItem = GetParentItem(parentItem) ){
+	while( (parentItem = GetParentItem(parentItem)) && parentItem != GetRootItem()){
 		CString newreslt = GetItemText(parentItem);
 		newreslt = newreslt + '-' + reslt;
 		reslt = newreslt;	

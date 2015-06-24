@@ -710,22 +710,22 @@ LandsideTaxiQueueInSim* LandsideResourceManager::getRandomTaxiQueue( const ALTOb
 }
 
 
-void LandsideResourceManager::FlushOnResourcePax( const ElapsedTime& endTime )
+void LandsideResourceManager::FlushOnResourcePax( CARCportEngine* pEngine, const ElapsedTime& endTime )
 {
 	for(size_t i=0;i<m_vTaxiQueues.size();i++)
 	{
 		LandsideTaxiQueueInSim* pTaxiQ = m_vTaxiQueues.at(i);
-		pTaxiQ->FlushOnVehiclePaxLog(endTime);
+		pTaxiQ->FlushOnVehiclePaxLog(pEngine,endTime);
 	}
 	for(size_t i=0;i<m_BusStation.size();i++)
 	{
 		LandsideBusStationInSim* pBusStation = m_BusStation.at(i);
-		pBusStation->FlushOnVehiclePaxLog(endTime);
+		pBusStation->FlushOnVehiclePaxLog(pEngine,endTime);
 	}
-	for(size_t i=0;i<m_Curbsides.size();i++){
+	/*for(size_t i=0;i<m_Curbsides.size();i++){
 		LandsideCurbSideInSim* pCurb = m_Curbsides.at(i);
-		pCurb->FlushOnVehiclePaxLog(endTime);
-	}
+		pCurb->FlushOnVehiclePaxLog(pEngine,endTime);
+	}*/
 }
 
 CWalkwayInSim * LandsideResourceManager::GetWalkwayInSim( const ALTObjectID& walkWayID ) const

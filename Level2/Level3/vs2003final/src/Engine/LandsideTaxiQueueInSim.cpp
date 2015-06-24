@@ -165,7 +165,7 @@ void LandsideTaxiQueueInSim::_UpdateOrderingVehicle(CARCportEngine* pEngine)
 	int nCount = m_vServiceVehicles.GetCount();
 	CString vehicleType = pTaxiQBehavior->GetVehicleType();
 	
-	int nMoreNeed = m_vWaitingPax.GetCount() - m_vServiceVehicles.size();
+	int nMoreNeed = m_vWaitingPax.size() - m_vServiceVehicles.size();
 	if(nMoreNeed<=0)
 		return;
 
@@ -226,7 +226,7 @@ LandsideTaxiQueueInSim::~LandsideTaxiQueueInSim()
 }
 void LandsideTaxiQueueInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	AddWaitingPax(pPaxBehvior);
+	AddWaitingPax(pPaxBehvior->GetPersonID());
 	pPaxBehvior->setResource(this);
 	m_queueProcessSys->EnterQueueProcess(pPaxBehvior,LandsideLeaveQueue,eTime);
 	UpdateOrderingVehicle(eTime);
@@ -234,7 +234,7 @@ void LandsideTaxiQueueInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior
 
 void LandsideTaxiQueueInSim::PassengerMoveOut( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	DelWaitingPax(pPaxBehvior);
+	DelWaitingPax(pPaxBehvior->GetPersonID());
 }
 
 CPath2008 LandsideTaxiQueueInSim::GetQueue()
