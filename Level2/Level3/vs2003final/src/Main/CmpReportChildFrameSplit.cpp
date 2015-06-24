@@ -135,6 +135,6 @@ int CCmpReportChildFrameSplit::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CCmpReportChildFrameSplit::OnUpdateFrameMenu (BOOL bActivate, CWnd* pActivateWnd, HMENU hMenuAlt)
 {
     CMDIChildWnd::OnUpdateFrameMenu (bActivate, pActivateWnd, hMenuAlt);
-	if(bActivate)
-		GetDocument()->UpdateTrackersMenu();
+// 	if(bActivate)
+// 		GetDocument()->UpdateTrackersMenu();
 }

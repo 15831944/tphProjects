@@ -21,7 +21,7 @@ public:
 	//}}AFX_VIRTUAL
 	virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 
-	CTermPlanDoc* GetDocument() { return (CTermPlanDoc*) GetActiveDocument(); }
+	CDocument* GetDocument() { return (CDocument*) GetActiveDocument(); }
 
 protected:
 	virtual ~CCmpReportChildFrameSplit();

@@ -1,6 +1,6 @@
 #pragma once
+#include "../compare/Cmp3DChartWnd.h"
 #include "../compare/ThreeDChartType.h"
-#include "../AirsideReport/CARC3DChart.h"
 
 class CComparativeReportResult;
 class CComparativeQLengthReport;
