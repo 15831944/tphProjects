@@ -18,6 +18,7 @@
 
 static const UINT ID_RUN = 101;
 static const UINT ID_CANCEL = 102;
+static const UINT ID_MAIN_TREE = 103;
 static const int BUTTON_AREA_HEIGHT = 50;
 static const int BUTTON_HEIGHT = 22;
 static const int BUTTON_WIDTH = 80;
@@ -91,7 +92,7 @@ int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	emptyRect.SetRectEmpty();
 	m_propTree.Create(WS_VISIBLE | WS_TABSTOP | WS_CHILD | WS_BORDER| TVS_HASBUTTONS | TVS_LINESATROOT | 
 		TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_EDITLABELS,
-		emptyRect, this, 11);
+		emptyRect, this, ID_MAIN_TREE);
 	m_propTree.SetFont(&m_font);
 
 	m_btnRun.Create(_T("Run"), WS_VISIBLE|WS_CHILD, emptyRect, this, ID_RUN);

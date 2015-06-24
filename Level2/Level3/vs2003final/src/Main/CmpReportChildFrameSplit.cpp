@@ -93,10 +93,8 @@ BOOL CCmpReportChildFrameSplit::OnCreateClient( LPCREATESTRUCT lpcs, CCreateCont
 	}
 
 	GetWindowRect(&rect);
-	m_wndSplitter1.SetColumnInfo(0,350,260);
-	m_wndSplitter2.SetRowInfo(0,rect.Height()/2,/*rect.Width()*/0);
-	m_wndSplitter2.SetRowInfo(1,rect.Height()/2,0);
-	m_wndSplitter1.SetActivePane(0,0);
+ 	m_wndSplitter1.SetColumnInfo(0, 350, 0);
+ 	m_wndSplitter2.SetRowInfo(0, 500, 200);
 	return TRUE;
 }
 
