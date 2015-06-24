@@ -156,6 +156,7 @@ public:
 		m_bUseDependentProc = entry.m_bUseDependentProc;
 		*m_pDependentProcList = *(entry.m_pDependentProcList);
 		*m_pBridgeConnectorList = *(entry.m_pBridgeConnectorList);
+		*m_pDisallowedNonPax = *(entry.m_pDisallowedNonPax);
 	}
     virtual ~MiscData () 
 	{ 
@@ -178,7 +179,6 @@ public:
 	void SetWaitInQueue(bool _bBool){m_bWaitInQueue = _bBool;}
 
 	CapacityAttributes* GetCapacityAttributes( void ) const {	return m_pCapacityAttributes; }
-	CapacityAttributes* GetDisallowedNonPax( void ) const {	return m_pDisallowedNonPax; }
 	void SetQueueCapacity(long _iNewCapacity);
 	long GetQueueCapacity() const;
 
@@ -240,6 +240,9 @@ public:
 	void readObsoleteMiscData(ArctermFile& p_file);
     void writeMiscData (ArctermFile& p_file) const;
 
+	void readDisallowedNonPaxItem( ArctermFile &p_file );
+	void writeDisallowedNonPaxItem( ArctermFile &p_file ) const;
+
     virtual void readSpecificData ( ArctermFile& p_file ) {};
     virtual void writeSpecificData (ArctermFile& p_file) const {};
 
@@ -260,8 +263,9 @@ public:
 	ALTObjectID &getCurbSide(int nIndex)const;
 
 	// Disallowed Non-Passenger Item
-	bool getDisallowNonPaxItemFlag() const{ return m_bDisallowNonPaxItem; }
-	void setDisallowNonPaxItemFlag(bool bDisallowNonPaxItem){ m_bDisallowNonPaxItem = bDisallowNonPaxItem; } 
+	CapacityAttributes* getDisallowedNonPaxItem( void ) const {	return m_pDisallowedNonPax; }
+	bool getDisallowedNonPaxItemFlag() const{ return m_bDisallowNonPaxItem; }
+	void setDisallowedNonPaxItemFlag(bool bDisallowNonPaxItem){ m_bDisallowNonPaxItem = bDisallowNonPaxItem; } 
 
 private:
 	void readObsoleteMiscData24 (ArctermFile& p_file);
@@ -277,6 +281,7 @@ private:
 	void readObsoleteMiscData34(ArctermFile&p_file);
 	void readObsoleteMiscData35(ArctermFile&p_file);
 	void readObsoleteMiscData37(ArctermFile&p_file);
+	void readObsoleteMiscData38(ArctermFile&p_file);
 	void ConvertCapacityIssueIfNeed(float fFileVersion);
 	//void readObsoleteMiscData32(ArctermFile&p_file)/*3.2 */;
 

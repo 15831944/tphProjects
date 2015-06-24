@@ -305,7 +305,7 @@ void CProcDataPage::ReLoadDetailed()
 	else
 		m_TreeData.SetCheckStatus(m_hWaitInQueue,FALSE);
 
-	if(pMiscData->getDisallowNonPaxItemFlag())
+	if(pMiscData->getDisallowedNonPaxItemFlag())
 		m_TreeData.SetCheckStatus(m_disallowedNonPaxItem,TRUE);
 	else
 		m_TreeData.SetCheckStatus(m_disallowedNonPaxItem,FALSE);
@@ -1297,8 +1297,10 @@ void CProcDataPage::OnToolbarbuttondel()
 	}
 	else if (hParentItem == m_hConnectBridge)
 		DelBridgeConnector(hItem);
-	else if (hParentItem = m_hStandConnect)
+	else if (hParentItem == m_hStandConnect)
 		DelStandConnector(hItem);
+	else if (hParentItem == m_disallowedNonPaxItem)
+		DelDisallowedNonPax(hItem);
 }
 
 void CProcDataPage::AddGate()
@@ -2003,6 +2005,16 @@ LRESULT CProcDataPage::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			}
 		}
+		else if( hItem == m_disallowedNonPaxItem)
+		{
+			MiscData* pMiscData = GetCurMiscData();
+			if(pMiscData)
+			{
+				BOOL bCheck = IsCheckTreeItem(m_disallowedNonPaxItem);
+				pMiscData->setDisallowedNonPaxItemFlag(bCheck ? true : false );
+				SetModified();	
+			}
+		}
 	}
 
 	if(message==UM_CEW_EDITSPIN_BEGIN)
@@ -2495,7 +2507,7 @@ void CProcDataPage::InsertTreeForBehavior()
 	cni.nt=NT_NORMAL;
 	cni.net=NET_COMBOBOX;
 	
-	m_TreeData.InsertItem("[New Non-Passenger Mobile Element]",cni,FALSE,FALSE,m_disallowedNonPaxItem);
+	ReloadDisallowedNonPax();
 	cni.nt=NT_CHECKBOX;
 	cni.net=NET_EDITSPIN_WITH_VALUE;
 	//m_hPopulationCapacity=m_TreeData.InsertItem("Population Capacity:  0",cni,TRUE,FALSE,m_hOtherBehavior);
@@ -3583,6 +3595,21 @@ void CProcDataPage::SetToolBarState(const HTREEITEM hItem )
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
 
 	}
+	if(hItem == m_disallowedNonPaxItem)
+	{
+		m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE);
+		m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE);
+		m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
+	}
+	if(paritem == m_disallowedNonPaxItem)
+	{
+		m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE);
+		m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
+		if(!GetCurMiscData()->getDisallowedNonPaxItemFlag())
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE);
+		else
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE);
+	}
 }
 
 
@@ -3761,58 +3788,14 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 	if(hCurrentTreeItem == NULL)
 		return ;
 
-	if(hCurrentTreeItem == m_hTreeItemCapacity || m_TreeData.GetParentItem(hCurrentTreeItem) == m_hTreeItemCapacity)
+	if(hCurrentTreeItem == m_disallowedNonPaxItem)
 	{
-		if (0 ==m_TreeData.GetItemText(hCurrentTreeItem).CompareNoCase(_T("No Limit")))
-			return ;
-		CapacityAttribute* pAttribute = (CapacityAttribute*)m_TreeData.GetItemNodeInfo(hCurrentTreeItem)->nMaxCharNum ;
-		if(pAttribute->m_Type != CapacityAttributes::TY_Combination)
-			return ;
-		//Get Defined Pax
-		std::vector<CString> vPaxDefined;
-		HTREEITEM hItemChild= m_TreeData.GetChildItem(hCurrentTreeItem);
-		while(hItemChild)
-		{
-			CString strMob = m_TreeData.GetItemText(hItemChild);
-			int curPos = 0;
-			CString strToken = strMob.Tokenize(":", curPos);
-			vPaxDefined.push_back(strToken);
-			hItemChild= m_TreeData.GetNextSiblingItem(hItemChild);
-		}
+		MiscData* pMiscData = GetCurMiscData();
+		if( pMiscData == NULL )
+			return;
+		if(!pMiscData->getDisallowedNonPaxItemFlag())
+			return;
 
-
-		CMenu menuMobileElement;
-		menuMobileElement.CreatePopupMenu();
-
-		CMenu sepMenu;
-		sepMenu.CreateMenu();
-
-		//add conbinaton 
-		if(hCurrentTreeItem == m_hTreeItemCapacity || hCurrentTreeItem == m_disallowedNonPaxItem)
-			sepMenu.AppendMenu(MF_STRING | MF_ENABLED , MOBILE_ELEMENT_MENU_COMBINATION, STR_COMBINATION) ;
-		//add "all non pax"
-		std::vector<CString>::iterator itor;
-		CString temp;
-		for(itor=vPaxDefined.begin(); itor!=vPaxDefined.end(); itor++)
-		{
-			temp = *itor;
-		}
-		if(std::find(vPaxDefined.begin(),vPaxDefined.end(),CString(STR_ALL_NOPAX)) == vPaxDefined.end() && hCurrentTreeItem == m_hTreeItemCapacity)
-			sepMenu.AppendMenu(MF_STRING | MF_ENABLED , MOBILE_ELEMENT_MENU_ALLNOPAX, STR_ALL_NOPAX) ;
-		CMobileElemTypeStrDB* pMobElement = m_pInTerm->m_pMobElemTypeStrDB;
-		for (int i =0; i< pMobElement->GetCount(); i++)
-		{
-			CString strMobElement = pMobElement->GetString(i);
-			if(std::find(vPaxDefined.begin(), vPaxDefined.end(), strMobElement) != vPaxDefined.end())
-				continue;
-			sepMenu.AppendMenu(MF_STRING | MF_ENABLED , MOBILE_ELEMENT_MENU_START + i +1, strMobElement);
-		}
-		menuMobileElement.InsertMenu(0, MF_BYPOSITION|MF_POPUP, (UINT) sepMenu.m_hMenu, _T("Add..."));
-
-		menuMobileElement.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
-	}
-	else if(hCurrentTreeItem == m_disallowedNonPaxItem)
-	{
 		CMenu menuMobileElement;
 		menuMobileElement.CreatePopupMenu();
 		CMenu sepMenu;
@@ -3838,7 +3821,56 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 		}
 		menuMobileElement.InsertMenu(0, MF_BYPOSITION|MF_POPUP, (UINT) sepMenu.m_hMenu, _T("Add..."));
 		menuMobileElement.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		return;
 	}
+	if(hCurrentTreeItem != m_hTreeItemCapacity)
+	{
+		if(m_TreeData.GetParentItem(hCurrentTreeItem) != m_hTreeItemCapacity)
+			return ;
+		if (0 ==m_TreeData.GetItemText(hCurrentTreeItem).CompareNoCase(_T("No Limit")))
+			return ;
+
+		CapacityAttribute* pAttribute = (CapacityAttribute*)m_TreeData.GetItemNodeInfo(hCurrentTreeItem)->nMaxCharNum ;
+		if(pAttribute->m_Type != CapacityAttributes::TY_Combination)
+			return ;
+	}
+	//Get Defined Pax
+	std::vector<CString> vPaxDefined;
+	HTREEITEM hItemChild= m_TreeData.GetChildItem(hCurrentTreeItem);
+	while(hItemChild)
+	{
+		CString strMob = m_TreeData.GetItemText(hItemChild);
+		int curPos = 0;
+		CString strToken = strMob.Tokenize(":", curPos);
+		vPaxDefined.push_back(strToken);
+		hItemChild= m_TreeData.GetNextSiblingItem(hItemChild);
+	}
+
+
+	CMenu menuMobileElement;
+	menuMobileElement.CreatePopupMenu();
+	
+	CMenu sepMenu;
+	sepMenu.CreateMenu();
+	
+	//add conbinaton 
+	if(hCurrentTreeItem == m_hTreeItemCapacity)
+		sepMenu.AppendMenu(MF_STRING | MF_ENABLED , MOBILE_ELEMENT_MENU_COMBINATION, STR_COMBINATION) ;
+	//add "all non pax"
+	if(std::find(vPaxDefined.begin(),vPaxDefined.end(),CString(STR_ALL_NOPAX)) == vPaxDefined.end() && hCurrentTreeItem == m_hTreeItemCapacity)
+		sepMenu.AppendMenu(MF_STRING | MF_ENABLED , MOBILE_ELEMENT_MENU_ALLNOPAX, STR_ALL_NOPAX) ;
+	CMobileElemTypeStrDB* pMobElement = m_pInTerm->m_pMobElemTypeStrDB;
+	for (int i =0; i< pMobElement->GetCount(); i++)
+	{
+		CString strMobElement = pMobElement->GetString(i);
+		if(std::find(vPaxDefined.begin(), vPaxDefined.end(), strMobElement) != vPaxDefined.end())
+			continue;
+		sepMenu.AppendMenu(MF_STRING | MF_ENABLED , MOBILE_ELEMENT_MENU_START + i +1, strMobElement);
+	}
+	menuMobileElement.InsertMenu(0, MF_BYPOSITION|MF_POPUP, (UINT) sepMenu.m_hMenu, _T("Add..."));
+
+	menuMobileElement.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+
 }
 
 
@@ -3898,22 +3930,30 @@ void CProcDataPage::OnSelectMobileElementType(UINT nID)
 		HTREEITEM hTreeItemChild =  m_TreeData.GetChildItem(m_disallowedNonPaxItem);
 		if (0 ==m_TreeData.GetItemText(hTreeItemChild).CompareNoCase(_T("[New Non-Passenger Mobile Element]")))
 			m_TreeData.DeleteItem(hTreeItemChild);
-		CapacityAttributes* pAttributes = pMiscData->GetCapacityAttributes();
+		CapacityAttributes* pAttributes = pMiscData->getDisallowedNonPaxItem();
 		CapacityAttribute* pAttribute = new CapacityAttribute;
-		pAttribute->m_nCapacity = 1;
-		pAttribute->m_nMobElementIndex = nID -1 ;
+		pAttribute->m_nMobElementIndex = nID - 1;
+		pAttribute->m_Name = GetMobileElementString(nID - 1);
 		pAttributes->AddCapacityAttribute(pAttribute);
-		pAttribute->m_Name = GetMobileElementString(nID - 1) ;
-
+		int count = pAttributes->GetCount();
+		CapacityAttribute* tempAttri = NULL;
+		for(int i=0; i<count; i++)
+		{
+			tempAttri = pAttributes->GetItem(i);
+			int xxx = tempAttri->m_nMobElementIndex;
+			CString yyy = tempAttri->m_Name;
+			int uuu = 0;
+		}
 
 		COOLTREE_NODE_INFO cni;
 		CCoolTree::InitNodeInfo(this,cni);
 		cni.nt=NT_NORMAL;
 		cni.net=NET_NORMAL;
+		cni.nMaxCharNum = (DWORD_PTR)pAttribute;
 		CString strLabel = GetMobileElementString(nID - 1);
-		HTREEITEM hTreeItemPaxCapacity = m_TreeData.InsertItem(strLabel, cni, FALSE, FALSE, m_disallowedNonPaxItem);
+		HTREEITEM hTreeItemDisallowedNonPax = m_TreeData.InsertItem(strLabel, cni, FALSE, FALSE, m_disallowedNonPaxItem);
 
-		m_TreeData.SetItemData(m_disallowedNonPaxItem,1);
+		m_TreeData.SetItemData(hTreeItemDisallowedNonPax,1);
 		m_TreeData.Expand(m_disallowedNonPaxItem,TVE_EXPAND);
 	}
 	return;
@@ -4296,6 +4336,43 @@ void CProcDataPage::ReloadStandConnectorList(MiscData* _pMiscData)
 	m_TreeData.SelectItem(m_hStandConnect);
 }
 
+void CProcDataPage::DelDisallowedNonPax( HTREEITEM hItem )
+{
+	if(hItem == NULL)
+		return ;
+	if(0 == strcmp("[New Non-Passenger Mobile Element]", m_TreeData.GetItemText(hItem)))
+		return;
+	CapacityAttribute* pNonPaxItem = (CapacityAttribute*)m_TreeData.GetItemNodeInfo(hItem)->nMaxCharNum ;
+	if(pNonPaxItem == NULL)
+		return ;
+	MiscData* pMiscData = GetCurMiscData();
+	if(pMiscData == NULL) 
+		return;
+
+	CapacityAttributes* pDisallowedList = pMiscData->getDisallowedNonPaxItem();
+	pDisallowedList->RemoveCapacityAttribute(pNonPaxItem);
+
+	HTREEITEM prevItem = m_TreeData.GetPrevSiblingItem(hItem);
+	HTREEITEM nextItem = m_TreeData.GetNextSiblingItem(hItem);
+	m_TreeData.DeleteItem(hItem);
+	if(nextItem==NULL && prevItem!=NULL)
+	{
+		m_TreeData.SelectItem(prevItem);
+	}
+
+	if (pDisallowedList->GetCount() < 1)
+	{
+		COOLTREE_NODE_INFO cni;
+		CCoolTree::InitNodeInfo(this,cni);
+		cni.nt=NT_NORMAL;
+
+		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]") , cni, FALSE, FALSE, m_disallowedNonPaxItem);
+		m_TreeData.Expand(m_disallowedNonPaxItem, TVE_EXPAND);
+	}
+	m_TreeData.SetFocus();
+}
+
+
 void CProcDataPage::InitSpecificBehvaior()
 {
 	
@@ -4443,4 +4520,47 @@ void CProcDataPage::SetImgOfButtonEditPipeAuto( int typeOfUsingPipe )
 		break;
 	}
 	m_ToolBar.GetToolBarCtrl().SetButtonInfo( ID_LINKAGE_EDITPIPE_AUTO,&tbBtnInfo );
+}
+
+void CProcDataPage::ReloadDisallowedNonPax()
+{
+	if(m_hTreeItemCapacity == NULL)
+		return;
+
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+	cni.nt=NT_NORMAL;
+
+	MiscData* _pMiscData = GetCurMiscData();
+	if( _pMiscData == NULL)
+	{//first time define
+		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]"),cni, FALSE, FALSE, m_hTreeItemCapacity);
+		m_TreeData.Expand(m_hTreeItemCapacity, TVE_EXPAND);
+		return;
+	}
+
+	//Delete OldData
+	while (m_TreeData.ItemHasChildren(m_disallowedNonPaxItem))
+	{
+		HTREEITEM hTreeItemChild = m_TreeData.GetChildItem(m_disallowedNonPaxItem);
+		m_TreeData.DeleteItem(hTreeItemChild);
+	}
+
+	CapacityAttributes* pAttributes =  _pMiscData->getDisallowedNonPaxItem();
+	if (pAttributes->GetCount() < 1)
+	{
+		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]"), cni, FALSE, FALSE, m_disallowedNonPaxItem);
+		m_TreeData.Expand(m_disallowedNonPaxItem, TVE_EXPAND);
+		return;
+	}
+
+	for (int i = 0; i < pAttributes->GetCount(); i++)
+	{
+		CapacityAttribute* pAttribute = pAttributes->GetItem(i);
+		cni.nMaxCharNum = (DWORD_PTR)pAttribute ;
+		CString strLabel = pAttribute->m_Name;
+		HTREEITEM hTreeItemPaxCapacity = m_TreeData.InsertItem(strLabel, cni, FALSE, FALSE, m_disallowedNonPaxItem);
+		m_TreeData.Expand(m_disallowedNonPaxItem, TVE_EXPAND);
+	}
+
 }

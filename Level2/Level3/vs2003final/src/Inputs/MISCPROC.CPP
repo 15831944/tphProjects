@@ -234,6 +234,8 @@ void MiscData::readMiscData (ArctermFile& p_file)
 	p_file.getInteger(m_nGroupSerTimeModIndex);
 	p_file.getInteger(m_nGroupSerTimeModSum);
 
+	readDisallowedNonPaxItem(p_file);
+
 }
 
 void MiscData::readObsoleteMiscData24 (ArctermFile& p_file)
@@ -601,6 +603,69 @@ void MiscData::readObsoleteMiscData37(ArctermFile&p_file)
 
 }
 
+void MiscData::readObsoleteMiscData38 (ArctermFile& p_file)
+{
+	p_file.getInteger( m_nCyclicFreq );
+	p_file.getInteger(m_lQueueCapacity);
+	int nCapaAttrCount;
+    p_file.getInteger( nCapaAttrCount);
+	for (int i=0; i<nCapaAttrCount; i++)
+	{
+		CapacityAttribute* pCapaAttr = new CapacityAttribute;
+		p_file.getInteger(pCapaAttr->m_nMobElementIndex);
+		p_file.getInteger(pCapaAttr->m_nCapacity);
+		m_pCapacityAttributes->AddCapacityAttribute(pCapaAttr);
+		if(p_file.getVersion() > 3.2)
+		{
+			TCHAR name[1024] = {0} ;
+			int version = 0 ;
+			p_file.getInteger(version) ;
+			pCapaAttr->m_Type = (CapacityAttributes::CapacityType)version ;
+			p_file.getField(name ,1024) ;
+			pCapaAttr->m_Name = name ;
+			//p_file.getLine() ;
+			int size = 0 ;
+			p_file.getInteger(size) ;
+			//p_file.getLine() ;
+			CString strname ;
+			for (int i = 0 ;i < size ;i++)
+			{
+				p_file.getField(name ,1024) ;
+				pCapaAttr->AddCombinationContainTypeString(CString(name)) ;
+			}
+		}
+		p_file.getLine() ;
+	}
+	p_file.getInteger( m_lTerminateTime);
+	
+	char disallowGroup;
+    char visitors;
+	char cWaitInQueue;
+	p_file.getChar( disallowGroup );
+	m_bDisallowGroup = disallowGroup == 'Y' ? true : false;
+    
+	p_file.getChar (visitors);
+    visitorFlag = (visitors == 'Y');
+
+	p_file.getChar(cWaitInQueue);
+	m_bWaitInQueue = cWaitInQueue == 'N' ? false : true;
+
+	assert( m_pInTerm );
+    gateList->readIDList (p_file, m_pInTerm );
+	m_pWaitAreaList->readIDList (p_file, m_pInTerm );
+	m_pLinkedDestList->readIDList(p_file,  m_pInTerm);
+
+	char cUseDependentProc;
+	p_file.getChar( cUseDependentProc );
+	m_bUseDependentProc = cUseDependentProc == 'Y' ? true : false;
+	m_pDependentProcList->readIDList(p_file, m_pInTerm);
+    
+	readSpecificData (p_file);
+	p_file.getInteger(m_nGroupSerTimeModIndex);
+	p_file.getInteger(m_nGroupSerTimeModSum);
+
+}
+
 //MobElemTypeStrDB.TXT
 void MiscData::ConvertCapacityIssueIfNeed(float fFileVersion)
 {
@@ -708,6 +773,12 @@ void MiscData::readObsoleteMiscData (ArctermFile& p_file )
 		readObsoleteMiscData37(p_file);
 		return;
 	}
+	
+	if ((fFileVersion - 0.0001)<3.8f && (fFileVersion + 0.0001)>3.8f)//fFileVersion==3.8f
+	{
+		readObsoleteMiscData38(p_file);
+		return;
+	}
 
 	if( fFileVersion == 21 )
 	{
@@ -785,6 +856,8 @@ void MiscData::writeMiscData (ArctermFile& p_file) const
 	writeSpecificData (p_file);
 	p_file.writeInt(m_nGroupSerTimeModIndex);
 	p_file.writeInt(m_nGroupSerTimeModSum);
+	writeDisallowedNonPaxItem(p_file);
+
 }
 
 bool MiscData::IfUsedThisProcssor( const ProcessorID& _procID ,InputTerminal*_pTerm,std::vector<CString>& _stringVec,const ProcessorID&_entryID)const
@@ -1148,6 +1221,46 @@ void MiscData::readObsoleteMiscData35( ArctermFile&p_file )
 	p_file.getInteger(m_nGroupSerTimeModIndex);
 	p_file.getInteger(m_nGroupSerTimeModSum);
 }
+
+void MiscData::readDisallowedNonPaxItem( ArctermFile &p_file )
+{
+	char bDisallowed;
+	p_file.getChar(bDisallowed);
+	if(bDisallowed == 'Y')
+		m_bDisallowNonPaxItem = true;
+	else
+		m_bDisallowNonPaxItem = false;
+	int nDisallowedCount;
+	p_file.getInteger( nDisallowedCount);
+	char subField[256] = "";
+	for (int i=0; i<nDisallowedCount; i++)
+	{
+		CapacityAttribute* pDisallowed = new CapacityAttribute;
+		p_file.getInteger(pDisallowed->m_nMobElementIndex);
+		p_file.getField(subField, 256);
+		pDisallowed->m_Name = subField;
+		m_pDisallowedNonPax->AddCapacityAttribute(pDisallowed);
+		p_file.getLine() ;
+	}
+}
+
+void MiscData::writeDisallowedNonPaxItem( ArctermFile &p_file ) const
+{
+	if(m_bDisallowNonPaxItem)
+		p_file.writeChar('Y');
+	else
+		p_file.writeChar('N');
+	int nDisallowedCount = (int)m_pDisallowedNonPax->GetCount();
+	p_file.writeInt(nDisallowedCount);
+	for (int i=0; i<nDisallowedCount; i++)
+	{
+		p_file.writeInt(m_pDisallowedNonPax->GetItem(i)->m_nMobElementIndex);
+		p_file.writeField(m_pDisallowedNonPax->GetItem(i)->m_Name) ;
+		p_file.writeLine() ;
+	}
+
+}
+
 void MiscDependentData::readSpecificData (ArctermFile& p_file )
 {
 	assert( m_pInTerm );

@@ -266,8 +266,9 @@ protected:
 	bool SelectStandConnector(ProcessorID _id);
 	void ReloadStandConnectorList(MiscData* _pMiscData);
 	
-
-
+	//Disallowed Non-Passenger Item
+	void DelDisallowedNonPax(HTREEITEM hItem);
+	void ReloadDisallowedNonPax();
 	//----------------- Value Functions -------------------------------
 	virtual void SetValue( MiscData* _pMiscData );
 	void SetSpinRange();
