@@ -15,7 +15,7 @@
 #include "OnboardRepListViewBaseOperator.h"
 #include "ViewMsg.h"
 
-#define  IDC_CMPREPORT_LISTCTRL 0x01
+#define  IDC_ONBOARDREPORT_LISTCTRL 0x01
 // OnboardReportListView
 
 IMPLEMENT_DYNCREATE(OnboardReportListView, CFormView)
@@ -41,7 +41,7 @@ BEGIN_MESSAGE_MAP(OnboardReportListView, CFormView)
 	ON_WM_CREATE()
 	ON_WM_CONTEXTMENU()
 	//ON_NOTIFY_REFLECT(LVN_COLUMNCLICK, OnColumnclick)
-	ON_NOTIFY(LVN_COLUMNCLICK, IDC_CMPREPORT_LISTCTRL, OnColumnclick)
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_ONBOARDREPORT_LISTCTRL, OnColumnclick)
 	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnCustomDraw)
 
 	ON_COMMAND(ID_LISTVIEW_MAXIMIZE, OnListviewMaximize)
@@ -112,7 +112,7 @@ int OnboardReportListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect rtEmpty;
 	rtEmpty.SetRectEmpty();
 	if(m_wndListCtrl.Create(LBS_NOTIFY|LBS_HASSTRINGS|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_VSCROLL,
-		rtEmpty, this,IDC_CMPREPORT_LISTCTRL))
+		rtEmpty, this,IDC_ONBOARDREPORT_LISTCTRL))
 	{
 		DWORD dwStyle =dwStyle = m_wndListCtrl.GetExtendedStyle();
 		dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES;
