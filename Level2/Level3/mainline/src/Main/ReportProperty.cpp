@@ -481,10 +481,16 @@ void CReportProperty::OnOK()
 	}
 
 	m_reportToCompare.SetCategory(nReportType);
-	if ((nReportType == 3 &&m_nReportType.GetCurSel() != 6) && m_strArea.IsEmpty())
+	if (nReportType == 3 || nReportType == ENUM_PAXDENS_REP)
 	{
-		AfxMessageBox(_T("Please Select An Area."));
-		return;
+		if(m_nReportType.GetCurSel() != 6)
+		{
+			if(m_strArea.IsEmpty())
+			{
+				AfxMessageBox(_T("Please Select An Area."));
+				return;
+			}
+		}
 	}
 
 	CReportParamToCompare param;
@@ -1390,34 +1396,19 @@ void CReportProperty::LoadArea()
 {
 
 	m_treeArea.DeleteAllItems();
-	m_treeArea.SetRedraw();
 
 	int nModelCount = static_cast<int>(m_vModelParam.size());
 	for (int nModel = 0; nModel < nModelCount; ++nModel)
 	{
-		LoadAreaByModel(nModel,NULL);
+		LoadAreaByModel(nModel);
 	}
 }
-void CReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel)
+void CReportProperty::LoadAreaByModel(int nModelIndex)
 {
 	CModelParameter modelParam = m_vModelParam[nModelIndex];
-	if (hItemModel == NULL)
-	{
-		hItemModel = m_treeArea.InsertItem(modelParam.GetModelUniqueName(),TVI_ROOT);
-		m_treeArea.SetItemState( hItemModel,TVIS_BOLD, TVIS_BOLD );
-	}
-	else
-	{
 
-		HTREEITEM hChildItem = NULL;
-		while(hChildItem = m_treeArea.GetChildItem(hItemModel))
-		{
-			ItemData *pChildItemData  = (ItemData *)m_treeArea.GetItemData(hChildItem);
-			delete pChildItemData;
-			m_treeArea.DeleteItem(hChildItem);
-
-		}
-	}
+	HTREEITEM hItemModel = m_treeArea.InsertItem(modelParam.GetModelUniqueName(),TVI_ROOT);
+	m_treeArea.SetItemState( hItemModel,TVIS_BOLD, TVIS_BOLD );
 	ItemData *pItemData = new ItemData(IT_MODEL,nModelIndex);
 	m_treeArea.SetItemData(hItemModel,(DWORD_PTR)pItemData);
 
@@ -1426,11 +1417,9 @@ void CReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel)
 	if (!strArea.IsEmpty())
 	{
 		HTREEITEM hItem = m_treeArea.InsertItem(strArea,hItemModel);
-
 		m_treeArea.SetItemData(hItem,(DWORD_PTR)new ItemData(IT_AREA,nModelIndex));
 	}
-m_treeArea.Expand(hItemModel,TVE_EXPAND);
-
+	m_treeArea.Expand(hItemModel,TVE_EXPAND);
 }
 void CReportProperty::OnSelchangeComboReporttype() 
 {
@@ -1889,13 +1878,9 @@ void CReportProperty::OnDelArea()
 	ItemData *pItemData =  (ItemData *)m_treeArea.GetItemData(hItem);
 	if (pItemData == NULL || pItemData->m_itemType != IT_AREA)
 		return;
-
-	ItemData* pData = (ItemData *)m_treeArea.GetItemData(hItem);
-	delete pData;
-	m_treeArea.DeleteItem(hItem);
-
 	m_vModelParam[pItemData->m_nIndex].SetArea(_T(""));
-
+	delete pItemData;
+	m_treeArea.DeleteItem(hItem);
 }
 void CReportProperty::OnUpdateUIPaxTypeAdd()
 {
