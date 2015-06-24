@@ -54,12 +54,12 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 	const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vReport = crrList.GetReportResult();
 
-			for(int i = 0; i < static_cast<int>(vReport.size()); i++)
-			{
-				CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart, vModelList);
-				cmpPlot.Draw3DChart(*vReport[i]);
-				break;
-			}
+	for(int i = 0; i < static_cast<int>(vReport.size()); i++)
+	{
+		CComparativePlot_new cmpPlot(CMPBar_2D, m_3DChart, vModelList);
+		cmpPlot.Draw3DChart(*vReport[i]);
+		break;
+	}
 }
 
 void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)

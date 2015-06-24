@@ -782,6 +782,17 @@ bool CComparativePlot_new::Draw3DChart(const CComparativeQTimeReport& _reportDat
 		}	
 	}
 
+	for(int i=0; i<(int)m_vModelList.size(); i++)
+	{
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			c2dGraphData.m_vrLegend.push_back(strColText);
+		}
+	}
+
 	// Insert data
 	CString XTickTitle;
 	std::vector<CString> vXTickTitle;

@@ -38,7 +38,9 @@
 #include "../Reports/ReportParaWithArea.h"
 #include "ModelToCompare.h"
 
-#define SIMULATION_INFO_SPLITTER _T("-_-")
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
 
 CComparativeProject::CComparativeProject()
 {
@@ -509,17 +511,12 @@ CString CComparativeProject::SaveTempReport(const CString &strReportPath, int iM
 
 	int nPos = strReportPath.ReverseFind(_T('\\'));
 	CString strName = strReportPath.Mid(nPos + 1, strReportPath.GetLength() - nPos);
-	std::vector<CModelToCompare*>& vModels = m_inputParam.GetModelsManagerPtr()->GetModelsList();
-	std::vector<CReportToCompare>& vReports = m_inputParam.GetReportsManagerPtr()->GetReportsList();
-	strDest = strPath; 
-	strDest += _T("\\");
-	strDest += vModels[iModelIndex]->GetModelName();
-	strDest += SIMULATION_INFO_SPLITTER;
-	strDest += vModels[iModelIndex]->GetSimResult(nSimResult);
-	strDest += SIMULATION_INFO_SPLITTER;
-	strDest += vReports[iReportIndex].GetName();
-	strDest += SIMULATION_INFO_SPLITTER;
-	strDest += strName;
+	strDest = strPath + _T("\\") + strName;
+
+	strDest.Format(_T("%s%s%d%d%d%s"), strPath, _T("\\"), iModelIndex,nSimResult ,iReportIndex, strName);
+
+	//if (m_fo.Copy(strReportPath, strPath))
+	//	return strDest;
 
 	if (CopyFile(strReportPath, strDest, FALSE))
 		return strDest;
