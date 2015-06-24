@@ -346,6 +346,16 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 			term->m_pAirportDB->loadDatabase();
 	}			
 
+	//open database connection 
+	CString strDBPath;
+	strDBPath += _T("\"");
+	strDBPath += strPath;
+	strDBPath += _T("\\");
+	strDBPath += m_strModelName;
+	strDBPath += _T("\\input\\arcport.mdb");
+	strDBPath += _T("\"");
+	DATABASECONNECTION.SetAccessDatabasePath(strDBPath);
+	DATABASECONNECTION.GetConnection(DATABASESOURCE_TYPE_ACCESS);
 
 	term->loadInputs(strPath + _T("\\") + m_strModelName);
 	term->GetSimReportManager()->loadDataSet(strPath + _T("\\") + m_strModelName);
