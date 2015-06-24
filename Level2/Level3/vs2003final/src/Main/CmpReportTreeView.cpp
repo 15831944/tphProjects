@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "TermPlan.h"
+#include "CompareReportDoc.h"
 #include "CmpReportTreeView.h"
 
 #include "..\compare\ReportDef.h"
 #include "..\compare\InputParameter.h"
+#include "..\compare\ModelToCompare.h"
 #include "..\Main\CompRepLogBar.h"
 #include "..\main\resource.h"
 #include "..\main\ModelSelectionDlg.h"
@@ -12,9 +14,7 @@
 
 #include "..\common\elaptime.h"
 #include "..\common\SimAndReportManager.h"
-#include "..\compare\ModelToCompare.h"
 #include "..\common\EchoSystem.h"
-#include "CompareReportDoc.h"
 
 static const UINT ID_RUN = 101;
 static const UINT ID_CANCEL = 102;
@@ -116,16 +116,16 @@ void CCmpReportTreeView::OnInitialUpdate()
 
 void CCmpReportTreeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
-	CView* pTemp = this;
-	if(m_pCmpReport && m_pCmpReport->GetComparativeProject()->GetName())
-		UpdateParaWnd();
+	if(!IsWindowVisible())
+		return;
+	UpdateParaWnd();
 }
 
 void CCmpReportTreeView::OnSize(UINT nType, int cx, int cy)
 {
-	CDocument* pDoc = GetDocument();
 	CFormView::OnSize(nType, cx, cy);
 
+	CDocument* pDoc = GetDocument();
 	if (::IsWindow(m_propTree.m_hWnd))
 		m_propTree.MoveWindow(0, 0, cx, (cy - BUTTON_AREA_HEIGHT));
 

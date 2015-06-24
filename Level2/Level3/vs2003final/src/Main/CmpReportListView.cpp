@@ -1,6 +1,3 @@
-// CmpReportListView.cpp : implementation file
-//
-
 #include "stdafx.h"
 #include "TermPlan.h"
 #include "CmpReportListView.h"
@@ -10,7 +7,6 @@
 
 
 #define  IDC_CMPREPORT_LISTCTRL 0x01
-// CCmpReportListView
 
 IMPLEMENT_DYNCREATE(CCmpReportListView, CFormView)
 
@@ -35,9 +31,6 @@ BEGIN_MESSAGE_MAP(CCmpReportListView, CFormView)
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
-
-// CCmpReportListView diagnostics
-
 #ifdef _DEBUG
 void CCmpReportListView::AssertValid() const
 {
@@ -60,6 +53,7 @@ void CCmpReportListView::OnInitialUpdate()
 void CCmpReportListView::OnSize(UINT nType, int cx, int cy)
 {
 	CFormView::OnSize(nType, cx, cy);
+
 	if (m_wndListCtrl.GetSafeHwnd())
 	{
 		CRect rc;
@@ -71,35 +65,34 @@ void CCmpReportListView::OnSize(UINT nType, int cx, int cy)
 }
 void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
-	if(m_pCmpReport)
+	if(!IsWindowVisible())
+		return;
+	switch(m_categoryType)
 	{
-		switch(m_categoryType)
+	case 0:
+	case -1:
 		{
-		case 0:
-		case -1:
+			CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
+			CInputParameter* inputParam = pCompProj->GetInputParam();
+			CReportsManager* reportsManager = inputParam->GetReportsManagerPtr();
+			std::vector<CReportToCompare>& vReportList = reportsManager->GetReportsList();
+
+			CModelsManager* modelsManager = inputParam->GetModelsManagerPtr();
+			std::vector<CModelToCompare *>& vModelList = modelsManager->GetModelsList();
+			const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
+			const CmpReportResultVector& vReport = crrList.GetReportResult();
+
+			for(int i = 0; i < static_cast<int>(vReport.size()); i++)
 			{
-				CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
-				CInputParameter* inputParam = pCompProj->GetInputParam();
-				CReportsManager* reportsManager = inputParam->GetReportsManagerPtr();
-				std::vector<CReportToCompare>& vReportList = reportsManager->GetReportsList();
-
-				CModelsManager* modelsManager = inputParam->GetModelsManagerPtr();
-				std::vector<CModelToCompare *>& vModelList = modelsManager->GetModelsList();
-				const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
-				const CmpReportResultVector& vReport = crrList.GetReportResult();
-
-				for(int i = 0; i < static_cast<int>(vReport.size()); i++)
-				{
-					m_wndListCtrl.SetExtendedStyle(LVS_EX_GRIDLINES);
-					CComparativeList cmpList(m_pCmpReport->GetTerminal(), m_wndListCtrl, vModelList);
-					cmpList.RefreshData(*vReport[i]);
-					break;
-				}
+				m_wndListCtrl.SetExtendedStyle(LVS_EX_GRIDLINES);
+				CComparativeList cmpList(m_pCmpReport->GetTerminal(), m_wndListCtrl, vModelList);
+				cmpList.RefreshData(*vReport[i]);
+				break;
 			}
-			break;
-		default:
-			break;
 		}
+		break;
+	default:
+		break;
 	}
 }
 int CCmpReportListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
