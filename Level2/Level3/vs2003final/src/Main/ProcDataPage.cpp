@@ -306,9 +306,9 @@ void CProcDataPage::ReLoadDetailed()
 		m_TreeData.SetCheckStatus(m_hWaitInQueue,FALSE);
 
 	if(pMiscData->getDisallowedNonPaxItemFlag())
-		m_TreeData.SetCheckStatus(m_disallowedNonPaxItem,TRUE);
+		m_TreeData.SetCheckStatus(m_hDisallowedNonPaxItem,TRUE);
 	else
-		m_TreeData.SetCheckStatus(m_disallowedNonPaxItem,FALSE);
+		m_TreeData.SetCheckStatus(m_hDisallowedNonPaxItem,FALSE);
 	ReloadGateList( pMiscData );
 	ReloadLinkedDestList(pMiscData);
 	ReloadWaitAreaList(pMiscData, m_nProcDataType == ConveyorProc);
@@ -1299,7 +1299,7 @@ void CProcDataPage::OnToolbarbuttondel()
 		DelBridgeConnector(hItem);
 	else if (hParentItem == m_hStandConnect)
 		DelStandConnector(hItem);
-	else if (hParentItem == m_disallowedNonPaxItem)
+	else if (hParentItem == m_hDisallowedNonPaxItem)
 		DelDisallowedNonPax(hItem);
 }
 
@@ -2005,12 +2005,12 @@ LRESULT CProcDataPage::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 			}
 		}
-		else if( hItem == m_disallowedNonPaxItem)
+		else if(hItem == m_hDisallowedNonPaxItem)
 		{
 			MiscData* pMiscData = GetCurMiscData();
 			if(pMiscData)
 			{
-				BOOL bCheck = IsCheckTreeItem(m_disallowedNonPaxItem);
+				BOOL bCheck = IsCheckTreeItem(m_hDisallowedNonPaxItem);
 				pMiscData->setDisallowedNonPaxItemFlag(bCheck ? true : false );
 				SetModified();	
 			}
@@ -2503,7 +2503,7 @@ void CProcDataPage::InsertTreeForBehavior()
 	m_hDisallowGroups=m_TreeData.InsertItem("Disallow Groups",cni,TRUE,FALSE,m_hOtherBehavior);
 	m_hWaitInQueue = m_TreeData.InsertItem("WaitInQueueToOpen",cni,TRUE,FALSE,m_hOtherBehavior);
 
-	m_disallowedNonPaxItem=m_TreeData.InsertItem("Disallow Non-Passenger Mobile Element",cni,FALSE,FALSE,m_hOtherBehavior);
+	m_hDisallowedNonPaxItem=m_TreeData.InsertItem("Disallow Non-Passenger Mobile Element",cni,FALSE,FALSE,m_hOtherBehavior);
 	cni.nt=NT_NORMAL;
 	cni.net=NET_COMBOBOX;
 	
@@ -2614,7 +2614,7 @@ void CProcDataPage::InsertTreeForBehavior()
 			m_TreeData.SetEnableStatus(m_hLinkedDestItem,TRUE);			
 			
 			m_TreeData.SetEnableStatus(m_hDisallowGroups,FALSE);
-			m_TreeData.SetEnableStatus(m_disallowedNonPaxItem,FALSE);
+			m_TreeData.SetEnableStatus(m_hDisallowedNonPaxItem,FALSE);
 		//	m_TreeData.SetEnableStatus(m_hPopulationCapacity,FALSE);
 			m_TreeData.SetEnableStatus(m_hTerminateTime,FALSE);
 			m_TreeData.SetEnableStatus(m_hRecycleFreq,TRUE);
@@ -3595,13 +3595,13 @@ void CProcDataPage::SetToolBarState(const HTREEITEM hItem )
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
 
 	}
-	if(hItem == m_disallowedNonPaxItem)
+	if(hItem == m_hDisallowedNonPaxItem)
 	{
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE);
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE);
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
 	}
-	if(paritem == m_disallowedNonPaxItem)
+	if(paritem == m_hDisallowedNonPaxItem)
 	{
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE);
 		m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
@@ -3788,7 +3788,7 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 	if(hCurrentTreeItem == NULL)
 		return ;
 
-	if(hCurrentTreeItem == m_disallowedNonPaxItem)
+	if(hCurrentTreeItem == m_hDisallowedNonPaxItem)
 	{
 		MiscData* pMiscData = GetCurMiscData();
 		if( pMiscData == NULL )
@@ -3803,12 +3803,12 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 
 		//Get Disallowed Pax
 		std::vector<CString> vPaxDefined;
-		HTREEITEM hItemChild= m_TreeData.GetChildItem(hCurrentTreeItem);
-		while(hItemChild)
+		HTREEITEM hChildItem= m_TreeData.GetChildItem(hCurrentTreeItem);
+		while(hChildItem)
 		{
-			CString strMob = m_TreeData.GetItemText(hItemChild);
+			CString strMob = m_TreeData.GetItemText(hChildItem);
 			vPaxDefined.push_back(strMob);
-			hItemChild= m_TreeData.GetNextSiblingItem(hItemChild);
+			hChildItem= m_TreeData.GetNextSiblingItem(hChildItem);
 		}
 
 		CMobileElemTypeStrDB* pMobElement = m_pInTerm->m_pMobElemTypeStrDB;
@@ -3924,37 +3924,28 @@ void CProcDataPage::OnSelectMobileElementType(UINT nID)
 		m_TreeData.SetItemData(hTreeItemPaxCapacity,1);
 		m_TreeData.Expand(m_hTreeItemCapacity,TVE_EXPAND);
 	}
-	else if(hCurrentTreeItem == m_disallowedNonPaxItem)
+	else if(hCurrentTreeItem == m_hDisallowedNonPaxItem)
 	{
 		//Remove "[New Non-Passenger Mobile Element]"
-		HTREEITEM hTreeItemChild =  m_TreeData.GetChildItem(m_disallowedNonPaxItem);
-		if (0 ==m_TreeData.GetItemText(hTreeItemChild).CompareNoCase(_T("[New Non-Passenger Mobile Element]")))
-			m_TreeData.DeleteItem(hTreeItemChild);
-		CapacityAttributes* pAttributes = pMiscData->getDisallowedNonPaxItem();
-		CapacityAttribute* pAttribute = new CapacityAttribute;
-		pAttribute->m_nMobElementIndex = nID - 1;
-		pAttribute->m_Name = GetMobileElementString(nID - 1);
-		pAttributes->AddCapacityAttribute(pAttribute);
-		int count = pAttributes->GetCount();
-		CapacityAttribute* tempAttri = NULL;
-		for(int i=0; i<count; i++)
-		{
-			tempAttri = pAttributes->GetItem(i);
-			int xxx = tempAttri->m_nMobElementIndex;
-			CString yyy = tempAttri->m_Name;
-			int uuu = 0;
-		}
+		HTREEITEM hChildItem =  m_TreeData.GetChildItem(m_hDisallowedNonPaxItem);
+		if (0 ==m_TreeData.GetItemText(hChildItem).CompareNoCase(_T("[New Non-Passenger Mobile Element]")))
+			m_TreeData.DeleteItem(hChildItem);
+		CapacityAttributes* pDisallowedItemList = pMiscData->getDisallowedNonPaxItem();
+		CapacityAttribute* pNonPaxItem = new CapacityAttribute;
+		pNonPaxItem->m_nMobElementIndex = nID - 1;
+		pNonPaxItem->m_Name = GetMobileElementString(nID - 1);
+		pDisallowedItemList->AddCapacityAttribute(pNonPaxItem);
 
 		COOLTREE_NODE_INFO cni;
 		CCoolTree::InitNodeInfo(this,cni);
 		cni.nt=NT_NORMAL;
 		cni.net=NET_NORMAL;
-		cni.nMaxCharNum = (DWORD_PTR)pAttribute;
+		cni.nMaxCharNum = (DWORD_PTR)pNonPaxItem;
 		CString strLabel = GetMobileElementString(nID - 1);
-		HTREEITEM hTreeItemDisallowedNonPax = m_TreeData.InsertItem(strLabel, cni, FALSE, FALSE, m_disallowedNonPaxItem);
+		HTREEITEM hTreeItemDisallowedNonPax = m_TreeData.InsertItem(strLabel, cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
 
 		m_TreeData.SetItemData(hTreeItemDisallowedNonPax,1);
-		m_TreeData.Expand(m_disallowedNonPaxItem,TVE_EXPAND);
+		m_TreeData.Expand(m_hDisallowedNonPaxItem,TVE_EXPAND);
 	}
 	return;
 }
@@ -4349,8 +4340,8 @@ void CProcDataPage::DelDisallowedNonPax( HTREEITEM hItem )
 	if(pMiscData == NULL) 
 		return;
 
-	CapacityAttributes* pDisallowedList = pMiscData->getDisallowedNonPaxItem();
-	pDisallowedList->RemoveCapacityAttribute(pNonPaxItem);
+	CapacityAttributes* pDisallowedItemList = pMiscData->getDisallowedNonPaxItem();
+	pDisallowedItemList->RemoveCapacityAttribute(pNonPaxItem);
 
 	HTREEITEM prevItem = m_TreeData.GetPrevSiblingItem(hItem);
 	HTREEITEM nextItem = m_TreeData.GetNextSiblingItem(hItem);
@@ -4360,14 +4351,14 @@ void CProcDataPage::DelDisallowedNonPax( HTREEITEM hItem )
 		m_TreeData.SelectItem(prevItem);
 	}
 
-	if (pDisallowedList->GetCount() < 1)
+	if (pDisallowedItemList->GetCount() < 1)
 	{
 		COOLTREE_NODE_INFO cni;
 		CCoolTree::InitNodeInfo(this,cni);
 		cni.nt=NT_NORMAL;
 
-		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]") , cni, FALSE, FALSE, m_disallowedNonPaxItem);
-		m_TreeData.Expand(m_disallowedNonPaxItem, TVE_EXPAND);
+		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]") , cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
+		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
 	}
 	m_TreeData.SetFocus();
 }
@@ -4533,34 +4524,35 @@ void CProcDataPage::ReloadDisallowedNonPax()
 
 	MiscData* _pMiscData = GetCurMiscData();
 	if( _pMiscData == NULL)
-	{//first time define
-		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]"),cni, FALSE, FALSE, m_hTreeItemCapacity);
-		m_TreeData.Expand(m_hTreeItemCapacity, TVE_EXPAND);
+	{
+		//first time define
+		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]"),cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
+		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
 		return;
 	}
 
 	//Delete OldData
-	while (m_TreeData.ItemHasChildren(m_disallowedNonPaxItem))
+	while (m_TreeData.ItemHasChildren(m_hDisallowedNonPaxItem))
 	{
-		HTREEITEM hTreeItemChild = m_TreeData.GetChildItem(m_disallowedNonPaxItem);
-		m_TreeData.DeleteItem(hTreeItemChild);
+		HTREEITEM hChildItem = m_TreeData.GetChildItem(m_hDisallowedNonPaxItem);
+		m_TreeData.DeleteItem(hChildItem);
 	}
 
-	CapacityAttributes* pAttributes =  _pMiscData->getDisallowedNonPaxItem();
-	if (pAttributes->GetCount() < 1)
+	CapacityAttributes* pDisallowedItemList =  _pMiscData->getDisallowedNonPaxItem();
+	if (pDisallowedItemList->GetCount() < 1)
 	{
-		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]"), cni, FALSE, FALSE, m_disallowedNonPaxItem);
-		m_TreeData.Expand(m_disallowedNonPaxItem, TVE_EXPAND);
+		m_TreeData.InsertItem(_T("[New Non-Passenger Mobile Element]"), cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
+		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
 		return;
 	}
 
-	for (int i = 0; i < pAttributes->GetCount(); i++)
+	for (int i = 0; i < pDisallowedItemList->GetCount(); i++)
 	{
-		CapacityAttribute* pAttribute = pAttributes->GetItem(i);
-		cni.nMaxCharNum = (DWORD_PTR)pAttribute ;
-		CString strLabel = pAttribute->m_Name;
-		HTREEITEM hTreeItemPaxCapacity = m_TreeData.InsertItem(strLabel, cni, FALSE, FALSE, m_disallowedNonPaxItem);
-		m_TreeData.Expand(m_disallowedNonPaxItem, TVE_EXPAND);
+		CapacityAttribute* pNonPaxItem = pDisallowedItemList->GetItem(i);
+		cni.nMaxCharNum = (DWORD_PTR)pNonPaxItem ;
+		CString treeItemText = pNonPaxItem->m_Name;
+		HTREEITEM hTreeItemPaxCapacity = m_TreeData.InsertItem(treeItemText, cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
+		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
 	}
 
 }

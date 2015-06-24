@@ -145,7 +145,7 @@ public:
 	HTREEITEM m_hOtherBehavior;
 	HTREEITEM m_hLinkage;
 	HTREEITEM m_hWaitInQueue;
-	HTREEITEM m_disallowedNonPaxItem;
+	HTREEITEM m_hDisallowedNonPaxItem;
 
 	void AddDependentProcessors();
 	void DeleteDependentProcessors(HTREEITEM hItem);
