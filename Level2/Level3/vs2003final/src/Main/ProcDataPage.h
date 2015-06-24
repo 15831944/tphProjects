@@ -20,7 +20,6 @@
 #include "ColorTreeCtrl.h"
 #include "..\MFCExControl\CoolTree.h"
 #include "resource.h"
-#include "..\Main\PaxFlowSelectPipes.h"
 
 
 
@@ -174,9 +173,7 @@ private:
 	void DelLinkedDest();
 	void AddWaitAreaForLoader();
 	void DelWaitAreaForLoader();
-	void SetCapacityValue( int _iValue );
-	void EditPipe(int order);
-	void SetImgOfButtonEditPipeAuto( int orderaasaa );
+	void SetCapacityValue( int _iValue );	
 // Implementation
 protected:
 	void DelGreetingHall();
@@ -275,19 +272,14 @@ protected:
 
 	// Set Conveyor Type in Misc Data;
 	void SetConveyorType( HTREEITEM _hItem );
+		
 
-	// Set Pipe type.
-	void PaxFlowEditPipManual(MiscProcessorIDWithOne2OneFlag* pProc,CPaxFlowSelectPipes* pSelectPipeDlg);
-	CString GetPipeString( MiscProcessorIDWithOne2OneFlag* _pArcInfo );
-	void PaxFlowEditPipeAuto( MiscProcessorIDWithOne2OneFlag* pProc );
 	// Generated message map functions
 	//{{AFX_MSG(CProcDataPage)
 	virtual BOOL OnInitDialog();
 	virtual afx_msg void OnSelchangeListProcessor();
 	afx_msg void OnButtonAdd();
 	afx_msg void OnButtonDel();
-	afx_msg void OnButtonEditPipeManual();
-	afx_msg void OnButtonEditPipeAuto();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual afx_msg void OnToolbarbuttonadd();
 	virtual afx_msg void OnToolbarbuttondel();
