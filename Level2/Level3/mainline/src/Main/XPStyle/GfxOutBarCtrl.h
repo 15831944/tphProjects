@@ -18,6 +18,7 @@
 #define NM_OB_ONGROUPENDEDIT	3
 #define NM_OB_DRAGITEM			4
 #define NM_FOLDERCHANGE			5
+#define WM_SHAPEBAR_NOTIFY		WM_USER + 100
 
 struct OUTBAR_INFO 
 {

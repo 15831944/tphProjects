@@ -1503,6 +1503,7 @@
 #define IDC_LIST_PAXTYPE                1115
 #define IDC_SHAPESELECT_LIST            1115
 #define IDC_EDT_APALTERNATEAIRPORTICAOCODE 1115
+#define IDD_DIALOG_IMPORT_SHAPEBAR      1115
 #define IDC_BUTTON_ADD                  1116
 #define IDC_INPUTSTRING                 1116
 #define IDC_BUTTON_DEL                  1117
@@ -3341,12 +3342,21 @@
 #define IDC_EDIT_SHAPENAME              2416
 #define IDC_EDIT_MODELLOCATION          2417
 #define IDC_BTN_LOADMODEL               2418
+#define IDC_BTN_LOADZIP                 2419
 #define IDC_STATIC_MODELLOCATION        2420
 #define IDC_STATIC_SHAPENAME            2421
 #define IDC_STATIC_SHAPEICON            2422
 #define IDC_EDIT_BARNAME                2423
 #define IDC_EDIT_BARLOCATION            2424
 #define IDC_BTN_LOADSHAPEBAR            2425
+#define IDC_STATIC_ZIPFILE              2426
+#define IDC_STATIC_BARLOCATION          2427
+#define IDC_BTN_SELECTLOCATION          2428
+#define IDC_EDIT_ZIPFILENAME            2430
+#define IDC_EDIT_SHAPEBARLOCATION       2431
+#define IDC_STATIC_SHAPEBARNAME         2433
+#define IDC_EDIT_ZIPFILENAME2           2434
+#define IDC_EDIT_SHAPEBARNAME           2434
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5493,9 +5503,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1115
+#define _APS_NEXT_RESOURCE_VALUE        1116
 #define _APS_NEXT_COMMAND_VALUE         35346
-#define _APS_NEXT_CONTROL_VALUE         2426
+#define _APS_NEXT_CONTROL_VALUE         2432
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

@@ -13,7 +13,37 @@
 #include "scbarg.h"
 #include "XPStyle\GfxOutBarCtrl.h"
 
-#define WM_SHAPEBAR_NOTIFY		WM_USER + 100
+
+class CUserShapeBar
+{
+public:
+    CUserShapeBar();
+    ~CUserShapeBar();
+public:
+    CString GetBarName() const { return m_barName; }
+    void SetBarName(CString val) { m_barName = val; }
+
+    CString GetBarLocation() const { return m_barLocation; }
+    void SetBarLocation(CString val) { m_barLocation = val; }
+
+    CShape::CShapeList* GetUserShapeList() { return &m_vUserShapes; }
+    int GetShapeCount(){ return (int)m_vUserShapes.size(); }
+    CShape* GetShapeByIndex(int nIdx){ return m_vUserShapes.at(nIdx); }
+
+    void AddShape(CShape* pShape){ m_vUserShapes.push_back(pShape); }
+
+    CUserShapeBar& operator=(const CUserShapeBar& other)
+    {
+        m_barName = other.m_barName;
+        m_barLocation = other.m_barLocation;
+        m_vUserShapes = other.m_vUserShapes;
+    }
+
+private:
+    CString m_barName;
+    CString m_barLocation;
+    CShape::CShapeList m_vUserShapes;
+};
 
 class CShapesBar : public CSizingControlBarG  
 {
@@ -38,12 +68,15 @@ public:
 // Implementation
 public:
 	void CreateOutlookBar(CShape::CShapeList* pSL);
-	BOOL ImportShapeBarData(CString ImportFile);
-	BOOL ExportShapeBarData(CString ExportFile);
-	BOOL ExportShapeBarDataAndShapes(CString ExportFolder);
-	void ImportUserShapeBars();
-	void ExportUserShapeBars();
+	BOOL ReadUserShapes(CUserShapeBar* pUserBar);
+	BOOL WriteShapeInformation(CString strFile, int barIndex);
+	BOOL ExportShapeBarAndShapes(CString strFolder);
+	void ReadUserShapeBars();
+	void WriteUserShapeBars();
 	CString UserProjectPath;
+
+    BOOL IsUserShapeBarExist(CString strNewBar);
+
 	// Generated message map functions
 protected:
 	CFont m_font;
@@ -52,7 +85,7 @@ protected:
 	CImageList m_largeIL;
 	int folder_index;
 	int item_index;
-
+    std::vector<CUserShapeBar*> m_vUserBars;
 	//{{AFX_MSG(CShapesBar)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg LRESULT OnSLBSelChanged(WPARAM wParam, LPARAM lParam);
@@ -69,7 +102,7 @@ protected:
 	afx_msg void OnEditShape();
 	afx_msg void OnDeleteShape();
 	//}}AFX_MSG
-
+    BOOL ZipFiles(const CString& strFilePath, const std::vector<CString>& vZipFiles);
 	DECLARE_MESSAGE_MAP()
 };
 

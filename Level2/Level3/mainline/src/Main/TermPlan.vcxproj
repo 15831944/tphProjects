@@ -292,6 +292,7 @@
     <ClInclude Include="FacilityDataPage.h" />
     <ClInclude Include="FacilityDataSheet.h" />
     <ClInclude Include="glutil.h" />
+    <ClInclude Include="ImportUserShapeBarDlg.h" />
     <ClInclude Include="LandsideControlDevicePropDlgImpl.h" />
     <ClInclude Include="LandsideDecisionPointPropDlgImpl.h" />
     <ClInclude Include="LandsideTaxiPoolProDlgImpl.h" />
@@ -1112,6 +1113,7 @@
     <ClCompile Include="DlgVehicleOperationNonRelated.cpp" />
     <ClCompile Include="FacilityDataPage.cpp" />
     <ClCompile Include="FacilityDataSheet.cpp" />
+    <ClCompile Include="ImportUserShapeBarDlg.cpp" />
     <ClCompile Include="LandsideControlDevicePropDlgImpl.cpp" />
     <ClCompile Include="LandsideDecisionPointPropDlgImpl.cpp" />
     <ClCompile Include="LandsideTaxiPoolProDlgImpl.cpp" />

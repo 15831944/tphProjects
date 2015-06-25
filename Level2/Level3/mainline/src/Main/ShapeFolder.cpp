@@ -52,7 +52,12 @@ BOOL CShapeFolder::OnInitDialog()
     m_editBarName.SetWindowText(m_shapeBarName);
     m_editBarLocation.SetWindowText(m_shapeBarLocation);
     SetWindowText(m_strTitle);
-
+    // 20140805 10:10am: the shape bar's location can not be edited.
+    if(m_strTitle.Compare("Edit Shape Bar") == 0)
+    {
+        GetDlgItem(IDC_BTN_LOADSHAPEBAR)->EnableWindow(FALSE);
+        m_editBarLocation.EnableWindow(FALSE);
+    }
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
 }

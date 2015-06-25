@@ -14,10 +14,6 @@
 #include "NewMenu.h"
 #include "Draw.h"
 #include "Tools.h"
-// #include "..\ShapeFolder.h"
-// #include "..\ShapeItem.h"
-#include "..\ShapesBar.h"
-#include "..\..\common\ProjectManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -121,7 +117,6 @@ BEGIN_MESSAGE_MAP(CGfxOutBarCtrl, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_GFX_SMALLICON, OnUpdateGfxSmallicon)
 	ON_COMMAND(ID_GFX_RENAMEITEM, OnGfxRenameitem)
 	ON_UPDATE_COMMAND_UI(ID_GFX_RENAMEITEM, OnUpdateGfxRenameitem)
-
 	//}}AFX_MSG_MAP
 	ON_MESSAGE(WM_OUTBAR_NOTIFY, OnEndLabelEdit)
 END_MESSAGE_MAP()
@@ -567,7 +562,6 @@ int CGfxOutBarCtrl::AddFolder(const char * cFolderName, const DWORD exData)
 	return arFolder.GetSize() - 1;
 }
 
-//#define DefinedPath "C:\\ARCTerm\\Databases\\Shapes"
 CGfxOutBarCtrl::CBarFolder::CBarFolder(const char * name, DWORD exData)
 {
 	cName = NULL;
@@ -582,17 +576,11 @@ CGfxOutBarCtrl::CBarFolder::CBarFolder(const char * name, DWORD exData)
 	pLargeImageList = NULL;
 	pSmallImageList = NULL;
 	pChild = NULL;
-	
-	CString path = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\";
-	cFolderPath = new char[lstrlen(path)+1];
-	ASSERT(cFolderPath);
-	lstrcpy(cFolderPath,path);
 }
 
 CGfxOutBarCtrl::CBarFolder::~CBarFolder()
 {
 	if (cName) delete [] cName;
-	if (cFolderPath) delete [] cFolderPath; 
 	for (int t = 0; t < arItems.GetSize(); t++)
 		if (arItems.GetAt(t)) delete (CBarFolder*) arItems.GetAt(t);
 
@@ -1887,7 +1875,7 @@ void CGfxOutBarCtrl::StartItemEdit(const int index)
 
 void CGfxOutBarCtrl::OnRButtonDown(UINT nFlags, CPoint point) 
 {
-	CShapesBar* hWindow = (CShapesBar*)GetOwner();
+	CWnd* hWindow = GetOwner();
 	hWindow->SendMessage(WM_SHAPEBAR_NOTIFY,NULL,NULL);
 }
 
