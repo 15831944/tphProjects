@@ -445,6 +445,7 @@ void SequentialQueue::balanceQueue (Processor *changedProc, ElapsedTime p_time)
 			)
 			continue;
 
+
         if (changedProc->getTotalQueueLength() < i )
         {
 			#ifdef WANT_TO_TRACE_QUUEU_INFO
