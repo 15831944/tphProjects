@@ -224,6 +224,7 @@ void CBoardingCallDlg::ReloadRoot()
 	return;
 }
 
+// Reload all Flight Types under selected Stage.
 void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB, HTREEITEM hTreeItemStage)
 {
 	RemoveTreeSubItem(hTreeItemStage);
@@ -248,6 +249,7 @@ void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB
 	}
 }
 
+// Reload all Stands under selected Flight Type.
 void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEntry, HTREEITEM hTreeItemFlight )
 {
 	BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
@@ -281,6 +283,7 @@ void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEnt
 	}
 }
 
+// Reload all Passenger Types under selected Stand.
 void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITEM hTreeItemStand)
 {
 	BoardingCallPaxTypeDatabase* pPaxDB = pStandEntry->GetPaxTypeDatabase();
@@ -306,6 +309,7 @@ void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITE
 	}
 }
 
+// Reload all Triggers under selected Pax Type.
 void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREEITEM hTreeItemPax )
 {
 	RemoveTreeSubItem(hTreeItemPax);
@@ -498,6 +502,7 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 			procID.SetStrDict(GetInputTerminal()->inStrDict);
 			procID.setID(strStand.GetBuffer());
 		}
+
 		if(pFlightTypeEntry->GetStandDatabase()->findEntry(procID) != INT_MAX)
 		{
 			MessageBox("Selected Stand is already exists.");
@@ -526,9 +531,9 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 		ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
 		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
-		if(pStandEntry->GetPaxTypeDatabase()->FindItemByConstraint(&mobElemConst) != NULL)
+		if(pStandEntry->GetPaxTypeDatabase()->FindItemByConstraint(&mobElemConst) != INT_MAX)
 		{
-			MessageBox("Selected Stand is already exists.");
+			MessageBox("Selected Passenger Type is already exists.");
 		}
 		else
 		{
@@ -609,7 +614,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
 			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
 			{
-				//Delete All Stages
+				//Delete the last one stage?
 				BOOL b_YesNo = MessageBox("Delete All Stages?","Delete Stage", MB_YESNO|MB_ICONWARNING);
 				if(b_YesNo == IDNO)
 				{
@@ -755,10 +760,9 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			}
 			pPaxTypeEntry->DeleteTrigger(triggerIndex);
 			// Reload all sibling item.
-			ReloadPaxType(pPaxTypeEntry, hPaxTypeItem);/* hParentItem will be deleted here. */
+			ReloadPaxType(pPaxTypeEntry, hPaxTypeItem);
 			m_tree.Expand(hPaxTypeItem, TVE_EXPAND);
-			m_tree.Expand(m_tree.GetChildItem(hPaxTypeItem), TVE_EXPAND);/* hParentItem is deleted, so can't use here,
-																		    use GetChildItem(hPaxTypeItem) instead. */
+			m_tree.Expand(m_tree.GetChildItem(hPaxTypeItem), TVE_EXPAND);
 			m_tree.SelectItem(m_tree.GetChildItem(hPaxTypeItem));
 			m_btnSave.EnableWindow(TRUE);
 		}
@@ -1141,6 +1145,12 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 				BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
 				std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
 				int userSetCount = atoi(strValue.GetBuffer());
+				if(pPaxEntry->getConstraint()->isDefault())
+				{
+					MessageBox("Can't edit the 'DEFAULT' passenger type's trigger count.");
+					strItemText.Format("Number of triggers: %d", pPaxEntry->GetTriggerCount());
+					break;
+				}
 				strItemText.Format("Number of triggers: %d", userSetCount);
 				pPaxEntry->SetTriggerCount(userSetCount);
 				ReloadTriggers(vTrigger, hSelItem);

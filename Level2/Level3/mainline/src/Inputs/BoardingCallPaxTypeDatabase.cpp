@@ -191,7 +191,7 @@ int BoardingCallPaxTypeDatabase::FindItemByConstraint( CMobileElemConstraint* pI
 		if( pConstraint->isEqual(pInputConst) )
 			return i;
 	}
-	return NULL;
+	return INT_MAX;
 }
 
 BoardingCallTrigger::BoardingCallTrigger()
