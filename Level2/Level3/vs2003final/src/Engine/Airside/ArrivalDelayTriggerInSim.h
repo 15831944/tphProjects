@@ -18,7 +18,8 @@ public:
 	~ArrivalDelayTriggerInSim(void);
 
 	ElapsedTime GetDelayTime(AirsideFlightInSim* pFlight,CString& strReason);
-
+	ElapsedTime GetMaxDelayTime(AirsideFlightInSim* pFlight);
+	
 protected:
 	AirportResourceManager * m_pAirportres;
 	CAirsideArrivalDelayTrigger* m_pdelayTriggerInput;

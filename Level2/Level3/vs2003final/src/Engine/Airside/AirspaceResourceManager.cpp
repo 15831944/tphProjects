@@ -663,7 +663,21 @@ void AirRouteNetworkInSim::GetMissApproachClearance(AirsideFlightInSim* pFlight,
 bool AirRouteNetworkInSim::IsFlightNeedDelayLandingOnRwy( AirsideFlightInSim* pFlight,const ClearanceItem& lastItem, ElapsedTime& tDelayTime )
 {
 	ArrivalDelayTriggerInSim* pdelayTrigger = pFlight->GetAirTrafficController()->GetArrivalDelayTrigger();
-	CString strReason = "";
+
+	//
+	ElapsedTime maxDelayTime = pdelayTrigger->GetMaxDelayTime(pFlight);
+	if(const AirsideConflictionDelayLog* pCurDelay = pFlight->GetCurDelayLog() )
+	{
+		ElapsedTime startDelayTime;
+		startDelayTime.setPrecisely(pCurDelay->time);
+		if( lastItem.GetTime() - startDelayTime > maxDelayTime )
+		{
+			pFlight->SetDelayed(NULL);
+			return false;
+		}
+	}
+
+	CString strReason;
 	ElapsedTime tDelay = pdelayTrigger->GetDelayTime(pFlight,strReason);
 
 	ClearanceItem CurItem = lastItem;

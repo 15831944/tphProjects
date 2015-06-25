@@ -277,12 +277,15 @@ BEGIN_MESSAGE_MAP(CNodeView, CView)
 	ON_UPDATE_COMMAND_UI(ID_CTX_OPAQUEFLOOR, OnUpdateOpaqueFloor)
 	ON_UPDATE_COMMAND_UI(ID_CTX_DELETEFLOOR, OnUpdateFloorsDelete)
 	ON_UPDATE_COMMAND_UI(ID_ENABLECONTOUREDIT, OnUpdateEnableCoutourEdit)
+	ON_UPDATE_COMMAND_UI(ID_CTX_MOVEUPFLOOR, OnUpdateMoveUpFloor)
+	ON_UPDATE_COMMAND_UI(ID_CTX_MOVEDOWNFLOOR, OnUpdateMoveDownFloor)
 	ON_COMMAND(ID_GATEMENU_ADDGATE, OnCtxAddGate)
 	ON_COMMAND(ID_GATE_PROCDISPPROPERTIES, OnGateProcdispproperties)
 	ON_COMMAND(ID_WALLSHAPE_ADDWALLSHAPE, OnWallshapeAddwallshape)
 	ON_COMMAND(IDC_BUTTON_MOVEUPFLOOR, OnBtnMoveUpFloor)
 	ON_COMMAND(IDC_BUTTON_MOVEDOWNFLOOR, OnBtnMoveDownFloor)
-
+	ON_COMMAND(ID_CTX_MOVEUPFLOOR, OnBtnMoveUpFloor)
+	ON_COMMAND(ID_CTX_MOVEDOWNFLOOR, OnBtnMoveDownFloor)
 
 	ON_COMMAND(ID_SUBMENU_PLACEALIGNMENTLINE,OnPlaceMarkerLine)
 END_MESSAGE_MAP()
@@ -901,14 +904,14 @@ LRESULT CNodeView::OnSelChanged(WPARAM wParam, LPARAM lParam)
 				m_btnMoveFloorDown.SetWindowPos(&wndTop, rect1.right+10, rect1.top+8, 18, 9, SWP_DRAWFRAME);
 			}
 
-			m_btnMoveFloorUp.ShowWindow(SW_SHOW);
-			m_btnMoveFloorUp.EnableWindow(FALSE);
-			m_btnMoveFloorDown.ShowWindow(SW_SHOW);
-			m_btnMoveFloorDown.EnableWindow(FALSE);
-			if(m_wndTreeCtrl.GetPrevSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
-				m_btnMoveFloorUp.EnableWindow(TRUE);
-			if(m_wndTreeCtrl.GetNextSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
-				m_btnMoveFloorDown.EnableWindow(TRUE);
+// 			m_btnMoveFloorUp.ShowWindow(SW_SHOW);
+// 			m_btnMoveFloorUp.EnableWindow(FALSE);
+// 			m_btnMoveFloorDown.ShowWindow(SW_SHOW);
+// 			m_btnMoveFloorDown.EnableWindow(FALSE);
+// 			if(m_wndTreeCtrl.GetPrevSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
+// 				m_btnMoveFloorUp.EnableWindow(TRUE);
+// 			if(m_wndTreeCtrl.GetNextSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
+// 				m_btnMoveFloorDown.EnableWindow(TRUE);
 		}	
 	}
 	return 0;
@@ -4171,6 +4174,45 @@ void CNodeView::OnUpdateFloorsDelete(CCmdUI* pCmdUI)
 	else
 		pCmdUI->Enable(TRUE);
 }
+
+
+void CNodeView::OnUpdateMoveUpFloor(CCmdUI* pCmdUI)
+{
+	CTVNode* _pSelNode = GetDocument()->GetSelectedNode();
+	if(!_pSelNode)
+		return;
+	CTVNode* pParent = (CTVNode*)_pSelNode->Parent();
+	if(!pParent)
+		return;
+	if(_pSelNode == pParent->GetChildByIdx(0))
+	{
+		pCmdUI->Enable(FALSE);
+	}
+	else
+	{
+		pCmdUI->Enable(TRUE);
+	}
+}
+
+void CNodeView::OnUpdateMoveDownFloor(CCmdUI* pCmdUI)
+{
+	CTVNode* _pSelNode = GetDocument()->GetSelectedNode();
+	if(!_pSelNode)
+		return;
+	CTVNode* pParent = (CTVNode*)_pSelNode->Parent();
+	if(!pParent)
+		return;
+	if(_pSelNode == pParent->GetChildByIdx(pParent->GetChildCount()-1))
+	{
+		pCmdUI->Enable(FALSE);
+	}
+	else
+	{
+		pCmdUI->Enable(TRUE);
+	}
+}
+
+
 void CNodeView::OnContourAddNextContour()
 {
 

@@ -76,6 +76,7 @@ public:
 	CPipe* FindPipeByGuid(const CGuid& guid, const GUID& cls_guid);
 	void SetLandsideInput(InputLandside* pLandsideInput);
 
+	bool getUsedProInfo(const ProcessorID& _id,InputTerminal *_pTerm,std::vector<CString>& _strVec);
 private:
 	PIPEVECTOR m_vPipes;
 	InputLandside* m_pInputLandside;

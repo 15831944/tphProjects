@@ -1136,9 +1136,10 @@ void ElevatorProc::initSpecificMisc (const MiscData *miscData)
 Point ElevatorProc::GetServiceLocationOnFloor ( int _nFloor ) const
 {
 	ASSERT( _nFloor >= 0 );
-	if(_nFloor - m_iMinFloor<0 || _nFloor - m_iMinFloor> (int)m_vAllFloorsData.size() )
+	if(_nFloor - m_iMinFloor<0 || _nFloor - m_iMinFloor>=(int)m_vAllFloorsData.size() )
 	{
 		//////////////////////////////////////////////////////////////////////////
+		ASSERT(0);
 		return m_vAllFloorsData[0].GetWaitArea().getRandPoint();
 	}
 

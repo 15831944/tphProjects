@@ -592,6 +592,7 @@ void BridgeConnector::UpdateFloorIndex( const FloorChangeMap& changMap )
 	{
 		BridgeConnector::ConnectPoint conPoint = m_vConnectPoints.at(i);
 		changMap.ChangePointFloor(conPoint.m_Location);
+		m_vConnectPoints.at(i) = conPoint;
 		//conPoint.m_Location.setZ( changMap.getNewFloor(conPoint.m_Location.getZ()) );
 	}
 }

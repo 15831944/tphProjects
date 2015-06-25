@@ -56,6 +56,8 @@ char* CUsedProcInfo::getTile(int _baseIndex,char *pTitle)
 		return getMovingSideWalkPaxDistTitle(pTitle);
 	case 10:
 		return getSubFlowTile(pTitle);
+	case 11:
+		return getPipeSideWalkTitle(pTitle);
 	default:
 		return "";
 	}
@@ -87,6 +89,8 @@ bool CUsedProcInfo::getInfo(int _baseIndex,std::vector<CString>&_vector)
 		return getMovingSideWalkPaxDistInfo(_vector);
 	case 10:
 		return getSubFlowInfo(_vector);
+	case 11:
+		return getPipeSideWalkInfo(_vector);
 	default:
 		break;
 	}

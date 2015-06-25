@@ -5182,6 +5182,8 @@
 #define ID_TOOLBARBUTTON_ADD            35325
 #define ID_TOOLBARBUTTON_DEL            35326
 #define ID_TOOLBARBUTTON_EDIT           35327
+#define ID_CTX_MOVEUPFLOOR              35330
+#define ID_CTX_MOVEDOWNFLOOR            35331
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5440,7 +5442,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1107
-#define _APS_NEXT_COMMAND_VALUE         35328
+#define _APS_NEXT_COMMAND_VALUE         35330
 #define _APS_NEXT_CONTROL_VALUE         2407
 #define _APS_NEXT_SYMED_VALUE           487
 #endif

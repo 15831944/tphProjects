@@ -147,3 +147,32 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
 
 	return 0L;
 }
+
+ElapsedTime ArrivalDelayTriggerInSim::GetMaxDelayTime( AirsideFlightInSim* pFlight )
+{
+	LogicRunwayInSim * pLandRwy = pFlight->GetLandingRunway();
+	int nRwyID = pLandRwy->GetRunwayInSim()->GetRunwayID();
+	RUNWAY_MARK nRwyMark = pLandRwy->getLogicRunwayType();
+
+
+	size_t nCount = m_pdelayTriggerInput->GetElementCount();
+	for(size_t i=0 ;i< nCount;i++)
+	{
+		AirsideArrivalDelayTrigger::CFlightTypeItem* pFltItem = m_pdelayTriggerInput->GetItem(i);
+		if( !pFlight->fits(pFltItem->GetFltType()) )
+			continue;
+
+		if (!pFltItem->GetTimeRangeList().IsTimeInTimeRangeList(pFlight->GetTime()))
+			continue;
+
+		if (!pFltItem->GetRunwayList().IsLogicRunwayInRunwayList(nRwyID,nRwyMark))
+			continue;
+
+		return pFltItem->GetMaxTime();
+
+	
+	}
+
+	return ElapsedTime(0L);
+	
+}

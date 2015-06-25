@@ -133,6 +133,8 @@ protected:
 	afx_msg void OnCtxChangeToGate();
 	afx_msg void OnCtxChangeToSink();
 	afx_msg void OnCtxChangeToSource();
+	afx_msg void OnUpdateMoveUpFloor(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateMoveDownFloor(CCmdUI* pCmdUI);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnLayoutexport();
 	afx_msg void OnLayoutimportAppend();

@@ -13276,6 +13276,8 @@ BEGIN
         MENUITEM "Remove Alignment Marker",     ID_CTX_REMOVEMARKER
         MENUITEM "Remove Alignment Line",       ID_CTX_REMOVELINE
         MENUITEM "Align Floors",                ID_CTX_ALIGNFLOORS
+        MENUITEM "Move Up Floor",               ID_CTX_MOVEUPFLOOR
+        MENUITEM "Move Down Floor",             ID_CTX_MOVEDOWNFLOOR
         MENUITEM SEPARATOR
         MENUITEM "Comments...",                 ID_CTX_COMMENTS
         MENUITEM "Help",                        ID_CTX_HELP
