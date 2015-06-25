@@ -16,6 +16,7 @@
 #include "ImportFlightFromFileDlg.h"
 #include "../InputAirside/InputAirside.h"
 #include ".\fltpaxdatadlg.h"
+#include "..\Inputs\BridgeConnectorPaxData.h"
 
 
 #ifdef _DEBUG
@@ -161,6 +162,13 @@ BOOL CFltPaxDataDlg::OnInitDialog()
 	case VISITOR_STA_TRIGGER:
 		SetWindowText("Visitor STA Trigger");
 		break;
+	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+		{
+			CString s;
+			s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
+			SetWindowText(s);
+			break;
+		}
 	}
 	
 	SetListCtrl();
@@ -364,6 +372,9 @@ void CFltPaxDataDlg::OnButtonSave()
 	case VISITOR_STA_TRIGGER:
 		GetInputTerminal()->paxDataList->saveDataSet( GetProjPath(), true );
 		break;
+	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+		GetInputTerminal()->bcPaxData->saveDataSet( GetProjPath(), true );
+		break;
 	}
 	m_btnSave.EnableWindow( FALSE );
 }
@@ -429,6 +440,9 @@ void CFltPaxDataDlg::OnCancel()
 			break;
 		case VISITOR_STA_TRIGGER:
 			GetInputTerminal()->paxDataList->loadDataSet( GetProjPath() );
+			break;
+		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+			GetInputTerminal()->bcPaxData->loadDataSet(GetProjPath());
 			break;
 		}
 	}
@@ -516,6 +530,9 @@ ConstraintDatabase* CFltPaxDataDlg::GetConstraintDatabase()
 		break;
 	case VISITOR_STA_TRIGGER:
 		pConDB = GetInputTerminal()->paxDataList->getVisitorSTATrigger();
+		break;
+	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+		pConDB = GetInputTerminal()->bcPaxData->getEntryFlightTimeDestribution();
 		break;
 	}
 	return pConDB;

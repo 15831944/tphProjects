@@ -1,0 +1,507 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="3DViewCameras.cpp" />
+    <ClCompile Include="AcTypeAlias.cpp" />
+    <ClCompile Include="ACTypeDoor.cpp" />
+    <ClCompile Include="ACTypesManager.cpp" />
+    <ClCompile Include="Aircraft.cpp" />
+    <ClCompile Include="AircraftAliasManager.cpp" />
+    <ClCompile Include="AircraftModel.cpp" />
+    <ClCompile Include="AircraftModelDatabase.cpp" />
+    <ClCompile Include="Airline.cpp" />
+    <ClCompile Include="AirlineManager.cpp" />
+    <ClCompile Include="Airport.cpp" />
+    <ClCompile Include="AirportDatabase.cpp" />
+    <ClCompile Include="AirportDatabaseList.cpp" />
+    <ClCompile Include="AirportsManager.cpp" />
+    <ClCompile Include="AirsideFlightType.cpp" />
+    <ClCompile Include="ALTObjectID.cpp" />
+    <ClCompile Include="ALTObjectIDCompare.cpp" />
+    <ClCompile Include="ALT_TypeString.cpp" />
+    <ClCompile Include="ARCAssert.cpp" />
+    <ClCompile Include="ARCBoundingSphere.cpp" />
+    <ClCompile Include="ARCColor.cpp" />
+    <ClCompile Include="ARCConsole.cpp" />
+    <ClCompile Include="ARCException.cpp" />
+    <ClCompile Include="ARCExceptionEx.cpp" />
+    <ClCompile Include="ARCFlight.cpp" />
+    <ClCompile Include="ARCGUID.cpp" />
+    <ClCompile Include="ARCLine.cpp" />
+    <ClCompile Include="ARCLine3.cpp" />
+    <ClCompile Include="ARCMathCommon.cpp" />
+    <ClCompile Include="ARCMatrix3.cpp" />
+    <ClCompile Include="ARCMatrix4x4.cpp" />
+    <ClCompile Include="ARCPath.cpp" />
+    <ClCompile Include="ARCPipe.cpp" />
+    <ClCompile Include="ARCPolygon.cpp" />
+    <ClCompile Include="ARCportDatabaseManager.cpp" />
+    <ClCompile Include="ARCportProjectDatabase.cpp" />
+    <ClCompile Include="ARCProbPlacer.cpp" />
+    <ClCompile Include="ARCRay.cpp" />
+    <ClCompile Include="ARCStringConvert.cpp" />
+    <ClCompile Include="ARCTermSettingHander.cpp" />
+    <ClCompile Include="ARCTracker.cpp" />
+    <ClCompile Include="ARCUnit.cpp" />
+    <ClCompile Include="ARCVector.cpp" />
+    <ClCompile Include="ARCVector4.cpp" />
+    <ClCompile Include="ArrFlightOperation.cpp" />
+    <ClCompile Include="BaseFloor.cpp" />
+    <ClCompile Include="BaseObject.cpp" />
+    <ClCompile Include="BitmapSaver.cpp" />
+    <ClCompile Include="BizierCurve.cpp" />
+    <ClCompile Include="CADInfo.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CARCUnit.cpp" />
+    <ClCompile Include="CATEGORY.CPP" />
+    <ClCompile Include="CAutoSaveHandlerInterface.cpp" />
+    <ClCompile Include="CodeTimeTest.cpp" />
+    <ClCompile Include="CommandHistory.cpp" />
+    <ClCompile Include="Common.cpp" />
+    <ClCompile Include="CompareModel.cpp" />
+    <ClCompile Include="CONSTRNT.CPP" />
+    <ClCompile Include="csv_file.cpp" />
+    <ClCompile Include="cubic_spline.cpp" />
+    <ClCompile Include="DATASET.CPP" />
+    <ClCompile Include="DBData.cpp" />
+    <ClCompile Include="DepFlightOperation.cpp" />
+    <ClCompile Include="DirectoryUtil.cpp" />
+    <ClCompile Include="DispProperties.cpp" />
+    <ClCompile Include="DistanceLineLine.cpp" />
+    <ClCompile Include="DistancePath.cpp" />
+    <ClCompile Include="DynamicMovement.cpp" />
+    <ClCompile Include="EchoSystem.cpp" />
+    <ClCompile Include="elaptime.cpp" />
+    <ClCompile Include="EngineDiagnoseEx.cpp" />
+    <ClCompile Include="ExceptionMsgDB.cpp" />
+    <ClCompile Include="exeption.cpp" />
+    <ClCompile Include="FileInDB.cpp" />
+    <ClCompile Include="fileman.cpp" />
+    <ClCompile Include="FlightManager.cpp" />
+    <ClCompile Include="FlightOperation.cpp" />
+    <ClCompile Include="FloatUtils.cpp" />
+    <ClCompile Include="FloorChangeMap.cpp" />
+    <ClCompile Include="FLT_CNST.CPP" />
+    <ClCompile Include="fsstream.cpp" />
+    <ClCompile Include="GetIntersection.cpp" />
+    <ClCompile Include="GlobalDB.cpp" />
+    <ClCompile Include="GlobalDBList.cpp" />
+    <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="Guid.cpp" />
+    <ClCompile Include="helpfuncs.cpp" />
+    <ClCompile Include="HierachyName.cpp" />
+    <ClCompile Include="IARCportLayoutEditContext.cpp" />
+    <ClCompile Include="IDGather.cpp" />
+    <ClCompile Include="IEnvModeEditContext.cpp" />
+    <ClCompile Include="IFloorDataSet.cpp" />
+    <ClCompile Include="ILayoutObject.cpp" />
+    <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="INIFileHandle.cpp" />
+    <ClCompile Include="LandSideOperatonTypeConstraint.cpp" />
+    <ClCompile Include="LandsideVehicleState.cpp" />
+    <ClCompile Include="LaneRange.cpp" />
+    <ClCompile Include="LATLONG.CPP" />
+    <ClCompile Include="LatLongConvert.cpp" />
+    <ClCompile Include="LINE.CPP" />
+    <ClCompile Include="Line2008.cpp" />
+    <ClCompile Include="LogFile.cpp" />
+    <ClCompile Include="mBezierCurve.cpp" />
+    <ClCompile Include="mFunctor.cpp" />
+    <ClCompile Include="ModelGrid.cpp" />
+    <ClCompile Include="MultiReportAndReportManager.cpp" />
+    <ClCompile Include="MultiRunReport.cpp" />
+    <ClCompile Include="MutilReport.cpp" />
+    <ClCompile Include="MyStackWalker.cpp" />
+    <ClCompile Include="NaturalCubicSpline.cpp" />
+    <ClCompile Include="NewPassengerType.cpp" />
+    <ClCompile Include="OleDragDropManager.cpp" />
+    <ClCompile Include="OnBoardException.cpp" />
+    <ClCompile Include="OnBoardStates.cpp" />
+    <ClCompile Include="OneToOneProcess.cpp" />
+    <ClCompile Include="PATH.CPP" />
+    <ClCompile Include="Path2008.cpp" />
+    <ClCompile Include="PathSnapFunctor.cpp" />
+    <ClCompile Include="PictureInfo.cpp" />
+    <ClCompile Include="POINT.CPP" />
+    <ClCompile Include="Point2008.cpp" />
+    <ClCompile Include="POLLYGON.CPP" />
+    <ClCompile Include="Pollygon2008.cpp" />
+    <ClCompile Include="PreciseTimer.cpp" />
+    <ClCompile Include="ProbabilityDistribution.cpp" />
+    <ClCompile Include="ProbDistEntry.cpp" />
+    <ClCompile Include="ProbDistManager.cpp" />
+    <ClCompile Include="ProDistrubutionData.cpp" />
+    <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="ProjectEditContext.cpp" />
+    <ClCompile Include="ProjectManager.cpp" />
+    <ClCompile Include="Range.cpp" />
+    <ClCompile Include="RangeNumbers.cpp" />
+    <ClCompile Include="Ray.cpp" />
+    <ClCompile Include="RayIntersectPath.cpp" />
+    <ClCompile Include="ReadRegister.cpp" />
+    <ClCompile Include="Rect2008.cpp" />
+    <ClCompile Include="Referenced.cpp" />
+    <ClCompile Include="RenderFloor.cpp" />
+    <ClCompile Include="ReportItem.cpp" />
+    <ClCompile Include="RunTimeDebug.cpp" />
+    <ClCompile Include="Sector.cpp" />
+    <ClCompile Include="SelectedSimulationData.cpp" />
+    <ClCompile Include="ShapeGenerator.cpp" />
+    <ClCompile Include="SimAndReportManager.cpp" />
+    <ClCompile Include="SimResult.cpp" />
+    <ClCompile Include="SqlScriptMaker.cpp" />
+    <ClCompile Include="StackWalker.cpp" />
+    <ClCompile Include="StartDate.cpp" />
+    <ClCompile Include="STATES.CPP" />
+    <ClCompile Include="StateTimePoint.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="strdict.cpp" />
+    <ClCompile Include="StringUtil.cpp" />
+    <ClCompile Include="strutil.cpp" />
+    <ClCompile Include="Subairline.cpp" />
+    <ClCompile Include="SuperTypeRelationData.cpp" />
+    <ClCompile Include="TEMPLATE.CPP" />
+    <ClCompile Include="TempTracerData.cpp" />
+    <ClCompile Include="TERMFILE.CPP" />
+    <ClCompile Include="testcode.cpp" />
+    <ClCompile Include="TestFile.cpp" />
+    <ClCompile Include="TimePoint.cpp" />
+    <ClCompile Include="TimeRange.cpp" />
+    <ClCompile Include="tinyxml\base64.cpp" />
+    <ClCompile Include="tinyxml\tinystr.cpp" />
+    <ClCompile Include="tinyxml\tinyxml.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="TmpFileManager.cpp" />
+    <ClCompile Include="Transform2D.cpp" />
+    <ClCompile Include="TreeDataSet.cpp" />
+    <ClCompile Include="Types.cpp" />
+    <ClCompile Include="UndoManager.cpp" />
+    <ClCompile Include="UndoProject.cpp" />
+    <ClCompile Include="UnitsManager.cpp" />
+    <ClCompile Include="UTIL.CPP" />
+    <ClCompile Include="UTurnPath.cpp" />
+    <ClCompile Include="Vector2i.cpp" />
+    <ClCompile Include="VectorBase.cpp" />
+    <ClCompile Include="ViewMsgInfo.cpp" />
+    <ClCompile Include="wm5NaturalSpline1.cpp" />
+    <ClCompile Include="ZipInfo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3DViewCameras.h" />
+    <ClInclude Include="AcTypeAlias.h" />
+    <ClInclude Include="ACTypeDoor.h" />
+    <ClInclude Include="ACTypesManager.h" />
+    <ClInclude Include="Aircraft.h" />
+    <ClInclude Include="AircraftAliasManager.h" />
+    <ClInclude Include="AircraftModel.h" />
+    <ClInclude Include="AircraftModelDatabase.h" />
+    <ClInclude Include="Airline.h" />
+    <ClInclude Include="AirlineManager.h" />
+    <ClInclude Include="Airport.h" />
+    <ClInclude Include="AirportDatabase.h" />
+    <ClInclude Include="AirportDatabaseList.h" />
+    <ClInclude Include="AirportsManager.h" />
+    <ClInclude Include="AirsideFlightType.h" />
+    <ClInclude Include="AIRSIDE_BIN.h" />
+    <ClInclude Include="ALTObjectID.h" />
+    <ClInclude Include="ALTObjectIDCompare.h" />
+    <ClInclude Include="ALT_TYPE.h" />
+    <ClInclude Include="ALT_TypeString.h" />
+    <ClInclude Include="ARCAssert.h" />
+    <ClInclude Include="ARCBoundingSphere.h" />
+    <ClInclude Include="ARCColor.h" />
+    <ClInclude Include="ARCConsole.h" />
+    <ClInclude Include="ARCException.h" />
+    <ClInclude Include="ARCExceptionEx.h" />
+    <ClInclude Include="ARCFlight.h" />
+    <ClInclude Include="ARCGUID.h" />
+    <ClInclude Include="ARCLine.h" />
+    <ClInclude Include="ARCLine3.h" />
+    <ClInclude Include="ARCMathCommon.h" />
+    <ClInclude Include="ARCMatrix3.h" />
+    <ClInclude Include="ARCMatrix4x4.h" />
+    <ClInclude Include="ARCPath.h" />
+    <ClInclude Include="ARCPipe.h" />
+    <ClInclude Include="ARCPolygon.h" />
+    <ClInclude Include="ARCportDatabaseManager.h" />
+    <ClInclude Include="ARCportProjectDatabase.h" />
+    <ClInclude Include="ARCProbPlacer.h" />
+    <ClInclude Include="ARCRay.h" />
+    <ClInclude Include="ARCStringConvert.h" />
+    <ClInclude Include="ARCTermSettingHander.h" />
+    <ClInclude Include="ARCTracker.h" />
+    <ClInclude Include="ARCTypes.h" />
+    <ClInclude Include="ARCUnit.h" />
+    <ClInclude Include="ARCVector.h" />
+    <ClInclude Include="ARCVector4.h" />
+    <ClInclude Include="arrays.h" />
+    <ClInclude Include="ArrFlightOperation.h" />
+    <ClInclude Include="BaseFloor.h" />
+    <ClInclude Include="BaseObject.h" />
+    <ClInclude Include="BitmapSaver.h" />
+    <ClInclude Include="BizierCurve.h" />
+    <ClInclude Include="CADInfo.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CARCUnit.h" />
+    <ClInclude Include="CATEGORY.H" />
+    <ClInclude Include="CAutoSaveHandlerInterface.h" />
+    <ClInclude Include="CodeTimeTest.h" />
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandHistory.h" />
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="CommonDll.h" />
+    <ClInclude Include="CompareModel.h" />
+    <ClInclude Include="CONSTRNT.H" />
+    <ClInclude Include="containr.h" />
+    <ClInclude Include="CPPUtil.h" />
+    <ClInclude Include="csv_file.h" />
+    <ClInclude Include="cubic_spline.h" />
+    <ClInclude Include="DATASET.H" />
+    <ClInclude Include="DBData.h" />
+    <ClInclude Include="DepFlightOperation.h" />
+    <ClInclude Include="DirectoryUtil.h" />
+    <ClInclude Include="DispProperties.h" />
+    <ClInclude Include="DistanceLineLine.h" />
+    <ClInclude Include="DistancePath.h" />
+    <ClInclude Include="DynamicMovement.h" />
+    <ClInclude Include="EchoSystem.h" />
+    <ClInclude Include="elaptime.h" />
+    <ClInclude Include="EngineDiagnose.h" />
+    <ClInclude Include="EngineDiagnoseEx.h" />
+    <ClInclude Include="ENV_MODE.h" />
+    <ClInclude Include="err.h" />
+    <ClInclude Include="ErrorMessage.h" />
+    <ClInclude Include="EventBinarySearch.h" />
+    <ClInclude Include="ExceptionMsgDB.h" />
+    <ClInclude Include="exeption.h" />
+    <ClInclude Include="FileInDB.h" />
+    <ClInclude Include="fileman.h" />
+    <ClInclude Include="FileOutPut.h" />
+    <ClInclude Include="FlightManager.h" />
+    <ClInclude Include="FlightOperation.h" />
+    <ClInclude Include="FloatUtils.h" />
+    <ClInclude Include="FloorChangeMap.h" />
+    <ClInclude Include="FLT_CNST.H" />
+    <ClInclude Include="fsstream.h" />
+    <ClInclude Include="GetIntersection.h" />
+    <ClInclude Include="GlobalDB.h" />
+    <ClInclude Include="GlobalDBList.h" />
+    <ClInclude Include="Grid.h" />
+    <ClInclude Include="Guid.h" />
+    <ClInclude Include="handler.h" />
+    <ClInclude Include="HeapObj.h" />
+    <ClInclude Include="helpfuncs.h" />
+    <ClInclude Include="HELPLIST.H" />
+    <ClInclude Include="HierachyName.h" />
+    <ClInclude Include="IARCportLayoutEditContext.h" />
+    <ClInclude Include="IDGather.h" />
+    <ClInclude Include="IEnvModeEditContext.h" />
+    <ClInclude Include="IFloorDataSet.h" />
+    <ClInclude Include="ILayoutObject.h" />
+    <ClInclude Include="IniFile.h" />
+    <ClInclude Include="INIFileHandle.h" />
+    <ClInclude Include="InstancePtr.h" />
+    <ClInclude Include="LandSideOperatonTypeConstraint.h" />
+    <ClInclude Include="LandsideVehicleState.h" />
+    <ClInclude Include="LANDSIDE_BIN.h" />
+    <ClInclude Include="LaneRange.h" />
+    <ClInclude Include="LATLONG.H" />
+    <ClInclude Include="LatLongConvert.h" />
+    <ClInclude Include="LINE.H" />
+    <ClInclude Include="Line2008.h" />
+    <ClInclude Include="ListenerCommon.h" />
+    <ClInclude Include="LogFile.h" />
+    <ClInclude Include="mBezierCurve.h" />
+    <ClInclude Include="mCurve.h" />
+    <ClInclude Include="mFunctor.h" />
+    <ClInclude Include="ModelDatabase.hpp" />
+    <ClInclude Include="ModelGrid.h" />
+    <ClInclude Include="mPath.h" />
+    <ClInclude Include="MultiReportAndReportManager.h" />
+    <ClInclude Include="MultiRunReport.h" />
+    <ClInclude Include="MutilReport.h" />
+    <ClInclude Include="MyStackWalker.h" />
+    <ClInclude Include="NaturalCubicSpline.h" />
+    <ClInclude Include="NewPassengerType.h" />
+    <ClInclude Include="OleDragDropManager.h" />
+    <ClInclude Include="OnBoardException.h" />
+    <ClInclude Include="OnBoardStates.h" />
+    <ClInclude Include="ONBOARD_BIN.h" />
+    <ClInclude Include="OneToOneProcess.h" />
+    <ClInclude Include="PATH.H" />
+    <ClInclude Include="Path2008.h" />
+    <ClInclude Include="PathSnapFunctor.h" />
+    <ClInclude Include="PictureInfo.h" />
+    <ClInclude Include="POINT.H" />
+    <ClInclude Include="Point2008.h" />
+    <ClInclude Include="POLLYGON.H" />
+    <ClInclude Include="Pollygon2008.h" />
+    <ClInclude Include="PreciseTimer.h" />
+    <ClInclude Include="ProbabilityDistribution.h" />
+    <ClInclude Include="ProbDistEntry.h" />
+    <ClInclude Include="ProbDistManager.h" />
+    <ClInclude Include="ProDistrubutionData.h" />
+    <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="ProjectEditContext.h" />
+    <ClInclude Include="ProjectManager.h" />
+    <ClInclude Include="Range.h" />
+    <ClInclude Include="RangeNumbers.h" />
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="RayIntersectPath.h" />
+    <ClInclude Include="ReadRegister.h" />
+    <ClInclude Include="Rect2008.h" />
+    <ClInclude Include="Referenced.h" />
+    <ClInclude Include="ref_ptr.h" />
+    <ClInclude Include="RenderFloor.h" />
+    <ClInclude Include="replace.h" />
+    <ClInclude Include="ReportItem.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="RunTimeDebug.h" />
+    <ClInclude Include="Sector.h" />
+    <ClInclude Include="SelectedSimulationData.h" />
+    <ClInclude Include="ShapeGenerator.h" />
+    <ClInclude Include="SimAndReportManager.h" />
+    <ClInclude Include="SimResult.h" />
+    <ClInclude Include="Singleton.h" />
+    <ClInclude Include="SqlScriptMaker.h" />
+    <ClInclude Include="StartDate.h" />
+    <ClInclude Include="STATES.H" />
+    <ClInclude Include="StateTimePoint.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="strdict.h" />
+    <ClInclude Include="StringTypeConvert.h" />
+    <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="strutil.h" />
+    <ClInclude Include="Subairline.h" />
+    <ClInclude Include="SuperTypeRelationData.h" />
+    <ClInclude Include="SyncDateType.h" />
+    <ClInclude Include="template.h" />
+    <ClInclude Include="TempTracerData.h" />
+    <ClInclude Include="TERMFILE.H" />
+    <ClInclude Include="TERM_BIN.H" />
+    <ClInclude Include="testcode.h" />
+    <ClInclude Include="TestFile.h" />
+    <ClInclude Include="TimePoint.h" />
+    <ClInclude Include="TimeRange.h" />
+    <ClInclude Include="tinyxml\base64.hpp" />
+    <ClInclude Include="tinyxml\tinystr.h" />
+    <ClInclude Include="tinyxml\tinyxml.h" />
+    <ClInclude Include="TmpFileManager.h" />
+    <ClInclude Include="Transform2D.h" />
+    <ClInclude Include="TreeDataSet.h" />
+    <ClInclude Include="Types.h" />
+    <ClInclude Include="Types.hpp" />
+    <ClInclude Include="UndoManager.h" />
+    <ClInclude Include="UndoProject.h" />
+    <ClInclude Include="UnitPiece.h" />
+    <ClInclude Include="UnitsManager.h" />
+    <ClInclude Include="UnzipDLL.h" />
+    <ClInclude Include="UTIL.H" />
+    <ClInclude Include="UTurnPath.h" />
+    <ClInclude Include="Vector2i.h" />
+    <ClInclude Include="VectorBase.h" />
+    <ClInclude Include="ViewMsg.h" />
+    <ClInclude Include="ViewMsgInfo.h" />
+    <ClInclude Include="WinMsg.h" />
+    <ClInclude Include="wm5NaturalSpline1.h" />
+    <ClInclude Include="ZCallBck.h" />
+    <ClInclude Include="ZipDLL.h" />
+    <ClInclude Include="ZipInfo.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Common</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)objd\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <TargetName>$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)obj\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(SolutionDir)obj\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_USE_32BIT_TIME_T;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MinimalRebuild>false</MinimalRebuild>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\;..\..\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,13 @@
+#ifndef UNIT_PIECE_H
+#define UNIT_PIECE_H
+
+enum UNIT_PIECE_ID
+{
+	UP_ID_1000 = 1000,
+	UP_ID_1001 = 1001,
+	UP_ID_1002 = 1002,
+	UP_ID_1003 = 1003
+};
+
+
+#endif
