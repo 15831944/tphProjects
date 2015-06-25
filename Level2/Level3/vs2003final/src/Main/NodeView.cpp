@@ -382,8 +382,8 @@ void CNodeView::OnInitialUpdate()
 			GetTreeCtrl().SelectSetFirstVisible(((CTVNode*)GetDocument()->m_msManager.GetTerminalRootTVNode()->GetChildByIdx(0))->m_hItem);
 	}
 
-	m_btnMoveFloorUp.LoadBitmaps(IDB_BITMAP_MOVEUPFLOOR, IDB_BITMAP_MOVEUPFLOOR1, IDB_BITMAP_MOVEUPFLOOR, IDB_BITMAP_MOVEUPFLOOR2);
-	m_btnMoveFloorDown.LoadBitmaps(IDB_BITMAP_MOVEDOWNFLOOR, IDB_BITMAP_MOVEDOWNFLOOR1, IDB_BITMAP_MOVEDOWNFLOOR, IDB_BITMAP_MOVEDOWNFLOOR2);
+	m_btnMoveFloorUp.LoadBitmaps(IDB_MOVE_UP_FLOOR, IDB_MOVE_UP_FLOOR1, IDB_MOVE_UP_FLOOR, IDB_MOVE_UP_FLOOR2);
+	m_btnMoveFloorDown.LoadBitmaps(IDB_MOVE_DOWN_FLOOR, IDB_MOVE_DOWN_FLOOR1, IDB_MOVE_DOWN_FLOOR, IDB_MOVE_DOWN_FLOOR2);
 }
 
 void CNodeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) 

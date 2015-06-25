@@ -1457,14 +1457,19 @@
 #define IDB_BITMAP13                    1100
 #define IDC_LST_AIRPORTS                1101
 #define IDC_LIST_AIRPORTS               1101
-#define IDB_BITMAP_MOVEUPFLOOR          1101
+#define IDB_MOVE_UP_FLOOR2              1101
 #define IDC_TREE_SECTORS                1102
-#define IDB_BITMAP_MOVEDOWNFLOOR        1102
+#define IDB_MOVE_DOWN_FLOOR             1102
 #define IDC_EDT_SECTORNAME              1103
+#define IDB_MOVE_DOWN_FLOOR1            1103
 #define IDC_EDT_AIRPORTS                1104
+#define IDB_MOVE_DOWN_FLOOR2            1104
 #define IDC_EDT_APCODE                  1105
 #define IDC_EDT_APIATACODE              1105
+#define IDB_MOVE_UP_FLOOR               1105
 #define IDC_EDT_APLONGNAME              1106
+#define IDB_BITMAP20                    1106
+#define IDB_MOVE_UP_FLOOR1              1106
 #define IDC_TREE_PROBDIST               1107
 #define IDC_EDT_APICAOCODE              1107
 #define IDC_EDT_APELEVATION             1108
@@ -3155,13 +3160,9 @@
 #define IDR_ADDDELEDITTOOLBAR3          2267
 #define IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY 2267
 #define IDC_CHECK_THICKNESS             2268
-#define IDB_BITMAP_MOVEDOWNFLOOR1       2268
 #define IDC_SPIN_HEIGHT                 2269
-#define IDB_BITMAP_MOVEUPFLOOR1         2269
 #define IDC_STATIC_LOD                  2270
-#define IDB_BITMAP_MOVEDOWNFLOOR2       2270
 #define IDC_EDIT_IMPORTFILE             2271
-#define IDB_BITMAP_MOVEUPFLOOR2         2271
 #define IDC_LIST_ONBOARDFLIGHT          2272
 #define IDC_BUTTON_PICKLINE             2273
 #define IDC_RESTARTAPP                  2273
@@ -5439,9 +5440,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1103
+#define _APS_NEXT_RESOURCE_VALUE        1107
 #define _APS_NEXT_COMMAND_VALUE         35328
-#define _APS_NEXT_CONTROL_VALUE         2408
+#define _APS_NEXT_CONTROL_VALUE         2407
 #define _APS_NEXT_SYMED_VALUE           487
 #endif
 #endif
