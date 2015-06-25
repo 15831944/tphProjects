@@ -118,6 +118,7 @@ void BoardingCallPaxTypeDatabase::AddPaxType(CMobileElemConstraint* pInputConst,
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
 	if(pInputConst)
 	{
+		ASSERT(pInputConst->GetInputTerminal() != NULL);
 		*pMBConst = *pInputConst;
 		BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
 		pPaxEntry->initialize(pMBConst, NULL);

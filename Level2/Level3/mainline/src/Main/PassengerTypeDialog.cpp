@@ -283,23 +283,7 @@ void CPassengerTypeDialog::ResetSeletion()
 
 	int i = 0, j = 0;
 
-	//
-	// Passenger Type Tree
-	//
-
-    char *type_labels[] = { "ALL TYPES", "ARRIVAL", "DEPARTURE",
-		"TRANSIT", "TRANSFER" };
-
-	for (i = 0; i < 5; i++)
-	{
-		HTREEITEM hItem = m_PaxTypeTree.InsertItem( type_labels[i] );
-		m_PaxTypeTree.SetItemData( hItem, i );
-
-		InsertTreeItem( hItem, 0 );    // Insert all the branches of every level.
-
-		m_PaxTypeTree.Expand( hItem, TVE_EXPAND );   // Expand it.
-	}
-
+	LoadPassengerTypeTree();
 
 	int iIntrinsic = m_MobileElem.getIntrinsic();
 	int iTypeSel = 0;
@@ -1391,4 +1375,24 @@ void CPassengerTypeDialog::EnableToolbarButtonByRules()
 		0 != m_MobileElem.getNonpaxCount().getCount()
 		&& -1 != m_listPassenger.GetCurSel()
 		);
+}
+
+void CPassengerTypeDialog::LoadPassengerTypeTree()
+{
+	//
+	// Passenger Type Tree
+	//
+
+	char *type_labels[] = { "ALL TYPES", "ARRIVAL", "DEPARTURE",
+		"TRANSIT", "TRANSFER" };
+
+	for (int i = 0; i < 5; i++)
+	{
+		HTREEITEM hItem = m_PaxTypeTree.InsertItem( type_labels[i] );
+		m_PaxTypeTree.SetItemData( hItem, i );
+
+		InsertTreeItem( hItem, 0 );    // Insert all the branches of every level.
+
+		m_PaxTypeTree.Expand( hItem, TVE_EXPAND );   // Expand it.
+	}
 }

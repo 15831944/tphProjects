@@ -12,6 +12,7 @@
 #include "Common\ProbDistManager.h"
 #include "DlgProbDist.h"
 #include "BoardingCallFlightDialog.h"
+#include "BoardingCallPassengerTypeDlg.h"
 static char THIS_FILE[] = __FILE__;
 #endif
 
@@ -396,11 +397,11 @@ void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pRes
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
 		return;
 	}
-	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	if(!pDataWithType)
+	TreeNodeDataWithType* pSelData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	if(!pSelData)
 		return;
 
-	switch(pDataWithType->m_type)
+	switch(pSelData->m_type)
 	{
 	case TREE_NODE_INVALID:
 		break;
@@ -453,14 +454,14 @@ void CBoardingCallDlg::OnToolbarButtonAddStage()
 void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 {
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
-	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	ASSERT(pDataWithType->m_type == TREE_NODE_STAGE);
+	TreeNodeDataWithType* pSelData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	ASSERT(pSelData->m_type == TREE_NODE_STAGE);
 
-	BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
+	BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pSelData->m_data;
 	FlightConstraint fltConst;
 	fltConst.SetAirportDB(GetInputTerminal()->m_pAirportDB);
 	fltConst.SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
-	BoardingCallFlightDialog flightTypeDlg(m_pParentWnd, DIALOG_MODE_BOARDINGCALL);
+	BoardingCallFlightDialog flightTypeDlg(m_pParentWnd);
 	flightTypeDlg.InitFltConst(fltConst);
 	while( flightTypeDlg.DoModal() == IDOK )
 	{
@@ -523,7 +524,7 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 {
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 
-	CPassengerTypeDialog paxTypeDlg(m_pParentWnd);
+	BoardingCallPassengerTypeDlg paxTypeDlg(m_pParentWnd);
 	while(paxTypeDlg.DoModal() == IDOK)
 	{
 		CMobileElemConstraint mobElemConst;
@@ -715,7 +716,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
 			BoardingCallPaxTypeDatabase* pPaxTypeDB = pStandEntry->GetPaxTypeDatabase();
 
-			if(pPaxTypeDB->Find(pPaxEntry)!=INT_MAX && pStandEntry->getID()->isBlank())
+			if(pPaxTypeDB->Find(pPaxEntry)!=INT_MAX && pPaxEntry->getConstraint()->isDefault())
 			{
 				MessageBox("Can't delete the DEFAULT Passenger Type.");
 				return;
@@ -783,10 +784,10 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 	if(!hSelItem || hSelItem == m_hRoot)
 		return;
 
-	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	if(!pDataWithType)
+	TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	if(!pSelItemData)
 		return;
-	switch(pDataWithType->m_type)
+	switch(pSelItemData->m_type)
 	{
 	case TREE_NODE_INVALID:
 		break;
@@ -794,18 +795,18 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 		break;
 	case TREE_NODE_FLIGHT_TYPE:
 		{
-			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
+			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pSelItemData->m_data;
 			FlightConstraint* pOldConst = (FlightConstraint*)pFlightTypeEntry->getConstraint();
 
-			CFlightDialog flightTypeDlg(m_pParentWnd);
-
-			HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
-			TreeNodeDataWithType* pParData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
-			if(!pParData)
+			HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pPareData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+			if(!pPareData)
 				return;
-			ASSERT(pParData->m_type == TREE_NODE_STAGE);
-			BoardingCallFlightTypeDatabase* pfltTypeDB = (BoardingCallFlightTypeDatabase*)pParData->m_data;
+			ASSERT(pPareData->m_type == TREE_NODE_STAGE);
+			BoardingCallFlightTypeDatabase* pfltTypeDB = (BoardingCallFlightTypeDatabase*)pPareData->m_data;
 
+			BoardingCallFlightDialog flightTypeDlg(m_pParentWnd);
+			flightTypeDlg.InitFltConst(*pOldConst);
 			while(flightTypeDlg.DoModal() == IDOK)
 			{
 				FlightConstraint fltConst = flightTypeDlg.GetFlightSelection();
@@ -840,11 +841,11 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 			CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
 			CDlgStandFamily standDlg(pDoc->GetProjectID());
 
-			HTREEITEM hFltTypeItem = m_tree.GetParentItem(hSelItem);
-			TreeNodeDataWithType* pFltTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hFltTypeItem);
-			ASSERT(pFltTypeData->m_type == TREE_NODE_FLIGHT_TYPE);
-			BoardingCallFlightTypeEntry* pFltTypeEntry = (BoardingCallFlightTypeEntry*)pFltTypeData->m_data;
-			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+			HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* hPareData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+			ASSERT(hPareData->m_type == TREE_NODE_FLIGHT_TYPE);
+			BoardingCallFlightTypeEntry* pFltTypeEntry = (BoardingCallFlightTypeEntry*)hPareData->m_data;
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pSelItemData->m_data;
 			while(standDlg.DoModal()==IDOK)
 			{
 				CString strStand = standDlg.GetSelStandFamilyName();
@@ -869,9 +870,9 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 
 					// Reload all sibling item.
 					HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
-					TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
-					ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
-					BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
+					TreeNodeDataWithType* pFlightTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
+					ASSERT(pFlightTypeData && pFlightTypeData->m_type == TREE_NODE_FLIGHT_TYPE);
+					BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pFlightTypeData->m_data);
 					m_tree.SelectItem(hFlightTypeItem);
 					ReloadFlightType(pFlightEntry, hFlightTypeItem);
 					m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
@@ -883,23 +884,24 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
+			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pSelItemData->m_data;
 
-			HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
-			TreeNodeDataWithType* pStandData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
-			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pStandData->m_data;
+			HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pPareData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pPareData->m_data;
 
 			if(pStandEntry->GetPaxTypeDatabase()->Find(pPaxTypeEntry)!=INT_MAX &&
-				pStandEntry->getID()->isBlank())
+				pPaxTypeEntry->getConstraint()->isDefault())
 			{
 				MessageBox("Can't change the DEFAULT Passenger Type.");
 				return;
 			}
-			CPassengerTypeDialog paxTypeDlg( m_pParentWnd );
+			BoardingCallPassengerTypeDlg paxTypeDlg(m_pParentWnd);
+			CMobileElemConstraint mobElemConst = (*(CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
+			paxTypeDlg.InitFltConst(mobElemConst);
 			while(paxTypeDlg.DoModal() == IDOK)
 			{
-				
-				CMobileElemConstraint mobElemConst = paxTypeDlg.GetMobileSelection();
+				mobElemConst = paxTypeDlg.GetMobileSelection();
 				CMobileElemConstraint* pOldConst = (CMobileElemConstraint*)pPaxTypeEntry->getConstraint();
 				
 				if(pStandEntry->GetPaxTypeDatabase()->FindEqual(mobElemConst) != NULL)
@@ -959,9 +961,9 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		CComboBox* pCB=(CComboBox*)pWnd;
 		pCB->ResetContent();
 		pCB->SetDroppedWidth(250);
-		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-		ASSERT(pDataWithType);
-		switch(pDataWithType->m_type)
+		TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pSelItemData);
+		switch(pSelItemData->m_type)
 		{
 		case TREE_NODE_TRIGGER_TIME:
 		case TREE_NODE_TRIGGER_PROP:
@@ -1211,9 +1213,9 @@ void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
 	}
 	m_tree.SelectItem(hSelItem);
 
-	TreeNodeDataWithType* pItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	ASSERT(pItemData);
-	switch(pItemData->m_type)
+	TreeNodeDataWithType* pSelData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	ASSERT(pSelData);
+	switch(pSelData->m_type)
 	{
 	case TREE_NODE_STAGE:
 		{
@@ -1330,9 +1332,9 @@ void CBoardingCallDlg::OnChooseMenu( UINT nID )
 		return;
 	}
 
-	TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	ASSERT(pTriggerData);
-	switch (pTriggerData->m_type)
+	TreeNodeDataWithType* pSelData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	ASSERT(pSelData);
+	switch (pSelData->m_type)
 	{
 	case TREE_NODE_STAGE:
 		{

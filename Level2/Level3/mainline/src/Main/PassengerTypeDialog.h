@@ -62,7 +62,10 @@ public:
 protected:
 	
 	void InsertTreeItem(HTREEITEM hItem, int nLevel);
-	void ResetSeletion();
+	virtual void ResetSeletion();
+
+	virtual void LoadPassengerTypeTree();
+
 	void ResetPaxType();
 
 	int m_nConstraintType;		//

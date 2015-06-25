@@ -247,6 +247,7 @@
     <ClInclude Include="BmpBtnDropListEX.h" />
     <ClInclude Include="BoardingCallDlg.h" />
     <ClInclude Include="BoardingCallFlightDialog.h" />
+    <ClInclude Include="BoardingCallPassengerTypeDlg.h" />
     <ClInclude Include="CmpReportChildFrameSplit.h" />
     <ClInclude Include="CmpReportGraphView.h" />
     <ClInclude Include="CmpReportListView.h" />
@@ -1076,6 +1077,7 @@
     <ClCompile Include="AllProcessorTypeShowListBox.cpp" />
     <ClCompile Include="ARCportTabCtrl.cpp" />
     <ClCompile Include="BoardingCallFlightDialog.cpp" />
+    <ClCompile Include="BoardingCallPassengerTypeDlg.cpp" />
     <ClCompile Include="CmpReportChildFrameSplit.cpp" />
     <ClCompile Include="CmpReportGraphView.cpp" />
     <ClCompile Include="CmpReportListView.cpp" />

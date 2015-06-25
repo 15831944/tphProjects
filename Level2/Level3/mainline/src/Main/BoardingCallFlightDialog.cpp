@@ -4,8 +4,8 @@
 #include "TermPlanDoc.h"
 
 IMPLEMENT_DYNAMIC(BoardingCallFlightDialog, CFlightDialog)
-BoardingCallFlightDialog::BoardingCallFlightDialog(CWnd* pParent, dialog_mode mode, bool bShowThroughout) 
-	: CFlightDialog(pParent, bShowThroughout), m_mode(mode)
+BoardingCallFlightDialog::BoardingCallFlightDialog(CWnd* pParent, bool bShowThroughout) 
+	: CFlightDialog(pParent, bShowThroughout)
 {
 }
 
@@ -23,22 +23,15 @@ void BoardingCallFlightDialog::ResetSeletion()
 		return;
 	CFlightDialog::ResetSeletion();
 	CButton* pBtn = NULL;
-	switch(m_mode)
-	{
-	case DIALOG_MODE_BOARDINGCALL:
-		pBtn = (CButton *) GetDlgItem(IDC_RADIO_ALLFLIGHTS_FLT);
-		if(pBtn) 
-			pBtn->EnableWindow(FALSE);
-		pBtn = (CButton *) GetDlgItem(IDC_RADIO_ARRIVING_FLT);
-		if(pBtn) 
-			pBtn->EnableWindow(FALSE);
-		pBtn = (CButton *) GetDlgItem(IDC_RADIO_THROUGHOUT_FLT);
-		if(pBtn) 
-			pBtn->EnableWindow(FALSE);
-		break;
-	default:
-		break;
-	}
+	pBtn = (CButton *) GetDlgItem(IDC_RADIO_ALLFLIGHTS_FLT);
+	if(pBtn) 
+		pBtn->EnableWindow(FALSE);
+	pBtn = (CButton *) GetDlgItem(IDC_RADIO_ARRIVING_FLT);
+	if(pBtn) 
+		pBtn->EnableWindow(FALSE);
+	pBtn = (CButton *) GetDlgItem(IDC_RADIO_THROUGHOUT_FLT);
+	if(pBtn) 
+		pBtn->EnableWindow(FALSE);
 }
 
 void BoardingCallFlightDialog::InitFltConst( const FlightConstraint& FltConst)
