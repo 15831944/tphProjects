@@ -3,6 +3,7 @@
 #include "./3dmodel.h"
 #include <cmath>
 
+int buffer[500000];
 //  tChunk
 C3DSFileLoader::C3DSFileLoader()
 {
@@ -19,7 +20,7 @@ bool C3DSFileLoader::LoadModel(CString filename,C3dModel & tmodel)
 	m_FilePointer = fopen(filename, "rb");
 
 	// 
-	if(!m_FilePointer) 
+	if(!m_FilePointer ) 
 	{
 		sprintf(strMessage, "Unable to find the file: %s!", filename);
 		//MessageBox(NULL, strMessage, "Error", MB_OK);
@@ -60,15 +61,13 @@ void C3DSFileLoader::CleanUp()
 	delete m_TempChunk;							// 
 }
 
-
-
 //  3ds
 void C3DSFileLoader::ProcessNextChunk(t3DModel *pModel, tChunk *pPreviousChunk)
 {
 	t3DObject newObject = {0};					// 
 	tMaterialInfo newTexture = {0};				// 
 	unsigned int version = 0;					// 
-	int buffer[500000] = {0};					// 
+	memset(buffer,0, sizeof(buffer));
 
 	m_CurrentChunk = new tChunk;				// 		
 
@@ -140,7 +139,7 @@ void C3DSFileLoader::ProcessNextChunk(t3DModel *pModel, tChunk *pPreviousChunk)
 
 void C3DSFileLoader::ProcessNextObjectChunk(t3DModel *pModel, t3DObject *pObject, tChunk *pPreviousChunk)
 {
-	int buffer[50000] = {0};					
+	memset(buffer,0, sizeof(buffer));					
 
 	m_CurrentChunk = new tChunk;
 
@@ -187,7 +186,7 @@ void C3DSFileLoader::ProcessNextObjectChunk(t3DModel *pModel, t3DObject *pObject
 
 void C3DSFileLoader::ProcessNextMaterialChunk(t3DModel *pModel, tChunk *pPreviousChunk)
 {
-	int buffer[50000] = {0};			
+	memset(buffer,0, sizeof(buffer));			
 	m_CurrentChunk = new tChunk;
 
 	while (pPreviousChunk->bytesRead < pPreviousChunk->length)
@@ -330,7 +329,7 @@ void C3DSFileLoader::ReadVertices(t3DObject *pObject, tChunk *pPreviousChunk)
 void C3DSFileLoader::ReadObjectMaterial(t3DModel *pModel, t3DObject *pObject, tChunk *pPreviousChunk)
 {
 	char strMaterial[255] = {0};			// 
-	int buffer[50000] = {0};				// 
+	memset(buffer,0, sizeof(buffer));
 
 	// 
 	// 

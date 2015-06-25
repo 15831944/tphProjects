@@ -313,6 +313,7 @@ BOOL CProcPropDlg::OnInitDialog()
 		else if(nProcType == Elevator)
 		{
 			m_tempElevator=*((ElevatorProc*)m_pProc);
+			m_tempElevator.SetNormalDestDistribution(NULL); // Do not delete the Transition Data when destructing m_tempElevator.
 		}
 		else if (nProcType == BillboardProcessor)
 		{

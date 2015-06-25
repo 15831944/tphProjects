@@ -21,6 +21,7 @@ protected:
 	CEdit m_DoorSill ;
 	CEdit m_Center ;
 	CComboBox m_HandDoor ;
+	CString m_strDlgTitle;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -31,4 +32,7 @@ protected:
 protected:
 	void InitCtrlData() ;
 	void GetDataFromCtrlData() ;
+public:
+	void SetDlgTitle(const CString str){ m_strDlgTitle = str; }
+	CString GetDlgTitle(){ return m_strDlgTitle; }
 };

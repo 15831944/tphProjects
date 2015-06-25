@@ -730,7 +730,6 @@ const static DistanceUnit DefaultHoldOffset = 800;
 VehicleStretchInSim::VehicleStretchInSim( Stretch* pStretchInput)
 {
 	m_stretchInput = pStretchInput;	
-
 }
 
 VehicleStretchInSim::~VehicleStretchInSim()

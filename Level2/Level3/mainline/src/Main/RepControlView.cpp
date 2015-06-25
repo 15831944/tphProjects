@@ -56,6 +56,7 @@
 #include ".\repcontrolview.h"
 #include "Reports\RetailReport.h"
 #include "Common\SimAndReportManager.h"
+#include "Reports\MissFlightReport.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -2276,6 +2277,9 @@ CString CRepControlView::GetReportTitle()
 		break;
 	case ENUM_BILLBOARD_LINKEDPROCINCREMENTVISIT_REP:
 		pPara = new CBillboardLinkedProcIncrementalVisitReport( m_pTerm, strPath );
+		break;
+	case ENUM_MISSFLIGHT_REP:
+		pPara = new CMissFlightReport(m_pTerm, strPath);
 		break;
 	default:
 		assert(0);

@@ -12,6 +12,7 @@ IMPLEMENT_DYNAMIC(CDlgAircraftDoorDef, CDialog)
 CDlgAircraftDoorDef::CDlgAircraftDoorDef(ACTypeDoor* _pActypeDoor ,CWnd* pParent /*=NULL*/)
 	: CDialog(CDlgAircraftDoorDef::IDD, pParent),m_pActypeDoor(_pActypeDoor)
 {
+	m_strDlgTitle.Empty();
 }
 
 CDlgAircraftDoorDef::~CDlgAircraftDoorDef()
@@ -36,6 +37,10 @@ END_MESSAGE_MAP()
 BOOL CDlgAircraftDoorDef::OnInitDialog()
 {
 	CDialog::OnInitDialog() ;
+	if(!m_strDlgTitle.IsEmpty())
+	{
+		SetWindowText(m_strDlgTitle);
+	}
 	InitCtrlData() ;
 	return TRUE;
 }
@@ -44,10 +49,12 @@ void CDlgAircraftDoorDef::InitCtrlData()
 {
 	if(m_pActypeDoor == NULL)
 		return ;
-	CString str ;
+	CString str;
 	m_DoorName.SetWindowText(m_pActypeDoor->m_strName) ;
+
 	str.Format(_T("%0.2f"),m_pActypeDoor->m_dHeight) ;
 	m_DoorHeight.SetWindowText(str) ;
+
 	str.Format(_T("%0.2f"),m_pActypeDoor->m_dWidth) ;
 	m_DoorWidth.SetWindowText(str) ;
 

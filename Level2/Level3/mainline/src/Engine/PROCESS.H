@@ -573,7 +573,7 @@ public:
 	bool isDependentProcUsed() const ;
 	bool isAllDependentProcsOccupied(Person* _person) const;
 
-	void UpdateFloorIndex(const FloorChangeMap& changMap);
+	virtual void UpdateFloorIndex(const FloorChangeMap& changMap);
 public:
 
 //

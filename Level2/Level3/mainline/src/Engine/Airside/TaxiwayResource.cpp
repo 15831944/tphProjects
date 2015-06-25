@@ -1199,7 +1199,7 @@ bool TaxiwayDirectSegInSim::adjacencyNegativeConflict(RouteDirPath* pPath,ARCMob
 	return false;
 }
 
-bool TaxiwayDirectSegInSim::IsForbidDirection()
+bool TaxiwayDirectSegInSim::IsForbidDirection()const
 {
 	if (((TaxiwaySegInSim *)m_pSeg)->GetSegmentDirection() == BothDirection )
 		return false;

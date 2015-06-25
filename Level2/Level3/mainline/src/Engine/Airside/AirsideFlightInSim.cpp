@@ -1039,7 +1039,7 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 		}
 		if( item.GetResource() &&item.GetResource()->GetType() != AirsideResource::ResType_LogicRunway )
 		{
-			item.GetResource()->SetEnterTime(this,item.GetTime(),item.GetMode());
+			item.GetResource()->SetEnterTime(this,item.GetTime(),item.GetMode(),item.GetSpeed());
 		}
 
 		//if resource change to runway
@@ -2489,11 +2489,15 @@ AirsidePaxBusParkSpotInSim * AirsideFlightInSim::GetPaxBusParking(bool bArrival)
 }
 
 
-ElapsedTime AirsideFlightInSim::GetEstimateStandTime()
+ElapsedTime AirsideFlightInSim::GetEstimateStandTime()  //this function is no correct , need to refactor it later
 {
 	PLACE_METHOD_TRACK_STRING();
 	ElapsedTime tTime = GetTime();
 	m_pRouteToStand = GetRouteToStand();
+	double dSpeed = GetPerformance()->getTaxiInNormalSpeed(this);
+	if(GetMode()==OnHeldAtStand)
+		return tTime;
+
 	if (m_pRouteToStand)
 	{
 		int nCount = m_pRouteToStand->GetItemCount();
@@ -2502,7 +2506,7 @@ ElapsedTime AirsideFlightInSim::GetEstimateStandTime()
 		{
 			dLength += m_pRouteToStand->GetItem(i).m_distTo - m_pRouteToStand->GetItem(i).m_distFrom;
 		}
-		tTime += ElapsedTime(dLength/GetSpeed()) ;
+		tTime += ElapsedTime(dLength/dSpeed) ;
 	}
 	else
 	{

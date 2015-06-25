@@ -1078,7 +1078,7 @@ void CRunwaySystem::PerformanceTakeOffSeparation( AirsideFlightInSim *pFlight,
 			}
 			else
 			{
-				tAvailTakeoffTime =  MAX(tAvailTakeoffTime, frontIns.GetEnterTime() + ElapsedTime(300l) );
+				tAvailTakeoffTime =  MAX(tAvailTakeoffTime, frontIns.GetExitTime() );
 			}
 		}
 		
@@ -3442,7 +3442,7 @@ ElapsedTime CRunwaySystem::getFlightTakeoffTime( AirsideFlightInSim* pFlight )
 	if (dDistToRwyport < dTakeoffRoll)	//the distance to runway port less than rolling distance
 		backtrack = m_pRunwayTakeoffPosStrategy->GetBacktrackTypeOfTakeoffPos(pFlight);
 
-	if(backtrack)		//back track
+	if(backtrack!=NoBacktrack)		//back track
 	{
 		LogicRunwayInSim* pOtherPort = pFlight->GetAndAssignTakeoffRunway()->GetOtherPort();
 		RunwayExitInSim* pOtherExit = pOtherPort->GetSameNodeRunwayExitWith(pTakeoffPos);

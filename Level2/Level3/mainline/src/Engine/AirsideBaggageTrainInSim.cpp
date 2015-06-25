@@ -492,7 +492,7 @@ void AirsideBaggageTrainInSim::MoveToNextCart(const ElapsedTime& eTime)
 AirsideBaggageCartInSim * AirsideBaggageTrainInSim::getCurBaggageCart()
 {
 	int nCartCount = static_cast<int>(m_vCartAssigned.size());
-	ASSERT(m_curCartIndex < nCartCount);
+	//ASSERT(m_curCartIndex < nCartCount);
 
 	if(m_curCartIndex < nCartCount )
 	{
@@ -657,8 +657,9 @@ void AirsideBaggageTrainInSim::UnloadBaggageFromCart( ElapsedTime time )
 	if(!pBagCart)
 		return;
 
+	ElapsedTime eServiceTime = GetServiceTimePerBag();
 	ElapsedTime eFinishedTime = time;	
-	pBagCart->ReleaseBaggageToFlight(ptCargoDoor, eFinishedTime);
+	pBagCart->ReleaseBaggageToFlight(ptCargoDoor, eServiceTime, eFinishedTime);
 
 	//move to next cart
 	if(isLastCart())
@@ -706,7 +707,10 @@ void AirsideBaggageTrainInSim::WirteLog( const CPoint2008& p, const double speed
 		for(int j=1;j<cartIncPath.getCount();j++)
 		{	
 			DistanceUnit distInPt = cartIncPath.GetIndexDist(j);
-			ElapsedTime midT = t - ElapsedTime(incDist/speed -distInPt/speed);
+			
+			ElapsedTime midT = t;
+			if(speed > 0.0)
+				midT = t - ElapsedTime(incDist/speed -distInPt/speed);
 
 
 			cart->SetPosition( cartIncPath.getPoint(j) );
@@ -826,6 +830,15 @@ bool AirsideBaggageTrainInSim::CanServe(const CMobileElemConstraint& mobCons )
 	}
 
 	return false;
+}
+
+ElapsedTime AirsideBaggageTrainInSim::GetServiceTimePerBag() const
+{
+	if(m_pServiceTimeDistribution)
+	{
+		return ElapsedTime(m_pServiceTimeDistribution->getRandomValue()*60L/10);
+	}
+	return ElapsedTime(1L);
 }
 
 

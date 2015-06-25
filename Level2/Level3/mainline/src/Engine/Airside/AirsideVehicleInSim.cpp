@@ -39,7 +39,7 @@ public:
 	{
 		//log to flight file
 		CString debugfileName;
-		debugfileName.Format( "C:\\VehicleDebug\\%d-%d.txt",pVehicle->GetVehicleTypeID(),pVehicle->GetID() );
+		debugfileName.Format( "C:\\VehicleDebug\\%d.txt",pVehicle->GetID() );
 		std::ofstream outfile;
 		outfile.open(debugfileName,std::ios::app);
 		outfile << pVehicle->GetTime()<<"," << long(pVehicle->GetTime())<<std::endl;
@@ -63,7 +63,7 @@ public:
 	static void InitLog(AirsideVehicleInSim* pVehicle)
 	{
 		CString debugfileName;
-		debugfileName.Format( "C:\\VehicleDebug\\%d-%d.txt",pVehicle->GetVehicleTypeID(),pVehicle->GetID() );
+		debugfileName.Format( "C:\\VehicleDebug\\%d.txt",pVehicle->GetID() );
 		std::ofstream outfile;
 		outfile.open(debugfileName);
 		outfile<<pVehicle->GetID()<<std::endl;
@@ -74,7 +74,7 @@ public:
 	static void Log(AirsideVehicleInSim* pVehicle,const CPoint2008& pos , const ElapsedTime& time)
 	{
 		CString debugfileName;
-		debugfileName.Format( "C:\\VehicleDebug\\%d-%d.txt",pVehicle->GetVehicleTypeID(),pVehicle->GetID() );
+		debugfileName.Format( "C:\\VehicleDebug\\%d.txt",pVehicle->GetID() );
 		std::ofstream outfile;
 		outfile.open(debugfileName,std::ios::app);
 		outfile << pVehicle->GetTime()<<"," << long(pVehicle->GetTime());
@@ -436,30 +436,42 @@ void AirsideVehicleInSim::SetServiceFlight(AirsideFlightInSim* pFlight, double v
 	m_pServiceFlight = pFlight;
 	m_bAvailable = false;
 	m_vStuffPercent = m_vStuffPercent - vStuffPercent;	
-	VehicleMoveEvent* newEvent = new VehicleMoveEvent(this);
-	if (m_pResource->GetType() == AirsideResource::ResType_VehiclePool)
-	{		
-		newEvent->setTime( m_tLeavePoolTime );
 
-	}else
-	{
-		newEvent->setTime(GetTime());
-		
-	}
-	SetMode(OnMoveToService) ;
-	WirteLog(GetPosition(),GetSpeed(),GetTime());
-	GenerateNextEvent(newEvent);
-	//newEvent->addEvent();
 	if (m_pResource->GetType() == AirsideResource::ResType_VehiclePool)
-	{		
+	{	
+		ElapsedTime T = m_tLeavePoolTime;
+		CPoint2008 lastPos,newPos;
+		CPath2008 path = GetVehiclePool()->LeavePool(this);
+
+		VehicleMoveEvent* newEvent = new VehicleMoveEvent(this);
+		newEvent->setTime(T);
 		SetMode(OnBeginToService);
-		WirteLog(GetPosition(),GetSpeed(),m_tLeavePoolTime);
-	}else
+		WirteLog(GetPosition(),GetSpeed(),T);
+		GenerateNextEvent(newEvent);
+
+		for(int i=0;i < path.getCount();i++)
+		{
+			lastPos = GetPosition();
+			newPos = path[i];
+			SetMode(OnMoveToService);
+			SetPosition(newPos);
+			double dspd = GetOnRouteSpeed();
+			DistanceUnit dDist = lastPos.distance(newPos);
+			T += ElapsedTime(dDist / dspd);
+			SetTime(T);
+			T=GetTime();
+			WirteLog(GetPosition(),GetSpeed(),T);
+		}
+	}
+	else
 	{
+		VehicleMoveEvent* newEvent = new VehicleMoveEvent(this);
+		newEvent->setTime(GetTime());
 		SetMode(OnBeginToService);
 		WirteLog(GetPosition(),GetSpeed(),GetTime());
+		GenerateNextEvent(newEvent);
+		SetMode(OnMoveToService);
 	}
-	SetMode(OnMoveToService) ;
 }
 
 void AirsideVehicleInSim::MoveOnRoute( const ElapsedTime& time )
@@ -532,7 +544,7 @@ void AirsideVehicleInSim::MoveOnRoute( const ElapsedTime& time )
 			ClearanceItem backPoolItem(m_pVehiclePool,OnParkingPool,0);
 			CPoint2008 pos;
 			CPoint2008 dir;
-			 
+
 			if(m_Route.IsEmpty())
 			{
 				m_pVehiclePool->BirthOnPool(this, pos,dir);
@@ -540,21 +552,34 @@ void AirsideVehicleInSim::MoveOnRoute( const ElapsedTime& time )
 			else
 			{
 				CPath2008 path = m_pVehiclePool->ParkingToSpot(this, m_Route.getLastNode());
+				for(int i=0;i < path.getCount()-1;i++)
+				{
+					pos = path[i];
+					backPoolItem.SetPosition(pos);			
+					backPoolItem.SetSpeed(GetSpeed());
+					double dspd = GetOnRouteSpeed();
+					DistanceUnit dDist = lastItem.GetPosition().distance(pos);
+					ElapsedTime dT = ElapsedTime(dDist / dspd);
+					backPoolItem.SetTime(dT + lastItem.GetTime());
+					lastItem = backPoolItem;
+					newBackPoolClearance.AddItem(lastItem);
+				}
 				path.GetEndPoint(pos);
 			}
 			
-			backPoolItem.SetPosition(pos);	
-			
+  			backPoolItem.SetPosition(pos);			
 			backPoolItem.SetSpeed(GetSpeed());
 			double dspd = GetOnRouteSpeed();
-			DistanceUnit dDist = lastItem.DistanceTo(backPoolItem);
+			DistanceUnit dDist = lastItem.GetPosition().distance(pos);
 			ElapsedTime dT = ElapsedTime(dDist / dspd);
-
 			backPoolItem.SetTime(dT + lastItem.GetTime());
 			lastItem = backPoolItem;
 			newBackPoolClearance.AddItem(lastItem);
-			lastItem.SetTime(lastItem.GetTime() + tMinTurnAroundTime);
+
+			backPoolItem.SetTime(lastItem.GetTime() + tMinTurnAroundTime);
+			lastItem = backPoolItem;
 			newBackPoolClearance.AddItem(lastItem);
+
 			PerformClearance(newBackPoolClearance);
 			ResetServiceCapacity();
 

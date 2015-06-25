@@ -138,3 +138,15 @@ MobileTravelTrace::MobileTravelTrace( const MobileGroundPerform& perform,const D
 	mvDistSpdPair.push_back( DistSpeedTime(dDist,spdT) );		
 	return;
 }
+
+ElapsedTime MobileTravelTrace::DistSpeedTime::timeToNext( const DistSpeedTime& item ) const
+{
+	double dAvgSpd = (item.mdSpd+mdSpd)*0.5;
+	DistanceUnit dDist = item.mdist-mdist;
+	ElapsedTime dT = ElapsedTime(0L);
+	if(dAvgSpd>ARCMath::EPSILON)
+	{
+		dT = ElapsedTime(dDist/dAvgSpd);
+	}
+	return mtTime + dT;
+}

@@ -87,11 +87,13 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
                 return tDelayTime;
 		}
 		//for enroute delay
-		
+		AirsideArrivalDelayTrigger::CTriggerConditionList& enRouteTriggerList = pFltItem->GetEnRouteConditionList();
+		if(enRouteTriggerList.GetElementCount()==0)
+			return tDelayTime;
+
 		ElapsedTime tDelayEnRoute = 0L;
 		int nMaxQueueEnRoute = 0;
 		CString strTakePosEnRoute;
-		AirsideArrivalDelayTrigger::CTriggerConditionList& enRouteTriggerList = pFltItem->GetEnRouteConditionList();
 		for(size_t j=0; j< enRouteTriggerList.GetElementCount(); ++j)
 		{
 			AirsideArrivalDelayTrigger::CTriggerCondition* pTrigger = enRouteTriggerList.GetItem(j);
@@ -143,6 +145,7 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
 				return MIN(tDelayEnRoute, tDelayTime);
 			}
 		}
+		return 0L;
 	}
 
 	return 0L;

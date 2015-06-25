@@ -3,6 +3,7 @@
 
 #include "common\containr.h"
 #include "engine\process.h"
+#include "common\FloorChangeMap.h"
 
 class LineProcessor : public Processor
 {
@@ -76,7 +77,7 @@ public:
 
 
 	virtual void UpdateMinMax();
-
+	virtual void UpdateFloorIndex(const FloorChangeMap& changMap);
 
 
 };

@@ -180,7 +180,7 @@ void QueueElement::calculateConveyorWaitQueueTime(const ElapsedTime p_start, con
 			continue;
 		if (track1.getState() == ProcessorStateStop && isValidProc (track1.getReason() ) )
 		{
-			while (track2.getState() != ProcessorStateRun && i < trackCount )
+			while (track2.getState() != ProcessorStateRun && i < trackCount-1 )
 			{
 				i++;
 				track2.init (getEvent(i));

@@ -11,6 +11,7 @@ class CAirportDatabase;
 class AirsideFlightInSim;
 class CVehicleServiceTimeRange;
 class AirsideMeetingPointInSim;
+class ElapsedTime;
 
 class ENGINE_TRANSFER VehiclePoolsManagerInSim
 {
@@ -25,6 +26,8 @@ public:
 	CString GetVehicleTypeByID(int nID);
 
 	void GetServicePool(AirsideFlightInSim* pFlight,int nVehicleTypeID,std::vector<int>& poolIDList);
+	void GetBaggageServicePool(AirsideFlightInSim* pFlight,int nVehicleTypeID,std::vector<int>& poolIDList,const ElapsedTime& eTime);
+
 	void GetPaxServicePool(AirsideFlightInSim* pFlight,int nVehicleTypeID,char mode,std::vector<int>& poolIDList);
 	void GetFollowMeCarServicePool(AirsideMeetingPointInSim* pMeetingPoint, int nVehicleTypeID, std::vector<int>& vPoolIDs);
 	void GetTowTruckServicePool(AirsideFlightInSim* pFlight,int nVehicleTypeID,std::vector<int>& poolIDList);

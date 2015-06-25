@@ -31,6 +31,20 @@ VehiclePoolInSim::VehiclePoolInSim(VehiclePoolParking * pVehiclePool)
 	m_pPoolsDeployment = NULL;
 	m_vVehicleList.clear();
 	mpPathFinder = NULL;
+	/*Build(pVehiclePool);*/
+
+	//init spots
+	for(int i=0;i<pVehiclePool->m_parkspaces.getCount();i++)
+	{
+		VehiclePoolParkSpaceInSim* pSpace = new VehiclePoolParkSpaceInSim(pVehiclePool->m_parkspaces.getSpace(i));
+		m_vParkSpaces.push_back(pSpace);
+	}
+	//init drive pipe
+	for(int i=0;i<pVehiclePool->m_dirvepipes.getCount();i++)
+	{
+		VehiclePoolPipeInSim* pPipe = new VehiclePoolPipeInSim(pVehiclePool->m_dirvepipes.getPipe(i),true);
+		m_vpipes.push_back(pPipe);
+	}
 }
 
 
@@ -115,6 +129,7 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 					else
 						pVehicle->SetLeavePoolTime(pRequest->GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
 
+					//LeavePool(pVehicle);
 					pVehicle->SetServiceFlight(pFlight, vStuffPercent);
 					pRequest->AddServiceVehicle(pVehicle);
 					pVehicle->SetServicePointCount(pRequest->GetServiceCount());
@@ -274,6 +289,7 @@ bool VehiclePoolInSim::HandleTowingServiceRequest(TowTruckServiceRequest* pReque
 								ElapsedTime tTime = pRequest->m_tApplyTime - pStandFamily->GetLeaveTime();
 								pTowTruck->SetLeavePoolTime(tTime);
 
+								//LeavePool(pTowTruck);
 								pTowTruck->SetServiceFlight(pFlight, 0);
 								pTowTruck->SetReturnRoute(pRequest->m_ReturnRoute);
 								pTowTruck->SetReturnToStretch(pRequest->m_vSegments);
@@ -462,6 +478,7 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 					else
 						m_vVehicleList[i]->SetLeavePoolTime(request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
 
+					//LeavePool(pPaxBus);
 					pPaxBus->SetServiceFlight(pFlight, vStuffPercent,request.IsArrival());
 					m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
 					if (request.GetServiceTime())
@@ -694,6 +711,7 @@ bool VehiclePoolInSim::HandleDeiceServiceRequest( DeiceVehicleServiceRequest *pR
 				if( pDeiceVehicle->getFluidAvaiable()>0)
 				{
 					pDeiceVehicle->SetLeavePoolTime(pRequest->getRequestTime() - pTimeRange->GetLeaveTime() );
+					//LeavePool(pDeiceVehicle);
 					pDeiceVehicle->SetServicePointCount(1);
 					pRequest->AssignVehicle( pDeiceVehicle );
 					pDeiceVehicle->SetServiceFlight(pFlight,1);
@@ -765,13 +783,20 @@ AirsideFollowMeCarInSim* VehiclePoolInSim::getAvailableFollowMeCar()
 
 bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequest* pRequest )
 {
+	//if request doesn't have checkbaggage, it's unnecessary to assign a baggage train 
+	if (pRequest->GetBaggageLeft() == 0)
+	{
+		pRequest->setUnserviceBaggageCount(0);
+		return true;
+	}
+	
 	BaggageTrainServiceRequest& request = *pRequest;
 	AirsideFlightInSim* pFlight = request.GetServiceFlight();
 	int vehicleTypeID = request.GetServiceVehicleTypeID();
 	CVehicleServiceTimeRange* pTimeRange = m_pPoolsDeployment->GetVehicleServicePoolDeploy(vehicleTypeID,m_pPoolInput->getID(),pFlight);
 
 	if(pTimeRange == NULL)
-		return FALSE ;
+		return false ;
 
 	VehicleRegimenType RegimenType = pTimeRange->GetRegimenType();
 	double vStuffPercent = 100.0/pTimeRange->GetAircraftServiceNum();
@@ -815,6 +840,7 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 					else
 						pVehicle->SetLeavePoolTime(request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
 
+					//LeavePool(pBaggageTrain);
 					pBaggageTrain->SetServiceFlight(pFlight, vStuffPercent,request);
 					pVehicle->SetServicePointCount(request.GetServiceCount());
 					if (request.GetServiceTime())
@@ -976,21 +1002,8 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 }
 
 
-void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
+void VehiclePoolInSim::Build( /*VehiclePoolParking* pPool */)
 {
-	//init spots
-	for(int i=0;i<pPool->m_parkspaces.getCount();i++)
-	{
-		VehiclePoolParkSpaceInSim* pSpace = new VehiclePoolParkSpaceInSim(pPool->m_parkspaces.getSpace(i));
-		m_vParkSpaces.push_back(pSpace);
-	}
-	//init drive pipe
-	for(int i=0;i<pPool->m_dirvepipes.getCount();i++)
-	{
-		VehiclePoolPipeInSim* pPipe = new VehiclePoolPipeInSim(pPool->m_dirvepipes.getPipe(i),true);
-		m_vpipes.push_back(pPipe);
-	}
-	//init graph
 	//add entry exit 
 	FOR(i,0,(int)m_vEntris.size())
 	{
@@ -1001,9 +1014,10 @@ void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
 	FOR(i,0, (int)m_vExits.size())
 	{
 		VehiclePoolExit* pexit = m_vExits.at(i);
-		ParkingPoolNode node(pexit->m_pPoolLane, pexit->m_distInPoolLane, pexit, 0);
+		ParkingPoolNode node(pexit->m_pPoolLane, pexit->m_distInPoolLane, pexit,0);
 		AddNode(node);
 	}
+
 	//link parking spot to drive pipe
 	for(size_t i=0;i<m_vParkSpaces.size();i++)
 	{
@@ -1012,42 +1026,36 @@ void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
 		{
 			VehiclePoolParkSpotInSim* pSpot = pSpace->getSpot(j);
 			ARCPoint3 entryPos = pSpot->m_entryPos;
-			ARCPoint3 exitPos = pSpot->m_exitPos;
+			ARCPoint3 exitPos = pSpot->m_exitPos; 
 			
 			DistanceUnit distInlane = 0;
-			VehiclePoolPipeInSim* pEntryPipe = getClosestPipe(entryPos,distInlane);		
-			if(pEntryPipe)
+
+			VehiclePoolPipeInSim* EntryPipe = getClosestPipe(entryPos,distInlane);		
+			if(EntryPipe)
 			{
-				for(int iLaneIdx = 0 ;iLaneIdx<pEntryPipe->getLaneCount();iLaneIdx++)
+				for(int iLaneIdx = 0 ;iLaneIdx<EntryPipe->getLaneCount();iLaneIdx++)
 				{
-					VehiclePoolLaneInSim* pLane = pEntryPipe->getLane(iLaneIdx);
-					ParkingPoolNode node(pLane, distInlane , pSpot, 0);
-					AddNode(node);
-					//m_vNodes.push_back(node);
+					VehiclePoolLaneInSim* pEntryLane = EntryPipe->getLane(iLaneIdx);
+					distInlane = pEntryLane->getPath().GetPointDist(CPoint2008(entryPos.x,entryPos.y,entryPos.z));
+					ParkingPoolNode nodeEntry(pEntryLane, distInlane , pSpot, 0);
+					AddNode(nodeEntry);
 				}
 			}
-			VehiclePoolPipeInSim* pExitPipe = NULL;
-			if(!pSpot->bPushback)
+
+			VehiclePoolPipeInSim* ExitPipe = getClosestPipe(exitPos,distInlane);		
+			if(ExitPipe)
 			{
-				pExitPipe = pEntryPipe;	
-			}
-			else
-			{
-				pExitPipe = getClosestPipe(exitPos, distInlane);
-			}
-			if(pExitPipe)
-			{
-				for(int iLaneIdx = 0 ;iLaneIdx<pExitPipe->getLaneCount();iLaneIdx++)
+				for(int iLaneIdx = 0 ;iLaneIdx<ExitPipe->getLaneCount();iLaneIdx++)
 				{
-					VehiclePoolLaneInSim* pLane = pExitPipe->getLane(iLaneIdx);
-					ParkingPoolNode node(pLane, distInlane , pSpot, 0);
-					AddNode(node);
-					//m_vNodes.push_back(node);
+					VehiclePoolLaneInSim* pExitLane = ExitPipe->getLane(iLaneIdx);
+					distInlane = pExitLane->getPath().GetPointDist(CPoint2008(exitPos.x,exitPos.y,exitPos.z));
+					ParkingPoolNode nodeExit(pSpot, 0, pExitLane, distInlane);
+					AddNode(nodeExit);
 				}
-			}
-			
+			}	
 		}
 	}
+
 	//init pipe with pipe
 	int nPipeCount = m_vpipes.size();
 	FOR(i, 0 , nPipeCount)
@@ -1056,41 +1064,39 @@ void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
 		FOR(j, i+1, nPipeCount)
 		{
 			VehiclePoolPipeInSim* pipe2 = m_vpipes[j];
-			//lane 
-			FOR(l1idx, 0, pipe1->getLaneCount())
+
+			IntersectPathPath2D inters;
+			int nCount = inters.Intersects(pipe1->getPath(),pipe2->getPath(),pipe2->getWidth());
+			for(int k=0;k<nCount;k++)
 			{
-				VehiclePoolLaneInSim * pLane1 = pipe1->getLane(l1idx);
-				FOR(l2idx, 0, pipe2->getLaneCount())
+				double i1= inters.m_vIntersectPtIndexInPath1[k];
+				double d1= pipe1->getPath().GetIndexDist((float)i1);
+				double i2 = inters.m_vIntersectPtIndexInPath2[k];
+				double d2 = pipe2->getPath().GetIndexDist((float)i2);
+				ARCVector3 pos1 = pipe1->getPath().GetIndexPoint((float)i1);
+				ARCVector3 pos2 = pipe2->getPath().GetIndexPoint((float)i2);
+				if( abs(pos1.z - pos2.z) > ARCMath::EPSILON)
 				{
-					VehiclePoolLaneInSim* pLane2 = pipe2->getLane(l2idx);
+					continue;
+				}
 
-					IntersectPathPath2D inters;
-					int nCount = inters.Intersects(pLane1->getPath(),pLane2->getPath(),pLane2->getWidth()*0.5);
-					for(int k=0;k<nCount;k++)
+				FOR(l1idx, 0, pipe1->getLaneCount())
+				{ 
+					VehiclePoolLaneInSim * pLane1 = pipe1->getLane(l1idx);
+					double distInLane1 = pLane1->getPath().GetPointDist(CPoint2008(pos1.x,pos1.y,pos1.z));
+					FOR(l2idx, 0, pipe2->getLaneCount())
 					{
-						double i1= inters.m_vIntersectPtIndexInPath1[k];
-						double d1= pLane1->getPath().GetIndexDist((float)i1);
-						double i2 = inters.m_vIntersectPtIndexInPath2[k];
-						double d2 = pLane2->getPath().GetIndexDist((float)i2);
+						VehiclePoolLaneInSim* pLane2 = pipe2->getLane(l2idx);
+						double distInLane2 = pLane2->getPath().GetPointDist(CPoint2008(pos2.x,pos2.y,pos2.z));
 
-
-						ARCVector3 pos1 = pLane1->getPath().GetIndexPoint((float)i1);
-						ARCVector3 pos2 = pLane2->getPath().GetIndexPoint((float)i2);
-						if( abs(pos1.z - pos2.z) > ARCMath::EPSILON)
-						{
-							continue;
-						}
-
-						ParkingPoolNode node1(pLane1,d1,pLane2,d2);
+						ParkingPoolNode node1(pLane1,distInLane1,pLane2,distInLane2);
 						AddNode(node1);
-						
-						ParkingPoolNode node2(pLane2,d2,pLane1,d1);
+
+						ParkingPoolNode node2(pLane2,distInLane2,pLane1,distInLane1);
 						AddNode(node2);
 					}
-
 				}
 			}
-			
 		}
 	}
 
@@ -1098,19 +1104,19 @@ void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
 	cpputil::autoPtrReset(mpPathFinder, new CBoostDijPathFinder());	
 	mpPathFinder->mGraph.Init(m_vNodes.size());
 
-	typedef cpputil::nosort_map< VehiclePoolLaneInSim*,IndexList > ResourceNodeMap;
+	typedef cpputil::nosort_map< VehiclePoolItemInSim*,IndexList > ResourceNodeMap;
 	ResourceNodeMap EntryNodesMap;
 	ResourceNodeMap ExitNodesMap;
 
 	FOR(i, 0, (int)m_vNodes.size())
 	{
 		const ParkingPoolNode& node = m_vNodes[i];
-		if(VehiclePoolLaneInSim* pLane = node.m_to->toLane())
+		if(VehiclePoolItemInSim* pLane = node.m_to)
 		{
 			IndexList&fromNodes = EntryNodesMap[pLane];
 			fromNodes.push_back(i);
 		}
-		if(VehiclePoolLaneInSim* pLane = node.m_from->toLane())
+		if(VehiclePoolItemInSim* pLane = node.m_from)
 		{
 			IndexList& toNodes = ExitNodesMap[pLane];
 			toNodes.push_back(i);
@@ -1119,21 +1125,20 @@ void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
 	//
 	for(ResourceNodeMap::const_iterator itr=EntryNodesMap.begin();itr!=EntryNodesMap.end(); itr++)
 	{
-		VehiclePoolLaneInSim* plane = itr->first;
+		VehiclePoolItemInSim* plane = itr->first;
 		const IndexList& entryNodes = itr->second;
 		const IndexList& exitNodes = ExitNodesMap[plane];
 		FOR(iEntry , 0, (int)entryNodes.size())
 		{
-			const ParkingPoolNode& nodeEntry = m_vNodes[iEntry];
+			const ParkingPoolNode& nodeEntry = m_vNodes[entryNodes[iEntry]];
 			FOR(iExit, 0, (int)exitNodes.size() )
 			{
-				const ParkingPoolNode& nodeExit = m_vNodes[iExit];
+				const ParkingPoolNode& nodeExit = m_vNodes[exitNodes[iExit]];
 				if(nodeEntry.m_toDist< nodeExit.m_fromDist)
 				{
 					DistanceUnit dist = nodeExit.m_fromDist -  nodeEntry.m_toDist;
-					mpPathFinder->mGraph.AddEdge(iEntry, iExit, dist);
+					mpPathFinder->mGraph.AddEdge(entryNodes[iEntry], exitNodes[iExit], dist);
 				}
-
 			}
 		}
 	}
@@ -1160,9 +1165,9 @@ VehiclePoolPipeInSim* VehiclePoolInSim::getClosestPipe( const ARCPoint3& cpt, Di
 
 	for(size_t i=0;i<m_vpipes.size();i++)
 	{
-		VehiclePoolPipeInSim* pLane = m_vpipes.at(i);
-		DistanceUnit thedistInLane = pLane->getPath().GetPointDist(pt);
-		CPoint2008 posInLane = pLane->getPath().GetDistPoint(thedistInLane);
+		VehiclePoolPipeInSim* pPipe = m_vpipes.at(i);
+		DistanceUnit thedistInLane = pPipe->getPath().GetPointDist(pt);
+		CPoint2008 posInLane = pPipe->getPath().GetDistPoint(thedistInLane);
 		if( abs( posInLane.z - pt.z )> ARCMath::EPSILON)
 			continue;
 
@@ -1170,13 +1175,13 @@ VehiclePoolPipeInSim* VehiclePoolInSim::getClosestPipe( const ARCPoint3& cpt, Di
 		if(!pClostLane)
 		{
 			minDisTo = distTo;
-			pClostLane = pLane;
+			pClostLane = pPipe;
 			distInLane = thedistInLane;
 		}
 		else if(distTo < minDisTo)
 		{
 			minDisTo = distTo;
-			pClostLane = pLane;
+			pClostLane = pPipe;
 			distInLane = thedistInLane;
 		}
 
@@ -1191,7 +1196,7 @@ void VehiclePoolInSim::AddNode( const ParkingPoolNode& node )
 }
 
 
-CPath2008 VehiclePoolInSim::ParkingToSpot( AirsideVehicleInSim* pV, VehicleRouteNode* pNode )
+CPath2008 VehiclePoolInSim::ParkingToSpot( AirsideVehicleInSim* pV, VehicleRouteNode* pNode)
 {
 	VehiclePoolEntry* pEntry = NULL;
 	FOR(i, 0, (int)m_vEntris.size())
@@ -1203,7 +1208,7 @@ CPath2008 VehiclePoolInSim::ParkingToSpot( AirsideVehicleInSim* pV, VehicleRoute
 		}
 	}
 
-	VehiclePoolParkSpotInSim* pSpot = getFreeSpot();
+	VehiclePoolParkSpotInSim* pSpot  = getFreeSpot(pV);
 	if(pEntry && pSpot)
 	{
 		
@@ -1211,10 +1216,11 @@ CPath2008 VehiclePoolInSim::ParkingToSpot( AirsideVehicleInSim* pV, VehicleRoute
 		if(FindPath(pEntry, pSpot, path))
 		{
 			CPath2008 retPath;
+			retPath.push_back(pV->GetPosition());
 			FOR(i,1,(int)path.size())
 			{
-				const ParkingPoolNode& p1 = path[i-1];
-				const ParkingPoolNode& p2 = path[i];
+				ParkingPoolNode& p1 = path[i-1];
+				ParkingPoolNode& p2 = path[i];
 				if(p1.m_to && p1.m_to == p2.m_from )
 				{
 					if(VehiclePoolLaneInSim* plane = p1.m_to->toLane())
@@ -1224,12 +1230,15 @@ CPath2008 VehiclePoolInSim::ParkingToSpot( AirsideVehicleInSim* pV, VehicleRoute
 					}
 				}
 			}
+			retPath.push_back(pSpot->m_pos+pSpot->m_dir);
+			retPath.push_back(pSpot->m_pos);
 			return retPath;
 		}
 		else
 		{
 			CPath2008 path;
 			path.push_back(pV->GetPosition());
+			path.push_back(pSpot->m_pos+pSpot->m_dir);
 			path.push_back(pSpot->m_pos);
 			return path;
 		}
@@ -1270,7 +1279,7 @@ bool VehiclePoolInSim::FindPath( VehiclePoolItemInSim* itemF, VehiclePoolItemInS
 			if( mpPathFinder->FindPath(idxF,idxT,retpath,pathLen) )
 			{
 				//build path
-				for(size_t k = 0;k<retpath.size()-1;++k)
+				for(size_t k = 0;k<retpath.size();++k)
 				{
 					int idx1 = retpath[k];
 					//int idx2 = retpath[k+1];
@@ -1290,9 +1299,9 @@ bool VehiclePoolInSim::FindPath( VehiclePoolItemInSim* itemF, VehiclePoolItemInS
 	return false;
 }
 
-VehiclePoolParkSpotInSim* VehiclePoolInSim::getFreeSpot()
+VehiclePoolParkSpotInSim* VehiclePoolInSim::getFreeSpot(AirsideVehicleInSim* pV)
 {
-	FOR(i, 0, (int)m_vParkSpaces.size())
+	/*FOR(i, 0, (int)m_vParkSpaces.size())
 	{
 		VehiclePoolParkSpaceInSim* space  = m_vParkSpaces.at(i);
 		FOR(j,0,space->getSpotCount())
@@ -1301,29 +1310,98 @@ VehiclePoolParkSpotInSim* VehiclePoolInSim::getFreeSpot()
 			if(spot->m_pOccupyVehicle==NULL)
 				return spot;
 		}
+	}*/
+	std::vector<VehiclePoolParkSpotInSim*> availableParkingSpotVector;
+	for (int i = 0; i < (int)m_vParkSpaces.size(); i++)
+	{
+		VehiclePoolParkSpaceInSim* space  = m_vParkSpaces.at(i);
+		for(int j = 0; j < space->getSpotCount(); j++)
+		{
+			VehiclePoolParkSpotInSim* spot = space->getSpot(j);
+			if(spot->m_pOccupyVehicle==NULL)
+				availableParkingSpotVector.push_back(spot);
+		}
 	}
-	return NULL;
+
+	if (availableParkingSpotVector.empty())
+	{
+		return NULL;
+	}
+
+	int nCount = (int)availableParkingSpotVector.size();
+	int nRand = random(nCount);
+	VehiclePoolParkSpotInSim* pSpot = availableParkingSpotVector[nRand];
+	pSpot->m_pOccupyVehicle = pV;
+	return pSpot;
 }
 
 
-void VehiclePoolInSim::LeavePool( AirsideVehicleInSim* pV )
+CPath2008 VehiclePoolInSim::LeavePool( AirsideVehicleInSim* pV )
 {
+	VehiclePoolParkSpotInSim* pSpot = NULL;
 	FOR(i, 0, (int)m_vParkSpaces.size())
 	{
 		VehiclePoolParkSpaceInSim* space  = m_vParkSpaces.at(i);
 		FOR(j,0,space->getSpotCount())
 		{
-			VehiclePoolParkSpotInSim* spot = space->getSpot(j);
+			VehiclePoolParkSpotInSim *spot = space->getSpot(j);
 			if(spot->m_pOccupyVehicle==pV)
+			{
 				spot->m_pOccupyVehicle = NULL;
+				pSpot = spot;
+			}
 		}
 	}
-	return;
+
+	VehiclePoolExit* pExit = NULL;
+	int nCount = (int)m_vExits.size();
+	if(nCount>0)
+	{
+		int nRand = random(nCount);
+		pExit = m_vExits.at(nRand);
+	}
+	
+	if(pSpot && pExit)
+	{
+
+		PoolNodeList path;
+		if(FindPath(pSpot, pExit, path))
+		{
+			CPath2008 retPath;
+			//retPath.push_back(pV->GetPosition());
+			FOR(i,1,(int)path.size())
+			{
+				ParkingPoolNode& p1 = path[i-1];
+				ParkingPoolNode& p2 = path[i];
+				if(p1.m_to && p1.m_to == p2.m_from )
+				{
+					if(VehiclePoolLaneInSim* plane = p1.m_to->toLane())
+					{
+						CPath2008 subpath = plane->getPath().GetSubPath(p1.m_toDist, p2.m_fromDist);
+						retPath.Append(subpath);
+					}
+				}
+			}
+			//retPath.push_back(pExit->GetPosition());
+			return retPath;
+		}
+		else
+		{
+			CPath2008 path;
+			path.push_back(pV->GetPosition());
+			path.push_back(pExit->GetPosition());
+			return path;
+		}
+	}
+
+	CPath2008 path;
+	path.push_back(pV->GetPosition());
+	return path;
 }
 
 void VehiclePoolInSim::BirthOnPool( AirsideVehicleInSim* pV, CPoint2008& pos ,CPoint2008& dir )
 {
-	VehiclePoolParkSpotInSim* spot = getFreeSpot();
+	VehiclePoolParkSpotInSim* spot = getFreeSpot(pV);
 	if(spot)
 	{
 		pos = spot->m_pos;
@@ -1366,15 +1444,16 @@ VehiclePoolParkSpaceInSim::VehiclePoolParkSpaceInSim( const ParkingSpace& space 
 VehiclePoolPipeInSim::VehiclePoolPipeInSim( const ParkingDrivePipe& dpipe,bool bLeftDrive )
 {
 	m_path = dpipe.m_ctrlPath;
-
+	m_bLeftDrive = bLeftDrive;
+	m_Dir = (dirtype)dpipe.m_nType;
 	ARCPipe pipe;
 	pipe.Init(m_path,dpipe.m_width);
 	for(int i=0;i<dpipe.m_nLaneNum;i++)
 	{
 		bool bOtherDir = false;
-		if(dpipe.m_nType == ParkingDrivePipe::_bidirectional )
+		if(m_Dir == _bidirectional )
 		{
-			if(bLeftDrive)
+			if(m_bLeftDrive)
 				bOtherDir = (i*2>= dpipe.m_nLaneNum);
 			else
 				bOtherDir = (i*2 < dpipe.m_nLaneNum);

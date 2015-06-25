@@ -169,8 +169,13 @@ void CRepListViewMultiRunReportOperator::SetSummaryQueueTimeContents(const CStri
 
 
 	//insert column project name and run
-	GetListCtrl().InsertColumn( 0, _T("RUN"), LVCFMT_CENTER, 60);
-	GetListHeaderCtrl()->SetDataType( 0,  dtSTRING);
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+
+	GetListCtrl().InsertColumn(0,"",headStyle,30);
+	GetListHeaderCtrl()->SetDataType( 0,  dtINT);
+	GetListCtrl().InsertColumn( 1, _T("RUN"), headStyle, 60);
+	GetListHeaderCtrl()->SetDataType( 1,  dtSTRING);
 
 	const int m_nColumnCount = 15;
 	CString csColumnLabel[m_nColumnCount];
@@ -259,8 +264,11 @@ void CRepListViewMultiRunReportOperator::SetSummaryQueueTimeContents(const CStri
 
 	for( int i=0; i<m_nColumnCount; i++ )
 	{
-		GetListCtrl().InsertColumn( i, csColumnLabel[i], nFormat[i], nDefaultColumnWidth[i] );
-		GetListHeaderCtrl()->SetDataType( i, type[i] );
+		DWORD dwStyle = nFormat[i];
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		GetListCtrl().InsertColumn( i+2, csColumnLabel[i], /*nFormat[i]*/dwStyle, nDefaultColumnWidth[i] );
+		GetListHeaderCtrl()->SetDataType( i+2, type[i] );
 	}
 
 	CTermPlanDoc* pDoc = GetTermPlanDoc();
@@ -284,7 +292,7 @@ void CRepListViewMultiRunReportOperator::SetSummaryQueueTimeContents(const CStri
 	size_t nResultSize = dataList.size();
 
 	//insert average
-
+	int nItemIndex = 0;
 	for (size_t i = 0; i < vSimResultFullName.size(); ++i)
 	{	
 		size_t nPaxTypeCount = dataList[i].size();
@@ -299,31 +307,35 @@ void CRepListViewMultiRunReportOperator::SetSummaryQueueTimeContents(const CStri
 		if (j == nPaxTypeCount)
 			break;
 
-		GetListCtrl().InsertItem(i, vSimResultFullName[i]);
+		CString strIndex;
+		strIndex.Format(_T("%d"),i+1);
+		GetListCtrl().InsertItem(i,strIndex);
+		GetListCtrl().SetItemText(i,1,vSimResultFullName[i]);
 
 
-		GetListCtrl().SetItemText(i,1,dataList[i][j].eMinimum.printTime());
-		GetListCtrl().SetItemText(i,2,dataList[i][j].eAverage.printTime());
-		GetListCtrl().SetItemText(i,3,dataList[i][j].eMaximum.printTime());
+		GetListCtrl().SetItemText(i,2,dataList[i][j].eMinimum.printTime());
+		GetListCtrl().SetItemText(i,3,dataList[i][j].eAverage.printTime());
+		GetListCtrl().SetItemText(i,4,dataList[i][j].eMaximum.printTime());
 
-		GetListCtrl().SetItemText(i,4,dataList[i][j].eQ1.printTime());
-		GetListCtrl().SetItemText(i,5,dataList[i][j].eQ2.printTime());
-		GetListCtrl().SetItemText(i,6,dataList[i][j].eQ3.printTime());
-		GetListCtrl().SetItemText(i,7,dataList[i][j].eP1.printTime());
-		GetListCtrl().SetItemText(i,8,dataList[i][j].eP5.printTime());
-		GetListCtrl().SetItemText(i,9,dataList[i][j].eP10.printTime());
-		GetListCtrl().SetItemText(i,10,dataList[i][j].eP90.printTime());
-		GetListCtrl().SetItemText(i,11,dataList[i][j].eP95.printTime());
-		GetListCtrl().SetItemText(i,12,dataList[i][j].eP99.printTime());
-		GetListCtrl().SetItemText(i,13,dataList[i][j].eSigma.printTime());
-		GetListCtrl().SetItemText(i,14,dataList[i][j].strPaxType);
+		GetListCtrl().SetItemText(i,5,dataList[i][j].eQ1.printTime());
+		GetListCtrl().SetItemText(i,6,dataList[i][j].eQ2.printTime());
+		GetListCtrl().SetItemText(i,7,dataList[i][j].eQ3.printTime());
+		GetListCtrl().SetItemText(i,8,dataList[i][j].eP1.printTime());
+		GetListCtrl().SetItemText(i,9,dataList[i][j].eP5.printTime());
+		GetListCtrl().SetItemText(i,10,dataList[i][j].eP10.printTime());
+		GetListCtrl().SetItemText(i,11,dataList[i][j].eP90.printTime());
+		GetListCtrl().SetItemText(i,12,dataList[i][j].eP95.printTime());
+		GetListCtrl().SetItemText(i,13,dataList[i][j].eP99.printTime());
+		GetListCtrl().SetItemText(i,14,dataList[i][j].eSigma.printTime());
+		GetListCtrl().SetItemText(i,15,dataList[i][j].strPaxType);
 
 		CString strCount;
 		strCount.Format(_T("%d"),dataList[i][j].nCount);
-		GetListCtrl().SetItemText(i,15,strCount);
+		GetListCtrl().SetItemText(i,16,strCount);
 
 
 		GetListCtrl().SetItemData(i,i);
+		nItemIndex++;
 	}
 
 }
@@ -340,8 +352,15 @@ void CRepListViewMultiRunReportOperator::SetSummaryTimeServiceContents(const CSt
 
 
 	//insert column project name and run
-	GetListCtrl().InsertColumn( 0, _T("RUN"), LVCFMT_CENTER, 180);
-	GetListHeaderCtrl()->SetDataType( 0,  dtSTRING);
+	//GetListCtrl().InsertColumn( 0, _T("RUN"), LVCFMT_CENTER, 180);
+	//GetListHeaderCtrl()->SetDataType( 0,  dtSTRING);
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+
+	GetListCtrl().InsertColumn(0,"",headStyle,20);
+	GetListHeaderCtrl()->SetDataType( 0,  dtINT);
+	GetListCtrl().InsertColumn( 1, _T("RUN"), headStyle, 60);
+	GetListHeaderCtrl()->SetDataType( 1,  dtSTRING);
 
 	const int m_nColumnCount = 15;
 	CString csColumnLabel[m_nColumnCount];
@@ -414,8 +433,11 @@ void CRepListViewMultiRunReportOperator::SetSummaryTimeServiceContents(const CSt
 
 	for( int i=0; i<m_nColumnCount; i++ )
 	{
-		GetListCtrl().InsertColumn( i, csColumnLabel[i], nFormat[i], nDefaultColumnWidth[i] );
-		GetListHeaderCtrl()->SetDataType( i, type[i] );
+		DWORD dwStyle = nFormat[i];
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		GetListCtrl().InsertColumn( i+2, csColumnLabel[i],/* nFormat[i]*/dwStyle, nDefaultColumnWidth[i] );
+		GetListHeaderCtrl()->SetDataType( i+2, type[i] );
 	}
 
 	CTermPlanDoc* pDoc = GetTermPlanDoc();
@@ -440,7 +462,7 @@ void CRepListViewMultiRunReportOperator::SetSummaryTimeServiceContents(const CSt
 	size_t nResultSize = dataList.size();
 
 	//insert average
-
+	int nItemIndex = 0;
 	for (size_t i = 0; i < vSimResultFullName.size(); ++i)
 	{	
 		size_t nPaxTypeCount = dataList[i].size();
@@ -454,30 +476,34 @@ void CRepListViewMultiRunReportOperator::SetSummaryTimeServiceContents(const CSt
 		if (j == nPaxTypeCount)
 			break;
 
-		GetListCtrl().InsertItem(i, vSimResultFullName[i]);
+		CString strIndex;
+		strIndex.Format(_T("%d"),nItemIndex+1);
+		GetListCtrl().InsertItem(i,strIndex);
+		GetListCtrl().SetItemText(i,1,vSimResultFullName[i]);
 
-		GetListCtrl().SetItemText(i,1,dataList[i][j].eMinimum.printTime());
-		GetListCtrl().SetItemText(i,2,dataList[i][j].eAverage.printTime());
-		GetListCtrl().SetItemText(i,3,dataList[i][j].eMaximum.printTime());
+		GetListCtrl().SetItemText(i,2,dataList[i][j].eMinimum.printTime());
+		GetListCtrl().SetItemText(i,3,dataList[i][j].eAverage.printTime());
+		GetListCtrl().SetItemText(i,4,dataList[i][j].eMaximum.printTime());
 
-		GetListCtrl().SetItemText(i,4,dataList[i][j].eQ1.printTime());
-		GetListCtrl().SetItemText(i,5,dataList[i][j].eQ2.printTime());
-		GetListCtrl().SetItemText(i,6,dataList[i][j].eQ3.printTime());
-		GetListCtrl().SetItemText(i,7,dataList[i][j].eP1.printTime());
-		GetListCtrl().SetItemText(i,8,dataList[i][j].eP5.printTime());
-		GetListCtrl().SetItemText(i,9,dataList[i][j].eP10.printTime());
-		GetListCtrl().SetItemText(i,10,dataList[i][j].eP90.printTime());
-		GetListCtrl().SetItemText(i,11,dataList[i][j].eP95.printTime());
-		GetListCtrl().SetItemText(i,12,dataList[i][j].eP99.printTime());
-		GetListCtrl().SetItemText(i,13,dataList[i][j].eSigma.printTime());
-		GetListCtrl().SetItemText(i,14,dataList[i][j].strPaxType);
+		GetListCtrl().SetItemText(i,5,dataList[i][j].eQ1.printTime());
+		GetListCtrl().SetItemText(i,6,dataList[i][j].eQ2.printTime());
+		GetListCtrl().SetItemText(i,7,dataList[i][j].eQ3.printTime());
+		GetListCtrl().SetItemText(i,8,dataList[i][j].eP1.printTime());
+		GetListCtrl().SetItemText(i,9,dataList[i][j].eP5.printTime());
+		GetListCtrl().SetItemText(i,10,dataList[i][j].eP10.printTime());
+		GetListCtrl().SetItemText(i,11,dataList[i][j].eP90.printTime());
+		GetListCtrl().SetItemText(i,12,dataList[i][j].eP95.printTime());
+		GetListCtrl().SetItemText(i,13,dataList[i][j].eP99.printTime());
+		GetListCtrl().SetItemText(i,14,dataList[i][j].eSigma.printTime());
+		GetListCtrl().SetItemText(i,15,dataList[i][j].strPaxType);
 
 		CString strCount;
 		strCount.Format(_T("%d"),dataList[i][j].nCount);
-		GetListCtrl().SetItemText(i,15,strCount);
+		GetListCtrl().SetItemText(i,16,strCount);
 
 
 		GetListCtrl().SetItemData(i,i);
+		nItemIndex++;
 	}
 
 }
@@ -493,8 +519,14 @@ void CRepListViewMultiRunReportOperator::SetSummaryCriticalQueueContents()
 	//ResetAllContent();
 	GetListCtrl().DeleteAllItems();
 
-	GetListCtrl().InsertColumn( 0, _T("RUN"), LVCFMT_CENTER, 180);
-	GetListHeaderCtrl()->SetDataType( 0,  dtSTRING);
+	//GetListCtrl().InsertColumn( 0, _T("RUN"), LVCFMT_CENTER, 180);
+	//GetListHeaderCtrl()->SetDataType( 0,  dtSTRING);
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+	GetListCtrl().InsertColumn(0,"",headStyle,20);
+	GetListHeaderCtrl()->SetDataType( 0,  dtINT);
+	GetListCtrl().InsertColumn( 1, _T("RUN"), headStyle, 60);
+	GetListHeaderCtrl()->SetDataType( 1,  dtSTRING);
 
 	const int  m_nColumnCount = 5;
 	CString csColumnLabel[m_nColumnCount];
@@ -527,8 +559,11 @@ void CRepListViewMultiRunReportOperator::SetSummaryCriticalQueueContents()
 
 	for( int i=0; i<m_nColumnCount; i++ )
 	{
-		GetListCtrl().InsertColumn( i, csColumnLabel[i], nFormat[i], nDefaultColumnWidth[i] );
-		GetListHeaderCtrl()->SetDataType( i, type[i] );
+		DWORD dwStyle = nFormat[i];
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		GetListCtrl().InsertColumn( i+2, csColumnLabel[i],/* nFormat[i]*/dwStyle, nDefaultColumnWidth[i] );
+		GetListHeaderCtrl()->SetDataType( i+2, type[i] );
 	}
 
 	CTermPlanDoc* pDoc = GetTermPlanDoc() ;
@@ -557,22 +592,25 @@ void CRepListViewMultiRunReportOperator::SetSummaryCriticalQueueContents()
 	{
 		for (size_t j =0; j < dataList[i].size(); ++j)
 		{
-			GetListCtrl().InsertItem(nItemIndex, vSimResultFullName[i]);
-			GetListCtrl().SetItemText(nItemIndex,1,dataList[i][j].strProcName);
+			CString strIndex;
+			strIndex.Format(_T("%d"),nItemIndex+1);
+			GetListCtrl().InsertItem(nItemIndex,strIndex);
+			GetListCtrl().SetItemText(nItemIndex,1,vSimResultFullName[i]);
+			GetListCtrl().SetItemText(nItemIndex,2,dataList[i][j].strProcName);
 			CString strGroupSize;
 			strGroupSize.Format(_T("%d"),dataList[i][j].nGroupSize);
-			GetListCtrl().SetItemText(nItemIndex,2,strGroupSize);
+			GetListCtrl().SetItemText(nItemIndex,3,strGroupSize);
 
 			CString strAvgQueue;
 			strAvgQueue.Format(_T("%.2f"),dataList[i][j].fAvgQueue);
-			GetListCtrl().SetItemText(nItemIndex,3,strAvgQueue);
+			GetListCtrl().SetItemText(nItemIndex,4,strAvgQueue);
 
 			CString strMaxQueue;
 			strMaxQueue.Format(_T("%d"),dataList[i][j].nMaxQueue);
-			GetListCtrl().SetItemText(nItemIndex,4,strMaxQueue);
+			GetListCtrl().SetItemText(nItemIndex,5,strMaxQueue);
 
 
-			GetListCtrl().SetItemText(nItemIndex,5,dataList[i][j].eMaxQueueTime.printTime());
+			GetListCtrl().SetItemText(nItemIndex,6,dataList[i][j].eMaxQueueTime.printTime());
 
 			GetListCtrl().SetItemData(nItemIndex,nItemIndex);
 			nItemIndex+=1;
@@ -599,8 +637,14 @@ void CRepListViewMultiRunReportOperator::SetDetailedPaxDataContents(MultiRunsRep
 //	ResetAllContent();
 
 	GetListCtrl().DeleteAllItems();
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(0,"",headStyle,20);
 
-	wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);
+	headStyle = LVCFMT_LEFT;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
+	
 	if (dataList.empty())
 		return;
 
@@ -622,7 +666,10 @@ void CRepListViewMultiRunReportOperator::SetDetailedPaxDataContents(MultiRunsRep
 		CString strRange;
 		strRange.Format(_T("%d - %d"), dataList[MaxIndex][i].ValueRange.first, dataList[MaxIndex][i].ValueRange.second);
 
-		wndListCtrl.InsertColumn(1+i, strRange, LVCFMT_LEFT, 100);
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		wndListCtrl.InsertColumn(2+i, strRange, /*LVCFMT_LEFT*/dwStyle, 100);
 	}
 
 	std::vector<CString> vSimResultFullName = multiReport.GetAllSimResultFullName();
@@ -630,11 +677,16 @@ void CRepListViewMultiRunReportOperator::SetDetailedPaxDataContents(MultiRunsRep
 	{
 		//CString strSimName;
 		//strSimName.Format(_T("SimResult%d"), vSimResults[i]);
+		CString strIndex;
+		strIndex.Format(_T("%d"),i+1);
+		wndListCtrl.InsertItem(i,strIndex);
+
 		int nCurSimResult = atoi(vSimResultFullName[i].Mid(3,vSimResultFullName[i].GetLength()));
 		CString strRun = _T("");
 		strRun.Format(_T("%s%d"),vSimResultFullName[i].Left(3),nCurSimResult+1);
 		
-		wndListCtrl.InsertItem(i, strRun);
+	//	wndListCtrl.InsertItem(i, strRun);
+		wndListCtrl.SetItemText(i,1,strRun);
 		GetListCtrl().SetItemData(i,i);
 		for (size_t n = 0; n < rangeCount; ++n)
 		{
@@ -644,7 +696,7 @@ void CRepListViewMultiRunReportOperator::SetDetailedPaxDataContents(MultiRunsRep
 			else
 				strCount.Format(_T("%d"),0) ;
 
-			wndListCtrl.SetItemText(i, n + 1, strCount);
+			wndListCtrl.SetItemText(i, n + 2, strCount);
 
 		}
 	}
@@ -669,8 +721,14 @@ void CRepListViewMultiRunReportOperator::SetDetailedTimeDataContents(MultiRunsRe
 	//ResetAllContent();
 	GetListCtrl().DeleteAllItems();
 
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+//	wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);
+	wndListCtrl.InsertColumn(0,"",headStyle,20);
 
-	wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);
+	headStyle = LVCFMT_LEFT;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
 	if (dataList.empty())
 		return;
 
@@ -693,17 +751,25 @@ void CRepListViewMultiRunReportOperator::SetDetailedTimeDataContents(MultiRunsRe
 		bool bInSecond = dataList[MaxIndex][i].bInSecond;
 		strRange = dataList[MaxIndex][i].TimeValueRange.first.printTime( bInSecond ? 1 : 0 ) + " - " + dataList[MaxIndex][i].TimeValueRange.second.printTime( bInSecond ? 1 : 0 );
 
-		wndListCtrl.InsertColumn(1 + i, strRange, LVCFMT_LEFT, 100);
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		wndListCtrl.InsertColumn(2 + i, strRange, dwStyle, 100);
 	}
 	std::vector<CString> vSimResultFullName = multiReport.GetAllSimResultFullName();
 	for (size_t i = 0; i < vSimResultFullName.size(); ++i)
 	{
 		//CString strSimName;
 		//strSimName.Format(_T("Run%d"), i+1 );
+		CString strIndex;
+		strIndex.Format(_T("%d"),i+1);
+		wndListCtrl.InsertItem(i,strIndex);
+
 		int nCurSimResult = atoi(vSimResultFullName[i].Mid(3,vSimResultFullName[i].GetLength()));
 		CString strRun = _T("");
 		strRun.Format(_T("%s%d"),vSimResultFullName[i].Left(3),nCurSimResult+1);
-		wndListCtrl.InsertItem(i, strRun);
+		wndListCtrl.SetItemText(i,1,strRun);
+	//	wndListCtrl.InsertItem(i, strRun);
 		GetListCtrl().SetItemData(i,i);
 		for ( int n = 0; n < _nRangeCount; ++n)
 		{
@@ -713,7 +779,7 @@ void CRepListViewMultiRunReportOperator::SetDetailedTimeDataContents(MultiRunsRe
 			else
 				strCount.Format(_T("%d"),0) ;
 
-			wndListCtrl.SetItemText(i, n + 1, strCount);
+			wndListCtrl.SetItemText(i, n + 2, strCount);
 		}
 	}
 }
@@ -729,22 +795,36 @@ void CRepListViewMultiRunReportOperator::SetSummaryPaxDataContents(MultiRunsRepo
 //	ResetAllContent();
 	GetListCtrl().DeleteAllItems();
 
-	wndListCtrl.InsertColumn(0, _T("Passenger Type"), LVCFMT_LEFT, 80);
+//	wndListCtrl.InsertColumn(0, _T("Passenger Type"), LVCFMT_LEFT, 80);
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(0,"",headStyle,20);
+
+	headStyle = LVCFMT_LEFT;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
+
 	for (size_t i = 0; i < vSimResults.size(); ++i)
 	{
 		CString strSimName;
 		strSimName.Format(_T("SimResult%d"), vSimResults[i]);
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
 
-		wndListCtrl.InsertColumn(1 + i * 3, strSimName + _T(" Min Value"), LVCFMT_LEFT, 100);
-		wndListCtrl.InsertColumn(2 + i * 3, strSimName + _T(" Average Value"), LVCFMT_LEFT, 100);
-		wndListCtrl.InsertColumn(3 + i * 3, strSimName + _T(" Max Value"), LVCFMT_LEFT, 100);
+		wndListCtrl.InsertColumn(2 + i * 3, strSimName + _T(" Min Value"), dwStyle, 100);
+		wndListCtrl.InsertColumn(3 + i * 3, strSimName + _T(" Average Value"), dwStyle, 100);
+		wndListCtrl.InsertColumn(4 + i * 3, strSimName + _T(" Max Value"), dwStyle, 100);
 	}
 
 	int nRow = 0;
 	for (MultiRunsReport::Summary::PaxDataList::iterator iter = dataList.begin(); iter != dataList.end(); ++iter)
 	{
-		wndListCtrl.InsertItem(nRow, iter->first);
-		GetListCtrl().SetItemData(nRow+1,nRow);
+		CString strIndex;
+		strIndex.Format(_T("%d"),nRow+1);
+		wndListCtrl.InsertItem(nRow,strIndex);
+		wndListCtrl.SetItemText(nRow,1,iter->first);
+		//wndListCtrl.InsertItem(nRow, iter->first);
+		GetListCtrl().SetItemData(nRow,nRow);
 		for (size_t i = 0; i < vSimResults.size(); ++i)
 		{
 			CString strValue;
@@ -780,7 +860,14 @@ void CRepListViewMultiRunReportOperator::SetDetailOccupancyDataWithNoRanger(Mult
 	//	ResetAllContent();
 	GetListCtrl().DeleteAllItems();
 
-	wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);
+	/*wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);*/
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(0,"",headStyle,20);
+
+	headStyle = LVCFMT_LEFT;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
 	if (dataList.empty())
 		return;
 	_nRangeCount = static_cast<int>(dataList[0].size());
@@ -791,21 +878,28 @@ void CRepListViewMultiRunReportOperator::SetDetailOccupancyDataWithNoRanger(Mult
 		bool bInSecond = false;//dataList[0][i].bInSecond;
 		strRange = dataList[0][i].startTime.printTime( bInSecond ? 1 : 0 );
 
-		wndListCtrl.InsertColumn(1 + i, strRange, LVCFMT_LEFT, 100);
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
+		wndListCtrl.InsertColumn(1 + i, strRange, dwStyle, 100);
 	}
 	std::vector<CString> vSimResultFullName = multiReport.GetAllSimResultFullName();
 	for (size_t i = 0; i < vSimResultFullName.size(); ++i)
 	{
 		//CString strSimName;
 		//strSimName.Format(_T("Run%d"), i+1 );
-		wndListCtrl.InsertItem(i, vSimResultFullName[i]);
-		GetListCtrl().SetItemData(i+1,i);
+		CString strIndex;
+		strIndex.Format(_T("%d"),i+1);
+		wndListCtrl.InsertItem(i,strIndex);
+
+	//	wndListCtrl.InsertItem(i, vSimResultFullName[i]);
+		wndListCtrl.SetItemText(i,1,vSimResultFullName[i]);
+		GetListCtrl().SetItemData(i,i);
 		for ( int n = 0; n < _nRangeCount; ++n)
 		{
 			CString strCount;
 			strCount.Format(_T("%d"), dataList[i][n].nPaxCount);
 
-			wndListCtrl.SetItemText(i+1, n + 1, strCount);
+			wndListCtrl.SetItemText(i, n + 2, strCount);
 		}
 	}
 }
@@ -827,7 +921,15 @@ void CRepListViewMultiRunReportOperator::SetDetailedOccupancyDataContents(MultiR
 //	ResetAllContent();
 	GetListCtrl().DeleteAllItems();
 
-	wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);
+//	wndListCtrl.InsertColumn(0, _T("SimResult"), LVCFMT_LEFT, 80);
+	DWORD headStyle = LVCFMT_CENTER;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(0,"",headStyle,20);
+
+	headStyle = LVCFMT_LEFT;
+	headStyle &= ~HDF_OWNERDRAW;
+	wndListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
+
 	if (dataList.empty())
 		return;
 	_nRangeCount = static_cast<int>(dataList[0].size());
@@ -838,24 +940,31 @@ void CRepListViewMultiRunReportOperator::SetDetailedOccupancyDataContents(MultiR
 		bool bInSecond = false;//dataList[0][i].bInSecond;
 		strRange = dataList[0][i].startTime.printTime( bInSecond ? 1 : 0 ) + " - " + dataList[0][i+1].startTime.printTime( bInSecond ? 1 : 0 );
 
-		wndListCtrl.InsertColumn(1 + i, strRange, LVCFMT_LEFT, 100);
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
+		wndListCtrl.InsertColumn(2 + i, strRange, dwStyle, 100);
 	}
 	std::vector<CString> vSimResultFullName = multiReport.GetAllSimResultFullName();
 	for (size_t i = 0; i < vSimResultFullName.size(); ++i)
 	{
 		//CString strSimName;
 		//strSimName.Format(_T("Run%d"), i+1 );
+		CString strIndex;
+		strIndex.Format(_T("%d"),i+1);
+		wndListCtrl.InsertItem(i,strIndex);
+
 		int nCurSimResult = atoi(vSimResultFullName[i].Mid(3,vSimResultFullName[i].GetLength()));
 		CString strRun = _T("");
 		strRun.Format(_T("%s%d"),vSimResultFullName[i].Left(3),nCurSimResult+1);
-		wndListCtrl.InsertItem(i, strRun);
-		GetListCtrl().SetItemData(i+1,i);
+		wndListCtrl.SetItemText(i,1,strRun);
+		//wndListCtrl.InsertItem(i, strRun);
+		GetListCtrl().SetItemData(i,i);
 		for ( int n = 0; n < _nRangeCount-1; ++n)
 		{
 			CString strCount;
 			strCount.Format(_T("%d"), dataList[i][n].nPaxCount);
 
-			wndListCtrl.SetItemText(i+1, n + 1, strCount);
+			wndListCtrl.SetItemText(i, n + 2, strCount);
 		}
 	}
 }

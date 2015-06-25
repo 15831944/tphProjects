@@ -7,7 +7,7 @@
 const char* C3DModelResource::sm_szFileNames[] = {
 	"Trafficlight.3ds",
 	"StopSign.3ds",
-	"TollGate.3ds",
+	"Tollgate.3DS",
 	"Yieldsign.3ds",
 	"Trafficlight2D.3ds",
 	"StopSign2D.3ds",

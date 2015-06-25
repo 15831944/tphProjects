@@ -59,14 +59,13 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <BrowseInformation>
-      </BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
-      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Lib>
@@ -1591,7 +1590,6 @@
     <ClInclude Include="LandsideVehicleMoveInRoad.h" />
     <ClInclude Include="LandsideVehicleServiceEndEvent.h" />
     <ClInclude Include="LandsideVehicleStateMovement.h" />
-    <ClInclude Include="Landside\Goal_PublicBus.h" />
     <ClInclude Include="Landside\LandsideNonPaxVehicleInSim.h" />
     <ClInclude Include="Landside\LandsideNonPaxVehicleManager.h" />
     <ClInclude Include="Landside\LandsidePath.h" />
@@ -1637,7 +1635,6 @@
     <ClInclude Include="PAX.H" />
     <ClInclude Include="PaxBusBeginServerEvent.h" />
     <ClInclude Include="PaxCircleSensor.h" />
-    <ClInclude Include="PaxMovingFromSeatToCorridorLogic.h" />
     <ClInclude Include="PaxOnboardFreeMovingLogic.h" />
     <ClInclude Include="PaxOnboardRoute.h" />
     <ClInclude Include="PERSON.H" />
@@ -1876,7 +1873,6 @@
     <ClInclude Include="Airside\FlightTypeRunwayAssignmentStrategiesInSim.h" />
     <ClInclude Include="Airside\FollowMeCarConnectionInSim.h" />
     <ClInclude Include="Airside\GatePlaner.h" />
-    <ClInclude Include="Airside\GroundIntersection.h" />
     <ClInclude Include="Airside\GroundIntersectionNodeInSim.h" />
     <ClInclude Include="Airside\HeadingAirRouteSegInSim.h" />
     <ClInclude Include="Airside\HoldInTaxiRouteInSim.h" />
@@ -1950,7 +1946,6 @@
     <ClInclude Include="Airside\TowTruckServiceRequest.h" />
     <ClInclude Include="Airside\VehicleBirthEvent.h" />
     <ClInclude Include="Airside\VehicleMoveEvent.h" />
-    <ClInclude Include="Airside\VehicleOperation.h" />
     <ClInclude Include="VehicleParkingPlaceMgrInSim.h" />
     <ClInclude Include="Airside\VehiclePoolInSim.h" />
     <ClInclude Include="Airside\VehiclePoolResourceManager.h" />

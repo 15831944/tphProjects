@@ -270,9 +270,12 @@ HoldInTaxiRoute* FlightHoldListInTaxiRoute::IsDistInNoParkingNodeRange( const Di
 				const HoldInTaxiRoute& theHold2 = ItemAt(j);
 				if( theHold2.m_hHoldType == HoldInTaxiRoute::ENTRYNODE )
 				{
-					if(theHold.m_dDistInRoute< dist && dist < theHold2.m_dDistInRoute && theHold.mLinkDirSeg->GetType()==AirsideResource::ResType_RunwayDirSeg)
+					if(theHold.m_dDistInRoute< dist && dist < theHold2.m_dDistInRoute  )
 					{
-						return (HoldInTaxiRoute*)&theHold;
+						if(theHold.mLinkDirSeg && theHold.mLinkDirSeg->GetType()==AirsideResource::ResType_RunwayDirSeg)
+						{
+							return (HoldInTaxiRoute*)&theHold;
+						}						
 					}
 				}
 			}

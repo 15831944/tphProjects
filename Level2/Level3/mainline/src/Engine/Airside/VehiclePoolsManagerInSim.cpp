@@ -159,6 +159,41 @@ void VehiclePoolsManagerInSim::GetPaxServicePool(AirsideFlightInSim* pFlight,int
 	}
 }
 
+void VehiclePoolsManagerInSim::GetBaggageServicePool( AirsideFlightInSim* pFlight,int nVehicleTypeID,std::vector<int>& poolIDList,const ElapsedTime& eTime )
+{
+	CVehicleTypePools* pPools = m_pVehiclePoolsAndDeployment->GetVehicleTypePools(nVehicleTypeID);
+
+	if (pPools)
+	{
+		char mode = pFlight->IsArrivingOperation()?'A':'D';
+
+		ALTObjectID objectID;
+		if(pFlight->GetOperationParkingStand())
+			objectID = pFlight->GetOperationParkingStand()->GetStandInput()->GetObjectName();
+		else
+			objectID = pFlight->GetFlightInput()->getStand();
+
+
+		for (int i = 0; i < pPools->GetVehiclePoolCount(); i++)
+		{
+			CVehiclePool* pVehiclePool = pPools->GetVehiclePoolItem(i);
+			std::vector<CVehicleServiceStandFamily*> standVector;
+			pVehiclePool->GetServiceFitStand(objectID,standVector);
+
+			for (size_t j = 0; j < standVector.size(); j++)
+			{
+				CVehicleServiceStandFamily* pStandFamily = standVector[j];
+				if(pStandFamily->Fit(pFlight->GetLogEntry().GetAirsideDesc(),mode,eTime))
+				{
+					int nID = pVehiclePool->GetParkingLotID();
+					poolIDList.push_back(nID);
+					break;
+				}	
+			}
+		}
+	}
+}
+
 void VehiclePoolsManagerInSim::GetServicePool(AirsideFlightInSim* pFlight,int nVehicleTypeID, std::vector<int>& poolIDList)
 {
 	CVehicleTypePools* pPools = m_pVehiclePoolsAndDeployment->GetVehicleTypePools(nVehicleTypeID);

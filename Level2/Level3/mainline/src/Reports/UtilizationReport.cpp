@@ -121,7 +121,7 @@ void CUtilizationReport::CalculateUtilization( ProcLogEntry& logEntry )
 			continue;
 			//curTime = m_startTime;
 
-		if (curTime > m_endTime)
+		if (curTime >= m_endTime)
 			break;
 
 		if (event.type == OpenForService && state == Closed)
@@ -168,6 +168,7 @@ void CUtilizationReport::CalculateUtilization( ProcLogEntry& logEntry )
 
 		}
 	}	
+
 	m_dActualTime += ( m_endTime - openTime ).asSeconds();
 	if (state == Overtime)
 	{
@@ -194,8 +195,17 @@ void CUtilizationReport::WriteEntries( const char *p_id, ArctermFile& p_file ) c
 	p_file.writeTime ( ElapsedTime( m_dActualTime - m_dServiceTime ), TRUE);
 
 	char str[64];
-	double utilization = m_dServiceTime / m_dActualTime;
-	sprintf( str, "% 5.2f", utilization * 100.0 );
+
+	double utilization = 0.0f;
+
+	// D00401: Utilization Report has some invalid result.
+	if(!(-0.0001f < m_dActualTime && m_dActualTime < 0.0001f))// Make sure service time is not 0.
+	{
+		utilization = m_dServiceTime / m_dActualTime;
+	}
+	// D00401 end.
+
+	sprintf( str, "% 5.2f", utilization * 100.0f );
 	p_file.writeField (str);
 
 	p_file.writeLine();

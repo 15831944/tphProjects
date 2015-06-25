@@ -599,7 +599,7 @@ bool VehicleRouteResourceManager::InitRelationsWithVehiclePool( VehiclePoolResou
 									DistanceUnit distInSLane  = pStretchLane->GetPath().GetPointDist(distancePP.m_clostPoint);
 									VehiclePoolEntry* poolentry = new VehiclePoolEntry(pStretchLane,pPool, distInSLane);
 									poolentry->m_pPoolLane = plane;
-									poolentry->m_distInPoolLane = 0 ;
+									poolentry->m_distInPoolLane = plane->getPath().GetPointDist(distancePP.m_clostPoint) ;
 									pStretchLane->AddExit(poolentry);
 									pPool->AddEntry(poolentry);									
 								}
@@ -620,7 +620,7 @@ bool VehicleRouteResourceManager::InitRelationsWithVehiclePool( VehiclePoolResou
 									DistanceUnit distInSLane  = pStretchLane->GetPath().GetPointDist(distancePP.m_clostPoint);
 									VehiclePoolExit* poolentry = new VehiclePoolExit(pStretchLane,pPool, distInSLane);
 									poolentry->m_pPoolLane = plane;
-									poolentry->m_distInPoolLane =  plane->m_path.GetTotalLength();
+									poolentry->m_distInPoolLane =  plane->getPath().GetPointDist(distancePP.m_clostPoint) ;
 									pStretchLane->AddEntry(poolentry);
 									pPool->AddExit(poolentry);									
 								}
@@ -632,7 +632,7 @@ bool VehicleRouteResourceManager::InitRelationsWithVehiclePool( VehiclePoolResou
 				
 				
 				//old code
-				for(int laneidx = 0; laneidx < pSeg->GetLaneCount(); laneidx++ )
+				/*for(int laneidx = 0; laneidx < pSeg->GetLaneCount(); laneidx++ )
 				{
 					VehicleLaneInSim * pLane = pSeg->GetLane(laneidx);
 
@@ -653,7 +653,7 @@ bool VehicleRouteResourceManager::InitRelationsWithVehiclePool( VehiclePoolResou
 							pPool->AddEntry(poolEntry);							
 						}
 					}	
-				}
+				}*/
 
 				//get nearest seg
 				{
@@ -671,7 +671,7 @@ bool VehicleRouteResourceManager::InitRelationsWithVehiclePool( VehiclePoolResou
 		
 
 		//if can not find any entry or exit, use the closet point
-		if( !( pPool->GetEntryCount() && pPool->GetExitCount() ) )
+		if( !pPool->GetEntryCount() )
 		{
 			ASSERT(pNearestSeg);
 			if(pNearestSeg)
@@ -682,24 +682,36 @@ bool VehicleRouteResourceManager::InitRelationsWithVehiclePool( VehiclePoolResou
 				{
 					VehicleLaneInSim * pCurLane = pNearestSeg->GetLane(nLane);
 					DistanceUnit dEndDist = pCurLane->GetLength();
-
-					
 					DistanceUnit distInLane = pCurLane->GetPath().GetPointDist(nearestPtInSeg);
-					//}
-				
-					VehiclePoolExit* poolExit = new VehiclePoolExit(pCurLane, pPool, min(dEndDist,distInLane +sdEntryExitOffset) );
 					VehiclePoolEntry* poolEntry =  new VehiclePoolEntry(pCurLane, pPool, max(0,distInLane -sdEntryExitOffset) );
 
-					pCurLane->AddEntry( poolExit );
-					pPool->AddExit(poolExit);
-
 					pCurLane->AddExit( poolEntry );	
-					pPool->AddEntry(poolEntry);	
-
+					pPool->AddEntry(poolEntry);
 				}
 			}
 			
 		}
+		if(!pPool->GetExitCount())
+		{
+			ASSERT(pNearestSeg);
+			if(pNearestSeg)
+			{
+				int nLaneCount = pNearestSeg->GetLaneCount();
+
+				for (int nLane = 0; nLane < nLaneCount; ++nLane)
+				{
+					VehicleLaneInSim * pCurLane = pNearestSeg->GetLane(nLane);
+					DistanceUnit dEndDist = pCurLane->GetLength();
+					DistanceUnit distInLane = pCurLane->GetPath().GetPointDist(nearestPtInSeg);
+					VehiclePoolExit* poolExit = new VehiclePoolExit(pCurLane, pPool, min(dEndDist,distInLane +sdEntryExitOffset) );
+
+					pCurLane->AddEntry( poolExit );
+					pPool->AddExit(poolExit);
+				}
+			}
+
+		}
+		pPool->Build();	
 	}
 	return true;
 }

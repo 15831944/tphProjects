@@ -12,6 +12,7 @@
 #include "BaseReport.h"
 #include "FromToProcCaculation.h"
 #include "ReportParameter.h"
+#include "servelem.h"
 
 class CMissFlightReport : public CBaseReport  
 {
@@ -26,7 +27,7 @@ public:
 	void GenerateDetailed( ArctermFile& p_file );
 
 private:
-	CString GetPaxLastProcIndex(int paxid);
+	CString GetLastProcIDName(ServiceElement& element);
 	CString GetFlightID(int paxid);
 	ElapsedTime GetPaxExitTime(int paxid);
 	ElapsedTime GetDepartingTime(int paxid);

@@ -1123,7 +1123,7 @@ void ElevatorProc::initSpecificMisc (const MiscData *miscData)
 		int iCount = pMiscData->getStopAfFloorCount();
 		for( int i=0; i<iCount; ++i )
 		{
-			if( pMiscData->getStopAtFloor( i ) )
+			if(pMiscData->getStopAtFloor(i) && (m_iMinFloor<=i && i<=m_iMaxFloor))
 			{
 				m_vStopAtFloors.push_back( i );
 			}
@@ -1136,7 +1136,7 @@ void ElevatorProc::initSpecificMisc (const MiscData *miscData)
 Point ElevatorProc::GetServiceLocationOnFloor ( int _nFloor ) const
 {
 	ASSERT( _nFloor >= 0 );
-	if(_nFloor - m_iMinFloor<0 || _nFloor - m_iMinFloor> (int)m_vAllFloorsData.size() )
+	if(_nFloor - m_iMinFloor<0 || _nFloor - m_iMinFloor>=(int)m_vAllFloorsData.size() )
 	{
 		//////////////////////////////////////////////////////////////////////////
 		return m_vAllFloorsData[0].GetWaitArea().getRandPoint();
@@ -1485,10 +1485,17 @@ std::vector<Pollygon>& ElevatorProc::GetDataAtFloorLiftAreas( int nFloor )
 void ElevatorProc::UpdateFloorIndex( const FloorChangeMap& changMap )
 {
 	__super::UpdateFloorIndex(changMap);
-	
-	int iNewMinFloor = changMap.getNewFloor(m_iMinFloor);
-	int iNewMaxFloor = changMap.getNewFloor(m_iMaxFloor);
-	
+
+	int iNewMinFloor = 0x7fffffff;
+	int iNewMaxFloor = 0;
+
+	for(int i=m_iMinFloor;i<=m_iMaxFloor;i++)
+	{
+		int nNewFloor = changMap.getNewFloor(i);
+		iNewMinFloor = MIN(nNewFloor,iNewMinFloor);
+		iNewMaxFloor = MAX(nNewFloor,iNewMaxFloor);
+	}
+
 	if(iNewMaxFloor<iNewMinFloor)
 		std::swap(iNewMinFloor,iNewMaxFloor);
 

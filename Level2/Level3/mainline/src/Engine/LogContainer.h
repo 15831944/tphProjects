@@ -55,6 +55,9 @@ public:
 	//get Dep PaxLog 
 	PaxLog* GetNoDelayPaxLog() ;
 	
+	//get all pax log 
+	void updateItem(MobLogEntry& mobEntry);
+
 	int CurrentIndexOfPaxlogByFlightID(int Flight_id) ;
 	void SetCurrentIndexOfPaxlogByFlightID(int _index ,int Flight_id) ;
 

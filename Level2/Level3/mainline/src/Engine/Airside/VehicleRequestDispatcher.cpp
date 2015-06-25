@@ -223,6 +223,31 @@ bool VehicleRequestDispatcher::HasVehicleServiceFlight(AirsideFlightInSim* pFlig
 	return false;
 }
 
+
+bool VehicleRequestDispatcher::HasBaggageTrainServiceFlight( AirsideFlightInSim* pFlight,const ElapsedTime& eTime )
+{
+	std::vector<int> vIDs;
+	vIDs = m_pFlightServiceRequirement->GetVehicleTypeIDByBaseType(VehicleType_BaggageTug);
+
+	if (vIDs.empty())
+		return false;
+
+	int nCount = vIDs.size();
+	bool bExistTowTruckPool = false;
+	for (int i = 0; i < nCount; i++)
+	{
+		int nVehicleID = vIDs.at(i);
+		std::vector<int> vPoolIDs;
+		vPoolIDs.clear();
+		m_pPoolsDeployment->GetBaggageServicePool(pFlight,nVehicleID,vPoolIDs,eTime);
+		if (vPoolIDs.empty())
+			continue;
+
+		return true;
+	}
+	return false;
+}
+
 bool VehicleRequestDispatcher::HasTowTruckServiceFlight( AirsideFlightInSim* pFlight )
 {
 	std::vector<int> vIDs;

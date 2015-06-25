@@ -9,7 +9,6 @@
 #include "..\results\fltlog.h"
 #include "engine\proclist.h"
 #include "distelem.h"
-#include "servelem.h"
 #include "engine\terminal.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -33,48 +32,47 @@ void CMissFlightReport::GenerateDetailed( ArctermFile& p_file )
 	p_file.writeField ("Passenger ID,Flight ID,Last Processor,Time,Dep Time");
     p_file.writeLine();
 
-	ServiceElement telement;
+	ServiceElement element;
     int paxCount = m_pTerm->paxLog->getCount();    
 
 	CProgressBar bar( "Passenger Miss Flight Report", 100, paxCount, TRUE );
 
     for (int i = 0; i < paxCount; i++)
 	{	
-		m_pTerm->paxLog->getItem (telement, i);
-		telement.clearLog();
+		m_pTerm->paxLog->getItem (element, i);
+		element.clearLog();
 
-		if( !telement.IsMissFlight() )
+		if( !element.IsMissFlight() )
 			continue;
 
-		ReportPaxEntry bagEntry;
-
-		bagEntry.SetOutputTerminal(m_pTerm);
-		bagEntry.SetEventLog(m_pTerm->m_pMobEventLog);
-		m_pTerm->paxLog->getItem(bagEntry, i);
-		bagEntry.clearLog();
-		int iFlightIdx = bagEntry.getFlightIndex();
+		element.SetOutputTerminal(m_pTerm);
+		element.SetEventLog(m_pTerm->m_pMobEventLog);
+		m_pTerm->paxLog->getItem(element, i);
+		element.clearLog();
+		int iFlightIdx = element.getFlightIndex();
 		Flight *aFlight = m_pTerm->flightSchedule->getItem (iFlightIdx);
 		ASSERT( aFlight );
 
 		if (aFlight->isDeparting())
 		{
-			ElapsedTime deptime = telement.GetRealDepartureTime();
-			//ElapsedTime deptime = GetDepartingTime( i );
-			ElapsedTime misstime =  telement.GetMissFlightTime() - deptime;
-		//	ElapsedTime misstime =  GetPaxExitTime(i) - deptime;
-			//if( misstime.asSeconds() < 0 && !telement.IsMissFlight() )
-			//	continue;
-		//	if( /*misstime.asSeconds() > 0 ||*/ telement.IsMissFlight() )
-			{
-				p_file.writeInt( telement.getID() );		
-				p_file.writeField((const char*)(char*)GetFlightID(i).GetBuffer());
-				p_file.writeField( (char*)(const char*)GetPaxLastProcIndex(i) );	
+			ElapsedTime deptime = element.GetRealDepartureTime();
+			ElapsedTime misstime =  element.GetMissFlightTime() - deptime;
 
-				char timestr[50];
-				misstime.printTime(timestr, 1);
-				p_file.writeField( timestr );
+			/* T343: MissFlight Report doesn't filter the PassengerType based on the conditions set on GUI. */
+			if( element.fits( m_multiConst ) )
+			/* T343 end. */
+			{
+				p_file.writeInt( element.getID() );		
+				p_file.writeField((const char*)(char*)GetFlightID(i).GetBuffer());
+				p_file.writeField(GetLastProcIDName(element).GetBuffer());	
+
+				char tempStr[256];
+				misstime.printTime(tempStr, 1);
+				p_file.writeField( tempStr );
 
 				p_file.writeTime( deptime, TRUE);
+				element.printFullType(tempStr);
+				p_file.writeField(tempStr);
 				p_file.writeLine();
 			}
 		}
@@ -184,41 +182,6 @@ ElapsedTime CMissFlightReport::GetPaxExitTime(int paxid)
 //	return entry.getExitTime();
 }
 
-CString CMissFlightReport::GetPaxLastProcIndex(int paxid)
-{
-	CString ProcessorStr = "";
-	DistanceElement element;
-
-	element.SetOutputTerminal( m_pTerm );
-	element.SetEventLog( m_pTerm->m_pMobEventLog );
-
-	
-	m_pTerm->paxLog->getItem( element, paxid );
-	element.clearLog();
-	
-	if( element.alive( m_startTime, m_endTime ) )
-	{
-//		if( element.fits( m_multiConst ) )
-		{
-			element.calculateDistance( m_fromToProcsTools );
-					
-			std::vector<CFromToProcCaculation::FROM_TO_PROC>& values = m_fromToProcsTools.GetValues();
-			for( unsigned i=0; i<values.size(); ++i )
-			{
-				if( values[i].m_enFlag == CFromToProcCaculation::END_COMPUTE || values[i].m_iToProc == END_PROCESSOR_INDEX )
-				{
-					Processor* pProc = m_pTerm->procList->getProcessor( values[i].m_iToProc );
-					ProcessorStr = pProc->getID()->GetIDString();			
-
-				}
-			}			
-			m_fromToProcsTools.ResetAll();
-		}
-	}
-
-	return ProcessorStr;
-}
-
 void CMissFlightReport::InitTools()
 {
 	m_fromToProcsTools.ClearAll();
@@ -274,4 +237,20 @@ void CMissFlightReport::InitTools()
 		}
 	}
 	
+}
+
+CString CMissFlightReport::GetLastProcIDName(ServiceElement& element)
+{
+	element.loadEvents();
+	int trackCount = element.getCount();
+
+	PaxEvent track;
+	for (int i=trackCount-1; i>=0; i--)
+	{
+		track.init(element.getEvent(i));
+		if(track.getProc() != END_PROCESSOR_INDEX)
+			break;
+	}
+	Processor* pProc = m_pTerm->GetProcessorList()->getProcessor(track.getProc());	 
+	return pProc->getID()->GetIDString();
 }

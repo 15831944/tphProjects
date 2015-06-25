@@ -45,7 +45,7 @@ public:
 protected:
 	
 	CReportParameter* GetReportParameter();
-
+	CString NoUnderline( CString _str );
 	//CString GetAbsDateTime(LPCTSTR elaptimestr, BOOL needsec = TRUE);
 	//std::vector<bool> m_vFlag;
 	//void Load();
@@ -73,5 +73,6 @@ private:
 	//CString m_sExtension;
 	CRepListViewBaseOperator *m_pRepListViewBaseOperator;
 	CListCtrl m_wndListWnd;
+	int m_nCurrentPrintCount;
 	//ARCGridCtrl m_wndARCGrid;
 };

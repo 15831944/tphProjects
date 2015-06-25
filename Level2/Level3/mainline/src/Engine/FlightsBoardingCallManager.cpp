@@ -192,40 +192,44 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 				continue;
 
 			ElapsedTime fltDepTime = pFlight->getDepTime();
-			for( int k=0; k<iHoldAreaCount; ++k )
-			{
-				HoldingArea* pHoldArea = ( HoldingArea* )vHoldingAreas.getItem( k );
-				if( pHoldArea->getStageID() <= 0 )
-					continue;
-				if(IsBoardingCallValid(pFlight, pHoldArea, _pInTerm) == FALSE)
-				{
-					char buf[128];
-					pFlight->getFullID(buf,'D');
-					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
-				}
-			}
-
-			std::map<int,ElapsedTime>& mapLastCalls  = pFlight->GetLastCallOfEveryStage();
+			std::map<int,ElapsedTime>& mapLastCalls = pFlight->GetLastCallOfEveryStage();
 			mapLastCalls.clear();
 			FlightConstraint& fltConst = pFlight->getType ('D');
 
 			int stageCount = _fltData->GetStageCount();
-			for(int iStage=1; iStage<=stageCount; iStage++)
-			{
-				if(mapLastCalls.find(iStage) == mapLastCalls.end())// In this flight , the last call does not exist
+ 			for(int iHoldArea=0; iHoldArea<iHoldAreaCount; ++iHoldArea)
+ 			{
+				HoldingArea* pHoldArea = ( HoldingArea* )vHoldingAreas.getItem(iHoldArea);
+				int iStage = pHoldArea->getStageID();
+				if(iStage <= 0 || iStage > stageCount+1)
+					continue;
+// 				if(IsBoardingCallValid(pFlight, pHoldArea, _pInTerm) == FALSE)
+// 				{
+// 					char buf[128];
+// 					pFlight->getFullID(buf,'D');
+// 					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
+// 				}
+				if(mapLastCalls.find(iStage) == mapLastCalls.end())//not exist
  				{
 					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetFlightTypeDB(iStage-1);
 					int ifltTypeCount = pFltTypeDB->getCount();
+					bool findCorrectFilter = false;
+					// Traverse the FlightType filters database.
 					for(int iFlt=0; iFlt<ifltTypeCount; iFlt++)
 					{
-						const FlightConstraint* pFltTypeFilter = pFltTypeDB->getConstraint(iFlt);// This Flight Type filter is user set on GUI. 
+						if(findCorrectFilter)
+						{
+							break;
+						}
+						const FlightConstraint* pFltTypeFilter = pFltTypeDB->getConstraint(iFlt);// The FlightType filters are user set on GUI. 
 						if(pFltTypeFilter->fits(fltConst))
 						{
 							BoardingCallStandDatabase* pStandDB = ((BoardingCallFlightTypeEntry*)pFltTypeDB->getItem(iFlt))->GetStandDatabase();
 							int standCount = pStandDB->getCount();
+							// Traverse the Stand filters database.
 							for(int iStand=0; iStand<standCount; iStand++)
 							{
-								const ProcessorID* pStandFilter = pStandDB->getItem(iStand)->getID();// This ProcessorID filter is user set on GUI.
+								const ProcessorID* pStandFilter = pStandDB->getItem(iStand)->getID();// The Stand filters are user set on GUI.
 								if(pStandFilter->idFits(procID))
 								{
 									BoardingCallPaxTypeDatabase* pPaxTypeDB = ((BoardingCallStandEntry*)pStandDB->getItem(iStand))->GetPaxTypeDatabase();
@@ -233,8 +237,8 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 									for(int iPax=0; iPax<paxTypeCount; iPax++)
 									{
 										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(iPax);
-										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());// This Pax Type filter is user set on GUI. 
-										(FlightConstraint&)mobElemConst = pFlight->getType ('D'); // Now merge flight information into Pax Type. 
+										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());// The PaxType filters are user set on GUI. 
+										(FlightConstraint&)mobElemConst = pFlight->getType ('D'); // Now merge flight information into PaxType. 
 										std::vector<BoardingCallTrigger*>& vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger.size();
 										ElapsedTime tempTime, triggerTime;
@@ -246,23 +250,31 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 											
 											if(iTrigger < triggerCount-1)
 											{
-												double ranValue = (vTrigger.at(iTrigger)->m_prop)->getRandomValue();
-												percent = ranValue / (100.0f - releasedProp);
-												releasedProp += ranValue;
+												double prop = (vTrigger.at(iTrigger)->m_prop)->getRandomValue();
+												percent = prop / (100.0f - releasedProp);
+												releasedProp += prop;
 											}
 											else// the 'residual' trigger.
 											{
 												percent = 1.0f;
+												if(iStage == 1)
+												{
+													// set time of last call
+													pFlight->setLastCall (tempTime);
+												}
 												if((CMobileElemConstraint*)pPaxTypeEntry->getConstraint()->isDefault())
+												{
 													mapLastCalls.insert(std::map<int,ElapsedTime>::value_type(iStage, tempTime));
+												}
 											}
 											event = new BoardingCallEvent;
 											event->setTime (tempTime);
 											event->init ((float)percent, NULL, mobElemConst, iStage);
-											
 											LoadDefaultBoardingCallEventToFltItem(pFlight, event);
 										}
 									}
+									findCorrectFilter = true;// Find first filter that matches both FlightType and Stand of this flight.					 
+									break;// Will not traverse the filters anymore.
 								}
 							}
 						}

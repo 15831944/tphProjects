@@ -148,5 +148,5 @@ void GateAssignmentConstraintList::LoadataStandConstraint(CTermPlanDoc* Doc)
 	m_adjaconstrain.GetAdjConstraints().SetInputTerminal(&Doc->GetTerminal());
 	m_adjaconstrain.GetAdjConstraints().loadDataSet(Doc->m_ProjInfo.path);
 	m_adjaconstrain.readData();
-	GetACTypeStandConstraints()->ReadData();
+	m_ACTypeStandConstraints.ReadData();
 }

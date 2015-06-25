@@ -59,6 +59,8 @@ public:
 	bool AvailablePaxServiceFlight(AirsideFlightInSim* pFlight,char mode);
 	bool HasTowTruckServiceFlight(AirsideFlightInSim* pFlight);
 
+	bool HasBaggageTrainServiceFlight(AirsideFlightInSim* pFlight,const ElapsedTime& eTime);
+
 
 	//it has to check is there vehicle can server this request
 	bool AddServiceRequest(VehicleServiceRequest* pServiceReq);

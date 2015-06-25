@@ -34,7 +34,10 @@ public:
 		{
 			return DataType(0.0);
 		}
-		int iIdx = (int)((iSize + 1)*_iPercent / 100.0);
+		int iIdx = (int)((iSize*_iPercent / 100.0) + 0.5);
+		if (iIdx != 0)
+			iIdx--;
+		
 		ASSERT( iIdx >=0 );
 		if( iIdx < iSize )
 		{

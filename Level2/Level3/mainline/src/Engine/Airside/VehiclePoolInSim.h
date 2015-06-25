@@ -17,12 +17,13 @@ class TowTruckServiceRequest;
 class AirsideFollowMeCarInSim;
 class BaggageTrainServiceRequest;
 
+enum dirtype{ _directional =1 , _bidirectional, };
 
 class VehiclePoolLaneInSim;
 class VehiclePoolItemInSim
 {
 public:
-	VehiclePoolLaneInSim* toLane(){ return NULL; }
+	virtual VehiclePoolLaneInSim* toLane(){ return NULL; }
 };
 
 class ParkingPoolNode
@@ -84,6 +85,8 @@ public:
 	VehiclePoolLaneInSim* getLane(int idx){ return m_vLanes.at(idx); }
 	const CPath2008& getPath()const{ return m_path;	}
 	DistanceUnit getWidth()const{ return m_pipeInput.m_width; }
+	bool m_bLeftDrive;
+	dirtype m_Dir;
 protected:
 	std::vector<VehiclePoolLaneInSim*> m_vLanes;
 	CPath2008 m_path;
@@ -146,6 +149,8 @@ public:
 	//get the path parking to the spot
 	CPath2008 ParkingToSpot(AirsideVehicleInSim* pV, VehicleRouteNode* pNode);
 	void BirthOnPool(AirsideVehicleInSim* pV, CPoint2008& pos ,CPoint2008& dir);
+	//get the path leave the pool
+	CPath2008 LeavePool(AirsideVehicleInSim* pV);
 
 	//bool IsPathOverlapPool(const CPath2008& path);
 
@@ -197,6 +202,8 @@ public:
 		return m_vpipes.at(idx);
 	}
 	int GetPipeCount()const{ return (int)m_vpipes.size(); }
+
+	void Build(/*VehiclePoolParking* pPoolInput*/);
 private:
 	VehiclePoolParking::RefPtr  m_pPoolInput;
 	std::vector<AirsideVehicleInSim*> m_vVehicleList;
@@ -215,7 +222,6 @@ private:
 	std::vector<VehiclePoolPipeInSim*> m_vpipes;   //own
 	std::vector<VehiclePoolParkSpaceInSim*> m_vParkSpaces; //own
 
-	void Build(VehiclePoolParking* pPoolInput);
 	void AddNode(const ParkingPoolNode& node);
 	VehiclePoolPipeInSim* getClosestPipe( const ARCPoint3& cpt, DistanceUnit& distInLane ) const;
 	typedef std::vector<ParkingPoolNode> PoolNodeList;
@@ -223,8 +229,6 @@ private:
 	CBoostPathFinder * mpPathFinder;
 	bool FindPath(VehiclePoolItemInSim* item, VehiclePoolItemInSim* itemT, PoolNodeList& path);
 
-	VehiclePoolParkSpotInSim* getFreeSpot();
-	void LeavePool(AirsideVehicleInSim* pV);
-
+	VehiclePoolParkSpotInSim* getFreeSpot(AirsideVehicleInSim* pV);
 };
 

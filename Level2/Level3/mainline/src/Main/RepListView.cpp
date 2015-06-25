@@ -12,6 +12,7 @@
 #include "reports\ReportParameter.h"
 #include "RepListViewMultiRunReportOperator.h"
 #include "RepListViewSingleReportOperator.h"
+#include "../common/SimAndReportManager.h"
 
 
 #ifdef _DEBUG
@@ -36,6 +37,7 @@ CRepListView::CRepListView()
 	//m_nColumnCount = 0;
 	//m_sExtension = _T("");
 	m_pRepListViewBaseOperator= NULL;
+	m_nCurrentPrintCount = 1;
 }
 
 CRepListView::~CRepListView()
@@ -59,7 +61,7 @@ BEGIN_MESSAGE_MAP(CRepListView, CFormView)
 	ON_WM_CONTEXTMENU()
 	ON_COMMAND(ID_LISTVIEW_PRINT, OnListviewPrint)
 	ON_COMMAND(ID_LISTVIEW_EXPORT, OnListviewExport)
-	ON_NOTIFY(LVN_COLUMNCLICK, IDC_REPORT_GRIDCTRL, OnColumnclickListCtrl)
+	ON_NOTIFY(LVN_COLUMNCLICK, IDC_LISTCTRL, OnColumnclickListCtrl)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -94,7 +96,7 @@ void CRepListView::OnColumnclickListCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	// TODO: Add your control notification handler code here
 	int nTestIndex = pNMListView->iSubItem;
-	if( nTestIndex >= 0 )
+	if( nTestIndex >= 1 )
 	{
 		CWaitCursor	wCursor;
 		if(::GetKeyState( VK_CONTROL ) < 0 ) // Is <CTRL> Key Down
@@ -106,7 +108,17 @@ void CRepListView::OnColumnclickListCtrl(NMHDR* pNMHDR, LRESULT* pResult)
 			m_ctlHeaderCtrl.SortColumn( nTestIndex, SINGLE_COLUMN_SORT );
 		}
 		m_ctlHeaderCtrl.SaveSortList();
+
+		for (int i = 0; i < m_wndListWnd.GetItemCount(); i++)
+		{
+			CString strIndex;
+			strIndex.Format(_T("%d"),i+1);
+			m_wndListWnd.SetItemText( i, 0, strIndex );
+		}
+
 	}	
+
+	
 	*pResult = 0;
 }
 
@@ -2324,7 +2336,7 @@ int CRepListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if(m_wndListWnd.Create( LBS_NOTIFY|LBS_HASSTRINGS|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_VSCROLL,
 		rtEmpty, this,IDC_LISTCTRL) )
 	{
-		DWORD dwStyle =dwStyle = m_wndListWnd.GetExtendedStyle();
+		DWORD dwStyle  = m_wndListWnd.GetExtendedStyle();
 		dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES;
 		m_wndListWnd.SetExtendedStyle( dwStyle );
 
@@ -2461,11 +2473,38 @@ void CRepListView::OnContextMenu(CWnd* pWnd, CPoint point)
 	pMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
 }
 
+CString CRepListView::NoUnderline( CString _str )
+{
+	_str.Replace("_"," ");
+	return _str;
+}
+
 void CRepListView::OnListviewPrint() 
 {
 	// TODO: Add your command handler code here
-	m_sHeader="List Header String";
-	m_sFoot="List Foot String";
+	m_sHeader = ((CTermPlanDoc*)GetDocument())->GetARCReportManager().GetRepTitle();
+	CString sFileName;
+	if(((CTermPlanDoc*)GetDocument())->GetARCReportManager().GetLoadReportType() == load_by_user )
+	{
+		sFileName = ((CTermPlanDoc*)GetDocument())->GetARCReportManager().GetUserLoadReportFile();
+	}
+	else								// load_by_system
+	{
+		sFileName = ((CTermPlanDoc*)GetDocument())->GetTerminal().GetSimReportManager()->GetCurrentReportFileName( ((CTermPlanDoc*)GetDocument())->m_ProjInfo.path );
+	}
+	ArctermFile chartFile;
+	chartFile.init (sFileName, READ);
+	
+	chartFile.reset();
+	chartFile.getLine();
+	chartFile.getLine();
+	char string[4][128];
+	chartFile.getField (string[0], 128);
+	chartFile.getField (string[1], 128);
+	chartFile.getField (string[2], 128);
+	chartFile.getField (string[3], 128);
+	m_sFoot.Format("%s %s %s %s",NoUnderline(CString(string[0])),string[1],string[2],string[3]);
+
  	CDC dc;
  	CPrintDialog printDlg(FALSE, PD_ALLPAGES | PD_USEDEVMODECOPIES | PD_NOPAGENUMS | PD_HIDEPRINTTOFILE);
  	if (m_wndListWnd.GetSelectedCount() == 0)						// if there are no selected items in the list control
@@ -2490,15 +2529,28 @@ void CRepListView::OnListviewPrint()
  	info.m_rectDraw.SetRect( 0,0,dc.GetDeviceCaps( HORZRES ),dc.GetDeviceCaps( VERTRES ));
  	
  	OnBeginPrinting( &dc, &info );
- 	//	for( UINT page = info.GetMinPage(); page < info.GetMaxPage() && bPrintingOK; page++ )
- 	//	{
- 	//		info.m_nCurPage = page;
- 	if(printDlg.PrintSelection() == FALSE)	//print all.
- 		OnPrint( &dc, &info );
- 	else 
- 		PrintSelectedItems(&dc, &info);				//print only the selected items.
- 	bPrintingOK = TRUE;
- 	//	}
+	if(printDlg.PrintSelection() == FALSE || m_wndListWnd.GetSelectedCount() == 1)	//print all.
+		m_nCurrentPrintCount = 1;
+	else 
+	{
+		POSITION ps  =  m_wndListWnd.GetFirstSelectedItemPosition();
+		if(ps == NULL) 
+			return;
+		m_nCurrentPrintCount = m_wndListWnd.GetNextSelectedItem(ps) + 1;
+	}	
+	
+	info.SetMaxPage(info.GetMinPage());
+ 	for( UINT page = info.GetMinPage(); page <= info.GetMaxPage() && bPrintingOK; page++ )
+ 	{
+ 		info.m_nCurPage = page;
+		dc.StartPage();
+ 		if(printDlg.PrintSelection() == FALSE || m_wndListWnd.GetSelectedCount() == 1)	//print all.
+ 			OnPrint( &dc, &info );
+ 		else 
+ 			PrintSelectedItems(&dc, &info);				//print only the selected items.
+		dc.EndPage();
+ 		bPrintingOK = TRUE;
+ 	}
  	OnEndPrinting( &dc, &info );
  	
  	if( bPrintingOK )
@@ -2607,7 +2659,7 @@ void CRepListView::OnPrint(CDC *pDC, CPrintInfo *pInfo)
 	nLineHeight = metrics.tmHeight + metrics.tmExternalLeading;
 	
 	//Scroll through the list
-	int nIndex=1;
+	int nIndex=m_nCurrentPrintCount;
 	int nRowCount = m_wndListWnd.GetItemCount();
 	while ( nIndex <= nRowCount ) 
 	{
@@ -2628,6 +2680,7 @@ void CRepListView::OnPrint(CDC *pDC, CPrintInfo *pInfo)
 		y += nLineHeight; //Adjust y position
 		nIndex++; 
 	}
+	m_nCurrentPrintCount = nIndex;
 	if (pInfo) {
 		//Draw a line above the footer
 		pDC->MoveTo(nPageHMargin,static_cast<int>(nPageHeight-nPageVMargin-nFooterHeight*1.5));
@@ -2717,7 +2770,7 @@ void CRepListView::PrintSelectedItems(CDC *pDC, CPrintInfo *pInfo)
 
 	//Format the heading
 	// get listctrl's header info
-    int nCol = 1 /*= m_wndListWnd.GetHeaderCtrl()->GetItemCount()*/;
+    int nCol =  m_wndListWnd.GetHeaderCtrl()->GetItemCount();
 	HDITEM hi;
 	hi.mask = HDI_TEXT ;
 	hi.cchTextMax = 19;
@@ -2727,7 +2780,7 @@ void CRepListView::PrintSelectedItems(CDC *pDC, CPrintInfo *pInfo)
 	for(int i = 0; i < nCol; i++ )
 	{
 		::ZeroMemory( chBuffer, 20);
-	//	m_wndListWnd.GetHeaderCtrl()->GetItem( i,&hi);
+		m_wndListWnd.GetHeaderCtrl()->GetItem( i,&hi);
 		pDC->TextOut(nPageHMargin+i*nSpace, y,hi.pszText);
 	}
 	
@@ -2742,12 +2795,12 @@ void CRepListView::PrintSelectedItems(CDC *pDC, CPrintInfo *pInfo)
 	nLineHeight = metrics.tmHeight + metrics.tmExternalLeading;
 	
 	//Scroll through the list
-	int nIndex=1;
-	POSITION ps  = NULL/*= m_wndListWnd.GetFirstSelectedItemPosition()*/;
+	int nIndex=m_nCurrentPrintCount;
+	POSITION ps  =  m_wndListWnd.GetFirstSelectedItemPosition();
 	if(ps == NULL) 
 		return;
-//	int curSelectedItem = m_wndListWnd.GetNextSelectedItem(ps);
-	int nRowCount = m_wndListWnd.GetSelectedCount();
+	int curSelectedItem = m_wndListWnd.GetNextSelectedItem(ps);
+	int nRowCount = curSelectedItem + m_wndListWnd.GetSelectedCount();
 	while ( nIndex <= nRowCount ) 
 	{
 		if (pInfo && y > nPageHeight-nPageVMargin-nFooterHeight-nLineHeight-6) 
@@ -2760,13 +2813,14 @@ void CRepListView::PrintSelectedItems(CDC *pDC, CPrintInfo *pInfo)
 		{
 			
 			char chLine[20];
-//			m_wndListWnd.GetItemText(curSelectedItem, nSubitem, chLine, 19);
+			m_wndListWnd.GetItemText(nIndex-1, nSubitem, chLine, 19);
 			pDC->TextOut(nPageHMargin+nSubitem*nSpace, y,chLine);
 		}
-//		curSelectedItem = m_wndListWnd.GetNextSelectedItem(ps);
+	//	curSelectedItem = m_wndListWnd.GetNextSelectedItem(ps);
 		y += nLineHeight; //Adjust y position
 		nIndex++; 
 	}
+	m_nCurrentPrintCount = nIndex;
 	if (pInfo) {
 		//Draw a line above the footer
 		pDC->MoveTo(nPageHMargin,static_cast<int>(nPageHeight-nPageVMargin-nFooterHeight*1.5));

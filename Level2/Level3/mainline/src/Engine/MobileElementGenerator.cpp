@@ -75,6 +75,8 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::ve
 			{
 				if(bagentry.GetMobileType()>0)
 				{
+					bagentry.setEntryTime(Time);
+					p_contaner->updateItem(bagentry);
 					p_pax = new TurnaroundVisitor(bagentry, m_pEngine);
 				}
 			}
@@ -82,6 +84,8 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::ve
 			{
 				if(bagentry.GetMobileType()>0)
 				{
+					bagentry.setEntryTime(Time);
+					p_contaner->updateItem(bagentry);
 					p_pax = new PaxVisitor ( bagentry, m_pEngine );
 				}
 			} 
@@ -90,7 +94,7 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::ve
 		{
           ((CGroupLeaderInfo*)p_pax->m_pGroupInfo)->SetGroupLeader(p_pax);
 		   m_pEngine->m_simBobileelemList.Register( p_pax );
-		   bagentry.setEntryTime(bagentry.getEntryTime() + _delaytime) ;
+		 //  bagentry.setEntryTime(bagentry.getEntryTime() + _delaytime) ;
 		 //  if(bagentry.getOwnStart())
 		//   {
 			   if(!bHasCartService)

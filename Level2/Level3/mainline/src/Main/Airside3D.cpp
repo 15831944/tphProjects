@@ -77,14 +77,14 @@ void CAirside3D::DrawOGL(C3DView * pView,bool bWithLevels)
 	for(size_t i=0;i<m_vAirports.size();i++){
 		m_vAirports[i]->DrawOGL(pView, bWithLevels);
 	}
-	//	//
+
 	RenderParkings(pView);
 
 	m_pAirspace->DrawOGL(pView);
-	//
+
 	RenderObstructionSurface(pView);
 
-   RenderHoldShortLine(pView);
+    RenderHoldShortLine(pView);
 
 }
 

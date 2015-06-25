@@ -3819,6 +3819,8 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 	glLoadIdentity();
 	ApplyViewXForm();
 
+	glDisable(GL_CULL_FACE);
+
 	CHECK_GL_ERRORS("3DView::SelectScene(...), post apply perspective, xform");
 
 	int i;
@@ -4084,7 +4086,7 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 				}
 			}
 		}
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
 		CHECK_GL_ERRORS("3DView::SelectScene(...), post render pipes");
 		
 		

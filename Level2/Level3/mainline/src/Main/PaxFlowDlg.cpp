@@ -2963,8 +2963,8 @@ CString CPaxFlowDlg::GetArcInfoDescription( CFlowDestination* _pArcInfo , bool _
 		if( _pArcInfo->GetMaxWaitMins() > 0 )
 		{
 			CString sQueueTimeStr;
-			sQueueTimeStr.Format("%d",_pArcInfo->GetMaxQueueLength() );
-			sReturnStr += " Wait Time (<" + sQueueTimeStr + " mins),";
+			sQueueTimeStr.Format("%d",_pArcInfo->GetMaxWaitMins() );
+			sReturnStr += " Wait Time (<=" + sQueueTimeStr + " mins),";
 		}
 		 
 		if(_pArcInfo->GetMaxSkipTime()>0)

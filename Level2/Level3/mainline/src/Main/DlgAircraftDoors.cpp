@@ -215,6 +215,7 @@ void CDlgAircraftDoors::OnEditDoor()
 {
 	int ndx = 0 ;
 	CDlgAircraftDoorDef dlg(GetCurrentSelectDoor(ndx),this) ;
+	dlg.SetDlgTitle("Edit aircraft door");
 	if(dlg.DoModal() == IDOK)
 	{
 		EditDoorListItem(GetCurrentSelectDoor(ndx)) ;

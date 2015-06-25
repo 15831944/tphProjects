@@ -256,6 +256,11 @@ void CLandsideGraph::CreateBoostGraph()
 		boost::tie(edge, inserted ) = boost::add_edge( m_edgeList[i].GetSourceSegment(), m_edgeList[i].GetDestsegment(), *m_pboostGraph );
 		weightmap[edge] = m_edgeList[i].GetWeight();
 	}
+	//
+	if(m_connectedComponents.empty())
+	{
+		return;
+	}
 
 	m_connectedComponents.resize(boost::num_vertices(*m_pboostGraph));
 	boost::connected_components(*m_pboostGraph, &m_connectedComponents[0]);

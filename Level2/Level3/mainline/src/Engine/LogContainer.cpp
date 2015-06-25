@@ -160,6 +160,15 @@ CFlightLogPair* CFlightPaxLogContainer::FindDepPaxLog( int fli_ID )
 	}
 	return NULL ;
 }
+
+void CFlightPaxLogContainer::updateItem( MobLogEntry& mobEntry )
+{
+	if (p_AllPaxLog == NULL)
+		return;
+	
+	p_AllPaxLog->updateItem(mobEntry,mobEntry.getIndex());
+}
+
 void CFlightLogPair::GetNoActivePaxlog(PaxLog& _log , int count)
 {
 	MobLogEntry entry ;

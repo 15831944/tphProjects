@@ -59,6 +59,8 @@ CDlgPanorama::CDlgPanorama(int nPrjID,int nAirportID, CWnd* pParent /*=NULL*/)
 
 	m_logfirstTime = 0;
 	m_logEndTime =0;
+
+
 	
 }
 
@@ -170,94 +172,99 @@ BOOL CDlgPanorama::OnInitDialog()
 	CXTResizeDialog::OnInitDialog();
 
 	
-	CRect rcToolbar;
-	m_ListCtrl.GetWindowRect(&rcToolbar);
-	ScreenToClient(&rcToolbar);
-	rcToolbar.top -= 27;
-	rcToolbar.bottom = rcToolbar.top + 22;
-	rcToolbar.left += 4;
-	m_ToolBar.MoveWindow(rcToolbar);
-
-	InitListCtrl();
-	InitLatLongBox();
-	
-	SetResize(m_ToolBar.GetDlgCtrlID(), SZ_TOP_LEFT, SZ_TOP_LEFT);
-	SetResize(IDC_LIST_PANORAMAVIEWS, SZ_TOP_LEFT , SZ_BOTTOM_RIGHT);
-	SetResize(IDOK, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
-	SetResize(IDCANCEL, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
-	SetResize(IDC_BUTTON_SAVE,SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT );
-	SetResize(IDC_STATIC_GROUP_LIST, SZ_TOP_LEFT, SZ_BOTTOM_RIGHT);
-	SetResize(IDC_STATIC_GROUPROTATION, SZ_BOTTOM_CENTER,SZ_BOTTOM_RIGHT);
-	SetResize(IDC_STATIC_GROUPPOS, SZ_BOTTOM_LEFT, SZ_BOTTOM_CENTER);
-	
-	SetResize(IDC_STATIC_LAT, SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
-	SetResize(m_editLat.GetDlgCtrlID(), SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_LONG,SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(m_editLong.GetDlgCtrlID(),SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_X, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_Y, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_POSXUNIT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_POSYUNIT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_EDIT_POSX, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_EDIT_POSY, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_ALT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_STATIC_ALTUNIT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_BUTTON_PICK, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-	SetResize(IDC_EDIT_ALTITUDE, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-
-	SetResize(IDC_STATIC_TURNSPD, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_TURNSPDUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_STARBEAR, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_STARTBEARUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_ENDBEAR, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_ENDBEARUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_INC, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_STATIC_INCUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_EDIT_TUNRSPEED, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_EDIT_STARTBEARING, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_EDIT_ENDBEARING,SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-	SetResize(IDC_EDIT_INCLINATION, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
-
-	SetResize(IDC_STATIC_ESC,SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
-
-
-
-	UpdateToolBar();
-	UpdateListCtrl();
-	UpdateEditData();
-	EnableSave(FALSE);
-
-	//update unit text
-	/*CString strUnit;
-	strUnit.Format("(%s)", UNITSMANAGER->GetLengthUnitString() );
-	GetDlgItem(IDC_STATIC_POSXUNIT)->SetWindowText(strUnit);
-	GetDlgItem(IDC_STATIC_POSYUNIT)->SetWindowText(strUnit);*/
-
-	CTermPlanDoc* pDoc	= GetDocument();	
-	if(pDoc)
-		pDoc->LoadAirsideLogs(m_logfirstTime,m_logEndTime);
-
-	return TRUE;
+ 	CRect rcToolbar;
+ 	m_ListCtrl.GetWindowRect(&rcToolbar);
+ 	ScreenToClient(&rcToolbar);
+ 	rcToolbar.top -= 27;
+ 	rcToolbar.bottom = rcToolbar.top + 22;
+ 	rcToolbar.left += 4;
+ 	m_ToolBar.MoveWindow(rcToolbar);
+ 
+ 	InitListCtrl();
+ 	InitLatLongBox();
+ 	
+ 	SetResize(m_ToolBar.GetDlgCtrlID(), SZ_TOP_LEFT, SZ_TOP_LEFT);
+ 	SetResize(IDC_LIST_PANORAMAVIEWS, SZ_TOP_LEFT , SZ_BOTTOM_RIGHT);
+ 	SetResize(IDOK, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
+ 	SetResize(IDCANCEL, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
+ 	SetResize(IDC_BUTTON_SAVE,SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT );
+ 	SetResize(IDC_STATIC_GROUP_LIST, SZ_TOP_LEFT, SZ_BOTTOM_RIGHT);
+ 	SetResize(IDC_STATIC_GROUPROTATION, SZ_BOTTOM_CENTER,SZ_BOTTOM_RIGHT);
+ 	SetResize(IDC_STATIC_GROUPPOS, SZ_BOTTOM_LEFT, SZ_BOTTOM_CENTER);
+ 	
+ 	SetResize(IDC_STATIC_LAT, SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
+ 	SetResize(m_editLat.GetDlgCtrlID(), SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_LONG,SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(m_editLong.GetDlgCtrlID(),SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_X, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_Y, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_POSXUNIT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_POSYUNIT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_EDIT_POSX, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_EDIT_POSY, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_ALT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_STATIC_ALTUNIT, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_BUTTON_PICK, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 	SetResize(IDC_EDIT_ALTITUDE, SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 
+ 	SetResize(IDC_STATIC_TURNSPD, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_TURNSPDUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_STARBEAR, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_STARTBEARUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_ENDBEAR, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_ENDBEARUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_INC, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_STATIC_INCUNIT, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_EDIT_TUNRSPEED, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_EDIT_STARTBEARING, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_EDIT_ENDBEARING,SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 	SetResize(IDC_EDIT_INCLINATION, SZ_BOTTOM_CENTER,SZ_BOTTOM_CENTER);
+ 
+ 	SetResize(IDC_STATIC_ESC,SZ_BOTTOM_LEFT,SZ_BOTTOM_LEFT);
+ 
+ 
+ 
+ 	UpdateToolBar();
+ 	UpdateListCtrl();
+ 	UpdateEditData();
+ 	EnableSave(TRUE);
+ 
+ 	//update unit text
+ 	/*CString strUnit;
+ 	strUnit.Format("(%s)", UNITSMANAGER->GetLengthUnitString() );
+ 	GetDlgItem(IDC_STATIC_POSXUNIT)->SetWindowText(strUnit);
+ 	GetDlgItem(IDC_STATIC_POSYUNIT)->SetWindowText(strUnit);*/
+ 
+ 	CTermPlanDoc* pDoc	= GetDocument();	
+ 	if(pDoc)
+ 		pDoc->LoadAirsideLogs(m_logfirstTime,m_logEndTime);
+ 
+ 	return TRUE;
 }
 
 void CDlgPanorama::UpdateListCtrl()
 {
 	
 	m_ListCtrl.DeleteAllItems();
-	for(int i=0;i<(int) m_dataList.GetElementCount(); ++i)
+	int nCount = (int) m_dataList.GetElementCount();
+	for(int i = 0;i < nCount; ++i)
 	{
 		PanoramaViewData* pData = m_dataList.GetItem(i);
 		m_ListCtrl.InsertItem(i,pData->m_strName );
 		m_ListCtrl.SetItemData(i, i);
 	}
-
+	
 	//set sel
-	if(m_dataList.GetSelectItem())
+	if (nCount > 0 && !m_dataList.GetSelectItem())
+	{
+		m_dataList.SelectItem(m_dataList.GetItem(nCount-1));
+	}
+
+	//if(m_dataList.GetSelectItem())
 	{
 		m_ListCtrl.SetItemState( m_dataList.GetSelectItemIndex(), LVIS_SELECTED, LVIS_SELECTED );
 		m_ListCtrl.SetItemState( m_dataList.GetSelectItemIndex(), LVIS_FOCUSED , LVIS_FOCUSED);
 	}
-
 }
 
 
@@ -420,6 +427,8 @@ void CDlgPanorama::OnPreviewPanorama()
 		if(!pView)
 			return;
 
+		C3DCamera CopyCam(*(pView->GetCamera()));
+
 		CWaitCursor wc;
 		CMovie movie("temp");
 		CDlgMovieWriter::BuildMovieFromPanorama(&datacopy, pDoc, &movie);
@@ -444,21 +453,22 @@ void CDlgPanorama::OnPreviewPanorama()
 			QueryPerformanceCounter(&nLastPerfCount);
 	
 			while(nTime <= nEndTime) {
-	
-				pMovie->Interpolate(nTime, *(pView->GetCamera()));
-	
-				pView->Invalidate(FALSE);
-				pView->UpdateWindow();
-			
-				CChildFrame* pFrame = (CChildFrame*)pView->GetParentFrame();
+ 				pMovie->Interpolate(nTime, *(pView->GetCamera()));
+ 				pView->Invalidate(FALSE);
+ 				pView->UpdateWindow();
+
+ 				CChildFrame* pFrame = (CChildFrame*)pView->GetParentFrame();
 				pFrame->m_wndStatusBar.OnUpdateCmdUI(pFrame, FALSE);
-	
-				bRequestCancel = PumpMessages();
-	
-				if(bRequestCancel) {
-					ShowWindow(SW_SHOW);
-					return;
-				}
+ 	
+ 				bRequestCancel = PumpMessages();
+ 	
+ 				if(bRequestCancel) {
+					*(pView->GetCamera())=CopyCam;
+					pView->Invalidate(FALSE);
+					pView->UpdateWindow();
+					ShowWindow(SW_SHOW);	
+ 					return;
+ 				}
 	
 				//calc real elapsed time since last nTime increment
 				QueryPerformanceCounter(&nThisPerfCount);
@@ -468,10 +478,13 @@ void CDlgPanorama::OnPreviewPanorama()
 				nTime += ((long)(dElapsedTime*10.0*pMovie->GetAnimSpeed()));
 			}
 		}
+		*(pView->GetCamera())=CopyCam;
+		pView->Invalidate(FALSE);
+		pView->UpdateWindow();
 	}
-
-	ShowDialog(pDoc->GetMainFrame());	
+	ShowDialog(pDoc->GetMainFrame());
 }
+
 // CDlgPanorama message handlers
 BOOL CDlgPanorama::OnToolTipText(UINT, NMHDR* pNMHDR, LRESULT* pResult)
 {
@@ -592,11 +605,11 @@ void CDlgPanorama::InitLatLongBox()
 		rectLatitude.Width(), rectLatitude.Height(), SWP_SHOWWINDOW);
 
 	m_editLong.SetComboBoxItem("E");
-	m_editLong.SetComboBoxItem("W");
+ 	m_editLong.SetComboBoxItem("W");
 	m_editLong.SetItemRange(180);	
 
 	m_editLat.SetComboBoxItem("N");
-	m_editLat.SetComboBoxItem("S");
+ 	m_editLat.SetComboBoxItem("S");
 	m_editLat.SetItemRange(90);
 }
 
@@ -646,7 +659,8 @@ void CDlgPanorama::OnEnChangeEditPosx()
 		double dPosx = atof(strPosx);
 		dPosx = dPosx * 100;
 		pData->m_pos.setX(dPosx);
-		UpdateEditLatLong();		
+		UpdateEditLatLong();
+		EnableSave(TRUE);
 	}
 	
 }
@@ -792,7 +806,9 @@ void CDlgPanorama::OnLvnEndlabeleditListPanoramaviews(NMHDR *pNMHDR, LRESULT *pR
 void CDlgPanorama::UpdateEditLatLong()
 {
 	if( m_dataList.GetSelectItem() )
-	{		
+	{	
+		m_editLat.EnableWindow(TRUE);
+		m_editLong.EnableWindow(TRUE);
 		PanoramaViewData * pData = m_dataList.GetSelectItem();
 		CLatitude clat; CLongitude cLong;
 		m_AirportInfo.GetPosLatLong(pData->m_pos,clat, cLong );
@@ -801,6 +817,11 @@ void CDlgPanorama::UpdateEditLatLong()
 		cLong.GetValue(strLong);
 		m_editLat.SetCtrlText(strLat);
 		m_editLong.SetCtrlText(strLong);
+	}
+	else
+	{
+		m_editLat.EnableWindow(FALSE);
+		m_editLong.EnableWindow(FALSE);
 	}
 }
 
@@ -1009,9 +1030,9 @@ void CDlgPanorama::OnBnClickedButtonSave()
 	// TODO: Add your control notification handler code here
 	try
 	{
-		CADODatabase::BeginTransaction() ;
+		CADODatabase::BeginTransaction();
 		m_dataList.SaveData(m_nAirportID);
-		CADODatabase::CommitTransaction() ;
+		CADODatabase::CommitTransaction();
 
 	}
 	catch (CADOException e)
@@ -1019,6 +1040,7 @@ void CDlgPanorama::OnBnClickedButtonSave()
 		CADODatabase::RollBackTransation() ;
 	}
 	EnableSave(FALSE);
+	GetDlgItem(IDOK)->SetFocus();
 }
 
 void CDlgPanorama::EnableSave( BOOL b )

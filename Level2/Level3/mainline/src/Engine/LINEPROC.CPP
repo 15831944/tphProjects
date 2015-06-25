@@ -280,7 +280,11 @@ void LineProcessor::UpdateMinMax()
 	GetMinMax(m_min,m_max,m_serviceCoords);
 }
 
-
+void LineProcessor::UpdateFloorIndex(const FloorChangeMap& changMap)
+{
+	__super::UpdateFloorIndex(changMap);
+	changMap.ChangePathFloor(m_serviceCoords);
+}
 // Protected
 
 // give a person id, found index of service location, return -1 for not found.

@@ -176,7 +176,6 @@
     <ClInclude Include="ACCatPropertiesDlg.h" />
     <ClInclude Include="ACDetails.h" />
     <ClInclude Include="ACDispListCtrl.h" />
-    <ClInclude Include="..\Common\ActermExcption.h" />
     <ClInclude Include="ActivityDensityData.h" />
     <ClInclude Include="ActivityDensityParams.h" />
     <ClInclude Include="ACTypeStandConstraintImportListCtrl.h" />
@@ -184,7 +183,6 @@
     <ClInclude Include="AfxDefs.h" />
     <ClInclude Include="AircarftModelBar.h" />
     <ClInclude Include="AircraftComponent3DSceneWnd.h" />
-    <ClInclude Include="AircraftComponentScene.h" />
     <ClInclude Include="AircraftDispPropDlg.h" />
     <ClInclude Include="AircraftDispPropItem.h" />
     <ClInclude Include="AircraftDispProps.h" />
@@ -238,9 +236,6 @@
     <ClInclude Include="ARCportLayoutEditor.h" />
     <ClInclude Include="ARCportTabCtrl.h" />
     <ClInclude Include="ArcTermDockState.h" />
-    <ClInclude Include="AreaDensityOfPaxtype.h" />
-    <ClInclude Include="AreaIntersectPoint.h" />
-    <ClInclude Include="AreasPortals.h" />
     <ClInclude Include="AttachWalkDlg.h" />
     <ClInclude Include="AutoRosterDlg.h" />
     <ClInclude Include="BagDevDlg.h" />
@@ -277,7 +272,6 @@
     <ClInclude Include="DlgLaneRange.h" />
     <ClInclude Include="DlgLaneTollCriteria.h" />
     <ClInclude Include="DlgMEDefine.h" />
-    <ClInclude Include="DlgNonPacDataRelated.h" />
     <ClInclude Include="DlgNonPassengerRelatedVehicleAssignment.h" />
     <ClInclude Include="DlgParkingLotStrategy.h" />
     <ClInclude Include="DlgParkingSpotSpec.h" />
@@ -299,7 +293,6 @@
     <ClInclude Include="ModelessDlgManager.h" />
     <ClInclude Include="Painter.h" />
     <ClInclude Include="ParkingLotFacilityDataPage.h" />
-    <ClInclude Include="PAXSHAPES\BRIEFCASERAISED.h" />
     <ClInclude Include="RosterAssignSummaryDlg.h" />
     <ClInclude Include="TaxiPoolFacilityDataPage.h" />
     <ClInclude Include="TaxiQFacilityDataPage.h" />
@@ -307,7 +300,6 @@
     <ClInclude Include="VehicleTypeDefDlg.h" />
     <ClInclude Include="XPStyle\ButtonXP.h" />
     <ClInclude Include="CabinCrewDispListCtrl.h" />
-    <ClInclude Include="CallOutDataManager.h" />
     <ClInclude Include="CalloutDispSpec.h" />
     <ClInclude Include="CalloutDispSpecDlg.h" />
     <ClInclude Include="CalloutDispSpecsListCtrl.h" />
@@ -328,12 +320,9 @@
     <ClInclude Include="XPStyle\CJColorPicker.h" />
     <ClInclude Include="XPStyle\CJColorPopup.h" />
     <ClInclude Include="CLicense.h" />
-    <ClInclude Include="color.h" />
     <ClInclude Include="ColorBox.h" />
     <ClInclude Include="ColorTreeCtrl.h" />
     <ClInclude Include="XPStyle\ComboBoxXP.h" />
-    <ClInclude Include="Command.h" />
-    <ClInclude Include="CommandHistory.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="CompareReportDoc.h" />
     <ClInclude Include="CompRepLogBar.h" />
@@ -364,7 +353,6 @@
     <ClInclude Include="DlgActypeRelationShip.h" />
     <ClInclude Include="DlgACTypeSelection.h" />
     <ClInclude Include="DlgACTypeStandConstraint.h" />
-    <ClInclude Include="DlgAddStation.h" />
     <ClInclude Include="DlgAdjacencyGateConstraints.h" />
     <ClInclude Include="DlgAffinityGroup.h" />
     <ClInclude Include="DlgAircraftAlias.h" />
@@ -376,7 +364,6 @@
     <ClInclude Include="DlgAircraftDoors.h" />
     <ClInclude Include="DlgAircraftFurnishingDB.h" />
     <ClInclude Include="DlgAircraftFurnishingNameSpec.h" />
-    <ClInclude Include="DlgAircraftModelDefine.h" />
     <ClInclude Include="DlgAircraftModelEdit.h" />
     <ClInclude Include="DlgAircraftModelItemDefine.h" />
     <ClInclude Include="DlgAircraftTags.h" />
@@ -384,7 +371,6 @@
     <ClInclude Include="DlgAirPollutantsList.h" />
     <ClInclude Include="DlgAirportDBNameInput.h" />
     <ClInclude Include="DlgAirportProperties.h" />
-    <ClInclude Include="DlgAirportProperty.h" />
     <ClInclude Include="DlgALTOException.h" />
     <ClInclude Include="DlgAnimationData.h" />
     <ClInclude Include="DlgAreaPortal.h" />
@@ -452,7 +438,6 @@
     <ClInclude Include="DlgMapCodeInput.h" />
     <ClInclude Include="DlgMathSimSetting.h" />
     <ClInclude Include="DlgMobElementsDiagnosis.h" />
-    <ClInclude Include="DlgModifyThickness.h" />
     <ClInclude Include="DlgMovie.h" />
     <ClInclude Include="DlgMovieWriter.h" />
     <ClInclude Include="DlgMultiReportSelectModel.h" />
@@ -472,7 +457,6 @@
     <ClInclude Include="DlgOnboardWall.h" />
     <ClInclude Include="DlgOperatingDoorSpecification.h" />
     <ClInclude Include="DlgPanorama.h" />
-    <ClInclude Include="DlgParkingConstraints.h" />
     <ClInclude Include="DlgPaxBusParking.h" />
     <ClInclude Include="DlgPaxCharaDisp.h" />
     <ClInclude Include="DlgPaxLoadedStatesAndShapes.h" />
@@ -508,7 +492,6 @@
     <ClInclude Include="DlgSeatSelection.h" />
     <ClInclude Include="DlgSectBlockLogTime.h" />
     <ClInclude Include="DlgSectionPointProp.h" />
-    <ClInclude Include="DlgSectionProp.h" />
     <ClInclude Include="DlgSectorProperties.h" />
     <ClInclude Include="DlgSelectAirRoute.h" />
     <ClInclude Include="DlgSelectAirsideNode.h" />
@@ -546,8 +529,6 @@
     <ClInclude Include="DlgWallShapeProp.h" />
     <ClInclude Include="DlgWaveCrossRunwaySpecification.h" />
     <ClInclude Include="DlgWayFindingIntervention.h" />
-    <ClInclude Include="PAXSHAPES\DLW1.h" />
-    <ClInclude Include="PAXSHAPES\DLW2.h" />
     <ClInclude Include="DockBarEx.h" />
     <ClInclude Include="DotNetTabWnd.h" />
     <ClInclude Include="DragDialog.h" />
@@ -571,7 +552,6 @@
     <ClInclude Include="FlightScheduleDlg.h" />
     <ClInclude Include="FlightType.h" />
     <ClInclude Include="FloorAdjustmentData.h" />
-    <ClInclude Include="FloorLayer.h" />
     <ClInclude Include="FloorMapMatch.h" />
     <ClInclude Include="FloorPictureCtrl.h" />
     <ClInclude Include="FloorPropertiesDlg.h" />
@@ -597,7 +577,6 @@
     <ClInclude Include="Gate3D.h" />
     <ClInclude Include="gateassignctrl.h" />
     <ClInclude Include="GateAssignDlg.h" />
-    <ClInclude Include="GateAssignmentDlg.h" />
     <ClInclude Include="GateAssignSummaryDlg.h" />
     <ClInclude Include="GateMapDlg.h" />
     <ClInclude Include="GatePriorityDlg.h" />
@@ -649,8 +628,6 @@
     <ClInclude Include="LandsideParkingLotPropDlgImpl.h" />
     <ClInclude Include="LandsidePlacement.h" />
     <ClInclude Include="LandsideProcDlg.h" />
-    <ClInclude Include="LandsideProcessor.h" />
-    <ClInclude Include="LandsideProcManager.h" />
     <ClInclude Include="LandsideRoundaboutPropDlgImpl.h" />
     <ClInclude Include="LandsideStretchPropDlgImpl.h" />
     <ClInclude Include="LandsideStretchSegmentPropDlgImpl.h" />
@@ -668,7 +645,6 @@
     <ClInclude Include="ListBoxEx.h" />
     <ClInclude Include="XPStyle\ListBoxXP.h" />
     <ClInclude Include="ListCtrlDrag.h" />
-    <ClInclude Include="ListCtrlEx.h" />
     <ClInclude Include="ListCtrlEx2.h" />
     <ClInclude Include="ListWnd.h" />
     <ClInclude Include="ListWndEX.h" />
@@ -746,14 +722,11 @@
     <ClInclude Include="OnBoardGalleyDlg.h" />
     <ClInclude Include="OnBoardGridOption.h" />
     <ClInclude Include="OnBoardLayoutBar.h" />
-    <ClInclude Include="OnBoardLayoutComponentView.h" />
-    <ClInclude Include="OnBoardLayoutFrame.h" />
     <ClInclude Include="OnBoardLayoutPartView.h" />
     <ClInclude Include="OnBoardLayoutView.h" />
     <ClInclude Include="OnBoardObjectBaseDlg.h" />
     <ClInclude Include="OnBoardSeatDlg.h" />
     <ClInclude Include="OnBoardStairDlg.h" />
-    <ClInclude Include="OnboardStationCommentView.h" />
     <ClInclude Include="OnBoardStorageDlg.h" />
     <ClInclude Include="OpenComparativeReportsGroup.h" />
     <ClInclude Include="OpenSqlDlg.h" />
@@ -816,7 +789,6 @@
     <ClInclude Include="ProcPropDlg.h" />
     <ClInclude Include="ProcRenderer.h" />
     <ClInclude Include="ProcToResPoolDlg.h" />
-    <ClInclude Include="ProgressBar.h" />
     <ClInclude Include="ProjectBar.h" />
     <ClInclude Include="ProjectCommentDlg.h" />
     <ClInclude Include="ProjectControlDlg.h" />
@@ -5521,7 +5493,6 @@
     <None Include="Res\procassi.bmp" />
     <None Include="Res\process1.bmp" />
     <None Include="Res\process_.bmp" />
-    <None Include="Res\Progress.bin" />
     <None Include="Res\reportto.bmp" />
     <None Include="res\ResidentPlan.bmp" />
     <None Include="Res\roster_p.bmp" />

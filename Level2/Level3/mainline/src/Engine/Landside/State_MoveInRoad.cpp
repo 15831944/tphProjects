@@ -67,10 +67,18 @@ void State_MoveInRoad::ResourceQueueMovement(CARCportEngine* _pEngine, LandsideR
 	LandsideResourceInSim* pLastCurRes = pEndRes;
 	LandsideLayoutObjectInSim* pLayoutObjectInSim = pLastCurRes->getLayoutObject();
 	
-	if(pLayoutObjectInSim != pStartRes->getLayoutObject())
+	LandsideLayoutObjectInSim* pStartObject = NULL;
+	if(pStartRes)
+	{
+		pStartObject = pStartRes->getLayoutObject();
+	}
+	if(!pStartObject)
+		return;
+	
+	if(pLayoutObjectInSim != pStartObject)
 	{
 		//current resource queue move out
-		if (getVehicle()->WaitInResourceQueue(pStartRes->getLayoutObject()))
+		if (getVehicle()->WaitInResourceQueue(pStartObject))
 		{
 			LandsideResourceQueueItem* pQueue = new LandsideResourceQueueItem;
 			pQueue->m_nVehicleID = m_pOwner->getID();
@@ -79,7 +87,7 @@ void State_MoveInRoad::ResourceQueueMovement(CARCportEngine* _pEngine, LandsideR
 			pQueue->m_strResName = pStartRes->getLayoutObject()->getInput()->getName().GetIDString();
 			pQueue->m_eTime = m_pOwner->curTime();
 			pQueue->m_enumOperation = LandsideResourceQueueItem::QO_Exit;
-			m_pOwner->LeaveResourceQueue(pStartRes->getLayoutObject());
+			m_pOwner->LeaveResourceQueue(pStartObject);
 
 			_pEngine->GetLandsideSimulation()->getOutput()->m_SimLogs.getResourceQueueLog().AddItem(pQueue);
 		}
@@ -1055,7 +1063,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 	if(pAtLane)				
 	{		
 		bool btrue =  pResMan->mRouteGraph.FindRouteStretchPosToRes(pAtLane, bSameDest?pAtLane->GetLength():distInRes,m_pDestResource,mRoutePath);
-		ASSERT(btrue);
+		//ASSERT(btrue);
 		if(!btrue)
 		{
 			CString str = _T("Can not find Route to Dest");
@@ -1074,7 +1082,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 	else
 	{
 		bool btrue =  pResMan->mRouteGraph.FindRouteResToRes(pOrign,m_pDestResource,mRoutePath);
-		ASSERT(btrue);
+		//ASSERT(btrue);
 		if(!btrue)
 		{
 			CString str = _T("Can not find Route  to Dest");

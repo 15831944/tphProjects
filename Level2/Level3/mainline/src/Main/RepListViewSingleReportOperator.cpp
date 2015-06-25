@@ -16,7 +16,7 @@
 #define FLOAT_THRESHOLD 2
 #define TIME_THRESHOLD 3
 
-#define MAX_NUM_COLUMN  16
+#define MAX_NUM_COLUMN  17
 
 CRepListViewSingleReportOperator::CRepListViewSingleReportOperator( CListCtrl *pListCtrl, CARCReportManager* pARCReportManager,CRepListView *pListView )
 :CRepListViewBaseOperator(pListCtrl,pARCReportManager,pListView)
@@ -194,7 +194,11 @@ void CRepListViewSingleReportOperator::LoadListData()
 	while (csvFile.getLine () != -1 && !csvFile.eof())
 	{
 		csvFile.getField( str, 128 );
-		GetListCtrl().InsertItem( nDBIdx, str );
+		CString strIndex;
+		strIndex.Format(_T("%d"),nDBIdx+1);
+		GetListCtrl().InsertItem(nDBIdx,strIndex);
+		GetListCtrl().SetItemText(nDBIdx,1,str);
+		//GetListCtrl().InsertItem( nDBIdx, str );
 		int i;	
 		//********************************************************
 		//Modified by Luo Xiaobo 2002.4.29
@@ -205,10 +209,10 @@ void CRepListViewSingleReportOperator::LoadListData()
 		if( enumReportType == ENUM_PAXLOG_REP )
 		{
 			CString ColStr;
-			for( i=1; i<6; i++ )
+			for( i=2; i<7; i++ )
 			{
 				csvFile.getField( str, 128 );
-				if( 1 == i || 2 == i)
+				if( 2 == i || 3 == i)
 				{
 					ColStr = GetAbsDateTime(str);
 					GetListCtrl().SetItemText( nDBIdx, i,  ColStr );
@@ -220,9 +224,9 @@ void CRepListViewSingleReportOperator::LoadListData()
 			csvFile.getFloat( fSpeed );
 			fSpeed = static_cast<float>(UNITSMANAGER->ConvertLength( (double)fSpeed ));
 			sprintf( str, "%.2f", fSpeed );
-			GetListCtrl().SetItemText( nDBIdx, 6,  str );
-			csvFile.getField( str, 128 );
 			GetListCtrl().SetItemText( nDBIdx, 7,  str );
+			csvFile.getField( str, 128 );
+			GetListCtrl().SetItemText( nDBIdx, 8,  str );
 
 
 		}
@@ -236,19 +240,19 @@ void CRepListViewSingleReportOperator::LoadListData()
 				csvFile.getFloat( dLength );
 				dLength = pUM->ConvertLength( dLength * SCALE_FACTOR );
 				sprintf( str,"%d",(int)dLength );
-				GetListCtrl().SetItemText( nDBIdx,1,str );
-				csvFile.getFloat( dLength );
-				dLength = pUM->ConvertLength( dLength * SCALE_FACTOR );
-				sprintf( str,"%d",(int)dLength );
 				GetListCtrl().SetItemText( nDBIdx,2,str );
 				csvFile.getFloat( dLength );
 				dLength = pUM->ConvertLength( dLength * SCALE_FACTOR );
 				sprintf( str,"%d",(int)dLength );
 				GetListCtrl().SetItemText( nDBIdx,3,str );
-				csvFile.getField( str,128 );
+				csvFile.getFloat( dLength );
+				dLength = pUM->ConvertLength( dLength * SCALE_FACTOR );
+				sprintf( str,"%d",(int)dLength );
 				GetListCtrl().SetItemText( nDBIdx,4,str );
+				csvFile.getField( str,128 );
+				GetListCtrl().SetItemText( nDBIdx,5,str );
 
-				for( int i=5; i<=14; ++i )
+				for( int i=6; i<=15; ++i )
 				{
 					csvFile.getFloat( dLength );
 					dLength = pUM->ConvertLength( dLength * SCALE_FACTOR );
@@ -261,13 +265,13 @@ void CRepListViewSingleReportOperator::LoadListData()
 				csvFile.getFloat( dLength );
 				dLength = pUM->ConvertLength( dLength * SCALE_FACTOR);
 				sprintf( str,"%d",(int)dLength );
-				GetListCtrl().SetItemText( nDBIdx,1,str );
-				csvFile.getField( str,128 );
 				GetListCtrl().SetItemText( nDBIdx,2,str );
-				csvFile.getField( str, 128 );
+				csvFile.getField( str,128 );
 				GetListCtrl().SetItemText( nDBIdx,3,str );
 				csvFile.getField( str, 128 );
 				GetListCtrl().SetItemText( nDBIdx,4,str );
+				csvFile.getField( str, 128 );
+				GetListCtrl().SetItemText( nDBIdx,5,str );
 			}
 		}
 		else if (enumReportType == ENUM_RETAIL_REP)
@@ -282,38 +286,38 @@ void CRepListViewSingleReportOperator::LoadListData()
 					sprintf( str,"yes");
 				else
 					sprintf( str,"bypass");
-				GetListCtrl().SetItemText( nDBIdx,1,str );
+				GetListCtrl().SetItemText( nDBIdx,2,str );
 			
 				if (nValue)
 				{
 					csvFile.getField( str, 128 );
-					GetListCtrl().SetItemText( nDBIdx,2,str );
+					GetListCtrl().SetItemText( nDBIdx,3,str );
 					//enter store time
 					CString ColStr;
 					csvFile.getField( str, 128 );
 					ElapsedTime eEnterStore;
 					eEnterStore.SetTime(str);
 					ColStr = GetAbsDateTime(str,TRUE);
-					GetListCtrl().SetItemText( nDBIdx,3,ColStr );
+					GetListCtrl().SetItemText( nDBIdx,4,ColStr );
 
 					//leave store time
 					csvFile.getField( str, 128 );
 					ElapsedTime eLeaveStore;
 					eLeaveStore.SetTime(str);
 					ColStr = GetAbsDateTime(str,TRUE);
-					GetListCtrl().SetItemText( nDBIdx,4,ColStr );
+					GetListCtrl().SetItemText( nDBIdx,5,ColStr );
 
 					//Time in store
 					ElapsedTime eStoreTime;
 					eStoreTime = eLeaveStore - eEnterStore;
 					CString sDurationTime;
 					sDurationTime.Format(_T("%02d:%02d"),eStoreTime.GetMinute(),eStoreTime.GetSecond());
-					GetListCtrl().SetItemText(nDBIdx,5,sDurationTime);
+					GetListCtrl().SetItemText(nDBIdx,6,sDurationTime);
 
 					//potentially bought
 					csvFile.getInteger(nValue);
 					sprintf(str,"%d",nValue);
-					GetListCtrl().SetItemText( nDBIdx,6,str );
+					GetListCtrl().SetItemText( nDBIdx,7,str );
 
 					//check out
 					csvFile.getInteger(nValue);
@@ -322,12 +326,12 @@ void CRepListViewSingleReportOperator::LoadListData()
 					else
 						sprintf( str,"no");
 
-					GetListCtrl().SetItemText( nDBIdx,7,str );
+					GetListCtrl().SetItemText( nDBIdx,8,str );
 
 					//enter queue time
 					csvFile.getField( str, 128 );
 					ColStr = GetAbsDateTime(str,TRUE);
-					GetListCtrl().SetItemText( nDBIdx,8,ColStr );
+					GetListCtrl().SetItemText( nDBIdx,9,ColStr );
 
 					//check out queue time
 					csvFile.getField( str, 128 );
@@ -335,7 +339,7 @@ void CRepListViewSingleReportOperator::LoadListData()
 					eCheckOutQueueTime.SetTime(str);
 					CString sCheckOutQueueTime;
 					sCheckOutQueueTime.Format(_T("%02d:%02d"),eCheckOutQueueTime.GetMinute(),eCheckOutQueueTime.GetSecond());
-					GetListCtrl().SetItemText(nDBIdx,9,sCheckOutQueueTime);
+					GetListCtrl().SetItemText(nDBIdx,10,sCheckOutQueueTime);
 
 					//time in service
 					csvFile.getField( str, 128 );
@@ -343,17 +347,17 @@ void CRepListViewSingleReportOperator::LoadListData()
 					eServiceTime.SetTime(str);
 					CString sServiceTime;
 					sServiceTime.Format(_T("%02d:%02d"),eServiceTime.GetMinute(),eServiceTime.GetSecond());
-					GetListCtrl().SetItemText(nDBIdx,10,sServiceTime);
+					GetListCtrl().SetItemText(nDBIdx,11,sServiceTime);
 					
 					//sales
 					csvFile.getFloat(dLength);
 					sprintf( str,"%.2f",dLength );
-					GetListCtrl().SetItemText( nDBIdx,11,str );
+					GetListCtrl().SetItemText( nDBIdx,12,str );
 
 					//apt
 					csvFile.getFloat(dLength);
 					sprintf( str,"%.2f",dLength );
-					GetListCtrl().SetItemText( nDBIdx,12,str );
+					GetListCtrl().SetItemText( nDBIdx,13,str );
 					
 					//inventory
 // 					csvFile.getInteger(nValue);
@@ -364,10 +368,10 @@ void CRepListViewSingleReportOperator::LoadListData()
 // 					GetListCtrl().SetItemText( nDBIdx,14,str );
 
 					csvFile.getField(str,1024);
-					GetListCtrl().SetItemText( nDBIdx,13,str );
+					GetListCtrl().SetItemText( nDBIdx,14,str );
 
 					csvFile.getField(str,1024);
-					GetListCtrl().SetItemText( nDBIdx,14,str );
+					GetListCtrl().SetItemText( nDBIdx,15,str );
 
 				}
 			}
@@ -375,20 +379,20 @@ void CRepListViewSingleReportOperator::LoadListData()
 			{
 				//store
 				csvFile.getField( str, 128 );
-				GetListCtrl().SetItemText( nDBIdx,1,str );
+				GetListCtrl().SetItemText( nDBIdx,2,str );
 
 				for (int i = 0; i < 14; i++)
 				{
 					csvFile.getFloat(dLength);
 					sprintf(str,"%.2f",dLength);
-					GetListCtrl().SetItemText( nDBIdx,i + 2,str );
+					GetListCtrl().SetItemText( nDBIdx,i + 3,str );
 				}
 			}
 		}
 		else // in the follow statement,should concern the detail and summary model
 		{	 //maybe ,the row of the models are not the same in the same position
 			//like the following report type ENUM_THROUGHPUT_REP
-			for( i=1; i<m_nColumnCount+1; i++ )
+			for( i=2; i<m_nColumnCount+1; i++ )
 			{
 				csvFile.getField( str, 128 );				
 
@@ -398,13 +402,13 @@ void CRepListViewSingleReportOperator::LoadListData()
 				//	strcpy(str, strTemp.GetBuffer(0));
 				//}
 
-				if( (enumReportType == ENUM_MISSFLIGHT_REP) && ( 4 == i) )
+				if( (enumReportType == ENUM_MISSFLIGHT_REP) && ( 5 == i) )
 				{
 					CString strTemp = GetAbsDateTime(str);
 					strcpy(str, strTemp.GetBuffer(0));
 				}
 
-				if ( (enumReportType == ENUM_THROUGHPUT_REP) &&	( (i == 1) || (i == 2) ))
+				if ( (enumReportType == ENUM_THROUGHPUT_REP) &&	( (i == 2) || (i == 3) ))
 				{
 					int iDetailed=-1;
 					GetReportParameter()->GetReportType( iDetailed );
@@ -435,7 +439,7 @@ void CRepListViewSingleReportOperator::LoadListData()
 						}
 					}
 				}
-				else if ((enumReportType == ENUM_QUEUELENGTH_REP)&& ( i == 2 ))
+				else if ((enumReportType == ENUM_QUEUELENGTH_REP)&& ( i == 3 ))
 				{
 					int iDetailed=-1;
 					GetReportParameter()->GetReportType( iDetailed );
@@ -445,14 +449,14 @@ void CRepListViewSingleReportOperator::LoadListData()
 						strcpy(str, strTemp.GetBuffer(0));
 					}
 				}
-				if ( (enumReportType == ENUM_PAXDENS_REP) && (i == 1))
+				if ( (enumReportType == ENUM_PAXDENS_REP) && (i == 2))
 				{
 					CString strTemp = GetAbsDateTime(str, FALSE);
 					strcpy(str, strTemp.GetBuffer(0));
 				}
 
 				if ( (enumReportType == ENUM_SPACETHROUGHPUT_REP) &&
-					( (i == 1) || (i == 2) ) )
+					( (i == 2) || (i == 3) ) )
 				{
 					CString strTemp = GetAbsDateTime(str, FALSE);
 					strcpy(str, strTemp.GetBuffer(0));
@@ -464,7 +468,7 @@ void CRepListViewSingleReportOperator::LoadListData()
 				//	sprintf(str,"%.0f",dPercent);
 				//}
 				//acoperation report load factor need .2f 
-				if (enumReportType == ENUM_ACOPERATION_REP && i == 7)
+				if (enumReportType == ENUM_ACOPERATION_REP && i == 8)
 				{
 					double dPercent = atof(str);
 					dPercent =dPercent;
@@ -755,29 +759,37 @@ void CRepListViewSingleReportOperator::SetListHeader()
 	{
 	case MissFlightReportFile:
 		{
-			m_nColumnCount = 5;
-			csColumnLabel[0] = CString("Passenger ID");
-			csColumnLabel[1] = CString("Flight ID");
-			csColumnLabel[2] = CString("Last Processor");
-			csColumnLabel[3] = CString("Time");
-			csColumnLabel[4] = CString("Dep Time");
+			m_nColumnCount = 7;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("Passenger ID");
+			csColumnLabel[2] = CString("Flight ID");
+			csColumnLabel[3] = CString("Last Processor");
+			csColumnLabel[4] = CString("Time");
+			csColumnLabel[5] = CString("Dep Time");
+			csColumnLabel[6] = CString("Passenger Type");
 
-			nDefaultColumnWidth[0] = 70;
+			nDefaultColumnWidth[0] = 30;
 			nDefaultColumnWidth[1] = 70;
 			nDefaultColumnWidth[2] = 70;
 			nDefaultColumnWidth[3] = 70;
 			nDefaultColumnWidth[4] = 70;
+			nDefaultColumnWidth[5] = 70;
+			nDefaultColumnWidth[6] = 70;
 
-			for( int i=0; i<5; i++ )
+			for( int i=0; i<6; i++ )
 			{
 				nFormat[i] = LVCFMT_CENTER; 
 			}
+			nFormat[3] = LVCFMT_LEFT;
+			nFormat[6] = LVCFMT_LEFT;
 			
-			type[0] = dtSTRING;
+			type[0] = dtINT;
 			type[1] = dtSTRING;
 			type[2] = dtSTRING;
 			type[3] = dtSTRING;
-			type[4] = dtINT;
+			type[4] = dtSTRING;
+			type[5] = dtINT;
+			type[6] = dtSTRING;
 
 			break;
 		}
@@ -785,53 +797,57 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 4;
-				csColumnLabel[0] = CString("Bag #");
-				csColumnLabel[1] = CString("Pax #");
-				csColumnLabel[2] = CString("Passenger Type");
-				csColumnLabel[3] = CString("Delivery Time");
+				m_nColumnCount = 5;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Bag #");
+				csColumnLabel[2] = CString("Pax #");
+				csColumnLabel[3] = CString("Passenger Type");
+				csColumnLabel[4] = CString("Delivery Time");
 
-				nDefaultColumnWidth[0] = 70;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 70;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
+				nDefaultColumnWidth[4] = 70;
 
-				for( int i=0; i<4; i++ )
+				for( int i=0; i<5; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
 				type[0] = dtINT;
 				type[1] = dtINT;
-				type[2] = dtSTRING;
-				type[3] = dtDATETIME;
+				type[2] = dtINT;
+				type[3] = dtSTRING;
+				type[4] = dtDATETIME;
 				break;						
 			}
 			else
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
 
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
 
-				nDefaultColumnWidth[0] = 180;
-				nDefaultColumnWidth[1] = 60;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 180;
 				nDefaultColumnWidth[2] = 60;
 				nDefaultColumnWidth[3] = 60;
 				nDefaultColumnWidth[4] = 60;
@@ -845,20 +861,21 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
- 				type[0] = dtSTRING;
- 				type[1] = dtDATETIME;
+				type[0] = dtINT;
+ 				type[1] = dtSTRING;
  				type[2] = dtDATETIME;
  				type[3] = dtDATETIME;
- 				type[4] = dtINT;
+ 				type[4] = dtDATETIME;
+ 				type[5] = dtINT;
  
- 				type[5] = dtDATETIME;
  				type[6] = dtDATETIME;
  				type[7] = dtDATETIME;
  				type[8] = dtDATETIME;
@@ -866,78 +883,85 @@ void CRepListViewSingleReportOperator::SetListHeader()
  				type[10] = dtDATETIME;
  				type[11] = dtDATETIME;
  				type[12] = dtDATETIME;
- 				type[13] = dtDATETIME;				
- 				type[14] = dtDATETIME;	
+ 				type[13] = dtDATETIME;
+ 				type[14] = dtDATETIME;				
+ 				type[15] = dtDATETIME;	
 				break;		
 			}
 		}
 	case BagDistReportFile:
 		{
-			m_nColumnCount = 6;
-			csColumnLabel[0] = CString("Flight ID(Arr)");
-			csColumnLabel[1] = CString("Flight ID(Dep)");
-			csColumnLabel[2] = CString("Scheduled Time(Arr)");
-			csColumnLabel[3] = CString("Scheduled Time(Dep)");
-			csColumnLabel[4] = CString("Bag Num(Arr)");
-			csColumnLabel[5] = CString("Bag Num(Dep)");
+			m_nColumnCount = 7;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("Flight ID(Arr)");
+			csColumnLabel[2] = CString("Flight ID(Dep)");
+			csColumnLabel[3] = CString("Scheduled Time(Arr)");
+			csColumnLabel[4] = CString("Scheduled Time(Dep)");
+			csColumnLabel[5] = CString("Bag Num(Arr)");
+			csColumnLabel[6] = CString("Bag Num(Dep)");
 
-			nDefaultColumnWidth[0] = 70;
+			nDefaultColumnWidth[0] = 30;
 			nDefaultColumnWidth[1] = 70;
 			nDefaultColumnWidth[2] = 70;
 			nDefaultColumnWidth[3] = 70;
 			nDefaultColumnWidth[4] = 70;
 			nDefaultColumnWidth[5] = 70;
+			nDefaultColumnWidth[6] = 70;
 
-			for( int i=0; i<6; i++ )
+			for( int i=0; i<7; i++ )
 			{
 				nFormat[i] = LVCFMT_CENTER; 
 			}
 
-			type[0] = dtSTRING;
+			type[0] = dtINT;
 			type[1] = dtSTRING;
 			type[2] = dtSTRING;
 			type[3] = dtSTRING;
-			type[4] = dtINT;
+			type[4] = dtSTRING;
 			type[5] = dtINT;
+			type[6] = dtINT;
 			break;			
 		}
 	case PaxLogReportFile:
 		{
-			m_nColumnCount = 8;
-			csColumnLabel[0] = CString("ID");
-			csColumnLabel[1] = CString("Entry");
-			csColumnLabel[2] = CString("Exit");
-			csColumnLabel[3] = CString("Group");
-			csColumnLabel[4] = CString("Bags");
-			csColumnLabel[5] = CString("Carts");
+			m_nColumnCount = 9;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("ID");
+			csColumnLabel[2] = CString("Entry");
+			csColumnLabel[3] = CString("Exit");
+			csColumnLabel[4] = CString("Group");
+			csColumnLabel[5] = CString("Bags");
+			csColumnLabel[6] = CString("Carts");
 			CString csSpeed;
 			csSpeed.Format( "Speed (%s/Sec)", UNITSMANAGER->GetLengthUnitString(UNITSMANAGER->GetLengthUnits()) );
-			csColumnLabel[6] = csSpeed;
-			csColumnLabel[7] = CString("Pax Type");
+			csColumnLabel[7] = csSpeed;
+			csColumnLabel[8] = CString("Pax Type");
 
-			nDefaultColumnWidth[0] = 70;
-			nDefaultColumnWidth[1] = 90;
+			nDefaultColumnWidth[0] = 30;
+			nDefaultColumnWidth[1] = 70;
 			nDefaultColumnWidth[2] = 90;
-			nDefaultColumnWidth[3] = 70;
+			nDefaultColumnWidth[3] = 90;
 			nDefaultColumnWidth[4] = 70;
 			nDefaultColumnWidth[5] = 70;
-			nDefaultColumnWidth[6] = 120;
-			nDefaultColumnWidth[7] = 220;
+			nDefaultColumnWidth[6] = 70;
+			nDefaultColumnWidth[7] = 120;
+			nDefaultColumnWidth[8] = 220;
 
-			for( int i=0; i<7; i++ )
+			for( int i=0; i<8; i++ )
 			{
 				nFormat[i] = LVCFMT_CENTER; 
 			}
 			nFormat[7] = LVCFMT_LEFT;
 
 			type[0] = dtINT;
-			type[1] = dtDATETIME;
+			type[1] = dtINT;
 			type[2] = dtDATETIME;
-			type[3] = dtINT;
+			type[3] = dtDATETIME;
 			type[4] = dtINT;
 			type[5] = dtINT;
-			type[6] = dtDEC;
-			type[7] = dtSTRING;
+			type[6] = dtINT;
+			type[7] = dtDEC;
+			type[8] = dtSTRING;
 			break;
 		}
 
@@ -946,66 +970,70 @@ void CRepListViewSingleReportOperator::SetListHeader()
 			if(iDetailed==0)//Detailed
 			{
 				//AfxMessageBox("Detailed!");
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Passenger ID");
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger ID");
 				CUnitsManager* pUM = CUnitsManager::GetInstance();
 				int nUnit = pUM->GetLengthUnits();				
 				CString str = " (" + pUM->GetLengthUnitString( nUnit ) + ")";
-				csColumnLabel[1] = CString("Distance") + str;
-				csColumnLabel[2] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Distance") + str;
+				csColumnLabel[3] = CString("Passenger Type");
 
-				csColumnLabel[3] = CString("From Processor");
-				csColumnLabel[4] = CString("To Processor");
+				csColumnLabel[4] = CString("From Processor");
+				csColumnLabel[5] = CString("To Processor");
 
-				nDefaultColumnWidth[0] = 100;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 100;
-				nDefaultColumnWidth[2] = 180;
-				nDefaultColumnWidth[3] = 100;
+				nDefaultColumnWidth[2] = 100;
+				nDefaultColumnWidth[3] = 180;
 				nDefaultColumnWidth[4] = 100;
+				nDefaultColumnWidth[5] = 100;
 
-				for( int i=0; i<2; i++ )
+				for( int i=0; i<3; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-				nFormat[2] = LVCFMT_LEFT;
-				nFormat[3] = LVCFMT_CENTER;
+				nFormat[3] = LVCFMT_LEFT;
 				nFormat[4] = LVCFMT_CENTER;
+				nFormat[5] = LVCFMT_CENTER;
 
 				type[0] = dtINT;
-				type[1] = dtDEC;
-				type[2] = dtSTRING;
+				type[1] = dtINT;
+				type[2] = dtDEC;
 				type[3] = dtSTRING;
 				type[4] = dtSTRING;
+				type[5] = dtSTRING;
 				break;
 			}
 			else
 			{
 				//AfxMessageBox("Summary!");
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
 				CUnitsManager* pUM = CUnitsManager::GetInstance();
 				int nUnit = pUM->GetLengthUnits();				
 				CString str = " (" + pUM->GetLengthUnitString( nUnit ) + ")";
-				csColumnLabel[1] = CString("Minimum") + str;
-				csColumnLabel[2] = CString("Average") + str;
-				csColumnLabel[3] = CString("Maximum") + str;
-				csColumnLabel[4] = CString("Count");
+				csColumnLabel[2] = CString("Minimum") + str;
+				csColumnLabel[3] = CString("Average") + str;
+				csColumnLabel[4] = CString("Maximum") + str;
+				csColumnLabel[5] = CString("Count");
 
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
 
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
 
-				nDefaultColumnWidth[0] = 180;
-				nDefaultColumnWidth[1] = 60;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 180;
 				nDefaultColumnWidth[2] = 60;
 				nDefaultColumnWidth[3] = 60;
 				nDefaultColumnWidth[4] = 60;
@@ -1019,19 +1047,20 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDEC;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDEC;
 				type[3] = dtDEC;
-				type[4] = dtINT;
-				type[5] = dtDEC;
+				type[4] = dtDEC;
+				type[5] = dtINT;
 				type[6] = dtDEC;
 				type[7] = dtDEC;
 				type[8] = dtDEC;
@@ -1039,8 +1068,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[10] = dtDEC;
 				type[11] = dtDEC;
 				type[12] = dtDEC;
-				type[13] = dtDEC;				
-				type[14] = dtDEC;	
+				type[13] = dtDEC;
+				type[14] = dtDEC;				
+				type[15] = dtDEC;	
 				break;
 			}
 			break;
@@ -1050,18 +1080,20 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if( iDetailed == 0 )	// detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Pax ID");
-				csColumnLabel[1] = CString("Pax Type");
-				csColumnLabel[2] = CString("Exit Processor");
-				csColumnLabel[3] = CString("Exit Time");
-				csColumnLabel[4] = CString("Exit Duration");
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Pax ID");
+				csColumnLabel[2] = CString("Pax Type");
+				csColumnLabel[3] = CString("Exit Processor");
+				csColumnLabel[4] = CString("Exit Time");
+				csColumnLabel[5] = CString("Exit Duration");
 
-				nDefaultColumnWidth[0] = 80;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
 				nDefaultColumnWidth[2] = 80;
 				nDefaultColumnWidth[3] = 80;
 				nDefaultColumnWidth[4] = 80;
+				nDefaultColumnWidth[5] = 80;
 
 				for( int i=0; i<m_nColumnCount; i++ )
 				{
@@ -1069,35 +1101,37 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				}
 
 				type[0] = dtINT;
-				type[1] = dtSTRING;
+				type[1] = dtINT;
 				type[2] = dtSTRING;
-				type[3] = dtDATETIME;
+				type[3] = dtSTRING;
 				type[4] = dtDATETIME;
+				type[5] = dtDATETIME;
 				break;
 			}
 			else	//summary
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
-				nDefaultColumnWidth[0] = 180;
-				nDefaultColumnWidth[1] = 60;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 180;
 				nDefaultColumnWidth[2] = 60;
 				nDefaultColumnWidth[3] = 60;
 				nDefaultColumnWidth[4] = 60;
@@ -1111,19 +1145,20 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
 				for( int i=0; i<m_nColumnCount; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 				
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
-				type[4] = dtINT;
+				type[4] = dtDATETIME;
+				type[5] = dtINT;
 
-				type[5] = dtDATETIME;
 				type[6] = dtDATETIME;
 				type[7] = dtDATETIME;
 				type[8] = dtDATETIME;
@@ -1131,8 +1166,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[10] = dtDATETIME;
 				type[11] = dtDATETIME;
 				type[12] = dtDATETIME;
-				type[13] = dtDATETIME;	
-				type[14] = dtDATETIME;
+				type[13] = dtDATETIME;
+				type[14] = dtDATETIME;	
+				type[15] = dtDATETIME;
 				break;	
 			}
 		}
@@ -1141,57 +1177,61 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Pax #");
-				csColumnLabel[1] = CString("Total Time");
-				csColumnLabel[2] = CString("Average Time");
-				csColumnLabel[3] = CString("Processors");
-				csColumnLabel[4] = CString("Passenger Type");
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Pax #");
+				csColumnLabel[2] = CString("Total Time");
+				csColumnLabel[3] = CString("Average Time");
+				csColumnLabel[4] = CString("Processors");
+				csColumnLabel[5] = CString("Passenger Type");
 
-				nDefaultColumnWidth[0] = 80;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
 				nDefaultColumnWidth[2] = 80;
 				nDefaultColumnWidth[3] = 80;
-				nDefaultColumnWidth[4] = 200;
+				nDefaultColumnWidth[4] = 80;
+				nDefaultColumnWidth[5] = 200;
 
-				for( int i=0; i<4; i++ )
+				for( int i=0; i<5; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-				nFormat[4] = LVCFMT_LEFT;
+				nFormat[5] = LVCFMT_LEFT;
 
 				type[0] = dtINT;
-				type[1] = dtDATETIME;
+				type[1] = dtINT;
 				type[2] = dtDATETIME;
-				type[3] = dtINT;
-				type[4] = dtSTRING;
+				type[3] = dtDATETIME;
+				type[4] = dtINT;
+				type[5] = dtSTRING;
 				break;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
 
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
 
-				nDefaultColumnWidth[0] = 180;
-				nDefaultColumnWidth[1] = 60;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 180;
 				nDefaultColumnWidth[2] = 60;
 				nDefaultColumnWidth[3] = 60;
 				nDefaultColumnWidth[4] = 60;
@@ -1205,20 +1245,21 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
-				type[4] = dtINT;
+				type[4] = dtDATETIME;
+				type[5] = dtINT;
 
-				type[5] = dtDATETIME;
 				type[6] = dtDATETIME;
 				type[7] = dtDATETIME;
 				type[8] = dtDATETIME;
@@ -1226,8 +1267,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[10] = dtDATETIME;
 				type[11] = dtDATETIME;
 				type[12] = dtDATETIME;
-				type[13] = dtDATETIME;				
-				type[14] = dtDATETIME;	
+				type[13] = dtDATETIME;
+				type[14] = dtDATETIME;				
+				type[15] = dtDATETIME;	
 				break;	
 			}//end of else
 		}//end of case
@@ -1235,57 +1277,61 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Pax #");
-				csColumnLabel[1] = CString("Total Time");
-				csColumnLabel[2] = CString("Average Time");
-				csColumnLabel[3] = CString("Processors");
-				csColumnLabel[4] = CString("Passenger Type");
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Pax #");
+				csColumnLabel[2] = CString("Total Time");
+				csColumnLabel[3] = CString("Average Time");
+				csColumnLabel[4] = CString("Processors");
+				csColumnLabel[5] = CString("Passenger Type");
 
-				nDefaultColumnWidth[0] = 80;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
 				nDefaultColumnWidth[2] = 80;
 				nDefaultColumnWidth[3] = 80;
-				nDefaultColumnWidth[4] = 200;
+				nDefaultColumnWidth[4] = 80;
+				nDefaultColumnWidth[5] = 200;
 
-				for( int i=0; i<4; i++ )
+				for( int i=0; i<5; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-				nFormat[4] = LVCFMT_LEFT;
+				nFormat[5] = LVCFMT_LEFT;
 
 				type[0] = dtINT;
-				type[1] = dtDATETIME;
+				type[1] = dtINT;
 				type[2] = dtDATETIME;
-				type[3] = dtINT;
-				type[4] = dtSTRING;
+				type[3] = dtDATETIME;
+				type[4] = dtINT;
+				type[5] = dtSTRING;
 				break;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
 
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
 
-				nDefaultColumnWidth[0] = 180;
-				nDefaultColumnWidth[1] = 60;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 180;
 				nDefaultColumnWidth[2] = 60;
 				nDefaultColumnWidth[3] = 60;
 				nDefaultColumnWidth[4] = 60;
@@ -1299,20 +1345,21 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
-				type[4] = dtINT;
+				type[4] = dtDATETIME;
+				type[5] = dtINT;
 
-				type[5] = dtDATETIME;
 				type[6] = dtDATETIME;
 				type[7] = dtDATETIME;
 				type[8] = dtDATETIME;
@@ -1320,8 +1367,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[10] = dtDATETIME;
 				type[11] = dtDATETIME;
 				type[12] = dtDATETIME;
-				type[13] = dtDATETIME;				
-				type[14] = dtDATETIME;	
+				type[13] = dtDATETIME;
+				type[14] = dtDATETIME;				
+				type[15] = dtDATETIME;	
 				break;	
 			}//end of else
 		}//end of case
@@ -1330,62 +1378,67 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Passenger #");
-				csColumnLabel[1] = CString("Duration");
-				csColumnLabel[2] = CString("Passenger Type");
-				csColumnLabel[3] = CString("From Processor");
-				csColumnLabel[4] = CString("To Processor");
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger #");
+				csColumnLabel[2] = CString("Duration");
+				csColumnLabel[3] = CString("Passenger Type");
+				csColumnLabel[4] = CString("From Processor");
+				csColumnLabel[5] = CString("To Processor");
 
-				nDefaultColumnWidth[0] = 80;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
-				nDefaultColumnWidth[2] = 200;
-				nDefaultColumnWidth[3] = 100;
+				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 200;
 				nDefaultColumnWidth[4] = 100;
+				nDefaultColumnWidth[5] = 100;
 
 
-				nFormat[0] = LVCFMT_LEFT;
-				nFormat[1] = LVCFMT_CENTER; 
-				nFormat[2] = LVCFMT_LEFT;
-				nFormat[3] = LVCFMT_CENTER;
+				nFormat[0] = LVCFMT_CENTER;
+				nFormat[1] = LVCFMT_LEFT;
+				nFormat[2] = LVCFMT_CENTER; 
+				nFormat[3] = LVCFMT_LEFT;
 				nFormat[4] = LVCFMT_CENTER;
+				nFormat[5] = LVCFMT_CENTER;
 
 				type[0] = dtINT;
-				type[1] = dtDATETIME;
-				type[2] = dtSTRING;
+				type[1] = dtINT;
+				type[2] = dtDATETIME;
 				type[3] = dtSTRING;
 				type[4] = dtSTRING;
+				type[5] = dtSTRING;
 				break;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
 
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
 
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
 				nDefaultColumnWidth[4] = 70;
-				nDefaultColumnWidth[5] = 60;
+				nDefaultColumnWidth[5] = 70;
 				nDefaultColumnWidth[6] = 60;
 				nDefaultColumnWidth[7] = 60;
 				nDefaultColumnWidth[8] = 60;
@@ -1395,28 +1448,31 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
-				type[4] = dtINT;
+				type[4] = dtDATETIME;
+				type[5] = dtINT;
 
-				type[5] = dtDATETIME;
 				type[6] = dtDATETIME;
+			
 				type[7] = dtDATETIME;
 				type[8] = dtDATETIME;
 				type[9] = dtDATETIME;
 				type[10] = dtDATETIME;
 				type[11] = dtDATETIME;
 				type[12] = dtDATETIME;
-				type[13] = dtDATETIME;				
-				type[14] = dtDATETIME;	
+				type[13] = dtDATETIME;
+				type[14] = dtDATETIME;				
+				type[15] = dtDATETIME;	
 				break;	
 			}//end of else
 		}//end of case
@@ -1425,59 +1481,63 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Pax #");
-				csColumnLabel[1] = CString("Group Service");
-				csColumnLabel[2] = CString("Single Service");
-				csColumnLabel[3] = CString("Processors");
-				csColumnLabel[4] = CString("Passenger Type");
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Pax #");
+				csColumnLabel[2] = CString("Group Service");
+				csColumnLabel[3] = CString("Single Service");
+				csColumnLabel[4] = CString("Processors");
+				csColumnLabel[5] = CString("Passenger Type");
 
-				nDefaultColumnWidth[0] = 80;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
 				nDefaultColumnWidth[2] = 80;
 				nDefaultColumnWidth[3] = 80;
-				nDefaultColumnWidth[4] = 200;
+				nDefaultColumnWidth[4] = 80;
+				nDefaultColumnWidth[5] = 200;
 
-				for( int i=0; i<4; i++ )
+				for( int i=0; i<5; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-				nFormat[4] = LVCFMT_LEFT;
+				nFormat[5] = LVCFMT_LEFT;
 
 				type[0] = dtINT;
-				type[1] = dtDATETIME;
+				type[1] = dtINT;
 				type[2] = dtDATETIME;
-				type[3] = dtINT;
-				type[4] = dtSTRING;
+				type[3] = dtDATETIME;
+				type[4] = dtINT;
+				type[5] = dtSTRING;
 				break;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
 				nDefaultColumnWidth[4] = 70;
-				nDefaultColumnWidth[5] = 60;
+				nDefaultColumnWidth[5] = 70;
 				nDefaultColumnWidth[6] = 60;
 				nDefaultColumnWidth[7] = 60;
 				nDefaultColumnWidth[8] = 60;
@@ -1487,18 +1547,19 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
-				type[4] = dtINT;
-				type[5] = dtDATETIME;
+				type[4] = dtDATETIME;
+				type[5] = dtINT;
 				type[6] = dtDATETIME;
 				type[7] = dtDATETIME;
 				type[8] = dtDATETIME;
@@ -1506,8 +1567,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[10] = dtDATETIME;
 				type[11] = dtDATETIME;
 				type[12] = dtDATETIME;
-				type[13] = dtDATETIME;				
-				type[14] = dtDATETIME;	
+				type[13] = dtDATETIME;
+				type[14] = dtDATETIME;				
+				type[15] = dtDATETIME;	
 				break;	
 			}//end of else
 		}//end of case
@@ -1516,69 +1578,75 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 7;
-				csColumnLabel[0] = CString("ID");
-				csColumnLabel[1] = CString("Moving Time");
-				csColumnLabel[2] = CString("Queuing Time");
-				csColumnLabel[3] = CString("Bag Wait Time");
-				csColumnLabel[4] = CString("Hold Area Time");
-				csColumnLabel[5] = CString("Service Time");
-				csColumnLabel[6] = CString("Passenger Type");
+				m_nColumnCount = 8;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("ID");
+				csColumnLabel[2] = CString("Moving Time");
+				csColumnLabel[3] = CString("Queuing Time");
+				csColumnLabel[4] = CString("Bag Wait Time");
+				csColumnLabel[5] = CString("Hold Area Time");
+				csColumnLabel[6] = CString("Service Time");
+				csColumnLabel[7] = CString("Passenger Type");
 
-				nDefaultColumnWidth[0] = 80;
-				nDefaultColumnWidth[1] = 80;
-				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 80;
-				nDefaultColumnWidth[4] = 80;
-				nDefaultColumnWidth[5] = 80;
-				nDefaultColumnWidth[6] = 200;
-
-				for( int i=0; i<6; i++ )
-				{
-					nFormat[i] = LVCFMT_CENTER; 
-				}
-				nFormat[6] = LVCFMT_LEFT;
-				
-				type[0] = dtINT;
-				type[1] = dtDATETIME;
-				type[2] = dtDATETIME;
-				type[3] = dtDATETIME;
-				type[4] = dtDATETIME;
-				type[5] = dtDATETIME;
-				type[6] = dtSTRING;
-				break;
-			}
-			else//Summary
-			{
-				m_nColumnCount = 7;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Moving Time");
-				csColumnLabel[2] = CString("Queuing Time");
-				csColumnLabel[3] = CString("Bag Wait Time");
-				csColumnLabel[4] = CString("Hold Area Time");
-				csColumnLabel[5] = CString("Service Time");
-				csColumnLabel[6] = CString("Count");
-
-				nDefaultColumnWidth[0] = 200;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
 				nDefaultColumnWidth[2] = 80;
 				nDefaultColumnWidth[3] = 80;
 				nDefaultColumnWidth[4] = 80;
 				nDefaultColumnWidth[5] = 80;
 				nDefaultColumnWidth[6] = 80;
+				nDefaultColumnWidth[7] = 200;
 
 				for( int i=0; i<7; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				nFormat[7] = LVCFMT_LEFT;
+				
+				type[0] = dtINT;
+				type[1] = dtINT;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
 				type[4] = dtDATETIME;
 				type[5] = dtDATETIME;
-				type[6] = dtINT;
+				type[6] = dtDATETIME;
+				type[7] = dtSTRING;
+				break;
+			}
+			else//Summary
+			{
+				m_nColumnCount = 8;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Moving Time");
+				csColumnLabel[3] = CString("Queuing Time");
+				csColumnLabel[4] = CString("Bag Wait Time");
+				csColumnLabel[5] = CString("Hold Area Time");
+				csColumnLabel[6] = CString("Service Time");
+				csColumnLabel[7] = CString("Count");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
+				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
+				nDefaultColumnWidth[4] = 80;
+				nDefaultColumnWidth[5] = 80;
+				nDefaultColumnWidth[6] = 80;
+				nDefaultColumnWidth[7] = 80;
+
+				for( int i=0; i<8; i++ )
+				{
+					nFormat[i] = LVCFMT_CENTER; 
+				}
+
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtDATETIME;
+				type[4] = dtDATETIME;
+				type[5] = dtDATETIME;
+				type[6] = dtDATETIME;
+				type[7] = dtINT;
 				break;	
 			}
 		}//end of case
@@ -1587,42 +1655,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 7;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Scheduled");
-				csColumnLabel[2] = CString("Overtime");
-				csColumnLabel[3] = CString("Actual");
-				csColumnLabel[4] = CString("Service");
-				csColumnLabel[5] = CString("Idle");
-				csColumnLabel[6] = CString("Utilization(%)");
-
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
-				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 80;
-				nDefaultColumnWidth[4] = 80;
-				nDefaultColumnWidth[5] = 80;
-				nDefaultColumnWidth[6] = 80;
-
-				for( int i=0; i<7; i++ )
-				{
-					nFormat[i] = LVCFMT_CENTER; 
-				}
-
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
-				type[2] = dtDATETIME;
-				type[3] = dtDATETIME;
-				type[4] = dtDATETIME;
-				type[5] = dtDATETIME;
-				type[6] = dtDEC;
-				break;
-			}
-			else//Summary
-			{
 				m_nColumnCount = 8;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Group Size");
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
 				csColumnLabel[2] = CString("Scheduled");
 				csColumnLabel[3] = CString("Overtime");
 				csColumnLabel[4] = CString("Actual");
@@ -1630,8 +1665,175 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				csColumnLabel[6] = CString("Idle");
 				csColumnLabel[7] = CString("Utilization(%)");
 
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
+				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
+				nDefaultColumnWidth[4] = 80;
+				nDefaultColumnWidth[5] = 80;
+				nDefaultColumnWidth[6] = 80;
+				nDefaultColumnWidth[7] = 80;
+
+				for( int i=0; i<8; i++ )
+				{
+					nFormat[i] = LVCFMT_CENTER; 
+				}
+
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtDATETIME;
+				type[4] = dtDATETIME;
+				type[5] = dtDATETIME;
+				type[6] = dtDATETIME;
+				type[7] = dtDEC;
+				break;
+			}
+			else//Summary
+			{
+				m_nColumnCount = 9;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Group Size");
+				csColumnLabel[3] = CString("Scheduled");
+				csColumnLabel[4] = CString("Overtime");
+				csColumnLabel[5] = CString("Actual");
+				csColumnLabel[6] = CString("Service");
+				csColumnLabel[7] = CString("Idle");
+				csColumnLabel[8] = CString("Utilization(%)");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
+				nDefaultColumnWidth[2] = 70;
+				nDefaultColumnWidth[3] = 70;
+				nDefaultColumnWidth[4] = 70;
+				nDefaultColumnWidth[5] = 70;
+				nDefaultColumnWidth[6] = 70;
+				nDefaultColumnWidth[7] = 70;
+				nDefaultColumnWidth[8] = 70;
+
+				for( int i=0; i<9; i++ )
+				{
+					nFormat[i] = LVCFMT_CENTER; 
+				}
+
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
+				type[3] = dtDATETIME;
+				type[4] = dtDATETIME;
+				type[5] = dtDATETIME;
+				type[6] = dtDATETIME;
+				type[7] = dtDATETIME;
+				type[8] = dtDEC;
+				break;	
+			}
+		}
+
+	case ThroughputReportFile:
+		{
+			if(iDetailed==0)//Detailed
+			{
+				m_nColumnCount = 5;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Start Time");
+				csColumnLabel[3] = CString("End Time");
+				csColumnLabel[4] = CString("Pax Served");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
+				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
+				nDefaultColumnWidth[4] = 80;
+
+				for( int i=0; i<5; i++ )
+				{
+					nFormat[i] = LVCFMT_CENTER; 
+				}
+
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtDATETIME;
+				type[4] = dtDEC;
+				break;
+			}
+			else//Summary
+			{
+				m_nColumnCount = 7;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Group Size");
+				csColumnLabel[3] = CString("Pax/Group");
+				csColumnLabel[4] = CString("Pax/Proc");
+				csColumnLabel[5] = CString("Group Thrpt/Hr");
+				csColumnLabel[6] = CString("Avg/Hr");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
+				nDefaultColumnWidth[2] = 70;
+				nDefaultColumnWidth[3] = 70;
+				nDefaultColumnWidth[4] = 70;
+				nDefaultColumnWidth[5] = 70;
+				nDefaultColumnWidth[6] = 70;
+
+				for( int i=0; i<7; i++ )
+				{
+					nFormat[i] = LVCFMT_CENTER; 
+				}
+				
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
+				type[3] = dtINT;
+				type[4] = dtDEC;
+				type[5] = dtDEC;
+				type[6] = dtDEC;
+				break;	
+			}//end of else
+		}//end of case
+
+	case QueueLengthReportFile:
+		{
+			if(iDetailed==0)//Detailed
+			{
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Time");
+				csColumnLabel[3] = CString("Queue Length");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
+				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
+
+				for( int i=0; i<4; i++ )
+				{
+					nFormat[i] = LVCFMT_CENTER; 
+				}
+
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtINT;
+				break;
+			}
+			else//Summary
+			{
+				m_nColumnCount = 8;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor Group");
+				csColumnLabel[2] = CString("Group Size");
+				csColumnLabel[3] = CString("Time");
+				csColumnLabel[4] = CString("Min");
+				csColumnLabel[5] = CString("Avg");
+				csColumnLabel[6] = CString("Max");
+				csColumnLabel[7] = CString("Total");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
 				nDefaultColumnWidth[4] = 70;
@@ -1644,130 +1846,14 @@ void CRepListViewSingleReportOperator::SetListHeader()
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
 				type[3] = dtDATETIME;
-				type[4] = dtDATETIME;
-				type[5] = dtDATETIME;
-				type[6] = dtDATETIME;
-				type[7] = dtDEC;
-				break;	
-			}
-		}
-
-	case ThroughputReportFile:
-		{
-			if(iDetailed==0)//Detailed
-			{
-				m_nColumnCount = 4;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Start Time");
-				csColumnLabel[2] = CString("End Time");
-				csColumnLabel[3] = CString("Pax Served");
-
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
-				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 80;
-
-				for( int i=0; i<4; i++ )
-				{
-					nFormat[i] = LVCFMT_CENTER; 
-				}
-
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
-				type[2] = dtDATETIME;
-				type[3] = dtDEC;
-				break;
-			}
-			else//Summary
-			{
-				m_nColumnCount = 6;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Group Size");
-				csColumnLabel[2] = CString("Pax/Group");
-				csColumnLabel[3] = CString("Pax/Proc");
-				csColumnLabel[4] = CString("Group Thrpt/Hr");
-				csColumnLabel[5] = CString("Avg/Hr");
-
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
-				nDefaultColumnWidth[2] = 70;
-				nDefaultColumnWidth[3] = 70;
-				nDefaultColumnWidth[4] = 70;
-				nDefaultColumnWidth[5] = 70;
-
-				for( int i=0; i<6; i++ )
-				{
-					nFormat[i] = LVCFMT_CENTER; 
-				}
-				
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtINT;
-				type[3] = dtDEC;
-				type[4] = dtDEC;
+				type[4] = dtINT;
 				type[5] = dtDEC;
-				break;	
-			}//end of else
-		}//end of case
-
-	case QueueLengthReportFile:
-		{
-			if(iDetailed==0)//Detailed
-			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Time");
-				csColumnLabel[2] = CString("Queue Length");
-
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
-				nDefaultColumnWidth[2] = 80;
-
-				for( int i=0; i<3; i++ )
-				{
-					nFormat[i] = LVCFMT_CENTER; 
-				}
-
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
-				type[2] = dtINT;
-				break;
-			}
-			else//Summary
-			{
-				m_nColumnCount = 7;
-				csColumnLabel[0] = CString("Processor Group");
-				csColumnLabel[1] = CString("Group Size");
-				csColumnLabel[2] = CString("Time");
-				csColumnLabel[3] = CString("Min");
-				csColumnLabel[4] = CString("Avg");
-				csColumnLabel[5] = CString("Max");
-				csColumnLabel[6] = CString("Total");
-
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
-				nDefaultColumnWidth[2] = 70;
-				nDefaultColumnWidth[3] = 70;
-				nDefaultColumnWidth[4] = 70;
-				nDefaultColumnWidth[5] = 70;
-				nDefaultColumnWidth[6] = 70;
-
-				for( int i=0; i<7; i++ )
-				{
-					nFormat[i] = LVCFMT_CENTER; 
-				}
-
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtDATETIME;
-				type[3] = dtINT;
-				type[4] = dtDEC;
-				type[5] = dtINT;
 				type[6] = dtINT;
+				type[7] = dtINT;
 				break;	
 			}//end of else
 		}//end of case
@@ -1776,56 +1862,62 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Time");
-				csColumnLabel[2] = CString("Conveyour Wait Length");
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Time");
+				csColumnLabel[3] = CString("Conveyour Wait Length");
 
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
 
-				for( int i=0; i<3; i++ )
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
-				type[2] = dtINT;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtINT;
 				break;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 7;
-				csColumnLabel[0] = CString("Processor Group");
-				csColumnLabel[1] = CString("Group Size");
-				csColumnLabel[2] = CString("Time");
-				csColumnLabel[3] = CString("Min");
-				csColumnLabel[4] = CString("Avg");
-				csColumnLabel[5] = CString("Max");
-				csColumnLabel[6] = CString("Total");
+				m_nColumnCount = 8;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor Group");
+				csColumnLabel[2] = CString("Group Size");
+				csColumnLabel[3] = CString("Time");
+				csColumnLabel[4] = CString("Min");
+				csColumnLabel[5] = CString("Avg");
+				csColumnLabel[6] = CString("Max");
+				csColumnLabel[7] = CString("Total");
 
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
 				nDefaultColumnWidth[4] = 70;
 				nDefaultColumnWidth[5] = 70;
 				nDefaultColumnWidth[6] = 70;
+				nDefaultColumnWidth[7] = 70;
 
-				for( int i=0; i<7; i++ )
+				for( int i=0; i<8; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtDATETIME;
-				type[3] = dtINT;
-				type[4] = dtDEC;
-				type[5] = dtINT;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
+				type[3] = dtDATETIME;
+				type[4] = dtINT;
+				type[5] = dtDEC;
 				type[6] = dtINT;
+				type[7] = dtINT;
 
 // 				type[0] = dtSTRING;
 // 				type[1] = dtINT;
@@ -1842,26 +1934,29 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Processor");
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
 				/*csColumnLabel[1] = CString("Avg Queue");*/
-				csColumnLabel[1] = CString("Max Queue");
-				csColumnLabel[2] = CString("Max Queue Time");
+				csColumnLabel[2] = CString("Max Queue");
+				csColumnLabel[3] = CString("Max Queue Time");
 
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
 				//nDefaultColumnWidth[3] = 80;
 
-				for( int i=0; i<3; i++ )
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDEC;
-				type[2] = dtINT;
-				type[3] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDEC;
+				type[3] = dtINT;
+				type[4] = dtDATETIME;
 
 // 				type[0] = dtSTRING;
 // 				type[1] = dtDEC;
@@ -1871,29 +1966,32 @@ void CRepListViewSingleReportOperator::SetListHeader()
 			}
 			else//Summary
 			{
-				m_nColumnCount = 4;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Group Size");
+				m_nColumnCount = 5;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Group Size");
 				//csColumnLabel[2] = CString("Avg Queue");
-				csColumnLabel[2] = CString("Max Queue");
-				csColumnLabel[3] = CString("Max Queue Time");
+				csColumnLabel[3] = CString("Max Queue");
+				csColumnLabel[4] = CString("Max Queue Time");
 
-				nDefaultColumnWidth[0] = 190;
-				nDefaultColumnWidth[1] = 70;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
+				nDefaultColumnWidth[4] = 70;
 				//nDefaultColumnWidth[4] = 70;
 
-				for( int i=0; i<4; i++ )
+				for( int i=0; i<5; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtDEC;
-				type[3] = dtINT;
-				type[4] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
+				type[3] = dtDEC;
+				type[4] = dtINT;
+				type[5] = dtDATETIME;
 				break;	
 			}//end of else
 		}//end of case
@@ -1902,167 +2000,183 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Time");
-				csColumnLabel[2] = CString("Count");
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Time");
+				csColumnLabel[3] = CString("Count");
 
 
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
 
 
-				for( int i=0; i<3; i++ )
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
-				type[2] = dtINT;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtINT;
 
 				break;
 			}
 			else
 			{
-				m_nColumnCount = 9;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Min Pax");
-				csColumnLabel[2] = CString("Min Time");
-				csColumnLabel[3] = CString("Avg/Period");
-				csColumnLabel[4] = CString("Max Pax");
-				csColumnLabel[5] = CString("Max Time");
-				csColumnLabel[6] = CString("Total Pax");
-				csColumnLabel[7] = CString("First Entry");
-				csColumnLabel[8] = CString("Last Exit");
+				m_nColumnCount = 10;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Min Pax");
+				csColumnLabel[3] = CString("Min Time");
+				csColumnLabel[4] = CString("Avg/Period");
+				csColumnLabel[5] = CString("Max Pax");
+				csColumnLabel[6] = CString("Max Time");
+				csColumnLabel[7] = CString("Total Pax");
+				csColumnLabel[8] = CString("First Entry");
+				csColumnLabel[9] = CString("Last Exit");
 
 
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 90;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 90;
-				nDefaultColumnWidth[3] = 70;
+				nDefaultColumnWidth[3] = 90;
 				nDefaultColumnWidth[4] = 70;
 				nDefaultColumnWidth[5] = 70;
 				nDefaultColumnWidth[6] = 70;
 				nDefaultColumnWidth[7] = 70;
-				nDefaultColumnWidth[8] = 80;
+				nDefaultColumnWidth[8] = 70;
+				nDefaultColumnWidth[9] = 80;
 
-				for( int i=0; i<9; i++ )
+				for( int i=0; i<10; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtDATETIME;
-				type[3] = dtDEC;
-				type[4] = dtINT;
-				type[5] = dtDATETIME;
-				type[6] = dtINT;
-				type[7] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
+				type[3] = dtDATETIME;
+				type[4] = dtDEC;
+				type[5] = dtINT;
+				type[6] = dtDATETIME;
+				type[7] = dtINT;
 				type[8] = dtDATETIME;
+				type[9] = dtDATETIME;
 				break;
 			}
 			break;
 		}
 	case PassengerDensityReportFile:
 		{
-			m_nColumnCount = 5;
-			csColumnLabel[0] = CString("Passenger Type");
-			csColumnLabel[1] = CString("Time");
-			csColumnLabel[2] = CString("Count");
-			csColumnLabel[3] = CString("Pax/m2");
-			csColumnLabel[4] = CString("m2/Pax");
+			m_nColumnCount = 6;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("Passenger Type");
+			csColumnLabel[2] = CString("Time");
+			csColumnLabel[3] = CString("Count");
+			csColumnLabel[4] = CString("Pax/m2");
+			csColumnLabel[5] = CString("m2/Pax");
 
-			nDefaultColumnWidth[0] = 200;
-			nDefaultColumnWidth[1] = 80;
+			nDefaultColumnWidth[0] = 30;
+			nDefaultColumnWidth[1] = 200;
 			nDefaultColumnWidth[2] = 80;
 			nDefaultColumnWidth[3] = 80;
 			nDefaultColumnWidth[4] = 80;
+			nDefaultColumnWidth[5] = 80;
 
-			for( int i=0; i<5; i++ )
+			for( int i=0; i<6; i++ )
 			{
 				nFormat[i] = LVCFMT_CENTER; 
 			}
 
-			type[0] = dtSTRING;
-			type[1] = dtDATETIME;
-			type[2] = dtINT;
-			type[3] = dtDEC;
+			type[0] = dtINT;
+			type[1] = dtSTRING;
+			type[2] = dtDATETIME;
+			type[3] = dtINT;
 			type[4] = dtDEC;
+			type[5] = dtDEC;
 			break;
 		}//end of case
 
 	case SpaceThroughputReportFile:
 		{
-			m_nColumnCount = 4;
-			csColumnLabel[0] = CString("Passenger Type");
-			csColumnLabel[1] = CString("Start Time");
-			csColumnLabel[2] = CString("End Time");
-			csColumnLabel[3] = CString("Count");
+			m_nColumnCount = 5;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("Passenger Type");
+			csColumnLabel[2] = CString("Start Time");
+			csColumnLabel[3] = CString("End Time");
+			csColumnLabel[4] = CString("Count");
 
-			nDefaultColumnWidth[0] = 200;
-			nDefaultColumnWidth[1] = 80;
+			nDefaultColumnWidth[0] = 30;
+			nDefaultColumnWidth[1] = 200;
 			nDefaultColumnWidth[2] = 80;
 			nDefaultColumnWidth[3] = 80;
+			nDefaultColumnWidth[4] = 80;
 
-			for(int i=0; i<4; i++)
+			for(int i=0; i<5; i++)
 			{
 				nFormat[i] = LVCFMT_CENTER;
 			}
 
-			type[0] = dtSTRING;
-			type[1] = dtDATETIME;
+			type[0] = dtINT;
+			type[1] = dtSTRING;
 			type[2] = dtDATETIME;
-			type[3] = dtDEC;
+			type[3] = dtDATETIME;
+			type[4] = dtDEC;
 			break;
 		}
 
 	case CollisionReportFile:
 		{
-			m_nColumnCount = 4;
-			csColumnLabel[0] = CString("Pax Type");
-			csColumnLabel[1] = CString("Time");
-			csColumnLabel[2] = CString("Pax ID 1");
-			csColumnLabel[3] = CString("Pax ID 2");
+			m_nColumnCount = 5;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("Pax Type");
+			csColumnLabel[2] = CString("Time");
+			csColumnLabel[3] = CString("Pax ID 1");
+			csColumnLabel[4] = CString("Pax ID 2");
 
-			nDefaultColumnWidth[0] = 100;
-			nDefaultColumnWidth[1] = 60;
-			nDefaultColumnWidth[2] = 100;
+			nDefaultColumnWidth[0] = 30;
+			nDefaultColumnWidth[1] = 100;
+			nDefaultColumnWidth[2] = 60;
 			nDefaultColumnWidth[3] = 100;
+			nDefaultColumnWidth[4] = 100;
 
-			for(int i = 0; i < 4; i++)
+			for(int i = 0; i < 5; i++)
 			{
 				nFormat[i] = LVCFMT_CENTER;
 			}
 
-			type[0] = dtSTRING;
-			type[1] = dtDATETIME;
-			type[2] = dtDEC;
+			type[0] = dtINT;
+			type[1] = dtSTRING;
+			type[2] = dtDATETIME;
 			type[3] = dtDEC;
+			type[4] = dtDEC;
 			break;
 		}
 
 	case AcOperationsReportFile:
 		{
-			m_nColumnCount = 14;
-			csColumnLabel[0] = CString("Flight ID");
-			csColumnLabel[1] = CString("Operation");
-			csColumnLabel[2] = CString("Aircraft Type");
-			csColumnLabel[3] = CString("Capacity");
-			csColumnLabel[4] = CString("Scheduled Arr Time");
-			csColumnLabel[5] = CString("Scheduled Dep Time");
-			csColumnLabel[6] = CString("Load Factor(%)");
-			csColumnLabel[7] = CString("Load");
-			csColumnLabel[8] = CString("Actual Arr Time");
-			csColumnLabel[9] = CString("Actual Dep Time");
-			csColumnLabel[10] = CString("Delay Arr");
-			csColumnLabel[11] = CString("Delay Dep");
-			csColumnLabel[12] = CString("Gate Occupancy");
-			csColumnLabel[13] = CString("Flight Type");
+			m_nColumnCount = 15;
+			csColumnLabel[0] = CString("");
+			csColumnLabel[1] = CString("Flight ID");
+			csColumnLabel[2] = CString("Operation");
+			csColumnLabel[3] = CString("Aircraft Type");
+			csColumnLabel[4] = CString("Capacity");
+			csColumnLabel[5] = CString("Scheduled Arr Time");
+			csColumnLabel[6] = CString("Scheduled Dep Time");
+			csColumnLabel[7] = CString("Load Factor(%)");
+			csColumnLabel[8] = CString("Load");
+			csColumnLabel[9] = CString("Actual Arr Time");
+			csColumnLabel[10] = CString("Actual Dep Time");
+			csColumnLabel[11] = CString("Delay Arr");
+			csColumnLabel[12] = CString("Delay Dep");
+			csColumnLabel[13] = CString("Gate Occupancy");
+			csColumnLabel[14] = CString("Flight Type");
 
-			nDefaultColumnWidth[0] = 70;
+			nDefaultColumnWidth[0] = 30;
 			nDefaultColumnWidth[1] = 70;
 			nDefaultColumnWidth[2] = 70;
 			nDefaultColumnWidth[3] = 70;
@@ -2075,34 +2189,36 @@ void CRepListViewSingleReportOperator::SetListHeader()
 			nDefaultColumnWidth[10] = 70;
 			nDefaultColumnWidth[11] = 70;
 			nDefaultColumnWidth[12] = 70;
-			nDefaultColumnWidth[13] = 100;
+			nDefaultColumnWidth[13] = 70;
+			nDefaultColumnWidth[14] = 100;
 
-			for( int i=0; i<14; i++ )
+			for( int i=0; i<15; i++ )
 			{
 				nFormat[i] = LVCFMT_CENTER; 
 			}
 
 			
- 			type[0] = dtSTRING;
+			type[0] = dtINT;
  			type[1] = dtSTRING;
  			type[2] = dtSTRING;
- 			type[3] = dtDEC;
- 			type[4] = dtSTRING;
+ 			type[3] = dtSTRING;
+ 			type[4] = dtDEC;
  			type[5] = dtSTRING;
+ 			type[6] = dtSTRING;
  			//			type[4] = dtDATETIME;
  			//			type[5] = dtDATETIME;
- 			type[6] = dtDEC;
  			type[7] = dtDEC;
- 			type[8] = dtSTRING;
+ 			type[8] = dtDEC;
  			type[9] = dtSTRING;
+ 			type[10] = dtSTRING;
  			//			type[8] = dtDATETIME;
  			//			type[9] = dtDATETIME;
- 			type[10] = dtSTRING;
  			type[11] = dtSTRING;
+ 			type[12] = dtSTRING;
  			//			type[10] = dtDEC;
  			//			type[11] = dtDEC;
- 			type[12] = dtDATETIME;
- 			type[13] = dtSTRING;
+ 			type[13] = dtDATETIME;
+ 			type[14] = dtSTRING;
 			break;
 		}
 
@@ -2110,55 +2226,61 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Time");
-				csColumnLabel[2] = CString("Bag Count");
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Time");
+				csColumnLabel[3] = CString("Bag Count");
 
-				nDefaultColumnWidth[0] = 100;
-				nDefaultColumnWidth[1] = 80;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 100;
 				nDefaultColumnWidth[2] = 80;
+				nDefaultColumnWidth[3] = 80;
 
-				for( int i=0; i<3; i++ )
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
-				type[2] = dtINT;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtDATETIME;
+				type[3] = dtINT;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 7;
-				csColumnLabel[0] = CString("Passenger Group");
-				csColumnLabel[1] = CString("Group Size");
-				csColumnLabel[2] = CString("Time");
-				csColumnLabel[3] = CString("Min");
-				csColumnLabel[4] = CString("Avg");
-				csColumnLabel[5] = CString("Max");
-				csColumnLabel[6] = CString("Total");
+				m_nColumnCount = 8;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Group");
+				csColumnLabel[2] = CString("Group Size");
+				csColumnLabel[3] = CString("Time");
+				csColumnLabel[4] = CString("Min");
+				csColumnLabel[5] = CString("Avg");
+				csColumnLabel[6] = CString("Max");
+				csColumnLabel[7] = CString("Total");
 
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 70;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 70;
 				nDefaultColumnWidth[4] = 70;
 				nDefaultColumnWidth[5] = 70;
 				nDefaultColumnWidth[6] = 70;
+				nDefaultColumnWidth[7] = 70;
 
-				for( int i=0; i<7; i++ )
+				for( int i=0; i<8; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtINT;
-				type[2] = dtDATETIME;
-				type[3] = dtINT;
-				type[4] = dtDEC;
-				type[5] = dtINT;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
+				type[2] = dtINT;
+				type[3] = dtDATETIME;
+				type[4] = dtINT;
+				type[5] = dtDEC;
 				type[6] = dtINT;
+				type[7] = dtINT;
 			}
 			break;
 		}//end of case
@@ -2166,24 +2288,27 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 4;
-				csColumnLabel[0] = CString("Pax #");
-				csColumnLabel[1] = CString("Bag Count");
-				csColumnLabel[2] = CString("Wait Time");
-				csColumnLabel[3] = CString("Passenger Type");
+				m_nColumnCount = 5;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Pax #");
+				csColumnLabel[2] = CString("Bag Count");
+				csColumnLabel[3] = CString("Wait Time");
+				csColumnLabel[4] = CString("Passenger Type");
 
-				nDefaultColumnWidth[0] = 80;
+				nDefaultColumnWidth[0] = 30;
 				nDefaultColumnWidth[1] = 80;
 				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 200;
+				nDefaultColumnWidth[3] = 80;
+				nDefaultColumnWidth[4] = 200;
 
-				for( int i=0; i<3; i++ )
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-				nFormat[3] = LVCFMT_LEFT;
+				nFormat[4] = LVCFMT_LEFT;
 
 
+				type[0] = dtINT;
  				type[0] = dtINT;
  				type[1] = dtINT;
  				type[2] = dtDATETIME;
@@ -2191,29 +2316,30 @@ void CRepListViewSingleReportOperator::SetListHeader()
 			}
 			else//Summary
 			{								
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger Type");
-				csColumnLabel[1] = CString("Minimum");
-				csColumnLabel[2] = CString("Average");
-				csColumnLabel[3] = CString("Maximum");
-				csColumnLabel[4] = CString("Count");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger Type");
+				csColumnLabel[2] = CString("Minimum");
+				csColumnLabel[3] = CString("Average");
+				csColumnLabel[4] = CString("Maximum");
+				csColumnLabel[5] = CString("Count");
 
 				CString str = " (s)";
-				csColumnLabel[5] = CString("Q1") + str;
-				csColumnLabel[6] = CString("Q2") + str;
-				csColumnLabel[7] = CString("Q3") + str;
-				csColumnLabel[8] = CString("P1") + str;
-				csColumnLabel[9] = CString("P5") + str;
-				csColumnLabel[10] = CString("P10") + str;
-				csColumnLabel[11] = CString("P90") + str;
-				csColumnLabel[12] = CString("P95") + str;
-				csColumnLabel[13] = CString("P99") + str;
+				csColumnLabel[6] = CString("Q1") + str;
+				csColumnLabel[7] = CString("Q2") + str;
+				csColumnLabel[8] = CString("Q3") + str;
+				csColumnLabel[9] = CString("P1") + str;
+				csColumnLabel[10] = CString("P5") + str;
+				csColumnLabel[11] = CString("P10") + str;
+				csColumnLabel[12] = CString("P90") + str;
+				csColumnLabel[13] = CString("P95") + str;
+				csColumnLabel[14] = CString("P99") + str;
 
-				csColumnLabel[14] = CString("Sigma") + str;
+				csColumnLabel[15] = CString("Sigma") + str;
 
 
-				nDefaultColumnWidth[0] = 180;
-				nDefaultColumnWidth[1] = 60;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 180;
 				nDefaultColumnWidth[2] = 60;
 				nDefaultColumnWidth[3] = 60;
 				nDefaultColumnWidth[4] = 60;
@@ -2227,20 +2353,21 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[12] = 60;
 				nDefaultColumnWidth[13] = 60;
 				nDefaultColumnWidth[14] = 60;
+				nDefaultColumnWidth[15] = 60;
 
 
-				for( int i=0; i<15; i++ )
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
 				type[3] = dtDATETIME;
-				type[4] = dtINT;
+				type[4] = dtDATETIME;
+				type[5] = dtINT;
 
-				type[5] = dtDATETIME;
 				type[6] = dtDATETIME;
 				type[7] = dtDATETIME;
 				type[8] = dtDATETIME;
@@ -2248,8 +2375,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[10] = dtDATETIME;
 				type[11] = dtDATETIME;
 				type[12] = dtDATETIME;
-				type[13] = dtDATETIME;				
-				type[14] = dtDATETIME;	
+				type[13] = dtDATETIME;
+				type[14] = dtDATETIME;				
+				type[15] = dtDATETIME;	
 
 			}
 			break;
@@ -2259,23 +2387,26 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Start Time");
-				csColumnLabel[2] = CString("End Time");
-				csColumnLabel[3] = CString("Exposure Served");
-				csColumnLabel[4] = CString("Total Pax Passed");
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Start Time");
+				csColumnLabel[3] = CString("End Time");
+				csColumnLabel[4] = CString("Exposure Served");
+				csColumnLabel[5] = CString("Total Pax Passed");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 120;
+				nDefaultColumnWidth[3] = 80;
 				nDefaultColumnWidth[4] = 120;
-				for( int i=0; i<5; i++ )
+				nDefaultColumnWidth[5] = 120;
+				for( int i=0; i<6; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-
+				type[0] = dtINT;
 				type[0] = dtSTRING;
 				type[1] = dtDATETIME;
 				type[2] = dtDATETIME;
@@ -2285,33 +2416,37 @@ void CRepListViewSingleReportOperator::SetListHeader()
 			}
 			else//Summary
 			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Processor");
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
 				//csColumnLabel[1] = CString("Group Size");
 				//csColumnLabel[2] = CString("Pax/Group");
 				//csColumnLabel[3] = CString("Pax/Proc");
 				//csColumnLabel[4] = CString("Group Thrpt/Hr");
-				csColumnLabel[1] = CString("Avg/Hr");
 				csColumnLabel[2] = CString("Avg/Hr");
-				nDefaultColumnWidth[0] = 190;
+				csColumnLabel[3] = CString("Avg/Hr");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				//nDefaultColumnWidth[1] = 70;
 				//nDefaultColumnWidth[2] = 70;
 				//nDefaultColumnWidth[3] = 70;
 				//nDefaultColumnWidth[4] = 70;
-				nDefaultColumnWidth[1] = 70;
 				nDefaultColumnWidth[2] = 70;
-				for( int i=0; i<3; i++ )
+				nDefaultColumnWidth[3] = 70;
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
- 				type[0] = dtSTRING;
+				type[0] = dtINT;
+ 				type[1] = dtSTRING;
  				//type[1] = dtINT;
  				//type[2] = dtINT;
  				//type[3] = dtDEC;
  				//type[4] = dtDEC;
- 				type[1] = dtDEC;
  				type[2] = dtDEC;
+ 				type[3] = dtDEC;
 				break;	
 			}//end of else
 		}//end of case
@@ -2319,59 +2454,67 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 5;
-				csColumnLabel[0] = CString("Processor");
-				csColumnLabel[1] = CString("Start Time");
-				csColumnLabel[2] = CString("End Time");
-				csColumnLabel[3] = CString("Pax Severed");
-				csColumnLabel[4] = CString("Incremental Pax Severed");
-				nDefaultColumnWidth[0] = 200;
-				nDefaultColumnWidth[1] = 80;
+				m_nColumnCount = 6;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
+				csColumnLabel[2] = CString("Start Time");
+				csColumnLabel[3] = CString("End Time");
+				csColumnLabel[4] = CString("Pax Severed");
+				csColumnLabel[5] = CString("Incremental Pax Severed");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 200;
 				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 120;
+				nDefaultColumnWidth[3] = 80;
 				nDefaultColumnWidth[4] = 120;
-				for( int i=0; i<5; i++ )
+				nDefaultColumnWidth[5] = 120;
+				for( int i=0; i<6; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
 
-				type[0] = dtSTRING;
-				type[1] = dtDATETIME;
+				type[0] = dtINT;
+				type[1] = dtSTRING;
 				type[2] = dtDATETIME;
-				type[3] = dtDEC;
+				type[3] = dtDATETIME;
 				type[4] = dtDEC;
+				type[5] = dtDEC;
 				break;
 			}
 			else//Summary
 			{
-				m_nColumnCount = 3;
-				csColumnLabel[0] = CString("Processor");
+				m_nColumnCount = 4;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Processor");
 				//csColumnLabel[1] = CString("Group Size");
 				//csColumnLabel[2] = CString("Pax/Group");
 				//csColumnLabel[3] = CString("Pax/Proc");
 				//csColumnLabel[4] = CString("Group Thrpt/Hr");
-				csColumnLabel[1] = CString("Avg/Hr");
 				csColumnLabel[2] = CString("Avg/Hr");
-				nDefaultColumnWidth[0] = 190;
+				csColumnLabel[3] = CString("Avg/Hr");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 190;
 				//nDefaultColumnWidth[1] = 70;
 				//nDefaultColumnWidth[2] = 70;
 				//nDefaultColumnWidth[3] = 70;
 				//nDefaultColumnWidth[4] = 70;
-				nDefaultColumnWidth[1] = 70;
 				nDefaultColumnWidth[2] = 70;
-				for( int i=0; i<3; i++ )
+				nDefaultColumnWidth[3] = 70;
+				for( int i=0; i<4; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
- 				type[0] = dtSTRING;
+				type[0] = dtINT;
+ 				type[1] = dtSTRING;
  				//type[1] = dtINT;
  				//type[2] = dtINT;
  				//type[3] = dtDEC;
  				//type[4] = dtDEC;
- 				type[1] = dtDEC;
  				type[2] = dtDEC;
+ 				type[3] = dtDEC;
 				break;	
 			}//end of else
 		}//end of case
@@ -2379,84 +2522,91 @@ void CRepListViewSingleReportOperator::SetListHeader()
 		{
 			if(iDetailed==0)//Detailed
 			{
-				m_nColumnCount = 15;
-				csColumnLabel[0] = CString("Passenger ID");
-				csColumnLabel[1] = CString("Shop");
-				csColumnLabel[2] = CString("Store");
-				csColumnLabel[3] = CString("Enter Store date/time");
-				csColumnLabel[4] = CString("Leave Store date/time");
-				csColumnLabel[5] = CString("Time in store");
-				csColumnLabel[6] = CString("Units potentially bought");
-				csColumnLabel[7] = CString("Checkout");
-				csColumnLabel[8] = CString("Enter checkout Q date/time");
-				csColumnLabel[9] = CString("Checkout Q time(mm:ss)");
-				csColumnLabel[10] = CString("Time in service(mm:ss)");
-				csColumnLabel[11] = CString("Sale($)");
-				csColumnLabel[12] = CString("Apt Revenue($)");
+				m_nColumnCount = 16;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Passenger ID");
+				csColumnLabel[2] = CString("Shop");
+				csColumnLabel[3] = CString("Store");
+				csColumnLabel[4] = CString("Enter Store date/time");
+				csColumnLabel[5] = CString("Leave Store date/time");
+				csColumnLabel[6] = CString("Time in store");
+				csColumnLabel[7] = CString("Units potentially bought");
+				csColumnLabel[8] = CString("Checkout");
+				csColumnLabel[9] = CString("Enter checkout Q date/time");
+				csColumnLabel[10] = CString("Checkout Q time(mm:ss)");
+				csColumnLabel[11] = CString("Time in service(mm:ss)");
+				csColumnLabel[12] = CString("Sale($)");
+				csColumnLabel[13] = CString("Apt Revenue($)");
 				//csColumnLabel[13] = CString("Inventory OK");
-				csColumnLabel[13] = CString("Passenger Type");
-				csColumnLabel[14] = CString("Product name");
-				nDefaultColumnWidth[0] = 20;
-				nDefaultColumnWidth[1] = 80;
+				csColumnLabel[14] = CString("Passenger Type");
+				csColumnLabel[15] = CString("Product name");
+
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 20;
 				nDefaultColumnWidth[2] = 80;
-				nDefaultColumnWidth[3] = 100;
+				nDefaultColumnWidth[3] = 80;
 				nDefaultColumnWidth[4] = 100;
 				nDefaultColumnWidth[5] = 100;
-				nDefaultColumnWidth[6] = 20;
+				nDefaultColumnWidth[6] = 100;
 				nDefaultColumnWidth[7] = 20;
-				nDefaultColumnWidth[8] = 100;
-				nDefaultColumnWidth[9] = 80;
+				nDefaultColumnWidth[8] = 20;
+				nDefaultColumnWidth[9] = 100;
 				nDefaultColumnWidth[10] = 80;
-				nDefaultColumnWidth[11] = 20;
-				nDefaultColumnWidth[12] = 80;
+				nDefaultColumnWidth[11] = 80;
+				nDefaultColumnWidth[12] = 20;
+				nDefaultColumnWidth[13] = 80;
 			//	nDefaultColumnWidth[13] = 50;
-				nDefaultColumnWidth[13] = 120;
 				nDefaultColumnWidth[14] = 120;
-				for( int i=0; i<15; i++ )
+				nDefaultColumnWidth[15] = 120;
+				for( int i=0; i<16; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
-				type[0] = dtSTRING;
-				type[1] = dtSTRING;
-				type[2] = dtDATETIME;
-				type[3] = dtDATETIME;
+
+				type[0] = dtINT;
+				type[1] = dtINT;
+				type[2] = dtSTRING;
+				type[3] = dtSTRING;
 				type[4] = dtDATETIME;
-				type[5] = dtINT;
-				type[6] = dtSTRING;
-				type[7] = dtDATETIME;
-				type[8] = dtDATETIME;
+				type[5] = dtDATETIME;
+				type[6] = dtDATETIME;
+				type[7] = dtINT;
+				type[8] = dtSTRING;
 				type[9] = dtDATETIME;
-				type[10] = dtINT;
-				type[11] = dtINT;
-				type[12] = dtSTRING;
-				type[13] = dtSTRING;
+				type[10] = dtDATETIME;
+				type[11] = dtDATETIME;
+				type[12] = dtINT;
+				type[13] = dtINT;
+				type[14] = dtSTRING;
+				type[15] = dtSTRING;
 			}
 			else
 			{
-				m_nColumnCount = 16;
-				csColumnLabel[0] = CString("Interval");
-				csColumnLabel[1] = CString("Store");
-				csColumnLabel[2] = CString("Min sales/pax");
-				csColumnLabel[3] = CString("Avg sales/pax");
-				csColumnLabel[4] = CString("Max sales/pax");
-				csColumnLabel[5] = CString("Q1");
-				csColumnLabel[6] = CString("Q2");
-				csColumnLabel[7] = CString("Q3");
-				csColumnLabel[8] = CString("P1");
-				csColumnLabel[9] = CString("P5");
-				csColumnLabel[10] = CString("P10");
-				csColumnLabel[11] = CString("P90");
-				csColumnLabel[12] = CString("P95");
-				csColumnLabel[13] = CString("P99");
-				csColumnLabel[14] = CString("STD");
-				csColumnLabel[15] = CString("DEV");
+				m_nColumnCount = 17;
+				csColumnLabel[0] = CString("");
+				csColumnLabel[1] = CString("Interval");
+				csColumnLabel[2] = CString("Store");
+				csColumnLabel[3] = CString("Min sales/pax");
+				csColumnLabel[4] = CString("Avg sales/pax");
+				csColumnLabel[5] = CString("Max sales/pax");
+				csColumnLabel[6] = CString("Q1");
+				csColumnLabel[7] = CString("Q2");
+				csColumnLabel[8] = CString("Q3");
+				csColumnLabel[9] = CString("P1");
+				csColumnLabel[10] = CString("P5");
+				csColumnLabel[11] = CString("P10");
+				csColumnLabel[12] = CString("P90");
+				csColumnLabel[13] = CString("P95");
+				csColumnLabel[14] = CString("P99");
+				csColumnLabel[15] = CString("STD");
+				csColumnLabel[16] = CString("DEV");
 
-				nDefaultColumnWidth[0] = 20;
-				nDefaultColumnWidth[1] = 70;
-				nDefaultColumnWidth[2] = 30;
+				nDefaultColumnWidth[0] = 30;
+				nDefaultColumnWidth[1] = 20;
+				nDefaultColumnWidth[2] = 70;
 				nDefaultColumnWidth[3] = 30;
 				nDefaultColumnWidth[4] = 30;
-				nDefaultColumnWidth[5] = 20;
+				nDefaultColumnWidth[5] = 30;
 				nDefaultColumnWidth[6] = 20;
 				nDefaultColumnWidth[7] = 20;
 				nDefaultColumnWidth[8] = 20;
@@ -2467,14 +2617,15 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				nDefaultColumnWidth[13] = 20;
 				nDefaultColumnWidth[14] = 20;
 				nDefaultColumnWidth[15] = 20;
-				for( int i=0; i<16; i++ )
+				nDefaultColumnWidth[16] = 20;
+				for( int i=0; i<17; i++ )
 				{
 					nFormat[i] = LVCFMT_CENTER; 
 				}
 
-				type[0] = dtSTRING;
-				type[1] = dtDEC;
-				type[2] = dtDEC;
+				type[0] = dtINT;
+				type[1] = dtINT;
+				type[2] = dtSTRING;
 				type[3] = dtDEC;
 				type[4] = dtDEC;
 				type[5] = dtDEC;
@@ -2486,6 +2637,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 				type[11] = dtDEC;
 				type[12] = dtDEC;
 				type[13] = dtDEC;
+				type[14] = dtDEC;
+				type[15] = dtDEC;
+				type[16] = dtDEC;
 
 			}
 		}
@@ -2493,7 +2647,9 @@ void CRepListViewSingleReportOperator::SetListHeader()
 	}//end of switch
 	for(int i=0; i<m_nColumnCount; i++ )
 	{
-		GetListCtrl().InsertColumn( i, csColumnLabel[i], nFormat[i], nDefaultColumnWidth[i] );
+		DWORD dwStyle = nFormat[i];
+		dwStyle &= ~HDF_OWNERDRAW;
+		GetListCtrl().InsertColumn( i, csColumnLabel[i],/* nFormat[i]*/dwStyle, nDefaultColumnWidth[i] );
 		if(getListView())
 			getListView()->GetSortableHeaderCtrl().SetDataType( i, type[i] );
 	}

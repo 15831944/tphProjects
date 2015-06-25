@@ -37,11 +37,7 @@ public:
 		bool operator <(const DistSpeedTime& other)const{
 			return mdist<other.mdist;
 		}	
-		ElapsedTime timeToNext(const DistSpeedTime& item)const{
-			double dAvgSpd = (item.mdSpd+mdSpd)*0.5;
-			DistanceUnit dDist = item.mdist-mdist;
-			return mtTime+ElapsedTime(dDist/dAvgSpd);
-		}
+		ElapsedTime timeToNext(const DistSpeedTime& item)const;
 	};
 
 	std::vector<DistSpeedTime> mvDistSpdPair;

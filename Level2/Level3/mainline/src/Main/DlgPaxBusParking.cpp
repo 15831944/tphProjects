@@ -413,7 +413,7 @@ void CDlgPaxBusParking::OnBnClickedSave()
 	{
 		CADODatabase::RollBackTransation() ;
 	}
-	CXTResizeDialog::OnOK();
+//	CXTResizeDialog::OnOK();
 }
 
 void CDlgPaxBusParking::HideDialog(CWnd* parentWnd)

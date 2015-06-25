@@ -24,7 +24,7 @@ namespace
 	const UINT ID_EDIT_ARRIVALDELAYTRIGGERLIST = 42;
 }
 
-const char* strEnrouteString[] = {"concurrently","independently"};
+const char* strEnrouteString[] = {"independently","concurrently"};
 
 CString FomratStringMaxArrivalDelayTime = _T("Maximum time AC can be delayed(mins): %d");
 // CDlgArrivalDelayTriggers dialog

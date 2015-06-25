@@ -44,6 +44,9 @@ public:
 
 	FlightGroundRouteSegInSim * GetRouteSegInSim();
 
+	virtual bool IsForbidDirection()const{	return false; }
+	
+
 	virtual FlightGroundRouteDirectSegInSim  * GetOppositeSegment();
 	virtual const FlightGroundRouteDirectSegInSim * GetOppositeSegment()const;
 
