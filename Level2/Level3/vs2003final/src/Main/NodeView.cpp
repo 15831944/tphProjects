@@ -175,9 +175,9 @@ DECLARE_FLIGHTTYPE_SELECT_CALLBACK()
 
 #define ID_NEW_ARP	(WM_USER + 0x0100)
 #define ID_ENABLECONTOUREDIT 300
+#define IDC_BUTTON_MOVEUPFLOOR 301
+#define IDC_BUTTON_MOVEDOWNFLOOR 302
 #define IDC_TERMINAL_TREE 1
-#define IDC_BUTTON_MOVEUPFLOOR 2
-#define IDC_BUTTON_MOVEDOWNFLOOR 3
 using namespace ns_AirsideInput;
 using namespace airside_engine;
 /////////////////////////////////////////////////////////////////////////////
@@ -4802,22 +4802,20 @@ void CNodeView::ResetFloorIndexToAll()
 
 	//sort floor
 	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);
-
-	CFloorList vList = floors.m_vFloors;
+	CFloorList& vFloors = floors.m_vFloors;
 
 	FloorChangeMap floorIndexChangeMap;
-
-	for(int i=0;i<(int)vList.size();i++)
-	{
-		vList.at(i)->Level(i);	
-	}
-
 	floorIndexChangeMap.nNewFloorIndex.resize(floors.GetCount());
-	for(int i=0;i< floors.GetCount();i++)
+
+	int oldActiveFloor = floors.GetActiveFloorLevel();
+	for(int i=0; i<(int)floors.GetCount(); i++)
 	{
+		int iLevel = floors.GetFloor2(i)->Level();
 		floorIndexChangeMap.nNewFloorIndex[i] = floors.GetFloor2(i)->Level();
+		floors.GetFloor2(i)->Level(i);	
 	}
-	floors.m_vFloors = vList;
+
+	floors.ActiveFloor(floorIndexChangeMap.getNewFloor(oldActiveFloor));
 	floors.saveDataSet(pDoc->m_ProjInfo.path, false);
 
 	//modify placements
@@ -4891,24 +4889,26 @@ void CNodeView::ResetFloorIndexToAll()
 	}
 	portals.saveDataSet(pDoc->m_ProjInfo.path, false);
 
-// 	// MiscElevatorData
-// 	InputTerminal* pInTerm = GetInputTerminal();
-// 	MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase(Elevator);
-// 	int nMiscDataCount = pMiscDB->getCount();
-// 	for(int i = 0; i < nMiscDataCount; ++i)
-// 	{
-// 		MiscElevatorData* pMiscElevData = ((MiscDataElement*)pMiscDB->getItem(i))->getData();
-// 		int count = pMiscElevData->getStopAfFloorCount();
-// 		std::vector<BOOL> vOldStopAtFloor(count, FALSE);
-// 		for(int i=0; i<count; i++)
-// 		{
-// 			vOldStopAtFloor[i] = pMiscElevData->getStopAtFloor(i);
-// 		}
-// 		for(int i=0; i<count; i++)
-// 		{
-// 			pMiscElevData->setStopAtFloor(floorIndexChangeMap.getNewFloor(i), vOldStopAtFloor[i]);
-// 		}
-// 	}
+
+
+	// MiscElevatorData
+	InputTerminal* pInTerm = GetInputTerminal();
+	MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase(Elevator);
+	int nMiscDataCount = pMiscDB->getCount();
+	for(int i = 0; i < nMiscDataCount; ++i)
+	{
+		MiscElevatorData* pMiscElevData = (MiscElevatorData*)((MiscDataElement*)pMiscDB->getItem(i))->getData();
+		int count = pMiscElevData->getStopAfFloorCount();
+		std::vector<BOOL> vOldStopAtFloor(count, FALSE);
+		for(int i=0; i<count; i++)
+		{
+			vOldStopAtFloor[i] = pMiscElevData->getStopAtFloor(i);
+		}
+		for(int i=0; i<count; i++)
+		{
+			pMiscElevData->setStopAtFloor(floorIndexChangeMap.getNewFloor(i), vOldStopAtFloor[i]);
+		}
+	}
 }
 
 void CNodeView::OnBtnMoveUpFloor()
@@ -4949,14 +4949,15 @@ void CNodeView::OnBtnMoveDownFloor()
 	return;
 }
 
-void CNodeView::SwapTwoFloor(int flrIndex1, int flrIndex2)
+void CNodeView::SwapTwoFloor(int iSelFloor, int iTargetFloor)
 {
 	CTermPlanDoc* pDoc = GetDocument();
 	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);;
-	CFloor2* pFloorTmp = floors.m_vFloors[flrIndex2];
-	floors.m_vFloors[flrIndex2] = floors.m_vFloors[flrIndex1];
-	floors.m_vFloors[flrIndex1] = pFloorTmp;
+	CFloor2* pSelFloor = floors.m_vFloors[iSelFloor];
+	CFloor2* pTargetFloor = floors.m_vFloors[iTargetFloor];
 
+	floors.m_vFloors[iSelFloor] = pTargetFloor;
+	floors.m_vFloors[iTargetFloor] = pSelFloor;
 	ResetFloorIndexToAll();
 }
 
