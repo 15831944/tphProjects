@@ -156,6 +156,8 @@ bool PassengerFlowDatabase::AddChildToParent(const ProcessorID& id)
 		database = entry->getDatabase();
 		for (int j = 0; j < database->getCount(); j++)
 		{
+			if(vvParentsID[j].size() == 0)
+				continue;
 			ProcessorID * pid = &(*std::find(vvParentsID[j].begin(), vvParentsID[j].end(), *entry->getID()));
 			if(pid != &(*vvParentsID[j].end()))//find it
 			{

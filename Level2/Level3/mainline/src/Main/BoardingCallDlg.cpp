@@ -756,7 +756,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pSelItemData->m_data;
 			if(pTrigger == *(pPaxTypeEntry->GetTriggersDatabase().end()-1))
 			{
-				MessageBox("Can Not Delete The Default Trigger.");
+				MessageBox("Cannot delete the default trigger.");
 				return;
 			}
 			pPaxTypeEntry->DeleteTrigger(pTrigger);
