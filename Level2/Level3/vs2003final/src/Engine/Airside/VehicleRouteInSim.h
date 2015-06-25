@@ -28,16 +28,19 @@ public:
 	void AddData(const VehicleRouteNodePairDist& nodePair);
 	void PopBack();
 	void SetVehicleBeginPos(const CPoint2008& pos);
+	bool GetVehicleBeginPos(CPoint2008& ptBegin);
 
 	bool IsEmpty() const;
 
 	const AirsideResource* GetDestResource();
 	const VehicleLaneInSim* GetFirstLaneResource();
+	VehicleRouteNode* getLastNode();
 
 	void ClearRouteItems();
 
 	double GetLength()const;
 
+	AirsideVehicleInSim* GetParkSpotConflictLeadPaxBus(AirsideVehicleInSim* pVehicle,ClearanceItem& lastItem,  double dNextDist,double& dSafeDistInLane);
 
 protected:
 	

@@ -19,8 +19,9 @@
 #include "OnboardDoorInSim.h"
 
 
-AirsideMobElementBehavior::AirsideMobElementBehavior(Person* pax)
-:m_pax(pax)
+AirsidePassengerBehavior::AirsidePassengerBehavior(Person* pax)
+:AirsideMobElementBaseBehavior(pax)
+,m_pax(pax)
 ,m_IsOnBus(FALSE)
 ,m_ZPosition(1)
 ,m_bPaxBusSerivce(true)
@@ -37,7 +38,13 @@ AirsideMobElementBehavior::AirsideMobElementBehavior(Person* pax)
 		m_bArrivalPax = true;
 	}
 }
-AirsideMobElementBehavior::AirsideMobElementBehavior(Person* pax ,int curentstate):m_pax(pax),m_IsOnBus(FALSE),m_ZPosition(1),m_bPaxBusSerivce(true),m_pPaxBus(NULL)
+AirsidePassengerBehavior::AirsidePassengerBehavior(Person* pax ,int curentstate)
+:AirsideMobElementBaseBehavior(pax)
+,m_pax(pax)
+,m_IsOnBus(FALSE)
+,m_ZPosition(1)
+,m_bPaxBusSerivce(true)
+,m_pPaxBus(NULL)
 {
 	setState(curentstate) ;
 	if (curentstate == WALK_OUT_GATE)
@@ -49,61 +56,13 @@ AirsideMobElementBehavior::AirsideMobElementBehavior(Person* pax ,int curentstat
 		m_bArrivalPax = true;
 	}
 }
-void AirsideMobElementBehavior::setState( short newState )
-{
-	if(m_pax)
-		m_pax->setState(newState);
-}
 
-int AirsideMobElementBehavior::getState( void ) const
-{
-	return m_pax->getState();
-}
-
-AirsideMobElementBehavior::~AirsideMobElementBehavior()
+AirsidePassengerBehavior::~AirsidePassengerBehavior()
 {
 
 }
-void AirsideMobElementBehavior::GenetateEvent(ElapsedTime eventTime)
-{
-	PLACE_METHOD_TRACK_STRING();
-	//m_pax->generateEvent(time, false);
-// 	bool bDisallowGroup = false;
-// 	if(getState() == EntryOnboard)
-// 		bDisallowGroup = true;
-// 
-// 	enum EVENT_OPERATION_DECISTION enumRes =m_pax->m_pGroupInfo->ProcessEvent( eventTime, bDisallowGroup );
-// 	if( enumRes == REMOVE_FROM_PROCESSOR_AND_NO_EVENT )
-// 	{
-// 		return;
-// 	}
-// 	if( enumRes == NOT_GENERATE_EVENT )
-// 		return;
 
-	m_pax->MobileElement::generateEvent( eventTime, false);
-
-}
-
-void AirsideMobElementBehavior::ResetTerminalToAirsideLocation()
-{
-	PLACE_METHOD_TRACK_STRING();
-	Point point;
-	m_pax->getTerminalPoint(point);
-
-	CTermPlanDoc* pDoc = (CTermPlanDoc*) ((CMDIChildWnd *)((CMDIFrameWnd*)AfxGetApp()->m_pMainWnd)->GetActiveFrame())->GetActiveDocument();
-	int nFloor = (int)(point.getZ() / SCALE_FACTOR);
-	if (pDoc)
-	{
-		double dLz = pDoc->GetFloorByMode(EnvMode_Terminal).GetFloor2(nFloor)->RealAltitude();
-		setLocation(CPoint2008(point.getX(),point.getY(),dLz));
-	}
-	else
-	{
-		setLocation(CPoint2008(point.getX(),point.getY(),point.getZ()));
-	}
-}
-
-int AirsideMobElementBehavior::performanceMove(ElapsedTime p_time,bool bNoLog)
+int AirsidePassengerBehavior::performanceMove(ElapsedTime p_time,bool bNoLog)
 {
 	PLACE_METHOD_TRACK_STRING();
 	switch(getState())
@@ -162,7 +121,7 @@ int AirsideMobElementBehavior::performanceMove(ElapsedTime p_time,bool bNoLog)
 	}
 	return 1;
 }
-void AirsideMobElementBehavior::ProcessWhenTakeOffFlightWithNoBus(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenTakeOffFlightWithNoBus(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	CPoint2008 point ;
@@ -197,7 +156,7 @@ void AirsideMobElementBehavior::ProcessWhenTakeOffFlightWithNoBus(ElapsedTime ti
 	}
 
 }
-void AirsideMobElementBehavior::ProcessWhenTakeOffFlight(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenTakeOffFlight(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	
@@ -253,7 +212,7 @@ void AirsideMobElementBehavior::ProcessWhenTakeOffFlight(ElapsedTime time)
 	setState(TAKE_ON_BUS) ;
 	GenetateEvent(time + moveTime()) ;
 }
-void AirsideMobElementBehavior::ProcessWhenWaitforBus(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenWaitforBus(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	setLocation(getDest()) ;
@@ -261,7 +220,7 @@ void AirsideMobElementBehavior::ProcessWhenWaitforBus(ElapsedTime time)
 	//add the person to the waiting area 
 	//do not realize
 }
-void AirsideMobElementBehavior::ProcessWhenTakeOnBus(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenTakeOnBus(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	setLocation(getDest()) ;
@@ -285,7 +244,7 @@ void AirsideMobElementBehavior::ProcessWhenTakeOnBus(ElapsedTime time)
 	//add the person to the bus 
 	//do not realize
 }
-void AirsideMobElementBehavior::ProcessWhenTakeOffBusToGate(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenTakeOffBusToGate(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	CPoint2008 point ;
@@ -301,7 +260,7 @@ void AirsideMobElementBehavior::ProcessWhenTakeOffBusToGate(ElapsedTime time)
 	setState(ARRIVE_AT_GATE) ;
 	GenetateEvent(time + moveTime()) ;
 }
-void AirsideMobElementBehavior::ProcessWhenWaitForGateOpen(ElapsedTime time) 
+void AirsidePassengerBehavior::ProcessWhenWaitForGateOpen(ElapsedTime time) 
 {
 	PLACE_METHOD_TRACK_STRING();
 	setLocation(getDest()) ;
@@ -310,7 +269,7 @@ void AirsideMobElementBehavior::ProcessWhenWaitForGateOpen(ElapsedTime time)
 	//add the person to the waiting area 
 	//do not realize 
 }
-void AirsideMobElementBehavior::ProcessWhenArriveAtGate(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenArriveAtGate(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	setLocation( getDest()) ;
@@ -339,7 +298,7 @@ void AirsideMobElementBehavior::ProcessWhenArriveAtGate(ElapsedTime time)
 	}
 	// 
 }
-void AirsideMobElementBehavior::ProcessWhenWalkOutGate(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenWalkOutGate(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	if(!m_pax->getEngine()->IsAirsideSel())
@@ -367,7 +326,7 @@ void AirsideMobElementBehavior::ProcessWhenWalkOutGate(ElapsedTime time)
 	GenetateEvent(time + moveTime()) ;
 }
 
-void AirsideMobElementBehavior::ProcessWhenTakeOffBusToFlight(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenTakeOffBusToFlight(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	CPoint2008 point, groundpoint;
@@ -404,7 +363,7 @@ void AirsideMobElementBehavior::ProcessWhenTakeOffBusToFlight(ElapsedTime time)
 	time += ElapsedTime(point.distance3D(groundpoint)/(m_pax->getSpeed()*0.7));
 	GenetateEvent(time);
 }
-void AirsideMobElementBehavior::ProcessWhenWaitForFlight(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenWaitForFlight(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 
@@ -413,7 +372,7 @@ void AirsideMobElementBehavior::ProcessWhenWaitForFlight(ElapsedTime time)
 	WriteLog(time) ;
 	//add person to the standwaitingarea 
 }
-void AirsideMobElementBehavior::ProcessWhenTakeOnFlight(ElapsedTime time )
+void AirsidePassengerBehavior::ProcessWhenTakeOnFlight(ElapsedTime time )
 {
 	PLACE_METHOD_TRACK_STRING();
 	setLocation(getDest()) ;
@@ -432,13 +391,13 @@ void AirsideMobElementBehavior::ProcessWhenTakeOnFlight(ElapsedTime time )
 }
 
 
-void AirsideMobElementBehavior::ProcessWhenPassengerDeath(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessWhenPassengerDeath(ElapsedTime time)
 {
 	CloseDoor(time);
 	WriteLog(time, 0, Death);
 	m_pax->flushLog(time) ;
 }
-int AirsideMobElementBehavior::WriteLog(ElapsedTime time,const double speed, enum EntityEvents enumState /*= FreeMoving*/ )
+int AirsidePassengerBehavior::WriteLog(ElapsedTime time,const double speed, enum EntityEvents enumState /*= FreeMoving*/ )
 {
 	PLACE_METHOD_TRACK_STRING();
 	MobEventStruct track;
@@ -472,7 +431,7 @@ int AirsideMobElementBehavior::WriteLog(ElapsedTime time,const double speed, enu
 		return 1;
 	Terminal* pterminal = const_cast<Terminal*> (m_pax->GetTerminal()) ;
 	Person* pLeader = pGroupLeaderInfo->GetGroupLeader();
-	AirsideMobElementBehavior* pLeaderBehavior = pLeader->getAirsideBehavior();
+	AirsideMobElementBaseBehavior* pLeaderBehavior = pLeader->getAirsideBehavior();
 	CPoint2008 location = pLeaderBehavior->getPoint() ;
 	{
 		MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
@@ -540,7 +499,7 @@ int AirsideMobElementBehavior::WriteLog(ElapsedTime time,const double speed, enu
 	}
 	return 1 ;
 }
-BOOL AirsideMobElementBehavior::GetStandPosition(CPoint2008& point)
+BOOL AirsidePassengerBehavior::GetStandPosition(CPoint2008& point)
 {
 	PLACE_METHOD_TRACK_STRING();
    AirsideSimulation* airsideSim = m_pax->getEngine()->GetAirsideSimulation() ;
@@ -562,13 +521,13 @@ BOOL AirsideMobElementBehavior::GetStandPosition(CPoint2008& point)
 	point.setZ(point2008.getZ()) ;
 	return TRUE;
 }
-CPoint2008 AirsideMobElementBehavior::GetStandWaiteAreaPosition()
+CPoint2008 AirsidePassengerBehavior::GetStandWaiteAreaPosition()
 {
 	//need realize
  return CPoint2008() ;
 }
 
-BOOL AirsideMobElementBehavior::GetGateTerminalPoint(Point& point)
+BOOL AirsidePassengerBehavior::GetGateTerminalPoint(Point& point)
 {
 	PLACE_METHOD_TRACK_STRING();
 	int flightid = 0 ;
@@ -628,7 +587,7 @@ BOOL AirsideMobElementBehavior::GetGateTerminalPoint(Point& point)
 	return TRUE;
 }
 
-BOOL AirsideMobElementBehavior::GetGatePosition(CPoint2008& point)
+BOOL AirsidePassengerBehavior::GetGatePosition(CPoint2008& point)
 {
 	PLACE_METHOD_TRACK_STRING();
 	Point pt;
@@ -646,11 +605,11 @@ BOOL AirsideMobElementBehavior::GetGatePosition(CPoint2008& point)
 	}
 	return  FALSE;
 }
-CPoint2008 AirsideMobElementBehavior::GetGateWaiteAreaPosition()
+CPoint2008 AirsidePassengerBehavior::GetGateWaiteAreaPosition()
 {
 	return CPoint2008() ;
 }
-BOOL  AirsideMobElementBehavior::GetBusPosition(CPoint2008& point)
+BOOL  AirsidePassengerBehavior::GetBusPosition(CPoint2008& point)
 {
 	PLACE_METHOD_TRACK_STRING();
 	CAirsidePaxBusInSim* pCurPaxBus = NULL;
@@ -687,20 +646,20 @@ BOOL  AirsideMobElementBehavior::GetBusPosition(CPoint2008& point)
 
 	return TRUE ;
 }
-BOOL AirsideMobElementBehavior::IsBusArrived() 
+BOOL AirsidePassengerBehavior::IsBusArrived() 
 {
 	return FALSE ;
 }
-BOOL AirsideMobElementBehavior::IsFlightArrived()
+BOOL AirsidePassengerBehavior::IsFlightArrived()
 {
 	return TRUE ;
 }
-BOOL AirsideMobElementBehavior::IsGateOpen()
+BOOL AirsidePassengerBehavior::IsGateOpen()
 {
 	return TRUE ;
 }
 
-bool AirsideMobElementBehavior::GetFlightDoorPostion( CPoint2008& doorpoint, CPoint2008& groundpoint)
+bool AirsidePassengerBehavior::GetFlightDoorPostion( CPoint2008& doorpoint, CPoint2008& groundpoint)
 {
 	PLACE_METHOD_TRACK_STRING();
 	AirsideSimulation* airsideSim = m_pax->getEngine()->GetAirsideSimulation() ;
@@ -765,7 +724,7 @@ bool AirsideMobElementBehavior::GetFlightDoorPostion( CPoint2008& doorpoint, CPo
 	
 }
 
-CPoint2008 AirsideMobElementBehavior::GetServiceHoldAreaPoint()
+CPoint2008 AirsidePassengerBehavior::GetServiceHoldAreaPoint()
 {
 	PLACE_METHOD_TRACK_STRING();
 	CPoint2008 point = getPoint();
@@ -785,7 +744,7 @@ CPoint2008 AirsideMobElementBehavior::GetServiceHoldAreaPoint()
 	return outPoint;
 }
 
-void AirsideMobElementBehavior::ProcessHoldAreaToBus(ElapsedTime time)
+void AirsidePassengerBehavior::ProcessHoldAreaToBus(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 
@@ -810,7 +769,7 @@ void AirsideMobElementBehavior::ProcessHoldAreaToBus(ElapsedTime time)
 	GenetateEvent(time + moveTime()) ;
 }
 
-void AirsideMobElementBehavior::CloseDoor(const ElapsedTime& time)
+void AirsidePassengerBehavior::CloseDoor(const ElapsedTime& time)
 {
 	CARCportEngine* pEngine = m_pax->getEngine();
 
@@ -841,7 +800,7 @@ void AirsideMobElementBehavior::CloseDoor(const ElapsedTime& time)
 	}
 }
 
-void AirsideMobElementBehavior::WakeupHoldArea(ElapsedTime time)
+void AirsidePassengerBehavior::WakeupHoldArea(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	if (getState() == HOLDAREA_FOR_BUS)
@@ -850,37 +809,9 @@ void AirsideMobElementBehavior::WakeupHoldArea(ElapsedTime time)
 	}
 }
 
-ElapsedTime AirsideMobElementBehavior::moveTime (void) const
-{
-	PLACE_METHOD_TRACK_STRING();
-	ElapsedTime t;
-	//	if (location.getZ() != destination.getZ() || !location)
-	if (!location)
-		t = 0l;
-	else
-	{
 
-		double dLxy = m_ptDestination.distance(location);
-		double dLz = 0.0;
-		int nFloorFrom = (int)(location.getZ() / SCALE_FACTOR);
-		int nFloorTo = (int)(m_ptDestination.getZ() / SCALE_FACTOR);
-		double dL = dLxy;
-		
-		dLz = location.getZ() - m_ptDestination.getZ();
-		if( dLz < 0 )
-			dLz = -dLz;
-		Point pt(dLxy, dLz, 0.0);
-		dL = pt.length();
-		
 
-		//		double time = destination.distance(location);
-		double time = dL;
-		t = (float) (time / (double)m_pax->getSpeed());
-	}
-	return t;
-}
-
-void AirsideMobElementBehavior::setDestination(CPoint2008 p)
+void AirsidePassengerBehavior::setDestination(CPoint2008 p)
 {
 	PLACE_METHOD_TRACK_STRING();
 	if (m_pax->getType().GetTypeIndex() != 0)
@@ -898,7 +829,7 @@ void AirsideMobElementBehavior::setDestination(CPoint2008 p)
 		PaxVisitor* pVis = ((Passenger*)m_pax)->m_pVisitorList[i];
 		if( pVis )
 		{
-			AirsideMobElementBehavior* spFollowerBehavior = pVis->getAirsideBehavior();
+			AirsideMobElementBaseBehavior* spFollowerBehavior = pVis->getAirsideBehavior();
 			if (spFollowerBehavior)
 			{
 				spFollowerBehavior->setDestination( p );
@@ -907,51 +838,8 @@ void AirsideMobElementBehavior::setDestination(CPoint2008 p)
 	}
 }
 
-void AirsideMobElementBehavior::SetFollowerDestination(const CPoint2008& _ptCurrent, const CPoint2008& _ptDestination, float* _pRotation )
-{
-	PLACE_METHOD_TRACK_STRING();
 
-	if (m_pax->m_pGroupInfo->IsFollower())
-		return;
-	
-	CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pax->m_pGroupInfo;
-	if(!pGroupLeaderInfo->isInGroup())
-		return;
-	
-	MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
-	int nFollowerCount = elemList.getCount();
-	for( int i=0; i< nFollowerCount; i++ )
-	{
-		Person* _pFollower = (Person*) elemList.getItem( i );
-		if(_pFollower == NULL)
-			continue;  
-
-		MobElementBehavior* spBehavior = _pFollower->getCurrentBehavior();
-		if (spBehavior == NULL)
-		{
-			_pFollower->setBehavior(new AirsideMobElementBehavior(_pFollower,_pFollower->getState()));
-		}
-		else if (spBehavior->getBehaviorType()!= AirsideBehavior)
-		{
-			_pFollower->setBehavior(new AirsideMobElementBehavior(_pFollower,_pFollower->getState()));
-		}
-
-		CPoint2008 ptDestination(0.0, 0.0, 0.0);
-		ptDestination = _ptDestination;
-		float fDir = (i> (MAX_GROUP-1)) ? (float)0.0 : _pRotation[i+1];
-		ptDestination.offsetCoords( _ptCurrent, (double)fDir, GROUP_OFFSET );
-		if( _pFollower->getState() != Death )
-			_pFollower->setAirsideDestination( ptDestination );
-	}
-	
-}
-
-ElapsedTime AirsideMobElementBehavior::moveTime( DistanceUnit _dExtraSpeed, bool _bExtra )const
-{
-	return ElapsedTime();
-}
-
-void AirsideMobElementBehavior::ProcessEntryOnbaord( ElapsedTime p_time )
+void AirsidePassengerBehavior::ProcessEntryOnbaord( ElapsedTime p_time )
 {
 	PLACE_METHOD_TRACK_STRING();
 	// do not need departing to onboard mode.
@@ -1006,3 +894,58 @@ void AirsideMobElementBehavior::ProcessEntryOnbaord( ElapsedTime p_time )
 	}
 
 }
+void AirsidePassengerBehavior::SetFollowerDestination(const CPoint2008& _ptCurrent, const CPoint2008& _ptDestination, float* _pRotation )
+{
+	PLACE_METHOD_TRACK_STRING();
+
+	if (m_pMobileElemment->m_pGroupInfo->IsFollower())
+		return;
+
+	CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pMobileElemment->m_pGroupInfo;
+	if(!pGroupLeaderInfo->isInGroup())
+		return;
+
+	MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
+	int nFollowerCount = elemList.getCount();
+	for( int i=0; i< nFollowerCount; i++ )
+	{
+		Person* _pFollower = (Person*) elemList.getItem( i );
+		if(_pFollower == NULL)
+			continue;  
+
+		MobElementBehavior* spBehavior = _pFollower->getCurrentBehavior();
+		if (spBehavior == NULL)
+		{
+			_pFollower->setBehavior(new AirsidePassengerBehavior(_pFollower,_pFollower->getState()));
+		}
+		else if (spBehavior->getBehaviorType()!= AirsideBehavior)
+		{
+			_pFollower->setBehavior(new AirsidePassengerBehavior(_pFollower,_pFollower->getState()));
+		}
+
+		CPoint2008 ptDestination(0.0, 0.0, 0.0);
+		ptDestination = _ptDestination;
+		float fDir = (i> (MAX_GROUP-1)) ? (float)0.0 : _pRotation[i+1];
+		ptDestination.offsetCoords( _ptCurrent, (double)fDir, GROUP_OFFSET );
+		if( _pFollower->getState() != Death )
+		{
+			//_pFollower->setAirsideDestination( ptDestination );
+
+			MobElementBehavior* spBehavior = _pFollower->getCurrentBehavior();
+			if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
+			{
+				AirsideMobElementBaseBehavior* spAirsideBehavior = _pFollower->getAirsideBehavior();
+				if (spAirsideBehavior == NULL)
+				{
+					_pFollower->setBehavior(new AirsidePassengerBehavior(_pFollower,getState()));
+				}
+
+				spAirsideBehavior = _pFollower->getAirsideBehavior();
+				spAirsideBehavior->setDestination(ptDestination);
+			}
+		}
+	}
+
+}
+
+

@@ -79,6 +79,7 @@
 #include "Floors.h"
 #include "Shlwapi.h"
 #include "AirsideReportView.h"
+#include "CompareReportView.h"
 #include "LogSettingDlg.h"
 #include "LogDisplayDlg.h"
 #include "AirsideMSView.h"
@@ -91,6 +92,7 @@
 //#include "../InputAirside/AirsideImportExportManager.h"
 //#include "AirsideGround.h"
 #include "MultiRunRepControlView.h"
+#include "../compare/CmpReportCtrl.h"
 #include "common/MultiRunReport.h"
 
 #include "ImportExportManager.h"
@@ -176,7 +178,6 @@
 #include "ARCportLayoutEditor.h"
 #include "Common/IEnvModeEditContext.h"
 #include "DlgAnimationSpeed.h"
-#include "CompareReportDoc.h"
 
 //IMPL_CHLOE_SYSTEM()
 //
@@ -4978,14 +4979,28 @@ void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NU
 	theApp.m_pCompareReportTemplate2->InitialUpdateFrame(pNewFrame, pDoc);
 	pNewFrame->ShowWindow(SW_MAXIMIZE);
 
+	POSITION pos = pDoc->GetFirstViewPosition();
+	CView * pTempView =	NULL;
+	CCompareReportView* pCmpReportView = NULL;
+	while (pos != NULL)
+	{
+		pTempView = pDoc->GetNextView(pos);
+
+		if (pTempView->IsKindOf(RUNTIME_CLASS(CCompareReportView)))
+		{
+			pCmpReportView = (CCompareReportView *)pTempView;
+			break;
+		}
+	}
+
+	CCmpReportCtrl* pReport = pCmpReportView->GetReportWnd();
+	pReport->InitWindow();	
 	if (!strName.IsEmpty())// && !strDesc.IsEmpty())
 	{
-		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
+		pReport->GetReportManager()->GetCmpReport()->LoadProject(strName, strDesc);
+		pReport->UpdateAllWnds();
 	}
-	TCHAR szText[256+_MAX_PATH];
-	const CString projName = ((CCompareReportDoc*)pDoc)->GetCmpReport()->GetComparativeProject()->GetName();
-	lstrcpy(szText, projName + " - " + "Comparative report");
-	pNewFrame->SetWindowText(szText);
+
 	pDoc->UpdateAllViews(NULL);
 }
 
@@ -4999,6 +5014,19 @@ void CMainFrame::OnComparativerun()
 	assert( pDoc!= NULL );
 	if (pDoc == NULL)
 		return;
+
+	POSITION pos = pDoc->GetFirstViewPosition();
+
+	CView * pTempView;
+	while (pos != NULL)
+	{
+		pTempView = pDoc->GetNextView(pos);
+		
+		if (pTempView->IsKindOf(RUNTIME_CLASS(CCompareReportView)))
+		{
+//			((CCompareReportView2 *)pTempView)->RunCompReport();
+		}
+	}
 }
 
 void CMainFrame::ChangeSize(const CRect rcWnd, const CRect rcClient, UINT nIndex)

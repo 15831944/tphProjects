@@ -21,7 +21,7 @@ CCmpReport::CCmpReport(void)
 {	
 	m_strPrevModelName.Empty();
 	m_strProjName.Empty();
-	m_strCurReport.Empty();
+
 	m_bModified = FALSE;
 	m_compProject = NULL;
 }

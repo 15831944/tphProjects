@@ -16,12 +16,18 @@ class AirsideResource;
 class CPaxBusParkingResourceManager;
 class DeiceResourceManager;
 class AirsideMeetingPointInSim;
+class CBagCartsParkingSpotResourceManager;
 
 class VehicleRouteResourceManager
 {
 public:
 	bool Init(int nPrjID, int nAirportID, IntersectionNodeInSimList& NodeList);	
-	bool InitRelations(StandResourceManager& standres, DeiceResourceManager& deiceRes, VehiclePoolResourceManager& poolRes, TaxiwayResourceManager& taxiwayRes, CPaxBusParkingResourceManager& paxBusRes);
+	bool InitRelations(StandResourceManager& standres,
+		DeiceResourceManager& deiceRes,
+		VehiclePoolResourceManager& poolRes,
+		TaxiwayResourceManager& taxiwayRes,
+		CPaxBusParkingResourceManager& paxBusRes,
+		CBagCartsParkingSpotResourceManager& pBagCartsParkingSpotResManager);
 	bool InitRelationsWithMeetingPoint(const std::vector<AirsideMeetingPointInSim*>& vMeetingPoints);	
 
 	//initialize the dij shortest path
@@ -58,7 +64,7 @@ protected:
 	bool InitIntersectionWithTaxiways(TaxiwayResourceManager& taxiwayRes);
 	void InitTaxiwayLanes(TaxiwayResourceManager& taxiRes);
 	
-	
+	bool InitRelationsWithBagCartsParkingSpot(CBagCartsParkingSpotResourceManager& pBagCartsParkingSpotResManager);	
 protected:
 	std::vector<VehicleStretchInSim*> m_vStretches;
 	std::vector<VehicleRoadIntersectionInSim*> m_vIntersections;	

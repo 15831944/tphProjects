@@ -45,6 +45,7 @@ bool AirportResourceManager::Init( int projID, int nAirportID, CAirportDatabase*
 		m_VehiclePoolRes.Init(projID,nAirportID);
 		m_vIntersectionNodes.Init(projID, nAirportID);
 		m_VehicleRouteRes.Init(projID, nAirportID,m_vIntersectionNodes);	
+		m_pBagCartsParkingSpotResManager.initialize(projID, nAirportID);
 		
 	}
 
@@ -68,7 +69,7 @@ bool AirportResourceManager::Init( int projID, int nAirportID, CAirportDatabase*
 		m_VehicleRouteRes.InitRelationsWithMeetingPoint(m_vMeetingPoints);
 
 
-		m_VehicleRouteRes.InitRelations(m_StandRes,m_DeiceRes, m_VehiclePoolRes,m_TaxiwayRes,m_paxParkingResouceManager);
+		m_VehicleRouteRes.InitRelations(m_StandRes,m_DeiceRes, m_VehiclePoolRes,m_TaxiwayRes,m_paxParkingResouceManager, m_pBagCartsParkingSpotResManager);
 		m_TakeoffQueueManager.Init(projID,this);
 		m_InterruptLineList.Init(this);
 
@@ -303,4 +304,9 @@ void AirportResourceManager::GetStartPosition( const ALTObjectID& objID, std::ve
 		if (pStartPos->GetStartPosition()->GetObjectName().idFits(objID))
 			vStartPos.push_back(pStartPos);
 	}
+}
+
+CBagCartsParkingSpotResourceManager * AirportResourceManager::getBagCartsParkingSpotResManager()
+{
+	return &m_pBagCartsParkingSpotResManager;
 }

@@ -73,8 +73,8 @@ public:
 	bool AllowCyclicGroundRoute(){return m_bAllowCyclicGroundRoute;}
 
 private:
-	void VehicleGeneration(int nStartidx, int nCount,CVehicleSpecificationItem* pVehicleSpecItem, int nPoolId, ElapsedTime tBirthTime);
-	AirsideVehicleInSim* GenerateBaseTypeVehicle(int id,int nPrjID,CVehicleSpecificationItem *pVehicleSpecItem);
+	void VehicleGeneration(int& nNextVehicleUnqiueID, int nCount,CVehicleSpecificationItem* pVehicleSpecItem, int nPoolId, ElapsedTime tBirthTime, CVehicleSpecifications *pVehicleSpecifications);
+	AirsideVehicleInSim* GenerateBaseTypeVehicle(int& nNextVehicleUnqiueID,int nPrjID,CVehicleSpecificationItem *pVehicleSpecItem, CVehicleSpecifications *pVehicleSpecifications);
 	void ItinerantFlightGeneration();
 	void InitAirsideFlightExtraInfomation();
 	void OnboardFlightGeneration(AirsideFlightInSim * pFlightInSim);

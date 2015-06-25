@@ -80,6 +80,8 @@ public :
 	ALTObject3DList m_vCircleStretchs;
 	ALTObject3DList m_vStartPositions;
 	ALTObject3DList m_vMeetingPoints;
+	ALTObject3DList m_vPaxBusParkSpots;
+	ALTObject3DList m_vBagCartParkSpots;
 	//ALTObject3DList m_vrLaneAdapter;
 
 	IntersectionNodesInAirport m_vAirportNodes;

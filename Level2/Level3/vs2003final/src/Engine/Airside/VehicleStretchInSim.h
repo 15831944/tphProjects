@@ -274,6 +274,8 @@ public:
 	virtual bool bLocked(ARCMobileElement* pmob,const RouteDirPath* pPath)const;
 	virtual bool bMobileInResource(ARCMobileElement* pmob)const;
 
+	const CPath2008& getPath()const{ return m_path; }
+	DistanceUnit getWidth()const;
 protected:
 	DistanceUnit m_dDistFromAtStretch;
 	DistanceUnit m_dDistToAtStretch;
@@ -302,7 +304,8 @@ public:
 	VehicleStretchSegmentInSim* GetSegment(int idx)const;
 
 	std::vector<VehicleStretchSegmentInSim*> GetSegments(VehicleRoadIntersectionInSim*fromNode, VehicleRoadIntersectionInSim* toNode );
-
+	
+	DistanceUnit getWidth()const{ return m_stretchInput->GetLaneWidth()* m_stretchInput->GetLaneNumber(); }
 protected:
 	std::vector<VehicleStretchSegmentInSim*> m_vSegments;
 	Stretch::RefPtr m_stretchInput;

@@ -600,7 +600,7 @@ VehicleStretchSegmentInSim* VehicleStrethRouteUserDefineInSimList::GetClosestLan
 	VehicleStretchSegmentInSim* pStretchSeg = NULL;
 
 
-	CPoint2008 poolPos = pPoolRes->GetRandPoint();
+	CPoint2008 poolPos = pPoolRes->GetCenterPoint();
 
 	DistanceUnit MinDist = ARCMath::DISTANCE_INFINITE;
 	DistanceUnit distInLane = 0;
@@ -694,7 +694,7 @@ VehicleStretchSegmentInSim *VehicleStrethRouteUserDefineInSimList::GetClosestLan
 	else if(pRes->GetType() == AirsideResource::ResType_VehiclePool)
 	{
 		pStrechSeg = GetClosestLaneToVehiclePool((VehiclePoolInSim *)pRes);
-		PtResource = ((VehiclePoolInSim *)pRes)->GetRandPoint();
+		PtResource = ((VehiclePoolInSim *)pRes)->GetCenterPoint();
 	}
 	else if(pRes->GetType() == AirsideResource::ResType_PaxBusParking)
 	{

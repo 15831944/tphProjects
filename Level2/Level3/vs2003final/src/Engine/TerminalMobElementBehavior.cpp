@@ -470,7 +470,7 @@ void TerminalMobElementBehavior::processEntryAirside(ElapsedTime p_time)
 			}
 
 			generateEvent( p_time, false);
-			m_pPerson->setBehavior( new AirsideMobElementBehavior( m_pPerson,State));
+			m_pPerson->setBehavior( new AirsidePassengerBehavior( m_pPerson,State));
 
 			return;// departing to Airside mode.
 		}

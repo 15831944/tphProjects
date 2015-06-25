@@ -18,6 +18,139 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Neutral (Sys. Default) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
+#ifdef _WIN32
+LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
+#pragma code_page(936)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_VEHICLETYPEDEF DIALOGEX 0, 0, 411, 255
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "General Vehicle Characteristics"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "Level",IDC_STATIC,7,7,18,8
+    COMBOBOX        IDC_COMBO_LEVEL,8,18,133,60,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_PAXNAME,9,83,130,138,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Vehicle Type Hierarchy",IDC_STATIC,153,7,84,8
+    CONTROL         "Tree1",IDC_TREE_PAX,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    WS_BORDER | WS_TABSTOP,153,18,251,202
+    GROUPBOX        "",IDC_STATIC_FRAME,9,61,129,160
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,11,66,125,
+                    16,SS_SUNKEN
+    LTEXT           "Name",IDC_STATIC,10,35,40,8
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,235,234,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,295,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,353,234,50,14
+    EDITTEXT        IDC_EDIT_NAME,8,47,130,14,ES_AUTOHSCROLL
+END
+
+IDD_DIALOG_VEHICLEDIST DIALOGEX 0, 0, 436, 255
+STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Distribution of Characteristics"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER2,155,18,
+                    119,16,SS_SUNKEN
+    LTEXT           "Distribution",IDC_STATIC_PAXDIST,155,5,81,11
+    LISTBOX         IDC_LIST_FLIGHT,15,34,123,192,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Tree1",IDC_TREE_DIST,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,
+                    155,34,274,192
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,234,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,325,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,379,234,50,14
+    LTEXT           "Vehicles",IDC_STATIC,16,5,54,10
+    GROUPBOX        "",IDC_STATIC_FRAME,15,14,126,215
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,17,18,119,
+                    16,SS_SUNKEN
+    GROUPBOX        "",IDC_STATIC_FRAME3,155,14,277,215
+    PUSHBUTTON      "Copy",IDC_BUTTON_COPY,163,234,50,14
+    PUSHBUTTON      "Paste",IDC_BUTTON_PASTE,217,234,50,14
+END
+
+IDD_DIALOG_LAYOUTOPTIONS DIALOGEX 0, 0, 160, 102
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Set Layout Options"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,46,79,50,16
+    PUSHBUTTON      "Cancel",IDCANCEL,103,79,50,16
+    LTEXT           "Drive",IDC_STATIC_DRIVE,11,35,17,8
+    COMBOBOX        IDC_COMBO_DATA,46,33,107,43,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 404
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_VEHICLEDIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 429
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 153
+        VERTGUIDE, 46
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 95
+        HORZGUIDE, 44
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_CTX_LANDSIDELAYOUT MENU 
+BEGIN
+    POPUP "Submenu"
+    BEGIN
+        MENUITEM "Set Options...",              ID_CTX_LAYOUT
+        MENUITEM "Comments...",                 ID_CTX_COMMENTS
+        MENUITEM "Help",                        ID_CTX_HELP
+    END
+END
+
+#endif    // Neutral (Sys. Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // Chinese (P.R.C.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
@@ -8370,6 +8503,10 @@ BEGIN
                     370,109,193,11
     LTEXT           "Assigning progress:",IDC_STATIC_ASSIGNPRO,300,109,65,11,
                     SS_CENTERIMAGE
+    CONTROL         "Departures",IDC_ROSTER_DEP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,82,5,51,10
+    CONTROL         "Arrivals",IDC_ROSTER_ARR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,138,5,39,10
 END
 
 IDD_DIALOG_ROSTER_ASSIGN_SUMMARY DIALOGEX 0, 0, 455, 242
@@ -8386,30 +8523,19 @@ BEGIN
                     WS_BORDER | WS_TABSTOP,7,7,441,214
 END
 
-IDD_CMPREPORTTREEVIEW DIALOGEX 0, 0, 180, 180
-STYLE DS_SETFONT | WS_CHILD
-FONT 8, "MS Sans Serif", 0, 0, 0x0
+IDD_DIALOG_AIRSIDE_ENROUTEQCAPACITY DIALOGEX 0, 0, 438, 249
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "Enroute Queue Capacity"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-END
-
-IDD_CMPREPORTLISTVIEW DIALOGEX 0, 0, 180, 180
-STYLE DS_SETFONT | WS_CHILD
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-END
-
-IDD_CMPREPORTGRAPHVIEW DIALOGEX 0, 0, 412, 243
-STYLE DS_SETFONT | WS_CHILD
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,7,7,52,19,
-                    SS_SUNKEN
-    COMBOBOX        IDC_REPORT_LIST_COMBO,100,3,109,80,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Select Chart",IDC_STATIC,60,3,40,11
-    LTEXT           "Chart Type",IDC_STATIC_CHARTTYPE,220,3,40,12
-    COMBOBOX        IDC_CHART_TYPE_COMBO,270,3,72,93,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,326,228,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,381,228,50,14
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,228,50,14
+    GROUPBOX        "",IDC_STATIC_FRAME,7,3,424,217
+    CONTROL         "",IDC_TREE_CONTENT,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,
+                    7,23,424,196
 END
 
 
@@ -11694,318 +11820,16 @@ BEGIN
         BOTTOMMARGIN, 235
     END
 
-    IDD_CMPREPORTTREEVIEW, DIALOG
+    IDD_DIALOG_AIRSIDE_ENROUTEQCAPACITY, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 173
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 173
-    END
-
-    IDD_CMPREPORTLISTVIEW, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 173
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 173
-    END
-
-    IDD_CMPREPORTGRAPHVIEW, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 405
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 236
+        RIGHTMARGIN, 431
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 242
     END
 END
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_BITMAP_FOLDER_FILE  BITMAP                  "res\\bitmap_folder_file.bmp"
-IDB_BITMAP_RUNWAY       BITMAP                  "Res\\Runway.bmp"
-IDB_BITMAP_TAXIWAY      BITMAP                  "Res\\Taxiway.bmp"
-IDB_BITMAP_STAND        BITMAP                  "Res\\Stand.bmp"
-IDB_BITMAP_WAYPOINT     BITMAP                  "Res\\Waypoint.bmp"
-IDB_BITMAP_HOLD         BITMAP                  "Res\\Hold.bmp"
-IDB_BITMAP_SECTOR       BITMAP                  "Res\\Sector.bmp"
-IDB_TOOLBAR_3DCHART_NORMAL BITMAP                  "res\\ToolbarChart.bmp"
-IDB_TOOLBAR_3DCHART_HOT BITMAP                  "res\\ToolbarChartHot.bmp"
-IDB_TOOLBAR_3DCHART_DISABLE BITMAP                  "res\\ToolbarChartGray.bmp"
-IDB_BITMAP_DLG_DLBUTTON BITMAP                  "res\\bitmap6.bmp"
-IDR_TOOLBAR2            BITMAP                  "res\\bmp00021.bmp"
-IDR_TOOLBAR3            BITMAP                  "res\\toolbar3.bmp"
-IDR_TOOLBAR5            BITMAP                  "res\\toolbar5.bmp"
-IDR_TOOLBAR_ACCOMPONENT_EDIT BITMAP                  "res\\toolbar4.bmp"
-IDR_TOOLBAR_ADDANDCANCEL BITMAP                  "res\\bmp00012.bmp"
-IDR_TOOLBAR_ADDANDCANCELFIR BITMAP                  "res\\bmp00013.bmp"
-IDR_TOOLBAR_ADDANDCANCELSEC BITMAP                  "res\\toolbar_.bmp"
-IDB_UPARROW             BITMAP                  "res\\UpArrow.bmp"
-IDB_DOWNARROW           BITMAP                  "res\\DownArrow.bmp"
-IDB_LARGENODEIMAGES     BITMAP                  "res\\listimag.bmp"
-IDB_3DTURN              BITMAP                  "res\\Controls_Turn.bmp"
-IDB_3DBKGND             BITMAP                  "res\\Controls_BackGround.bmp"
-IDB_3DHT                BITMAP                  "res\\Controls_HitTest.bmp"
-IDB_3DMOVE              BITMAP                  "res\\Controls_Move.bmp"
-IDB_3DPITCHROLL         BITMAP                  "res\\Controls_PitchRoll.bmp"
-IDB_3DALTITUDE          BITMAP                  "res\\Controls_Altitude.bmp"
-IDB_NODELARGEIMG        BITMAP                  "res\\nodeimagesRGB.bmp"
-IDB_NODESMALLIMG        BITMAP                  "res\\nodesmallimagesRGB.bmp"
-IDB_SMALLNODEIMAGES     BITMAP                  "res\\smallnod.bmp"
-IDB_FLOORLARGEIMG       BITMAP                  "res\\floorLargeIMG.bmp"
-IDB_FLOORSMALLIMG       BITMAP                  "res\\floorSmallIMG.bmp"
-IDB_CAMLARGEIMG         BITMAP                  "res\\cameraLargeIMG.bmp"
-IDB_CAMSMALLIMG         BITMAP                  "res\\cameraSmallIMG.bmp"
-IDR_PROJSELECTBAR       BITMAP                  "res\\toolbar2.bmp"
-IDR_UNITSBAR            BITMAP                  "res\\toolbar1.bmp"
-IDB_SLIDERMARKER        BITMAP                  "Res\\marker.bmp"
-IDR_FLIGHTSCHEDULEBAR   BITMAP                  "res\\listctrltoolbar.bmp"
-IDB_EMPTYNODEIMAGES     BITMAP                  "res\\emptynode.bmp"
-IDR_PEOPLEMOVEBAR       BITMAP                  "res\\peoplemove.bmp"
-IDR_ZOOMINOUTTOOLBAR    BITMAP                  "res\\zoominoutbar.bmp"
-IDR_REPORTTOOLBAR       BITMAP                  "res\\reportto.bmp"
-IDR_ADDDELEDITTOOLBAR   BITMAP                  "res\\adddeled.bmp"
-IDB_NORCDF              BITMAP                  "Res\\norcdf.bmp"
-IDB_NORCHA              BITMAP                  "Res\\norcha.bmp"
-IDB_HISTOGRAM           BITMAP                  "Res\\Histogram.bmp"
-IDB_EXPIRICAL           BITMAP                  "Res\\Expirical.bmp"
-IDB_UNIFORM             BITMAP                  "Res\\Uniform.bmp"
-IDB_EXPONENTIAL         BITMAP                  "Res\\Exponential.bmp"
-IDB_TOOLBAR_ANIMATION_HOT BITMAP                  "res\\animtool.bmp"
-IDB_TOOLBAR_ANIMATION_DISABLE BITMAP                  "Res\\animtool_W.bmp"
-IDB_TOOLBAR_ANIMATION_NORMAL BITMAP                  "Res\\animtool_G.bmp"
-IDB_ARROWLTOR           BITMAP                  "Res\\arrowLtoR.bmp"
-IDB_AREASSMALLIMG       BITMAP                  "Res\\areasSmallIMG.bmp"
-IDB_PORTALSSMALLIMG     BITMAP                  "Res\\portalsSmallIMG.bmp"
-IDB_BITMAP_SPHERE       BITMAP                  "res\\yuan.bmp"
-IDR_SHAPESBAR           BITMAP                  "res\\shapesba.bmp"
-IDB_UCPROCSMALL         BITMAP                  "Res\\ucprocSmallIMG.bmp"
-IDB_BITMAP_PYRAMID      BITMAP                  "res\\zhui ti.bmp"
-IDB_BITMAP_CUBE         BITMAP                  "res\\fang .bmp"
-IDB_BITMAP_PERSON       BITMAP                  "Res\\guyshape.bmp"
-IDB_MULTICOLOR          BITMAP                  "res\\multicol.bmp"
-IDB_BITMAP_DETAILMAN    BITMAP                  "Res\\maleperson_shape.bmp"
-IDB_BITMAP_DETAILWOMAN  BITMAP                  "Res\\femaleperson_shape.bmp"
-IDR_PAXDIST             BITMAP                  "res\\paxdist.bmp"
-IDB_BITMAP_DASH1        BITMAP                  "RES\\dash1.bmp"
-IDB_BITMAP_DASH2        BITMAP                  "RES\\dash2.bmp"
-IDB_BITMAP_DASH3        BITMAP                  "RES\\dash3.bmp"
-IDB_BITMAP_SOLID1       BITMAP                  "RES\\solid1.bmp"
-IDB_BITMAP_SOLID2       BITMAP                  "RES\\solid2.bmp"
-IDB_BITMAP_SOLID3       BITMAP                  "RES\\solid3.bmp"
-IDB_BITMAP_DOT1         BITMAP                  "RES\\dot1.bmp"
-IDB_BITMAP_DOT2         BITMAP                  "RES\\dot2.bmp"
-IDB_BITMAP_DOT3         BITMAP                  "RES\\dot3.bmp"
-IDB_BITMAP_PFP          BITMAP                  "Res\\SUMW1.bmp"
-IDR_PRIORITY_ASSIGNMENT BITMAP                  "res\\bmp_seldefined.bmp"
-IDB_BITMAP_B747         BITMAP                  "Res\\747ICON.bmp"
-IDB_BITMAP_BAG          BITMAP                  "Res\\BAGICON.bmp"
-IDB_BITMAP_JAGUAR       BITMAP                  "Res\\JAGUARICON.bmp"
-IDR_BAGDEV_GATE         BITMAP                  "res\\bmp00002.bmp"
-IDR_TOOLBAR_STATION_LINKER BITMAP                  "res\\stationlinker.bmp"
-IDR_TOOLBAR_CARSCHEDULE BITMAP                  "res\\carschedul_.bmp"
-IDR_TOOLBAR_PIPE        BITMAP                  "res\\pipe.bmp"
-CBD                     BITMAP                  "res\\cbd.bmp"
-CBU                     BITMAP                  "res\\cbu.bmp"
-IDB_TOOLBAR_ANIMATION_SPEED_DISABLE BITMAP                  "Res\\speedtool2_W.bmp"
-IDB_TOOLBAR_ANIMATION_SPEED_HOT BITMAP                  "Res\\speedtool2.bmp"
-IDB_TOOLBAR_ANIMATION_SPEED_NORMAL BITMAP                  "Res\\speedtool2_G.bmp"
-IDB_TOOLBAR_MAIN_HOT    BITMAP                  "Res\\systool2.bmp"
-IDB_TOOLBAR_MAIN_NORMAL BITMAP                  "Res\\systool2_G.bmp"
-IDB_TOOLBAR_MAIN_DISABLE BITMAP                  "Res\\systool2_W.bmp"
-IDB_TOOLBAR_PIPE_HOT    BITMAP                  "Res\\pipetool.bmp"
-IDB_TOOLBAR_PIPE_NORMAL BITMAP                  "Res\\pipetool_G.bmp"
-IDB_TOOLBAR_PIPE_DISABLE BITMAP                  "Res\\pipetool_W.bmp"
-IDB_TOOLBAR_LAYOUT_DISABLE BITMAP                  "Res\\layouttool_W.bmp"
-IDB_TOOLBAR_LAYOUT_HOT  BITMAP                  "Res\\layouttool.bmp"
-IDB_TOOLBAR_LAYOUT_NORMAL BITMAP                  "Res\\layouttool_G.bmp"
-IDB_TOOLBAR_CAMERA_DISABLE BITMAP                  "Res\\camtool_W.bmp"
-IDB_TOOLBAR_CAMERA_HOT  BITMAP                  "Res\\camtool.bmp"
-IDB_TOOLBAR_CAMERA_NORMAL BITMAP                  "Res\\camtool_G.bmp"
-IDR_PIPESHOW_TOOLBAR    BITMAP                  "res\\bmp00001.bmp"
-IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
-IDB_IMAGELIST_SMALL     BITMAP                  "res\\treeImageList.bmp"
-IDB_IMAGELIST_LARGE     BITMAP                  "res\\imageList.bmp"
-IDR_PROCASSIGN_NEW      BITMAP                  "res\\procassi.bmp"
-IDB_OPERATE             BITMAP                  "res\\operate.bmp"
-IDB_TRA_N               BITMAP                  "res\\TraN.bmp"
-IDB_TRA_N1              BITMAP                  "res\\tra_n1.bmp"
-IDR_PROCESS_DEFINE      BITMAP                  "res\\bmp00003.bmp"
-IDB_PROCESS             BITMAP                  "res\\bitmap3.bmp"
-IDB_TOOLBAR_ANIMATION_PAX_DISABLE BITMAP                  "res\\bmp00006.bmp"
-IDB_TOOLBAR_ANIMATION_PAX_HOT BITMAP                  "res\\bmp00004.bmp"
-IDB_TOOLBAR_ANIMATION_PAX_NORMAL BITMAP                  "res\\bmp00005.bmp"
-IDR_MOBILE_ELEMENT_FLOWTREE BITMAP                  "res\\mob.bmp"
-IDR_MOBILE_ELEMENT_TYPE BITMAP                  "res\\mobile_e.bmp"
-IDB_PROCESSES           BITMAP                  "res\\process1.bmp"
-IDR_ADDDEL_PROCESSOR_DATA BITMAP                  "res\\adddel_p.bmp"
-IDR_LINKAGE             BITMAP                  "res\\process_.bmp"
-IDB_GATE                BITMAP                  "res\\bmp00007.bmp"
-IDR_LINKAGETOOLBAR      BITMAP                  "res\\linkagebar.bmp"
-IDB_CHECK_BOX           BITMAP                  "res\\check_bo.bmp"
-IDB_ALL_SIMULATION_RESULT_LISTCTRL BITMAP                  "res\\all_simu.bmp"
-IDR_PDPARAMTOOLBAR      BITMAP                  "res\\pdparamt.bmp"
-IDB_TOOLBAR_RUNDELTA_HOT BITMAP                  "RES\\animtoolbar_delta+run.bmp"
-IDB_TOOLBAR_RUNDELTA_NORMAL BITMAP                  "RES\\animtoolbar_delta+run_G.bmp"
-IDB_TOOLBAR_RUNDELTA_DISABLED BITMAP                  "RES\\animtoolbar_delta+run_W.bmp"
-IDB_TOOLBAR_FIRE_DISABLED BITMAP                  "RES\\firetoolbar_W.bmp"
-IDB_TOOLBAR_FIRE_HOT    BITMAP                  "RES\\firetoolbar.bmp"
-IDB_TOOLBAR_FIRE_NORMAL BITMAP                  "RES\\firetoolbar_G.bmp"
-IDB_TOOLBAR_INFO_HOT    BITMAP                  "RES\\infotoolbar.bmp"
-IDB_TOOLBAR_INFO_NORMAL BITMAP                  "RES\\infotoolbar_G.bmp"
-IDB_TOOLBAR_INFO_DISABLED BITMAP                  "RES\\infotoolbar_W.bmp"
-IDB_BITMAP_KEYFRAME     BITMAP                  "RES\\keyframe.bmp"
-IDB_DATABASE            BITMAP                  "res\\database.bmp"
-IDB_BITMAP_FIRE96       BITMAP                  "RES\\fire96.bmp"
-IDR_MAIN                BITMAP                  "res\\main.bmp"
-IDR_NAMELIST_TEXT       BITMAP                  "res\\bmp00008.bmp"
-IDR_COMPARE_REPORT_RESULT BITMAP                  "res\\bmp00009.bmp"
-IDR_BOARDING_CALL       BITMAP                  "res\\bmp00010.bmp"
-IDR_MOVIETOOLBAR        BITMAP                  "res\\movietb.bmp"
-IDR_WALKTHROUGHTOOLBAR  BITMAP                  "res\\movietb.bmp"
-IDB_TOOLBAR_FLOOR_HOT   BITMAP                  "RES\\floortoolbar.bmp"
-IDB_TOOLBAR_FLOOR_NORMAL BITMAP                  "RES\\floortoolbar_G.bmp"
-IDB_TOOLBAR_FLOOR_DISABLED BITMAP                  "RES\\floortoolbar_W.bmp"
-IDR_RESOURCEPOOL_BAR    BITMAP                  "res\\bmp00011.bmp"
-IDR_TOOLBAR_GLOBALDBMAN BITMAP                  "res\\globaldbman.bmp"
-IDB_BITMAP_LOGOARC      BITMAP                  "RES\\ARC-Logo.bmp"
-IDB_TOOLBAR_HIDEPROCTAGS_DISABLED BITMAP                  "RES\\hideproctagstoolbar_W.bmp"
-IDB_TOOLBAR_HIDEPROCTAGS_HOT BITMAP                  "RES\\hideproctagstoolbar.bmp"
-IDB_TOOLBAR_HIDEPROCTAGS_NORMAL BITMAP                  "RES\\hideproctagstoolbar_G.bmp"
-IDB_TOOLBAR_HIDEACTAGS_DISABLED BITMAP                  "RES\\hideactagstoolbar_W.bmp"
-IDB_TOOLBAR_HIDEACTAGS_HOT BITMAP                  "RES\\hideactagstoolbar.bmp"
-IDB_TOOLBAR_HIDEACTAGS_NORMAL BITMAP                  "RES\\hideactagstoolbar_G.bmp"
-IDR_PAXBULK             BITMAP                  "res\\paxbulk.bmp"
-IDB_TOOLBAR_COMPARATIVEREPORT_DISABLE BITMAP                  "Res\\ComparativeReport_d.bmp"
-IDB_TOOLBAR_COMPARATIVEREPORT_HOT BITMAP                  "Res\\ComparativeReport_h.bmp"
-IDB_TOOLBAR_COMPARATIVEREPORT_NORMAL BITMAP                  "Res\\ComparativeReport_n.bmp"
-IDR_TOOLBAR_COMPARATIVEREPORT BITMAP                  "res\\ComparativeReport.bmp"
-IDB_BITMAP_SHAPESPFLOW  BITMAP                  "res\\bitmap_s.bmp"
-IDB_BITMAP_SHAPESPFLOWS BITMAP                  "res\\bmp00014.bmp"
-IDR_AIRCRAFTCAT_FILTER  BITMAP                  "res\\aircraftcat_filter.bmp"
-IDB_SURFACEAREASTEXTURE BITMAP                  "Res\\SurfaceAreasTexture.bmp"
-IDR_REPORTTOOLBAR1      BITMAP                  "res\\bmp00015.bmp"
-IDR_TOOLBAR_FLIGHTPLAN  BITMAP                  "res\\bmp00016.bmp"
-IDB_TOOLBAR_DIRECTION   BITMAP                  "Res\\direction.bmp"
-IDR_TOOLBAR_CP_AREA     BITMAP                  "res\\bmp00017.bmp"
-IDR_TOOLBAR_ARRIVALDETAILTRIGGER BITMAP                  "res\\bmp00018.bmp"
-IDR_ADDDEL_PROJECT      BITMAP                  "res\\bmp00019.bmp"
-IDR_TOOLBAR_FLRPIC      BITMAP                  "res\\bmp00020.bmp"
-IDR_TOOLBAR_MAIN_ADD_DEL_EDIT BITMAP                  "res\\Add_Del_Edit.bmp"
-IDB_BITMAP_HELIPORT     BITMAP                  "res\\Helipor.bmp"
-IDR_FLIGHTMANAGER_TOOLBAR BITMAP                  "res\\FlightManager.bmp"
-IDR_MOVIETOOLBAR_PANORAMA BITMAP                  "res\\movietoo.bmp"
-IDR_INPUT_DATA          BITMAP                  "res\\InputData.bmp"
-IDB_BITMAP_ONBOARD_EDIT_DISABLE BITMAP                  "Res\\onboard_editoperations_disable.bmp"
-IDB_BITMAP_ONBOARD_EDIT_HOT BITMAP                  "Res\\onboard_editoperations_hot.bmp"
-IDB_BITMAP_ONBOARD_EDIT_NORMAL BITMAP                  "Res\\onboard_editoperations_normal.bmp"
-IDB_BITMAP_ONBOARD_SETTING_DISABLE BITMAP                  "Res\\onboard_settings_disable.bmp"
-IDB_BITMAP_ONBOARD_SETTING_HOT BITMAP                  "Res\\onboard_settings_hot.bmp"
-IDB_BITMAP_ONBOARD_SETTING_NORMAL BITMAP                  "Res\\onboard_settings_normal.bmp"
-IDB_BITMAP_ONBOARD_VIEW_DISABLE BITMAP                  "Res\\onboard_view_disable.bmp"
-IDB_BITMAP_ONBOARD_VIEW_HOT BITMAP                  "Res\\onboard_view_hot.bmp"
-IDB_BITMAP_ONBOARD_VIEW_NORMAL BITMAP                  "Res\\onboard_view_normal.bmp"
-IDR_RULESTOOL           BITMAP                  "res\\bmp00022.bmp"
-IDR_DATABASE_MODEL      BITMAP                  "res\\bagdev_g.bmp"
-IDR_AIRCRAFT_MODEL      BITMAP                  "res\\bmp00024.bmp"
-IDR_TOOLBAR_PAXDISP     BITMAP                  "res\\bmp00025.bmp"
-ID_TOOLBAR_EDITAFFINITYGROUP BITMAP                  "res\\toolbar6.bmp"
-ID_TOOLBAR_DOCDISPLAY   BITMAP                  "res\\id_toolb.bmp"
-IDR_TOOLBAR_ROSTER      BITMAP                  "res\\bmp00026.bmp"
-IDR_AIRCRAFT_CONFIGURATION BITMAP                  "res\\aircraft.bmp"
-IDR_TOOLBAR_UNIMPEDEDSTATETRANS BITMAP                  "res\\bmp00027.bmp"
-IDR_TOOLBAR_TRANSITIONTIMEMODIFIER BITMAP                  "res\\bmp00028.bmp"
-IDB_BITMAP_SEAT         BITMAP                  "res\\SEAT.bmp"
-IDB_BITMAP_STORAGE      BITMAP                  "res\\storage.bmp"
-IDB_BITMAP_DOOR         BITMAP                  "res\\door.bmp"
-IDB_BITMAP_ARCTOOLBAR   BITMAP                  "Res\\ARCToolbar_default.bmp"
-IDR_ADDDEL_LOGTIME      BITMAP                  "res\\bmp00029.bmp"
-IDR_ONBOARD_DEPLANCE_SEQ BITMAP                  "res\\bmp00030.bmp"
-IDB_BITMAP_INFO         BITMAP                  "res\\info_32x32.bmp"
-IDB_COOLTREE            BITMAP                  "res\\cooltree.bmp"
-IDR_TOOLBAR_WAVECROSSRUNWAY BITMAP                  "res\\bmp00031.bmp"
-IDB_BITMAP_DEICE        BITMAP                  "Res\\deicepad.bmp"
-IDR_ADDDELEDITTOOLBAR_TERMINALREPORT BITMAP                  "res\\bmp00032.bmp"
-IDR_ACTYPE_RELATION     BITMAP                  "res\\bmp00033.bmp"
-IDR_ACTYPE_ALIASNAME    BITMAP                  "res\\actype_r.bmp"
-IDR_ACTYPE_TOOLBAR      BITMAP                  "res\\bmp00034.bmp"
-IDR_GATE_PREFERENCE     BITMAP                  "res\\bmp00035.bmp"
-IDB_BITMAP_STARTPOSITION BITMAP                  "Res\\StartPositions.bmp"
-IDB_BITMAP_MEETINGPOINT BITMAP                  "Res\\MeetPoint.bmp"
-IDR_AIRCRAFTDOOR        BITMAP                  "res\\AircraftDoor.bmp"
-IDR_FOLLOW_FLIGHT       BITMAP                  "res\\FOLLOW_POINT.bmp"
-IDR_FOLLOW_MEETINGPOINT BITMAP                  "res\\FOLLOW_MEETINGPOINT.bmp"
-IDR_PARKINGLOT_ADDDEL   BITMAP                  "res\\bmp00036.bmp"
-IDR_PARKINGLOT_BEHAVIOR BITMAP                  "res\\linkaget.bmp"
-IDR_TOOLBAR7            BITMAP                  "res\\toolbar7.bmp"
-IDB_BITMAP_LANDSIDE_CURBSIDE BITMAP                  "Res\\landside_curbside.bmp"
-IDB_BITMAP_LANDSIDE_INTERSECTION BITMAP                  "Res\\landside_intersection.bmp"
-IDB_BITMAP_LANDSIDE_PARKINGLOT BITMAP                  "Res\\landside_parking.bmp"
-IDB_BITMAP_LANDSIDE_STRETCH BITMAP                  "Res\\landside_stretch.bmp"
-IDR_ADDDEL_PAXCABIN     BITMAP                  "res\\bmp00037.bmp"
-IDR_ADDDEL_FLIGHT       BITMAP                  "res\\bmp00038.bmp"
-IDR_TOOLBAR_ENV_FUELPROPERTIES BITMAP                  "res\\bmp00039.bmp"
-IDR_ADDDEL_SEATTYPE     BITMAP                  "res\\bmp00040.bmp"
-IDB_BITMAP_LANDSIDE_CROSSWALK BITMAP                  "res\\landside_crosswalk.bmp"
-IDB_BITMAP_LANDSIDE_WALKWAY BITMAP                  "res\\landside_walkway.bmp"
-IDR_ADDDELTOOLBAR       BITMAP                  "res\\adddel_s.bmp"
-IDB_BITMAP_LANDSIDE_BUSSTATION BITMAP                  "res\\bus_station.bmp"
-IDR_UPDWON_INTERSECTIONGROUP1 BITMAP                  "res\\updwon_i.bmp"
-IDR_ACTYPE_ALIASNAME1   BITMAP                  "res\\actype_a.bmp"
-IDR_ADDDELEDIT_PRODUCT  BITMAP                  "res\\bmp00041.bmp"
-IDR_ADDDELEDIT_PRODUCT_STOCKING BITMAP                  "res\\bmp00042.bmp"
-IDR_TOOLBAR_RESIDENTPLAN BITMAP                  "res\\ResidentPlan.bmp"
-IDR_TOOLBAR_ADJACENCYCONSTRAINTSPEC BITMAP                  "res\\toolbar8.bmp"
-IDB_BITMAP_LANDSIDE_TRAFFICLIGHT BITMAP                  "res\\trafficlight.bmp"
-IDB_BITMAP_LANDSIDE_TOLLGATE BITMAP                  "res\\tolloff.bmp"
-IDB_BITMAP_LANDSIDE_STOPSIGN BITMAP                  "res\\stopsign.bmp"
-IDB_BITMAP_LANDSIDE_YIELDSIGN BITMAP                  "res\\yieldsign.bmp"
-IDR_ADDADDDELTOOLBAR    BITMAP                  "res\\adddelto.bmp"
-IDR_TOOLBAR_TAXIPOOLFACILITYBEHAVIOR BITMAP                  "res\\bmp00023.bmp"
-IDB_TOOLBAR_T_NORMAL    BITMAP                  "res\\bmp00046.bmp"
-IDB_TOOLBAR_T_HOT       BITMAP                  "res\\bmp00045.bmp"
-IDB_TOOLBAR_T_DISABLE   BITMAP                  "res\\bmp00047.bmp"
-IDB_TOOLBAR_SCALE_DISABLE BITMAP                  "res\\bmp00043.bmp"
-IDB_TOOLBAR_SCALE_HOT   BITMAP                  "res\\bmp00044.bmp"
-IDB_TOOLBAR_SCALE_NORMAL BITMAP                  "res\\bmp00048.bmp"
-IDB_TOOLBAR_A_NORMAL    BITMAP                  "res\\bmp00051.bmp"
-IDB_TOOLBAR_A_HOT       BITMAP                  "res\\bmp00050.bmp"
-IDB_TOOLBAR_A_DISABLE   BITMAP                  "res\\bmp00049.bmp"
-IDB_TOOLBAR_LIGHT_HOT   BITMAP                  "Res\\toollight.bmp"
-IDB_TOOLBAR_LIGHT_NORMAL BITMAP                  "Res\\toollight_G.bmp"
-IDB_TOOLBAR_LIGHT_DISABLE BITMAP                  "Res\\toollight_W.bmp"
-IDR_TOOLBAR8            BITMAP                  "res\\bmp00052.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\test.ico"
-IDI_ICON_CLOSE          ICON                    "res\\close.ico"
-IDR_COMPAREREPORTVIEW_TMPL ICON                    "sdi.ico"
-IDR_COMPAREREPORTLOGVIEW_TMPL ICON                    "res\\idr_comp.ico"
-IDI_ICON_AIRPLANE       ICON                    "res\\Plane.ico"
-IDR_TERMPLTYPE          ICON                    "res\\TermPlanDoc.ico"
-IDI_ICON_UP             ICON                    "res\\icon_up.ico"
-IDI_ICON_DOWN           ICON                    "res\\icon_down.ico"
-IDI_ICON_DURATION       ICON                    "res\\icondur.ico"
-IDI_ICON_ZOOMIN         ICON                    "res\\zoomin.ico"
-IDI_ICON_ZOOMOUT        ICON                    "res\\zoomout.ico"
-IDR_DETAILFRAME         ICON                    "RES\\NOTE12.ICO"
-IDR_3DVIEWFRAME         ICON                    "RES\\MDICHILD.ICO"
-IDR_REPORTVIEWFRAME     ICON                    "RES\\GRAPH08.ICO"
-IDI_MOBIL_ELEMENT_TYPE  ICON                    "res\\element_.ico"
-CFIDSFRAMEVIEW_IDI_TITLE ICON                    "Res\\CFIDSFrameView.ico"
-IDI_ICON_NULL           ICON                    "res\\icon1.ico"
-IDI_ICON_FAIL           ICON                    "Res\\ConfirmCross.ico"
-IDI_ICON_SUCCESS        ICON                    "Res\\ConfirmTick.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -14302,6 +14126,10 @@ BEGIN
         MENUITEM "Pick from the map",           ID_PROCPROP_PICKFROMMAP
         MENUITEM "Reverse",                     ID_STRETCHCONTROLPOINTS_REVERSE
 
+    END
+    POPUP "EmptyMenu"
+    BEGIN
+        MENUITEM SEPARATOR
     END
 END
 
@@ -18707,6 +18535,305 @@ BEGIN
     END
 END
 
+IDR_MENU_ENROUTEQCAPACITY MENU 
+BEGIN
+    POPUP "EnrouteQueueCapacity Menu"
+    BEGIN
+        MENUITEM "Enroute Queue Capacity...",   ID_ENROUTEQCAPACITY_ENROUTEQCAPACITY
+
+        MENUITEM SEPARATOR
+        MENUITEM "Comments ...",                ID_CTX_COMMENTS
+        MENUITEM "Help",                        ID_CTX_HELP
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP_FOLDER_FILE  BITMAP                  "res\\bitmap_folder_file.bmp"
+IDB_BITMAP_RUNWAY       BITMAP                  "Res\\Runway.bmp"
+IDB_BITMAP_TAXIWAY      BITMAP                  "Res\\Taxiway.bmp"
+IDB_BITMAP_STAND        BITMAP                  "Res\\Stand.bmp"
+IDB_BITMAP_WAYPOINT     BITMAP                  "Res\\Waypoint.bmp"
+IDB_BITMAP_HOLD         BITMAP                  "Res\\Hold.bmp"
+IDB_BITMAP_SECTOR       BITMAP                  "Res\\Sector.bmp"
+IDB_TOOLBAR_3DCHART_NORMAL BITMAP                  "res\\ToolbarChart.bmp"
+IDB_TOOLBAR_3DCHART_HOT BITMAP                  "res\\ToolbarChartHot.bmp"
+IDB_TOOLBAR_3DCHART_DISABLE BITMAP                  "res\\ToolbarChartGray.bmp"
+IDB_BITMAP_DLG_DLBUTTON BITMAP                  "res\\bitmap6.bmp"
+IDR_TOOLBAR2            BITMAP                  "res\\bmp00021.bmp"
+IDR_TOOLBAR3            BITMAP                  "res\\toolbar3.bmp"
+IDR_TOOLBAR5            BITMAP                  "res\\toolbar5.bmp"
+IDR_TOOLBAR_ACCOMPONENT_EDIT BITMAP                  "res\\toolbar4.bmp"
+IDR_TOOLBAR_ADDANDCANCEL BITMAP                  "res\\bmp00012.bmp"
+IDR_TOOLBAR_ADDANDCANCELFIR BITMAP                  "res\\bmp00013.bmp"
+IDR_TOOLBAR_ADDANDCANCELSEC BITMAP                  "res\\toolbar_.bmp"
+IDB_UPARROW             BITMAP                  "res\\UpArrow.bmp"
+IDB_DOWNARROW           BITMAP                  "res\\DownArrow.bmp"
+IDB_LARGENODEIMAGES     BITMAP                  "res\\listimag.bmp"
+IDB_3DTURN              BITMAP                  "res\\Controls_Turn.bmp"
+IDB_3DBKGND             BITMAP                  "res\\Controls_BackGround.bmp"
+IDB_3DHT                BITMAP                  "res\\Controls_HitTest.bmp"
+IDB_3DMOVE              BITMAP                  "res\\Controls_Move.bmp"
+IDB_3DPITCHROLL         BITMAP                  "res\\Controls_PitchRoll.bmp"
+IDB_3DALTITUDE          BITMAP                  "res\\Controls_Altitude.bmp"
+IDB_NODELARGEIMG        BITMAP                  "res\\nodeimagesRGB.bmp"
+IDB_NODESMALLIMG        BITMAP                  "res\\nodesmallimagesRGB.bmp"
+IDB_SMALLNODEIMAGES     BITMAP                  "res\\smallnod.bmp"
+IDB_FLOORLARGEIMG       BITMAP                  "res\\floorLargeIMG.bmp"
+IDB_FLOORSMALLIMG       BITMAP                  "res\\floorSmallIMG.bmp"
+IDB_CAMLARGEIMG         BITMAP                  "res\\cameraLargeIMG.bmp"
+IDB_CAMSMALLIMG         BITMAP                  "res\\cameraSmallIMG.bmp"
+IDR_PROJSELECTBAR       BITMAP                  "res\\toolbar2.bmp"
+IDR_UNITSBAR            BITMAP                  "res\\toolbar1.bmp"
+IDB_SLIDERMARKER        BITMAP                  "Res\\marker.bmp"
+IDR_FLIGHTSCHEDULEBAR   BITMAP                  "res\\listctrltoolbar.bmp"
+IDB_EMPTYNODEIMAGES     BITMAP                  "res\\emptynode.bmp"
+IDR_PEOPLEMOVEBAR       BITMAP                  "res\\peoplemove.bmp"
+IDR_ZOOMINOUTTOOLBAR    BITMAP                  "res\\zoominoutbar.bmp"
+IDR_REPORTTOOLBAR       BITMAP                  "res\\reportto.bmp"
+IDR_ADDDELEDITTOOLBAR   BITMAP                  "res\\adddeled.bmp"
+IDB_NORCDF              BITMAP                  "Res\\norcdf.bmp"
+IDB_NORCHA              BITMAP                  "Res\\norcha.bmp"
+IDB_HISTOGRAM           BITMAP                  "Res\\Histogram.bmp"
+IDB_EXPIRICAL           BITMAP                  "Res\\Expirical.bmp"
+IDB_UNIFORM             BITMAP                  "Res\\Uniform.bmp"
+IDB_EXPONENTIAL         BITMAP                  "Res\\Exponential.bmp"
+IDB_TOOLBAR_ANIMATION_HOT BITMAP                  "res\\animtool.bmp"
+IDB_TOOLBAR_ANIMATION_DISABLE BITMAP                  "Res\\animtool_W.bmp"
+IDB_TOOLBAR_ANIMATION_NORMAL BITMAP                  "Res\\animtool_G.bmp"
+IDB_ARROWLTOR           BITMAP                  "Res\\arrowLtoR.bmp"
+IDB_AREASSMALLIMG       BITMAP                  "Res\\areasSmallIMG.bmp"
+IDB_PORTALSSMALLIMG     BITMAP                  "Res\\portalsSmallIMG.bmp"
+IDB_BITMAP_SPHERE       BITMAP                  "res\\yuan.bmp"
+IDR_SHAPESBAR           BITMAP                  "res\\shapesba.bmp"
+IDB_UCPROCSMALL         BITMAP                  "Res\\ucprocSmallIMG.bmp"
+IDB_BITMAP_PYRAMID      BITMAP                  "res\\zhui ti.bmp"
+IDB_BITMAP_CUBE         BITMAP                  "res\\fang .bmp"
+IDB_BITMAP_PERSON       BITMAP                  "Res\\guyshape.bmp"
+IDB_MULTICOLOR          BITMAP                  "res\\multicol.bmp"
+IDB_BITMAP_DETAILMAN    BITMAP                  "Res\\maleperson_shape.bmp"
+IDB_BITMAP_DETAILWOMAN  BITMAP                  "Res\\femaleperson_shape.bmp"
+IDR_PAXDIST             BITMAP                  "res\\paxdist.bmp"
+IDB_BITMAP_DASH1        BITMAP                  "RES\\dash1.bmp"
+IDB_BITMAP_DASH2        BITMAP                  "RES\\dash2.bmp"
+IDB_BITMAP_DASH3        BITMAP                  "RES\\dash3.bmp"
+IDB_BITMAP_SOLID1       BITMAP                  "RES\\solid1.bmp"
+IDB_BITMAP_SOLID2       BITMAP                  "RES\\solid2.bmp"
+IDB_BITMAP_SOLID3       BITMAP                  "RES\\solid3.bmp"
+IDB_BITMAP_DOT1         BITMAP                  "RES\\dot1.bmp"
+IDB_BITMAP_DOT2         BITMAP                  "RES\\dot2.bmp"
+IDB_BITMAP_DOT3         BITMAP                  "RES\\dot3.bmp"
+IDB_BITMAP_PFP          BITMAP                  "Res\\SUMW1.bmp"
+IDR_PRIORITY_ASSIGNMENT BITMAP                  "res\\bmp_seldefined.bmp"
+IDB_BITMAP_B747         BITMAP                  "Res\\747ICON.bmp"
+IDB_BITMAP_BAG          BITMAP                  "Res\\BAGICON.bmp"
+IDB_BITMAP_JAGUAR       BITMAP                  "Res\\JAGUARICON.bmp"
+IDR_BAGDEV_GATE         BITMAP                  "res\\bmp00002.bmp"
+IDR_TOOLBAR_STATION_LINKER BITMAP                  "res\\stationlinker.bmp"
+IDR_TOOLBAR_CARSCHEDULE BITMAP                  "res\\carschedul_.bmp"
+IDR_TOOLBAR_PIPE        BITMAP                  "res\\pipe.bmp"
+CBD                     BITMAP                  "res\\cbd.bmp"
+CBU                     BITMAP                  "res\\cbu.bmp"
+IDB_TOOLBAR_ANIMATION_SPEED_DISABLE BITMAP                  "Res\\speedtool2_W.bmp"
+IDB_TOOLBAR_ANIMATION_SPEED_HOT BITMAP                  "Res\\speedtool2.bmp"
+IDB_TOOLBAR_ANIMATION_SPEED_NORMAL BITMAP                  "Res\\speedtool2_G.bmp"
+IDB_TOOLBAR_MAIN_HOT    BITMAP                  "Res\\systool2.bmp"
+IDB_TOOLBAR_MAIN_NORMAL BITMAP                  "Res\\systool2_G.bmp"
+IDB_TOOLBAR_MAIN_DISABLE BITMAP                  "Res\\systool2_W.bmp"
+IDB_TOOLBAR_PIPE_HOT    BITMAP                  "Res\\pipetool.bmp"
+IDB_TOOLBAR_PIPE_NORMAL BITMAP                  "Res\\pipetool_G.bmp"
+IDB_TOOLBAR_PIPE_DISABLE BITMAP                  "Res\\pipetool_W.bmp"
+IDB_TOOLBAR_LAYOUT_DISABLE BITMAP                  "Res\\layouttool_W.bmp"
+IDB_TOOLBAR_LAYOUT_HOT  BITMAP                  "Res\\layouttool.bmp"
+IDB_TOOLBAR_LAYOUT_NORMAL BITMAP                  "Res\\layouttool_G.bmp"
+IDB_TOOLBAR_CAMERA_DISABLE BITMAP                  "Res\\camtool_W.bmp"
+IDB_TOOLBAR_CAMERA_HOT  BITMAP                  "Res\\camtool.bmp"
+IDB_TOOLBAR_CAMERA_NORMAL BITMAP                  "Res\\camtool_G.bmp"
+IDR_PIPESHOW_TOOLBAR    BITMAP                  "res\\bmp00001.bmp"
+IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+IDB_IMAGELIST_SMALL     BITMAP                  "res\\treeImageList.bmp"
+IDB_IMAGELIST_LARGE     BITMAP                  "res\\imageList.bmp"
+IDR_PROCASSIGN_NEW      BITMAP                  "res\\procassi.bmp"
+IDB_OPERATE             BITMAP                  "res\\operate.bmp"
+IDB_TRA_N               BITMAP                  "res\\TraN.bmp"
+IDB_TRA_N1              BITMAP                  "res\\tra_n1.bmp"
+IDR_PROCESS_DEFINE      BITMAP                  "res\\bmp00003.bmp"
+IDB_PROCESS             BITMAP                  "res\\bitmap3.bmp"
+IDB_TOOLBAR_ANIMATION_PAX_DISABLE BITMAP                  "res\\bmp00006.bmp"
+IDB_TOOLBAR_ANIMATION_PAX_HOT BITMAP                  "res\\bmp00004.bmp"
+IDB_TOOLBAR_ANIMATION_PAX_NORMAL BITMAP                  "res\\bmp00005.bmp"
+IDR_MOBILE_ELEMENT_FLOWTREE BITMAP                  "res\\mob.bmp"
+IDR_MOBILE_ELEMENT_TYPE BITMAP                  "res\\mobile_e.bmp"
+IDB_PROCESSES           BITMAP                  "res\\process1.bmp"
+IDR_ADDDEL_PROCESSOR_DATA BITMAP                  "res\\adddel_p.bmp"
+IDR_LINKAGE             BITMAP                  "res\\process_.bmp"
+IDB_GATE                BITMAP                  "res\\bmp00007.bmp"
+IDR_LINKAGETOOLBAR      BITMAP                  "res\\linkagebar.bmp"
+IDB_CHECK_BOX           BITMAP                  "res\\check_bo.bmp"
+IDB_ALL_SIMULATION_RESULT_LISTCTRL BITMAP                  "res\\all_simu.bmp"
+IDR_PDPARAMTOOLBAR      BITMAP                  "res\\pdparamt.bmp"
+IDB_TOOLBAR_RUNDELTA_HOT BITMAP                  "RES\\animtoolbar_delta+run.bmp"
+IDB_TOOLBAR_RUNDELTA_NORMAL BITMAP                  "RES\\animtoolbar_delta+run_G.bmp"
+IDB_TOOLBAR_RUNDELTA_DISABLED BITMAP                  "RES\\animtoolbar_delta+run_W.bmp"
+IDB_TOOLBAR_FIRE_DISABLED BITMAP                  "RES\\firetoolbar_W.bmp"
+IDB_TOOLBAR_FIRE_HOT    BITMAP                  "RES\\firetoolbar.bmp"
+IDB_TOOLBAR_FIRE_NORMAL BITMAP                  "RES\\firetoolbar_G.bmp"
+IDB_TOOLBAR_INFO_HOT    BITMAP                  "RES\\infotoolbar.bmp"
+IDB_TOOLBAR_INFO_NORMAL BITMAP                  "RES\\infotoolbar_G.bmp"
+IDB_TOOLBAR_INFO_DISABLED BITMAP                  "RES\\infotoolbar_W.bmp"
+IDB_BITMAP_KEYFRAME     BITMAP                  "RES\\keyframe.bmp"
+IDB_DATABASE            BITMAP                  "res\\database.bmp"
+IDB_BITMAP_FIRE96       BITMAP                  "RES\\fire96.bmp"
+IDR_MAIN                BITMAP                  "res\\main.bmp"
+IDR_NAMELIST_TEXT       BITMAP                  "res\\bmp00008.bmp"
+IDR_COMPARE_REPORT_RESULT BITMAP                  "res\\bmp00009.bmp"
+IDR_BOARDING_CALL       BITMAP                  "res\\bmp00010.bmp"
+IDR_MOVIETOOLBAR        BITMAP                  "res\\movietb.bmp"
+IDR_WALKTHROUGHTOOLBAR  BITMAP                  "res\\movietb.bmp"
+IDB_TOOLBAR_FLOOR_HOT   BITMAP                  "RES\\floortoolbar.bmp"
+IDB_TOOLBAR_FLOOR_NORMAL BITMAP                  "RES\\floortoolbar_G.bmp"
+IDB_TOOLBAR_FLOOR_DISABLED BITMAP                  "RES\\floortoolbar_W.bmp"
+IDR_RESOURCEPOOL_BAR    BITMAP                  "res\\bmp00011.bmp"
+IDR_TOOLBAR_GLOBALDBMAN BITMAP                  "res\\globaldbman.bmp"
+IDB_BITMAP_LOGOARC      BITMAP                  "RES\\ARC-Logo.bmp"
+IDB_TOOLBAR_HIDEPROCTAGS_DISABLED BITMAP                  "RES\\hideproctagstoolbar_W.bmp"
+IDB_TOOLBAR_HIDEPROCTAGS_HOT BITMAP                  "RES\\hideproctagstoolbar.bmp"
+IDB_TOOLBAR_HIDEPROCTAGS_NORMAL BITMAP                  "RES\\hideproctagstoolbar_G.bmp"
+IDB_TOOLBAR_HIDEACTAGS_DISABLED BITMAP                  "RES\\hideactagstoolbar_W.bmp"
+IDB_TOOLBAR_HIDEACTAGS_HOT BITMAP                  "RES\\hideactagstoolbar.bmp"
+IDB_TOOLBAR_HIDEACTAGS_NORMAL BITMAP                  "RES\\hideactagstoolbar_G.bmp"
+IDR_PAXBULK             BITMAP                  "res\\paxbulk.bmp"
+IDB_TOOLBAR_COMPARATIVEREPORT_DISABLE BITMAP                  "Res\\ComparativeReport_d.bmp"
+IDB_TOOLBAR_COMPARATIVEREPORT_HOT BITMAP                  "Res\\ComparativeReport_h.bmp"
+IDB_TOOLBAR_COMPARATIVEREPORT_NORMAL BITMAP                  "Res\\ComparativeReport_n.bmp"
+IDR_TOOLBAR_COMPARATIVEREPORT BITMAP                  "res\\ComparativeReport.bmp"
+IDB_BITMAP_SHAPESPFLOW  BITMAP                  "res\\bitmap_s.bmp"
+IDB_BITMAP_SHAPESPFLOWS BITMAP                  "res\\bmp00014.bmp"
+IDR_AIRCRAFTCAT_FILTER  BITMAP                  "res\\aircraftcat_filter.bmp"
+IDB_SURFACEAREASTEXTURE BITMAP                  "Res\\SurfaceAreasTexture.bmp"
+IDR_REPORTTOOLBAR1      BITMAP                  "res\\bmp00015.bmp"
+IDR_TOOLBAR_FLIGHTPLAN  BITMAP                  "res\\bmp00016.bmp"
+IDB_TOOLBAR_DIRECTION   BITMAP                  "Res\\direction.bmp"
+IDR_TOOLBAR_CP_AREA     BITMAP                  "res\\bmp00017.bmp"
+IDR_TOOLBAR_ARRIVALDETAILTRIGGER BITMAP                  "res\\bmp00018.bmp"
+IDR_ADDDEL_PROJECT      BITMAP                  "res\\bmp00019.bmp"
+IDR_TOOLBAR_FLRPIC      BITMAP                  "res\\bmp00020.bmp"
+IDR_TOOLBAR_MAIN_ADD_DEL_EDIT BITMAP                  "res\\Add_Del_Edit.bmp"
+IDB_BITMAP_HELIPORT     BITMAP                  "res\\Helipor.bmp"
+IDR_FLIGHTMANAGER_TOOLBAR BITMAP                  "res\\FlightManager.bmp"
+IDR_MOVIETOOLBAR_PANORAMA BITMAP                  "res\\movietoo.bmp"
+IDR_INPUT_DATA          BITMAP                  "res\\InputData.bmp"
+IDB_BITMAP_ONBOARD_EDIT_DISABLE BITMAP                  "Res\\onboard_editoperations_disable.bmp"
+IDB_BITMAP_ONBOARD_EDIT_HOT BITMAP                  "Res\\onboard_editoperations_hot.bmp"
+IDB_BITMAP_ONBOARD_EDIT_NORMAL BITMAP                  "Res\\onboard_editoperations_normal.bmp"
+IDB_BITMAP_ONBOARD_SETTING_DISABLE BITMAP                  "Res\\onboard_settings_disable.bmp"
+IDB_BITMAP_ONBOARD_SETTING_HOT BITMAP                  "Res\\onboard_settings_hot.bmp"
+IDB_BITMAP_ONBOARD_SETTING_NORMAL BITMAP                  "Res\\onboard_settings_normal.bmp"
+IDB_BITMAP_ONBOARD_VIEW_DISABLE BITMAP                  "Res\\onboard_view_disable.bmp"
+IDB_BITMAP_ONBOARD_VIEW_HOT BITMAP                  "Res\\onboard_view_hot.bmp"
+IDB_BITMAP_ONBOARD_VIEW_NORMAL BITMAP                  "Res\\onboard_view_normal.bmp"
+IDR_RULESTOOL           BITMAP                  "res\\bmp00022.bmp"
+IDR_DATABASE_MODEL      BITMAP                  "res\\bagdev_g.bmp"
+IDR_AIRCRAFT_MODEL      BITMAP                  "res\\bmp00024.bmp"
+IDR_TOOLBAR_PAXDISP     BITMAP                  "res\\bmp00025.bmp"
+ID_TOOLBAR_EDITAFFINITYGROUP BITMAP                  "res\\toolbar6.bmp"
+ID_TOOLBAR_DOCDISPLAY   BITMAP                  "res\\id_toolb.bmp"
+IDR_TOOLBAR_ROSTER      BITMAP                  "res\\bmp00026.bmp"
+IDR_AIRCRAFT_CONFIGURATION BITMAP                  "res\\aircraft.bmp"
+IDR_TOOLBAR_UNIMPEDEDSTATETRANS BITMAP                  "res\\bmp00027.bmp"
+IDR_TOOLBAR_TRANSITIONTIMEMODIFIER BITMAP                  "res\\bmp00028.bmp"
+IDB_BITMAP_SEAT         BITMAP                  "res\\SEAT.bmp"
+IDB_BITMAP_STORAGE      BITMAP                  "res\\storage.bmp"
+IDB_BITMAP_DOOR         BITMAP                  "res\\door.bmp"
+IDB_BITMAP_ARCTOOLBAR   BITMAP                  "Res\\ARCToolbar_default.bmp"
+IDR_ADDDEL_LOGTIME      BITMAP                  "res\\bmp00029.bmp"
+IDR_ONBOARD_DEPLANCE_SEQ BITMAP                  "res\\bmp00030.bmp"
+IDB_BITMAP_INFO         BITMAP                  "res\\info_32x32.bmp"
+IDB_COOLTREE            BITMAP                  "res\\cooltree.bmp"
+IDR_TOOLBAR_WAVECROSSRUNWAY BITMAP                  "res\\bmp00031.bmp"
+IDB_BITMAP_DEICE        BITMAP                  "Res\\deicepad.bmp"
+IDR_ADDDELEDITTOOLBAR_TERMINALREPORT BITMAP                  "res\\bmp00032.bmp"
+IDR_ACTYPE_RELATION     BITMAP                  "res\\bmp00033.bmp"
+IDR_ACTYPE_ALIASNAME    BITMAP                  "res\\actype_r.bmp"
+IDR_ACTYPE_TOOLBAR      BITMAP                  "res\\bmp00034.bmp"
+IDR_GATE_PREFERENCE     BITMAP                  "res\\bmp00035.bmp"
+IDB_BITMAP_STARTPOSITION BITMAP                  "Res\\StartPositions.bmp"
+IDB_BITMAP_MEETINGPOINT BITMAP                  "Res\\MeetPoint.bmp"
+IDR_AIRCRAFTDOOR        BITMAP                  "res\\AircraftDoor.bmp"
+IDR_FOLLOW_FLIGHT       BITMAP                  "res\\FOLLOW_POINT.bmp"
+IDR_FOLLOW_MEETINGPOINT BITMAP                  "res\\FOLLOW_MEETINGPOINT.bmp"
+IDR_PARKINGLOT_ADDDEL   BITMAP                  "res\\bmp00036.bmp"
+IDR_PARKINGLOT_BEHAVIOR BITMAP                  "res\\linkaget.bmp"
+IDR_TOOLBAR7            BITMAP                  "res\\toolbar7.bmp"
+IDB_BITMAP_LANDSIDE_CURBSIDE BITMAP                  "Res\\landside_curbside.bmp"
+IDB_BITMAP_LANDSIDE_INTERSECTION BITMAP                  "Res\\landside_intersection.bmp"
+IDB_BITMAP_LANDSIDE_PARKINGLOT BITMAP                  "Res\\landside_parking.bmp"
+IDB_BITMAP_LANDSIDE_STRETCH BITMAP                  "Res\\landside_stretch.bmp"
+IDR_ADDDEL_PAXCABIN     BITMAP                  "res\\bmp00037.bmp"
+IDR_ADDDEL_FLIGHT       BITMAP                  "res\\bmp00038.bmp"
+IDR_TOOLBAR_ENV_FUELPROPERTIES BITMAP                  "res\\bmp00039.bmp"
+IDR_ADDDEL_SEATTYPE     BITMAP                  "res\\bmp00040.bmp"
+IDB_BITMAP_LANDSIDE_CROSSWALK BITMAP                  "res\\landside_crosswalk.bmp"
+IDB_BITMAP_LANDSIDE_WALKWAY BITMAP                  "res\\landside_walkway.bmp"
+IDR_ADDDELTOOLBAR       BITMAP                  "res\\adddel_s.bmp"
+IDB_BITMAP_LANDSIDE_BUSSTATION BITMAP                  "res\\bus_station.bmp"
+IDR_UPDWON_INTERSECTIONGROUP1 BITMAP                  "res\\updwon_i.bmp"
+IDR_ACTYPE_ALIASNAME1   BITMAP                  "res\\actype_a.bmp"
+IDR_ADDDELEDIT_PRODUCT  BITMAP                  "res\\bmp00041.bmp"
+IDR_ADDDELEDIT_PRODUCT_STOCKING BITMAP                  "res\\bmp00042.bmp"
+IDR_TOOLBAR_RESIDENTPLAN BITMAP                  "res\\ResidentPlan.bmp"
+IDR_TOOLBAR_ADJACENCYCONSTRAINTSPEC BITMAP                  "res\\toolbar8.bmp"
+IDB_BITMAP_LANDSIDE_TRAFFICLIGHT BITMAP                  "res\\trafficlight.bmp"
+IDB_BITMAP_LANDSIDE_TOLLGATE BITMAP                  "res\\tolloff.bmp"
+IDB_BITMAP_LANDSIDE_STOPSIGN BITMAP                  "res\\stopsign.bmp"
+IDB_BITMAP_LANDSIDE_YIELDSIGN BITMAP                  "res\\yieldsign.bmp"
+IDR_ADDADDDELTOOLBAR    BITMAP                  "res\\adddelto.bmp"
+IDR_TOOLBAR_TAXIPOOLFACILITYBEHAVIOR BITMAP                  "res\\bmp00023.bmp"
+IDB_TOOLBAR_T_NORMAL    BITMAP                  "res\\bmp00046.bmp"
+IDB_TOOLBAR_T_HOT       BITMAP                  "res\\bmp00045.bmp"
+IDB_TOOLBAR_T_DISABLE   BITMAP                  "res\\bmp00047.bmp"
+IDB_TOOLBAR_SCALE_DISABLE BITMAP                  "res\\bmp00043.bmp"
+IDB_TOOLBAR_SCALE_HOT   BITMAP                  "res\\bmp00044.bmp"
+IDB_TOOLBAR_SCALE_NORMAL BITMAP                  "res\\bmp00048.bmp"
+IDB_TOOLBAR_A_NORMAL    BITMAP                  "res\\bmp00051.bmp"
+IDB_TOOLBAR_A_HOT       BITMAP                  "res\\bmp00050.bmp"
+IDB_TOOLBAR_A_DISABLE   BITMAP                  "res\\bmp00049.bmp"
+IDB_TOOLBAR_LIGHT_HOT   BITMAP                  "Res\\toollight.bmp"
+IDB_TOOLBAR_LIGHT_NORMAL BITMAP                  "Res\\toollight_G.bmp"
+IDB_TOOLBAR_LIGHT_DISABLE BITMAP                  "Res\\toollight_W.bmp"
+IDR_TOOLBAR8            BITMAP                  "res\\bmp00052.bmp"
+IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY BITMAP                  "res\\bmp00053.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\test.ico"
+IDI_ICON_CLOSE          ICON                    "res\\close.ico"
+IDR_COMPAREREPORTVIEW_TMPL ICON                    "sdi.ico"
+IDR_COMPAREREPORTLOGVIEW_TMPL ICON                    "res\\idr_comp.ico"
+IDI_ICON_AIRPLANE       ICON                    "res\\Plane.ico"
+IDR_TERMPLTYPE          ICON                    "res\\TermPlanDoc.ico"
+IDI_ICON_UP             ICON                    "res\\icon_up.ico"
+IDI_ICON_DOWN           ICON                    "res\\icon_down.ico"
+IDI_ICON_DURATION       ICON                    "res\\icondur.ico"
+IDI_ICON_ZOOMIN         ICON                    "res\\zoomin.ico"
+IDI_ICON_ZOOMOUT        ICON                    "res\\zoomout.ico"
+IDR_DETAILFRAME         ICON                    "RES\\NOTE12.ICO"
+IDR_3DVIEWFRAME         ICON                    "RES\\MDICHILD.ICO"
+IDR_REPORTVIEWFRAME     ICON                    "RES\\GRAPH08.ICO"
+IDI_MOBIL_ELEMENT_TYPE  ICON                    "res\\element_.ico"
+CFIDSFRAMEVIEW_IDI_TITLE ICON                    "Res\\CFIDSFrameView.ico"
+IDI_ICON_NULL           ICON                    "res\\icon1.ico"
+IDI_ICON_FAIL           ICON                    "Res\\ConfirmCross.ico"
+IDI_ICON_SUCCESS        ICON                    "Res\\ConfirmTick.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -21648,6 +21775,13 @@ BEGIN
     BUTTON      ID_TOOLBARBUTTONDEL
 END
 
+IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY TOOLBAR  16, 16
+BEGIN
+    BUTTON      ID_TOOLBARBUTTON_ADD
+    BUTTON      ID_TOOLBARBUTTON_DEL
+    BUTTON      ID_TOOLBARBUTTON_EDIT
+END
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -23153,6 +23287,7 @@ BEGIN
     ID_BUT_AIROUTE          "Show AirRoute\nShow AirRoute"
     ID_BUT_ALLPROCESSORTYPE "All Processor Type\nAll Processor Type"
     IDS_TVNN_LANDSIDE_AREAS "Areas"
+    IDS_TVNN_ENROUTEQCAPACITY "Enroute Queue Capacity"
 END
 
 STRINGTABLE 
@@ -23161,139 +23296,6 @@ BEGIN
 END
 
 #endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Sys. Default) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
-#ifdef _WIN32
-LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG_VEHICLETYPEDEF DIALOGEX 0, 0, 411, 255
-STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
-CAPTION "General Vehicle Characteristics"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    LTEXT           "Level",IDC_STATIC,7,7,18,8
-    COMBOBOX        IDC_COMBO_LEVEL,8,18,133,60,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
-    LISTBOX         IDC_LIST_PAXNAME,9,83,130,138,LBS_NOINTEGRALHEIGHT | 
-                    WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Vehicle Type Hierarchy",IDC_STATIC,153,7,84,8
-    CONTROL         "Tree1",IDC_TREE_PAX,"SysTreeView32",TVS_HASBUTTONS | 
-                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
-                    WS_BORDER | WS_TABSTOP,153,18,251,202
-    GROUPBOX        "",IDC_STATIC_FRAME,9,61,129,160
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,11,66,125,
-                    16,SS_SUNKEN
-    LTEXT           "Name",IDC_STATIC,10,35,40,8
-    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,235,234,50,14,WS_DISABLED
-    DEFPUSHBUTTON   "OK",IDOK,295,234,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,353,234,50,14
-    EDITTEXT        IDC_EDIT_NAME,8,47,130,14,ES_AUTOHSCROLL
-END
-
-IDD_DIALOG_VEHICLEDIST DIALOGEX 0, 0, 436, 255
-STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Distribution of Characteristics"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER2,155,18,
-                    119,16,SS_SUNKEN
-    LTEXT           "Distribution",IDC_STATIC_PAXDIST,155,5,81,11
-    LISTBOX         IDC_LIST_FLIGHT,15,34,123,192,LBS_NOINTEGRALHEIGHT | 
-                    WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Tree1",IDC_TREE_DIST,"SysTreeView32",TVS_HASBUTTONS | 
-                    TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,
-                    155,34,274,192
-    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,234,50,14,WS_DISABLED
-    DEFPUSHBUTTON   "OK",IDOK,325,234,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,379,234,50,14
-    LTEXT           "Vehicles",IDC_STATIC,16,5,54,10
-    GROUPBOX        "",IDC_STATIC_FRAME,15,14,126,215
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,17,18,119,
-                    16,SS_SUNKEN
-    GROUPBOX        "",IDC_STATIC_FRAME3,155,14,277,215
-    PUSHBUTTON      "Copy",IDC_BUTTON_COPY,163,234,50,14
-    PUSHBUTTON      "Paste",IDC_BUTTON_PASTE,217,234,50,14
-END
-
-IDD_DIALOG_LAYOUTOPTIONS DIALOGEX 0, 0, 160, 102
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Set Layout Options"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,46,79,50,16
-    PUSHBUTTON      "Cancel",IDCANCEL,103,79,50,16
-    LTEXT           "Drive",IDC_STATIC_DRIVE,11,35,17,8
-    COMBOBOX        IDC_COMBO_DATA,46,33,107,43,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 404
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_VEHICLEDIST, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 429
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 153
-        VERTGUIDE, 46
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 95
-        HORZGUIDE, 44
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_CTX_LANDSIDELAYOUT MENU 
-BEGIN
-    POPUP "Submenu"
-    BEGIN
-        MENUITEM "Set Options...",              ID_CTX_LAYOUT
-        MENUITEM "Comments...",                 ID_CTX_COMMENTS
-        MENUITEM "Help",                        ID_CTX_HELP
-    END
-END
-
-#endif    // Neutral (Sys. Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

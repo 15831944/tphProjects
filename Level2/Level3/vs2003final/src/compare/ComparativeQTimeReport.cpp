@@ -110,22 +110,11 @@ bool CComparativeQTimeReport::SaveReport(const std::string& _sPath) const
 
 		file.writeField("QTime Report");
 		file.writeLine();
-
-		//write comparative report name
-		file.writeField(m_cmpReportName);
-		file.writeLine();
+		
+		int nSampleCount = m_vSampleRepPaths.size();
 
 		//write original sample count
-		int nSampleCount = m_vSampleRepPaths.size();
 		file.writeInt( nSampleCount );
-		file.writeLine();
-
-		//write simulation name
-		int count = m_vSimName.size();
-		for(int i=0; i<count; i++)
-		{
-			file.writeField(m_vSimName[i]);
-		}
 		file.writeLine();
 
 		//write original sample path
@@ -135,6 +124,27 @@ bool CComparativeQTimeReport::SaveReport(const std::string& _sPath) const
 			file.writeLine();
 		}
 		file.writeLine();
+
+		//write data lines
+		/*
+		for(int nLine =0; nSampleCount>0 ; nLine++)//line
+		{
+			for(std::vector<CmpQTimeVector>::const_iterator iterVector=m_vMultiQTimeReports.begin(); iterVector!=m_vMultiQTimeReports.end(); iterVector++)//fields of per model
+			{
+				if(nLine < iterVector->size())
+				{
+					const CmpQTime& qTime = (*iterVector)[nLine];
+					file.writeTime(qTime.totalTime,TRUE);
+					file.writeInt( qTime.procCount);
+				}
+				else
+				{
+					file.writeBlankFields(2);//add blank fields
+				}
+				if(nLine == iterVector->size()) nSampleCount--;//a model's sample reaches the end.
+			}
+			file.writeLine();
+		}*/
 		
 		for(QTimeMap::const_iterator iterLine=m_mapQTime.begin(); iterLine!=m_mapQTime.end(); iterLine++)//line
 		{
@@ -146,6 +156,9 @@ bool CComparativeQTimeReport::SaveReport(const std::string& _sPath) const
 			}
 			file.writeLine();
 		}
+
+
+
 
 		CTime tm = CTime::GetCurrentTime();
 		file.writeLine();
@@ -166,39 +179,62 @@ bool CComparativeQTimeReport::LoadReport(const std::string& _sPath)
 {
 	//clear old data
 	m_vSampleRepPaths.clear();
+	//m_vMultiQTimeReports.clear();
 	m_mapQTime.clear();
+
+	//check if file exist
+	/*HANDLE hFileFind = ::FindFirstFile( _sPath.c_str(), NULL );
+	if( hFileFind == INVALID_HANDLE_VALUE )
+	{
+		throw FileNotFoundError( _sPath.c_str() );
+	}
+	::FindClose( hFileFind );*/
 
 	try
 	{
 		ArctermFile file;
 		file.openFile( _sPath.c_str(), READ);
-
-		// get report name
-		file.getField(m_cmpReportName.GetBuffer(256), 256);
-		m_cmpReportName.ReleaseBuffer();
-
 		//get model number
 		int nSampleCount =0;
-		file.getLine();
+		/*if(file.getLine()==false || file.getInteger( nSampleCount )==false || nSampleCount<=0)
+		{
+			return false;
+		}*/
 		if (file.getInteger( nSampleCount )==false || nSampleCount<=0)
 			return false;
 
-		//get simulation name list
-		char buffer[MAX_PATH]="";
-		file.getLine();
-		for(int i=0; i<nSampleCount; i++)
-		{
-			file.getField(buffer, MAX_PATH);
-			m_vSimName.push_back(CString(buffer));
-		}
+		char sSamplePath[MAX_PATH]="";
 		//get sample file name
 		for(int i=0; i<nSampleCount; i++)
 		{
 			file.getLine();
-			file.getField(buffer, MAX_PATH);
-			m_vSampleRepPaths.push_back(std::string(buffer));
+			file.getField(sSamplePath, MAX_PATH);
+			m_vSampleRepPaths.push_back(std::string(sSamplePath));
 		}
+		//skip a blank line
 		file.skipLine();
+
+		//read report data
+		/*
+		CmpQTime qTime;
+		memset(&qTime, 0, sizeof(CmpQTime));
+		m_vMultiQTimeReports.resize( nSampleCount );
+		while( file.getLine() )
+		{
+			for(int n=0; n<nSampleCount; n++)
+			{
+				if(file.isBlankField()==false)
+				{
+					file.getTime( qTime.totalTime );
+					file.getInteger( qTime.procCount );
+					m_vMultiQTimeReports[ n ].push_back( qTime );
+				}
+				else
+				{
+					file.skipField( 2 );
+				}
+			}
+		}*/
 		ElapsedTime time(0L);
 		int nCount = 0;
 		while( file.getLine() == 1)

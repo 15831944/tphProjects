@@ -78,6 +78,7 @@
 #include "../Common/ARCTracker.h"
 #include <limits>
 #include "ARCportEngine.h"
+#include "AirsideMobElementBaseBehavior.h"
 
 extern std::vector<ConvergePair *> GreetPool;
 
@@ -971,7 +972,7 @@ bool Person::getAirsidePoint(CPoint2008& pt)const
 	MobElementBehavior* spBehavior = getCurrentBehavior();
 	if (spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
 	{
-		AirsideMobElementBehavior* spAirsideBehavior = getAirsideBehavior();
+		AirsideMobElementBaseBehavior* spAirsideBehavior = getAirsideBehavior();
 		pt = spAirsideBehavior->getPoint();
 		return true;
 	}
@@ -996,7 +997,7 @@ bool Person::getAirsideDest(CPoint2008& pt)const
 	MobElementBehavior* spBehavior = getCurrentBehavior();
 	if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
 	{
-		AirsideMobElementBehavior* spAirsideBehavior = getAirsideBehavior();
+		AirsideMobElementBaseBehavior* spAirsideBehavior = getAirsideBehavior();
 		pt = spAirsideBehavior->getDest();
 		return true;
 	}
@@ -1021,7 +1022,7 @@ bool Person::getAirsidePureLocation(CPoint2008& pt)const
 	MobElementBehavior* spBehavior = getCurrentBehavior();
 	if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
 	{
-		AirsideMobElementBehavior* spAirsideBehavior = getAirsideBehavior();
+		AirsideMobElementBaseBehavior* spAirsideBehavior = getAirsideBehavior();
 		pt = spAirsideBehavior->getPureLocation();
 		return true;
 	}
@@ -1039,7 +1040,7 @@ ElapsedTime Person::moveTime (void) const
 	}
 	else if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
 	{
-		AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)spBehavior;
+		AirsideMobElementBaseBehavior* spAirsideBehavior = (AirsideMobElementBaseBehavior*)spBehavior;
 		return spAirsideBehavior->moveTime();
 	}	
 	return ElapsedTime();
@@ -1056,7 +1057,7 @@ ElapsedTime Person::moveTime( DistanceUnit _dExtraSpeed, bool _bExtra ) const
 	}
 	else if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
 	{
-		AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)spBehavior;
+		AirsideMobElementBaseBehavior* spAirsideBehavior = (AirsideMobElementBaseBehavior*)spBehavior;
 		return spAirsideBehavior->moveTime(_dExtraSpeed,_bExtra);
 	}
 	return ElapsedTime();
@@ -1065,18 +1066,7 @@ ElapsedTime Person::moveTime( DistanceUnit _dExtraSpeed, bool _bExtra ) const
 void Person::setAirsideDestination(const CPoint2008& p)
 {
 	PLACE_METHOD_TRACK_STRING();
-	MobElementBehavior* spBehavior = getCurrentBehavior();
-	if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
-	{
-		AirsideMobElementBehavior* spAirsideBehavior = getAirsideBehavior();
-		if (spAirsideBehavior == NULL)
-		{
-			setBehavior(new AirsideMobElementBehavior(this,getState()));
-		}
-
-		spAirsideBehavior = getAirsideBehavior();
-		spAirsideBehavior->setDestination(p);
-	}
+	ASSERT(0);
 }
 
 void Person::setTerminalDestination(const Point& p)
@@ -1095,7 +1085,7 @@ void Person::setAirsideLocation( const CPoint2008& _ptLocation )
 	MobElementBehavior* spBehavior = getCurrentBehavior();
 	if (spBehavior&&spBehavior->getBehaviorType() == MobElementBehavior::AirsideBehavior)
 	{
-		AirsideMobElementBehavior* spAirsideBehavior = getAirsideBehavior();
+		AirsideMobElementBaseBehavior* spAirsideBehavior = getAirsideBehavior();
 		spAirsideBehavior->setLocation(_ptLocation);
 	}
 }

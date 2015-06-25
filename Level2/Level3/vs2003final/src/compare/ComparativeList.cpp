@@ -62,35 +62,35 @@ void CComparativeList::RefreshData(const CComparativeReportResult& _reportData)
 	switch( _reportData.GetReportType())
 	{
 	case QueueTimeReport:
-		RefreshData((CComparativeQTimeReport&)_reportData);
+		RefreshData((const CComparativeQTimeReport&)_reportData);
 		break;
 	case QueueLengthReport:
-		RefreshData((CComparativeQLengthReport&)_reportData);
+		RefreshData((const CComparativeQLengthReport&)_reportData);
 		break;
 	case ThroughtputReport:
-		RefreshData((CComparativeThroughputReport&)_reportData);
+		RefreshData((const CComparativeThroughputReport&)_reportData);
 		break;
 	case SpaceDensityReport:
-		RefreshData((CComparativeSpaceDensityReport&)_reportData);
+		RefreshData((const CComparativeSpaceDensityReport&)_reportData);
 		break;
 	case PaxCountReport:
-		RefreshData((CComparativePaxCountReport&)_reportData);
+		RefreshData((const CComparativePaxCountReport&)_reportData);
 		break;
 	case AcOperationReport:
-		RefreshData((CComparativeAcOperationReport&)_reportData);
+		RefreshData((const CComparativeAcOperationReport&)_reportData);
 		break;
 	case TimeTerminalReport:
-		RefreshData((CComparativeTimeTerminalReport &)_reportData);
+		RefreshData((const CComparativeTimeTerminalReport &)_reportData);
 		break;
 	case DistanceTravelReport:
-		RefreshData((CComparativeDistanceTravelReport&)_reportData);
+		RefreshData((const CComparativeDistanceTravelReport&)_reportData);
 		break;
 	default:
 		ASSERT(FALSE);
 	}
 }
 
-void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeQLengthReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -107,16 +107,20 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 	m_listCtrl.InsertColumn( 0 , _T("Time"));
 	m_listCtrl.SetColumnWidth(0, 100);
 	const QLengthMap& mapQLength = _reportData.GetResult();
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
 	int nColCount = 1;
-	CString strColText;
-	for(int i=0; i<(int)vSimName.size(); i++)
+	for(int i=1; i<=(int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Length %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Length %d"), i);
+		CModelToCompare *pModel = m_vModelList[i-1];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(nColCount, 80);
+
+			nColCount += 1;
+		}
 	}
 	//set list control
 	int nRow = 0, nCol =0;
@@ -136,7 +140,7 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 	}
 
 }
-void CComparativeList::RefreshData(CComparativePaxCountReport& _reportData)
+void CComparativeList::RefreshData(const CComparativePaxCountReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -154,15 +158,18 @@ void CComparativeList::RefreshData(CComparativePaxCountReport& _reportData)
 	m_listCtrl.SetColumnWidth(0, 100);
 
 	int nColCount = 1;
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	for(int i=1; i<=(int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Count %d"), i);
+		CModelToCompare *pModel = m_vModelList[i-1];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(nColCount, 80);
+			nColCount += 1;
+		}
 	}
 	//set list control
 	int nRow = 0, nCol =0;
@@ -183,7 +190,7 @@ void CComparativeList::RefreshData(CComparativePaxCountReport& _reportData)
 		}
 	}
 }
-void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeQTimeReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) &&  m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -201,17 +208,22 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 	//_stprintf(sData, _T("Total Time"), i*2+1);
 	strcpy(sData, _T("Total Time"));
 	m_listCtrl.InsertColumn(0, sData, LVCFMT_CENTER, 50);
-
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
+	
 	int nColCount = 1;
-	CString strColText;
-	for(int i=0; i<(int)vSimName.size(); i++)
+	for(int i=0; i < (int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Passenger Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Passenger Count %d"), i + 1);
+//		m_listCtrl.InsertColumn(i + 1 , m_vModelList[i]->GetModelName(), LVCFMT_CENTER, 50);
+
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(nColCount, 80);
+			nColCount += 1;
+		}
 	}
 	//set list control
 	
@@ -232,7 +244,7 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 	}
 }
 
-void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeThroughputReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -252,16 +264,21 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 	m_listCtrl.InsertColumn( 1, _T("End Time"));
 	m_listCtrl.SetColumnWidth(1, 100);
 
-	int nColCount = 2;
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	int iColCount = 2;
+	for(int i=0; i<(int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Pax Served %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Pax Served %d"), i + 1);
+//		m_listCtrl.InsertColumn(i + 2, m_vModelList[i]->GetModelName(), LVCFMT_CENTER, 50);
+//		m_listCtrl.SetColumnWidth(i + 2, 80);
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(iColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(iColCount, 80);
+			iColCount += 1;
+		}
 	}
 	//set list control
 	int nRow = 0, nCol =0;
@@ -290,7 +307,7 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 }
 
 
-void CComparativeList::RefreshData(CComparativeAcOperationReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeAcOperationReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) &&  m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -308,16 +325,20 @@ void CComparativeList::RefreshData(CComparativeAcOperationReport& _reportData)
 	strcpy(sData, _T("Time"));
 	m_listCtrl.InsertColumn(0, sData, LVCFMT_CENTER, 50);
 
-	int nColCount = 1;
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	int iColCount = 1;
+	for(int i=0; i < (int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Operation Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Operation Count %d"), i + 1);
+//		m_listCtrl.InsertColumn(i + 1 , m_vModelList[i]->GetModelName(), LVCFMT_CENTER, 50);
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(iColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(iColCount, 80);
+			iColCount += 1;
+		}
 	}
 	//set list control
 
@@ -361,7 +382,7 @@ void CComparativeList::RefreshData(CComparativeAcOperationReport& _reportData)
 
 }
 
-void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeSpaceDensityReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -380,16 +401,21 @@ void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData)
 	m_listCtrl.InsertColumn( 0 , _T("Time"));
 	m_listCtrl.SetColumnWidth(0, 100);
 
-	int nColCount = 1;
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	int iColCount = 1;
+	for(int i=1; i<=(int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Count %d"), i);
+//		m_listCtrl.InsertColumn(i, m_vModelList[i-1]->GetModelName(), LVCFMT_CENTER, 50);
+//		m_listCtrl.SetColumnWidth(i, 80);
+		CModelToCompare *pModel = m_vModelList[i-1];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(iColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(iColCount, 80);
+			iColCount += 1;
+		}
 	}
 	//set list control
 	int nRow = 0, nCol =0;
@@ -411,7 +437,7 @@ void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData)
 	}
 
 }
-void CComparativeList::RefreshData(CComparativeTimeTerminalReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeTimeTerminalReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) &&  m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -429,17 +455,20 @@ void CComparativeList::RefreshData(CComparativeTimeTerminalReport& _reportData)
 	//_stprintf(sData, _T("Total Time"), i*2+1);
 	strcpy(sData, _T("Total Time"));
 	m_listCtrl.InsertColumn(0, sData, LVCFMT_CENTER, 50);
-
-	int nColCount = 1;
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	int iColCount = 1;
+	for(int i=0; i < (int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Passenger Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Passenger Count %d"), i + 1);
+	//	m_listCtrl.InsertColumn(i + 1 , m_vModelList[i]->GetModelName(), LVCFMT_CENTER, 50);
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(iColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(iColCount, 80);
+			iColCount += 1;
+		}
 	}
 	//set list control
 
@@ -461,7 +490,7 @@ void CComparativeList::RefreshData(CComparativeTimeTerminalReport& _reportData)
 }
 
 
-void CComparativeList::RefreshData(CComparativeDistanceTravelReport& _reportData)
+void CComparativeList::RefreshData(const CComparativeDistanceTravelReport& _reportData)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) &&  m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -480,16 +509,20 @@ void CComparativeList::RefreshData(CComparativeDistanceTravelReport& _reportData
 	strcpy(sData, _T("Total Distance"));
 	m_listCtrl.InsertColumn(0, sData, LVCFMT_CENTER, 50);
 	
-	int nColCount = 1;
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	int iColCount = 1;
+	for(int i=0; i < (int)m_vModelList.size(); i++)
 	{
-		_stprintf(sData, _T("Passenger Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		_stprintf(sData, _T("Passenger Count %d"), i + 1);
+//		m_listCtrl.InsertColumn(i + 1 , m_vModelList[i]->GetModelName(), LVCFMT_CENTER, 50);
+		CModelToCompare *pModel = m_vModelList[i];
+		for (int j = 0; j < pModel->GetSimResultCount(); ++j)
+		{
+			CString strColText = _T("");
+			strColText.Format("%s(%s)",pModel->GetModelName(),pModel->GetSimResult(j));
+			m_listCtrl.InsertColumn(iColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(iColCount, 80);
+			iColCount += 1;
+		}
 	}
 	//set list control
 	

@@ -63,16 +63,12 @@ public:
 
 	static ALTObject3D * NewALTObject3D(ALTObject * pObj);
 protected:
-
-
 	int m_nID;
 	ALTObject::RefPtr m_pObj;
-	//ALTObjectDisplayProp::RefPtr m_pDisplayProp;
 	
 	bool m_bUpdated;
 	bool m_bInEdit;
-	double m_dThick;
-
+	//double m_dThick;
 };
 
 

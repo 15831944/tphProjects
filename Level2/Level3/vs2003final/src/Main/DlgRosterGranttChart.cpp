@@ -31,6 +31,8 @@ CDlgRosterGranttChart::CDlgRosterGranttChart(CProcRosterRules* pProcRosterRules,
 	m_bDragging = false;
 	m_nDragIndex = 0 ;
 	m_pDragFlight = NULL;
+	m_bCheckArrivals = true;
+	m_bCheckDepartures = true;
 }
 
 CDlgRosterGranttChart::~CDlgRosterGranttChart()
@@ -53,7 +55,8 @@ void CDlgRosterGranttChart::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_ASSIGNPRO , m_stProgAssignStatus);
 	DDX_Control(pDX, IDC_PROGRESS_ASSIGNMENT, m_progAssignStatus);
 
-
+	DDX_Control(pDX, IDC_ROSTER_ARR, m_btnArrivals);
+	DDX_Control(pDX, IDC_ROSTER_DEP, m_btnDepartures);
 }
 
 
@@ -66,7 +69,8 @@ BEGIN_MESSAGE_MAP(CDlgRosterGranttChart, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE,OnBtnSave)
 	ON_BN_CLICKED(IDC_BUTTON_PRIORITY_FLIGHT, OnBnClickedButtonAutoAssign)
 	ON_BN_CLICKED(IDC_BUTTON_UNASSIGNALL, OnBnClickedButtonUnassignAll)
-
+	ON_BN_CLICKED(IDC_ROSTER_ARR, OnCheckArrivals)
+	ON_BN_CLICKED(IDC_ROSTER_DEP, OnCheckDepatures)	
 END_MESSAGE_MAP()
 
 BEGIN_EVENTSINK_MAP(CDlgRosterGranttChart, CDialog)
@@ -89,6 +93,8 @@ BOOL CDlgRosterGranttChart::OnInitDialog()
 	SetWindowText(_T("Auto Roster Assignment Grantt Chart"));
 	m_progAssignStatus.ShowWindow(SW_HIDE);
 	m_stProgAssignStatus.ShowWindow(SW_HIDE);
+	m_btnDepartures.SetCheck(m_btnDepartures ? 1 : 0);
+	m_btnArrivals.SetCheck(m_btnArrivals ? 1 : 0);
 
 	InitFlightListCtrl();
 	InitGTCtrlLayout();
@@ -210,6 +216,42 @@ void CDlgRosterGranttChart::OnSize(UINT nType, int cx, int cy)
 	InvalidateRect( rect );
 }
 
+bool CompareProEntry(ProcAssignEntry* entry1, ProcAssignEntry* entry2)
+{
+	CString proName1String = entry1->getID()->GetIDString();
+	CString proName2String = entry2->getID()->GetIDString();
+
+	ALTObjectID objName1;
+	ALTObjectID objName2;
+	objName1.FromString(proName1String);
+	objName2.FromString(proName2String);
+
+	return objName1 < objName2;
+}
+
+void CDlgRosterGranttChart::SetGranttChart()
+{
+	m_gtcharCtrl.Clear(FALSE);
+
+	int nProcRosterEntryCount = m_vProAssignEntries.size();
+
+	for (int nProcEntry = 0; nProcEntry < nProcRosterEntryCount; ++ nProcEntry)
+	{
+		ProcAssignEntry *pProcEntry = m_vProAssignEntries[nProcEntry];
+		if(pProcEntry == NULL)
+			continue;
+
+		const ProcessorID *pProcID = pProcEntry->getID();
+		if(pProcID == NULL)
+			continue;
+		int ndx =  m_pInTerm->procAssignDB->findEntry(*pProcID) ;
+		ProcessorRosterSchedule* _schedule =  m_pInTerm->procAssignDB->getDatabase(ndx) ;
+
+		AddProcessor(_schedule, *pProcID);
+
+	}
+}
+
 void CDlgRosterGranttChart::LoadGranttChart()
 {
 
@@ -235,29 +277,32 @@ void CDlgRosterGranttChart::LoadGranttChart()
 		}
 		m_vProAssignEntries.push_back(pEntry);
 	}
+
+	std::sort(m_vProAssignEntries.begin(),m_vProAssignEntries.end(),CompareProEntry);
+
 	m_pProcRosterRules->DoAutoRosterAssignment(m_vProAssignEntries, m_lstAssignFlights);
 
+	SetGranttChart();
 
+	//m_gtcharCtrl.Clear(FALSE);
 
-	m_gtcharCtrl.Clear(FALSE);
+	//int nProcRosterEntryCount = m_vProAssignEntries.size();
+	//
+	//for (int nProcEntry = 0; nProcEntry < nProcRosterEntryCount; ++ nProcEntry)
+	//{
+	//	ProcAssignEntry *pProcEntry = m_vProAssignEntries[nProcEntry];
+	//	if(pProcEntry == NULL)
+	//		continue;
 
-	int nProcRosterEntryCount = m_vProAssignEntries.size();
-	
-	for (int nProcEntry = 0; nProcEntry < nProcRosterEntryCount; ++ nProcEntry)
-	{
-		ProcAssignEntry *pProcEntry = m_vProAssignEntries[nProcEntry];
-		if(pProcEntry == NULL)
-			continue;
+	//	const ProcessorID *pProcID = pProcEntry->getID();
+	//	if(pProcID == NULL)
+	//		continue;
+	//	int ndx =  m_pInTerm->procAssignDB->findEntry(*pProcID) ;
+	//	ProcessorRosterSchedule* _schedule =  m_pInTerm->procAssignDB->getDatabase(ndx) ;
 
-		const ProcessorID *pProcID = pProcEntry->getID();
-		if(pProcID == NULL)
-			continue;
-		int ndx =  m_pInTerm->procAssignDB->findEntry(*pProcID) ;
-		ProcessorRosterSchedule* _schedule =  m_pInTerm->procAssignDB->getDatabase(ndx) ;
+	//	AddProcessor(_schedule, *pProcID);
 
-		AddProcessor(_schedule, *pProcID);
-
-	}
+	//}
 
 
 
@@ -290,6 +335,17 @@ void CDlgRosterGranttChart::AddItemToGT(int lineId , ProcessorRoster* _Ass)
 {
 	if(_Ass == NULL)
 		return ;
+
+	RosterAssignFlight* pFlight = m_lstAssignFlights.GetRosterFlight(_Ass);
+	if (pFlight == NULL)
+		return;
+	
+	if (pFlight->isArrival() && m_bCheckArrivals == false)//doesn't show arrival flight
+		return;
+	
+	if (pFlight->isArrival() == false && m_bCheckDepartures == false)//doesn't show departure flight
+		return;
+	
 	const CMultiMobConstraint* pMultiConst = _Ass->getAssignment();	
 	const CMobileElemConstraint* pConst = pMultiConst->getConstraint( 0 );
 	CString  paxTy ;
@@ -404,6 +460,12 @@ void CDlgRosterGranttChart::LoadFlightList()
 		if(pUnassignFlight->isSuccessAssign())
 			continue;
 
+		if (pUnassignFlight->isArrival() && m_bCheckArrivals == false)//doesn't check arrival flight
+			continue;
+		
+		if (pUnassignFlight->isArrival() == false && m_bCheckDepartures == false) //doesn't check departure flight
+			continue;
+		
 		ARCFlight* pFlight = pUnassignFlight->getFlight();
 
 		CString strPaxType;
@@ -515,7 +577,8 @@ void CDlgRosterGranttChart::LoadFlightList()
 		m_listctrlFlightList.SetItemText(nRowIndex,nColStartIndex + 12, strProcCount);
 
 
-		if( !pUnassignFlight->isFailedAssign() )
+	//	if( !pUnassignFlight->isFailedAssign() )
+		if(GrayColorValid(pUnassignFlight))
 		{
 			//m_listctrlFlightList.SetItemState( nRowIndex, LVIS_FOCUSED|LVIS_SELECTED, LVIS_FOCUSED|LVIS_SELECTED );
 			m_listctrlFlightList.SetItemColor(nRowIndex,::GetSysColor(COLOR_WINDOWFRAME),RGB(235,235,235));
@@ -951,34 +1014,53 @@ void CDlgRosterGranttChart::OnLButtonUp(UINT nFlags, CPoint point)
 			ElapsedTime eOpenTime;
 			ElapsedTime eCloseTime;
 
-			ElapsedTime deltaOpenTime(2*60*60L);//2 hours
-			ElapsedTime deltaCloseTime(30*60L);//30 mins
-		
 			CMobileElemConstraint fltType( m_pInTerm );
 			if(m_pDragFlight->getPaxType())
 				fltType = *((*m_pDragFlight).getPaxType()->getConstraint(0));
-			
-			int nHours = m_nMaxScheduleDay * 24;
-			ElapsedTime eMaxTime = ElapsedTime(nHours*60*60L);
 
-			if(m_pDragFlight->isArrival())
+			if (m_pDragFlight->m_pRule)
 			{
-				ElapsedTime eScheTime = m_pDragFlight->getFlight()->getArrTime();
-				eOpenTime = eScheTime - deltaOpenTime;//2 hours before takeoff is open
-				eCloseTime = eScheTime - deltaCloseTime;//closes 30 minis before takeoff
-				fltType.MergeFlightConstraint(&( m_pDragFlight->getFlight()->getType('A')));				
+				char flightMode = 'A';
+				if (m_pDragFlight->isArrival())
+				{
+					fltType.MergeFlightConstraint(&( m_pDragFlight->getFlight()->getType('A')));
+				}
+				else
+				{
+					flightMode = 'D';
+					fltType.MergeFlightConstraint(&( m_pDragFlight->getFlight()->getType('D')));
+				}
+				eOpenTime = m_pDragFlight->m_pRule->GetRosterOpenTiem(m_pDragFlight->getFlight(),flightMode);
+				eCloseTime = m_pDragFlight->m_pRule->GetRosterCloseTime(m_pDragFlight->getFlight(),flightMode);
 			}
 			else
 			{
-				ElapsedTime eScheTime = m_pDragFlight->getFlight()->getDepTime();
+				ElapsedTime deltaOpenTime(2*60*60L);//2 hours
+				ElapsedTime deltaCloseTime(30*60L);//30 mins
+				
+				int nHours = m_nMaxScheduleDay * 24;
+				ElapsedTime eMaxTime = ElapsedTime(nHours*60*60L);
 
-				//eOpenTime = eScheTime + deltaCloseTime;//30 mins after landing, open
-				//eCloseTime = eScheTime + deltaOpenTime;//2 hours after landing close
+				if(m_pDragFlight->isArrival())
+				{
+					ElapsedTime eScheTime = m_pDragFlight->getFlight()->getArrTime();
+					eOpenTime = eScheTime - deltaOpenTime;//2 hours before takeoff is open
+					eCloseTime = eScheTime - deltaCloseTime;//closes 30 minis before takeoff
+					fltType.MergeFlightConstraint(&( m_pDragFlight->getFlight()->getType('A')));				
+				}
+				else
+				{
+					ElapsedTime eScheTime = m_pDragFlight->getFlight()->getDepTime();
 
-				eOpenTime = min(eScheTime + deltaCloseTime,eMaxTime);
-				eCloseTime = min(eScheTime + deltaOpenTime,eMaxTime);
-				fltType.MergeFlightConstraint(&( m_pDragFlight->getFlight()->getType('D')));
+					//eOpenTime = eScheTime + deltaCloseTime;//30 mins after landing, open
+					//eCloseTime = eScheTime + deltaOpenTime;//2 hours after landing close
+
+					eOpenTime = min(eScheTime + deltaCloseTime,eMaxTime);
+					eCloseTime = min(eScheTime + deltaOpenTime,eMaxTime);
+					fltType.MergeFlightConstraint(&( m_pDragFlight->getFlight()->getType('D')));
+				}
 			}
+			
 			
 			//add the flight individually
 	
@@ -1041,7 +1123,7 @@ void CDlgRosterGranttChart::OnLButtonUp(UINT nFlags, CPoint point)
 			{
 				CString strProcCount;
 				m_pDragFlight->setProcAssinCount(m_pDragFlight->getProcAssignCount() -1);
-				m_pDragFlight->m_emAssignResult = RosterAssignFlight::emAss_Sucess;
+			//	m_pDragFlight->m_emAssignResult = RosterAssignFlight::emAss_Sucess;
 				strProcCount.Format(_T("%d"), m_pDragFlight->getProcAssignCount());
 				m_listctrlFlightList.SetItemText(m_nDragIndex, 14, strProcCount);
 				m_listctrlFlightList.SetItemColor(m_nDragIndex,::GetSysColor(COLOR_WINDOWFRAME),RGB(235,235,235));
@@ -1123,7 +1205,7 @@ void CDlgRosterGranttChart::FreshProcessorRoster( int iLine )
 void CDlgRosterGranttChart::OnBnClickedButtonAutoAssign()
 {
 	m_btnAutoAssign.EnableWindow(FALSE);
-	int nItemNum = m_gtcharCtrl.GetItemNum();
+	int nItemNum = m_gtcharCtrl.GetLineNum();
 	for (int nItem = 0; nItem < nItemNum; ++ nItem)
 	{
 		m_gtcharCtrl.ClearAllItemOfLine(nItem);
@@ -1146,13 +1228,29 @@ void CDlgRosterGranttChart::OnBnClickedButtonUnassignAll()
 	}
 
 	m_lstAssignFlights.ClearAssignRosters();
-	int nItemNum = m_gtcharCtrl.GetItemNum();
+	int nItemNum = m_gtcharCtrl.GetLineNum();
 	for (int nItem = 0; nItem < nItemNum; ++ nItem)
 	{
 		m_gtcharCtrl.ClearAllItemOfLine(nItem);
 	}
 
 	LoadFlightList();
+}
+//include passenger type show gray
+//assign success show gray
+bool CDlgRosterGranttChart::GrayColorValid(RosterAssignFlight* pUnassignFlight) const
+{
+	if (!pUnassignFlight->getPaxType())
+	{
+		return true;
+	}
+
+	if (!pUnassignFlight->isFailedAssign())
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void CDlgRosterGranttChart::AddFlightIntoList( RosterAssignFlight* pUnassignFlight )
@@ -1163,7 +1261,8 @@ void CDlgRosterGranttChart::AddFlightIntoList( RosterAssignFlight* pUnassignFlig
 		CString strProcCount;
 		strProcCount.Format(_T("%d"), pUnassignFlight->getProcAssignCount());
 		m_listctrlFlightList.SetItemText(idx,14,strProcCount);
-		if( !pUnassignFlight->isFailedAssign() )
+	//	if( !pUnassignFlight->isFailedAssign() )
+		if(GrayColorValid(pUnassignFlight))
 		{
 			m_listctrlFlightList.SetItemColor(idx,::GetSysColor(COLOR_WINDOWFRAME),RGB(235,235,235));
 		}
@@ -1287,7 +1386,8 @@ void CDlgRosterGranttChart::AddFlightIntoList( RosterAssignFlight* pUnassignFlig
 	m_listctrlFlightList.SetItemData(nRowIndex,(DWORD_PTR)pUnassignFlight);
 	m_listctrlFlightList.EnsureVisible(nRowIndex,FALSE);
 
-	if( !pUnassignFlight->getPaxType() )
+	//if( !pUnassignFlight->getPaxType() )
+	if(GrayColorValid(pUnassignFlight))
 	{
 		m_listctrlFlightList.SetItemColor(nRowIndex,::GetSysColor(COLOR_WINDOWFRAME),RGB(235,235,235));
 	}
@@ -1314,6 +1414,34 @@ int CDlgRosterGranttChart::GetListCtrlIndex( RosterAssignFlight* pUnassignFlight
 		}
 	}
 	return -1;
+}
+
+void CDlgRosterGranttChart::OnCheckArrivals()
+{
+	m_bCheckArrivals = !m_bCheckArrivals;
+
+	int nItemNum = m_gtcharCtrl.GetLineNum();
+	for (int nItem = 0; nItem < nItemNum; ++ nItem)
+	{
+		m_gtcharCtrl.ClearAllItemOfLine(nItem);
+	}
+
+	SetGranttChart();
+	LoadFlightList();
+}
+
+void CDlgRosterGranttChart::OnCheckDepatures()
+{
+	m_bCheckDepartures = !m_bCheckDepartures;
+
+	int nItemNum = m_gtcharCtrl.GetLineNum();
+	for (int nItem = 0; nItem < nItemNum; ++ nItem)
+	{
+		m_gtcharCtrl.ClearAllItemOfLine(nItem);
+	}
+
+	SetGranttChart();
+	LoadFlightList();
 }
 
 

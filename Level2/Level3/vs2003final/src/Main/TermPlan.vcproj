@@ -286,6 +286,9 @@
 				RelativePath=".\Airside3D.h">
 			</File>
 			<File
+				RelativePath=".\AirsideBagCartParkPosDlg.h">
+			</File>
+			<File
 				RelativePath=".\AirsideDriveRoadDlg.h">
 			</File>
 			<File
@@ -314,6 +317,12 @@
 			</File>
 			<File
 				RelativePath=".\AirsideParkingPlaceDlg.h">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkingPosDlg.h">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkSpot3D.h">
 			</File>
 			<File
 				RelativePath=".\AirsideReportView.h">
@@ -499,18 +508,6 @@
 				RelativePath="CLicense.h">
 			</File>
 			<File
-				RelativePath=".\CmpReportChildFrameSplit.h">
-			</File>
-			<File
-				RelativePath=".\CmpReportGraphView.h">
-			</File>
-			<File
-				RelativePath=".\CmpReportListView.h">
-			</File>
-			<File
-				RelativePath=".\CmpReportTreeView.h">
-			</File>
-			<File
 				RelativePath="color.h">
 			</File>
 			<File
@@ -532,7 +529,13 @@
 				RelativePath="common.h">
 			</File>
 			<File
+				RelativePath="ComparativePlot.h">
+			</File>
+			<File
 				RelativePath="CompareReportDoc.h">
+			</File>
+			<File
+				RelativePath=".\CompareReportView.h">
 			</File>
 			<File
 				RelativePath="CompRepLogBar.h">
@@ -686,6 +689,9 @@
 			</File>
 			<File
 				RelativePath=".\DlgAirportProperty.h">
+			</File>
+			<File
+				RelativePath=".\DlgAirsideEnrouteQueueCapacity.h">
 			</File>
 			<File
 				RelativePath=".\DlgAltitudeManager.h">
@@ -1954,6 +1960,9 @@
 				RelativePath=".\OtherPlacement.h">
 			</File>
 			<File
+				RelativePath=".\Painter.h">
+			</File>
+			<File
 				RelativePath=".\ParkingLotFacilityDataPage.h">
 			</File>
 			<File
@@ -2991,6 +3000,9 @@
 			</File>
 			<File
 				RelativePath=".\Res\bmp00052.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\bmp00053.bmp">
 			</File>
 			<File
 				RelativePath="Res\bmp_seldefined.bmp">
@@ -4508,6 +4520,9 @@
 				RelativePath=".\Airside3D.cpp">
 			</File>
 			<File
+				RelativePath=".\AirsideBagCartParkPosDlg.cpp">
+			</File>
+			<File
 				RelativePath=".\AirsideDriveRoadDlg.cpp">
 			</File>
 			<File
@@ -4527,6 +4542,12 @@
 			</File>
 			<File
 				RelativePath=".\AirsideParkingPlaceDlg.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkingPosDlg.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkSpot3D.cpp">
 			</File>
 			<File
 				RelativePath=".\AirsideReportView.cpp">
@@ -5154,18 +5175,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\CmpReportChildFrameSplit.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpReportGraphView.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpReportListView.cpp">
-			</File>
-			<File
-				RelativePath=".\CmpReportTreeView.cpp">
-			</File>
-			<File
 				RelativePath="ColorBox.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -5229,6 +5238,27 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="ComparativePlot.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="CompareReportDoc.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -5248,6 +5278,9 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CompareReportView.cpp">
 			</File>
 			<File
 				RelativePath="CompRepLogBar.cpp">
@@ -5704,6 +5737,9 @@
 			</File>
 			<File
 				RelativePath=".\DlgAirportProperties.cpp">
+			</File>
+			<File
+				RelativePath=".\DlgAirsideEnrouteQueueCapacity.cpp">
 			</File>
 			<File
 				RelativePath=".\DlgAltitudeManager.cpp">

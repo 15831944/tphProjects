@@ -11,6 +11,9 @@
 #define MAX_WAIT_TIME 300l
 #define SCHEDULE_EVENT 600l
 #define MOVING_SPEED 300
+#include "Process.h"
+#include "Terminal.h"
+#include "AirsideBaggageTrainInSim.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -106,12 +109,40 @@ void Pusher::beginService (Person *_pPerson, ElapsedTime curTime)
 	{
 		Processor* pNextProc = spTerminalBehavior->TryToSelectNextProcessor( curTime );	
 		if( pNextProc )
-		{
-			
-			spTerminalBehavior->SetDirectGoToNextProc( pNextProc );
-			_pPerson->setState( LeaveServer );
-			_pPerson->generateEvent( curTime ,false);
-			return;			
+		{	
+			//if next processor is end processor
+			//move to baggage train
+			//if the baggage train is not ready
+			//stay and wait
+			if(pNextProc == m_pTerm->procList->getProcessor(END_PROCESSOR_INDEX))
+			{
+
+				//ASSERT(0);
+
+				int nTrainCount = static_cast<int>(m_vBaggageTrain.size());
+
+				for(int nTrain = 0; nTrain < nTrainCount; ++nTrain)
+				{
+					AirsideBaggageTrainInSim *pTrain = m_vBaggageTrain.at(nTrain);
+					if(pTrain == NULL)
+						continue;
+
+					if(pTrain->CanServe(_pPerson->getType()))
+					{
+						pTrain->LoadBaggageFromPusher(curTime);
+					}
+
+				}
+				//not train could serve this bag
+				//stay and wait
+			}
+			else
+			{
+				spTerminalBehavior->SetDirectGoToNextProc( pNextProc );
+				_pPerson->setState( LeaveServer );
+				_pPerson->generateEvent( curTime ,false);
+				return;		
+			}
 		}
 
 
@@ -459,3 +490,65 @@ void Pusher::removePersonFromApproachList( const Person* _pPerson )
 	if(index != INT_MAX )
 		m_approaching.removeItem (index);
 }
+
+void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain, CMobileElemConstraint& bagCons, int nReleaseCount, ElapsedTime eTime)
+{
+	//write log from pusher to baggage cart directly
+	//here, it would be better to create an bag move event to do the job
+
+	int nBagLoad = 0;
+	int nBagCount = m_vServiceSlot.size();
+	ElapsedTime eRetTime = eTime;
+	for( int nBag = 0; nBag < nBagCount; ++ nBag )
+	{
+		if(nBagLoad >= nReleaseCount)
+			break;
+
+		Person* pBaggage = m_vServiceSlot[nBag].GetBaggageOnSlot();
+		if( pBaggage)
+		{
+			if(bagCons.fits(pBaggage->getType()))
+			{
+				pBaggage->writeLogEntry( eTime, false );
+				
+				pBaggage->setState( LeaveServer );
+				//Leave Server Time
+				ElapsedTime eLeavTime = eTime +  ElapsedTime(nBagLoad *1L);
+				pBaggage->writeLogEntry(eLeavTime, false);
+				m_vServiceSlot[nBag].SetBaggageOnSlot( NULL);
+
+				//move to airside and baggage cart
+				pBaggageTrain->TransferTheBag(pBaggage, eLeavTime,eRetTime);
+
+
+			
+				nBagLoad += 1;
+			}
+		}
+	}
+}
+
+void Pusher::ReportBaggageTrainArrival( AirsideBaggageTrainInSim *pBaggageTrain )
+{
+	if(std::find(m_vBaggageTrain.begin(), m_vBaggageTrain.end(), pBaggageTrain) == m_vBaggageTrain.end())
+	{
+		m_vBaggageTrain.push_back(pBaggageTrain);
+	}
+}
+
+void Pusher::ReportBaggageTrainLeave( AirsideBaggageTrainInSim *pBaggageTrain )
+{
+	std::vector<AirsideBaggageTrainInSim *>::iterator iter = std::find(m_vBaggageTrain.begin(), m_vBaggageTrain.end(), pBaggageTrain);
+	if(iter != m_vBaggageTrain.end())
+	{
+		m_vBaggageTrain.erase(iter);
+	}
+}
+
+
+
+
+
+
+
+

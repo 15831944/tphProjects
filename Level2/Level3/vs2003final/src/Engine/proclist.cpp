@@ -757,8 +757,15 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 											//dtime8 = GetTickCount();
 											if (aProc->isPaxSkipVacant(pPerson,_currentTime))
 											{
-												if (!aProc->CheckRecycleFrequency(pPerson))
+												if (aProc->CheckRecycleFrequency(pPerson))
 												{
+													//if one processor of the group exceed the frequency limitation
+													//the whole branch is not eligible
+													_pInfo->insertDiagnoseInfo(strProcessor,"Recycle frequency Problem");
+													pProcArray->clear();
+													return;
+
+												}
 													if( aProc->GetTLOSFlag() )
 														vVaildTLOSProcList.push_back( aProc );
 													_bRosterReason = true;
@@ -777,9 +784,9 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 													}
 													else
 														_pInfo->insertDiagnoseInfo( strProcessor,"can not serve for this pax" );
-												}
-												else
-													_pInfo->insertDiagnoseInfo(strProcessor,"Recycle frequency Problem");
+												//}
+												//else
+												//	_pInfo->insertDiagnoseInfo(strProcessor,"Recycle frequency Problem");
 											}
 											else
 												_pInfo->insertDiagnoseInfo(strProcessor,"Pax Skip Problem");
@@ -864,8 +871,15 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 											{
 												if (aProc->isPaxSkipVacant(pPerson,_currentTime))
 												{
-													if (!aProc->CheckRecycleFrequency(pPerson))
+													if (aProc->CheckRecycleFrequency(pPerson))
 													{
+														//if one processor of the group exceed the frequency limitation
+														//the whole branch is not eligible
+														_pInfo->insertDiagnoseInfo(strProcessor,"Recycle frequency Problem");
+														pProcArray->clear();
+
+														return;
+													}
 														if( aProc->GetTLOSFlag() )
 															vVaildTLOSProcList.push_back( aProc );
 														_bRosterReason = true;
@@ -876,9 +890,9 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 														}
 														else
 															_pInfo->insertDiagnoseInfo( strProcessor,"can not serve for this pax" );
-													}
-													else 
-														_pInfo->insertDiagnoseInfo(strProcessor,"Recycle frequency Problem");
+													//}
+													//else 
+													//	_pInfo->insertDiagnoseInfo(strProcessor,"Recycle frequency Problem");
 												}
 												else
 													_pInfo->insertDiagnoseInfo(strProcessor,"Pax Skip Problem");

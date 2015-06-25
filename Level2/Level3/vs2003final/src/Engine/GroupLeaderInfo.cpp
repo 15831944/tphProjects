@@ -282,7 +282,28 @@ enum EVENT_OPERATION_DECISTION CGroupLeaderInfo::ProcessEvent( ElapsedTime event
 			m_bWaitingForRegrouping = true;
 		}
 		if( AllReadytoRegroup() )
+		{
+			// check followers
+			int nFollowerCount = m_pGroupFollowerList.getCount();
+			for( int i=0; i<nFollowerCount; i++ )
+			{
+				Person* _pFollower = (Person*) m_pGroupFollowerList.getItem( i );
+				{
+					TerminalMobElementBehavior* spTerminalBehavior = _pFollower->getTerminalBehavior();
+					if(spTerminalBehavior)
+					{
+						Processor *pProc = spTerminalBehavior->getProcessor();
+						if(pProc && pProc->getProcessorType() == DepSinkProc)
+						{
+							pProc->removePerson(_pFollower);
+							pProc->makeAvailable(_pFollower, eventTime, false);
+						}
+					}
+				}
+
+			}
 			m_bInGroup = true;
+		}
 		else
 			enumRes = NOT_GENERATE_EVENT;
 	}

@@ -11,6 +11,7 @@
 #include "ReportParameter.h"
 #include "main\TermPlanDoc.h"
 #include "main/CompareReportDoc.h"
+#include "main\CompareReportView.h"
 
 
 //////////////////////////////////////////////////////////////////////

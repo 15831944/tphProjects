@@ -529,7 +529,7 @@ void VehicleStretchSegmentInSim::InitLanes()
 {
 	//init Lanes
 	Stretch * pStretchInput = m_pStretchInSim->GetInput();
-	CPath2008 m_path = GetSubPath( pStretchInput->getPath(), m_dDistFromAtStretch, m_dDistToAtStretch );
+	m_path = GetSubPath( pStretchInput->getPath(), m_dDistFromAtStretch, m_dDistToAtStretch );
 
 	ARCPipe pipePath(m_path,pStretchInput->GetLaneNumber()* pStretchInput->GetLaneWidth());
 
@@ -705,6 +705,12 @@ bool VehicleStretchSegmentInSim::bMobileInResource( ARCMobileElement* pmob ) con
 
 	return false;
 }
+
+DistanceUnit VehicleStretchSegmentInSim::getWidth() const
+{
+	return m_pStretchInSim->getWidth();
+}
+
 /************************************************************************/
 /*      VehicleStretchInSim                                             */
 /************************************************************************/

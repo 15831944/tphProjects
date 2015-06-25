@@ -16,9 +16,10 @@ class CModelToCompare;
 class CComparativeList  
 {
 public:
-	CComparativeList(Terminal* pTerminal, CListCtrl& listCtrl)
+	CComparativeList(Terminal* pTerminal, CListCtrl& listCtrl, const std::vector<CModelToCompare*>& vModelList)
 	 : m_pTerminal(pTerminal)
 	 , m_listCtrl(listCtrl)
+	 , m_vModelList(vModelList)
 	{
 	}
 
@@ -27,15 +28,16 @@ public:
 private:
 	Terminal* m_pTerminal;
 	CListCtrl& m_listCtrl;
+	const std::vector<CModelToCompare*>& m_vModelList;
 
-	void RefreshData(CComparativeQLengthReport& _reportData);
-	void RefreshData(CComparativeQTimeReport& _reportData);
-	void RefreshData(CComparativeThroughputReport& _reportData);
-	void RefreshData(CComparativeSpaceDensityReport& _reportData);
-	void RefreshData(CComparativePaxCountReport& _reportData);
-	void RefreshData(CComparativeAcOperationReport& _reportData);
-	void RefreshData(CComparativeTimeTerminalReport& _reportData);
-	void RefreshData(CComparativeDistanceTravelReport& _reportData);
+	void RefreshData(const CComparativeQLengthReport& _reportData);
+	void RefreshData(const CComparativeQTimeReport& _reportData);
+	void RefreshData(const CComparativeThroughputReport& _reportData);
+	void RefreshData(const CComparativeSpaceDensityReport& _reportData);
+	void RefreshData(const CComparativePaxCountReport& _reportData);
+	void RefreshData(const CComparativeAcOperationReport& _reportData);
+	void RefreshData(const CComparativeTimeTerminalReport& _reportData);
+	void RefreshData(const CComparativeDistanceTravelReport& _reportData);
 
 	CString GetRegularDateTime(LPCTSTR elaptimestr, bool needsec);
 };

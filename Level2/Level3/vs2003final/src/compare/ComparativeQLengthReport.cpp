@@ -75,25 +75,13 @@ bool CComparativeQLengthReport::SaveReport(const std::string& _sPath) const
 	{
 		ArctermFile file;
 		if(file.openFile( _sPath.c_str(),WRITE)==false) return false;
-
-		file.writeField("QLength Report");
-		file.writeLine();
-
-		//write comparative report name
-		file.writeField(m_cmpReportName);
-		file.writeLine();
+		
+		int nSampleCount = m_vSampleRepPaths.size();
 
 		//write original sample count
-		int nSampleCount = m_vSampleRepPaths.size();
-		file.writeInt( nSampleCount );
+		file.writeField("Comparative Report");
 		file.writeLine();
-
-		//write simulation name
-		int count = m_vSimName.size();
-		for(int i=0; i<count; i++)
-		{
-			file.writeField(m_vSimName[i]);
-		}
+		file.writeInt( nSampleCount );
 		file.writeLine();
 
 		//write original sample path
@@ -141,31 +129,20 @@ bool CComparativeQLengthReport::LoadReport(const std::string& _sPath)
 	{
 		ArctermFile file;
 		file.openFile( _sPath.c_str(), READ);
-
-		// get report name
-		file.getField(m_cmpReportName.GetBuffer(256), 256);
-		m_cmpReportName.ReleaseBuffer();
-
 		//get model number
 		int nSampleCount =0;
-		file.getLine();
+
 		if (file.getInteger( nSampleCount )==false || nSampleCount<=0)
 			return false;
 
-		//get simulation name list
-		char buffer[MAX_PATH]="";
-		file.getLine();
-		for(int i=0; i<nSampleCount; i++)
-		{
-			file.getField(buffer, MAX_PATH);
-			m_vSimName.push_back(CString(buffer));
-		}
+
+		char sSamplePath[MAX_PATH]="";
 		//get sample file name
 		for(int i=0; i<nSampleCount; i++)
 		{
 			file.getLine();
-			file.getField(buffer, MAX_PATH);
-			m_vSampleRepPaths.push_back(std::string(buffer));
+			file.getField(sSamplePath, MAX_PATH);
+			m_vSampleRepPaths.push_back(std::string(sSamplePath));
 		}
 		//skip a blank line
 		file.skipLine();

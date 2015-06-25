@@ -27,4 +27,6 @@ private:
 	CComboBox m_wndComboxCtrl;
 
 	LandsideLayoutOptions m_layoutOptions;
+public:
+	afx_msg void OnCbnSelchangeComboData();
 };

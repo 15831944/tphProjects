@@ -470,7 +470,7 @@ void LandParkingLotPropDlgImpl::OnContextMenu( CMenu& menuPopup, CMenu *&pMenu )
 		|| itemType == _ParkSpaceRoot || itemType == _PSPath
 		|| itemType == _EntryExitRoot || itemType == _LinePath 
 		|| itemType == _LaneNodeRoot
-		||itemType == _ParkDrivePipeRoot || itemType ==  _PPPath)
+		|| itemType == _ParkDrivePipeRoot || itemType ==  _PPPath)
 	{
 		pMenu = menuPopup.GetSubMenu(73);			
 	}

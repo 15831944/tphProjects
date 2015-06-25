@@ -517,6 +517,7 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			//Apply for vehicle service
 			pFlight->ApplyForVehicleService();	
 			pFlight->ApplyForPaxBusService(true);
+			pFlight->ApplyForBaggageTrainService(ARRIVAL_OPERATION);
 
 			double taxispd = pFlight->GetPerformance()->getTaxiInNormalSpeed(pFlight);
 			pRouteToStand->SetSpeed(taxispd);
@@ -740,7 +741,8 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			//	}
 			//}			
 			pFlight->ApplyForVehicleService();
-			pFlight->ApplyForPaxBusService(false);			
+			pFlight->ApplyForPaxBusService(false);	
+			pFlight->ApplyForBaggageTrainService(DEPARTURE_OPERATION);
 
 			if(lastClearanceItem.GetMode()== OnHeldAtStand && pFlight->getDeiceServiceRequest() == NULL && !pFlight->GetDeiceDecision().bAfterDeice)
 			{

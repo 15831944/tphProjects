@@ -80,6 +80,13 @@ enum AirsideMobileElementMode
 	OnBackPool,
 	OnVehicleTerminate,
 
+	//baggage train
+	OnMoveToBagTrainSpot,
+	OnMoveInBagTrainSpot,
+	OnMoveOutBagTrainSpot,
+	OnArriveAtBagTrainSpot,  
+	OnLeaveBagTrainSpot,
+
 
 	MODE_COUNT,
 };

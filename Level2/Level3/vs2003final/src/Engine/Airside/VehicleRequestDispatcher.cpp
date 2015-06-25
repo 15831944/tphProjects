@@ -18,13 +18,24 @@
 #include "StandInSim.h"
 #include "../../InputAirside/FollowMeConnectionData.h"
 #include "TaxiRouteInSim.h"
+#include "../BaggageTrainServiceRequest.h"
+#include "../SimpleConveyor.h"
+#include "../Loader.h"
+#include "Inputs/MobileElemConstraint.h"
+#include "../BagCartsParkingSpotInSim.h"
+#include "..\BagCartsParkingSpotResourceManager.h"
+#include "..\Pusher.h"
+#include "../TERMINAL.H"
 
-VehicleRequestDispatcher::VehicleRequestDispatcher(CAirportDatabase* pAirportDB)
+
+VehicleRequestDispatcher::VehicleRequestDispatcher(CAirportDatabase* pAirportDB, ProcessorList* pProcList)
 :m_bVehicleService(true)
 ,m_pPoolResManager(NULL)
 ,m_pPoolsDeployment(NULL)
 ,m_pFlightServiceRequirement(NULL)
 ,m_pPaxParkingManager(NULL)
+,m_pTermProcList(pProcList)
+,m_pBagCartsSpotResourceManager(NULL)
 {
 	m_pFollowMeCarConnection = new FollowMeCarConnectionInSim(pAirportDB);
 }
@@ -330,19 +341,23 @@ void VehicleRequestDispatcher::PaxBusServiceRequestDispatch()
 		
 		//check the flight has parking place
 		{
-			CPaxBusParkingInSim *pPaxBusparkingInSim = NULL;
+			AirsidePaxBusParkSpotInSim *pPaxBusparkingInSim = NULL;
 			
 
 			if (request->IsArrival())
 			{	
 				if(request->GetServiceFlight() && request->GetServiceFlight()->GetFlightInput())
 				{
-					CString strDepGate = request->GetServiceFlight()->getArrGateInSim();
-					pPaxBusparkingInSim = m_pPaxParkingManager->GetBestMatch(strDepGate,arrgate);
+					CString strArrGate = request->GetServiceFlight()->getArrGateInSim();
+					pPaxBusparkingInSim = m_pPaxParkingManager->GetBestMatch(strArrGate);
 					
-					if(pPaxBusparkingInSim==NULL){
+					if(pPaxBusparkingInSim)
+					{
+						pFlight->SetArrivalPaxBusParking(pPaxBusparkingInSim);
+					}
+					else{
 						CString strError;
-						strError.Format(_T("PaxBus Can not find Parking place for Arr Gate(%s), can not start Service"),strDepGate );
+						strError.Format(_T("PaxBus Can not find Parking place for Arr Gate(%s), can not start Service"),strArrGate );
 						AirsideSimErrorShown::SimWarning(pFlight,strError, _T("Define Error") );
 					}
 				}
@@ -352,8 +367,12 @@ void VehicleRequestDispatcher::PaxBusServiceRequestDispatch()
 				if(request->GetServiceFlight() && request->GetServiceFlight()->GetFlightInput())
 				{
 					CString strDepGate = pFlight->getDepGateInSim();
-					pPaxBusparkingInSim = m_pPaxParkingManager->GetBestMatch(strDepGate,depgate);
-					if(pPaxBusparkingInSim==NULL){
+					pPaxBusparkingInSim = m_pPaxParkingManager->GetBestMatch(strDepGate);
+					if(pPaxBusparkingInSim)
+					{
+						pFlight->SetDepPaxBusParking(pPaxBusparkingInSim);
+					}
+					else{
 						CString strError;
 						strError.Format(_T("PaxBus Can not find Parking place for Dep Gate(%s), can not start Service"),strDepGate );
 						AirsideSimErrorShown::SimWarning(pFlight,strError, _T("Define Error") );
@@ -630,4 +649,305 @@ void VehicleRequestDispatcher::WakeupAllPaxBusCompleteService(AirsideFlightInSim
 	{
 		m_vPaxBusServiceRequest[i]->WakeupAllPaxBusCompleteService(pFlight);
 	}
+}
+
+void VehicleRequestDispatcher::AddBaggageTrainServiceRequest( AirsideFlightInSim* pFlight,FlightOperation enumOperation )
+{
+	//std::vector<CVehicleSpecificationItem * > vVehicleTypeSpec;
+	std::vector<CServicingRequirement* > vServiceRequirement;
+	m_pFlightServiceRequirement->GetAvailableVehicleTypeByBaseType(pFlight,VehicleType_BaggageTug,vServiceRequirement);
+	if (!vServiceRequirement.empty())
+	{
+		BaggageTrainServiceRequest* bagTrainRequest = new BaggageTrainServiceRequest;
+		bagTrainRequest->SetServiceFlight(pFlight);
+		bagTrainRequest->setFltOperation(enumOperation);
+		//paxBusRequest->SetVehicleBaseType(VehicleType_PaxTruck);
+		int nPaxCount  =  0 ;
+		if(enumOperation == ARRIVAL_OPERATION)
+		{
+			nPaxCount = pFlight->GetFlightInput()->getArrBagCount();
+		}
+		else
+		{
+			nPaxCount = pFlight->GetFlightInput()->getDepBagCount();
+		}
+		bagTrainRequest->setBaggageCount(nPaxCount);
+		bagTrainRequest->setUnserviceBaggageCount(nPaxCount);
+		m_vBagTrainServiceRequest.push_back(bagTrainRequest);
+
+		pFlight->AddVehicleServiceRequest(bagTrainRequest);
+	}
+
+}
+
+void VehicleRequestDispatcher::BaggageTrainServiceRequestDispatch()
+{
+	//get pax bus service count
+	if (m_vBagTrainServiceRequest.empty())
+		return;
+
+	//copy for erase issue
+	std::vector<BaggageTrainServiceRequest*> vBagTrainServiceRequest = m_vBagTrainServiceRequest;
+	
+	for (int nRequst = 0; nRequst < (int)vBagTrainServiceRequest.size(); ++ nRequst)
+	{
+		BaggageTrainServiceRequest *pBagTrainRequest = vBagTrainServiceRequest.at(nRequst);
+		if(pBagTrainRequest == NULL)
+			return;
+
+		AirsideFlightInSim* pFlight = pBagTrainRequest->GetServiceFlight();
+
+		if (pFlight->GetMode() == OnTerminate)
+		{
+			continue;
+		}
+
+
+		//get available vehicle Type
+		std::vector<CVehicleSpecificationItem * > vVehicleTypeSpec;
+		 std::vector<CServicingRequirement* > vServiceRequirement;
+		m_pFlightServiceRequirement->GetAvailableVehicleTypeByBaseType(pFlight,VehicleType_BaggageTug,/*vVehicleTypeSpec,*/vServiceRequirement);
+		
+		//have vehicle service request
+		size_t nAvailableVehicleTypeCount = vServiceRequirement.size();
+		if(nAvailableVehicleTypeCount == 0)
+		{
+			//drawing warning
+			pBagTrainRequest->SetServiceCount(0);
+			pBagTrainRequest->SetProceed(true);
+			RemoveBaggageServiceRequest(pBagTrainRequest);
+			continue;
+		}
+
+
+		
+		FlightOperation fltOperation = pBagTrainRequest->getFltOperation();
+		if(fltOperation == ARRIVAL_OPERATION)
+		{
+			ProcessorID procID = pFlight->GetFlightInput()->getBaggageDevice();
+			//if arrival, find loader
+			std::vector<Processor *> vAvailableLoader;
+			std::vector<CBagCartsParkingSpotInSim *> vAvailbeParkingSpot;
+			//then linked parking position
+			//if parking position cannot be found, give error message
+			//and baggage reclaim
+			std::vector<BaseProcessor *> vConveyProcessor;
+			m_pTermProcList->GetProcessorsByType(vConveyProcessor, LineProc);
+			
+			int nConveyCount = static_cast<int>(vConveyProcessor.size());
+			for(int nConvey = 0; nConvey < nConveyCount; ++ nConvey)
+			{
+			//	CSimpleConveyor *pConveyProc = (CSimpleConveyor *)vConveyProcessor.at(nConvey);
+				Processor* pLineProc = (Processor*)vConveyProcessor.at(nConvey);
+				if(pLineProc == NULL)
+					continue;
+			//	if(pLineProc->GetSubConveyorType() == LOADER)
+				{
+// 					CLoader *pLoadProc = (CLoader *)pConveyProc;
+// 
+// 					if(pLoadProc == NULL)
+// 						continue;
+
+					CMobileElemConstraint paxCons;
+					Flight* pFlightInput = pFlight->GetFlightInput();
+					ASSERT(pFlightInput);
+					FlightConstraint fltCons = pFlightInput->getType('A');
+					paxCons.SetAirportDB(pFlightInput->GetTerminal()->m_pAirportDB);
+					paxCons.MergeFlightConstraint(&fltCons);
+					paxCons.setIntrinsicType(1);
+					paxCons.SetTypeIndex(2);
+				
+					ALTObjectID altTermProcID;
+					altTermProcID.FromString(pLineProc->getID()->GetIDString());
+
+					ALTObjectID altReclaimID;
+					altReclaimID.FromString(procID.GetIDString());
+
+					if(pLineProc->CanLeadToReclaim(paxCons, procID) &&	pLineProc->canServe(paxCons))
+					{
+					
+
+						//check which load linked with parking Spot
+						/*ALTObjectID altTermProcID;
+						altTermProcID.FromString(pLineProc->getID()->GetIDString());*/
+						CBagCartsParkingSpotInSim *pLinkedSpot = m_pBagCartsSpotResourceManager->GetSpotLinked(altTermProcID);
+						if(pLinkedSpot == NULL)
+							continue;
+
+						vAvailableLoader.push_back(pLineProc);
+						vAvailbeParkingSpot.push_back(pLinkedSpot);
+					}
+				}
+			}
+			//have no arrival baggage service settings
+			//ignore this request
+			if(vAvailableLoader.size() == 0)
+			{
+				pBagTrainRequest->SetProceed(true);
+				continue;
+			}
+
+			pBagTrainRequest->SetTermProcList(vAvailableLoader);
+			pBagTrainRequest->SetPakringSpotList(vAvailbeParkingSpot);
+
+			for (size_t nType = 0; nType < nAvailableVehicleTypeCount; ++ nType)
+			{
+
+				//CVehicleSpecificationItem *pTypeSpecItem = vVehicleTypeSpec[nType];
+				CServicingRequirement* pRequirement = vServiceRequirement.at(nType);
+
+				int nVehicleTypeID = pRequirement->GetServicingRequirementNameID();
+				std::vector<int> vServicePoolList;
+				vServicePoolList.clear();
+
+				pBagTrainRequest->SetServiceVehicleTypeID(nVehicleTypeID);
+				pBagTrainRequest->SetServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetServiceTimeDistribution()));
+
+				m_pPoolsDeployment->GetServicePool(pFlight, nVehicleTypeID, vServicePoolList);
+
+				bool bFinishedDispatch = false;
+				for (int j =0; j < int(vServicePoolList.size()); j++)
+				{
+					VehiclePoolInSim* pPool = m_pPoolResManager->GetVehiclePool(vServicePoolList[j]);
+					if (pPool)
+					{
+						if (pPool->HandleBaggageTrainServiceRequest(pBagTrainRequest))
+						{
+							if(pBagTrainRequest->GetBaggageLeft() == 0)
+							{
+								pBagTrainRequest->SetProceed(true);
+								bFinishedDispatch = true;
+								break;
+							}
+
+						}
+						else
+						{
+							pPool->CallVehicleReturnPool();
+						}
+					}
+				}
+				if(bFinishedDispatch)
+				{
+					//remove from list
+					RemoveBaggageServiceRequest(pBagTrainRequest);
+					break;
+				}
+			}
+
+
+		}
+		else if (fltOperation == DEPARTURE_OPERATION)
+		{
+			//if departure, find pusher
+			//roster
+
+			std::vector<BaseProcessor *> vConveyProcessor;
+			m_pTermProcList->GetProcessorsByType(vConveyProcessor, ConveyorProc);
+
+			std::vector<Processor *> vAvailablePusher;
+			std::vector<CBagCartsParkingSpotInSim *> vAvailbeParkingSpot;
+			int nConveyCount = static_cast<int>(vConveyProcessor.size());
+			for(int nConvey = 0; nConvey < nConveyCount; ++ nConvey)
+			{
+				Conveyor *pConveyProc = (Conveyor *)vConveyProcessor.at(nConvey);
+				if(pConveyProc == NULL)
+					continue;
+				if(pConveyProc->GetSubConveyorType() == PUSHER)
+				{
+					//Pusher *pPusherProc = (Pusher *)pConveyProc->GetPerformer();
+
+					//if(pPusherProc == NULL)
+						//continue;
+
+					CMobileElemConstraint paxCons;
+					Flight* pFlightInput = pFlight->GetFlightInput();
+					ASSERT(pFlightInput);
+					FlightConstraint fltCons = pFlightInput->getType('D');
+					paxCons.SetAirportDB(pFlightInput->GetTerminal()->m_pAirportDB);
+					paxCons.setIntrinsicType(2);
+					paxCons.SetTypeIndex(2);
+					paxCons.MergeFlightConstraint(&fltCons);
+
+
+					if(pConveyProc->canServe(paxCons))
+					{
+						//check which load linked with parking Spot
+						ALTObjectID altTermProcID;
+						altTermProcID.FromString(pConveyProc->getID()->GetIDString());
+						CBagCartsParkingSpotInSim *pLinkedSpot = m_pBagCartsSpotResourceManager->GetSpotLinked(altTermProcID);
+						if(pLinkedSpot == NULL)
+							continue;
+
+						vAvailablePusher.push_back(pConveyProc);
+						vAvailbeParkingSpot.push_back(pLinkedSpot);
+					}
+				}
+			}
+
+			if(vAvailablePusher.size() == 0)
+			{
+				pBagTrainRequest->SetProceed(true);
+				continue;
+			}
+			
+			pBagTrainRequest->SetTermProcList(vAvailablePusher);
+			pBagTrainRequest->SetPakringSpotList(vAvailbeParkingSpot);
+			for (size_t nType = 0; nType < nAvailableVehicleTypeCount; ++ nType)
+			{
+
+				//CVehicleSpecificationItem *pTypeSpecItem = vVehicleTypeSpec[nType];
+				CServicingRequirement* pRequirement = vServiceRequirement.at(nType);
+
+				int nVehicleTypeID = pRequirement->GetServicingRequirementNameID();
+				std::vector<int> vServicePoolList;
+				vServicePoolList.clear();
+
+				pBagTrainRequest->SetServiceVehicleTypeID(nVehicleTypeID);
+				pBagTrainRequest->SetServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetServiceTimeDistribution()));
+
+				m_pPoolsDeployment->GetServicePool(pFlight, nVehicleTypeID, vServicePoolList);
+
+				bool bFinishedDispatch = false;
+				for (int j =0; j < int(vServicePoolList.size()); j++)
+				{
+					VehiclePoolInSim* pPool = m_pPoolResManager->GetVehiclePool(vServicePoolList[j]);
+					if (pPool)
+					{
+						if (pPool->HandleBaggageTrainServiceRequest(pBagTrainRequest))
+						{
+							if(pBagTrainRequest->GetBaggageLeft() == 0)
+							{
+								pBagTrainRequest->SetProceed(true);
+								bFinishedDispatch = true;
+								break;
+							}
+
+						}
+						else
+						{
+							pPool->CallVehicleReturnPool();
+						}
+					}
+				}
+				if(bFinishedDispatch)
+				{
+					RemoveBaggageServiceRequest(pBagTrainRequest);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void VehicleRequestDispatcher::SetBagCartsParkingSpotResourceManager( CBagCartsParkingSpotResourceManager *pBagCartsSpotResourceManager )
+{
+	m_pBagCartsSpotResourceManager = pBagCartsSpotResourceManager;
+}
+
+void VehicleRequestDispatcher::RemoveBaggageServiceRequest( BaggageTrainServiceRequest*req )
+{
+	std::vector<BaggageTrainServiceRequest*>::iterator itr = std::find(m_vBagTrainServiceRequest.begin(),m_vBagTrainServiceRequest.end(),req);
+	if(itr!=m_vBagTrainServiceRequest.end())
+		m_vBagTrainServiceRequest.erase(itr);
 }

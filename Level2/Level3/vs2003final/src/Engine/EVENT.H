@@ -61,6 +61,9 @@ enum EventType
 	VehicleServiceGate,
 	FollowMeCarService,
 	AirsideMobileElementEvent,
+	BagCartServiceParkingSpot,
+	BagCartBeginServiceParkingSpot,
+	BagCartServiceStandEvent,
 	//Airside MobileEvent
 	InAirsideMobElementMovementEvent,
 

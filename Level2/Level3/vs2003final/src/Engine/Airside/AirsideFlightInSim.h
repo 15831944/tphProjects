@@ -15,7 +15,6 @@
 #include "AirsideTowTruckInSim.h"
 #include "../ARCportEngine.h"
 #include "FlightPerformancesInSim.h"
-#include "FlightPerformancesInSim.h"
 
 class AirTrafficController;
 class Clearance;
@@ -36,7 +35,7 @@ class TempParkingSegmentsInSim;
 class CAirportDatabase;
 class CArrivalETAOffsetList;
 class AirsideSimConfig;
-class CPaxBusParkingInSim;
+class AirsidePaxBusParkSpotInSim;
 class AirsideVehicleInSim;
 class VehicleServiceRequest;
 class AirsideFlightDelay;
@@ -53,6 +52,8 @@ class OnboardFlightInSim;
 class FlightPerformancesInSim;
 class AirsidePassengerBusContext;
 class AirsidePassengerBusStrategy;
+class CBagCartsParkingSpotInSim;
+class AirsideFlightBaggageManager;
 
 enum FLIGHT_PARKINGOP_TYPE
 {
@@ -67,7 +68,12 @@ enum FLIGHTTOWCRITERIATYPE
 	REPOSITIONFORDEP,
 	FREEUPSTAND
 };
+enum FlightOperation
+{
+	ARRIVAL_OPERATION = 0,
+	DEPARTURE_OPERATION
 
+};
 class ENGINE_TRANSFER FlightWakeUpCaller : public CAirsideObserver
 {
 public:
@@ -171,6 +177,9 @@ public:
 // 	void SetResource(AirsideResource * pRes ){ m_curState.m_pResource = pRes; }
 	void SetDistInResource(DistanceUnit dist){ m_curState.m_dist = dist; }
 	void SetMode(AirsideMobileElementMode mode){ m_curState.m_fltMode = mode; }
+
+	//in stand, the cargo door position
+	BOOL getCargoDoorPosition(CPoint2008 &ptCargoDoor);
 
 	//Get 
 	FlightRouteInSim * GetArrFlightPlan();
@@ -313,10 +322,14 @@ public:
 	void SetFlightServiceInformation( CFlightServiceInformation* pInfo) { m_pFlightServiceInfomation = pInfo;}
 
 
-	CPaxBusParkingInSim * GetPaxBusParking(bool bArrival);
+	AirsidePaxBusParkSpotInSim * GetPaxBusParking(bool bArrival);
 
-	void SetArrivalPaxBusParking(CPaxBusParkingInSim * pPaxParking){ m_pArrivalPaxParkingInSim = pPaxParking;}
-	void SetDepPaxBusParking(CPaxBusParkingInSim * pPaxParking){ m_pDepPaxParkingInSim = pPaxParking;}
+	void SetArrivalPaxBusParking(AirsidePaxBusParkSpotInSim * pPaxParking){ m_pArrivalPaxParkingInSim = pPaxParking;}
+	void SetDepPaxBusParking(AirsidePaxBusParkSpotInSim * pPaxParking){ m_pDepPaxParkingInSim = pPaxParking;}
+
+
+
+
 	bool IsGoingToIntersectLane(LaneFltGroundRouteIntersectionInSim& );
 	TaxiRouteInSim * GetCurrentTaxiRoute();
 
@@ -370,6 +383,11 @@ public:
 
 	DistanceUnit GetTouchDownDistAtRuwnay(LogicRunwayInSim* pRunway);
 	void WakeupAllPaxBusCompleteService();
+
+	CBagCartsParkingSpotInSim * getArrivalBagCartsParkingSpot() const;
+	void setArrivalBagCartsParkingSpot(CBagCartsParkingSpotInSim * pSpotInSim);
+	CBagCartsParkingSpotInSim * getDeparturelBagCartsParkingSpot() const;
+	void setDeparturelBagCartsParkingSpot(CBagCartsParkingSpotInSim * pSpotInSim);
 
 public:
 	void WritePureLog(AirsideMobElementWriteLogItem* logItem);
@@ -460,7 +478,7 @@ protected:
 
 	void ApplyForPaxBusService(bool bArrival);
 	void ApplyForFollowMeCarService(StandInSim* pDest);
-
+	void ApplyForBaggageTrainService(FlightOperation enumOperation);
 
 public:
 	//the 3 parameters are  temporary used for take off
@@ -523,11 +541,17 @@ public:
 
 	bool NeedGenerateBoardingCall(const ElapsedTime& eTime);
 	void GenerateBoardingCall();
+
+	AirsideFlightBaggageManager *getBaggageManager();
+
 protected:
 	std::vector<VehicleServiceRequest *> m_vServiceRequest;
 
-	CPaxBusParkingInSim * m_pArrivalPaxParkingInSim;
-	CPaxBusParkingInSim * m_pDepPaxParkingInSim;
+//	CPaxBusParkingInSim * m_pArrivalPaxParkingInSim;
+//	CPaxBusParkingInSim * m_pDepPaxParkingInSim;
+	AirsidePaxBusParkSpotInSim* m_pArrivalPaxParkingInSim;
+	AirsidePaxBusParkSpotInSim * m_pDepPaxParkingInSim;
+
 	int m_id;
 	ElapsedTime m_tScheduleEndTime;
 
@@ -598,6 +622,10 @@ protected:
 	bool m_bApplyFroServiceRequest;
 	bool m_bApplyFrPaxBusServiceRequestArrival;
 	bool m_bApplyFrPaxBusServiceRequestDeparture;
+
+	bool m_bApplyTrainServiceRequestArrival;
+	bool m_bApplyTrainServiceRequestDeparture;
+
 	bool m_bTowingToReleasePoint;
 	bool m_bFollowMeCarServicing;
 	CFlightServiceInformation *m_pFlightServiceInfomation;
@@ -651,6 +679,12 @@ protected:
 	AirsidePassengerBusContext* m_pPaxBusContext;
 	AirsidePassengerBusStrategy* m_pArrPaxBusStrategy;
 	AirsidePassengerBusStrategy* m_pDepPaxBusStrategy;
+
+
+	CBagCartsParkingSpotInSim *m_pArrivalBagCartsParkingSpot;
+	CBagCartsParkingSpotInSim *m_pDeparturelBagCartsParkingSpot;
+	AirsideFlightBaggageManager *m_pBaggageManager;
+
 
 public:
 	bool NeedMoveToIntStand()const;

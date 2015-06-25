@@ -11,8 +11,8 @@ public:
 	AirsidePassengerBusStrategy(AirsideFlightInSim* pAirsideFlightInSim);
 	virtual ~AirsidePassengerBusStrategy(void);
 
-	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext) = 0;
-	virtual void FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext) = 0;
+	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage) = 0;
+	virtual void FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage) = 0;
 	virtual bool Arrival()const = 0;
 
 protected:
@@ -25,8 +25,8 @@ public:
 	AirsideArrPassengerBusStrategy(AirsideFlightInSim* pAirsideFlightInSim);
 	virtual ~AirsideArrPassengerBusStrategy();
 
-	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext);
-	virtual void FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext);
+	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage);
+	virtual void FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage);
 
 	virtual bool Arrival()const;
 };
@@ -37,8 +37,8 @@ public:
 	AirsideDepPassengerBusStrategy(AirsideFlightInSim* pAirsideFlightInSim);
 	virtual ~AirsideDepPassengerBusStrategy();
 
-	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext);
-	virtual void FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext);
+	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage);
+	virtual void FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage);
 	virtual bool Arrival()const;
 
 private:
@@ -51,9 +51,9 @@ public:
 	AirsidePassengerBusContext();
 	~AirsidePassengerBusContext();
 
-	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus);
+	virtual void PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,bool bGenerateBaggage);
 	virtual void PassengerBusLeave(CAirsidePaxBusInSim* pPaxBus);
-	virtual void FlightArriveStand(const ElapsedTime& time);
+	virtual void FlightArriveStand(const ElapsedTime& time,bool bGenerateBaggage);
 	virtual void FlightLeaveStand();
 
 	CAirsidePaxBusInSim* GetAvailablePassengerBus(Person* pPerson);

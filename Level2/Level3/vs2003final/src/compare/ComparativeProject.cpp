@@ -333,11 +333,11 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					TransferLogFiles(pCmpModel,pCmpModel->GetLocalPath(),strSimResult,_ShowCopyInfo);
 					
 					vModels[i]->GetTerminal()->GetSimReportManager()->SetCurrentSimResult(strSimResult);
-					CMutiRunReportAgent tempMultiRunAgent;
-					tempMultiRunAgent.Init(pCmpModel->GetLocalPath(),vModels[i]->GetTerminal());
+					CMutiRunReportAgent temp;
+					temp.Init(pCmpModel->GetLocalPath(),vModels[i]->GetTerminal());
 
-					tempMultiRunAgent.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
-					tempMultiRunAgent.GenerateAll();
+					temp.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
+					temp.GenerateAll();
 					CString strReportPath = vModels[i]->GetTerminal()->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
 				
 					strReportPath = SaveTempReport(strReportPath, i, j, nResult);
@@ -472,29 +472,12 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		pResult->m_ReportStartTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameter().GetStartTime();
 		pResult->m_ReportEndTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameter().GetEndTime();//elapsetime.
 
-		pResult->SetCmpReportName(vReports[i].GetName());
-		std::vector<CModelToCompare*>& vModels = m_inputParam.GetModelsManagerPtr()->GetModelsList();
-		CString simName;
-		for(std::vector<CModelToCompare*>::iterator itor=vModels.begin();
-			itor!=vModels.end(); itor++)
-		{
-			for(int i=0; i<(*itor)->GetSimResultCount(); i++)
-			{
-				simName = _T("");
-				simName += (*itor)->GetModelName();
-				simName += ("(");
-				simName += (*itor)->GetSimResult(i);
-				simName += (")");
-				pResult->AddSimName(simName);
-			}
-		}
-
 		std::vector<std::string> vstrOutput;
 		for (unsigned j = 0; j < vReports[i].m_vstrOutput.size(); j++)
 		{
 			// TRACE("%s\n", vReports[i].m_vstrOutput[j]);
 			std::string tstr = vReports[i].m_vstrOutput[j];
-			vstrOutput.push_back( tstr );
+			vstrOutput.push_back( tstr );//vReports[i].m_vstrOutput[i].GetBuffer(0)
 		}
 		pResult->AddSamplePath(vstrOutput);
 	

@@ -15,6 +15,14 @@
 #include "TowTruckServiceRequest.h"
 #include "AirsideFollowMeCarInSim.h"
 #include "../core/SAgent.h"
+#include "../BaggageTrainServiceRequest.h"
+#include "../AirsideBaggageTrainInSim.h"
+#include "Common/ARCPipe.h"
+#include "../BoostPathFinder.h"
+
+#define FOR(var, varf, vart)  for(int var=varf; var<vart;++var)
+
+typedef std::vector<int> IndexList;
 
 VehiclePoolInSim::VehiclePoolInSim(VehiclePoolParking * pVehiclePool)
 {
@@ -22,6 +30,7 @@ VehiclePoolInSim::VehiclePoolInSim(VehiclePoolParking * pVehiclePool)
 	m_pRequestDispatcher = NULL;
 	m_pPoolsDeployment = NULL;
 	m_vVehicleList.clear();
+	mpPathFinder = NULL;
 }
 
 
@@ -50,12 +59,7 @@ CPoint2008 VehiclePoolInSim::GetRandPoint()
 	return pos;
 }
 
-CPoint2008 VehiclePoolInSim::GetParkingPos()
-{
-	CPoint2008 pos;
 
-	return pos;
-}
 
 void VehiclePoolInSim::AddVehicleInPool(AirsideVehicleInSim* pVehicle)
 {
@@ -712,21 +716,21 @@ void VehiclePoolInSim::getDesc( ResourceDesc& resDesc )
 	resDesc.resType = GetType();
 	resDesc.strRes =  PrintResource().GetString();
 }
-
-bool VehiclePoolInSim::IsPathOverlapPool( const CPath2008& path )
-{
-	const CPoint2008* pointList = m_pPoolInput->GetPath().getPointList();
-	int nCount = m_pPoolInput->GetPath().getCount();
-	CPollygon2008 polygen;
-	polygen.init(nCount, pointList);
-
-	const CPoint2008* pointList2 = path.getPointList();
-	nCount = path.getCount();
-	CPollygon2008 polygen2;
-	polygen2.init(nCount,pointList2);
-
-	return polygen.IfOverlapWithOtherPolygon(polygen2);
-}
+//
+//bool VehiclePoolInSim::IsPathOverlapPool( const CPath2008& path )
+//{
+//	const CPoint2008* pointList = m_pPoolInput->GetPath().getPointList();
+//	int nCount = m_pPoolInput->GetPath().getCount();
+//	CPollygon2008 polygen;
+//	polygen.init(nCount, pointList);
+//
+//	const CPoint2008* pointList2 = path.getPointList();
+//	nCount = path.getCount();
+//	CPollygon2008 polygen2;
+//	polygen2.init(nCount,pointList2);
+//
+//	return polygen.IfOverlapWithOtherPolygon(polygen2);
+//}
 
 CPoint2008 VehiclePoolInSim::GetCenterPoint()
 {
@@ -757,4 +761,635 @@ AirsideFollowMeCarInSim* VehiclePoolInSim::getAvailableFollowMeCar()
 	}
 
 	return NULL;
+}
+
+bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequest* pRequest )
+{
+	BaggageTrainServiceRequest& request = *pRequest;
+	AirsideFlightInSim* pFlight = request.GetServiceFlight();
+	int vehicleTypeID = request.GetServiceVehicleTypeID();
+	CVehicleServiceTimeRange* pTimeRange = m_pPoolsDeployment->GetVehicleServicePoolDeploy(vehicleTypeID,m_pPoolInput->getID(),pFlight);
+
+	if(pTimeRange == NULL)
+		return FALSE ;
+
+	VehicleRegimenType RegimenType = pTimeRange->GetRegimenType();
+	double vStuffPercent = 100.0/pTimeRange->GetAircraftServiceNum();
+	ElapsedTime tLeaveTime = pTimeRange->GetLeaveTime();
+	VehicleLeaveType LeaveType = pTimeRange->GetLeaveType();
+
+	double MinDist = -1.0;
+	int nServiceIdx = -1;
+
+	for (int i =0; i < int(m_vVehicleList.size()); i++)
+	{
+		AirsideVehicleInSim* pVehicle = m_vVehicleList[i];
+
+		if ( pVehicle->GetVehicleTypeID() == vehicleTypeID && pVehicle->IsAvailable() )
+		{
+			AirsideBaggageTrainInSim *pBaggageTrain = (AirsideBaggageTrainInSim *)pVehicle;
+			int nVehicleCapacity = pBaggageTrain->GetVehicleCapacity();
+
+			if ( pVehicle->GetStuffCount() < vStuffPercent)
+			{
+				pVehicle->ReturnVehiclePool(m_pPoolsDeployment->GetTurnAroundTimeDistribution(vehicleTypeID,m_pPoolInput->getID()));
+			}
+			else
+			{
+				if (pVehicle->GetResource()->GetType()== AirsideResource::ResType_VehiclePool)
+				{
+					if (LeaveType == BeforeAircraftArrival)
+					{
+						ElapsedTime tTime = request.GetServiceFlight()->GetEstimateStandTime() - tLeaveTime;
+						if (tTime < SAgent::curTime() )
+							tTime = SAgent::curTime();
+						pVehicle->SetLeavePoolTime(tTime);
+					}
+					else if (LeaveType == BeforeAircraftDeparts)
+					{
+						ElapsedTime tTime = request.GetServiceFlight()->GetDepTime() - tLeaveTime;
+						if (tTime < SAgent::curTime() )
+							tTime = SAgent::curTime();
+						pVehicle->SetLeavePoolTime(tTime);
+					}
+					else
+						pVehicle->SetLeavePoolTime(request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
+
+					pBaggageTrain->SetServiceFlight(pFlight, vStuffPercent,request);
+					pVehicle->SetServicePointCount(request.GetServiceCount());
+					if (request.GetServiceTime())
+						pVehicle->SetServiceTimeDistribution(request.GetServiceTime());
+
+					request.AddServiceVehicle(pBaggageTrain);
+					if(request.GetBaggageLeft() - nVehicleCapacity > 0)
+					{
+						pBaggageTrain->SetServiceCount(nVehicleCapacity);
+						request.setUnserviceBaggageCount(request.GetBaggageLeft() -nVehicleCapacity);
+						continue;
+					}
+					else
+					{
+						pBaggageTrain->SetServiceCount(request.GetBaggageLeft());
+						request.setUnserviceBaggageCount(0);
+						return true;
+					}
+
+				}
+				else
+				{
+					switch(RegimenType)
+					{
+					case ServiceCloset:
+						{
+							CPoint2008 pos = pVehicle->GetPosition();
+							double dist = pos.distance(pFlight->GetOperationParkingStand()->GetStandInput()->GetServicePoint());
+							if ( MinDist < 0.0)
+							{
+								MinDist = dist;
+								nServiceIdx = i;
+							}
+							else
+							{
+								if (MinDist > dist)
+								{
+									MinDist = dist;
+									nServiceIdx = i;
+								}
+							}
+						}
+						break;
+					case ServiceNextDep:
+						{
+							if (pFlight->IsDeparture()||( pFlight->IsTransfer() && pFlight->GetMode() >= OnHeldAtStand ))
+							{
+								pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
+								m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
+								if (request.GetServiceTime())
+									m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+
+								request.AddServiceVehicle(pBaggageTrain);
+								if(request.GetBaggageLeft() - nVehicleCapacity > 0)
+								{
+									pBaggageTrain->SetServiceCount(nVehicleCapacity);
+									request.setUnserviceBaggageCount(request.GetBaggageLeft() -nVehicleCapacity);
+									continue;
+								}
+								else
+								{
+									pBaggageTrain->SetServiceCount(request.GetBaggageLeft());
+									request.setUnserviceBaggageCount(0);
+									return true;
+								}
+							}
+						}
+						break;
+					case ServiceRandom:
+						{
+							pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
+							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
+							if (request.GetServiceTime())
+								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+
+							request.AddServiceVehicle(pBaggageTrain);
+							if(request.GetBaggageLeft() - nVehicleCapacity > 0)
+							{
+								pBaggageTrain->SetServiceCount(nVehicleCapacity);
+								request.setUnserviceBaggageCount(request.GetBaggageLeft() -nVehicleCapacity);
+								continue;
+							}
+							else
+							{
+								pBaggageTrain->SetServiceCount(request.GetBaggageLeft());
+								request.setUnserviceBaggageCount(0);
+								return true;
+							}
+						}
+						break;
+					case ServiceFIFO:
+						{
+							pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
+							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
+							if (request.GetServiceTime())
+								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+
+							request.AddServiceVehicle(pBaggageTrain);
+							if(request.GetBaggageLeft() - nVehicleCapacity > 0)
+							{
+								pBaggageTrain->SetServiceCount(nVehicleCapacity);
+								request.setUnserviceBaggageCount(request.GetBaggageLeft() -nVehicleCapacity);
+								continue;
+							}
+							else
+							{
+								pBaggageTrain->SetServiceCount(request.GetBaggageLeft());
+								request.setUnserviceBaggageCount(0);
+								return true;
+							}
+						}
+
+						break;
+					default:
+						break;
+					}
+					if ( nServiceIdx >=0 && nServiceIdx != i)		//closet service type
+					{
+						m_vVehicleList[i]->ReturnVehiclePool(m_pPoolsDeployment->GetTurnAroundTimeDistribution(vehicleTypeID,m_pPoolInput->getID()));
+					}
+					if (nServiceIdx < 0)		//other service type
+					{
+						m_vVehicleList[i]->ReturnVehiclePool(m_pPoolsDeployment->GetTurnAroundTimeDistribution(vehicleTypeID,m_pPoolInput->getID()));
+					}
+
+				}
+			}
+		}
+	}
+
+	if (nServiceIdx >=0)
+	{
+		AirsideBaggageTrainInSim *pBaggageTrain = (AirsideBaggageTrainInSim *)m_vVehicleList[nServiceIdx];
+		int nVehicleCapacity = pBaggageTrain->GetVehicleCapacity();
+
+		pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
+		request.AddServiceVehicle(pBaggageTrain);
+
+
+		m_vVehicleList[nServiceIdx]->SetServicePointCount(request.GetServiceCount());
+		if (request.GetServiceTime())
+			m_vVehicleList[nServiceIdx]->SetServiceTimeDistribution(request.GetServiceTime());
+		if(request.GetBaggageLeft() - nVehicleCapacity > 0)
+		{
+			pBaggageTrain->SetServiceCount(nVehicleCapacity);
+			request.setUnserviceBaggageCount(request.GetBaggageLeft() -nVehicleCapacity);
+
+		}
+		else
+		{
+			pBaggageTrain->SetServiceCount(request.GetBaggageLeft());
+			request.setUnserviceBaggageCount(0);
+		}
+		return true;
+	}
+
+
+	return false;
+}
+
+
+void VehiclePoolInSim::Build( VehiclePoolParking* pPool )
+{
+	//init spots
+	for(int i=0;i<pPool->m_parkspaces.getCount();i++)
+	{
+		VehiclePoolParkSpaceInSim* pSpace = new VehiclePoolParkSpaceInSim(pPool->m_parkspaces.getSpace(i));
+		m_vParkSpaces.push_back(pSpace);
+	}
+	//init drive pipe
+	for(int i=0;i<pPool->m_dirvepipes.getCount();i++)
+	{
+		VehiclePoolPipeInSim* pPipe = new VehiclePoolPipeInSim(pPool->m_dirvepipes.getPipe(i),true);
+		m_vpipes.push_back(pPipe);
+	}
+	//init graph
+	//add entry exit 
+	FOR(i,0,(int)m_vEntris.size())
+	{
+		VehiclePoolEntry* entry = m_vEntris.at(i);
+		ParkingPoolNode node(entry,0, entry->m_pPoolLane,entry->m_distInPoolLane);
+		AddNode(node);
+	}
+	FOR(i,0, (int)m_vExits.size())
+	{
+		VehiclePoolExit* pexit = m_vExits.at(i);
+		ParkingPoolNode node(pexit->m_pPoolLane, pexit->m_distInPoolLane, pexit, 0);
+		AddNode(node);
+	}
+	//link parking spot to drive pipe
+	for(size_t i=0;i<m_vParkSpaces.size();i++)
+	{
+		VehiclePoolParkSpaceInSim* pSpace = m_vParkSpaces[i];
+		for(int j=0;j<pSpace->getSpotCount();j++)
+		{
+			VehiclePoolParkSpotInSim* pSpot = pSpace->getSpot(j);
+			ARCPoint3 entryPos = pSpot->m_entryPos;
+			ARCPoint3 exitPos = pSpot->m_exitPos;
+			
+			DistanceUnit distInlane = 0;
+			VehiclePoolPipeInSim* pEntryPipe = getClosestPipe(entryPos,distInlane);		
+			if(pEntryPipe)
+			{
+				for(int iLaneIdx = 0 ;iLaneIdx<pEntryPipe->getLaneCount();iLaneIdx++)
+				{
+					VehiclePoolLaneInSim* pLane = pEntryPipe->getLane(iLaneIdx);
+					ParkingPoolNode node(pLane, distInlane , pSpot, 0);
+					AddNode(node);
+					//m_vNodes.push_back(node);
+				}
+			}
+			VehiclePoolPipeInSim* pExitPipe = NULL;
+			if(!pSpot->bPushback)
+			{
+				pExitPipe = pEntryPipe;	
+			}
+			else
+			{
+				pExitPipe = getClosestPipe(exitPos, distInlane);
+			}
+			if(pExitPipe)
+			{
+				for(int iLaneIdx = 0 ;iLaneIdx<pExitPipe->getLaneCount();iLaneIdx++)
+				{
+					VehiclePoolLaneInSim* pLane = pExitPipe->getLane(iLaneIdx);
+					ParkingPoolNode node(pLane, distInlane , pSpot, 0);
+					AddNode(node);
+					//m_vNodes.push_back(node);
+				}
+			}
+			
+		}
+	}
+	//init pipe with pipe
+	int nPipeCount = m_vpipes.size();
+	FOR(i, 0 , nPipeCount)
+	{
+		VehiclePoolPipeInSim* pipe1 = m_vpipes[i];
+		FOR(j, i+1, nPipeCount)
+		{
+			VehiclePoolPipeInSim* pipe2 = m_vpipes[j];
+			//lane 
+			FOR(l1idx, 0, pipe1->getLaneCount())
+			{
+				VehiclePoolLaneInSim * pLane1 = pipe1->getLane(l1idx);
+				FOR(l2idx, 0, pipe2->getLaneCount())
+				{
+					VehiclePoolLaneInSim* pLane2 = pipe2->getLane(l2idx);
+
+					IntersectPathPath2D inters(pLane1->getPath(),pLane2->getPath());
+					int nCount = inters.Intersects(pLane2->getWidth()*0.5);
+					for(int k=0;k<nCount;k++)
+					{
+						double i1= inters.m_vIntersectPtIndexInPath1[k];
+						double d1= pLane1->getPath().GetIndexDist((float)i1);
+						double i2 = inters.m_vIntersectPtIndexInPath2[k];
+						double d2 = pLane2->getPath().GetIndexDist((float)i2);
+
+
+						ARCVector3 pos1 = pLane1->getPath().GetIndexPoint((float)i1);
+						ARCVector3 pos2 = pLane2->getPath().GetIndexPoint((float)i2);
+						if( abs(pos1.z - pos2.z) > ARCMath::EPSILON)
+						{
+							continue;
+						}
+
+						ParkingPoolNode node1(pLane1,d1,pLane2,d2);
+						AddNode(node1);
+						
+						ParkingPoolNode node2(pLane2,d2,pLane1,d1);
+						AddNode(node2);
+					}
+
+				}
+			}
+			
+		}
+	}
+
+	//init graph
+	cpputil::autoPtrReset(mpPathFinder, new CBoostDijPathFinder());	
+	mpPathFinder->mGraph.Init(m_vNodes.size());
+
+	typedef cpputil::nosort_map< VehiclePoolLaneInSim*,IndexList > ResourceNodeMap;
+	ResourceNodeMap EntryNodesMap;
+	ResourceNodeMap ExitNodesMap;
+
+	FOR(i, 0, (int)m_vNodes.size())
+	{
+		const ParkingPoolNode& node = m_vNodes[i];
+		if(VehiclePoolLaneInSim* pLane = node.m_to->toLane())
+		{
+			IndexList&fromNodes = EntryNodesMap[pLane];
+			fromNodes.push_back(i);
+		}
+		if(VehiclePoolLaneInSim* pLane = node.m_from->toLane())
+		{
+			IndexList& toNodes = ExitNodesMap[pLane];
+			toNodes.push_back(i);
+		}
+	}
+	//
+	for(ResourceNodeMap::const_iterator itr=EntryNodesMap.begin();itr!=EntryNodesMap.end(); itr++)
+	{
+		VehiclePoolLaneInSim* plane = itr->first;
+		const IndexList& entryNodes = itr->second;
+		const IndexList& exitNodes = ExitNodesMap[plane];
+		FOR(iEntry , 0, (int)entryNodes.size())
+		{
+			const ParkingPoolNode& nodeEntry = m_vNodes[iEntry];
+			FOR(iExit, 0, (int)exitNodes.size() )
+			{
+				const ParkingPoolNode& nodeExit = m_vNodes[iExit];
+				if(nodeEntry.m_toDist< nodeExit.m_fromDist)
+				{
+					DistanceUnit dist = nodeExit.m_fromDist -  nodeEntry.m_toDist;
+					mpPathFinder->mGraph.AddEdge(iEntry, iExit, dist);
+				}
+
+			}
+		}
+	}
+
+
+}
+
+VehiclePoolInSim::~VehiclePoolInSim()
+{
+	cpputil::deletePtrVector(m_vParkSpaces);
+	cpputil::deletePtrVector(m_vpipes);
+	cpputil::autoPtrReset(mpPathFinder);
+}
+
+VehiclePoolPipeInSim* VehiclePoolInSim::getClosestPipe( const ARCPoint3& cpt, DistanceUnit& distInLane ) const
+{
+	if(m_vpipes.empty())
+		return NULL;
+
+	VehiclePoolPipeInSim* pClostLane = NULL;
+
+	CPoint2008 pt = CPoint2008(cpt.x,cpt.y,cpt.z);
+	DistanceUnit minDisTo;
+
+	for(size_t i=0;i<m_vpipes.size();i++)
+	{
+		VehiclePoolPipeInSim* pLane = m_vpipes.at(i);
+		DistanceUnit thedistInLane = pLane->getPath().GetPointDist(pt);
+		CPoint2008 posInLane = pLane->getPath().GetDistPoint(thedistInLane);
+		if( abs( posInLane.z - pt.z )> ARCMath::EPSILON)
+			continue;
+
+		DistanceUnit distTo = posInLane.distance3D(pt);
+		if(!pClostLane)
+		{
+			minDisTo = distTo;
+			pClostLane = pLane;
+			distInLane = thedistInLane;
+		}
+		else if(distTo < minDisTo)
+		{
+			minDisTo = distTo;
+			pClostLane = pLane;
+			distInLane = thedistInLane;
+		}
+
+	}
+	return pClostLane;
+}
+
+void VehiclePoolInSim::AddNode( const ParkingPoolNode& node )
+{
+	m_vNodes.push_back(node);
+	m_vNodes.back().m_idx = m_vNodes.size()-1;
+}
+
+
+CPath2008 VehiclePoolInSim::ParkingToSpot( AirsideVehicleInSim* pV, VehicleRouteNode* pNode )
+{
+	VehiclePoolEntry* pEntry = NULL;
+	FOR(i, 0, (int)m_vEntris.size())
+	{
+		VehiclePoolEntry* ientry = m_vEntris.at(i);
+		if(ientry == pNode)
+		{
+			pEntry = ientry;	
+		}
+	}
+
+	VehiclePoolParkSpotInSim* pSpot = getFreeSpot();
+	if(pEntry && pSpot)
+	{
+		
+		PoolNodeList path;
+		if(FindPath(pEntry, pSpot, path))
+		{
+			CPath2008 retPath;
+			FOR(i,1,(int)path.size())
+			{
+				const ParkingPoolNode& p1 = path[i-1];
+				const ParkingPoolNode& p2 = path[i];
+				if(p1.m_to && p1.m_to == p2.m_from )
+				{
+					if(VehiclePoolLaneInSim* plane = p1.m_to->toLane())
+					{
+						CPath2008 subpath = plane->getPath().GetSubPath(p1.m_toDist, p2.m_fromDist);
+						retPath.Append(subpath);
+					}
+				}
+			}
+			return retPath;
+		}
+		else
+		{
+			CPath2008 path;
+			path.push_back(pV->GetPosition());
+			path.push_back(pSpot->m_pos);
+			return path;
+		}
+	}
+	
+	CPath2008 path;
+	path.push_back(pV->GetPosition());
+	path.push_back(GetRandPoint());
+	return path;
+	
+}
+
+bool VehiclePoolInSim::FindPath( VehiclePoolItemInSim* itemF, VehiclePoolItemInSim* itemT, PoolNodeList& path )
+{
+	IndexList fromNodes;
+	IndexList toNodes;
+
+	FOR(i,0,(int)m_vNodes.size())
+	{
+		const ParkingPoolNode& pNode = m_vNodes[i];
+		if(itemF &&  pNode.m_from == itemF )
+		{
+			fromNodes.push_back(i);
+		}
+		if( itemT && pNode.m_to == itemT )
+		{
+			toNodes.push_back(i);
+		}
+	}
+
+	FOR(i,0 , (int)fromNodes.size())
+	{
+		FOR(j,0,(int)toNodes.size())
+		{
+			int idxF = fromNodes[i];
+			int idxT = toNodes[j];
+			std::vector<myvertex_descriptor> retpath;double pathLen;
+			if( mpPathFinder->FindPath(idxF,idxT,retpath,pathLen) )
+			{
+				//build path
+				for(size_t k = 0;k<retpath.size()-1;++k)
+				{
+					int idx1 = retpath[k];
+					//int idx2 = retpath[k+1];
+					const ParkingPoolNode& node1 = m_vNodes[idx1];
+					//const ParkingPoolNode& node2 = m_vNodes[idx2];
+
+					//ASSERT(node1.m_pTo == node2.m_pFrom);
+					path.push_back(node1);
+							
+				}				
+				//path.Update();
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+VehiclePoolParkSpotInSim* VehiclePoolInSim::getFreeSpot()
+{
+	FOR(i, 0, (int)m_vParkSpaces.size())
+	{
+		VehiclePoolParkSpaceInSim* space  = m_vParkSpaces.at(i);
+		FOR(j,0,space->getSpotCount())
+		{
+			VehiclePoolParkSpotInSim* spot = space->getSpot(j);
+			if(spot->m_pOccupyVehicle==NULL)
+				return spot;
+		}
+	}
+	return NULL;
+}
+
+
+void VehiclePoolInSim::LeavePool( AirsideVehicleInSim* pV )
+{
+	FOR(i, 0, (int)m_vParkSpaces.size())
+	{
+		VehiclePoolParkSpaceInSim* space  = m_vParkSpaces.at(i);
+		FOR(j,0,space->getSpotCount())
+		{
+			VehiclePoolParkSpotInSim* spot = space->getSpot(j);
+			if(spot->m_pOccupyVehicle==pV)
+				spot->m_pOccupyVehicle = NULL;
+		}
+	}
+	return;
+}
+
+void VehiclePoolInSim::BirthOnPool( AirsideVehicleInSim* pV, CPoint2008& pos ,CPoint2008& dir )
+{
+	VehiclePoolParkSpotInSim* spot = getFreeSpot();
+	if(spot)
+	{
+		pos = spot->m_pos;
+		dir = spot->m_dir;
+		spot->m_pOccupyVehicle = pV;
+		return;
+	}
+	else
+	{
+		pos = GetRandPoint();
+		dir = ARCVector3::UNIT_X;
+	}
+}
+
+//parking space
+VehiclePoolParkSpaceInSim::VehiclePoolParkSpaceInSim( const ParkingSpace& space )
+{
+	int i=0;
+	CPoint2008 pos;
+	ARCVector3 dir;
+	CPoint2008 entrypos;
+	CPoint2008 exitPos;
+
+	while(space.GetSpotDirPos(i,pos,dir,entrypos,exitPos))
+	{
+		//pos.setZ(dHeight);
+		//entrypos.setZ(dHeight);
+
+		VehiclePoolParkSpotInSim* pSpot = new VehiclePoolParkSpotInSim();
+		pSpot->m_pos = pos;
+		pSpot->m_dir = dir;
+		pSpot->m_entryPos = entrypos;
+		pSpot->m_exitPos = exitPos;
+		pSpot->bPushback = (space.m_opType==ParkingSpace::_backup);
+		m_vSpots.push_back(pSpot);
+		++i;
+	}
+}
+
+VehiclePoolPipeInSim::VehiclePoolPipeInSim( const ParkingDrivePipe& dpipe,bool bLeftDrive )
+{
+	m_path = dpipe.m_ctrlPath;
+
+	ARCPipe pipe;
+	pipe.Init(m_path,dpipe.m_width);
+	for(int i=0;i<dpipe.m_nLaneNum;i++)
+	{
+		bool bOtherDir = false;
+		if(dpipe.m_nType == ParkingDrivePipe::_bidirectional )
+		{
+			if(bLeftDrive)
+				bOtherDir = (i*2>= dpipe.m_nLaneNum);
+			else
+				bOtherDir = (i*2 < dpipe.m_nLaneNum);
+		}
+
+		double drat = (i+.5)/dpipe.m_nLaneNum;
+		VehiclePoolLaneInSim* plane = new VehiclePoolLaneInSim();
+		for(int k=0;k<m_path.getCount();k++)
+		{
+			plane->m_path.push_back( CPoint2008(pipe.m_sidePath1[k] *(1-drat) + pipe.m_sidePath2[k]*drat) );
+		}
+		//reverse path
+		if(bOtherDir)
+			plane->m_path.invertList();
+
+		m_vLanes.push_back(plane);
+	}
 }

@@ -114,7 +114,7 @@ int CFlightServiceRoute::VehicleRoutePoint::TheVehicleCanService(AirsideVehicleI
 			//	return true;
 			//}
 
-			if (pVehicle->GetVehicleBaseType() != VehicleType_PaxTruck)
+			if (pVehicle->GetVehicleBaseType() != VehicleType_PaxTruck && pVehicle->GetVehicleBaseType() != VehicleType_BaggageTug)
 			{	
 				if (pVehicle->GetVehicleBaseType() == VehicleType_TowTruck && pVehicle->GetVehicleTypeID() == (*iterServicePoint).m_serviceLocation.GetTypeID())
 				{
@@ -133,6 +133,7 @@ int CFlightServiceRoute::VehicleRoutePoint::TheVehicleCanService(AirsideVehicleI
 
 					return true;
 				}
+				
 
 				if((*iterServicePoint).m_bHasServiced || (*iterServicePoint).m_pOccupyVehicle != NULL)
 				{
@@ -1430,6 +1431,16 @@ void CFlightServiceRoute::VehicleOnService( AirsideVehicleInSim * pVehicle, Clea
 				m_CurServerPoint = (*iterEntryPoint).m_serviceLocation.GetServiceLocation();
 				break;
 			}
+
+			if ( (pVehicle->GetVehicleBaseType() == VehicleType_BaggageTug || !(*iterEntryPoint).m_bHasServiced )&&
+				(*iterEntryPoint).m_serviceLocation.GetTypeID() == pVehicle->GetVehicleTypeID())
+			{
+
+				(*iterEntryPoint).m_vServiceVehicle.push_back(pVehicle);
+				(*iterEntryPoint).m_pOccupyVehicle = pVehicle;
+				m_CurServerPoint = (*iterEntryPoint).m_serviceLocation.GetServiceLocation();
+				break;
+			}
 		}
 	}
 
@@ -1459,8 +1470,13 @@ void CFlightServiceRoute::VehicleOnService( AirsideVehicleInSim * pVehicle, Clea
 		pServiceFlight->WakeUp(pVehicle->GetTime());
 		return ;
 	}
-	if(pVehicle->GetVehicleBaseType() == VehicleType_PaxTruck)
+	else if(pVehicle->GetVehicleBaseType() == VehicleType_PaxTruck)
 	{
+		pVehicle->IsArrivedAtStand(TRUE) ;
+		pVehicle->ArriveAtStand(pVehicle->GetTime()) ;
+	}
+	else if(pVehicle->GetVehicleBaseType() == VehicleType_BaggageTug)
+	{	
 		pVehicle->IsArrivedAtStand(TRUE) ;
 		pVehicle->ArriveAtStand(pVehicle->GetTime()) ;
 	}

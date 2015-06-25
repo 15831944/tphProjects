@@ -32,10 +32,7 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
 	LogicRunwayInSim * pLandRwy = pFlight->GetLandingRunway();
 	int nRwyID = pLandRwy->GetRunwayInSim()->GetRunwayID();
 	RUNWAY_MARK nRwyMark = pLandRwy->getLogicRunwayType();
-
-	ElapsedTime tDelayTime = 0L;
-	int nMaxQueue = 0;
-	CString strTakePos = "";
+	
 
 	size_t nCount = m_pdelayTriggerInput->GetElementCount();
 	for(size_t i=0 ;i< nCount;i++)
@@ -50,8 +47,13 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
 		if (!pFltItem->GetRunwayList().IsLogicRunwayInRunwayList(nRwyID,nRwyMark))
 			continue;
 
+
+
 		AirsideArrivalDelayTrigger::CTriggerConditionList& triggerList = pFltItem->GetTriggerConditionList();
 		size_t nPosCount = triggerList.GetElementCount();
+		ElapsedTime tDelayTime = 0L;
+		int nMaxQueue = 0;
+		CString strTakePos;
 		for(size_t j=0; j < nPosCount; j++)
 		{
 			AirsideArrivalDelayTrigger::CTriggerCondition* pTrigger = triggerList.GetItem(j);
@@ -79,8 +81,68 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
 		
 		}
 		strReason.Format("Exceed %d flights waiting for departure at takeoff position: %s", nMaxQueue, strTakePos);
-		return tDelayTime;
+		if(pFltItem->GetTriggerType() == AirsideArrivalDelayTrigger::CFlightTypeItem::Independently)
+		{
+			if(tDelayTime> ElapsedTime(0L))
+                return tDelayTime;
+		}
+		//for enroute delay
+		
+		ElapsedTime tDelayEnRoute = 0L;
+		int nMaxQueueEnRoute = 0;
+		CString strTakePosEnRoute;
+		AirsideArrivalDelayTrigger::CTriggerConditionList& enRouteTriggerList = pFltItem->GetEnRouteConditionList();
+		for(size_t j=0; j< enRouteTriggerList.GetElementCount(); ++j)
+		{
+			AirsideArrivalDelayTrigger::CTriggerCondition* pTrigger = enRouteTriggerList.GetItem(j);
 
+			int QueueLen = pTrigger->GetQueueLength();
+			int nExitID = pTrigger->GetTakeOffPosition()->GetID();
+			if(nExitID < 0)
+				continue;
+
+			LogicRunwayInSim* pRwyPort = m_pAirportres->getRunwayResource()->GetLogicRunway(pTrigger->GetTakeOffPosition()->GetRunwayID(),pTrigger->GetTakeOffPosition()->GetRunwayMark());
+			if(!pRwyPort)
+				continue;
+			RunwayExitInSim* pRwyExit = pRwyPort->GetExitByID(nExitID); 
+			if(!pRwyExit)
+				continue;
+
+			HoldPositionInSim* pHold = pRwyExit->getHoldPosition();
+			if(!pHold)
+				continue;
+
+
+			int nQueueCount =  pHold->GetQueueLength();
+
+			if (QueueLen < nQueueCount)
+			{
+				ElapsedTime tDelay = ElapsedTime((nQueueCount - QueueLen)* pTrigger->GetMinsPerAircraft()*60);
+				tDelayEnRoute = max(tDelay,tDelayEnRoute);
+				if (nMaxQueueEnRoute < nQueueCount)
+				{
+					nMaxQueueEnRoute = nQueueCount;
+					strTakePos = pTrigger->GetTakeOffPosition()->GetName();
+				}
+			}
+		}
+		
+		if(pFltItem->GetTriggerType() == AirsideArrivalDelayTrigger::CFlightTypeItem::Independently)
+		{
+			if(tDelayEnRoute>ElapsedTime(0L))
+			{
+				strReason.Format("Exceed %d flights waiting for departure at takeoff position: %s", nMaxQueue, strTakePos);
+				return tDelayEnRoute;
+			}
+		}
+		else
+		{
+			if(tDelayEnRoute>ElapsedTime(0L) && tDelayTime > ElapsedTime(0L))
+			{
+				strReason.Format("Arrival Delay Trigger for EnRoute Queue at %s, Takeoff Queue at %s", strTakePosEnRoute, strTakePos);
+				return MIN(tDelayEnRoute, tDelayTime);
+			}
+		}
 	}
 
 	return 0L;

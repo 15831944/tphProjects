@@ -59,16 +59,16 @@ public:
 	void SetBirthTime(ElapsedTime tTime){ m_tBirthTime = tTime;}
 	
 	ElapsedTime GetTime()const{ return m_tCurrentTime; }
-	void SetTime(const ElapsedTime& tTime){ m_tCurrentTime = tTime; }
+	virtual void SetTime(const ElapsedTime& tTime){ m_tCurrentTime = tTime; }
 
 	CPoint2008 GetPosition()const{ return m_pPosition; }
-	void SetPosition(const CPoint2008& pos){ m_pPosition = pos; }
+	virtual void SetPosition(const CPoint2008& pos){ m_pPosition = pos; }
 
 	double GetSpeed()const{ return  m_vSpeed; }
-	void SetSpeed(double speed){ m_vSpeed = speed; }
+	virtual void SetSpeed(double speed){ m_vSpeed = speed; }
 
 	AirsideMobileElementMode GetMode(){ return m_vehicleMode; }
-	void SetMode(AirsideMobileElementMode mode){ m_vehicleMode = mode; }
+	virtual void SetMode(AirsideMobileElementMode mode){ m_vehicleMode = mode; }
 
 	void SetDistInResource(DistanceUnit dist){ m_dist = dist; }
 	DistanceUnit GetDistInResource()const{ return m_dist; }
@@ -79,9 +79,11 @@ public:
 	void SetResource(AirsideResource * pRes ){ m_pResource = pRes; }
 	AirsideResource * GetResource()const { return m_pResource; }
 
-	void FlushLog(const ElapsedTime& endTime);
-	void SetOutput(OutputAirside * pOut){ m_pOutput = pOut; }
-	 virtual void WirteLog(const CPoint2008& p, const double speed, const ElapsedTime& t, bool bPushBack = false);
+	virtual void InitLogEntry(VehiclePoolInSim*pool, OutputAirside * pOut);
+	virtual void WirteLog(const CPoint2008& p, const double speed, const ElapsedTime& t, bool bPushBack = false);
+	virtual void FlushLog(const ElapsedTime& endTime);
+
+
 
 	void SetLeavePoolTime(ElapsedTime tTime){ m_tLeavePoolTime = tTime;}
 	ElapsedTime GetLeavePoolTime(){ return m_tLeavePoolTime;}
@@ -135,7 +137,6 @@ public:
 	//write log 
 	void WritePureLog(AirsideMobElementWriteLogItem* pItem);
 
-	void InitLogEntry();
 	void getDesc(ARCMobileDesc& desc)const;
 protected:
 	CString m_strVehicleType;
@@ -206,6 +207,8 @@ protected:
 public:
 	int GetID() const {return m_id ;} 
 	void SetID(int id ){ m_id = id; }
+
+
 public:
 	virtual int ArriveAtStand(ElapsedTime time) { return 1 ;};
 	//virtual int ArriveAtParking(ElapsedTime time) {return 1 ;};

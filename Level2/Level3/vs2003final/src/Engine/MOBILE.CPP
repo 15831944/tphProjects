@@ -27,6 +27,7 @@
 #include "PaxOnboardBaseBehavior.h"
 
 #include <stdlib.h>
+#include "AirsideMobElementBaseBehavior.h"
 
 MobileElement::~MobileElement () 
 {
@@ -100,14 +101,14 @@ TerminalMobElementBehavior* MobileElement::getTerminalBehavior()const
 	return NULL;
 }
 
-AirsideMobElementBehavior* MobileElement::getAirsideBehavior()const
+AirsideMobElementBaseBehavior* MobileElement::getAirsideBehavior()const
 {
 	int nBehaviorCount = (int)m_vBehavior.size();
 	for (int nBehavior = 0; nBehavior < nBehaviorCount; ++nBehavior)
 	{
 		if(m_vBehavior[nBehavior] &&
 			m_vBehavior[nBehavior]->getBehaviorType() == MobElementBehavior::AirsideBehavior)
-			return (AirsideMobElementBehavior*)m_vBehavior[nBehavior];
+			return (AirsideMobElementBaseBehavior*)m_vBehavior[nBehavior];
 	}
 
 	return NULL;

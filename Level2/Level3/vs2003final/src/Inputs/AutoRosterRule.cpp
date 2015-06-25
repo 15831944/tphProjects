@@ -535,6 +535,19 @@ bool CAutoRosterRule::CreateProcessorRoster( std::vector<ProcAssignEntry*>& vPro
 	return false;
 }
 
+bool CompareProAssignEntry(ProcAssignEntry* entry1, ProcAssignEntry* entry2)
+{
+	CString proName1String = entry1->getID()->GetIDString();
+	CString proName2String = entry2->getID()->GetIDString();
+
+	ALTObjectID objName1;
+	ALTObjectID objName2;
+	objName1.FromString(proName1String);
+	objName2.FromString(proName2String);
+
+	return objName1 < objName2;
+}
+
 bool ProcAssignEntryCompare(ProcAssignEntry* pEntry1, ProcAssignEntry* pEntry2)
 {
 	CString strNum1 = pEntry1->getID()->GetLeafName();
@@ -603,7 +616,8 @@ bool CAutoRosterRule::AssignProcessorRosterAccordingToPrioirties( std::vector<Pr
 						vFitEntries.push_back(pEntry);
 				}
 
-				std::sort(vFitEntries.begin(), vFitEntries.end(), ProcAssignEntryCompare);
+			//	std::sort(vFitEntries.begin(), vFitEntries.end(), ProcAssignEntryCompare);
+				std::sort(vFitEntries.begin(), vFitEntries.end(), CompareProAssignEntry);
 				nProcCount += GetAvailableAdjacentProcessorSchedules(vFitEntries,vPriSched, tOpen, tClose, bExclusive, pPriority->GetMinNum(), nLeftProc);
 
 				if (vPriSched.empty())
@@ -712,6 +726,9 @@ int CAutoRosterRule::GetAvailableAdjacentProcessorSchedules( const std::vector<P
 	for (size_t m =0; m < nCount; m++)
 	{
 		pSched = vProEntries.at(m)->getSchedule();
+		ProcAssignEntry* pEntry = vProEntries.at(m);
+		CString strEntry;
+		strEntry = pEntry->getID()->GetIDString();
 		if (!pSched->IsTimeRangeAvailable(tOpen, tClose,bExclusive))
 		{
 			if (nMin >0)
@@ -1594,5 +1611,13 @@ void RosterAssignFlight::DeleteRoster( ProcessorRoster* pRoster )
 void RosterAssignFlight::Clear()
 {
 	m_vAssignedRoster.clear();
-	m_emAssignResult = emAssign_Null;
+//	m_emAssignResult = emAssign_Null;
+	if(m_pRule == NULL)
+	{
+		m_emAssignResult = emAss_NotInclude;
+	}
+	else
+	{
+		m_emAssignResult = emAss_Failed;
+	}
 }

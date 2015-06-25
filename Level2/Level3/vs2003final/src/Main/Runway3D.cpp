@@ -19,7 +19,8 @@ CRunway3D::~CRunway3D(void)
 
 void CRunway3D::DrawOGL(C3DView * pView)
 {
-	if(IsNeedSync()){
+	if(IsNeedSync())
+	{
 		DoSync();
 	}
 	glEnable(GL_BLEND);

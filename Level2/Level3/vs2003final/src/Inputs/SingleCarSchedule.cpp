@@ -773,7 +773,7 @@ bool CSingleCarSchedule::GetNearestSchedule( IntegratedStation* _pCurrentStation
 		nIdx++;
 	}
 	
-	if( nSourceIdx < 0 || nDestIdx < 0 /*|| nSourceIdx >= nDestIdx*/ )
+	if( nSourceIdx < 0 || nDestIdx < 0 || nSourceIdx == nDestIdx )
 		return false;
 
 	//calculate the source stations arrive time

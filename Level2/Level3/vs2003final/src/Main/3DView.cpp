@@ -8480,6 +8480,14 @@ void C3DView::SelectableMenuPop(Selectable * pSel,const CPoint& point)
 		{
 			pCtxMenu = DYNAMIC_DOWNCAST(CNewMenu, menu.GetSubMenu(0));
 		}
+		else if(pObj->GetType()== ALT_APAXBUSSPOT)
+		{
+			pCtxMenu = DYNAMIC_DOWNCAST(CNewMenu,menu.GetSubMenu(0));
+		}
+		else if(pObj->GetType()==ALT_ABAGCARTSPOT)
+		{
+			pCtxMenu = DYNAMIC_DOWNCAST(CNewMenu,menu.GetSubMenu(0));
+		}
 		else
 		{
 			pCtxMenu =  DYNAMIC_DOWNCAST(CNewMenu, menu.GetSubMenu(pObj->GetType()));
@@ -8728,7 +8736,8 @@ void C3DView::OnAltobjectDelete()
 
 	ALTObjectList delteObjs;
 
-	for(ALTObject3DList::iterator itr = SelectedList.begin();itr!= SelectedList.end();itr++){
+	for(ALTObject3DList::iterator itr = SelectedList.begin();itr!= SelectedList.end();itr++)
+	{
 		ALTObject3D * pObj3D = (*itr).get();
 		delteObjs.push_back(pObj3D->GetObject());		
 	}

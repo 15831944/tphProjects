@@ -10,6 +10,7 @@ using namespace std;
 #include <vector>
 #include <set>
 
+
 class CAirportDatabase;
 class VehiclePoolsManagerInSim;
 class VehiclePoolResourceManager;
@@ -23,25 +24,35 @@ class CVehicleSpecifications;
 class FollowMeCarConnectionInSim;
 class AirsideFollowMeCarInSim;
 class StandInSim;
+enum FlightOperation;
+class BaggageTrainServiceRequest;
+class ProcessorList;
+class CBagCartsParkingSpotResourceManager;
+
+
 class VehicleRequestDispatcher
 {
 public:
-	VehicleRequestDispatcher(CAirportDatabase* pAirportDB);
+	VehicleRequestDispatcher(CAirportDatabase* pAirportDB, ProcessorList* pProcList);
 	~VehicleRequestDispatcher(void);
 
 	void AddServiceRequest(AirsideFlightInSim* pFlight);
 	void AddTowingServiceRequest(TowTruckServiceRequest* pRequest);
 	void AddPaxBusServiceRequest(AirsideFlightInSim* pFlight,bool bArrival);
 	void AddDeiceServiceRequest(AirsideFlightInSim* pFlight,const FlightDeiceRequirment& deiceRequirment); //make deice request from the deicerequirment
+	void AddBaggageTrainServiceRequest(AirsideFlightInSim* pFlight,FlightOperation enumOperation);
 
 	void ServiceRequestDispatch();
 	void PaxBusServiceRequestDispatch();
 	void TowTruckServiceRequestDispatch();
+	void BaggageTrainServiceRequestDispatch();
 
 	void SetVehiclePoolResourceManager( VehiclePoolResourceManager* pResManager){ m_pPoolResManager = pResManager;}
 	void SetVehiclePoolsDeployment(VehiclePoolsManagerInSim* pPoolsDeploy){ m_pPoolsDeployment = pPoolsDeploy;}
 	void SetFlightServiceRequirement(FlightServiceReqirementInSim* pRequirement){ m_pFlightServiceRequirement = pRequirement;}
 	void SetPaxBusParkingResourceManager(CPaxBusParkingResourceManager *pPaxParkingResourceManager);
+	void SetBagCartsParkingSpotResourceManager(CBagCartsParkingSpotResourceManager *pBagCartsSpotResourceManager);
+
 	bool IsVehicleService(){ return m_bVehicleService;}
 	void SetVehicleService(bool bService){ m_bVehicleService = bService; }
 	bool HasVehicleServiceFlight(AirsideFlightInSim* pFlight,enumVehicleBaseType vehicleType);
@@ -66,11 +77,13 @@ public:
 
 private:
 	bool IsTowingRequestHandledByPools(TowTruckServiceRequest* pRequest, std::vector<int>& vPoolIDs);
+
+
 private:
 	VehicleServiceRequestList m_vUnhandledList;
 	std::vector<VehicleServiceRequest*> m_vPaxBusServiceRequest;
 	std::vector<TowTruckServiceRequest*> m_vTowTruckServiceRequest;
-
+	std::vector<BaggageTrainServiceRequest*> m_vBagTrainServiceRequest;
 	VehiclePoolResourceManager* m_pPoolResManager;
 	VehiclePoolsManagerInSim* m_pPoolsDeployment;
 	FlightServiceReqirementInSim* m_pFlightServiceRequirement;
@@ -80,6 +93,10 @@ private:
 	FollowMeCarConnectionInSim* m_pFollowMeCarConnection;
 	bool m_bVehicleService;
 
+	ProcessorList* m_pTermProcList;
+	
+	CBagCartsParkingSpotResourceManager *m_pBagCartsSpotResourceManager;
 
+	void RemoveBaggageServiceRequest(BaggageTrainServiceRequest*);
 
 };

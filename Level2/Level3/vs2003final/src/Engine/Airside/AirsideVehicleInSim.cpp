@@ -25,6 +25,9 @@
 #include "StandLeadInLineInSim.h"
 #include "../../Results/AirsideVehicleLogItem.h"
 #include "SimulationErrorShow.h"
+#include "AirsidePaxBusParkSpotInSim.h"
+#include "../BagCartsParkingSpotInSim.h"
+#include "../BagCartsServiceParkingSpotEvent.h"
 
 #define _DEBUGLOG 1
 //////////////////////////////////////////////////////////////////////////
@@ -230,8 +233,8 @@ void AirsideVehicleInSim::WirteLog(const CPoint2008& pos, const double speed, co
 	//m_LogEntry.addEvent(newEvent);
 	m_pOutput->LogVehicleEvent(this,newEvent);	
 
-	     m_PreEventTime = t ;
-		 m_PreEventPoint = pos ;
+	m_PreEventTime = t ;
+	m_PreEventPoint = pos ;
 }
 
 void AirsideVehicleInSim::FlushLog(const ElapsedTime& endTime)
@@ -306,6 +309,31 @@ void AirsideVehicleInSim::ReturnVehiclePool(ProbabilityDistribution* pTurnAround
 	else
 	{
 		m_Route = resltRoute;
+		if (GetResource())
+		{
+			if(GetResource()->GetType() == AirsideResource::ResType_PaxBusParking)
+			{
+				AirsidePaxBusParkSpotInSim* pParkSpotInSim = (AirsidePaxBusParkSpotInSim*)GetResource();
+
+				CPoint2008 ptLocation;
+				if (m_Route.GetVehicleBeginPos(ptLocation))
+				{
+					pParkSpotInSim->GetExitParkSpotClearance(this,GetTime(),ptLocation);
+				}
+			}
+			else if (GetResource()->GetType() == AirsideResource::ResType_BagCartsParkingPosition)
+			{
+				CBagCartsParkingSpotInSim * pBagCartsSpotInSim = (CBagCartsParkingSpotInSim*)GetResource();
+
+				CPoint2008 ptLocation;
+				if (m_Route.GetVehicleBeginPos(ptLocation))
+				{
+					pBagCartsSpotInSim->GetExitParkSpotClearance(this,GetTime(),ptLocation);
+				}
+			}
+			
+		}
+
 	}
 
 	m_Route.SetMode(OnBackPool);
@@ -492,7 +520,19 @@ void AirsideVehicleInSim::MoveOnRoute( const ElapsedTime& time )
 		{
 			Clearance newBackPoolClearance;
 			ClearanceItem backPoolItem(m_pVehiclePool,OnParkingPool,0);
-			CPoint2008 pos = m_pVehiclePool->GetRandPoint();			
+			CPoint2008 pos;
+			CPoint2008 dir;
+			 
+			if(m_Route.IsEmpty())
+			{
+				m_pVehiclePool->BirthOnPool(this, pos,dir);
+			}
+			else
+			{
+				CPath2008 path = m_pVehiclePool->ParkingToSpot(this, m_Route.getLastNode());
+				path.GetEndPoint(pos);
+			}
+			
 			backPoolItem.SetPosition(pos);	
 			
 			backPoolItem.SetSpeed(GetSpeed());
@@ -505,8 +545,9 @@ void AirsideVehicleInSim::MoveOnRoute( const ElapsedTime& time )
 			newBackPoolClearance.AddItem(lastItem);
 			lastItem.SetTime(lastItem.GetTime() + tMinTurnAroundTime);
 			newBackPoolClearance.AddItem(lastItem);
-			ResetServiceCapacity();
 			PerformClearance(newBackPoolClearance);
+			ResetServiceCapacity();
+
 			AirsideMobileElementMode mode = GetMode() ;
 			SetMode(OnParkingPool) ;
 			WirteLog(GetPosition(),GetSpeed(),GetTime());
@@ -523,6 +564,16 @@ void AirsideVehicleInSim::MoveOnRoute( const ElapsedTime& time )
 		{
 			CPaxBusServiceGateEvent* newEvent = new CPaxBusServiceGateEvent(this);
 			SetMode(OnMoveToGate);
+			newEvent->setTime(GetTime());
+			WirteLog(GetPosition(),GetSpeed(),GetTime());
+			//newEvent->addEvent();
+			GenerateNextEvent(newEvent);		
+
+		}
+		else if(GetMode() == OnMoveToBagTrainSpot)
+		{
+			CBagCartsServiceParkingSpotEvent* newEvent = new CBagCartsServiceParkingSpotEvent(this);
+			SetMode(OnMoveToBagTrainSpot);
 			newEvent->setTime(GetTime());
 			WirteLog(GetPosition(),GetSpeed(),GetTime());
 			//newEvent->addEvent();
@@ -1009,8 +1060,34 @@ void AirsideVehicleInSim::FlushLogToFile()
 	m_pOutput->m_reportLog.AddVehicleLogItem(*m_pReportlogItem);
 }
 
-void AirsideVehicleInSim::InitLogEntry()
+void AirsideVehicleInSim::InitLogEntry(VehiclePoolInSim*pool,OutputAirside * pOut)
 {
+	m_pOutput = pOut;
+	SetVehiclePool(pool);
+
+	//
+	int ItemID = m_pVehicleSpecificationItem->GetVehicleTypeID();
+	int nVehicleTypeId  = (int)m_pVehicleSpecificationItem->getBaseType() ;
+	float fuelconsumed = (float)m_pVehicleSpecificationItem->GetFuelCOnsumed() ;
+
+	AirsideVehicleDescStruct desc;
+	desc.id = ItemID;
+	desc.m_BaseType = nVehicleTypeId;
+	desc.poolNO = pool->GetPoolInput()->getID();
+	desc.m_VecileTypeID = CVehicleSpecificationItem::GetVehicleIDByVehicleName(m_pVehicleSpecificationItem->getName()) ;
+	desc.m_FuelConsumed = fuelconsumed ;
+	strcpy(desc.vehicleType,	m_pVehicleSpecificationItem->getName() );
+
+	desc.vehicleheight  = GetVehicleHeight();
+	desc.vehiclewidth = GetVehicleWidth();
+	desc.vehiclelength = GetVehicleLength();
+	desc.IndexID = GetID() ;
+
+	SetVehicleTypeID( ItemID);
+
+	pOut->LogVehicleEntry(this,desc);
+
+
 	//init log entry
 	m_pReportlogItem = new AirsideVehicleLogItem();
 	AirsideVehicleLogDesc& descp = m_pReportlogItem->mVehicleDesc;

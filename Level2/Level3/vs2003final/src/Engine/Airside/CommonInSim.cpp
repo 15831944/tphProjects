@@ -77,6 +77,12 @@ char *AIRSIDEMOBILE_MODE_NAME[MODE_COUNT] =
 	"OnWaitForService",
 	"OnBackPool",
 	"OnVehicleTerminate",
+
+	"OnMoveToBagTrainSpot",
+	"OnMoveInBagTrainSpot",
+	"OnMoveOutBagTrainSpot",
+	"OnArriveAtBagTrainSpot",  
+	"OnLeaveBagTrainSpot",
 };
 
 namespace FlightConflict

@@ -73,6 +73,8 @@ public:
 	void RegTakeoffPos(AirsideFlightInSim* pFlt);
 	void UnRegTakeoffPos(AirsideFlightInSim* pFlt);
 
+	HoldPositionInSim* getHoldPosition();
+
 	QueueToTakeoffPos* getTakeoffQueue();
 protected:
 	//input data

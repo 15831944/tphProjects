@@ -559,6 +559,7 @@
 #define IDD_DIALOG_RECORDOPTIONS        388
 #define IDS_TVNN_LANDSIDE_AREAS         388
 #define IDD_DIALOG_INPUTSUMMARY         389
+#define IDS_TVNN_ENROUTEQCAPACITY       389
 #define IDD_AIRCRAFTFURNINGCOMMENTVIEW  390
 #define IDD_DIALOG_PROJECT_COMMENT      391
 #define IDD_DIALOG_PROJECT_CONTROL      392
@@ -656,10 +657,7 @@
 #define IDD_DIALOG_CURBSIDESTRATEGY     484
 #define IDD_DIALOG_LAYOUTOPTIONS        485
 #define IDD_DIALOG_LANETOLLCRITERIA     486
-#define IDD_CMPREPORTTREEVIEW           487
 #define IDR_OUTLOOK_BAR                 488
-#define IDD_CMPREPORTLISTVIEW           489
-#define IDD_CMPREPORTGRAPHVIEW          490
 #define IDD_DIALOG_ASSIGNFLIGHT_TO_PRO  492
 #define IDD_DIALOG_EVENTSDATA           494
 #define IDR_PROCASSIGN                  500
@@ -1449,6 +1447,7 @@
 #define IDR_CTX_LANDSIDELAYOUT          1095
 #define IDC_EDIT_PDD_ATT3               1096
 #define IDB_TOOLBAR_LIGHT_HOT           1096
+#define IDR_MENU_ENROUTEQCAPACITY       1096
 #define IDC_EDIT_PDD_ATT4               1097
 #define IDB_TOOLBAR_LIGHT_NORMAL        1097
 #define IDC_CMB_PDTYPE                  1098
@@ -3151,6 +3150,8 @@
 #define IDC_TREE_SECTION                2266
 #define IDB_TOOLBAR_A_DISABLE           2266
 #define IDC_STATIC_SECTION              2267
+#define IDR_ADDDELEDITTOOLBAR3          2267
+#define IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY 2267
 #define IDC_CHECK_THICKNESS             2268
 #define IDC_SPIN_HEIGHT                 2269
 #define IDC_STATIC_LOD                  2270
@@ -3298,7 +3299,8 @@
 #define IDC_STATIC_DRIVE                2401
 #define IDC_COMBO_DATA                  2402
 #define IDC_LIST_ROSTER_ASIGN_SUMMARY   2404
-#define IDC_REPORT_LIST_COMBO           2406
+#define IDC_ROSTER_DEP                  2405
+#define IDC_ROSTER_ARR                  2406
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -3381,6 +3383,7 @@
 #define IDD_DIALOG_GATEASSIGNMENT1      6050
 #define IDD_DIALOG_ROSTERASSIGNMENT     6050
 #define IDD_DIALOG_ROSTER_ASSIGN_SUMMARY 6051
+#define IDD_DIALOG_AIRSIDE_ENROUTEQCAPACITY 6052
 #define IDC_LIST_SHAPESPFLOW            6073
 #define ID_KEYFRAME_ADD                 32771
 #define ID_PROJECT_RECENTFILE           32772
@@ -5169,6 +5172,10 @@
 #define ID_LINKAGE_EDITPIPE             35321
 #define ID_LINKAGE_EDITPIPE_AUTO        35322
 #define ID_LINKAGE_EDITPIPE_AUTO_DISABLE 35323
+#define ID_ENROUTEQCAPACITY_ENROUTEQCAPACITY 35324
+#define ID_TOOLBARBUTTON_ADD            35325
+#define ID_TOOLBARBUTTON_DEL            35326
+#define ID_TOOLBARBUTTON_EDIT           35327
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5427,8 +5434,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1101
-#define _APS_NEXT_COMMAND_VALUE         35324
+#define _APS_NEXT_COMMAND_VALUE         35328
 #define _APS_NEXT_CONTROL_VALUE         2407
-#define _APS_NEXT_SYMED_VALUE           491
+#define _APS_NEXT_SYMED_VALUE           487
 #endif
 #endif

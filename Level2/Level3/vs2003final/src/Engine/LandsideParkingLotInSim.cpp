@@ -839,7 +839,7 @@ void LandsideParkingLotLevelInSim::Clear()
 }
 
 const static DistanceUnit dDistZTolerance = 100;
-void LandsideParkingLotLevelInSim::InitGraph(LandsideParkingLotGraph* m_pDriveGraph)
+void LandsideParkingLotLevelInSim::InitGraph(LandsideParkingLotGraph* pDriveGraph)
 {
 	//init entry exit to lanes
 	for(size_t i=0;i<m_vDoors.size();i++)
@@ -870,8 +870,8 @@ void LandsideParkingLotLevelInSim::InitGraph(LandsideParkingLotGraph* m_pDriveGr
 				LandsideResourceLinkNode node2(pDoor,d2,pLane1,d1);
 				node2.mPos = node1.mPos;
 
-				m_pDriveGraph->AddNode(node1);
-				m_pDriveGraph->AddNode(node2);			
+				pDriveGraph->AddNode(node1);
+				pDriveGraph->AddNode(node2);			
 			}
 		}
 
@@ -906,22 +906,22 @@ void LandsideParkingLotLevelInSim::InitGraph(LandsideParkingLotGraph* m_pDriveGr
 					{
 						LandsideResourceLinkNode node1(pSpot,0,pOtherLane,otherdistInLane);
 						node1.mPos = pSpot->getEntryPos2();					
-						m_pDriveGraph->AddNode(node1);
+						pDriveGraph->AddNode(node1);
 
 						LandsideResourceLinkNode node2(pOtherLane,otherdistInLane,pSpot,0);
 						node2.mPos = pSpot->getEntryPos2();
-						m_pDriveGraph->AddNode(node2);									
+						pDriveGraph->AddNode(node2);									
 					}							
 				}		
 				
 
 				LandsideResourceLinkNode node1(pSpot,0,pLane,distInlane);
 				node1.mPos = entryPos;
-				m_pDriveGraph->AddNode(node1);
+				pDriveGraph->AddNode(node1);
 
 				LandsideResourceLinkNode node2(pLane,distInlane,pSpot,0);
 				node2.mPos = entryPos;
-				m_pDriveGraph->AddNode(node2);
+				pDriveGraph->AddNode(node2);
 
 			}
 
@@ -958,8 +958,8 @@ void LandsideParkingLotLevelInSim::InitGraph(LandsideParkingLotGraph* m_pDriveGr
 				LandsideResourceLinkNode node2(pLane2,d2,pLane1,d1);
 				node2.mPos = node1.mPos;
 
-				m_pDriveGraph->AddNode(node1);
-				m_pDriveGraph->AddNode(node2);			
+				pDriveGraph->AddNode(node1);
+				pDriveGraph->AddNode(node2);			
 
 			}
 
@@ -1004,8 +1004,8 @@ void LandsideParkingLotLevelInSim::InitGraph(LandsideParkingLotGraph* m_pDriveGr
 					LandsideResourceLinkNode node2(pLane2,d2,pLane1,d1);
 					node2.mPos = node1.mPos;
 
-					m_pDriveGraph->AddNode(node1);
-					m_pDriveGraph->AddNode(node2);			
+					pDriveGraph->AddNode(node1);
+					pDriveGraph->AddNode(node2);			
 
 				}
 
@@ -1031,7 +1031,7 @@ LandsideParkingLotDrivePipeInSim* LandsideParkingLotLevelInSim::getClosestLane( 
 		CPoint2008 posInLane = pLane->getPath().GetDistPoint(thedistInLane);
 		if( abs( posInLane.z - pt.z )> ARCMath::EPSILON)
 			continue;
-		DistanceUnit distTo = pLane->getPath().GetDistPoint(thedistInLane).distance3D(pt)-pLane->getWidth()*0.5;
+		DistanceUnit distTo = posInLane.distance3D(pt)-pLane->getWidth()*0.5;
 		if(!pClostLane)
 		{
 			minDisTo = distTo;

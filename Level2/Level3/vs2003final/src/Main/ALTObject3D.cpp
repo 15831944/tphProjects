@@ -27,6 +27,7 @@
 #include "./ReportingArea3D.h"
 #include "./StartPosition3D.h"
 #include "./MeetingPoint3D.h"
+#include "AirsidePaxBusParkSpot3D.h"
 
 ALTObject3D::ALTObject3D( int _Id ) : m_nID(_Id)
 {
@@ -68,17 +69,18 @@ void ALTObject3D::DoSync()
 
 void ALTObject3D::FlushChange()
 {
-	try {
+	try
+	{
 		m_pObj->UpdateObject(m_nID);
 	}
 	catch (CADOException& e){
 		CString strErr = e.ErrorMessage();
 
 	}
-
 }
 
-ALTObject3D * ALTObject3D::NewALTObject3D(ALTObject * pObj){
+ALTObject3D * ALTObject3D::NewALTObject3D(ALTObject * pObj)
+{
 	ALTObject3D * reslt = NULL;
 	switch(pObj->GetType())
 	{
@@ -176,6 +178,14 @@ ALTObject3D * ALTObject3D::NewALTObject3D(ALTObject * pObj){
 		break;
 	case ALT_MEETINGPOINT:
 		reslt = new CMeetingPoint3D(-1);
+		reslt->m_pObj = pObj;
+		break;
+	case ALT_ABAGCARTSPOT:
+		reslt = new CAirsideBagCartParkPos3D(-1);
+		reslt->m_pObj = pObj;
+		break;
+	case ALT_APAXBUSSPOT:
+		reslt = new CAirsidePaxBusParkSpot3D(-1);
 		reslt->m_pObj = pObj;
 		break;
 	default :
