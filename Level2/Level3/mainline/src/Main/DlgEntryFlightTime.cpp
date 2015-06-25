@@ -49,7 +49,7 @@ int DlgEntryFlightTime::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	if(!m_toolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
 		| CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
-		!m_toolbar.LoadToolBar(IDR_BOARDING_CALL))
+		!m_toolbar.LoadToolBar(IDR_TOOLBAR_ENTRYFLIGHTTIME))
 	{
 		TRACE0("Failed to create toolbar\n");
 		return -1;
@@ -63,11 +63,8 @@ BOOL DlgEntryFlightTime::OnInitDialog()
  	CDialog::OnInitDialog();
 	CRect rect;
 	GetClientRect(rect);
-	m_listCtrl.SetWindowPos(NULL, 10, 26, rect.Width()-20, rect.Height()-76, NULL);
+	ResizeAllControls(rect.Height(), rect.Width());
 
-	m_listCtrl.GetWindowRect(rect);
-	ScreenToClient(rect);
-	m_toolbar.SetWindowPos(NULL,rect.left,rect.top-26,rect.Width(),26,NULL);
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),TRUE);
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),FALSE);
 	ReloadData();
@@ -81,14 +78,8 @@ void DlgEntryFlightTime::OnSize(UINT nType, int cx, int cy)
 	if(m_btnOk.m_hWnd == NULL)
 		return;
 
-	CRect rcToolbar,rcListCtrl,rcBtn;
-	m_btnCancel.GetWindowRect(&rcBtn);
-	m_btnCancel.MoveWindow(cx-rcBtn.Width()-10,cy-15-rcBtn.Height(),rcBtn.Width(),rcBtn.Height());
-	m_btnOk.MoveWindow(cx-2*rcBtn.Width()-30,cy-15-rcBtn.Height(),rcBtn.Width(),rcBtn.Height());
-	m_btnSave.MoveWindow(cx-3*rcBtn.Width()-50,cy-15-rcBtn.Height(),rcBtn.Width(),rcBtn.Height());	
-	m_toolbar.GetWindowRect(&rcToolbar);
-	m_toolbar.MoveWindow(12,10,cx-20,rcToolbar.Height());
-	m_listCtrl.MoveWindow(10,10+rcToolbar.Height(),cx-20,cy-20-rcBtn.Height()-50);
+	ResizeAllControls(cy, cx);
+
 	InvalidateRect(NULL);
 }
 
@@ -100,4 +91,19 @@ void DlgEntryFlightTime::ReloadData()
 void DlgEntryFlightTime::OnBnClickedOk()
 {
 	CDialog::OnOK();
+}
+
+void DlgEntryFlightTime::ResizeAllControls(int cy, int cx)
+{
+	const int BUTTON_HEIGHT = 22;
+	const int BUTTON_WIDTH = 80;
+	const long TOOLBAR_HEIGHT = 30;
+
+	m_btnImport.MoveWindow(10, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
+	m_btnSave.MoveWindow(cx-3*BUTTON_WIDTH-20, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
+	m_btnOk.MoveWindow(cx-2*BUTTON_WIDTH-15, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
+	m_btnCancel.MoveWindow(cx-BUTTON_WIDTH-10, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
+
+	m_toolbar.MoveWindow(12, 10, cx-22, TOOLBAR_HEIGHT);
+	m_listCtrl.MoveWindow(10, 10+TOOLBAR_HEIGHT, cx-20, cy-TOOLBAR_HEIGHT-BUTTON_HEIGHT-40);
 }

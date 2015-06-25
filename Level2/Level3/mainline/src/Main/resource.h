@@ -1477,6 +1477,7 @@
 #define IDC_EDT_APICAOCODE              1107
 #define IDD_DIALOG_ENTRYFLIGHTTIME      1107
 #define IDC_EDT_APELEVATION             1108
+#define IDR_TOOLBAR_ENTRYFLIGHTTIME     1108
 #define IDC_EDT_APARPCOORDINATES        1109
 #define IDC_PERCENT                     1110
 #define IDC_EDT_APNUMBEROFRUNWAYS       1110
@@ -5191,6 +5192,8 @@
 #define ID_BOARDING_CALL_ADD_PAX        35331
 #define ID_BOARDING_CALL_DELETE         35332
 #define ID_BOARDING_CALL_EDIT           35333
+#define ID_BUTTON_DELETE                35336
+#define ID_BUTTON_NEW                   35337
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5449,8 +5452,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1108
-#define _APS_NEXT_COMMAND_VALUE         35334
+#define _APS_NEXT_RESOURCE_VALUE        1110
+#define _APS_NEXT_COMMAND_VALUE         35338
 #define _APS_NEXT_CONTROL_VALUE         2408
 #define _APS_NEXT_SYMED_VALUE           491
 #endif

@@ -5386,6 +5386,7 @@
     <None Include="Res\edit.bmp" />
     <None Include="Res\element_.ico" />
     <None Include="Res\emptynode.bmp" />
+    <None Include="Res\entryflighttime.bmp" />
     <None Include="Res\Expirical.bmp" />
     <None Include="Res\Exponential.bmp" />
     <None Include="Res\export.bmp" />
