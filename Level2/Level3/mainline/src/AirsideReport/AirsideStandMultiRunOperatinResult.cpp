@@ -982,6 +982,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
 
     for (; iter != standOperationData.end(); ++iter)
     {
+		mapLoadData[iter->first].clear();
         int iCount = iter->second.size();
         for (int i = 0; i < iCount; ++i)
         {
@@ -994,6 +995,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
     mapStandOpResult::iterator simIter = mapLoadData.begin();
     for(; simIter!=mapLoadData.end(); ++simIter)
     {
+        tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
@@ -1025,6 +1027,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
 
     for (; iter != standOperationData.end(); ++iter)
     {
+		mapLoadData[iter->first].clear();
         int iCount = iter->second.size();
         for (int i = 0; i < iCount; i++)
         {
@@ -1038,6 +1041,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
     long lDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
     for(; simIter!=mapLoadData.end(); ++simIter)
     {
+        tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); ++standIter)
         {
@@ -1072,6 +1076,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
 
     for (; iter != standOperationData.end(); ++iter)
     {
+		mapLoadData[iter->first].clear();
         int iCount = iter->second.size();
         for (int i = 0; i < iCount; i++)
         {
@@ -1084,6 +1089,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
     mapStandOpResult::iterator simIter = mapLoadData.begin();
     for(; simIter!=mapLoadData.end(); ++simIter)
     {
+        tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); ++standIter)
         {
@@ -1115,6 +1121,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
 
     for (; iter != standOperationData.end(); ++iter)
     {
+		mapLoadData[iter->first].clear();
         int iCount = iter->second.size();
         for (int i = 0; i < iCount; i++)
         {
@@ -1128,6 +1135,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
     long lDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
     for(; simIter!=mapLoadData.end(); ++simIter)
     {
+        tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); ++standIter)
         {
@@ -1162,6 +1170,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
 
     for (; iter != standOperationData.end(); ++iter)
     {
+		mapLoadData[iter->first].clear();
         int iCount = iter->second.size();
         for (int i = 0; i < iCount; i++)
         {
@@ -1175,9 +1184,24 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
     mapStandOpResult::iterator simIter = mapLoadData.begin();
     for(; simIter!=mapLoadData.end(); ++simIter)
     {
+        tempTool.Clear();
+
+        // Remove the zero item.
+        mapStandResult::iterator standIter2 = simIter->second.begin();
+        while(standIter2!=simIter->second.end())
+        {
+            mapStandResult::iterator tempIter = standIter2;
+            standIter2++;
+
+            if(tempIter->second == 0)
+            {
+                simIter->second.erase(tempIter);
+            }
+        }
+
         mapStandResult::iterator standIter = simIter->second.begin();
-        unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 182
-        // the last one data is discarded.
+        unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 246
+        // the last one data is discarded, need to be fixed.
         unsigned iSize = simIter->second.size();
         for(; standIter!=simIter->second.end()&& idx < iSize - 1; ++standIter, ++idx)
         {
@@ -1211,6 +1235,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
     for (; iter != standOperationData.end(); ++iter)
     {
         int iCount = iter->second.size();
+		mapLoadData[iter->first].clear();
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
@@ -1225,6 +1250,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
     mapStandOpResult::iterator simIter = mapLoadData.begin();
     for(; simIter!=mapLoadData.end(); ++simIter)
     {
+        tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
         unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 182
                           // the last one data is discarded.
@@ -1477,7 +1503,7 @@ void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartDat
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
         CString strXTickTitle;
-        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
         c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second.m_estMin);

@@ -64,6 +64,7 @@ CAirsideReportManager::CAirsideReportManager()
 	m_csProjPath		=_T(""); 
 	m_vMultipleRun.push_back(Airside_FlightDelay);
 	m_vMultipleRun.push_back(Airside_StandOperations);
+	m_vMultipleRun.push_back(Airside_TakeoffProcess);
 }
 
 CAirsideReportManager::~CAirsideReportManager()

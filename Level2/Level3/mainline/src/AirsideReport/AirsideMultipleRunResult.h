@@ -39,6 +39,15 @@ public:
 
 	void AddSimResultPath(const CString& strSimResult, const CString& strSimPath);
 	void ClearResultPath();
+
+protected:
+	long GetMapMinValue(mapLoadResult mapData);
+	long GetMapMaxValue(mapLoadResult mapData);
+	long GetMinValue(std::vector<long> vData)const;
+	long GetMaxValue(std::vector<long> vData)const;
+
+	int GetIntervalCount(long iStart, long iEnd, std::vector<long> vData,long iIgnore = 0)const;
+	long ClacTimeRange(ElapsedTime& eMaxTime,ElapsedTime& eMinValue,ElapsedTime& eInterval);
 protected:
 	DelayResultPath m_mapResultPath;
 };

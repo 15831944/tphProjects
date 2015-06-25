@@ -160,7 +160,7 @@ public:
 		return dValue1;
 	}
 
-    DataType GetSum()
+    DataType GetSum()const
     {
         DataType sum = 0;
         for(size_t i=0; i<m_vDatas.size(); ++i )

@@ -50,15 +50,7 @@ private:
 	void FillSummaryComponentSegmentContent(CXListCtrl& cxListCtrl,SummaryCompomentAndSegmentResultMap mapSummaryData,int iType);
 	void ClearData();
 
-	long GetMapMinValue(mapLoadResult mapData);
-	long GetMapMaxValue(mapLoadResult mapData);
-	long GetMinValue(std::vector<long> vData)const;
-	long GetMaxValue(std::vector<long> vData)const;
-
-	int GetIntervalCount(long iStart, long iEnd, std::vector<long> vData,long iIgnore = 0)const;
 	long GetIntervalDelayTime(long iStart,long iEnd,std::vector<FlightDelayData> vData)const;
-
-	long ClacTimeRange(ElapsedTime& eMaxTime,ElapsedTime& eMinValue,ElapsedTime& eInterval);
 
 	void GenerateComponentSegmentTimeData(DelayComponentAndSegmentMap mapDetailData,int iType,CARC3DChart& chartWnd, CParameters *pParameter);
 	void Generate3DChartCountData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);

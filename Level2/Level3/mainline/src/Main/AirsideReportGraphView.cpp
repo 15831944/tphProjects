@@ -559,80 +559,82 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 		}
 		break;
 	case Airside_RunwayOperaitons:
-		{
-			m_comboChartSelect.ResetContent();
+        {
+            m_comboChartSelect.ResetContent();
+            if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters()->getReportType() == ASReportType_Detail)
+            {
+                int nIndex = m_comboChartSelect.AddString(_T("Landings by Runway"));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_LandingsByRunway);
 
+                nIndex = m_comboChartSelect.AddString(_T("TakeOff by Runway"));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_TakeOffByRunway);
 
-			if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters()->getReportType() == ASReportType_Detail)
-			{
-				//CString TypeName[] = 
-				//{
-				//	_T("Landings by Runway"),
-				//		_T("TakeOff by Runway"),
-				//		_T("Lead-Trail Operation by Runway"),
-				//		_T("Movements per Interval")
-				//};
+                nIndex = m_comboChartSelect.AddString(_T("Lead-Trail Operation by Runway"));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_LeadTrailByRunway);
 
+                nIndex = m_comboChartSelect.AddString(_T("Movements per Interval"));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_MovementsPerRunway);
+            }
+            else
+            {
+                int nIndex = m_comboChartSelect.AddString(_T("Runway Movements Operational Statistics"));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Operations);
 
-				//ChartType_Detail = 0,
-				//	ChartType_Detail_LandingsByRunway,
-				//	ChartType_Detail_TakeOffByRunway,
-				//	ChartType_Detail_LeadTrailByRunway,
-				//	ChartType_Detail_MovementsPerRunway,
+                nIndex = m_comboChartSelect.AddString(_T("Runway Landing Operational Statistics"));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Landing);
 
+                nIndex = m_comboChartSelect.AddString(_T("Runway Take off Operational Statistics "));
+                m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_TakeOff);
 
-				//	ChartType_Detail_Count,
+            }
 
+            m_comboChartSelect.SetCurSel(0);
+            int nCursel =  m_comboChartSelect.GetCurSel();
+            if (nCursel == LB_ERR)
+                return;
 
-				//	ChartType_Summary = 100,
-				//	ChartType_Summary_RunwayOperationalStatistic,
+            int nSubType =  m_comboChartSelect.GetItemData(nCursel);
+            AirsideRunwayOperationReportParam *pParam = reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
+            pParam->setSubType(nSubType);
 
-				//	ChartType_Summary_Count,
+            GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_HIDE);
+            GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Sub Type"));
+            m_ComBoxSubType.ShowWindow(FALSE);
 
-				int nIndex = m_comboChartSelect.AddString(_T("Landings by Runway"));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_LandingsByRunway);
-		
-				nIndex = m_comboChartSelect.AddString(_T("TakeOff by Runway"));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_TakeOffByRunway);
+            std::vector<int> vReportRun;
+            bool bMultiple = false;
+            if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+            {
+                if (vReportRun.size() > 1)
+                {
+                    GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
+                    m_ComBoxSubType.ShowWindow(TRUE);
+                    m_ComBoxSubType.ResetContent();
+                    std::vector<CAirsideReportRunwayMark>& vRunway = pParam->m_vRunway;
+                    std::vector<CAirsideReportRunwayMark>::iterator iter = vRunway.begin();
+                    for(; iter!=vRunway.end(); ++iter)
+                    {
+                        int nIndex = m_ComBoxSubType.AddString(iter->m_strMarkName);
+                        m_ComBoxSubType.SetItemData(nIndex, (DWORD)iter->m_nRunwayID);
+                    }
+                    m_ComBoxSubType.SetCurSel(0);
+                    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, FltDelayReason_Slowed);
+                    bMultiple = true;
+                }
+            }
 
-				nIndex = m_comboChartSelect.AddString(_T("Lead-Trail Operation by Runway"));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_LeadTrailByRunway);
+            if(!bMultiple)
+            {
 
-				nIndex = m_comboChartSelect.AddString(_T("Movements per Interval"));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Detail_MovementsPerRunway);
-			}
-			else
-			{
-				int nIndex = m_comboChartSelect.AddString(_T("Runway Movements Operational Statistics"));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Operations);
+                AirsideRunwayOperationsReport *pPreport = reinterpret_cast< AirsideRunwayOperationsReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+                pPreport->RefreshReport(pParam);
 
-				nIndex = m_comboChartSelect.AddString(_T("Runway Landing Operational Statistics"));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Landing);
-
-				nIndex = m_comboChartSelect.AddString(_T("Runway Take off Operational Statistics "));
-				m_comboChartSelect.SetItemData(nIndex ,AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_TakeOff);
-
-			}
-
-			m_comboChartSelect.SetCurSel(0);
-
-			int nCursel =  m_comboChartSelect.GetCurSel();
-			if (nCursel == LB_ERR)
-				return;
-
-			int nSubType =  m_comboChartSelect.GetItemData(nCursel);
-
-			AirsideRunwayOperationReportParam *pParam = reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
-			pParam->setSubType(nSubType);
-			AirsideRunwayOperationsReport *pPreport = reinterpret_cast< AirsideRunwayOperationsReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-			pPreport->RefreshReport(pParam);
-
-			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
-
-		}
-		break;
+                CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+                if (pResult)
+                    pResult->Draw3DChart(m_MSChartCtrl, pParam);
+            }
+        }
+        break;
 	case Airside_TakeoffProcess:
 		{
 			m_comboChartSelect.ResetContent();
@@ -672,6 +674,17 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 
 			CAirsideTakeoffProcessParameter *pParam = reinterpret_cast<CAirsideTakeoffProcessParameter *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			pParam->setSubType(nSubType);
+			
+			std::vector<int> vReportRun;
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			{
+				if (vReportRun.size() > 1)
+				{
+					GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					return;
+				}
+			}
+
 			CAirsideTakeoffProcessReport *pPreport = reinterpret_cast< CAirsideTakeoffProcessReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 			pPreport->RefreshReport(pParam);
 
@@ -1589,19 +1602,60 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 		}
 		break;
 
-	case Airside_RunwayOperaitons:
-		{
+    case Airside_RunwayOperaitons:
+        {
+            AirsideRunwayOperationReportParam *pParam = reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
+            pParam->setSubType(nSubType);
+            AirsideRunwayOperationsReport *pPreport = reinterpret_cast< AirsideRunwayOperationsReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+            pPreport->RefreshReport(pParam);
 
-			AirsideRunwayOperationReportParam *pParam = reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
-			pParam->setSubType(nSubType);
-			AirsideRunwayOperationsReport *pPreport = reinterpret_cast< AirsideRunwayOperationsReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-			pPreport->RefreshReport(pParam);
+            GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_HIDE);
+            GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Sub Type"));
+            m_ComBoxSubType.ShowWindow(FALSE);
 
-			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
-		}
-		break;
+            std::vector<int> vReportRun;
+            bool bMultiple = false;
+            if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+            {
+                if (vReportRun.size() > 1)
+                {
+                    GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
+                    m_ComBoxSubType.ShowWindow(TRUE);
+                    m_ComBoxSubType.ResetContent();
+                    std::vector<CAirsideReportRunwayMark>& vRunway = pParam->m_vRunway;
+
+                    if(nSubType == AirsideRunwayOperationsReport::ChartType_Detail_MovementsPerRunway)
+                    {
+                        std::vector<CAirsideReportRunwayMark>::iterator iter = vRunway.begin();
+                        for(; iter!=vRunway.end(); ++iter)
+                        {
+                            CString strCombo;
+                            strCombo.Format("%s - %s", iter->m_strMarkName, "abdead1633");
+                            int nIndex = m_ComBoxSubType.AddString(strCombo);
+                            m_ComBoxSubType.SetItemData(nIndex, (DWORD)iter->m_nRunwayID);
+                        }
+                    }
+                    else
+                    {
+                        std::vector<CAirsideReportRunwayMark>::iterator iter = vRunway.begin();
+                        for(; iter!=vRunway.end(); ++iter)
+                        {
+                            CString strCombo;
+                            strCombo = iter->m_strMarkName;
+                            int nIndex = m_ComBoxSubType.AddString(iter->m_strMarkName);
+                            m_ComBoxSubType.SetItemData(nIndex, (DWORD)iter->m_nRunwayID);
+                        }
+                    }
+                    m_ComBoxSubType.SetCurSel(0);
+                    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, FltDelayReason_Slowed);
+                    bMultiple = true;
+                }
+            }
+            CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+            if (pResult)
+                pResult->Draw3DChart(m_MSChartCtrl, pParam);
+        }
+        break;
 	case Airside_VehicleOperation:
 		{
 			CAirsideVehicleOperParameter *pParam = reinterpret_cast<CAirsideVehicleOperParameter *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
@@ -1617,11 +1671,25 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 		{
 			CAirsideTakeoffProcessParameter *pParam = reinterpret_cast<CAirsideTakeoffProcessParameter *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			pParam->setSubType(nSubType);
-			CAirsideTakeoffProcessReport *pPreport = reinterpret_cast< CAirsideTakeoffProcessReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-			pPreport->RefreshReport(pParam);
-			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
+			bool bMultiple = false;
+			std::vector<int> vReportRun;
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			{
+				if (vReportRun.size() > 1)
+				{
+					  GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					  bMultiple = true;
+				}
+			}
+			if (bMultiple == false)
+			{
+				CAirsideTakeoffProcessReport *pPreport = reinterpret_cast< CAirsideTakeoffProcessReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+				pPreport->RefreshReport(pParam);
+				CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+				if (pResult)
+					pResult->Draw3DChart(m_MSChartCtrl, pParam);
+			}
+			
 		}
 		break;
 	case Airside_RunwayUtilization:

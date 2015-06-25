@@ -130,6 +130,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="3DChartWnd.cpp" />
+    <ClCompile Include="AirsideAircraftMultiRunTakeoffProcessResult.cpp" />
+    <ClCompile Include="AirsideAircraftMutiRunRunwayOperationResult.cpp" />
     <ClCompile Include="AirsideBaseReport.cpp" />
     <ClCompile Include="AirsideControllerWorkloadParam.cpp" />
     <ClCompile Include="AirsideControllerWorkloadReport.cpp" />
@@ -345,6 +347,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3DChartWnd.h" />
+    <ClInclude Include="AirsideAircraftMultiRunTakeoffProcessResult.h" />
+    <ClInclude Include="AirsideAircraftMutiRunRunwayOperationResult.h" />
     <ClInclude Include="AirsideBaseReport.h" />
     <ClInclude Include="AirsideControllerWorkloadParam.h" />
     <ClInclude Include="AirsideControllerWorkloadReport.h" />
