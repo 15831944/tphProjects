@@ -3074,6 +3074,7 @@ AirsideFlightInSim& AirsideFlightInSim::ChangeToDeparture()
 		mGroundPerform.mAccSpd = m_pFlightPerformanceManager->getTaxiOutAccelation(this);
 		mGroundPerform.mDecSpd = m_pFlightPerformanceManager->getTaxiOutDeceleration(this);
 	}
+	m_pReportLogItem->mFltDesc.actDepOn = getCurTime().getPrecisely();
 	return *this;
 }
 void AirsideFlightInSim::AddVehicleServiceRequest(VehicleServiceRequest *pVehicleRequest)

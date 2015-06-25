@@ -240,6 +240,8 @@ namespace AirsideReControlView
 
 		protected:
 			void InitDefaltTree();
+            HTREEITEM m_hStandRoot;
+            HTREEITEM m_hMultiRunRoot;
 	};
 
 

@@ -82,8 +82,11 @@ public:
 
 
 	CString GetCurrentReportName();
+	
+	bool AirsideMultipleRunReport()const;
 protected:
 	CAirportDatabase* m_airportDB ;
+	std::vector<reportType> m_vMultipleRun;
 public:
 	void SetAirportDB(CAirportDatabase* _airportDB ) { m_airportDB = _airportDB ;} ;
 public:

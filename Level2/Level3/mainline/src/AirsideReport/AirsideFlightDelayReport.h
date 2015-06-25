@@ -150,6 +150,9 @@ public:
 		long actStartTime;
 		long actEndTime;
 
+		long smtaTime;
+		long smtdTime;
+
 		long planSt;
 
 		long ataTime;
@@ -213,7 +216,7 @@ public:
 	bool setArrServiceModeContent(FltDelayItem& fltArrivalDelayItem,FltNodeDelayItem& nodeDelayItem,long lDelayTime,const FlightConflictReportData::ConflictDataItem* pData)const;
 	bool setDepTakeoffModeContent(FltDelayItem& fltDepartureDelayItem,FltNodeDelayItem& nodeDelayItem,long lDelayTime,const FlightConflictReportData::ConflictDataItem* pData)const;
 
-	bool calculateStartAndEndTime(bool Arrival,FltDelayItem& fltDelayItem,AirsideFlightLogEntry& logEntry);
+	bool calculateStartAndEndTime(bool Arrival,FltDelayItem& fltDelayItem,AirsideFlightLogEntry& logEntry,AirsideFlightLogItem& item);
 
 	bool IsValidTime(AirsideFlightDescStruct& fltlog,CAirsideFlightDelayParam * parameter);
 

@@ -11,30 +11,14 @@ class CSortableHeaderCtrl;
 class CARC3DChart;
 class C2DChartData;
 
-struct MultipleRunFlightDelayData
-{
-	MultipleRunFlightDelayData()
-		:m_iStart(0)
-		,m_iEnd(0)
-		,m_iData(0)
-	{
-
-	}
-	long m_iStart;
-	long m_iEnd;
-	long m_iData;
-};
-
 struct FlightDelayData
 {
 	long m_iArrTime;
 	long m_lDelayTime;
 };
 
-typedef std::map<int,std::vector<MultipleRunFlightDelayData>> ComponentAndSegmentMap;
+typedef std::map<int,std::vector<MultipleRunReportData>> ComponentAndSegmentMap;
 typedef std::map<CString,ComponentAndSegmentMap> DelayComponentAndSegmentMap;
-typedef std::map<CString,std::vector<MultipleRunFlightDelayData>> DelayDetailMap;
-typedef std::map<CString,std::vector<long>> mapLoadResult;
 typedef std::map<int,std::vector<FlightDelayData>> mapDelayData;
 typedef std::map<CString,mapDelayData> mapDelayResultData;
 
@@ -56,12 +40,12 @@ public:
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
 private:
 	void BuildDetailComponentSegmentData(DelayComponentAndSegmentMap& mapDetailData,mapDelayResultData& componentSegmentMapData,CParameters* pParameter);
-	void BulidDetailMultiRunDelayCount(DelayDetailMap& mapDetailData,mapLoadResult mapData,long iInterval,long iIgnore = 0);
-	void BulidDetailMultiRunDelayTime( DelayDetailMap& mapDetailData,int iType,mapDelayResultData mapData,CParameters* pParameter );
-	void InitDetailListHead(CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData,CSortableHeaderCtrl* piSHC=NULL);
+	void BulidDetailMultiRunDelayCount(MultiRunDetailMap& mapDetailData,mapLoadResult mapData,long iInterval,long iIgnore = 0);
+	void BulidDetailMultiRunDelayTime( MultiRunDetailMap& mapDetailData,int iType,mapDelayResultData mapData,CParameters* pParameter );
+	void InitDetailListHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC=NULL);
 	void InitDetailComponentSegmentListHead(CXListCtrl& cxListCtrl,DelayComponentAndSegmentMap mapDetailData,int iType/*=0*/, CSortableHeaderCtrl* piSHC/*=NULL*/);
-	void FillDetailListCountContent(CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData);
-	void FillDetailListTimeContent( CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData );
+	void FillDetailListCountContent(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData);
+	void FillDetailListTimeContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData );
 	void FilllDetailComponentSegmentContent(CXListCtrl& cxListCtrl,DelayComponentAndSegmentMap mapDetailData,int iType);
     void InitSummaryListHead(CXListCtrl& cxListCtrl, CParameters* pParameter, CSortableHeaderCtrl* piSHC=NULL);
     void FillSummaryListContent(CXListCtrl& cxListCtrl, CParameters* pParameter, SummaryDelayResultMap& mapDetailData);
@@ -79,8 +63,8 @@ private:
 	long ClacTimeRange(ElapsedTime& eMaxTime,ElapsedTime& eMinValue,ElapsedTime& eInterval);
 
 	void GenerateComponentSegmentTimeData(DelayComponentAndSegmentMap mapDetailData,int iType,CARC3DChart& chartWnd, CParameters *pParameter);
-	void Generate3DChartCountData(DelayDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);
-	void Generate3DChartTimeData(DelayDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);
+	void Generate3DChartCountData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);
+	void Generate3DChartTimeData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);
 	//set detail graph string
 	void SetDetail3DChartString(C2DChartData& c2dGraphData,CParameters *pParameter,int iType = 0);
 	void SetDetailTotalDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
@@ -117,13 +101,13 @@ private:
     void SetSummaryScheduleDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
     void SetSummaryComponentDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter,int iType );
 private:
-	DelayDetailMap m_totalDelayData;
-	DelayDetailMap m_airDelayData;
-	DelayDetailMap m_taxiDelayData;
-	DelayDetailMap m_standDelayData;
-	DelayDetailMap m_serviceDelayData;
-	DelayDetailMap m_takeoffDelayData;
-	DelayDetailMap m_scheduleDelayData;
+	MultiRunDetailMap m_totalDelayData;
+	MultiRunDetailMap m_airDelayData;
+	MultiRunDetailMap m_taxiDelayData;
+	MultiRunDetailMap m_standDelayData;
+	MultiRunDetailMap m_serviceDelayData;
+	MultiRunDetailMap m_takeoffDelayData;
+	MultiRunDetailMap m_scheduleDelayData;
 
 	DelayComponentAndSegmentMap m_componentDelayData;
 	DelayComponentAndSegmentMap m_segmentDelayData;

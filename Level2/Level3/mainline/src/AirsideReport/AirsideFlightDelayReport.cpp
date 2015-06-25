@@ -392,11 +392,14 @@ void CAirsideFlightDelayReport::HandleFlightLog(AirsideFlightLogEntry& logEntry,
 		setArrTaxiwayModeContent(fltArrivalDelayItem,nodeDelayItem,dDelayTime,pData);
 		//arrival stand
 		setArrStandModeContent(fltArrivalDelayItem,nodeDelayItem,dDelayTime,pData);
-		//service
-		setArrServiceModeContent(fltArrivalDelayItem,nodeDelayItem,dDelayTime,pData);
+		////service
+		//setArrServiceModeContent(fltArrivalDelayItem,nodeDelayItem,dDelayTime,pData);
 
 		//departure
 		//departure stand
+		//service
+		setArrServiceModeContent(fltDepartureDelayItem,nodeDelayItem,dDelayTime,pData);
+
 		setDepStandModeContent(fltDepartureDelayItem,nodeDelayItem,dDelayTime,pData);
 		//departure taxi
 		setDepTaxiwayModeContent(fltDepartureDelayItem,nodeDelayItem,dDelayTime,pData);
@@ -410,7 +413,7 @@ void CAirsideFlightDelayReport::HandleFlightLog(AirsideFlightLogEntry& logEntry,
 	
 	//arrival
 	SetStartAndEndNode(logEntry,parameter,&fltArrivalDelayItem);
-	fltArrivalDelayItem.bValidData = calculateStartAndEndTime(true,fltArrivalDelayItem,logEntry);
+	fltArrivalDelayItem.bValidData = calculateStartAndEndTime(true,fltArrivalDelayItem,logEntry,item);
 	if (strlen(fltArrivalDelayItem.fltDesc.arrID) > 0 && fltConMode != ENUM_FLTCNSTR_MODE_DEP)
 	{
 	//	if(fltArrivalDelayItem.vNodeDelay.size() > 0) //only add the item which has delay
@@ -429,7 +432,7 @@ void CAirsideFlightDelayReport::HandleFlightLog(AirsideFlightLogEntry& logEntry,
 	}
 	//departure
 	SetStartAndEndNode(logEntry,parameter,&fltDepartureDelayItem);
-	fltDepartureDelayItem.bValidData = calculateStartAndEndTime(false,fltDepartureDelayItem,logEntry);
+	fltDepartureDelayItem.bValidData = calculateStartAndEndTime(false,fltDepartureDelayItem,logEntry,item);
 	if (strlen(fltDepartureDelayItem.fltDesc.depID) > 0 && fltConMode != ENUM_FLTCNSTR_MODE_ARR)
 	{
 	//	if(fltDepartureDelayItem.vNodeDelay.size() >0)//only add the item to result list which has delay
@@ -581,7 +584,7 @@ bool CAirsideFlightDelayReport::SetStartAndEndNode(AirsideFlightLogEntry& logEnt
 	return true;
 }
 
-bool CAirsideFlightDelayReport::calculateStartAndEndTime(bool Arrival,FltDelayItem& fltDelayItem,AirsideFlightLogEntry& logEntry)
+bool CAirsideFlightDelayReport::calculateStartAndEndTime(bool Arrival,FltDelayItem& fltDelayItem,AirsideFlightLogEntry& logEntry,AirsideFlightLogItem& item)
 {
 	int nEventCount = logEntry.getCount();
 	if (nEventCount == 0)
@@ -612,14 +615,39 @@ bool CAirsideFlightDelayReport::calculateStartAndEndTime(bool Arrival,FltDelayIt
 		fltDelayItem.actEndTime = backEvent.time;
 	}
 
-	if (Arrival)
+	if (strlen(item.mFltDesc.sArrID.c_str()) > 0 && strlen(item.mFltDesc.sDepID.c_str()) > 0) //turnaround
 	{
-		fltDelayItem.actEndTime = vEventList.front().time;
+		if (Arrival)
+		{
+			fltDelayItem.smtaTime = vEventList.front().time;
+			fltDelayItem.actEndTime =item.mFltDesc.actDepOn;
+		}
+		else
+		{
+			fltDelayItem.smtdTime = vEventList.back().time;
+			fltDelayItem.actStartTime = item.mFltDesc.actDepOn;
+		}
+		return true;
 	}
-	else
+
+	if (strlen(item.mFltDesc.sArrID.c_str()) > 0) //only arrival part
 	{
-		fltDelayItem.actStartTime = vEventList.back().time;
+		if (Arrival)
+		{
+			fltDelayItem.smtaTime = vEventList.front().time;
+			fltDelayItem.actEndTime = backEvent.time;
+		}
 	}
+
+	if (strlen(item.mFltDesc.sDepID.c_str()) > 0) //only departure part
+	{
+		if (Arrival == false)
+		{
+			fltDelayItem.smtdTime = vEventList.back().time;
+			fltDelayItem.actStartTime = frontEvent.time;
+		}
+	}
+
 	return true;
 }
 
@@ -803,20 +831,20 @@ void CAirsideFlightDelayReport::InitResultListHead(CXListCtrl& cxListCtrl, CPara
 			cxListCtrl.InsertColumn(0, _T("Flight Type"), LVCFMT_LEFT, 100);
 
 			//total delay
-			cxListCtrl.InsertColumn(1, _T("Total Delay(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Min Delay(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Max Delay(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Mean Delay(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(14, _T("Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Total Delay(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Min Delay(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Max Delay(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Mean Delay(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(14, _T("Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 
 
 			if (piSHC)
@@ -902,114 +930,114 @@ void CAirsideFlightDelayReport::InitSummaryListHead(CXListCtrl& cxListCtrl, CPar
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//air delay
-			cxListCtrl.InsertColumn(1, _T("Air Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Air Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Air Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Air Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Air Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Air Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Air Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Air Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Air Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Air Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Air Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Air Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Air Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Air Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Air Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Air Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Air Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Air Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Air Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Air Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Air Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Air Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Air Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Air Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Air Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Air Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 		}
 		break;
 	case SRT_SUMMARY_TAXIDELAY:
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//Taxi delay
-			cxListCtrl.InsertColumn(1, _T("Taxi Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Taxi Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Taxi Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Taxi Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Taxi Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Taxi Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Taxi Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Taxi Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Taxi Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Taxi Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Taxi Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Taxi Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Taxi Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Taxi Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Taxi Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Taxi Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Taxi Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Taxi Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Taxi Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Taxi Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Taxi Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Taxi Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Taxi Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Taxi Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Taxi Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Taxi Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 		}
 		break;
 	case SRT_SUMMARY_STANDDELAY:
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//Stand delay
-			cxListCtrl.InsertColumn(1, _T("Stand Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Stand Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Stand Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Stand Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Stand Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Stand Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Stand Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Stand Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Stand Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Stand Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Stand Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Stand Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Stand Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Stand Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Stand Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Stand Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Stand Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Stand Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Stand Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Stand Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Stand Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Stand Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Stand Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Stand Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Stand Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Stand Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 		}
 		break;
 	case SRT_SUMMARY_SERVICEDELAY:
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//Service delay
-			cxListCtrl.InsertColumn(1, _T("Service Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Service Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Service Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Service Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Service Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Service Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Service Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Service Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Service Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Service Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Service Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Service Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Service Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Service Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Service Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Service Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Service Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Service Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Service Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Service Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Service Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Service Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Service Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Service Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Service Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Service Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 		}
 		break;
 	case SRT_SUMMARY_TAKOFFDELAY:
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//schedule delay
-			cxListCtrl.InsertColumn(1, _T("Takeoff Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Takeoff Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Takeoff Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Takeoff Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Takeoff Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Takeoff Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Takeoff Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Takeoff Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Takeoff Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Takeoff Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Takeoff Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Takeoff Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Takeoff Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Takeoff Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Takeoff Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Takeoff Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Takeoff Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Takeoff Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Takeoff Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Takeoff Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Takeoff Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Takeoff Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Takeoff Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Takeoff Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Takeoff Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Takeoff Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 		}
 		break;
 	case SRT_SUMMARY_SCHEDULEDELAY:
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//Takeoff delay
-			cxListCtrl.InsertColumn(1, _T("Schedule Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Schedule Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Schedule Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Schedule Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Schedule Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Schedule Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Schedule Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Schedule Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Schedule Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Schedule Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Schedule Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Schedule Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Schedule Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Schedule Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Schedule Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Schedule Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Schedule Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Schedule Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Schedule Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Schedule Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Schedule Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Schedule Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Schedule Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Schedule Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Schedule Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Schedule Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 		}
 		break;
 	default:
@@ -1133,31 +1161,31 @@ void CAirsideFlightDelayReport::FillAirDelaySummary(CXListCtrl& cxListCtrl, CPar
 		cxListCtrl.InsertItem(i, strFlightType);
 
 		//air delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 1,airSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,airSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,airSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,airSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,airSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,airSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,airSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,airSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,airSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,airSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,airSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,airSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,airSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -1178,31 +1206,31 @@ void CAirsideFlightDelayReport::FillTaxiDelaySummary(CXListCtrl& cxListCtrl, CPa
 		cxListCtrl.InsertItem(i, strFlightType);
 
 		//Taxi delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 1,taxiSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,taxiSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,taxiSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,taxiSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,taxiSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,taxiSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,taxiSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,taxiSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,taxiSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,taxiSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,taxiSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,taxiSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,taxiSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -1222,31 +1250,31 @@ void CAirsideFlightDelayReport::FillStandDelaySummary(CXListCtrl& cxListCtrl, CP
 		cxListCtrl.InsertItem(i, strFlightType);
 
 		//Stand delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 1,standSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,standSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,standSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,standSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,standSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,standSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,standSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,standSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,standSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,standSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,standSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,standSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,standSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -1266,31 +1294,31 @@ void CAirsideFlightDelayReport::FillServiceDelaySummary(CXListCtrl& cxListCtrl, 
 		cxListCtrl.InsertItem(i, strFlightType);
 
 		//Service delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 1,serviceSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,serviceSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,serviceSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,serviceSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,serviceSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,serviceSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,serviceSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,serviceSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,serviceSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,serviceSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,serviceSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,serviceSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,serviceSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -1309,31 +1337,31 @@ void CAirsideFlightDelayReport::FillTakeoffDelaySummary(CXListCtrl& cxListCtrl, 
 		takeoffSummaryData[i].m_fltConstraint.screenPrint(strFlightType.GetBuffer(1024));
 		cxListCtrl.InsertItem(i, strFlightType);
 		//Takeoff delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 1,takeoffSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,takeoffSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,takeoffSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,takeoffSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,takeoffSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,takeoffSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,takeoffSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,takeoffSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,takeoffSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,takeoffSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,takeoffSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,takeoffSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,takeoffSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -1614,7 +1642,7 @@ void CAirsideFlightDelayReport::InitListHead(CXListCtrl& cxListCtrl, enumASRepor
 			cxListCtrl.InsertColumn(4, _T("Exit pos"), LVCFMT_LEFT, 100);
 			cxListCtrl.InsertColumn(5, _T("STD/STA"), LVCFMT_LEFT, 100);
 			cxListCtrl.InsertColumn(6, _T("SMTD/SMTA"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("SIM SCH DELAY(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("SIM SCH DELAY(hh:mm:ss)"), LVCFMT_LEFT, 100);
 			cxListCtrl.InsertColumn(8, _T("ATD/ATA"), LVCFMT_LEFT, 100);
 			cxListCtrl.InsertColumn(9, _T("ACT SCH DELAY(mins)"), LVCFMT_LEFT, 100);
 
@@ -1623,7 +1651,7 @@ void CAirsideFlightDelayReport::InitListHead(CXListCtrl& cxListCtrl, enumASRepor
 			cxListCtrl.InsertColumn(12, _T("T start(act)"), LVCFMT_LEFT, 100);
 			cxListCtrl.InsertColumn(13, _T("T end(act)"), LVCFMT_LEFT, 100);
 			
-			cxListCtrl.InsertColumn(14, _T("Total Delay(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(14, _T("Total Delay(hh:mm:ss)"), LVCFMT_LEFT, 100);
 
 			if (piSHC)
 			{
@@ -1651,19 +1679,19 @@ void CAirsideFlightDelayReport::InitListHead(CXListCtrl& cxListCtrl, enumASRepor
 		{
 			cxListCtrl.InsertColumn(0, _T("Flight"), LVCFMT_LEFT, 100);
 			//Takeoff delay
-			cxListCtrl.InsertColumn(1, _T("Schedule Delay Min(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(2, _T("Schedule Delay Max(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(3, _T("Schedule Delay Mean(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(4, _T("Schedule Delay Q1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(5, _T("Schedule Delay Q2(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(6, _T("Schedule Delay Q3(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(7, _T("Schedule Delay P1(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(8, _T("Schedule Delay P5(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(9, _T("Schedule Delay P10(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(10, _T("Schedule Delay P90(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(11, _T("Schedule Delay P95(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(12, _T("Schedule Delay P99(mins)"), LVCFMT_LEFT, 100);
-			cxListCtrl.InsertColumn(13, _T("Schedule Delay Std dev(mins)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(1, _T("Schedule Delay Min(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(2, _T("Schedule Delay Max(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(3, _T("Schedule Delay Mean(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(4, _T("Schedule Delay Q1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(5, _T("Schedule Delay Q2(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(6, _T("Schedule Delay Q3(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(7, _T("Schedule Delay P1(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(8, _T("Schedule Delay P5(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(9, _T("Schedule Delay P10(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(10, _T("Schedule Delay P90(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(11, _T("Schedule Delay P95(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(12, _T("Schedule Delay P99(hh:mm:ss)"), LVCFMT_LEFT, 100);
+			cxListCtrl.InsertColumn(13, _T("Schedule Delay Std dev(hh:mm:ss)"), LVCFMT_LEFT, 100);
 
 			if (piSHC)
 			{
@@ -1864,7 +1892,7 @@ void CAirsideFlightDelayReport::ExportListDetail(ArctermFile& _file,CParameters 
 
 			_file.writeField( strEndActPlan);
 
-			//Total delay(mins)
+			//Total delay(hh:mm:ss)
 			ElapsedTime estTotalDelayTime(long(m_vTotalResult[i].totalDelayTime/100.0+0.5));
 			CString strTotalDelayTime;
 			strTotalDelayTime.Format("%s", estTotalDelayTime.printTime());
@@ -1919,7 +1947,7 @@ void CAirsideFlightDelayReport::ExportListDetail(ArctermFile& _file,CParameters 
 				_file.writeField( strSmtd);
 
 				//Sim sch delay
-				//Total delay(mins)
+				//Total delay(hh:mm:ss)
 				CString strSimSchDelay;
 				long lSimDelay = 0;
 				if (delayItem.actStartTime)
@@ -1995,7 +2023,7 @@ void CAirsideFlightDelayReport::ExportListDetail(ArctermFile& _file,CParameters 
 
 			_file.writeField(strEndActPlan);
 
-			//Total delay(mins)
+			//Total delay(hh:mm:ss)
 			ElapsedTime estTotalDelayTime(long(m_vTotalResult[i].totalDelayTime/100.0+0.5));
 			CString strTotalDelayTime;
 			strTotalDelayTime.Format("%s", estTotalDelayTime.printTime());
@@ -2061,171 +2089,171 @@ void CAirsideFlightDelayReport::ExportListSummary(ArctermFile& _file,CParameters
 
 		//total delay
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estTotal.printTime());
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		_file.writeField(totalSummaryData[i].m_summaryData.m_estSigma.printTime());
 
 		//air delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		_file.writeField(airSummaryData[i].m_summaryData.m_estSigma.printTime());
 
 		//Taxi delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		_file.writeField(taxiSummaryData[i].m_summaryData.m_estSigma.printTime());
 
 		//Stand delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		_file.writeField(standSummaryData[i].m_summaryData.m_estSigma.printTime());
 
 		//Service delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		_file.writeField(serviceSummaryData[i].m_summaryData.m_estSigma.printTime());
 
 		//Takeoff delay
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		_file.writeField(takeoffSummaryData[i].m_summaryData.m_estSigma.printTime());
 
 		_file.writeLine() ;
@@ -2283,24 +2311,29 @@ void CAirsideFlightDelayReport::FillDetailListContent(CXListCtrl& cxListCtrl, CP
 			{
 				//SMTD and SMTA
 				CString strSmta;
-				long lSmta = delayItem.actEndTime;
-				ElapsedTime estSmta(long(lSmta/100.0+0.5));
-				strSmta.Format(_T("Day%d %02d:%02d:%02d"), estSmta.GetDay(), estSmta.GetHour(), estSmta.GetMinute(), estSmta.GetSecond());
-				cxListCtrl.SetItemText(nRowCount, 6, strSmta);
-
+				long lSmta = delayItem.smtaTime;
+				if (lSmta >= 0)
+				{
+					ElapsedTime estSmta(long(lSmta/100.0+0.5));
+					strSmta.Format(_T("Day%d %02d:%02d:%02d"), estSmta.GetDay(), estSmta.GetHour(), estSmta.GetMinute(), estSmta.GetSecond());
+					cxListCtrl.SetItemText(nRowCount, 6, strSmta);
+				}
+			
 				//Sim sch delay
 				CString strSimSchDelay;
 				long lSimDelay = 0l;
-				if (delayItem.actEndTime)
+				if (delayItem.smtaTime >= 0)
 				{
-					lSimDelay = (delayItem.actEndTime - delayItem.planSt);
+					lSimDelay = (delayItem.smtaTime - delayItem.planSt);
+
+					if (delayItem.bValidData)
+					{
+						ElapsedTime estSimDelay(long(lSimDelay/100.0+0.5));
+						strSimSchDelay.Format(_T("%s"), estSimDelay.printTime());
+						cxListCtrl.SetItemText(nRowCount, 7, strSimSchDelay);
+					}
 				}
-				if (delayItem.bValidData)
-				{
-					ElapsedTime estSimDelay(long(lSimDelay/100.0+0.5));
-					strSimSchDelay.Format(_T("%d"), estSimDelay.asMinutes());
-					cxListCtrl.SetItemText(nRowCount, 7, strSimSchDelay);
-				}
+				
 			}
 
 			{
@@ -2367,7 +2400,7 @@ void CAirsideFlightDelayReport::FillDetailListContent(CXListCtrl& cxListCtrl, CP
 
 			cxListCtrl.SetItemText(nRowCount, 13, strEndActPlan);
 
-			//Total delay(mins)
+			//Total delay(hh:mm:ss)
 			ElapsedTime estTotalDelayTime(long(m_vTotalResult[i].totalDelayTime/100.0+0.5));
 			CString strTotalDelayTime;
 			strTotalDelayTime.Format("%s", estTotalDelayTime.printTime());
@@ -2417,27 +2450,29 @@ void CAirsideFlightDelayReport::FillDetailListContent(CXListCtrl& cxListCtrl, CP
 			{	
 				//SMTD and SMTA
 				CString strSmtd;
-				long lSmtd = delayItem.actStartTime;
-				ElapsedTime estSmtd(long(lSmtd/100.0+0.5));
-				strSmtd.Format(_T("Day%d %02d:%02d:%02d"), estSmtd.GetDay(), estSmtd.GetHour(), estSmtd.GetMinute(), estSmtd.GetSecond());
-				cxListCtrl.SetItemText(nRowCount, 6, strSmtd);
-
+				long lSmtd = delayItem.smtdTime;
+				if (lSmtd >= 0)
+				{
+					ElapsedTime estSmtd(long(lSmtd/100.0+0.5));
+					strSmtd.Format(_T("Day%d %02d:%02d:%02d"), estSmtd.GetDay(), estSmtd.GetHour(), estSmtd.GetMinute(), estSmtd.GetSecond());
+					cxListCtrl.SetItemText(nRowCount, 6, strSmtd);
+				}
+				
 				//Sim sch delay
-				//Total delay(mins)
+				//Total delay(hh:mm:ss)
 				CString strSimSchDelay;
 				long lSimDelay = 0l;
-				if (delayItem.actStartTime)
+				if (delayItem.smtdTime >= 0)
 				{
-					lSimDelay = (delayItem.actStartTime - delayItem.planSt);
+					lSimDelay = (delayItem.smtdTime - delayItem.planSt);
+
+					if (delayItem.bValidData)
+					{
+						ElapsedTime estSimDelay(long(lSimDelay/100.0+0.5));
+						strSimSchDelay.Format(_T("%s"), estSimDelay.printTime());
+						cxListCtrl.SetItemText(nRowCount, 7,strSimSchDelay);
+					}
 				}
-				
-				if (delayItem.bValidData)
-				{
-					ElapsedTime estSimDelay(long(lSimDelay/100.0+0.5));
-					strSimSchDelay.Format(_T("%d"), estSimDelay.asMinutes());
-					cxListCtrl.SetItemText(nRowCount, 7,strSimSchDelay);
-				}
-				
 			}
 
 			{
@@ -2503,7 +2538,7 @@ void CAirsideFlightDelayReport::FillDetailListContent(CXListCtrl& cxListCtrl, CP
 
 			cxListCtrl.SetItemText(nRowCount, 13, strEndActPlan);
 
-			//Total delay(mins)
+			//Total delay(hh:mm:ss)
 			ElapsedTime estTotalDelayTime(long(m_vTotalResult[i].totalDelayTime/100.0+0.5));
 			CString strTotalDelayTime;
 			strTotalDelayTime.Format("%s", estTotalDelayTime.printTime());
@@ -2535,31 +2570,31 @@ void CAirsideFlightDelayReport::FillSummaryScheduleListContent(CXListCtrl& cxLis
 		scheduleSummaryData[i].m_fltConstraint.screenPrint(strFlightType.GetBuffer(1024));
 		cxListCtrl.InsertItem(i, strFlightType);
 
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 1,scheduleSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,scheduleSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,scheduleSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,scheduleSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,scheduleSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,scheduleSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,scheduleSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,scheduleSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,scheduleSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,scheduleSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,scheduleSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,scheduleSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,scheduleSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -2585,31 +2620,31 @@ void CAirsideFlightDelayReport::FillSummaryListContent(CXListCtrl& cxListCtrl, C
 
 		//total delay
 		cxListCtrl.SetItemText(i, 1,totalSummaryData[i].m_summaryData.m_estTotal.printTime());
-		//Min Delay(mins)
+		//Min Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 2,totalSummaryData[i].m_summaryData.m_estMin.printTime());
-		//Max Delay(mins)
+		//Max Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 3,totalSummaryData[i].m_summaryData.m_estMax.printTime());
-		//Mean Delay(mins)
+		//Mean Delay(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 4,totalSummaryData[i].m_summaryData.m_estAverage.printTime());
-		//Q1(mins)
+		//Q1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 5,totalSummaryData[i].m_summaryData.m_estQ1.printTime());
-		//Q2(mins)
+		//Q2(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 6,totalSummaryData[i].m_summaryData.m_estQ2.printTime());
-		//Q3(mins)
+		//Q3(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 7,totalSummaryData[i].m_summaryData.m_estQ3.printTime());
-		//P1(mins)
+		//P1(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 8,totalSummaryData[i].m_summaryData.m_estP1.printTime());
-		//P5(mins)
+		//P5(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 9,totalSummaryData[i].m_summaryData.m_estP5.printTime());
-		//P10(mins)
+		//P10(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 10,totalSummaryData[i].m_summaryData.m_estP10.printTime());
-		//P90(mins)
+		//P90(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 11,totalSummaryData[i].m_summaryData.m_estP90.printTime());
-		//P95(mins)
+		//P95(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 12,totalSummaryData[i].m_summaryData.m_estP95.printTime());
-		//P99(mins)
+		//P99(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 13,totalSummaryData[i].m_summaryData.m_estP99.printTime());
-		//Std dev(mins)
+		//Std dev(hh:mm:ss)
 		cxListCtrl.SetItemText(i, 14,totalSummaryData[i].m_summaryData.m_estSigma.printTime());
 	}
 }
@@ -2735,6 +2770,8 @@ BOOL CAirsideFlightDelayReport::FltDelayItem::ExportFile(ArctermFile& _file)
 	_file.writeInt(takeoffDelayTime) ;
 	_file.writeInt(actStartTime);
 	_file.writeInt(actEndTime);
+	_file.writeInt(smtaTime);
+	_file.writeInt(smtdTime);
 	_file.writeInt(planSt);
 	_file.writeInt(ataTime);
 	_file.writeInt(atdTime);
@@ -2768,6 +2805,8 @@ BOOL CAirsideFlightDelayReport::FltDelayItem::ImportFile(ArctermFile& _file)
 	_file.getInteger(takeoffDelayTime) ;
 	_file.getInteger(actStartTime);
 	_file.getInteger(actEndTime);
+	_file.getInteger(smtaTime);
+	_file.getInteger(smtdTime);
 	_file.getInteger(planSt);
 	_file.getInteger(ataTime);
 	_file.getInteger(atdTime);

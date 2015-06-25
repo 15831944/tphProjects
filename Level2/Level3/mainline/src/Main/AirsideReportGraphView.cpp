@@ -357,7 +357,7 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 			pParam->setSubType(nSubType);
 			CAirsideFlightDelayReport *pPreport = reinterpret_cast< CAirsideFlightDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 			std::vector<int> vReportRun;
-			if(pParam->GetReportRuns(vReportRun))
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
 			{
 				if (vReportRun.size() > 1)
 				{
@@ -1450,7 +1450,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			pParam->setSubType(nSubType);
 			std::vector<int> vReportRun;
 			bool bMultiple = false;
-			if(pParam->GetReportRuns(vReportRun))
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
 			{
 				if (vReportRun.size() > 1)
 				{
@@ -1677,11 +1677,25 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			pParam->setSubType(nSubType);
 			CAirsideFlightStandOperationReport *pPreport = reinterpret_cast< CAirsideFlightStandOperationReport*> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 
-			pPreport->RefreshReport(pParam);
-			CAirsideFlightStandOperationBaseResult *pResult =  pPreport->m_pBaseResult;
+			std::vector<int> vReportRun;
+			bool bMultiple = false;
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			{
+				if (vReportRun.size() > 1)
+				{
+					 GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					bMultiple = true;
+				}
+			}
+			if (bMultiple == false)
+			{
+				pPreport->RefreshReport(pParam);
+				CAirsideFlightStandOperationBaseResult *pResult =  pPreport->m_pBaseResult;
 
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
+				if (pResult)
+					pResult->Draw3DChart(m_MSChartCtrl, pParam);
+			}
+		
 		}
 		break;
 	case Airside_IntersectionOperation:

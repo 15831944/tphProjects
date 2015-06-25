@@ -2535,7 +2535,9 @@ LRESULT AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::DefWindow
 }
 ////////////////////stand operation report////////////////////////////////////////////////////////////
 CStandOperationsTreePerformer::CStandOperationsTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam)
-:CTreePerformer(pDoc,pTreeCtrl,pParam)
+:CTreePerformer(pDoc,pTreeCtrl,pParam),
+m_hStandRoot(NULL),
+m_hMultiRunRoot(NULL)
 {
 
 }
@@ -2559,14 +2561,16 @@ void CStandOperationsTreePerformer::InitTree()
 
 	m_pTreeCtrl->DeleteAllItems();
 
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
+    m_hStandRoot = m_pTreeCtrl->InsertItem(_T("Familys:"), cni, FALSE, FALSE, TVI_ROOT);
 	if( pStandParam->getCount() == 0)//default
 	{
-		InitDefaltTree();
+        CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
+        m_pTreeCtrl->InsertItem(_T("Family: ALL"), cni, FALSE, FALSE, m_hStandRoot);
 	}
 	else
 	{
-
-        COOLTREE_NODE_INFO cni;
         CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 		for (int i = 0; i < pStandParam->getCount(); i++)
 		{
@@ -2581,35 +2585,36 @@ void CStandOperationsTreePerformer::InitTree()
 				strStand.Format(_T("Family: %s"),standObjID.GetIDString());
 			}
 
-			HTREEITEM hStandItem = m_pTreeCtrl->InsertItem(strStand, cni, FALSE, FALSE, TVI_ROOT);
+			HTREEITEM hStandItem = m_pTreeCtrl->InsertItem(strStand, cni, FALSE, FALSE, m_hStandRoot);
 		}
-
-        cni.nt = NT_CHECKBOX;
-        HTREEITEM hMultiRunRoot = m_pTreeCtrl->InsertItem("Multi Runs", cni, pStandParam->GetMultiRun(), FALSE);
-        TreeItemData* pItemData = new TreeItemData;
-        pItemData->itemType = Item_MultiRunRoot;
-        m_pTreeCtrl->SetItemData(hMultiRunRoot, (DWORD_PTR)pItemData);
-
-        std::vector<int> vMultiRun;
-        pStandParam->GetReportRuns(vMultiRun);
-        CSimAndReportManager *pSimAndReportManager = (m_pTermDoc->GetTerminal().GetSimReportManager());
-        int nSimCount = pSimAndReportManager->getSubSimResultCout();
-        for (int nSim =0; nSim < nSimCount; ++nSim )
-        {
-            CString strSimName;
-            strSimName.Format(_T("RUN %d"),nSim+1);
-            HTREEITEM hRun = m_pTreeCtrl->InsertItem(strSimName, cni, FALSE, FALSE, hMultiRunRoot);
-            TreeItemData* pItemData = new TreeItemData;
-            pItemData->itemType = Item_Runs;
-            m_pTreeCtrl->SetItemData(hRun, (DWORD_PTR)pItemData);
-
-            if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
-            {
-                m_pTreeCtrl->SetCheckStatus(hRun,TRUE);
-            }
-        }
-        m_pTreeCtrl->Expand(hMultiRunRoot, TVE_EXPAND);
 	}
+
+    // Add multi run check button
+    cni.nt = NT_CHECKBOX;
+    m_hMultiRunRoot = m_pTreeCtrl->InsertItem("Multi Runs", cni, pStandParam->GetEnableMultiRun(), FALSE, TVI_ROOT);
+    TreeItemData* pItemData = new TreeItemData;
+    pItemData->itemType = Item_MultiRunRoot;
+    m_pTreeCtrl->SetItemData(m_hMultiRunRoot, (DWORD_PTR)pItemData);
+
+    std::vector<int> vMultiRun;
+    pStandParam->GetReportRuns(vMultiRun);
+    CSimAndReportManager *pSimAndReportManager = (m_pTermDoc->GetTerminal().GetSimReportManager());
+    int nSimCount = pSimAndReportManager->getSubSimResultCout();
+    for (int nSim =0; nSim < nSimCount; ++nSim )
+    {
+        CString strSimName;
+        strSimName.Format(_T("RUN %d"),nSim+1);
+        HTREEITEM hRun = m_pTreeCtrl->InsertItem(strSimName, cni, FALSE, FALSE, m_hMultiRunRoot);
+        TreeItemData* pItemData = new TreeItemData;
+        pItemData->itemType = Item_Runs;
+        m_pTreeCtrl->SetItemData(hRun, (DWORD_PTR)pItemData);
+
+        if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
+        {
+            m_pTreeCtrl->SetCheckStatus(hRun,TRUE);
+        }
+    }
+    m_pTreeCtrl->Expand(m_hMultiRunRoot, TVE_EXPAND);
 }
 
 void CStandOperationsTreePerformer::InitDefaltTree()
@@ -2640,7 +2645,7 @@ void CStandOperationsTreePerformer::SaveData()
 
 	//stand item
 
-	HTREEITEM hStandItem = m_pTreeCtrl->GetRootItem();
+	HTREEITEM hStandItem = m_pTreeCtrl->GetChildItem(m_hStandRoot);
 
 	while(hStandItem != NULL)
 	{
@@ -2680,7 +2685,7 @@ void CStandOperationsTreePerformer::OnToolBarAdd(HTREEITEM hTreeItem)
 
         COOLTREE_NODE_INFO cni;
         CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
-		HTREEITEM hItemRunway = m_pTreeCtrl->InsertItem(strStand, cni, FALSE);
+		HTREEITEM hItemRunway = m_pTreeCtrl->InsertItem(strStand, cni, FALSE, FALSE, m_hStandRoot);
 	}
 }
 

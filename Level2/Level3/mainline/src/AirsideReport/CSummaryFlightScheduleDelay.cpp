@@ -18,10 +18,10 @@ long CSummaryFlightScheduleDelayResult::GetFlightScheduleDelayTime(CAirsideFligh
 {
 	if (fltDelayItem.bArrOrDeplDelay)
 	{
-		return max(fltDelayItem.actEndTime - fltDelayItem.planSt,0l);
+		return max(fltDelayItem.smtaTime - fltDelayItem.planSt,0l);
 	}
 
-	return max(fltDelayItem.actStartTime - fltDelayItem.planSt,0l);
+	return max(fltDelayItem.smtdTime - fltDelayItem.planSt,0l);
 }
 
 bool CSummaryFlightScheduleDelayResult::PrepareData(std::vector<CAirsideFlightDelayReport::FltTypeDelayItem>& fltDelayData, FlightConstraint& fltConstraint, vector<long>& vDelayTime, CStatisticalTools<double>& statisticalTool)

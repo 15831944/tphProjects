@@ -1,12 +1,29 @@
 #pragma once
 #include "ParameterCaptionDefine.h"
 #include <map>
+#include <vector>
 class CARC3DChart;
 class CXListCtrl;
 class CParameters;
 class CSortableHeaderCtrl;
 
+struct MultipleRunReportData
+{
+	MultipleRunReportData()
+		:m_iStart(0)
+		,m_iEnd(0)
+		,m_iData(0)
+	{
+
+	}
+	long m_iStart;
+	long m_iEnd;
+	long m_iData;
+};
 typedef std::map<CString,CString> DelayResultPath;
+typedef std::map<CString,std::vector<long>> mapLoadResult;
+typedef std::map<CString,std::vector<MultipleRunReportData>> MultiRunDetailMap;
+
 class AIRSIDEREPORT_API CAirsideMultipleRunResult
 {
 public:

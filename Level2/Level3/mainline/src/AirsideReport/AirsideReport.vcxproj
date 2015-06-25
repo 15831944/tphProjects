@@ -195,6 +195,7 @@
     <ClCompile Include="AirsideRunwayUtilizationReportBaseResult.cpp" />
     <ClCompile Include="AirsideRunwayUtilizationReportParam.cpp" />
     <ClCompile Include="AirsideRunwayUtilizationReportSummaryResult.cpp" />
+    <ClCompile Include="AirsideStandMultiRunOperatinResult.cpp" />
     <ClCompile Include="AirsideTakeoffProcessDetailResult.cpp" />
     <ClCompile Include="AirsideTakeoffProcessParameter.cpp" />
     <ClCompile Include="AirsideTakeoffProcessReport.cpp" />
@@ -409,6 +410,7 @@
     <ClInclude Include="AirsideRunwayUtilizationReportBaseResult.h" />
     <ClInclude Include="AirsideRunwayUtilizationReportParam.h" />
     <ClInclude Include="AirsideRunwayUtilizationReportSummaryResult.h" />
+    <ClInclude Include="AirsideStandMultiRunOperatinResult.h" />
     <ClInclude Include="AirsideTakeoffProcessDetailResult.h" />
     <ClInclude Include="AirsideTakeoffProcessParameter.h" />
     <ClInclude Include="AirsideTakeoffProcessReport.h" />

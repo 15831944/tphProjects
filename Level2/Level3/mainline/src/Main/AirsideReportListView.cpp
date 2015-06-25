@@ -16,6 +16,8 @@
 #include "../InputAirside/RunwayExit.h"
 #include "../AirsideReport/AirsideFlightMutiRunDelayReport.h"
 #include "../AirsideReport/AirsideFlightDelayParam.h"
+#include "../AirsideReport/AirsideFlightStandOperationReport.h"
+#include "../AirsideReport/FlightStandOperationParameter.h"
 // CAirsideReportListView
 
 IMPLEMENT_DYNCREATE(CAirsideReportListView, CFormView)
@@ -137,23 +139,35 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 
 	CParameters* pParameter = pReportManager->GetParameters();
 	ASSERT(pParameter);
-
+	bool bMultipleRun = false;
+	if (pReportManager->AirsideMultipleRunReport())
+	{
+		bMultipleRun = true;
+	}
 	//report conctrl select change combox show different header and content
 	if (lHint == AIRSIDEREPORT_DISLISTVIEW)
 	{
-		if(pReportManager->GetReportType() == Airside_FlightDelay)
+		//check whether do multiple run
+		if (bMultipleRun)
 		{
 			std::vector<int> vReportRun;
-			if (pParameter->GetReportRuns(vReportRun) == true)
+			if (pParameter->GetReportRuns(vReportRun) == true && pParameter->GetEnableMultiRun())
 			{
 				if (vReportRun.size() > 1)
 				{
-					pReportManager->InitMultiReportList(m_lstCtrl, (int)pHint, &m_wndSortableHeaderCtrl);
-					pReportManager->SetMultiReportListContent(m_lstCtrl, (int)pHint);
-					return;
+					if (vReportRun.size() > 1)
+					{
+						pReportManager->InitMultiReportList(m_lstCtrl, (int)pHint, &m_wndSortableHeaderCtrl);
+						pReportManager->SetMultiReportListContent(m_lstCtrl, (int)pHint);
+						return;
+					}
 				}
 			}
+		}
+		
 
+		if(pReportManager->GetReportType() == Airside_FlightDelay)
+		{
 			CAirsideFlightDelayReport* pDelayReport = (CAirsideFlightDelayReport*)pReportManager->GetReport();
 			pDelayReport->InitResultListHead(m_lstCtrl,pParameter,&m_wndSortableHeaderCtrl);
 			pDelayReport->FillResultListContent(m_lstCtrl,pParameter);
@@ -170,28 +184,48 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 	{
 		return;
 	}
-	if(pReportManager->GetReportType() == Airside_FlightDelay)
+	if (bMultipleRun)
 	{
 		std::vector<int> vReportRun;
-		if (pParameter->GetReportRuns(vReportRun) == true)
+		if (pParameter->GetReportRuns(vReportRun) == true && pParameter->GetEnableMultiRun())
 		{
 			if (vReportRun.size() > 1)
 			{
-				CAirsideFlightDelayParam* pDelayPara = (CAirsideFlightDelayParam*)pParameter;
-				if (pDelayPara->getReportType() == ASReportType_Detail)
+				if(pReportManager->GetReportType() == Airside_FlightDelay)
 				{
-					pDelayPara->setSubType(CAirsideFlightDelayReport::SRT_DETAIL_SCHEDULEDELAY);
+					CAirsideFlightDelayParam* pDelayPara = (CAirsideFlightDelayParam*)pParameter;
+					if (pDelayPara->getReportType() == ASReportType_Detail)
+					{
+						pDelayPara->setSubType(CAirsideFlightDelayReport::SRT_DETAIL_SCHEDULEDELAY);
+					}
+					else 
+					{
+						pDelayPara->setSubType(CAirsideFlightDelayReport::SRT_SUMMARY_SCHEDULEDELAY);
+					}
+					pReportManager->InitMultiReportList(m_lstCtrl,1,&m_wndSortableHeaderCtrl);
+					pReportManager->SetMultiReportListContent(m_lstCtrl,1);
+					return;
 				}
-				else 
+				else if (pReportManager->GetReportType() == Airside_StandOperations)
 				{
-					pDelayPara->setSubType(CAirsideFlightDelayReport::SRT_SUMMARY_SCHEDULEDELAY);
+					CFlightStandOperationParameter* pStandPara = (CFlightStandOperationParameter*)pParameter;
+					if (pStandPara->getReportType() == ASReportType_Detail)
+					{
+						pStandPara->setSubType(CAirsideFlightStandOperationReport::ChartType_Detail_Delay);
+					}
+					else 
+					{
+						pStandPara->setSubType(CAirsideFlightStandOperationReport::ChartType_Summary_SchedUtilization);
+					}
+					pReportManager->InitMultiReportList(m_lstCtrl,0,&m_wndSortableHeaderCtrl);
+					pReportManager->SetMultiReportListContent(m_lstCtrl,0);
+					return;
 				}
-				pReportManager->InitMultiReportList(m_lstCtrl,1,&m_wndSortableHeaderCtrl);
-				pReportManager->SetMultiReportListContent(m_lstCtrl,1);
-				return;
 			}
 		}
+		
 	}
+
 	pTermPlanDoc->GetARCReportManager().GetAirsideReportManager()->InitReportList(m_lstCtrl, &m_wndSortableHeaderCtrl);
 	pTermPlanDoc->GetARCReportManager().GetAirsideReportManager()->SetReportListContent(m_lstCtrl);
 

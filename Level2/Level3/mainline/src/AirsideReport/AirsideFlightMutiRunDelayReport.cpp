@@ -14,19 +14,19 @@ const char* strSegmentString[] = {"Unknown","Air","Taxi","Stand","Service","Take
 const char* strComponentString[] = {"Unknown","Slowed","Vectored","Hold","RunWay Hold","Alt change","Side step","Stop","Service"};
 const char* strSummaryContent[] = 
 {
-    "Min Delay(mins)",
-    "Mean Delay(mins)",
-    "Max Delay(mins)",
-    "Q1(mins)",
-    "Q2(mins)",
-    "Q3(mins)",
-    "P1(mins)",
-    "P5(mins)",
-    "P10(mins)",
-    "P90(mins)",
-    "P95(mins)",
-    "P99(mins)",
-    "Std dev(mins)"
+    "Min Delay(hh:mm:ss)",
+    "Mean Delay(hh:mm:ss)",
+    "Max Delay(hh:mm:ss)",
+    "Q1(hh:mm:ss)",
+    "Q2(hh:mm:ss)",
+    "Q3(hh:mm:ss)",
+    "P1(hh:mm:ss)",
+    "P5(hh:mm:ss)",
+    "P10(hh:mm:ss)",
+    "P90(hh:mm:ss)",
+    "P95(hh:mm:ss)",
+    "P99(hh:mm:ss)",
+    "Std dev(hh:mm:ss)"
 };
 CAirsideFlightMutiRunDelayResult::CAirsideFlightMutiRunDelayResult(void)
 {
@@ -97,10 +97,16 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParam
 
                         //file.skipField(5);
 
-						long actStartTime = 0;
-						file.getInteger(actStartTime);
-						long actEndTime = 0;
-						file.getInteger(actEndTime);
+						//long actStartTime = 0;
+						//file.getInteger(actStartTime);
+						//long actEndTime = 0;
+						//file.getInteger(actEndTime);
+			
+						file.skipField(2);
+						long smtaTime = 0;
+						file.getInteger(smtaTime);
+						long smtdTime = 0;
+						file.getInteger(smtdTime);
 						long planSt = 0;
 						file.getInteger(planSt);
 
@@ -111,11 +117,18 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParam
 						int iScheduleDelay = 0;
 						if (iArrOrDeplDelay)
 						{
-							iScheduleDelay = max(actEndTime - planSt,0l);
+							if (smtaTime >= 0)
+							{
+								iScheduleDelay = max(smtaTime - planSt,0l);
+							}
 						}
 						else
 						{
-							iScheduleDelay = max(actStartTime - planSt,0l);
+							if (smtdTime >= 0)
+							{
+								iScheduleDelay = max(smtdTime - planSt,0l);
+							}
+							
 						}
 						mapScheduleDelay[strSimResult].push_back(iScheduleDelay);
 
@@ -350,7 +363,7 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 				ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 				ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
 
-				MultipleRunFlightDelayData delayData;
+				MultipleRunReportData delayData;
 				delayData.m_iStart = estTempMinDelayTime.getPrecisely();
 				delayData.m_iEnd = estTempMaxDelayTime.getPrecisely();
 
@@ -363,7 +376,7 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( DelayDetailMap& mapDetailData,mapLoadResult mapData,long iInterval,long iIgnore/*=0*/  )
+void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( MultiRunDetailMap& mapDetailData,mapLoadResult mapData,long iInterval,long iIgnore/*=0*/  )
 {
 	long lMinDelayTime = GetMapMinValue(mapData);
 	long lMaxDelayTime = GetMapMaxValue(mapData);
@@ -396,7 +409,7 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( DelayDetai
 			ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 			ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
 
-			MultipleRunFlightDelayData delayData;
+			MultipleRunReportData delayData;
 			delayData.m_iStart = estTempMinDelayTime.getPrecisely();
 			delayData.m_iEnd = estTempMaxDelayTime.getPrecisely();
 
@@ -407,7 +420,7 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( DelayDetai
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( DelayDetailMap& mapDetailData,int iType,mapDelayResultData mapData,CParameters* pParameter )
+void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDetailMap& mapDetailData,int iType,mapDelayResultData mapData,CParameters* pParameter )
 {
 	ElapsedTime estMinDelayTime = pParameter->getStartTime();
 	ElapsedTime estMaxDelayTime = pParameter->getEndTime();
@@ -442,7 +455,7 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( DelayDetail
 			ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 			ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
 
-			MultipleRunFlightDelayData delayData;
+			MultipleRunReportData delayData;
 			delayData.m_iStart = estTempMinDelayTime.getPrecisely();
 			delayData.m_iEnd = estTempMaxDelayTime.getPrecisely();
 
@@ -566,16 +579,16 @@ long CAirsideFlightMutiRunDelayResult::GetIntervalDelayTime( long iStart,long iE
 	return iDelayTime;
 }
 
-void CAirsideFlightMutiRunDelayResult::InitDetailListHead( CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData,CSortableHeaderCtrl* piSHC/*=NULL*/ )
+void CAirsideFlightMutiRunDelayResult::InitDetailListHead( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC/*=NULL*/ )
 {
 	if (mapDetailData.empty())
 		return;
 
-	DelayDetailMap::iterator iter = mapDetailData.begin();
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
 	size_t rangeCount = iter->second.size();
 	for (size_t i = 0; i < rangeCount; ++i)
 	{
-		MultipleRunFlightDelayData delayData = iter->second.at(i);
+		MultipleRunReportData delayData = iter->second.at(i);
 		CString strRange;
 		ElapsedTime eStartTime;
 		ElapsedTime eEndTime;
@@ -608,7 +621,7 @@ void CAirsideFlightMutiRunDelayResult::InitSummaryListHead(CXListCtrl& cxListCtr
         pDelayPara->getSubType() == CAirsideFlightDelayReport::SRT_SUMMARY_SEGMENTDELAY ||
         pDelayPara->getSubType() == CAirsideFlightDelayReport::SRT_SUMMARY_COMPONENTDELAY)
     {
-        cxListCtrl.InsertColumn(nCurCol, _T("Total Delay(min)"), headStyle, 80);
+        cxListCtrl.InsertColumn(nCurCol, _T("Total Delay(hh:mm:ss)"), headStyle, 80);
         nCurCol++;
     }
 
@@ -632,7 +645,7 @@ void CAirsideFlightMutiRunDelayResult::InitDetailComponentSegmentListHead(CXList
 	size_t rangeCount = iter->second[iType].size();
 	for (size_t i = 0; i < rangeCount; ++i)
 	{
-		MultipleRunFlightDelayData delayData = iter->second[iType].at(i);
+		MultipleRunReportData delayData = iter->second[iType].at(i);
 		CString strRange;
 		ElapsedTime eStartTime;
 		ElapsedTime eEndTime;
@@ -703,9 +716,9 @@ void CAirsideFlightMutiRunDelayResult::InitListHead( CXListCtrl& cxListCtrl, CPa
         InitSummaryListHead(cxListCtrl, parameter, piSHC);
     }
 }
-void CAirsideFlightMutiRunDelayResult::FillDetailListCountContent( CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData )
+void CAirsideFlightMutiRunDelayResult::FillDetailListCountContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData )
 {
-	DelayDetailMap::iterator iter = mapDetailData.begin();
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
 	int idx = 0;
 	for (; iter != mapDetailData.end(); ++iter)
 	{
@@ -723,7 +736,7 @@ void CAirsideFlightMutiRunDelayResult::FillDetailListCountContent( CXListCtrl& c
 		cxListCtrl.SetItemData(idx,idx);
 		for (size_t n = 0; n < iter->second.size(); ++n)
 		{
-			MultipleRunFlightDelayData delayData = iter->second.at(n);
+			MultipleRunReportData delayData = iter->second.at(n);
 			CString strCount;
 			if(n <  iter->second.size())
 				strCount.Format(_T("%d"), delayData.m_iData);
@@ -920,7 +933,7 @@ void CAirsideFlightMutiRunDelayResult::FilllDetailComponentSegmentContent(CXList
 		cxListCtrl.SetItemData(idx,idx);
 		for (size_t n = 0; n < iter->second[iType].size(); ++n)
 		{
-			MultipleRunFlightDelayData delayData = iter->second[iType].at(n);
+			MultipleRunReportData delayData = iter->second[iType].at(n);
 			ElapsedTime eTime;
 			if(n <  iter->second[iType].size())
 				eTime.setPrecisely(delayData.m_iData);
@@ -931,9 +944,9 @@ void CAirsideFlightMutiRunDelayResult::FilllDetailComponentSegmentContent(CXList
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::FillDetailListTimeContent( CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData )
+void CAirsideFlightMutiRunDelayResult::FillDetailListTimeContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData )
 {
-	DelayDetailMap::iterator iter = mapDetailData.begin();
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
 	int idx = 0;
 	for (; iter != mapDetailData.end(); ++iter)
 	{
@@ -951,7 +964,7 @@ void CAirsideFlightMutiRunDelayResult::FillDetailListTimeContent( CXListCtrl& cx
 		cxListCtrl.SetItemData(idx,idx);
 		for (size_t n = 0; n < iter->second.size(); ++n)
 		{
-			MultipleRunFlightDelayData delayData = iter->second.at(n);
+			MultipleRunReportData delayData = iter->second.at(n);
 			ElapsedTime eTime;
 			if(n <  iter->second.size())
 				eTime.setPrecisely(delayData.m_iData);
@@ -1128,7 +1141,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateComponentSegmentTimeData(DelayCom
 	DelayComponentAndSegmentMap::iterator iter = mapDetailData.begin();
 	for (unsigned iTitle = 0; iTitle < iter->second[iType].size(); iTitle++)
 	{
-		MultipleRunFlightDelayData delayData = iter->second[iType].at(iTitle);
+		MultipleRunReportData delayData = iter->second[iType].at(iTitle);
 		ElapsedTime eStartTime;
 		ElapsedTime eEndTime;
 		eStartTime.setPrecisely(delayData.m_iStart);
@@ -1150,7 +1163,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateComponentSegmentTimeData(DelayCom
 		std::vector<double>  vData;
 		for (unsigned i = 0; i < iter->second[iType].size(); i++)
 		{
-			MultipleRunFlightDelayData delayData = iter->second[iType].at(i);
+			MultipleRunReportData delayData = iter->second[iType].at(i);
 			ElapsedTime tTime;
 			tTime.setPrecisely(delayData.m_iData);
 			vData.push_back(tTime.asSeconds()/60.0);
@@ -1160,7 +1173,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateComponentSegmentTimeData(DelayCom
 	chartWnd.DrawChart(c2dGraphData);
 }
 
-void CAirsideFlightMutiRunDelayResult::Generate3DChartCountData( DelayDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter )
+void CAirsideFlightMutiRunDelayResult::Generate3DChartCountData( MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter )
 {
 	C2DChartData c2dGraphData;
 	
@@ -1169,10 +1182,10 @@ void CAirsideFlightMutiRunDelayResult::Generate3DChartCountData( DelayDetailMap 
 	if (mapDetailData.empty() == true)
 		return;
 
-	DelayDetailMap::iterator iter = mapDetailData.begin();
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
 	for (unsigned iTitle = 0; iTitle < iter->second.size(); iTitle++)
 	{
-		MultipleRunFlightDelayData delayData = iter->second.at(iTitle);
+		MultipleRunReportData delayData = iter->second.at(iTitle);
 		ElapsedTime eStartTime;
 		ElapsedTime eEndTime;
 		eStartTime.setPrecisely(delayData.m_iStart);
@@ -1194,7 +1207,7 @@ void CAirsideFlightMutiRunDelayResult::Generate3DChartCountData( DelayDetailMap 
 		std::vector<double>  vData;
 		for (unsigned i = 0; i < iter->second.size(); i++)
 		{
-			MultipleRunFlightDelayData delayData = iter->second.at(i);
+			MultipleRunReportData delayData = iter->second.at(i);
 			vData.push_back(delayData.m_iData);
 		}
 		c2dGraphData.m_vr2DChartData.push_back(vData);
@@ -1202,7 +1215,7 @@ void CAirsideFlightMutiRunDelayResult::Generate3DChartCountData( DelayDetailMap 
 	chartWnd.DrawChart(c2dGraphData);
 }
 
-void CAirsideFlightMutiRunDelayResult::Generate3DChartTimeData( DelayDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter )
+void CAirsideFlightMutiRunDelayResult::Generate3DChartTimeData( MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter )
 {
 	C2DChartData c2dGraphData;
 
@@ -1211,10 +1224,10 @@ void CAirsideFlightMutiRunDelayResult::Generate3DChartTimeData( DelayDetailMap m
 	if (mapDetailData.empty() == true)
 		return;
 
-	DelayDetailMap::iterator iter = mapDetailData.begin();
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
 	for (unsigned iTitle = 0; iTitle < iter->second.size(); iTitle++)
 	{
-		MultipleRunFlightDelayData delayData = iter->second.at(iTitle);
+		MultipleRunReportData delayData = iter->second.at(iTitle);
 		ElapsedTime eStartTime;
 		ElapsedTime eEndTime;
 		eStartTime.setPrecisely(delayData.m_iStart);
@@ -1236,7 +1249,7 @@ void CAirsideFlightMutiRunDelayResult::Generate3DChartTimeData( DelayDetailMap m
 		std::vector<double>  vData;
 		for (unsigned i = 0; i < iter->second.size(); i++)
 		{
-			MultipleRunFlightDelayData delayData = iter->second.at(i);
+			MultipleRunReportData delayData = iter->second.at(i);
 			ElapsedTime tTime;
 			tTime.setPrecisely(delayData.m_iData);
 			vData.push_back(tTime.asSeconds()/60.0);
@@ -1357,7 +1370,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailServiceDelay3DChartString( C2DCh
 void CAirsideFlightMutiRunDelayResult::SetDetailSegmentDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter,int iType )
 {
 	CString strChartTitle;
-	strChartTitle.Format(_T(" Delay %s vs. time of day"),strSegmentString[iType]);
+	strChartTitle.Format(_T("Segment Delay %s vs. time of day"),strSegmentString[iType]);
 	c2dGraphData.m_strChartTitle = strChartTitle;
 	c2dGraphData.m_strYtitle = _T("Delays (mins)");
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));
@@ -1381,7 +1394,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailScheduleDelay3DChartString( C2DC
 void CAirsideFlightMutiRunDelayResult::SetDetailComponentDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter,int iType  )
 {
 	CString strChartTitle;
-	strChartTitle.Format(_T(" Delay %s vs. time of day"),strComponentString[iType]);
+	strChartTitle.Format(_T("Component Delay %s vs. time of day"),strComponentString[iType]);
 	c2dGraphData.m_strChartTitle = strChartTitle;
 	c2dGraphData.m_strYtitle = _T("Delays (mins)");
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));
@@ -1695,12 +1708,12 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryTotalDelay3DChartString( C2DCha
 
 void CAirsideFlightMutiRunDelayResult::SetSummaryAirDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
-    c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
+    c2dGraphData.m_strChartTitle = _T("Air delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("SCHEDULE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("AIR DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1751,7 +1764,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryServiceDelay3DChartString( C2DC
 void CAirsideFlightMutiRunDelayResult::SetSummarySegmentDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter,int iType )
 {
     CString strChartTitle;
-    strChartTitle.Format(_T("Segment delay Report %s(Summary)"),strSegmentString[iType]);
+    strChartTitle.Format(_T(" Segment delay Report %s(Summary) "),strSegmentString[iType]);
     c2dGraphData.m_strChartTitle = strChartTitle;
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
@@ -1775,7 +1788,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryScheduleDelay3DChartString( C2D
 void CAirsideFlightMutiRunDelayResult::SetSummaryComponentDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter,int iType )
 {
     CString strChartTitle;
-    strChartTitle.Format(_T("Component delay Report %s(Summary)"),strComponentString[iType]);
+    strChartTitle.Format(_T(" Component delay Report %s(Summary) "),strComponentString[iType]);
     c2dGraphData.m_strChartTitle = strChartTitle;
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
