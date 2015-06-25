@@ -56,8 +56,8 @@ protected:
 	afx_msg void OnChooseMenu(UINT nID);
 protected:
 	void DisableAllToolBarButtons();
-	void RemoveTreeSubItem(HTREEITEM hItem);
-	void RemoveTreeItemAndDeleteData(HTREEITEM hChildItem);
+	void RemoveTreeItem(HTREEITEM hItem);
+	void RemoveSubItem(HTREEITEM hItem);
 
 private:
 	ProbabilityDistribution* CopyProbDistribution(ProbabilityDistribution* _pPD);

@@ -203,7 +203,7 @@ void CBoardingCallDlg::OnOK()
 
 void CBoardingCallDlg::ReloadRoot()
 {
-	RemoveTreeSubItem(m_hRoot);
+	RemoveSubItem(m_hRoot);
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	FlightData* pFlightData = GetInputTerminal()->flightData;
@@ -228,7 +228,7 @@ void CBoardingCallDlg::ReloadRoot()
 // Reload all Flight Types under selected Stage.
 void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB, HTREEITEM hTreeItemStage)
 {
-	RemoveTreeSubItem(hTreeItemStage);
+	RemoveSubItem(hTreeItemStage);
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
@@ -254,7 +254,7 @@ void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB
 void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEntry, HTREEITEM hTreeItemFlight )
 {
 	BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
-	RemoveTreeSubItem(hTreeItemFlight);
+	RemoveSubItem(hTreeItemFlight);
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
@@ -288,7 +288,7 @@ void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEnt
 void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITEM hTreeItemStand)
 {
 	BoardingCallPaxTypeDatabase* pPaxDB = pStandEntry->GetPaxTypeDatabase();
-	RemoveTreeSubItem(hTreeItemStand);
+	RemoveSubItem(hTreeItemStand);
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
@@ -313,7 +313,7 @@ void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITE
 // Reload all Triggers under selected Pax Type.
 void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREEITEM hTreeItemPax )
 {
-	RemoveTreeSubItem(hTreeItemPax);
+	RemoveSubItem(hTreeItemPax);
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	std::vector<BoardingCallTrigger*>& vTriggers = pPaxEntry->GetTriggersDatabase();
@@ -333,7 +333,7 @@ void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREE
 
 void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTriggers, HTREEITEM hTriggerAll)
 {
-	RemoveTreeSubItem(hTriggerAll);
+	RemoveSubItem(hTriggerAll);
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	CString strItemText;
@@ -630,11 +630,14 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 				m_btnSave.EnableWindow(TRUE);
 				break;
 			}
-			GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
-			m_tree.SelectItem(hRootItem);
-			ReloadRoot();
-			m_btnSave.EnableWindow(TRUE);
-			break;
+			else
+			{
+				GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
+				m_tree.SelectItem(hRootItem);
+				ReloadRoot();
+				m_btnSave.EnableWindow(TRUE);
+				break;
+			}
 		}
 	case TREE_NODE_FLIGHT_TYPE:
 		{
@@ -1147,12 +1150,6 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 				BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
 				std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
 				int userSetCount = atoi(strValue.GetBuffer());
-				if(pPaxEntry->getConstraint()->isDefault())
-				{
-					MessageBox("Can't edit the 'DEFAULT' passenger type's trigger count.");
-					strItemText.Format("Number of triggers: %d", pPaxEntry->GetTriggerCount());
-					break;
-				}
 				strItemText.Format("Number of triggers: %d", userSetCount);
 				pPaxEntry->SetTriggerCount(userSetCount);
 				ReloadTriggers(vTrigger, hSelItem);
@@ -1168,26 +1165,34 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 	return CDialog::DefWindowProc(message, wParam, lParam);
 }
 
-void CBoardingCallDlg::RemoveTreeSubItem(HTREEITEM hItem)
+// remove specified item and delete all its sub items.
+void CBoardingCallDlg::RemoveTreeItem(HTREEITEM hItem)
 {
 	if(hItem == NULL)
 		return;
 	HTREEITEM hChildItem;
 	while((hChildItem = m_tree.GetChildItem(hItem)) != NULL)
 	{
-		RemoveTreeSubItem(hChildItem);
-		RemoveTreeItemAndDeleteData(hChildItem);
+		RemoveTreeItem(hChildItem);
 	}
-}
-
-void CBoardingCallDlg::RemoveTreeItemAndDeleteData(HTREEITEM hItem)
-{
 	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hItem);
 	if(pDataWithType != NULL)
 	{
 		delete pDataWithType;
 	}
 	m_tree.DeleteItem(hItem);
+}
+
+// remove sub items of specified item.
+void CBoardingCallDlg::RemoveSubItem( HTREEITEM hItem )
+{
+	if(hItem == NULL)
+		return;
+	HTREEITEM hChildItem;
+	while((hChildItem = m_tree.GetChildItem(hItem)) != NULL)
+	{
+		RemoveTreeItem(hChildItem);
+	}
 }
 
 void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
