@@ -38,5 +38,5 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnBnClickedOk();
 private:
-	void ResizeAllControls(int cy, int cx);
+	void LayoutAllControls(int cy, int cx);
 };

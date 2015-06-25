@@ -63,7 +63,7 @@ BOOL DlgEntryFlightTime::OnInitDialog()
  	CDialog::OnInitDialog();
 	CRect rect;
 	GetClientRect(rect);
-	ResizeAllControls(rect.Height(), rect.Width());
+	LayoutAllControls(rect.Height(), rect.Width());
 
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),TRUE);
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),FALSE);
@@ -78,7 +78,7 @@ void DlgEntryFlightTime::OnSize(UINT nType, int cx, int cy)
 	if(m_btnOk.m_hWnd == NULL)
 		return;
 
-	ResizeAllControls(cy, cx);
+	LayoutAllControls(cy, cx);
 
 	InvalidateRect(NULL);
 }
@@ -93,17 +93,21 @@ void DlgEntryFlightTime::OnBnClickedOk()
 	CDialog::OnOK();
 }
 
-void DlgEntryFlightTime::ResizeAllControls(int cy, int cx)
+void DlgEntryFlightTime::LayoutAllControls(int cy, int cx)
 {
-	const int BUTTON_HEIGHT = 22;
-	const int BUTTON_WIDTH = 80;
-	const long TOOLBAR_HEIGHT = 30;
+	int btnHeight = 22;
+	int toolbarHeight = 30;
 
-	m_btnImport.MoveWindow(10, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
-	m_btnSave.MoveWindow(cx-3*BUTTON_WIDTH-20, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
-	m_btnOk.MoveWindow(cx-2*BUTTON_WIDTH-15, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
-	m_btnCancel.MoveWindow(cx-BUTTON_WIDTH-10, cy-15-BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT);
+	int btnWidth = 80;
+	if(cx < (btnWidth*4+35))
+	{
+		btnWidth = (cx -35)/4;
+	}
+	m_btnImport.MoveWindow(10, cy-15-btnHeight, btnWidth, btnHeight);
+	m_btnSave.MoveWindow(cx-3*btnWidth-20, cy-15-btnHeight, btnWidth, btnHeight);
+	m_btnOk.MoveWindow(cx-2*btnWidth-15, cy-15-btnHeight, btnWidth, btnHeight);
+	m_btnCancel.MoveWindow(cx-btnWidth-10, cy-15-btnHeight, btnWidth, btnHeight);
 
-	m_toolbar.MoveWindow(12, 10, cx-22, TOOLBAR_HEIGHT);
-	m_listCtrl.MoveWindow(10, 10+TOOLBAR_HEIGHT, cx-20, cy-TOOLBAR_HEIGHT-BUTTON_HEIGHT-40);
+	m_toolbar.MoveWindow(12, 10, cx-22, toolbarHeight);
+	m_listCtrl.MoveWindow(10, 10+toolbarHeight, cx-20, cy-toolbarHeight-btnHeight-40);
 }
