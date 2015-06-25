@@ -20,19 +20,23 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL OnInitDialog();
-	CEdit m_folderName;
-	CEdit m_folderPath;
-	CString folderName;
-	CString folderPath;
-    static int folder_id;
-	afx_msg void OnBnClickedButton1();
-	afx_msg void OnBnClickedCancel();
-	afx_msg void OnBnClickedOk();
+	CEdit m_shapeBarName;
+	CEdit m_shapeBarLocation;
+	afx_msg void OnLoadShapeBar();
+	afx_msg void OnCancel();
+	afx_msg void OnOk();
 
 protected:
     Folder_Style m_style;
-
+    CString shapeBarName;
+    CString shapeBarLocation;
 public:
     CShapeFolder::Folder_Style GetStyle() const { return m_style; }
     void SetStyle(CShapeFolder::Folder_Style style) { m_style = style; }
+
+    CString GetShapeBarName() const { return shapeBarName; }
+    void SetShapeBarName(CString strName) { shapeBarName = strName; }
+
+    CString GetShapeBarLocation() const { return shapeBarLocation; }
+    void SetShapeBarLocation(CString strLocation) { shapeBarLocation = strLocation; }
 };

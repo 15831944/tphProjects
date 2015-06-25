@@ -11,28 +11,27 @@
 
 IMPLEMENT_DYNAMIC(CShapeItem, CDialog)
 
-int CShapeItem::item_id = 0;
 CShapeItem::CShapeItem(CString folderpath,CWnd* pParent /*=NULL*/)
-	: CDialog(CShapeItem::IDD, pParent)
+	: CDialog(CShapeItem::IDD, pParent),
+    m_oldClientWidth(0),
+    m_oldClientHeight(0)
 {
-	if (item_id != 0)
-		itemName.Format("New Item(%d)",item_id);
-	else
-		itemName = "New Item";
-	itemPicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\New.bmp";
-	itemModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\FLATSQUARE24cm.dxf";
+	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\New.bmp";
+	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\FLATSQUARE24cm.dxf";
 	m_style = NEW;
-	folderPath = folderpath;
+	m_folderLocation = folderpath;
 }
 
 CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model, Item_Style style /* = NEW */,CWnd* pParent /* = NULL */)
-	: CDialog(CShapeItem::IDD, pParent)
+	: CDialog(CShapeItem::IDD, pParent),
+    m_oldClientWidth(0),
+    m_oldClientHeight(0)
 {
-	itemName = name;
-	itemPicture = picture;
-	itemModel = model;
+	m_shapeName = name;
+	m_shapePicture = picture;
+	m_shapeModel = model;
 	m_style = style;
-	folderPath = folderpath;
+	m_folderLocation = folderpath;
 }
 
 
@@ -43,51 +42,47 @@ CShapeItem::~CShapeItem()
 void CShapeItem::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT1, m_itemName);
-	DDX_Control(pDX, IDC_EDIT2, m_itemModel);
-	DDX_Control(pDX, IDC_PIC_STATIC, m_itemPicture);
+	DDX_Control(pDX, IDC_EDIT_SHAPENAME, m_editShapeName);
+	DDX_Control(pDX, IDC_EDIT_MODELLOCATION, m_editShapeModel);
+	DDX_Control(pDX, IDC_PIC_STATIC, m_staticPic);
 }
 
 
 BEGIN_MESSAGE_MAP(CShapeItem, CDialog)
-	ON_BN_CLICKED(IDC_BUTTON8, &CShapeItem::OnBnClickedButton8)
-	ON_BN_CLICKED(IDC_BUTTON1, &CShapeItem::OnBnClickedButton1)
-	ON_BN_CLICKED(IDCANCEL, &CShapeItem::OnBnClickedCancel)
-	ON_BN_CLICKED(IDOK, &CShapeItem::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BTN_LOADPICTURE, OnLoadShapePicture)
+	ON_BN_CLICKED(IDC_BTN_LOADMODEL, OnLoadShapeModel)
+	ON_BN_CLICKED(IDCANCEL, OnCancel)
+	ON_BN_CLICKED(IDOK, OnOk)
+    ON_WM_SIZE()
+    ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 
 // CShapeItem message handlers
-
-
-void CShapeItem::OnBnClickedButton8()
+void CShapeItem::OnLoadShapePicture()
 {
-	// TODO: Add your control notification handler code here
-
-	CFileDialog  dlgFile(TRUE,NULL,folderPath,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.bmp)|*.bmp");
+	CFileDialog  dlgFile(TRUE,NULL,m_folderLocation,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.bmp)|*.bmp|");
 	if (dlgFile.DoModal() == IDOK)
 	{
-		itemPicture = dlgFile.GetPathName();
-		HBITMAP pBMP = (HBITMAP)LoadImage(NULL,itemPicture,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+		m_shapePicture = dlgFile.GetPathName();
+		HBITMAP pBMP = (HBITMAP)LoadImage(NULL,m_shapePicture,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 		if(pBMP)
 		{
-			m_itemPicture.ModifyStyle(0xF,SS_BITMAP|SS_CENTERIMAGE);   
-			m_itemPicture.SetBitmap(pBMP);
+			m_staticPic.ModifyStyle(0xF,SS_BITMAP|SS_CENTERIMAGE);   
+			m_staticPic.SetBitmap(pBMP);
 		}
 	}
 }
 
 
-void CShapeItem::OnBnClickedButton1()
+void CShapeItem::OnLoadShapeModel()
 {
-	// TODO: Add your control notification handler code here
-
-	CFileDialog  dlgFile(TRUE,NULL,folderPath,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.dxf)|*.dxf");
+	CFileDialog  dlgFile(TRUE,NULL,m_folderLocation,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.dxf)|*.dxf|");
 	if (dlgFile.DoModal() == IDOK)
 	{
-		itemModel = dlgFile.GetPathName();
+		m_shapeModel = dlgFile.GetPathName();
 	}
-	m_itemModel.SetWindowText(itemModel);
+	m_editShapeModel.SetWindowText(m_shapeModel);
 }
 
 
@@ -95,50 +90,140 @@ BOOL CShapeItem::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	// TODO:  Add extra initialization here
-	
 	switch(m_style)
 	{
 	case NEW:
 		break;
 	case NAME:
-		((CWnd*)GetDlgItem(IDC_BUTTON1))->EnableWindow(FALSE);
-		((CWnd*)GetDlgItem(IDC_BUTTON8))->EnableWindow(FALSE);
+        SetWindowText(_T("Edit Shape Name"));
+		((CWnd*)GetDlgItem(IDC_BTN_LOADMODEL))->EnableWindow(FALSE);
+		((CWnd*)GetDlgItem(IDC_BTN_LOADPICTURE))->EnableWindow(FALSE);
 		break;
 	case PICTURE:
-		m_itemName.EnableWindow(FALSE);
-		((CWnd*)GetDlgItem(IDC_BUTTON1))->EnableWindow(FALSE);
+        SetWindowText(_T("Change Shape Picture"));
+		m_editShapeName.EnableWindow(FALSE);
+		((CWnd*)GetDlgItem(IDC_BTN_LOADMODEL))->EnableWindow(FALSE);
 		break;
 	case MODEL:
-		m_itemName.EnableWindow(FALSE);
-		((CWnd*)GetDlgItem(IDC_BUTTON8))->EnableWindow(FALSE);
+        SetWindowText(_T("Change Shape Model"));
+		m_editShapeName.EnableWindow(FALSE);
+		((CWnd*)GetDlgItem(IDC_BTN_LOADPICTURE))->EnableWindow(FALSE);
 		break;
 	}
 
-	m_itemName.SetWindowText(itemName);
-	m_itemModel.SetWindowText(itemModel);
+	m_editShapeName.SetWindowText(m_shapeName);
+	m_editShapeModel.SetWindowText(m_shapeModel);
 
-	HBITMAP pBMP = (HBITMAP)LoadImage(NULL,itemPicture,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
+	HBITMAP pBMP = (HBITMAP)LoadImage(NULL,m_shapePicture,IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
 	if(pBMP)
 	{
-		m_itemPicture.ModifyStyle(0xF,SS_BITMAP|SS_CENTERIMAGE);   
-		m_itemPicture.SetBitmap(pBMP);
+		m_staticPic.ModifyStyle(0xF,SS_BITMAP|SS_CENTERIMAGE);
+		m_staticPic.SetBitmap(pBMP);
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CShapeItem::OnBnClickedCancel()
+void CShapeItem::OnCancel()
 {
-	// TODO: Add your control notification handler code here
 	CDialog::OnCancel();
 }
 
 
-void CShapeItem::OnBnClickedOk()
+void CShapeItem::OnOk()
 {
-	// TODO: Add your control notification handler code here
-	m_itemName.GetWindowText(itemName);
+	m_editShapeName.GetWindowText(m_shapeName);
 	CDialog::OnOK();
+}
+
+
+void CShapeItem::OnSize(UINT nType, int cx, int cy)
+{
+    CDialog::OnSize(nType, cx, cy);
+    if(m_editShapeName.m_hWnd == NULL)
+    {
+        if (nType != SIZE_MINIMIZED)
+        {
+            m_oldClientWidth = cx;
+            m_oldClientHeight = cy;
+        }
+        return;
+    }
+
+    LayoutControl(GetDlgItem(IDC_STATIC_SHAPENAME), TopLeft, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EDIT_SHAPENAME), TopLeft, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_MODELLOCATION), TopLeft, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EDIT_MODELLOCATION), TopLeft, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BTN_LOADMODEL), TopRight, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_SHAPEICON), TopLeft, BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_PIC_STATIC), TopLeft, BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BTN_LOADPICTURE), TopRight, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDCANCEL), BottomRight, BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDOK), BottomRight, BottomRight, cx, cy);
+    if (nType != SIZE_MINIMIZED)
+    {
+        m_oldClientWidth = cx;
+        m_oldClientHeight = cy;
+    }
+    InvalidateRect(NULL);
+}
+
+// refTopLeft: the control's top left references to the new window's 'refTopLeft'.
+// refBottomRight: the control's bottom right references to the new window's 'refBottomRight'.
+// cx: new window's width
+// cy: new window's height
+void CShapeItem::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
+{
+    CRect rcS;
+    pCtrl->GetWindowRect(&rcS);
+    ScreenToClient(&rcS);
+    int deltaX = cx - m_oldClientWidth;
+    int deltaY = cy - m_oldClientHeight;
+    if(refTopLeft == TopLeft && refBottomRight == TopLeft)
+    {
+        pCtrl->MoveWindow(&rcS);
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == TopRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width()+deltaX, rcS.Height());
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == BottomLeft)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width(), rcS.Height()+deltaY);
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width()+deltaX, rcS.Height()+deltaY);
+    }
+    else if(refTopLeft == TopRight && refBottomRight == TopRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), rcS.Height());
+    }
+    else if(refTopLeft == TopRight && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), cy+deltaY);
+    }
+    else if(refTopLeft == BottomLeft && refBottomRight == BottomLeft)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, rcS.Width(), rcS.Height());
+    }
+    else if(refTopLeft == BottomLeft && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, cx+deltaX, rcS.Height());
+    }
+    else if(refTopLeft == BottomRight && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top+deltaY, rcS.Width(), rcS.Height());
+    }
+    else
+    {
+        return;
+    }
+}
+
+void CShapeItem::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+    lpMMI->ptMinTrackSize=CPoint(369,300);
+    CDialog::OnGetMinMaxInfo(lpMMI);
 }

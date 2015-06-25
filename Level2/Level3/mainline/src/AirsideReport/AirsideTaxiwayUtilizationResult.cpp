@@ -1278,9 +1278,10 @@ void CAirsideTaxiwayUtilizationDetailResult::FillListContent(CXListCtrl& cxListC
 		TaxiwayFlightInfoData* pInfoData = getFlightInfoData(pDetailData);
 		if (pInfoData)
 		{
+			int iColumn = 0;
 			for (int j = 0; j < (int)pInfoData->m_vFlightInfoList.size() && j < 20; j++)
 			{
-				TaxiwayUtilizationFlightInfo& item = pInfoData->m_vFlightInfoList[j];
+				TaxiwayUtilizationFlightInfo item = pInfoData->m_vFlightInfoList[j];
 
 				if (std::find(pDetailData->m_vFlightInfo.begin(),pDetailData->m_vFlightInfo.end(),item) != pDetailData->m_vFlightInfo.end())
 				{
@@ -1288,36 +1289,34 @@ void CAirsideTaxiwayUtilizationDetailResult::FillListContent(CXListCtrl& cxListC
 					item.m_avaSpeed = (*iter).m_avaSpeed;
 					item.m_lMovements = (*iter).m_lMovements;
 					item.m_lOccupancy = (*iter).m_lOccupancy;
-				}
-				else
-				{
-					item.m_avaSpeed = 0.0;
-					item.m_lMovements = 0;
-					item.m_lOccupancy = 0;
-				}
-				//Airline 
-				{
-					cxListCtrl.SetItemText(i,11+4*j,item.m_sAirline);
-				}
 
-				//actype
-				{
-					cxListCtrl.SetItemText(i,12+4*j,item.m_sActype);
-				}
+					//Airline 
+					{
+						cxListCtrl.SetItemText(i,11+4*iColumn,item.m_sAirline);
+					}
 
-				//Number of movements
-				{
-					CString sMovement(_T(""));
-					sMovement.Format(_T("%d"),item.m_lMovements);
-					cxListCtrl.SetItemText(i,13+4*j,sMovement);
-				}
+					//actype
+					{
+						cxListCtrl.SetItemText(i,12+4*iColumn,item.m_sActype);
+					}
 
-				//V average (knots)
-				{
-					CString sAverageSpeed(_T(""));
-					sAverageSpeed.Format(_T("%.2f"),item.m_avaSpeed);
-					cxListCtrl.SetItemText(i,14+4*j,sAverageSpeed);
+					//Number of movements
+					{
+						CString sMovement(_T(""));
+						sMovement.Format(_T("%d"),item.m_lMovements);
+						cxListCtrl.SetItemText(i,13+4*iColumn,sMovement);
+					}
+
+					//V average (knots)
+					{
+						CString sAverageSpeed(_T(""));
+						sAverageSpeed.Format(_T("%.2f"),item.m_avaSpeed);
+						cxListCtrl.SetItemText(i,14+4*iColumn,sAverageSpeed);
+					}
+
+					iColumn++;
 				}
+				
 			}
 		}
 	}

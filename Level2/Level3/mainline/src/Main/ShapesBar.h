@@ -58,18 +58,18 @@ protected:
 	afx_msg LRESULT OnPopMenu(WPARAM wParam, LPARAM lParam);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
-	afx_msg void OnAddFolder();
-	afx_msg void OnFolderRename();
-	afx_msg void OnChangeFolderPath();
+	afx_msg void OnNewShapeBar();
+	afx_msg void OnRenameShapeBar();
+	afx_msg void OnChangeShapeBarLocation();
 	afx_msg void OnImport();
 	afx_msg void OnExport();
-	afx_msg void OnDeleteFolder();
+	afx_msg void OnDeleteShapeBar();
 
-	afx_msg void OnAddItem();
-	afx_msg void OnItemRename();
-	afx_msg void OnChangeItemPicture();
-	afx_msg void OnChangeItemModel();
-	afx_msg void OnDeleteItem();
+	afx_msg void OnNewShape();
+	afx_msg void OnRenameShape();
+	afx_msg void OnChangeShapePicture();
+	afx_msg void OnChangeShapeModel();
+	afx_msg void OnDeleteShape();
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

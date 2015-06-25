@@ -1625,6 +1625,7 @@
 #define IDC_BUTTON_ALL_DELETE           1155
 #define IDC_BUTTON_FAZOOMOUT            1155
 #define IDC_AIRCRAFTALIAS_DELETE        1155
+#define IDC_BTN_LOADPICTURE             1155
 #define IDC_BUTTON_SETTING              1156
 #define IDCCANCEL                       1156
 #define IDC_BUTTON9                     1156
@@ -3337,6 +3338,15 @@
 #define IDC_PIC_STATIC                  2414
 #define IDC_BUTTON_GATE_ADJACENCY       2414
 #define IDC_LIST_GATE_ADJACENCY         2415
+#define IDC_EDIT_SHAPENAME              2416
+#define IDC_EDIT_MODELLOCATION          2417
+#define IDC_BTN_LOADMODEL               2418
+#define IDC_STATIC_MODELLOCATION        2420
+#define IDC_STATIC_SHAPENAME            2421
+#define IDC_STATIC_SHAPEICON            2422
+#define IDC_EDIT_BARNAME                2423
+#define IDC_EDIT_BARLOCATION            2424
+#define IDC_BTN_LOADSHAPEBAR            2425
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5230,10 +5240,9 @@
 #define ID_ITEM_DELETEITEM              35347
 #define ID_OTHER_ADDFOLDER              35348
 #define ID_OTHER_DELETEITEM             35349
-#define ID_FOLDER_NEWSHAPEBAR           35350
-#define ID_FOROLD_NEWSHAPEBAR           35351
-#define ID_FOLDER_DELETESHAPEBAR        35352
-#define ID_OTHER_NEWSHAPEBAR            35353
+#define ID_FOLDER_EDIT                  35350
+#define ID_ITEM_EDITSHAPE               35351
+#define ID_ITEM_EDIT                    35352
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5493,8 +5502,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1115
-#define _APS_NEXT_COMMAND_VALUE         35354
-#define _APS_NEXT_CONTROL_VALUE         2416
+#define _APS_NEXT_COMMAND_VALUE         35353
+#define _APS_NEXT_CONTROL_VALUE         2426
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

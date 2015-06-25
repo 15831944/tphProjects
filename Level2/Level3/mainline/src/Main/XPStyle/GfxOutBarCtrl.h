@@ -130,6 +130,8 @@ public:
 	CWnd * GetFolderChild(int iFolder = -1);
 	int AddFolderBar(const char * pFolder, CWnd * pSon, const DWORD exData = 0);
 	CString GetItemText(const int index);
+    BOOL IsItemNameExist(const CString& strItem);
+    int GetItemIndexByName(const CString& strItem);
 	void SetAnimationTickCount(const long value) { lAnimationTickCount = value; };
 	long GetAnimationTickCount() { return lAnimationTickCount; };
 
@@ -149,7 +151,7 @@ public:
 	CString GetFolderText(const int index);
 	CString GetFolderPathText(const int index);
     BOOL IsFolderNameExist(const CString& strFolderName);
-    int GetIndexByFolderName(const CString& strFolderName);
+    int GetFolderIndexByName(const CString& strFolderName);
 	void StartGroupEdit(const int index);
 	void GetLabelRect(const int iFolder, const int iIndex, CRect &rect);
 	void GetIconRect(const int iFolder, const int iIndex, CRect &rect);
