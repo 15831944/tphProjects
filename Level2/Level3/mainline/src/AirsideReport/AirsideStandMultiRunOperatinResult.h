@@ -97,6 +97,7 @@ private:
 
     void InitSummaryListHead(CXListCtrl &cxListCtrl, CSortableHeaderCtrl* piSHC);
     void FillSummaryListContent(CXListCtrl &cxListCtrl, MultiRunSummaryMap &multiRunSummaryMap);
+    void FillSummaryConflictListContent(CXListCtrl& cxListCtrl, MultiRunSummaryMap& multiRunSummaryMap);
 
     void DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter);
     void GenerateSummary2DChartData(C2DChartData& c2dGraphData, MultiRunSummaryMap& multiRunSummaryMap);
