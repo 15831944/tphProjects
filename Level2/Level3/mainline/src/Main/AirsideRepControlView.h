@@ -6,10 +6,10 @@
 #include "../AirsideReport/Parameters.h"
 #include "../common/FLT_CNST.H"
 #include "../AirsideReport/AirsideReportNode.h"
-#include "../MFCExControl/ARCTreeCtrlEx.h"
 #include "AirsideReControlViewTreePerformer.h"
 #include "../AirsideReport\TypeDefs.h"
 #include "../AirsideReport/RunwayExitParameter.h"
+#include "MFCExControl/CoolTree.h"
 // CAirsideRepControlView form view
 const int iEdgeWidth		= 5; 
 const int iToolBarHeight	= 34;
@@ -150,7 +150,7 @@ protected:
 public:
 	CComboBox	m_comboEndDay;
 	CComboBox	m_comboStartDay;
-	CTreeCtrl	m_treePaxType;
+	CCoolTree	m_treePaxType;
 	CButton	m_staticTime;
 	CStatic	m_staticStartTime;
 	CStatic	m_staticEndTime;

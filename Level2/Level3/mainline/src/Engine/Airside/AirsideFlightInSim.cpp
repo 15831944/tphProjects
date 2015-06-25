@@ -141,7 +141,7 @@ public:
 		//log to flight file
 		std::ofstream outfile;
 		outfile.open(debugfileName,ios::app);
-		long eventTime = long(pFlight->GetTime());
+		
 		outfile <<"<" << Event::getCurEventNum()<<">" << std::endl;
 		outfile << pFlight->GetTime()<<"," << long(pFlight->GetTime())<<std::endl;
 		outfile << pFlight->GetPosition().getX() <<" ," <<pFlight->GetPosition().getY() << std::endl;
@@ -929,7 +929,6 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 
 	AirsideFlightRunwayDelayLog* pLog = NULL;
 
-    AirsideMobileElementMode itemMode = item.GetMode();
 	//release resource lock
 	if(item.GetMode() == OnTerminate )
 	{

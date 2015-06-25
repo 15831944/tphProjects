@@ -927,7 +927,9 @@ void CAirsideRepControlView::InitializeTree()
 	case Airside_AircraftOperation:
 		{
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType = m_treePaxType.InsertItem("Flight Type");
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+			m_hRootFlightType = m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
 		}
@@ -935,117 +937,137 @@ void CAirsideRepControlView::InitializeTree()
 
 	case Airside_FlightDelay:
 		{
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType =m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType =m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
-			m_hRootNodeToNode=m_treePaxType.InsertItem("Node To Node");
+			m_hRootNodeToNode=m_treePaxType.InsertItem("Node To Node", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootNodeToNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_NodeFromToRoot));
 		
-			HTREEITEM hItemFrom=m_treePaxType.InsertItem("From",m_hRootNodeToNode);
+			HTREEITEM hItemFrom=m_treePaxType.InsertItem("From", cni, FALSE, FALSE, m_hRootNodeToNode);
 			m_treePaxType.SetItemData(hItemFrom,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromRoot));
 			
-			HTREEITEM hItemTo=m_treePaxType.InsertItem("To",m_hRootNodeToNode);
+			HTREEITEM hItemTo=m_treePaxType.InsertItem("To", cni, FALSE, FALSE, m_hRootNodeToNode);
 			m_treePaxType.SetItemData(hItemTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToRoot));
 		}
 		break;
 	case Airside_NodeDelay:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
-			m_hRootNodes=m_treePaxType.InsertItem("Nodes");
+			m_hRootNodes=m_treePaxType.InsertItem("Nodes", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootNodes,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_NodesRoot));
 		}
 		break;
 	case Airside_FlightActivity:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 		}
 		break;
 	case Airside_AircraftOperational:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
-			HTREEITEM hItemFromTo=m_treePaxType.InsertItem("Locations");
+			HTREEITEM hItemFromTo=m_treePaxType.InsertItem("Locations", cni, FALSE);
 			m_treePaxType.SetItemData(hItemFromTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_NodeFromToRoot));
 
-			HTREEITEM hItemFrom=m_treePaxType.InsertItem("From",hItemFromTo);
+			HTREEITEM hItemFrom=m_treePaxType.InsertItem("From", cni, FALSE, FALSE, hItemFromTo);
 			m_treePaxType.SetItemData(hItemFrom,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromRoot));
 
-			HTREEITEM hItemTo=m_treePaxType.InsertItem("To",hItemFromTo);
+			HTREEITEM hItemTo=m_treePaxType.InsertItem("To", cni, FALSE, FALSE, hItemFromTo);
 			m_treePaxType.SetItemData(hItemTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToRoot));
 		}
 		break;
 	case Airside_VehicleOperation:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType = m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType = m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
-			HTREEITEM hItemVehicleType=m_treePaxType.InsertItem("Vehicle Type");
+			HTREEITEM hItemVehicleType=m_treePaxType.InsertItem("Vehicle Type", cni, FALSE);
 			m_treePaxType.SetItemData(hItemVehicleType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_VehicleType));
 
-			HTREEITEM hItemPool=m_treePaxType.InsertItem("Pool");
+			HTREEITEM hItemPool=m_treePaxType.InsertItem("Pool", cni, FALSE);
 			m_treePaxType.SetItemData(hItemPool,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Pool));
 		}
 		break ;
 	case Airside_RunwayOperaitons:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
 			//runway mark root
-			m_hRootRunways = m_treePaxType.InsertItem(_T("Runways"));
+			m_hRootRunways = m_treePaxType.InsertItem(_T("Runways"), cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootRunways,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayMarkRoot));
 
-			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 		
-			m_hRootClassification=m_treePaxType.InsertItem("Classification");
+			m_hRootClassification=m_treePaxType.InsertItem("Classification", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootClassification,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ClassificationRoot));
 		}
 		break;
 	case Airside_FlightConflict:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootReportingArea = m_treePaxType.InsertItem("Areas/Sectors");
+			m_hRootReportingArea = m_treePaxType.InsertItem("Areas/Sectors", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootReportingArea,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ReportingAreaRoot));
 			//m_hRootSector = m_treePaxType.InsertItem("Sectors:");
 			//m_treePaxType.SetItemData(m_hRootSector,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_SectorRoot));
 		}
 		break;
 	case Airside_TaxiwayDelay:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootReportingArea = m_treePaxType.InsertItem("Taxiway");
+			m_hRootReportingArea = m_treePaxType.InsertItem("Taxiway", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootReportingArea,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Taxiways));
 		}
 		break ;
 	case Airside_RunwayExit:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems() ;
-			m_hRootReportingArea = m_treePaxType.InsertItem(_T("Runways")) ;
+			m_hRootReportingArea = m_treePaxType.InsertItem(_T("Runways"), cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootReportingArea,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayExits)) ;
 		}
 		break ;
 	case Airside_FlightFuelBurning:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			m_treePaxType.DeleteAllItems();
-			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type");
+			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
 			m_hRootNodes=m_treePaxType.InsertItem("From/To Nodes");
 			m_treePaxType.SetItemData(m_hRootNodes,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromToNode));
 
-			HTREEITEM HFromNodeItem = m_treePaxType.InsertItem(_T("From"),m_hRootNodes) ;
+			HTREEITEM HFromNodeItem = m_treePaxType.InsertItem(_T("From"), cni, FALSE, FALSE, m_hRootNodes);
 			repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_FromRoot) ;
 			m_treePaxType.SetItemData(HFromNodeItem,(DWORD_PTR)pNode) ;
 
-			HTREEITEM HToNodeItem = m_treePaxType.InsertItem(_T("To"),m_hRootNodes) ;
+			HTREEITEM HToNodeItem = m_treePaxType.InsertItem(_T("To"), cni, FALSE, FALSE, m_hRootNodes);
 			pNode = new repControlTreeNodeData(repControlTreeNodeType_ToRoot) ;
 			m_treePaxType.SetItemData(HToNodeItem,(DWORD_PTR)pNode) ;
 		}
@@ -1125,7 +1147,10 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 			
 			CString szPaxType;
 			newFltConstr.screenPrint( szPaxType, 0, 128 );
-			HTREEITEM hNewItem = m_treePaxType.InsertItem(szPaxType,hSelectItem,TVI_LAST);
+
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+			HTREEITEM hNewItem = m_treePaxType.InsertItem(szPaxType, cni, FALSE, FALSE, hSelectItem, TVI_LAST);
 			m_treePaxType.SetItemData(hNewItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,newFltConstr));
 		}
 
@@ -1153,13 +1178,15 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 				hChildItem =  m_treePaxType.GetNextSiblingItem(hChildItem);
 			}
 		
-	
+
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			if (pData->nodeType == repControlTreeNodeType_FromRoot)
 			{	
 				HTREEITEM hChildItem = m_treePaxType.GetChildItem(hSelectItem) ; 
 				if(hChildItem != NULL)
 					m_treePaxType.DeleteItem(hChildItem);
-				HTREEITEM hNewItem = m_treePaxType.InsertItem(node.GetNodeName(),hSelectItem,TVI_LAST);
+				HTREEITEM hNewItem = m_treePaxType.InsertItem(node.GetNodeName(), cni, FALSE, FALSE, hSelectItem, TVI_LAST);
 				m_treePaxType.SetItemData(hNewItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromNode,node));
 			}
 			else if (pData->nodeType == repControlTreeNodeType_ToRoot)
@@ -1167,12 +1194,12 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 				HTREEITEM hChildItem = m_treePaxType.GetChildItem(hSelectItem) ; 
 				if(hChildItem != NULL)
 					m_treePaxType.DeleteItem(hChildItem);
-				HTREEITEM hNewItem = m_treePaxType.InsertItem(node.GetNodeName(),hSelectItem,TVI_LAST);
+				HTREEITEM hNewItem = m_treePaxType.InsertItem(node.GetNodeName(), cni, FALSE, FALSE, hSelectItem, TVI_LAST);
 				m_treePaxType.SetItemData(hNewItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToNode,node));
 			}
 			else if (pData->nodeType == repControlTreeNodeType_NodesRoot)
 			{	
-				HTREEITEM hNewItem = m_treePaxType.InsertItem(node.GetNodeName(),hSelectItem,TVI_LAST);
+				HTREEITEM hNewItem = m_treePaxType.InsertItem(node.GetNodeName(), cni, FALSE, FALSE, hSelectItem, TVI_LAST);
 				m_treePaxType.SetItemData(hNewItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Node,node));
 			}
 
@@ -1203,7 +1230,9 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 			}
 			if(DeletItem)
 				m_treePaxType.DeleteItem(DeletItem) ;
-			HTREEITEM newItem = m_treePaxType.InsertItem(selType,hSelectItem) ;
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+			HTREEITEM newItem = m_treePaxType.InsertItem(selType, cni, FALSE, FALSE, hSelectItem);
 			m_treePaxType.SetItemData(newItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_VehicleTypeNode));
 		}
 	}
@@ -1232,7 +1261,9 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 			}
 			if(DeletItem)
 				m_treePaxType.DeleteItem(DeletItem) ;
-			HTREEITEM newItem = m_treePaxType.InsertItem(selType,hSelectItem) ;
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+			HTREEITEM newItem = m_treePaxType.InsertItem(selType, cni, FALSE, FALSE, hSelectItem) ;
 			repControlTreeNodeData* reportNode =  new repControlTreeNodeData(repControlTreeNodeType_PoolNode) ;
 			reportNode->m_Data = dlgPoolSelect.GetPoolID() ;
 			m_treePaxType.SetItemData(newItem,(DWORD_PTR)reportNode);
@@ -1286,10 +1317,11 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 					CAirsideReportRunwayMark runwayMark1;
 					CString strMark1 = CString(pRunway->GetMarking1().c_str());
 					runwayMark1.SetRunway(pRunway->getID(),RUNWAYMARK_FIRST,strMark1);
-
+                    COOLTREE_NODE_INFO cni;
+                    CCoolTree::InitNodeInfo(this,cni);
 					if(IsRunwayMarkSelected(hSelectItem,runwayMark1) == FALSE)
 					{
-						HTREEITEM hMark1 = m_treePaxType.InsertItem(strMark1,hSelectItem);
+						HTREEITEM hMark1 = m_treePaxType.InsertItem(strMark1, cni, FALSE, FALSE, hSelectItem);
 						m_treePaxType.SetItemData(hMark1,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayMarkNode,runwayMark1));
 					}
 					CAirsideReportRunwayMark runwayMark2;
@@ -1297,7 +1329,7 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 					runwayMark2.SetRunway(pRunway->getID(),RUNWAYMARK_SECOND,strMark2);
 					if(IsRunwayMarkSelected(hSelectItem,runwayMark2) == FALSE)
 					{
-						HTREEITEM hMark2 = m_treePaxType.InsertItem(strMark2,hSelectItem);
+						HTREEITEM hMark2 = m_treePaxType.InsertItem(strMark1, cni, FALSE, FALSE, hSelectItem);
 						m_treePaxType.SetItemData(hMark2,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayMarkNode,runwayMark2));
 					}
 				}
@@ -1314,8 +1346,9 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 				MessageBox(_T("The classificaiton has been existed."), _T("Warning"), MB_OK);
 				return;
 			}
-
-			HTREEITEM hClass = m_treePaxType.InsertItem(FlightClassificationBasisType_Nname[(int)dlg.m_selectType],hSelectItem);
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+			HTREEITEM hClass = m_treePaxType.InsertItem(FlightClassificationBasisType_Nname[(int)dlg.m_selectType], cni, FALSE, FALSE, hSelectItem);
 			m_treePaxType.SetItemData(hClass,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ClassificationNode,(int)dlg.m_selectType));
 			m_treePaxType.Expand(hSelectItem,TVE_EXPAND);
 		}
@@ -1362,7 +1395,9 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 			CString strName = altArea.GetIDString();
 			if (strName == _T(""))
 				strName = "All";
-			HTREEITEM hArea = m_treePaxType.InsertItem(strName,hSelectItem);
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+			HTREEITEM hArea = m_treePaxType.InsertItem(strName, cni, FALSE, FALSE, hSelectItem);
 			repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_ReportingAreaNode);
 			pNode->objID = altArea;
 			m_treePaxType.SetItemData(hArea,(DWORD_PTR)pNode);
@@ -1439,28 +1474,30 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 			MessageBox(err,NULL,MB_OK) ;
 			return ;
 		}
-		HTREEITEM pTaxiWayItem = m_treePaxType.InsertItem(strTaxiwayName,hSelectItem) ;
+        COOLTREE_NODE_INFO cni;
+        CCoolTree::InitNodeInfo(this,cni);
+		HTREEITEM pTaxiWayItem = m_treePaxType.InsertItem(strTaxiwayName, cni, FALSE, FALSE, hSelectItem) ;
 		repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
 		pNode->nClassification = bSelectSingleTaxiway? 1:0 ;
 		m_treePaxType.SetItemData(pTaxiWayItem,(DWORD_PTR)pNode) ;
 
-		HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"),pTaxiWayItem) ;
+		HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"), cni, FALSE, FALSE, pTaxiWayItem) ;
 		pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
 		m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
 	
 
-		HTREEITEM newItem = m_treePaxType.InsertItem(_T("Start"),PFromNode) ;
+		HTREEITEM newItem = m_treePaxType.InsertItem(_T("Start"), cni, FALSE, FALSE, PFromNode) ;
 		repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
 		nodedata->nClassification = -1 ;
 		m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
 
 
-		HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"),pTaxiWayItem) ;
+		HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"), cni, FALSE, FALSE, pTaxiWayItem) ;
 		pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
 		m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode) ;
 		
 
-		newItem = m_treePaxType.InsertItem(_T("End"),PToNode) ;
+		newItem = m_treePaxType.InsertItem(_T("End"), cni, FALSE, FALSE, PToNode) ;
 		nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
 		nodedata->nClassification = -1 ;
 		m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
@@ -1515,8 +1552,10 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 		
 		HTREEITEM pChild = m_treePaxType.GetChildItem(hSelectItem) ;
 		if(pChild)
-			m_treePaxType.DeleteItem(pChild) ;
-		pChild = m_treePaxType.InsertItem(dlg.GetNodeName() ,hSelectItem) ;
+			m_treePaxType.DeleteItem(pChild);
+        COOLTREE_NODE_INFO cni;
+        CCoolTree::InitNodeInfo(this,cni);
+		pChild = m_treePaxType.InsertItem(dlg.GetNodeName(), cni, FALSE, FALSE, hSelectItem);
 		repControlTreeNodeData* pIntersectionNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection);
 		pIntersectionNode->nClassification = dlg.GetNodeID();
 		m_treePaxType.SetItemData(pChild,(DWORD_PTR)pIntersectionNode) ;
@@ -1532,12 +1571,12 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 	}
 	else if(pData->nodeType == repControlTreeNodeType_Exit_Oper)
 	{
-// 		std::vector<CString> comboxstring ;
-// 		comboxstring.push_back(_T("All")) ;
-// 		comboxstring.push_back(_T("T/o")) ;
-// 		comboxstring.push_back(_T("Landing")) ;
-// 		m_treePaxType.SetComboString(hSelectItem,comboxstring) ;
-// 		m_treePaxType.m_comboBox.SetCurSel(0) ;
+		std::vector<CString> comboxstring ;
+		comboxstring.push_back(_T("All")) ;
+		comboxstring.push_back(_T("T/o")) ;
+		comboxstring.push_back(_T("Landing")) ;
+		m_treePaxType.SetComboString(hSelectItem,comboxstring) ;
+		m_treePaxType.m_comboBox.SetCurSel(0) ;
 	}
 }
 BOOL CAirsideRepControlView::IsRunwayMarkSelected( HTREEITEM hACClassRoot,CAirsideReportRunwayMark& reportRunwayMark )
@@ -1617,6 +1656,8 @@ void CAirsideRepControlView::OnToolbarbuttondel()
 	repControlTreeNodeData *pData = reinterpret_cast<repControlTreeNodeData *>(m_treePaxType.GetItemData(hSelectItem));
 	if (pData == NULL)
 		return;
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(this,cni);
 	if (pData->nodeType == repControlTreeNodeType_FromNode)
 	{
 		m_treePaxType.SetItemText(hSelectItem, _T("All"));
@@ -1645,7 +1686,7 @@ void CAirsideRepControlView::OnToolbarbuttondel()
 
 		if (m_treePaxType.GetChildItem(hParentItem) == NULL)
 		{		
-			HTREEITEM hAllNode = m_treePaxType.InsertItem("All",hParentItem);
+			HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hParentItem);
 			m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Node,CAirsideReportNode()));
 			m_treePaxType.Expand(hParentItem,TVE_EXPAND);	
 		}
@@ -1657,12 +1698,12 @@ void CAirsideRepControlView::OnToolbarbuttondel()
 		{
 			if(pData->nodeType == repControlTreeNodeType_VehicleTypeNode)
 			{
-				HTREEITEM hAllNode = m_treePaxType.InsertItem("All Type",hParentItem);
+				HTREEITEM hAllNode = m_treePaxType.InsertItem("All Type", cni, FALSE, FALSE, hParentItem);
 				m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_VehicleTypeNode));
 				m_treePaxType.Expand(hParentItem,TVE_EXPAND);	
 			}else
 			{
-				HTREEITEM hAllNode = m_treePaxType.InsertItem("All",hParentItem);
+				HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hParentItem);
 				m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_PoolNode));
 				m_treePaxType.Expand(hParentItem,TVE_EXPAND);	
 			}
@@ -1677,7 +1718,7 @@ void CAirsideRepControlView::OnToolbarbuttondel()
 
 		if (m_treePaxType.GetChildItem(hParentItem) == NULL)
 		{		
-			HTREEITEM hAllNode = m_treePaxType.InsertItem("All",hParentItem);
+			HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hParentItem);
 			m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayMarkNode,CAirsideReportRunwayMark()));
 			m_treePaxType.Expand(hParentItem,TVE_EXPAND);	
 		}
@@ -1699,7 +1740,7 @@ void CAirsideRepControlView::OnToolbarbuttondel()
 
 		if (m_treePaxType.GetChildItem(hParentItem) == NULL)
 		{		
-			HTREEITEM hAllNode = m_treePaxType.InsertItem("All",hParentItem);
+			HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hParentItem);
 			m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ReportingAreaNode));
 			m_treePaxType.Expand(hParentItem,TVE_EXPAND);	
 		}
@@ -1747,6 +1788,8 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 	{
 	case Airside_FlightDelay:
 		{
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CAirsideFlightDelayParam* pPara = (CAirsideFlightDelayParam*)m_pParameter;
 			if (m_hRootFlightType == NULL)
 				return;
@@ -1758,7 +1801,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if(pPara->getFlightConstraintCount() == 0)
 				{
-					hDefaultItem = m_treePaxType.InsertItem("DEFAULT",m_hRootFlightType,TVI_LAST);
+					hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, m_hRootFlightType,TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -1768,7 +1811,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						pPara->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,m_hRootFlightType,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, m_hRootFlightType,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pPara->getFlightConstraint(i)));
 					}
 				}
@@ -1781,11 +1824,11 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hStartNode;
 			if (pPara->GetStartObject().GetNodeName().IsEmpty())
 			{
-				hStartNode = m_treePaxType.InsertItem("All",hFromItem);
+				hStartNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hFromItem);
 			}
 			else
 			{
-				hStartNode = m_treePaxType.InsertItem(pPara->GetStartObject().GetNodeName(),hFromItem);
+				hStartNode = m_treePaxType.InsertItem(pPara->GetStartObject().GetNodeName(), cni, FALSE, FALSE, hFromItem);
 			}
 			m_treePaxType.SetItemData(hStartNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromNode,pPara->GetStartObject()));
 
@@ -1793,11 +1836,11 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hEndNode;
 			if (pPara->GetEndObject().GetNodeName().IsEmpty())
 			{
-				hEndNode = m_treePaxType.InsertItem("All",hToItem);;
+				hEndNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hToItem);;
 			}
 			else
 			{
-				hEndNode = m_treePaxType.InsertItem(pPara->GetEndObject().GetNodeName(),hToItem);
+				hEndNode = m_treePaxType.InsertItem(pPara->GetEndObject().GetNodeName(), cni, FALSE, FALSE, hToItem);
 			}
 			m_treePaxType.SetItemData(hEndNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToNode,pPara->GetEndObject()));
 			
@@ -1807,7 +1850,9 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	case Airside_NodeDelay:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CAirsideNodeDelayReportParameter* pPara = (CAirsideNodeDelayReportParameter*)m_pParameter;
 			HTREEITEM hFltTypeItem = m_hRootFlightType;
 			if (hFltTypeItem == NULL)
@@ -1820,7 +1865,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if (pPara->getFlightConstraintCount() == 0)
 				{
-					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem, TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -1830,7 +1875,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						pPara->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pPara->getFlightConstraint(i)));
 					}
 				}
@@ -1840,7 +1885,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hNodesItem = m_hRootNodes;
 			if (pPara->getReportNodeCount() == 0)
 			{
-				HTREEITEM hAllNode = m_treePaxType.InsertItem("All",hNodesItem);
+				HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hNodesItem);
 				m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Node,CAirsideReportNode()));
 			}
 			else
@@ -1850,12 +1895,12 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 					CAirsideReportNode& node = pPara->getReportNode(i);
 					if (node.GetNodeName().IsEmpty())
 					{
-						HTREEITEM hAllNode = m_treePaxType.InsertItem("All",hNodesItem);
+						HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hNodesItem);
 						m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Node,node));
 					}
 					else
 					{
-						HTREEITEM hAllNode = m_treePaxType.InsertItem(node.GetNodeName(),hNodesItem);
+						HTREEITEM hAllNode = m_treePaxType.InsertItem(node.GetNodeName(), cni, FALSE, FALSE, hNodesItem);
 						m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Node,node));
 					}
 				}
@@ -1864,7 +1909,9 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	case Airside_FlightActivity:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CFlightActivityParam* pPara = (CFlightActivityParam*)m_pParameter;
 			HTREEITEM hFltTypeItem =  m_hRootFlightType;
 			if (hFltTypeItem == NULL)
@@ -1877,7 +1924,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if (pPara->getFlightConstraintCount() == 0)
 				{
-					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -1887,7 +1934,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						pPara->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pPara->getFlightConstraint(i)));
 					}
 				}
@@ -1899,7 +1946,9 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	case Airside_AircraftOperational:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CFlightOperationalParam* pPara = (CFlightOperationalParam*)m_pParameter;
 			HTREEITEM hFltTypeItem =  m_hRootFlightType;
 			if (hFltTypeItem == NULL)
@@ -1912,7 +1961,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if (pPara->getFlightConstraintCount() == 0)
 				{
-					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -1922,7 +1971,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						pPara->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pPara->getFlightConstraint(i)));
 					}
 				}
@@ -1935,11 +1984,11 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hStartNode;
 			if (pPara->GetStartObject().GetNodeName().IsEmpty())
 			{
-				hStartNode = m_treePaxType.InsertItem("All",hFromItem);
+				hStartNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hFromItem);
 			}
 			else
 			{
-				hStartNode = m_treePaxType.InsertItem(pPara->GetStartObject().GetNodeName(),hFromItem);
+				hStartNode = m_treePaxType.InsertItem(pPara->GetStartObject().GetNodeName(), cni, FALSE, FALSE, hFromItem);
 			}
 			m_treePaxType.SetItemData(hStartNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromNode,pPara->GetStartObject()));
 
@@ -1947,11 +1996,11 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hEndNode;
 			if (pPara->GetEndObject().GetNodeName().IsEmpty())
 			{
-				hEndNode = m_treePaxType.InsertItem("All",hToItem);;
+				hEndNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hToItem);
 			}
 			else
 			{
-				hEndNode = m_treePaxType.InsertItem(pPara->GetEndObject().GetNodeName(),hToItem);
+				hEndNode = m_treePaxType.InsertItem(pPara->GetEndObject().GetNodeName(), cni, FALSE, FALSE, hToItem);
 			}
 			m_treePaxType.SetItemData(hEndNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToNode,pPara->GetEndObject()));
 
@@ -1962,7 +2011,9 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		break;
 
 	case Airside_RunwayOperaitons:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			//runway
 			if(m_pParameter == NULL)
 				return;
@@ -1973,7 +2024,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
             int nRunwayCount = pParam->m_vRunwayParameter.size();
 			if(nRunwayCount == 0)
 			{
-				HTREEITEM hAllNode = m_treePaxType.InsertItem("All",m_hRootRunways);
+				HTREEITEM hAllNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, m_hRootRunways);
 				m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayMarkNode,CAirsideReportRunwayMark()));
 				m_treePaxType.Expand(m_hRootRunways,TVE_EXPAND);	
 			}
@@ -1985,7 +2036,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 					if(pParam->m_vRunwayParameter[nRunway].m_nRunwayID == -1)
 						strNodeName = _T("ALL");
 						
-					HTREEITEM hAllNode = m_treePaxType.InsertItem(strNodeName,m_hRootRunways);
+					HTREEITEM hAllNode = m_treePaxType.InsertItem(strNodeName, cni, FALSE, FALSE, m_hRootRunways);
 					m_treePaxType.SetItemData(hAllNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_RunwayMarkNode,pParam->m_vRunwayParameter[nRunway]));
 					m_treePaxType.Expand(m_hRootRunways,TVE_EXPAND);	
 				}
@@ -1996,7 +2047,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hFltTypeItem =  m_hRootFlightType;
 			if(pParam->getFlightConstraintCount() == 0)
 			{
-				HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+				HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 				m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 			}
 			else
@@ -2007,7 +2058,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 					 pParam->getFlightConstraint(nFlight).screenPrint(strFlightType.GetBuffer(1024));
 					 strFlightType.ReleaseBuffer();
 
-					 HTREEITEM hNewItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+					 HTREEITEM hNewItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 					 m_treePaxType.SetItemData(hNewItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pParam->getFlightConstraint(nFlight)));
 
 				}
@@ -2027,7 +2078,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						continue;
 					}
 		
-					HTREEITEM hClass = m_treePaxType.InsertItem(FlightClassificationBasisType_Nname[pParam->m_vTypes[nType]],m_hRootClassification);
+					HTREEITEM hClass = m_treePaxType.InsertItem(FlightClassificationBasisType_Nname[pParam->m_vTypes[nType]], cni, FALSE, FALSE, m_hRootClassification);
 					m_treePaxType.SetItemData(hClass,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ClassificationNode,pParam->m_vTypes[nType]));
 					m_treePaxType.Expand(m_hRootClassification,TVE_EXPAND);
 				}
@@ -2052,14 +2103,16 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	case Airside_FlightConflict:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			AirsideFlightConflictPara* pPara = (AirsideFlightConflictPara*)m_pParameter;
 			if (m_hRootReportingArea)
 			{
 				HTREEITEM hDefNode;
 				if (pPara->GetAreaList().empty())
 				{
-					hDefNode = m_treePaxType.InsertItem("All",m_hRootReportingArea,TVI_LAST);
+					hDefNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, m_hRootReportingArea,TVI_LAST);
 					m_treePaxType.SetItemData(hDefNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ReportingAreaNode));
 				}
 				else
@@ -2073,7 +2126,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strName = areaID.GetIDString();
 						if (strName.IsEmpty())
 							strName = "All";
-						hDefNode = m_treePaxType.InsertItem(strName,m_hRootReportingArea,TVI_LAST);
+						hDefNode = m_treePaxType.InsertItem(strName, cni, FALSE, FALSE, m_hRootReportingArea,TVI_LAST);
 						m_treePaxType.SetItemData(hDefNode,(DWORD_PTR)pNodeData);
 					}
 				}
@@ -2084,141 +2137,146 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	case Airside_TaxiwayDelay:
-	{
-		CTaxiwayDelayParameters* pPara = (CTaxiwayDelayParameters*)m_pParameter;
-		HTREEITEM pTaxiWayItem; 
-	
-		if (pPara->GetTaxiwayData()->size() == 0)
-		{	
-			pTaxiWayItem = m_treePaxType.InsertItem(_T("ALL"),m_hRootReportingArea) ;
-			repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
-			pNode->nClassification = -1;
-			m_treePaxType.SetItemData(pTaxiWayItem,(DWORD_PTR)pNode);
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
+            CTaxiwayDelayParameters* pPara = (CTaxiwayDelayParameters*)m_pParameter;
+            HTREEITEM pTaxiWayItem; 
 
-			HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"),pTaxiWayItem);
-			pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
-			m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
+            if (pPara->GetTaxiwayData()->size() == 0)
+            {	
+                pTaxiWayItem = m_treePaxType.InsertItem(_T("ALL"), cni, FALSE, FALSE, m_hRootReportingArea) ;
+                repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
+                pNode->nClassification = -1;
+                m_treePaxType.SetItemData(pTaxiWayItem,(DWORD_PTR)pNode);
 
-
-			HTREEITEM newItem = m_treePaxType.InsertItem(_T("Start"),PFromNode);
-			repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
-			nodedata->nClassification = -1 ;
-			m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata);
+                HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"), cni, FALSE, FALSE, pTaxiWayItem);
+                pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
+                m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
 
 
-			HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"),pTaxiWayItem) ;
-			pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
-			m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode);
+                HTREEITEM newItem = m_treePaxType.InsertItem(_T("Start"), cni, FALSE, FALSE, PFromNode);
+                repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
+                nodedata->nClassification = -1 ;
+                m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata);
 
 
-			newItem = m_treePaxType.InsertItem(_T("End"),PToNode);
-			nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection);
-			nodedata->nClassification = -1 ;
-			m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
-
-			m_treePaxType.Expand(pTaxiWayItem,TVE_EXPAND) ;
-		}
-		else 
-		{
-			for (int i = 0; i < pPara->GetCount(); i++)
-			{
-				CTaxiwaySelect* pTaxiwayItem = pPara->GetTaxiwayForShowItem(i);
-				repControlTreeNodeData* pNode = NULL;
-				if (pTaxiwayItem->GetTaxiwayName().IsEmpty())
-				{
-					pTaxiWayItem = m_treePaxType.InsertItem(_T("ALL"),m_hRootReportingArea) ;
-					pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
-					pNode->nClassification = -1;
-				}
-				else
-				{
-					pTaxiWayItem = m_treePaxType.InsertItem(pTaxiwayItem->GetTaxiwayName(),m_hRootReportingArea) ;
-					pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
-					pNode->nClassification = pTaxiwayItem->GetTaxiwayID();
-				}
-				m_treePaxType.SetItemData(pTaxiWayItem,(DWORD_PTR)pNode);
-
-				std::vector<CReportTaxiwaySegment>* pTYData = pTaxiwayItem->GetIntersectionSegment();
-				if (pTYData->size() == 0)
-				{
-					ASSERT(pTYData);
-					HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"),pTaxiWayItem) ;
-					repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
-					m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
+                HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"), cni, FALSE, FALSE, pTaxiWayItem) ;
+                pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
+                m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode);
 
 
-					HTREEITEM newItem = m_treePaxType.InsertItem(_T("Start"),PFromNode) ;
-					repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
-					nodedata->nClassification = -1 ;
-					m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
+                newItem = m_treePaxType.InsertItem(_T("End"), cni, FALSE, FALSE, PToNode);
+                nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection);
+                nodedata->nClassification = -1 ;
+                m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
+
+                m_treePaxType.Expand(pTaxiWayItem,TVE_EXPAND) ;
+            }
+            else 
+            {
+                for (int i = 0; i < pPara->GetCount(); i++)
+                {
+                    CTaxiwaySelect* pTaxiwayItem = pPara->GetTaxiwayForShowItem(i);
+                    repControlTreeNodeData* pNode = NULL;
+                    if (pTaxiwayItem->GetTaxiwayName().IsEmpty())
+                    {
+                        pTaxiWayItem = m_treePaxType.InsertItem(_T("ALL"), cni, FALSE, FALSE, m_hRootReportingArea) ;
+                        pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
+                        pNode->nClassification = -1;
+                    }
+                    else
+                    {
+                        pTaxiWayItem = m_treePaxType.InsertItem(pTaxiwayItem->GetTaxiwayName(), cni, FALSE, FALSE, m_hRootReportingArea) ;
+                        pNode = new repControlTreeNodeData(repControlTreeNodeType_Taxiway);
+                        pNode->nClassification = pTaxiwayItem->GetTaxiwayID();
+                    }
+                    m_treePaxType.SetItemData(pTaxiWayItem,(DWORD_PTR)pNode);
+
+                    std::vector<CReportTaxiwaySegment>* pTYData = pTaxiwayItem->GetIntersectionSegment();
+                    if (pTYData->size() == 0)
+                    {
+                        ASSERT(pTYData);
+                        HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"), cni, FALSE, FALSE, pTaxiWayItem) ;
+                        repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
+                        m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
 
 
-					HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"),pTaxiWayItem) ;
-					pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
-					m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode) ;
+                        HTREEITEM newItem = m_treePaxType.InsertItem(_T("Start"), cni, FALSE, FALSE, PFromNode) ;
+                        repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
+                        nodedata->nClassification = -1 ;
+                        m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
 
 
-					newItem = m_treePaxType.InsertItem(_T("End"),PToNode) ;
-					nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
-					nodedata->nClassification = -1 ;
-					m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
-				}
-				else
-				{
-					ASSERT(pTYData);
-					HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"),pTaxiWayItem) ;
-					repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
-					m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
+                        HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"), cni, FALSE, FALSE, pTaxiWayItem) ;
+                        pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
+                        m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode) ;
 
 
-					HTREEITEM newItem = m_treePaxType.InsertItem(pTYData->at(i).m_strFromName,PFromNode) ;
-					repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
-					nodedata->nClassification = pTYData->at(i).m_FormNodeID ;
-					m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
+                        newItem = m_treePaxType.InsertItem(_T("End"), cni, FALSE, FALSE, PToNode) ;
+                        nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
+                        nodedata->nClassification = -1 ;
+                        m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
+                    }
+                    else
+                    {
+                        ASSERT(pTYData);
+                        HTREEITEM PFromNode = m_treePaxType.InsertItem(_T("From"), cni, FALSE, FALSE, pTaxiWayItem) ;
+                        repControlTreeNodeData* pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiWayFrom);
+                        m_treePaxType.SetItemData(PFromNode,(DWORD_PTR)pNode) ;
 
 
-					HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"),pTaxiWayItem) ;
-					pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
-					m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode) ;
+                        HTREEITEM newItem = m_treePaxType.InsertItem(pTYData->at(i).m_strFromName, cni, FALSE, FALSE, PFromNode) ;
+                        repControlTreeNodeData* nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
+                        nodedata->nClassification = pTYData->at(i).m_FormNodeID ;
+                        m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
 
 
-					newItem = m_treePaxType.InsertItem(pTYData->at(i).m_strToName,PToNode) ;
-					nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
-					nodedata->nClassification =pTYData->at(i).m_ToNodeID ;
-					m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
-				}
-				m_treePaxType.Expand(pTaxiWayItem,TVE_EXPAND) ;
-			}
-		}
-	}
+                        HTREEITEM PToNode = m_treePaxType.InsertItem(_T("To"), cni, FALSE, FALSE, pTaxiWayItem) ;
+                        pNode = new repControlTreeNodeData(repControlTreeNodeType_TaxiwayTo);
+                        m_treePaxType.SetItemData(PToNode,(DWORD_PTR)pNode) ;
+
+
+                        newItem = m_treePaxType.InsertItem(pTYData->at(i).m_strToName, cni, FALSE, FALSE, PToNode) ;
+                        nodedata = new repControlTreeNodeData(repControlTreeNodeType_TaxiIntersection) ;
+                        nodedata->nClassification =pTYData->at(i).m_ToNodeID ;
+                        m_treePaxType.SetItemData(newItem,(DWORD_PTR)nodedata) ;
+                    }
+                    m_treePaxType.Expand(pTaxiWayItem,TVE_EXPAND) ;
+                }
+            }
+        }
 	break;
 	case Airside_RunwayExit:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CRunwayExitParameter* pPara = (CRunwayExitParameter*)m_pParameter;
 			if (m_hRootReportingArea)
 			{
 				RunwayExitRepDefineData* showdata = pPara->GetShowData() ;
 				if (showdata->m_data.size() == 0)
 				{
-					HTREEITEM hRunwayItem = m_treePaxType.InsertItem(_T("All"),m_hRootReportingArea) ;
+					HTREEITEM hRunwayItem = m_treePaxType.InsertItem(_T("All"), cni, FALSE, FALSE, m_hRootReportingArea) ;
 					m_treePaxType.SetItemData(hRunwayItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Exit_Runway,-1));
 
 
-					HTREEITEM exits = m_treePaxType.InsertItem(_T("Exits"),hRunwayItem) ;
+					HTREEITEM hExits = m_treePaxType.InsertItem(_T("Exits"), cni, FALSE, FALSE, hRunwayItem) ;
 					repControlTreeNodeData* pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_ItemRoot,0) ;
-					m_treePaxType.SetItemData(exits,(DWORD_PTR)pNodedata);
+					m_treePaxType.SetItemData(hExits,(DWORD_PTR)pNodedata);
 
 			
-					HTREEITEM exitItem = m_treePaxType.InsertItem(_T("All"),exits) ;
+					HTREEITEM exitItem = m_treePaxType.InsertItem(_T("All"), cni, FALSE, FALSE, hExits) ;
 					 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Item,0) ;
 					m_treePaxType.SetItemData(exitItem,(DWORD_PTR)pNodedata);
 
-					HTREEITEM pOperITem = m_treePaxType.InsertItem(_T("Operation::All"),hRunwayItem);
-					 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Oper,0) ;
+                    cni.net = NET_COMBOBOX;
+					HTREEITEM pOperITem = m_treePaxType.InsertItem(_T("Operation::All"), cni, FALSE, FALSE, hRunwayItem);
+					pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Oper,0);
 					m_treePaxType.SetItemData(pOperITem,(DWORD_PTR)pNodedata) ;
 
 					m_treePaxType.Expand(hRunwayItem,TVE_EXPAND) ;
-					m_treePaxType.Expand(exits,TVE_EXPAND) ;
+					m_treePaxType.Expand(hExits,TVE_EXPAND) ;
 				}
 				else
 				{
@@ -2233,6 +2291,8 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		break;
 	case Airside_FlightFuelBurning:
 		{
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CAirsideFlightFuelBurnParmater* pPara = (CAirsideFlightFuelBurnParmater*)m_pParameter;
 			HTREEITEM hFltTypeItem =  m_hRootFlightType;
 			if (hFltTypeItem == NULL)
@@ -2245,7 +2305,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if (pPara->getFlightConstraintCount() == 0)
 				{
-					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem, TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -2255,7 +2315,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						pPara->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pPara->getFlightConstraint(i)));
 					}
 				}
@@ -2267,11 +2327,11 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hStartNode;
 			if (pPara->GetFromNode().GetNodeName().IsEmpty())
 			{
-				hStartNode = m_treePaxType.InsertItem("All",hFromItem);
+				hStartNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hFromItem);
 			}
 			else
 			{
-				hStartNode = m_treePaxType.InsertItem(pPara->GetFromNode().GetNodeName(),hFromItem);
+				hStartNode = m_treePaxType.InsertItem(pPara->GetFromNode().GetNodeName(), cni, FALSE, FALSE, hFromItem);
 			}
 			m_treePaxType.SetItemData(hStartNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromNode,pPara->GetFromNode()));
 
@@ -2279,11 +2339,11 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			HTREEITEM hEndNode;
 			if (pPara->GetToNode().GetNodeName().IsEmpty())
 			{
-				hEndNode = m_treePaxType.InsertItem("All",hToItem);;
+				hEndNode = m_treePaxType.InsertItem("All", cni, FALSE, FALSE, hToItem);;
 			}
 			else
 			{
-				hEndNode = m_treePaxType.InsertItem(pPara->GetToNode().GetNodeName(),hToItem);
+				hEndNode = m_treePaxType.InsertItem(pPara->GetToNode().GetNodeName(), cni, FALSE, FALSE, hToItem);
 			}
 			m_treePaxType.SetItemData(hEndNode,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToNode,pPara->GetToNode()));
 
@@ -2293,7 +2353,9 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	case Airside_VehicleOperation:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			CAirsideVehicleOperParameter* pPara = (CAirsideVehicleOperParameter*)m_pParameter;
 			HTREEITEM hFltTypeItem =  m_hRootFlightType;
 			if (hFltTypeItem == NULL)
@@ -2306,7 +2368,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if (pPara->getFlightConstraintCount() == 0)
 				{
-					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -2316,7 +2378,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						pPara->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,pPara->getFlightConstraint(i)));
 					}
 				}
@@ -2327,13 +2389,13 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			int count = pPara->GetVehicleType()->size() ;
 			if(count == 0)
 			{
-				HTREEITEM newItem = m_treePaxType.InsertItem(_T("All Type"),hVehicleItem) ;
+				HTREEITEM newItem = m_treePaxType.InsertItem(_T("All Type"), cni, FALSE, FALSE, hVehicleItem) ;
 				m_treePaxType.SetItemData(newItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_VehicleTypeNode));
 			}
 			for (int i = 0; i < (int)count; i++)
 			{
 				CString strVehicleType = pPara->GetVehicleType()->at(i);
-				HTREEITEM newItem = m_treePaxType.InsertItem(strVehicleType,hVehicleItem) ;
+				HTREEITEM newItem = m_treePaxType.InsertItem(strVehicleType, cni, FALSE, FALSE, hVehicleItem) ;
 				m_treePaxType.SetItemData(newItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_VehicleTypeNode));
 			}
 
@@ -2342,7 +2404,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 			count =  pPara->GetPoolIdList().size() ;
 			if(count == 0)
 			{
-				HTREEITEM newItem = m_treePaxType.InsertItem(_T("All"),hPoolItem) ;
+				HTREEITEM newItem = m_treePaxType.InsertItem(_T("All"), cni, FALSE, FALSE, hPoolItem) ;
 				repControlTreeNodeData* reportNode =  new repControlTreeNodeData(repControlTreeNodeType_PoolNode) ;
 				reportNode->m_Data = -1;
 				m_treePaxType.SetItemData(newItem,(DWORD_PTR)reportNode);
@@ -2357,7 +2419,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 					str = Pobj->GetObjNameString() ;
 				else
 					str = _T("All") ;
-				HTREEITEM newItem = m_treePaxType.InsertItem(str,hPoolItem) ;
+				HTREEITEM newItem = m_treePaxType.InsertItem(str, cni, FALSE, FALSE, hPoolItem) ;
 				repControlTreeNodeData* reportNode =  new repControlTreeNodeData(repControlTreeNodeType_PoolNode) ;
 				reportNode->m_Data = pPara->GetPoolIdList().at(i);
 				m_treePaxType.SetItemData(newItem,(DWORD_PTR)reportNode);
@@ -2365,7 +2427,9 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 		}
 		break;
 	default:
-		{
+        {
+            COOLTREE_NODE_INFO cni;
+            CCoolTree::InitNodeInfo(this,cni);
 			HTREEITEM hFltTypeItem =  m_treePaxType.GetRootItem();
 			if (hFltTypeItem == NULL)
 				return;
@@ -2377,7 +2441,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 				HTREEITEM hDefaultItem;
 				if (m_pParameter->getFlightConstraintCount() == 0)
 				{
-					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT",hFltTypeItem,TVI_LAST);
+					HTREEITEM hDefaultItem = m_treePaxType.InsertItem("DEFAULT", cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 					m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,FlightConstraint()));
 				}
 				else
@@ -2387,7 +2451,7 @@ void CAirsideRepControlView::InitializeDefaultTreeData()
 						CString strFlightType;
 						m_pParameter->getFlightConstraint(i).screenPrint(strFlightType.GetBuffer(1024));
 						strFlightType.ReleaseBuffer();
-						hDefaultItem = m_treePaxType.InsertItem(strFlightType,hFltTypeItem,TVI_LAST);
+						hDefaultItem = m_treePaxType.InsertItem(strFlightType, cni, FALSE, FALSE, hFltTypeItem,TVI_LAST);
 						m_treePaxType.SetItemData(hDefaultItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltType,m_pParameter->getFlightConstraint(i)));
 					}
 				}
@@ -3232,11 +3296,11 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
 		}
 	}
 
-	if (MODIFYVALUE == message)
-	{
-		if(AirsideReControlView::CTreePerformer * pPerfrom = GetTreePerformer())
-			pPerfrom->OnTreeItemDoubleClick((HTREEITEM)wParam);
-	}
+// 	if (MODIFYVALUE == message)
+// 	{
+// 		if(AirsideReControlView::CTreePerformer * pPerfrom = GetTreePerformer())
+// 			pPerfrom->OnTreeItemDoubleClick((HTREEITEM)wParam);
+// 	}
 
 	return CFormView::DefWindowProc(message, wParam, lParam);
 }
@@ -3444,19 +3508,22 @@ void CAirsideRepControlView::AddRunwayExitReportRunwayItem(HTREEITEM _rootItem)
 			MessageBox(_T("You should select one runway group"),MB_OK) ;
 			return ;
 		}
-		HTREEITEM HRunwayItem = m_treePaxType.InsertItem(runwayname,_rootItem);
+
+        COOLTREE_NODE_INFO cni;
+        CCoolTree::InitNodeInfo(this,cni);
+		HTREEITEM HRunwayItem = m_treePaxType.InsertItem(runwayname, cni, FALSE, FALSE, _rootItem);
 		m_treePaxType.SetItemData(HRunwayItem,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Exit_Runway,-1));
 
 
-		HTREEITEM exits = m_treePaxType.InsertItem(_T("Exits"),HRunwayItem) ;
+		HTREEITEM exits = m_treePaxType.InsertItem(_T("Exits"), cni, FALSE, FALSE, HRunwayItem) ;
 		repControlTreeNodeData* pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_ItemRoot,0) ;
 		m_treePaxType.SetItemData(exits,(DWORD_PTR)pNodedata);
 
-		HTREEITEM exitItem = m_treePaxType.InsertItem(_T("All"),exits) ;
+		HTREEITEM exitItem = m_treePaxType.InsertItem(_T("All"), cni, FALSE, FALSE, exits) ;
 		 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Item,0) ;
 		m_treePaxType.SetItemData(exitItem,(DWORD_PTR)pNodedata);
 
-		HTREEITEM pOperITem = m_treePaxType.InsertItem(_T("Operation::All"),HRunwayItem);
+		HTREEITEM pOperITem = m_treePaxType.InsertItem(_T("Operation::All"), cni, FALSE, FALSE, HRunwayItem);
 		 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Oper,0) ;
 		m_treePaxType.SetItemData(pOperITem,(DWORD_PTR)pNodedata) ;
 		std::vector<CString> comboxstring ;
@@ -3507,14 +3574,16 @@ void CAirsideRepControlView::AddRunwayExitReportExitItem(HTREEITEM _RunwayItem)
 	CDlgRunwayExitSelect dlgRunwayExit(&objects,false, this) ;
 	repControlTreeNodeData* pNodedata = NULL ;
 	if(dlgRunwayExit.DoModal() == IDOK)
-	{
+    {
+        COOLTREE_NODE_INFO cni;
+        CCoolTree::InitNodeInfo(this,cni);
 		std::vector<CSelectData>::iterator iter = dlgRunwayExit.GetSelectExitName()->begin() ;
 		for ( ; iter != dlgRunwayExit.GetSelectExitName()->end() ;iter++)
 		{
 			if(CheckTheRunwayExitIsSelect(_RunwayItem,(*iter).m_ExitID))
 				continue ;
 
-			PExitItem = m_treePaxType.InsertItem((*iter).m_ExitName,_RunwayItem) ;
+			PExitItem = m_treePaxType.InsertItem((*iter).m_ExitName, cni, FALSE, FALSE, _RunwayItem) ;
 			pNodedata = new repControlTreeNodeData(repControlTreeNodeType_Exit_Item,(*iter).m_ExitID) ;
 			pNodedata->nodeObject.SetNodeName((*iter).m_RunwayName) ;
 			pNodedata->nodeObject.SetNodeID((*iter).m_RunwayID) ;
@@ -3650,24 +3719,26 @@ void CAirsideRepControlView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 }
 void CAirsideRepControlView::AddRunwayItem(RunwayExitRepDefineData_Runway* _runwayData)
 {
-	
-	HTREEITEM hRunwayItem = m_treePaxType.InsertItem(_runwayData->m_RunwayName,m_hRootReportingArea);
+
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(this,cni);
+	HTREEITEM hRunwayItem = m_treePaxType.InsertItem(_runwayData->m_RunwayName, cni, FALSE, FALSE, m_hRootReportingArea);
 	repControlTreeNodeData* pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Runway,0) ;
 	m_treePaxType.SetItemData(hRunwayItem,(DWORD_PTR)pNodedata);
 
 	CString strOperation(_T(""));
 	strOperation.Format(_T("Operation::%s"),CRunwayExitItem::GetOperationName((CRunwayExitItem::Operation_type)_runwayData->m_Operater));
-	HTREEITEM pOperITem = m_treePaxType.InsertItem(strOperation,hRunwayItem);
+	HTREEITEM pOperITem = m_treePaxType.InsertItem(strOperation, cni, FALSE, FALSE, hRunwayItem);
 	 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Oper,0) ;
 	m_treePaxType.SetItemData(pOperITem,(DWORD_PTR)pNodedata);
 	
-	HTREEITEM exits = m_treePaxType.InsertItem(_T("Exits"),hRunwayItem) ;
+	HTREEITEM exits = m_treePaxType.InsertItem(_T("Exits"), cni, FALSE, FALSE, hRunwayItem) ;
 	 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_ItemRoot,0) ;
 	m_treePaxType.SetItemData(exits,(DWORD_PTR)pNodedata);
 
 	if((int)_runwayData->m_data.size() == 0)
 	{
-		HTREEITEM exitItem = m_treePaxType.InsertItem(_T("All"),exits) ;
+		HTREEITEM exitItem = m_treePaxType.InsertItem(_T("All"), cni, FALSE, FALSE, exits) ;
 		repControlTreeNodeData* pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Item,0) ;
 		m_treePaxType.SetItemData(exitItem,(DWORD_PTR)pNodedata);
 	}
@@ -3679,7 +3750,9 @@ m_treePaxType.Expand(hRunwayItem,TVE_EXPAND) ;
 }
 void CAirsideRepControlView::AddExitItem(RunwayExitRepDefineData_Exit& exitItem ,HTREEITEM _item)
 {
-	HTREEITEM hExitItem = m_treePaxType.InsertItem(exitItem.m_ExitName,_item) ;
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(this,cni);
+	HTREEITEM hExitItem = m_treePaxType.InsertItem(exitItem.m_ExitName, cni, FALSE, FALSE, _item) ;
 	repControlTreeNodeData* pNodedata = new repControlTreeNodeData(repControlTreeNodeType_Exit_Item,exitItem.m_ExitID) ;
 	pNodedata->nodeObject.SetNodeName(exitItem.m_runwayName) ;
 	pNodedata->nodeObject.SetNodeID(exitItem.m_RunwayID) ;

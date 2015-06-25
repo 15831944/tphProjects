@@ -1669,10 +1669,6 @@ void LogicRunwayInSim::AddFlightOnRunway( AirsideFlightInSim* pFlight )
 
 void LogicRunwayInSim::RemoveLeftFlight( AirsideFlightInSim * pFlight )
 {
-    CString strDep, strArr, strFlight;
-    pFlight->GetFlightInput()->getDepID(strDep.GetBuffer(256));
-    pFlight->GetFlightInput()->getArrID(strArr.GetBuffer(256));
-    pFlight->GetFlightInput()->getFlightID(strFlight.GetBuffer(256));
 	std::vector<AirsideFlightInSim*>::iterator itr = std::find(m_vOccupiedFlights.begin(),m_vOccupiedFlights.end(),pFlight);
 	if(itr!= m_vOccupiedFlights.end())
 	{
@@ -1688,10 +1684,6 @@ void LogicRunwayInSim::RemoveLeftFlight( AirsideFlightInSim * pFlight )
 
 void LogicRunwayInSim::RemoveLeftFlight( AirsideFlightInSim* pFlight, const ElapsedTime& t )
 {
-    CString strDep, strArr, strFlight;
-    pFlight->GetFlightInput()->getDepID(strDep.GetBuffer(256));
-    pFlight->GetFlightInput()->getArrID(strArr.GetBuffer(256));
-    pFlight->GetFlightInput()->getFlightID(strFlight.GetBuffer(256));
 	std::vector<AirsideFlightInSim*>::iterator itr = std::find(m_vOccupiedFlights.begin(),m_vOccupiedFlights.end(),pFlight);
 	if(itr!= m_vOccupiedFlights.end())
 	{

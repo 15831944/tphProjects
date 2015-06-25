@@ -35,7 +35,6 @@ int ResourceExitEvent::Process()
 {
 	if (m_pResource && m_pResource->GetType() == AirsideResource::ResType_LogicRunway)
 	{
-        int nFlightID = m_pFlight->GetUID();
 		((LogicRunwayInSim*)m_pResource)->RemoveLeftFlight(m_pFlight, getTime() );
 	}
 	return TRUE;

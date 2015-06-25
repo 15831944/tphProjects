@@ -5,9 +5,9 @@
 #include "..\Common\Flt_cnst.h"
 #include "..\Common\ALTObjectID.h"
 #include "AirsideReport\AirsideIntersectionReportParam.h"
+#include "MFCExControl\CoolTree.h"
 class CTreeCtrl;
 class CParameters;
-class CARCTreeCtrlEx;
 //this class uses for  airside report control view tree view operation
 namespace AirsideReControlView
 {
@@ -23,7 +23,7 @@ namespace AirsideReControlView
 		private:
 		};
 	public:
-		CTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		virtual ~CTreePerformer(void);
 
 	public:
@@ -53,7 +53,7 @@ namespace AirsideReControlView
 	protected:
 
 		std::vector<BaseTreeItemData *> m_vPoiterNeedDel;
-		CTreeCtrl *m_pTreeCtrl;
+		CCoolTree *m_pTreeCtrl;
 		CParameters *m_pParam;
 		int m_nProjID;
 	};
@@ -105,7 +105,7 @@ namespace AirsideReControlView
 	public:
 
 	public:
-		CRunwayUtilizationTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CRunwayUtilizationTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CRunwayUtilizationTreePerformer();
 
 	public:
@@ -142,7 +142,7 @@ namespace AirsideReControlView
 	{
 	public:
 	public:
-		CRunwayDelayParaTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CRunwayDelayParaTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CRunwayDelayParaTreePerformer();
 
 	public:
@@ -199,7 +199,7 @@ namespace AirsideReControlView
 			ALTObjectID sObjName;
 		};
 	public:
-		CRunwayCrossingsTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CRunwayCrossingsTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CRunwayCrossingsTreePerformer();
 	public:
 		virtual void InitTree();
@@ -221,7 +221,7 @@ namespace AirsideReControlView
 	class CStandOperationsTreePerformer : public CTreePerformer
 	{
 		public:
-			CStandOperationsTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+			CStandOperationsTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 			~CStandOperationsTreePerformer();
 		public:
 			virtual void InitTree();
@@ -276,7 +276,7 @@ namespace AirsideReControlView
 			int m_nNodeID;
 		};
 	public:
-		CAirsideIntersectionTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CAirsideIntersectionTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CAirsideIntersectionTreePerformer();
 	public:
 		virtual void InitTree();
@@ -336,7 +336,7 @@ namespace AirsideReControlView
 	class CAirsideTaxiwayUtilizationTreePerformer : public CAirsideIntersectionTreePerformer
 	{
 	public:
-		CAirsideTaxiwayUtilizationTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CAirsideTaxiwayUtilizationTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CAirsideTaxiwayUtilizationTreePerformer();
 	public:
 		virtual void InitTree();
@@ -358,7 +358,7 @@ namespace AirsideReControlView
 	class CAirsideControllerWorkloadTreePerformer : public CTreePerformer
 	{
 	public:
-		CAirsideControllerWorkloadTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CAirsideControllerWorkloadTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CAirsideControllerWorkloadTreePerformer();
 	public:
 		virtual void InitTree();
@@ -390,7 +390,7 @@ namespace AirsideReControlView
 	class CTakeoffProcessTreePerformer : public CTreePerformer
 	{
 	public:
-		CTakeoffProcessTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam);
+		CTakeoffProcessTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam);
 		~CTakeoffProcessTreePerformer();
 	public:
 		virtual void InitTree();

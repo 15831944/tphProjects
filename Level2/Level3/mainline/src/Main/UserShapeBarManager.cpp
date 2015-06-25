@@ -1,6 +1,7 @@
  #include "stdafx.h"
 #include "UserShapeBarManager.h"
 #include "ShapesManager.h"
+#include "TermPlan.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -26,6 +27,7 @@ void CUserShapeBar::readData( ArctermFile& p_file )
     int nShapeCount = 0;
     p_file.getLine();
     p_file.getInteger(nShapeCount);
+    CShape::CShapeList* pShapeList = SHAPESMANAGER->GetShapeList();
     for(int j=0; j<nShapeCount; j++)
     {
         CShape* pShape = new CShape;
@@ -40,6 +42,7 @@ void CUserShapeBar::readData( ArctermFile& p_file )
         p_file.getField(buf, 255);
         pShape->ShapeFileName(buf);
         m_vUserShapes.push_back(pShape);
+        pShapeList->push_back(pShape);
     }
 }
 
@@ -70,6 +73,16 @@ BOOL CUserShapeBar::DeleteShape(CShape* pShape)
     {
         if(m_vUserShapes.at(i)== pShape)
         {
+			
+			CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
+			pShape->Name("Cube");
+			pShape->ImageFileName(sPath + "CUBE100.bmp");
+			pShape->ShapeFileName(sPath + "CUBE100.dxf");
+			pShape->SetObjListValid(FALSE);
+
+			CShape::CShapeList* pDL = SHAPESMANAGER->GetDefaultList();
+			pDL->push_back(pShape);
+
             m_vUserShapes.erase(m_vUserShapes.begin() + i);
             return TRUE;
         }
@@ -226,8 +239,16 @@ BOOL CUserShapeBarManager::DeleteUserShapeBar(CUserShapeBar* pUserBar)
     {
         if(m_vUserBars.at(i) == pUserBar)
         {
+			
+			for (int j = pUserBar->GetShapeCount()-1; j>=0; j--)
+			{
+				CShape* pShape = pUserBar->GetShapeByIndex(j);
+				pUserBar->DeleteShape(pShape);
+			}
+
             delete m_vUserBars.at(i);
             m_vUserBars.erase(m_vUserBars.begin() + i);
+
             return TRUE;
         }
     }
