@@ -18,6 +18,8 @@ ClassAirsideFlightManager::~ClassAirsideFlightManager()
 
 bool ClassAirsideFlightManager::WorkIsDone()
 {
+    if(m_listAirsideFlight.size() != 1)
+        return false;
     return true;
 }
 
@@ -123,7 +125,7 @@ void ClassAirsideFlightManager::InitializeAirsideFlightManager(std::vector<Class
         pNewAirsideFlight->AddAirsidePassenger(*itor);
 
         pNewAirsideFlight->SetPointTopLeft(CommonOperations::GetRandomPointFXY(PointFXY(300, 300)));
-        pNewAirsideFlight->SetRotateAngle(CommonOperations::GetRandom(90));
+        pNewAirsideFlight->SetRotateAngle((float)CommonOperations::GetRandom(90));
         AddAirsideFlight(pNewAirsideFlight);
     }
 }
@@ -220,6 +222,6 @@ void ClassAirsideFlightManager::MouseMove(int& errorCode, PointFXY newPt)
 
 void ClassAirsideFlightManager::MouseWheel(int& errorCode, int nOffset)
 {
-    m_pFocusAirsideFlight->Rotate(errorCode, nOffset);
+    m_pFocusAirsideFlight->Rotate(errorCode, (float)nOffset);
 }
 

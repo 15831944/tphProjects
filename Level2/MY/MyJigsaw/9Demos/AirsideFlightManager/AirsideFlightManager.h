@@ -2,11 +2,7 @@
 #include <list>
 #include "AirsideFlight.h"
 
-#ifdef AIRSIDEFLIGHTMANAGER_EXPORT
-class __declspec(dllexport) ClassAirsideFlightManager
-#else
-class __declspec(dllimport) ClassAirsideFlightManager
-#endif
+class ClassAirsideFlightManager
 {
 public:
     ClassAirsideFlightManager();

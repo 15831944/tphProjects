@@ -8,11 +8,7 @@ typedef enum
     AirsidePassengerSideType_Concave, //  Concave side
 } AirsidePassengerSideType;
 
-#ifdef AIRSIDEPASSENGER_EXPORT
-class __declspec(dllexport) ClassAirsidePassenger
-#else
-class __declspec(dllimport) ClassAirsidePassenger
-#endif
+class ClassAirsidePassenger
 {
 public:
     ClassAirsidePassenger();

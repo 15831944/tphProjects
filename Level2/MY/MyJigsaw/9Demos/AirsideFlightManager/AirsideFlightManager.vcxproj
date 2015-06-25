@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1DAB5677-F155-4590-A12F-4EAC00B691E1}</ProjectGuid>
+    <ProjectGuid>{12BDFD9F-AD10-4E4D-8D79-F85D86E74FDB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>AirsideFlightManager</RootNamespace>
   </PropertyGroup>
@@ -72,8 +72,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AirsideFlightManager.h" />
     <ClInclude Include="AirsideFlight.h" />
+    <ClInclude Include="AirsideFlightManager.h" />
     <ClInclude Include="AirsidePassenger.h" />
     <ClInclude Include="CommonOperations.h" />
     <ClInclude Include="ErrorHandling.h" />
@@ -82,8 +82,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AirsideFlight.cpp" />
-    <ClCompile Include="AirsidePassenger.cpp" />
     <ClCompile Include="AirsideFlightManager.cpp" />
+    <ClCompile Include="AirsidePassenger.cpp" />
+    <ClCompile Include="dllmain.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
