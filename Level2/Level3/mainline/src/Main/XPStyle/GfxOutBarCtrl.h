@@ -148,6 +148,8 @@ public:
 	void SetFolderPathText(const int index, const char * text);
 	CString GetFolderText(const int index);
 	CString GetFolderPathText(const int index);
+    BOOL IsFolderNameExist(const CString& strFolderName);
+    int GetIndexByFolderName(const CString& strFolderName);
 	void StartGroupEdit(const int index);
 	void GetLabelRect(const int iFolder, const int iIndex, CRect &rect);
 	void GetIconRect(const int iFolder, const int iIndex, CRect &rect);

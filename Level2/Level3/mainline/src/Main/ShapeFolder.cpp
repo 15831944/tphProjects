@@ -54,25 +54,29 @@ END_MESSAGE_MAP()
 
 BOOL CShapeFolder::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+    CDialog::OnInitDialog();
 
-	// TODO:  Add extra initialization here
-	switch(m_style)
-	{
-	case NEW:
-		break;
-	case NAME:
-		((CWnd*)GetDlgItem(IDC_BUTTON1))->EnableWindow(FALSE);
-		break;
-	case PATH:
-		m_folderName.EnableWindow(FALSE);
-		break;
-	}
-	m_folderName.SetWindowText(folderName);
-	m_folderPath.SetWindowText(folderPath);
+    m_folderName.SetWindowText(folderName);
+    m_folderPath.SetWindowText(folderPath);
 
-	return TRUE;  // return TRUE unless you set the focus to a control
-	// EXCEPTION: OCX Property Pages should return FALSE
+    switch(m_style)
+    {
+    case NEW:
+        SetWindowText(_T("Add Folder"));
+        break;
+    case NAME:
+        SetWindowText(_T("Rename"));
+        ((CWnd*)GetDlgItem(IDC_BUTTON1))->EnableWindow(FALSE);
+        m_folderPath.EnableWindow(FALSE);
+        break;
+    case PATH:
+        SetWindowText(_T("Change Path"));
+        m_folderName.EnableWindow(FALSE);
+        break;
+    }
+
+    return TRUE;  // return TRUE unless you set the focus to a control
+    // EXCEPTION: OCX Property Pages should return FALSE
 }
 
 static int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM , LPARAM lpData)   

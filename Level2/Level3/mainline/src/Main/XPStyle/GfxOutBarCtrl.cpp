@@ -2253,6 +2253,35 @@ CString CGfxOutBarCtrl::GetFolderPathText(const int index)
 	return path;
 }
 
+// check the folder name is existed
+BOOL CGfxOutBarCtrl::IsFolderNameExist(const CString& strFolderName)
+{
+    int nFolderCount = arFolder.GetSize();
+    for(int i=0; i<nFolderCount; i++)
+    {
+        CString ExistFN = GetFolderText(i);
+        if (strFolderName.Compare(ExistFN) == 0)
+        {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+int CGfxOutBarCtrl::GetIndexByFolderName(const CString& strFolderName)
+{
+    int nFolderCount = arFolder.GetSize();
+    for(int i=0; i<nFolderCount; i++)
+    {
+        CString ExistFN = GetFolderText(i);
+        if(strFolderName.Compare(ExistFN) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 CString CGfxOutBarCtrl::GetItemText(const int index)
 {
 	CString item;

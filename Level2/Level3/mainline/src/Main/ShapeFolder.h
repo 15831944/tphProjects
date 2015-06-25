@@ -24,9 +24,15 @@ public:
 	CEdit m_folderPath;
 	CString folderName;
 	CString folderPath;
-	Folder_Style m_style;
-	static int folder_id;
+    static int folder_id;
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedOk();
+
+protected:
+    Folder_Style m_style;
+
+public:
+    CShapeFolder::Folder_Style GetStyle() const { return m_style; }
+    void SetStyle(CShapeFolder::Folder_Style style) { m_style = style; }
 };

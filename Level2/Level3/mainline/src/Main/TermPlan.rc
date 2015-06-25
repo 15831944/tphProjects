@@ -114,18 +114,18 @@ BEGIN
     CONTROL         "",IDC_TREE_DATA,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,7,27,282,213
 END
 
-IDD_SHAPEFOLDER DIALOGEX 0, 0, 238, 118
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Folder"
+IDD_SHAPEFOLDER DIALOGEX 0, 0, 311, 98
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit folder"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,131,90,50,14
-    EDITTEXT        IDC_EDIT1,90,24,90,16,ES_AUTOHSCROLL
-    LTEXT           "Name",IDC_STATIC,30,24,28,16
-    LTEXT           "Folder Path",IDC_STATIC,30,54,47,15
-    EDITTEXT        IDC_EDIT2,90,54,89,14,ES_AUTOHSCROLL | ES_READONLY
-    PUSHBUTTON      "...",IDC_BUTTON1,184,54,26,14
-    DEFPUSHBUTTON   "OK",IDOK,65,90,50,14
+    GROUPBOX        "Name",IDC_STATIC,7,3,297,33
+    GROUPBOX        "Folder path",IDC_STATIC,7,38,297,33
+    EDITTEXT        IDC_EDIT1,15,14,281,15,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,15,50,262,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BUTTON1,278,50,18,14
+    DEFPUSHBUTTON   "OK",IDOK,200,77,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,254,77,50,14
 END
 
 IDD_SHAPEITEM DIALOGEX 0, 0, 239, 206
@@ -6784,7 +6784,6 @@ BEGIN
         VERTGUIDE, 180
         VERTGUIDE, 210
         TOPMARGIN, 7
-        BOTTOMMARGIN, 111
         HORZGUIDE, 24
         HORZGUIDE, 54
         HORZGUIDE, 90
@@ -13038,25 +13037,29 @@ IDR_MENU_USERSHAPES MENU
 BEGIN
     POPUP "Folder"
     BEGIN
-        MENUITEM "add folder",                  ID_FOLDER_ADDFOLDER
-        MENUITEM "rename",                      ID_FOLDER_RENAME
-        MENUITEM "change path",                 ID_FOLDER_CHANGEPATH
-        MENUITEM "import",                      ID_FOLDER_IMPORT
-        MENUITEM "export",                      ID_FOLDER_EXPORT
-        MENUITEM "delete folder",               ID_FOLDER_DELETEFOLDER
+        MENUITEM "New Shape Bar",               ID_FOLDER_NEWSHAPEBAR
+        MENUITEM "Rename",                      ID_FOLDER_RENAME
+        MENUITEM "Change Path",                 ID_FOLDER_CHANGEPATH
+        MENUITEM "Import",                      ID_FOLDER_IMPORT
+        MENUITEM "Export",                      ID_FOLDER_EXPORT
+        MENUITEM "Delete Shape Bar",            ID_FOLDER_DELETESHAPEBAR
     END
     POPUP "Item"
     BEGIN
-        MENUITEM "add item",                    ID_ITEM_ADDITM
-        MENUITEM "rename",                      ID_ITEM_RENAME
-        MENUITEM "change picture",              ID_ITEM_CHANGEPICTURE
-        MENUITEM "change model",                ID_ITEM_CHANGEMODEL
-        MENUITEM "delete item",                 ID_ITEM_DELETEITEM
+        MENUITEM "New Shape",                   ID_ITEM_ADDITM
+        MENUITEM "Rename",                      ID_ITEM_RENAME
+        MENUITEM "Change Picture",              ID_ITEM_CHANGEPICTURE
+        MENUITEM "Change Model",                ID_ITEM_CHANGEMODEL
+        MENUITEM "Delete Shape",                ID_ITEM_DELETEITEM
     END
     POPUP "Other"
     BEGIN
-        MENUITEM "add folder",                  ID_OTHER_ADDFOLDER
-        MENUITEM "add item",                    ID_OTHER_DELETEITEM
+        MENUITEM "New Shape Bar",               ID_OTHER_NEWSHAPEBAR
+        MENUITEM "New Shape",                   ID_OTHER_DELETEITEM
+    END
+    POPUP "ForOld"
+    BEGIN
+        MENUITEM "New Shape Bar",               ID_FOROLD_NEWSHAPEBAR
     END
 END
 
@@ -17846,6 +17849,28 @@ BEGIN
 END
 
 #endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Neutral (Sys. Default) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
+LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
+    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
+END
+
+#endif    // Neutral (Sys. Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

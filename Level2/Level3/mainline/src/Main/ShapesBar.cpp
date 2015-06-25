@@ -116,41 +116,31 @@ LRESULT CShapesBar::OnPopMenu(WPARAM wParam, LPARAM lParam)
 	{
 		folder_index = index;
 		item_index = 0;
-		pSubMenu = Menu.GetSubMenu(0);
-		if(folder_index < 4)
-		{
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(1),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(2),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(3),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(4),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(5),MF_DISABLED);
-		}
+        // old folders can not be edit.
+        if(folder_index < 4)
+            pSubMenu = Menu.GetSubMenu(3);
+        else
+            pSubMenu = Menu.GetSubMenu(0);
 		pSubMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
 	}
 	else if(ht == m_wndOutBarCtrl.htItem)
 	{
 		folder_index = m_wndOutBarCtrl.GetSelFolder();
 		item_index = index;
-		pSubMenu = Menu.GetSubMenu(1);
 		if(folder_index < 4)
-		{
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(0),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(1),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(2),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(3),MF_DISABLED);
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(4),MF_DISABLED);
-		}
+            pSubMenu = Menu.GetSubMenu(3);
+        else
+            pSubMenu = Menu.GetSubMenu(1);
 		pSubMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
 	}
 	else
 	{
 		folder_index = m_wndOutBarCtrl.GetSelFolder();
 		item_index = m_wndOutBarCtrl.GetItemCount();
-		pSubMenu = Menu.GetSubMenu(2);
 		if(folder_index < 4)
-		{
-			pSubMenu->EnableMenuItem(pSubMenu->GetMenuItemID(1),MF_DISABLED);
-		}
+            pSubMenu = Menu.GetSubMenu(3);
+        else
+            pSubMenu = Menu.GetSubMenu(2);
 		pSubMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
 	}
 	return 0;
@@ -418,19 +408,16 @@ void CShapesBar::CreateOutlookBar(CShape::CShapeList* pSL)
 void CShapesBar::OnAddFolder()
 {
 	CShapeFolder dlg;
-	if(dlg.DoModal() == IDOK )
+    dlg.SetStyle(CShapeFolder::NEW);
+	while(dlg.DoModal() == IDOK)
 	{
-		//check the name is available
-		for(int i = 0;i<m_wndOutBarCtrl.GetFolderCount();i++)
-		{
-			CString ExistFN = m_wndOutBarCtrl.GetFolderText(i);
-			if (!ExistFN.Compare(dlg.folderName))
-			{
-				AfxMessageBox(dlg.folderName + " exists", MB_OK);
-				return;
-			}
-		}
-		dlg.folder_id++;
+        if(m_wndOutBarCtrl.IsFolderNameExist(dlg.folderName))
+        {
+            CString strErr;
+            strErr.Format("A folder named '%s' already exists.", dlg.folderName);
+            AfxMessageBox(strErr, MB_OK);
+            continue;
+        }
 
 // 		//create a directory
 // 		CString sNewFP = UserShapesPath + dlg.folderName;
@@ -443,24 +430,24 @@ void CShapesBar::OnAddFolder()
 		m_wndOutBarCtrl.SetFolderPathText(index,dlg.folderPath);
 		m_wndOutBarCtrl.iSelFolder = index;
 		m_wndOutBarCtrl.Invalidate();
+        break;
 	}
 }
 
 void CShapesBar::OnFolderRename()
 {
 	CShapeFolder dlg(m_wndOutBarCtrl.GetFolderText(folder_index),m_wndOutBarCtrl.GetFolderPathText(folder_index),CShapeFolder::NAME);
-	if(dlg.DoModal() == IDOK )
+	while(dlg.DoModal() == IDOK)
 	{
-		//check the name is available
- 		for(int i = 0;i<m_wndOutBarCtrl.GetFolderCount();i++)
- 		{
- 			CString ExistFN = m_wndOutBarCtrl.GetFolderText(i);
- 			if (!ExistFN.Compare(dlg.folderName))
- 			{
- 				AfxMessageBox(dlg.folderName + " exists", MB_OK);
- 				return;
- 			}
- 		}
+        //check the name is available
+        int nIndex = m_wndOutBarCtrl.GetIndexByFolderName(dlg.folderName);
+        if(nIndex != -1 && nIndex != folder_index)
+        {
+            CString strErr;
+            strErr.Format("A folder named '%s' already exists.", dlg.folderName);
+            AfxMessageBox(strErr, MB_OK);
+            continue;
+        }
 
 // 		//copy files to a new directory and delete the old directory
 // 				CString sOldFP = UserShapesPath + m_wndOutBarCtrl.GetFolderText(folder_index);
@@ -476,8 +463,9 @@ void CShapesBar::OnFolderRename()
 // 				}
 		
 		//update the shape bar
-		m_wndOutBarCtrl.SetFolderText(folder_index,dlg.folderName);
+		m_wndOutBarCtrl.SetFolderText(folder_index, dlg.folderName);
 		m_wndOutBarCtrl.Invalidate();
+        break;
 	}
 }
 
@@ -487,7 +475,7 @@ void CShapesBar::OnChangeFolderPath()
 	if(dlg.DoModal() == IDOK )
 	{
 		//update the shape bar
-		m_wndOutBarCtrl.SetFolderPathText(folder_index,dlg.folderPath);
+		m_wndOutBarCtrl.SetFolderPathText(folder_index, dlg.folderPath);
 	}
 }
 

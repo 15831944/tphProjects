@@ -322,7 +322,7 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
                     aPerson->setCurrentPosition(updateTime);
 
 
-                    aPerson->setState (WaitInQueue);
+                    aPerson->setState (MoveToQueue);
                     spTerminalBehavior->setNextIndex (APPROACHING);
                     spTerminalBehavior->updateIndex();
                     getQueuePosition (aPerson);
