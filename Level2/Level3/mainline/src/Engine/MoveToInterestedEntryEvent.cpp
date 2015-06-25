@@ -88,11 +88,13 @@ void MoveToInterestedEntryEvent::calculateMovingPipe(Point ptFrom, Point ptTo)
 	{
 	case USE_NOTHING:
 		break;
-	case USE_USER_SELECTED_PIPES:
-		{
-			calculateUserPipe(ptFrom, ptTo, pFlowItem);
-		}
-		break;
+	case USE_USER_SELECTED_PIPES: // user pipe has some problem, use system pipe instead.
+                                  // mobile element will walk along the pipe list until the end of it, then
+                                  // move to the destination point.
+// 		{
+// 			calculateUserPipe(ptFrom, ptTo, pFlowItem);
+// 		}
+// 		break;
 	case USE_PIPE_SYSTEM:
 		{
 			calculateSystemPipe(ptFrom, ptTo);
@@ -207,13 +209,13 @@ void MoveToInterestedEntryEvent::calculateUserPipe(Point ptFrom, Point ptTo, CFl
 	if(nMidPoint == 0)
 	{
 		pPipe->GetPointListForLog(vPipeList2[0], entryPoint, exitPoint, nPercent, pointList);
-		m_pipePointList.insert(m_pipePointList.begin(), pointList.begin(), pointList.end());		
+		m_pipePointList.insert(m_pipePointList.end(), pointList.begin(), pointList.end());		
 		pointList.clear();
 	}
 	else
 	{
 		pPipe->GetPointListForLog(vPipeList2[0], entryPoint, vMidPoint[0], nPercent,pointList);
-		m_pipePointList.insert(m_pipePointList.begin(), pointList.begin(), pointList.end());
+		m_pipePointList.insert(m_pipePointList.end(), pointList.begin(), pointList.end());
 
 		pointList.clear();
 		// process mid point 
@@ -223,19 +225,18 @@ void MoveToInterestedEntryEvent::calculateUserPipe(Point ptFrom, Point ptTo, CFl
 			if(vMidPoint[i-1].OrderChanged())
 				nPercent = 100 - nPercent;
 
-			pPipe->GetPointListForLog(vPipeList2[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList);
+			pPipe->GetPointListForLog(vPipeList2[i],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList);
 
-			m_pipePointList.insert(m_pipePointList.begin(), pointList.begin(), pointList.end());
+			m_pipePointList.insert(m_pipePointList.end(), pointList.begin(), pointList.end());
 			pointList.clear();
 		}
 
 		// process exit point
 		pPipe = pTerm->m_pPipeDataSet->GetPipeAt(vPipeList2[nPipeCount-1]);
-		if(vMidPoint[nPipeCount-1].OrderChanged())
+		if(vMidPoint[nPipeCount-2].OrderChanged())
 			nPercent = 100 - nPercent;
-		pPipe->GetPointListForLog(vPipeList2[0], vMidPoint[nMidPoint-1], exitPoint, nPercent, pointList);
-
-		//WritePipeLogs(pointList, eventTime, pPerson->getEngine()->GetFireOccurFlag());
+		pPipe->GetPointListForLog(vPipeList2[nPipeCount-1], vMidPoint[nMidPoint-1], exitPoint, nPercent, pointList);
+        m_pipePointList.insert(m_pipePointList.end(), pointList.begin(), pointList.end());
 		pointList.clear();
 	}
 }

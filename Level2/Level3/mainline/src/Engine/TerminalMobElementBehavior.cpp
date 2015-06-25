@@ -6233,123 +6233,142 @@ Processor * TerminalMobElementBehavior::TryToSelectLandsideEntryProcessor( const
 
 double TerminalMobElementBehavior::CalculateWalkLengthOfUserPipe(const Point& ptFrom, const Point& ptTo, const std::vector<int>& vPipeList)
 {
-	// make sure pipe is on the same floor
-	std::vector<int> vPipeList2;
-	int nPipeCount = static_cast<int>(vPipeList.size());
-	for(int i=0; i<nPipeCount; i++)
-	{
-		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList[i]);
-		if(pPipe->GetZ() == ptFrom.getZ())
-		{
-			vPipeList2.push_back(vPipeList[i]);
-		}
-	}
+    // make sure pipe is on the same floor
+    std::vector<int> vPipeList2;
+    int nPipeCount = static_cast<int>(vPipeList.size());
+    for(int i=0; i<nPipeCount; i++)
+    {
+        CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList[i]);
+        if(pPipe->GetZ() == ptFrom.getZ())
+        {
+            vPipeList2.push_back(vPipeList[i]);
+        }
+    }
 
-	nPipeCount = vPipeList2.size();
-	if(nPipeCount == 0)
-		return -1;
-	
-	CPointToPipeXPoint entryPoint;
-	CPointToPipeXPoint exitPoint;
-	std::vector<CMobPipeToPipeXPoint> vMidPoint;	// num count should be nPipeCount - 1
+    nPipeCount = vPipeList2.size();
+    if(nPipeCount == 0)
+        return -1;
 
-	CPipe* pPipe1 = NULL;
-	CPipe* pPipe2 = NULL;
-	for(int ii=0; ii<nPipeCount; ii++)
-	{
-		if(ii == 0)
-		{
-			pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList2[0]);
-			entryPoint = pPipe1->GetIntersectionPoint(ptFrom);
 
-			if(nPipeCount == 1)
-			{
-				exitPoint = pPipe1->GetIntersectionPoint(ptTo);
-			}
-			else
-			{
-				pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList2[1]);
-				CMobPipeToPipeXPoint midPt;
-				if(pPipe1->GetIntersectionPoint(pPipe2, entryPoint, midPt))
-				{
-					vMidPoint.push_back(midPt);
-				}
-				else
-				{
-					return -1;
-				}
-			}
-		}
-		else if(ii == nPipeCount-1)
-		{
-			exitPoint = pPipe1->GetIntersectionPoint(ptTo);
-			vMidPoint[vMidPoint.size()-1].SetOutInc(exitPoint);
-		}
-		else
-		{
-			pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList2[ii+1]);
-			CMobPipeToPipeXPoint midPt;
-			if( pPipe1->GetIntersectionPoint(pPipe2, vMidPoint[vMidPoint.size()-1], midPt))
-			{
-				vMidPoint[vMidPoint.size()-1].SetOutInc(midPt);
-				vMidPoint.push_back(midPt);
-			}
-			else
-			{
-				return -1;
-			}
-		}
-		pPipe1 = pPipe2;
-	}
-	
-	// process entry point
-	CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList2[0]);
-	PTONSIDEWALK pointList, tempPTList;
-	int nPercent = random(100);
-	int nMidPoint = vMidPoint.size();
-	double dDistance = 0.0f;
-	if(nMidPoint == 0)
-	{	
-		m_bUserPipes = false;
-		pPipe->GetPointListForLog(vPipeList2[0],entryPoint, exitPoint, nPercent, tempPTList);
-		pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
-	}
-	else
-	{
-		pPipe->GetPointListForLog(vPipeList2[0], entryPoint, vMidPoint[0], nPercent, pointList);
-		pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
+    ;
+    double shortestDistance = 1000000000000.0f;
+    for(int i=0; i<nPipeCount; i++)
+    {
+        /*
+        If user set pipe list: {1, 2, 3, 4, 5}, 
+        try to calculate using pipe list 
+        {1}, 
+        {1, 2}, 
+        {1, 2, 3}, 
+        {1, 2, 3, 4}
+        {1, 2, 3, 4, 5}
+        */
+        std::vector<int> vTempPipeList(vPipeList2.begin(), vPipeList2.begin() + i + 1); 
+        int nTempPipeCount = static_cast<int>(vTempPipeList.size());
+        CPointToPipeXPoint entryPoint;
+        CPointToPipeXPoint exitPoint;
+        std::vector<CMobPipeToPipeXPoint> vMidPoint;    // num count should be nTempPipeCount - 1
 
-		// process mid point 
-		for(int i=1; i<nMidPoint; i++)
-		{
-			pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt(vPipeList2[i]);
-			if(vMidPoint[i-1].OrderChanged())
-				nPercent = 100 - nPercent;
+        CPipe* pPipe1 = NULL;
+        CPipe* pPipe2 = NULL;
+        for(int ii=0; ii<nTempPipeCount; ii++)
+        {
+            if(ii == 0)
+            {
+                pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt(vTempPipeList[0]);
+                entryPoint = pPipe1->GetIntersectionPoint(ptFrom);
 
-			pPipe->GetPointListForLog(vPipeList2[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList);
-			pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
-		}
+                if(nTempPipeCount == 1)
+                {
+                    exitPoint = pPipe1->GetIntersectionPoint(ptTo);
+                }
+                else
+                {
+                    pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt(vTempPipeList[1]);
+                    CMobPipeToPipeXPoint midPt;
+                    if(pPipe1->GetIntersectionPoint(pPipe2, entryPoint, midPt))
+                    {
+                        vMidPoint.push_back(midPt);
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+            }
+            else if(ii == nTempPipeCount-1)
+            {
+                exitPoint = pPipe1->GetIntersectionPoint(ptTo);
+                vMidPoint[vMidPoint.size()-1].SetOutInc(exitPoint);
+            }
+            else
+            {
+                pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt(vTempPipeList[ii+1]);
+                CMobPipeToPipeXPoint midPt;
+                if( pPipe1->GetIntersectionPoint(pPipe2, vMidPoint[vMidPoint.size()-1], midPt))
+                {
+                    vMidPoint[vMidPoint.size()-1].SetOutInc(midPt);
+                    vMidPoint.push_back(midPt);
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+            pPipe1 = pPipe2;
+        }
+    
+        // process entry point
+        CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt(vTempPipeList[0]);
+        PTONSIDEWALK pointList, tempPTList;
+        int nPercent = random(100);
+        int nMidPoint = vMidPoint.size();
+        double dDistance = 0.0f;
+        if(nMidPoint == 0)
+        {    
+            m_bUserPipes = false;
+            pPipe->GetPointListForLog(vTempPipeList[0],entryPoint, exitPoint, nPercent, tempPTList);
+            pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
+        }
+        else
+        {
+            pPipe->GetPointListForLog(vTempPipeList[0], entryPoint, vMidPoint[0], nPercent, pointList);
+            pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
 
-		// process exit point
-		pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[nPipeCount-1]);
-		if(vMidPoint[nPipeCount-2].OrderChanged())
-			nPercent = 100 - nPercent;
-		pPipe->GetPointListForLog(vPipeList2[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,pointList);
-		pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
-	}
+            // process mid point 
+            for(int i=1; i<nMidPoint; i++)
+            {
+                pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt(vTempPipeList[i]);
+                if(vMidPoint[i-1].OrderChanged())
+                    nPercent = 100 - nPercent;
 
-	int ptCount = static_cast<int>(pointList.size());
-	for(int i=0; i<ptCount; i++)
-	{
-		if(i == 0)
-		{
-			dDistance += ptFrom.distance(pointList[0]);
-			continue;
-		}
-		dDistance+= pointList[i-1].distance(pointList[i]);
-	}
-	dDistance += pointList[ptCount-1].distance(ptTo);
-	return dDistance;
+                pPipe->GetPointListForLog(vTempPipeList[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList);
+                pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
+            }
+
+            // process exit point
+            pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vTempPipeList[nTempPipeCount-1]);
+            if(vMidPoint[nTempPipeCount-2].OrderChanged())
+                nPercent = 100 - nPercent;
+            pPipe->GetPointListForLog(vTempPipeList[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,pointList);
+            pointList.insert(pointList.end(), tempPTList.begin(), tempPTList.end());
+        }
+
+        int ptCount = static_cast<int>(pointList.size());
+        for(int i=0; i<ptCount; i++)
+        {
+            if(i == 0)
+            {
+                dDistance += ptFrom.distance(pointList[0]);
+                continue;
+            }
+            dDistance+= pointList[i-1].distance(pointList[i]);
+        }
+        dDistance += pointList[ptCount-1].distance(ptTo);
+        if(dDistance < shortestDistance)
+            shortestDistance = dDistance;
+    }
+    return shortestDistance;
 }
 
 void TerminalMobElementBehavior::processMoveToInterestedEntryPoint(ElapsedTime p_time)
