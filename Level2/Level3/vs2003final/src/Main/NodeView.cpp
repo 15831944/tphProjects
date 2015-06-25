@@ -901,14 +901,14 @@ LRESULT CNodeView::OnSelChanged(WPARAM wParam, LPARAM lParam)
 				m_btnMoveFloorDown.SetWindowPos(&wndTop, rect1.right+10, rect1.top+8, 18, 9, SWP_DRAWFRAME);
 			}
 
-// 			m_btnMoveFloorUp.ShowWindow(SW_SHOW);
-// 			m_btnMoveFloorUp.EnableWindow(FALSE);
-// 			m_btnMoveFloorDown.ShowWindow(SW_SHOW);
-// 			m_btnMoveFloorDown.EnableWindow(FALSE);
-// 			if(m_wndTreeCtrl.GetPrevSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
-// 				m_btnMoveFloorUp.EnableWindow(TRUE);
-// 			if(m_wndTreeCtrl.GetNextSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
-// 				m_btnMoveFloorDown.EnableWindow(TRUE);
+			m_btnMoveFloorUp.ShowWindow(SW_SHOW);
+			m_btnMoveFloorUp.EnableWindow(FALSE);
+			m_btnMoveFloorDown.ShowWindow(SW_SHOW);
+			m_btnMoveFloorDown.EnableWindow(FALSE);
+			if(m_wndTreeCtrl.GetPrevSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
+				m_btnMoveFloorUp.EnableWindow(TRUE);
+			if(m_wndTreeCtrl.GetNextSiblingItem(pNMTreeView->itemNew.hItem) != NULL)
+				m_btnMoveFloorDown.EnableWindow(TRUE);
 		}	
 	}
 	return 0;
@@ -4796,29 +4796,89 @@ void CNodeView::OnRenameProc2()
 	}
 }
 
+
+void CNodeView::OnBtnMoveUpFloor()
+{
+	HTREEITEM hSelItem = m_wndTreeCtrl.GetSelectedItem();
+	HTREEITEM hPrevItem = m_wndTreeCtrl.GetPrevSiblingItem(hSelItem);
+	if(hPrevItem)
+	{
+		CTVNode* pSelNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hSelItem);
+		CTVNode* pPrevNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hPrevItem);
+		int selFloor = (int)pSelNode->m_dwData;
+		int prevFloor = (int)pPrevNode->m_dwData;
+		ASSERT(selFloor == (prevFloor - 1));
+		SwapTwoFloor(selFloor, prevFloor);
+
+		HTREEITEM hFloorsItem = m_wndTreeCtrl.GetParentItem(hSelItem);
+		ReloadFloorsItem(hFloorsItem, pSelNode->Name());
+	}
+	return;
+}
+
+void CNodeView::OnBtnMoveDownFloor()
+{
+	HTREEITEM hSelItem = m_wndTreeCtrl.GetSelectedItem();
+	HTREEITEM hNextItem = m_wndTreeCtrl.GetNextSiblingItem(hSelItem);
+	if(hNextItem)
+	{
+		CTVNode* pSelNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hSelItem);
+		CTVNode* pNextNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hNextItem);
+		int selFloor = (int)pSelNode->m_dwData;
+		int nextFloor = (int)pNextNode->m_dwData;
+		ASSERT(selFloor == (nextFloor + 1));
+		SwapTwoFloor(selFloor, nextFloor);
+
+		HTREEITEM hFloorsItem = m_wndTreeCtrl.GetParentItem(hSelItem);
+		ReloadFloorsItem(hFloorsItem, pSelNode->Name());
+	}
+	return;
+}
+
+void CNodeView::SwapTwoFloor(int iSelFloor, int iTargetFloor)
+{
+	CTermPlanDoc* pDoc = GetDocument();
+	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);;
+	CFloor2* pSelFloor = floors.m_vFloors[iSelFloor];
+	CFloor2* pTargetFloor = floors.m_vFloors[iTargetFloor];
+
+	floors.m_vFloors[iSelFloor] = pTargetFloor;
+	floors.m_vFloors[iTargetFloor] = pSelFloor;
+
+	double selFloorVisualHeight = pSelFloor->Altitude();
+	double selFloorRealHeight = pSelFloor->RealAltitude();
+	double tarFloorVisualHeight = pTargetFloor->Altitude();
+	double tarFloorRealHeight = pTargetFloor->RealAltitude();
+
+	pSelFloor->Altitude(tarFloorVisualHeight);
+	pSelFloor->RealAltitude(tarFloorRealHeight);
+	pTargetFloor->Altitude(selFloorVisualHeight);
+	pTargetFloor->RealAltitude(selFloorRealHeight);
+	if(pDoc->GetActiveFloor() == pSelFloor)
+	{
+		pDoc->ActivateFloor(iTargetFloor);
+	}
+	if(pDoc->GetActiveFloor() == pTargetFloor)
+	{
+		pDoc->ActivateFloor(iSelFloor);
+	}
+	ResetFloorIndexToAll();
+}
+
 void CNodeView::ResetFloorIndexToAll()
 {
 	CTermPlanDoc* pDoc = GetDocument();
 
 	//sort floor
 	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);
-
-	CFloorList vList = floors.m_vFloors;
-//	std::sort(vList.begin(),vList.end(),FloorLessOrder());
-
 	FloorChangeMap floorIndexChangeMap;
-
-	for(int i=0;i<(int)vList.size();i++)
-	{
-		vList.at(i)->Level(i);	
-	}
-
 	floorIndexChangeMap.nNewFloorIndex.resize(floors.GetCount());
 	for(int i=0;i< floors.GetCount();i++)
 	{
 		floorIndexChangeMap.nNewFloorIndex[i] = floors.GetFloor2(i)->Level();
+		floors.GetFloor2(i)->Level(i);
 	}
-	floors.m_vFloors = vList;
+
 	floors.saveDataSet(pDoc->m_ProjInfo.path, false);
 
 	//modify placements
@@ -4898,71 +4958,35 @@ void CNodeView::ResetFloorIndexToAll()
 	InputTerminal* pInTerm = GetInputTerminal();
 	MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase(Elevator);
 	int nMiscDataCount = pMiscDB->getCount();
+	int nMaxStopFloor, nMinStopFloor;
 	for(int i = 0; i < nMiscDataCount; ++i)
 	{
-		MiscElevatorData* pMiscElevData = (MiscElevatorData*)((MiscDataElement*)pMiscDB->getItem(i))->getData();
-		int count = pMiscElevData->getStopAfFloorCount();
-		std::vector<BOOL> vOldStopAtFloor(count, FALSE);
-		for(int i=0; i<count; i++)
+		MiscDataElement* pMiscDataElem = (MiscDataElement*)pMiscDB->getItem(i);
+		MiscElevatorData* pMiscElevData = (MiscElevatorData*)(pMiscDataElem->getData());
+		int floorCount = pMiscElevData->getStopAfFloorCount();
+		ASSERT(floorCount == floors.GetCount());
+		std::vector<BOOL> vOldStopAtFloor;
+		for(int i=0; i<floorCount; i++)
 		{
-			vOldStopAtFloor[i] = pMiscElevData->getStopAtFloor(i);
+			vOldStopAtFloor.push_back(pMiscElevData->getStopAtFloor(i));
+			pMiscElevData->setStopAtFloor(i, FALSE);
 		}
-		for(int i=0; i<count; i++)
+
+		const ProcessorID* pProcessorID  =  pMiscDataElem->getID();
+		ElevProcessorFamily* tempProcessorFamily=NULL;
+		tempProcessorFamily=(ElevProcessorFamily*)(GetInputTerminal()->procList->getFamilyIndex( *pProcessorID ));
+		tempProcessorFamily->GetMaxMinFloorOfFamily(GetInputTerminal()->procList,nMaxStopFloor,nMinStopFloor);
+
+		for(int i=0; i<floorCount; i++)
 		{
-			pMiscElevData->setStopAtFloor(floorIndexChangeMap.getNewFloor(i), vOldStopAtFloor[i]);
+			int newFloorIndex = floorIndexChangeMap.getNewFloor(i);
+			if(nMinStopFloor<=newFloorIndex && newFloorIndex<=nMaxStopFloor)
+				pMiscElevData->setStopAtFloor(newFloorIndex, vOldStopAtFloor[i]);
 		}
 	}
+	pInTerm->miscData->saveDataSet(pDoc->m_ProjInfo.path, false);
 }
 
-void CNodeView::OnBtnMoveUpFloor()
-{
-	HTREEITEM hSelItem = m_wndTreeCtrl.GetSelectedItem();
-	HTREEITEM hPrevItem = m_wndTreeCtrl.GetPrevSiblingItem(hSelItem);
-	if(hPrevItem)
-	{
-		CTVNode* pSelNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hSelItem);
-		CTVNode* pPrevNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hPrevItem);
-		int selFloor = (int)pSelNode->m_dwData;
-		int prevFloor = (int)pPrevNode->m_dwData;
-		ASSERT(selFloor == (prevFloor - 1));
-		SwapTwoFloor(selFloor, prevFloor);
-
-		HTREEITEM hFloorsItem = m_wndTreeCtrl.GetParentItem(hSelItem);
-		ReloadFloorsItem(hFloorsItem, pSelNode->Name());
-	}
-	return;
-}
-
-void CNodeView::OnBtnMoveDownFloor()
-{
-	HTREEITEM hSelItem = m_wndTreeCtrl.GetSelectedItem();
-	HTREEITEM hNextItem = m_wndTreeCtrl.GetNextSiblingItem(hSelItem);
-	if(hNextItem)
-	{
-		CTVNode* pSelNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hSelItem);
-		CTVNode* pNextNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hNextItem);
-		int selFloor = (int)pSelNode->m_dwData;
-		int nextFloor = (int)pNextNode->m_dwData;
-		ASSERT(selFloor == (nextFloor + 1));
-		SwapTwoFloor(selFloor, nextFloor);
-
-		HTREEITEM hFloorsItem = m_wndTreeCtrl.GetParentItem(hSelItem);
-		ReloadFloorsItem(hFloorsItem, pSelNode->Name());
-	}
-	return;
-}
-
-void CNodeView::SwapTwoFloor(int iSelFloor, int iTargetFloor)
-{
-	CTermPlanDoc* pDoc = GetDocument();
-	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);;
-	CFloor2* pSelFloor = floors.m_vFloors[iSelFloor];
-	CFloor2* pTargetFloor = floors.m_vFloors[iTargetFloor];
-
-	floors.m_vFloors[iSelFloor] = pTargetFloor;
-	floors.m_vFloors[iTargetFloor] = pSelFloor;
-	ResetFloorIndexToAll();
-}
 
 void CNodeView::ReloadFloorsItem(HTREEITEM hFloorsItem, CString strSelFlrName)
 {

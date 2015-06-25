@@ -1498,6 +1498,10 @@ void ElevatorProc::UpdateFloorIndex( const FloorChangeMap& changMap )
 	for(int i=m_iMinFloor;i<=m_iMaxFloor;i++)
 	{
 		int nNewFloor = changMap.getNewFloor(i);
+		if(nNewFloor < iNewMinFloor)
+		{
+			continue;
+		}
 		vNewPosWaitArea[nNewFloor-iNewMinFloor] = m_vPosOfWaitarea[i-m_iMinFloor];  
 	}
 
