@@ -24,6 +24,7 @@ static const UINT MENU_ADD_REPORT = 203;
 static const UINT MENU_DELETE_MODEL = 206;
 static const UINT MENU_EDIT_REPORT = 207;
 static const UINT MENU_DELETE_REPORT = 208;
+static const UINT MENU_DEL_ALL_MODEL = 209;
 static const UINT MENU_UNAVAILABLE = 220;
 
 static const int BUTTON_AREA_HEIGHT = 50;
@@ -156,9 +157,9 @@ void CCmpReportTreeView::InitParaWnd()
 	COOLTREE_NODE_INFO cni;
 	InitCooltreeNodeInfo(this, cni);
 
-	m_hBasicInfo = m_propTree.InsertItem(_T("Basic Info"), cni, FALSE, FALSE, TVI_ROOT);
-	m_hModelRoot = m_propTree.InsertItem(_T("Models"),cni, FALSE, FALSE, TVI_ROOT);
-	m_hReportRoot = m_propTree.InsertItem(_T("Reports"),cni, FALSE, FALSE, TVI_ROOT);
+	m_hBasicInfo = m_propTree.InsertItem(_T("BASIC INFO"), cni, FALSE, FALSE, TVI_ROOT);
+	m_hModelRoot = m_propTree.InsertItem(_T("MODELS"),cni, FALSE, FALSE, TVI_ROOT);
+	m_hReportRoot = m_propTree.InsertItem(_T("REPORTS"),cni, FALSE, FALSE, TVI_ROOT);
 
 	cni.net = NET_EDIT_WITH_VALUE;
 	m_hProjName = m_propTree.InsertItem(_T("Name"), cni, FALSE, FALSE,m_hBasicInfo, TVI_LAST);
@@ -242,7 +243,7 @@ void CCmpReportTreeView::RemoveSubItem( HTREEITEM hItem )
 	}
 }
 
-void CCmpReportTreeView::UpdateParaItem( HTREEITEM hItem )
+void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 {
 	CString strItemText;
 	if(hItem == NULL)
@@ -373,14 +374,15 @@ void CCmpReportTreeView::UpdateParaItem( HTREEITEM hItem )
 
 			//write Model Parameter
 			std::vector<CModelParameter> vModelParam;
-			int nModelParamCount = param.GetModelParameter(vModelParam);
+			param.GetModelParameter(vModelParam);
+			int nModelParamCount = param.GetModelParameterCount();
 
 			CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 
-			for (int nModelParam = 0; nModelParam< nModelParamCount; ++nModelParam)
+			for (int i=0; i<nModelParamCount; i++)
 			{
-				CModelParameter& modelParam = vModelParam[nModelParam];
-				CString strModelName = pModelManager->GetModelsList().at(nModelParam)->GetModelName();
+				CModelParameter& modelParam = vModelParam[i];
+				CString strModelName = _T("aaaaaaaaa");/*pModelManager->GetModelsList().at(i)->GetModelName();*/
 				HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
 
 				if(iIndex == 3)
@@ -531,7 +533,7 @@ void CCmpReportTreeView::AddModel()
 	}
 }
 
-void CCmpReportTreeView::DeleteModel()
+void CCmpReportTreeView::DeleteSelectedModel()
 {			
 	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 	HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
@@ -544,6 +546,18 @@ void CCmpReportTreeView::DeleteModel()
 		UpdateParaItem(m_hReportRoot);
 		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
+	}
+}
+
+void CCmpReportTreeView::DeleteAllModel()
+{
+	if(MessageBox("Delete all Models?", NULL, MB_ICONWARNING | MB_YESNO) == IDYES)
+	{
+		CModelsManager* pModelManager = 
+			m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+		pModelManager->RemoveAllModels();
+		UpdateParaItem(m_hModelRoot);
+		UpdateParaItem(m_hReportRoot);
 	}
 }
 
@@ -660,6 +674,7 @@ void CCmpReportTreeView::OnContextMenu( CWnd* pWnd, CPoint point )
 		CMenu menuProj;
 		menuProj.CreatePopupMenu();
 		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_MODEL, _T("Add new model"));
+		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_ALL_MODEL, _T("Delete all models"));
 		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
 		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
 		menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
@@ -819,6 +834,9 @@ void CCmpReportTreeView::OnChooseMenu( UINT nID )
 		case MENU_ADD_MODEL:
 			AddModel();
 			break;
+		case MENU_DEL_ALL_MODEL:
+			DeleteAllModel();
+			break;
 		default:
 			break;
 		}
@@ -840,7 +858,7 @@ void CCmpReportTreeView::OnChooseMenu( UINT nID )
 		switch(nID)
 		{
 		case MENU_DELETE_MODEL:
-			DeleteModel();
+			DeleteSelectedModel();
 			break;
 		default:
 			break;

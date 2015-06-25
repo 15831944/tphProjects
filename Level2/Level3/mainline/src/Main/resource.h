@@ -1461,6 +1461,7 @@
 #define IDC_LST_AIRPORTS                1101
 #define IDC_LIST_AIRPORTS               1101
 #define IDB_MOVE_DOWN_FLOOR             1101
+//#define IDB_LANDSIDE_TAXIPOOL           1101
 #define IDB_BITMAP_LANDSIDE_TAXIPOOL    1101
 #define IDC_TREE_SECTORS                1102
 #define IDB_MOVE_DOWN_FLOOR1            1102

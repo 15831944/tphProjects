@@ -54,8 +54,9 @@ protected:
 	void AddModel();
 	void AddReport();
 	void EditReport();
-	void DeleteModel();
+	void DeleteSelectedModel();
 	void DeleteReport();
+	void DeleteAllModel();
 	BOOL CheckData();
 	void RemoveSubItem(HTREEITEM pItem);
 	void UpdateParaItem(HTREEITEM pItem);

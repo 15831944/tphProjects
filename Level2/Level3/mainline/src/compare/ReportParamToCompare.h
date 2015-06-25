@@ -130,7 +130,8 @@ public:
 	//const std::vector<ProcessorID>& GetProcessorID() const {return m_vProcGroups;}
 	
 	void SetModelParameter(std::vector<CModelParameter>& vModelParameter);
-	int GetModelParameter(std::vector<CModelParameter>& vModelParam);
+	void GetModelParameter(std::vector<CModelParameter>& vModelParam);
+	int GetModelParameterCount();
 
 	bool GetModelParamByModelName(const CString& strUniqueName,CModelParameter& modelParam) const;
 	void DeleteModelParameter(const CString& strModelUniqueName);

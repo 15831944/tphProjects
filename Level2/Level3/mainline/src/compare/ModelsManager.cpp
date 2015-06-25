@@ -65,6 +65,16 @@ void CModelsManager::RemoveModel(int nIndex)
 	
 }
 
+void CModelsManager::RemoveAllModels()
+{
+	int count = (int)m_vModels.size();
+	for(int i=count; i>0; i--)
+	{
+		delete m_vModels[i-1];
+		m_vModels.pop_back();
+	}
+}
+
 void CModelsManager::SetModels(const std::vector<CModelToCompare*>& vModels)
 {
 	m_vModels = vModels;

@@ -112,11 +112,16 @@ void CReportParamToCompare::SetModelParameter(std::vector<CModelParameter>& vMod
 
 	m_vModelParam = vModelParam;
 }
-int CReportParamToCompare::GetModelParameter(std::vector<CModelParameter>& vModelParam)
+void CReportParamToCompare::GetModelParameter(std::vector<CModelParameter>& vModelParam)
 {
 	vModelParam = m_vModelParam;
-	return m_vModelParam.size();
 }
+
+int CReportParamToCompare::GetModelParameterCount()
+{
+	return (int)m_vModelParam.size();
+}
+
 //void CReportParamToCompare::SetPaxType(const std::vector<CMobileElemConstraint>& vPaxType)
 //{
 //	m_vPaxType = vPaxType;
