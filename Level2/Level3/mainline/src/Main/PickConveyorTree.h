@@ -39,6 +39,8 @@ public:
 	BOOL Create(DWORD dwStyle,CWnd* pParentWnd);
 	virtual ~CPickConveyorTree();
 
+	bool m_bSendMessage;
+
 	// Generated message map functions
 protected:
 	//{{AFX_MSG(CPickConveyorTree)

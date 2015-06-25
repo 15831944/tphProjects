@@ -61,6 +61,7 @@ public:
 	virtual void SetFollowerInTray(bool bInTray){}
 
 	virtual void setFollowerArrivalDoor(bool bArrivalDoor){}
+	virtual void setEntryTime(const ElapsedTime& tEntryTime){}
 
 	//set tray group item that count > 1 destination
 	//nRadiu is host radius

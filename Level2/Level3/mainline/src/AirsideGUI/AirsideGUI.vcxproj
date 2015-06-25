@@ -262,6 +262,7 @@
     <ClCompile Include="InboudRouteAssTimeRangeContainer.cpp" />
     <ClCompile Include="InboundRouteAssFlightTyContainer.cpp" />
     <ClCompile Include="ItinerantFlightListCtrl.cpp" />
+    <ClCompile Include="MuliSelTreeCtrlEx.cpp" />
     <ClCompile Include="NECRelatedBaseDlg.cpp" />
     <ClCompile Include="NodeBlockListCtrl.cpp" />
     <ClCompile Include="NodeViewDbClickHandler.cpp" />
@@ -432,6 +433,7 @@
     <ClInclude Include="InboudRouteAssTimeRangeContainer.h" />
     <ClInclude Include="InboundRouteAssFlightTyContainer.h" />
     <ClInclude Include="ItinerantFlightListCtrl.h" />
+    <ClInclude Include="MuliSelTreeCtrlEx.h" />
     <ClInclude Include="NECRelatedBaseDlg.h" />
     <ClInclude Include="NodeBlockListCtrl.h" />
     <ClInclude Include="NodeViewDbClickHandler.h" />

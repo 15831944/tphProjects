@@ -408,7 +408,7 @@ void CDlgAirRoute::InitDefaultProperties()
 void AirsideGUI::CDlgAirRoute::OnOK()
 {
 	//check heading valid
-	if (m_pCurAirRoute && !m_pCurAirRoute->HeadingValid())
+	if (m_pCurAirRoute&&!m_pCurAirRoute->HeadingValid(m_cmbType.GetCurSel()))
 	{
 		MessageBox(_T("Heading cannot be defined in the first segment or the last segment of the Air Route"),_T("Error"),MB_OK);
 		return;

@@ -87,6 +87,7 @@ public:
 
 	//Group leader and follower arrival door
 	virtual void setFollowerArrivalDoor(bool bArrivalDoor) = 0;
+	virtual void setEntryTime(const ElapsedTime& tEntryTime) = 0;
 
 	//set tray group item that count > 1 destination
 	//nRadiu is host radius

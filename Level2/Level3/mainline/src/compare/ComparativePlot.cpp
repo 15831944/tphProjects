@@ -58,7 +58,7 @@ static void GetUniqueColors(std::vector<COLORREF>& vUniqueColors, size_t count)
 		vUniqueColors[i] = UniqueColors[i % (sizeof(UniqueColors)/sizeof(OLE_COLOR))];
 }
 
-bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData)
+bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData,int nSubType)
 {
 	bool bResult = true;
 
@@ -69,10 +69,10 @@ bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData)
 		switch(_reportData.GetReportType())
 		{
 		case QueueTimeReport:
-			bResult = Draw3DChart((CComparativeQTimeReport&)_reportData);
+			bResult = Draw3DChart((CComparativeQTimeReport&)_reportData,nSubType);
 			break;
 		case QueueLengthReport:
-			bResult = Draw3DChart((CComparativeQLengthReport&)_reportData);
+			bResult = Draw3DChart((CComparativeQLengthReport&)_reportData,nSubType);
 			break;
 		case ThroughtputReport:
 			bResult = Draw3DChart((CComparativeThroughputReport&)_reportData);
@@ -208,7 +208,7 @@ void CComparativePlot::UniformAppearances()
 	}
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeQTimeReport& _reportData)
+bool CComparativePlot::Draw3DChart(CComparativeQTimeReport& _reportData,int nSubType)
 {
 	const QTimeMap& mapQTime = _reportData.GetResult();
 
@@ -271,64 +271,126 @@ bool CComparativePlot::Draw3DChart(CComparativeQTimeReport& _reportData)
 	return true;
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeQLengthReport& _reportData)
+bool CComparativePlot::Draw3DChart(CComparativeQLengthReport& _reportData,int nSubType)
 {
-	const QLengthMap& mapQLength = _reportData.GetResult();
-	C2DChartData c2dGraphData;
-	// Update Title
-	c2dGraphData.m_strChartTitle = _T(" Queue Length Report ");
-	c2dGraphData.m_strYtitle = _T("Queue Length");
-	c2dGraphData.m_strXtitle = _T("Time");
-
-	//set footer
-	CString strFooter;
-	c2dGraphData.m_strFooter = strFooter;
-
-	// Alloc data space
-	if( mapQLength.size()>0)
+	if (_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 	{
-		const std::vector<int>& vLength = mapQLength.begin()->second;
-		std::vector<double> vSegmentData(mapQLength.size());
-		vSegmentData.clear();
-		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		const QLengthMap& mapQLength = _reportData.GetResult();
+		C2DChartData c2dGraphData;
+		// Update Title
+		c2dGraphData.m_strChartTitle = _T(" Queue Length Report ");
+		c2dGraphData.m_strYtitle = _T("Queue Length");
+		c2dGraphData.m_strXtitle = _T("Time");
+
+		//set footer
+		CString strFooter;
+		c2dGraphData.m_strFooter = strFooter;
+
+		// Alloc data space
+		if( mapQLength.size()>0)
 		{
-			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+			const std::vector<int>& vLength = mapQLength.begin()->second;
+			std::vector<double> vSegmentData(mapQLength.size());
+			vSegmentData.clear();
+			for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+			{
+				c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+			}
 		}
-	}
 
-	// Insert legend.
-	std::vector<CString> vSimName  =  _reportData.GetSimNameList();
-	int simNameCount = vSimName.size();
-	for(int i=0; i<simNameCount; i++)
-	{
-		c2dGraphData.m_vrLegend.push_back(vSimName[i]);
-	}
-
-	// Insert data
-	CString XTickTitle;
-	std::vector<CString> vXTickTitle;
-	CString sTime;
-	int nXTick = 0;
-
-	for( QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine != mapQLength.end(); iterLine++, nXTick++)
-	{
-		const std::vector<int>& vLength = iterLine->second;
-
-		//set row label
-		ElapsedTime t = iterLine->first;
-		t.set(t.asSeconds() % WholeDay);
-		t.printTime(sTime.GetBuffer(32), FALSE);
-		sTime.ReleaseBuffer();
-		XTickTitle = sTime;
-		vXTickTitle.push_back(XTickTitle);
-		//set data
-		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		// Insert legend.
+		std::vector<CString> vSimName  =  _reportData.GetSimNameList();
+		int simNameCount = vSimName.size();
+		for(int i=0; i<simNameCount; i++)
 		{
-			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
+			c2dGraphData.m_vrLegend.push_back(vSimName[i]);
 		}
+
+		// Insert data
+		CString XTickTitle;
+		std::vector<CString> vXTickTitle;
+		CString sTime;
+		int nXTick = 0;
+
+		for( QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine != mapQLength.end(); iterLine++, nXTick++)
+		{
+			const std::vector<int>& vLength = iterLine->second;
+
+			//set row label
+			ElapsedTime t = iterLine->first;
+			t.set(t.asSeconds() % WholeDay);
+			t.printTime(sTime.GetBuffer(32), FALSE);
+			sTime.ReleaseBuffer();
+			XTickTitle = sTime;
+			vXTickTitle.push_back(XTickTitle);
+			//set data
+			for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+			{
+				(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
+			}
+		}
+		c2dGraphData.m_vrXTickTitle = vXTickTitle;
+		m_3DChart.DrawChart(c2dGraphData);
 	}
-	c2dGraphData.m_vrXTickTitle = vXTickTitle;
-	m_3DChart.DrawChart(c2dGraphData);
+	else
+	{
+		const QLengthSummaryMap& mapSummaryQLength = _reportData.GetSummaryResult();
+		C2DChartData c2dGraphData;
+		// Update Title
+		c2dGraphData.m_strChartTitle = _T(" Queue Length Report ");
+		c2dGraphData.m_strYtitle = _T("Queue Length");
+		c2dGraphData.m_strXtitle = _T("Time");
+
+		//set footer
+		CString strFooter;
+		c2dGraphData.m_strFooter = strFooter;
+
+		// Alloc data space
+		if( mapSummaryQLength.size()>0)
+		{
+			const std::vector<QueueLengthGroup>& vLength = mapSummaryQLength.begin()->second;
+			std::vector<double> vSegmentData(mapSummaryQLength.size());
+			vSegmentData.clear();
+			for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+			{
+				c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+			}
+		}
+
+		// Insert legend.
+		std::vector<CString> vSimName  =  _reportData.GetSimNameList();
+		int simNameCount = vSimName.size();
+		for(int i=0; i<simNameCount; i++)
+		{
+			c2dGraphData.m_vrLegend.push_back(vSimName[i]);
+		}
+
+		// Insert data
+		CString XTickTitle;
+		std::vector<CString> vXTickTitle;
+		CString sTime;
+		int nXTick = 0;
+
+		for( QLengthSummaryMap::const_iterator iterLine = mapSummaryQLength.begin(); iterLine != mapSummaryQLength.end(); iterLine++, nXTick++)
+		{
+			const std::vector<QueueLengthGroup>& vLength = iterLine->second;
+
+			//set row label
+			ElapsedTime t = iterLine->first;
+			t.set(t.asSeconds() % WholeDay);
+			t.printTime(sTime.GetBuffer(32), FALSE);
+			sTime.ReleaseBuffer();
+			XTickTitle = sTime;
+			vXTickTitle.push_back(XTickTitle);
+			//set data
+			for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+			{
+				(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg].GetValue(nSubType));
+			}
+		}
+		c2dGraphData.m_vrXTickTitle = vXTickTitle;
+		m_3DChart.DrawChart(c2dGraphData);
+	}
 	return true;
 }
 

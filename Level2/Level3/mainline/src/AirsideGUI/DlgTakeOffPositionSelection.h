@@ -2,7 +2,8 @@
 
 #include "afxcmn.h"
 #include "..\InputAirside\RunwayExit.h"
-
+#include "AirsideGUI\MuliSelTreeCtrlEx.h"
+ 
 // CDlgSelectTakeoffPosition dialog
 class CRunwayTakeOffRunwayWithMarkData;
 class Runway;
@@ -33,7 +34,8 @@ public:
 
 protected:
 	int m_nProjID;
-	CTreeCtrl m_wndTakeoffPosiTree;
+	//CTreeCtrl m_wndTakeoffPosiTree;
+	CMuliSeltTreeCtrlEx m_wndTakeoffPosiTree;
 	CAirportDatabase* m_pAirportDB;
 	int m_nSelRwyID;
 	int m_nSelRwyMark;

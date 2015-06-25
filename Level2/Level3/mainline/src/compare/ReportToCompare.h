@@ -19,12 +19,6 @@ class CModelToCompare;
 class CCmpReportParameter;
 class CModelsManager;
 
-typedef enum 
-{
-	REPORT_TYPE_DETAIL = 0,
-	REPORT_TYPE_SUMMARY = 1
-} ENUM_REPORT_DETAIL;
-
 class CReportToCompare  
 {
 public:
@@ -35,12 +29,11 @@ public:
 		m_nReportCategory = _other.m_nReportCategory;
 		m_reportParam = _other.m_reportParam;
 		m_isChecked = _other.m_isChecked;
-		m_nType = _other.m_nType;
 	}
 	
 	virtual ~CReportToCompare();
 
-	const CString& GetName() const{return m_strName;}
+	const CString& GetName() const { return m_strName; }
 	void SetName(const CString& strName){m_strName = strName;}
 
 	void SetCategory(int nReportCategory) { m_nReportCategory = nReportCategory; }
@@ -51,9 +44,6 @@ public:
 	BOOL GetChecked() const { return m_isChecked; }
 	void SetChecked(BOOL val) { m_isChecked = val; }
 
-	ENUM_REPORT_DETAIL  GetReportDetail() const { return m_nType; }
-	void SetReportDetail(ENUM_REPORT_DETAIL nType) { m_nType = nType; }
-
 	BOOL LoadData( const CString& strPath );
 	
 	void DeleteModelParameter(const CString& strModelUniqueName);
@@ -63,7 +53,7 @@ public:
 		m_strName = _rhs.m_strName;
 		m_nReportCategory = _rhs.m_nReportCategory;
 		m_reportParam = _rhs.m_reportParam;
-		m_nType = _rhs.m_nType;
+		m_isChecked = _rhs.m_isChecked;
 		return *this;
 	}
 
@@ -74,7 +64,6 @@ private:
 	CString					m_strName;
 	CReportParamToCompare	m_reportParam;
 	BOOL					m_isChecked;
-	ENUM_REPORT_DETAIL		m_nType;
 };
 
 

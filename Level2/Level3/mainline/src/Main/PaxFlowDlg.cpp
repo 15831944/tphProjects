@@ -1875,7 +1875,7 @@ void CPaxFlowDlg::OnOK()
 
 	ExpandWindow( FALSE );
 	m_bCheckConveyorBtn=FALSE;
-	SetViewPickConveyor(FALSE);
+	SetViewPickConveyor();
 	
 	CDialog::OnOK();
 }
@@ -1883,7 +1883,7 @@ void CPaxFlowDlg::OnOK()
 void CPaxFlowDlg::OnCancel() 
 {
 	m_bCheckConveyorBtn=FALSE;
-	SetViewPickConveyor(FALSE);
+	SetViewPickConveyor();
 	
 	// TODO: Add extra cleanup here
 	Update3DViewData( NULL , NULL);

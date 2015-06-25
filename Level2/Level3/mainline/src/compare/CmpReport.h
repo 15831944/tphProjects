@@ -9,8 +9,8 @@ public:
 	CCmpReport(void);
 	virtual ~CCmpReport(void);
 public:
-	void SetCurReport(const CString& strCurReport){ m_strCurReport = strCurReport; }
-	CString GetCurReport(){ return m_strCurReport; }
+	void SetFocusReportName(const CString& strFocusReport){ m_strFocusRepName = strFocusReport; }
+	CString GetFocusReportName(){ return m_strFocusRepName; }
 	BOOL CheckData();
 	BOOL GetModifyFlag();
 	void SetModifyFlag(BOOL bModified);
@@ -26,10 +26,8 @@ public:
 	bool InitReport(const CString& strName);
 protected:
 	BOOL m_bModified;
-	CString m_strCurReport;
+	CString m_strFocusRepName;
 //	Terminal m_terminalForReportParam;
 
 	CComparativeProject* m_compProject;
-
-
 };

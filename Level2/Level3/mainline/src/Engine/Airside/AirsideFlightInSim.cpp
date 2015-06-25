@@ -4233,7 +4233,7 @@ void AirsideFlightInSim::ConnectBridge(const ElapsedTime&  tTime)
 						!pBridgeConnector->IsBridgeConnectToFlight(GetFlightInput()->getFlightIndex()) &&
 						pBridgeConnector->IsBridgeConnectToStand(standName))
 					{
-						pBridgeConnector->ConnectFlight(this,tTime);						
+						pBridgeConnector->ConnectFlight(this,tTime);					
 					}
 				}
 			}

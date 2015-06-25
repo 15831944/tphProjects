@@ -469,7 +469,7 @@ void CGroupLeaderInfo::SetFollowerWithOwner(bool bWithOwner)
 
 void CGroupLeaderInfo::setFollowerArrivalDoor(bool bArrivalDoor)
 {
-	VisitorTerminalBehavior* spTerminalBehavior = (VisitorTerminalBehavior*)m_pGroupLeader->getTerminalBehavior();
+	TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)m_pGroupLeader->getTerminalBehavior();
 	if (spTerminalBehavior)
 	{
 		spTerminalBehavior->m_bIsArrivalDoor = bArrivalDoor;
@@ -479,11 +479,22 @@ void CGroupLeaderInfo::setFollowerArrivalDoor(bool bArrivalDoor)
 	for( int i=0; i< nFollowerCount; i++ )
 	{
 		Person* pFollower = (Person*) m_pGroupFollowerList.getItem( i );
-		VisitorTerminalBehavior* spFollowerBehavior = (VisitorTerminalBehavior*)pFollower->getTerminalBehavior();
+		TerminalMobElementBehavior* spFollowerBehavior = (TerminalMobElementBehavior*)pFollower->getTerminalBehavior();
 		if (spFollowerBehavior)
 		{
 			spFollowerBehavior->m_bIsArrivalDoor = bArrivalDoor;
 		}
+	}
+}
+
+void CGroupLeaderInfo::setEntryTime(const ElapsedTime& tEntryTime)
+{
+	m_pGroupLeader->getLogEntry().setEntryTime(tEntryTime);
+	int nFollowerCount = m_pGroupFollowerList.getCount();
+	for( int i=0; i< nFollowerCount; i++ )
+	{
+		Person* pFollower = (Person*) m_pGroupFollowerList.getItem( i );
+		pFollower->getLogEntry().setEntryTime(tEntryTime);
 	}
 }
 

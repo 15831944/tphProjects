@@ -649,24 +649,11 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 		m_logEntry.setTerminalEndTime(time);
 	}
 
-
+	//////////////////////////for bridge////////////////////////////////////////////////
 	BOOL bInBridge = spTerminalBehavior->IsWalkOnBridge() && spTerminalBehavior->getBridgeState()==DepBridge;
 	BOOL bIsArrivalDoor = spTerminalBehavior->m_bIsArrivalDoor;
-
-	if( m_pGroupInfo->IsFollower() )
-	{
-		if( Person* leader =  m_pGroupInfo->GetGroupLeader() )
-		{
-			if( TerminalMobElementBehavior* pLeaderBehavior = leader->getTerminalBehavior() )
-			{
-				bInBridge = pLeaderBehavior->IsWalkOnBridge() && pLeaderBehavior->getBridgeState()==DepBridge;
-				//bIsArrivalDoor = pLeaderBehavior->m_bIsArrivalDoor;
-			}
-		}
-	}
-	
 	BOOL bIsRealZ = bInBridge || (bIsArrivalDoor?TRUE:FALSE);
-
+	//////////////////////////////////////////////////////////////////////////
 
 
 	track.procNumber = (short)spTerminalBehavior->getProcessor()->getIndex();
@@ -956,6 +943,10 @@ void Person::SetFollowerArrivalDoor(bool bArrivalDoor)
 	m_pGroupInfo->setFollowerArrivalDoor(bArrivalDoor);
 }
 
+void Person::SetEntryTime(const ElapsedTime& tEntryTime)
+{
+	m_pGroupInfo->setEntryTime(tEntryTime);
+}
 const Terminal* Person::GetTerminal() const
 {
 	return m_pEngine->getTerminal();
@@ -1169,4 +1160,60 @@ void Person::setCurrentPositionRealZ( ElapsedTime moveTime )
 		spTerminalBehavior->setDestination ( Point(midPt.x,midPt.y,midPt.z) );
 	}
 	writeLogEntry (moveTime, false);
+}
+
+void Person::SetBridgeState( ArrDepBridgeState state )
+{
+	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
+	if(spTerminalBehavior)
+	{
+		spTerminalBehavior->setBridgeState(state);	
+	}
+
+	if(!m_pGroupInfo)
+		return;
+
+	if(!m_pGroupInfo->IsFollower())
+	{
+		CGroupLeaderInfo* leadinfo =  (CGroupLeaderInfo*)m_pGroupInfo;
+		ASSERT(leadinfo->GetGroupLeader()==this);
+		MobileElementList& followers = leadinfo->GetFollowerList();
+		for(int i=0;i<followers.getCount();i++)
+		{
+			MobileElement* elm = followers.getItem(i);
+			TerminalMobElementBehavior* spTerminalBehavior = elm->getTerminalBehavior();
+			if(spTerminalBehavior)
+			{
+				spTerminalBehavior->setBridgeState(state);				
+			}
+		}
+	}
+}
+
+void Person::SetWalkOnBridge( bool b )
+{
+	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
+	if(spTerminalBehavior)
+	{
+		spTerminalBehavior->SetWalkOnBridge(b);	
+	}
+
+	if(!m_pGroupInfo)
+		return;
+
+	if(!m_pGroupInfo->IsFollower())
+	{
+		CGroupLeaderInfo* leadinfo =  (CGroupLeaderInfo*)m_pGroupInfo;
+		ASSERT(leadinfo->GetGroupLeader()==this);
+		MobileElementList& followers = leadinfo->GetFollowerList();
+		for(int i=0;i<followers.getCount();i++)
+		{
+			MobileElement* elm = followers.getItem(i);
+			TerminalMobElementBehavior* spTerminalBehavior = elm->getTerminalBehavior();
+			if(spTerminalBehavior)
+			{
+				spTerminalBehavior->SetWalkOnBridge(b);				
+			}
+		}
+	}
 }

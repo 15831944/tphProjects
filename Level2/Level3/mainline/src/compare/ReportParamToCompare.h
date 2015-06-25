@@ -15,6 +15,12 @@
 #include <CommonData/procid.h>
 #include "../Reports/ReportParameter.h"
 
+typedef enum 
+{
+	REPORT_TYPE_DETAIL = 0,
+	REPORT_TYPE_SUMMARY = 1
+} ENUM_REPORT_DETAIL;
+
 class CModelToCompare;
 class CModelParameter
 {
@@ -80,10 +86,11 @@ public:
 	const ElapsedTime& GetStartTime() const { return m_tStart; }
 	const ElapsedTime& GetEndTime() const { return m_tEnd; }
 	const ElapsedTime& GetInterval() const { return m_tInterval; }
-	 void GetInterval( long& lInterval) const{ lInterval =  m_lInterval;}
+	void GetInterval( long& lInterval) const{ lInterval =  m_lInterval;}
 
 	int GetPassagerType() const { return m_nPassagerType; }
-	
+// 	void SetSubType(int nSubType){m_nSubType = nSubType ;}
+// 	int GetSubType(){ return m_nSubType;}
 	
 	BOOL LoadData(const CString& strPath);
 
@@ -96,7 +103,8 @@ public:
 		m_nPassagerType = _rhs.m_nPassagerType;
 		
 		m_vModelParam = _rhs.m_vModelParam;
-		m_lInterval =_rhs.m_lInterval; 
+		m_lInterval =_rhs.m_lInterval;
+		m_nType = _rhs.m_nType;
 		return *this;
 	}
 
@@ -106,18 +114,19 @@ public:
 	void GetModelParameter(std::vector<CModelParameter>& vModelParam);
 	int GetModelParameterCount();
 
+	ENUM_REPORT_DETAIL  GetReportDetail() const { return m_nType; }
+	void SetReportDetail(ENUM_REPORT_DETAIL nType) { m_nType = nType; }
+
 	bool GetModelParamByModelName(const CString& strUniqueName,CModelParameter& modelParam) const;
 	void DeleteModelParameter(const CString& strModelUniqueName);
 private:
 	ElapsedTime m_tStart;
 	ElapsedTime m_tEnd;
 	ElapsedTime m_tInterval;
-	
 	int m_nPassagerType;
-
 	long m_lInterval;
-	
-
+	ENUM_REPORT_DETAIL		m_nType;
+//	int   m_nSubType;
 	std::vector<CModelParameter> m_vModelParam;
 };
 

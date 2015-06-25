@@ -341,7 +341,14 @@ void PaxVisitor::writeVisitorLog(ElapsedTime time, Point _OwnerPreLocation, bool
 	track.bDynamicCreatedProc = spTerminalBehavior->getProcessor()->GetDynamicCreatedFlag();
 	track.followowner = true;
 	track.backup = _bBackup;
-	track.m_IsRealZ = spTerminalBehavior->m_bIsArrivalDoor?TRUE:FALSE;
+
+	//////////////////////for bridge realz////////////////////////////////////////////////////
+	BOOL bInBridge = spTerminalBehavior->IsWalkOnBridge() && spTerminalBehavior->getBridgeState()==DepBridge;
+	BOOL bIsArrivalDoor = spTerminalBehavior->m_bIsArrivalDoor;
+	BOOL bIsRealZ = bInBridge || (bIsArrivalDoor?TRUE:FALSE);
+	//////////////////////////////////////////////////////////////////////////
+
+	track.m_IsRealZ = bIsRealZ;
 
 	//ASSERT(m_type.GetTypeIndex() != 0);
 	CNonPaxRelativePosSpec* pNonPaxRelPosSpec = m_pTerm->GetNonPaxRelativePosSpec();
@@ -424,6 +431,10 @@ void PaxVisitor::writeVisitorLog(ElapsedTime time, Point _OwnerPreLocation, bool
 	{
 		track.m_RealZ = (float)spTerminalBehavior->getLocation().getZ();
 		spTerminalBehavior->m_bIsArrivalDoor = false;
+	}
+	if(bIsRealZ)
+	{
+		track.m_RealZ = (float)spTerminalBehavior->getLocation().getZ();
 	}
 	spTerminalBehavior->getLocation().getPoint (track.x, track.y, track.z);
 

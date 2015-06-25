@@ -19,7 +19,7 @@
 
 CCmpReport::CCmpReport(void)
 {
-	m_strCurReport.Empty();
+	m_strFocusRepName.Empty();
 	m_bModified = FALSE;
 	m_compProject = NULL;
 }

@@ -195,6 +195,9 @@ public:
 	void generateAvoidDensityEvent( const AreaIntersectPoint& _intersectPoint, int _iRealState, const Point& _ptRealDest ,bool bNoLog);
 
 	virtual void SetFollowerArrivalDoor(bool bArrivalDoor);
+	virtual void SetEntryTime(const ElapsedTime& tEntryTime);
+	virtual void SetBridgeState(ArrDepBridgeState state);
+	virtual void SetWalkOnBridge(bool b);
 
 /////mobile element position interface
 	//Returns current coordinates

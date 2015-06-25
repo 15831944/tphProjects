@@ -27,7 +27,7 @@ public:
 	//delete old report, add new one
 	void UpdateReport(const CString& strOldName, const CReportToCompare& report);
 
-	int getCount()const;
+	int getCount() const;
 	CReportToCompare& getReport( int nIndex );
 	CReportToCompare* GetReportByName( const CString& strName);
 

@@ -17,7 +17,6 @@ CReportToCompare::CReportToCompare()
 	m_strName.Empty();
 	m_nReportCategory = 0;
 	m_isChecked = TRUE;
-	m_nType = REPORT_TYPE_DETAIL;
 }
 
 CReportToCompare::~CReportToCompare()
@@ -90,21 +89,21 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 			report.SetChecked(FALSE);
 		}
 
+		CReportParamToCompare param;
 		p_file.getChar(cFlag);
 		if(cFlag == 'D') // Detail
 		{
-			report.SetReportDetail(REPORT_TYPE_DETAIL);
+			param.SetReportDetail(REPORT_TYPE_DETAIL);
 		}
 		else if(cFlag == 'S') // Summary
 		{
-			report.SetReportDetail(REPORT_TYPE_SUMMARY);
+			param.SetReportDetail(REPORT_TYPE_SUMMARY);
 		}
 		else
 		{
-			report.SetReportDetail(REPORT_TYPE_DETAIL);
+			param.SetReportDetail(REPORT_TYPE_DETAIL);
 		}
 
-		CReportParamToCompare param;
 		p_file.getTime(et, TRUE);
 		param.SetStartTime(et);
 
@@ -260,11 +259,12 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			p_file.writeChar('F');
 		}
 
-		if(m_vReports[i].GetReportDetail() == REPORT_TYPE_DETAIL)// Detail
+		CReportParamToCompare param = m_vReports[i].GetParameter();
+		if(param.GetReportDetail() == REPORT_TYPE_DETAIL)// Detail
 		{
 			p_file.writeChar('D');
 		}
-		else if(m_vReports[i].GetReportDetail() == REPORT_TYPE_SUMMARY)// Summary
+		else if(param.GetReportDetail() == REPORT_TYPE_SUMMARY)// Summary
 		{
 			p_file.writeChar('S');
 		}
@@ -272,8 +272,6 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 		{
 			p_file.writeChar('D');
 		}
-
-		CReportParamToCompare param = m_vReports[i].GetParameter();
 
 		p_file.writeTime(param.GetStartTime(), TRUE);
 		p_file.writeTime(param.GetEndTime(), TRUE);

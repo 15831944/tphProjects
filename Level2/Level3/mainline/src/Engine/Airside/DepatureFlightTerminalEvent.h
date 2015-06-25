@@ -31,4 +31,7 @@ private:
 private:
 	AirsideFlightInSim* m_pCFlight;
 	StandResourceManager* m_pStandResource;;
+	BOOL m_bCheckedIntStand;
 };
+
+

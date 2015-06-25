@@ -23,6 +23,7 @@ CPickConveyorTree::CPickConveyorTree()
 	m_nInsertType=0;
 	m_pProc2=NULL;
 	m_pParentWnd=NULL;
+	m_bSendMessage = false;
 }
 
 CPickConveyorTree::~CPickConveyorTree()
@@ -52,7 +53,7 @@ BOOL CPickConveyorTree::Create(DWORD dwStyle, CWnd *pParentWnd)
 	BOOL bCreate=CreateEx(NULL, 
 		TVS_HASBUTTONS|TVS_HASLINES |
 		TVS_LINESATROOT|TVS_SHOWSELALWAYS|
-		WS_POPUP|WS_BORDER|dwStyle,CRect(),
+		/*WS_POPUP|*/WS_BORDER|dwStyle,CRect(),
 		pParentWnd,0);
 	if(bCreate)
 	{
@@ -69,7 +70,9 @@ void CPickConveyorTree::OnKillfocus(NMHDR* pNMHDR, LRESULT* pResult)
 	CNodeView* pNodeView = pDoc->GetNodeView();
 	HTREEITEM hItemSeled=GetSelectedItem();
 	ProcessorID* pProcID=(ProcessorID*)GetItemData(hItemSeled);
-	pNodeView->m_pDlgFlow->SendMessage(UM_PCTREE_SELECT_PROC,(WPARAM)pProcID,m_nInsertType);
+	if(!m_bSendMessage)
+		pNodeView->m_pDlgFlow->SendMessage(UM_PCTREE_SELECT_PROC,(WPARAM)pProcID,m_nInsertType);
+	
 	ShowWindow(SW_HIDE);
 	
 	*pResult = 0;
@@ -134,6 +137,7 @@ void CPickConveyorTree::Init(CProcessor2 *pProc2,int nInsertType)
 		hItem=GetChildItem(hItem);
 	}
 	SelectItem(hItemSeled);	
+	m_bSendMessage = false;
 }
 
 void CPickConveyorTree::OnDblclk(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -144,6 +148,7 @@ void CPickConveyorTree::OnDblclk(NMHDR* pNMHDR, LRESULT* pResult)
 	HTREEITEM hItemSeled=GetSelectedItem();
 	ProcessorID* pProcID=(ProcessorID*)GetItemData(hItemSeled);
 	pNodeView->m_pDlgFlow->SendMessage(UM_PCTREE_SELECT_PROC,(WPARAM)pProcID,m_nInsertType);
+	m_bSendMessage = true;
 	ShowWindow(SW_HIDE);
 	
 	*pResult = 0;

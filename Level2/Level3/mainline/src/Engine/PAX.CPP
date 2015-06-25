@@ -676,6 +676,19 @@ void Passenger::SetFollowerArrivalDoor(bool bArrivalDoor)
 	}
 }
 
+void Passenger::SetEntryTime(const ElapsedTime& tEntryTime)
+{
+	Person::SetEntryTime(tEntryTime);
+
+	for (int i = 0; i < (int)m_pVisitorList.size(); i++)
+	{
+		PaxVisitor* pVis = m_pVisitorList[i];
+		if(pVis)
+		{
+			pVis->m_pGroupInfo->setEntryTime(tEntryTime);
+		}
+	}
+}
 Passenger::~Passenger()
 {
 	//delete m_pSimFlowSync;
@@ -799,6 +812,33 @@ DistanceUnit Passenger::getInStep( void ) const
 	}
 	
 	  return (m_in*(1-dImpact)*SCALE_FACTOR + ((GetActiveGroupSize() < 4)? 0: ((GetActiveGroupSize() < 6)? 20: 40))); 
+}
+
+void Passenger::SetWalkOnBridge( bool b )
+{
+	Person::SetWalkOnBridge( b);
+	for (int i = 0; i < (int)m_pVisitorList.size(); i++)
+	{
+		PaxVisitor* pVis = m_pVisitorList[i];
+		if(pVis)
+		{
+			pVis->SetWalkOnBridge(b);
+		}
+	}
+}
+
+void Passenger::SetBridgeState(ArrDepBridgeState state)
+{
+	Person::SetBridgeState( state);
+
+	for (int i = 0; i < (int)m_pVisitorList.size(); i++)
+	{
+		PaxVisitor* pVis = m_pVisitorList[i];
+		if(pVis)
+		{
+			pVis->SetBridgeState(state);
+		}
+	}
 }
 
 RetailPaxShoppingCondition::~RetailPaxShoppingCondition()

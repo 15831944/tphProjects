@@ -22,15 +22,15 @@ public:
 	{
 	}
 
-	bool Draw3DChart(CCmpBaseReport& _reportData);
+	bool Draw3DChart(CCmpBaseReport& _reportData,int nSubType);
 	bool Update3DChart(ThreeDChartType iType);
 
 private:
 	void Init3DChart();
 	void UniformAppearances();
 
-	bool Draw3DChart(CComparativeQTimeReport& _reportData);
-	bool Draw3DChart(CComparativeQLengthReport& _reportData);
+	bool Draw3DChart(CComparativeQTimeReport& _reportData,int nSubType);
+	bool Draw3DChart(CComparativeQLengthReport& _reportData,int nSubType);
 	bool Draw3DChart(CComparativeThroughputReport& _reportData);
 	bool Draw3DChart(CComparativeSpaceDensityReport& _reportData);
 	bool Draw3DChart(CComparativePaxCountReport& _reportData);

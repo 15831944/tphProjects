@@ -102,36 +102,83 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 		m_listCtrl.DeleteColumn(0);
 	}
 
-	//set header control
-	TCHAR sData[32]	= _T("");
-	m_listCtrl.InsertColumn( 0 , _T("Time"));
-	m_listCtrl.SetColumnWidth(0, 100);
-	const QLengthMap& mapQLength = _reportData.GetResult();
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	int nColCount = 1;
-	CString strColText;
-	for(int i=0; i<(int)vSimName.size(); i++)
+	if (_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 	{
-		_stprintf(sData, _T("Length %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
-	}
-	//set list control
-	int nRow = 0, nCol =0;
-	for(QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine!=mapQLength.end(); iterLine++, nRow++)
-	{
-		iterLine->first.printTime(sData);
-		CString str = GetRegularDateTime(sData, TRUE);
-		m_listCtrl.InsertItem(nRow, str );
-		//m_listCtrl.InsertItem(nRow, sData );
-		const std::vector<int>& vLength = iterLine->second;
-		nCol =1;
-		for(std::vector<int>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
+		//set header control
+		TCHAR sData[32]	= _T("");
+		m_listCtrl.InsertColumn( 0 , _T("Time"));
+		m_listCtrl.SetColumnWidth(0, 100);
+		const QLengthMap& mapQLength = _reportData.GetResult();
+		std::vector<CString>& vSimName = _reportData.GetSimNameList();
+		int nColCount = 1;
+		CString strColText;
+		for(int i=0; i<(int)vSimName.size(); i++)
 		{
-			_stprintf(sData, "%d", *iterLength );
-			m_listCtrl.SetItemText(nRow, nCol, sData );
+			_stprintf(sData, _T("Length %d"), i+1);
+			strColText = vSimName[i];
+			m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(nColCount, 80);
+			nColCount += 1;
+		}
+		//set list control
+		int nRow = 0, nCol =0;
+		for(QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine!=mapQLength.end(); iterLine++, nRow++)
+		{
+			iterLine->first.printTime(sData);
+			CString str = GetRegularDateTime(sData, TRUE);
+			m_listCtrl.InsertItem(nRow, str );
+			//m_listCtrl.InsertItem(nRow, sData );
+			const std::vector<int>& vLength = iterLine->second;
+			nCol =1;
+			for(std::vector<int>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
+			{
+				_stprintf(sData, "%d", *iterLength );
+				m_listCtrl.SetItemText(nRow, nCol, sData );
+			}
+		}
+	}
+	else
+	{
+		m_listCtrl.InsertColumn( 0 , _T("Name"),LVCFMT_CENTER,100);
+		m_listCtrl.InsertColumn(1, _T("Time"),LVCFMT_CENTER,100);
+		m_listCtrl.InsertColumn(2,_T("Min Queue Length"),LVCFMT_CENTER,50);
+		m_listCtrl.InsertColumn(3,_T("Max  Queue Length"),LVCFMT_CENTER,50);
+		m_listCtrl.InsertColumn(4,_T("Average  Queue Length"),LVCFMT_CENTER,50);
+		m_listCtrl.InsertColumn(5,_T("Total  Queue Length"),LVCFMT_CENTER,50);
+
+		const QLengthSummaryMap& queueLengthSummary = _reportData.GetSummaryResult();
+		TCHAR sData[32] = _T("");
+		int nRow = 0;
+		for(QLengthSummaryMap::const_iterator iterLine = queueLengthSummary.begin(); iterLine!=queueLengthSummary.end(); iterLine++, nRow++)
+		{
+			iterLine->first.printTime(sData);
+			CString strTime = GetRegularDateTime(sData,TRUE);
+			const std::vector<QueueLengthGroup>& vLength = iterLine->second;
+			for(std::vector<QueueLengthGroup>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++)
+			{
+				m_listCtrl.InsertItem(nRow,iterLength->m_strModelName);
+				m_listCtrl.SetItemText(nRow,1,strTime);
+
+				//min length
+				CString strMin;
+				strMin.Format(_T("%d"),iterLength->m_nMinValue);
+				m_listCtrl.SetItemText(nRow,2,strMin);
+
+				//max length
+				CString strMax;
+				strMax.Format(_T("%d"),iterLength->m_nMaxValue);
+				m_listCtrl.SetItemText(nRow,3,strMax);
+
+				//ava length
+				CString strAva;
+				strAva.Format(_T("%d"),iterLength->m_nAvaValue);
+				m_listCtrl.SetItemText(nRow,4,strAva);
+
+				//total length
+				CString strTotal;
+				strTotal.Format(_T("%d"),iterLength->m_nTotalValue);
+				m_listCtrl.SetItemText(nRow,5,strTotal);
+			}
 		}
 	}
 

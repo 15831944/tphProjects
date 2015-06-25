@@ -78,17 +78,21 @@ void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 	const CCmpReportManager &crrList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vReport = crrList.GetReportResult();
 
-	CString curReportName = m_pCmpReport->GetCurReport();
+	CString strFocusReport = m_pCmpReport->GetFocusReportName();
 	CComparativeList cmpList(m_pCmpReport->GetTerminal(), m_wndListCtrl);
 	for(int i = 0; i < static_cast<int>(vReport.size()); i++)
 	{
 		CString reportName = vReport[i]->GetCmpReportName();
-		if(reportName.CompareNoCase(curReportName) == 0)
+		if(reportName.CompareNoCase(strFocusReport) == 0)
 		{
+			m_wndListCtrl.ShowWindow(SW_SHOW);
 			cmpList.RefreshData(*vReport[i]);
-			break;
+			return;
 		}
 	}
+
+	// no data to show, hide the list control
+	m_wndListCtrl.ShowWindow(SW_HIDE);
 }
 int CCmpReportListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {

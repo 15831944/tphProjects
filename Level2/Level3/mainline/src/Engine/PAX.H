@@ -99,6 +99,9 @@ public:
 
 	//set visitor list and follower arrival door
 	virtual void SetFollowerArrivalDoor(bool bArrivalDoor);
+	virtual void SetEntryTime(const ElapsedTime& tEntryTime);
+	virtual void SetBridgeState(ArrDepBridgeState state);
+	virtual void SetWalkOnBridge(bool b);
 
 	void NewConvergePair(long _iVisitorId,long _iVisitorType);
 	void DeleteConvergePair(long _iVisitorId,bool _IsMyWantDele);

@@ -151,7 +151,8 @@ void AirsidePassengerBehavior::ProcessWhenTakeOffFlightWithNoBus(ElapsedTime tim
 	TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)m_pax->getBehavior(MobElementBehavior::TerminalBehavior);
 	if (spTerminalBehavior)
 	{
-		spTerminalBehavior->m_bIsArrivalDoor = TRUE ;
+	//	spTerminalBehavior->m_bIsArrivalDoor = TRUE ;
+		m_pax->SetFollowerArrivalDoor(true);
 		m_bArrivalPax = false;
 		spTerminalBehavior->SetTransferTypeState(TerminalMobElementBehavior::TRANSFER_DEPARTURE) ;
 	}

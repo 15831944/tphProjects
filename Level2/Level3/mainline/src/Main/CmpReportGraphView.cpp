@@ -3,7 +3,7 @@
 #include "CompareReportDoc.h"
 #include ".\compare\ComparativePlot.h"
 #include ".\cmpreportgraphview.h"
-
+#include ".\compare\ComparativeQLengthReport.h"
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
 #define COMPARE_REPORT_GRAPH_COMBOBOX1	COMPARE_REPORT_GRAPH_BASE+2
@@ -25,6 +25,7 @@ void CCmpReportGraphView::DoDataExchange(CDataExchange* pDX)
 	CFormView::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHART_TYPE_COMBO, m_comboChartType);
 	DDX_Control(pDX, IDC_REPORT_LIST_COMBO, m_comboReportList);
+	DDX_Control(pDX, IDC_REPORT_SUBTYPE_COMBO, m_comboRepSubType);
 }
 
 BEGIN_MESSAGE_MAP(CCmpReportGraphView, CFormView)
@@ -34,6 +35,7 @@ BEGIN_MESSAGE_MAP(CCmpReportGraphView, CFormView)
 	ON_BN_CLICKED(IDC_PRINT_BTN, OnPrintBtn)
 	ON_CBN_SELCHANGE(IDC_REPORT_LIST_COMBO, OnCbnSelchangeReportListCombo)
 	ON_CBN_SELCHANGE(IDC_CHART_TYPE_COMBO, OnCbnSelchangeChartTypeCombo)
+	ON_CBN_SELCHANGE(IDC_REPORT_SUBTYPE_COMBO, OnCbnSelchangeRepSubTypeCombo)
 END_MESSAGE_MAP()
 
 void CCmpReportGraphView::OnInitialUpdate()
@@ -66,33 +68,27 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 		return;
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
  	CCmpReportParameter* inputParam = pCompProj->GetInputParam();
-	const CCmpReportManager &resultList = pCompProj->GetCompReportResultList();
-	const CmpReportResultVector& vResult = resultList.GetReportResult();
-
-	CString selectedReport;
-	m_comboReportList.GetWindowText(selectedReport);
+	CSingleReportsManager* pReportManager = inputParam->GetReportsManager();
 	m_comboReportList.ResetContent();
-	for(int i = 0; i < static_cast<int>(vResult.size()); i++)
+	for(int i = 0; i < pReportManager->getCount(); i++)
 	{
-		m_comboReportList.AddString(vResult[i]->GetCmpReportName());
+		CReportToCompare& report = pReportManager->getReport(i);
+		if(report.GetChecked() == TRUE)
+		{
+			CString strRepName = report.GetName();
+			m_comboReportList.AddString(strRepName.MakeUpper());
+		}
 	}
-	int nIndex = m_comboReportList.SelectString( 0, selectedReport);
-	if(nIndex == CB_ERR)
-	{
-		m_comboReportList.SetCurSel(0);
-	}
-	else
-	{
-		m_comboReportList.SetCurSel(nIndex);
-	}
-	m_comboReportList.GetWindowText(selectedReport);
-	if(!selectedReport.IsEmpty())
-	{
-		m_pCmpReport->SetCurReport(selectedReport);
-		Draw3DChartByReportName(selectedReport);
-		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-		pDoc->UpdateAllViews(this);
-	}
+
+	UpdateRepSubTypeCombo();
+	CString strCurReport = m_pCmpReport->GetFocusReportName();
+	m_comboReportList.SelectString(0, strCurReport);
+	int nCurSel = m_comboRepSubType.GetCurSel();
+	if (nCurSel == LB_ERR)
+		return;
+	
+	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
+	Draw3DChartByReportName(strCurReport,nSubType);
 }
 
 void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)
@@ -135,18 +131,38 @@ void CCmpReportGraphView::Dump(CDumpContext& dc) const
 
 void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 {
-	CString selectedReport;
-	m_comboReportList.GetWindowText(selectedReport);
-	if(!selectedReport.IsEmpty())
+	int nCurSel=m_comboReportList.GetCurSel();
+	if(nCurSel<0)
 	{
-		m_pCmpReport->SetCurReport(selectedReport);
-		Draw3DChartByReportName(selectedReport);
+		return;
+	}
+	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
+	CString strSelect;
+	m_comboReportList.GetLBText(nCurSel,strSelect);
+	if(!strSelect.IsEmpty())
+	{
+		m_pCmpReport->SetFocusReportName(strSelect);
+		UpdateRepSubTypeCombo();
+		Draw3DChartByReportName(strSelect,nSubType);
 		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 		pDoc->UpdateAllViews(this);
 	}
 }
 
-void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
+void CCmpReportGraphView::OnCbnSelchangeRepSubTypeCombo()
+{
+	int nCurSel=m_comboRepSubType.GetCurSel();
+	if(nCurSel<0)
+	{
+		return;
+	}
+	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
+	CString strFocusRep;
+	m_comboReportList.GetLBText(nCurSel,strFocusRep);
+	Draw3DChartByReportName(strFocusRep,nSubType);
+}
+
+void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport,int nSubType)
 {
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
 	const CCmpReportManager &resultList = pCompProj->GetCompReportResultList();
@@ -156,10 +172,13 @@ void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
 		if(selectedReport.CompareNoCase(vResult[i]->GetCmpReportName()) == 0)
 		{
 			CComparativePlot cmpPlot(CMPBar_2D, m_3DChart);
-			cmpPlot.Draw3DChart(*vResult[i]);
-			break;
+			cmpPlot.Draw3DChart(*vResult[i],nSubType);
+			return;
 		}
 	}
+
+	// no data to show, hide the chart.
+	m_3DChart.m_p3DChart->ShowWindow(SW_HIDE);
 }
 
 void CCmpReportGraphView::OnSelColorBtn() 
@@ -210,6 +229,135 @@ void CCmpReportGraphView::OnCbnSelchangeChartTypeCombo()
 		m_3DChart.Set3DChartType(Arc3DChartType(9));
 		break;
 	default:
+		break;
+	}
+}
+
+void CCmpReportGraphView::UpdateRepSubTypeCombo()
+{
+	m_comboRepSubType.ResetContent();
+	CString strFocusRep = m_pCmpReport->GetFocusReportName();
+	if(strFocusRep.IsEmpty())
+	{
+		return;
+	}
+	CCmpReportParameter* param = m_pCmpReport->GetComparativeProject()->GetInputParam();
+	CReportToCompare* pReport = param->GetReportsManager()->GetReportByName(strFocusRep);
+
+	CString strCombo;
+	switch(pReport->GetCategory())
+	{
+	case ENUM_QUEUELENGTH_REP:
+		{
+			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+			{
+				int nIdx = m_comboRepSubType.AddString("Queue Length(\"Detailed\")");
+				m_comboRepSubType.SetItemData(nIdx,CComparativeQLengthReport::QUEUELENGTH_TYPE);
+
+				m_comboRepSubType.SetCurSel(0);
+			}
+			else
+			{
+				int nIdx = m_comboRepSubType.AddString("Minimum Queue Length");
+				m_comboRepSubType.SetItemData(nIdx,CComparativeQLengthReport::MIN_QLENGTH);
+				nIdx = m_comboRepSubType.AddString("Average Queue Length");
+				m_comboRepSubType.SetItemData(nIdx,CComparativeQLengthReport::AVA_QLENGTH);
+				nIdx = m_comboRepSubType.AddString("Maximum Queue Length");
+				m_comboRepSubType.SetItemData(nIdx,CComparativeQLengthReport::MAX_QLENGTH);
+				nIdx = m_comboRepSubType.AddString("Combined Queue Length");
+				m_comboRepSubType.SetItemData(nIdx,CComparativeQLengthReport::TOTAL_QLENGTH);
+				m_comboRepSubType.SetCurSel(0);
+			}
+		}
+		break;
+	case ENUM_QUEUETIME_REP:
+		{
+			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+			{
+				m_comboRepSubType.AddString("Queue Time(Detailed)");
+				m_comboRepSubType.SetCurSel(0);
+			}
+			else
+			{
+				m_comboRepSubType.AddString("Queue Time(Summary)");
+				m_comboRepSubType.SetCurSel(0);
+			}
+		}
+		break;
+	case ENUM_THROUGHPUT_REP:
+		{
+			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+			{
+				m_comboRepSubType.AddString("Pax Served");
+				m_comboRepSubType.SetCurSel(0);
+			}
+			else
+			{
+				m_comboRepSubType.AddString("Total Pax by Group(Summary)");
+				m_comboRepSubType.AddString("Pax per Processor(Summary)");
+				m_comboRepSubType.AddString("Group Throughput per Hour(Summary)");
+				m_comboRepSubType.AddString("Processor Throughput per Hour(Summary)");
+				m_comboRepSubType.SetCurSel(0);			
+			}
+		}
+		break;
+	case ENUM_PAXDENS_REP:
+		{
+			m_comboRepSubType.AddString("Count");
+			m_comboRepSubType.AddString("Pax/m2");
+			m_comboRepSubType.AddString("m2/Pax");
+			m_comboRepSubType.SetCurSel(0);
+		}
+		break;
+	case ENUM_PAXCOUNT_REP:
+		{
+			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)//Detailed
+			{
+				m_comboRepSubType.AddString("Space Occupancy(Detailed)");
+				m_comboRepSubType.SetCurSel(0);
+			}
+			else//Summary
+			{
+				m_comboRepSubType.AddString("Passenger/Period");
+				m_comboRepSubType.AddString("Maximum Passenger Count");
+				m_comboRepSubType.AddString("Total Passenger Count");
+				m_comboRepSubType.SetCurSel(0);	
+			}
+		}
+		break;
+	case ENUM_ACOPERATION_REP:
+		{
+			m_comboRepSubType.AddString("Total");
+			m_comboRepSubType.SetCurSel(0);
+		}
+		break;
+	case ENUM_DURATION_REP:
+		{
+			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+			{
+				m_comboRepSubType.AddString("Duration(Detailed)");
+				m_comboRepSubType.SetCurSel(0);
+			}
+			else
+			{
+				m_comboRepSubType.AddString("Duration(Summary)");
+				m_comboRepSubType.SetCurSel(0);		
+			}
+		}
+		break;
+	case ENUM_DISTANCE_REP:
+		{
+			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+			{
+				m_comboRepSubType.AddString("Distance Traveled(Detailed)");
+				m_comboRepSubType.SetCurSel(0);
+			}
+			else
+			{
+				m_comboRepSubType.AddString("Distance Traveled(Summary)");
+				m_comboRepSubType.SetCurSel(0);			
+			}
+		}
 		break;
 	}
 }

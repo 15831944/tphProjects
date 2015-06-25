@@ -10,6 +10,7 @@
 #endif // _MSC_VER > 1000
 #include <vector>
 #include "../Common/elaptime.h"
+#include "ReportParamToCompare.h"
 
 enum ComparativeReportType
 {
@@ -29,8 +30,10 @@ protected:
 	std::vector<std::string> m_vSampleRepPaths;
 	CString m_cmpReportName;
 	std::vector<CString> m_vSimName;
+	
 public:
 	ElapsedTime m_ReportStartTime, m_ReportEndTime;
+	CReportParamToCompare m_cmpParam;
 public:
 	CCmpBaseReport();
 	virtual ~CCmpBaseReport();

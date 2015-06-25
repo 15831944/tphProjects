@@ -280,7 +280,8 @@ int CPaxGenerator::GenerateDelayMobileElement(int nFlightID, ElapsedTime& Time, 
 
 		if(pFlight != NULL)
 			_delaytime = Time - pFlight->getArrTime();
-		p_pax->getLogEntry().setEntryTime(logentry.getEntryTime() + _delaytime);//check baggage doesn't show up in airside. But need update checkbaggage entry time
+	//	p_pax->getLogEntry().setEntryTime(logentry.getEntryTime() + _delaytime);//check baggage doesn't show up in airside. But need update checkbaggage entry time
+		p_pax->SetEntryTime(logentry.getEntryTime() + _delaytime);
 		p_pax->generateEvent(logentry.getEntryTime() + _delaytime, false);
 	}
 

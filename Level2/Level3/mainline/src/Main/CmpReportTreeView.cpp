@@ -393,7 +393,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			cni.nt = NT_CHECKBOX;
 			strRep = report.GetName();
 			strRep.MakeUpper();
-			BOOL isChc = report.GetChecked();
 			HTREEITEM hItem2 = m_propTree.InsertItem(strRep, cni, report.GetChecked(), FALSE, m_hReportRoot);
 			cni.nt = NT_NORMAL;
 			CmpReportTreeNodeDataWithType* pNodeData = new CmpReportTreeNodeDataWithType();
@@ -717,8 +716,15 @@ void CCmpReportTreeView::DeleteReport()
 	
 	CCmpReportParameter* pProjectReportParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
 	if(pProjectReportParam)
+	{
 		pProjectReportParam->DeleteReport(strReportName);
-
+		if(m_pCmpReport->GetFocusReportName().CompareNoCase(strReportName) == 0)
+		{
+			ChangeFocusReport();
+		}
+		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+		pDoc->UpdateAllViews(this);
+	}
 
 	UpdateSubItems(m_hReportRoot);
 	m_pCmpReport->SetModifyFlag(TRUE);
@@ -857,6 +863,15 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 			{
 				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
 				pReport->SetChecked(!pReport->GetChecked());
+
+				if( pReport->GetChecked() == FALSE &&
+					m_pCmpReport->GetFocusReportName().CompareNoCase(pReport->GetName()) == 0)
+				{
+					ChangeFocusReport();
+				}
+
+				CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+				pDoc->UpdateAllViews(this);
 			}
 			break;
 		case CMP_REPORT_TN_MODEL:
@@ -876,6 +891,34 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 		}
 		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
+	}
+	if(message == WM_LBUTTONDBLCLK)
+	{
+		HTREEITEM hItem = m_propTree.GetSelectedItem();
+		if(hItem == NULL)
+			return 0;
+		CmpReportTreeNodeDataWithType* pNodeData = (CmpReportTreeNodeDataWithType*)m_propTree.GetItemData(hItem);
+		if(pNodeData == NULL)
+			return 0;
+		switch(pNodeData->m_type)
+		{
+		case CMP_REPORT_TN_REPORT:
+			{
+				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
+				if(pReport->GetChecked() == TRUE)
+				{
+					CString strReport = pReport->GetName();
+					m_pCmpReport->SetFocusReportName(strReport);
+
+					CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+					pDoc->UpdateAllViews(this);
+				}
+				return 0;
+			}
+			break;
+		default:
+			break;
+		}
 	}
 	return CFormView::DefWindowProc(message, wParam, lParam);
 }
@@ -1116,3 +1159,23 @@ void CCmpReportTreeView::LoadReport()
 // 		m_strCurReportFile = strFileName;
 	}
 }
+
+// If the focus report is deleted, then select the first report of the list as the focus target.
+// If there is no report in the list, set focus report null.
+void CCmpReportTreeView::ChangeFocusReport()
+{
+	m_pCmpReport->SetFocusReportName(_T(""));
+	CCmpReportParameter* pProjectReportParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
+	CSingleReportsManager* pRepManager = pProjectReportParam->GetReportsManager();
+	int repCount = pRepManager->getCount();
+	for(int i=0; i<repCount; i++)
+	{
+		CReportToCompare& report = pRepManager->getReport(i);
+		if(report.GetChecked() == TRUE)
+		{
+			CString repName = report.GetName();
+			m_pCmpReport->SetFocusReportName(repName);
+		}
+	}
+}
+

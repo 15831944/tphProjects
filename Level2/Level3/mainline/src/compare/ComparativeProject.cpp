@@ -202,8 +202,9 @@ void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &i
 	pOutParam->SetStartTime(inParam.GetStartTime());
 	pOutParam->SetEndTime(inParam.GetEndTime());
 	pOutParam->SetInterval(inParam.GetInterval().asSeconds());
+	pOutParam->SetReportType(inParam.GetReportDetail());
 
-	pOutParam->SetReportType(0);
+//	pOutParam->SetReportType(0);
 	pOutParam->SetThreshold(LONG_MAX);
 	CModelParameter modelParam;
 	inParam.GetModelParamByModelName(pModel->GetUniqueName(),modelParam);
@@ -481,6 +482,7 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 			break;
 		}
 
+		pResult->m_cmpParam = m_inputParam.GetReportsManager()->GetReportsList()[i].GetParameter();
 		pResult->m_ReportStartTime = m_inputParam.GetReportsManager()->GetReportsList()[i].GetParameter().GetStartTime();
 		pResult->m_ReportEndTime = m_inputParam.GetReportsManager()->GetReportsList()[i].GetParameter().GetEndTime();//elapsetime.
 

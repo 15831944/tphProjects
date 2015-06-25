@@ -63,6 +63,7 @@ CReportParamToCompare::CReportParamToCompare()
 	m_tEnd.set(0, 0, 0);
 	m_tEnd.set(0, 0, 0);
 	m_lInterval = 0;
+	m_nType = REPORT_TYPE_DETAIL;
 }
 
 CReportParamToCompare::~CReportParamToCompare()

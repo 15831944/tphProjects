@@ -23,9 +23,12 @@ public:
 	CToolBar	m_ToolBar;
 	CComboBox	m_comboChartType;
 	CComboBox	m_comboReportList;
+	CComboBox	m_comboRepSubType;
 public:
 	virtual void OnInitialUpdate();
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
+
+
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 protected:
@@ -38,10 +41,11 @@ public:
 	afx_msg void OnCbnSelchangeReportListCombo();
 	afx_msg void OnSelColorBtn();
 	afx_msg void OnPrintBtn();
-private:
-	void Draw3DChartByReportName(CString &reportSelected);
-public:
 	afx_msg void OnCbnSelchangeChartTypeCombo();
+	afx_msg void OnCbnSelchangeRepSubTypeCombo();
+private:
+	void Draw3DChartByReportName(CString &reportSelected,int nSubType);
+	void UpdateRepSubTypeCombo();
 };
 
 

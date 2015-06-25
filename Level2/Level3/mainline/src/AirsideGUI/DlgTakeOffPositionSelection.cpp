@@ -222,9 +222,9 @@ void CDlgSelectTakeoffPosition::OnOK()
 {
 	if(!m_bSelAll)
 	{
-		//int nSelCount = m_wndTakeoffPosiTree.GetSelectedCount();
+		int nSelCount = m_wndTakeoffPosiTree.GetSelectedCount();
 
-		HTREEITEM hSelItem = m_wndTakeoffPosiTree.GetSelectedItem();
+		HTREEITEM hSelItem = m_wndTakeoffPosiTree.GetFirstSelectedItem();
 		if (!hSelItem)
 		{
 			MessageBox(_T("No item select,please select the item!"),_T("Warning"),MB_OK);
@@ -242,7 +242,7 @@ void CDlgSelectTakeoffPosition::OnOK()
 			m_nRwyID = pRunwayMarkData->getRunwayID();
 			m_nRwyMark =pRunwayMarkData->getRunwayMarkIndex();
 
-			//for (int i = 0; i < nSelCount;++i) 
+			for (int i = 0; i < nSelCount;++i) 
 			{		
 				if (hSelItem != NULL && IsTaxiwayItem(hSelItem))
 				{
@@ -252,7 +252,7 @@ void CDlgSelectTakeoffPosition::OnOK()
 
 					m_arSelName.Add(m_wndTakeoffPosiTree.GetItemText(hSelItem));
 				}
-				//hSelItem = m_wndTakeoffPosiTree.GetNextSelectedItem(hSelItem);
+				hSelItem = m_wndTakeoffPosiTree.GetNextSelectedItem(hSelItem);
 			}
 		}
 	
@@ -264,7 +264,7 @@ void CDlgSelectTakeoffPosition::OnTvnSelchangedTreeTakeoffposi(NMHDR *pNMHDR, LR
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: Add your control notification handler code here
-	if(_T("All") == m_wndTakeoffPosiTree.GetItemText( m_wndTakeoffPosiTree.GetSelectedItem()))
+	if(_T("All") == m_wndTakeoffPosiTree.GetItemText( m_wndTakeoffPosiTree.GetFirstSelectedItem()))
 		m_bSelAll = true;
 	else
 		m_bSelAll = false;

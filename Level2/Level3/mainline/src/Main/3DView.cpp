@@ -3977,7 +3977,7 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 						glColor3ubv(pdpcol);
 						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
 						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
-						glLoadName(GenerateSelectionID(SELTYPE_TERMINALTRACER, SELSUBTYPE_MAIN, pDoc->m_tempTracerData.GetPaxID(nTrackIdx)));
+						glLoadName(GenerateSelectionID(SELTYPE_TERMINALTRACER, SELSUBTYPE_MAIN, (nTrackIdx)));
 						glBegin(GL_LINE_STRIP);
 						int nHitCount = track.size();
 						bool bBeginVertex = false;
@@ -3995,8 +3995,8 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 								double dOffset = (hit[VZ]/100.0 - (double)nFloorIdx);
 								dAltitude = dAlt[nFloorIdx]*(1.0-dOffset)  + dAlt[nFloorIdx+1]*dOffset;
 							}
-							if(bOn[nFloorIdx])
-{
+							if(true/*bOn[nFloorIdx]*/)
+							{
 								glVertex3f(static_cast<GLfloat>(hit[VX]), static_cast<GLfloat>(hit[VY]),(GLfloat)dAltitude);
 								bBeginVertex = true; 
 							}
@@ -6911,7 +6911,10 @@ void C3DView::SelectProc(int& nSelectCount,UINT nFlags,CPoint point,GLuint* idx,
 			else if(SELTYPE_LANDSIDETRACER == seltype)
 				eTracerType = CTracerTagWnd::Landside;
 
-			m_pTracerTagWnd = new CTracerTagWnd(eTracerType, GetSelectIdx(idx[i]), GetDocument());
+			int PaxID = pDoc->m_tempTracerData.GetPaxID( GetSelectIdx(idx[i]) );
+
+			m_pTracerTagWnd = new CTracerTagWnd(eTracerType, PaxID, GetDocument());
+
 			m_pTracerTagWnd->CreateEx(WS_EX_TOOLWINDOW, NULL, NULL, WS_CHILD, CRect(0,0,250,200), this, IDD_DIALOG_PROCESSORTAGS );
 			CRect rc, rcClient, rcMain;
 			this->GetWindowRect(&rcClient);
@@ -7228,7 +7231,13 @@ void C3DView::Pickconveyor(int nInsertType)
 
 	CProcessor2* pProc2=(CProcessor2 *)pObjDisplay;
 	m_pPickConveyorTree->Init(pProc2,nInsertType);
-	m_pPickConveyorTree->SetWindowPos(NULL,point.x,point.y,180,240,SWP_NOZORDER|SWP_SHOWWINDOW);
+
+
+	CRect rcScreenTree(point.x, point.y, point.x + 180, point.y +240);
+	ScreenToClient(rcScreenTree);	
+
+	m_pPickConveyorTree->SetWindowPos(NULL,rcScreenTree.left,rcScreenTree.top,180,240,SWP_NOZORDER|SWP_SHOWWINDOW);
+	m_pPickConveyorTree->SetFocus();
 	
 }
 

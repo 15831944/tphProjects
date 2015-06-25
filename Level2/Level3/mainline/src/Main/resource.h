@@ -1461,7 +1461,6 @@
 #define IDC_LST_AIRPORTS                1101
 #define IDC_LIST_AIRPORTS               1101
 #define IDB_MOVE_DOWN_FLOOR             1101
-//#define IDB_LANDSIDE_TAXIPOOL           1101
 #define IDB_BITMAP_LANDSIDE_TAXIPOOL    1101
 #define IDC_TREE_SECTORS                1102
 #define IDB_MOVE_DOWN_FLOOR1            1102
@@ -2072,6 +2071,7 @@
 #define IDC_COMBOBOXEX1                 1263
 #define IDC_REPORT_SUBTYPE              1263
 #define IDC_EDIT_CABIN                  1263
+#define IDC_REPORT_SUBTYPE_COMBO        1263
 #define IDC_BUTTON_APPLY                1264
 #define ID_BUTTON_CANCEL                1265
 #define IDC_LIST                        1266
@@ -3023,6 +3023,7 @@
 #define IDC_STATIC_FILEPATH             2151
 #define IDC_STATIC_SUBTYPE              2152
 #define IDC_STATIC_CHARTTYPE            2153
+#define IDC_STATIC_CHARTTYPE2           2154
 #define IDC_CHK_MAPVISIBLE              2157
 #define IDC_TREE_SHIP                   2158
 #define IDC_STATIC_ALIAS                2158

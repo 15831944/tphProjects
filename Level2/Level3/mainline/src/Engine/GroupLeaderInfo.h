@@ -53,6 +53,7 @@ public:
 	virtual void SetFollowerInTray(bool bInTray);
 
 	virtual void setFollowerArrivalDoor(bool bArrivalDoor);
+	virtual void setEntryTime(const ElapsedTime& tEntryTime);
 	// write log for all the follower if they are active grouped
 	// in:
 	// _bBackup: if the log is backwards.

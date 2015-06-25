@@ -77,8 +77,9 @@ void BridgeQueue::addToQueue( Person *aPerson )
 
 void BridgeQueue::approachQueue( Person *aPerson, ElapsedTime approachTime )
 {
-	if(TerminalMobElementBehavior *spTerminalBehavior= aPerson->getTerminalBehavior())
-		spTerminalBehavior->SetWalkOnBridge(TRUE);
+	aPerson->SetWalkOnBridge(TRUE);
+	/*if(TerminalMobElementBehavior *spTerminalBehavior= aPerson->getTerminalBehavior())
+	spTerminalBehavior->SetWalkOnBridge(TRUE);*/
 
 	int index = cornerCount() - 1 ;
 	aPerson->setTerminalLocation(corner(index));

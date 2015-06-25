@@ -215,12 +215,12 @@ BOOL CDlgReportProperty::OnInitDialog()
 
 	m_comboRepType.AddString("Detail");
 	m_comboRepType.AddString("Summary");
-	switch(m_reportToCompare.GetReportDetail())
+	switch(m_reportToCompare.GetParameter().GetReportDetail())
 	{
 	case REPORT_TYPE_DETAIL: // "Detail"
 		m_comboRepType.SetCurSel(0);
 		break;
-	case REPORT_TYPE_DETAIL: // "Summary"
+	case REPORT_TYPE_SUMMARY: // "Summary"
 		m_comboRepType.SetCurSel(1);
 		break;
 	default:
@@ -562,28 +562,26 @@ void CDlgReportProperty::OnOK()
 	//param.SetProcessorID(m_vProcList);
 	//param.SetFromToProcs(m_fromToProcs);
 
-	m_reportToCompare.SetParameter(param);
-
-
-//clear the data
-	DeleteTreeData(m_treeProcType);
-	DeleteTreeData(m_treeProcFromTo);
-	DeleteTreeData(m_treeArea);
-	DeleteTreeData(m_treePaxType);
-
 	int nSel = m_comboRepType.GetCurSel();
 	switch (nSel)
 	{
 	case 0: // selected string is "Detail".
-		m_reportToCompare.SetReportDetail(REPORT_TYPE_DETAIL);
+		param.SetReportDetail(REPORT_TYPE_DETAIL);
 		break;
 	case 1: // selected string is "Summary".
-		m_reportToCompare.SetReportDetail(REPORT_TYPE_SUMMARY);
+		param.SetReportDetail(REPORT_TYPE_SUMMARY);
 		break;
 	default:
 		break;
 	}
 
+	m_reportToCompare.SetParameter(param);
+
+	//clear the data
+	DeleteTreeData(m_treeProcType);
+	DeleteTreeData(m_treeProcFromTo);
+	DeleteTreeData(m_treeArea);
+	DeleteTreeData(m_treePaxType);
 	CDialog::OnOK();
 }
 

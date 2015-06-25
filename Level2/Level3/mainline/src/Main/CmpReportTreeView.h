@@ -81,6 +81,7 @@ private:
 	void LoadPara();
 	void SaveReport();
 	void LoadReport();
+	void ChangeFocusReport();
 protected:
 	CCmpReport* m_pCmpReport;
 };

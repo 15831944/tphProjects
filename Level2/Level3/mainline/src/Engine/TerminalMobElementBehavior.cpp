@@ -1047,7 +1047,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 			dL = pt.length();
 			double time = dL;
 			t = (float) (time / (double)m_pPerson->speed );
-			m_IsWalkOnBridge = TRUE ;
+			m_pPerson->SetWalkOnBridge(TRUE);// = TRUE ;
 			generateEvent (p_time + t,false);
 		}
 	}
@@ -1072,7 +1072,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 		double time = dL;
 		t = (float) (time / (double)m_pPerson->speed );
 
-		m_IsWalkOnBridge = TRUE ;
+		m_pPerson->SetWalkOnBridge(TRUE);//m_IsWalkOnBridge = TRUE ;
 
 		setState(EntryOnboard);//move to onboard in next event, if no onboard selected, flush log
 		generateEvent (p_time + t,false);
@@ -1397,35 +1397,30 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 
 	if(m_pPerson->m_logEntry.isArriving() \
 		&&getTerminal()->procList->getProcessor (START_PROCESSOR_INDEX) == m_pProcessor \
-		&& nextProc && nextProc->getProcessorType() != BridgeConnectorProc \
-		&&m_pPerson->getGateIndex() != -1&& m_emBridgeState == NonState)
+	&& nextProc && nextProc->getProcessorType() == GateProc && m_emBridgeState == NonState)
 	{
 		Point startPs, endPs;
 		if (m_pPerson->m_logEntry.isArrival())
 		{
 			m_pPerson->getTerminalBehavior()->SetTransferTypeState(TRANSFER_ARRIVAL);
 		}
-		Processor* pGateProc = m_pTerm->procList->getProcessor(m_pPerson->getGateIndex());
-		if (pGateProc)
+
+		BridgeConnector* pBridgePro = (BridgeConnector*)GetBridgeConnector(nextProc);
+		if (pBridgePro)
 		{
-			BridgeConnector* pBridgePro = (BridgeConnector*)GetBridgeConnector(pGateProc);
-			if (pBridgePro)
+			int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+			if(m_nBridgeIndex != -1)
 			{
-				int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
-				if(m_nBridgeIndex != -1)
-				{
-					m_emBridgeState = ArrBridge;
-					m_pPerson->setTerminalDestination(endPs);
-					m_pProcessor = pBridgePro;
-					m_pProcessor->addPerson(m_pPerson);
-					m_pPerson->SetFollowerArrivalDoor(true);
-					generateEvent(p_time,false);
-					setState( WalkOnBridge );
-					return FALSE;
-				}
+				m_pPerson->SetBridgeState(ArrBridge);//m_emBridgeState = ArrBridge;
+				m_pPerson->setTerminalDestination(endPs);
+				m_pProcessor = pBridgePro;
+				m_pProcessor->addPerson(m_pPerson);
+				m_pPerson->SetFollowerArrivalDoor(true);
+				generateEvent(p_time,false);
+				setState( WalkOnBridge );
+				return FALSE;
 			}
 		}
-	
 	}
 
 	//------------------------------Added by frank 05-11-21
@@ -1649,14 +1644,8 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		}
 		else // for other pax go to bridge or airside
 		{
-			Processor* pGateProc = m_pTerm->procList->getProcessor(m_pPerson->getGateIndex());
-			BridgeConnector* pProce  = NULL;
-			if (pGateProc)
-			{
-				pProce = (BridgeConnector*)GetBridgeConnector(pGateProc);
-			}
-			
-			if(!pProce || m_pProcessor->getProcessorType() == BridgeConnectorProc )
+			BridgeConnector* pProce = GetBridgeConnector(m_pProcessor);		
+			if(!pProce )
 			{
 				setState( EntryAirside );
 				generateEvent (p_time,false);
@@ -1669,7 +1658,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 				int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
 				if(m_nBridgeIndex != -1 &&  m_pPerson->m_logEntry.isDeparting())
 				{
-					m_emBridgeState = DepBridge;
+					m_pPerson->SetBridgeState(DepBridge);//m_emBridgeState = DepBridge;
 					m_pPerson->setTerminalDestination(startPs);
 					m_pProcessor = pProce;
 					EnterFromTerminalModeToOtherMode();
@@ -1691,15 +1680,16 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 
 	if(nextProc && nextProc->getProcessorType()==BridgeConnectorProc)
 	{
-		m_emBridgeState = NonState;
+		m_pPerson->SetBridgeState(NonState);
 		if(m_pPerson->m_logEntry.isArrival() && m_pProcessor ==  getTerminal()->procList->getProcessor (START_PROCESSOR_INDEX) )
 		{
-			m_emBridgeState = ArrBridge;
+			m_pPerson->SetBridgeState(ArrBridge);
 		}
 		if(m_pPerson->m_logEntry.isDeparting())
 		{
-			m_emBridgeState =  DepBridge;
+			m_pPerson->SetBridgeState(DepBridge);
 		}
+
 	}
 
 	m_pProcessor = nextProc;
@@ -3174,6 +3164,10 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 			pIDWithOne2One = (MiscProcessorIDWithOne2OneFlag*)(pMiscProcessorIDList->getItem(i));
 		}
 	}
+	ASSERT(pIDWithOne2One != NULL);
+	if(pIDWithOne2One == NULL)
+		return;
+
 	std::vector<int> vPipeList1;
 	if(pIDWithOne2One->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
 	{
@@ -5395,6 +5389,8 @@ Processor* TerminalMobElementBehavior::TryToGetElevatorDestProc( ElapsedTime p_t
 {
 	ProcessorDistribution* pOldFlowList = m_pFlowList;
 	Processor *pOldProcessor = m_pProcessor;
+	bool bOldWaitInLinkedArea = m_bWaitInLinkedArea;
+	Processor* pOldBackToProcFromWaitArea =  m_pBackToProcFromWaitArea;
 
 	 m_pFlowList = _pProcessor->getNextDestinations ( m_pPerson->getType(), m_nInGateDetailMode );
 	m_pProcessor = _pProcessor;
@@ -5409,7 +5405,10 @@ Processor* TerminalMobElementBehavior::TryToGetElevatorDestProc( ElapsedTime p_t
 
 	m_pFlowList = pOldFlowList;
 	m_pProcessor = pOldProcessor;
-
+	m_bWaitInLinkedArea = bOldWaitInLinkedArea;
+	m_pBackToProcFromWaitArea = pOldBackToProcFromWaitArea;
+	
+	
 	return pDestProc;
 }
 // wait for resource 
@@ -5818,15 +5817,18 @@ void TerminalMobElementBehavior::writeLog (ElapsedTime time, bool _bBackup, bool
 
 	if (getProcessor() == 0)
 		return;
-	BOOL m_bInBridge = (getProcessor()->getProcessorType()==BridgeConnectorProc);
-
+	//////////////////////////////////////////////////////////////////////////
+	BOOL bInBridge = IsWalkOnBridge() && getBridgeState()==DepBridge;
+	BOOL bIsArrivalDoor = m_bIsArrivalDoor;
+	BOOL bIsRealZ = bInBridge || (bIsArrivalDoor?TRUE:FALSE);
+	//////////////////////////////////////////////////////////////////////////
 
 	track.procNumber = (short)getProcessor()->getIndex();
 	track.bDynamicCreatedProc = getProcessor()->GetDynamicCreatedFlag();
 	track.followowner	= false;
 	track.reason = m_iStopReason;
 	track.backup = _bBackup;
-	track.m_IsRealZ = m_bInBridge || (m_bIsArrivalDoor?TRUE:FALSE);
+	track.m_IsRealZ = bInBridge || (m_bIsArrivalDoor?TRUE:FALSE);
 
 	PLACE_TRACK_STRING("2010224-11:04:47");
 	if(m_pPerson->m_type.GetTypeIndex() != 0 )

@@ -651,6 +651,7 @@ int BridgeConnector::GetRandomPoint(Point& pStart, Point& pEnd,Person* pPerson)
 
 void BridgeConnector::FlushLog(const ElapsedTime& t)
 {
+	cpputil::autoPtrReset(m_pQueue);
 	m_Status.FlushLog(t,m_pTerm);
 }
 
@@ -717,9 +718,11 @@ void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 		{
 			serviceT = ElapsedTime(dist->getRandomValue());
 		}
-		TerminalMobElementBehavior* spTerminalBehavior = person->getTerminalBehavior();
+		//
+		person->SetWalkOnBridge(TRUE);
+		/*	TerminalMobElementBehavior* spTerminalBehavior = person->getTerminalBehavior();
 		if (spTerminalBehavior != NULL)
-			spTerminalBehavior->SetWalkOnBridge(TRUE);
+		spTerminalBehavior->SetWalkOnBridge(TRUE);*/
 		//person->setState();
 		person->generateEvent (curTime + serviceT,false);
 		return;
@@ -748,7 +751,8 @@ void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 		dL = pt.length();
 		double time = dL;
 		t = (float) (time / (double)person->getSpeed() );
-		spTerminalBehavior->SetWalkOnBridge(TRUE);
+		
+		person->SetWalkOnBridge(TRUE);//spTerminalBehavior->SetWalkOnBridge(TRUE);
 
 		person->generateEvent (curTime + t,false);
 		return;

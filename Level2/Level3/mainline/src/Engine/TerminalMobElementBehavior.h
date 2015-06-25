@@ -625,11 +625,12 @@ public:
 
 	inline void SetWalkOnBridge(BOOL b){ m_IsWalkOnBridge = b; }
 	inline BOOL IsWalkOnBridge()const{ return m_IsWalkOnBridge; }
+	ArrDepBridgeState getBridgeState()const{ return m_emBridgeState;}
+	void setBridgeState(ArrDepBridgeState state){ m_emBridgeState = state; }
 
 	Processor * getLastTerminalProc() const { return m_pLastTerminalProc; }
 	void setLastTerminalProc(Processor * pProc) { m_pLastTerminalProc = pProc; }
 
-	ArrDepBridgeState getBridgeState()const{ return m_emBridgeState;}
 public:
 	int inElevotor;
 
