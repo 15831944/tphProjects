@@ -215,8 +215,9 @@ BOOL CCmpReport::LoadProject(const CString &strName, const CString& strDesc)
 	std::vector<CReportToCompare> vReports;
 	dsReport.SetModels(vModels);
 	dsReport.loadDataSet(strPath);
-	if (dsReport.GetReports(vReports))
+	if (dsReport.GetReportCount() > 0)
 	{
+		dsReport.GetReports(vReports);
 		m_compProject->GetInputParam()->GetReportsManagerPtr()->SetReports(vReports);
 
 		for (int i = 0; i < static_cast<int>(vReports.size()); i++)

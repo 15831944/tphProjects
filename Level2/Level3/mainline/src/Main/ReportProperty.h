@@ -19,7 +19,7 @@
 // CReportProperty dialog
 //
 
-class CReportProperty : public CDialog
+class CDlgCmpReportProperty : public CDialog
 {
 // Construction
 public:
@@ -49,7 +49,7 @@ public:
 		long m_nIndex;
 	};
 public:
-	CReportProperty(CWnd* pParent = NULL);   // standard constructor
+	CDlgCmpReportProperty(CWnd* pParent = NULL);   // standard constructor
 	//~CReportProperty();
 
 	void DeleteTreeData(CTreeCtrl& tree);

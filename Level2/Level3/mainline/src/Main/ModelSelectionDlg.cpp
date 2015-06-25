@@ -303,8 +303,11 @@ int CModelSelectionDlg::GetSelectionModelsFromTree()
 						hItemResult = m_cooltree.GetNextSiblingItem(hItemResult))
 					{
 						if (m_cooltree.IsCheckItem(hItemResult))
-						{			
-							model->AddSimResult(m_cooltree.GetItemText(hItemResult));
+						{
+							SimResultWithCheckedFlag simResult;
+							simResult.SetSimResultName(m_cooltree.GetItemText(hItemResult));
+							simResult.SetChecked(TRUE);
+							model->AddSimResult(simResult);
 						}
 					}
 
@@ -575,7 +578,7 @@ void CModelSelectionDlg::OnTvnItemexpandingTree1(NMHDR *pNMHDR, LRESULT *pResult
 						int nSelSimResult = model->GetSimResultCount();
 						for (int nIndex =0; nIndex <nSelSimResult; ++nIndex)
 						{
-							if (strText.CompareNoCase(model->GetSimResult(nIndex)) == 0)
+							if (strText.CompareNoCase(model->GetSimResultName(nIndex)) == 0)
 							{
 								if (!m_cooltree.IsCheckItem(hResultItem))
 									m_cooltree.SetCheckStatus(hResultItem, TRUE);

@@ -28,7 +28,10 @@ public:
 
 	void SetCmpReport(CCmpReport* pCmpReport){ m_pCmpReport = pCmpReport; }
 	void InitParaWnd();
-	void UpdateParaWnd();
+
+
+
+	void UpdateWholeTree();
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 protected:
 	CCoolTree m_propTree;
@@ -50,6 +53,7 @@ protected:
 	afx_msg void OnRun();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnChooseMenu(UINT nID);
+	afx_msg void OnClose();
 
 
 	CString GetRegularDateTime(LPCTSTR elaptimestr, bool needsec = true);
@@ -62,8 +66,8 @@ protected:
 	void DeleteAllModel();
 	BOOL CheckData();
 	void RemoveSubItem(HTREEITEM pItem);
-	void UpdateParaItem(HTREEITEM pItem);
-
+	void UpdateSubItems(HTREEITEM pItem);
+	void SetItemDataDefault(HTREEITEM hItem);
 	CMenu m_nMenu, *m_pSubMenu;
 
 public:

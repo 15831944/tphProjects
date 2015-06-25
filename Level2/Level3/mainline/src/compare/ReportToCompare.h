@@ -25,6 +25,7 @@ public:
 		m_strName = _other.m_strName;
 		m_nReportCategory = _other.m_nReportCategory;
 		m_reportParam = _other.m_reportParam;
+		m_isChecked = _other.m_isChecked;
 	}
 	
 	virtual ~CReportToCompare();
@@ -37,6 +38,9 @@ public:
 
 	void SetParameter(const CReportParamToCompare& reportParam) { m_reportParam = reportParam; }
 	const CReportParamToCompare& GetParameter() const { return m_reportParam; }
+
+	BOOL GetChecked() const { return m_isChecked; }
+	void SetChecked(BOOL val) { m_isChecked = val; }
 
 	BOOL LoadData( const CString& strPath );
 	
@@ -56,6 +60,7 @@ private:
 	int						m_nReportCategory;
 	CString					m_strName;
 	CReportParamToCompare	m_reportParam;
+	BOOL					m_isChecked;
 };
 
 
@@ -73,8 +78,9 @@ public:
 	virtual const char* getHeaders() const{return "Name, Category, Start, End, Interval, Passange Type, Processor Type";}
 	
 	
-	int GetReports(OUT std::vector<CReportToCompare>& vReports);
+	void GetReports(OUT std::vector<CReportToCompare>& vReports);
 	void SetReports(const std::vector<CReportToCompare>& vReports);
+	int GetReportCount(){ return (int)m_vReports.size(); }
 
 	void SetModels(const std::vector<CModelToCompare *>& vModel );
 	CModelToCompare* GetModelByUniqueName(const CString& strUniqueName);

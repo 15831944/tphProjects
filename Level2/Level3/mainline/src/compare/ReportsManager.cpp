@@ -55,10 +55,13 @@ void CReportsManager::SetReports(const std::vector<CReportToCompare>& vReports)
 
 void CReportsManager::DeleteModelParameter(const CString& strModelUniqueName)
 {
-	std::vector<CReportToCompare>::size_type i = 0;
-
-	for (;i < m_vReportToCompare.size(); ++i)
+	int reportCount = (int)m_vReportToCompare.size();
+	for (int i=0; i<reportCount; i++)
 	{
-		m_vReportToCompare.at(i).DeleteModelParameter(strModelUniqueName);
+		m_vReportToCompare[i].DeleteModelParameter(strModelUniqueName);
+		if(m_vReportToCompare[i].GetParameter().GetModelParameterCountConst() == 0)
+		{
+			m_vReportToCompare.erase(m_vReportToCompare.begin()+i);
+		}
 	}
 }

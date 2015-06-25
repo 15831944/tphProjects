@@ -25,7 +25,7 @@ CModelToCompare::CModelToCompare()
 {
 	m_terminal = NULL;
 	m_bNeedCopy = false;
-
+	m_isChecked = TRUE;
 }
 
 CModelToCompare::~CModelToCompare()
@@ -415,19 +415,34 @@ CAirportDatabase* CModelToCompare::OpenProjectDBForInitNewProject(const CString&
 	}
 	return _AirportDB;
 }
-void CModelToCompare::AddSimResult(const CString& strSimResult)
+void CModelToCompare::AddSimResult(SimResultWithCheckedFlag& simResult)
 {
-	m_vSimResult.push_back(strSimResult);
+	m_vSimResult.push_back(simResult);
 }
+
+void CModelToCompare::AddSimResult(char* pBuf, BOOL isChecked/*= TRUE*/)
+{
+	SimResultWithCheckedFlag simResult;
+	simResult.SetSimResultName(CString(pBuf));
+	simResult.SetChecked(isChecked);
+	m_vSimResult.push_back(simResult);
+}
+
 int CModelToCompare::GetSimResultCount()
 {
 	return static_cast<int>(m_vSimResult.size());
 }
-CString CModelToCompare::GetSimResult(int nIndex)
+
+SimResultWithCheckedFlag& CModelToCompare::GetSimResult(int nIndex)
 {
 	ASSERT(nIndex >=0 && nIndex < GetSimResultCount());
 	return m_vSimResult[nIndex];
+}
 
+CString CModelToCompare::GetSimResultName(int nIndex)
+{
+	ASSERT(nIndex >=0 && nIndex < GetSimResultCount());
+	return m_vSimResult[nIndex].GetSimResultName();
 }
 void CModelToCompare::ClearSimResult()
 {
@@ -464,12 +479,24 @@ void CModelToCompareDataSet::readData(ArctermFile& p_file)
 		if (p_file.getField(buf, 255) != 0)
 			model->SetModelName(buf);
 
+		char cFlag = 'F';
+		p_file.getChar(cFlag);
+		if(cFlag == 'T')
+			model->SetChecked(TRUE);
+		else
+			model->SetChecked(FALSE);
+
 		int nSimResultCount;
 		p_file.getInteger(nSimResultCount);
 		for (int i =0; i < nSimResultCount; i++)
 		{
 			p_file.getField(buf,255);
-			model->AddSimResult(buf);
+			char cFlag = 'F';
+			p_file.getChar(cFlag);
+			if(cFlag == 'T')
+				model->AddSimResult(buf, TRUE);
+			else
+				model->AddSimResult(buf, FALSE);
 		}
 
 		// read the unique name;
@@ -512,12 +539,24 @@ void CModelToCompareDataSet::writeData(ArctermFile& p_file) const
 	for (unsigned i = 0; i < m_vModels.size(); i++)
 	{
 		p_file.writeField(m_vModels[i]->GetModelName());//write the model name
-		
+		if(m_vModels[i]->GetChecked() == TRUE)
+		{
+			p_file.writeChar('T');
+		}
+		else
+		{
+			p_file.writeChar('F');
+		}
 		int nSimResultCount = m_vModels[i]->GetSimResultCount();
 		p_file.writeInt(nSimResultCount);
 		for (int j = 0; j < nSimResultCount; ++j)
 		{
-			p_file.writeField(m_vModels[i]->GetSimResult(j));
+			p_file.writeField(m_vModels[i]->GetSimResultName(j));
+			SimResultWithCheckedFlag& simResult = m_vModels[i]->GetSimResult(j);
+			if(simResult.GetChecked() == TRUE)
+				p_file.writeChar('T');
+			else
+				p_file.writeChar('F');
 		}
 
 		p_file.writeField(m_vModels[i]->GetUniqueName());//write the unique name

@@ -186,7 +186,7 @@ void CComparativeProject::RemoveFiles(const CString &strPath)
 	}
 }
 
-void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &inParam, CReportParameter* pOutParam, CModelToCompare* pModel)
+BOOL CComparativeProject::GenerateReportParameter(const CReportParamToCompare &inParam, CReportParameter* pOutParam, CModelToCompare* pModel)
 {
 	pOutParam->SetStartTime(inParam.GetStartTime());
 	pOutParam->SetEndTime(inParam.GetEndTime());
@@ -195,23 +195,25 @@ void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &i
 	pOutParam->SetReportType(0);
 	pOutParam->SetThreshold(LONG_MAX);
 	CModelParameter modelParam;
-	inParam.GetModelParamByModelName(pModel->GetUniqueName(),modelParam);
+	if(inParam.GetModelParamByModelName(pModel->GetUniqueName(),modelParam) == false)
+		return FALSE;
 	
 	std::vector<CString> vsAreas;
 	vsAreas.push_back(modelParam.GetArea());
 	pOutParam->SetAreas(vsAreas);
 	std::vector<CMobileElemConstraint> vPaxType;
-	modelParam.GetPaxType(vPaxType);
+	modelParam.GetPaxTpyeList(vPaxType);
 
 	pOutParam->SetPaxType(vPaxType);
 
 	std::vector<ProcessorID> vProcGroups;
-	modelParam.GetProcessorID(vProcGroups);
+	modelParam.GetProcIDGroup(vProcGroups);
 	pOutParam->SetProcessorGroup(vProcGroups);
 
 	CReportParameter::FROM_TO_PROCS _fromtoProcs;
 	modelParam.GetFromToProcs(_fromtoProcs);
 	pOutParam->SetFromToProcs(_fromtoProcs);
+	return TRUE;
 }
 
 BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _ShowCopyInfo)(LPCTSTR))
@@ -239,7 +241,7 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 		vReports[ns].m_vstrOutput.clear();
 	}
 	
-	nEnd = (7 + 5 + 3) * vModels.size() + vModels.size() * vReports.size() + 5 + 3;
+	nEnd = (7 + 5 + 3) * vModels.size() + vModels.size() * vReports.size() + 5 + 3 +100;
 	pWndStatus->SetProgressRange(nStart, nEnd);
 
 	SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
@@ -261,7 +263,8 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 			for (unsigned j = 0; j < vReports.size(); j++)
 			{
 				int iReportIndex = -1;
-				switch(vReports[j].GetCategory()) {
+				switch(vReports[j].GetCategory()) 
+				{
 				case ENUM_QUEUELENGTH_REP:
 					iReportIndex = 0;
 					break;
@@ -318,13 +321,21 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(NULL) )));
 					break;
 				}
-				GenerateReportParameter(vReports[j].GetParameter(), pOutParam,pCmpModel);
+
+				if(GenerateReportParameter(vReports[j].GetParameter(), pOutParam, pCmpModel) == FALSE)// generate report parameter failed.
+				{
+					delete pOutParam;
+					pOutParam = NULL;
+					nProgressStatus++;
+					pWndStatus->SetProgressPos(nProgressStatus);
+					continue;
+				}
 				
 				int nSimResultCount = pCmpModel->GetSimResultCount();
 
 				for (int nResult = 0; nResult < nSimResultCount; ++nResult )
 				{
-					CString strSimResult = pCmpModel->GetSimResult(nResult);
+					CString strSimResult = pCmpModel->GetSimResultName(nResult);
 					strStatus.Format(_T("%s%s%s%s :%s"), _T("Generate "), 
 						s_szReportCategoryName[iReportIndex],
 						_T(" report of "), pCmpModel->GetModelName(),strSimResult);
@@ -332,14 +343,14 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 
 					TransferLogFiles(pCmpModel,pCmpModel->GetLocalPath(),strSimResult,_ShowCopyInfo);
 					
-					vModels[i]->GetTerminal()->GetSimReportManager()->SetCurrentSimResult(strSimResult);
+					pCmpModel->GetTerminal()->GetSimReportManager()->SetCurrentSimResult(strSimResult);
 					CMutiRunReportAgent tempMultiRunAgent;
 					CString projPath = pCmpModel->GetLocalPath();
-					Terminal* pTerm = vModels[i]->GetTerminal();
+					Terminal* pTerm = pCmpModel->GetTerminal();
 					tempMultiRunAgent.Init(projPath, pTerm);
 					tempMultiRunAgent.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
 					tempMultiRunAgent.GenerateAll();
-					CString strReportPath = vModels[i]->GetTerminal()->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
+					CString strReportPath = pCmpModel->GetTerminal()->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
 				
 					strReportPath = SaveTempReport(strReportPath, i, j, nResult);
 					ASSERT(!strReportPath.IsEmpty());
@@ -484,7 +495,7 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 				simName = _T("");
 				simName += (*itor)->GetModelName();
 				simName += ("(");
-				simName += (*itor)->GetSimResult(i);
+				simName += (*itor)->GetSimResultName(i);
 				simName += (")");
 				pResult->AddSimName(simName);
 			}

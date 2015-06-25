@@ -42,7 +42,7 @@ public:
 	int		GetAvailableModels(OUT std::vector<CModelToCompare*>& vModels);
 	void	RemoveModel(int nIndex);
 	void	SetModels(const std::vector<CModelToCompare *>& vModels);
-	void	RemoveAllModels();
+	
 	CString  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
 private:
 	std::vector<CModelToCompare*>	m_vModels;

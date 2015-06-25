@@ -16,7 +16,20 @@
 #include "ComparativeReportResultList.h"
 #include "..\Common\AirportDatabase.h"
 
-//using namespace std;
+class SimResultWithCheckedFlag
+{
+public:
+	SimResultWithCheckedFlag(){ m_isChecked = FALSE; }
+	~SimResultWithCheckedFlag(){}
+public:
+	BOOL GetChecked() const { return m_isChecked; }
+	void SetChecked(BOOL val) { m_isChecked = val; }
+	CString GetSimResultName() const { return m_simResultName; }
+	void SetSimResultName(CString val) { m_simResultName = val; }
+private:
+	BOOL m_isChecked;
+	CString m_simResultName;
+};
 class Terminal;
 class CModelToCompare  
 {
@@ -55,6 +68,7 @@ public:
 		m_lastModifiedTime = _rhs.m_lastModifiedTime;
 		m_strDatabasePath = _rhs.m_strDatabasePath;	
 		m_terminal = _rhs.m_terminal;
+		m_isChecked = _rhs.m_isChecked;
 
 		return *this;
 	}
@@ -62,15 +76,17 @@ public:
 	BOOL TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
 	void RemoveFiles(const CString &strPath);
 
-
-	void AddSimResult(const CString& strSimResult);
+	void AddSimResult(char* pBuf, BOOL isChecked = TRUE);
+	void AddSimResult(SimResultWithCheckedFlag& simResult);
 	int GetSimResultCount();
-	CString GetSimResult(int nIndex);
+	SimResultWithCheckedFlag& GetSimResult(int nIndex);
+	CString GetSimResultName(int nIndex);
 	void ClearSimResult();
 
 	Terminal*  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
 
-
+	BOOL GetChecked(){ return m_isChecked; }
+	void SetChecked(BOOL isChecked) { m_isChecked = isChecked; }
 
 	BOOL IsLocalModel(const CString &strPath);
 private:
@@ -84,10 +100,11 @@ private:
 	CString		m_strDatabasePath;//database path
 	CString		m_lastModifiedTime;//last modify time
 	
-	std::vector<CString> m_vSimResult;
+	std::vector<SimResultWithCheckedFlag> m_vSimResult;
  
 	Terminal*   m_terminal;
 	bool m_bNeedCopy;
+	BOOL m_isChecked;
 };
 
 

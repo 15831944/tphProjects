@@ -16,6 +16,49 @@
 #include "../Reports/ReportParameter.h"
 
 class CModelToCompare;
+class MobConstWithCheckedFlag
+{
+public:
+	MobConstWithCheckedFlag(){ m_paxType.initDefault(); m_isChecked = TRUE; }
+	~MobConstWithCheckedFlag(){}
+
+public:
+	BOOL GetChecked(){ return m_isChecked; }
+	void SetChecked(BOOL val) { m_isChecked = val; }
+	CMobileElemConstraint GetPaxType() { return m_paxType; }
+	void SetPaxType(CMobileElemConstraint val) { m_paxType = val; }
+	MobConstWithCheckedFlag& operator = ( const MobConstWithCheckedFlag& other )
+	{
+		m_paxType = other.m_paxType;
+		m_isChecked = other.m_isChecked;
+		return *this;
+	}
+private:
+	CMobileElemConstraint m_paxType;
+	BOOL m_isChecked;
+};
+
+class ProcessIDWithCheckedFlag
+{
+public:
+	ProcessIDWithCheckedFlag(){ m_procID.init(); m_isChecked = TRUE; }
+	~ProcessIDWithCheckedFlag(){}
+
+public:
+	BOOL GetChecked(){ return m_isChecked; }
+	void SetChecked(BOOL val) { m_isChecked = val; }
+	ProcessorID GetProcID() { return m_procID; }
+	void SetProcID(ProcessorID procID) { m_procID = procID; }
+	ProcessIDWithCheckedFlag& operator = ( const ProcessIDWithCheckedFlag& other )
+	{
+		m_procID = other.m_procID;
+		m_isChecked = other.m_isChecked;
+		return *this;
+	}
+private:
+	ProcessorID m_procID;
+	BOOL m_isChecked;
+};
 class CModelParameter
 {
 public:
@@ -25,25 +68,40 @@ public:
 public:
 	const CString& GetModelUniqueName() const { return m_strUniqueModelName;}
 	void SetModelUniqueName(const CString& strUniqueName){ m_strUniqueModelName = strUniqueName;}
-
-	void SetPaxType(const std::vector<CMobileElemConstraint>& vPaxType);
 	void SetArea(const CString& sArea){m_sArea = sArea;}
 	
 	const CString& GetArea() const{return m_sArea;}
-	int GetPaxType(std::vector<CMobileElemConstraint>& vPaxType);
+
+	// passenger types
+	std::vector<MobConstWithCheckedFlag>& GetPaxTypeWithCheckedFlagList(){ return m_vPaxType; }
+	void GetPaxTpyeList(std::vector<CMobileElemConstraint>& vPaxTpye);
+	int GetPaxTypeCount(){ return (int)m_vPaxType.size(); }
+	void AddPaxType(MobConstWithCheckedFlag item){ m_vPaxType.push_back(item); }
+	void AddPaxType(CMobileElemConstraint mobConst, BOOL isChecked = TRUE);
+	void SetPaxTypeChecked(int nIndex, BOOL state = TRUE){ m_vPaxType[nIndex].SetChecked(state); }
+	BOOL IsPaxTypeChecked(int nIndex){ return m_vPaxType[nIndex].GetChecked(); }
+	void DeletePaxTypeByIndex(int nIndex){ m_vPaxType.erase(m_vPaxType.begin() + nIndex); };
+	BOOL IsPaxTypeExist(CMobileElemConstraint paxType);
+
+	// processor IDs
+	std::vector<ProcessIDWithCheckedFlag>& GetProcIDWithCheckedFlagGroup(){ return m_vProcGroup; }
+	void GetProcIDGroup(std::vector<ProcessorID>& vProcGroups);
+	int GetProcIDCount(){ return (int)m_vProcGroup.size(); }
+	void AddProcID(ProcessIDWithCheckedFlag item){ m_vProcGroup.push_back(item); }
+	void AddProcID(ProcessorID procID, BOOL isChecked = TRUE);
+	void SetProcIDChecked(int nIndex, BOOL state = TRUE){ m_vProcGroup[nIndex].SetChecked(state); }
+	BOOL IsProcIDChecked(int nIndex){ return m_vProcGroup[nIndex].GetChecked(); }
+	void DeleteProcIDByIndex(int nIndex){ m_vProcGroup.erase(m_vProcGroup.begin() + nIndex); };
+	BOOL IsProcIDExist(ProcessorID procID);
 
 	//from---to processors	
-	void GetFromToProcs(  CReportParameter::FROM_TO_PROCS& _fromToProcs )const	{ _fromToProcs = m_fromToProcs;};
-	void SetFromToProcs ( const CReportParameter::FROM_TO_PROCS& _fromToProcs ){ m_fromToProcs = _fromToProcs;};
+	void GetFromToProcs(  CReportParameter::FROM_TO_PROCS& _fromToProcs )const	{ _fromToProcs = m_fromToProcs; }
+	void SetFromToProcs ( const CReportParameter::FROM_TO_PROCS& _fromToProcs ){ m_fromToProcs = _fromToProcs; }
 	
-	int GetProcessorID(std::vector<ProcessorID>& vProcGroups);	
-	
-
-	void SetProcessorID(const std::vector<ProcessorID>& vProcGroups);
 	CModelParameter& operator = ( const CModelParameter& _rhs )
 	{
 		m_vPaxType = _rhs.m_vPaxType;
-		m_vProcGroups = _rhs.m_vProcGroups;
+		m_vProcGroup = _rhs.m_vProcGroup;
 		m_sArea = _rhs.m_sArea;
 		m_fromToProcs = _rhs.m_fromToProcs;
 
@@ -52,12 +110,11 @@ public:
 
 	void InitDefaultParameter(const CString& strProjName,CModelToCompare * pModel);
 
-protected:
 private:
 	CString m_sArea;
 	CReportParameter::FROM_TO_PROCS m_fromToProcs;
-	std::vector<CMobileElemConstraint>	m_vPaxType;
-	std::vector<ProcessorID>			m_vProcGroups;
+	std::vector<MobConstWithCheckedFlag>	m_vPaxType;
+	std::vector<ProcessIDWithCheckedFlag>	m_vProcGroup;
 	
 	CString m_strUniqueModelName;
 };
@@ -130,8 +187,9 @@ public:
 	//const std::vector<ProcessorID>& GetProcessorID() const {return m_vProcGroups;}
 	
 	void SetModelParameter(std::vector<CModelParameter>& vModelParameter);
-	void GetModelParameter(std::vector<CModelParameter>& vModelParam);
+	std::vector<CModelParameter>& GetModelParameter();
 	int GetModelParameterCount();
+	const int GetModelParameterCountConst() const { return (int)m_vModelParam.size(); };
 
 	bool GetModelParamByModelName(const CString& strUniqueName,CModelParameter& modelParam) const;
 	void DeleteModelParameter(const CString& strModelUniqueName);

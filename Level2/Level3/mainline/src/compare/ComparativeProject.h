@@ -62,7 +62,7 @@ protected:
 	void AddReportPath(ENUM_REPORT_TYPE rptType, const CString& strPath);
 	void RemoveFiles(const CString& strPath);
 	void MergeReports(const CString& sOutputPath);
-	void GenerateReportParameter(const CReportParamToCompare& inParam, CReportParameter* pOutParam, CModelToCompare* pModel);
+	BOOL GenerateReportParameter(const CReportParamToCompare& inParam, CReportParameter* pOutParam, CModelToCompare* pModel);
 	BOOL TransferLogFiles(CModelToCompare *pCmpModel, const CString& strDest,const CString& strSimResult,void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
 
 
