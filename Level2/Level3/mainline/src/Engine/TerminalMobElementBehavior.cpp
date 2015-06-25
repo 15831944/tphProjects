@@ -152,7 +152,6 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_bhasBusServer(TRUE)
 //,m_nBridgeIndex(-1)
 ,m_pLastTerminalProc(NULL)
-,m_currentFlowItemIndex(-1)
 {
 	m_pProcessor = m_pTerm->procList->getProcessor (START_PROCESSOR_INDEX);
 
@@ -566,23 +565,10 @@ void TerminalMobElementBehavior::processEntryOnboard( ElapsedTime p_time )
 //It determines whether Person can travel a direct route to his destination. If not, an intermediary destination will be assigned.
 void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 {
-	TRACE("\nid = %s\n",m_pProcessor->getID()->GetIDString() );
+	//	// TRACE("\nid = %s\n",m_pProcessor->getID()->GetIDString() );
 	bool bUsedPipe = false;
 	if(!m_vPipePointList.empty())
 	{
-		if(m_pProcessor->GetProcessorQueue()->isFixed() == 'Y')
-		{
-			FixedQueue* pQueue = (FixedQueue*)m_pProcessor->GetProcessorQueue();
-			int cornerIndex = pQueue->getEntryCornerIndex();
-			if(cornerIndex != first_corner)
-			{
-				m_vPipePointList.clear();
-				//ASSERT(m_pFlowList != NULL);
-				m_pFlowList = m_pProcessor->getNextDestinations ( m_pPerson->getType(), m_nInGateDetailMode );
-				/*m_pFlowList->cu*/
-				ProcessPipe( m_pProcessor, p_time, NULL );
-			}
-		}
 		setDestination(m_vPipePointList.front().pt);
 
 		//write landside walkway with pipe log
@@ -902,7 +888,6 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 				if ( m_pFlowList != NULL)
 				{
 					m_pFlowList->getDestinationGroup (RANDOM);
-					m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 					ProcessPipe(pNextProc,p_time,NULL);					
 				}
 			}			
@@ -1876,7 +1861,6 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 
 	// try randomly selected group of Processors
 	nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
-	m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 	ASSERT( getTerminal() );
 
 	//dStepTime1 = GetTickCount();
@@ -1915,7 +1899,6 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 					if (pByPass)//get linkage bypass proc
 					{
 						const ProcessorID* pNextID = pByPass->getDestinationGroup( RANDOM );
-						m_currentFlowItemIndex = pByPass->GetCurGroupIndex();
 						ASSERT( pNextID );
 						GroupIndex byPassGroup = getTerminal()->procList->getGroupIndex( *pNextID );
 						ASSERT( byPassGroup.start >=0 );
@@ -1958,7 +1941,6 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 	//dStepTime3 = GetTickCount();
 
 	nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
-	m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 
 	const ProcessorID* pToGate = getTerminal()->procList->getProcessor(TO_GATE_PROCESS_INDEX)->getID();
 	const ProcessorID* pFromGate = getTerminal()->procList->getProcessor(FROM_GATE_PROCESS_INDEX)->getID();
@@ -2128,7 +2110,6 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 		{	
 			//find the nearest opened proc and let person go to that proc and wait for opening
 			nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
-			m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 			int days = getTerminal()->flightSchedule->GetFlightScheduleEndTime().GetDay() ;
 			ElapsedTime nearestTime;
 			nearestTime.set(days*WholeDay );
@@ -2170,7 +2151,6 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 				}
 			}
 			while( (nextGroup = m_pFlowList->getDestinationGroup (SEQUENTIAL)) != NULL );
-			m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 
 			//test zeropercent destination processor.
 			if( bRosterReason && vReturnToProcsCloseReason.size()==0 && (nextGroup = m_pFlowList->getZeropercentDestGroup())!= NULL)
@@ -2729,7 +2709,7 @@ bool TerminalMobElementBehavior::StickForDestProcsOverload(const ElapsedTime& _c
 
 
 	pNextProcDistribution->getDestinationGroup( RANDOM);
-	m_currentFlowItemIndex = pNextProcDistribution->GetCurGroupIndex();
+
 
 	ASSERT( pNextProcDistribution!=NULL);
 
@@ -3153,7 +3133,7 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 		iCurFloor = 0;
 	}
 
-	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime),ptFrom);
+	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime));
 	m_ptOldDest = ptTo;
 
 	m_bUserPipes = false;
@@ -3417,9 +3397,9 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	{
 		iCurFloor = 0;
 	}
-	/*m_nextHoldAiearPoTag = false;*/
-	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime),ptFrom);
-	//Point ptTo = _pNextProc->GetPipeExitPoint(iCurFloor,ClacTimeString(_curTime),ptFrom,this) ;  //Get Entry
+
+	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime));
+
 	//save the destination point for processing congestion pipe
 	m_ptOldDest = ptTo;
 
@@ -4682,7 +4662,7 @@ void TerminalMobElementBehavior::WalkAlongShortestPathForEvac( const Point& _src
 	//	setState( nOldState );
 	return; 	
 }
-Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, CString& _curTime,Point& outPoint)
+Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, const CString& _curTime)
 {
 
 	if(_pNextProc->getProcessorType() == StairProc || _pNextProc->getProcessorType() == Elevator)
@@ -4713,90 +4693,15 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 		if(procQueue->isFixed() == 'Y')
 		{
 			FixedQueue* pQueue = (FixedQueue*)_pNextProc->GetProcessorQueue();
-			int cornerIndex = pQueue->getEntryCornerIndex();
-			first_corner = cornerIndex;
-			return _pNextProc->GetProcessorQueue()->corner(cornerIndex);
+			int nEntryCorner = pQueue->getEntryCornerIndex();
+			first_corner = nEntryCorner;
+			return _pNextProc->GetProcessorQueue()->corner(nEntryCorner);
 		}
 		else
 		{
-		//////////if(procQueue->isFixed() == 'Y')
-		//////////{
-
-			if(nQueuePointCount > 0)//no matter fix queue and non fix queue, use the queue entry point as pipe entry/exit point
+			if(nQueuePointCount > 0)
 				return _pNextProc->GetProcessorQueue()->corner( nQueuePointCount - 1);
 		}
-		//////////}
-		//////////else
-		//////////{	
-		//////////	if(nQueuePointCount > 0)
-		//////////	{
-		//////////		Point entryPoint = _pNextProc->GetProcessorQueue()->corner( 0 );
-		//////////		Point tempPoint ;
-
-		//////////		double dTravelLength = (std::numeric_limits<double>::max)();
-		//////////		CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
-		//////////		for (int nQueuePoint = 0; nQueuePoint < nQueuePointCount; ++ nQueuePoint)
-		//////////		{
-		//////////			CGraphVertexList shortestPath;
-		//////////			tempPoint = _pNextProc->GetProcessorQueue()->corner( nQueuePoint );
-		//////////			if(pPipeMgr->getShortestPathFromLib(outPoint, tempPoint, shortestPath))
-		//////////			{
-		//////////				shortestPath.ReCalculateLength() ;	
-		//////////				if(shortestPath.GetLength() < dTravelLength)
-		//////////				{
-		//////////					entryPoint = tempPoint;
-		//////////					dTravelLength = shortestPath.GetLength();
-		//////////				}
-		//////////			}
-		//////////		}
-
-		//////////		return entryPoint;
-		//////////	}
-
-		//////////}
-
-
-		//CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
-		//CGraphVertexList shortestPath;
-		//Point FirstentryPoint ;
-		//Point EndentryPoint ;
-		//EndentryPoint = _pNextProc->GetProcessorQueue()->corner( _pNextProc->GetProcessorQueue()->cornerCount() - 1 ) ;
-		//FirstentryPoint = _pNextProc->GetProcessorQueue()->corner( 0 ) ;
-		//double length = 0 ;
-		//if (pPipeMgr->getShortestPathFromLib(outPoint, EndentryPoint, shortestPath))
-		//{
-		///*	Point firstpoint ;
-		//	Point secondpoint ;
-		//	if(shortestPath.getCount() < 3)
-		//		return _pNextProc->getServicePoint( 0 );
-		//	for (int i = shortestPath.getCount() -1 ;i < shortestPath.getCount() ;i--)
-		//	{
-		//		firstpoint = shortestPath.getItem(i).getVertexPoint() ;
-		//		if(firstpoint.getX() != 0 &&firstpoint.getY() != 0)
-		//		{
-		//			secondpoint = shortestPath.getItem(i-1).getVertexPoint() ;
-		//			break ;
-		//		}
-		//	}
-		//	Point paxdirect(firstpoint - secondpoint) ;
-		//	Point queuesirect(FirstentryPoint - EndentryPoint) ;
-
-		//	if(paxdirect.GetCosOfTwoVector(queuesirect) > 0)
-		//		return EndentryPoint ;
-		//	else
-		//		return FirstentryPoint ;
-		//  */         shortestPath.ReCalculateLength() ;
-		//	 length = shortestPath.GetLength() ;
-		//	 shortestPath.clearData() ;
-		//	 if(pPipeMgr->getShortestPathFromLib(outPoint, FirstentryPoint, shortestPath))
-		//	 {
-		//			shortestPath.ReCalculateLength() ;
-		//			if(shortestPath.GetLength() < length)
-		//				return FirstentryPoint ;
-		//			else
-		//				return EndentryPoint ;
-		//	 }
-		//}
 	}
 	return _pNextProc->getServicePoint( 0 );
 }
@@ -4820,10 +4725,11 @@ void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, c
 			entryPoint = m_nextHoldAiearPoint;
 		else
 		{
-			entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime),outPoint);
+			entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime));
 		}
-	}else
-		entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime),outPoint);
+	}
+	else
+		entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime));
 
 	int iEntryFloor = (int)(entryPoint.getZ() / SCALE_FACTOR);
 	if (iCurFloor != iEntryFloor)
@@ -5018,7 +4924,6 @@ bool TerminalMobElementBehavior::FindAllPossibleDestinationProcs(std::vector<Pro
 	// is moving in normal flow
 	{
 		nextGroup = m_pFlowList->getDestinationGroup (RANDOM) ;
-		m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 		do 
 		{	
 			CString strProcName = nextGroup->GetIDString();

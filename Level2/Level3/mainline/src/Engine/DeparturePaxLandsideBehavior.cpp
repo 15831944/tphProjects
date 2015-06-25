@@ -414,7 +414,7 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 
 						//go to bus station
 						CLandsideTrafficSystem* pLandsideTrafficInSim = m_pLandsideSim->GetLandsideTrafficeManager();
-						//if( !pLandsideTrafficInSim->EnterTrafficSystem(eTime, ArriveAtFacility,this,startPos,endPos) )
+						if( !pLandsideTrafficInSim->EnterTrafficSystem(eTime, ArriveAtFacility,this,startPos,endPos) )
 						{
 							setDestination(endPos);
 							ElapsedTime dt = moveTime();

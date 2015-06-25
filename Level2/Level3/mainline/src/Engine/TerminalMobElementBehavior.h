@@ -392,7 +392,7 @@ private:
 	void WalkAlongShortestPathForEvac( const Point& _srcPoint, const Point& _desPoint, ElapsedTime& _curTime );
 
 
-	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, CString& _curTime,Point& outPoint) ;
+	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, const CString& _curTime) ;
 
 
 	// walk from location to next process by pipe
@@ -461,8 +461,6 @@ protected:
 	// Current segment of the queue's path.
 	int m_nQueuePathSegmentIndex;
 
-	// mark current flow item index
-	int m_currentFlowItemIndex;
 
    // Queueing status variables.
     // Freemoving speed, needed for queuing.
