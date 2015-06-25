@@ -34,7 +34,7 @@ protected:
 	CButton m_btnRun;
 	CButton m_btnCancel;
 	CFont m_font;
-
+	CImageList m_imageList;
 	HTREEITEM m_hBasicInfo;
 	HTREEITEM m_hProjName;
 	HTREEITEM m_hProjDesc;

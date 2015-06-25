@@ -112,6 +112,16 @@ int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CCmpReportTreeView::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
+	// for form view, set tree's image list here is necessary.
+	if (m_imageList.m_hImageList == NULL)
+	{
+		m_imageList.Create(16,16,ILC_COLOR8|ILC_MASK,0,1);
+		CBitmap bmp;
+		bmp.LoadBitmap(IDB_COOLTREE);
+		m_imageList.Add(&bmp,RGB(255,0,255));
+	}
+	m_propTree.SetImageList(&m_imageList,TVSIL_NORMAL);
+
 	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 	m_pCmpReport = pDoc->GetCmpReport();
 	InitParaWnd();
@@ -198,8 +208,6 @@ void CCmpReportTreeView::OnRun()
 	}
 }
 
-//CStatusBarXP* __statusBar = NULL;//todo
-
 static void CALLBACK _ShowCopyInfo(LPCTSTR strPath)
 {
 	CString fileName;
@@ -208,7 +216,6 @@ static void CALLBACK _ShowCopyInfo(LPCTSTR strPath)
 	fileName = strFilePath.Mid(nPos + 1);
 	CString strMsg;
 	strMsg = _T("Copying   ") + fileName;
-	//__statusBar->SetPaneText(0,strMsg);
 }
 void CCmpReportTreeView::RunCompareReport()
 {
@@ -217,7 +224,7 @@ void CCmpReportTreeView::RunCompareReport()
 	((CCompRepLogBar*)pWnd)->m_pProj = m_pCmpReport->GetComparativeProject();
 	((CCompRepLogBar*)pWnd)->SetParentIndex(1);
 
-	pFram->ShowControlBar((CToolBar*) pWnd, TRUE, FALSE);//!bIsShown
+	pFram->ShowControlBar((CToolBar*) pWnd, TRUE, FALSE);
 	CRect rc1, rc2;
 	pFram->m_wndCompRepLogBar.GetWindowRect(&rc1);
 	pFram->m_wndCompRepLogBar.GetClientRect(&rc2);
@@ -274,25 +281,32 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 		CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
 		for(int i = 0; i < (int)pManager->GetModelsList().size(); i++)
 		{
-
+			cni.nt = NT_CHECKBOX;
 			CString strModel = "";
 			strModel.Format("Model-%d", i);
-			HTREEITEM hModel = m_propTree.InsertItem(strModel, cni, FALSE, FALSE, m_hModelRoot);
+			HTREEITEM hModel = m_propTree.InsertItem(strModel, cni, TRUE, FALSE, m_hModelRoot);
 
+
+			cni.net =  NET_SHOW_DIALOGBOX;
+			cni.nt = NT_NORMAL;
 			CModelToCompare *pModelToCompare = pManager->GetModelsList().at(i);
 			CString strName = pModelToCompare->GetUniqueName();
 			strItemText.Format("Name: %s", strName);
 			m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
+
+			cni.nt = NT_CHECKBOX;
+			strItemText = _T("SimResult:");
+			HTREEITEM hSimResultItem = m_propTree.InsertItem(strItemText, cni, TRUE, FALSE, hModel);
+			
 			int nSimCount = pModelToCompare->GetSimResultCount();
-			CString strSimResult;
 			for (int j = 0; j < nSimCount; ++j)
 			{
-				strSimResult += pModelToCompare->GetSimResult(j);
-				strSimResult += ",";
+				strItemText = pModelToCompare->GetSimResult(j);
+				m_propTree.InsertItem(strItemText, cni, TRUE, FALSE, hSimResultItem);
 			}
-			strSimResult.TrimRight(_T(","));
-			strItemText.Format("SimResult: %s", strSimResult);
-			HTREEITEM hSimResultItem = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
+			m_propTree.Expand(hSimResultItem, TVE_EXPAND);
+
+			cni.nt = NT_NORMAL;
 			CString strPath = pModelToCompare->GetModelLocation();
 			int nLenName = strName.GetLength();
 			int nLenPath = strPath.GetLength();
@@ -308,11 +322,13 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 		RemoveSubItem(m_hReportRoot);
 		COOLTREE_NODE_INFO cni;
 		InitCooltreeNodeInfo(this, cni);
+		cni.net = NET_SHOW_DIALOGBOX;
 		CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 		std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
 		for (int i = 0; i < static_cast<int>(vReports.size()); i++)
 		{
 			const CReportToCompare& report = vReports.at(i);
+			cni.nt = NT_CHECKBOX;
 			HTREEITEM hItem2 = m_propTree.InsertItem(report.GetName(), cni, FALSE, FALSE, m_hReportRoot);
 			CReportParamToCompare param = report.GetParameter();
 			int iIndex = -1;
@@ -347,6 +363,7 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 			{
 				continue;
 			}
+			cni.nt = NT_NORMAL;
 			CString strTemp = s_szReportCategoryName[iIndex];
 			strItemText.Format("Report Type: %s", strTemp);
 			HTREEITEM hRepName = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2);
