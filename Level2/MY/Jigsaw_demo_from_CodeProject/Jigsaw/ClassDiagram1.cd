@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Jigsaw.MainWindow">
+    <Position X="0.5" Y="0.5" Width="2.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AEEIQAEEAAoEAGQQgUCAAICBAGCDZhAZA4QYXgBBAQE=</HashCode>
+      <FileName>MainWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Jigsaw.Piece">
+    <Position X="5.5" Y="0.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAIBECACkAAIGAAABIBAQICAUwAABAoABMFiAEAgZAQ=</HashCode>
+      <FileName>Piece.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Jigsaw.WrappingStream">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAACAQwAAwGAAAAABgQAAAAEAgAAAAAAGIQCA=</HashCode>
+      <FileName>WrappingStream.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Jigsaw.App" Collapsed="true">
+    <Position X="7.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>App.xaml.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="Jigsaw.ViewMode" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAiAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MainWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Jigsaw.ConnectionType" Collapsed="true">
+    <Position X="7.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Piece.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
