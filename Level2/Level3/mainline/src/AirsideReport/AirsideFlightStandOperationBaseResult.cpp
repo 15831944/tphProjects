@@ -487,101 +487,27 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 	std::vector<int> vStandConflict;
 
 	long lDuration = pParam->getEndTime().asSeconds() - pParam->getStartTime().asSeconds();
-//1/////////////////////////////////////////////////////////////////////////////////
-    std::map<CString,LongValue> standMap;
-    for(size_t i=0;i< vSchedFitData.size();i++)
-    {
-        CStandOperationReportData* data = vSchedFitData.at(i);
-        standMap[data->m_sSchedName]+= data->m_lSchedOccupancy;
-    }
-    for(std::map<CString,LongValue>::const_iterator itr= standMap.begin();itr!=standMap.end();++itr)
-    {
-        vSchedOccupiedTime.push_back(itr->second._data/100);
-    }
-//2/////////////////////////////////////////////////////////////////////////////////
-    std::map<CString,LongValue> standMap2;
-    for(size_t i=0;i< vActualFitData.size();i++)
-    {
-        CStandOperationReportData* data = vActualFitData.at(i);
-        standMap2[data->m_sActualName]+= data->m_lActualOccupancy;
-    }
-    for(std::map<CString,LongValue>::const_iterator itr= standMap2.begin();itr!=standMap2.end();++itr)
-    {
-        vActualOccupiedTime.push_back(itr->second._data/100);
-    }
 
-//3/////////////////////////////////////////////////////////////////////////////////
-    std::sort(vActualFitData.begin(), vActualFitData.end(),DataCompareByActualStand);
-
-    CStandOperationReportData* pData = vActualFitData.at(0);
-    CString sStandName = pData->m_sActualName;
-    int nTotal = 0; 
-
-    nSize = vActualFitData.size();
-    for (size_t i =0; i < nSize; i++)
-    {
-        pData = vActualFitData.at(i);
-        if (!pData->IsConflict())
-            continue;
-
-        if (pData->m_sActualName == sStandName)
-            nTotal ++;
-        else
-        {
-            vStandConflict.push_back(nTotal);
-            sStandName = pData->m_sActualName;
-            nTotal = 1;
-        }
-    }
-
-//4/////////////////////////////////////////////////////////////////////////////////
-    std::sort(vActualFitData.begin(), vActualFitData.end(),DataCompareByActualStand);
-
-    pData = vActualFitData.at(0);
-    sStandName = pData->m_sActualName;
-    long lTotal = 0; 
-
-    nSize = vActualFitData.size();
-    for (size_t i =0; i < nSize; i++)
-    {
-        pData = vActualFitData.at(i);
-        if (!pData->IsDelay())
-            continue;
-
-        if (pData->m_sActualName == sStandName)
-        {
-            lTotal += pData->m_lDelayEnter;
-            lTotal += pData->m_lDelayLeaving;
-        }
-        else
-        {
-            vStandDelay.push_back(lTotal/100);
-            sStandName = pData->m_sActualName;
-            lTotal = pData->m_lDelayEnter + pData->m_lDelayLeaving;
-        }
-    }
-
-
+	CalculateStandOccupancyTime(true, vSchedFitData,vSchedOccupiedTime);
+	CalculateStandOccupancyTime(false, vActualFitData, vActualOccupiedTime);
+	CalculateStandConflict(vActualFitData, vStandConflict);
+	CalculateStandDelay(vActualFitData, vStandDelay);
 
 	//Sched stand
 	CSummaryStandOperationData* pSchedStandUtilizeSummaryData = new CSummaryStandOperationData;
 	pSchedStandUtilizeSummaryData->m_sName = strStandName;
 	pSchedStandUtilizeSummaryData->m_eDataType = CSummaryStandOperationData::SchedStandUtilizeSummaryData;
-    nSize = vSchedOccupiedTime.size();
-    for (size_t i =0; i < nSize; i++)
-    {
-        pSchedStandUtilizeSummaryData->m_dTotal += vSchedOccupiedTime.at(i);
-        pSchedStandUtilizeSummaryData->m_SummaryData.AddNewData(vSchedOccupiedTime.at(i));
-    }
-    m_vSummaryData.push_back(pSchedStandUtilizeSummaryData);
-
 
 	CSummaryStandOperationData* pSchedStandIdleSummaryData = new CSummaryStandOperationData;
 	pSchedStandIdleSummaryData->m_sName = strStandName;
 	pSchedStandIdleSummaryData->m_eDataType = CSummaryStandOperationData::SchedStandIdleSummaryData;
+
 	nSize = vSchedOccupiedTime.size();
 	for (size_t i =0; i < nSize; i++)
 	{
+		pSchedStandUtilizeSummaryData->m_dTotal += vSchedOccupiedTime.at(i);
+		pSchedStandUtilizeSummaryData->m_SummaryData.AddNewData(vSchedOccupiedTime.at(i));
+
 		long lTime = lDuration - vSchedOccupiedTime.at(i);
 		if(lTime < 0)
 			lTime = 0;
@@ -589,6 +515,7 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		pSchedStandIdleSummaryData->m_dTotal += lTime;
 		pSchedStandIdleSummaryData->m_SummaryData.AddNewData(lTime);
 	}
+	m_vSummaryData.push_back(pSchedStandUtilizeSummaryData);
 	m_vSummaryData.push_back(pSchedStandIdleSummaryData);
 
 	
@@ -596,21 +523,17 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 	CSummaryStandOperationData* pActualStandUtilizeSummaryData = new CSummaryStandOperationData;
 	pActualStandUtilizeSummaryData->m_sName = strStandName;
 	pActualStandUtilizeSummaryData->m_eDataType = CSummaryStandOperationData::ActualStandUtilizeSummaryData;
-    nSize = vActualOccupiedTime.size();
-    for (size_t i =0; i < nSize; i++)
-    {
-        pActualStandUtilizeSummaryData->m_dTotal += vActualOccupiedTime.at(i);
-        pActualStandUtilizeSummaryData->m_SummaryData.AddNewData(vActualOccupiedTime.at(i));
-    }
-    m_vSummaryData.push_back(pActualStandUtilizeSummaryData);
-
 
 	CSummaryStandOperationData* pActualStandIdleSummaryData = new CSummaryStandOperationData;
 	pActualStandIdleSummaryData->m_sName = strStandName;
 	pActualStandIdleSummaryData->m_eDataType = CSummaryStandOperationData::ActualStandIdleSummaryData;
+
 	nSize = vActualOccupiedTime.size();
 	for (size_t i =0; i < nSize; i++)
 	{
+		pActualStandUtilizeSummaryData->m_dTotal += vActualOccupiedTime.at(i);
+		pActualStandUtilizeSummaryData->m_SummaryData.AddNewData(vActualOccupiedTime.at(i));
+
 		long lTime = lDuration - vActualOccupiedTime.at(i);
 		if(lTime < 0)
 			lTime = 0;
@@ -618,6 +541,7 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		pActualStandIdleSummaryData->m_dTotal += lTime;
 		pActualStandIdleSummaryData->m_SummaryData.AddNewData(lTime);
 	}
+	m_vSummaryData.push_back(pActualStandUtilizeSummaryData);
 	m_vSummaryData.push_back(pActualStandIdleSummaryData);
 
 

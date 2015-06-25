@@ -88,7 +88,13 @@ private:
 	void SetDetail3DRatioChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 	void SetDetail3DOccupancyChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 
-    void BuildSummaryStandOperationData(CParameters* pParameter, MapMultiRunStandOperationData& standOperationData);
+    void BuildSummaryScheduleUtilizationData(MapMultiRunStandOperationData& standOperationData);
+    void BuildSummaryScheduleIdleData(MapMultiRunStandOperationData& standOperationData, CParameters *pParameter);
+    void BuildSummaryActualUtilizationData(MapMultiRunStandOperationData& standOperationData);
+    void BuildSummaryActualIdleData(MapMultiRunStandOperationData& standOperationData, CParameters *pParameter);
+    void BuildSummaryDelayData(MapMultiRunStandOperationData& standOperationData);
+    void BuildSummaryConflictData(MapMultiRunStandOperationData& standOperationData);
+
     void InitSummaryListHead(CXListCtrl &cxListCtrl, CSortableHeaderCtrl* piSHC);
     void FillSummaryListContent(CXListCtrl &cxListCtrl, MultiRunSummaryMap &multiRunSummaryMap);
 
@@ -100,12 +106,6 @@ private:
     void SetSummaryActualIdle3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
     void SetSummaryDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
     void SetSummaryConflict3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-
-//     void BuildSummaryActualUtilizationData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
-//     void BuildSummarySchedIdleData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
-//     void BuildSummaryActualIdleData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
-//     void BuildSummaryDelayData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
-//     void BuildSummaryConflictData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
 
 	int GetIntervalCount(long iStart, long iEnd, mapStandResult mapData,long iIgnore = 0)const;
 	void ClearData();
@@ -119,8 +119,8 @@ private:
 	MultiRunDetailMap m_standDepConfictsMap;
 
     MultiRunSummaryMap m_summarySchedUtilizeMap;
-    MultiRunSummaryMap m_summaryActualUtilizeMap;
     MultiRunSummaryMap m_summarySchedIdleMap;
+    MultiRunSummaryMap m_summaryActualUtilizeMap;
     MultiRunSummaryMap m_summaryActualIdleMap;
     MultiRunSummaryMap m_summaryDelayMap;
     MultiRunSummaryMap m_summaryConflictMap;

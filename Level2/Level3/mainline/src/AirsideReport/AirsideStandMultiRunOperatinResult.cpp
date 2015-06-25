@@ -13,19 +13,19 @@
 
 static const char* strSummaryListTitle[] = 
 {
-    "Min Delay(hh:mm:ss)",
-    "Mean Delay(hh:mm:ss)",
-    "Max Delay(hh:mm:ss)",
-    "Q1(hh:mm:ss)",
-    "Q2(hh:mm:ss)",
-    "Q3(hh:mm:ss)",
-    "P1(hh:mm:ss)",
-    "P5(hh:mm:ss)",
-    "P10(hh:mm:ss)",
-    "P90(hh:mm:ss)",
-    "P95(hh:mm:ss)",
-    "P99(hh:mm:ss)",
-    "Std dev(hh:mm:ss)"
+    "Min",
+    "Avg",
+    "Max",
+    "Q1",
+    "Q2",
+    "Q3",
+    "P1",
+    "P5",
+    "P10",
+    "P90",
+    "P95",
+    "P99",
+    "Std dev"
 };
 
 CAirsideStandMultiRunOperatinResult::CAirsideStandMultiRunOperatinResult(void)
@@ -112,8 +112,18 @@ void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pP
 	//generate stand dep conflicts
 	BuildDetailStandOperationConflict(pParameter,m_standDepConfictsMap,mapStandLoadData,'D');
 
-    //
-    BuildSummaryStandOperationData(pParameter, mapStandLoadData);
+    // generate summary scheduled stand utilization
+    BuildSummaryScheduleUtilizationData(mapStandLoadData);
+    // generate summary scheduled stand idle
+    BuildSummaryScheduleIdleData(mapStandLoadData, pParameter);
+    // generate summary actual stand utilization
+    BuildSummaryActualUtilizationData(mapStandLoadData);
+    // generate summary actual stand idle
+    BuildSummaryActualIdleData(mapStandLoadData, pParameter);
+    // generate summary stand delay data
+    BuildSummaryDelayData(mapStandLoadData);
+//
+//     BuildSummaryScheduleUtilizationData(mapStandLoadData);
 }
 
 void CAirsideStandMultiRunOperatinResult::InitDetailListPercentagetHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC/* =NULL */)
@@ -964,7 +974,7 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DOccupancyChartString( C2DCh
 	c2dGraphData.m_strFooter = strFooter;
 }
 
-void CAirsideStandMultiRunOperatinResult::BuildSummaryStandOperationData(CParameters* pParameter, MapMultiRunStandOperationData& standOperationData)
+void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(MapMultiRunStandOperationData& standOperationData)
 {
     mapStandOpResult  mapLoadData;
     MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
@@ -988,22 +998,206 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryStandOperationData(CParame
         {
             tempTool.AddNewData((double)standIter->second);
         }
-
-        m_summarySchedUtilizeMap[iter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summarySchedUtilizeMap[iter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+// 
+//         CString strTemp = iter->first;
+//         m_summarySchedUtilizeMap[strTemp].m_estAverage = 0L;
+        m_summarySchedUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
     }
+}
+
+void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiRunStandOperationData& standOperationData, CParameters *pParameter)
+{
+    mapStandOpResult  mapLoadData;
+    MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
+
+    for (; iter != standOperationData.end(); ++iter)
+    {
+        int iCount = iter->second.size();
+        for (int i = 0; i < iCount; i++)
+        {
+            StandMultipleOperationData operationData = iter->second[i];
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lSchedOccupancy;
+        }
+    }
+
+    CStatisticalTools<double> tempTool;
+    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    long lDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
+    for(; simIter!=mapLoadData.end(); simIter++)
+    {
+        mapStandResult::iterator standIter = simIter->second.begin();
+        for(; standIter!=simIter->second.end(); standIter++)
+        {
+            long lData = lDuration - standIter->second;
+            if(lData<0)
+                lData = 0;
+            tempTool.AddNewData((double)(lData));
+        }
+
+        m_summarySchedIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapMultiRunStandOperationData& standOperationData)
+{
+    mapStandOpResult  mapLoadData;
+    MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
+
+    for (; iter != standOperationData.end(); ++iter)
+    {
+        int iCount = iter->second.size();
+        for (int i = 0; i < iCount; i++)
+        {
+            StandMultipleOperationData operationData = iter->second[i];
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
+        }
+    }
+
+    CStatisticalTools<double> tempTool;
+    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    for(; simIter!=mapLoadData.end(); simIter++)
+    {
+        mapStandResult::iterator standIter = simIter->second.begin();
+        for(; standIter!=simIter->second.end(); standIter++)
+        {
+            tempTool.AddNewData((double)standIter->second);
+        }
+
+        m_summaryActualUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRunStandOperationData& standOperationData, CParameters *pParameter)
+{
+    mapStandOpResult  mapLoadData;
+    MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
+
+    for (; iter != standOperationData.end(); ++iter)
+    {
+        int iCount = iter->second.size();
+        for (int i = 0; i < iCount; i++)
+        {
+            StandMultipleOperationData operationData = iter->second[i];
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
+        }
+    }
+
+    CStatisticalTools<double> tempTool;
+    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    long lDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
+    for(; simIter!=mapLoadData.end(); simIter++)
+    {
+        mapStandResult::iterator standIter = simIter->second.begin();
+        for(; standIter!=simIter->second.end(); standIter++)
+        {
+            long lData = lDuration - standIter->second;
+            if(lData<0)
+                lData = 0;
+            tempTool.AddNewData((double)(lData));
+        }
+
+        m_summaryActualIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStandOperationData& standOperationData)
+{
+    mapStandOpResult  mapLoadData;
+    MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
+
+    for (; iter != standOperationData.end(); ++iter)
+    {
+        int iCount = iter->second.size();
+        for (int i = 0; i < iCount; i++)
+        {
+            StandMultipleOperationData operationData = iter->second[i];
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayEnter;
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayLeaving;
+        }
+    }
+
+    CStatisticalTools<double> tempTool;
+    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    for(; simIter!=mapLoadData.end(); simIter++)
+    {
+        mapStandResult::iterator standIter = simIter->second.begin();
+        for(; standIter!=simIter->second.end(); standIter++)
+        {
+            tempTool.AddNewData((double)standIter->second);
+        }
+
+        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunStandOperationData& standOperationData)
+{
+
 }
 
 void CAirsideStandMultiRunOperatinResult::InitSummaryListHead( CXListCtrl &cxListCtrl, CSortableHeaderCtrl* piSHC )
@@ -1018,6 +1212,10 @@ void CAirsideStandMultiRunOperatinResult::InitSummaryListHead( CXListCtrl &cxLis
     headStyle &= ~HDF_OWNERDRAW;
     cxListCtrl.InsertColumn(nCurCol, _T("SimResult"), headStyle, 80);
     nCurCol++;
+
+    cxListCtrl.InsertColumn(nCurCol, _T("Total"), headStyle, 100);
+    nCurCol++;
+
     int nCount = sizeof(strSummaryListTitle)/sizeof(strSummaryListTitle[0]);
     for(int i=0; i<nCount; i++)
     {
