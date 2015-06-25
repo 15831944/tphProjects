@@ -19,5 +19,7 @@ class BoardingCallFlightTypeDatabase : public FlightConstraintDatabase
 public:
 	BoardingCallFlightTypeDatabase();
 	~BoardingCallFlightTypeDatabase();
+
+	virtual void deleteItem(ConstraintEntry* pConst);
 };
 

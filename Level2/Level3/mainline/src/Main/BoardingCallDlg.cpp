@@ -3,20 +3,34 @@
 #include "BoardingCallDlg.h"
 #include "termplandoc.h"
 #include "flightdialog.h"
-#include "..\inputs\FlightConWithProcIDDatabase.h"
-#include "..\common\probdistmanager.h"
-#include "..\Inputs\procdata.h"
-#include "..\inputs\probab.h"
-#include "DlgProbDIst.h"
-#include "ProcesserDialog.h"
-#include "SelectALTObjectDialog.h"
-#include <Common/ProbabilityDistribution.h>
 #include "..\AirsideGUI\DlgStandFamily.h"
+#include "..\Main\PassengerTypeDialog.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+static const UINT MENU_ADD_STAGE = 200;
+static const UINT MENU_ADD_FLIGHTTYPE = 201;
+static const UINT MENU_ADD_STAND = 202;
+static const UINT MENU_ADD_PAXTYPE = 203;
+static const UINT MENU_ADD_TRIGGER = 204;
+
+static const UINT MENU_DEL_STAGE = 205;
+static const UINT MENU_DEL_ALL_STAGE = 206;
+static const UINT MENU_DEL_FLIGHTTYPE = 207;
+static const UINT MENU_DEL_STAND = 208;
+static const UINT MENU_DEL_PAXTYPE = 209;
+static const UINT MENU_DEL_TRIGGER = 210;
+
+static const UINT MENU_EDIT_FLIGHTTYPE = 211;
+static const UINT MENU_EDIT_STAND = 212;
+static const UINT MENU_EDIT_PAXTYPE = 213;
+static const UINT MENU_EDIT_TRIGGERCOUNT = 211;
+static const UINT MENU_EDIT_TRIGGERTIME = 212;
+static const UINT MENU_EDIT_TRIGGERPROP = 213;
+static const UINT MENU_UNAVAILABLE = 220;
 
 typedef enum 
 {
@@ -35,8 +49,8 @@ class TreeNodeDataWithType
 {
 public:
 	TREE_NODE_DATA_TYPE m_type;
-	DWORD m_dataPointer;
-	TreeNodeDataWithType(){ m_type = TREE_NODE_INVALID; m_dataPointer = NULL; }
+	DWORD m_data;
+	TreeNodeDataWithType(){ m_type = TREE_NODE_INVALID; m_data = NULL; }
 	~TreeNodeDataWithType(){}
 };
 
@@ -67,6 +81,9 @@ BEGIN_MESSAGE_MAP(CBoardingCallDlg, CDialog)
 	ON_COMMAND(ID_BOARDING_CALL_EDIT, OnToolbarButtonEdit)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE, OnButtonSave)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_BOARDING_CALL_TREE, OnSelchangedBoardingCallTree)
+
+	ON_WM_CONTEXTMENU()
+	ON_COMMAND_RANGE(MENU_ADD_FLIGHTTYPE, MENU_UNAVAILABLE, OnChooseMenu)
 END_MESSAGE_MAP()
 
 int CBoardingCallDlg::OnCreate(LPCREATESTRUCT lpCreateStruct) 
@@ -80,7 +97,7 @@ int CBoardingCallDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	{
 		TRACE0("Failed to create toolbar\n");
 		return -1;
-	}	
+	}
 	return 0;
 }
 
@@ -97,7 +114,7 @@ BOOL CBoardingCallDlg::OnInitDialog()
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	m_hRoot=m_tree.InsertItem("Boarding Calls",cni,FALSE);
-	ReloadAllStages();
+	ReloadRoot();
 	return TRUE;
 }
 
@@ -166,7 +183,7 @@ void CBoardingCallDlg::OnOK()
 	CDialog::OnOK();
 }
 
-void CBoardingCallDlg::ReloadAllStages()
+void CBoardingCallDlg::ReloadRoot()
 {
 	RemoveTreeSubItem(m_hRoot);
 	COOLTREE_NODE_INFO cni;
@@ -178,19 +195,19 @@ void CBoardingCallDlg::ReloadAllStages()
 		CString strItemText;
 		strItemText.Format("Stage: %d", (i+1));
 		HTREEITEM hTreeItemStage = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, m_hRoot);
-		TreeNodeDataWithType* nodedata1 = new TreeNodeDataWithType();
-		nodedata1->m_type = TREE_NODE_STAGE;
-		nodedata1->m_dataPointer = (DWORD)i;
-		m_tree.SetItemData(hTreeItemStage, (DWORD)nodedata1);
+		TreeNodeDataWithType* nodeDataStage = new TreeNodeDataWithType();
+		nodeDataStage->m_type = TREE_NODE_STAGE;
+		nodeDataStage->m_data = (DWORD)pFlightData->GetFlightTypeDBInStage(i);/* BoardingCallFlightTypeDatabase* */
+		m_tree.SetItemData(hTreeItemStage, (DWORD)nodeDataStage);
 
 		BoardingCallFlightTypeDatabase* pFlightTypeDB = pFlightData->GetFlightTypeDBInStage(i);
-		ReloadAllFlightTypes(pFlightTypeDB, hTreeItemStage);
+		ReloadStage(pFlightTypeDB, hTreeItemStage);
 	}
 	m_tree.Expand(m_tree.GetRootItem(),TVE_EXPAND);
 	return;
 }
 
-void CBoardingCallDlg::ReloadAllFlightTypes(BoardingCallFlightTypeDatabase* pFlightTypeDB, HTREEITEM hTreeItemStage)
+void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB, HTREEITEM hTreeItemStage)
 {
 	RemoveTreeSubItem(hTreeItemStage);
 	CString strItemText;
@@ -206,19 +223,18 @@ void CBoardingCallDlg::ReloadAllFlightTypes(BoardingCallFlightTypeDatabase* pFli
 		strFlightType.ReleaseBuffer();
 		strItemText.Format("Flight Type: %s", strFlightType);
 		HTREEITEM hTreeItemFlight = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemStage);
-		TreeNodeDataWithType* nodedata2 = new TreeNodeDataWithType();
-		nodedata2->m_type = TREE_NODE_FLIGHT_TYPE;
-		nodedata2->m_dataPointer = (DWORD)pFlightEntry;
-		m_tree.SetItemData(hTreeItemFlight, (DWORD)nodedata2);
+		TreeNodeDataWithType* nodeDataFlight = new TreeNodeDataWithType();
+		nodeDataFlight->m_type = TREE_NODE_FLIGHT_TYPE;
+		nodeDataFlight->m_data = (DWORD)pFlightEntry;
+		m_tree.SetItemData(hTreeItemFlight, (DWORD)nodeDataFlight);
 
-		BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
-		ReloadAllStand(pStandDB, hTreeItemFlight);
-
+		ReloadFlightType(pFlightEntry, hTreeItemFlight);
 	}
 }
 
-void CBoardingCallDlg::ReloadAllStand(BoardingCallStandDatabase* pStandDB, HTREEITEM hTreeItemFlight)
+void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEntry, HTREEITEM hTreeItemFlight )
 {
+	BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
 	RemoveTreeSubItem(hTreeItemFlight);
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
@@ -233,19 +249,18 @@ void CBoardingCallDlg::ReloadAllStand(BoardingCallStandDatabase* pStandDB, HTREE
 		strStand.ReleaseBuffer();
 		strItemText.Format("Stand: %s", strStand);
 		HTREEITEM hTreeItemStand = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemFlight);
-		TreeNodeDataWithType* nodedata3 = new TreeNodeDataWithType();
-		nodedata3->m_type = TREE_NODE_STAND;
-		nodedata3->m_dataPointer = (DWORD)pStandEntry;
-		m_tree.SetItemData(hTreeItemStand, (DWORD)nodedata3);
+		TreeNodeDataWithType* nodeDataStand = new TreeNodeDataWithType();
+		nodeDataStand->m_type = TREE_NODE_STAND;
+		nodeDataStand->m_data = (DWORD)pStandEntry;
+		m_tree.SetItemData(hTreeItemStand, (DWORD)nodeDataStand);
 
-		BoardingCallPaxTypeDatabase* pPaxDB = pStandEntry->GetPaxTypeDatabase();
-		ReloadAllPaxTypes(pPaxDB, hTreeItemStand);
-
+		ReloadStand(pStandEntry, hTreeItemStand);
 	}
 }
 
-void CBoardingCallDlg::ReloadAllPaxTypes(BoardingCallPaxTypeDatabase* pPaxDB, HTREEITEM hTreeItemStand)
+void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITEM hTreeItemStand)
 {
+	BoardingCallPaxTypeDatabase* pPaxDB = pStandEntry->GetPaxTypeDatabase();
 	RemoveTreeSubItem(hTreeItemStand);
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
@@ -259,57 +274,88 @@ void CBoardingCallDlg::ReloadAllPaxTypes(BoardingCallPaxTypeDatabase* pPaxDB, HT
 		pMobElemConst->screenPrint(strPaxType);
 		strItemText.Format("Passenger Type: %s", strPaxType);
 		HTREEITEM hTreeItemPax = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemStand);
-		TreeNodeDataWithType* nodedata4 = new TreeNodeDataWithType();
-		nodedata4->m_type = TREE_NODE_PASSENGER_TYPE;
-		nodedata4->m_dataPointer = (DWORD)pPaxEntry;
-		m_tree.SetItemData(hTreeItemPax, (DWORD)nodedata4);
+		TreeNodeDataWithType* nodeDataPax = new TreeNodeDataWithType();
+		nodeDataPax->m_type = TREE_NODE_PASSENGER_TYPE;
+		nodeDataPax->m_data = (DWORD)pPaxEntry;
+		m_tree.SetItemData(hTreeItemPax, (DWORD)nodeDataPax);
 
-		CString strTrigCount;
-		strTrigCount.Format("Number of triggers: %d", 2000);
-		HTREEITEM hTriggerAll = m_tree.InsertItem(strTrigCount, cni, FALSE, FALSE, hTreeItemPax);
-		TreeNodeDataWithType* nodedata5 = new TreeNodeDataWithType();
-		nodedata5->m_type = TREE_NODE_TRIGGER_ALL;
-		nodedata5->m_dataPointer = NULL;
-		m_tree.SetItemData(hTriggerAll, (DWORD)nodedata5);
-		std::vector<BoardingCallTrigger>* vTriggers = pPaxEntry->GetTriggersDatabase();
-		ReloadAllTriggers(vTriggers, hTriggerAll);
-
+		ReloadPaxType(pPaxEntry, hTreeItemPax);
 	}
+}
+
+void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREEITEM hTreeItemPax )
+{
+	RemoveTreeSubItem(hTreeItemPax);
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+	std::vector<BoardingCallTrigger>* vTriggers = pPaxEntry->GetTriggersDatabase();
+
+	int triggerCount = vTriggers->size();
+	cni.net = NET_EDITSPIN_WITH_VALUE;
+	CString strItemText;
+	strItemText.Format("Number of triggers: %d", triggerCount);
+	HTREEITEM hTriggerAll = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemPax);
+	TreeNodeDataWithType* nodedata5 = new TreeNodeDataWithType();
+	nodedata5->m_type = TREE_NODE_TRIGGER_ALL;
+	nodedata5->m_data = NULL;
+	m_tree.SetItemData(hTriggerAll, (DWORD)nodedata5);
+
+	ReloadAllTriggers(vTriggers, hTriggerAll);
+
 }
 
 void CBoardingCallDlg::ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll)
 {
 	RemoveTreeSubItem(hTriggerAll);
-	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
+	cni.net = NET_EDITSPIN_WITH_VALUE;
+	CString strItemText;
 	int triggerCount = vTriggers->size();
-	for(int iTrigger=0; iTrigger<triggerCount; iTrigger++)
+	for(int triggerIndex=0; triggerIndex<triggerCount; triggerIndex++)
 	{
-		strItemText.Format("Trigger: %d", (iTrigger+1));
+		cni.net = NET_NORMAL;
+		strItemText.Format("Trigger: %d", (triggerIndex+1));
 		HTREEITEM hTrigger = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTriggerAll);
-		TreeNodeDataWithType* nodedata6 = new TreeNodeDataWithType();
-		nodedata6->m_type = TREE_NODE_TRIGGER;
-		nodedata6->m_dataPointer = (DWORD)iTrigger;
-		m_tree.SetItemData(hTrigger, (DWORD)nodedata6);
-		BoardingCallTrigger* trigger = &vTriggers->at(iTrigger);
+		TreeNodeDataWithType* nodeDataTrigger = new TreeNodeDataWithType();
+		nodeDataTrigger->m_type = TREE_NODE_TRIGGER;
+		nodeDataTrigger->m_data = (DWORD)triggerIndex;
+		m_tree.SetItemData(hTrigger, (DWORD)nodeDataTrigger);
+		BoardingCallTrigger* trigger = &vTriggers->at(triggerIndex);
 		CString strTime, strProp;
+		// Add time.
+		cni.net = NET_EDIT_WITH_VALUE;
 		long seconds = trigger->GetTriggerTime().getPrecisely()/1000;
 		strTime.Format("Time range before STD(s): %d", seconds);
-		nodedata6 = new TreeNodeDataWithType();
-		nodedata6->m_type = TREE_NODE_TRIGGER_TIME;
-		nodedata6->m_dataPointer = (DWORD)seconds;
+		nodeDataTrigger = new TreeNodeDataWithType();
+		nodeDataTrigger->m_type = TREE_NODE_TRIGGER_TIME;
+		nodeDataTrigger->m_data = (DWORD)seconds;
 		HTREEITEM hTriggerTime = m_tree.InsertItem(strTime, cni, FALSE, FALSE, hTrigger);
-		m_tree.SetItemData(hTriggerTime, (DWORD)nodedata6);
-
-		double prop = trigger->GetTriggerProportion();
-		strProp.Format("Proportion of Pax: %2f", prop);
-		nodedata6 = new TreeNodeDataWithType();
-		nodedata6->m_type = TREE_NODE_TRIGGER_TIME;
-		nodedata6->m_dataPointer = (DWORD)prop;
-		HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
-		m_tree.SetItemData(hTriggerProp, (DWORD)nodedata6);
+		m_tree.SetItemData(hTriggerTime, (DWORD)nodeDataTrigger);
+		// Add proportion.
+		if(triggerIndex != triggerCount-1)
+		{
+			double prop = trigger->GetTriggerProportion();
+			strProp.Format("Proportion of Pax: %.2f", prop);
+			nodeDataTrigger = new TreeNodeDataWithType();
+			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
+			nodeDataTrigger->m_data = (DWORD)prop;
+			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
+			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
+		}
+		else
+		{
+			double prop = trigger->GetTriggerProportion();
+			cni.net = NET_NORMAL;
+			strProp = "Proportion of Pax: Residual";
+			nodeDataTrigger = new TreeNodeDataWithType();
+			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
+			nodeDataTrigger->m_data = (DWORD)prop;
+			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
+			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
+		}
 	}
+
 }
 
 void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -336,7 +382,6 @@ void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pRes
 	case TREE_NODE_STAGE:
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_ADD_FLIGHT, TRUE);
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
-		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
 		break;
 	case TREE_NODE_FLIGHT_TYPE:
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_ADD_STAND, TRUE);
@@ -372,9 +417,8 @@ void CBoardingCallDlg::OnToolbarButtonAddStage()
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 	ASSERT(hSelItem == m_hRoot);
 
-	FlightData* pFlightData = GetInputTerminal()->flightData;
-	pFlightData->AddStage();
-	ReloadAllStages();
+	GetInputTerminal()->flightData->AddStage();
+	ReloadRoot();
 	return;
 }
 
@@ -383,6 +427,16 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 	ASSERT(pDataWithType->m_type == TREE_NODE_STAGE);
+
+	BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
+	CFlightDialog flightTypeDlg( m_pParentWnd );
+	if( flightTypeDlg.DoModal() == IDOK )
+	{
+		FlightConstraint selectedFlightConstraint = flightTypeDlg.GetFlightSelection();
+		GetInputTerminal()->flightData->AddFlight(pFlightTypeDB, &selectedFlightConstraint);
+		ReloadStage(pFlightTypeDB, hSelItem);
+		m_tree.Expand(hSelItem, TVE_EXPAND);
+	}
 }
 
 void CBoardingCallDlg::OnToolbarButtonAddStand()
@@ -390,6 +444,17 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 	ASSERT(pDataWithType->m_type == TREE_NODE_FLIGHT_TYPE);
+
+	BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
+	CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
+	CDlgStandFamily standDlg(pDoc->GetProjectID());
+	if(standDlg.DoModal()==IDOK)
+	{
+		CString strStand = standDlg.GetSelStandFamilyName();
+		GetInputTerminal()->flightData->AddStand(pFlightTypeEntry, strStand.GetBuffer());
+		ReloadFlightType(pFlightTypeEntry, hSelItem);
+		m_tree.Expand(hSelItem, TVE_EXPAND);
+	}
 }
 
 void CBoardingCallDlg::OnToolbarButtonAddPaxType()
@@ -397,6 +462,17 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 	ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
+
+	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+
+	CPassengerTypeDialog paxTypeDlg(m_pParentWnd);
+	if(paxTypeDlg.DoModal() == IDOK)
+	{
+		CMobileElemConstraint mobileConst = paxTypeDlg.GetMobileSelection();
+		GetInputTerminal()->flightData->AddPax(pStandEntry, &mobileConst);
+		ReloadStand(pStandEntry, hSelItem);
+		m_tree.Expand(hSelItem, TVE_EXPAND);
+	}
 }
 
 void CBoardingCallDlg::OnToolbarButtonDel()
@@ -418,7 +494,7 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 				GetInputTerminal()->flightData->DeleteOneStageByIndex(0);
 			}
 			GetInputTerminal()->flightData->AddStage();
-			ReloadAllStages();
+			ReloadRoot();
 		}
 	}
 
@@ -440,24 +516,115 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 					MessageBox("Can't delete the last one!");
 					return;
 				}
-				m_tree.SelectItem(hNextSiblingItem);
 			}
-			int stageIndex = (int)pDataWithType->m_dataPointer;
-			FlightData* pFlightData = GetInputTerminal()->flightData;
-			pFlightData->DeleteOneStageByIndex(stageIndex);
-			ReloadAllStages();
+			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
+			GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
+			HTREEITEM hRootItem = m_tree.GetParentItem(hSelItem);
+			m_tree.SelectItem(hRootItem);
+			ReloadRoot();
 			break;
 		}
 	case TREE_NODE_FLIGHT_TYPE:
+		{
+			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
+			if(hPrevSiblingItem == NULL)
+			{
+				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
+				if(hNextSiblingItem == NULL)
+				{
+					MessageBox("Can't delete the last one!");
+					return;
+				}
+			}
+			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
+
+			// Reload all sibling item.
+			HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
+			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAGE);
+			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)(pParentData->m_data);
+			pFlightTypeDB->deleteItem(pFlightTypeEntry);
+			m_tree.SelectItem(hStageItem);
+			ReloadStage(pFlightTypeDB, hStageItem);
+			m_tree.Expand(hStageItem, TVE_EXPAND);
+		}
 		break;
 	case TREE_NODE_STAND:
+		{
+			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
+			if(hPrevSiblingItem == NULL)
+			{
+				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
+				if(hNextSiblingItem == NULL)
+				{
+					MessageBox("Can't delete the last one!");
+					return;
+				}
+			}
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+
+			// Reload all sibling item.
+			HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
+			ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
+			BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
+			BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
+			pStandDB->deleteItem(pStandEntry);
+			m_tree.SelectItem(hFlightTypeItem);
+			ReloadFlightType(pFlightEntry, hFlightTypeItem);
+			m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
+		}
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
+		{
+			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
+			if(hPrevSiblingItem == NULL)
+			{
+				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
+				if(hNextSiblingItem == NULL)
+				{
+					MessageBox("Can't delete the last one!");
+					return;
+				}
+			}
+			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
+
+			// Reload all sibling item.
+			HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
+			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAND);
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
+			BoardingCallPaxTypeDatabase* pPaxTypeDB = pStandEntry->GetPaxTypeDatabase();
+			pPaxTypeDB->deleteItem(pPaxEntry);
+			m_tree.SelectItem(hStandItem);
+			ReloadStand(pStandEntry, hStandItem);
+			m_tree.Expand(hStandItem, TVE_EXPAND);
+		}
 		break;
 	case TREE_NODE_TRIGGER_ALL:
 		break;
 	case TREE_NODE_TRIGGER:
-		break;
+		{
+			HTREEITEM hPaxTypeItem = m_tree.GetParentItem(m_tree.GetParentItem(hSelItem));
+			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
+			ASSERT(pParentData && pParentData->m_type == TREE_NODE_PASSENGER_TYPE);
+			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pParentData->m_data;
+
+			int triggerIndex = (int)pDataWithType->m_data;
+			if(triggerIndex == (pPaxTypeEntry->GetTriggerCount()-1))
+			{
+				MessageBox("Can Not Delete The Default Trigger.");
+				return;
+			}
+			pPaxTypeEntry->DeleteTrigger(triggerIndex);
+			// Reload all sibling item.
+			ReloadPaxType(pPaxTypeEntry, hPaxTypeItem);/* hParentItem will be deleted here. */
+			m_tree.Expand(hPaxTypeItem, TVE_EXPAND);
+			m_tree.Expand(m_tree.GetChildItem(hPaxTypeItem), TVE_EXPAND);/* hParentItem is deleted, so can't use here,
+																		    use GetChildItem(hPaxTypeItem) instead. */
+			m_tree.SelectItem(m_tree.GetChildItem(hPaxTypeItem));
+			break;
+		}
 	case TREE_NODE_TRIGGER_TIME:
 		break;
 	case TREE_NODE_TRIGGER_PROP:
@@ -470,9 +637,95 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 void CBoardingCallDlg::OnToolbarButtonEdit()
 {	
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
+	if(!hSelItem || hSelItem == m_hRoot)
+		return;
+
 	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 	if(!pDataWithType)
 		return;
+	switch(pDataWithType->m_type)
+	{
+	case TREE_NODE_INVALID:
+		break;
+	case TREE_NODE_STAGE:
+		break;
+	case TREE_NODE_FLIGHT_TYPE:
+		{
+			CFlightDialog flightTypeDlg( m_pParentWnd );
+			if( flightTypeDlg.DoModal() == IDOK )
+			{
+				BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
+				FlightConstraint selectedFlightConstraint = flightTypeDlg.GetFlightSelection();
+				FlightConstraint* pOldConst = (FlightConstraint*)pFlightTypeEntry->getConstraint();
+				*pOldConst = selectedFlightConstraint;
+
+				// Reload all sibling item.
+				HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
+				ASSERT(pParentData->m_type == TREE_NODE_STAGE);
+				BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)(pParentData->m_data);
+				ReloadStage(pFlightTypeDB, hStageItem);
+				m_tree.SelectItem(hStageItem);
+				m_tree.Expand(hStageItem, TVE_EXPAND);
+			}
+		}
+		break;
+	case TREE_NODE_STAND:
+		{
+			CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
+			CDlgStandFamily standDlg(pDoc->GetProjectID());
+			if(standDlg.DoModal()==IDOK)
+			{
+				BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+				CString strStand = standDlg.GetSelStandFamilyName();
+				ProcessorID procID;
+				procID.SetStrDict(GetInputTerminal()->inStrDict);
+				procID.setID(strStand.GetBuffer());
+				pStandEntry->SetProcessorID(procID);
+
+				// Reload all sibling item.
+				HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
+				ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
+				BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
+				ReloadFlightType(pFlightEntry, hFlightTypeItem);
+				m_tree.SelectItem(hFlightTypeItem);
+				m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
+			}
+
+		}
+		break;
+	case TREE_NODE_PASSENGER_TYPE:
+		{
+			CPassengerTypeDialog paxTypeDlg( m_pParentWnd );
+			if( paxTypeDlg.DoModal() == IDOK )
+			{
+				BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
+				CMobileElemConstraint selectedPaxConstraint = paxTypeDlg.GetMobileSelection();
+				CMobileElemConstraint* pOldConst = (CMobileElemConstraint*)pPaxTypeEntry->getConstraint();
+				*pOldConst = selectedPaxConstraint;
+
+				// Reload all sibling item.
+				HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
+				ASSERT(pParentData->m_type == TREE_NODE_STAND);
+				BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
+				ReloadStand(pStandEntry, hStandItem);
+				m_tree.SelectItem(hStandItem);
+				m_tree.Expand(hStandItem, TVE_EXPAND);
+			}
+		}
+		break;
+	case TREE_NODE_TRIGGER:
+		break;
+	case TREE_NODE_TRIGGER_ALL:
+	case TREE_NODE_TRIGGER_TIME:
+	case TREE_NODE_TRIGGER_PROP:
+		m_tree.DoEdit(hSelItem);
+		break;
+	default:
+		break;
+	}
 }
 
 void CBoardingCallDlg::DisableAllToolBarButtons()
@@ -487,55 +740,117 @@ void CBoardingCallDlg::DisableAllToolBarButtons()
 
 LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
 {
+	CString strItemText;
+	CString oldItemText;
+	CString strValue;
+	int index;
 	if(message==UM_CEW_COMBOBOX_BEGIN)	
 	{
 		CWnd* pWnd=m_tree.GetEditWnd((HTREEITEM)wParam);
 		CComboBox* pCB=(CComboBox*)pWnd;
 		if(pCB->GetCount()==0)
 		{
-			//---------------------------------------------------------------------------------------
-			CStringList strList;
-			CString s;
-			s.LoadString( IDS_STRING_NEWDIST );
-			pCB->AddString(s);
-			int nCount = _g_GetActiveProbMan( GetInputTerminal() )->getCount();
-			for( int m=0; m<nCount; m++ )
-			{
-				CProbDistEntry* pPBEntry = _g_GetActiveProbMan( GetInputTerminal() )->getItem( m );			
-				pCB->AddString(pPBEntry->m_csName);
-			}
-			//---------------------------------------------------------------------------------------
-
 		}			
 	}
-	else if(message==UM_CEW_COMBOBOX_SELCHANGE)
+	if(message==UM_CEW_COMBOBOX_SELCHANGE)
 	{
-		HTREEITEM hItemSeled=(HTREEITEM)wParam;
-		int nIndexSeled=m_tree.GetCmbBoxCurSel(hItemSeled);
-		ChangeProbDist(hItemSeled,nIndexSeled);
+		HTREEITEM hSelItem=(HTREEITEM)wParam;
+		int nIndexSeled=m_tree.GetCmbBoxCurSel(hSelItem);
 		m_btnSave.EnableWindow(TRUE);
 	}
-	else if(message==UM_CEW_SHOWMENU_BEGIN)
-	{
-		COOLTREE_NODE_INFO* pCNI=(COOLTREE_NODE_INFO*)lParam;
-		HTREEITEM hItem=(HTREEITEM)wParam;
-		if(pCNI)
-		{
-			pCNI->unMenuID=IDR_BOARDING_CALL;
-		}
-	}
-	else if(message==UM_CEW_SHOWMENU_READY)
+	if(message==UM_CEW_SHOWMENU_READY)
 	{
 		CMenu* pMenu=(CMenu*)lParam;
 		if(pMenu)
 		{
 		}
 	}
-	return CDialog::DefWindowProc(message, wParam, lParam);
-}
+	if(message == UM_CEW_EDITSPIN_BEGIN || message == UM_CEW_EDIT_BEGIN)
+	{
+		HTREEITEM hSelItem = (HTREEITEM)wParam;
+		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pDataWithType);
+		switch(pDataWithType->m_type)
+		{
+		case TREE_NODE_TRIGGER_ALL:
+			m_tree.SetItemValueRange(hSelItem,1,100);
+			break;
+		case TREE_NODE_TRIGGER_TIME:
+			m_tree.SetItemValueRange(hSelItem,1,864000);
+			break;
+		case TREE_NODE_TRIGGER_PROP:
+			m_tree.SetItemValueRange(hSelItem,1,100);
+			break;
+		default:
+			break;
+		}
+		oldItemText = m_tree.GetItemText(hSelItem);
+		index = oldItemText.ReverseFind(':') ;
+		strItemText = oldItemText.Right(oldItemText.GetLength() - index - 2);
+		m_tree.GetEditWnd(hSelItem)->SetWindowText(strItemText);
+		((CEdit*)m_tree.GetEditWnd(hSelItem))->SetSel(0, -1, true); 
+	}
+	if(message == UM_CEW_EDITSPIN_END)
+	{
+		strValue=*((CString*)lParam);
+		HTREEITEM hSelItem = (HTREEITEM)wParam;
+		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pDataWithType);
+		switch(pDataWithType->m_type)
+		{
+		case TREE_NODE_TRIGGER_ALL:
+			{
+				HTREEITEM hPaxTypeItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
+				ASSERT(pDataWithType && pDataWithType->m_type == TREE_NODE_PASSENGER_TYPE);
+				BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
+				std::vector<BoardingCallTrigger>* pVecTrigger = pPaxEntry->GetTriggersDatabase();
+				int userSetCount = atoi(strValue.GetBuffer());
+				strItemText.Format("Number of triggers: %d", userSetCount);
+				pPaxEntry->SetTriggerCount(userSetCount);
+				ReloadAllTriggers(pVecTrigger, hSelItem);
+				m_tree.Expand(hSelItem, TVE_EXPAND);
+			}
+			break;
+		case TREE_NODE_TRIGGER_TIME:
+			{
+				long userSetTime = atoi(strValue.GetBuffer());
+				strItemText.Format("Time range before STD(s): %d", userSetTime);
+				HTREEITEM hTriggerItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hTriggerItem);
+				ASSERT(pTriggerData && pTriggerData->m_type == TREE_NODE_TRIGGER);
+				HTREEITEM hPaxTypeItem = m_tree.GetParentItem(m_tree.GetParentItem(hTriggerItem));
+				TreeNodeDataWithType* pPaxTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
+				ASSERT(pPaxTypeData && pPaxTypeData->m_type == TREE_NODE_PASSENGER_TYPE);
+				BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeData->m_data;
 
-void CBoardingCallDlg::ChangeProbDist(HTREEITEM hItem, int nIndexSeled)
-{
+				int triggerIndex = (int)pTriggerData->m_data;
+				pPaxTypeEntry->SetTriggerTime(triggerIndex, userSetTime);
+				break;
+			}
+			break;
+		case TREE_NODE_TRIGGER_PROP:
+			{
+				double userSetProp = atof(strValue.GetBuffer());
+				strItemText.Format("Proportion of Pax: %.2f", userSetProp);
+				HTREEITEM hTriggerItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hTriggerItem);
+				ASSERT(pTriggerData && pTriggerData->m_type == TREE_NODE_TRIGGER);
+				HTREEITEM hPaxTypeItem = m_tree.GetParentItem(m_tree.GetParentItem(hTriggerItem));
+				TreeNodeDataWithType* pPaxTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
+				ASSERT(pPaxTypeData && pPaxTypeData->m_type == TREE_NODE_PASSENGER_TYPE);
+				BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeData->m_data;
+
+				int triggerIndex = (int)pTriggerData->m_data;
+				pPaxTypeEntry->SetTriggerProportion(triggerIndex, userSetProp);
+			}
+			break;
+		default:
+			break;
+		}
+		m_tree.SetItemText(hSelItem, strItemText);
+	}
+	return CDialog::DefWindowProc(message, wParam, lParam);
 }
 
 void CBoardingCallDlg::RemoveTreeSubItem(HTREEITEM hItem)
@@ -560,3 +875,240 @@ void CBoardingCallDlg::RemoveTreeItemAndDeleteData(HTREEITEM hItem)
 	m_tree.DeleteItem(hItem);
 }
 
+void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
+{
+	CPoint pt = point;
+	m_tree.ScreenToClient( &pt );
+
+	UINT iRet;
+	HTREEITEM hSelItem = m_tree.HitTest( pt, &iRet );
+	if(hSelItem == NULL || hSelItem == m_hRoot) 
+		return ;
+	m_tree.SelectItem(hSelItem);
+
+	TreeNodeDataWithType* pItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	ASSERT(pItemData);
+	switch(pItemData->m_type)
+	{
+	case TREE_NODE_STAGE:
+		{
+			CMenu menuProj;
+			menuProj.CreatePopupMenu();
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_FLIGHTTYPE, _T("Add Flight Type"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_STAGE, _T("Delete Stage"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		}
+		break;
+	case TREE_NODE_FLIGHT_TYPE:
+		{
+			CMenu menuReport;
+			menuReport.CreatePopupMenu();
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_STAND, _T("Add Stand"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_FLIGHTTYPE, _T("Edit Flight Type"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_FLIGHTTYPE, _T("Delete Flight Type"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuReport.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		}
+		break;	
+	case TREE_NODE_STAND:
+		{
+			CMenu menuReport;
+			menuReport.CreatePopupMenu();
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_PAXTYPE, _T("Add Passenger Type"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_STAND, _T("Edit Stand"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_STAND, _T("Delete Stand"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuReport.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		}
+		break;
+	case TREE_NODE_PASSENGER_TYPE:
+		{
+			CMenu menuProj;
+			menuProj.CreatePopupMenu();
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_PAXTYPE, _T("Edit Passenger Type"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_PAXTYPE, _T("Delete Passenger Type"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+		}
+		break;
+	case TREE_NODE_TRIGGER_ALL:
+		{
+			CMenu menuProj;
+			menuProj.CreatePopupMenu();
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_TRIGGER, _T("Add Trigger"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERCOUNT, _T("Edit Trigger Count"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+		}
+		break;
+	case TREE_NODE_TRIGGER:
+		{
+			CMenu menuProj;
+			menuProj.CreatePopupMenu();
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_TRIGGER, _T("Delete Trigger"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+		}
+		break;
+	case TREE_NODE_TRIGGER_TIME:
+		{
+			CMenu menuProj;
+			menuProj.CreatePopupMenu();
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERTIME, _T("Edit Trigger Time"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+		}
+		break;
+	case TREE_NODE_TRIGGER_PROP:
+		{
+			CMenu menuProj;
+			menuProj.CreatePopupMenu();
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERPROP, _T("Edit Trigger Proportion"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void CBoardingCallDlg::OnChooseMenu( UINT nID )
+{
+	if(nID == MENU_UNAVAILABLE)
+		return;
+	HTREEITEM hSelItem = m_tree.GetSelectedItem();
+	if(hSelItem == NULL || hSelItem == m_hRoot) 
+		return;
+	TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	ASSERT(pTriggerData);
+	switch (pTriggerData->m_type)
+	{
+	case TREE_NODE_STAGE:
+		{
+			switch(nID)
+			{
+			case MENU_ADD_FLIGHTTYPE:
+				OnToolbarButtonAddFlightType();
+				break;
+			case MENU_DEL_STAGE:
+				OnToolbarButtonDel();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	case TREE_NODE_FLIGHT_TYPE:
+		{
+			switch(nID)
+			{
+			case MENU_ADD_STAND:
+				OnToolbarButtonAddStand();
+				break;
+			case MENU_DEL_FLIGHTTYPE:
+				OnToolbarButtonDel();
+				break;
+			case MENU_EDIT_FLIGHTTYPE:
+				OnToolbarButtonEdit();
+				break;
+			default:
+				break;
+			}
+		}
+		break;	
+	case TREE_NODE_STAND:
+		{
+			switch(nID)
+			{
+			case MENU_ADD_PAXTYPE:
+				OnToolbarButtonAddPaxType();
+				break;
+			case MENU_EDIT_STAND:
+				OnToolbarButtonEdit();
+				break;
+			case MENU_DEL_STAND:
+				OnToolbarButtonDel();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	case TREE_NODE_PASSENGER_TYPE:
+		{
+			switch(nID)
+			{
+			case MENU_EDIT_PAXTYPE:
+				OnToolbarButtonEdit();
+				break;
+			case MENU_DEL_PAXTYPE:
+				OnToolbarButtonDel();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	case TREE_NODE_TRIGGER_ALL:
+		{
+			switch(nID)
+			{
+			case MENU_EDIT_TRIGGERCOUNT:
+				OnToolbarButtonEdit();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	case TREE_NODE_TRIGGER:
+		{
+			switch(nID)
+			{
+			case MENU_DEL_TRIGGER:
+				OnToolbarButtonDel();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	case TREE_NODE_TRIGGER_TIME:
+		{
+			switch(nID)
+			{
+			case MENU_EDIT_TRIGGERTIME:
+				OnToolbarButtonEdit();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	case TREE_NODE_TRIGGER_PROP:
+		{
+			switch(nID)
+			{
+			case MENU_EDIT_TRIGGERPROP:
+				OnToolbarButtonEdit();
+				break;
+			default:
+				break;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return;
+}

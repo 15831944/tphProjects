@@ -40,11 +40,18 @@ public:
 	~BoardingCallPaxTypeEntry();
 	void InitTriggersDatabase();
 	std::vector<BoardingCallTrigger>* GetTriggersDatabase(){ return &m_vTriggers; }
+	void DeleteTrigger(int index){ m_vTriggers.erase( m_vTriggers.begin() + index); }
+	int GetTriggerCount(){ return m_vTriggers.size(); }
+	void SetTriggerTime(int index, long time){ m_vTriggers[index].SetTriggerTime(time); }
+	void SetTriggerProportion(int index, double prop){ m_vTriggers[index].SetTriggerProportion(prop); }
+	void AddNewTrigger();
+	void SetTriggerCount(int count);
 };
 
 class BoardingCallPaxTypeDatabase : public CMobileElemConstraintDatabase
 {
 public:
+	virtual void deleteItem(ConstraintEntry* pConst);
 	BoardingCallPaxTypeDatabase();
 	~BoardingCallPaxTypeDatabase();
 };

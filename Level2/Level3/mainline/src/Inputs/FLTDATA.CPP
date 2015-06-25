@@ -408,29 +408,9 @@ void FlightData::clear()
 */
 void FlightData::AddStage()
 {
-	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
-	pPaxEntry->InitTriggersDatabase();	/* InitTriggersDatabase(): The 4 initial triggers will be added here. */
-	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
-	pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
-	pPaxEntry->initialize(pMBConst, NULL);
-	
-	BoardingCallStandEntry* pStandEntry = new BoardingCallStandEntry();
-	pStandEntry->GetPaxTypeDatabase()->push_back(pPaxEntry);
-	ProcessorID* pStandProcID = new ProcessorID();
-	pStandProcID->init(); /* Set 'Stand group': All Processors */
-	pStandProcID->SetStrDict(m_pInTerm->inStrDict);
-	pStandEntry->changeID(*pStandProcID);
-
-	BoardingCallFlightTypeEntry* pFlightEntry = new BoardingCallFlightTypeEntry();
-	pFlightEntry->GetStandDatabase()->push_back(pStandEntry);
-	FlightConstraint* pFlightConstraint = new FlightConstraint();
-	pFlightConstraint->initDefault(); /* Set 'Flight Type': DEFAULT */
-	pFlightEntry->initialize(pFlightConstraint, NULL);
-
 	BoardingCallFlightTypeDatabase* pFlightTypeDB = new BoardingCallFlightTypeDatabase();
-	pFlightTypeDB->push_back(pFlightEntry);
-
-	m_vBoardingCallStages.push_back(pFlightTypeDB);	
+	m_vBoardingCallStages.push_back(pFlightTypeDB);
+	AddFlight(pFlightTypeDB, NULL);/*add a default flight constraint entry.*/
 	return;
 }
 
@@ -438,6 +418,7 @@ void FlightData::AddStage()
 void FlightData::DeleteOneStageByIndex(int _stageIndex)
 {
 	assert( _stageIndex < static_cast<int>(m_vBoardingCallStages.size()) );
+	delete m_vBoardingCallStages[_stageIndex];
 	m_vBoardingCallStages.erase(m_vBoardingCallStages.begin() + _stageIndex);
 }
 
@@ -448,6 +429,7 @@ BOOL FlightData::DeleteOneStageByFlightConstDB(ConstraintDatabase *pFCDB)
 	{
 		if(m_vBoardingCallStages[i]==pFCDB)
 		{
+			delete m_vBoardingCallStages[i];
 			m_vBoardingCallStages.erase(m_vBoardingCallStages.begin()+i);
 			return TRUE;
 		}
@@ -461,5 +443,56 @@ void FlightData::resortBoardingCallDB()
 	{
 		m_vCalls[i]->resortDatebase();
 	}
+}
+
+void FlightData::AddFlight(BoardingCallFlightTypeDatabase* pFlightTypeDB, FlightConstraint* pFlight)
+{
+	FlightConstraint* pFlightConstraint = new FlightConstraint();
+	if(pFlight)
+	{
+		*pFlightConstraint = *pFlight;
+	}
+	else
+	{
+		pFlightConstraint->initDefault(); /* Set 'Flight Type': DEFAULT */
+	}
+	BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
+	flightEntry->initialize(pFlightConstraint, NULL);
+	pFlightTypeDB->addEntry(flightEntry, true);
+	AddStand(flightEntry, NULL);
+}
+
+void FlightData::AddStand(BoardingCallFlightTypeEntry* flightEntry, char* strProc)
+{
+	ProcessorID* pStandProcID = new ProcessorID();
+	pStandProcID->SetStrDict(m_pInTerm->inStrDict);
+	if(strProc)
+	{
+		pStandProcID->setID(strProc);
+	}
+	else
+	{
+		pStandProcID->setID("All Stand"); /* Set 'Stand group': All Stand */
+	}
+	flightEntry->GetStandDatabase()->addEntry(*pStandProcID);
+	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)flightEntry->GetStandDatabase()->FindEntry(*pStandProcID);
+	AddPax(pStandEntry, NULL);/*add a default mobile element constraint entry.*/
+}
+
+void FlightData::AddPax(BoardingCallStandEntry* pStandEntry, CMobileElemConstraint* pInputConst)
+{
+	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
+	if(pInputConst)
+	{
+		*pMBConst = *pInputConst;
+	}
+	else
+	{
+		pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
+	}
+	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
+	pPaxEntry->initialize(pMBConst, NULL);
+	pPaxEntry->InitTriggersDatabase();	/* InitTriggersDatabase(): The 4 initial triggers will be added here. */
+	pStandEntry->GetPaxTypeDatabase()->addEntry(pPaxEntry, true);
 }
 

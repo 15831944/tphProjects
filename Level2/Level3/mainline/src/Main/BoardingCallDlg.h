@@ -10,12 +10,12 @@ class FlightConWithProcIDDatabase;
 class CBoardingCallDlg : public CDialog
 {
 public:
-	void ChangeProbDist(HTREEITEM hItem,int nIndexSeled);
 	HTREEITEM m_hRoot;
-	void ReloadAllStages();
-	void ReloadAllFlightTypes(BoardingCallFlightTypeDatabase* pFlightTypeDB, HTREEITEM hTreeItemStage);
-	void ReloadAllStand(BoardingCallStandDatabase* pStandDB, HTREEITEM hTreeItemFlight);
-	void ReloadAllPaxTypes(BoardingCallPaxTypeDatabase* pPaxDB, HTREEITEM hTreeItemStand);
+	void ReloadRoot();
+	void ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB, HTREEITEM hTreeItemStage);
+	void ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEntry, HTREEITEM hTreeItemFlight );
+	void ReloadStand( BoardingCallStandEntry* pStandEntry, HTREEITEM hTreeItemStand );
+	void ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREEITEM hTreeItemPax );
 	void ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll);
 
 	CString GetProjPath();
@@ -52,11 +52,11 @@ protected:
 	afx_msg void OnToolbarButtonAddPaxType();
 	afx_msg void OnToolbarButtonDel();
 	afx_msg void OnToolbarButtonEdit();
-
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnChooseMenu(UINT nID);
 protected:
 	void DisableAllToolBarButtons();
 	void RemoveTreeSubItem(HTREEITEM hItem);
-
 	void RemoveTreeItemAndDeleteData(HTREEITEM hChildItem);
 
 	//}}AFX_MSG

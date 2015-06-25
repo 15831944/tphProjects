@@ -39,6 +39,9 @@ public:
 
 	// Add one more stages with default value
 	void AddStage();
+	void AddFlight(BoardingCallFlightTypeDatabase* pFlightTypeDB, FlightConstraint* pFlight = NULL);
+	void AddStand(BoardingCallFlightTypeEntry* flightEntry, char* strProc);
+	void AddPax(BoardingCallStandEntry* pStandEntry, CMobileElemConstraint* pInputConst);
 
 	// remove one stage data
 	void DeleteOneStageByIndex(int _stageIndex);
