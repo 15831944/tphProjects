@@ -358,8 +358,17 @@ void CCmpReportTreeView::UpdateParaItem( HTREEITEM hItem )
 			strItemText.Format("End Time: %s", strTemp);
 			HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepStartTime);
 
-			strTemp = param.GetInterval().printTime();
-			strItemText.Format("Interval: %s", strTemp);
+			if(report.GetCategory() == ENUM_DISTANCE_REP)
+			{
+				LONG lInterval;
+				param.GetInterval(lInterval);
+				strItemText.Format("Interval: %d", lInterval);
+			}
+			else
+			{
+				strTemp = param.GetInterval().printTime();
+				strItemText.Format("Interval: %s", strTemp);
+			}
 			HTREEITEM hInterval = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepEndTime);
 
 			//write Model Parameter

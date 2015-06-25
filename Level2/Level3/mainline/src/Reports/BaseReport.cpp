@@ -80,6 +80,14 @@ void CBaseReport::GenerateReport( const CString& _csProjPath, bool bSummary /* =
 	//PROJMANAGER->getReportFileName ( _csProjPath, GetReportFileType(), filename);
 
 	CString sFileName = m_pTerm->GetSimReportManager()->GetCurrentReportFileName( _csProjPath );
+	CString strTemp("C:\\ARCTERM\\PROJECT\\WAIT_AREA_PIPE\\SIMRESULT\\SIMRESULT0\\REPORT\\PAXDENS\\PAXDENS.REP");
+	CString strTemp2("C:\\ARCTERM\\PROJECT\\OLD_PROJECT\\SIMRESULT\\SIMRESULT0\\REPORT\\QUEUETIME\\QUEUETIME.REP");
+
+	if(sFileName.CompareNoCase(strTemp) == 0 || sFileName.CompareNoCase(strTemp2) == 0)
+	{
+		int xxxx =1000;
+	}
+	
     ArctermFile p_file;
     p_file.openFile (sFileName, WRITE);
 

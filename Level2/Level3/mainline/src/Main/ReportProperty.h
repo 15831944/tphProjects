@@ -136,6 +136,7 @@ protected:
 	void LoadProcFromToListByModel(int nModelIndex,HTREEITEM hItemModel);
 
 	void LoadArea();
+	BOOL CheckUserHasAssignedArea();
 	void LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel);
 	void OnUpdateToolBarUI();
 

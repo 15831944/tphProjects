@@ -481,18 +481,18 @@ void CReportProperty::OnOK()
 	}
 
 	m_reportToCompare.SetCategory(nReportType);
-	if (nReportType == 3 || nReportType == ENUM_PAXDENS_REP)
+	if ((nReportType == 3 &&m_nReportType.GetCurSel() != 6) && m_strArea.IsEmpty())
 	{
-		if(m_nReportType.GetCurSel() != 6)
+		AfxMessageBox(_T("Please Select An Area."));
+		return;
+	}
+	if(nReportType == ENUM_PAXDENS_REP && !CheckUserHasAssignedArea())
+	{
+		if(AfxMessageBox("No area is select, continue?", MB_YESNO|MB_ICONSTOP) == IDNO)
 		{
-			if(m_strArea.IsEmpty())
-			{
-				AfxMessageBox(_T("Please Select An Area."));
-				return;
-			}
+			return;
 		}
 	}
-
 	CReportParamToCompare param;
 	ElapsedTime et;
 	//et.set(m_tStart.GetHour(), m_tStart.GetMinute(), m_tStart.GetSecond());
@@ -1396,19 +1396,34 @@ void CReportProperty::LoadArea()
 {
 
 	m_treeArea.DeleteAllItems();
+	m_treeArea.SetRedraw();
 
 	int nModelCount = static_cast<int>(m_vModelParam.size());
 	for (int nModel = 0; nModel < nModelCount; ++nModel)
 	{
-		LoadAreaByModel(nModel);
+		LoadAreaByModel(nModel,NULL);
 	}
 }
-void CReportProperty::LoadAreaByModel(int nModelIndex)
+void CReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel)
 {
 	CModelParameter modelParam = m_vModelParam[nModelIndex];
+	if (hItemModel == NULL)
+	{
+		hItemModel = m_treeArea.InsertItem(modelParam.GetModelUniqueName(),TVI_ROOT);
+		m_treeArea.SetItemState( hItemModel,TVIS_BOLD, TVIS_BOLD );
+	}
+	else
+	{
 
-	HTREEITEM hItemModel = m_treeArea.InsertItem(modelParam.GetModelUniqueName(),TVI_ROOT);
-	m_treeArea.SetItemState( hItemModel,TVIS_BOLD, TVIS_BOLD );
+		HTREEITEM hChildItem = NULL;
+		while(hChildItem = m_treeArea.GetChildItem(hItemModel))
+		{
+			ItemData *pChildItemData  = (ItemData *)m_treeArea.GetItemData(hChildItem);
+			delete pChildItemData;
+			m_treeArea.DeleteItem(hChildItem);
+
+		}
+	}
 	ItemData *pItemData = new ItemData(IT_MODEL,nModelIndex);
 	m_treeArea.SetItemData(hItemModel,(DWORD_PTR)pItemData);
 
@@ -1417,9 +1432,11 @@ void CReportProperty::LoadAreaByModel(int nModelIndex)
 	if (!strArea.IsEmpty())
 	{
 		HTREEITEM hItem = m_treeArea.InsertItem(strArea,hItemModel);
+
 		m_treeArea.SetItemData(hItem,(DWORD_PTR)new ItemData(IT_AREA,nModelIndex));
 	}
-	m_treeArea.Expand(hItemModel,TVE_EXPAND);
+m_treeArea.Expand(hItemModel,TVE_EXPAND);
+
 }
 void CReportProperty::OnSelchangeComboReporttype() 
 {
@@ -1878,9 +1895,10 @@ void CReportProperty::OnDelArea()
 	ItemData *pItemData =  (ItemData *)m_treeArea.GetItemData(hItem);
 	if (pItemData == NULL || pItemData->m_itemType != IT_AREA)
 		return;
+
 	m_vModelParam[pItemData->m_nIndex].SetArea(_T(""));
-	delete pItemData;
 	m_treeArea.DeleteItem(hItem);
+	delete pItemData;
 }
 void CReportProperty::OnUpdateUIPaxTypeAdd()
 {
@@ -2138,4 +2156,17 @@ void CReportProperty::OnCancel()
 	DeleteTreeData(m_treeArea);
 	DeleteTreeData(m_treePaxType);
 	CDialog::OnCancel();
+}
+
+BOOL CReportProperty::CheckUserHasAssignedArea()
+{
+	std::vector<CModelParameter>::iterator itor = m_vModelParam.begin();
+	for(; itor!= m_vModelParam.end(); itor++)
+	{
+		if(!itor->GetArea().IsEmpty())
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
 }

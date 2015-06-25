@@ -65,8 +65,6 @@ void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 	if(!IsWindowVisible())
 		return;
 
-	m_wndListCtrl.SetExtendedStyle(LVS_EX_GRIDLINES);
-
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
 	const CComparativeReportResultList &crrList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vReport = crrList.GetReportResult();
@@ -93,7 +91,7 @@ int CCmpReportListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if(m_wndListCtrl.Create(LBS_NOTIFY|LBS_HASSTRINGS|WS_CHILD|WS_VISIBLE|WS_BORDER|WS_VSCROLL,
 		rtEmpty, this,IDC_CMPREPORT_LISTCTRL))
 	{
-		DWORD dwStyle =dwStyle = m_wndListCtrl.GetExtendedStyle();
+		DWORD dwStyle = m_wndListCtrl.GetExtendedStyle();
 		dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES;
 		m_wndListCtrl.SetExtendedStyle( dwStyle );
 
