@@ -62,14 +62,14 @@ void FlightData::readData (ArctermFile& p_file)
     delays.readDatabase (p_file, "DELAY", m_pInTerm );
     loads.readDatabase (p_file, "LOAD", m_pInTerm );
     capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
-// 	
-// 	// read boarding call
-// 	int nSize = m_vCalls.size();
-// 	if( nStageNumber == 0 && nSize == 0 )
-// 	{
-// 		AddStage();
-// 		return;
-// 	}
+	
+	// read boarding call
+	int nSize = m_vCalls.size();
+	if( nStageNumber == 0 && nSize == 0 )
+	{
+		AddStage();
+		return;
+	}
 
 	for( int i=0; i<nStageNumber; i++ )
 	{
@@ -424,4 +424,39 @@ void FlightData::resortBoardingCallDB()
 	{
 		m_vCalls[i]->resortDatebase();
 	}
+}
+
+void FlightData::InitDemoStageData()
+{
+	BoardingCallFlightTypeDatabase* pFlightDB = new BoardingCallFlightTypeDatabase();
+	m_vBoardingCallStages.push_back(pFlightDB);
+	BoardingCallFlightTypeEntry* pFlightEntry = new BoardingCallFlightTypeEntry();
+	FlightConstraint* pFlightConstraint = new FlightConstraint();
+	pFlightConstraint->initDefault();
+	pFlightEntry->initialize(pFlightConstraint, NULL);
+	pFlightDB->push_back(pFlightEntry);
+	BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
+	BoardingCallStandEntry* pStandEntry = new BoardingCallStandEntry();
+	ProcessorID* pStandProcID = new ProcessorID();
+	pStandProcID->SetStrDict(m_pInTerm->inStrDict);
+	pStandProcID->setID("StandProcID_XX");
+	pStandEntry->changeID(*pStandProcID);
+	pStandDB->push_back(pStandEntry);
+	BoardingCallPaxTypeDatabase* pPaxDB = pStandEntry->GetPaxTypeDatabase();
+	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
+	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
+	pMBConst->SetMobileElementType(enum_MobileElementType_ALL);
+	pPaxEntry->initialize(pMBConst, NULL);
+	pPaxDB->push_back(pPaxEntry);
+	std::vector<BoardingCallTrigger>* pTriggers = pPaxEntry->GetTriggersDatabase();
+	BoardingCallTrigger trigger1;
+	trigger1.SetTriggerTime(10000L);
+	trigger1.SetTriggerProportion(20.0);
+	pTriggers->push_back(trigger1);
+	trigger1.SetTriggerTime(20000L);
+	trigger1.SetTriggerProportion(20.0);
+	pTriggers->push_back(trigger1);
+	trigger1.SetTriggerTime(30000L);
+	trigger1.SetTriggerProportion(20.0);
+	pTriggers->push_back(trigger1);
 }

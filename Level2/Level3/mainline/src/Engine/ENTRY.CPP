@@ -127,11 +127,6 @@ void TerminalEntryEvent::initList (PaxLog *p_list, long p_max)
     scheduleNextEntry();
 }
 
-void TerminalEntryEvent::addEvent()
-{
-	Event::addEvent();
-}
-
 
 
 //int CAirsideEntryEvent::GeneraterPerson(InputTerminal* _pInTerm)

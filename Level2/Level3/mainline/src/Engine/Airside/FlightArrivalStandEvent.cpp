@@ -133,8 +133,3 @@ BridgeConnector* FlightArrivalStandEvent::GetBridgeConnector() const
 	}
 	return NULL;
 }
-
-void FlightArrivalStandEvent::addEvent()
-{
-	Event::addEvent();
-}

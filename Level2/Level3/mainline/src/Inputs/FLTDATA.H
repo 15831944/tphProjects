@@ -6,15 +6,8 @@
 #include "common\dataset.h"
 #include "common\elaptime.h"
 #include "inputs\FlightConWithProcIDDatabase.h"
+#include "BoardingCallFlightTypeDatabase.h"
 
-class BoardingCallTimeAndProportion
-{
-public:
-	ElapsedTime m_time;
-	double m_proportion;
-	BoardingCallTimeAndProportion(){ m_time = 0L; m_proportion = 0.0; }
-	~BoardingCallTimeAndProportion(){}
-};
 class INPUTS_TRANSFER FlightData : public DataSet
 {
 protected:
@@ -25,13 +18,16 @@ protected:
 														// 1: stage 2
 														// 2: stage 3
 														// ......
-
+	std::vector<BoardingCallFlightTypeDatabase*> m_vBoardingCallStages;
 	// go through all the file get the size of boarding call stage size;
 	int ReadBoardingCallStageNumber( ArctermFile& _file );
 	void WriteBoardingCallStageNumber( ArctermFile& _file, int _nNumStages ) const;
 	
 
 public:
+	void InitDemoStageData();
+	int GetStageCount(){ return m_vBoardingCallStages.size(); }
+	BoardingCallFlightTypeDatabase* GetFlightTypeDBInStage(int _index){ return m_vBoardingCallStages[_index]; }
 	void resortBoardingCallDB();
 	void DeleteOneStage(ConstraintDatabase* pFCDB);
     FlightData () : DataSet (FlightDataFile,(float)2.6 )
@@ -56,7 +52,7 @@ public:
     int getCapacity (Flight *p_flight) const;
     const HistogramDistribution *getBoardingCalls (const FlightConstraint &p_type, const ProcessorID& _id, int _nStageNumber ) const;
 
-    FlightConWithProcIDDatabase *getCalls ( int _nStage ){ return m_vCalls[_nStage]; }
+    FlightConWithProcIDDatabase *getCalls ( int m_nStage ){ return m_vCalls[m_nStage-1]; }
     FlightConstraintDatabase *getDelays (void) { return &delays; }
     FlightConstraintDatabase *getLoads (void) { return &loads; }
     FlightConstraintDatabase *getCapacity (void) { return &capacity; }

@@ -1138,8 +1138,3 @@ DistanceUnit Person::getInStep( void ) const
 {
 	  return (m_in*SCALE_FACTOR + ((GetActiveGroupSize() < 4)? 0: ((GetActiveGroupSize() < 6)? 20: 40))); 
 }
-
-void Person::setState( short newState )
-{
-	MobileElement::setState(newState);
-}

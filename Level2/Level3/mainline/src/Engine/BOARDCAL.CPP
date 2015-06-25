@@ -152,8 +152,3 @@ int BoardingCallEvent::process (CARCportEngine* _pEngine)
     return TRUE;
 }
 
-void BoardingCallEvent::addEvent()
-{
-	Event::addEvent();
-}
-

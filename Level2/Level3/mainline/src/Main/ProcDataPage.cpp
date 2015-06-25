@@ -494,7 +494,6 @@ bool CProcDataPage::SelectLinkProc1(ProcessorID _id)
 //------------------- value related functions ---------------------
 void CProcDataPage::SetValue( MiscData* _pMiscData )
 {
-	long lStage;
 	if(	_pMiscData )
 	{
 		int nCyclicFreq = _pMiscData->GetCyclicFreq();
@@ -613,7 +612,7 @@ void CProcDataPage::SetValue( MiscData* _pMiscData )
 			csVal.Format( "Distribution Radius:  %.1f", fValue);
 			m_TreeData.SetItemText(m_hCapOrDR,csVal);
 			m_TreeData.SetItemData(m_hCapOrDR,static_cast<DWORD>(fValue));
-			lStage = ((MiscHoldAreaData*)_pMiscData)->GetStageNumber();
+			long lStage = ((MiscHoldAreaData*)_pMiscData)->GetStageNumber();
 			bool bApplyServiceTimeAfterGreeting = ((MiscHoldAreaData*)_pMiscData)->getApplyServiceTimeAfterGreeting();
 			if(lStage!=0)
 			{

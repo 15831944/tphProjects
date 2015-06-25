@@ -283,11 +283,6 @@ void FlightConWithProcIDDatabase::resortDatebase()
         addEntry(sortedList.getItem (i));
 }
 
-int FlightConWithProcIDDatabase::getCount( void ) const
-{
-	return SortedContainer::getCount();
-}
-
 
 /*************************************************************************
 //////////////////////////////////////////////////////////////////////////

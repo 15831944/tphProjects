@@ -267,8 +267,3 @@ BridgeConnector* DepatureFlightTerminalEvent::GetBridgeConnector() const
 	}
 	return NULL;
 }
-
-void DepatureFlightTerminalEvent::addEvent()
-{
-	Event::addEvent();
-}

@@ -205,6 +205,9 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="BaseFlight.cpp" />
+    <ClCompile Include="BoardingCallFlightTypeDatabase.cpp" />
+    <ClCompile Include="BoardingCallPaxTypeDatabase.cpp" />
+    <ClCompile Include="BoardingCallStandDatabase.cpp" />
     <ClCompile Include="CapacityAttributes.cpp" />
     <ClCompile Include="CON_DB.CPP">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -1057,6 +1060,9 @@
     <ClInclude Include="BAGDATA.H" />
     <ClInclude Include="BagGateAssign.h" />
     <ClInclude Include="BaseFlight.h" />
+    <ClInclude Include="BoardingCallFlightTypeDatabase.h" />
+    <ClInclude Include="BoardingCallPaxTypeDatabase.h" />
+    <ClInclude Include="BoardingCallStandDatabase.h" />
     <ClInclude Include="CapacityAttributes.h" />
     <ClInclude Include="CON_DB.H" />
     <ClInclude Include="CrossWalkAttachPipe.h" />

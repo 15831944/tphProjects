@@ -21,14 +21,8 @@ Event::~Event()
     time = 0l;
 }
 
-static UINT addCount = 0;
-static UINT deleteCount = 0;
-static UINT removeCount = 0;
-static UINT clearCount = 0;
-static UINT processCount = 0;
 void Event::addEvent ()
 {
-	addCount++;
     m_pEventList->addItem (this);
 #ifdef _DEBUG
 //	static int co = 0;
@@ -108,19 +102,18 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
     long probeIndex = -1;
     probeID = -1;
 	eventNumber = 0;
-
 	//CFileOutput debugfile("D:\\Event.log");
 	
     try {
         do {
 
-			int eventCount = getCount ();
-			if( eventCount == 0 )
+			int prevcount = getCount ();
+			if( prevcount == 0 )
 				break;
             
 			nextEvent = getItem(0);
             removeItem(0);
-			eventCount = getCount ();
+			int postcount = getCount ();
 
             // check for empty event list
             if (!nextEvent)
@@ -156,8 +149,6 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
 				
 			}
 			++eventNumber;
-			processCount;
-			addCount;
           // error checking conditional breakpoint
 //            if (++eventNumber == testIteration)
   //              cout << '\r';
@@ -201,20 +192,12 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
 		 
 			//debugfile.Log(eventNumber).Log("{").Log(nextEvent->getTypeName());
             // process the event
-			BOOL bD = nextEvent->process(_pEngine);
-            if (bD)
-			{
-				processCount++;
+            if (nextEvent->process(_pEngine))
                 delete nextEvent;
-			}
+
 			//debugfile.Log("}").Line();
 
         } while ( !(*_pBCancel) );    // runs until no events left to process
-		processCount = 0;
-		addCount = 0;
-		deleteCount = 0;
-		removeCount = 0;
-		clearCount = 0;
     }
 	catch( ARCSystemError* sys_exception)
 	{
@@ -311,22 +294,4 @@ int EventList::FindFirstMatch( ElapsedTime _eTime, int _nStart /*= 0*/, int _nEn
 		return FindFirstMatch( _eTime, _nStart, nMid );
 	else
 		return FindFirstMatch( _eTime, nMid+1, nEnd );
-}
-
-void EventList::deleteItem( int p_ndx )
-{
-	deleteCount ++;
-	SortedContainer<Event>::deleteItem(p_ndx);
-}
-
-void EventList::removeItem( int p_ndx )
-{
-	removeCount++;
-	SortedContainer<Event>::removeItem(p_ndx);
-}
-
-void EventList::clear()
-{
-	clearCount++;
-	SortedContainer<Event>::Flush();
 }

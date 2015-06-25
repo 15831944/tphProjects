@@ -21,6 +21,7 @@ class CBoardingCallDlg : public CDialog
 {
 // Construction
 public:
+	void DisableAllToolBarButtons();
 	HTREEITEM AddStage(FlightConWithProcIDDatabase* pConDB,int iIndex);
 	void DisableMenuItem(CMenu* pMenu);
 	void ChangeProbDist(HTREEITEM hItem,int nIndexSeled);
@@ -29,7 +30,7 @@ public:
 	HTREEITEM AddStageChild2Tree(HTREEITEM hItemParent,ConstraintWithProcIDEntry* pEntry);
 	BOOL NewStageChild(HTREEITEM hItem,Constraint* _pNewCon,DWORD pStage);
 	HTREEITEM m_hBoardingCalls;
-	HTREEITEM LoadTreeItems(Constraint* _pSelCon=NULL);
+	void LoadTreeItems();
 	CString GetProjPath();
 	FlightConWithProcIDDatabase* GetConstraintDatabase(int nStageIndex);
 	InputTerminal* GetInputTerminal();

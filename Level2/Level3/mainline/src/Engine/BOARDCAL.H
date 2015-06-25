@@ -64,9 +64,6 @@ public:
     //For shut down event.
     virtual int kill (void) { return 1; }
 
-	//It adds receiver to the event list
-	virtual void addEvent ();
-
     // Returns event's name
     virtual const char *getTypeName (void) const { return "Departure"; };
 

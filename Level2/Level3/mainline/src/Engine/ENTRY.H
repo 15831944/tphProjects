@@ -64,8 +64,6 @@ public:
 
 	int GetTotalCount(){ return m_nPaxCount; }
 
-	void addEvent();
-
 };
 
 //class ENGINE_TRANSFER CAirsideEntryEvent : public TerminalEntryEvent

@@ -23,7 +23,7 @@ public:
 	virtual const char *getTypeName (void) const { return "DepatureFlightTerminal";}
 
 	virtual int getEventType (void) const {return DepatureFlightStandEvent;}
-	void addEvent();
+
 private:
 	void DisConnectBridge()const;
 	BridgeConnector* GetBridgeConnector()const;

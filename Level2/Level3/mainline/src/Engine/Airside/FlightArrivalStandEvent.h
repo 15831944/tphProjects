@@ -24,7 +24,6 @@ public:
 	{
 		return FlightArrivalStand;
 	}
-	void addEvent();
 
 private:
 	void ConnectBridge(CARCportEngine* _pEngine)const;
