@@ -1060,7 +1060,7 @@ void CAirsideRepControlView::InitializeTree()
 			m_hRootFlightType=m_treePaxType.InsertItem("Flight Type", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootFlightType,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FltTypeRoot));
 
-			m_hRootNodes=m_treePaxType.InsertItem("From/To Nodes");
+			m_hRootNodes=m_treePaxType.InsertItem("From/To Nodes", cni, FALSE);
 			m_treePaxType.SetItemData(m_hRootNodes,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_FromToNode));
 
 			HTREEITEM HFromNodeItem = m_treePaxType.InsertItem(_T("From"), cni, FALSE, FALSE, m_hRootNodes);
@@ -1571,12 +1571,7 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 	}
 	else if(pData->nodeType == repControlTreeNodeType_Exit_Oper)
 	{
-		std::vector<CString> comboxstring ;
-		comboxstring.push_back(_T("All")) ;
-		comboxstring.push_back(_T("T/o")) ;
-		comboxstring.push_back(_T("Landing")) ;
-		m_treePaxType.SetComboString(hSelectItem,comboxstring) ;
-		m_treePaxType.m_comboBox.SetCurSel(0) ;
+        m_treePaxType.DoEdit(hSelectItem);
 	}
 }
 BOOL CAirsideRepControlView::IsRunwayMarkSelected( HTREEITEM hACClassRoot,CAirsideReportRunwayMark& reportRunwayMark )
@@ -3259,50 +3254,75 @@ void CAirsideRepControlView::LoadData()
 
 LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	// TODO: Add your specialized code here and/or call the base class
-	if (message == WM_INPLACE_COMBO2)
-	{
-		if(GetReportType() == Airside_RunwayUtilization|| 
-			GetReportType() == Airside_RunwayDelay ||
-			GetReportType() == Airside_IntersectionOperation ||
-			GetReportType() == Airside_TaxiwayUtilization ||
-			GetReportType() == Airside_ControllerWorkload)//tree performer handle the message
-		{
-			if(GetTreePerformer())
-				GetTreePerformer()->DefWindowProc(message,wParam,lParam);
-			
-		}
-		if(GetReportType() == Airside_RunwayExit)
-		{
-			if(m_hSelectItem != NULL)
-			{
-				repControlTreeNodeData* PNodeData = (repControlTreeNodeData*)m_treePaxType.GetItemData(m_hSelectItem) ;
-				int curesel = m_treePaxType.m_comboBox.GetCurSel() ;
-				if(PNodeData->nodeType == repControlTreeNodeType_Exit_Oper && curesel != PNodeData->nClassification)
-				{
-					PNodeData->nClassification = curesel ;
-					UpdateExitOperationItem(m_hSelectItem,curesel) ;
-				}
-			}
+    if(message == UM_CEW_COMBOBOX_BEGIN)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_treePaxType.GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
+        pCB->ResetContent();
+        pCB->SetDroppedWidth(120);
+        repControlTreeNodeData *pData = reinterpret_cast<repControlTreeNodeData *>(m_treePaxType.GetItemData(hSelItem));
+        ASSERT(pData);
+        switch(pData->nodeType)
+        {
+        case repControlTreeNodeType_Exit_Oper:
+            {
+                pCB->AddString(_T("All"));
+                pCB->AddString(_T("T/o"));
+                pCB->AddString(_T("Landing"));
+                int curSel = pData->nClassification;
+                pCB->SetCurSel(curSel);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    if(message == UM_CEW_COMBOBOX_END)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_treePaxType.GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
+        if(GetReportType() == Airside_RunwayUtilization|| 
+            GetReportType() == Airside_RunwayDelay ||
+            GetReportType() == Airside_IntersectionOperation ||
+            GetReportType() == Airside_TaxiwayUtilization ||
+            GetReportType() == Airside_ControllerWorkload)//tree performer handle the message
+        {
+            if(GetTreePerformer())
+                GetTreePerformer()->DefWindowProc(message, wParam, lParam);
+        }
+        if(GetReportType() == Airside_RunwayExit)
+        {
+            if(m_hSelectItem != NULL)
+            {
+                int curesel = pCB->GetCurSel();
+                repControlTreeNodeData* PNodeData = (repControlTreeNodeData*)m_treePaxType.GetItemData(m_hSelectItem);
+                if(PNodeData->nodeType == repControlTreeNodeType_Exit_Oper && curesel != PNodeData->nClassification)
+                {
+                    PNodeData->nClassification = curesel ;
+                    UpdateExitOperationItem(m_hSelectItem,curesel) ;
+                }
+            }
 
-		}
-	}
-	if (message == WM_INPLACE_SPIN)
-	{
-		if(GetReportType() == Airside_ControllerWorkload)
-		{
-			if(GetTreePerformer())
-				GetTreePerformer()->DefWindowProc(message,wParam,lParam);
-		}
-	}
+        }
+    }
+    if (message == WM_INPLACE_SPIN)
+    {
+        if(GetReportType() == Airside_ControllerWorkload)
+        {
+            if(GetTreePerformer())
+                GetTreePerformer()->DefWindowProc(message,wParam,lParam);
+        }
+    }
 
-// 	if (MODIFYVALUE == message)
-// 	{
-// 		if(AirsideReControlView::CTreePerformer * pPerfrom = GetTreePerformer())
-// 			pPerfrom->OnTreeItemDoubleClick((HTREEITEM)wParam);
-// 	}
+    if (MODIFYVALUE == message)
+    {
+        if(AirsideReControlView::CTreePerformer * pPerfrom = GetTreePerformer())
+            pPerfrom->OnTreeItemDoubleClick((HTREEITEM)wParam);
+    }
 
-	return CFormView::DefWindowProc(message, wParam, lParam);
+    return CFormView::DefWindowProc(message, wParam, lParam);
 }
 
 AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer()
