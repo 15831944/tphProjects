@@ -168,23 +168,7 @@ void CAirsideRunwayCrossingBaseDetailResult::GenerateResult(CBGetLogFilePath pCB
 					}
 				}
 				if(bHaveEnterLog)
-				{
 					m_vResult.push_back(runwayItem);
-					CString strLog;
-					strLog.Format("%s,%s,%s,%s,%s,%s,%d,%d,%d,%5d,%.2f\r\n",
-					runwayItem.m_sRunway,
-					runwayItem.m_sEnterTaxiway,
-					runwayItem.m_sExitTaxiway,
-					runwayItem.m_sFlightID,
-					runwayItem.m_sActype,
-					runwayItem.m_sNodeName,
-					runwayItem.m_lEnterRunwayTime,
-					runwayItem.m_lExitRunwayTime,
-					runwayItem.m_lOccupancyTime,
-					runwayItem.m_lWaitTimeFroRunwayCrossings,
-					runwayItem.m_dRunwayCrossingsSpeed);
-					TRACE(strLog);
-				}
 				vRunwayCrossingsLog.clear();
 			}
 		}
@@ -539,17 +523,7 @@ void CAirsideRunwayCrossingsBaseSummaryResult::GenerateResult(CBGetLogFilePath p
 					}
 				}
 				if(bHaveEnterLog)
-				{
 					vResult.push_back(runwayItem);
-					CString strLog;
-					strLog.Format("%s, %s, %s, %5d, %d\r\n", 
-						runwayItem.m_sRunway, 
-						runwayItem.m_sNodeName, 
-						runwayItem.m_sEnterTaxiway, 
-						runwayItem.m_lWaitTime, 
-						runwayItem.m_lEnterRunway);
-					TRACE(strLog);
-				}
 				vRunwayCrossingsLog.clear();
 			}
 		}		
@@ -591,12 +565,6 @@ CString CAirsideRunwayCrossingsBaseSummaryResult::GetTaxiwayString(SummaryRunway
 
 void CAirsideRunwayCrossingsBaseSummaryResult::InitStaticData(CParameters* pPara,SummaryRunwayCrossingsItem::SummaryRunwayCrossingType emType,SummaryRunwayCrossingsItem& item,std::vector<SummaryRunwayItem>&vResult)
 {
-// 	std::vector<std::pair<CString,ALTObjectID> >vRunwayList = GetRunwayList(vResult);
-// 	
-// 	int nRunwayCount = (int)vRunwayList.size();
-// 
-	// 	for (int nRunway = 0; nRunway < nRunwayCount; ++ nRunway)
-	// 	{
 	CAirsideRunwayCrossingsBaseSummaryResult::StatisticsSummaryRunwayCrossingsItem statisticItem;
 	CStatisticalTools<double> statisticalTool;
 
@@ -644,7 +612,7 @@ void CAirsideRunwayCrossingsBaseSummaryResult::InitStaticData(CParameters* pPara
 	statisticItem.m_nP95 = static_cast<int>(statisticalTool.GetPercentile(95));
 	statisticItem.m_nP99 = static_cast<int>(statisticalTool.GetPercentile(99));
 	statisticItem.m_nStdDev = static_cast<int>(statisticalTool.GetSigma());
-	/*	}*/
+
 	if(emType == SummaryRunwayCrossingsItem::SM_CROSSSINGS)
 	{
 		item.m_staCrossingCount = statisticItem;
@@ -820,19 +788,18 @@ void CAirsideRunwayCrossingsBaseSummaryResult::GetAverageWaitTimeAndTotal(CParam
 	}
 
 	long lTotalWaitTime = 0;
+	
+	for(int i = 0; i < (int)vResult.size(); i++)
+	{
+		SummaryRunwayItem& runwayItem = vResult[i];
+		if (!runwayItem.m_sNodeName.CompareNoCase(item.m_sNodeName))
+		{
+			lTotalWaitTime += runwayItem.m_lWaitTime;
+		}
+	}
 	long nSize = 0;
 	for (;eStartTime < eEndTime; eStartTime += eInterval)
 	{
-		for (int i = 0; i < (int)vResult.size(); i++)
-		{
-			SummaryRunwayItem& runwayItem = vResult[i];
-			if (!runwayItem.m_sNodeName.CompareNoCase(item.m_sNodeName) \
-				&& eStartTime <= (runwayItem.m_lEnterRunway/100)  \
-				&& (eStartTime + eInterval) > (runwayItem.m_lEnterRunway/100) )
-			{
-				lTotalWaitTime += runwayItem.m_lWaitTime;
-			}
-		}
 		nSize++;
 	}
 	item.m_lAverageWaitTime = lTotalWaitTime/nSize;
@@ -846,8 +813,8 @@ long CAirsideRunwayCrossingsBaseSummaryResult::GetItemMaxWaitTime(const ElapsedT
 	{
 		SummaryRunwayItem& runwayItem = vResult[i];
 		if (!runwayItem.m_sNodeName.CompareNoCase(item.m_sNodeName) \
-			&& startTime <= (runwayItem.m_lEnterRunway/100) \
-			&& (startTime + eIntervalTime) > (runwayItem.m_lEnterRunway/100))
+			&& startTime <= (runwayItem.m_lEnterRunway) \
+			&& (startTime + eIntervalTime) > (runwayItem.m_lEnterRunway))
 		{
 			if (runwayItem.m_lWaitTime > lMaxWaitTime)
 			{
@@ -885,21 +852,27 @@ void CAirsideRunwayCrossingsBaseSummaryResult::GetMinWaitTimeAndIntervalMinIndex
 	}
 
 	long lMinWaiTime = LONG_MAX;
-	long nMinIndex = 0;
 	long nIndex = 0;
-	for (;eStartTime < eEndTime + eInterval; eStartTime += eInterval)
+	std::vector<long> vMinWaitTimeIntervals;
+	vMinWaitTimeIntervals.clear();
+	for (;eStartTime < eEndTime; eStartTime += eInterval)
 	{
 		long lWaitTime = GetWaitTime(eStartTime,eEndTime,eInterval,item,vResult);
-		if (lMinWaiTime > lWaitTime)
+		if (lWaitTime < lMinWaiTime)
 		{
 			lMinWaiTime = lWaitTime;
-			nMinIndex = nIndex;
+			vMinWaitTimeIntervals.clear();
+			vMinWaitTimeIntervals.push_back(nIndex);
+		}
+		else if(lWaitTime == lMinWaiTime)
+		{
+			vMinWaitTimeIntervals.push_back(nIndex);
 		}
 		nIndex++;
 	}
 
 	item.m_lMinWaitTime = lMinWaiTime;
-	item.m_lIntervalMinWaitTime = nMinIndex;
+	item.m_vMinWaitTimeIntervals = vMinWaitTimeIntervals;
 }
 
 void CAirsideRunwayCrossingsBaseSummaryResult::GetMaxWaitTimeAndItervalMaxIndex(CParameters* pPara,SummaryRunwayCrossingsItem& item,std::vector<CAirsideRunwayCrossingsBaseSummaryResult::SummaryRunwayItem>&vResult)
@@ -913,21 +886,27 @@ void CAirsideRunwayCrossingsBaseSummaryResult::GetMaxWaitTimeAndItervalMaxIndex(
 	}
 
 	long lMaxWaitTime = 0;
-	long nMaxIndex = 0;
 	long nIndex = 0;
+	std::vector<long> vMaxWaitTimeIntervals;
+	vMaxWaitTimeIntervals.clear();
 	for (;eStartTime < eEndTime; eStartTime += eInterval)
 	{
 		long lWaitTime = GetWaitTime(eStartTime,eEndTime,eInterval,item,vResult);
-		if (lMaxWaitTime < lWaitTime)
+		if (lWaitTime > lMaxWaitTime)
 		{
 			lMaxWaitTime = lWaitTime;
-			nMaxIndex = nIndex;
+			vMaxWaitTimeIntervals.clear();
+			vMaxWaitTimeIntervals.push_back(nIndex);
+		}
+		else if(lWaitTime == lMaxWaitTime)
+		{
+			vMaxWaitTimeIntervals.push_back(nIndex);
 		}
 		nIndex++;
 	}
 
 	item.m_lMaxWaitTime = lMaxWaitTime;
-	item.m_lIntervalMaxWaitTime = nMaxIndex;
+	item.m_vMaxWaitTimeIntervals = vMaxWaitTimeIntervals;
 }
 
 void CAirsideRunwayCrossingsBaseSummaryResult::Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter)
@@ -1112,7 +1091,16 @@ void CAirsideRunwayCrossingsBaseSummaryResult::FillListContent(CXListCtrl& cxLis
 		cxListCtrl.SetItemText(i, 18,strMinWaitTime);
 
 		CString strIntervalMinWaitTime(_T(""));
-		strIntervalMinWaitTime.Format(_T("%dth"),runwayCrossingsItem.m_lIntervalMinWaitTime);
+		nCount = runwayCrossingsItem.m_vMinWaitTimeIntervals.size();
+		for(int j=0; j<nCount; j++)
+		{
+			strTemp.Format(_T("%dth"), runwayCrossingsItem.m_vMinWaitTimeIntervals.at(j)+1);
+			strIntervalMinWaitTime += strTemp;
+			if(j != (nCount - 1))
+			{
+				strIntervalMinWaitTime += CString(", ");
+			}
+		}
 		cxListCtrl.SetItemText(i, 19,strIntervalMinWaitTime);
 
 		CString strAverageWaitTime(_T(""));
@@ -1124,7 +1112,16 @@ void CAirsideRunwayCrossingsBaseSummaryResult::FillListContent(CXListCtrl& cxLis
 		cxListCtrl.SetItemText(i, 21,strMaxWaitTime);
 
 		CString strIntervalMaxWaitTime(_T(""));
-		strIntervalMaxWaitTime.Format(_T("%dth"),runwayCrossingsItem.m_lIntervalMaxWaitTime);
+		nCount = runwayCrossingsItem.m_vMaxWaitTimeIntervals.size();
+		for(int j=0; j<nCount; j++)
+		{
+			strTemp.Format(_T("%dth"), runwayCrossingsItem.m_vMaxWaitTimeIntervals.at(j)+1);
+			strIntervalMaxWaitTime += strTemp;
+			if(j != (nCount - 1))
+			{
+				strIntervalMaxWaitTime += CString(", ");
+			}
+		}
 		cxListCtrl.SetItemText(i, 22,strIntervalMaxWaitTime);
 
 		CString strTotalWaitTime(_T(""));
@@ -1212,10 +1209,22 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::ImportReportData(ArctermFile& _fi
 		}
 		_file.getInteger(item.m_lTotalCrossings);
 		_file.getInteger(item.m_lMinWaitTime);
-		_file.getInteger(item.m_lIntervalMinWaitTime);
+		_file.getSubField(buf, ';');
+		nCount1 = atoi(buf);
+		for(int i=0; i<nCount1; i++)
+		{
+			_file.getSubField(buf, ';');
+			item.m_vMinWaitTimeIntervals.push_back(atoi(buf));
+		}
 		_file.getInteger(item.m_lMaxWaitTime);
 		_file.getInteger(item.m_lAverageWaitTime);
-		_file.getInteger(item.m_lIntervalMaxWaitTime);
+		_file.getSubField(buf, ';');
+		nCount1 = atoi(buf);
+		for(int i=0; i<nCount1; i++)
+		{
+			_file.getSubField(buf, ';');
+			item.m_vMaxWaitTimeIntervals.push_back(atoi(buf));
+		}
 		_file.getInteger(item.m_lTotalWaitTime);
 
 		//runway crossings count
@@ -1301,10 +1310,26 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::ExportReportData(ArctermFile& _fi
 		}
 		_file.writeInt(item.m_lTotalCrossings);
 		_file.writeInt(item.m_lMinWaitTime);
-		_file.writeInt(item.m_lIntervalMinWaitTime);
+		nCount1 = (int)item.m_vMinWaitTimeIntervals.size();
+		_file.appendValue(",");
+		_file.appendValue(_itoa(nCount1, buf, 10));
+		for(int i=0; i<nCount1; i++)
+		{
+			_file.appendValue(";");
+			memset(buf, 0, 16);
+			_file.appendValue(_itoa(item.m_vMinWaitTimeIntervals.at(i), buf, 10));
+		}
 		_file.writeInt(item.m_lMaxWaitTime);
 		_file.writeInt(item.m_lAverageWaitTime);
-		_file.writeInt(item.m_lIntervalMaxWaitTime);
+		nCount1 = (int)item.m_vMaxWaitTimeIntervals.size();
+		_file.appendValue(",");
+		_file.appendValue(_itoa(nCount1, buf, 10));
+		for(int i=0; i<nCount1; i++)
+		{
+			_file.appendValue(";");
+			memset(buf, 0, 16);
+			_file.appendValue(_itoa(item.m_vMaxWaitTimeIntervals.at(i), buf, 10));
+		}
 		_file.writeInt(item.m_lTotalWaitTime);
 
 		//runway crossings count
@@ -1392,10 +1417,26 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::WriteReportData( ArctermFile& _fi
 		}
 		_file.writeInt(item.m_lTotalCrossings);
 		_file.writeInt(item.m_lMinWaitTime);
-		_file.writeInt(item.m_lIntervalMinWaitTime);
+		nCount1 = (int)item.m_vMinWaitTimeIntervals.size();
+		_file.appendValue(",");
+		_file.appendValue(_itoa(nCount, buf, 10));
+		for(int i=0; i<nCount1; i++)
+		{
+			_file.appendValue(";");
+			memset(buf, 0, 16);
+			_file.appendValue(_itoa(item.m_vMinWaitTimeIntervals.at(i), buf, 10));
+		}
 		_file.writeInt(item.m_lMaxWaitTime);
 		_file.writeInt(item.m_lAverageWaitTime);
-		_file.writeInt(item.m_lIntervalMaxWaitTime);
+		nCount1 = (int)item.m_vMaxWaitTimeIntervals.size();
+		_file.appendValue(",");
+		_file.appendValue(_itoa(nCount, buf, 10));
+		for(int i=0; i<nCount1; i++)
+		{
+			_file.appendValue(";");
+			memset(buf, 0, 16);
+			_file.appendValue(_itoa(item.m_vMaxWaitTimeIntervals.at(i), buf, 10));
+		}
 		_file.writeInt(item.m_lTotalWaitTime);
 
 		//runway crossings count
@@ -1475,10 +1516,22 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::ReadReportData( ArctermFile& _fil
 		}
 		_file.getInteger(item.m_lTotalCrossings);
 		_file.getInteger(item.m_lMinWaitTime);
-		_file.getInteger(item.m_lIntervalMinWaitTime);
+		_file.getSubField(buf, ';');
+		nCount = atoi(buf);
+		for(int i=0; i<nCount; i++)
+		{
+			_file.getSubField(buf, ';');
+			item.m_vMinWaitTimeIntervals.push_back(atoi(buf));
+		}
 		_file.getInteger(item.m_lMaxWaitTime);
 		_file.getInteger(item.m_lAverageWaitTime);
-		_file.getInteger(item.m_lIntervalMaxWaitTime);
+		_file.getSubField(buf, ';');
+		nCount = atoi(buf);
+		for(int i=0; i<nCount; i++)
+		{
+			_file.getSubField(buf, ';');
+			item.m_vMaxWaitTimeIntervals.push_back(atoi(buf));
+		}
 		_file.getInteger(item.m_lTotalWaitTime);
 
 		//runway crossings count
