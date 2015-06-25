@@ -81,12 +81,7 @@ ClassAirsideFlight::~ClassAirsideFlight()
 
 void ClassAirsideFlight::Clear()
 {
-    size_t nCount = m_vAirsidePassengers.size();
-    for(size_t i=nCount-1; i>0; i--)
-    {
-        delete m_vAirsidePassengers.back();
-        m_vAirsidePassengers.pop_back();
-    }
+    m_vAirsidePassengers.clear();
 }
 
 PointFXY ClassAirsideFlight::GetRotationCenter()
@@ -221,42 +216,46 @@ void ClassAirsideFlight::CombineToMe(int& errorCode, ClassAirsideFlight* pOther)
     float otherToNewYOffset = pOther->m_pointTopLeft.GetY() - MIN(m_pointTopLeft.GetY(), pOther->m_pointTopLeft.GetY());
 
     size_t nCount = m_vAirsidePassengers.size();
-    size_t nOtherCount = pOther->GetAirsidePassengerCount();
-
-    bool bAirsidePassengerAdjacent = false;
     for(size_t i=0; i<nCount; i++)
     {
         ClassAirsidePassenger* pAirsidePassenger = m_vAirsidePassengers.at(i);
+
         short myNewXInAirsideFlight = pAirsidePassenger->GetXInAirsideFlight() - static_cast<short>(meToNewXOffset/AIRSIDEPASSENGER_WIDTH);
-        short myNewYInAirsideFlight = pAirsidePassenger->GetYInAirsideFlight() - static_cast<short>(meToNewYOffset/AIRSIDEPASSENGER_WIDTH);
         pAirsidePassenger->SetXInAirsideFlight(myNewXInAirsideFlight);
-        pAirsidePassenger->SetYInAirsideFlight(myNewYInAirsideFlight);
         if(myNewXInAirsideFlight>m_xLength)
         {
             m_xLength = myNewXInAirsideFlight;
         }
+
+        short myNewYInAirsideFlight = pAirsidePassenger->GetYInAirsideFlight() - static_cast<short>(meToNewYOffset/AIRSIDEPASSENGER_WIDTH);
+        pAirsidePassenger->SetYInAirsideFlight(myNewYInAirsideFlight);
         if(myNewYInAirsideFlight>m_yLength)
         {
             m_yLength = myNewYInAirsideFlight;
         }
     }
 
+    size_t nOtherCount = pOther->GetAirsidePassengerCount();
     for(size_t i=0; i<nOtherCount; i++)
     {
         ClassAirsidePassenger* pOtherAirsidePassenger = pOther->m_vAirsidePassengers.at(i);
+
         short otherNewXInAirsideFlight = pOtherAirsidePassenger->GetXInAirsideFlight() - static_cast<short>(otherToNewXOffset/AIRSIDEPASSENGER_WIDTH);
-        short otherNewYInAirsideFlight = pOtherAirsidePassenger->GetYInAirsideFlight() - static_cast<short>(otherToNewYOffset/AIRSIDEPASSENGER_WIDTH);
         pOtherAirsidePassenger->SetXInAirsideFlight(otherNewXInAirsideFlight);
-        pOtherAirsidePassenger->SetYInAirsideFlight(otherNewYInAirsideFlight);
         if(otherNewXInAirsideFlight>m_xLength)
         {
             m_xLength = otherNewXInAirsideFlight;
         }
+
+        short otherNewYInAirsideFlight = pOtherAirsidePassenger->GetYInAirsideFlight() - static_cast<short>(otherToNewYOffset/AIRSIDEPASSENGER_WIDTH);
+        pOtherAirsidePassenger->SetYInAirsideFlight(otherNewYInAirsideFlight);
         if(otherNewYInAirsideFlight>m_yLength)
         {
             m_yLength = otherNewYInAirsideFlight;
         }
     }
+    m_vAirsidePassengers.insert(m_vAirsidePassengers.begin(), pOther->m_vAirsidePassengers.begin(), pOther->m_vAirsidePassengers.end());
+    pOther->Clear();
     return;
 }
 
