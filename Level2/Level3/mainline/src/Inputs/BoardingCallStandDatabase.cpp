@@ -81,13 +81,14 @@ void BoardingCallStandDatabase::AddStand( char* strProc, InputTerminal* _pInTerm
 	}
 	addEntry(*pStandProcID);
 	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);
-	pStandEntry->GetPaxTypeDatabase()->AddPax(NULL, _pInTerm); /*add a default mobile element constraint entry.*/
+	pStandEntry->GetPaxTypeDatabase()->AddPaxType(NULL, _pInTerm); /*add a default mobile element constraint entry.*/
 }
 
-void BoardingCallStandDatabase::AddStandFromOld( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm )
+// For version 2.6 or older.
+void BoardingCallStandDatabase::AddStandFor260OrOlder( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm )
 {
 	ProcessorID* pStandProcID = new ProcessorID(pConstEntry->getProcID());
 	addEntry(*pStandProcID);
 	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);
-	pStandEntry->GetPaxTypeDatabase()->AddPaxFromOld(pConstEntry, NULL);
+	pStandEntry->GetPaxTypeDatabase()->AddPaxTypeFor260OrOlder(pConstEntry, NULL);
 }

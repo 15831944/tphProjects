@@ -27,7 +27,7 @@ void BoardingCallFlightTypeDatabase::deleteItem( ConstraintEntry* pConst )
 
 
 
-void BoardingCallFlightTypeDatabase::AddFlight(FlightConstraint* pInFlightConst, InputTerminal* _pInTerm)
+void BoardingCallFlightTypeDatabase::AddFlightType(FlightConstraint* pInFlightConst, InputTerminal* _pInTerm)
 {
 	FlightConstraint* pFlightConstraint = new FlightConstraint();
 	if(pInFlightConst)
@@ -61,7 +61,7 @@ void BoardingCallFlightTypeDatabase::AddFlightFor260OrOlder(FlightConWithProcIDD
 		}
 		BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
 		flightEntry->initialize(pFlightConstraint, NULL);
-		flightEntry->GetStandDatabase()->AddStandFromOld(pConstWithProcIDEntry, _pInTerm);
+		flightEntry->GetStandDatabase()->AddStandFor260OrOlder(pConstWithProcIDEntry, _pInTerm);
 		addEntry(flightEntry, true); /* Replace if constraint pFlightConstraint exists. */
 	}
 }
@@ -75,7 +75,7 @@ void BoardingCallFlightTypeDatabase::readDatabase(ArctermFile& p_file, InputTerm
 		FlightConstraint fltConst;
 		fltConst.SetAirportDB( _pInTerm->m_pAirportDB );
 		fltConst.readConstraint (p_file);
-		AddFlight(&fltConst, _pInTerm);
+		AddFlightType(&fltConst, _pInTerm);
 
 		int standCount;
 		p_file.getInteger(standCount);

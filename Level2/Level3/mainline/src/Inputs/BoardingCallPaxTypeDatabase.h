@@ -63,8 +63,8 @@ public:
 	~BoardingCallPaxTypeDatabase();
 
 	virtual void deleteItem(ConstraintEntry* pConst);
-	void AddPax(CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm);
-	void AddPaxFromOld(ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm);
+	void AddPaxType(CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm, BOOL bDefault=FALSE);
+	void AddPaxTypeFor260OrOlder(ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm);
 	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int paxCount);
 	void writeDatabase(ArctermFile& p_file);
 };

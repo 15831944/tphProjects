@@ -460,7 +460,7 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	if( flightTypeDlg.DoModal() == IDOK )
 	{
 		fltConst = flightTypeDlg.GetFlightSelection();
-		pFlightTypeDB->AddFlight(&fltConst, GetInputTerminal());
+		pFlightTypeDB->AddFlightType(&fltConst, GetInputTerminal());
 		ReloadStage(pFlightTypeDB, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 	}
@@ -498,7 +498,7 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 	{
 		CMobileElemConstraint mobileConst = paxTypeDlg.GetMobileSelection();
 		mobileConst.SetInputTerminal(GetInputTerminal());
-		pStandEntry->GetPaxTypeDatabase()->AddPax(&mobileConst, NULL);
+		pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobileConst, NULL);
 		ReloadStand(pStandEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 		m_btnSave.EnableWindow(TRUE);
@@ -612,7 +612,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 
 				pFlightTypeDB->deleteItem(pFlightTypeEntry);
 				m_tree.SelectItem(hStageItem);
-				pFlightTypeDB->AddFlight(NULL, GetInputTerminal());
+				pFlightTypeDB->AddFlightType(NULL, GetInputTerminal());
 				ReloadStage(pFlightTypeDB, hStageItem);
 				m_btnSave.EnableWindow(TRUE);
 				break;
@@ -684,7 +684,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 				}
 				pPaxTypeDB->deleteItem(pPaxEntry);
 				m_tree.SelectItem(hStandItem);
-				pPaxTypeDB->AddPax(NULL, GetInputTerminal());
+				pPaxTypeDB->AddPaxType(NULL, GetInputTerminal());
 				ReloadStand(pStandEntry, hStandItem);
 				m_btnSave.EnableWindow(TRUE);
 				break;

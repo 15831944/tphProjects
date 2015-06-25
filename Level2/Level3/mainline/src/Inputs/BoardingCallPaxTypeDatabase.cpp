@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "BoardingCallPaxTypeDatabase.h"
 
-BoardingCallPaxTypeEntry::BoardingCallPaxTypeEntry(void)
+BoardingCallPaxTypeEntry::BoardingCallPaxTypeEntry()
 {
 	m_vTriggers.clear();
 }
@@ -125,7 +125,7 @@ void BoardingCallPaxTypeDatabase::deleteItem( ConstraintEntry* pConst )
 	delete pConst;
 }
 
-void BoardingCallPaxTypeDatabase::AddPax( CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm)
+void BoardingCallPaxTypeDatabase::AddPaxType(CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm, BOOL bDefault)
 {
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
 	if(pInputConst)
@@ -153,7 +153,7 @@ void BoardingCallPaxTypeDatabase::readDatabase( ArctermFile& p_file, InputTermin
 		CMobileElemConstraint paxConst;
 		paxConst.SetInputTerminal(_pInTerm);
 		paxConst.readConstraint(p_file);
-		AddPax(&paxConst, _pInTerm);
+		AddPaxType(&paxConst, _pInTerm);
 
 		int triggerCount;
 		p_file.getInteger(triggerCount);
@@ -178,7 +178,8 @@ void BoardingCallPaxTypeDatabase::writeDatabase(ArctermFile& p_file)
 	}
 }
 
-void BoardingCallPaxTypeDatabase::AddPaxFromOld( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm)
+// For version 2.6 or older.
+void BoardingCallPaxTypeDatabase::AddPaxTypeFor260OrOlder( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm)
 {
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
 	pMBConst->SetInputTerminal(_pInTerm);

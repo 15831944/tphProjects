@@ -24,7 +24,7 @@ public:
 	~BoardingCallFlightTypeDatabase();
 
 public:
-	void AddFlight(FlightConstraint* pFlight, InputTerminal* _pInTerm);
+	void AddFlightType(FlightConstraint* pFlight, InputTerminal* _pInTerm);
 	void AddFlightFor260OrOlder(FlightConWithProcIDDatabase* pOldStage, InputTerminal* _pInTerm);
 
 	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int fltTypeCount);

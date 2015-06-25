@@ -384,7 +384,7 @@ void FlightData::clear()
 void FlightData::AddStage()
 {
 	BoardingCallFlightTypeDatabase* pFlightTypeDB = new BoardingCallFlightTypeDatabase();
-	pFlightTypeDB->AddFlight(NULL, m_pInTerm);
+	pFlightTypeDB->AddFlightType(NULL, m_pInTerm);
 	m_vStages.push_back(pFlightTypeDB);
 	return;
 }
