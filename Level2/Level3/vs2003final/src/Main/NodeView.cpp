@@ -4943,24 +4943,35 @@ void CNodeView::ResetFloorIndexToAll()
 	}
 	portals.saveDataSet(pDoc->m_ProjInfo.path, false);
 
-
-
-	// MiscElevatorData
 	InputTerminal* pInTerm = GetInputTerminal();
 	MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase(Elevator);
 	int nMiscDataCount = pMiscDB->getCount();
+	int nMaxStopFloor, nMinStopFloor;
 	for(int i = 0; i < nMiscDataCount; ++i)
 	{
-		MiscElevatorData* pMiscElevData = (MiscElevatorData*)((MiscDataElement*)pMiscDB->getItem(i))->getData();
-		int count = pMiscElevData->getStopAfFloorCount();
-		std::vector<BOOL> vOldStopAtFloor(count, FALSE);
-		for(int i=0; i<count; i++)
+		MiscDataElement* pMiscDataElem = (MiscDataElement*)pMiscDB->getItem(i);
+		MiscElevatorData* pMiscElevData = (MiscElevatorData*)(pMiscDataElem->getData());
+		int oldCount = pMiscElevData->getStopAfFloorCount();
+		std::vector<BOOL> vOldStopAtFloor(oldCount, FALSE);
+		for(int i=0; i<oldCount; i++)
 		{
 			vOldStopAtFloor[i] = pMiscElevData->getStopAtFloor(i);
 		}
-		for(int i=0; i<count; i++)
+
+		const ProcessorID* pProcessorID  =  pMiscDataElem->getID();
+		ElevProcessorFamily* tempProcessorFamily=NULL;
+		tempProcessorFamily=(ElevProcessorFamily*)(GetInputTerminal()->procList->getFamilyIndex( *pProcessorID ));
+		tempProcessorFamily->GetMaxMinFloorOfFamily(GetInputTerminal()->procList,nMaxStopFloor,nMinStopFloor);
+
+		pMiscElevData->clearStopAtFloor();
+
+		for(int i=0; i<oldCount; i++)
 		{
-			pMiscElevData->setStopAtFloor(floorIndexChangeMap.getNewFloor(i), vOldStopAtFloor[i]);
+			int newFloorIndex = floorIndexChangeMap.getNewFloor(i);
+			if(nMinStopFloor <= newFloorIndex&& newFloorIndex <= nMaxStopFloor)
+			{
+				pMiscElevData->addStopAtFloor(vOldStopAtFloor[i]);
+			}
 		}
 	}
 }
