@@ -4720,12 +4720,13 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
                 _pFlowItem->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM ||
                 _pFlowItem->GetTypeOfUsingPipe() == USE_USER_SELECTED_PIPES)
 			{
-				CGraphVertexList shortestPath;
+
 				CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
 				for(std::vector<int>::iterator itor = entryList.begin();
 					itor != entryList.end();
 					itor++)
-				{
+				{	
+                    CGraphVertexList shortestPath;
 					tempPoint = _pNextProc->GetProcessorQueue()->corner(*itor);
 					if(pPipeMgr->getShortestPathFromLib(outPoint, tempPoint, shortestPath) != false)
 					{

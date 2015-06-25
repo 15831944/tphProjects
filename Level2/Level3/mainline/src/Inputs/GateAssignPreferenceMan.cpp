@@ -498,6 +498,19 @@ int CGateAssignPreferenceMan::FindPreferenceIndex( CGateAssignPreferenceItem* pI
 	return -1;
 }
 
+int CGateAssignPreferenceMan::FindGateAdjacencyIndex(CGateAdjacency* pGateAdj)
+{
+    int nCount = (int)m_vAdjacency.size();
+    for(int i=0; i<nCount; i++)
+    {
+        if(m_vAdjacency.at(i) == pGateAdj)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 //BOOL CArrivalGateAssignPreferenceMan::CheckTheGateByPreference( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight  ,int _type)
 //{
 //	BOOL res = FALSE ;

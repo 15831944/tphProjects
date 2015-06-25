@@ -29,7 +29,7 @@ protected:
 	std::vector<CNodeData*> m_NodeTypes ;
 	CARCTreeCtrl m_TreeCtrl ;
 	CToolBar m_ToolBar ;
-	InputTerminal* m_terminal ;
+	InputTerminal* m_pInputTerm ;
 protected:
 	CGateAssignPreferenceMan* m_PreferenceMan ;
 	CGateAssignmentMgr* m_pGateAssignmentMgr;

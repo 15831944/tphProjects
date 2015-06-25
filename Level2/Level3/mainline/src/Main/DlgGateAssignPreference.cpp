@@ -12,7 +12,7 @@
 #include "DlgGateAdjacency.h"
 IMPLEMENT_DYNAMIC(CDlgGateAssignPreference, CXTResizeDialog)
 CDlgGateAssignPreference::CDlgGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent)
-	:m_PreferenceMan(_PreferenceMan),m_terminal(_terminal), CXTResizeDialog(CDlgGateAssignPreference::IDD, pParent)
+	:m_PreferenceMan(_PreferenceMan),m_pInputTerm(_terminal), CXTResizeDialog(CDlgGateAssignPreference::IDD, pParent)
 {
 	m_pGateAssignmentMgr = m_PreferenceMan->GetGateAssignMgr() ;
 }
@@ -88,6 +88,7 @@ BOOL CDlgGateAssignPreference::OnInitDialog()
 	SetResize(IDC_TREE_PREFERENCE,SZ_TOP_LEFT,SZ_BOTTOM_RIGHT) ;
 	SetResize(IDOK,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
 	SetResize(IDCANCEL,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
+    SetResize(IDC_BUTTON_GATE_ADJACENCY, SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
 	return TRUE ;
 }
 void CDlgGateAssignPreference::InitTree()
@@ -208,11 +209,11 @@ void CDlgGateAssignPreference::OnNewButton()
 }
 void CDlgGateAssignPreference::NewGate()
 {
-	CDlgGateSelect dlg(m_terminal,m_Type) ;
+	CDlgGateSelect dlg(m_pInputTerm, m_Type) ;
 	if(dlg.DoModal() == IDOK)
 	{
 		ProcessorID gateid ;
-		gateid.SetStrDict(m_terminal->inStrDict) ;
+		gateid.SetStrDict(m_pInputTerm->inStrDict) ;
 		gateid.setID(dlg.GetSelGateName()) ;
 		if(m_PreferenceMan->FindItemByGateID(gateid))
 		{
@@ -297,11 +298,11 @@ void CDlgGateAssignPreference::EditGate()
 	CGateAssignPreferenceItem* Preference =	(CGateAssignPreferenceItem*)nodedata->m_Data ;
 	if(Preference == NULL)
 		return ;
-	CDlgGateSelect dlg(m_terminal,m_Type) ;
+	CDlgGateSelect dlg(m_pInputTerm,m_Type) ;
 	if(dlg.DoModal() == IDOK)
 	{
 		ProcessorID gateid ;
-		gateid.SetStrDict(m_terminal->inStrDict) ;
+		gateid.SetStrDict(m_pInputTerm->inStrDict) ;
 		gateid.setID(dlg.GetSelGateName()) ;
 
 		if(m_PreferenceMan->FindItemByGateID(gateid) != NULL && (m_PreferenceMan->FindItemByGateID(gateid) != Preference))
@@ -420,9 +421,17 @@ void CDlgGateAssignPreference::OnOK()
 }
 void CDlgGateAssignPreference::OnCancel()
 {
-	m_PreferenceMan->ReadData(m_terminal) ;
+	m_PreferenceMan->ReadData(m_pInputTerm) ;
 	CXTResizeDialog::OnCancel() ;
 }
+
+void CDlgGateAssignPreference::OnBnClickedButtonAdjacency()
+{
+    DlgGateAdjacency dlg(m_PreferenceMan, m_pInputTerm);
+    dlg.SetType(m_Type);
+    dlg.DoModal();
+}
+
 // CDlgGateAssignPreference message handlers
 CDlgArrivalGateAssignPreference::CDlgArrivalGateAssignPreference(CArrivalGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent /* = NULL */)
 :CDlgGateAssignPreference(_PreferenceMan,_terminal,pParent)
@@ -520,8 +529,3 @@ bool CDlgGateAssignPreference::FindGateReferenceTreeNode( CGateAssignPreferenceI
 	return true;
 }
 
-void CDlgGateAssignPreference::OnBnClickedButtonAdjacency()
-{
-    DlgGateAdjacency dlg(m_PreferenceMan->GetGateAdjacency());
-    dlg.DoModal();
-}

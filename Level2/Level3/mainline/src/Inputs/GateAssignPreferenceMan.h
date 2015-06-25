@@ -120,8 +120,8 @@ protected:
 class CGateAdjacency
 {
 public:
-    CGateAdjacency();
-    ~CGateAdjacency();
+    CGateAdjacency() : m_bReciprocate(false) { m_originalGate.init(); m_adjacentGate.init();}
+    ~CGateAdjacency(){}
 private:
     ProcessorID m_originalGate;
     ProcessorID m_adjacentGate;
@@ -131,8 +131,24 @@ public:
     void SetOriginalGate(ProcessorID procID) { m_originalGate = procID; }
     ProcessorID GetAdjacentGate() const { return m_adjacentGate; }
     void SetAdjacentGate(ProcessorID procID) { m_adjacentGate = procID; }
-    bool IsReciprocate() const { return m_bReciprocate; }
+    bool GetReciprocate() const { return m_bReciprocate; }
     void SetReciprocate(bool reci) { m_bReciprocate = reci; }
+
+    bool operator==(const CGateAdjacency& other)
+    {
+        if( other.m_originalGate == m_originalGate &&
+            other.m_adjacentGate == m_adjacentGate)
+            return true;
+        return false;
+    }
+
+    CGateAdjacency& operator=(const CGateAdjacency& other)
+    {
+        m_originalGate = other.m_originalGate;
+        m_adjacentGate = other.m_adjacentGate;
+        m_bReciprocate = other.m_bReciprocate;
+        return *this;
+    }
 };
 
 class CGateAssignPreferenceMan
@@ -148,7 +164,7 @@ protected:
 	DATA_TYPE m_GateAssignPreference ;
 	DATA_TYPE m_DelGateAssignPreference ;
     CGateAssignmentMgr* m_GateAssignMgr ;
-    std::vector<CGateAdjacency> m_vAdjacency;
+    std::vector<CGateAdjacency*> m_vAdjacency;
 public:
 	void ReadData(InputTerminal* _Terminal) ;
 	void SaveData() ;
@@ -183,7 +199,8 @@ public:
 	DATA_TYPE* GetPreferenceData() { return &m_GateAssignPreference ;} ;
 	CGateAssignmentMgr* GetGateAssignMgr() { return m_GateAssignMgr ;} ;
 	void SetGateAssignMgr(CGateAssignmentMgr* _gateAssignmgr) { m_GateAssignMgr = _gateAssignmgr ;} ;
-    std::vector<CGateAdjacency>* GetGateAdjacency() { return &m_vAdjacency; }
+    std::vector<CGateAdjacency*>* GetGateAdjacency() { return &m_vAdjacency; }
+    int FindGateAdjacencyIndex(CGateAdjacency* pGateAdj);
 };
 class CArrivalGateAssignPreferenceMan : public CGateAssignPreferenceMan
 {
