@@ -790,7 +790,16 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 // 			(false == m_pSimFlowSync->CanIGoFurther(m_pPerson, *m_pProcessor->getID(), p_time)))
 // 			return TRUE;
 // 	}
-
+	int personID = m_pPerson->getID();
+	CString procStr = m_pProcessor->getIDName();
+	if(procStr.Find("DEP>PODIUM-FIRST-BUS-2") != -1)
+	{
+		if(personID == 31704 || personID == 31501 || personID == 31464 || personID == 17369 )
+		{
+			int x=1;
+			x=1;
+		}
+	}
 	if( waitForResourceIfNeed( p_time ) )
 		return TRUE;
 

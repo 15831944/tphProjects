@@ -1366,7 +1366,14 @@ void Processor::balanceQueues (ElapsedTime curTime)
             aProc = GetTerminal()->procList->getProcessor(i);
             if (aProc->m_pQueue && aProc->m_pQueue->isFixed() == 'N' &&
                 aProc->getFloor() == getFloor())
-                    aProc->m_pQueue->balanceQueue (this, curTime);
+			{
+				if(aProc->getIDName().Find("DEP>PODIUM-FIRST-BUS-2") != -1)
+				{
+					int i=3;
+					i=3;
+				}
+                aProc->m_pQueue->balanceQueue (this, curTime);
+			}
         }
 		
 		if( GetTerminal()->procList->GetDynamicCreatedProcs() )
