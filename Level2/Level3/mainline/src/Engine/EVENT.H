@@ -30,6 +30,7 @@ enum EventType
 	ResourceMovementEvent,
 	FetchPersonInQueue,
 	MobileElementAvoidDensityEvent,
+	MobileElementMoveToIntsEntryEvent,
 	CorralService,
 	//Airside
 	FlightBirth,

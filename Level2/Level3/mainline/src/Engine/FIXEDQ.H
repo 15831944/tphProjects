@@ -60,6 +60,9 @@ public:
     //it gets the current location of the tail
     void getTailPoint (Person *aPerson) const;
 
+	// get the most appropriate corner's index.
+	int getFixQEntryPointIndex();
+
     //It returns queue type.
     virtual char isFixed (void) const { return 'Y'; };
 

@@ -743,6 +743,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="MoveToInterestedEntryEvent.cpp" />
     <ClCompile Include="MOVEVENT.CPP">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1625,6 +1626,7 @@
     <ClInclude Include="MobileElementGenerator.h" />
     <ClInclude Include="MobileElementGroup.h" />
     <ClInclude Include="Monitor.h" />
+    <ClInclude Include="MoveToInterestedEntryEvent.h" />
     <ClInclude Include="MOVEVENT.H" />
     <ClInclude Include="MovingSideWalk.h" />
     <ClInclude Include="MovingTrace.h" />

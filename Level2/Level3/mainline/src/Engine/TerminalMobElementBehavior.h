@@ -392,7 +392,7 @@ private:
 	void WalkAlongShortestPathForEvac( const Point& _srcPoint, const Point& _desPoint, ElapsedTime& _curTime );
 
 
-	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, CString& _curTime,Point& outPoint, CFlowItemEx* _pPrevFlowItem = NULL) ;
+	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, CString& _curTime,Point& outPoint, CFlowItemEx* _pFlowItem = NULL) ;
 
 
 	// walk from location to next process by pipe
@@ -427,6 +427,9 @@ private:
 	//		tTime[in]: close door time
 	//--------------------------------------------------------------------------------------
 	void EnterFromOnboardModeToTerminalMode(const ElapsedTime& tTime);
+
+	// Calculate walk length when elements walk along user defined pipe.
+	double CalculateWalkLengthOfUserPipe(const Point& ptFrom, const Point& ptTo, const std::vector<int>& vPipeList);
 
 protected:
 	Person* m_pPerson;
@@ -657,7 +660,8 @@ public:
 
 	bool m_bIsArrivalDoor;//for write log for pax arrival door height
 
-	int first ;
+	// first corner's index when moving to a fixed queue.
+	int first_corner ;
 
 	void setLandsideSelectedProc(const std::vector<ALTObjectID>& altLandsideSelectedProc);
 	const std::vector<ALTObjectID>& GetLandsideSelectedProc()const;

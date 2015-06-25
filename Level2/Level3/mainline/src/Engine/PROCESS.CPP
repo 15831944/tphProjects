@@ -847,7 +847,18 @@ void Processor::getNextState (int& state,Person* _pPerson) const
     else if (state == LeaveServer)
         state = FreeMoving;
     else if (m_pQueue != NULL)
-		state = MoveToQueue;
+	{
+		if( m_pQueue->isFixed() == 'Y' &&
+			_pPerson->getTerminalBehavior()->first_corner != -1 &&
+			_pPerson->getTerminalBehavior()->first_corner != ((FixedQueue*)m_pQueue)->getEntryCornerIndex())
+		{
+			int n1 = _pPerson->getTerminalBehavior()->first_corner;
+			int n2 = ((FixedQueue*)m_pQueue)->getEntryCornerIndex();
+			state = MoveToInterestedEntryPoint;
+		}
+		else
+			state = MoveToQueue;
+	}
     else
         state = ArriveAtServer;
 }

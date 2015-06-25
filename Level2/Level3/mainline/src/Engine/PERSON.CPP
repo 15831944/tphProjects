@@ -316,7 +316,7 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 	if(_needReturn)
 		return _localResult;
 
-
+	EntityEvents event_state = (EntityEvents)state;
    int nReturnValue = 1;
 	switch (state)
     {
