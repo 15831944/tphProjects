@@ -43,7 +43,7 @@ public:
 
 	void readTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm, int triggerCount);
 	void writeTriggerDatabase( ArctermFile& p_file);
-private:
+
 	void AddRegularTrigger(long _seconds, double _prop);
 	void AddResidualTrigger();
 };

@@ -576,6 +576,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			}
 			GetInputTerminal()->flightData->AddStage();
 			ReloadRoot();
+			m_btnSave.EnableWindow(TRUE);
 		}
 	}
 
