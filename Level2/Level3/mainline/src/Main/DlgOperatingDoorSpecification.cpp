@@ -239,9 +239,11 @@ void DlgOperatingDoorSpecification::InitTree()
 			CString strStandNode = "Stand Family: " + strStand;
 			HTREEITEM hStandItem = m_wndTreeCtrl.InsertItem(strStandNode,cni,FALSE,FALSE,hFltItem,TVI_LAST);
 			m_wndTreeCtrl.SetItemData(hStandItem, (DWORD_PTR)pStandData);
-			HTREEITEM hDoorItem = m_wndTreeCtrl.InsertItem("Doors used:",cni, FALSE, FALSE, hStandItem, TVI_LAST);
+			HTREEITEM hDoorsItem = m_wndTreeCtrl.InsertItem("Doors used:",cni, FALSE, FALSE, hStandItem, TVI_LAST);
+			m_wndTreeCtrl.SetItemData(hDoorsItem, (DWORD_PTR)pFltData);
 
 			int nDoorCount = pStandData->GetOpDoorCount();
+			HTREEITEM hDoorItem = NULL;
 			for(int idx = 0; idx <nDoorCount; idx++)
 			{
 				int nDoorID = pStandData->GetOpDoorID(idx);
@@ -258,10 +260,10 @@ void DlgOperatingDoorSpecification::InitTree()
 					continue;
 
 				CString strDoor = (*iter)->m_strName;
-				m_wndTreeCtrl.InsertItem(strDoor,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
+				hDoorItem = m_wndTreeCtrl.InsertItem(strDoor,cni, FALSE, FALSE, hDoorsItem, TVI_LAST);
 				m_wndTreeCtrl.SetItemData(hDoorItem,nDoorID);
 			}
-			m_wndTreeCtrl.Expand(hDoorItem,TVE_EXPAND);
+			m_wndTreeCtrl.Expand(hDoorsItem,TVE_EXPAND);
 			m_wndTreeCtrl.Expand(hStandItem,TVE_EXPAND);
 		}
 		m_wndTreeCtrl.Expand(hFltItem,TVE_EXPAND);
