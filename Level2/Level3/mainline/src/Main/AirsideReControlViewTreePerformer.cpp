@@ -69,7 +69,7 @@ HTREEITEM AirsideReControlView::CTreePerformer::InsertItem( HTREEITEM hParentIte
 		return NULL;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hInsertItem = m_pTreeCtrl->InsertItem(strName, cni, FALSE, FALSE, hParentItem);
 	if(hInsertItem != NULL)
 	{
@@ -110,7 +110,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::InitTree()
 	m_pTreeCtrl->DeleteAllItems();
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	m_hItemRunwayRoot = m_pTreeCtrl->InsertItem(_T("Runway"), cni, FALSE);
 	TreeItemData *pItemDataRoot = new TreeItemData;
 	pItemDataRoot->itemType = Item_RunwayRoot;
@@ -140,6 +140,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::InitTree()
 			for (int nOperation = 0; nOperation < nOperationCount; ++ nOperation)
 			{
 				//operation
+                cni.net = NET_COMBOBOX;
 				HTREEITEM hItemOperation = m_pTreeCtrl->InsertItem(_T("Operation : ") + 
                     runwayParam.m_vOperationParam[nOperation].GetOperationName(), cni, FALSE, FALSE, hItemRunway);
 				pItemData = new TreeItemData;
@@ -149,6 +150,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::InitTree()
 				m_pTreeCtrl->SetItemData(hItemOperation,(DWORD_PTR)pItemData);
 
 				//airroute root
+                cni.net = NET_NORMAL;
 				HTREEITEM hItemAirRouteRoot = m_pTreeCtrl->InsertItem(_T("AirRoute"), cni, FALSE, FALSE, hItemOperation);
 				pItemData = new TreeItemData;
 				pItemData->itemType = Item_AirRouteRoot;
@@ -306,7 +308,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::OnToolBarAdd( HTREEI
 		return;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_RunwayRoot)//new runway
 	{
 		CDlgSelectReportRunway dlg(m_nProjID,m_pTreeCtrl->GetParent());
@@ -395,7 +397,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::OnToolBarDel( HTREEI
         return;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_Runway)
 	{
 		HTREEITEM hParentItem = m_pTreeCtrl->GetParentItem(hTreeItem);
@@ -539,7 +541,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::InitDefaltTree()
 {
     //runway, all
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hItemRunway = m_pTreeCtrl->InsertItem(_T("All"), cni, FALSE, FALSE, m_hItemRunwayRoot);
 	TreeItemData *pItemData = new TreeItemData;
 	pItemData->itemType = Item_Runway;
@@ -588,7 +590,7 @@ CString AirsideReControlView::CRunwayUtilizationTreePerformer::GetOperationName(
 void AirsideReControlView::CRunwayUtilizationTreePerformer::InitDefaltRunway( HTREEITEM hRunwayItem )
 {
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	//operation
 	HTREEITEM hItemOperation = m_pTreeCtrl->InsertItem(_T("Operation: All"), cni, FALSE, FALSE, hRunwayItem);
 	TreeItemData *pItemData = new TreeItemData;
@@ -644,44 +646,47 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::OnTreeItemDoubleClic
 
 	if(pItemData->itemType == Item_Operation)
 	{
-		std::vector<CString> vStr;
-		vStr.clear();
-		CString str = _T("All");
-		vStr.push_back(str);
-
-		str = _T("Landing");
-		vStr.push_back(str);
-
-		str = _T("Take off");
-		vStr.push_back(str);
-
-		m_pTreeCtrl->SetComboWidth(120);
-		m_pTreeCtrl->SetComboString(hTreeItem,vStr);
-
-		m_hOperationItemSelected = hTreeItem;
-	}
+        m_pTreeCtrl->DoEdit(hTreeItem);
+        m_hOperationItemSelected = hTreeItem;
+    }
 }
 
 LRESULT AirsideReControlView::CRunwayUtilizationTreePerformer::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
 {
-	if (message == WM_INPLACE_COMBO2)
-	{
-		if( m_hOperationItemSelected == NULL)
-			return 0;
+    if(message == UM_CEW_COMBOBOX_BEGIN)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
+        TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(hSelItem);
+        if(pItemData == NULL)
+            return -1;
+        pCB->ResetContent();
+        pCB->SetDroppedWidth(120);
+        pCB->AddString(_T("All"));
+        pCB->AddString(_T("Landing"));
+        pCB->AddString(_T("Take off"));
+        pCB->SetCurSel(pItemData->nOperation);
+    }
+    else if(message == UM_CEW_COMBOBOX_SELCHANGE)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
 
-		TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(m_hOperationItemSelected);
-		if(pItemData == NULL)
-			return 0;
+        TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(hSelItem);
+        if(pItemData == NULL)
+            return -1;
 
-		int nSel = m_pTreeCtrl->m_comboBox.GetCurSel();
-		if (nSel >= 0 && nSel != pItemData->nOperation)
-		{
-			pItemData->nOperation = nSel;
-			m_pTreeCtrl->SetItemText(m_hOperationItemSelected,GetOperationName(pItemData->nOperation));
-		}
-	}
+        int nSel = pCB->GetCurSel();
+        if (nSel >= 0 && nSel != pItemData->nOperation)
+        {
+            pItemData->nOperation = nSel;
+        }
+        m_pTreeCtrl->SetItemText(hSelItem, GetOperationName(pItemData->nOperation));
+    }
 
-	return 0;
+    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -713,7 +718,7 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::InitTree()
 	m_pTreeCtrl->DeleteAllItems();
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	m_hItemRunwayRoot = m_pTreeCtrl->InsertItem(_T("Runway"), cni, FALSE);
 	TreeItemData *pItemDataRoot = new TreeItemData;
 	pItemDataRoot->itemType = Item_RunwayRoot;
@@ -743,6 +748,7 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::InitTree()
 			for (int nOperation = 0; nOperation < nOperationCount; ++ nOperation)
 			{
 				//operation
+                cni.net = NET_COMBOBOX;
 				HTREEITEM hItemOperation = m_pTreeCtrl->InsertItem(_T("Operation : ") + 
                     runwayParam.m_vOperationParam[nOperation].GetOperationName(), cni, FALSE, FALSE, hItemRunway);
 				pItemData = new TreeItemData;
@@ -863,7 +869,7 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::OnToolBarAdd( HTREEITE
 		return;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_RunwayRoot)//new runway
 	{
 		CDlgSelectReportRunway dlg(m_nProjID,m_pTreeCtrl->GetParent());
@@ -959,7 +965,7 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::OnToolBarDel( HTREEITE
 		{
             //flight type
             COOLTREE_NODE_INFO cni;
-            CCoolTree::InitNodeInfo(NULL,cni);
+            CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 			HTREEITEM hItemFlight = m_pTreeCtrl->InsertItem(_T("Default"), cni, FALSE, FALSE, hParentItem);
 			pItemData = new TreeItemData;
 			pItemData->itemType = Item_Flight;
@@ -1038,7 +1044,7 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::InitDefaltTree()
 {
     //runway, all
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hItemRunway = m_pTreeCtrl->InsertItem(_T("All"), cni, FALSE, FALSE, m_hItemRunwayRoot);
 	TreeItemData *pItemData = new TreeItemData;
 	pItemData->itemType = Item_Runway;
@@ -1088,12 +1094,13 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::InitDefaltRunway( HTRE
 {
     //operation
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
+    cni.net = NET_COMBOBOX;
 	HTREEITEM hItemOperation = m_pTreeCtrl->InsertItem(_T("Operation: All"), cni, FALSE, FALSE, hRunwayItem);
 	TreeItemData *pItemData = new TreeItemData;
 	pItemData->itemType = Item_Operation;
 	pItemData->nOperation = 0;
-
+    cni.net = NET_NORMAL;
 	m_pTreeCtrl->SetItemData(hItemOperation,(DWORD_PTR)pItemData);
 
 	//flight type root
@@ -1126,44 +1133,55 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::OnTreeItemDoubleClick(
 
 	if(pItemData->itemType == Item_Operation)
 	{
-		std::vector<CString> vStr;
-		vStr.clear();
-		CString str = _T("All");
-		vStr.push_back(str);
-
-		str = _T("Landing");
-		vStr.push_back(str);
-
-		str = _T("Take off");
-		vStr.push_back(str);
-
-		m_pTreeCtrl->SetComboWidth(120);
-		m_pTreeCtrl->SetComboString(hTreeItem,vStr);
-
-		m_hOperationItemSelected = hTreeItem;
-	}
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hTreeItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
+        pCB->ResetContent();
+        pCB->SetDroppedWidth(120);
+        pCB->AddString(_T("All"));
+        pCB->AddString(_T("Landing"));
+        pCB->AddString(_T("Take off"));
+        pCB->SetCurSel(0);
+        m_hOperationItemSelected = hTreeItem;
+    }
 }
 
 LRESULT AirsideReControlView::CRunwayDelayParaTreePerformer::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
 {
-	if (message == WM_INPLACE_COMBO2)
-	{
-		if( m_hOperationItemSelected == NULL)
-			return 0;
 
-		TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(m_hOperationItemSelected);
-		if(pItemData == NULL)
-			return 0;
+    if(message == UM_CEW_COMBOBOX_BEGIN)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
 
-		int nSel = m_pTreeCtrl->m_comboBox.GetCurSel();
-		if (nSel >= 0 && nSel != pItemData->nOperation)
-		{
-			pItemData->nOperation = nSel;
-			m_pTreeCtrl->SetItemText(m_hOperationItemSelected,GetOperationName(pItemData->nOperation));
-		}
-	}
+        TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(hSelItem);
+        if(pItemData == NULL)
+            return -1;
+        pCB->ResetContent();
+        pCB->SetDroppedWidth(120);
+        pCB->AddString(_T("All"));
+        pCB->AddString(_T("Landing"));
+        pCB->AddString(_T("Take off"));
+        pCB->SetCurSel(pItemData->nOperation);
+    }
+    else if(message == UM_CEW_COMBOBOX_SELCHANGE)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
 
-	return 0;
+        TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(hSelItem);
+        if(pItemData == NULL)
+            return -1;
+
+        int nSel = pCB->GetCurSel();
+        if (nSel >= 0 && nSel != pItemData->nOperation)
+        {
+            pItemData->nOperation = nSel;
+        }
+        m_pTreeCtrl->SetItemText(hSelItem, GetOperationName(pItemData->nOperation));
+    }
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1204,7 +1222,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::InitTree()
 	else
     {
         COOLTREE_NODE_INFO cni;
-        CCoolTree::InitNodeInfo(NULL,cni);
+        CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 		HTREEITEM hItemRunwayRoot = m_pTreeCtrl->InsertItem(_T("Runway"), cni, FALSE);
 		RunwayCrossingsTreeItemData *pItemDataRoot = new RunwayCrossingsTreeItemData;
 		pItemDataRoot->itemType = Item_RunwayRoot;
@@ -1241,7 +1259,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::InitTree()
 void AirsideReControlView::CRunwayCrossingsTreePerformer::InitDefaltTree()
 {
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hItemRunwayRoot = m_pTreeCtrl->InsertItem(_T("Runway"), cni, FALSE, FALSE);
 	RunwayCrossingsTreeItemData *pItemDataRoot = new RunwayCrossingsTreeItemData;
 	pItemDataRoot->itemType = Item_RunwayRoot;
@@ -1281,7 +1299,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::OnToolBarAdd(HTREEITEM
 		return;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_RunwayRoot)
 	{
 		CDlgSelectALTObject dlg(m_nProjID,ALT_RUNWAY,m_pTreeCtrl->GetParent());
@@ -1333,7 +1351,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::OnToolBarDel(HTREEITEM
 		return;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_Runway)
 	{
 		HTREEITEM hParentItem = m_pTreeCtrl->GetParentItem(hTreeItem);
@@ -1852,7 +1870,7 @@ void AirsideReControlView::CAirsideIntersectionTreePerformer::InitTaxiwayItemNod
 }
 LRESULT AirsideReControlView::CAirsideIntersectionTreePerformer::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
 {
-	if (message == WM_INPLACE_COMBO2)
+	if (message == UM_CEW_COMBOBOX_END)
 	{
 		if( m_hFromOrToNodeSelected == NULL)
 			return 0;
@@ -1860,7 +1878,11 @@ LRESULT AirsideReControlView::CAirsideIntersectionTreePerformer::DefWindowProc( 
 		TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(m_hFromOrToNodeSelected);
 		if(pItemData == NULL)
 			return 0;
-		int nSel = m_pTreeCtrl->m_comboBox.GetCurSel();
+
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
+		int nSel = pCB->GetCurSel();
 
 		if(nSel >=0 && pItemData->itemType == Item_NodeFrom)
 		{
@@ -1928,35 +1950,34 @@ void AirsideReControlView::CAirsideIntersectionTreePerformer::OnTreeItemDoubleCl
 
 void AirsideReControlView::CAirsideIntersectionTreePerformer::OnEditIntersectionFrom(HTREEITEM hTreeItem, int nTaxiwayID)
 {
-	std::vector<CString> vStr;
-	vStr.push_back(_T("START"));
-
-	std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
-	for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
-	{
-		CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
-		vStr.push_back(nodeinfo.strNodeName);
-	}
-
-	m_pTreeCtrl->SetComboWidth(120);
-	m_pTreeCtrl->SetComboString(hTreeItem,vStr);
-
-	m_hFromOrToNodeSelected = hTreeItem;
+    CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hTreeItem);
+    CComboBox* pCB=(CComboBox*)pWnd;
+    pCB->ResetContent();
+    pCB->SetDroppedWidth(120);
+    pCB->AddString(_T("START"));
+    std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
+    for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
+    {
+        CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
+        pCB->AddString(nodeinfo.strNodeName);
+    }
+    m_hFromOrToNodeSelected = hTreeItem;
 }
 
 void AirsideReControlView::CAirsideIntersectionTreePerformer::OnEditIntersectionTo( HTREEITEM hTreeItem, int nTaxiwayID )
 {
-	std::vector<CString> vStr;
-	std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
-	for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
-	{
-		CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
-		vStr.push_back(nodeinfo.strNodeName);
-	}
-	vStr.push_back(_T("END"));
-	m_pTreeCtrl->SetComboWidth(120);
-	m_pTreeCtrl->SetComboString(hTreeItem,vStr);
-	m_hFromOrToNodeSelected = hTreeItem;
+    CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hTreeItem);
+    CComboBox* pCB=(CComboBox*)pWnd;
+    pCB->ResetContent();
+    pCB->SetDroppedWidth(120);
+    std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
+    for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
+    {
+        CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
+        pCB->AddString(nodeinfo.strNodeName);
+    }
+    pCB->AddString(_T("END"));
+    m_hFromOrToNodeSelected = hTreeItem;
 }
 
 void AirsideReControlView::CAirsideIntersectionTreePerformer::InsertAllTaxiwayItem()
@@ -2403,58 +2424,60 @@ std::vector<CAirsideIntersectionTreePerformer::NodeInfo> CAirsideTaxiwayUtilizat
 
 void CAirsideTaxiwayUtilizationTreePerformer::OnEditIntersectionFrom(HTREEITEM hTreeItem, int nTaxiwayID)
 {
-	std::vector<CString> vStr;
+    ALTObjectGroup altGroup;
+    altGroup.ReadData(nTaxiwayID);
+    std::vector< ALTObject> vObjct;
+    altGroup.GetObjects(vObjct);
 
-	ALTObjectGroup altGroup;
-	altGroup.ReadData(nTaxiwayID);
-	std::vector< ALTObject> vObjct;
-	altGroup.GetObjects(vObjct);
-
-	if (vObjct.size() == 1)
-	{
-		vStr.push_back(_T("START"));
-		std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
-		for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
-		{
-			CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
-			vStr.push_back(nodeinfo.strNodeName);
-		}
-	}
-
-	m_pTreeCtrl->SetComboWidth(120);
-	m_pTreeCtrl->SetComboString(hTreeItem,vStr);
-
-	m_hFromOrToNodeSelected = hTreeItem;
+    CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hTreeItem);
+    CComboBox* pCB=(CComboBox*)pWnd;
+    pCB->ResetContent();
+    pCB->SetDroppedWidth(120);
+    if (vObjct.size() == 1)
+    {
+        pCB->AddString(_T("START"));
+        std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
+        for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
+        {
+            CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
+            pCB->AddString(nodeinfo.strNodeName);
+        }
+    }
+    pCB->SetCurSel(0);
+    m_hFromOrToNodeSelected = hTreeItem;
 }
 
 void CAirsideTaxiwayUtilizationTreePerformer::OnEditIntersectionTo(HTREEITEM hTreeItem, int nTaxiwayID)
 {
-	std::vector<CString> vStr;
+    std::vector<CString> vStr;
 
-	ALTObjectGroup altGroup;
-	altGroup.ReadData(nTaxiwayID);
-	std::vector< ALTObject> vObjct;
-	altGroup.GetObjects(vObjct);
+    ALTObjectGroup altGroup;
+    altGroup.ReadData(nTaxiwayID);
+    std::vector< ALTObject> vObjct;
+    altGroup.GetObjects(vObjct);
 
-	if (vObjct.size() == 1)
-	{
-		std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
-		for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
-		{
-			CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
-			vStr.push_back(nodeinfo.strNodeName);
-		}
-		vStr.push_back(_T("END"));
-	}
-	
-	m_pTreeCtrl->SetComboWidth(120);
-	m_pTreeCtrl->SetComboString(hTreeItem,vStr);
-	m_hFromOrToNodeSelected = hTreeItem;
+
+    CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hTreeItem);
+    CComboBox* pCB=(CComboBox*)pWnd;
+    pCB->ResetContent();
+    pCB->SetDroppedWidth(120);
+    if (vObjct.size() == 1)
+    {
+        std::vector<CAirsideIntersectionTreePerformer::NodeInfo> vNodeInfo = GetTaxiwayNodes(nTaxiwayID);
+        for(int nNode = 0; nNode < static_cast<int>(vNodeInfo.size()); ++ nNode)
+        {
+            CAirsideIntersectionTreePerformer::NodeInfo& nodeinfo = vNodeInfo[nNode];
+            pCB->AddString(nodeinfo.strNodeName);
+        }
+        pCB->AddString(_T("END"));
+    }
+
+    m_hFromOrToNodeSelected = hTreeItem;
 }
 
 LRESULT AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (message == WM_INPLACE_COMBO2)
+	if(message == UM_CEW_COMBOBOX_END)
 	{
 		if( m_hFromOrToNodeSelected == NULL)
 			return 0;
@@ -2462,7 +2485,11 @@ LRESULT AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::DefWindow
 		TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(m_hFromOrToNodeSelected);
 		if(pItemData == NULL)
 			return 0;
-		int nSel = m_pTreeCtrl->m_comboBox.GetCurSel();
+
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        CWnd* pWnd= m_pTreeCtrl->GetEditWnd(hSelItem);
+        CComboBox* pCB=(CComboBox*)pWnd;
+		int nSel = pCB->GetCurSel();
 
 		if(nSel >=0 && pItemData->itemType == Item_NodeFrom)
 		{
@@ -2550,7 +2577,7 @@ void CStandOperationsTreePerformer::InitTree()
 			}
 
             COOLTREE_NODE_INFO cni;
-            CCoolTree::InitNodeInfo(NULL,cni);
+            CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 			HTREEITEM hStandItem = m_pTreeCtrl->InsertItem(strStand, cni, FALSE, FALSE, TVI_ROOT);
 		}
 	}
@@ -2559,7 +2586,7 @@ void CStandOperationsTreePerformer::InitTree()
 void CStandOperationsTreePerformer::InitDefaltTree()
 {
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hRunwayItem = m_pTreeCtrl->InsertItem(_T("Family: ALL"), cni, FALSE, FALSE, TVI_ROOT);
 }
 
@@ -2623,7 +2650,7 @@ void CStandOperationsTreePerformer::OnToolBarAdd(HTREEITEM hTreeItem)
 		}
 
         COOLTREE_NODE_INFO cni;
-        CCoolTree::InitNodeInfo(NULL,cni);
+        CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 		HTREEITEM hItemRunway = m_pTreeCtrl->InsertItem(strStand, cni, FALSE);
 	}
 }
@@ -2768,32 +2795,49 @@ reportType AirsideReControlView::CAirsideControllerWorkloadTreePerformer::GetTyp
 	return Airside_ControllerWorkload;
 }
 
-LRESULT AirsideReControlView::CAirsideControllerWorkloadTreePerformer::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
+LRESULT AirsideReControlView::CAirsideControllerWorkloadTreePerformer::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if( message == WM_INPLACE_SPIN )
+    if(message == UM_CEW_COMBOBOX_BEGIN)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        m_pTreeCtrl->SetItemValueRange(hSelItem, 1, 10);
+
+        TreeItemData *pNodeData = (TreeItemData *)m_pTreeCtrl->GetItemData(hSelItem);
+        if(pNodeData == NULL)
+            return -1;
+        if(pNodeData->itemType != Item_Operation)
+            return -1;
+        m_hItemSelected = hSelItem;
+        CString strItemText;
+        strItemText.Format("%d", pNodeData->nObjID);
+        m_pTreeCtrl->GetEditWnd(hSelItem)->SetWindowText(strItemText);
+        ((CEdit*)m_pTreeCtrl->GetEditWnd(hSelItem))->SetSel(0, -1, true); 
+    }
+	if(message == UM_CEW_EDITSPIN_END)
 	{
 		if(m_hItemSelected == NULL)
-			return 0;
+			return -1;
 
 		TreeItemData *pNodeData = (TreeItemData *)m_pTreeCtrl->GetItemData(m_hItemSelected);
 		if(pNodeData == NULL)
-			return 0;
+			return -1;
 		if(pNodeData->itemType != Item_Operation)
-			return 0;
+			return -1;
 
-		LPSPINTEXT pst = (LPSPINTEXT) lParam;
-		ASSERT(pst->iPercent >0 && pst->iPercent< 11);
+        CString strValue = *((CString*)lParam);
+        int userSetValue = atoi(strValue.GetBuffer());
+		ASSERT(userSetValue >0 && userSetValue< 11);
 
-		if(pst->iPercent <=0)
-			pst->iPercent = 0;
+		if(userSetValue <=0)
+			userSetValue = 0;
 
-		if (pst->iPercent > 10)
+		if (userSetValue > 10)
 		{
-			pst->iPercent = 10;
+			userSetValue = 10;
 		}
 
 		//changed the text
-		pNodeData->nObjID = pst->iPercent;
+		pNodeData->nObjID = userSetValue;
 
 		m_pTreeCtrl->SetItemText(m_hItemSelected, FormatWeightText(pNodeData->strObjName, pNodeData->nObjID));
 
@@ -2966,26 +3010,9 @@ void AirsideReControlView::CAirsideControllerWorkloadTreePerformer::LoadData()
 
 }
 
-void AirsideReControlView::CAirsideControllerWorkloadTreePerformer::OnTreeItemDoubleClick( HTREEITEM hTreeItem )
+void AirsideReControlView::CAirsideControllerWorkloadTreePerformer::OnTreeItemDoubleClick(HTREEITEM hTreeItem)
 {
-	if(hTreeItem == NULL)
-		return;
-
-	TreeItemData *pNodeData = (TreeItemData *)m_pTreeCtrl->GetItemData(hTreeItem);
-	if(pNodeData == NULL)
-		return;
-	if(pNodeData->itemType != Item_Operation)
-		return;
-	m_hItemSelected = hTreeItem;
-
-
-	//set the spin 
-	m_pTreeCtrl->SetDisplayType( 2 );
-	m_pTreeCtrl->SetDisplayNum( pNodeData->nObjID );
-	m_pTreeCtrl->SetSpinRange( 1,10 );
-	m_pTreeCtrl->SpinEditLabel( hTreeItem );
-
-
+    return;
 }
 
 CString AirsideReControlView::CAirsideControllerWorkloadTreePerformer::FormatWeightText( CString strWeightName ,int nWeight ) const
@@ -3016,7 +3043,7 @@ void AirsideReControlView::CTakeoffProcessTreePerformer::InitTree()
 	CAirsideTakeoffProcessParameter* pParam = (CAirsideTakeoffProcessParameter*)m_pParam;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hItemFlightRoot = m_pTreeCtrl->InsertItem(_T("Flight Type"), cni, FALSE);
 	TreeItemData* pItemData = new TreeItemData;
 	pItemData->itemType = Item_FlightRoot;
@@ -3126,7 +3153,7 @@ void AirsideReControlView::CTakeoffProcessTreePerformer::OnToolBarAdd( HTREEITEM
 		return;
 
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	TreeItemData *pItemData = (TreeItemData *)m_pTreeCtrl->GetItemData(hTreeItem);
 	if (pItemData)
 	{
@@ -3238,7 +3265,7 @@ void AirsideReControlView::CTakeoffProcessTreePerformer::InitDefaltTree()
 {
     //flight type root
     COOLTREE_NODE_INFO cni;
-    CCoolTree::InitNodeInfo(NULL,cni);
+    CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hItemFlightRoot = m_pTreeCtrl->InsertItem(_T("Flight Type"), cni, FALSE, FALSE, TVI_ROOT);
 	TreeItemData* pItemData = new TreeItemData;
 	pItemData->itemType = Item_FlightRoot;

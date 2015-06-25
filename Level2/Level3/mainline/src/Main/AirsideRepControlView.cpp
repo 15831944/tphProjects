@@ -599,7 +599,7 @@ void CAirsideRepControlView::OnInitialUpdate()
 	InitializeControl();
 	ShowOrHideControls();
 
-   InitMuiButtom() ;
+    InitMuiButtom();
 	//day combobox
 	m_startDate = GetDocument()->GetTerminal().GetSimReportManager()->GetStartDate();//GetDocument()->m_animData.m_startDate;
 
@@ -3256,16 +3256,26 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
 {
     if(message == UM_CEW_COMBOBOX_BEGIN)
     {
-        HTREEITEM hSelItem = (HTREEITEM)wParam;
-        CWnd* pWnd= m_treePaxType.GetEditWnd(hSelItem);
-        CComboBox* pCB=(CComboBox*)pWnd;
-        pCB->ResetContent();
-        pCB->SetDroppedWidth(120);
-        repControlTreeNodeData *pData = reinterpret_cast<repControlTreeNodeData *>(m_treePaxType.GetItemData(hSelItem));
-        ASSERT(pData);
-        switch(pData->nodeType)
+        reportType repType = GetReportType();
+        if(repType == Airside_RunwayUtilization|| 
+            repType == Airside_RunwayDelay ||
+            repType == Airside_IntersectionOperation ||
+            repType == Airside_TaxiwayUtilization ||
+            repType == Airside_ControllerWorkload)//tree performer handle the message
         {
-        case repControlTreeNodeType_Exit_Oper:
+            if(GetTreePerformer())
+                GetTreePerformer()->DefWindowProc(message, wParam, lParam);
+        }
+        else if(GetReportType() == Airside_RunwayExit)
+        {
+            HTREEITEM hSelItem = (HTREEITEM)wParam;
+            CWnd* pWnd= m_treePaxType.GetEditWnd(hSelItem);
+            CComboBox* pCB=(CComboBox*)pWnd;
+            pCB->ResetContent();
+            pCB->SetDroppedWidth(120);
+            repControlTreeNodeData *pData = reinterpret_cast<repControlTreeNodeData *>(m_treePaxType.GetItemData(hSelItem));
+            ASSERT(pData);
+            if(pData->nodeType == repControlTreeNodeType_Exit_Oper)
             {
                 pCB->AddString(_T("All"));
                 pCB->AddString(_T("T/o"));
@@ -3273,12 +3283,9 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
                 int curSel = pData->nClassification;
                 pCB->SetCurSel(curSel);
             }
-            break;
-        default:
-            break;
         }
     }
-    if(message == UM_CEW_COMBOBOX_END)
+    else if(message == UM_CEW_COMBOBOX_SELCHANGE)
     {
         HTREEITEM hSelItem = (HTREEITEM)wParam;
         CWnd* pWnd= m_treePaxType.GetEditWnd(hSelItem);
@@ -3292,7 +3299,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
             if(GetTreePerformer())
                 GetTreePerformer()->DefWindowProc(message, wParam, lParam);
         }
-        if(GetReportType() == Airside_RunwayExit)
+        else if(GetReportType() == Airside_RunwayExit)
         {
             if(m_hSelectItem != NULL)
             {
@@ -3307,7 +3314,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
 
         }
     }
-    if (message == WM_INPLACE_SPIN)
+    if (message == UM_CEW_EDITSPIN_END || message == UM_CEW_EDITSPIN_BEGIN)
     {
         if(GetReportType() == Airside_ControllerWorkload)
         {
@@ -3316,7 +3323,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
         }
     }
 
-    if (MODIFYVALUE == message)
+    if (message == WM_LBUTTONDBLCLK)
     {
         if(AirsideReControlView::CTreePerformer * pPerfrom = GetTreePerformer())
             pPerfrom->OnTreeItemDoubleClick((HTREEITEM)wParam);
@@ -3543,16 +3550,10 @@ void CAirsideRepControlView::AddRunwayExitReportRunwayItem(HTREEITEM _rootItem)
 		 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Item,0) ;
 		m_treePaxType.SetItemData(exitItem,(DWORD_PTR)pNodedata);
 
+        cni.net = NET_COMBOBOX;
 		HTREEITEM pOperITem = m_treePaxType.InsertItem(_T("Operation::All"), cni, FALSE, FALSE, HRunwayItem);
-		 pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Oper,0) ;
+		pNodedata  = new repControlTreeNodeData(repControlTreeNodeType_Exit_Oper,0) ;
 		m_treePaxType.SetItemData(pOperITem,(DWORD_PTR)pNodedata) ;
-		std::vector<CString> comboxstring ;
-		comboxstring.push_back(_T("All")) ;
-		comboxstring.push_back(_T("T/o")) ;
-		comboxstring.push_back(_T("Landing")) ;
-		m_treePaxType.SetComboString(pOperITem,comboxstring) ;
-		m_treePaxType.m_comboBox.SetCurSel(0) ;
-
 		m_treePaxType.Expand(HRunwayItem,TVE_EXPAND);
 	}
 }
