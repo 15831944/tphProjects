@@ -24,6 +24,8 @@
 #include "SelectInboundRouteItemDlg.h"
 #include "DlgHoldShortLineSel.h"
 
+#include "DlgAirsideSelectIntersectionNode.h"
+
 static const UINT ID_NEW_FLTTYPE = 10;
 static const UINT ID_DEL_FLTTYPE = 11;
 static const UINT ID_EDIT_FLTTYPE = 12;
@@ -316,6 +318,7 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 					break;
 				}
 				case LEVEL_ROUTE:
+				case LEVEL_ROUTECHILD:
 					{
 						int nID = -1;
 						int nIntersectNodeIDInALTObj = -1;
@@ -371,34 +374,62 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 			break;
 			
 		}
+	case UM_CEW_EDITSPIN_BEGIN:
+	case UM_CEW_EDIT_BEGIN:
+		{
+			HTREEITEM hItem = (HTREEITEM)wParam;
+			COOLTREE_NODE_INFO* cni = m_TreeCriteria.GetItemNodeInfo(selctItem);
+			cni->fMinValue = 0.0;
+		}
+		break;
 	case UM_CEW_EDITSPIN_END:
 	case UM_CEW_EDIT_END:
 		{	
-
-			StrategyType strategyType=(StrategyType)m_TreeCriteria.GetItemData(selctItem);
-			if (strategyType!=Delaytime||nLevel!=LEVEL_STRATEGYDETAIL)
+			if (nLevel == LEVEL_STRATEGYDETAIL)
 			{
-				return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
+				StrategyType strategyType=(StrategyType)m_TreeCriteria.GetItemData(selctItem);
+				if (strategyType!=Delaytime||nLevel!=LEVEL_STRATEGYDETAIL)
+				{
+					return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
+				}
+				HTREEITEM strategyItem=m_TreeCriteria.GetParentItem(selctItem);
+				COccupiedAssignedStandStrategy *curStrategy=(COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(strategyItem);
+
+				CString strValue = *((CString*)lParam);
+				CString strStrategy,strDetail;
+				int delayTime;
+				if( strValue == "" )
+				{
+					delayTime=10;
+				}else
+				{
+					delayTime= atoi( strValue );
+				}			
+				curStrategy->SetDelaytime(delayTime);
+				strDetail.Format(_T("Slow down to arrive [%d] mins later"),delayTime);
+				strStrategy.Format(_T("%d: %s"),getItemIndex(selctItem)+1,strDetail);
+				COOLTREE_NODE_INFO *cni=m_TreeCriteria.GetItemNodeInfo(selctItem);
+				m_TreeCriteria.SetItemText(selctItem,strStrategy);
+				cni->fMinValue=(float)delayTime;
 			}
-			HTREEITEM strategyItem=m_TreeCriteria.GetParentItem(selctItem);
-			COccupiedAssignedStandStrategy *curStrategy=(COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(strategyItem);
+			else
+			{
+				COccupiedAssignedStandStrategy *curStrategy=(COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(selctItem);
+				CString strValue = *((CString*)lParam);
+				int iTimes = 0;
+				if (strValue.IsEmpty() == false)
+				{
+					iTimes = atoi(strValue);
+				}
+				curStrategy->SetTimes(iTimes);
 
-			CString strValue = *((CString*)lParam);
-			CString strStrategy,strDetail;
-			int delayTime;
-			if( strValue == "" )
-			{
-				delayTime=10;
-			}else
-			{
-				delayTime= atoi( strValue );
-			}			
-			curStrategy->SetDelaytime(delayTime);
-			strDetail.Format(_T("Slow down to arrive [%d] mins later"),delayTime);
-			strStrategy.Format(_T("%d: %s"),getItemIndex(selctItem)+1,strDetail);
-			COOLTREE_NODE_INFO *cni=m_TreeCriteria.GetItemNodeInfo(selctItem);
-			m_TreeCriteria.SetItemText(selctItem,strStrategy);
-			cni->fMinValue=(float)delayTime;
+				CString strTimes;
+				strTimes.Format(_T("Maximum Times: %d"),iTimes);
+				m_TreeCriteria.SetItemText(selctItem,strTimes);
+				COOLTREE_NODE_INFO *cni=m_TreeCriteria.GetItemNodeInfo(selctItem);
+				cni->fMinValue = (float)iTimes;
+			}
+		
 			break;		
 			
 		}
@@ -424,15 +455,22 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 			COccupiedAssignedStandStrategy *curStrategy=(COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(strategyItem);
 			if (nSel == 0)//intersection node
 			{
-				CDlgOccupiedSelectIntersection dlgIntersection(m_pAltNetwork, m_vectTaxiway, m_pTaxiwayVectorMap,curStrategy->GetIntersectionID());
+				/*CDlgOccupiedSelectIntersection dlgIntersection(m_pAltNetwork, m_vectTaxiway, m_pTaxiwayVectorMap,curStrategy->GetIntersectionID());
+				if(IDOK != dlgIntersection.DoModal())
+				{
+				m_TreeCriteria.SetItemText(hItem,m_strToIntersectionName);
+				return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
+				}
+				*/
+				CDlgAirsideSelectIntersectionNode dlgIntersection(curStrategy->GetIntersectionID(), m_nProjID);
 				if(IDOK != dlgIntersection.DoModal())
 				{
 					m_TreeCriteria.SetItemText(hItem,m_strToIntersectionName);
 					return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
 				}
 
-				int nIntersectionID = dlgIntersection.GetIntersectionID();
-				CString strIntersection = dlgIntersection.GetIntersectionName();	
+				int nIntersectionID = dlgIntersection.m_nSelID;;
+				CString strIntersection = dlgIntersection.m_strSelNode;	
 
 				strIntersection.Format(_T("%d: Stop short of intersection [") + strIntersection + _T("] till assigned stand free"),getItemIndex(selctItem)+1) ;
 				m_TreeCriteria.SetItemText(selctItem, strIntersection);							
@@ -532,8 +570,8 @@ HTREEITEM CDlgOccupiedAssignedStand::addExitsItem(CAirSideCriteriaExits *exits)
 	if (exits->IsAllRunwayExit())
 	{
 		strItem="ALL";
-
-	}else
+	}
+	else
 	{				
 		ObjIDList exitList=exits->getExitList();
 		for (int j =0; j < (int)exitList.size(); j++)
@@ -661,7 +699,7 @@ void CDlgOccupiedAssignedStand::InsertCirculateRoute(HTREEITEM hItem,CirculateRo
 	CCoolTree::InitNodeInfo(this,cni);
 	cni.net = NET_SHOW_DIALOGBOX;
 	CString strRoute = pRoute->GetItemName();
-	HTREEITEM hRouteItem = m_TreeCriteria.InsertItem(strRoute,cni,FALSE,FALSE,hItem);
+	HTREEITEM hRouteItem = m_TreeCriteria.InsertItem(strRoute,cni,FALSE,FALSE,hItem,TVI_FIRST);
 	m_TreeCriteria.SetItemData(hRouteItem,(DWORD)pRoute);
 	for (size_t i = 0; i < pRoute->GetElementCount(); i++)
 	{
@@ -783,7 +821,10 @@ HTREEITEM CDlgOccupiedAssignedStand::addTimeWinItem(HTREEITEM parentItem,CAirSid
 					}
 				}
 				else
+				{
+					strHead = _T("Stop short of intersection / taxi interrupt line [");
 					strDetail = _T("Please Edit");
+				}
 
 				strDetail = /*_T("Stop short of intersection / taxi interrupt line [") */strHead + strDetail + _T("] till assigned stand free");
 
@@ -801,6 +842,15 @@ HTREEITEM CDlgOccupiedAssignedStand::addTimeWinItem(HTREEITEM parentItem,CAirSid
 					CirculateRoute* pRoute = pCirRoute->GetItem(i);
 					InsertCirculateRoute(hCirItem,pRoute);
 				}
+
+				//Times
+				cni.net = NET_EDIT_INT;
+				cni.fMinValue = (float)strategy.GetTimes();
+				CString strTimes;
+				strTimes.Format(_T("Maximum Times: %d"),strategy.GetTimes());
+				HTREEITEM hTimesItem = m_TreeCriteria.InsertItem(strTimes,cni,FALSE,FALSE,hCirItem);
+				m_TreeCriteria.SetItemData(hTimesItem,(DWORD)&strategy);
+
 				m_TreeCriteria.Expand(hDetail,TVE_EXPAND);
 				m_TreeCriteria.Expand(hCirItem,TVE_EXPAND);
 				break;
@@ -888,6 +938,40 @@ HTREEITEM CDlgOccupiedAssignedStand::addTimeWinItem(HTREEITEM parentItem,CAirSid
 	m_TreeCriteria.Expand(hStrategy,TVE_EXPAND);
 	m_TreeCriteria.SelectItem(hTimeWindow);
 	return hTimeWindow;
+}
+HTREEITEM CDlgOccupiedAssignedStand::intializeToIntersectionChildItem( HTREEITEM hToIntersection, COccupiedAssignedStandStrategy *pStrategy)
+{
+	ASSERT(pStrategy != NULL);
+	if(pStrategy == NULL || hToIntersection == NULL)
+		return NULL;
+
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+
+	//define circulate route
+	cni.net = NET_NORMAL;
+	HTREEITEM hCirItem = m_TreeCriteria.InsertItem("Unless blocking traffic, then circulate on Route:", cni, FALSE, FALSE, hToIntersection);
+	CirculateRoute* pCirRoute = pStrategy->GetCirculateRoute();
+	m_TreeCriteria.SetItemData(hCirItem,(DWORD)pCirRoute);
+	for (size_t i = 0; i < pCirRoute->GetElementCount(); i++)
+	{
+		CirculateRoute* pRoute = pCirRoute->GetItem(i);
+		InsertCirculateRoute(hCirItem,pRoute);
+	}
+
+	//Times
+	cni.net = NET_EDIT_INT;
+	cni.fMinValue = (float)pStrategy->GetTimes();
+	CString strTimes;
+	strTimes.Format(_T("Times: %d"),pStrategy->GetTimes());
+	HTREEITEM hTimesItem = m_TreeCriteria.InsertItem(strTimes,cni,FALSE,FALSE,hCirItem);
+	m_TreeCriteria.SetItemData(hTimesItem,(DWORD)pStrategy);
+
+	m_TreeCriteria.Expand(hToIntersection,TVE_EXPAND);
+	m_TreeCriteria.Expand(hCirItem,TVE_EXPAND);
+
+
+	return NULL;
 }
 void CDlgOccupiedAssignedStand::GetTaxiwayMap()
 {
@@ -1051,7 +1135,9 @@ void CDlgOccupiedAssignedStand::OnContextMenu(CWnd* pWnd, CPoint point)
 		}
 	case LEVEL_ROOTROUTE:
 		{
-			if (m_TreeCriteria.GetChildItem(hRClickItem) == NULL)
+			CirculateRoute* pRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hRClickItem);
+			//if (m_TreeCriteria.GetChildItem(hRClickItem) == NULL)
+			if (pRoute->GetElementCount() == 0)
 			{
 				CMenu menuPopup; 
 				menuPopup.CreatePopupMenu();
@@ -1064,12 +1150,35 @@ void CDlgOccupiedAssignedStand::OnContextMenu(CWnd* pWnd, CPoint point)
 		{
 			CMenu menuPopup; 
 			menuPopup.CreatePopupMenu();
+			if (m_TreeCriteria.GetNextSiblingItem(hRClickItem))
+			{
+				if (m_TreeCriteria.GetChildItem(hRClickItem) == NULL)
+				{
+					menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_ADD,_T("Add Circulate Route"));
+					menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_EDIT,_T("Edit Circulate Route"));
+					menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_DEL,_T("Delete Circulate Route"));
+
+				}
+				else
+				{
+					menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_EDIT,_T("Edit Circulate Route"));
+					menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_DEL,_T("Delete Circulate Route"));
+				}
+			}
+			
+			menuPopup.TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
+		}
+		break;
+	case LEVEL_ROUTECHILD:
+		{
+			CMenu menuPopup; 
+			menuPopup.CreatePopupMenu();
 			if (m_TreeCriteria.GetChildItem(hRClickItem) == NULL)
 			{
 				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_ADD,_T("Add Circulate Route"));
 				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_EDIT,_T("Edit Circulate Route"));
 				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_DEL,_T("Delete Circulate Route"));
-				
+
 			}
 			else
 			{
@@ -1077,7 +1186,7 @@ void CDlgOccupiedAssignedStand::OnContextMenu(CWnd* pWnd, CPoint point)
 				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_DEL,_T("Delete Circulate Route"));
 			}
 			menuPopup.TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
-		}
+		}	
 		break;
 	default:
 		{
@@ -1386,9 +1495,9 @@ int CDlgOccupiedAssignedStand::getSelItemLevel()
 		nLevel=0;
 	}
 
-	if (nLevel > LEVEL_ROOTROUTE)
+	if (nLevel > LEVEL_ROUTE)
 	{
-		nLevel = LEVEL_ROUTE;
+		nLevel = LEVEL_ROUTECHILD;
 	}
 	return nLevel;	
 }
@@ -1431,6 +1540,46 @@ void CDlgOccupiedAssignedStand::exchangeStrategyItem(HTREEITEM &item1,HTREEITEM 
 	COOLTREE_NODE_INFO cni2=*m_TreeCriteria.GetItemNodeInfo(item2);
 	m_TreeCriteria.SetItemNodeInfo(item1,cni2);
 	m_TreeCriteria.SetItemNodeInfo(item2,cni1);
+
+
+
+	//delete all the child items
+	if(m_TreeCriteria.GetChildItem(item1))
+	{
+		while (m_TreeCriteria.GetChildItem(item1))
+			m_TreeCriteria.DeleteItem(m_TreeCriteria.GetChildItem(item1));
+
+		//initialize item 2
+		COccupiedAssignedStandStrategy *pStrategy = NULL;
+		HTREEITEM hStrategyItem = m_TreeCriteria.GetParentItem(item1);
+		if(hStrategyItem != NULL)
+			pStrategy = (COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(hStrategyItem);
+		ASSERT(pStrategy != NULL);
+
+		if(pStrategy != NULL && item2 != NULL)
+		{
+			intializeToIntersectionChildItem(item2, pStrategy);
+		}
+	}
+	else if(m_TreeCriteria.GetChildItem(item2))
+	{
+		while (m_TreeCriteria.GetChildItem(item2))
+			m_TreeCriteria.DeleteItem(m_TreeCriteria.GetChildItem(item2));
+
+		//initialize item 1
+		COccupiedAssignedStandStrategy *pStrategy = NULL;
+		HTREEITEM hStrategyItem = m_TreeCriteria.GetParentItem(item2);
+		if(hStrategyItem != NULL)
+			pStrategy = (COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(hStrategyItem);
+		ASSERT(pStrategy != NULL);
+
+		if(pStrategy != NULL && item1 != NULL)
+		{
+			intializeToIntersectionChildItem(item1, pStrategy);
+		}
+	}
+
+	
 }
 void CDlgOccupiedAssignedStand::OnLvnItemchangedListOccupiedPriority(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -1568,3 +1717,5 @@ void CDlgOccupiedAssignedStand::DeleteChildItemInTree(HTREEITEM hItem)
 		hChildItem = m_TreeCriteria.GetChildItem(hItem);
 	}
 }
+
+

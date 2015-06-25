@@ -44,6 +44,11 @@ public:
 	LandsideTaxiQueueInSim* getSerivceQueue(){ return m_pServTaxiQueu; } 
 
 	VehicleEntryInfo* getEntryInfo();
+
+	void setCalledByQueue(LandsideTaxiQueueInSim* pServTaxiQueu, BOOL bCallFromExt);
+	BOOL isCalledByQueue()const{ return m_bCalledByQueueFromExt; }
+
+
 protected:
 	eTaxiBehavior m_CurBehavior;
 
@@ -56,5 +61,6 @@ protected:
 	bool haveRouteToTaxiQ(LandsideTaxiQueueInSim*pTaxiQ);
 
 	LandsideTaxiQueueInSim* m_pServTaxiQueu; //the taxi q is going to 
+	BOOL m_bCalledByQueueFromExt;   //
 
 };

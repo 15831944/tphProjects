@@ -15,12 +15,12 @@ bool LandsideResourceInSim::bHasVehicle( LandsideVehicleInSim* pVechile ) const
 
 void LandsideResourceInSim::AddInResVehicle( LandsideVehicleInSim* pVehicle )
 {
-	m_vInResVehicle.Add(pVehicle);
+	m_vInResVehicle.add(pVehicle);
 }
 
 void LandsideResourceInSim::RemoveInResVehicle( LandsideVehicleInSim* pVehicle )
 {
-	m_vInResVehicle.Remove(pVehicle);	
+	m_vInResVehicle.remove(pVehicle);	
 }
 
 LandsideVehicleInSim* LandsideResourceInSim::GetInResVehicle( int idx ) const

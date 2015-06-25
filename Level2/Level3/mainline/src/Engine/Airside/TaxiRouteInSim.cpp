@@ -521,8 +521,6 @@ AirsideFlightInSim* pConflictFlt = NULL;
 IntersectionNodeInSim* pConflictNode =NULL;
 
 
-boost::tuple<ARCMobileElement*, DistanceUnit> getLeadMobile(AirsideFlightInSim* pFlt ,TaxiRouteInSim& theRoute, DistanceUnit distInRoute);
-
 //void LogConflictAtNode(AirsideFlightInSim* pFlight, const ElapsedTime& time )
 //{
 //#if _DEBUGLOG
@@ -657,7 +655,7 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 	//lead mobile
 	ARCMobileElement *pLeadMob=NULL;
 	DistanceUnit distToLead=0;
-	boost::tie(pLeadMob,distToLead) = getLeadMobile(pFlight,*this,dCurDistInRoute);
+	boost::tie(pLeadMob,distToLead) = getLeadMobile(pFlight,dCurDistInRoute);
 	bool bTheSameLead = getConflictGraph(pFlight)->IsAFollowB(pFlight,pLeadMob);
 	bool bJustLanding = false;
     bJustLanding = (dCurDistInRoute<0 && pFlight->GetMode() == OnExitRunway);
@@ -801,24 +799,34 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 	}
 	
 
-	//
-	if(pLeadMob&&pLeadMob->IsKindof(typeof(AirsideFlightInSim)))
+	
+	if(pLeadMob&&pLeadMob->IsKindof(typeof(AirsideFlightInSim)) )
 	{
-
+		AirsideFlightInSim *sepLeadFlight = (AirsideFlightInSim*) pLeadMob;
+		if(sepLeadFlight->GetMode()== OnHeldAtTempParking )
+		{
+			TempParkingInSim* tempPark = sepLeadFlight->GetTemporaryParking();
+			if(tempPark)
+			{
+				tempPark->notifyCirculate(sepLeadFlight, lastClearanceItem.GetTime());
+			}
+		}
 	}
+	notifyTempFlightCirculate(lastClearanceItem.GetTime());
+
 	//check the separations the flight should take to account
-	boost::tuple<DistanceUnit, double, SimAgent*,DistanceUnit> checkResultLead = checkConflictWithLeadMobile(pFlight,dCurDistInRoute,radiusOfConcern);
+	CheckResultLead checkResultLead = checkConflictWithLeadMobile(pFlight,dCurDistInRoute,radiusOfConcern);
 	//SimAgent* pAgent = checkResultLead.get<2>();
-	boost::tuple<DistanceUnit, double, SimAgent*,DistanceUnit> checkResultHold = checkConflictWithNextHold(pFlight,pLeadMob,dCurDistInRoute);
-	boost::tuple<DistanceUnit, double, TaxiInterruptLineInSim*,DistanceUnit,ElapsedTime> checkInterruptLine = checkConflictWithInterruptLine(pFlight,dCurDistInRoute);
+	CheckResultHold checkResultHold = checkConflictWithNextHold(pFlight,pLeadMob,dCurDistInRoute);
+	CheckResultInterLine checkInterruptLine = checkConflictWithInterruptLine(pFlight,dCurDistInRoute);
 
 
 	//////////////////////////////conflict and stop////////////////////////////////////////////
 	//conflict with hold
 	bool bCheckHold = true;
-	if( checkResultHold.get<2>() && int(checkResultHold.get<0>()) <= max(0,int(dCurDistInRoute)+minTravelDist) )
+	if( checkResultHold.pAgent && int(checkResultHold.endDist) <= max(0,int(dCurDistInRoute)+minTravelDist) )
 	{
-		SimAgent* pAgent = checkResultHold.get<2>();
+		SimAgent* pAgent = checkResultHold.pAgent;
 		
 		RouteDirPathList routeList = getNextPathList(nBeginItemIdx);		
 		if(!routeList.empty())
@@ -875,7 +883,7 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 			DynamicConflictGraph::getInstance().SetAWaitForB(pFlight,pConflictFlt);
 		}*/
 		{ // flight stop check lead flight in queue to runway hold
-			SimAgent* pAgent = checkResultLead.get<2>();
+			SimAgent* pAgent = checkResultLead.pAgent;
 			if(pAgent && pAgent->IsKindof(typeof(AirsideFlightInSim)) )
 			{
 				AirsideFlightInSim * sepLeadFlight = (AirsideFlightInSim*)pAgent;
@@ -889,17 +897,14 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 		//return true;
 	}	
 	//conflict with lead flight
-	if( checkResultLead.get<2>() && int(checkResultLead.get<0>()) <= max(0,int(dCurDistInRoute)+minTravelDist) )//conflict with lead 
+	if( checkResultLead.pAgent && int(checkResultLead.endDist) <= max(0,int(dCurDistInRoute)+minTravelDist) )//conflict with lead 
 	{
-		SimAgent* pAgent = checkResultLead.get<2>();
-
-		pFlight->DependOnAgents(checkResultLead.get<2>());
-	
+		SimAgent* pAgent = checkResultLead.pAgent;
+		pFlight->DependOnAgents(pAgent);	
 		if( pAgent->IsKindof(typeof(AirsideFlightInSim)) )	
 		{
 			AirsideFlightInSim * sepLeadFlight = (AirsideFlightInSim*)pAgent;
-			//DynamicConflictGraph::getInstance().SetAFollowB(pFlight,sepLeadFlight);
-			
+			//DynamicConflictGraph::getInstance().SetAFollowB(pFlight,sepLeadFlight);					
 			if(newClearance.GetItemCount()==0)//write a speed ==0 log
 			{
 				pFlight->SetSpeed(0);
@@ -959,12 +964,12 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 	}
 
 	//conflict interrupt line
-	if( checkInterruptLine.get<2>() && int(checkInterruptLine.get<0>()) <= max(0,int(dCurDistInRoute)+minTravelDist) )
+	if( checkInterruptLine.pLine && int(checkInterruptLine.endDist) <= max(0,int(dCurDistInRoute)+minTravelDist) )
 	{
-		TaxiInterruptLineInSim* pInterruptLine = checkInterruptLine.get<2>();
+		TaxiInterruptLineInSim* pInterruptLine = checkInterruptLine.pLine;
 		pInterruptLine->SetWaitFlight(pFlight,lastClearanceItem.GetTime());
 		FlightGetClearanceEvent* newEvent  = new FlightGetClearanceEvent(pFlight);
-		newEvent->setTime(lastClearanceItem.GetTime()+checkInterruptLine.get<4>() );
+		newEvent->setTime(lastClearanceItem.GetTime()+checkInterruptLine.time );
 		newEvent->addEvent();
 		return true;
 	}
@@ -1002,45 +1007,27 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 	double dMinBlockPos;
 	double dNextSafeDistInRoute;
 	double dEndSpd;
-	if(checkResultHold.get<3>() < checkResultLead.get<3>() && bCheckHold ) //compare the hold or the lead flight which can be see
+	if(checkResultHold.nextHoldDist < checkResultLead.nextmobDist && bCheckHold ) //compare the hold or the lead flight which can be see
 	{
-		dNextSafeDistInRoute = checkResultHold.get<0>();
-		dEndSpd = checkResultHold.get<1>();
-		dMinBlockPos = checkResultHold.get<3>();
+		dNextSafeDistInRoute = checkResultHold.endDist;
+		dEndSpd = checkResultHold.endSpeed;
+		dMinBlockPos = checkResultHold.nextHoldDist;
 	}
 	else{
-		dNextSafeDistInRoute = checkResultLead.get<0>();
-		dEndSpd = checkResultLead.get<1>();
-		dMinBlockPos = checkResultLead.get<3>();
+		dNextSafeDistInRoute = checkResultLead.endDist;
+		dEndSpd = checkResultLead.endSpeed;
+		dMinBlockPos = checkResultLead.nextmobDist;
 	}	
-	if(dMinBlockPos > checkInterruptLine.get<3>() )
+	if(dMinBlockPos > checkInterruptLine.waitDist )
 	{
-		dNextSafeDistInRoute = checkInterruptLine.get<0>();
-		dEndSpd  = checkInterruptLine.get<1>();
+		dNextSafeDistInRoute = checkInterruptLine.endDist;
+		dEndSpd  = checkInterruptLine.endSpeed;
 	}
 
 	if(dNextSafeDistInRoute>=dExitRouteDist && GetMode() == OnTowToDestination)
 	{
 		dEndSpd = 0;
 	}
-
-
-
-	//if((GetMode() == OnTaxiToRunway||GetMode() == OnTowToDestination) && pLeadMob && pLeadMob->IsKindof(typeof(AirsideFlightInSim)) && dEndSpd < ARCMath::EPSILON ) // if flight is going to take off, add it to queue
-	//{
-	//	RunwayExitInSim* pTakeoffPos = pFlight->GetAndAssignTakeoffPosition();	
-	//	if(pTakeoffPos )
-	//	{	
-	//		int nCurentIdx = max(0,nBeginItemIdx);
-
-	//		if(pTakeoffPos->GetLogicRunway()->IsFlightInQueueToTakeoffPos((AirsideFlightInSim*)pLeadMob, pTakeoffPos) )
-	//		{
-	//			pTakeoffPos->GetLogicRunway()->AddFlightToTakeoffQueue(pFlight,pTakeoffPos,lastClearanceItem.GetTime());
-	//			LogTakeoffProcess(pFlight,pTakeoffPos,lastClearanceItem,m_vItems[nCurentIdx]);				
-
-	//		}
-	//	}
-	//}
 
 	if(bNeedStopForLeadReseaon){
 		dNextSafeDistInRoute = min(dNextSafeDistInRoute,dStopDistInRoute);
@@ -1786,7 +1773,7 @@ std::vector<IntersectionNodeInSim*> TaxiRouteInSim::GetRouteNodeList()
 	return vNodeList;
 }
 
-void TaxiRouteInSim::FlightExitRoute( AirsideFlightInSim* pFlight, const ElapsedTime& releaseTime )
+void TaxiRouteInSim::FlightExitRoute( AirsideFlightInSim* pFlight, const ElapsedTime& releaseTime,AirsideResource* exceptRes )
 {
 	DynamicConflictGraph* pConflictGraph = getConflictGraph(pFlight);
 	ASSERT(pConflictGraph);
@@ -1808,6 +1795,9 @@ void TaxiRouteInSim::FlightExitRoute( AirsideFlightInSim* pFlight, const Elapsed
 	for(int i=0;i< GetItemCount();i++)
 	{
 		AirsideResource* pRes = ItemAt(i).GetResource();
+		if(pRes==exceptRes)
+			continue;
+
 		if(pRes && pRes->IsKindof( typeof(FlightGroundRouteDirectSegInSim) ) )
 		{
 			FlightGroundRouteDirectSegInSim* pSeg = (FlightGroundRouteDirectSegInSim*)pRes;
@@ -1999,7 +1989,7 @@ bool TaxiRouteInSim::FindClearanceAsTempParking( AirsideFlightInSim* pFlight, Cl
 
 	//TaxiRouteSeperationWithLeadFlight sepLeadFlight(*this, pFlight, dCurDistInRoute);
 	ARCMobileElement* pLeadMob; DistanceUnit distOfLead;
-	boost::tie(pLeadMob,distOfLead) = getLeadMobile(pFlight,*this,dCurDistInRoute);
+	boost::tie(pLeadMob,distOfLead) = getLeadMobile(pFlight,dCurDistInRoute);
 	if( pLeadMob ) //there is flight ahead
 	{
 		AirsideFlightInSim* pLeadFlight = (AirsideFlightInSim*)pLeadMob;	
@@ -2158,10 +2148,10 @@ bool TaxiRouteInSim::IsNextResourceIsRunwaySegment( TaxiRouteInSim& theRoute,con
 	return false;
 }
 //taxiway adjacency lead mobile
-boost::tuple<ARCMobileElement*, DistanceUnit> getAdjacencyLeadMobile(int idx,AirsideFlightInSim* pFlt,TaxiRouteInSim& theRoute)
+boost::tuple<ARCMobileElement*, DistanceUnit> TaxiRouteInSim::getAdjacencyLeadMobile(int idx,AirsideFlightInSim* pFlt)
 {
 	int itemIdx = max(0,idx);
-	TaxiRouteItemInSim& theItem = theRoute.ItemAt(itemIdx);
+	TaxiRouteItemInSim& theItem = ItemAt(itemIdx);
 	AirsideResource* theResource = theItem.GetResource();
 	if(theResource->IsKindof(typeof(RouteDirPath)) )
 	{
@@ -2170,7 +2160,7 @@ boost::tuple<ARCMobileElement*, DistanceUnit> getAdjacencyLeadMobile(int idx,Air
 		ARCMobileElement* lMob = rDPath->getAdjacencyLeadMobile(pFlt,dDist);
 		if (lMob && lMob != pFlt)
 		{
-			DistanceUnit distInRoute = theRoute.GetDistInRoute(itemIdx,dDist);
+			DistanceUnit distInRoute = GetDistInRoute(itemIdx,dDist);
 			return boost::make_tuple(lMob,distInRoute);
 		}
 	}
@@ -2181,26 +2171,26 @@ boost::tuple<ARCMobileElement*, DistanceUnit> getAdjacencyLeadMobile(int idx,Air
 }
 
 //conflict with lead mobile
-boost::tuple<ARCMobileElement*, DistanceUnit> getLeadMobile(AirsideFlightInSim* pFlt ,TaxiRouteInSim& theRoute, DistanceUnit distInRoute)
+boost::tuple<ARCMobileElement*, DistanceUnit> TaxiRouteInSim::getLeadMobile(AirsideFlightInSim* pFlt ,DistanceUnit distInRoute)
 {
 	int nBeginItemIdx;
 	DistanceUnit dDistInItem;
-	theRoute.GetItemIndexAndDistInRoute(distInRoute,nBeginItemIdx,dDistInItem);
+	GetItemIndexAndDistInRoute(distInRoute,nBeginItemIdx,dDistInItem);
 //find adjacency flight that mapping to current route
 	ARCMobileElement* pLeadFlight = NULL;
 	double dDist = 0.0;
 
 	//continue searching next route items
-	for(int i=max(0,nBeginItemIdx);i<theRoute.GetItemCount();i++)
+	for(int i=max(0,nBeginItemIdx);i<GetItemCount();i++)
 	{
-		TaxiRouteItemInSim& theItem = theRoute.ItemAt(i);
+		TaxiRouteItemInSim& theItem = ItemAt(i);
 		AirsideResource* theResource = theItem.GetResource();
 		if(theResource->IsKindof(typeof(RouteDirPath)) )
 		{
 
 			RouteDirPath* rDPath = (RouteDirPath*)theResource;
 			ARCMobileElement* lMob = rDPath->getLeadMobile(pFlt);
-			if(!lMob && i==(theRoute.GetItemCount()-1) ) //check the last node 
+			if(!lMob && i==(GetItemCount()-1) ) //check the last node 
 			{
 				if( theResource->IsKindof(typeof(FlightGroundRouteDirectSegInSim)) )
 				{
@@ -2208,30 +2198,30 @@ boost::tuple<ARCMobileElement*, DistanceUnit> getLeadMobile(AirsideFlightInSim* 
 					AirsideFlightInSim* pInNodeFlt = pSeg->GetExitNode()->GetLockedFlight();
 					if(pInNodeFlt && pInNodeFlt!=pFlt)
 					{
-						return boost::make_tuple(pInNodeFlt,theRoute.GetEndDist());
+						return boost::make_tuple(pInNodeFlt, GetEndDist());
 					}
 				}
 			}
 
-			boost::tie(pLeadFlight,dDist) = getAdjacencyLeadMobile(i,pFlt,theRoute);
+			boost::tie(pLeadFlight,dDist) = getAdjacencyLeadMobile(i,pFlt);
 			if(lMob && lMob!=pFlt  ) //find the mob
 			{
 				DistanceUnit lmobDist = 0;
 				
 				if( lMob->getCurDirPath() == rDPath)
 				{
-					lmobDist = theRoute.GetDistInRoute(i,lMob->getCurDistInDirPath());
+					lmobDist = GetDistInRoute(i,lMob->getCurDistInDirPath());
 				}
 				else
 				{
 					OccupancyInstance inst = rDPath->GetOccupyInstance((CAirsideMobileElement*)lMob);
 					if(inst.IsEnterTimeValid())
 					{
-						lmobDist = theRoute.GetDistInRoute(i+1,0);
+						lmobDist = GetDistInRoute(i+1,0);
 					}
 					else
 					{
-						lmobDist = theRoute.GetDistInRoute(i,0);
+						lmobDist = GetDistInRoute(i,0);
 					}
 				}
 
@@ -2254,12 +2244,12 @@ boost::tuple<ARCMobileElement*, DistanceUnit> getLeadMobile(AirsideFlightInSim* 
 	return boost::make_tuple(pLeadFlight,dDist);
 }
 
-boost::tuple<DistanceUnit,double, SimAgent*,DistanceUnit> TaxiRouteInSim::checkConflictWithLeadMobile(AirsideFlightInSim* pFlight,DistanceUnit mCurDistInRoute, DistanceUnit dRadOfConcern)
+TaxiRouteInSim::CheckResultLead TaxiRouteInSim::checkConflictWithLeadMobile(AirsideFlightInSim* pFlight,DistanceUnit mCurDistInRoute, DistanceUnit dRadOfConcern)
 {	
 	//find the lead mobile element
 	ARCMobileElement* pLeadMobile=NULL;DistanceUnit leadMobDist;
 
-	boost::tie(pLeadMobile,leadMobDist) = getLeadMobile(pFlight,*this, mCurDistInRoute);
+	boost::tie(pLeadMobile,leadMobDist) = getLeadMobile(pFlight, mCurDistInRoute);
 
 	if(pLeadMobile ) //can see a flight ahead
 	{		
@@ -2293,20 +2283,20 @@ boost::tuple<DistanceUnit,double, SimAgent*,DistanceUnit> TaxiRouteInSim::checkC
 
 		if( int(mCurDistInRoute)< int(dSafeDistNoSpdChange) && dSafeDistNoSpdChange >= 0)
 		{
-			return boost::make_tuple( dSafeDistNoSpdChange, dNormalSpd , (ARCMobileElement*)NULL,leadMobDist-dSeperation);
+			return CheckResultLead( dSafeDistNoSpdChange, dNormalSpd , (ARCMobileElement*)NULL,leadMobDist-dSeperation);
 		}
 		else if( int(mCurDistInRoute) < int(dSafeDist) && dSafeDist >= 0)
 		{
-			return boost::make_tuple( dSafeDist, 0, pLeadMobile,leadMobDist-dSeperation );
+			return CheckResultLead( dSafeDist, 0, pLeadMobile,leadMobDist-dSeperation );
 		}
 		else
 		{
-			return boost::make_tuple( mCurDistInRoute, 0, pLeadMobile,leadMobDist-dSeperation);
+			return CheckResultLead( mCurDistInRoute, 0, pLeadMobile,leadMobDist-dSeperation);
 		}			
 	}
 
 	//after all try to use normal speed
-	return boost::make_tuple( GetEndDist(),pFlight->getMobilePerform().getNormalSpd(),(ARCMobileElement*)NULL,GetEndDist());
+	return CheckResultLead( GetEndDist(),pFlight->getMobilePerform().getNormalSpd(),(ARCMobileElement*)NULL,GetEndDist());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2356,7 +2346,7 @@ SimAgent* _bCanCrossTheHold(AirsideFlightInSim* pFlight, ARCMobileElement*pLeadF
 	return NULL;
 }
 
-boost::tuple<DistanceUnit, double ,SimAgent*,DistanceUnit> TaxiRouteInSim::checkConflictWithNextHold(AirsideFlightInSim* mpFlight, ARCMobileElement* pleadFlight, DistanceUnit mCurDistInRoute)
+TaxiRouteInSim::CheckResultHold TaxiRouteInSim::checkConflictWithNextHold(AirsideFlightInSim* mpFlight, ARCMobileElement* pleadFlight, DistanceUnit mCurDistInRoute)
 {
 	double dMoveSpd =  mpFlight->getMobilePerform().getNormalSpd();
 	DistanceUnit dDecDistToStatic = mpFlight->getMobilePerform().getSpdChangeDist(dMoveSpd,0); //dist to stop
@@ -2382,11 +2372,11 @@ boost::tuple<DistanceUnit, double ,SimAgent*,DistanceUnit> TaxiRouteInSim::check
 					nextDist = pWaitHold->m_dDistInRoute;
 				if( int(mCurDistInRoute) < int(nextDist) && nextDist>= 0 )
 				{
-					return  boost::make_tuple(nextDist,0,(SimAgent*)NULL,nextDist);
+					return CheckResultHold(nextDist,0,(SimAgent*)NULL,nextDist);
 				}
 				else
 				{
-					return boost::make_tuple(mCurDistInRoute,0,pConflictAgent,nextDist);
+					return CheckResultHold(mCurDistInRoute,0,pConflictAgent,nextDist);
 				}
 			}
 			else
@@ -2395,7 +2385,7 @@ boost::tuple<DistanceUnit, double ,SimAgent*,DistanceUnit> TaxiRouteInSim::check
 				{
 					if(pNextHold->m_pNode->IsNeedToCheckHold()  &&  !GetWaitHold(distCheckHold) )
 					{
-						return boost::make_tuple(distCheckHold, dMoveSpd, (SimAgent*)NULL, pNextHold->m_dDistInRoute);	
+						return CheckResultHold(distCheckHold, dMoveSpd, (SimAgent*)NULL, pNextHold->m_dDistInRoute);	
 					}
 					
 				}
@@ -2403,7 +2393,7 @@ boost::tuple<DistanceUnit, double ,SimAgent*,DistanceUnit> TaxiRouteInSim::check
 		}
 	}	
 
-	return boost::make_tuple( GetEndDist(),dMoveSpd,(SimAgent*)NULL,GetEndDist());
+	return CheckResultHold( GetEndDist(),dMoveSpd,(SimAgent*)NULL,GetEndDist());
 }
 
 // get the entry hold that the flight is about to enter at this moment,
@@ -2428,7 +2418,7 @@ bool TaxiRouteInSim::IsFlightToEnterHold(AirsideFlightInSim* mpFlight, DistanceU
 
 
 //check conflict with the interrupt line returns < endDist, end speed, Interrupt line,line dist>
-boost::tuple<DistanceUnit,double , TaxiInterruptLineInSim*, DistanceUnit, ElapsedTime> TaxiRouteInSim::checkConflictWithInterruptLine( AirsideFlightInSim*pFligt, DistanceUnit mCurDistInRoute )
+TaxiRouteInSim::CheckResultInterLine TaxiRouteInSim::checkConflictWithInterruptLine( AirsideFlightInSim*pFligt, DistanceUnit mCurDistInRoute )
 {
 	std::vector<FlightInterruptPosInRoute> vInterruptLines = m_InterruptLineList.GetNextItems(mCurDistInRoute);
 	for(int idxIL =0; idxIL < (int)vInterruptLines.size();idxIL++)
@@ -2440,10 +2430,10 @@ boost::tuple<DistanceUnit,double , TaxiInterruptLineInSim*, DistanceUnit, Elapse
 		ElapsedTime holdTime;
 		if( interPos.mpInterruptLine->bInterruptFlight(pFligt,interPos.m_startNodeId,holdTime) )
 		{
-			return boost::make_tuple( interPos.m_distInRoute, 0, interPos.mpInterruptLine, interPos.m_distInRoute,holdTime);
+			return CheckResultInterLine( interPos.m_distInRoute, 0, interPos.mpInterruptLine, interPos.m_distInRoute,holdTime);
 		}
 	}
-	return boost::make_tuple(GetEndDist(), 0, (TaxiInterruptLineInSim*)NULL, GetEndDist(),ElapsedTime(0L));
+	return CheckResultInterLine(GetEndDist(), 0, (TaxiInterruptLineInSim*)NULL, GetEndDist(),ElapsedTime(0L));
 }
 
 AirsideMeetingPointInSim* TaxiRouteInSim::GetFirstMeetingPointInRoute( const std::vector<ALTObjectID>& vMeetingPoints )
@@ -2722,4 +2712,37 @@ HoldInTaxiRoute* TaxiRouteInSim::GetWaitHold( const DistanceUnit& dist ) const
 	}	 
 
 	return NULL;		
+}
+
+void TaxiRouteInSim::reset()
+{
+	m_pLastAcrossHold = NULL;
+	m_vHoldList.m_pFlight=  NULL;
+	m_nCurItemIdxInRoute = -1;
+}
+
+void TaxiRouteInSim::notifyTempFlightCirculate(const ElapsedTime&t)
+{
+	for(int i= max(0,m_nCurItemIdxInRoute);i<(int)m_vItems.size();i++)
+	{
+		AirsideResource* res = m_vItems.at(i).GetResource();
+		if(res && res->IsKindof(typeof(FlightGroundRouteDirectSegInSim)) )
+		{
+			FlightGroundRouteDirectSegInSim* r = (FlightGroundRouteDirectSegInSim*)res;
+			std::vector<AirsideFlightInSim*> vMobs;
+			r->GetOppositeSegment()->GetInPathAirsideFlightList(vMobs);
+			for(size_t j = 0 ; j<vMobs.size();++j)
+			{
+				AirsideFlightInSim* pFlight = vMobs[j];
+				if(pFlight->GetMode()==OnHeldAtTempParking)
+				{
+					if(TempParkingInSim* temppark = pFlight->GetTemporaryParking() )
+					{
+						temppark->notifyCirculate(pFlight,t);
+					}
+				}
+			}
+		}
+	
+	}
 }

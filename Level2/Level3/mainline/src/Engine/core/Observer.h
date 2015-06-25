@@ -10,8 +10,8 @@ class IObserveSubject
 {
 public:
 	void NotifyObservers(int nMsg=0);
-	void AddObserver(IObserver* obs){  m_observerlist.Add(obs); }
-	void RemoveObserver(IObserver* obs){ m_observerlist.Remove(obs); }
+	void AddObserver(IObserver* obs){  m_observerlist.add(obs); }
+	void RemoveObserver(IObserver* obs){ m_observerlist.remove(obs); }
 	void ClearObserver(){ m_observerlist.clear(); }
 	void NotifyObservers(const ElapsedTime& t, int nMsg = 0);
 protected:

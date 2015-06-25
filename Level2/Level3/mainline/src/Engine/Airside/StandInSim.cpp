@@ -526,7 +526,9 @@ AirsideFlightInSim * StandInSim::GetLockedFlight()
 
 bool StandInSim::TryLock( AirsideFlightInSim * pFlight )
 {
-	if(m_pLockFlight && m_pLockFlight!= pFlight) return false;
+	if(m_pLockFlight && m_pLockFlight!= pFlight) 
+		return false;
+	
 	return true;
 }
 

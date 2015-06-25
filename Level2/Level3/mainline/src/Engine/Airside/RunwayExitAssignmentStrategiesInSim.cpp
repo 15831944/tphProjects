@@ -17,23 +17,35 @@
 #include "SimulationErrorShow.h"
 #include "AirTrafficController.h"
 #include "FlightPerformancesInSim.h"
+#include "TaxiwayResourceManager.h"
 
 CRunwayExitAssignmentStrategiesInSim::CRunwayExitAssignmentStrategiesInSim(void)
 {
 	m_pRunwayExitStrategies = NULL;
+	m_pTaxiwayResManager = NULL;
 }
 
 CRunwayExitAssignmentStrategiesInSim::~CRunwayExitAssignmentStrategiesInSim(void)
 {
 	delete m_pRunwayExitStrategies;
 	m_pRunwayExitStrategies = NULL;
+
+	std::vector<TaxiConditionInSim *>::iterator iter = m_vTaxiConditionInSim.begin();
+	for (; iter != m_vTaxiConditionInSim.end(); ++ iter)
+	{
+		delete *iter;
+	}
+	m_vTaxiConditionInSim.clear();
 }
 
-void CRunwayExitAssignmentStrategiesInSim::Init( int nPrj, CAirportDatabase* pAirportDatabase)
+void CRunwayExitAssignmentStrategiesInSim::Init( int nPrj, CAirportDatabase* pAirportDatabase, TaxiwayResourceManager *pTaxiwayResManager)
 {
 	m_pRunwayExitStrategies = new RunwayExitStrategies(nPrj);
 	m_pRunwayExitStrategies->SetAirportDB(pAirportDatabase);
 	m_pRunwayExitStrategies->ReadData();
+
+	ASSERT(pTaxiwayResManager);
+	m_pTaxiwayResManager = pTaxiwayResManager;
 
 }
 
@@ -720,13 +732,73 @@ std::vector<RunwayExitInSim*> CRunwayExitAssignmentStrategiesInSim::GetManagedPr
 	{
 		RunwayExitPriorityItem* pExitItem = vPriorityExits.at(i);
 		RunwayExitInSim* pExitInSim = pLogicRunway->GetExitByID(pExitItem->getExitID());
+		if(pExitInSim == NULL)
+			continue;
 
-		if(pExitInSim && pExitInSim->CanHoldFlight(pFlight))
-			vExits.push_back(pExitInSim);
+		if(!pExitInSim->CanHoldFlight(pFlight)) // the  runway exit is not available
+			continue;
 
+		//check if arrival stand is occupied by other flight
+		if(pExitItem->GetConditionData().GetArrStandOccupied())
+		{
+			StandInSim *pArrStand = pFlight->GetPlanedParkingStand(ARR_PARKING);
+			if(pArrStand != NULL)
+			{
+				AirsideFlightInSim *pLockedFlight = pArrStand->GetLockedFlight();
+				if(pLockedFlight != NULL && pLockedFlight != pFlight)
+					continue;
+			}
+		}
+		//check if the related taxiway is have flight in head to head operation
+		bool bTaxiConditionAvailable = true;
+
+		if(pExitItem->GetConditionData().GetOperationStatus())
+		{
+			int nConditionCount = pExitItem->GetConditionData().getTaxiConditionCount();
+			for (int nCondition = 0; nCondition < nConditionCount; ++ nCondition)//for each condition
+			{
+				TaxiSegmentData *pTaxiCondition = pExitItem->GetConditionData().getTaxiCondition(nCondition);
+
+				if(!IsTaxiConditionAvaiable(pFlight, pTaxiCondition))
+				{
+					bTaxiConditionAvailable = false;
+					break;
+				}
+			}
+		}
+		if(!bTaxiConditionAvailable)
+			continue;
+		
+		//available exit
+		vExits.push_back(pExitInSim);
 	}
 
 	return vExits;
+}
+bool CRunwayExitAssignmentStrategiesInSim::IsTaxiConditionAvaiable(AirsideFlightInSim* pFlight,TaxiSegmentData *pTaxiCondition)
+{
+	TaxiConditionInSim *pCondition = NULL;
+
+	int nInitializeCount = static_cast<int>(m_vTaxiConditionInSim.size()); 
+	for (int nCondition = 0; nCondition < nInitializeCount; ++ nCondition)
+	{
+		TaxiConditionInSim *pTempCondition = m_vTaxiConditionInSim.at(nCondition);
+		if(pTempCondition->getTaxiCondition() == pTaxiCondition)
+		{
+			pCondition = pTempCondition;
+			break;;
+		}
+	}
+
+	if(pCondition == NULL)
+	{
+		pCondition = new TaxiConditionInSim;
+		pCondition->Init(pTaxiCondition, m_pTaxiwayResManager);
+		m_vTaxiConditionInSim.push_back(pCondition);
+	}
+	ASSERT(pCondition != NULL);
+	return pCondition->IsAvailable(pFlight);
+	
 }
 
 double CRunwayExitAssignmentStrategiesInSim::GetFlightNormalDecelOnRunway(AirsideFlightInSim* pFlight)
@@ -835,3 +907,57 @@ RunwayExitInSim* CRunwayExitAssignmentStrategiesInSim::GetAvailableRunwayExit( A
 }
 
 
+
+CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::TaxiConditionInSim()
+{
+	m_pTaxiSeg = NULL;
+}
+
+CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::~TaxiConditionInSim()
+{
+
+}
+
+TaxiSegmentData * CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::getTaxiCondition()
+{
+	return m_pTaxiSeg;
+}
+
+void CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::Init( TaxiSegmentData *pTaxiSeg, TaxiwayResourceManager *pTaxiwayResManager )
+{
+	m_pTaxiSeg = pTaxiSeg;
+	ASSERT(m_pTaxiSeg != NULL);
+	if(m_pTaxiSeg == NULL)
+		return;
+
+	m_taxiwayDirectSegLst.clear();
+	pTaxiwayResManager->GetTaxiwaySegment( m_pTaxiSeg->m_iTaxiwayID, m_pTaxiSeg->m_iStartNode, m_pTaxiSeg->m_iEndNode, m_taxiwayDirectSegLst);
+}
+
+bool CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::IsAvailable( AirsideFlightInSim* pFlight )
+{
+	int nSegCount = static_cast<int>(m_taxiwayDirectSegLst.size());
+	for (int nSeg = 0; nSeg < nSegCount; ++ nSeg)
+	{
+		FlightGroundRouteDirectSegInSim *pSegInSim = m_taxiwayDirectSegLst.at(nSeg);
+		if(pSegInSim == NULL)
+			continue;
+		std::vector<AirsideFlightInSim* > vecFlights;
+		pSegInSim->GetInPathAirsideFlightList(vecFlights);
+		if (vecFlights.size())
+		{
+			return false;
+		}
+		FlightGroundRouteDirectSegInSim *pOppositeSegInSim = pSegInSim->GetOppositeSegment();
+		if(pOppositeSegInSim == NULL)
+			continue;
+		
+		pOppositeSegInSim->GetInPathAirsideFlightList(vecFlights);
+		if (vecFlights.size())
+		{
+			return false;
+		}	
+	}
+
+	return true;
+}

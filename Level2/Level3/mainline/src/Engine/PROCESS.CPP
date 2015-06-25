@@ -848,12 +848,8 @@ void Processor::getNextState (int& state,Person* _pPerson) const
         state = FreeMoving;
     else if (m_pQueue != NULL)
 	{
-		if( m_pQueue->isFixed() == 'Y' &&
-			_pPerson->getTerminalBehavior()->first_corner != -1 &&
-			_pPerson->getTerminalBehavior()->first_corner != ((FixedQueue*)m_pQueue)->getEntryCornerIndex())
+		if(state == FreeMoving && m_pQueue->isFixed() == 'Y')
 		{
-			int n1 = _pPerson->getTerminalBehavior()->first_corner;
-			int n2 = ((FixedQueue*)m_pQueue)->getEntryCornerIndex();
 			state = MoveToInterestedEntryPoint;
 		}
 		else
@@ -876,6 +872,10 @@ void Processor::getNextLocation (Person *aPerson)
     {
         case MoveAlongInConstraint:
             aPerson->setTerminalDestination(In_Constr.getPoint(0));
+			break;
+		case MoveToInterestedEntryPoint:
+			ASSERT(m_pQueue->isFixed() == 'Y');
+			aPerson->setTerminalDestination(m_pQueue->corner(spTerminalBehavior->getEntryPointCorner()));
 			break;
         case MoveToQueue:
             m_pQueue->getTailPoint (aPerson);

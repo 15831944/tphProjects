@@ -152,6 +152,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_IsWalkOnBridge(FALSE)
 ,m_bhasBusServer(TRUE)
 //,m_nBridgeIndex(-1)
+,m_entryPointCorner(-1)
 ,m_pLastTerminalProc(NULL)
 {
 	m_pProcessor = m_pTerm->procList->getProcessor (START_PROCESSOR_INDEX);
@@ -591,7 +592,22 @@ void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 		m_vPipePointList.erase(m_vPipePointList.begin());
 
 		if(m_vPipePointList.empty())
+		{
+			if(m_pProcessor->GetQueue() && m_pProcessor->GetQueue()->isFixed() == 'Y')
+			{
+				MoveToInterestedEntryEvent* pEvent = new MoveToInterestedEntryEvent;
+				pEvent->init(m_pPerson, p_time + moveTime(), false);
+				FixedQueue* pFixQ = (FixedQueue*)m_pProcessor->GetQueue();
+				ASSERT(pFixQ->isFixed() == 'Y');
+				Point ptQEntry = pFixQ->corner(pFixQ->getFixQEntryPointIndex());
+				pEvent->calculateMovingPipe(m_ptDestination, ptQEntry);
+				m_entryPointCorner = pFixQ->getFixQEntryPointIndex();
+				pEvent->addEvent();
+				m_pPerson->SetPrevEventTime(pEvent->getTime());
+				return;
+			}
 			m_pPerson->setState(FreeMoving);
+		}
 
 		bUsedPipe = TRUE;
 	}
@@ -649,6 +665,10 @@ void TerminalMobElementBehavior::processGeneralMovementHelp (ElapsedTime p_time)
 	{
 		MoveToInterestedEntryEvent* pEvent = new MoveToInterestedEntryEvent;
 		pEvent->init(m_pPerson, p_time + moveTime(), false);
+		FixedQueue* pFixQ = (FixedQueue*)m_pProcessor->GetQueue();
+		ASSERT(pFixQ->isFixed() == 'Y');
+		Point ptEntry = pFixQ->corner(pFixQ->getFixQEntryPointIndex());
+		pEvent->calculateMovingPipe(m_ptDestination, ptEntry);
 		pEvent->addEvent();
 		m_pPerson->SetPrevEventTime(pEvent->getTime());
 		return;
@@ -4695,8 +4715,6 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 	ProcessorQueue* procQueue = _pNextProc->GetProcessorQueue();
 	if( procQueue != NULL )
 	{	
-		CString strCurProc = m_pProcessor->getIDName();
-		CString strNextProc = _pNextProc->getIDName();
 		int nQueuePointCount = _pNextProc->GetProcessorQueue()->cornerCount();
 		if(nQueuePointCount <= 0)
 			return _pNextProc->getServicePoint(0);
@@ -4730,7 +4748,7 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 						{
 							entryPoint = tempPoint;
 							dTravelLength = walkDistance;
-							first_corner = *itor;
+							m_entryPointCorner = *itor;
 						}
 					}
 				}
@@ -4747,7 +4765,7 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 					{
 						dTravelLength = dDistance;
 						entryPoint = tempPoint;
-						first_corner = *itor;
+						m_entryPointCorner = *itor;
 					}
 				}
 			}
@@ -4763,7 +4781,8 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 					{
 						dTravelLength = dDistance;
 						entryPoint = tempPoint;
-						first_corner = *itor;
+						int nPerson = m_pPerson->getID();
+						m_entryPointCorner = *itor;
 					}
 				}
 			}
@@ -5222,6 +5241,11 @@ int TerminalMobElementBehavior::processorNum (void) const
 bool TerminalMobElementBehavior::canJumpToProcessor(Processor* _proc)
 {
 	// the changed processor can not lead to the gate of jumper's flight.
+	if(m_pPerson->getGateIndex() == -1)
+		return true;
+	if(getTerminal()->GetProcessorList()->getProcessor(m_pPerson->getGateIndex()) == NULL)
+		return true;
+
 	if(!_proc->CanLeadTo(
 		m_pPerson->getType(), 
 		*getTerminal()->GetProcessorList()->getProcessor(m_pPerson->getGateIndex())->getID()))

@@ -35,6 +35,12 @@ public:
 	//ARCMobileElement* TryGetAllConflictLock(ARCMobileElement* pMob);
 	//bool GetAllConflictLock(ARCMobileElement* pMob);
 	bool bTryPlanRoute(ARCMobileElement* pmob, const RouteDirPathList& vResList,bool bGetRes = false)const;
+
+	void addTempParkingFlight(AirsideFlightInSim* pFlight);
+	void removeTempParkingFlight(AirsideFlightInSim* pFlight);
+	void notifyTempFlights(const RouteDirPathList& vResList,const ElapsedTime& t);
+	//temp parking flight check blocked other flights
+	bool needCirculate(AirsideFlightInSim* pTempFlight);
 protected:
     std::vector<MobileConfliction*> mvMobileConflictRoute;  //two mobile conflict 
 	typedef std::pair<ARCMobileElement* , RouteDirPathList> MobPairRoute;
@@ -52,5 +58,7 @@ protected:
 
 	void DeleteMobileRoute(ARCMobileElement* pmob);
 	RouteDirPathList GetMobileRoute(ARCMobileElement* pmob);
+
+	std::vector<AirsideFlightInSim* > m_vTempParkFlights;
 };
 

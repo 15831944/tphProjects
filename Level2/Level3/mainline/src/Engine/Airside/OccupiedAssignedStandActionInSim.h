@@ -20,14 +20,11 @@ public:
 	COccupiedAssignedStandActionInSim(void);
 	~COccupiedAssignedStandActionInSim(void);
 
-	COccupiedAssignedStandStrategy GetStrategyByFlightType(AirsideFlightInSim* pFlight,  AirportResourceManager* pResManager);
+	COccupiedAssignedStandStrategy& GetStrategyByFlightType(AirsideFlightInSim* pFlight,  AirportResourceManager* pResManager);
 	void Init(int nPrjId,CAirportDatabase* pDatabase);
 protected:
 	int calculateMatchValue(int valueArray[],int arraySize);
 
 private:
  	COccupiedAssignedStandCriteria* m_pOccupiedAssignedStandCriteria;
-
-
-
 };

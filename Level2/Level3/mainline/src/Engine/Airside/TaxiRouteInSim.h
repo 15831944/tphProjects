@@ -45,6 +45,7 @@ public:
 	TaxiRouteInSim(AirsideMobileElementMode mode,AirsideResource* pOrign, AirsideResource* pDest);
 	virtual ~TaxiRouteInSim();
 	
+	void reset();
 	//add taxiway segments to this list
 	void AddTaxiwaySegList(const FlightGroundRouteDirectSegList& segList,bool isCyclicRoute=false);
 	//void AddTaxiwaySegsToTempParking(TaxiwayDirectSegList& segList);
@@ -82,7 +83,7 @@ public:
 	//
 	bool CheckFlightConflictInResource(AirsideFlightInSim *pFlight,AirsideResource *pResouce,AirsideResource *pNextResource,ElapsedTime& nextEventTime);
 	
-	virtual void FlightExitRoute(AirsideFlightInSim* pFlight, const ElapsedTime& releaseTime);
+	virtual void FlightExitRoute(AirsideFlightInSim* pFlight, const ElapsedTime& releaseTime, AirsideResource* exceptRes= NULL);
 
 
 	void GetItemIndexAndDistInRoute(const DistanceUnit& dist, int& nItemIdx, DistanceUnit& distInItem);
@@ -141,14 +142,43 @@ protected:
 	FlightHoldListInTaxiRoute m_vHoldList;
 	LaneIntersectionNotifyPointList m_LaneNotifyPtList;
 	FlightInterruptPosListInRoute m_InterruptLineList;
+	
+	virtual boost::tuple<ARCMobileElement*, DistanceUnit> getLeadMobile(AirsideFlightInSim* pFlt ,DistanceUnit distInRoute);
+	virtual boost::tuple<ARCMobileElement*, DistanceUnit> getAdjacencyLeadMobile(int idx,AirsideFlightInSim* pFlt);
 
+	struct CheckResultLead
+	{
+		CheckResultLead(DistanceUnit d, double speed, SimAgent* pagent, DistanceUnit nextD):endDist(d),endSpeed(speed),pAgent(pagent),nextmobDist(nextD){}
+		DistanceUnit endDist;
+		double   endSpeed;
+		SimAgent* pAgent;
+		DistanceUnit nextmobDist;
+	};
+	struct CheckResultHold
+	{
+		CheckResultHold(DistanceUnit d, double speed, SimAgent* pagent, DistanceUnit nextD):endDist(d),endSpeed(speed),pAgent(pagent),nextHoldDist(nextD){}
+		DistanceUnit endDist;
+		double endSpeed;
+		SimAgent* pAgent;
+		DistanceUnit nextHoldDist;
+	};
+
+	struct CheckResultInterLine
+	{
+		CheckResultInterLine(DistanceUnit d, double speed, TaxiInterruptLineInSim* line, DistanceUnit nextD, ElapsedTime t)
+			:endDist(d),endSpeed(speed),pLine(line),waitDist(nextD),time(t){}
+		DistanceUnit endDist;
+		double endSpeed;
+		TaxiInterruptLineInSim* pLine;
+		DistanceUnit waitDist;
+		ElapsedTime time;
+	};
 	//check conflict with lead mob. return  <endDist, end speed, watch agent,next mob dist>
-	boost::tuple<DistanceUnit,double, SimAgent*,DistanceUnit> checkConflictWithLeadMobile(AirsideFlightInSim* pFlight,DistanceUnit mCurDistInRoute,DistanceUnit dRadOfConcern);
+	CheckResultLead checkConflictWithLeadMobile(AirsideFlightInSim* pFlight,DistanceUnit mCurDistInRoute,DistanceUnit dRadOfConcern);
 	//check conflict with the next hold bool have conflict returns <endDist, end speed, watch agent(hold),next hold dist>
-	boost::tuple<DistanceUnit,double, SimAgent*,DistanceUnit> checkConflictWithNextHold(AirsideFlightInSim* mpFlight, ARCMobileElement* pleadFlight,DistanceUnit mCurDistInRoute);
-
+	CheckResultHold checkConflictWithNextHold(AirsideFlightInSim* mpFlight, ARCMobileElement* pleadFlight,DistanceUnit mCurDistInRoute);
 	//check conflict with the interrupt line returns < endDist, end speed, Interrupt line,wait dist>
-	boost::tuple<DistanceUnit,double , TaxiInterruptLineInSim*, DistanceUnit, ElapsedTime> checkConflictWithInterruptLine(AirsideFlightInSim*mpFligt, DistanceUnit mCurDistInRoute);
+	CheckResultInterLine checkConflictWithInterruptLine(AirsideFlightInSim*mpFligt, DistanceUnit mCurDistInRoute);
 
 	// get the entry hold that the flight is about to enter at this moment,
 	// it means the flight is now at the position near the hold,
@@ -161,6 +191,8 @@ protected:
 	HoldInTaxiRoute* GetWaitHold(const DistanceUnit& dist )const; //null if can wait at the dist in route
 
 	//ElapsedTime GetFlightOcupancyRunwayTime(std::vector<HoldInTaxiRoute> vHolds,AirsideFlightInSim* pFlight)const;
+
+	void notifyTempFlightCirculate(const ElapsedTime&t);
 public:
 	//Original Resource, Dest Resource
 	AirsideResource* mpResOrig;

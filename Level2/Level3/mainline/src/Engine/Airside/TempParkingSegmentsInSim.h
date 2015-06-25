@@ -3,6 +3,7 @@
 #include "Clearance.h"
 #include "common/ARCMathCommon.h"
 #include "TempParkingInSim.h"
+#include "TaxiRouteInSim.h"
 
 
 class AirsideFlightInSim;
@@ -63,11 +64,24 @@ private:
 /************************************************************************/
 /* temp parking behind a IntersectionNode                                */
 /************************************************************************/
+class COccupiedAssignedStandStrategy;
+class CirculateRouteInSim : public TaxiRouteInSim
+{
+public:
+	CirculateRouteInSim(AirsideMobileElementMode mode,AirsideResource* pOrign, AirsideResource* pDest)
+	  :TaxiRouteInSim(mode, pOrign,pDest){}
+
+	DistanceUnit GetExitRouteDist( AirsideFlightInSim* pFlight );
+
+};
+class CirculateRoute;
+
 class ENGINE_TRANSFER TempParkingNodeInSim : public TempParkingInSim
 {
 public:
+	
 	typedef ref_ptr<TempParkingNodeInSim> RefPtr;
-	TempParkingNodeInSim(IntersectionNodeInSim* pNode){ m_pNode = pNode; }
+	TempParkingNodeInSim(IntersectionNodeInSim* pNode,COccupiedAssignedStandStrategy& strategy);
 
 	void ReleaseLock(AirsideFlightInSim* pFlight);
 	bool TryLock(AirsideFlightInSim* pFlight);
@@ -80,8 +94,17 @@ public:
 	IntersectionNodeInSim* GetOutNode(AirsideFlightInSim*pFlight);
 	virtual CString PrintTempParking()const;
 
+	virtual void notifyCirculate(AirsideFlightInSim* pFlight,const ElapsedTime& t);
+	void setCirculateRoute(CirculateRouteInSim* pCRoute);
 protected:
 	IntersectionNodeInSim* m_pNode;
+	CirculateRoute * m_pRouteInput;
+	CirculateRouteInSim* m_pCirculateRoute;
+	int m_nMaxCirculateNum;
+	int m_nCirculatedNum;
+	bool m_bCirculate;  //start circulate
+
+	void initRoute(AirsideFlightInSim *pFlight);
 };
 
 /************************************************************************/

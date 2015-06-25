@@ -232,7 +232,7 @@ bool LandsideTaxiPoolInSim::IsHaveCapacityAndFull( LandsideVehicleInSim*pVeh ) c
 void LandsideTaxiPoolInSim::OnVehicleEnter( LandsideVehicleInSim* pVehicle, DistanceUnit dist,const ElapsedTime& t )
 {
 	__super::OnVehicleEnter(pVehicle,dist,t);
-	m_vOrderingVehicles.Remove(pVehicle);
+	m_vOrderingVehicles.remove(pVehicle);
 }
 
 
@@ -242,7 +242,7 @@ void LandsideTaxiPoolInSim::_UpdateOrderingVehicle( CARCportEngine* pEngine )
 	if(!pBevhor)
 		return;
 	CFacilityTaxiPoolBehavior* pTaxiQBehavior = (CFacilityTaxiPoolBehavior*)pBevhor;
-	int nCount = GetNonServiceTaxiCount() + m_vOrderingVehicles.GetCount();
+	int nCount = GetNonServiceTaxiCount() + m_vOrderingVehicles.count();
 
 	int nOrderLevel = pTaxiQBehavior->GetRecordLevel();
 	int nOrderQuant = pTaxiQBehavior->GetRecordQuantity();

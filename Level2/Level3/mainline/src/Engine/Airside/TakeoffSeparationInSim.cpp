@@ -148,14 +148,28 @@ void CTakeoffSeparationInSim::GetTakeoffSeparationTime(AirsideFlightInSim* pFlig
 			strTrailACType.ReleaseBuffer();
 
 			//trail flight item
-			trailFlightItem = m_pAircraftClassificationManager->GetAircraftClass(strTrailACType, pTakeoffClearanceRunwayNode->m_emClassType);
+			if(pTakeoffClearanceRunwayNode->m_emClassType == ApproachSpeedBased)
+			{
+				double dSpeedInKnots = pFlight->GetPerformance()->getAvgApproachSpeedInKnots(pFlight);
+				double dSpeedInMpS =  ARCUnit::ConvertVelocity(dSpeedInKnots,ARCUnit::KNOT,ARCUnit::MpS);
+				trailFlightItem = m_pAircraftClassificationManager->GetApproachSpeedClass(dSpeedInMpS);
+			}
+			else
+				trailFlightItem = m_pAircraftClassificationManager->GetAircraftClass(strTrailACType, pTakeoffClearanceRunwayNode->m_emClassType);
 
 			CString strLeadACType;
 			pFrontFlight->getACType(strLeadACType.GetBuffer(1024));
 			strLeadACType.ReleaseBuffer();
 
 			//lead flight item
-			leadFlightItem = m_pAircraftClassificationManager->GetAircraftClass(strLeadACType, pTakeoffClearanceRunwayNode->m_emClassType);
+			if(pTakeoffClearanceRunwayNode->m_emClassType == ApproachSpeedBased)
+			{
+				double dSpeedInKnots = pFrontFlight->GetPerformance()->getAvgApproachSpeedInKnots(pFrontFlight);
+				double dSpeedInMpS =  ARCUnit::ConvertVelocity(dSpeedInKnots,ARCUnit::KNOT,ARCUnit::MpS);
+				leadFlightItem = m_pAircraftClassificationManager->GetApproachSpeedClass(dSpeedInMpS);
+			}
+			else
+				leadFlightItem = m_pAircraftClassificationManager->GetAircraftClass(strLeadACType, pTakeoffClearanceRunwayNode->m_emClassType);
 
 		}
 		catch(AirsideACTypeMatchError* pError)
@@ -489,5 +503,5 @@ void CTakeoffSeparationInSim::GetTakeoffClearToPositionSeparationTime( AirsideFl
 	if(frontFlightMode == OnTakeoff){
 		return GetTakeoffClearToPositionSeparationTimeBehindTakeoff(pTakeoffFlight,pFrontFlight,estSepTime);
 	}
-	ASSERT(FALSE);
+	//ASSERT(FALSE);
 }

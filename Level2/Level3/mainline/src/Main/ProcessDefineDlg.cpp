@@ -261,13 +261,36 @@ BOOL CProcessDefineDlg::OnInitDialog()
 
 void CProcessDefineDlg::InitDialog()
 {
+	m_pCurFlow				= NULL;
+	m_bDragging				= false;
+	m_pDragImage			= NULL;
+	m_hItemDragSrc			= NULL;
+	m_hItemDragDes			= NULL;
+	m_hRClickItem			= NULL;
+
+	m_hAllProcessorSelItem	= NULL;
+	m_hPocessSelItem		= NULL; 
+	//m_sizeLastWnd           =CSize(0,0);
+
+	m_hModifiedItem 		= NULL;
+
+	m_b1x1SeqError = FALSE;
+	m_vCopyItem.clear();
+	m_vCopyProcessors.clear();
+
+
 	m_treeAllProcessor.DeleteAllItems();
+	if(m_hAllProcessorSelItem)//the item will be set value if deleting one item, so here to reset it to NULL
+		m_hAllProcessorSelItem	= NULL;
+
 	LoadAllProcessor();
 	m_treeProcess.DeleteAllItems();
 	LoadProcessData();
 	m_treeProcess.SetTreeDefColor(RGB(0,0,0));
 	m_treeProcess.EnableWindow( false );
 	m_butSave.EnableWindow( false );
+
+
 }
 
 InputTerminal* CProcessDefineDlg::GetInputTerminal()
@@ -1037,7 +1060,7 @@ void CProcessDefineDlg::PopProcessDefineMenu(CPoint point)
 	pPopMenu->RemoveMenu(ID_PROCESS_ADD_ISOLATE_NODE,MF_BYCOMMAND);
 	
 	ASSERT( m_hItemDragSrc != NULL );
-	if( m_hItemDragDes == NULL	)	//
+	if( m_hItemDragDes == NULL	|| m_hItemDragSrc == NULL)	//
 	{
 		pPopMenu->EnableMenuItem( ID_PROCESS_ADD_DEST_NODE,MF_GRAYED );
 		pPopMenu->EnableMenuItem( ID_PROCESS_ADD_BEFORE,MF_GRAYED );
@@ -1114,6 +1137,10 @@ void CProcessDefineDlg::SubFlowAddDestNode(HTREEITEM hItem)
 {
 	ASSERT( m_pCurFlow!= NULL );
 	ASSERT( m_hItemDragDes != NULL );
+	ASSERT(m_hItemDragSrc != NULL);
+	if (m_hItemDragSrc == NULL)
+		return;
+
 	int iIdx = m_treeAllProcessor.GetItemData( m_hItemDragSrc );
 	ASSERT( iIdx>=0 && iIdx < static_cast<int>(m_vectProcessorID.size()) );
 
@@ -1165,7 +1192,7 @@ void CProcessDefineDlg::OnProcessAddDestNode()
 {
 	// TODO: Add your command handler code here
 	
-	if(!m_hItemDragDes)
+	if(!m_hItemDragDes || !m_hItemDragSrc)
 		return;
 
 	if (m_vCopyItem.empty())
@@ -1195,6 +1222,10 @@ void CProcessDefineDlg::SubFlowInsertBeforeNode(HTREEITEM hItem)
 {
 	// TODO: Add your command handler code here
 	ASSERT( m_pCurFlow!= NULL );
+	ASSERT(m_hItemDragSrc != NULL);
+	if(m_hItemDragSrc == NULL)
+		return;
+
 	int iIdx = m_treeAllProcessor.GetItemData( m_hItemDragSrc );
 	ASSERT( iIdx>=0 && iIdx < static_cast<int>(m_vectProcessorID.size()) );
 
@@ -1242,7 +1273,7 @@ void CProcessDefineDlg::SubFlowInsertBeforeNode(HTREEITEM hItem)
 
 void CProcessDefineDlg::OnProcessAddBefore() 
 {
-	if(!m_hItemDragDes)
+	if(!m_hItemDragDes || ! m_hItemDragSrc)
 		return;
 
 	if (m_vCopyItem.empty())

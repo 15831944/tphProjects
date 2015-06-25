@@ -25,6 +25,7 @@ class DeicepadGroup;
 class DeicepadGroupEntry;
 class COut_BoundRoute;
 class FlightGroundRouteFinderStrategy;
+class CirculateRoute;
 
 enum BOUNDROUTETYPE;
 
@@ -61,6 +62,9 @@ public:
 	void GetRouteFStandTStand(AirsideFlightInSim* pFlight, StandLeadOutLineInSim* pStandOut, StandLeadInLineInSim* pStandIn,FlightGroundRouteDirectSegList& vSegments);
 	void GetRouteFDeiceTTakoff(AirsideFlightInSim* pFlight, DeicePadInSim* pDeicePad,RunwayExitInSim* pTakeoffPos, FlightGroundRouteDirectSegList& vSegments);
 
+	//get route items
+	bool getCirculateRoute(AirsideFlightInSim* pFlight,IntersectionNodeInSim * pNodeFrom, IntersectionNodeInSim * pNodeTo,CirculateRoute* pRoute, 	FlightGroundRouteDirectSegList& vRouteItems);
+
 protected:
 	void GetOutboundRouteFromRouteItem( COut_BoundRoute* pRoute, AirsideFlightInSim* pFlight, IntersectionNodeInSim * pNodeFrom, RunwayExitInSim* pTakeoffPos, TakeoffQueueInSim* pQueue, FlightGroundRouteDirectSegList &vSegments, FlightGroundRouteFinderStrategy* pUsingStrategy = NULL );
 
@@ -90,6 +94,10 @@ private:
 		bool& bTailIsRunway/* [out] */ ) const;
 	bool IsValidRoute(FlightGroundRouteDirectSegList& vSegments, int nFromID, int nToID);
 
+
+
+	//circulate route
+	IntersectionNodeInSim* _getCirculateRouteItems(CirculateRoute* pPriority,FlightGroundRouteDirectSegList& vRouteItems, int& nHeadTaxiwayID,  int& nTailTaxiwayID );
 private:
 	CBoundRouteAssignment* m_pInboundRouteAssignment;
 	CBoundRouteAssignment* m_pOutboundRouteAssignment;

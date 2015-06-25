@@ -64,13 +64,14 @@ namespace cpputil
 	class TPtrVector : public std::vector<T*>
 	{
 	public:
-		bool Add(T*t)
+		bool add(T*t)
 		{
-			if(bHas(t))return false;
+			if(bHas(t))
+				return false;
 			push_back(t);
 			return true;
 		}
-		bool Remove(T* t)
+		bool remove(T* t)
 		{
 			iterator itr = std::find(begin(),end(),t);
 			if(itr!=end())
@@ -82,7 +83,7 @@ namespace cpputil
 		}
 		bool bHas(T* t)const{  return std::find(begin(),end(),t)!=end(); }
 
-		void DeepClear()
+		void deepClear()
 		{
 			for(iterator itr = begin();itr!=end();++itr)
 			{
@@ -91,7 +92,7 @@ namespace cpputil
 			clear();
 		}
 
-		int GetCount()const{ return (int)size(); }
+		int count()const{ return (int)size(); }
 	};
 
 
@@ -195,6 +196,61 @@ namespace cpputil
 		}
 		inline void sort(){ std::sort(begin(),end(),_Pr() );	}	
 	};
+
+
+	//object have scope
+	class Object;
+	class Scope
+	{
+	public:
+		void add(Object* o)
+		{
+			m_objlist.add(o);
+		}
+		void release(Object* o)
+		{
+			m_objlist.remove(o);
+		}
+		~Scope()
+		{
+			TPtrVector<Object> olist = m_objlist;
+			m_objlist.clear();
+			olist.deepClear();
+		}
+	protected:
+		TPtrVector<Object> m_objlist;
+	};
+
+	class Object : public noncopyable
+	{
+	public:
+		Object():m_pScope(NULL){}
+		
+		virtual ~Object()
+		{
+			if(m_pScope)
+				m_pScope->release(this);
+		}
+		
+		void setScope(Scope* s)
+		{ 
+			if(m_pScope==s)
+				return ;
+
+			if(m_pScope)
+				m_pScope->release(this);
+		
+			m_pScope = s; 
+			
+			if(m_pScope)
+				m_pScope->add(this);
+			
+			return ;
+		};
+	protected:
+		Scope* m_pScope;
+	};
+	
 }
 
 

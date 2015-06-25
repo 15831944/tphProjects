@@ -86,7 +86,7 @@ LandsideLaneNodeInSim* LandsideBusStationInSim::GetExitNode( LandsideLaneInSim* 
 //}
 void LandsideBusStationInSim::DelWaitingBus(LandsideVehicleInSim* pBus)
 {
-	m_vWaitingBus.Remove(pBus);
+	m_vWaitingBus.remove(pBus);
 }
 void LandsideBusStationInSim::NoticeWaitingPax(const ElapsedTime &time,LandsideVehicleInSim* pBus, LandsideSimulation* pSimulation)
 {
@@ -222,7 +222,7 @@ void LandsideBusStationInSim::PassengerMoveOut( PaxLandsideBehavior *pPaxBehvior
 
 void LandsideBusStationInSim::AddWaitingBus( LandsideVehicleInSim* pBus )
 {
-	m_vWaitingBus.Add(pBus);
+	m_vWaitingBus.add(pBus);
 }
 
 

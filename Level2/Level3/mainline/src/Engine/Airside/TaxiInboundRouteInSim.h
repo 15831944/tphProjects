@@ -12,3 +12,16 @@ public:
 	bool FindClearanceInConcern(AirsideFlightInSim * pFlight,ClearanceItem& lastItem, DistanceUnit radius, Clearance& newClearance);
 
 };
+
+
+class ENGINE_TRANSFER TaxiRouteToTempParking : public TaxiRouteInSim
+{
+public:
+	TaxiRouteToTempParking(AirsideResource* pOrign,AirsideResource* pDest):
+	  TaxiRouteInSim(OnTaxiToTempParking,pOrign,pDest){}
+	
+
+	  virtual DistanceUnit GetExitRouteDist(AirsideFlightInSim* pFlight);
+
+public:
+};

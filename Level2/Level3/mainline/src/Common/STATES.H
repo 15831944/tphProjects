@@ -177,7 +177,6 @@ enum EntityEvents
 	//--------state on landside
 	//
 	MoveToInterestedEntryPoint,
-
 	 EVENT_ENUM_MAX
 };
 

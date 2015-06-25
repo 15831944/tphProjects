@@ -5,6 +5,12 @@
 #include "path.h"
 
 typedef std::pair< CPoint2008, int >  Point2008IdxPair;
+enum Side
+{
+	_Left,
+	_Right,
+	_Inside,
+};
 
 class CPath2008
 {
@@ -163,6 +169,9 @@ public:
 	void Shrink(DistanceUnit leftDist);
 	CPath2008& Append(const CPath2008& other);
 
+	Side getPointSide(const CPoint2008& pt)const;
+
+	bool getPolyCenter(CPoint2008&pt)const;
 protected:
 	virtual void Initialization(){}
 

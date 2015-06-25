@@ -49,7 +49,6 @@ public:
 		TREENODE_PRIO_BACKTRACK,
 	};
 	
-
 public:
 	CDlgLandingRunwayExit(int nProjID, PFuncSelectFlightType pSelectFlightType, InputAirside* pInputAirside, CWnd* pParent = NULL);
 	virtual ~CDlgLandingRunwayExit();
@@ -76,6 +75,8 @@ protected:
 	void AddRunwayExitItemToTree(RunwayExitStrategyPercentItem *pRunwayMarkExitItem);
 	void AddRunwayExitPrioritiesItemToTree(RunwayExitStrategyPriorityItem* pRunwayMarkPrioritiesItem);
 
+	void InsertChangeCondition(RunwayExitPriorityItem* pPriorityItem,HTREEITEM hItem);
+	void InsertTaxiwaySegmentData(TaxiSegmentData* pSegData, HTREEITEM hItem);
 
 	virtual void DoDataExchange(CDataExchange* pDX); 
 	virtual BOOL OnInitDialog();
@@ -130,6 +131,10 @@ protected:
 	afx_msg void OnMsgBacktrack();
 	afx_msg void OnMsgNoBacktrack();
 
+	afx_msg void OnAddTaxiwaySegment();
+	afx_msg void OnEditTaxiwaySegment();
+	afx_msg void OnDeleteTaxiwaySegment();
+
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	virtual void OnSelChangedFltTimeTree(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
@@ -148,6 +153,9 @@ private:
 	CAirportDatabase* m_pAirportDB;
 	InputAirside m_inputAirside;
 	CToolTipCtrl m_Tips;
+
+	std::vector<HTREEITEM> m_vOperationItem;
+	std::vector<HTREEITEM> m_vTaxiSegItem;
 public:
 //	afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
 protected:

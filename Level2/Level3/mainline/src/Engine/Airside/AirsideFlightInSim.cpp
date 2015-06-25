@@ -948,7 +948,7 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 	if( GetMode()!=item.GetMode() && item.GetMode() == OnHeldAtTempParking)
 	{
 		if(m_pRouteToTempParking)
-			m_pRouteToTempParking->FlightExitRoute(this,item.GetTime());
+			m_pRouteToTempParking->FlightExitRoute(this,item.GetTime(),item.GetResource() );		
 	}
  
 	if(m_preState.m_fltMode == OnExitRunway && (item.GetMode() == OnTaxiToStand || item.GetMode() == OnTaxiToMeetingPoint|| item.GetMode() == OnTaxiToTempParking))		//leave runway

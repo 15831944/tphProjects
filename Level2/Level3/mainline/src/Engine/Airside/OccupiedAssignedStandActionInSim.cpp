@@ -40,14 +40,14 @@ int COccupiedAssignedStandActionInSim::calculateMatchValue(int valueArray[],int 
 	}
 	return matchValue;
 }
-COccupiedAssignedStandStrategy COccupiedAssignedStandActionInSim::GetStrategyByFlightType(AirsideFlightInSim* pFlight, AirportResourceManager* pResManager)
+COccupiedAssignedStandStrategy& COccupiedAssignedStandActionInSim::GetStrategyByFlightType(AirsideFlightInSim* pFlight, AirportResourceManager* pResManager)
 {
 
 	int maxMatch,curMatch;
 	int curLevel;
 	const int levelNum=4;
 	int levelMatchValue[levelNum];
-	COccupiedAssignedStandStrategy _strategy;
+	
 	maxMatch=curMatch=0;	
 	ExitsList exitsList=m_pOccupiedAssignedStandCriteria->getExitsList();
 	ExitsList::iterator exitsIter;
@@ -127,19 +127,17 @@ COccupiedAssignedStandStrategy COccupiedAssignedStandActionInSim::GetStrategyByF
 						if (curMatch>maxMatch)
 						{
 							maxMatch=curMatch;
-							curTimeWin->GetStrategy(_strategy);
+							return curTimeWin->GetStrategy();
 						}
 					}
 
 				}
 			}
-
-
-
 		}
 
 	}
 
+	static COccupiedAssignedStandStrategy _strategy;
 	return _strategy;
 
 /*

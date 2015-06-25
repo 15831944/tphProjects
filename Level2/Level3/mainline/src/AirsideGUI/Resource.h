@@ -66,7 +66,7 @@
 #define IDS_STAND_PRIORITY              54
 #define IDS_TIME_BEFORE_ENPLANEMENT     55
 #define IDS_BACKTO_ARR_STAND            56
-#define IDS_AIRSERVICETIME				57
+#define IDS_AIRSERVICETIME              57
 #define IDR_MAINFRAME                   128
 #define IDR_PRIORITY_ASSIGNMENT         397
 #define IDB_COOLTREE                    532
@@ -853,6 +853,8 @@
 #define IDC_COMBO_TOTEMPORARYPARKING    2277
 #define IDD_DIALOG_TRAINFLIGHTSMANAGEMENT 2277
 #define IDC_COMBO_TODYNAMICALSTAND      2278
+#define IDD_DIALOG22                    2278
+#define IDD_DIALOG_SELECTTAXIWAY_SEGMENT 2278
 #define IDC_STATIC_PRIORITY             2279
 #define IDC_TREE_OCCUPIEDSELECTSTAND    2280
 #define IDC_TREE_OCCUPIEDSELECTTEMPORARYPARKING 2281
@@ -1120,6 +1122,9 @@
 #define IDC_STATIC_DST                  2548
 #define IDC_TREE_ORDER                  2551
 #define IDC_LIST_NAME                   2554
+#define IDC_COMBO_TAXIWAY               2555
+#define IDC_COMBO_START                 2556
+#define IDC_COMBO_END                   2557
 #define ID_TOOLBAR_ADD                  32771
 #define ID_TOOLBAR_DEL                  32772
 #define ID_TOOLBAR_EDIT                 32773
@@ -1348,9 +1353,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        2278
+#define _APS_NEXT_RESOURCE_VALUE        2279
 #define _APS_NEXT_COMMAND_VALUE         33056
-#define _APS_NEXT_CONTROL_VALUE         2555
+#define _APS_NEXT_CONTROL_VALUE         2558
 #define _APS_NEXT_SYMED_VALUE           2338
 #endif
 #endif

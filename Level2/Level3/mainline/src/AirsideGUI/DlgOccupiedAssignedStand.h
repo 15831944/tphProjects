@@ -37,7 +37,8 @@ public:
 		LEVEL_STRATEGY,
 		LEVEL_STRATEGYDETAIL,
 		LEVEL_ROOTROUTE,
-		LEVEL_ROUTE
+		LEVEL_ROUTE,
+		LEVEL_ROUTECHILD
 	};
  	typedef std::vector<std::pair<CString,int> > AltObjectVector;
  	typedef std::vector<std::pair<CString,int> >::iterator AltObjectVectorIter;
@@ -84,6 +85,7 @@ private:
 	HTREEITEM addParkingStandsItem(HTREEITEM parentItem,CAirSideCriteriaParkingStands *parkingStands);
 	HTREEITEM addFlightTypeItem(HTREEITEM parentItem,CAirSideCriteriaFlightType *flightType);
 	HTREEITEM addTimeWinItem(HTREEITEM parentItem,CAirSideCreteriaTimeWin *timeWin);
+	HTREEITEM intializeToIntersectionChildItem(HTREEITEM hToIntersection, COccupiedAssignedStandStrategy *pStrategy);
 
 	void InsertCirculateRoute(HTREEITEM hItem,CirculateRoute* pRoute);
 // 

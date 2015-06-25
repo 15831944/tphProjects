@@ -33,7 +33,7 @@ static bool IsACTypeInMap(const CString& actype, const AircraftClassificationMan
 
 
 //Called the GetACClassItem() function but not catch the exception
-AircraftClassificationItem* AircraftClassificationManager::GetAircraftClass( const CString& actype, FlightClassificationBasisType basisType )
+AircraftClassificationItem* AircraftClassificationManager::GetAircraftClass( const CString& actype, FlightClassificationBasisType basisType)
 {
 	
 	switch(basisType)
@@ -46,7 +46,8 @@ AircraftClassificationItem* AircraftClassificationManager::GetAircraftClass( con
 		break;
 	case ApproachSpeedBased :
 		ASSERT(FALSE);
-		//return GetApproachSpeedClass(actype);
+		TRACE("\r\n call this function: AircraftClassificationItem* AircraftClassificationManager::GetApproachSpeedClass( double dSpeed) \r\n");
+		//return GetApproachSpeedClass(dApproachSpeed);
 		break;
 	case SurfaceBearingWeightBased :
 		return GetSurfaceBearingClass(actype);
@@ -117,9 +118,9 @@ AircraftClassificationItem* AircraftClassificationManager::GetWakeWotexClass( co
 	return NULL;	
 }
 
-AircraftClassificationItem* AircraftClassificationManager::GetApproachSpeedClass( double dSpeed)
+AircraftClassificationItem* AircraftClassificationManager::GetApproachSpeedClass( double dSpeedInMpS)
 {	
-	AircraftClassificationItem * pFitItem = m_vApproachSpeedClassifications.GetFitInItem(dSpeed);
+	AircraftClassificationItem * pFitItem = m_vApproachSpeedClassifications.GetFitInItem(dSpeedInMpS);
 	if(pFitItem)
 	{		
 		return pFitItem;

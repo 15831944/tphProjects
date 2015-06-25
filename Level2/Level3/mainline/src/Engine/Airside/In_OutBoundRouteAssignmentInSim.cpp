@@ -27,6 +27,7 @@
 #include <Common/ARCProbPlacer.h>
 #include <limits>
 #include "DeicepadGroup.h"
+#include "InputAirside/OccupiedAssignedStandAction.h"
 
 In_OutBoundRouteAssignmentInSim::In_OutBoundRouteAssignmentInSim(void)
 :m_pInboundRouteAssignment(NULL)
@@ -1585,6 +1586,177 @@ DeicepadGroupEntry* In_OutBoundRouteAssignmentInSim::GetRouteToDeiceGroup( Airsi
 	}
 	return NULL;
 
+}
+
+IntersectionNodeInSim* In_OutBoundRouteAssignmentInSim::_getCirculateRouteItems( CirculateRoute* pPriority,FlightGroundRouteDirectSegList& vRouteItems, int& nHeadTaxiwayID, int& nTailTaxiwayID )
+{
+	// 	pTailNode = NULL;
+	nHeadTaxiwayID = -1;
+	nTailTaxiwayID = -1;
+
+	int nBranchCount = pPriority->GetElementCount();
+	if (nBranchCount <= 0)
+		return NULL;
+
+	// get a random start route item
+	int nRandomIdx = 0;
+	if (nBranchCount > 1)
+		nRandomIdx = rand()%nBranchCount;
+	CirculateRoute* pThisRouteItem = pPriority->GetItem(nRandomIdx);
+
+	int nPreIntersectionID = -1;
+
+	bool bTailIsRunway = false;
+	while(pThisRouteItem)
+	{
+		// Retrieve and analyze the alt object
+		ALTObject *pALTObj = ALTObject::ReadObjectByID(pThisRouteItem->GetALTObjectID());
+		if(pALTObj == NULL)
+		{
+			ASSERT(FALSE);
+			return NULL;
+		}
+
+		ALTOBJECT_TYPE objectType = pALTObj->GetType();
+
+		{
+			int nThisTaxiwayID = pALTObj->getID();
+			ASSERT(nThisTaxiwayID>0);
+			if (nTailTaxiwayID>0)
+			{
+				IntersectionNodeInSim* pNode = m_pIntersectionNodeManager->GetIntersectionNode(nTailTaxiwayID,nThisTaxiwayID,0);
+				if (NULL == pNode)
+				{
+					//ASSERT(FALSE); // node finding error, should not be here
+					vRouteItems.clear();
+					TaxiwayInSim* pPreTaxiway = m_pTaxiResManager->GetTaxiwayByID(nTailTaxiwayID);
+					TaxiwayInSim* pThisTaxiway = m_pTaxiResManager->GetTaxiwayByID(nThisTaxiwayID);
+					ASSERT(pPreTaxiway && pThisTaxiway);
+					CString strExceptionString;
+					strExceptionString.Format(_T("There defines a route from taxiway %s to %s, but the two taxiways have no intersection node."),
+						pPreTaxiway->GetTaxiwayInput()->GetMarking().c_str(), pThisTaxiway->GetTaxiwayInput()->GetMarking().c_str());
+					throw strExceptionString;
+				}
+				// 				int nThisIntersectionID = pThisRouteItem->GetIntersectNodeID(); // caution: this method is unreliable, discarded
+				int nThisIntersectionID = pNode->GetID();
+				if (nPreIntersectionID>0 && nThisIntersectionID>0)
+				{
+					FlightGroundRouteDirectSegList vSegmentList;
+
+					if (m_pRunwayResManager->GetRunwayByID(nTailTaxiwayID) != NULL)		//rwy item
+						m_pRunwayResManager->GetRunwaySegment(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
+					else
+						m_pTaxiResManager->GetTaxiwaySegment(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
+
+					vRouteItems.insert(vRouteItems.end(),vSegmentList.begin(),vSegmentList.end());
+				}
+				nPreIntersectionID = nThisIntersectionID;
+			}
+			if (-1 == nHeadTaxiwayID)
+			{
+				nHeadTaxiwayID = nThisTaxiwayID;
+			}
+			nTailTaxiwayID = nThisTaxiwayID;
+		}
+
+		delete pALTObj;
+		pALTObj = NULL;
+
+		nBranchCount = pThisRouteItem->GetElementCount();
+		if (nBranchCount <= 0 || bTailIsRunway)
+		{
+			if (nPreIntersectionID >0 && vRouteItems.empty())	//only defined one entry node
+			{
+				return m_pIntersectionNodeManager->GetNodeByID(nPreIntersectionID);
+			}
+			return NULL;
+		}
+
+		// get the next item
+		if (nBranchCount > 1)
+			nRandomIdx = rand()%nBranchCount;
+		else
+			nRandomIdx = 0;
+		pThisRouteItem = pThisRouteItem->GetItem(nRandomIdx);
+	}
+	return NULL;
+}
+
+bool In_OutBoundRouteAssignmentInSim::getCirculateRoute( AirsideFlightInSim* pFlight, IntersectionNodeInSim * pNodeFrom, IntersectionNodeInSim * pNodeTo,CirculateRoute* pPriority
+									,  FlightGroundRouteDirectSegList& vRouteItems )
+{
+	PLACE_METHOD_TRACK_STRING();
+	int nHeadTaxiwayID = -1;
+	int nTailTaxiwayID = -1;
+	IntersectionNodeInSim* pStartNode = NULL;
+	IntersectionNodeInSim* pEndNode = NULL;
+	try
+	{
+		pEndNode = pStartNode = _getCirculateRouteItems(pPriority, vRouteItems, nHeadTaxiwayID, nTailTaxiwayID);
+	}
+	catch (CString& e)
+	{
+		AirsideSimErrorShown::SimWarning(pFlight,e,CString(_T("DEFINE ERROR")));
+		vRouteItems.clear();
+		return false;
+	}
+	if (nHeadTaxiwayID<0 || nTailTaxiwayID<0)
+	{
+		return false;
+	}
+
+	bool bHeadTaxiwayOK = false; // 
+	bool bTailTaxiwayOK = false; // 
+	if (vRouteItems.size() > 0)
+	{
+		FlightGroundRouteDirectSegInSim* pHeadSeg = vRouteItems[0];
+		FlightGroundRouteDirectSegInSim* pTailSeg = vRouteItems.back();
+		if (pHeadSeg->GetObjectID() == nHeadTaxiwayID)
+		{
+			bHeadTaxiwayOK = true;
+		}
+		if (pTailSeg->GetObjectID() == nTailTaxiwayID)
+		{
+			bTailTaxiwayOK = true;
+		}
+		pStartNode = pHeadSeg->GetEntryNode();
+		pEndNode = pTailSeg->GetExitNode();
+	}
+
+	// find pre route to the partial route vPostItems
+	bHeadTaxiwayOK = GetPreRoute(pStartNode, pNodeFrom, nHeadTaxiwayID, bHeadTaxiwayOK, pFlight, vRouteItems);
+
+	if (!bHeadTaxiwayOK || NULL == pStartNode)
+	{
+		ASSERT(FALSE);
+		vRouteItems.clear();
+		return false;
+	}
+
+	// find pNodeTo for post route finding
+	if (NULL == pEndNode)
+	{
+		pEndNode = pStartNode;
+	}
+
+	// find post route from the partial route vPostItems
+	bTailTaxiwayOK = GetPostRoute(pStartNode, pEndNode, pNodeTo, nTailTaxiwayID, bTailTaxiwayOK, pFlight, vRouteItems);
+	if (!bTailTaxiwayOK)
+	{
+		ASSERT(FALSE);
+		vRouteItems.clear();
+		return false;
+	}
+
+#ifdef _DEBUG
+	for (FlightGroundRouteDirectSegList::iterator ite = vRouteItems.begin();ite!=vRouteItems.end();ite++)
+	{
+		FlightGroundRouteDirectSegInSim* pSeg = *ite;
+		pSeg = NULL;
+	}
+#endif
+
+	return true;
 }
 
 

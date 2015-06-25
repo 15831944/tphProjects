@@ -1366,7 +1366,9 @@ void AirTrafficController::AssignRunwayExit( AirsideFlightInSim * pFlight )
 	LogicRunwayInSim * pLandRunway = pFlight->GetLandingRunway();
 	RunwayExitInSim * pExit = NULL;
 
-	if(!pLandRunway) return;
+	if(!pLandRunway) 
+		return;
+
 	ASSERT(pLandRunway->GetExitCount() > 0);
 	pExit =  m_RunwayExitAssignmentStrategies.GetAvailableRunwayExit(pFlight,m_pAirportDB,m_pResources->GetAirportResource()->getStandResource(),false);
     pFlight->SetRunwayExit( pExit );
@@ -1392,15 +1394,19 @@ void AirTrafficController::AssignTakeoffPosition( AirsideFlightInSim * pFlight )
 
 }
 
-bool AirTrafficController::Init( int nPrjId, AirsideResourceManager * pResources, AircraftClassificationManager* pAircraftClassification,CAirportDatabase * pAirportDB,
-								CStand2GateConstraint* pStand2gateConstraint,OutputAirside *pOutput)
+bool AirTrafficController::Init( int nPrjId, 
+								 AirsideResourceManager * pResources,
+								 AircraftClassificationManager* pAircraftClassification,
+								 CAirportDatabase * pAirportDB,
+								 CStand2GateConstraint* pStand2gateConstraint,
+								 OutputAirside *pOutput)
 {
 	PLACE_METHOD_TRACK_STRING();
 	m_pFlightPlan->Init(nPrjId, pResources,pAirportDB);
 	m_pResources = pResources;
 	m_pAirportDB = pAirportDB;
 	m_pAircraftClassifications = pAircraftClassification;
-	m_RunwayExitAssignmentStrategies.Init(nPrjId,pAirportDB);
+	m_RunwayExitAssignmentStrategies.Init(nPrjId,pAirportDB,m_pResources->GetAirportResource()->getTaxiwayResource());
 	m_RunwayAssignmentStrategies.Init(nPrjId,pAirportDB);
 	m_SID_STARAssignment.Init(nPrjId,pAirportDB);
 
@@ -1622,7 +1628,7 @@ void AirTrafficController::AssignRouteToTemporaryParking(AirsideFlightInSim* pFl
 	}
 
 	Taxisegs.insert(Taxisegs.begin(), pFlight->GetRunwayExit()->GetRouteSeg() );
-	pFlight->m_pRouteToTempParking = new TaxiInboundRouteInSim(OnTaxiToTempParking,pFlight->GetRunwayExit()->GetLogicRunway(),pNodeOut);
+	pFlight->m_pRouteToTempParking = new TaxiRouteToTempParking(pFlight->GetRunwayExit()->GetLogicRunway(),pNodeOut);
 // 	pFlight->m_pRouteToTempParking->AddTaxiwaySegList(Taxisegs);
 	bool bCyclicGroundRoute=pFlight->GetEngine()->GetAirsideSimulation()->AllowCyclicGroundRoute();
 	pFlight->m_pRouteToTempParking->AddTaxiwaySegList(Taxisegs,bCyclicGroundRoute);
@@ -1675,9 +1681,9 @@ void AirTrafficController::AssignRouteToStand(AirsideFlightInSim* pFlight)
 			return ;
 		}
 		pFlight->m_pRouteToStand = new TaxiTostandRouteInSim(OnTaxiToStand,pNodeIn,pFlight->GetOperationParkingStand() );
-// 		pFlight->m_pRouteToStand->AddTaxiwaySegList(Taxisegs);
+		
 		bool bCyclicGroundRoute=pFlight->GetEngine()->GetAirsideSimulation()->AllowCyclicGroundRoute();
-		pFlight->m_pRouteToTempParking->AddTaxiwaySegList(Taxisegs,bCyclicGroundRoute);
+		pFlight->m_pRouteToStand->AddTaxiwaySegList(Taxisegs,bCyclicGroundRoute);
 
 	}
 
@@ -1837,7 +1843,7 @@ StandInSim* AirTrafficController::ResolveStandConflict(AirsideFlightInSim* pFlig
 	PLACE_METHOD_TRACK_STRING();
 	StandInSim * pPlanStand = pFlight->GetPlanedParkingStand(type);
 
-	COccupiedAssignedStandStrategy strategy = m_pOccupiedAssignedStandActionInSim->GetStrategyByFlightType(pFlight,m_pResources->GetAirportResource());
+	COccupiedAssignedStandStrategy& strategy = m_pOccupiedAssignedStandActionInSim->GetStrategyByFlightType(pFlight,m_pResources->GetAirportResource());
 	StrategyTypeList strategyOrderList=strategy.GetOrder();
 	for (int i = 0; i< StrategyNum; i++)
 	{
@@ -1846,10 +1852,12 @@ StandInSim* AirTrafficController::ResolveStandConflict(AirsideFlightInSim* pFlig
 		{
 		case ToIntersection:
 			{
-				IntersectionNodeInSim* pNode = m_pResources->GetAirportResource()->GetIntersectionNodeList().GetNodeByID(strategy.GetIntersectionID());
+				IntersectionNodeInSim* pNode = m_pResources->GetAirportResource()->GetIntersectionNodeList().GetNodeByID(strategy.GetIntersectionID());			
+
 				if(pNode && !pFlight->GetTemporaryParking() )
 				{
-					pFlight->SetTempParking( new TempParkingNodeInSim(pNode));
+					TempParkingNodeInSim* parkNode = new TempParkingNodeInSim(pNode,strategy);
+					pFlight->SetTempParking( parkNode );
 					return pPlanStand;
 				}
 			}
@@ -1869,7 +1877,7 @@ StandInSim* AirTrafficController::ResolveStandConflict(AirsideFlightInSim* pFlig
 					for (size_t i = 0; i < nSize; i++)
 					{
 						StandInSim* pStand = vStands.at(i);
-						if (pStand && !m_pDynamicStandReassignment->StandAssignConflict(pFlight,pStand))
+						if (pStand && !m_pDynamicStandReassignment->StandAssignConflict(pFlight,pStand ) )
 						{
 							pFlight->SetTempParking( new TempParkingStandInSim(pStand) );
 							pStand->GetLock(pFlight);
@@ -2927,7 +2935,9 @@ void AirTrafficController::AssignAvaibleRunwayExit( AirsideFlightInSim* pFlight 
 	LogicRunwayInSim * pLandRunway = pFlight->GetLandingRunway();
 	RunwayExitInSim * pExit = NULL;
 
-	if(!pLandRunway) return;
+	if(!pLandRunway) 
+		return;
+
 	ASSERT(pLandRunway->GetExitCount() > 0);
 	pExit =  m_RunwayExitAssignmentStrategies.GetAvailableRunwayExit(pFlight,m_pAirportDB,m_pResources->GetAirportResource()->getStandResource(),true);
 	pFlight->SetRunwayExit( pExit );

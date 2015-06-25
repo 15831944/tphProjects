@@ -1049,6 +1049,7 @@ void CTreeCtrlRunwayExit::OnPaint()
 			memDC.SetBkColor( GetSysColor( COLOR_WINDOW ) );
 			if(    pCNI->net== NET_EDITSPIN_WITH_VALUE
 				|| pCNI->net==NET_EDIT_WITH_VALUE
+				||pCNI->net == NET_COMBOBOX
 				|| pCNI->net == NET_LABLE
 				|| pCNI->net == NET_STATIC
 				)

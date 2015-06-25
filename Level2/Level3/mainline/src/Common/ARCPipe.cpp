@@ -142,6 +142,26 @@ void ARCPipe::Init( const CPath2008& pts, double dStartWidth, double dEndWidth )
 	m_sidePath2.push_back(pts[c-1] - p0);
 	m_centerPath.push_back(pts[c-1]);
 }
+
+void ARCPipe::getMidPath( double dDist, CPath2008& out )const
+{
+	int nPtCount = (int)m_centerPath.size();
+	out.Resize(nPtCount);
+
+	for(int i=0;i<nPtCount;i++)
+	{
+		ARCPoint3 ptL = m_sidePath1[i];
+		ARCPoint3 ptR = m_sidePath2[i];
+
+		double dRatFrom = dDist/m_dWidth;	
+
+		ARCPoint3 ptLeftout = ptL * (1-dRatFrom) + ptR * dRatFrom; 
+		
+		out[i] = CPoint2008(ptLeftout);
+		
+	}
+}
+
 // void ARCPipe::Init( const CPath2008&pts, double width )
 // {
 // 	m_dWidth = width;

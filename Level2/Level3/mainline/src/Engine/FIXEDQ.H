@@ -60,7 +60,7 @@ public:
     //it gets the current location of the tail
     void getTailPoint (Person *aPerson) const;
 
-	// get the most appropriate corner's index.
+	// get the best entrypoint's index.
 	int getFixQEntryPointIndex();
 
     //It returns queue type.

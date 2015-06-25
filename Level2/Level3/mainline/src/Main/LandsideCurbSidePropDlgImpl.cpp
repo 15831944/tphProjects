@@ -19,6 +19,7 @@
 
 #define S_PICKAREA "Pick Area"
 #define S_INSTETCH_PARK   "In Stretch Parking"
+#define S_OUTSTRETCH_PARK "Out Stretch Parking"
 #define S_INSTRETCH_LENGTH "Link Stretch Length"
 #define S_INSTRETCH_LANEFROM "Lane From"
 #define S_INSTRETCH_LANETO "Lane To"
@@ -189,14 +190,9 @@ void LandsideCurbSidePropDlgImpl::LoadTree()
 	
 
 	//use out stretch parking
-	{
-		CString sUseOutPark = "Out Stretch ParkingSpaces:";
-		m_hUseOutPark = m_treeProp.InsertItem(sUseOutPark);
-		TreeCtrlItemInDlg outparkspaceRoot(GetTreeCtrl(),m_hUseOutPark);
-		outparkspaceRoot.SetUserType(_ParkSpaceRoot);
-		LoadOutParkingSpacees(outparkspaceRoot, FALSE);
-		outparkspaceRoot.Expand();
-	}
+	TreeCtrlItemInDlg outParkItem = RootItem.AddChild();
+	m_hUseOutPark = outParkItem.m_hItem;
+	UpdateOutStetchItem(outParkItem);
 	
 	//pick area
 	//add picking area item node to CAirsideObjectTreeCtrl control of  "add new curbside" setting dialog
@@ -323,6 +319,17 @@ void LandsideCurbSidePropDlgImpl::OnDoubleClickPropTree( HTREEITEM hTreeItem )
 		GetTreeCtrl().SetComboWidth(300);
 		GetTreeCtrl().SetComboString(m_hRClickItem,vString);
 		GetTreeCtrl().m_comboBox.SetCurSel(getCurbside()->m_bUseInStretchParking?0:1);
+
+	}
+	if(hTreeItem == m_hUseOutPark )
+	{
+		//OnComboFloors(hTreeItem);
+		std::vector<CString> vString;
+		vString.push_back(S_YES);
+		vString.push_back(S_NO);
+		GetTreeCtrl().SetComboWidth(300);
+		GetTreeCtrl().SetComboString(m_hRClickItem,vString);
+		GetTreeCtrl().m_comboBox.SetCurSel(getCurbside()->m_bUseOutStretchParking?0:1);
 
 	}
 	else if(hTreeItem == m_hLength)
@@ -616,7 +623,12 @@ BOOL LandsideCurbSidePropDlgImpl::OnDefWindowProc( UINT message, WPARAM wParam, 
 			return TRUE;
 		}
 
-
+		if(m_hRClickItem == m_hUseOutPark)
+		{
+			pCurb->m_bUseOutStretchParking = (selitem==0?TRUE:FALSE);
+			UpdateOutStetchItem(rcItem);
+			return TRUE;
+		}
 
 
 		int itemType = rcItem.GetUserType();
@@ -795,4 +807,14 @@ void LandsideCurbSidePropDlgImpl::OnPropDelete()
 		Update3D();
 	}
 
+}
+
+void LandsideCurbSidePropDlgImpl::UpdateOutStetchItem( TreeCtrlItemInDlg& outparkspaceRoot)
+{
+
+	outparkspaceRoot.SetStringText(S_OUTSTRETCH_PARK,  getCurbside()->m_bUseOutStretchParking?S_YES:S_NO);
+	
+	outparkspaceRoot.SetUserType(_ParkSpaceRoot);
+	LoadOutParkingSpacees(outparkspaceRoot, FALSE);
+	outparkspaceRoot.Expand();
 }

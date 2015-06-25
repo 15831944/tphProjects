@@ -1109,3 +1109,37 @@ CPath2008& CPath2008::Append( const CPath2008& other )
 	points.insert(points.end(), other.points.begin(), other.points.end());
 	return *this;
 }
+
+Side CPath2008::getPointSide( const CPoint2008& pt ) const
+{
+	double dIndex  = GetPointIndex(pt);
+	ARCVector3 dir = GetIndexDir(dIndex);
+	CPoint2008 ptInPath = GetIndexPoint(dIndex);
+
+	ARCVector3 ptDir  = pt - ptInPath;
+
+	double dx = dir.cross(ptDir).z;
+	if(dx>0)
+		return _Left;
+
+	if(dx<0)
+		return _Right;
+
+	return _Inside;
+}
+
+
+bool CPath2008::getPolyCenter( CPoint2008&pt ) const
+{
+	if(getCount()<=0)
+		return false;
+
+	CPoint2008 ptAll;
+	for(int i=0;i<getCount();++i)
+	{
+		ptAll += getPoint(i);
+	}
+	ptAll *= (1.0 / getCount());
+	pt= ptAll;
+	return true;
+}

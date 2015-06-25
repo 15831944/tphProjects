@@ -24,4 +24,6 @@ public:
 	ARCPath3 m_sidePath1;
 	ARCPath3 m_sidePath2;
 
+	void getMidPath(double dDist, CPath2008& path)const;
+
 };

@@ -35,6 +35,7 @@ LandsideTaxiInSim::LandsideTaxiInSim( const PaxVehicleEntryInfo& entryInfo)
 	m_CurBehavior = _DEPPAX;
 	m_TypeName = entryInfo.vehicleType;
 	m_pServTaxiQueu= NULL;
+	m_bCalledByQueueFromExt = FALSE;
 }
 
 LandsideTaxiInSim::LandsideTaxiInSim(const NonPaxVehicleEntryInfo& entryInfo)
@@ -43,6 +44,7 @@ LandsideTaxiInSim::LandsideTaxiInSim(const NonPaxVehicleEntryInfo& entryInfo)
 	m_CurBehavior = _NONPAX;
 	m_TypeName = entryInfo.vehicleType;
 	m_pServTaxiQueu= NULL;
+	m_bCalledByQueueFromExt = FALSE;
 }
 
 
@@ -154,6 +156,16 @@ bool LandsideTaxiInSim::ProceedToNextFcObject( CARCportEngine* pEngine )
 			LandsideLayoutObjectInSim * pDest  = pEngine->GetLandsideSimulation()->GetResourceMannager()->getLayoutObjectInSim(nNextID);
 			if(pDest)
 			{
+				if(pDest->toTaxiPool() && isCalledByQueue() )
+				{
+					ASSERT(m_pServTaxiQueu);
+					if(m_pServTaxiQueu)
+					{
+						CString sWarn;
+						sWarn.Format(_T("Taxi called by the Queue should not go to the Pool, pls check the Route Plan of %s") , m_pServTaxiQueu->print().GetString() );
+						ShowError(sWarn,"Definition Error");
+					}				
+				}
 				ChangeDest(pDest);
 				return true;
 			}
@@ -290,6 +302,12 @@ void LandsideTaxiInSim::ChangeToArrPaxPlan(CARCportEngine* pEngine)
 	}
 	
 	m_ArrPaxEntryInfo.pPlan = pPlan;
+}
+
+void LandsideTaxiInSim::setCalledByQueue( LandsideTaxiQueueInSim* pServTaxiQueu, BOOL bCallFromExt )
+{
+	m_bCalledByQueueFromExt = bCallFromExt; 
+	m_pServTaxiQueu = pServTaxiQueu;
 }
 
 

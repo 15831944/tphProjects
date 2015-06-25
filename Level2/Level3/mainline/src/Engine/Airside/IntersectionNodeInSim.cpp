@@ -536,13 +536,22 @@ FilletTaxiway* IntersectionNodeInSim::GetFilletFromTo( FlightGroundRouteDirectSe
 
 bool IntersectionNodeInSim::IsNoParking() const
 {
-	if( GetNodeInput().GetRunwayIntersectItemList().size() )
-		return true;
-
-	if( m_vFilletTaxiways.size() <=3 )
+	if(!m_bNoParking)
 		return false;
 
-	return m_bNoParking;
+	if(GetNodeInput().GetRunwayIntersectItemList().empty())
+	{
+		if( m_vFilletTaxiways.size()<3 )
+			return false;
+	}
+
+
+	int nValidIntersect = GetNodeInput().GetRunwayIntersectItemList().size()+GetNodeInput().GetTaxiwayIntersectItemList().size();
+	if(nValidIntersect>=2)
+	{
+		return m_bNoParking;
+	}
+	return false;
 }
 
 ElapsedTime IntersectionNodeInSim::GetAvailableEntryTime( AirsideFlightInSim* pFlight, const ElapsedTime& entryTime, const ElapsedTime& exitTime )

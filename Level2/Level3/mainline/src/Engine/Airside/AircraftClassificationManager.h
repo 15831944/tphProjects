@@ -11,7 +11,10 @@ public:
 public:
 	AircraftClassificationItem* GetWingSpanClass(const CString& actype);
 	AircraftClassificationItem* GetWakeWotexClass(const CString & actype);
-	AircraftClassificationItem* GetApproachSpeedClass(double dSpeed);
+
+	//meter per second
+	AircraftClassificationItem* GetApproachSpeedClass(double dSpeedInMpS);
+
 	AircraftClassificationItem* GetSurfaceBearingClass(const CString& actype);
 	AircraftClassificationItem* GetNonebasedClass(){ return &m_NoneBasedClassfication; }
 

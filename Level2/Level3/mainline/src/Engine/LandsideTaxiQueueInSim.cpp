@@ -97,12 +97,12 @@ void LandsideTaxiQueueInSim::InitRelateWithOtherObject( LandsideResourceManager*
 
 void LandsideTaxiQueueInSim::addServiceVehicle( LandsideVehicleInSim* pV )
 {
-	m_vServiceVehicles.Add(pV);
+	m_vServiceVehicles.add(pV);
 }
 
 void LandsideTaxiQueueInSim::removeServiceVehicle( LandsideVehicleInSim* pV )
 {
-	m_vServiceVehicles.Remove(pV);
+	m_vServiceVehicles.remove(pV);
 	UpdateOrderingVehicle(pV->curTime());
 }
 
@@ -116,7 +116,7 @@ void LandsideTaxiQueueInSim::_UpdateOrderingVehicle(CARCportEngine* pEngine)
 		return;
 
 	CFacilityTaxiQBehavior* pTaxiQBehavior = (CFacilityTaxiQBehavior*)pBevhor;
-	int nCount = m_vServiceVehicles.GetCount();
+	int nCount = m_vServiceVehicles.count();
 	CString vehicleType = pTaxiQBehavior->GetVehicleType();
 	
 	int nMoreNeed = m_vWaitingPax.size() - m_vServiceVehicles.size();
@@ -139,7 +139,7 @@ void LandsideTaxiQueueInSim::_UpdateOrderingVehicle(CARCportEngine* pEngine)
 	}
 	//call from external entry
 	{
-		for(int i=0;i<nMoreNeed;i++)
+ 		for(int i=0;i<nMoreNeed;i++)
 		{
 			NonPaxVehicleEntryInfo info;
 			info.iDemandType = VehicleDemandAndPoolData::Demand_LayoutObject;
@@ -149,6 +149,9 @@ void LandsideTaxiQueueInSim::_UpdateOrderingVehicle(CARCportEngine* pEngine)
 			if( info.InitNoResidentRoute(pEngine) )
 			{
 				LandsideTaxiInSim *pVehicle = new LandsideTaxiInSim(info);
+				pVehicle->setCalledByQueue(this, TRUE);
+				
+
 				if( pVehicle->InitBirth(pEngine) )
 				{
 					pEngine->GetLandsideSimulation()->AddVehicle(pVehicle);
@@ -234,13 +237,13 @@ void LandsideTaxiQueueInSim::PaxLeaveQueue( const ElapsedTime& eTime )
 
 void LandsideTaxiQueueInSim::AddWaitingVehicle( LandsideVehicleInSim* pTaxi )
 {
-	m_waitingtaxi.Add(pTaxi);
+	m_waitingtaxi.add(pTaxi);
 	
 }
 
 void LandsideTaxiQueueInSim::DelWaitingVehicle( LandsideVehicleInSim* pTaxi )
 {
-	m_waitingtaxi.Remove(pTaxi);
+	m_waitingtaxi.remove(pTaxi);
 }
 
 

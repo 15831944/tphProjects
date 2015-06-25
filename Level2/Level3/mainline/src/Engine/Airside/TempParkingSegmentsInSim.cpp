@@ -11,6 +11,9 @@
 #include "StandLeadInLineInSim.h"
 #include "StandLeadOutLineInSim.h"
 #include "StandBufferInSim.h"
+#include "InputAirside\OccupiedAssignedStandAction.h"
+#include "DynamicConflictGraph.h"
+#include "In_OutBoundRouteAssignmentInSim.h"
 
 /************************************************************************/
 /* temp parking segments                                                                     */
@@ -332,17 +335,62 @@ CString TempParkingStandInSim::PrintTempParking() const
 /************************************************************************/
 bool TempParkingNodeInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,ClearanceItem& lastItem, const DistanceUnit& radius, Clearance& newClearance )
 {		
-	StandInSim* pParkingStand = pFlight->GetOperationParkingStand();
-	if( pParkingStand && pParkingStand->TryLock(pFlight) )
+
+	if(lastItem.GetMode()==OnTaxiToTempParking)
 	{
-		pParkingStand->GetLock(pFlight);
-		return false;
-	}
-	else
-	{
-		pFlight->GetWakeUpCaller().OberverSubject(pParkingStand);
+		ClearanceItem heldItem = lastItem; // enter temp stand
+		heldItem.SetMode(OnHeldAtTempParking);
+		heldItem.SetSpeed(0);		 
+		heldItem.SetTime(lastItem.GetTime());
+		lastItem = heldItem;
+		newClearance.AddItem(lastItem);
 		return true;
 	}
+	if(lastItem.GetMode() == OnHeldAtTempParking)
+	{		
+		if( m_bCirculate )  //in circulating
+		{		
+			ASSERT(m_pCirculateRoute);
+			if(m_pCirculateRoute)
+			{
+				bool bEnd = m_pCirculateRoute->FindClearanceInConcern(pFlight,lastItem,radius, newClearance);
+				if(bEnd)
+					return bEnd;	
+				else
+				{
+					m_bCirculate  = false;
+					m_nCirculatedNum++;
+					m_pCirculateRoute->reset();
+					ClearanceItem heldItem = lastItem; // enter temp stand
+					heldItem.SetMode(OnHeldAtTempParking);
+					heldItem.SetSpeed(0);		 
+					heldItem.SetTime(lastItem.GetTime());
+					lastItem = heldItem;
+					newClearance.AddItem(lastItem);
+					return true;
+				}
+			}
+
+		}
+		//waiting in the node
+		if(!m_bCirculate)
+		{
+			StandInSim* pParkingStand = pFlight->GetOperationParkingStand();
+			if( pParkingStand && pParkingStand->TryLock(pFlight) )
+			{			
+				pParkingStand->GetLock(pFlight);			
+				return false;
+			}
+			else
+			{			
+				//wait
+				pFlight->GetWakeUpCaller().OberverSubject(pParkingStand);
+				return true;		
+			}
+		}
+	}
+	
+	ASSERT(false);
 	return m_pNode->FindClearanceInConcern(pFlight,lastItem,radius,newClearance);
 }
 
@@ -371,4 +419,69 @@ CString TempParkingNodeInSim::PrintTempParking() const
 	CString str;
 	str.Format("Temp Parking Node (%s)", GetInNode()->PrintResource() );
 	return str;
+}
+
+TempParkingNodeInSim::TempParkingNodeInSim(IntersectionNodeInSim* pNode, COccupiedAssignedStandStrategy& strategy )
+{
+	m_pNode = pNode; 
+	m_pCirculateRoute = NULL;
+	m_nMaxCirculateNum =  strategy.GetTimes();
+	m_nCirculatedNum =  0;	
+	m_pRouteInput = strategy.GetCirculateRoute();
+	m_bCirculate = false;
+}
+
+void TempParkingNodeInSim::initRoute( AirsideFlightInSim *pFlight )
+{
+	if(!m_pRouteInput)
+		return;
+
+	if(m_pCirculateRoute)
+		return;
+		
+	FlightGroundRouteDirectSegList vseglist;
+	In_OutBoundRouteAssignmentInSim* boundRoutAssign = pFlight->GetAirTrafficController()->GetBoundRouteAssignment();
+	if( boundRoutAssign->getCirculateRoute(pFlight, m_pNode,m_pNode, m_pRouteInput, vseglist) )
+	{
+		CirculateRouteInSim* pCRoute = new CirculateRouteInSim(OnHeldAtTempParking,m_pNode,m_pNode);
+		if(TaxiwayDirectSegInSim* pseg = pFlight->GetCurTaxiwayDirectSeg())
+			vseglist.insert(vseglist.begin(), pseg);
+
+		pCRoute->AddTaxiwaySegList(vseglist,true);
+		setCirculateRoute(pCRoute);
+	}
+}
+
+void TempParkingNodeInSim::setCirculateRoute( CirculateRouteInSim* pCRoute )
+{
+	m_pCirculateRoute = pCRoute;
+}
+
+void TempParkingNodeInSim::notifyCirculate(AirsideFlightInSim* pFlight,const ElapsedTime& t )
+{
+	if(m_bCirculate)
+		return;
+
+	if( m_nCirculatedNum < m_nMaxCirculateNum)
+	{
+		initRoute(pFlight);
+		if(m_pCirculateRoute)
+		{
+			m_bCirculate  =true;
+			pFlight->OnNotify(NULL,SimMessage().setTime(t) );
+		}
+	}			
+}
+
+
+DistanceUnit CirculateRouteInSim::GetExitRouteDist( AirsideFlightInSim* pFlight )
+{
+	DistanceUnit dExitRouteDist = GetEndDist() - pFlight->GetLength()*0.5;//default exit route dist
+
+	/*HoldInTaxiRoute* lastEntryHold =  GetlastEntryHold();
+	if(lastEntryHold)
+	{ 
+	dExitRouteDist = lastEntryHold->m_dDistInRoute;
+	}*/
+	return dExitRouteDist;
 }

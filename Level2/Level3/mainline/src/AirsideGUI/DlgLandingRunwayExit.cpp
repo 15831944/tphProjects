@@ -22,6 +22,7 @@
 #include "..\Common\AirportDatabase.h"
 
 #include "DlgSelectExitOfRunway.h"
+#include "DlgTaxiwaySegmentSelect.h"
 
 static const UINT ID_NEW_FLTTYPE = 10;
 static const UINT ID_DEL_FLTTYPE = 11;
@@ -29,7 +30,11 @@ static const UINT ID_EDIT_FLTTYPE = 12;
 static const UINT ID_NEW_RUNWAY = 20;
 static const UINT ID_DEL_RUNWAY = 21;
 static const UINT ID_EDIT_RUNWAY = 22;
+static const UINT ID_ADD_TAXISEG = 23;
+static const UINT ID_EDIT_TAXISEG = 24;
+static const UINT ID_DEL_TAXISEG = 25;
 
+static const char* strComboxString[] = {"No","Yes"};
 CDlgLandingRunwayExit::CDlgLandingRunwayExit(int nProjID, PFuncSelectFlightType pSelectFlightType, InputAirside* pInputAirside, CWnd* pParent/* = NULL*/)
 : CXTResizeDialog(IDD_LANDIINGRUNWAYEXIT, pParent)
 ,m_nProjID(nProjID)
@@ -87,6 +92,9 @@ BEGIN_MESSAGE_MAP(CDlgLandingRunwayExit, CXTResizeDialog)
 
 	ON_COMMAND(ID_BACKTRACK, OnMsgBacktrack)
 	ON_COMMAND(ID_NOBACKTRACK, OnMsgNoBacktrack)
+	ON_COMMAND(ID_ADD_TAXISEG,OnAddTaxiwaySegment)
+	ON_COMMAND(ID_EDIT_TAXISEG,OnEditTaxiwaySegment)
+	ON_COMMAND(ID_DEL_TAXISEG,OnDeleteTaxiwaySegment)
 	
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_FLTTIME, OnSelChangedFltTimeTree)
 	ON_WM_CONTEXTMENU()
@@ -680,8 +688,8 @@ void CDlgLandingRunwayExit::OnMsgBacktrack()
 	CString strData = _T("Backtrack Operation");
 
 
-	HTREEITEM hTreeItem;
-	HTREEITEM hBackTrackItem;
+	HTREEITEM hTreeItem = NULL;
+	HTREEITEM hBackTrackItem = NULL;
 	if (GetRunwayTreeItemByType(TREENODE_PROB_MARKING, hTreeItem))
 	{
 		hBackTrackItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
@@ -691,10 +699,16 @@ void CDlgLandingRunwayExit::OnMsgBacktrack()
 	}
 	else if (GetRunwayTreeItemByType(TREENODE_PRIO_MARKING, hTreeItem))
 	{
-		hBackTrackItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
-		RunwayExitPriorityItem* pPriorityItem =
-			(RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hTreeItem);
-		pPriorityItem->setBacktrack(true);
+		//back track doesn't have child item
+		HTREEITEM hItem;
+		hItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
+		if (m_wndTreeExitStrategy.GetChildItem(hItem) == NULL)
+		{
+			hBackTrackItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
+			RunwayExitPriorityItem* pPriorityItem =
+				(RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hTreeItem);
+			pPriorityItem->setBacktrack(true);
+		}
 	}
 	else
 	{
@@ -714,7 +728,7 @@ void CDlgLandingRunwayExit::OnMsgBacktrack()
 		cni.nt=NT_NORMAL; 
 		cni.net=NET_STATIC;
 		cni.bEnable = FALSE;
-		hBackTrackItem = m_wndTreeExitStrategy.InsertItem(strData,cni,FALSE,FALSE,hTreeItem,TVI_LAST);
+		hBackTrackItem = m_wndTreeExitStrategy.InsertItem(strData,cni,FALSE,FALSE,hTreeItem,TVI_FIRST);
 	}
 
 	m_wndTreeExitStrategy.Expand(hTreeItem, TVE_EXPAND);
@@ -723,8 +737,8 @@ void CDlgLandingRunwayExit::OnMsgBacktrack()
 
 void CDlgLandingRunwayExit::OnMsgNoBacktrack()
 {
-	HTREEITEM hTreeItem;
-	HTREEITEM hBackTrackItem;
+	HTREEITEM hTreeItem = NULL;
+	HTREEITEM hBackTrackItem = NULL;
 	if (GetRunwayTreeItemByType(TREENODE_PROB_MARKING, hTreeItem))
 	{
 		hBackTrackItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
@@ -734,10 +748,16 @@ void CDlgLandingRunwayExit::OnMsgNoBacktrack()
 	}
 	else if (GetRunwayTreeItemByType(TREENODE_PRIO_MARKING, hTreeItem))
 	{
-		hBackTrackItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
-		RunwayExitPriorityItem* pPriorityItem =
-			(RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hTreeItem);
-		pPriorityItem->setBacktrack(false);
+		//back track doesn't have child item
+		HTREEITEM hItem;
+		hItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
+		if (m_wndTreeExitStrategy.GetChildItem(hItem) == NULL)
+		{
+			hBackTrackItem = m_wndTreeExitStrategy.GetChildItem(hTreeItem);
+			RunwayExitPriorityItem* pPriorityItem =
+				(RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hTreeItem);
+			pPriorityItem->setBacktrack(false);
+		}
 	}
 	else
 	{
@@ -1181,7 +1201,23 @@ void CDlgLandingRunwayExit::OnContextMenu(CWnd* pWnd, CPoint point)
 			pMenu = menuPopup.GetSubMenu(0);
 			pMenu->EnableMenuItem( ID_ADD_EXIT_PRIORITY, MF_GRAYED | MF_DISABLED );
 		}
+		else
+		{
+			if (std::find(m_vOperationItem.begin(),m_vOperationItem.end(),hRClickItem) != m_vOperationItem.end())
+			{
+				pMenu = &menuPopup;
+				menuPopup.CreatePopupMenu();
 
+				pMenu->AppendMenu(MF_STRING|MF_ENABLED,ID_ADD_TAXISEG,_T("Add Taxiway Segment"));
+			}
+			else if (std::find(m_vTaxiSegItem.begin(),m_vTaxiSegItem.end(),hRClickItem) != m_vTaxiSegItem.end())
+			{
+				pMenu = &menuPopup;
+				menuPopup.CreatePopupMenu();
+				pMenu->AppendMenu(MF_STRING|MF_ENABLED,ID_EDIT_TAXISEG,_T("Eidt Taxiway Segment"));
+				pMenu->AppendMenu(MF_STRING|MF_ENABLED,ID_DEL_TAXISEG,_T("Delete Taxiway Segment"));
+			}
+		}
 		if (pMenu)
 			pMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
 	}
@@ -1314,61 +1350,126 @@ LRESULT CDlgLandingRunwayExit::DefWindowProc(UINT message, WPARAM wParam, LPARAM
 		pCB->SetWindowPos(NULL,rectWnd.right,rectWnd.top,0,0,SWP_NOSIZE);
 
 		pCB->ResetContent();
-		HTREEITEM hParentItem = m_wndTreeExitStrategy.GetParentItem(hItem);
-		if (hParentItem)
+		if(GetRunwayTreeItemByType(TREENODE_PRIO_MARKING,hItem))
 		{
-			RunwayExitStrategyPriorityItem* pPriorities =
-				(RunwayExitStrategyPriorityItem*)m_wndTreeExitStrategy.GetItemData(hParentItem);
-			Runway *pRunway = m_inputAirside.GetRunwayByID(pPriorities->getRunwayID());
-			if(pRunway)
+			HTREEITEM hParentItem = m_wndTreeExitStrategy.GetParentItem(hItem);
+			if (hParentItem)
 			{
-				CString strRunwayMark;
-				if(pPriorities->getMarkIndex() == RUNWAYMARK_FIRST)
-					strRunwayMark = pRunway->GetMarking1().c_str();
-				else
-					strRunwayMark = pRunway->GetMarking2().c_str();
-
-
-				RunwayExitStrategyPriorityVector vExitItems = pPriorities->getItems();
-				RunwayExitStrategyPriorityIter iter = vExitItems.begin();
-				for(;iter != vExitItems.end(); iter++)
+				RunwayExitStrategyPriorityItem* pPriorities =
+					(RunwayExitStrategyPriorityItem*)m_wndTreeExitStrategy.GetItemData(hParentItem);
+				Runway *pRunway = m_inputAirside.GetRunwayByID(pPriorities->getRunwayID());
+				if(pRunway)
 				{
-					RunwayExitPriorityItem* pItem = *iter;
-					CString strExit;
-					CString strMarkTemp = strRunwayMark;
-					CString strExitNameTemp;
+					CString strRunwayMark;
+					if(pPriorities->getMarkIndex() == RUNWAYMARK_FIRST)
+						strRunwayMark = pRunway->GetMarking1().c_str();
+					else
+						strRunwayMark = pRunway->GetMarking2().c_str();
 
-					RunwayExitList exitlist;
-					int n = pRunway->GetExitList(RUNWAY_MARK(pItem->m_nRunwayMarkIndex),exitlist);
-					for(int i=0;i<n;i++)
+
+					RunwayExitStrategyPriorityVector vExitItems = pPriorities->getItems();
+					RunwayExitStrategyPriorityIter iter = vExitItems.begin();
+					for(;iter != vExitItems.end(); iter++)
 					{
-						if(exitlist[i].GetID() == pItem->m_nExitID)
-						{
-							GetRunwayExitName(&exitlist[i], &exitlist, strExitNameTemp);
-							break;
-						}
-					}
+						RunwayExitPriorityItem* pItem = *iter;
+						CString strExit;
+						CString strMarkTemp = strRunwayMark;
+						CString strExitNameTemp;
 
-					strExit.Format(_T("%s & %s"), strMarkTemp, strExitNameTemp);
-					pCB->AddString(strExit);
+						RunwayExitList exitlist;
+						int n = pRunway->GetExitList(RUNWAY_MARK(pItem->m_nRunwayMarkIndex),exitlist);
+						for(int i=0;i<n;i++)
+						{
+							if(exitlist[i].GetID() == pItem->m_nExitID)
+							{
+								GetRunwayExitName(&exitlist[i], &exitlist, strExitNameTemp);
+								break;
+							}
+						}
+
+						strExit.Format(_T("%s & %s"), strMarkTemp, strExitNameTemp);
+						pCB->AddString(strExit);
+					}
 				}
 			}
 		}
+		else
+		{
+			pCB->AddString(strComboxString[0]);
+			pCB->AddString(strComboxString[1]);
+		}
+		
 	}
 	else if(message == UM_CEW_COMBOBOX_SELCHANGE)
 	{
 		HTREEITEM hItem = (HTREEITEM)wParam;
-		RunwayExitPriorityItem* pItem =
-			(RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hItem);
 		CComboBox* pCB = (CComboBox*)m_wndTreeExitStrategy.GetEditWnd(hItem);
-
-		HTREEITEM hParentItem = m_wndTreeExitStrategy.GetParentItem(hItem);
-		if (hParentItem)
+		if(GetRunwayTreeItemByType(TREENODE_PRIO_MARKING,hItem))
 		{
-			RunwayExitStrategyPriorityItem* pPriorities =
-				(RunwayExitStrategyPriorityItem*)m_wndTreeExitStrategy.GetItemData(hParentItem);
-			pPriorities->ExchangeItem(pItem, pCB->GetCurSel());
-			ResetExitStrategyContents();
+			RunwayExitPriorityItem* pItem =
+				(RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hItem);
+			
+
+			HTREEITEM hParentItem = m_wndTreeExitStrategy.GetParentItem(hItem);
+			if (hParentItem)
+			{
+				RunwayExitStrategyPriorityItem* pPriorities =
+					(RunwayExitStrategyPriorityItem*)m_wndTreeExitStrategy.GetItemData(hParentItem);
+				pPriorities->ExchangeItem(pItem, pCB->GetCurSel());
+				ResetExitStrategyContents();
+			}
+		}
+		else
+		{
+			RunwayExitPriorityItem* pConditionData = (RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hItem);
+			int nCurSel = pCB->GetCurSel();
+			if(std::find(m_vOperationItem.begin(),m_vOperationItem.end(),hItem) != m_vOperationItem.end())
+			{
+				bool bOperation = pCB->GetCurSel()?true : false;
+				pConditionData->GetConditionData().SetOperationStatus(bOperation);
+				CString strOperation;
+				strOperation.Format(_T("Operation on: %s"),strComboxString[nCurSel]);
+				m_wndTreeExitStrategy.SetItemText(hItem,strOperation);
+			}
+			else
+			{
+				bool bArrStand = nCurSel?true : false;
+				pConditionData->GetConditionData().SetArrStandOccupied(bArrStand);
+
+				CString strArrStand;
+				strArrStand.Format(_T("Arrival stand occupied: %s"),strComboxString[nCurSel]);
+				m_wndTreeExitStrategy.SetItemText(hItem,strArrStand);
+			}
+		}
+		
+	}
+	else if (message == UM_CEW_SHOW_DIALOGBOX_BEGIN)
+	{
+		HTREEITEM hItem = (HTREEITEM)wParam;
+
+		TaxiSegmentData* pSegData = (TaxiSegmentData*)m_wndTreeExitStrategy.GetItemData(hItem);
+		CDlgTaxiwaySegmentSelect dlg(m_nProjID,this);
+		dlg.SetTaxiwaySegmentData(*pSegData);
+		if (dlg.DoModal() == IDOK)
+		{
+			TaxiSegmentData segData;
+			dlg.GetTaxiwaySegmentData(segData);
+
+			*pSegData = segData;
+
+			Taxiway* pTaxiway = m_inputAirside.GetTaxiwayByID(pSegData->m_iTaxiwayID);
+			CString strTaxiway = pTaxiway->getName().GetIDString();
+			IntersectionNode startNode;
+			startNode.ReadData(pSegData->m_iStartNode);
+			CString strStart = startNode.GetName();
+			IntersectionNode endNode;
+			endNode.ReadData(pSegData->m_iEndNode);
+			CString strEnd = endNode.GetName();
+
+			CString strText;
+			strText.Format(_T("Taxiway [%s] between [%s] & [%s]"),strTaxiway,strStart,strEnd);
+
+			m_wndTreeExitStrategy.SetItemText(hItem,strText);
 		}
 	}
 
@@ -1449,6 +1550,71 @@ void CDlgLandingRunwayExit::AddRunwayExitItemToTree( RunwayExitStrategyPercentIt
 	m_wndTreeExitStrategy.SetItemData(hRunwayItem, (DWORD_PTR)pRunwayMarkExitItem);		
 	m_wndTreeExitStrategy.Expand(hRunwayItem, TVE_EXPAND);
 }
+void CDlgLandingRunwayExit::InsertTaxiwaySegmentData(TaxiSegmentData* pSegData, HTREEITEM hItem)
+{
+	COOLTREE_NODE_INFO cni;	
+	CCoolTree::InitNodeInfo(this,cni);
+	cni.nt=NT_NORMAL; 
+	cni.net=NET_SHOW_DIALOGBOX;
+
+	Taxiway* pTaxiway = m_inputAirside.GetTaxiwayByID(pSegData->m_iTaxiwayID);
+	CString strTaxiway = pTaxiway->getName().GetIDString();
+	IntersectionNode startNode;
+	startNode.ReadData(pSegData->m_iStartNode);
+	CString strStart = startNode.GetName();
+	IntersectionNode endNode;
+	endNode.ReadData(pSegData->m_iEndNode);
+	CString strEnd = endNode.GetName();
+
+	CString strText;
+	strText.Format(_T("Taxiway [%s] between [%s] & [%s]"),strTaxiway,strStart,strEnd);
+	HTREEITEM hTaxiwayItem = m_wndTreeExitStrategy.InsertItem(strText,cni,FALSE,FALSE,hItem);
+	m_wndTreeExitStrategy.SetItemData(hTaxiwayItem,(DWORD)pSegData);
+	m_vTaxiSegItem.push_back(hTaxiwayItem);
+
+	m_wndTreeExitStrategy.Expand(hItem,TVE_EXPAND);
+}
+
+void CDlgLandingRunwayExit::InsertChangeCondition( RunwayExitPriorityItem* pPriorityItem,HTREEITEM hItem )
+{
+	COOLTREE_NODE_INFO cni;	
+	CCoolTree::InitNodeInfo(this,cni);
+	cni.nt=NT_NORMAL; 
+	cni.net=NET_NORMAL;
+
+	HTREEITEM hChangeItem = m_wndTreeExitStrategy.InsertItem(_T("Change Condition"),cni,FALSE,FALSE,hItem);
+	m_wndTreeExitStrategy.SetItemData(hChangeItem,(DWORD)pPriorityItem);
+
+	//change condition
+	{
+		HTREEITEM hLimitItem = m_wndTreeExitStrategy.InsertItem(_T("Performance Limitation: Yes"),cni,FALSE,FALSE,hChangeItem);
+		HTREEITEM hExitItem = m_wndTreeExitStrategy.InsertItem(_T("Exit blocked (arr or dep ac): Yes"),cni,FALSE,FALSE,hChangeItem);
+		
+		cni.net = NET_COMBOBOX;
+		CString strArrStand;
+		int iArrStand = pPriorityItem->GetConditionData().GetArrStandOccupied() ? 1 : 0;
+		strArrStand.Format(_T("Arrival stand occupied: %s"),strComboxString[iArrStand]);
+		HTREEITEM hArrStandItem = m_wndTreeExitStrategy.InsertItem(strArrStand,cni,FALSE,FALSE,hChangeItem);
+		m_wndTreeExitStrategy.SetItemData(hArrStandItem,(DWORD)pPriorityItem);
+
+		//taxiway segment
+		cni.net = NET_COMBOBOX;
+		CString strOperation;
+		int iOperation = pPriorityItem->GetConditionData().GetOperationStatus() ? 1 : 0;
+		strOperation.Format(_T("Operation on: %s"),strComboxString[iOperation]);
+		HTREEITEM hOperationItem = m_wndTreeExitStrategy.InsertItem(strOperation,cni,FALSE,FALSE,hChangeItem);
+		m_wndTreeExitStrategy.SetItemData(hOperationItem,(DWORD)pPriorityItem);
+		m_vOperationItem.push_back(hOperationItem);
+		cni.net = NET_SHOW_DIALOGBOX;
+		for (int i = 0; i < pPriorityItem->GetConditionData().getTaxiConditionCount(); i++)
+		{
+			TaxiSegmentData* pSegData = pPriorityItem->GetConditionData().getTaxiCondition(i);
+			InsertTaxiwaySegmentData(pSegData,hOperationItem);
+		}
+	}
+	m_wndTreeExitStrategy.Expand(hChangeItem,TVE_EXPAND);
+	m_wndTreeExitStrategy.Expand(hItem,TVE_EXPAND);
+}
 
 
 void CDlgLandingRunwayExit::AddRunwayExitPrioritiesItemToTree(RunwayExitStrategyPriorityItem* pRunwayMarkPrioritiesItem)
@@ -1514,8 +1680,11 @@ void CDlgLandingRunwayExit::AddRunwayExitPrioritiesItemToTree(RunwayExitStrategy
 			cni.net=NET_STATIC;
 			HTREEITEM hBacktrackItem = m_wndTreeExitStrategy.InsertItem( _T("Backtrack Operation"),
 				cni,FALSE,FALSE,hRunwayExitItem,TVI_LAST);
-			m_wndTreeExitStrategy.Expand(hRunwayExitItem, TVE_EXPAND);
 		}
+
+		//change condition
+		InsertChangeCondition(pItem,hRunwayExitItem);
+		m_wndTreeExitStrategy.Expand(hRunwayExitItem, TVE_EXPAND);
 	}
 	m_wndTreeExitStrategy.SetItemData(hRunwayItem, (DWORD_PTR)pRunwayMarkPrioritiesItem);		
 	m_wndTreeExitStrategy.Expand(hRunwayItem, TVE_EXPAND);
@@ -1892,3 +2061,76 @@ void CDlgLandingRunwayExit::OnMsgDelExitPriority()
 
 	ResetExitStrategyContents();
 }
+
+void CDlgLandingRunwayExit::OnAddTaxiwaySegment()
+{
+	HTREEITEM hItem = m_wndTreeExitStrategy.GetSelectedItem();
+	if (hItem == NULL)
+		return;
+	
+	CDlgTaxiwaySegmentSelect dlg(m_nProjID,this);
+	if (dlg.DoModal() == IDOK)
+	{
+		TaxiSegmentData segData;
+		dlg.GetTaxiwaySegmentData(segData);
+		RunwayExitPriorityItem* pPriority = (RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hItem);
+		pPriority->GetConditionData().AddTaxiCondtion(segData);
+
+		int nCount = pPriority->GetConditionData().getTaxiConditionCount();
+		int idx = nCount -1;
+		TaxiSegmentData* pSegData = pPriority->GetConditionData().getTaxiCondition(idx);
+		
+		InsertTaxiwaySegmentData(pSegData,hItem);
+	}
+}
+
+void CDlgLandingRunwayExit::OnEditTaxiwaySegment()
+{
+	HTREEITEM hItem = m_wndTreeExitStrategy.GetSelectedItem();
+	if (hItem == NULL)
+		return;	
+
+	TaxiSegmentData* pSegData = (TaxiSegmentData*)m_wndTreeExitStrategy.GetItemData(hItem);
+	CDlgTaxiwaySegmentSelect dlg(m_nProjID,this);
+	dlg.SetTaxiwaySegmentData(*pSegData);
+	if (dlg.DoModal() == IDOK)
+	{
+		TaxiSegmentData segData;
+		dlg.GetTaxiwaySegmentData(segData);
+
+		*pSegData = segData;
+
+		Taxiway* pTaxiway = m_inputAirside.GetTaxiwayByID(pSegData->m_iTaxiwayID);
+		CString strTaxiway = pTaxiway->getName().GetIDString();
+		IntersectionNode startNode;
+		startNode.ReadData(pSegData->m_iStartNode);
+		CString strStart = startNode.GetName();
+		IntersectionNode endNode;
+		endNode.ReadData(pSegData->m_iEndNode);
+		CString strEnd = endNode.GetName();
+
+		CString strText;
+		strText.Format(_T("Taxiway [%s] between [%s] & [%s]"),strTaxiway,strStart,strEnd);
+
+		m_wndTreeExitStrategy.SetItemText(hItem,strText);
+	}
+}
+
+void CDlgLandingRunwayExit::OnDeleteTaxiwaySegment()
+{
+	HTREEITEM hItem = m_wndTreeExitStrategy.GetSelectedItem();
+	if (hItem == NULL)
+		return;	
+	HTREEITEM hParentItem = m_wndTreeExitStrategy.GetParentItem(hItem);
+	RunwayExitPriorityItem* pPriority = (RunwayExitPriorityItem*)m_wndTreeExitStrategy.GetItemData(hParentItem);
+	if (pPriority == NULL)
+		return;
+	
+	TaxiSegmentData* pSegData = (TaxiSegmentData*)m_wndTreeExitStrategy.GetItemData(hItem);
+	if (pSegData == NULL)
+		return;
+	
+	pPriority->GetConditionData().DeleteTaxiCondition(*pSegData);
+	m_wndTreeExitStrategy.DeleteItem(hItem);
+}
+

@@ -184,6 +184,8 @@ void DynamicConflictGraph::OnMobilePlaneRoute( ARCMobileElement* pmob, const Rou
 	//un plan old Route 
 	OnMobileUnPlanRoute(pmob,t);
 
+	//notifyTempFlights(vPathList,t);
+
 	//add Registry of the mobile 
 //	mMobileRouteMap[pmob] = vPathList;
 	mMobileRouteMap.push_back(std::make_pair(pmob,vPathList));
@@ -859,5 +861,65 @@ bool DynamicConflictGraph::CanAWaitForB( ARCMobileElement* pmobA, ARCMobileEleme
 {
 	if(bCanLetBWaitForA(pmobB,pmobA))
 		return true;
+	return false;
+}
+
+void DynamicConflictGraph::addTempParkingFlight( AirsideFlightInSim* pFlight )
+{
+	std::vector<AirsideFlightInSim*>::iterator itr = 
+		std::find(m_vTempParkFlights.begin(),m_vTempParkFlights.end(),pFlight);
+	if(itr==m_vTempParkFlights.end())
+		m_vTempParkFlights.push_back(pFlight);
+}
+
+void DynamicConflictGraph::removeTempParkingFlight( AirsideFlightInSim* pFlight )
+{
+	std::vector<AirsideFlightInSim*>::iterator itr = 
+		std::find(m_vTempParkFlights.begin(),m_vTempParkFlights.end(),pFlight);
+	if(itr!=m_vTempParkFlights.end())
+		m_vTempParkFlights.erase(itr);
+}
+
+void DynamicConflictGraph::notifyTempFlights( const RouteDirPathList& vResList,const ElapsedTime& t )
+{
+	for(size_t i=0;i<m_vTempParkFlights.size();++i)
+	{
+		AirsideFlightInSim* pFlight = m_vTempParkFlights.at(i);
+
+		if(RouteDirPath* seg = pFlight->getCurDirPath() )
+		{
+			bool bFind = std::find(vResList.begin(), vResList.end(), seg)!= vResList.end();
+			if(bFind)
+			{
+				if(TempParkingInSim* temppark = pFlight->GetTemporaryParking() )
+				{
+					temppark->notifyCirculate(pFlight,t);
+				}
+			}
+
+		}
+	}
+}
+
+bool DynamicConflictGraph::needCirculate( AirsideFlightInSim* pTempFlight )
+{
+	for(size_t i =0 ;i< mMobileRouteMap.size();++i)
+	{
+		MobPairRoute& mobRoute  = mMobileRouteMap[i];
+		if(mobRoute.first==pTempFlight)
+			continue;
+		RouteDirPathList& route =mobRoute.second;
+		RouteDirPath* mobPos = mobRoute.first->getCurDirPath();
+		if(!mobPos){
+			continue;
+		}
+
+		RouteDirPathList::iterator itr = std::find(route.begin(),route.end(),mobPos);
+		for(itr;itr!=route.end();++itr)
+		{
+			if(pTempFlight->getCurDirPath()==*itr)
+				return true;
+		}		
+	}
 	return false;
 }

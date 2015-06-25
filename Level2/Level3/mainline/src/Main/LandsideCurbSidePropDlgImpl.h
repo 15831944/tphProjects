@@ -30,6 +30,7 @@ public:
 
 
 	void UpdateInStretchItem(TreeCtrlItemInDlg& );
+	void UpdateOutStetchItem(TreeCtrlItemInDlg& );
 	void LoadOutParkingSpacees(TreeCtrlItemInDlg& parentItem, BOOL bExpandLast);
 protected:
 	//HTREEITEM m_hFloor;

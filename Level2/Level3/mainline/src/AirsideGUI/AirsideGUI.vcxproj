@@ -146,6 +146,7 @@
     <ClCompile Include="DlgAirRoute.cpp" />
     <ClCompile Include="DlgAirRouteWayPointDefine.cpp" />
     <ClCompile Include="DlgAirsideIntersectionSelect.cpp" />
+    <ClCompile Include="DlgAirsideSelectIntersectionNode.cpp" />
     <ClCompile Include="DlgALTObjectGroup.cpp" />
     <ClCompile Include="DlgApproachRunwaySelection.cpp" />
     <ClCompile Include="DlgApproachToLand.cpp" />
@@ -230,6 +231,7 @@
     <ClCompile Include="DlgTaxiwayConstraint.cpp" />
     <ClCompile Include="DlgTaxiwayFamilySelect.cpp" />
     <ClCompile Include="DlgTaxiwayFlightTypeRestriction.cpp" />
+    <ClCompile Include="DlgTaxiwaySegmentSelect.cpp" />
     <ClCompile Include="DlgTaxiwaySelect.cpp" />
     <ClCompile Include="DlgTemporaryParkingCriteria.cpp" />
     <ClCompile Include="DlgTemporaryParkingList.cpp" />
@@ -301,7 +303,9 @@
   <ItemGroup>
     <ClInclude Include="AirsideGUIAPI.h" />
     <ClInclude Include="DlgAircraftSurfaceInitialCondition.h" />
+    <ClInclude Include="DlgAirsideSelectIntersectionNode.h" />
     <ClInclude Include="DlgTaxiwayFamilySelect.h" />
+    <ClInclude Include="DlgTaxiwaySegmentSelect.h" />
     <ClInclude Include="DlgTaxiwaySelect.h" />
     <ClInclude Include="DlgTrainFlightsManagement.h" />
     <ClInclude Include="DlgWeatherScript.h" />

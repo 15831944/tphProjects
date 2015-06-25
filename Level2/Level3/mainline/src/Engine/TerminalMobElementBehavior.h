@@ -634,6 +634,9 @@ public:
 	Processor * getLastTerminalProc() const { return m_pLastTerminalProc; }
 	void setLastTerminalProc(Processor * pProc) { m_pLastTerminalProc = pProc; }
 
+    int getEntryPointCorner() const { return m_entryPointCorner; }
+    void setEntryPointCorner(int val) { m_entryPointCorner = val; }
+
 public:
 	int inElevotor;
 
@@ -660,8 +663,7 @@ public:
 
 	bool m_bIsArrivalDoor;//for write log for pax arrival door height
 
-	// first corner's index when moving to a fixed queue.
-	int first_corner ;
+	int first ;
 
 	void setLandsideSelectedProc(const std::vector<ALTObjectID>& altLandsideSelectedProc);
 	const std::vector<ALTObjectID>& GetLandsideSelectedProc()const;
@@ -675,5 +677,6 @@ private:
 	//uses for arrival passenger
 	Processor *m_pLastTerminalProc;
 
-
+    // for fixed queue only, the entry point's corner index of queue.
+    int m_entryPointCorner;
 };

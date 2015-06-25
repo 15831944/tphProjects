@@ -24,7 +24,8 @@ public:
 	virtual bool TryLock(AirsideFlightInSim* pFlight) =0 ;
 	virtual bool GetLock(AirsideFlightInSim* pFlight) =0 ;
 	virtual CString PrintTempParking()const =0 ;
-	
+
+	virtual void notifyCirculate(AirsideFlightInSim* pFlight, const ElapsedTime& t){} //for giving way to other flight
 };
 
 
