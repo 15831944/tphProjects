@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}</ProjectGuid>
+    <ProjectGuid>{045F8357-B9CF-403E-B7BB-36090273C731}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ClipWithBitmapMasksSample</RootNamespace>
+    <RootNamespace>OpenGL_zoom</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -51,7 +51,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -72,30 +72,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AirsideFlightInfo2.h" />
-    <ClInclude Include="AirsideFlightInfo1.h" />
-    <ClInclude Include="AirsideFlightInfo.h" />
-    <ClInclude Include="CommonOperations.h" />
-    <ClInclude Include="DragPicture.h" />
-    <ClInclude Include="ErrorHandling.h" />
-    <ClInclude Include="Macros.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AirsideFlightInfo2.cpp" />
-    <ClCompile Include="AirsideFlightInfo1.cpp" />
-    <ClCompile Include="AirsideFlightInfo.cpp" />
-    <ClCompile Include="DragPicture.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="OpenGL_zoom.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="DragPicture.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

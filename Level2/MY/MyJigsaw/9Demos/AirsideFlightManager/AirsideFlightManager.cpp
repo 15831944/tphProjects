@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "ErrorHandling.h"
-#include "AirsideFlightInfo.h"
+#include "AirsideFlightManager.h"
 #include <assert.h>
 
 ClassAirsideFlightManager::ClassAirsideFlightManager():
 m_pFocusAirsideFlight(0),
-m_pFloatingAirsideFlight(0)
+    m_pFloatingAirsideFlight(0),
+    m_vectorAirsideFlightToMouse(0, 0)
 {
     m_listAirsideFlight.clear();
 }
@@ -41,7 +42,8 @@ void ClassAirsideFlightManager::TopAirsideFlight(int& errorCode, ClassAirsideFli
     }
 }
 
-void ClassAirsideFlightManager::FocusOnAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight)
+// This function will top the AirsideFLight and then set the m_pFocusAirsideFlight.
+void ClassAirsideFlightManager::SetFocusAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight)
 {
     TopAirsideFlight(errorCode, pAirsideFlight);
     if(errorCode != Error_Success)
@@ -63,7 +65,7 @@ void ClassAirsideFlightManager::AddAirsideFlight(ClassAirsideFlight* pAirsideFli
 void ClassAirsideFlightManager::RemoveAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight)
 {
     std::list<ClassAirsideFlight*>::iterator itor = m_listAirsideFlight.begin();
-    for( ; itor!=m_listAirsideFlight.end(); ++itor)
+    for(; itor!=m_listAirsideFlight.end(); ++itor)
     {
         if(*itor == pAirsideFlight)
         {
@@ -79,7 +81,7 @@ void ClassAirsideFlightManager::RemoveAirsideFlight(int& errorCode, ClassAirside
 void ClassAirsideFlightManager::DeleteAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight)
 {
     std::list<ClassAirsideFlight*>::iterator itor = m_listAirsideFlight.begin();
-    for( ; itor!=m_listAirsideFlight.end(); ++itor)
+    for(; itor!=m_listAirsideFlight.end(); ++itor)
     {
         if(*itor == pAirsideFlight)
         {
@@ -96,7 +98,7 @@ void ClassAirsideFlightManager::DeleteAirsideFlight(int& errorCode, ClassAirside
 void ClassAirsideFlightManager::InsertAirsideFlightAfter(int& errorCode, ClassAirsideFlight* pAirsideFlight, ClassAirsideFlight* pAfter)
 {
     std::list<ClassAirsideFlight*>::iterator itor = m_listAirsideFlight.begin();
-    for( ; itor!=m_listAirsideFlight.end(); ++itor)
+    for(; itor!=m_listAirsideFlight.end(); ++itor)
     {
         if(*itor == pAfter)
         {
@@ -109,10 +111,27 @@ void ClassAirsideFlightManager::InsertAirsideFlightAfter(int& errorCode, ClassAi
     return;
 }
 
+void ClassAirsideFlightManager::InitializeAirsideFlightManager(std::vector<ClassAirsidePassenger*> vecAirsidePassenger)
+{
+    std::vector<ClassAirsidePassenger*>::iterator itor = vecAirsidePassenger.begin();
+    for(;itor!=vecAirsidePassenger.end(); ++itor)
+    {
+        ClassAirsideFlight* pNewAirsideFlight = new ClassAirsideFlight;
+        (*itor)->SetLineInAirsideFlight(0);
+        (*itor)->SetColumnInAirsideFlight(0);
+        (*itor)->SetRotateAngle(CommonOperations::GetRandom(4)*90);
+        pNewAirsideFlight->AddAirsidePassenger(*itor);
+
+        pNewAirsideFlight->SetPointTopLeft(CommonOperations::GetRandomPointFXY(PointFXY(300, 300)));
+        pNewAirsideFlight->SetRotateAngle(CommonOperations::GetRandom(90));
+        AddAirsideFlight(pNewAirsideFlight);
+    }
+}
+
 void ClassAirsideFlightManager::MouseLButtonDoubleClick(int& errorCode, PointFXY pt)
 {
     std::list<ClassAirsideFlight*>::iterator itor = m_listAirsideFlight.begin();
-    for( ; itor!=m_listAirsideFlight.end(); ++itor)
+    for(; itor!=m_listAirsideFlight.end(); ++itor)
     {
         if((*itor)->IsPointInMe(pt))
             break;
@@ -133,15 +152,21 @@ void ClassAirsideFlightManager::MouseLButtonDoubleClick(int& errorCode, PointFXY
     }
     assert((*itor)->GetAirsidePassengerCount() == 0);
     DeleteAirsideFlight(errorCode, (*itor));
-    FocusOnAirsideFlight(errorCode, *vNewAirsideFlight.begin());
+
+    // vNewAirsideFlight.begin() is the new AirsideFlight which contains the selected AirsidePassenger.
+    SetFocusAirsideFlight(errorCode, *vNewAirsideFlight.begin());
     if(errorCode != Error_Success)
         return;
 }
 
 void ClassAirsideFlightManager::MouseLButtonDown(int& errorCode, PointFXY pt)
 {
+    if(m_pFloatingAirsideFlight)
+        m_pFloatingAirsideFlight = 0;
+    m_vectorAirsideFlightToMouse.SetZero();
+
     std::list<ClassAirsideFlight*>::iterator itor = m_listAirsideFlight.begin();
-    for( ; itor!=m_listAirsideFlight.end(); ++itor)
+    for(; itor!=m_listAirsideFlight.end(); ++itor)
     {
         if((*itor)->IsPointInMe(pt))
             break;
@@ -152,21 +177,49 @@ void ClassAirsideFlightManager::MouseLButtonDown(int& errorCode, PointFXY pt)
         return;
     }
 
-    FocusOnAirsideFlight(errorCode, (*itor));
+    SetFocusAirsideFlight(errorCode, (*itor));
     m_pFloatingAirsideFlight = *itor;
     if(errorCode != Error_Success)
         return;
+    m_vectorAirsideFlightToMouse = pt - m_pFloatingAirsideFlight->GetPointTopLeft();
 }
 
 void ClassAirsideFlightManager::MouseLButtonUp(int& errorCode, PointFXY pt)
 {
     if(m_pFloatingAirsideFlight)
-         m_pFloatingAirsideFlight = 0;
+        m_pFloatingAirsideFlight = 0;
+    m_vectorAirsideFlightToMouse.SetZero();
+
+    int iErr = -1;
+    std::list<ClassAirsideFlight*>::iterator itor = m_listAirsideFlight.begin();
+    for(;itor!= m_listAirsideFlight.end(); ++itor)
+    {
+        if(m_pFocusAirsideFlight->CanCombinedToMe(iErr, *itor))
+        {
+            m_pFocusAirsideFlight->CombineToMe(iErr, *itor);
+            if(iErr != 0)
+                return;
+            assert((*itor)->GetAirsidePassengerCount() == 0);
+            DeleteAirsideFlight(iErr, *itor);
+            if(iErr != 0)
+                return;
+            break;
+        }
+    }
+    if(WorkIsDone())
+    {
+        //TODO:
+    }
 }
 
-void ClassAirsideFlightManager::MouseMove(int& errorCode, PointFXY ptVector)
+void ClassAirsideFlightManager::MouseMove(int& errorCode, PointFXY newPt)
 {
     if(m_pFloatingAirsideFlight)
-        m_pFloatingAirsideFlight->MoveToPointFXY(ptVector);
+        m_pFloatingAirsideFlight->SetPointTopLeft(newPt - m_vectorAirsideFlightToMouse);
+}
+
+void ClassAirsideFlightManager::MouseWheel(int& errorCode, int nOffset)
+{
+    m_pFocusAirsideFlight->Rotate(errorCode, nOffset);
 }
 

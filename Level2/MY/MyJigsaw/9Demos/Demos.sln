@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DragPicture", "DragPicture\DragPicture.vcxproj", "{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MapColor", "MapColor\MapColor.vcxproj", "{5CFA71BE-FA8D-43EF-A16A-BC124704CA26}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyWin32", "MyWin32\MyWin32.vcxproj", "{560CDCA8-9615-491E-B83A-553B0FF5677A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL_zoom", "OpenGL_zoom\OpenGL_zoom.vcxproj", "{045F8357-B9CF-403E-B7BB-36090273C731}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AirsideFlightManager", "AirsideFlightManager\AirsideFlightManager.vcxproj", "{1DAB5677-F155-4590-A12F-4EAC00B691E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,14 +15,22 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}.Debug|Win32.Build.0 = Debug|Win32
-		{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}.Release|Win32.ActiveCfg = Release|Win32
-		{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}.Release|Win32.Build.0 = Release|Win32
 		{5CFA71BE-FA8D-43EF-A16A-BC124704CA26}.Debug|Win32.ActiveCfg = Debug|Win32
 		{5CFA71BE-FA8D-43EF-A16A-BC124704CA26}.Debug|Win32.Build.0 = Debug|Win32
 		{5CFA71BE-FA8D-43EF-A16A-BC124704CA26}.Release|Win32.ActiveCfg = Release|Win32
 		{5CFA71BE-FA8D-43EF-A16A-BC124704CA26}.Release|Win32.Build.0 = Release|Win32
+		{560CDCA8-9615-491E-B83A-553B0FF5677A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{560CDCA8-9615-491E-B83A-553B0FF5677A}.Debug|Win32.Build.0 = Debug|Win32
+		{560CDCA8-9615-491E-B83A-553B0FF5677A}.Release|Win32.ActiveCfg = Release|Win32
+		{560CDCA8-9615-491E-B83A-553B0FF5677A}.Release|Win32.Build.0 = Release|Win32
+		{045F8357-B9CF-403E-B7BB-36090273C731}.Debug|Win32.ActiveCfg = Debug|Win32
+		{045F8357-B9CF-403E-B7BB-36090273C731}.Debug|Win32.Build.0 = Debug|Win32
+		{045F8357-B9CF-403E-B7BB-36090273C731}.Release|Win32.ActiveCfg = Release|Win32
+		{045F8357-B9CF-403E-B7BB-36090273C731}.Release|Win32.Build.0 = Release|Win32
+		{1DAB5677-F155-4590-A12F-4EAC00B691E1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1DAB5677-F155-4590-A12F-4EAC00B691E1}.Debug|Win32.Build.0 = Debug|Win32
+		{1DAB5677-F155-4590-A12F-4EAC00B691E1}.Release|Win32.ActiveCfg = Release|Win32
+		{1DAB5677-F155-4590-A12F-4EAC00B691E1}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
