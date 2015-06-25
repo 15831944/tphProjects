@@ -56,7 +56,7 @@
 #include "../AirsideReport/AirsideTaxiwayUtilizationResult.h"
 #include "../AirsideReport/AirsideTaxiwayUtilizationReport.h"
 #include "../AirsideReport/AirsideTaxiwayUtilizationPara.h"
-#include "../AirsideReport/TaixwayUtilizationData.h"
+#include "../AirsideReport/TaxiwayUtilizationData.h"
 #include "../AirsideReport/TaxiwayItem.h"
 #include "../AirsideReport/AirsideControllerWorkloadResult.h"
 #include "../AirsideReport/AirsideControllerWorkloadReport.h"

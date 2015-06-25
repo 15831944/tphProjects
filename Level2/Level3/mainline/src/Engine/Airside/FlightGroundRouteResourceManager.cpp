@@ -92,10 +92,10 @@ void FlightGroundRouteResourceManager::SetParkingSegments( TemporaryParkingInSim
 	}	
 }
 
-void FlightGroundRouteResourceManager::SetResourceManager( TaxiwayResourceManager *pTaixwayResourceManager, RunwayResourceManager * pRunwayResourceManager )
+void FlightGroundRouteResourceManager::SetResourceManager( TaxiwayResourceManager *pTaxiwayResourceManager, RunwayResourceManager * pRunwayResourceManager )
 {
 	m_pRunwayResourceManager = pRunwayResourceManager;
-	m_pTaxiwayResourceManager = pTaixwayResourceManager;
+	m_pTaxiwayResourceManager = pTaxiwayResourceManager;
 }
 
 FlightGroundRouteDirectSegList FlightGroundRouteResourceManager::GetAllLinkedDirectSegments( IntersectionNodeInSim * pNode )

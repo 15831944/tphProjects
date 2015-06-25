@@ -39,7 +39,7 @@ void CFloorMapMatch::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CFloorMapMatch, CDialog)
 	//{{AFX_MSG_MAP(CFloorMapMatch)
 	ON_WM_CANCELMODE()
-	ON_BN_CLICKED(IDC_BUTTON1, OnBrower)
+	ON_BN_CLICKED(IDC_BUTTON1, OnBrowser)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -54,7 +54,7 @@ void CFloorMapMatch::OnCancelMode()
 	
 }
 
-void CFloorMapMatch::OnBrower() 
+void CFloorMapMatch::OnBrowser() 
 {
 	CString sName,sTempName;
 	sTempName = m_name;

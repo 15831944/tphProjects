@@ -17,12 +17,12 @@ public:
 
 public:
 	bool canServe(const AirsideFlightInSim *pFlight) const;
-	void addItem(TaixwayConstraintType type, int nValue);
+	void addItem(TaxiwayConstraintType type, int nValue);
 
 protected:
 
-	bool isExist(TaixwayConstraintType type) const;
-	std::map< TaixwayConstraintType, int > m_mapWeightWingspanCons;
+	bool isExist(TaxiwayConstraintType type) const;
+	std::map< TaxiwayConstraintType, int > m_mapWeightWingspanCons;
 };
 
 class FlightTypeRestrictionsInSim
@@ -134,7 +134,7 @@ public:
 	bool canServe(const AirsideFlightInSim *pFlight) const;
 	bool GetTaxiwayConstrainedSpeed(const AirsideFlightInSim* pFlight, double& dSpeed) const;
 
-	void AddWeightWingspanConstraint(TaixwayConstraintType type, int nValue);
+	void AddWeightWingspanConstraint(TaxiwayConstraintType type, int nValue);
 	void AddFlightTypeRestrictions(FlightConstraint& fltCons);
 	void SetDirectionConstraintType(DirectionalityConstraintType emDir);
 	void SetBearingDegree(double dValue);

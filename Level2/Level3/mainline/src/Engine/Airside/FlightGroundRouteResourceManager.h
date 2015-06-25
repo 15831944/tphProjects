@@ -27,7 +27,7 @@ public:
 	bool GetRoute(FlightGroundRouteDirectSegInSim* pSeg, IntersectionNodeInSim* pDest, AirsideFlightInSim* pFlight,
 		FlightGroundRouteDirectSegList& path, double& dPathWeight, FlightGroundRouteFinderStrategy* pStrategy = NULL );
 
-	void SetResourceManager(TaxiwayResourceManager *pTaixwayResourceManager, RunwayResourceManager * pRunwayResourceManager);
+	void SetResourceManager(TaxiwayResourceManager *pTaxiwayResourceManager, RunwayResourceManager * pRunwayResourceManager);
 
 
 	FlightGroundRouteDirectSegList GetAllLinkedDirectSegments( IntersectionNodeInSim * pNode );

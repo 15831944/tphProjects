@@ -7,26 +7,26 @@
 #include <common/CARCUnit.h>
 //---------------------------------------------------------------------------------------------
 //WeightWingspanConstraintsInSim
-void WeightWingspanConstraintsInSim::addItem(TaixwayConstraintType type, int nValue)
+void WeightWingspanConstraintsInSim::addItem(TaxiwayConstraintType type, int nValue)
 {
 	if (!isExist(type))
 		m_mapWeightWingspanCons.insert( std::make_pair( type, nValue ) );
 }
 
-bool WeightWingspanConstraintsInSim::isExist(TaixwayConstraintType type) const
+bool WeightWingspanConstraintsInSim::isExist(TaxiwayConstraintType type) const
 {
-	std::map< TaixwayConstraintType, int >::const_iterator iter = m_mapWeightWingspanCons.find(type);
+	std::map< TaxiwayConstraintType, int >::const_iterator iter = m_mapWeightWingspanCons.find(type);
 	return iter != m_mapWeightWingspanCons.end();
 
 }
 
 bool WeightWingspanConstraintsInSim::canServe(const AirsideFlightInSim *pFlight) const
 {
-	TaixwayConstraintType type= WeightConstraint;
+	TaxiwayConstraintType type= WeightConstraint;
 	if (isExist(type))
 	{	
 		double dWeight = pFlight->GetWeight();
-		std::map< TaixwayConstraintType, int >::const_iterator iter = m_mapWeightWingspanCons.find(type);
+		std::map< TaxiwayConstraintType, int >::const_iterator iter = m_mapWeightWingspanCons.find(type);
 	
 		if(static_cast<int>(dWeight) > CARCWeightUnit::ConvertWeight(AU_WEIGHT_POUND,DEFAULT_DATABASE_WEIGHT_UNIT,iter->second) )
 			return false;
@@ -36,7 +36,7 @@ bool WeightWingspanConstraintsInSim::canServe(const AirsideFlightInSim *pFlight)
 	if (isExist(type))
 	{	
 		double dWingSpan =  pFlight->GetWingspan();
-		std::map< TaixwayConstraintType, int >::const_iterator iter = m_mapWeightWingspanCons.find(type);
+		std::map< TaxiwayConstraintType, int >::const_iterator iter = m_mapWeightWingspanCons.find(type);
 
 		if(static_cast<int>(dWingSpan) > CARCLengthUnit::ConvertLength(AU_LENGTH_METER,DEFAULT_DATABASE_LENGTH_UNIT,iter->second) )
 			return false;
@@ -180,7 +180,7 @@ TaxiwaySegConstraintsProperties::~TaxiwaySegConstraintsProperties(void)
 //TODO:
 bool TaxiwaySegConstraintsProperties::canServe(const AirsideFlightInSim *pFlight) const
 {
-	TaixwayConstraintType type = WeightConstraint;
+	TaxiwayConstraintType type = WeightConstraint;
 	int nValue = 0;
 	if(!m_weightWingspanCons.canServe(pFlight))
 		return false;
@@ -210,7 +210,7 @@ bool TaxiwaySegConstraintsProperties::GetTaxiwayConstrainedSpeed( const AirsideF
 	return m_taxiSpeedConstraints.GetConstrainedSpeed(pFlight, dSpeed);
 }
 
-void TaxiwaySegConstraintsProperties::AddWeightWingspanConstraint(TaixwayConstraintType type, int nValue)
+void TaxiwaySegConstraintsProperties::AddWeightWingspanConstraint(TaxiwayConstraintType type, int nValue)
 {
 	m_weightWingspanCons.addItem(type, nValue);
 }

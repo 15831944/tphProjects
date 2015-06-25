@@ -75,7 +75,7 @@ TaxiwaySegInSim::~TaxiwaySegInSim()
 }
 
 //constraints interface
-void TaxiwaySegInSim::AddWeightWingspanConstraint(TaixwayConstraintType type, int nValue)
+void TaxiwaySegInSim::AddWeightWingspanConstraint(TaxiwayConstraintType type, int nValue)
 {
 	m_pConstraintsProperties->AddWeightWingspanConstraint(type, nValue);
 }

@@ -130,7 +130,7 @@ public:
 	
 
 	//constraints interface
-	void AddWeightWingspanConstraint(TaixwayConstraintType type, int nValue);
+	void AddWeightWingspanConstraint(TaxiwayConstraintType type, int nValue);
 	void AddFlightTypeRestrictions(FlightConstraint& fltCons);
 	void SetDirectionConstraintType(DirectionalityConstraintType dir);
 	void SetBearingDegree(double degree);

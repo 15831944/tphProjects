@@ -2401,7 +2401,7 @@
 #define IDC_STATIC_PAXID                1584
 #define IDC_LIST_TRACK                  1585
 #define IDC_LIST_GLOBALDB               1586
-#define IDC_BUT_BROWER2                 1587
+#define IDC_BUT_BROWSER2                1587
 #define IDC_RADIO_IGNORE                1588
 #define IDC_RADIO_REPLACE               1589
 #define IDC_EDIT_NEW_DB                 1590

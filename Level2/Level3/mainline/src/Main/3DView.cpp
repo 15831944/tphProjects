@@ -318,10 +318,10 @@ BEGIN_MESSAGE_MAP(C3DView, IRender3DView)
 	
 	ON_COMMAND(ID_ALTOBJECT_ALIGN,OnStandAlign)
 	ON_UPDATE_COMMAND_UI(ID_ALTOBJECT_ALIGN,OnUpdateStandAlign)
-	ON_COMMAND(ID_TAIXWAY_ENABLE, OnTaixwayPointEnableEdit)
-	ON_UPDATE_COMMAND_UI(ID_TAIXWAY_ENABLE, OnUpdateTaixwayEnable)
-	ON_COMMAND(ID_TAIXWAY_ADDPOINTHERE, OnTaixwayAddpointhere)
-	ON_COMMAND(ID_TAIXWAY_DELETEPOINT, OnTaixwayDeletepoint)
+	ON_COMMAND(ID_TAIXWAY_ENABLE, OnTaxiwayPointEnableEdit)
+	ON_UPDATE_COMMAND_UI(ID_TAIXWAY_ENABLE, OnUpdateTaxiwayEnable)
+	ON_COMMAND(ID_TAIXWAY_ADDPOINTHERE, OnTaxiwayAddpointhere)
+	ON_COMMAND(ID_TAIXWAY_DELETEPOINT, OnTaxiwayDeletepoint)
 	ON_COMMAND(ID_WALLSHAPE_POINTEDIT, OnWallshapePointedit)
 	ON_UPDATE_COMMAND_UI(ID_WALLSHAPE_POINTEDIT, OnUpdateWallshapePointedit)
 	ON_COMMAND(ID_WALLSHAPEMENU_ADDPOINTHERE, OnWallshapemenuAddpointhere)
@@ -7621,7 +7621,7 @@ void C3DView::OnClose()
 
 
 
-void C3DView::OnTaixwayPointEnableEdit()
+void C3DView::OnTaxiwayPointEnableEdit()
 {
 	// TODO: Add your command handler code here
 
@@ -7640,7 +7640,7 @@ void C3DView::OnTaixwayPointEnableEdit()
 
 }
 
-void C3DView::OnUpdateTaixwayEnable(CCmdUI *pCmdUI)
+void C3DView::OnUpdateTaxiwayEnable(CCmdUI *pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 
@@ -7667,7 +7667,7 @@ void C3DView::OnUpdateTaixwayEnable(CCmdUI *pCmdUI)
 	}
 }
 
-void C3DView::OnTaixwayAddpointhere()
+void C3DView::OnTaxiwayAddpointhere()
 {
 	// TODO: Add your command handler code here
 	//get the close line to the select point
@@ -7701,7 +7701,7 @@ void C3DView::OnTaixwayAddpointhere()
 
 }
 
-void C3DView::OnTaixwayDeletepoint()
+void C3DView::OnTaxiwayDeletepoint()
 {
 	// TODO: Add your command handler code here
 	TaxiwayProc * m_pSelectTaxiway=NULL;

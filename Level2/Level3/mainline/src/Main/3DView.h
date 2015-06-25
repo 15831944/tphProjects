@@ -445,10 +445,10 @@ public:
 	afx_msg void OnColormodeDesaturated();
 	afx_msg void OnClose();
 	
-	afx_msg void OnTaixwayPointEnableEdit();
-	afx_msg void OnUpdateTaixwayEnable(CCmdUI *pCmdUI);
-	afx_msg void OnTaixwayAddpointhere();
-	afx_msg void OnTaixwayDeletepoint();
+	afx_msg void OnTaxiwayPointEnableEdit();
+	afx_msg void OnUpdateTaxiwayEnable(CCmdUI *pCmdUI);
+	afx_msg void OnTaxiwayAddpointhere();
+	afx_msg void OnTaxiwayDeletepoint();
 	afx_msg void OnWallshapePointedit();
 	afx_msg void OnUpdateWallshapePointedit(CCmdUI *pCmdUI);
 	afx_msg void OnWallshapemenuAddpointhere();

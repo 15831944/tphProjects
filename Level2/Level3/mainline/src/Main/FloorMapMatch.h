@@ -42,7 +42,7 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CFloorMapMatch)
 	afx_msg void OnCancelMode();
-	afx_msg void OnBrower();
+	afx_msg void OnBrowser();
 	virtual void OnOK();
 	virtual void OnCancel();
 	//}}AFX_MSG
