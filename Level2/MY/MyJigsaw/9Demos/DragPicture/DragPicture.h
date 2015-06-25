@@ -150,11 +150,11 @@ public:
     float GetRotateSpeed() const { return m_fRotateSpeed; }
     void SetRotateSpeed(float val) { m_fRotateSpeed = val; }
 
-    bool GetNeedRepaint() const { return m_needRepaint; }
-    void SetNeedRepaint(bool val) { m_needRepaint = val; }
+    void IncreaseRotate(){ m_fRotate += m_fRotateSpeed; }
 protected:
-    float m_fRotateSpeed; // the rotation.
+
+    float m_fRotate; // the rotation.
+    float m_fRotateSpeed; // the rotation speed.
     short m_fRA; // rotation acceleration
-    bool m_needRepaint; // need to repaint?
 };
 

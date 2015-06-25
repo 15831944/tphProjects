@@ -19,8 +19,7 @@ m_hwnd(NULL),
     m_pOrigBitmap(NULL),
     m_pOriginalBitmapBrush(NULL),
     m_fRotateSpeed(0.0f),
-    m_fRA(0),
-    m_needRepaint(false)
+    m_fRA(0)
 {
 }
 
@@ -121,7 +120,7 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             GWLP_USERDATA,
             PtrToUlong(pDemoApp)
             );
-        SetTimer(hwnd, TIMMER_ACCELERATION, 500, OnTimmer);
+        SetTimer(hwnd, TIMMER_ACCELERATION, 50, OnTimmer);
         SetTimer(hwnd, TIMMER_PAINT, 50, OnTimmer);
         result = 1;
     }
@@ -177,7 +176,6 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                     short sWheel = (short)HIWORD(wParam);
                     pDemoApp->m_fRotateSpeed += sWheel / 120;
-                    pDemoApp->SetNeedRepaint(true);
                 }
                 wasHandled = true;
                 result = 1;
@@ -358,7 +356,7 @@ HRESULT DemoApp::OnRender()
 
         // The original bitmap.
         m_pRenderTarget->SetTransform(
-            D2D1::Matrix3x2F::Rotation(m_fRotateSpeed, D2D1::Point2F(100, 66)) 
+            D2D1::Matrix3x2F::Rotation(m_fRotate, D2D1::Point2F(100, 66)) 
             * 
             D2D1::Matrix3x2F::Translation(5, 5)
             );
@@ -553,10 +551,11 @@ void CALLBACK DemoApp::OnTimmer(
         break;
     case TIMMER_PAINT:
         {
-            if(pDemoApp->GetNeedRepaint())
+            if(pDemoApp->GetRotateSpeed() < -0.0001 ||
+                pDemoApp->GetRotateSpeed() > 0.0001)
             {
+                pDemoApp->IncreaseRotate();
                 InvalidateRect(hwnd, NULL, TRUE);
-                pDemoApp->SetNeedRepaint(false);
             }
         }
         break;
