@@ -17,12 +17,23 @@ public:
 
     float GetY() const { return m_y; }
     void SetY(float val) { m_y = val; }
+
+    PointFXY operator-(const PointFXY& other)
+    {
+        return PointFXY(m_x-other.m_x, m_y-other.m_y);
+    }
+
+    PointFXY operator+(const PointFXY& other)
+    {
+        return PointFXY(m_x+other.m_x, m_y+other.m_y);
+    }
 };
 
 typedef enum
 {
-    AirsidePassengerEdgeType_M, //  M
-    AirsidePassengerEdgeType_W, //  W
+    AirsidePassengerEdgeType_Flat, // Flat edge
+    AirsidePassengerEdgeType_Convex, //  Convex edge
+    AirsidePassengerEdgeType_Concave, //  Concave edge
 } AirsidePassengerEdgeType;
 
 class ClassAirsidePassenger
@@ -32,10 +43,14 @@ public:
     ~ClassAirsidePassenger();
     void PartialCopyFrom(ClassAirsidePassenger* pOther);
 protected:
+    // One image will be split into M x N segments.
+    // M and N signs it's position in the jigsaw image.
+    short m_M;
+    short m_N;
     PointFXY m_pointTopLeft;
-    float m_rotation; // the rotation of this piece it self.
-    short m_xInAirsideFlight;
-    short m_yInAirsideFlight;
+    short m_rotation; // the rotation of this piece itself.
+    short m_nLine; // Line number in AirsideFlight.
+    short m_nCol; // Column number in AirsideFlight.
     AirsidePassengerEdgeType m_leftEdgeType;
     AirsidePassengerEdgeType m_rightEdgeType;
     AirsidePassengerEdgeType m_topEdgeType;
@@ -48,20 +63,19 @@ protected:
 
     //ID2D1BitmapBrush *m_pBitmapBrush;
 public:
-    bool IsThisPointFXYInsideMe(const PointFXY& pt);
     bool CanAboveMe(ClassAirsidePassenger* pOther);
     bool CanBelowMe(ClassAirsidePassenger* pOther);
     bool CanLeftsideMe(ClassAirsidePassenger* pOther);
     bool CanRightsideMe(ClassAirsidePassenger* pOther);
 
-    short GetXInAirsideFlight(){ return m_xInAirsideFlight; }
-    void SetXInAirsideFlight(short val) { m_xInAirsideFlight = val; }
+    short GetXInAirsideFlight(){ return m_nLine; }
+    void SetXInAirsideFlight(short val) { m_nLine = val; }
 
-    short GetYInAirsideFlight(){ return m_yInAirsideFlight; }
-    void SetYInAirsideFlight(short val) { m_yInAirsideFlight = val; }
+    short GetYInAirsideFlight(){ return m_nCol; }
+    void SetYInAirsideFlight(short val) { m_nCol = val; }
 
-    float Rotation() const { return m_rotation; }
-    void Rotation(float val) { m_rotation = val; }
+    short GetRotation() const { return m_rotation; }
+    void SetRotation(short val) { m_rotation = val; }
 };
 
 class ClassAirsideFlight
@@ -74,8 +88,8 @@ protected:
     float m_rotation; // the rotation of this ClassAirsideFlight
     std::vector<ClassAirsidePassenger*> m_vAirsidePassengers; // list of pieces
 
-    short m_xLength;
-    short m_yLength;
+    short m_nLineCount;
+    short m_nColCount;
 
     ClassAirsideFlight* m_pPrevAirsideFlight;
     ClassAirsideFlight* m_pNextAirsideFlight;

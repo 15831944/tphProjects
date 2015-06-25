@@ -73,6 +73,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AirsideFlightInfo.h" />
+    <ClInclude Include="CommonOperations.h" />
     <ClInclude Include="DragPicture.h" />
     <ClInclude Include="ErrorHandling.h" />
     <ClInclude Include="Macros.h" />
