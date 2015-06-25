@@ -515,6 +515,8 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		pSchedStandIdleSummaryData->m_dTotal += lTime;
 		pSchedStandIdleSummaryData->m_SummaryData.AddNewData(lTime);
 	}
+    pSchedStandUtilizeSummaryData->m_SummaryData.SortData();
+    pSchedStandIdleSummaryData->m_SummaryData.SortData();
 	m_vSummaryData.push_back(pSchedStandUtilizeSummaryData);
 	m_vSummaryData.push_back(pSchedStandIdleSummaryData);
 
@@ -541,6 +543,8 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		pActualStandIdleSummaryData->m_dTotal += lTime;
 		pActualStandIdleSummaryData->m_SummaryData.AddNewData(lTime);
 	}
+    pActualStandUtilizeSummaryData->m_SummaryData.SortData();
+    pActualStandIdleSummaryData->m_SummaryData.SortData();
 	m_vSummaryData.push_back(pActualStandUtilizeSummaryData);
 	m_vSummaryData.push_back(pActualStandIdleSummaryData);
 
@@ -557,6 +561,7 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		pStandConflictSummaryData->m_dTotal += nConfictCount;
 		pStandConflictSummaryData->m_SummaryData.AddNewData(nConfictCount);
 	}
+    pStandConflictSummaryData->m_SummaryData.SortData();
 	m_vSummaryData.push_back(pStandConflictSummaryData);
 
 
@@ -571,6 +576,7 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		pStandDelaySummaryData->m_dTotal += vStandDelay.at(i);
 		pStandDelaySummaryData->m_SummaryData.AddNewData(vStandDelay.at(i));
 	}
+    pStandDelaySummaryData->m_SummaryData.SortData();
 	m_vSummaryData.push_back(pStandDelaySummaryData);
 }
 

@@ -985,7 +985,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lSchedOccupancy;
+            mapLoadData[iter->first][operationData.m_sSchedName] += operationData.m_lSchedOccupancy;
         }
     }
 
@@ -998,9 +998,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
         {
             tempTool.AddNewData((double)standIter->second);
         }
-// 
-//         CString strTemp = iter->first;
-//         m_summarySchedUtilizeMap[strTemp].m_estAverage = 0L;
+        tempTool.SortData();
+
         m_summarySchedUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
         m_summarySchedUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
         m_summarySchedUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
@@ -1029,7 +1028,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lSchedOccupancy;
+            mapLoadData[iter->first][operationData.m_sSchedName] += operationData.m_lSchedOccupancy;
         }
     }
 
@@ -1041,11 +1040,12 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            long lData = lDuration - standIter->second;
+            long lData = lDuration*100 - standIter->second;
             if(lData<0)
                 lData = 0;
             tempTool.AddNewData((double)(lData));
         }
+        tempTool.SortData();
 
         m_summarySchedIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
         m_summarySchedIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
@@ -1088,6 +1088,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
         {
             tempTool.AddNewData((double)standIter->second);
         }
+        tempTool.SortData();
 
         m_summaryActualUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
         m_summaryActualUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
@@ -1129,11 +1130,12 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            long lData = lDuration - standIter->second;
+            long lData = lDuration*100 - standIter->second;
             if(lData<0)
                 lData = 0;
             tempTool.AddNewData((double)(lData));
         }
+        tempTool.SortData();
 
         m_summaryActualIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
         m_summaryActualIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
@@ -1177,6 +1179,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         {
             tempTool.AddNewData((double)standIter->second);
         }
+        tempTool.SortData();
 
         m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
         m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
@@ -1197,7 +1200,46 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
 
 void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunStandOperationData& standOperationData)
 {
+    mapStandOpResult  mapLoadData;
+    MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
 
+    for (; iter != standOperationData.end(); ++iter)
+    {
+        int iCount = iter->second.size();
+        for (int i = 0; i < iCount; i++)
+        {
+            StandMultipleOperationData operationData = iter->second[i];
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayEnter;
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayLeaving;
+        }
+    }
+
+    CStatisticalTools<double> tempTool;
+    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    for(; simIter!=mapLoadData.end(); simIter++)
+    {
+        mapStandResult::iterator standIter = simIter->second.begin();
+        for(; standIter!=simIter->second.end(); standIter++)
+        {
+            tempTool.AddNewData((double)standIter->second);
+        }
+        tempTool.SortData();
+
+        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+    }
 }
 
 void CAirsideStandMultiRunOperatinResult::InitSummaryListHead( CXListCtrl &cxListCtrl, CSortableHeaderCtrl* piSHC )
@@ -1232,7 +1274,7 @@ void CAirsideStandMultiRunOperatinResult::FillSummaryListContent(CXListCtrl &cxL
 {
     MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
     int idx = 0;
-    for (; iter != m_summarySchedUtilizeMap.end(); iter++)
+    for (; iter != multiRunSummaryMap.end(); iter++)
     {
         CString strIndex;
         strIndex.Format(_T("%d"),idx+1);
