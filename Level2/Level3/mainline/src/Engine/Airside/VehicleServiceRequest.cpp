@@ -9,6 +9,7 @@ VehicleServiceRequest::VehicleServiceRequest(void)
 	m_nServiceVehicleTypeID = 0;
 	m_nServiceCount = 0;   //
 	m_pServiceTimeDistribution = NULL;
+	m_pSubServiceTimeDistribution = NULL;
 	m_bProceed = false;
 }
 
@@ -88,7 +89,7 @@ GeneralVehicleServiceRequest::GeneralVehicleServiceRequest()
 
 
 
-bool VehicleServiceRequestOrderLess::operator()( VehicleServiceRequest* q1, VehicleServiceRequest* q2 )
+bool VehicleServiceRequest::OrderLess( VehicleServiceRequest* q1, VehicleServiceRequest* q2 )
 {
 	if(q1 && q2)
 		return q1->getRequestTime() < q2->getRequestTime();

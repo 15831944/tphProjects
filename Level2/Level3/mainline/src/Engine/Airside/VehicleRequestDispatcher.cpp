@@ -306,13 +306,10 @@ void VehicleRequestDispatcher::DeleteRequest(VehicleServiceRequest* pRequest)
 	}
 	else
 	{
-		VehicleServiceRequestList::iterator itrFind = std::find(m_vUnhandledList.begin(),m_vUnhandledList.end(),pRequest);
-		if(itrFind!=m_vUnhandledList.end())
+		if(m_vUnhandledList.remove(pRequest))
 		{
 			delete pRequest;
-			m_vUnhandledList.erase(itrFind);
-
-		}		
+		}
 	}
 }
 
@@ -471,7 +468,7 @@ void VehicleRequestDispatcher::PaxBusServiceRequestDispatch()
 }
 void VehicleRequestDispatcher::ServiceRequestDispatch()
 {
-	if (m_vUnhandledList.empty())
+	if (m_vUnhandledList.isEmpty())
 	{
 		for (int i =0; i < m_pPoolResManager->GetVehiclePoolCount(); i++)
 		{
@@ -481,18 +478,18 @@ void VehicleRequestDispatcher::ServiceRequestDispatch()
 	}
 
 	
-	ElapsedTime currentTime;
-	if (!m_vUnhandledList.empty())
+	/*ElapsedTime currentTime;
+	if (!m_vUnhandledList.isEmpty())
 	{
-		VehicleServiceRequest* request = *m_vUnhandledList.rbegin();
-		AirsideFlightInSim* pLastFlight = request->GetServiceFlight();
-		currentTime = pLastFlight->GetTime();
+	VehicleServiceRequest* request = *m_vUnhandledList.rbegin();
+	AirsideFlightInSim* pLastFlight = request->GetServiceFlight();
+	currentTime = pLastFlight->GetTime();
 	}	
+	*/
 
-
-	for(VehicleServiceRequestList::iterator itr = m_vUnhandledList.begin();itr!=m_vUnhandledList.end();itr++)
+	for(int  i = 0; i<m_vUnhandledList.getCount(); ++i)
 	{
-		VehicleServiceRequest* pRequest = *itr;
+		VehicleServiceRequest* pRequest = m_vUnhandledList.getItem(i);
 		AirsideFlightInSim* pFlight = pRequest->GetServiceFlight();
 		if(pFlight->GetMode() == OnTerminate )
 		{
@@ -513,7 +510,7 @@ void VehicleRequestDispatcher::ServiceRequestDispatch()
 				if (pPool->HandleServiceRequest(pRequest))
 				{
 					pRequest->SetProceed(true);
-					m_vUnhandledList.erase(itr);
+					m_vUnhandledList.remove(pRequest);
 					break;
 				}
 				else
@@ -987,4 +984,10 @@ void VehicleRequestDispatcher::RemoveBaggageServiceRequest( BaggageTrainServiceR
 	std::vector<BaggageTrainServiceRequest*>::iterator itr = std::find(m_vBagTrainServiceRequest.begin(),m_vBagTrainServiceRequest.end(),req);
 	if(itr!=m_vBagTrainServiceRequest.end())
 		m_vBagTrainServiceRequest.erase(itr);
+}
+
+void VehicleServiceRequestList::insert( VehicleServiceRequest* rq )
+{
+	datalist.add(rq);
+	std::sort(datalist.begin(),datalist.end(), VehicleServiceRequest::OrderLess );
 }

@@ -164,18 +164,18 @@ public:
 		}
 	public:
 		//quarter
-		int m_nQ1;
-		int m_nQ2;
-		int m_nQ3;
+		float m_nQ1;
+		float m_nQ2;
+		float m_nQ3;
 
 		//percentage
-		int m_nP1;
-		int m_nP5;
-		int m_nP10;
-		int m_nP90;
-		int m_nP95;
-		int m_nP99;
-		int m_nStdDev;
+		float m_nP1;
+		float m_nP5;
+		float m_nP10;
+		float m_nP90;
+		float m_nP95;
+		float m_nP99;
+		float m_nStdDev;
 	};
 	class SummaryRunwayCrossingsItem
 	{
@@ -220,7 +220,7 @@ public:
 		long m_lMinWaitTime;
 		std::vector<long> m_vMinWaitTimeIntervals;
 		long m_lMaxWaitTime;
-		long m_lAverageWaitTime;
+		float m_lAverageWaitTime;
 		std::vector<long> m_vMaxWaitTimeIntervals;
 		long m_lTotalWaitTime;
 		StatisticsSummaryRunwayCrossingsItem m_staCrossingCount;

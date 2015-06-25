@@ -9,6 +9,7 @@ using namespace std;
 
 #include <vector>
 #include <set>
+#include "Common\CPPUtil.h"
 
 
 class CAirportDatabase;
@@ -29,6 +30,18 @@ class BaggageTrainServiceRequest;
 class ProcessorList;
 class CBagCartsParkingSpotResourceManager;
 
+class VehicleServiceRequestList
+{
+public:
+	void clear(){ datalist.clear();}
+	void insert(VehicleServiceRequest* rq);
+	bool remove(VehicleServiceRequest* rq){ return datalist.remove(rq); }
+	bool isEmpty()const{ return datalist.empty(); }
+	int getCount()const{ return (int)datalist.size(); }
+	VehicleServiceRequest* getItem(int i){ return datalist.at(i); }
+protected:
+	cpputil::TPtrVector<VehicleServiceRequest> datalist;
+};
 
 class VehicleRequestDispatcher
 {
@@ -67,7 +80,7 @@ public:
 	bool IsRequestCanBeHandled(VehicleServiceRequest* pServiceReq);
 
 	ElapsedTime getVehicleAvaibleTime(AirsideFlightInSim* pFlight, AirsideResource* pDestRes, enumVehicleBaseType vehicleType);
-	typedef std::set<VehicleServiceRequest*, VehicleServiceRequestOrderLess> VehicleServiceRequestList;
+	/*typedef std::set<VehicleServiceRequest*, VehicleServiceRequestOrderLess> VehicleServiceRequestList;*/
 
 	FlightServiceReqirementInSim* GetServiceRequirment()const{return m_pFlightServiceRequirement; }
 

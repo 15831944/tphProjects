@@ -1788,6 +1788,9 @@ void AirTrafficController::AssignIntermediateParking(AirsideFlightInSim* pFlight
 
 				if (pIntermediateStand)
 				{
+					if (m_pDynamicStandReassignment->StandAssignConflict(pFlight,pIntermediateStand) == true)//assign failed
+						continue;
+					
 					ElapsedTime tStart = pFlight->GetArrTime() + pTowData->getFltDeplaneTime();
 					ElapsedTime tEnd = pFlight->GetDepTime() - pTowData->getFltEnplaneTime();
 

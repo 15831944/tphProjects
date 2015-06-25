@@ -997,7 +997,7 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 	{
 		if(mpCurrentDelayLog)
 		{
-			long delayT = ((long)getRealOpTimeOnRunway()) - mpCurrentDelayLog->time;
+			long delayT = ((long)getRealOpTimeOnRunway()) - mpCurrentDelayLog->time - ElapsedTime(GetTakeoffPositionTime()).getPrecisely();
 			mpCurrentDelayLog->mDelayTime = delayT;
 			LogEventItem(mpCurrentDelayLog);
 			mpCurrentDelayLog = NULL;

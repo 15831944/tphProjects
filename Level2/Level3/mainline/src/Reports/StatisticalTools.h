@@ -49,6 +49,34 @@ public:
 		}
 		
 	};
+
+	// get percentile using Microsoft Excel Algorithm
+	DataType GetMSExcelPercentile(int _iPercent)const
+	{
+		ASSERT(_iPercent>0 && _iPercent <=100);
+		int iSize = (int)m_vDatas.size();
+		if(iSize <= 0)
+		{
+			return DataType(0.0);
+		}
+		else if(iSize == 1 && _iPercent < 100)
+		{
+			return DataType(0.0);
+		}
+		else if(_iPercent == 100)
+		{
+			return m_vDatas[iSize - 1];
+		}
+		else
+		{
+			double k_d = (double)(iSize - 1) * (double)_iPercent / 100.0f;
+			int k = (int)k_d;
+			double d = k_d - k;
+			DataType pPercentile = m_vDatas[k] + d * (m_vDatas[k+1] - m_vDatas[k]);
+			return pPercentile;
+		}
+	};
+
 	double GetSigma()const
 	{
 		int iSize = (int)m_vDatas.size();

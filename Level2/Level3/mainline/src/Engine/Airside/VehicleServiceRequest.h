@@ -44,6 +44,9 @@ public:
 
 	bool IsProceed() const;
 
+
+	static bool OrderLess(VehicleServiceRequest* q1, VehicleServiceRequest* q2);
+
 protected:
 	AirsideFlightInSim* m_pServiceFlight;
 	//the vehicle dispatched 
@@ -54,12 +57,6 @@ protected:
 	int m_nServiceCount;  //unserviced count left //unassigned vehicle service point
 	bool m_bProceed;//check the request has been proceed or not, TRUE, yes
 };
-//
-struct VehicleServiceRequestOrderLess
-{
-	bool operator()(VehicleServiceRequest* q1, VehicleServiceRequest* q2);
-};
-
 
 class GeneralVehicleServiceRequest : public VehicleServiceRequest
 {

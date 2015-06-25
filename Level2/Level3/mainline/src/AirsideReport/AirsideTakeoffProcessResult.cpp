@@ -115,7 +115,7 @@ void CAirsideTakeoffProcessResult::GenerateResult( CBGetLogFilePath pCBGetLogFil
 				AirsideConflictionDelayLog* pConflictLog = (AirsideConflictionDelayLog*)pLog;
 				if (pConflictLog->mMode >= OnTakeOffWaitEnterRunway && pConflictLog->mMode <= OnClimbout)
 				{
-					detailData.m_lTakeoffDelay = pConflictLog->mDelayTime;
+					detailData.m_lTakeoffDelay += pConflictLog->mDelayTime;
 				}
 				continue;
 			}

@@ -660,21 +660,6 @@ void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 
 void TerminalMobElementBehavior::processGeneralMovementHelp (ElapsedTime p_time)
 {
-
-	if(m_pPerson->getState() == MoveToInterestedEntryPoint)
-	{
-		MoveToInterestedEntryEvent* pEvent = new MoveToInterestedEntryEvent;
-		pEvent->init(m_pPerson, p_time + moveTime(), false);
-		FixedQueue* pFixQ = (FixedQueue*)m_pProcessor->GetQueue();
-		ASSERT(pFixQ->isFixed() == 'Y');
-		Point ptEntry = pFixQ->corner(pFixQ->getFixQEntryPointIndex());
-		pEvent->calculateMovingPipe(m_ptDestination, ptEntry);
-		pEvent->addEvent();
-		m_pPerson->SetPrevEventTime(pEvent->getTime());
-		return;
-	}
-
-
 	if (m_pPerson->getState() == MoveToQueue)
 		m_pProcessor->addToQueue (m_pPerson, p_time);
 
@@ -6365,6 +6350,18 @@ double TerminalMobElementBehavior::CalculateWalkLengthOfUserPipe(const Point& pt
 	}
 	dDistance += pointList[ptCount-1].distance(ptTo);
 	return dDistance;
+}
+
+void TerminalMobElementBehavior::processMoveToInterestedEntryPoint(ElapsedTime p_time)
+{
+	MoveToInterestedEntryEvent* pEvent = new MoveToInterestedEntryEvent;
+	FixedQueue* pFixQ = (FixedQueue*)m_pProcessor->GetQueue();
+	ASSERT(pFixQ->isFixed() == 'Y');
+	setDestination(pFixQ->corner(m_entryPointCorner));
+	pEvent->init(m_pPerson, p_time+moveTime(), false);
+	pEvent->addEvent();
+	m_pPerson->SetPrevEventTime(pEvent->getTime());
+	return;
 }
 
 

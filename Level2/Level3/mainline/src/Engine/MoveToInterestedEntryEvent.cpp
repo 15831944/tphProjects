@@ -33,10 +33,13 @@ int MoveToInterestedEntryEvent::process(CARCportEngine *_pEngine)
 		(TerminalMobElementBehavior*)pPerson->getBehavior(MobElementBehavior::TerminalBehavior);
 	Processor* pProc = pTerminalBehavior->getProcessor();
 	FixedQueue* pFixQ = (FixedQueue*)pProc->GetQueue();
+	ASSERT(pFixQ->isFixed() == 'Y');
 	int nPerson = pPerson->getID();
 	if(!m_pipePointList.empty())
 	{
+		pPerson->setState(WalkOnPipe);
 		pPerson->writeLogEntry(time, false);
+		pPerson->setState(MoveToInterestedEntryPoint);
 		pTerminalBehavior->setDestination(m_pipePointList.front());
 		m_pipePointList.erase(m_pipePointList.begin());
 		MoveToInterestedEntryEvent* pEvent = new MoveToInterestedEntryEvent;
@@ -52,7 +55,6 @@ int MoveToInterestedEntryEvent::process(CARCportEngine *_pEngine)
 		{
 			calculateMovingPipe(pTerminalBehavior->getDest(), pFixQ->corner(nCurEntryPoint));
 			pTerminalBehavior->setEntryPointCorner(nCurEntryPoint);
-
 			MoveToInterestedEntryEvent* pEvent = new MoveToInterestedEntryEvent;
 			pEvent->init(mobileElement, time, false);
 			pEvent->m_pipePointList = m_pipePointList;
@@ -61,15 +63,12 @@ int MoveToInterestedEntryEvent::process(CARCportEngine *_pEngine)
 			return 0;
 		}
 		pPerson->setState(MoveToQueue);
-		ASSERT(pFixQ->isFixed() == 'Y');
 		Point ptDest =  pFixQ->corner(nCurEntryPoint);
-
 		pPerson->writeLogEntry(time, false);
 		pTerminalBehavior->setDestination(ptDest);
 		pProc->addToQueue((Person*)mobileElement, time + pTerminalBehavior->moveTime());
 		pPerson->generateEvent(time + pTerminalBehavior->moveTime(), false);
 	}
-
 	return 0;
 }
 
@@ -132,8 +131,6 @@ void MoveToInterestedEntryEvent::calculateUserPipe(Point ptFrom, Point ptTo, CFl
 	nPipeCount = vPipeList2.size();
 	if(nPipeCount == 0)
 		return;
-
-	pPerson->writeLogEntry(time, false);
 
 	// get the index and intersection of the source processor with pipe.
 	int nOldState = pPerson->getState();

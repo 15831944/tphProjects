@@ -473,6 +473,13 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 			}
 			 spTerminalBehavior->processGeneralMovement (p_time);
 			break;
+		case MoveToInterestedEntryPoint:
+			if (bNoLog == false)
+			{ 
+				writeLogEntry (p_time, false);
+			}
+			spTerminalBehavior->processMoveToInterestedEntryPoint(p_time);
+			break;
 		default:
 			break;
     }

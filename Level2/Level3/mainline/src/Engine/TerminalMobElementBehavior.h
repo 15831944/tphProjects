@@ -86,6 +86,7 @@ public:
 
 	void processBridge( ElapsedTime p_time );
 
+	virtual void processMoveToInterestedEntryPoint (ElapsedTime p_time);
 
 	int getNextProcessor (ElapsedTime& p_time);
 	Processor *selectProcessor ( ElapsedTime _curTime, bool _bStationOnly = false, bool _bExcludeFlowBeltProc = false, bool bTryExcludeElevatorProc = false);
