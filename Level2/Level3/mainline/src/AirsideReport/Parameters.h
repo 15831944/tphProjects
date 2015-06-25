@@ -76,6 +76,9 @@ public:
 
     bool GetReportRuns(std::vector<int>& vReportRuns);
     void ReportRuns(std::vector<int> val) { m_vReportRuns = val; }
+
+    void AddReportRuns(int nRun);
+    bool RemoveReportRuns(int nRun);
 protected:
 	//chart type
 	int   m_nSubType;

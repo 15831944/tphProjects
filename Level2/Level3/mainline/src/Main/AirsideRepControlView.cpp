@@ -951,6 +951,33 @@ void CAirsideRepControlView::InitializeTree()
 			
 			HTREEITEM hItemTo=m_treePaxType.InsertItem("To", cni, FALSE, FALSE, m_hRootNodeToNode);
 			m_treePaxType.SetItemData(hItemTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToRoot));
+            
+            cni.nt = NT_CHECKBOX;
+            HTREEITEM hRunsRoot = m_treePaxType.InsertItem("Multi Runs", cni, m_pParameter->GetMultiRun(), FALSE);
+            m_treePaxType.SetItemData(hRunsRoot, (DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_MultiRunRoot));
+
+            std::vector<int> vMultiRun;
+            if(m_pParameter->GetReportRuns(vMultiRun))
+            {
+                CSimAndReportManager *pSimAndReportManager = ((CTermPlanDoc *)GetDocument())->GetTerminal().GetSimReportManager();
+                int nSimCount = pSimAndReportManager->getSubSimResultCout();
+                for (int nSim =0; nSim < nSimCount; ++nSim )
+                {
+                    //CSimItem *pSimItem = pSimAndReportManager->getSimItem(nSim);
+                    //CString strSimName = pSimItem->getSubSimName();
+                    CString strSimName;
+                    strSimName.Format(_T("RUN %d"),nSim+1);
+                    HTREEITEM hSubSimItem = TreeInsertItem(strSimName, hRunsRoot, true);
+                    repControlTreeNodeData pNodeData = new repControlTreeNodeData(repControlTreeNodeType_Runs);
+                    pNodeData->m_Data = (DWORD)nSim;
+                    m_treePaxType.SetItemData(hSubSimItem, pNodeData);
+
+                    if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
+                    {
+                        m_treePaxType.SetCheckStatus(hSubSimItem,TRUE);
+                    }
+                }
+            }
 		}
 		break;
 	case Airside_NodeDelay:
@@ -3314,7 +3341,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
 
         }
     }
-    if (message == UM_CEW_EDITSPIN_END || message == UM_CEW_EDITSPIN_BEGIN)
+    else if (message == UM_CEW_EDITSPIN_END || message == UM_CEW_EDITSPIN_BEGIN)
     {
         if(GetReportType() == Airside_ControllerWorkload)
         {
@@ -3322,11 +3349,33 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
                 GetTreePerformer()->DefWindowProc(message,wParam,lParam);
         }
     }
-
-    if (message == WM_LBUTTONDBLCLK)
+    else if (message == WM_LBUTTONDBLCLK)
     {
         if(AirsideReControlView::CTreePerformer * pPerfrom = GetTreePerformer())
             pPerfrom->OnTreeItemDoubleClick((HTREEITEM)wParam);
+    }
+    else if(message == UM_CEW_STATUS_CHANGE)
+    {
+        if(GetReportType() == Airside_FlightDelay)
+        {
+            HTREEITEM hSelItem = (HTREEITEM)wParam;
+            repControlTreeNodeData* pNodeData = (repControlTreeNodeData*)m_treePaxType.GetItemData(hSelItem);
+            if(pNodeData->nodeType == repControlTreeNodeType_MultiRunRoot)
+            {
+                m_pParameter->SetMultiRun(!m_pParameter->GetMultiRun());
+            }
+            else if(pNodeData->nodeType == repControlTreeNodeType_Runs)
+            {
+                if(m_treePaxType.IsCheckItem(hSelItem))
+                {
+                    m_pParameter->AddReportRuns(pNodeData->m_Data);
+                }
+                else
+                {
+                    m_pParameter->RemoveReportRuns(pNodeData->m_Data);
+                }
+            }
+        }
     }
 
     return CFormView::DefWindowProc(message, wParam, lParam);

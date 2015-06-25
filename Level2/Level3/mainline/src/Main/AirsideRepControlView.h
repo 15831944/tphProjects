@@ -69,7 +69,8 @@ public:
 		repControlTreeNodeType_Exit_Oper,
 		//flight fuel burn report
 		repControlTreeNodeType_FromToNode,
-
+        repControlTreeNodeType_MultiRunRoot,
+        repControlTreeNodeType_Runs
 	};
 
 	class repControlTreeNodeData

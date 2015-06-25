@@ -309,3 +309,24 @@ bool CParameters::GetReportRuns(std::vector<int>& vReportRuns)
         return false;
     }
 }
+
+void CParameters::AddReportRuns(int nRun)
+{
+    m_vReportRuns.push_back(nRun);
+    std::sort(m_vReportRuns.begin(), m_vReportRuns.end());
+    m_vReportRuns.erase(std::unique(m_vReportRuns.begin(), m_vReportRuns.end()), m_vReportRuns.end());
+}
+
+bool CParameters::RemoveReportRuns(int nRun)
+{
+    int nCount = (int)m_vReportRuns.size();
+    for(int i=0; i<nCount; i++)
+    {
+        if(m_vReportRuns.at(i) == nRun)
+        {
+            m_vReportRuns.erase(m_vReportRuns.begin() + i);
+            return true;
+        }
+    }
+    return false;
+}
