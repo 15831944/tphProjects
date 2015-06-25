@@ -26,6 +26,7 @@
 
 #include "..\common\template.h"
 #include "inputsdll.h"
+#include "Main/UserShapeBarManager.h"
 
 //
 class CAirsideInput;
@@ -159,6 +160,7 @@ public:
 	CNonPaxRelativePosSpec* GetNonPaxRelativePosSpec()const;
 	TrayHostList* GetTrayHostList()const;
 
+    CUserShapeBarManager* m_pUserBarMan;
 protected:
 	CNonPaxRelativePosSpec* m_pNonPaxRelPosSpec;
 	TrayHostList*			m_pTrayHostList;			

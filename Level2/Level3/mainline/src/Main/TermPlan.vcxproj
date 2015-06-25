@@ -306,6 +306,7 @@
     <ClInclude Include="TaxiPoolFacilityDataPage.h" />
     <ClInclude Include="TaxiQFacilityDataPage.h" />
     <ClInclude Include="Test3DView.h" />
+    <ClInclude Include="UserShapeBarManager.h" />
     <ClInclude Include="VehicleTypeDefDlg.h" />
     <ClInclude Include="XPStyle\ButtonXP.h" />
     <ClInclude Include="CabinCrewDispListCtrl.h" />
@@ -1494,6 +1495,7 @@
     <ClCompile Include="TaxiPoolFacilityDataPage.cpp" />
     <ClCompile Include="TaxiQFacilityDataPage.cpp" />
     <ClCompile Include="Test3DView.cpp" />
+    <ClCompile Include="UserShapeBarManager.cpp" />
     <ClCompile Include="VehicleTypeDefDlg.cpp" />
     <ClCompile Include="XPStyle\ButtonXP.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>

@@ -205,9 +205,23 @@ CShape* CShapesManager::FindShapeByName( CString _csName )
 	return pNewShape;
 }
 
+BOOL CShapesManager::IsShapeExist( CString _csName )
+{
+    int nCount = m_vShapeList.size();
+    for( int i=0; i<nCount; i++ )
+    {
+        CShape* pShape = m_vShapeList[i];
+
+        if( pShape->Name().CompareNoCase( _csName ) == 0 )
+        {
+            return TRUE;
+        }
+    }	
+    return FALSE;
+}
 
 // return -1, if not found
-int CShapesManager::FindShapeSetByName( CString _csName )
+int CShapesManager::FindShapeIndexByName( CString _csName )
 {
 	int nCount = static_cast<int>(m_vShapeSetsModules.size());
 	for( int i = 0; i < nCount; i++ )
@@ -219,10 +233,6 @@ int CShapesManager::FindShapeSetByName( CString _csName )
 
 	return -1;
 }
-
-
-
-
 
 int CShapesManager::GetShapeSetCount() const
 {

@@ -89,6 +89,7 @@ enum InputFiles
 	PassengerBulkFile,
 	FlowSyncFile,
     RosterRulesFile ,
+    UserShapeBar,
 // Binary log files
     PaxDescFile,//= PeopleMoverFile + 5,// no: 22
     PaxEventFile,
@@ -361,7 +362,7 @@ enum InputFiles
 	VehicleDistributionFile,//vehicle distribution file
 	BridgeConnectorPaxDataFile, //Bridge Connector passenger data
     ArrivalGateAdjacency,
-    DepartureGateAdjacency
+    DepartureGateAdjacency,
 };
 
 enum GeneralFiles

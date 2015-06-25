@@ -2241,35 +2241,6 @@ CString CGfxOutBarCtrl::GetFolderPathText(const int index)
 	return path;
 }
 
-// check the folder name is existed
-BOOL CGfxOutBarCtrl::IsFolderNameExist(const CString& strFolderName)
-{
-    int nFolderCount = GetFolderCount();
-    for(int i=0; i<nFolderCount; i++)
-    {
-        CString ExistFN = GetFolderText(i);
-        if (strFolderName.Compare(ExistFN) == 0)
-        {
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
-int CGfxOutBarCtrl::GetFolderIndexByName(const CString& strFolderName)
-{
-    int nFolderCount = GetFolderCount();
-    for(int i=0; i<nFolderCount; i++)
-    {
-        CString ExistFN = GetFolderText(i);
-        if(strFolderName.Compare(ExistFN) == 0)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
 CString CGfxOutBarCtrl::GetItemText(const int index)
 {
 	CString item;
@@ -2282,35 +2253,6 @@ CString CGfxOutBarCtrl::GetItemText(const int index)
 		if (pi->cItem) item = pi->cItem;
 	}
 	return item;
-}
-
-//check the item name is existed
-BOOL CGfxOutBarCtrl::IsItemNameExist( const CString& strItem )
-{
-    int nItemCount = GetItemCount();
-    for(int i=0; i<nItemCount; i++)
-    {
-        CString existItem = GetItemText(i);
-        if (strItem.Compare(existItem) == 0)
-        {
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
-int CGfxOutBarCtrl::GetItemIndexByName( const CString& strItem )
-{
-    int nItemCount = GetItemCount();
-    for(int i=0; i<nItemCount; i++)
-    {
-        CString existItem = GetItemText(i);
-        if (strItem.Compare(existItem) == 0)
-        {
-            return i;
-        }
-    }
-    return -1;
 }
 
 

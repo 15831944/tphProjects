@@ -23,9 +23,9 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 
 BEGIN_MESSAGE_MAP(CShapesBar, CSizingControlBarG)
 	//{{AFX_MSG_MAP(CShapesBar)
@@ -65,8 +65,12 @@ int CShapesBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     // Create an 8-point MS Sans Serif font for the list box.
     m_font.CreatePointFont (80, _T ("MS Sans Serif"));
-	folder_index = 0;
-	item_index = 0;
+	m_iSelFolder = 0;
+	m_iSelItem = 0;
+    char buf[256] = {0};
+    GetTempPath(255, buf);
+    m_strTempPath += CString(buf) + "shape_info";
+    m_strShapeFileName = "export_shape_bar.txt";
 	return 0;
 }
 
@@ -155,10 +159,10 @@ LRESULT CShapesBar::OnPopMenu(WPARAM wParam, LPARAM lParam)
 	ClientToScreen(&point);
 	if (ht == m_wndOutBarCtrl.htFolder)
 	{
-		folder_index = index;
-		item_index = 0;
+		m_iSelFolder = index;
+		m_iSelItem = 0;
         // old shape bars can not be edit.
-        if(folder_index < 4)
+        if(m_iSelFolder < 4)
             pSubMenu = Menu.GetSubMenu(3);
         else
             pSubMenu = Menu.GetSubMenu(0);
@@ -166,9 +170,9 @@ LRESULT CShapesBar::OnPopMenu(WPARAM wParam, LPARAM lParam)
 	}
 	else if(ht == m_wndOutBarCtrl.htItem)
 	{
-		folder_index = m_wndOutBarCtrl.GetSelFolder();
-		item_index = index;
-		if(folder_index < 4)
+		m_iSelFolder = m_wndOutBarCtrl.GetSelFolder();
+		m_iSelItem = index;
+		if(m_iSelFolder < 4)
             pSubMenu = Menu.GetSubMenu(3);
         else
             pSubMenu = Menu.GetSubMenu(1);
@@ -176,9 +180,9 @@ LRESULT CShapesBar::OnPopMenu(WPARAM wParam, LPARAM lParam)
 	}
 	else
 	{
-		folder_index = m_wndOutBarCtrl.GetSelFolder();
-		item_index = m_wndOutBarCtrl.GetItemCount();
-		if(folder_index < 4)
+		m_iSelFolder = m_wndOutBarCtrl.GetSelFolder();
+		m_iSelItem = m_wndOutBarCtrl.GetItemCount();
+		if(m_iSelFolder < 4)
             pSubMenu = Menu.GetSubMenu(3);
         else
             pSubMenu = Menu.GetSubMenu(2);
@@ -187,270 +191,46 @@ LRESULT CShapesBar::OnPopMenu(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-// read user defined bars from file
-void CShapesBar::ReadUserShapeBars()
+void CShapesBar::AddUserShapesToShapesBar()
 {
-    try
+    int nBarCount = m_pUserBarMan->GetUserBarCount();
+
+    for(int i=0; i<nBarCount; i++)
     {
-        CString FileINI = UserProjectPath + "\\INPUT\\UserShapesBar.INI";
-        CFile pFile;
-        if(pFile.Open(FileINI, CFile::modeRead)==0)
-            return;
-        CArchive ar(&pFile,CArchive::load);
-        char line[513];
-        ar.ReadString(line,512);
-        ar.ReadString(line,512);
-        if(_stricmp(line,"User Shape Bar Database") == 0)
+        CUserShapeBar* pUserBar = m_pUserBarMan->GetUserBarByIndex(i);
+        int folderIndex = m_wndOutBarCtrl.AddFolder(pUserBar->GetBarName(), (DWORD)pUserBar);
+
+        int nShapeCount = pUserBar->GetShapeCount();
+        CShape::CShapeList* pShapeList = pUserBar->GetUserShapeList();
+        for(int j=0; j<nShapeCount; j++)
         {
-            ar.ReadString(line,512);
-            int sel = m_wndOutBarCtrl.iSelFolder;
-            while(ar.ReadString(line, 512))
-            {
-                CString str = line;
-                if(!str.Compare(""))
-                    break;
-                int n = str.Find(",");
-                if(n != -1)
-                {
-                    CUserShapeBar* pUserBar = new CUserShapeBar();
-                    CString strName = str.Left(n);
-                    pUserBar->SetBarName(strName);
-                    CString strPath = str.Right(str.GetLength()-n-1);
-                    pUserBar->SetBarLocation(strPath);
-                    ReadUserShapes(pUserBar);
-                    m_vUserBars.push_back(pUserBar);
-                }
-            }
+            HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,pShapeList->at(j)->ImageFileName() , IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+            CBitmap bm;
+            bm.Attach(hBitmap);
+            int nR = m_largeIL.Add(&bm,RGB(255,0,255));
+            bm.DeleteObject();
+            hBitmap = (HBITMAP) ::LoadImage(NULL,pShapeList->at(j)->ImageFileName() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+            bm.Attach(hBitmap);
+            m_smallIL.Add(&bm,RGB(255,0,255));
+            bm.DeleteObject();
+            m_wndOutBarCtrl.InsertItem(folderIndex, -1, pShapeList->at(j)->Name(),nR, (DWORD)pShapeList->at(j));
         }
-
-
-        int nBarCount = (int)m_vUserBars.size();
-        int sel = m_wndOutBarCtrl.iSelFolder;
-        if(nBarCount != 0)
-        {
-            for(int i=0, nCount=4; i<nBarCount; i++, nCount++)
-            {
-                m_wndOutBarCtrl.AddFolder(m_vUserBars.at(i)->GetBarName(), nCount);
-                m_wndOutBarCtrl.SetFolderPathText(nCount, m_vUserBars.at(i)->GetBarLocation());
-                m_wndOutBarCtrl.iSelFolder = nCount;
-
-                int nShapeCount = m_vUserBars.at(i)->GetShapeCount();
-                CShape::CShapeList* pShapeList = m_vUserBars.at(i)->GetUserShapeList();
-                for(int i=0; i<nShapeCount; i++)
-                {
-                    HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,pShapeList->at(i)->ImageFileName() , IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-                    CBitmap bm;
-                    bm.Attach(hBitmap);
-                    int nR = m_largeIL.Add(&bm,RGB(255,0,255));
-                    bm.DeleteObject();
-                    hBitmap = (HBITMAP) ::LoadImage(NULL,pShapeList->at(i)->ImageFileName() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-                    bm.Attach(hBitmap);
-                    m_smallIL.Add(&bm,RGB(255,0,255));
-                    bm.DeleteObject();
-                    m_wndOutBarCtrl.InsertItem(m_wndOutBarCtrl.GetSelFolder(), -1, pShapeList->at(i)->Name(),nR, (DWORD)pShapeList->at(i));
-                }
-            }
-        }
-        m_wndOutBarCtrl.iSelFolder = sel;
-
     }
-    catch(CException* e)
-    {
-        e->Delete();
-        return;
-    }
-}
-
-BOOL CShapesBar::ReadUserShapes(CUserShapeBar* pUserBar)
-{
-    try
-    {
-        CString fileName = UserProjectPath + "\\INPUT\\UserBars\\" + pUserBar->GetBarName() + ".INI";
-        CFile pFile;
-        if(pFile.Open(fileName, CFile::modeRead)==0)
-        {
-            return FALSE;
-        }
-
-        CArchive ar(&pFile,CArchive::load);
-        char line[513];
-        ar.ReadString(line,512);
-        ar.ReadString(line,512);
-        if(_stricmp(line,"User Shapes Database") == 0)
-        {
-            CShape::CShapeList* pShapeList = pUserBar->GetUserShapeList();
-
-            ar.ReadString(line,512);
-            while(*(ar.ReadString(line, 512)) != '\0')
-            {
-
-                CShape* pShape = new CShape();
-                char* b = line;
-                char* p = NULL;
-                int c = 1;	
-                while((p = strchr(b, ',')) != NULL)
-                {
-                    *p = '\0';
-                    switch(c)
-                    {
-                    case 1: //name
-                        pShape->Name(b);
-                        break;
-                    case 2: //shape file
-                        pShape->ShapeFileName(b);
-                        break;
-                    default:
-                        break;
-                    }
-                    b = ++p;
-                    c++;
-                }
-                if(b!=NULL&&c==3) // the last column did not have a comma after it
-                {
-                    pShape->ImageFileName(b);
-                }
-                pUserBar->AddShape(pShape);
-            }
-
-            int nShapeCount = pUserBar->GetShapeCount();
-            if(nShapeCount != 0)
-            {
-                // add to Shapes Manager?
-                CShape::CShapeList* pSL = SHAPESMANAGER->GetShapeList();
-                pSL->insert(pSL->end(), pShapeList->begin(), pShapeList->end());
-            }
-            m_wndOutBarCtrl.Invalidate();
-            ar.Close();
-            pFile.Close();
-            return TRUE;
-        }
-        ar.Close();
-        pFile.Close();
-        return FALSE;
-    }
-    catch(CException* e)
-    {
-        e->Delete();
-        return FALSE;
-    }	
-}
-
-// write user defined shape bars to file.
-void CShapesBar::WriteUserShapeBars()
-{
-    if(m_vUserBars.empty())
-        return;
-    CString FileINI = UserProjectPath + "\\INPUT\\UserShapesBar.INI";
-    if(PathFileExists(FileINI)==TRUE)
-        DeleteFile(FileINI);
-
-    CString BarsDirectory = UserProjectPath + "\\INPUT\\UserBars\\";
-    if(PathFileExists(BarsDirectory)==TRUE)
-        myDeleteDirectory(BarsDirectory);
-    CreateDirectory(BarsDirectory,NULL);
-
-    CString sProjectName;
-    int n = UserProjectPath.GetLength() - UserProjectPath.ReverseFind('\\')-1;
-    sProjectName = UserProjectPath.Right(n);
-
-    PROJECTINFO* pi = new PROJECTINFO();
-    PROJMANAGER->GetProjectInfo(sProjectName,pi);
-    CFile pFile(FileINI,CFile::modeWrite|CFile::modeCreate);
-    CArchive ar(&pFile,CArchive::store);
-    CString str;
-    str.Format("UserShapesBar.INI,%d\r\n",pi->version);
-    ar.Write(str,str.GetLength());
-
-    str = "User Shape Bar Database\r\n";
-    ar.Write(str,str.GetLength());
-
-    str = "Bar Name, Bar Location\r\n";
-    ar.Write(str,str.GetLength());
-
-    int nCount = (int)m_vUserBars.size();
-    for (int i = 0 ; i < nCount ; i++)
-    {
-        str = m_vUserBars.at(i)->GetBarName();
-        ar.Write(str,str.GetLength());
-
-        WriteShapeInformation(BarsDirectory + str + ".INI", i);
-        ar.Write(",", 1);
-        str = m_vUserBars.at(i)->GetBarLocation() + "\r\n";
-        ar.Write(str, str.GetLength());	
-    }
-
-    str = "\r\n";
-    ar.Write(str,str.GetLength());
-
-    str = pi->modifytime.Format("%y/%m/%d,%H:%M:%S");
-    ar.Write(str,str.GetLength());
-
-    ar.Close();
-    pFile.Close();	
-
-}
-
-// write shape informations to file
-BOOL CShapesBar::WriteShapeInformation(CString strFile, int barIndex)
-{
-    CString FileINI = strFile;
-    if(PathFileExists(FileINI)==TRUE)
-        DeleteFile(FileINI);
-
-    CString sProjectName;
-    int n = UserProjectPath.GetLength() - UserProjectPath.ReverseFind('\\')-1;
-    sProjectName = UserProjectPath.Right(n);
-    PROJECTINFO* pi = new PROJECTINFO();
-    PROJMANAGER->GetProjectInfo(sProjectName,pi);
-
-    CString filename = strFile;
-    n = filename.GetLength() - filename.ReverseFind('\\')-1;
-    filename = filename.Right(n);
-
-    CFile pFile(FileINI,CFile::modeWrite|CFile::modeCreate);
-    CArchive ar(&pFile,CArchive::store);
-    CString str;
-    str.Format(filename +",%d\r\n",pi->version);
-    ar.Write(str,str.GetLength());
-
-    str = "User Shapes Database\r\n";
-    ar.Write(str,str.GetLength());
-
-    str = "Shape Name, Model Location, Image Location\r\n";
-    ar.Write(str,str.GetLength());
-
-    CShape* pShape = NULL;
-    CUserShapeBar* pUserBar = m_vUserBars.at(barIndex);
-    int shapeCount = pUserBar->GetShapeCount();
-    for(int i=0; i<shapeCount; i++)
-    {
-        pShape = pUserBar->GetShapeByIndex(i);
-        str.Format("%s,%s,%s\r\n",pShape->Name(),pShape->ShapeFileName(),pShape->ImageFileName());
-        ar.Write(str,str.GetLength());
-    }
-
-    str = "\r\n";
-    ar.Write(str,str.GetLength());
-
-    str = pi->modifytime.Format("%y/%m/%d,%H:%M:%S");
-    ar.Write(str,str.GetLength());
-
-    ar.Close();
-    pFile.Close();
-    return TRUE;
 }
 
 void CShapesBar::OnImport()
 {
     CImportUserShapeBarDlg dlg;
-    
+    dlg.SetShapeFileName(m_strShapeFileName);
+    dlg.SetTempPath(m_strTempPath);
     while(dlg.DoModal() == IDOK)
     {
-        CString strBarName, strZipName, strBarLocation;
+        CString strZipName;
         strZipName = dlg.GetZipFileName();
-        strBarLocation = dlg.GetFolderLocation();
-        strBarName = dlg.GetBarName();
-        if(IsUserShapeBarExist(strBarName))
+
+        CUserShapeBar& importUserBar = dlg.GetUserShapeBar();
+        CString strBarName = importUserBar.GetBarName();
+        if(m_pUserBarMan->IsUserShapeBarExist(strBarName))
         {
             CString strErr;
             strErr.Format("A shape bar named '%s' already exists, please rename.", strBarName);
@@ -458,41 +238,87 @@ void CShapesBar::OnImport()
             continue;
         }
 
-        CUserShapeBar* pUserBar = new CUserShapeBar();
-        pUserBar->SetBarName(strBarName);
-        pUserBar->SetBarLocation(strBarLocation);
-        m_vUserBars.push_back(pUserBar);
-        // UnZip(strZipName, strBarLocation);
-        // if exist, rename it.
-        // copy 'ini' file, rename to 'strBarName.ini'
-        // 
-        ReadUserShapes(pUserBar);
+        CUserShapeBar* pUserBar = new CUserShapeBar;
+        *pUserBar = importUserBar;
+        CString strBarLocation = importUserBar.GetBarLocation();
 
-        int nCount = m_wndOutBarCtrl.GetFolderCount();
-        m_wndOutBarCtrl.AddFolder(pUserBar->GetBarName(), (DWORD)pUserBar);
-        m_wndOutBarCtrl.iSelFolder = nCount - 1;
+        // create unzip destination if not exist
+        if(!PathFileExists(strBarLocation))
+            CreateDirectory(strBarLocation, NULL);
 
+        // change all shapes' ".bmp" and ".dxf" file name
         int nShapeCount = pUserBar->GetShapeCount();
-        CShape::CShapeList* pShapeList = pUserBar->GetUserShapeList();
-
-        // add to SHAPESMANAGER
-        CShape::CShapeList* pSL = SHAPESMANAGER->GetShapeList();
-        pSL->insert(pSL->end(), pShapeList->begin(), pShapeList->end());
-
-        // update GUI
         for(int i=0; i<nShapeCount; i++)
         {
-            HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,pShapeList->at(i)->ImageFileName() , IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+            CShape* pShape = pUserBar->GetShapeByIndex(i);
+            CString strPic = pShape->ImageFileName();
+            int nPos = strPic.ReverseFind('\\');
+            strPic = strPic.Right(strPic.GetLength() - nPos - 1);
+            pShape->ImageFileName(strBarLocation + "\\" + strPic);
+
+            CString strDxf = pShape->ShapeFileName();
+            nPos = strDxf.ReverseFind('\\');
+            strDxf = strDxf.Right(strDxf.GetLength() - nPos - 1);
+            pShape->ShapeFileName(strBarLocation + "\\" + strDxf);
+        }
+
+
+        // file list of temp path 
+        std::vector<CString> vSrcDirFL;
+        // file list of bar location(destination path)
+        std::vector<CString> vDestDirFL;
+        CImportUserShapeBarDlg::FindFiles(m_strTempPath, vDestDirFL);
+        CImportUserShapeBarDlg::FindFiles(strBarLocation, vDestDirFL);
+        for(int i=0; i<(int)vSrcDirFL.size(); i++)
+        {
+            CString strFile = vSrcDirFL.at(i);
+
+            CString str1 = m_strTempPath + "\\" + strFile;
+            CString str2 = strBarLocation + "\\" + strFile;
+            CopyFile(str1, str2, FALSE); // copy files
+        }
+
+        // add to SHAPESMANAGER
+        CShape::CShapeList* pUserShapeList = pUserBar->GetUserShapeList();
+        CShape::CShapeList* pSL = SHAPESMANAGER->GetShapeList();
+
+        // if imported shape's is existed, rename it.
+        size_t nUShapeCount = pUserShapeList->size();
+        for(size_t i=0; i<nUShapeCount; i++)
+        {
+            CShape* pUserShape = pUserShapeList->at(i);
+            if(m_pUserBarMan->IsUserShapeExist(pUserShape->Name()))
+            {
+                CString strNewName = m_pUserBarMan->GetAnAvailableShapeName(pUserShape->Name());
+                pUserShape->Name(strNewName);
+            }
+        }
+
+        // add to dataset
+        m_pUserBarMan->AddUserBar(pUserBar);
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
+
+        // add to shape manager so 3DView can find and render.
+        pSL->insert(pSL->end(), pUserShapeList->begin(), pUserShapeList->end());
+
+        // update GUI
+        int iFolder = m_wndOutBarCtrl.AddFolder(pUserBar->GetBarName(), (DWORD)pUserBar);
+        m_wndOutBarCtrl.iSelFolder = iFolder;
+        for(int i=0; i<nShapeCount; i++)
+        {
+            HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,pUserShapeList->at(i)->ImageFileName() , IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
             CBitmap bm;
             bm.Attach(hBitmap);
             int nR = m_largeIL.Add(&bm,RGB(255,0,255));
             bm.DeleteObject();
-            hBitmap = (HBITMAP) ::LoadImage(NULL,pShapeList->at(i)->ImageFileName() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+            hBitmap = (HBITMAP) ::LoadImage(NULL,pUserShapeList->at(i)->ImageFileName() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
             bm.Attach(hBitmap);
             m_smallIL.Add(&bm,RGB(255,0,255));
             bm.DeleteObject();
-            m_wndOutBarCtrl.InsertItem(m_wndOutBarCtrl.GetSelFolder(), -1, pShapeList->at(i)->Name(),nR, (DWORD)pShapeList->at(i));
+            m_wndOutBarCtrl.InsertItem(m_wndOutBarCtrl.GetSelFolder(), -1, pUserShapeList->at(i)->Name(),nR, (DWORD)pUserShapeList->at(i));
         }
+        m_wndOutBarCtrl.SetSelFolder(iFolder);
+        break;
     }
 }
 
@@ -505,19 +331,35 @@ void CShapesBar::OnExport()
     {
         strZipDest = dlgFile.GetPathName();
     }
-    
+
+    CString tempBarInformationFile = m_strTempPath + "\\" + m_strShapeFileName;
+    CUserShapeBarManager tempUserBarMan;
+    tempUserBarMan.AddUserBar(pUserBar);
+    ArctermFile tempFile;
+    if(!PathFileExists(m_strTempPath))
+        CreateDirectory(m_strTempPath, NULL);
+    tempFile.openFile(tempBarInformationFile, WRITE);
+    tempUserBarMan.writeData(tempFile);
+    tempFile.closeOut();
     std::vector<CString> vZipList;
-    CString strINIFile = UserProjectPath + "\\INPUT\\UserBars\\" + pUserBar->GetBarName();
-    vZipList.push_back(strINIFile);
+    vZipList.push_back(tempBarInformationFile);
     int nCount = pUserBar->GetShapeCount();
     for(int i=0; i<nCount; i++)
     {
         CShape* pShape = pUserBar->GetShapeByIndex(i);
+        int nFileCount = (int)vZipList.size();
+        for(int j=0; j<nFileCount; j++)
+        {
+
+        }
         vZipList.push_back(pShape->ImageFileName());
         vZipList.push_back(pShape->ShapeFileName());
     }
-
+    sort(vZipList.begin(), vZipList.end());
+    vZipList.erase(unique(vZipList.begin(), vZipList.end()), vZipList.end());
     ZipFiles(strZipDest, vZipList);
+
+    myDeleteDirectory(m_strTempPath);
 }
 
 BOOL CShapesBar::ZipFiles(const CString& strFilePath, const std::vector<CString>& vZipFiles)
@@ -543,70 +385,26 @@ BOOL CShapesBar::ZipFiles(const CString& strFilePath, const std::vector<CString>
     return TRUE;
 }
 
-BOOL CShapesBar::ExportShapeBarAndShapes(CString strZip)
-{
-    if(PathFileExists(strZip)==TRUE)
-        DeleteFile(strZip);
-
-//     CString sProjectName;
-//     int n = UserProjectPath.GetLength() - UserProjectPath.ReverseFind('\\')-1;
-//     sProjectName = UserProjectPath.Right(n);
-//     PROJECTINFO* pi = new PROJECTINFO();
-//     PROJMANAGER->GetProjectInfo(sProjectName, pi);
-
-//     CString filename = strZip;
-//     n = filename.GetLength() - filename.ReverseFind('\\')-1;
-//     filename = filename.Right(n);
-// 
-//     CString FileINI = strZip + "\\" + filename + ".INI";
-//     CFile pFile(FileINI,CFile::modeWrite|CFile::modeCreate);
-//     CArchive ar(&pFile,CArchive::store);
-//     CString str;
-//     str.Format(filename +",%d\r\n",pi->version);	ar.Write(str,str.GetLength());
-//     str = "Shapes Database\r\n";	ar.Write(str,str.GetLength());
-//     str = "Name,File,Image\r\n";	ar.Write(str,str.GetLength());
-//     CShape* pShape = NULL;
-//     for(int i=0;i<m_wndOutBarCtrl.GetItemCount();i++)
-//     {
-//         pShape = (CShape*)m_wndOutBarCtrl.GetItemData(i);
-// 
-//         CString shapefilename = strZip + "\\" + pShape->Name() + ".bmp";
-//         CopyFile(pShape->ShapeFileName(),shapefilename,FALSE);
-// 
-//         CString imagefilename = strZip + "\\" + pShape->Name() + ".dxf";
-//         CopyFile(pShape->ImageFileName(),imagefilename,FALSE);
-// 
-//         str.Format("%s,%s,%s\r\n",pShape->Name(),shapefilename,imagefilename);
-//         ar.Write(str,str.GetLength());
-//     }
-//     m_wndOutBarCtrl.Invalidate();
-//     str = "\r\n";	ar.Write(str,str.GetLength());
-//     str = pi->modifytime.Format("%y/%m/%d,%H:%M:%S");	ar.Write(str,str.GetLength());
-//     ar.Close();
-//     pFile.Close();
-
-    return TRUE;
-}
-
 void CShapesBar::OnNewShapeBar()
 {
     CShapeFolder dlg;
 
     CString strNewBar = _T("New Shape Bar");
-    if(IsUserShapeBarExist(strNewBar))
+    if(m_pUserBarMan->IsUserShapeBarExist(strNewBar))
     {
         for(int i=1; ; i++)
         {
             strNewBar.Format("New Shape Bar%d", i);
-            if(!IsUserShapeBarExist(strNewBar))
+            if(!m_pUserBarMan->IsUserShapeBarExist(strNewBar))
                 break;
         }
     }
 
     dlg.SetShapeBarName(strNewBar);
+    dlg.SetTitle(_T("New Shape Bar"));
     while(dlg.DoModal() == IDOK)
     {
-        if(IsUserShapeBarExist(dlg.GetShapeBarName()))
+        if(m_pUserBarMan->IsUserShapeBarExist(dlg.GetShapeBarName()))
         {
             CString strErr;
             strErr.Format("A shape bar named '%s' already exists.", dlg.GetShapeBarName());
@@ -618,40 +416,47 @@ void CShapesBar::OnNewShapeBar()
         CUserShapeBar* pUserBar = new CUserShapeBar();
         pUserBar->SetBarName(dlg.GetShapeBarName());
         pUserBar->SetBarLocation(dlg.GetShapeBarLocation());
-        m_vUserBars.push_back(pUserBar);
+        m_pUserBarMan->AddUserBar(pUserBar);
 
-        int index = m_wndOutBarCtrl.GetFolderCount();
-        m_wndOutBarCtrl.AddFolder(dlg.GetShapeBarName(),index);
-        m_wndOutBarCtrl.SetFolderPathText(index,dlg.GetShapeBarLocation());
+        // update GUI
+        int index = m_wndOutBarCtrl.AddFolder(dlg.GetShapeBarName(), (DWORD)pUserBar);
         m_wndOutBarCtrl.iSelFolder = index;
         m_wndOutBarCtrl.Invalidate();
 
         // if the directory for this shape bar doesn't exist, create one.
         if(PathFileExists(dlg.GetShapeBarLocation())==FALSE)
             CreateDirectory(dlg.GetShapeBarLocation(), NULL);
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
         break;
     }
 }
 
 void CShapesBar::OnEditShapeBar()
 {
-    CShapeFolder dlg(m_wndOutBarCtrl.GetFolderText(folder_index),m_wndOutBarCtrl.GetFolderPathText(folder_index));
+    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_wndOutBarCtrl.iSelFolder);
+    ASSERT(pUserBar);
+    CShapeFolder dlg(pUserBar->GetBarName(), pUserBar->GetBarLocation());
     dlg.SetTitle("Edit Shape Bar");
     while(dlg.DoModal() == IDOK)
     {
         //check the name is available
-        int nIndex = m_wndOutBarCtrl.GetFolderIndexByName(dlg.GetShapeBarName());
-        if(nIndex != -1 && nIndex != folder_index)
+        CUserShapeBar* pTempUserBar = m_pUserBarMan->FindUserBarByName(dlg.GetShapeBarName());
+        if(pTempUserBar != NULL && pTempUserBar != pUserBar)
         {
             CString strErr;
             strErr.Format("A shape bar named '%s' already exists.", dlg.GetShapeBarName());
             AfxMessageBox(strErr, MB_OK);
             continue;
         }
-        //update the shape bar
-        m_wndOutBarCtrl.SetFolderText(folder_index, dlg.GetShapeBarName());
-        m_wndOutBarCtrl.SetFolderPathText(folder_index, dlg.GetShapeBarLocation());
+
+        //update the shape bar data
+        pUserBar->SetBarName(dlg.GetShapeBarName());
+        pUserBar->SetBarLocation(dlg.GetShapeBarLocation());
+
+        // update GUI
+        m_wndOutBarCtrl.SetFolderText(m_wndOutBarCtrl.iSelFolder, dlg.GetShapeBarName());
         m_wndOutBarCtrl.Invalidate();
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
         break;
     }
 }
@@ -659,34 +464,43 @@ void CShapesBar::OnEditShapeBar()
 void CShapesBar::OnDeleteShapeBar()
 {
     CString strWarn;
-    strWarn.Format("Delete shape bar '%s'?", m_wndOutBarCtrl.GetFolderText(folder_index));
+    strWarn.Format("Delete shape bar '%s'?", m_wndOutBarCtrl.GetFolderText(m_iSelFolder));
     if(MessageBox(strWarn, "Delete shape bar", MB_YESNO | MB_ICONWARNING) == IDYES)
     {
+        CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
+        ASSERT(m_pUserBarMan->FindUserBarByName(pUserBar->GetBarName()) != NULL);
 
-        m_wndOutBarCtrl.RemoveFolder(folder_index);
+        // delete shape bar
+        m_pUserBarMan->DeleteUserShapeBar(pUserBar);
+
+        // update GUI
+        m_wndOutBarCtrl.RemoveFolder(m_iSelFolder);
+
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
     }
 }
 
 void CShapesBar::OnNewShape()
 {
     CString strNewShape = _T("New Shape");
-    if(m_wndOutBarCtrl.IsItemNameExist(strNewShape))
+    if(m_pUserBarMan->IsUserShapeExist(strNewShape))
     {
         for(int i=1; ; i++)
         {
             strNewShape.Format("New Shape%d", i);
-            if(!m_wndOutBarCtrl.IsItemNameExist(strNewShape))
+            if(!m_pUserBarMan->IsUserShapeExist(strNewShape))
                 break;
         }
     }
 
-    CShapeItem dlg(m_wndOutBarCtrl.GetFolderPathText(folder_index));
+    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
+    CShapeItem dlg(pUserBar->GetBarLocation());
     dlg.SetTitle("New Shape");
     dlg.SetShapeName(strNewShape);
 
     while(dlg.DoModal() == IDOK)
     {
-        if(m_wndOutBarCtrl.IsItemNameExist(dlg.GetShapeName()))
+        if(m_pUserBarMan->IsUserShapeExist(strNewShape))
         {
             CString strErr;
             strErr.Format("A shape named '%s' already exists.", dlg.GetShapeName());
@@ -694,7 +508,15 @@ void CShapesBar::OnNewShape()
             continue;
         }
 
-        //add item
+        // update data
+        CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
+        CShape* pShape = new CShape();
+        pShape->Name(dlg.GetShapeName());
+        pShape->ShapeFileName(dlg.GetShapeModel());
+        pShape->ImageFileName(dlg.GetShapePicture());
+        pUserBar->AddShape(pShape);
+
+        // update GUI
         HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
         CBitmap bm;
         bm.Attach(hBitmap);
@@ -704,27 +526,9 @@ void CShapesBar::OnNewShape()
         bm.Attach(hBitmap);
         m_smallIL.Add(&bm,RGB(255,0,255));
         bm.DeleteObject();
-
-        CShape* pShape = new CShape();
-        pShape->Name(dlg.GetShapeName());
-        pShape->ShapeFileName(dlg.GetShapeModel());
-        pShape->ImageFileName(dlg.GetShapePicture());
-        m_wndOutBarCtrl.InsertItem(folder_index, -1, dlg.GetShapeName(),nR,(DWORD)pShape);
+        m_wndOutBarCtrl.InsertItem(m_iSelFolder, -1, dlg.GetShapeName(),nR,(DWORD)pShape);
         m_wndOutBarCtrl.Invalidate();
-
-        //add new resource
-        //CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
-        //if(PathFileExists(StoragePath) == FALSE)
-        //	CreateDirectory(StoragePath, NULL);
-
-        //CString sPictureName,sModelName;
-        //int n = dlg.itemPicture.GetLength() - dlg.itemPicture.ReverseFind('\\')-1;
-        //sPictureName = StoragePath + "\\" + dlg.itemPicture.Right(n);
-        //n = dlg.itemModel.GetLength() - dlg.itemModel.ReverseFind('\\')-1;
-        //sModelName = StoragePath  + "\\" + dlg.itemModel.Right(n);
-
-        //CopyFile(dlg.itemPicture,sPictureName,TRUE);
-        //CopyFile(dlg.itemModel,sModelName,TRUE);
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
         break;
 	}
 
@@ -732,26 +536,30 @@ void CShapesBar::OnNewShape()
 
 void CShapesBar::OnEditShape()
 {
-	CShape* pShape = (CShape*)m_wndOutBarCtrl.GetItemData(item_index);
-	CShapeItem dlg(m_wndOutBarCtrl.GetFolderPathText(folder_index),pShape->Name(),
-		pShape->ImageFileName(),pShape->ShapeFileName());
+    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
+    CShape* pShape = (CShape*)m_wndOutBarCtrl.GetItemData(m_iSelItem);
+    CShapeItem dlg(pUserBar->GetBarLocation(),pShape->Name(),
+        pShape->ImageFileName(),pShape->ShapeFileName());
     dlg.SetTitle("Edit Shape");
     while(dlg.DoModal() == IDOK)
     {
-        int nIndex = m_wndOutBarCtrl.GetItemIndexByName(dlg.GetShapeName());
-        if(nIndex != -1 && nIndex != item_index)
+        CShape* pTempShape = m_pUserBarMan->GetShapeByName(dlg.GetShapeName());
+        if(pTempShape != NULL && pTempShape != pShape)
         {
             CString strErr;
             strErr.Format("A shape named '%s' already exists.", dlg.GetShapeName());
             AfxMessageBox(strErr, MB_OK);
             continue;
         }
-        m_wndOutBarCtrl.SetItemText(item_index,dlg.GetShapeName());
-        m_wndOutBarCtrl.Invalidate();
+
         pShape->Name(dlg.GetShapeName());
+        m_wndOutBarCtrl.SetItemText(m_iSelItem,dlg.GetShapeName());
+        m_wndOutBarCtrl.Invalidate();
 
         if(pShape->ImageFileName().Compare(dlg.GetShapePicture()) != 0)
         {
+            pShape->ImageFileName(dlg.GetShapePicture());
+
             HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
             CBitmap bm;
             bm.Attach(hBitmap);
@@ -762,10 +570,8 @@ void CShapesBar::OnEditShape()
             m_smallIL.Add(&bm,RGB(255,0,255));
             bm.DeleteObject();
 
-            m_wndOutBarCtrl.SetItemImage(item_index,nR);
+            m_wndOutBarCtrl.SetItemImage(m_iSelItem,nR);
             m_wndOutBarCtrl.Invalidate();
-
-            pShape->ImageFileName(dlg.GetShapePicture());
         }
 
         if(pShape->ShapeFileName().Compare(dlg.GetShapeModel()) != 0)
@@ -773,6 +579,8 @@ void CShapesBar::OnEditShape()
             pShape->ShapeFileName(dlg.GetShapeModel());
             pShape->SetObjListValid(FALSE);
         }
+
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
         break;
     }
 }
@@ -780,27 +588,17 @@ void CShapesBar::OnEditShape()
 void CShapesBar::OnDeleteShape()
 {
     CString strWarn;
-    strWarn.Format("Delete shape '%s'?", m_wndOutBarCtrl.GetItemText(item_index));
+    strWarn.Format("Delete shape '%s'?", m_wndOutBarCtrl.GetItemText(m_iSelItem));
     if(MessageBox(strWarn, "Delete shape", MB_YESNO | MB_ICONWARNING) == IDYES)
     {
-        m_wndOutBarCtrl.RemoveItem(item_index);
+        CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
+        CShape* pShape = (CShape*)m_wndOutBarCtrl.GetItemData(m_iSelItem);
+        pUserBar->DeleteShape(pShape);
+
+        m_wndOutBarCtrl.RemoveItem(m_iSelItem);
+
+        m_pUserBarMan->saveDataSet(m_strProjPath, false);
     }
 }
 
-CUserShapeBar::CUserShapeBar():
-m_barName(_T("")),
-m_barLocation(_T(""))
-{
-    m_vUserShapes.clear();
-}
 
-BOOL CShapesBar::IsUserShapeBarExist(CString strNewBar)
-{
-    int nBarCount = (int)m_vUserBars.size();
-    for(int i=0; i<nBarCount; i++)
-    {
-        if(strNewBar.Compare(m_vUserBars.at(i)->GetBarName()) == 0)
-            return TRUE;
-    }
-    return FALSE;
-}

@@ -592,8 +592,7 @@ void CTermPlanApp::OnFileNew()
 			pMF->m_wndShapesBar = NULL;
 		}
 		pMF->CreateShapesBar();
-		pMF->m_wndShapesBar->UserProjectPath = pDoc->GetPathName();
-		pMF->m_wndShapesBar->ReadUserShapeBars();
+		pMF->m_wndShapesBar->m_strProjPath = pDoc->GetPathName();
 		pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
 		pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
 		
@@ -647,7 +646,6 @@ void CTermPlanApp::OnCloseProject()
 {
 	((CMainFrame*)m_pMainWnd)->UpdateProjSelectBar();
 	CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
-	pMF->m_wndShapesBar->WriteUserShapeBars();
 	if(pMF->m_wndShapesBar->IsWindowVisible() == TRUE)
 	pMF->ShowControlBar(pMF->m_wndShapesBar,FALSE,FALSE);
 }

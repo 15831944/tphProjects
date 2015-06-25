@@ -4045,7 +4045,6 @@ void CMainFrame::OnProjectExportAsInputzip()
 	CTermPlanDoc* pDoc = (CTermPlanDoc*)pMDIActive->GetActiveDocument();
 	ASSERT(pDoc != NULL);
 	pDoc->ShrinkDatabase(((CTermPlanApp *)AfxGetApp())->GetMasterDatabase(),pDoc->m_ProjInfo.name);
-	m_wndShapesBar->WriteUserShapeBars();
 	ExportAsInputZip(pDoc->m_ProjInfo.name,pDoc->m_ProjInfo.path,false);
 }
 
@@ -4068,7 +4067,6 @@ void CMainFrame::OnProjectExportAndEmail()
 	ASSERT(pDoc != NULL);
 	
 	pDoc->ShrinkDatabase(((CTermPlanApp *)AfxGetApp())->GetMasterDatabase(),pDoc->m_ProjInfo.name);
-	m_wndShapesBar->WriteUserShapeBars();
 	ExportAndEmail(pDoc->m_ProjInfo.name,pDoc->m_ProjInfo.path,false);
 }
 

@@ -533,6 +533,7 @@ int CProjectManager::getFileName( const CString& _csProjPath, int fileType, char
 	case LayerInfoFile:
 	case VRInfoFile:
 	case RosterRulesFile:
+    case UserShapeBar:
 		return getFullName( _csProjPath, InputDir, fileType, filename, mode, airport);
 	case CamerasFile:
 	case DisplayPropOverridesFile:
@@ -1250,6 +1251,12 @@ int CProjectManager::getCurrentFileName( const CString& _csProjDir, int lineNum,
 		strcpy(str , "RosterRules.txt");
 		return TRUE ;
 	}
+
+    if(lineNum == UserShapeBar)
+    {
+        strcpy(str , "UserShapeBar.txt");
+        return TRUE ;
+    }
 
 	if(lineNum == PeopleMoverFile)
 	{

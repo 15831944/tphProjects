@@ -181,6 +181,7 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
 
 	m_pProductStockingList = new ProductStockingList;
 
+    m_pUserBarMan = new CUserShapeBarManager;
 }
 
 InputTerminal::~InputTerminal ()
@@ -277,6 +278,9 @@ InputTerminal::~InputTerminal ()
 
 	delete m_pProductStockingList;
 	m_pProductStockingList = NULL;
+
+    delete m_pUserBarMan;
+    m_pUserBarMan = NULL;
 }
 
 
@@ -518,6 +522,8 @@ void InputTerminal::loadInputs ( const CString& _pProjPath )
 	m_pProductStockingList->ReadData(-1);
 	//if (IsConvertGroupSizeData)
 	//	m_pAffinityGroup->ConvertDataFromGroupSize(paxDataList->getGroups(),this);
+
+    m_pUserBarMan->loadDataSet(_pProjPath);
 }
 
 
@@ -606,7 +612,7 @@ void InputTerminal::saveInputs ( const CString& _pProjPath) const
 	CAircarftLayoutManager::GetInstance()->WriteLayOutToDataBase() ;
 	// economic data
 //	m_pProcLabourCostDB->saveDataSet(_pProjPath);
-
+    m_pUserBarMan->saveDataSet(_pProjPath, false);
 }
 
 

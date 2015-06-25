@@ -947,12 +947,14 @@ BOOL CTermPlanDoc::OnOpenDocument(LPCTSTR lpszPathName)
 				pMF->m_wndShapesBar = NULL;
 			}
 			pMF->CreateShapesBar();
-			pMF->m_wndShapesBar->UserProjectPath = lpszPathName;
-			pMF->m_wndShapesBar->ReadUserShapeBars();
+			pMF->m_wndShapesBar->m_strProjPath = lpszPathName;
 			pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
 			pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
 
 			m_bOpenDocSuccess = ReloadInputData();
+
+            pMF->m_wndShapesBar->SetUserBarManager(GetTerminal().m_pUserBarMan);
+            pMF->m_wndShapesBar->AddUserShapesToShapesBar();
 
 			CheckTheFlightActype() ;
 			ReadAllCameras();

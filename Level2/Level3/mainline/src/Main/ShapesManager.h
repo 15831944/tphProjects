@@ -32,8 +32,11 @@ public:
 	// return NULL, if not found
 	CShape* FindShapeByName( CString _csName );
 
+    // 
+    BOOL IsShapeExist(CString str);
+
 	// return -1, if not found
-	int FindShapeSetByName( CString _csName );
+	int FindShapeIndexByName( CString _csName );
 
 
 	//////////////////////////////////////////////////////////////////////////
