@@ -84,7 +84,7 @@ BEGIN_MESSAGE_MAP(CBoardingCallDlg, CDialog)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_BOARDING_CALL_TREE, OnSelchangedBoardingCallTree)
 
 	ON_WM_CONTEXTMENU()
-	ON_COMMAND_RANGE(MENU_ADD_FLIGHTTYPE, MENU_UNAVAILABLE, OnChooseMenu)
+	ON_COMMAND_RANGE(MENU_ADD_STAGE, MENU_UNAVAILABLE, OnChooseMenu)
 END_MESSAGE_MAP()
 
 int CBoardingCallDlg::OnCreate(LPCREATESTRUCT lpCreateStruct) 
@@ -258,9 +258,16 @@ void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEnt
 		CString strStand;
 		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pStandDB->getItem(iStand);
 		const ProcessorID* pStandProcID = pStandEntry->getID();
-		pStandProcID->printID(strStand.GetBuffer(64));
-		strStand.ReleaseBuffer();
-		strItemText.Format("Stand: %s", strStand);
+		if(!pStandProcID->isBlank())
+		{
+			pStandProcID->printID(strStand.GetBuffer(64));
+			strStand.ReleaseBuffer();
+			strItemText.Format("Stand: %s", strStand);
+		}
+		else
+		{
+			strItemText = _T("Stand: All Stand");
+		}
 		HTREEITEM hTreeItemStand = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemFlight);
 		TreeNodeDataWithType* nodeDataStand = new TreeNodeDataWithType();
 		nodeDataStand->m_type = TREE_NODE_STAND;
@@ -407,8 +414,10 @@ void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pRes
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
-		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
-		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
+		{
+			m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
+			m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
+		}
 		break;
 	case TREE_NODE_TRIGGER_ALL:
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
@@ -443,11 +452,15 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	ASSERT(pDataWithType->m_type == TREE_NODE_STAGE);
 
 	BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
-	CFlightDialog flightTypeDlg( m_pParentWnd );
+	FlightConstraint fltConst;
+	fltConst.SetAirportDB(GetInputTerminal()->m_pAirportDB);
+	fltConst.SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
+	CFlightDialog flightTypeDlg(m_pParentWnd);
+	flightTypeDlg.CustomizeDialog(fltConst, ENUM_DIALOG_TYPE_BOARDING_CALL);
 	if( flightTypeDlg.DoModal() == IDOK )
 	{
-		FlightConstraint selectedFlightConstraint = flightTypeDlg.GetFlightSelection();
-		pFlightTypeDB->AddFlight(&selectedFlightConstraint, GetInputTerminal());
+		fltConst = flightTypeDlg.GetFlightSelection();
+		pFlightTypeDB->AddFlight(&fltConst, GetInputTerminal());
 		ReloadStage(pFlightTypeDB, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 	}
@@ -561,18 +574,22 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			{
 				//Delete All Stages
 				BOOL b_YesNo = MessageBox("Delete All Stages?","Delete Stage", MB_YESNO|MB_ICONWARNING);
-				if(b_YesNo == IDYES)
+				if(b_YesNo == IDNO)
 				{
-					GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
-					m_tree.SelectItem(hRootItem);
-					GetInputTerminal()->flightData->AddStage();
-					ReloadRoot();
+					return;
 				}
-				return;
+
+				GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
+				m_tree.SelectItem(hRootItem);
+				GetInputTerminal()->flightData->AddStage();
+				ReloadRoot();
+				m_btnSave.EnableWindow(TRUE);
+				break;
 			}
 			GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
 			m_tree.SelectItem(hRootItem);
 			ReloadRoot();
+			m_btnSave.EnableWindow(TRUE);
 			break;
 		}
 	case TREE_NODE_FLIGHT_TYPE:
@@ -588,14 +605,17 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
 			{
 				BOOL b_YesNo = MessageBox("Delete All Flight Types?","Delete Flight Type", MB_YESNO|MB_ICONWARNING);
-				if(b_YesNo == IDYES)
+				if(b_YesNo == IDNO)
 				{
-					pFlightTypeDB->deleteItem(pFlightTypeEntry);
-					m_tree.SelectItem(hStageItem);
-					pFlightTypeDB->AddFlight(NULL, GetInputTerminal());
-					ReloadStage(pFlightTypeDB, hStageItem);
+					return;
 				}
-				return;
+
+				pFlightTypeDB->deleteItem(pFlightTypeEntry);
+				m_tree.SelectItem(hStageItem);
+				pFlightTypeDB->AddFlight(NULL, GetInputTerminal());
+				ReloadStage(pFlightTypeDB, hStageItem);
+				m_btnSave.EnableWindow(TRUE);
+				break;
 			}
 
 			pFlightTypeDB->deleteItem(pFlightTypeEntry);
@@ -603,6 +623,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			// Reload all sibling item.
 			ReloadStage(pFlightTypeDB, hStageItem);
 			m_tree.Expand(hStageItem, TVE_EXPAND);
+			m_btnSave.EnableWindow(TRUE);
 		}
 		break;
 	case TREE_NODE_STAND:
@@ -622,19 +643,22 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
 			{
 				BOOL b_YesNo = MessageBox("Delete All Stands?","Delete Stand", MB_YESNO|MB_ICONWARNING);
-				if(b_YesNo == IDYES)
+				if(b_YesNo == IDNO)
 				{
-					pStandDB->deleteItem(pStandEntry);
-					m_tree.SelectItem(hFlightTypeItem);
-					pStandDB->AddStand(NULL, GetInputTerminal());
-					ReloadFlightType(pFlightEntry, hFlightTypeItem);
+					return;
 				}
-				return;
+				pStandDB->deleteItem(pStandEntry);
+				m_tree.SelectItem(hFlightTypeItem);
+				pStandDB->AddStand(NULL, GetInputTerminal());
+				ReloadFlightType(pFlightEntry, hFlightTypeItem);
+				m_btnSave.EnableWindow(TRUE);
+				break;
 			}
 			pStandDB->deleteItem(pStandEntry);
 			m_tree.SelectItem(hFlightTypeItem);
 			ReloadFlightType(pFlightEntry, hFlightTypeItem);
 			m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
+			m_btnSave.EnableWindow(TRUE);
 		}
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
@@ -654,19 +678,22 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
 			{
 				BOOL b_YesNo = MessageBox("Delete All Passenger Types?","Delete Passenger Type", MB_YESNO|MB_ICONWARNING);
-				if(b_YesNo == IDYES)
+				if(b_YesNo == IDNO)
 				{
-					pPaxTypeDB->deleteItem(pPaxEntry);
-					m_tree.SelectItem(hStandItem);
-					pPaxTypeDB->AddPax(NULL, GetInputTerminal());
-					ReloadStand(pStandEntry, hStandItem);
+					return;
 				}
-				return;
+				pPaxTypeDB->deleteItem(pPaxEntry);
+				m_tree.SelectItem(hStandItem);
+				pPaxTypeDB->AddPax(NULL, GetInputTerminal());
+				ReloadStand(pStandEntry, hStandItem);
+				m_btnSave.EnableWindow(TRUE);
+				break;
 			}
 			pPaxTypeDB->deleteItem(pPaxEntry);
 			m_tree.SelectItem(hStandItem);
 			ReloadStand(pStandEntry, hStandItem);
 			m_tree.Expand(hStandItem, TVE_EXPAND);
+			m_btnSave.EnableWindow(TRUE);
 		}
 		break;
 	case TREE_NODE_TRIGGER_ALL:
@@ -691,8 +718,9 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			m_tree.Expand(m_tree.GetChildItem(hPaxTypeItem), TVE_EXPAND);/* hParentItem is deleted, so can't use here,
 																		    use GetChildItem(hPaxTypeItem) instead. */
 			m_tree.SelectItem(m_tree.GetChildItem(hPaxTypeItem));
-			break;
+			m_btnSave.EnableWindow(TRUE);
 		}
+		break;
 	case TREE_NODE_TRIGGER_TIME:
 		break;
 	case TREE_NODE_TRIGGER_PROP:
@@ -700,7 +728,6 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 	default:
 		break;
 	}
-	m_btnSave.EnableWindow(TRUE);
 }
 
 void CBoardingCallDlg::OnToolbarButtonEdit()
@@ -720,13 +747,14 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 		break;
 	case TREE_NODE_FLIGHT_TYPE:
 		{
-			CFlightDialog flightTypeDlg( m_pParentWnd );
-			if( flightTypeDlg.DoModal() == IDOK )
+			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
+			FlightConstraint* pOldConst = (FlightConstraint*)pFlightTypeEntry->getConstraint();
+
+			CFlightDialog flightTypeDlg(m_pParentWnd);
+			flightTypeDlg.CustomizeDialog(*pOldConst, ENUM_DIALOG_TYPE_BOARDING_CALL);
+			if(flightTypeDlg.DoModal() == IDOK)
 			{
-				BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
-				FlightConstraint selectedFlightConstraint = flightTypeDlg.GetFlightSelection();
-				FlightConstraint* pOldConst = (FlightConstraint*)pFlightTypeEntry->getConstraint();
-				*pOldConst = selectedFlightConstraint;
+				*pOldConst = flightTypeDlg.GetFlightSelection();
 
 				// Reload all sibling item.
 				HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
@@ -736,6 +764,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				ReloadStage(pFlightTypeDB, hStageItem);
 				m_tree.SelectItem(hStageItem);
 				m_tree.Expand(hStageItem, TVE_EXPAND);
+				m_btnSave.EnableWindow(TRUE);
 			}
 		}
 		break;
@@ -760,6 +789,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				ReloadFlightType(pFlightEntry, hFlightTypeItem);
 				m_tree.SelectItem(hFlightTypeItem);
 				m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
+				m_btnSave.EnableWindow(TRUE);
 			}
 
 		}
@@ -782,6 +812,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				ReloadStand(pStandEntry, hStandItem);
 				m_tree.SelectItem(hStandItem);
 				m_tree.Expand(hStandItem, TVE_EXPAND);
+				m_btnSave.EnableWindow(TRUE);
 			}
 		}
 		break;
@@ -791,11 +822,11 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 	case TREE_NODE_TRIGGER_TIME:
 	case TREE_NODE_TRIGGER_PROP:
 		m_tree.DoEdit(hSelItem);
+		m_btnSave.EnableWindow(TRUE);
 		break;
 	default:
 		break;
 	}
-	m_btnSave.EnableWindow(TRUE);
 }
 
 void CBoardingCallDlg::DisableAllToolBarButtons()
@@ -952,8 +983,19 @@ void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
 
 	UINT iRet;
 	HTREEITEM hSelItem = m_tree.HitTest( pt, &iRet );
-	if(hSelItem == NULL || hSelItem == m_hRoot) 
+	if(hSelItem == NULL) 
 		return ;
+	if(hSelItem == m_hRoot)
+	{
+		CMenu menuProj;
+		menuProj.CreatePopupMenu();
+		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_STAGE, _T("Add Stage"));
+		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_ALL_STAGE, _T("Delete All Stages"));
+		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+		menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		return;
+	}
 	m_tree.SelectItem(hSelItem);
 
 	TreeNodeDataWithType* pItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
@@ -1057,8 +1099,24 @@ void CBoardingCallDlg::OnChooseMenu( UINT nID )
 	if(nID == MENU_UNAVAILABLE)
 		return;
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
-	if(hSelItem == NULL || hSelItem == m_hRoot) 
+	if(hSelItem == NULL)
 		return;
+	if(hSelItem == m_hRoot)
+	{
+		switch(nID)
+		{
+		case MENU_ADD_STAGE:
+			OnToolbarButtonAddStage();
+			break;
+		case MENU_DEL_ALL_STAGE:
+			OnToolbarButtonDel();
+			break;
+		default:
+			break;
+		}
+		return;
+	}
+
 	TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 	ASSERT(pTriggerData);
 	switch (pTriggerData->m_type)

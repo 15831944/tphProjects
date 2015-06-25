@@ -193,25 +193,28 @@ void FlightData::readBoardingCallData( ArctermFile &p_file )
 	}
 }
 
-void FlightData::writeBoardingCallData( ArctermFile &p_file ) const
+void FlightData::writeBoardingCallData( ArctermFile &_file ) const
 {
-	p_file.writeField("BOARDING_CALL_DATA_BEGIN");
-	p_file.writeLine();
+	_file.writeField("BOARDING_CALL_DATA_BEGIN");
+	_file.writeLine();
 	int stageCount = m_vStages.size();
-	WriteBoardingCallStageCount( p_file, stageCount );
+
+	_file.writeField(szStageLabel);
+	_file.writeInt(stageCount);
+	_file.writeLine();
 	// write boarding call
+	char szLabel[128];
 	for( int i=0; i<stageCount; i++ )
 	{
-		char szLabel[128];
 		sprintf(szLabel, "BOARDING_CALLS_STAGE%d", i);
-		p_file.writeField(szLabel);
+		_file.writeField(szLabel);
 		int flightCount = m_vStages[i]->getCount();
-		p_file.writeInt(flightCount);
-		p_file.writeLine();
-		m_vStages[i]->writeDatabase(p_file);
+		_file.writeInt(flightCount);
+		_file.writeLine();
+		m_vStages[i]->writeDatabase(_file);
 	}
-	p_file.writeField("BOARDING_CALL_DATA_END");
-	p_file.writeLine();
+	_file.writeField("BOARDING_CALL_DATA_END");
+	_file.writeLine();
 }
 
 void FlightData::setFlightDelay (Flight *p_flight) const
@@ -338,14 +341,6 @@ int FlightData::ReadBoardingCallStageCount( ArctermFile& _file )
 	return 0;
 }
 
-
-void FlightData::WriteBoardingCallStageCount( ArctermFile& _file, int _nNumStages ) const
-{
-	_file.writeField( szStageLabel );
-	_file.writeInt( _nNumStages );
-	_file.writeLine();
-}
-
 void FlightData::clear() 
 { 
 	delays.clear(); 
@@ -401,7 +396,7 @@ void FlightData::AddStageFromOld(FlightConWithProcIDDatabase* pOldStage)
 		return;
 
 	BoardingCallFlightTypeDatabase* pFlightTypeDB = new BoardingCallFlightTypeDatabase();
-	pFlightTypeDB->AddFlightFromOld(pOldStage, m_pInTerm);
+	pFlightTypeDB->AddFlightFor260OrOlder(pOldStage, m_pInTerm);
 	m_vStages.push_back(pFlightTypeDB);
 	return;
 }

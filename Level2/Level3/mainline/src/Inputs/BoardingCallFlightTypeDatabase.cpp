@@ -36,7 +36,8 @@ void BoardingCallFlightTypeDatabase::AddFlight(FlightConstraint* pInFlightConst,
 	}
 	else
 	{
-		pFlightConstraint->initDefault(); /* Set 'Flight Type': DEFAULT */
+		pFlightConstraint->SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP); /* Set 'Flight Type': DEFAULT */
+		pFlightConstraint->SetAirportDB(_pInTerm->m_pAirportDB);
 	}
 	BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
 	flightEntry->initialize(pFlightConstraint, NULL);
@@ -44,7 +45,8 @@ void BoardingCallFlightTypeDatabase::AddFlight(FlightConstraint* pInFlightConst,
 	addEntry(flightEntry, true);/* Replace if exists. */
 }
 
-void BoardingCallFlightTypeDatabase::AddFlightFromOld(FlightConWithProcIDDatabase* pOldConWithProcIDDB, InputTerminal* _pInTerm)
+// For version 2.6 or older.
+void BoardingCallFlightTypeDatabase::AddFlightFor260OrOlder(FlightConWithProcIDDatabase* pOldConWithProcIDDB, InputTerminal* _pInTerm)
 {
 	int count = pOldConWithProcIDDB->getCount();
 	for(int i=0; i<count; i++)
@@ -52,6 +54,11 @@ void BoardingCallFlightTypeDatabase::AddFlightFromOld(FlightConWithProcIDDatabas
 		ConstraintWithProcIDEntry* pConstWithProcIDEntry = (ConstraintWithProcIDEntry*)pOldConWithProcIDDB->getItem(i);
 		FlightConstraint* pFlightConstraint = new FlightConstraint();
 		*pFlightConstraint = *((FlightConstraint*)pConstWithProcIDEntry->getConstraint());
+		if(pFlightConstraint->GetFltConstraintMode() != ENUM_FLTCNSTR_MODE_DEP)
+		{
+			pFlightConstraint->initDefault();
+			pFlightConstraint->SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
+		}
 		BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
 		flightEntry->initialize(pFlightConstraint, NULL);
 		flightEntry->GetStandDatabase()->AddStandFromOld(pConstWithProcIDEntry, _pInTerm);

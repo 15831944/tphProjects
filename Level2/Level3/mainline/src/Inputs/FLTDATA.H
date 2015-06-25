@@ -18,7 +18,6 @@ protected:
 	std::vector<BoardingCallFlightTypeDatabase*> m_vStages;
 	// go through all the file get the size of boarding call stage size;
 	int ReadBoardingCallStageCount( ArctermFile& _file );
-	void WriteBoardingCallStageCount( ArctermFile& _file, int _nNumStages ) const;
 
 public:
 	int GetStageCount(){ return m_vStages.size(); }
