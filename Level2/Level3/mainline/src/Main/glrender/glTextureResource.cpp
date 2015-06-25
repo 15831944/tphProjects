@@ -5,6 +5,7 @@
 #include <Il/ilut.h>
 
 #include <Common/ARCMathCommon.h>
+#include <algorithm>
 const static CString strTextureDataFile = "textures.data" ;
 
 CTexture::CTexture()
@@ -40,8 +41,10 @@ void CTexture::UnApply()
 	glDisable(m_eTextureType);
 }
 
-CTexture::~CTexture(){
+CTexture::~CTexture()
+{
 	glDeleteTextures(1,&m_iTextureId);
+
 }
 
 GLenum CTexture::GetTextureType() const
@@ -166,4 +169,81 @@ void CTextureResource::removeTexture(const CString& strID)
 }
 void CTextureResource::SetResourcePath(const CString& foldpath){
 	m_strpath  = foldpath;
+}
+
+//////////////////////////////////////////////////////////////////////////
+CTexture2::~CTexture2()
+{
+	if(m_pPool)
+	{
+		m_pPool->remove(this);
+	}
+}
+
+void CTexture2::Apply()
+{
+	if(!glIsTexture(m_iTextureId))
+	{
+		ilInit();
+
+		ilutInit();
+		ilutRenderer(ILUT_OPENGL);
+		ilutEnable(ILUT_OPENGL_CONV);
+
+		while(IL_NO_ERROR != ilGetError()){	}
+
+		m_iTextureId = ilutGLLoadImage(const_cast<char*>(m_filePath.GetString()));
+		if( ilGetError() != IL_NO_ERROR )
+			return;
+
+	}
+	if(glIsTexture(m_iTextureId))
+	{
+		glEnable(m_eTextureType);
+		glBindTexture(m_eTextureType,m_iTextureId);	
+	}
+}
+
+void CTexture2::UnApply()
+{
+	glDisable(m_eTextureType);
+}
+
+CTexture2::CTexture2( CString file, CTextureResourcePool* pPool ) 
+	:m_filePath(file)
+	,m_pPool(pPool)
+	,m_eTextureType(GL_TEXTURE_2D)
+	,m_iTextureId(-1)
+{
+
+}
+
+void CTextureResourcePool::remove( CTexture2* t )
+{
+	TexutreList::iterator itr = std::find(m_datalist.begin(),m_datalist.end(),t);
+	if(itr!=m_datalist.end())
+		m_datalist.erase(itr);
+}
+
+CTexture2* CTextureResourcePool::getTexture( CString filePath )
+{
+	if(!PathFileExists(filePath))
+		return NULL;
+
+	for(TexutreList::iterator itr = m_datalist.begin();itr!=m_datalist.end();++itr)
+	{
+		CTexture2* t = *itr;
+		if(t->getFileName()==filePath)
+		{
+			return t;
+		}
+	}
+	return newTexture(filePath);
+}
+
+CTexture2* CTextureResourcePool::newTexture( CString file )
+{
+	CTexture2* tex = new CTexture2(file,this);
+	m_datalist.push_back(tex);
+	return tex;
 }

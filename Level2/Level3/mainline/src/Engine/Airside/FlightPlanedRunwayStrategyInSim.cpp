@@ -23,13 +23,13 @@ LogicRunwayInSim* CFlightPlanedRunwayStrategyInSim::GetRunway(RunwayResourceMana
 
 	if (m_pFlight->GetMode() >= OnHeldAtStand)
 	{
-		m_pFlight->GetAirTrafficController()->GetFlightPlan()->GetSIDFlightPlan(m_pFlight,pRoute);
+		m_pFlight->GetAirTrafficController()->GetFlightPlan()->GetSIDFlightPlan(m_pFlight,pRoute,true);
 		if (pRoute)
 			pLogicRunway = pRoute->GetRelateRunway() ;
 	}
 	else
 	{
-		m_pFlight->GetAirTrafficController()->GetFlightPlan()->GetSTARFlightPlan(m_pFlight,pRoute);
+		m_pFlight->GetAirTrafficController()->GetFlightPlan()->GetSTARFlightPlan(m_pFlight,pRoute,true);
 		if (pRoute)
 			pLogicRunway = pRoute->GetRelateRunway() ;
 	}

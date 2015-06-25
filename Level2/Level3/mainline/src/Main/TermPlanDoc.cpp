@@ -93,6 +93,8 @@
 #include "inputs\MobileElemTypeStrDB.h"
 #include "inputs\PipeDataSet.h"
 #include "inputs\RailWayData.h"
+#include "Inputs\MISCPROC.H"
+#include "Inputs\PROCDATA.H"
 #include "reports\AcOperationsReport.h"
 #include "reports\ActivityBreakdownReport.h"
 #include "reports\ActivityElements.h"
@@ -1270,6 +1272,20 @@ void CTermPlanDoc::OnNewFloor()
 		else
 			m_pSelectedNode->AddChild(pNew);
 
+		//compatible for elevator behavior stop at floor
+		InputTerminal* pInTerm = &(GetTerminal());
+		MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase( Elevator );
+		int nMiscDataCount = pMiscDB->getCount();
+		for (int i = 0; i < nMiscDataCount; ++i)
+		{
+			MiscDataElement* pMiscDataElement = (MiscDataElement*)pMiscDB->getItem(i);
+			MiscElevatorData* pElevatorElement = (MiscElevatorData*)pMiscDataElement->getData();
+			pElevatorElement->addStopAtFloor(FALSE);
+		}
+		if (nMiscDataCount  >  0)
+		{
+			pInTerm->miscData->saveDataSet(m_ProjInfo.path, false);
+		}
 		UpdateAllViews(NULL,NODE_HINT_NEWNODE,(CObject*) pNew);
 	}
 	else
@@ -1479,6 +1495,65 @@ BOOL CTermPlanDoc::DeleteFloor(int nFloor)
 		if(AfxMessageBox(sMsg, MB_YESNO) == IDNO) {
 			return FALSE;
 		}
+
+		InputTerminal* pInTerm = &(GetTerminal());
+		ProcessorArray vElevatorList;
+		pInTerm->procList->getProcessorsOfType(Elevator,vElevatorList);
+		ProcessorArray vCheckList;
+		for (int iElevator = 0; iElevator < vElevatorList.getCount(); iElevator++)
+		{
+			ElevatorProc* pElevator = (ElevatorProc*)vElevatorList.getItem(iElevator);
+
+			int iMaxFloor = pElevator->GetMaxFloor();
+			int iMinFloor = pElevator->GetMinFloor();
+			if (nFloor > iMaxFloor)
+				continue;
+			
+			if (nFloor > iMinFloor && nFloor <= iMaxFloor)
+			{
+				pElevator->SetMaxFloor(pElevator->GetMaxFloor() - 1);
+				pElevator->GetWaitAreaPos().clear();
+				for(int i=pElevator->GetMinFloor()+1;i<=pElevator->GetMaxFloor()+1;i++)
+				{
+					pElevator->GetWaitAreaPos().push_back(true);
+				}
+				vCheckList.Add(pElevator);
+				continue;
+			}
+
+			if (nFloor <= iMinFloor)
+			{
+				pElevator->SetMinFloor(pElevator->GetMinFloor() - 1);
+				pElevator->SetMaxFloor(pElevator->GetMaxFloor() - 1);
+				pElevator->GetWaitAreaPos().clear();
+				for(int i=pElevator->GetMinFloor()+1;i<=pElevator->GetMaxFloor()+1;i++)
+				{
+					pElevator->GetWaitAreaPos().push_back(true);
+				}
+				vCheckList.Add(pElevator);
+				continue;
+			}
+		}
+
+		if (vCheckList.IsEmpty() == false)
+		{
+			pInTerm->procList->saveDataSet(m_ProjInfo.path, false);
+		}
+
+		MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase( Elevator );
+		int nMiscDataCount = pMiscDB->getCount();
+		for (int i = 0; i < nMiscDataCount; ++i)
+		{
+			MiscDataElement* pMiscDataElement = (MiscDataElement*)pMiscDB->getItem(i);
+			MiscElevatorData* pElevatorElement = (MiscElevatorData*)pMiscDataElement->getData();
+			pElevatorElement->removeStopAtFloor(nFloor);
+		}
+
+		if (nMiscDataCount > 0)
+		{
+			pInTerm->miscData->saveDataSet(m_ProjInfo.path, false);
+		}
+
 	}	
 
 	//now remove floor
@@ -4774,8 +4849,14 @@ BOOL CTermPlanDoc::StartAnimation(BOOL bGetTimeRangeFromUser)
 
 void CTermPlanDoc::OnAnimationStart() 
 {
+	//take off traces
+	m_bShowTracers = TRUE;
+	OnTracersOn();
+	GetMainFrame()->GetMenu()->GetSubMenu(5)->CheckMenuItem(0,MF_UNCHECKED);
+
 	if(m_eAnimState == anim_none)
-	{ //start animation
+	{ 
+		//start animation
 		if(StartAnimation(TRUE)) {
 			m_eAnimState = anim_playF;
 		}
@@ -4895,6 +4976,12 @@ void CTermPlanDoc::OnAnimationPlayF()
 {
 //	GetTerminal().m_pLogBufManager->InitBuffer();
 	//GetAirsideSimLogs().m_pLogBufManager->InitBuffer();
+
+	//take off traces
+	m_bShowTracers = TRUE;
+	OnTracersOn();
+	GetMainFrame()->GetMenu()->GetSubMenu(5)->CheckMenuItem(0,MF_UNCHECKED);
+
 	m_eAnimState = anim_playF;
 	GetMainFrame()->m_wndAnimationBar.OnUpdateCmdUI(GetMainFrame(), FALSE);
 }
@@ -6045,6 +6132,7 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 		if( iCurSimResult>=0 )	// have valid sim_result
 		{
 			GetTerminal().GetSimReportManager()->SetCurrentSimResult( iCurSimResult );
+			GetAirsideSimLogs().GetSimReportManager()->SetCurrentSimResult(iCurSimResult);
 			ReadPAXDescriptions(&nFirstInTime, &nLastOutTime);
 			ReadACDescriptions(&nFirstInTime, &nLastOutTime);
 			nFirstInTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getBeginTime();

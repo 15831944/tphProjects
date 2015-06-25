@@ -166,6 +166,10 @@ public:
 	// read and wite 
 	virtual void readIDList (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true );
 	virtual void writeIDList (ArctermFile& p_file) const;
+
+protected:
+	void readIDList39(ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne);
+	void readIDListLess39(ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne);
 };
 //////////////////////////////////////////////////////////////////////////
 class INPUTS_TRANSFER MiscData
@@ -344,6 +348,7 @@ private:
 	void readObsoleteMiscData35(ArctermFile&p_file);
 	void readObsoleteMiscData37(ArctermFile&p_file);
 	void readObsoleteMiscData38(ArctermFile&p_file);
+	void readObsoleteMiscData39(ArctermFile&p_file);
 	void ConvertCapacityIssueIfNeed(float fFileVersion);
 	//void readObsoleteMiscData32(ArctermFile&p_file)/*3.2 */;
 
@@ -706,17 +711,29 @@ public:
 	void setStopAtFloor(int nIndex,BOOL bValue)	
 	{
 		ASSERT(nIndex>=0&&(unsigned)nIndex<m_vbStopAtFloor.size());
-		m_vbStopAtFloor[nIndex]=bValue;
+		if(nIndex>=0&&(unsigned)nIndex<m_vbStopAtFloor.size())
+			m_vbStopAtFloor[nIndex]=bValue;
 	}
 	BOOL getStopAtFloor(int nIndex)
 	{
 		ASSERT(nIndex>=0&&(unsigned)nIndex<m_vbStopAtFloor.size());
-		return m_vbStopAtFloor[nIndex];
+		if(nIndex>=0&&(unsigned)nIndex<m_vbStopAtFloor.size())
+			return m_vbStopAtFloor[nIndex];
+		else
+			return FALSE;
 	}
 	void clearStopAtFloor()
 	{
 		m_vbStopAtFloor.clear();
 	}
+
+	void removeStopAtFloor(int idx)
+	{
+		ASSERT(idx>=0&&(unsigned)idx<m_vbStopAtFloor.size());
+		if(idx>=0&&(unsigned)idx<m_vbStopAtFloor.size())
+			m_vbStopAtFloor.erase(m_vbStopAtFloor.begin() + idx);
+	}
+
 	void addStopAtFloor(BOOL bValue)
 	{
 		m_vbStopAtFloor.push_back(bValue);
@@ -731,7 +748,7 @@ public:
 	virtual int getType(void) const {return Elevator;}
 	virtual void readSpecificData (ArctermFile& p_file);
 
-    virtual void writeSpecificData (ArctermFile& p_file) const;
+	virtual void writeSpecificData (ArctermFile& p_file) const;
 //	{
 //		p_file.writeInt (m_nCapacity);
 //		p_file.writeFloat(m_dSpeed[0]);		

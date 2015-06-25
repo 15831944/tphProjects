@@ -572,7 +572,7 @@ void CRepListViewSingleReportOperator::LoadListData()
 				GetReportParameter()->GetReportType( iDetailed );
 				if(iDetailed==0)//detailed
 				{
-					thresholdField=2;
+					thresholdField=3;
 				}
 				else
 				{

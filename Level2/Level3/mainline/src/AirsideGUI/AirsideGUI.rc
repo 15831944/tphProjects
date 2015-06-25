@@ -1150,7 +1150,7 @@ CAPTION "Air Route Way Point Define"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT           "WayPoint :",IDC_STATIC,6,15,45,10
-    COMBOBOX        IDC_COMBO_WAYPOINT,61,14,156,68,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_WAYPOINT,61,14,156,68,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Min Speed:",IDC_STATIC,12,43,37,13,SS_CENTERIMAGE
     CONTROL         "No Limit",IDC_RADIO_MINSPEEDNOLIMIT,"Button",BS_AUTORADIOBUTTON,61,43,37,13
     CONTROL         "",IDC_RADIO_MINSPEEDDEFINE,"Button",BS_AUTORADIOBUTTON,124,43,8,13
@@ -2610,6 +2610,10 @@ BEGIN
         VERTGUIDE, 195
     END
 
+    IDD_DIALOG_ARWAYPOINTDEFINE, DIALOG
+    BEGIN
+    END
+
     IDD_TAKEOFFRUNWAYASSIGN, DIALOG
     BEGIN
         RIGHTMARGIN, 457
@@ -3801,7 +3805,7 @@ IDI_ICON_FUELING        ICON                    "res\\Fueling.ico"
 IDI_ICON_DEICINGTRUCK   ICON                    "res\\DeicingTruck.ico"
 IDI_ICON_CREWBUS        ICON                    "res\\CrewBus.ico"
 IDI_ICON_CONVEYORS      ICON                    "res\\Conveyors.ico"
-IDI_ICON_CATERINGTRUCK ICON                     "res\\CateringTruck.ico"
+IDI_ICON_CATERINGTRUCK  ICON                    "res\\CateringTruck.ico"
 IDI_ICON_CARGOULDCARTS  ICON                    "res\\CargoULDCarts.ico"
 IDI_ICON_CARGOTUGS      ICON                    "res\\CargoTugs.ico"
 IDI_ICON_BAGGAGETUGS    ICON                    "res\\BaggageTugs.ico"
@@ -3876,8 +3880,7 @@ BEGIN
     IDS_TAKEOFFPOSITION     "Takeoff Position"
     IDS_NAME                "Vehicle Type"
     IDS_NUMBER              "Number Of Vehicle"
-    IDS_AIRSERVICETIME      "ServiceTime(Aircraft)"
-	IDS_SERVICETIME			"ServiceTime(Pusher/Loader)"
+    IDS_SERVICETIME         "ServiceTime(Pusher/Loader)"
     IDS_TVNN_AIRCRAFTS      "AircraftAlias"
     IDS_CONDITION           "Condition"
     IDS_DEPLANEMENTTIME     "Deplanement time(mins)"
@@ -3888,6 +3891,20 @@ BEGIN
     IDS_TEMPORARYPARKINGCRITERIA "Temporary Parking Criteria"
     IDS_DISTANCEFROMARP     "Distance from ARP(nm)"
     IDS_TIMETOGATE          "Time to gate(mins)"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_PERCENT             "Percent"
+    IDS_LEAVE_ARR_STAND_TIME "Leave Arrival Stand Time(mins)"
+    IDS_RETURNTO_STAND_EMPLANEMENT_TIME "Time Before Emplanement(mins)"
+    IDS_TIME_LEAVE_ARR_STAND "Time Leave Arrival Stand"
+    IDS_TIME_TOWOFF_CRITERIA "(> mins TA)"
+    IDS_RETURN_TO_STAND     "Return to Stand"
+    IDS_STAND_PRIORITY      "Priority"
+    IDS_TIME_BEFORE_ENPLANEMENT "Time Before Enplanement(mins)"
+    IDS_BACKTO_ARR_STAND    "Back to Arrival Stand"
+    IDS_AIRSERVICETIME      "ServiceTime(Aircraft)"
 END
 
 STRINGTABLE
@@ -3905,19 +3922,6 @@ BEGIN
     ID_TOOLBAR_INTRAIL_ADD  "Add Sector"
     ID_TOOLBAR_INTRAIL_DEL  "Delete Sector or Delete Phase"
     ID_TOOLBAR_INTRAIL_EDIT "Edit Sector"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_PERCENT             "Percent"
-    IDS_LEAVE_ARR_STAND_TIME "Leave Arrival Stand Time(mins)"
-    IDS_RETURNTO_STAND_EMPLANEMENT_TIME "Time Before Emplanement(mins)"
-    IDS_TIME_LEAVE_ARR_STAND "Time Leave Arrival Stand"
-    IDS_TIME_TOWOFF_CRITERIA "(> mins TA)"
-    IDS_RETURN_TO_STAND     "Return to Stand"
-    IDS_STAND_PRIORITY      "Priority"
-    IDS_TIME_BEFORE_ENPLANEMENT "Time Before Enplanement(mins)"
-    IDS_BACKTO_ARR_STAND    "Back to Arrival Stand"
 END
 
 STRINGTABLE

@@ -18,6 +18,138 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Neutral (Sys. Default) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
+LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_VEHICLETYPEDEF DIALOGEX 0, 0, 411, 255
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "General Vehicle Characteristics"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "Level",IDC_STATIC,7,7,18,8
+    COMBOBOX        IDC_COMBO_LEVEL,8,18,133,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_PAXNAME,9,83,130,138,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Vehicle Type Hierarchy",IDC_STATIC,153,7,84,8
+    CONTROL         "Tree1",IDC_TREE_PAX,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | WS_BORDER | WS_TABSTOP,153,18,251,202
+    GROUPBOX        "",IDC_STATIC_FRAME,9,61,129,160
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,11,66,125,16,SS_SUNKEN
+    LTEXT           "Name",IDC_STATIC,10,35,40,8
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,235,234,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,295,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,353,234,50,14
+    EDITTEXT        IDC_EDIT_NAME,8,47,130,14,ES_AUTOHSCROLL
+END
+
+IDD_DIALOG_VEHICLEDIST DIALOGEX 0, 0, 436, 255
+STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Distribution of Characteristics"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER2,155,18,119,16,SS_SUNKEN
+    LTEXT           "Distribution",IDC_STATIC_PAXDIST,155,5,81,11
+    LISTBOX         IDC_LIST_FLIGHT,15,34,123,192,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Tree1",IDC_TREE_DIST,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,155,34,274,192
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,234,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,325,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,379,234,50,14
+    LTEXT           "Vehicles",IDC_STATIC,16,5,54,10
+    GROUPBOX        "",IDC_STATIC_FRAME,15,14,126,215
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,17,18,119,16,SS_SUNKEN
+    GROUPBOX        "",IDC_STATIC_FRAME3,155,14,277,215
+    PUSHBUTTON      "Copy",IDC_BUTTON_COPY,163,234,50,14
+    PUSHBUTTON      "Paste",IDC_BUTTON_PASTE,217,234,50,14
+END
+
+IDD_DIALOG_LAYOUTOPTIONS DIALOGEX 0, 0, 160, 102
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Set Layout Options"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,46,79,50,16
+    PUSHBUTTON      "Cancel",IDCANCEL,103,79,50,16
+    LTEXT           "Drive",IDC_STATIC_DRIVE,11,35,17,8
+    COMBOBOX        IDC_COMBO_DATA,46,33,107,43,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 404
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_VEHICLEDIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 429
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 153
+        VERTGUIDE, 46
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 95
+        HORZGUIDE, 44
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_CTX_LANDSIDELAYOUT MENU
+BEGIN
+    POPUP "Submenu"
+    BEGIN
+        MENUITEM "Set Options...",              ID_CTX_LAYOUT
+        MENUITEM "Comments...",                 ID_CTX_COMMENTS
+        MENUITEM "Help",                        ID_CTX_HELP
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
+    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
+END
+
+#endif    // Neutral (Sys. Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // Chinese (Simplified, PRC) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
@@ -3862,6 +3994,7 @@ BEGIN
     PUSHBUTTON      "Save",IDC_BUTTON_SAVE,415,280,50,14,WS_DISABLED
     LTEXT           "",IDC_STATIC_TOOLBAR,7,10,579,16,NOT WS_VISIBLE
     CONTROL         "List1",IDC_LIST_DATA,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,7,26,579,236
+    LTEXT           "*resource pool on",IDC_STATIC_RESPOOL_ON,7,268,300,8
 END
 
 IDD_DIALOG_PAXLIVETRACK DIALOG 0, 0, 300, 202
@@ -14602,6 +14735,10 @@ BEGIN
     BEGIN
         MENUITEM "Show Surface...",             ID_SIDES_SHOW
     END
+    POPUP "NonItem"
+    BEGIN
+        MENUITEM "remove",                      ID_NONITEM_REMOVE
+    END
 END
 
 IDR_MENU_COMPONENT MENU
@@ -20990,133 +21127,23 @@ BEGIN
     ID_TOOLLIGHT            "Traffic Light\nTraffic Light"
 END
 
-#endif    // English (United States) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Sys. Default) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
-LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG_VEHICLETYPEDEF DIALOGEX 0, 0, 411, 255
-STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
-CAPTION "General Vehicle Characteristics"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
+STRINGTABLE
 BEGIN
-    LTEXT           "Level",IDC_STATIC,7,7,18,8
-    COMBOBOX        IDC_COMBO_LEVEL,8,18,133,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LISTBOX         IDC_LIST_PAXNAME,9,83,130,138,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Vehicle Type Hierarchy",IDC_STATIC,153,7,84,8
-    CONTROL         "Tree1",IDC_TREE_PAX,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | WS_BORDER | WS_TABSTOP,153,18,251,202
-    GROUPBOX        "",IDC_STATIC_FRAME,9,61,129,160
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,11,66,125,16,SS_SUNKEN
-    LTEXT           "Name",IDC_STATIC,10,35,40,8
-    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,235,234,50,14,WS_DISABLED
-    DEFPUSHBUTTON   "OK",IDOK,295,234,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,353,234,50,14
-    EDITTEXT        IDC_EDIT_NAME,8,47,130,14,ES_AUTOHSCROLL
-END
-
-IDD_DIALOG_VEHICLEDIST DIALOGEX 0, 0, 436, 255
-STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Distribution of Characteristics"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER2,155,18,119,16,SS_SUNKEN
-    LTEXT           "Distribution",IDC_STATIC_PAXDIST,155,5,81,11
-    LISTBOX         IDC_LIST_FLIGHT,15,34,123,192,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Tree1",IDC_TREE_DIST,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,155,34,274,192
-    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,234,50,14,WS_DISABLED
-    DEFPUSHBUTTON   "OK",IDOK,325,234,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,379,234,50,14
-    LTEXT           "Vehicles",IDC_STATIC,16,5,54,10
-    GROUPBOX        "",IDC_STATIC_FRAME,15,14,126,215
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,17,18,119,16,SS_SUNKEN
-    GROUPBOX        "",IDC_STATIC_FRAME3,155,14,277,215
-    PUSHBUTTON      "Copy",IDC_BUTTON_COPY,163,234,50,14
-    PUSHBUTTON      "Paste",IDC_BUTTON_PASTE,217,234,50,14
-END
-
-IDD_DIALOG_LAYOUTOPTIONS DIALOGEX 0, 0, 160, 102
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Set Layout Options"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,46,79,50,16
-    PUSHBUTTON      "Cancel",IDCANCEL,103,79,50,16
-    LTEXT           "Drive",IDC_STATIC_DRIVE,11,35,17,8
-    COMBOBOX        IDC_COMBO_DATA,46,33,107,43,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 404
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_VEHICLEDIST, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 429
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 153
-        VERTGUIDE, 46
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 95
-        HORZGUIDE, 44
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_CTX_LANDSIDELAYOUT MENU
-BEGIN
-    POPUP "Submenu"
-    BEGIN
-        MENUITEM "Set Options...",              ID_CTX_LAYOUT
-        MENUITEM "Comments...",                 ID_CTX_COMMENTS
-        MENUITEM "Help",                        ID_CTX_HELP
-    END
+    ID_BOARDING_CALL_ADD_STAND "Add Stand\nAdd Stand"
+    ID_BOARDING_CALL_ADD_STAGE "Add Stage\nAdd Stage"
+    ID_BOARDING_CALL_ADD_FLIGHT "Add Flight Type\nAdd Flight Type"
+    ID_BOARDING_CALL_ADD_PAX "Add Passenger Type\nAdd Passenger Type"
+    ID_BOARDING_CALL_DELETE "Delete\nDelete"
+    ID_BOARDING_CALL_EDIT   "Edit\nEdit"
 END
 
 STRINGTABLE
 BEGIN
-    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
-    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
+    IDC_STATIC_RESPOOL_ON   "* The feature could be switched off in MSV -> Simulation -> Settings."
+    IDC_STATIC_RESPOOL_OFF  "* The feature has been switched off. Enable the feature in MSV -> Simulation -> Settings."
 END
 
-#endif    // Neutral (Sys. Default) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

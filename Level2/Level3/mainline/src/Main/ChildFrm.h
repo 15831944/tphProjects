@@ -26,6 +26,7 @@ class CAircraftDispProps;
 class CTextureResource;
 class CglShapeResource;
 class CAirside3D;
+class CTextureResourcePool;
 
 
 class CChildFrame : public IRenderFrame
@@ -43,6 +44,7 @@ friend class C3DView;
 	CTextureResource * GetAirlineTextures(){ return m_pAirlineTextures; }
 	CglShapeResource * GetShapeResource(){ return m_pShapeResource; }
 	CglShapeResource * GetAirsideShapeResource(){ return m_pAirsideShapeResource; }
+	CTextureResourcePool* getUserTexturePool(){ return m_pUserTexturePool; }
 // Attributes
 protected:
 	IHyperCam* m_pHyperCam;
@@ -84,6 +86,8 @@ protected:
 	CglShapeResource * m_pShapeResource; 
 	CglShapeResource * m_pAirsideShapeResource;
 	
+	CTextureResourcePool * m_pUserTexturePool;
+
 	CAirside3D * m_pAirside3D;       // Airside View to 3DView
 
 	SelectableList m_vSelected;

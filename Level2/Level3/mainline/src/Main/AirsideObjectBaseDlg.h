@@ -24,7 +24,7 @@ public:
 	//CAirsideObjectBaseDlg(ALTObject * pObj,int nProjID, CWnd * pParent = NULL);
 	virtual ~CAirsideObjectBaseDlg();
 	//nParentID is used for contour
-	static CXTResizeDialog *  NewObjectDlg(int nObjID,ALTOBJECT_TYPE objType, int nParentID, int nAirportID,int nProjID, CWnd *pParent = NULL);
+	static CAirsideObjectBaseDlg *  NewObjectDlg(int nObjID,ALTOBJECT_TYPE objType, int nParentID, int nAirportID,int nProjID, CWnd *pParent = NULL);
 // 	static CXTResizeDialog *  NewObjectDlg(ALTObject * pObj,int nProjID,CWnd *pParent = NULL);
 // Dialog Data
 	enum { IDD = IDD_DIALOG_OBJECTAIRSIDE };

@@ -3236,7 +3236,7 @@ HTREEITEM CAirsideMSView::FindObjNode(HTREEITEM hParentItem,const CString& strNo
 	return hRetItem;
 }
 
-CDialog* CAirsideMSView::GetObjectDefineDlg(CNodeData* pNodeData,int nObjID)
+CAirsideObjectBaseDlg* CAirsideMSView::GetObjectDefineDlg(CNodeData* pNodeData,int nObjID)
 {
 	if (pNodeData->nodeType == NodeType_Object)
 	{
@@ -3483,13 +3483,12 @@ void  CAirsideMSView::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 	}*/
 
 //	CDialog *pDlg = GetObjectDefineDlg(pNodeData,nObjID);
-	CDialog *pDlg = /*pObj?GetObjectDefineDlg(pNodeData,pObj) :*/ GetObjectDefineDlg(pNodeData,nObjID);
+	CAirsideObjectBaseDlg *pDlg = /*pObj?GetObjectDefineDlg(pNodeData,pObj) :*/ GetObjectDefineDlg(pNodeData,nObjID);
 	if (pDlg)
 	{
 		if(pDlg->DoModal() == IDOK)
 		{
-			if(((CAirsideObjectBaseDlg*)pDlg)->m_bNameModified
-				|| ((CAirsideObjectBaseDlg*)pDlg)->m_bPathModified )
+			if(pDlg->m_bNameModified || pDlg->m_bPathModified )
 			{
 				HTREEITEM hObjRoot = GetObjRootNode(hSelectedItem);
 				DeleteObjectFromTree(hSelectedItem);
@@ -4887,20 +4886,23 @@ void CAirsideMSView::OnObjectProperties()
 // 	}
 	
 
-	CDialog *pDlg = /*pObj?GetObjectDefineDlg(pNodeData,pObj) :*/ GetObjectDefineDlg(pNodeData,nObjID);
+	CAirsideObjectBaseDlg *pDlg = /*pObj?GetObjectDefineDlg(pNodeData,pObj) :*/ GetObjectDefineDlg(pNodeData,nObjID);
 	if (pDlg)
 	{
 		if(pDlg->DoModal() == IDOK)
 		{	
-			if(((CAirsideObjectBaseDlg*)pDlg)->m_bPropModified 
-				|| ((CAirsideObjectBaseDlg*)pDlg)->m_bPathModified 
-				|| ((CAirsideObjectBaseDlg*)pDlg)->m_bTypeModify)
+			HTREEITEM hObjRoot = GetObjRootNode(m_hRightClkItem);	
+			if(pDlg->m_bNameModified)
 			{
-				HTREEITEM hObjRoot = GetObjRootNode(m_hRightClkItem);
 				DeleteObjectFromTree(m_hRightClkItem);
 				AddObjectToTree(hObjRoot,((CAirsideObjectBaseDlg*)pDlg)->GetObject());
-				GetDocument()->UpdateAllViews(this,VM_MODIFY_ALTOBJECT,(CObject*)((CAirsideObjectBaseDlg*)pDlg)->GetObject());
 			}
+			if(pDlg->m_bPropModified 
+				|| pDlg->m_bPathModified 
+				|| pDlg->m_bTypeModify)
+			{		
+				GetDocument()->UpdateAllViews(this,VM_MODIFY_ALTOBJECT,(CObject*)((CAirsideObjectBaseDlg*)pDlg)->GetObject());
+			}		
 		}
 		else 
 		{
@@ -5008,7 +5010,7 @@ void CAirsideMSView::DeleteChildCoutour(HTREEITEM hObjItem)
 
 	CNodeData* pData = (CNodeData*)GetTreeCtrl().GetItemData(hObjItem);
 	ASSERT(pData);
-	delete pData;
+	//delete pData;
 
 	GetTreeCtrl().DeleteItem(hObjItem);
 }
@@ -5046,7 +5048,7 @@ void CAirsideMSView::DeleteObjectFromTree(HTREEITEM hObjItem)
 				if(pNodeData->nodeType == NodeType_ObjectRoot)
 					break;
 
-				delete pNodeData;
+				//delete pNodeData;
 
 				CString strItemText = GetTreeCtrl().GetItemText(hChildItem);
 
@@ -5062,7 +5064,7 @@ void CAirsideMSView::DeleteObjectFromTree(HTREEITEM hObjItem)
 				if(pNodeData->nodeType == NodeType_ObjectRoot)
 					break;
 
-				delete pNodeData;	
+				//delete pNodeData;	
 				CString strItemText = GetTreeCtrl().GetItemText(hChildItem);		
 				TRACE(strItemText + _T("\n"));
 				GetTreeCtrl().DeleteItem(hChildItem);

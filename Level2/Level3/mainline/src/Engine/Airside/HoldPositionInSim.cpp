@@ -103,6 +103,7 @@ double HoldPositionInSim::GetTakeoffQueueLength() const
 
 void HoldPositionInSim::AddEnrouteWaitList( AirsideFlightInSim* pFlight )
 {
+	ASSERT( !IsFlightInQueue(pFlight) );
 	if(pFlight != NULL)
 	{
 		if(std::find(m_vEnrouteFlights.begin(),m_vEnrouteFlights.end(),pFlight) == m_vEnrouteFlights.end())//not find in list
@@ -122,4 +123,16 @@ void HoldPositionInSim::WakeupEnrouteWaitingFlight( const ElapsedTime& eTime )
 	pEvent->addEvent();
 	
 	m_vEnrouteFlights.erase(m_vEnrouteFlights.begin());
+}
+
+bool HoldPositionInSim::IsFlightInQueue( AirsideFlightInSim* pFlight ) const
+{
+	bool inQ  = (std::find(m_vInQueueFlights.begin(),m_vInQueueFlights.end(),pFlight) != m_vInQueueFlights.end());
+	return inQ;
+}
+
+bool HoldPositionInSim::IsFlightInEnRouteWaitinglist( AirsideFlightInSim* pFlight ) const
+{
+	bool in  = (std::find(m_vEnrouteFlights.begin(),m_vEnrouteFlights.end(),pFlight) != m_vEnrouteFlights.end());
+	return in;
 }

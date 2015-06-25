@@ -95,6 +95,7 @@
 #include "Airside/AirsidePaxBusInSim.h"
 #include "SimFlowSync.h"
 #include "LandsideSimulation.h"
+#include "FIXEDQ.H"
 
 ElapsedTime TerminalMobElementBehavior::m_timeFireEvacuation(23*3600+59*60+59l);
 
@@ -151,6 +152,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_bhasBusServer(TRUE)
 //,m_nBridgeIndex(-1)
 ,m_pLastTerminalProc(NULL)
+,m_currentFlowItemIndex(-1)
 {
 	m_pProcessor = m_pTerm->procList->getProcessor (START_PROCESSOR_INDEX);
 
@@ -564,10 +566,23 @@ void TerminalMobElementBehavior::processEntryOnboard( ElapsedTime p_time )
 //It determines whether Person can travel a direct route to his destination. If not, an intermediary destination will be assigned.
 void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 {
-	//	// TRACE("\nid = %s\n",m_pProcessor->getID()->GetIDString() );
+	TRACE("\nid = %s\n",m_pProcessor->getID()->GetIDString() );
 	bool bUsedPipe = false;
 	if(!m_vPipePointList.empty())
 	{
+		if(m_pProcessor->GetProcessorQueue()->isFixed() == 'Y')
+		{
+			FixedQueue* pQueue = (FixedQueue*)m_pProcessor->GetProcessorQueue();
+			int cornerIndex = pQueue->getEntryCornerIndex();
+			if(cornerIndex != first_corner)
+			{
+				m_vPipePointList.clear();
+				//ASSERT(m_pFlowList != NULL);
+				m_pFlowList = m_pProcessor->getNextDestinations ( m_pPerson->getType(), m_nInGateDetailMode );
+				/*m_pFlowList->cu*/
+				ProcessPipe( m_pProcessor, p_time, NULL );
+			}
+		}
 		setDestination(m_vPipePointList.front().pt);
 
 		//write landside walkway with pipe log
@@ -614,7 +629,7 @@ void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 
 		// determines whether Person can travel a direct route to his
 		// destination. If not, an intermediary destination will be assigned
-		if (!hasClearPath())
+		if (!hasClearPath(p_time))
 		{
 			m_nAvoidingBarrier = 1;
 			m_pPerson->setState(m_pPerson->getState());
@@ -745,7 +760,7 @@ void TerminalMobElementBehavior::processQueueDeparture (ElapsedTime p_time )
 	Point nextPoint = m_ptDestination;
 	// determines whether Person can travel a direct route to his
 	// destination. if not, an intermediary destination will be assigned
-	while (!hasClearPath())
+	while (!hasClearPath(p_time))
 	{
 		p_time += moveTime();
 		m_pPerson->setState(MoveToServer);
@@ -788,6 +803,7 @@ void TerminalMobElementBehavior::processGreeting(ElapsedTime p_time)
 //if there is OutConstraint, there is no decision made until OutConstaint traversed and event scheduled then.
 int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 {
+	CString strCurProcessor = m_pProcessor->getIDName();
 	//Sync person's family if need 
 // 	if(m_pProcessor->getProcessorType() == HoldAreaProc)
 // 	{
@@ -886,6 +902,7 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 				if ( m_pFlowList != NULL)
 				{
 					m_pFlowList->getDestinationGroup (RANDOM);
+					m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 					ProcessPipe(pNextProc,p_time,NULL);					
 				}
 			}			
@@ -1859,6 +1876,7 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 
 	// try randomly selected group of Processors
 	nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
+	m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 	ASSERT( getTerminal() );
 
 	//dStepTime1 = GetTickCount();
@@ -1897,6 +1915,7 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 					if (pByPass)//get linkage bypass proc
 					{
 						const ProcessorID* pNextID = pByPass->getDestinationGroup( RANDOM );
+						m_currentFlowItemIndex = pByPass->GetCurGroupIndex();
 						ASSERT( pNextID );
 						GroupIndex byPassGroup = getTerminal()->procList->getGroupIndex( *pNextID );
 						ASSERT( byPassGroup.start >=0 );
@@ -1939,6 +1958,7 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 	//dStepTime3 = GetTickCount();
 
 	nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
+	m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 
 	const ProcessorID* pToGate = getTerminal()->procList->getProcessor(TO_GATE_PROCESS_INDEX)->getID();
 	const ProcessorID* pFromGate = getTerminal()->procList->getProcessor(FROM_GATE_PROCESS_INDEX)->getID();
@@ -2108,6 +2128,7 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 		{	
 			//find the nearest opened proc and let person go to that proc and wait for opening
 			nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
+			m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 			int days = getTerminal()->flightSchedule->GetFlightScheduleEndTime().GetDay() ;
 			ElapsedTime nearestTime;
 			nearestTime.set(days*WholeDay );
@@ -2149,6 +2170,7 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 				}
 			}
 			while( (nextGroup = m_pFlowList->getDestinationGroup (SEQUENTIAL)) != NULL );
+			m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 
 			//test zeropercent destination processor.
 			if( bRosterReason && vReturnToProcsCloseReason.size()==0 && (nextGroup = m_pFlowList->getZeropercentDestGroup())!= NULL)
@@ -2634,6 +2656,10 @@ void TerminalMobElementBehavior::ReleaseResource(const ElapsedTime& _congeeTime)
 	{
 		static_cast<DependentSink*>(m_pProcessor)->makeAvailable(m_pPerson,_congeeTime,false);
 	}
+	if(m_pProcessor && m_pProcessor->getProcessorType() == LineProc)
+	{
+		static_cast<LineProcessor*>(m_pProcessor)->makeAvailable(m_pPerson,_congeeTime,false);
+	}
 }
 
 void TerminalMobElementBehavior::kill (ElapsedTime killTime)
@@ -2703,7 +2729,7 @@ bool TerminalMobElementBehavior::StickForDestProcsOverload(const ElapsedTime& _c
 
 
 	pNextProcDistribution->getDestinationGroup( RANDOM);
-
+	m_currentFlowItemIndex = pNextProcDistribution->GetCurGroupIndex();
 
 	ASSERT( pNextProcDistribution!=NULL);
 
@@ -3289,7 +3315,7 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 	// determines whether Person can travel a direct route to his
 	// destination. if not, an intermediary destination will be assigned
 	bool bHasClearPath = true;
-	while (!hasClearPath())
+	while (!hasClearPath(_curTime))
 	{
 		eventTime += moveTime();
 		m_pPerson->setState(MoveToServer);
@@ -3397,24 +3423,28 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	//save the destination point for processing congestion pipe
 	m_ptOldDest = ptTo;
 
-	std::vector<int> vPipeList1;
+	std::vector<int> pipeList;
 
 	// get pipe list
-	CFlowItemEx vPipeIndexList;
+	CFlowItemEx flowItem;
 	if( _pPrevFlowItem  )
 	{
-		vPipeIndexList = *_pPrevFlowItem;
+		flowItem = *_pPrevFlowItem;
 	}
 	else
 	{
-		std::vector<CFlowItemEx>& pipeIndexList = ( (CProcessorDistributionWithPipe*)m_pFlowList )->GetPipeVector();
-		if( !pipeIndexList.empty() )
+		int curGrpupIndex;
+		CString strCurProcessor = m_pProcessor->getIDName();
+		CString strNextProcessor = _pNextProc->getIDName();
+		std::vector<CFlowItemEx>& vFlowItem = ( (CProcessorDistributionWithPipe*)m_pFlowList )->GetPipeVector();
+		if( !vFlowItem.empty() )
 		{
-			vPipeIndexList = pipeIndexList[m_pFlowList->GetCurGroupIndex()];
+			curGrpupIndex = m_pFlowList->GetCurGroupIndex();
+			flowItem = vFlowItem[m_pFlowList->GetCurGroupIndex()];
 		}		
 	}
 	
-	if( vPipeIndexList.GetTypeOfUsingPipe() == 1 )	// use auto pipe system
+	if( flowItem.GetTypeOfUsingPipe() == 1 )	// use auto pipe system
 	{
 		m_bUserPipes = false;
 
@@ -3436,10 +3466,10 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 
 	// else use user pipe
 	m_bUserPipes = true;
-	vPipeList1 = vPipeIndexList.GetPipeVector();
+	pipeList = flowItem.GetPipeVector();
 
-	int nPipeCount = vPipeList1.size();
-	if( nPipeCount == 0 )
+	int pipeCount = pipeList.size();
+	if( pipeCount == 0 )
 		return;
 
 	m_nextHoldAiearPoTag = false;
@@ -3454,22 +3484,23 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 		}
 	}
 
-	std::vector<int> vPipeList2;
-	for( int i=0; i<nPipeCount; i++ )
+	// make sure the pipe in the same floor
+	std::vector<int> pipeList2;
+	for( int i=0; i<pipeCount; i++ )
 	{
-		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList1[i] );
+		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList[i] );
 		if( pPipe->GetZ() == ptFrom.getZ() )
 		{
-			vPipeList2.push_back( vPipeList1[i] );
+			pipeList2.push_back( pipeList[i] );
 		}
 	}
-	nPipeCount = vPipeList2.size();
-	if( nPipeCount == 0 )
+	pipeCount = pipeList2.size();
+	if( pipeCount == 0 )
 		return;
 
 	writeLogEntry( _curTime, false ); // on leave server.
 
-	// get the index and intersetion of the source processor with pipe.
+	// get the index and intersection of the source processor with pipe.
 	int nOldState = m_pPerson->getState();
 
 	CPointToPipeXPoint entryPoint;
@@ -3482,20 +3513,20 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	CPipe* pPipe1 = NULL;
 	CPipe* pPipe2 = NULL;
 	
-	for(int ii=0; ii<nPipeCount; ii++ )
+	for(int ii=0; ii<pipeCount; ii++ )
 	{
 		if( ii == 0 )
 		{
-			pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[0] );
+			pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList2[0] );
 			entryPoint = pPipe1->GetIntersectionPoint( ptFrom );
 
-			if( nPipeCount == 1 )
+			if( pipeCount == 1 )
 			{
 				exitPoint = pPipe1->GetIntersectionPoint( ptTo );
 			}
 			else
 			{
-				pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[1] );
+				pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList2[1] );
 				CMobPipeToPipeXPoint midPt;
 				if( pPipe1->GetIntersectionPoint( pPipe2, entryPoint, midPt ) )
 				{
@@ -3509,14 +3540,14 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 				}
 			}
 		}
-		else if( ii == nPipeCount - 1 )
+		else if( ii == pipeCount - 1 )
 		{
 			exitPoint = pPipe1->GetIntersectionPoint( ptTo );
 			vMidPoint[vMidPoint.size()-1].SetOutInc( exitPoint );
 		}
 		else
 		{
-			pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[ii+1] );
+			pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList2[ii+1] );
 			CMobPipeToPipeXPoint midPt;
 			if( pPipe1->GetIntersectionPoint( pPipe2, vMidPoint[vMidPoint.size()-1], midPt ) )
 			{
@@ -3537,7 +3568,7 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	setState( WalkOnPipe );
 
 	// process entry point
-	CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[0] );
+	CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList2[0] );
 
 	//////////////////////////////////////////////////////////////////////////
 	//begin  handle barrier
@@ -3548,7 +3579,7 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	// determines whether Person can travel a direct route to his
 	// destination. if not, an intermediary destination will be assigned
 	bool bHasClearPath = true;
-	while (!hasClearPath())
+	while (!hasClearPath(_curTime))
 	{
 		eventTime += moveTime();
 		m_pPerson->setState(MoveToServer);
@@ -3571,14 +3602,14 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	if( nMidPoint == 0 )
 	{	
 		m_bUserPipes = false;
-		pPipe->GetPointListForLog( vPipeList2[0],entryPoint, exitPoint, nPercent,pointList );
+		pPipe->GetPointListForLog( pipeList2[0],entryPoint, exitPoint, nPercent,pointList );
 
 		WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());		
 		pointList.clear();
 	}
 	else
 	{
-		pPipe->GetPointListForLog( vPipeList2[0],entryPoint, vMidPoint[0], nPercent,pointList );
+		pPipe->GetPointListForLog( pipeList2[0],entryPoint, vMidPoint[0], nPercent,pointList );
 		WritePipeLogs( pointList, eventTime , getEngine()->GetFireOccurFlag());
 
 		pointList.clear();
@@ -3586,11 +3617,11 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 		int i=1;
 		for(; i<nMidPoint; i++ )
 		{
-			pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[i] );
+			pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList2[i] );
 			if( vMidPoint[i-1].OrderChanged() )
 				nPercent = 100 - nPercent;
 
-			pPipe->GetPointListForLog( vPipeList2[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList );
+			pPipe->GetPointListForLog( pipeList2[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList );
 
 			WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());
 			pointList.clear();
@@ -3598,10 +3629,10 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 		m_bUserPipes = false;
 
 		// process exit point
-		pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[nPipeCount-1] );
+		pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( pipeList2[pipeCount-1] );
 		if( vMidPoint[i-1].OrderChanged() )
 			nPercent = 100 - nPercent;
-		pPipe->GetPointListForLog( vPipeList2[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,pointList );
+		pPipe->GetPointListForLog( pipeList2[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,pointList );
 
 		WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag() );
 		pointList.clear();
@@ -3846,7 +3877,7 @@ void TerminalMobElementBehavior::pickupBag( std::vector<Person*>_vBags, const El
 // It tests current path for intersecting barriers. If any, the Person will be guided around the ends of them
 // m_pPerson function has been optimized to reduce the number of calculations as much as possible. Modify with caution!!!!
 // Returns TRUE only if a clear path all the way to the eventual destination is found.
-int TerminalMobElementBehavior::hasClearPath (void)
+int TerminalMobElementBehavior::hasClearPath (const ElapsedTime& _curTime)
 {
 	if (getPoint().getZ() != m_ptDestination.getZ())
 		return 1;
@@ -3873,57 +3904,74 @@ int TerminalMobElementBehavior::hasClearPath (void)
 	barrierCount += avoidQueuebarrierList.getCount();
 
 	Point *DisablePointArray = new Point[ 2* barrierCount];//
-	int  iDisableArrayCount =0;//
-	do
+
+	try
 	{
-		for (i = 0; i < barrierCount; i++)
+		int  iDisableArrayCount =0;//
+		do
 		{
-			barrier = (Barrier *) barrierList.getItem (i);
-			if (barrier->intersects (getPoint(), m_ptDestination))
+			for (i = 0; i < barrierCount; i++)
 			{
-				Point NewDestination;//
-
-				if (barrier->contains (getPoint()) ||
-					barrier->contains (m_ptDestination))
-					continue;
-				iDisableArrayCount ++;
-				DisablePointArray[iDisableArrayCount - 1] = m_ptDestination;
-
-				NewDestination = barrier->getNextPoint (getPoint(), m_ptDestination);
-				int iDisableTag =0;
-
-				for(int kk =0;kk <iDisableArrayCount;kk++)
+				barrier = (Barrier *) barrierList.getItem (i);
+				if (barrier->intersects (getPoint(), m_ptDestination))
 				{
-					if( DisablePointArray[kk]==NewDestination )
+					Point NewDestination;//
+
+					if (barrier->contains (getPoint()) ||
+						barrier->contains (m_ptDestination))
+						continue;
+					iDisableArrayCount ++;
+					DisablePointArray[iDisableArrayCount - 1] = m_ptDestination;
+
+					NewDestination = barrier->getNextPoint (getPoint(), m_ptDestination);
+					int iDisableTag =0;
+
+					for(int kk =0;kk <iDisableArrayCount;kk++)
 					{
-						iDisableTag =1;
-						break;
+						if( DisablePointArray[kk]==NewDestination )
+						{
+							iDisableTag =1;
+							break;
+						}
 					}
+
+					if(iDisableTag)
+					{
+						NewDestination = barrier->getNextWorsePoint(getPoint(),m_ptDestination);
+					}
+
+					setDestination (NewDestination);
+
+					//setDestination (barrier->getNextPoint (location, destination));
+					flag = FALSE;
+
+					delete []DisablePointArray;
+					return flag;
 				}
-
-				if(iDisableTag)
-				{
-					NewDestination = barrier->getNextWorsePoint(getPoint(),m_ptDestination);
-				}
-
-				setDestination (NewDestination);
-
-				//setDestination (barrier->getNextPoint (location, destination));
-				flag = FALSE;
-
-				delete []DisablePointArray;
-				return flag;
 			}
-		}
 
-		// m_pPerson check will only allow a pax to continue when they find a
-		// clear path to their current destination
+			// m_pPerson check will only allow a pax to continue when they find a
+			// clear path to their current destination
 
-		// when a deviating route is required, the new path must also be
-		// tested for intersecting barriers. If any additional intersections
-		// are found, the passenger must be guided around them as well
-	} while (i != barrierCount);
-
+			// when a deviating route is required, the new path must also be
+			// tested for intersecting barriers. If any additional intersections
+			// are found, the passenger must be guided around them as well
+		} while (i != barrierCount);
+	}
+	catch (StringError* strErr)
+	{
+		long pID = m_pPerson->getID();
+		ReleaseResource(_curTime);
+		kill(_curTime);
+		delete []DisablePointArray;
+		// for throw exception
+		CString szMobType = getPersonErrorMsg();
+		CString strProcNameTmp = m_pProcessor ? m_pProcessor->getID()->GetIDString() : "";
+		char strErrMsg[256] = {0};
+		strErr->getMessage(strErrMsg);
+		delete strErr;
+		throw new ARCBarrierSystemError(szMobType, strProcNameTmp, strErrMsg, ClacTimeString(_curTime));
+	}
 	delete []DisablePointArray;
 	return flag;
 }
@@ -3951,7 +3999,7 @@ void TerminalMobElementBehavior::AvoidFixedQueueIfNecessary( ProcessorArray* _pB
 			{
 				if( ProcessorQueue* pQueue = pProc->GetProcessorQueue() )
 				{
-					if( pQueue->isFixed() )
+					if( pQueue->isFixed() == 'Y' )
 					{
 						Barrier* pBarrier = new Barrier;
 						pBarrier->initServiceLocation( pQueue->cornerCount(), pQueue->corner()->getPointList() );
@@ -4615,7 +4663,7 @@ void TerminalMobElementBehavior::WalkAlongShortestPathForEvac( const Point& _src
 	Point nextPoint = m_ptDestination;
 	// determines whether Person can travel a direct route to his
 	// destination. if not, an intermediary destination will be assigned
-	while (!hasClearPath())
+	while (!hasClearPath(_curTime))
 	{
 		_curTime += moveTime();
 		setState(MoveToServer);
@@ -4662,11 +4710,21 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 	{	
 		int nQueuePointCount = _pNextProc->GetProcessorQueue()->cornerCount();
 
+		if(procQueue->isFixed() == 'Y')
+		{
+			FixedQueue* pQueue = (FixedQueue*)_pNextProc->GetProcessorQueue();
+			int cornerIndex = pQueue->getEntryCornerIndex();
+			first_corner = cornerIndex;
+			return _pNextProc->GetProcessorQueue()->corner(cornerIndex);
+		}
+		else
+		{
 		//////////if(procQueue->isFixed() == 'Y')
 		//////////{
 
 			if(nQueuePointCount > 0)//no matter fix queue and non fix queue, use the queue entry point as pipe entry/exit point
 				return _pNextProc->GetProcessorQueue()->corner( nQueuePointCount - 1);
+		}
 		//////////}
 		//////////else
 		//////////{	
@@ -4792,7 +4850,7 @@ void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, c
 	// get the real path, and write log
 	PTONSIDEWALK LogPointList;
 	int iPercent = random(100);
-	m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
+	int nTempCount = m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
 
 	setDestination(LogPointList.at(0).GetPointOnSideWalk());
 
@@ -4800,7 +4858,7 @@ void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, c
 
 	// determines whether Person can travel a direct route to his
 	// destination. if not, an intermediary destination will be assigned
-	while (!hasClearPath())
+	while (!hasClearPath(_curTime))
 	{
 		_curTime += moveTime();
 		setState(MoveToServer);
@@ -4960,6 +5018,7 @@ bool TerminalMobElementBehavior::FindAllPossibleDestinationProcs(std::vector<Pro
 	// is moving in normal flow
 	{
 		nextGroup = m_pFlowList->getDestinationGroup (RANDOM) ;
+		m_currentFlowItemIndex = m_pFlowList->GetCurGroupIndex();
 		do 
 		{	
 			CString strProcName = nextGroup->GetIDString();
@@ -5426,7 +5485,7 @@ bool TerminalMobElementBehavior::waitForResourceIfNeed( const ElapsedTime& _time
 		return false;
 
 	CResourcePool* _pool = m_pProcessor->getBestResourcePoolByType( m_pPerson->getType(), _lServiceTime );
-	if( _pool == NULL )		// no define pool for the paxtype
+	if( _pool == NULL )		// no define pool for the pax type
 	{
 		return false;
 	}
@@ -6096,7 +6155,6 @@ bool TerminalMobElementBehavior::GetAvailbleEntryProcList( std::vector<Processor
 			//dStepTime3 = GetTickCount();
 
 			const ProcessorID *nextGroup = pFlowList->getDestinationGroup (RANDOM);
-
 			do 
 			{
 				if(nextGroup != NULL)
@@ -6143,7 +6201,6 @@ bool TerminalMobElementBehavior::GetAvailbleEntryProcList( std::vector<Processor
 		{
 
 			const ProcessorID *nextGroup = pFlowList->getDestinationGroup (RANDOM);
-
 			do 
 			{
 				if(nextGroup != NULL)

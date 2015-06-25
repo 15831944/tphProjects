@@ -705,7 +705,8 @@ bool FlightPlanInSim::GetTakeoffEnrouteFlightPlan(AirsideFlightInSim* pFlight,Fl
 	return false;
 }
 
-bool FlightPlanInSim::GetSTARFlightPlan(AirsideFlightInSim* pFlight,FlightRouteInSim*& pRoute)
+//runway managerment use flight plan landing runway is NULL. otherwise is atc landing runway : bRunwayFlightPlan
+bool FlightPlanInSim::GetSTARFlightPlan(AirsideFlightInSim* pFlight,FlightRouteInSim*& pRoute,bool bRunwayFlightPlan)
 {
 
 	using namespace ns_FlightPlan;
@@ -720,13 +721,14 @@ bool FlightPlanInSim::GetSTARFlightPlan(AirsideFlightInSim* pFlight,FlightRouteI
 
 		FlightPlanGeneric *pfltPlan = (FlightPlanGeneric *)pBasePlan;
 		pRoute = new FlightPlanGenericRouteInSim(pfltPlan);
-		CAirRoute *pStarRoute = GetBestAirRoute(pFlight, CAirRoute::STAR, pFlight->GetLandingRunway());
+		LogicRunwayInSim * pLandingRunway = bRunwayFlightPlan ?  NULL : pFlight->GetLandingRunway();
+		CAirRoute *pStarRoute = GetBestAirRoute(pFlight, CAirRoute::STAR, pLandingRunway);
 		
 		if(pStarRoute == NULL)//have no available STAR
 			return false;
 
 //update landing runway
-		LogicRunwayInSim * pLandingRunway = pFlight->GetLandingRunway();
+		
 		int nRwyID = -1;
 		int nRwyMark = 0;
 		if (pLandingRunway)
@@ -958,7 +960,7 @@ bool FlightPlanInSim::GetSTARFlightPlan(AirsideFlightInSim* pFlight,FlightRouteI
 	return false;
 }
 
-bool FlightPlanInSim::GetSIDFlightPlan(AirsideFlightInSim* pFlight,FlightRouteInSim*& pRoute)
+bool FlightPlanInSim::GetSIDFlightPlan(AirsideFlightInSim* pFlight,FlightRouteInSim*& pRoute,bool bRunwayFlightPlan)
 {
 
 	using namespace ns_FlightPlan;
@@ -973,13 +975,14 @@ bool FlightPlanInSim::GetSIDFlightPlan(AirsideFlightInSim* pFlight,FlightRouteIn
 		FlightPlanGeneric *pfltPlan = (FlightPlanGeneric *)pBasePlan;
 		pRoute = new FlightPlanGenericRouteInSim(pfltPlan);
 
-		CAirRoute *pSIDRoute = GetBestAirRoute(pFlight, CAirRoute::SID, pFlight->GetAndAssignTakeoffRunway());
+		//update take off runway
+		LogicRunwayInSim * pTakeOffRunway = bRunwayFlightPlan ? NULL: pFlight->GetAndAssignTakeoffRunway();
+		CAirRoute *pSIDRoute = GetBestAirRoute(pFlight, CAirRoute::SID, pTakeOffRunway);
 		
 		if(pSIDRoute == NULL)//have no available SID
 			return false;
 
-//update take off runway
-		LogicRunwayInSim * pTakeOffRunway = pFlight->GetAndAssignTakeoffRunway();
+
 		int nRwyID = -1;
 		int nRwyMark = 0;
 		if (pTakeOffRunway)

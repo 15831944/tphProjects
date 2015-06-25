@@ -575,15 +575,36 @@ void CHubDataDlg::OnHubbingdataAdd()
 	m_btnSave.EnableWindow();
 }
 
-// add new pax type to the data. and automatic create the default value to the entyr.
+// add new pax type to the data. and automatic create the default value to the entry.
 void CHubDataDlg::AddPassengerTypeEntry()
 {
-	CPassengerTypeDialog dlg( m_pParentWnd );
-	if( dlg.DoModal() == IDCANCEL )
-		return;
+	CMobileElemConstraint mobElemConst;
+	mobElemConst.SetInputTerminal(GetInputTerminal());
 
-	//PassengerConstraint paxConstr = dlg.GetPaxSelection();
-	CMobileElemConstraint mobileConstr = dlg.GetMobileSelection();
+	while(true)
+	{
+		CPassengerTypeDialog dlg( m_pParentWnd );
+		if( dlg.DoModal() == IDOK )
+		{
+			mobElemConst = dlg.GetMobileSelection();
+			if(mobElemConst.isArrival() || mobElemConst.getIntrinsic() == 0)
+			{
+				m_btnSave.EnableWindow(TRUE);
+				break;
+			}
+			else
+			{
+				CString strErr, strIntrinsic;
+				strIntrinsic = GetInputTerminal()->inStrDict->getString (mobElemConst.getIntrinsic());
+				strErr.Format("'%s' passengers can not be transferred.", strIntrinsic);
+				MessageBox(strErr);
+			}
+		}
+		else
+		{
+			return;
+		}
+	}
  
 	CHubbingDatabase* pHubbingDB = GetInputTerminal()->m_pHubbing;
 
@@ -593,9 +614,9 @@ void CHubDataDlg::AddPassengerTypeEntry()
 	{
 		CHubbingData* hubbingData = pHubbingDB->getItem( i );
 		CPassengerConstraint testPaxConst = hubbingData->GetConstraint();
-		if( mobileConstr.isEqual(&testPaxConst) )//Exist
+		if( mobElemConst.isEqual(&testPaxConst) )//Exist
 		{
-			// selecct the item
+			// select the item
 			HTREEITEM hItem = m_treeHubData.GetChildItem( m_hRClickItem );
 			while( hItem )
 			{
@@ -611,7 +632,7 @@ void CHubDataDlg::AddPassengerTypeEntry()
 	}
 				
 	// add new pax constraint.
-	CHubbingData* pData = pHubbingDB->AddDefaultEntry(mobileConstr);
+	CHubbingData* pData = pHubbingDB->AddDefaultEntry(mobElemConst);
 	CPassengerConstraint& paxConst = pData->GetConstraint();
 	CString szLabel;
 	paxConst.screenPrint( szLabel, 0, 256 );
@@ -636,7 +657,7 @@ void CHubDataDlg::AddPassengerTypeEntry()
 	hItem = m_treeHubData.InsertItem( CS_TRANSFER_DEST, hTransferItem );
 	m_treeHubData.SetItemData( hItem, TRANSFER_DEST );
 	m_treeHubData.Expand( m_hRootItem, TVE_EXPAND );
-		// transfer dest fligh
+		// transfer dest flight
 	//ReloadTransferFlightTree( hItem, pFlightType, -1 );
 	//ReloadTree();
 }
@@ -669,7 +690,7 @@ void CHubDataDlg::DeletePassengerEntry()
 }
 
 
-// delete flight distrubition
+// delete flight distribution
 void CHubDataDlg::DeleteFltDist()
 {
 	assert( m_hRClickItem );

@@ -297,44 +297,34 @@ void CPaxDistDlg::OnPaxdistEvenRemainPercent()
 		}
 	}
 
-	float fRemain = 100 - fValue;
-	float fPercent, fLack = 0;
-	if((int)fRemain % (nChildCount - 1) == 0 )
-		fPercent = fRemain / (nChildCount - 1);
-	else
+	float fRemain = 100.0f - fValue;
+	int nMod = static_cast<int>(fRemain) % (nChildCount-1);
+	float average = (fRemain-static_cast<float>(nMod))/(nChildCount-1);
+	int nRest = 0;
+	for (int j = 0; j < nChildCount; j++)
 	{
-		fPercent = static_cast<float>((fRemain / (nChildCount - 1)));
-		fLack = fRemain - fPercent * (nChildCount - 1);
-	}
-	
-
-	for( int j=0; j<nChildCount; j++ )
-	{
-		if( j == 0 )
-			hChildItem = m_treeDist.GetChildItem( hParentItem );
+		if(j == 0)
+			hChildItem = m_treeDist.GetChildItem(hParentItem);
 		else
-			hChildItem = m_treeDist.GetNextItem( hChildItem, TVGN_NEXT );
-	
-		if(hChildItem == m_hRClickItem)			//not set percent for the current selected item
-			continue;
+			hChildItem = m_treeDist.GetNextItem(hChildItem, TVGN_NEXT);
 
-		float fPercentUse = fPercent;
-		if(fLack != 0)
-		{
-			fLack--;
-			fPercentUse = fPercent + 1;
-			
-		}
-		
+		if(hChildItem == m_hRClickItem)	//not set percent for the selected item
+			continue;
+		nRest++;
 		int pIdxPath[LEVELS];
 		GetIdxPath( hChildItem, pIdxPath );
-		
-		pPaxDist->setValue( pIdxPath, fPercentUse );	
-		
-		CString csLabel = GetItemLabel( GetInputTerminal()->inTypeList->getTypeName( j, nLevels ), static_cast<int>(fPercentUse) );
-		m_treeDist.SetItemText( hChildItem, csLabel );
+		if(nRest == nChildCount-1)
+		{
+			pPaxDist->setValue(pIdxPath, average + static_cast<float>(nMod)); // value of the last item will be largest.
+		}
+		else
+		{
+			pPaxDist->setValue(pIdxPath, average);
+		}
+
+		CString csLabel = GetItemLabel(GetInputTerminal()->inTypeList->getTypeName(j, nLevels), pPaxDist->getValue(pIdxPath));
+		m_treeDist.SetItemText(hChildItem, csLabel);
 	}
-	
 	m_btnSave.EnableWindow();	
 }
 
@@ -343,45 +333,39 @@ void CPaxDistDlg::OnPaxdistEvenpercent()
 	// TODO: Add your command handler code here
 	if (!m_hRClickItem )
 		return;
-	
+
 	// SET DATABASE
 	PaxTypeDistribution* pPaxDist = GetPaxDist();
 	if( !pPaxDist )
 		return;
-	
-	int nLevels = GetLevelIdx( m_hRClickItem );
-	
+
 	HTREEITEM hParentItem = m_treeDist.GetParentItem( m_hRClickItem );
-	
-	int nChildCount = GetInputTerminal()->inTypeList->getBranchesAtLevel( nLevels );
-	
 	HTREEITEM hChildItem;
-	for( int i=0; i<nChildCount; i++ )
+	int nLevels = GetLevelIdx( m_hRClickItem );
+	int nChildCount = GetInputTerminal()->inTypeList->getBranchesAtLevel( nLevels );
+	int nMod = static_cast<int>(100.0f) % (nChildCount);
+	float average = (100.0f-static_cast<float>(nMod))/(nChildCount);
+	int pIdxPath[LEVELS];
+	for (int j = 0; j < nChildCount; j++)
 	{
-		if( i == 0 )
-			hChildItem = m_treeDist.GetChildItem( hParentItem );
+		if(j == 0)
+			hChildItem = m_treeDist.GetChildItem(hParentItem);
 		else
-			hChildItem = m_treeDist.GetNextItem( hChildItem, TVGN_NEXT );
-		
-		int pIdxPath[LEVELS];
-		GetIdxPath( hChildItem, pIdxPath );
-		
-		float fPercent;
-		if( nChildCount == 3 )
+			hChildItem = m_treeDist.GetNextSiblingItem(hChildItem);
+
+		GetIdxPath(hChildItem, pIdxPath);
+		if(j == nChildCount-1)
 		{
-			if( i == 2 )
-				fPercent = 34;
-			else
-				fPercent = 33;
+			pPaxDist->setValue(pIdxPath, average + static_cast<float>(nMod)); // value of the last item will be largest.
 		}
 		else
-			fPercent = static_cast<float>(100 / nChildCount);
-		pPaxDist->setValue( pIdxPath, fPercent );	
-		
-		CString csLabel = GetItemLabel( GetInputTerminal()->inTypeList->getTypeName( i, nLevels ), static_cast<int>(fPercent) );
-		m_treeDist.SetItemText( hChildItem, csLabel );
+		{
+			pPaxDist->setValue(pIdxPath, average);
+		}
+
+		CString csLabel = GetItemLabel(GetInputTerminal()->inTypeList->getTypeName(j, nLevels), pPaxDist->getValue(pIdxPath));
+		m_treeDist.SetItemText(hChildItem, csLabel);
 	}
-	
 	m_btnSave.EnableWindow();	
 }
 
@@ -1043,10 +1027,8 @@ void CPaxDistDlg::EvenPercentCurrentLevel()
 	int nLevels = GetLevelIdx( m_hRClickItem );
 	HTREEITEM hParentItem = m_treeDist.GetParentItem( m_hRClickItem );
 	int nChildCount = GetInputTerminal()->inTypeList->getBranchesAtLevel( nLevels );
-	int nEvenPercent=100/nChildCount;
-	
-	HTREEITEM hChildItem;
 	ASSERT(nChildCount>0);
+	int nEvenPercent=100/nChildCount;
 
 	std::vector<HTREEITEM> vItems;
 	GetAllItemAtDepth(NULL,vItems,nLevels);
@@ -1057,7 +1039,7 @@ void CPaxDistDlg::EvenPercentCurrentLevel()
 	}
 
 	int nSelectedItem=0;
-	hChildItem=m_treeDist.GetChildItem(hParentItem);
+	HTREEITEM hChildItem = m_treeDist.GetChildItem(hParentItem);
 	while(hChildItem!=NULL)
 	{
 		if(hChildItem==m_hRClickItem)break;

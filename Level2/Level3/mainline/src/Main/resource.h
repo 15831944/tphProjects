@@ -3328,6 +3328,8 @@
 #define IDC_STATIC_CMPREPORTDESCRI      2409
 #define IDC_CMPREPORTNAME               2410
 #define IDC_STATIC_REPORTS              2411
+#define IDC_STATIC_RESPOOL_ON           2412
+#define IDC_STATIC_RESPOOL_OFF          2413
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5207,6 +5209,7 @@
 #define ID_BOARDING_CALL_EDIT           35333
 #define ID_TOOLBARBUTTONCOPY            35334
 #define ID_TOOLBARBUTTONPASTE           35335
+#define ID_NONITEM_REMOVE               35336
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5466,8 +5469,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1112
-#define _APS_NEXT_COMMAND_VALUE         35336
-#define _APS_NEXT_CONTROL_VALUE         2412
+#define _APS_NEXT_COMMAND_VALUE         35337
+#define _APS_NEXT_CONTROL_VALUE         2414
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

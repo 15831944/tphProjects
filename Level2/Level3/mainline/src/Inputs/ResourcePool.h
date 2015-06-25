@@ -54,7 +54,7 @@ private:
 	ProbabilityDistribution*	m_proCount;
 	Path						m_poolBasePath;
 	PoolType					m_emPoolType;
-
+	BOOL						m_isChecked; // changed in 'simulation setting'
 // function
 private:
 	double getRandomSpeed( void ) const;
@@ -73,6 +73,10 @@ public:
 	void setProSpeed( ProbabilityDistribution* _pro );
 	void setProCount( ProbabilityDistribution* _pro );
 	void setPoolBasePath( const Path& _path );
+
+	// get checked
+	BOOL GetChecked() const { return m_isChecked; }
+	void SetChecked(BOOL checked) { m_isChecked = checked; }
 
 	// for sort
 	bool operator<( const CResourcePool& _pool) const;
@@ -99,7 +103,7 @@ public:
 	// clear engine data
 	void clearEngineDate( void );
 
-	// kill resource element and flush resource elemet log
+	// kill resource element and flush resource element log
 	void killAndFlushLog( const ElapsedTime& _killTime );
 
 	// get all resource count
@@ -139,10 +143,14 @@ public:
 
 private:
 	RESOURCEPOOLSET m_ResourcePoolList;
-
+	BOOL			m_isChecked;	// is checked in settings
 public:
 	// get ResourcePool count
 	int	getResourcePoolCount( void ) const;
+
+	// get checked
+	BOOL GetChecked() const { return m_isChecked; }
+	void SetChecked(BOOL checked) { m_isChecked = checked; }
 
 	// get resource pool list
 	const RESOURCEPOOLSET& getResourcePoolList( void ) const;
@@ -164,10 +172,11 @@ public:
 
 	// read & write file;
     virtual void clear (void);
-    virtual void readData (ArctermFile& p_file);
+    virtual void readData(ArctermFile& p_file);
 	void readData2_2(ArctermFile& p_file);
+	void readData2_3(ArctermFile& p_file);
     virtual void writeData (ArctermFile& p_file) const;
-	virtual void readObsoleteData ( ArctermFile& p_file ){readData2_2(p_file);}
+	virtual void readObsoleteData ( ArctermFile& p_file );
 	virtual const char *getTitle (void) const;
     virtual const char *getHeaders (void) const;	
 

@@ -31,6 +31,7 @@ bool EnrouteQueueCapacityInSim::PushBackExitEnrouteQCapacity( const ElapsedTime&
 	TaxiRouteInSim* pTaxiRoute = pFlight->GetAndAssignOutBoundRoute();
 	if (pTaxiRoute == NULL)
 		return true;
+
 	
 	pTaxiRoute->InitRoute(pFlight,eTime);
 	FlightHoldListInTaxiRoute& taxiRouteList = pTaxiRoute->GetHoldList();
@@ -84,13 +85,15 @@ bool EnrouteQueueCapacityInSim::PushBackExitEnrouteQCapacity( const ElapsedTime&
 				if (pCrossHold != pHold)
 					continue;
 				
-
-				double dQueueLength = pHold->GetTakeoffQueueLength();
-				double dMaxQueue = pCapacityItem->getMaxLength() * 100;
-				if (dQueueLength > dMaxQueue)
+				if(!pHold->IsFlightInQueue(pFlight))
 				{
-					pHold->AddEnrouteWaitList(pFlight);
-					return false;
+					double dQueueLength = pHold->GetTakeoffQueueLength();
+					double dMaxQueue = pCapacityItem->getMaxLength() * 100;
+					if (dQueueLength > dMaxQueue )
+					{
+						pHold->AddEnrouteWaitList(pFlight);
+						return false;
+					}
 				}
 			}
 		}

@@ -367,7 +367,7 @@ private:
 	void ProcessHoldingAreaPipe(Processor* _pNextProc, ElapsedTime& _curTime);
 
 	bool FindBillboardLinkedProcessorFromDestination(Processor **destProc,ElapsedTime _curTime, bool _bStationOnly);
-	int hasClearPath (void);
+	int hasClearPath (const ElapsedTime& _curTime);
 	void AvoidFixedQueueIfNecessary( ProcessorArray* _pBarrierList , ProcessorArray* _pNewCreateBarrier );
 
 
@@ -461,6 +461,8 @@ protected:
 	// Current segment of the queue's path.
 	int m_nQueuePathSegmentIndex;
 
+	// mark current flow item index
+	int m_currentFlowItemIndex;
 
    // Queueing status variables.
     // Freemoving speed, needed for queuing.
@@ -657,7 +659,7 @@ public:
 
 	bool m_bIsArrivalDoor;//for write log for pax arrival door height
 
-	int first ;
+	int first_corner ;
 
 	void setLandsideSelectedProc(const std::vector<ALTObjectID>& altLandsideSelectedProc);
 	const std::vector<ALTObjectID>& GetLandsideSelectedProc()const;

@@ -54,6 +54,7 @@ protected:
 	afx_msg void OnToolbarButtonEdit();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnChooseMenu(UINT nID);
+	afx_msg BOOL OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult);
 protected:
 	void DisableAllToolBarButtons();
 	void RemoveTreeItem(HTREEITEM hItem);

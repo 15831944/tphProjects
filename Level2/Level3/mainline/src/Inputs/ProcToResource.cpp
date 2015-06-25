@@ -17,6 +17,7 @@ CProcToResource::CProcToResource()
 	m_proServiceTime = new ConstantDistribution(0);
 	m_iTypeOfUsingPipe = 0;
 	m_vUsedPipes.clear();
+	m_isChecked = TRUE;
 }
 
 CProcToResource::CProcToResource( const CProcToResource& _prc2Res )
@@ -26,6 +27,7 @@ CProcToResource::CProcToResource( const CProcToResource& _prc2Res )
 	m_strResourcePoolName = _prc2Res.m_strResourcePoolName;
 	m_iTypeOfUsingPipe = _prc2Res.m_iTypeOfUsingPipe;
 	m_vUsedPipes = _prc2Res.m_vUsedPipes;
+	m_isChecked = _prc2Res.m_isChecked;
 	m_proServiceTime = ProbabilityDistribution::CopyProbDistribution( _prc2Res.m_proServiceTime);
 }
 
@@ -38,6 +40,7 @@ CProcToResource::CProcToResource( const ProcessorID& _id, const CMobileElemConst
 		m_proServiceTime = new ConstantDistribution(0);
 	m_iTypeOfUsingPipe = 0;
 	m_vUsedPipes.clear();
+	m_isChecked = TRUE;
 }
 
 CProcToResource& CProcToResource::operator=( const CProcToResource& _prc2Res )
@@ -51,6 +54,7 @@ CProcToResource& CProcToResource::operator=( const CProcToResource& _prc2Res )
 			delete m_proServiceTime;
 		m_iTypeOfUsingPipe = _prc2Res.m_iTypeOfUsingPipe;
 		m_vUsedPipes = _prc2Res.m_vUsedPipes;
+		m_isChecked = _prc2Res.m_isChecked;
 		m_proServiceTime = ProbabilityDistribution::CopyProbDistribution( _prc2Res.m_proServiceTime);
 	}
 	
@@ -158,9 +162,10 @@ CString CProcToResource::GetPipeString(InputTerminal* pTerm) const
 /*                      CProcToResourceDataSet                          */
 /************************************************************************/
 
-CProcToResourceDataSet::CProcToResourceDataSet():DataSet( ProcessorToResourcePoolFile, 2.3f )
+CProcToResourceDataSet::CProcToResourceDataSet():DataSet( ProcessorToResourcePoolFile, 2.4f )
 {
 	m_Proc2ResList.clear();
+	m_isChecked = TRUE;
 }
 
 CProcToResourceDataSet::~CProcToResourceDataSet()
@@ -321,6 +326,10 @@ void CProcToResourceDataSet::readObsoleteData (ArctermFile& p_file)
 	{
 		readObsoleteData22(p_file);
 	}
+	else if (-0.00001f < (version-2.3f) && (version-2.3f) < 0.00001f) // version 2.30
+	{
+		readObsoleteData23(p_file);
+	}
 }
 
 void CProcToResourceDataSet::readObsoleteData22 (ArctermFile& p_file)
@@ -356,7 +365,7 @@ void CProcToResourceDataSet::readObsoleteData22 (ArctermFile& p_file)
 	}
 }
 
-void CProcToResourceDataSet::readData (ArctermFile& p_file)
+void CProcToResourceDataSet::readObsoleteData23 (ArctermFile& p_file)
 {
 	char szBuffer[512];
 	int _iCount;
@@ -417,6 +426,70 @@ void CProcToResourceDataSet::readData (ArctermFile& p_file)
 
 }
 
+void CProcToResourceDataSet::readData (ArctermFile& p_file)
+{
+	char szBuffer[512];
+	int _iCount;
+
+	p_file.getLine();
+	p_file.getInteger( _iCount );
+	p_file.getInteger(m_isChecked);
+
+	for( int i=0; i< _iCount; i++ )
+	{
+		p_file.getLine();
+		BOOL isChecked = FALSE;
+		p_file.getInteger(isChecked);
+		// processor
+		ProcessorID procID;
+		procID.SetStrDict( m_pInTerm->inStrDict);
+		procID.readProcessorID( p_file );
+		// mobile type
+		CMobileElemConstraint mob_con(m_pInTerm);
+		//mob_con.SetInputTerminal( m_pInTerm );
+		p_file.getField( szBuffer,512 );
+		mob_con.readConstraintWithVersion( szBuffer );	
+		// resource name
+		CString strResourceName;
+		p_file.getField( szBuffer,512 );
+		strResourceName = szBuffer;
+		// service 
+		p_file.setToField(4);
+		ProbabilityDistribution* _pro = NULL;
+		_pro = GetTerminalRelateProbDistribution (p_file,m_pInTerm);
+
+		CProcToResource procToRes(procID, mob_con,  strResourceName, _pro);
+		procToRes.setChecked(isChecked);
+		// pipe
+		p_file.getField(szBuffer, 512);
+		int iStrlen = strlen(szBuffer);
+		for(int i=0; i<iStrlen; i++)
+		{
+			if(szBuffer[i] == '-')
+			{
+				szBuffer[i] = ',';
+			}
+		}
+		ArctermFile tempFile;
+		tempFile.InitDataFromString(szBuffer);
+		int typeOfUsingPipe, countOfPipe, pipeId;
+		tempFile.getInteger(typeOfUsingPipe); // Get the type of using  pipe.
+		procToRes.SetTypeOfUsingPipe(typeOfUsingPipe);
+		if( typeOfUsingPipe == USE_USER_SELECTED_PIPES ) // Type of using pipe is Manual.
+		{
+			tempFile.getInteger(countOfPipe); // Get the count of pipes.
+			for(int i=0; i<countOfPipe; i++)
+			{
+				tempFile.getInteger(pipeId);
+				procToRes.AddUsedPipe(pipeId);
+			}
+		}
+
+		m_Proc2ResList.insert( procToRes );
+	}
+
+}
+
 void CProcToResourceDataSet::writeData (ArctermFile& p_file) const
 {
 	//char szBuffer[512]; matt
@@ -425,17 +498,19 @@ void CProcToResourceDataSet::writeData (ArctermFile& p_file) const
 
 	int _iCount = m_Proc2ResList.size();
 	p_file.writeInt( _iCount );
+	p_file.writeInt(m_isChecked);
 	p_file.writeLine();
 
 	PROC2RESSET::const_iterator const_iter;
 	for( const_iter = m_Proc2ResList.begin(); const_iter != m_Proc2ResList.end(); ++const_iter )
 	{
+		p_file.writeInt(const_iter->getChecked());
 		// processor ID
 		const_iter->getProcessorID().writeProcessorID( p_file );
 		// pax type
 		const_iter->getMobileConstraint().WriteSyntaxStringWithVersion( szBuffer );
 		p_file.writeField( szBuffer );
-		// resourec name
+		// resource name
 		p_file.writeField( const_iter->getResourcePoolName() );
 		// service time
 		const_iter->getProServiceTime()->writeDistribution( p_file );

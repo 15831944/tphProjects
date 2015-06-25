@@ -757,8 +757,10 @@ void CAirsideRepControlView::EnableControl()
 			m_radioSummary.EnableWindow(FALSE);
 			m_staticType.EnableWindow(FALSE);
 
-			m_staticInterval.EnableWindow( FALSE );
-			m_dtctrlInterval.EnableWindow(FALSE);
+			//m_staticInterval.EnableWindow( FALSE );
+			//m_dtctrlInterval.EnableWindow(FALSE);
+			m_staticInterval.EnableWindow( TRUE );
+			m_dtctrlInterval.EnableWindow(TRUE);
 			m_staticThreshold.EnableWindow(TRUE);
 			m_spinThreshold.EnableWindow(TRUE);
 			m_chkThreshold.EnableWindow(TRUE);

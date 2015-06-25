@@ -284,6 +284,10 @@ void CProperiesDlg::OnOK()
 BOOL CProperiesDlg::SaveData()
 {
 	UpdateData(TRUE);
+
+	if(!IsDataAvailable())
+		return FALSE;
+
 	UpdateFloorData();
 	if (m_pDoc->m_systemMode == EnvMode_LandSide)
 	{
@@ -373,6 +377,32 @@ void CProperiesDlg::OnButtonRemovemap()
 	CWnd* pLO = GetDlgItem(IDC_LAYEROPTIONS);
 	pLO->EnableWindow(FALSE);
 }
+
+BOOL CProperiesDlg::IsDataAvailable()
+{
+	// check View Altitude available
+	const CFloors& floors = m_pDoc->GetCurModeFloor();
+	int nFloorCount = floors.GetCount();
+	double viewAlt = CUnitsManager::GetInstance()->UnConvertLength(m_dAlt);
+	for(int i=0; i<nFloorCount; i++)
+	{
+		const CFloor2* pFloor = floors.GetFloor2(i);
+		if(pFloor == m_pFloor)
+			continue;
+		if(pFloor->Altitude() == viewAlt)
+		{
+			CString strMsg;
+			strMsg.Format("These 2 floors have same View Altitude.\r\nFloor 1: %s\r\nFloor 2: %s.", 
+				((CFloor2*)m_pFloor)->FloorName(), pFloor->FloorName());
+			MessageBox(strMsg, NULL, MB_ICONWARNING);
+			GetDlgItem(IDC_ALT)->SetFocus();
+			((CEdit*)GetDlgItem(IDC_ALT))->SetSel(0,-1); 
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 CFloorPropertiesDlg::CFloorPropertiesDlg(CFloor2* pFloor,CTermPlanDoc *pDoc, CWnd* pParent /*=NULL*/)
 : CProperiesDlg(pFloor,pDoc, pParent)
 {

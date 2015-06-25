@@ -75,10 +75,12 @@ protected:
 	void ClearTreeNodeData();
 	int GetProjectID()const;
 	LandsideFacilityLayoutObjectList* GetLandsideLayoutObjectList();
+	void InitTrafficNode();
 private:
 	CToolBar  m_wndToolbar;
 	CCoolTree m_wndTreeCtrl;
 	std::vector<TreeNodeData*> m_vNodeData;
 	SequentialLightSyn m_sequentialLightSyn;
 	CTermPlanDoc* m_pDoc;
+	LandsideFacilityLayoutObjectList*  m_pTrafficNodeList;
 };

@@ -16,10 +16,10 @@ IStateMachine* IState_LandsideVehicle::getMachine() const
 //////////////////////////////////////////////////////////////////////////
 void State_ServiceTimer::doProcess( CARCportEngine* pEngine )
 {
-	//CFileOutput outfile("D:\\state.log");
-	SetEnd(true);
-	if(m_pState)
+	//CFileOutput outfile("D:\\state.log");	
+	if(m_pState && !isEnded())
 	{
+		SetEnd(true);
 		//outfile.Log(m_pState->getDesc()).Log("{");
 		m_pState->Execute(pEngine); 
 		//outfile.Log("}").Line();

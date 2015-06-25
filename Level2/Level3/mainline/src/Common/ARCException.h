@@ -223,4 +223,19 @@ public:
 	virtual FORMATMSG getFormatErrorMsg( void );
 };
 
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// ARCBarrierSystemError
+class ARCBarrierSystemError : public ARCFlowError
+{
+public:
+	ARCBarrierSystemError( const CString& _strMobType, const CString& _strProcName, const CString& _strOtherMsg = "", const CString& _strTime = "" );
+	virtual ~ARCBarrierSystemError();
+
+	//virtual function
+	virtual CString getErrorMsg();
+	virtual FORMATMSG getFormatErrorMsg( void );
+};
+
+
 #endif // !defined(AFX_ARCEXCEPTION_H__0C3A2EC9_B362_4895_A8C3_10AD60EC24C5__INCLUDED_)

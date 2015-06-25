@@ -315,10 +315,11 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 	spTerminalBehavior->processPersonOnStation(p_time, _needReturn, _localResult);
 	if(_needReturn)
 		return _localResult;
+	CString strProcName = spTerminalBehavior->getProcessor()->getIDName();
 
-
-   int nReturnValue = 1;
-	switch (state)
+	int nReturnValue = 1;
+	EntityEvents elem_state = (EntityEvents)state;
+	switch (elem_state)
     {
 
         // determine first m_pProcessor and starting location

@@ -205,21 +205,25 @@ void Stair::beginService (Person *_pPerson, ElapsedTime _curTime)
 	if (spTerminalBehavior)
 	{
 		if( spTerminalBehavior->GetSourceFloor() == m_location.getPoint(0).getZ() / SCALE_FACTOR )
-		{
+		{	//first point is arriving point
+			_pPerson->setState( ArriveAtServer );
 			for( int i=0; i<nCount; ++i )
 			{
 				_pPerson->setTerminalDestination( m_location.getPoint( i ) );
 				eventTime += _pPerson->moveTime();
 				_pPerson->writeLogEntry( eventTime, false );
+				_pPerson->setState(FreeMoving);
 			}
 		}
 		else if( spTerminalBehavior->GetSourceFloor() == m_location.getPoint( m_location.getCount() -1 ).getZ() / SCALE_FACTOR)
-		{
+		{	
+			_pPerson->setState( ArriveAtServer );
 			for( int i=nCount-1; i >= 0; --i )
 			{
 				_pPerson->setTerminalDestination( m_location.getPoint( i ) );
 				eventTime += _pPerson->moveTime();
 				_pPerson->writeLogEntry( eventTime, false );
+				_pPerson->setState(FreeMoving);
 			}
 		}
 	}

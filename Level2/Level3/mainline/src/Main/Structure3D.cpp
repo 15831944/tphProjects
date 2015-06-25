@@ -88,7 +88,7 @@ void CStructure3D::Render( C3DView * pView )
 	ASSERT(nPtCount == GetStructure()->getUserDataCount());
 	ASSERT(nPtCount+1 == GetStructure()->getStructFaceCount());
 	
-	UpdateTexture();
+	//UpdateTexture();
 	CAirside3D* pAirside3D = pView->GetParentFrame()->GetAirside3D();
 	ASSERT(pAirside3D);
 	CAirport3D * pAirport3D = pAirside3D->GetActiveAirport();
@@ -104,9 +104,10 @@ void CStructure3D::Render( C3DView * pView )
 		StructFace* pFace = GetStructure()->getStructFace(i);
 
 		glDisable(GL_TEXTURE_2D);
-		CTexture* pTexture = getTextureByFileName(pFace->strPicPath);
+		CTexture2* pTexture = getTexture(pFace->strPicPath,pView);
 		if(pTexture && pFace->bShow ){
-			pTexture->Apply();	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			pTexture->Apply();
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		}
 
 		ARCVector3 vDir = pointNext - pointI;
@@ -148,9 +149,10 @@ void CStructure3D::Render( C3DView * pView )
 	//render top
 	glDisable(GL_TEXTURE_2D);
 	StructFace* pFace = GetStructure()->getStructFace(nPtCount);
-	CTexture* pTexture = getTextureByFileName(pFace->strPicPath);
+	CTexture2* pTexture = getTexture(pFace->strPicPath,pView);
 	if(pTexture && pFace->bShow ){
-		pTexture->Apply();	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		pTexture->Apply();
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	}
 	
 	glBegin(GL_POLYGON);
@@ -297,7 +299,7 @@ void CStructure3D::Update()
 	{
 		GetStructure()->ReadObject(m_nID);
 		GetDisplayProp()->ReadData(m_nID);
-		UpdateTexture();
+		//UpdateTexture();
 	}
 	catch (CADOException& e)
 	{
@@ -318,41 +320,41 @@ void CStructure3D::FlushChange()
 	}	
 }
 
-CTexture* CStructure3D::getTextureByFileName( const CString& strFile )
-{
-	for(int i=0;i<(int)m_vTextures.size();++i)
-	{
-		CTexture* pTexture = m_vTextures[i].get();
-		if(pTexture->getFileName() == strFile )
-			return pTexture;
-	}
-	return NULL;
-}
+//CTexture* CStructure3D::getTextureByFileName( const CString& strFile )
+//{
+//	for(int i=0;i<(int)m_vTextures.size();++i)
+//	{
+//		CTexture* pTexture = m_vTextures[i].get();
+//		if(pTexture->getFileName() == strFile )
+//			return pTexture;
+//	}
+//	return NULL;
+//}
+//
+//CTexture* CStructure3D::NewTexture( const CString& strFile )
+//{
+//	CTexture* pTexture = new CTexture(strFile);
+//	m_vTextures.push_back(pTexture);
+//	return pTexture;
+//}
 
-CTexture* CStructure3D::NewTexture( const CString& strFile )
-{
-	CTexture* pTexture = new CTexture(strFile);
-	m_vTextures.push_back(pTexture);
-	return pTexture;
-}
-
-void CStructure3D::UpdateTexture()
-{
-	int nFaceCount = GetStructure()->getStructFaceCount();
-	for(int i =0 ;i< nFaceCount; i++)
-	{
-		StructFace* pFace = GetStructure()->getStructFace(i);
-		if(pFace->bShow)
-		{
-			CTexture* pTexture = getTextureByFileName(pFace->strPicPath);
-			if(!pTexture)
-			{
-				pTexture = new CTexture(pFace->strPicPath);			
-				m_vTextures.push_back(pTexture);
-			}
-		}
-	}
-}
+//void CStructure3D::UpdateTexture()
+//{
+//	int nFaceCount = GetStructure()->getStructFaceCount();
+//	for(int i =0 ;i< nFaceCount; i++)
+//	{
+//		StructFace* pFace = GetStructure()->getStructFace(i);
+//		if(pFace->bShow)
+//		{
+//			CTexture* pTexture = getTextureByFileName(pFace->strPicPath);
+//			if(!pTexture)
+//			{
+//				pTexture = new CTexture(pFace->strPicPath);			
+//				m_vTextures.push_back(pTexture);
+//			}
+//		}
+//	}
+//}
 //
 //StructureDisplayProp* CStructure3D::GetDisplayProp() const
 //{
@@ -562,4 +564,19 @@ bool CStructure3D::isObstructionsValid(DistanceUnit dAlt) const
 	}
 
 	return false;
+}
+
+CTexture2* CStructure3D::getTexture( CString fileName, C3DView* pView )
+{
+	for(size_t i=0;i<m_vTextures.size();++i)
+	{
+		CTexture2* t = m_vTextures[i].get();
+		if(t->getFileName()==fileName)
+			return t;
+	}
+	CTexture2* tex = pView->GetParentFrame()->getUserTexturePool()->getTexture(fileName);
+	if(tex){
+		m_vTextures.push_back(tex);
+	}
+	return tex;
 }

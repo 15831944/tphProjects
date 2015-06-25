@@ -10,6 +10,8 @@
 #include "../Common/LatLongConvert.h"
 #include "../InputAirside/InputAirside.h"
 
+#define ID_SIDE_PICREMOVE  ID
+
 enum emEideType
 {
 	NoType = 0,
@@ -45,6 +47,7 @@ CAirsideStructureDlg::~CAirsideStructureDlg(void)
 BEGIN_MESSAGE_MAP(CAirsideStructureDlg,CAirsideObjectBaseDlg)
 	ON_COMMAND(ID_HOLDARGUMENT_EDIT, OnRotationEdit)
 	ON_COMMAND(ID_SIDES_SHOW,OnShowSides)
+	ON_COMMAND(ID_NONITEM_REMOVE,OnRemovePic)
 END_MESSAGE_MAP()
 
 void CAirsideStructureDlg::DoDataExchange(CDataExchange* pDX)
@@ -216,7 +219,10 @@ void CAirsideStructureDlg::OnDoubleClickPropTree(HTREEITEM hTreeItem)
 				pStructData = ((Structure*)GetObject())->getStructFace(nCount);
 			}
 			ASSERT(pStructData);
-			CFileDialog fileDlg(TRUE, _T("bmp"),NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Bitmap Files (*.bmp)|*.bmp|Jpeg Files(*.jpg)|*.jpg|All Files (*.*)|*.*||"), NULL);
+
+			CString strFilters = _T("Picture File (*.bmp;*.jpg;*.png;*.tif;*tiff)|*.bmp;*.jpg;*.png;*.tif;*.tiff|");
+			CFileDialog fileDlg (TRUE, NULL, NULL, OFN_FILEMUSTEXIST, strFilters, this, 0, FALSE);
+
 			CString strFileName = _T("");
 			if( fileDlg.DoModal() == IDOK )
 			{
@@ -314,6 +320,14 @@ void CAirsideStructureDlg::OnContextMenu(CMenu& menuPopup, CMenu *& pMenu)
 				}
 			}
 		}
+	}
+	
+	bool bIsPicItem =  (m_vhSurfaceSidePic.end()!=std::find(m_vhSurfaceSidePic.begin(),m_vhSurfaceSidePic.end(),m_hRClickItem));
+	if(m_hRClickItem== m_hSurfaceTopPic || bIsPicItem )
+	{
+		menuPopup.Detach();
+		menuPopup.LoadMenu(IDR_CTX_STRUCT);
+		pMenu = menuPopup.GetSubMenu(1);
 	}
 }
 void CAirsideStructureDlg::OnOK()
@@ -460,7 +474,8 @@ void CAirsideStructureDlg::SetObjectPath(CPath2008& path)
 
 void CAirsideStructureDlg::LoadTree()
 {
-	m_treeProp.DeleteAllItems();
+	
+	resetTree();
 
 	AirsideObjectTreeCtrlItemDataEx aoidDataEx;
 	ItemStringSectionColor isscStringColor;
@@ -590,18 +605,21 @@ void CAirsideStructureDlg::LoadTree()
 		{
 			if (i != path.getCount())
 			{
-				CString strSideName = _T("");
+				StructFace* pStructData = ((Structure *)GetObject())->getStructFace(i);
+				CString strSideName;
+				CString show = pStructData->bShow?_T("Show"):_T("Hide");
+				
 				if (i == path.getCount()-1)
 				{
-					strSideName.Format(_T("Face %d-1"),i+1);
+					strSideName.Format(_T("Face %d-1 (%s)"),i+1, show.GetString() );
 				}
 				else
 				{
-					strSideName.Format(_T("Face %d-%d"),i+1,i+2);
+					strSideName.Format(_T("Face %d-%d (%s)"),i+1,i+2,  show.GetString());
 				}
 				
 				HTREEITEM hName = m_treeProp.InsertItem(strSideName,hSides);
-				StructFace* pStructData = ((Structure *)GetObject())->getStructFace(i);
+				
 				ASSERT(pStructData);
 				aoidDataEx.lSize = sizeof(aoidDataEx);
 				aoidDataEx.dwptrItemData = SideText;
@@ -622,6 +640,7 @@ void CAirsideStructureDlg::LoadTree()
 				aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
 				HTREEITEM hPath = m_treeProp.InsertItem(pStructData->strPicPath,hName);
 				m_treeProp.SetItemDataEx(hPath,aoidDataEx);
+				m_vhSurfaceSidePic.push_back(hPath);
 
 				m_treeProp.Expand(hName,TVE_EXPAND);
 			}
@@ -629,7 +648,9 @@ void CAirsideStructureDlg::LoadTree()
 			{
 				StructFace* pStructData = ((Structure *)GetObject())->getStructFace(path.getCount());
 				ASSERT(pStructData);
-				CString strSideName = _T("Top");
+				CString strSideName;
+				strSideName.Format( _T("Top(%s)"),  pStructData->bShow?_T("Show"):_T("Hide") );
+
 				HTREEITEM hName = m_treeProp.InsertItem(strSideName,hSides);
 				aoidDataEx.lSize = sizeof(aoidDataEx);
 				aoidDataEx.dwptrItemData = SideText;
@@ -646,8 +667,8 @@ void CAirsideStructureDlg::LoadTree()
 				isscStringColor.colorSection = RGB(0,0,255); 
 				isscStringColor.strSection = pStructData->strPicPath;
 				aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
-				HTREEITEM hPath = m_treeProp.InsertItem(pStructData->strPicPath,hName);
-				m_treeProp.SetItemDataEx(hPath,aoidDataEx);
+				m_hSurfaceTopPic = m_treeProp.InsertItem(pStructData->strPicPath,hName);
+				m_treeProp.SetItemDataEx(m_hSurfaceTopPic,aoidDataEx);
 
 				m_treeProp.Expand(hName,TVE_EXPAND);
 			}
@@ -746,10 +767,12 @@ void CAirsideStructureDlg::OnShowSides()
 		{
 			for (int i = 0; i < path.getCount()+1; i++)
 			{
-				((Structure*)GetObject())->getStructFace(i)->bShow = m_bShow;
-				((Structure*)GetObject())->UpdateObject(((Structure*)GetObject())->getID());
-				UpdateObjectViews();
+				((Structure*)GetObject())->getStructFace(i)->bShow = m_bShow;						
 			}
+			((Structure*)GetObject())->UpdateObject(((Structure*)GetObject())->getID());		
+			UpdateObjectViews();
+			LoadTree();
+			return;
 		}
 	}
 	else
@@ -767,8 +790,11 @@ void CAirsideStructureDlg::OnShowSides()
 			pStructData = ((Structure*)GetObject())->getStructFace(nValue -1);
 
 			pStructData->bShow = !(pStructData->bShow);
+
 			((Structure*)GetObject())->UpdateObject(((Structure*)GetObject())->getID());
 			UpdateObjectViews();
+			LoadTree();
+			return;
 		}
 		else
 		{
@@ -778,9 +804,51 @@ void CAirsideStructureDlg::OnShowSides()
 			pStructData->bShow = !(pStructData->bShow);
 			((Structure*)GetObject())->UpdateObject(((Structure*)GetObject())->getID());
 			UpdateObjectViews();
+			LoadTree();
+			return;
 		}
 	}
 }
+
+void CAirsideStructureDlg::resetTree()
+{
+	m_hServiceLocation = NULL;
+	m_hRotation = NULL;
+	m_hSurfaceTopPic = NULL;
+	m_vhSurfaceSidePic.clear();
+	m_treeProp.DeleteAllItems();
+}
+
+void CAirsideStructureDlg::OnRemovePic()
+{
+	Structure* pStructure = (Structure*)GetObject();
+	int nCount = pStructure->getStructFaceCount();
+	if(m_hRClickItem== m_hSurfaceTopPic )
+	{
+		StructFace* pface = pStructure->getStructFace( nCount-1);
+		pface->strPicPath = StructFace().strPicPath;
+		m_bPropModified = true;
+		m_treeProp.SetItemText(m_hRClickItem,pface->strPicPath);
+	}
+
+	for(size_t i=0;i<m_vhSurfaceSidePic.size();i++)
+	{
+		if(m_vhSurfaceSidePic[i]==m_hRClickItem)
+		{
+			if(i<nCount-1)
+			{
+				StructFace* pface = pStructure->getStructFace(i);
+				pface->strPicPath = StructFace().strPicPath;
+				m_bPropModified = true;
+			
+				m_treeProp.SetItemText(m_hRClickItem,pface->strPicPath);
+			}		
+		}
+	}
+
+
+}
+
 
 
 

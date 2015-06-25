@@ -54,6 +54,8 @@ public:
 
 	std::vector<IntersectionNodeInSim*> GetRouteNodeList();
 	IntersectionNodeInSim* GetLastNode();
+
+	bool NodeInRoute(IntersectionNodeInSim* pNode);
 	//
 	int  GetItemCount()const{ return m_vItems.size(); }
 	TaxiRouteItemInSim & ItemAt(int idx){ return m_vItems[idx]; }
@@ -108,7 +110,9 @@ public:
 
 	AirsideMeetingPointInSim* GetFirstMeetingPointInRoute(const std::vector<ALTObjectID>& vMeetingPoints);
 	bool GetSubRouteToMeetingPoint(const AirsideMeetingPointInSim* pMeetingPoint,  FlightGroundRouteDirectSegList& segList);
-
+	bool GetSubRouteToAboundont( const AirsideMeetingPointInSim* pMeetingPoint, IntersectionNodeInSim* pNode, FlightGroundRouteDirectSegList& segList);
+	bool GetSubRouteToStand( const AirsideMeetingPointInSim* pMeetingPoint, FlightGroundRouteDirectSegList& segList );
+	
 	// get the flight speed on the taxiway segment on which the flight is moving
 	// NOTE: 1. the flight must be on the route now.
 	//       2. different to GetFlightOnRouteSpeed, the method cares the taxiway speed constraints
@@ -117,7 +121,7 @@ public:
 
 	void InitRoute(AirsideFlightInSim* pFlight,const ElapsedTime& t);
 
-	//check conflictions
+	//check conflict ions
 	bool IsRouteValide(AirsideFlightInSim* pFlt)const;
 protected:
 	//calculate the hold list and the fillets points
@@ -152,6 +156,10 @@ protected:
 	// -- refer to checkConflictWithNextHold for more details
 	bool IsFlightToEnterHold(AirsideFlightInSim* mpFlight, DistanceUnit mCurDistInRoute);
 	
+
+	HoldInTaxiRoute* IsDistInNoParkingNodeRange(const DistanceUnit& dist)const;
+	HoldInTaxiRoute* GetWaitHold(const DistanceUnit& dist )const; //null if can wait at the dist in route
+
 	//ElapsedTime GetFlightOcupancyRunwayTime(std::vector<HoldInTaxiRoute> vHolds,AirsideFlightInSim* pFlight)const;
 public:
 	//Original Resource, Dest Resource

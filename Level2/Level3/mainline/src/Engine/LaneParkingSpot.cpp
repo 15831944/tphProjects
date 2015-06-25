@@ -531,13 +531,25 @@ LaneParkingSpot* InLaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* 
 
 	const CPoint2008& dFromPos =  pVehicle->getLastState().pos;	
 	std::vector<LaneParkingSpot*> SpotsCopy = mvParkingSpots;
-
+	//avoid the vehicle find twice
 	for(size_t i=0;i<SpotsCopy.size();i++){
 		LaneParkingSpot* pSpot = SpotsCopy[i];
-		if(pSpot->GetPreOccupy()==NULL)
-		{
-			ASSERT(pSpot->GetPreOccupy()!=pVehicle);
-			if(FindParkspotPath(pLane,dFromPos,pSpot,followPath)){
+		if(pSpot->GetPreOccupy()== pVehicle)
+		{			
+			if(FindParkspotPath(pLane,dFromPos,pSpot,followPath))
+			{
+				return pSpot;
+			}
+		}		
+	}
+	//
+	for(size_t i=0;i<SpotsCopy.size();i++)
+	{
+		LaneParkingSpot* pSpot = SpotsCopy[i];
+		if(pSpot->GetPreOccupy()== NULL)
+		{			
+			if(FindParkspotPath(pLane,dFromPos,pSpot,followPath))
+			{
 				return pSpot;
 			}
 		}		
@@ -738,9 +750,20 @@ OutLaneParkingSpot* OutLaneParkingSpotGroup::_findParkingPos( LandsideVehicleInS
 	for(size_t i=0;i<vSpots.size();i++)
 	{
 		OutLaneParkingSpot* pSpot = vSpots[i];
+		if(pSpot->GetPreOccupy()==pVehicle)
+		{
+		
+			if(_getParkspotPath(patLane,dFromPos,pSpot,followPath))
+			{
+				return pSpot;
+			}
+		}		
+	}
+	for(size_t i=0;i<vSpots.size();i++)
+	{
+		OutLaneParkingSpot* pSpot = vSpots[i];
 		if(pSpot->GetPreOccupy()==NULL)
 		{
-			ASSERT(pSpot->GetPreOccupy()!=pVehicle);
 			if(_getParkspotPath(patLane,dFromPos,pSpot,followPath))
 			{
 				return pSpot;

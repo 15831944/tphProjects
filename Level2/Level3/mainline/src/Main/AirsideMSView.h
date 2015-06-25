@@ -9,6 +9,7 @@ class ALTAirport;
 class Contour;
 class CARCBaseTree;
 class CDlgScheduleAndRostContent;
+class CAirsideObjectBaseDlg;
 // CAirsideMSView view
 
 // When inserting an ALTObject menu item, use macro ID_MENUITEM_OBJECTROOT as the menu id,
@@ -264,7 +265,7 @@ protected:
 	HTREEITEM FindObjectRootByType(ALTOBJECT_TYPE altType, HTREEITEM hStartItem);
 
 protected:
-	CDialog* GetObjectDefineDlg(CNodeData* pNodeData,int nObjID);
+	CAirsideObjectBaseDlg* GetObjectDefineDlg(CNodeData* pNodeData,int nObjID);
 	//CDialog* GetObjectDefineDlg(CNodeData* pNodeData,ALTObject* pObj);
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);

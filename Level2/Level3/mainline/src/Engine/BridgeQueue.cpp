@@ -48,7 +48,7 @@ void BridgeQueue::addToQueue( Person *aPerson )
 			if(index == -1 || index > (cornerCount() - 1))
 				index = cornerCount() - 1 ;
 			aPerson->setTerminalDestination(m_TailPos);
-			spTerminalBehavior->first = index ;
+			spTerminalBehavior->first_corner = index ;
 
 		}
 		else
@@ -62,7 +62,7 @@ void BridgeQueue::addToQueue( Person *aPerson )
 			if(index == -1 || index > (cornerCount() - 1))
 				index = cornerCount() - 1 ;
 			aPerson->setTerminalDestination(m_TailPos) ;
-			spTerminalBehavior->first = index ;
+			spTerminalBehavior->first_corner = index ;
 			// if the Person's state is waiting it was heading for the tail
 			// of the queue. Since it is no longer heading for the tail it
 			// must reset its destination and event

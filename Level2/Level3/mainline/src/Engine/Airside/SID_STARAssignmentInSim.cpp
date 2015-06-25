@@ -62,7 +62,7 @@ bool CSID_STARAssignmentInSim::GetSIDRoute(AirsideFlightInSim* pFlight,AirsideRe
 	if (pFlight== NULL || pResManger ==NULL )
 		return false;
 	//flight plan defined
-	bool bInit = pFlight->GetAirTrafficController()->GetFlightPlan()->GetSIDFlightPlan(pFlight,pnewRoute);
+	bool bInit = pFlight->GetAirTrafficController()->GetFlightPlan()->GetSIDFlightPlan(pFlight,pnewRoute,false);
 	if (bInit)
 		return true;
 
@@ -317,7 +317,7 @@ bool CSID_STARAssignmentInSim::GetSTARRoute(AirsideFlightInSim* pFlight,AirsideR
 	if (pFlight== NULL || pResManger ==NULL)
 		return false;
 
-	bool bInit = pFlight->GetAirTrafficController()->GetFlightPlan()->GetSTARFlightPlan(pFlight,pnewRoute);
+	bool bInit = pFlight->GetAirTrafficController()->GetFlightPlan()->GetSTARFlightPlan(pFlight,pnewRoute,false);
 	if (bInit)
 		return true;
 	

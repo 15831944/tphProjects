@@ -22,6 +22,7 @@ CResourcePool::CResourcePool()
 	m_proSpeed = new ConstantDistribution(1.0);
 	m_proCount = new ConstantDistribution(1.0);
 	m_emPoolType = ConcurrentType;
+	m_isChecked = TRUE;
 }
 
 CResourcePool::CResourcePool( const CString& _str ):m_strPoolName(_str)
@@ -29,6 +30,7 @@ CResourcePool::CResourcePool( const CString& _str ):m_strPoolName(_str)
 	m_proSpeed = new ConstantDistribution(0);
 	m_proCount = new ConstantDistribution(0);
 	m_emPoolType = ConcurrentType;
+	m_isChecked = TRUE;
 }
 
 CResourcePool::~CResourcePool()
@@ -48,6 +50,7 @@ CResourcePool::CResourcePool( const CResourcePool& _pool)
 	m_proCount = ProbabilityDistribution::CopyProbDistribution( _pool.m_proCount );
 	m_poolBasePath = _pool.m_poolBasePath;
 	m_emPoolType = _pool.m_emPoolType;
+	m_isChecked = _pool.m_isChecked;
 }
 
 CResourcePool& CResourcePool::operator=( const CResourcePool& _pool )
@@ -63,6 +66,7 @@ CResourcePool& CResourcePool::operator=( const CResourcePool& _pool )
 		m_proCount = ProbabilityDistribution::CopyProbDistribution( _pool.m_proCount );
 		m_poolBasePath = _pool.m_poolBasePath;
 		m_emPoolType = _pool.m_emPoolType;
+		m_isChecked = _pool.m_isChecked;
 	}
 
 	return *this;
@@ -309,9 +313,10 @@ void CResourcePool::killAndFlushLog( const ElapsedTime& _killTime )
 /*  CResourcePoolDataSet class                                          */
 /************************************************************************/
 
-CResourcePoolDataSet::CResourcePoolDataSet() : DataSet( ResourecPoolFile, (float)2.3 )
+CResourcePoolDataSet::CResourcePoolDataSet() : DataSet( ResourecPoolFile, (float)2.4 )
 {
 	m_ResourcePoolList.clear();
+	m_isChecked = TRUE;
 }
 
 CResourcePoolDataSet::~CResourcePoolDataSet()
@@ -390,6 +395,72 @@ void CResourcePoolDataSet::clear (void)
 {
 	m_ResourcePoolList.clear();
 }
+
+void CResourcePoolDataSet::readData(ArctermFile& p_file)
+{
+	int _size, isChecked;
+	char szBuffer[512];
+	ProbabilityDistribution* _pro;
+
+	p_file.getLine();
+	p_file.getInteger(isChecked);
+	SetChecked(isChecked);
+	p_file.getInteger(_size);
+
+	for(int i=0; i< _size; i++)
+	{
+		m_ResourcePoolList.push_back(CResourcePool());
+		CResourcePool& pool= m_ResourcePoolList.back();
+
+		p_file.getLine();
+		p_file.getField( szBuffer, 512 );
+		pool.setPoolName( CString( szBuffer ) );
+
+		p_file.setToField( 1 );
+		_pro = GetTerminalRelateProbDistribution (p_file,m_pInTerm);
+		pool.setProSpeed( _pro );
+
+		p_file.setToField( 2 );
+		_pro = GetTerminalRelateProbDistribution (p_file,m_pInTerm);
+		pool.setProCount( _pro );
+
+		int _iPointCount;
+		p_file.setToField( 3 );
+		p_file.getInteger( _iPointCount );
+		std::vector< Point > _poolBase;
+		for( int i=0; i<_iPointCount; i++ )
+		{
+			Point pt;
+			p_file.getLine();
+			p_file.getPoint( pt );
+			_poolBase.push_back( pt );
+		}
+
+		Path _path;
+		_path.init( _iPointCount, (const Point*) (&_poolBase[0]) );
+		pool.setPoolBasePath( _path );
+		p_file.getLine();
+		int nType;
+		p_file.getInteger(nType);
+		pool.setPoolType((PoolType)nType);
+		p_file.getInteger(isChecked);
+		pool.SetChecked(isChecked);
+	}
+}
+
+void CResourcePoolDataSet::readObsoleteData(ArctermFile& p_file)
+{
+	float fileVersion = p_file.getVersion();
+	if(fileVersion < 2.20001f) 
+	{
+		readData2_2(p_file);
+	}
+	else if(2.29999f < fileVersion && fileVersion < 2.30001f)
+	{
+		readData2_3(p_file);
+	}
+}
+
 void CResourcePoolDataSet::readData2_2(ArctermFile& p_file)
 {
 	int _size;
@@ -433,7 +504,8 @@ void CResourcePoolDataSet::readData2_2(ArctermFile& p_file)
 		pool.setPoolBasePath( _path );
 	}
 }
-void CResourcePoolDataSet::readData (ArctermFile& p_file)
+
+void CResourcePoolDataSet::readData2_3(ArctermFile& p_file)
 {
 	int _size;
 	char szBuffer[512];
@@ -450,7 +522,7 @@ void CResourcePoolDataSet::readData (ArctermFile& p_file)
 		p_file.getLine();
 		p_file.getField( szBuffer, 512 );
 		pool.setPoolName( CString( szBuffer ) );
-		
+
 		p_file.setToField( 1 );
 		_pro = GetTerminalRelateProbDistribution (p_file,m_pInTerm);
 		pool.setProSpeed( _pro );
@@ -479,8 +551,7 @@ void CResourcePoolDataSet::readData (ArctermFile& p_file)
 		p_file.getInteger(nType);
 		pool.setPoolType((PoolType)nType);
 	}
-	 
-}	
+}
 
 void CResourcePoolDataSet::writeData (ArctermFile& p_file) const
 {
@@ -488,6 +559,7 @@ void CResourcePoolDataSet::writeData (ArctermFile& p_file) const
 	RESOURCEPOOLSET::const_iterator con_iter;
 	// write size of the set
 	int _size = m_ResourcePoolList.size();
+	p_file.writeInt(m_isChecked);
 	p_file.writeInt( _size );
 	p_file.writeLine();
 
@@ -513,6 +585,7 @@ void CResourcePoolDataSet::writeData (ArctermFile& p_file) const
 			p_file.writeLine();
 		}
 		p_file.writeInt((int)con_iter->getPoolType());
+		p_file.writeInt(con_iter->GetChecked());
 		p_file.writeLine();
 	}
 }

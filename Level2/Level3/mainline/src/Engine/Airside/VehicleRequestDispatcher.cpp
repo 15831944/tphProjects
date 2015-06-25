@@ -624,7 +624,16 @@ AirsideFollowMeCarInSim* VehicleRequestDispatcher::AssignFollowMeCarForFlight( A
 
 
 	if (pMeetingPoint == NULL)
+	{
+		if (vObjNames.empty() == false)
+		{
+			CString strWarn;
+			strWarn.Format("Meeting point is not in the inbound route!") ;
+			CString strError = _T("DEFINE ERROR");
+			AirsideSimErrorShown::SimWarning(pFlight,strWarn,strError);	
+		}
 		return NULL;
+	}
 
 	std::vector<int> vIDs;
 	vIDs = m_pFlightServiceRequirement->GetVehicleTypeIDByBaseType(VehicleType_FollowMeCar);

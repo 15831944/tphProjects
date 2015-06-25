@@ -1701,9 +1701,9 @@ void CARCportEngine::generatePaxOneFlight (int p_ndx, char p_mode, const FlightS
 	delete [] typeCounts;
 }
 
-// Percentages of transitting passengers are used for each generating. 
+// Percentages of transiting passengers are used for each generating. 
 // The generated passengers are attached to paxLog.
-// Returns number of generated transitting passengers.
+// Returns number of generated transiting passengers.
 int CARCportEngine::generateXiting ( CMobileElemConstraint  p_type, int p_ndx, int p_count, const ProcessorID& _standGate , const FlightSchedule* _pfs)
 {
 	int iNoCount = 0;
@@ -1715,8 +1715,9 @@ int CARCportEngine::generateXiting ( CMobileElemConstraint  p_type, int p_ndx, i
 	if (aFlight->getDepTime() <= aFlight->getArrTime())
 		return 0;
 
-	p_type.makeTransiting();
+	p_type.makeArrival();
 	float percent = getTerminal()->m_pHubbing->getTransitPercent (p_type) / (float)100.0;
+	p_type.makeTransiting();
 
 	int transitCount = 0;
 	for (int i = 0; i < p_count; i++)
@@ -1828,7 +1829,7 @@ int CARCportEngine::generateXiting ( CMobileElemConstraint  p_type, int p_ndx, i
 
 // Percentages of transferring passengers are used for each generating. 
 // The generated passengers are attached to paxLog.
-// Returns number of generated trasferring passengers.
+// Returns number of generated transferring passengers.
 //##ModelId=3E2FAD0703C7
 int CARCportEngine::generateXferring (CMobileElemConstraint p_type, int p_ndx, int p_count, const ProcessorID& _standGate,
 								const FlightSchedule* _pfs)
@@ -1839,6 +1840,7 @@ int CARCportEngine::generateXferring (CMobileElemConstraint p_type, int p_ndx, i
 
 	//Flight *depFlight, *aFlight = flightSchedule->getItem (p_ndx);
 	Flight *depFlight, *aFlight = _pfs->getItem (p_ndx);
+	p_type.makeArrival();
 	float percent = getTerminal()->m_pHubbing->getTransferPercent (p_type) / (float)100.0;
 	//Jan : P(A|B) = P(AB)/P(B); A : X=transfer; B : X!=transit
 	float tmpPercent = getTerminal()->m_pHubbing->getTransitPercent (p_type) / (float)100.0;
@@ -1852,15 +1854,16 @@ int CARCportEngine::generateXferring (CMobileElemConstraint p_type, int p_ndx, i
 			transferCount++;
 	//int transferCount = p_count-1;
 
-	p_type.makeTransferring();
 	MobLogEntry elem;
 	int count = 0;
 	for (; count < transferCount; count += elem.getGroupSize())
 	{
+		p_type.makeArrival();
 		depFlight = getTerminal()->m_pHubbing->getDepartingFlight ( p_type, p_ndx, &m_simFlightSchedule );
 		if (!depFlight)     // no departing flights avail
 			return count;
 
+		p_type.makeTransferring();
 		int nMaxPaxGenerated = depFlight->getSpace( 'D' );
 		nMaxPaxGenerated = min( nMaxPaxGenerated, transferCount - count );
 		int nRet =takeBulk( p_type, elem, transferCount - count,aFlight->getArrTime());

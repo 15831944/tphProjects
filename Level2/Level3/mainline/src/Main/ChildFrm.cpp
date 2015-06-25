@@ -121,6 +121,8 @@ CChildFrame::CChildFrame() :
 	m_pAirside3D = new CAirside3D;
 	m_bInLoadingModel = FALSE;
 	m_fLoadingPercent = 0.0f;
+
+	m_pUserTexturePool = new CTextureResourcePool;
 	
 }
 
@@ -136,6 +138,8 @@ CChildFrame::~CChildFrame()
 	}
 	m_vWorkingCameras.clear();
 
+	m_vSelected.clear();
+
 	//SAFE_DEL_VIEW_PBUFFER
 	//SAFE_DEL_FLOOR_PBUFFER
 	delete m_pTextureResource;
@@ -143,6 +147,7 @@ CChildFrame::~CChildFrame()
 	delete m_pShapeResource;
 	delete m_pAirsideShapeResource;
 	delete m_pAirside3D;
+	delete m_pUserTexturePool;
 	
 }
 

@@ -10,16 +10,15 @@ CTreeCtrlItem::CTreeCtrlItem( CARCBaseTree* ctrl,HTREEITEM hItem )
 
 void CTreeCtrlItem::RemoveAllChild()
 {
-	std::vector<HTREEITEM> vToDel;
-	HTREEITEM hChild = GetCtrl().GetChildItem(m_hItem);
+	CTreeCtrlItem hChild = GetFirstChild();
 	while(hChild)
 	{
-		hChild = GetCtrl().GetNextSiblingItem(hChild);
-	}
-	for(size_t i=0;i<vToDel.size();++i)
-	{
-		GetCtrl().DeleteItem(vToDel[i]);
-	}
+		hChild.RemoveAllChild();
+
+		CTreeCtrlItem hChildNext = hChild.GetNextSibling();
+		hChild.Destroy();
+		hChild = hChildNext;
+	}	
 }
 
 CTreeCtrlItem CTreeCtrlItem::GetFirstChild()
@@ -88,4 +87,9 @@ void CTreeCtrlItem::Expand()
 CTreeCtrlItem CTreeCtrlItem::GetParent()const
 {
 	return CTreeCtrlItem(m_ctrl,m_ctrl->GetParentItem(m_hItem));
+}
+
+BOOL CTreeCtrlItem::HasChild() const
+{
+	return GetCtrl().ItemHasChildren(m_hItem);
 }

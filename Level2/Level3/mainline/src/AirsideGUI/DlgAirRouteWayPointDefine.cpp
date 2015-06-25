@@ -280,7 +280,16 @@ void CDlgAirRouteWayPointDefine::OnOK()
 	if (nCurSel != LB_ERR)
 	{
 		int nWaypointID = m_cmbWayPoint.GetItemData(nCurSel);
-		m_pARWayPoint->setWaypoint(m_vWaypoint[nCurSel]);
+	//	m_pARWayPoint->setWaypoint(m_vWaypoint[nCurSel]);
+		for (size_t i = 0; i < m_vWaypoint.size(); i++)
+		{
+			AirWayPoint& wayPoint = m_vWaypoint[i];
+			if (wayPoint.getID() == nWaypointID)
+			{
+				m_pARWayPoint->setWaypoint(wayPoint);
+				break;
+			}
+		}
 	}
 
 	AirsideGUI::CDlgAirRoute * pParentWnd = 0;

@@ -82,6 +82,10 @@ public:
 	virtual bool bMobileInResource(ARCMobileElement* pmob)const;
 
 	virtual StandInSim* IsStandResource()const;
+
+private:
+	//execute enroute operation when aircraft is going to takeoff 
+	bool ProcessEnrouteCapacity(AirsideFlightInSim * pFlight,ClearanceItem& lastItem);
 protected:
 	std::vector<VehicleLaneEntry*> m_vOutLanes;	
 	Stand::RefPtr m_pStandInput;

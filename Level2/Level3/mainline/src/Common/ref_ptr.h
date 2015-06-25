@@ -1,5 +1,4 @@
-#ifndef __REF_PTR_DEF
-#define __REF_PTR_DEF
+#pragma once
 
 
 template<class T>
@@ -81,4 +80,3 @@ private:
 	T* _ptr;
 };
 
-#endif

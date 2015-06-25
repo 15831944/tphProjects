@@ -124,6 +124,16 @@ public:
 		return debugfileName;
 	}
 
+	static void LogEventNum(AirsideFlightInSim* pFlight)
+	{
+		CString debugfileName = GetFileName(pFlight);
+
+		//log to flight file
+		std::ofstream outfile;
+		outfile.open(debugfileName,ios::app);
+		outfile <<"<" << Event::getCurEventNum()<<">" << std::endl;
+	}
+
 	static void Log(AirsideFlightInSim* pFlight, const Clearance& clearance)
 	{
 		CString debugfileName = GetFileName(pFlight);
@@ -420,6 +430,8 @@ BOOL AirsideFlightInSim::IsThroughOut() const
 void AirsideFlightInSim::WakeUp(const ElapsedTime& tTime)
 {
 	PLACE_METHOD_TRACK_STRING();
+
+	FligthLogFile::LogEventNum(this);
 
 	if(GetMode() == OnTerminate) 
 		return;	
@@ -1316,23 +1328,13 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 			    //ASSERT(pFiletTaxiway);
 			if(pFiletTaxiway != NULL)
 			{
-			 	CPath2008 leftPath;
-			 	if(pDirSeg){
-			 		leftPath = pDirSeg->GetPath().GetLeftPath( GetDistInResource() );
-			 	}
-	
-			 	CPath2008 thePath = pNode->GetFiletRoutePath( *pFiletTaxiway, pDirSeg->GetTaxiwayID());
-			 	DistanceUnit dDist = leftPath.GetPointDist(thePath.getPoint(0));
-			 	CPath2008 pathInTaxiway = leftPath.GetSubPath(0,dDist);
-			 	CPath2008 smoothTaxiPath = GenSmoothPath(pathInTaxiway.getPointList(), pathInTaxiway.getCount(),1000);
-	
-			 	std::vector<CPoint2008> vPts;
-			 	vPts.reserve(thePath.getCount()+smoothTaxiPath.getCount());
-			 	
-			 	vPts.insert(vPts.end(),&smoothTaxiPath[0], &smoothTaxiPath[0]+smoothTaxiPath.getCount());
-			 	vPts.insert(vPts.end(),&thePath[0], &thePath[0]+thePath.getCount());
-			 	vPts.push_back(item.GetPosition());
-			 	filetPath.init(vPts.size(), &vPts[0]);
+				CPath2008 thePath = pNode->GetFiletRoutePath( *pFiletTaxiway, pDirSeg->GetTaxiwaySeg()->GetTaxiwayID());
+				std::vector<CPoint2008> vPts;
+				vPts.reserve(thePath.getCount()+1);
+				vPts.push_back(GetPosition());
+				vPts.insert(vPts.end(),&thePath[0], &thePath[0]+thePath.getCount());
+				vPts.push_back(item.GetPosition());
+				filetPath.init(vPts.size(), &vPts[0]);				
 			}
 			else
 			{//impossibility, avoid logic dis figuration
@@ -1361,6 +1363,7 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 			 	}
 			 	filetPath.init ( (int)_outputPts.size(), ptList);
 			}
+			WritePathLog( mGroundPerform,filetPath, m_curState,item);
 			//RunwayDirectSegInSim* pDirRunway = (RunwayDirectSegInSim*)item.GetResource();
 			//WritePathLog( mGroundPerform,GetFilletPathFromTaxiwayToRwyport(pDirRunway->GetLogicRunwayType()),
 			//	m_curState, item);
@@ -1478,7 +1481,11 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 			}
 			DistanceUnit distOfPath = filetPath.GetTotalLength();
 			double avgSpd = ( GetSpeed() + item.GetSpeed() ) * 0.5;
-			ElapsedTime dT = ElapsedTime(distOfPath/avgSpd);
+			
+			ElapsedTime dT = ElapsedTime(0L);
+			if(avgSpd > 0.0)
+				dT = ElapsedTime(distOfPath/avgSpd);
+			
 			item.SetTime(GetTime()+dT);
 
 			if (pLog)		//runway exit delay log
@@ -1538,7 +1545,11 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 			}
 			DistanceUnit distOfPath = filetPath.GetTotalLength();
 			double avgSpd = ( GetSpeed() + item.GetSpeed() ) * 0.5;
-			ElapsedTime dT = ElapsedTime(distOfPath/avgSpd);
+
+			ElapsedTime dT = ElapsedTime(0L);
+			if(avgSpd > 0.0)
+				dT = ElapsedTime(distOfPath/avgSpd);
+
 			item.SetTime(GetTime()+dT);
 			WritePathLog( mGroundPerform,filetPath, m_curState,item);		
 
@@ -1791,7 +1802,10 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 					
 			thePath = GenSmoothPath(thePath.getPointList(),thePath.getCount(), 1000);
 			double avgSpd = (GetSpeed() + item.GetSpeed()) * 0.5;
-			ElapsedTime dT = ElapsedTime(thePath.GetTotalLength()/avgSpd);
+			ElapsedTime dT = ElapsedTime(0L);
+			if(avgSpd > 0.0)
+				dT = ElapsedTime(thePath.GetTotalLength()/avgSpd);
+
 			ElapsedTime endT = m_curState.m_tTime+ dT;
 			item.SetTime(endT);
 			WritePathLog( mGroundPerform,thePath, m_curState,item);
@@ -4186,6 +4200,7 @@ CFlightOpenDoors* AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
 			doorInfo.mDoorPos= doorPos;
 			doorInfo.mGroundPos= doorPos - groundLoffset;
 			doorInfo.mGroundPos.setZ(0);
+			doorInfo.mOpenTime = tTime;
 			m_pOpenDoors->add(doorInfo);			
 		}
 		if(  openSide == ACTypeDoor::LeftHand)
@@ -4198,6 +4213,7 @@ CFlightOpenDoors* AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
 			doorInfo.mDoorPos= doorPos;
 			doorInfo.mGroundPos= doorPos + groundLoffset;
 			doorInfo.mGroundPos.setZ(0);
+			doorInfo.mOpenTime = tTime;
 			m_pOpenDoors->add(doorInfo);			
 		}	
 	}
@@ -4408,32 +4424,92 @@ TaxiRouteInSim* AirsideFlightInSim::GetRouteToAbandonPoint()
 				}
 			}
 		}
-		FlightGroundRouteDirectSegList Taxisegs;
-		double dPathWeight = (std::numeric_limits<double>::max)();
-		pAirportRes->getGroundRouteResourceManager()->GetRoute((FlightGroundRouteDirectSegInSim*)GetResource(),pDestNode,this, Taxisegs, dPathWeight);
-		Taxisegs.insert(Taxisegs.begin(),(FlightGroundRouteDirectSegInSim*)GetResource());
-		m_pRouteToAbandonPoint = new TaxiRouteInSim(GetMode(),GetResource(),pDestStand);
-		m_pRouteToAbandonPoint->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+		//FlightGroundRouteDirectSegList Taxisegs;
+		//double dPathWeight = (std::numeric_limits<double>::max)();
+		//pAirportRes->getGroundRouteResourceManager()->GetRoute((FlightGroundRouteDirectSegInSim*)GetResource(),pDestNode,this, Taxisegs, dPathWeight);
+		//Taxisegs.insert(Taxisegs.begin(),(FlightGroundRouteDirectSegInSim*)GetResource());
+		//
+		//if(GetMode() == OnTaxiToStand)
+		//{
+		//	FlightGroundRouteDirectSegList deSegList;
+		//	m_pRouteToStand->GetOverlapRoute(Taxisegs,deSegList);
 
+		//	m_pRouteToAbandonPoint = new TaxiRouteInSim(GetMode(),GetResource(),pDestStand);
+		//	m_pRouteToAbandonPoint->AddTaxiwaySegList(deSegList,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+		//}
+
+		//if (GetMode() == OnTaxiToTempParking)
+		//{
+		//	FlightGroundRouteDirectSegList deSegList;
+		//	m_pRouteToTempParking->GetOverlapRoute(Taxisegs,deSegList);
+		//	m_pRouteToAbandonPoint = new TaxiRouteInSim(GetMode(),GetResource(),pDestStand);
+		//	m_pRouteToAbandonPoint->AddTaxiwaySegList(deSegList,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+		//}
+	//	m_pRouteToAbandonPoint->AddTaxiwaySegList(deSegList,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+
+		//if (GetMode() == OnTaxiToStand)
+		//{
+		//	if (pDestNode != pDestStand->GetMinDistInNode())
+		//	{
+		//		m_pRouteToStand->Clear();
+		//		Taxisegs.clear();
+		//		pAirportRes->getGroundRouteResourceManager()->GetRoute(pDestNode,pDestStand->GetMinDistInNode(),this, 0,Taxisegs, dPathWeight);
+		//		m_pRouteToStand->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+		//	}
+		//	else
+		//	{
+
+		//	}
+		//}
+
+		//if (GetMode() == OnTaxiToTempParking)
+		//{
+		//	if (pDestNode != pDestStand->GetMinDistInNode())
+		//	{
+		//		m_pRouteToTempParking->Clear();
+		//		Taxisegs.clear();
+		//		pAirportRes->getGroundRouteResourceManager()->GetRoute(pDestNode,pDestStand->GetMinDistInNode(),this, 0,Taxisegs,dPathWeight);
+		//		m_pRouteToTempParking->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+		//	}
+		//	else
+		//	{
+
+		//	}
+		//}
+		m_pRouteToAbandonPoint = new TaxiRouteInSim(GetMode(),GetResource(),pDestStand);
+		const AirsideMeetingPointInSim* pMeetingPoint = m_pServiceFollowMeCar->GetMeetingPoint();
+		FlightGroundRouteDirectSegList Taxisegs;
 		if (GetMode() == OnTaxiToStand)
 		{
-			if (pDestNode != pDestStand->GetMinDistInNode())
+			if (m_pRouteToStand->NodeInRoute(pDestNode) == false)
 			{
-				m_pRouteToStand->Clear();
-				Taxisegs.clear();
-				pAirportRes->getGroundRouteResourceManager()->GetRoute(pDestNode,pDestStand->GetMinDistInNode(),this, 0,Taxisegs, dPathWeight);
-				m_pRouteToStand->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+				m_pServiceFollowMeCar->SetDestNode(pDestStand);
+				m_pRouteToStand->GetSubRouteToStand(pMeetingPoint,Taxisegs);
+				Taxisegs.insert(Taxisegs.begin(),(FlightGroundRouteDirectSegInSim*)GetResource());
+				m_pRouteToAbandonPoint->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+			}
+			else
+			{
+				m_pRouteToStand->GetSubRouteToAboundont(pMeetingPoint,pDestNode,Taxisegs);
+				Taxisegs.insert(Taxisegs.begin(),(FlightGroundRouteDirectSegInSim*)GetResource());
+				m_pRouteToAbandonPoint->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
 			}
 		}
-		
+
 		if (GetMode() == OnTaxiToTempParking)
 		{
-			if (pDestNode != pDestStand->GetMinDistInNode())
+			if (m_pRouteToTempParking->NodeInRoute(pDestNode) == false)
 			{
-				m_pRouteToTempParking->Clear();
-				Taxisegs.clear();
-				pAirportRes->getGroundRouteResourceManager()->GetRoute(pDestNode,pDestStand->GetMinDistInNode(),this, 0,Taxisegs,dPathWeight);
-				m_pRouteToTempParking->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+				m_pServiceFollowMeCar->SetDestNode(pDestStand);
+				m_pRouteToTempParking->GetSubRouteToStand(pMeetingPoint,Taxisegs);
+				Taxisegs.insert(Taxisegs.begin(),(FlightGroundRouteDirectSegInSim*)GetResource());
+				m_pRouteToAbandonPoint->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
+			}
+			else
+			{
+				m_pRouteToTempParking->GetSubRouteToAboundont(pMeetingPoint,pDestNode,Taxisegs);
+				Taxisegs.insert(Taxisegs.begin(),(FlightGroundRouteDirectSegInSim*)GetResource());
+				m_pRouteToAbandonPoint->AddTaxiwaySegList(Taxisegs,m_pARCPortEngine->GetAirsideSimulation()->AllowCyclicGroundRoute());
 			}
 		}
 

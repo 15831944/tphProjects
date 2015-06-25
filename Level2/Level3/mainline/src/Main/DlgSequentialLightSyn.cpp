@@ -25,11 +25,17 @@ CDlgSequentialLightSyn::CDlgSequentialLightSyn(CTermPlanDoc *tmpDoc,CWnd* pParen
 	: CXTResizeDialog(CDlgSequentialLightSyn::IDD, pParent)
 	,m_pDoc(tmpDoc)
 {
+	InitTrafficNode();
 }
 
 CDlgSequentialLightSyn::~CDlgSequentialLightSyn()
 {
 	ClearTreeNodeData();
+	if (m_pTrafficNodeList)
+	{
+		delete m_pTrafficNodeList;
+		m_pTrafficNodeList = NULL;
+	}
 }
 
 void CDlgSequentialLightSyn::DoDataExchange(CDataExchange* pDX)
@@ -243,7 +249,7 @@ LRESULT CDlgSequentialLightSyn::DefWindowProc( UINT message, WPARAM wParam, LPAR
 				SequetailLightNodeRoute* pNode= (SequetailLightNodeRoute*)(pNodeData->m_dwData);
 				if (pNode)
 				{
-					CDlgSelectLandsideObject* pDlgSelectLandsideObject = new CDlgSelectLandsideObject(GetLandsideLayoutObjectList(),this);
+					CDlgSelectLandsideObject* pDlgSelectLandsideObject = new CDlgSelectLandsideObject(/*GetLandsideLayoutObjectList()*/m_pTrafficNodeList,this);
 					pDlgSelectLandsideObject->AddObjType(ALT_LINTERSECTION);
 					pCNI->pEditWnd = pDlgSelectLandsideObject;
 				}
@@ -565,7 +571,7 @@ void CDlgSequentialLightSyn::OnAddIntersect()
 	LandsideFacilityLayoutObjectList* pLayoutList = GetLandsideLayoutObjectList();
 	if (pLayoutList)
 	{
-		CDlgSelectLandsideObject dlg(GetLandsideLayoutObjectList(),this);
+		CDlgSelectLandsideObject dlg(/*GetLandsideLayoutObjectList()*/m_pTrafficNodeList,this);
 		dlg.AddObjType(ALT_LINTERSECTION);
 		if(dlg.DoModal() == IDOK)
 		{
@@ -663,4 +669,25 @@ LandsideFacilityLayoutObjectList* CDlgSequentialLightSyn::GetLandsideLayoutObjec
 int CDlgSequentialLightSyn::GetProjectID() const
 {
 	return m_pDoc->GetProjectID();
+}
+
+void CDlgSequentialLightSyn::InitTrafficNode()
+{
+	LandsideFacilityLayoutObjectList* pObjectList = GetLandsideLayoutObjectList();
+	if (pObjectList == NULL)
+		return;
+	
+	m_pTrafficNodeList = new LandsideFacilityLayoutObjectList();
+	for (int i = 0; i < pObjectList->getCount(); i++)
+	{
+		LandsideFacilityLayoutObject* pObject = pObjectList->getObject(i);
+		if (pObject->GetType() != ALT_LINTERSECTION)
+			continue;
+		
+		LandsideIntersectionNode* pNode = (LandsideIntersectionNode*)pObject;
+		if (pNode && pNode->getNodeType() == LandsideIntersectionNode::_Signalized)
+		{
+			m_pTrafficNodeList->AddObject(pObject);
+		}
+	}
 }

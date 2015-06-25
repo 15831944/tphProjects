@@ -44,6 +44,7 @@ private:
 	// m_iTypeOfUsingPipe = 1 use pipe system
 	// m_iTypeOfUsingPipe = 2 use user selected pipes
 	PIPES m_vUsedPipes;
+	BOOL m_isChecked; // is checked in engine setting
 
 public:
 	// get & set
@@ -51,11 +52,13 @@ public:
 	const CMobileElemConstraint& getMobileConstraint( void ) const;
 	const CString& getResourcePoolName( void ) const;
 	const ProbabilityDistribution* getProServiceTime( void ) const;
+	BOOL getChecked() const { return m_isChecked; }
 
 	void setProcessorID( const ProcessorID& _procID );
 	void setMobileElemConstraint( const CMobileElemConstraint& _mob);
 	void setResourcePoolName( const CString& _strPoolName );
 	void setServiceTime( ProbabilityDistribution* _pro );
+	void setChecked(BOOL val) { m_isChecked = val; }
 	
 	long getRandomServiceTime( void ) const;
 
@@ -89,7 +92,7 @@ public:
 
 private:
 	PROC2RESSET m_Proc2ResList;
-	
+	BOOL m_isChecked; // is checked in engine setting
 public:
 	// get proc to resource list's size
 	int getProc2ResListSize( void ) const;
@@ -115,6 +118,12 @@ public:
 	// modify paxType 
 	bool modifyItemPaxType( const CString& _strProcID, const CString& _strPaxType, const CMobileElemConstraint& _mobCon );
 
+	// get checked flag
+	BOOL getChecked() const { return m_isChecked; }
+
+	// set checked flag
+	void setChecked(BOOL val) { m_isChecked = val; }
+
 	//read and write file
 	virtual void clear (void);
     virtual void readData (ArctermFile& p_file);
@@ -125,5 +134,6 @@ public:
     virtual const char *getHeaders (void) const;	
 private:
 	void readObsoleteData22 (ArctermFile& p_file);
+	void readObsoleteData23 (ArctermFile& p_file);
 };
 #endif // !defined(AFX_PROCTORESOURCE_H__636CEE79_1491_433D_9CAF_762986B317B4__INCLUDED_)

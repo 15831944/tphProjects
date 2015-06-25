@@ -498,3 +498,43 @@ FORMATMSG ARCConveyorSimultaneousServiceError::getFormatErrorMsg( void )
 	formatMsg.diag_entry = m_diagEntry;
 	return formatMsg;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// ARCBarrierSystemError
+ARCBarrierSystemError::ARCBarrierSystemError( const CString& _strMobType, const CString& _strProcName, const CString& _strOtherMsg/* = ""*/, const CString& _strTime/* = ""*/ )
+	: ARCFlowError( _strMobType, _strProcName, _strOtherMsg, _strTime )
+{
+	m_strErrorType = "BARRIER SYSTEM";
+}
+
+ARCBarrierSystemError::~ARCBarrierSystemError()
+{
+
+}
+
+//virtual function
+CString ARCBarrierSystemError::getErrorMsg()
+{
+	CString strReturn;
+	strReturn.Format(" barrier system error: pax type %s processor %s ", m_strMobType, m_strProcName );
+
+	if( !m_strOtherMsg.IsEmpty() )
+		strReturn = strReturn + "(" + m_strOtherMsg + ")";
+
+	return strReturn;
+}
+
+FORMATMSG ARCBarrierSystemError::getFormatErrorMsg( void )
+{
+	FORMATMSG formatMsg;
+
+	formatMsg.strTime = m_strErrorTime;
+	formatMsg.strMsgType = m_strErrorType;
+	formatMsg.strMobType = m_strMobType;
+	formatMsg.strProcessor = m_strProcName;
+	formatMsg.strOtherInfo = m_strOtherMsg;
+
+	formatMsg.diag_entry = m_diagEntry;
+	return formatMsg;
+}
+

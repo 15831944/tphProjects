@@ -11,8 +11,7 @@ ALTObjectID::ALTObjectID()
 
 ALTObjectID::ALTObjectID( const ALTObjectID& other)
 {
-	for(int i=0;i<OBJECT_STRING_LEVEL;++i)
-		m_val[i] = other.m_val[i];
+	m_val = other.m_val;
 }
 
 ALTObjectID::ALTObjectID( const char * strID)
@@ -79,7 +78,7 @@ void ALTObjectID::printID( char* buf, const char *sep /*= "-"*/ ) const
 	}else{
 		strcpy(buf,at(0).c_str());
 	}
-	for (size_t i = 1; i < OBJECT_STRING_LEVEL && !at(i).empty(); i++)
+	for (size_t i = 1; i < m_val.size() && !at(i).empty(); i++)
 	{
 		strcat (buf, sep);
 		strcat (buf, at(i).c_str());
@@ -94,7 +93,7 @@ BOOL ALTObjectID::idFits( const ALTObjectID& checkID ) const		//small fit big
 	if(IsBlank())
 		return FALSE;
 
-	for (size_t i = 0; i < OBJECT_STRING_LEVEL; i++)
+	for (size_t i = 0; i < m_val.size(); i++)
 	{
 		if( checkID.at(i).empty() )
 			return TRUE;
@@ -111,25 +110,24 @@ ALTObjectID::~ALTObjectID()
 
 std::string & ALTObjectID::at( size_t i )
 {
-	return m_val[i];
+	return m_val.at(i);
 }
 
 const std::string& ALTObjectID::at( size_t i ) const
 {
-	return m_val[i];
+	return m_val.at(i);
 }
 
 ALTObjectID& ALTObjectID::operator=( const ALTObjectID&other )
 {
-	for(int i=0;i<OBJECT_STRING_LEVEL;++i)
-		m_val[i] = other.m_val[i];
+	m_val = other.m_val;
 	return *this;
 }
 
 bool ALTObjectID::IsFits( const ALTObjectIDList& idGroup )const
 {	
 	//level 1
-	CString str1 = at(0).c_str();
+	CString str1 = m_val.at(0).c_str();
 
 	ASSERT( !str1.IsEmpty() );
 	if( str1.IsEmpty() ) return false;
@@ -139,7 +137,7 @@ bool ALTObjectID::IsFits( const ALTObjectIDList& idGroup )const
 	SortedStringList::iterator itr1 = strlevel1.find(str1);
 	if(itr1 == strlevel1.end()) return false;
 	
-	CString str2 = at(1).c_str();
+	CString str2 = m_val.at(1).c_str();
 	if( str2.IsEmpty() )return true;
 	//level  2
 	SortedStringList strlevel2;
@@ -148,14 +146,14 @@ bool ALTObjectID::IsFits( const ALTObjectIDList& idGroup )const
 	SortedStringList::iterator itr2 = strlevel2.find(str2);
 	if(itr2 == strlevel2.end() ) return false;
 	
-	CString str3 = at(2).c_str();
+	CString str3 = m_val.at(2).c_str();
 	if(str3.IsEmpty()) return  true;
 	//level 3
 	SortedStringList strlevel3;
 	idGroup.GetLevel3StringList(str1,str2,strlevel3);
 	if( strlevel3.end() == strlevel3.find(str3) ) return false;
 
-	CString str4 = at(3).c_str();
+	CString str4 = m_val.at(3).c_str();
 	if(str4.IsEmpty()) return true;
 
 	//level4
@@ -169,7 +167,7 @@ bool ALTObjectID::IsFits( const ALTObjectIDList& idGroup )const
 int ALTObjectID::idLength() const
 {	
 	int i ;
-	for(i=0;i<OBJECT_STRING_LEVEL;i++)
+	for(i=0;i<(int)m_val.size();i++)
 	{
 		if(m_val[i].empty()) 
 			return i;
@@ -319,7 +317,7 @@ bool ALTObjectID::operator == (const  ALTObjectID&otherID )const
 bool ALTObjectID::IsBlank() const
 {
 	return m_val[0].empty();
-	for(size_t i=0;i<OBJECT_STRING_LEVEL;++i)
+	for(size_t i=0;i<m_val.size();++i)
 	{
 		if( !at(i).empty() )
 			return false;
@@ -333,13 +331,13 @@ ALTObjectID ALTObjectID::GetNext() const
 {
 	ALTObjectID nameDest = *this;
 	int lastLevel = 0;
-	for(int i =0 ;i<(int) OBJECT_STRING_LEVEL;i++)
+	for(int i =0 ;i<(int) nameDest.m_val.size();i++)
 	{
 		if( nameDest.m_val[i].empty() )
 		{ 
 			lastLevel = i - 1;
 			break; 
-		}else if (i == (int) OBJECT_STRING_LEVEL-1 )
+		}else if (i == (int) nameDest.m_val.size()-1 )
 		{
 			lastLevel = i ;
 		}
@@ -369,8 +367,7 @@ void ALTObjectID::FromString( const char * strID )
 	strcpy(stridx,strID);
 
 
-	//val_type::iterator itr = m_val.begin();
-	int itr=0;
+	val_type::iterator itr = m_val.begin();
 
 	char * starChar = stridx;
 	char * charitr = stridx;
@@ -380,12 +377,12 @@ void ALTObjectID::FromString( const char * strID )
 		a = *charitr;
 		if( ('-' == a) || ('\0' ==a)  ){
 			*charitr = 0;
-			m_val[itr] = std::string(starChar);
+			*itr = std::string(starChar);
 			starChar = ++charitr;
 			itr++;
 		}else ++charitr;
 
-	}while(a!= 0 && itr < OBJECT_STRING_LEVEL );
+	}while(a!= 0 && itr!= m_val.end() );
 }
 
 //map char A-Z 0-9 to int

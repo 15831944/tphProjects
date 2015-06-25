@@ -76,6 +76,8 @@ public:
 	HTREEITEM m_hArea_avoid;
 	HTREEITEM m_hPipe_avoid;
 
+	HTREEITEM m_hProc2ResDB;
+
 	HTREEITEM m_hFlightFilter;
 	HTREEITEM m_hFlightFilterStartTime;
 	HTREEITEM m_hFlightFilterEndTime;
@@ -194,7 +196,8 @@ private:
 	void AddLandisdeTimeStep(TimeStepRange *pTimeStepRange);
 	void RemoveLandsideTineStep(HTREEITEM hTimeRangItem);
 
-
+	// processor to resource pool
+	void AddProc2ResItems(HTREEITEM hProc2ResDB);
 	
 	//Time step root
 	HTREEITEM m_hTimeStepRoot;

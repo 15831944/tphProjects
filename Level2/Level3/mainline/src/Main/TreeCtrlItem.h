@@ -10,6 +10,8 @@ public:
 	void RemoveAllChild();
 	CTreeCtrlItem GetFirstChild();
 	CTreeCtrlItem GetNextSibling();
+	BOOL HasChild()const;
+
 	void SetImage(int nImage, int nSelImage);
 	void SetText(const CString& text);
 	CString GetText()const;

@@ -221,16 +221,18 @@ bool CFlightTypeRunwayAssignmentStrategiesInSim::IsArrivalRunway(AirsideFlightIn
 			{
 			case FlightPlannedRunway:
 				{
-					CFlightPlanedRunwayStrategyInSim StrategyInSim;
+					/*			CFlightPlanedRunwayStrategyInSim StrategyInSim;
 					StrategyInSim.SetFlight(pFlight);
 					LogicRunwayInSim* pLogicRunway = StrategyInSim.GetRunway(NULL);
 					if (pLogicRunway == NULL)
-						return true;
+					return true;
 
 					if (pLogicRunway->getLogicRunwayType() == nMark && pLogicRunway->GetRunwayInSim()->GetRunwayInput()->getID() == nRwyID)
-						return true;
+					return true;
 
-					return false;
+					return false;*/
+					return true;
+				
 				}
 			case ClosestRunway:
 				{		
@@ -265,16 +267,17 @@ bool CFlightTypeRunwayAssignmentStrategiesInSim::IsDepartureRunway(AirsideFlight
 	{
 	case FlightPlannedRunway:
 		{
-			CFlightPlanedRunwayStrategyInSim StrategyInSim;
+			/*		CFlightPlanedRunwayStrategyInSim StrategyInSim;
 			StrategyInSim.SetFlight(pFlight);
 			LogicRunwayInSim* pLogicRunway = StrategyInSim.GetRunway(NULL);
 			if (pLogicRunway == NULL)
-				return true;
+			return true;
 
 			if (pLogicRunway->getLogicRunwayType() == nMark && pLogicRunway->GetRunwayInSim()->GetRunwayInput()->getID() == nRwyID)
-				return true;
+			return true;
 
-			return false;
+			return false;*/
+			return true;
 		}
 	case ClosestRunway:
 		{		

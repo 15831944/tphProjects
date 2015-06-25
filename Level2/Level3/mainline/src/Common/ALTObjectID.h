@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/array.hpp>
 #include <vector>
 #include <set>
 
@@ -11,7 +12,7 @@ class ALTObjectIDList;
 #define OBJECT_STRING_LEVEL 4
 class COMMON_TRANSFER ALTObjectID{
 public:
-	typedef std::string val_type[OBJECT_STRING_LEVEL] ;
+	typedef boost::array<std::string, OBJECT_STRING_LEVEL> val_type;
 
 	ALTObjectID();
 	ALTObjectID(const char * );

@@ -54,6 +54,9 @@ public://logical
 
 	void AddEnrouteWaitList(AirsideFlightInSim* pFlight);
 	void WakeupEnrouteWaitingFlight(const ElapsedTime& eTime);
+
+	bool IsFlightInQueue(AirsideFlightInSim* pFlight)const;
+	bool IsFlightInEnRouteWaitinglist(AirsideFlightInSim* pFlight)const;
 protected:
 	std::vector<AirsideFlightInSim*> m_vInQueueFlights;
 	std::vector<AirsideFlightInSim*> m_vEnrouteFlights;

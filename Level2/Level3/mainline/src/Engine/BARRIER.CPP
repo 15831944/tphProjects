@@ -174,7 +174,7 @@ int Barrier::getRoute (RoutingOption &p_route, const Point& p_dest, int *p_used,
         }
         sOptionList.Add (option);
     }
-    if (!sOptionList.GetItemsInContainer())
+    if (sOptionList.GetItemsInContainer() == 0)
         return 0;
 
     p_route.result = sOptionList[0].origPoint;

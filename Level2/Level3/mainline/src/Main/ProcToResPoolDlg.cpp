@@ -103,6 +103,13 @@ BOOL CProcToResPoolDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	
 	// TODO: Add extra initialization here
+	CString strTemp;
+	if(GetInputTerminal()->m_pProcToResourceDB->getChecked() == TRUE)
+		strTemp.LoadString(IDC_STATIC_RESPOOL_ON);
+	else
+		strTemp.LoadString(IDC_STATIC_RESPOOL_OFF);
+	GetDlgItem(IDC_STATIC_RESPOOL_ON)->SetWindowText(strTemp);
+
 	InitToolBar();
 	InitListCtrl();
 	ReloadData();
@@ -123,6 +130,7 @@ void CProcToResPoolDlg::OnSize(UINT nType, int cx, int cy)
 		m_btnSave.MoveWindow(cx-11-10-11-3*btnrc.Width(),cy-11-btnrc.Height(),btnrc.Width(),btnrc.Height());
 		m_btnOk.MoveWindow( cx-11-10-2*btnrc.Width(),cy-11-btnrc.Height(),btnrc.Width(),btnrc.Height() );
 		m_btnCancel.MoveWindow( cx-11-btnrc.Width(),cy-11-btnrc.Height(),btnrc.Width(),btnrc.Height() );
+		GetDlgItem(IDC_STATIC_RESPOOL_ON)->MoveWindow(10, cy-50, 505, cy-24);
 
 		CRect wndRect;
 		GetWindowRect(wndRect);

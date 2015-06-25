@@ -60,11 +60,15 @@ public:
 
 	std::vector<FilletTaxiway>& GetFilletList(){ return m_vFilletTaxiways; }
 
-	bool IsNoParking()const;
-	void SetBlock(bool bBlock);
+	bool IsNoParking()const;   //can not parking in this node 
+	void SetNoParking(bool b);
+	bool IsNeedToCheckHold()const; //need to hold and check this node
 
 	ElapsedTime GetAvailableEntryTime(AirsideFlightInSim* pFlight, const ElapsedTime& entryTime, const ElapsedTime& exitTime );
 	ElapsedTime GetLastOcyTime()const;
+	ElapsedTime GetLastLandingTakeoffTime()const;
+
+
 
 	virtual bool IsActiveFor(ARCMobileElement* pmob,const RouteDirPath* pPath)const;
 	virtual bool bMayHaveConflict(const RouteDirPath *pPath)const{ return true; }
@@ -79,7 +83,7 @@ protected:
 	IntersectionNode m_nodeinput;	
 	std::vector<FilletTaxiway> m_vFilletTaxiways;
 	AirsideFlightInSim * m_pLockFlight;
-	bool m_bBlock;
+	bool m_bNoParking;   //flight can not stop in this node 
 };
 
 class IntersectionNodeInSimList 

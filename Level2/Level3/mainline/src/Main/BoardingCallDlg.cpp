@@ -86,6 +86,7 @@ BEGIN_MESSAGE_MAP(CBoardingCallDlg, CDialog)
 	ON_COMMAND(ID_BOARDING_CALL_EDIT, OnToolbarButtonEdit)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE, OnButtonSave)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_BOARDING_CALL_TREE, OnSelchangedBoardingCallTree)
+	ON_NOTIFY_EX(TTN_NEEDTEXTA, 0, OnToolTipText)
 
 	ON_WM_CONTEXTMENU()
 	ON_COMMAND_RANGE(MENU_ADD_STAGE, MENU_UNAVAILABLE, OnChooseMenu)
@@ -550,26 +551,33 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 {
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 
-	BoardingCallPassengerTypeDlg paxTypeDlg(m_pParentWnd);
-	while(paxTypeDlg.DoModal() == IDOK)
+	while(true)
 	{
-		CMobileElemConstraint mobElemConst;
-		mobElemConst.SetInputTerminal(GetInputTerminal());
-		mobElemConst = paxTypeDlg.GetMobileSelection();
-		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-		ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
-		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
-		if(pStandEntry->GetPaxTypeDatabase()->FindItemByConstraint(&mobElemConst) != INT_MAX)
+		BoardingCallPassengerTypeDlg paxTypeDlg(m_pParentWnd);
+		if(paxTypeDlg.DoModal() == IDOK)
 		{
-			MessageBox("Selected Passenger Type already exists.");
+			CMobileElemConstraint mobElemConst;
+			mobElemConst.SetInputTerminal(GetInputTerminal());
+			mobElemConst = paxTypeDlg.GetMobileSelection();
+			TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+			ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+			if(pStandEntry->GetPaxTypeDatabase()->FindItemByConstraint(&mobElemConst) != INT_MAX)
+			{
+				MessageBox("Selected Passenger Type already exists.");
+			}
+			else
+			{
+				pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobElemConst, NULL);
+				ReloadStand(pStandEntry, hSelItem);
+				m_tree.Expand(hSelItem, TVE_EXPAND);
+				m_btnSave.EnableWindow(TRUE);
+				break;
+			}
 		}
 		else
 		{
-			pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobElemConst, NULL);
-			ReloadStand(pStandEntry, hSelItem);
-			m_tree.Expand(hSelItem, TVE_EXPAND);
-			m_btnSave.EnableWindow(TRUE);
-			break;
+			return;
 		}
 	}
 }
@@ -1517,4 +1525,32 @@ void CBoardingCallDlg::OnChooseMenu( UINT nID )
 		break;
 	}
 	return;
+}
+
+BOOL CBoardingCallDlg::OnToolTipText( UINT id, NMHDR *pNMHDR, LRESULT *pResult )
+{
+	TOOLTIPTEXTA* pTTTA = (TOOLTIPTEXTA*)pNMHDR;
+	CString strTipText;
+	CString strStatusText;
+	UINT nID = pNMHDR->idFrom;
+	if (pNMHDR->code == TTN_NEEDTEXTA && (pTTTA->uFlags & TTF_IDISHWND))
+	{
+		nID = ::GetDlgCtrlID((HWND)nID);
+	}
+
+	if(nID == 0)
+		return FALSE;
+
+	strTipText.LoadString(nID);
+	int len =strTipText.Find('\n',0);
+	strTipText = strTipText.Mid(len+1);
+
+	if (pNMHDR->code == TTN_NEEDTEXTA)
+	{
+		lstrcpyn(pTTTA->szText, strTipText, sizeof(pTTTA->szText));
+	}
+	*pResult = 0; 
+	::SetWindowPos(pNMHDR->hwndFrom, HWND_TOP, 0, 0, 0, 0,SWP_NOACTIVATE|
+		SWP_NOSIZE|SWP_NOMOVE|SWP_NOOWNERZORDER); 
+	return TRUE;
 }

@@ -524,9 +524,9 @@ void CAirsideObjectBaseDlg::OnOK()
 	CXTResizeDialog::OnOK();
 }
 
-CXTResizeDialog * CAirsideObjectBaseDlg::NewObjectDlg(int nObjID,ALTOBJECT_TYPE objType, int nParentID,int nAirportID,int nProjID, CWnd *pParent /* = NULL */)
+CAirsideObjectBaseDlg * CAirsideObjectBaseDlg::NewObjectDlg(int nObjID,ALTOBJECT_TYPE objType, int nParentID,int nAirportID,int nProjID, CWnd *pParent /* = NULL */)
 {
-	CXTResizeDialog *pDlg = NULL;
+	CAirsideObjectBaseDlg *pDlg = NULL;
 	switch (objType)
 	{
 	case ALT_UNKNOWN:

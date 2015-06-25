@@ -76,6 +76,7 @@ protected:
 	virtual void OnOK();
 	virtual afx_msg void OnButtonRemovemap();
 	void UpdateFloorData();
+	BOOL IsDataAvailable();
 };
 class CFloorPropertiesDlg : public CProperiesDlg
 {

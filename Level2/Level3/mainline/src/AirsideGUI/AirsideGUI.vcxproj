@@ -509,6 +509,7 @@
     <None Include="res\bmp_seldefined.bmp" />
     <None Include="res\CargoTugs.ico" />
     <None Include="res\CargoULDCarts.ico" />
+    <None Include="res\CateringTruck.ico" />
     <None Include="res\Conveyors.ico" />
     <None Include="res\cooltree.bmp" />
     <None Include="res\CrewBus.ico" />

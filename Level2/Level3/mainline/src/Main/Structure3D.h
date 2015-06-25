@@ -36,9 +36,7 @@ public:
 	bool isObstructionsValid(DistanceUnit dAlt)const ;
 
 public:
-	void UpdateTexture();
-
-	CTexture* getTextureByFileName(const CString& strFile);
-	CTexture* NewTexture(const CString& strFile);
-	std::vector<CTexture::RefPtr> m_vTextures;
+protected:
+	std::vector<CTexture2::RefPtr> m_vTextures;
+	CTexture2* getTexture(CString fileName, C3DView* pView);
 };

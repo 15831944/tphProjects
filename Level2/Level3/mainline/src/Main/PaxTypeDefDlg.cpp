@@ -160,6 +160,20 @@ LONG CPaxTypeDefDlg::OnEndEdit( WPARAM p_wParam, LPARAM p_lParam )
 			m_listboxName.InsertString( m_nSelIdx, (LPTSTR)p_wParam );
 			m_listboxName.DeleteString( m_nSelIdx + 1 );
 			
+			int strIndex = GetInputTerminal()->inTypeList->getTypeIndex(csStr);
+			if(strIndex != 0)
+			{
+				int nLevel = GetInputTerminal()->inTypeList->getLevel(strIndex);
+				if(nLevel != 0 && nLevel != m_comboLevel.GetCurSel()+1)
+				{
+					CString strMsg;
+					strMsg.Format("The name string has been existed in Level %d, please input again.", nLevel);
+					MessageBox(strMsg, "Error", MB_OK|MB_ICONWARNING);
+					EditItem(m_nSelIdx);
+					return -1;
+				}
+			}
+
 			// insert to the database
 			int nLevelIdx = m_comboLevel.GetCurSel();
 			int nBranchCount = GetInputTerminal()->inTypeList->getBranchesAtLevel( nLevelIdx );

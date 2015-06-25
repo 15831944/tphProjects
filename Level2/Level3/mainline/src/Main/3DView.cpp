@@ -5446,7 +5446,7 @@ void C3DView::OnCtxDeleteProc()
 								if (pProcIDWithOne2One->getOne2OneFlag())
 								{
 									CString strMsg;
-									strMsg.Format(_T(" The processor %s is using in Behavior and has 1:1 constraint, it can't be deleted.\r\n Please retry after remove the reference."),pSelecProc->getID()->GetIDString());
+									strMsg.Format(_T(" The processor %s is using in Behavior, it can't be deleted.\r\n Please retry after remove the reference."),pSelecProc->getID()->GetIDString());
 									MessageBox(strMsg,_T("ARCport warning"), MB_OK);
 									return;
 								}
@@ -6906,14 +6906,22 @@ void C3DView::SelectProc(int& nSelectCount,UINT nFlags,CPoint point,GLuint* idx,
 			}
 			
 			CTracerTagWnd::TracerType eTracerType = CTracerTagWnd::Terminal;
+			
+			int nMobElementID = 0;
 			if(SELTYPE_AIRSIDETRACER == seltype)
+			{
 				eTracerType = CTracerTagWnd::Airside;
+				nMobElementID = pDoc->m_tempAirsideTracerData.GetPaxID( GetSelectIdx(idx[i]) );
+			}
 			else if(SELTYPE_LANDSIDETRACER == seltype)
+			{
 				eTracerType = CTracerTagWnd::Landside;
+				nMobElementID = pDoc->m_tempVehicleTracerData.GetPaxID( GetSelectIdx(idx[i]) );
+			}
+			else
+				nMobElementID = pDoc->m_tempTracerData.GetPaxID( GetSelectIdx(idx[i]) );
 
-			int PaxID = pDoc->m_tempTracerData.GetPaxID( GetSelectIdx(idx[i]) );
-
-			m_pTracerTagWnd = new CTracerTagWnd(eTracerType, PaxID, GetDocument());
+			m_pTracerTagWnd = new CTracerTagWnd(eTracerType, nMobElementID, GetDocument());
 
 			m_pTracerTagWnd->CreateEx(WS_EX_TOOLWINDOW, NULL, NULL, WS_CHILD, CRect(0,0,250,200), this, IDD_DIALOG_PROCESSORTAGS );
 			CRect rc, rcClient, rcMain;
@@ -8504,9 +8512,10 @@ void C3DView::OnALTObjectProperty()
 		ALTObject3D * pObj3D = (ALTObject3D*)pSel;		
 		{
 			ALTObject* pObj = pObj3D->GetObject();
-			CDialog * pDlg = CAirsideObjectBaseDlg::NewObjectDlg(pObj->getID(),pObj->GetType(),pObj->getAptID(),pObj->getAptID(),GetDocument()->GetProjectID(), this);
-			if( pDlg->DoModal() == IDOK ){
-				if( ((CAirsideObjectBaseDlg*)pDlg)->m_bNameModified )
+			CAirsideObjectBaseDlg * pDlg = CAirsideObjectBaseDlg::NewObjectDlg(pObj->getID(),pObj->GetType(),pObj->getAptID(),pObj->getAptID(),GetDocument()->GetProjectID(), this);
+			if( pDlg->DoModal() == IDOK )
+			{
+				if( pDlg->m_bNameModified )
 				{					
 					GetDocument()->UpdateAllViews(NULL,VM_CHANGENAME_ALTOBJECT,(CObject*)((CAirsideObjectBaseDlg*)pDlg)->GetObject() );			
 				}

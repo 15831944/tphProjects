@@ -32,6 +32,9 @@ void CPaxToResourcePoolMap::initMapData( InputTerminal* _inTerm, const Processor
 	assert( _inTerm );
 	clear();
 
+	if(_inTerm->m_pProcToResourceDB->getChecked() == FALSE)
+		return;
+
 	PROC2RESSET& proc2resList = _inTerm->m_pProcToResourceDB->getProc2ResList();
 	PROC2RESSET::iterator iter;
 	
@@ -40,6 +43,8 @@ void CPaxToResourcePoolMap::initMapData( InputTerminal* _inTerm, const Processor
 	ProcessorID _firstFitID; 
 	for( iter = proc2resList.begin(); iter != proc2resList.end(); ++iter )
 	{
+		if(iter->getChecked() == FALSE)
+			continue;
 		// TRACE(" iter processorID:\t%s\r\n", iter->getProcessorID().GetIDString() );	
 		if( !_bHasFited && iter->getProcessorID().idFits( _procID ) )
 		{

@@ -24,10 +24,11 @@ namespace MSV
 	class CNodeDataAllocator;
 	class CNodeData
 	{
-
+		friend class CNodeDataAllocator;
 	public:
 		CNodeData(enumNodeType nodetype,CNodeDataAllocator* pCreator);
-		~CNodeData(){}
+		~CNodeData();
+	protected:
 
 	public:
 		//node type
@@ -50,6 +51,7 @@ namespace MSV
 		virtual CNodeData* allocateNodeData(enumNodeType t);
 		~CNodeDataAllocator();
 		
+		void remove(CNodeData* d);
 	protected:
 		std::vector<CNodeData*> vDatas;		
 

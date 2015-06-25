@@ -45,6 +45,7 @@ void State_TryParkingCurbside::Execute( CARCportEngine * pEngine )
 		State_ParkingToCurbside* pNextState = new State_ParkingToCurbside(getVehicle(),spot,m_pCurb);
 		pNextState->SetPath(path);
 		getVehicle()->ChangeVehicleState(pNextState);
+		m_waitTimer.SetEnd(true);
 		return;
 	}
 

@@ -27,6 +27,8 @@
 #include "../Landside/LandsideLayoutObject.h"
 #include "DlgCurbsideSelect.h"
 #include "landside\InputLandside.h"
+#include "inputs\ProcToResource.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -1177,6 +1179,9 @@ void CSimEngSettingDlg::OnOK()
 			error = NULL;
 		}
 	}
+
+	GetInputTerminal()->m_pProcToResourceDB->saveDataSet(GetProjPath(), false);
+
 	CDialog::OnOK();
 }
 
@@ -1413,6 +1418,14 @@ void CSimEngSettingDlg::InitTree()
 	AddAreaToTree(m_hArea_avoid);
 	m_hPipe_avoid=m_coolTree.InsertItem("Pipe",cni,FALSE,FALSE,m_hAvoidance);
 	AddPipeToTree(m_hPipe_avoid);
+	//////////////////////////////////////////////////////////////////////////
+	//T395 Switch of processor & resource pool
+	cni.net=NET_NORMAL;
+	cni.nt=NT_CHECKBOX;
+
+	CProcToResourceDataSet* pProc2ResDB = GetInputTerminal()->m_pProcToResourceDB;
+	m_hProc2ResDB = m_coolTree.InsertItem("Processor & Resource Pool", cni, pProc2ResDB->getChecked(), FALSE, m_hTerminal);
+	AddProc2ResItems(m_hProc2ResDB);
 	//////////////////////////////////////////////////////////////////////////
 	cni.net=NET_NORMAL;
 	cni.nt=NT_CHECKBOX;
@@ -2198,6 +2211,18 @@ LRESULT CSimEngSettingDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPa
 			else if (std::find(m_vPipeItem.begin(),m_vPipeItem.end(),hItem) != m_vPipeItem.end())
 			{
 				HandlePipeItem(hItem);
+			}
+			else if(hItem == m_hProc2ResDB)
+			{
+				GetInputTerminal()->m_pProcToResourceDB->setChecked(m_coolTree.IsCheckItem(hItem));
+			}
+			else if(m_coolTree.GetParentItem(hItem) == m_hProc2ResDB)
+			{
+				CProcToResource* pProc2Res = reinterpret_cast<CProcToResource*>(m_coolTree.GetItemData(hItem));
+				if(pProc2Res != NULL)
+				{
+					pProc2Res->setChecked(m_coolTree.IsCheckItem(hItem));
+				}
 			}
 		}
 		break;
@@ -3367,4 +3392,25 @@ void CSimEngSettingDlg::OnDelLandsideTimeStepRange()
 	if (hSelectedItem == NULL)
 		return;
 	RemoveLandsideTineStep(hSelectedItem);
+}
+
+void CSimEngSettingDlg::AddProc2ResItems(HTREEITEM hProc2ResDB)
+{
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+	cni.net=NET_NORMAL;
+	cni.nt=NT_CHECKBOX;
+
+	CProcToResourceDataSet* pProc2ResDB = GetInputTerminal()->m_pProcToResourceDB;
+	PROC2RESSET& proc2ResList = pProc2ResDB->getProc2ResList();
+
+	PROC2RESSET::iterator itor = proc2ResList.begin();
+	HTREEITEM hProc2Res = NULL;
+	for(; itor!= proc2ResList.end(); itor++)
+	{
+		CString strPoolName = itor->getProcessorID().GetIDString();
+		hProc2Res = m_coolTree.InsertItem(strPoolName, cni, itor->getChecked(), FALSE, hProc2ResDB);
+		m_coolTree.SetItemData(hProc2Res, reinterpret_cast<DWORD>(&(*itor)));
+	}
+	int nCount = pProc2ResDB->getProc2ResListSize();
 }

@@ -62,8 +62,8 @@ public:
 
 	bool GetLandingEnrouteFlightPlan(AirsideFlightInSim* pFlight, FlightRouteInSim*& pRoute);
 	bool GetTakeoffEnrouteFlightPlan(AirsideFlightInSim* pFlight, FlightRouteInSim*& pRoute);
-	bool GetSTARFlightPlan(AirsideFlightInSim* pFlight, FlightRouteInSim*& pRoute);
-	bool GetSIDFlightPlan(AirsideFlightInSim* pFlight, FlightRouteInSim*& pRoute);
+	bool GetSTARFlightPlan(AirsideFlightInSim* pFlight, FlightRouteInSim*& pRoute,bool bRunwayFlightPlan);
+	bool GetSIDFlightPlan(AirsideFlightInSim* pFlight, FlightRouteInSim*& pRoute,bool bRunwayFlightPlan);
 	//----------------------------------------------------------------------------------------------------------------------
 	//Summary:
 	//			Retrieve circuit flight plan

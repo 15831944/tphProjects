@@ -780,6 +780,12 @@ void MiscData::readObsoleteMiscData (ArctermFile& p_file )
 		return;
 	}
 
+	if ((fFileVersion - 0.0001)<3.9f && (fFileVersion + 0.0001)>3.9f)//fFileVersion==3.8f
+	{
+		readObsoleteMiscData39(p_file);
+		return;
+	}
+
 	if( fFileVersion == 21 )
 	{
 		p_file.getInteger(m_lQueueCapacity);
@@ -1259,6 +1265,68 @@ void MiscData::writeDisallowedNonPaxItem( ArctermFile &p_file ) const
 		p_file.writeLine() ;
 	}
 
+}
+
+void MiscData::readObsoleteMiscData39( ArctermFile&p_file )
+{
+	p_file.getInteger( m_nCyclicFreq );
+	p_file.getInteger(m_lQueueCapacity);
+	int nCapaAttrCount;
+	p_file.getInteger( nCapaAttrCount);
+	for (int i=0; i<nCapaAttrCount; i++)
+	{
+		CapacityAttribute* pCapaAttr = new CapacityAttribute;
+		p_file.getInteger(pCapaAttr->m_nMobElementIndex);
+		p_file.getInteger(pCapaAttr->m_nCapacity);
+		m_pCapacityAttributes->AddCapacityAttribute(pCapaAttr);
+		if(p_file.getVersion() > 3.2)
+		{
+			TCHAR name[1024] = {0} ;
+			int version = 0 ;
+			p_file.getInteger(version) ;
+			pCapaAttr->m_Type = (CapacityAttributes::CapacityType)version ;
+			p_file.getField(name ,1024) ;
+			pCapaAttr->m_Name = name ;
+			//p_file.getLine() ;
+			int size = 0 ;
+			p_file.getInteger(size) ;
+			//p_file.getLine() ;
+			CString strname ;
+			for (int i = 0 ;i < size ;i++)
+			{
+				p_file.getField(name ,1024) ;
+				pCapaAttr->AddCombinationContainTypeString(CString(name)) ;
+			}
+		}
+		p_file.getLine() ;
+	}
+	p_file.getInteger( m_lTerminateTime);
+
+	char disallowGroup;
+	char visitors;
+	char cWaitInQueue;
+	p_file.getChar( disallowGroup );
+	m_bDisallowGroup = disallowGroup == 'Y' ? true : false;
+
+	p_file.getChar (visitors);
+	visitorFlag = (visitors == 'Y');
+
+	p_file.getChar(cWaitInQueue);
+	m_bWaitInQueue = cWaitInQueue == 'N' ? false : true;
+
+	assert( m_pInTerm );
+	gateList->readIDList (p_file, m_pInTerm );
+	m_pWaitAreaList->readIDList (p_file, m_pInTerm );
+	m_pLinkedDestList->readIDList(p_file,  m_pInTerm);
+
+	char cUseDependentProc;
+	p_file.getChar( cUseDependentProc );
+	m_bUseDependentProc = cUseDependentProc == 'Y' ? true : false;
+	m_pDependentProcList->readIDList(p_file, m_pInTerm);
+
+	readSpecificData (p_file);
+	p_file.getInteger(m_nGroupSerTimeModIndex);
+	p_file.getInteger(m_nGroupSerTimeModSum);
 }
 
 void MiscDependentData::readSpecificData (ArctermFile& p_file )
@@ -1905,72 +1973,13 @@ void MiscProcessorIDListWithLevel::writeIDList (ArctermFile& p_file) const
 
 void MiscBridgeIDListWithDoor::readIDList( ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne /*= true */ )
 {
-	clear();
-	char *str1, *str2, *str3, str[1024];
-	p_file.getField (str, 1024);
-	if (!str[0])
-		return;
-
-	str2 = str - 1;
-	MiscBridgeIDWithDoor *id;
-	while (str2)
+	if(p_file.getVersion() < 3.9f)
 	{
-		str1 = str2 + 1;
-		str2 = strstr (str1, ";");
-		if (str2)
-			str2[0] = '\0';
-
-		id = new MiscBridgeIDWithDoor;
-		id->SetStrDict( _pInTerm->inStrDict );
-		{
-			str3 = strstr( str1, "@" );
-			if( str3 )
-				str3[0] = '\0';
-
-			id->setID (str1);
-			id->setOne2OneFlag( str3[1] == 'Y' ? true : false );
-			
-			str3 ++;
-			char* strPirorityList = strstr( str3, "@" );
-			if( strPirorityList )
-				strPirorityList[0] = '\0';
-			strPirorityList ++;
-			int iStrlen = strlen(strPirorityList);
-			for(int i=0; i<iStrlen; i++)
-			{
-				if(strPirorityList[i] == '-')
-				{
-					strPirorityList[i] = ',';
-				}
-			}
-			if (strPirorityList)
-				strPirorityList[0] = '\0';
-		
-			strPirorityList++;
-			ArctermFile tempFile;
-			tempFile.InitDataFromString( strPirorityList );
-			int  countOfPriority;
-	
-			tempFile.getInteger(countOfPriority); 
-			for(int i=0; i<countOfPriority; i++)
-			{
-				CString strPriority;
-				tempFile.getField(strPriority.GetBuffer(256),256);
-				strPriority.ReleaseBuffer();
-				MiscBridgeIDWithDoor::DoorPriority priorityDoor;
-				priorityDoor.ParseString(strPriority);
-				id->m_vDoorPriority.push_back(priorityDoor);
-			}
-
-			if (id->m_vDoorPriority.empty())
-			{
-				MiscBridgeIDWithDoor::DoorPriority priorityDoor;
-				priorityDoor.m_iIndex = 1;
-				priorityDoor.m_iHandType =  ACTypeDoor::LeftHand;
-				id->m_vDoorPriority.push_back(priorityDoor);
-			}
-		}
-		addItem (id);
+		readIDListLess39(p_file,_pInTerm,_bWithOneToOne);		
+	}
+	else
+	{		
+		readIDList39(p_file,_pInTerm,_bWithOneToOne);
 	}
 }
 
@@ -2004,6 +2013,101 @@ void MiscBridgeIDListWithDoor::writeIDList( ArctermFile& p_file ) const
 		
 	}
 	p_file.writeField (str);
+}
+
+void MiscBridgeIDListWithDoor::readIDList39( ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne )
+{
+	clear();
+	char *str1, *str2, *str3, str[1024];
+	p_file.getField (str, 1024);
+	if (!str[0])
+		return;
+
+	str2 = str - 1;
+	MiscBridgeIDWithDoor *id;
+	while (str2)
+	{
+		str1 = str2 + 1;
+		str2 = strstr (str1, ";");
+		if (str2)
+			str2[0] = '\0';
+
+		id = new MiscBridgeIDWithDoor;
+		id->SetStrDict( _pInTerm->inStrDict );
+		{
+			str3 = strstr( str1, "@" );
+			if( str3 )
+				str3[0] = '\0';
+
+			id->setID (str1);
+			id->setOne2OneFlag( str3[1] == 'Y' ? true : false );
+
+			str3 ++;
+			char* strPirorityList = strstr( str3, "@" );
+			if( strPirorityList )
+				strPirorityList[0] = '\0';
+			strPirorityList ++;
+			int iStrlen = strlen(strPirorityList);
+			for(int i=0; i<iStrlen; i++)
+			{
+				if(strPirorityList[i] == '-')
+				{
+					strPirorityList[i] = ',';
+				}
+			}
+			if (strPirorityList)
+				strPirorityList[0] = '\0';
+
+			strPirorityList++;
+			ArctermFile tempFile;
+			tempFile.InitDataFromString( strPirorityList );
+			int  countOfPriority;
+
+			tempFile.getInteger(countOfPriority); 
+			for(int i=0; i<countOfPriority; i++)
+			{
+				CString strPriority;
+				tempFile.getField(strPriority.GetBuffer(256),256);
+				strPriority.ReleaseBuffer();
+				MiscBridgeIDWithDoor::DoorPriority priorityDoor;
+				priorityDoor.ParseString(strPriority);
+				id->m_vDoorPriority.push_back(priorityDoor);
+			}
+
+			if (id->m_vDoorPriority.empty())
+			{
+				MiscBridgeIDWithDoor::DoorPriority priorityDoor;
+				priorityDoor.m_iIndex = 1;
+				priorityDoor.m_iHandType =  ACTypeDoor::LeftHand;
+				id->m_vDoorPriority.push_back(priorityDoor);
+			}
+		}
+		addItem (id);
+	}
+}
+
+void MiscBridgeIDListWithDoor::readIDListLess39( ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne )
+{
+	clear();
+	char *str1, *str2, str[1024];
+	p_file.getField (str, 1024);
+	if (!str[0])
+		return;
+
+	str2 = str - 1;
+	ProcessorID *id;
+	while (str2)
+	{
+		str1 = str2 + 1;
+		str2 = strstr (str1, ";");
+		if (str2)
+			str2[0] = '\0';
+
+		id = new MiscBridgeIDWithDoor;
+		id->SetStrDict( _pInTerm->inStrDict );
+		id->setID (str1);
+		addItem (id);
+	}
 }
 
 void MiscEscalatorData::readSpecificData(ArctermFile& p_file)

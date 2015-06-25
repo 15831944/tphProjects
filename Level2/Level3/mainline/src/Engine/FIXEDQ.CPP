@@ -43,6 +43,7 @@
 
 void FixedQueue::addToQueue (Person *aPerson)
 {
+	int personID = aPerson->getID();
 #ifdef WANT_TO_TRACE_QUUEU_INFO
 	if( m_bMustTraceQueueInfo )
 	{
@@ -58,7 +59,7 @@ void FixedQueue::addToQueue (Person *aPerson)
 		spTerminalBehavior->setNextIndex (APPROACHING);
 		spTerminalBehavior->updateIndex();
 		spTerminalBehavior->setNextIndex (getNextIndex (APPROACHING));
-		spTerminalBehavior->setQueuePathSegmentIndex(ARC_OVERFLOW) ;
+		spTerminalBehavior->setQueuePathSegmentIndex(ARC_OVERFLOW);
 
 			//// determine the next segment and the next wait location
 
@@ -66,29 +67,30 @@ void FixedQueue::addToQueue (Person *aPerson)
 		{
 			Person* aper = getTail() ;
 			if(aper == NULL)
-				EntryPoints.ResetEntryState() ;
-			aPerson->setState(WaitInQueue);
-			int index = EntryPoints.GetCurrentIndex() ;
+				EntryPoints.ResetEntryState();
+			int index = EntryPoints.GetCurrentIndex();
 			if(index == -1 || index > (cornerCount() - 1))
-				index = cornerCount() - 1 ;
+				index = cornerCount() - 1;
+
+			aPerson->setState(WaitInQueue);
 			aPerson->setTerminalDestination(corner(index));
-			spTerminalBehavior->first = index ;
-			
+			spTerminalBehavior->first_corner = index;
 		}
 		else
 		{
-				Person* aper = getTail() ;
-				if(aper == NULL)
-				EntryPoints.ResetEntryState() ;
-				aPerson->setState(MoveToQueue);
-				int index = EntryPoints.GetCurrentIndex() ;
-				if(index == -1 || index > (cornerCount() - 1))
-					index = cornerCount() - 1 ;
-				aPerson->setTerminalDestination(corner(index)) ;
-				spTerminalBehavior->first = index ;
-				// if the Person's state is waiting it was heading for the tail
-				// of the queue. Since it is no longer heading for the tail it
-				// must reset its destination and event
+			Person* aper = getTail();
+			if(aper == NULL)
+				EntryPoints.ResetEntryState();
+			int index = EntryPoints.GetCurrentIndex();
+			if(index == -1 || index > (cornerCount() - 1))
+				index = cornerCount() - 1;
+
+			aPerson->setState(MoveToQueue);
+			aPerson->setTerminalDestination(corner(index));
+			spTerminalBehavior->first_corner = index;
+			// if the Person's state is waiting it was heading for the tail
+			// of the queue. Since it is no longer heading for the tail it
+			// must reset its destination and event
 		} 
 	}
 	
@@ -186,25 +188,25 @@ void FixedQueue::arriveAtQueue (Person *aPerson, ElapsedTime arriveTime)
 
         if (spTerminalBehavior->getQueuePathSegmentIndex() == ARC_OVERFLOW)
 		{
-			spTerminalBehavior->setQueuePathSegmentIndex(spTerminalBehavior->first);
+			spTerminalBehavior->setQueuePathSegmentIndex(spTerminalBehavior->first_corner);
 			Person* aper = getTail() ;
 			if(aper != NULL )
 			{
 				Point pt;
 				aper->getTerminalPoint(pt);
-				if(pt.distance(corner(spTerminalBehavior->first)) <= aPerson->getInStep())
+				if(pt.distance(corner(spTerminalBehavior->first_corner)) <= aPerson->getInStep())
 				{
 					int index = EntryPoints.GetCurrentIndex() ;
 					if(index == -1 )
 						index = cornerCount() - 1 ;
-					if(spTerminalBehavior->first < index)
+					if(spTerminalBehavior->first_corner < index)
 					{
 						setPersonCurrentPosition(aPerson,arriveTime);//aPerson->setCurrentPosition (arriveTime);
 						spTerminalBehavior->setQueuePathSegmentIndex(index + 1);
 						aPerson->setTerminalDestination(corner(index )) ;
 						spTerminalBehavior->SetEntryPoint(corner(index )) ;
 						if(index < (cornerCount() - 1))
-						   spTerminalBehavior->first = index + 1;
+						   spTerminalBehavior->first_corner = index + 1;
 						aPerson->generateEvent(arriveTime+aPerson->moveTime() ,FALSE) ;
 						return ;
 						// aPerson->setState(MoveToQueue) ;
@@ -310,12 +312,12 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
 			}else
 			{
 				if(EntryPoints.GetCurrentIndex() != -1 )
-					spTerminalBehavior->first = EntryPoints.GetCurrentIndex() ;
+					spTerminalBehavior->first_corner = EntryPoints.GetCurrentIndex() ;
 				MobileElementMovementEvent dummy;
 				ElapsedTime destTime = dummy.removeMoveEvent (aPerson);
 				if (destTime >= ElapsedTime(0l))
 				{
-					aPerson->setTerminalDestination(corner(spTerminalBehavior->first)) ;
+					aPerson->setTerminalDestination(corner(spTerminalBehavior->first_corner)) ;
 					aPerson->writeLogEntry (updateTime, false);
 				}
 			}
@@ -388,4 +390,15 @@ void FixedQueue::getTailPoint(Person *aPerson)const
 void FixedQueue::setPersonCurrentPosition( Person *aPerson,const ElapsedTime& arriveTime )
 {
 	aPerson->setCurrentPosition(arriveTime);
+}
+
+int FixedQueue::getEntryCornerIndex()
+{
+	Person* aper = getTail() ;
+	if(aper == NULL)
+		EntryPoints.ResetEntryState();
+	int index = EntryPoints.GetCurrentIndex();
+	if(index == -1 || index > (cornerCount() - 1))
+		index = cornerCount() - 1;
+	return index;
 }

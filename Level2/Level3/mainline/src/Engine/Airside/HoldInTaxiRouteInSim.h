@@ -65,8 +65,6 @@ public:
 	HoldInTaxiRoute* GetNextNodeEntryHold(DistanceUnit distInRoute)const;
 	std::vector<HoldInTaxiRoute*> GetNextRunwayEntryHoldList(DistanceUnit distInRoute)const;
 
-	HoldInTaxiRoute* IsDistInNoParkingNodeRange(const DistanceUnit& dist)const;
-	HoldInTaxiRoute* GetWaitHold(const DistanceUnit& dist )const; //null if can wait at the dist in route
 
 	bool IsLastEntryRunwayHold()const;
 public:

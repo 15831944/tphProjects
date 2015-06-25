@@ -1715,12 +1715,12 @@ void CLandsideMSView::DeleteLevelItem( CFloors& floor,int idx )
 	levelRoot.RemoveLevelItem(idx);
 
 	CLevelTreeItem child = levelRoot.GetFirstChild();
-	int nFloorIdx = 0;
+	int nFloorIdx = floor.GetCount();
 	while(child)
 	{
 		child.SetFloorIndex(nFloorIdx);
-		nFloorIdx++;
 		child = child.GetNextSibling();
+		nFloorIdx--;
 	}	
 }
 

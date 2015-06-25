@@ -6,6 +6,7 @@
 #include <Il/il.h>
 #include <Il/ilut.h>
 #include <CXImage/ximage.h>
+
 #define  DEFAULT_SIZE 1024*1024
 
 IMPLEMENT_DYNAMIC(CFloorPictureCtrl, CWnd)
@@ -451,7 +452,10 @@ GLenum getGLFormatEx(BYTE b)
 	else if (b == 4) {
 		return GL_RGBA8;
 	}
-
+	else if(b == 1)
+	{
+		return GL_LUMINANCE8;
+	}
 	return b;
 }
 
@@ -464,7 +468,10 @@ GLenum getGLFormat(BYTE b)
 	else if (b == 4) {
 		return GL_RGBA;
 	}
-
+	else if(b == 1)
+	{
+		return GL_LUMINANCE;
+	}
 	return b;
 }
 
@@ -479,7 +486,6 @@ BOOL CFloorPictureCtrl::LoadImage(CString sFileName)
 
 	int type = CxImage::GetTypeIdFromName(ext);
 	m_pImage = new CxImage(sFileName, type);
-
 	if (!m_pImage->IsValid()){
 		CString s = m_pImage->GetLastError();
 		AfxMessageBox(s);
@@ -556,8 +562,8 @@ void CFloorPictureCtrl::GenPicTexture()
 		GLint picHeight =  ARCMath::FloorTo2n(Height);
 		while(maxTexHeight==0 && maxTexWidth==0)
 		{			
-			glTexImage2D(GL_PROXY_TEXTURE_2D, 0,getGLFormatEx(m_pImage->GetColorType()) , \
-				picWidth,picHeight,0,getGLFormat(m_pImage->GetColorType())\
+			glTexImage2D(GL_PROXY_TEXTURE_2D, 0,getGLFormat(m_pImage->GetColorType()) , \
+				picWidth,picHeight,0,getGLFormat(m_pImage->GetColorType()) \
 				,GL_UNSIGNED_BYTE, 0 );
 			glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &maxTexWidth);
 			glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &maxTexHeight);
@@ -581,8 +587,9 @@ void CFloorPictureCtrl::GenPicTexture()
 		glTexParameteri(texFormat, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// Linear Filtering
 		glTexParameteri(texFormat, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// Linear Filtering
 
-		glTexImage2D(texFormat, 0, 3, m_pImage->GetWidth(),m_pImage->GetHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, m_pImage->GetBits());
-		m_bPicTextureValid = glIsTexture(m_iPicTexture);	
+		glTexImage2D(texFormat, 0, GL_RGB, m_pImage->GetWidth(),m_pImage->GetHeight(), 0,
+			getGLFormat(m_pImage->GetColorType()), GL_UNSIGNED_BYTE, m_pImage->GetBits());
+		m_bPicTextureValid = glIsTexture(m_iPicTexture);
 
 	}
 	else

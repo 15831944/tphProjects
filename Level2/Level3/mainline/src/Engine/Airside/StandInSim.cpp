@@ -382,13 +382,31 @@ bool StandInSim::GetEnterStandClearance(AirsideFlightInSim * pFlight, ClearanceI
 	return true;
 }
 
+//case 1: arr stand == departure stand
+//case 2: arr stand != departure stand
+//case 3: arrival stand, intermediate stand, departure stand
+bool StandInSim::ProcessEnrouteCapacity(AirsideFlightInSim * pFlight,ClearanceItem& lastItem)
+{
+	//if inter stand of flight is not equal to current stand, don't check enroute capacity
+
+	//exit departure stand to takeoff
+	if (this == pFlight->GetDepParkingStand())
+	{
+		EnrouteQueueCapacityInSim* pEnrouteCapacity = pFlight->GetAirTrafficController()->GetEnrouteCapacity();
+		if (pEnrouteCapacity && pEnrouteCapacity->PushBackExitEnrouteQCapacity(lastItem.GetTime(),pFlight) == false)//delay by enroute capacity
+			return true;
+	}
+	return false;
+}
+
 bool StandInSim::GetExitStandClearance(AirsideFlightInSim * pFlight, ClearanceItem& lastItem, Clearance& newClearance)
 {
-	EnrouteQueueCapacityInSim* pEnrouteCapacity = pFlight->GetAirTrafficController()->GetEnrouteCapacity();
-	if (pEnrouteCapacity && pEnrouteCapacity->PushBackExitEnrouteQCapacity(lastItem.GetTime(),pFlight) == false)//delay by enroute capacity
+	//flight is going to enter enroute queue, if exceed capacity of enroute let aircraft wait
+	if (ProcessEnrouteCapacity(pFlight,lastItem) == true)
+	{
 		return true;
-	
-	
+	}
+
 	StandLeadOutLineInSim* pOutLine = AssignLeadOutLine(pFlight);
 	if(pOutLine)
 	{
@@ -998,6 +1016,7 @@ bool StandInSim::GetPushFromStandClearance( AirsideFlightInSim * pFlight, Cleara
 	return false;
 
 }
+
 
 DeiceStandInSim::DeiceStandInSim(Stand * pStand)
 :StandInSim(pStand)

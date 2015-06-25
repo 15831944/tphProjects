@@ -1,5 +1,5 @@
-#ifndef  CGLTEXTURE_RESOURCE_DEF
-#define CGLTEXTURE_RESOURCE_DEF
+#pragma once
+
 #include <gl/GL.h>
 #include <map>
 #include <Common/Referenced.h>
@@ -64,4 +64,40 @@ private:
 };
 
 
-#endif 
+#include <vector>
+class CTextureResourcePool;
+
+class CTexture2 : public Referenced
+{
+public:
+	typedef ref_ptr<CTexture2> RefPtr;
+	
+	CTexture2(CString file, CTextureResourcePool* pPool);
+	~CTexture2();
+
+	CString getFileName()const{  return m_filePath; }
+
+	void Apply();
+
+	void UnApply();
+protected:
+	GLuint m_iTextureId;
+	GLenum m_eTextureType;	
+	CString m_filePath;
+	CTextureResourcePool* m_pPool;
+};
+
+class CTextureResourcePool
+{
+	friend class CTexture2;
+public:
+	
+	typedef std::vector<CTexture2* >  TexutreList;
+
+	CTexture2* getTexture(CString filePath);
+protected:
+	TexutreList m_datalist;
+	CTexture2* newTexture(CString file);
+	void remove(CTexture2* t);
+};
+

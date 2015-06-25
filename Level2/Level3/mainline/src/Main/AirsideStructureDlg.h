@@ -17,16 +17,19 @@ public:
 	//CAirsideStructureDlg(Structure* pStructure,int nProjID,  CWnd* pParent = NULL);
 	~CAirsideStructureDlg(void);
 
+	
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 	HTREEITEM m_hServiceLocation;
 	HTREEITEM m_hRotation;
 //	CListCtrl m_wndShapeList;
+	HTREEITEM m_hSurfaceTopPic;
+	std::vector<HTREEITEM> m_vhSurfaceSidePic;
 
 	virtual bool ConvertUnitFromDBtoGUI(void);
 	virtual bool RefreshGUI(void);
 	virtual bool ConvertUnitFromGUItoDB(void);
-
+	void resetTree();
 public:
 	virtual BOOL OnInitDialog();
 	void InitShapleList();
@@ -40,6 +43,7 @@ public:
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnRotationEdit();
 	afx_msg void OnShowSides();
+	afx_msg void OnRemovePic();
 
 protected:
 	virtual void OnOK();

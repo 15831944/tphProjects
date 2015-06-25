@@ -66,7 +66,7 @@ bool IntersectionNodeInSimList::Init( int nPrjId, int nAirportId )
 		adoRecordset.GetFieldValue("UNBLOCK",nBlock);
 		IntersectionNodeInSim* pNode = GetNodeByID(nNodeID);
 		if (pNode)
-			pNode->SetBlock(nBlock > 0?false:true);
+			pNode->SetNoParking(nBlock > 0?false:true);
 
 		adoRecordset.MoveNextData();
 	}
@@ -138,7 +138,7 @@ IntersectionNodeInSim::IntersectionNodeInSim( const IntersectionNode& node )
 {
 	m_nodeinput = node;
 	m_pLockFlight = NULL;
-	m_bBlock = true;
+	m_bNoParking = true;
 	FilletTaxiway::ReadIntersectionFillets(node,m_vFilletTaxiways);
 }
 
@@ -542,11 +542,7 @@ bool IntersectionNodeInSim::IsNoParking() const
 	if( m_vFilletTaxiways.size() <=3 )
 		return false;
 
-	return m_bBlock;
-
-	//if( GetNodeInput().GetTaxiwayIntersectItemList().size() > 1  )
-	//	return true;
-	//return false;
+	return m_bNoParking;
 }
 
 ElapsedTime IntersectionNodeInSim::GetAvailableEntryTime( AirsideFlightInSim* pFlight, const ElapsedTime& entryTime, const ElapsedTime& exitTime )
@@ -672,9 +668,9 @@ void IntersectionNodeInSim::getDesc( ResourceDesc& resDesc )
 	resDesc.strRes=PrintResource();
 }
 
-void IntersectionNodeInSim::SetBlock( bool bBlock )
+void IntersectionNodeInSim::SetNoParking( bool b )
 {
-	m_bBlock = bBlock;
+	m_bNoParking = b;
 }
 
 ElapsedTime IntersectionNodeInSim::GetLastOcyTime(  ) const
@@ -682,4 +678,22 @@ ElapsedTime IntersectionNodeInSim::GetLastOcyTime(  ) const
 	if(m_vOccupancyTable.empty())
 		return ElapsedTime(0L);
 	return m_vOccupancyTable.back().GetExitTime();
+}
+
+ElapsedTime IntersectionNodeInSim::GetLastLandingTakeoffTime() const
+{
+	OccupancyTable::const_reverse_iterator ritr; 
+	for(ritr = m_vOccupancyTable.rbegin(); ritr!=m_vOccupancyTable.rend();++ritr)
+	{
+		if( ritr->GetOccupyType()== OnLanding || ritr->GetOccupyType()== OnTakeoff)
+		{
+			return ritr->GetExitTime();
+		}
+	}
+	return ElapsedTime(0L);
+}
+
+bool IntersectionNodeInSim::IsNeedToCheckHold() const
+{
+	return m_bNoParking;
 }

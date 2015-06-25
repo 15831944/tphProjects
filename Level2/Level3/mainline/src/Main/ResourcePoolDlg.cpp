@@ -372,7 +372,10 @@ LRESULT CResourcePoolDlg::OnTempFallbackFinished(WPARAM wParam, LPARAM lParam)
 	// pick from map
 	int _iCurSel = m_listPool.GetCurSel();
 	if( _iCurSel<0 || _iCurSel>= m_listPool.GetItemCount() )
+	{
+		MessageBox("Please select one resource item in the list and  try again.");
 		return FALSE;
+	}
 	
 	CString strName = m_listPool.GetItemText( _iCurSel,0 );
 	CResourcePool* _pool = GetInputTerminal()->m_pResourcePoolDB->getResourcePoolByName( strName );

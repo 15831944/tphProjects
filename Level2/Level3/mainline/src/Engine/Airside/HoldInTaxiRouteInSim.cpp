@@ -246,43 +246,6 @@ std::vector<HoldInTaxiRoute> FlightHoldListInTaxiRoute::GetNextRouteNodeHoldList
 	
 }
 
-HoldInTaxiRoute* FlightHoldListInTaxiRoute::IsDistInNoParkingNodeRange( const DistanceUnit& dist )const
-{
-	for(int i=0;i<GetCount();i++)
-	{
-		const HoldInTaxiRoute& theHold = ItemAt(i);
-		if( theHold.m_dDistInRoute < dist && theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE && theHold.m_pNode->IsNoParking() && !theHold.m_bIsRunwayExit )
-		{
-			HoldInTaxiRoute* pExitHold = GetExitHold(theHold);
-			if( pExitHold && dist < pExitHold->m_dDistInRoute )
-			{				
-				return (HoldInTaxiRoute*)&theHold;
-			}
-		}
-	}
-	for(int i=0;i<GetCount();i++)
-	{
-		const HoldInTaxiRoute& theHold = ItemAt(i);
-		if( theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE   )
-		{
-			for(int j=i+1;j<GetCount();++j)
-			{
-				const HoldInTaxiRoute& theHold2 = ItemAt(j);
-				if( theHold2.m_hHoldType == HoldInTaxiRoute::ENTRYNODE )
-				{
-					if(theHold.m_dDistInRoute< dist && dist < theHold2.m_dDistInRoute  )
-					{
-						if(theHold.mLinkDirSeg && theHold.mLinkDirSeg->GetType()==AirsideResource::ResType_RunwayDirSeg)
-						{
-							return (HoldInTaxiRoute*)&theHold;
-						}						
-					}
-				}
-			}
-		}
-	}
-	return NULL;
-}
 //get last node hold
 HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetLastEntryHold()const
 {
@@ -369,23 +332,6 @@ int FlightHoldListInTaxiRoute::GetHoldUntil( const DistanceUnit& distEnd ) const
 }
 
 
-HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetWaitHold( const DistanceUnit& dist ) const
-{
-	HoldInTaxiRoute* pPreHold = IsDistInNoParkingNodeRange(dist);
-	//return pPreHold;
-	if(!pPreHold)
-		return NULL;
-	while(true)
-	{
-		HoldInTaxiRoute* pPrePreHold = IsDistInNoParkingNodeRange(pPreHold->m_dDistInRoute);
-		if(!pPrePreHold)
-			return pPreHold;
-		else 
-			pPreHold = pPrePreHold;
-	}	 
-
-	return NULL;		
-}
 
 HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetLastRunwayEntryHold() const
 {

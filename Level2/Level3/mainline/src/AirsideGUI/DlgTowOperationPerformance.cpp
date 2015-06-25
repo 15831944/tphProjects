@@ -88,16 +88,20 @@ void DlgTowOperationPerformance::SetListColumn()
 	m_wndListCtrl.InsertColumn(2, &lvc);
 
 	lvc.csList = &strlist;
-	lvc.pszText = "Attached acceleration(m/s/s)";
-	m_wndListCtrl.InsertColumn(3, &lvc);
+	lvc.pszText = "hookup time(mins)";
+	m_wndListCtrl.InsertColumn(3,&lvc);
 
 	lvc.csList = &strlist;
-	lvc.pszText = "Attached deceleration(m/s/s)";
+	lvc.pszText = "Attached acceleration(m/s/s)";
 	m_wndListCtrl.InsertColumn(4, &lvc);
 
 	lvc.csList = &strlist;
-	lvc.pszText = "Tow speed(m/s)";
+	lvc.pszText = "Attached deceleration(m/s/s)";
 	m_wndListCtrl.InsertColumn(5, &lvc);
+
+	lvc.csList = &strlist;
+	lvc.pszText = "Tow speed(m/s)";
+	m_wndListCtrl.InsertColumn(6, &lvc);
 
 }
 
@@ -120,12 +124,14 @@ void DlgTowOperationPerformance::SetListContent()
 		m_wndListCtrl.SetItemText(n, 1,strDistName );
 		strDistName = pData->m_pUnhookAndTaxiTimeDist->getDistName();
 		m_wndListCtrl.SetItemText(n, 2,strDistName );
-		strDistName = pData->m_pAttachedAccelerationDist->getDistName();
+		strDistName = pData->m_pHookupTime->getDistName();
 		m_wndListCtrl.SetItemText(n, 3, strDistName);
-		strDistName = pData->m_pAttachedDecelerationDist->getDistName();
+		strDistName = pData->m_pAttachedAccelerationDist->getDistName();
 		m_wndListCtrl.SetItemText(n, 4, strDistName);
-		strDistName = pData->m_pTowSpeedDist->getDistName();
+		strDistName = pData->m_pAttachedDecelerationDist->getDistName();
 		m_wndListCtrl.SetItemText(n, 5, strDistName);
+		strDistName = pData->m_pTowSpeedDist->getDistName();
+		m_wndListCtrl.SetItemText(n, 6, strDistName);
 
 		m_wndListCtrl.SetItemData(n,(DWORD_PTR)pData);
 	}	
@@ -193,12 +199,15 @@ void DlgTowOperationPerformance::OnSelComboBox( NMHDR * pNotifyStruct, LRESULT *
 			pData->m_pUnhookAndTaxiTimeDist->SetProDistrubution(pPDEntry);
 			break;
 		case 3:
+			pData->m_pHookupTime->SetProDistrubution(pPDEntry);
+			break;
+		case 4:
 			pData->m_pAttachedAccelerationDist->SetProDistrubution(pPDEntry);
 		    break;
-		case 4:
+		case 5:
 			pData->m_pAttachedDecelerationDist->SetProDistrubution(pPDEntry);
 		    break;
-		case 5:
+		case 6:
 			pData->m_pTowSpeedDist->SetProDistrubution(pPDEntry);
 			break;
 		default:
@@ -231,12 +240,15 @@ void DlgTowOperationPerformance::OnSelComboBox( NMHDR * pNotifyStruct, LRESULT *
 			pData->m_pUnhookAndTaxiTimeDist->SetProDistrubution(pPDEntry);
 			break;
 		case 3:
-			pData->m_pAttachedAccelerationDist->SetProDistrubution(pPDEntry);
+			pData->m_pHookupTime->SetProDistrubution(pPDEntry);
 			break;
 		case 4:
-			pData->m_pAttachedDecelerationDist->SetProDistrubution(pPDEntry);
+			pData->m_pAttachedAccelerationDist->SetProDistrubution(pPDEntry);
 			break;
 		case 5:
+			pData->m_pAttachedDecelerationDist->SetProDistrubution(pPDEntry);
+			break;
+		case 6:
 			pData->m_pTowSpeedDist->SetProDistrubution(pPDEntry);
 			break;
 		default:
