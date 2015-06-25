@@ -238,6 +238,10 @@ void BaggageData::BuildFlightAssignToBaggageDevice( FlightSchedule* _pFlightSche
 						}
 						pDestProcID = m_pInTerm->procList->getProcessor( group.start + iIdx )->getID();					
 					}
+					else
+					{//if the group only has one processor,  the baggage device id is different with its group id
+						pDestProcID = pProc->getID();
+					}
 
 					//add baggageDevice to Flight
 					pFlight->setBaggageDevice(*pDestProcID);

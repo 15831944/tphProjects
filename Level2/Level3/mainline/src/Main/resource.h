@@ -5240,9 +5240,8 @@
 #define ID_ITEM_DELETEITEM              35347
 #define ID_OTHER_ADDFOLDER              35348
 #define ID_OTHER_DELETEITEM             35349
-#define ID_FOLDER_EDIT                  35350
-#define ID_ITEM_EDITSHAPE               35351
-#define ID_ITEM_EDIT                    35352
+#define ID_ITEM_EDITSHAPE               35350
+#define ID_ITEM_EDIT                    35351
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5502,7 +5501,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1115
-#define _APS_NEXT_COMMAND_VALUE         35353
+#define _APS_NEXT_COMMAND_VALUE         35352
 #define _APS_NEXT_CONTROL_VALUE         2426
 #define _APS_NEXT_SYMED_VALUE           491
 #endif

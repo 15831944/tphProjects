@@ -519,7 +519,7 @@ void AirsideBaggageTrainInSim::TransferTheBag( Person *pBag,const ElapsedTime& e
 
 	
 	pBagCart->AddBaggage(pBagBehavior);
-	m_nBagLoaded += pBag->GetActiveGroupSize();
+//	m_nBagLoaded += pBag->GetActiveGroupSize();
 	m_nBagLoaded++;
 	if (IsReadyToGo())
 	{

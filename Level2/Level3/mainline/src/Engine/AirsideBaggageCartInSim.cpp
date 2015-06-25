@@ -102,6 +102,7 @@ void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoD
 		pBagBehavior->setLocation(GetPosition());
 		pBagBehavior->WriteLog(eBagTime);
 
+		ElapsedTime eNextBagTime = eBagTime + bagServiceTime;
 		pBagBehavior->setDestination( ptCargoDoor);
 		eBagTime += pBagBehavior->moveTime();
 		pBagBehavior->setLocation(ptCargoDoor);
@@ -116,6 +117,7 @@ void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoD
 		if(pBagBehavior->getMobileElement())
 			pBagBehavior->getMobileElement()->flushLog(eFinishedTime);
 
+		eTime = eNextBagTime;
 		eFinishedTime = eBagTime;
 	}
 	

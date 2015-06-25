@@ -20,23 +20,23 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL OnInitDialog();
-	CEdit m_shapeBarName;
-	CEdit m_shapeBarLocation;
+	CEdit m_editBarName;
+	CEdit m_editBarLocation;
 	afx_msg void OnLoadShapeBar();
 	afx_msg void OnCancel();
 	afx_msg void OnOk();
 
 protected:
     Folder_Style m_style;
-    CString shapeBarName;
-    CString shapeBarLocation;
+    CString m_shapeBarName;
+    CString m_shapeBarLocation;
 public:
     CShapeFolder::Folder_Style GetStyle() const { return m_style; }
     void SetStyle(CShapeFolder::Folder_Style style) { m_style = style; }
 
-    CString GetShapeBarName() const { return shapeBarName; }
-    void SetShapeBarName(CString strName) { shapeBarName = strName; }
+    CString GetShapeBarName() const { return m_shapeBarName; }
+    void SetShapeBarName(CString strName) { m_shapeBarName = strName; }
 
-    CString GetShapeBarLocation() const { return shapeBarLocation; }
-    void SetShapeBarLocation(CString strLocation) { shapeBarLocation = strLocation; }
+    CString GetShapeBarLocation() const { return m_shapeBarLocation; }
+    void SetShapeBarLocation(CString strLocation) { m_shapeBarLocation = strLocation; }
 };

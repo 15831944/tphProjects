@@ -60,7 +60,7 @@ protected:
     CString m_shapeModel;
     Item_Style m_style;
 private:
-    int m_oldClientWidth;
-    int m_oldClientHeight;
+    int m_oldWindowWidth;
+    int m_oldWindowHeight;
 
 };

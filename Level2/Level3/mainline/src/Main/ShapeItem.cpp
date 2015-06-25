@@ -13,8 +13,8 @@ IMPLEMENT_DYNAMIC(CShapeItem, CDialog)
 
 CShapeItem::CShapeItem(CString folderpath,CWnd* pParent /*=NULL*/)
 	: CDialog(CShapeItem::IDD, pParent),
-    m_oldClientWidth(0),
-    m_oldClientHeight(0)
+    m_oldWindowWidth(0),
+    m_oldWindowHeight(0)
 {
 	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\New.bmp";
 	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\FLATSQUARE24cm.dxf";
@@ -24,8 +24,8 @@ CShapeItem::CShapeItem(CString folderpath,CWnd* pParent /*=NULL*/)
 
 CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model, Item_Style style /* = NEW */,CWnd* pParent /* = NULL */)
 	: CDialog(CShapeItem::IDD, pParent),
-    m_oldClientWidth(0),
-    m_oldClientHeight(0)
+    m_oldWindowWidth(0),
+    m_oldWindowHeight(0)
 {
 	m_shapeName = name;
 	m_shapePicture = picture;
@@ -145,8 +145,8 @@ void CShapeItem::OnSize(UINT nType, int cx, int cy)
     {
         if (nType != SIZE_MINIMIZED)
         {
-            m_oldClientWidth = cx;
-            m_oldClientHeight = cy;
+            m_oldWindowWidth = cx;
+            m_oldWindowHeight = cy;
         }
         return;
     }
@@ -163,14 +163,14 @@ void CShapeItem::OnSize(UINT nType, int cx, int cy)
     LayoutControl(GetDlgItem(IDOK), BottomRight, BottomRight, cx, cy);
     if (nType != SIZE_MINIMIZED)
     {
-        m_oldClientWidth = cx;
-        m_oldClientHeight = cy;
+        m_oldWindowWidth = cx;
+        m_oldWindowHeight = cy;
     }
     InvalidateRect(NULL);
 }
 
-// refTopLeft: the control's top left references to the new window's 'refTopLeft'.
-// refBottomRight: the control's bottom right references to the new window's 'refBottomRight'.
+// refTopLeft: pCtrl's top left references to the new window's 'refTopLeft'.
+// refBottomRight: pCtrl's bottom right references to the new window's 'refBottomRight'.
 // cx: new window's width
 // cy: new window's height
 void CShapeItem::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
@@ -178,8 +178,8 @@ void CShapeItem::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refB
     CRect rcS;
     pCtrl->GetWindowRect(&rcS);
     ScreenToClient(&rcS);
-    int deltaX = cx - m_oldClientWidth;
-    int deltaY = cy - m_oldClientHeight;
+    int deltaX = cx - m_oldWindowWidth;
+    int deltaY = cy - m_oldWindowHeight;
     if(refTopLeft == TopLeft && refBottomRight == TopLeft)
     {
         pCtrl->MoveWindow(&rcS);

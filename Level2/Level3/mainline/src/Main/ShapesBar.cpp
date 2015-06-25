@@ -260,6 +260,52 @@ BOOL CShapesBar::ExportShapeBarData(CString ExportFile)
 	return TRUE;
 }
 
+BOOL CShapesBar::ExportShapeBarDataAndShapes(CString ExportFolder)
+{
+	if(PathFileExists(ExportFolder)==TRUE)
+		myDeleteDirectory(ExportFolder);
+	CreateDirectory(ExportFolder,NULL);
+
+	CString sProjectName;
+	int n = UserProjectPath.GetLength() - UserProjectPath.ReverseFind('\\')-1;
+	sProjectName = UserProjectPath.Right(n);
+	PROJECTINFO* pi = new PROJECTINFO();
+	PROJMANAGER->GetProjectInfo(sProjectName,pi);
+
+	CString filename = ExportFolder;
+	n = filename.GetLength() - filename.ReverseFind('\\')-1;
+	filename = filename.Right(n);
+
+	CString FileINI = ExportFolder + "\\" + filename + ".INI";
+	CFile pFile(FileINI,CFile::modeWrite|CFile::modeCreate);
+	CArchive ar(&pFile,CArchive::store);
+	CString str;
+	str.Format(filename +",%d\r\n",pi->version);	ar.Write(str,str.GetLength());
+	str = "Shapes Database\r\n";	ar.Write(str,str.GetLength());
+	str = "Name,File,Image\r\n";	ar.Write(str,str.GetLength());
+	CShape* pShape = NULL;
+	for(int i=0;i<m_wndOutBarCtrl.GetItemCount();i++)
+	{
+		pShape = (CShape*)m_wndOutBarCtrl.GetItemData(i);
+
+		CString shapefilename = ExportFolder + "\\" + pShape->Name() + ".bmp";
+		CopyFile(pShape->ShapeFileName(),shapefilename,FALSE);
+
+		CString imagefilename = ExportFolder + "\\" + pShape->Name() + ".dxf";
+		CopyFile(pShape->ImageFileName(),imagefilename,FALSE);
+	
+		str.Format("%s,%s,%s\r\n",pShape->Name(),shapefilename,imagefilename);
+		ar.Write(str,str.GetLength());
+	}
+	m_wndOutBarCtrl.Invalidate();
+	str = "\r\n";	ar.Write(str,str.GetLength());
+	str = pi->modifytime.Format("%y/%m/%d,%H:%M:%S");	ar.Write(str,str.GetLength());
+	ar.Close();
+	pFile.Close();
+
+	return TRUE;
+}
+
 void CShapesBar::ImportUserShapeBars()
 {
 	try
@@ -533,14 +579,14 @@ void CShapesBar::OnExport()
 {
     CString strExportPath = m_wndOutBarCtrl.GetFolderPathText(folder_index);
     strExportPath += m_wndOutBarCtrl.GetFolderText(folder_index);
-    CFileDialog  dlgFile(FALSE, ".INI", strExportPath,
-        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "(*.INI)|*.INI|");
+    CFileDialog  dlgFile(FALSE, ".zip", strExportPath,
+        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "(*.zip)|*.zip|");
     if(dlgFile.DoModal() == IDOK)
     {
         strExportPath = dlgFile.GetPathName();
         int sel = m_wndOutBarCtrl.iSelFolder;
         m_wndOutBarCtrl.iSelFolder = folder_index;
-        ExportShapeBarData(strExportPath);
+        ExportShapeBarDataAndShapes(strExportPath);
         m_wndOutBarCtrl.iSelFolder = sel;
     }
 // 	char szPath[MAX_PATH] = {0};
@@ -748,7 +794,7 @@ void CShapesBar::OnChangeShapeModel()
 // 		sModelName = StoragePath + "\\" + dlg.itemModel.Right(n);
 // 		CopyFile(dlg.itemModel,sModelName,TRUE);
 
-		pShape->ShapeFileName(dlg.GetShapePicture());
+		pShape->ShapeFileName(dlg.GetShapeModel());
 		pShape->SetObjListValid(FALSE);		
 	}
 }

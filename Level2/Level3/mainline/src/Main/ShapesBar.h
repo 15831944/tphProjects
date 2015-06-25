@@ -40,6 +40,7 @@ public:
 	void CreateOutlookBar(CShape::CShapeList* pSL);
 	BOOL ImportShapeBarData(CString ImportFile);
 	BOOL ExportShapeBarData(CString ExportFile);
+	BOOL ExportShapeBarDataAndShapes(CString ExportFolder);
 	void ImportUserShapeBars();
 	void ExportUserShapeBars();
 	CString UserProjectPath;

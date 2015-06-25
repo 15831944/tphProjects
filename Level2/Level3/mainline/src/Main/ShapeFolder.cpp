@@ -13,15 +13,15 @@ IMPLEMENT_DYNAMIC(CShapeFolder, CDialog)
 CShapeFolder::CShapeFolder(CWnd* pParent /*=NULL*/)
 	: CDialog(CShapeFolder::IDD, pParent)
 {
-	shapeBarLocation = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\";
+	m_shapeBarLocation = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\";
 	m_style = NEW;
 }
 
 CShapeFolder::CShapeFolder(CString strBarName, CString strLocation,Folder_Style style /*= NEW*/,CWnd* pParent /* = NULL */)
 	: CDialog(CShapeFolder::IDD, pParent)
 {
-	shapeBarName = strBarName;
-	shapeBarLocation = strLocation;
+	m_shapeBarName = strBarName;
+	m_shapeBarLocation = strLocation;
 	m_style = style;
 }
 
@@ -32,8 +32,8 @@ CShapeFolder::~CShapeFolder()
 void CShapeFolder::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT_BARNAME, m_shapeBarName);
-	DDX_Control(pDX, IDC_EDIT_BARLOCATION, m_shapeBarLocation);
+	DDX_Control(pDX, IDC_EDIT_BARNAME, m_editBarName);
+	DDX_Control(pDX, IDC_EDIT_BARLOCATION, m_editBarLocation);
 }
 
 
@@ -51,8 +51,8 @@ BOOL CShapeFolder::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    m_shapeBarName.SetWindowText(shapeBarName);
-    m_shapeBarLocation.SetWindowText(shapeBarLocation);
+    m_editBarName.SetWindowText(m_shapeBarName);
+    m_editBarLocation.SetWindowText(m_shapeBarLocation);
 
     switch(m_style)
     {
@@ -62,11 +62,11 @@ BOOL CShapeFolder::OnInitDialog()
     case NAME:
         SetWindowText(_T("Rename"));
         ((CWnd*)GetDlgItem(IDC_BTN_LOADSHAPEBAR))->EnableWindow(FALSE);
-        m_shapeBarLocation.EnableWindow(FALSE);
+        m_editBarLocation.EnableWindow(FALSE);
         break;
     case PATH:
         SetWindowText(_T("Change Location"));
-        m_shapeBarName.EnableWindow(FALSE);
+        m_editBarName.EnableWindow(FALSE);
         break;
     }
 
@@ -107,14 +107,14 @@ void CShapeFolder::OnLoadShapeBar()
 
 	if(lp && SHGetPathFromIDList(lp, szPath))   
 	{
-		shapeBarLocation = szPath;
-		int n = shapeBarLocation.ReverseFind('\\');
-		if (n == shapeBarLocation.GetLength()-1)
+		m_shapeBarLocation = szPath;
+		int n = m_shapeBarLocation.ReverseFind('\\');
+		if (n == m_shapeBarLocation.GetLength()-1)
 		{
-			shapeBarLocation = shapeBarLocation.Left(n);
+			m_shapeBarLocation = m_shapeBarLocation.Left(n);
 		}
-		shapeBarLocation = shapeBarLocation + "\\";
-		m_shapeBarLocation.SetWindowText(shapeBarLocation);
+		m_shapeBarLocation = m_shapeBarLocation + "\\";
+		m_editBarLocation.SetWindowText(m_shapeBarLocation);
 	}
 //     else   
 //         AfxMessageBox("folder path is inviable,please select again");
@@ -131,6 +131,6 @@ void CShapeFolder::OnCancel()
 void CShapeFolder::OnOk()
 {
 	// TODO: Add your control notification handler code here
-	m_shapeBarName.GetWindowText(shapeBarName);
+	m_editBarName.GetWindowText(m_shapeBarName);
 	CDialog::OnOK();
 }

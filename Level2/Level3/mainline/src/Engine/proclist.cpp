@@ -115,6 +115,14 @@ ProcessorList::ProcessorList( StringDictionary* _pStrDict ) : DataSet (Processor
 	m_ToGateID.setID( "TO-GATE" );
 	m_BaggageDeviceID.setID( "BAGGAGE-DEVICE" );
 
+	m_pServicePoints = NULL;
+	m_pQueue = NULL;
+
+	m_minX = 0.0;
+	m_maxX = 0.0;
+	m_minY = 0.0;
+	m_maxY = 0.0;
+
 }
 
 ProcessorList::ProcessorList( StringDictionary* _pStrDict, InputFiles fileType ) : DataSet (fileType)
@@ -138,6 +146,14 @@ ProcessorList::ProcessorList( StringDictionary* _pStrDict, InputFiles fileType )
 	m_FromGateID.setID( "FROM-GATE" );
 	m_ToGateID.setID( "TO-GATE" );
 	m_BaggageDeviceID.setID( "BAGGAGE-DEVICE" );
+
+	m_pServicePoints = NULL;
+	m_pQueue = NULL;
+	
+	m_minX = 0.0;
+	m_maxX = 0.0;
+	m_minY = 0.0;
+	m_maxY = 0.0;
 
 }
 
@@ -694,7 +710,8 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 
 			if( !_bNeedCheckLeadGate || gateIndex == -1 
 				||aProc->CanLeadTo( type, *getProcessor( gateIndex )->getID() )  
-				|| *(aProc->getID()) == *(getProcessor( gateIndex )->getID())  )
+				|| *(aProc->getID()) == *(getProcessor( gateIndex )->getID())
+				||(aProc->getProcessorType()==BridgeConnectorProc) )
 			{
 				if (!_bNeedCheckLeadReclaim || bagIndex == -1
 					||aProc->CanLeadToReclaim(type,*getProcessor(bagIndex)->getID())
@@ -851,7 +868,8 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 				{
 					if( !_bNeedCheckLeadGate || gateIndex == -1 
 						||aProc->CanLeadTo( type, *getProcessor( gateIndex )->getID() )  
-						|| *(aProc->getID()) == *(getProcessor( gateIndex )->getID())  )
+						|| *(aProc->getID()) == *(getProcessor( gateIndex )->getID())
+						||(aProc->getProcessorType()==BridgeConnectorProc))
 					{
 						if (!_bNeedCheckLeadReclaim || bagIndex == -1
 							||aProc->CanLeadToReclaim(type,*getProcessor(bagIndex)->getID())
