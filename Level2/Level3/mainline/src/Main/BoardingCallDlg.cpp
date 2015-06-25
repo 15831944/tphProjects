@@ -1040,7 +1040,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 						pPDEntry = dlg.GetSelectedPD();
 						if(pPDEntry != NULL)
 						{
-							ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+							ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
 							ASSERT(pProbDist);
 							pTrigger->m_time = pProbDist;
 							pSelItemData->m_data = DWORD(pTrigger->m_time);
@@ -1058,7 +1058,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 							break;
 					}
 					ASSERT(i<nCount);
-					ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+					ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
 					ASSERT(pProbDist);
 					ProbabilityDistribution* pTT = pTrigger->m_time;
 					if(pTrigger->m_time) 
@@ -1094,7 +1094,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 						pPDEntry = dlg.GetSelectedPD();
 						if(pPDEntry != NULL)
 						{
-							ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+							ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
 							ASSERT(pProbDist);
 							pTrigger->m_prop = pProbDist;
 							pSelItemData->m_data = DWORD(pTrigger->m_prop);
@@ -1112,7 +1112,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 							break;
 					}
 					ASSERT(i<nCount);
-					ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+					ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
 					ASSERT(pProbDist);
 					ProbabilityDistribution* pTT = pTrigger->m_time;
 					if(pTrigger->m_prop) 
@@ -1517,83 +1517,4 @@ void CBoardingCallDlg::OnChooseMenu( UINT nID )
 		break;
 	}
 	return;
-}
-
-ProbabilityDistribution* CBoardingCallDlg::CopyProbDistribution(ProbabilityDistribution* _pPD)
-{
-	if(!_pPD)
-		return NULL;
-
-	ProbabilityDistribution* pDist = NULL;
-	switch( _pPD->getProbabilityType() ) 
-	{
-	case BERNOULLI:
-		pDist = new BernoulliDistribution( ((BernoulliDistribution*)_pPD)->getValue1(),
-			((BernoulliDistribution*)_pPD)->getValue2(),
-			((BernoulliDistribution*)_pPD)->getProb1()	);
-		break;
-	case BETA:
-		pDist = new BetaDistribution( ((BetaDistribution*)_pPD)->getMin(),
-			((BetaDistribution*)_pPD)->getMax(),
-			((BetaDistribution*)_pPD)->getAlpha(),
-			((BetaDistribution*)_pPD)->getBeta() );
-		break;
-	case CONSTANT:
-		pDist = new ConstantDistribution( ((ConstantDistribution*)_pPD)->getMean() );
-		break;
-	case EXPONENTIAL:
-		pDist = new ExponentialDistribution( ((ExponentialDistribution*)_pPD)->getLambda() );
-		break;
-	case NORMAL:
-		pDist = new NormalDistribution( ((NormalDistribution*)_pPD)->getMean(),
-			((NormalDistribution*)_pPD)->getStdDev(),
-			((NormalDistribution*)_pPD)->getTruncation());
-		break;
-	case UNIFORM:
-		pDist = new UniformDistribution( ((UniformDistribution*)_pPD)->getMin(),
-			((UniformDistribution*)_pPD)->getMax() );
-		break;
-	case WEIBULL:
-		pDist = new WeibullDistribution( ((WeibullDistribution*)_pPD)->getAlpha(),
-			((WeibullDistribution*)_pPD)->getGamma(),
-			((WeibullDistribution*)_pPD)->getMu());
-		break;
-	case GAMMA:
-		pDist = new GammaDistribution( ((GammaDistribution*)_pPD)->getGamma(),
-			((GammaDistribution*)_pPD)->getBeta(),
-			((GammaDistribution*)_pPD)->getMu());
-		break;
-	case ERLANG:
-		pDist = new ErlangDistribution( ((ErlangDistribution*)_pPD)->getGamma(),
-			((ErlangDistribution*)_pPD)->getBeta(),
-			((ErlangDistribution*)_pPD)->getMu() );
-		break;
-	case TRIANGLE:
-		pDist = new TriangleDistribution( ((TriangleDistribution*)_pPD)->getMin(),
-			((TriangleDistribution*)_pPD)->getMax(),
-			((TriangleDistribution*)_pPD)->getMode());
-		break;
-	case EMPIRICAL:
-		{
-			pDist = new EmpiricalDistribution();
-			char szDist[1024];
-			((EmpiricalDistribution*)_pPD)->printDistribution( szDist );
-			char* pStr = strstr( szDist, ":" ) + 1;
-			((EmpiricalDistribution*)pDist)->setDistribution( pStr );
-			break;
-		}
-	case HISTOGRAM:
-		{
-			pDist = new HistogramDistribution();
-			char szDist[1024];
-			((HistogramDistribution*)_pPD)->printDistribution( szDist );
-			char* pStr = strstr( szDist, ":" ) + 1;
-			((HistogramDistribution*)pDist)->setDistribution( pStr );
-			break;
-		}
-	default:
-		ASSERT(0);
-	}
-
-	return pDist;
 }

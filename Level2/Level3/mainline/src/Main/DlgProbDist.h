@@ -84,6 +84,7 @@ protected:
 	int m_nPDTypeSelItem;
 	int m_nSortColumn;
 	CProbDistManager* m_pProbDistMan;
+	CProbDistEntry* m_pCopiedEntry;
 	CAirportDatabase* m_pAirportDB;
 	//CProbDistEntry* m_pSelectedPD;
 	void InitToolBars();

@@ -41,7 +41,10 @@ DistanceUnit DistanceRay3Line3::GetSquared(DistanceUnit dtolerance)
 {
 	
 	ARCVector3 SegOrin = m_line.GetPoint1();
-	ARCVector3 SegDir = m_line.GetPoint2() - m_line.GetPoint1();
+	ARCVector3 SegOrin1 = m_line.GetPoint2();
+
+	//ARCVector3 SegDir = m_line.GetPoint2() - m_line.GetPoint1();
+	ARCVector3 SegDir = SegOrin1 - SegOrin;
 	DistanceUnit SegExt = SegDir.Length();
 	SegDir.Normalize();
 

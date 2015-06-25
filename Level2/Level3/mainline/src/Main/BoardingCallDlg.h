@@ -58,9 +58,6 @@ protected:
 	void DisableAllToolBarButtons();
 	void RemoveTreeItem(HTREEITEM hItem);
 	void RemoveSubItem(HTREEITEM hItem);
-
-private:
-	ProbabilityDistribution* CopyProbDistribution(ProbabilityDistribution* _pPD);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -155,7 +155,9 @@ CDlgProbDist::CDlgProbDist(CAirportDatabase* _pAirportDB, BOOL bNeedRet, CWnd* p
 	m_sizeLast(0,0),
 	m_commitDefault(FALSE),
 	m_distTypeInPlaceComboBox(1),
-	m_pAirportDB(NULL),m_IsEdit(FALSE)
+	m_pAirportDB(NULL),
+	m_IsEdit(FALSE),
+	m_pCopiedEntry(NULL)
 {
 	//{{AFX_DATA_INIT(CDlgProbDist)
 	//}}AFX_DATA_INIT
@@ -1006,15 +1008,16 @@ void CDlgProbDist::OnDistToolbarbuttonDEL()
 
 	int idxPD = (int) m_lstDistributions.GetItemData(nItem);
 	CProbDistEntry* pde = m_pProbDistMan->getItem(idxPD);
-
 	m_lstDistributions.DeleteItem(nItem);
-
 	m_pProbDistMan->DeleteItem(idxPD);
-
+	if(m_pCopiedEntry == pde)
+	{
+		m_pCopiedEntry = NULL;
+		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONPASTE,FALSE);
+	}
 	delete pde;
 
 	m_nSelectedPD = -1;
-
 	int sbpos = m_lstDistributions.GetScrollPos(SB_VERT);
 	LoadDistributionList();
 	if(m_nSortColumn!=-1)
@@ -1058,6 +1061,40 @@ void CDlgProbDist::OnDistToolbarbuttonADD()
 	m_lstDistributions.SetFocus();
 	m_lstDistributions.EditLabel(idx);
 	m_IsEdit = TRUE ;
+}
+
+void CDlgProbDist::OnDistToolbarbuttonCopy()
+{
+	ASSERT(m_nSelectedPD!=-1);
+
+	POSITION pos = m_lstDistributions.GetFirstSelectedItemPosition();
+	int nItem = m_lstDistributions.GetNextSelectedItem(pos);
+
+	int idxPD = (int)m_lstDistributions.GetItemData(nItem);
+	m_pCopiedEntry = m_pProbDistMan->getItem(idxPD);
+
+	if(m_pCopiedEntry != NULL)
+	{
+		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONPASTE,TRUE);
+	}
+}
+
+void CDlgProbDist::OnDistToolbarbuttonPaste()
+{
+	// add new item into database
+	CString strNewName = m_pProbDistMan->GetCopyName(m_pCopiedEntry->m_csName);
+	ProbabilityDistribution* pPD = ProbabilityDistribution::CopyProbDistribution(m_pCopiedEntry->m_pProbDist);
+	CProbDistEntry* pPDEntry = new CProbDistEntry(strNewName, pPD);
+	m_pProbDistMan->AddItem(pPDEntry);
+
+	// add new item into name list box
+	int idx = m_pProbDistMan->getCount()-1;
+	m_lstDistributions.InsertItem(LVIF_TEXT | LVIF_PARAM, idx, LPSTR_TEXTCALLBACK, 0, 0, 0, (LPARAM) idx);
+	m_lstDistributions.SetItemState(idx, LVIS_SELECTED, LVIS_SELECTED);
+	m_lstDistributions.SetFocus();
+	m_lstDistributions.EditLabel(idx);
+	m_IsEdit = TRUE ;
+	return;
 }
 
 void CDlgProbDist::OnParamToolbarbuttonADD()
@@ -1597,22 +1634,26 @@ BOOL CDlgProbDist::OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult)
 		nID = ::GetDlgCtrlID((HWND)nID);
 	}
 	
-	if (nID != 0)
-	{
-		strTipText.LoadString(nID);
-		int len =strTipText.Find('\n',0);
-		strStatusText = strTipText.Left(len);
-		strTipText = strTipText.Mid(len+1);
+	if(nID == 0)
+		return FALSE;
 
-		if (pNMHDR->code == TTN_NEEDTEXTA)
-		{
-			lstrcpyn(pTTTA->szText, strTipText, sizeof(pTTTA->szText));
-		}
-		*pResult = 0; 
-		::SetWindowPos(pNMHDR->hwndFrom, HWND_TOP, 0, 0, 0, 0,SWP_NOACTIVATE|
-			SWP_NOSIZE|SWP_NOMOVE|SWP_NOOWNERZORDER); 
-		return TRUE;
+	strTipText.LoadString(nID);
+	int len =strTipText.Find('\n',0);
+	strTipText = strTipText.Mid(len+1);
+
+	if(nID==ID_TOOLBARBUTTONPASTE && m_pCopiedEntry!=NULL)
+	{
+		CString strTemp = strTipText;
+		strTipText.Format("%s \"%s\"", strTemp, m_pCopiedEntry->m_csName);
 	}
+
+	if (pNMHDR->code == TTN_NEEDTEXTA)
+	{
+		lstrcpyn(pTTTA->szText, strTipText, sizeof(pTTTA->szText));
+	}
+	*pResult = 0; 
+	::SetWindowPos(pNMHDR->hwndFrom, HWND_TOP, 0, 0, 0, 0,SWP_NOACTIVATE|
+		SWP_NOSIZE|SWP_NOMOVE|SWP_NOOWNERZORDER); 
 	return TRUE;
 }
 
@@ -1698,7 +1739,8 @@ void CDlgProbDist::OnCancel()
 {
 
 	if(m_IsEdit || m_Load_Oper)
-       m_pProbDistMan->loadDatabase(m_pAirportDB) ;
+		m_lstDistributions.DeleteAllItems();
+        m_pProbDistMan->loadDatabase(m_pAirportDB) ;
 	CDialog::OnCancel();
 }
 
@@ -1723,18 +1765,6 @@ void CDlgProbDist::OnBnClickedButtonLoaddefault()
 	m_IsEdit = FALSE ;
 	LoadDistributionList();
 	UpdateDistributionData();
-}
-
-void CDlgProbDist::OnDistToolbarbuttonCopy()
-{
-	m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONPASTE,TRUE);
-}
-
-void CDlgProbDist::OnDistToolbarbuttonPaste()
-{
-	int i=0;
-	i=0;
-	return;
 }
 
 CDlgProbDistForDefaultDB::CDlgProbDistForDefaultDB(CAirportDatabase* _pAirportDB, BOOL bNeedRet, CAirportDatabase* _globalDB , CWnd* pParent /* = NULL */):CDlgProbDist(_pAirportDB,bNeedRet,pParent),m_GlobalDB(_globalDB

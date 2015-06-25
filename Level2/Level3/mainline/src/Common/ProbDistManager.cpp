@@ -270,6 +270,35 @@ CString CProbDistManager::GetNewName()
 	return csRet;
 }
 
+CString CProbDistManager::GetCopyName(CString _strOri)
+{
+	int nIdx = 1;
+	int nCount = getCount();
+	for( int i=0; i<nCount; i++ )
+	{
+		CString csName = m_vProbDist[i]->m_csName;
+		if(csName.Find(_strOri) == 0)
+		{
+			CString strTemp = csName.Right(csName.GetLength() - _strOri.GetLength());
+			int nLeft = strTemp.Find('(');
+			if(nLeft != -1)
+			{
+				int nRight = strTemp.Find(')', nLeft);
+				if(nRight != -1)
+				{
+					strTemp = strTemp.Mid(nLeft+1, nRight-nLeft-1);
+				}
+			}
+			int n = atoi(strTemp);
+			if(n >= nIdx)
+				nIdx = n + 1;
+		}
+	}
+	CString csRet;
+	csRet.Format("%s(%d)", _strOri, nIdx);
+	return csRet;
+}
+
 void CProbDistManager::DeleteItem(int _nIdx)
 {
 	m_vProbDist.erase( m_vProbDist.begin() + _nIdx );

@@ -28,6 +28,7 @@ public:
 public:
 	void DeleteItem( int _nIdx );
 	CString GetNewName();
+	CString GetCopyName(CString _strOri);
 
 	size_t getCount()const{ return m_vProbDist.size();	}
 	CProbDistEntry* getItem( int _nIdx )const{ return m_vProbDist[_nIdx];	}
