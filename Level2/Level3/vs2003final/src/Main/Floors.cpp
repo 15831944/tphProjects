@@ -1123,11 +1123,10 @@ CFloor2* CFloors::ActiveFloor(int nlevel)
 {
 	ASSERT( nlevel <(int) m_vFloors.size() );
 	if(nlevel>= (int)m_vFloors.size()) return NULL;
-	int nLevel;
+	
 	for(size_t i=0;i<m_vFloors.size();++i)	
 	{
 		m_vFloors[i]->IsActive(FALSE);
-		nLevel = m_vFloors[i]->Level();
 	}
 	m_vFloors[nlevel]->IsActive(TRUE);
 	return m_vFloors[nlevel];

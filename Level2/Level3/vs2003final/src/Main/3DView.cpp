@@ -4253,7 +4253,7 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 			size_t ncount=StructureList.getStructureNum();
 			for(int i=ncount-1;i>=0;--i){
 				CStructure* cs = StructureList.getStructureAt(i);
-				if(cs->getFloorIndex()==pDoc->m_nActiveFloor){					
+				if(cs->GetFloorIndex()==pDoc->m_nActiveFloor){					
 					if(m_bSelectStructureEdit&&m_nSelectedStructure==i)
 					{
 						int num=cs->getPointNum();					
@@ -4263,12 +4263,12 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 							const Point& pt=cs->getPointAt(j);
 							glLoadName(GenerateSelectionID(SELTYPE_STRUCTURE, SELSUBTYPE_POINT, j));
 
-							DrawFlatSquare(pt.getX(),pt.getY(),dAlt[cs->getFloorIndex()],50);
+							DrawFlatSquare(pt.getX(),pt.getY(),dAlt[cs->GetFloorIndex()],50);
 						}
 
 					}	
 					glLoadName(GenerateSelectionID(SELTYPE_STRUCTURE, SELSUBTYPE_MAIN, i));
-					cs->DrawSelectArea(dAlt[cs->getFloorIndex()]);			
+					cs->DrawSelectArea(dAlt[cs->GetFloorIndex()]);			
 				}
 				else NULL;
 			}			

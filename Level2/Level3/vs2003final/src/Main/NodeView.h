@@ -158,6 +158,8 @@ public:
 	afx_msg void OnBtnMoveUpFloor();
 	afx_msg void OnBtnMoveDownFloor();
 
+	void ReloadFloorsItem(HTREEITEM hParentItem, CString strSelFlrName=_T(""));
+
 	void ResetFloorIndexToAll();
 
 

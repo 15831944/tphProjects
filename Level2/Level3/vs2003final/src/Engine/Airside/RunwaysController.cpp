@@ -1077,7 +1077,7 @@ void CRunwaySystem::PerformanceTakeOffSeparation( AirsideFlightInSim *pFlight,
 			}
 			else
 			{
-				tAvailTakeoffTime =  MAX(tAvailTakeoffTime, frontIns.GetExitTime() );
+				tAvailTakeoffTime =  MAX(tAvailTakeoffTime, frontIns.GetEnterTime() + ElapsedTime(300l) );
 			}
 		}
 		
