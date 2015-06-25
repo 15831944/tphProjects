@@ -488,7 +488,7 @@ void CReportProperty::OnOK()
 	}
 	if(nReportType == ENUM_PAXDENS_REP && !CheckUserHasAssignedArea())
 	{
-		if(AfxMessageBox("No area is select, continue?", MB_YESNO|MB_ICONSTOP) == IDNO)
+		if(AfxMessageBox("No Area Is Selected, Continue?", MB_YESNO|MB_ICONSTOP) == IDNO)
 		{
 			return;
 		}

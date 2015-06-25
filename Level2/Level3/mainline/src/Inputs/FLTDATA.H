@@ -7,6 +7,14 @@
 #include "common\elaptime.h"
 #include "inputs\FlightConWithProcIDDatabase.h"
 
+class BoardingCallTimeAndProportion
+{
+public:
+	ElapsedTime m_time;
+	double m_proportion;
+	BoardingCallTimeAndProportion(){ m_time = 0L; m_proportion = 0.0; }
+	~BoardingCallTimeAndProportion(){}
+};
 class INPUTS_TRANSFER FlightData : public DataSet
 {
 protected:
@@ -48,7 +56,7 @@ public:
     int getCapacity (Flight *p_flight) const;
     const HistogramDistribution *getBoardingCalls (const FlightConstraint &p_type, const ProcessorID& _id, int _nStageNumber ) const;
 
-    FlightConWithProcIDDatabase *getCalls ( int m_nStage ){ return m_vCalls[m_nStage-1]; }
+    FlightConWithProcIDDatabase *getCalls ( int _nStage ){ return m_vCalls[_nStage]; }
     FlightConstraintDatabase *getDelays (void) { return &delays; }
     FlightConstraintDatabase *getLoads (void) { return &loads; }
     FlightConstraintDatabase *getCapacity (void) { return &capacity; }

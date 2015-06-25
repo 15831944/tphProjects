@@ -210,6 +210,10 @@ public:
 	// in the sorted list find the first match.
 	// return -1 for can not found.
 	int FindFirstMatch( ElapsedTime _eTime, int _nStart = 0, int _nEnd = -1 );
+	void deleteItem (int p_ndx);
+	void removeItem (int p_ndx);
+	void clear();
+	Event* getItem(int p_ndx)const{ return (*this)[p_ndx]; }
 };
 
 #endif

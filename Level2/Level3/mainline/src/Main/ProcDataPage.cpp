@@ -494,6 +494,7 @@ bool CProcDataPage::SelectLinkProc1(ProcessorID _id)
 //------------------- value related functions ---------------------
 void CProcDataPage::SetValue( MiscData* _pMiscData )
 {
+	long lStage;
 	if(	_pMiscData )
 	{
 		int nCyclicFreq = _pMiscData->GetCyclicFreq();
@@ -612,15 +613,15 @@ void CProcDataPage::SetValue( MiscData* _pMiscData )
 			csVal.Format( "Distribution Radius:  %.1f", fValue);
 			m_TreeData.SetItemText(m_hCapOrDR,csVal);
 			m_TreeData.SetItemData(m_hCapOrDR,static_cast<DWORD>(fValue));
-			long lCapacity= ((MiscHoldAreaData*)_pMiscData)->GetStageNumber();
+			lStage = ((MiscHoldAreaData*)_pMiscData)->GetStageNumber();
 			bool bApplyServiceTimeAfterGreeting = ((MiscHoldAreaData*)_pMiscData)->getApplyServiceTimeAfterGreeting();
-			if(lCapacity!=0)
+			if(lStage!=0)
 			{
 				m_TreeData.SetCheckStatus(m_hBCSN,TRUE);
 				CString strCapacity;
-				strCapacity.Format("Boarding Call Stage Number:  %d",lCapacity);
+				strCapacity.Format("Boarding Call Stage Number:  %d", lStage);
 				m_TreeData.SetItemText(m_hBCSN,strCapacity);
-				m_TreeData.SetItemData(m_hBCSN,lCapacity);
+				m_TreeData.SetItemData(m_hBCSN,lStage);
 				
 			}
 			else

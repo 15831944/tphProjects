@@ -66,7 +66,7 @@ class INPUTS_TRANSFER FlightConWithProcIDDatabase : public FlightConstraintDatab
 public:
 	FlightConWithProcIDDatabase();
 	virtual ~FlightConWithProcIDDatabase();
-	
+	virtual int getCount (void) const ;
 	//////////////////////////////////////////////////////////////////////////
 	// find first entry that matches paxType
     // returns NULL if no constraint fits the paxType

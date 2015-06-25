@@ -429,7 +429,7 @@ void CInputDataView::LoadBoardingCall()
 	//TCHAR sDistribution[1024] = ;
 	FlightConWithProcIDDatabase* pStage=NULL;
 	ConstraintWithProcIDEntry* pEntry=NULL;
-	for(i=1;i<=nCount;i++)
+	for(i=0; i<nCount; i++)
 	{
 		pStage=pFlightData->getCalls(i);
 		for(int j=0;j<pStage->getCount();j++ , nSum++)

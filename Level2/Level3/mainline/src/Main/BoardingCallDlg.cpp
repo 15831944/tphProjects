@@ -25,8 +25,23 @@ static char THIS_FILE[] = __FILE__;
 
 /////////////////////////////////////////////////////////////////////////////
 // CBoardingCallDlg dialog
+typedef enum 
+{
+	TREE_NODE_INVALID = -1,
+	TREE_NODE_STAGE = 0,
+	TREE_NODE_FLIGHT_TYPE,
+	TREE_NODE_STAND,
+	TREE_NODE_PASSENGER_TYPE
+} TREE_NODE_DATA_TYPE;
 
-
+class DataWithModifierIdentify
+{
+public:
+	TREE_NODE_DATA_TYPE m_identify;
+	DWORD m_dataPointer;
+	DataWithModifierIdentify(){ m_identify = TREE_NODE_INVALID; m_dataPointer = NULL; }
+	~DataWithModifierIdentify(){}
+};
 CBoardingCallDlg::CBoardingCallDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CBoardingCallDlg::IDD, pParent)
 {
@@ -122,7 +137,7 @@ void CBoardingCallDlg::OnToolbarButtonAdd()
 	{
 		GetInputTerminal()->flightData->AddStage();
 		int nDBCount=GetConstraintDBCount();
-		FlightConWithProcIDDatabase* pConDB = GetConstraintDatabase(nDBCount);
+		FlightConWithProcIDDatabase* pConDB = GetConstraintDatabase(nDBCount-1);
 		HTREEITEM hItemLast=AddStage(pConDB,nDBCount);
 		m_btnSave.EnableWindow();	
 		m_tree.SelectItem(hItemLast);
@@ -193,7 +208,6 @@ void CBoardingCallDlg::OnCancel()
 
 void CBoardingCallDlg::OnOK() 
 {
-	// TODO: Add extra validation here
 	if( !m_btnSave.IsWindowEnabled() )  // nonzero if the window was previously disabled
 	{
 		CDialog::OnOK();
@@ -215,10 +229,10 @@ HTREEITEM CBoardingCallDlg::LoadTreeItems(Constraint* _pSelCon)
 	m_hBoardingCalls=m_tree.InsertItem("Boarding Calls",cni,FALSE);
 	int nDBCount=GetConstraintDBCount();
 	CString strStageName;
-	HTREEITEM hItemSeled=NULL,hItemLast;
+	HTREEITEM hItemSeled=NULL,hItemLast = NULL;
 	for(int i=0;i<nDBCount;i++)
 	{
-		FlightConWithProcIDDatabase* pConDB = GetConstraintDatabase(1+i);
+		FlightConWithProcIDDatabase* pConDB = GetConstraintDatabase(i);
 		strStageName.Format("Stage %d",i+1);
 		HTREEITEM hStage1=m_tree.InsertItem(strStageName,cni,FALSE,FALSE,m_hBoardingCalls);
 		hItemLast=hStage1;
@@ -393,12 +407,18 @@ BOOL CBoardingCallDlg::DeleteStageChild()
 	HTREEITEM hItemParent=m_tree.GetParentItem(hItemSeled);
 	if(hItemParent==NULL)//Boarding Calls Node
 	{	//Delete All Items
-		int nDBCount=GetConstraintDBCount();
-		for(int i=0;i<nDBCount;i++)
+		BOOL b_YesNo = MessageBox("This operation will delete all stages, then \
+a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
+		if(b_YesNo == IDYES)
 		{
-			GetInputTerminal()->flightData->DeleteOneStage(0);
+			int nDBCount=GetConstraintDBCount();
+			for(int i=0;i<nDBCount;i++)
+			{
+				GetInputTerminal()->flightData->DeleteOneStage(0);
+			}
+			GetInputTerminal()->flightData->AddStage();
+			LoadTreeItems();
 		}
-		LoadTreeItems();
 	}
 	else
 	{

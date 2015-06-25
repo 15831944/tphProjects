@@ -62,14 +62,14 @@ void FlightData::readData (ArctermFile& p_file)
     delays.readDatabase (p_file, "DELAY", m_pInTerm );
     loads.readDatabase (p_file, "LOAD", m_pInTerm );
     capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
-	
-	// read boarding call
-	int nSize = m_vCalls.size();
-	if( nStageNumber == 0 && nSize == 0 )
-	{
-		AddStage();
-		return;
-	}
+// 	
+// 	// read boarding call
+// 	int nSize = m_vCalls.size();
+// 	if( nStageNumber == 0 && nSize == 0 )
+// 	{
+// 		AddStage();
+// 		return;
+// 	}
 
 	for( int i=0; i<nStageNumber; i++ )
 	{

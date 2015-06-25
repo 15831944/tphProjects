@@ -77,6 +77,8 @@ protected:
 	  
 
 public:
+	virtual void setState (short newState);
+
 	// Group infomation.
 	CGroupInfo* m_pGroupInfo;
 
