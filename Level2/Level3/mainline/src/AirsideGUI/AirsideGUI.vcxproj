@@ -1,0 +1,579 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|Win32">
+      <Configuration>Template</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{76C7901A-B0DC-4F38-8E8F-A4D23CC98001}</ProjectGuid>
+    <Keyword>MFCDLLProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <ShowProgress>NotSet</ShowProgress>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference />
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <OutputFile>$(SolutionDir)bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AirsideGUI.cpp" />
+    <ClCompile Include="ArrivalETAOffsetDlg.cpp" />
+    <ClCompile Include="ConflictResolutionCoolTree.cpp" />
+    <ClCompile Include="ControllerInterventionData.cpp" />
+    <ClCompile Include="CtrlInterventionSpecDlg.cpp" />
+    <ClCompile Include="DeicepadAndRunwaySelectDlg.cpp" />
+    <ClCompile Include="DeicepadAndStandFamilySelectDlg.cpp" />
+    <ClCompile Include="DeiceRouteAssigmentDlg.cpp" />
+    <ClCompile Include="DeicingAndAnticingsXMLGenerator.cpp" />
+    <ClCompile Include="DialogResize.cpp" />
+    <ClCompile Include="DialogWPImport.cpp" />
+    <ClCompile Include="DirectRoutingListCtrlEx.cpp" />
+    <ClCompile Include="DlgACTypeSelection.cpp" />
+    <ClCompile Include="DlgAircraftClassifications.cpp" />
+    <ClCompile Include="DlgAircraftSurfaceInitialCondition.cpp" />
+    <ClCompile Include="DlgAirRoute.cpp" />
+    <ClCompile Include="DlgAirRouteWayPointDefine.cpp" />
+    <ClCompile Include="DlgAirsideIntersectionSelect.cpp" />
+    <ClCompile Include="DlgALTObjectGroup.cpp" />
+    <ClCompile Include="DlgApproachRunwaySelection.cpp" />
+    <ClCompile Include="DlgApproachToLand.cpp" />
+    <ClCompile Include="DlgArrivalInit.cpp" />
+    <ClCompile Include="DlgBoundRouteAssignment2.cpp" />
+    <ClCompile Include="DlgChooseTakeOffPosition.cpp" />
+    <ClCompile Include="DlgConflictResolution.cpp" />
+    <ClCompile Include="DlgConflictSelectTaxiway.cpp" />
+    <ClCompile Include="DlgControllerIntervention.cpp" />
+    <ClCompile Include="DlgDe_icingAndAnti_icingStrategies.cpp" />
+    <ClCompile Include="DlgDeicePadFamily.cpp" />
+    <ClCompile Include="DlgDeicePadRoute.cpp" />
+    <ClCompile Include="DlgDeiceQueue.cpp" />
+    <ClCompile Include="DlgDeicingAndAntiIcingFluidSpc.cpp" />
+    <ClCompile Include="DlgDepartureSlotSpec.cpp" />
+    <ClCompile Include="DlgDepClimbOut.cpp" />
+    <ClCompile Include="DlgDirectionalityConstraints.cpp" />
+    <ClCompile Include="DlgDirectRoutingCriteria.cpp" />
+    <ClCompile Include="DlgDirectRoutingSelectARWayPoint.cpp" />
+    <ClCompile Include="DlgEngineParameters.cpp" />
+    <ClCompile Include="DlgFlightRelativeServiceLocations.cpp" />
+    <ClCompile Include="DlgFlightTypeDimensions.cpp" />
+    <ClCompile Include="DlgGoAroundCriteriaDataProcess.cpp" />
+    <ClCompile Include="DlgGroundRoutes.cpp" />
+    <ClCompile Include="DlgHoldShortLineSel.cpp" />
+    <ClCompile Include="DlgIgnitionSpecification.cpp" />
+    <ClCompile Include="DlgIntersectionNodeBlock.cpp" />
+    <ClCompile Include="DlgInTrailSeparation.cpp" />
+    <ClCompile Include="DlgInTrailSeperationEx.cpp" />
+    <ClCompile Include="DlgItinerantFlightSchedule.cpp" />
+    <ClCompile Include="DlgItinerantTraffic.cpp" />
+    <ClCompile Include="DlgItinerantTrafficDefine.cpp" />
+    <ClCompile Include="DlgLandingRunwayAssign.cpp" />
+    <ClCompile Include="DlgLandingRunwayExit.cpp" />
+    <ClCompile Include="DlgOccupiedAssignedStand.cpp" />
+    <ClCompile Include="DlgOccupiedAssignedStandDelaytime.cpp" />
+    <ClCompile Include="DlgOccupiedAssignedStandSelectIntersection.cpp" />
+    <ClCompile Include="DlgOccupiedAssignedStandSelectStand.cpp" />
+    <ClCompile Include="DlgOccupiedAssignedStandSelectTemporaryParking.cpp" />
+    <ClCompile Include="DlgPadAissgnment.cpp" />
+    <ClCompile Include="DlgParkingStandList.cpp" />
+    <ClCompile Include="DlgParkingStandSelect.cpp" />
+    <ClCompile Include="DlgPerformanceTakeoff.cpp" />
+    <ClCompile Include="DlgPerformLanding.cpp" />
+    <ClCompile Include="DlgPushBack.cpp" />
+    <ClCompile Include="DlgPushBackAndTowOperationSpec.cpp" />
+    <ClCompile Include="DlgPushBackClearanceCriteria.cpp" />
+    <ClCompile Include="DlgReleasePointSelection.cpp" />
+    <ClCompile Include="DlgRunwayAssignment.cpp" />
+    <ClCompile Include="DlgRunwayExitSelect.cpp" />
+    <ClCompile Include="DlgRunwayTakeoffPosition.cpp" />
+    <ClCompile Include="DlgSectorFlightMixSpecification.cpp" />
+    <ClCompile Include="DlgSectorSelect.cpp" />
+    <ClCompile Include="DlgSelectAirRoute.cpp" />
+    <ClCompile Include="DlgSelectAirrouteObject.cpp" />
+    <ClCompile Include="DlgSelectAirsideOrigDest.cpp" />
+    <ClCompile Include="DlgSelectALTObject.cpp" />
+    <ClCompile Include="DlgSelectDeicePads.cpp" />
+    <ClCompile Include="DlgSelectExitOfRunway.cpp" />
+    <ClCompile Include="DlgSelectFixes.cpp" />
+    <ClCompile Include="DlgSelectRunway.cpp" />
+    <ClCompile Include="DlgSelectSector.cpp" />
+    <ClCompile Include="DlgSelectSideStepToRunway.cpp" />
+    <ClCompile Include="DlgSelectTakeoffPosi.cpp" />
+    <ClCompile Include="DlgSelectTowRouteItem.cpp" />
+    <ClCompile Include="DlgSIDAssignment.cpp" />
+    <ClCompile Include="DlgSideStepSpecification.cpp" />
+    <ClCompile Include="DlgStandBuffer.cpp" />
+    <ClCompile Include="DlgStandCriteriaAssignment.cpp" />
+    <ClCompile Include="DlgStandFamily.cpp" />
+    <ClCompile Include="DlgStretchOption.cpp" />
+    <ClCompile Include="DlgTakeoffClearance.cpp" />
+    <ClCompile Include="DlgTakeoffClearanceItems.cpp" />
+    <ClCompile Include="DlgTakeOffPositionSelection.cpp" />
+    <ClCompile Include="DlgTakeoffQueues.cpp" />
+    <ClCompile Include="DlgTakeoffRunwayAssign.cpp" />
+    <ClCompile Include="DlgTakeoffSequence.cpp" />
+    <ClCompile Include="DlgTaxiInbound.cpp" />
+    <ClCompile Include="DlgTaxiInterruptTimes.cpp" />
+    <ClCompile Include="DlgTaxiOutbound.cpp" />
+    <ClCompile Include="DlgTaxiSpeedConstraints.cpp" />
+    <ClCompile Include="DlgTaxiwayConstraint.cpp" />
+    <ClCompile Include="DlgTaxiwayFamilySelect.cpp" />
+    <ClCompile Include="DlgTaxiwayFlightTypeRestriction.cpp" />
+    <ClCompile Include="DlgTaxiwaySelect.cpp" />
+    <ClCompile Include="DlgTemporaryParkingCriteria.cpp" />
+    <ClCompile Include="DlgTemporaryParkingList.cpp" />
+    <ClCompile Include="DlgTimePicker.cpp" />
+    <ClCompile Include="DlgTimeRange.cpp" />
+    <ClCompile Include="DlgTowingRoute.cpp" />
+    <ClCompile Include="DlgTowingRouteFromAndTo.cpp" />
+    <ClCompile Include="DlgTowingRouteStandfamilyAndTemporaryParking.cpp" />
+    <ClCompile Include="DlgTowOperationPerformance.cpp" />
+    <ClCompile Include="DlgTrainFlightsManagement.cpp" />
+    <ClCompile Include="DlgTrainFlightSpec.cpp" />
+    <ClCompile Include="DlgVehiclePoolsAndDeployment.cpp" />
+    <ClCompile Include="DlgVehicleRoute.cpp" />
+    <ClCompile Include="DlgVehicleSpecification.cpp" />
+    <ClCompile Include="DlgVehicularMovementAllowed.cpp" />
+    <ClCompile Include="DlgWayPointStandFamily.cpp" />
+    <ClCompile Include="DlgWeatherScript.cpp" />
+    <ClCompile Include="DlgWingspanAdjacancyConstraints.cpp" />
+    <ClCompile Include="DragDropImpl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="EditListCtrl.cpp" />
+    <ClCompile Include="EditTreeCtrl.cpp" />
+    <ClCompile Include="GSESelectDlg.cpp" />
+    <ClCompile Include="InboudRouteAssFlightTY.cpp" />
+    <ClCompile Include="InboudRouteAssTimeRange.cpp" />
+    <ClCompile Include="InboudRouteAssTimeRangeContainer.cpp" />
+    <ClCompile Include="InboundRouteAssFlightTyContainer.cpp" />
+    <ClCompile Include="ItinerantFlightListCtrl.cpp" />
+    <ClCompile Include="NECRelatedBaseDlg.cpp" />
+    <ClCompile Include="NodeBlockListCtrl.cpp" />
+    <ClCompile Include="NodeViewDbClickHandler.cpp" />
+    <ClCompile Include="OutboundRouteAssignmentDlg.cpp" />
+    <ClCompile Include="PostDeicingRouteAssignmentDlg.cpp" />
+    <ClCompile Include="RunwayExitAndStandFamilySelectDlg.cpp" />
+    <ClCompile Include="SectorData.cpp" />
+    <ClCompile Include="SectorSelectDoc.cpp" />
+    <ClCompile Include="SelectInboundRouteItemDlg.cpp" />
+    <ClCompile Include="SelectIntermediateStandsDlg.cpp" />
+    <ClCompile Include="SelectStandFamilyAndTakeoffPositionDlg.cpp" />
+    <ClCompile Include="ServiceRequirementDlg.cpp" />
+    <ClCompile Include="StarAssignmentDlg.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TowOffStandAssignmentSpecificationDlg.cpp" />
+    <ClCompile Include="TreeCtrlRunwayExit.cpp" />
+    <ClCompile Include="VehiclePoolsAndDeploymentCoolTree.cpp" />
+    <ClCompile Include="WeatherImpactsDlg.cpp" />
+    <ClCompile Include="DlgFlightPerformanceCruise.cpp" />
+    <ClCompile Include="DlgFlightPerformanceTerminal.cpp" />
+    <ClCompile Include="DlgStandService.cpp" />
+    <ClCompile Include="DlgTBLIntersect.cpp" />
+    <ClCompile Include="DlgTBLSameRunway.cpp" />
+    <ClCompile Include="DlgTBTIntersect.cpp" />
+    <ClCompile Include="DlgTBTSameRunway.cpp" />
+    <ClCompile Include="Approach.Takeoff.Criteria\DlgApproachSeparationCriteria.cpp" />
+    <ClCompile Include="Approach.Takeoff.Criteria\DlgApproachSeparationItems.cpp" />
+    <ClCompile Include="Approach.Takeoff.Criteria\RunwayImageStatic.cpp" />
+    <ClCompile Include="CUnitMenuButton.cpp" />
+    <ClCompile Include="UnitButton.cpp" />
+    <ClCompile Include="UnitPiece.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AirsideGUIAPI.h" />
+    <ClInclude Include="DlgAircraftSurfaceInitialCondition.h" />
+    <ClInclude Include="DlgTaxiwayFamilySelect.h" />
+    <ClInclude Include="DlgTaxiwaySelect.h" />
+    <ClInclude Include="DlgTrainFlightsManagement.h" />
+    <ClInclude Include="DlgWeatherScript.h" />
+    <ClInclude Include="DlgTBLIntersect.h" />
+    <ClInclude Include="DlgTBLSameRunway.h" />
+    <ClInclude Include="DlgTBTIntersect.h" />
+    <ClInclude Include="DlgTBTSameRunway.h" />
+    <ClInclude Include="ArrivalETAOffsetDlg.h" />
+    <ClInclude Include="ArrivalInitPara.h" />
+    <ClInclude Include="ConflictResolutionCoolTree.h" />
+    <ClInclude Include="ControllerInterventionData.h" />
+    <ClInclude Include="CtrlInterventionSpecDlg.h" />
+    <ClInclude Include="DeicepadAndRunwaySelectDlg.h" />
+    <ClInclude Include="DeicepadAndStandFamilySelectDlg.h" />
+    <ClInclude Include="DeiceRouteAssigmentDlg.h" />
+    <ClInclude Include="DeicingAndAnticingsXMLGenerator.h" />
+    <ClInclude Include="DialogResize.h" />
+    <ClInclude Include="DialogWPImport.h" />
+    <ClInclude Include="DirectRoutingListCtrlEx.h" />
+    <ClInclude Include="DlgACTypeSelection.h" />
+    <ClInclude Include="DlgAircraftClassifications.h" />
+    <ClInclude Include="DlgAirRoute.h" />
+    <ClInclude Include="DlgAirRouteWayPointDefine.h" />
+    <ClInclude Include="DlgAirsideIntersectionSelect.h" />
+    <ClInclude Include="DlgALTObjectGroup.h" />
+    <ClInclude Include="DlgApproachRunwaySelection.h" />
+    <ClInclude Include="DlgApproachToLand.h" />
+    <ClInclude Include="DlgArrivalInit.h" />
+    <ClInclude Include="DlgBoundRouteAssignment2.h" />
+    <ClInclude Include="DlgChooseTakeOffPosition.h" />
+    <ClInclude Include="DlgConflictResolution.h" />
+    <ClInclude Include="DlgConflictSelectTaxiway.h" />
+    <ClInclude Include="DlgControllerIntervention.h" />
+    <ClInclude Include="DlgDe_icingAndAnti_icingStrategies.h" />
+    <ClInclude Include="DlgDeicePadFamily.h" />
+    <ClInclude Include="DlgDeicePadRoute.h" />
+    <ClInclude Include="DlgDeiceQueue.h" />
+    <ClInclude Include="DlgDeicingAndAntiIcingFluidSpc.h" />
+    <ClInclude Include="DlgDepartureSlotSpec.h" />
+    <ClInclude Include="DlgDepClimbOut.h" />
+    <ClInclude Include="DlgDirectionalityConstraints.h" />
+    <ClInclude Include="DlgDirectRoutingCriteria.h" />
+    <ClInclude Include="DlgDirectRoutingSelectARWayPoint.h" />
+    <ClInclude Include="DlgEngineParameters.h" />
+    <ClInclude Include="DlgFlightRelativeServiceLocations.h" />
+    <ClInclude Include="DlgFlightTypeDimensions.h" />
+    <ClInclude Include="DlgGoAroundCriteriaDataProcess.h" />
+    <ClInclude Include="DlgGroundRoutes.h" />
+    <ClInclude Include="DlgHoldShortLineSel.h" />
+    <ClInclude Include="DlgIgnitionSpecification.h" />
+    <ClInclude Include="DlgIntersectionNodeBlock.h" />
+    <ClInclude Include="DlgInTrailSeparation.h" />
+    <ClInclude Include="DlgInTrailSeperationEx.h" />
+    <ClInclude Include="DlgItinerantFlightSchedule.h" />
+    <ClInclude Include="DlgItinerantTraffic.h" />
+    <ClInclude Include="DlgItinerantTrafficDefine.h" />
+    <ClInclude Include="DlgLandingRunwayAssign.h" />
+    <ClInclude Include="DlgLandingRunwayExit.h" />
+    <ClInclude Include="DlgOccupiedAssignedStand.h" />
+    <ClInclude Include="DlgOccupiedAssignedStandDelaytime.h" />
+    <ClInclude Include="DlgOccupiedAssignedStandSelectIntersection.h" />
+    <ClInclude Include="DlgOccupiedAssignedStandSelectStand.h" />
+    <ClInclude Include="DlgOccupiedAssignedStandSelectTemporaryParking.h" />
+    <ClInclude Include="DlgPadAissgnment.h" />
+    <ClInclude Include="DlgParkingStandList.h" />
+    <ClInclude Include="DlgParkingStandSelect.h" />
+    <ClInclude Include="DlgPerformanceTakeoff.h" />
+    <ClInclude Include="DlgPerformLanding.h" />
+    <ClInclude Include="DlgPushBack.h" />
+    <ClInclude Include="DlgPushBackAndTowOperationSpec.h" />
+    <ClInclude Include="DlgPushBackClearanceCriteria.h" />
+    <ClInclude Include="DlgReleasePointSelection.h" />
+    <ClInclude Include="DlgRunwayAssignment.h" />
+    <ClInclude Include="DlgRunwayExitSelect.h" />
+    <ClInclude Include="DlgRunwayTakeoffPosition.h" />
+    <ClInclude Include="DlgSectorFlightMixSpecification.h" />
+    <ClInclude Include="DlgSectorSelect.h" />
+    <ClInclude Include="DlgSelectAirRoute.h" />
+    <ClInclude Include="DlgSelectAirrouteObject.h" />
+    <ClInclude Include="DlgSelectAirsideOrigDest.h" />
+    <ClInclude Include="DlgSelectALTObject.h" />
+    <ClInclude Include="DlgSelectDeicePads.h" />
+    <ClInclude Include="DlgSelectExitOfRunway.h" />
+    <ClInclude Include="DlgSelectFixes.h" />
+    <ClInclude Include="DlgSelectRunway.h" />
+    <ClInclude Include="DlgSelectSector.h" />
+    <ClInclude Include="DlgSelectSideStepToRunway.h" />
+    <ClInclude Include="DlgSelectTakeoffPosi.h" />
+    <ClInclude Include="DlgSelectTowRouteItem.h" />
+    <ClInclude Include="DlgSIDAssignment.h" />
+    <ClInclude Include="DlgSideStepSpecification.h" />
+    <ClInclude Include="DlgStandBuffer.h" />
+    <ClInclude Include="DlgStandCriteriaAssignment.h" />
+    <ClInclude Include="DlgStandFamily.h" />
+    <ClInclude Include="DlgStretchOption.h" />
+    <ClInclude Include="DlgTakeoffClearance.h" />
+    <ClInclude Include="DlgTakeoffClearanceItems.h" />
+    <ClInclude Include="DlgTakeOffPositionSelection.h" />
+    <ClInclude Include="DlgTakeoffQueues.h" />
+    <ClInclude Include="DlgTakeoffRunwayAssign.h" />
+    <ClInclude Include="DlgTakeoffSequence.h" />
+    <ClInclude Include="DlgTaxiInbound.h" />
+    <ClInclude Include="DlgTaxiInterruptTimes.h" />
+    <ClInclude Include="DlgTaxiOutbound.h" />
+    <ClInclude Include="DlgTaxiSpeedConstraints.h" />
+    <ClInclude Include="DlgTaxiwayConstraint.h" />
+    <ClInclude Include="DlgTaxiwayFlightTypeRestriction.h" />
+    <ClInclude Include="DlgTemporaryParkingCriteria.h" />
+    <ClInclude Include="DlgTemporaryParkingList.h" />
+    <ClInclude Include="DlgTimePicker.h" />
+    <ClInclude Include="DlgTimeRange.h" />
+    <ClInclude Include="DlgTowingRoute.h" />
+    <ClInclude Include="DlgTowingRouteFromAndTo.h" />
+    <ClInclude Include="DlgTowingRouteStandfamilyAndTemporaryParking.h" />
+    <ClInclude Include="DlgTowOperationPerformance.h" />
+    <ClInclude Include="DlgTrainFlightSpec.h" />
+    <ClInclude Include="DlgVehiclePoolsAndDeployment.h" />
+    <ClInclude Include="DlgVehicleRoute.h" />
+    <ClInclude Include="DlgVehicleSpecification.h" />
+    <ClInclude Include="DlgVehicularMovementAllowed.h" />
+    <ClInclude Include="DlgWayPointStandFamily.h" />
+    <ClInclude Include="DlgWingspanAdjacancyConstraints.h" />
+    <ClInclude Include="DragDropImpl.h" />
+    <ClInclude Include="EditListCtrl.h" />
+    <ClInclude Include="EditTreeCtrl.h" />
+    <ClInclude Include="GSESelectDlg.h" />
+    <ClInclude Include="InboudRouteAssFlightTY.h" />
+    <ClInclude Include="InboudRouteAssTimeRange.h" />
+    <ClInclude Include="InboudRouteAssTimeRangeContainer.h" />
+    <ClInclude Include="InboundRouteAssFlightTyContainer.h" />
+    <ClInclude Include="ItinerantFlightListCtrl.h" />
+    <ClInclude Include="NECRelatedBaseDlg.h" />
+    <ClInclude Include="NodeBlockListCtrl.h" />
+    <ClInclude Include="NodeViewDbClickHandler.h" />
+    <ClInclude Include="OutboundRouteAssignmentDlg.h" />
+    <ClInclude Include="PostDeicingRouteAssignmentDlg.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="RunwayExitAndStandFamilySelectDlg.h" />
+    <ClInclude Include="SectorData.h" />
+    <ClInclude Include="SectorSelectDoc.h" />
+    <ClInclude Include="SelectInboundRouteItemDlg.h" />
+    <ClInclude Include="SelectIntermediateStandsDlg.h" />
+    <ClInclude Include="SelectStandFamilyAndTakeoffPositionDlg.h" />
+    <ClInclude Include="ServiceRequirementDlg.h" />
+    <ClInclude Include="StarAssignmentDlg.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TowOffStandAssignmentSpecificationDlg.h" />
+    <ClInclude Include="TreeCtrlRunwayExit.h" />
+    <ClInclude Include="VehiclePoolsAndDeploymentCoolTree.h" />
+    <ClInclude Include="WeatherImpactsDlg.h" />
+    <ClInclude Include="DlgFlightPerformanceCruise.h" />
+    <ClInclude Include="DlgFlightPerformanceTerminal.h" />
+    <ClInclude Include="DlgStandService.h" />
+    <ClInclude Include="Approach.Takeoff.Criteria\DlgApproachSeparationCriteria.h" />
+    <ClInclude Include="Approach.Takeoff.Criteria\DlgApproachSeparationItems.h" />
+    <ClInclude Include="Approach.Takeoff.Criteria\RunwayImageStatic.h" />
+    <ClInclude Include="CUnitMenuButton.h" />
+    <ClInclude Include="UnitButton.h" />
+    <ClInclude Include="UnitPiece.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Add_Del_Edit.bmp" />
+    <None Include="res\AirsideGUI.rc2" />
+    <None Include="res\BaggageCars.ico" />
+    <None Include="res\BaggageTugs.ico" />
+    <None Include="res\bitmap1.bmp" />
+    <None Include="res\bitmap2.bmp" />
+    <None Include="res\bmp00001.bmp" />
+    <None Include="res\bmp00002.bmp" />
+    <None Include="res\bmp00003.bmp" />
+    <None Include="res\bmp00004.bmp" />
+    <None Include="res\bmp00005.bmp" />
+    <None Include="res\bmp00006.bmp" />
+    <None Include="res\bmp00007.bmp" />
+    <None Include="res\bmp00008.bmp" />
+    <None Include="res\bmp00009.bmp" />
+    <None Include="res\bmp00010.bmp" />
+    <None Include="res\bmp00011.bmp" />
+    <None Include="res\bmp00012.bmp" />
+    <None Include="res\bmp00013.bmp" />
+    <None Include="res\bmp00014.bmp" />
+    <None Include="res\bmp00015.bmp" />
+    <None Include="res\bmp00016.bmp" />
+    <None Include="res\bmp00017.bmp" />
+    <None Include="res\bmp00018.bmp" />
+    <None Include="res\bmp00019.bmp" />
+    <None Include="res\bmp00020.bmp" />
+    <None Include="res\bmp00021.bmp" />
+    <None Include="res\bmp00022.bmp" />
+    <None Include="res\bmp00023.bmp" />
+    <None Include="res\bmp00024.bmp" />
+    <None Include="res\bmp00025.bmp" />
+    <None Include="res\bmp00026.bmp" />
+    <None Include="res\bmp00027.bmp" />
+    <None Include="res\bmp00028.bmp" />
+    <None Include="res\bmp00029.bmp" />
+    <None Include="res\bmp00030.bmp" />
+    <None Include="res\bmp00031.bmp" />
+    <None Include="res\bmp00032.bmp" />
+    <None Include="res\bmp00033.bmp" />
+    <None Include="res\bmp00034.bmp" />
+    <None Include="res\bmp00035.bmp" />
+    <None Include="res\bmp00037.bmp" />
+    <None Include="res\bmp_seldefined.bmp" />
+    <None Include="res\CargoTugs.ico" />
+    <None Include="res\CargoULDCarts.ico" />
+    <None Include="res\Conveyors.ico" />
+    <None Include="res\cooltree.bmp" />
+    <None Include="res\CrewBus.ico" />
+    <None Include="res\DEICE.bmp" />
+    <None Include="res\DEICEQUEUE.bmp" />
+    <None Include="res\DeiciePad.bmp" />
+    <None Include="res\DeicingTruck.ico" />
+    <None Include="res\FlightType.bmp" />
+    <None Include="res\Fueling.ico" />
+    <None Include="res\Lifts.ico" />
+    <None Include="res\Maintenance.ico" />
+    <None Include="res\MapWizard.bmp" />
+    <None Include="res\Others.ico" />
+    <None Include="res\PaxBusA.ico" />
+    <None Include="res\PaxBusB.ico" />
+    <None Include="res\PaxBusC.ico" />
+    <None Include="res\priority.bmp" />
+    <None Include="res\ROUTEPATH.bmp" />
+    <None Include="res\RoutePriority.bmp" />
+    <None Include="res\Settings.bmp" />
+    <None Include="res\StaffCar.ico" />
+    <None Include="res\Stairs.ico" />
+    <None Include="res\STAND.bmp" />
+    <None Include="res\stand_to.bmp" />
+    <None Include="res\STANDBUFFER.BMP" />
+    <None Include="res\test.ico" />
+    <None Include="res\toolbar1.bmp" />
+    <None Include="res\toolbar2.bmp" />
+    <None Include="res\toolbar_.bmp" />
+    <None Include="res\TowTruck.ico" />
+    <None Include="res\WizardBanner.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AirsideGUI.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommonData\CommanData.vcxproj">
+      <Project>{76210374-cc15-4f65-8b78-370747ad8d1f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{dcfed0d8-cafd-4077-88f3-fed91c6ca0e3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Database\Database.vcxproj">
+      <Project>{8adf9016-0814-45f2-90cb-0ea0964d47f4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\InputAirside\InputAirside.vcxproj">
+      <Project>{d4ad5177-b492-4479-85fa-1dbff02c6296}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Inputs\Inputs.vcxproj">
+      <Project>{209ea697-260e-482b-8b8a-26481caaac58}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\MFCExControl\MFCExControl.vcxproj">
+      <Project>{2fc576cd-35ff-4234-ba13-6b2a2dd47dbd}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="AirsideGUI.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

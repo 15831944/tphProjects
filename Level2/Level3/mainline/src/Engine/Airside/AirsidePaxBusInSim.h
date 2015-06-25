@@ -67,4 +67,5 @@ protected:
 public:
 	void AddPassenger(Person* _pax) ;
 	bool havePerson(const Person* pPerson)const;//check pax bus if have this person
+	void handlePersonDeath(Person* pPerson);
 };

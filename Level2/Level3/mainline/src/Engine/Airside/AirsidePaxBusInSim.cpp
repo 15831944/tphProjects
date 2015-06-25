@@ -540,6 +540,14 @@ bool CAirsidePaxBusInSim::havePerson(const Person* pPerson)const
 	return false;
 }
 
+void CAirsidePaxBusInSim::handlePersonDeath(Person* pPerson)
+{
+	std::vector<Person*>::iterator itor = std::find(m_pax.begin(),m_pax.end(),pPerson);
+	if(itor == m_pax.end())
+		return;
+	m_pax.erase(itor);
+}
+
 void CAirsidePaxBusInSim::AddPassenger(Person* _pax)
 {
    if(!IsFull())

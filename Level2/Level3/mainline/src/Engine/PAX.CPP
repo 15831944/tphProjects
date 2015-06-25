@@ -28,6 +28,7 @@
 #include "inputs\paxdata.h"
 #include "Common\ProbabilityDistribution.h"
 #include "Engine/MobileElementExitSystemEvent.h"
+#include "Airside\AirsidePaxBusInSim.h"
 
 
 extern std::vector<ConvergePair *> GreetPool;
@@ -394,6 +395,10 @@ void Passenger::flushLog (ElapsedTime p_time, bool bmissflight)
 	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
 	m_pTerm->m_pAreas->handlePersonDeath( this, spTerminalBehavior->location, p_time );
 
+	// when the person death, notice the bus if it has one.
+	CAirsidePaxBusInSim* pBus = spTerminalBehavior->GetAirsideBus();
+	if(pBus != NULL)
+		pBus->handlePersonDeath(this);
 	//person death,delete convergePair
 
 
