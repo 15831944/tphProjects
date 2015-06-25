@@ -1064,8 +1064,8 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 						{
 							ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
 							ASSERT(pProbDist);
-							pTrigger->m_time = pProbDist;
-							pSelItemData->m_data = DWORD(pTrigger->m_time);
+							pTrigger->m_prop = pProbDist;
+							pSelItemData->m_data = DWORD(pTrigger->m_prop);
 						}
 					}
 				}
@@ -1083,13 +1083,13 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 					ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
 					ASSERT(pProbDist);
 					ProbabilityDistribution* pTT = pTrigger->m_time;
-					if(pTrigger->m_time) 
-						delete pTrigger->m_time;
-					pTrigger->m_time = pProbDist;
-					pSelItemData->m_data = DWORD(pTrigger->m_time);
+					if(pTrigger->m_prop) 
+						delete pTrigger->m_prop;
+					pTrigger->m_prop = pProbDist;
+					pSelItemData->m_data = DWORD(pTrigger->m_prop);
 				}
 				CString strTime;
-				strTime.Format("Proportion of Pax: %s", pTrigger->m_time->screenPrint());
+				strTime.Format("Proportion of Pax: %s", pTrigger->m_prop->screenPrint());
 				m_tree.SetItemText(hSelItem, strTime);
 			}
 			break;

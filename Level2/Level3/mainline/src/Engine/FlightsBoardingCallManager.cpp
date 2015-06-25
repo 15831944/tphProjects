@@ -215,13 +215,13 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 					int ifltTypeCount = pFltTypeDB->getCount();
 					for(int iFlt=0; iFlt<ifltTypeCount; iFlt++)
 					{
-						if(pFltTypeDB->getConstraint(iFlt)->fits(fltConst))
+						if(pFltTypeDB->getConstraint(iFlt)->fits(fltConst))/* This Flight Type filter is user set on GUI. */
 						{
 							BoardingCallStandDatabase* pStandDB = ((BoardingCallFlightTypeEntry*)pFltTypeDB->getItem(iFlt))->GetStandDatabase();
 							int standCount = pStandDB->getCount();
 							for(int iStand=0; iStand<standCount; iStand++)
 							{
-								if(pStandDB->getItem(iStand)->getID()->idFits(procID))
+								if(pStandDB->getItem(iStand)->getID()->idFits(procID))/* This ProcessorID filter is user set on GUI. */
 								{
 									BoardingCallPaxTypeDatabase* pPaxTypeDB = ((BoardingCallStandEntry*)pStandDB->getItem(iStand))->GetPaxTypeDatabase();
 									int paxTypeCount = pPaxTypeDB->getCount();
@@ -229,20 +229,20 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 									{
 										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(iPax);
 										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
-										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D')));
+										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D')));/* This Pax Type filter is user set on GUI + flight information. */
 										std::vector<BoardingCallTrigger*>& vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger.size();
 										ElapsedTime tempTime, triggerTime;
 										double releasedProp = 0.0;
-										for(int iStage=0; iStage<triggerCount; iStage++)
+										for(int iTrigger=0; iTrigger<triggerCount; iTrigger++)
 										{
-											triggerTime.set((long)(vTrigger.at(i)->m_time)->getRandomValue());
+											triggerTime.set((long)(vTrigger.at(iTrigger)->m_time)->getRandomValue());
 											tempTime = fltDepTime + triggerTime;
 											
-											if(iStage < triggerCount-1)
+											if(iTrigger < triggerCount-1)
 											{
-												percent = 20 / (100.0 - releasedProp);
-												releasedProp += 20;
+												percent = (vTrigger.at(iTrigger)->m_prop)->getRandomValue()/ (100.0 - releasedProp);
+												releasedProp += (vTrigger.at(iTrigger)->m_prop)->getRandomValue();
 											}
 											else/* the 'residual' trigger. */
 											{
