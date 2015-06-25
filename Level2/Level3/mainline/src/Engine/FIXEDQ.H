@@ -67,11 +67,10 @@ public:
 	// for entry points  handle 
 	//
 	//////////////////////////////////////////////////////////////////////////
-	// get the most appropriate corner's index.
-	int getEntryCornerIndex();
+
 	//////////////////////////////////////////////////////////////////////////
 	//add by cj 5/30/2008
-	//for handle entry point , entry point will be used only in the fix queue
+	//for hanlde entry point , entry point will be used only in the fixqueue
 	// the realize of these virtual function is in the FixQueue Class ,
 	// another class which is the son of this class do not do anything in these function.
 	//////////////////////////////////////////////////////////////////////////

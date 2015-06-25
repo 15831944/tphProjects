@@ -430,7 +430,16 @@ void AirsideGUI::CDlgAirRoute::OnOK()
 		return ;
 	}
 	else
-	{
+	{	
+		int nItem =  m_lstWaypoint.GetItemCount();
+		CString sWaypointType = m_lstWaypoint.GetItemText(nItem-1,5);
+		/*const ALTObject& waypoint = arwaypoint->getWaypoint();*/
+		/*ARWaypoint::DepartType a = arwaypoint->getDepartType();*/
+		if (!sWaypointType.Compare("Heading"))
+		{
+			MessageBox("Heading cannot be defined in the first segment or the last segment of the Air Route!", "Error", MB_OK);
+			return;
+		}
 		SaveProPerties(m_pCurAirRoute);
 		try
 		{

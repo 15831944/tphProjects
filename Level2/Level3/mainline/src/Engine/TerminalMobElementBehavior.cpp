@@ -95,7 +95,6 @@
 #include "Airside/AirsidePaxBusInSim.h"
 #include "SimFlowSync.h"
 #include "LandsideSimulation.h"
-#include "FIXEDQ.H"
 
 ElapsedTime TerminalMobElementBehavior::m_timeFireEvacuation(23*3600+59*60+59l);
 
@@ -3132,7 +3131,7 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 		iCurFloor = 0;
 	}
 
-	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime));
+	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime),ptFrom);
 	m_ptOldDest = ptTo;
 
 	m_bUserPipes = false;
@@ -3176,7 +3175,7 @@ void TerminalMobElementBehavior::ProcessHoldingAreaPipe(Processor* _pNextProc, E
 	std::vector<int> vPipeList1;
 	if(pIDWithOne2One->GetTypeOfUsingPipe() == USE_PIPE_SYSTEM)
 	{
-		WalkAlongShortestPath( _pNextProc, _curTime );
+		WalkAlongShortestPath( _pNextProc,ptTo, _curTime );
 		return;
 	}
 	else											// use user pipe
@@ -3396,31 +3395,35 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 	{
 		iCurFloor = 0;
 	}
-
-	// get pipe list
-	CFlowItemEx flowItem;
-	if( _pPrevFlowItem  )
-	{
-		flowItem = *_pPrevFlowItem;
-	}
-	else
-	{
-		std::vector<CFlowItemEx>& vFlowItem = ( (CProcessorDistributionWithPipe*)m_pFlowList )->GetPipeVector();
-		if( !vFlowItem.empty() )
-		{
-			flowItem = vFlowItem[m_pFlowList->GetCurGroupIndex()];
-		}		
-	}
-	
-	Point ptTo = GetPipeExitPoint(_pNextProc, iCurFloor, ClacTimeString(_curTime), &flowItem);
+	/*m_nextHoldAiearPoTag = false;*/
+	Point ptTo = GetPipeExitPoint(_pNextProc,iCurFloor,ClacTimeString(_curTime),ptFrom);
+	//Point ptTo = _pNextProc->GetPipeExitPoint(iCurFloor,ClacTimeString(_curTime),ptFrom,this) ;  //Get Entry
 	//save the destination point for processing congestion pipe
 	m_ptOldDest = ptTo;
 
-	if( flowItem.GetTypeOfUsingPipe() == 1 )	// use auto pipe system
+	std::vector<int> vPipeList1;
+
+	// get pipe list
+	CFlowItemEx vPipeIndexList;
+	if( _pPrevFlowItem  )
+	{
+		vPipeIndexList = *_pPrevFlowItem;
+	}
+	else
+	{
+		std::vector<CFlowItemEx>& pipeIndexList = ( (CProcessorDistributionWithPipe*)m_pFlowList )->GetPipeVector();
+		if( !pipeIndexList.empty() )
+		{
+			vPipeIndexList = pipeIndexList[m_pFlowList->GetCurGroupIndex()];
+		}		
+	}
+	
+	if( vPipeIndexList.GetTypeOfUsingPipe() == 1 )	// use auto pipe system
 	{
 		m_bUserPipes = false;
- 		if( _pNextProc->getProcessorType()== HoldAreaProc || 
-			_pNextProc->getProcessorType()== LineProc ||	// for line proc, for now only get a point
+
+
+ 		if( _pNextProc->getProcessorType()== HoldAreaProc || _pNextProc->getProcessorType()== LineProc ||	// for line proc, for now only get a point
  			_pNextProc->getProcessorType() == BaggageProc )
  		{
  			if(_pNextProc->inConstraintLength()<=0)
@@ -3431,99 +3434,75 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
  			}
  		}
 
-		WalkAlongShortestPath( _pNextProc, _curTime );
+		WalkAlongShortestPath( _pNextProc,ptTo, _curTime );
 		return;
 	}
-	else    // else use user pipe
+
+	// else use user pipe
+	m_bUserPipes = true;
+	vPipeList1 = vPipeIndexList.GetPipeVector();
+
+	int nPipeCount = vPipeList1.size();
+	if( nPipeCount == 0 )
+		return;
+
+	m_nextHoldAiearPoTag = false;
+	if(_pNextProc->getProcessorType()== HoldAreaProc || _pNextProc->getProcessorType()== LineProc
+		|| _pNextProc->getProcessorType() == BaggageProc )
 	{
-		m_bUserPipes = true;
-		std::vector<int> vPipeList1;
-		vPipeList1 = flowItem.GetPipeVector();
-
-		int nPipeCount = vPipeList1.size();
-		if( nPipeCount == 0 )
-			return;
-
-		m_nextHoldAiearPoTag = false;
-		if(_pNextProc->getProcessorType()== HoldAreaProc || _pNextProc->getProcessorType()== LineProc
-			|| _pNextProc->getProcessorType() == BaggageProc )
+		if(_pNextProc->inConstraintLength()<=0)
 		{
-			if(_pNextProc->inConstraintLength()<=0)
-			{
-				ptTo = _pNextProc->GetServiceLocation();
-				m_nextHoldAiearPoint = ptTo;
-				m_nextHoldAiearPoTag = true;
-			}
+			ptTo = _pNextProc->GetServiceLocation();
+			m_nextHoldAiearPoint = ptTo;
+			m_nextHoldAiearPoTag = true;
 		}
+	}
 
-		// make sure the pipe in the same floor
-		std::vector<int> vPipeList2;
-		for( int i=0; i<nPipeCount; i++ )
+	std::vector<int> vPipeList2;
+	for( int i=0; i<nPipeCount; i++ )
+	{
+		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList1[i] );
+		if( pPipe->GetZ() == ptFrom.getZ() )
 		{
-			CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList1[i] );
-			if( pPipe->GetZ() == ptFrom.getZ() )
-			{
-				vPipeList2.push_back( vPipeList1[i] );
-			}
+			vPipeList2.push_back( vPipeList1[i] );
 		}
-		nPipeCount = vPipeList2.size();
-		if( nPipeCount == 0 )
-			return;
+	}
+	nPipeCount = vPipeList2.size();
+	if( nPipeCount == 0 )
+		return;
 
-		writeLogEntry( _curTime, false ); // on leave server.
+	writeLogEntry( _curTime, false ); // on leave server.
 
-		// get the index and intersection of the source processor with pipe.
-		int nOldState = m_pPerson->getState();
+	// get the index and intersetion of the source processor with pipe.
+	int nOldState = m_pPerson->getState();
 
-		CPointToPipeXPoint entryPoint;
-		CPointToPipeXPoint exitPoint;
-		std::vector<CMobPipeToPipeXPoint> vMidPoint;	// num count should be nPipeCount - 1
+	CPointToPipeXPoint entryPoint;
+	CPointToPipeXPoint exitPoint;
+	std::vector<CMobPipeToPipeXPoint> vMidPoint;	// num count should be nPipeCount - 1
 
-		if(m_pProcessor->outConstraintLength()>0)
-			ptFrom = m_pProcessor->outConstraint(m_pProcessor->outConstraintLength()-1);
+	if(m_pProcessor->outConstraintLength()>0)
+		ptFrom = m_pProcessor->outConstraint(m_pProcessor->outConstraintLength()-1);
 
-		CPipe* pPipe1 = NULL;
-		CPipe* pPipe2 = NULL;
-
-		for(int ii=0; ii<nPipeCount; ii++ )
+	CPipe* pPipe1 = NULL;
+	CPipe* pPipe2 = NULL;
+	
+	for(int ii=0; ii<nPipeCount; ii++ )
+	{
+		if( ii == 0 )
 		{
-			if( ii == 0 )
-			{
-				pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[0] );
-				entryPoint = pPipe1->GetIntersectionPoint( ptFrom );
+			pPipe1 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[0] );
+			entryPoint = pPipe1->GetIntersectionPoint( ptFrom );
 
-				if( nPipeCount == 1 )
-				{
-					exitPoint = pPipe1->GetIntersectionPoint( ptTo );
-				}
-				else
-				{
-					pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[1] );
-					CMobPipeToPipeXPoint midPt;
-					if( pPipe1->GetIntersectionPoint( pPipe2, entryPoint, midPt ) )
-					{
-						vMidPoint.push_back( midPt );
-					}
-					else
-					{
-						//throw new NoValidFlowError (m_pPerson);
-						kill(_curTime);
-						throw new ARCPipeNotIntersectError( pPipe1->GetPipeName(),pPipe2->GetPipeName(),"", ClacTimeString(_curTime));
-					}
-				}
-			}
-			else if( ii == nPipeCount - 1 )
+			if( nPipeCount == 1 )
 			{
 				exitPoint = pPipe1->GetIntersectionPoint( ptTo );
-				vMidPoint[vMidPoint.size()-1].SetOutInc( exitPoint );
 			}
 			else
 			{
-				pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[ii+1] );
+				pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[1] );
 				CMobPipeToPipeXPoint midPt;
-				if( pPipe1->GetIntersectionPoint( pPipe2, vMidPoint[vMidPoint.size()-1], midPt ) )
+				if( pPipe1->GetIntersectionPoint( pPipe2, entryPoint, midPt ) )
 				{
-					vMidPoint[vMidPoint.size()-1].SetOutInc( midPt );
 					vMidPoint.push_back( midPt );
 				}
 				else
@@ -3533,85 +3512,106 @@ void TerminalMobElementBehavior::ProcessPipe( Processor* _pNextProc,
 					throw new ARCPipeNotIntersectError( pPipe1->GetPipeName(),pPipe2->GetPipeName(),"", ClacTimeString(_curTime));
 				}
 			}
-			pPipe1 = pPipe2;
 		}
-
-		ElapsedTime eventTime = _curTime;
-		setState( WalkOnPipe );
-
-		// process entry point
-		CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[0] );
-
-		//////////////////////////////////////////////////////////////////////////
-		//begin  handle barrier
-		Point old_destination = m_ptDestination;
-		//m_ptDestination = entryPoint;
-		setDestination( entryPoint );
-		Point nextPoint = m_ptDestination;
-		// determines whether Person can travel a direct route to his
-		// destination. if not, an intermediary destination will be assigned
-		bool bHasClearPath = true;
-		while (!hasClearPath(_curTime))
+		else if( ii == nPipeCount - 1 )
 		{
-			eventTime += moveTime();
-			m_pPerson->setState(MoveToServer);
-			writeLogEntry (eventTime, false);
-			setDestination (nextPoint);
-			setState( WalkOnPipe );
-			bHasClearPath = false;
-		}
-
-		//set back the old destination
-		if(bHasClearPath)
-		{
-			setDestination(old_destination);
-		}
-
-		PTONSIDEWALK pointList;
-		int nPercent = random( 100 );
-		int nMidPoint = vMidPoint.size();
-
-		if( nMidPoint == 0 )
-		{	
-			m_bUserPipes = false;
-			pPipe->GetPointListForLog( vPipeList2[0],entryPoint, exitPoint, nPercent,pointList );
-
-			WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());		
-			pointList.clear();
+			exitPoint = pPipe1->GetIntersectionPoint( ptTo );
+			vMidPoint[vMidPoint.size()-1].SetOutInc( exitPoint );
 		}
 		else
 		{
-			pPipe->GetPointListForLog( vPipeList2[0],entryPoint, vMidPoint[0], nPercent,pointList );
-			WritePipeLogs( pointList, eventTime , getEngine()->GetFireOccurFlag());
-
-			pointList.clear();
-			// process mid point 
-			int i=1;
-			for(; i<nMidPoint; i++ )
+			pPipe2 = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[ii+1] );
+			CMobPipeToPipeXPoint midPt;
+			if( pPipe1->GetIntersectionPoint( pPipe2, vMidPoint[vMidPoint.size()-1], midPt ) )
 			{
-				pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[i] );
-				if( vMidPoint[i-1].OrderChanged() )
-					nPercent = 100 - nPercent;
-
-				pPipe->GetPointListForLog( vPipeList2[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList );
-
-				WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());
-				pointList.clear();
+				vMidPoint[vMidPoint.size()-1].SetOutInc( midPt );
+				vMidPoint.push_back( midPt );
 			}
-			m_bUserPipes = false;
+			else
+			{
+				//throw new NoValidFlowError (m_pPerson);
+				kill(_curTime);
+				throw new ARCPipeNotIntersectError( pPipe1->GetPipeName(),pPipe2->GetPipeName(),"", ClacTimeString(_curTime));
+			}
+		}
+		pPipe1 = pPipe2;
+	}
 
-			// process exit point
-			pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[nPipeCount-1] );
+	ElapsedTime eventTime = _curTime;
+	setState( WalkOnPipe );
+
+	// process entry point
+	CPipe* pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[0] );
+
+	//////////////////////////////////////////////////////////////////////////
+	//begin  handle barrier
+	Point old_destination = m_ptDestination;
+	//m_ptDestination = entryPoint;
+	setDestination( entryPoint );
+	Point nextPoint = m_ptDestination;
+	// determines whether Person can travel a direct route to his
+	// destination. if not, an intermediary destination will be assigned
+	bool bHasClearPath = true;
+	while (!hasClearPath(_curTime))
+	{
+		eventTime += moveTime();
+		m_pPerson->setState(MoveToServer);
+		writeLogEntry (eventTime, false);
+		setDestination (nextPoint);
+		setState( WalkOnPipe );
+		bHasClearPath = false;
+	}
+	
+	//set back the old destination
+	if(bHasClearPath)
+	{
+		setDestination(old_destination);
+	}
+
+	PTONSIDEWALK pointList;
+	int nPercent = random( 100 );
+	int nMidPoint = vMidPoint.size();
+
+	if( nMidPoint == 0 )
+	{	
+		m_bUserPipes = false;
+		pPipe->GetPointListForLog( vPipeList2[0],entryPoint, exitPoint, nPercent,pointList );
+
+		WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());		
+		pointList.clear();
+	}
+	else
+	{
+		pPipe->GetPointListForLog( vPipeList2[0],entryPoint, vMidPoint[0], nPercent,pointList );
+		WritePipeLogs( pointList, eventTime , getEngine()->GetFireOccurFlag());
+
+		pointList.clear();
+		// process mid point 
+		int i=1;
+		for(; i<nMidPoint; i++ )
+		{
+			pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[i] );
 			if( vMidPoint[i-1].OrderChanged() )
 				nPercent = 100 - nPercent;
-			pPipe->GetPointListForLog( vPipeList2[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,pointList );
 
-			WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag() );
+			pPipe->GetPointListForLog( vPipeList2[0],vMidPoint[i-1], vMidPoint[i], nPercent ,pointList );
+
+			WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag());
 			pointList.clear();
 		}
+		m_bUserPipes = false;
 
-		_curTime = eventTime;
+		// process exit point
+		pPipe = m_pTerm->m_pPipeDataSet->GetPipeAt( vPipeList2[nPipeCount-1] );
+		if( vMidPoint[i-1].OrderChanged() )
+			nPercent = 100 - nPercent;
+		pPipe->GetPointListForLog( vPipeList2[0],vMidPoint[nMidPoint-1], exitPoint, nPercent,pointList );
+
+		WritePipeLogs( pointList, eventTime, getEngine()->GetFireOccurFlag() );
+		pointList.clear();
 	}
+
+	_curTime = eventTime;
 }
 void TerminalMobElementBehavior::processBillboard(ElapsedTime& p_time)
 {
@@ -4655,7 +4655,7 @@ void TerminalMobElementBehavior::WalkAlongShortestPathForEvac( const Point& _src
 	//	setState( nOldState );
 	return; 	
 }
-Point TerminalMobElementBehavior::GetPipeExitPoint(Processor* _pNextProc,int iCurFloor, const CString& _curTime, CFlowItemEx* _pFlowItem)
+Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, CString& _curTime,Point& outPoint, CFlowItemEx* _pPrevFlowItem)
 {
 
 	if(_pNextProc->getProcessorType() == StairProc || _pNextProc->getProcessorType() == Elevator)
@@ -4683,23 +4683,84 @@ Point TerminalMobElementBehavior::GetPipeExitPoint(Processor* _pNextProc,int iCu
 	{	
 		int nQueuePointCount = _pNextProc->GetProcessorQueue()->cornerCount();
 
-		if(procQueue->isFixed() == 'Y')
+		if(procQueue->isFixed() == 'N')  // non fix queue, use the queue entry point as pipe entry/exit point
 		{
-			FixedQueue* pQueue = (FixedQueue*)_pNextProc->GetProcessorQueue();
-			int nEntryCorner = pQueue->getEntryCornerIndex();
-			first_corner = nEntryCorner;
-			return _pNextProc->GetProcessorQueue()->corner(nEntryCorner);
-		}
-		else
-		{
-			if(nQueuePointCount > 0)//no matter fix queue and non fix queue, use the queue entry point as pipe entry/exit point
+			if(nQueuePointCount > 0)
 				return _pNextProc->GetProcessorQueue()->corner( nQueuePointCount - 1);
 		}
+		else  // fix queue
+		{	
+			if(nQueuePointCount > 0)
+			{
+				Point entryPoint = _pNextProc->GetProcessorQueue()->corner( 0 );
+				Point tempPoint ;
+				double dTravelLength = (std::numeric_limits<double>::max)();
+				CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
+				for (int nQueuePoint = 0; nQueuePoint < nQueuePointCount; ++ nQueuePoint)
+				{
+					CGraphVertexList shortestPath;
+					tempPoint = _pNextProc->GetProcessorQueue()->corner( nQueuePoint );
+					if(pPipeMgr->getShortestPathFromLib(outPoint, tempPoint, shortestPath))
+					{
+						shortestPath.ReCalculateLength() ;	
+						if(shortestPath.GetLength() < dTravelLength)
+						{
+							entryPoint = tempPoint;
+							dTravelLength = shortestPath.GetLength();
+						}
+					}
+				}
+				return entryPoint;
+			}
+		}
+
+// 		CPipeGraphMgr* pPipeMgr = m_pTerm->m_pPipeDataSet->m_pPipeMgr;
+// 		CGraphVertexList shortestPath;
+// 		Point FirstentryPoint ;
+// 		Point EndentryPoint ;
+// 		EndentryPoint = _pNextProc->GetProcessorQueue()->corner( _pNextProc->GetProcessorQueue()->cornerCount() - 1 ) ;
+// 		FirstentryPoint = _pNextProc->GetProcessorQueue()->corner( 0 ) ;
+// 		double length = 0 ;
+// 		if (pPipeMgr->getShortestPathFromLib(outPoint, EndentryPoint, shortestPath))
+// 		{
+// 			Point firstpoint ;
+// 			Point secondpoint ;
+// 			if(shortestPath.getCount() < 3)
+// 				return _pNextProc->getServicePoint( 0 );
+// 			for (int i = shortestPath.getCount() -1 ;i < shortestPath.getCount() ;i--)
+// 			{
+// 				firstpoint = shortestPath.getItem(i).getVertexPoint() ;
+// 				if(firstpoint.getX() != 0 &&firstpoint.getY() != 0)
+// 				{
+// 					secondpoint = shortestPath.getItem(i-1).getVertexPoint() ;
+// 					break ;
+// 				}
+// 			}
+// 			Point paxdirect(firstpoint - secondpoint) ;
+// 			Point queuesirect(FirstentryPoint - EndentryPoint) ;
+// 
+// 			if(paxdirect.GetCosOfTwoVector(queuesirect) > 0)
+// 				return EndentryPoint ;
+// 			else
+// 				return FirstentryPoint ;
+// 
+// 			shortestPath.ReCalculateLength() ;
+// 			length = shortestPath.GetLength() ;
+// 			shortestPath.clearData() ;
+// 			if(pPipeMgr->getShortestPathFromLib(outPoint, FirstentryPoint, shortestPath))
+// 			{
+// 				shortestPath.ReCalculateLength() ;
+// 				if(shortestPath.GetLength() < length)
+// 					return FirstentryPoint ;
+// 				else
+// 					return EndentryPoint ;
+// 			}
+// 		}
 	}
 	return _pNextProc->getServicePoint( 0 );
 }
 //////////////////////////////////////////////////////////////////////////
-void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, ElapsedTime& _curTime)
+void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, const Point &pt, ElapsedTime& _curTime)
 {
 	// if not same floor, need not move in pipe
 	int iCurFloor = (int)(location.getZ() / SCALE_FACTOR);
@@ -4718,11 +4779,10 @@ void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, E
 			entryPoint = m_nextHoldAiearPoint;
 		else
 		{
-			entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime));
+			entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime),outPoint);
 		}
-	}
-	else
-		entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime));
+	}else
+		entryPoint = GetPipeExitPoint(_pNextProc,iCurFloor, ClacTimeString(_curTime),outPoint);
 
 	int iEntryFloor = (int)(entryPoint.getZ() / SCALE_FACTOR);
 	if (iCurFloor != iEntryFloor)
@@ -4749,7 +4809,7 @@ void TerminalMobElementBehavior::WalkAlongShortestPath( Processor* _pNextProc, E
 	// get the real path, and write log
 	PTONSIDEWALK LogPointList;
 	int iPercent = random(100);
-	int nTempCount = m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
+	m_pTerm->m_pPipeDataSet->GetPointListForLog( shortestPath, iPercent, LogPointList );
 
 	setDestination(LogPointList.at(0).GetPointOnSideWalk());
 

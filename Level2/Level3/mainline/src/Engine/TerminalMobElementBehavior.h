@@ -392,11 +392,11 @@ private:
 	void WalkAlongShortestPathForEvac( const Point& _srcPoint, const Point& _desPoint, ElapsedTime& _curTime );
 
 
-	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, const CString& _curTime, CFlowItemEx* _pFlowItem) ;
+	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, CString& _curTime,Point& outPoint, CFlowItemEx* _pPrevFlowItem = NULL) ;
 
 
 	// walk from location to next process by pipe
-	void WalkAlongShortestPath( Processor* _pNextProc, ElapsedTime& _curTime);
+	void WalkAlongShortestPath( Processor* _pNextProc, const Point &point,ElapsedTime& _curTime);
 
 
 
@@ -657,7 +657,7 @@ public:
 
 	bool m_bIsArrivalDoor;//for write log for pax arrival door height
 
-	int first_corner ;
+	int first ;
 
 	void setLandsideSelectedProc(const std::vector<ALTObjectID>& altLandsideSelectedProc);
 	const std::vector<ALTObjectID>& GetLandsideSelectedProc()const;

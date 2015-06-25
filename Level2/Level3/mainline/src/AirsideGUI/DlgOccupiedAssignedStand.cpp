@@ -21,7 +21,8 @@
 #include "DlgTimeRange.h"
 #include "DlgParkingStandList.h"
 #include "DlgTemporaryParkingList.h"
-
+#include "SelectInboundRouteItemDlg.h"
+#include "DlgHoldShortLineSel.h"
 
 static const UINT ID_NEW_FLTTYPE = 10;
 static const UINT ID_DEL_FLTTYPE = 11;
@@ -31,6 +32,10 @@ static const UINT ID_EDIT_PRIORITY = 20;
 static const UINT ID_UP_PRIORITY = 21;
 static const UINT ID_DOWN_PRIORITY = 22;
 
+static const UINT ID_CIRCULATE_ADD = 23;
+static const UINT ID_CIRCULATE_EDIT = 24;
+static const UINT ID_CIRCULATE_DEL = 25;
+
 IMPLEMENT_DYNAMIC(CDlgOccupiedAssignedStand, CXTResizeDialog)
 CDlgOccupiedAssignedStand::CDlgOccupiedAssignedStand(int nProjID, PFuncSelectFlightType pSelectFlightType, InputAirside* pInputAirside, CWnd* pParent /*=NULL*/)
 	: CXTResizeDialog(CDlgOccupiedAssignedStand::IDD, pParent)
@@ -38,7 +43,7 @@ CDlgOccupiedAssignedStand::CDlgOccupiedAssignedStand(int nProjID, PFuncSelectFli
 	, m_pSelectFlightType(pSelectFlightType)
 	,m_bWindowClose(false)
 {
-	
+	m_holdShortLines.ReadData(nProjID) ;
 	m_pAirportDB = pInputAirside->m_pAirportDB;
 	m_OccupiedAssignedStandCriteria.SetAirportDB(m_pAirportDB);
 	m_OccupiedAssignedStandCriteria.SetPrjID(nProjID);
@@ -77,6 +82,9 @@ BEGIN_MESSAGE_MAP(CDlgOccupiedAssignedStand, CXTResizeDialog)
 	ON_COMMAND(ID_TOOLBARBUTTONUP,OnStrategyUp)
 	ON_COMMAND(ID_TOOLBARBUTTONDOWN,OnStrategyDown)
 	ON_COMMAND(ID_TOOLBARBUTTONDEL,OnDelButton)
+	ON_COMMAND(ID_CIRCULATE_ADD,OnAddCirculateRoute)
+	ON_COMMAND(ID_CIRCULATE_DEL,OnDeleteCirculateRoute)
+	ON_COMMAND(ID_CIRCULATE_EDIT,OnEditCirculateRoute)
 	ON_NOTIFY(TVN_SELCHANGED,IDC_TREE_CRITERIA,OnTvnSelchangedTree)
 	ON_BN_CLICKED(IDSAVE, OnBnClickedSave)
 	ON_BN_CLICKED(IDCANCEL, OnBnClickedCancel)
@@ -103,7 +111,7 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 		return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
 	}
 	int nLevelNum=getSelItemLevel();
-	if (nLevelNum<LEVEL_EXIT||nLevelNum>LEVEL_STRATEGYDETAIL)
+	if (nLevelNum<LEVEL_EXIT/*||nLevelNum>LEVEL_STRATEGYDETAIL*/)
 	{
 		return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
 	}
@@ -199,20 +207,20 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 					switch(strategyType)
 					{					
 
-					case ToIntersection:
-						{
-							CDlgOccupiedSelectIntersection dlgIntersection(m_pAltNetwork, m_vectTaxiway, m_pTaxiwayVectorMap,curStrategy->GetIntersectionID());
-							if(IDOK != dlgIntersection.DoModal())
-								return CXTResizeDialog::DefWindowProc(message, wParam, lParam);;
+					//case ToIntersection:
+					//	{
+					//		CDlgOccupiedSelectIntersection dlgIntersection(m_pAltNetwork, m_vectTaxiway, m_pTaxiwayVectorMap,curStrategy->GetIntersectionID());
+					//		if(IDOK != dlgIntersection.DoModal())
+					//			return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
 
-							int nIntersectionID = dlgIntersection.GetIntersectionID();
-							CString strIntersection = dlgIntersection.GetIntersectionName();	
+					//		int nIntersectionID = dlgIntersection.GetIntersectionID();
+					//		CString strIntersection = dlgIntersection.GetIntersectionName();	
 
-							strIntersection.Format(_T("%d: Stop short of intersection [") + strIntersection + _T("] till assigned stand free"),getItemIndex(selctItem)+1) ;
-							m_TreeCriteria.SetItemText(selctItem, strIntersection);							
-							curStrategy->SetIntersectionID(nIntersectionID);							
-							break;
-						}	
+					//		strIntersection.Format(_T("%d: Stop short of intersection /taxi interrupt line [") + strIntersection + _T("] till assigned stand free"),getItemIndex(selctItem)+1) ;
+					//		m_TreeCriteria.SetItemText(selctItem, strIntersection);							
+					//		curStrategy->SetIntersectionID(nIntersectionID);							
+					//		break;
+					//	}	
 					case ToTemporaryParking:
 						{
 							CDlgTemporaryParkingList dlg(CDlgParkingStandList::IDD,m_nProjID,curStrategy->GetTmpParkingList(),&m_TemporaryParkingVectorMap);
@@ -307,7 +315,54 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 
 					break;
 				}
+				case LEVEL_ROUTE:
+					{
+						int nID = -1;
+						int nIntersectNodeIDInALTObj = -1;
+						HTREEITEM hItem = m_TreeCriteria.GetSelectedItem();
+						HTREEITEM hParentItem = m_TreeCriteria.GetParentItem(hItem);
 
+						CirculateRoute* pCirRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hItem);
+						CirculateRoute* pParentRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hParentItem);
+						nID = pParentRoute->GetALTObjectID();
+						nIntersectNodeIDInALTObj = pParentRoute->GetIntersectNodeID();
+
+						int  nSelALTObjID;
+						int nIntersectNodeID;
+						CString strSelALTObjName;
+
+						nSelALTObjID     = pCirRoute->GetALTObjectID();
+						nIntersectNodeID = pCirRoute->GetIntersectNodeID();
+						strSelALTObjName = pCirRoute->GetItemName();
+
+						CSelectInboundRouteItemDlg dlg(m_nProjID, nID, nIntersectNodeIDInALTObj);
+						dlg.SetSelALTObjID(nSelALTObjID);
+						dlg.SetSelALTObjName(strSelALTObjName);
+						dlg.SetIntersectNodeID(nIntersectNodeID);
+
+						if (dlg.DoModal() == IDOK)
+						{
+							//haven't modify
+							bool bSame = (nSelALTObjID == dlg.GetSelALTObjID()&& nIntersectNodeID == dlg.GetIntersectNodeID()&& strSelALTObjName == dlg.GetSelALTObjName()) ? true : false;
+							if (bSame == false)
+							{
+								nSelALTObjID     = dlg.GetSelALTObjID();
+								nIntersectNodeID = dlg.GetIntersectNodeID();
+								strSelALTObjName = dlg.GetSelALTObjName();
+
+								pCirRoute->SetALTObjectID(nSelALTObjID);
+								pCirRoute->SetIntersectNodeID(nIntersectNodeID);
+								pCirRoute->SetItemName(strSelALTObjName);
+
+								m_TreeCriteria.SetItemText(hItem,strSelALTObjName);
+
+								pCirRoute->DeleteData();
+								DeleteChildItemInTree(hItem);
+							}
+						}
+
+					}
+					break;
 			default:
 				{
 					break;
@@ -347,7 +402,65 @@ LRESULT CDlgOccupiedAssignedStand::DefWindowProc(UINT message, WPARAM wParam, LP
 			break;		
 			
 		}
+	case UM_CEW_COMBOBOX_BEGIN:
+		{
+			HTREEITEM hItem=(HTREEITEM)wParam;
+			CRect rectWnd;
+			CWnd* pWnd=m_TreeCriteria.GetEditWnd(hItem);
+			m_strToIntersectionName = m_TreeCriteria.GetItemText(hItem);
+			m_TreeCriteria.GetItemRect(hItem,rectWnd,TRUE);
+			pWnd->SetWindowPos(NULL,rectWnd.right,rectWnd.top,0,0,SWP_NOSIZE);
+			CComboBox* pCB=(CComboBox*)pWnd;
+			pCB->ResetContent();
+			pCB->AddString("Intersection");
+			pCB->AddString("Taxi Interrupt line");
+		}
+		break;
+	case UM_CEW_COMBOBOX_SELCHANGE:
+		{
+			HTREEITEM hItem=(HTREEITEM)wParam;
+			int nSel = m_TreeCriteria.GetCmbBoxCurSel(hItem);
+			HTREEITEM strategyItem=m_TreeCriteria.GetParentItem(selctItem);
+			COccupiedAssignedStandStrategy *curStrategy=(COccupiedAssignedStandStrategy *)m_TreeCriteria.GetItemData(strategyItem);
+			if (nSel == 0)//intersection node
+			{
+				CDlgOccupiedSelectIntersection dlgIntersection(m_pAltNetwork, m_vectTaxiway, m_pTaxiwayVectorMap,curStrategy->GetIntersectionID());
+				if(IDOK != dlgIntersection.DoModal())
+				{
+					m_TreeCriteria.SetItemText(hItem,m_strToIntersectionName);
+					return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
+				}
+
+				int nIntersectionID = dlgIntersection.GetIntersectionID();
+				CString strIntersection = dlgIntersection.GetIntersectionName();	
+
+				strIntersection.Format(_T("%d: Stop short of intersection [") + strIntersection + _T("] till assigned stand free"),getItemIndex(selctItem)+1) ;
+				m_TreeCriteria.SetItemText(selctItem, strIntersection);							
+				curStrategy->SetIntersectionID(nIntersectionID);		
+				curStrategy->SetStrategyType(0);
+			}
+			else
+			{
+				CDlgHoldShortLineSel DlgSel(&m_holdShortLines) ;
+
+				if (DlgSel.DoModal() == IDOK)
+				{
+					CTaxiInterruptLine* linenode = DlgSel.GetSelHoldShortLine() ;
+					CString strIntersection = linenode->GetName();	
+					curStrategy->SetIntersectionID(linenode->GetID());
+					curStrategy->SetStrategyType(1);
+					strIntersection.Format(_T("%d: Stop short of taxi interrupt line [") + strIntersection + _T("] till assigned stand free"),getItemIndex(selctItem)+1) ;
+					m_TreeCriteria.SetItemText(selctItem, strIntersection);	
+				}
+				else
+				{
+					m_TreeCriteria.SetItemText(hItem,m_strToIntersectionName);
+				}
+			}
+		}
+		break;
 	}
+	
 	return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
 
 }
@@ -541,6 +654,23 @@ HTREEITEM CDlgOccupiedAssignedStand::addFlightTypeItem(HTREEITEM parentItem,CAir
 	m_TreeCriteria.SelectItem(hFlightType);
 	return hFlightType;
 }
+
+void CDlgOccupiedAssignedStand::InsertCirculateRoute(HTREEITEM hItem,CirculateRoute* pRoute)
+{
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+	cni.net = NET_SHOW_DIALOGBOX;
+	CString strRoute = pRoute->GetItemName();
+	HTREEITEM hRouteItem = m_TreeCriteria.InsertItem(strRoute,cni,FALSE,FALSE,hItem);
+	m_TreeCriteria.SetItemData(hRouteItem,(DWORD)pRoute);
+	for (size_t i = 0; i < pRoute->GetElementCount(); i++)
+	{
+		CirculateRoute* pChildRoute = pRoute->GetItem(i);
+		InsertCirculateRoute(hRouteItem,pChildRoute);
+	}
+	m_TreeCriteria.Expand(hRouteItem,TVE_EXPAND);
+}
+
 HTREEITEM CDlgOccupiedAssignedStand::addTimeWinItem(HTREEITEM parentItem,CAirSideCreteriaTimeWin *timeWin)
 {
 	//CriteriaLevel cLevle=(CriteriaLevel)getSelItemLevel();
@@ -598,54 +728,81 @@ HTREEITEM CDlgOccupiedAssignedStand::addTimeWinItem(HTREEITEM parentItem,CAirSid
 			}
 		case ToIntersection:
 			{
-				cni.net = NET_SHOW_DIALOGBOX;
+				cni.net = NET_COMBOBOX;
 
 				int nFlag;
 				AltObjectVectorMapIter iter;
 
+				CString strHead;
 				int nIntersectionID = strategy.GetIntersectionID();
 				if(nIntersectionID != -1)
 				{
-					IntersectionNode intersectNode;
-					intersectNode.ReadData(nIntersectionID);
-
-					CString strIntersectionTaxiway1Name,strIntersectionTaxiway2Name;
-					nFlag = 0;
-					iter = m_TaxiwayVectorMap.begin();
-					for(; iter != m_TaxiwayVectorMap.end(); iter++)
+					if (strategy.GetStrategyType() == 0)//intersection node
 					{
-						AltObjectVector& vec = iter->second;
-						for(AltObjectVectorIter it = vec.begin();it != vec.end(); it++)
+						IntersectionNode intersectNode;
+						intersectNode.ReadData(nIntersectionID);
+
+						CString strIntersectionTaxiway1Name,strIntersectionTaxiway2Name;
+						nFlag = 0;
+						iter = m_TaxiwayVectorMap.begin();
+						for(; iter != m_TaxiwayVectorMap.end(); iter++)
 						{
-							if( intersectNode.HasObject(it->second) )
+							AltObjectVector& vec = iter->second;
+							for(AltObjectVectorIter it = vec.begin();it != vec.end(); it++)
 							{
-								nFlag++;
-								if (nFlag==1)
+								if( intersectNode.HasObject(it->second) )
 								{
-									strIntersectionTaxiway1Name = it->first;
-								}else
-								{
-									strIntersectionTaxiway2Name = it->first;
-								}
+									nFlag++;
+									if (nFlag==1)
+									{
+										strIntersectionTaxiway1Name = it->first;
+									}else
+									{
+										strIntersectionTaxiway2Name = it->first;
+									}
 
 
-								if(nFlag == 2)
-									break;
-							}				
+									if(nFlag == 2)
+										break;
+								}				
+							}
+							if(nFlag == 2)
+								break;
 						}
-						if(nFlag == 2)
-							break;
+						strHead = _T("Stop short of intersection [");
+						strDetail.Format("%s(%s&%d)",strIntersectionTaxiway1Name,strIntersectionTaxiway2Name,intersectNode.GetIndex()/*+1*/);
 					}
-					strDetail.Format("%s(%s&%d)",strIntersectionTaxiway1Name,strIntersectionTaxiway2Name,intersectNode.GetIndex()/*+1*/);
+					else
+					{
+						CTaxiInterruptLine* pLine = m_holdShortLines.GetTaxiInterruptLIneByID(nIntersectionID);
+						if (pLine)
+						{
+							strHead = _T("Stop short of taxi interrupt line [");
+							strDetail = pLine->GetName();
+						}
+					}
 				}
 				else
 					strDetail = _T("Please Edit");
 
-				strDetail = _T("Stop short of intersection [") + strDetail + _T("] till assigned stand free");
+				strDetail = /*_T("Stop short of intersection / taxi interrupt line [") */strHead + strDetail + _T("] till assigned stand free");
 
 				strStrategy.Format(_T("%d: %s"),i+1,strDetail);
 				HTREEITEM hDetail=m_TreeCriteria.InsertItem(strStrategy,cni,FALSE,FALSE,hStrategy);
 				m_TreeCriteria.SetItemData(hDetail,(DWORD)strategyType);
+
+				//define circulate route
+				cni.net = NET_NORMAL;
+				HTREEITEM hCirItem = m_TreeCriteria.InsertItem("Unless blocking traffic, then circulate on Route:",cni,FALSE,FALSE,hDetail);
+				CirculateRoute* pCirRoute = strategy.GetCirculateRoute();
+				m_TreeCriteria.SetItemData(hCirItem,(DWORD)pCirRoute);
+				for (size_t i = 0; i < pCirRoute->GetElementCount(); i++)
+				{
+					CirculateRoute* pRoute = pCirRoute->GetItem(i);
+					InsertCirculateRoute(hCirItem,pRoute);
+				}
+				m_TreeCriteria.Expand(hDetail,TVE_EXPAND);
+				m_TreeCriteria.Expand(hCirItem,TVE_EXPAND);
 				break;
 			}
 		case ToStand:
@@ -852,7 +1009,7 @@ void CDlgOccupiedAssignedStand::OnContextMenu(CWnd* pWnd, CPoint point)
 
 	int nLevelNum=getSelItemLevel();
 
-	if (nLevelNum<LEVEL_EXIT||nLevelNum>LEVEL_STRATEGYDETAIL)
+	if (nLevelNum<LEVEL_EXIT/*||nLevelNum>LEVEL_STRATEGYDETAIL*/)
 	{
 		return;
 	}
@@ -892,6 +1049,36 @@ void CDlgOccupiedAssignedStand::OnContextMenu(CWnd* pWnd, CPoint point)
 			}
 			break;
 		}
+	case LEVEL_ROOTROUTE:
+		{
+			if (m_TreeCriteria.GetChildItem(hRClickItem) == NULL)
+			{
+				CMenu menuPopup; 
+				menuPopup.CreatePopupMenu();
+				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_ADD,_T("Add Circulate Route"));
+				menuPopup.TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
+			}
+		}
+		break;
+	case LEVEL_ROUTE:
+		{
+			CMenu menuPopup; 
+			menuPopup.CreatePopupMenu();
+			if (m_TreeCriteria.GetChildItem(hRClickItem) == NULL)
+			{
+				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_ADD,_T("Add Circulate Route"));
+				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_EDIT,_T("Edit Circulate Route"));
+				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_DEL,_T("Delete Circulate Route"));
+				
+			}
+			else
+			{
+				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_EDIT,_T("Edit Circulate Route"));
+				menuPopup.AppendMenu(MF_POPUP,ID_CIRCULATE_DEL,_T("Delete Circulate Route"));
+			}
+			menuPopup.TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
+		}
+		break;
 	default:
 		{
 			break;
@@ -1194,9 +1381,14 @@ int CDlgOccupiedAssignedStand::getSelItemLevel()
 			nLevel++;
 		}
 	}
-	if (nLevel<0||nLevel>5)
+	if (nLevel<0/*||nLevel>5*/)
 	{
-		int iii=0;
+		nLevel=0;
+	}
+
+	if (nLevel > LEVEL_ROOTROUTE)
+	{
+		nLevel = LEVEL_ROUTE;
 	}
 	return nLevel;	
 }
@@ -1258,4 +1450,121 @@ void CDlgOccupiedAssignedStand::OnBnClickedCancel()
 	// TODO: Add your control notification handler code here
 	m_bWindowClose=true;
 	CXTResizeDialog::OnCancel();
+}
+
+void CDlgOccupiedAssignedStand::OnAddCirculateRoute()
+{
+	HTREEITEM hItem = m_TreeCriteria.GetSelectedItem();
+
+	int nID = -1;
+	int nIntersectNodeIDInALTObj = -1;
+
+	int nLevelNum = getSelItemLevel();
+
+	CirculateRoute* pRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hItem);
+	nID = pRoute->GetALTObjectID();
+	nIntersectNodeIDInALTObj = pRoute->GetIntersectNodeID();
+	
+
+	CSelectInboundRouteItemDlg dlg(m_nProjID, nID, nIntersectNodeIDInALTObj);
+	if (dlg.DoModal() != IDOK)
+	{
+		return;
+	}
+
+	int nALTObjID = dlg.GetSelALTObjID();
+	int nIntersectNodeID = dlg.GetIntersectNodeID();
+	CString strALTObjName = dlg.GetSelALTObjName();
+
+	CirculateRoute* pChidRoute = new CirculateRoute();
+	pChidRoute->SetALTObjectID(nALTObjID);
+	pChidRoute->SetIntersectNodeID(nIntersectNodeID);
+	pChidRoute->SetItemName(strALTObjName);
+	pRoute->AddNewItem(pChidRoute);
+
+	InsertCirculateRoute(hItem,pChidRoute);
+	m_TreeCriteria.Expand(hItem,TVE_EXPAND);
+}
+
+void CDlgOccupiedAssignedStand::OnDeleteCirculateRoute()
+{
+	HTREEITEM hItem = m_TreeCriteria.GetSelectedItem();
+	HTREEITEM hParentItem = m_TreeCriteria.GetParentItem(hItem);
+	CirculateRoute* pCirRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hParentItem);
+	CirculateRoute* pChildRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hItem);
+	if (pCirRoute)
+	{
+		pCirRoute->DeleteItem(pChildRoute);
+		pChildRoute->DeleteData();
+	}
+	
+	m_TreeCriteria.DeleteItem(hItem);
+}
+
+void CDlgOccupiedAssignedStand::OnEditCirculateRoute()
+{
+	int nID = -1;
+	int nIntersectNodeIDInALTObj = -1;
+	HTREEITEM hItem = m_TreeCriteria.GetSelectedItem();
+	HTREEITEM hParentItem = m_TreeCriteria.GetParentItem(hItem);
+
+	CirculateRoute* pCirRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hItem);
+	CirculateRoute* pParentRoute = (CirculateRoute*)m_TreeCriteria.GetItemData(hParentItem);
+	nID = pParentRoute->GetALTObjectID();
+	nIntersectNodeIDInALTObj = pParentRoute->GetIntersectNodeID();
+
+	int  nSelALTObjID;
+	int nIntersectNodeID;
+	CString strSelALTObjName;
+
+	nSelALTObjID     = pCirRoute->GetALTObjectID();
+	nIntersectNodeID = pCirRoute->GetIntersectNodeID();
+	strSelALTObjName = pCirRoute->GetItemName();
+
+	CSelectInboundRouteItemDlg dlg(m_nProjID, nID, nIntersectNodeIDInALTObj);
+	dlg.SetSelALTObjID(nSelALTObjID);
+	dlg.SetSelALTObjName(strSelALTObjName);
+	dlg.SetIntersectNodeID(nIntersectNodeID);
+
+	if (dlg.DoModal() != IDOK)
+	{
+		return;
+	}
+
+	//haven't modify
+	if (nSelALTObjID == dlg.GetSelALTObjID()
+		&& nIntersectNodeID == dlg.GetIntersectNodeID()
+		&& strSelALTObjName == dlg.GetSelALTObjName())
+	{
+		return;
+	}
+
+	nSelALTObjID     = dlg.GetSelALTObjID();
+	nIntersectNodeID = dlg.GetIntersectNodeID();
+	strSelALTObjName = dlg.GetSelALTObjName();
+
+	pCirRoute->SetALTObjectID(nSelALTObjID);
+	pCirRoute->SetIntersectNodeID(nIntersectNodeID);
+	pCirRoute->SetItemName(strSelALTObjName);
+
+	m_TreeCriteria.SetItemText(hItem,strSelALTObjName);
+
+	pCirRoute->DeleteData();
+	DeleteChildItemInTree(hItem);
+}
+
+void CDlgOccupiedAssignedStand::DeleteChildItemInTree(HTREEITEM hItem)
+{
+	ASSERT(hItem);
+
+	HTREEITEM hChildItem = m_TreeCriteria.GetChildItem(hItem);
+
+	while (hChildItem != NULL)
+	{
+		DeleteChildItemInTree(hChildItem);
+
+		m_TreeCriteria.DeleteItem(hChildItem);
+
+		hChildItem = m_TreeCriteria.GetChildItem(hItem);
+	}
 }

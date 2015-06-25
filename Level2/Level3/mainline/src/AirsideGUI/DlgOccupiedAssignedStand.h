@@ -1,6 +1,7 @@
 #pragma once
 #include "NodeViewDbClickHandler.h"
 #include "..\InputAirside\OccupiedAssignedStandAction.h"
+#include "..\InputAirside\HoldShortLines.h"
 #include "..\MFCExControl\CoolTree.h"
 #include "afxcmn.h"
 #include "../MFCExControl/XTResizeDialog.h"
@@ -34,7 +35,9 @@ public:
 		LEVEL_FLIGHTTYPE,
 		LEVEL_TIMEWINDOW,
 		LEVEL_STRATEGY,
-		LEVEL_STRATEGYDETAIL
+		LEVEL_STRATEGYDETAIL,
+		LEVEL_ROOTROUTE,
+		LEVEL_ROUTE
 	};
  	typedef std::vector<std::pair<CString,int> > AltObjectVector;
  	typedef std::vector<std::pair<CString,int> >::iterator AltObjectVectorIter;
@@ -60,7 +63,7 @@ private:
 	PFuncSelectFlightType  m_pSelectFlightType;
 
 	COccupiedAssignedStandCriteria m_OccupiedAssignedStandCriteria;
-
+	TaxiInterruptLineList m_holdShortLines;
  	AltObjectVectorMap m_TaxiwayVectorMap;
  	AltObjectVectorMap* m_pTaxiwayVectorMap;
 	AltObjectVectorMap m_StandVectorMap;
@@ -71,6 +74,7 @@ private:
  	CAirportDatabase* m_pAirportDB;
 	CAirportGroundNetwork* m_pAltNetwork;
 	std::vector<Taxiway> m_vectTaxiway;
+	CString m_strToIntersectionName;
 // 	HTREEITEM m_hSelItem;
 	
 private:
@@ -81,6 +85,7 @@ private:
 	HTREEITEM addFlightTypeItem(HTREEITEM parentItem,CAirSideCriteriaFlightType *flightType);
 	HTREEITEM addTimeWinItem(HTREEITEM parentItem,CAirSideCreteriaTimeWin *timeWin);
 
+	void InsertCirculateRoute(HTREEITEM hItem,CirculateRoute* pRoute);
 // 
  	void GetTaxiwayMap();
 protected:
@@ -97,12 +102,15 @@ protected:
 	afx_msg void OnStrategyUp();
 	afx_msg void OnStrategyDown();
 	afx_msg void OnDelButton();
+	afx_msg void OnAddCirculateRoute();
+	afx_msg void OnDeleteCirculateRoute();
+	afx_msg void OnEditCirculateRoute();
 
 	void GetTemporaryParkingMap();
 	int getSelItemLevel();
 	int getItemIndex(HTREEITEM selItem);
 	void exchangeStrategyItem(HTREEITEM &item1,HTREEITEM &item2);
-
+	void DeleteChildItemInTree(HTREEITEM hItem);
 public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnLbnSelchangeListFlttype();
