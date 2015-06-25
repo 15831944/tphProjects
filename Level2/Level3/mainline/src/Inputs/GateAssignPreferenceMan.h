@@ -117,6 +117,24 @@ protected:
 	void ClearDelData() ;
 }; 
 
+class CGateAdjacency
+{
+public:
+    CGateAdjacency();
+    ~CGateAdjacency();
+private:
+    ProcessorID m_originalGate;
+    ProcessorID m_adjacentGate;
+    bool m_bReciprocate;
+public:
+    ProcessorID GetOriginalGate() const { return m_originalGate; }
+    void SetOriginalGate(ProcessorID procID) { m_originalGate = procID; }
+    ProcessorID GetAdjacentGate() const { return m_adjacentGate; }
+    void SetAdjacentGate(ProcessorID procID) { m_adjacentGate = procID; }
+    bool IsReciprocate() const { return m_bReciprocate; }
+    void SetReciprocate(bool reci) { m_bReciprocate = reci; }
+};
+
 class CGateAssignPreferenceMan
 {
 public:
@@ -129,7 +147,8 @@ public:
 protected:
 	DATA_TYPE m_GateAssignPreference ;
 	DATA_TYPE m_DelGateAssignPreference ;
-	CGateAssignmentMgr* m_GateAssignMgr ;
+    CGateAssignmentMgr* m_GateAssignMgr ;
+    std::vector<CGateAdjacency> m_vAdjacency;
 public:
 	void ReadData(InputTerminal* _Terminal) ;
 	void SaveData() ;
@@ -164,6 +183,7 @@ public:
 	DATA_TYPE* GetPreferenceData() { return &m_GateAssignPreference ;} ;
 	CGateAssignmentMgr* GetGateAssignMgr() { return m_GateAssignMgr ;} ;
 	void SetGateAssignMgr(CGateAssignmentMgr* _gateAssignmgr) { m_GateAssignMgr = _gateAssignmgr ;} ;
+    std::vector<CGateAdjacency>* GetGateAdjacency() { return &m_vAdjacency; }
 };
 class CArrivalGateAssignPreferenceMan : public CGateAssignPreferenceMan
 {

@@ -1490,6 +1490,7 @@
 #define IDC_SLIDER_START                1112
 #define IDC_LAYEROPTIONS                1112
 #define IDC_EDT_APCITY                  1112
+#define IDD_DIALOG_GATE_ADJACENCY       1112
 #define IDC_EDIT_END                    1113
 #define IDC_CHK_FLOORVISIBLE            1113
 #define IDC_EDT_APCOUNTRY               1113
@@ -3330,6 +3331,7 @@
 #define IDC_STATIC_REPORTS              2411
 #define IDC_STATIC_RESPOOL_ON           2412
 #define IDC_STATIC_RESPOOL_OFF          2413
+#define IDC_BUTTON_GATE_ADJACENCY            2414
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5468,9 +5470,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1112
+#define _APS_NEXT_RESOURCE_VALUE        1113
 #define _APS_NEXT_COMMAND_VALUE         35337
-#define _APS_NEXT_CONTROL_VALUE         2414
+#define _APS_NEXT_CONTROL_VALUE         2415
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

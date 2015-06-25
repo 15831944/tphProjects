@@ -315,9 +315,10 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 	spTerminalBehavior->processPersonOnStation(p_time, _needReturn, _localResult);
 	if(_needReturn)
 		return _localResult;
-    EntityEvents current_state = (EntityEvents)state;
+
     int nPerson = getID();
     CString strProc = spTerminalBehavior->getProcessor()->getIDName();
+    EntityEvents current_state = (EntityEvents)state;
    int nReturnValue = 1;
 	switch (state)
     {

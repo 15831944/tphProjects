@@ -364,7 +364,7 @@ bool CGateAssignPreferenceItem::operator<( const CGateAssignPreferenceItem& gate
 
 CGateAssignPreferenceMan::CGateAssignPreferenceMan(CGateAssignmentMgr* _GateAssignMgr):m_GateAssignMgr(_GateAssignMgr)
 {
-
+    m_vAdjacency.clear();
 }
 CGateAssignPreferenceMan::~CGateAssignPreferenceMan()
 {

@@ -9,6 +9,7 @@
 #include <Inputs/IN_TERM.H>
 // CDlgGateAssignPreference dialog
 #include "Engine/gate.h"
+//#include "DlgGateAdjacency.h"
 IMPLEMENT_DYNAMIC(CDlgGateAssignPreference, CXTResizeDialog)
 CDlgGateAssignPreference::CDlgGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent)
 	:m_PreferenceMan(_PreferenceMan),m_terminal(_terminal), CXTResizeDialog(CDlgGateAssignPreference::IDD, pParent)
@@ -39,6 +40,7 @@ BEGIN_MESSAGE_MAP(CDlgGateAssignPreference, CXTResizeDialog)
 	ON_COMMAND(ID_PREFERENCE_DEL,OnDelButton) 
 	ON_COMMAND(ID_PREFERENCE_EDIT,OnEditButton) 
 	ON_NOTIFY(TVN_SELCHANGED,IDC_TREE_PREFERENCE,OnTvnChangedTree)
+    ON_BN_CLICKED(IDC_BUTTON_GATE_ADJACENCY, OnBnClickedButtonAdjacency)
 END_MESSAGE_MAP()
 
 void CDlgGateAssignPreference::OnSize(UINT nType, int cx, int cy)
@@ -516,4 +518,10 @@ bool CDlgGateAssignPreference::FindGateReferenceTreeNode( CGateAssignPreferenceI
 	}
 
 	return true;
+}
+
+void CDlgGateAssignPreference::OnBnClickedButtonAdjacency()
+{
+//    DlgGateAdjacency dlg(m_PreferenceMan->GetGateAdjacency());
+ //   dlg.DoModal();
 }

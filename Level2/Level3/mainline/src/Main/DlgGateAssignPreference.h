@@ -42,8 +42,8 @@ protected:
 	void OnNewButton() ;
 	void OnEditButton() ;
 	void OnDelButton() ;
-
-	void OnEditButton(HTREEITEM _item = NULL) ;
+    void OnEditButton(HTREEITEM _item = NULL) ;
+    void OnBnClickedButtonAdjacency();
 protected:
 	void NewGate() ;
 	void NewGateFlight(CGateAssignPreferenceItem* _PreferenceItem) ;
