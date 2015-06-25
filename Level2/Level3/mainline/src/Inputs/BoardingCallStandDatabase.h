@@ -23,7 +23,7 @@ public:
 	~BoardingCallStandDatabase();
 
 	virtual void addEntry (const ProcessorID& pID);
-	void AddStand(char* strProc, InputTerminal* _pInTerm);
+	void AddStand(ProcessorID* pProcID, InputTerminal* _pInTerm);
 	void AddStandFor260OrOlder(ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm);
 	virtual void deleteItem(BoardingCallStandEntry* pStandEntry);
 	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int standCount);

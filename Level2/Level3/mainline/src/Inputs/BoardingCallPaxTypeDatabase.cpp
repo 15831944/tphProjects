@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "BoardingCallPaxTypeDatabase.h"
+#include "PROBAB.H"
 
 BoardingCallPaxTypeEntry::BoardingCallPaxTypeEntry()
 {
@@ -14,39 +15,46 @@ BoardingCallPaxTypeEntry::~BoardingCallPaxTypeEntry(void)
 // initialize triggers
 void BoardingCallPaxTypeEntry::InitTriggerDatabase()
 {
-	BoardingCallTrigger trigger(-7200L, 20.0);
+	BoardingCallTrigger trigger;
 	m_vTriggers.push_back(trigger);
-	trigger.SetTrigger(-5400L, 20.0);
+	trigger.SetTriggerTime(-1200L);
+	trigger.SetTriggerProp(20);
 	m_vTriggers.push_back(trigger);
-	trigger.SetTrigger(-3600L, 20.0);
+	trigger.SetTriggerTime(-1000L);
+	trigger.SetTriggerProp(70);
 	m_vTriggers.push_back(trigger);
-	trigger.SetTrigger(-1800L, -1);/* The 'RESIDUAL' trigger. */
+	trigger.SetTriggerTime(-600L);
+	trigger.SetTriggerProp(10);
 	m_vTriggers.push_back(trigger);
+
+	AddResidualTrigger();
 }
 
 void BoardingCallPaxTypeEntry::InitTriggerDBFromOld(ConstraintWithProcIDEntry* pConstEntry)
 {
-	const HistogramDistribution* pDistribution = (HistogramDistribution*)pConstEntry->getValue();
-	ASSERT(pDistribution->getProbabilityType() == HISTOGRAM);
-	BoardingCallTrigger trigger;
-	int count = pDistribution->getCount();
-	for(int i=0; i<count; i++)
+	
+	if(pConstEntry->getValue()->getProbabilityType() == HISTOGRAM)
 	{
-		long seconds = (long)pDistribution->getValue(i);
-		double prob;
-		if(i == 0)
+		const HistogramDistribution* pDistribution = (HistogramDistribution*)pConstEntry->getValue();
+		int count = pDistribution->getCount();
+		BoardingCallTrigger trigger;
+		for(int i=0; i<count; i++)
 		{
-			prob = pDistribution->getProb(i);
+			trigger.SetTriggerTime((long)pDistribution->getValue(i));
+			double prob;
+			if(i == 0)
+			{
+				prob = pDistribution->getProb(i);
+			}
+			else
+			{
+				prob = pDistribution->getProb(i) - pDistribution->getProb(i-1);
+			}
+			trigger.SetTriggerProp(prob);
+			m_vTriggers.push_back(trigger);
 		}
-		else
-		{
-			prob = pDistribution->getProb(i) - pDistribution->getProb(i-1);
-		}
-		trigger.SetTrigger(seconds, prob);
-		m_vTriggers.push_back(trigger);
 	}
-	trigger.SetTrigger(40000L, -1);/* The 'RESIDUAL' trigger. */
-	m_vTriggers.push_back(trigger);
+	AddResidualTrigger();
 }
 
 void BoardingCallPaxTypeEntry::AddNewTrigger()
@@ -80,12 +88,8 @@ void BoardingCallPaxTypeEntry::readTriggerDatabase( ArctermFile& p_file, int tri
 		seconds = 0;
 		prop = 0.0;
 		p_file.getLine();
-		p_file.skipField(1);
-		p_file.getInteger(seconds);
-		p_file.getFloat(prop);
-
-		trigger.InitTrigger();
-		trigger.SetTrigger(seconds, prop);
+		p_file.skipField(1);/* 'TriggerN' */
+		trigger.readTrigger(p_file);
 		m_vTriggers.push_back(trigger);
 	}
 }
@@ -98,20 +102,84 @@ void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file)
 	{
 		strTrigger.Format("Trigger%d", i);
 		p_file.writeField(strTrigger.GetBuffer());
-		p_file.writeInt(m_vTriggers[i].GetTriggerTime().asSeconds());
-		p_file.writeDouble(m_vTriggers[i].GetTriggerProportion());
+		m_vTriggers[i].writeTrigger(p_file);
 		p_file.writeLine();
 	}
+}
+
+void BoardingCallPaxTypeEntry::AddResidualTrigger()
+{
+	BoardingCallTrigger trigger;
+	trigger.SetTriggerTime(-500L);
+	trigger.SetTriggerProp(-1);
+	m_vTriggers.push_back(trigger);/* The 'RESIDUAL' trigger. */
 }
 
 BoardingCallPaxTypeDatabase::BoardingCallPaxTypeDatabase()
 {
 }
 
-BoardingCallTrigger::BoardingCallTrigger(long _time, double _prop)
+BoardingCallTrigger::BoardingCallTrigger(ProbabilityDistribution* _time, ProbabilityDistribution* _prop)
 {
-	m_time.set(_time);
-	m_proportion = _prop;
+	m_time = _time;
+	m_prop = _prop;
+}
+
+void BoardingCallTrigger::InitTrigger()
+{
+	if(m_time)
+	{
+		delete m_time;
+	}
+	m_time = new ConstantDistribution;
+	((ConstantDistribution*)m_time)->init(0);
+
+	if(m_prop)
+	{
+		delete m_prop;
+	}
+	m_prop = new ConstantDistribution;
+	((ConstantDistribution*)m_time)->init(0);
+}
+
+BoardingCallTrigger::~BoardingCallTrigger()
+{
+	if(m_time)
+	{
+		delete m_time;
+		m_time = NULL;
+	}
+	if(m_prop)
+	{
+		delete m_prop;
+		m_prop = NULL;
+	}
+}
+
+void BoardingCallTrigger::SetTriggerTime(ProbabilityDistribution* _time)
+{
+	if(m_time)
+		delete m_time;
+	m_time = ProbabilityDistribution::CopyProbDistribution(_time);
+}
+
+void BoardingCallTrigger::SetTriggerProp( ProbabilityDistribution* _prop )
+{
+	if(m_prop)
+		delete m_prop;
+	m_prop = ProbabilityDistribution::CopyProbDistribution(_prop);
+}
+
+void BoardingCallTrigger::writeTrigger(ArctermFile& p_file)
+{
+	m_time->writeDistribution(p_file);
+	m_prop->writeDistribution(p_file);
+}
+
+void BoardingCallTrigger::readTrigger(ArctermFile& p_file)
+{
+	m_time = GetProbDistribution(p_file);
+	m_prop = GetProbDistribution(p_file);
 }
 
 
@@ -179,7 +247,7 @@ void BoardingCallPaxTypeDatabase::writeDatabase(ArctermFile& p_file)
 }
 
 // For version 2.6 or older.
-void BoardingCallPaxTypeDatabase::AddPaxTypeFor260OrOlder( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm)
+void BoardingCallPaxTypeDatabase::AddPaxTypeFor260AndOlder( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm)
 {
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
 	pMBConst->SetInputTerminal(_pInTerm);
@@ -188,4 +256,16 @@ void BoardingCallPaxTypeDatabase::AddPaxTypeFor260OrOlder( ConstraintWithProcIDE
 	pPaxEntry->initialize(pMBConst, NULL);
 	pPaxEntry->InitTriggerDBFromOld(pConstEntry);
 	addEntry(pPaxEntry, true);
+}
+
+int BoardingCallPaxTypeDatabase::FindItemByConstraint( CMobileElemConstraint* pInputConst )
+{
+	int nEntryCount = getCount();
+	for( int i = 0; i < nEntryCount; i++ )
+	{
+		const CMobileElemConstraint* pConstraint = (CMobileElemConstraint*)getItem(i)->getConstraint();
+		if( pConstraint->isEqual(pInputConst) )
+			return i;
+	}
+	return NULL;
 }

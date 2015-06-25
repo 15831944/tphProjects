@@ -40,10 +40,10 @@ void BoardingCallStandDatabase::readDatabase( ArctermFile& p_file, InputTerminal
 	for(int i=0; i<standCount; i++)
 	{
 		p_file.getLine();
-		CString strStand;
-		p_file.getField(strStand.GetBuffer(64), 64);
-		strStand.ReleaseBuffer();
-		AddStand(strStand.GetBuffer(), _pInTerm);
+		ProcessorID procID;
+		procID.SetStrDict(_pInTerm->inStrDict);
+		procID.readProcessorID(p_file);
+		AddStand(&procID, _pInTerm);
 
 		int paxCount;
 		p_file.getInteger(paxCount);
@@ -67,16 +67,16 @@ void BoardingCallStandDatabase::writeDatabase( ArctermFile& p_file)
 	}
 }
 
-void BoardingCallStandDatabase::AddStand( char* strProc, InputTerminal* _pInTerm )
+void BoardingCallStandDatabase::AddStand(ProcessorID* pProcID, InputTerminal* _pInTerm )
 {
 	ProcessorID* pStandProcID = new ProcessorID();
-	pStandProcID->SetStrDict(_pInTerm->inStrDict);
-	if(strProc)
+	if(pProcID)
 	{
-		pStandProcID->setID(strProc);
+		*pStandProcID = *pProcID;
 	}
 	else
 	{
+		pStandProcID->SetStrDict(_pInTerm->inStrDict);
 		pStandProcID->init(); /* Set 'Stand group': All Stand */
 	}
 	addEntry(*pStandProcID);
@@ -90,8 +90,11 @@ void BoardingCallStandDatabase::AddStand( char* strProc, InputTerminal* _pInTerm
 // For version 2.6 or older.
 void BoardingCallStandDatabase::AddStandFor260OrOlder( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm )
 {
-	ProcessorID* pStandProcID = new ProcessorID(pConstEntry->getProcID());
-	addEntry(*pStandProcID);
-	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);
-	pStandEntry->GetPaxTypeDatabase()->AddPaxTypeFor260OrOlder(pConstEntry, NULL);
+	if(findEntry(pConstEntry->getProcID()) == INT_MAX)
+	{
+		ProcessorID* pProcID = new ProcessorID(pConstEntry->getProcID());
+		addEntry(*pProcID);
+		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pProcID);
+		pStandEntry->GetPaxTypeDatabase()->AddPaxTypeFor260AndOlder(pConstEntry, NULL);
+	}
 }

@@ -2,11 +2,6 @@
 #include "..\common\flt_cnst.h"
 
 class InputTerminal;
-typedef enum 
-{
-	ENUM_DIALOG_TYPE_DEFAULT = 0,
-	ENUM_DIALOG_TYPE_BOARDING_CALL
-} customize_type;
 
 class CFlightDialog : public CDialog
 {
@@ -14,7 +9,7 @@ public:
 	CFlightDialog(CWnd* pParent, bool bShowThroughout = false);
 	void Setup(const FlightConstraint& FlightSelection, int Intrinsic = 0);
 	FlightConstraint GetFlightSelection() { return m_FlightSelection; }	
-	void CustomizeDialog(const FlightConstraint& fltConst, customize_type cusType);
+	
 protected:
 	enum { IDD = IDD_DIALOG_FLIGHT };
 
@@ -34,10 +29,6 @@ protected:
 	CListBox			m_Airport;
 	CString				m_strFlight;
 	bool				m_bShowThroughoutMode;
-
-	// some parts of this dialog will be disabled according to m_cusType.
-	// FLIGHT_DIALOG_TYPE_DEFAULT: all parts are enabled.
-	customize_type		m_cusType;
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnRadioAllflightsFlt();

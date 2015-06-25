@@ -235,12 +235,12 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 										double releasedProp = 0.0;
 										for(int iStage=0; iStage<triggerCount; iStage++)
 										{
-											tempTime = fltDepTime + vTrigger->at(iStage).GetTriggerTime();
+											tempTime = fltDepTime + (long)vTrigger->at(iStage).GetTriggerTimeValue();
 											
 											if(iStage < triggerCount-1)
 											{
-												percent = vTrigger->at(iStage).GetTriggerProportion() / (100.0 - releasedProp);
-												releasedProp += vTrigger->at(iStage).GetTriggerProportion();
+												percent = vTrigger->at(iStage).GetTriggerPropValue() / (100.0 - releasedProp);
+												releasedProp += vTrigger->at(iStage).GetTriggerPropValue();
 											}
 											else/* the 'residual' trigger. */
 											{

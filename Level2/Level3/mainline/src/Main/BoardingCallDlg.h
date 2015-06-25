@@ -16,7 +16,7 @@ public:
 	void ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEntry, HTREEITEM hTreeItemFlight );
 	void ReloadStand( BoardingCallStandEntry* pStandEntry, HTREEITEM hTreeItemStand );
 	void ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREEITEM hTreeItemPax );
-	void ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll);
+	void ReloadTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll);
 
 	CString GetProjPath();
 	InputTerminal* GetInputTerminal();

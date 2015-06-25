@@ -328,13 +328,12 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger>* vTrigger
 	RemoveTreeSubItem(hTriggerAll);
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
-	cni.net = NET_EDITSPIN_WITH_VALUE;
 	CString strItemText;
 	int triggerCount = vTriggers->size();
 	for(int triggerIndex=0; triggerIndex<triggerCount; triggerIndex++)
 	{
-		cni.net = NET_NORMAL;
 		strItemText.Format("Trigger: %d", (triggerIndex+1));
+		cni.net = NET_NORMAL;
 		HTREEITEM hTrigger = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTriggerAll);
 		TreeNodeDataWithType* nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER;
@@ -343,30 +342,32 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger>* vTrigger
 		BoardingCallTrigger* trigger = &vTriggers->at(triggerIndex);
 		CString strTime, strProp;
 		// Add time.
-		cni.net = NET_EDIT_WITH_VALUE;
-		int seconds = trigger->GetTriggerTime().asSeconds();
-		strTime.Format("Time range before STD(s): %d", seconds);
+		int seconds = (int)trigger->GetTriggerTimeValue();
+		strTime.Format("Time range before STD(seconds): %d", seconds);
 		nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER_TIME;
 		nodeDataTrigger->m_data = (DWORD)seconds;
+		cni.net = NET_EDIT_WITH_VALUE;
 		HTREEITEM hTriggerTime = m_tree.InsertItem(strTime, cni, FALSE, FALSE, hTrigger);
 		m_tree.SetItemData(hTriggerTime, (DWORD)nodeDataTrigger);
 		// Add proportion.
+
 		if(triggerIndex != triggerCount-1)
 		{
 			// user define trigger.
-			double prop = trigger->GetTriggerProportion();
+			double prop = trigger->GetTriggerPropValue();
 			strProp.Format("Proportion of Pax: %.2f", prop);
 			nodeDataTrigger = new TreeNodeDataWithType();
 			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
 			nodeDataTrigger->m_data = (DWORD)prop;
+			cni.net = NET_EDITSPIN_WITH_VALUE;
 			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
 		}
 		else
 		{
 			// the 'residual' trigger.
-			double prop = trigger->GetTriggerProportion();
+			double prop = trigger->GetTriggerPropValue();
 			cni.net = NET_NORMAL;
 			strProp = "Proportion of Pax: Residual";
 			nodeDataTrigger = new TreeNodeDataWithType();
@@ -376,7 +377,6 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger>* vTrigger
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
 		}
 	}
-
 }
 
 void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pResult) 
@@ -457,17 +457,12 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	fltConst.SetAirportDB(GetInputTerminal()->m_pAirportDB);
 	fltConst.SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
 	CFlightDialog flightTypeDlg(m_pParentWnd);
-	flightTypeDlg.CustomizeDialog(fltConst, ENUM_DIALOG_TYPE_BOARDING_CALL);
 	while( flightTypeDlg.DoModal() == IDOK )
 	{
 		fltConst = flightTypeDlg.GetFlightSelection();
 		if(pFlightTypeDB->findItemByConstraint(&fltConst) != INT_MAX)
 		{
-			int b_YesNo = MessageBox("Selected Flight Type is already exists, select again?", NULL, MB_YESNO|MB_ICONWARNING);
-			if(b_YesNo == IDNO)
-			{
-				break;
-			}
+			MessageBox("Selected Flight Type is already exists.");
 		}
 		else 
 		{
@@ -489,13 +484,32 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 	BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
 	CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
 	CDlgStandFamily standDlg(pDoc->GetProjectID());
-	if(standDlg.DoModal()==IDOK)
+	while(standDlg.DoModal()==IDOK)
 	{
 		CString strStand = standDlg.GetSelStandFamilyName();
-		pFlightTypeEntry->GetStandDatabase()->AddStand(strStand.GetBuffer(), GetInputTerminal());
-		ReloadFlightType(pFlightTypeEntry, hSelItem);
-		m_tree.Expand(hSelItem, TVE_EXPAND);
-		m_btnSave.EnableWindow(TRUE);
+		ProcessorID procID;
+		if(strStand.Compare("All Stand") == 0)
+		{
+			procID.init();
+			procID.SetStrDict(GetInputTerminal()->inStrDict);
+		}
+		else
+		{
+			procID.SetStrDict(GetInputTerminal()->inStrDict);
+			procID.setID(strStand.GetBuffer());
+		}
+		if(pFlightTypeEntry->GetStandDatabase()->findEntry(procID) != INT_MAX)
+		{
+			MessageBox("Selected Stand is already exists.");
+		}
+		else
+		{
+			pFlightTypeEntry->GetStandDatabase()->AddStand(&procID, GetInputTerminal());
+			ReloadFlightType(pFlightTypeEntry, hSelItem);
+			m_tree.Expand(hSelItem, TVE_EXPAND);
+			m_btnSave.EnableWindow(TRUE);
+			break;
+		}
 	}
 }
 
@@ -503,28 +517,27 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 {
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 
-	HTREEITEM hParFltTypeItem = m_tree.GetParentItem(hSelItem);
-	TreeNodeDataWithType* pData = (TreeNodeDataWithType*)m_tree.GetItemData(hParFltTypeItem);
-	ASSERT(pData->m_type == TREE_NODE_FLIGHT_TYPE);
-	BoardingCallFlightTypeEntry* pFltTypeEntry = (BoardingCallFlightTypeEntry*)pData->m_data;
-
-	CMobileElemConstraint mobElemConst;
-	mobElemConst.SetInputTerminal(GetInputTerminal());
-	mobElemConst.MergeFlightConstraint((FlightConstraint*)pFltTypeEntry->getConstraint());
-
 	CPassengerTypeDialog paxTypeDlg(m_pParentWnd);
-	if(paxTypeDlg.DoModal() == IDOK)
+	while(paxTypeDlg.DoModal() == IDOK)
 	{
-		mobElemConst = paxTypeDlg.GetMobileSelection();
+		CMobileElemConstraint mobElemConst;
 		mobElemConst.SetInputTerminal(GetInputTerminal());
-
+		mobElemConst = paxTypeDlg.GetMobileSelection();
 		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 		ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
 		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
-		pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobElemConst, NULL);
-		ReloadStand(pStandEntry, hSelItem);
-		m_tree.Expand(hSelItem, TVE_EXPAND);
-		m_btnSave.EnableWindow(TRUE);
+		if(pStandEntry->GetPaxTypeDatabase()->FindItemByConstraint(&mobElemConst) != NULL)
+		{
+			MessageBox("Selected Stand is already exists.");
+		}
+		else
+		{
+			pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobElemConst, NULL);
+			ReloadStand(pStandEntry, hSelItem);
+			m_tree.Expand(hSelItem, TVE_EXPAND);
+			m_btnSave.EnableWindow(TRUE);
+			break;
+		}
 	}
 }
 
@@ -686,9 +699,6 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
-			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-
 			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
 
 			// Reload all sibling item.
@@ -698,6 +708,14 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
 			BoardingCallPaxTypeDatabase* pPaxTypeDB = pStandEntry->GetPaxTypeDatabase();
 
+			if(pPaxTypeDB->Find(pPaxEntry)!=INT_MAX && pStandEntry->getID()->isBlank())
+			{
+				MessageBox("Can't delete the DEFAULT Passenger Type.");
+				return;
+			}
+
+			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
+			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
 			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
 			{
 				BOOL b_YesNo = MessageBox("Delete All Passenger Types?","Delete Passenger Type", MB_YESNO|MB_ICONWARNING);
@@ -774,7 +792,6 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 			FlightConstraint* pOldConst = (FlightConstraint*)pFlightTypeEntry->getConstraint();
 
 			CFlightDialog flightTypeDlg(m_pParentWnd);
-			flightTypeDlg.CustomizeDialog(*pOldConst, ENUM_DIALOG_TYPE_BOARDING_CALL);
 
 			HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
 			TreeNodeDataWithType* pParData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
@@ -792,11 +809,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				}
 				else if(pfltTypeDB->findItemByConstraint(&fltConst) != INT_MAX)
 				{
-					int b_YesNo = MessageBox("Selected Flight Type is already exists, select again?", NULL, MB_YESNO|MB_ICONWARNING);
-					if(b_YesNo == IDNO)
-					{
-						break;
-					}
+					MessageBox("Selected Flight Type is already exists.");
 				}
 				else
 				{
@@ -820,47 +833,87 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 		{
 			CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
 			CDlgStandFamily standDlg(pDoc->GetProjectID());
-			if(standDlg.DoModal()==IDOK)
+
+			HTREEITEM hFltTypeItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pFltTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hFltTypeItem);
+			ASSERT(pFltTypeData->m_type == TREE_NODE_FLIGHT_TYPE);
+			BoardingCallFlightTypeEntry* pFltTypeEntry = (BoardingCallFlightTypeEntry*)pFltTypeData->m_data;
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+			while(standDlg.DoModal()==IDOK)
 			{
-				BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
 				CString strStand = standDlg.GetSelStandFamilyName();
 				ProcessorID procID;
 				procID.SetStrDict(GetInputTerminal()->inStrDict);
-				procID.setID(strStand.GetBuffer());
-				pStandEntry->SetProcessorID(procID);
+				if(strStand.Compare("All Stand") == 0)
+				{
+					procID.init();
+				}
+				else
+				{
+					procID.setID(strStand.GetBuffer());
+				}
 
-				// Reload all sibling item.
-				HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
-				ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
-				BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
-				ReloadFlightType(pFlightEntry, hFlightTypeItem);
-				m_tree.SelectItem(hFlightTypeItem);
-				m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
-				m_btnSave.EnableWindow(TRUE);
+				if(pFltTypeEntry->GetStandDatabase()->findEntry(procID) != INT_MAX)
+				{
+					MessageBox("Selected Stand is already exists.");
+				}
+				else
+				{
+					pStandEntry->SetProcessorID(procID);
+
+					// Reload all sibling item.
+					HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
+					TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
+					ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
+					BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
+					m_tree.SelectItem(hFlightTypeItem);
+					ReloadFlightType(pFlightEntry, hFlightTypeItem);
+					m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
+					m_btnSave.EnableWindow(TRUE);
+					break;
+				}
 			}
-
 		}
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			CPassengerTypeDialog paxTypeDlg( m_pParentWnd );
-			if( paxTypeDlg.DoModal() == IDOK )
-			{
-				BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
-				CMobileElemConstraint selectedPaxConstraint = paxTypeDlg.GetMobileSelection();
-				CMobileElemConstraint* pOldConst = (CMobileElemConstraint*)pPaxTypeEntry->getConstraint();
-				*pOldConst = selectedPaxConstraint;
+			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
 
-				// Reload all sibling item.
-				HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
-				ASSERT(pParentData->m_type == TREE_NODE_STAND);
-				BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
-				ReloadStand(pStandEntry, hStandItem);
-				m_tree.SelectItem(hStandItem);
-				m_tree.Expand(hStandItem, TVE_EXPAND);
-				m_btnSave.EnableWindow(TRUE);
+			HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pStandData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pStandData->m_data;
+
+			if(pStandEntry->GetPaxTypeDatabase()->Find(pPaxTypeEntry)!=INT_MAX &&
+				pStandEntry->getID()->isBlank())
+			{
+				MessageBox("Can't change the DEFAULT Passenger Type.");
+				return;
+			}
+			CPassengerTypeDialog paxTypeDlg( m_pParentWnd );
+			while(paxTypeDlg.DoModal() == IDOK)
+			{
+				
+				CMobileElemConstraint mobElemConst = paxTypeDlg.GetMobileSelection();
+				CMobileElemConstraint* pOldConst = (CMobileElemConstraint*)pPaxTypeEntry->getConstraint();
+				
+				if(pStandEntry->GetPaxTypeDatabase()->FindEqual(mobElemConst) != NULL)
+				{
+					MessageBox("Selected Stand is already exists.");
+				}
+				else
+				{
+					*pOldConst = mobElemConst;
+					// Reload all sibling item.
+					HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
+					TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
+					ASSERT(pParentData->m_type == TREE_NODE_STAND);
+					BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
+					ReloadStand(pStandEntry, hStandItem);
+					m_tree.SelectItem(hStandItem);
+					m_tree.Expand(hStandItem, TVE_EXPAND);
+					m_btnSave.EnableWindow(TRUE);
+					break;
+				}
 			}
 		}
 		break;
@@ -922,13 +975,13 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		switch(pDataWithType->m_type)
 		{
 		case TREE_NODE_TRIGGER_ALL:
-			m_tree.SetItemValueRange(hSelItem,1,100);
+			m_tree.SetItemValueRange(hSelItem, 1, 100);
 			break;
 		case TREE_NODE_TRIGGER_TIME:
-			m_tree.SetItemValueRange(hSelItem,1,864000);
+			m_tree.SetItemValueRange(hSelItem, 0, 864000);
 			break;
 		case TREE_NODE_TRIGGER_PROP:
-			m_tree.SetItemValueRange(hSelItem,1,100);
+			m_tree.SetItemValueRange(hSelItem, 1, 100);
 			break;
 		default:
 			break;
@@ -959,6 +1012,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 				pPaxEntry->SetTriggerCount(userSetCount);
 				ReloadTriggers(pVecTrigger, hSelItem);
 				m_tree.Expand(hSelItem, TVE_EXPAND);
+				m_btnSave.EnableWindow(TRUE);
 			}
 			break;
 		case TREE_NODE_TRIGGER_TIME:
@@ -975,7 +1029,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 
 				int triggerIndex = (int)pTriggerData->m_data;
 				pPaxTypeEntry->SetTriggerTime(triggerIndex, userSetTime);
-				break;
+				m_btnSave.EnableWindow(TRUE);
 			}
 			break;
 		case TREE_NODE_TRIGGER_PROP:
@@ -992,6 +1046,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 
 				int triggerIndex = (int)pTriggerData->m_data;
 				pPaxTypeEntry->SetTriggerProportion(triggerIndex, userSetProp);
+				m_btnSave.EnableWindow(TRUE);
 			}
 			break;
 		default:

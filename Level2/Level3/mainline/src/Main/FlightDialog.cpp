@@ -24,7 +24,6 @@ static const int SELECTED_TEXT_LEN = 1024;
 CFlightDialog::CFlightDialog(CWnd* pParent, bool bShowThroughout)
  : CDialog(CFlightDialog::IDD, pParent)
  , m_bShowThroughoutMode(bShowThroughout)
- , m_cusType(ENUM_DIALOG_TYPE_DEFAULT)
 {
 }
 
@@ -194,7 +193,6 @@ void CFlightDialog::OnSelchangeListAirportFlt()
 
 	CString strTemp;
 	m_FlightSelection.getAirport(strTemp.GetBuffer(512));
-	strTemp.ReleaseBuffer();
 	if (strTemp == strSel)
 	{
 		m_Airport.SetSel(-1);
@@ -218,7 +216,6 @@ void CFlightDialog::OnSelchangeListActypeFlt()
 	
 	CString strTemp;
 	m_FlightSelection.getACType(strTemp.GetBuffer(512));
-	strTemp.ReleaseBuffer();
 	if (strTemp == strSel)
 	{
 		m_ACType.SetSel(-1);
@@ -240,8 +237,7 @@ void CFlightDialog::OnSelchangeListSectorFlt()
 	m_Sector.GetText(nIndex, strSel);
 
 	CString strTemp;
-	m_FlightSelection.getSector(strTemp.GetBuffer(255));
-	strTemp.ReleaseBuffer();
+	m_FlightSelection.getSector(strTemp.GetBuffer(0));
 	if (strTemp == strSel)
 	{
 		m_Sector.SetSel(-1);
@@ -295,7 +291,6 @@ void CFlightDialog::OnSelchangeListAirlineGroup()
 
 	CString strTemp;
 	m_FlightSelection.getAirlineGroup(strTemp.GetBuffer(255));
-	strTemp.ReleaseBuffer();
 	if (strTemp == strSel)
 	{
 		m_listAirlineGroup.SetSel(-1);
@@ -303,7 +298,6 @@ void CFlightDialog::OnSelchangeListAirlineGroup()
 	}
 	//m_FlightSelection.SetInputTerminal( GetInputTerminal() );
 	m_FlightSelection.getFlightGroup(strTemp.GetBuffer(255));
-	strTemp.ReleaseBuffer();
 	if (strTemp == strSel)
 	{
 		m_listAirlineGroup.SetSel(-1);
@@ -334,14 +328,6 @@ void CFlightDialog::Setup(const FlightConstraint &FlightSelection,int Instrinsic
 	// Reset all the selection.
 	ResetSeletion();
 }
-
-void CFlightDialog::CustomizeDialog(const FlightConstraint& fltConst, customize_type cusType)
-{
-	m_FlightSelection = fltConst;
-	m_cusType = cusType;
-	ResetSeletion();
-}
-
 
 void CFlightDialog::ResetSeletion()
 {
@@ -385,28 +371,6 @@ void CFlightDialog::ResetSeletion()
 			pBtn->SetCheck(1);
 	}
 	
-	//
-	// Customize type
-	//
-	switch(m_cusType)
-	{
-	case ENUM_DIALOG_TYPE_DEFAULT:
-		break;
-	case ENUM_DIALOG_TYPE_BOARDING_CALL:
-		pBtn = (CButton *) GetDlgItem(IDC_RADIO_ALLFLIGHTS_FLT);
-		if (pBtn != NULL)
-			pBtn->EnableWindow(FALSE);
-		pBtn = (CButton *) GetDlgItem(IDC_RADIO_ARRIVING_FLT);
-		if (pBtn != NULL)
-			pBtn->EnableWindow(FALSE);
-		pBtn = (CButton *) GetDlgItem(IDC_RADIO_THROUGHOUT_FLT);
-		if (pBtn != NULL)
-			pBtn->EnableWindow(FALSE);
-		break;
-	default:
-		break;
-	}
-
 	//
 	// Flight stuff
 	//
