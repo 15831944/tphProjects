@@ -76,7 +76,7 @@ void BoardingCallFlightTypeDatabase::readDatabase(ArctermFile& p_file, InputTerm
 	}
 }
 
-void BoardingCallFlightTypeDatabase::writeDatabase(ArctermFile& p_file, char* szLabel, InputTerminal* _pInTerm)
+void BoardingCallFlightTypeDatabase::writeDatabase(ArctermFile& p_file)
 {
 	int flightCount = getCount();
 	for(int i=0; i<flightCount; i++)
@@ -89,6 +89,6 @@ void BoardingCallFlightTypeDatabase::writeDatabase(ArctermFile& p_file, char* sz
 		p_file.writeInt(standCount);
 		p_file.writeLine();
 		
-		pFlightEntry->GetStandDatabase()->writeDatabase(p_file, _pInTerm);
+		pFlightEntry->GetStandDatabase()->writeDatabase(p_file);
 	}
 }

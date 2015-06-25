@@ -27,6 +27,6 @@ public:
 	void AddStandFromOld(ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm);
 	virtual void deleteItem(BoardingCallStandEntry* pStandEntry);
 	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int standCount);
-	void writeDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
+	void writeDatabase(ArctermFile& p_file);
 };
 

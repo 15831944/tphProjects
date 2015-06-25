@@ -208,7 +208,7 @@ void FlightData::writeBoardingCallData( ArctermFile &p_file ) const
 		int flightCount = m_vStages[i]->getCount();
 		p_file.writeInt(flightCount);
 		p_file.writeLine();
-		m_vStages[i]->writeDatabase( p_file, szLabel, m_pInTerm );
+		m_vStages[i]->writeDatabase(p_file);
 	}
 	p_file.writeField("BOARDING_CALL_DATA_END");
 	p_file.writeLine();

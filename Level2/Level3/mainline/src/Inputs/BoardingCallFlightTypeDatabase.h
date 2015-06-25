@@ -28,7 +28,7 @@ public:
 	void AddFlightFromOld(FlightConWithProcIDDatabase* pOldStage, InputTerminal* _pInTerm);
 
 	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int fltTypeCount);
-	void writeDatabase(ArctermFile& p_file, char* szLabel, InputTerminal* _pInTerm);
+	void writeDatabase(ArctermFile& p_file);
 	virtual void deleteItem(ConstraintEntry* pConst);
 };
 

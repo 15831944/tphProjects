@@ -212,40 +212,35 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 				{
 					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetStageInformation(iStage -1);
 					int ifltTypeCount = pFltTypeDB->getCount();
-					for(int xx=0; xx<ifltTypeCount; xx++)
+					for(int iFlt=0; iFlt<ifltTypeCount; iFlt++)
 					{
-						if(pFltTypeDB->getConstraint(xx)->fits(fltConst))
+						if(pFltTypeDB->getConstraint(iFlt)->fits(fltConst))
 						{
-							BoardingCallStandDatabase* pStandDB = ((BoardingCallFlightTypeEntry*)pFltTypeDB->getItem(xx))->GetStandDatabase();
+							BoardingCallStandDatabase* pStandDB = ((BoardingCallFlightTypeEntry*)pFltTypeDB->getItem(iFlt))->GetStandDatabase();
 							int standCount = pStandDB->getCount();
-							for(int yy=0; yy<standCount; yy++)
+							for(int iStand=0; iStand<standCount; iStand++)
 							{
-								CString id1, id2;
-								pStandDB->getItem(yy)->getID()->printID(id1.GetBuffer(64));
-								procID.printID(id2.GetBuffer(64));
-								id1.ReleaseBuffer();
-								id2.ReleaseBuffer();
-								if(pStandDB->getItem(yy)->getID()->idFits(procID))
+								if(pStandDB->getItem(iStand)->getID()->idFits(procID))
 								{
-									BoardingCallPaxTypeDatabase* pPaxTypeDB = ((BoardingCallStandEntry*)pStandDB->getItem(yy))->GetPaxTypeDatabase();
+									BoardingCallPaxTypeDatabase* pPaxTypeDB = ((BoardingCallStandEntry*)pStandDB->getItem(iStand))->GetPaxTypeDatabase();
 									int paxTypeCount = pPaxTypeDB->getCount();
-									for(int zz=0; zz<paxTypeCount; zz++)
+									for(int iPax=0; iPax<paxTypeCount; iPax++)
 									{
-										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(zz);
+										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(iPax);
 										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
 										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D')));
 										std::vector<BoardingCallTrigger>* vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger->size();
 										ElapsedTime tempTime;
 										double releasedProp = 0.0;
-										for(int aa=0; aa<triggerCount; aa++)
+										for(int iStage=0; iStage<triggerCount; iStage++)
 										{
-											tempTime = fltDepTime + vTrigger->at(aa).GetTriggerTime();
+											tempTime = fltDepTime + vTrigger->at(iStage).GetTriggerTime();
 											
-											if(aa < triggerCount-1)
+											if(iStage < triggerCount-1)
 											{
-												percent = vTrigger->at(aa).GetTriggerProportion() / (100.0 - releasedProp);
-												releasedProp += vTrigger->at(aa).GetTriggerProportion();
+												percent = vTrigger->at(iStage).GetTriggerProportion() / (100.0 - releasedProp);
+												releasedProp += vTrigger->at(iStage).GetTriggerProportion();
 											}
 											else/* the 'residual' trigger. */
 											{

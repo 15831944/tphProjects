@@ -484,7 +484,8 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 	if(paxTypeDlg.DoModal() == IDOK)
 	{
 		CMobileElemConstraint mobileConst = paxTypeDlg.GetMobileSelection();
-		pStandEntry->GetPaxTypeDatabase()->AddPax(&mobileConst);
+		mobileConst.SetInputTerminal(GetInputTerminal());
+		pStandEntry->GetPaxTypeDatabase()->AddPax(&mobileConst, NULL);
 		ReloadStand(pStandEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 		m_btnSave.EnableWindow(TRUE);
@@ -503,6 +504,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		BOOL b_YesNo = MessageBox("Delete All Stages?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
 		if(b_YesNo == IDYES)
 		{
+			// Check if boarding call stage is used in Behavior.
 			MiscProcessorData* pMiscDB = GetInputTerminal()->miscData->getDatabase( (int)HoldAreaProc );
 			for (int nProcIdx = 0; nProcIdx < pMiscDB->getCount(); nProcIdx++)
 			{
@@ -516,6 +518,8 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 					return;
 				}
 			}
+
+			// Delete all stages and new a default one.
 			int nDBCount=GetInputTerminal()->flightData->GetStageCount();
 			for(int i=0;i<nDBCount;i++)
 			{
@@ -654,7 +658,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 				{
 					pPaxTypeDB->deleteItem(pPaxEntry);
 					m_tree.SelectItem(hStandItem);
-					pPaxTypeDB->AddPax(NULL);
+					pPaxTypeDB->AddPax(NULL, GetInputTerminal());
 					ReloadStand(pStandEntry, hStandItem);
 				}
 				return;

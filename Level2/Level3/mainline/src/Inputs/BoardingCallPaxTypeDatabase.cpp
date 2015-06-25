@@ -90,7 +90,7 @@ void BoardingCallPaxTypeEntry::readTriggerDatabase( ArctermFile& p_file, int tri
 	}
 }
 
-void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm )
+void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file)
 {
 	int count = GetTriggerCount();
 	CString strTrigger;
@@ -125,7 +125,7 @@ void BoardingCallPaxTypeDatabase::deleteItem( ConstraintEntry* pConst )
 	delete pConst;
 }
 
-void BoardingCallPaxTypeDatabase::AddPax( CMobileElemConstraint* pInputConst )
+void BoardingCallPaxTypeDatabase::AddPax( CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm)
 {
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
 	if(pInputConst)
@@ -134,6 +134,8 @@ void BoardingCallPaxTypeDatabase::AddPax( CMobileElemConstraint* pInputConst )
 	}
 	else
 	{
+		ASSERT(_pInTerm);
+		pMBConst->SetInputTerminal(_pInTerm);
 		pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
 	}
 	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
@@ -148,10 +150,10 @@ void BoardingCallPaxTypeDatabase::readDatabase( ArctermFile& p_file, InputTermin
 	for(int i=0; i<paxCount; i++)
 	{
 		p_file.getLine();
-		CMobileElemConstraint mobileConst;
-		mobileConst.SetInputTerminal(_pInTerm);
-		mobileConst.readConstraint(p_file);
-		AddPax(&mobileConst);
+		CMobileElemConstraint paxConst;
+		paxConst.SetInputTerminal(_pInTerm);
+		paxConst.readConstraint(p_file);
+		AddPax(&paxConst, _pInTerm);
 
 		int triggerCount;
 		p_file.getInteger(triggerCount);
@@ -159,7 +161,7 @@ void BoardingCallPaxTypeDatabase::readDatabase( ArctermFile& p_file, InputTermin
 	}
 }
 
-void BoardingCallPaxTypeDatabase::writeDatabase( ArctermFile& p_file, InputTerminal* _pInTerm )
+void BoardingCallPaxTypeDatabase::writeDatabase(ArctermFile& p_file)
 {
 	int paxCount = getCount();
 	for(int i=0; i<paxCount; i++)
@@ -167,19 +169,19 @@ void BoardingCallPaxTypeDatabase::writeDatabase( ArctermFile& p_file, InputTermi
 		CString strPax;
 		BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)getItem(i);
 		CMobileElemConstraint* pPaxConst = (CMobileElemConstraint*)pPaxEntry->getConstraint();
-		pPaxConst->screenPrint(strPax);
-		p_file.writeField(strPax);
+		pPaxConst->writeConstraint(p_file);
 		int triggerCount = pPaxEntry->GetTriggerCount();
 		p_file.writeInt(triggerCount);
 		p_file.writeLine();
 
-		pPaxEntry->writeTriggerDatabase(p_file, _pInTerm);
+		pPaxEntry->writeTriggerDatabase(p_file);
 	}
 }
 
-void BoardingCallPaxTypeDatabase::AddPaxFromOld( ConstraintWithProcIDEntry* pConstEntry )
+void BoardingCallPaxTypeDatabase::AddPaxFromOld( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm)
 {
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
+	pMBConst->SetInputTerminal(_pInTerm);
 	pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
 	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
 	pPaxEntry->initialize(pMBConst, NULL);

@@ -53,7 +53,7 @@ public:
 	void SetTriggerCount(int count);
 
 	void readTriggerDatabase( ArctermFile& p_file, int triggerCount);
-	void writeTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm );
+	void writeTriggerDatabase( ArctermFile& p_file);
 };
 
 class BoardingCallPaxTypeDatabase : public CMobileElemConstraintDatabase
@@ -63,9 +63,9 @@ public:
 	~BoardingCallPaxTypeDatabase();
 
 	virtual void deleteItem(ConstraintEntry* pConst);
-	void AddPax(CMobileElemConstraint* pInputConst);
-	void AddPaxFromOld(ConstraintWithProcIDEntry* pConstEntry);
-	void readDatabase( ArctermFile& p_file, InputTerminal* _pInTerm, int paxCount);
-	void writeDatabase( ArctermFile& p_file, InputTerminal* _pInTerm );
+	void AddPax(CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm);
+	void AddPaxFromOld(ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm);
+	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int paxCount);
+	void writeDatabase(ArctermFile& p_file);
 };
 

@@ -51,7 +51,7 @@ void BoardingCallStandDatabase::readDatabase( ArctermFile& p_file, InputTerminal
 	}
 }
 
-void BoardingCallStandDatabase::writeDatabase( ArctermFile& p_file, InputTerminal* _pInTerm )
+void BoardingCallStandDatabase::writeDatabase( ArctermFile& p_file)
 {
 	int standCount = getCount();
 	for(int i=0; i<standCount; i++)
@@ -63,7 +63,7 @@ void BoardingCallStandDatabase::writeDatabase( ArctermFile& p_file, InputTermina
 		p_file.writeInt(paxCount);
 		p_file.writeLine();
 
-		pStandEntry->GetPaxTypeDatabase()->writeDatabase(p_file, _pInTerm );
+		pStandEntry->GetPaxTypeDatabase()->writeDatabase(p_file);
 	}
 }
 
@@ -81,7 +81,7 @@ void BoardingCallStandDatabase::AddStand( char* strProc, InputTerminal* _pInTerm
 	}
 	addEntry(*pStandProcID);
 	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);
-	pStandEntry->GetPaxTypeDatabase()->AddPax(NULL); /*add a default mobile element constraint entry.*/
+	pStandEntry->GetPaxTypeDatabase()->AddPax(NULL, _pInTerm); /*add a default mobile element constraint entry.*/
 }
 
 void BoardingCallStandDatabase::AddStandFromOld( ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm )
@@ -89,5 +89,5 @@ void BoardingCallStandDatabase::AddStandFromOld( ConstraintWithProcIDEntry* pCon
 	ProcessorID* pStandProcID = new ProcessorID(pConstEntry->getProcID());
 	addEntry(*pStandProcID);
 	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);
-	pStandEntry->GetPaxTypeDatabase()->AddPaxFromOld(pConstEntry);
+	pStandEntry->GetPaxTypeDatabase()->AddPaxFromOld(pConstEntry, NULL);
 }
