@@ -71,8 +71,8 @@ public:
 	void setSubType(int nSubType){m_nSubType = nSubType ;}
 	int getSubType(){ return m_nSubType;}
 
-    bool GetEnableMultiRun() const { return m_enableMultiRun; }
-    void SetEnableMultiRun(bool val) { m_enableMultiRun = val; }
+    bool GetMultiRun() const { return m_multiRun; }
+    void SetMultiRun(bool val) { m_multiRun = val; }
 
     bool GetReportRuns(std::vector<int>& vReportRuns);
     void ReportRuns(std::vector<int> val) { m_vReportRuns = val; }
@@ -95,7 +95,7 @@ protected:
 	int m_unitLength;
     CAirportDatabase* m_AirportDB ;
 	CString			m_strReportPath;
-    bool m_enableMultiRun;
+    bool m_multiRun;
     std::vector<int> m_vReportRuns;
 public:
 	void SetAirportDB(CAirportDatabase* _AirportDB) { m_AirportDB = _AirportDB ;} ;

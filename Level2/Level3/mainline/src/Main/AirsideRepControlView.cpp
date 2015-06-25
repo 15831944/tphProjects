@@ -953,7 +953,7 @@ void CAirsideRepControlView::InitializeTree()
 			m_treePaxType.SetItemData(hItemTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToRoot));
             
             cni.nt = NT_CHECKBOX;
-            HTREEITEM hRunsRoot = m_treePaxType.InsertItem("Multi Runs", cni, m_pParameter->GetEnableMultiRun(), FALSE);
+            HTREEITEM hRunsRoot = m_treePaxType.InsertItem("Multi Runs", cni, m_pParameter->GetMultiRun(), FALSE);
             m_treePaxType.SetItemData(hRunsRoot, (DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_MultiRunRoot));
 
             std::vector<int> vMultiRun;
@@ -962,8 +962,6 @@ void CAirsideRepControlView::InitializeTree()
             int nSimCount = pSimAndReportManager->getSubSimResultCout();
             for (int nSim =0; nSim < nSimCount; ++nSim )
             {
-                //CSimItem *pSimItem = pSimAndReportManager->getSimItem(nSim);
-                //CString strSimName = pSimItem->getSubSimName();
                 CString strSimName;
                 strSimName.Format(_T("RUN %d"),nSim+1);
                 HTREEITEM hSubSimItem = m_treePaxType.InsertItem(strSimName, cni, FALSE, FALSE, hRunsRoot);
@@ -3363,7 +3361,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
             repControlTreeNodeData* pNodeData = (repControlTreeNodeData*)m_treePaxType.GetItemData(hSelItem);
             if(pNodeData->nodeType == repControlTreeNodeType_MultiRunRoot)
             {
-                m_pParameter->SetEnableMultiRun(!m_pParameter->GetEnableMultiRun());
+                m_pParameter->SetMultiRun(!m_pParameter->GetMultiRun());
             }
             else if(pNodeData->nodeType == repControlTreeNodeType_Runs)
             {
@@ -3406,7 +3404,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CRunwayUtilizationTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CRunwayUtilizationTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;
@@ -3423,7 +3421,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				m_pTreePerformer = NULL;
 			}
 
-			m_pTreePerformer = new AirsideReControlView::CRunwayDelayParaTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CRunwayDelayParaTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;
@@ -3439,7 +3437,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CRunwayCrossingsTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CRunwayCrossingsTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;
@@ -3455,7 +3453,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CAirsideIntersectionTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CAirsideIntersectionTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;
@@ -3471,7 +3469,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;
@@ -3488,7 +3486,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CStandOperationsTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CStandOperationsTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;
@@ -3504,7 +3502,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CTakeoffProcessTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CTakeoffProcessTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 	case Airside_ControllerWorkload:
@@ -3520,7 +3518,7 @@ AirsideReControlView::CTreePerformer * CAirsideRepControlView::GetTreePerformer(
 				delete m_pTreePerformer;
 				m_pTreePerformer = NULL;
 			}
-			m_pTreePerformer = new AirsideReControlView::CAirsideControllerWorkloadTreePerformer(pTermPlanDoc->GetProjectID(),&m_treePaxType,m_pParameter);
+			m_pTreePerformer = new AirsideReControlView::CAirsideControllerWorkloadTreePerformer(pTermPlanDoc,&m_treePaxType,m_pParameter);
 			return m_pTreePerformer;
 		}
 		break;

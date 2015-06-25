@@ -357,7 +357,7 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 			pParam->setSubType(nSubType);
 			CAirsideFlightDelayReport *pPreport = reinterpret_cast< CAirsideFlightDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 			std::vector<int> vReportRun;
-			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			if(pParam->GetReportRuns(vReportRun))
 			{
 				if (vReportRun.size() > 1)
 				{
@@ -1450,7 +1450,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			pParam->setSubType(nSubType);
 			std::vector<int> vReportRun;
 			bool bMultiple = false;
-			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			if(pParam->GetReportRuns(vReportRun))
 			{
 				if (vReportRun.size() > 1)
 				{

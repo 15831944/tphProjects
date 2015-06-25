@@ -144,7 +144,7 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 		if(pReportManager->GetReportType() == Airside_FlightDelay)
 		{
 			std::vector<int> vReportRun;
-			if (pParameter->GetReportRuns(vReportRun) == true && pParameter->GetEnableMultiRun())
+			if (pParameter->GetReportRuns(vReportRun) == true)
 			{
 				if (vReportRun.size() > 1)
 				{
@@ -173,7 +173,7 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 	if(pReportManager->GetReportType() == Airside_FlightDelay)
 	{
 		std::vector<int> vReportRun;
-		if (pParameter->GetReportRuns(vReportRun) == true && pParameter->GetEnableMultiRun())
+		if (pParameter->GetReportRuns(vReportRun) == true)
 		{
 			if (vReportRun.size() > 1)
 			{

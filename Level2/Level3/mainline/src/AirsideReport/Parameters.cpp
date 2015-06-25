@@ -15,7 +15,7 @@ CParameters::CParameters()
 ,m_unitLength(0)
 ,m_pUnitManager(NULL)
 ,m_AirportDB(NULL)
-,m_enableMultiRun(false)
+,m_multiRun(false)
 {
 	//memset(m_modelName,0,sizeof(char)*255) ;
 	_tcscpy(m_modelName,_T("UnknowDef")) ;
@@ -161,7 +161,7 @@ BOOL CParameters::ExportFile(ArctermFile& _file)
 		_file.writeLine() ;
 	}
 
-    if(m_enableMultiRun)
+    if(m_multiRun)
         _file.writeChar('T');
     else
         _file.writeChar('F');
@@ -274,9 +274,9 @@ BOOL CParameters::ImportFileVersion1( ArctermFile& _file )
     char isMultiRun;
     _file.getChar(isMultiRun);
     if(isMultiRun == 'T')
-        m_enableMultiRun = true;
+        m_multiRun = true;
     else
-        m_enableMultiRun = false;
+        m_multiRun = false;
 
     _file.getLine();
     _file.getInteger(size);

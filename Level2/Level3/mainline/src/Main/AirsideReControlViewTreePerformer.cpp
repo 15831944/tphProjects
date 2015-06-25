@@ -22,18 +22,20 @@
 #include "DlgSelectMulti_ALTObjectList.h"
 #include "../AirsideGUI/NodeViewDbClickHandler.h"
 #include "../AirsideReport/AirsideTakeoffProcessParameter.h"
+#include "Common/SimAndReportManager.h"
+
 
 using namespace AirsideReControlView;
 
 
-AirsideReControlView::CTreePerformer::CTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CTreePerformer::CTreePerformer(CTermPlanDoc* pTermDoc, CCoolTree *pTreeCtrl, CParameters *pParam )
 {
 	ASSERT(pTreeCtrl != NULL);
 	ASSERT( pParam != NULL);
 
 	m_pTreeCtrl = pTreeCtrl;
 	m_pParam = pParam;
-	m_nProjID = nProjID;
+	m_pTermDoc = pTermDoc;
 }
 
 CTreePerformer::~CTreePerformer(void)
@@ -83,8 +85,8 @@ HTREEITEM AirsideReControlView::CTreePerformer::InsertItem( HTREEITEM hParentIte
 
 //////////////////////////////////////////////////////////////////////////
 //AirsideReControlView::CRunwayUtilizationTreePerformer
-AirsideReControlView::CRunwayUtilizationTreePerformer::CRunwayUtilizationTreePerformer(int nProjID,  CCoolTree *pTreeCtrl, CParameters *pParam )
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CRunwayUtilizationTreePerformer::CRunwayUtilizationTreePerformer(CTermPlanDoc* pDoc,  CCoolTree *pTreeCtrl, CParameters *pParam )
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 	m_hItemRunwayRoot = NULL;
 	m_hOperationItemSelected = NULL;
@@ -311,7 +313,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::OnToolBarAdd( HTREEI
     CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_RunwayRoot)//new runway
 	{
-		CDlgSelectReportRunway dlg(m_nProjID,m_pTreeCtrl->GetParent());
+		CDlgSelectReportRunway dlg(m_pTermDoc->GetProjectID(),m_pTreeCtrl->GetParent());
 		if(dlg.DoModal() == IDOK)
 		{
 
@@ -334,7 +336,7 @@ void AirsideReControlView::CRunwayUtilizationTreePerformer::OnToolBarAdd( HTREEI
 	}
 	else if(pItemData->itemType == Item_AirRouteRoot)//new airroute
 	{
-		CDlgReportSelectAirRoute dlg(m_nProjID,m_pTreeCtrl->GetParent());
+		CDlgReportSelectAirRoute dlg(m_pTermDoc->GetProjectID(),m_pTreeCtrl->GetParent());
 		if(dlg.DoModal() == IDOK)
 		{
 			int nAirRouteCount = (int)dlg.m_vAirARouteSel.size();
@@ -691,8 +693,8 @@ LRESULT AirsideReControlView::CRunwayUtilizationTreePerformer::DefWindowProc( UI
 
 //////////////////////////////////////////////////////////////////////////
 //AirsideReControlView::CRunwayDelayParaTreePerformer
-AirsideReControlView::CRunwayDelayParaTreePerformer::CRunwayDelayParaTreePerformer(int nProjID,  CCoolTree *pTreeCtrl, CParameters *pParam )
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CRunwayDelayParaTreePerformer::CRunwayDelayParaTreePerformer(CTermPlanDoc* pDoc,  CCoolTree *pTreeCtrl, CParameters *pParam )
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 	m_hItemRunwayRoot = NULL;
 	m_hOperationItemSelected = NULL;
@@ -872,7 +874,7 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::OnToolBarAdd( HTREEITE
     CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_RunwayRoot)//new runway
 	{
-		CDlgSelectReportRunway dlg(m_nProjID,m_pTreeCtrl->GetParent());
+		CDlgSelectReportRunway dlg(m_pTermDoc->GetProjectID(),m_pTreeCtrl->GetParent());
 		if(dlg.DoModal() == IDOK)
 		{
 			TreeItemData *pItemDataRunway = new TreeItemData;
@@ -1185,8 +1187,8 @@ LRESULT AirsideReControlView::CRunwayDelayParaTreePerformer::DefWindowProc( UINT
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-AirsideReControlView::CRunwayCrossingsTreePerformer::CRunwayCrossingsTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam)
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CRunwayCrossingsTreePerformer::CRunwayCrossingsTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam)
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 
 }
@@ -1302,7 +1304,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::OnToolBarAdd(HTREEITEM
     CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	if(pItemData->itemType == Item_RunwayRoot)
 	{
-		CDlgSelectALTObject dlg(m_nProjID,ALT_RUNWAY,m_pTreeCtrl->GetParent());
+		CDlgSelectALTObject dlg(m_pTermDoc->GetProjectID(),ALT_RUNWAY,m_pTreeCtrl->GetParent());
 		if(dlg.DoModal() == IDOK)
 		{
 			RunwayCrossingsTreeItemData *pItemDataRunway = new RunwayCrossingsTreeItemData;
@@ -1328,7 +1330,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::OnToolBarAdd(HTREEITEM
 	}
 	else if(pItemData->itemType == Item_TaxiwayRoot)
 	{
-		CDlgSelectALTObject dlg(m_nProjID,ALT_TAXIWAY,m_pTreeCtrl->GetParent());
+		CDlgSelectALTObject dlg(m_pTermDoc->GetProjectID(),ALT_TAXIWAY,m_pTreeCtrl->GetParent());
 		if(dlg.DoModal() == IDOK)
 		{
 			RunwayCrossingsTreeItemData *pItemDataRunway = new RunwayCrossingsTreeItemData;
@@ -1504,8 +1506,8 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::SaveData()
 
 //////////////////////////////////////////////////////////////////////////
 //AirsideReControlView
-AirsideReControlView::CAirsideIntersectionTreePerformer::CAirsideIntersectionTreePerformer( int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam )
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CAirsideIntersectionTreePerformer::CAirsideIntersectionTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam )
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 	m_hRootItem = NULL;
 	m_hFromOrToNodeSelected = NULL;
@@ -1622,7 +1624,7 @@ void AirsideReControlView::CAirsideIntersectionTreePerformer::SaveData()
 	{
 		pParam->SetUseAllTaxiway(true);
 		std::vector<int> vAirportIds;
-		InputAirside::GetAirportList(m_nProjID, vAirportIds);
+		InputAirside::GetAirportList(m_pTermDoc->GetProjectID(), vAirportIds);
 		for (std::vector<int>::iterator iterAirportID = vAirportIds.begin();
 			iterAirportID != vAirportIds.end();++iterAirportID)
 		{
@@ -1662,7 +1664,7 @@ void AirsideReControlView::CAirsideIntersectionTreePerformer::OnToolBarAdd( HTRE
 
 	if(pItemData->itemType == Item_Root)
 	{
-		CDlgTaxiwaySelect dlg(m_nProjID);
+		CDlgTaxiwaySelect dlg(m_pTermDoc->GetProjectID());
 		if(dlg.DoModal() != IDOK)
 			return;
 		int nTaxiwayID = dlg.GetSelTaxiwayID();
@@ -1995,8 +1997,8 @@ void AirsideReControlView::CAirsideIntersectionTreePerformer::InsertAllTaxiwayIt
 }
 
 //////////////////////taxiway utilization///////////////////////////////////////////////////////
-AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::CAirsideTaxiwayUtilizationTreePerformer( int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam )
-:CAirsideIntersectionTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::CAirsideTaxiwayUtilizationTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam )
+:CAirsideIntersectionTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 	m_hRootItem = NULL;
 	m_hFromOrToNodeSelected = NULL;
@@ -2148,7 +2150,7 @@ void AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::SaveData()
 	{
 		pParam->SetUseAllTaxiway(true);
 		std::vector<int> vAirportIds;
-		InputAirside::GetAirportList(m_nProjID, vAirportIds);
+		InputAirside::GetAirportList(m_pTermDoc->GetProjectID(), vAirportIds);
 		for (std::vector<int>::iterator iterAirportID = vAirportIds.begin();
 			iterAirportID != vAirportIds.end();++iterAirportID)
 		{
@@ -2290,7 +2292,7 @@ void AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::OnToolBarAdd
 
 	if(pItemData->itemType == Item_Root)
 	{
-		CDlgTaxiwayFamilySelect dlg(m_nProjID);
+		CDlgTaxiwayFamilySelect dlg(m_pTermDoc->GetProjectID());
 		if(dlg.DoModal() != IDOK)
 			return;
 		int nTaxiwayID = dlg.GetSelTaxiwayFamilyID();
@@ -2532,8 +2534,8 @@ LRESULT AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::DefWindow
 	return 0;
 }
 ////////////////////stand operation report////////////////////////////////////////////////////////////
-CStandOperationsTreePerformer::CStandOperationsTreePerformer(int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam)
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+CStandOperationsTreePerformer::CStandOperationsTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam)
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 
 }
@@ -2563,6 +2565,9 @@ void CStandOperationsTreePerformer::InitTree()
 	}
 	else
 	{
+
+        COOLTREE_NODE_INFO cni;
+        CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 		for (int i = 0; i < pStandParam->getCount(); i++)
 		{
 			ALTObjectID standObjID =  pStandParam->getItem(i);
@@ -2576,10 +2581,34 @@ void CStandOperationsTreePerformer::InitTree()
 				strStand.Format(_T("Family: %s"),standObjID.GetIDString());
 			}
 
-            COOLTREE_NODE_INFO cni;
-            CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 			HTREEITEM hStandItem = m_pTreeCtrl->InsertItem(strStand, cni, FALSE, FALSE, TVI_ROOT);
 		}
+
+        cni.nt = NT_CHECKBOX;
+        HTREEITEM hMultiRunRoot = m_pTreeCtrl->InsertItem("Multi Runs", cni, pStandParam->GetMultiRun(), FALSE);
+        TreeItemData* pItemData = new TreeItemData;
+        pItemData->itemType = Item_MultiRunRoot;
+        m_pTreeCtrl->SetItemData(hMultiRunRoot, (DWORD_PTR)pItemData);
+
+        std::vector<int> vMultiRun;
+        pStandParam->GetReportRuns(vMultiRun);
+        CSimAndReportManager *pSimAndReportManager = (m_pTermDoc->GetTerminal().GetSimReportManager());
+        int nSimCount = pSimAndReportManager->getSubSimResultCout();
+        for (int nSim =0; nSim < nSimCount; ++nSim )
+        {
+            CString strSimName;
+            strSimName.Format(_T("RUN %d"),nSim+1);
+            HTREEITEM hRun = m_pTreeCtrl->InsertItem(strSimName, cni, FALSE, FALSE, hMultiRunRoot);
+            TreeItemData* pItemData = new TreeItemData;
+            pItemData->itemType = Item_Runs;
+            m_pTreeCtrl->SetItemData(hRun, (DWORD_PTR)pItemData);
+
+            if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
+            {
+                m_pTreeCtrl->SetCheckStatus(hRun,TRUE);
+            }
+        }
+        m_pTreeCtrl->Expand(hMultiRunRoot, TVE_EXPAND);
 	}
 }
 
@@ -2636,7 +2665,7 @@ void CStandOperationsTreePerformer::OnToolBarAdd(HTREEITEM hTreeItem)
 	if(m_pTreeCtrl == NULL)
 		return;
 
-	CDlgSelectALTObject dlg(m_nProjID,ALT_STAND,m_pTreeCtrl->GetParent());
+	CDlgSelectALTObject dlg(m_pTermDoc->GetProjectID(),ALT_STAND,m_pTreeCtrl->GetParent());
 	if(dlg.DoModal() == IDOK)
 	{
 		CString strStand(_T(""));
@@ -2679,8 +2708,8 @@ void CStandOperationsTreePerformer::OnUpdateToolBarDel(CCmdUI *pCmdUI)
 
 //////////////////////////////////////////////////////////////////////////
 //
-AirsideReControlView::CAirsideControllerWorkloadTreePerformer::CAirsideControllerWorkloadTreePerformer( int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam )
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CAirsideControllerWorkloadTreePerformer::CAirsideControllerWorkloadTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam )
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 	m_hAreaRoot = NULL;
 	m_hSectorRoot = NULL;
@@ -2852,7 +2881,7 @@ HTREEITEM AirsideReControlView::CAirsideControllerWorkloadTreePerformer::InitDef
 
 void AirsideReControlView::CAirsideControllerWorkloadTreePerformer::OnToolBarAdd( HTREEITEM hTreeItem )
 {
-	int nProjectID = m_nProjID;
+	int nProjectID = m_pTermDoc->GetProjectID();
 	std::vector<ALTOBJECT_TYPE> vObjectType;
 
 	//add sector
@@ -3023,8 +3052,8 @@ CString AirsideReControlView::CAirsideControllerWorkloadTreePerformer::FormatWei
 }
 
 
-AirsideReControlView::CTakeoffProcessTreePerformer::CTakeoffProcessTreePerformer( int nProjID, CCoolTree *pTreeCtrl, CParameters *pParam )
-:CTreePerformer(nProjID,pTreeCtrl,pParam)
+AirsideReControlView::CTakeoffProcessTreePerformer::CTakeoffProcessTreePerformer(CTermPlanDoc* pDoc, CCoolTree *pTreeCtrl, CParameters *pParam )
+:CTreePerformer(pDoc,pTreeCtrl,pParam)
 {
 
 }
@@ -3181,7 +3210,7 @@ void AirsideReControlView::CTakeoffProcessTreePerformer::OnToolBarAdd( HTREEITEM
 		else if (pItemData->itemType == Item_Root)
 		{
 			CString sTakeoff;
-			if(AirsideGUI::NodeViewDbClickHandler::TakeoffPositionSelect(m_nProjID,sTakeoff,m_pParam->GetAirportDB()))
+			if(AirsideGUI::NodeViewDbClickHandler::TakeoffPositionSelect(m_pTermDoc->GetProjectID(),sTakeoff,m_pParam->GetAirportDB()))
 			{
 				//Take off
 				HTREEITEM hItemTakeoff = m_pTreeCtrl->InsertItem(sTakeoff, cni, FALSE, FALSE, hTreeItem);

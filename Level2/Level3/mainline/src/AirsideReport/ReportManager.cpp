@@ -269,7 +269,7 @@ void CAirsideReportManager::GenerateResult()
 	if (m_pAirsideReport == NULL || m_pParamters == NULL)
 		return;
 
-	if (m_emReportType == Airside_FlightDelay && m_pParamters->GetEnableMultiRun())
+	if (m_emReportType == Airside_FlightDelay)
 	{
 		std::vector<int> vReportRun;
 		if (m_pParamters->GetReportRuns(vReportRun))
