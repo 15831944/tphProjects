@@ -699,7 +699,7 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 		}
 
 		if(bOffset)
-			spTerminalBehavior->location = spTerminalBehavior->m_ptDestination;// + latPoint;
+			spTerminalBehavior->location = spTerminalBehavior->m_ptDestination + latPoint;
 		else
 			spTerminalBehavior->location = spTerminalBehavior->m_ptDestination;
 

@@ -9,8 +9,8 @@ public:
 	CCmpReport(void);
 	virtual ~CCmpReport(void);
 public:
-	void SetFocusReportName(const CString& strFocusReport){ m_strFocusRepName = strFocusReport; }
-	CString GetFocusReportName(){ return m_strFocusRepName; }
+	void SetFocusReportName(const CString& strFocusReport);
+	CString GetFocusReportName();
 	BOOL CheckData();
 	BOOL GetModifyFlag();
 	void SetModifyFlag(BOOL bModified);

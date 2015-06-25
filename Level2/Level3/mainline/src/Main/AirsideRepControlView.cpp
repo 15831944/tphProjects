@@ -902,6 +902,7 @@ void CAirsideRepControlView::ResetAllContent()
 	InitializeControl();
 	InitializeTree();
 	InitializeDefaultTreeData();
+	LoadData();
 }
 void CAirsideRepControlView::InitializeTree()
 {
@@ -3187,7 +3188,7 @@ void CAirsideRepControlView::LoadData()
 	//m_dtctrlInterval.SetTime( oleInterval );
 	m_oleDTInterval = oleInterval;
 
-	UpdateData(TRUE);
+	UpdateData(FALSE);
 }
 
 LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)

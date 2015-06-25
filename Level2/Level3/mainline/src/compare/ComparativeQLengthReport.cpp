@@ -15,12 +15,11 @@
 
 CComparativeQLengthReport::CComparativeQLengthReport()
 {
-
+	m_mapQLength.clear();
 }
 
 CComparativeQLengthReport::~CComparativeQLengthReport()
 {
-	m_mapQLength.clear();
 }
 
 void CComparativeQLengthReport::MergeSample(const ElapsedTime& tInteval)
@@ -406,8 +405,9 @@ bool CComparativeQLengthReport::LoadSummaryReport( const std::string& _sPath )
 			{
 				//read the Q length
 				QueueLengthGroup lengthGroup;
-				file.getField(lengthGroup.m_strModelName.GetBuffer(),MAX_PATH);
+				file.getField(lengthGroup.m_strModelName.GetBuffer(MAX_PATH),MAX_PATH);
 				lengthGroup.m_strModelName.ReleaseBuffer();
+				//file.skipField(1);
 				file.getInteger(lengthGroup.m_nMinValue );
 				file.getInteger( lengthGroup.m_nMaxValue );
 				file.getInteger( lengthGroup.m_nAvaValue );

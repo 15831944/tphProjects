@@ -16552,6 +16552,7 @@ IDB_MOVE_DOWN_FLOOR     BITMAP                  "Res\\bmp_move_down_floor.bmp"
 IDB_MOVE_DOWN_FLOOR1    BITMAP                  "Res\\bmp_move_down_floor1.bmp"
 IDB_MOVE_DOWN_FLOOR2    BITMAP                  "Res\\bmp_move_down_floor2.bmp"
 IDB_BITMAP_LANDSIDE_ROUNDABOUT BITMAP                  "Res\\landside_roundabout.bmp"
+IDR_DISTRIBUTIONTOOLBAR BITMAP                  "res\\distribution_toolbar.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -19530,6 +19531,14 @@ BEGIN
     BUTTON      ID_TOOLBARBUTTON_EDIT
 END
 
+IDR_DISTRIBUTIONTOOLBAR TOOLBAR 16, 16
+BEGIN
+    BUTTON      ID_TOOLBARBUTTONADD
+    BUTTON      ID_TOOLBARBUTTONDEL
+    BUTTON      ID_TOOLBARBUTTONCOPY
+    BUTTON      ID_TOOLBARBUTTONPASTE
+END
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -19934,7 +19943,7 @@ BEGIN
     ID_PEOPLEMOVER_NEW      "Add"
     ID_PEOPLEMOVER_DELETE   "Delete"
     ID_PEOPLEMOVER_CHANGE   "Edit"
-    ID_TOOLBARBUTTONDEL     "Delete"
+    ID_TOOLBARBUTTONDEL     "Delete\nDelete"
     ID_TOOLBARBUTTONEDIT    "Edit"
 END
 
@@ -20339,7 +20348,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_TOOLBARBUTTONADD     "New"
+    ID_TOOLBARBUTTONADD     "New\nNew"
 END
 
 STRINGTABLE
@@ -20427,6 +20436,7 @@ END
 STRINGTABLE
 BEGIN
     ID_PDTOOLBARBTNADD      "\nNew"
+    ID_PDTOOLBARBTNDEL      "Delete\nDelete"
     ID_PDTOOLBARBTNFROMFILE "\nImport Data"
 END
 
@@ -21042,6 +21052,12 @@ END
 STRINGTABLE
 BEGIN
     ID_TOOLLIGHT            "Traffic Light\nTraffic Light"
+END
+
+STRINGTABLE
+BEGIN
+    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
+    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
 END
 
 #endif    // English (United States) resources

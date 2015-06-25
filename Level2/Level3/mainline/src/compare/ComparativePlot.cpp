@@ -542,58 +542,51 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 	c2dGraphData.m_strFooter = strFooter;
 
 	// Insert legend.
-	std::vector<CString> vSimName  =  _reportData.GetSimNameList();
-	int simNameCount = vSimName.size();
-	for(int i=0; i<simNameCount; i++)
+	std::vector<CString> vSimName = _reportData.GetSimNameList();
+	int nSimCount = vSimName.size();
+	for(int i=0; i<nSimCount; i++)
 	{
 		c2dGraphData.m_vrLegend.push_back(vSimName[i]);
 	}
 
 	if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 	{
-		const std::vector<CmpThroughputDetailData>& vData = _reportData.GetDetailResult();
-	
-		// Alloc data space
-		if(vData.size()>0)
-		{
-			int simCount = vData.begin()->m_vPaxServed.size();
-			std::vector<double> vSimData(vData.size());
-			vSimData.clear();
-			for(int nSim = 0; nSim < simCount; nSim++)
-			{
-				c2dGraphData.m_vr2DChartData.push_back(vSimData);
-			}	
-		}
-	
-		// Insert data
+
+		//set row label
 		CString XTickTitle;
 		std::vector<CString> vXTickTitle;
-		CString sTime;
-
-		for(std::vector<CmpThroughputDetailData>::const_iterator iterLine = vData.begin(); 
-			iterLine != vData.end(); iterLine++)
+		const std::vector<CmpThroughputDetailData>& vData = _reportData.GetDetailResult()[0];
+		int dataCount = static_cast<int>(vData.size());
+		for(int i=0; i<dataCount; i++)
 		{
-			//set row label
-			ElapsedTime t = iterLine->m_startTime;
+			ElapsedTime t = vData[i].m_startTime;
 			t.set(t.asSeconds() % WholeDay);
 			XTickTitle = t.printTime(0);
 			XTickTitle += "~";
-			t = iterLine->m_endTime;
+			t = vData[i].m_endTime;
 			t.set(t.asSeconds() % WholeDay);
 			XTickTitle += t.printTime(0);
 			vXTickTitle.push_back(XTickTitle);
-			//set data
-			std::vector<int> vLength;
-			vLength = iterLine->m_vPaxServed;
-			int nSegCount = (int)vLength.size();
-			ASSERT(nSegCount == simNameCount);
-			for(int nSeg = 0; nSeg < nSegCount; nSeg++)
-			{
-				(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
-			}
 		}
 		c2dGraphData.m_vrXTickTitle = vXTickTitle;
 
+		for(int i=0; i<nSimCount; i++)
+		{
+			// Alloc data space
+			const std::vector<CmpThroughputDetailData>& vData = _reportData.GetDetailResult()[i];
+			if(vData.size()>0)
+			{
+				std::vector<double> vSimData(vData.size());
+				vSimData.clear();
+				for(std::vector<CmpThroughputDetailData>::const_iterator iterLine = vData.begin(); 
+					iterLine != vData.end(); iterLine++)
+				{
+					// Insert data
+					vSimData.push_back((double)iterLine->m_nPaxServed);
+				}
+				c2dGraphData.m_vr2DChartData.push_back(vSimData);
+			}
+		}
 	}
 	else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
 	{
@@ -620,7 +613,6 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		//set row label
 		CString XTickTitle;
 		std::vector<CString> vXTickTitle;
-		CString sTime;
 		switch(nSubType)
 		{
 		case TOTAL_PAX:
@@ -641,7 +633,6 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		}
 		c2dGraphData.m_vrXTickTitle = vXTickTitle;
 	}
-
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }

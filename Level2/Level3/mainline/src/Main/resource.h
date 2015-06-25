@@ -3172,6 +3172,7 @@
 #define IDR_ADDDELEDITTOOLBAR3          2267
 #define IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY 2267
 #define IDC_CHECK_THICKNESS             2268
+#define IDR_DISTRIBUTIONTOOLBAR         2268
 #define IDC_SPIN_HEIGHT                 2269
 #define IDC_STATIC_LOD                  2270
 #define IDC_EDIT_IMPORTFILE             2271
@@ -5203,6 +5204,8 @@
 #define ID_BOARDING_CALL_ADD_PAX        35331
 #define ID_BOARDING_CALL_DELETE         35332
 #define ID_BOARDING_CALL_EDIT           35333
+#define ID_TOOLBARBUTTONCOPY            35334
+#define ID_TOOLBARBUTTONPASTE           35335
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5462,7 +5465,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1111
-#define _APS_NEXT_COMMAND_VALUE         35334
+#define _APS_NEXT_COMMAND_VALUE         35336
 #define _APS_NEXT_CONTROL_VALUE         2412
 #define _APS_NEXT_SYMED_VALUE           491
 #endif

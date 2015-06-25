@@ -215,6 +215,8 @@ BEGIN_MESSAGE_MAP(CDlgProbDist, CDialog)
 	ON_COMMAND(ID_PDTOOLBARBTNADD, OnParamToolbarbuttonADD)
 	ON_COMMAND(ID_TOOLBARBUTTONDEL, OnDistToolbarbuttonDEL)
 	ON_COMMAND(ID_PDTOOLBARBTNDEL, OnParamToolbarbuttonDEL)
+	ON_COMMAND(ID_TOOLBARBUTTONCOPY, OnDistToolbarbuttonCopy)
+	ON_COMMAND(ID_TOOLBARBUTTONPASTE, OnDistToolbarbuttonPaste)
 	ON_COMMAND(ID_PDTOOLBARBTNFROMFILE, OnParamToolbarbuttonFF)
 	ON_COMMAND(ID_PDTOOLBARBTNRAWFROMFILE, OnParamToolbarbuttonRAWFF)
 	ON_COMMAND(ID_AIRPORT_SAVEAS, OnSaveAsTemplate)
@@ -248,8 +250,8 @@ void CDlgProbDist::InitToolBars()
 	m_ToolBarDist.ShowWindow(SW_SHOW);
 	m_ToolBarDist.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD,TRUE );
 	m_ToolBarDist.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL,FALSE );
-	m_ToolBarDist.GetToolBarCtrl().HideButton( ID_TOOLBARBUTTONEDIT );
-	//m_ToolBarDist.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONEDIT,FALSE );
+	m_ToolBarDist.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONCOPY,FALSE );
+	m_ToolBarDist.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONPASTE,FALSE );
 	m_staticToolbarDist.ShowWindow(SW_HIDE);
 }
 
@@ -343,7 +345,7 @@ int CDlgProbDist::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	if (!m_ToolBarDist.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
 		| CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
-		!m_ToolBarDist.LoadToolBar(IDR_ADDDELEDITTOOLBAR))
+		!m_ToolBarDist.LoadToolBar(IDR_DISTRIBUTIONTOOLBAR))
 	{
 		TRACE0("Failed to create dist toolbar\n");
 		return -1;      // fail to create
@@ -964,10 +966,12 @@ void CDlgProbDist::OnItemChangedListDistributions(NMHDR* pNMHDR, LRESULT* pResul
 
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
 	if(m_lstDistributions.GetSelectedCount() > 0) {
-		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,true);
+		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,TRUE);
+		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONCOPY,TRUE);
 	} 
 	else {
-		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,false);
+		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,FALSE);
+		m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONCOPY,FALSE);
 		if(m_bNeedReturn)
 			GetDlgItem(IDOK)->EnableWindow(FALSE);
 	}
@@ -1585,47 +1589,30 @@ void CDlgProbDist::OpenAndReadFile()
 BOOL CDlgProbDist::OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult)
 {
 	TOOLTIPTEXTA* pTTTA = (TOOLTIPTEXTA*)pNMHDR;
-	CPoint ptCur;
-	VERIFY(::GetCursorPos(&ptCur));
-	ScreenToClient(&ptCur);
-
-	CRect rect, rc;
-	m_ToolBarParams.GetWindowRect(&rect);
-	ScreenToClient(&rect);
-	
-	int i = 0;
-	for(; i < 4; )
+	CString strTipText;
+	CString strStatusText;
+	UINT nID = pNMHDR->idFrom;
+	if (pNMHDR->code == TTN_NEEDTEXTA && (pTTTA->uFlags & TTF_IDISHWND))
 	{
-		m_ToolBarParams.GetItemRect(i, &rc);
-		rc.left += rect.left;
-		rc.right += rect.left;
-		rc.top += rect.top;
-		rc.bottom += rect.top;
-		if(rc.PtInRect(ptCur))
-			break;
-		i++;
+		nID = ::GetDlgCtrlID((HWND)nID);
 	}
 	
-	static char str[64];
-	memset(str, sizeof(str)/sizeof(char), 0);
-	switch(i)
+	if (nID != 0)
 	{
-	case 0:
-		strcpy(str, "Add New");
-		break;
-	case 1:
-		strcpy(str, "Delete");
-		break;
-	case 2:
-		strcpy(str, "Import");
-		break;
-	case 3:
-	default:
-		return FALSE;
-	}
+		strTipText.LoadString(nID);
+		int len =strTipText.Find('\n',0);
+		strStatusText = strTipText.Left(len);
+		strTipText = strTipText.Mid(len+1);
 
-	pTTTA->lpszText = str;
-	
+		if (pNMHDR->code == TTN_NEEDTEXTA)
+		{
+			lstrcpyn(pTTTA->szText, strTipText, sizeof(pTTTA->szText));
+		}
+		*pResult = 0; 
+		::SetWindowPos(pNMHDR->hwndFrom, HWND_TOP, 0, 0, 0, 0,SWP_NOACTIVATE|
+			SWP_NOSIZE|SWP_NOMOVE|SWP_NOOWNERZORDER); 
+		return TRUE;
+	}
 	return TRUE;
 }
 
@@ -1736,6 +1723,18 @@ void CDlgProbDist::OnBnClickedButtonLoaddefault()
 	m_IsEdit = FALSE ;
 	LoadDistributionList();
 	UpdateDistributionData();
+}
+
+void CDlgProbDist::OnDistToolbarbuttonCopy()
+{
+	m_ToolBarDist.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONPASTE,TRUE);
+}
+
+void CDlgProbDist::OnDistToolbarbuttonPaste()
+{
+	int i=0;
+	i=0;
+	return;
 }
 
 CDlgProbDistForDefaultDB::CDlgProbDistForDefaultDB(CAirportDatabase* _pAirportDB, BOOL bNeedRet, CAirportDatabase* _globalDB , CWnd* pParent /* = NULL */):CDlgProbDist(_pAirportDB,bNeedRet,pParent),m_GlobalDB(_globalDB

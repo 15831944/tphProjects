@@ -79,6 +79,7 @@ void CCmpReportManager::LoadData( CCmpReportParameter *pParam, const CString& st
 		}
 		if (pResult != NULL)
 		{
+			pResult->m_cmpParam = report2Cmp.GetParameter();
 			CString strReportPath = strProjPath + _T("\\Results\\") + report2Cmp.GetName() + _T(".txt");
 			pResult->LoadReport(strReportPath.GetBuffer(0));
 

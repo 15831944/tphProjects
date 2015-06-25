@@ -30,18 +30,17 @@ public:
 
 	ElapsedTime	m_startTime;
 	ElapsedTime m_endTime;
-
-	// detail
-	std::vector<int> m_vPaxServed;
+	int m_nPaxServed;
 
 public:
 	void clear()
 	{
 		m_startTime = 0L;
 		m_endTime = 0L;
-		m_vPaxServed.clear();
+		m_nPaxServed = 0;
 	}
 };
+typedef std::vector<CmpThroughputDetailData> OneCmpThroughputDetailVector;
 
 class CmpThroughputSummaryData
 {
@@ -89,7 +88,7 @@ public:
 	virtual ~CComparativeThroughputReport();
 
 protected:
-	std::vector<CmpThroughputDetailData> m_vThoughputData;
+	std::vector<OneCmpThroughputDetailVector> m_vDetail;
 	std::vector<CmpThroughputSummaryData> m_vSummary;
 public:
 
@@ -98,7 +97,7 @@ public:
 	bool SaveReport(const std::string& _sPath) const;
 	bool LoadReport(const std::string& _sPath);
 	int GetReportType() const{return ThroughtputReport;}
-	const std::vector<CmpThroughputDetailData>& GetDetailResult() const{ return m_vThoughputData; }
+	const std::vector<OneCmpThroughputDetailVector>& GetDetailResult() const{ return m_vDetail; }
 	const std::vector<CmpThroughputSummaryData>& GetSummaryResult() const{ return m_vSummary; }
 private:
 	void MergeDetailSample(const ElapsedTime& tInteval);

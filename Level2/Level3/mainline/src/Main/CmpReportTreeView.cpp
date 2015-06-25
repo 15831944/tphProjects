@@ -731,7 +731,7 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				if( pReport->GetChecked() == FALSE &&
 					m_pCmpReport->GetFocusReportName().CompareNoCase(pReport->GetName()) == 0)
 				{
-					ChangeFocusReport();
+					//ChangeFocusReport();
 				}
 
 				CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
@@ -1090,70 +1090,70 @@ void CCmpReportTreeView::ReloadReportDetailSubItems(const CReportToCompare &repo
 	RemoveSubItems(hReport);
 	COOLTREE_NODE_INFO cni;
 	InitCooltreeNodeInfo(this, cni);
+	cni.net = NET_SHOW_DIALOGBOX;
 	cni.nt = NT_NORMAL;
 	CReportParamToCompare param = report.GetParameter();
-	int iIndex;
+
+	CString strTemp, strItemText;;
 	switch (report.GetCategory())
 	{
 	case ENUM_QUEUELENGTH_REP:
-		iIndex = 0;
+		strTemp = s_szReportCategoryName[0];
 		break;
 	case ENUM_QUEUETIME_REP:
-		iIndex = 1;
+		strTemp = s_szReportCategoryName[1];
 		break;
 	case ENUM_THROUGHPUT_REP:
-		iIndex = 2;
+		strTemp = s_szReportCategoryName[2];
 		break;
 	case ENUM_PAXDENS_REP:
-		iIndex = 3;
+		strTemp = s_szReportCategoryName[3];
 		break;
 	case ENUM_PAXCOUNT_REP:
-		iIndex = 4;
+		strTemp = s_szReportCategoryName[4];
 		break;	
 	case ENUM_ACOPERATION_REP:
-		iIndex = 5;
+		strTemp = s_szReportCategoryName[5];
 		break;
 	case ENUM_DURATION_REP:
-		iIndex = 6;
+		strTemp = s_szReportCategoryName[6];
 		break;
 	case ENUM_DISTANCE_REP:
-		iIndex = 7;
+		strTemp = s_szReportCategoryName[7];
 		break;
 	default:
 		return;
 		break;
 	}
 
-	CString strItemText1;
+	strItemText.Format("Report Category: %s", strTemp);
 	cni.nt = NT_NORMAL;
-	CString strTemp = s_szReportCategoryName[iIndex];
-	strItemText1.Format("Report Category: %s", strTemp);
-	HTREEITEM hRepName = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport);
+	HTREEITEM hRepName = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hReport);
 	if(report.GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
 		strTemp = _T("Detail");
 	else
 		strTemp = _T("Summary");
-	strItemText1.Format("Report Type: %s", strTemp);
-	HTREEITEM hIsDetail = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hRepName);
+	strItemText.Format("Report Type: %s", strTemp);
+	HTREEITEM hIsDetail = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hReport, hRepName);
 	strTemp = GetRegularDateTime(param.GetStartTime().printTime());
-	strItemText1.Format("Start Time: %s", strTemp);
-	HTREEITEM hRepStartTime = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hIsDetail);
+	strItemText.Format("Start Time: %s", strTemp);
+	HTREEITEM hRepStartTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hReport, hIsDetail);
 	strTemp = GetRegularDateTime(param.GetEndTime().printTime());
-	strItemText1.Format("End Time: %s", strTemp);
-	HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hRepStartTime);
+	strItemText.Format("End Time: %s", strTemp);
+	HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hReport, hRepStartTime);
 
 	if(report.GetCategory() == ENUM_DISTANCE_REP)
 	{
 		LONG lInterval;
 		param.GetInterval(lInterval);
-		strItemText1.Format("Interval: %d", lInterval);
+		strItemText.Format("Interval: %d", lInterval);
 	}
 	else
 	{
 		strTemp = param.GetInterval().printTime();
-		strItemText1.Format("Interval: %s", strTemp);
+		strItemText.Format("Interval: %s", strTemp);
 	}
-	HTREEITEM hInterval = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hRepEndTime);
+	HTREEITEM hInterval = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hReport, hRepEndTime);
 
 	//write Model Parameter
 	std::vector<CModelParameter> vModelParam;
@@ -1167,21 +1167,22 @@ void CCmpReportTreeView::ReloadReportDetailSubItems(const CReportToCompare &repo
 		CModelParameter& modelParam = vModelParam[i];
 		CString strModelName = pModelManager->getModel(i)->GetModelName();
 		HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hReport, hInterval);
-		if(iIndex == 3)		//	case ENUM_PAXDENS_REP:	iIndex = 3;
+		if(report.GetCategory() == ENUM_PAXDENS_REP)
 		{
 			CString strTemp = modelParam.GetArea();
 			if(strTemp.IsEmpty())
-				strItemText1 = "Areas";
+				strItemText = "Areas";
 			else
-				strItemText1.Format("Areas: %s", strTemp);
-			HTREEITEM hAreas = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hModelItem);
+				strItemText.Format("Areas: %s", strTemp);
+			HTREEITEM hAreas = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
 		}
 
 		if(report.GetCategory() == ENUM_QUEUETIME_REP ||
 			report.GetCategory() == ENUM_DURATION_REP ||
 			report.GetCategory() == ENUM_DISTANCE_REP ||
 			report.GetCategory() == ENUM_ACOPERATION_REP||
-			report.GetCategory() == ENUM_PAXDENS_REP)
+			report.GetCategory() == ENUM_PAXDENS_REP ||
+			report.GetCategory() == ENUM_THROUGHPUT_REP)
 		{
 			std::vector<CMobileElemConstraint> vPaxType;
 			if (modelParam.GetPaxType(vPaxType))

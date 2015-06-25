@@ -5377,6 +5377,8 @@
     <None Include="Res\delete.bmp" />
     <None Include="Res\direction.bmp" />
     <None Include="Res\disable_.bmp" />
+    <None Include="res\distribution_toolbar.bmp" />
+    <None Include="res\distri_toolbar.bmp" />
     <None Include="Res\door.bmp" />
     <None Include="RES\dot1.bmp" />
     <None Include="RES\dot2.bmp" />

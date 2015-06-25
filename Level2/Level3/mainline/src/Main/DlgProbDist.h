@@ -127,6 +127,8 @@ protected:
 	afx_msg void OnParamToolbarbuttonADD();
 	afx_msg void OnDistToolbarbuttonDEL();
 	afx_msg void OnParamToolbarbuttonDEL();
+	afx_msg void OnDistToolbarbuttonCopy();
+	afx_msg void OnDistToolbarbuttonPaste();
 	afx_msg void OnParamToolbarbuttonFF();
 	afx_msg void OnParamToolbarbuttonRAWFF();
 

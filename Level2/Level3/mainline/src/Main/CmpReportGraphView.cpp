@@ -8,6 +8,7 @@
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
 #define COMPARE_REPORT_GRAPH_COMBOBOX1	COMPARE_REPORT_GRAPH_BASE+2
+#include "compare\ComparativeThroughputReport.h"
 
 IMPLEMENT_DYNCREATE(CCmpReportGraphView, CFormView)
 
@@ -74,7 +75,7 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 	for(int i = 0; i < pReportManager->getCount(); i++)
 	{
 		CReportToCompare& report = pReportManager->getReport(i);
-		if(report.GetChecked() == TRUE)
+		//if(report.GetChecked() == TRUE)
 		{
 			CString strRepName = report.GetName();
 			m_comboReportList.AddString(strRepName.MakeUpper());
@@ -176,7 +177,7 @@ void CCmpReportGraphView::OnCbnSelchangeRepSubTypeCombo()
 	}
 	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
 	CString strFocusRep = m_pCmpReport->GetFocusReportName();
-	Draw3DChartByReportName(strFocusRep,nSubType);
+	Draw3DChartByReportName(strFocusRep, nSubType);
 }
 
 void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport,int nSubType)
@@ -306,15 +307,20 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
 		{
 			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
 			{
-				m_comboRepSubType.AddString("Pax Served");
+				int nIdx = m_comboRepSubType.AddString("Pax Served");
+				m_comboRepSubType.SetItemData(nIdx, TR_DETAIL);
 				m_comboRepSubType.SetCurSel(0);
 			}
 			else
 			{
-				m_comboRepSubType.AddString("Total Pax by Group(Summary)");
-				m_comboRepSubType.AddString("Pax per Processor(Summary)");
-				m_comboRepSubType.AddString("Group Throughput per Hour(Summary)");
-				m_comboRepSubType.AddString("Processor Throughput per Hour(Summary)");
+				int nIdx = m_comboRepSubType.AddString("Total Pax by Group(Summary)");
+				m_comboRepSubType.SetItemData(nIdx, TOTAL_PAX);
+				nIdx = m_comboRepSubType.AddString("Pax per Processor(Summary)");
+				m_comboRepSubType.SetItemData(nIdx, AVG_PAX);
+				nIdx = m_comboRepSubType.AddString("Group Throughput per Hour(Summary)");
+				m_comboRepSubType.SetItemData(nIdx, TOTAL_HOUR);
+				nIdx = m_comboRepSubType.AddString("Processor Throughput per Hour(Summary)");
+				m_comboRepSubType.SetItemData(nIdx, AVG_HOUR);
 				m_comboRepSubType.SetCurSel(0);			
 			}
 		}

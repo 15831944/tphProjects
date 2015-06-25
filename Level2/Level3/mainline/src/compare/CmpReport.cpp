@@ -233,7 +233,20 @@ BOOL CCmpReport::Run(HWND hwnd, CCompRepLogBar* pWndStatus,void (CALLBACK * _Sho
 	if (bRet = m_compProject->Run(pWndStatus,_ShowCopyInfo))
 	{
 		m_compProject->SetMatch(bRet);
-		//m_bModified = FALSE;
+
+		CCmpReportParameter* pProjectReportParam = GetComparativeProject()->GetInputParam();
+		CSingleReportsManager* pRepManager = pProjectReportParam->GetReportsManager();
+		int repCount = pRepManager->getCount();
+		for(int i=0; i<repCount; i++)
+		{
+			CReportToCompare& report = pRepManager->getReport(i);
+			if(report.GetChecked() == TRUE)
+			{
+				CString repName = report.GetName();
+				SetFocusReportName(repName);
+				break;
+			}
+		}
 	}
 
 	return bRet;
@@ -361,4 +374,15 @@ BOOL CCmpReport::CheckData()
 
 	return TRUE;
 }
+
+void CCmpReport::SetFocusReportName( const CString& strFocusReport )
+{
+	m_strFocusRepName = strFocusReport;
+}
+
+CString CCmpReport::GetFocusReportName()
+{
+	return m_strFocusRepName;
+}
+
 

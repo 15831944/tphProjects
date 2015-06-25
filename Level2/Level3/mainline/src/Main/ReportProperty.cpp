@@ -1526,6 +1526,7 @@ void CDlgReportProperty::ArrangeControls()
 		break;
 
 	case 1:		//	QTime	
+	case 2://Throughput Report
 		{
 			m_treePaxType.MoveWindow(m_rcWindow[3]);
 			GetDlgItem(IDC_PROC_TYPE)->MoveWindow(m_rcWindow[0]);
@@ -1620,7 +1621,6 @@ void CDlgReportProperty::ArrangeControls()
 			m_bShowProcessor = TRUE;
 		}
 		break;
-	case 2://Throughput Report
 	case 0:			//	QLength
 		{
 			//m_listPessengerType.MoveWindow(m_rcWindow[3]);

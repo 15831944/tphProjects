@@ -268,6 +268,14 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 		SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
 		if (m_bStop)
 			break;
+		if(!pCmpModel->GetChecked())
+		{
+			//pWndStatus->SetLogText();
+
+			continue;
+		}
+
+
 		nProgressStatus += 7;
 		pWndStatus->SetProgressPos(nProgressStatus);
 		try
@@ -330,7 +338,7 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					break;
 				case ENUM_THROUGHPUT_REP: //8
 				case ENUM_QUEUELENGTH_REP:
-					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs( NULL) )));
+					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(new CReportParaOfPaxType(NULL)))));
 					break;
 
 				default:
@@ -343,6 +351,7 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 
 				for (int nResult = 0; nResult < nSimResultCount; ++nResult )
 				{
+					
 					CString strSimResult = pCmpModel->GetSimResultName(nResult);
 					strStatus.Format(_T("%s%s%s%s :%s"), _T("Generate "), 
 						s_szReportCategoryName[iReportIndex],
