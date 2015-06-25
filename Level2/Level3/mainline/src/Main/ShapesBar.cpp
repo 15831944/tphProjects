@@ -414,7 +414,7 @@ void CShapesBar::OnAddFolder()
         if(m_wndOutBarCtrl.IsFolderNameExist(dlg.folderName))
         {
             CString strErr;
-            strErr.Format("A folder named '%s' already exists.", dlg.folderName);
+            strErr.Format("A shape bar named '%s' already exists.", dlg.folderName);
             AfxMessageBox(strErr, MB_OK);
             continue;
         }
@@ -444,7 +444,7 @@ void CShapesBar::OnFolderRename()
         if(nIndex != -1 && nIndex != folder_index)
         {
             CString strErr;
-            strErr.Format("A folder named '%s' already exists.", dlg.folderName);
+            strErr.Format("A shape bar named '%s' already exists.", dlg.folderName);
             AfxMessageBox(strErr, MB_OK);
             continue;
         }

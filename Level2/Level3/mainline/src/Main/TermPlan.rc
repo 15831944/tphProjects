@@ -114,18 +114,18 @@ BEGIN
     CONTROL         "",IDC_TREE_DATA,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,7,27,282,213
 END
 
-IDD_SHAPEFOLDER DIALOGEX 0, 0, 311, 98
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Edit folder"
+IDD_SHAPEFOLDER DIALOGEX 0, 0, 268, 98
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "New Shape Bar"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Name",IDC_STATIC,7,3,297,33
-    GROUPBOX        "Folder path",IDC_STATIC,7,38,297,33
-    EDITTEXT        IDC_EDIT1,15,14,281,15,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT2,15,50,262,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_BUTTON1,278,50,18,14
-    DEFPUSHBUTTON   "OK",IDOK,200,77,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,254,77,50,14
+    GROUPBOX        "Name",IDC_STATIC,7,3,254,33
+    GROUPBOX        "Location",IDC_STATIC,7,38,254,33
+    EDITTEXT        IDC_EDIT1,15,14,238,15,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,15,50,219,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BUTTON1,235,50,18,14
+    DEFPUSHBUTTON   "OK",IDOK,157,77,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,211,77,50,14
 END
 
 IDD_SHAPEITEM DIALOGEX 0, 0, 239, 206
@@ -6777,13 +6777,14 @@ BEGIN
     IDD_SHAPEFOLDER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 231
+        RIGHTMARGIN, 188
         VERTGUIDE, 30
         VERTGUIDE, 90
         VERTGUIDE, 156
         VERTGUIDE, 180
         VERTGUIDE, 210
         TOPMARGIN, 7
+        BOTTOMMARGIN, 111
         HORZGUIDE, 24
         HORZGUIDE, 54
         HORZGUIDE, 90
@@ -13035,7 +13036,7 @@ END
 
 IDR_MENU_USERSHAPES MENU
 BEGIN
-    POPUP "Folder"
+    POPUP "SubMenu"
     BEGIN
         MENUITEM "New Shape Bar",               ID_FOLDER_NEWSHAPEBAR
         MENUITEM "Rename",                      ID_FOLDER_RENAME
@@ -13044,7 +13045,7 @@ BEGIN
         MENUITEM "Export",                      ID_FOLDER_EXPORT
         MENUITEM "Delete Shape Bar",            ID_FOLDER_DELETESHAPEBAR
     END
-    POPUP "Item"
+    POPUP "SubMenu1"
     BEGIN
         MENUITEM "New Shape",                   ID_ITEM_ADDITM
         MENUITEM "Rename",                      ID_ITEM_RENAME
@@ -13052,12 +13053,12 @@ BEGIN
         MENUITEM "Change Model",                ID_ITEM_CHANGEMODEL
         MENUITEM "Delete Shape",                ID_ITEM_DELETEITEM
     END
-    POPUP "Other"
+    POPUP "SubMenu2"
     BEGIN
         MENUITEM "New Shape Bar",               ID_OTHER_NEWSHAPEBAR
         MENUITEM "New Shape",                   ID_OTHER_DELETEITEM
     END
-    POPUP "ForOld"
+    POPUP "SubMenu3"
     BEGIN
         MENUITEM "New Shape Bar",               ID_FOROLD_NEWSHAPEBAR
     END
@@ -17849,28 +17850,6 @@ BEGIN
 END
 
 #endif    // English (United States) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Sys. Default) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
-LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE
-BEGIN
-    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
-    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
-END
-
-#endif    // Neutral (Sys. Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

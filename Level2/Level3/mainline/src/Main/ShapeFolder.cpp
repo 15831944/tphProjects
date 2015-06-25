@@ -15,9 +15,9 @@ CShapeFolder::CShapeFolder(CWnd* pParent /*=NULL*/)
 	: CDialog(CShapeFolder::IDD, pParent)
 {
 	if(folder_id != 0)
-		folderName.Format("New Folder(%d)",folder_id);
+		folderName.Format("New Shape Bar(%d)",folder_id);
 	else
-		folderName = "New Folder";
+		folderName = "Add Shape Bar";
 	folderPath = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\";
 	m_style = NEW;
 }
@@ -62,7 +62,7 @@ BOOL CShapeFolder::OnInitDialog()
     switch(m_style)
     {
     case NEW:
-        SetWindowText(_T("Add Folder"));
+        SetWindowText(_T("New Shape Bar"));
         break;
     case NAME:
         SetWindowText(_T("Rename"));
