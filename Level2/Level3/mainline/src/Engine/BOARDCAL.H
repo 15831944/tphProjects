@@ -36,7 +36,7 @@ protected:
     // A gate at which the departing flight is docked.
     GateProcessor *gate;
 
-    //A constrian that is used to call passengers on the correct flight.
+    //A constraint that is used to call correct passengers to board a correct flight.
     CMobileElemConstraint m_mobElemConst;
 
 	// which stage 

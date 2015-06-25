@@ -73,19 +73,19 @@ void BoardingCallPaxTypeEntry::readTriggerDatabase( ArctermFile& p_file, int tri
 {
 	DeleteAllTrigger();
 	BoardingCallTrigger trigger;
-	int time;
+	int seconds;
 	double prop;
 	for(int i=0; i<triggerCount; i++)
 	{
-		time = 0;
+		seconds = 0;
 		prop = 0.0;
 		p_file.getLine();
 		p_file.skipField(1);
-		p_file.getInteger(time);
+		p_file.getInteger(seconds);
 		p_file.getFloat(prop);
 
 		trigger.InitTrigger();
-		trigger.SetTrigger(time, prop);
+		trigger.SetTrigger(seconds, prop);
 		m_vTriggers.push_back(trigger);
 	}
 }
@@ -98,7 +98,7 @@ void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file, InputT
 	{
 		strTrigger.Format("Trigger%d", i);
 		p_file.writeField(strTrigger.GetBuffer());
-		p_file.writeInt(m_vTriggers[i].GetTriggerTime().getPrecisely());
+		p_file.writeInt(m_vTriggers[i].GetTriggerTime().asSeconds());
 		p_file.writeDouble(m_vTriggers[i].GetTriggerProportion());
 		p_file.writeLine();
 	}

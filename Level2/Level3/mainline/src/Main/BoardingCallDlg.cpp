@@ -338,7 +338,7 @@ void CBoardingCallDlg::ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTrig
 		CString strTime, strProp;
 		// Add time.
 		cni.net = NET_EDIT_WITH_VALUE;
-		long seconds = trigger->GetTriggerTime().getPrecisely()/1000;
+		int seconds = trigger->GetTriggerTime().asSeconds();
 		strTime.Format("Time range before STD(s): %d", seconds);
 		nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER_TIME;
@@ -880,7 +880,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 			break;
 		case TREE_NODE_TRIGGER_TIME:
 			{
-				long userSetTime = atoi(strValue.GetBuffer());
+				int userSetTime = atoi(strValue.GetBuffer());
 				strItemText.Format("Time range before STD(s): %d", userSetTime);
 				HTREEITEM hTriggerItem = m_tree.GetParentItem(hSelItem);
 				TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hTriggerItem);
