@@ -15,14 +15,12 @@ protected:
     FlightConstraintDatabaseWithSchedData loads;
     FlightConstraintDatabaseWithSchedData capacity;
 	
-	std::vector<BoardingCallFlightTypeDatabase*> m_vStages;
+	std::vector<BoardingCallFlightTypeDatabase*> m_vFltTypeDB;// A Flight Type DB keeps all information of one stage.
 	// go through all the file get the size of boarding call stage size;
 	int ReadBoardingCallStageCount( ArctermFile& _file );
 
 public:
-	int GetStageCount(){ return m_vStages.size(); }
-	BoardingCallFlightTypeDatabase* GetFlightTypeDBInStage(int _index){ return m_vStages[_index]; }
-/*	void resortBoardingCallDB();*/
+	int GetStageCount(){ return m_vFltTypeDB.size(); }
     FlightData () : DataSet (FlightDataFile,(float)2.7 )
     {	
 		delays.setUnits ("MINUTES"); 
@@ -33,13 +31,13 @@ public:
 
 
 	// Add one more stages with default value
-	void AddStageFromOld(FlightConWithProcIDDatabase* pOldStage);
+	void AddStageFor260OrOlder(FlightConWithProcIDDatabase* pOldStage);
 	void AddStage();
 	// remove one stage data
 	void DeleteOneStageByIndex(int _stageIndex);
 	BOOL DeleteOneStageByFlightConstDB(ConstraintDatabase* pFCDB);
 	// get stage information 
-	BoardingCallFlightTypeDatabase* GetStageInformation(int stageIndex) const;
+	BoardingCallFlightTypeDatabase* GetFlightTypeDB(int stageIndex) const{ return m_vFltTypeDB[stageIndex]; }
     void setFlightDelay (Flight *p_flight) const;
     void setFlightLoadFactor (Flight *p_flight, char p_mode) const;
     int getCapacity (Flight *p_flight) const;

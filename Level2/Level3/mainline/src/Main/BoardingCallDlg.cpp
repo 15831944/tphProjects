@@ -5,14 +5,15 @@
 #include "..\AirsideGUI\DlgStandFamily.h"
 #include "..\Main\PassengerTypeDialog.h"
 #include "Inputs\PROCDATA.H"
+#include "Common\ProbDistEntry.h"
+#include "Common\ProbDistManager.h"
+#include "BoardingCallFlightDialog.h"
+#include "BoardingCallPassengerTypeDlg.h"
+#include "DlgProbDist.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
-#include "Common\ProbDistEntry.h"
-#include "Common\ProbDistManager.h"
-#include "DlgProbDist.h"
-#include "BoardingCallFlightDialog.h"
-#include "BoardingCallPassengerTypeDlg.h"
+
 static char THIS_FILE[] = __FILE__;
 #endif
 
@@ -149,7 +150,6 @@ InputTerminal* CBoardingCallDlg::GetInputTerminal()
 void CBoardingCallDlg::OnButtonSave()
 {
 	CWaitCursor wc;
-//	GetInputTerminal()->flightData->resortBoardingCallDB();
 	GetInputTerminal()->flightData->saveDataSet( GetProjPath(), true );
 	m_btnSave.EnableWindow( FALSE );
 }
@@ -215,10 +215,10 @@ void CBoardingCallDlg::ReloadRoot()
 		HTREEITEM hTreeItemStage = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, m_hRoot);
 		TreeNodeDataWithType* nodeDataStage = new TreeNodeDataWithType();
 		nodeDataStage->m_type = TREE_NODE_STAGE;
-		nodeDataStage->m_data = (DWORD)pFlightData->GetFlightTypeDBInStage(i);/* BoardingCallFlightTypeDatabase* */
+		nodeDataStage->m_data = (DWORD)pFlightData->GetFlightTypeDB(i);/* BoardingCallFlightTypeDatabase* */
 		m_tree.SetItemData(hTreeItemStage, (DWORD)nodeDataStage);
 
-		BoardingCallFlightTypeDatabase* pFlightTypeDB = pFlightData->GetFlightTypeDBInStage(i);
+		BoardingCallFlightTypeDatabase* pFlightTypeDB = pFlightData->GetFlightTypeDB(i);
 		ReloadStage(pFlightTypeDB, hTreeItemStage);
 	}
 	m_tree.Expand(m_tree.GetRootItem(),TVE_EXPAND);
@@ -587,10 +587,10 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		}
 	}
 
-	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	if(!pDataWithType)
+	TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+	if(!pSelItemData)
 		return;
-	switch(pDataWithType->m_type)
+	switch(pSelItemData->m_type)
 	{
 	case TREE_NODE_INVALID:
 		break;
@@ -613,7 +613,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			HTREEITEM hRootItem = m_tree.GetParentItem(hSelItem);
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
+			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pSelItemData->m_data;
 			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
 			{
 				//Delete the last one stage?
@@ -640,7 +640,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		{
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
+			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pSelItemData->m_data;
 			HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
 			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAGE);
@@ -675,7 +675,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
 
-			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pSelItemData->m_data;
 
 			// Reload all sibling item.
 			HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
@@ -707,7 +707,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
+			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pSelItemData->m_data;
 
 			// Reload all sibling item.
 			HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
@@ -753,14 +753,13 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_PASSENGER_TYPE);
 			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pParentData->m_data;
-
-			int triggerIndex = (int)pDataWithType->m_data;
-			if(triggerIndex == (pPaxTypeEntry->GetTriggerCount()-1))
+			BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pSelItemData->m_data;
+			if(pTrigger == *(pPaxTypeEntry->GetTriggersDatabase().end()-1))
 			{
 				MessageBox("Can Not Delete The Default Trigger.");
 				return;
 			}
-			pPaxTypeEntry->DeleteTrigger(triggerIndex);
+			pPaxTypeEntry->DeleteTrigger(pTrigger);
 			// Reload all sibling item.
 			ReloadPaxType(pPaxTypeEntry, hPaxTypeItem);
 			m_tree.Expand(hPaxTypeItem, TVE_EXPAND);
@@ -906,7 +905,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				
 				if(pStandEntry->GetPaxTypeDatabase()->FindEqual(mobElemConst) != NULL)
 				{
-					MessageBox("Selected Stand is already exists.");
+					MessageBox("Selected Passenger Type is already exists.");
 				}
 				else
 				{

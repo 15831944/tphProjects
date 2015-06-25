@@ -36,9 +36,8 @@ public:
 	void InitTriggerDBFromOld(ConstraintWithProcIDEntry* pConstEntry);
 	std::vector<BoardingCallTrigger*>& GetTriggersDatabase(){ return m_vTriggers; }
 	void DeleteAllTrigger(){ m_vTriggers.clear(); }
-	void DeleteTrigger(int index){ m_vTriggers.erase( m_vTriggers.begin() + index); }
+	void DeleteTrigger(BoardingCallTrigger* pTrigger);
 	int GetTriggerCount(){ return (int)m_vTriggers.size(); }
-	void AddNewTrigger();
 	void SetTriggerCount(int count);
 
 	void readTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm, int triggerCount);

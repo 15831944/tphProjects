@@ -431,7 +431,7 @@ void CInputDataView::LoadBoardingCall()
 	BoardingCallFlightTypeEntry* pFlightEntry = NULL;
 	for(i=1;i<=nCount;i++)
 	{
-		pStage=pFlightData->GetFlightTypeDBInStage(i);
+		pStage=pFlightData->GetFlightTypeDB(i);
 		for(int j=0; j<pStage->getCount(); j++,nSum++)
 		{
 			pFlightEntry = (BoardingCallFlightTypeEntry*)pStage->getItem(j);

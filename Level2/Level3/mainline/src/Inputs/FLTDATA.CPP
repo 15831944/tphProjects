@@ -15,13 +15,13 @@ char szStageLabel[] = "BOARDING_CALL_STAGE_SIZE";
 
 FlightData::~FlightData ()
 {
-	int nSize = m_vStages.size();
-	for( int i=0; i<nSize; i++ )
+	int count = m_vFltTypeDB.size();
+	for( int i=0; i<count; i++ )
 	{
-		delete m_vStages[i];
-		m_vStages[i] =  NULL;
+		delete m_vFltTypeDB[i];
+		m_vFltTypeDB[i] =  NULL;
 	}
-	m_vStages.clear(); 
+	m_vFltTypeDB.clear(); 
 }
 
 
@@ -77,7 +77,7 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 			capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
 		FlightConWithProcIDDatabase oldStage;
 		oldStage.readObsoleteDatabase( p_file, "BOARDING_CALLS", m_pInTerm );
-		AddStageFromOld(&oldStage);
+		AddStageFor260OrOlder(&oldStage);
 	}
 	else if((float)(2.3-0.00001) < fVersion && fVersion < (float)(2.3+0.00001)) // this is a error version
 	{
@@ -95,7 +95,7 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 			char szLabel[128];
 			sprintf(szLabel, "BOARDING_CALLS_STAGE%d", i+1);
 			oldStage.readErrorDatabase (p_file, szLabel, m_pInTerm);
-			AddStageFromOld(&oldStage);
+			AddStageFor260OrOlder(&oldStage);
 		}
 	}
 	else if(fVersion < (float)(2.4+0.00001))		//2.20 , 2.40
@@ -114,7 +114,7 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 			char szLabel[128];
 			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
 			oldStage.readObsoleteDatabase(p_file, szLabel, m_pInTerm );
-			AddStageFromOld(&oldStage);
+			AddStageFor260OrOlder(&oldStage);
 		}
 	}
 	else if ((float)(2.5-0.00001) < fVersion && fVersion<(float)(2.5+0.00001))
@@ -131,7 +131,7 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 			char szLabel[128];
 			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
 			oldStage.readDatabase (p_file, szLabel, m_pInTerm );
-			AddStageFromOld(&oldStage);
+			AddStageFor260OrOlder(&oldStage);
 		}
 	}
 	else if ((float)(2.6-0.00001) < fVersion && fVersion<(float)(2.6+0.00001))
@@ -149,7 +149,7 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 			char szLabel[128];
 			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
 			oldStage.readDatabase (p_file, szLabel, m_pInTerm );
-			AddStageFromOld(&oldStage);
+			AddStageFor260OrOlder(&oldStage);
 		}
 	}
 	else
@@ -189,7 +189,7 @@ void FlightData::readBoardingCallData( ArctermFile &p_file )
 		p_file.skipField(1);
 		int fltTypeCount;
 		p_file.getInteger(fltTypeCount);
-		m_vStages[i]->readDatabase(p_file, m_pInTerm, fltTypeCount);
+		m_vFltTypeDB[i]->readDatabase(p_file, m_pInTerm, fltTypeCount);
 	}
 }
 
@@ -197,7 +197,7 @@ void FlightData::writeBoardingCallData( ArctermFile &_file ) const
 {
 	_file.writeField("BOARDING_CALL_DATA_BEGIN");
 	_file.writeLine();
-	int stageCount = m_vStages.size();
+	int stageCount = m_vFltTypeDB.size();
 
 	_file.writeField(szStageLabel);
 	_file.writeInt(stageCount);
@@ -208,10 +208,10 @@ void FlightData::writeBoardingCallData( ArctermFile &_file ) const
 	{
 		sprintf(szLabel, "BOARDING_CALLS_STAGE%d", i);
 		_file.writeField(szLabel);
-		int flightCount = m_vStages[i]->getCount();
+		int flightCount = m_vFltTypeDB[i]->getCount();
 		_file.writeInt(flightCount);
 		_file.writeLine();
-		m_vStages[i]->writeDatabase(_file);
+		m_vFltTypeDB[i]->writeDatabase(_file);
 	}
 	_file.writeField("BOARDING_CALL_DATA_END");
 	_file.writeLine();
@@ -346,94 +346,82 @@ void FlightData::clear()
 	delays.clear(); 
 	loads.clear();
 	capacity.clear(); 
-	int nSize = m_vStages.size();
+	int nSize = m_vFltTypeDB.size();
 	for( int i=0; i<nSize; i++ )
 	{
-		delete m_vStages[i];
-		m_vStages[i] =  NULL;
+		delete m_vFltTypeDB[i];
+		m_vFltTypeDB[i] =  NULL;
 	}
-	m_vStages.clear(); 
+	m_vFltTypeDB.clear(); 
 }
 
 
-/*  Add one stage with default value
+/*  Add one stage with default value:
 
-    Flight Type: DEFAULT
+    Flight Type: DEPARTING
           |
-          | Stand group: All Processors
+          | Stand group: All Stand
                  |			
                  |Passenger Type : DEFAULT
                         Number of triggers: 4
                                  |
                                  |Trigger1
-                                 |   |Time:
-                                 |   |Prop:
+                                 |   |Time:-1200
+                                 |   |Prop:20
                                  |
                                  |Trigger2
-								 |   |Time:
-								 |   |Prop:
+								 |   |Time:-1000
+								 |   |Prop:70
 								 |
 								 |Trigger3
-								 |   |Time:
-								 |   |Prop:
+								 |   |Time:-600
+								 |   |Prop:10
 								 |
 								 |Trigger4
-								     |Time:
-								     |Prop:
+								     |Time:-500
+								     |Prop:Residual
 */
 void FlightData::AddStage()
 {
 	BoardingCallFlightTypeDatabase* pFlightTypeDB = new BoardingCallFlightTypeDatabase();
 	pFlightTypeDB->AddFlightType(NULL, m_pInTerm);
-	m_vStages.push_back(pFlightTypeDB);
+	m_vFltTypeDB.push_back(pFlightTypeDB);
 	return;
 }
 
 
-void FlightData::AddStageFromOld(FlightConWithProcIDDatabase* pOldStage)
+void FlightData::AddStageFor260OrOlder(FlightConWithProcIDDatabase* pOldStage)
 {
 	if(!pOldStage)
 		return;
 
 	BoardingCallFlightTypeDatabase* pFlightTypeDB = new BoardingCallFlightTypeDatabase();
 	pFlightTypeDB->AddFlightFor260OrOlder(pOldStage, m_pInTerm);
-	m_vStages.push_back(pFlightTypeDB);
+	m_vFltTypeDB.push_back(pFlightTypeDB);
 	return;
 }
 
 // remove one stage data
 void FlightData::DeleteOneStageByIndex(int _stageIndex)
 {
-	assert( _stageIndex < static_cast<int>(m_vStages.size()) );
-	delete m_vStages[_stageIndex];
-	m_vStages.erase(m_vStages.begin() + _stageIndex);
+	assert( _stageIndex < static_cast<int>(m_vFltTypeDB.size()) );
+	delete m_vFltTypeDB[_stageIndex];
+	m_vFltTypeDB.erase(m_vFltTypeDB.begin() + _stageIndex);
 }
 
 BOOL FlightData::DeleteOneStageByFlightConstDB(ConstraintDatabase *pFCDB)
 {
-	int nCount=m_vStages.size();
+	int nCount=m_vFltTypeDB.size();
 	for(int i=0;i<nCount;i++)
 	{
-		if(m_vStages[i]==pFCDB)
+		if(m_vFltTypeDB[i]==pFCDB)
 		{
-			delete m_vStages[i];
-			m_vStages.erase(m_vStages.begin()+i);
+			delete m_vFltTypeDB[i];
+			m_vFltTypeDB.erase(m_vFltTypeDB.begin()+i);
 			return TRUE;
 		}
 	}
 	return FALSE;
 }
 
-BoardingCallFlightTypeDatabase* FlightData::GetStageInformation(int stageIndex) const
-{
-	return m_vStages[stageIndex];
-}
 
-// 
-// void FlightData::resortBoardingCallDB()
-// {
-// 	for( unsigned i=0; i<m_vCalls.size(); i++ )
-// 	{
-// 		m_vCalls[i]->resortDatebase();
-// 	}
-// }

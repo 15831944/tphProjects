@@ -97,6 +97,20 @@ void BoardingCallPaxTypeEntry::AddRegularTrigger( long _seconds, double _prop )
 	m_vTriggers.insert(m_vTriggers.end()-1, pTrigger); /* Add before the 'RESIDUAL' trigger. */
 }
 
+void BoardingCallPaxTypeEntry::DeleteTrigger( BoardingCallTrigger* pTrigger )
+{
+	int triggerCount = m_vTriggers.size();
+	for(int i=0; i<triggerCount; i++)
+	{
+		if(pTrigger == m_vTriggers[i])
+		{
+			delete m_vTriggers[i];
+			m_vTriggers.erase( m_vTriggers.begin() + i);
+		}
+	}
+	
+}
+
 BoardingCallPaxTypeDatabase::BoardingCallPaxTypeDatabase()
 {
 }

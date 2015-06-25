@@ -100,7 +100,7 @@ bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,co
 
 		if(operaterFlow.IfFits(ProcID)|| IsSubFlowInPaxFlow(operaterFlow,ProcIDList))
 		{
- 			const BoardingCallFlightTypeDatabase* pFlightTypeDB = _pInTerm->flightData->GetStageInformation(pHoldArea->getStageID()-1);
+ 			const BoardingCallFlightTypeDatabase* pFlightTypeDB = _pInTerm->flightData->GetFlightTypeDB(pHoldArea->getStageID()-1);
 			if (pFlightTypeDB == NULL)
 				continue;
  
