@@ -164,6 +164,7 @@
 #include <deque>
 #include <map>
 #include "Common/FloorChangeMap.h"
+#include "Inputs/Procdata.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -175,6 +176,8 @@ DECLARE_FLIGHTTYPE_SELECT_CALLBACK()
 #define ID_NEW_ARP	(WM_USER + 0x0100)
 #define ID_ENABLECONTOUREDIT 300
 #define IDC_TERMINAL_TREE 1
+#define IDC_BUTTON_MOVEUPFLOOR 2
+#define IDC_BUTTON_MOVEDOWNFLOOR 3
 using namespace ns_AirsideInput;
 using namespace airside_engine;
 /////////////////////////////////////////////////////////////////////////////
@@ -277,6 +280,8 @@ BEGIN_MESSAGE_MAP(CNodeView, CView)
 	ON_COMMAND(ID_GATEMENU_ADDGATE, OnCtxAddGate)
 	ON_COMMAND(ID_GATE_PROCDISPPROPERTIES, OnGateProcdispproperties)
 	ON_COMMAND(ID_WALLSHAPE_ADDWALLSHAPE, OnWallshapeAddwallshape)
+	ON_COMMAND(IDC_BUTTON_MOVEUPFLOOR, OnBtnMoveUpFloor)
+	ON_COMMAND(IDC_BUTTON_MOVEDOWNFLOOR, OnBtnMoveDownFloor)
 
 
 	ON_COMMAND(ID_SUBMENU_PLACEALIGNMENTLINE,OnPlaceMarkerLine)
@@ -376,6 +381,9 @@ void CNodeView::OnInitialUpdate()
 		if (GetDocument()->m_msManager.GetTerminalRootTVNode()->GetChildCount() > 0)
 			GetTreeCtrl().SelectSetFirstVisible(((CTVNode*)GetDocument()->m_msManager.GetTerminalRootTVNode()->GetChildByIdx(0))->m_hItem);
 	}
+
+	m_btnMoveFloorUp.LoadBitmaps(IDB_BITMAP_MOVEFLOORUP, IDB_BITMAP_MOVEFLOORUP1);
+	m_btnMoveFloorDown.LoadBitmaps(IDB_BITMAP_MOVEFLOORDOWN, IDB_BITMAP_MOVEFLOORDOWN1);
 }
 
 void CNodeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) 
@@ -872,6 +880,29 @@ LRESULT CNodeView::OnSelChanged(WPARAM wParam, LPARAM lParam)
 			GetDocument()->SelectNode(pNode);
 	}
 
+	m_btnMoveFloorUp.ShowWindow(SW_HIDE);
+	m_btnMoveFloorDown.ShowWindow(SW_HIDE);
+	HTREEITEM hParent = m_wndTreeCtrl.GetParentItem(pNMTreeView->itemNew.hItem);
+	CString strParent = m_wndTreeCtrl.GetItemText(hParent);
+	if(strParent == "Floors") // selected tree node data is a floor.
+	{
+		CRect rect1;
+		if(m_wndTreeCtrl.GetItemRect(pNMTreeView->itemNew.hItem,&rect1,TRUE))
+		{
+			if(rect1.Width()<180)
+			{
+				m_btnMoveFloorUp.SetWindowPos(&wndTop, 200, rect1.top, 18, 9, SWP_DRAWFRAME);
+				m_btnMoveFloorDown.SetWindowPos(&wndTop, 200, rect1.top+9, 18, 9, SWP_DRAWFRAME);
+			}
+			else
+			{
+				m_btnMoveFloorUp.SetWindowPos(&wndTop, rect1.right+10, rect1.top, 18, 9, SWP_DRAWFRAME);
+				m_btnMoveFloorDown.SetWindowPos(&wndTop, rect1.right+10, rect1.top+9, 18, 9, SWP_DRAWFRAME);
+			}
+			m_btnMoveFloorUp.ShowWindow(SW_SHOW);
+			m_btnMoveFloorDown.ShowWindow(SW_SHOW);
+		}	
+	}
 	return 0;
 //	*pResult = 0;
 }
@@ -1134,6 +1165,12 @@ HTREEITEM CNodeView::AddItem(CTVNode* pNode, CTVNode* pAfterNode)
 	COOLTREE_NODE_INFO cni;
 	CARCBaseTree::InitNodeInfo(this,cni);
 	cni.nImage = pNode->m_iImageIdx+ID_IMAGE_COUNT;
+	CString str = pNode->Name();
+	if(str == "4TH FLOOR")
+	{
+		int x=0;
+		x=0;
+	}
 	cni.nImageSeled = pNode->m_iImageIdx+ID_IMAGE_COUNT;
 	pNode->m_hItem = GetTreeCtrl().InsertItem(pNode->Name(),cni,FALSE,FALSE,hParent,hInsertAfter);
 	GetTreeCtrl().SetItemData( pNode->m_hItem, (long)pNode );
@@ -4707,11 +4744,12 @@ int CNodeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	// Create the style
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | TVS_SHOWSELALWAYS |TVS_EDITLABELS |WS_CLIPCHILDREN ;
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_TABSTOP | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | 
+	TVS_SHOWSELALWAYS |TVS_EDITLABELS |WS_CLIPCHILDREN | WS_CLIPSIBLINGS ;
 
-	BOOL bResult = m_wndTreeCtrl.Create(dwStyle, CRect(0,0,0,0),
-		this, IDC_TERMINAL_TREE);
-
+	BOOL bResult = m_wndTreeCtrl.Create(dwStyle, CRect(0,0,0,0), this, IDC_TERMINAL_TREE);
+	m_btnMoveFloorUp.Create("", WS_CHILD | BS_OWNERDRAW , CRect(0,0,0,0), this, IDC_BUTTON_MOVEUPFLOOR);
+	m_btnMoveFloorDown.Create("", WS_CHILD | BS_OWNERDRAW , CRect(0,0,0,0), this, IDC_BUTTON_MOVEDOWNFLOOR);
 	return (bResult ? 0 : -1);
 
 }
@@ -4722,7 +4760,6 @@ void CNodeView::OnSize(UINT nType, int cx, int cy)
 
 	if (::IsWindow(m_wndTreeCtrl.m_hWnd))
 		m_wndTreeCtrl.MoveWindow(0, 0, cx, cy, TRUE);
-
 }
 
 void CNodeView::OnRenameProc2()
@@ -4757,26 +4794,14 @@ void CNodeView::OnRenameProc2()
 	}
 }
 
-struct FloorLessOrder
+void CNodeView::ResetFloorIndexToAll()
 {
-	bool operator()(CFloor2* f1, CFloor2* f2)
-	{
-		return f1->Altitude() < f2->Altitude();
-	}
-};
+	CTermPlanDoc* pDoc = GetDocument();
 
-void CNodeView::OnSortFloor()
-{
-	SortFloors(GetDocument());
-}
-
-void CNodeView::SortFloors( CTermPlanDoc* pDoc )
-{
 	//sort floor
 	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);
 
 	CFloorList vList = floors.m_vFloors;
-	std::sort(vList.begin(),vList.end(),FloorLessOrder());
 
 	FloorChangeMap floorIndexChangeMap;
 
@@ -4864,4 +4889,74 @@ void CNodeView::SortFloors( CTermPlanDoc* pDoc )
 	}
 	portals.saveDataSet(pDoc->m_ProjInfo.path, false);
 
+// 	// MiscElevatorData
+// 	InputTerminal* pInTerm = GetInputTerminal();
+// 	MiscProcessorData* pMiscDB = pInTerm->miscData->getDatabase(Elevator);
+// 	int nMiscDataCount = pMiscDB->getCount();
+// 	for(int i = 0; i < nMiscDataCount; ++i)
+// 	{
+// 		MiscElevatorData* pMiscElevData = ((MiscDataElement*)pMiscDB->getItem(i))->getData();
+// 		int count = pMiscElevData->getStopAfFloorCount();
+// 		std::vector<BOOL> vOldStopAtFloor(count, FALSE);
+// 		for(int i=0; i<count; i++)
+// 		{
+// 			vOldStopAtFloor[i] = pMiscElevData->getStopAtFloor(i);
+// 		}
+// 		for(int i=0; i<count; i++)
+// 		{
+// 			pMiscElevData->setStopAtFloor(floorIndexChangeMap.getNewFloor(i), vOldStopAtFloor[i]);
+// 		}
+// 	}
+}
+
+void CNodeView::OnBtnMoveUpFloor()
+{
+	HTREEITEM hSelItem, hPrevItem;
+
+	CTVNode* pNode = GetDocument()->GetSelectedNode();
+	hSelItem = pNode->m_hItem;
+	hPrevItem = m_wndTreeCtrl.GetPrevSiblingItem(hSelItem);
+	if(hPrevItem)
+	{
+		CTVNode* pPrevNode = (CTVNode*)m_wndTreeCtrl.GetItemData(hPrevItem);
+		int selFloor = (int)pNode->m_dwData;
+		int prevFloor = (int)pPrevNode->m_dwData;
+		ASSERT(selFloor == (prevFloor - 1));
+		SwapTwoFloor(selFloor, prevFloor);
+
+/*		m_wndTreeCtrl.*/
+
+		m_wndTreeCtrl.SelectItem(hPrevItem);
+		m_wndTreeCtrl.SetFocus();
+	}
+	else
+	{
+		return;
+	}
+}
+
+void CNodeView::OnBtnMoveDownFloor()
+{
+	HTREEITEM hSelItem = m_wndTreeCtrl.GetSelectedItem();
+	HTREEITEM hNextItem = m_wndTreeCtrl.GetNextSiblingItem(hSelItem);
+	if(hNextItem)
+	{
+		m_wndTreeCtrl.SelectItem(hNextItem);
+		m_wndTreeCtrl.SetFocus();
+	}
+	else
+	{
+		return;
+	}
+}
+
+void CNodeView::SwapTwoFloor(int flrIndex1, int flrIndex2)
+{
+	CTermPlanDoc* pDoc = GetDocument();
+	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);;
+	CFloor2* pFloorTmp = floors.m_vFloors[flrIndex2];
+	floors.m_vFloors[flrIndex2] = floors.m_vFloors[flrIndex1];
+	floors.m_vFloors[flrIndex1] = pFloorTmp;
+
+	ResetFloorIndexToAll();
 }

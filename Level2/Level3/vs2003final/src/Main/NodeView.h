@@ -42,6 +42,8 @@ protected:
 	CReportParameter		*m_pCopyReportPara;
 	CDlgScheduleAndRostContent* m_pDlgScheduleRosterContent;
 
+	CBitmapButton m_btnMoveFloorUp;
+	CBitmapButton m_btnMoveFloorDown;
 public:
 	CPaxFlowDlg				*m_pDlgFlow;
 	CProcessDefineDlg		*m_pDlgProcessDefine;
@@ -97,7 +99,7 @@ protected:
 	void DeleteFirstChild(HTREEITEM hItem);
 	CTVNode* FindNode(HTREEITEM hItem);
 	void RenameSelected();
-	
+	void SwapTwoFloor(int flrIndex1, int flrIndex2);
 	DECLARE_MESSAGE_MAP()
 
 	afx_msg LRESULT OnBeginLabelEdit(WPARAM wParam, LPARAM lParam);
@@ -153,8 +155,10 @@ public:
 	afx_msg void OnCtxAddGate();
 	afx_msg void OnGateProcdispproperties();
 	afx_msg void OnWallshapeAddwallshape();
+	afx_msg void OnBtnMoveUpFloor();
+	afx_msg void OnBtnMoveDownFloor();
 
-	static void SortFloors(	CTermPlanDoc* pDoc);
+	void ResetFloorIndexToAll();
 
 
 #ifdef _DEBUG

@@ -2819,6 +2819,9 @@
 				RelativePath=".\Res\bitmap14.bmp">
 			</File>
 			<File
+				RelativePath=".\Res\bitmap15.bmp">
+			</File>
+			<File
 				RelativePath=".\Res\bitmap16.bmp">
 			</File>
 			<File
@@ -2841,6 +2844,9 @@
 			</File>
 			<File
 				RelativePath=".\Res\bitmap_folder_file.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\bitmap_m.bmp">
 			</File>
 			<File
 				RelativePath="Res\bitmap_s.bmp">
@@ -3003,6 +3009,12 @@
 			</File>
 			<File
 				RelativePath=".\Res\bmp00053.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\bmp00054.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\bmp00055.bmp">
 			</File>
 			<File
 				RelativePath="Res\bmp_seldefined.bmp">
