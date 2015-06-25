@@ -17,7 +17,7 @@ CReportToCompare::CReportToCompare()
 	m_strName.Empty();
 	m_nReportCategory = 0;
 	m_isChecked = TRUE;
-	m_nType = 0;
+	m_nType = REPORT_TYPE_DETAIL;
 }
 
 CReportToCompare::~CReportToCompare()
@@ -93,15 +93,15 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 		p_file.getChar(cFlag);
 		if(cFlag == 'D') // Detail
 		{
-			report.SetReportType(0);
+			report.SetReportDetail(REPORT_TYPE_DETAIL);
 		}
 		else if(cFlag == 'S') // Summary
 		{
-			report.SetReportType(1);
+			report.SetReportDetail(REPORT_TYPE_SUMMARY);
 		}
 		else
 		{
-			report.SetReportType(0);
+			report.SetReportDetail(REPORT_TYPE_DETAIL);
 		}
 
 		CReportParamToCompare param;
@@ -260,11 +260,11 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			p_file.writeChar('F');
 		}
 
-		if(m_vReports[i].GetReportType() == 0)// Detail
+		if(m_vReports[i].GetReportDetail() == REPORT_TYPE_DETAIL)// Detail
 		{
 			p_file.writeChar('D');
 		}
-		else if(m_vReports[i].GetReportType() == 1)// Summary
+		else if(m_vReports[i].GetReportDetail() == REPORT_TYPE_SUMMARY)// Summary
 		{
 			p_file.writeChar('S');
 		}

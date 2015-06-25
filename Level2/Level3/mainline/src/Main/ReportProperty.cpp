@@ -215,12 +215,12 @@ BOOL CDlgReportProperty::OnInitDialog()
 
 	m_comboRepType.AddString("Detail");
 	m_comboRepType.AddString("Summary");
-	switch(m_reportToCompare.GetReportType())
+	switch(m_reportToCompare.GetReportDetail())
 	{
-	case 0: // "Detail"
+	case REPORT_TYPE_DETAIL: // "Detail"
 		m_comboRepType.SetCurSel(0);
 		break;
-	case 1: // "Summary"
+	case REPORT_TYPE_DETAIL: // "Summary"
 		m_comboRepType.SetCurSel(1);
 		break;
 	default:
@@ -575,10 +575,10 @@ void CDlgReportProperty::OnOK()
 	switch (nSel)
 	{
 	case 0: // selected string is "Detail".
-		m_reportToCompare.SetReportType(0);
+		m_reportToCompare.SetReportDetail(REPORT_TYPE_DETAIL);
 		break;
 	case 1: // selected string is "Summary".
-		m_reportToCompare.SetReportType(1);
+		m_reportToCompare.SetReportDetail(REPORT_TYPE_SUMMARY);
 		break;
 	default:
 		break;

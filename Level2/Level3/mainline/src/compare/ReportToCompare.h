@@ -19,6 +19,12 @@ class CModelToCompare;
 class CCmpReportParameter;
 class CModelsManager;
 
+typedef enum 
+{
+	REPORT_TYPE_DETAIL = 0,
+	REPORT_TYPE_SUMMARY = 1
+} ENUM_REPORT_DETAIL;
+
 class CReportToCompare  
 {
 public:
@@ -45,8 +51,8 @@ public:
 	BOOL GetChecked() const { return m_isChecked; }
 	void SetChecked(BOOL val) { m_isChecked = val; }
 
-	int  GetReportType() const { return m_nType; }
-	void SetReportType(int nType) { m_nType = nType; }
+	ENUM_REPORT_DETAIL  GetReportDetail() const { return m_nType; }
+	void SetReportDetail(ENUM_REPORT_DETAIL nType) { m_nType = nType; }
 
 	BOOL LoadData( const CString& strPath );
 	
@@ -68,7 +74,7 @@ private:
 	CString					m_strName;
 	CReportParamToCompare	m_reportParam;
 	BOOL					m_isChecked;
-	int						m_nType; // 0: detail  1: summary
+	ENUM_REPORT_DETAIL		m_nType;
 };
 
 
