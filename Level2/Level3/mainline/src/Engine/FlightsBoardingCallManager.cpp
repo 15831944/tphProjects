@@ -233,6 +233,7 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 									{
 										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(zz);
 										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
+										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D')));
 										std::vector<BoardingCallTrigger>* vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger->size();
 										ElapsedTime tempTime;
