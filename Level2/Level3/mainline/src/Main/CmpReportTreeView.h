@@ -62,10 +62,8 @@ protected:
 	void DeleteReport();
 	void DeleteAllModel();
 	BOOL CheckData();
-	void RemoveSubItems(HTREEITEM pItem);
+	void RemoveSubItem(HTREEITEM pItem);
 	void UpdateSubItems(HTREEITEM pItem);
-	void ReloadReportDetailSubItems(const CReportToCompare &report, HTREEITEM hReport);
-
 	CMenu m_nMenu, *m_pSubMenu;
 
 public:
