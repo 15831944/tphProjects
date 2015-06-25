@@ -146,6 +146,16 @@ CPoint2008 AirsideVehicleInSim::GetRanddomPoint()
 	outPt.setPoint(randomgen.getRandPoint().getX(),randomgen.getRandPoint().getY(),randomgen.getRandPoint().getZ());
 	return  outPt;
 }
+
+
+double AirsideVehicleInSim::GetVehicleRandomZ()
+{
+	double dHeight = GetVehicleHeight() * 0.8;
+	double dRange = dHeight - 1.2;
+
+	return 1.2 + dRange *((double)rand() / RAND_MAX);
+}
+
 AirsideVehicleInSim::~AirsideVehicleInSim(void)
 {
 

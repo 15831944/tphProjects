@@ -3,7 +3,7 @@
 #include "Person.h"
 #include "GroupLeaderInfo.h"
 #include "..\Common\ARCTracker.h"
-#include "BagCartsParkingSpotInSim.h"
+#include "AirsideBaggageCartInSim.h"
 
 
 
@@ -87,15 +87,20 @@ int AirsideBaggageBehavior::performanceMove( ElapsedTime p_time,bool bNoLog )
 //	ASSERT(0);
 //}
 
-void AirsideBaggageBehavior::MoveToCartFromPusher(CBagCartsParkingSpotInSim * pBagCartsSpotInSim, ElapsedTime& eTime)
+void AirsideBaggageBehavior::MoveToCartFromPusher(AirsideBaggageCartInSim *pBagCart, ElapsedTime& eTime)
 {
 	ResetTerminalToAirsideLocation();
 	
 	setState(MOVETOBAGCART);
 	WriteLog(eTime);
 
+	CPoint2008 ptCart = pBagCart->GetPosition();
+	CPoint2008 ptRandom = pBagCart->GetRanddomPoint();
+	ptRandom.setZ(pBagCart->GetVehicleRandomZ());
+	_offSetInBus = ptRandom;
 
-	CPoint2008 ptCart = pBagCartsSpotInSim->GetServicePoint();
+	ptCart += ptRandom;
+	ptCart.setZ(pBagCart->GetVehicleRandomZ());
 	setDestination(ptCart);
 	ElapsedTime eMoveTime = moveTime();
 	setState(ARRIVEATBAGCART);

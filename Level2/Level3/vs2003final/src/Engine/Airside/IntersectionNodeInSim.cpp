@@ -463,18 +463,18 @@ FilletTaxiway* IntersectionNodeInSim::GetFilletFromTo( RunwayDirectSegInSim * pS
 	int runwayid1 = pSeg1->GetRunwaySeg()->GetRunwayID();
 	int taxiwayid2 = pSeg2->GetTaxiwaySeg()->GetTaxiwayID();
 
-	int nTaxiItemID1 = -1;
-	TaxiwayIntersectItem* pTaxiItem1 = m_nodeinput.GetTaxiwayItem(taxiwayid2);
-	if(pTaxiItem1)
-		nTaxiItemID1 = pTaxiItem1->GetUID();
-	int nTaxiItemID2 = -1;
+	int rumwayItemId = -1;
 	RunwayIntersectItem* pRunwayItem2 = m_nodeinput.GetRunwayItem(runwayid1);
 	if(pRunwayItem2)
-		nTaxiItemID2 = pRunwayItem2->GetUID();
+		rumwayItemId = pRunwayItem2->GetUID();
 
+	int taxiItemId = -1;
+	TaxiwayIntersectItem* pTaxiItem1 = m_nodeinput.GetTaxiwayItem(taxiwayid2);
+	if(pTaxiItem1)
+		taxiItemId = pTaxiItem1->GetUID();
 
-	matchfilet.SetFilletPoint1( FilletPoint(nTaxiItemID1,pSeg1->IsPositiveDir()?-1.0 : 1.0 ) );
-	matchfilet.SetFilletPoint2( FilletPoint(nTaxiItemID2,pSeg2->IsPositiveDir()?1.0:-1.0 ) );
+	matchfilet.SetFilletPoint1( FilletPoint(rumwayItemId,pSeg1->IsPositiveDir()?-1.0 : 1.0 ) );
+	matchfilet.SetFilletPoint2( FilletPoint(taxiItemId,pSeg2->IsPositiveDir()?1.0:-1.0 ) );
 
 	for(int i=0;i< (int)m_vFilletTaxiways.size();i++)
 	{
@@ -675,4 +675,11 @@ void IntersectionNodeInSim::getDesc( ResourceDesc& resDesc )
 void IntersectionNodeInSim::SetBlock( bool bBlock )
 {
 	m_bBlock = bBlock;
+}
+
+ElapsedTime IntersectionNodeInSim::GetLastOcyTime(  ) const
+{
+	if(m_vOccupancyTable.empty())
+		return ElapsedTime(0L);
+	return m_vOccupancyTable.back().GetExitTime();
 }

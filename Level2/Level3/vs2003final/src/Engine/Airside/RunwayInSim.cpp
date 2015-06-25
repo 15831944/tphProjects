@@ -1768,7 +1768,7 @@ void LogicRunwayInSim::GetIntersectRunways(std::vector<std::pair<int,Intersectio
 		 {
 			 RunwayIntersectItem*  runwayItem = vRunwayIntNode[nRunwayInt];
 			 int nIntRunwayID = runwayItem->GetRunway()->getID();
-			 if(nIntRunwayID != nCurrentRunwayID)
+			 if(nIntRunwayID == nCurrentRunwayID)
 			 {
 				 vRunwayID.push_back(std::make_pair(nIntRunwayID,pNode));
 			 }

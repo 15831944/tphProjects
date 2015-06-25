@@ -126,6 +126,8 @@ int QueueToTakeoffPos::GetAheadFlightInQ(ElapsedTime tEnterTime) const
 
 	return nFltCount;
 }
+
+
 /************************************************************************/
 /*                                                                      */
 /************************************************************************/

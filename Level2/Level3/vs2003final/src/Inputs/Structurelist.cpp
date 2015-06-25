@@ -88,7 +88,7 @@ void CStructureList::readObsoleteData( ArctermFile& p_file )
 
 				strct->addPoint(pt);
 			}
-			strct->setFloorNum(nfloor);
+			strct->setFloorIndex(nfloor);
 			m_structurelist.addItem (strct);
 
 			p_file.getLine();
@@ -152,7 +152,7 @@ void CStructureList::readObsoleteData( ArctermFile& p_file )
 
 				strct->addPoint(pt);
 			}
-			strct->setFloorNum(nfloor);
+			strct->setFloorIndex(nfloor);
 			m_structurelist.addItem (strct);
 
 			p_file.getLine();
@@ -203,7 +203,7 @@ void CStructureList::readData (ArctermFile& p_file)
 
 			strct->addPoint(pt);
 		}
-		strct->setFloorNum(nfloor);
+		strct->setFloorIndex(nfloor);
 		m_structurelist.addItem (strct);
 
 		p_file.getLine();
@@ -224,7 +224,7 @@ void CStructureList::writeData (ArctermFile& p_file) const
 			
 		int ptcount = m_structurelist.getItem(i)->getPointNum();		
 		p_file.writeInt(ptcount);
-		p_file.writeInt(m_structurelist.getItem(i)->getFloorNum());
+		p_file.writeInt(m_structurelist.getItem(i)->getFloorIndex());
 		for(int j = 0; j< ptcount; j ++)
 		{
 			Point pt = m_structurelist.getItem(i)->getPointAt(j);

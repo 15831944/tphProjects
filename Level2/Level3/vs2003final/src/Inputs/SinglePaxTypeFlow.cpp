@@ -102,24 +102,6 @@ void CSinglePaxTypeFlow::AddDestProc(const ProcessorID & _sourceProcID,const CFl
 			break;
 	}
 
-// 	PAXFLOWIDGRAPH::iterator iter1 = m_vPaxFlowDigraph.begin();
-// 	PAXFLOWIDGRAPH::iterator iterEnd1 = m_vPaxFlowDigraph.end();
-// 	for( ; iter1 != iterEnd; ++iter1 )
-// 	{
-// 		FLOWDESTVECT::iterator iter = m_vDestProcs.begin();
-// 		FLOWDESTVECT::iterator iterEnd = m_vDestProcs.end();
-// 		if( iter1->GetProcID() == _sourceProcID )
-// 		{
-// 			//iterSource = iter1;
-// 		}
-// 		else if( iter1->GetProcID() == _destProc.GetProcID() )
-// 		{
-// 			//iterDest = iter1;
-// 		}
-// 		if( &(*iterSource) && &(*iterDest) )
-// 			break;
-// 	}
-
 	//ASSERT( iterSource );
 	if( !&(*iterSource) )
 	{

@@ -131,7 +131,7 @@ ElapsedTime ArrivalDelayTriggerInSim::GetDelayTime(AirsideFlightInSim* pFlight,C
 		{
 			if(tDelayEnRoute>ElapsedTime(0L))
 			{
-				strReason.Format("Exceed %d flights waiting for departure at takeoff position: %s", nMaxQueue, strTakePos);
+				strReason.Format("Exceed %d flights waiting for departure at takeoff position: %s", nMaxQueueEnRoute, strTakePos);
 				return tDelayEnRoute;
 			}
 		}

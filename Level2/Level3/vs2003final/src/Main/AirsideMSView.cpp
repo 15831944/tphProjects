@@ -86,7 +86,7 @@ enum ID_MENUITEM
 	ID_MENUITEM_UNLOCK_ALTOBJECT,
 	ID_MENUITEM_STRETCHOPTION,
 	ID_MENUITEM_REPORTAREADSP,
-	ID_MENUITEM_ADDCONTOUR,
+	//ID_MENUITEM_ADDCONTOUR,
 	ID_MENUITEM_IMPORTWAYPOINT,
 	ID_MENUITEM_DEFINE_TAXIROUTRE,
 };
@@ -300,7 +300,9 @@ BEGIN_MESSAGE_MAP(CAirsideMSView, CView)
 	ON_UPDATE_COMMAND_UI(ID_SURFACE_SHOW,OnUpdateShowSurface)
 
 	ON_COMMAND(ID_MENUITEM_REPORTAREADSP,OnReportingAreaDisplayProperty)
-	ON_UPDATE_COMMAND_UI(ID_MENUITEM_ADDCONTOUR,OnUpdateAddContour)
+
+	//ON_COMMAND(ID_MENUITEM_ADDCONTOUR, OnAddCountour)
+	//ON_UPDATE_COMMAND_UI(ID_MENUITEM_ADDCONTOUR,OnUpdateAddContour)
 
 	ON_COMMAND(ID_MENUITEM_DEFINE_TAXIROUTRE, OnDefineTaxidRoute)
 	ON_COMMAND(ID_MENUITEM_IMPORTWAYPOINT, OnImportWayPoints)
@@ -3000,7 +3002,7 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 					if (pNodeData->nSubType == ALT_CONTOUR)
 					{
 						nLockInsertPosition = 2;
-						nMenuID = ID_MENUITEM_ADDCONTOUR;
+						nMenuID = ID_MENUITEM_ADDOBJECT;
 						strMenuCaption = _T("Add Contour...");
 
 						pCtxMenu->InsertMenu(0, MF_STRING | MF_BYPOSITION, nMenuID, strMenuCaption);
@@ -3551,7 +3553,7 @@ void CAirsideMSView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 				CTermPlanDoc* pDoc	= GetARCDocument(); 
 				CString strProcName =dlg.m_csLevel1+ "-" + dlg.m_csLevel2 + "-" + dlg.m_csLevel3 + "-" +dlg.m_csLevel4;
 				//		pNewwallsh->SetNameStr(strProcName);
-				pNewwallsh->SetFloorNum(pDoc->m_nActiveFloor);
+				pNewwallsh->SetFloorIndex(pDoc->m_nActiveFloor);
 				pNewwallsh->SetPath(dlg.m_Wallpath);
 				pDoc->GetCurWallShapeList().addShape( pNewwallsh);
 
@@ -5749,13 +5751,13 @@ void CAirsideMSView::LockALTObject( bool bLock )
 // 	}
 }
 
-void CAirsideMSView::OnUpdateAddContour(CCmdUI* pCmdUI)
-{
-	CNodeData* pNodeData = GetSelectedNodeData();
-	bool bFailed = true;
-	pCmdUI->Enable(pNodeData
-		&& !(pNodeData->nodeType == NodeType_Object && ALTObject::GetLockedByeID(pNodeData->dwData, bFailed)));
-}
+//void CAirsideMSView::OnUpdateAddContour(CCmdUI* pCmdUI)
+//{
+//	CNodeData* pNodeData = GetSelectedNodeData();
+//	bool bFailed = true;
+//	pCmdUI->Enable(pNodeData
+//		&& !(pNodeData->nodeType == NodeType_Object && ALTObject::GetLockedByeID(pNodeData->dwData, bFailed)));
+//}
 
 void CAirsideMSView::OnUpdateObjectDelete(CCmdUI* pCmdUI)
 {
@@ -7022,6 +7024,8 @@ HTREEITEM MSV::CAirsideMSView::FindTreeItemByTypeID( ALTOBJECT_TYPE type, int nO
 	}
 	return NULL;
 }
+
+
 
 void CAirsideMSView::OnEditTakeoffClearance(void)
 {

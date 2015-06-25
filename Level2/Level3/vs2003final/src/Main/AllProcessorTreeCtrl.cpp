@@ -140,3 +140,65 @@ bool CAllProcessorTreeCtrl::IsSelected( CString strProcess, ProcessorDatabase* _
 
 	return CProcessorTreeCtrl::IsSelected( strProcess, _pProcDB );
 }
+
+
+void CAllProcessorTreeCtrl::LoadChild( HTREEITEM _hItem, CString _csStr,BOOL bGateStandOnly )
+{
+	// Added by Xie Bo 2002.5.12
+	DeleteAllChild(_hItem);
+
+	ProcessorID id;
+	id.SetStrDict( m_pInTerm->inStrDict );
+	id.setID( (LPCSTR)_csStr );
+	StringList strList;
+	m_pProcList->getMemberNames( id, strList, m_nProcType,bGateStandOnly );
+
+	std::vector<ALTObjectID> vObjectID;
+	for(int i = 0; i < strList.getCount(); i++) 
+	{
+		ALTObjectID objID;
+		objID.FromString(strList.getString(i));
+		vObjectID.push_back(objID);
+	}
+	std::sort(vObjectID.begin(), vObjectID.end());
+
+	bool bNeedExpand = FALSE ;
+	for( unsigned i = 0; i < vObjectID.size(); i++ ) 
+	{
+		CString csStr = vObjectID.at(i).GetIDString();
+		CString csLabel = _csStr + "-" + csStr;
+
+
+		if( !m_bAirsideMode && !checkACStandFlag( csLabel) )
+			continue;
+
+		HTREEITEM hItem = InsertItem( csLabel, _hItem );
+		if( m_pProcDB )
+		{
+			SetItemData( hItem, GetDBIndex( csLabel, m_pProcDB ) );
+
+
+			if( IsSelected( csLabel, m_pProcDB ) )
+			{
+				SetItemColor( hItem, SELECTED_COLOR );
+				SetItemBold( hItem, true );
+				bNeedExpand = TRUE;
+			}
+			else
+			{
+				SetItemColor( hItem, RGB(0,0,0));
+				SetTextColor( -1);
+			}
+		}
+		if(csLabel==m_strSelectedID)
+		{
+			hSelItem=hItem;
+		}
+	}
+	if ( bNeedExpand )
+	{
+		Expand( _hItem, TVE_EXPAND );
+	}
+	if( hSelItem )
+		SelectItem( hSelItem );
+}

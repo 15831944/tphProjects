@@ -80,7 +80,7 @@ protected:
 	ProcessorDatabase* m_pProcDB;
 
 	HTREEITEM m_selItem;	
-	void LoadChild( HTREEITEM _hItem, CString _csStr ,BOOL bGateStandOnly=FALSE);
+	virtual void LoadChild( HTREEITEM _hItem, CString _csStr ,BOOL bGateStandOnly=FALSE);
 	void LoadChild2( HTREEITEM _hItem, CString _csStr ,BOOL bGateStandOnly=FALSE);
 	// if the flag is false, show all gate in the tree
 	// else only show ac_stand gate in the tree

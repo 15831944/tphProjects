@@ -217,6 +217,7 @@ public:
 	BOOL IsArrivedAtStand() { return m_IsArriveStand ;} ;
 	void IsArrivedAtStand(BOOL _res) { m_IsArriveStand = _res ;} ;
 	CPoint2008 GetRanddomPoint() ;
+	double GetVehicleRandomZ();
 private:
 	BOOL m_IsArriveStand ;
 

@@ -260,6 +260,24 @@ HoldInTaxiRoute* FlightHoldListInTaxiRoute::IsDistInNoParkingNodeRange( const Di
 			}
 		}
 	}
+	for(int i=0;i<GetCount();i++)
+	{
+		const HoldInTaxiRoute& theHold = ItemAt(i);
+		if( theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE   )
+		{
+			for(int j=i+1;j<GetCount();++j)
+			{
+				const HoldInTaxiRoute& theHold2 = ItemAt(j);
+				if( theHold2.m_hHoldType == HoldInTaxiRoute::ENTRYNODE )
+				{
+					if(theHold.m_dDistInRoute< dist && dist < theHold2.m_dDistInRoute && theHold.mLinkDirSeg->GetType()==AirsideResource::ResType_RunwayDirSeg)
+					{
+						return (HoldInTaxiRoute*)&theHold;
+					}
+				}
+			}
+		}
+	}
 	return NULL;
 }
 //get last node hold
@@ -362,7 +380,7 @@ HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetWaitHold( const DistanceUnit& dis
 		else 
 			pPreHold = pPrePreHold;
 	}	 
-	
+
 	return NULL;		
 }
 
@@ -379,6 +397,7 @@ HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetLastRunwayEntryHold() const
 
 	return NULL;
 }
+
 /************************************************************************/
 /* Fillet Point in TaxiRoute                                                                     */
 /************************************************************************/

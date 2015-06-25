@@ -18,6 +18,7 @@
 #include "../../InputAirside/StandCriteriaAssignment.h"
 #include "../OnboardFlightInSim.h"
 #include "FlightPerformancesInSim.h"
+#include "EnrouteQueueCapacityInSim.h"
 
 #include <Results/AirsideFlightEventLog.h>
 
@@ -383,6 +384,11 @@ bool StandInSim::GetEnterStandClearance(AirsideFlightInSim * pFlight, ClearanceI
 
 bool StandInSim::GetExitStandClearance(AirsideFlightInSim * pFlight, ClearanceItem& lastItem, Clearance& newClearance)
 {
+	EnrouteQueueCapacityInSim* pEnrouteCapacity = pFlight->GetAirTrafficController()->GetEnrouteCapacity();
+	if (pEnrouteCapacity && pEnrouteCapacity->PushBackExitEnrouteQCapacity(lastItem.GetTime(),pFlight) == false)//delay by enroute capacity
+		return true;
+	
+	
 	StandLeadOutLineInSim* pOutLine = AssignLeadOutLine(pFlight);
 	if(pOutLine)
 	{

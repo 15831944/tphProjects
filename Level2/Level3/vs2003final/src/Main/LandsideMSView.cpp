@@ -2160,5 +2160,6 @@ void CLandsideMSView::OnSetLandsideLayoutOptions()
 	{
 		InputLandside* pInput = GetDocument()->getARCport()->m_pInputLandside;
 		pInput->getLayoutOption()->ReadData(-1);
+		GetDocument()->UpdateAllViews(NULL, VM_UPDATE_LANDSIDE_LAYOUTOPTION);
 	}
 }

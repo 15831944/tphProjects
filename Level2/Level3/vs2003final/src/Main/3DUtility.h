@@ -925,9 +925,9 @@ inline static void RenderStructures(CTermPlanDoc * pDoc,C3DView* pView,int nSele
 	for (size_t i = 0; i < StructureList.getStructureNum(); i++)
 	{	
 		CStructure * cs=StructureList.getStructureAt(i);
-		int iFloor=cs->getFloorNum();
+		int iFloor=cs->getFloorIndex();
 		if(bOn[iFloor]){							
-			StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorNum()],FALSE);
+			StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorIndex()],FALSE);
 		}
 	}	
 	for(size_t i=0;i<cslist.getStructureNum();i++){		
@@ -946,14 +946,14 @@ inline static void RenderStructures(CTermPlanDoc * pDoc,C3DView* pView,int nSele
 	for (size_t i = 0; i < StructureList.getStructureNum(); i++)
 	{		
 		CStructure * cs=StructureList.getStructureAt(i);
-		int iFloor=cs->getFloorNum();
+		int iFloor=cs->getFloorIndex();
 		if(bOn[iFloor])
 		{
 			glColor4f(1.0f, 1.0f, 1.0f, _alpha);					// Full Brightness.  50% Alpha
 			if (i == nSelectedStructure&&iFloor==nActiveFloor&&pDoc->m_systemMode==EnvMode_Terminal)
-				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorNum()],bSelStructureEdit);
+				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorIndex()],bSelStructureEdit);
 			else
-				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorNum()],FALSE);
+				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorIndex()],FALSE);
 		}		
 	}	
 	for(size_t i=0;i<cslist.getStructureNum();i++){
@@ -1036,10 +1036,10 @@ inline static void RenderWallShapes(CTermPlanDoc* pDoc, double* dAlt, BOOL* bOn)
 		int nCount=termWallList->getShapeNum();	
 		for(int i=0;i<nCount;++i){
 			WallShape* termwall=termWallList->getShapeAt(i);
-			if(bOn[termwall->GetFloorNum()]){
+			if(bOn[termwall->GetFloorIndex()]){
 				glEnable(GL_LIGHTING);
 				glPushMatrix();
-				glTranslated(0.0,0.0,dAlt[termwall->GetFloorNum()]);
+				glTranslated(0.0,0.0,dAlt[termwall->GetFloorIndex()]);
 				glColor4f(1.0f,1.0f,1.0f,1.0f);	
 				termwall->DrawOGL();
 				glPopMatrix();
@@ -1053,11 +1053,11 @@ inline static void RenderWallShapes(CTermPlanDoc* pDoc, double* dAlt, BOOL* bOn)
 		int nCount=airWallList->getShapeNum();
 		for(int i=0;i<nCount;++i){
 			WallShape* airWall=airWallList->getShapeAt(i);
-			if(bOn[airWall->GetFloorNum()+AirFloorNum]){
+			if(bOn[airWall->GetFloorIndex()+AirFloorNum]){
 				WallShape *Airwall =airWallList->getShapeAt(i);
 				glEnable(GL_LIGHTING);
 				glPushMatrix();
-				glTranslated(0.0,0.0,dAlt[Airwall->GetFloorNum()+AirFloorNum]);
+				glTranslated(0.0,0.0,dAlt[Airwall->GetFloorIndex()+AirFloorNum]);
 				glColor4f(0.8f,0.8f,0.8f,1.0f);	
 				Airwall->DrawOGL();
 				glPopMatrix();

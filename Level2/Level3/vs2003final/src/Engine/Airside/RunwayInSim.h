@@ -76,12 +76,14 @@ public:
 	HoldPositionInSim* getHoldPosition();
 
 	QueueToTakeoffPos* getTakeoffQueue();
+
 protected:
 	//input data
 	RunwayExit m_ExitInput;	 
 	LogicRunwayInSim * m_pLogicRunway;
 	std::vector<AirsideFlightInSim*> m_vFailedExitFlights;		//to record the failed exit runway flights when the exit be occupied
 	std::set<AirsideFlightInSim*> m_vRegtakeoffFlts; //
+	
 public:
 	//Relate Date In Sim
 	FlightGroundRouteDirectSegInSim* m_pRouteDirSeg;

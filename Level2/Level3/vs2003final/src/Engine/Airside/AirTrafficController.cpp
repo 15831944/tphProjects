@@ -92,6 +92,7 @@
 #include "DynamicConflictGraph.h"
 #include "AirsideCircuitFlightInSim.h"
 #include "AirsideCircuitFlightProcess.h"
+#include "EnrouteQueueCapacityInSim.h"
 
 //static DistanceUnit RadiusOfConcernOnAir = 100000;  // 1000 meters
 static DistanceUnit RadiusOfConcernOnGround = 50000;   //200 meters
@@ -124,6 +125,7 @@ AirTrafficController::AirTrafficController()
 
 	m_pRunwaysController = new CRunwaySystem();
 	m_pArrivalDelayTrigger = new ArrivalDelayTriggerInSim();
+	m_pEnrouteQCapacity = new EnrouteQueueCapacityInSim();
 
 	m_pAirportStatusManager = new AirportStatusManager;
 	m_pInboundStatus = new InboundStatus(m_pAirportStatusManager);
@@ -189,7 +191,11 @@ AirTrafficController::~AirTrafficController(void)
 	delete m_pArrivalDelayTrigger;
 	m_pArrivalDelayTrigger = NULL;
 
-
+	if (m_pEnrouteQCapacity)
+	{
+		delete m_pEnrouteQCapacity;
+		m_pEnrouteQCapacity = NULL;
+	}
 
 	if (NULL != m_pInTrailSeparationInSim)
 	{
@@ -792,6 +798,12 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 		TakeoffQueueInSim* pTakeoffQueue = m_pResources->GetAirportResource()->getTakeoffQueuesManager()->GetRunwayExitQueue(pFlight->GetAndAssignTakeoffPosition());
 		if(pOutBound && (lastClearanceItem.GetMode() == OnExitStand || lastClearanceItem.GetMode() == OnTaxiToRunway ))
 		{
+			if (lastClearanceItem.GetMode() == OnExitStand && lastClearanceItem.IsPushback() == true)
+			{
+				if (m_pEnrouteQCapacity && m_pEnrouteQCapacity->PushBackExitEnrouteQCapacity(lastClearanceItem.GetTime(),pFlight) == false)//delay by enroute capacity
+					return;
+			}
+
 			if(pFlight->GetTowingRoute())
 			{
 				pFlight->GetTowingRoute()->FlightExitRoute(pFlight,pFlight->GetTime());
@@ -1421,6 +1433,7 @@ bool AirTrafficController::Init( int nPrjId, AirsideResourceManager * pResources
 	}
 
 	m_pArrivalDelayTrigger->Init(nPrjId,pResources->GetAirportResource(),pAirportDB);
+	m_pEnrouteQCapacity->Init(pResources->GetAirportResource());
 
 	//m_missApproachController.Init(nPrjId,pResources->GetAirspaceResource());
 	m_pRunwaysController->Initlization(nPrjId, this, &m_RunwayExitAssignmentStrategies, &m_TakeOffPositionAssignment,pOutput);

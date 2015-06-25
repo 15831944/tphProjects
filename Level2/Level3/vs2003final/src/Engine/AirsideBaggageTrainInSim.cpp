@@ -506,13 +506,16 @@ void AirsideBaggageTrainInSim::TransferTheBag( Person *pBag,const ElapsedTime& e
 	AirsideBaggageBehavior *pBagBehavior = new AirsideBaggageBehavior(pBag, MOVETOBAGCART);
 	pBag->setBehavior(pBagBehavior);
 
+	AirsideBaggageCartInSim *pBagCart = getCurBaggageCart();
+	ASSERT(pBagCart);
+
 	ElapsedTime eArriveTime = eTime;
-	pBagBehavior->MoveToCartFromPusher(m_pBagCartsSpotInSim, eArriveTime);
+	pBagBehavior->MoveToCartFromPusher(pBagCart, eArriveTime);
 
 	retTime = MAX(retTime,eArriveTime);
 	//CPoint2008  m_pBagCartsSpotInSim->GetServicePoint();
 
-	AirsideBaggageCartInSim *pBagCart = getCurBaggageCart();
+	
 	pBagCart->AddBaggage(pBagBehavior);
 	m_nBagLoaded += pBag->GetActiveGroupSize();
 	m_nBagLoaded++;
@@ -704,8 +707,8 @@ void AirsideBaggageTrainInSim::WirteLog( const CPoint2008& p, const double speed
 		{	
 			DistanceUnit distInPt = cartIncPath.GetIndexDist(j);
 			ElapsedTime midT = t - ElapsedTime(incDist/speed -distInPt/speed);
-			
-			
+
+
 			cart->SetPosition( cartIncPath.getPoint(j) );
 			cart->SetSpeed(speed);
 			cart->SetTime( midT );
@@ -714,6 +717,7 @@ void AirsideBaggageTrainInSim::WirteLog( const CPoint2008& p, const double speed
 		}
 
 		cartPosDist += cartlen;
+		
 	}
 
 	m_trace.Shrink(cartPosDist);

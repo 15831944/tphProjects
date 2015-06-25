@@ -211,6 +211,7 @@ public:
 	virtual void GetDataAtFloorLiftDoors(int nFloor, std::vector<Point>& outDoors);
 	virtual std::vector<Pollygon>& GetDataAtFloorLiftAreas(int nFloor);
 
+	void UpdateFloorIndex(const FloorChangeMap& changMap);
 
 public:
 	void SetPlatFormLength( double _dPlatFormLen ){ m_dWaitareaLength = _dPlatFormLen;	}

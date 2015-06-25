@@ -1,7 +1,7 @@
 #pragma once
 #include "airsidemobelementbasebehavior.h"
 
-class CBagCartsParkingSpotInSim;
+class AirsideBaggageCartInSim;
 
 class AirsideBaggageBehavior :
 	public AirsideMobElementBaseBehavior
@@ -26,7 +26,7 @@ public:
 	// _bBackup: if the log is backwards.
 	//virtual void writeLog (ElapsedTime time, bool _bBackup, bool bOffset = true );
 
-	void MoveToCartFromPusher(CBagCartsParkingSpotInSim * pBagCartsSpotInSim, ElapsedTime& eTime);
+	void MoveToCartFromPusher(AirsideBaggageCartInSim *pBagCart, ElapsedTime& eTime);
 
 protected:
 	CPoint2008 _offSetInBus ;

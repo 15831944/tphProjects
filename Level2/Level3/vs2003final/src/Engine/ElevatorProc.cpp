@@ -12,6 +12,7 @@
 #include "engine\procq.h"
 #include "engine\terminal.h"
 #include "TerminalMobElementBehavior.h"
+#include "Common\FloorChangeMap.h"
 
 #define  GAP_WIDTH_BETWWEN_WAITAREA_LIFTAREA 20
 #define  GAP_WIDTH_BETWWEN_LIFTAREAS 20
@@ -1480,6 +1481,33 @@ std::vector<Pollygon>& ElevatorProc::GetDataAtFloorLiftAreas( int nFloor )
 {
 	return GetDataAtFloor(nFloor).GetLiftAreas();
 }
+
+void ElevatorProc::UpdateFloorIndex( const FloorChangeMap& changMap )
+{
+	__super::UpdateFloorIndex(changMap);
+	
+	int iNewMinFloor = changMap.getNewFloor(m_iMinFloor);
+	int iNewMaxFloor = changMap.getNewFloor(m_iMaxFloor);
+	
+	if(iNewMaxFloor<iNewMinFloor)
+		std::swap(iNewMinFloor,iNewMaxFloor);
+
+	std::vector<bool> vNewPosWaitArea;
+	vNewPosWaitArea.resize(iNewMaxFloor-iNewMinFloor+1, true);
+
+	for(int i=m_iMinFloor;i<=m_iMaxFloor;i++)
+	{
+		int nNewFloor = changMap.getNewFloor(i);
+		vNewPosWaitArea[nNewFloor-iNewMinFloor] = m_vPosOfWaitarea[i-m_iMinFloor];  
+	}
+
+	m_iMaxFloor = iNewMaxFloor;
+	m_iMinFloor = iNewMinFloor;
+	m_vPosOfWaitarea = vNewPosWaitArea;
+
+	InitLayout();
+}
+
 //Point ElevatorProc::GetPipeExitPoint(int iCurFloor, CString& _curTime,Point& outPoint,TerminalMobElementBehavior *terminalMob)
 //{
 //	return GetEntryPoint(terminalMob->getPersonErrorMsg(),iCurFloor,_curTime);

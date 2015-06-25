@@ -31,6 +31,7 @@ public:
 public://logical
 	//get the queue length of the runway
 	int GetQueueLength()const{ return static_cast<int>(m_vInQueueFlights.size()); }
+	double GetTakeoffQueueLength()const;
 	AirsideFlightInSim *GetFlightInQueue(int nIndex);
 	//the first flight in the queue of the hold short position
 	AirsideFlightInSim* GetFirstFlightOfQueue()const;
@@ -50,9 +51,12 @@ public://logical
 	void SetWaveCrossFlightCount(int val) { m_nWaveCrossFlightCount = val; }
 	void DecreaseWaveCrossFlight(int nCount = 1){m_nWaveCrossFlightCount -= nCount;}
 	bool HasFinishWaveCross() const{ return m_nWaveCrossFlightCount <= 0;}
+
+	void AddEnrouteWaitList(AirsideFlightInSim* pFlight);
+	void WakeupEnrouteWaitingFlight(const ElapsedTime& eTime);
 protected:
 	std::vector<AirsideFlightInSim*> m_vInQueueFlights;
-	
+	std::vector<AirsideFlightInSim*> m_vEnrouteFlights;
 
 
 public:

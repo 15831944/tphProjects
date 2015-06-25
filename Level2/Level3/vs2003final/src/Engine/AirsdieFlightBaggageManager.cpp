@@ -43,7 +43,7 @@ bool AirsideFlightBaggageManager::LoadBagFromFlightAtStand( AirsideBaggageTrainI
 		{
 			Person *pBag = m_vArrivalBag.at(m_nArrBagLoadedByCart);
 
-			AirsideMobElementBaseBehavior*pBagBehavior = pBag->getAirsideBehavior();
+			AirsideBaggageBehavior* pBagBehavior = (AirsideBaggageBehavior*)pBag->getAirsideBehavior();
 			if(pBagBehavior == NULL)
 			{
 				pBagBehavior = new AirsideBaggageBehavior(pBag, EntryAirside);
@@ -64,8 +64,15 @@ bool AirsideFlightBaggageManager::LoadBagFromFlightAtStand( AirsideBaggageTrainI
 			pBagBehavior->WriteLog(eBagTime);
 	
 			//cart location
-			CPoint2008 ptCart = pBaggageTrain->GetPosition();
+			CPoint2008 ptCart = pBagCartInSim->GetPosition();
+			CPoint2008 ptRandom = pBagCartInSim->GetRanddomPoint();
+			ptRandom.setZ(pBagCartInSim->GetVehicleRandomZ());
+			pBagBehavior->SetOffsetInBus(ptRandom);
+
+			ptCart += ptRandom;
+			ptCart.setZ(pBagCartInSim->GetVehicleRandomZ());
 			pBagBehavior->setDestination(ptCart);
+			
 
 			ElapsedTime eMoveTime = pBagBehavior->moveTime();
 			eBagTime += eMoveTime;

@@ -411,7 +411,8 @@ protected:
 	afx_msg void OnUpdateShowSurface(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateHideSurface(CCmdUI* pCmdUI);
 
-	afx_msg void OnUpdateAddContour(CCmdUI* pCmdUI);
+	//afx_msg void OnAddCountour();
+	//afx_msg void OnUpdateAddContour(CCmdUI* pCmdUI);
 	afx_msg void OnEditControlPoint();
 	afx_msg void OnDisableControlPoint();
 	afx_msg void OnUpdateEditControlPoint(CCmdUI* pCmdUI);

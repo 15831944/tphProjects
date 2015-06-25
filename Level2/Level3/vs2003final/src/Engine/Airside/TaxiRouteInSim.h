@@ -33,7 +33,6 @@ public:
 
 };
 
-
 //////////////////////////////////////////////////////////////////////////
 //segment list of taxiways, runways, designed for taxiing of a specified flight 
 //////////////////////////////////////////////////////////////////////////
@@ -131,6 +130,7 @@ protected:
 
 	void TravelRunwaySegInRoute(AirsideFlightInSim* pFlight,TaxiRouteInSim& theRoute,double taxiSpd, const DistanceUnit& curDist, ClearanceItem& lastClearanceItem, Clearance& newClearance ,const ElapsedTime& supEndTime );
 	bool IsNextResourceIsRunwaySegment(TaxiRouteInSim& theRoute,const DistanceUnit& curDist);
+	
 	AirsideMobileElementMode m_mode;
 	double m_dTaxiSpd;
 	std::vector<TaxiRouteItemInSim> m_vItems;
@@ -151,7 +151,8 @@ protected:
 	// NULL if not found
 	// -- refer to checkConflictWithNextHold for more details
 	bool IsFlightToEnterHold(AirsideFlightInSim* mpFlight, DistanceUnit mCurDistInRoute);
-
+	
+	//ElapsedTime GetFlightOcupancyRunwayTime(std::vector<HoldInTaxiRoute> vHolds,AirsideFlightInSim* pFlight)const;
 public:
 	//Original Resource, Dest Resource
 	AirsideResource* mpResOrig;

@@ -474,7 +474,7 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 
 	m_bHideACTags				= FALSE;
 	
-	m_bHideTrafficLight			= TRUE;
+	m_bHideTrafficLight			= FALSE;
 
 	m_vFlow.clear();
 	m_vProcess.clear();

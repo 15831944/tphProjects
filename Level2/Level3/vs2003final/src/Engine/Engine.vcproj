@@ -3856,6 +3856,12 @@
 				RelativePath=".\Airside\DynamicStandAssignmentInSim.h">
 			</File>
 			<File
+				RelativePath=".\Airside\EnrouteQueueCapacityInSim.cpp">
+			</File>
+			<File
+				RelativePath=".\Airside\EnrouteQueueCapacityInSim.h">
+			</File>
+			<File
 				RelativePath=".\Airside\FinalApproachController.cpp">
 			</File>
 			<File

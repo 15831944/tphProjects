@@ -66,7 +66,7 @@ void WallShapeList::readObsoleteData( ArctermFile& p_file )
 			//get FloornUM
 			int floor_;
 			p_file.getInteger(floor_);
-			wallsh->SetFloorNum(floor_);
+			wallsh->SetFloorIndex(floor_);
 			//get path
 			//
 			int ptcount;
@@ -118,7 +118,7 @@ void WallShapeList::readObsoleteData( ArctermFile& p_file )
 			//get FloornUM
 			int floor_;
 			p_file.getInteger(floor_);
-			wallsh->SetFloorNum(floor_);
+			wallsh->SetFloorIndex(floor_);
 			//get path
 			//
 			int ptcount;
@@ -171,7 +171,7 @@ void WallShapeList::readData (ArctermFile& p_file)
 		//get FloornUM
 		int floor_;
 		p_file.getInteger(floor_);
-		wallsh->SetFloorNum(floor_);
+		wallsh->SetFloorIndex(floor_);
 		//get path
 		//
 		int ptcount;
@@ -234,7 +234,7 @@ void WallShapeList::writeData (ArctermFile& p_file) const
 		//write width
 		p_file.writeDouble(m_shapelist.getItem(i)->GetWidth());
 		//write floorNum
-		p_file.writeInt(m_shapelist.getItem(i)->GetFloorNum());
+		p_file.writeInt(m_shapelist.getItem(i)->GetFloorIndex());
 		//write path
 		//write point count		
 		int nPtCount=m_shapelist.getItem(i)->GetPointCount();

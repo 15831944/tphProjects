@@ -26,17 +26,21 @@ void AirsideBaggageCartInSim::ReleaseBaggage(Processor *pProc, CBagCartsParkingS
 {
 	PLACE_METHOD_TRACK_STRING();
 	int nBagCount = static_cast<int>(m_vBaggage.size());
+	ElapsedTime eMoveTime;
 	for (int nBag = 0; nBag < nBagCount; ++ nBag)
 	{
 		AirsideBaggageBehavior *pBagBehavior = m_vBaggage.at(nBag);
 		if(pBagBehavior == NULL)
 			continue;
 		CPoint2008 ptParkingSpot = pBagCartsSpotInSim->GetServicePoint();
-		pBagBehavior->setLocation(ptParkingSpot);
+	//	pBagBehavior->setLocation(ptParkingSpot);
 
 		pBagBehavior->setDestination( ptParkingSpot);
+		eMoveTime = MAX(eMoveTime,pBagBehavior->moveTime());
 		//m_pax->getLogEntry().setEntryTime(time) ;
-		pBagBehavior->WriteLog(eTime) ;
+		ElapsedTime tEntryTime = eTime + eMoveTime;
+		pBagBehavior->setLocation(ptParkingSpot);
+		pBagBehavior->WriteLog(tEntryTime) ;
 		Person *pBag = pBagBehavior->getMobileElement();
 
 		pBag->setState(Birth);
@@ -50,11 +54,11 @@ void AirsideBaggageCartInSim::ReleaseBaggage(Processor *pProc, CBagCartsParkingS
 			spTerminalBehavior->setLocation(ptLoader);
 			spTerminalBehavior->setDestination(ptLoader);
 			//spTerminalBehavior->SetTransferTypeState(TerminalMobElementBehavior::TRANSFER_DEPARTURE) ;
-			pBag->generateEvent(eTime + ElapsedTime(nBag *1L) ,FALSE) ;
+			pBag->generateEvent(tEntryTime + ElapsedTime(nBag *1L) ,FALSE) ;
 
 		}
 	}
-	eTime +=  ElapsedTime(nBag *1L);
+	eTime +=  (eMoveTime + ElapsedTime(nBag *1L));
 
 	m_vBaggage.clear();
 
@@ -132,17 +136,26 @@ void AirsideBaggageCartInSim::WirteLog( const CPoint2008& point, const double sp
 		{
 			offsetPt.rotate(-(vDir.AngleFromCoorndinateX()));
 			realPosition = prePos + offsetPt ;
-			realPosition.setZ( prePos.getZ()) ;
+			realPosition.setZ( offsetPt.getZ()) ;
 			p_behavior->setLocation(realPosition) ;
 			p_behavior->WriteLog(m_preTime,m_preSpeed) ;
+
+			realPosition = point + offsetPt ;
+			realPosition.setZ(offsetPt.getZ()) ;
+			p_behavior->setLocation(realPosition) ;
+			p_behavior->WriteLog(t,speed) ;
 		}
 		else
-			offsetPt.rotate(m_dir) ;
+		{
+			p_behavior->WriteLog(t,speed);
+		}
+		//else
+		//	offsetPt.rotate(m_dir) ;
 
-		realPosition = point + offsetPt ;
-		realPosition.setZ(point.getZ()) ;
-		p_behavior->setLocation(realPosition) ;
-		p_behavior->WriteLog(t,speed) ;
+		//realPosition = point + offsetPt ;
+		//realPosition.setZ(point.getZ()) ;
+		//p_behavior->setLocation(realPosition) ;
+		//p_behavior->WriteLog(t,speed) ;
 	}
 	if(prePos != point)
 	{

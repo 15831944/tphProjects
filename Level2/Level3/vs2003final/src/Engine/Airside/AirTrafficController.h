@@ -20,6 +20,7 @@ class In_OutBoundRouteAssignmentInSim;
 class FlightGroundRouteResourceManager;
 class RunwayExitInSim;
 class TaxiRouteInSim;
+class EnrouteQueueCapacityInSim;
 
 #include "./CommonInSim.h"
 #include "../../Common/elaptime.h"
@@ -144,6 +145,7 @@ public:
 	int GetTakeoffQueueLength(LogicRunwayInSim* pRunway);
 
 	ArrivalDelayTriggerInSim* GetArrivalDelayTrigger(){ return m_pArrivalDelayTrigger;}
+	EnrouteQueueCapacityInSim* GetEnrouteCapacity(){return m_pEnrouteQCapacity;}
 
 	AirportStatusManager* GetAirportStatusManager(){ return m_pAirportStatusManager; }
 	InboundStatus* GetInboundStatus(){ return m_pInboundStatus; }
@@ -228,6 +230,7 @@ protected:
 
 	//CFinalApproachController m_finalAppraochController;
 	ArrivalDelayTriggerInSim* m_pArrivalDelayTrigger;
+	EnrouteQueueCapacityInSim* m_pEnrouteQCapacity;
 	std::vector<AirsideFlightInSim* > m_vFlights;
 	CTaxiwayConflictResolutionInEngine *m_pTaxiwayConflictResolution;
 	
