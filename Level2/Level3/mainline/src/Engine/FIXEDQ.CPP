@@ -282,6 +282,7 @@ void FixedQueue::approachQueue (Person *aPerson, ElapsedTime approachTime)
 }
 void FixedQueue::getQueuePosition (Person *aPerson) const
 {
+    int nPerson = aPerson->getID();
 	// determine next queue position
 	TerminalMobElementBehavior* spTerminalBehavior = aPerson->getTerminalBehavior();
 	spTerminalBehavior->setNextIndex (getNextIndex (spTerminalBehavior->getCurrentIndex()));
@@ -289,6 +290,7 @@ void FixedQueue::getQueuePosition (Person *aPerson) const
 	// determine the next segment and the next wait location
 	DistanceUnit inStep = aPerson->getInStep();
 	spTerminalBehavior->setQueuePathSegmentIndex (getSegment (aPerson, inStep));
+    Point pt = getLocation(aPerson, inStep);
 	aPerson->setTerminalDestination (getLocation (aPerson, inStep));
 	spTerminalBehavior->SetEntryPoint(getLocation (aPerson, inStep)) ;
 }

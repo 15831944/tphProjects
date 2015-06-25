@@ -8,6 +8,7 @@ class ACTypeDoor
 	friend class ACTypeDoorManager;
 public:
 	ACTypeDoor(void);
+    ACTypeDoor(const ACTypeDoor& other);
 	~ACTypeDoor(void);
 
 	enum DoorDir{

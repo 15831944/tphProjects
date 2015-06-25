@@ -316,8 +316,15 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 	if(_needReturn)
 		return _localResult;
 
-
+    CString strProc = spTerminalBehavior->getProcessor()->getIDName();
+    int nPerson = getID();
+    EntityEvents cur_state = (EntityEvents)state;
    int nReturnValue = 1;
+    if(strProc == "BRIDGE-A-1-1")
+    {
+        int i=0;
+        i=0;
+    }
 	switch (state)
     {
 
@@ -719,14 +726,19 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 //	PLACE_METHOD_TRACK_STRING();
 // 	static long s_iiiiiiiiiiTmp = -1;
 // 	s_iiiiiiiiiiTmp = m_logEntry.getCurrentCount()*sizeof(MobEventStruct);
+    int nPerson = getID();
+
     spTerminalBehavior->location.getPoint (track.x, track.y, track.z);
     m_logEntry.addEvent (track); // if simulation stops here, it means memory insufficient.
 	PLACE_TRACK_STRING("2010223-11:09:08");
 
-	//if(id == 105 || id == 104 || id == 38)
-	//{
-	//	TRACE(" \r\n ------------------------------------- %d, %d, %d, %s, %s", id, track.time, (int)track.state, STATE_NAMES[(int)track.state], time.printTime());
-	//}
+	if(id == 4 || id == 13 || id == 50)
+	{
+		TRACE("%d, %d, %d, %s, %s,x: %.2f, y: %.2f, z:%hd\r\n ", 
+            id, track.time, (int)track.state, 
+            STATE_NAMES[(int)track.state], time.printTime(), 
+            track.x, track.y, track.z);
+	}
 
 
 

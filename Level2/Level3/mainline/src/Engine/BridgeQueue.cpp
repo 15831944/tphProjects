@@ -44,6 +44,7 @@ void BridgeQueue::addToQueue( Person *aPerson )
 			if(aper == NULL)
 				EntryPoints.ResetEntryState() ;
 			aPerson->setState(WaitInQueue);
+            aPerson->SetWalkOnBridge(true);
 			int index = EntryPoints.GetCurrentIndex() ;
 			if(index == -1 || index > (cornerCount() - 1))
 				index = cornerCount() - 1 ;
