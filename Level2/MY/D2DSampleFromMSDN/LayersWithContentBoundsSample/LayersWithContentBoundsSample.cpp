@@ -14,7 +14,7 @@
 //
 //------------------------------------------------------------------------------
 #include "stdafx.h"
-#include "LayersWithParametersExample.h"
+#include "LayersWithContentBoundsSample.h"
 
 /******************************************************************
 *                                                                 *
