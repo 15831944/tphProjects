@@ -59,7 +59,7 @@ END_MESSAGE_MAP()
 // CShapeItem message handlers
 void CShapeItem::OnLoadShapePicture()
 {
-	CFileDialog  dlgFile(TRUE,NULL,m_folderLocation,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.bmp)|*.bmp|");
+	CFileDialog  dlgFile(TRUE,NULL,m_folderLocation + "\\",OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.bmp)|*.bmp|");
 	if (dlgFile.DoModal() == IDOK)
 	{
 		m_shapePicture = dlgFile.GetPathName();
@@ -75,7 +75,7 @@ void CShapeItem::OnLoadShapePicture()
 
 void CShapeItem::OnLoadShapeModel()
 {
-	CFileDialog  dlgFile(TRUE,NULL,m_folderLocation,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.dxf)|*.dxf|");
+	CFileDialog  dlgFile(TRUE,NULL,m_folderLocation + "\\",OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.dxf)|*.dxf|");
 	if (dlgFile.DoModal() == IDOK)
 	{
 		m_shapeModel = dlgFile.GetPathName();

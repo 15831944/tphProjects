@@ -1528,13 +1528,8 @@ BOOL CProjectExport::FindInputFiles( const CString& strInputFolder, std::vector<
 		_T("arcport.mdb"),
 		_T("NonPaxRelPos.txt"),
 		_T("parts.mdb"),
-		_T("BCPAXDATA.TXT")
-
-		
-// 		_T("UserShapes.dat"),
-// 		_T("UserShapes.INI"),
-// 		_T("a380.bmp"),
-// 		_T("a380.dxf")
+		_T("BCPAXDATA.TXT"),
+        _T("UserShapeBar.txt")
 	};
 
 	int nFileCcunt = sizeof(strZipFileName)/sizeof(strZipFileName[0]);

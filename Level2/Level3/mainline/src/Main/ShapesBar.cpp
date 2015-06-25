@@ -225,11 +225,9 @@ void CShapesBar::OnImport()
     dlg.SetTempPath(m_strTempPath);
     while(dlg.DoModal() == IDOK)
     {
-        CString strZipName;
-        strZipName = dlg.GetZipFileName();
-
-        CUserShapeBar& importUserBar = dlg.GetUserShapeBar();
-        CString strBarName = importUserBar.GetBarName();
+        CUserShapeBarManager& imUserBarMan = dlg.GetUserBarMan();
+        CUserShapeBar* pImportUserBar = imUserBarMan.GetUserBarByIndex(0);
+        CString strBarName = pImportUserBar->GetBarName();
         if(m_pUserBarMan->IsUserShapeBarExist(strBarName))
         {
             CString strErr;
@@ -238,19 +236,17 @@ void CShapesBar::OnImport()
             continue;
         }
 
-        CUserShapeBar* pUserBar = new CUserShapeBar;
-        *pUserBar = importUserBar;
-        CString strBarLocation = importUserBar.GetBarLocation();
+        CString strBarLocation = pImportUserBar->GetBarLocation();
 
         // create unzip destination if not exist
         if(!PathFileExists(strBarLocation))
             CreateDirectory(strBarLocation, NULL);
 
         // change all shapes' ".bmp" and ".dxf" file name
-        int nShapeCount = pUserBar->GetShapeCount();
+        int nShapeCount = pImportUserBar->GetShapeCount();
         for(int i=0; i<nShapeCount; i++)
         {
-            CShape* pShape = pUserBar->GetShapeByIndex(i);
+            CShape* pShape = pImportUserBar->GetShapeByIndex(i);
             CString strPic = pShape->ImageFileName();
             int nPos = strPic.ReverseFind('\\');
             strPic = strPic.Right(strPic.GetLength() - nPos - 1);
@@ -267,19 +263,20 @@ void CShapesBar::OnImport()
         std::vector<CString> vSrcDirFL;
         // file list of bar location(destination path)
         std::vector<CString> vDestDirFL;
-        CImportUserShapeBarDlg::FindFiles(m_strTempPath, vDestDirFL);
+        CImportUserShapeBarDlg::FindFiles(m_strTempPath, vSrcDirFL);
         CImportUserShapeBarDlg::FindFiles(strBarLocation, vDestDirFL);
         for(int i=0; i<(int)vSrcDirFL.size(); i++)
         {
             CString strFile = vSrcDirFL.at(i);
-
+            if(strFile.CompareNoCase(m_strShapeFileName) == 0)
+                continue;
             CString str1 = m_strTempPath + "\\" + strFile;
             CString str2 = strBarLocation + "\\" + strFile;
             CopyFile(str1, str2, FALSE); // copy files
         }
 
         // add to SHAPESMANAGER
-        CShape::CShapeList* pUserShapeList = pUserBar->GetUserShapeList();
+        CShape::CShapeList* pUserShapeList = pImportUserBar->GetUserShapeList();
         CShape::CShapeList* pSL = SHAPESMANAGER->GetShapeList();
 
         // if imported shape's is existed, rename it.
@@ -295,14 +292,14 @@ void CShapesBar::OnImport()
         }
 
         // add to dataset
-        m_pUserBarMan->AddUserBar(pUserBar);
+        m_pUserBarMan->AddUserBar(pImportUserBar);
         m_pUserBarMan->saveDataSet(m_strProjPath, false);
 
         // add to shape manager so 3DView can find and render.
         pSL->insert(pSL->end(), pUserShapeList->begin(), pUserShapeList->end());
 
         // update GUI
-        int iFolder = m_wndOutBarCtrl.AddFolder(pUserBar->GetBarName(), (DWORD)pUserBar);
+        int iFolder = m_wndOutBarCtrl.AddFolder(pImportUserBar->GetBarName(), (DWORD)pImportUserBar);
         m_wndOutBarCtrl.iSelFolder = iFolder;
         for(int i=0; i<nShapeCount; i++)
         {
@@ -335,12 +332,7 @@ void CShapesBar::OnExport()
     CString tempBarInformationFile = m_strTempPath + "\\" + m_strShapeFileName;
     CUserShapeBarManager tempUserBarMan;
     tempUserBarMan.AddUserBar(pUserBar);
-    ArctermFile tempFile;
-    if(!PathFileExists(m_strTempPath))
-        CreateDirectory(m_strTempPath, NULL);
-    tempFile.openFile(tempBarInformationFile, WRITE);
-    tempUserBarMan.writeData(tempFile);
-    tempFile.closeOut();
+    tempUserBarMan.saveDataSetToOtherFile(tempBarInformationFile);
     std::vector<CString> vZipList;
     vZipList.push_back(tempBarInformationFile);
     int nCount = pUserBar->GetShapeCount();
