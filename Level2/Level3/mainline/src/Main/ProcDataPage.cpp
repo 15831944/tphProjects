@@ -2519,7 +2519,7 @@ void CProcDataPage::InsertTreeForBehavior()
 	{
 		m_hBCSN=m_TreeData.InsertItem("Boarding Call Stage Number:  1",cni,FALSE,FALSE,m_hLinkage);
 		m_TreeData.SetItemData(m_hBCSN,1);
-		int nDBCount=m_pInTerm->flightData->getBoardingCallsStageSize();
+		int nDBCount=m_pInTerm->flightData->GetStageCount();
 		m_TreeData.SetItemValueRange(m_hBCSN,1,nDBCount);
 
 	}

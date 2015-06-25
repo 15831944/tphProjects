@@ -98,25 +98,25 @@ bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,co
 
 		if(operaterFlow.IfFits(ProcID)|| IsSubFlowInPaxFlow(operaterFlow,ProcIDList))
 		{
-			FlightConWithProcIDDatabase* pProcDB = _pInTerm->flightData->getCalls(pHoldArea->getStageID());
-			if (pProcDB == NULL)
-				continue;
-
-			for (int j = 0; j < pProcDB->getCount(); j++)
-			{
-				const FlightConstraint* pFlightConstraint = pProcDB->getConstraint(j);
-				const FlightConstraint& fltCons(*pConstrint);
-				if (pFlightConstraint->fits(pFlight->getType('D'))\
-					&&pFlightConstraint->fits(fltCons)\
-					&& fltCons.fits(pFlight->getType('D')))
-				{
-					ALTObjectID standID = pFlight->getDepStand();
-					if (standID.IsBlank())
-					{
-						return true;
-					}
-				}
-			}
+// 			FlightConWithProcIDDatabase* pProcDB = _pInTerm->flightData->getCalls(pHoldArea->getStageID());
+// 			if (pProcDB == NULL)
+// 				continue;
+// 
+// 			for (int j = 0; j < pProcDB->getCount(); j++)
+// 			{
+// 				const FlightConstraint* pFlightConstraint = pProcDB->getConstraint(j);
+// 				const FlightConstraint& fltCons(*pConstrint);
+// 				if (pFlightConstraint->fits(pFlight->getType('D'))\
+// 					&&pFlightConstraint->fits(fltCons)\
+// 					&& fltCons.fits(pFlight->getType('D')))
+// 				{
+// 					ALTObjectID standID = pFlight->getDepStand();
+// 					if (standID.IsBlank())
+// 					{
+// 						return true;
+// 					}
+// 				}
+// 			}
 		}
 	}
 	

@@ -421,23 +421,27 @@ void CInputDataView::LoadBoardingCall()
 	int nSum=0;
 	CString sValue("");
 	FlightData* pFlightData=m_pDocument->GetTerminal().flightData;
-	int nCount=pFlightData->getBoardingCallsStageSize();
+	int nCount=pFlightData->GetStageCount();
 	//TCHAR sProcID[512]={'\0'};
 	CString sProcID;
-	CString sFlightType("");
-	TCHAR sDistribution[1024]={'\0'};
+	CString sFlightType;
+	CString sDistribution;
 	//TCHAR sDistribution[1024] = ;
-	FlightConWithProcIDDatabase* pStage=NULL;
-	ConstraintWithProcIDEntry* pEntry=NULL;
+	BoardingCallFlightTypeDatabase* pStage = NULL;
+	BoardingCallFlightTypeEntry* pFlightEntry = NULL;
 	for(i=1;i<=nCount;i++)
 	{
-		pStage=pFlightData->getCalls(i);
-		for(int j=0;j<pStage->getCount();j++ , nSum++)
+		pStage=pFlightData->GetFlightTypeDBInStage(i);
+		for(int j=0; j<pStage->getCount(); j++,nSum++)
 		{
-			pEntry=(ConstraintWithProcIDEntry*)pStage->getItem(j);
-			sFlightType=pEntry->getProcID().GetIDString();
-			pEntry->getConstraint()->screenPrint(sProcID,0,512);
-			pEntry->getValue()->screenPrint(sDistribution);
+			pFlightEntry = (BoardingCallFlightTypeEntry*)pStage->getItem(j);
+			FlightConstraint* pFlightConst = (FlightConstraint*)pFlightEntry->getConstraint();
+			pFlightConst->getFullID(sFlightType.GetBuffer(256));
+			sFlightType.ReleaseBuffer();
+			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pFlightEntry->GetStandDatabase()->getItem(0);
+			pStandEntry->getID()->printID(sProcID.GetBuffer(256));
+			sProcID.ReleaseBuffer();
+			sDistribution = _T("Main\\InputDataView.cpp: 445,TODO");
 
 			sValue.Format("%d",i);
 			m_listBoardingCall.InsertItem(nSum,sValue);

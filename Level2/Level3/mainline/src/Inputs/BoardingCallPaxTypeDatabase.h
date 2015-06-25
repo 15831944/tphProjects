@@ -1,6 +1,8 @@
 #pragma once
 #include "mobileelemconstraintdatabase.h"
 #include "con_db.h"
+#include "FlightConWithProcIDDatabase.h"
+#include "..\Common\ProbabilityDistribution.h"
 
 class BoardingCallTrigger
 {
@@ -38,21 +40,26 @@ protected:
 public:
 	BoardingCallPaxTypeEntry();
 	~BoardingCallPaxTypeEntry();
-	void InitTriggersDatabase();
+	void InitTriggerDatabase();
+	void InitTriggerDBFromOld(ConstraintWithProcIDEntry* pConstEntry);
 	std::vector<BoardingCallTrigger>* GetTriggersDatabase(){ return &m_vTriggers; }
 	void DeleteTrigger(int index){ m_vTriggers.erase( m_vTriggers.begin() + index); }
-	int GetTriggerCount(){ return m_vTriggers.size(); }
+	int GetTriggerCount(){ return (int)m_vTriggers.size(); }
 	void SetTriggerTime(int index, long time){ m_vTriggers[index].SetTriggerTime(time); }
 	void SetTriggerProportion(int index, double prop){ m_vTriggers[index].SetTriggerProportion(prop); }
 	void AddNewTrigger();
 	void SetTriggerCount(int count);
+
+	void writeTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm );
 };
 
 class BoardingCallPaxTypeDatabase : public CMobileElemConstraintDatabase
 {
 public:
-	virtual void deleteItem(ConstraintEntry* pConst);
 	BoardingCallPaxTypeDatabase();
 	~BoardingCallPaxTypeDatabase();
+
+	virtual void deleteItem(ConstraintEntry* pConst);
+	void writeDatabase( ArctermFile& p_file, InputTerminal* _pInTerm );
 };
 

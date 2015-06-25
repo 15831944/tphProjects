@@ -15,16 +15,15 @@ protected:
     FlightConstraintDatabaseWithSchedData loads;
     FlightConstraintDatabaseWithSchedData capacity;
 	
-	std::vector<BoardingCallFlightTypeDatabase*> m_vBoardingCallStages;
+	std::vector<BoardingCallFlightTypeDatabase*> m_vStages;
 	// go through all the file get the size of boarding call stage size;
-	int ReadBoardingCallStageNumber( ArctermFile& _file );
-	void WriteBoardingCallStageNumber( ArctermFile& _file, int _nNumStages ) const;
-	
+	int ReadBoardingCallStageCount( ArctermFile& _file );
+	void WriteBoardingCallStageCount( ArctermFile& _file, int _nNumStages ) const;
 
 public:
-	int GetStageCount(){ return m_vBoardingCallStages.size(); }
-	BoardingCallFlightTypeDatabase* GetFlightTypeDBInStage(int _index){ return m_vBoardingCallStages[_index]; }
-	void resortBoardingCallDB();
+	int GetStageCount(){ return m_vStages.size(); }
+	BoardingCallFlightTypeDatabase* GetFlightTypeDBInStage(int _index){ return m_vStages[_index]; }
+/*	void resortBoardingCallDB();*/
     FlightData () : DataSet (FlightDataFile,(float)2.7 )
     {	
 		delays.setUnits ("MINUTES"); 
@@ -35,11 +34,8 @@ public:
 
 
 	// Add one more stages with default value
+	void AddStageFromOld(FlightConWithProcIDDatabase* pOldStage);
 	void AddStage();
-	void AddFlight(BoardingCallFlightTypeDatabase* pFlightTypeDB, FlightConstraint* pFlight = NULL);
-	void AddStand(BoardingCallFlightTypeEntry* flightEntry, char* strProc);
-	void AddPax(BoardingCallStandEntry* pStandEntry, CMobileElemConstraint* pInputConst);
-
 	// remove one stage data
 	void DeleteOneStageByIndex(int _stageIndex);
 	BOOL DeleteOneStageByFlightConstDB(ConstraintDatabase* pFCDB);
@@ -47,7 +43,6 @@ public:
     void setFlightDelay (Flight *p_flight) const;
     void setFlightLoadFactor (Flight *p_flight, char p_mode) const;
     int getCapacity (Flight *p_flight) const;
-    const HistogramDistribution *getBoardingCalls (const FlightConstraint &p_type, const ProcessorID& _id, int _nStageNumber ) const;
 
     FlightConstraintDatabase *getDelays (void) { return &delays; }
     FlightConstraintDatabase *getLoads (void) { return &loads; }
@@ -60,6 +55,8 @@ public:
     virtual void readData (ArctermFile& p_file);
     virtual void readObsoleteData (ArctermFile& p_file);
     virtual void writeData (ArctermFile& p_file) const;
+
+	void writeBoardingCallData( ArctermFile &p_file ) const;
 
     virtual const char *getTitle (void) const
         { return "Flight Data File"; }

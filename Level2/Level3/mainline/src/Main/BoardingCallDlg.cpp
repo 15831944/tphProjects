@@ -131,7 +131,7 @@ InputTerminal* CBoardingCallDlg::GetInputTerminal()
 void CBoardingCallDlg::OnButtonSave()
 {
 	CWaitCursor wc;
-	GetInputTerminal()->flightData->resortBoardingCallDB();
+//	GetInputTerminal()->flightData->resortBoardingCallDB();
 	GetInputTerminal()->flightData->saveDataSet( GetProjPath(), true );
 	m_btnSave.EnableWindow( FALSE );
 }
@@ -219,7 +219,7 @@ void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB
 		CString strFlightType;
 		BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)pFlightTypeDB->getItem(iFlight);
 		FlightConstraint* pFlightConst = (FlightConstraint*)(pFlightEntry->getConstraint());
-		pFlightConst->getFullID(strFlightType.GetBuffer(64));
+		pFlightConst->getFullID(strFlightType.GetBuffer(256));
 		strFlightType.ReleaseBuffer();
 		strItemText.Format("Flight Type: %s", strFlightType);
 		HTREEITEM hTreeItemFlight = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemStage);
@@ -295,10 +295,10 @@ void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREE
 	CString strItemText;
 	strItemText.Format("Number of triggers: %d", triggerCount);
 	HTREEITEM hTriggerAll = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemPax);
-	TreeNodeDataWithType* nodedata5 = new TreeNodeDataWithType();
-	nodedata5->m_type = TREE_NODE_TRIGGER_ALL;
-	nodedata5->m_data = NULL;
-	m_tree.SetItemData(hTriggerAll, (DWORD)nodedata5);
+	TreeNodeDataWithType* nodeDataAll = new TreeNodeDataWithType();
+	nodeDataAll->m_type = TREE_NODE_TRIGGER_ALL;
+	nodeDataAll->m_data = NULL;
+	m_tree.SetItemData(hTriggerAll, (DWORD)nodeDataAll);
 
 	ReloadAllTriggers(vTriggers, hTriggerAll);
 
@@ -433,7 +433,7 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	if( flightTypeDlg.DoModal() == IDOK )
 	{
 		FlightConstraint selectedFlightConstraint = flightTypeDlg.GetFlightSelection();
-		GetInputTerminal()->flightData->AddFlight(pFlightTypeDB, &selectedFlightConstraint);
+		pFlightTypeDB->AddFlight(&selectedFlightConstraint, GetInputTerminal());
 		ReloadStage(pFlightTypeDB, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 	}
@@ -451,7 +451,7 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 	if(standDlg.DoModal()==IDOK)
 	{
 		CString strStand = standDlg.GetSelStandFamilyName();
-		GetInputTerminal()->flightData->AddStand(pFlightTypeEntry, strStand.GetBuffer());
+		pFlightTypeEntry->AddStand(strStand.GetBuffer(), GetInputTerminal());
 		ReloadFlightType(pFlightTypeEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 	}
@@ -469,7 +469,7 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 	if(paxTypeDlg.DoModal() == IDOK)
 	{
 		CMobileElemConstraint mobileConst = paxTypeDlg.GetMobileSelection();
-		GetInputTerminal()->flightData->AddPax(pStandEntry, &mobileConst);
+		pStandEntry->AddPax(&mobileConst);
 		ReloadStand(pStandEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 	}
