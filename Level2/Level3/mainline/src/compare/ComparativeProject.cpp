@@ -322,7 +322,7 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					break;
 				}
 
-				if(GenerateReportParameter(vReports[j].GetParameter(), pOutParam, pCmpModel) == FALSE)// generate report parameter failed.
+				if(GenerateReportParameter(vReports[j].GetParameterConst(), pOutParam, pCmpModel) == FALSE)// generate report parameter failed.
 				{
 					delete pOutParam;
 					pOutParam = NULL;
@@ -481,8 +481,8 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 			break;
 		}
 
-		pResult->m_ReportStartTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameter().GetStartTime();
-		pResult->m_ReportEndTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameter().GetEndTime();//elapsetime.
+		pResult->m_ReportStartTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameterConst().GetStartTime();
+		pResult->m_ReportEndTime = m_inputParam.GetReportsManagerPtr()->GetReportsList()[i].GetParameterConst().GetEndTime();//elapsetime.
 
 		pResult->SetCmpReportName(vReports[i].GetName());
 		std::vector<CModelToCompare*>& vModels = m_inputParam.GetModelsManagerPtr()->GetModelsList();
@@ -514,12 +514,12 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		if (vReports[i].GetCategory() == ENUM_DISTANCE_REP)
 		{
 			long lInterval = 0;
-			vReports[i].GetParameter().GetInterval(lInterval);
+			vReports[i].GetParameterConst().GetInterval(lInterval);
 			pResult->MergeSample(lInterval);
 		}
 		else
 		{
-			pResult->MergeSample(vReports[i].GetParameter().GetInterval());
+			pResult->MergeSample(vReports[i].GetParameterConst().GetInterval());
 		}
 		
 		CString strResult = sOutputPath + _T("\\Results\\") + vReports[i].GetName() + _T(".txt");

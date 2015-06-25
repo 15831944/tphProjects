@@ -188,6 +188,7 @@ public:
 	
 	void SetModelParameter(std::vector<CModelParameter>& vModelParameter);
 	std::vector<CModelParameter>& GetModelParameter();
+	const std::vector<CModelParameter>& GetModelParameterConst() const { return m_vModelParam; }
 	int GetModelParameterCount();
 	const int GetModelParameterCountConst() const { return (int)m_vModelParam.size(); };
 

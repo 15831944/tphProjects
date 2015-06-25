@@ -38,13 +38,13 @@ static const int BUTTON_WIDTH = 80;
 
 typedef enum 
 {
-	TREE_NODE_INVALID = -1,
-	TREE_NODE_MODEL = 0,
-	TREE_NODE_SIMRESULT_ALL,
-	TREE_NODE_SIMRESULT,
-	TREE_NODE_REPORT,
-	TREE_NODE_PASSENGER_TYPE_CMP,
-	TREE_NODE_6,
+	CMP_REPORT_TN_INVALID = -1,
+	CMP_REPORT_TN_MODEL = 0,
+	CMP_REPORT_TN_SIMRESULT_ALL,
+	CMP_REPORT_TN_SIMRESULT,
+	CMP_REPORT_TN_REPORT,
+	CMP_REPORT_TN_PAX_TYPE,
+	CMP_REPORT_TN_PROC_ID,
 	TREE_NODE_7,
 	TREE_NODE_8
 } CMP_REPORT_TREE_NODE_DATA_TYPE;
@@ -53,7 +53,7 @@ class CmpReportTreeNodeDataWithType
 public:
 	CMP_REPORT_TREE_NODE_DATA_TYPE m_type;
 	DWORD m_data;
-	CmpReportTreeNodeDataWithType(){ m_type = TREE_NODE_INVALID; m_data = NULL; }
+	CmpReportTreeNodeDataWithType(){ m_type = CMP_REPORT_TN_INVALID; m_data = NULL; }
 	~CmpReportTreeNodeDataWithType(){}
 };
 
@@ -344,11 +344,11 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			CString strModel = "";
 			strModel.Format("Model-%d", i);
 			HTREEITEM hModel = m_propTree.InsertItem(strModel, cni, vModels[i]->GetChecked(), FALSE, m_hModelRoot);
-
+			cni.nt = NT_NORMAL;
 			CmpReportTreeNodeDataWithType* pNodeData = NULL;
 			pNodeData = new CmpReportTreeNodeDataWithType();
 			pNodeData->m_data = (DWORD)vModels[i];
-			pNodeData->m_type = TREE_NODE_MODEL;
+			pNodeData->m_type = CMP_REPORT_TN_MODEL;
 			m_propTree.SetItemData(hModel, (DWORD)pNodeData);
 
 			cni.net =  NET_SHOW_DIALOGBOX;
@@ -372,7 +372,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 				HTREEITEM hSimResultN = m_propTree.InsertItem(strItemText, cni, simResult.GetChecked(), FALSE, hSimResultItem);
 				pNodeData = new CmpReportTreeNodeDataWithType();
 				pNodeData->m_data = (DWORD)(&simResult);
-				pNodeData->m_type = TREE_NODE_SIMRESULT;
+				pNodeData->m_type = CMP_REPORT_TN_SIMRESULT;
 				m_propTree.SetItemData(hSimResultN, (DWORD)pNodeData);
 			}
 			m_propTree.Expand(hSimResultItem, TVE_EXPAND);
@@ -408,9 +408,10 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			strRep.MakeUpper();
 			BOOL isChc = report.GetChecked();
 			HTREEITEM hItem2 = m_propTree.InsertItem(strRep, cni, report.GetChecked(), FALSE, m_hReportRoot);
+			cni.nt = NT_NORMAL;
 			CmpReportTreeNodeDataWithType* pNodeData = new CmpReportTreeNodeDataWithType();
 			pNodeData->m_data = (DWORD)(&report);
-			pNodeData->m_type = TREE_NODE_REPORT;
+			pNodeData->m_type = CMP_REPORT_TN_REPORT;
 			m_propTree.SetItemData(hItem2, (DWORD)pNodeData);
 
 			CReportParamToCompare& param = report.GetParameter();
@@ -522,7 +523,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 							HTREEITEM hPaxItem = m_propTree.InsertItem(strPax, cni, paxType.GetChecked(), FALSE, hPaxItemParent);
 							pNodeData = new CmpReportTreeNodeDataWithType();
 							pNodeData->m_data = (DWORD)(&paxType);
-							pNodeData->m_type = TREE_NODE_PASSENGER_TYPE_CMP;
+							pNodeData->m_type = CMP_REPORT_TN_PAX_TYPE;
 							m_propTree.SetItemData(hPaxItem, (DWORD)pNodeData);
 						}
 						m_propTree.Expand(hPaxItemParent, TVE_EXPAND);
@@ -556,17 +557,23 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 				{
 					if (modelParam.GetProcIDCount() > 0)
 					{
-						std::vector<ProcessorID> vProcGroup;
-						modelParam.GetProcIDGroup(vProcGroup);
-						HTREEITEM hProcTypeItem = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
+						std::vector<ProcessIDWithCheckedFlag>& vProcGroup = modelParam.GetProcIDWithCheckedFlagGroup();
+						HTREEITEM hProcIDParent = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
+
+						cni.nt = NT_CHECKBOX;
 						char szProc[128];
 						for (int i = 0; i < static_cast<int>(vProcGroup.size()); i++)
 						{
 							memset(szProc, 0, sizeof(szProc) / sizeof(char));
-							vProcGroup[i].printID(szProc);
-							m_propTree.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
+							vProcGroup[i].GetProcID().printID(szProc);
+							HTREEITEM hProcIDItem = m_propTree.InsertItem(szProc, cni, vProcGroup[i].GetChecked(), FALSE, hProcIDParent);
+							pNodeData = new CmpReportTreeNodeDataWithType();
+							pNodeData->m_data = (DWORD)(&vProcGroup[i]);
+							pNodeData->m_type = CMP_REPORT_TN_PROC_ID;
+							m_propTree.SetItemData(hProcIDItem, (DWORD)pNodeData);
 						}
-						m_propTree.Expand(hProcTypeItem, TVE_EXPAND);
+						cni.nt = NT_NORMAL;
+						m_propTree.Expand(hProcIDParent, TVE_EXPAND);
 					}
 				}
 				m_propTree.Expand(hModelItem, TVE_EXPAND);
@@ -917,28 +924,34 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 		ASSERT(pNodeData != NULL);
 		switch(pNodeData->m_type)
 		{
-		case TREE_NODE_REPORT:
+		case CMP_REPORT_TN_REPORT:
 			{
 				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
 				pReport->SetChecked(!pReport->GetChecked());
 			}
 			break;
-		case TREE_NODE_MODEL:
+		case CMP_REPORT_TN_MODEL:
 			{
 				CModelToCompare* pModel = (CModelToCompare*)pNodeData->m_data;
 				pModel->SetChecked(!pModel->GetChecked());
 			}
 			break;
-		case TREE_NODE_SIMRESULT:
+		case CMP_REPORT_TN_SIMRESULT:
 			{
 				SimResultWithCheckedFlag* pSimResult = (SimResultWithCheckedFlag*)pNodeData->m_data;
 				pSimResult->SetChecked(!pSimResult->GetChecked());
 			}
 			break;
-		case TREE_NODE_PASSENGER_TYPE_CMP:
+		case CMP_REPORT_TN_PAX_TYPE:
 			{
 				MobConstWithCheckedFlag* pPaxType = (MobConstWithCheckedFlag*)pNodeData->m_data;
 				pPaxType->SetChecked(!pPaxType->GetChecked());
+			}
+			break;
+		case CMP_REPORT_TN_PROC_ID:
+			{
+				ProcessIDWithCheckedFlag* pProcID = (ProcessIDWithCheckedFlag*)pNodeData->m_data;
+				pProcID->SetChecked(!pProcID->GetChecked());
 			}
 			break;
 		default:

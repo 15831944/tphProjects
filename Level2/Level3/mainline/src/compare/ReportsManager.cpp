@@ -59,7 +59,7 @@ void CReportsManager::DeleteModelParameter(const CString& strModelUniqueName)
 	for (int i=0; i<reportCount; i++)
 	{
 		m_vReportToCompare[i].DeleteModelParameter(strModelUniqueName);
-		if(m_vReportToCompare[i].GetParameter().GetModelParameterCountConst() == 0)
+		if(m_vReportToCompare[i].GetParameterConst().GetModelParameterCountConst() == 0)
 		{
 			m_vReportToCompare.erase(m_vReportToCompare.begin()+i);
 		}

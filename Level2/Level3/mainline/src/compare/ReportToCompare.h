@@ -37,7 +37,8 @@ public:
 	int GetCategory() const { return m_nReportCategory; }
 
 	void SetParameter(const CReportParamToCompare& reportParam) { m_reportParam = reportParam; }
-	const CReportParamToCompare& GetParameter() const { return m_reportParam; }
+	const CReportParamToCompare& GetParameterConst() const { return m_reportParam; }
+	CReportParamToCompare& GetParameter() { return m_reportParam; }
 
 	BOOL GetChecked() const { return m_isChecked; }
 	void SetChecked(BOOL val) { m_isChecked = val; }
@@ -75,7 +76,7 @@ public:
 	virtual void readObsoleteData(ArctermFile& p_file);
 	virtual void writeData(ArctermFile& p_file) const;
 	virtual const char* getTitle() const{return "Report Information";}
-	virtual const char* getHeaders() const{return "Name, Category, Start, End, Interval, Passange Type, Processor Type";}
+	virtual const char* getHeaders() const{return "Name, Category, Start, End, Interval, Passenger Type, Processor Type";}
 	
 	
 	void GetReports(OUT std::vector<CReportToCompare>& vReports);

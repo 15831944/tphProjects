@@ -160,7 +160,7 @@ void CDlgCmpReportProperty::SetManager(CModelsManager* pModelManager,CReportsMan
 BOOL CDlgCmpReportProperty::CheckParameter()
 {
 	std::vector<CModelToCompare *> vModels = m_pModelsManager->GetModelsList();
-	CReportParamToCompare pReportParam = m_reportToCompare.GetParameter();
+	CReportParamToCompare pReportParam = m_reportToCompare.GetParameterConst();
 	std::vector<CModelParameter>& vModelParam = pReportParam.GetModelParameter();
 	std::vector<CModelToCompare *>::size_type i = 0;
 	for (;i<vModels.size(); ++ i)
@@ -818,7 +818,7 @@ void CDlgCmpReportProperty::Init()
 		bool bAbsDate;
 		int nDayIndex = -1;
 		COleDateTime dtStart, dtEnd, dtTime;
-		CReportParamToCompare param = m_reportToCompare.GetParameter();
+		CReportParamToCompare param = m_reportToCompare.GetParameterConst();
 		ElapsedTime et = param.GetStartTime();
 		m_sdStart.GetDateTime(et, bAbsDate, dtStart, nDayIndex, dtTime);
 		if (bAbsDate)

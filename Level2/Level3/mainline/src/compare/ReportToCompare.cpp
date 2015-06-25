@@ -304,7 +304,7 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			p_file.writeChar('F');
 		}
 		
-		CReportParamToCompare param = m_vReports[i].GetParameter();
+		const CReportParamToCompare& param = m_vReports[i].GetParameterConst();
 		p_file.writeTime(param.GetStartTime(), TRUE);
 		p_file.writeTime(param.GetEndTime(), TRUE);
 		p_file.writeTime(param.GetInterval(), TRUE);
@@ -314,7 +314,7 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 		p_file.writeLine();
 
 		//Model Parameter
-		std::vector<CModelParameter>& vModelParam = param.GetModelParameter();
+		const std::vector<CModelParameter>& vModelParam = param.GetModelParameterConst();
 		int nModelCount = static_cast<int>(vModelParam.size());
 		p_file.writeInt(nModelCount);
 		p_file.writeField(_T("Model Count"));
@@ -322,7 +322,7 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 
 		for (int nModel=0; nModel<nModelCount; nModel++)
 		{
-			CModelParameter& modelParam = vModelParam[nModel];
+			CModelParameter& modelParam = const_cast<CModelParameter&>(vModelParam[nModel]);
 			p_file.writeField(modelParam.GetModelUniqueName());
 
 			p_file.writeField(modelParam.GetArea());
@@ -354,7 +354,7 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			for (int k = 0; k<iCount; k++)
 			{
 				vProcID[k].GetProcID().writeProcessorID(p_file);
-				if(vPaxType[k].GetChecked() == TRUE)
+				if(vProcID[k].GetChecked() == TRUE)
 				{
 					bFlag = 'T';
 				}
