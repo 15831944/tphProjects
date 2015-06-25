@@ -6424,7 +6424,7 @@ void C3DView::DrawPax(CTermPlanDoc* pDoc,BOOL* bOn,double* dAlt,BOOL bSelectMode
 			continue;
 
 		double distToCam =  GetCamera()->m_vLocation.DistanceTo( ARCVector3(pos[VX],pos[VY],pos[VZ])) ;
-		if(distToCam>200000)//can not see it so far
+		if(distToCam>2000000)//can not see it so far
 			continue;
 			
 

@@ -33,6 +33,7 @@ protected:
 		ItemType_RunwayExit,
 		ItemType_QueueLength,
 		ItemType_MinsPerAircraft,
+		ItemType_MaxDelayTime,
 	};
 
 	class CTreeItemData

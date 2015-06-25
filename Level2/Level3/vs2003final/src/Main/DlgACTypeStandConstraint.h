@@ -33,7 +33,7 @@ public:
 protected:
 	void OnInitTreeCtrl();
 
-
+	void UpdateToolbarStatus();
 	void AddACTypes();
 	void DelACType();
 private:

@@ -57,6 +57,7 @@ void DlgACTypeStandConstraint::OnBnClickedImportFromFile()
 	DlgImportACTypeConstraintFromFile dlg(m_nAirportID, &ImportCons);
 	if (dlg.DoModal() == IDOK && !ImportCons.m_vDataList.empty())
 	{
+		m_pACTypeStandConstraints->m_vDelDataList.assign(m_pACTypeStandConstraints->m_vDataList.begin(),m_pACTypeStandConstraints->m_vDataList.end());
 		m_pACTypeStandConstraints->m_vDataList.assign(ImportCons.m_vDataList.begin(),ImportCons.m_vDataList.end());
 		ImportCons.m_vDataList.clear();
 
@@ -147,7 +148,7 @@ int DlgACTypeStandConstraint::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-void DlgACTypeStandConstraint::OnSelchangedTree(NMHDR *pNMHDR, LRESULT *pResult)
+void DlgACTypeStandConstraint::UpdateToolbarStatus()
 {
 	m_hRclickItem = m_wndTreeCtrl.GetSelectedItem();
 
@@ -185,6 +186,59 @@ void DlgACTypeStandConstraint::OnSelchangedTree(NMHDR *pNMHDR, LRESULT *pResult)
 		}
 
 	}
+}
+
+void DlgACTypeStandConstraint::OnSelchangedTree(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*)pNMHDR;
+	*pResult = 0;
+	if (pNMTreeView->itemNew.hItem)
+	{
+		m_wndTreeCtrl.SelectItem(pNMTreeView->itemNew.hItem);
+		if (pNMTreeView->itemNew.hItem != pNMTreeView->itemOld.hItem)
+		{
+			UpdateToolbarStatus();
+		}
+		return;
+	}
+	m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONADD,TRUE);
+	m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,FALSE);
+	//m_hRclickItem = m_wndTreeCtrl.GetSelectedItem();
+
+	//if (m_hRclickItem == NULL)
+	//{
+	//	m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONADD,FALSE);
+	//	m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,FALSE);
+	//}
+	//else 
+	//{
+	//	HTREEITEM hParItem = m_wndTreeCtrl.GetParentItem(m_hRclickItem);
+
+	//	HTREEITEM hGrandItem= NULL;
+	//	if (hParItem)
+	//		hGrandItem = m_wndTreeCtrl.GetParentItem(hParItem);
+
+	//	if ( hParItem == NULL)
+	//	{
+	//		m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONADD,TRUE);
+	//		m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,FALSE);
+	//	}
+	//	else
+	//	{
+	//		if (hGrandItem == NULL)
+	//		{
+	//			m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONADD,TRUE);
+	//			m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,TRUE);
+	//		}
+	//		else
+	//		{
+	//			m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONADD,FALSE);
+	//			m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBARBUTTONDEL,TRUE);
+	//		}
+
+	//	}
+
+	//}
 }
 
 void DlgACTypeStandConstraint::OnInitTreeCtrl()

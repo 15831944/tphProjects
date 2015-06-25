@@ -25,6 +25,8 @@ namespace
 }
 
 const char* strEnrouteString[] = {"concurrently","independently"};
+
+CString FomratStringMaxArrivalDelayTime = _T("Maximum time AC can be delayed(mins): %d");
 // CDlgArrivalDelayTriggers dialog
 
 IMPLEMENT_DYNAMIC(CDlgArrivalDelayTriggers, CXTResizeDialog)
@@ -236,7 +238,7 @@ void CDlgArrivalDelayTriggers::OnEditOperation()
 	}
 	else if(pItemData->m_enumItemType == ItemType_QueueLength)
 	{
-		if(pItemData->m_pTriggerCondition == NULL)
+		if(pItemData->m_pTriggerCondition)
 		{
 			int nQueueLength =pItemData->m_pTriggerCondition->GetQueueLength();
 			CString strQueueLength ;
@@ -251,7 +253,7 @@ void CDlgArrivalDelayTriggers::OnEditOperation()
 	}
 	else if(pItemData->m_enumItemType == ItemType_MinsPerAircraft)
 	{
-		if(pItemData->m_pTriggerCondition == NULL)
+		if(pItemData->m_pTriggerCondition )
 		{
 			double nMins =pItemData->m_pTriggerCondition->GetMinsPerAircraft();
 			CString strMins ;
@@ -259,6 +261,19 @@ void CDlgArrivalDelayTriggers::OnEditOperation()
 			m_treeCtrl.SetDisplayNum(static_cast<int>(nMins));
 			m_treeCtrl.SetDisplayType(2);
 			m_treeCtrl.SetSpinRange(0,10000);
+			m_treeCtrl.SpinEditLabel(hItemSelected,strMins);
+		}
+	}
+	else if(pItemData->m_enumItemType ==  ItemType_MaxDelayTime)
+	{
+		if(pItemData->m_FlightTypeItem )
+		{
+			int nMins =pItemData->m_FlightTypeItem->GetMaxTime().asMinutes();
+			CString strMins ;
+			strMins.Format(_T("%d"),nMins);
+			m_treeCtrl.SetDisplayNum(nMins);
+			m_treeCtrl.SetDisplayType(2);
+			m_treeCtrl.SetSpinRange(0,60000);
 			m_treeCtrl.SpinEditLabel(hItemSelected,strMins);
 		}
 	}
@@ -612,6 +627,29 @@ void CDlgArrivalDelayTriggers::LoadFlightTypeItem( AirsideArrivalDelayTrigger::C
 		HTREEITEM hEnRouteRoot = m_treeCtrl.InsertItem(strEnroute,hItemName);
 		m_treeCtrl.SetItemDataEx(hEnRouteRoot,colorItemData);
 	}
+	//max delay time for arrival flight
+	{
+
+		CARCTreeCtrlExWithColor::CItemData colorItemData;
+		CARCTreeCtrlExWithColor::CColorStringSection colorStringSection;	
+		
+		CTreeItemData *pTreeItemData = new CTreeItemData(ItemType_MaxDelayTime,pFlightItem);
+		colorItemData.dwptrItemData = (DWORD_PTR)pTreeItemData;
+		colorItemData.vrItemStringSectionColorShow.clear();
+		CString strTime;
+		strTime.Format(_T("%d"), pFlightItem->GetMaxTime().asMinutes() );
+		CString strEnroute;
+		strEnroute.Format(FomratStringMaxArrivalDelayTime, pFlightItem->GetMaxTime().asMinutes() );
+		
+
+		colorItemData.lSize = sizeof(colorItemData);
+		colorStringSection.colorSection = RGB(0,0,255);
+		colorStringSection.strSection = strTime;
+		colorItemData.vrItemStringSectionColorShow.push_back(colorStringSection);
+
+		HTREEITEM hMaxTimeItem = m_treeCtrl.InsertItem(strEnroute,hItemName);
+		m_treeCtrl.SetItemDataEx(hMaxTimeItem,colorItemData);
+	}
 	m_treeCtrl.Expand(hItemName,TVE_EXPAND);
 
 }
@@ -798,7 +836,8 @@ void CDlgArrivalDelayTriggers::UpdateToolbarState()
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_EDIT_ARRIVALDELAYTRIGGERLIST,FALSE);
 	}
 	else if(pItemData->m_enumItemType == ItemType_QueueLength||
-		pItemData->m_enumItemType == ItemType_MinsPerAircraft)
+		pItemData->m_enumItemType == ItemType_MinsPerAircraft
+		|| pItemData->m_enumItemType == ItemType_MaxDelayTime)
 	{
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_NEW_ARRIVALDELAYTRIGGERLIST,FALSE);
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_DEL_ARRIVALDELAYTRIGGERLIST,FALSE);
@@ -1074,6 +1113,24 @@ void CDlgArrivalDelayTriggers::UpdateItemText( HTREEITEM hItemUpdate)
 			UpdateItemText(m_treeCtrl.GetParentItem(hItemUpdate));
 
 	}
+	else if(pItemData->m_enumItemType == ItemType_MaxDelayTime)
+	{
+		if(pItemData->m_FlightTypeItem == NULL)
+			return;
+
+		colorItemData.vrItemStringSectionColorShow.clear();
+		CString strMinsPerAC;
+		strMinsPerAC.Format(_T("%d"),pItemData->m_FlightTypeItem->GetMaxTime().asMinutes());
+
+		colorStringSection.strSection = strMinsPerAC;
+		colorItemData.vrItemStringSectionColorShow.push_back(colorStringSection);
+		pItemDataEx->vrItemStringSectionColorShow = colorItemData.vrItemStringSectionColorShow;
+
+		CString strNodeText;
+		strNodeText.Format(FomratStringMaxArrivalDelayTime,pItemData->m_FlightTypeItem->GetMaxTime().asMinutes());
+		m_treeCtrl.SetItemText(hItemUpdate,strNodeText);
+	}
+
 	else if (pItemData->m_enumItemType == ItemType_EnrouteType)
 	{
 		if(pItemData->m_FlightTypeItem == NULL)
@@ -1130,7 +1187,19 @@ LRESULT CDlgArrivalDelayTriggers::OnTreeDoubleClick( WPARAM, LPARAM )
 		m_treeCtrl.SetDisplayType(2);
 		m_treeCtrl.SetSpinRange(0,10000);
 		m_treeCtrl.SpinEditLabel(hItemSelected,strMins);
-
+	}
+	else if(pItemData->m_enumItemType == ItemType_MaxDelayTime)
+	{
+		if(pItemData->m_FlightTypeItem)
+		{
+			int nMins =pItemData->m_FlightTypeItem->GetMaxTime().asMinutes();
+			CString strMins ;
+			strMins.Format(_T("%d"),nMins);
+			m_treeCtrl.SetDisplayNum(nMins);
+			m_treeCtrl.SetDisplayType(2);
+			m_treeCtrl.SetSpinRange(0,60000);
+			m_treeCtrl.SpinEditLabel(hItemSelected,strMins);
+		}
 	}
 	else if (pItemData->m_enumItemType == ItemType_EnrouteType)
 	{
@@ -1181,7 +1250,14 @@ LRESULT CDlgArrivalDelayTriggers::DefWindowProc( UINT message, WPARAM wParam, LP
 				pItemData->m_pTriggerCondition->SetMinsPerAircraft(nValue) ;
 				UpdateItemText(hItemSelected);
 			}
-
+		}
+		if(pItemData->m_enumItemType == ItemType_MaxDelayTime)
+		{
+			if(pItemData->m_FlightTypeItem)
+			{
+				pItemData->m_FlightTypeItem->SetMaxTime( ElapsedTime(nValue*60L) );
+				UpdateItemText(hItemSelected);
+			}
 		}
 
 	}
