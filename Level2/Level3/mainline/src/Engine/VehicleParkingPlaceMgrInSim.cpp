@@ -259,6 +259,7 @@ void VehicleParkingPlaceMgrInSim::EnterParkingPlace(AirsideVehicleInSim* pVehicl
 		m_RightVehicleParkingPlace->HoldVehicle(pVehicleInSim);
 		m_bSideParkingPlace = true;
 	}
+	
 }
 
 void VehicleParkingPlaceMgrInSim::ExitParkingPlace(CFlightServiceRoute* pFlightServiceRoute,const ElapsedTime &eTime)

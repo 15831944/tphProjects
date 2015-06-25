@@ -1005,7 +1005,24 @@ bool PaxOnboardBaseBehavior::AddWaitingPax( PaxOnboardBaseBehavior *pBehavior )
 	m_vWaitingPax.push_back(pBehavior);
 	return true;
 }
-
+void PaxOnboardBaseBehavior::RemoveWaitingPax(int nPaxID, ElapsedTime eTime)
+{
+	if(m_pWaitPax && m_pWaitPax->getPerson() && m_pWaitPax->getPerson()->getID() == nPaxID)
+	{
+		m_pWaitPax = NULL;
+		this->GenerateEvent(eTime);
+	}
+	//wait up the waiting passengers
+	std::vector< PaxOnboardBaseBehavior *>::iterator iterPax = m_vWaitingPax.begin();
+	for (; iterPax != m_vWaitingPax.end(); ++iterPax)
+	{
+		if(*iterPax && (*iterPax)->getPerson() && (*iterPax)->getPerson()->getID() == nPaxID)
+		{
+			m_vWaitingPax.erase(iterPax);
+			return;
+		}
+	}
+}
 void PaxOnboardBaseBehavior::WakeupWaitingPax( ElapsedTime& etime )
 {
 	//wait up the waiting passengers

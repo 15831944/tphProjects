@@ -297,7 +297,7 @@ void ARCFlight::setServiceTime(ElapsedTime p_time)
 
 void ARCFlight::getFlightIDString(char *p_str )const
 {
-	char szAirline[8];
+	char szAirline[AIRLINE_LEN] = {0};
 	getAirline (szAirline);
 
 	strcpy( p_str, szAirline );

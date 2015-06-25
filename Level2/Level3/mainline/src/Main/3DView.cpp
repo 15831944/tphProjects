@@ -1423,6 +1423,24 @@ void C3DView::OnMouseMove(UINT nFlags, CPoint point)
 void C3DView::OnLButtonDown(UINT nFlags, CPoint point) 
 {
 	CView::OnLButtonDown(nFlags, point);
+
+	CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+
+	if(GetDocument()->GetPathName().Compare(pMF->m_wndShapesBar->m_strProjPath))
+	{
+		if(pMF->m_wndShapesBar)
+		{
+			delete pMF->m_wndShapesBar;
+			pMF->m_wndShapesBar = NULL;
+		}
+		pMF->CreateShapesBar();
+		pMF->m_wndShapesBar->m_strProjPath = GetDocument()->GetPathName();
+		pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
+		pMF->ShowControlBar(pMF->m_wndShapesBar, TRUE, FALSE);
+		pMF->m_wndShapesBar->SetUserBarManager(GetDocument()->GetTerminal().m_pUserBarMan);
+		pMF->m_wndShapesBar->AddUserShapesToShapesBar();
+	}
+
 	m_ptMousePos = Get3DMousePos(point);
 	m_ptFrom = point;
 
@@ -7752,7 +7770,20 @@ void C3DView::OnWallshapePointedit()
 	if(m_nSelectWallShape>=0)
 	{
 		WallShape* wall=GetDocument()->GetCurWallShapeList().getShapeAt(m_nSelectWallShape);
-		wall->SetEditMode(! wall->IsEditMode());
+		if(wall)
+		{
+			wall->SetEditMode(! wall->IsEditMode());
+			//end edit, save the modification
+			if(!wall->IsEditMode())
+			{
+				GetDocument()->GetCurWallShapeList().saveDataSet(GetDocument()->m_ProjInfo.path, false);
+			}
+		}
+		else
+		{
+			ASSERT(FALSE);
+		}
+
 	}
 	Invalidate(FALSE);
 
@@ -7787,7 +7818,14 @@ void C3DView::OnWallshapemenuAddpointhere()
 void C3DView::OnWallshapepointmenuDelete()
 {
 	// TODO: Add your command handler code here
-	GetDocument()->GetCurWallShapeList().getShapeAt(m_nSelectWallShape)->DelPoint(m_nSelectWallShapePoint);
+	WallShape* pWallShape = GetDocument()->GetCurWallShapeList().getShapeAt(m_nSelectWallShape);
+	if(pWallShape == NULL || pWallShape->GetPointCount() <=2 )
+	{
+		MessageBox("Wall shape should have 2 points at least.", _T("Wall Shape"), MB_OK);
+		return;
+	}
+	pWallShape->DelPoint(m_nSelectWallShapePoint);
+
 	Invalidate(FALSE);
 }
 

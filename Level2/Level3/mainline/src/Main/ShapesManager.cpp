@@ -74,6 +74,9 @@ CShapesManager::~CShapesManager()
 	for(int i=0; i<static_cast<int>(m_vShapeList.size()); i++)
 		delete m_vShapeList[i];
 	m_vShapeList.clear();
+	for(int i=0; i<static_cast<int>(m_vDefaultList.size()); i++)
+		delete m_vDefaultList[i];
+	m_vDefaultList.clear();
 }
 
 CShapesManager* CShapesManager::GetInstance()
@@ -180,12 +183,6 @@ BOOL CShapesManager::LoadData()
 // return NULL, if not found
 CShape* CShapesManager::FindShapeByName( CString _csName )
 {
-	CShape* pNewShape = new CShape();
-	CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
-	pNewShape->Name(_csName);
-	pNewShape->ImageFileName(sPath + "CUBE100.bmp");
-	pNewShape->ShapeFileName(sPath + "CUBE100.dxf");
-
 	int nCount = m_vShapeList.size();
 	for( int i=0; i<nCount; i++ )
 	{
@@ -193,16 +190,32 @@ CShape* CShapesManager::FindShapeByName( CString _csName )
 
 		if( pShape->Name().CompareNoCase( _csName ) == 0 )
 		{
-			if (PathFileExists(pShape->ImageFileName())==TRUE)
-				pNewShape->ImageFileName(pShape->ImageFileName());
+			if (PathFileExists(pShape->ShapeFileName())==FALSE)			
+				break;
 
-			if (PathFileExists(pShape->ShapeFileName())==TRUE)			
-				pNewShape->ShapeFileName(pShape->ShapeFileName());
-
-			return pNewShape;
+			return pShape;
 		}
 	}	
-	return pNewShape;
+
+	nCount = m_vDefaultList.size();
+	for( int i=0; i<nCount; i++ )
+	{
+		CShape* pShape = m_vDefaultList[i];
+
+		if( pShape->Name().CompareNoCase( _csName ) == 0 )
+		{
+			return pShape;
+		}
+	}
+
+	CShape* pDefaultShape = new CShape();
+	CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
+	pDefaultShape->Name(_csName);
+	pDefaultShape->ImageFileName(sPath + "CUBE100.bmp");
+	pDefaultShape->ShapeFileName(sPath + "CUBE100.dxf");
+	m_vDefaultList.push_back(pDefaultShape);
+
+	return pDefaultShape;
 }
 
 BOOL CShapesManager::IsShapeExist( CString _csName )

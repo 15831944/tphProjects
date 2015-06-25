@@ -135,6 +135,7 @@ public:
 	void SetWaitAirsideFlight(AirsideFlightInSim* pFlightInSim){m_pWaitAirsideFlight = pFlightInSim;}
 	void WriteDoorCloseLog(OnboardDoorLog* pLog);
 	void GetFitestDoor(const DoorOperationInSim* pDoorOperationInSim,std::vector<OnboardDoorInSim*>& vDoorList)const;
+	void ClearPaxFromHisSeat(int nPaxID, ElapsedTime eTime);
 
 protected:
 	void Initialize();
@@ -149,7 +150,6 @@ protected:
 	void InitDeckGround();
 	OnboardDeckGroundInSim* GetDeckInSim(CDeck* pDeck);
 	void setOnboardCellBarrier();
-
 
 protected:
 	Flight *m_pFlight;

@@ -141,7 +141,7 @@ public:
 		//log to flight file
 		std::ofstream outfile;
 		outfile.open(debugfileName,ios::app);
-		
+		long eventTime = long(pFlight->GetTime());
 		outfile <<"<" << Event::getCurEventNum()<<">" << std::endl;
 		outfile << pFlight->GetTime()<<"," << long(pFlight->GetTime())<<std::endl;
 		outfile << pFlight->GetPosition().getX() <<" ," <<pFlight->GetPosition().getY() << std::endl;
@@ -929,6 +929,7 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 
 	AirsideFlightRunwayDelayLog* pLog = NULL;
 
+    AirsideMobileElementMode itemMode = item.GetMode();
 	//release resource lock
 	if(item.GetMode() == OnTerminate )
 	{
@@ -4214,7 +4215,7 @@ CFlightOpenDoors* AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
 		ACTypeDoor* pACDoor = door.pDoor;
 
 		CPoint2008 doorCenterPos = flightPath.GetDistPoint(pACDoor->m_dNoseDist*100);
-		DistanceUnit doorHeight = (pACDoor->m_dHeight + pACDoor->m_dSillHeight)*100;
+		DistanceUnit doorHeight = (pACDoor->m_dHeight)*100;
 
 		//stair's ground position
 		//45 degree horizon
@@ -5199,4 +5200,15 @@ void AirsideFlightInSim::DisConnectBridges(CARCportEngine* _pEngine,const Elapse
 		}		
 	}
 	CloseDoors();
+}
+
+bool AirsideFlightInSim::isFlightInTakeoffQueue() const
+{
+	RunwayExitInSim* pTakeoffPos = this->GetTakeoffPosition();	
+	if(pTakeoffPos )
+	{	
+		if( pTakeoffPos->GetLogicRunway()->IsFlightInQueueToTakeoffPos(const_cast<AirsideFlightInSim*>(this), pTakeoffPos) )
+			return true;
+	}
+	return false;
 }

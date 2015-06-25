@@ -13063,7 +13063,7 @@ BEGIN
     BEGIN
         MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
         MENUITEM "Edit Shape Bar",              ID_MENU_EDITFOLDER
-	MENUITEM "Import Shape Bar",            ID_MENU_IMPORTFOLDER
+        MENUITEM "Import Shape Bar",            ID_MENU_IMPORTFOLDER
         MENUITEM "Export Shape Bar",            ID_MENU_EXPORTFOLDER
         MENUITEM "Delete Shape Bar",            ID_MENU_DELETEFOLDER
     END
@@ -13075,14 +13075,14 @@ BEGIN
     END
     POPUP "SubMenu2"
     BEGIN
-        MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
-	MENUITEM "Import Shape Bar",            ID_MENU_IMPORTFOLDER
         MENUITEM "New Shape",                   ID_MENU_ADDITM
+        MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
+        MENUITEM "Import Shape Bar",            ID_MENU_IMPORTFOLDER
     END
     POPUP "SubMenu3"
     BEGIN
         MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
-	MENUITEM "Import Shape Bar",            ID_MENU_IMPORTFOLDER
+        MENUITEM "Import Shape Bar",            ID_MENU_IMPORTFOLDER
     END
 END
 

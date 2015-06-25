@@ -355,7 +355,7 @@ void AirsideBaggageTrainInSim::GetNextCommand()
 			WirteLog(GetPosition(),GetSpeed(),GetTime()) ;
 			SetMode(_mode) ;
 			//////////////////////////////////////////////////////////////////////////
-
+			GetServiceFlight()->VehicleServiceComplete(this);
 			m_pServiceFlight = NULL;
 
 			AirsideVehicleInSim::GetNextCommand();
@@ -519,8 +519,7 @@ void AirsideBaggageTrainInSim::TransferTheBag( Person *pBag,const ElapsedTime& e
 
 	
 	pBagCart->AddBaggage(pBagBehavior);
-//	m_nBagLoaded += pBag->GetActiveGroupSize();
-	m_nBagLoaded++;
+	m_nBagLoaded += pBag->GetActiveGroupSize();
 	if (IsReadyToGo())
 	{
 		//the vehicle start to leave the pusher's parking place
@@ -667,9 +666,10 @@ void AirsideBaggageTrainInSim::UnloadBaggageFromCart( ElapsedTime time )
 	if(isLastCart())
 	{
 		//finished unload baggage
-		m_curCartIndex = 0;
-		SetTime(eFinishedTime);
-		GetNextCommand();
+//		m_curCartIndex = 0;
+		LeaveStandService(eFinishedTime);
+// 		SetTime(eFinishedTime);
+// 		GetNextCommand();
 		return;
 	}
 	MoveToNextCart(eFinishedTime);
@@ -851,4 +851,22 @@ ElapsedTime AirsideBaggageTrainInSim::GetSubServiceTimePerBag() const
 		return ElapsedTime(m_pSubServiceTimeDistribution->getRandomValue()*60L/10);
 	}
 	return ElapsedTime(1L);
+}
+
+double AirsideBaggageTrainInSim::GetVehicleActualLength() const
+{
+	//tug length
+	double dTotalLength = 0.0;
+	double dTugLength = GetVehicleLength();
+	dTotalLength += dTugLength;
+
+	//carts length
+	int nCartCount = (int)m_vBagCarts.size();
+	for (int i = 0; i < nCartCount; i++)
+	{
+		AirsideBaggageCartInSim* pCart = m_vBagCarts.at(i);
+		dTotalLength += pCart->GetVehicleLength(); 
+	}
+
+	return dTotalLength;
 }

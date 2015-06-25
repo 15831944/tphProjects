@@ -207,6 +207,9 @@ public:
 
 	void SetEnplaneTime(const ElapsedTime& time);
 	void SetFollowerEnplaneTime(const ElapsedTime& time);
+
+	void RemoveWaitingPax(int nPaxID, ElapsedTime eTime);
+
 protected:
 	enum theVisitorLogNum
 	{
@@ -224,4 +227,5 @@ protected:
 protected:
 	//set next status of the pax
 	void SetNextStatus(int nState, ARCVector3& pos, OnboardAircraftElementInSim *pElement);
+
 };

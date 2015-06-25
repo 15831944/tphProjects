@@ -135,7 +135,7 @@ std::ostream& operator<<( std::ostream& os, const ClearanceItem& cItem )
 	os << cItem.GetPosition() << "	";
 
 	os<< cItem.m_dAlt <<"	";
-	
+	long timeL = (long)cItem.GetTime();
 	os<<cItem.GetTime()<<"("<< long(cItem.GetTime())<<")" <<"	";
 
 	os<< cItem.m_vSpeed << "	";

@@ -57,6 +57,12 @@ BOOL OnboardSeatInSim::AssignToPerson( Person *pPerson )
 	return TRUE;
 }
 
+BOOL OnboardSeatInSim::ClearPaxFromSeat()
+{
+	m_pPerson = NULL;
+	m_pAssigndPerson = NULL;
+	return TRUE;
+}
 BOOL OnboardSeatInSim::GetPosition( ARCVector3& seatPos ) const
 {
 	ASSERT(m_pSeat != NULL);

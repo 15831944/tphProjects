@@ -45,7 +45,7 @@ public:
 			if(pVehicleAhead && pVehicleAhead!= m_pVehicle)
 			{
 				DistanceUnit distToVehicleAhead = pVehicleAhead->GetDistInResource() - m_distInLane;
-				DistanceUnit sepDist = m_pVehicle->GetSeparationDist(pVehicleAhead) + 0.5*(m_pVehicle->GetVehicleLength() + pVehicleAhead->GetVehicleLength() );
+				DistanceUnit sepDist = m_pVehicle->GetSeparationDist(pVehicleAhead) + 0.5*(m_pVehicle->GetVehicleActualLength() + pVehicleAhead->GetVehicleActualLength() );
 
 				m_dSafeDistInLane = m_distInLane + distToVehicleAhead - sepDist;
 				m_tSafeTimeInLane = pVehicleAhead->GetTime();
@@ -151,22 +151,22 @@ public:
 bool MayConflictWithFlight(AirsideVehicleInSim* pVehicle, VehicleLaneExit * pLaneExit, DistanceUnit dCurDist, DistanceUnit& dHold1,DistanceUnit& dHold2, std::vector<LaneFltGroundRouteIntersectionInSim*>& laneIntesectlist)
 {
 	VehicleLaneInSim* pLane = pLaneExit->GetLane();
-	DistanceUnit exitDist = pLaneExit->GetDistInLane() - pVehicle->GetVehicleLength()*0.5;	
+	DistanceUnit exitDist = pLaneExit->GetDistInLane() - pVehicle->GetVehicleActualLength()*0.5;	
 
 	int nextIntersectIdx = pLane->GetFirstTaxiwayIntersection( dCurDist );
 	if( nextIntersectIdx >= 0 && nextIntersectIdx<pLane->GetTaxiwayIntersectionCount() )
 	{
-		dHold1 = pLane->FltGroundRouteIntersectionAt(nextIntersectIdx)->GetHold1() - pVehicle->GetVehicleLength() * 0.5;
+		dHold1 = pLane->FltGroundRouteIntersectionAt(nextIntersectIdx)->GetHold1() - pVehicle->GetVehicleActualLength() * 0.5;
 
-		dHold2 = pLane->FltGroundRouteIntersectionAt(nextIntersectIdx)->GetHold2() + pVehicle->GetVehicleLength() *0.5;
+		dHold2 = pLane->FltGroundRouteIntersectionAt(nextIntersectIdx)->GetHold2() + pVehicle->GetVehicleActualLength() *0.5;
 
 		laneIntesectlist.push_back(pLane->FltGroundRouteIntersectionAt(nextIntersectIdx) );
 		for(int i= nextIntersectIdx+1;i<pLane->GetTaxiwayIntersectionCount();i++)//check close intersection
 		{
-			DistanceUnit dNextHold1 = pLane->FltGroundRouteIntersectionAt(i)->GetHold1() - pVehicle->GetVehicleLength() * 0.5; 
+			DistanceUnit dNextHold1 = pLane->FltGroundRouteIntersectionAt(i)->GetHold1() - pVehicle->GetVehicleActualLength() * 0.5; 
 			if( dNextHold1 < dHold2 ) //two Intersection are close , check it also
 			{
-				dHold2 = pLane->FltGroundRouteIntersectionAt(i)->GetHold2() + pVehicle->GetVehicleLength() *0.5;
+				dHold2 = pLane->FltGroundRouteIntersectionAt(i)->GetHold2() + pVehicle->GetVehicleActualLength() *0.5;
 			}
 			else
 			{
@@ -265,7 +265,7 @@ bool VehicleRouteInSim::FindClearanceInConcern( AirsideVehicleInSim * pVehicle,C
 			ASSERT(false);
 		}
 		//check conflict  with taxiway intersection and vehicle ahead
-		DistanceUnit exitLaneDist = pExit->GetDistInLane() - pVehicle->GetVehicleLength() *0.5;
+		DistanceUnit exitLaneDist = pExit->GetDistInLane() - pVehicle->GetVehicleActualLength() *0.5;
 		DistanceUnit dCurDist = lastItem.GetDistInResource();
 
 		DistanceUnit dStep = 100*SCALE_FACTOR;
@@ -503,7 +503,7 @@ AirsideVehicleInSim* VehicleRouteInSim::GetParkSpotConflictLeadPaxBus( AirsideVe
 	}
 	double dMoveDist = dDist + dNextDist;
 
-	DistanceUnit sepDist = pVehicle->GetSeparationDist(pLeadVehicle) + 0.5*(pVehicle->GetVehicleLength() + pLeadVehicle->GetVehicleLength());
+	DistanceUnit sepDist = pVehicle->GetSeparationDist(pLeadVehicle) + 0.5*(pVehicle->GetVehicleActualLength() + pLeadVehicle->GetVehicleActualLength());
 
 	double dLenght = GetLength();
 	double distToVehicleAhead = dLenght - dMoveDist;

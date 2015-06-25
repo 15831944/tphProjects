@@ -16,8 +16,8 @@ CShapeItem::CShapeItem(CString folderpath,CWnd* pParent /*=NULL*/)
     m_oldWindowWidth(0),
     m_oldWindowHeight(0)
 {
-	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\New.bmp";
-	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\FLATSQUARE24cm.dxf";
+	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\CUBE100.bmp";
+	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\CUBE100.dxf";
 	m_folderLocation = folderpath;
 }
 

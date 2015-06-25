@@ -94,12 +94,19 @@ int PaxDeplaneBehavior::performanceMove(ElapsedTime p_time,bool bNoLog)
 				|| !pFlightInAirside->GetServiceRequestDispatcher()->HasVehicleServiceFlight(pFlightInAirside,VehicleType_PaxTruck))
 				
 			{
+				m_pOnboardFlight->ClearPaxFromHisSeat(getPerson()->getID(), p_time);
+				m_pOnboardFlight->ReadyCloseDoor();
 			
 				bDisallowGroup=false;
 				processEntryTerminal(p_time);
 			}
 			else
+			{
+				m_pOnboardFlight->ClearPaxFromHisSeat(getPerson()->getID(), p_time);
+				m_pOnboardFlight->ReadyCloseDoor();
+			
 				processEntryAirside(p_time);
+			}
 		}
 
 	default:

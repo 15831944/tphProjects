@@ -52,6 +52,7 @@ public:
 
 	void LoadBagFromFlight(ElapsedTime time) ;
 	void UnloadBaggageFromCart(ElapsedTime time);
+
 public:
 	
 	//vehicle moves
@@ -74,6 +75,8 @@ protected:
 	bool IsReadyToGo();
 	bool isLastCart()const;
 	void LeaveStandService(const ElapsedTime& leaveTime);
+
+	virtual double GetVehicleActualLength()const;
 protected:
 	int m_curCartIndex;;
 	std::vector<AirsideBaggageCartInSim *> m_vCartAssigned;

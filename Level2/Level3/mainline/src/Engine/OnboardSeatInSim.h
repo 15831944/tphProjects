@@ -76,6 +76,9 @@ public:
 	bool fitSeatType(OnboardSeatType emType)const;
 
 	double GetAvailableSpace() const;
+	BOOL ClearPaxFromSeat();
+
+
 protected:
 	virtual void CalculateSpace();
 	void ClearSpace();

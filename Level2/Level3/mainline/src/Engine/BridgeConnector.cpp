@@ -389,7 +389,8 @@ void BridgeConnector::DisConnect(const ElapsedTime& t)
 		connectStatus.m_logEntryOfBridge.addEvent(bridgeAfterEventDesc);		
 		
 	}
-	
+	m_pConnectFlight = NULL;
+	m_pOnboardConnectFlight = NULL;
 }
 
 void BridgeConnector::initMiscData( bool _bDisallowGroup, int visitors, int count, const GroupIndex *gates )
@@ -653,6 +654,8 @@ void BridgeConnector::FlushLog(const ElapsedTime& t)
 {
 	cpputil::autoPtrReset(m_pQueue);
 	m_Status.FlushLog(t,m_pTerm);
+	m_pConnectFlight = NULL;
+	m_pOnboardConnectFlight = NULL;
 }
 
 void BridgeConnector::CopyDataToProc( BridgeConnector* pCopyToProc )
@@ -847,7 +850,8 @@ void BridgeConnector::ConnectPointStatus::SetLogEntryOfBridge( const CBridgeConn
 
 void BridgeConnector::ConnectPointStatus::FlushLog(const ElapsedTime& t,Terminal* pTerm)
 {
-	if(!pTerm)return;
+	if(!pTerm)
+		return;
 
 	if(t>m_tLastTime)
 	{
@@ -871,4 +875,6 @@ void BridgeConnector::ConnectPointStatus::FlushLog(const ElapsedTime& t,Terminal
 	log = NULL;
 	pTerm->m_pBridgeConnectorLog->updateItem (m_logEntryOfBridge, m_logEntryOfBridge.GetIndex());
 	m_logEntryOfBridge.clearLog();
+
+	mbConnected = false;
 }

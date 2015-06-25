@@ -388,9 +388,12 @@ BOOL CHubDataDlg::CheckPercent()
 		int nGroupCount = pDist->getCount();
 		if( nGroupCount < 1 )
 			continue;
+
 		if( pDist->getProb( nGroupCount - 1 ) != 100 )
 		{
-			MessageBox( "Total Percentage is not 100%", "Error" );
+			CString strMessage;
+			strMessage.Format(_T("Total Percentage is %.0f%%  ,not 100%%."), pDist->getProb( nGroupCount - 1 ));
+			MessageBox(strMessage, "Error");
 
 			// TODO: need highlight the tree item.
 			return FALSE;

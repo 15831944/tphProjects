@@ -321,7 +321,7 @@ void CShapesBar::OnImport()
 
 void CShapesBar::OnExport()
 {
-    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_wndOutBarCtrl.iSelFolder);
+    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
     CString strZipDest = pUserBar->GetBarName();
     CFileDialog  dlgFile(FALSE, ".zip", strZipDest, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "(*.zip)|*.zip|");
     if(dlgFile.DoModal() == IDOK)
@@ -330,6 +330,8 @@ void CShapesBar::OnExport()
     }
 
     CString tempBarInformationFile = m_strTempPath + "\\" + m_strShapeFileName;
+ 	if(!PathFileExists(m_strTempPath))
+ 		CreateDirectory(m_strTempPath, NULL);
     CUserShapeBarManager tempUserBarMan;
     tempUserBarMan.AddUserBar(pUserBar);
     tempUserBarMan.saveDataSetToOtherFile(tempBarInformationFile);
@@ -425,7 +427,7 @@ void CShapesBar::OnNewShapeBar()
 
 void CShapesBar::OnEditShapeBar()
 {
-    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_wndOutBarCtrl.iSelFolder);
+    CUserShapeBar* pUserBar = (CUserShapeBar*)m_wndOutBarCtrl.GetFolderData(m_iSelFolder);
     ASSERT(pUserBar);
     CShapeFolder dlg(pUserBar->GetBarName(), pUserBar->GetBarLocation());
     dlg.SetTitle("Edit Shape Bar");
@@ -469,6 +471,11 @@ void CShapesBar::OnDeleteShapeBar()
         m_wndOutBarCtrl.RemoveFolder(m_iSelFolder);
 
         m_pUserBarMan->saveDataSet(m_strProjPath, false);
+
+		CMainFrame *pMain=(CMainFrame *)AfxGetMainWnd();
+		CView* pView = pMain->MDIGetActive()->GetActiveView();
+		pView->Invalidate();
+		pView->UpdateWindow();
     }
 }
 
@@ -590,6 +597,11 @@ void CShapesBar::OnDeleteShape()
         m_wndOutBarCtrl.RemoveItem(m_iSelItem);
 
         m_pUserBarMan->saveDataSet(m_strProjPath, false);
+
+ 		 CMainFrame *pMain=(CMainFrame *)AfxGetMainWnd();
+ 		 CView* pView = pMain->MDIGetActive()->GetActiveView();
+		 pView->Invalidate();
+ 		 pView->UpdateWindow();
     }
 }
 

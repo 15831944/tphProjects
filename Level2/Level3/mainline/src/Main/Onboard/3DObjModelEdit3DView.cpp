@@ -565,7 +565,7 @@ void C3DObjModelEdit3DView::OnUpdateRedo(CCmdUI* pCmdUI)
 void C3DObjModelEdit3DView::OnUpdateLayoutLock(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command handler code here
-	pCmdUI->SetCheck(GetEditContext()->IsViewLocked());
+	pCmdUI->SetCheck(GetEditContext()->IsViewLocked()?1:0);
 }
 
 

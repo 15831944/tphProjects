@@ -48,7 +48,6 @@ public:
 		int m_IsDep ;
 		ResourceDesc m_ResourceDes ;
 		int m_nMode;
-		AirsideConflictionDelayLog::CDelayReason m_DelayReason ;
 		FltDelayReason m_emDelayReson;//for flight delay report
 		CString m_sDelayReason;//description flight delay reason for flight delay report
 	};

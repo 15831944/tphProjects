@@ -384,10 +384,10 @@ void OnboardFlightInSim::Initialize()
 
 	CalculateCorridorIntersection();
 
-	if (m_pCorridorMgr)
-	{
-		m_pCorridorMgr->initGraphMgr(this);
-	}
+	//if (m_pCorridorMgr)
+	//{
+	//	m_pCorridorMgr->initGraphMgr(this);
+	//}
 
 }
 
@@ -826,6 +826,29 @@ void OnboardFlightInSim::AddCount()
 	m_nCloseCondition++;
 }
 
+void OnboardFlightInSim::ClearPaxFromHisSeat(int nPaxID, ElapsedTime eTime)
+{
+	std::vector<OnboardSeatInSim *>::const_iterator iter = m_vSeatInSim.begin();
+	for (; iter != m_vSeatInSim.end(); ++iter)
+	{
+		if((*iter) && (*iter)->GetAsignedPerson())
+		{
+			Person *pPerson = (*iter)->GetAsignedPerson();
+
+			if(pPerson)
+			{
+				if(pPerson->getID() == nPaxID)
+				{
+					(*iter)->ClearPaxFromSeat();
+				}
+				else if(pPerson->getOnboardBehavior())
+				{
+					pPerson->getOnboardBehavior()->RemoveWaitingPax(nPaxID, eTime);
+				}
+			}			
+		}	
+	}
+}
 void OnboardFlightInSim::DecCount()
 {
 	if (m_nCloseCondition != 0)
@@ -833,6 +856,8 @@ void OnboardFlightInSim::DecCount()
 		m_nCloseCondition--;
 	}
 }
+
+
 
 void OnboardFlightInSim::WriteDoorCloseLog( OnboardDoorLog* pLog )
 {

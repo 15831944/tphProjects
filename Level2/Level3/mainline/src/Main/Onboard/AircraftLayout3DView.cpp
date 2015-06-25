@@ -410,7 +410,11 @@ void CAircraftLayout3DView::OnUpdateRedo(CCmdUI* pCmdUI)
 void CAircraftLayout3DView::OnUpdateLayoutLock(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command handler code here
-	pCmdUI->SetCheck(GetEditor()->IsViewLocked());
+	bool bLocked = GetEditor()->IsViewLocked();
+	if(bLocked)
+		pCmdUI->SetCheck(TRUE);
+	else
+		pCmdUI->SetCheck(FALSE);
 }
 
 

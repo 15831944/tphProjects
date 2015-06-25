@@ -62,6 +62,8 @@ public:
 	TaxiRouteItemInSim & ItemAt(int idx){ return m_vItems[idx]; }
 	const TaxiRouteItemInSim& ItemAt(int idx)const{ return m_vItems[idx]; }
 	TaxiRouteItemInSim GetItem(int idx)const{ return m_vItems[idx]; }
+	int getDirPathIndex(int fIndex, RouteDirPath* path)const;
+	
 	
 	void Clear(){ m_vItems.clear(); }
 	

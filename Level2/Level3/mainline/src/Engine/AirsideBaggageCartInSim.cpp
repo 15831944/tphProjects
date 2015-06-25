@@ -115,7 +115,16 @@ void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoD
 		pBagBehavior->WriteLog(eBagTime); 
 
 		if(pBagBehavior->getMobileElement())
+		{
+			Point curLocation;
+			CPoint2008 ptAirside;
+			pBagBehavior->getMobileElement()->getAirsidePoint(ptAirside);
+			curLocation.init(ptAirside.getX(),ptAirside.getY(),ptAirside.getZ());
+			pBagBehavior->getMobileElement()->SetFollowerArrivalDoor(true);
+			pBagBehavior->getMobileElement()->setTerminalLocation(curLocation);
+			pBagBehavior->getMobileElement()->setTerminalDestination(curLocation);
 			pBagBehavior->getMobileElement()->flushLog(eFinishedTime);
+		}
 
 		eTime = eNextBagTime;
 		eFinishedTime = eBagTime;

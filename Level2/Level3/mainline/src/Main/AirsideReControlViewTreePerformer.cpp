@@ -26,7 +26,7 @@
 using namespace AirsideReControlView;
 
 
-AirsideReControlView::CTreePerformer::CTreePerformer(int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CTreePerformer::CTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam )
 {
 	ASSERT(pTreeCtrl != NULL);
 	ASSERT( pParam != NULL);
@@ -81,7 +81,7 @@ HTREEITEM AirsideReControlView::CTreePerformer::InsertItem( HTREEITEM hParentIte
 
 //////////////////////////////////////////////////////////////////////////
 //AirsideReControlView::CRunwayUtilizationTreePerformer
-AirsideReControlView::CRunwayUtilizationTreePerformer::CRunwayUtilizationTreePerformer(int nProjID,  CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CRunwayUtilizationTreePerformer::CRunwayUtilizationTreePerformer(int nProjID,  CTreeCtrl *pTreeCtrl, CParameters *pParam )
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 	m_hItemRunwayRoot = NULL;
@@ -672,7 +672,7 @@ LRESULT AirsideReControlView::CRunwayUtilizationTreePerformer::DefWindowProc( UI
 
 //////////////////////////////////////////////////////////////////////////
 //AirsideReControlView::CRunwayDelayParaTreePerformer
-AirsideReControlView::CRunwayDelayParaTreePerformer::CRunwayDelayParaTreePerformer(int nProjID,  CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CRunwayDelayParaTreePerformer::CRunwayDelayParaTreePerformer(int nProjID,  CTreeCtrl *pTreeCtrl, CParameters *pParam )
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 	m_hItemRunwayRoot = NULL;
@@ -1142,7 +1142,7 @@ LRESULT AirsideReControlView::CRunwayDelayParaTreePerformer::DefWindowProc( UINT
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-AirsideReControlView::CRunwayCrossingsTreePerformer::CRunwayCrossingsTreePerformer(int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam)
+AirsideReControlView::CRunwayCrossingsTreePerformer::CRunwayCrossingsTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam)
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 
@@ -1453,7 +1453,7 @@ void AirsideReControlView::CRunwayCrossingsTreePerformer::SaveData()
 
 //////////////////////////////////////////////////////////////////////////
 //AirsideReControlView
-AirsideReControlView::CAirsideIntersectionTreePerformer::CAirsideIntersectionTreePerformer( int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CAirsideIntersectionTreePerformer::CAirsideIntersectionTreePerformer( int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam )
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 	m_hRootItem = NULL;
@@ -1941,7 +1941,7 @@ void AirsideReControlView::CAirsideIntersectionTreePerformer::InsertAllTaxiwayIt
 }
 
 //////////////////////taxiway utilization///////////////////////////////////////////////////////
-AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::CAirsideTaxiwayUtilizationTreePerformer( int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::CAirsideTaxiwayUtilizationTreePerformer( int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam )
 :CAirsideIntersectionTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 	m_hRootItem = NULL;
@@ -2472,7 +2472,7 @@ LRESULT AirsideReControlView::CAirsideTaxiwayUtilizationTreePerformer::DefWindow
 	return 0;
 }
 ////////////////////stand operation report////////////////////////////////////////////////////////////
-CStandOperationsTreePerformer::CStandOperationsTreePerformer(int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam)
+CStandOperationsTreePerformer::CStandOperationsTreePerformer(int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam)
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 
@@ -2613,7 +2613,7 @@ void CStandOperationsTreePerformer::OnUpdateToolBarDel(CCmdUI *pCmdUI)
 
 //////////////////////////////////////////////////////////////////////////
 //
-AirsideReControlView::CAirsideControllerWorkloadTreePerformer::CAirsideControllerWorkloadTreePerformer( int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CAirsideControllerWorkloadTreePerformer::CAirsideControllerWorkloadTreePerformer( int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam )
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 	m_hAreaRoot = NULL;
@@ -2957,7 +2957,7 @@ CString AirsideReControlView::CAirsideControllerWorkloadTreePerformer::FormatWei
 }
 
 
-AirsideReControlView::CTakeoffProcessTreePerformer::CTakeoffProcessTreePerformer( int nProjID, CARCTreeCtrlEx *pTreeCtrl, CParameters *pParam )
+AirsideReControlView::CTakeoffProcessTreePerformer::CTakeoffProcessTreePerformer( int nProjID, CTreeCtrl *pTreeCtrl, CParameters *pParam )
 :CTreePerformer(nProjID,pTreeCtrl,pParam)
 {
 

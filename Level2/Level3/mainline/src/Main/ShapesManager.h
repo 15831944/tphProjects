@@ -22,13 +22,13 @@ private:
 	CShapesManager();
 	virtual ~CShapesManager();
 	CShape::CShapeList m_vShapeList;
-
+	CShape::CShapeList m_vDefaultList;
 public:
 	static CShapesManager* GetInstance();
 	static void DeleteInstance();
 
 	CShape::CShapeList* GetShapeList() { return &m_vShapeList; }
-
+	CShape::CShapeList* GetDefaultList() { return &m_vDefaultList; }
 	// return NULL, if not found
 	CShape* FindShapeByName( CString _csName );
 

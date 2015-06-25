@@ -150,7 +150,7 @@ protected:
 public:
 	CComboBox	m_comboEndDay;
 	CComboBox	m_comboStartDay;
-	CARCTreeCtrlEx	m_treePaxType;
+	CTreeCtrl	m_treePaxType;
 	CButton	m_staticTime;
 	CStatic	m_staticStartTime;
 	CStatic	m_staticEndTime;

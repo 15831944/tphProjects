@@ -123,6 +123,8 @@ public:
 	double GetVehicleDec()const;
 	double GetVehicleAcc()const;
 
+	virtual double GetVehicleActualLength()const;
+
 	double GetLength()const{ return GetVehicleLength(); }
 
 	DistanceUnit GetSeparationDist(AirsideVehicleInSim * pVehicleAhead)const;
@@ -140,6 +142,7 @@ public:
 	void WritePureLog(AirsideMobElementWriteLogItem* pItem);
 
 	void getDesc(ARCMobileDesc& desc)const;
+
 protected:
 	CString m_strVehicleType;
 	int		m_nVehicleTypeID;		   

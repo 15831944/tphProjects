@@ -637,7 +637,8 @@ BOOL CDlgMovie::PreTranslateMessage(MSG* pMsg)
 
 IRender3DView* CDlgMovie::GetCur3DView()
 {
-	if(m_pDoc->m_animData.m_AnimationModels.IsOnBoardSel() || m_pDoc->m_animData.m_AnimationModels.IsLandsideSel())
+	//if(m_pDoc->m_animData.m_AnimationModels.IsOnBoardSel() || m_pDoc->m_animData.m_AnimationModels.IsLandsideSel())
+	if(m_pDoc->m_systemMode == EnvMode_OnBoard|| m_pDoc->m_systemMode == EnvMode_LandSide)
 	{
 		CRender3DView* pRender3DView = m_pDoc->GetRender3DView();
 		return pRender3DView;

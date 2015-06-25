@@ -210,6 +210,8 @@ public:
 	ElapsedTime GetDepTime()const{ return m_depTime; }
 	ElapsedTime GetEstimateStandTime();
 
+
+	bool isFlightInTakeoffQueue()const;
 	//Set
 	void SetArrFlightPlan(FlightRouteInSim*pRoute);
 	void SetDepFlightPlan(FlightRouteInSim*pRoute);

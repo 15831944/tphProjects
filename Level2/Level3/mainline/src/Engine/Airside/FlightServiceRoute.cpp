@@ -448,7 +448,7 @@ void CFlightServiceRoute::InitResource(AirsideVehicleInSim  * pVehicle)
 	OriginalPath.ConvertPathIntoLocalCoordinate(fltPos, CPoint2008(fltPos-fltPosExt).getHeading());
 	CPoint2008 vDir = CPoint2008(fltPos-fltPosExt);
 	vDir.Normalize();
-	CPoint2008 ParkingPos = fltPos + vDir*1000.0;
+	CPoint2008 ParkingPos = fltPos + vDir*100.0;
 
 	m_VehicleParkingPlaceMgr.InitResource(OriginalPath.GetPath(),ParkingPos,vDir);
 
@@ -944,7 +944,7 @@ int CFlightServiceRoute::GetVehicleLength( AirsideVehicleInSim *pVehicle )
 
 	double dDistance = pt1.distance(pt2);
 	//
-	double nVehicleLength = pVehicle->GetVehicleLength();
+	double nVehicleLength = pVehicle->GetVehicleActualLength();
 	
 	int nPointCount = nVehicleLength/dDistance > 0.0 ? static_cast<int>(nVehicleLength/dDistance) + 1:1;
 
@@ -1459,7 +1459,7 @@ void CFlightServiceRoute::VehicleOnService( AirsideVehicleInSim * pVehicle, Clea
 	if (pVehicle->GetVehicleBaseType() == VehicleType_TowTruck)
 	{
 		AirsideFlightInSim* pServiceFlight = ((AirsideTowTruckInSim*)pVehicle)->GetServiceFlight();
-		double dist = pServiceFlight->GetDistInResource() + (pServiceFlight->GetLength()*0.5 - pVehicle->GetVehicleLength()*0.5);				
+		double dist = pServiceFlight->GetDistInResource() + (pServiceFlight->GetLength()*0.5 - pVehicle->GetVehicleActualLength()*0.5);				
 		CPoint2008 pos = pServiceFlight->GetResource()->GetDistancePoint(dist);
 		ElapsedTime dT = ElapsedTime(2.0*pos.distance(pVehicle->GetPosition())/pVehicle->GetSpeed());
 

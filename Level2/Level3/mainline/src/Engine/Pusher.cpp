@@ -495,9 +495,9 @@ void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain
 {
 	//write log from pusher to baggage cart directly
 	//here, it would be better to create an bag move event to do the job
-
 	int nBagLoad = 0;
 	int nBagCount = m_vServiceSlot.size();
+
 	ElapsedTime eRetTime = eTime;
 	for( int nBag = 0; nBag < nBagCount; ++ nBag )
 	{
@@ -509,9 +509,9 @@ void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain
 		{
 			if(bagCons.fits(pBaggage->getType()))
 			{
+				pBaggage->setState( TerminalEnd );
 				pBaggage->writeLogEntry( eTime, false );
 				
-				pBaggage->setState( LeaveServer );
 				//Leave Server Time
 				ElapsedTime eLeavTime = eRetTime;//eTime +  ElapsedTime(nBagLoad *1L);
 				pBaggage->writeLogEntry(eLeavTime, false);
@@ -519,7 +519,7 @@ void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain
 
 				//move to airside and baggage cart
 				pBaggageTrain->TransferTheBag(pBaggage, eLeavTime,eRetTime);
-				nBagLoad += 1;
+				nBagLoad += pBaggage->GetActiveGroupSize();
 			}
 		}
 	}

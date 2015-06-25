@@ -1042,9 +1042,9 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 		dEndSpd = 0;
 	}
 
-	if(bNeedStopForLeadReseaon){
-		dNextSafeDistInRoute = min(dNextSafeDistInRoute,dStopDistInRoute);
-	}
+	/*if(bNeedStopForLeadReseaon){
+	dNextSafeDistInRoute = min(dNextSafeDistInRoute,dStopDistInRoute);
+	}*/
 	//////////////////////////////////////////////////////////////////////////
 	///
 	if(bGetDelay)pFlight->SetDelayed(NULL);
@@ -2241,9 +2241,10 @@ boost::tuple<ARCMobileElement*, DistanceUnit> TaxiRouteInSim::getLeadMobile(Airs
 			{
 				DistanceUnit lmobDist = 0;
 				
-				if( lMob->getCurDirPath() == rDPath)
+				int leadFlightIndex = getDirPathIndex(i, lMob->getCurDirPath());
+				if( leadFlightIndex >= 0 )
 				{
-					lmobDist = GetDistInRoute(i,lMob->getCurDistInDirPath());
+					lmobDist = GetDistInRoute(leadFlightIndex,lMob->getCurDistInDirPath());
 				}
 				else
 				{
@@ -2314,7 +2315,11 @@ TaxiRouteInSim::CheckResultLead TaxiRouteInSim::checkConflictWithLeadMobile(Airs
 				dSafeDistNoSpdChange = pHWaitHold->m_dDistInRoute;
 		}
 
-		if( int(mCurDistInRoute)< int(dSafeDistNoSpdChange) && dSafeDistNoSpdChange >= 0)
+		DistanceUnit realSep = dSeperation - (pLeadMobile->getCurTime() - pFlight->GetTime() ).asSeconds() * dNormalSpd;
+		bool bOutofRadius = realSep  > 30000;
+		
+
+		if( int(mCurDistInRoute)< int(dSafeDistNoSpdChange) && dSafeDistNoSpdChange >= 0 && bOutofRadius  )
 		{
 			return CheckResultLead( dSafeDistNoSpdChange, dNormalSpd , (ARCMobileElement*)NULL,leadMobDist-dSeperation);
 		}
@@ -2383,6 +2388,7 @@ TaxiRouteInSim::CheckResultHold TaxiRouteInSim::checkConflictWithNextHold(Airsid
 {
 	double dMoveSpd =  mpFlight->getMobilePerform().getNormalSpd();
 	DistanceUnit dDecDistToStatic = mpFlight->getMobilePerform().getSpdChangeDist(dMoveSpd,0); //dist to stop
+	HoldInTaxiRoute * pLastEntryHold = GetlastEntryHold();
 
 	std::vector<HoldInTaxiRoute> vNodeHoldList= m_vHoldList.GetNextRouteNodeHoldList(mCurDistInRoute);
 
@@ -2416,8 +2422,13 @@ TaxiRouteInSim::CheckResultHold TaxiRouteInSim::checkConflictWithNextHold(Airsid
 			{
 				if( int(mCurDistInRoute) < int(distCheckHold) && distCheckHold >=0 ) //flight can move to the checkpoint
 				{
-					if(pNextHold->m_pNode->IsNeedToCheckHold()  &&  !GetWaitHold(distCheckHold) )
+					if(pNextHold->m_pNode->IsNeedToCheckHold()  &&  !GetWaitHold(distCheckHold)  )
 					{
+						if( pNextHold->m_pNode == pLastEntryHold->m_pNode && GetMode()==OnTaxiToRunway)
+						{
+							return CheckResultHold(pNextHold->m_dDistInRoute, 0, (SimAgent*)NULL, pNextHold->m_dDistInRoute);	
+						}
+						
 						return CheckResultHold(distCheckHold, dMoveSpd, (SimAgent*)NULL, pNextHold->m_dDistInRoute);	
 					}
 					
@@ -2630,10 +2641,17 @@ DistanceUnit TaxiRouteInSim::GetExitRouteDist(AirsideFlightInSim* pFlight)
 {
 	DistanceUnit dExitRouteDist = GetEndDist() - pFlight->GetLength();//default exit route dist
 
-	HoldInTaxiRoute* lastEntryHold =  GetlastEntryHold();
-	if(lastEntryHold)
-	{ 
-		dExitRouteDist = min(dExitRouteDist,lastEntryHold->m_dDistInRoute);
+	if(GetMode()==OnTaxiToStand)
+	{
+		dExitRouteDist  =  GetEndDist() - pFlight->GetLength()/2.0 - 200;
+	}
+	else
+	{
+		HoldInTaxiRoute* lastEntryHold =  GetlastEntryHold();
+		if(lastEntryHold)
+		{ 
+			dExitRouteDist = min(dExitRouteDist,lastEntryHold->m_dDistInRoute);
+		}
 	}
 	return dExitRouteDist;
 }
@@ -2778,4 +2796,13 @@ void TaxiRouteInSim::notifyTempFlightCirculate(const ElapsedTime&t)
 		}
 	
 	}
+}
+
+int TaxiRouteInSim::getDirPathIndex( int fIndex, RouteDirPath* path ) const
+{
+	for(int i=fIndex;i<(int)m_vItems.size();i++){
+		if(m_vItems.at(i).GetResource() == path)
+			return i;
+	}
+	return -1;
 }

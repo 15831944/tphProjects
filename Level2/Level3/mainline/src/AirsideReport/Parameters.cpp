@@ -296,3 +296,16 @@ void CParameters::ReadParameter( ArctermFile& _file )
 	_file.getInteger(m_unitLength) ;
 	_file.getLine() ;
 }
+
+bool CParameters::GetReportRuns(std::vector<int>& vReportRuns)
+{
+    if(!m_vReportRuns.empty())
+    {
+        vReportRuns = m_vReportRuns;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}

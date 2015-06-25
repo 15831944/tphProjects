@@ -1154,3 +1154,10 @@ void AirsideVehicleInSim::SetAvailable( bool bAvailable )
 		m_pServiceFlight = NULL;
 	}
 }
+
+double AirsideVehicleInSim::GetVehicleActualLength() const
+{
+	return GetVehicleLength();
+}
+
+

@@ -316,7 +316,9 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 	if(_needReturn)
 		return _localResult;
 
-
+    CString strProc = spTerminalBehavior->getProcessor()->getIDName();
+    int nPerson = getID();
+    EntityEvents cur_state = (EntityEvents)state;
    int nReturnValue = 1;
 	switch (state)
     {

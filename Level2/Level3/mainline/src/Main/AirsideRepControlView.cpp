@@ -1532,12 +1532,12 @@ void CAirsideRepControlView::OnToolbarbuttonadd()
 	}
 	else if(pData->nodeType == repControlTreeNodeType_Exit_Oper)
 	{
-		std::vector<CString> comboxstring ;
-		comboxstring.push_back(_T("All")) ;
-		comboxstring.push_back(_T("T/o")) ;
-		comboxstring.push_back(_T("Landing")) ;
-		m_treePaxType.SetComboString(hSelectItem,comboxstring) ;
-		m_treePaxType.m_comboBox.SetCurSel(0) ;
+// 		std::vector<CString> comboxstring ;
+// 		comboxstring.push_back(_T("All")) ;
+// 		comboxstring.push_back(_T("T/o")) ;
+// 		comboxstring.push_back(_T("Landing")) ;
+// 		m_treePaxType.SetComboString(hSelectItem,comboxstring) ;
+// 		m_treePaxType.m_comboBox.SetCurSel(0) ;
 	}
 }
 BOOL CAirsideRepControlView::IsRunwayMarkSelected( HTREEITEM hACClassRoot,CAirsideReportRunwayMark& reportRunwayMark )

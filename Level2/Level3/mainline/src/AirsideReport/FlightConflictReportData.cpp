@@ -71,6 +71,7 @@ void FlightConflictReportData::LoadData(const CString& _csDescFileName,const CSt
 		//}
 
 	}
+
 }
 
 void FlightConflictReportData::AddFlightConflict(const AirsideFlightLogItem& item)
@@ -107,7 +108,6 @@ void FlightConflictReportData::AddFlightConflict(const AirsideFlightLogItem& ite
 			pLogItem->m_strACName.Format("%s%s",fltdesc.sAirline.c_str(),fltdesc.sDepID.c_str());
 		}
 		pLogItem->m_nACID = fltdesc.id;
-		pLogItem->m_DelayReason = pConflictLog->m_DelayReason ;
 		pLogItem->m_n2ndPartyID = pConflictLog->motherMobileDesc.nMobileID;
 		pLogItem->m_emDelayReson = pConflictLog->m_emFlightDelayReason;
 		pLogItem->m_sDelayReason = pConflictLog->m_sDetailReason.c_str();

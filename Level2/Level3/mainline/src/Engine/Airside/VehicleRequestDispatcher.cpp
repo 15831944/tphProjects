@@ -201,6 +201,9 @@ bool VehicleRequestDispatcher::AvailablePaxServiceFlight(AirsideFlightInSim* pFl
 
 bool VehicleRequestDispatcher::HasVehicleServiceFlight(AirsideFlightInSim* pFlight, enumVehicleBaseType vehicleType)
 {
+	if(!IsVehicleService())
+		return false;
+	
 	std::vector<int> vIDs;
 	vIDs = m_pFlightServiceRequirement->GetVehicleTypeIDByBaseType(vehicleType);
 

@@ -132,7 +132,7 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
 			//}
 			//End add by adam 2007-09-26 fix bug arcport2007 NO.31
             currentTime = nextEvent->getTime();
-
+            long timeL = currentTime.getPrecisely();
 			/*LogEventToFile.Log(currentTime.printTime());
 			LogEventToFile.Log(nextEvent->getTypeName());
 			LogEventToFile.Log(currentTime.getTicks());*/
@@ -188,7 +188,7 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
 		
 
 
-			//TRACE("E-----------: %d\r\n",eventNumber);
+			TRACE("E-----------: %d\r\n",eventNumber);
 		 
 			//debugfile.Log(eventNumber).Log("{").Log(nextEvent->getTypeName());
             // process the event

@@ -531,16 +531,16 @@ void CTaxiwayDelayReport::GenerateDetailReportData(CTaxiwayDelayParameters* pDel
 							if(delaynum == 0)
 							{
 								detailDataItem->m_delay1 =(*iter)->m_tDelay ;
-								detailDataItem->m_delay1Reason = AirsideConflictionDelayLog::GetDelayReasonByCode((*iter)->m_DelayReason ) ;
+								detailDataItem->m_delay1Reason = AirsideConflictionDelayLog::GetDelayReasonByCode() ;
 							}
 							if(delaynum == 1)
 							{
-								detailDataItem->m_delay2Reason = AirsideConflictionDelayLog::GetDelayReasonByCode( (*iter)->m_DelayReason  ) ;
+								detailDataItem->m_delay2Reason = AirsideConflictionDelayLog::GetDelayReasonByCode() ;
 								detailDataItem->m_delay2 = (*iter)->m_tDelay ;
 							}
 							if(delaynum == 2)
 							{
-								detailDataItem->m_delay3Reason = AirsideConflictionDelayLog::GetDelayReasonByCode( (*iter)->m_DelayReason  ) ; 
+								detailDataItem->m_delay3Reason = AirsideConflictionDelayLog::GetDelayReasonByCode() ; 
 								detailDataItem->m_delay3 = (*iter)->m_tDelay ;
 							}
 						}

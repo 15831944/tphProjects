@@ -18,7 +18,11 @@ bool CStand2GateMapping::operator<( const CStand2GateMapping& gateMap ) const
 {
 	//return gateMap.m_StandID<m_StandID;
 
-	if (m_StandID.idFits(gateMap.m_StandID))//gateMap is more detail than current object
+	if (!m_StandID.idFits(gateMap.m_StandID))//gateMap is more detail than current object
+	{
+		return false;
+	}
+	else if(!gateMap.m_StandID.idFits(m_StandID))
 	{
 		return true;
 	}
