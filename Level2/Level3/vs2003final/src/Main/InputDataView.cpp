@@ -786,7 +786,7 @@ void CInputDataView::LoadLeadLag()
 	
 	//TCHAR sMobileElemType[512]={'\0'};
 	CString sProcID("");
-	TCHAR sProbDistribution[512]={'\0'};
+	CString sProbDistribution;
 	CString sMobileElemType;
 	//CString sProbDistribution;
 
@@ -808,7 +808,7 @@ void CInputDataView::LoadLeadLag()
 		{
 			sProcID=pEntry->getProcID().GetIDString();
 		}
-		pEntry->getValue()->screenPrint(sProbDistribution);
+		sProbDistribution = pEntry->getValue()->screenPrint();
 		
 		m_listLeadLag.InsertItem(nEntry,sMobileElemType);
 		m_listLeadLag.SetItemText(nEntry,1,sProcID);
