@@ -13036,29 +13036,26 @@ IDR_MENU_USERSHAPES MENU
 BEGIN
     POPUP "SubMenu"
     BEGIN
-        MENUITEM "New Shape Bar",               ID_FOLDER_ADDFOLDER
-        MENUITEM "Rename",                      ID_FOLDER_RENAME
-        MENUITEM "Change Location",             ID_FOLDER_CHANGEPATH
-        MENUITEM "Import",                      ID_FOLDER_IMPORT
-        MENUITEM "Export",                      ID_FOLDER_EXPORT
-        MENUITEM "Delete Shape Bar",            ID_FOLDER_DELETEFOLDER
+        MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
+        MENUITEM "Edit Shape Bar",              ID_MENU_EDITFOLDER
+        MENUITEM "Import",                      ID_MENU_IMPORTFOLDER
+        MENUITEM "Export",                      ID_MENU_EXPORTFOLDER
+        MENUITEM "Delete Shape Bar",            ID_MENU_DELETEFOLDER
     END
     POPUP "SubMenu1"
     BEGIN
-        MENUITEM "New Shape",                   ID_ITEM_ADDITM
-        MENUITEM "Rename",                      ID_ITEM_RENAME
-        MENUITEM "Change Picture",              ID_ITEM_CHANGEPICTURE
-        MENUITEM "Change Model",                ID_ITEM_CHANGEMODEL
-        MENUITEM "Delete Shape",                ID_ITEM_DELETEITEM
+        MENUITEM "New Shape",                   ID_MENU_ADDITM
+        MENUITEM "Edit Shape",                  ID_MENU_EDITITEM
+        MENUITEM "Delete Shape",                ID_MENU_DELETEITEM
     END
     POPUP "SubMenu2"
     BEGIN
-        MENUITEM "New Shape Bar",               ID_OTHER_ADDFOLDER
-        MENUITEM "New Shape",                   ID_ITEM_ADDITM
+        MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
+        MENUITEM "New Shape",                   ID_MENU_ADDITM
     END
     POPUP "SubMenu3"
     BEGIN
-        MENUITEM "New Shape Bar",               ID_OTHER_ADDFOLDER
+        MENUITEM "New Shape Bar",               ID_MENU_ADDFOLDER
     END
 END
 

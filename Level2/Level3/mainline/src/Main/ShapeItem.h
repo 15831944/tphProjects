@@ -7,16 +7,15 @@
 class CShapeItem : public CDialog
 {
 	DECLARE_DYNAMIC(CShapeItem)
-	enum Item_Style{ NEW = 0, NAME, PICTURE, MODEL };
-    typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
 public:
 	CShapeItem(CString folderpath,CWnd* pParent = NULL);   // standard constructor
-	CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model, Item_Style style  = NEW ,CWnd* pParent  = NULL );
+	CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model,CWnd* pParent  = NULL );
 	virtual ~CShapeItem();
 
 // Dialog Data
 	enum { IDD = IDD_SHAPEITEM };
 
+    typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -43,8 +42,8 @@ public:
     CString GetShapeModel() const { return m_shapeModel; }
     void SetShapeModel(CString str) { m_shapeModel = str; }
 
-    CShapeItem::Item_Style GetStyle() const { return m_style; }
-    void SetStyle(CShapeItem::Item_Style style) { m_style = style; }
+    CString GetTitle() const { return m_strTitle; }
+    void SetTitle(CString str) { m_strTitle = str; }
 
 private:
     void LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy);
@@ -58,8 +57,8 @@ protected:
     CString m_shapeName;
     CString m_shapePicture;
     CString m_shapeModel;
-    Item_Style m_style;
 private:
+    CString m_strTitle;
     int m_oldWindowWidth;
     int m_oldWindowHeight;
 

@@ -6,10 +6,9 @@
 class CShapeFolder : public CDialog
 {
 	DECLARE_DYNAMIC(CShapeFolder)
-	enum Folder_Style{ NEW = 0, NAME, PATH};
 public:
 	CShapeFolder(CWnd* pParent = NULL);   // standard constructor
-	CShapeFolder(CString name, CString path,Folder_Style style = NEW,CWnd* pParent = NULL);
+	CShapeFolder(CString name, CString path,CWnd* pParent = NULL);
 	virtual ~CShapeFolder();
 
 // Dialog Data
@@ -27,12 +26,13 @@ public:
 	afx_msg void OnOk();
 
 protected:
-    Folder_Style m_style;
+    CString m_strTitle;
     CString m_shapeBarName;
     CString m_shapeBarLocation;
 public:
-    CShapeFolder::Folder_Style GetStyle() const { return m_style; }
-    void SetStyle(CShapeFolder::Folder_Style style) { m_style = style; }
+
+    CString GetTitle() const { return m_strTitle; }
+    void SetTitle(CString str) { m_strTitle = str; }
 
     CString GetShapeBarName() const { return m_shapeBarName; }
     void SetShapeBarName(CString strName) { m_shapeBarName = strName; }

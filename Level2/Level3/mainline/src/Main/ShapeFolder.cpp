@@ -14,15 +14,13 @@ CShapeFolder::CShapeFolder(CWnd* pParent /*=NULL*/)
 	: CDialog(CShapeFolder::IDD, pParent)
 {
 	m_shapeBarLocation = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\";
-	m_style = NEW;
 }
 
-CShapeFolder::CShapeFolder(CString strBarName, CString strLocation,Folder_Style style /*= NEW*/,CWnd* pParent /* = NULL */)
+CShapeFolder::CShapeFolder(CString strBarName, CString strLocation,CWnd* pParent /* = NULL */)
 	: CDialog(CShapeFolder::IDD, pParent)
 {
 	m_shapeBarName = strBarName;
 	m_shapeBarLocation = strLocation;
-	m_style = style;
 }
 
 CShapeFolder::~CShapeFolder()
@@ -53,28 +51,13 @@ BOOL CShapeFolder::OnInitDialog()
 
     m_editBarName.SetWindowText(m_shapeBarName);
     m_editBarLocation.SetWindowText(m_shapeBarLocation);
-
-    switch(m_style)
-    {
-    case NEW:
-        SetWindowText(_T("New Shape Bar"));
-        break;
-    case NAME:
-        SetWindowText(_T("Rename"));
-        ((CWnd*)GetDlgItem(IDC_BTN_LOADSHAPEBAR))->EnableWindow(FALSE);
-        m_editBarLocation.EnableWindow(FALSE);
-        break;
-    case PATH:
-        SetWindowText(_T("Change Location"));
-        m_editBarName.EnableWindow(FALSE);
-        break;
-    }
+    SetWindowText(m_strTitle);
 
     return TRUE;  // return TRUE unless you set the focus to a control
     // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-static int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM , LPARAM lpData)   
+static int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM , LPARAM lpData)
 {
 	if(uMsg == BFFM_INITIALIZED)
 	{

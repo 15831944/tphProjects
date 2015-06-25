@@ -60,16 +60,13 @@ protected:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
 	afx_msg void OnNewShapeBar();
-	afx_msg void OnRenameShapeBar();
-	afx_msg void OnChangeShapeBarLocation();
+    afx_msg void OnEditShapeBar();
 	afx_msg void OnImport();
 	afx_msg void OnExport();
 	afx_msg void OnDeleteShapeBar();
 
 	afx_msg void OnNewShape();
-	afx_msg void OnRenameShape();
-	afx_msg void OnChangeShapePicture();
-	afx_msg void OnChangeShapeModel();
+	afx_msg void OnEditShape();
 	afx_msg void OnDeleteShape();
 	//}}AFX_MSG
 

@@ -32,21 +32,15 @@ BEGIN_MESSAGE_MAP(CShapesBar, CSizingControlBarG)
 	ON_MESSAGE(WM_SHAPEBAR_NOTIFY,OnPopMenu)
 	ON_WM_CTLCOLOR()
 
-	ON_COMMAND(ID_FOLDER_ADDFOLDER,OnNewShapeBar)
-	ON_COMMAND(ID_FOLDER_RENAME,OnRenameShapeBar)
-	ON_COMMAND(ID_FOLDER_CHANGEPATH,OnChangeShapeBarLocation)
-	ON_COMMAND(ID_FOLDER_IMPORT,OnImport)
-	ON_COMMAND(ID_FOLDER_EXPORT,OnExport)
-	ON_COMMAND(ID_FOLDER_DELETEFOLDER,OnDeleteShapeBar)
+	ON_COMMAND(ID_MENU_ADDFOLDER,OnNewShapeBar)
+	ON_COMMAND(ID_MENU_EDITFOLDER,OnEditShapeBar)
+	ON_COMMAND(ID_MENU_IMPORTFOLDER,OnImport)
+	ON_COMMAND(ID_MENU_EXPORTFOLDER,OnExport)
+	ON_COMMAND(ID_MENU_DELETEFOLDER,OnDeleteShapeBar)
 
-	ON_COMMAND(ID_ITEM_ADDITM,OnNewShape)
-	ON_COMMAND(ID_ITEM_RENAME,OnRenameShape)
-	ON_COMMAND(ID_ITEM_CHANGEPICTURE,OnChangeShapePicture)
-	ON_COMMAND(ID_ITEM_CHANGEMODEL,OnChangeShapeModel)
-	ON_COMMAND(ID_ITEM_DELETEITEM,OnDeleteShape)
-
-	ON_COMMAND(ID_OTHER_ADDFOLDER,OnNewShapeBar)
-	ON_COMMAND(ID_OTHER_DELETEITEM,OnNewShape)
+	ON_COMMAND(ID_MENU_ADDITM,OnNewShape)
+    ON_COMMAND(ID_MENU_EDITITEM,OnEditShape)
+	ON_COMMAND(ID_MENU_DELETEITEM,OnDeleteShape)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -113,7 +107,7 @@ LRESULT CShapesBar::OnPopMenu(WPARAM wParam, LPARAM lParam)
 	{
 		folder_index = index;
 		item_index = 0;
-        // old folders can not be edit.
+        // old shape bars can not be edit.
         if(folder_index < 4)
             pSubMenu = Menu.GetSubMenu(3);
         else
@@ -151,8 +145,6 @@ BOOL CShapesBar::ImportShapeBarData(CString ImportFile)
 		CFile pFile;
 		if(pFile.Open(FileINI, CFile::modeRead)==0)
 		{
-// 			if(FileINI.Compare(""))
-// 				AfxMessageBox("INI file doesn\'t exist!", MB_OK);
 			return FALSE;
 		}
 		CShape::CShapeList* pSL = SHAPESMANAGER->GetShapeList();
@@ -215,7 +207,6 @@ BOOL CShapesBar::ImportShapeBarData(CString ImportFile)
 	}
 	catch(CException* e)
 	{
-		//AfxMessageBox("Error reading Shapes DB file: " + FileDir, MB_ICONEXCLAMATION | MB_OK);
 		e->Delete();
 		return FALSE;
 	}	
@@ -451,7 +442,6 @@ void CShapesBar::CreateOutlookBar(CShape::CShapeList* pSL)
 void CShapesBar::OnNewShapeBar()
 {
 	CShapeFolder dlg;
-    dlg.SetStyle(CShapeFolder::NEW);
     
     CString strNewBar = _T("New Shape Bar");
     if(m_wndOutBarCtrl.IsFolderNameExist(strNewBar))
@@ -475,24 +465,20 @@ void CShapesBar::OnNewShapeBar()
             continue;
         }
 
-// 		//create a directory
-// 		CString sNewFP = UserShapesPath + dlg.folderName;
-// 		if(PathFileExists(sNewFP) == FALSE)
-// 			CreateDirectory(sNewFP, NULL);
-
-		//update the shape bar
-		int index = m_wndOutBarCtrl.GetFolderCount();
-		m_wndOutBarCtrl.AddFolder(dlg.GetShapeBarName(),index);
-		m_wndOutBarCtrl.SetFolderPathText(index,dlg.GetShapeBarLocation());
-		m_wndOutBarCtrl.iSelFolder = index;
-		m_wndOutBarCtrl.Invalidate();
+        //update the shape bar
+        int index = m_wndOutBarCtrl.GetFolderCount();
+        m_wndOutBarCtrl.AddFolder(dlg.GetShapeBarName(),index);
+        m_wndOutBarCtrl.SetFolderPathText(index,dlg.GetShapeBarLocation());
+        m_wndOutBarCtrl.iSelFolder = index;
+        m_wndOutBarCtrl.Invalidate();
         break;
 	}
 }
 
-void CShapesBar::OnRenameShapeBar()
+void CShapesBar::OnEditShapeBar()
 {
-	CShapeFolder dlg(m_wndOutBarCtrl.GetFolderText(folder_index),m_wndOutBarCtrl.GetFolderPathText(folder_index),CShapeFolder::NAME);
+	CShapeFolder dlg(m_wndOutBarCtrl.GetFolderText(folder_index),m_wndOutBarCtrl.GetFolderPathText(folder_index));
+    dlg.SetTitle("Edit Shape Bar");
 	while(dlg.DoModal() == IDOK)
 	{
         //check the name is available
@@ -504,34 +490,11 @@ void CShapesBar::OnRenameShapeBar()
             AfxMessageBox(strErr, MB_OK);
             continue;
         }
-
-// 		//copy files to a new directory and delete the old directory
-// 				CString sOldFP = UserShapesPath + m_wndOutBarCtrl.GetFolderText(folder_index);
-// 				CString sNewFP = UserShapesPath + dlg.folderName;
-// 		
-// 				if(PathFileExists(sNewFP) == FALSE)
-// 					CreateDirectory(sNewFP, NULL);
-// 		
-// 				if(PathFileExists(sOldFP) == TRUE)
-// 				{
-// 					myCopyDirectory(sOldFP,sNewFP);
-// 					myDeleteDirectory(sOldFP);
-// 				}
-		
-		//update the shape bar
-		m_wndOutBarCtrl.SetFolderText(folder_index, dlg.GetShapeBarName());
-		m_wndOutBarCtrl.Invalidate();
+        //update the shape bar
+        m_wndOutBarCtrl.SetFolderText(folder_index, dlg.GetShapeBarName());
+        m_wndOutBarCtrl.SetFolderPathText(folder_index, dlg.GetShapeBarLocation());
+        m_wndOutBarCtrl.Invalidate();
         break;
-	}
-}
-
-void CShapesBar::OnChangeShapeBarLocation()
-{
-	CShapeFolder dlg(m_wndOutBarCtrl.GetFolderText(folder_index),m_wndOutBarCtrl.GetFolderPathText(folder_index),CShapeFolder::PATH);
-	if(dlg.DoModal() == IDOK )
-	{
-		//update the shape bar
-		m_wndOutBarCtrl.SetFolderPathText(folder_index, dlg.GetShapeBarLocation());
 	}
 }
 
@@ -539,7 +502,7 @@ void CShapesBar::OnImport()
 {
 	CString ImportFile;
 	CFileDialog  dlgFile( TRUE,NULL,m_wndOutBarCtrl.GetFolderPathText(folder_index),
-        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.INI)|*.INI|");
+        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.zip)|*.zip|");
 	if (dlgFile.DoModal() == IDOK)
 	{
 	 	ImportFile = dlgFile.GetPathName();
@@ -548,31 +511,6 @@ void CShapesBar::OnImport()
 	m_wndOutBarCtrl.iSelFolder = folder_index;
 	ImportShapeBarData(ImportFile);
 	m_wndOutBarCtrl.iSelFolder = sel;
-	//ImportUserShapeBars();
-// 	CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
-// 	if(PathFileExists(StoragePath) == FALSE)
-// 		CreateDirectory(StoragePath, NULL);
-// 
-// 	CString  ImportFile;
-// 	CFileDialog  dlgFile(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"(*.zip)|*.zip");
-// 	if (dlgFile.DoModal() == IDOK)
-// 	{
-// 		ImportFile = dlgFile.GetPathName();
-// 	}
-
-
-// 	if(PathFileExists(ImportFile) == TRUE)
-// 	{
-// 		BeginWaitCursor();
-// 		CZipInfo InfoZip;
-// 		if (!InfoZip.ExtractFiles(ImportFile,CString(StoragePath + "\\")))
-// 		{
-// 			EndWaitCursor();
-// 			AfxMessageBox("Unzip file failed! file: " + ImportFile, MB_OK);
-// 		}
- 				
-// 		EndWaitCursor();
-// 	}
 }
 
 void CShapesBar::OnExport()
@@ -589,54 +527,6 @@ void CShapesBar::OnExport()
         ExportShapeBarDataAndShapes(strExportPath);
         m_wndOutBarCtrl.iSelFolder = sel;
     }
-// 	char szPath[MAX_PATH] = {0};
-// 	BROWSEINFO bi;   
-// 	bi.hwndOwner = m_hWnd;   
-// 	bi.pidlRoot = NULL;   
-// 	bi.pszDisplayName = szPath;   
-// 	bi.lpszTitle = "Select a folder path:";   
-// 	bi.ulFlags = 0;   
-// 	bi.lpfn = NULL;   
-// 	bi.lParam = 0;   
-// 	bi.iImage = 0;   
-// 	LPITEMIDLIST lp = SHBrowseForFolder(&bi);   
-// 
-// 	CString ExportFile;
-// 	if(lp && SHGetPathFromIDList(lp, szPath))   
-// 	{
-// 		ExportFile = szPath;
-// 		int n = ExportFile.ReverseFind('\\');
-// 		if (n == ExportFile.GetLength()-1)
-// 		{
-// 			ExportFile = ExportFile.Left(n);
-// 		}
-// 		ExportFile = ExportFile + "\\" + m_wndOutBarCtrl.GetFolderText(folder_index) + ".INI";
-// 	}
-//     else
-//         return;
-
-
-
-// 	int sel = m_wndOutBarCtrl.iSelFolder;
-// 	m_wndOutBarCtrl.iSelFolder = folder_index;
-// 	ExportShapeBarData(strExportPath);
-// 	m_wndOutBarCtrl.iSelFolder = sel;
-	//ExportUserShapeBars();
-// 	CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
-// 	if(PathFileExists(StoragePath) == TRUE)
-// 	{
-// 		BeginWaitCursor();
-// 		ExportShapeBarData();
-// 		CZipInfo InfoZip;
-// 		if (!InfoZip.AddDirectory(ExportFile,CString(StoragePath+"\\") ))
-// 		{
-// 			EndWaitCursor();
-// 			AfxMessageBox("Zip file failed! file: " + ExportFile, MB_OK);
-// 		}
-// 		EndWaitCursor();
-// 	}
-// 	else
-// 		AfxMessageBox("file: " + StoragePath + " doesn\'t exist", MB_OK);
 }
 
 void CShapesBar::OnDeleteShapeBar()
@@ -670,7 +560,7 @@ void CShapesBar::OnNewShape()
     }
 
     CShapeItem dlg(m_wndOutBarCtrl.GetFolderPathText(folder_index));
-    dlg.SetStyle(CShapeItem::NEW);
+    dlg.SetTitle("New Shape");
     dlg.SetShapeName(strNewShape);
 
     while(dlg.DoModal() == IDOK)
@@ -683,47 +573,48 @@ void CShapesBar::OnNewShape()
             continue;
         }
 
-		//add item
-		HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-		CBitmap bm;
-		bm.Attach(hBitmap);
-		int nR = m_largeIL.Add(&bm,RGB(255,0,255));
-		bm.DeleteObject();
-		hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-		bm.Attach(hBitmap);
-		m_smallIL.Add(&bm,RGB(255,0,255));
-		bm.DeleteObject();
+        //add item
+        HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+        CBitmap bm;
+        bm.Attach(hBitmap);
+        int nR = m_largeIL.Add(&bm,RGB(255,0,255));
+        bm.DeleteObject();
+        hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+        bm.Attach(hBitmap);
+        m_smallIL.Add(&bm,RGB(255,0,255));
+        bm.DeleteObject();
 
-		CShape* pShape = new CShape();
-		pShape->Name(dlg.GetShapeName());
-		pShape->ShapeFileName(dlg.GetShapeModel());
-		pShape->ImageFileName(dlg.GetShapePicture());
-		m_wndOutBarCtrl.InsertItem(folder_index, -1, dlg.GetShapeName(),nR,(DWORD)pShape);
-		m_wndOutBarCtrl.Invalidate();
+        CShape* pShape = new CShape();
+        pShape->Name(dlg.GetShapeName());
+        pShape->ShapeFileName(dlg.GetShapeModel());
+        pShape->ImageFileName(dlg.GetShapePicture());
+        m_wndOutBarCtrl.InsertItem(folder_index, -1, dlg.GetShapeName(),nR,(DWORD)pShape);
+        m_wndOutBarCtrl.Invalidate();
 
-		//add new resource
-		//CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
-		//if(PathFileExists(StoragePath) == FALSE)
-		//	CreateDirectory(StoragePath, NULL);
+        //add new resource
+        //CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
+        //if(PathFileExists(StoragePath) == FALSE)
+        //	CreateDirectory(StoragePath, NULL);
 
-		//CString sPictureName,sModelName;
-		//int n = dlg.itemPicture.GetLength() - dlg.itemPicture.ReverseFind('\\')-1;
-		//sPictureName = StoragePath + "\\" + dlg.itemPicture.Right(n);
-		//n = dlg.itemModel.GetLength() - dlg.itemModel.ReverseFind('\\')-1;
-		//sModelName = StoragePath  + "\\" + dlg.itemModel.Right(n);
+        //CString sPictureName,sModelName;
+        //int n = dlg.itemPicture.GetLength() - dlg.itemPicture.ReverseFind('\\')-1;
+        //sPictureName = StoragePath + "\\" + dlg.itemPicture.Right(n);
+        //n = dlg.itemModel.GetLength() - dlg.itemModel.ReverseFind('\\')-1;
+        //sModelName = StoragePath  + "\\" + dlg.itemModel.Right(n);
 
-		//CopyFile(dlg.itemPicture,sPictureName,TRUE);
-		//CopyFile(dlg.itemModel,sModelName,TRUE);
+        //CopyFile(dlg.itemPicture,sPictureName,TRUE);
+        //CopyFile(dlg.itemModel,sModelName,TRUE);
         break;
 	}
 
 }
 
-void CShapesBar::OnRenameShape()
+void CShapesBar::OnEditShape()
 {
 	CShape* pShape = (CShape*)m_wndOutBarCtrl.GetItemData(item_index);
 	CShapeItem dlg(m_wndOutBarCtrl.GetFolderPathText(folder_index),pShape->Name(),
-		pShape->ImageFileName(),pShape->ShapeFileName(),CShapeItem::NAME);
+		pShape->ImageFileName(),pShape->ShapeFileName());
+    dlg.SetTitle("Edit Shape");
     while(dlg.DoModal() == IDOK)
     {
         int nIndex = m_wndOutBarCtrl.GetItemIndexByName(dlg.GetShapeName());
@@ -734,69 +625,35 @@ void CShapesBar::OnRenameShape()
             AfxMessageBox(strErr, MB_OK);
             continue;
         }
-
         m_wndOutBarCtrl.SetItemText(item_index,dlg.GetShapeName());
         m_wndOutBarCtrl.Invalidate();
         pShape->Name(dlg.GetShapeName());
+
+        if(pShape->ImageFileName().Compare(dlg.GetShapePicture()) != 0)
+        {
+            HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+            CBitmap bm;
+            bm.Attach(hBitmap);
+            int nR = m_largeIL.Add(&bm,RGB(255,0,255));
+            bm.DeleteObject();
+            hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+            bm.Attach(hBitmap);
+            m_smallIL.Add(&bm,RGB(255,0,255));
+            bm.DeleteObject();
+
+            m_wndOutBarCtrl.SetItemImage(item_index,nR);
+            m_wndOutBarCtrl.Invalidate();
+
+            pShape->ImageFileName(dlg.GetShapePicture());
+        }
+
+        if(pShape->ShapeFileName().Compare(dlg.GetShapeModel()) != 0)
+        {
+            pShape->ShapeFileName(dlg.GetShapeModel());
+            pShape->SetObjListValid(FALSE);
+        }
         break;
     }
-}
-
-void CShapesBar::OnChangeShapePicture()
-{
-	CShape* pShape = (CShape*)m_wndOutBarCtrl.GetItemData(item_index);
-	CShapeItem dlg(m_wndOutBarCtrl.GetFolderPathText(folder_index),pShape->Name(),
-		pShape->ImageFileName(),pShape->ShapeFileName(),CShapeItem::PICTURE);
-	if(dlg.DoModal() == IDOK )
-	{
-		//change picture
-		HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-		CBitmap bm;
-		bm.Attach(hBitmap);
-		int nR = m_largeIL.Add(&bm,RGB(255,0,255));
-		bm.DeleteObject();
-		hBitmap = (HBITMAP) ::LoadImage(NULL,dlg.GetShapePicture() , IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-		bm.Attach(hBitmap);
-		m_smallIL.Add(&bm,RGB(255,0,255));
-		bm.DeleteObject();
-
-		m_wndOutBarCtrl.SetItemImage(item_index,nR);
-		m_wndOutBarCtrl.Invalidate();
-
-		//remove old resource and new resource
-// 		CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
-// 		if(PathFileExists(StoragePath) == FALSE)
-// 			CreateDirectory(StoragePath, NULL);
-// 
-// 		CString sPictureName;
-// 		int n = dlg.itemPicture.GetLength() - dlg.itemPicture.ReverseFind('\\')-1;
-// 		sPictureName = StoragePath + "\\" + dlg.itemPicture.Right(n);
-// 		CopyFile(dlg.itemPicture,sPictureName,TRUE);
-
-		pShape->ImageFileName(dlg.GetShapePicture());
-	}
-}
-
-void CShapesBar::OnChangeShapeModel()
-{
-	CShape* pShape = (CShape*)m_wndOutBarCtrl.GetItemData(item_index);
-	CShapeItem dlg(m_wndOutBarCtrl.GetFolderPathText(folder_index),pShape->Name(),
-		pShape->ImageFileName(),pShape->ShapeFileName(),CShapeItem::MODEL);
-	if(dlg.DoModal() == IDOK )
-	{
-		//remove old resource and new resource
-// 		CString StoragePath = UserShapesPath+m_wndOutBarCtrl.GetFolderText(folder_index);
-// 		if(PathFileExists(StoragePath) == FALSE)
-// 			CreateDirectory(StoragePath, NULL);
-// 
-// 		CString sModelName;
-// 		int n = dlg.itemModel.GetLength() - dlg.itemModel.ReverseFind('\\')-1;
-// 		sModelName = StoragePath + "\\" + dlg.itemModel.Right(n);
-// 		CopyFile(dlg.itemModel,sModelName,TRUE);
-
-		pShape->ShapeFileName(dlg.GetShapeModel());
-		pShape->SetObjListValid(FALSE);		
-	}
 }
 
 void CShapesBar::OnDeleteShape()

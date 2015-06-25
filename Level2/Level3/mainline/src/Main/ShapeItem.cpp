@@ -18,11 +18,10 @@ CShapeItem::CShapeItem(CString folderpath,CWnd* pParent /*=NULL*/)
 {
 	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\New.bmp";
 	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\FLATSQUARE24cm.dxf";
-	m_style = NEW;
 	m_folderLocation = folderpath;
 }
 
-CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model, Item_Style style /* = NEW */,CWnd* pParent /* = NULL */)
+CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model,CWnd* pParent /* = NULL */)
 	: CDialog(CShapeItem::IDD, pParent),
     m_oldWindowWidth(0),
     m_oldWindowHeight(0)
@@ -30,7 +29,6 @@ CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString
 	m_shapeName = name;
 	m_shapePicture = picture;
 	m_shapeModel = model;
-	m_style = style;
 	m_folderLocation = folderpath;
 }
 
@@ -90,27 +88,7 @@ BOOL CShapeItem::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	switch(m_style)
-	{
-	case NEW:
-		break;
-	case NAME:
-        SetWindowText(_T("Edit Shape Name"));
-		((CWnd*)GetDlgItem(IDC_BTN_LOADMODEL))->EnableWindow(FALSE);
-		((CWnd*)GetDlgItem(IDC_BTN_LOADPICTURE))->EnableWindow(FALSE);
-		break;
-	case PICTURE:
-        SetWindowText(_T("Change Shape Picture"));
-		m_editShapeName.EnableWindow(FALSE);
-		((CWnd*)GetDlgItem(IDC_BTN_LOADMODEL))->EnableWindow(FALSE);
-		break;
-	case MODEL:
-        SetWindowText(_T("Change Shape Model"));
-		m_editShapeName.EnableWindow(FALSE);
-		((CWnd*)GetDlgItem(IDC_BTN_LOADPICTURE))->EnableWindow(FALSE);
-		break;
-	}
-
+    SetWindowText(m_strTitle);
 	m_editShapeName.SetWindowText(m_shapeName);
 	m_editShapeModel.SetWindowText(m_shapeModel);
 
