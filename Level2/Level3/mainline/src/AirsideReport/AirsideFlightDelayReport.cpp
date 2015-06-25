@@ -160,8 +160,8 @@ bool CAirsideFlightDelayReport::setArrAirModeContent(FltDelayItem& fltArrivalDel
 {
 	if ((pData->m_nMode >= OnBirth && pData->m_nMode < OnExitRunway) || (pData->m_nMode == OnWaitInHold && (long)pData->m_tTime <= lAirTime ))
 	{
-		fltArrivalDelayItem.totalDelayTime += lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltArrivalDelayItem.totalDelayTime;
+		fltArrivalDelayItem.totalDelayTime += lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Air;
 		fltArrivalDelayItem.airDelayTime += lDelayTime;
@@ -178,8 +178,8 @@ bool CAirsideFlightDelayReport::setDepAirModeContent(FltDelayItem& fltDepartureD
 {
 	if ((pData->m_nMode > OnClimbout && pData->m_nMode < OnTerminate) || (pData->m_nMode == OnWaitInHold && (long)pData->m_tTime > lAirTime))
 	{
-		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltDepartureDelayItem.totalDelayTime;
+		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Air;
 		fltDepartureDelayItem.airDelayTime += (long)lDelayTime;
@@ -196,8 +196,8 @@ bool CAirsideFlightDelayReport::setArrTaxiwayModeContent(FltDelayItem& fltArriva
 {
 	if (pData->m_nMode == OnTaxiToStand || pData->m_nMode == OnTaxiToHoldArea)
 	{
-		fltArrivalDelayItem.totalDelayTime += lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltArrivalDelayItem.totalDelayTime;
+		fltArrivalDelayItem.totalDelayTime += lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Taxi;
 
@@ -216,8 +216,8 @@ bool CAirsideFlightDelayReport::setDepTaxiwayModeContent(FltDelayItem& fltDepart
 	if (pData->m_nMode == OnTaxiToRunway || pData->m_nMode == OnQueueToRunway || pData->m_nMode == OnTowToDestination \
 		|| pData->m_nMode == OnTakeOffWaitEnterRunway)
 	{
-		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltDepartureDelayItem.totalDelayTime;
+		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Taxi;
 		fltDepartureDelayItem.taxiDelayTime += (long)lDelayTime;
@@ -232,8 +232,8 @@ bool CAirsideFlightDelayReport::setArrStandModeContent(FltDelayItem& fltArrivalD
 {
 	if (pData->m_nMode == OnEnterStand)
 	{
-		fltArrivalDelayItem.totalDelayTime += lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltArrivalDelayItem.totalDelayTime;
+		fltArrivalDelayItem.totalDelayTime += lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Stand;
 		fltArrivalDelayItem.standDelayTime += lDelayTime;
@@ -248,8 +248,8 @@ bool CAirsideFlightDelayReport::setDepStandModeContent(FltDelayItem& fltDepartur
 {
 	if (pData->m_nMode == OnExitStand)
 	{
-		fltDepartureDelayItem.totalDelayTime += lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltDepartureDelayItem.totalDelayTime;
+		fltDepartureDelayItem.totalDelayTime += lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Stand;
 		fltDepartureDelayItem.standDelayTime += lDelayTime;
@@ -267,8 +267,8 @@ bool CAirsideFlightDelayReport::setArrServiceModeContent(FltDelayItem& fltArriva
 {
 	if (pData->m_nMode == OnHeldAtStand || pData->m_nMode == OnTaxiToDeice)
 	{
-		fltArrivalDelayItem.totalDelayTime += (long)lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltArrivalDelayItem.totalDelayTime;
+		fltArrivalDelayItem.totalDelayTime += (long)lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_Service;
 		fltArrivalDelayItem.serviceDelayTime += (long)lDelayTime;
@@ -284,8 +284,8 @@ bool CAirsideFlightDelayReport::setDepTakeoffModeContent(FltDelayItem& fltDepart
 {
 	if (pData->m_nMode >= OnTakeOffEnterRunway && pData->m_nMode <= OnClimbout)
 	{
-		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltDepartureDelayItem.totalDelayTime;
+		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;
 
 		nodeDelayItem.nSegment = FltDelaySegment_TakeOff;
 		fltDepartureDelayItem.takeoffDelayTime += (long)lDelayTime;

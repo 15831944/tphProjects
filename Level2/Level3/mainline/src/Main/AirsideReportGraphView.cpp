@@ -1673,6 +1673,9 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 		break;
 	case Airside_StandOperations:
 		{
+            GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_HIDE);
+            GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Sub Type"));
+            m_ComBoxSubType.ShowWindow(FALSE);
 			CFlightStandOperationParameter *pParam = reinterpret_cast<CFlightStandOperationParameter *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			pParam->setSubType(nSubType);
 			CAirsideFlightStandOperationReport *pPreport = reinterpret_cast< CAirsideFlightStandOperationReport*> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
@@ -1683,6 +1686,34 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			{
 				if (vReportRun.size() > 1)
 				{
+                    if(nSubType == CAirsideFlightStandOperationReport::ChartType::ChartType_Detail_Delay)
+                    {
+                        GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
+                        m_ComBoxSubType.ShowWindow(TRUE);
+                        m_ComBoxSubType.ResetContent();
+                        int nIndex = m_ComBoxSubType.AddString("Arrival");
+                        m_ComBoxSubType.SetItemData(nIndex,(DWORD)0);
+                        nIndex = m_ComBoxSubType.AddString("Departure");
+                        m_ComBoxSubType.SetItemData(nIndex,(DWORD)1);
+                        m_ComBoxSubType.SetCurSel(0);
+                        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, CAirsideFlightDelayReport::FltDelaySegment_Air);
+
+                        iSubValue = 0;
+                    }
+                    else if(nSubType == CAirsideFlightStandOperationReport::ChartType::ChartType_Detail_Conflict)
+                    {
+                        GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
+                        m_ComBoxSubType.ShowWindow(TRUE);
+                        m_ComBoxSubType.ResetContent();
+                        int nIndex = m_ComBoxSubType.AddString("Arrival");
+                        m_ComBoxSubType.SetItemData(nIndex,(DWORD)0);
+                        nIndex = m_ComBoxSubType.AddString("Departure");
+                        m_ComBoxSubType.SetItemData(nIndex,(DWORD)1);
+                        m_ComBoxSubType.SetCurSel(0);
+                        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, CAirsideFlightDelayReport::FltDelaySegment_Air);
+
+                        iSubValue = 0;
+                    }
 					 GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
 					bMultiple = true;
 				}
@@ -1967,6 +1998,15 @@ void CAirsideReportGraphView::OnSelChangerChartSubType()
 		int iType = (int)m_ComBoxSubType.GetItemData(nCursel);
 		GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iType);
 		GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iType);
+    }
+    else if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType() == Airside_StandOperations)
+    {
+        int nCurSel = m_ComBoxSubType.GetCurSel();
+        if(nCurSel == LB_ERR)
+            return;
+        int iSutType = (int)m_ComBoxSubType.GetItemData(nCurSel);
+        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iSutType);
+        GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iSutType);
     }
 }
 

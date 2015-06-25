@@ -71,7 +71,7 @@ namespace AirsideReControlView
 		Item_Root,
 		Item_Item,
         Item_MultiRunRoot,
-        Item_Runs
+        Item_Run
 	};
 
 	class TreeItemData : public CTreePerformer::BaseTreeItemData
@@ -240,6 +240,7 @@ namespace AirsideReControlView
 
 		protected:
 			void InitDefaltTree();
+            virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
             HTREEITEM m_hStandRoot;
             HTREEITEM m_hMultiRunRoot;
 	};

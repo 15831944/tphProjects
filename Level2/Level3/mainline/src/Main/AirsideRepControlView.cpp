@@ -3375,6 +3375,11 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
                 }
             }
         }
+        else if(GetReportType() == Airside_StandOperations)
+        {
+            if(GetTreePerformer())
+                GetTreePerformer()->DefWindowProc(message,wParam,lParam);
+        }
     }
 
     return CFormView::DefWindowProc(message, wParam, lParam);

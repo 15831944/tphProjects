@@ -2563,7 +2563,7 @@ void CStandOperationsTreePerformer::InitTree()
 
     COOLTREE_NODE_INFO cni;
     CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
-    m_hStandRoot = m_pTreeCtrl->InsertItem(_T("Familys:"), cni, FALSE, FALSE, TVI_ROOT);
+    m_hStandRoot = m_pTreeCtrl->InsertItem(_T("Familys"), cni, FALSE, FALSE, TVI_ROOT);
 	if( pStandParam->getCount() == 0)//default
 	{
         CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
@@ -2606,7 +2606,8 @@ void CStandOperationsTreePerformer::InitTree()
         strSimName.Format(_T("RUN %d"),nSim+1);
         HTREEITEM hRun = m_pTreeCtrl->InsertItem(strSimName, cni, FALSE, FALSE, m_hMultiRunRoot);
         TreeItemData* pItemData = new TreeItemData;
-        pItemData->itemType = Item_Runs;
+        pItemData->nOperation = nSim;
+        pItemData->itemType = Item_Run;
         m_pTreeCtrl->SetItemData(hRun, (DWORD_PTR)pItemData);
 
         if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
@@ -2614,6 +2615,7 @@ void CStandOperationsTreePerformer::InitTree()
             m_pTreeCtrl->SetCheckStatus(hRun,TRUE);
         }
     }
+    m_pTreeCtrl->Expand(m_hStandRoot, TVE_EXPAND);
     m_pTreeCtrl->Expand(m_hMultiRunRoot, TVE_EXPAND);
 }
 
@@ -2622,6 +2624,31 @@ void CStandOperationsTreePerformer::InitDefaltTree()
     COOLTREE_NODE_INFO cni;
     CCoolTree::InitNodeInfo(m_pTreeCtrl,cni);
 	HTREEITEM hRunwayItem = m_pTreeCtrl->InsertItem(_T("Family: ALL"), cni, FALSE, FALSE, TVI_ROOT);
+}
+
+LRESULT AirsideReControlView::CStandOperationsTreePerformer::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if(message == UM_CEW_STATUS_CHANGE)
+    {
+        HTREEITEM hSelItem = (HTREEITEM)wParam;
+        TreeItemData* pItemData = (TreeItemData*)m_pTreeCtrl->GetItemData(hSelItem);
+        if(pItemData->itemType == Item_MultiRunRoot)
+        {
+            m_pParam->SetEnableMultiRun(!m_pParam->GetEnableMultiRun());
+        }
+        else if(pItemData->itemType == Item_Run)
+        {
+            if(m_pTreeCtrl->IsCheckItem(hSelItem))
+            {
+                m_pParam->AddReportRuns(pItemData->nOperation);
+            }
+            else
+            {
+                m_pParam->RemoveReportRuns(pItemData->nOperation);
+            }
+        }
+    }
+    return 0;
 }
 
 void CStandOperationsTreePerformer::LoadData()

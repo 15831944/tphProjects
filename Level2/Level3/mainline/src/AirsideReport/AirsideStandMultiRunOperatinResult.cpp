@@ -234,7 +234,6 @@ void CAirsideStandMultiRunOperatinResult::Draw3DChart( CARC3DChart& chartWnd, CP
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Occupancy:
 			Generate3DChartCountData(m_standOccupMap,chartWnd,pStandPara);
 			break;
-			break;
 		default:
 			break;
 		}
@@ -267,7 +266,6 @@ void CAirsideStandMultiRunOperatinResult::FillListContent( CXListCtrl& cxListCtr
 			{
 				FilllDetailDelayConflictContent(cxListCtrl,m_standDepConfictsMap,1);
 			}
-			break;
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_IdleTime:
 			FillDetailListTimeContent(cxListCtrl,m_standidlemap);
@@ -387,7 +385,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 		nIntervalSize = 1;
 
 	mapLoadResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++iter)
+	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -431,7 +429,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 		nIntervalSize = 1;
 
 	mapLoadResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++iter)
+	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -477,7 +475,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 	nIntervalSize = int((double)lMaxOccupancyTime/ (double)(nDuration)*100)/10 ;
 
 	mapLoadResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++iter)
+	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -550,7 +548,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 		nIntervalSize = 1;
 
 	mapLoadResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++iter)
+	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -611,7 +609,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 		nIntervalSize = 1;
 
 	mapLoadResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++iter)
+	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{

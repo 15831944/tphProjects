@@ -220,7 +220,7 @@ BOOL CParameters::ImportFile(ArctermFile& _file)
     else
     {
         int nVersion = -1;
-        _file.getSubField(buf, 255);
+        _file.getSubField(buf, ';');
         nVersion = atoi(buf);
         switch(nVersion)
         {
@@ -371,6 +371,10 @@ void CParameters::SaveParameterToFile(ArctermFile& _file)
 //write base informations, start time, end time , interval ....
 void CParameters::WriteParameter( ArctermFile& _file )
 {
+    _file.appendValue("VERSION");
+    _file.appendValue(";");
+    _file.appendValue("1"); // version 1
+    _file.writeLine();
 	_file.writeInt(m_startTime.asSeconds()) ;
 	_file.writeInt(m_endTime.asSeconds()) ;
 	_file.writeInt(m_lInterval) ;
@@ -378,24 +382,98 @@ void CParameters::WriteParameter( ArctermFile& _file )
 	_file.writeInt((int)m_reportType) ;
 	_file.writeInt(m_unitLength) ;
 	_file.writeLine() ;
+
+    if(m_enableMultiRun)
+        _file.writeChar('T');
+    else
+        _file.writeChar('F');
+    _file.writeLine();
+
+    int nCount = (int)m_vReportRuns.size();
+    _file.writeInt(nCount);
+    _file.writeLine();
+
+    for(int i=0; i<nCount; i++)
+    {
+        _file.writeInt(m_vReportRuns.at(i));
+    }
+    _file.writeLine();
 }
 
 void CParameters::ReadParameter( ArctermFile& _file )
 {
-	long time ;
-	_file.getInteger(time) ;
-	m_startTime = ElapsedTime(time) ;
-	_file.getInteger(time) ;
-	m_endTime = ElapsedTime(time) ;
+    char buf[256] = {0};
+    _file.getSubField(buf, ';');
+    if(strcmp(buf, "VERSION") != 0)
+    {
+        long time = atoi(buf);
+        m_startTime = ElapsedTime(time);
+        _file.getInteger(time);
+        m_endTime = ElapsedTime(time);
 
-	_file.getInteger(m_lInterval) ;
-	_file.getInteger(m_nProjID) ;
-	int type ;
-	_file.getInteger(type) ;
-	m_reportType = (enumASReportType_Detail_Summary)type ;
+        _file.getInteger(m_lInterval);
+        _file.getInteger(m_nProjID);
+        int type;
+        _file.getInteger(type);
+        m_reportType = (enumASReportType_Detail_Summary)type;
 
-	_file.getInteger(m_unitLength) ;
-	_file.getLine() ;
+        _file.getInteger(m_unitLength);
+        _file.getLine();
+    }
+    else
+    {
+        int nVersion = -1;
+        _file.getSubField(buf, ';');
+        nVersion = atoi(buf);
+        switch(nVersion)
+        {
+        case 1: // version 1
+            ReadParameterVersion1(_file);
+            break;
+        default:
+            return;
+            break;
+        }
+    }
+}
+
+void CParameters::ReadParameterVersion1( ArctermFile& _file )
+{
+    _file.getLine();
+    long time;
+    _file.getInteger(time);
+    m_startTime = ElapsedTime(time);
+    _file.getInteger(time);
+    m_endTime = ElapsedTime(time);
+
+    _file.getInteger(m_lInterval);
+    _file.getInteger(m_nProjID);
+    int type;
+    _file.getInteger(type);
+    m_reportType = (enumASReportType_Detail_Summary)type;
+
+    _file.getInteger(m_unitLength);
+    _file.getLine();
+
+    char isMultiRun;
+    _file.getChar(isMultiRun);
+    if(isMultiRun == 'T')
+        m_enableMultiRun = true;
+    else
+        m_enableMultiRun = false;
+
+    _file.getLine();
+    int nCount = -1;
+    _file.getInteger(nCount);
+
+    _file.getLine();
+    int nTemp;
+    for(int i=0; i<nCount; i++)
+    {
+        _file.getInteger(nTemp);
+        m_vReportRuns.push_back(nTemp);
+    }
+    _file.getLine();
 }
 
 bool CParameters::GetReportRuns(std::vector<int>& vReportRuns)

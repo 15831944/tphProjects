@@ -121,4 +121,5 @@ public:
 	//write the parameter data
 	virtual void WriteParameter(ArctermFile& _file);
 	virtual void ReadParameter(ArctermFile& _file);
+    virtual void ReadParameterVersion1(ArctermFile& _file);
 };

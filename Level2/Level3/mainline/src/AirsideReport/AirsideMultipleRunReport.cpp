@@ -6,6 +6,7 @@
 #include "AirsideFlightMutiRunDelayReport.h"
 #include "MFCExControl/XListCtrl.h"
 #include "CARC3DChart.h"
+#include "AirsideStandMultiRunOperatinResult.h"
 CAirsideMultipleRunReport::CAirsideMultipleRunReport(void)
 {
 }
@@ -64,6 +65,9 @@ void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CPara
 		case Airside_FlightDelay:
 			m_mapMutiRunResult[_reportType] = new CAirsideFlightMutiRunDelayResult;
 			break;
+        case Airside_StandOperations:
+            m_mapMutiRunResult[_reportType] = new CAirsideStandMultiRunOperatinResult;
+            break;
 		default:
 			break;
 		}
