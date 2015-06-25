@@ -402,7 +402,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 		CString strRep = _T("");
 		for(int i = 0; i < reportCount; i++)
 		{
-			const CReportToCompare& report = vReports.at(i);
+			CReportToCompare& report = vReports.at(i);
 			cni.nt = NT_CHECKBOX;
 			strRep = report.GetName();
 			strRep.MakeUpper();
@@ -413,7 +413,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			pNodeData->m_type = TREE_NODE_REPORT;
 			m_propTree.SetItemData(hItem2, (DWORD)pNodeData);
 
-			CReportParamToCompare param = report.GetParameter();
+			CReportParamToCompare& param = report.GetParameter();
 			int iIndex = -1;
 			switch (report.GetCategory())
 			{
@@ -524,14 +524,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 							pNodeData->m_data = (DWORD)(&paxType);
 							pNodeData->m_type = TREE_NODE_PASSENGER_TYPE_CMP;
 							m_propTree.SetItemData(hPaxItem, (DWORD)pNodeData);
-
-
-							///////////////////////////////
-							CmpReportTreeNodeDataWithType* pTest = (CmpReportTreeNodeDataWithType*)m_propTree.GetItemData(hPaxItem);
-							MobConstWithCheckedFlag* pPaxType = (MobConstWithCheckedFlag*)pTest->m_data;
-							BOOL ischecked = pPaxType->GetChecked();
-							///////////////////////////////
-
 						}
 						m_propTree.Expand(hPaxItemParent, TVE_EXPAND);
 						cni.nt = NT_NORMAL;
@@ -946,9 +938,7 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 		case TREE_NODE_PASSENGER_TYPE_CMP:
 			{
 				MobConstWithCheckedFlag* pPaxType = (MobConstWithCheckedFlag*)pNodeData->m_data;
-				/*pPaxType->SetChecked(!pPaxType->GetChecked());*/
-				int i=0;
-				i=0;
+				pPaxType->SetChecked(!pPaxType->GetChecked());
 			}
 			break;
 		default:
