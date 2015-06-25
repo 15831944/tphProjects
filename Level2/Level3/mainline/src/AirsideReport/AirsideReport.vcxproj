@@ -1,0 +1,595 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|Win32">
+      <Configuration>Template</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D7BB9935-8E41-4C02-9AEA-B290C0AEEEA8}</ProjectGuid>
+    <RootNamespace>AirsideReport</RootNamespace>
+    <Keyword>MFCDLLProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference />
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(SolutionDir)bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0804</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="3DChartWnd.cpp" />
+    <ClCompile Include="AirsideBaseReport.cpp" />
+    <ClCompile Include="AirsideControllerWorkloadParam.cpp" />
+    <ClCompile Include="AirsideControllerWorkloadReport.cpp" />
+    <ClCompile Include="AirsideControllerWorkloadResult.cpp" />
+    <ClCompile Include="AirsideDelayDescLog.cpp" />
+    <ClCompile Include="AirsideDistanceTravelParam.cpp" />
+    <ClCompile Include="AirsideDistanceTravelReport.cpp" />
+    <ClCompile Include="AirsideDurationParam.cpp" />
+    <ClCompile Include="AirsideDurationReport.cpp" />
+    <ClCompile Include="AirsideFlightActivityReportBaseResult.cpp" />
+    <ClCompile Include="AirsideFlightBurnParmater.cpp" />
+    <ClCompile Include="AirsideFlightConflictBaseResult.cpp" />
+    <ClCompile Include="AirsideFlightConflictDetailResult.cpp" />
+    <ClCompile Include="AirsideFlightConflictPara.cpp" />
+    <ClCompile Include="AirsideFlightConflictReport.cpp" />
+    <ClCompile Include="AirsideFlightConflictSummaryResult.cpp" />
+    <ClCompile Include="AirsideFlightDelayBaseResult.cpp" />
+    <ClCompile Include="AirsideFlightDelayParam.cpp" />
+    <ClCompile Include="AirsideFlightDelayReport.cpp" />
+    <ClCompile Include="AirsideFlightDistanceTravelReportBaseResult.cpp" />
+    <ClCompile Include="AirsideFlightDistanceTravelReportDetailResult.cpp" />
+    <ClCompile Include="AirsideFlightDistanceTravelReportSummaryResult.cpp" />
+    <ClCompile Include="AirsideFlightFuelBurnReport.cpp" />
+    <ClCompile Include="AirsideFlightFuelBurnReportResult.cpp" />
+    <ClCompile Include="AirsideFlightRunwayDelayBaseResult.cpp" />
+    <ClCompile Include="AirsideFlightRunwayDelayData.cpp" />
+    <ClCompile Include="AirsideFlightRunwayDelayReport.cpp" />
+    <ClCompile Include="AirsideFlightRunwayDelayReportPara.cpp" />
+    <ClCompile Include="AirsideFlightRunwayDelaySummaryData.cpp" />
+    <ClCompile Include="AirsideFlightStandOperationBaseResult.cpp" />
+    <ClCompile Include="AirsideFlightStandOperationReport.cpp" />
+    <ClCompile Include="AirsideFlightSummaryActivityReportBaseResult.cpp" />
+    <ClCompile Include="AirsideIntersectionOperationReport.cpp" />
+    <ClCompile Include="AirsideIntersectionReportParam.cpp" />
+    <ClCompile Include="AirsideIntersectionReportResult.cpp" />
+    <ClCompile Include="AirsideIntersectionSummaryChartResult.cpp" />
+    <ClCompile Include="AirsideNodeDelayReport.cpp" />
+    <ClCompile Include="AirsideNodeDelayReportParameter.cpp" />
+    <ClCompile Include="AirsideOperationParam.cpp" />
+    <ClCompile Include="AirsideOperationReport.cpp" />
+    <ClCompile Include="AirsideOperationResult.cpp" />
+    <ClCompile Include="AirsideReport.cpp" />
+    <ClCompile Include="AirsideReportBaseResult.cpp" />
+    <ClCompile Include="AirsideReportNode.cpp" />
+    <ClCompile Include="AirsideReportObjectIntersecNodeIDNameMap.cpp" />
+    <ClCompile Include="AirsideReportSummaryData.cpp" />
+    <ClCompile Include="AirsideRunwayCrossingBaseDetailResult.cpp" />
+    <ClCompile Include="AirsideRunwayCrossingsBaseResult.cpp" />
+    <ClCompile Include="AirsideRunwayCrossingsBaseSummaryResult.cpp" />
+    <ClCompile Include="AirsideRunwayCrossingsPara.cpp" />
+    <ClCompile Include="AirsideRunwayCrossingsReport.cpp" />
+    <ClCompile Include="AirsideRunwayOperationReportBaseResult.cpp" />
+    <ClCompile Include="AirsideRunwayOperationReportDetailResult.cpp" />
+    <ClCompile Include="AirsideRunwayOperationReportParam.cpp" />
+    <ClCompile Include="AirsideRunwayOperationReportSummaryResult.cpp" />
+    <ClCompile Include="AirsideRunwayOperationsReport.cpp" />
+    <ClCompile Include="AirsideRunwayUtilizationReporDetailResult.cpp" />
+    <ClCompile Include="AirsideRunwayUtilizationReport.cpp" />
+    <ClCompile Include="AirsideRunwayUtilizationReportBaseResult.cpp" />
+    <ClCompile Include="AirsideRunwayUtilizationReportParam.cpp" />
+    <ClCompile Include="AirsideRunwayUtilizationReportSummaryResult.cpp" />
+    <ClCompile Include="AirsideTakeoffProcessDetailResult.cpp" />
+    <ClCompile Include="AirsideTakeoffProcessParameter.cpp" />
+    <ClCompile Include="AirsideTakeoffProcessReport.cpp" />
+    <ClCompile Include="AirsideTakeoffProcessResult.cpp" />
+    <ClCompile Include="AirsideTakeoffProcessSummaryResult.cpp" />
+    <ClCompile Include="AirsideTaxiwayUtilizationChart.cpp" />
+    <ClCompile Include="AirsideTaxiwayUtilizationPara.cpp" />
+    <ClCompile Include="AirsideTaxiwayUtilizationReport.cpp" />
+    <ClCompile Include="AirsideTaxiwayUtilizationResult.cpp" />
+    <ClCompile Include="AirsideVehicleOpeDetailReportRes.cpp" />
+    <ClCompile Include="AirsideVehicleOperaterReport.cpp" />
+    <ClCompile Include="AirsideVehicleOpeReportResult.cpp" />
+    <ClCompile Include="AirsideVehicleOperParameter.cpp" />
+    <ClCompile Include="AirsideVehicleOpeSummaryReportRes.cpp" />
+    <ClCompile Include="ArisdieIntersectionDetailChartResult.cpp" />
+    <ClCompile Include="CARC3DChart.cpp" />
+    <ClCompile Include="CDetailFlightScheduleDelay.cpp" />
+    <ClCompile Include="ChartDataDefine.cpp" />
+    <ClCompile Include="CommonMethod.cpp" />
+    <ClCompile Include="CSummaryFlightScheduleDelay.cpp" />
+    <ClCompile Include="DetailAirDelayResult.cpp" />
+    <ClCompile Include="DetailComponentData.cpp" />
+    <ClCompile Include="DetailComponentDelayResult.cpp" />
+    <ClCompile Include="DetailDelayChartResult.cpp" />
+    <ClCompile Include="DetailDelayResult.cpp" />
+    <ClCompile Include="DetailFlightDelayData.cpp" />
+    <ClCompile Include="DetailNodeDelayDataItem.cpp" />
+    <ClCompile Include="DetailNodeDelaydResult.cpp" />
+    <ClCompile Include="DetailRunwayDelayResult.cpp" />
+    <ClCompile Include="DetailSegmentDelayResult.cpp" />
+    <ClCompile Include="DetailServiceDelayResult.cpp" />
+    <ClCompile Include="DetailStandDelayResult.cpp" />
+    <ClCompile Include="DetailTakeOffDelayResult.cpp" />
+    <ClCompile Include="DetailTaxiDelayResult.cpp" />
+    <ClCompile Include="DetailTotalDelayResult.cpp" />
+    <ClCompile Include="dibapi.cpp" />
+    <ClCompile Include="DlgParametersAny.cpp" />
+    <ClCompile Include="DlgReportSelectObject.cpp" />
+    <ClCompile Include="FlightActivityBaseResult.cpp" />
+    <ClCompile Include="FlightActivityParam.cpp" />
+    <ClCompile Include="FlightActivityReport.cpp" />
+    <ClCompile Include="FlightConflictReportData.cpp" />
+    <ClCompile Include="FlightConflictSummaryChartResult.cpp" />
+    <ClCompile Include="FlightConflictSummaryData.cpp" />
+    <ClCompile Include="FlightOperationalAirDistanceResult.cpp" />
+    <ClCompile Include="FlightOperationalBaseResult.cpp" />
+    <ClCompile Include="FlightOperationalGroundDistanceResult.cpp" />
+    <ClCompile Include="FlightOperationalParam.cpp" />
+    <ClCompile Include="FlightOperationalReport.cpp" />
+    <ClCompile Include="FlightStandOperationChartResult.cpp" />
+    <ClCompile Include="FlightStandOperationDetailChartReport.cpp" />
+    <ClCompile Include="FlightStandOperationParameter.cpp" />
+    <ClCompile Include="FlightStandOperationSummaryChartReport.cpp" />
+    <ClCompile Include="FltConflictChartResultByActionAndTimeOfDay.cpp" />
+    <ClCompile Include="FltConflictChartResultByAreaAndTimeOfDay.cpp" />
+    <ClCompile Include="FltConflictChartResultByDistOfConfPerAC.cpp" />
+    <ClCompile Include="FltConflictChartResultByLocationAndTimeOfDay.cpp" />
+    <ClCompile Include="FltConflictChartResultByOperationAndTimeOfDay.cpp" />
+    <ClCompile Include="FltConflictChartResultByTimeOfDay.cpp" />
+    <ClCompile Include="LogFilterFun.cpp" />
+    <ClCompile Include="MSChart\font.cpp" />
+    <ClCompile Include="MSChart\mschart.cpp" />
+    <ClCompile Include="MSChart\vcaxis.cpp" />
+    <ClCompile Include="MSChart\vcaxisgrid.cpp" />
+    <ClCompile Include="MSChart\vcaxisscale.cpp" />
+    <ClCompile Include="MSChart\vcaxistitle.cpp" />
+    <ClCompile Include="MSChart\vcbackdrop.cpp" />
+    <ClCompile Include="MSChart\vcbrush.cpp" />
+    <ClCompile Include="MSChart\vccategoryscale.cpp" />
+    <ClCompile Include="MSChart\vccolor.cpp" />
+    <ClCompile Include="MSChart\vccoor.cpp" />
+    <ClCompile Include="MSChart\vcdatagrid.cpp" />
+    <ClCompile Include="MSChart\vcdatapoint.cpp" />
+    <ClCompile Include="MSChart\vcdatapointlabel.cpp" />
+    <ClCompile Include="MSChart\vcdatapoints.cpp" />
+    <ClCompile Include="MSChart\vcfill.cpp" />
+    <ClCompile Include="MSChart\vcfont.cpp" />
+    <ClCompile Include="MSChart\vcfootnote.cpp" />
+    <ClCompile Include="MSChart\vcframe.cpp" />
+    <ClCompile Include="MSChart\vcintersection.cpp" />
+    <ClCompile Include="MSChart\vclabel.cpp" />
+    <ClCompile Include="MSChart\vclabels.cpp" />
+    <ClCompile Include="MSChart\vclcoor.cpp" />
+    <ClCompile Include="MSChart\vclegend.cpp" />
+    <ClCompile Include="MSChart\vclight.cpp" />
+    <ClCompile Include="MSChart\vclightsource.cpp" />
+    <ClCompile Include="MSChart\vclightsources.cpp" />
+    <ClCompile Include="MSChart\vclocation.cpp" />
+    <ClCompile Include="MSChart\vcmarker.cpp" />
+    <ClCompile Include="MSChart\vcpen.cpp" />
+    <ClCompile Include="MSChart\vcplot.cpp" />
+    <ClCompile Include="MSChart\vcplotbase.cpp" />
+    <ClCompile Include="MSChart\vcrect.cpp" />
+    <ClCompile Include="MSChart\vcseries.cpp" />
+    <ClCompile Include="MSChart\vcseriescollection.cpp" />
+    <ClCompile Include="MSChart\vcseriesmarker.cpp" />
+    <ClCompile Include="MSChart\vcseriesposition.cpp" />
+    <ClCompile Include="MSChart\vcshadow.cpp" />
+    <ClCompile Include="MSChart\vcstatline.cpp" />
+    <ClCompile Include="MSChart\vctextlayout.cpp" />
+    <ClCompile Include="MSChart\vctick.cpp" />
+    <ClCompile Include="MSChart\vctitle.cpp" />
+    <ClCompile Include="MSChart\vcvaluescale.cpp" />
+    <ClCompile Include="MSChart\vcview3d.cpp" />
+    <ClCompile Include="MSChart\vcwall.cpp" />
+    <ClCompile Include="MSChart\vcweighting.cpp" />
+    <ClCompile Include="myfile.cpp" />
+    <ClCompile Include="N3DChart.cpp" />
+    <ClCompile Include="OperationalResultData.cpp" />
+    <ClCompile Include="OperationReportDataItem.cpp" />
+    <ClCompile Include="Parameters.cpp" />
+    <ClCompile Include="ReportManager.cpp" />
+    <ClCompile Include="RunwayExitParameter.cpp" />
+    <ClCompile Include="RunwayExitReport.cpp" />
+    <ClCompile Include="RunwayExitResult.cpp" />
+    <ClCompile Include="SegmentDelayData.cpp" />
+    <ClCompile Include="StandOperationData.cpp" />
+    <ClCompile Include="StandOperationDataProcessor.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SummaryAirDelayResult.cpp" />
+    <ClCompile Include="SummaryComponentData.cpp" />
+    <ClCompile Include="SummaryComponentDelayResult.cpp" />
+    <ClCompile Include="SummaryData.cpp" />
+    <ClCompile Include="SummaryDelayChartResult.cpp" />
+    <ClCompile Include="SummaryDelayResult.cpp" />
+    <ClCompile Include="SummaryFlightTypeData.cpp" />
+    <ClCompile Include="SummaryNodeDelayDataItem.cpp" />
+    <ClCompile Include="SummaryNodeDelayResult.cpp" />
+    <ClCompile Include="SummaryParaFilter.cpp" />
+    <ClCompile Include="SummaryRunwayDelayResult.cpp" />
+    <ClCompile Include="SummarySegDelayData.cpp" />
+    <ClCompile Include="SummarySegmentDelayResult.cpp" />
+    <ClCompile Include="SummaryServiceDelayResult.cpp" />
+    <ClCompile Include="SummaryStandDelayResult.cpp" />
+    <ClCompile Include="SummaryTakeOffDelayResult.cpp" />
+    <ClCompile Include="SummaryTaxiDelayResult.cpp" />
+    <ClCompile Include="SummaryTotalDelayResult.cpp" />
+    <ClCompile Include="TaxiwayUtilizationData.cpp" />
+    <ClCompile Include="TakeoffProcessData.cpp" />
+    <ClCompile Include="TaxiwayDelayParameters.cpp" />
+    <ClCompile Include="TaxiwayDelayReport.cpp" />
+    <ClCompile Include="TaxiwayDelayReportResult.cpp" />
+    <ClCompile Include="TaxiwayItem.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3DChartWnd.h" />
+    <ClInclude Include="AirsideBaseReport.h" />
+    <ClInclude Include="AirsideControllerWorkloadParam.h" />
+    <ClInclude Include="AirsideControllerWorkloadReport.h" />
+    <ClInclude Include="AirsideControllerWorkloadResult.h" />
+    <ClInclude Include="AirsideDelayDescLog.h" />
+    <ClInclude Include="AirsideDistanceTravelParam.h" />
+    <ClInclude Include="AirsideDistanceTravelReport.h" />
+    <ClInclude Include="AirsideDurationParam.h" />
+    <ClInclude Include="AirsideDurationReport.h" />
+    <ClInclude Include="AirsideFlightActivityReportBaseResult.h" />
+    <ClInclude Include="AirsideFlightBurnParmater.h" />
+    <ClInclude Include="AirsideFlightConflictBaseResult.h" />
+    <ClInclude Include="AirsideFlightConflictDetailResult.h" />
+    <ClInclude Include="AirsideFlightConflictPara.h" />
+    <ClInclude Include="AirsideFlightConflictReport.h" />
+    <ClInclude Include="AirsideFlightConflictSummaryResult.h" />
+    <ClInclude Include="AirsideFlightDelayBaseResult.h" />
+    <ClInclude Include="AirsideFlightDelayParam.h" />
+    <ClInclude Include="AirsideFlightDelayReport.h" />
+    <ClInclude Include="AirsideFlightDistanceTravelReportBaseResult.h" />
+    <ClInclude Include="AirsideFlightDistanceTravelReportDetailResult.h" />
+    <ClInclude Include="AirsideFlightDistanceTravelReportSummaryResult.h" />
+    <ClInclude Include="AirsideFlightFuelBurnReport.h" />
+    <ClInclude Include="AirsideFlightFuelBurnReportResult.h" />
+    <ClInclude Include="AirsideFlightRunwayDelayBaseResult.h" />
+    <ClInclude Include="AirsideFlightRunwayDelayData.h" />
+    <ClInclude Include="AirsideFlightRunwayDelayReport.h" />
+    <ClInclude Include="AirsideFlightRunwayDelayReportPara.h" />
+    <ClInclude Include="AirsideFlightRunwayDelaySummaryData.h" />
+    <ClInclude Include="AirsideFlightStandOperationBaseResult.h" />
+    <ClInclude Include="AirsideFlightStandOperationReport.h" />
+    <ClInclude Include="AirsideFlightSummaryActivityReportBaseResult.h" />
+    <ClInclude Include="AirsideIntersectionOperationReport.h" />
+    <ClInclude Include="AirsideIntersectionReportParam.h" />
+    <ClInclude Include="AirsideIntersectionReportResult.h" />
+    <ClInclude Include="AirsideIntersectionSummaryChartResult.h" />
+    <ClInclude Include="AirsideNodeDelayReport.h" />
+    <ClInclude Include="AirsideNodeDelayReportParameter.h" />
+    <ClInclude Include="AirsideOperationParam.h" />
+    <ClInclude Include="AirsideOperationReport.h" />
+    <ClInclude Include="AirsideOperationResult.h" />
+    <ClInclude Include="AirsideReportAPI.h" />
+    <ClInclude Include="AirsideReportBaseResult.h" />
+    <ClInclude Include="AirsideReportNode.h" />
+    <ClInclude Include="AirsideReportObjectIntersecNodeIDNameMap.h" />
+    <ClInclude Include="AirsideReportSummaryData.h" />
+    <ClInclude Include="AirsideRunwayCrossingBaseDetailResult.h" />
+    <ClInclude Include="AirsideRunwayCrossingsBaseResult.h" />
+    <ClInclude Include="AirsideRunwayCrossingsBaseSummaryResult.h" />
+    <ClInclude Include="AirsideRunwayCrossingsPara.h" />
+    <ClInclude Include="AirsideRunwayCrossingsReport.h" />
+    <ClInclude Include="AirsideRunwayOperationReportBaseResult.h" />
+    <ClInclude Include="AirsideRunwayOperationReportDetailResult.h" />
+    <ClInclude Include="AirsideRunwayOperationReportParam.h" />
+    <ClInclude Include="AirsideRunwayOperationReportSummaryResult.h" />
+    <ClInclude Include="AirsideRunwayOperationsReport.h" />
+    <ClInclude Include="AirsideRunwayUtilizationReporDetailResult.h" />
+    <ClInclude Include="AirsideRunwayUtilizationReport.h" />
+    <ClInclude Include="AirsideRunwayUtilizationReportBaseResult.h" />
+    <ClInclude Include="AirsideRunwayUtilizationReportParam.h" />
+    <ClInclude Include="AirsideRunwayUtilizationReportSummaryResult.h" />
+    <ClInclude Include="AirsideTakeoffProcessDetailResult.h" />
+    <ClInclude Include="AirsideTakeoffProcessParameter.h" />
+    <ClInclude Include="AirsideTakeoffProcessReport.h" />
+    <ClInclude Include="AirsideTakeoffProcessResult.h" />
+    <ClInclude Include="AirsideTakeoffProcessSummaryResult.h" />
+    <ClInclude Include="AirsideTaxiwayUtilizationChart.h" />
+    <ClInclude Include="AirsideTaxiwayUtilizationPara.h" />
+    <ClInclude Include="AirsideTaxiwayUtilizationReport.h" />
+    <ClInclude Include="AirsideTaxiwayUtilizationResult.h" />
+    <ClInclude Include="AirsideVehicleOpeDetailReportRes.h" />
+    <ClInclude Include="AirsideVehicleOperaterReport.h" />
+    <ClInclude Include="AirsideVehicleOpeReportResult.h" />
+    <ClInclude Include="AirsideVehicleOperParameter.h" />
+    <ClInclude Include="AirsideVehicleOpeSummaryReportRes.h" />
+    <ClInclude Include="ArisdieIntersectionDetailChartResult.h" />
+    <ClInclude Include="CARC3DChart.h" />
+    <ClInclude Include="CDetailFlightScheduleDelay.h" />
+    <ClInclude Include="ChartDataDefine.h" />
+    <ClInclude Include="CommonMethod.h" />
+    <ClInclude Include="CSummaryFlightScheduleDelay.h" />
+    <ClInclude Include="DetailAirDelayResult.h" />
+    <ClInclude Include="DetailComponentData.h" />
+    <ClInclude Include="DetailComponentDelayResult.h" />
+    <ClInclude Include="DetailDelayChartResult.h" />
+    <ClInclude Include="DetailDelayResult.h" />
+    <ClInclude Include="DetailFlightDelayData.h" />
+    <ClInclude Include="DetailNodeDelayDataItem.h" />
+    <ClInclude Include="DetailNodeDelaydResult.h" />
+    <ClInclude Include="DetailRunwayDelayResult.h" />
+    <ClInclude Include="DetailSegmentDelayResult.h" />
+    <ClInclude Include="DetailServiceDelayResult.h" />
+    <ClInclude Include="DetailStandDelayResult.h" />
+    <ClInclude Include="DetailTakeOffDelayResult.h" />
+    <ClInclude Include="DetailTaxiDelayResult.h" />
+    <ClInclude Include="DetailTotalDelayResult.h" />
+    <ClInclude Include="dibapi.h" />
+    <ClInclude Include="DlgParametersAny.h" />
+    <ClInclude Include="DlgReportSelectObject.h" />
+    <ClInclude Include="FlightActivityBaseResult.h" />
+    <ClInclude Include="FlightActivityParam.h" />
+    <ClInclude Include="FlightActivityReport.h" />
+    <ClInclude Include="FlightConflictReportData.h" />
+    <ClInclude Include="FlightConflictSummaryChartResult.h" />
+    <ClInclude Include="FlightConflictSummaryData.h" />
+    <ClInclude Include="FlightOperationalAirDistanceResult.h" />
+    <ClInclude Include="FlightOperationalBaseResult.h" />
+    <ClInclude Include="FlightOperationalGroundDistanceResult.h" />
+    <ClInclude Include="FlightOperationalParam.h" />
+    <ClInclude Include="FlightOperationalReport.h" />
+    <ClInclude Include="FlightStandOperationChartResult.h" />
+    <ClInclude Include="FlightStandOperationDetailChartReport.h" />
+    <ClInclude Include="FlightStandOperationParameter.h" />
+    <ClInclude Include="FlightStandOperationSummaryChartReport.h" />
+    <ClInclude Include="FltConflictChartResultByActionAndTimeOfDay.h" />
+    <ClInclude Include="FltConflictChartResultByAreaAndTimeOfDay.h" />
+    <ClInclude Include="FltConflictChartResultByDistOfConfPerAC.h" />
+    <ClInclude Include="FltConflictChartResultByLocationAndTimeOfDay.h" />
+    <ClInclude Include="FltConflictChartResultByOperationAndTimeOfDay.h" />
+    <ClInclude Include="FltConflictChartResultByTimeOfDay.h" />
+    <ClInclude Include="LogFilterFun.h" />
+    <ClInclude Include="MSChart\font.h" />
+    <ClInclude Include="MSChart\mschart.h" />
+    <ClInclude Include="MSChart\vcaxis.h" />
+    <ClInclude Include="MSChart\vcaxisgrid.h" />
+    <ClInclude Include="MSChart\vcaxisscale.h" />
+    <ClInclude Include="MSChart\vcaxistitle.h" />
+    <ClInclude Include="MSChart\vcbackdrop.h" />
+    <ClInclude Include="MSChart\vcbrush.h" />
+    <ClInclude Include="MSChart\vccategoryscale.h" />
+    <ClInclude Include="MSChart\vccolor.h" />
+    <ClInclude Include="MSChart\vccoor.h" />
+    <ClInclude Include="MSChart\vcdatagrid.h" />
+    <ClInclude Include="MSChart\vcdatapoint.h" />
+    <ClInclude Include="MSChart\vcdatapointlabel.h" />
+    <ClInclude Include="MSChart\vcdatapoints.h" />
+    <ClInclude Include="MSChart\vcfill.h" />
+    <ClInclude Include="MSChart\vcfont.h" />
+    <ClInclude Include="MSChart\vcfootnote.h" />
+    <ClInclude Include="MSChart\vcframe.h" />
+    <ClInclude Include="MSChart\vcintersection.h" />
+    <ClInclude Include="MSChart\vclabel.h" />
+    <ClInclude Include="MSChart\vclabels.h" />
+    <ClInclude Include="MSChart\vclcoor.h" />
+    <ClInclude Include="MSChart\vclegend.h" />
+    <ClInclude Include="MSChart\vclight.h" />
+    <ClInclude Include="MSChart\vclightsource.h" />
+    <ClInclude Include="MSChart\vclightsources.h" />
+    <ClInclude Include="MSChart\vclocation.h" />
+    <ClInclude Include="MSChart\vcmarker.h" />
+    <ClInclude Include="MSChart\vcpen.h" />
+    <ClInclude Include="MSChart\vcplot.h" />
+    <ClInclude Include="MSChart\vcplotbase.h" />
+    <ClInclude Include="MSChart\vcrect.h" />
+    <ClInclude Include="MSChart\vcseries.h" />
+    <ClInclude Include="MSChart\vcseriescollection.h" />
+    <ClInclude Include="MSChart\vcseriesmarker.h" />
+    <ClInclude Include="MSChart\vcseriesposition.h" />
+    <ClInclude Include="MSChart\vcshadow.h" />
+    <ClInclude Include="MSChart\vcstatline.h" />
+    <ClInclude Include="MSChart\vctextlayout.h" />
+    <ClInclude Include="MSChart\vctick.h" />
+    <ClInclude Include="MSChart\vctitle.h" />
+    <ClInclude Include="MSChart\vcvaluescale.h" />
+    <ClInclude Include="MSChart\vcview3d.h" />
+    <ClInclude Include="MSChart\vcwall.h" />
+    <ClInclude Include="MSChart\vcweighting.h" />
+    <ClInclude Include="N3DChart.h" />
+    <ClInclude Include="OperationalResultData.h" />
+    <ClInclude Include="OperationReportDataItem.h" />
+    <ClInclude Include="ParameterCaptionDefine.h" />
+    <ClInclude Include="Parameters.h" />
+    <ClInclude Include="ReportManager.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="RunwayExitParameter.h" />
+    <ClInclude Include="RunwayExitReport.h" />
+    <ClInclude Include="RunwayExitResult.h" />
+    <ClInclude Include="SegmentDelayData.h" />
+    <ClInclude Include="StandOperationData.h" />
+    <ClInclude Include="StandOperationDataCalculation.h" />
+    <ClInclude Include="StandOperationDataProcessor.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SummaryAirDelayResult.h" />
+    <ClInclude Include="SummaryComponentData.h" />
+    <ClInclude Include="SummaryComponentDelayResult.h" />
+    <ClInclude Include="SummaryData.h" />
+    <ClInclude Include="SummaryDelayChartResult.h" />
+    <ClInclude Include="SummaryDelayResult.h" />
+    <ClInclude Include="SummaryFlightTypeData.h" />
+    <ClInclude Include="SummaryNodeDelayDataItem.h" />
+    <ClInclude Include="SummaryNodeDelayResult.h" />
+    <ClInclude Include="SummaryParaFilter.h" />
+    <ClInclude Include="SummaryRunwayDelayResult.h" />
+    <ClInclude Include="SummarySegDelayData.h" />
+    <ClInclude Include="SummarySegmentDelayResult.h" />
+    <ClInclude Include="SummaryServiceDelayResult.h" />
+    <ClInclude Include="SummaryStandDelayResult.h" />
+    <ClInclude Include="SummaryTakeOffDelayResult.h" />
+    <ClInclude Include="SummaryTaxiDelayResult.h" />
+    <ClInclude Include="SummaryTotalDelayResult.h" />
+    <ClInclude Include="TakeoffProcessData.h" />
+    <ClInclude Include="TaxiwayDelayParameters.h" />
+    <ClInclude Include="TaxiwayDelayReport.h" />
+    <ClInclude Include="TaxiwayDelayReportResult.h" />
+    <ClInclude Include="TaxiwayItem.h" />
+    <ClInclude Include="TypeDefs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\boostserialization\vcproj\Library.vcxproj">
+      <Project>{30e10563-960a-11d7-9fe9-525400e2cf85}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\CommonData\CommanData.vcxproj">
+      <Project>{76210374-cc15-4f65-8b78-370747ad8d1f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{dcfed0d8-cafd-4077-88f3-fed91c6ca0e3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Database\Database.vcxproj">
+      <Project>{8adf9016-0814-45f2-90cb-0ea0964d47f4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Engine\Engine.vcxproj">
+      <Project>{dcbdd45f-688e-40dd-bc87-e3d98b78d08c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\InputAirside\InputAirside.vcxproj">
+      <Project>{d4ad5177-b492-4479-85fa-1dbff02c6296}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\MFCExControl\MFCExControl.vcxproj">
+      <Project>{2fc576cd-35ff-4234-ba13-6b2a2dd47dbd}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Results\Results.vcxproj">
+      <Project>{ebdbf6ac-2bb9-59d3-1fb1-9292e4595a93}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AirsideReport.def" />
+    <None Include="res\AirsideReport.rc2" />
+    <None Include="res\bmp00013.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AirsideReport.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="AirsideReport.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
