@@ -29,6 +29,7 @@ public:
 		m_nReportCategory = _other.m_nReportCategory;
 		m_reportParam = _other.m_reportParam;
 		m_isChecked = _other.m_isChecked;
+		m_isDetail = _other.m_isDetail;
 	}
 	
 	virtual ~CReportToCompare();
@@ -44,6 +45,9 @@ public:
 	BOOL GetChecked() const { return m_isChecked; }
 	void SetChecked(BOOL val) { m_isChecked = val; }
 
+	BOOL GetDetail() const { return m_isDetail; }
+	void SetDetail(BOOL isDetail) { m_isDetail = isDetail; }
+
 	BOOL LoadData( const CString& strPath );
 	
 	void DeleteModelParameter(const CString& strModelUniqueName);
@@ -53,6 +57,7 @@ public:
 		m_strName = _rhs.m_strName;
 		m_nReportCategory = _rhs.m_nReportCategory;
 		m_reportParam = _rhs.m_reportParam;
+		m_isDetail = _rhs.m_isDetail;
 		return *this;
 	}
 
@@ -63,6 +68,7 @@ private:
 	CString					m_strName;
 	CReportParamToCompare	m_reportParam;
 	BOOL					m_isChecked;
+	BOOL					m_isDetail; // TRUE: detail  FALSE: summary
 };
 
 

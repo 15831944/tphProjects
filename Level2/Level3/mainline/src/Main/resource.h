@@ -2568,6 +2568,7 @@
 #define IDC_PAX_TYPE                    1807
 #define IDC_DATETIME_MATHINTERVAL       1808
 #define IDC_COMBO_REPORT_AREA           1808
+#define IDC_COMBO_IS_DETAIL             1808
 #define IDC_STATIC_REPORT_AREA          1809
 #define IDC_STATIC_CATEGORY             1809
 #define IDC_STATIC_MEMBER               1810
@@ -2648,6 +2649,7 @@
 #define IDC_STATIC_TIMEINTERVAL         1863
 #define IDC_TREE_AREA                   1864
 #define IDC_STATIC_AREATEXT             1865
+#define IDC_STATIC_IS_DETAIL            1866
 #define IDC_TREE2                       1867
 #define IDC_COMBO_NAME1                 1868
 #define IDC_LIST_GATEASSIGN_CONSTRAINTS 1868

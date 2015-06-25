@@ -55,19 +55,17 @@ public:
 	void DeleteTreeData(CTreeCtrl& tree);
 	void DeleteTreeSubItemData(CTreeCtrl& tree,HTREEITEM hItem);
 	void SetManager(CModelsManager* pModelManager,CSingleReportsManager* pReportManager);
-	void SetProjName(const CString& strName)
-	{
-		m_strProjName = strName;
-	}
-
-	CReportToCompare& GetReport()
-	{
-		return m_reportToCompare;
-	}
-
+	void SetProjName(const CString& strName){ m_strProjName = strName; }
+	CReportToCompare& GetReport(){return m_reportToCompare;}
+	void SetReport(const CReportToCompare& value){ m_reportToCompare = value; }
 	static COleDateTime GetOleDateTime(long _nTime);
-	
-	enum MODELTYPE{MT_NOMODEL, MT_NOLOCATION, MT_HASLOCATION};
+
+	enum MODELTYPE
+	{
+		MT_NOMODEL, 
+		MT_NOLOCATION, 
+		MT_HASLOCATION
+	};
 
 	MODELTYPE HasModelInLocation();
 

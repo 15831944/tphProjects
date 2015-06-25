@@ -1579,9 +1579,18 @@ void CDlgReportProperty::ArrangeControls()
 			GetDlgItem(IDC_DTANIMTIMEINTERVAL)->ShowWindow(SW_HIDE);
 			GetDlgItem(IDC_STATIC_TIMEINTERVAL)->ShowWindow(SW_HIDE);
 
+			CRect rect1, rect2;
+			m_tInterval.GetWindowRect(&rect1);
+			ScreenToClient(&rect1);
+			m_editInterval.MoveWindow(rect1, true);
 			m_editInterval.ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_STATIC_INTERVAL)->ShowWindow(SW_SHOW);
 
+			GetDlgItem(IDC_STATIC_TIMEINTERVAL)->GetWindowRect(&rect1);
+			ScreenToClient(&rect1);
+			GetDlgItem(IDC_STATIC_INTERVAL)->GetWindowRect(&rect2);
+			GetDlgItem(IDC_STATIC_INTERVAL)->MoveWindow(rect1.right-rect2.Width(), rect1.top, 
+														rect2.Width(), rect2.Height(), TRUE);
+			GetDlgItem(IDC_STATIC_INTERVAL)->ShowWindow(SW_SHOW);
 			m_bShowProcessor = TRUE;
 		}
 		break;

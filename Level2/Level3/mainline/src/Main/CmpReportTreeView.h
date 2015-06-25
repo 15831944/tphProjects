@@ -24,15 +24,13 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 
 	DECLARE_MESSAGE_MAP()
+
 public:
-
 	void SetCmpReport(CCmpReport* pCmpReport){ m_pCmpReport = pCmpReport; }
-	void InitParaWnd();
-
-
-
+	void InitRootItems();
 	void UpdateWholeTree();
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+
 protected:
 	CCoolTree m_propTree;
 	CButton m_btnRun;
@@ -66,7 +64,6 @@ protected:
 	BOOL CheckData();
 	void RemoveSubItem(HTREEITEM pItem);
 	void UpdateSubItems(HTREEITEM pItem);
-	void SetItemDataDefault(HTREEITEM hItem);
 	CMenu m_nMenu, *m_pSubMenu;
 
 public:

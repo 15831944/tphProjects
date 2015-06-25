@@ -17,6 +17,7 @@ CReportToCompare::CReportToCompare()
 	m_strName.Empty();
 	m_nReportCategory = 0;
 	m_isChecked = TRUE;
+	m_isDetail = FALSE;
 }
 
 CReportToCompare::~CReportToCompare()
@@ -78,14 +79,26 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 		p_file.getInteger(nCategory);
 		report.SetCategory(nCategory);
 
-		BOOL isChecked = FALSE;
 		char cFlag = 'F';
 		p_file.getChar(cFlag);
 		if(cFlag == 'T')
 		{
-			isChecked = TRUE;
+			report.SetChecked(TRUE);
 		}
-		report.SetChecked(isChecked);
+		else
+		{
+			report.SetChecked(FALSE);
+		}
+
+		p_file.getChar(cFlag);
+		if(cFlag == 'T')
+		{
+			report.SetDetail(TRUE);
+		}
+		else
+		{
+			report.SetDetail(FALSE);
+		}
 
 		CReportParamToCompare param;
 		p_file.getTime(et, TRUE);
@@ -242,7 +255,14 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 		{
 			p_file.writeChar('F');
 		}
-		
+		if(m_vReports[i].GetDetail() == TRUE)
+		{
+			p_file.writeChar('T');
+		}
+		else
+		{
+			p_file.writeChar('F');
+		}
 		CReportParamToCompare param = m_vReports[i].GetParameter();
 
 		p_file.writeTime(param.GetStartTime(), TRUE);

@@ -163,7 +163,7 @@ void CCmpReportTreeView::OnInitialUpdate()
 	m_btnMulti.SetType(CCoolBtn::TY_CMPREPORTTREEVIEW);
 	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 	m_pCmpReport = pDoc->GetCmpReport();
-	InitParaWnd();
+	InitRootItems();
 }
 
 void CCmpReportTreeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
@@ -203,26 +203,16 @@ BOOL CCmpReportTreeView::OnEraseBkgnd(CDC* pDC)
 	return CFormView::OnEraseBkgnd(pDC);
 }
 
-void CCmpReportTreeView::InitParaWnd()
+void CCmpReportTreeView::InitRootItems()
 {
 	COOLTREE_NODE_INFO cni;
 	InitCooltreeNodeInfo(this, cni);
 	m_hBasicInfo = m_propTree.InsertItem(_T("BASIC INFO"), cni, FALSE, FALSE, TVI_ROOT);
-	SetItemDataDefault(m_hBasicInfo);
-
 	m_hModelRoot = m_propTree.InsertItem(_T("MODELS"),cni, FALSE, FALSE, TVI_ROOT);
-	SetItemDataDefault(m_hModelRoot);
-
 	m_hReportRoot = m_propTree.InsertItem(_T("REPORTS"),cni, FALSE, FALSE, TVI_ROOT);
-	SetItemDataDefault(m_hReportRoot);
-
 	cni.net = NET_LABLE;
 	m_hProjName = m_propTree.InsertItem(_T("Name"), cni, FALSE, FALSE,m_hBasicInfo, TVI_LAST);
-	SetItemDataDefault(m_hProjName);
-
 	m_hProjDesc = m_propTree.InsertItem(_T("Description"),cni, FALSE, FALSE, m_hBasicInfo, TVI_LAST);
-	SetItemDataDefault(m_hProjDesc);
-
 	m_propTree.Expand(m_hBasicInfo, TVE_EXPAND);
 }
 
@@ -294,6 +284,9 @@ void CCmpReportTreeView::RemoveSubItem(HTREEITEM hItem)
 	while((hChildItem = m_propTree.GetChildItem(hItem)) != NULL)
 	{
 		RemoveSubItem(hChildItem);
+		CmpReportTreeNodeDataWithType* pNodeData = (CmpReportTreeNodeDataWithType*)m_propTree.GetItemData(hChildItem);
+		if(pNodeData != NULL)
+			delete pNodeData;
 		m_propTree.DeleteItem(hChildItem);
 	}
 }
@@ -354,11 +347,9 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			CString strName = pModelToCompare->GetUniqueName();
 			strItemText.Format("Name: %s", strName);
 			HTREEITEM hItemTemp = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
-			SetItemDataDefault(hItemTemp);
 
 			strItemText = _T("SimResult");
 			HTREEITEM hSimResultItem = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
-			SetItemDataDefault(hSimResultItem);
 
 			cni.nt = NT_CHECKBOX;
 			int nSimCount = pModelToCompare->GetSimResultCount();
@@ -381,8 +372,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			strPath = strPath.Left(nLenPath-nLenName-1);
 			strItemText.Format("Path: %s", strPath);
 			HTREEITEM hPathItem = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
-			SetItemDataDefault(hPathItem);
-
 			m_propTree.Expand(hModel, TVE_EXPAND);
 		}
 		m_propTree.Expand(m_hModelRoot, TVE_EXPAND);
@@ -449,18 +438,12 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			CString strTemp = s_szReportCategoryName[iIndex];
 			strItemText.Format("Report Type: %s", strTemp);
 			HTREEITEM hRepName = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2);
-			SetItemDataDefault(hRepName);
-
 			strTemp = GetRegularDateTime(param.GetStartTime().printTime());
 			strItemText.Format("Start Time: %s", strTemp);
 			HTREEITEM hRepStartTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepName);
-			SetItemDataDefault(hRepStartTime);
-
 			strTemp = GetRegularDateTime(param.GetEndTime().printTime());
 			strItemText.Format("End Time: %s", strTemp);
 			HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepStartTime);
-			SetItemDataDefault(hRepEndTime);
-
 			if(report.GetCategory() == ENUM_DISTANCE_REP)
 			{
 				LONG lInterval;
@@ -473,8 +456,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 				strItemText.Format("Interval: %s", strTemp);
 			}
 			HTREEITEM hInterval = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepEndTime);
-			SetItemDataDefault(hInterval);
-
+			
 			//write Model Parameter
 			std::vector<CModelParameter> vModelParam;
 			param.GetModelParameter(vModelParam);
@@ -487,8 +469,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 				CModelParameter& modelParam = vModelParam[i];
 				CString strModelName = pModelManager->getModel(i)->GetModelName();
 				HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
-				SetItemDataDefault(hModelItem);
-
 				if(iIndex == 3)		//	case ENUM_PAXDENS_REP:	iIndex = 3;
 				{
 					CString strTemp = modelParam.GetArea();
@@ -497,7 +477,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 					else
 						strItemText.Format("Areas: %s", strTemp);
 					HTREEITEM hAreas = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
-					SetItemDataDefault(hAreas);
 				}
 
 				if(report.GetCategory() == ENUM_QUEUETIME_REP ||
@@ -516,7 +495,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 						{
 							vPaxType[i].screenPrint(strPax);
 							HTREEITEM hPaxItem2 = m_propTree.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
-							SetItemDataDefault(hPaxItem2);
 						}
 						m_propTree.Expand(hPaxItem, TVE_EXPAND);
 					}	
@@ -556,7 +534,6 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 							memset(szProc, 0, sizeof(szProc) / sizeof(char));
 							vProcGroup[i].printID(szProc);
 							HTREEITEM hProcID = m_propTree.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
-							SetItemDataDefault(hProcID);
 						}
 						m_propTree.Expand(hProcTypeItem, TVE_EXPAND);
 					}
@@ -717,20 +694,15 @@ void CCmpReportTreeView::EditReport()
 	if(pReport2Cmp)//check the report exists
 	{
 		CDlgReportProperty dlg(this);
-		dlg.m_strProjName = m_pCmpReport->GetComparativeProject()->GetName();
-		dlg.SetManager(pMManager,pRManager);
-
-		dlg.SetProjName(dlg.m_strProjName);
-		dlg.GetReport() = *pReport2Cmp;
-
+		dlg.SetManager(pMManager, pRManager);
+		dlg.SetProjName(m_pCmpReport->GetComparativeProject()->GetName());
+		dlg.SetReport(*pReport2Cmp);
 		wc.Restore();
 
 		if(dlg.DoModal() == IDOK)
 		{
 			const CReportToCompare& report = dlg.GetReport();
-			
 			pRManager->UpdateReport(strReportName, report);
-			
 			UpdateSubItems(m_hReportRoot);
 			m_pCmpReport->SetModifyFlag(TRUE);
 			m_pCmpReport->SaveProject();
@@ -1143,10 +1115,4 @@ void CCmpReportTreeView::LoadReport()
 // 		m_bCanToSave = true;
 // 		m_strCurReportFile = strFileName;
 	}
-}
-
-void CCmpReportTreeView::SetItemDataDefault(HTREEITEM hItem)
-{
-	CmpReportTreeNodeDataWithType* pNodeData = new CmpReportTreeNodeDataWithType();
-	m_propTree.SetItemData(hItem, (DWORD)pNodeData);
 }
