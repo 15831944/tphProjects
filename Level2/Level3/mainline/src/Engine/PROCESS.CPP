@@ -2639,7 +2639,7 @@ bool Processor::FindDestProcessors(const Terminal* _pTerminal, const Person* _pe
 	}
 
 
-	if(arrayNextDest.getCount()==0)
+	if(arrayNextDest.getCount()==0 && bLevel0Matched == false)
 	{
 		//build destination if no linkage.
 		//if(bLevel0Matched) linkNoTag = true;

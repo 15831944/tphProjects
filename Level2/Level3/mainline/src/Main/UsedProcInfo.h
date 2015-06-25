@@ -20,11 +20,12 @@
 #include "inputs\movrdata.h"
 #include "inputs\SideMoveWalkPaxDist.h"
 #include "inputs\SideMoveWalkDataSet.h"
+#include "Inputs\PipeDataSet.h"
 #include <vector>
 
 class FlightSchedule;
 
-static int UsedProcCheckCount =11;
+static int UsedProcCheckCount =12;
 class CUsedProcInfo  
 {
 public:
@@ -113,6 +114,19 @@ protected:
 		strcpy(pStr,"PeopleMovers :");
 		return pStr;
 	}
+
+	//check sidewalk attach to pipe
+	char* getPipeSideWalkTitle(char* pStr)
+	{
+		strcpy(pStr,"Pipe :");
+		return pStr;
+	}
+
+	bool getPipeSideWalkInfo(std::vector<CString>& _vector)
+	{
+		return m_pTerm->m_pPipeDataSet->getUsedProInfo(m_ProcID,(InputTerminal*)m_pTerm,_vector);
+	}
+
 	bool getPeopleMoversInfo(std::vector<CString>&_vector)
 	{return m_pTerm->peopleMovers->getUsedProInfo(m_ProcID,(InputTerminal*)m_pTerm,_vector);}
 

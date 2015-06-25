@@ -676,3 +676,10 @@ void IntersectionNodeInSim::SetBlock( bool bBlock )
 {
 	m_bBlock = bBlock;
 }
+
+ElapsedTime IntersectionNodeInSim::GetLastOcyTime(  ) const
+{
+	if(m_vOccupancyTable.empty())
+		return ElapsedTime(0L);
+	return m_vOccupancyTable.back().GetExitTime();
+}

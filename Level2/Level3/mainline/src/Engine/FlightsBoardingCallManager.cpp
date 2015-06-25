@@ -72,7 +72,7 @@ void FlightsBoardingCallManager::Initialize(const ProcessorList *p_procs, const 
 }
 
 
-bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,const HoldingArea* pHoldArea,InputTerminal* _pInTerm)
+bool FlightsBoardingCallManager::IsBoardingCallValid(const Flight* pFlight,const HoldingArea* pHoldArea,InputTerminal* _pInTerm)
 {
 	ASSERT(pFlight);
 
@@ -185,33 +185,36 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 		if (pFlight->isDeparting())
 		{
 			ALTObjectID standID = pFlight->getDepStand();
-
 			ProcessorID procID;
 			procID.SetStrDict(_pInTerm->inStrDict);
 			procID.setID(standID.GetIDString());
  			if (procID.isBlank())
 				continue;
 
-			std::map<int,ElapsedTime>& mapLastCalls  = pFlight->GetLastCallOfEveryStage();
-			mapLastCalls.clear();
-			FlightConstraint& fltConst = pFlight->getType ('D');
 			ElapsedTime fltDepTime = pFlight->getDepTime();
 			for( int k=0; k<iHoldAreaCount; ++k )
 			{
 				HoldingArea* pHoldArea = ( HoldingArea* )vHoldingAreas.getItem( k );
-				int iStage = pHoldArea->getStageID();
-				if( iStage <= 0 )
+				if( pHoldArea->getStageID() <= 0 )
 					continue;
- 				if(!CheckBoardingCallValid(pFlight, pHoldArea, _pInTerm))
- 				{
- 					char buf[128];
- 					pFlight->getFullID(buf,'D');
- 					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
- 				}
+				if(IsBoardingCallValid(pFlight, pHoldArea, _pInTerm) == FALSE)
+				{
+					char buf[128];
+					pFlight->getFullID(buf,'D');
+					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
+				}
+			}
 
-				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )// In this flight , the last call does not exist
+			std::map<int,ElapsedTime>& mapLastCalls  = pFlight->GetLastCallOfEveryStage();
+			mapLastCalls.clear();
+			FlightConstraint& fltConst = pFlight->getType ('D');
+
+			int stageCount = _fltData->GetStageCount();
+			for(int iStage=1; iStage<=stageCount; iStage++)
+			{
+				if(mapLastCalls.find(iStage) == mapLastCalls.end())// In this flight , the last call does not exist
  				{
-					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetFlightTypeDB(iStage -1);
+					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetFlightTypeDB(iStage-1);
 					int ifltTypeCount = pFltTypeDB->getCount();
 					for(int iFlt=0; iFlt<ifltTypeCount; iFlt++)
 					{
@@ -235,7 +238,7 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 										std::vector<BoardingCallTrigger*>& vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger.size();
 										ElapsedTime tempTime, triggerTime;
-										double releasedProp = 0.0;
+										double releasedProp = 0.0f;
 										for(int iTrigger=0; iTrigger<triggerCount; iTrigger++)
 										{
 											triggerTime.set((long)(vTrigger.at(iTrigger)->m_time)->getRandomValue());
@@ -243,13 +246,15 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 											
 											if(iTrigger < triggerCount-1)
 											{
-												percent = (vTrigger.at(iTrigger)->m_prop)->getRandomValue()/ (100.0 - releasedProp);
-												releasedProp += (vTrigger.at(iTrigger)->m_prop)->getRandomValue();
+												double ranValue = (vTrigger.at(iTrigger)->m_prop)->getRandomValue();
+												percent = ranValue / (100.0f - releasedProp);
+												releasedProp += ranValue;
 											}
 											else// the 'residual' trigger.
 											{
 												percent = 1.0f;
-												mapLastCalls.insert(std::map<int,ElapsedTime>::value_type(iStage, tempTime));
+												if((CMobileElemConstraint*)pPaxTypeEntry->getConstraint()->isDefault())
+													mapLastCalls.insert(std::map<int,ElapsedTime>::value_type(iStage, tempTime));
 											}
 											event = new BoardingCallEvent;
 											event->setTime (tempTime);

@@ -3318,25 +3318,11 @@ void C3DView::RenderText()
 
 
 	if(!pDoc->m_displayoverrides.m_pbProcDisplayOverrides[PDP_DISP_PROCNAME]) {  //if NOT "hide all processor names"
-		
-		//GetFloorProperty(pDoc->GetFloorByMode(EnvMode_AirSide),dAlt,bOn);
-		//RenderProc2Text(pDoc->GetCurrentPlacement(EnvMode_AirSide)->m_vDefined, dAlt, bOn);
-		//if(pDoc->GetCurrentMode() == EnvMode_AirSide)
-		{			
-			GetParentFrame()->GetAirside3D()->RenderALTObjectText(this);
-		}
-
-
-	//	GetFloorProperty(pDoc->GetFloorByMode(EnvMode_LandSide),dAlt,bOn,pDoc);
-	//	RenderProc2Text(pDoc->GetCurrentPlacement(EnvMode_LandSide)->m_vDefined, dAlt, bOn);
+		GetParentFrame()->GetAirside3D()->RenderALTObjectText(this);
 		GetFloorProperty(pDoc->GetFloorByMode(EnvMode_Terminal),dAlt,bOn,pDoc);
 		RenderProc2Text(pDoc->GetCurrentPlacement(EnvMode_Terminal)->m_vDefined, dAlt, bOn);
-	//	RenderProc2Text(pDoc->GetCurrentPlacement(EnvMode_LandSide)->m_vUndefined,dAlt, bOn);
 		RenderProc2Text(pDoc->GetCurrentPlacement(EnvMode_Terminal)->m_vUndefined,dAlt,bOn);
-		RenderPipeText(dAlt,bOn);
-	//
-	//RenderAirsideNodes(pDoc,pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->Altitude(),pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->IsVisible());
-		
+		RenderPipeText(dAlt,bOn);	
 	}
 	if(pDoc->m_bShowAirsideNodeNames)
 	{
@@ -3595,7 +3581,6 @@ void C3DView::RenderPipeText(double* pdAlt, BOOL* pbOn)
 			{
 				ARCVector3 vWorldPos = pPipe->GetLocation();
 				vWorldPos[VZ] += pdAlt[pPipe->GetFloorIndex()];
-
 				TEXTMANAGER3D->DrawBitmapText(pPipe->GetPipeName(),vWorldPos);
 			}
 		}
@@ -4054,8 +4039,8 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 
 		CHECK_GL_ERRORS("3DView::SelectScene(...), post render tracers");
 
-
 		//render pipes lines
+		glDisable(GL_CULL_FACE);
 		if(procType==-1 && GetDocument()->GetCurrentMode() == EnvMode_Terminal )
 		{
 			CPipeDataSet* pPipeDS = pDoc->GetTerminal().m_pPipeDataSet;
@@ -4099,9 +4084,9 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 				}
 			}
 		}
-
+		glEnable(GL_CULL_FACE);
 		CHECK_GL_ERRORS("3DView::SelectScene(...), post render pipes");
-
+		
 		
 		//render Wall Shape
 		if(procType ==-1){
@@ -4159,7 +4144,7 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 			size_t ncount=StructureList.getStructureNum();
 			for(int i=ncount-1;i>=0;--i){
 				CStructure* cs = StructureList.getStructureAt(i);
-				if(cs->getFloorIndex()==pDoc->m_nActiveFloor){					
+				if(cs->GetFloorIndex()==pDoc->m_nActiveFloor){					
 					if(m_bSelectStructureEdit&&m_nSelectedStructure==i)
 					{
 						int num=cs->getPointNum();					
@@ -4169,12 +4154,12 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 							const Point& pt=cs->getPointAt(j);
 							glLoadName(GenerateSelectionID(SELTYPE_STRUCTURE, SELSUBTYPE_POINT, j));
 
-							DrawFlatSquare(pt.getX(),pt.getY(),dAlt[cs->getFloorIndex()],50);
+							DrawFlatSquare(pt.getX(),pt.getY(),dAlt[cs->GetFloorIndex()],50);
 						}
 
 					}	
 					glLoadName(GenerateSelectionID(SELTYPE_STRUCTURE, SELSUBTYPE_MAIN, i));
-					cs->DrawSelectArea(dAlt[cs->getFloorIndex()]);			
+					cs->DrawSelectArea(dAlt[cs->GetFloorIndex()]);			
 				}
 				else NULL;
 			}			
@@ -6333,7 +6318,7 @@ void C3DView::DrawPax(CTermPlanDoc* pDoc,BOOL* bOn,double* dAlt,BOOL bSelectMode
 			continue;
 
 		double distToCam =  GetCamera()->m_vLocation.DistanceTo( ARCVector3(pos[VX],pos[VY],pos[VZ])) ;
-		if(distToCam>200000)//can not see it so far
+		if(distToCam>2000000)//can not see it so far
 			continue;
 			
 

@@ -1460,14 +1460,20 @@
 #define IDB_BITMAP13                    1100
 #define IDC_LST_AIRPORTS                1101
 #define IDC_LIST_AIRPORTS               1101
+#define IDB_MOVE_DOWN_FLOOR             1101
 //#define IDB_LANDSIDE_TAXIPOOL           1101
 #define IDB_BITMAP_LANDSIDE_TAXIPOOL    1101
 #define IDC_TREE_SECTORS                1102
+#define IDB_MOVE_DOWN_FLOOR1            1102
 #define IDC_EDT_SECTORNAME              1103
+#define IDB_MOVE_DOWN_FLOOR2            1103
 #define IDC_EDT_AIRPORTS                1104
+#define IDB_MOVE_UP_FLOOR               1104
 #define IDC_EDT_APCODE                  1105
 #define IDC_EDT_APIATACODE              1105
+#define IDB_MOVE_UP_FLOOR1              1105
 #define IDC_EDT_APLONGNAME              1106
+#define IDB_MOVE_UP_FLOOR2              1106
 #define IDC_TREE_PROBDIST               1107
 #define IDC_EDT_APICAOCODE              1107
 #define IDC_EDT_APELEVATION             1108
@@ -5440,7 +5446,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1102
+#define _APS_NEXT_RESOURCE_VALUE        1107
 #define _APS_NEXT_COMMAND_VALUE         35334
 #define _APS_NEXT_CONTROL_VALUE         2408
 #define _APS_NEXT_SYMED_VALUE           491

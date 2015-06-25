@@ -733,3 +733,27 @@ void CPipeDataSet::SetLandsideInput( InputLandside* pLandsideInput )
 {
 	m_pInputLandside = pLandsideInput;
 }
+
+bool CPipeDataSet::getUsedProInfo( const ProcessorID& _id,InputTerminal *_pTerm,std::vector<CString>& _strVec )
+{
+	bool nRet = false;
+
+	int nPipeCount = (int)m_vPipes.size();
+	for(int i=0; i<nPipeCount; i++ )
+	{
+		CPipe* pPipe = GetPipeAt(i);
+		if (pPipe == NULL)
+			continue;
+		
+		if (pPipe->IsSideWalkHasAttach(_id) == true)
+		{
+			CString str = _id.GetIDString();
+			str += " : used in ";
+			str += pPipe->GetPipeName();
+			_strVec.push_back(str);
+			nRet = true;
+		}
+	}
+
+	return nRet;
+}

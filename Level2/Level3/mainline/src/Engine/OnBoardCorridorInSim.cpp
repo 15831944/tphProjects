@@ -425,6 +425,15 @@ CPoint2008 OnboardCorridorInSim::GetDistancePoint( double dDistance )
 	pt = center.GetDistPoint(dDistance);
 	return pt;
 }
+
+int OnboardCorridorInSim::GetResourceID() const
+{
+	if(m_pCorridor)
+		return m_pCorridor->GetID();
+
+	return -1;
+}
+
 bool OnboardCorridorInSim::CoridorSpans::GetSpan( double cindex,CPoint2008& pL, CPoint2008& pR )const
 {
 	bool bGetLeft = false;

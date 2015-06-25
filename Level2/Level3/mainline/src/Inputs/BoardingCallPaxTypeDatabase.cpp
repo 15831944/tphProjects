@@ -27,6 +27,18 @@ void BoardingCallPaxTypeEntry::AddTriggersFor260AndOlder(ConstraintWithProcIDEnt
 	{
 		const HistogramDistribution* pDistribution = (HistogramDistribution*)pConstEntry->getValue();
 		int count = pDistribution->getCount();
+		long seconds = (long)pDistribution->getValue(count-1);
+		if(seconds == 0) // The last one value in HistogramDistribution is zero
+		{
+			AddResidualTrigger(0L); // It's treated as a residual trigger with value 0L.
+			count -= 1;
+		}
+		else
+		{
+			AddResidualTrigger(); // Add a default residual trigger with value -500L.
+		}
+
+		// Add regular triggers.
 		for(int i=0; i<count; i++)
 		{
 			long seconds = (long)pDistribution->getValue(i);
@@ -85,9 +97,9 @@ void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file)
 	}
 }
 
-void BoardingCallPaxTypeEntry::AddResidualTrigger()
+void BoardingCallPaxTypeEntry::AddResidualTrigger(long _seconds)
 {
-	BoardingCallTrigger* pTrigger = new BoardingCallTrigger(-500L, -1);/* The 'RESIDUAL' trigger. */
+	BoardingCallTrigger* pTrigger = new BoardingCallTrigger(_seconds, -1);/* The 'RESIDUAL' trigger. */
 	m_vTriggers.push_back(pTrigger);
 }
 
@@ -194,7 +206,6 @@ void BoardingCallPaxTypeDatabase::AddPaxTypeFor260AndOlder( ConstraintWithProcID
 	pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
 	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
 	pPaxEntry->initialize(pMBConst, NULL);
-	pPaxEntry->AddResidualTrigger();
 	pPaxEntry->AddTriggersFor260AndOlder(pConstEntry);
 	addEntry(pPaxEntry, true);
 }

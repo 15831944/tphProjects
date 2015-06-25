@@ -35,6 +35,8 @@ bool EnrouteQueueCapacityInSim::PushBackExitEnrouteQCapacity( const ElapsedTime&
 	pTaxiRoute->InitRoute(pFlight,eTime);
 	FlightHoldListInTaxiRoute& taxiRouteList = pTaxiRoute->GetHoldList();
 
+	CString strTime = eTime.printTime();
+
 	for (int i = 0; i < taxiRouteList.GetCount(); i++)
 	{
 		const HoldInTaxiRoute& theHold = taxiRouteList.ItemAt(i);

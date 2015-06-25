@@ -679,24 +679,23 @@ Flight* CStringConvertToFlight::ConvertToFlight(const CString _sFormateStr,Arcte
 
 	//arr load factor
 	double aValue = -1.0;
-	_fAgentFile.getFloat(aValue);
-	if (aValue > 0)
+	if (_fAgentFile.getFloat(aValue))
 		pFlight->setArrLFInput(((double)aValue)/100);
 	else
 		_fAgentFile.skipField(1);
 
 	//dep load factor
-	_fAgentFile.getFloat(aValue);
-	if (aValue > 0)
+	if (_fAgentFile.getFloat(aValue))
 		pFlight->setDepLFInput(((double)aValue)/100);
 	else
 		_fAgentFile.skipField(1);
 
 	//capacity
 	int nValue = -1;
-	_fAgentFile.getInteger(nValue);
-	if (nValue > 0)
+	if (_fAgentFile.getInteger(nValue))
 		pFlight->setCapacityInput(nValue);
+	else
+		_fAgentFile.skipField(1);
 
 	return pFlight;
 }

@@ -961,19 +961,19 @@ void Flight::printFlight (char *p_str, int p_printGate, StringDictionary* _pStrD
 	strcat (p_str, ",");
 
 	CString strload = "";
-	if (m_arrLFInput >0)
+	if (m_arrLFInput >=0)
 		strload.Format("%.2f", (m_arrLFInput*100));
 	strcat( p_str, strload);
 	strcat (p_str, ",");
 
 	strload = "";
-	if (m_depLFInput >0)
+	if (m_depLFInput >=0)
 		strload.Format("%.2f", (m_depLFInput*100));
 	strcat( p_str, strload);
 	strcat (p_str, ",");
 
 	CString strCap = "";
-	if (m_capacityInput >0)
+	if (m_capacityInput >=0)
 		strCap.Format("%d", m_capacityInput);
 	strcat( p_str, strCap);
 
@@ -1909,22 +1909,27 @@ void Flight::readFligt3_5(ArctermFile& p_file,StringDictionary* _pStrDict, CStar
 	baggageDevice.readProcessorID(p_file);
 
 	double aValue = -1.0;
-	p_file.getFloat(aValue);
-	if (aValue > 0)
+	if (p_file.getFloat(aValue))
+	{
 		m_arrLFInput = (double)aValue/100;
+	}
 	else
 		p_file.skipField(1);
 
-	p_file.getFloat(aValue);
-	if (aValue > 0)
+	if (p_file.getFloat(aValue))
+	{
 		m_depLFInput = (double)aValue/100;
+	}
 	else
 		p_file.skipField(1);
 
 	int nCapacity = -1;
-	p_file.getInteger(nCapacity);
-	if (nCapacity > 0)
+	if (p_file.getInteger(nCapacity))
+	{
 		m_capacityInput = nCapacity;
+	}
+	else
+		p_file.skipField(1);
 
 	//new add member
 	p_file.getInteger(m_ataTime);

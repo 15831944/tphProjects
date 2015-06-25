@@ -35,7 +35,7 @@ protected:
 
 	//int GetFlightIndex(const Flight* pFlight); 
 
-	bool CheckBoardingCallValid(const Flight* pFlight,const HoldingArea* pHoldArea,InputTerminal* _pInTerm);
+	bool IsBoardingCallValid(const Flight* pFlight,const HoldingArea* pHoldArea,InputTerminal* _pInTerm);
 	bool GetProcIDInSubFlowList(const ProcessorID& ProcID,std::vector<ProcessorID>& ProIDList,InputTerminal* _pInTerm);
 	bool IsSubFlowInPaxFlow(const CSinglePaxTypeFlow& pSingleFlow,const std::vector<ProcessorID>& ProIDList);
 

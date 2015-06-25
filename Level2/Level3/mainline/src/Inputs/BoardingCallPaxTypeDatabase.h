@@ -44,7 +44,7 @@ public:
 	void writeTriggerDatabase( ArctermFile& p_file);
 
 	void AddRegularTrigger(long _seconds, double _prop);
-	void AddResidualTrigger();
+	void AddResidualTrigger(long _seconds = -500L);
 };
 
 class BoardingCallPaxTypeDatabase : public CMobileElemConstraintDatabase

@@ -5349,7 +5349,6 @@
     <None Include="res\bmp00050.bmp" />
     <None Include="res\bmp00051.bmp" />
     <None Include="res\bmp00052.bmp" />
-    <None Include="res\bmp00053.bmp" />
     <None Include="Res\bmp_seldefined.bmp" />
     <None Include="Res\bmpPipeBar.bmp" />
     <None Include="Res\bus_station.bmp" />

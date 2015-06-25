@@ -720,42 +720,52 @@ void CTaxiInterruptLine3D::Draw(C3DView* pView)
 	pTaxiway->ReadObject(m_TaxiwayID);
 
 	double DistToStart = pTaxiway->GetPath().GetPointDist(m_Pt);
-	int Count = pTaxiway->GetPath().getCount();
-	CPoint2008 pos; 
-	double Pt2Start;
-	double NextPt2Start;
-	int FrontPtID;
-	for (int i = 0 ; i<Count-1 ; i++ )
-	{
-		pos = pTaxiway->GetPath().getPoint(i);
-		Pt2Start = pTaxiway->GetPath().GetPointDist(pos);
-		pos = pTaxiway->GetPath().getPoint(i+1);
-		NextPt2Start = pTaxiway->GetPath().GetPointDist(pos);
-		if (DistToStart>=Pt2Start&&DistToStart<NextPt2Start)
-		{
-			FrontPtID = i;
-			break;
-		}
-	}
-	if(FrontPtID >= Count-1)
-		return;
+	//int Count = pTaxiway->GetPath().getCount();
+	//CPoint2008 pos; 
+	//double Pt2Start;
+	//double NextPt2Start;
+	////
+	//int FrontPtID;
+	//for (int i = 0 ; i<Count-1 ; i++ )
+	//{
+	//	pos = pTaxiway->GetPath().getPoint(i);
+	//	Pt2Start = pTaxiway->GetPath().GetPointDist(pos);
+	//	pos = pTaxiway->GetPath().getPoint(i+1);
+	//	NextPt2Start = pTaxiway->GetPath().GetPointDist(pos);
+	//	if (DistToStart>=Pt2Start&&DistToStart<NextPt2Start)
+	//	{
+	//		FrontPtID = i;
+	//		break;
+	//	}
+	//}
+	//if(FrontPtID >= Count)
+	//	return;
 	
-	CPoint2008 dir = CPoint2008(pTaxiway->GetPath().getPoint(FrontPtID) - pTaxiway->GetPath().getPoint(FrontPtID+1));
-	dir.setZ(0);
-	dir.Normalize();
-	dir.rotate(90);
-	dir.length(pTaxiway->GetWidth()*0.5);
-	pos = pTaxiway->GetPath().GetDistPoint(DistToStart);
-	
-	CLine2008 line( pos + dir, pos - dir);
+	//CPoint2008 dir = CPoint2008(pTaxiway->GetPath().getPoint(FrontPtID) - pTaxiway->GetPath().getPoint(FrontPtID+1));
+	//dir.setZ(0);
+	//dir.Normalize();
+	//dir.rotate(90);
+	//dir.length(pTaxiway->GetWidth()*0.5);
+	//pos = pTaxiway->GetPath().GetDistPoint(DistToStart);
+	//
+	//CLine2008 line( pos + dir, pos - dir);
 
-	CTexture * pTexture = pView->getTextureResource()->getTexture("HoldPosition");
-	if(pTexture)
-		pTexture->Apply();
+		CPoint2008 dir = CPoint2008(pTaxiway->GetPath().GetDistDir(DistToStart));// CPoint2008(pTaxiway->GetPath().getPoint(FrontPtID) - pTaxiway->GetPath().getPoint(FrontPtID+1));
+		dir.setZ(0);
+		dir.Normalize();
+		dir.rotate(90);
+		dir.length(pTaxiway->GetWidth()*0.5);
+		CPoint2008 pos = pTaxiway->GetPath().GetDistPoint(DistToStart);
+		CLine2008 line( pos + dir, pos - dir);
 
+		CTexture * pTexture = pView->getTextureResource()->getTexture("HoldPosition");
+		if(pTexture)
+			pTexture->Apply();
+        glColor3f(1.0,1.0,0.0);
+		glNormal3f(0.0,0.0,1.0);
 	
-	glColor3f(1.0,1.0,0.0);
-	glNormal3f(0.0,0.0,1.0);
+	//glColor3f(1.0,1.0,0.0);
+	//glNormal3f(0.0,0.0,1.0);
 
 	CPoint2008 p1 = line.GetPoint1();
 	CPoint2008 p2 = line.GetPoint2();

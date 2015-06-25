@@ -21,6 +21,7 @@ public:
 	FlightGroundRouteDirectSegInSim* mLinkDirSeg; //enter or exit seg when enter/exit node
 
 	bool m_bIsRunwayExit;
+
 public:
 	HoldInTaxiRoute();
 	HoldInTaxiRoute(TYPE holdType,const DistanceUnit&dist, IntersectionNodeInSim* pNode, FlightGroundRouteDirectSegInSim* pSeg,int nHoldID );
@@ -177,4 +178,28 @@ public:
 
 	std::vector< FlightInterruptPosInRoute> GetNextItems(const DistanceUnit& distF )const;
 
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class TaxiRouteNodeInSim
+{
+public:
+
+protected:
+	IntersectionNodeInSim* m_pNode;
+	DistanceUnit m_dEntryDistInRoute;
+	DistanceUnit m_dExitDistInRoute;
+};
+
+
+class TaxiRouteNodeListInSim
+{
+public:
+	void Init(TaxiRouteInSim& theRoute, AirsideFlightInSim* pFlight);
+
+	void Clear();
+	~TaxiRouteNodeListInSim(){ Clear(); }
+protected:
+	std::vector<TaxiRouteNodeInSim*> m_vNodeData;
 };

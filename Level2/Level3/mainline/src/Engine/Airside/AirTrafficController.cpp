@@ -798,6 +798,12 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 		TakeoffQueueInSim* pTakeoffQueue = m_pResources->GetAirportResource()->getTakeoffQueuesManager()->GetRunwayExitQueue(pFlight->GetAndAssignTakeoffPosition());
 		if(pOutBound && (lastClearanceItem.GetMode() == OnExitStand || lastClearanceItem.GetMode() == OnTaxiToRunway ))
 		{
+			if (lastClearanceItem.GetMode() == OnExitStand && lastClearanceItem.IsPushback() == true)
+			{
+				if (m_pEnrouteQCapacity && m_pEnrouteQCapacity->PushBackExitEnrouteQCapacity(lastClearanceItem.GetTime(),pFlight) == false)//delay by enroute capacity
+					return;
+			}
+
 			if(pFlight->GetTowingRoute())
 			{
 				pFlight->GetTowingRoute()->FlightExitRoute(pFlight,pFlight->GetTime());

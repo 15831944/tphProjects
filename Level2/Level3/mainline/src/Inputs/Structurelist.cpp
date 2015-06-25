@@ -224,7 +224,7 @@ void CStructureList::writeData (ArctermFile& p_file) const
 			
 		int ptcount = m_structurelist.getItem(i)->getPointNum();		
 		p_file.writeInt(ptcount);
-		p_file.writeInt(m_structurelist.getItem(i)->getFloorIndex());
+		p_file.writeInt(m_structurelist.getItem(i)->GetFloorIndex());
 		for(int j = 0; j< ptcount; j ++)
 		{
 			Point pt = m_structurelist.getItem(i)->getPointAt(j);

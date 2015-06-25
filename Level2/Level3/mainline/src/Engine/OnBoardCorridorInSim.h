@@ -60,6 +60,7 @@ public:
 	~OnboardCorridorInSim(void);
 
 	virtual CString GetType()const;
+	virtual int GetResourceID() const;
 
 	struct  CoridorSpanItem
 	{

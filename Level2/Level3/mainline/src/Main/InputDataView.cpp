@@ -410,45 +410,95 @@ void CInputDataView::LoadBoardingCall()
 	m_listBoardingCall.InsertColumn(0,"Stage");
 	m_listBoardingCall.InsertColumn(1,"Flight Type");
 	m_listBoardingCall.InsertColumn(2,"Stand");
-	m_listBoardingCall.InsertColumn(3,"Probability Distribution");
+	m_listBoardingCall.InsertColumn(3,"Passenger Type");
+	m_listBoardingCall.InsertColumn(4,"Trigger");
+	m_listBoardingCall.InsertColumn(5,"Time range before STD(seconds)");
+	m_listBoardingCall.InsertColumn(6,"Proportion of Pax(%)");
 
-	m_listBoardingCall.SetColumnWidth(0,30);
-	m_listBoardingCall.SetColumnWidth(1,150);
-	m_listBoardingCall.SetColumnWidth(2,150);
-	m_listBoardingCall.SetColumnWidth(3,450);
-	
-	int i;
-	int nSum=0;
-	CString sValue("");
-	FlightData* pFlightData=m_pDocument->GetTerminal().flightData;
-	int nCount=pFlightData->GetStageCount();
-	//TCHAR sProcID[512]={'\0'};
-	CString sProcID;
-	CString sFlightType;
-	CString sDistribution;
-	//TCHAR sDistribution[1024] = ;
+	m_listBoardingCall.SetColumnWidth(0,40);
+	m_listBoardingCall.SetColumnWidth(1,120);
+	m_listBoardingCall.SetColumnWidth(2,120);
+	m_listBoardingCall.SetColumnWidth(3,120);
+	m_listBoardingCall.SetColumnWidth(4,50);
+	m_listBoardingCall.SetColumnWidth(5,180);
+	m_listBoardingCall.SetColumnWidth(6,150);
+
+	CString strStage;
+	CString strFltType;
+	CString strStand;
+	CString strPaxType;
+	CString strTrigger;
+	CString strTime;
+	CString strProp;
 	BoardingCallFlightTypeDatabase* pStage = NULL;
 	BoardingCallFlightTypeEntry* pFlightEntry = NULL;
-	for(i=1;i<=nCount;i++)
+	BoardingCallStandDatabase* pStandDB = NULL;
+	BoardingCallStandEntry* pStandEntry = NULL;
+	BoardingCallPaxTypeDatabase* pPaxDB = NULL;
+	BoardingCallPaxTypeEntry* pPaxEntry = NULL;
+	BoardingCallTrigger* pTrigger = NULL;
+	ProbabilityDistribution* pTime = NULL;
+	ProbabilityDistribution* pProp = NULL;
+	int nListViewItem=0;
+	FlightData* pFlightData=m_pDocument->GetTerminal().flightData;
+	for(int iStage=0; iStage<pFlightData->GetStageCount(); iStage++)
 	{
-		pStage=pFlightData->GetFlightTypeDB(i);
-		for(int j=0; j<pStage->getCount(); j++,nSum++)
+		strStage.Format("%d",iStage+1);
+		pStage=pFlightData->GetFlightTypeDB(iStage);
+		for(int iFlt=0; iFlt<pStage->getCount(); iFlt++)
 		{
-			pFlightEntry = (BoardingCallFlightTypeEntry*)pStage->getItem(j);
+			pFlightEntry = (BoardingCallFlightTypeEntry*)pStage->getItem(iFlt);
 			FlightConstraint* pFlightConst = (FlightConstraint*)pFlightEntry->getConstraint();
-			pFlightConst->getFullID(sFlightType.GetBuffer(256));
-			sFlightType.ReleaseBuffer();
-			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pFlightEntry->GetStandDatabase()->getItem(0);
-			pStandEntry->getID()->printID(sProcID.GetBuffer(256));
-			sProcID.ReleaseBuffer();
-			sDistribution = _T("Main\\InputDataView.cpp: 445,TODO");
-
-			sValue.Format("%d",i);
-			m_listBoardingCall.InsertItem(nSum,sValue);
-			m_listBoardingCall.SetItemText(nSum,1,sProcID);
-			m_listBoardingCall.SetItemText(nSum,2,sFlightType);
-			m_listBoardingCall.SetItemText(nSum,3,sDistribution);
-			
+			strFltType.Empty();
+			pFlightConst->screenPrint(strFltType);
+			pStandDB = pFlightEntry->GetStandDatabase();
+			for(int iStand=0; iStand<pStandDB->getCount(); iStand++)
+			{
+				pStandEntry = (BoardingCallStandEntry*)pStandDB->getItem(iStand);
+				strStand.Empty();
+				if(pStandEntry->getID()->isBlank())
+				{
+					strStand = _T("All Stand");
+				}
+				else
+				{
+					pStandEntry->getID()->printID(strStand.GetBuffer(256));
+					strStand.ReleaseBuffer();
+				}
+				pPaxDB = (BoardingCallPaxTypeDatabase*)pStandEntry->GetPaxTypeDatabase();
+				for(int iPax=0; iPax<pPaxDB->getCount(); iPax++)
+				{
+					pPaxEntry = (BoardingCallPaxTypeEntry*)pPaxDB->getItem(iPax);
+					CMobileElemConstraint* pMobElemConst = (CMobileElemConstraint*)pPaxEntry->getConstraint();
+					strPaxType.Empty();
+					pMobElemConst->screenPrint(strPaxType);
+					std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
+					for(int iTrigger=0; iTrigger<vTrigger.size(); iTrigger++)
+					{
+						pTrigger = vTrigger[iTrigger];
+						pTime = pTrigger->m_time;
+						pProp = pTrigger->m_prop;
+						strTrigger.Format("%d", iTrigger+1);
+						strTime = pTime->screenPrint();
+						if(iTrigger == vTrigger.size()-1)
+						{
+							strProp = _T("Residual");
+						}
+						else
+						{
+							strProp = pProp->screenPrint();
+						}
+						m_listBoardingCall.InsertItem(nListViewItem, strStage);
+						m_listBoardingCall.SetItemText(nListViewItem,1,strFltType);
+						m_listBoardingCall.SetItemText(nListViewItem,2,strStand);
+						m_listBoardingCall.SetItemText(nListViewItem,3,strPaxType);
+						m_listBoardingCall.SetItemText(nListViewItem,4,strTrigger);
+						m_listBoardingCall.SetItemText(nListViewItem,5,strTime);
+						m_listBoardingCall.SetItemText(nListViewItem,6,strProp);
+						nListViewItem++;
+					}
+				}
+			}
 		}
 	}
 	m_vList.push_back(&m_listBoardingCall);
@@ -791,7 +841,7 @@ void CInputDataView::LoadLeadLag()
 	
 	//TCHAR sMobileElemType[512]={'\0'};
 	CString sProcID("");
-	TCHAR sProbDistribution[512]={'\0'};
+	CString sProbDistribution;
 	CString sMobileElemType;
 	//CString sProbDistribution;
 
@@ -813,7 +863,7 @@ void CInputDataView::LoadLeadLag()
 		{
 			sProcID=pEntry->getProcID().GetIDString();
 		}
-		pEntry->getValue()->screenPrint(sProbDistribution);
+		sProbDistribution = pEntry->getValue()->screenPrint();
 		
 		m_listLeadLag.InsertItem(nEntry,sMobileElemType);
 		m_listLeadLag.SetItemText(nEntry,1,sProcID);

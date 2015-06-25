@@ -21,6 +21,7 @@ protected:
 
 public:
 	int GetStageCount(){ return m_vFltTypeDB.size(); }
+	int GetStageCount()const { return m_vFltTypeDB.size(); }
     FlightData () : DataSet (FlightDataFile,(float)2.7 )
     {	
 		delays.setUnits ("MINUTES"); 

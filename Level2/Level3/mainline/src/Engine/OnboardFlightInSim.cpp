@@ -306,6 +306,18 @@ void OnboardFlightInSim::Initialize()
 		}
 	}
 
+	//initialize corridor
+	COnboardCorridorDataset* pCorridorList = m_pLayout->GetPlacements()->GetCorridorData();
+	if (pCorridorList != NULL)
+	{
+		for (int nCorridor = 0; nCorridor < pCorridorList->GetItemCount(); ++nCorridor)
+		{
+			COnboardCorridor* pCorridor = pCorridorList->GetItem(nCorridor);
+			if (pCorridor != NULL)
+				m_vCorridorInSim.push_back(new OnboardCorridorInSim(pCorridor,this));
+
+		}
+	}
 
 	//initialize storage
 	CStorageDataSet* pStorageList = m_pLayout->GetPlacements()->GetStorageData();

@@ -577,7 +577,7 @@ int CImportFlightFromFileDlg::AddAFlightToList(Flight *_pFlight)
 
 	if(m_bColumnDropped[19])
 	{	
-		if (_pFlight->getArrLFInput() >0)
+		if (_pFlight->getArrLFInput() >=0)
 		{
 			CString str = "";
 			str.Format("%.2f", _pFlight->getArrLFInput()*100);
@@ -586,7 +586,7 @@ int CImportFlightFromFileDlg::AddAFlightToList(Flight *_pFlight)
 	}
 	if(m_bColumnDropped[20])
 	{
-		if (_pFlight->getDepLFInput() >0)
+		if (_pFlight->getDepLFInput() >=0)
 		{
 			CString str = "";
 			str.Format("%.2f", _pFlight->getDepLFInput()*100);
@@ -595,7 +595,7 @@ int CImportFlightFromFileDlg::AddAFlightToList(Flight *_pFlight)
 	}
 	if(m_bColumnDropped[21])
 	{
-		if (_pFlight->getCapacityInput() >0)
+		if (_pFlight->getCapacityInput() >=0)
 		{
 			CString str = "";
 			str.Format("%d", _pFlight->getCapacityInput());

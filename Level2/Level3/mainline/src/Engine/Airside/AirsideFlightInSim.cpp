@@ -92,7 +92,7 @@
 #include "AirsidePassengerBusStrategy.h"
 #include "..\AirsdieFlightBaggageManager.h"
 
-#define _DEBUGLOG 0
+#define _DEBUGLOG 1
 
 //log debug //////////////////////////////////////////////////////////////////////////
 #if _DEBUGLOG 
@@ -126,12 +126,13 @@ public:
 
 	static void Log(AirsideFlightInSim* pFlight, const Clearance& clearance)
 	{
-		PLACE_METHOD_TRACK_STRING();
-
 		CString debugfileName = GetFileName(pFlight);
+
 		//log to flight file
 		std::ofstream outfile;
 		outfile.open(debugfileName,ios::app);
+		
+		outfile <<"<" << Event::getCurEventNum()<<">" << std::endl;
 		outfile << pFlight->GetTime()<<"," << long(pFlight->GetTime())<<std::endl;
 		outfile << pFlight->GetPosition().getX() <<" ," <<pFlight->GetPosition().getY() << std::endl;
 		outfile << clearance;
@@ -147,7 +148,6 @@ public:
 
 	static void LogEvent(AirsideFlightInSim* pFlight, const ElapsedTime& eventTime)
 	{
-		PLACE_METHOD_TRACK_STRING();
 
 		//log to flight file
 		CString debugfileName;
@@ -1058,9 +1058,6 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 				LogRunwayOperationLog(FALSE,item);
 			}
 		}
-
-
-
 
 	}
 
@@ -2138,6 +2135,7 @@ void AirsideFlightInSim::WriteLog( bool bEnterRes /*= false*/)
 	//pLogItem->m_fltState = GetCurState();
 	//m_lstWirteLog.AddItem(pLogItem);
 	//FligthLogFile::LogLog(this,newEvent);
+	FligthLogFile::LogEvent(this,GetTime());
 
 	m_pOutput->LogFlightEvent(this ,newEvent);	
 

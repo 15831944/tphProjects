@@ -64,6 +64,7 @@ public:
 	void SetBlock(bool bBlock);
 
 	ElapsedTime GetAvailableEntryTime(AirsideFlightInSim* pFlight, const ElapsedTime& entryTime, const ElapsedTime& exitTime );
+	ElapsedTime GetLastOcyTime()const;
 
 	virtual bool IsActiveFor(ARCMobileElement* pmob,const RouteDirPath* pPath)const;
 	virtual bool bMayHaveConflict(const RouteDirPath *pPath)const{ return true; }

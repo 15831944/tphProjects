@@ -182,7 +182,10 @@ void CPipe::ReadData(  ArctermFile& p_file,InputLandside* pInputLandside )
 		tempID.SetStrDict( m_pTerm->inStrDict );
 		p_file.getLine();
 		tempID.readProcessorID( p_file );
-		m_vSideWalkInPipe.push_back( tempID );
+
+		if(m_pTerm->procList->findProcessor(tempID) == INT_MAX)//if doesn't find moving sidewalk and ignore
+			continue;
+		m_vSideWalkInPipe.push_back( tempID );	
 	}
 
 	CalculateTheBisectLine();

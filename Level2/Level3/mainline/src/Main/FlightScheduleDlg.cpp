@@ -449,7 +449,7 @@ void CFlightScheduleDlg::SetFlightInListCtrl( int _nIndex, const Flight& _flight
 
 		CString strLoad = "";
 		double dValue = _flight.getArrLFInput();
-		if (dValue >0)
+		if (dValue >=0)
 			strLoad.Format("%.2f", dValue*100);
 		m_listCtrlSchdList.SetItemText( _nIndex, 7, strLoad );		
 
@@ -515,7 +515,7 @@ void CFlightScheduleDlg::SetFlightInListCtrl( int _nIndex, const Flight& _flight
 
 		CString strLoad = "";
 		double dValue = _flight.getDepLFInput();
-		if (dValue >0)
+		if (dValue >=0)
 			strLoad.Format("%.2f", dValue*100);
 		m_listCtrlSchdList.SetItemText( _nIndex, 13, strLoad );		
 
@@ -559,7 +559,7 @@ void CFlightScheduleDlg::SetFlightInListCtrl( int _nIndex, const Flight& _flight
 	m_listCtrlSchdList.SetItemText( _nIndex, 14, str );
 
 	CString strCap = "";
-	if (_flight.getCapacityInput() >0)
+	if (_flight.getCapacityInput() >=0)
 		strCap.Format("%d", _flight.getCapacityInput());
 	m_listCtrlSchdList.SetItemText( _nIndex, 15, strCap );	
 

@@ -949,9 +949,9 @@ inline static void RenderStructures(CTermPlanDoc * pDoc,C3DView* pView,int nSele
 	for (size_t i = 0; i < StructureList.getStructureNum(); i++)
 	{	
 		CStructure * cs=StructureList.getStructureAt(i);
-		int iFloor=cs->getFloorIndex();
+		int iFloor=cs->GetFloorIndex();
 		if(bOn[iFloor]){							
-			StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorIndex()],FALSE);
+			StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->GetFloorIndex()],FALSE);
 		}
 	}	
 	for(size_t i=0;i<cslist.getStructureNum();i++){		
@@ -970,14 +970,14 @@ inline static void RenderStructures(CTermPlanDoc * pDoc,C3DView* pView,int nSele
 	for (size_t i = 0; i < StructureList.getStructureNum(); i++)
 	{		
 		CStructure * cs=StructureList.getStructureAt(i);
-		int iFloor=cs->getFloorIndex();
+		int iFloor=cs->GetFloorIndex();
 		if(bOn[iFloor])
 		{
 			glColor4f(1.0f, 1.0f, 1.0f, _alpha);					// Full Brightness.  50% Alpha
 			if (i == nSelectedStructure&&iFloor==nActiveFloor&&pDoc->m_systemMode==EnvMode_Terminal)
-				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorIndex()],bSelStructureEdit);
+				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->GetFloorIndex()],bSelStructureEdit);
 			else
-				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->getFloorIndex()],FALSE);
+				StructureList.getStructureAt(i)->DrawOGL(pView->getTextureResource(),pView->GetDocument()->GetSurfaceMaterialLib(),dAlt[cs->GetFloorIndex()],FALSE);
 		}		
 	}	
 	for(size_t i=0;i<cslist.getStructureNum();i++){

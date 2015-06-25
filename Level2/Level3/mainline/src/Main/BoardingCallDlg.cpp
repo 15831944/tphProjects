@@ -292,20 +292,13 @@ void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITE
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
+	cni.net = NET_SHOW_DIALOGBOX;
 	int paxCount = pPaxDB->getCount();
 	for(int iPax=0; iPax<paxCount; iPax++)
 	{
 		CString strPaxType;
 		BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pPaxDB->getItem(iPax);
 		CMobileElemConstraint* pMobElemConst = (CMobileElemConstraint*)(pPaxEntry->getConstraint());
-		if(pMobElemConst->isDefault())
-		{
-			cni.net = NET_NORMAL;
-		}
-		else
-		{
-			cni.net = NET_SHOW_DIALOGBOX;
-		}
 		pMobElemConst->screenPrint(strPaxType);
 		strItemText.Format("Passenger Type: %s", strPaxType);
 		HTREEITEM hTreeItemPax = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemStand);
@@ -348,7 +341,14 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTrigge
 	int triggerCount = vTriggers.size();
 	for(int iTrigger=0; iTrigger<triggerCount; iTrigger++)
 	{
-		strItemText.Format("Trigger %d", (iTrigger+1));
+		if(iTrigger != triggerCount-1)
+		{
+			strItemText.Format("Trigger %d", (iTrigger+1));
+		}
+		else
+		{
+			strItemText.Format("Trigger %d (Final)", (iTrigger+1));
+		}
 		cni.net = NET_NORMAL;
 		HTREEITEM hTrigger = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTriggerAll);
 		TreeNodeDataWithType* nodeDataTrigger = new TreeNodeDataWithType();
@@ -385,7 +385,7 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTrigge
 			nodeDataTrigger = new TreeNodeDataWithType();
 			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
 			nodeDataTrigger->m_data = (DWORD)-1;
-			cni.net = NET_NORMAL;
+			cni.net = NET_SHOW_DIALOGBOX;
 			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
 		}
@@ -443,7 +443,16 @@ void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pRes
 		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
 		break;
 	case TREE_NODE_TRIGGER:
-		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
+		{
+			BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pSelData->m_data;
+			HTREEITEM hPaxItem = m_tree.GetParentItem(m_tree.GetParentItem(hSelItem));
+			TreeNodeDataWithType* pPaxNode = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxItem);
+			ASSERT(pPaxNode->m_type == TREE_NODE_PASSENGER_TYPE);
+			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pPaxNode->m_data;
+			std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
+			if(pTrigger != vTrigger.back())
+				m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
+		}
 		break;
 	case TREE_NODE_TRIGGER_TIME:
 	case TREE_NODE_TRIGGER_PROP:
@@ -782,11 +791,6 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_PASSENGER_TYPE);
 			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pParentData->m_data;
 			BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pSelItemData->m_data;
-			if(pTrigger == *(pPaxTypeEntry->GetTriggersDatabase().end()-1))
-			{
-				MessageBox("Cannot delete the default trigger.");
-				return;
-			}
 			pPaxTypeEntry->DeleteTrigger(pTrigger);
 			// Reload all sibling item.
 			ReloadPaxType(pPaxTypeEntry, hPaxTypeItem);
@@ -1180,6 +1184,10 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		}
 		m_tree.SetItemText(hSelItem, strItemText);
 	}
+	if(message == UM_CEW_COMBOBOX_SETWIDTH)
+	{
+		m_tree.SetWidth(250);
+	}
 	return CDialog::DefWindowProc(message, wParam, lParam);
 }
 
@@ -1303,12 +1311,21 @@ void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
 		break;
 	case TREE_NODE_TRIGGER:
 		{
-			CMenu menu;
-			menu.CreatePopupMenu();
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_TRIGGER, _T("Delete Trigger"));
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pSelData->m_data;
+			HTREEITEM hPaxItem = m_tree.GetParentItem(m_tree.GetParentItem(hSelItem));
+			TreeNodeDataWithType* pPaxNode = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxItem);
+			ASSERT(pPaxNode->m_type == TREE_NODE_PASSENGER_TYPE);
+			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pPaxNode->m_data;
+			std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
+			if(pTrigger != vTrigger.back())
+			{
+				CMenu menu;
+				menu.CreatePopupMenu();
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_TRIGGER, _T("Delete Trigger"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+				menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+			}
 		}
 		break;
 	case TREE_NODE_TRIGGER_TIME:
@@ -1440,6 +1457,21 @@ void CBoardingCallDlg::OnChooseMenu( UINT nID )
 			case MENU_EDIT_TRIGGERCOUNT:
 				OnToolbarButtonEdit();
 				break;
+			case MENU_ADD_TRIGGER:
+				{
+					HTREEITEM hPaxTypeItem = m_tree.GetParentItem(hSelItem);
+					TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
+					ASSERT(pDataWithType && pDataWithType->m_type == TREE_NODE_PASSENGER_TYPE);
+					BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
+					std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
+					CString strItemText;
+					int i = pPaxEntry->GetTriggerCount() + 1;
+					strItemText.Format("Number of triggers: %d", i);
+					pPaxEntry->SetTriggerCount(i);
+					ReloadTriggers(vTrigger, hSelItem);
+					m_tree.Expand(hSelItem, TVE_EXPAND);
+					m_btnSave.EnableWindow(TRUE);
+				}
 			default:
 				break;
 			}

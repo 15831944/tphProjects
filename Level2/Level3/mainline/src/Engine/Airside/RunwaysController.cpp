@@ -387,38 +387,47 @@ void CRunwaySystem::PerformanceApproachSeparation( AirsideFlightInSim *pFlight,
 
 		if (pFrontFlight && pFrontFlight != pFlight)
 		{
-			double dSepTime = 60;
-			m_pApproachSeparationInSim->GetApproachSeparationTime(pFlight,pFrontFlight,(AirsideMobileElementMode)frontIns.GetOccupyType(),dSepTime);
 
-			if (frontIns.GetOccupyType() == OnTakeoff && pNode == NULL)
+			if(frontIns.GetOccupyType() == OnLanding || frontIns.GetOccupyType()== OnTakeoff)
 			{
-				if (pFrontFlight->getRealOpTimeOnRunway() + ElapsedTime(dSepTime) > tAvailLandingTime)
+				double dSepTime = 60;
+				m_pApproachSeparationInSim->GetApproachSeparationTime(pFlight,pFrontFlight,(AirsideMobileElementMode)frontIns.GetOccupyType(),dSepTime);
+
+				if (frontIns.GetOccupyType() == OnTakeoff && pNode == NULL)
 				{
-					tAvailLandingTime = pFrontFlight->getRealOpTimeOnRunway() + ElapsedTime(dSepTime);
+					if (pFrontFlight->getRealOpTimeOnRunway() + ElapsedTime(dSepTime) > tAvailLandingTime)
+					{
+						tAvailLandingTime = pFrontFlight->getRealOpTimeOnRunway() + ElapsedTime(dSepTime);
+					}
 				}
-			}
-			else
-			{
-				if (pNode != NULL)		//if node separation neglect the same runway flight operation
+				else
 				{
-					if ((frontIns.GetOccupyType() == OnTakeoff && pLogicRunway != pFrontFlight->GetAndAssignTakeoffRunway())
-						|| (frontIns.GetOccupyType() == OnLanding && pLogicRunway != pFrontFlight->GetLandingRunway()))
+					if (pNode != NULL)		//if node separation neglect the same runway flight operation
+					{
+						if ((frontIns.GetOccupyType() == OnTakeoff && pLogicRunway != pFrontFlight->GetAndAssignTakeoffRunway())
+							|| (frontIns.GetOccupyType() == OnLanding && pLogicRunway != pFrontFlight->GetLandingRunway()))
+						{
+							if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailLandingTime)			//can not keep separation to front flight at intersection node
+							{
+								tAvailLandingTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
+							}
+						}
+					}
+					else
 					{
 						if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailLandingTime)			//can not keep separation to front flight at intersection node
 						{
 							tAvailLandingTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
 						}
 					}
-				}
-				else
-				{
-					if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailLandingTime)			//can not keep separation to front flight at intersection node
-					{
-						tAvailLandingTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
-					}
-				}
 
-			}		
+				}		
+			}
+			else
+			{
+				tAvailLandingTime = MAX(tAvailLandingTime, frontIns.GetExitTime() );
+			}
+			
 		}
 
 		if (pAfterFlight && pAfterFlight != pFlight)
@@ -990,84 +999,86 @@ void CRunwaySystem::PerformanceTakeOffSeparation( AirsideFlightInSim *pFlight,
 				eEnterRunwayTime =  pFrontFlight->getRealOpTimeOnRunway() + tClearPosSepTime;
 
 			AirsideMobileElementMode frontMode = (AirsideMobileElementMode)frontIns.GetOccupyType();
-			if(bSameRunway )//same runway
+			if(frontMode == OnLanding || frontMode == OnTakeoff)
 			{
-				IntersectionNodeInSim* pNode = pFlight->GetAndAssignTakeoffPosition()->GetRouteSeg()->GetEntryNode();
-				if (pNode)
+				if(bSameRunway )//same runway
 				{
-					OccupancyInstance frontInstance = pNode->GetOccupyInstance(pFrontFlight);
-					ElapsedTime tFrontNode;
-					tFrontNode.setPrecisely((long(frontInstance.GetEnterTime() + frontInstance.GetExitTime()))/2);
-					if (eEnterRunwayTime < tFrontNode+ tClearPosSepTime)
-						eEnterRunwayTime = tFrontNode + tClearPosSepTime;
+					IntersectionNodeInSim* pNode = pFlight->GetAndAssignTakeoffPosition()->GetRouteSeg()->GetEntryNode();
+					if (pNode)
+					{
+						OccupancyInstance frontInstance = pNode->GetOccupyInstance(pFrontFlight);
+						ElapsedTime tFrontNode;
+						tFrontNode.setPrecisely((long(frontInstance.GetEnterTime() + frontInstance.GetExitTime()))/2);
+						if (eEnterRunwayTime < tFrontNode+ tClearPosSepTime)
+							eEnterRunwayTime = tFrontNode + tClearPosSepTime;
+					}
+
+					double dSepTime = 60;
+					//get the separation with front flight
+					m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,frontMode, dSepTime);
+
+					ElapsedTime tSepTime = tClearPosSepTime > ElapsedTime(dSepTime)? tClearPosSepTime:ElapsedTime(dSepTime);
+
+					if (pFrontFlight->getRealOpTimeOnRunway() + tSepTime > tAvailTakeoffTime)			//can not keep separation to front flight
+					{
+						ElapsedTime tDelay = pFrontFlight->getRealOpTimeOnRunway() + tSepTime - tAvailTakeoffTime;
+						////////////////////////runway delay log
+						pLog = new AirsideFlightRunwayDelayLog(resDesc, tAvailTakeoffTime.asSeconds(), OnTakeoff, (tAvailTakeoffTime+tDelay).asSeconds(), tDelay.asSeconds(), FlightRunwayDelay::UNKNOWNPOS);
+						pLog->sReasonDetail = "Runway occupied";
+						pFlight->LogEventItem(pLog);
+						////////////////////////
+						tAvailTakeoffTime += tDelay ;
+					}
 				}
+				else//intersection node or related runway
+				{	
+					double dSepTime = 60;
+					m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,frontMode , dSepTime);
+					if (pNode != NULL)
+					{
+						if ((frontIns.GetOccupyType() == OnTakeoff && pLogicRunway != pFrontFlight->GetAndAssignTakeoffRunway())
+							|| (frontIns.GetOccupyType() == OnLanding && pLogicRunway != pFrontFlight->GetLandingRunway()))		
+						{
+							double dSepTime = 60;
+							m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,(AirsideMobileElementMode)frontIns.GetOccupyType() , dSepTime);
 
-				double dSepTime = 60;
-				//get the separation with front flight
-				m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,frontMode, dSepTime);
-
-				ElapsedTime tSepTime = tClearPosSepTime > ElapsedTime(dSepTime)? tClearPosSepTime:ElapsedTime(dSepTime);
-
-				if (pFrontFlight->getRealOpTimeOnRunway() + tSepTime > tAvailTakeoffTime)			//can not keep separation to front flight
-				{
-					ElapsedTime tDelay = pFrontFlight->getRealOpTimeOnRunway() + tSepTime - tAvailTakeoffTime;
-					////////////////////////runway delay log
-					pLog = new AirsideFlightRunwayDelayLog(resDesc, tAvailTakeoffTime.asSeconds(), OnTakeoff, (tAvailTakeoffTime+tDelay).asSeconds(), tDelay.asSeconds(), FlightRunwayDelay::UNKNOWNPOS);
-					pLog->sReasonDetail = "Runway occupied";
-					pFlight->LogEventItem(pLog);
-					////////////////////////
-					tAvailTakeoffTime += tDelay ;
-				}
-			}
-			else//intersection node or related runway
-			{	
-				double dSepTime = 60;
-				m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,frontMode , dSepTime);
-
-
-
-
-
-				if (pNode != NULL)
-				{
-					if ((frontIns.GetOccupyType() == OnTakeoff && pLogicRunway != pFrontFlight->GetAndAssignTakeoffRunway())
-						|| (frontIns.GetOccupyType() == OnLanding && pLogicRunway != pFrontFlight->GetLandingRunway()))		
+							if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailTakeoffTime)			//can not keep separation to front flight at intersection node
+							{
+								tAvailTakeoffTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
+							}
+						}
+					}
+					else
 					{
 						double dSepTime = 60;
 						m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,(AirsideMobileElementMode)frontIns.GetOccupyType() , dSepTime);
 
- 						if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailTakeoffTime)			//can not keep separation to front flight at intersection node
- 						{
- 							tAvailTakeoffTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
- 						}
+						// 					if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailTakeoffTime)			//can not keep separation to front flight at intersection node
+						// 					{
+						// 						tAvailTakeoffTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
+						// 					}
+						tAvailTakeoffTime = max(tAvailTakeoffTime,pFrontFlight->getRealOpTimeOnRunway() + ElapsedTime(dSepTime));
+						//	ElapsedTime tDelay = frontIns.GetEnterTime() + ElapsedTime(dSepTime) - tAvailTakeoffTime;
+						ElapsedTime tDelay = pFrontFlight->getRealOpTimeOnRunway()  + ElapsedTime(dSepTime) - tAvailTakeoffTime;
+						////////////////////////runway delay log
+						pLog = new AirsideFlightRunwayDelayLog(resDesc, tAvailTakeoffTime.asSeconds(), OnTakeoff, (tAvailTakeoffTime+tDelay).asSeconds(), tDelay.asSeconds(), FlightRunwayDelay::UNKNOWNPOS);
+						CString strDtail;
+						if (frontMode == OnLanding)
+							strDtail.Format("Separated with landing AC %s on runway %s", pFrontFlight->GetCurrentFlightID(),pFrontFlight->GetLandingRunway()->PrintResource());
+						else
+							strDtail.Format("Separated with takeoff AC %s on runway %s", pFrontFlight->GetCurrentFlightID(),pFrontFlight->GetAndAssignTakeoffRunway()->PrintResource());
+						pLog->sReasonDetail = strDtail.GetString();
+						pFlight->LogEventItem(pLog);
+						////////////////////////
+						tAvailTakeoffTime += tDelay ;
 					}
-				}
-				else
-				{
-					double dSepTime = 60;
-					m_pTakeOffSeparationInSim->GetTakeoffSeparationTime(pFlight,pFrontFlight,(AirsideMobileElementMode)frontIns.GetOccupyType() , dSepTime);
-
-// 					if (frontIns.GetEnterTime() + ElapsedTime(dSepTime) > tAvailTakeoffTime)			//can not keep separation to front flight at intersection node
-// 					{
-// 						tAvailTakeoffTime = frontIns.GetEnterTime() + ElapsedTime(dSepTime);
-// 					}
-					tAvailTakeoffTime = max(tAvailTakeoffTime,pFrontFlight->getRealOpTimeOnRunway() + ElapsedTime(dSepTime));
-				//	ElapsedTime tDelay = frontIns.GetEnterTime() + ElapsedTime(dSepTime) - tAvailTakeoffTime;
-					ElapsedTime tDelay = pFrontFlight->getRealOpTimeOnRunway()  + ElapsedTime(dSepTime) - tAvailTakeoffTime;
-					////////////////////////runway delay log
-					pLog = new AirsideFlightRunwayDelayLog(resDesc, tAvailTakeoffTime.asSeconds(), OnTakeoff, (tAvailTakeoffTime+tDelay).asSeconds(), tDelay.asSeconds(), FlightRunwayDelay::UNKNOWNPOS);
-					CString strDtail;
-					if (frontMode == OnLanding)
-						strDtail.Format("Separated with landing AC %s on runway %s", pFrontFlight->GetCurrentFlightID(),pFrontFlight->GetLandingRunway()->PrintResource());
-					else
-						strDtail.Format("Separated with takeoff AC %s on runway %s", pFrontFlight->GetCurrentFlightID(),pFrontFlight->GetAndAssignTakeoffRunway()->PrintResource());
-					pLog->sReasonDetail = strDtail.GetString();
-					pFlight->LogEventItem(pLog);
-					////////////////////////
-					tAvailTakeoffTime += tDelay ;
+					
 				}
 
-
+			}
+			else
+			{
+				tAvailTakeoffTime =  MAX(tAvailTakeoffTime, frontIns.GetEnterTime() + ElapsedTime(300l) );
 			}
 		}
 		
