@@ -392,11 +392,11 @@ private:
 	void WalkAlongShortestPathForEvac( const Point& _srcPoint, const Point& _desPoint, ElapsedTime& _curTime );
 
 
-	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, const CString& _curTime) ;
+	Point GetPipeExitPoint( Processor* _pNextProc,int iCurFloor, const CString& _curTime, CFlowItemEx* _pFlowItem) ;
 
 
 	// walk from location to next process by pipe
-	void WalkAlongShortestPath( Processor* _pNextProc, const Point &point,ElapsedTime& _curTime);
+	void WalkAlongShortestPath( Processor* _pNextProc, ElapsedTime& _curTime);
 
 
 
