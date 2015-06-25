@@ -20,7 +20,18 @@ public:
 	BOOL Create( LPCTSTR lpszCaption, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID );
 	BOOL SetButtonImage(UINT nResourceId, COLORREF crMask);
 	BOOL AddMenuItem(UINT nMenuId,const CString strMenu, UINT nFlags);
-	enum Type { TY_TERMINAL , TY_AIRSIDE,TY_AIRLINE,TY_AIRPORT,TY_ACTYPE,TY_DISTRIBUTION,TY_FLIGHTGROUP,TY_AIRCRAFTALIAS};
+	enum Type 
+	{ 
+		TY_TERMINAL , 
+		TY_AIRSIDE,
+		TY_AIRLINE,
+		TY_AIRPORT,
+		TY_ACTYPE,
+		TY_DISTRIBUTION,
+		TY_FLIGHTGROUP,
+		TY_AIRCRAFTALIAS,
+		TY_CMPREPORTTREEVIEW
+	};
 // Attributes
 protected:
   CMenu        m_menu;

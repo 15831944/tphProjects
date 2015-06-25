@@ -14,6 +14,7 @@
 #include "DlgProbDist.h"
 #include "DlgFlightDB.h"
 #include "DlgAircraftAlias.h"
+#include "CmpReportTreeView.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -386,6 +387,7 @@ void CCoolBtn::OnLButtonDown(UINT nFlags, CPoint point)
 		switch(m_Type)
 		{
 		case TY_TERMINAL:
+		case TY_CMPREPORTTREEVIEW:
 			pMenu=menu.GetSubMenu(33);
 			break ;
 		case TY_AIRSIDE:
@@ -468,9 +470,13 @@ void CCoolBtn::OnLButtonDown(UINT nFlags, CPoint point)
 			  {
 				  CDlgAircraftAlias *pParent=(CDlgAircraftAlias*)GetParent();
 				  pParent->OnClickMultiBtn();
-				  
 			  }
-
+			  break;
+		  case TY_CMPREPORTTREEVIEW:
+			  {
+				  CCmpReportTreeView* pParent = (CCmpReportTreeView*)GetParent();
+				  pParent->OnClickMultiBtn();
+			  }
 			  break;
 		  }
 		

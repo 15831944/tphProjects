@@ -19,6 +19,7 @@
 static const UINT ID_RUN = 101;
 static const UINT ID_CANCEL = 102;
 static const UINT ID_MAIN_TREE = 103;
+static const UINT ID_BTN_MULTI = 104;
 static const UINT MENU_ADD_MODEL = 200;
 static const UINT MENU_ADD_REPORT = 203;
 static const UINT MENU_DELETE_MODEL = 206;
@@ -26,10 +27,22 @@ static const UINT MENU_EDIT_REPORT = 207;
 static const UINT MENU_DELETE_REPORT = 208;
 static const UINT MENU_DEL_ALL_MODEL = 209;
 static const UINT MENU_UNAVAILABLE = 220;
+static const UINT SAVEPARATOFILE = 221;
+static const UINT LOADPARAFROMFILE = 222;
+static const UINT SAVEREPORTTOFILE = 223;
+static const UINT LOADREPORTFROMFILE = 224;
 
 static const int BUTTON_AREA_HEIGHT = 50;
 static const int BUTTON_HEIGHT = 22;
 static const int BUTTON_WIDTH = 80;
+
+const CString strBtnTxt[] =
+{
+	"Save Para",
+	"Load Para",
+	"Save Report",
+	"Load Report"
+};
 
 IMPLEMENT_DYNCREATE(CCmpReportTreeView, CFormView)
 BEGIN_MESSAGE_MAP(CCmpReportTreeView, CFormView)
@@ -40,6 +53,10 @@ BEGIN_MESSAGE_MAP(CCmpReportTreeView, CFormView)
 	ON_WM_TIMER()
 
 	ON_COMMAND_RANGE(MENU_ADD_MODEL, MENU_UNAVAILABLE, OnChooseMenu)
+	ON_COMMAND(ID_REPORT_SAVE_PARA, OnReportSavePara)
+	ON_COMMAND(ID_REPORT_LOAD_PARA, OnReportLoadPara)
+	ON_COMMAND(ID_REPORT_SAVE_REPORT, OnReportSaveReport)
+	ON_COMMAND(ID_REPORT_LOAD_REPORT, OnReportLoadReport)
 	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
@@ -97,6 +114,7 @@ int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		emptyRect, this, ID_MAIN_TREE);
 	m_propTree.SetFont(&m_font);
 
+	m_btnMulti.Create(strBtnTxt[0], WS_VISIBLE | WS_CHILD, emptyRect, this, ID_BTN_MULTI);
 	m_btnRun.Create(_T("Run"), WS_VISIBLE|WS_CHILD, emptyRect, this, ID_RUN);
 	m_btnCancel.Create(_T("Cancel"), WS_VISIBLE|WS_CHILD, emptyRect, this, ID_CANCEL);
 
@@ -122,6 +140,9 @@ void CCmpReportTreeView::OnInitialUpdate()
 	}
 	m_propTree.SetImageList(&m_imageList,TVSIL_NORMAL);
 
+	m_btnMulti.SetOperation(0);
+	m_btnMulti.SetWindowText(strBtnTxt[0]);
+	m_btnMulti.SetType(CCoolBtn::TY_CMPREPORTTREEVIEW);
 	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 	m_pCmpReport = pDoc->GetCmpReport();
 	InitParaWnd();
@@ -150,6 +171,8 @@ void CCmpReportTreeView::OnSize(UINT nType, int cx, int cy)
 	x = cx - (15 + BUTTON_WIDTH)*2;
 	if (::IsWindow(m_btnRun.m_hWnd))
 		m_btnRun.MoveWindow(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
+	if(::IsWindow(m_btnMulti.m_hWnd))
+		m_btnMulti.MoveWindow(10, y, BUTTON_WIDTH+40, BUTTON_HEIGHT);
 }
 
 BOOL CCmpReportTreeView::OnEraseBkgnd(CDC* pDC)
@@ -233,12 +256,12 @@ void CCmpReportTreeView::RunCompareReport()
 	((CCompRepLogBar*)pWnd)->DeleteLogText();
 	//__statusBar = &(pFram->m_wndStatusBar);
 	m_pCmpReport->Run(this->GetSafeHwnd(), (CCompRepLogBar*)pWnd,_ShowCopyInfo);
-	((CCompRepLogBar*)pWnd)->SetProgressPos( 0);
+	((CCompRepLogBar*)pWnd)->SetProgressPos(0);
 	GetDocument()->UpdateAllViews(this);
 //	m_pReportManager->DisplayReport();
 }
 
-void CCmpReportTreeView::RemoveSubItem( HTREEITEM hItem )
+void CCmpReportTreeView::RemoveSubItem(HTREEITEM hItem)
 {
 	if(hItem == NULL)
 		return;
@@ -416,7 +439,7 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 					report.GetCategory() == ENUM_DURATION_REP ||
 					report.GetCategory() == ENUM_DISTANCE_REP ||
 					report.GetCategory() == ENUM_ACOPERATION_REP||
-					report.GetCategory() == ENUM_PAXDENS_REP )
+					report.GetCategory() == ENUM_PAXDENS_REP)
 				{
 					std::vector<CMobileElemConstraint> vPaxType;
 					if (modelParam.GetPaxType(vPaxType))
@@ -517,7 +540,7 @@ CString CCmpReportTreeView::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec
 	}
 	else
 	{
-		retstr.Format("Day%d", _nDtIdx + 1 );
+		retstr.Format("Day%d", _nDtIdx + 1);
 	}
 	retstr += tstr;
 
@@ -572,7 +595,7 @@ void CCmpReportTreeView::DeleteAllModel()
 	{
 		CModelsManager* pModelManager = 
 			m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-		pModelManager->RemoveAllModels();
+		/*pModelManager->RemoveAllModels();*/
 		UpdateParaItem(m_hModelRoot);
 		UpdateParaItem(m_hReportRoot);
 	}
@@ -676,13 +699,13 @@ void CCmpReportTreeView::DeleteReport()
 	m_pCmpReport->SaveProject();
 }
 
-void CCmpReportTreeView::OnContextMenu( CWnd* pWnd, CPoint point )
+void CCmpReportTreeView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
 	CPoint pt = point;
-	m_propTree.ScreenToClient( &pt );
+	m_propTree.ScreenToClient(&pt);
 
 	UINT iRet;
-	HTREEITEM hCurItem = m_propTree.HitTest( pt, &iRet );
+	HTREEITEM hCurItem = m_propTree.HitTest(pt, &iRet);
 	if(hCurItem == NULL)
 		return ;
 
@@ -728,7 +751,7 @@ void CCmpReportTreeView::OnContextMenu( CWnd* pWnd, CPoint point )
 	}
 }
 
-LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM lParam )
+LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CString strItemText;
 	if(message == UM_CEW_EDIT_BEGIN)
@@ -812,7 +835,7 @@ LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM l
 	return CFormView::DefWindowProc(message, wParam, lParam);
 }
 
-void CCmpReportTreeView::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/ )
+void CCmpReportTreeView::InitCooltreeNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify/*=TRUE*/)
 {
 	CNI.bEnable=TRUE;
 	CNI.dwItemData=NULL;
@@ -837,7 +860,7 @@ void CCmpReportTreeView::InitCooltreeNodeInfo( CWnd* pParent,COOLTREE_NODE_INFO&
 	CNI.bInvalidData = FALSE;
 }
 
-void CCmpReportTreeView::OnChooseMenu( UINT nID )
+void CCmpReportTreeView::OnChooseMenu(UINT nID)
 {
 	if(nID == MENU_UNAVAILABLE)
 		return;
@@ -898,3 +921,151 @@ void CCmpReportTreeView::OnChooseMenu( UINT nID )
 	return;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// save & load para
+// save & load report
+//////////////////////////////////////////////////////////////////////////
+void CCmpReportTreeView::OnReportSavePara() 
+{
+	m_btnMulti.SetOperation(0);
+	m_btnMulti.SetWindowText(strBtnTxt[0]);
+	OnClickMultiBtn();
+}
+
+void CCmpReportTreeView::OnReportLoadPara() 
+{
+
+	m_btnMulti.SetOperation(1);
+	m_btnMulti.SetWindowText(strBtnTxt[1]);
+	OnClickMultiBtn();
+}
+
+void CCmpReportTreeView::OnReportSaveReport() 
+{
+
+	m_btnMulti.SetOperation(2);
+	m_btnMulti.SetWindowText(strBtnTxt[2]);
+	OnClickMultiBtn();
+}
+
+void CCmpReportTreeView::OnReportLoadReport() 
+{
+
+	m_btnMulti.SetOperation(3);
+	m_btnMulti.SetWindowText(strBtnTxt[3]);
+	OnClickMultiBtn();
+}
+
+void CCmpReportTreeView::OnClickMultiBtn() 
+{
+	int iOperation = m_btnMulti.GetOperation();
+	switch(iOperation)
+	{
+	case 0:	//SAVEPARATOFILE:
+		SavePara();
+		break;
+	case 1:	//LOADPARAFROMFILE:
+		LoadPara();
+		break;
+	case 2:	//SAVEREPORTTOFILE:
+		SaveReport();
+		break;
+	case 3:	//LOADREPORTFROMFILE:
+		LoadReport();
+		break;
+	default:
+		assert(0);
+	}
+}
+
+void CCmpReportTreeView::SavePara()
+{
+// 	GetParaFromGUI(GetReportParameter());
+// 
+// 	CFileDialog savedlg(FALSE,".par",NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+// 		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
+// 	if(savedlg.DoModal() == IDOK)
+// 	{
+// 		CString strFileName = savedlg.GetPathName();
+// 		CReportParameter* pReportPara = GetReportPara();	
+// 		assert(pReportPara);
+// 		pReportPara->SaveReportParaToFile(strFileName);
+// 	}
+}
+
+void CCmpReportTreeView::LoadPara()
+{	
+// 	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+// 		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
+// 	if(loaddlg.DoModal() == IDOK)
+// 	{
+// 		CString strFileName = loaddlg.GetPathName();
+// 		CReportParameter* pPara = NULL;
+// 		try
+// 		{
+// 			pPara = CReportParameter::LoadReoprtParaFromFile(strFileName, t);
+// 		}
+// 		catch (FileFormatError* _pError)
+// 		{
+// 			char szBuf[128];
+// 			_pError->getMessage(szBuf);
+// 			AfxMessageBox(szBuf, MB_OK|MB_ICONWARNING);
+// 			delete _pError;
+// 			return;
+// 		}
+// 		if(pPara)
+// 		{
+// 			CReportParameter* pReportPara = GetReportParameter();	
+// 			assert(pReportPara);
+// 
+// 			CopyParaData(pPara ,pReportPara);
+// 			SetGUIFromPara(GetReportParameter(), GetDocument()->GetTerminal().GetSimReportManager()->GetStartDate());
+// 			delete pPara;
+// 		}
+// 	}
+
+}
+
+void CCmpReportTreeView::SaveReport()
+{
+// 	if(!m_bCanToSave)
+// 	{
+// 		AfxMessageBox("Can not save report result!",MB_OK|MB_ICONINFORMATION);
+// 		return;
+// 	}
+// 
+// 	CString strExten	= getExtensionString();
+// 	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
+// 	CFileDialog savedlg(FALSE,strExten,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,strFilter,this, 0 ,FALSE);
+// 	if(savedlg.DoModal() == IDOK)
+// 	{
+// 		CString strFileName = savedlg.GetPathName();
+// 		CopyFile(m_strCurReportFile, strFileName, FALSE);
+// 	}
+
+}
+
+void CCmpReportTreeView::LoadReport()
+{
+// 	CString strExten	= getExtensionString();
+// 	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
+// 	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter,this, 0, FALSE);
+// 
+// 	if(loaddlg.DoModal() == IDOK)
+// 	{
+// 		CString strFileName = loaddlg.GetPathName();
+// 		if(!CheckReportFileFormat(strFileName))
+// 		{
+// 			AfxMessageBox("The report file format is error. Can not load the report!",MB_OK|MB_ICONINFORMATION);
+// 			return;
+// 		}
+// 
+// 		GetDocument()->GetARCReportManager().SetLoadReportType(load_by_user);	// 1 = load_by_user
+// 		GetDocument()->GetARCReportManager().SetUserLoadReportFile(strFileName);
+// 
+// 		GetDocument()->UpdateAllViews(NULL);
+// 
+// 		m_bCanToSave = true;
+// 		m_strCurReportFile = strFileName;
+// 	}
+}

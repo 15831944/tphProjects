@@ -2,6 +2,7 @@
 #include ".\MFCExControl\CoolTree.h"
 #include "..\Compare\CmpReport.h"
 #include "Resource.h"
+#include "CoolBtn.h"
 
 class CCmpReportTreeView : public CFormView
 {
@@ -34,7 +35,9 @@ protected:
 	CButton m_btnRun;
 	CButton m_btnCancel;
 	CFont m_font;
+	CCoolBtn	m_btnMulti;
 	CImageList m_imageList;
+
 	HTREEITEM m_hBasicInfo;
 	HTREEITEM m_hProjName;
 	HTREEITEM m_hProjDesc;
@@ -67,8 +70,17 @@ public:
 	afx_msg void OnTimer(UINT nIDEvent);
 	virtual void OnInitialUpdate();
 	virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
+	void OnClickMultiBtn();
 private:
 	void InitCooltreeNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify=TRUE);
+	void OnReportSavePara();
+	void OnReportLoadPara();
+	void OnReportSaveReport();
+	void OnReportLoadReport();
+	void SavePara();
+	void LoadPara();
+	void SaveReport();
+	void LoadReport();
 protected:
 	CCmpReport* m_pCmpReport;
 };
