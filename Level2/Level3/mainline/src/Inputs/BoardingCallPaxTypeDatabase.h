@@ -25,6 +25,7 @@ public:
 		return *this;
 	}
 
+	void InitTrigger(){ SetTrigger(0,0); }
 	void SetTrigger(const long _seconds, const double prop){ m_time.set(_seconds); m_proportion = prop; }
 	void SetTriggerTime(const ElapsedTime _time){ m_time = _time; }
 	void SetTriggerTime(const long _seconds){ m_time.set(_seconds); }
@@ -43,6 +44,7 @@ public:
 	void InitTriggerDatabase();
 	void InitTriggerDBFromOld(ConstraintWithProcIDEntry* pConstEntry);
 	std::vector<BoardingCallTrigger>* GetTriggersDatabase(){ return &m_vTriggers; }
+	void DeleteAllTrigger(){ m_vTriggers.clear(); }
 	void DeleteTrigger(int index){ m_vTriggers.erase( m_vTriggers.begin() + index); }
 	int GetTriggerCount(){ return (int)m_vTriggers.size(); }
 	void SetTriggerTime(int index, long time){ m_vTriggers[index].SetTriggerTime(time); }
@@ -50,6 +52,7 @@ public:
 	void AddNewTrigger();
 	void SetTriggerCount(int count);
 
+	void readTriggerDatabase( ArctermFile& p_file, int triggerCount);
 	void writeTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm );
 };
 
@@ -60,6 +63,9 @@ public:
 	~BoardingCallPaxTypeDatabase();
 
 	virtual void deleteItem(ConstraintEntry* pConst);
+	void AddPax(CMobileElemConstraint* pInputConst);
+	void AddPaxFromOld(ConstraintWithProcIDEntry* pConstEntry);
+	void readDatabase( ArctermFile& p_file, InputTerminal* _pInTerm, int paxCount);
 	void writeDatabase( ArctermFile& p_file, InputTerminal* _pInTerm );
 };
 

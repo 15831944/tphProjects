@@ -166,12 +166,12 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 	if (!p_procs->getProcessorsOfType (GateProc))
 		return;
 
-	const HistogramDistribution *distribution;
+	//const HistogramDistribution *distribution;
 	CMobileElemConstraint paxType(_pInTerm);
 	Flight *aFlight;
 
-	float percent;
-	BoardingCallEvent *event;
+	//float percent;
+	//BoardingCallEvent *event;
 	ProcessorArray vHoldingAreas;
 
 	_pInTerm->procList->getProcessorsOfType (HoldAreaProc, vHoldingAreas);
@@ -208,35 +208,35 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 
 				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )//not exist
 				{
-					distribution = p_data->getBoardingCalls (paxType, procID, iStage);
-					if (!distribution)
-						continue;
-
-					for (int j = 0; j < distribution->getCount(); j++)
-					{
-						ElapsedTime tempTime = time;	                
-						tempTime += (long) distribution->getValue(j);
-						percent = (float)((float) (distribution->getProb(j)) / 100.0);
-
-						if( percent == 1.0 )
-						{
-							if( pHoldArea->getStageID() == 1 )
-							{
-								// set time of last call
-								aFlight->setLastCall (tempTime);
-							}
-
-							mapLastCalls.insert( std::map<int,ElapsedTime>::value_type( iStage, tempTime ) );														
-						}
-
-
-						event = new BoardingCallEvent;
-						event->setTime (tempTime);
-						event->init (percent, NULL, paxType,iStage );
-
-						LoadDefaultBoardingCallEventToFltItem(aFlight, event);
-
-					}	
+// 					distribution = p_data->getBoardingCalls (paxType, procID, iStage);
+// 					if (!distribution)
+// 						continue;
+// 
+// 					for (int j = 0; j < distribution->getCount(); j++)
+// 					{
+// 						ElapsedTime tempTime = time;	                
+// 						tempTime += (long) distribution->getValue(j);
+// 						percent = (float)((float) (distribution->getProb(j)) / 100.0);
+// 
+// 						if( percent == 1.0 )
+// 						{
+// 							if( pHoldArea->getStageID() == 1 )
+// 							{
+// 								// set time of last call
+// 								aFlight->setLastCall (tempTime);
+// 							}
+// 
+// 							mapLastCalls.insert( std::map<int,ElapsedTime>::value_type( iStage, tempTime ) );														
+// 						}
+// 
+// 
+// 						event = new BoardingCallEvent;
+// 						event->setTime (tempTime);
+// 						event->init (percent, NULL, paxType,iStage );
+// 
+// 						LoadDefaultBoardingCallEventToFltItem(aFlight, event);
+//
+//					}	
 				}
 			}
 

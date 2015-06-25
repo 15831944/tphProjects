@@ -120,6 +120,19 @@ BOOL CBoardingCallDlg::OnInitDialog()
 
 void CBoardingCallDlg::OnSize( UINT nType, int cx, int cy )
 {
+	CDialog::OnSize(nType, cx, cy);
+	if( m_btnOk.m_hWnd == NULL )
+		return;
+
+	CRect Barrc,Treerc,rc;
+	m_btnCancel.GetWindowRect(&rc);
+	m_btnCancel.MoveWindow(cx-rc.Width()-10,cy-15-rc.Height(),rc.Width(),rc.Height());
+	m_btnOk.MoveWindow(cx-2*rc.Width()-30,cy-15-rc.Height(),rc.Width(),rc.Height());
+	m_btnSave.MoveWindow(cx-3*rc.Width()-50,cy-15-rc.Height(),rc.Width(),rc.Height());	
+	m_toolbar.GetWindowRect( &Barrc );
+	m_toolbar.MoveWindow(12,10,cx-20,Barrc.Height());
+	m_tree.MoveWindow(10,10+Barrc.Height(),cx-20,cy-20-rc.Height()-50);
+	InvalidateRect(NULL);
 }
 
 InputTerminal* CBoardingCallDlg::GetInputTerminal()
@@ -419,6 +432,7 @@ void CBoardingCallDlg::OnToolbarButtonAddStage()
 
 	GetInputTerminal()->flightData->AddStage();
 	ReloadRoot();
+	m_btnSave.EnableWindow(TRUE);
 	return;
 }
 
@@ -451,9 +465,10 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 	if(standDlg.DoModal()==IDOK)
 	{
 		CString strStand = standDlg.GetSelStandFamilyName();
-		pFlightTypeEntry->AddStand(strStand.GetBuffer(), GetInputTerminal());
+		pFlightTypeEntry->GetStandDatabase()->AddStand(strStand.GetBuffer(), GetInputTerminal());
 		ReloadFlightType(pFlightTypeEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
+		m_btnSave.EnableWindow(TRUE);
 	}
 }
 
@@ -469,9 +484,10 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 	if(paxTypeDlg.DoModal() == IDOK)
 	{
 		CMobileElemConstraint mobileConst = paxTypeDlg.GetMobileSelection();
-		pStandEntry->AddPax(&mobileConst);
+		pStandEntry->GetPaxTypeDatabase()->AddPax(&mobileConst);
 		ReloadStand(pStandEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
+		m_btnSave.EnableWindow(TRUE);
 	}
 }
 
@@ -484,8 +500,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 	if(hSelItem == m_hRoot)
 	{
 		//Delete All Stages
-		BOOL b_YesNo = MessageBox("This operation will delete all stages, then \
-a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
+		BOOL b_YesNo = MessageBox("Delete All Stages?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
 		if(b_YesNo == IDYES)
 		{
 			int nDBCount=GetInputTerminal()->flightData->GetStageCount();
@@ -507,19 +522,24 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 		break;
 	case TREE_NODE_STAGE:
 		{
-			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
-			if(hPrevSiblingItem == NULL)
-			{
-				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-				if(hNextSiblingItem == NULL)
-				{
-					MessageBox("Can't delete the last one!");
-					return;
-				}
-			}
-			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
-			GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
 			HTREEITEM hRootItem = m_tree.GetParentItem(hSelItem);
+			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
+			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
+			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)pDataWithType->m_data;
+			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+			{
+				//Delete All Stages
+				BOOL b_YesNo = MessageBox("Delete All Stages?","Delete Stage", MB_YESNO|MB_ICONWARNING);
+				if(b_YesNo == IDYES)
+				{
+					GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
+					m_tree.SelectItem(hRootItem);
+					GetInputTerminal()->flightData->AddStage();
+					ReloadRoot();
+				}
+				return;
+			}
+			GetInputTerminal()->flightData->DeleteOneStageByFlightConstDB(pFlightTypeDB);
 			m_tree.SelectItem(hRootItem);
 			ReloadRoot();
 			break;
@@ -527,24 +547,29 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 	case TREE_NODE_FLIGHT_TYPE:
 		{
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
-			if(hPrevSiblingItem == NULL)
-			{
-				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-				if(hNextSiblingItem == NULL)
-				{
-					MessageBox("Can't delete the last one!");
-					return;
-				}
-			}
+			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
 			BoardingCallFlightTypeEntry* pFlightTypeEntry = (BoardingCallFlightTypeEntry*)pDataWithType->m_data;
-
-			// Reload all sibling item.
 			HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
 			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAGE);
 			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)(pParentData->m_data);
+
+			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+			{
+				BOOL b_YesNo = MessageBox("Delete All Flight Types?","Delete Flight Type", MB_YESNO|MB_ICONWARNING);
+				if(b_YesNo == IDYES)
+				{
+					pFlightTypeDB->deleteItem(pFlightTypeEntry);
+					m_tree.SelectItem(hStageItem);
+					pFlightTypeDB->AddFlight(NULL, GetInputTerminal());
+					ReloadStage(pFlightTypeDB, hStageItem);
+				}
+				return;
+			}
+
 			pFlightTypeDB->deleteItem(pFlightTypeEntry);
 			m_tree.SelectItem(hStageItem);
+			// Reload all sibling item.
 			ReloadStage(pFlightTypeDB, hStageItem);
 			m_tree.Expand(hStageItem, TVE_EXPAND);
 		}
@@ -552,15 +577,8 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 	case TREE_NODE_STAND:
 		{
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
-			if(hPrevSiblingItem == NULL)
-			{
-				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-				if(hNextSiblingItem == NULL)
-				{
-					MessageBox("Can't delete the last one!");
-					return;
-				}
-			}
+			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
+
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
 
 			// Reload all sibling item.
@@ -569,6 +587,19 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
 			BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
 			BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
+
+			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+			{
+				BOOL b_YesNo = MessageBox("Delete All Stands?","Delete Stand", MB_YESNO|MB_ICONWARNING);
+				if(b_YesNo == IDYES)
+				{
+					pStandDB->deleteItem(pStandEntry);
+					m_tree.SelectItem(hFlightTypeItem);
+					pStandDB->AddStand(NULL, GetInputTerminal());
+					ReloadFlightType(pFlightEntry, hFlightTypeItem);
+				}
+				return;
+			}
 			pStandDB->deleteItem(pStandEntry);
 			m_tree.SelectItem(hFlightTypeItem);
 			ReloadFlightType(pFlightEntry, hFlightTypeItem);
@@ -578,15 +609,8 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 	case TREE_NODE_PASSENGER_TYPE:
 		{
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
-			if(hPrevSiblingItem == NULL)
-			{
-				HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-				if(hNextSiblingItem == NULL)
-				{
-					MessageBox("Can't delete the last one!");
-					return;
-				}
-			}
+			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
+
 			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
 
 			// Reload all sibling item.
@@ -595,6 +619,19 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAND);
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
 			BoardingCallPaxTypeDatabase* pPaxTypeDB = pStandEntry->GetPaxTypeDatabase();
+
+			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+			{
+				BOOL b_YesNo = MessageBox("Delete All Passenger Types?","Delete Passenger Type", MB_YESNO|MB_ICONWARNING);
+				if(b_YesNo == IDYES)
+				{
+					pPaxTypeDB->deleteItem(pPaxEntry);
+					m_tree.SelectItem(hStandItem);
+					pPaxTypeDB->AddPax(NULL);
+					ReloadStand(pStandEntry, hStandItem);
+				}
+				return;
+			}
 			pPaxTypeDB->deleteItem(pPaxEntry);
 			m_tree.SelectItem(hStandItem);
 			ReloadStand(pStandEntry, hStandItem);
@@ -632,6 +669,7 @@ a default stage will be generated, continue?","Delete All Stages", MB_YESNO|MB_I
 	default:
 		break;
 	}
+	m_btnSave.EnableWindow(TRUE);
 }
 
 void CBoardingCallDlg::OnToolbarButtonEdit()
@@ -726,6 +764,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 	default:
 		break;
 	}
+	m_btnSave.EnableWindow(TRUE);
 }
 
 void CBoardingCallDlg::DisableAllToolBarButtons()

@@ -170,6 +170,7 @@ void FlightData::writeData (ArctermFile& p_file) const
 
 void FlightData::readBoardingCallData( ArctermFile &p_file )
 {
+	p_file.reset();
 	char str[64];
 	while (p_file.getLine())
 	{
@@ -184,7 +185,11 @@ void FlightData::readBoardingCallData( ArctermFile &p_file )
 	for(int i=0; i<stageCount; i++)
 	{
 		AddStage();
-		m_vStages[i]->readDatabase(p_file);
+		p_file.getLine();
+		p_file.skipField(1);
+		int fltTypeCount;
+		p_file.getInteger(fltTypeCount);
+		m_vStages[i]->readDatabase(p_file, m_pInTerm, fltTypeCount);
 	}
 }
 
@@ -312,6 +317,25 @@ int FlightData::getCapacity (Flight *p_flight) const
     else
         return (int)prob->getRandomValue();
 }
+
+const HistogramDistribution *FlightData::getBoardingCalls
+    (const FlightConstraint &p_type,  const ProcessorID& _id, int _nStageNumber ) const
+{
+//     const ProbabilityDistribution *prob = m_vCalls[_nStageNumber-1]->lookup_with_procid (p_type, _id);
+// 	if(prob)
+// 	{
+// 	 
+// 	 if(prob->getProbabilityType() == HISTOGRAM || prob->getProbabilityType() == EMPIRICAL )
+// 	 {
+// 		 return (const HistogramDistribution *)prob;
+// 	 }
+// 	}
+	return NULL;
+	// return ( prob && (prob->getProbabilityType() == HISTOGRAM || prob->getProbabilityType() == EMPIRICAL )) ? (const HistogramDistribution *)prob : NULL;
+
+}
+
+
 
 // go through all the file get the size of boardina call stage size;
 int FlightData::ReadBoardingCallStageCount( ArctermFile& _file )

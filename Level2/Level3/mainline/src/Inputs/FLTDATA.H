@@ -43,6 +43,7 @@ public:
     void setFlightDelay (Flight *p_flight) const;
     void setFlightLoadFactor (Flight *p_flight, char p_mode) const;
     int getCapacity (Flight *p_flight) const;
+    const HistogramDistribution *getBoardingCalls (const FlightConstraint &p_type, const ProcessorID& _id, int _nStageNumber ) const;
 
     FlightConstraintDatabase *getDelays (void) { return &delays; }
     FlightConstraintDatabase *getLoads (void) { return &loads; }
@@ -53,7 +54,10 @@ public:
 
 
     virtual void readData (ArctermFile& p_file);
-    virtual void readObsoleteData (ArctermFile& p_file);
+
+	void readBoardingCallData( ArctermFile &p_file );
+
+	virtual void readObsoleteData (ArctermFile& p_file);
     virtual void writeData (ArctermFile& p_file) const;
 
 	void writeBoardingCallData( ArctermFile &p_file ) const;

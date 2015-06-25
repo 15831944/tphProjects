@@ -11,9 +11,6 @@ public:
 	BoardingCallStandEntry(const ProcessorID& id);
 	~BoardingCallStandEntry();
 
-	void AddPax(CMobileElemConstraint* pInputConst);
-	void AddPaxFromOld(ConstraintWithProcIDEntry* pConstEntry);
-
 	BoardingCallPaxTypeDatabase* GetPaxTypeDatabase(){ return &m_paxTypeDB; }
 	void SetProcessorID(ProcessorID newID){ procID = newID; }
 	int GetPaxCount(){ return (int)m_paxTypeDB.getCount(); }
@@ -26,7 +23,10 @@ public:
 	~BoardingCallStandDatabase();
 
 	virtual void addEntry (const ProcessorID& pID);
+	void AddStand(char* strProc, InputTerminal* _pInTerm);
+	void AddStandFromOld(ConstraintWithProcIDEntry* pConstEntry, InputTerminal* _pInTerm);
 	virtual void deleteItem(BoardingCallStandEntry* pStandEntry);
+	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int standCount);
 	void writeDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
 };
 

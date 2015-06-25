@@ -69,6 +69,27 @@ void BoardingCallPaxTypeEntry::SetTriggerCount(int count)
 	}
 }
 
+void BoardingCallPaxTypeEntry::readTriggerDatabase( ArctermFile& p_file, int triggerCount)
+{
+	DeleteAllTrigger();
+	BoardingCallTrigger trigger;
+	int time;
+	double prop;
+	for(int i=0; i<triggerCount; i++)
+	{
+		time = 0;
+		prop = 0.0;
+		p_file.getLine();
+		p_file.skipField(1);
+		p_file.getInteger(time);
+		p_file.getFloat(prop);
+
+		trigger.InitTrigger();
+		trigger.SetTrigger(time, prop);
+		m_vTriggers.push_back(trigger);
+	}
+}
+
 void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file, InputTerminal* _pInTerm )
 {
 	int count = GetTriggerCount();
@@ -104,6 +125,40 @@ void BoardingCallPaxTypeDatabase::deleteItem( ConstraintEntry* pConst )
 	delete pConst;
 }
 
+void BoardingCallPaxTypeDatabase::AddPax( CMobileElemConstraint* pInputConst )
+{
+	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
+	if(pInputConst)
+	{
+		*pMBConst = *pInputConst;
+	}
+	else
+	{
+		pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
+	}
+	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
+	pPaxEntry->initialize(pMBConst, NULL);
+	pPaxEntry->InitTriggerDatabase();	/* InitTriggersDatabase(): The 4 initial triggers will be added here. */
+	addEntry(pPaxEntry, true);/* Replace if exists. */
+}
+
+void BoardingCallPaxTypeDatabase::readDatabase( ArctermFile& p_file, InputTerminal* _pInTerm, int paxCount)
+{
+	clear();
+	for(int i=0; i<paxCount; i++)
+	{
+		p_file.getLine();
+		CMobileElemConstraint mobileConst;
+		mobileConst.SetInputTerminal(_pInTerm);
+		mobileConst.readConstraint(p_file);
+		AddPax(&mobileConst);
+
+		int triggerCount;
+		p_file.getInteger(triggerCount);
+		((BoardingCallPaxTypeEntry*)getItem(i))->readTriggerDatabase(p_file, triggerCount);
+	}
+}
+
 void BoardingCallPaxTypeDatabase::writeDatabase( ArctermFile& p_file, InputTerminal* _pInTerm )
 {
 	int paxCount = getCount();
@@ -120,4 +175,14 @@ void BoardingCallPaxTypeDatabase::writeDatabase( ArctermFile& p_file, InputTermi
 
 		pPaxEntry->writeTriggerDatabase(p_file, _pInTerm);
 	}
+}
+
+void BoardingCallPaxTypeDatabase::AddPaxFromOld( ConstraintWithProcIDEntry* pConstEntry )
+{
+	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
+	pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
+	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
+	pPaxEntry->initialize(pMBConst, NULL);
+	pPaxEntry->InitTriggerDBFromOld(pConstEntry);
+	addEntry(pPaxEntry, true);
 }
