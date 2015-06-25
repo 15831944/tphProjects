@@ -2,6 +2,7 @@
 #include "FLT_DB.h"
 #include "con_db.h"
 #include "BoardingCallStandDatabase.h"
+#include "FlightConWithProcIDDatabase.h"
 
 class BoardingCallFlightTypeEntry : public ConstraintEntry
 {
@@ -21,5 +22,6 @@ public:
 	~BoardingCallFlightTypeDatabase();
 
 	virtual void deleteItem(ConstraintEntry* pConst);
+	void DoDataCompatibleWith260AndEarlier(FlightConWithProcIDDatabase* pOldStructor);
 };
 

@@ -24,3 +24,8 @@ void BoardingCallFlightTypeDatabase::deleteItem( ConstraintEntry* pConst )
 	removeItem(pConst);
 	delete pConst;
 }
+
+void BoardingCallFlightTypeDatabase::DoDataCompatibleWith260AndEarlier( FlightConWithProcIDDatabase* pOldStructor )
+{
+
+}

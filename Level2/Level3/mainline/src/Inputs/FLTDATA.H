@@ -14,10 +14,7 @@ protected:
     FlightConstraintDatabase delays;
     FlightConstraintDatabaseWithSchedData loads;
     FlightConstraintDatabaseWithSchedData capacity;
-	std::vector<FlightConWithProcIDDatabase*> m_vCalls;	// 0: stage 1
-														// 1: stage 2
-														// 2: stage 3
-														// ......
+	
 	std::vector<BoardingCallFlightTypeDatabase*> m_vBoardingCallStages;
 	// go through all the file get the size of boarding call stage size;
 	int ReadBoardingCallStageNumber( ArctermFile& _file );
@@ -28,7 +25,7 @@ public:
 	int GetStageCount(){ return m_vBoardingCallStages.size(); }
 	BoardingCallFlightTypeDatabase* GetFlightTypeDBInStage(int _index){ return m_vBoardingCallStages[_index]; }
 	void resortBoardingCallDB();
-    FlightData () : DataSet (FlightDataFile,(float)2.6 )
+    FlightData () : DataSet (FlightDataFile,(float)2.7 )
     {	
 		delays.setUnits ("MINUTES"); 
 		loads.setUnits ("PERCENT");
@@ -47,14 +44,11 @@ public:
 	void DeleteOneStageByIndex(int _stageIndex);
 	BOOL DeleteOneStageByFlightConstDB(ConstraintDatabase* pFCDB);
 
-	int getBoardingCallsStageSize(){ return m_vCalls.size(); }
-
     void setFlightDelay (Flight *p_flight) const;
     void setFlightLoadFactor (Flight *p_flight, char p_mode) const;
     int getCapacity (Flight *p_flight) const;
     const HistogramDistribution *getBoardingCalls (const FlightConstraint &p_type, const ProcessorID& _id, int _nStageNumber ) const;
 
-    FlightConWithProcIDDatabase *getCalls ( int m_nStage ){ return m_vCalls[m_nStage-1]; }
     FlightConstraintDatabase *getDelays (void) { return &delays; }
     FlightConstraintDatabase *getLoads (void) { return &loads; }
     FlightConstraintDatabase *getCapacity (void) { return &capacity; }

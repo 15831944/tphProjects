@@ -58,30 +58,30 @@ void FlightData::readData (ArctermFile& p_file)
 {
 	assert( m_pInTerm );
 	int nStageNumber = ReadBoardingCallStageNumber( p_file );
-	
-    delays.readDatabase (p_file, "DELAY", m_pInTerm );
-    loads.readDatabase (p_file, "LOAD", m_pInTerm );
-    capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
-	
+
+	delays.readDatabase (p_file, "DELAY", m_pInTerm );
+	loads.readDatabase (p_file, "LOAD", m_pInTerm );
+	capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
+
 	// read boarding call
-	int nSize = m_vCalls.size();
+	int nSize = m_vBoardingCallStages.size();
 	if( nStageNumber == 0 && nSize == 0 )
 	{
 		AddStage();
 		return;
 	}
-
+	std::vector<FlightConWithProcIDDatabase*> vCalls;
 	for( int i=0; i<nStageNumber; i++ )
 	{
-		if( m_vCalls.size() <= (unsigned)i )
+		if( vCalls.size() <= (unsigned)i )
 		{
 			// need to new 
 			FlightConWithProcIDDatabase* pStage = new FlightConWithProcIDDatabase();
-			m_vCalls.push_back( pStage );
+			vCalls.push_back( pStage );
 		}
 		char szLabel[128];
 		sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
-	    m_vCalls[i]->readDatabase (p_file, szLabel, m_pInTerm );
+		vCalls[i]->readDatabase (p_file, szLabel, m_pInTerm );
 	}
 }
 
@@ -90,7 +90,7 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 	assert( m_pInTerm );
 
 	float fVersion = p_file.getVersion();
-	if( fVersion < (float)2.2 )
+	if( fVersion < (float)(2.2 - 0.00001) )
 	{
 		clear();
 		initDefaultValues();
@@ -98,9 +98,10 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 		capacity.readDatabase (p_file, "LOAD", m_pInTerm);
 		if( p_file.getVersion() >= 2.0 )
 			capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
-		m_vCalls[0]->readObsoleteDatabase( p_file, "BOARDING_CALLS", m_pInTerm );
+		std::vector<FlightConWithProcIDDatabase*> vCalls;
+		vCalls[0]->readObsoleteDatabase( p_file, "BOARDING_CALLS", m_pInTerm );
 	}
-	else if( fVersion == (float)2.3 ) // this is a error version
+	else if((float)(2.3-0.00001) < fVersion && fVersion < (float)(2.3+0.00001)) // this is a error version
 	{
 		clear();
 		initDefaultValues();
@@ -110,27 +111,17 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 		loads.readErrorDatabase (p_file, "LOAD", m_pInTerm );
 		capacity.readErrorDatabase (p_file, "CAPACITY", m_pInTerm );
 
-		int nSize = m_vCalls.size();
-		if( nStageNumber == 0 && nSize == 0 )
+		FlightConWithProcIDDatabase pStage;
+		for(int i=0; i<nStageNumber; i++)
 		{
-			AddStage();
-			return;
-		}
-		
-		for( int i=0; i<nStageNumber; i++ )
-		{
-			if( m_vCalls.size() <= (unsigned)i )
-			{
-				// need to new 
-				FlightConWithProcIDDatabase* pStage = new FlightConWithProcIDDatabase();
-				m_vCalls.push_back( pStage );
-			}
 			char szLabel[128];
-			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
-			m_vCalls[i]->readErrorDatabase (p_file, szLabel, m_pInTerm );
+			sprintf(szLabel, "BOARDING_CALLS_STAGE%d", i+1);
+			pStage.readErrorDatabase (p_file, szLabel, m_pInTerm);
+			AddStage();
+			m_vBoardingCallStages[i]->
 		}
 	}
-	else if( fVersion <= (float) 2.4)		//2.20 , 2.40
+	else if(fVersion < (float)(2.4+0.00001))		//2.20 , 2.40
 	{
 		clear();
 		initDefaultValues();
@@ -141,27 +132,24 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 		capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
 		
 		// read boarding call
-		int nSize = m_vCalls.size();
+		int nSize = m_vBoardingCallStages.size();
 		if( nStageNumber == 0 && nSize == 0 )
 		{
 			AddStage();
 			return;
 		}
 		
+		std::vector<FlightConWithProcIDDatabase> vStages;
 		for( int i=0; i<nStageNumber; i++ )
 		{
-			if( m_vCalls.size() <= (unsigned)i )
-			{
-				// need to new 
-				FlightConWithProcIDDatabase* pStage = new FlightConWithProcIDDatabase();
-				m_vCalls.push_back( pStage );
-			}
+			FlightConWithProcIDDatabase stage;
+			vStages.push_back(stage);
 			char szLabel[128];
 			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
-			m_vCalls[i]->readObsoleteDatabase(p_file, szLabel, m_pInTerm );
+			vStages[i].readObsoleteDatabase(p_file, szLabel, m_pInTerm );
 		}
 	}
-	else if (fVersion == (float)2.5)
+	else if ((float)(2.5-0.00001) < fVersion && fVersion<(float)(2.5+0.00001))
 	{
 		int nStageNumber = ReadBoardingCallStageNumber( p_file );
 
@@ -170,24 +158,54 @@ void FlightData::readObsoleteData (ArctermFile& p_file)
 		capacity.readObsoleteDatabase (p_file, "CAPACITY", m_pInTerm );
 
 		// read boarding call
-		int nSize = m_vCalls.size();
+		int nSize = m_vBoardingCallStages.size();
 		if( nStageNumber == 0 && nSize == 0 )
 		{
 			AddStage();
 			return;
 		}
-
+		std::vector<FlightConWithProcIDDatabase*> vCalls;
 		for( int i=0; i<nStageNumber; i++ )
 		{
-			if( m_vCalls.size() <= (unsigned)i )
+			if( vCalls.size() <= (unsigned)i )
 			{
 				// need to new 
 				FlightConWithProcIDDatabase* pStage = new FlightConWithProcIDDatabase();
-				m_vCalls.push_back( pStage );
+				vCalls.push_back( pStage );
 			}
 			char szLabel[128];
 			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
-			m_vCalls[i]->readDatabase (p_file, szLabel, m_pInTerm );
+			vCalls[i]->readDatabase (p_file, szLabel, m_pInTerm );
+		}
+	}
+	else if ((float)(2.6-0.00001) < fVersion && fVersion<(float)(2.6+0.00001))
+	{
+		assert( m_pInTerm );
+		int nStageNumber = ReadBoardingCallStageNumber( p_file );
+
+		delays.readDatabase (p_file, "DELAY", m_pInTerm );
+		loads.readDatabase (p_file, "LOAD", m_pInTerm );
+		capacity.readDatabase (p_file, "CAPACITY", m_pInTerm );
+
+		// read boarding call
+		int nSize = m_vBoardingCallStages.size();
+		if( nStageNumber == 0 && nSize == 0 )
+		{
+			AddStage();
+			return;
+		}
+		std::vector<FlightConWithProcIDDatabase*> vCalls;
+		for( int i=0; i<nStageNumber; i++ )
+		{
+			if( vCalls.size() <= (unsigned)i )
+			{
+				// need to new 
+				FlightConWithProcIDDatabase* pStage = new FlightConWithProcIDDatabase();
+				vCalls.push_back( pStage );
+			}
+			char szLabel[128];
+			sprintf( szLabel, "BOARDING_CALLS_STAGE%d", i+1 );
+			vCalls[i]->readDatabase (p_file, szLabel, m_pInTerm );
 		}
 	}
 	else
@@ -371,13 +389,13 @@ void FlightData::clear()
 	delays.clear(); 
 	loads.clear();
 	capacity.clear(); 
-	int nSize = m_vCalls.size();
+	int nSize = m_vBoardingCallStages.size();
 	for( int i=0; i<nSize; i++ )
 	{
-		delete m_vCalls[i];
-		m_vCalls[i] =  NULL;
+		delete m_vBoardingCallStages[i];
+		m_vBoardingCallStages[i] =  NULL;
 	}
-	m_vCalls.clear(); 
+	m_vBoardingCallStages.clear(); 
 }
 
 
@@ -414,37 +432,6 @@ void FlightData::AddStage()
 	return;
 }
 
-// remove one stage data
-void FlightData::DeleteOneStageByIndex(int _stageIndex)
-{
-	assert( _stageIndex < static_cast<int>(m_vBoardingCallStages.size()) );
-	delete m_vBoardingCallStages[_stageIndex];
-	m_vBoardingCallStages.erase(m_vBoardingCallStages.begin() + _stageIndex);
-}
-
-BOOL FlightData::DeleteOneStageByFlightConstDB(ConstraintDatabase *pFCDB)
-{
-	int nCount=m_vBoardingCallStages.size();
-	for(int i=0;i<nCount;i++)
-	{
-		if(m_vBoardingCallStages[i]==pFCDB)
-		{
-			delete m_vBoardingCallStages[i];
-			m_vBoardingCallStages.erase(m_vBoardingCallStages.begin()+i);
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-void FlightData::resortBoardingCallDB()
-{
-	for( unsigned i=0; i<m_vCalls.size(); i++ )
-	{
-		m_vCalls[i]->resortDatebase();
-	}
-}
-
 void FlightData::AddFlight(BoardingCallFlightTypeDatabase* pFlightTypeDB, FlightConstraint* pFlight)
 {
 	FlightConstraint* pFlightConstraint = new FlightConstraint();
@@ -458,7 +445,7 @@ void FlightData::AddFlight(BoardingCallFlightTypeDatabase* pFlightTypeDB, Flight
 	}
 	BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
 	flightEntry->initialize(pFlightConstraint, NULL);
-	pFlightTypeDB->addEntry(flightEntry, true);
+	pFlightTypeDB->addEntry(flightEntry, true);/* Replace if exists. */
 	AddStand(flightEntry, NULL);
 }
 
@@ -493,6 +480,36 @@ void FlightData::AddPax(BoardingCallStandEntry* pStandEntry, CMobileElemConstrai
 	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
 	pPaxEntry->initialize(pMBConst, NULL);
 	pPaxEntry->InitTriggersDatabase();	/* InitTriggersDatabase(): The 4 initial triggers will be added here. */
-	pStandEntry->GetPaxTypeDatabase()->addEntry(pPaxEntry, true);
+	pStandEntry->GetPaxTypeDatabase()->addEntry(pPaxEntry, true);/* Replace if exists. */
 }
 
+// remove one stage data
+void FlightData::DeleteOneStageByIndex(int _stageIndex)
+{
+	assert( _stageIndex < static_cast<int>(m_vBoardingCallStages.size()) );
+	delete m_vBoardingCallStages[_stageIndex];
+	m_vBoardingCallStages.erase(m_vBoardingCallStages.begin() + _stageIndex);
+}
+
+BOOL FlightData::DeleteOneStageByFlightConstDB(ConstraintDatabase *pFCDB)
+{
+	int nCount=m_vBoardingCallStages.size();
+	for(int i=0;i<nCount;i++)
+	{
+		if(m_vBoardingCallStages[i]==pFCDB)
+		{
+			delete m_vBoardingCallStages[i];
+			m_vBoardingCallStages.erase(m_vBoardingCallStages.begin()+i);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+void FlightData::resortBoardingCallDB()
+{
+	for( unsigned i=0; i<m_vCalls.size(); i++ )
+	{
+		m_vCalls[i]->resortDatebase();
+	}
+}
