@@ -6,6 +6,8 @@
 #include "GroupLeaderInfo.h"
 #include "ARCportEngine.h"
 #include "LandsideSimulation.h"
+#include "TERMINAL.H"
+#include "MobileElementExitSystemEvent.h"
 
 PaxLandsideBehavior::PaxLandsideBehavior( Person* p ) :LandsideBaseBehavior(p)
 {
@@ -206,4 +208,45 @@ LandsideResourceInSim * PaxLandsideBehavior::getDestResource() const
 void PaxLandsideBehavior::setDestResource( LandsideResourceInSim *pDestResource )
 {
 	m_pDestResource = pDestResource;
+}
+
+void PaxLandsideBehavior::flushLog( ElapsedTime p_time, bool bmissflight /*= false*/ )
+{
+	int nCount = ((Passenger*)m_pPerson)->m_pVisitorList.size();
+	for( int i=nCount-1; i>=0; i-- )
+	{
+		PaxVisitor* pVis = ((Passenger*)m_pPerson)->m_pVisitorList[i];
+		if (pVis == NULL)
+			continue;
+
+		VisitorLandsideBehavior *pVisitorBehavior =(VisitorLandsideBehavior *)pVis->getLandsideBehavior();
+		ASSERT(pVisitorBehavior);
+		if(pVisitorBehavior)
+		{
+			pVisitorBehavior->flushLog(p_time);
+		   ((Passenger*)m_pPerson)->m_pVisitorList[i] = NULL;
+		}
+	}
+
+	m_pPerson->setState(Death);
+	WriteLogEntry(p_time, false);
+
+	m_pPerson->getLogEntry().setExitTime (p_time);
+	m_pPerson->getLogEntry().saveEventsToLog();
+
+	assert( m_pPerson->GetTerminal() );
+	m_pPerson->GetTerminal()->paxLog->updateItem (m_pPerson->getLogEntry(), m_pPerson->getLogEntry().getIndex());
+
+	FlushLogforFollower(p_time);
+	m_pPerson->getLogEntry().clearLog();
+
+	if(m_pPerson->getEngine()->m_simBobileelemList.IsAlive(m_pPerson))
+	{
+		MobileElementExitSystemEvent *pEvent = new MobileElementExitSystemEvent(m_pPerson, p_time);
+		pEvent->addEvent();
+	}
+	else
+	{
+		ASSERT(0);
+	}
 }

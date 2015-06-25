@@ -193,7 +193,7 @@ void ArrivalPaxLandsideBehavior::processEntryLandisde( const ElapsedTime& eEvent
 				}
 				else  //vehicle not entry simulation?
 				{
-					LandsideSimErrorShown::PaxSimWarning(m_pPerson,_T("Pick Vehicle is not entry simulation yet"),_T("Pax Runtime Error"),eEventTime);
+					//LandsideSimErrorShown::PaxSimWarning(m_pPerson,_T("Pick Vehicle is not entry simulation yet"),_T("Pax Runtime Error"),eEventTime);
 					terminate(eEventTime);
 					return;
 				}
@@ -651,8 +651,13 @@ bool ArrivalPaxLandsideBehavior::CanPaxTkeOffThisBusAtStation( LandsideBusStatio
 		if(pLinkedPakringLot)
 		{
 			if(pLinkedPakringLot->getInput()->getName() == objNameLinkaged.getObject())
-			{		
-				return true;
+			{	
+				LandsideBusStationInSim* pBestStation = pLinkedPakringLot->GetBestBusStationGetOff(pSimulation,this);
+				if (pBestStation == NULL)
+					return true;
+				
+				if (pBestStation == pBusStation)
+					return true;
 			}
 		}
 	}

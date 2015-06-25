@@ -57,5 +57,5 @@ void FlightBirthEvent::PaxGeneration()
 {
 	std::vector<Person*> vPaxList;
 	CPaxGenerator paxgenerator(m_pARCPortEngine) ;
-	paxgenerator.GenerateDelayMobileElement(m_pCFlight->GetFlightInput()->getFlightIndex(), time, vPaxList, -1) ;
+	paxgenerator.GenerateDelayMobileElement(m_pCFlight->GetFlightInput()->getFlightIndex(), time, vPaxList,false, -1) ;
 }

@@ -26,11 +26,11 @@
 
 #define VEHICLE0LOG _T("D:\\LandsideDebug\\Vehicle0.log")
 
-
-void LandsideVehicleInSim::OnTerminate(CARCportEngine*pEngine)
-{
-	Kill(pEngine->GetLandsideSimulation(),curTime());
-}
+//void LandsideVehicleInSim::OnTerminate(CARCportEngine*pEngine)
+//{
+//	DeActive();
+//	Kill(pEngine->GetLandsideSimulation(),curTime());
+//}
 
 //write state to log
 int LandsideVehicleInSim::WriteLog(const MobileState& state)
@@ -172,15 +172,20 @@ bool LandsideVehicleInSim::IsTerminated() const
 	return m_curMode ==  _terminate;
 }
 
-void LandsideVehicleInSim::Kill( LandsideSimulation*pEngine,const ElapsedTime&t )
+
+
+void LandsideVehicleInSim::OnTerminate( CARCportEngine*pEngine )
 {
-	if(m_curMode == _terminate){
+	if(m_curMode == _terminate)
+	{
 		return ;
 	}
-	
+
 
 	//add end state
 	m_curMode = _terminate;	
+
+	ElapsedTime t = curTime();
 
 
 	MobileState endstate = getLastState();
@@ -189,13 +194,13 @@ void LandsideVehicleInSim::Kill( LandsideSimulation*pEngine,const ElapsedTime&t 
 	UpdateState(endstate);
 	flushState(t);
 
-	FlushLogEntry(pEngine,t);
+	FlushLogEntry(pEngine->GetLandsideSimulation(),t);
 	FlushOnVehiclePaxLog(t);
-	if(pEngine->IsAllVehicleTerminate())
+	if(pEngine->GetLandsideSimulation()->IsAllVehicleTerminate())
 	{
-		pEngine->DeactiveTrafficCtrl(t);
+		pEngine->GetLandsideSimulation()->DeactiveTrafficCtrl(t);
 	}
-	
+
 }
 
 int LandsideVehicleInSim::getID() const
@@ -857,7 +862,6 @@ void MoveOperationTable::InitFromPerform( const MobileGroundPerform& perfom )
 
 void LandsideVehicleInSim::LeaveLayoutObject( LandsideLayoutObjectInSim* pObj, LandsideResourceInSim* pDetailRes, CARCportEngine* pEngine )
 {
-	LaneParkingSpot* laneSpot = pDetailRes->toLaneSpot();
 
 	if(LandsideParkingLotInSim* plot = pObj->toParkLot() )
 	{
@@ -866,19 +870,23 @@ void LandsideVehicleInSim::LeaveLayoutObject( LandsideLayoutObjectInSim* pObj, L
 	}
 	else if(LandsideCurbSideInSim* pCurb = pObj->toCurbSide())
 	{
+		IParkingSpotInSim* laneSpot = pDetailRes->toLaneSpot();
 		if(laneSpot)
 		{
 			ChangeState(new State_LeaveCurbside(this,pCurb,laneSpot),pEngine);
 			return;
 		}
+		ASSERT(FALSE);
 	}
 	else if(LandsideBusStationInSim* pStation = pObj->toBusSation() )
 	{
+		IParkingSpotInSim* laneSpot = pDetailRes->toLaneSpot();
 		if(laneSpot)
 		{
 			ChangeState(new State_LeaveBusStation(this,pStation,laneSpot),pEngine);
 			return;
 		}
+		ASSERT(FALSE);
 	}	
 	ChangeStateMoveToDest(pEngine);	
 	return ;
@@ -1049,12 +1057,12 @@ void LandsideVehicleInSim::SuccessParkInLotSpot( LandsideParkingSpotInSim* plot 
 	ASSERT(false);
 }
 
-void LandsideVehicleInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot )
+void LandsideVehicleInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot )
 {
 	ASSERT(false);
 }
 
-void LandsideVehicleInSim::SuccessParkInBusStation(LandsideBusStationInSim* pStation,LaneParkingSpot* spot)
+void LandsideVehicleInSim::SuccessParkInBusStation(LandsideBusStationInSim* pStation,IParkingSpotInSim* spot)
 {
 	ASSERT(false);
 }
@@ -1101,7 +1109,7 @@ ResidentVehicleRoute* LandsideVehicleInSim::getNextRouteItem( ResidentVehicleRou
 	return NULL;
 }
 
-void LandsideVehicleInSim::DoParkingToSpot(LaneParkingSpot* mpDest)
+void LandsideVehicleInSim::DoParkingToSpot(IParkingSpotInSim* mpDest)
 {
 	//write parking lot 
 	MobileState lastmvPt = getLastState();
@@ -1115,7 +1123,7 @@ void LandsideVehicleInSim::DoParkingToSpot(LaneParkingSpot* mpDest)
 	nextState.pRes = mpDest;
 	nextState.distInRes = 0;
 	nextState.dSpeed = 0;
-	nextState.pos = mpDest->GetParkingPos()-mpDest->GetParkingPosDir().Normalize();	
+	nextState.pos = mpDest->GetParkingPos() - mpDest->GetParkingPosDir();	
 	nextState.time = lastmvPt.time +moveTime;
 	nextState.isConerPt = true;
 

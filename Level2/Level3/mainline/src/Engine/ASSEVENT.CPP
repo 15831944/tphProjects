@@ -36,7 +36,7 @@ int ProcessorAssignmentEvent::scheduleEvent ()
     {
 		
         time = nextAssignment->getAbsOpenTime();
-		 TRACE("=======================event = %s , %s, %d\n", this->processorAssignment->getID()->GetIDString(), time.printTime(), nextAssignment->isOpen() );
+		// TRACE("=======================event = %s , %s, %d\n", this->processorAssignment->getID()->GetIDString(), time.printTime(), nextAssignment->isOpen() );
 		addEvent();
         return FALSE;
     }
@@ -48,6 +48,8 @@ int ProcessorAssignmentEvent::scheduleEvent ()
 int ProcessorAssignmentEvent::process (CARCportEngine *pEngine)
 {
 	PLACE_METHOD_TRACK_STRING();
+
+	TRACE("=======================Process event = %s , %s, %d\n", this->processorAssignment->getID()->GetIDString(), time.printTime(), 0 );
 	processorAssignment->updateProcessors(pEngine->getTerminal()->procList);
     return scheduleEvent();
 }

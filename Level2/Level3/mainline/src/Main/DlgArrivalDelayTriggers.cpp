@@ -24,6 +24,7 @@ namespace
 	const UINT ID_EDIT_ARRIVALDELAYTRIGGERLIST = 42;
 }
 
+const char* strEnrouteString[] = {"concurrently","independently"};
 // CDlgArrivalDelayTriggers dialog
 
 IMPLEMENT_DYNAMIC(CDlgArrivalDelayTriggers, CXTResizeDialog)
@@ -368,6 +369,7 @@ void CDlgArrivalDelayTriggers::OnNewOperation()
 			{
 				CSelectData runwayExit = vSelectData->at(0);
 				AirsideArrivalDelayTrigger::CTriggerCondition *pTriggerCondition = new AirsideArrivalDelayTrigger::CTriggerCondition;
+				pTriggerCondition->SetTriggerType(AirsideArrivalDelayTrigger::CTriggerCondition::Final_Trigger);
 				pTriggerCondition->SetTakeOffPosition(runwayExit.m_ExitID);
                 
 				if(pItemData->m_FlightTypeItem)
@@ -375,6 +377,29 @@ void CDlgArrivalDelayTriggers::OnNewOperation()
 					pItemData->m_FlightTypeItem->AddItem(pTriggerCondition);
 
 					LoadTriggerConditionItem(pItemData->m_FlightTypeItem,pTriggerCondition,hItemSelected);
+
+				}
+			}
+		}
+	}
+	else if (pItemData->m_enumItemType == ItemType_EnrouteRoot)
+	{
+		CDlgRunwayExitSelect dlg(&m_vRunways,true,this);
+		if(dlg.DoModal() == IDOK)
+		{
+			std::vector<CSelectData>* vSelectData = dlg.GetSelectExitName();
+			if(vSelectData->size() > 0)
+			{
+				CSelectData runwayExit = vSelectData->at(0);
+				AirsideArrivalDelayTrigger::CTriggerCondition *pEnrouteCondition = new AirsideArrivalDelayTrigger::CTriggerCondition;
+				pEnrouteCondition->SetTriggerType(AirsideArrivalDelayTrigger::CTriggerCondition::Enroute_Trigger);
+				pEnrouteCondition->SetTakeOffPosition(runwayExit.m_ExitID);
+
+				if(pItemData->m_FlightTypeItem)
+				{
+					pItemData->m_FlightTypeItem->AddItem(pEnrouteCondition);
+
+					LoadTriggerConditionItem(pItemData->m_FlightTypeItem,pEnrouteCondition,hItemSelected);
 
 				}
 			}
@@ -544,13 +569,48 @@ void CDlgArrivalDelayTriggers::LoadFlightTypeItem( AirsideArrivalDelayTrigger::C
 		//colorStringSection.strSection = pFlightItem->GetFlightTypeName();
 		//colorItemData.vrItemStringSectionColorShow.push_back(colorStringSection);
 		CString strNodeText;
-		strNodeText.Format(_T("Triggered by queues on take off positions"));
+	//	strNodeText.Format(_T("Triggered by queues on take off positions"));
+		strNodeText.Format(_T("Triggered by final queues for take off"));
 
 		hItemTriggerConditionRoot = m_treeCtrl.InsertItem(strNodeText,hItemName);
 		m_treeCtrl.SetItemDataEx(hItemTriggerConditionRoot,colorItemData);
 
 		//load items
 		LoadTriggerCondition(pFlightItem,hItemTriggerConditionRoot);
+	}
+
+	//enroute condition
+	{
+		CTreeItemData *pTreeItemData = new CTreeItemData(ItemType_EnrouteRoot,pFlightItem);
+		colorItemData.dwptrItemData = (DWORD_PTR)pTreeItemData;
+		colorItemData.vrItemStringSectionColorShow.clear();
+		CString strEnrouteRoot;
+		strEnrouteRoot.Format(_T("Triggered by enroute Q to final take off Q"));
+
+		HTREEITEM hEnRouteRoot = m_treeCtrl.InsertItem(strEnrouteRoot,hItemName);
+		m_treeCtrl.SetItemDataEx(hEnRouteRoot,colorItemData);
+
+		LoadEnRouteCondition(pFlightItem,hEnRouteRoot);
+
+
+	}
+	//apply 
+	{
+		CARCTreeCtrlExWithColor::CItemData colorItemData;
+		CARCTreeCtrlExWithColor::CColorStringSection colorStringSection;
+		colorItemData.lSize = sizeof(colorItemData);
+		colorStringSection.colorSection = RGB(0,0,255);
+
+		CTreeItemData *pTreeItemData = new CTreeItemData(ItemType_EnrouteType,pFlightItem);
+		colorItemData.dwptrItemData = (DWORD_PTR)pTreeItemData;
+		colorItemData.vrItemStringSectionColorShow.clear();
+		CString strEnroute;
+		strEnroute.Format(_T("Applied: %s"),strEnrouteString[pFlightItem->GetTriggerType()]);
+		colorStringSection.strSection = strEnrouteString[pFlightItem->GetTriggerType()];
+		colorItemData.vrItemStringSectionColorShow.push_back(colorStringSection);
+
+		HTREEITEM hEnRouteRoot = m_treeCtrl.InsertItem(strEnroute,hItemName);
+		m_treeCtrl.SetItemDataEx(hEnRouteRoot,colorItemData);
 	}
 	m_treeCtrl.Expand(hItemName,TVE_EXPAND);
 
@@ -622,6 +682,27 @@ void CDlgArrivalDelayTriggers::LoadLandingRunway( AirsideArrivalDelayTrigger::CF
 	}
 }
 
+void CDlgArrivalDelayTriggers::LoadEnRouteCondition( AirsideArrivalDelayTrigger::CFlightTypeItem *pFlightItem, HTREEITEM hRootItem )
+{
+	ASSERT(pFlightItem != NULL);
+	if(pFlightItem == NULL)
+		return;
+
+	AirsideArrivalDelayTrigger::CTriggerConditionList& vConditions = pFlightItem->GetEnRouteConditionList();
+
+	
+	for (int nCondition = 0; nCondition < static_cast<int>(vConditions.GetElementCount()); ++nCondition)
+	{
+		AirsideArrivalDelayTrigger::CTriggerCondition* pCondition = vConditions.GetItem(nCondition);
+		if(pCondition == NULL)
+			continue;
+
+		LoadTriggerConditionItem(pFlightItem,pCondition,hRootItem);
+	}
+	m_treeCtrl.Expand(hRootItem,TVE_EXPAND);
+}
+
+
 void CDlgArrivalDelayTriggers::LoadTriggerCondition( AirsideArrivalDelayTrigger::CFlightTypeItem *pFlightItem, HTREEITEM hRootItem )
 {
 	ASSERT(pFlightItem != NULL);
@@ -689,7 +770,8 @@ void CDlgArrivalDelayTriggers::UpdateToolbarState()
 	}
 	else if(pItemData->m_enumItemType == ItemType_TimeRoot ||
 		pItemData->m_enumItemType == ItemType_RunwayRoot ||
-		pItemData->m_enumItemType == ItemType_TriggerRoot)
+		pItemData->m_enumItemType == ItemType_TriggerRoot ||
+		pItemData->m_enumItemType == ItemType_EnrouteRoot)
 	{
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_NEW_ARRIVALDELAYTRIGGERLIST,TRUE);
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_DEL_ARRIVALDELAYTRIGGERLIST,FALSE);
@@ -709,7 +791,12 @@ void CDlgArrivalDelayTriggers::UpdateToolbarState()
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_DEL_ARRIVALDELAYTRIGGERLIST,TRUE);
 		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_EDIT_ARRIVALDELAYTRIGGERLIST,FALSE);
 	}
-
+	else if (pItemData->m_enumItemType == ItemType_EnrouteType)
+	{
+		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_NEW_ARRIVALDELAYTRIGGERLIST,FALSE);
+		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_DEL_ARRIVALDELAYTRIGGERLIST,FALSE);
+		m_wndToolBar.GetToolBarCtrl().EnableButton(ID_EDIT_ARRIVALDELAYTRIGGERLIST,FALSE);
+	}
 	else if(pItemData->m_enumItemType == ItemType_QueueLength||
 		pItemData->m_enumItemType == ItemType_MinsPerAircraft)
 	{
@@ -987,6 +1074,20 @@ void CDlgArrivalDelayTriggers::UpdateItemText( HTREEITEM hItemUpdate)
 			UpdateItemText(m_treeCtrl.GetParentItem(hItemUpdate));
 
 	}
+	else if (pItemData->m_enumItemType == ItemType_EnrouteType)
+	{
+		if(pItemData->m_FlightTypeItem == NULL)
+			return;
+
+		colorItemData.vrItemStringSectionColorShow.clear();
+		colorStringSection.strSection = strEnrouteString[pItemData->m_FlightTypeItem->GetTriggerType()];
+		colorItemData.vrItemStringSectionColorShow.push_back(colorStringSection);
+
+		pItemDataEx->vrItemStringSectionColorShow = colorItemData.vrItemStringSectionColorShow;
+		CString strEnroute;
+		strEnroute.Format(_T("Applied: %s"),strEnrouteString[pItemData->m_FlightTypeItem->GetTriggerType()]);
+		m_treeCtrl.SetItemText(hItemUpdate,strEnroute);
+	}
 
 }
 
@@ -1030,6 +1131,13 @@ LRESULT CDlgArrivalDelayTriggers::OnTreeDoubleClick( WPARAM, LPARAM )
 		m_treeCtrl.SetSpinRange(0,10000);
 		m_treeCtrl.SpinEditLabel(hItemSelected,strMins);
 
+	}
+	else if (pItemData->m_enumItemType == ItemType_EnrouteType)
+	{
+		std::vector<CString> vOption;
+		vOption.push_back(strEnrouteString[0]);
+		vOption.push_back(strEnrouteString[1]);
+		m_treeCtrl.SetComboString(hItemSelected,vOption);
 	}
 
 	return 1;
@@ -1077,9 +1185,38 @@ LRESULT CDlgArrivalDelayTriggers::DefWindowProc( UINT message, WPARAM wParam, LP
 		}
 
 	}
+	else if(message == WM_INPLACE_COMBO2)
+	{
+		HTREEITEM hItemSelected = m_treeCtrl.GetSelectedItem();
+		if(hItemSelected == NULL)
+			return 1;
+
+		CARCTreeCtrlExWithColor::CItemData *pItemDataEx = m_treeCtrl.GetItemDataEx(hItemSelected);
+		if(pItemDataEx == NULL)
+			return 1;
+
+		CTreeItemData *pItemData  = (CTreeItemData *)pItemDataEx->dwptrItemData;
+		if(pItemData == NULL)
+			return 1;
+
+		int nSelIndex = m_treeCtrl.m_comboBox.GetCurSel();
+		if (nSelIndex == LB_ERR)
+			return 1;
+
+		if(pItemData->m_enumItemType == ItemType_EnrouteType)
+		{
+			if(pItemData->m_FlightTypeItem)
+			{
+				pItemData->m_FlightTypeItem->SetTriggerType(AirsideArrivalDelayTrigger::CFlightTypeItem::TriggerType(nSelIndex));
+				UpdateItemText(hItemSelected);
+			}
+		}
+
+	}
 
 	return CXTResizeDialog::DefWindowProc(message,wParam,lParam);
 }
+
 
 
 

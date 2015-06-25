@@ -55,6 +55,8 @@
 
 
 
+#include "AirsideBagCartParkPosDlg.h"
+#include "AirsidePaxBusParkingPosDlg.h"
 IMPLEMENT_DYNAMIC(CAirsideObjectBaseDlg, CXTResizeDialog)
 CAirsideObjectBaseDlg::CAirsideObjectBaseDlg(int nObjID,int nAirportID,int nProjID,CWnd* pParent /*=NULL*/)
 	: CXTResizeDialog(CAirsideObjectBaseDlg::IDD, pParent)
@@ -421,7 +423,6 @@ LRESULT CAirsideObjectBaseDlg::OnTempFallbackFinished(WPARAM wParam, LPARAM lPar
 }
 void CAirsideObjectBaseDlg::OnProcpropDelete() 
 {
-
 }
 
 void CAirsideObjectBaseDlg::OnOK()
@@ -676,146 +677,23 @@ CXTResizeDialog * CAirsideObjectBaseDlg::NewObjectDlg(int nObjID,ALTOBJECT_TYPE 
 			pDlg = new CMeetingPointDlg(nObjID, nAirportID,nProjID,pParent);
 		}
 		break;
-
+	case ALT_ABAGCARTSPOT:
+		{
+			pDlg = new CAirsideBagCartParkingPosDlg(nObjID, nAirportID,nProjID,pParent);
+		}
+		break;
+	case ALT_APAXBUSSPOT:
+		{
+			pDlg = new CAirsidePaxBusParkingPosDlg(nObjID, nAirportID,nProjID,pParent);
+		}
+		break;
 	default:
 		break;
 	}
 	return pDlg;
 }
 
-//CXTResizeDialog * CAirsideObjectBaseDlg::NewObjectDlg( ALTObject * pObj,int nProjID,CWnd *pParent /*= NULL*/ )
-//{
-//	CXTResizeDialog *pDlg = NULL;
-//	ALTOBJECT_TYPE objType = pObj->GetType();
-//	switch (objType)
-//	{
-//	case ALT_UNKNOWN:
-//		//		enumProcType = ArpProcessor;
-//		break;
-//	case ALT_RUNWAY:
-//		{
-//			pDlg = new CAirsideRunwayDlg((Runway*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_HELIPORT:
-//		{
-//			pDlg = new CAirsideHeliportDlg((Heliport*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_TAXIWAY:
-//		{
-//			pDlg = new CAirsideTaxiwayDlg((Taxiway*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_STAND:
-//		{
-//			pDlg = new CAirsideGateDlg((Stand*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_DEICEBAY:
-//		{
-//			pDlg = new CAirsideDeicePadDlg((DeicePad*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_GROUNDROUTE:
-//		break;
-//	case ALT_WAYPOINT:
-//		{
-//			pDlg = new CAirsideWaypointDlg((AirWayPoint*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_CONTOUR:
-//		{
-//			pDlg = new CAirsideContourDlg((Contour*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_HOLD:
-//		{
-//			pDlg = new CAirsideHoldDlg((AirHold*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_SECTOR:
-//		{
-//			pDlg = new CAirsideSectorDlg((AirSector*)pObj,nProjID,pParent);
-//		}
-//		break;
-//
-//	case ALT_SURFACE:
-//		{
-//			pDlg = new CAirsideSurfaceDlg((Surface*)pObj,nProjID,pParent);
-//		}
-//		break;
-//
-//	case ALT_STRUCTURE:
-//		{
-//			pDlg = new CAirsideStructureDlg((Structure*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_STRETCH:
-//		{
-//			pDlg = new CAirsideStretchDlg((Stretch*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_INTERSECTIONS:
-//		{
-//			pDlg = new CAirsideIntersectionsDlg((Intersections*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_ROUNDABOUT:
-//		{
-//			pDlg = new CAirsideRoundaboutDlg((Roundabout*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_TURNOFF:
-//		{
-//			pDlg = new CAirsideTurnoffDlg((Turnoff*)pObj,nProjID,pParent);
-//		}
-//		break;	
-//	case ALT_LANEADAPTER:
-//		{
-//			pDlg = new CAirsideLaneAdapterDlg((LaneAdapter*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_LINEPARKING:
-//		{
-//			pDlg = new CAirsideLineParkingDlg((LineParking*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_NOSEINPARKING:
-//		{
-//			pDlg = new CAirsideNoseInParkingDlg((NoseInParking*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_TRAFFICLIGHT:
-//		{
-//			pDlg = new CAirsideTrafficLightDlg((TrafficLight*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_TOLLGATE:
-//		{
-//			pDlg = new CAirsideTollGateDlg((TollGate*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_STOPSIGN:
-//		{
-//			pDlg = new CAirsideStopSignDlg((StopSign*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_YIELDSIGN:
-//		{
-//			pDlg = new CAirsideYieldSignDlg((YieldSign*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	case ALT_VEHICLEPOOLPARKING:
-//		{
-//			pDlg = new CAirsideVehiclePoolParkingDlg((VehiclePoolParking*)pObj,nProjID,pParent);
-//		}
-//		break;
-//	default:
-//		break;
-//	}
-//	return pDlg;
-//}
+
 void CAirsideObjectBaseDlg::UpdateTempObjectInfo()
 {
 	CAirside3D * pAirside3D = NULL;

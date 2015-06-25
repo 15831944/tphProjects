@@ -12,6 +12,9 @@
 #include "conveyor.h"
 #include "ServiceSlot.h"
 #include "common\states.h"
+
+class AirsideBaggageTrainInSim;
+
 class Pusher : public Conveyor  
 {
 	std::vector<ServiceSlot>m_vServiceSlot;
@@ -24,6 +27,7 @@ class Pusher : public Conveyor
 	ElapsedTime m_timeMaxWaittime;
 	ElapsedTime m_timeSchecduleInterval;
 	double m_dMovingSpeed;
+
 public:
 	Pusher();
 	virtual ~Pusher();
@@ -48,7 +52,7 @@ public:
 	// enable generate schedule event
 	void NeedGenerateScheduleEvent(){ m_bHasGeneratedScheduleEvent = false;	}
 	
-
+	void ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain, CMobileElemConstraint& bagCons, int nReleaseCount, ElapsedTime eTime);
 private:
 	//to generate a max time checking event in order to release baggage which is on pusher more than max time
 	void GenerateCheckMaxTimeEvent( Person* _pPerson, const ElapsedTime& _eventTime );
@@ -76,6 +80,8 @@ private:
 	int GetBaggageOnPusherCount()const;
 
 	void writeAdditionLog( EntityEvents _eState, const ElapsedTime& _time, long _lReason ) ;
+
+
 private:
 
 	//add person into approach list 
@@ -84,6 +90,15 @@ private:
 
 protected:
 	virtual long getLoad()const;
+
+
+
+public:
+	void ReportBaggageTrainArrival(AirsideBaggageTrainInSim *pBaggageTrain);
+
+	void ReportBaggageTrainLeave(AirsideBaggageTrainInSim *pBaggageTrain);
+protected:
+	std::vector<AirsideBaggageTrainInSim *> m_vBaggageTrain;
 };
 
 #endif // !defined(AFX_PUSHER_H__93422E31_C743_433D_AB63_AAFD4F4AAF2E__INCLUDED_)

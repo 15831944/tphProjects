@@ -20,9 +20,10 @@
 #include "../common/util.h"
 #include  "MobElementBehavior.h"
 class TerminalMobElementBehavior;
-class AirsideMobElementBehavior;
+class AirsidePassengerBehavior;
 class PaxOnboardBaseBehavior;
 class LandsideBaseBehavior;
+class AirsideMobElementBaseBehavior;
 /*
 The MobileElement is a base class for all mobile elements in Arcterm.
 It has the key data and functions required for writing log files for animation and analysis.
@@ -64,7 +65,7 @@ public:
 	virtual MobElementBehavior* getBehavior( MobElementBehavior::BehaviorType emType);
 
 	TerminalMobElementBehavior* getTerminalBehavior()const;
-	AirsideMobElementBehavior* getAirsideBehavior()const;
+	AirsideMobElementBaseBehavior* getAirsideBehavior()const;
 	PaxOnboardBaseBehavior* getOnboardBehavior()const;
 	LandsideBaseBehavior* getLandsideBehavior()const;
 

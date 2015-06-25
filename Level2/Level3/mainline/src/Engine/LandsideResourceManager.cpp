@@ -482,7 +482,14 @@ void LandsideResourceManager::CreatInSimObject( LandsideFacilityLayoutObject* pO
 	switch(pObj->GetType())
 	{
 	case ALT_LSTRETCH:
-		m_vStretches.push_back(new LandsideStretchInSim((LandsideStretch*)pObj));
+		{
+			LandsideStretch* pStretch = (LandsideStretch*)pObj;
+			if(pStretch->getControlPath().getCount()>1)
+			{
+				m_vStretches.push_back(new LandsideStretchInSim(pStretch));
+			}
+		}
+		
 		break;
 	case ALT_LINTERSECTION:
 		m_Intersections.push_back(new LandsideIntersectionInSim((LandsideIntersectionNode*)pObj));

@@ -24,21 +24,22 @@ public:
 	static ElapsedTime curTime();
 	virtual ~SAgent();
 	virtual CString getTypeDesc()const;
-public:
-	virtual void OnActive(CARCportEngine*pEngine)=0;
-	virtual void OnTerminate(CARCportEngine*pEngine)=0;
 
-	virtual void OnNotify(IObserveSubject* subjuct, int nMsg);
-
-public:
 	void Activate(const ElapsedTime& nextT); //active agent next time
+	void Terminate(CARCportEngine* pEngine);
 	void Terminate(const ElapsedTime& t); //terminate at specified time
+public:
+	virtual void OnNotify(IObserveSubject* subjuct, int nMsg);
+public:
+	
 	//void Terminate(); //terminate at current time
 	void DeActive(); //make agent inactive remove all active event
+	virtual void OnActive(CARCportEngine*pEngine)=0;
 protected:
 	//message out box;	
 	SAgent();	 
 	SAgentActivator m_activator;
+	virtual void OnTerminate(CARCportEngine*pEngine)=0;
 };
 
 

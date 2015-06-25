@@ -19,7 +19,8 @@
 #include "common\states.h"
 #include "engine\TracePredef.h"
 #include "TerminalMobElementBehavior.h"
-
+#include "TERMINAL.H"
+#include "PROCLIST.H"
 #include <iostream>
 
  
@@ -414,7 +415,19 @@ void SequentialQueue::balanceQueue (Processor *changedProc, ElapsedTime p_time)
 		{
 			continue;
 		}
-
+		
+		//check can lead to reclaim
+		if (jumper->GetTerminal())
+		{
+			if(jumper->GetTerminal()->GetProcessorList())
+			{
+				Processor* pReclaim = jumper->GetTerminal()->GetProcessorList()->getProcessor(jumper->getBagCarosel());
+				if (pReclaim && changedProc->CanLeadToReclaim(jumper->getType(),*(pReclaim->getID())) == false)
+					continue;
+			}
+		}
+	
+		
         if (	/* !changedProc->canServe (jumper->getType()) */  // can use this method this way !!!
 				!changedProc->leadsToGate (jumper->getGateIndex())
 			||	!spTerminalBehavior->canJumpToProcessor(changedProc)

@@ -201,6 +201,7 @@
     <ClInclude Include="AirRouteBar.h" />
     <ClInclude Include="AirRouteDropWnd.h" />
     <ClInclude Include="Airside3D.h" />
+    <ClInclude Include="AirsideBagCartParkPosDlg.h" />
     <ClInclude Include="AirsideDriveRoadDlg.h" />
     <ClInclude Include="AirsideEditContext.h" />
     <ClInclude Include="AirsideGround.h" />
@@ -211,6 +212,8 @@
     <ClInclude Include="AirsideObjectBaseDlg.h" />
     <ClInclude Include="AirsideObjectTreeCtrl.h" />
     <ClInclude Include="AirsideParkingPlaceDlg.h" />
+    <ClInclude Include="AirsidePaxBusParkingPosDlg.h" />
+    <ClInclude Include="AirsidePaxBusParkSpot3D.h" />
     <ClInclude Include="AirsideReportView.h" />
     <ClInclude Include="AirsideRunwayDlg.h" />
     <ClInclude Include="AirsideStretchVerticalProfileEditor.h" />
@@ -254,6 +257,7 @@
     <ClInclude Include="CmpReportTreeView.h" />
     <ClInclude Include="CurbsideFacilityDataPage.h" />
     <ClInclude Include="DlgAdjacencyConstraintSpec.h" />
+    <ClInclude Include="DlgAirsideEnrouteQueueCapacity.h" />
     <ClInclude Include="DlgAnimationSpeed.h" />
     <ClInclude Include="DlgAssignmentConstraintSpec.h" />
     <ClInclude Include="DlgBaseResident.h" />
@@ -293,6 +297,7 @@
     <ClInclude Include="LandsideTaxiPoolProDlgImpl.h" />
     <ClInclude Include="LandsideTaxiQueuePropDlgImpl.h" />
     <ClInclude Include="ModelessDlgManager.h" />
+    <ClInclude Include="Painter.h" />
     <ClInclude Include="ParkingLotFacilityDataPage.h" />
     <ClInclude Include="PAXSHAPES\BRIEFCASERAISED.h" />
     <ClInclude Include="RosterAssignSummaryDlg.h" />
@@ -1073,6 +1078,9 @@
     <ClInclude Include="LandsideReportTreePerformer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AirsideBagCartParkPosDlg.cpp" />
+    <ClCompile Include="AirsidePaxBusParkingPosDlg.cpp" />
+    <ClCompile Include="AirsidePaxBusParkSpot3D.cpp" />
     <ClCompile Include="AllProcessorTypeDropWnd.cpp" />
     <ClCompile Include="AllProcessorTypeShowListBox.cpp" />
     <ClCompile Include="ARCportTabCtrl.cpp" />
@@ -1084,6 +1092,7 @@
     <ClCompile Include="CmpReportTreeView.cpp" />
     <ClCompile Include="CurbsideFacilityDataPage.cpp" />
     <ClCompile Include="DlgAdjacencyConstraintSpec.cpp" />
+    <ClCompile Include="DlgAirsideEnrouteQueueCapacity.cpp" />
     <ClCompile Include="DlgAnimationSpeed.cpp" />
     <ClCompile Include="DlgAssignmentConstraintSpec.cpp" />
     <ClCompile Include="DlgBaseResident.cpp" />
@@ -5340,6 +5349,7 @@
     <None Include="res\bmp00050.bmp" />
     <None Include="res\bmp00051.bmp" />
     <None Include="res\bmp00052.bmp" />
+    <None Include="res\bmp00053.bmp" />
     <None Include="Res\bmp_seldefined.bmp" />
     <None Include="Res\bmpPipeBar.bmp" />
     <None Include="Res\bus_station.bmp" />

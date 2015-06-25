@@ -135,6 +135,7 @@ public:
 
 	bool SelectBestSchedule( IntegratedStation* _pCurrentStation, IntegratedStation* _pDesStation, ElapsedTime arriveCurStationTime, std::vector<CViehcleMovePath>& _bestMovePath );
 	//bool Ch
+	bool SelectBestScheduleCircualtion( IntegratedStation* _pCurrentStation, IntegratedStation* _pDesStation, ElapsedTime arriveCurStationTime, std::vector<CViehcleMovePath>& _bestMovePath );
 
 
 

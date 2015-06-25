@@ -179,6 +179,36 @@ CString LandsideStretchInSim::print() const
 	return getInput()->getName().GetIDString();
 }
 
+LandsideStretchLaneInSim* LandsideStretchInSim::GetNearestLane( const CPoint2008& pos,DistanceUnit& distInLane ) const
+{
+	if(GetLaneCount()==0)
+		return NULL;
+
+	LandsideStretchLaneInSim* pNearestLane = GetLane(0);
+	double indexPrjPt = pNearestLane->GetPath().GetPointIndex(pos);
+	CPoint2008 prjPt = pNearestLane->GetPath().GetIndexPoint(indexPrjPt);
+	distInLane = pNearestLane->GetPath().GetIndexDist(indexPrjPt);
+
+	DistanceUnit distToLane = prjPt.distance(pos);
+
+
+	for(int i=1;i<GetLaneCount();i++)
+	{
+		 LandsideStretchLaneInSim* _pOtherStretch = GetLane(i);
+		 double _indexPrjPt = _pOtherStretch->GetPath().GetPointIndex(pos);
+		 CPoint2008 _prjPt = _pOtherStretch->GetPath().GetIndexPoint(_indexPrjPt);
+		 DistanceUnit _distToLane = _prjPt.distance(pos);
+
+		 if(_distToLane<distToLane)
+		 {
+			 distToLane = _distToLane;
+			 pNearestLane = _pOtherStretch;
+			 distInLane = _pOtherStretch->GetPath().GetIndexDist(_indexPrjPt);
+		 }
+	}
+	return pNearestLane;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -621,10 +651,15 @@ LandsideVehicleInSim* LandsideStretchLaneInSim::GetAheadVehicle( LandsideVehicle
 		}
 		else
 		{
-			LaneParkingSpot* lps =NULL;
+			LaneParkingSpot* lps = NULL;
 			LandsideResourceInSim* pOtherRes = pVeh->getLastState().getLandsideRes();
 			if(pOtherRes)
-				lps = pOtherRes->toLaneSpot();
+			{
+				if(IParkingSpotInSim* pSpot = pOtherRes->toLaneSpot() )
+				{
+					lps = pSpot->toInLanePark();
+				}
+			}
 			if(lps && lps->GetLane()==this)
 			{
 				pSameRes = this;

@@ -40,7 +40,8 @@ protected:
 		// NOTE - the ClassWizard will add and remove member functions here.
 	afx_msg void OnItemexpanded(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
-
+	
+	void LoadChild( HTREEITEM _hItem, CString _csStr,BOOL bGateStandOnly=FALSE );
 	DECLARE_MESSAGE_MAP()
 };
 

@@ -266,13 +266,14 @@ void CRosterList::InsertRosterOfProcessor(HTREEITEM ProcessNode )
 }
 void CRosterList::AddLineToRosterList( ItemRosterList& _data,ProcessorRoster* _PAss) 
 {
-	int ndx = m_rosterList.InsertItem(0,_data.c_Processor) ;
-	m_rosterList.SetItemText(ndx,1,_data.c_PaxTy) ;
-	m_rosterList.SetItemText(ndx,2,_data.c_openTime) ;
-	m_rosterList.SetItemText(ndx,3,_data.c_closeTime ) ;
-	m_rosterList.SetItemText(ndx,4,_data.c_relation) ;
-	m_rosterList.SetItemText(ndx,5,_data.c_isDaily) ;
-	m_rosterList.SetItemData(ndx,(DWORD_PTR)_PAss) ;
+	int ndx = m_rosterList.InsertItem(m_rosterList.GetItemCount(), _data.c_Processor);
+
+	m_rosterList.SetItemText(ndx,1,_data.c_PaxTy);
+	m_rosterList.SetItemText(ndx,2,_data.c_openTime);
+	m_rosterList.SetItemText(ndx,3,_data.c_closeTime );
+	m_rosterList.SetItemText(ndx,4,_data.c_relation);
+	m_rosterList.SetItemText(ndx,5,_data.c_isDaily);
+	m_rosterList.SetItemData(ndx,(DWORD_PTR)_PAss);
 }
 //void CRosterList::DeleteSelLineFromRosterList() 
 //{

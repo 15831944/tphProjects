@@ -254,15 +254,10 @@ void LandsideBaseBehavior::terminate( const ElapsedTime&t )
 	if(getPerson()->getState()==Death)
 		return;
 	writeLog(t);
-	getPerson()->flushLog(t);
+	flushLog(t);
 	setState(Death);
 }
 
-void LandsideBaseBehavior::FlushLog( ElapsedTime p_time )
-{
-	if(m_pPerson)
-		m_pPerson->flushLog(p_time,false);
-}
 
 void LandsideBaseBehavior::setState( short nState )
 {
@@ -294,15 +289,49 @@ int LandsideBaseBehavior::GetPersonID() const
 
 bool LandsideBaseBehavior::CanPaxTakeThisBus( LandsideResidentVehicleInSim *pResidentVehicle, LandsideSimulation *pSimulation )
 {
-	ASSERT(0);
+	//ASSERT(0);
 	return false;
 }
 
 bool LandsideBaseBehavior::CanPaxTkeOffThisBusAtStation( LandsideBusStationInSim* pBusStation, LandsideSimulation *pSimulation )
 {
-	ASSERT(0);
+	//ASSERT(0);
 	return false;
 
 }
 
 
+bool LandsideBaseBehavior::CanPaxTakeOffThisResource( LandsideResourceInSim* pResource,LandsideSimulation* pSimulation ) const
+{
+	//ASSERT(FALSE);
+	return FALSE;
+}
+
+
+void LandsideBaseBehavior::ChooseTakeOffResource( LandsideLayoutObjectInSim* pLayout,LandsideSimulation* pSimulation )
+{
+	//ASSERT(FALSE);
+}
+
+void LandsideBaseBehavior::FlushLogforFollower( ElapsedTime _time )
+{
+	CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pPerson->m_pGroupInfo;
+	if(pGroupLeaderInfo->isInGroup() && !pGroupLeaderInfo->IsFollower())
+	{
+		// write other member of group
+		MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
+		int nFollowerCount = elemList.getCount();
+		for( int i=0; i< nFollowerCount; i++ )
+		{
+			Person* _pFollower =(Person*) elemList.getItem( i );;
+			PaxLandsideBehavior* spFollowBehavior = (PaxLandsideBehavior*) _pFollower->getLandsideBehavior();
+			if(m_pPerson->getState() != Death)
+			{
+				_pFollower->setState(m_pPerson->getState());
+			}
+
+			if( _pFollower->getState() != Death  && spFollowBehavior)
+				spFollowBehavior->flushLog(_time);
+		}
+	}
+}

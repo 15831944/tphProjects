@@ -60,7 +60,7 @@ void State_FindingParkSpot::Execute( CARCportEngine* pEngine )
 		CString sError;
 		sError.Format(_T("Can not find a free spot in %s"), m_pLot->getName().GetIDString().GetString() );
 		m_pOwner->ShowError(sError, "Simulation Error");
-		m_pOwner->OnTerminate(pEngine);
+		m_pOwner->Terminate(pEngine);
 	}
 }
 

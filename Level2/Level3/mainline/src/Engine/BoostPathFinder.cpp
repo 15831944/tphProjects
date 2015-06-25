@@ -23,7 +23,11 @@ double CBoostDirectedGraph::GetEdgeWeight( const myvertex_descriptor& f, const m
 		graph_traits < mygraph_t >::out_edge_iterator ei, ei_end;
 		for( tie(ei,ei_end) = out_edges(f, *mpGraph); ei!=ei_end; ++ei )
 		{
-			return get(weightmap, *ei);
+			if(t == target(*ei, *mpGraph))
+			{
+				return get(weightmap, *ei);
+
+			}
 		}
 	}
 	return (std::numeric_limits<double>::max)();

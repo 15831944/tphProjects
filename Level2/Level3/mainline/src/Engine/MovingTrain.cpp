@@ -21,28 +21,48 @@ TrainCarInSim::~TrainCarInSim()
 	}
 }
 
-void TrainCarInSim::AddPax(Person* pPerson)
+void TrainCarInSim::AddPax(Person* pPerson, IntegratedStation *pDestStation)
 {
 	ASSERT(pPerson);
-	m_vPerson.push_back(pPerson);
+	m_vPerson.push_back( std::make_pair(pPerson, pDestStation));
 }
 
 void TrainCarInSim::DeletePax(Person* pPerson)
 {
-	std::vector<Person*>::iterator iter = std::find(m_vPerson.begin(),m_vPerson.end(),pPerson);
-	if (iter != m_vPerson.end())
+	//std::vector<Person*>::iterator iter = std::find(m_vPerson.begin(),m_vPerson.end(),pPerson);
+	//if (iter != m_vPerson.end())
+	//{
+	//	m_vPerson.erase(iter);
+	//}
+	std::vector< std::pair< Person*, IntegratedStation *> >::iterator iter = m_vPerson.begin();
+	for (; iter != m_vPerson.end(); ++ iter)
 	{
-		m_vPerson.erase(iter);
+		Person *curPerson = (*iter).first;
+		if(curPerson && curPerson == pPerson)
+		{
+			m_vPerson.erase(iter);
+			return;
+		}
 	}
 }
 
 int TrainCarInSim::GetPaxCount()const
 {
 	int nCount = 0;
-	for (unsigned i = 0; i < m_vPerson.size(); i++)
+	//for (unsigned i = 0; i < m_vPerson.size(); i++)
+	//{
+	//	Person* pPerson= m_vPerson.at(i);
+	//	nCount += pPerson->GetActiveGroupSize();
+	//}
+
+	std::vector< std::pair< Person*, IntegratedStation *> >::const_iterator iter = m_vPerson.begin();
+	for (; iter != m_vPerson.end(); ++ iter)
 	{
-		Person* pPerson= m_vPerson.at(i);
-		nCount += pPerson->GetActiveGroupSize();
+		Person *curPerson = (*iter).first;
+		if(curPerson)
+		{
+			nCount += curPerson->GetActiveGroupSize();
+		}
 	}
 	return nCount;
 }
@@ -57,12 +77,49 @@ bool TrainCarInSim::Valid()const
 
 bool TrainCarInSim::Exist( Person* pPerson ) const
 {
-	std::vector<Person*>::const_iterator iter = std::find(m_vPerson.begin(),m_vPerson.end(),pPerson);
-	if (iter != m_vPerson.end())
+	//std::vector<Person*>::const_iterator iter = std::find(m_vPerson.begin(),m_vPerson.end(),pPerson);
+	//if (iter != m_vPerson.end())
+	//{
+	//	return true;
+	//}
+	std::vector< std::pair< Person*, IntegratedStation *> >::const_iterator iter = m_vPerson.begin();
+	for (; iter != m_vPerson.end(); ++ iter)
 	{
-		return true;
+		Person *curPerson = (*iter).first;
+		if(curPerson && curPerson == pPerson)
+		{
+			return true;
+		}
 	}
 	return false;
+}
+
+bool TrainCarInSim::ClearThisStationPerson(IntegratedStation *thisStation)
+{
+	int nPaxCount = m_vPerson.size();
+
+	for (int nPax = nPaxCount -1; nPax >= 0; nPax --)
+	{
+		std::pair< Person*, IntegratedStation *>& personPair = m_vPerson[nPax];
+		IntegratedStation *curStation = personPair.second;
+		if(curStation == thisStation)
+		{
+			m_vPerson.erase(m_vPerson.begin() + nPax);
+		}
+
+
+	}
+
+	//std::vector<  >::const_iterator iter = m_vPerson.begin();
+	//for (; iter != m_vPerson.end(); ++ iter)
+	//{
+	//	Person *curPerson = (*iter).first;
+	//	if(curPerson && curPerson == pPerson)
+	//	{
+	//		return true;
+	//	}
+	//}
+	return true;
 }
 
 MovingTrain::MovingTrain(CTrainLogEntry& p_entry,Terminal* _pTerm):MobileElement(p_entry.GetID(),0)
@@ -196,6 +253,8 @@ int MovingTrain::move(ElapsedTime currentTime,bool bNoLog)
 			}
 			IntegratedStation* pSourceStation = GetSourceStation(m_nFlowIndex);
 			pSourceStation->ClearStationTrain(this);
+			ClearThisStationPerson(pSourceStation);
+
 		}
 		break;
 	case Death:
@@ -297,4 +356,19 @@ TrainCarInSim* MovingTrain::getCar( int nCarIndex )
 	}
 	
 	return NULL;
+}
+
+bool MovingTrain::ClearThisStationPerson( IntegratedStation *thisStation )
+{
+	std::vector<TrainCarInSim*>::iterator iter = m_vTrainCar.begin();
+	for (; iter != m_vTrainCar.end(); ++iter)
+	{
+		TrainCarInSim* pCar = *iter;
+		if(pCar)
+		{
+			pCar->ClearThisStationPerson(thisStation);
+		}
+	}
+	return true;
+
 }

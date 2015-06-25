@@ -92,6 +92,7 @@
 #include "DynamicConflictGraph.h"
 #include "AirsideCircuitFlightInSim.h"
 #include "AirsideCircuitFlightProcess.h"
+#include "EnrouteQueueCapacityInSim.h"
 
 //static DistanceUnit RadiusOfConcernOnAir = 100000;  // 1000 meters
 static DistanceUnit RadiusOfConcernOnGround = 50000;   //200 meters
@@ -124,6 +125,7 @@ AirTrafficController::AirTrafficController()
 
 	m_pRunwaysController = new CRunwaySystem();
 	m_pArrivalDelayTrigger = new ArrivalDelayTriggerInSim();
+	m_pEnrouteQCapacity = new EnrouteQueueCapacityInSim();
 
 	m_pAirportStatusManager = new AirportStatusManager;
 	m_pInboundStatus = new InboundStatus(m_pAirportStatusManager);
@@ -189,7 +191,11 @@ AirTrafficController::~AirTrafficController(void)
 	delete m_pArrivalDelayTrigger;
 	m_pArrivalDelayTrigger = NULL;
 
-
+	if (m_pEnrouteQCapacity)
+	{
+		delete m_pEnrouteQCapacity;
+		m_pEnrouteQCapacity = NULL;
+	}
 
 	if (NULL != m_pInTrailSeparationInSim)
 	{
@@ -517,6 +523,7 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			//Apply for vehicle service
 			pFlight->ApplyForVehicleService();	
 			pFlight->ApplyForPaxBusService(true);
+			pFlight->ApplyForBaggageTrainService(ARRIVAL_OPERATION);
 
 			double taxispd = pFlight->GetPerformance()->getTaxiInNormalSpeed(pFlight);
 			pRouteToStand->SetSpeed(taxispd);
@@ -740,7 +747,8 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			//	}
 			//}			
 			pFlight->ApplyForVehicleService();
-			pFlight->ApplyForPaxBusService(false);			
+			pFlight->ApplyForPaxBusService(false);	
+			pFlight->ApplyForBaggageTrainService(DEPARTURE_OPERATION);
 
 			if(lastClearanceItem.GetMode()== OnHeldAtStand && pFlight->getDeiceServiceRequest() == NULL && !pFlight->GetDeiceDecision().bAfterDeice)
 			{
@@ -1419,6 +1427,7 @@ bool AirTrafficController::Init( int nPrjId, AirsideResourceManager * pResources
 	}
 
 	m_pArrivalDelayTrigger->Init(nPrjId,pResources->GetAirportResource(),pAirportDB);
+	m_pEnrouteQCapacity->Init(pResources->GetAirportResource());
 
 	//m_missApproachController.Init(nPrjId,pResources->GetAirspaceResource());
 	m_pRunwaysController->Initlization(nPrjId, this, &m_RunwayExitAssignmentStrategies, &m_TakeOffPositionAssignment,pOutput);
@@ -1495,6 +1504,7 @@ void AirTrafficController::AssignSTAR( AirsideFlightInSim * pFlight )
 	if(pRoute)
 		pRoute->InitializeSegments(pFlight);
 
+	ASSERT(pRoute->GetItemCount()>1);
 	pFlight->m_pSTAR = pRoute;
 }
 

@@ -60,7 +60,7 @@ public:
 	LandsideLayoutObjectInSim* getLayoutObject() const;
 
 	LandsideTaxiQueue* GetTaxiQInput()const{return (LandsideTaxiQueue*)getInput(); }
-	LaneParkingSpotsGroup& getParkingSpot(){ return mParkingSpots; }
+	LandsideInterfaceParkingSpotsGroup& getParkingSpot(){ return mParkingSpots; }
 
 	virtual CPath2008 GetQueue();
 	virtual bool CanStartService(){return true;}
@@ -91,7 +91,7 @@ private:
 	LandsideResourceManager* m_pAllRes;
 	VehicleList m_vServiceVehicles;
 
-	LaneParkingSpotsGroup mParkingSpots;
+	LandsideInterfaceParkingSpotsGroup mParkingSpots;
 	LandsideQueueSystemProcess* m_queueProcessSys;
 	CPath2008 m_waitingPath;
 

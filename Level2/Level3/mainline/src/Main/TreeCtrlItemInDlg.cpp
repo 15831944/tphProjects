@@ -19,7 +19,8 @@ void PropDlgTreeItemDataInstance::Add( IPropDlgTreeItemData* pdata )
 	m_vDatalist.push_back(pdata);	
 }
 //////////////////////////////////////////////////////////////////////////
-TreeCtrlItemInDlg::TreeCtrlItemInDlg( CAirsideObjectTreeCtrl& ctrl, HTREEITEM hitem ) :m_ctrl(ctrl)
+TreeCtrlItemInDlg::TreeCtrlItemInDlg( CAirsideObjectTreeCtrl& ctrl, HTREEITEM hitem ) 
+:m_ctrl(&ctrl)
 {
 	m_hItem = hitem;
 
@@ -28,13 +29,16 @@ TreeCtrlItemInDlg::TreeCtrlItemInDlg( CAirsideObjectTreeCtrl& ctrl, HTREEITEM hi
 
 TreeCtrlItemInDlg TreeCtrlItemInDlg::AddChild( const CString& strNode,HTREEITEM HAfter /*= TVI_LAST*/ )
 {
-	HTREEITEM hitem = m_ctrl.InsertItem(strNode,m_hItem,HAfter);
-	return TreeCtrlItemInDlg(m_ctrl,hitem);
+	HTREEITEM hitem = GetCtrl().InsertItem(strNode,m_hItem,HAfter);
+	return TreeCtrlItemInDlg(GetCtrl(),hitem);
 }
 
-void TreeCtrlItemInDlg::Expand()
+void TreeCtrlItemInDlg::Expand(BOOL b)
 {
-	m_ctrl.Expand(m_hItem,TVE_EXPAND);
+	if(b)
+		GetCtrl().Expand(m_hItem,TVE_EXPAND);
+	else
+		GetCtrl().Expand(m_hItem,TVE_TOGGLE);
 }
 
 
@@ -43,9 +47,9 @@ TreeCtrlItemInDlg TreeCtrlItemInDlg::GetParent() const
 	HTREEITEM hParent = NULL;
 	if(m_hItem)
 	{
-		hParent = m_ctrl.GetParentItem(m_hItem);
+		hParent = GetCtrl().GetParentItem(m_hItem);
 	}
-	return TreeCtrlItemInDlg(m_ctrl,hParent);
+	return TreeCtrlItemInDlg(GetCtrl(),hParent);
 }
 
 void TreeCtrlItemInDlg::AddTokenItem( CString strToken, bool bClear,COLORREF color/*=RGB(0,0,255)*/ )
@@ -67,7 +71,7 @@ void TreeCtrlItemInDlg::AddTokenItem( CString strToken, bool bClear,COLORREF col
 AirsideObjectTreeCtrlItemDataEx* TreeCtrlItemInDlg::GetData()const
 {
 	if(m_hItem)
-		return m_ctrl.GetItemDataEx(m_hItem);
+		return GetCtrl().GetItemDataEx(m_hItem);
 	return NULL;
 }
 
@@ -76,7 +80,7 @@ AirsideObjectTreeCtrlItemDataEx* TreeCtrlItemInDlg::InitData()
 	AirsideObjectTreeCtrlItemDataEx dext;
 	dext.lSize = sizeof(dext);
 	dext.dwptrItemData = 0;
-	m_ctrl.SetItemDataEx(m_hItem,dext);	
+	GetCtrl().SetItemDataEx(m_hItem,dext);	
 	return  GetData();
 }
 
@@ -106,6 +110,7 @@ void TreeCtrlItemInDlg::AddDrivePipePath(const CPath2008& path, ARCUnit_Length c
 
 void TreeCtrlItemInDlg::AddChildPath( const CPath2008& path, ARCUnit_Length curUnit, int nLevel )
 {
+	DeleteAllChild();
 	int iPathCount = path.getCount();
 	for(int i = 0;i < iPathCount; i++)
 	{
@@ -130,6 +135,7 @@ void TreeCtrlItemInDlg::AddChildPath( const CPath2008& path, ARCUnit_Length curU
 
 void TreeCtrlItemInDlg::AddChildPath( const CPath2008& path, ARCUnit_Length curUnit)
 {
+	DeleteAllChild();
 	int iPathCount = path.getCount();
 	for(int i = 0;i < iPathCount; i++)
 	{
@@ -159,7 +165,7 @@ void TreeCtrlItemInDlg::SetLengthValueText( CString strPrfix, double dValue,ARCU
 	str.Format("%s(%s): %s ",strPrfix,strUnit,strLength);
 
 
-	m_ctrl.SetItemText(m_hItem,str);
+	GetCtrl().SetItemText(m_hItem,str);
 	AddTokenItem(strLength,true);
 }
 
@@ -170,7 +176,7 @@ void TreeCtrlItemInDlg::SetDegreeValueText( CString strPrfix, double dValue )
 	CString str;
 	str.Format("%s: %s (degree)",strPrfix,strLength);
 
-	m_ctrl.SetItemText(m_hItem,str);
+	GetCtrl().SetItemText(m_hItem,str);
 	AddTokenItem(strLength,true);
 }
 
@@ -178,7 +184,7 @@ void TreeCtrlItemInDlg::SetStringText( CString strPrix, CString str )
 {
 	CString strText;
 	strText.Format("%s: %s",strPrix,str);
-	m_ctrl.SetItemText(m_hItem,strText);
+	GetCtrl().SetItemText(m_hItem,strText);
 
 	AddTokenItem(str,true);
 }
@@ -219,7 +225,7 @@ CString TreeCtrlItemInDlg::GetValueText( double dValue,ARCUnit_Velocity curUnit 
 
 TreeCtrlItemInDlg TreeCtrlItemInDlg::GetRootItem() const
 {
-	return GetRootItem(m_ctrl);
+	return GetRootItem(GetCtrl());
 }
 
 TreeCtrlItemInDlg TreeCtrlItemInDlg::GetRootItem( CAirsideObjectTreeCtrl& ctrl )
@@ -229,43 +235,44 @@ TreeCtrlItemInDlg TreeCtrlItemInDlg::GetRootItem( CAirsideObjectTreeCtrl& ctrl )
 
 namespace
 {
-	void DelItemChild(CTreeCtrl& treeCtrl,   HTREEITEM   hItem);
-	void DelItem(CTreeCtrl& treeCtrl,   HTREEITEM   hItem) 
+	void _DelItemChild(CTreeCtrl& treeCtrl,   HTREEITEM   hItem);
+	void _DelItem(CTreeCtrl& treeCtrl,   HTREEITEM   hItem) 
 	{ 
-		DelItemChild(treeCtrl,hItem);
+		_DelItemChild(treeCtrl,hItem);
 		treeCtrl.DeleteItem(hItem);
 	}
-	void DelItemChild(CTreeCtrl& treeCtrl,   HTREEITEM   hItem)
+	void _DelItemChild(CTreeCtrl& treeCtrl,   HTREEITEM   hItem)
 	{	
 		HTREEITEM   hChild   =   treeCtrl.GetChildItem(hItem); 
 		while(hChild   !=   NULL)
 		{ 		
 			HTREEITEM nextChild =  treeCtrl.GetNextSiblingItem(hChild); 
-			DelItem(treeCtrl,hChild);		
+			_DelItem(treeCtrl,hChild);		
 			hChild = nextChild;
 		}	
 	}
 };
+
 void TreeCtrlItemInDlg::Destroy()
 {
-	DelItem(m_ctrl,m_hItem);
+	_DelItem(GetCtrl(),m_hItem);
 	m_hItem = NULL;
 }
 
 void TreeCtrlItemInDlg::DeleteAllChild()
 {
-	DelItemChild(m_ctrl,m_hItem);
+	_DelItemChild(GetCtrl(),m_hItem);
 }
 
 BOOL TreeCtrlItemInDlg::SetSelect()
 {
-	return m_ctrl.SelectItem(m_hItem);
+	return GetCtrl().SelectItem(m_hItem);
 }
 
 
 void TreeCtrlItemInDlg::SetString( CString str,bool bToken /*= false*/ )
 {
-	m_ctrl.SetItemText(m_hItem,str);
+	GetCtrl().SetItemText(m_hItem,str);
 	if(bToken){
 		AddTokenItem(str);
 	}
@@ -281,8 +288,49 @@ void TreeCtrlItemInDlg::SetSpeedValueText( CString strPrfix, double dValue,ARCUn
 	str.Format("%s(%s): %s ",strPrfix,strUnit,strLength);
 
 
-	m_ctrl.SetItemText(m_hItem,str);
+	GetCtrl().SetItemText(m_hItem,str);
 	AddTokenItem(strLength,true);
+}
+
+bool TreeCtrlItemInDlg::isNull() const
+{
+	return m_hItem==NULL;
+}
+
+TreeCtrlItemInDlg& TreeCtrlItemInDlg::SetUserType( int nUserType )
+{
+	if( AirsideObjectTreeCtrlItemDataEx* _indata = GetInitData())
+	{
+		_indata->nSubType = nUserType;
+	}
+	return *this;
+}
+
+TreeCtrlItemInDlg& TreeCtrlItemInDlg::SetUserData( DWORD_PTR udata )
+{
+	if( AirsideObjectTreeCtrlItemDataEx* _indata = GetInitData())
+	{
+		_indata->dwptrItemData = udata;
+	}
+	return *this;
+}
+
+int TreeCtrlItemInDlg::GetUserType() const
+{
+	if( AirsideObjectTreeCtrlItemDataEx* _indata = GetData())
+	{
+		return _indata->nSubType;
+	}
+	return 0;
+}
+
+DWORD_PTR TreeCtrlItemInDlg::GetUserData() const
+{
+	if( AirsideObjectTreeCtrlItemDataEx* _indata = GetData())
+	{
+		return _indata->dwptrItemData;
+	}
+	return 0;
 }
 
 //

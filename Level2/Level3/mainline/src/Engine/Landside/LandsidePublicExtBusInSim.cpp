@@ -129,7 +129,7 @@ void LandsidePublicExtBusInSim::ArrivalLayoutObject( LandsideLayoutObjectInSim* 
 	}
 }
 
-void LandsidePublicExtBusInSim::SuccessParkInBusStation( LandsideBusStationInSim* pStation ,LaneParkingSpot*spot)
+void LandsidePublicExtBusInSim::SuccessParkInBusStation( LandsideBusStationInSim* pStation ,IParkingSpotInSim*spot)
 {
 	ChangeVehicleState(new State_ProcessAtBusStationExtBus(this,pStation,spot) );
 }

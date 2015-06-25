@@ -33,7 +33,7 @@ class LandsideTaxiPoolInSim;
 class LandsideLaneNodeInSim;
 class LeadToInfo;
 class ARCPolygon;
-
+class IParkingSpotInSim;
 
 class LandsideResourceInSim :  public IObserveSubject
 {
@@ -56,7 +56,7 @@ public:
 	virtual LandsideIntersectLaneLinkInSim* toIntersectionLink(){ return NULL; }
 	virtual LandsideRoundaboutInSim* toAbout(){ return NULL; }
 	virtual LandsideBusStationInSim* toBusSation(){return NULL;}
-	virtual LaneParkingSpot* toLaneSpot(){ return NULL; }
+	virtual IParkingSpotInSim* toLaneSpot(){ return NULL; }
 	virtual LandsideTaxiQueueInSim* toTaxiQueue(){ return NULL; }
 	virtual LandsideTaxiPoolInSim* toTaxiPool(){ return NULL; }
 

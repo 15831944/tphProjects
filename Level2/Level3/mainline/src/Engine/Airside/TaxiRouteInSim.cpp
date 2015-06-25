@@ -611,12 +611,9 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 {
 	if( GetItemCount() < 1) 
 		return false;
-
-	if(m_vHoldList.m_pFlight!=pFlight)
-	{
-		InitRoute(pFlight,lastClearanceItem.GetTime());
-	}
-
+	
+	InitRoute(pFlight,lastClearanceItem.GetTime());
+	
 	bool bPushbackByTowTruck = false;
 
 	if (GetMode() == OnTowToDestination && pFlight->GetTowingServiceVehicle() && pFlight->GetTowingServiceVehicle()->GetServiceType() == TOWOPERATIONTYPE_PUSHBACKTORELEASEPOINT)
@@ -2507,6 +2504,9 @@ HoldInTaxiRoute* TaxiRouteInSim::GetlastEntryHold()
 
 void TaxiRouteInSim::InitRoute( AirsideFlightInSim* pFlight,const ElapsedTime&t  )
 {
+	if(m_vHoldList.m_pFlight==pFlight)
+		return;
+
 	UpdateData();
 	m_vHoldList.Init(*this, pFlight,pFlight->GetMode() == OnExitRunway);
 	m_LaneNotifyPtList.Init(*this,pFlight);

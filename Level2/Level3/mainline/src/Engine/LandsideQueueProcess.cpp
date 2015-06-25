@@ -3,6 +3,7 @@
 #include "PaxLandsideBehavior.h"
 #include "PERSON.H"
 #include "LandsidePaxSericeInSim.h"
+#include "Common/ARCTracker.h"
 
 LandsideQueueBase::LandsideQueueBase(const CPath2008 path)
 :m_qCorners(path)
@@ -50,10 +51,10 @@ bool LandsideQueue::StepItValid( LandsidePaxQueueProcess* pQueueProcess,Landside
 		LandsidePaxQueueProcess* pPreQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pPreLandsideBehavior);
 		ASSERT(pPreQueueProcess);
 
-		if (!pPreQueueProcess->GetStuck())
-		{
-			return true;
-		}
+		//if (!pPreQueueProcess->GetStuck())
+		//{
+		//	return true;
+		//}
 
 		ARCVector3 locationNextPt = pPreLandsideBehavior->getPoint();
 		ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
@@ -594,6 +595,14 @@ void LandsideQueue::AddApproach( PaxLandsideBehavior* pLandsideBehavior )
 	ASSERT(pLandsideBehavior);
 	m_approachList.addItem(pLandsideBehavior);
 }
+
+
+void LandsideQueue::AddWait( PaxLandsideBehavior* pLandsideBehavior )
+{
+	ASSERT(pLandsideBehavior);
+	m_waitList.addItem(pLandsideBehavior);
+}
+
 int LandsideQueue::FindWait(PaxLandsideBehavior* pLandsideBehavior)
 {
 	return m_waitList.findElement(pLandsideBehavior->GetPersonID());
@@ -686,11 +695,29 @@ LandsidePaxQueueProcess::~LandsidePaxQueueProcess()
 
 }
 
+void LandsidePaxQueueProcess::WriteQueuePaxLog( const ElapsedTime& p_time )
+{
+	ARCVector3 ptLocation = m_pLandsideBehavior->getPoint();
+	ARCVector3 ptDest = m_pLandsideBehavior->getDest();
+
+	double dLength = ptLocation.DistanceTo(ptDest);
+	double dInStep = m_pLandsideBehavior->getPerson()->getInStep();
+	if (dLength < dInStep)
+	{
+		return;
+	}
+
+	m_pLandsideBehavior->WriteLogEntry(p_time);
+}
+
 void LandsidePaxQueueProcess::ProcessMove(ElapsedTime p_time )
 {
+	PLACE_METHOD_TRACK_STRING();
 	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
 	ASSERT(pQueue);
 
+	CString strString;
+	
 	switch (m_queueState)
 	{
 	case sp_movetoQueue:
@@ -699,45 +726,81 @@ void LandsidePaxQueueProcess::ProcessMove(ElapsedTime p_time )
 			{
 				m_nSegment--;
 			}
+//			strString = _T("sp_movetoQueue");
 			m_pLandsideBehavior->WriteLogEntry(p_time);
+		//	WriteQueuePaxLog(p_time);
 			pQueue->MoveToQueue(this,m_pLandsideQueueSys,p_time);
 		}
 		break;
 	case sp_addtoQueue:
 		{
+			strString = _T("sp_addtoQueue");
 			m_pLandsideBehavior->WriteLogEntry(p_time);
+		//	WriteQueuePaxLog(p_time);
 			pQueue->AddToQueue(this,m_pLandsideQueueSys,p_time);
 		}
 		break;
 	case sp_waitinQueue:
 		{
+//			strString = _T("sp_waitinQueue");
 			m_pLandsideBehavior->WriteLogEntry(p_time);
+		//	WriteQueuePaxLog(p_time);
 			pQueue->WaitInQueue(this,m_pLandsideQueueSys,p_time);
 		}
 		break;
 	case sp_advanceQueue:
 		{
+//			strString = _T("sp_advanceQueue");
 			m_pLandsideBehavior->WriteLogEntry(p_time);
+		//	WriteQueuePaxLog(p_time);
 			pQueue->AdvanceQueue(this,m_pLandsideQueueSys,p_time); 
 		}
 		break;
 	case sp_leaveQueue:
 		{
+//			strString = _T("sp_leaveQueue");
 			m_pLandsideBehavior->WriteLogEntry(p_time);
+		//	WriteQueuePaxLog(p_time);
 			SetStuck(true);
 			m_pLandsideQueueSys->LeaveQueueProcess(m_pLandsideBehavior,m_endState,p_time);
 		}
 		break;
 	case sp_startMove:
 		{
+//			strString = _T("sp_startMove");
 			m_pLandsideBehavior->WriteLogEntry(p_time);
+		//	WriteQueuePaxLog(p_time);
 			pQueue->StartQueueMove(this,m_pLandsideQueueSys,p_time);
+		}
+		break;
+	case sp_WaitLeave://debug 
+		{
+			m_pLandsideBehavior->WriteLogEntry(p_time);
+			pQueue->AddWait(m_pLandsideBehavior);
+			if (pQueue->isHead(m_pLandsideBehavior))
+			{
+				SetQueueState(sp_leaveQueue);
+				GenerateQueueEvent(p_time);
+			}
 		}
 		break;
 	default:
 		break;
 	}
 	
+// 	if (m_pLandsideBehavior->GetPersonID() == 738)
+// 	{
+// 		CString strLogFile;
+// 		strLogFile.Format(_T("%sPaxState.log"), _T("D:\\landsidedebug\\"));
+// 		ofsstream echoFile (strLogFile.GetBuffer(0), stdios::app);
+// 		echoFile	
+// 			<< p_time.getPrecisely()<<", "
+// 			<<strString<<", "
+// 			<<p_time.PrintDateTime()
+// 			<<"\n";
+// 
+// 		echoFile.close();
+// 	}
 	//schedule next move event
 }
 
@@ -776,6 +839,15 @@ void LandsidePaxQueueProcess::StartMove( ElapsedTime p_time )
 	}
 	
 	GenerateQueueEvent(p_time);
+
+	//PLACE_METHOD_TRACK_STRING();
+	//LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
+	//m_pLandsideBehavior->WriteLogEntry(p_time);
+	//m_queueState = sp_WaitLeave;
+	//m_pLandsideBehavior->setDestination(m_pLandsideQueueSys->GetTailPoint());
+	//p_time += m_pLandsideBehavior->moveTime();
+	//
+	//GenerateQueueEvent(p_time);
 }
 
 void LandsidePaxQueueProcess::GenerateQueueEvent( const ElapsedTime& time )
@@ -966,7 +1038,18 @@ void LandsideQueueSystemProcess::InvokeWaitQueue( const ElapsedTime& time )
 			}
 		}
 	}
-	
+
+	//PLACE_METHOD_TRACK_STRING();
+	//PaxLandsideBehavior* pLandsideBehavior = m_pQueue->GetHeadBehavior();
+	//if (pLandsideBehavior)
+	//{
+	//	LandsidePaxQueueProcess* pPaxQueueProc = FindPaxQueueProcess(pLandsideBehavior);
+	//	if (pPaxQueueProc)
+	//	{
+	//		pPaxQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_leaveQueue);
+	//		pPaxQueueProc->GenerateQueueEvent(time);
+	//	}
+	//}
 }
 
 void LandsideQueueSystemProcess::LeaveQueue( const ElapsedTime& p_time )
@@ -981,6 +1064,44 @@ void LandsideQueueSystemProcess::LeaveQueue( const ElapsedTime& p_time )
 			m_pQueue->RemoveWait(pLandsideBehavior);
 			Release(pLandsideBehavior);
 			InvokeWaitQueue(p_time);
+		}
+	}
+
+	//PLACE_METHOD_TRACK_STRING();
+	//PaxLandsideBehavior* pLandsideBehavior = m_pQueue->GetHeadBehavior();
+	//if (pLandsideBehavior)
+	//{
+	//	LandsidePaxQueueProcess* pPaxQueueProc = FindPaxQueueProcess(pLandsideBehavior);
+	//	if (pPaxQueueProc)
+	//	{
+	//		pPaxQueueProc->SetStuck(false);
+	//		m_pQueue->RemoveWait(pLandsideBehavior);
+	//		Release(pLandsideBehavior);
+	//		InvokeWaitQueue(p_time);
+	//	}
+	//}
+}
+
+void LandsideQueueSystemProcess::FlushOnVehiclePaxLog( CARCportEngine* pEngine,const ElapsedTime& t )
+{
+	
+	for (UINT i = 0; i < m_vPaxQueueProc.size(); i++)
+	{
+		LandsidePaxQueueProcess* pPaxQueueProc = m_vPaxQueueProc[i];
+		if (pPaxQueueProc == NULL)
+			continue;
+		
+		PaxLandsideBehavior* pLandsideBehavior = pPaxQueueProc->GetlandsideBehavior();
+		if (pLandsideBehavior == NULL)
+			continue;
+		
+		Person* pPerson = pLandsideBehavior->getPerson();
+		if (pPerson == NULL)
+			continue;
+		
+		if (pPerson->getState() != Death)
+		{
+			pPerson->flushLog(t,false);
 		}
 	}
 }

@@ -8,6 +8,7 @@
 #include "../Engine/OnboardFlightInSim.h"
 #include "OnboardDoorInSim.h"
 #include "OnboardSimulation.h"
+#include "Common/FloorChangeMap.h"
 
 BridgeConnector::BridgeConnector(void)
 {
@@ -581,6 +582,17 @@ void BridgeConnector::Release( Person* pPerson )
 	if (nPos != INT_MAX)
 	{
 		occupants.removeItem(nPos);
+	}
+}
+
+void BridgeConnector::UpdateFloorIndex( const FloorChangeMap& changMap )
+{
+	__super::UpdateFloorIndex(changMap);
+	for (int i =0; i < m_nConnectPointCount; i++)
+	{
+		BridgeConnector::ConnectPoint conPoint = m_vConnectPoints.at(i);
+		changMap.ChangePointFloor(conPoint.m_Location);
+		//conPoint.m_Location.setZ( changMap.getNewFloor(conPoint.m_Location.getZ()) );
 	}
 }
 

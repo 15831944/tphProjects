@@ -105,6 +105,7 @@ public:
 		ResType_StartPosition,
 
 		ResType_FlightPlanPhase,
+		ResType_BagCartsParkingPosition,
 		//
 		nResourceCount,
 	};

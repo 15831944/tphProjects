@@ -6,6 +6,10 @@
 #include "../../Common/ARCMathCommon.h"
 #include "TaxiwayResource.h"
 #include "VehicleRouteResourceManager.h"
+#include "AirsidePaxBusInSim.h"
+#include "AirsidePaxBusParkSpotInSim.h"
+#include "../BagCartsParkingSpotInSim.h"
+#include "../AirsideBaggageTrainInSim.h"
 
 
 class VehicleConflictionInLane
@@ -222,7 +226,15 @@ bool VehicleRouteInSim::FindClearanceInConcern( AirsideVehicleInSim * pVehicle,C
 		{			
 			pVehicle->DependOnAgents(conflictLead.m_pLeadVehicle);			
 			return true;
-		}		
+		}	
+
+		DistanceUnit dSafeDistInRes = 0.0;
+		AirsideVehicleInSim* pConflictVehicle = GetParkSpotConflictLeadPaxBus(pVehicle,lastItem,pEntry->GetDistInLane(),dSafeDistInRes);
+		if (pConflictVehicle && dSafeDistInRes <= pEntry->GetDistInLane())
+		{
+			pVehicle->DependOnAgents(pConflictVehicle);
+			return true;
+		}
 		//go to next lane
 		CPoint2008 vehiclePos = pVehicle->GetPosition();
 		if(m_nCurItemIdx>=0)
@@ -298,6 +310,13 @@ bool VehicleRouteInSim::FindClearanceInConcern( AirsideVehicleInSim * pVehicle,C
 			}
 		}
 
+		DistanceUnit dSafeDistInRes = 0.0;
+		AirsideVehicleInSim* pConflictVehicle = GetParkSpotConflictLeadPaxBus(pVehicle,lastItem,dNextDist,dSafeDistInRes);
+		if (pConflictVehicle)
+		{
+			dNextDist = min(dNextDist,dSafeDistInRes);
+		}
+
 		if(dNextDist<= dCurDist  ) //vehicle can not move? 
 		{
 			if(conflictLead.bConflict())
@@ -305,8 +324,15 @@ bool VehicleRouteInSim::FindClearanceInConcern( AirsideVehicleInSim * pVehicle,C
 				pVehicle->DependOnAgents(conflictLead.m_pLeadVehicle);					
 				return true;
 			}
+			if (pConflictVehicle)
+			{
+				pVehicle->DependOnAgents(pConflictVehicle);
+				return true;
+			}
 			dNextDist = dCurDist;
 		}
+
+
 		if(dNextDist>=exitLaneDist)
 		{
 			dNextDist = exitLaneDist;
@@ -391,6 +417,20 @@ double VehicleRouteInSim::GetLength()const
 	return dDist;
 }
 
+bool VehicleRouteInSim::GetVehicleBeginPos(CPoint2008& ptBegin)
+{
+	if (m_vRouteItems.empty())
+		return false;
+
+	VehicleRouteNodePairDist firstPair = m_vRouteItems.at(0);
+	VehicleRouteNode* pNodeFrom = firstPair.GetNodeFrom();
+	if (pNodeFrom == NULL)
+		return false;
+	
+	ptBegin = pNodeFrom->GetPosition();
+	return true;
+}
+
 void VehicleRouteInSim::SetVehicleBeginPos( const CPoint2008& pos )
 {
 	if (m_vRouteItems.empty())
@@ -418,4 +458,71 @@ const VehicleLaneInSim* VehicleRouteInSim::GetFirstLaneResource()
 void VehicleRouteInSim::ClearRouteItems()
 {
 	m_vRouteItems.clear();
+}
+
+AirsideVehicleInSim* VehicleRouteInSim::GetParkSpotConflictLeadPaxBus( AirsideVehicleInSim* pVehicle,ClearanceItem& lastItem, double dNextDist,double& dSafeDistInLane)
+{
+	//check park spot whether occupy
+	AirsideFlightInSim* pFlight = pVehicle->GetServiceFlight();
+	if (pFlight == NULL)
+		return NULL;
+
+	AirsideVehicleInSim* pLeadVehicle = NULL;
+	if (m_mode == OnMoveToGate)
+	{
+		CAirsidePaxBusInSim *pPaxBus = (CAirsidePaxBusInSim *)pVehicle;
+		AirsidePaxBusParkSpotInSim* pParkSpotInSim = pFlight->GetPaxBusParking(pPaxBus->IsServiceArrival());
+		if (pParkSpotInSim == NULL)
+			return NULL;
+		
+		//test passenger whether can lock the park spot
+		pLeadVehicle = pParkSpotInSim->GetLastInResourceVehicle();
+	}
+	
+	
+	if (m_mode == OnMoveToBagTrainSpot)
+	{
+		AirsideBaggageTrainInSim *pBagTrain = (AirsideBaggageTrainInSim *)pVehicle;
+		CBagCartsParkingSpotInSim* pBagCartsSpotInSim = pBagTrain->getBagCartsSpotInSim();
+		if (pBagCartsSpotInSim == NULL)
+			return NULL;
+
+		//test passenger whether can lock the park spot
+		pLeadVehicle = pBagCartsSpotInSim->GetLastInResourceVehicle();
+
+	}
+
+	if (pLeadVehicle == NULL)
+		return NULL;
+
+	double dDist = 0.0;
+	for (int i = 0; i < m_nCurItemIdx; i++)
+	{
+		const VehicleRouteNodePairDist& node = m_vRouteItems[i];
+		dDist += node.GetDistance();
+	}
+	double dMoveDist = dDist + dNextDist;
+
+	DistanceUnit sepDist = pVehicle->GetSeparationDist(pLeadVehicle) + 0.5*(pVehicle->GetVehicleLength() + pLeadVehicle->GetVehicleLength());
+
+	double dLenght = GetLength();
+	double distToVehicleAhead = dLenght - dMoveDist;
+	if (distToVehicleAhead >= sepDist)
+	{
+		return NULL;
+	}
+
+	dSafeDistInLane = dNextDist + distToVehicleAhead - sepDist;
+	return pLeadVehicle;
+}
+
+VehicleRouteNode* VehicleRouteInSim::getLastNode()
+{
+	if (m_vRouteItems.empty())
+		return NULL;
+
+	int nCount = m_vRouteItems.size();
+	VehicleRouteNodePairDist endNode = m_vRouteItems.at(nCount-1);
+
+	return endNode.GetNodeTo();
 }

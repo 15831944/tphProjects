@@ -184,7 +184,7 @@ void LandsideTaxiInSim::LeaveLayoutObject( LandsideLayoutObjectInSim* pObj,Lands
 {
 	if(LandsideTaxiQueueInSim* pQ = pObj->toTaxiQueue())
 	{
-		if(LaneParkingSpot* spot = pDetailRes->toLaneSpot())
+		if(IParkingSpotInSim* spot = pDetailRes->toLaneSpot())
 		{
 			ChangeVehicleState(new State_LeaveTaxiQ(this, pQ,spot) );	
 			return;
@@ -217,7 +217,7 @@ bool LandsideTaxiInSim::InitBirth( CARCportEngine*pEngine )
 	return false;
 }
 
-void LandsideTaxiInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot )
+void LandsideTaxiInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot )
 {
 	ChangeVehicleState(new State_DropPaxAtCurbside(this,pCurb,spot));
 }
@@ -243,14 +243,25 @@ bool LandsideTaxiInSim::CanServeTaxiQ(LandsideTaxiPoolInSim* pool, LandsideTaxiQ
 	ASSERT(m_CurBehavior == _NONPAX);
 	NonResidentVehicleTypePlan* pPlan = getEntryInfo()->pPlan;
 	if(!pPlan)
+	{
+		CString sError;
+		sError.Format(_T("No Operation Plan Defined for %s"), pool->print().GetString() );
+		ShowError(sError,_T("Definition Error"));
 		return false;
+	}
 
 	ResidentVehicleRouteList* pflowlist  = pPlan->GetVehicleRouteFlow()->GetDestVehicleRoute( pool->getID() );
 	if(pflowlist)
 	{
-		return NULL!=pPlan->GetVehicleRouteFlow()->getChildLeadtoObject(pTaxiQ->getID(), pflowlist);
+		if(pPlan->GetVehicleRouteFlow()->getChildLeadtoObject(pTaxiQ->getID(), pflowlist) )
+		{			
+			return true;
+		}
 	}
-	return false;
+	CString sError;
+	sError.Format(_T("The Operation Plan of %s can not lead to %s "), pool->print().GetString(), pTaxiQ->print().GetString() );
+	ShowError(sError,_T("Definition Error"));
+	return false;	
 }
 
 void LandsideTaxiInSim::ChangeToArrPaxPlan(CARCportEngine* pEngine)

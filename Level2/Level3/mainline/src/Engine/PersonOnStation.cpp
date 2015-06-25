@@ -221,7 +221,7 @@ bool CPersonOnStation::Process( ElapsedTime _time )
 				else
 				{
 					//_pCar->AddPax(m_pPerson->GetActiveGroupSize());
-					_pCar->AddPax(m_pPerson);
+					_pCar->AddPax(m_pPerson, GetDestStation());
 					m_pPerson->generateEvent( _time,false);
 				}
 			}
@@ -360,10 +360,10 @@ bool CPersonOnStation::Process( ElapsedTime _time )
 					return false;
 				
 				TrainCarInSim* _pCar = pDestStation->GetTrain()->getCar(m_pPerson);
-				if (_pCar == NULL)
-					return false;
-				
-				_pCar->DeletePax(m_pPerson);
+				if (_pCar != NULL)
+					_pCar->DeletePax(m_pPerson);
+
+
 				// Gen Event moveTime
 				m_pPerson->generateEvent( _time + m_pPerson->moveTime(),false );
 			}

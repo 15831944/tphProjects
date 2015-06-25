@@ -13,7 +13,6 @@ CStand3D::CStand3D(int id):ALTObject3D(id)
 {
 	m_pObj = new Stand;
 	//m_pDisplayProp  = new StandDisplayProp;
-	m_bInEdit = false;
 }
 
 CStand3D::~CStand3D(void)

@@ -93,6 +93,12 @@ protected:
 	bool m_bStopAtEnd;
 	int m_nChangeLaneCount;
 	ElapsedTime m_tLastChangeLane;
+
+
+	//for change lanes 
+	LandsideStretchLaneInSim* m_plastStretchLane;
+	std::vector<LandsideStretchLaneInSim*> m_vChangeLanes;
+	void UpdateChangeLanes(LandsideStretchLaneInSim* pthislane,bool bLeftDrive);
 protected:
 	//info to report delay 
 	//StateInfo m_lastStateInfo;

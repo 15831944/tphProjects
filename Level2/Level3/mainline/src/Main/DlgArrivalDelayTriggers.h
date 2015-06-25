@@ -29,6 +29,8 @@ protected:
 		ItemType_RunwayRoot,
 		ItemType_RunwayItem,
 		ItemType_TriggerRoot,
+		ItemType_EnrouteRoot,
+		ItemType_EnrouteType,
 		ItemType_RunwayExit,
 		ItemType_QueueLength,
 		ItemType_MinsPerAircraft,
@@ -84,7 +86,9 @@ protected:
 	void LoadLandingRunwayItem(AirsideArrivalDelayTrigger::CFlightTypeItem *pFlightItem,AirsideArrivalDelayTrigger::CRunwayMark *pRunway, HTREEITEM hRootItem);
 
 	void LoadTriggerCondition(AirsideArrivalDelayTrigger::CFlightTypeItem *pFlightItem, HTREEITEM hRootItem);
-	
+
+	void LoadEnRouteCondition(AirsideArrivalDelayTrigger::CFlightTypeItem *pFlightItem, HTREEITEM hRootItem);
+
 	void LoadTriggerConditionItem(AirsideArrivalDelayTrigger::CFlightTypeItem *pFlightItem, AirsideArrivalDelayTrigger::CTriggerCondition* pCondition, HTREEITEM hRootItem);
 
 	void UpdateToolbarState();

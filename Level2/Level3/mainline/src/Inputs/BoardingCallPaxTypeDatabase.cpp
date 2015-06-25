@@ -147,7 +147,7 @@ void BoardingCallPaxTypeDatabase::AddPaxType(CMobileElemConstraint* pInputConst,
 		pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
 		BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
 		pPaxEntry->initialize(pMBConst, NULL);
-		pPaxEntry->AddResidualTrigger();
+		pPaxEntry->InitTriggerDatabase();
 		addEntry(pPaxEntry);
 	}
 }

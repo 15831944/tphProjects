@@ -594,7 +594,7 @@ void PaxDeplaneBehavior::processEntryAirside( ElapsedTime p_time )
 	{
 		EntityEvents state = TAKE_OFF_FLIGHT ;
 		m_pOnboardFlight->DecCount();
-		m_pPerson->setBehavior( new AirsideMobElementBehavior( m_pPerson,state));
+		m_pPerson->setBehavior( new AirsidePassengerBehavior( m_pPerson,state));
 		m_pPerson->generateEvent( p_time, false);
 		return;//to Airside mode.
 

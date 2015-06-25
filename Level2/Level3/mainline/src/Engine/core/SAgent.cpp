@@ -25,9 +25,7 @@ public:
 
 	int process(CARCportEngine* pEngine )
 	{
-		m_pAgent->OnTerminate(pEngine);
-		//m_pAgent->ClearSignal();
-		m_pAgent->DeActive();
+		m_pAgent->Terminate(pEngine);
 		return 1;
 	}
 protected:
@@ -67,17 +65,18 @@ void SAgent::DeActive()
 
 void SAgent::Terminate(const ElapsedTime& t)
 {
+	DeActive();
 	ASSERT(curTime()<=t);
 	AgentTerminateEvent* newTerminateEvt = new AgentTerminateEvent(this,t);
 	newTerminateEvt->addEvent();
 }
 
-//void SAgent::Terminate()
-//{
-//	DeActive();
-//	ClearSignal();
-//	Terminate(curTime());
-//}
+void SAgent::Terminate(CARCportEngine* pEngine)
+{
+	DeActive();
+	//ClearSignal();
+	OnTerminate(pEngine);
+}
 
 
 CString SAgent::getTypeDesc() const
@@ -112,7 +111,9 @@ void SEvent::removeFromEventList()
 void SAgentActivator::doProcess( CARCportEngine* pEngine )
 {	
 	if(m_pAgent)
+	{
 		m_pAgent->OnActive(pEngine);
+	}
 }
 
 

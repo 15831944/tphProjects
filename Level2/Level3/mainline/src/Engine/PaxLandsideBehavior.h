@@ -15,6 +15,8 @@ public:
 
 	void WriteLogEntry(ElapsedTime time, bool _bBackup = false, bool bOffset = true );
 
+	virtual void flushLog (ElapsedTime p_time, bool bmissflight = false);
+
 	virtual void setDestination (const ARCVector3& p,MobDir emWalk = FORWARD);
 
 	LandsideSimulation *getLandsideSimulation();

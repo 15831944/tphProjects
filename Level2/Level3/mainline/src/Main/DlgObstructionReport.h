@@ -7,7 +7,8 @@
 #include ".\InputAirside\ALTAirport.h"
 #include "PrintableListCtrl.h"
 #include ".\Common\dataset.h"
-#include "../MFCExControl/XTResizeDialog.h"
+#include "MFCExControl\XTResizeDialog.h"
+//#include <Controls\XTResizeDialog.h>
 
 //////////////////for export
 class ObstructionReport : public DataSet

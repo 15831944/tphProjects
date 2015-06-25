@@ -316,7 +316,7 @@ bool LandsideResidentVehicleInSim::IsWaitOnBase() const
 	return GetServiceState() == _waitOnbase;
 }
 
-void LandsideResidentVehicleInSim::SuccessParkInBusStation( LandsideBusStationInSim* pStation,LaneParkingSpot* spot )
+void LandsideResidentVehicleInSim::SuccessParkInBusStation( LandsideBusStationInSim* pStation,IParkingSpotInSim* spot )
 {
 	ChangeVehicleState(new State_ProcessAtBusStationResidentVehicle(this,pStation,spot) );
 }
@@ -410,7 +410,7 @@ void State_ProcessAtBusStationResidentVehicle::Execute( CARCportEngine* pEngine 
 	m_pOwner->SuccessProcessAtLayoutObject(m_pBusStation,m_spot, pEngine);
 }
 
-State_ProcessAtBusStationResidentVehicle::State_ProcessAtBusStationResidentVehicle( LandsideResidentVehicleInSim* pV,LandsideBusStationInSim* pStation,LaneParkingSpot* spot ) 
+State_ProcessAtBusStationResidentVehicle::State_ProcessAtBusStationResidentVehicle( LandsideResidentVehicleInSim* pV,LandsideBusStationInSim* pStation,IParkingSpotInSim* spot ) 
 :State_LandsideVehicle<LandsideResidentVehicleInSim>(pV)
 {
 	m_pBusStation = pStation;

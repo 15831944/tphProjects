@@ -50,13 +50,13 @@ class CBoostPathFinder
 public:
 	virtual bool FindPath(const myvertex_descriptor& src, const myvertex_descriptor& dest, std::vector<myvertex_descriptor>& retPath, double& dPathWeight )  = 0 ;	
 
-	void CleanResult(const myvertex_descriptor& src)
+	/*void CleanResult(const myvertex_descriptor& src)
 	{
 		PredecessorMap& srcPredmap = mVertexPredecssor[src];
 		DistanceMap& distMap = mVertexDistance[src];
 		srcPredmap.clear();
 		distMap.clear();
-	}
+	}*/
 
 	bool GetPathInPredecssorMap(const myvertex_descriptor& src, const myvertex_descriptor& dest,const PredecessorMap& predMap, std::vector<myvertex_descriptor>& retPath)const;
 	double GetRouteDist(const myvertex_descriptor& src, const myvertex_descriptor& dest);

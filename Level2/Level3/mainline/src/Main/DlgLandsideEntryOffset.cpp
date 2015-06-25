@@ -136,7 +136,8 @@ public:
 		}
 		Expand();
 	}
-	void SetItem(OffsetEntry* ptr){		
+	void SetItem(OffsetEntry* ptr)
+	{		
 		AirsideObjectTreeCtrlItemDataEx* data = GetInitData();
 		data->nSubType = _Entry;
 		data->dwptrItemData= (DWORD_PTR)ptr;		

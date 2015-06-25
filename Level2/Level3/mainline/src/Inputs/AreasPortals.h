@@ -32,6 +32,9 @@ class CPortals : public DataSet {
 public:
 	CPortals();
 	virtual ~CPortals();
+	int getCount()const{return (int)m_vPortals.size(); }
+	CPortal* getPortal(int idx){  return m_vPortals.at(idx); }
+
 	CPortalList m_vPortals;
 
 	CPortal* FindPortalByGuid(const CGuid& guid) const;
@@ -121,6 +124,7 @@ public:
 
 	CArea* getAreaByName( const CString& _strArea );
 	CArea* getAreaByIndex( int _idx );
+	int getCount()const{ return (int)m_vAreas.size(); }
 	//////////////////////////////////////////////////////////////////////////
 	// function for engine( avoid density )
 	//////////////////////////////////////////////////////////////////////////

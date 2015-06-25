@@ -247,7 +247,7 @@ void LandsideSimulation::End(CARCportEngine *pEngine,const ElapsedTime& endTime,
 		{
 			//ASSERT(FALSE);
 		}
-		pVehicle->Kill(this,endTime);
+		pVehicle->Terminate(pEngine);
 	}
 
 

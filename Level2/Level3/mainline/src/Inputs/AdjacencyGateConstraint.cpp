@@ -145,34 +145,51 @@ bool AdjacencyGateConstraint::IsFlightFitConstraint(const ARCFlight* pFlight, st
 		for (int i =0; i < nCount; i++)
 		{
 			ARCFlight* pAdjFlight = vFlights.at(i);
-			if (!m_pFirstConstraint->IsFlightFit(*pFlight,pInTerm))
-			{
-				CString strFirstStand;
-				strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
-				CString strSecondStand;
-				strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
-				char fristBuff[255];
-				char secondBuff[255];
-				pFlight->getFlightIDString(fristBuff);
-				pAdjFlight->getFlightIDString(secondBuff);
-				strError.Format(_T("Adjacency flight: %s at stand: %s of second constraint makes \n    flight: %s stand: %s doesn't satisfy first constraint"),secondBuff,\
-					strSecondStand,fristBuff,strFirstStand);
-				return false;
-			}
+			//if (!m_pFirstConstraint->IsFlightFit(*pFlight,pInTerm))
+			//{
+			//	CString strFirstStand;
+			//	strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
+			//	CString strSecondStand;
+			//	strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
+			//	char fristBuff[255];
+			//	char secondBuff[255];
+			//	pFlight->getFlightIDString(fristBuff);
+			//	pAdjFlight->getFlightIDString(secondBuff);
+			//	strError.Format(_T("Adjacency flight: %s at stand: %s of second constraint makes \n    flight: %s stand: %s doesn't satisfy first constraint"),secondBuff,\
+			//		strSecondStand,fristBuff,strFirstStand);
+			//	return false;
+			//}
 
-			if (!m_pSecondConstraint->IsFlightFit(*pAdjFlight, pInTerm))
+			//if (!m_pSecondConstraint->IsFlightFit(*pAdjFlight, pInTerm))
+			//{
+			//	CString strFirstStand;
+			//	strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
+			//	CString strSecondStand;
+			//	strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
+			//	char fristBuff[255];
+			//	char secondBuff[255];
+			//	pFlight->getFlightIDString(fristBuff);
+			//	pAdjFlight->getFlightIDString(secondBuff);
+			//	strError.Format(_T("Flight: %s at stand: %s of first constraint makes adjacency \n    flight: %s stand: %s doesn't satisfy second constraint"),fristBuff,\
+			//		strFirstStand,secondBuff,strSecondStand);
+			//	return false;
+			//}
+			if(!m_pFirstConstraint->IsFlightFit(*pFlight,pInTerm))
 			{
-				CString strFirstStand;
-				strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
-				CString strSecondStand;
-				strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
-				char fristBuff[255];
-				char secondBuff[255];
-				pFlight->getFlightIDString(fristBuff);
-				pAdjFlight->getFlightIDString(secondBuff);
-				strError.Format(_T("Flight: %s at stand: %s of first constraint makes adjacency \n    flight: %s stand: %s doesn't satisfy second constraint"),fristBuff,\
-					strFirstStand,secondBuff,strSecondStand);
-				return false;
+				if (m_pSecondConstraint->IsFlightFit(*pAdjFlight, pInTerm))
+				{
+					CString strFirstStand;
+					strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
+					CString strSecondStand;
+					strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
+					char fristBuff[255];
+					char secondBuff[255];
+					pFlight->getFlightIDString(fristBuff);
+					pAdjFlight->getFlightIDString(secondBuff);
+					strError.Format(_T("Adjacency flight: %s at stand: %s of second constraint makes \n    flight: %s stand: %s doesn't satisfy first constraint"),secondBuff,\
+						strSecondStand,fristBuff,strFirstStand);
+					return false;
+				}
 			}
 		}
 	}
@@ -181,34 +198,52 @@ bool AdjacencyGateConstraint::IsFlightFitConstraint(const ARCFlight* pFlight, st
 		for (int i =0; i < nCount; i++)
 		{
 			ARCFlight* pAdjFlight = vFlights.at(i);
+			//if (!m_pSecondConstraint->IsFlightFit(*pFlight,pInTerm))
+			//{
+			//	CString strFirstStand;
+			//	strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
+			//	CString strSecondStand;
+			//	strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
+			//	char fristBuff[255];
+			//	char secondBuff[255];
+			//	pFlight->getFlightIDString(fristBuff);
+			//	pAdjFlight->getFlightIDString(secondBuff);
+			//	strError.Format(_T("Flight: %s at stand: %s of first constraint makes adjacency \n    flight: %s stand: %s doesn't satisfy second constraint"),fristBuff,\
+			//		strFirstStand,secondBuff,strSecondStand);
+			//	return false;
+			//}
+
+			//if (!m_pFirstConstraint->IsFlightFit(*pAdjFlight, pInTerm))
+			//{
+			//	CString strFirstStand;
+			//	strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
+			//	CString strSecondStand;
+			//	strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
+			//	char fristBuff[255];
+			//	char secondBuff[255];
+			//	pFlight->getFlightIDString(fristBuff);
+			//	pAdjFlight->getFlightIDString(secondBuff);
+			//	strError.Format(_T("Adjacency flight: %s at stand: %s of second constraint makes \n   flight: %s stand: %s doesn't satisfy first constraint"),secondBuff,\
+			//		strSecondStand,fristBuff,strFirstStand);
+			//	return false;
+			//}
+
 			if (!m_pSecondConstraint->IsFlightFit(*pFlight,pInTerm))
 			{
-				CString strFirstStand;
-				strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
-				CString strSecondStand;
-				strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
-				char fristBuff[255];
-				char secondBuff[255];
-				pFlight->getFlightIDString(fristBuff);
-				pAdjFlight->getFlightIDString(secondBuff);
-				strError.Format(_T("Flight: %s at stand: %s of first constraint makes adjacency \n    flight: %s stand: %s doesn't satisfy second constraint"),fristBuff,\
-					strFirstStand,secondBuff,strSecondStand);
-				return false;
-			}
-
-			if (!m_pFirstConstraint->IsFlightFit(*pAdjFlight, pInTerm))
-			{
-				CString strFirstStand;
-				strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
-				CString strSecondStand;
-				strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
-				char fristBuff[255];
-				char secondBuff[255];
-				pFlight->getFlightIDString(fristBuff);
-				pAdjFlight->getFlightIDString(secondBuff);
-				strError.Format(_T("Adjacency flight: %s at stand: %s of second constraint makes \n   flight: %s stand: %s doesn't satisfy first constraint"),secondBuff,\
-					strSecondStand,fristBuff,strFirstStand);
-				return false;
+				if (m_pFirstConstraint->IsFlightFit(*pAdjFlight,pInTerm))
+				{
+					CString strFirstStand;
+					strFirstStand = m_pFirstConstraint->GetGate().GetIDString();
+					CString strSecondStand;
+					strSecondStand = m_pSecondConstraint->GetGate().GetIDString();
+					char fristBuff[255];
+					char secondBuff[255];
+					pFlight->getFlightIDString(fristBuff);
+					pAdjFlight->getFlightIDString(secondBuff);
+					strError.Format(_T("Adjacency flight: %s at stand: %s of first constraint makes \n   flight: %s stand: %s doesn't satisfy second constraint"),secondBuff,\
+						strFirstStand,fristBuff,strSecondStand);
+					return false;
+				}
 			}
 		}		
 	}
@@ -228,8 +263,15 @@ bool AdjacencyGateConstraint::IsFlightFitContraint(const ARCFlight* pFlight, std
 		for (int i =0; i < nCount; i++)
 		{
 			ARCFlight* pAdjFlight = vFlights.at(i);
-			if (!m_pFirstConstraint->IsFlightFit(*pFlight,pInTerm) || !m_pSecondConstraint->IsFlightFit(*pAdjFlight, pInTerm))
-				return false;
+			/*if (!m_pFirstConstraint->IsFlightFit(*pFlight,pInTerm) || !m_pSecondConstraint->IsFlightFit(*pAdjFlight, pInTerm))
+				return false;*/
+			if (!m_pFirstConstraint->IsFlightFit(*pFlight,pInTerm))
+			{
+				if (m_pSecondConstraint->IsFlightFit(*pAdjFlight,pInTerm))
+				{
+					return false;
+				}
+			}
 		}
 	}
 	else
@@ -237,8 +279,15 @@ bool AdjacencyGateConstraint::IsFlightFitContraint(const ARCFlight* pFlight, std
 		for (int i =0; i < nCount; i++)
 		{
 			ARCFlight* pAdjFlight = vFlights.at(i);
-			if (!m_pSecondConstraint->IsFlightFit(*pFlight,pInTerm) || !m_pFirstConstraint->IsFlightFit(*pAdjFlight, pInTerm))
-				return false;
+		/*	if (!m_pSecondConstraint->IsFlightFit(*pFlight,pInTerm) || !m_pFirstConstraint->IsFlightFit(*pAdjFlight, pInTerm))
+				return false;*/
+			if (!m_pSecondConstraint->IsFlightFit(*pFlight,pInTerm))
+			{
+				if (m_pFirstConstraint->IsFlightFit(*pAdjFlight,pInTerm))
+				{
+					return false;
+				}
+			}
 		}		
 	}
 

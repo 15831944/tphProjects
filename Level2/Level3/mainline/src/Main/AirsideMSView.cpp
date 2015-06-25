@@ -70,6 +70,26 @@
 #include "DlgNewFlightType.h"
 #include "DlgScheduleAndRostContent.h"
 #include "AirsideGUI/NodeViewDbClickHandler.h"
+#include "DlgAirsideEnrouteQueueCapacity.h"
+
+////#define ID_MENUITEM_OBJECTROOT	(WM_USER + 0x0100)
+//#define ID_MENUITEM_ADDOBJECT    WM_USER + 0x0100;
+////#define ID_MENUITEM_NOTOBJECTITEM   (ID_MENUITEM_OBJECTROOT + 0x100)
+//
+//#define ID_MENUITEM_LOCK_ALTOBJECT				(ID_MENUITEM_ADDOBJECT + 1)
+//#define ID_MENUITEM_UNLOCK_ALTOBJECT			(ID_MENUITEM_ADDOBJECT + 2)
+
+enum ID_MENUITEM
+{
+	ID_MENUITEM_ADDOBJECT = WM_USER + 0x0100,
+	ID_MENUITEM_LOCK_ALTOBJECT,
+	ID_MENUITEM_UNLOCK_ALTOBJECT,
+	ID_MENUITEM_STRETCHOPTION,
+	ID_MENUITEM_REPORTAREADSP,
+	//ID_MENUITEM_ADDCONTOUR,
+	ID_MENUITEM_IMPORTWAYPOINT,
+	ID_MENUITEM_DEFINE_TAXIROUTRE,
+};
 
 // CAirsideMSView
 
@@ -122,14 +142,14 @@ BEGIN_MESSAGE_MAP(CAirsideMSView, CView)
 	ON_NOTIFY_REFLECT(NM_RCLICK, OnRClick)
 	ON_MESSAGE(ITEMEXPANDING,OnItemExpanding)
 
-	ON_COMMAND_RANGE(ID_MENUITEM_OBJECTROOT+1, ID_MENUITEM_OBJECTROOT + 32, OnNewAirsideObject)
+	ON_COMMAND_RANGE(ID_MENUITEM_ADDOBJECT, ID_MENUITEM_ADDOBJECT, OnNewAirsideObject)
 	ON_NOTIFY_REFLECT(NM_DBLCLK, OnNMDblclk)
 //	ON_WM_LBUTTONDBLCLK()
 
 
 	ON_COMMAND(ID_MENUITEM_LOCK_ALTOBJECT,OnLockALTObject)
 	ON_COMMAND(ID_MENUITEM_UNLOCK_ALTOBJECT,OnUnlockALTObject)
-    ON_COMMAND(ID_MENUITEM_NOTOBJECTITEM + 10,OnStretchOption)
+    ON_COMMAND(ID_MENUITEM_STRETCHOPTION ,OnStretchOption)
 	ON_COMMAND(ID_AIRPORT_NEWLEVELABOVEARP, OnNewLevelAboveARP)
 	ON_COMMAND(ID_AIRPORT_NEWLEVELBELOWARP, OnNewLevelBelowARP)
 	ON_COMMAND(ID_CTX_DELETEFLOOR_ASLEVEL, OnDeleteAirsideLevel)
@@ -209,6 +229,7 @@ BEGIN_MESSAGE_MAP(CAirsideMSView, CView)
 	ON_COMMAND(ID_TAKEOFF_SEQUENCE,OnEditTakeoffSequence)
 	ON_COMMAND(ID_TAKEOFF_CLEARANCE,OnEditTakeoffClearance)
 	ON_COMMAND(ID_ARRIVAL_DELAY_TRIGGER,OnEditArrivalDelayTrigger)
+	ON_COMMAND(ID_ENROUTEQCAPACITY_ENROUTEQCAPACITY,OnEditEnrouteQueueCapacity)
 	ON_COMMAND(ID_VEHICLE_POOLS,OnEditVehiclePools)
 	ON_COMMAND(ID_SIMULATION_ENGINE_SETTING,OnSetSimulationEngine)
 	ON_COMMAND(ID_RUN_SIMULATION,OnRunSimulation)
@@ -279,9 +300,13 @@ BEGIN_MESSAGE_MAP(CAirsideMSView, CView)
 	ON_UPDATE_COMMAND_UI(ID_SURFACE_HIDE,OnUpdateHideSurface)
 	ON_UPDATE_COMMAND_UI(ID_SURFACE_SHOW,OnUpdateShowSurface)
 
-	ON_COMMAND(ID_MENUITEM_OBJECTROOT + 30,OnReportingAreaDisplayProperty)
-	ON_UPDATE_COMMAND_UI(ID_MENUITEM_OBJECTROOT + 7,OnUpdateAddContour)
+	ON_COMMAND(ID_MENUITEM_REPORTAREADSP,OnReportingAreaDisplayProperty)
 
+	//ON_COMMAND(ID_MENUITEM_ADDCONTOUR, OnAddCountour)
+	//ON_UPDATE_COMMAND_UI(ID_MENUITEM_ADDCONTOUR,OnUpdateAddContour)
+
+	ON_COMMAND(ID_MENUITEM_DEFINE_TAXIROUTRE, OnDefineTaxidRoute)
+	ON_COMMAND(ID_MENUITEM_IMPORTWAYPOINT, OnImportWayPoints)
 
 END_MESSAGE_MAP() 
 
@@ -1668,6 +1693,16 @@ void CAirsideMSView::InitTree()
 				pNodeData->bHasExpand = false;
 				hTreeItem =  AddItem(strNode,hDepartures);
 				GetTreeCtrl().SetItemData(hTreeItem,(DWORD_PTR)pNodeData);
+
+				//Enroute Queue Capacity
+				strNode.LoadString(IDS_TVNN_ENROUTEQCAPACITY);
+				pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Dlg);
+				pNodeData->nSubType = Dlg_EnrouteQCapacity;
+				pNodeData->nIDResource = IDR_MENU_ENROUTEQCAPACITY;
+				pNodeData->bHasExpand = false;
+				hTreeItem =  AddItem(strNode,hDepartures);
+				GetTreeCtrl().SetItemData(hTreeItem,(DWORD_PTR)pNodeData);
+
 				
 				// Controller workload
 				strNode.LoadString(IDS_TVNN_CONTROLLERWORKLOAD);
@@ -2355,22 +2390,60 @@ void CAirsideMSView::AddAirportToTree(HTREEITEM hAirports,const ALTAirport& airp
 				GetTreeCtrl().Expand(hControlDevices,TVE_EXPAND);
 			}
 
-			//Pax bus parking 
-			strNode.LoadString(IDS_TVNN_PaxBusParking);	
-			pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Dlg);
-			pNodeData->nSubType = Dlg_Paxbusparking;
-			HTREEITEM hPaxBusParking = AddItem(strNode,hVahicularFaci);
-			GetTreeCtrl().SetItemData(hPaxBusParking,(DWORD_PTR)pNodeData);
+			//Pax bus
+			HTREEITEM hPaxBus = AddItem("Pax Bus", hVahicularFaci);
+			{
+				strNode = _T("Terminal spots");
+
+				pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Normal);
+				pNodeData->nodeType = NodeType_ObjectRoot;
+				pNodeData->nSubType = ALT_APAXBUSSPOT;
+				pNodeData->bHasExpand = false;
+				pNodeData->nOtherData = nAirport;
+				HTREEITEM hSpot= AddItem(strNode,hPaxBus);
+				GetTreeCtrl().SetItemData(hSpot,(DWORD_PTR)pNodeData);
+				AddItem("Loading...",hSpot);
+				GetTreeCtrl().Expand(hSpot,TVE_EXPAND);
+
+
+				
+				//
+				strNode= _T("Gate Linkages");
+				pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Dlg);
+				pNodeData->nSubType = Dlg_Paxbusparking;
+				HTREEITEM hGateLink = AddItem(strNode,hPaxBus);
+				GetTreeCtrl().SetItemData(hGateLink,(DWORD_PTR)pNodeData);
+			}
+			GetTreeCtrl().Expand(hPaxBus,TVE_EXPAND);
+			
 
 			//Bag carts loading areas
-			strNode.LoadString(IDS_TVNN_BagCartsLoadingAreas);	
-			pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Normal);
-			pNodeData->nodeType = NodeType_Dlg;
-			pNodeData->nSubType = Dlg_BagCartsLoadingAreas;
-			pNodeData->nOtherData = nAirport;
-			pNodeData->bHasExpand = false;
-			HTREEITEM hBagCartsLoadingAreas = AddItem(strNode,hVahicularFaci);
-			GetTreeCtrl().SetItemData(hBagCartsLoadingAreas,(DWORD_PTR)pNodeData);
+			HTREEITEM hBagCarts = AddItem(_T("Bag Carts"),hVahicularFaci);
+			{
+				strNode = _T("Terminal spots");
+				pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Normal);
+				pNodeData->nodeType = NodeType_ObjectRoot;
+				pNodeData->nSubType = ALT_ABAGCARTSPOT;
+				pNodeData->bHasExpand = false;
+				pNodeData->nOtherData = nAirport;
+				HTREEITEM hSpot= AddItem(strNode,hBagCarts);
+				GetTreeCtrl().SetItemData(hSpot,(DWORD_PTR)pNodeData);
+				AddItem("Loading...",hSpot);
+				GetTreeCtrl().Expand(hSpot,TVE_EXPAND);
+				
+
+				//linkages
+				strNode = _T("Pusher/loader linkages");
+				pNodeData = mpNodeDataAlloc->allocateNodeData(NodeType_Normal);
+				pNodeData->nodeType = NodeType_Dlg;
+				pNodeData->nSubType = Dlg_BagCartsLoadingAreas;
+				pNodeData->nOtherData = nAirport;
+				pNodeData->bHasExpand = false;
+				HTREEITEM hBagCartsLoadingAreas = AddItem(strNode,hBagCarts);
+				GetTreeCtrl().SetItemData(hBagCartsLoadingAreas,(DWORD_PTR)pNodeData);
+			}
+			GetTreeCtrl().Expand(hBagCarts,TVE_EXPAND);
+			
 
 			//Routes specification
 			strNode.LoadString(IDS_TVNN_ROUTESSPECIFIC);	
@@ -2724,40 +2797,42 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 
 				if (pNodeData->nodeType == NodeType_ObjectRoot)
 				{	
+					nMenuID = ID_MENUITEM_ADDOBJECT;
 					switch(pNodeData->nSubType)
 					{
 					case ALT_RUNWAY:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 1;
+						//nMenuID = ID_MENUITEM_ADDOBJECT;
 						strMenuCaption = _T("Add Runway...");
 						break;
 
 					case ALT_TAXIWAY:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 2;
+						//nMenuID = ID_MENUITEM_ADDOBJECT;
 						strMenuCaption = _T("Add Taxiway...");
 						break;
 
 					case ALT_STAND:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 3;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 3;
 						strMenuCaption = _T("Add Stand...");
 						break;
 
 					case ALT_GROUNDROUTE:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 4;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 4;
+						nMenuID = ID_MENUITEM_DEFINE_TAXIROUTRE;
 						strMenuCaption = _T("Taxi Routes...");
 						break;
 
 					case ALT_DEICEBAY:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 5;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 5;
 						strMenuCaption = _T("Add Deice Station...");
 						break;
 
 					case ALT_WAYPOINT:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 6;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 6;
 						strMenuCaption = _T("Add Waypoint...");
 						break;
 
 					case ALT_CONTOUR:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 7;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 7;
 						strMenuCaption = _T("Add Contour...");
 						break;
 
@@ -2767,110 +2842,116 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 					//	break;
 
 					case ALT_HOLD:
-						nMenuID = ID_MENUITEM_OBJECTROOT +9;
+						//nMenuID = ID_MENUITEM_OBJECTROOT +9;
 						strMenuCaption = _T("Add Hold...");
 						break;
 					case ALT_SECTOR:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 10;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 10;
 						strMenuCaption = _T("Add Sector...");
 						break;
 					case ALT_SURFACE:	
-						nMenuID = ID_MENUITEM_OBJECTROOT + 11;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 11;
 						strMenuCaption = _T("Add Surface Area...");
 						break;
 					case ALT_STRUCTURE:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 12;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 12;
 						strMenuCaption = _T("Add Structure...");
 						break;
 
 					case ALT_STRETCH:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 13;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 13;
 						strMenuCaption = _T("Add Stretch...");
 						break;
 
 					case ALT_INTERSECTIONS:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 14;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 14;
 						strMenuCaption = _T("Add Intersections...");
 						break;
 
 					case ALT_ROUNDABOUT:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 15;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 15;
 						strMenuCaption = _T("Add Roundabout...");
 						break;
 
 					case ALT_TURNOFF:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 16;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 16;
 						strMenuCaption = _T("Add TurnOff...");
 						break;
 
 					case ALT_LANEADAPTER:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 17;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 17;
 						strMenuCaption = _T("Add LaneAdapter...");
 						break;
 
 					case ALT_VEHICLEPOOLPARKING:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 18;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 18;
 						strMenuCaption = _T("Add PoolParking...");
 						break;
 
 					case ALT_NOSEINPARKING:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 19;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 19;
 						strMenuCaption = _T("Add NoseInParking...");
 						break;
 
 					case ALT_TRAFFICLIGHT:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 20;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 20;
 						strMenuCaption = _T("Add TrafficLight...");
 						break;
 
 					case ALT_TOLLGATE:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 21;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 21;
 						strMenuCaption = _T("Add TollGate...");
 						break;
 
 					case ALT_STOPSIGN:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 22;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 22;
 						strMenuCaption = _T("Add StopSign...");
 						break;
 
 					case ALT_YIELDSIGN:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 23;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 23;
 						strMenuCaption = _T("Add YieldSign...");
 						break;
 
 					case ALT_HELIPORT:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 24;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 24;
 						strMenuCaption = _T("Add Heliport...");
 						break;
 
 					case ALT_PARKINGPLACE:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 27;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 27;
 						strMenuCaption = _T("Add Parking Place...");
 						break;
 
 					case ALT_DRIVEROAD:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 28;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 28;
 						strMenuCaption = _T("Add Drive Road...");
 						break;
 
 					case ALT_REPORTINGAREA:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 29;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 29;
 						strMenuCaption = _T("Add Reporting Area...");
 						break;
 					case ALT_AIRROUTE:
-					//case ALT_WALLSHAPE:
-					//	strMenuCaption = _T("Add Wallshape");
-					//	break;
+						break;
 
 					//Start position
 					case ALT_STARTPOSITION:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 31;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 31;
 						strMenuCaption = _T("Add Start Position...");
 						break;
 					// Meeting Point
 					case ALT_MEETINGPOINT:
-						nMenuID = ID_MENUITEM_OBJECTROOT + 32;
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 32;
 						strMenuCaption = _T("Add Meeting Point...");
+						break;
+					case ALT_APAXBUSSPOT:
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 33;
+						strMenuCaption = _T("Add Terminal Spot...");
+						break;
+					case ALT_ABAGCARTSPOT:
+						//nMenuID = ID_MENUITEM_OBJECTROOT + 34;
+						strMenuCaption = _T("Add Terminal Spot...");
 						break;
 					default:
 						break;
@@ -2884,20 +2965,20 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 					//--------------------------------------------------------------------------------------------------------
 					if (pNodeData->nSubType ==ALT_WAYPOINT)
 					{
-						UINT nNewMenuID = ID_MENUITEM_OBJECTROOT + 25;
+						UINT nNewMenuID = ID_MENUITEM_IMPORTWAYPOINT;//ID_MENUITEM_OBJECTROOT + 25;
 						CString strNewMenuCaption = _T("Import Waypoints");
 						pCtxMenu->InsertMenu(1, MF_STRING | MF_BYPOSITION, nNewMenuID, strNewMenuCaption);
 					}
 					if (pNodeData->nSubType == ALT_STRETCH)
 					{
-						UINT nMenuID = ID_MENUITEM_NOTOBJECTITEM + 10;
+						UINT nMenuID = ID_MENUITEM_STRETCHOPTION;
 						CString strNewMenuCaption = _T("Set Options...");
 						pCtxMenu->InsertMenu(1, MF_STRING | MF_BYPOSITION, nMenuID, strNewMenuCaption);
 
 					}
 					if(pNodeData->nSubType == ALT_REPORTINGAREA)
 					{
-						UINT nNewMenuID = ID_MENUITEM_OBJECTROOT + 30;
+						UINT nNewMenuID = ID_MENUITEM_REPORTAREADSP;
 						CString strNewMenuCaption = _T("Display property...");
 						pCtxMenu->InsertMenu(1, MF_STRING | MF_BYPOSITION, nNewMenuID, strNewMenuCaption);
 					}
@@ -2922,7 +3003,7 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 					if (pNodeData->nSubType == ALT_CONTOUR)
 					{
 						nLockInsertPosition = 2;
-						nMenuID = ID_MENUITEM_OBJECTROOT + 7;
+						nMenuID = ID_MENUITEM_ADDOBJECT;
 						strMenuCaption = _T("Add Contour...");
 
 						pCtxMenu->InsertMenu(0, MF_STRING | MF_BYPOSITION, nMenuID, strMenuCaption);
@@ -2945,47 +3026,54 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 		//UpdatePopMenu(this, pCtxMenu);
 		pCtxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON , point.x, point.y, AfxGetMainWnd());
 	}
+}
 
+void CAirsideMSView::OnDefineTaxidRoute()
+{
+	HTREEITEM hItem = m_hRightClkItem;
+	if(NULL==hItem)
+		return;
+	CNodeData* pNodeData = (CNodeData*)GetTreeCtrl().GetItemData( hItem );
+	if(!pNodeData)
+		return;
+
+	
+	if (NULL == m_pAirsideNodeHandler)
+	{
+		m_pAirsideNodeHandler = new AirsideGUI::NodeViewDbClickHandler( 
+			GetARCDocument()->GetTerminal().GetProcessorList(),&GetARCDocument()->GetInputAirside());
+	}			
+
+	m_pAirsideNodeHandler->GroundRoutesDlg(GetARCDocument()->GetProjectID(), pNodeData->nOtherData, this);
+
+	//CDlgGroundRoutes dlg(GetARCDocument()->GetProjectID(), pNodeData->nOtherData);
+	//dlg.DoModal();
+	return;
+}
+
+void CAirsideMSView::OnImportWayPoints()
+{
+	AirsideGUI::NodeViewDbClickHandler AirsideNodeHandler( 
+		GetARCDocument()->GetTerminal().GetProcessorList(),&GetARCDocument()->GetInputAirside());
+	AirsideNodeHandler.WaypointImport(m_nProjID);
+
+	GetDocument()->UpdateAllViews(this,VM_NEW_SINGLE_ALTOBJECT,NULL);
+	CNodeData* pNodeData = reinterpret_cast<CNodeData*>(GetTreeCtrl().GetItemData( m_hWaypoint ));
+	pNodeData->bHasExpand = false;
+	LoadObjects(m_hWaypoint);		
+	return;
 }
 void CAirsideMSView::OnNewAirsideObject(UINT nID)
 {
 	HTREEITEM hItem = m_hRightClkItem;
-	if(hItem != NULL)
+	if(NULL==hItem)
+		return;
+	CNodeData* pNodeData = (CNodeData*)GetTreeCtrl().GetItemData( hItem );
+	if(!pNodeData)
+		return;
+
+
 	{
-		CNodeData* pNodeData = (CNodeData*)GetTreeCtrl().GetItemData( hItem );
-
-		if (nID == ID_MENUITEM_OBJECTROOT + 4) // Ground routes
-		{
-			if (NULL == m_pAirsideNodeHandler)
-			{
-				m_pAirsideNodeHandler = new AirsideGUI::NodeViewDbClickHandler( 
-					GetARCDocument()->GetTerminal().GetProcessorList(),&GetARCDocument()->GetInputAirside());
-			}			
-			
-			m_pAirsideNodeHandler->GroundRoutesDlg(GetARCDocument()->GetProjectID(), pNodeData->nOtherData, this);
-			
-			//CDlgGroundRoutes dlg(GetARCDocument()->GetProjectID(), pNodeData->nOtherData);
-			//dlg.DoModal();
-			return;
-		}
-		//----------------------------------------------------------------------------------------------------------------------------------------------
-		if (nID == ID_MENUITEM_OBJECTROOT + 25) // Ground routes
-		{
-			AirsideGUI::NodeViewDbClickHandler AirsideNodeHandler( 
-				GetARCDocument()->GetTerminal().GetProcessorList(),&GetARCDocument()->GetInputAirside());
-			AirsideNodeHandler.WaypointImport(m_nProjID);
-			
-			GetDocument()->UpdateAllViews(this,VM_NEW_SINGLE_ALTOBJECT,NULL);
-			CNodeData* pNodeData = reinterpret_cast<CNodeData*>(GetTreeCtrl().GetItemData( m_hWaypoint ));
-			pNodeData->bHasExpand = false;
-			LoadObjects(m_hWaypoint);		
-			return;
-
-		}
-		//----------------------------------------------------------------------------------------------------------------------------------------------
-		if(pNodeData == NULL)
-		 return;
-
 		CDialog *pDlg = NULL;
 		pDlg = GetObjectDefineDlg(pNodeData,-1);
 		if(pDlg)
@@ -3076,10 +3164,6 @@ void CAirsideMSView::AddObjectToTree(HTREEITEM hObjRoot,ALTObject* pObject)
 		GetTreeCtrl().Expand(hTreeItem, TVE_EXPAND);
 		GetTreeCtrl().Expand(hTreeItem, TVE_COLLAPSE);		   
 	}
-	else if (pObject->GetType() == ALT_VEHICLEPOOLPARKING || pObject->GetType() == ALT_PARKINGLOT)
-	{
-
-	}
 	else
 	{
 		for (int nLevel =0; nLevel< OBJECT_STRING_LEVEL; ++nLevel)
@@ -3158,8 +3242,7 @@ CDialog* CAirsideMSView::GetObjectDefineDlg(CNodeData* pNodeData,int nObjID)
 	{
 		return CAirsideObjectBaseDlg::NewObjectDlg(nObjID,(ALTOBJECT_TYPE)pNodeData->nSubType, (int)pNodeData->dwData, pNodeData->nOtherData ,m_nProjID, this);
 	}
-
-	return CAirsideObjectBaseDlg::NewObjectDlg(nObjID,(ALTOBJECT_TYPE)pNodeData->nSubType, -1, pNodeData->nOtherData ,m_nProjID, this);
+	return CAirsideObjectBaseDlg::NewObjectDlg(nObjID,(ALTOBJECT_TYPE)pNodeData->nSubType, -1, pNodeData->nOtherData ,m_nProjID, this);	
 }
 
 LRESULT CAirsideMSView::OnSelChanged(WPARAM wParam, LPARAM lParam)
@@ -3471,7 +3554,7 @@ void CAirsideMSView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 				CTermPlanDoc* pDoc	= GetARCDocument(); 
 				CString strProcName =dlg.m_csLevel1+ "-" + dlg.m_csLevel2 + "-" + dlg.m_csLevel3 + "-" +dlg.m_csLevel4;
 				//		pNewwallsh->SetNameStr(strProcName);
-				pNewwallsh->SetFloorNum(pDoc->m_nActiveFloor);
+				pNewwallsh->SetFloorIndex(pDoc->m_nActiveFloor);
 				pNewwallsh->SetPath(dlg.m_Wallpath);
 				pDoc->GetCurWallShapeList().addShape( pNewwallsh);
 
@@ -3859,6 +3942,13 @@ void CAirsideMSView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 			dlg.DoModal();			
 		}
 		break;
+	case Dlg_EnrouteQCapacity:
+		{
+			CDlgAirsideEnrouteQueueCapacity dlg(GetARCDocument()->GetProjectID(), this);
+			dlg.DoModal();			
+		}
+		break;
+
 	case Dlg_AircraftDisplay:
 		{
 			CAircraftDispPropDlg dlg(this);
@@ -5010,192 +5100,185 @@ HTREEITEM CAirsideMSView::GetObjRootNode(HTREEITEM hObjItem)
 
 	return hParentItem;
 }
-HTREEITEM CAirsideMSView::FindTreeItemByObjectID(int nObjID)
-{
-	HTREEITEM hRetItem = NULL;
-	//find in airports
-	HTREEITEM hAirportItem = GetTreeCtrl().GetChildItem(m_hItemAirports);
-	while (hAirportItem)
-	{
-		CNodeData *pNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAirportItem));
-		if (pNodeData)
-		{
-			if(pNodeData->nodeType != NodeType_Airport)
-			{
-				hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
-				continue;
-			}
-			HTREEITEM hAircraftFac = GetTreeCtrl().GetChildItem(hAirportItem);
-			
-			while (hAircraftFac)
-			{
-				CNodeData *pAFData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAircraftFac));
-				if (pAFData)
-				{
-					 
-					
-					if (pAFData->nodeType != NodeType_AircraftFacility && pAFData->nodeType != NodeType_VehicleFacility )
-					{
-						hAircraftFac = GetTreeCtrl().GetNextSiblingItem(hAircraftFac);
-						continue;
-					}
-
-					HTREEITEM hManeuverSurface = GetTreeCtrl().GetChildItem(hAircraftFac);
-
-
-					while (hManeuverSurface)
-					{
-						CNodeData *pMSData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hManeuverSurface));
-						
-						
-						if (pMSData)
-						{
-							/*if (pMSData->nodeType != NodeType_ManeuverSurface )
-							{
-								hManeuverSurface = GetTreeCtrl().GetNextSiblingItem(hManeuverSurface);
-								continue;
-							}*/
-
-							if(pMSData->nodeType == NodeType_ObjectRoot )
-							{
-								hRetItem = FindTreeItemByObjectID(hAircraftFac,nObjID);
-
-								if (hRetItem != NULL)
-									return hRetItem;
-
-							}	
-							if(pMSData->nodeType == NodeType_ManeuverSurface )
-							{
-								HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(hManeuverSurface);
-
-								while (hObjectRootItem)
-								{	
-									CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-									CString strText = GetTreeCtrl().GetItemText(hObjectRootItem);
-									if (pRootNodeData)
-									{
-										if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-										{
-											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-											continue;
-										}
-										if (pRootNodeData->bHasExpand == false)
-										{
-											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-											continue;
-										}
-
-										hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
-
-										if (hRetItem != NULL)
-											return hRetItem;
-									}
-									hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-								}
-							}
-                            else if(pMSData->nodeType == NodeType_ControlDevice )
-							{
-								HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(hManeuverSurface);
-
-								while (hObjectRootItem)
-								{	
-									CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-									CString strText = GetTreeCtrl().GetItemText(hObjectRootItem);
-									if (pRootNodeData)
-									{
-										if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-										{
-											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-											continue;
-										}
-										if (pRootNodeData->bHasExpand == false)
-										{
-											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-											continue;
-										}
-
-										hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
-
-										if (hRetItem != NULL)
-											return hRetItem;
-									}
-									hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-								}
-							}						
-										
-
-							hManeuverSurface = GetTreeCtrl().GetNextSiblingItem(hManeuverSurface);
-						}
-
-					}
-
-					hAircraftFac = GetTreeCtrl().GetNextSiblingItem(hAircraftFac);
-				}
-			}
-		}
-		hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
-	}
-
-	//find in Airspace
-	{
-		HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(m_hItemAirspace);
-
-		while (hObjectRootItem)
-		{	
-			CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-			if (pRootNodeData)
-			{
-				if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-				{	
-					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-					continue;
-				}
-				if (pRootNodeData->bHasExpand == false)
-				{
-					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-					continue;
-				}
-
-				hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
-
-				if (hRetItem != NULL)
-					return hRetItem;
-			}
-			hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-		}
-	}
-
-	//find in topography
-	{
-		HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(m_hItemTopography);
-
-		while (hObjectRootItem)
-		{	
-			CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-			if (pRootNodeData)
-			{
-				if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-				{	
-					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-					continue;
-				}
-				if (pRootNodeData->bHasExpand == false)
-				{
-					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-					continue;
-				}
-
-				hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
-
-				if (hRetItem != NULL)
-					return hRetItem;
-			}
-			hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-		}
-	}
-
-	return NULL;
-}
+//HTREEITEM CAirsideMSView::FindTreeItemByObjectID(int nObjID)
+//{
+//	HTREEITEM hRetItem = NULL;
+//	//find in airports
+//	HTREEITEM hAirportItem = GetTreeCtrl().GetChildItem(m_hItemAirports);
+//	while (hAirportItem)
+//	{
+//		CNodeData *pNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAirportItem));
+//		if (pNodeData)
+//		{
+//			if(pNodeData->nodeType != NodeType_Airport)
+//			{
+//				hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
+//				continue;
+//			}
+//			HTREEITEM hAircraftFac = GetTreeCtrl().GetChildItem(hAirportItem);
+//			
+//			while (hAircraftFac)
+//			{
+//				CNodeData *pAFData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAircraftFac));
+//				if (pAFData)
+//				{
+//					 				
+//					if (pAFData->nodeType != NodeType_AircraftFacility && pAFData->nodeType != NodeType_VehicleFacility )
+//					{
+//						hAircraftFac = GetTreeCtrl().GetNextSiblingItem(hAircraftFac);
+//						continue;
+//					}
+//
+//					HTREEITEM hManeuverSurface = GetTreeCtrl().GetChildItem(hAircraftFac);
+//					while (hManeuverSurface)
+//					{
+//						CNodeData *pMSData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hManeuverSurface));				
+//						
+//						if (pMSData)
+//						{
+//							/*if (pMSData->nodeType != NodeType_ManeuverSurface )
+//							{
+//								hManeuverSurface = GetTreeCtrl().GetNextSiblingItem(hManeuverSurface);
+//								continue;
+//							}*/
+//
+//							if(pMSData->nodeType == NodeType_ObjectRoot )
+//							{
+//								hRetItem = FindTreeItemByObjectID(hAircraftFac,nObjID);
+//
+//								if (hRetItem != NULL)
+//									return hRetItem;
+//
+//							}	
+//							if(pMSData->nodeType == NodeType_ManeuverSurface )
+//							{
+//								HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(hManeuverSurface);
+//
+//								while (hObjectRootItem)
+//								{	
+//									CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
+//									CString strText = GetTreeCtrl().GetItemText(hObjectRootItem);
+//									if (pRootNodeData)
+//									{
+//										if (pRootNodeData->nodeType != NodeType_ObjectRoot )
+//										{
+//											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//											continue;
+//										}
+//										if (pRootNodeData->bHasExpand == false)
+//										{
+//											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//											continue;
+//										}
+//
+//										hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
+//
+//										if (hRetItem != NULL)
+//											return hRetItem;
+//									}
+//									hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//								}
+//							}
+//                            else if(pMSData->nodeType == NodeType_ControlDevice )
+//							{
+//								HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(hManeuverSurface);
+//
+//								while (hObjectRootItem)
+//								{	
+//									CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
+//									CString strText = GetTreeCtrl().GetItemText(hObjectRootItem);
+//									if (pRootNodeData)
+//									{
+//										if (pRootNodeData->nodeType != NodeType_ObjectRoot )
+//										{
+//											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//											continue;
+//										}
+//										if (pRootNodeData->bHasExpand == false)
+//										{
+//											hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//											continue;
+//										}
+//
+//										hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
+//
+//										if (hRetItem != NULL)
+//											return hRetItem;
+//									}
+//									hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//								}
+//							}													
+//						}
+//						hManeuverSurface = GetTreeCtrl().GetNextSiblingItem(hManeuverSurface);
+//					}
+//
+//					hAircraftFac = GetTreeCtrl().GetNextSiblingItem(hAircraftFac);
+//				}
+//			}
+//		}
+//		hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
+//	}
+//
+//	//find in Airspace
+//	{
+//		HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(m_hItemAirspace);
+//
+//		while (hObjectRootItem)
+//		{	
+//			CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
+//			if (pRootNodeData)
+//			{
+//				if (pRootNodeData->nodeType != NodeType_ObjectRoot )
+//				{	
+//					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//					continue;
+//				}
+//				if (pRootNodeData->bHasExpand == false)
+//				{
+//					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//					continue;
+//				}
+//
+//				hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
+//
+//				if (hRetItem != NULL)
+//					return hRetItem;
+//			}
+//			hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//		}
+//	}
+//
+//	//find in topography
+//	{
+//		HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(m_hItemTopography);
+//
+//		while (hObjectRootItem)
+//		{	
+//			CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
+//			if (pRootNodeData)
+//			{
+//				if (pRootNodeData->nodeType != NodeType_ObjectRoot )
+//				{	
+//					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//					continue;
+//				}
+//				if (pRootNodeData->bHasExpand == false)
+//				{
+//					hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//					continue;
+//				}
+//
+//				hRetItem = FindTreeItemByObjectID(hObjectRootItem,nObjID);
+//
+//				if (hRetItem != NULL)
+//					return hRetItem;
+//			}
+//			hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
+//		}
+//	}
+//
+//	return NULL;
+//}
 HTREEITEM CAirsideMSView::FindTreeItemByObjectID(HTREEITEM hItem,int nObjID)
 {
 
@@ -5487,14 +5570,15 @@ void MSV::CAirsideMSView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 			ALTObjectList* deleteList = (ALTObjectList*)(pHint);
 			for (int i = 0; i < static_cast<int>(deleteList->size()); ++ i)
 			{
-				int nObjID = (*deleteList)[i]->getID();
-				HTREEITEM hTreeItem = FindTreeItemByObjectID(nObjID);
+				ALTObject* pObj =  deleteList->at(i).get();
+				//int nObjID = (*deleteList)[i]->getID();
+				HTREEITEM hTreeItem = FindTreeItemByTypeID(pObj->GetType(),pObj->getID());
 				if (hTreeItem)
 				{
 					DeleteObjectFromTree(hTreeItem);
 				}
 				////////////////////////////delete surface node
-				if((*deleteList)[i]->GetType() == ALT_TAXIWAY || (*deleteList)[i]->GetType() == ALT_RUNWAY)
+				if(pObj->GetType() == ALT_TAXIWAY ||pObj->GetType() == ALT_RUNWAY)
 				{
 					GetTreeCtrl().Expand(m_hObjSurface,TVE_COLLAPSE);
 					CNodeData* pNodeData = (CNodeData*)GetTreeCtrl().GetItemData(m_hObjSurface);
@@ -5508,7 +5592,7 @@ void MSV::CAirsideMSView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 	case VM_CHANGENAME_ALTOBJECT:
 		{
 			ALTObject *pObject = (ALTObject *)pHint;
-			HTREEITEM hTreeItem = FindTreeItemByObjectID(pObject->getID());
+			HTREEITEM hTreeItem = FindTreeItemByTypeID(pObject->GetType(),pObject->getID());
 			if (hTreeItem)
 			{
 				GetTreeCtrl().SelectItem(hTreeItem);
@@ -5531,6 +5615,7 @@ void MSV::CAirsideMSView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 					hItemRoot = FindAirspaceObjRootByType((*newList)[i]->GetType());
 				else
 					hItemRoot = FindTopographyObjRootByType((*newList)[i]->GetType());
+
 				if (hItemRoot)
 				{
 					AddObjectToTree(hItemRoot,(*newList)[i].get());
@@ -5549,145 +5634,35 @@ HTREEITEM CAirsideMSView::FindAirportObjRootByType(ALTOBJECT_TYPE altType)
 
 	int nCurAirportID = GetARCDocument()->GetCurrentAirport();
 	//find in airports
-	HTREEITEM hAirportItem = GetTreeCtrl().GetChildItem(m_hItemAirports);
-	while (hAirportItem)
+	HTREEITEM _hAirportItemIter = GetTreeCtrl().GetChildItem(m_hItemAirports);
+	while (_hAirportItemIter)
 	{
-		CNodeData *pNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAirportItem));
+		HTREEITEM hAirportItem = _hAirportItemIter;
+		_hAirportItemIter = GetTreeCtrl().GetNextSiblingItem(_hAirportItemIter);
+
+		CNodeData *pNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAirportItem));					
 		if (pNodeData)
 		{
-			if(pNodeData->nodeType != NodeType_Airport)
+			if(pNodeData->nodeType==NodeType_Airport && pNodeData->dwData == nCurAirportID)
 			{
-				hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
-				continue;
-			}
-			if (pNodeData->dwData != nCurAirportID)
-			{
-				hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
-				continue;
-			}
-
-			HTREEITEM hAircraftFac = GetTreeCtrl().GetChildItem(hAirportItem);
-
-			while (hAircraftFac)
-			{
-				CNodeData *pAFData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hAircraftFac));
-				if (pAFData)
-				{
-					if (pAFData->nodeType != NodeType_AircraftFacility )
-					{
-						hAircraftFac = GetTreeCtrl().GetNextSiblingItem(hAircraftFac);
-						continue;
-					}
-
-					HTREEITEM hManeuverSurface = GetTreeCtrl().GetChildItem(hAircraftFac);
-
-					while (hManeuverSurface)
-					{
-						CNodeData *pMSData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hManeuverSurface));
-						if (pMSData)
-						{
-
-							if (pMSData->nodeType == NodeType_ObjectRoot )
-							{
-								if(pMSData->nSubType == altType)
-									return hManeuverSurface;
-							}
-							if (pMSData->nodeType != NodeType_ManeuverSurface )
-							{
-								hManeuverSurface = GetTreeCtrl().GetNextSiblingItem(hManeuverSurface);
-								continue;
-							}
-
-
-
-							HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(hManeuverSurface);
-
-//			HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(hAirportItem);
-
-							while (hObjectRootItem)
-							{	
-								CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-								CString strText = GetTreeCtrl().GetItemText(hObjectRootItem);
-								if (pRootNodeData)
-								{
-									if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-									{
-										hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-										continue;
-									}
-									if (pRootNodeData->nSubType == altType)
-									{
-										return hObjectRootItem;
-									}
-
-								}
-								hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-							}
-						}
-					
-						hManeuverSurface = GetTreeCtrl().GetNextSiblingItem(hManeuverSurface);
-					}
-
-
-				}
-				
-				hAircraftFac = GetTreeCtrl().GetNextSiblingItem(hAircraftFac);
+				HTREEITEM itemFind = FindObjectRootByType(altType, hAirportItem);
+				if(itemFind)
+					return itemFind;
 			}
 		}
-		hAirportItem = GetTreeCtrl().GetNextSiblingItem(hAirportItem);
+		
 	}
 	return NULL;
 }
+
 HTREEITEM CAirsideMSView::FindAirspaceObjRootByType(ALTOBJECT_TYPE altType)
 {
-	//find in Airspace
-	HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(m_hItemAirspace);
-
-	while (hObjectRootItem)
-	{	
-		CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-		if (pRootNodeData)
-		{
-			if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-			{	
-				hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-				continue;
-			}
-			if (pRootNodeData->nSubType == altType)
-			{
-				return hObjectRootItem;
-			}
-
-		}
-		hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-	}
-
-	return NULL;
+	return  FindObjectRootByType(altType, m_hItemAirspace); 	
 }
+
 HTREEITEM CAirsideMSView::FindTopographyObjRootByType(ALTOBJECT_TYPE altType)
 {
-
-	HTREEITEM hObjectRootItem = GetTreeCtrl().GetChildItem(m_hItemTopography);
-
-	while (hObjectRootItem)
-	{	
-		CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hObjectRootItem));
-		if (pRootNodeData)
-		{
-			if (pRootNodeData->nodeType != NodeType_ObjectRoot )
-			{	
-				hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-				continue;
-			}
-			if (pRootNodeData->nSubType == altType)
-			{
-				return hObjectRootItem;
-			}
-		}
-		hObjectRootItem = GetTreeCtrl().GetNextSiblingItem(hObjectRootItem);
-	}
-
-	return NULL;
+	return  FindObjectRootByType(altType, m_hItemTopography); 
 }
 
 void MSV::CAirsideMSView::OnNMThemeChanged(NMHDR *pNMHDR, LRESULT *pResult)
@@ -5777,13 +5752,13 @@ void CAirsideMSView::LockALTObject( bool bLock )
 // 	}
 }
 
-void CAirsideMSView::OnUpdateAddContour(CCmdUI* pCmdUI)
-{
-	CNodeData* pNodeData = GetSelectedNodeData();
-	bool bFailed = true;
-	pCmdUI->Enable(pNodeData
-		&& !(pNodeData->nodeType == NodeType_Object && ALTObject::GetLockedByeID(pNodeData->dwData, bFailed)));
-}
+//void CAirsideMSView::OnUpdateAddContour(CCmdUI* pCmdUI)
+//{
+//	CNodeData* pNodeData = GetSelectedNodeData();
+//	bool bFailed = true;
+//	pCmdUI->Enable(pNodeData
+//		&& !(pNodeData->nodeType == NodeType_Object && ALTObject::GetLockedByeID(pNodeData->dwData, bFailed)));
+//}
 
 void CAirsideMSView::OnUpdateObjectDelete(CCmdUI* pCmdUI)
 {
@@ -6995,6 +6970,64 @@ void MSV::CAirsideMSView::OnEditTrainFlightsManagement( void )
 	m_pAirsideNodeHandler->TrainingFlgihtSManagement(GetARCDocument()->GetTerminal().m_pAirportDB,m_nProjID,this);
 }
 
+HTREEITEM MSV::CAirsideMSView::FindObjectRootByType( ALTOBJECT_TYPE altType, HTREEITEM hStartItem )
+{
+	CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hStartItem));
+	if(pRootNodeData)
+	{
+		if(pRootNodeData->nodeType == NodeType_ObjectRoot )
+		{
+			if( pRootNodeData->nSubType == altType)
+				return hStartItem;
+			else
+				return NULL;
+		}
+	}
+	
+
+	HTREEITEM hChildItem = GetTreeCtrl().GetChildItem(hStartItem);
+
+	while (hChildItem)
+	{	
+		HTREEITEM hItemFind = FindObjectRootByType(altType,hChildItem);
+		if(hItemFind)
+			return hItemFind;
+
+		hChildItem = GetTreeCtrl().GetNextSiblingItem(hChildItem);
+	}
+
+	return NULL;
+
+
+}
+
+HTREEITEM MSV::CAirsideMSView::FindObjectRootByType( ALTOBJECT_TYPE altType )
+{
+	HTREEITEM ret = FindAirportObjRootByType(altType);
+	if(ret)
+		return ret;
+	ret = FindAirspaceObjRootByType(altType);
+	if(ret)
+		return ret;
+
+	ret = FindTopographyObjRootByType(altType);
+	if(ret)
+		return ret;
+	return NULL;
+}
+
+HTREEITEM MSV::CAirsideMSView::FindTreeItemByTypeID( ALTOBJECT_TYPE type, int nObjID )
+{
+	HTREEITEM typeRoot = FindObjectRootByType(type);
+	if(typeRoot)
+	{
+		return FindTreeItemByObjectID(typeRoot, nObjID);
+	}
+	return NULL;
+}
+
+
+
 void CAirsideMSView::OnEditTakeoffClearance(void)
 {
 	AirsideGUI::NodeViewDbClickHandler airsideNodeHandler(GetARCDocument()->GetTerminal().GetProcessorList(),&GetARCDocument()->GetInputAirside());
@@ -7015,6 +7048,13 @@ void CAirsideMSView::OnEditArrivalDelayTrigger(void)
 	CDlgArrivalDelayTriggers dlg(GetARCDocument()->GetProjectID(), pTerminal, this);
 	dlg.DoModal();	
 }
+void CAirsideMSView::OnEditEnrouteQueueCapacity(void)
+{
+
+	CDlgAirsideEnrouteQueueCapacity dlg(GetARCDocument()->GetProjectID(), this);
+	dlg.DoModal();	
+}
+
 
 void CAirsideMSView::OnEditVehiclePools(void)
 {

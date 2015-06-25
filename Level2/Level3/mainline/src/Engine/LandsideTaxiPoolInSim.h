@@ -9,6 +9,7 @@ class LandsideResourceManager;
 class LandsideTaxiPool;
 class PaxLandsideBehavior;
 
+//class LandsideTaxiPoolLaneInSim;
 class LandsideTaxiPoolInSim :
 	public LandsideResourceInSim, public LandsideLayoutObjectInSim, public IUpdateOrderingVehicle
 {
@@ -26,27 +27,27 @@ public:
 	virtual void InitGraphNodes(LandsideRouteGraph* pGraph)const;
 	virtual void InitGraphLink(LandsideRouteGraph* pGraph)const;
 	//properties
-	DistanceUnit GetTotalLen()const{ return m_dTotalLength; }
+	bool GetPoolLanePath( int i,CPath2008* lanePath );
 	const CPath2008& GetPath()const;
+	DistanceUnit GetTotalLen()const{ return m_dTotalLength; }
 	DistanceUnit GetVehicleSep()const{ return m_dsepInPool; }
 
 	//vehicle functions
 	void OnVehicleExit(LandsideVehicleInSim* pVehicle,const ElapsedTime& t);
 	void OnVehicleEnter(LandsideVehicleInSim* pVehicle, DistanceUnit dist,const ElapsedTime& t);
 
-	LandsideVehicleInSim* GetHeadVehicle()const;
 	void NotifyVehicleArrival(LandsideVehicleInSim* pV);
 	//send the nCount Vehicle to service q, return sended number
 	int SentVehicleToQueue(const CString& vehicleType, int nCount, LandsideTaxiQueueInSim* pQ,CARCportEngine* pEngine);
 	
-	virtual bool IsHaveCapacityAndFull(LandsideVehicleInSim*pVeh)const;	
-	
+	LandsideVehicleInSim* GetHeadVehicle()const;
 	LandsideVehicleInSim* GetVehicleBefore(LandsideVehicleInSim* pVeh)const;
 	LandsideVehicleInSim* GetVehicleAfter(LandsideVehicleInSim* pVeh)const;
+	virtual bool IsHaveCapacityAndFull(LandsideVehicleInSim*pVeh)const;	
 
 	virtual void _UpdateOrderingVehicle(CARCportEngine* pEngine);
-
 	int GetNonServiceTaxiCount()const;
+	std::vector<CPath2008*> m_pLanes;
 private:
 	LandsideResourceManager* m_pAllRes;
 	

@@ -17,11 +17,7 @@
 
 #define PARK_LEVEL_HEIGHT "Level Height"
 #define PARK_LEVEL_THICKNESS "Level Thickness"
-#define PARK_SPOT_WIDTH "Spot Width"
-#define PARK_SPOT_LENGTH "SPot Length"
-#define PARK_SPOT_ANGLE "Spot Angle"
-#define PARK_SPOT_TYPE "Type"
-#define PARK_SPOT_OPERRATION "Operation"
+
 #define PARK_AREA_VISIBLE "visible"
 #define PARK_AREA_INVISIBLE "invisible"
 
@@ -253,7 +249,7 @@ void LandParkingLotPropDlgImpl::AddLevelChildItems(ParkingLotTreeItem levelItem,
 	}
 	{//parkspace
 		ParkingLotTreeItem parkSpaceRootItem = levelItem.AddChildItem("Parking Spaces:",mDataInst->create(_ParkSpaceRoot,nLevelIndex));
-		const ParkingSpaceList& spacelist = parkingLevel.m_parkspaces;
+		const ParkingLotParkingSpaceList& spacelist = parkingLevel.m_parkspaces;
 		for(size_t i=0;i<spacelist.m_spaces.size();i++)
 		{
 			const ParkingSpace& parkspace = spacelist.m_spaces[i];
@@ -474,7 +470,7 @@ void LandParkingLotPropDlgImpl::OnContextMenu( CMenu& menuPopup, CMenu *&pMenu )
 		|| itemType == _ParkSpaceRoot || itemType == _PSPath
 		|| itemType == _EntryExitRoot || itemType == _LinePath 
 		|| itemType == _LaneNodeRoot
-		||itemType == _ParkDrivePipeRoot || itemType ==  _PPPath)
+		|| itemType == _ParkDrivePipeRoot || itemType ==  _PPPath)
 	{
 		pMenu = menuPopup.GetSubMenu(73);			
 	}
@@ -542,15 +538,18 @@ void LandParkingLotPropDlgImpl::DoFallBackFinished( WPARAM wParam, LPARAM lParam
 
 	if(itemType == _PSPath)
 	{	
-		ParkingSpaceList& parkspaces = pLevel->m_parkspaces;		
-		ParkingSpace& space = parkspaces.getSpace(pData->nOtherIndex);
-		GetFallBackAsPath(wParam,lParam,space.m_ctrlPath);			
+		ParkingLotParkingSpaceList& parkspaces = pLevel->m_parkspaces;		
+		if( ParkingSpace* space = parkspaces.getSpacePtr(pData->nOtherIndex))
+		{
+			GetFallBackAsPath(wParam,lParam,space->m_ctrlPath);
+		}
+				
 	}
 	if(itemType == _ParkSpaceRoot)
 	{
 		ParkingSpace space;
 		GetFallBackAsPath(wParam,lParam,space.m_ctrlPath);
-		ParkingSpaceList& parkspaces = pLevel->m_parkspaces;		
+		ParkingLotParkingSpaceList& parkspaces = pLevel->m_parkspaces;		
 		parkspaces.AddSpace(space);
 	}
 	if (itemType == _PPPath)
@@ -647,7 +646,7 @@ void LandParkingLotPropDlgImpl::OnPropDelete()
 	//delete parkspot
 	if(itemType == _ParkSpace)
 	{
-		ParkingSpaceList& parkspaces = curLevel->m_parkspaces;
+		ParkingLotParkingSpaceList& parkspaces = curLevel->m_parkspaces;
 		parkspaces.RemoveSpace(pData->nOtherIndex);	
 
 		HTREEITEM tmpItem=GetTreeCtrl().GetNextItem(m_hRClickItem,TVGN_NEXT);
@@ -811,7 +810,7 @@ void LandParkingLotPropDlgImpl::OnSpotWidthEdit(HTREEITEM hTreeItem)
 
 	//double dUnitNum = ConvertLength(pLevel->m_dThickness);	
 
-	ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+	ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 	ParkingSpace& space = spaceList.getSpace(pItemData->nOtherIndex);
 	double dUnitNum = ConvertLength(space.m_dWidth);	
 
@@ -837,7 +836,7 @@ void LandParkingLotPropDlgImpl::OnSpotTypeCombo(HTREEITEM hItem)
 
 	double dUnitNum = ConvertLength(pLevel->m_dThickness);	
 
-	ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+	ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 	ParkingSpace& space = spaceList.getSpace(pItemData->nOtherIndex);
 
 	std::vector<CString> vString;
@@ -865,7 +864,7 @@ void LandParkingLotPropDlgImpl::OnSpotLengthEdit(HTREEITEM hItem)
 
 	//double dUnitNum = ConvertLength(pLevel->m_dThickness);	
 
-	ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+	ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 	ParkingSpace& space = spaceList.getSpace(pItemData->nOtherIndex);
 
 	double dUnitNum = ConvertLength(space.m_dLength);	
@@ -892,7 +891,7 @@ void LandParkingLotPropDlgImpl::OnSpotAngleEdit(HTREEITEM hItem)
 
 	//double dUnitNum = ConvertLength(pLevel->m_dThickness);	
 
-	ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+	ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 	ParkingSpace& space = spaceList.getSpace(pItemData->nOtherIndex);
 
 	double dUnitNum = space.m_dAngle;
@@ -947,11 +946,7 @@ void LandParkingLotPropDlgImpl::OnDoubleClickPropTree( HTREEITEM hTreeItem )
 	{		
 		OnLevelThicknessEdit(hTreeItem);
 	}
-	if(itemType == _PSWidth)
-	{
-		
-		OnSpotWidthEdit(hTreeItem);
-	}
+	
 	if(itemType == _PPWidth)
 	{
 		
@@ -961,6 +956,11 @@ void LandParkingLotPropDlgImpl::OnDoubleClickPropTree( HTREEITEM hTreeItem )
 	{
 		
 		OnSpotExitEntryPortEdit(hTreeItem);
+	}
+	if(itemType == _PSWidth)
+	{
+
+		OnSpotWidthEdit(hTreeItem);
 	}
 	if(itemType == _PSAngle)
 	{
@@ -1023,7 +1023,7 @@ void LandParkingLotPropDlgImpl::OnSelChangedPropTree(HTREEITEM hTreeItem)
 	}
 	if(itemType == _ParkSpace)
 	{
-		ParkingSpaceList& parkspaces = level->m_parkspaces;
+		ParkingLotParkingSpaceList& parkspaces = level->m_parkspaces;
 		parkspaces.getSpace(pData->nOtherIndex).m_bSelected=true;		
 	}
 	if (itemType == _ParkDrivePipe)
@@ -1080,7 +1080,7 @@ BOOL LandParkingLotPropDlgImpl::OnDefWindowProc( UINT message, WPARAM wParam, LP
 		}
 		if(itemType == _PSType)
 		{
-			ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+			ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 			selitem = MAX(ParkingSpace::_perpendicular,selitem);
 			selitem = MIN(ParkingSpace::_angle,selitem);
 			int nSpotIndex = clickItem.GetOtherData();			
@@ -1089,7 +1089,7 @@ BOOL LandParkingLotPropDlgImpl::OnDefWindowProc( UINT message, WPARAM wParam, LP
 			clickItem.SetStringText(PARK_SPOT_TYPE,space.GetTypeString());				
 		}
 		if(itemType == _PSOperation){
-			ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+			ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 			selitem = MAX(ParkingSpace::_backup,selitem);
 			selitem = MIN(ParkingSpace::_through,selitem);
 			int nSpotIndex = clickItem.GetOtherData();			
@@ -1125,7 +1125,7 @@ BOOL LandParkingLotPropDlgImpl::OnDefWindowProc( UINT message, WPARAM wParam, LP
 		if(!pLevel)
 			return false;
 
-		ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+		ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 
 		LPSPINTEXT pst = (LPSPINTEXT) lParam;
 		int nOtherIndex = clickItem.GetOtherData();
@@ -1403,7 +1403,7 @@ void LandParkingLotPropDlgImpl::OnSpotOpTypeCombo( HTREEITEM hItem )
 
 	double dUnitNum = ConvertLength(pLevel->m_dThickness);	
 
-	ParkingSpaceList& spaceList = pLevel->m_parkspaces;
+	ParkingLotParkingSpaceList& spaceList = pLevel->m_parkspaces;
 	ParkingSpace& space = spaceList.getSpace(pItemData->nOtherIndex);
 
 	std::vector<CString> vString;

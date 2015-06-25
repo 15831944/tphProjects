@@ -28,7 +28,7 @@ public:
 
 	virtual bool ProceedToNextFcObject(CARCportEngine* pEngine);
 	virtual void ArrivalLayoutObject(LandsideLayoutObjectInSim* pObj,LandsideResourceInSim* pDetailRes, CARCportEngine* pEngine );
-	virtual void SuccessParkInBusStation( LandsideBusStationInSim* pStation ,LaneParkingSpot* spot);
+	virtual void SuccessParkInBusStation( LandsideBusStationInSim* pStation ,IParkingSpotInSim* spot);
 	bool BeginServicePlan(ResidentRelatedVehicleTypePlan* pPlan,LandsideSimulation* pSim );// deploy to start service
 	
 	bool IsWaitOnBase()const;
@@ -88,14 +88,14 @@ protected:
 class State_ProcessAtBusStationResidentVehicle : public State_LandsideVehicle<LandsideResidentVehicleInSim>
 {
 public:
-	State_ProcessAtBusStationResidentVehicle(LandsideResidentVehicleInSim* pV,LandsideBusStationInSim* pStation,LaneParkingSpot* spot);
+	State_ProcessAtBusStationResidentVehicle(LandsideResidentVehicleInSim* pV,LandsideBusStationInSim* pStation,IParkingSpotInSim* spot);
 
 	virtual const char* getDesc()const{ return _T("Parking in Bus Station"); }
 	virtual void Entry(CARCportEngine* pEngine);
 	virtual void Execute(CARCportEngine* pEngine);	
 protected:
 	LandsideBusStationInSim *m_pBusStation;
-	LaneParkingSpot* m_spot;
+	IParkingSpotInSim* m_spot;
 
 	State_ServiceTimer m_minServiceTimer;  //min service timer
 	State_ServiceTimer m_headwayTimer;//timer keep headway,

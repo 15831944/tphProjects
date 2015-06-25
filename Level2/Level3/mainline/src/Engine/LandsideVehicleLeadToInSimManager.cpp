@@ -199,14 +199,20 @@ void LandsideVehicleLeadToInSimManager::ProcessRouteData(ResidentVehicleRoute *p
 				if (nFacilityID >= 0)
 				{
 					const LandsideFacilityLayoutObject* pLandsideObject = layoutObjectList.getObjectByID(nFacilityID);
-					for(int j = i; j >= 0; j--)
+					//ASSERT(pLandsideObject);
+					if(pLandsideObject)
 					{
-						LandsideFacilityObject pNextFacility = vFacilityObject[j];
-						int nNextFacilityID = pNextFacility.GetFacilityID();
-						if (nNextFacilityID >= 0)
+						for(int j = i; j >= 0; j--)
 						{
-							const LandsideFacilityLayoutObject* pNextObject = layoutObjectList.getObjectByID(nNextFacilityID);
-							Insert(_paxType,vehicleType,pLandsideObject->getName(),pNextObject->getName());
+							LandsideFacilityObject pNextFacility = vFacilityObject[j];
+							int nNextFacilityID = pNextFacility.GetFacilityID();
+							if (nNextFacilityID >= 0)
+							{
+								const LandsideFacilityLayoutObject* pNextObject = layoutObjectList.getObjectByID(nNextFacilityID);
+								//ASSERT(pNextObject);
+								if(pNextObject)
+									Insert(_paxType,vehicleType,pLandsideObject->getName(),pNextObject->getName());
+							}
 						}
 					}
 				}

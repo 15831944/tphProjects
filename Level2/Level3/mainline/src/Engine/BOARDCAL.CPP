@@ -129,6 +129,7 @@
 
 int BoardingCallEvent::process (CARCportEngine* _pEngine)
 {
+	int eventNum = getCurEventNum();
 	PLACE_METHOD_TRACK_STRING();
 	//gate->releaseWaitPax (percent, flight, time, m_iStage);
 	Processor *aProc;
@@ -136,7 +137,8 @@ int BoardingCallEvent::process (CARCportEngine* _pEngine)
 	if(m_mobElemConst.GetAirportDB() == NULL)
 		m_mobElemConst.SetAirportDB(_pEngine->getTerminal()->m_pAirportDB) ;
 	//assert( _pInTerm );
-	for (int i = 0; i < _pEngine->getTerminal()->procList->getProcessorCount(); i++)
+	int count = _pEngine->getTerminal()->procList->getProcessorCount();
+	for (int i = 0; i<count ; i++)
 	{
 		aProc = _pEngine->getTerminal()->procList->getProcessor(i);
 		if (aProc->getProcessorType() == HoldAreaProc)
@@ -145,6 +147,7 @@ int BoardingCallEvent::process (CARCportEngine* _pEngine)
 
 			if( waitArea->getStageID() == m_iStage )// the interesting stage
 			{
+				CString str = waitArea->getIDName();
 				waitArea->releasePax (m_mobElemConst, percent, time);
 			}            
 		}

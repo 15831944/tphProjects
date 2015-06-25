@@ -626,6 +626,13 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 			getTerminal()->m_pPaxBulkInfo->initBulk();
 
 			bool bInitializeNoError = true;
+
+			//clear the statistic data
+			for( int i=0; i<iMobleTypeCount; ++i )
+			{
+				m_vNonPaxCountByType[i] = 0;
+			}
+
 			long nPax = 0;
 			try
 			{
@@ -709,10 +716,6 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 			tempUtil.InitAllProcDirection( tempConvetor, pLinkage);
 			getTerminal()->procList->InitAllProcDirection();
 
-			for( int i=0; i<iMobleTypeCount; ++i )
-			{
-				m_vNonPaxCountByType[i] = 0;
-			}
 
 			//init every single processor's state
 			// by doing this ,all processors,no mater it is in proclist or not, for example, 
@@ -1605,6 +1608,17 @@ void CARCportEngine::generatePaxOneFlight (int p_ndx, char p_mode, const FlightS
 		!aFlight->getSpace (p_mode))
 		return;
 
+	//clear the checked baggage count information before generating passengers and non-passengers
+	if (p_mode == 'A')
+	{
+		aFlight->setArrBagCount(0);
+	}
+	else
+	{
+		aFlight->setDepBagCount(0);
+	}
+	//aFlight->ResetBaggageCount();
+
 	FlightConstraint flightType = aFlight->getType (p_mode);
 	flightType.SetAirportDB(getTerminal()->m_pAirportDB);
 
@@ -1986,6 +2000,7 @@ void CARCportEngine::generateArrivals ( CMobileElemConstraint p_type, int p_ndx,
 	//Flight *aFlight = flightSchedule->getItem (p_ndx);
 	Flight *aFlight = _pfs->getItem (p_ndx);
 	p_type.makeArrival();
+
 	MobLogEntry elem;
 	//for all nopax log
 	MobLogEntry* m_pNopax = new MobLogEntry[getTerminal()->m_pMobElemTypeStrDB->GetCount()];
@@ -2041,6 +2056,11 @@ void CARCportEngine::generateArrivals ( CMobileElemConstraint p_type, int p_ndx,
 			if( i <= NOPAX_COUNT && !vNPFlag[i-1] || !iVisitorFlag )
 				bGenFlag = FALSE;
 			int iNopaxCount = GenerateNopaxs( p_type, &m_pNopax[i], &elem, i, lCurID, bGenFlag , _standGate, _pfs);
+			if(i == 2)//Checked Baggage
+			{
+				aFlight->setArrBagCount(aFlight->getArrBagCount() + iNopaxCount);
+			}
+
 			elem.SetCarryonCount(iNopaxCount);
 			lCurID += iNopaxCount;
 		}
@@ -2087,6 +2107,7 @@ void CARCportEngine::generateDepartures (CMobileElemConstraint p_type,
 	//Flight* aFlight = flightSchedule->getItem (p_ndx);
 	Flight* aFlight = _pfs->getItem (p_ndx);
 	p_type.makeDeparture();
+
 	MobLogEntry elem;
 	//for all nopax log
 	MobLogEntry* m_pNopax = new MobLogEntry[getTerminal()->m_pMobElemTypeStrDB->GetCount()];
@@ -2141,6 +2162,11 @@ void CARCportEngine::generateDepartures (CMobileElemConstraint p_type,
 			if( i <= NOPAX_COUNT && !vNPFlag[i-1] || !iVisitorFlag )
 				bGenFlag = FALSE;
 			int iNopaxCount = GenerateNopaxs( p_type, &m_pNopax[i], &elem, i, lCurID, bGenFlag ,_standGate, _pfs);
+			if(i == 2)//Checked Baggage
+			{
+				aFlight->setDepBagCount(aFlight->getDepBagCount() + iNopaxCount);
+			}
+
 			elem.SetCarryonCount(iNopaxCount);
 			lCurID += iNopaxCount;
 		}
@@ -2878,13 +2904,20 @@ void CARCportEngine::CloseLogs( const CString& _csProjPath )
 				}
 				else
 				{
-					pLogEntry = new MobLogEntry;
-					if(getPaxLog()->GetItemByID(*pLogEntry,mobEvent.elementID) )
+					if(mobEvent.state != Death)
 					{
-						MobEventStruct* pNewItem = new MobEventStruct(mobEvent);
-						pLogEntry->getMobEventList().push_back(pNewItem);
+						pLogEntry = new MobLogEntry;
+						if(getPaxLog()->GetItemByID(*pLogEntry,mobEvent.elementID) )
+						{
+							MobEventStruct* pNewItem = new MobEventStruct(mobEvent);
+							pLogEntry->getMobEventList().push_back(pNewItem);
 
-						vFileMobEntry[nPaxIndex] = pLogEntry;
+							vFileMobEntry[nPaxIndex] = pLogEntry;
+						}
+					}
+					else
+					{
+						//the element died twice times ...
 					}
 				}
 			}

@@ -27,10 +27,7 @@ class TreeCtrlItemInDlg
 {
 public:
 	TreeCtrlItemInDlg(CAirsideObjectTreeCtrl& ctrl, HTREEITEM hitem);
-	bool isNull()const
-	{
-		return m_hItem==NULL;
-	}
+	bool isNull()const;
 
 	TreeCtrlItemInDlg GetRootItem()const;
 	static TreeCtrlItemInDlg GetRootItem(CAirsideObjectTreeCtrl& ctrl);
@@ -42,7 +39,8 @@ public:
 
 
 	TreeCtrlItemInDlg AddChild(const CString& strNode=_T("None Text"),HTREEITEM HAfter  = TVI_LAST);
-	void Expand();
+	void Expand(BOOL b = TRUE);
+
 	void Destroy();	
 	void DeleteAllChild();
 	//void RemoveFromParent();
@@ -54,6 +52,12 @@ public:
 	AirsideObjectTreeCtrlItemDataEx* GetData()const;
 	AirsideObjectTreeCtrlItemDataEx* InitData();
 	AirsideObjectTreeCtrlItemDataEx* GetInitData();
+
+	TreeCtrlItemInDlg& SetUserType(int nUserType);
+	TreeCtrlItemInDlg& SetUserData(DWORD_PTR udata);
+	int GetUserType()const;
+	DWORD_PTR GetUserData()const;
+
 
 	void AddTokenItem(CString strToken, bool bClear = false, COLORREF color=RGB(0,0,255));
 
@@ -70,8 +74,10 @@ public:
 
 	static CString GetValueText(double dValue,ARCUnit_Length curUnit);
 	static CString GetValueText(double dValue,ARCUnit_Velocity curUnit);
+
+	CAirsideObjectTreeCtrl& GetCtrl()const{ return *m_ctrl; }
 public:
-	CAirsideObjectTreeCtrl& m_ctrl;
+	CAirsideObjectTreeCtrl* m_ctrl;
 	HTREEITEM m_hItem;
 
 	virtual void ConstructInit(){}

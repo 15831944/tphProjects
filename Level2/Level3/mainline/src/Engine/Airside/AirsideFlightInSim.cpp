@@ -90,6 +90,7 @@
 #include "../boardcal.h"
 #include "FlightPerformancesInSim.h"
 #include "AirsidePassengerBusStrategy.h"
+#include "..\AirsdieFlightBaggageManager.h"
 
 #define _DEBUGLOG 0
 
@@ -235,6 +236,10 @@ AirsideFlightInSim::AirsideFlightInSim(CARCportEngine *pARCPortEngine,Flight* pF
 	m_pDepPaxParkingInSim = NULL;
 	m_bApplyFrPaxBusServiceRequestArrival = false;
 	m_bApplyFrPaxBusServiceRequestDeparture = false;
+
+	m_bApplyTrainServiceRequestArrival = false;
+	m_bApplyTrainServiceRequestDeparture = false;
+
 	m_bTowingToIntStand = false;
 	m_bTowingToDepStand = false;
 	m_bMoveToIntStand = false;
@@ -289,6 +294,7 @@ AirsideFlightInSim::AirsideFlightInSim(CARCportEngine *pARCPortEngine,Flight* pF
 	m_pDepPaxBusStrategy = NULL;
 
 	mbReadyForDeice = false;
+	m_pBaggageManager = new AirsideFlightBaggageManager;
 }
 
 AirsideFlightInSim::~AirsideFlightInSim(void)
@@ -396,6 +402,8 @@ AirsideFlightInSim::~AirsideFlightInSim(void)
 	}
 
 	delete m_pFlightPerformanceManager;
+
+	delete m_pBaggageManager;
 }
 
 BOOL AirsideFlightInSim::IsThroughOut() const
@@ -2439,7 +2447,42 @@ void AirsideFlightInSim::ApplyForPaxBusService(bool bArrival)
 	}
 	m_pServiceRequestDispatcher->PaxBusServiceRequestDispatch();
 }
-CPaxBusParkingInSim * AirsideFlightInSim::GetPaxBusParking(bool bArrival)
+
+void AirsideFlightInSim::ApplyForBaggageTrainService( FlightOperation enumOperation )
+{
+	//check the conditions
+
+// 	ASSERT(0);
+ 	//parking stand
+ 	if(GetOperationParkingStand() == NULL)
+ 		return;
+ 	//vehicle service switch
+ 	if (m_pServiceRequestDispatcher->IsVehicleService() == false)
+ 		return;
+ 	
+ 	//service requirement and pool settings
+ 	if (!m_pServiceRequestDispatcher->HasVehicleServiceFlight(this, VehicleType_BaggageTug))
+ 		return;
+ 
+ 	//Pusher or Loader
+	if (m_bApplyTrainServiceRequestArrival == false && enumOperation == ARRIVAL_OPERATION)
+	{
+		m_bApplyTrainServiceRequestArrival = true;
+		m_pServiceRequestDispatcher->AddBaggageTrainServiceRequest(this, enumOperation);
+	}
+
+ 	if (m_bApplyTrainServiceRequestDeparture == false && enumOperation == DEPARTURE_OPERATION)
+ 	{
+		m_bApplyTrainServiceRequestDeparture = true;
+		m_pServiceRequestDispatcher->AddBaggageTrainServiceRequest(this, enumOperation);
+ 	}
+
+ 	m_pServiceRequestDispatcher->BaggageTrainServiceRequestDispatch();
+
+
+}
+
+AirsidePaxBusParkSpotInSim * AirsideFlightInSim::GetPaxBusParking(bool bArrival)
 {
 	if(bArrival)
 		return m_pArrivalPaxParkingInSim;
@@ -2686,6 +2729,7 @@ void AirsideFlightInSim::InitBirth( const CArrivalETAOffsetList& etaoffsets,cons
 {
 	PLACE_METHOD_TRACK_STRING();
 
+	m_pBaggageManager->SetFlight(this);
 	{//init default
 		if(!IsArrival())
 			m_arrTime = max( ElapsedTime(0L), GetFlightInput()->getDepTime() -  GetFlightInput()->getServiceTime());
@@ -3294,7 +3338,10 @@ void AirsideFlightInSim::EnterQueueToRunwayHold( HoldPositionInSim* pQueue ,bool
 void AirsideFlightInSim::QuitCrossRunwayQueue()
 {
 	if(m_pCrossRunwayHold)
+	{
 		m_pCrossRunwayHold->RemoveFlightInQueue(this);
+		m_pCrossRunwayHold->WakeupEnrouteWaitingFlight(GetTime());
+	}
 	m_pCrossRunwayHold = NULL;
 }
 
@@ -3874,6 +3921,15 @@ FLIGHTTOWCRITERIATYPE AirsideFlightInSim::GetTowOffStandType()
 	return REPOSITIONFORDEP;
 }
 
+
+struct OpenDoorsOrder
+{
+	bool operator()(ACTypeDoor* door1, ACTypeDoor*door2)
+	{
+		return door1->m_dNoseDist < door2->m_dNoseDist;
+	}
+};
+
 bool AirsideFlightInSim::GetOpenDoorAndStairGroundPostions(std::vector< std::pair<CPoint2008, CPoint2008> >& vPoints )
 {
 	PLACE_METHOD_TRACK_STRING();
@@ -3936,8 +3992,8 @@ bool AirsideFlightInSim::GetOpenDoorAndStairGroundPostions(std::vector< std::pai
 	{
 
 		pFltDoorSpec->getFlightOpDoors(GetFlightInput()->getType(m_curFlightType),GetOperationParkingStand()->GetStandInput()->GetObjectName(), vOpenDoors);
-
-
+		std::sort(vOpenDoors.begin(),vOpenDoors.end(),OpenDoorsOrder());
+	
 		if (m_curState.m_pResource == NULL)
 		{
 			return false;
@@ -4768,7 +4824,8 @@ void AirsideFlightInSim::PassengerBusArrive( bool bArrival,const ElapsedTime& ti
 	if (m_pPaxBusContext == NULL)
 		return;
 
-	m_pPaxBusContext->PassengerBusArrive(time,pPaxBus);
+	bool bGenerateBaggage = m_pBaggageManager->IsGenerateGaggage();
+	m_pPaxBusContext->PassengerBusArrive(time,pPaxBus,bGenerateBaggage);
 }
 
 void AirsideFlightInSim::PassengerBusLeave( bool bArrival,CAirsidePaxBusInSim* pPaxBus )
@@ -4791,7 +4848,9 @@ void AirsideFlightInSim::FlightArriveStand( bool bArrival,const ElapsedTime& tim
 	if (m_pPaxBusContext == NULL)
 		return;
 
-	m_pPaxBusContext->FlightArriveStand(time);
+	m_pBaggageManager->FlightArriveStand(bArrival, time);
+	bool bGenerateBaggage = m_pBaggageManager->IsGenerateGaggage();
+	m_pPaxBusContext->FlightArriveStand(time,bGenerateBaggage);
 }
 
 void AirsideFlightInSim::FlightLeaveStand( bool bArrival )
@@ -4832,4 +4891,86 @@ void AirsideFlightInSim::SetWaitPassengerTag( bool bWait )
 bool AirsideFlightInSim::GetWaitPassengerTag() const
 {
 	return m_bWaitPaxTakeOn;
+}
+
+CBagCartsParkingSpotInSim * AirsideFlightInSim::getArrivalBagCartsParkingSpot() const
+{
+	return m_pArrivalBagCartsParkingSpot;
+}
+
+void AirsideFlightInSim::setArrivalBagCartsParkingSpot( CBagCartsParkingSpotInSim * pSpotInSim )
+{
+	m_pArrivalBagCartsParkingSpot = pSpotInSim;
+}
+
+CBagCartsParkingSpotInSim * AirsideFlightInSim::getDeparturelBagCartsParkingSpot() const
+{
+	return m_pDeparturelBagCartsParkingSpot;
+}
+
+void AirsideFlightInSim::setDeparturelBagCartsParkingSpot( CBagCartsParkingSpotInSim * pSpotInSim )
+{
+	m_pDeparturelBagCartsParkingSpot = pSpotInSim;
+}
+
+AirsideFlightBaggageManager * AirsideFlightInSim::getBaggageManager()
+{
+	return m_pBaggageManager;
+}
+
+BOOL AirsideFlightInSim::getCargoDoorPosition(CPoint2008 &ptCargoDoor)
+{
+	//ASSERT(0);
+	PLACE_METHOD_TRACK_STRING();
+	if(!m_curState.m_pResource)
+		return FALSE;
+
+	CPath2008 path;
+	if (m_curState.m_pResource->GetType() == AirsideResource::ResType_StandLeadOutLine)//lead out line
+	{
+		StandLeadOutLineInSim* pLeadOutLine = (StandLeadOutLineInSim*)(m_curState.m_pResource);
+		if (pLeadOutLine==NULL)
+			return false;
+		path = pLeadOutLine->GetPath();
+	}
+	else if(m_curState.m_pResource->GetType() == AirsideResource::ResType_StandLeadInLine) // lead in line
+	{
+		StandLeadInLineInSim* pLeadInLine = (StandLeadInLineInSim*)(m_curState.m_pResource);
+		if (pLeadInLine==NULL)
+			return false;
+		path = pLeadInLine->GetPath();
+	}
+	else 
+		return FALSE;
+
+	ARCVector3 dir = path.GetDistDir(m_curState.m_dist);
+	CPoint2008 pos = m_curState.m_pPosition;
+	DistanceUnit fltLen = GetLength();
+
+	CPath2008 flightPath;
+	flightPath.push_back(pos + dir.SetLength(fltLen/2) );
+	flightPath.push_back(pos - dir.SetLength(fltLen/2) );
+
+	ARCPipe flightbody(flightPath,GetCabinWidth());
+	ptCargoDoor  = flightbody.m_sidePath2.GetDistPos(fltLen*0.8);
+
+	double dDoorZ = 0;
+	FltOperatingDoorSpecInSim* pFltDoorSpec =  GetAirTrafficController()->GetFltOperatingDoorSpec();
+	if (pFltDoorSpec)
+	{
+		std::vector<ACTypeDoor*> vOpenDoors;
+		pFltDoorSpec->getFlightOpDoors(GetFlightInput()->getType(m_curFlightType),GetOperationParkingStand()->GetStandInput()->GetObjectName(), vOpenDoors);
+		std::sort(vOpenDoors.begin(),vOpenDoors.end(),OpenDoorsOrder());
+
+		if(!vOpenDoors.empty())
+		{
+			ACTypeDoor* pACDoor = vOpenDoors.front();
+			dDoorZ = (pACDoor->m_dHeight + pACDoor->m_dSillHeight-1)*100;
+		}
+	}
+
+	ptCargoDoor.setZ(dDoorZ);
+
+
+	return TRUE;
 }

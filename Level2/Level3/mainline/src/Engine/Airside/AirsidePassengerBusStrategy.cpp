@@ -34,7 +34,7 @@ AirsideArrPassengerBusStrategy::~AirsideArrPassengerBusStrategy()
 
 }
 
-void AirsideArrPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext)
+void AirsideArrPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage)
 {
 	if (m_pAirsideFlightInSim == NULL)
 		return;
@@ -75,7 +75,7 @@ void AirsideArrPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,
 		{
 			ElapsedTime eEntryTime = time;
 			CPaxGenerator paxgenerator(pArcportEngine) ;
-			paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,-1) ;
+			paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,bGenerateBaggage,-1) ;
 			m_pAirsideFlightInSim->AddPaxCount((int)_paxlist.size());
 			pPaxBusContext->SetPaxListInFlight(_paxlist);
 		}
@@ -86,7 +86,7 @@ void AirsideArrPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,
 }
 
 
-void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext)
+void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage)
 {
 	if (m_pAirsideFlightInSim == NULL)
 		return;
@@ -99,9 +99,9 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 	if (pArcportEngine == NULL)
 		return;
 
-	CPaxGenerator paxgenerator(pArcportEngine);
+	//CPaxGenerator paxgenerator(pArcportEngine);
 	ElapsedTime eEntryTime = time;
-	paxgenerator.GenerateDelayMobileBag(pFlight->getFlightIndex(),eEntryTime) ;
+	//paxgenerator.GenerateDelayMobileBag(pFlight->getFlightIndex(),eEntryTime) ;
 
 	Terminal* m_terminal = pFlight->GetTerminal() ;
 	
@@ -134,14 +134,14 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 		else			
 		{
 			CPaxGenerator paxgenerator(pArcportEngine) ;
-			int pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,-1) ;
+			int pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,bGenerateBaggage,-1) ;
 			m_pAirsideFlightInSim->AddPaxCount(pax_num);
 			pPaxBusContext->SetPaxListInFlight(_paxlist);
 		}	
 
 		for (int i = 0 ; i < (int)_paxlist.size() ;i ++)
 		{
-			AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
+			AirsidePassengerBehavior* spAirsideBehavior = (AirsidePassengerBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
 			if (spAirsideBehavior)
 			{
 				spAirsideBehavior->CancelPaxBusService() ;
@@ -179,7 +179,7 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 		if (!pPaxBusContext->GetPaxBusCount())
 		{
 			CPaxGenerator paxgenerator(pArcportEngine) ;
-			pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,-1) ;
+			pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,bGenerateBaggage,-1) ;
 			m_pAirsideFlightInSim->AddPaxCount(pax_num);
 			pPaxBusContext->SetPaxListInFlight(_paxlist);
 		}
@@ -208,7 +208,7 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 
 				if (!_bus->IsFull())
 				{
-					AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
+					AirsidePassengerBehavior* spAirsideBehavior = (AirsidePassengerBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
 					if (spAirsideBehavior)
 					{
 						_bus->AddPassenger(pPerson) ;
@@ -239,14 +239,14 @@ AirsideDepPassengerBusStrategy::~AirsideDepPassengerBusStrategy()
 
 }
 
-void AirsideDepPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext)
+void AirsideDepPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage)
 {
 	if(WakeupHoldPassenger(time,pPaxBus->GetVehicleCapacity()) == 0)
 		pPaxBus->BusMoving(time); 
 }
 
 
-void AirsideDepPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext)
+void AirsideDepPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,AirsidePassengerBusContext* pPaxBusContext,bool bGenerateBaggage)
 {
 	if (m_pAirsideFlightInSim == NULL)
 		return;
@@ -334,7 +334,7 @@ AirsidePassengerBusContext::~AirsidePassengerBusContext()
 	m_vPerson.clear();
 }
 
-void AirsidePassengerBusContext::PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus)
+void AirsidePassengerBusContext::PassengerBusArrive(const ElapsedTime& time,CAirsidePaxBusInSim* pPaxBus,bool bGenerateBaggage)
 {
 	if (m_pPaxBusStrategy == NULL)
 		return;
@@ -356,7 +356,7 @@ void AirsidePassengerBusContext::PassengerBusArrive(const ElapsedTime& time,CAir
 		}
 	}
 
-	m_pPaxBusStrategy->PassengerBusArrive(time,pPaxBus,this);
+	m_pPaxBusStrategy->PassengerBusArrive(time,pPaxBus,this,bGenerateBaggage);
 }
 
 void AirsidePassengerBusContext::PassengerBusLeave(CAirsidePaxBusInSim* pPaxBus)
@@ -383,11 +383,11 @@ void AirsidePassengerBusContext::PassengerBusLeave(CAirsidePaxBusInSim* pPaxBus)
 
 }
 
-void AirsidePassengerBusContext::FlightArriveStand(const ElapsedTime& time)
+void AirsidePassengerBusContext::FlightArriveStand(const ElapsedTime& time,bool bGenerateBaggage)
 {
 	if (m_pPaxBusStrategy)
 	{
-		m_pPaxBusStrategy->FlightArriveStand(time,this);
+		m_pPaxBusStrategy->FlightArriveStand(time,this,bGenerateBaggage);
 	}
 }
 
@@ -515,7 +515,7 @@ void AirsidePassengerBusContext::ProcessPassengerTakeonBus( const ElapsedTime& t
 		Person* pPerson = m_vPerson.back();
 		if (!pPaxBus->IsFull())
 		{
-			AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)pPerson->getBehavior(MobElementBehavior::AirsideBehavior);
+			AirsidePassengerBehavior* spAirsideBehavior = (AirsidePassengerBehavior*)pPerson->getBehavior(MobElementBehavior::AirsideBehavior);
 			if (spAirsideBehavior)
 			{
 				pPaxBus->AddPassenger(pPerson);

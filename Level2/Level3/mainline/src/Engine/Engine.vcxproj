@@ -136,13 +136,21 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="AirsdieFlightBaggageManager.cpp" />
+    <ClCompile Include="AirsideBaggageBehavior.cpp" />
+    <ClCompile Include="AirsideBaggageCartInSim.cpp" />
+    <ClCompile Include="AirsideBaggageTrainInSim.cpp" />
+    <ClCompile Include="AirsideBaggageTugInSim.cpp" />
+    <ClCompile Include="AirsideMobElementBaseBehavior.cpp" />
     <ClCompile Include="Airside\AirsideCircuitFlightInSim.cpp" />
     <ClCompile Include="Airside\AirsideCircuitFlightProcess.cpp" />
     <ClCompile Include="Airside\AirsideCircuitFlightProcess2.cpp" />
     <ClCompile Include="Airside\AirsideFlightInSim.cpp" />
     <ClCompile Include="AirsideLogDatabase.cpp" />
+    <ClCompile Include="Airside\AirsidePaxBusParkSpotInSim.cpp" />
     <ClCompile Include="Airside\AirsideTrainFlightTypeManagerInSim.cpp" />
     <ClCompile Include="Airside\AirTrafficController.cpp" />
+    <ClCompile Include="Airside\EnrouteQueueCapacityInSim.cpp" />
     <ClCompile Include="Airside\FlightTerminateEvent.cpp" />
     <ClCompile Include="anServeProcList.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -212,6 +220,10 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="BagCartsBeginServiceParkingSpotEvent.cpp" />
+    <ClCompile Include="BagCartsParkingSpotInSim.cpp" />
+    <ClCompile Include="BagCartsParkingSpotResourceManager.cpp" />
+    <ClCompile Include="BagCartsServiceParkingSpotEvent.cpp" />
     <ClCompile Include="BAGENTER.CPP">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -234,6 +246,8 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="BaggageCartParkingLinkageInSimManager.cpp" />
+    <ClCompile Include="BaggageCartServiceStandtEvent.cpp" />
     <ClCompile Include="BaggageProcUtil.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -245,6 +259,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="BaggageTrainServiceRequest.cpp" />
     <ClCompile Include="BARRIER.CPP">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1440,10 +1455,18 @@
     <ClCompile Include="core\SSignal.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AirsdieFlightBaggageManager.h" />
+    <ClInclude Include="AirsideBaggageBehavior.h" />
+    <ClInclude Include="AirsideBaggageCartInSim.h" />
+    <ClInclude Include="AirsideBaggageTrainInSim.h" />
+    <ClInclude Include="AirsideBaggageTugInSim.h" />
+    <ClInclude Include="AirsideMobElementBaseBehavior.h" />
     <ClInclude Include="Airside\AirsideCircuitFlightInSim.h" />
     <ClInclude Include="Airside\AirsideCircuitFlightProcess.h" />
     <ClInclude Include="Airside\AirsideCircuitFlightProcess2.h" />
+    <ClInclude Include="Airside\AirsidePaxBusParkSpotInSim.h" />
     <ClInclude Include="Airside\AirsideTrainFlightTypeManagerInSim.h" />
+    <ClInclude Include="Airside\EnrouteQueueCapacityInSim.h" />
     <ClInclude Include="ASSEVENT.H" />
     <ClInclude Include="ACCESSQ.H" />
     <ClInclude Include="AdjacentStation.h" />
@@ -1458,9 +1481,16 @@
     <ClInclude Include="AutoCreateProcessorContainer.h" />
     <ClInclude Include="AutoRoster.h" />
     <ClInclude Include="AvoidDensityEvent.h" />
+    <ClInclude Include="BagCartsBeginServiceParkingSpotEvent.h" />
+    <ClInclude Include="BagCartsParkingSpotInSim.h" />
+    <ClInclude Include="BagCartsParkingSpotResourceManager.h" />
+    <ClInclude Include="BagCartsServiceParkingSpotEvent.h" />
     <ClInclude Include="BAGENTER.H" />
     <ClInclude Include="BAGGAGE.H" />
+    <ClInclude Include="BaggageCartParkingLinkageInSimManager.h" />
+    <ClInclude Include="BaggageCartServiceStandtEvent.h" />
     <ClInclude Include="BaggageProcUtil.h" />
+    <ClInclude Include="BaggageTrainServiceRequest.h" />
     <ClInclude Include="BARRIER.H" />
     <ClInclude Include="BillboardProc.h" />
     <ClInclude Include="BOARDCAL.H" />
@@ -1954,6 +1984,10 @@
     <ClInclude Include="core\SAgent.h" />
     <ClInclude Include="core\SGoal.h" />
     <ClInclude Include="core\SSignal.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Engine.vcproj" />
+    <None Include="Engine.vcxproj.user" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

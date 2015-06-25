@@ -163,6 +163,7 @@
 
 #include <deque>
 #include <map>
+#include "Common/FloorChangeMap.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -4311,7 +4312,7 @@ void CNodeView::OnAddSurfaceArea()
 				tstrc->addPoint(pt);
 			}
 			
-			tstrc->setFloorNum(pDoc->m_nActiveFloor);
+			tstrc->setFloorIndex(pDoc->m_nActiveFloor);
 			pDoc->GetCurStructurelist().addStructure(tstrc);
 
 			ProcessorID id;
@@ -4585,7 +4586,7 @@ void CNodeView::OnWallshapeAddwallshape()
 		
 
 		CString strProcName =dlg.m_csLevel1+ "-" + dlg.m_csLevel2 + "-" + dlg.m_csLevel3 + "-" +dlg.m_csLevel4;
-		pNewwallsh->SetFloorNum(pDoc->m_nActiveFloor);
+		pNewwallsh->SetFloorIndex(pDoc->m_nActiveFloor);
 		pNewwallsh->SetPath(dlg.m_Wallpath);
 		pDoc->GetCurWallShapeList().addShape( pNewwallsh);
 		
@@ -4754,4 +4755,113 @@ void CNodeView::OnRenameProc2()
 		id.setID(newShapeName);
 		RefreshProcessorItem(pNode,GetDocument()->UnderConstructionNode(),id);
 	}
+}
+
+struct FloorLessOrder
+{
+	bool operator()(CFloor2* f1, CFloor2* f2)
+	{
+		return f1->Altitude() < f2->Altitude();
+	}
+};
+
+void CNodeView::OnSortFloor()
+{
+	SortFloors(GetDocument());
+}
+
+void CNodeView::SortFloors( CTermPlanDoc* pDoc )
+{
+	//sort floor
+	CFloors& floors = pDoc->GetFloorByMode(EnvMode_Terminal);
+
+	CFloorList vList = floors.m_vFloors;
+	std::sort(vList.begin(),vList.end(),FloorLessOrder());
+
+	FloorChangeMap floorIndexChangeMap;
+
+	for(int i=0;i<(int)vList.size();i++)
+	{
+		vList.at(i)->Level(i);	
+	}
+
+	floorIndexChangeMap.nNewFloorIndex.resize(floors.GetCount());
+	for(int i=0;i< floors.GetCount();i++)
+	{
+		floorIndexChangeMap.nNewFloorIndex[i] = floors.GetFloor2(i)->Level();
+	}
+	floors.m_vFloors = vList;
+	floors.saveDataSet(pDoc->m_ProjInfo.path, false);
+
+	//modify placements
+	CPlacement* pPlacement = pDoc->GetTerminalPlacement();
+	//m_vUndefined
+	for(size_t i=0;i<pPlacement->m_vUndefined.size();i++)
+	{
+		CProcessor2* proc2 = pPlacement->m_vUndefined.at(i);
+		int nNewFloor = floorIndexChangeMap.getNewFloor(proc2->GetFloor());
+		proc2->SetFloor(nNewFloor);
+	}
+	//vDefined
+	for(size_t i=0;i<pPlacement->m_vDefined.size();i++)
+	{
+		CProcessor2* proc2 = pPlacement->m_vDefined.at(i);
+		int nNewFloor = floorIndexChangeMap.getNewFloor(proc2->GetFloor());
+		proc2->SetFloor(nNewFloor);
+	}
+	pPlacement->saveDataSet(pDoc->m_ProjInfo.path, false);
+	//proclist
+	ProcessorList* procList = pDoc->GetTerminal().procList;
+	for(int i=0;i<procList->getProcessorCount();i++)
+	{
+		Processor* proc = procList->getProcessor(i);
+		proc->UpdateFloorIndex(floorIndexChangeMap);
+	}
+	procList->saveDataSet(pDoc->m_ProjInfo.path, false);
+
+	//pipe
+	CPipeDataSet* pipes = pDoc->GetTerminal().m_pPipeDataSet;
+	for(int i=0;i<pipes->GetPipeCount();i++)
+	{
+		CPipe* pipe = pipes->GetPipeAt(i);
+		pipe->UpdateFloorIndex(floorIndexChangeMap);
+	}
+	pipes->saveDataSet(pDoc->m_ProjInfo.path, false);
+	//structure
+	CStructureList* structlist =  pDoc->GetTerminal().m_pStructureList;
+	for(size_t i=0;i<structlist->getStructureNum();i++)
+	{
+		CStructure* structure = structlist->getStructureAt(i);
+		int nNewFloor = floorIndexChangeMap.getNewFloor(structure->GetFloorIndex());
+		structure->setFloorIndex(nNewFloor);
+	}
+	structlist->saveDataSet(pDoc->m_ProjInfo.path, false);
+	//
+	WallShapeList* wallshapelist = pDoc->GetTerminal().m_pWallShapeList;
+	for(size_t i=0;i<wallshapelist->getShapeNum();i++)
+	{
+		WallShape* wall = wallshapelist->getShapeAt(i);
+		int nNewFloor = floorIndexChangeMap.getNewFloor(wall->GetFloorIndex());
+		wall->SetFloorIndex(nNewFloor);
+	}
+	wallshapelist->saveDataSet(pDoc->m_ProjInfo.path, false);
+	//
+	CAreas*	  arealist = pDoc->GetTerminal().m_pAreas;
+	for(int i=0;i<arealist->getCount();i++)
+	{
+		CArea* area = arealist->getAreaByIndex(i);
+		int nNewFloor = floorIndexChangeMap.getNewFloor(area->GetFloorIndex());
+		area->SetFloor(nNewFloor);
+	}
+	arealist->saveDataSet(pDoc->m_ProjInfo.path, false);
+	//
+	CPortals& portals  = pDoc->m_portals;
+	for(int i=0;i<portals.getCount();i++)
+	{
+		CPortal* portal = portals.getPortal(i);
+		int nNewFloor = floorIndexChangeMap.getNewFloor(portal->GetFloorIndex());
+		portal->SetFloor(nNewFloor);
+	}
+	portals.saveDataSet(pDoc->m_ProjInfo.path, false);
+
 }

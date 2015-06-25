@@ -12,6 +12,7 @@
 #include "TakeoffQueueInSim.h"
 #include "PaxBusParkingResourceManager.h"
 #include "FlightGroundRouteResourceManager.h"
+#include "../BagCartsParkingSpotResourceManager.h"
 
 
 class AirsideSimConfig;
@@ -50,6 +51,9 @@ public:
 
 	FlightGroundRouteResourceManager *getGroundRouteResourceManager();
 
+	CBagCartsParkingSpotResourceManager *getBagCartsParkingSpotResManager();
+
+
 	ALTAirport& GetAirportInfo(){ return m_AirportInfo; }
 
 	TaxiwayToNearestStretchRouteFinder* GetTaxiwayToNearestStretchRouteFinder();
@@ -82,5 +86,7 @@ protected:
 	FlightGroundRouteResourceManager m_flightGroundRouteManager;
 
 	TaxiwayToNearestStretchRouteFinder* m_pTaxiwayToNearestStretchRouteFinder;
+
+	CBagCartsParkingSpotResourceManager m_pBagCartsParkingSpotResManager;
 	
 };

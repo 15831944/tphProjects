@@ -4110,10 +4110,10 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 			int ptCount=0;
 			for(size_t i=0;i<nwallCount;++i){
 				WallShape* wall=walllist.getShapeAt(i);
-				if( wall->GetFloorNum() == pDoc->m_nActiveFloor)
+				if( wall->GetFloorIndex() == pDoc->m_nActiveFloor)
 				{
 					glPushMatrix();
-					glTranslated(0.0,0.0,dAlt[wall->GetFloorNum()]);
+					glTranslated(0.0,0.0,dAlt[wall->GetFloorIndex()]);
 					if(wall->IsEditMode())
 					{
 						int ptnum=wall->GetPointCount();
@@ -4159,7 +4159,7 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 			size_t ncount=StructureList.getStructureNum();
 			for(int i=ncount-1;i>=0;--i){
 				CStructure* cs = StructureList.getStructureAt(i);
-				if(cs->getFloorNum()==pDoc->m_nActiveFloor){					
+				if(cs->getFloorIndex()==pDoc->m_nActiveFloor){					
 					if(m_bSelectStructureEdit&&m_nSelectedStructure==i)
 					{
 						int num=cs->getPointNum();					
@@ -4169,12 +4169,12 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 							const Point& pt=cs->getPointAt(j);
 							glLoadName(GenerateSelectionID(SELTYPE_STRUCTURE, SELSUBTYPE_POINT, j));
 
-							DrawFlatSquare(pt.getX(),pt.getY(),dAlt[cs->getFloorNum()],50);
+							DrawFlatSquare(pt.getX(),pt.getY(),dAlt[cs->getFloorIndex()],50);
 						}
 
 					}	
 					glLoadName(GenerateSelectionID(SELTYPE_STRUCTURE, SELSUBTYPE_MAIN, i));
-					cs->DrawSelectArea(dAlt[cs->getFloorNum()]);			
+					cs->DrawSelectArea(dAlt[cs->getFloorIndex()]);			
 				}
 				else NULL;
 			}			
@@ -5124,7 +5124,8 @@ void C3DView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 	{
 		GetParentFrame()->UnSelectAll();
 		ALTObject3D * pObj = GetAirside3D()->GetObject3D((int)pHint);
-		GetParentFrame()->Select(pObj);
+		if(pObj)
+			GetParentFrame()->Select(pObj);
 	}
 
 	if(lHint == VM_MODIFY_AIRSIDEGROUND)
@@ -8391,6 +8392,14 @@ void C3DView::SelectableMenuPop(Selectable * pSel,const CPoint& point)
 		{
 			pCtxMenu = DYNAMIC_DOWNCAST(CNewMenu, menu.GetSubMenu(0));
 		}
+		else if(pObj->GetType()== ALT_APAXBUSSPOT)
+		{
+			pCtxMenu = DYNAMIC_DOWNCAST(CNewMenu,menu.GetSubMenu(0));
+		}
+		else if(pObj->GetType()==ALT_ABAGCARTSPOT)
+		{
+			pCtxMenu = DYNAMIC_DOWNCAST(CNewMenu,menu.GetSubMenu(0));
+		}
 		else
 		{
 			pCtxMenu =  DYNAMIC_DOWNCAST(CNewMenu, menu.GetSubMenu(pObj->GetType()));
@@ -8639,7 +8648,8 @@ void C3DView::OnAltobjectDelete()
 
 	ALTObjectList delteObjs;
 
-	for(ALTObject3DList::iterator itr = SelectedList.begin();itr!= SelectedList.end();itr++){
+	for(ALTObject3DList::iterator itr = SelectedList.begin();itr!= SelectedList.end();itr++)
+	{
 		ALTObject3D * pObj3D = (*itr).get();
 		delteObjs.push_back(pObj3D->GetObject());		
 	}

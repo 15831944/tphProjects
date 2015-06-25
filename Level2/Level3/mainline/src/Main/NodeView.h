@@ -145,6 +145,8 @@ protected:
 	afx_msg void OnAddStructure();
 	afx_msg void OnAddSurfaceArea();
 	afx_msg void OnEnableCoutourEdit();
+	afx_msg void OnSortFloor();
+
 
 	LRESULT OnTempFallbackFinished(WPARAM, LPARAM);
 
@@ -152,6 +154,9 @@ public:
 	afx_msg void OnCtxAddGate();
 	afx_msg void OnGateProcdispproperties();
 	afx_msg void OnWallshapeAddwallshape();
+
+	static void SortFloors(	CTermPlanDoc* pDoc);
+
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;

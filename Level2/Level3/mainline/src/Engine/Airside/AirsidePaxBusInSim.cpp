@@ -19,7 +19,7 @@
 #include "../AirsideMobElementBehavior.h"
 #include "Engine/TerminalMobElementBehavior.h"
 #include "Engine/ARCportEngine.h"
-
+#include "AirsidePaxBusParkSpotInSim.h"
 
 
 
@@ -74,8 +74,9 @@ void CAirsidePaxBusInSim::SetServiceFlight(AirsideFlightInSim* pFlight, double v
 
 		CString strDepGate = pFlight->getDepGateInSim();
 
-		CPaxBusParkingInSim *pPaxBusparkingInSim = m_pPaxBusParkingManager->GetBestMatch(strDepGate,depgate);
-		if (pPaxBusparkingInSim == NULL)
+	//	CPaxBusParkingInSim* pPaxBusparkingInSim = m_pPaxBusParkingManager->GetBestMatch(strDepGate,depgate);
+		AirsidePaxBusParkSpotInSim* pParkSpotInSim = pFlight->GetPaxBusParking(bArrival);
+		if (pParkSpotInSim == NULL)
 		{
 			pFlight->VehicleServiceComplete(this);
 			m_pServiceFlight = NULL;
@@ -83,7 +84,7 @@ void CAirsidePaxBusInSim::SetServiceFlight(AirsideFlightInSim* pFlight, double v
 			return;
 		}
 
-		pFlight->SetDepPaxBusParking(pPaxBusparkingInSim);
+		
 		//go to service stand and service
 		AirsideResource * AtResource = GetResource();
 		if( GetResource() && GetResource()->GetType() == AirsideResource::ResType_FlightServiceRingRoute)
@@ -93,17 +94,18 @@ void CAirsidePaxBusInSim::SetServiceFlight(AirsideFlightInSim* pFlight, double v
 		}
 
 		VehicleRouteInSim resltRoute;
-		if( !m_pRouteResMan->GetVehicleRoute(AtResource,pPaxBusparkingInSim,resltRoute) )
+		if( !m_pRouteResMan->GetVehicleRoute(AtResource,pParkSpotInSim,resltRoute) )
 		{
-			if( AtResource && pPaxBusparkingInSim )
+			if( AtResource && pParkSpotInSim )
 			{
 				CString strWarn;
-				CString gateName = pPaxBusparkingInSim->GetPaxParkingInput()->GetGate();
+			//	CString gateName = pParkSpotInSim->GetPaxParkingInput()->GetGate();
+				CString gateName = strDepGate;
 				CString resName = "UNKNOW";
 				if(AtResource->GetType() == AirsideResource::ResType_PaxBusParking)
 				{
-					CPaxBusParkingInSim * resStand = (CPaxBusParkingInSim * )AtResource;
-					resName = resStand->GetPaxParkingInput()->GetGate();
+					AirsidePaxBusParkSpotInSim * resSpot = (AirsidePaxBusParkSpotInSim * )AtResource;
+					resName = resSpot->GetParkSpot()->getName().GetIDString();
 				}
 				if(AtResource->GetType() == AirsideResource::ResType_VehiclePool )
 				{
@@ -184,9 +186,10 @@ void CAirsidePaxBusInSim::GetNextCommand()
 		{
 			CString strArrGate = GetServiceFlight()->getArrGateInSim();
 
-			CPaxBusParkingInSim *pPaxBusparkingInSim = m_pPaxBusParkingManager->GetBestMatch(strArrGate,arrgate);
-			
-			if (pPaxBusparkingInSim == NULL)
+// 			CPaxBusParkingInSim *pPaxBusparkingInSim = m_pPaxBusParkingManager->GetBestMatch(strArrGate,arrgate);
+			AirsidePaxBusParkSpotInSim* pParkSpotInSim = GetServiceFlight()->GetPaxBusParking(m_bServiceArrival);
+
+			if (pParkSpotInSim == NULL)
 			{
 				//set onbackpool in simulation log , one server has finished .
 				AirsideMobileElementMode _mode = GetMode() ;
@@ -201,7 +204,6 @@ void CAirsidePaxBusInSim::GetNextCommand()
 				return;
 			}
 
-			GetServiceFlight()->SetArrivalPaxBusParking(pPaxBusparkingInSim);
 			//go to service stand and service
 			AirsideResource * AtResource = GetResource();
 			if( GetResource() && GetResource()->GetType() == AirsideResource::ResType_FlightServiceRingRoute)
@@ -211,17 +213,18 @@ void CAirsidePaxBusInSim::GetNextCommand()
 			}
 
 			VehicleRouteInSim resltRoute;
-			if( !m_pRouteResMan->GetVehicleRoute(AtResource,pPaxBusparkingInSim,resltRoute) )
+			if( !m_pRouteResMan->GetVehicleRoute(AtResource,pParkSpotInSim,resltRoute) )
 			{
-				if( AtResource && pPaxBusparkingInSim )
+				if( AtResource && pParkSpotInSim )
 				{
 					CString strWarn;
-					CString gateName = pPaxBusparkingInSim->GetPaxParkingInput()->GetGate();
+				//	CString gateName = pPaxBusparkingInSim->GetPaxParkingInput()->GetGate();
+					CString gateName = strArrGate;
 					CString resName = "UNKNOW";
 					if(AtResource->GetType() == AirsideResource::ResType_PaxBusParking)
 					{
-						CPaxBusParkingInSim * resStand = (CPaxBusParkingInSim * )AtResource;
-						resName = resStand->GetPaxParkingInput()->GetGate();
+						AirsidePaxBusParkSpotInSim * resSpot = (AirsidePaxBusParkSpotInSim * )AtResource;
+						resName = resSpot->GetParkSpot()->getName().GetIDString();
 					}
 					if(AtResource->GetType() == AirsideResource::ResType_VehiclePool )
 					{
@@ -239,9 +242,9 @@ void CAirsidePaxBusInSim::GetNextCommand()
 				m_Route = resltRoute;
 			}
 
-			//
-			//if(m_bAvailable == false)
-			//	return;
+			
+		//	if(m_bAvailable == false)
+		//		return;
 
 			m_Route.SetMode(OnMoveToGate);
 			SetMode(OnMoveToGate);
@@ -279,12 +282,12 @@ void CAirsidePaxBusInSim::GetNextCommand()
 			StandInSim* pStand = GetServiceFlight()->GetOperationParkingStand();	
 
 			//go to service stand and service
-			AirsideResource * AtResource = GetResource();
-			if( GetResource() && GetResource()->GetType() == AirsideResource::ResType_FlightServiceRingRoute)
-			{
-				CFlightServiceRoute * pRoute = (CFlightServiceRoute*) GetResource();		
-				AtResource = pRoute->m_pStand;		
-			}
+// 			AirsideResource * AtResource = GetResource();
+// 			if( GetResource() && GetResource()->GetType() == AirsideResource::ResType_FlightServiceRingRoute)
+// 			{
+// 				CFlightServiceRoute * pRoute = (CFlightServiceRoute*) GetResource();		
+// 				AtResource = pRoute->m_pStand;		
+// 			}
 
 			VehicleRouteInSim resltRoute;
 			if( !m_pRouteResMan->GetVehicleRoute(AtResource,pStand,resltRoute) )
@@ -313,7 +316,15 @@ void CAirsidePaxBusInSim::GetNextCommand()
 			else
 			{
 				m_Route = resltRoute;
+				AirsidePaxBusParkSpotInSim* pParkSpotInSim = (AirsidePaxBusParkSpotInSim*)GetResource();
+
+				CPoint2008 ptLocation;
+				if (m_Route.GetVehicleBeginPos(ptLocation))
+				{
+					pParkSpotInSim->GetExitParkSpotClearance(this,GetTime(),ptLocation);
+				}
 			}
+
 
 			m_Route.SetMode(OnMoveToService);
 			SetMode(OnMoveToService);
@@ -381,16 +392,16 @@ void CAirsidePaxBusInSim::TakeOffPassenger(ElapsedTime time)
 }
 void CAirsidePaxBusInSim::GeneratePaxTakeOffEvent(int _pax_state,ElapsedTime time)
 {
-	AirsideMobElementBehavior* p_behavior = NULL ;
+	AirsidePassengerBehavior* p_behavior = NULL ;
 	ElapsedTime _last_leaveTime = time ;
 	for( int i = 0; i<  (int)m_pax.size() ; ++i)
 	{
 		p_behavior = 
-			(AirsideMobElementBehavior*)m_pax[i]->getBehavior(MobElementBehavior::AirsideBehavior);
+			(AirsidePassengerBehavior*)m_pax[i]->getBehavior(MobElementBehavior::AirsideBehavior);
 		if(p_behavior == NULL)
 		{
-			m_pax[i]->setBehavior( new AirsideMobElementBehavior( m_pax[i] ));
-			p_behavior = (AirsideMobElementBehavior*)(m_pax[i]->getCurrentBehavior());
+			m_pax[i]->setBehavior( new AirsidePassengerBehavior( m_pax[i] ));
+			p_behavior = (AirsidePassengerBehavior*)(m_pax[i]->getCurrentBehavior());
 		}
 		p_behavior->setState(_pax_state) ;
 
@@ -406,7 +417,7 @@ void CAirsidePaxBusInSim::GeneratePaxTakeOffEvent(int _pax_state,ElapsedTime tim
 void CAirsidePaxBusInSim::WirteLog(const CPoint2008& p, const double speed, const ElapsedTime& t, bool bPushBack)
 {
 	
-	AirsideMobElementBehavior* p_behavior = NULL ;
+	AirsidePassengerBehavior* p_behavior = NULL ;
 	AirsideVehicleInSim::WirteLog(p,speed,t,bPushBack) ;
 	CPoint2008 point ;
 	point.setX(p.getX()) ;
@@ -419,11 +430,11 @@ void CAirsidePaxBusInSim::WirteLog(const CPoint2008& p, const double speed, cons
 	for (int i = 0 ; i < (int)m_pax.size() ; ++i)
 	{
 		p_behavior = 
-			(AirsideMobElementBehavior*)m_pax[i]->getBehavior(MobElementBehavior::AirsideBehavior);
+			(AirsidePassengerBehavior*)m_pax[i]->getBehavior(MobElementBehavior::AirsideBehavior);
 		if(p_behavior == NULL)
 		{
-			m_pax[i]->setBehavior( new AirsideMobElementBehavior( m_pax[i] ));
-			p_behavior = (AirsideMobElementBehavior*)(m_pax[i]->getCurrentBehavior());
+			m_pax[i]->setBehavior( new AirsidePassengerBehavior( m_pax[i] ));
+			p_behavior = (AirsidePassengerBehavior*)(m_pax[i]->getCurrentBehavior());
 		}
 
 		CPoint2008 offsetPt = p_behavior->GetOffSetInBus();

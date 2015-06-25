@@ -51,7 +51,7 @@ CPaxGenerator::~CPaxGenerator()
 
 }
 
-int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time)
+int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::vector<Person*>& _paxlist, bool bHasCartService)
 {
 	CFlightPaxLogContainer* p_contaner = CFlightPaxLogContainer::GetInstance() ;
 	CFlightLogPair* _pair = p_contaner->GetDelayPaxLogByFlightID(Fli_ID) ;
@@ -63,13 +63,13 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time)
 	{
 		_delaytime = Time - fli->getArrTime() ;
 	}
-	PaxLog* p_PaxLog = _pair->m_BagLog ;
-	MobLogEntry bagentry ;
-	Person* p_pax = NULL ;
+	PaxLog* p_PaxLog = _pair->p_Log ;
 	for (int i = 0 ; i < p_PaxLog->getCount() ;i++)
 	{
+		Person* p_pax = NULL ;
+		MobLogEntry bagentry ;
 		p_PaxLog->getItem(bagentry,i) ;
-		if(bagentry.GetMobileType() == 2)
+		if(bagentry.GetMobileType() == 2 && bagentry.getOwnStart())
 		{
 			if(bagentry.isTurnaround())
 			{
@@ -91,13 +91,17 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time)
           ((CGroupLeaderInfo*)p_pax->m_pGroupInfo)->SetGroupLeader(p_pax);
 		   m_pEngine->m_simBobileelemList.Register( p_pax );
 		   bagentry.setEntryTime(bagentry.getEntryTime() + _delaytime) ;
-		   if(bagentry.getOwnStart())
-				p_pax->generateEvent(bagentry.getEntryTime(), false);
+		 //  if(bagentry.getOwnStart())
+		//   {
+			   if(!bHasCartService)
+				   p_pax->generateEvent(bagentry.getEntryTime(), false);
+		//   }
+		   _paxlist.push_back(p_pax);
 		}
 	}
 	return p_PaxLog->getCount() ;
 }
-int CPaxGenerator::GenerateDelayMobileElement(int nFlightID, ElapsedTime& Time, std::vector<Person*>& _paxlist, int _PaxNum)
+int CPaxGenerator::GenerateDelayMobileElement(int nFlightID, ElapsedTime& Time, std::vector<Person*>& _paxlist,bool bGenerateBaggage, int _PaxNum)
 {
     CFlightPaxLogContainer* p_contaner = CFlightPaxLogContainer::GetInstance() ;
 	CFlightLogPair* pLogPair = p_contaner->GetDelayPaxLogByFlightID(nFlightID) ;
@@ -134,6 +138,14 @@ int CPaxGenerator::GenerateDelayMobileElement(int nFlightID, ElapsedTime& Time, 
 			i = i + (logentry.getGroupSize() - 1) ;
 			continue ;
 			
+		}
+
+		if (bGenerateBaggage == true)//check baggage already generate
+		{
+			if (logentry.GetMobileType() == 2)
+			{
+				continue;
+			}
 		}
 
 		if(logentry.isTurnaround())
@@ -256,7 +268,7 @@ int CPaxGenerator::GenerateDelayMobileElement(int nFlightID, ElapsedTime& Time, 
 					_delaytime = Time - pFlight->getArrTime() ;*/
 
 				//p_pax->getLogEntry().setEntryTime(logentry.getEntryTime() + _delaytime);
-				p_pax->setBehavior( new AirsideMobElementBehavior( p_pax,TAKE_OFF_FLIGHT ));
+				p_pax->setBehavior( new AirsidePassengerBehavior( p_pax,TAKE_OFF_FLIGHT ));
 				_paxlist.push_back(p_pax) ;
 			}
 

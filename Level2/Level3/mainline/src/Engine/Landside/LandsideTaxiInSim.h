@@ -34,7 +34,7 @@ public:
 	//
 	virtual void ArrivalLayoutObject(LandsideLayoutObjectInSim* pObj,LandsideResourceInSim* pDetailRes, CARCportEngine* pEngine );
 	virtual void LeaveLayoutObject( LandsideLayoutObjectInSim* pObj,LandsideResourceInSim* pDetailRes,CARCportEngine* pEngine );
-	virtual void SuccessParkInCurb(LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot);
+	virtual void SuccessParkInCurb(LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot);
 
  
 	//change route plan to  pick arrival pax when the taxi get into the pool

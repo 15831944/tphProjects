@@ -20,8 +20,12 @@ void LandsidePaxSericeInSim::FlushOnVehiclePaxLog(CARCportEngine* pEngine, const
 		Person* p = (Person*) pEngine->m_simBobileelemList.GetAvailableElement(m_vWaitingPax.at(i));//[i];
 		if(p &&p->getState()!=Death )
 		{
-			p->flushLog(t);
-			p->setState(Death);
+		//	p->flushLog(t);
+			if (p->getLandsideBehavior())
+			{
+				p->getLandsideBehavior()->flushLog(t);
+				p->setState(Death);
+			}
 		}	
 	}
 }

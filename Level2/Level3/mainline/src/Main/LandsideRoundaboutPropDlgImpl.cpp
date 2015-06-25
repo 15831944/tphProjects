@@ -306,8 +306,7 @@ void StretchSideTreeItem::setStretchSide( const StretchSide& s,int idx )
 	CString strT;
 	strT.Format("%s: %s",sSide,sName);
 
-
-	m_ctrl.SetItemText(m_hItem,strT);
+	GetCtrl().SetItemText(m_hItem,strT);
 	//AddTokenItem(sSide);
 	AddTokenItem(sName);
 

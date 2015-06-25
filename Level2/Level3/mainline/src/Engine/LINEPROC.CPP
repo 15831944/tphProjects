@@ -23,8 +23,13 @@ void LineProcessor::initQueue (int, int pathCount, const Point *pointList)
 	if( pointList== NULL || pathCount <= 0 )
 		return;
     
-    Path tempPath;
-    tempPath.init (pathCount, pointList);
+	// for sequential queues only, test which end of m_pQueue is the head
+	Path tempPath;
+	tempPath.init (pathCount, pointList);
+	Point pnt (m_location.getPoint(0));
+	if (pnt.distance (pointList[0]) > pnt.distance (pointList[pathCount-1]))
+		tempPath.invertList();
+
     m_pQueue = new LinearQueue (tempPath);
 }
 

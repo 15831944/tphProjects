@@ -30,6 +30,7 @@
 #include "./CircleStretch3D.h"
 #include "./StartPosition3D.h"
 #include "./MeetingPoint3D.h"
+#include "AirsidePaxBusParkSpot3D.h"
 
 CAirport3D::CAirport3D(int _Id) : m_nID(_Id) , m_vLevelList(_Id)
 {
@@ -188,12 +189,31 @@ void CAirport3D::Init()
 	//get MeetingPoints
 	objectIDs.clear();
 	ALTAirport::GetMeetingPointIDs(m_nID,objectIDs);
-
-	for(size_t i=0;i<objectIDs.size();++i){
-
+	for(size_t i=0;i<objectIDs.size();++i)
+	{
 		CMeetingPoint3D  * pMeetingPoint3D = new CMeetingPoint3D(objectIDs[i]);
 		m_vMeetingPoints.push_back(pMeetingPoint3D);
 		pMeetingPoint3D->Update();
+	}
+
+	//get pax bus parking spot
+	objectIDs.clear();
+	ALTAirport::GetPaxBusParkPosIDs(m_nID,objectIDs);
+	for(size_t i=0;i<objectIDs.size();++i)
+	{
+		CAirsidePaxBusParkSpot3D  * pPos = new CAirsidePaxBusParkSpot3D(objectIDs[i]);
+		m_vPaxBusParkSpots.push_back(pPos);
+		pPos->Update();
+	}
+
+	//get bag cart parking spot
+	objectIDs.clear();
+	ALTAirport::GetBagCartParkPosIDs(m_nID, objectIDs);
+	for(size_t i=0;i<objectIDs.size();++i)
+	{
+		CAirsideBagCartParkPos3D  * pPos = new CAirsideBagCartParkPos3D(objectIDs[i]);
+		m_vBagCartParkSpots.push_back(pPos);
+		pPos->Update();
 	}
 
 
@@ -555,6 +575,18 @@ void CAirport3D::DrawOGL( C3DView * pView,bool bWithlevles )
 		pMeetingPoint3D->DrawOGL(pView);
 	}
 
+	//draw paxbus park pos 
+	for (int i=0; i<(int)m_vPaxBusParkSpots.size(); ++i)
+	{
+		CAirsidePaxBusParkSpot3D * pSpot3D = (CAirsidePaxBusParkSpot3D*)m_vPaxBusParkSpots.at(i).get();
+		pSpot3D->DrawOGL(pView);
+	}
+	//draw bag cart  park pos
+	for (int i=0; i<(int)m_vBagCartParkSpots.size(); ++i)
+	{
+		CAirsideBagCartParkPos3D * pSpot3D = (CAirsideBagCartParkPos3D*)m_vBagCartParkSpots.at(i).get();
+		pSpot3D->DrawOGL(pView);
+	}
 
 	if(pView->GetDocument()->GetCurrentMode() == EnvMode_AirSide /*&& pView->GetDocument()->GetCAirsideInputObject()->GetAirportInfo()->m_bHideControl==TRUE*/)
 	{     
@@ -652,6 +684,19 @@ ALTObject3D* CAirport3D::GetObject3D( int id )
 		if(m_vMeetingPoints[i]->GetID() == id)
 			return m_vMeetingPoints[i].get();
 	}
+
+	for (int i = 0;i < (int)m_vPaxBusParkSpots.size();++i)
+	{
+		if(m_vPaxBusParkSpots[i]->GetID() == id)
+			return m_vPaxBusParkSpots[i].get();
+	}
+
+	for (int i = 0;i < (int)m_vBagCartParkSpots.size();++i)
+	{
+		if(m_vBagCartParkSpots[i]->GetID() == id)
+			return m_vBagCartParkSpots[i].get();
+	}
+
 	return NULL;
 }
 
@@ -788,7 +833,23 @@ void CAirport3D::DrawSelectOGL( C3DView * pView,  SelectableSettings& selsetting
 		}
 	}
 
+	if( selsetting.m_ALTobjectSelectableMap[ALT_APAXBUSSPOT] )
+	{
+		for (int i = m_vPaxBusParkSpots.size() - 1;i >= 0; --i )
+		{
+			glLoadName(pView->GetSelectionMap().NewSelectable(m_vPaxBusParkSpots[i].get()) );
+			m_vPaxBusParkSpots[i]->DrawSelect(pView);
+		}
+	}
 
+	if( selsetting.m_ALTobjectSelectableMap[ALT_ABAGCARTSPOT] )
+	{
+		for (int i = m_vBagCartParkSpots.size() - 1;i >= 0; --i )
+		{
+			glLoadName(pView->GetSelectionMap().NewSelectable(m_vBagCartParkSpots[i].get()) );
+			m_vBagCartParkSpots[i]->DrawSelect(pView);
+		}
+	}
 
 }
 
@@ -858,6 +919,17 @@ bool CAirport3D::RemoveObject( int id )
 	for(ALTObject3DList::iterator itr= m_vrYieldSign.begin();itr!= m_vrYieldSign.end();++itr)
 	{
 		if( (*itr)->GetID() == id ){ m_vrYieldSign.erase(itr); return true; }
+	}
+
+	//find from YieldSign
+	for(ALTObject3DList::iterator itr= m_vPaxBusParkSpots.begin();itr!= m_vPaxBusParkSpots.end();++itr)
+	{
+		if( (*itr)->GetID() == id ){ m_vPaxBusParkSpots.erase(itr); return true; }
+	}
+
+	for(ALTObject3DList::iterator itr= m_vBagCartParkSpots.begin();itr!= m_vBagCartParkSpots.end();++itr)
+	{
+		if( (*itr)->GetID() == id ){ m_vBagCartParkSpots.erase(itr); return true; }
 	}
 	return false;
 }
@@ -1177,6 +1249,54 @@ void CAirport3D::UpdateAddorRemoveObjects()
 		m_vMeetingPoints = newMeetingPointList;	
 	}
 
+	{
+		//update airside 
+		//update MeetingPoint
+		objectIDs.clear();
+		ALTAirport::GetPaxBusParkPosIDs(m_nID,objectIDs);
+
+		ALTObject3DList newPaxBusPosList;
+		for(size_t i=0;i<objectIDs.size();++i)
+		{
+			ALTObject3DList::iterator theItr= find_if( m_vPaxBusParkSpots.begin(),m_vPaxBusParkSpots.end(), ALTObject3DIDIs(objectIDs[i]) ) ; 
+			if(  m_vPaxBusParkSpots.end() == theItr )
+			{
+				CAirsidePaxBusParkSpot3D * pStP3D = new CAirsidePaxBusParkSpot3D(objectIDs[i]);
+				newPaxBusPosList.push_back(pStP3D);
+				pStP3D->Update();
+			}
+			else
+			{
+				newPaxBusPosList.push_back(*theItr);
+			}
+		}
+
+		m_vPaxBusParkSpots = newPaxBusPosList;	
+	}
+
+	{
+		//update airside 
+		//update MeetingPoint
+		objectIDs.clear();
+		ALTAirport::GetBagCartParkPosIDs(m_nID,objectIDs);
+
+		ALTObject3DList newbagCartlist;
+		for(size_t i=0;i<objectIDs.size();++i)
+		{
+			ALTObject3DList::iterator theItr=find_if( m_vBagCartParkSpots.begin(),m_vBagCartParkSpots.end(), ALTObject3DIDIs(objectIDs[i]) );
+			if(  m_vBagCartParkSpots.end() == theItr )
+			{
+				CAirsideBagCartParkPos3D * pStP3D = new CAirsideBagCartParkPos3D(objectIDs[i]);
+				newbagCartlist.push_back(pStP3D);
+				pStP3D->Update();
+			}
+			else
+			{
+				newbagCartlist.push_back(*theItr);
+			}
+		}
+		m_vBagCartParkSpots = newbagCartlist;	
+	}
 
 	
 }
@@ -1307,6 +1427,8 @@ void CAirport3D::GetObject3DList( ALTObject3DList& objList ) const
 	objList.insert(objList.end(),m_vrYieldSign.begin(),m_vrYieldSign.end());
 	objList.insert(objList.end(),m_vHeliport.begin(),m_vHeliport.end());
 	objList.insert(objList.end(),m_vCircleStretchs.begin(),m_vCircleStretchs.end() );	
+	objList.insert(objList.end(),m_vPaxBusParkSpots.begin(),m_vPaxBusParkSpots.end());
+	objList.insert(objList.end(),m_vBagCartParkSpots.begin(),m_vBagCartParkSpots.end());
 }
 
 
@@ -1378,6 +1500,14 @@ ALTObject3D* CAirport3D::AddObject( ALTObject* pObj )
 	case ALT_MEETINGPOINT:
 		pNewObj3D = ALTObject3D::NewALTObject3D(pObj);
 		m_vMeetingPoints.push_back(pNewObj3D);
+		break;
+	case ALT_APAXBUSSPOT:
+		pNewObj3D = ALTObject3D::NewALTObject3D(pObj);
+		m_vPaxBusParkSpots.push_back(pNewObj3D);
+		break;
+	case ALT_ABAGCARTSPOT:
+		pNewObj3D = ALTObject3D::NewALTObject3D(pObj);
+		m_vBagCartParkSpots.push_back(pNewObj3D);
 		break;
 	default:
 		ASSERT(false);
@@ -1497,7 +1627,19 @@ bool CAirport3D::ReflectChangeOf( ALTObject3DList obj3DList )
 	bar.StepIt();
 	bar.SetText( "Updating Runway Exits...");
 
-	UpdateRunwayExits(m_vRunways, m_vAirportNodes, vChangeNodesIdx);	
+	try
+	{
+		UpdateRunwayExits(m_vRunways, m_vAirportNodes, vChangeNodesIdx);	
+	}
+	catch(CException* e)
+	{
+	}
+	catch(...)
+	{
+		ASSERT(false);
+	}
+
+
 
 	//update Runway exit	
 

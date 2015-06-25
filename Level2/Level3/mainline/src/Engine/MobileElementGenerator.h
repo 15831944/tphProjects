@@ -24,7 +24,7 @@ public:
   //_TY : DEPATURE OR Arrive
   //_paxnum : the number which will be generated , -1 --- generate all
   //return the number of  generation in fact .
-  virtual int GenerateDelayMobileElement(int Fli_ID, ElapsedTime& Time, std::vector<Person*>& _paxlist, int _PaxNum = -1) = 0 ;
+  virtual int GenerateDelayMobileElement(int Fli_ID, ElapsedTime& Time, std::vector<Person*>& _paxlist,bool bGenerateBaggage, int _PaxNum = -1) = 0 ;
   virtual int GenerateNodelayMobileElement(ElapsedTime& Time ,std::vector<Passenger*>& _paxlist,TerminalEntryEvent& _event) = 0 ;
 };
 class CPaxGenerator : public CMobileElementGenerator
@@ -33,7 +33,7 @@ public:
 	//CPaxGenerator();
 	CPaxGenerator(CARCportEngine* _pEngine) ;
 	~CPaxGenerator(void);
-	int GenerateDelayMobileElement(int Fli_ID, ElapsedTime& Time, std::vector<Person*>& _paxlist, int _PaxNum = -1);
+	int GenerateDelayMobileElement(int Fli_ID, ElapsedTime& Time, std::vector<Person*>& _paxlist, bool bGenerateBaggage,int _PaxNum = -1);
 
     int GenerateNodelayMobileElement(ElapsedTime& Time ,std::vector<Passenger*>& _paxlist,TerminalEntryEvent& _event) ;
 	
@@ -42,7 +42,7 @@ public:
 
 	//p_ter will be used only in the terminal model .
 	//void SetTerminal(Terminal* p_ter) { p_terminal = p_ter ;} ;
-	int GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time) ;
+	int GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::vector<Person*>& _paxlist, bool bHasCartService) ;
 	void FindNearestStation(LandsideCurbSideInSim *assCurside,LandSidePublicVehicleType *operation,LandsideBusStationInSim * &pGetOffStation);
 private:
 	//PaxLog* p_PaxLog ; 

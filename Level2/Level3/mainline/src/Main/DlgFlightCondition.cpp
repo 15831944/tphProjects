@@ -9,16 +9,12 @@
 #include ".\dlgflightcondition.h"
 #include "common\WINMSG.h"
 #include "../Common/AirportDatabase.h"
-
+#include "..\AirsideGUI\DlgTimePicker.h"
 // CDlgFlightCondition dialog
 
 IMPLEMENT_DYNAMIC(CDlgFlightCondition, CDialog)
 CDlgFlightCondition::CDlgFlightCondition(Terminal* _pTerm,FlightGroup* pGroup,CWnd* pParent /*=NULL*/)
 	: CDialog(CDlgFlightCondition::IDD, pParent)
-	, m_strGroupName(_T(""))
-	, m_strAirline(_T(""))
-	, m_strFlightID(_T(""))
-	, m_strDay(_T(""))
 {
 	m_pCurGroup = pGroup;
 	m_nCurSel = 0;
@@ -46,6 +42,7 @@ BEGIN_MESSAGE_MAP(CDlgFlightCondition, CDialog)
 	ON_LBN_SELCHANGE(IDC_LIST_CONDITION, OnLbnSelchangeListCondition)
 	ON_NOTIFY(LVN_ENDLABELEDIT, IDC_LIST_CONDITION, OnLvnEndlabeleditListCondition)
 	ON_NOTIFY(LVN_ITEMCHANGING, IDC_LIST_CONDITION, OnLvnItemchangingListCondition)
+	ON_MESSAGE(WM_INPLACE_COMBO_KILLFOUCUS, OnMsgComboChange)
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
@@ -63,6 +60,7 @@ BOOL CDlgFlightCondition::OnInitDialog()
 		return -1;      // fail to create
 	}
 
+	InitStringList();
 	CRect rect;
 	GetDlgItem( IDC_STATIC_TOOLBAR )->GetWindowRect( &rect );
 	ScreenToClient(rect);
@@ -111,12 +109,14 @@ void CDlgFlightCondition::OnBnClickedCancel()
  void CDlgFlightCondition::OnAddFilter()
  {
 	FlightGroup::CFlightGroupFilter* Item = new FlightGroup::CFlightGroupFilter;
-	Item->SetFilter(_T("*-*-*"));
+	Item->SetFilter(_T("*-*-*-*-*"));
 	int nbInsert = m_wndListCtrl.GetItemCount();
 	
 	m_wndListCtrl.InsertItem(nbInsert,_T("*"));
 	m_wndListCtrl.SetItemText(nbInsert,1,_T("*"));
 	m_wndListCtrl.SetItemText(nbInsert,2,_T("*"));
+	m_wndListCtrl.SetItemText(nbInsert,3,_T("*"));
+	m_wndListCtrl.SetItemText(nbInsert,4,_T("*"));
 	
 	m_vFilter.push_back(Item);
 	m_wndListCtrl.SetFocus();
@@ -143,25 +143,27 @@ void CDlgFlightCondition::OnBnClickedCancel()
 	m_wndListCtrl.SetExtendedStyle( dwStyle );
 	CRect rect;
 	m_wndListCtrl.GetClientRect(&rect);
-	char* columnLabel[] = {	"Airline", "ID","Day"};
-	int DefaultColumnWidth[] = {rect.Width()/3,rect.Width()/3,rect.Width()/3};
+	char* columnLabel[] = {	"Airline", "ID","Day","Start Time","End Time"};
+	int DefaultColumnWidth[] = {rect.Width()/5,rect.Width()/5,rect.Width()/5,rect.Width()/5,rect.Width()/5};
 	int nColFormat[] = 
 	{	
 		LVCFMT_EDIT,
 		LVCFMT_EDIT,
-		LVCFMT_EDIT
+		LVCFMT_EDIT,
+		LVCFMT_DROPDOWN,
+		LVCFMT_DROPDOWN
 	};
-	CStringList strList;
 	LV_COLUMNEX lvc;
-	lvc.csList = &strList;
+	lvc.csList = &m_stringList;
 	lvc.mask = LVCF_WIDTH | LVCF_TEXT ;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		lvc.fmt = nColFormat[i];
 		lvc.pszText = columnLabel[i];
 		lvc.cx = DefaultColumnWidth[i];
 		m_wndListCtrl.InsertColumn(i, &lvc);
 	}
+	m_wndListCtrl.SetHHmmTimeFormat();
 	DisplayFilter();
  }
 
@@ -179,15 +181,29 @@ void CDlgFlightCondition::OnBnClickedCancel()
 		 FlightGroup::CFlightGroupFilter* item = m_vFilter.at(i);
 		 CString strFilter = item->GetFilter();
 		 nPos = strFilter.Find('-');
-		 m_strAirline = strFilter.Left(nPos);
+		 CString strAirline = strFilter.Left(nPos);
+
 		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
 		 nPos = strFilter.Find('-');
-		 m_strFlightID = strFilter.Left(nPos);
-		 m_strDay = strFilter.Right(strFilter.GetLength()-nPos-1);
+		 CString strFlightID = strFilter.Left(nPos);
 
-		 m_wndListCtrl.InsertItem(i,m_strAirline);
-		 m_wndListCtrl.SetItemText(i,1,m_strFlightID);
-		 m_wndListCtrl.SetItemText(i,2,m_strDay);
+		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
+		 nPos = strFilter.Find('-');
+		 CString strDay = strFilter.Left(nPos);
+
+		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
+		 nPos = strFilter.Find('-');
+		 CString strStartTime = strFilter.Left(nPos);
+
+		 CString strEndTime = strFilter.Right(strFilter.GetLength()-nPos-1);
+
+		 m_wndListCtrl.InsertItem(i,strAirline);
+		 m_wndListCtrl.SetItemText(i,1,strFlightID);
+		 m_wndListCtrl.SetItemText(i,2,strDay);
+		 //start time
+		 m_wndListCtrl.SetItemText(i,3,strStartTime);
+		 //end time
+		 m_wndListCtrl.SetItemText(i,4,strEndTime);
 		 m_wndListCtrl.SetItemData(i,(DWORD_PTR)item);
 	 }
 	 if (m_wndListCtrl.GetItemCount()>0)
@@ -204,25 +220,29 @@ void CDlgFlightCondition::OnBnClickedCancel()
 	 *pResult = 0;
 	 int nItem = m_wndListCtrl.GetCurSel();
 	 FlightGroup::CFlightGroupFilter* pItem = (FlightGroup::CFlightGroupFilter*)m_wndListCtrl.GetItemData(nItem);
-	 m_strAirline = m_wndListCtrl.GetItemText(nItem,0);
-	 m_strFlightID = m_wndListCtrl.GetItemText(nItem,1);
-	 m_strDay = m_wndListCtrl.GetItemText(nItem,2);
-	 if (m_strAirline.IsEmpty())
+	 CString strAirline = m_wndListCtrl.GetItemText(nItem,0);
+	 CString strFlightID = m_wndListCtrl.GetItemText(nItem,1);
+	 CString strDay = m_wndListCtrl.GetItemText(nItem,2);
+
+	 if (strAirline.IsEmpty())
 	 {
-		 m_strAirline = _T("*");
-		 m_wndListCtrl.SetItemText(nItem,0,m_strAirline);
+		 strAirline = _T("*");
+		 m_wndListCtrl.SetItemText(nItem,0,strAirline);
 	 }
-	 if (m_strFlightID.IsEmpty())
+	 if (strFlightID.IsEmpty())
 	 {
-		 m_strFlightID = _T("*");
-		 m_wndListCtrl.SetItemText(nItem,1,m_strFlightID);
+		 strFlightID = _T("*");
+		 m_wndListCtrl.SetItemText(nItem,1,strFlightID);
 	 }
-	 if(m_strDay.IsEmpty())
+	 if(strDay.IsEmpty())
 	 {
-		 m_strDay = _T("*");
-		 m_wndListCtrl.SetItemText(nItem,2,m_strDay);
+		 strDay = _T("*");
+		 m_wndListCtrl.SetItemText(nItem,2,strDay);
 	 }
-	 pItem->SetFilter(m_strAirline + _T("-") + m_strFlightID + _T("-") + m_strDay);
+	 pItem->SetAirline(strAirline);
+	 pItem->SetFlightID(strFlightID);
+	 pItem->SetDay(strDay);
+	// pItem->SetFilter(strAirline + _T("-") + strFlightID + _T("-") + strDay + _T("-") + strStartTime + _T("-") + strEndTime);
  }
 
  void CDlgFlightCondition::OnLvnItemchangingListCondition(NMHDR *pNMHDR, LRESULT *pResult)
@@ -276,4 +296,88 @@ void CDlgFlightCondition::OnBnClickedCancel()
 	 GetDlgItem(IDCANCEL)->MoveWindow(cx-89,cy-30, 75, 23);
 	 GetDlgItem(IDOK)->MoveWindow(cx-175, cy-30, 75, 23);
 	 // TODO: Add your message handler code here
+ }
+
+ void CDlgFlightCondition::InitStringList()
+ {
+	m_stringList.AddTail(_T("*"));
+	m_stringList.AddTail(_T("Pick Time"));
+ }
+
+ LRESULT CDlgFlightCondition::OnMsgComboChange( WPARAM wParam, LPARAM lParam )
+ {
+	 LV_DISPINFO* pDispInfo = (LV_DISPINFO*)lParam;
+	 LV_ITEM* plvItem = &pDispInfo->item;
+
+	 int nComboxSel = (int)wParam;
+	 if (nComboxSel == LB_ERR)
+		 return 0;
+
+	 int nItem = plvItem->iItem;
+	 int nSubItem = plvItem->iSubItem;
+	 if (nItem < 0)
+		 return 0;
+
+	FlightGroup::CFlightGroupFilter* pItem = (FlightGroup::CFlightGroupFilter*)m_wndListCtrl.GetItemData(nItem);
+	if (pItem == NULL)
+		return 0;
+
+	CString strStartTime = pItem->GetStartTime();
+	CString strEndTime = pItem->GetEndTime();
+
+	ElapsedTime eTime;
+	CString strTime;
+	if (nSubItem == 3)
+	{
+		if (strStartTime != "*")
+		{
+			eTime.SetTime(strStartTime);
+		}
+		strTime = strStartTime;
+		eTime.SetTime(strTime);
+	}
+	else if (nSubItem == 4)
+	{
+		if (strEndTime != "*")
+		{
+			eTime.SetTime(strEndTime);
+		}
+		strTime = strEndTime;
+		eTime.SetTime(strTime);
+	}
+	 
+	if (nComboxSel == 1)//pick time
+	{
+		CDlgTimePicker dlg(eTime,"Pick Time",this,false);
+		if(dlg.DoModal() == TRUE)
+		{
+			eTime = dlg.GetTime();
+			if (nSubItem == 3)
+			{
+				pItem->SetStartTime(eTime.printTime(0));
+			}
+			else if (nSubItem == 4)
+			{
+				pItem->SetEndTime(eTime.printTime(0));
+			}
+			m_wndListCtrl.SetItemText(nItem,nSubItem,eTime.printTime(0));
+		}
+		else
+		{
+			m_wndListCtrl.SetItemText(nItem,nSubItem,strTime);
+		}
+	}
+	else
+	{
+		if (nSubItem == 3)
+		{
+			pItem->SetStartTime(_T("*"));
+		}
+		else if (nSubItem == 4)
+		{
+			pItem->SetEndTime(_T("*"));
+		}
+	}
+
+	 return 1;
  }

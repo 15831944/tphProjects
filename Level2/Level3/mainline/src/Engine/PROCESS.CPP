@@ -33,6 +33,7 @@
 #include "Pax.h"
 #include "RetailProcessor.h"
 #include "ARCportEngine.h"
+#include "Common\FloorChangeMap.h"
 
 
 Processor::Processor ()
@@ -3195,6 +3196,16 @@ void Processor::ClearGateAndReclaim()
 	m_reclaimDirection.GetPaxDirection().clear();
 	m_landsideDirection.GetPaxDirection().clear();
 }
+
+void Processor::UpdateFloorIndex( const FloorChangeMap& changMap )
+{
+	__super::UpdateFloorIndex(changMap);
+	if(m_pQueue)
+	{
+		changMap.ChangePathFloor(m_pQueue->m_qCorners);
+	}
+}
+
 /************************************************************************/
 /*                                                                      */
 /************************************************************************/

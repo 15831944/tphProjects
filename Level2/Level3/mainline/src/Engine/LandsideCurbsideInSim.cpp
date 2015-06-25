@@ -22,61 +22,29 @@ void LandsideCurbSideInSim::InitRelateWithOtherObject( LandsideResourceManager* 
 	LandsideCurbSide* pCurbInput= getCurbInput();
 	if(!pCurbInput->getStrech())
 		return;
-
-	
-
 	LandsideStretchInSim*pStretch = allRes->getStretchByID(pCurbInput->getStrech()->getID());
-	if(pStretch)
+	if(!pStretch)
+		return;
+
+	mParkingSpots.Init(pCurbInput, allRes, this);
+	//init 
+
+
+	//add next to lane
+	for(int i=0;i<pStretch->GetLaneCount();i++)
 	{
-		CPoint2008 ptFrom = pStretch->m_Path.GetDistPoint(pCurbInput->getDistFrom());
-		CPoint2008 ptTo = pStretch->m_Path.GetDistPoint(pCurbInput->getDistTo());
+		LandsideStretchLaneInSim* pLane = pStretch->GetLane(i);		
+		DistanceUnit distF = pLane->GetPath().GetIndexDist(mParkingSpots.GetEntryIndexInStrech() );
+		DistanceUnit distT = pLane->GetPath().GetIndexDist(mParkingSpots.GetExitIndexInStretch() );
 
-		int iLaneForm = MIN(pCurbInput->m_nLaneTo-1,pCurbInput->m_nLaneFrom-1);
-		int iLaneTo = MAX(pCurbInput->m_nLaneTo-1,pCurbInput->m_nLaneFrom-1);
-		iLaneForm = MAX(0,iLaneForm); 
-		iLaneForm = MIN(iLaneForm,pStretch->GetLaneCount()-1);
-		iLaneTo = MAX(0,iLaneTo); 
-		iLaneTo = MIN(iLaneTo,pStretch->GetLaneCount()-1);
-
-
-		for(int i=iLaneForm;i<=iLaneTo;i++)
+		if(!pLane->HasParkingSpot())
 		{
-			LandsideStretchLaneInSim* pLane = pStretch->GetLane(i);
-			if(pLane)
-			{
-				LandsideLaneExit* pLaneExit = new LandsideLaneExit();
-				DistanceUnit distF = pLane->GetPointDist(ptFrom);
-				DistanceUnit distT = pLane->GetPointDist(ptTo);
-
-				pLaneExit->SetPosition(pLane,MAX(0,distF-RADIUS_CONVERN) );
-				pLaneExit->SetToRes(this);			
-				m_vLaneExits.push_back(pLaneExit);
-				pLane->AddLaneNode(pLaneExit);
-
-				LandsideLaneEntry* pLaneEntry = new LandsideLaneEntry();
-				pLaneEntry->SetPosition(pLane,distT);
-				pLaneEntry->SetFromRes(this);				
-				pLane->AddLaneNode(pLaneEntry);
-				m_vLaneEntries.push_back(pLaneEntry);
-			
-				m_vLaneOccupy.push_back(new LaneSegInSim(pLane, distF,distT));
-				mParkingSpots.addLane(pLane,distF,distT,pCurbInput->m_dSpotLength,this);
-			}
-		}
-		mParkingSpots.InitSpotRelations();
-
-		//add next to lane
-		for(int i=0;i<iLaneForm;i++)
-		{
-			LandsideLaneInSim* pLane = pStretch->GetLane(i);
-			DistanceUnit distF = pLane->GetPointDist(ptFrom);
-			DistanceUnit distT = pLane->GetPointDist(ptTo);
-
 			{
 				LandsideCurbsideSideExit* pCurbExit = new LandsideCurbsideSideExit;
 				pCurbExit->SetFromRes(this);
 				pCurbExit->SetDistRangeInlane(distF,distT);
 				pCurbExit->SetPosition(pLane,distF-RADIUS_CONVERN);
+
 				m_vLaneEntries.push_back(pCurbExit);
 				pLane->AddLaneNode(pCurbExit);
 			}
@@ -85,34 +53,25 @@ void LandsideCurbSideInSim::InitRelateWithOtherObject( LandsideResourceManager* 
 				pCurbEntry->SetToRes(this);
 				pCurbEntry->SetDistRangeInlane(distF,distT);
 				pCurbEntry->SetPosition(pLane,distF);
+
 				m_vLaneExits.push_back(pCurbEntry);
 				pLane->AddLaneNode(pCurbEntry);
 			}
 		}
-		for(int i=iLaneTo+1;i<pStretch->GetLaneCount();i++)
+		else
 		{
-			LandsideLaneInSim* pLane = pStretch->GetLane(i);
-			DistanceUnit distF = pLane->GetPointDist(ptFrom);
-			DistanceUnit distT = pLane->GetPointDist(ptTo);
+			LandsideLaneExit* pLaneExit = new LandsideLaneExit();
+			pLaneExit->SetPosition(pLane,distF);
+			pLaneExit->SetToRes(this);
+			m_vLaneExits.push_back(pLaneExit);
+			pLane->AddLaneNode(pLaneExit);
 
-			{
-				LandsideCurbsideSideExit* pCurbExit = new LandsideCurbsideSideExit;
-				pCurbExit->SetFromRes(this);
-				pCurbExit->SetDistRangeInlane(distF,distT);
-				pCurbExit->SetPosition(pLane,distF);
-				m_vLaneEntries.push_back(pCurbExit);
-				pLane->AddLaneNode(pCurbExit);
-			}
-			{
-				LandsideCursideSideEntry* pCurbEntry = new LandsideCursideSideEntry;
-				pCurbEntry->SetToRes(this);
-				pCurbEntry->SetDistRangeInlane(distF,distT);
-				pCurbEntry->SetPosition(pLane,distF);
-				m_vLaneExits.push_back(pCurbEntry);
-				pLane->AddLaneNode(pCurbEntry);
-			}
-		}
-
+			LandsideLaneEntry* pLaneEntry = new LandsideLaneEntry();
+			pLaneEntry->SetPosition(pLane,distT);
+			pLaneEntry->SetFromRes(this);				
+			pLane->AddLaneNode(pLaneEntry);
+			m_vLaneEntries.push_back(pLaneEntry);
+		}		
 	}
 }
 
@@ -236,7 +195,7 @@ LandsideCurbSideInSim::LandsideCurbSideInSim( LandsideCurbSide* pCurb ,bool bLef
 	CPoint2008 ptCenter;
 	pCurb->get3DCenter(ptCenter);
 	m_dHeight = ptCenter.z;
-	getParkingSpot().SetLeftDrive(bLeftDrive);
+	getParkingSpot().getInStretchSpots().SetLeftDrive(bLeftDrive);
 }
 
 LandsideLayoutObjectInSim* LandsideCurbSideInSim::getLayoutObject() const
@@ -250,126 +209,27 @@ LandsideCurbSide* LandsideCurbSideInSim::getCurbInput() const
 }
 
 
-LandsideLaneInSim* LandsideCurbSideInSim::GetNotAtlane( LandsideLaneInSim* pLane ) const
-{
-	if(!GetLaneSeg(pLane))
-		return pLane;
-	LandsideLaneInSim* pleft = pLane->getLeft();
-	while(pleft)
-	{
-		if(!GetLaneSeg(pleft))
-			return pleft;
-		pleft = pleft->getLeft();
-	}
-	LandsideLaneInSim* pright = pLane->getRight();
-	while(pright)
-	{
-		if(!GetLaneSeg(pright))
-			return pright;
-		pright = pright->getRight();
-	}
-	return NULL;
-
-}
+//LandsideLaneInSim* LandsideCurbSideInSim::GetNotAtlane( LandsideLaneInSim* pLane ) const
+//{
+//	if(!GetLaneSeg(pLane))
+//		return pLane;
+//	LandsideLaneInSim* pleft = pLane->getLeft();
+//	while(pleft)
+//	{
+//		if(!GetLaneSeg(pleft))
+//			return pleft;
+//		pleft = pleft->getLeft();
+//	}
+//	LandsideLaneInSim* pright = pLane->getRight();
+//	while(pright)
+//	{
+//		if(!GetLaneSeg(pright))
+//			return pright;
+//		pright = pright->getRight();
+//	}
+//	return NULL;
 //
-LaneSegInSim* LandsideCurbSideInSim::GetLaneSeg( LandsideLaneInSim* plane ) const
-{
-	for(size_t i=0;i<m_vLaneOccupy.size();++i)
-	{
-		LaneSegInSim* pSeg = m_vLaneOccupy[i];
-		if(pSeg->mpLane == plane)
-			return pSeg;
-	}
-	return NULL;
-}
-
-
-//LandsideLaneNodeList
-bool LandsideCurbSideInSim::FindParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath )
-{
-	LandsideResourceInSim* pAtRes = (LandsideResourceInSim*)pVehicle->getLastState().getLandsideRes();
-	if(!pAtRes) 
-		return false;
-	LandsideLaneInSim* pAtLane = pAtRes->toLane();
-	if(!pAtLane) 
-		return false;
-
-	const CPoint2008& dFromPos =  pVehicle->getLastState().pos;
-	//find at lane first
-	for(int i=0;i<(int)m_vLaneOccupy.size();i++)
-	{
-		LaneSegInSim* pLaneSeg = m_vLaneOccupy[i];
-		if(pLaneSeg->mpLane==pAtLane)
-		{
-			int iLoop = 0;
-			double dRangeF;
-			double dRangT;
-			while(pLaneSeg->FindFreePos(pVehicle,iLoop,dRangeF,dRangT))
-			{
-				if(pLaneSeg->FindPathToRange(pVehicle,pAtLane,dFromPos,dRangeF,dRangT, followPath))
-				{
-					pLaneSeg->addVehicleOcy(pVehicle, dRangeF - pVehicle->GetLength()*0.5 );
-					return true;
-				}
-			}
-			break;
-		}
-	}
-
-	//
-	for(int i=0;i<(int)m_vLaneOccupy.size();i++)
-	{
-		LaneSegInSim* pLaneSeg = m_vLaneOccupy[i];
-		if(pLaneSeg->mpLane!=pAtLane)
-		{
-			int iLoop = 0;
-			double dRangeF;
-			double dRangT;
-			while(pLaneSeg->FindFreePos(pVehicle,iLoop,dRangeF,dRangT))
-			{
-				if(pLaneSeg->FindPathToRange(pVehicle,pAtLane,dFromPos,dRangeF,dRangT, followPath))
-				{
-					pLaneSeg->addVehicleOcy(pVehicle, dRangeF - pVehicle->GetLength()*0.5 );
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
-
-bool LandsideCurbSideInSim::FindLeavePath( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath )
-{
-
-	LandsideResourceInSim* pAtRes = (LandsideResourceInSim*)pVehicle->getLastState().getLandsideRes();
-	if(!pAtRes) return false;
-	LandsideLaneInSim* pAtLane = pAtRes->toLane();
-	if(!pAtLane) return false;
-	CPoint2008 dAtPos = pVehicle->getLastState().pos;
-
-	LandsideLaneNodeInSim* pExitCurbside = GetExitNode(pAtLane);	
-	//
-	LandsideLaneEntry* pLaneEntry = new LandsideLaneEntry();
-	pLaneEntry->SetPosition(pAtLane,dAtPos);
-	pLaneEntry->SetFromRes(pAtLane);
-	followPath.push_back(pLaneEntry);
-
-	LandsideLaneExit* pLaneExit = new LandsideLaneExit();
-	pLaneExit->SetPosition(pExitCurbside->mpLane,pExitCurbside->m_distInlane);
-	pLaneExit->SetToRes(pExitCurbside->getToRes());
-	followPath.push_back(pLaneExit);	
-
-	return true;
-}
-
-void LandsideCurbSideInSim::RemoveVehicleParkPos( LandsideVehicleInSim* pVehicle )
-{
-	for(size_t i=0;i<m_vLaneOccupy.size();i++)
-	{
-		LaneSegInSim* pSeg = m_vLaneOccupy[i];
-		pSeg->removeVehicleOcy(pVehicle);
-	}
-}
+//}
 
 void LandsideCurbSideInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eEventTime )
 {

@@ -7,7 +7,8 @@
 
 // CDlgPaxBusParking dialog
 class InputTerminal;
-class CPaxBusParkingList;
+class PaxBusParkingPlaceList;
+class PaxBusParkingPlace;
 class CTermPlanDoc;
 class CDlgPaxBusParking : public CXTResizeDialog
 {
@@ -32,13 +33,14 @@ public:
 	void UpdateToolBar();
 	int GetListCtrlSelectedItem();
 	void SetListContent();
+	void InsertParkingPlaceItem(int idx,PaxBusParkingPlace* pItem);
 private:
 	CListCtrlEx m_wndListCtrl;
 	CToolBar m_wndToolBar;
     int n_selectedItem;
 	int m_nProjID;
 	InputTerminal* m_pInTerm;
-	CPaxBusParkingList* m_pPaxBusParkingList;
+	PaxBusParkingPlaceList* m_pPaxBusParkingList;
 	Path m_copypath;
 	int m_nFlag;
 public:
@@ -57,7 +59,7 @@ protected:
 public:
 	afx_msg void OnBnClickedSave();
 	afx_msg void OnLvnItemchangedListPaxbusparking(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnNMRclickListPaxbusparking(NMHDR *pNMHDR, LRESULT *pResult);
+	//afx_msg void OnNMRclickListPaxbusparking(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedButtonCopy();
 	afx_msg void OnBnClickedButtonPaste();
 };

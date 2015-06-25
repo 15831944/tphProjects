@@ -191,6 +191,21 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\AirsdieFlightBaggageManager.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageBehavior.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageCartInSim.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageTrainInSim.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageTugInSim.cpp">
+			</File>
+			<File
 				RelativePath=".\Airside\AirsideCircuitFlightProcess.cpp">
 			</File>
 			<File
@@ -198,6 +213,9 @@
 			</File>
 			<File
 				RelativePath=".\AirsideLogDatabase.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsideMobElementBaseBehavior.cpp">
 			</File>
 			<File
 				RelativePath=".\Airside\AirTrafficController.cpp">
@@ -338,6 +356,18 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\BagCartsBeginServiceParkingSpotEvent.cpp">
+			</File>
+			<File
+				RelativePath=".\BagCartsParkingSpotInSim.cpp">
+			</File>
+			<File
+				RelativePath=".\BagCartsParkingSpotResourceManager.cpp">
+			</File>
+			<File
+				RelativePath=".\BagCartsServiceParkingSpotEvent.cpp">
+			</File>
+			<File
 				RelativePath="BAGENTER.CPP">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -380,6 +410,12 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\BaggageCartParkingLinkageInSimManager.cpp">
+			</File>
+			<File
+				RelativePath=".\BaggageCartServiceStandtEvent.cpp">
+			</File>
+			<File
 				RelativePath="BaggageProcUtil.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -399,6 +435,9 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\BaggageTrainServiceRequest.cpp">
 			</File>
 			<File
 				RelativePath="BARRIER.CPP">
@@ -2277,6 +2316,21 @@
 				RelativePath="AirfieldProcessor.h">
 			</File>
 			<File
+				RelativePath=".\AirsdieFlightBaggageManager.h">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageBehavior.h">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageCartInSim.h">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageTrainInSim.h">
+			</File>
+			<File
+				RelativePath=".\AirsideBaggageTugInSim.h">
+			</File>
+			<File
 				RelativePath=".\Airside\AirsideCircuitFlightProcess.h">
 			</File>
 			<File
@@ -2284,6 +2338,9 @@
 			</File>
 			<File
 				RelativePath=".\AirsideLogDatabase.h">
+			</File>
+			<File
+				RelativePath=".\AirsideMobElementBaseBehavior.h">
 			</File>
 			<File
 				RelativePath=".\Airside\AirTrafficController.h">
@@ -2310,13 +2367,34 @@
 				RelativePath="AvoidDensityEvent.h">
 			</File>
 			<File
+				RelativePath=".\BagCartsBeginServiceParkingSpotEvent.h">
+			</File>
+			<File
+				RelativePath=".\BagCartsParkingSpotInSim.h">
+			</File>
+			<File
+				RelativePath=".\BagCartsParkingSpotResourceManager.h">
+			</File>
+			<File
+				RelativePath=".\BagCartsServiceParkingSpotEvent.h">
+			</File>
+			<File
 				RelativePath="BAGENTER.H">
 			</File>
 			<File
 				RelativePath="BAGGAGE.H">
 			</File>
 			<File
+				RelativePath=".\BaggageCartParkingLinkageInSimManager.h">
+			</File>
+			<File
+				RelativePath=".\BaggageCartServiceStandtEvent.h">
+			</File>
+			<File
 				RelativePath="BaggageProcUtil.h">
+			</File>
+			<File
+				RelativePath=".\BaggageTrainServiceRequest.h">
 			</File>
 			<File
 				RelativePath="BARRIER.H">
@@ -3595,6 +3673,12 @@
 				RelativePath=".\Airside\AirsidePaxBusInSim.h">
 			</File>
 			<File
+				RelativePath=".\Airside\AirsidePaxBusParkSpotInSim.cpp">
+			</File>
+			<File
+				RelativePath=".\Airside\AirsidePaxBusParkSpotInSim.h">
+			</File>
+			<File
 				RelativePath=".\Airside\AirsideRemoveFlightFromQueueEvent.cpp">
 			</File>
 			<File
@@ -3770,6 +3854,12 @@
 			</File>
 			<File
 				RelativePath=".\Airside\DynamicStandAssignmentInSim.h">
+			</File>
+			<File
+				RelativePath=".\Airside\EnrouteQueueCapacityInSim.cpp">
+			</File>
+			<File
+				RelativePath=".\Airside\EnrouteQueueCapacityInSim.h">
 			</File>
 			<File
 				RelativePath=".\Airside\FinalApproachController.cpp">

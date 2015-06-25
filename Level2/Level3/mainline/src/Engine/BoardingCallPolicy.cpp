@@ -328,7 +328,9 @@ void CPassengerTakeOffCallPolicy::NoticeFlightArrived(Flight* fli,bool bArrival,
 	p_poilcy->SetIsFlightArrived(TRUE) ;
 
 	CPaxGenerator paxgenerator(_pEngine) ;
-	paxgenerator.GenerateDelayMobileBag(fli->getFlightIndex(),curTime) ;
+	
+	std::vector<Person *> vBags;
+	paxgenerator.GenerateDelayMobileBag(fli->getFlightIndex(),curTime, vBags, false) ;
 
 	HandleFlightArrived(p_poilcy,curTime,_pEngine) ;
 }
@@ -377,7 +379,7 @@ void CPassengerTakeOffCallPolicy::HandBusHasArrived(CPolicyData* _policydata , E
 			if (!AlreadyGeneratePassengerforFlight(pFlight))	//did not generate person of the flight
 			{
 				CPaxGenerator paxgenerator(_pEngine) ;
-				paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),curTime,_paxlist,-1) ;
+				paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),curTime,_paxlist,false,-1) ;
 				Airflight->AddPaxCount((int)_paxlist.size());
 
 				FlightMobileElmentInfo* pNewFlightInfo = new FlightMobileElmentInfo(pFlight);
@@ -405,7 +407,7 @@ void CPassengerTakeOffCallPolicy::HandBusHasArrived(CPolicyData* _policydata , E
   		Person* pPerson = pFlightInfo->front();
   		if (!_arrivalBus->IsFull())
   		{
-			AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)pPerson->getBehavior(MobElementBehavior::AirsideBehavior);
+			AirsidePassengerBehavior* spAirsideBehavior = (AirsidePassengerBehavior*)pPerson->getBehavior(MobElementBehavior::AirsideBehavior);
 			if (spAirsideBehavior)
 			{
   				_arrivalBus->AddPassenger(pPerson);
@@ -455,13 +457,13 @@ void CPassengerTakeOffCallPolicy::HandleFlightArrived(CPolicyData* _policydata ,
 		else			
 		{
 			CPaxGenerator paxgenerator(_pEngine) ;
-			int pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),curTime,_paxlist,-1) ;
+			int pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),curTime,_paxlist,false,-1) ;
 			Airflight->AddPaxCount(pax_num);
 		}	
 
   		for (int i = 0 ; i < (int)_paxlist.size() ;i ++)
   		{
-			AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
+			AirsidePassengerBehavior* spAirsideBehavior = (AirsidePassengerBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
 			if (spAirsideBehavior)
 			{
 				spAirsideBehavior->CancelPaxBusService() ;
@@ -503,7 +505,7 @@ void CPassengerTakeOffCallPolicy::HandleFlightArrived(CPolicyData* _policydata ,
 		if (!_policydata->GetArrivedBus()->empty())
 		{
 			CPaxGenerator paxgenerator(_pEngine) ;
-			pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),curTime,_paxlist,-1) ;
+			pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),curTime,_paxlist,false,-1) ;
 			Airflight->AddPaxCount(pax_num);
 		}
 	}
@@ -531,7 +533,7 @@ void CPassengerTakeOffCallPolicy::HandleFlightArrived(CPolicyData* _policydata ,
 
   				if (!_bus->IsFull())
   				{
-					AirsideMobElementBehavior* spAirsideBehavior = (AirsideMobElementBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
+					AirsidePassengerBehavior* spAirsideBehavior = (AirsidePassengerBehavior*)_paxlist[i]->getBehavior(MobElementBehavior::AirsideBehavior);
 					if (spAirsideBehavior)
 					{
 						_bus->AddPassenger(pPerson) ;

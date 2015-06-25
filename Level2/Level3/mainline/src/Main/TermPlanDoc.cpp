@@ -474,7 +474,7 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 
 	m_bHideACTags				= FALSE;
 	
-	m_bHideTrafficLight			= TRUE;
+	m_bHideTrafficLight			= FALSE;
 
 	m_vFlow.clear();
 	m_vProcess.clear();
@@ -3148,13 +3148,15 @@ BOOL CTermPlanDoc::AnimTimerCallback()
 	static int c = 0;
 	c++;
 	if(c > CAnimationTimeManager::GetFrameRate()) {
-		MSG msg;
-		while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		DisableViewPaint();
+ 		MSG msg;
+ 		while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+ 			TranslateMessage(&msg);
+ 			DispatchMessage(&msg);
+ 		}
 		GetMainFrame()->m_wndAnimationBar.OnUpdateCmdUI(GetMainFrame(), FALSE);
 		GetMainFrame()->m_wndCameraBar.OnUpdateCmdUI(GetMainFrame(), FALSE);
+		EnableViewPaint();
 		c = 0;
 	}
 
@@ -6073,7 +6075,7 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 			return;
 		}
 	}
-	UpdateAllViews(NULL);
+	UpdateAllViews(NULL,VM_UPDATETRACE);
 }
 
 void CTermPlanDoc::OnDistanceMeasure()
@@ -9845,4 +9847,22 @@ CCalloutDlgLineData* CTermPlanDoc::GetCallOutLineData()
 int CTermPlanDoc::getSimResultCout( void )
 {
 	return GetTerminal().GetSimReportManager()->getSubSimResultCout();
+}
+
+void CTermPlanDoc::DisableViewPaint()
+{
+	IRender3DView* pRenderView = GetIRenderView();
+	if (pRenderView)
+	{
+		pRenderView->SetBusy(TRUE);
+	}
+}
+
+void CTermPlanDoc::EnableViewPaint()
+{
+	IRender3DView* pRenderView = GetIRenderView();
+	if (pRenderView)
+	{
+		pRenderView->SetBusy(FALSE);
+	}
 }

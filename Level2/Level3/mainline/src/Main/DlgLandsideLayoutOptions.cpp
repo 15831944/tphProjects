@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "TermPlan.h"
 #include "DlgLandsideLayoutOptions.h"
+#include ".\dlglandsidelayoutoptions.h"
 
 
 // CDlgLandsideLayoutOptions dialog
@@ -26,6 +27,7 @@ void CDlgLandsideLayoutOptions::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CDlgLandsideLayoutOptions, CDialog)
+	ON_CBN_SELCHANGE(IDC_COMBO_DATA, OnCbnSelchangeComboData)
 END_MESSAGE_MAP()
 
 // CDlgLandsideLayoutOptions message handlers
@@ -77,4 +79,9 @@ void CDlgLandsideLayoutOptions::InitCombox()
 
 	int nCurSel = (int)m_layoutOptions.GetLayoutOptions();
 	m_wndComboxCtrl.SetCurSel(nCurSel);
+}
+
+void CDlgLandsideLayoutOptions::OnCbnSelchangeComboData()
+{
+	// TODO: Add your control notification handler code here
 }

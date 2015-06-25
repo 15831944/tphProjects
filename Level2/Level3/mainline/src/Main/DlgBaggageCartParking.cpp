@@ -7,6 +7,7 @@
 #include ".\dlgbaggagecartparking.h"
 #include ".\ProcesserDialog.h"
 #include "TermPlanDoc.h"
+#include "DlgSelectALTObject.h"
 #include "MainFrm.h"
 #include "3DView.h"
 #include <CommonData/Fallback.h>
@@ -16,7 +17,7 @@
 const static CString DEFINED = "DEFINED";
 const static CString NOTDEFINED = "NOT DEFINED";
 // DlgBaggageCartParking dialog
-
+const char* sBagRelateBuffer[] = {"1:1","random"};
 IMPLEMENT_DYNAMIC(CDlgBaggageCartParking, CDialogResize)
 CDlgBaggageCartParking::CDlgBaggageCartParking(int nPrjID, InputTerminal* pInterm,CWnd* pParent /*=NULL*/)
 	: CDialogResize(CDlgBaggageCartParking::IDD, pParent),
@@ -24,7 +25,9 @@ CDlgBaggageCartParking::CDlgBaggageCartParking(int nPrjID, InputTerminal* pInter
 	m_pInterm(pInterm)
 {
 	m_bDataChanged = false;
-	//m_iSelectItem = -1;
+	m_iSelectItem = -1;
+	m_vTypeList.push_back(ConveyorProc);
+	m_vTypeList.push_back(LineProc);
 }
 
 CDlgBaggageCartParking::~CDlgBaggageCartParking()
@@ -54,6 +57,7 @@ BEGIN_MESSAGE_MAP(CDlgBaggageCartParking, CDialogResize)
 	ON_NOTIFY(NM_RCLICK, IDC_LISTCTRL_BAGPARKPOS, OnNMRclickListctrlBagparkpos)
 	ON_BN_CLICKED(IDC_COPY, OnBnClickedCopy)
 	ON_BN_CLICKED(IDC_PASTE, OnBnClickedPaste)
+	ON_MESSAGE(WM_INPLACE_COMBO_KILLFOUCUS, OnMsgComboChange)
 END_MESSAGE_MAP()
 
 BEGIN_DLGRESIZE_MAP(CDlgBaggageCartParking)
@@ -71,16 +75,17 @@ END_DLGRESIZE_MAP()
 BOOL CDlgBaggageCartParking::OnInitDialog()
 {
 	CDialogResize::OnInitDialog();
+	SetWindowText(_T("Baggage Cart Spot-Linkages"));
 	InitResizing(FALSE, FALSE, WS_THICKFRAME);
-	m_BaggageCartSpec.ReadData(m_nPrjID);
+	m_BaggageCartSpec.ReadData(-1);
 
-	CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();
-	C3DView* p3DView = pDoc->Get3DView();
-	if(p3DView && p3DView->GetParentFrame())
-	{
-		p3DView->GetParentFrame()->GetAirside3D()->SetTempBagCartParkings(&m_BaggageCartSpec);
-	}
-	
+	//CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();
+	//C3DView* p3DView = pDoc->Get3DView();
+	//if(p3DView && p3DView->GetParentFrame())
+	//{
+	//	p3DView->GetParentFrame()->GetAirside3D()->SetTempBagCartParkings(&m_BaggageCartSpec);
+	//}
+	//
 	InitToolBar();
 	InitListCtrl();
 	UpdateClickButton();
@@ -135,31 +140,26 @@ void CDlgBaggageCartParking::InitListCtrl()
 	lvc.mask = LVCF_WIDTH|LVCF_TEXT;
 	lvc.csList = &strList;
 
-	lvc.pszText = "Pusher";
-	lvc.cx = 250;
+	lvc.pszText = "Name";
+	lvc.cx = 120;
 	lvc.fmt = LVCFMT_NOEDIT;
 	m_wndListCtrl.InsertColumn(0, &lvc);
 
-	lvc.pszText = "Cart Parking Position";
-	lvc.cx = 200;
+	lvc.pszText = "Bagtrain Spot";
+	lvc.cx = 120;
 	lvc.fmt = LVCFMT_NOEDIT;
 	m_wndListCtrl.InsertColumn(1,&lvc);
 
-	int nCount = m_BaggageCartSpec.GetElementCount();
-	for(int i=0;i< nCount;i++)
-	{
-		BaggageCartParkingItem* pItem =  m_BaggageCartSpec.GetItem(i);
-		m_wndListCtrl.InsertItem(i,pItem->GetPushers());
-		Path path = pItem->GetParkArea();
-		if(path.getCount() > 2)
-		{
-			m_wndListCtrl.SetItemText(i,1,DEFINED);
-		}else
-		{
-			m_wndListCtrl.SetItemText(i,1,NOTDEFINED);
-		}
-		m_wndListCtrl.SetItemData(i,(DWORD_PTR)pItem);
-	}
+	lvc.cx = 80;
+	CStringList strRelateList;
+	strRelateList.InsertAfter(strRelateList.GetTailPosition(),"1:1");
+	strRelateList.InsertAfter(strRelateList.GetTailPosition(),"random");
+	lvc.csList = &strRelateList;
+	lvc.pszText = _T("Relation");
+	lvc.fmt = LVCFMT_DROPDOWN;
+	m_wndListCtrl.InsertColumn(2, &lvc);
+
+	LoadListContent();
 }
 
 void CDlgBaggageCartParking::UpdateToolBar()
@@ -184,6 +184,35 @@ void CDlgBaggageCartParking::UpdateToolBar()
 	}
 }
 
+void CDlgBaggageCartParking::LoadListContent()
+{
+	m_wndListCtrl.DeleteAllItems();
+	
+	int nCount = m_BaggageCartSpec.GetItemCount();
+	for (int i = 0; i < nCount; i++)
+	{
+		BaggageParkingPlace* pItem = m_BaggageCartSpec.GetItem(i);
+		InsertParkingPlaceItem(i,pItem);
+	}
+}
+
+void CDlgBaggageCartParking::InsertParkingPlaceItem(int idx,BaggageParkingPlace* pItem)
+{
+	m_wndListCtrl.InsertItem(idx,pItem->GetParkingProcessor());
+	CString strParkingSpot;
+	if (pItem->GetBagTrainSpot().IsBlank())
+	{
+		strParkingSpot = _T("All");
+	}
+	else
+	{
+		strParkingSpot = pItem->GetBagTrainSpot().GetIDString();
+	}
+	m_wndListCtrl.SetItemText(idx,1,strParkingSpot);
+	m_wndListCtrl.SetItemText(idx,2,sBagRelateBuffer[pItem->GetParkingRelate()]);
+	m_wndListCtrl.SetItemData(idx,(DWORD_PTR)pItem);
+}
+
 void CDlgBaggageCartParking::OnNewItem()
 {
 	ASSERT(::IsWindow(m_wndListCtrl.m_hWnd));
@@ -191,22 +220,23 @@ void CDlgBaggageCartParking::OnNewItem()
 	CProcesserDialog processdlg(m_pInterm,this);
 
 	processdlg.SetOnlyShowPusherConveyor(true);
-	processdlg.SetType(ConveyorProc);
+	processdlg.SetTypeList(m_vTypeList);
 
 	if( processdlg.DoModal() == IDOK )
 	{
 		int nItemCount = m_wndListCtrl.GetItemCount();
 		ProcessorID procID;
 		processdlg.GetProcessorID(procID);
-		CString strPusher = procID.GetIDString();
-		BaggageCartParkingItem * newItem  = new BaggageCartParkingItem();
-		newItem->SetPushers(strPusher);
+		CString strProc = procID.GetIDString();
+		BaggageParkingPlace * newItem  = new BaggageParkingPlace();
+		newItem->SetParkingProcessor(strProc);
 		m_BaggageCartSpec.AddNewItem(newItem);
 		
-		m_wndListCtrl.InsertItem(nItemCount,strPusher);
-		m_wndListCtrl.SetItemText(nItemCount,1,NOTDEFINED);
-	
-		m_wndListCtrl.SetItemData(nItemCount,(DWORD_PTR)newItem);
+// 		m_wndListCtrl.InsertItem(nItemCount,strPusher);
+// 		m_wndListCtrl.SetItemText(nItemCount,1,NOTDEFINED);
+// 	
+// 		m_wndListCtrl.SetItemData(nItemCount,(DWORD_PTR)newItem);
+		InsertParkingPlaceItem(nItemCount,newItem);
 		m_bDataChanged = true;
 	}
 
@@ -224,7 +254,7 @@ void CDlgBaggageCartParking::OnDeleteItem()
 		while (pos)
 		{
 			int nItem = m_wndListCtrl.GetNextSelectedItem(pos);
-			BaggageCartParkingItem* pNewItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(nItem));
+			BaggageParkingPlace* pNewItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(nItem));
 			m_BaggageCartSpec.DeleteItem(pNewItem);
 			m_wndListCtrl.DeleteItemEx(nItem);
 			m_bDataChanged = true;
@@ -247,17 +277,17 @@ void CDlgBaggageCartParking::OnEditItem()
 
 			CProcesserDialog processdlg(m_pInterm,this);
 			processdlg.SetOnlyShowPusherConveyor(true);
-			processdlg.SetType(ConveyorProc);
+			processdlg.SetTypeList(m_vTypeList);
 	
 
 			if( processdlg.DoModal() == IDOK )
 			{				
 				ProcessorID procID;
 				processdlg.GetProcessorID(procID);
-				CString strPusher = procID.GetIDString();
-				BaggageCartParkingItem* ptheItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(nItem));
-				ptheItem->SetPushers(strPusher);						
-				m_wndListCtrl.SetItemText(nItem,1,strPusher);	
+				CString strProc = procID.GetIDString();
+				BaggageParkingPlace* ptheItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(nItem));
+				ptheItem->SetParkingProcessor(strProc);						
+				m_wndListCtrl.SetItemText(nItem,0,strProc);	
 				m_bDataChanged = true;
 			}
 		}
@@ -315,20 +345,35 @@ void CDlgBaggageCartParking::OnNMDblclkListctrlBagparkpos(NMHDR *pNMHDR, LRESULT
 	int iItem = pnmv->iItem;
 	int iColumn = pnmv->iSubItem;
 
-	if(iColumn ==0 && iItem < m_wndListCtrl.GetItemCount() && iItem >=0 )
+	if(iItem < m_wndListCtrl.GetItemCount() && iItem >=0 )
 	{
-		CProcesserDialog processdlg(m_pInterm,this);
-		processdlg.SetOnlyShowPusherConveyor(true);
-		processdlg.SetType(ConveyorProc);
-		if( processdlg.DoModal() == IDOK )
-		{				
-			ProcessorID procID;
-			processdlg.GetProcessorID(procID);
-			CString strPusher = procID.GetIDString();
-			BaggageCartParkingItem* ptheItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(iItem));
-			ptheItem->SetPushers(strPusher);						
-			m_wndListCtrl.SetItemText(iItem,0,strPusher);			
-			GetDlgItem(IDC_SAVE)->EnableWindow();		
+		BaggageParkingPlace* ptheItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(iItem));
+		if (iColumn ==0)
+		{
+			CProcesserDialog processdlg(m_pInterm,this);
+			processdlg.SetOnlyShowPusherConveyor(true);
+			processdlg.SetTypeList(m_vTypeList);
+			if( processdlg.DoModal() == IDOK )
+			{				
+				ProcessorID procID;
+				processdlg.GetProcessorID(procID);
+				CString strProc = procID.GetIDString();
+			
+				ptheItem->SetParkingProcessor(strProc);						
+				m_wndListCtrl.SetItemText(iItem,0,strProc);			
+				m_bDataChanged = true;		
+			}
+		}
+		
+		if (iColumn == 1)
+		{
+			CDlgSelectALTObject dlg(m_nPrjID,ALT_ABAGCARTSPOT);
+			if (IDOK == dlg.DoModal())
+			{
+				ptheItem->SetBagTrainSpot(dlg.GetALTObject());
+				m_wndListCtrl.SetItemText(iItem,1,dlg.GetALTObject().GetIDString());
+				m_bDataChanged = true;
+			}
 		}
 	}
 
@@ -397,38 +442,38 @@ void CDlgBaggageCartParking::OnProcpropPickfrommap()
 
 LRESULT CDlgBaggageCartParking::OnTempFallbackFinished(WPARAM wParam, LPARAM lParam)
 {
-	std::vector<ARCVector3>* pData = reinterpret_cast< std::vector<ARCVector3>* >(wParam);
-	size_t nSize = pData->size();
+	//std::vector<ARCVector3>* pData = reinterpret_cast< std::vector<ARCVector3>* >(wParam);
+	//size_t nSize = pData->size();
 
-	Path path;
-	Point *pointList = new Point[nSize];
-	for (size_t i =0; i < nSize; ++i)
-	{
-		ARCVector3 v3 = pData->at(i);
-		pointList[i].setPoint(v3[VX] ,v3[VY],v3[VZ]);
-	}
-	path.init(nSize,pointList); 
-	int iSelectItem = m_wndListCtrl.GetCurSel();
+	//Path path;
+	//Point *pointList = new Point[nSize];
+	//for (size_t i =0; i < nSize; ++i)
+	//{
+	//	ARCVector3 v3 = pData->at(i);
+	//	pointList[i].setPoint(v3[VX] ,v3[VY],v3[VZ]);
+	//}
+	//path.init(nSize,pointList); 
+	//int iSelectItem = m_wndListCtrl.GetCurSel();
 
-	if(path.getCount() > 2 )
-	{
-		BaggageCartParkingItem* ptheItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(iSelectItem));
-		ptheItem->SetParkArea(path);
-		m_wndListCtrl.SetItemText(iSelectItem,1,DEFINED);
-	}
-	else
-	{
-		AfxMessageBox("Baggage Cart position must have at least 3 points !");
-		BaggageCartParkingItem* ptheItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(iSelectItem));
-		ptheItem->SetParkArea(path);
-		m_wndListCtrl.SetItemText(iSelectItem,1,NOTDEFINED);
-	}
+	//if(path.getCount() > 2 )
+	//{
+	//	BaggageParkingPlace* ptheItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(iSelectItem));
+	//	ptheItem->SetParkArea(path);
+	//	m_wndListCtrl.SetItemText(iSelectItem,1,DEFINED);
+	//}
+	//else
+	//{
+	//	AfxMessageBox("Baggage Cart position must have at least 3 points !");
+	//	BaggageParkingPlace* ptheItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(iSelectItem));
+	//	ptheItem->SetParkArea(path);
+	//	m_wndListCtrl.SetItemText(iSelectItem,1,NOTDEFINED);
+	//}
 
 
-	ShowWindow(SW_SHOW);	
-	EnableWindow();
-	m_bDataChanged = true;
-	UpdateClickButton();
+	//ShowWindow(SW_SHOW);	
+	//EnableWindow();
+	//m_bDataChanged = true;
+	//UpdateClickButton();
 	return true;
 }
 
@@ -452,22 +497,22 @@ void CDlgBaggageCartParking::OnNMRclickListctrlBagparkpos(NMHDR *pNMHDR, LRESULT
 {
 	// TODO: Add your control notification handler code here
 	NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
-	NM_LISTVIEW* pnmv = (NM_LISTVIEW*)pNMHDR;
+	//NM_LISTVIEW* pnmv = (NM_LISTVIEW*)pNMHDR;
 
-	int iItem = pnmv->iItem;
-	int iColumn = pnmv->iSubItem;
-	
-	if( iColumn == 1 && iItem < m_wndListCtrl.GetItemCount() &&  iItem >=0 )
-	{		
+	//int iItem = pnmv->iItem;
+	//int iColumn = pnmv->iSubItem;
+	//
+	//if( iColumn == 1 && iItem < m_wndListCtrl.GetItemCount() &&  iItem >=0 )
+	//{		
 
-		CPoint pt;//(pnmv->ptAction);
-		GetCursorPos(&pt);
-		CNewMenu menu, *pCtxMenu = NULL;
-		menu.LoadMenu(IDR_MENU_POPUP);
-		pCtxMenu =DYNAMIC_DOWNCAST(CNewMenu, menu.GetSubMenu(10));
-		pCtxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_LEFTBUTTON, pt.x, pt.y, this );
-		
-	}	
+	//	CPoint pt;//(pnmv->ptAction);
+	//	GetCursorPos(&pt);
+	//	CNewMenu menu, *pCtxMenu = NULL;
+	//	menu.LoadMenu(IDR_MENU_POPUP);
+	//	pCtxMenu =DYNAMIC_DOWNCAST(CNewMenu, menu.GetSubMenu(10));
+	//	pCtxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_LEFTBUTTON, pt.x, pt.y, this );
+	//	
+	//}	
 	
 	*pResult = 0;
 }
@@ -475,14 +520,14 @@ void CDlgBaggageCartParking::UpdateClickButton()
 {
 	int iSelect = m_wndListCtrl.GetCurSel();
 	//Paste button
-	if(m_copyPath.getCount() > 2 && iSelect >=0 && iSelect < m_wndListCtrl.GetItemCount() )
-	{
-		GetDlgItem(IDC_PASTE)->EnableWindow(TRUE);
-	}
-	else
-	{
-		GetDlgItem(IDC_PASTE)->EnableWindow(FALSE);
-	}
+	//if(m_copyPath.getCount() > 2 && iSelect >=0 && iSelect < m_wndListCtrl.GetItemCount() )
+	//{
+	//	GetDlgItem(IDC_PASTE)->EnableWindow(TRUE);
+	//}
+	//else
+	//{
+	//	GetDlgItem(IDC_PASTE)->EnableWindow(FALSE);
+	//}
 	//copy button
 	if(iSelect >=0 && iSelect < m_wndListCtrl.GetItemCount())
 	{
@@ -506,12 +551,12 @@ void CDlgBaggageCartParking::UpdateClickButton()
 void CDlgBaggageCartParking::OnBnClickedCopy()
 {
 	// TODO: Add your control notification handler code here
-	int iSelectItem = -1;
+//	int iSelectItem = -1;
 	if( m_wndListCtrl.GetSelectedCount() > 0)
 	{
-		iSelectItem = m_wndListCtrl.GetCurSel();
-		BaggageCartParkingItem* ptheItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(iSelectItem));
-		m_copyPath = ptheItem->GetParkArea();
+		m_iSelectItem = m_wndListCtrl.GetCurSel();
+		/*BaggageParkingPlace* ptheItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(iSelectItem));
+		m_copyPath = ptheItem->GetParkArea();*/
 	}
 	UpdateClickButton();
 }
@@ -519,16 +564,40 @@ void CDlgBaggageCartParking::OnBnClickedCopy()
 void CDlgBaggageCartParking::OnBnClickedPaste()
 {
 	// TODO: Add your control notification handler code here
-	ASSERT(m_copyPath.getCount() > 2 );
+//	ASSERT(m_copyPath.getCount() > 2 );
 	
-	int iSelectCnt = m_wndListCtrl.GetSelectedCount();
-	if(iSelectCnt > 0)
+	if(m_iSelectItem != -1)
 	{
-		int iSelectItem = m_wndListCtrl.GetCurSel();
-		BaggageCartParkingItem* ptheItem = (BaggageCartParkingItem*)(m_wndListCtrl.GetItemData(iSelectItem));
-		ptheItem->SetParkArea(m_copyPath);
-		m_wndListCtrl.SetItemText(iSelectItem,1, DEFINED);
+		int index = m_wndListCtrl.GetItemCount();
+		BaggageParkingPlace* pNewItem = new BaggageParkingPlace();
+		BaggageParkingPlace* ptheItem = (BaggageParkingPlace*)(m_wndListCtrl.GetItemData(m_iSelectItem));
+		*pNewItem = *ptheItem;
+		m_BaggageCartSpec.AddNewItem(pNewItem);
+		InsertParkingPlaceItem(index,pNewItem);
+	/*	ptheItem->SetParkArea(m_copyPath);
+		m_wndListCtrl.SetItemText(iSelectItem,1, DEFINED);*/
 		m_bDataChanged = true;
 	}	
 	UpdateClickButton();
 }
+
+LRESULT CDlgBaggageCartParking::OnMsgComboChange( WPARAM wParam, LPARAM lParam )
+{
+	int nComboxSel = (int)wParam;
+	if (nComboxSel == LB_ERR)
+		return 0;
+
+	LV_DISPINFO* dispinfo = (LV_DISPINFO*)lParam;
+	int nCurSel = dispinfo->item.iItem;
+	int nSub = dispinfo->item.iSubItem;
+	//	int nCurSubSel = dispinfo->item.iSubItem;	
+	BaggageParkingPlace* pItem = (BaggageParkingPlace*)m_wndListCtrl.GetItemData(nCurSel);
+	if(nSub == 2)
+	{
+		pItem->SetParkingRelate(BaggageParkingPlace::ParkingRelateType(nComboxSel));
+	}
+	m_bDataChanged = true;
+	UpdateClickButton();
+	return 0;
+}
+

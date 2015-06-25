@@ -139,6 +139,7 @@ public:
 	
 
 	void SetPath(const CPath2008& path );
+	const CPath2008& GetPath()const{ return m_path; }
 public:
 	LandsideLaneNodeList mvEntryExits;
 protected:
@@ -238,6 +239,9 @@ public:
 	virtual LandsideLayoutObjectInSim* getLayoutObject()const;
 	virtual CString print()const;
 
+
+	//find the nearest lane to the Point return the Lane and the dist in the lane
+	LandsideStretchLaneInSim* GetNearestLane(const CPoint2008& pos, DistanceUnit& distInlane )const;
 
 	void AddCrossWalk(CCrossWalkInSim* pCross);
 	//lane s

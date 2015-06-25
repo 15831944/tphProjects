@@ -530,6 +530,13 @@ QueueToTakeoffPos* RunwayExitInSim::getTakeoffQueue()
 	return GetLogicRunway()->GetQueueList().GetAddQueue(this);
 }
 
+HoldPositionInSim* RunwayExitInSim::getHoldPosition()
+{
+	int nTaxiID = m_ExitInput.GetTaxiwayID();
+	int nNodeID = m_ExitInput.GetIntersectNodeID();
+	return GetLogicRunway()->GetRunwayInSim()->GetHoldPosition(nTaxiID,nNodeID);
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RunwayInSim::RunwayInSim(Runway* pRunway, double dMissApproachDist)

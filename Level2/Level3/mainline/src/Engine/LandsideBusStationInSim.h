@@ -69,7 +69,7 @@ public:
 	void DelWaitingBus(LandsideVehicleInSim* pBus);
 	void NoticeWaitingPax(const ElapsedTime &time, LandsideVehicleInSim* pBus, LandsideSimulation* pSimulation);
 	//bool HavePaxWaitingForThisBus(LandsideVehicleInSim *pBus);
-	LaneParkingSpotsGroup& getParkingSpot();
+	LandsideInterfaceParkingSpotsGroup& getParkingSpot(){ return mParkingSpots; }
 
 	virtual CPath2008 GetQueue();
 
@@ -95,7 +95,7 @@ private:
 	std::vector<LandsideLaneExit*> m_vLaneExits;
 
 	VehicleList m_vWaitingBus;
-	LaneParkingSpotsGroup mParkingSpots;
+	LandsideInterfaceParkingSpotsGroup mParkingSpots;
 	LandsideQueueSystemProcess* m_queueProcessSys;
 
 

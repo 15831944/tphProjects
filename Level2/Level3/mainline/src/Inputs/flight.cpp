@@ -1171,7 +1171,8 @@ FlightConstraint Flight::getType (char p_mode) const
 
     type.setAirline (m_Airline);
     type.setFlightID ((p_mode == 'D')? getDepID(): getArrID());
-	type.setDay((p_mode == 'D')? getArrTime().GetDay(): getDepTime().GetDay());
+	type.setDay((p_mode == 'D')? getDepTime().GetDay(): getArrTime().GetDay());
+	type.setTime((p_mode == 'D')? getDepTime().getPrecisely(): getArrTime().getPrecisely());
 	type.SetFltConstraintMode( (p_mode=='A') ? ENUM_FLTCNSTR_MODE_ARR : ENUM_FLTCNSTR_MODE_DEP );
 	type.setAirport ((p_mode == 'D')?getDestination(): getOrigin());
 	type.setStopoverAirport((p_mode == 'D')? m_depStopover: m_arrStopover);
@@ -1580,6 +1581,7 @@ bool Flight::isBelongToGroup( FlightGroup* pFlightGroup,bool bArrival)
 		getArrID(strFlightID.GetBuffer(1024));
 		etDayTime = getArrTime();
 		strDay.Format("%d", etDayTime.GetDay());
+		
 	}
 	else
 	{
@@ -1588,7 +1590,7 @@ bool Flight::isBelongToGroup( FlightGroup* pFlightGroup,bool bArrival)
 		strDay.Format("%d", etDayTime.GetDay());
 	}
 	strFlightID.ReleaseBuffer(); 
-	return pFlightGroup->contain(strAirline, strFlightID,strDay);
+	return pFlightGroup->contain(strAirline, strFlightID,strDay,etDayTime);
 	//flight id
 }
 

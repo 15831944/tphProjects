@@ -38,6 +38,7 @@
 #include "../OnboardFlightInSim.h"
 #include "AirsideCircuitFlightInSim.h"
 #include "../../InputAirside/CTrainFlightsManage.h"
+#include "../AirsideBaggageTrainInSim.h"
 
 
 AirsideSimulation::AirsideSimulation( int nPrjID, CARCportEngine *_pEngine,const CString& strProjPath,FltOperatingDoorSpecInSim* pFltOperatingDoorspec)
@@ -48,7 +49,7 @@ AirsideSimulation::AirsideSimulation( int nPrjID, CARCportEngine *_pEngine,const
 	m_pEngine = _pEngine;
 	m_bInitialized = false;
 
-	m_pVehicleRequestDispatcher = new VehicleRequestDispatcher(_pEngine->getTerminal()->m_pAirportDB);
+	m_pVehicleRequestDispatcher = new VehicleRequestDispatcher(_pEngine->getTerminal()->m_pAirportDB, _pEngine->getTerminal()->GetProcessorList());
 	m_pVehiclePoolsDeployment = new VehiclePoolsManagerInSim;
 	m_pVehiclePoolsDeployment->Init(nPrjID, _pEngine->getTerminal()->m_pAirportDB);
 
@@ -312,7 +313,8 @@ int AirsideSimulation::AirsideEventListInitialize( EventList* _eventlist)
 
 	m_pVehicleRequestDispatcher->SetVehicleService(bVehicleService);
 
-	int nVehicleBeginCount = 0;
+//	int nVehicleBeginCount = 0;
+	int nNextVehicleUnqiueID = 0;
 	if (bVehicleService)
 	{
 		if(m_pVehicleSpecifications != NULL)
@@ -339,8 +341,7 @@ int AirsideSimulation::AirsideEventListInitialize( EventList* _eventlist)
 					if (nCount > 0)
 					{
 						CVehicleSpecificationItem* pVehicleSpecItem = m_pVehicleSpecifications->GetVehicleItemByID(nVehicleTypeID);
-						VehicleGeneration(nVehicleBeginCount,nCount,pVehicleSpecItem,nPoolId,tMinTime);
-						nVehicleBeginCount+=nCount;
+						VehicleGeneration(nNextVehicleUnqiueID,nCount,pVehicleSpecItem,nPoolId,tMinTime,m_pVehicleSpecifications);
 					}
 				}
 			}
@@ -366,49 +367,30 @@ void AirsideSimulation::ItinerantFlightGeneration()
 
 
 }
-void AirsideSimulation::VehicleGeneration(int nStartidx,int nCount, CVehicleSpecificationItem* pVehicleSpecItem, int nPoolId, ElapsedTime tBirthTime)
+void AirsideSimulation::VehicleGeneration(int& nNextVehicleUnqiueID,int nCount, CVehicleSpecificationItem* pVehicleSpecItem, int nPoolId, ElapsedTime tBirthTime, CVehicleSpecifications *pVehicleSpecifications)
 {
-	int ItemID = pVehicleSpecItem->GetVehicleTypeID();
-	int nVehicleTypeId  = (int)pVehicleSpecItem->getBaseType() ;
-    float fuelconsumed = (float)pVehicleSpecItem->GetFuelCOnsumed() ;
+	
 	VehiclePoolResourceManager* pPoolRes = m_Resource.GetAirportResource()->getVehicleResource();
 	VehiclePoolInSim* pPool = pPoolRes->GetVehiclePool(nPoolId);
 
 	for (int i =0; i < nCount; i++)
 	{
-		AirsideVehicleInSim* pVehicle = GenerateBaseTypeVehicle(nStartidx+i,m_nPrjID,pVehicleSpecItem);//new AirsideVehicleInSim(desc,i,m_nPrjID,pVehicleSpecItem);
-		
-		AirsideVehicleDescStruct desc;
-	
-		desc.id = ItemID;
-		desc.m_BaseType = nVehicleTypeId;
-		desc.poolNO = nPoolId;
-		desc.m_VecileTypeID = CVehicleSpecificationItem::GetVehicleIDByVehicleName(pVehicleSpecItem->getName()) ;
-		desc.m_FuelConsumed = fuelconsumed ;
-		strcpy(desc.vehicleType,	pVehicleSpecItem->getName() );
+		AirsideVehicleInSim* pVehicle = GenerateBaseTypeVehicle(nNextVehicleUnqiueID,m_nPrjID,pVehicleSpecItem, pVehicleSpecifications);//new AirsideVehicleInSim(desc,i,m_nPrjID,pVehicleSpecItem);
+		pVehicle->InitLogEntry(pPool,m_pOuput);
 
-		desc.vehicleheight  = pVehicle->GetVehicleHeight();
-		desc.vehiclewidth = pVehicle->GetVehicleWidth();
-		desc.vehiclelength = pVehicle->GetVehicleLength();
-		desc.IndexID = pVehicle->GetID() ;
-		pVehicle->SetVehicleTypeID( ItemID);
-		pVehicle->SetVehiclePool(pPool);
-
-		CPoint2008 pos = pPool->GetRandPoint();
+		CPoint2008 pos;
+		CPoint2008 dir;
+		pPool->BirthOnPool(pVehicle, pos,dir);
 		pVehicle->SetPosition(pos);
 		pVehicle->SetBirthTime( tBirthTime);	//birth time
 
-		if(m_pOuput)
-		{
-			m_pOuput->LogVehicleEntry(pVehicle,desc);
-			pVehicle->InitLogEntry();
-		}
-
 		VehicleRouteResourceManager* pRouteRes = m_Resource.GetAirportResource()->getVehicleRouteRes();
-
-		pVehicle->SetOutput(m_pOuput);
 		pVehicle->SetResource(pPool);
+		pVehicle->SetTime(tBirthTime);
+
 		pVehicle->WirteLog(pos,pVehicle->GetSpeed(),tBirthTime);
+		pVehicle->WirteLog(pos+ dir, pVehicle->GetSpeed(), tBirthTime);
+
 		pVehicle->SetRouteResourceManager(pRouteRes);
 		m_vVehicles.push_back(pVehicle);
 		pPool->AddVehicleInPool(pVehicle);
@@ -421,7 +403,7 @@ void AirsideSimulation::VehicleGeneration(int nStartidx,int nCount, CVehicleSpec
 }
 
 #include "DeiceVehicleInSim.h"
-AirsideVehicleInSim* AirsideSimulation::GenerateBaseTypeVehicle(int id,int nPrjID,CVehicleSpecificationItem *pVehicleSpecItem)
+AirsideVehicleInSim* AirsideSimulation::GenerateBaseTypeVehicle(int& nNextVehicleUnqiueID,int nPrjID,CVehicleSpecificationItem *pVehicleSpecItem,CVehicleSpecifications *pVehicleSpecifications)
 {
 	AirsideVehicleInSim *pVehicle = NULL;
 	enumVehicleBaseType vehicleBaseType = pVehicleSpecItem->getBaseType();
@@ -432,26 +414,62 @@ AirsideVehicleInSim* AirsideSimulation::GenerateBaseTypeVehicle(int id,int nPrjI
 		{
 			CPaxBusParkingResourceManager *pPaxParkingManager =  m_Resource.GetAirportResource()->getPaxParkingResouceManager();
 
-			pVehicle = new CAirsidePaxBusInSim(id,nPrjID,pVehicleSpecItem,pPaxParkingManager,m_pEngine);
+			pVehicle = new CAirsidePaxBusInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem,pPaxParkingManager,m_pEngine);
+			nNextVehicleUnqiueID += 1;
 		}
 		break;
 	case VehicleType_DeicingTruck:
 		{
-			 pVehicle = new DeiceVehicleInSim(id,nPrjID,pVehicleSpecItem);
+			 pVehicle = new DeiceVehicleInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem);
+			 nNextVehicleUnqiueID += 1;
 		}
 		break;
 	case VehicleType_TowTruck:
 		{
-			pVehicle = new AirsideTowTruckInSim(id,nPrjID,pVehicleSpecItem);
+			pVehicle = new AirsideTowTruckInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem);
+			nNextVehicleUnqiueID += 1;
 		}
 		break;
 	case VehicleType_FollowMeCar:
 		{
-			pVehicle = new AirsideFollowMeCarInSim(id,nPrjID,pVehicleSpecItem);
+			pVehicle = new AirsideFollowMeCarInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem);
+			nNextVehicleUnqiueID += 1;
+		}
+		break;
+	case VehicleType_BaggageTug:
+		{
+			//baggage train is a baggage tug
+			//but combining with several baggage carts
+			std::vector<int> vIDs;
+			pVehicleSpecifications->GetVehicleIDByBaseType(VehicleType_JointBagTug, vIDs);
+			CVehicleSpecificationItem * pBagCartsSpecItem = NULL;
+			if(vIDs.size())
+			{
+				pBagCartsSpecItem = pVehicleSpecifications->GetVehicleItemByID(vIDs.at(0));
+			}
+			AirsideBaggageTrainInSim *pBagTrain =  new AirsideBaggageTrainInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem, pBagCartsSpecItem, m_pEngine);
+			nNextVehicleUnqiueID += 1;
+			pVehicle = pBagTrain;
+
+			pBagTrain->Initialize(nNextVehicleUnqiueID);
+
+
+
+		}
+		break;
+	case  VehicleType_JointBagTug:
+		{//baggage cart would be generated while creating  AirsideBaggageTrainInSim
+			//based on the vehicle specification
+			//the max number of carts could be leaded by the tug 
+
 		}
 		break;
 	default:
-		pVehicle = new AirsideVehicleInSim(id,nPrjID,pVehicleSpecItem);
+		{
+			pVehicle = new AirsideVehicleInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem);
+			nNextVehicleUnqiueID += 1;
+		}
+
 
 	}
 	return pVehicle;
@@ -500,6 +518,7 @@ bool AirsideSimulation::Initialize( int nPrjID,const AirsideSimConfig& simconf )
 	CPaxBusParkingResourceManager *pPaxParkingManager =  m_Resource.GetAirportResource()->getPaxParkingResouceManager();
 	ASSERT(pPaxParkingManager);
 	m_pVehicleRequestDispatcher->SetPaxBusParkingResourceManager(pPaxParkingManager);
+	m_pVehicleRequestDispatcher->SetBagCartsParkingSpotResourceManager( m_Resource.GetAirportResource()->getBagCartsParkingSpotResManager());
 	m_bInitialized = true;
 	return true;
 }

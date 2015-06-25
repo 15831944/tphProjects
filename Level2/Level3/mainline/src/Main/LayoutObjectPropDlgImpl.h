@@ -17,6 +17,47 @@ class ITerminalEditContext;
 class CUnitPiece;
 class ControlPath;
 
+#define PARK_SPOT_WIDTH "Spot Width"
+#define PARK_SPOT_LENGTH "Spot Length"
+#define PARK_SPOT_ANGLE "Spot Angle"
+#define PARK_SPOT_TYPE "Spot Type"
+#define PARK_SPOT_OPERRATION "Operation"
+
+
+enum PLItemType
+{
+	_NonType,
+	_LevelRoot,
+	_BaseLevel,	
+	_OtherLevel,
+	_Height,
+	_Thickness,
+	_AreaRoot,
+	_Area,		
+	_AreaPath,
+	_AreaVisible,
+	_ParkSpaceRoot,
+	_ParkSpace, //parking space root
+	_PSType,  //parking space type
+	_PSPath,  //parking space path
+	_PSWidth, //parking space width
+	_PSLength,  //parking space length
+	_PSAngle,  //parking space angle
+	_PSOperation, //parking space operation
+	_EntryExitRoot,
+	_EntryExit,
+	_LinePath,
+	_EntExitPort,
+	_LaneNodeRoot,
+	_LaneNode,
+	_ParkDrivePipeRoot,
+	_ParkDrivePipe,
+	_PPPath,
+	_PPWidth,
+	_PPLaneNum,
+	_PPDirection,
+};	
+
 class ILayoutObjectPropDlgImpl
 {
 public:

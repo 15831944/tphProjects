@@ -4,37 +4,27 @@
 #include "LandsideStretchInSim.h"
 #include "LandsideVehicleInSim.h"
 #include "LandsideIntersectionInSim.h"
+#include "LandsideResourceManager.h"
+#include "Landside/LandsideLinkStretchObject.h"
+#include "LaneSegInSim.h"
 
 LaneParkingSpot::LaneParkingSpot( LandsideLaneInSim * plane , DistanceUnit distf, DistanceUnit distT, LandsideResourceInSim* pParent )
 {
-	mpParent = pParent;
+	m_pParent = pParent;
 	mdistF = distf;
 	mdistT = distT;
 	mpOnLane = plane;
 	pLeft = pRight = pHead = pBehind = NULL;
-	mpOrderVehicle = NULL;
+
+	double dIndexInLane = mpOnLane->GetPath().GetDistIndex( 0.5*(distf+distT));
+	m_pos = mpOnLane->GetPath().GetIndexPoint(dIndexInLane);
+	m_dir = mpOnLane->GetPath().GetIndexDir(dIndexInLane);
+	m_dir.Normalize();
+
+	m_startPos = mpOnLane->GetPath().GetDistPoint(distf);
+	m_endPos = mpOnLane->GetPath().GetDistPoint(distT);
 }
 
-CPoint2008 LaneParkingSpot::GetEndPos() const
-{
-	return mpOnLane->GetDistPoint(mdistT);
-}
-
-CPoint2008 LaneParkingSpot::GetParkingPos() const
-{
-	return mpOnLane->GetDistPoint(GetDistInLane());
-}
-
-
-ARCVector3 LaneParkingSpot::GetParkingPosDir() const
-{
-	return mpOnLane->GetDistDir(GetDistInLane());
-}
-
-CPoint2008 LaneParkingSpot::GetStartPos() const
-{
-	return mpOnLane->GetDistPoint(mdistF);
-}
 
 void LaneParkingSpot::OnVehicleEnter( LandsideVehicleInSim* pVehicle, DistanceUnit dist,const ElapsedTime& t )
 {
@@ -48,28 +38,30 @@ void LaneParkingSpot::OnVehicleExit( LandsideVehicleInSim* pVehicle,const Elapse
 	__super::OnVehicleExit(pVehicle,t);
 }
 
-LaneParkingSpotsGroup::~LaneParkingSpotsGroup()
+
+InLaneParkingSpotsGroup::~InLaneParkingSpotsGroup()
 {
 	cpputil::deletePtrVector(mvParkingSpots);
 }
 
-void LaneParkingSpotsGroup::addLane( LandsideStretchLaneInSim* pLane, DistanceUnit distF, DistanceUnit distT,DistanceUnit spotlength,LandsideResourceInSim* pParent )
+void InLaneParkingSpotsGroup::addLane( LandsideStretchLaneInSim* pLane, DistanceUnit distF, DistanceUnit distT,DistanceUnit spotlength,LandsideResourceInSim* pParent )
 {
 	pLane->SetHasParkingSpot(true);
 	int nCount  =  MAX(1, static_cast<int>((distT - distF)/spotlength) );
 	DistanceUnit distInc =  distF; 
 	LaneParkingSpot* pSpot = NULL;
-	for(int i=0;i<nCount;i++){
+	for(int i=0;i<nCount;i++)
+	{
 		pSpot = new LaneParkingSpot(pLane,distInc, distInc + spotlength, pParent);
 		distInc += spotlength;
 		pSpot->m_index = i;
 		mvParkingSpots.push_back(pSpot);		
 	}
 
-
+	pLane->SetHasParkingSpot(true);
 }
 
-LandsideResourceInSim* LaneParkingSpotsGroup::getLeft( LaneParkingSpot* pthis )const
+LandsideResourceInSim* InLaneParkingSpotsGroup::getLeft( LaneParkingSpot* pthis )const
 {
 	LandsideLaneInSim* LeftLane = pthis->mpOnLane->getLeft();
 	if(LeftLane){
@@ -80,7 +72,7 @@ LandsideResourceInSim* LaneParkingSpotsGroup::getLeft( LaneParkingSpot* pthis )c
 	return LeftLane;
 }
 
-LaneParkingSpot* LaneParkingSpotsGroup::getSpot( LandsideLaneInSim* pLane, int idx ) const
+LaneParkingSpot* InLaneParkingSpotsGroup::getSpot( LandsideLaneInSim* pLane, int idx ) const
 {
 	for(size_t i=0;i<mvParkingSpots.size();i++){
 		LaneParkingSpot* pspot = mvParkingSpots[i];
@@ -92,7 +84,7 @@ LaneParkingSpot* LaneParkingSpotsGroup::getSpot( LandsideLaneInSim* pLane, int i
 	return NULL;
 }
 
-LaneParkingSpot* LaneParkingSpotsGroup::getSpot( LandsideVehicleInSim* pVehicle )const
+LaneParkingSpot* InLaneParkingSpotsGroup::getSpot( LandsideVehicleInSim* pVehicle )const
 {
 	for(size_t i=0;i<mvParkingSpots.size();i++){
 		LaneParkingSpot* pspot = mvParkingSpots[i];
@@ -103,7 +95,7 @@ LaneParkingSpot* LaneParkingSpotsGroup::getSpot( LandsideVehicleInSim* pVehicle 
 	return NULL;
 }
 
-LandsideResourceInSim* LaneParkingSpotsGroup::getRight( LaneParkingSpot* pthis )const
+LandsideResourceInSim* InLaneParkingSpotsGroup::getRight( LaneParkingSpot* pthis )const
 {
 	LandsideLaneInSim* rightlane = pthis->mpOnLane->getRight();
 	if(rightlane){
@@ -114,7 +106,7 @@ LandsideResourceInSim* LaneParkingSpotsGroup::getRight( LaneParkingSpot* pthis )
 	return rightlane;
 }
 
-LandsideResourceInSim* LaneParkingSpotsGroup::getHead( LaneParkingSpot* pthis )const
+LandsideResourceInSim* InLaneParkingSpotsGroup::getHead( LaneParkingSpot* pthis )const
 {
 	if(pthis->m_index >0 ){
 		return getSpot(pthis->mpOnLane,pthis->m_index-1);
@@ -122,7 +114,7 @@ LandsideResourceInSim* LaneParkingSpotsGroup::getHead( LaneParkingSpot* pthis )c
 	return pthis->mpOnLane;
 }
 
-LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath )const
+LaneParkingSpot* InLaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath )const
 {
 	LandsideResourceInSim* pAtRes = pVehicle->getLastState().getLandsideRes();
 	if(!pAtRes) return NULL;
@@ -140,7 +132,7 @@ LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pV
 	return NULL;
 }
 
-LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPosRandom( LandsideVehicleInSim* pVehicle, LandsideLaneInSim* pLane , LandsideLaneNodeList& followPath ) const
+LaneParkingSpot* InLaneParkingSpotsGroup::FindParkingPosRandom( LandsideVehicleInSim* pVehicle, LandsideLaneInSim* pLane , LandsideLaneNodeList& followPath ) const
 {
 	ASSERT(pLane);
 
@@ -163,7 +155,7 @@ LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPosRandom( LandsideVehicleInS
 	return NULL;
 }
 
-LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPosRandom( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath ) const
+LaneParkingSpot* InLaneParkingSpotsGroup::FindParkingPosRandom( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath ) const
 {
 	LandsideResourceInSim* pAtRes = pVehicle->getLastState().getLandsideRes();
 	if(!pAtRes) return NULL;
@@ -182,7 +174,7 @@ LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPosRandom( LandsideVehicleInS
 //	return FindLeavePath(pVehicle,pSpot,followPath);	
 //}
 
-bool LaneParkingSpotsGroup::FindLeavePath( LandsideVehicleInSim* pVehicle, LaneParkingSpot* pSpot, LandsideLaneNodeList& followPath )
+bool InLaneParkingSpotsGroup::FindLeavePath( LandsideVehicleInSim* pVehicle, LaneParkingSpot* pSpot, LandsideLaneNodeList& followPath )
 {
 	LandsideLaneInSim* pAtLane = pSpot->GetLane();
 	CPoint2008 dAtPos = pVehicle->getLastState().pos;
@@ -222,20 +214,23 @@ bool LaneParkingSpotsGroup::FindLeavePath( LandsideVehicleInSim* pVehicle, LaneP
 	return false;
 }
 
-void LaneParkingSpotsGroup::ReleaseParkingPos( LandsideVehicleInSim* pVehicle,const ElapsedTime& t )
+void InLaneParkingSpotsGroup::ReleaseParkingPos( LandsideVehicleInSim* pVehicle,const ElapsedTime& t )
 {
-	for(size_t i=0;i<mvParkingSpots.size();i++){
+	for(size_t i=0;i<mvParkingSpots.size();i++)
+	{
 		LaneParkingSpot* pSpot = mvParkingSpots[i];
-		if(pSpot->GetPreOccupy() == pVehicle){
+		if(pSpot->GetPreOccupy() == pVehicle)
+		{
 			pSpot->SetPreOccupy(NULL);
 		}
-		if(pSpot->bHasVehicle(pVehicle)){			
+		if(pSpot->bHasVehicle(pVehicle))
+		{			
 			pSpot->OnVehicleExit(pVehicle,t);
 		}		
 	}
 }
 
-bool LaneParkingSpotsGroup::FindParkspotPath( LandsideLaneInSim* pFromlane, const CPoint2008& dFromPos, LaneParkingSpot* pSpot, LandsideLaneNodeList& followPath )const
+bool InLaneParkingSpotsGroup::FindParkspotPath( LandsideLaneInSim* pFromlane, const CPoint2008& dFromPos, LaneParkingSpot* pSpot, LandsideLaneNodeList& followPath )const
 {
 	
 	CPoint2008 entryPos;
@@ -275,7 +270,7 @@ bool LaneParkingSpotsGroup::FindParkspotPath( LandsideLaneInSim* pFromlane, cons
 	return false;
 }
 
-LandsideResourceInSim* LaneParkingSpotsGroup::getBehind( LaneParkingSpot* pthis ) const
+LandsideResourceInSim* InLaneParkingSpotsGroup::getBehind( LaneParkingSpot* pthis ) const
 {
 	if(pthis->m_index >0 ){
 		if(LaneParkingSpot* pSpot = getSpot(pthis->mpOnLane,pthis->m_index+1) ){
@@ -286,7 +281,7 @@ LandsideResourceInSim* LaneParkingSpotsGroup::getBehind( LaneParkingSpot* pthis 
 }
 
 
-LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpot( LaneParkingSpot* pSpot, CPoint2008& pos )const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpot( LaneParkingSpot* pSpot, CPoint2008& pos )const
 {
 	if(m_bLeftDrive)
 	{
@@ -315,7 +310,7 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpot( LaneParkingSpot* pSp
 	return NULL;	
 }
 
-LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLane( LaneParkingSpot* pSpot,CPoint2008& pos )const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLane( LaneParkingSpot* pSpot,CPoint2008& pos )const
 {	
 	if(m_bLeftDrive)
 	{
@@ -346,14 +341,16 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLane( LaneParkingSpot* pS
 struct ParkingSpotOrder
 {
 public:
-	bool operator()(LaneParkingSpot* p1, LaneParkingSpot*p2){
+	bool operator()(LaneParkingSpot* p1, LaneParkingSpot*p2)
+	{
 		return p1->GetDistInLane() > p2->GetDistInLane();
 	}
 };
 
-void LaneParkingSpotsGroup::InitSpotRelations()
+void InLaneParkingSpotsGroup::InitSpotRelations()
 {
-	for(size_t i=0;i<mvParkingSpots.size();i++){
+	for(size_t i=0;i<mvParkingSpots.size();i++)
+	{
 		LaneParkingSpot* pspot = mvParkingSpots[i];
 		pspot->pHead = getHead(pspot);
 		ASSERT(pspot->pHead!=pspot);
@@ -370,18 +367,22 @@ void LaneParkingSpotsGroup::InitSpotRelations()
 	std::sort(mvParkingSpots.begin(),mvParkingSpots.end(),ParkingSpotOrder());
 }
 
-LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* pSpot, CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* pSpot, CPoint2008& pos ) const
 {
 	//find right
-	if(LandsideResourceInSim* pRes = pSpot->pRight){
-		if(LandsideLaneInSim* pLane = pRes->toLane()){
+	if(LandsideResourceInSim* pRes = pSpot->pRight)
+	{
+		if(LandsideLaneInSim* pLane = pRes->toLane())
+		{
 			pos = pSpot->GetStartPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
-			if(pNextSpot->GetPreOccupy()==NULL){ //the spot is empty
-				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot,pos) ){
+			if(pNextSpot->GetPreOccupy()==NULL)
+			{ //the spot is empty
+				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot->toInLanePark(),pos) )
+				{
 					return pNextLane;
 				}
 			}
@@ -393,10 +394,10 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* pS
 			pos = pSpot->GetStartPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
 			if(pNextSpot->GetPreOccupy()==NULL){ //the spot is empty
-				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot,pos) ){
+				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot->toInLanePark(),pos) ){
 					return pNextLane;
 				}
 			}
@@ -406,18 +407,22 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* pS
 	return NULL;
 }
 
-LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* pSpot, CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* pSpot, CPoint2008& pos ) const
 {	
 	//find left
-	if(LandsideResourceInSim* pRes = pSpot->pLeft){
-		if(LandsideLaneInSim* pLane = pRes->toLane()){
+	if(LandsideResourceInSim* pRes = pSpot->pLeft)
+	{
+		if(LandsideLaneInSim* pLane = pRes->toLane())
+		{
 			pos = pSpot->GetStartPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
-			if(pNextSpot->GetPreOccupy()==NULL){ //the spot is empty
-				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot,pos) ){
+			if(pNextSpot->GetPreOccupy()==NULL)
+			{ //the spot is empty
+				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot->toInLanePark(),pos) )
+				{
 					return pNextLane;
 				}
 			}
@@ -425,15 +430,19 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* pS
 	}
 
 	//find head
-	if(LandsideResourceInSim* pRes = pSpot->pHead){
-		if(LandsideLaneInSim* pLane = pRes->toLane()){
+	if(LandsideResourceInSim* pRes = pSpot->pHead)
+	{
+		if(LandsideLaneInSim* pLane = pRes->toLane())
+		{
 			pos = pSpot->GetStartPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
-			if(pNextSpot->GetPreOccupy()==NULL){ //the spot is empty
-				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot,pos) ){
+			if(pNextSpot->GetPreOccupy()==NULL)
+			{ //the spot is empty
+				if(LandsideLaneInSim* pNextLane= FindPosEntrySpot(pNextSpot->toInLanePark(),pos) )
+				{
 					return pNextLane;
 				}
 			}
@@ -443,7 +452,7 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* pS
 	return NULL;
 }
 
-LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* pSpot,CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* pSpot,CPoint2008& pos ) const
 {
 	
 	//find right
@@ -452,10 +461,10 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* p
 			pos = pSpot->GetEndPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
 			if(pNextSpot->GetPreOccupy()==NULL){
-				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot,pos) ){
+				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot->toInLanePark(),pos) ){
 					return pNextLane;
 				}
 			}	
@@ -468,10 +477,10 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* p
 			pos = pSpot->GetEndPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
 			if(pNextSpot->GetPreOccupy()==NULL){
-				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot,pos) ){
+				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot->toInLanePark(),pos) ){
 					return pNextLane;
 				}
 			}			
@@ -480,7 +489,7 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* p
 	return NULL;
 }
 
-LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* pSpot,CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* pSpot,CPoint2008& pos ) const
 {
 	
 	//find left
@@ -489,10 +498,10 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* p
 			pos = pSpot->GetEndPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
 			if(pNextSpot->GetPreOccupy()==NULL){
-				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot,pos) ){
+				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot->toInLanePark(),pos) ){
 					return pNextLane;
 				}
 			}	
@@ -504,10 +513,10 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* p
 			pos = pSpot->GetEndPos();
 			return pLane;
 		}
-		else if(LaneParkingSpot* pNextSpot = pRes->toLaneSpot())
+		else if(IParkingSpotInSim* pNextSpot = pRes->toLaneSpot())
 		{
 			if(pNextSpot->GetPreOccupy()==NULL){
-				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot,pos) ){
+				if(LandsideLaneInSim* pNextLane= FindPosExitToLane(pNextSpot->toInLanePark(),pos) ){
 					return pNextLane;
 				}
 			}			
@@ -516,7 +525,7 @@ LandsideLaneInSim* LaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* p
 	return NULL;
 }
 
-LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneInSim* pLane , LandsideLaneNodeList& followPath ) const
+LaneParkingSpot* InLaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneInSim* pLane , LandsideLaneNodeList& followPath ) const
 {
 	ASSERT(pLane);
 
@@ -535,3 +544,274 @@ LaneParkingSpot* LaneParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pV
 	}
 	return NULL;
 }
+
+void InLaneParkingSpotsGroup::Init( LandsideLinkStretchObject * pLinkStretch,LandsideStretchInSim* pStretch, LandsideResourceInSim* parent )
+{
+	//CPoint2008 ptFrom = pStretch->m_Path.GetDistPoint(pLinkStretch->getDistFrom());
+	//CPoint2008 ptTo = pStretch->m_Path.GetDistPoint(pLinkStretch->getDistTo());
+	
+	double dIndexFrom = pStretch->m_Path.GetDistIndex(pLinkStretch->getDistFrom());
+	double dIndexTo = pStretch->m_Path.GetDistIndex(pLinkStretch->getDistTo());
+
+
+	int iLaneForm = MIN(pLinkStretch->m_nLaneTo-1,pLinkStretch->m_nLaneFrom-1);
+	int iLaneTo = MAX(pLinkStretch->m_nLaneTo-1,pLinkStretch->m_nLaneFrom-1);
+	iLaneForm = MAX(0,iLaneForm); 
+	iLaneForm = MIN(iLaneForm,pStretch->GetLaneCount()-1);
+	iLaneTo = MAX(0,iLaneTo); 
+	iLaneTo = MIN(iLaneTo,pStretch->GetLaneCount()-1);
+
+	for(int i=iLaneForm;i<=iLaneTo;i++)
+	{
+		LandsideStretchLaneInSim* pLane = pStretch->GetLane(i);
+		if(pLane)
+		{
+			DistanceUnit distF = pLane->GetPath().GetIndexDist(dIndexFrom);
+			DistanceUnit distT = pLane->GetPath().GetIndexDist(dIndexTo);
+
+			m_vLaneOccupy.push_back(new LaneSegInSim(pLane, distF,distT));
+			addLane(pLane,distF,distT,pLinkStretch->m_dSpotLength,parent);
+		}
+	}
+	InitSpotRelations();
+}
+
+void LandsideInterfaceParkingSpotsGroup::Init(LandsideLinkStretchObject * pLinkStretch,LandsideResourceManager* allRes,LandsideResourceInSim* parent )
+{
+
+	LandsideStretchInSim*pStretch = allRes->getStretchByID(pLinkStretch->getStrech()->getID());
+	if(!pStretch)
+		return;
+
+	double  indexEntry = pStretch->m_Path.getCount();
+	double indexExit = 0;
+
+	if(pLinkStretch->m_bUseInStretchParking)
+	{
+		m_inlaneGroup.Init(pLinkStretch, pStretch ,parent);
+
+		indexEntry = pStretch->m_Path.GetDistIndex(pLinkStretch->getDistFrom());
+		indexExit  = pStretch->m_Path.GetDistIndex(pLinkStretch->getDistTo());
+	}
+	if(true)
+	{
+		m_outLaneGroup.Init(pLinkStretch,pStretch,parent);
+		m_outLaneGroup.getMinEntryExit(indexEntry, indexExit);
+	}
+	
+	m_dEntryIndexInStretch = indexEntry;
+	m_dExitIndexInStretch = indexExit;
+}
+
+
+IParkingSpotInSim * LandsideInterfaceParkingSpotsGroup::FindParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath ) const
+{
+
+	if(IParkingSpotInSim * pret = m_inlaneGroup.FindParkingPos(pVehicle, followPath))
+		return pret;
+
+	//find in the out lane parking
+	if(IParkingSpotInSim* pret = m_outLaneGroup.FindParkingSpot(pVehicle,followPath))
+		return pret;
+
+	return NULL;
+
+}
+
+bool LandsideInterfaceParkingSpotsGroup::FindLeavePosition( LandsideVehicleInSim* pVehicle, IParkingSpotInSim* pSpot, LandsidePosition& pos )
+{
+	if(OutLaneParkingSpot* outLaneSpot = pSpot->toOutLanePark())
+	{
+		pos.pRes = outLaneSpot->getLinkLane();
+		pos.distInRes = outLaneSpot->getExitDistInLane();
+		pos.pos = outLaneSpot->getLinkLane()->GetDistPoint(outLaneSpot->getExitDistInLane());
+		return true;
+	}
+	else if(LaneParkingSpot* inlaneSpot = pSpot->toInLanePark() )
+	{
+		LandsideLaneNodeList retPath;
+		if( m_inlaneGroup.FindLeavePath(pVehicle, inlaneSpot, retPath) )
+		{
+			if(!retPath.empty())
+			{
+				LandsideLaneNodeInSim* pNode = retPath.back();
+				LandsideLaneInSim* plane =  pNode->mpLane;
+				pos.pRes = pNode->mpLane;
+				pos.pos = pNode->m_pos;
+				pos.distInRes = pNode->m_distInlane;
+				return true;
+			}
+			else
+			{
+				ASSERT(FALSE);
+			}
+		}
+	}
+	return false;
+}
+
+void OutLaneParkingSpotGroup::addParkingSpace( ParkingSpace & space,LandsideStretchInSim* pLinkStretch,double dHeight, LandsideResourceInSim* parent)
+{
+	int i=0;
+	CPoint2008 pos;
+	ARCVector3 dir;
+	CPoint2008 entrypos;
+
+	while(space.GetSpotDirPos(i,pos,dir,entrypos))
+	{
+		pos.setZ(dHeight);
+		entrypos.setZ(dHeight);
+
+		DistanceUnit distInLane ;
+		if(LandsideStretchLaneInSim* pLane = pLinkStretch->GetNearestLane(pos, distInLane))
+		{
+			OutLaneParkingSpot* pSpot = new OutLaneParkingSpot(pLane, parent);		
+
+			pSpot->SetPosDir(pos,dir);
+			pSpot->SetEntryExitDist(distInLane, distInLane);
+			m_vSpots.push_back(pSpot);
+		}		
+		++i;
+	}
+}
+
+void OutLaneParkingSpotGroup::Init( LandsideLinkStretchObject * pLinkStretch,LandsideStretchInSim* pStretch,LandsideResourceInSim* parent )
+{
+	CPoint2008 linkStetchPos  = pStretch->m_Path.GetDistPoint(pLinkStretch->getDistFrom());
+
+	for(int i=0;i< pLinkStretch->m_outStretchParkingspace.getCount();i++)
+	{
+		addParkingSpace(pLinkStretch->m_outStretchParkingspace.getSpace(i), pStretch, linkStetchPos.z, parent);
+	}
+}
+
+void OutLaneParkingSpotGroup::getMinEntryExit( double& dentrydistinStertch, double& dexitinStretch ) const
+{
+	for(size_t i=0;i<m_vSpots.size();i++)
+	{
+		OutLaneParkingSpot* pSpot = m_vSpots.at(i);
+		dentrydistinStertch = MIN( pSpot->getEntryIndexInlane(), dentrydistinStertch);
+		dexitinStretch = MAX(pSpot->getExitIndexInlane(), dexitinStretch);
+	}
+}
+
+bool OutLaneParkingSpotGroup::_getParkspotPath( LandsideLaneInSim* pFromlane, const CPoint2008& dFromPos, OutLaneParkingSpot* pSpot, LandsideLaneNodeList& followPath ) const
+{
+	LandsideLaneInSim* pEntrySpotLane = pSpot->getLinkLane();
+	DistanceUnit entrypos = pSpot->getEntryDistInLane();		
+
+	//build path to the lane entry//////////////////////////////////////////////////////////////////////////
+	LandsideLaneEntry* pLaneEntry = new LandsideLaneEntry();		
+	pLaneEntry->SetPosition(pFromlane,dFromPos);
+	pLaneEntry->SetFromRes(pFromlane);
+	followPath.push_back(pLaneEntry);
+
+	if(pEntrySpotLane!=pFromlane)
+	{
+		LandsideLaneExit* pLaneExit = new LandsideLaneExit();
+		pLaneExit->SetPosition(pFromlane, dFromPos );
+		pLaneExit->SetToRes(pEntrySpotLane);
+		followPath.push_back(pLaneExit);		
+
+		LandsideLaneEntry* pLastEntry = new LandsideLaneEntry();
+		pLastEntry->SetPosition(pEntrySpotLane,dFromPos);
+		pLastEntry->SetFromRes(pFromlane);
+		followPath.push_back(pLastEntry);
+	}
+
+	LandsideLaneExit* pLastLaneExit = new LandsideLaneExit();
+	pLastLaneExit->SetPosition(pEntrySpotLane,entrypos);
+	pLastLaneExit->SetToRes(pSpot);
+	followPath.push_back(pLastLaneExit);	
+	//////////////////////////////////////////////////////////////////////////
+
+	return true;	//}
+}
+
+OutLaneParkingSpot* OutLaneParkingSpotGroup::_findParkingPos( LandsideVehicleInSim* pVehicle, LandsideLaneInSim* patLane, LandsideLaneNodeList& followPath )const
+{
+	const CPoint2008& dFromPos =  pVehicle->getLastState().pos;
+
+	std::vector<OutLaneParkingSpot*> vSpots = m_vSpots;
+	std::random_shuffle(vSpots.begin(),vSpots.end());
+
+	for(size_t i=0;i<vSpots.size();i++)
+	{
+		OutLaneParkingSpot* pSpot = vSpots[i];
+		if(pSpot->GetPreOccupy()==NULL)
+		{
+			ASSERT(pSpot->GetPreOccupy()!=pVehicle);
+			if(_getParkspotPath(patLane,dFromPos,pSpot,followPath))
+			{
+				return pSpot;
+			}
+		}		
+	}
+	return NULL;
+}
+
+OutLaneParkingSpot* OutLaneParkingSpotGroup::FindParkingSpot( LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath )const
+{
+	LandsideResourceInSim* pAtRes = pVehicle->getLastState().getLandsideRes();
+	if(!pAtRes) return NULL;
+
+	LandsideLaneInSim* pAtLane = NULL; pAtRes->toLane();
+
+	pAtLane = pAtRes->toLane();
+	if(!pAtLane)
+	{
+		LandsideIntersectLaneLinkInSim* pLaneLink = pAtRes->toIntersectionLink();
+		if(pLaneLink)
+		{
+			pAtLane = pLaneLink->getToNode()->mpLane;
+		}
+	}
+	if(pAtLane)
+	{
+		return _findParkingPos(pVehicle,pAtLane,followPath);
+	}
+
+	return NULL;
+}
+
+void IParkingSpotInSim::OnVehicleExit( LandsideVehicleInSim* pVehicle,const ElapsedTime& t )
+{
+	if(GetPreOccupy() == pVehicle)
+	{
+		SetPreOccupy(NULL);
+	}
+	__super::OnVehicleExit(pVehicle,t);
+}
+
+void IParkingSpotInSim::SetPosDir( const ARCPoint3& pos ,const ARCVector3& dir )
+{
+	m_pos = pos;
+	m_dir = dir;
+	m_dir.Normalize();
+}
+
+LandsideLayoutObjectInSim* IParkingSpotInSim::getLayoutObject() const
+{
+	return m_pParent->getLayoutObject();
+}
+
+IParkingSpotInSim::IParkingSpotInSim()
+{
+	mpOrderVehicle = NULL;
+	m_pParent = NULL;
+}
+
+OutLaneParkingSpot::OutLaneParkingSpot( LandsideLaneInSim* pLinkLane, LandsideResourceInSim* parent )
+{
+	m_pLinkLane = pLinkLane;
+	m_pParent = parent;
+}
+
+void OutLaneParkingSpot::SetEntryExitDist( DistanceUnit entryDist, DistanceUnit exitDist )
+{
+	m_entryDistInLane = entryDist;
+	m_exitDistInlane = exitDist;
+	m_dIndexEntry = m_pLinkLane->GetPath().GetDistIndex(m_entryDistInLane);
+	m_dIndexExit = m_pLinkLane->GetPath().GetDistIndex(m_exitDistInlane);
+}
+

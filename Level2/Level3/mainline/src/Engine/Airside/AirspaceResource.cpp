@@ -815,6 +815,9 @@ double FlightRouteInSim::CalculateDistanceFromLastSegToLogicRunway( AirsideFligh
 		return -1L;
 
 	int nCount = m_vItems.size();
+	if(nCount<2)
+		return 0; 
+
 	AirRouteSegInSim *pLastSegmentInSim = (AirRouteSegInSim*)m_vItems.at(nCount-2);
 	LogicRunwayInSim *pLogicRunway = pFlight->GetLandingRunway();
 

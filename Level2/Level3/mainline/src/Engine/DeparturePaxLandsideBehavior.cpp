@@ -25,6 +25,7 @@
 #include "FacilityBehaviorsInSim.h"
 #include "LandsideSimErrorShown.h"
 #include "Landside/LandsideCurbSide.h"
+#include "Landside/LandsideBusStation.h"
 
 
 
@@ -370,6 +371,7 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 
 
 						//check the bus station that this bus station could lead to
+						double dShortestdist = (std::numeric_limits<double>::max)();
 						for (int nEmbedBusStation = 0; nEmbedBusStation < nEmbedStationCount; ++ nEmbedBusStation)
 						{
 							LandsideBusStationInSim *pEmbedBusStation = pParkingLot->GetEmbedBusStation(nEmbedBusStation);
@@ -378,7 +380,20 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 							if(pEmbedBusStation->CanLeadTo(eTime, pLinkedBusStation))
 							{
 								mapEmbedDestStation[pEmbedBusStation].push_back(pLinkedBusStation);
-								vCanSelectedStation.push_back(pEmbedBusStation);
+								CPoint2008 ptBusStation;
+								ptBusStation = pEmbedBusStation->getBusStation()->get2DCenter();
+								double dDist = getPoint().DistanceTo(ptBusStation);
+								if (dDist < dShortestdist)
+								{
+									dShortestdist = dDist;
+									vCanSelectedStation.clear();
+									vCanSelectedStation.push_back(pEmbedBusStation);
+								}
+								else if (dDist == dShortestdist)
+								{
+									vCanSelectedStation.push_back(pEmbedBusStation);
+								}
+								//vCanSelectedStation.push_back(pEmbedBusStation);
 								//m_vDestBusStation.push_back(pLinkedBusStation);
 							}
 
@@ -431,14 +446,16 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 					//m_pLandsideSim->GetLandsideTerminalLinkageManager()->
 					
 					LandsideResourceInSim* pCurrentResource = m_pVehicle->getLastState().getLandsideRes();
-					int nParkinglotLevel = 0;
+					//int nParkinglotLevel = 0;
+					int nParkingLotLevelID = 0;
 					if(pCurrentResource && pCurrentResource->toParkLotSpot())
 					{
 						LandsideParkingSpotInSim *pParkingSpot = pCurrentResource->toParkLotSpot(); 
-						nParkinglotLevel = pParkingSpot->getParkingLotLevelIndex();
+					//	nParkinglotLevel = pParkingSpot->getParkingLotLevelIndex();
+						nParkingLotLevelID = pParkingSpot->GetParkingLotLevelID();
 					}
 					std::vector<ALTObjectID> vAltTerminalProc;
-					m_pLandsideSim->getFacilityBehaviors()->GetTerminalProcLinkedWithParkingLot(pParkingLot->getName(), nParkinglotLevel, vAltTerminalProc);
+					m_pLandsideSim->getFacilityBehaviors()->GetTerminalProcLinkedWithParkingLot(pParkingLot->getName(), nParkingLotLevelID, vAltTerminalProc);
 					if(vAltTerminalProc.size())
 					{
 						//get terminal processor which the passenger starts with
@@ -463,8 +480,9 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 							altEntryProcID.FromString(pEntryProc->getID()->GetIDString());
 							m_vLinkTerminalProc.push_back(altEntryProcID);
 							
+
 							CPoint2008 endPos;
-							endPos.init(ptServiceLocation.getX(),ptServiceLocation.getY(),ptServiceLocation.getZ()/SCALE_FACTOR);
+							endPos.init(ptServiceLocation.getX(),ptServiceLocation.getY(),startPos.getZ());
 							setDestination(endPos);
 
 							CLandsideTrafficSystem* pLandsideTrafficInSim = m_pLandsideSim->GetLandsideTrafficeManager();
@@ -518,14 +536,21 @@ void DeparturePaxLandsideBehavior::processMoveToFacility( const ElapsedTime& t )
 
 }
 
-void DeparturePaxLandsideBehavior::processArrivalAtCurbside( const ElapsedTime& t )
-{
-	LandsideCurbSideInSim* pCurbSide = (LandsideCurbSideInSim*)getResource();
-	double dTermFloor = (double)pCurbSide->getCurbInput()->m_nTernimalFloor;
-	//m_pVechile->RemoveOnVehiclePax(this);	
-	m_pVehicle->Activate(t);
-	processEntryTerminal(t,dTermFloor);
-}
+//void DeparturePaxLandsideBehavior::processArrivalAtCurbside( const ElapsedTime& t )
+//{
+//	Lansideres
+//	if(LandsideCurbSideInSim* pCurb = getResource()->toCurbSide() )
+//	{
+//
+//	}
+//
+//	LandsideCurbSideInSim* pCurbSide = (LandsideCurbSideInSim*)getResource();
+//	pCurbSide->getlink
+//	double dTermFloor = (double)pCurbSide->getCurbInput()->m_nTernimalFloor;
+//	//m_pVechile->RemoveOnVehiclePax(this);	
+//	m_pVehicle->Activate(t);
+//	processEntryTerminal(t,dTermFloor);
+//}
 
 void DeparturePaxLandsideBehavior::processArrivalAtTerminalPosition( const ElapsedTime& t )
 {
@@ -538,21 +563,21 @@ void DeparturePaxLandsideBehavior::processEntryTerminal( ElapsedTime p_time, dou
 
 	if( !simEngineConfig()->isSimTerminalMode() )
 	{
-		FlushLog(p_time);
+		flushLog(p_time);
 		return;
 	}
 
 	// arriving passenger.
 	if(m_pPerson->getLogEntry().isArriving())
 	{
-		FlushLog( p_time );
+		flushLog( p_time );
 		return;
 	}
 
 	// not departing and turn around, impossible, just flush log.
 	if(m_pPerson->getLogEntry().isArriving()&& !m_pPerson->getLogEntry().isTurnaround())
 	{
-		FlushLog( p_time );
+		flushLog( p_time );
 		return;
 	}
 
@@ -648,7 +673,7 @@ void DeparturePaxLandsideBehavior::processEntryTerminal( ElapsedTime p_time, dou
 	}
 	else
 	{
-		FlushLog(p_time);
+		flushLog(p_time);
 		return;
 	}
 

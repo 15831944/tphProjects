@@ -340,7 +340,7 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTrigge
 	int triggerCount = vTriggers.size();
 	for(int iTrigger=0; iTrigger<triggerCount; iTrigger++)
 	{
-		strItemText.Format("Trigger: %d", (iTrigger+1));
+		strItemText.Format("Trigger %d", (iTrigger+1));
 		cni.net = NET_NORMAL;
 		HTREEITEM hTrigger = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTriggerAll);
 		TreeNodeDataWithType* nodeDataTrigger = new TreeNodeDataWithType();
@@ -387,10 +387,10 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTrigge
 
 void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pResult) 
 {
+	DisableAllToolBarButtons();
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
 	if(!hSelItem)
 		return;
-	DisableAllToolBarButtons();
 	CString str = m_tree.GetItemText(hSelItem);
 	if(hSelItem == m_hRoot)
 	{
@@ -434,7 +434,10 @@ void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pRes
 		break;
 	case TREE_NODE_TRIGGER_TIME:
 	case TREE_NODE_TRIGGER_PROP:
-		m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
+		{
+			if(str != "Proportion of Pax: Residual")
+				m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
+		}
 		break;
 	default:
 		break;
@@ -469,7 +472,7 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 		fltConst = flightTypeDlg.GetFlightSelection();
 		if(pFlightTypeDB->findItemByConstraint(&fltConst) != INT_MAX)
 		{
-			MessageBox("Selected Flight Type is already exists.");
+			MessageBox("Selected Flight Type already exists.");
 		}
 		else 
 		{
@@ -508,7 +511,7 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 
 		if(pFlightTypeEntry->GetStandDatabase()->findEntry(procID) != INT_MAX)
 		{
-			MessageBox("Selected Stand is already exists.");
+			MessageBox("Selected Stand already exists.");
 		}
 		else
 		{
@@ -536,7 +539,7 @@ void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
 		if(pStandEntry->GetPaxTypeDatabase()->FindItemByConstraint(&mobElemConst) != INT_MAX)
 		{
-			MessageBox("Selected Passenger Type is already exists.");
+			MessageBox("Selected Passenger Type already exists.");
 		}
 		else
 		{
@@ -834,7 +837,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				}
 				else if(pfltTypeDB->findItemByConstraint(&fltConst) != INT_MAX)
 				{
-					MessageBox("Selected Flight Type is already exists.");
+					MessageBox("Selected Flight Type already exists.");
 				}
 				else
 				{
@@ -880,7 +883,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 
 				if(pFltTypeEntry->GetStandDatabase()->findEntry(procID) != INT_MAX)
 				{
-					MessageBox("Selected Stand is already exists.");
+					MessageBox("Selected Stand already exists.");
 				}
 				else
 				{
@@ -924,7 +927,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 				
 				if(pStandEntry->GetPaxTypeDatabase()->FindEqual(mobElemConst) != NULL)
 				{
-					MessageBox("Selected Passenger Type is already exists.");
+					MessageBox("Selected Passenger Type already exists.");
 				}
 				else
 				{
@@ -1222,13 +1225,13 @@ void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
 		return ;
 	if(hSelItem == m_hRoot)
 	{
-		CMenu menuProj;
-		menuProj.CreatePopupMenu();
-		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_STAGE, _T("Add Stage"));
-		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_ALL_STAGE, _T("Delete All Stages"));
-		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-		menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		CMenu menu;
+		menu.CreatePopupMenu();
+		menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_STAGE, _T("Add Stage"));
+		menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_ALL_STAGE, _T("Delete All Stages"));
+		menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+		menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+		menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
 		return;
 	}
 	m_tree.SelectItem(hSelItem);
@@ -1239,89 +1242,93 @@ void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
 	{
 	case TREE_NODE_STAGE:
 		{
-			CMenu menuProj;
-			menuProj.CreatePopupMenu();
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_FLIGHTTYPE, _T("Add Flight Type"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_STAGE, _T("Delete Stage"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_FLIGHTTYPE, _T("Add Flight Type"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_STAGE, _T("Delete Stage"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
 		}
 		break;
 	case TREE_NODE_FLIGHT_TYPE:
 		{
-			CMenu menuReport;
-			menuReport.CreatePopupMenu();
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_STAND, _T("Add Stand"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_FLIGHTTYPE, _T("Edit Flight Type"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_FLIGHTTYPE, _T("Delete Flight Type"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuReport.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_STAND, _T("Add Stand"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_FLIGHTTYPE, _T("Edit Flight Type"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_FLIGHTTYPE, _T("Delete Flight Type"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
 		}
 		break;	
 	case TREE_NODE_STAND:
 		{
-			CMenu menuReport;
-			menuReport.CreatePopupMenu();
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_PAXTYPE, _T("Add Passenger Type"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_STAND, _T("Edit Stand"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_STAND, _T("Delete Stand"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuReport.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuReport.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_PAXTYPE, _T("Add Passenger Type"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_STAND, _T("Edit Stand"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_STAND, _T("Delete Stand"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
 		}
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			CMenu menuProj;
-			menuProj.CreatePopupMenu();
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_PAXTYPE, _T("Edit Passenger Type"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_PAXTYPE, _T("Delete Passenger Type"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_PAXTYPE, _T("Edit Passenger Type"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_PAXTYPE, _T("Delete Passenger Type"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
 		}
 		break;
 	case TREE_NODE_TRIGGER_ALL:
 		{
-			CMenu menuProj;
-			menuProj.CreatePopupMenu();
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_TRIGGER, _T("Add Trigger"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERCOUNT, _T("Edit Trigger Count"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_TRIGGER, _T("Add Trigger"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERCOUNT, _T("Edit Trigger Count"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
 		}
 		break;
 	case TREE_NODE_TRIGGER:
 		{
-			CMenu menuProj;
-			menuProj.CreatePopupMenu();
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_TRIGGER, _T("Delete Trigger"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_TRIGGER, _T("Delete Trigger"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
 		}
 		break;
 	case TREE_NODE_TRIGGER_TIME:
 		{
-			CMenu menuProj;
-			menuProj.CreatePopupMenu();
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERTIME, _T("Edit Trigger Time"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			CMenu menu;
+			menu.CreatePopupMenu();
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERTIME, _T("Edit Trigger Time"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
 		}
 		break;
 	case TREE_NODE_TRIGGER_PROP:
 		{
-			CMenu menuProj;
-			menuProj.CreatePopupMenu();
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERPROP, _T("Edit Trigger Proportion"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menuProj.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			CString str = m_tree.GetItemText(hSelItem);
+			if(str != "Proportion of Pax: Residual")
+			{
+				CMenu menu;
+				menu.CreatePopupMenu();
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_TRIGGERPROP, _T("Edit Trigger Proportion"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+				menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);	
+			}	
 		}
 		break;
 	default:

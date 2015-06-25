@@ -550,6 +550,64 @@ bool CSingleCarSchedule::SelectBestSchedule( IntegratedStation* _pCurrentStation
 
 	return GetLocationAndTime( nSourceIdx, nDestIdx-1, arriveCurStationTime, _bestMovePath );
 }
+bool CSingleCarSchedule::SelectBestScheduleCircualtion( IntegratedStation* _pCurrentStation, IntegratedStation* _pDesStation, ElapsedTime arriveCurStationTime, std::vector<CViehcleMovePath>& _bestMovePath )
+{
+	/*
+	There are 2 kinds of car flow
+	1. A->B->C->D-C->B->A
+	2. A->B->C->D->A
+	There are both circulated. 
+	But 1st one, all stations are connected.
+	2nd, C can not lead to B
+
+	The following code to process this problem
+
+	*/
+	std::vector<int> vAvailablePath;
+
+	CARFLOW::const_iterator iter = m_carFlow.begin();
+	CARFLOW::const_iterator iterEnd = m_carFlow.end();
+
+	int nIdx = 0;
+	int nSourceIdx = -1;
+	int nDestIdx = -1;
+	for(; iter!=iterEnd; ++iter )
+	{
+		if( (*iter) == _pCurrentStation )
+			nSourceIdx = nIdx;
+		if( (*iter) == _pDesStation )
+		{
+			nDestIdx = nIdx;
+		}
+		if( nSourceIdx != -1 && nDestIdx != -1 && nSourceIdx< nDestIdx )
+			break;
+		nIdx++;
+	}
+
+	if( nSourceIdx < 0 || nDestIdx < 0 )
+		return false;
+
+	if(nDestIdx >= nSourceIdx)
+		return GetLocationAndTime( nSourceIdx, nDestIdx-1, arriveCurStationTime, _bestMovePath );
+	else
+	{
+		//start station to the end of flow
+		int nLastIndex =static_cast<int>(m_ViehcleMovePath.size()) - 1;
+		ASSERT(nLastIndex >= nSourceIdx);
+		GetLocationAndTime( nSourceIdx, nLastIndex, arriveCurStationTime, _bestMovePath );
+
+		int nPathCount = _bestMovePath.size();
+		if(_bestMovePath.size() > 0)
+		{
+			CViehcleMovePath& lastMovePath = _bestMovePath.at(_bestMovePath.size() - 1);
+			arriveCurStationTime = lastMovePath.GetDestArrTime();
+		}
+
+
+		//start of flow to dest station
+		return 	GetLocationAndTime( 0, nDestIdx-1, arriveCurStationTime, _bestMovePath );
+	}
+}
 
 bool CSingleCarSchedule::GetLocationAndTime( int _iSourceStationIndex, int _iDestStationIndex, ElapsedTime arriveCurStationTime, std::vector<CViehcleMovePath>& _bestMovePath )
 {
@@ -715,10 +773,10 @@ bool CSingleCarSchedule::GetNearestSchedule( IntegratedStation* _pCurrentStation
 		nIdx++;
 	}
 	
-	if( nSourceIdx < 0 || nDestIdx < 0 || nSourceIdx >= nDestIdx )
+	if( nSourceIdx < 0 || nDestIdx < 0 || nSourceIdx == nDestIdx )
 		return false;
-	
 
+	//calculate the source stations arrive time
 	ElapsedTime arrTime = m_ViehcleMovePath[nSourceIdx].GetArrTime();
 	ElapsedTime depTime = m_ViehcleMovePath[nSourceIdx].GetDepTime();
 	arrTime += m_scheduleStartTime;
@@ -749,17 +807,29 @@ bool CSingleCarSchedule::GetNearestSchedule( IntegratedStation* _pCurrentStation
 			arrTime += m_circleTime;
 		}
 		
-	}
-	
+	}	
 
-
-	_arriveDestStationTime = m_ViehcleMovePath[nDestIdx-1].GetDestArrTime();
-	_arriveDestStationTime += arrTime ;
 	if( nTrainIndex == 0 )
 		_arriveCurStationTime = arrTime;
 
-	
-		
+	if(nSourceIdx >= nDestIdx)
+	{
+		_arriveDestStationTime = m_ViehcleMovePath[nDestIdx-1].GetDestArrTime();
+		_arriveDestStationTime += arrTime ;
+
+	}
+	else
+	{
+
+		//start station to the end of flow
+		int nLastIndex =static_cast<int>(m_ViehcleMovePath.size()) - 1;
+		_arriveDestStationTime = m_ViehcleMovePath[nLastIndex-1].GetDestArrTime(); // the time offset that arrive at the last station
+
+		_arriveDestStationTime += arrTime ;
+
+		//plus the destination station time offset
+		_arriveDestStationTime = _arriveDestStationTime + m_ViehcleMovePath[nDestIdx-1].GetDestArrTime();
+	}
 
 	return true;
 }
@@ -779,7 +849,7 @@ bool CSingleCarSchedule::IfScheduleBetweenStations( IntegratedStation* _pSourceS
 		{
 			nDestIdx = nIdx;
 		}
-		if( nSourceIdx != -1 && nDestIdx != -1 && nSourceIdx< nDestIdx )
+		if( nSourceIdx != -1 && nDestIdx != -1 /*&& nSourceIdx< nDestIdx*/ )
 			return true;	
 		nIdx++;
 	}
@@ -1078,6 +1148,7 @@ CStationLayout * CSingleCarSchedule::GetStationLayout()
 	
 	return NULL;
 }
+
 
 /*************************************/
 /*************************************/

@@ -63,7 +63,6 @@
 				GenerateMapFile="FALSE"
 				MapFileName="../../bin/ARCTerm.map"
 				SubSystem="2"
-				StackReserveSize="52428800"
 				ImportLibrary=""
 				TargetMachine="1"/>
 			<Tool
@@ -287,6 +286,9 @@
 				RelativePath=".\Airside3D.h">
 			</File>
 			<File
+				RelativePath=".\AirsideBagCartParkPosDlg.h">
+			</File>
+			<File
 				RelativePath=".\AirsideDriveRoadDlg.h">
 			</File>
 			<File
@@ -315,6 +317,12 @@
 			</File>
 			<File
 				RelativePath=".\AirsideParkingPlaceDlg.h">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkingPosDlg.h">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkSpot3D.h">
 			</File>
 			<File
 				RelativePath=".\AirsideReportView.h">
@@ -687,6 +695,9 @@
 			</File>
 			<File
 				RelativePath=".\DlgAirportProperty.h">
+			</File>
+			<File
+				RelativePath=".\DlgAirsideEnrouteQueueCapacity.h">
 			</File>
 			<File
 				RelativePath=".\DlgAltitudeManager.h">
@@ -1955,6 +1966,9 @@
 				RelativePath=".\OtherPlacement.h">
 			</File>
 			<File
+				RelativePath=".\Painter.h">
+			</File>
+			<File
 				RelativePath=".\ParkingLotFacilityDataPage.h">
 			</File>
 			<File
@@ -2992,6 +3006,9 @@
 			</File>
 			<File
 				RelativePath=".\Res\bmp00052.bmp">
+			</File>
+			<File
+				RelativePath=".\Res\bmp00053.bmp">
 			</File>
 			<File
 				RelativePath="Res\bmp_seldefined.bmp">
@@ -4509,6 +4526,9 @@
 				RelativePath=".\Airside3D.cpp">
 			</File>
 			<File
+				RelativePath=".\AirsideBagCartParkPosDlg.cpp">
+			</File>
+			<File
 				RelativePath=".\AirsideDriveRoadDlg.cpp">
 			</File>
 			<File
@@ -4528,6 +4548,12 @@
 			</File>
 			<File
 				RelativePath=".\AirsideParkingPlaceDlg.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkingPosDlg.cpp">
+			</File>
+			<File
+				RelativePath=".\AirsidePaxBusParkSpot3D.cpp">
 			</File>
 			<File
 				RelativePath=".\AirsideReportView.cpp">
@@ -5705,6 +5731,9 @@
 			</File>
 			<File
 				RelativePath=".\DlgAirportProperties.cpp">
+			</File>
+			<File
+				RelativePath=".\DlgAirsideEnrouteQueueCapacity.cpp">
 			</File>
 			<File
 				RelativePath=".\DlgAltitudeManager.cpp">

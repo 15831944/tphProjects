@@ -19,7 +19,7 @@ public:
 	virtual bool ProceedToNextFcObject(CARCportEngine* pEngine);
 
 	virtual void ArrivalLayoutObject(LandsideLayoutObjectInSim* pObj,LandsideResourceInSim* pDetailRes, CARCportEngine* pEngine );
-	virtual void SuccessParkInBusStation(LandsideBusStationInSim* pStation,LaneParkingSpot* spot);
+	virtual void SuccessParkInBusStation(LandsideBusStationInSim* pStation,IParkingSpotInSim* spot);
 
 	virtual void NotifyPaxMoveInto(CARCportEngine*pEngine, LandsideBaseBehavior* pPassenger, const ElapsedTime& eTime);
 	bool CanLoadPax(PaxLandsideBehavior* pPax);
@@ -37,7 +37,7 @@ protected:
 class State_ProcessAtBusStationExtBus : public State_LandsideVehicle<LandsidePublicExtBusInSim>
 {
 public:
-	State_ProcessAtBusStationExtBus(LandsidePublicExtBusInSim* pBus , LandsideBusStationInSim* pStation,LaneParkingSpot* spot)
+	State_ProcessAtBusStationExtBus(LandsidePublicExtBusInSim* pBus , LandsideBusStationInSim* pStation,IParkingSpotInSim* spot)
 		:State_LandsideVehicle<LandsidePublicExtBusInSim>(pBus){ m_pBusStation = pStation; m_spot= spot; }
 
 	void Entry(CARCportEngine* pEngine);
@@ -47,5 +47,5 @@ public:
 protected:
 	LandsideBusStationInSim* m_pBusStation;
 	State_ServiceTimer m_waitTimer;
-	LaneParkingSpot* m_spot;
+	IParkingSpotInSim* m_spot;
 };

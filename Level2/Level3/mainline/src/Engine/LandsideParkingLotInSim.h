@@ -7,6 +7,7 @@ class LandsideParkingLotInSim;
 class LandsideParkingSpaceInSim;
 class LandsideParkingSpotConstraints;
 class PaxLandsideBehavior;
+class LandsideSimulation;
 
 //class ParkingLotStateChange : public SSignal
 //{
@@ -304,6 +305,8 @@ public:
 	void AddEmbedBusStation(LandsideBusStationInSim * pStation);
 	int GetEmbedBusStationCount() const;
 	LandsideBusStationInSim * GetEmbedBusStation(int nIndex);
+
+	LandsideBusStationInSim* GetBestBusStationGetOff(LandsideSimulation *pSimulation,PaxLandsideBehavior* pLandsideBehavior);
 private:
 	//--------------------------------------------------------------------------
 	//Summary:

@@ -37,6 +37,8 @@ public:
 	CButton	m_btnSave;
 	CButton	m_btnOk;
 	CButton	m_btnCancel;
+	CButton m_btnArrivals;
+	CButton m_btnDepartures;
 
 	CSortAndPrintListCtrl 	m_listctrlFlightList;
 	CGTChart	m_gtcharCtrl;
@@ -62,11 +64,14 @@ public:
 	bool m_bDragging;
 	RosterAssignFlight *m_pDragFlight;
 
+	bool m_bCheckArrivals;
+	bool m_bCheckDepartures;
+
 
 protected:
 	void LoadFlightList();
 	void LoadGranttChart();
-
+	void SetGranttChart();
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -102,10 +107,14 @@ public:
 	void FreshProcessorRoster(int iLine);
 	void AddFlightIntoList(RosterAssignFlight* pUnassignFlight);
 
+	bool GrayColorValid(RosterAssignFlight* pUnassignFlight)const;
+
 	afx_msg void OnBnClickedButtonSummary();
 	afx_msg void OnBnClickedButtonAutoAssign();
 	afx_msg void OnBnClickedButtonUnassignAll();
 	afx_msg void OnBtnSave();
+	afx_msg void OnCheckArrivals();
+	afx_msg void OnCheckDepatures();
 
 private:
 	int GetListCtrlIndex(RosterAssignFlight* pUnassignFlight);

@@ -191,6 +191,9 @@ public:
 	
 	BOOL AnimTimerCallback();
 	BOOL RecordTimerCallback(DWORD dwTime);
+
+	void DisableViewPaint();
+	void EnableViewPaint();
 	
 	void SelectNode(CTVNode* pNode);
 	CTVNode* GetSelectedNode() { return m_pSelectedNode; }

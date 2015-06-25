@@ -83,6 +83,8 @@ public:
 	void AddOccupy(Person* pPerson);
 	void Release(Person* pPerson);
 
+	void UpdateFloorIndex(const FloorChangeMap& changMap);
+
 private:
 	ALTObjectID GetOne2OneStand(const Processor& _pSourceProcessor, const ALTObjectIDList& _destStandArray,int _nDestIdLength);
 	bool ConnectFlight(const CPoint2008& ptDoorPos, int idxDoor,const ElapsedTime& t );

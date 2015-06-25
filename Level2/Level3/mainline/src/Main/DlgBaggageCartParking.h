@@ -2,7 +2,7 @@
 #include "..\MFCExControl\listctrlex.h"
 
 #include "..\AirsideGUI\DialogResize.h"
-#include "..\InputAirside\BaggageParkingSpecData.h"
+#include "..\InputAirside\BaggageCartParkingLinkage.h"
 
 // DlgBaggageCartParking dialog
 
@@ -45,7 +45,9 @@ protected:
 	void HideDialog(CWnd* parentWnd);
 	void ShowDialog(CWnd* parentWnd);
 	void UpdateClickButton();
+	void InsertParkingPlaceItem(int idx,BaggageParkingPlace* pItem);
 
+	void LoadListContent();
 	DECLARE_MESSAGE_MAP()
 
 	DECLARE_DLGRESIZE_MAP
@@ -57,15 +59,18 @@ protected:
 protected:
 	InputTerminal  * m_pInterm;
 	int m_nPrjID;
+	int m_iSelectItem;
 
-	Path m_copyPath;
+//	Path m_copyPath;
 	bool m_bDataChanged;
 
-	BaggageCartParkingSpecData m_BaggageCartSpec;
+	std::vector<int> m_vTypeList;
+	BaggageCartParkingLinkage m_BaggageCartSpec;
 public:
 	afx_msg void OnNMDblclkListctrlBagparkpos(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLvnItemchangedListctrlBagparkpos(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMRclickListctrlBagparkpos(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedCopy();
 	afx_msg void OnBnClickedPaste();
+	afx_msg LRESULT OnMsgComboChange(WPARAM wParam, LPARAM lParam);
 };

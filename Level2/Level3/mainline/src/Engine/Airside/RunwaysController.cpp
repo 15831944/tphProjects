@@ -769,14 +769,16 @@ bool CRunwaySystem::ApplyForTakeoffTime(AirsideFlightInSim* pFlight,
 	if (dSpeed > 0)
 	{
 		double dTime = (pFlight->GetTakeoffRoll()*2)/dSpeed;
-		needTimeToTakeOff = ElapsedTime(dTime + pFlight->GetTakeoffPositionTime());
+	//	needTimeToTakeOff = ElapsedTime(dTime + pFlight->GetTakeoffPositionTime());
 		eFlightPrepareTimeToTakeOff += ElapsedTime(pFlight->GetTakeoffPositionTime());//prepare time - add take off position time
 		if (pFlight->GetTowingServiceVehicle() && pFlight->GetTowingServiceVehicle()->GetReleasePoint() == pFlight->GetAndAssignTakeoffRunway())		//towing to runway
 		{
-			needTimeToTakeOff += pFlight->GetUnhookTime();
+		//	needTimeToTakeOff += pFlight->GetUnhookTime();
 			//prepare time + unhook time
 			eFlightPrepareTimeToTakeOff += pFlight->GetUnhookTime();
 		}
+
+		needTimeToTakeOff = getFlightTakeoffTime(pFlight);
 	}
 
 	LogicRunwayInSim *pTakeOffRunway = pFlight->GetAndAssignTakeoffRunway();

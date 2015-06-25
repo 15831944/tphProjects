@@ -32,7 +32,8 @@ public:
 	// in:
 	// _bBackup: if the log is backwards.
 	virtual void writeLog (ElapsedTime time, bool _bBackup=false, bool bOffset = true ) ;
-
+	virtual void flushLog (ElapsedTime p_time, bool bmissflight = false) = 0;
+	virtual void FlushLogforFollower( ElapsedTime _time );
 
 
 
@@ -82,9 +83,9 @@ public:
 	virtual bool CanPaxTkeOffThisBusAtStation(LandsideBusStationInSim* pBusStation, LandsideSimulation *pSimulation);
 
 	//check if this resource linked to first terminal processor, pRource is bus station or curbside
-	virtual bool CanPaxTakeOffThisResource(LandsideResourceInSim* pResource,LandsideSimulation* pSimulation)const{ ASSERT(FALSE); return FALSE;}
+	virtual bool CanPaxTakeOffThisResource(LandsideResourceInSim* pResource,LandsideSimulation* pSimulation)const;
 	//decide takeoff at this resource  to entry terminal after 
-	virtual void ChooseTakeOffResource(LandsideLayoutObjectInSim* pLayout,LandsideSimulation* pSimulation){ ASSERT(FALSE); }
+	virtual void ChooseTakeOffResource(LandsideLayoutObjectInSim* pLayout,LandsideSimulation* pSimulation);
 
 
 protected:
@@ -131,8 +132,6 @@ protected:
 	void SetRelativePosition(const Point& paxDirection,const Point& paxLocation,MobDir emWalk);
 
 	void SetEnterLandsideLocation(const ARCVector3& _ptCurrent);
-
-	void FlushLog( ElapsedTime p_time );
 
 public:
 	//set follower Behavior

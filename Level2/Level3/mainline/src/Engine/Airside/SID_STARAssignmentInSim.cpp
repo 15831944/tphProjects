@@ -48,9 +48,12 @@ void CSID_STARAssignmentInSim::Init(int nPrjID, CAirportDatabase* pAirportDataba
 	m_pFlightSIDAssignmentList = new FlightSIDAssignmentList;
 	m_pFlightSIDAssignmentList->SetAirportDatabase(pAirportDatabase);
 	m_pFlightSIDAssignmentList->ReadData(nPrjID);
+	m_pFlightSIDAssignmentList->Sort();
+
 	m_pFlightSTARAssignmentList = new FlightStarAssignmentList;
 	m_pFlightSTARAssignmentList->SetAirportDatabase(pAirportDatabase);
 	m_pFlightSTARAssignmentList->ReadData(nPrjID);
+	m_pFlightSTARAssignmentList->Sort();
 
 }
 

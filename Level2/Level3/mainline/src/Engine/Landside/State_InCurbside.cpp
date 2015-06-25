@@ -11,7 +11,7 @@ void State_ParkingToCurbside::OnMoveOutRoute( CARCportEngine* _pEngine )
 	getVehicle()->SuccessParkInCurb(m_pCurb,m_spot);
 }
 
-State_ParkingToCurbside::State_ParkingToCurbside( LandsideVehicleInSim* pV, LaneParkingSpot* pSpot,LandsideCurbSideInSim*pCurb )
+State_ParkingToCurbside::State_ParkingToCurbside( LandsideVehicleInSim* pV, IParkingSpotInSim* pSpot,LandsideCurbSideInSim*pCurb )
 :State_MoveInRoad(pV)
 {
 	m_pDestResource = pSpot;
@@ -39,7 +39,7 @@ void State_TryParkingCurbside::Entry( CARCportEngine* pEngine )
 void State_TryParkingCurbside::Execute( CARCportEngine * pEngine )
 {
 	LandsideLaneNodeList path;
-	if(LaneParkingSpot* spot =  m_pCurb->getParkingSpot().FindParkingPos(getVehicle(),path) )
+	if(IParkingSpotInSim* spot =  m_pCurb->getParkingSpot().FindParkingPos(getVehicle(),path) )
 	{
 		spot->SetPreOccupy(m_pOwner);
 		State_ParkingToCurbside* pNextState = new State_ParkingToCurbside(getVehicle(),spot,m_pCurb);
@@ -66,56 +66,58 @@ State_TryParkingCurbside::State_TryParkingCurbside( LandsideVehicleInSim* pV, La
 }
 
 //////////////////////////////////////////////////////////////////////////
-void State_LeaveCurbside::Execute( CARCportEngine* pEngine )
-{
-	if(m_bOutPath)
-	{	
-		m_pCurb->getParkingSpot().ReleaseParkingPos(getVehicle(), curTime());
-		m_pCurb->NotifyObservers();//notify waiting vehicles
-		getVehicle()->ChangeStateMoveToDest(pEngine);
-	}
-	else
-	{
-		LandsideLaneNodeList mPath;
-		if( m_pCurb->getParkingSpot().FindLeavePath(m_pOwner,m_spot,mPath))//find the path
-		{		
-			ASSERT(!mPath.empty());
-			{
-				LandsideLaneNodeInSim* pNode = mPath.back();
-				LandsideLaneInSim* plane =  pNode->mpLane;
-				DistanceUnit distF = pNode->m_distInlane - getVehicle()->GetHalfLength();
-				DistanceUnit distT = pNode->m_distInlane + getVehicle()->GetHalfLength();
-
-				double dSpeed = getVehicle()->getSpeed(plane, pNode->m_distInlane);
-
-				if(plane->isSpaceEmpty(getVehicle(), distF,distT))
-				{
-					MobileState lastState = m_pOwner->getLastState();
-					lastState.pos = pNode->m_pos;
-					lastState.pRes = plane;
-					lastState.distInRes = pNode->m_distInlane-1;
-					lastState.dSpeed = dSpeed*0.5;
-					m_pOwner->MoveToPos(lastState);	
-
-					lastState.distInRes = pNode->m_distInlane;
-					m_pOwner->MoveToPos(lastState);
-
-					m_bOutPath = true;
-					return getVehicle()->Continue();
-				}							
-			}
-		}		
-		getVehicle()->StepTime(pEngine);
-	}
-}
-
-State_LeaveCurbside::State_LeaveCurbside( LandsideVehicleInSim* pV, LandsideCurbSideInSim* pCurb ,LaneParkingSpot* spot) 
+State_LeaveCurbside::State_LeaveCurbside( LandsideVehicleInSim* pV, LandsideCurbSideInSim* pCurb ,IParkingSpotInSim* spot) 
 :State_LandsideVehicle<LandsideVehicleInSim>(pV)
 {
 	m_pCurb = pCurb;
 	m_bOutPath = false;
 	m_spot = spot;
 }
+
+void State_LeaveCurbside::Exit(CARCportEngine* pEngine)
+{
+	if(m_spot)
+	{
+		m_spot->OnVehicleExit(getVehicle(), curTime());
+	}
+	
+	m_pCurb->NotifyObservers();//notify waiting vehicles
+}
+
+void State_LeaveCurbside::Execute( CARCportEngine* pEngine )
+{
+	if(m_bOutPath)
+	{	
+		return getVehicle()->ChangeStateMoveToDest(pEngine);
+	}
+	//finding leave position 
+	LandsidePosition exitPos;
+	if(m_pCurb->getParkingSpot().FindLeavePosition(getVehicle(), m_spot, exitPos) )
+	{
+		LandsideLaneInSim* plane = exitPos.pRes->toLane();
+		DistanceUnit distF = exitPos.distInRes - getVehicle()->GetHalfLength();
+		DistanceUnit distT = exitPos.distInRes + getVehicle()->GetHalfLength();
+
+		if(plane->isSpaceEmpty(getVehicle(), distF,distT))
+		{
+			double dSpeed = getVehicle()->getSpeed(plane, exitPos.distInRes);
+			MobileState lastState = m_pOwner->getLastState();
+			lastState.pos = exitPos.pos;
+			lastState.pRes = plane;
+			lastState.distInRes = exitPos.distInRes-1;
+			lastState.dSpeed = dSpeed*0.5;
+			m_pOwner->MoveToPos(lastState);	
+
+			lastState.distInRes = exitPos.distInRes;
+			m_pOwner->MoveToPos(lastState);
+
+			m_bOutPath = true;
+			return getVehicle()->Continue();
+		}							
+	}	
+	return getVehicle()->StepTime(pEngine);
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,7 +129,7 @@ void State_DropPaxAtCurbside::Execute( CARCportEngine* pEngine )
 	}
 }
 
-State_DropPaxAtCurbside::State_DropPaxAtCurbside( LandsidePaxVehicleInSim* pV,LandsideCurbSideInSim*pCub,LaneParkingSpot* spot ) 
+State_DropPaxAtCurbside::State_DropPaxAtCurbside( LandsidePaxVehicleInSim* pV,LandsideCurbSideInSim*pCub,IParkingSpotInSim* spot ) 
 :State_LandsideVehicle<LandsidePaxVehicleInSim>(pV)
 {
 	m_pCurb=pCub;

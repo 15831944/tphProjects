@@ -5380,8 +5380,8 @@ void CPaxFlowDlg::UpdateFlowTreeToolBarBtn(UINT iRet,HTREEITEM hItem)
 
 			EnableBtnFromTBar(m_ToolBarFlowTree,ID_PAXFLOW_TAKEOVER_BYALL,FALSE);
 
-			EnableBtnFromTBar(m_ToolBarFlowTree,ID_PAXFLOW_EDIT_PIPE,FALSE);
-			EnableBtnFromTBar(m_ToolBarFlowTree,ID_PAXFLOW_EDIT_PIPE_AUTO,FALSE);
+// 			EnableBtnFromTBar(m_ToolBarFlowTree,ID_PAXFLOW_EDIT_PIPE,FALSE);
+// 			EnableBtnFromTBar(m_ToolBarFlowTree,ID_PAXFLOW_EDIT_PIPE_AUTO,FALSE);
 			
 
 		}
@@ -6178,7 +6178,7 @@ void CPaxFlowDlg::OnPaxflowEditPipeAuto()
 	m_OperatedPaxFlow.SetChangedFlag( true );
 
 	BuildInterestInPath( m_hRClickItem );
-	ReloadTree();
+	
 	if(m_hRClickItem!=NULL)
 	{
 		TREEITEMDATA* pData = (TREEITEMDATA* )m_FlowTree.GetItemData( m_hRClickItem );
@@ -6203,7 +6203,8 @@ void CPaxFlowDlg::OnPaxflowEditPipeAuto()
 			tbBtnInfo.iImage=9;
 		}
 		BOOL b=m_ToolBarFlowTree.GetToolBarCtrl().SetButtonInfo(ID_PAXFLOW_EDIT_PIPE_AUTO,&tbBtnInfo);
-	}		
+	}	
+	ReloadTree();
 }
 
 LRESULT CPaxFlowDlg::OnPCTreeSelectProc(WPARAM wParam,LPARAM lParam)

@@ -13,11 +13,6 @@ class CDlgScheduleAndRostContent;
 
 // When inserting an ALTObject menu item, use macro ID_MENUITEM_OBJECTROOT as the menu id,
 // else when inserting an menu item but not an ALTObject, use macro ID_MENUITEM_NOTOBJECTITEM
-#define ID_MENUITEM_OBJECTROOT	(WM_USER + 0x0100)
-#define ID_MENUITEM_NOTOBJECTITEM   (ID_MENUITEM_OBJECTROOT + 0x100)
-
-#define ID_MENUITEM_LOCK_ALTOBJECT				(ID_MENUITEM_NOTOBJECTITEM + 0)
-#define ID_MENUITEM_UNLOCK_ALTOBJECT			(ID_MENUITEM_NOTOBJECTITEM + 1)
 #include "MSVNodeData.h"
 
 namespace AirsideGUI
@@ -101,7 +96,7 @@ namespace MSV
 		Dlg_RunwayTakeOffSequencing,
 		Dlg_RunwayClearanceCriteria,
 		Dlg_RunwayArrivalDelayTriggers,
-
+		Dlg_EnrouteQCapacity,
 		Dlg_ServiceRequirement,
 		Dlg_VehicularMovementAllowed,
 		//Taxiway
@@ -238,7 +233,9 @@ protected:
     void DeleteChildCoutour(HTREEITEM hObjItem);
 	HTREEITEM FindObjNode(HTREEITEM hParentItem,const CString& strNodeText);
 	CTermPlanDoc *GetARCDocument();
-	HTREEITEM FindTreeItemByObjectID(int nObjID);
+
+	HTREEITEM FindTreeItemByTypeID(ALTOBJECT_TYPE type, int nObjID);
+	//	HTREEITEM FindTreeItemByObjectID(int nObjID);
 	HTREEITEM FindTreeItemByObjectID(HTREEITEM hItem,int nObjID);
 	bool FindUnquieName(int nUnqiueID);
 
@@ -262,6 +259,9 @@ protected:
 	HTREEITEM FindAirportObjRootByType(ALTOBJECT_TYPE altType);
 	HTREEITEM FindAirspaceObjRootByType(ALTOBJECT_TYPE altType);
 	HTREEITEM FindTopographyObjRootByType(ALTOBJECT_TYPE altType);
+
+	HTREEITEM FindObjectRootByType(ALTOBJECT_TYPE altType);
+	HTREEITEM FindObjectRootByType(ALTOBJECT_TYPE altType, HTREEITEM hStartItem);
 
 protected:
 	CDialog* GetObjectDefineDlg(CNodeData* pNodeData,int nObjID);
@@ -360,6 +360,7 @@ protected:
 	afx_msg void OnEditRunwayTakeoffPosition(void);
 	afx_msg void OnEditTakeoffSequence(void);
 	afx_msg void OnEditArrivalDelayTrigger(void);
+	afx_msg void OnEditEnrouteQueueCapacity(void);
 	afx_msg void OnEditVehiclePools(void);
 	afx_msg void OnSetSimulationEngine(void);
 	afx_msg void OnRunSimulation(void);
@@ -410,7 +411,8 @@ protected:
 	afx_msg void OnUpdateShowSurface(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateHideSurface(CCmdUI* pCmdUI);
 
-	afx_msg void OnUpdateAddContour(CCmdUI* pCmdUI);
+	//afx_msg void OnAddCountour();
+	//afx_msg void OnUpdateAddContour(CCmdUI* pCmdUI);
 	afx_msg void OnEditControlPoint();
 	afx_msg void OnDisableControlPoint();
 	afx_msg void OnUpdateEditControlPoint(CCmdUI* pCmdUI);
@@ -433,6 +435,9 @@ protected:
 
 	afx_msg void OnLockALTObject(void);
 	afx_msg void OnUnlockALTObject(void);
+
+	afx_msg void OnDefineTaxidRoute();
+	afx_msg void OnImportWayPoints();
 
 	void LockALTObject(bool bLock);
 	void LockALTObject(HTREEITEM hTreeItem, bool bLock);
