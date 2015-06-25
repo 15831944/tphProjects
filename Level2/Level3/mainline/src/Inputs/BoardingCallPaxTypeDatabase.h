@@ -33,7 +33,7 @@ public:
 	BoardingCallPaxTypeEntry();
 	~BoardingCallPaxTypeEntry();
 	void InitTriggerDatabase();
-	void InitTriggerDBFromOld(ConstraintWithProcIDEntry* pConstEntry);
+	void AddTriggersFor260AndOlder(ConstraintWithProcIDEntry* pConstEntry);
 	std::vector<BoardingCallTrigger*>& GetTriggersDatabase(){ return m_vTriggers; }
 	void DeleteAllTrigger(){ m_vTriggers.clear(); }
 	void DeleteTrigger(BoardingCallTrigger* pTrigger);

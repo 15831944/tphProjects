@@ -56,13 +56,23 @@ void BoardingCallFlightTypeDatabase::AddFlightFor260OrOlder(FlightConWithProcIDD
 		*pFlightConstraint = *((FlightConstraint*)pConstWithProcIDEntry->getConstraint());
 		if(pFlightConstraint->GetFltConstraintMode() != ENUM_FLTCNSTR_MODE_DEP)
 		{
-			pFlightConstraint->initDefault();
 			pFlightConstraint->SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
 		}
-		BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
-		flightEntry->initialize(pFlightConstraint, NULL);
-		flightEntry->GetStandDatabase()->AddStandFor260OrOlder(pConstWithProcIDEntry, _pInTerm);
-		addEntry(flightEntry, true); /* Replace if constraint pFlightConstraint exists. */
+
+		int fltEntryIndex = findItemByConstraint(pFlightConstraint);
+		BoardingCallStandDatabase* pStandDB;
+		if(fltEntryIndex == INT_MAX)
+		{
+			BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
+			flightEntry->initialize(pFlightConstraint, NULL);
+			pStandDB = flightEntry->GetStandDatabase();
+			addEntry(flightEntry, false);
+		}
+		else
+		{
+			pStandDB = ((BoardingCallFlightTypeEntry*)getItem(fltEntryIndex))->GetStandDatabase();
+		}
+		pStandDB->AddStandFor260OrOlder(pConstWithProcIDEntry, _pInTerm);
 	}
 }
 
@@ -106,7 +116,7 @@ int BoardingCallFlightTypeDatabase::findItemByConstraint(FlightConstraint* pfltC
 	for(int i=0; i<count; i++)
 	{
 		if((*getItem(i)->getConstraint()) == *pfltConst)
-			return count;
+			return i;
 	}
 	return INT_MAX;
 }

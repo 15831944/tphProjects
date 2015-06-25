@@ -76,10 +76,10 @@ bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,co
 {
 	ASSERT(pFlight);
 
-	ProcessorID ProcID;
-	ProcID = *(pHoldArea->getID());
+	ProcessorID holdAreaProcID;
+	holdAreaProcID = *(pHoldArea->getID());
 	std::vector<ProcessorID> ProcIDList;
-	GetProcIDInSubFlowList(ProcID,ProcIDList,_pInTerm);
+	GetProcIDInSubFlowList(holdAreaProcID,ProcIDList,_pInTerm);
 
 	CPaxFlowConvertor tempFlowConvetor;
 	tempFlowConvetor.SetInputTerm( _pInTerm );
@@ -89,16 +89,16 @@ bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,co
 	for( int i=0; i<iPaxFlowCount; ++i )
 	{
 		CSinglePaxTypeFlow* pSingleFlow = tempAllPaxFlow.GetSinglePaxTypeFlowAt( i );
-		const CMobileElemConstraint* pConstrint = pSingleFlow->GetPassengerConstrain();
+		const CMobileElemConstraint* pMobElemConst = pSingleFlow->GetPassengerConstrain();
 		CSinglePaxTypeFlow operaterFlow( _pInTerm );
-		operaterFlow.SetPaxConstrain( pConstrint );
-		if( pConstrint->GetTypeIndex() != 0 )
+		operaterFlow.SetPaxConstrain( pMobElemConst );
+		if( pMobElemConst->GetTypeIndex() != 0 )
 			continue;
 
 		tempAllPaxFlow.BuildHierarchyFlow( tempFlowConvetor, i , operaterFlow );
 
 
-		if(operaterFlow.IfFits(ProcID)|| IsSubFlowInPaxFlow(operaterFlow,ProcIDList))
+		if(operaterFlow.IfFits(holdAreaProcID)|| IsSubFlowInPaxFlow(operaterFlow,ProcIDList))
 		{
  			const BoardingCallFlightTypeDatabase* pFlightTypeDB = _pInTerm->flightData->GetFlightTypeDB(pHoldArea->getStageID()-1);
 			if (pFlightTypeDB == NULL)
@@ -107,10 +107,10 @@ bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,co
 			int flightTypeCount = pFlightTypeDB->getCount();
 			for (int j = 0; j < flightTypeCount; j++)
 			{
-				const FlightConstraint* pFlightConstraint = pFlightTypeDB->getConstraint(j);
-				const FlightConstraint& fltCons(*pConstrint);
-				if (pFlightConstraint->fits(pFlight->getType('D'))\
-					&&pFlightConstraint->fits(fltCons)\
+				const FlightConstraint* pFtConstFilter = pFlightTypeDB->getConstraint(j);
+				const FlightConstraint& fltCons(*pMobElemConst);
+				if (pFtConstFilter->fits(pFlight->getType('D'))\
+					&&pFtConstFilter->fits(fltCons)\
 					&& fltCons.fits(pFlight->getType('D')))
 				{
 					ALTObjectID standID = pFlight->getDepStand();
@@ -209,27 +209,29 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
  					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
  				}
 
-				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )//not exist
-				{
-					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetStageInformation(iStage -1);
+// 				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )// In this flight , the last call does not exist
+// 				{
+					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetFlightTypeDB(iStage -1);
 					int ifltTypeCount = pFltTypeDB->getCount();
 					for(int iFlt=0; iFlt<ifltTypeCount; iFlt++)
 					{
-						if(pFltTypeDB->getConstraint(iFlt)->fits(fltConst))/* This Flight Type filter is user set on GUI. */
+						const FlightConstraint* pFltTypeFilter = pFltTypeDB->getConstraint(iFlt);// This Flight Type filter is user set on GUI. 
+						if(pFltTypeFilter->fits(fltConst))
 						{
 							BoardingCallStandDatabase* pStandDB = ((BoardingCallFlightTypeEntry*)pFltTypeDB->getItem(iFlt))->GetStandDatabase();
 							int standCount = pStandDB->getCount();
 							for(int iStand=0; iStand<standCount; iStand++)
 							{
-								if(pStandDB->getItem(iStand)->getID()->idFits(procID))/* This ProcessorID filter is user set on GUI. */
+								const ProcessorID* pStandFilter = pStandDB->getItem(iStand)->getID();// This ProcessorID filter is user set on GUI.
+								if(pStandFilter->idFits(procID))
 								{
 									BoardingCallPaxTypeDatabase* pPaxTypeDB = ((BoardingCallStandEntry*)pStandDB->getItem(iStand))->GetPaxTypeDatabase();
 									int paxTypeCount = pPaxTypeDB->getCount();
 									for(int iPax=0; iPax<paxTypeCount; iPax++)
 									{
 										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(iPax);
-										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
-										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D')));/* This Pax Type filter is user set on GUI + flight information. */
+										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());// This Pax Type filter is user set on GUI. 
+										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D'))); // Now merge flight information into Pax Type. 
 										std::vector<BoardingCallTrigger*>& vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger.size();
 										ElapsedTime tempTime, triggerTime;
@@ -244,7 +246,7 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 												percent = (vTrigger.at(iTrigger)->m_prop)->getRandomValue()/ (100.0 - releasedProp);
 												releasedProp += (vTrigger.at(iTrigger)->m_prop)->getRandomValue();
 											}
-											else/* the 'residual' trigger. */
+											else// the 'residual' trigger.
 											{
 												percent = 1.0f;
 												mapLastCalls.insert(std::map<int,ElapsedTime>::value_type(iStage, tempTime));
@@ -260,7 +262,7 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 							}
 						}
 					}
-				}
+/*				}*/
 			}
 		}
 	}

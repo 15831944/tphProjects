@@ -21,9 +21,8 @@ void BoardingCallPaxTypeEntry::InitTriggerDatabase()
 	AddRegularTrigger(-600L, 10);
 }
 
-void BoardingCallPaxTypeEntry::InitTriggerDBFromOld(ConstraintWithProcIDEntry* pConstEntry)
+void BoardingCallPaxTypeEntry::AddTriggersFor260AndOlder(ConstraintWithProcIDEntry* pConstEntry)
 {
-	AddResidualTrigger();
 	if(pConstEntry->getValue()->getProbabilityType() == HISTOGRAM)
 	{
 		const HistogramDistribution* pDistribution = (HistogramDistribution*)pConstEntry->getValue();
@@ -51,6 +50,7 @@ void BoardingCallPaxTypeEntry::SetTriggerCount(int count)
 		return;
 	while((int)m_vTriggers.size() > count)
 	{
+		delete *(m_vTriggers.end()-2);
 		m_vTriggers.erase(m_vTriggers.end()-2);
 	}
 	while(count > (int)m_vTriggers.size())
@@ -106,6 +106,7 @@ void BoardingCallPaxTypeEntry::DeleteTrigger( BoardingCallTrigger* pTrigger )
 		{
 			delete m_vTriggers[i];
 			m_vTriggers.erase( m_vTriggers.begin() + i);
+			break;
 		}
 	}
 	
@@ -193,7 +194,8 @@ void BoardingCallPaxTypeDatabase::AddPaxTypeFor260AndOlder( ConstraintWithProcID
 	pMBConst->SetMobileElementType(enum_MobileElementType_ALL); /* Set 'Passenger Type': DEFAULT */
 	BoardingCallPaxTypeEntry* pPaxEntry = new BoardingCallPaxTypeEntry();
 	pPaxEntry->initialize(pMBConst, NULL);
-	pPaxEntry->InitTriggerDBFromOld(pConstEntry);
+	pPaxEntry->AddResidualTrigger();
+	pPaxEntry->AddTriggersFor260AndOlder(pConstEntry);
 	addEntry(pPaxEntry, true);
 }
 
