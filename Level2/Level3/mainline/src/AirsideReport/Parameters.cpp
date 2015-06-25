@@ -232,6 +232,7 @@ BOOL CParameters::ImportFile(ArctermFile& _file)
             break;
         }
     }
+    _file.getLine();
     return TRUE ;
 }
 

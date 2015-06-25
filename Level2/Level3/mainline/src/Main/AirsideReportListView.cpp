@@ -176,8 +176,8 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 		{
 			if (vReportRun.size() > 1)
 			{
-				pReportManager->InitMultiReportList(m_lstCtrl,0,&m_wndSortableHeaderCtrl);
-				pReportManager->SetMultiReportListContent(m_lstCtrl,0);
+				pReportManager->InitMultiReportList(m_lstCtrl,1,&m_wndSortableHeaderCtrl);
+				pReportManager->SetMultiReportListContent(m_lstCtrl,1);
 				return;
 			}
 		}

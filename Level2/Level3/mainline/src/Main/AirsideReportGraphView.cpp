@@ -1438,6 +1438,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 
 	int nSubType =  m_comboChartSelect.GetItemData(nCursel);
 
+	int iSubValue = 0;
 	reportType rpType =  GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType();
 	switch(rpType) {
 	case Airside_FlightDelay:
@@ -1471,6 +1472,8 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                         m_ComBoxSubType.SetItemData(nIndex,(DWORD)CAirsideFlightDelayReport::FltDelaySegment_TakeOff);
                         m_ComBoxSubType.SetCurSel(0);
                         GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, CAirsideFlightDelayReport::FltDelaySegment_Air);
+
+						iSubValue = CAirsideFlightDelayReport::FltDelaySegment_Air;
                     }
                     else if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_COMPONENTDELAY || 
                         nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_COMPONENTDELAY)
@@ -1494,6 +1497,8 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                         m_ComBoxSubType.SetItemData(nIndex,(DWORD)FltDelayReason_Service);
                         m_ComBoxSubType.SetCurSel(0);
                         GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, FltDelayReason_Slowed);
+
+						iSubValue = FltDelayReason_Slowed;
                     }
                     else
                     {
@@ -1726,7 +1731,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 		break;
 	}
 
-	GetDocument()->UpdateAllViews(this,AIRSIDEREPORT_DISLISTVIEW,NULL);
+	GetDocument()->UpdateAllViews(this,AIRSIDEREPORT_DISLISTVIEW,/*NULL*/(CObject*)iSubValue);
 }
 
 void CAirsideReportGraphView::ResetAllContent()
@@ -1911,35 +1916,43 @@ void CAirsideReportGraphView::OnSelChangerChartSubType()
 	}
     else if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType() == Airside_FlightDelay)
     {
-        int nCursel =  m_comboChartSelect.GetCurSel();
-        if (nCursel == LB_ERR)
-            return;
-        int nSubType =  m_comboChartSelect.GetItemData(nCursel);
+        //int nCursel =  m_comboChartSelect.GetCurSel();
+        //if (nCursel == LB_ERR)
+        //    return;
+        //int nSubType =  m_comboChartSelect.GetItemData(nCursel);
 
-        if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_SEGMENTDELAY || 
-            nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_SEGMENTDELAY)
-        {
-            nCursel = m_ComBoxSubType.GetCurSel() ;
-            if(nCursel == LB_ERR)
-                return ;
-            CAirsideFlightDelayReport::FltDelaySegment subType = (CAirsideFlightDelayReport::FltDelaySegment)m_ComBoxSubType.GetItemData(nCursel);
-            GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, subType);
-            GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)subType);
-        }
-        else if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_COMPONENTDELAY || 
-            nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_COMPONENTDELAY)
-        {
-            nCursel = m_ComBoxSubType.GetCurSel() ;
-            if(nCursel == LB_ERR)
-                return ;
-            FltDelayReason subType = (FltDelayReason)m_ComBoxSubType.GetItemData(nCursel);
-            GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, subType);
-            GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)subType);
-        }
-        else
-        {
-            GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
-        }
+        //if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_SEGMENTDELAY || 
+        //    nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_SEGMENTDELAY)
+        //{
+        //    nCursel = m_ComBoxSubType.GetCurSel() ;
+        //    if(nCursel == LB_ERR)
+        //        return ;
+        //    CAirsideFlightDelayReport::FltDelaySegment subType = (CAirsideFlightDelayReport::FltDelaySegment)m_ComBoxSubType.GetItemData(nCursel);
+        //    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, subType);
+        //    GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)subType);
+        //}
+        //else if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_COMPONENTDELAY || 
+        //    nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_COMPONENTDELAY)
+        //{
+        //    nCursel = m_ComBoxSubType.GetCurSel() ;
+        //    if(nCursel == LB_ERR)
+        //        return ;
+        //    FltDelayReason subType = (FltDelayReason)m_ComBoxSubType.GetItemData(nCursel);
+        //    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, subType);
+        //    GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)subType);
+        //}
+        //else
+        //{
+        //    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+        //}
+
+		int nCursel = m_ComBoxSubType.GetCurSel();
+		if (nCursel == LB_ERR)
+			return;
+
+		int iType = (int)m_ComBoxSubType.GetItemData(nCursel);
+		GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iType);
+		GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iType);
     }
 }
 

@@ -3034,6 +3034,8 @@ void CAirsideRepControlView::OnButtonApply()
 		GetDocument()->GetAirsideSimLogs().GetSimReportManager()->SetCurrentSimResult( iCurrentSimIdx );
 
 		GetDocument()->GetARCReportManager().GetAirsideReportManager()->GenerateResult();
+		//if run multiple run report, need reset current run index
+		GetDocument()->GetTerminal().setCurrentSimResult( iCurrentSimIdx );
 		GetDocument()->UpdateAllViews(this,AIRSIDEREPORT_SHOWREPORT,NULL);
 	}
 	catch(StringError* pErr)

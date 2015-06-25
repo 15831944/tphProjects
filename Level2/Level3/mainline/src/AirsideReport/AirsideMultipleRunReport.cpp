@@ -36,12 +36,12 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 
 		pSimFunc(iReportRun);
 
-		parameter->SaveParameterFile();
 		CString strSimResultFolderName;
 		strSimResultFolderName.Format(_T("SimResult%d"),iReportRun);
 		CString strReportFileDir;
 		strReportFileDir.Format(_T("%s\\SimResult\\%s\\report"),strPorjectPath,strSimResultFolderName);
-
+		parameter->SetReportFileDir(strReportFileDir);
+		parameter->SaveParameterFile();
 		CAirsideMultipleRunReportAgent reportAgent;
 		reportAgent.InitReportPath(strReportFileDir);
 		reportAgent.SetCBGetLogFilePath(pFunc);
@@ -51,7 +51,7 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		m_mapMutiRunResult[_reportType]->AddSimResultPath(strSimResultFolderName,reportAgent.GetSimResultPath(_reportType));
 	}
 	
-	m_mapMutiRunResult[_reportType]->LoadMultipleRunReport(parameter->getInterval());
+	m_mapMutiRunResult[_reportType]->LoadMultipleRunReport(parameter);
 }
 
 void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CParameters * parameter )

@@ -144,7 +144,7 @@ void FlightConflictReportData::AddFlightConflict(const AirsideFlightLogItem& ite
 			pLogItem->m_nOperationType = (int)FlightConflict::ENROUTE;
 		else
 		{
-			ASSERT(0);
+//			ASSERT(0);
 			pLogItem->m_nOperationType = (int)FlightConflict::UNKNOWNOP;	
 		}
 

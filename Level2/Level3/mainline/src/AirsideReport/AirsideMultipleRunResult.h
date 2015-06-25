@@ -13,7 +13,7 @@ public:
 	CAirsideMultipleRunResult(void);
 	~CAirsideMultipleRunResult(void);
 
-	virtual void LoadMultipleRunReport(long iInterval) = 0;
+	virtual void LoadMultipleRunReport(CParameters* pParameter) = 0;
 	virtual void InitListHead(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0,CSortableHeaderCtrl* piSHC=NULL) = 0;
 	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter,int iType = 0) = 0;
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter,int iType = 0) = 0;

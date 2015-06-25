@@ -11,12 +11,9 @@
 #include "Reports/StatisticalTools.h"
 
 const char* strSegmentString[] = {"Unknown","Air","Taxi","Stand","Service","Takeoff"};
-const char* strComponentString[] = {"Unknown","Slowed","Vectored","Hold","Alt change","Side step","Stop","Service"};
+const char* strComponentString[] = {"Unknown","Slowed","Vectored","Hold","RunWay Hold","Alt change","Side step","Stop","Service"};
 const char* strSummaryContent[] = 
 {
-    "",
-    "",
-    "Total Delay(mins)",
     "Min Delay(mins)",
     "Mean Delay(mins)",
     "Max Delay(mins)",
@@ -40,20 +37,17 @@ CAirsideFlightMutiRunDelayResult::~CAirsideFlightMutiRunDelayResult(void)
 {
 }
 
-void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(long iInterval)
+void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParameter)
 {
 	ClearData();
 
 	mapLoadResult mapTotalDelay;
-	mapLoadResult mapAirDelay;
-	mapLoadResult mapTaxiDelay;
-	mapLoadResult mapStandDelay;
-	mapLoadResult mapServiceDelay;
-	mapLoadResult mapTakeoffDelay;
 	mapLoadResult mapScheduleDelay;
 
-	mapLoadComponentAndSegment mapSegmentDelay;
-	mapLoadComponentAndSegment mapComponentDelay;
+	mapDelayResultData mapSegmentDelay;
+	mapDelayResultData mapComponentDelay;
+
+    mapSummarySegmentData mapSummarySegmentDelay;
 	ArctermFile file;
 	DelayResultPath::iterator iter = m_mapResultPath.begin();
 	for (; iter != m_mapResultPath.end(); ++iter)
@@ -85,25 +79,23 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(long iInterval)
 						file.getInteger(iTotalDelay);
 						mapTotalDelay[strSimResult].push_back(iTotalDelay);
 
-						int iAirDelay = 0;
-						file.getInteger(iAirDelay);
-						mapAirDelay[strSimResult].push_back(iAirDelay);
+                        long lData = 0l;
+                        file.getInteger(lData);
+                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].push_back(lData);
 
-						int iTaxiDelay = 0;
-						file.getInteger(iTaxiDelay);
-						mapTaxiDelay[strSimResult].push_back(iTaxiDelay);
+                        file.getInteger(lData);
+                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].push_back(lData);
 
-						int iStandDelay = 0;
-						file.getInteger(iStandDelay);
-						mapStandDelay[strSimResult].push_back(iStandDelay);
+                        file.getInteger(lData);
+                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].push_back(lData);
 
-						int iServiceDelay = 0;
-						file.getInteger(iServiceDelay);
-						mapServiceDelay[strSimResult].push_back(iServiceDelay);
+                        file.getInteger(lData);
+                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].push_back(lData);
 
-						int iTakeoffDelay = 0;
-						file.getInteger(iTakeoffDelay);
-						mapTakeoffDelay[strSimResult].push_back(iTakeoffDelay);
+                        file.getInteger(lData);
+                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].push_back(lData);
+
+                        //file.skipField(5);
 
 						long actStartTime = 0;
 						file.getInteger(actStartTime);
@@ -132,29 +124,29 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(long iInterval)
 						file.getLine();
 						file.getLine();
 						file.getLine();
-
+						
 						int nNodeCount = 0;
 						file.getInteger(nNodeCount);
 						file.getLine();
 						//node delay start, will implement
-						if(mapSegmentDelay[strSimResult].empty())
+						if(mapComponentDelay[strSimResult].empty())
 						{
-							mapSegmentDelay[strSimResult][FltDelayReason_Slowed].clear();
-							mapSegmentDelay[strSimResult][FltDelayReason_Vectored].clear();
-							mapSegmentDelay[strSimResult][FltDelayReason_AirHold].clear();
-							mapSegmentDelay[strSimResult][FltDelayReason_AltitudeChanged].clear();
-							mapSegmentDelay[strSimResult][FltDelayReason_SideStep].clear();
-							mapSegmentDelay[strSimResult][FltDelayReason_Stop].clear();
-							mapSegmentDelay[strSimResult][FltDelayReason_Service].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_Slowed].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_Vectored].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_AirHold].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_AltitudeChanged].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_SideStep].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_Stop].clear();
+							mapComponentDelay[strSimResult][FltDelayReason_Service].clear();
 						}
 
-						if (mapComponentDelay[strSimResult].empty())
+						if (mapSegmentDelay[strSimResult].empty())
 						{
-							mapComponentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].clear();
-							mapComponentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].clear();
-							mapComponentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].clear();
-							mapComponentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].clear();
-							mapComponentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
+							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].clear();
+							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].clear();
+							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].clear();
+							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].clear();
+							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
 						}
 						for (int iSkip = 0; iSkip < nNodeCount; iSkip++)
 						{
@@ -163,12 +155,29 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(long iInterval)
 							file.skipField(1);
 							int iSegment = 0;
 							file.getInteger(iSegment);
-							mapSegmentDelay[strSimResult][iSegment].push_back(lDelay);
 
-							file.skipField(2);
+							long lArrTime = 0;
+							file.getInteger(lArrTime);
+
+							long lActArrTime = 0;
+							file.getInteger(lActArrTime);
+							FlightDelayData delaySegmentData;
+							delaySegmentData.m_iArrTime = lActArrTime;
+							delaySegmentData.m_lDelayTime = lDelay;
+							if (mapSegmentDelay[strSimResult].find(iSegment) != mapSegmentDelay[strSimResult].end())
+							{
+								mapSegmentDelay[strSimResult][iSegment].push_back(delaySegmentData);
+							}
+							
 							int iReason = 0;
 							file.getInteger(iReason);
-							mapComponentDelay[strSimResult][iReason].push_back(lDelay);
+							FlightDelayData delayComponentData;
+							delayComponentData.m_iArrTime = lArrTime;
+							delayComponentData.m_lDelayTime = lDelay;
+							if (mapComponentDelay[strSimResult].find(iReason) != mapComponentDelay[strSimResult].end())
+							{
+								mapComponentDelay[strSimResult][iReason].push_back(delayComponentData);
+							}
 							file.getLine();
 						}
 					}
@@ -183,42 +192,45 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(long iInterval)
 	}
 
 	//generate detail of total delay
-	BulidDetailMultiRunDelayCount(m_totalDelayData,mapTotalDelay,iInterval);
+	BulidDetailMultiRunDelayCount(m_totalDelayData,mapTotalDelay,pParameter->getInterval());
 	//generate detail of air delay
-	BulidDetailMultiRunDelayTime(m_airDelayData,mapAirDelay,iInterval);
+	BulidDetailMultiRunDelayTime(m_airDelayData,CAirsideFlightDelayReport::FltDelaySegment_Air,mapSegmentDelay,pParameter);
 	//generate detail of stand delay
-	BulidDetailMultiRunDelayTime(m_standDelayData,mapStandDelay,iInterval);
+	BulidDetailMultiRunDelayTime(m_standDelayData,CAirsideFlightDelayReport::FltDelaySegment_Stand,mapSegmentDelay,pParameter);
 	//generate detail of  taxi delay
-	BulidDetailMultiRunDelayTime(m_taxiDelayData,mapTaxiDelay,iInterval);
+	BulidDetailMultiRunDelayTime(m_taxiDelayData,CAirsideFlightDelayReport::FltDelaySegment_Taxi,mapSegmentDelay,pParameter);
 	//generate detail of service delay
-	BulidDetailMultiRunDelayTime(m_serviceDelayData,mapServiceDelay,iInterval);
+	BulidDetailMultiRunDelayTime(m_serviceDelayData,CAirsideFlightDelayReport::FltDelaySegment_Service,mapSegmentDelay,pParameter);
 	//generate detail of takeoff delay
-	BulidDetailMultiRunDelayTime(m_takeoffDelayData,mapTakeoffDelay,iInterval);
+	BulidDetailMultiRunDelayTime(m_takeoffDelayData,CAirsideFlightDelayReport::FltDelaySegment_TakeOff,mapSegmentDelay,pParameter);
 	//generate detail of schedule delay
-	BulidDetailMultiRunDelayCount(m_scheduleDelayData,mapScheduleDelay,iInterval);
+	BulidDetailMultiRunDelayCount(m_scheduleDelayData,mapScheduleDelay,pParameter->getInterval(),100);
 
 	//generate detail of segment delay
-	BuildDetailComponentSegmentData(m_segmentDelayData,mapSegmentDelay,iInterval);
+	BuildDetailComponentSegmentData(m_segmentDelayData,mapSegmentDelay,pParameter);
 	//generate detail of component delay
-	BuildDetailComponentSegmentData(m_componentDelayData,mapComponentDelay,iInterval);
+	BuildDetailComponentSegmentData(m_componentDelayData,mapComponentDelay,pParameter);
 
+// build summary data begin
     //generate summary of total delay
-    BulidSummaryMultiRunDelayTimeData(m_totalSummaryDelayData,mapTotalDelay,iInterval);
+    BuildSummaryTotalDelayData(m_totalSummaryDelayData, mapTotalDelay);
     //generate summary of air delay
-    BulidSummaryMultiRunDelayTimeData(m_airSummaryDelayData,mapAirDelay,iInterval);
+    BuildSummarySegmentData(m_airSummaryDelayData,CAirsideFlightDelayReport::FltDelaySegment_Air, mapSummarySegmentDelay,pParameter);
     //generate summary of stand delay
-    BulidSummaryMultiRunDelayTimeData(m_standSummaryDelayData,mapStandDelay,iInterval);
+    BuildSummarySegmentData(m_standSummaryDelayData,CAirsideFlightDelayReport::FltDelaySegment_Stand,mapSummarySegmentDelay,pParameter);
     //generate summary of  taxi delay
-    BulidSummaryMultiRunDelayTimeData(m_taxiSummaryDelayData,mapTaxiDelay,iInterval);
+    BuildSummarySegmentData(m_taxiSummaryDelayData,CAirsideFlightDelayReport::FltDelaySegment_Taxi,mapSummarySegmentDelay,pParameter);
     //generate summary of service delay
-    BulidSummaryMultiRunDelayTimeData(m_serviceSummaryDelayData,mapServiceDelay,iInterval);
+    BuildSummarySegmentData(m_serviceSummaryDelayData,CAirsideFlightDelayReport::FltDelaySegment_Service,mapSummarySegmentDelay,pParameter);
     //generate summary of takeoff delay
-    BulidSummaryMultiRunDelayTimeData(m_takeoffSummaryDelayData,mapTakeoffDelay,iInterval);
+    BuildSummarySegmentData(m_takeoffSummaryDelayData,CAirsideFlightDelayReport::FltDelaySegment_TakeOff,mapSummarySegmentDelay,pParameter);
     //generate summary of schedule delay
-    BulidSummaryMultiRunDelayTimeData(m_scheduleSummaryDelayData,mapScheduleDelay,iInterval);
-	//generate summary of segment delay
-	
-	//generate summary of compoment delay
+    BuildSummaryTotalDelayData(m_scheduleSummaryDelayData,mapScheduleDelay);
+    //generate summary of segment delay
+    BuildSummarySegmentData2(m_segmentSummaryDelayData, mapSummarySegmentDelay);
+    //generate summary of component delay 
+    BuildSummaryComponentSegmentData(m_componentSummaryDelayData, mapComponentDelay);
+// build summary data end
 }
 
 void CAirsideFlightMutiRunDelayResult::ClearData()
@@ -294,46 +306,45 @@ long CAirsideFlightMutiRunDelayResult::ClacTimeRange(ElapsedTime& eMaxTime,Elaps
 	return _nMinNumCol;
 }
 
-void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComponentAndSegmentMap& mapDetailData,mapLoadComponentAndSegment& componentSegmentMapData,long iInterval)
+void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComponentAndSegmentMap& mapDetailData,mapDelayResultData& componentSegmentMapData,CParameters* pParameter)
 {
-	std::map<long, GroupMinMax> mapMinMaxData;
-	mapLoadComponentAndSegment::iterator iter = componentSegmentMapData.begin();
+	ElapsedTime estMinDelayTime = pParameter->getStartTime();
+	ElapsedTime estMaxDelayTime = pParameter->getEndTime();
+
+	long lMinDelayTime = estMinDelayTime.asSeconds();
+	long lMaxDelayTime = estMaxDelayTime.asSeconds();
+
+	if (lMinDelayTime > lMaxDelayTime)
+		return;
+
+	long iInterval = pParameter->getInterval();
+	ElapsedTime estUserIntervalTime = ElapsedTime(iInterval);
+
+	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
+	if (0 < pParameter->getInterval())
+	{
+		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
+		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+
+//		lDelayTimeSegmentCount++;
+	}
+	else
+	{
+		lDelayTimeSegmentCount= ClacTimeRange(estMaxDelayTime, estMinDelayTime, estUserIntervalTime);
+	}
+
+	std::vector<long> vTypeData;
+	mapDelayResultData::iterator iter = componentSegmentMapData.begin();
 	for (; iter != componentSegmentMapData.end(); ++iter)
 	{
-		mapComponentAndSegmentResult::iterator mapIter = iter->second.begin();
+		mapDelayData::iterator mapIter = iter->second.begin();
 		for (; mapIter != iter->second.end(); ++mapIter)
 		{
-			if (mapMinMaxData.find(mapIter->first) == mapMinMaxData.end())
+			if (std::find(vTypeData.begin(),vTypeData.end(),mapIter->first) == vTypeData.end())
 			{
-				GroupMinMax groupData;
-				groupData.m_iMin = GetComponentSegmentMinValue(componentSegmentMapData,mapIter->first);
-				groupData.m_iMax = GetComponentSegmentMaxValue(componentSegmentMapData,mapIter->first);
-				mapMinMaxData[mapIter->first] = groupData;
+				vTypeData.push_back(mapIter->first);
 			}
 			
-			long lMinDelayTime = mapMinMaxData[mapIter->first].m_iMin;
-			long lMaxDelayTime = mapMinMaxData[mapIter->first].m_iMax;
-
-			if (lMinDelayTime > lMaxDelayTime)
-				return;
-
-			ElapsedTime estMinDelayTime = ElapsedTime(long(lMinDelayTime/100.0+0.5));
-			ElapsedTime estMaxDelayTime = ElapsedTime(long(lMaxDelayTime/100.0+0.5));
-			ElapsedTime estUserIntervalTime = ElapsedTime(iInterval);
-
-			long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
-			if (0 < iInterval)
-			{
-				lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval * 100);
-				estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval*100)) /100);
-
-				lDelayTimeSegmentCount++;
-			}
-			else
-			{
-				lDelayTimeSegmentCount= ClacTimeRange(estMaxDelayTime, estMinDelayTime, estUserIntervalTime);
-			}
-
 			for (long i = 0; i < lDelayTimeSegmentCount; i++)
 			{
 				ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
@@ -352,7 +363,7 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( DelayDetailMap& mapDetailData,mapLoadResult mapData,long iInterval )
+void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( DelayDetailMap& mapDetailData,mapLoadResult mapData,long iInterval,long iIgnore/*=0*/  )
 {
 	long lMinDelayTime = GetMapMinValue(mapData);
 	long lMaxDelayTime = GetMapMaxValue(mapData);
@@ -389,39 +400,41 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( DelayDetai
 			delayData.m_iStart = estTempMinDelayTime.getPrecisely();
 			delayData.m_iEnd = estTempMaxDelayTime.getPrecisely();
 
-			long iCount = GetIntervalCount(delayData.m_iStart,delayData.m_iEnd,iter->second);
+			long iCount = GetIntervalCount(delayData.m_iStart,delayData.m_iEnd,iter->second,iIgnore);
 			delayData.m_iData = iCount;
 			mapDetailData[iter->first].push_back(delayData);
 		}
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( DelayDetailMap& mapDetailData,mapLoadResult mapData,long iInterval )
+void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( DelayDetailMap& mapDetailData,int iType,mapDelayResultData mapData,CParameters* pParameter )
 {
-	long lMinDelayTime = GetMapMinValue(mapData);
-	long lMaxDelayTime = GetMapMaxValue(mapData);
+	ElapsedTime estMinDelayTime = pParameter->getStartTime();
+	ElapsedTime estMaxDelayTime = pParameter->getEndTime();
+
+	long lMinDelayTime = estMinDelayTime.asSeconds();
+	long lMaxDelayTime = estMaxDelayTime.asSeconds();
 
 	if (lMinDelayTime > lMaxDelayTime)
 		return;
 
-	ElapsedTime estMinDelayTime = ElapsedTime(long(lMinDelayTime/100.0+0.5));
-	ElapsedTime estMaxDelayTime = ElapsedTime(long(lMaxDelayTime/100.0+0.5));
+	long iInterval = pParameter->getInterval();
 	ElapsedTime estUserIntervalTime = ElapsedTime(iInterval);
 
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval * 100);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval*100)) /100);
+		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
+		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
 
-		lDelayTimeSegmentCount++;
+	//	lDelayTimeSegmentCount++;
 	}
 	else
 	{
 		lDelayTimeSegmentCount= ClacTimeRange(estMaxDelayTime, estMinDelayTime, estUserIntervalTime);
 	}
 
-	mapLoadResult::iterator iter = mapData.begin();
+	mapDelayResultData::iterator iter = mapData.begin();
 	for (; iter != mapData.end(); ++iter)
 	{
 		for (long i = 0; i < lDelayTimeSegmentCount; i++)
@@ -433,54 +446,12 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( DelayDetail
 			delayData.m_iStart = estTempMinDelayTime.getPrecisely();
 			delayData.m_iEnd = estTempMaxDelayTime.getPrecisely();
 
-			long iDelayTime = GetIntervalDelayTime(delayData.m_iStart,delayData.m_iEnd,iter->second);
+			long iDelayTime = GetIntervalDelayTime(delayData.m_iStart,delayData.m_iEnd,iter->second[iType]);
 			delayData.m_iData = iDelayTime;
 			mapDetailData[iter->first].push_back(delayData);
 		}
 	}
 }
-
-long CAirsideFlightMutiRunDelayResult::GetComponentSegmentMaxValue( mapLoadComponentAndSegment& componentSegmentMapData,int iType )
-{
-	bool bInitFlag = true;
-	long iMax = 0;
-	mapLoadComponentAndSegment::iterator iter = componentSegmentMapData.begin();
-	for (; iter != componentSegmentMapData.begin(); ++iter)
-	{
-		int iValue = GetMaxValue(iter->second[iType]);
-		if (bInitFlag)
-		{
-			iMax = iValue;
-			bInitFlag = false;
-		}
-		else if (iMax < iValue)
-		{
-			iMax = iValue;
-		}
-	}
-	return iMax;
-}
-
-long CAirsideFlightMutiRunDelayResult::GetComponentSegmentMinValue( mapLoadComponentAndSegment& componentSegmentMapData,int iType )
-{
-	bool bInitFlag = true;
-	long iMin = 0;
-	mapLoadComponentAndSegment::iterator iter = componentSegmentMapData.begin();
-	for (; iter != componentSegmentMapData.begin(); ++iter)
-	{
-		int iValue = GetMinValue(iter->second[iType]);
-		if (bInitFlag)
-		{
-			iMin = iValue;
-		}
-		else if (iMin > iValue)
-		{
-			iMin = iValue;
-		}
-	}
-	return iMin;
-}
-
 
 long CAirsideFlightMutiRunDelayResult::GetMapMinValue( mapLoadResult mapData )
 {
@@ -564,12 +535,15 @@ long CAirsideFlightMutiRunDelayResult::GetMaxValue( std::vector<long> vData ) co
 	return iMax;
 }
 
-int CAirsideFlightMutiRunDelayResult::GetIntervalCount( long iStart, long iEnd, std::vector<long> vData ) const
+int CAirsideFlightMutiRunDelayResult::GetIntervalCount( long iStart, long iEnd, std::vector<long> vData,long iIgnore/*=0*/  ) const
 {
 	int iCount = 0;
 	for (unsigned i = 0; i < vData.size(); i++)
 	{
 		long iData = vData.at(i);
+		if (iData < iIgnore)//ignore necessary secs
+			continue;
+		
 		if (iData >= iStart && iData < iEnd)
 		{
 			iCount++;
@@ -578,15 +552,15 @@ int CAirsideFlightMutiRunDelayResult::GetIntervalCount( long iStart, long iEnd, 
 	return iCount;
 }
 
-long CAirsideFlightMutiRunDelayResult::GetIntervalDelayTime( long iStart,long iEnd,std::vector<long> vData ) const
+long CAirsideFlightMutiRunDelayResult::GetIntervalDelayTime( long iStart,long iEnd,std::vector<FlightDelayData> vData) const
 {
 	long iDelayTime = 0;
 	for (unsigned i = 0; i < vData.size(); i++)
 	{
-		long iData = vData.at(i);
-		if (iData >= iStart && iData < iEnd)
+		FlightDelayData delayData = vData.at(i);
+		if (delayData.m_iArrTime >= iStart && delayData.m_iArrTime < iEnd)
 		{
-			iDelayTime += iData;
+			iDelayTime += delayData.m_lDelayTime;
 		}
 	}
 	return iDelayTime;
@@ -616,63 +590,37 @@ void CAirsideFlightMutiRunDelayResult::InitDetailListHead( CXListCtrl& cxListCtr
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::InitSummaryListHead(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC)
+void CAirsideFlightMutiRunDelayResult::InitSummaryListHead(CXListCtrl& cxListCtrl, CParameters* pParameter, CSortableHeaderCtrl* piSHC)
 {
+    int nCurCol = 0;
     DWORD headStyle = LVCFMT_CENTER;
     headStyle &= ~HDF_OWNERDRAW;
-    cxListCtrl.InsertColumn(0,"",headStyle,20);
+    cxListCtrl.InsertColumn(nCurCol,"",headStyle,20);
+    nCurCol++;
 
     headStyle = LVCFMT_LEFT;
     headStyle &= ~HDF_OWNERDRAW;
-    cxListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
+    cxListCtrl.InsertColumn(nCurCol, _T("SimResult"), headStyle, 80);
+    nCurCol++;
 
-    int nCurCol = 2;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-    nCurCol++;
-    cxListCtrl.InsertColumn(nCurCol, strSummaryContent[nCurCol], LVCFMT_LEFT, 100);
-
-    if (piSHC)
+    CAirsideFlightDelayParam* pDelayPara = (CAirsideFlightDelayParam*)pParameter;
+    if(pDelayPara->getSubType() == CAirsideFlightDelayReport::SRT_SUMMARY_FLIGHTTOTALDELAY ||
+        pDelayPara->getSubType() == CAirsideFlightDelayReport::SRT_SUMMARY_SEGMENTDELAY ||
+        pDelayPara->getSubType() == CAirsideFlightDelayReport::SRT_SUMMARY_COMPONENTDELAY)
     {
-        piSHC->ResetAll();
-        piSHC->SetDataType(2,dtTIME);
-        piSHC->SetDataType(3,dtTIME);
-        piSHC->SetDataType(4,dtTIME);
-        piSHC->SetDataType(5,dtTIME);
-        piSHC->SetDataType(6,dtTIME);
-        piSHC->SetDataType(7,dtTIME);
-        piSHC->SetDataType(8,dtTIME);
-        piSHC->SetDataType(9,dtTIME);
-        piSHC->SetDataType(10,dtTIME);
-        piSHC->SetDataType(11,dtTIME);
-        piSHC->SetDataType(12,dtTIME);
-        piSHC->SetDataType(13,dtTIME);
-        piSHC->SetDataType(14,dtTIME);
-        piSHC->SetDataType(15,dtTIME);
+        cxListCtrl.InsertColumn(nCurCol, _T("Total Delay(min)"), headStyle, 80);
+        nCurCol++;
+    }
 
+    int nCount = sizeof(strSummaryContent)/sizeof(strSummaryContent[0]);
+    for(int i=0; i<nCount; i++)
+    {
+        cxListCtrl.InsertColumn(nCurCol, strSummaryContent[i], LVCFMT_LEFT, 100);
+        if(piSHC)
+        {
+            piSHC->SetDataType(nCurCol,dtTIME);
+        }
+        nCurCol++;
     }
 }
 
@@ -752,7 +700,7 @@ void CAirsideFlightMutiRunDelayResult::InitListHead( CXListCtrl& cxListCtrl, CPa
 	}
     else if(parameter->getReportType() == ASReportType_Summary)
     {
-        InitSummaryListHead(cxListCtrl, piSHC);
+        InitSummaryListHead(cxListCtrl, parameter, piSHC);
     }
 }
 void CAirsideFlightMutiRunDelayResult::FillDetailListCountContent( CXListCtrl& cxListCtrl,DelayDetailMap mapDetailData )
@@ -788,14 +736,9 @@ void CAirsideFlightMutiRunDelayResult::FillDetailListCountContent( CXListCtrl& c
 	}
 }
 
-void CAirsideFlightMutiRunDelayResult::FillSummaryComponentSegmentContent(CXListCtrl& cxListCtrl,DelayComponentAndSegmentMap mapDetailData,int iType)
+void CAirsideFlightMutiRunDelayResult::FillSummaryComponentSegmentContent(CXListCtrl& cxListCtrl,SummaryCompomentAndSegmentResultMap mapSummaryData,int iType)
 {
-
-}
-
-void CAirsideFlightMutiRunDelayResult::FillSummaryListContent(CXListCtrl& cxListCtrl, SummaryDelayResultMap& mapSummaryData)
-{
-    SummaryDelayResultMap::iterator iter = mapSummaryData.begin();
+    SummaryCompomentAndSegmentResultMap::iterator iter = mapSummaryData.begin();
 
     int idx = 0;
     for (; iter != mapSummaryData.end(); ++iter)
@@ -813,9 +756,94 @@ void CAirsideFlightMutiRunDelayResult::FillSummaryListContent(CXListCtrl& cxList
         cxListCtrl.SetItemData(idx, idx);
 
         int nCurCol = 2;
-        CString strTemp = iter->second.m_estTotal.printTime();
+        CString strTemp = iter->second[iType].m_estTotal.printTime();
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
+
+        strTemp = iter->second[iType].m_estMin.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estAverage.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estMax.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estQ1.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estQ2.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estQ3.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estP1.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estP5.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estP10.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estP90.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estP95.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estP99.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second[iType].m_estSigma.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        idx++;
+    }
+}
+
+void CAirsideFlightMutiRunDelayResult::FillSummaryListContent(CXListCtrl& cxListCtrl, CParameters* pParameter, SummaryDelayResultMap& mapSummaryData)
+{
+    SummaryDelayResultMap::iterator iter = mapSummaryData.begin();
+
+    int idx = 0;
+    for (; iter != mapSummaryData.end(); ++iter)
+    {
+        CString strIndex;
+        strIndex.Format(_T("%d"),idx+1);
+        cxListCtrl.InsertItem(idx,strIndex);
+
+        CString strSimName = iter->first;
+        int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
+        CString strRun = _T("");
+        strRun.Format(_T("Run%d"),nCurSimResult+1);
+        int nCurCol = 1;
+        cxListCtrl.SetItemText(idx, nCurCol, strRun);
+        cxListCtrl.SetItemData(idx, idx);
+        nCurCol++;
+
+        CString strTemp;
+        CAirsideFlightDelayParam* pDelayPara = (CAirsideFlightDelayParam*)pParameter;
+        if(pDelayPara->getSubType() == CAirsideFlightDelayReport::SRT_SUMMARY_FLIGHTTOTALDELAY)
+        {
+            strTemp = iter->second.m_estTotal.printTime();
+            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+            nCurCol++;
+        }
 
         strTemp = iter->second.m_estMin.printTime();
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
@@ -888,11 +916,13 @@ void CAirsideFlightMutiRunDelayResult::FilllDetailComponentSegmentContent(CXList
 		CString strRun = _T("");
 		strRun.Format(_T("Run%d"),nCurSimResult+1);
 
+		cxListCtrl.SetItemText(idx,1,strRun);
+		cxListCtrl.SetItemData(idx,idx);
 		for (size_t n = 0; n < iter->second[iType].size(); ++n)
 		{
 			MultipleRunFlightDelayData delayData = iter->second[iType].at(n);
 			ElapsedTime eTime;
-			if(n <  iter->second.size())
+			if(n <  iter->second[iType].size())
 				eTime.setPrecisely(delayData.m_iData);
 
 			cxListCtrl.SetItemText(idx, n + 2, eTime.printTime());
@@ -977,32 +1007,32 @@ void CAirsideFlightMutiRunDelayResult::FillListContent( CXListCtrl& cxListCtrl, 
         switch (pDelayPara->getSubType())
         {
         case CAirsideFlightDelayReport::SRT_SUMMARY_FLIGHTTOTALDELAY:
-            FillSummaryListContent(cxListCtrl,m_totalSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_totalSummaryDelayData);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_AIRDELAY:
-            FillSummaryListContent(cxListCtrl,m_airSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_airSummaryDelayData);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_TAXIDELAY:
-            FillSummaryListContent(cxListCtrl,m_taxiSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_taxiSummaryDelayData);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_TAKOFFDELAY:
-            FillSummaryListContent(cxListCtrl,m_takeoffSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_takeoffSummaryDelayData);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_STANDDELAY:
-            FillSummaryListContent(cxListCtrl,m_standSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_standSummaryDelayData);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_SCHEDULEDELAY:
         case CAirsideFlightDelayReport::SRT_DETAIL_SCHEDULEDELAY:// default choose 
-            FillSummaryListContent(cxListCtrl,m_scheduleSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_scheduleSummaryDelayData);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_SEGMENTDELAY:
-            FillSummaryComponentSegmentContent(cxListCtrl,m_segmentDelayData, iType);
+            FillSummaryComponentSegmentContent(cxListCtrl,m_segmentSummaryDelayData, iType);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_COMPONENTDELAY:
-            FillSummaryComponentSegmentContent(cxListCtrl,m_componentDelayData, iType);
+            FillSummaryComponentSegmentContent(cxListCtrl,m_componentSummaryDelayData, iType);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_SERVICEDELAY:
-            FillSummaryListContent(cxListCtrl,m_serviceSummaryDelayData);
+            FillSummaryListContent(cxListCtrl, parameter, m_serviceSummaryDelayData);
             break;
         default:
             break;
@@ -1072,10 +1102,10 @@ void CAirsideFlightMutiRunDelayResult::Draw3DChart( CARC3DChart& chartWnd, CPara
             GenerateSummary3DChartTimeData(m_scheduleSummaryDelayData, chartWnd, pDelayPara);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_SEGMENTDELAY:
-            GenerateComponentSegmentTimeData(m_segmentDelayData, iType, chartWnd, pDelayPara);
+            GenerateSummaryComponentSegmentTimeData(m_segmentSummaryDelayData, iType, chartWnd, pDelayPara);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_COMPONENTDELAY:
-            GenerateComponentSegmentTimeData(m_componentDelayData, iType, chartWnd, pDelayPara);
+            GenerateSummaryComponentSegmentTimeData(m_componentSummaryDelayData, iType, chartWnd, pDelayPara);
             break;
         case CAirsideFlightDelayReport::SRT_SUMMARY_SERVICEDELAY:
             GenerateSummary3DChartTimeData(m_serviceSummaryDelayData, chartWnd, pDelayPara);
@@ -1123,7 +1153,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateComponentSegmentTimeData(DelayCom
 			MultipleRunFlightDelayData delayData = iter->second[iType].at(i);
 			ElapsedTime tTime;
 			tTime.setPrecisely(delayData.m_iData);
-			vData.push_back(tTime.asMinutes());
+			vData.push_back(tTime.asSeconds()/60.0);
 		}
 		c2dGraphData.m_vr2DChartData.push_back(vData);
 	}
@@ -1209,7 +1239,7 @@ void CAirsideFlightMutiRunDelayResult::Generate3DChartTimeData( DelayDetailMap m
 			MultipleRunFlightDelayData delayData = iter->second.at(i);
 			ElapsedTime tTime;
 			tTime.setPrecisely(delayData.m_iData);
-			vData.push_back(tTime.asMinutes());
+			vData.push_back(tTime.asSeconds()/60.0);
 		}
 		c2dGraphData.m_vr2DChartData.push_back(vData);
 	}
@@ -1281,7 +1311,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetail3DChartString( C2DChartData& c2d
 		switch (pDelayPara->getSubType())
 		{
 		case CAirsideFlightDelayReport::SRT_DETAIL_FLIGHTTOTALDELAY:
-			SetDetailTakeoffDelay3DChartString(c2dGraphData,pParameter);
+			SetDetailTotalDelay3DChartString(c2dGraphData,pParameter);
 			break;
 		case CAirsideFlightDelayReport::SRT_DETAIL_AIRDELAY:
 			SetDetailAirDelay3DChartString(c2dGraphData,pParameter);
@@ -1361,10 +1391,11 @@ void CAirsideFlightMutiRunDelayResult::SetDetailComponentDelay3DChartString( C2D
 	c2dGraphData.m_strFooter = strFooter;
 }
 
-void CAirsideFlightMutiRunDelayResult::BulidSummaryMultiRunDelayTimeData( SummaryDelayResultMap& mapSummaryData,mapLoadResult mapData,long iInterval )
+
+void CAirsideFlightMutiRunDelayResult::BuildSummaryTotalDelayData(SummaryDelayResultMap& mapSummaryData, mapLoadResult mapTotalDelay)
 {
-    mapLoadResult::iterator iter = mapData.begin();
-    for (; iter != mapData.end(); ++iter)
+    mapLoadResult::iterator iter = mapTotalDelay.begin();
+    for (; iter != mapTotalDelay.end(); ++iter)
     {
         CStatisticalTools<double> tempTools;
         for (size_t n = 0; n < iter->second.size(); ++n)
@@ -1373,22 +1404,120 @@ void CAirsideFlightMutiRunDelayResult::BulidSummaryMultiRunDelayTimeData( Summar
         }
         tempTools.SortData();
 
-        mapSummaryData[iter->first].m_estTotal.setPrecisely((long)tempTools.GetSum());
-        mapSummaryData[iter->first].m_estMin.setPrecisely((long)tempTools.GetMin());
-        mapSummaryData[iter->first].m_estAverage.setPrecisely((long)tempTools.GetAvarage());
-        mapSummaryData[iter->first].m_estMax.setPrecisely((long)tempTools.GetMax());
-        mapSummaryData[iter->first].m_estQ1.setPrecisely((long)tempTools.GetMSExcelPercentile(25));
-        mapSummaryData[iter->first].m_estQ2.setPrecisely((long)tempTools.GetMSExcelPercentile(50));
-        mapSummaryData[iter->first].m_estQ3.setPrecisely((long)tempTools.GetMSExcelPercentile(75));
-        mapSummaryData[iter->first].m_estP1.setPrecisely((long)tempTools.GetMSExcelPercentile(1));
-        mapSummaryData[iter->first].m_estP5.setPrecisely((long)tempTools.GetMSExcelPercentile(5));
-        mapSummaryData[iter->first].m_estP10.setPrecisely((long)tempTools.GetMSExcelPercentile(10));
-        mapSummaryData[iter->first].m_estP90.setPrecisely((long)tempTools.GetMSExcelPercentile(90));
-        mapSummaryData[iter->first].m_estP95.setPrecisely((long)tempTools.GetMSExcelPercentile(95));
-        mapSummaryData[iter->first].m_estP99.setPrecisely((long)tempTools.GetMSExcelPercentile(99));
-        mapSummaryData[iter->first].m_estSigma.setPrecisely((long)tempTools.GetSigma());
+        mapSummaryData[iter->first].m_estTotal = (long)(tempTools.GetSum()/100.0+0.5);
+        mapSummaryData[iter->first].m_estMin = (long)(tempTools.GetMin()/100.0+0.5);
+        mapSummaryData[iter->first].m_estAverage = (long)(tempTools.GetAvarage()/100.0+0.5);
+        mapSummaryData[iter->first].m_estMax = (long)(tempTools.GetMax()/100.0+0.5);
+        mapSummaryData[iter->first].m_estQ1 = (long)(tempTools.GetPercentile(25)/100.0+0.5);
+        mapSummaryData[iter->first].m_estQ2 = (long)(tempTools.GetPercentile(50)/100.0+0.5);
+        mapSummaryData[iter->first].m_estQ3 = (long)(tempTools.GetPercentile(75)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP1 = (long)(tempTools.GetPercentile(1)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP5 = (long)(tempTools.GetPercentile(5)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP10 = (long)(tempTools.GetPercentile(10)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP90 = (long)(tempTools.GetPercentile(90)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP95 = (long)(tempTools.GetPercentile(95)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP99 = (long)(tempTools.GetPercentile(99)/100.0+0.5);
+        mapSummaryData[iter->first].m_estSigma = (long)(tempTools.GetSigma()/100.0+0.5);
     }
 }
+
+void CAirsideFlightMutiRunDelayResult::BuildSummarySegmentData(SummaryDelayResultMap& mapSummaryData, 
+    CAirsideFlightDelayReport::FltDelaySegment iType, mapSummarySegmentData& oriData, CParameters* pParameter)
+{
+    mapSummarySegmentData::iterator iter = oriData.begin();
+    for (; iter != oriData.end(); ++iter)
+    {
+        CStatisticalTools<double> tempTools;
+        size_t nCount = iter->second[iType].size();
+        for (size_t n = 0; n < nCount; ++n)
+        {
+            tempTools.AddNewData((double)(iter->second[iType][n]));
+        }
+        tempTools.SortData();
+
+        mapSummaryData[iter->first].m_estTotal = (long)(tempTools.GetSum()/100.0+0.5);
+        mapSummaryData[iter->first].m_estMin = (long)(tempTools.GetMin()/100.0+0.5);
+        mapSummaryData[iter->first].m_estAverage = (long)(tempTools.GetAvarage()/100.0+0.5);
+        mapSummaryData[iter->first].m_estMax = (long)(tempTools.GetMax()/100.0+0.5);
+        mapSummaryData[iter->first].m_estQ1 = (long)(tempTools.GetPercentile(25)/100.0+0.5);
+        mapSummaryData[iter->first].m_estQ2 = (long)(tempTools.GetPercentile(50)/100.0+0.5);
+        mapSummaryData[iter->first].m_estQ3 = (long)(tempTools.GetPercentile(75)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP1 = (long)(tempTools.GetPercentile(1)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP5 = (long)(tempTools.GetPercentile(5)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP10 = (long)(tempTools.GetPercentile(10)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP90 = (long)(tempTools.GetPercentile(90)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP95 = (long)(tempTools.GetPercentile(95)/100.0+0.5);
+        mapSummaryData[iter->first].m_estP99 = (long)(tempTools.GetPercentile(99)/100.0+0.5);
+        mapSummaryData[iter->first].m_estSigma = (long)(tempTools.GetSigma()/100.0+0.5);
+    }
+}
+
+void CAirsideFlightMutiRunDelayResult::BuildSummarySegmentData2(SummaryCompomentAndSegmentResultMap& mapSummaryData, 
+    mapSummarySegmentData& oriData)
+{
+    mapSummarySegmentData::iterator iter = oriData.begin();
+    for (; iter != oriData.end(); ++iter)
+    {
+        summarySegmentData::iterator mapIter = iter->second.begin();
+        for (; mapIter != iter->second.end(); ++mapIter)
+        {
+            CStatisticalTools<double> tempTools;
+            for (size_t n = 0; n < mapIter->second.size(); ++n)
+            {
+                tempTools.AddNewData((double)mapIter->second[n]);
+            }
+            tempTools.SortData();
+
+            mapSummaryData[iter->first][mapIter->first].m_estTotal = (long)(tempTools.GetSum()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estMin = (long)(tempTools.GetMin()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estAverage = (long)(tempTools.GetAvarage()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estMax = (long)(tempTools.GetMax()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estQ1 = (long)(tempTools.GetPercentile(25)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estQ2 = (long)(tempTools.GetPercentile(50)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estQ3 = (long)(tempTools.GetPercentile(75)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP1 = (long)(tempTools.GetPercentile(1)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP5 = (long)(tempTools.GetPercentile(5)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP10 = (long)(tempTools.GetPercentile(10)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP90 = (long)(tempTools.GetPercentile(90)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP95 = (long)(tempTools.GetPercentile(95)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP99 = (long)(tempTools.GetPercentile(99)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estSigma = (long)(tempTools.GetSigma()/100.0+0.5);
+        }
+    }
+}
+
+// void CAirsideFlightMutiRunDelayResult::BulidSummaryMultiRunDelayTimeData(SummaryDelayResultMap& mapSummaryData, 
+//     CAirsideFlightDelayReport::FltDelaySegment iType,
+//     mapDelayResultData mapData,
+//     CParameters* pParameter)
+// {
+//     mapDelayResultData::iterator iter = mapData.begin();
+//     for (; iter != mapData.end(); ++iter)
+//     {
+//         CStatisticalTools<double> tempTools;
+//         int nCount = iter->second[iType].size();
+//         for (size_t n = 0; n < nCount; ++n)
+//         {
+//             tempTools.AddNewData((double)(iter->second[iType][n].m_lDelayTime));
+//         }
+//         tempTools.SortData();
+// 
+//         mapSummaryData[iter->first].m_estTotal = (long)(tempTools.GetSum()/100.0+0.5);
+//         mapSummaryData[iter->first].m_estMin = (long)(tempTools.GetMin()/100.0+0.5);
+//         mapSummaryData[iter->first].m_estAverage = (long)(tempTools.GetAvarage()/100.0+0.5);
+//         mapSummaryData[iter->first].m_estMax = (long)(tempTools.GetMax()/100.0+0.5);
+//         mapSummaryData[iter->first].m_estQ1 = (long)(tempTools.GetPercentile(25)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estQ2 = (long)(tempTools.GetPercentile(50)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estQ3 = (long)(tempTools.GetPercentile(75)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estP1 = (long)(tempTools.GetPercentile(1)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estP5 = (long)(tempTools.GetPercentile(5)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estP10 = (long)(tempTools.GetPercentile(10)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estP90 = (long)(tempTools.GetPercentile(90)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estP95 = (long)(tempTools.GetPercentile(95)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estP99 = (long)(tempTools.GetPercentile(99)/100.0+0.5);
+//         mapSummaryData[iter->first].m_estSigma = (long)(tempTools.GetSigma()/100.0+0.5);
+//     }
+// }
 
 void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(SummaryDelayResultMap& mapSummaryData, CARC3DChart& chartWnd, CParameters *pParameter )
 {
@@ -1399,12 +1528,11 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(SummaryDel
         return;
 
     int nCount = sizeof(strSummaryContent)/sizeof(strSummaryContent[0]);
-    for(int i=2; i<nCount; i++)
+    for(int i=0; i<nCount; i++)
     {
         c2dGraphData.m_vrLegend.push_back(strSummaryContent[i]);
     }
 
-    std::vector<CSummaryData> vSummaryData;
     SummaryDelayResultMap::iterator iter = mapSummaryData.begin();
     for(; iter != mapSummaryData.end(); ++iter)
     {
@@ -1415,69 +1543,101 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(SummaryDel
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
 
-        if(iter == mapSummaryData.begin())
-        {
-            std::vector<double> vData;
-            for(int i=0; i<14; i++)
-                c2dGraphData.m_vr2DChartData.push_back(vData);
-        }
-        c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second.m_estTotal);
-        c2dGraphData.m_vr2DChartData[1].push_back((double)iter->second.m_estMin);
-        c2dGraphData.m_vr2DChartData[2].push_back((double)iter->second.m_estAverage);
-        c2dGraphData.m_vr2DChartData[3].push_back((double)iter->second.m_estMax);
-        c2dGraphData.m_vr2DChartData[4].push_back((double)iter->second.m_estQ1);
-        c2dGraphData.m_vr2DChartData[5].push_back((double)iter->second.m_estQ2);
-        c2dGraphData.m_vr2DChartData[6].push_back((double)iter->second.m_estQ3);
-        c2dGraphData.m_vr2DChartData[7].push_back((double)iter->second.m_estP1);
-        c2dGraphData.m_vr2DChartData[8].push_back((double)iter->second.m_estP5);
-        c2dGraphData.m_vr2DChartData[9].push_back((double)iter->second.m_estP10);
-        c2dGraphData.m_vr2DChartData[10].push_back((double)iter->second.m_estP90);
-        c2dGraphData.m_vr2DChartData[11].push_back((double)iter->second.m_estP95);
-        c2dGraphData.m_vr2DChartData[12].push_back((double)iter->second.m_estP99);
-        c2dGraphData.m_vr2DChartData[13].push_back((double)iter->second.m_estSigma);
+        c2dGraphData.m_vr2DChartData.resize(13);
+        c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second.m_estMin/60.0f);
+        c2dGraphData.m_vr2DChartData[1].push_back((double)iter->second.m_estAverage/60.0f);
+        c2dGraphData.m_vr2DChartData[2].push_back((double)iter->second.m_estMax/60.0f);
+        c2dGraphData.m_vr2DChartData[3].push_back((double)iter->second.m_estQ1/60.0f);
+        c2dGraphData.m_vr2DChartData[4].push_back((double)iter->second.m_estQ2/60.0f);
+        c2dGraphData.m_vr2DChartData[5].push_back((double)iter->second.m_estQ3/60.0f);
+        c2dGraphData.m_vr2DChartData[6].push_back((double)iter->second.m_estP1/60.0f);
+        c2dGraphData.m_vr2DChartData[7].push_back((double)iter->second.m_estP5/60.0f);
+        c2dGraphData.m_vr2DChartData[8].push_back((double)iter->second.m_estP10/60.0f);
+        c2dGraphData.m_vr2DChartData[9].push_back((double)iter->second.m_estP90/60.0f);
+        c2dGraphData.m_vr2DChartData[10].push_back((double)iter->second.m_estP95/60.0f);
+        c2dGraphData.m_vr2DChartData[11].push_back((double)iter->second.m_estP99/60.0f);
+        c2dGraphData.m_vr2DChartData[12].push_back((double)iter->second.m_estSigma/60.0f);
         
     }
     chartWnd.DrawChart(c2dGraphData);
 }
 
 void CAirsideFlightMutiRunDelayResult::BuildSummaryComponentSegmentData(SummaryCompomentAndSegmentResultMap& mapSummaryData, 
-    mapLoadComponentAndSegment& componentSegmentMapData,long iInterval)
+    mapDelayResultData& componentSegmentMapData)
 {
-    mapLoadComponentAndSegment::iterator iter = componentSegmentMapData.begin();
+    mapDelayResultData::iterator iter = componentSegmentMapData.begin();
     for (; iter != componentSegmentMapData.end(); ++iter)
     {
-        mapComponentAndSegmentResult::iterator mapIter = iter->second.begin();
+        mapDelayData::iterator mapIter = iter->second.begin();
         for (; mapIter != iter->second.end(); ++mapIter)
         {
             CStatisticalTools<double> tempTools;
             for (size_t n = 0; n < mapIter->second.size(); ++n)
             {
-                tempTools.AddNewData((double)mapIter->second[n]);
+                tempTools.AddNewData((double)mapIter->second[n].m_lDelayTime);
             }
             tempTools.SortData();
 
-            mapSummaryData[iter->first][mapIter->first].m_estTotal.setPrecisely((long)tempTools.GetSum());
-            mapSummaryData[iter->first][mapIter->first].m_estMin.setPrecisely((long)tempTools.GetMin());
-            mapSummaryData[iter->first][mapIter->first].m_estAverage.setPrecisely((long)tempTools.GetAvarage());
-            mapSummaryData[iter->first][mapIter->first].m_estMax.setPrecisely((long)tempTools.GetMax());
-            mapSummaryData[iter->first][mapIter->first].m_estQ1.setPrecisely((long)tempTools.GetMSExcelPercentile(25));
-            mapSummaryData[iter->first][mapIter->first].m_estQ2.setPrecisely((long)tempTools.GetMSExcelPercentile(50));
-            mapSummaryData[iter->first][mapIter->first].m_estQ3.setPrecisely((long)tempTools.GetMSExcelPercentile(75));
-            mapSummaryData[iter->first][mapIter->first].m_estP1.setPrecisely((long)tempTools.GetMSExcelPercentile(1));
-            mapSummaryData[iter->first][mapIter->first].m_estP5.setPrecisely((long)tempTools.GetMSExcelPercentile(5));
-            mapSummaryData[iter->first][mapIter->first].m_estP10.setPrecisely((long)tempTools.GetMSExcelPercentile(10));
-            mapSummaryData[iter->first][mapIter->first].m_estP90.setPrecisely((long)tempTools.GetMSExcelPercentile(90));
-            mapSummaryData[iter->first][mapIter->first].m_estP95.setPrecisely((long)tempTools.GetMSExcelPercentile(95));
-            mapSummaryData[iter->first][mapIter->first].m_estP99.setPrecisely((long)tempTools.GetMSExcelPercentile(99));
-            mapSummaryData[iter->first][mapIter->first].m_estSigma.setPrecisely((long)tempTools.GetSigma());
+            mapSummaryData[iter->first][mapIter->first].m_estTotal = (long)(tempTools.GetSum()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estMin = (long)(tempTools.GetMin()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estAverage = (long)(tempTools.GetAvarage()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estMax = (long)(tempTools.GetMax()/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estQ1 = (long)(tempTools.GetPercentile(25)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estQ2 = (long)(tempTools.GetPercentile(50)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estQ3 = (long)(tempTools.GetPercentile(75)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP1 = (long)(tempTools.GetPercentile(1)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP5 = (long)(tempTools.GetPercentile(5)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP10 = (long)(tempTools.GetPercentile(10)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP90 = (long)(tempTools.GetPercentile(90)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP95 = (long)(tempTools.GetPercentile(95)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estP99 = (long)(tempTools.GetPercentile(99)/100.0+0.5);
+            mapSummaryData[iter->first][mapIter->first].m_estSigma = (long)(tempTools.GetSigma()/100.0+0.5);
         }
     }
 }
 
-void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(SummaryCompomentAndSegmentResultMap& mapDetailData,
+void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(SummaryCompomentAndSegmentResultMap& mapSummaryData,
     int iType, CARC3DChart& chartWnd, CParameters *pParameter)
 {
+    C2DChartData c2dGraphData;
+    SetSummary3DChartString(c2dGraphData, pParameter, iType);
 
+    if (mapSummaryData.empty() == true)
+        return;
+
+    int nCount = sizeof(strSummaryContent)/sizeof(strSummaryContent[0]);
+    for(int i=0; i<nCount; i++)
+    {
+        c2dGraphData.m_vrLegend.push_back(strSummaryContent[i]);
+    }
+
+    SummaryCompomentAndSegmentResultMap::iterator iter = mapSummaryData.begin();
+    for(; iter != mapSummaryData.end(); ++iter)
+    {
+        CString strSimName = iter->first;
+        int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
+        CString strXTickTitle;
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
+
+
+        c2dGraphData.m_vr2DChartData.resize(13);
+        c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second[iType].m_estMin/60.0f);
+        c2dGraphData.m_vr2DChartData[1].push_back((double)iter->second[iType].m_estAverage/60.0f);
+        c2dGraphData.m_vr2DChartData[2].push_back((double)iter->second[iType].m_estMax/60.0f);
+        c2dGraphData.m_vr2DChartData[3].push_back((double)iter->second[iType].m_estQ1/60.0f);
+        c2dGraphData.m_vr2DChartData[4].push_back((double)iter->second[iType].m_estQ2/60.0f);
+        c2dGraphData.m_vr2DChartData[5].push_back((double)iter->second[iType].m_estQ3/60.0f);
+        c2dGraphData.m_vr2DChartData[6].push_back((double)iter->second[iType].m_estP1/60.0f);
+        c2dGraphData.m_vr2DChartData[7].push_back((double)iter->second[iType].m_estP5/60.0f);
+        c2dGraphData.m_vr2DChartData[8].push_back((double)iter->second[iType].m_estP10/60.0f);
+        c2dGraphData.m_vr2DChartData[9].push_back((double)iter->second[iType].m_estP90/60.0f);
+        c2dGraphData.m_vr2DChartData[10].push_back((double)iter->second[iType].m_estP95/60.0f);
+        c2dGraphData.m_vr2DChartData[11].push_back((double)iter->second[iType].m_estP99/60.0f);
+        c2dGraphData.m_vr2DChartData[12].push_back((double)iter->second[iType].m_estSigma/60.0f);
+
+    }
+    chartWnd.DrawChart(c2dGraphData);
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummary3DChartString( C2DChartData& c2dGraphData,CParameters *pParameter,int iType /*= 0*/ )
@@ -1524,8 +1684,8 @@ void CAirsideFlightMutiRunDelayResult::SetSummary3DChartString( C2DChartData& c2
 void CAirsideFlightMutiRunDelayResult::SetSummaryTotalDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
     c2dGraphData.m_strChartTitle = _T("Total delay Report(Summary)");
-    c2dGraphData.m_strYtitle = _T("Number of flights");
-    c2dGraphData.m_strXtitle = _T("Delay (hh:mm )");	
+    c2dGraphData.m_strYtitle = _T("Delays (mins)");
+    c2dGraphData.m_strXtitle = _T("Runs");	
 
     //set footer
     CString strFooter(_T(""));
@@ -1537,67 +1697,67 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryAirDelay3DChartString( C2DChart
 {
     c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("SCHEDULE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummaryTaxiDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
-    c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
+    c2dGraphData.m_strChartTitle = _T("Taxi delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("TAXI DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummaryStandDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
-    c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
+    c2dGraphData.m_strChartTitle = _T("Stand delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("STAND DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummaryTakeoffDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
-    c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
+    c2dGraphData.m_strChartTitle = _T("Takeoff delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("TAKEOFF DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummaryServiceDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
-    c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
+    c2dGraphData.m_strChartTitle = _T("Service delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
     c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("SERVICE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummarySegmentDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter,int iType )
 {
     CString strChartTitle;
-    strChartTitle.Format(_T(" Delay %s vs. time of day"),strComponentString[iType]);
+    strChartTitle.Format(_T("Segment delay Report %s(Summary)"),strSegmentString[iType]);
     c2dGraphData.m_strChartTitle = strChartTitle;
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Time of day"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("SEGMENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1605,20 +1765,20 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryScheduleDelay3DChartString( C2D
 {
     c2dGraphData.m_strChartTitle = _T("Schedule delay Report(Summary)");
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("SCHEDULE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
     c2dGraphData.m_strFooter = strFooter;
 }
 
 void CAirsideFlightMutiRunDelayResult::SetSummaryComponentDelay3DChartString( C2DChartData& c2dGraphData, CParameters *pParameter,int iType )
 {
     CString strChartTitle;
-    strChartTitle.Format(_T(" Delay %s vs. time of day"),strComponentString[iType]);
+    strChartTitle.Format(_T("Component delay Report %s(Summary)"),strComponentString[iType]);
     c2dGraphData.m_strChartTitle = strChartTitle;
     c2dGraphData.m_strYtitle = _T("Delays (mins)");
-    c2dGraphData.m_strXtitle.Format(_T("Time of day"));
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
     strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
