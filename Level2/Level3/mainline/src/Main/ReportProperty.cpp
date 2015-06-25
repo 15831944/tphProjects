@@ -1227,7 +1227,7 @@ void CReportProperty::LoadProcList()
 {
 
 	m_treeProcType.DeleteAllItems();
-
+	m_treeProcType.SetImageList(m_treeProcType.GetImageList(TVSIL_NORMAL),TVSIL_NORMAL);
 	int nModelCount = static_cast<int>(m_vModelParam.size());
 	for (int nModel = 0; nModel < nModelCount; ++nModel)
 	{
@@ -1394,9 +1394,8 @@ void CReportProperty::LoadProcFromToListByModel(int nModelIndex,HTREEITEM hItemM
 
 void CReportProperty::LoadArea()
 {
-
 	m_treeArea.DeleteAllItems();
-	m_treeArea.SetRedraw();
+	m_treeArea.SetImageList(m_treeArea.GetImageList(TVSIL_NORMAL),TVSIL_NORMAL);
 
 	int nModelCount = static_cast<int>(m_vModelParam.size());
 	for (int nModel = 0; nModel < nModelCount; ++nModel)
@@ -1440,7 +1439,6 @@ m_treeArea.Expand(hItemModel,TVE_EXPAND);
 }
 void CReportProperty::OnSelchangeComboReporttype() 
 {
-	// TODO: Add your control notification handler code here
 	ArrangeControls();
 }
 
@@ -1870,6 +1868,8 @@ void CReportProperty::OnAddArea()
 	if(dlg.DoModal() == IDOK)
 	{
 		CString strArea = dlg.GetSelectArea();
+		if(strArea.IsEmpty())
+			return;
 		m_vModelParam[nModelIndex].SetArea(strArea);
 		
 	 	HTREEITEM hAreaItem = m_treeArea.GetChildItem(hItem);
