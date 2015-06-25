@@ -11,10 +11,22 @@
 
 #include "ComparativeReportResult.h"
 
-class CmpThroughputData
+enum ThroughPutSubType
+{
+	/* detail */
+	TR_DETAIL = 0,
+
+	/* summary */
+	TOTAL_PAX,
+	AVG_PAX,
+	TOTAL_HOUR,
+	AVG_HOUR
+};
+
+class CmpThroughputDetailData
 {
 public:
-	CmpThroughputData(){ clear(); }
+	CmpThroughputDetailData(){ clear(); }
 
 	ElapsedTime	m_startTime;
 	ElapsedTime m_endTime;
@@ -22,22 +34,52 @@ public:
 	// detail
 	std::vector<int> m_vPaxServed;
 
-	// summary
-	std::vector<int> m_v1;
-	std::vector<int> m_v2;
-	std::vector<int> m_v3;
-	std::vector<int> m_v4;
-
 public:
 	void clear()
 	{
 		m_startTime = 0L;
 		m_endTime = 0L;
 		m_vPaxServed.clear();
-		m_v1.clear();
-		m_v2.clear();
-		m_v3.clear();
-		m_v4.clear();
+	}
+};
+
+class CComparativeThroughputReport;
+class CmpThroughputSummaryData
+{
+public:
+	CmpThroughputSummaryData(){ clear(); }
+
+	int	m_totalPax;
+	int m_avgPax;
+	int m_totalPerHour;
+	int m_avgPerHour;
+
+public:
+	void clear()
+	{
+		m_totalPax = m_avgPax = m_totalPerHour = m_avgPerHour = 0;
+	}
+	
+	int GetData(ThroughPutSubType nSubType)
+	{
+		switch(nSubType)
+		{
+		case TOTAL_PAX:
+			return m_totalPax;
+			break;
+		case AVG_PAX:
+			return m_avgPax;
+			break;
+		case TOTAL_HOUR:
+			return m_totalPerHour;
+			break;
+		case AVG_HOUR:
+			return m_avgPerHour;
+			break;
+		default:
+			return -1;
+			break;
+		}
 	}
 };
 
@@ -48,25 +90,16 @@ public:
 	virtual ~CComparativeThroughputReport();
 
 protected:
-	std::vector<CmpThroughputData> m_vThoughputData;
+	std::vector<CmpThroughputDetailData> m_vThoughputData;
+	std::vector<CmpThroughputSummaryData> m_vSummary;
 public:
-	enum ThroughPutSubType
-	{
-		/* detail */
-		MIN_QLENGTH = 0,
 
-		/* summary */
-		AVA_QLENGTH,
-		MAX_QLENGTH,
-		TOTAL_QLENGTH,
-		QUEUELENGTH_TYPE
-	};
 public:
 	void MergeSample(const ElapsedTime& tInteval);
 	bool SaveReport(const std::string& _sPath) const;
 	bool LoadReport(const std::string& _sPath);
 	int GetReportType() const{return ThroughtputReport;}
-	const std::vector<CmpThroughputData>& GetResult() const{ return m_vThoughputData; }
+	const std::vector<CmpThroughputDetailData>& GetResult() const{ return m_vThoughputData; }
 
 private:
 	void MergeDetailSample(const ElapsedTime& tInteval);

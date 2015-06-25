@@ -425,7 +425,7 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 
 void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 {
-	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
+	ASSERT(::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
 	m_listCtrl.DeleteAllItems();
 	int nColumnCount = m_listCtrl.GetHeaderCtrl()->GetItemCount();
@@ -435,54 +435,59 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 		m_listCtrl.DeleteColumn(0);
 	}
 
-
-	//set header control
-	TCHAR sData[32]	= _T("");
-	int nColCount = 0;
-	m_listCtrl.InsertColumn(0, _T("Start Time"), LVCFMT_CENTER, 100); 
-	nColCount++;
-	m_listCtrl.InsertColumn(1, _T("End Time"), LVCFMT_CENTER, 100);
-	nColCount++;
-
-	CString strColText;
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	for(int i=0; i<(int)vSimName.size(); i++)
+	if (_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 	{
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 80);
-		nColCount ++;
-	}
-	//set list control
-	int nRow = 0, nCol =0;
-	std::vector<CmpThroughputData> vData = _reportData.GetResult();
-	for(std::vector<CmpThroughputData>::const_iterator iterLine = vData.begin(); 
-		iterLine != vData.end(); iterLine++, nRow++)
-	{
-		iterLine->m_startTime.printTime(sData);
-		CString str = GetRegularDateTime(sData, TRUE);
-		nCol = 0;
-		m_listCtrl.InsertItem(nRow, str);
-		nCol++;
+		//set header control
+		TCHAR sData[32]	= _T("");
+		int nColCount = 0;
+		m_listCtrl.InsertColumn(0, _T("Start Time"), LVCFMT_CENTER, 100); 
+		nColCount++;
+		m_listCtrl.InsertColumn(1, _T("End Time"), LVCFMT_CENTER, 100);
+		nColCount++;
 
-		iterLine->m_endTime.printTime(sData);
-		str = GetRegularDateTime(sData, TRUE);
-		m_listCtrl.SetItemText(nRow, nCol, str);
-		nCol++;
-
-// 		for(std::vector<int>::const_iterator iterLength=iterLine->vPaxServed.begin(); 
-// 			iterLength!=iterLine->vPaxServed.end(); iterLength++, nCol++)
-// 		{
-// 			_stprintf(sData, "%d", *iterLength );
-// 			m_listCtrl.SetItemText(nRow, nCol, sData );
-// 		}
-		int nDataInPaxServed = static_cast<int>(iterLine->m_vPaxServed.size());
-		ASSERT(nDataInPaxServed == (int)vSimName.size());
-		for(int i=0; i<nDataInPaxServed; i++)
+		CString strColText;
+		std::vector<CString>& vSimName = _reportData.GetSimNameList();
+		for(int i=0; i<(int)vSimName.size(); i++)
 		{
-			strColText.Format("%d", iterLine->m_vPaxServed[i]);
-			m_listCtrl.SetItemText(nRow, nCol, strColText);
-			nCol ++;
+			strColText = vSimName[i];
+			m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 80);
+			nColCount ++;
 		}
+		//set list control
+		int nRow = 0, nCol =0;
+		std::vector<CmpThroughputDetailData> vData = _reportData.GetResult();
+
+		for(std::vector<CmpThroughputDetailData>::const_iterator iterLine = vData.begin(); 
+			iterLine != vData.end(); iterLine++, nRow++)
+		{
+			iterLine->m_startTime.printTime(sData);
+			CString str = GetRegularDateTime(sData, TRUE);
+			nCol = 0;
+			m_listCtrl.InsertItem(nRow, str);
+			nCol++;
+
+			iterLine->m_endTime.printTime(sData);
+			str = GetRegularDateTime(sData, TRUE);
+			m_listCtrl.SetItemText(nRow, nCol, str);
+			nCol++;
+
+			int nDataInPaxServed = static_cast<int>(iterLine->m_vPaxServed.size());
+			ASSERT(nDataInPaxServed == (int)vSimName.size());
+			for(int i=0; i<nDataInPaxServed; i++)
+			{
+				strColText.Format("%d", iterLine->m_vPaxServed[i]);
+				m_listCtrl.SetItemText(nRow, nCol, strColText);
+				nCol ++;
+			}
+		}
+	}
+	else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
+	{
+		m_listCtrl.InsertColumn(0, _T("Name"),LVCFMT_CENTER,100);
+		m_listCtrl.InsertColumn(2, _T("Total Pax"),LVCFMT_CENTER,50);
+		m_listCtrl.InsertColumn(3, _T("Avg Pax"),LVCFMT_CENTER,50);
+		m_listCtrl.InsertColumn(4, _T("Total / Hour"),LVCFMT_CENTER,50);
+		m_listCtrl.InsertColumn(5, _T("Avg / Hour"),LVCFMT_CENTER,50);
 	}
 }
 

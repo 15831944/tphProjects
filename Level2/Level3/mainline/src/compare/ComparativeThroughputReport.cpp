@@ -65,7 +65,7 @@ void CComparativeThroughputReport::MergeDetailSample(const ElapsedTime& tInteval
 
 					//served passenger count
 					file.setToField(3);
- 					file.getInteger(nPaxServed);
+					file.getInteger(nPaxServed);
 
 					for (unsigned j = 0; j < m_vThoughputData.size(); j++)
 					{
@@ -77,10 +77,10 @@ void CComparativeThroughputReport::MergeDetailSample(const ElapsedTime& tInteval
 							break;
 						}
 					}
-					
+
 					if (!bFound)//if not find, then insert the data
 					{
-						CmpThroughputData newData;
+						CmpThroughputDetailData newData;
 						newData.m_startTime = startTime;
 						newData.m_endTime = endTime;
 						newData.m_vPaxServed = std::vector<int>(nSampleCount, 0);
@@ -111,78 +111,41 @@ void CComparativeThroughputReport::MergeSummarySample( const ElapsedTime& tIntev
 	BOOL bFound = FALSE;
 
 	int nSampleCount = static_cast<int>(m_vSampleRepPaths.size());
+
+	CmpThroughputSummaryData data;
 	for(int i=0; i<nSampleCount; i++)
 	{
+		data.clear();
 		try
 		{
 			if(file.openFile(m_vSampleRepPaths[i].c_str(), READ))
 			{
-				ElapsedTime startTime, endTime;
-				int n1, n2, n3, n4=0;
+				file.getLine();
 
-				while(file.getLine())
-				{
-					//start time
-					file.setToField(1);
-					file.getTime(startTime);
+				// Total Pax
+				file.setToField(2);
+				file.getInteger(data.m_totalPax);
 
-					//end time
-					file.setToField(2);
-					file.getTime(endTime);
+				// Avg Pax
+				file.setToField(3);
+				file.getInteger(data.m_avgPax);
 
-					//served passenger count
-					file.setToField(3);
-					file.getInteger(n1);
+				// Total / Hour
+				file.setToField(4);
+				file.getInteger(data.m_totalPerHour);
 
-					//served passenger count
-					file.setToField(4);
-					file.getInteger(n2);
+				// Avg / Hour
+				file.setToField(5);
+				file.getInteger(data.m_avgPerHour);
 
-					//served passenger count
-					file.setToField(5);
-					file.getInteger(n3);
-
-					//served passenger count
-					file.setToField(6);
-					file.getInteger(n4);
-
-					for (unsigned j = 0; j < m_vThoughputData.size(); j++)
-					{
-						if ((m_vThoughputData[i].m_startTime == startTime) &&
-							(m_vThoughputData[i].m_endTime == endTime))
-						{
-							m_vThoughputData[j].m_v1[i] += n1;
-							m_vThoughputData[j].m_v2[i] += n4;
-							m_vThoughputData[j].m_v3[i] += n3;
-							m_vThoughputData[j].m_v4[i] += n2;
-							bFound = TRUE;
-							break;
-						}
-					}
-
-					if (!bFound)//if not find, then insert the data
-					{
-						CmpThroughputData newData;
-						newData.m_startTime = startTime;
-						newData.m_endTime = endTime;
-						newData.m_v1 = std::vector<int>(nSampleCount, 0);
-						newData.m_v2 = std::vector<int>(nSampleCount, 0);
-						newData.m_v3 = std::vector<int>(nSampleCount, 0);
-						newData.m_v4 = std::vector<int>(nSampleCount, 0);
-						newData.m_v1[i] += n1;
-						newData.m_v2[i] += n2;
-						newData.m_v3[i] += n3;
-						newData.m_v4[i] += n4;
-						m_vThoughputData.push_back(newData);
-					}
-				}
+				m_vSummary.push_back(data);
 				file.closeIn();
 			}
 		}
 		catch(...)
 		{
 			m_vThoughputData.clear();
-			return ;
+			return;
 		}
 	}
 }
@@ -224,60 +187,35 @@ bool CComparativeThroughputReport::SaveReport(const std::string& _sPath) const
 		file.writeLine();
 
 		//write data lines
-		for(std::vector<CmpThroughputData>::const_iterator iterLine=m_vThoughputData.begin(); 
-			iterLine != m_vThoughputData.end(); iterLine++)//line
+
+		if(m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 		{
-			file.writeTime( iterLine->m_startTime );//start time
-			file.writeTime( iterLine->m_endTime );//end time
-			//passenger served.
-			int nCount = static_cast<int>(iterLine->m_vPaxServed.size());
-			ASSERT(nCount == nSampleCount);
-			char buf1[1024] = {0}, buf2[16] = {0};
-			if(m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
+			for(std::vector<CmpThroughputDetailData>::const_iterator iterLine=m_vThoughputData.begin(); 
+				iterLine != m_vThoughputData.end(); iterLine++)//line
 			{
-				for(int i=0; i<nCount; i++)
+				file.writeTime( iterLine->m_startTime );//start time
+				file.writeTime( iterLine->m_endTime );//end time
+				//passenger served.
+				int count = static_cast<int>(iterLine->m_vPaxServed.size());
+				ASSERT(count == nSampleCount);
+				for(int i=0; i<nSampleCount; i++)
 				{
-					itoa(iterLine->m_vPaxServed[i], buf2, 10);
-					strcat(buf1, buf2);
-					strcat(buf1, ";");
+					file.writeInt(iterLine->m_vPaxServed[i]);
 				}
-				file.writeField(buf1);
+				file.writeLine();
 			}
-			else if(m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
+		}
+		else if(m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
+		{
+			for(std::vector<CmpThroughputSummaryData>::const_iterator iterLine=m_vSummary.begin(); 
+				iterLine != m_vSummary.end(); iterLine++)//line
 			{
-				for(int i=0; i<nCount; i++)
-				{
-					itoa(iterLine->m_v1[i], buf2, 10);
-					strcat(buf1, buf2);
-					strcat(buf1, ";");
-				}
-				file.writeField(buf1);
-
-				for(int i=0; i<nCount; i++)
-				{
-					itoa(iterLine->m_v2[i], buf2, 10);
-					strcat(buf1, buf2);
-					strcat(buf1, ";");
-				}
-				file.writeField(buf1);
-
-				for(int i=0; i<nCount; i++)
-				{
-					itoa(iterLine->m_v3[i], buf2, 10);
-					strcat(buf1, buf2);
-					strcat(buf1, ";");
-				}
-				file.writeField(buf1);
-
-				for(int i=0; i<nCount; i++)
-				{
-					itoa(iterLine->m_v4[i], buf2, 10);
-					strcat(buf1, buf2);
-					strcat(buf1, ";");
-				}
-				file.writeField(buf1);
+				file.writeInt(iterLine->m_totalPax);
+				file.writeInt(iterLine->m_avgPax);
+				file.writeInt(iterLine->m_totalPerHour);
+				file.writeInt(iterLine->m_avgPerHour);
+				file.writeLine();
 			}
-			file.writeLine();
 		}
 
 		CTime tm = CTime::GetCurrentTime();
@@ -336,50 +274,50 @@ bool CComparativeThroughputReport::LoadReport(const std::string& _sPath)
 		//skip a blank line
 		file.skipLine();
 
-		//read report data
-		CmpThroughputData data;
-		int nServedPax ,n1 ,n2 ,n3 ,n4;
-		while( file.getLine() == 1)
+		if(m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 		{
-			data.clear();
-			file.getTime(data.m_startTime);//get the start time
-			file.getTime(data.m_endTime);//get the end time
-			char buf1[16] = {0};
-			if(m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
+			//read report data
+			CmpThroughputDetailData data;
+			int nServedPax;
+			while(file.getLine() == 1)
 			{
-				for(int n=0; n<nSampleCount; n++)
-				{
-					file.getSubField(buf1, ';');
-					data.m_vPaxServed.push_back(atoi(buf1));
-				}
-			}
-			else if(m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
-			{
-				for(int n=0; n<nSampleCount; n++)
-				{
-					file.getSubField(buf1, ';');
-					data.m_v1.push_back(atoi(buf1));
-				}
-				for(int n=0; n<nSampleCount; n++)
-				{
-					file.getSubField(buf1, ';');
-					data.m_v2.push_back(atoi(buf1));
-				}
-				for(int n=0; n<nSampleCount; n++)
-				{
-					file.getSubField(buf1, ';');
-					data.m_v3.push_back(atoi(buf1));
-				}
-				for(int n=0; n<nSampleCount; n++)
-				{
-					file.getSubField(buf1, ';');
-					data.m_v4.push_back(atoi(buf1));
-				}
-			}
-			m_vThoughputData.push_back(data);
-		}
-		file.closeIn();
+				data.clear();
+				file.getTime(data.m_startTime);//get the start time
+				file.getTime(data.m_endTime);//get the end time
 
+				for(int i=0; i<nSampleCount; i++)
+				{
+					file.getInteger(nServedPax);
+					data.m_vPaxServed.push_back(nServedPax);
+				}
+				m_vThoughputData.push_back(data);
+			}
+		}
+		else if(m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
+		{
+			CmpThroughputSummaryData data;
+			for(int i=0; i<nSampleCount; i++)
+			{
+				data.clear();
+
+				file.getLine();
+
+				// Total Pax
+				file.getInteger(data.m_totalPax);
+
+				// Avg Pax
+				file.getInteger(data.m_avgPax);
+
+				// Total / Hour
+				file.getInteger(data.m_totalPerHour);
+
+				// Avg / Hour
+				file.getInteger(data.m_avgPerHour);
+
+				m_vSummary.push_back(data);
+				file.closeIn();
+			}
+		}
 	}
 	catch(Exception& e)
 	{
@@ -389,6 +327,6 @@ bool CComparativeThroughputReport::LoadReport(const std::string& _sPath)
 	{
 		return false;
 	}
-	
+
 	return true;
 }

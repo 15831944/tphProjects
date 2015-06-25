@@ -531,7 +531,7 @@ bool CComparativePlot::Draw3DChart(CComparativeQLengthReport& _reportData,int nS
 
 bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, int nSubType)
 {
-	const std::vector<CmpThroughputData>& vData = _reportData.GetResult();
+	const std::vector<CmpThroughputDetailData>& vData = _reportData.GetResult();
 	C2DChartData c2dGraphData;
 	// Update Title
 	c2dGraphData.m_strChartTitle = _T(" Throughput Report ");
@@ -568,7 +568,7 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 	CString sTime;
 	int nXTick = 0;
 
-	for(std::vector<CmpThroughputData>::const_iterator iterLine = vData.begin(); 
+	for(std::vector<CmpThroughputDetailData>::const_iterator iterLine = vData.begin(); 
 		iterLine != vData.end(); iterLine++, nXTick++)
 	{
 		//set row label
@@ -584,20 +584,20 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		std::vector<int> vLength;
 		switch(nSubType)
 		{
-		case CComparativeThroughputReport::MIN_QLENGTH:
+		case TR_DETAIL:
 			vLength = iterLine->m_vPaxServed;
 			break;
-		case CComparativeThroughputReport::AVA_QLENGTH:
-			vLength = iterLine->m_v1;
+		case TOTAL_PAX:
+
 			break;
-		case CComparativeThroughputReport::MAX_QLENGTH:
-			vLength = iterLine->m_v2;
+		case AVG_PAX:
+
 			break;
-		case CComparativeThroughputReport::TOTAL_QLENGTH:
-			vLength = iterLine->m_v3;
+		case TOTAL_HOUR:
+
 			break;
-		case CComparativeThroughputReport::QUEUELENGTH_TYPE:
-			vLength = iterLine->m_v4;
+		case AVG_HOUR:
+
 			break;
 		default:
 			break;
