@@ -92,7 +92,8 @@ public:  // control bar embedded members
 	BOOL CreateUnitTempBar();
 	BOOL CreateAnimationBar();
 	BOOL CreateProjectBar();
-	BOOL CreateMainBar(); 
+	BOOL CreateMainBar();
+	BOOL CreateShapesBar();
 	//BOOL CreateACComponentBar();
 	BOOL CreateAircraftModelBar();
 	//void UpdateUnitBar(CTermPlanDoc* pDoc);
@@ -104,7 +105,7 @@ public:  // control bar embedded members
 
 	CStatusBarXP  m_wndStatusBar;
 	CShapesBarPFlow m_wndShapesBarPFlow;
-	CShapesBar	m_wndShapesBar;
+	CShapesBar*	m_wndShapesBar;
 	CACComponentShapesBar m_wndACComponentShapesBar;
 	CACFurnishingShapesBar m_wndACFurnishingShapesBar;
 	CCompRepLogBar m_wndCompRepLogBar;
@@ -156,11 +157,10 @@ protected:
 
 	//onboard report
 	void LoadOnboardReport(enum OnboardReportType _enumRepType );
-
+	
 	BOOL CreateCameraBar();
 	BOOL CreateLayoutBar();
 	BOOL CreateCompRepLogBar();
-	BOOL CreateShapesBar();
 	BOOL CreateACComponentShapesBar();
 	BOOL CreateACFurnishingShapesBar();
 	BOOL CreateShapesBarPFlow();

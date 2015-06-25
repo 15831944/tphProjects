@@ -956,6 +956,17 @@ void CACType::ResetDoorID()
 	}
 }
 
+ACTypeDoor* CACType::FindACTypeDoorByDoorName(CString strDoorName)
+{
+    int nCount = (int)m_vACDoorList.size();
+    for(int i=0; i<nCount; i++)
+    {
+        if(strDoorName.Compare(m_vACDoorList.at(i)->GetDoorName()) == 0)
+            return m_vACDoorList.at(i);
+    }
+    return NULL;
+}
+
 //////////////////new version database read and save//////////////////////////////////////
 bool CACCategory::loadDatabase(CADORecordset& aodRecordset,CAirportDatabase* pAirportDatabase)
 {

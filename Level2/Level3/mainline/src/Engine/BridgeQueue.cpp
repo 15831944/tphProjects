@@ -44,7 +44,6 @@ void BridgeQueue::addToQueue( Person *aPerson )
 			if(aper == NULL)
 				EntryPoints.ResetEntryState() ;
 			aPerson->setState(WaitInQueue);
-            aPerson->SetWalkOnBridge(true);
 			int index = EntryPoints.GetCurrentIndex() ;
 			if(index == -1 || index > (cornerCount() - 1))
 				index = cornerCount() - 1 ;
@@ -58,7 +57,6 @@ void BridgeQueue::addToQueue( Person *aPerson )
 			if(aper == NULL)
 				EntryPoints.ResetEntryState() ;
 			aPerson->setState(MoveToQueue);
-
 			int index = EntryPoints.GetCurrentIndex() ;
 			if(index == -1 || index > (cornerCount() - 1))
 				index = cornerCount() - 1 ;
@@ -69,9 +67,6 @@ void BridgeQueue::addToQueue( Person *aPerson )
 			// must reset its destination and event
 		} 
 	}
-
-
-
 }
 
 
@@ -125,4 +120,10 @@ Point BridgeQueue::getLocation( Person *aPerson, DistanceUnit inStep ) const
 void BridgeQueue::setPersonCurrentPosition(Person *aPerson, const ElapsedTime& moveTime )
 {
 	aPerson->setCurrentPositionRealZ(moveTime);
+}
+
+void BridgeQueue::arriveAtQueue( Person *aPerson, ElapsedTime arriveTime )
+{
+    aPerson->SetWalkOnBridge(true);
+    FixedQueue::arriveAtQueue(aPerson, arriveTime);
 }

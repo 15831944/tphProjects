@@ -39,7 +39,6 @@ CProjectExport::~CProjectExport(void)
 
 void CProjectExport::ExportAsInputZip( const CString& strProjName, const CString& strProjPath,bool bNotForceDB,bool bOpenProject  /*= true*/ )
 {
-	
  	SYSTEMTIME systime ;
  	CString str_Time ;
  	GetSystemTime(&systime) ;
@@ -1270,6 +1269,16 @@ BOOL CProjectExport::ZipInputFiles( const CString& strProjName,const CString& st
 		AfxMessageBox(_T("Failure to export project! Export input/landside"),MB_OK);
 		return FALSE;
 	}
+	//zip shapebars file
+	(_T(""));
+	CString strUserBarsZipPath = strProjPath + "\\INPUT\\UserBars";
+	CString strTempUserBarsZipPath = (_T(""));
+	if(zipFloder(strProjName,strUserBarsZipPath,strTempUserBarsZipPath)==FALSE)
+	{
+		AfxMessageBox(_T("Failure to export project! Export input/UserBars"),MB_OK);
+		return FALSE;
+	}
+
 	(_T(""));
 	std::vector<CString> vImportName;
     if(ZipImportDB(strProjName,strProjPath,vImportName) == FALSE)
@@ -1295,6 +1304,10 @@ BOOL CProjectExport::ZipInputFiles( const CString& strProjName,const CString& st
 	if (!strLandsideZipPath.IsEmpty())
 	{
 		vInputFiles.push_back(strLandsideZipPath);
+	}
+	if (!strTempUserBarsZipPath.IsEmpty())
+	{
+		vInputFiles.push_back(strTempUserBarsZipPath);
 	}
 
 	(_T(""));
@@ -1506,6 +1519,7 @@ BOOL CProjectExport::FindInputFiles( const CString& strInputFolder, std::vector<
 		_T("TerminalWallShape.txt"),
 
 		_T("UserNameList.txt"),
+		_T("UserShapesBar.INI"),
 
 		_T("VideoParams.txt"),
 		_T("Views.txt"),
@@ -1515,6 +1529,12 @@ BOOL CProjectExport::FindInputFiles( const CString& strInputFolder, std::vector<
 		_T("NonPaxRelPos.txt"),
 		_T("parts.mdb"),
 		_T("BCPAXDATA.TXT")
+
+		
+// 		_T("UserShapes.dat"),
+// 		_T("UserShapes.INI"),
+// 		_T("a380.bmp"),
+// 		_T("a380.dxf")
 	};
 
 	int nFileCcunt = sizeof(strZipFileName)/sizeof(strZipFileName[0]);

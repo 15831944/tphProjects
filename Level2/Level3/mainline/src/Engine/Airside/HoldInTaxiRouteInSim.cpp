@@ -6,6 +6,7 @@
 #include "..\..\InputAirside\HoldShortLines.h"
 #include "./AirTrafficController.h"
 
+
 void FlightHoldListInTaxiRoute::Init( TaxiRouteInSim& theRoute,AirsideFlightInSim*pFlight,bool bLanding )
 {
 	if(!pFlight)
@@ -363,37 +364,38 @@ void FiletPointListInTaxiRoute::Init( TaxiRouteInSim& theRoute )
 		{
 			pSeg = (FlightGroundRouteDirectSegInSim* ) routeItem.GetResource();
 		}
-		if(!pSeg || !pPreSeg){
-			pPreSeg = pSeg;
-			continue;
-		}
-		DistanceUnit distFrom = 0;
-		DistanceUnit distTo = pSeg->GetEndDist();
-
-		DistanceUnit PreOffset = 0;
-		DistanceUnit filetEndDist =0;
-
-		FilletTaxiway * pFillet = NULL;
-		IntersectionNodeInSim* pNode = pSeg->GetEntryNode();
-		if(pPreSeg)
+	
+		if(pSeg && pPreSeg)
 		{
-			pFillet = pSeg->GetEntryNode()->GetFilletFromTo(pPreSeg,pSeg);
-		}
-		if(pFillet)
-		{
-			int taxiID = pSeg->GetObjectID();
-			if( taxiID == pFillet->GetObject1ID() )
+			if(pSeg->GetObjectID() != pPreSeg->GetObjectID())
 			{
-				filetEndDist =  abs( pFillet->GetFilletPoint1().GetDistToIntersect() + pFillet->GetFilletPoint1().GetUsrDist() ) ; 
-				PreOffset = abs( pFillet->GetFilletPoint2().GetDistToIntersect() + pFillet->GetFilletPoint2().GetUsrDist() );
+				DistanceUnit distFrom = 0;
+				DistanceUnit distTo = pSeg->GetEndDist();
+
+				DistanceUnit PreOffset = 0;
+				DistanceUnit filetEndDist =0;
+								
+				IntersectionNodeInSim* pNode = pSeg->GetEntryNode();			
+				FilletTaxiway * pFillet = pNode->GetFilletFromTo(pPreSeg,pSeg);
+				if(pFillet)
+				{
+					int taxiID = pSeg->GetObjectID();
+					if( taxiID == pFillet->GetObject1ID() )
+					{
+						filetEndDist =  abs( pFillet->GetFilletPoint1().GetDistToIntersect() + pFillet->GetFilletPoint1().GetUsrDist() ) ; 
+						PreOffset = abs( pFillet->GetFilletPoint2().GetDistToIntersect() + pFillet->GetFilletPoint2().GetUsrDist() );
+					}
+					else
+					{
+						filetEndDist = abs(pFillet->GetFilletPoint2().GetDistToIntersect() + pFillet->GetFilletPoint2().GetUsrDist() ) ;
+						PreOffset = abs(pFillet->GetFilletPoint1().GetDistToIntersect() + pFillet->GetFilletPoint1().GetUsrDist() );
+					}
+
+					m_vFiletPoints.push_back( FiletPointInTaxiRoute(theRoute.GetItemBeginDist(i) - PreOffset,theRoute.GetItemBeginDist(i) + filetEndDist) );
+					//m_vFiletPoints.push_back( FiletPointInTaxiRoute(theRoute.GetItemBeginDist(i) - PreOffset,FiletPointInTaxiRoute::FiletBegin) );
+					//m_vFiletPoints.push_back( FiletPointInTaxiRoute(theRoute.GetItemBeginDist(i) + filetEndDist,FiletPointInTaxiRoute::FiletEnd) );
+				}	
 			}
-			else
-			{
-				filetEndDist = abs(pFillet->GetFilletPoint2().GetDistToIntersect() + pFillet->GetFilletPoint2().GetUsrDist() ) ;
-				PreOffset = abs(pFillet->GetFilletPoint1().GetDistToIntersect() + pFillet->GetFilletPoint1().GetUsrDist() );
-			}
-			m_vFiletPoints.push_back( FiletPointInTaxiRoute(theRoute.GetItemBeginDist(i) - PreOffset,FiletPointInTaxiRoute::FiletBegin) );
-			m_vFiletPoints.push_back( FiletPointInTaxiRoute(theRoute.GetItemBeginDist(i) + filetEndDist,FiletPointInTaxiRoute::FiletEnd) );
 		}	
 
 		pPreSeg = pSeg;
@@ -403,11 +405,14 @@ void FiletPointListInTaxiRoute::Init( TaxiRouteInSim& theRoute )
 
 std::vector<FiletPointInTaxiRoute> FiletPointListInTaxiRoute::GetFiletPointsBetween( const DistanceUnit& distF, const DistanceUnit& distT ) const
 {
+	
+
 	std::vector<FiletPointInTaxiRoute> vreslt;
 	for(int i=0;i<(int)m_vFiletPoints.size();i++)
 	{
 		const FiletPointInTaxiRoute& thePt = m_vFiletPoints[i];
-		if ( thePt.GetDistInRoute() >= distF && thePt.GetDistInRoute() < distT )
+		
+		if ( thePt.GetFromDistInRoute() >= distF && thePt.GetFromDistInRoute() < distT )
 		{
 			vreslt.push_back(thePt);
 		}
@@ -415,34 +420,40 @@ std::vector<FiletPointInTaxiRoute> FiletPointListInTaxiRoute::GetFiletPointsBetw
 	return vreslt;
 }
 
-FiletPointInTaxiRoute* FiletPointListInTaxiRoute::IsDistInFilet( const DistanceUnit& dist ) const
+const FiletPointInTaxiRoute* FiletPointListInTaxiRoute::IsDistInFilet( const DistanceUnit& dist ) const
 {
 	for(int i=0;i<(int)m_vFiletPoints.size();i++)
 	{
-		if(m_vFiletPoints.at(i).m_type == FiletPointInTaxiRoute::FiletBegin)
+		const FiletPointInTaxiRoute& filet = m_vFiletPoints[i];
+		if( filet.GetFromDistInRoute()< dist && dist < filet.GetToDistInRoute() )
 		{
-			FiletPointInTaxiRoute *pFiletPtEnd = GetNextEndPoint(i);
-			if( pFiletPtEnd )
-			{
-				if(m_vFiletPoints.at(i).m_distInRoute < dist && dist < pFiletPtEnd->m_distInRoute)
-				{
-					return (FiletPointInTaxiRoute*)&m_vFiletPoints[i];
-				}
-			}
+			return &filet;
 		}
+
+		/*if(m_vFiletPoints.at(i).m_type == FiletPointInTaxiRoute::FiletBegin)
+		{
+		FiletPointInTaxiRoute *pFiletPtEnd = GetNextEndPoint(i);
+		if( pFiletPtEnd )
+		{
+		if(m_vFiletPoints.at(i).m_distInRoute < dist && dist < pFiletPtEnd->m_distInRoute)
+		{
+		return (FiletPointInTaxiRoute*)&m_vFiletPoints[i];
+		}
+		}
+		}*/
 	}
 	return NULL;
 }
 
-FiletPointInTaxiRoute * FiletPointListInTaxiRoute::GetNextEndPoint( int idx ) const
-{
-	for(int i=idx;i<(int)m_vFiletPoints.size();i++)
-	{
-		if(m_vFiletPoints.at(i).m_type == FiletPointInTaxiRoute::FiletEnd)
-			return (FiletPointInTaxiRoute*)&m_vFiletPoints[i];
-	}
-	return NULL;
-}
+//FiletPointInTaxiRoute * FiletPointListInTaxiRoute::GetNextEndPoint( int idx ) const
+//{
+//	for(int i=idx;i<(int)m_vFiletPoints.size();i++)
+//	{
+//		if(m_vFiletPoints.at(i).m_type == FiletPointInTaxiRoute::FiletEnd)
+//			return (FiletPointInTaxiRoute*)&m_vFiletPoints[i];
+//	}
+//	return NULL;
+//}
 /////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////

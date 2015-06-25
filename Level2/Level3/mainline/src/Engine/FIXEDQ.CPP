@@ -282,7 +282,6 @@ void FixedQueue::approachQueue (Person *aPerson, ElapsedTime approachTime)
 }
 void FixedQueue::getQueuePosition (Person *aPerson) const
 {
-    int nPerson = aPerson->getID();
 	// determine next queue position
 	TerminalMobElementBehavior* spTerminalBehavior = aPerson->getTerminalBehavior();
 	spTerminalBehavior->setNextIndex (getNextIndex (spTerminalBehavior->getCurrentIndex()));
@@ -290,7 +289,6 @@ void FixedQueue::getQueuePosition (Person *aPerson) const
 	// determine the next segment and the next wait location
 	DistanceUnit inStep = aPerson->getInStep();
 	spTerminalBehavior->setQueuePathSegmentIndex (getSegment (aPerson, inStep));
-    Point pt = getLocation(aPerson, inStep);
 	aPerson->setTerminalDestination (getLocation (aPerson, inStep));
 	spTerminalBehavior->SetEntryPoint(getLocation (aPerson, inStep)) ;
 }
@@ -309,24 +307,29 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
 			{
 				aPerson->setState (MoveToQueue);
 				setPersonCurrentPosition(aPerson,updateTime);//aPerson->setCurrentPosition(updateTime) ;
-			}else
+
+                aPerson->setState (WaitInQueue);
+                spTerminalBehavior->setNextIndex (APPROACHING);
+                spTerminalBehavior->updateIndex();
+                getQueuePosition (aPerson);
+                ElapsedTime time = updateTime + aPerson->moveTime() ;
+                aPerson->generateEvent (time,false);
+			}
+            else
 			{
 				if(EntryPoints.GetCurrentIndex() != -1 )
 					spTerminalBehavior->first = EntryPoints.GetCurrentIndex() ;
-				MobileElementMovementEvent dummy;
-				ElapsedTime destTime = dummy.removeMoveEvent (aPerson);
-				if (destTime >= ElapsedTime(0l))
-				{
-					aPerson->setTerminalDestination(corner(spTerminalBehavior->first)) ;
-					aPerson->writeLogEntry (updateTime, false);
-				}
+                    aPerson->setCurrentPosition(updateTime);
+
+
+                    aPerson->setState (WaitInQueue);
+                    spTerminalBehavior->setNextIndex (APPROACHING);
+                    spTerminalBehavior->updateIndex();
+                    getQueuePosition (aPerson);
+                    aPerson->setTerminalDestination(corner(spTerminalBehavior->first)) ;
+                    ElapsedTime time = updateTime + aPerson->moveTime() ;
+                    aPerson->generateEvent (time,false);
 			}
-			aPerson->setState (WaitInQueue);
-			spTerminalBehavior->setNextIndex (APPROACHING);
-			spTerminalBehavior->updateIndex();
-			getQueuePosition (aPerson);
-			ElapsedTime time = updateTime + aPerson->moveTime() ;
-			aPerson->generateEvent (time,false);
 
         }
 

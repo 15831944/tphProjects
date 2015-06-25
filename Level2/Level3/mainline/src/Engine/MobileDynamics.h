@@ -58,18 +58,7 @@ public:
 		mvDistSpdPair.push_back( DistSpeedTime(dist, dspd) );		
 	}
 
-	void removeDistItem(DistanceUnit distF,DistanceUnit distT)
-	{
-		for(int i=0;i<(int)mvDistSpdPair.size();i++)
-		{
-			DistSpeedTime& item = mvDistSpdPair[i];
-			if(item.mdist <= distT && distF <= item.mdist)
-			{
-				mvDistSpdPair.erase(mvDistSpdPair.begin()+i);
-				i--;
-			}
-		}
-	}
+	void removeDistItem(DistanceUnit distF,DistanceUnit distT);
 	void removeMidItems()
 	{
 		if(mvDistSpdPair.size()>2)

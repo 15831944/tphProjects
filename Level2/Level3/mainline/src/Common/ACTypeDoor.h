@@ -8,7 +8,6 @@ class ACTypeDoor
 	friend class ACTypeDoorManager;
 public:
 	ACTypeDoor(void);
-    ACTypeDoor(const ACTypeDoor& other);
 	~ACTypeDoor(void);
 
 	enum DoorDir{
@@ -49,6 +48,7 @@ public:
 
 	static void DeleteAllDataFromDB(int _AcTypeID,DATABASESOURCE_TYPE type ) ;
 	static CString GetStringByHand(DoorDir _dir) ;
+    CString GetDoorName() const { return m_strName; }
 protected:
 	static void DeleteACDoorFromDB(ACTypeDoor* _door,DATABASESOURCE_TYPE type) ;
 	static void UpDateACDoorToDB(ACTypeDoor* _door ,int _airportID ,DATABASESOURCE_TYPE type) ;

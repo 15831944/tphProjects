@@ -21,8 +21,6 @@ class CShapesManager
 private:
 	CShapesManager();
 	virtual ~CShapesManager();
-
-	BOOL LoadData();
 	CShape::CShapeList m_vShapeList;
 
 public:
@@ -40,6 +38,7 @@ public:
 
 	//////////////////////////////////////////////////////////////////////////
 public:	
+	BOOL LoadData();
 	int GetShapeSetCount() const;
 	const TCHAR* GetShapeSetName(int _nSet) const;
 	bool IsShapeSetStatic(int _nSet) const;

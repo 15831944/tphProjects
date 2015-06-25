@@ -290,7 +290,7 @@ public:
     virtual void makeAvailable (const Person *aPerson, ElapsedTime availTime, bool _bNoDelay );
 
     //It updates Person's state based on current state & processor data
-    virtual int getNextState (int state) const;
+    virtual void getNextState (int& state,Person* _pPerson) const;
 
     //It sets Person's next destination based on state & processor data
     virtual void getNextLocation (Person *aPerson);

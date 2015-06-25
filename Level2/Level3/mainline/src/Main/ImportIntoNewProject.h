@@ -70,7 +70,7 @@ private:
 
 	bool unzipAirsideExportFiles(const CString& oldProjName, const CString& _strPath);
 	bool unzipInputLandsideFile(const CString oldProjName,const CString& _strPath);
-
+	bool unzipInputUserBarsFile(const CString oldProjName,const CString& _strPath);
 private:
 	PROJECTINFO m_projInfo;
 	int m_ZipFileVersion ;

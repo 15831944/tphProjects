@@ -1490,13 +1490,16 @@
 #define IDC_SLIDER_START                1112
 #define IDC_LAYEROPTIONS                1112
 #define IDC_EDT_APCITY                  1112
+#define IDR_MENU_USERSHAPES             1112
 #define IDD_DIALOG_GATE_ADJACENCY       1112
 #define IDC_EDIT_END                    1113
 #define IDC_CHK_FLOORVISIBLE            1113
 #define IDC_EDT_APCOUNTRY               1113
+#define IDD_SHAPEFOLDER                 1113
 #define IDC_SLIDER_END                  1114
 #define IDC_CHK_GRIDVISIBLE             1114
 #define IDC_EDT_APCOUNTRYCODE           1114
+#define IDD_SHAPEITEM                   1114
 #define IDC_LIST_PAXTYPE                1115
 #define IDC_SHAPESELECT_LIST            1115
 #define IDC_EDT_APALTERNATEAIRPORTICAOCODE 1115
@@ -3331,6 +3334,7 @@
 #define IDC_STATIC_REPORTS              2411
 #define IDC_STATIC_RESPOOL_ON           2412
 #define IDC_STATIC_RESPOOL_OFF          2413
+#define IDC_PIC_STATIC                  2414
 #define IDC_BUTTON_GATE_ADJACENCY       2414
 #define IDC_LIST_GATE_ADJACENCY         2415
 #define IDC_CHECK_ARRTODEP              2546
@@ -5213,6 +5217,19 @@
 #define ID_TOOLBARBUTTONCOPY            35334
 #define ID_TOOLBARBUTTONPASTE           35335
 #define ID_NONITEM_REMOVE               35336
+#define ID_FOLDER_ADDFOLDER             35337
+#define ID_FOLDER_RENAME                35338
+#define ID_FOLDER_CHANGEPATH            35339
+#define ID_FOLDER_IMPORT                35340
+#define ID_FOLDER_EXPORT                35341
+#define ID_FOLDER_DELETEFOLDER          35342
+#define ID_ITEM_ADDITM                  35343
+#define ID_ITEM_RENAME                  35344
+#define ID_ITEM_CHANGEPICTURE           35345
+#define ID_ITEM_CHANGEMODEL             35346
+#define ID_ITEM_DELETEITEM              35347
+#define ID_OTHER_ADDFOLDER              35348
+#define ID_OTHER_DELETEITEM             35349
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5471,8 +5488,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1113
-#define _APS_NEXT_COMMAND_VALUE         35337
+#define _APS_NEXT_RESOURCE_VALUE        1115
+#define _APS_NEXT_COMMAND_VALUE         35350
 #define _APS_NEXT_CONTROL_VALUE         2416
 #define _APS_NEXT_SYMED_VALUE           491
 #endif

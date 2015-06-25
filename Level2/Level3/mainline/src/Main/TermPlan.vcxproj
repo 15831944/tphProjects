@@ -300,6 +300,8 @@
     <ClInclude Include="Painter.h" />
     <ClInclude Include="ParkingLotFacilityDataPage.h" />
     <ClInclude Include="RosterAssignSummaryDlg.h" />
+    <ClInclude Include="ShapeFolder.h" />
+    <ClInclude Include="ShapeItem.h" />
     <ClInclude Include="TaxiPoolFacilityDataPage.h" />
     <ClInclude Include="TaxiQFacilityDataPage.h" />
     <ClInclude Include="Test3DView.h" />
@@ -1207,6 +1209,8 @@
     <ClCompile Include="ACFurnishingShapesBar.cpp" />
     <ClCompile Include="ACFurnishingShapesManager.cpp" />
     <ClCompile Include="RosterAssignSummaryDlg.cpp" />
+    <ClCompile Include="ShapeFolder.cpp" />
+    <ClCompile Include="ShapeItem.cpp" />
     <ClCompile Include="ShapesBar.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

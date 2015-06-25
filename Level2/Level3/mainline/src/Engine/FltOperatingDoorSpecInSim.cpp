@@ -85,13 +85,15 @@ std::vector<ACTypeDoorOpen> FltOperatingDoorSpecInSim::getFlightOpenDoors( const
 
 	//find open entry 
 	std::vector<ACTypeDoorOpen> vOpenDoorsFilterd;
-	for(size_t i=0;i<pStandData->m_vOpDoors.size();i++)
+    std::vector<StandOperatingDoorData::OperationDoor>* pDoorOpList = pStandData->GetDoorOpList();
+	for(size_t i=0;i<pDoorOpList->size();i++)
 	{
-		StandOperatingDoorData::OperationDoor& openDoor = pStandData->m_vOpDoors.at(i);
+		StandOperatingDoorData::OperationDoor& doorOp = pDoorOpList->at(i);
 		for(size_t j=0;j<vDefaultOpenDoors.size();++j)
 		{
 			ACTypeDoorOpen& defaultDoor = vDefaultOpenDoors[j];
-			if(defaultDoor.pDoor->GetID()==openDoor.m_nID && defaultDoor.openSide==openDoor.m_iHandType)
+			if(defaultDoor.pDoor->GetDoorName()==doorOp.GetDoorName() && 
+                defaultDoor.openSide==doorOp.GetHandType())
 			{
 				vOpenDoorsFilterd.push_back(defaultDoor);
 			}

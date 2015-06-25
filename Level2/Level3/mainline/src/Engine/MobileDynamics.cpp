@@ -139,6 +139,24 @@ MobileTravelTrace::MobileTravelTrace( const MobileGroundPerform& perform,const D
 	return;
 }
 
+void MobileTravelTrace::removeDistItem( DistanceUnit distF,DistanceUnit distT )
+{
+	std::vector<DistSpeedTime> vItems = mvDistSpdPair;
+	mvDistSpdPair.clear();
+	for(int i=0;i<(int)vItems.size();i++)
+	{
+		if(i==0 || i== vItems.size()-1)
+		{
+			mvDistSpdPair.push_back(vItems[i]);
+		}
+		DistSpeedTime& item = vItems[i];
+		if(item.mdist >  distT || distF > item.mdist)
+		{
+			mvDistSpdPair.push_back(item);
+		}
+	}
+}
+
 ElapsedTime MobileTravelTrace::DistSpeedTime::timeToNext( const DistSpeedTime& item ) const
 {
 	double dAvgSpd = (item.mdSpd+mdSpd)*0.5;

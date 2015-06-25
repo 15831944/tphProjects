@@ -96,7 +96,7 @@ BOOL CShapesManager::LoadData()
 	CFile* pFile = NULL;
 	CString sFileName = ((CTermPlanApp*) AfxGetApp())->GetShapesDBPath() + "\\Shapes.dat";
 	BOOL bRet = TRUE;
-
+	m_vShapeList.clear();
 	try
 	{
 		pFile = new CFile(sFileName, CFile::modeRead | CFile::shareDenyNone);
@@ -177,18 +177,32 @@ BOOL CShapesManager::LoadData()
 	return bRet;
 }
 
-
 // return NULL, if not found
 CShape* CShapesManager::FindShapeByName( CString _csName )
 {
+	CShape* pNewShape = new CShape();
+	CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
+	pNewShape->Name(_csName);
+	pNewShape->ImageFileName(sPath + "CUBE100.bmp");
+	pNewShape->ShapeFileName(sPath + "CUBE100.dxf");
+
 	int nCount = m_vShapeList.size();
 	for( int i=0; i<nCount; i++ )
 	{
 		CShape* pShape = m_vShapeList[i];
+
 		if( pShape->Name().CompareNoCase( _csName ) == 0 )
-			return pShape;
-	}
-	return NULL;
+		{
+			if (PathFileExists(pShape->ImageFileName())==TRUE)
+				pNewShape->ImageFileName(pShape->ImageFileName());
+
+			if (PathFileExists(pShape->ShapeFileName())==TRUE)			
+				pNewShape->ShapeFileName(pShape->ShapeFileName());
+
+			return pNewShape;
+		}
+	}	
+	return pNewShape;
 }
 
 

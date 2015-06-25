@@ -420,14 +420,14 @@ void CNodeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 			if(pNode != NULL && pNode->m_hItem != NULL)
 			{
 				RefreshItem(pNode);
-// 				DeleteAllChildren(pNode->m_hItem);
-// 				for(int i=0; i<pNode->GetChildCount(); i++)
-// 				{
-// 					CTVNode* pChild = (CTVNode*) pNode->GetChildByIdx(i);
-// 					if(!pChild->IsLeaf())
-// 					AddItem(pChild);
-// 				}
-// 				GetTreeCtrl().EnsureVisible(pNode->m_hItem);
+  				//DeleteAllChildren(pNode->m_hItem);
+  				//for(int i=0; i<pNode->GetChildCount(); i++)
+  				//{
+  				//	CTVNode* pChild = (CTVNode*) pNode->GetChildByIdx(i);
+  				//	if(!pChild->IsLeaf())
+  				//	AddItem(pChild);
+  				//}
+  				//GetTreeCtrl().EnsureVisible(pNode->m_hItem);
 			}
 		}
 

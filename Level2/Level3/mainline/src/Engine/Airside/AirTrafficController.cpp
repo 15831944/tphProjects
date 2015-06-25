@@ -502,7 +502,8 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			}
 
 			btillEnd = pFlight->GetTemporaryParking()->FindClearanceInConcern(pFlight,lastClearanceItem,RadiusOfConcernOnGround,newclearance);
-			if(btillEnd) return ;
+			if(btillEnd) 
+				return ;
 
 			if (pParkingStand)
 			{
@@ -2046,7 +2047,7 @@ bool AirTrafficController::IsDelayPushback(AirsideFlightInSim* pFlight, Clearanc
 		if (_pflight == pFlight)
 			continue;
 
-		if ( _pflight->GetMode() == OnExitStand)				//other push back in distance clearance
+		if ( _pflight->GetMode() == OnExitStand || _pflight->GetPreState().m_fltMode == OnExitStand)				//other push back in distance clearance
 		{
 			StandInSim* pOtherStand = _pflight->GetOperationParkingStand();
 			if (pOtherStand &&pOtherStand->GetLockedFlight())

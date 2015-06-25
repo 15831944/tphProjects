@@ -517,53 +517,44 @@ std::vector<RunwayExitInSim*> CRunwayExitAssignmentStrategiesInSim::GetManagedPe
 	int nExitItemCount = static_cast<int>(vExitItem.size());
 	for(int nExitItem = 0; nExitItem < nExitItemCount; ++nExitItem)
 	{	
-		int nPortExitCount = pLogicRunway->GetExitCount();
-		for (int nPortExit = 0; nPortExit < nPortExitCount; nPortExit++)
+		RunwayExitPercentItem * pExitItem = vExitItem[nExitItem] ;
+		if(pExitItem == NULL || pLogicRunway == NULL)
+			continue;
+
+		int nExitID = pExitItem->getExitID();
+
+		if( pExitItem->IsBacktrack() )
 		{
-			RunwayExitPercentItem * pExitItem = vExitItem[nExitItem] ;
-			if(pExitItem == NULL || pLogicRunway == NULL)
-				continue;
-
-			if(pExitItem && pExitItem->IsBacktrack() )
-			{
-				vAvailableExitItem.push_back(pExitItem);
-			}
-			else
-			{
-				int nExitID = pExitItem->getExitID();
-
-				if (pLogicRunway->GetExitAt(nPortExit) && pLogicRunway->GetExitAt(nPortExit)->GetID() == nExitID)
-				{
-					RunwayExitInSim* pAvailableExit = pLogicRunway->GetExitAt(nPortExit);
-					if(pAvailableExit)
-					{
-						double dExitDistanceInRunway = pAvailableExit->GetExitRunwayPos();
-
-						double dExitSpeed = 1000;
-
-						if (pAvailableExit->GetAngle() < 90.0)
-						{
-							dExitSpeed = pFlight->GetPerformance()->getMaxExitSpeedHigh(pFlight);
-						}
-						if (pAvailableExit->GetAngle() == 90.0)
-						{
-							dExitSpeed = pFlight->GetPerformance()->getMaxExitSpeed90deg(pFlight);
-						}
-						if (pAvailableExit->GetAngle() > 90.0)
-						{
-							dExitSpeed = pFlight->GetPerformance()->getMaxExitSpeedAcute(pFlight);
-						}
-						double dMinLandingDistance = (landspd*landspd - dExitSpeed*dExitSpeed)/(2.0* dMaxDecel);
-
-						//+1 for double to int miscount
-						if(dExitDistanceInRunway > dMinLandingDistance + dTouchDownDistance + 1)
-							vAvailableExitItem.push_back(pExitItem);
-					}
-					break;
-				}
-			}				
-
+			vAvailableExitItem.push_back(pExitItem);
 		}
+		else
+		{
+			RunwayExitInSim* pAvailableExit = pLogicRunway->GetExitByID(nExitID);
+			if(pAvailableExit)
+			{
+				double dExitDistanceInRunway = pAvailableExit->GetExitRunwayPos();
+
+				double dExitSpeed = 1000;
+
+				if (pAvailableExit->GetAngle() < 90.0)
+				{
+					dExitSpeed = pFlight->GetPerformance()->getMaxExitSpeedHigh(pFlight);
+				}
+				if (pAvailableExit->GetAngle() == 90.0)
+				{
+					dExitSpeed = pFlight->GetPerformance()->getMaxExitSpeed90deg(pFlight);
+				}
+				if (pAvailableExit->GetAngle() > 90.0)
+				{
+					dExitSpeed = pFlight->GetPerformance()->getMaxExitSpeedAcute(pFlight);
+				}
+				double dMinLandingDistance = (landspd*landspd - dExitSpeed*dExitSpeed)/(2.0* dMaxDecel);
+
+				//+1 for double to int miscount
+				if(dExitDistanceInRunway > dMinLandingDistance + dTouchDownDistance + 1)
+					vAvailableExitItem.push_back(pExitItem);					
+			}					
+		}	
 	}
 
 	if(vAvailableExitItem.size() == 0)//all defined runway exit are not fit
@@ -625,19 +616,26 @@ std::vector<RunwayExitInSim*> CRunwayExitAssignmentStrategiesInSim::GetManagedPe
 				dPercent += (int)vCanHoldExits[i]->m_fPercent;
 			}
 		}
-		//get from exit after have percent flight
-		if(pFirstHavePercentExit)
+		
+
+		if(!vExitsInSim.empty())
 		{
-			for(int i=0;i<pLogicRunway->GetExitCount();i++)
-			{
-				RunwayExitInSim* pExit = pLogicRunway->GetExitAt(i);
-				if(pExit->GetPosAtRunway()>= pFirstHavePercentExit->GetPosAtRunway() && pExit->CanHoldFlight(pFlight) )
-				{
-					vAvailableExit.push_back(pExit);
-				}
-			}
+			vAvailableExit.push_back(vExitsInSim.front());
 			return vAvailableExit;
 		}
+		//get from exit after have percent flight ??
+		/*if(pFirstHavePercentExit)
+		{
+		for(int i=0;i<pLogicRunway->GetExitCount();i++)
+		{
+		RunwayExitInSim* pExit = pLogicRunway->GetExitAt(i);
+		if(pExit->GetPosAtRunway()>= pFirstHavePercentExit->GetPosAtRunway() && pExit->CanHoldFlight(pFlight) )
+		{
+		vAvailableExit.push_back(pExit);
+		}
+		}
+		return vAvailableExit;
+		}*/
 
 	}
 	else//assign runway exit, first time
@@ -673,38 +671,13 @@ std::vector<RunwayExitInSim*> CRunwayExitAssignmentStrategiesInSim::GetManagedPe
 			dPercent += vAvailableExitItem[i]->m_fPercent;
 		}
 
+		
 		std::vector<RunwayExitInSim*> vAvailableExit;
-		if (nExitID >=0)
-		{
-			int nCount = pLogicRunway->GetExitCount();
-			for (int i = 0; i < nCount; i++)
-			{
-				if (pLogicRunway->GetExitAt(i)->GetID() == nExitID)
-					vAvailableExit.push_back(pLogicRunway->GetExitAt(i)) ;
-			}
-		}
-
-		return vAvailableExit;
-
-
-
-		//double dRandPercent = double(rand()%100);
-		//double dPercent = 0.0;
-		//int nExitID = -1;
-		//for ( int i = 0; i< int(vExit.size()); i++ )
-		//{
-		//	if (dRandPercent>= dPercent && dRandPercent < dPercent + vExit[i]->m_fPercent )
-		//	{
-		//		nExitID = vExit[i]->getExitID();
-		//		break;		
-		//	}
-		//	dPercent += vExit[i]->m_fPercent;
-		//}
-
-		//vAvailableExit.clear();
-		//RunwayExitInSim* pExit = pLogicRunway->GetExitByID(nExitID);
-		//if(pExit)
-		//	vAvailableExit.push_back(pExit);
+		RunwayExitInSim* pExit = pLogicRunway->GetExitByID(nExitID);
+		if(pExit)
+			vAvailableExit.push_back(pExit);
+		
+		return vAvailableExit;	
 
 	}
 
@@ -735,40 +708,45 @@ std::vector<RunwayExitInSim*> CRunwayExitAssignmentStrategiesInSim::GetManagedPr
 		if(pExitInSim == NULL)
 			continue;
 
-		if(!pExitInSim->CanHoldFlight(pFlight)) // the  runway exit is not available
-			continue;
-
-		//check if arrival stand is occupied by other flight
-		if(pExitItem->GetConditionData().GetArrStandOccupied())
+		if(bCheckCanHold ) // the  runway exit is not available
 		{
-			StandInSim *pArrStand = pFlight->GetPlanedParkingStand(ARR_PARKING);
-			if(pArrStand != NULL)
-			{
-				AirsideFlightInSim *pLockedFlight = pArrStand->GetLockedFlight();
-				if(pLockedFlight != NULL && pLockedFlight != pFlight)
-					continue;
-			}
+			if(!pExitInSim->CanHoldFlight(pFlight))
+				continue;
 		}
-		//check if the related taxiway is have flight in head to head operation
-		bool bTaxiConditionAvailable = true;
 
-		if(pExitItem->GetConditionData().GetOperationStatus())
+		if(i!=nCount-1)
 		{
-			int nConditionCount = pExitItem->GetConditionData().getTaxiConditionCount();
-			for (int nCondition = 0; nCondition < nConditionCount; ++ nCondition)//for each condition
+			//check if arrival stand is occupied by other flight
+			if(pExitItem->GetConditionData().GetArrStandOccupied())
 			{
-				TaxiSegmentData *pTaxiCondition = pExitItem->GetConditionData().getTaxiCondition(nCondition);
-
-				if(!IsTaxiConditionAvaiable(pFlight, pTaxiCondition))
+				StandInSim *pArrStand = pFlight->GetPlanedParkingStand(ARR_PARKING);
+				if(pArrStand != NULL)
 				{
-					bTaxiConditionAvailable = false;
-					break;
+					AirsideFlightInSim *pLockedFlight = pArrStand->GetLockedFlight();
+					if(pLockedFlight != NULL && pLockedFlight != pFlight)
+						continue;
 				}
 			}
+			//check if the related taxiway is have flight in head to head operation
+			bool bTaxiConditionAvailable = true;
+
+			if(pExitItem->GetConditionData().GetOperationStatus())
+			{
+				int nConditionCount = pExitItem->GetConditionData().getTaxiConditionCount();
+				for (int nCondition = 0; nCondition < nConditionCount; ++ nCondition)//for each condition
+				{
+					TaxiSegmentData *pTaxiCondition = pExitItem->GetConditionData().getTaxiCondition(nCondition);
+
+					if(!IsTaxiConditionAvaiable(pFlight, pTaxiCondition))
+					{
+						bTaxiConditionAvailable = false;
+						break;
+					}
+				}
+			}
+			if(!bTaxiConditionAvailable)
+				continue;
 		}
-		if(!bTaxiConditionAvailable)
-			continue;
-		
 		//available exit
 		vExits.push_back(pExitInSim);
 	}

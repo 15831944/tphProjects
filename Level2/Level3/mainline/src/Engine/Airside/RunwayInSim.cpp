@@ -566,6 +566,7 @@ protected:
 	int m_nTaxiId;
 };
 
+const static DistanceUnit DefaultHoldOffset = 3200;
 
 bool RunwayInSim::InitSegments( IntersectionNodeInSimList& NodeList,const HoldShortLinePropList& vHoldList )
 {

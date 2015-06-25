@@ -30,8 +30,9 @@ public:
 	afx_msg void OnTvnSelchangedTreeOperatingdoor(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedOk();
 
-	afx_msg void AddNewItem();
-	afx_msg void RemoveItem();
+	afx_msg void OnToolBarAdd();
+	afx_msg void OnToolbarDel();
+    afx_msg void OnToolbarEdit();
 
 	void InitTree();
 
@@ -43,12 +44,13 @@ public:
 	void DelStandItem(HTREEITEM hSelItem,FltOperatingDoorData* pFltData);
 	void DelDoorItem(HTREEITEM hSelItem, StandOperatingDoorData* pStandData);
 
+    void SelectNextTreeItem(HTREEITEM hSelItem);
 	void EditFltItem(HTREEITEM hSelItem);
 	void EditStandItem(HTREEITEM hSelItem,FltOperatingDoorData* pFltData);
 	void EditDoorItem(HTREEITEM hSelItem, StandOperatingDoorData* pStandData, ACTYPEDOORLIST* pACTypeDoors, const CString& strACType);	
 
-	void DeleteTreeNode(StandOperatingDoorData::OperationDoor* pNodeData);
-	void DeleteTreeNode(const StandOperatingDoorData::OperationDoor& doorOp);
+	void DeleteTreeNodeData(StandOperatingDoorData::OperationDoor* pNodeData);
+	void DeleteTreeNodeData(const StandOperatingDoorData::OperationDoor& doorOp);
 	void ClearTreeNode();
 	void DeleteTreeStandNode(StandOperatingDoorData* pStandData);
 	void DeleteTreeFltNode(FltOperatingDoorData* pFltData);

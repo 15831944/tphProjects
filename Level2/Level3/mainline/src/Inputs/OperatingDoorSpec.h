@@ -12,72 +12,27 @@ public:
 	StandOperatingDoorData(void);
 	~StandOperatingDoorData(void);
 
-	struct OperationDoor
-	{
-		CString GetDoorString()const
-		{
-			CString strOp;
-			if (m_iHandType == ACTypeDoor::LeftHand)
-			{
-				strOp.Format(_T("L%d"),m_nID);
-			}
-			else if (m_iHandType == ACTypeDoor::RightHand)
-			{
-				strOp.Format(_T("R%d"),m_nID);
-			}
+    class OperationDoor
+    {
+    public:
+        OperationDoor();
+        ~OperationDoor();
+        CString GetDoorString()const;
+        CString GetHandTypeString()const;
+        void readDataVersion1(ArctermFile& p_file);
+        void parseString(const CString& strOp, ACTYPEDOORLIST* pAcDoors);
+        void writeData(ArctermFile& p_file);
+        bool operator == (const OperationDoor& doorOp)const;
 
-			return strOp;
-		}
+        CString GetDoorName(){ return m_doorName; }
+        void SetDoorName(CString strDoorName){ m_doorName = strDoorName; }
 
-		CString GetHandTypeString()const
-		{
-			if (m_iHandType == ACTypeDoor::LeftHand)
-			{
-				return CString("Left");
-			}
-			else if (m_iHandType == ACTypeDoor::RightHand)
-			{
-				return CString("Right");
-			}
-
-			return CString("Left");
-		}
-		void ParseString(const CString& strOp)
-		{
-			CString strLeft;
-			CString strRight;
-			strLeft = strOp.Left(1);
-			strRight = strOp.Right(1);
-			if (strLeft.Compare("L") == 0)
-			{
-				m_iHandType = ACTypeDoor::LeftHand;
-			}
-			else
-			{
-				m_iHandType = ACTypeDoor::RightHand;
-			}
-
-			m_nID = atoi(strRight);
-		}
-
-		bool operator == (const OperationDoor& doorOp)const
-		{
-			if (doorOp.m_nID != m_nID)
-			{
-				return false;
-			}
-			
-			if (doorOp.m_iHandType != m_iHandType)
-			{
-				return false;
-			}
-		
-			return true;
-		}
-
-		int m_nID;
-		ACTypeDoor::DoorDir m_iHandType;
-	};
+        void SetHandType(ACTypeDoor::DoorDir handType){ m_iHandType = handType; }
+        ACTypeDoor::DoorDir GetHandType(){ return m_iHandType; }
+    private:
+        CString m_doorName;
+        ACTypeDoor::DoorDir m_iHandType;
+    };
 
 	int GetID();
 	void SetID(int nID);
@@ -91,10 +46,8 @@ public:
 	void AddDoorOperation(ACTypeDoor* pDoor);
 	bool GetDoorOperation(ACTypeDoor* pDoor,std::vector<OperationDoor>& vDoorOp);
 	int GetOpDoorCount();
-// 	int GetOpDoorID(int nIdx);
-// 	void GetOpDoors(std::vector<int>& vDoors);
-// 
-// 	void AddOpDoor(int nID);
+    std::vector<OperationDoor>* GetDoorOpList(){ return &m_vOpDoors; }
+
  	void DelOpDoor(OperationDoor* pDoorOp);
 	bool findOpDoor(OperationDoor* pDoorOp);
 	void SetAirportDatabase(CAirportDatabase* pAirportDatabase){ m_pAirportDB = pAirportDatabase; }
@@ -104,7 +57,6 @@ public:
 	void SaveData(int nParentID);
 	void UpdateData(int nParentID,const CString& strDoors);
 	void DeleteData();
-
 private: 
 	void DoCompatible(const CString& strDoors,ACTYPEDOORLIST* pDoorList);
 	ACTypeDoor* GetAcTypeDoor(int nID,ACTYPEDOORLIST* pDoorList)const;
@@ -114,12 +66,8 @@ private:
 	int m_nStandID;
 	CString m_strActype;
 	ALTObjectID m_standName;
-//	std::vector<int> m_vOpDoors;
 	CAirportDatabase* m_pAirportDB;
-
-public:
-	std::vector<OperationDoor> m_vOpDoors;;
-
+	std::vector<OperationDoor> m_vOpDoors;
 };
 
 //////////////////////////////////

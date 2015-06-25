@@ -464,11 +464,13 @@ CMainFrame::CMainFrame()
 	m_bCanPasteProcess = FALSE;
 	m_bViewOpen = true;
 	m_nOnSizeType = -1;
+	m_wndShapesBar = NULL;
 }
 
 CMainFrame::~CMainFrame()
 {
 	delete m_pDlgFloorAdjust;
+	delete m_wndShapesBar;
 }
 
 BOOL CMainFrame::VerifyBarState(LPCTSTR lpszProfileName)
@@ -536,7 +538,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (!(
 		CreateMainBar() && CreateProjectBar()
 		&& CreateUnitBar() && CreateAnimationBar() && CreateCameraBar() 
-		&& CreateShapesBar() && CreateShapesBarPFlow() 
+		/*&& CreateShapesBar()*/ && CreateShapesBarPFlow() 
 		&& CreateLayoutBar() && CreatePipeBar() /*&& CreateAirRouteBar()*/ && CreateCompRepLogBar() && CreateUnitTempBar()
 		&& CreateAircraftModelBar() && CreateACComponentShapesBar() && CreateACFurnishingShapesBar()
 		))
@@ -547,7 +549,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	LoadState();
 
-	ShowControlBar(&m_wndShapesBar, FALSE, FALSE);
+	//ShowControlBar(&m_wndShapesBar, FALSE, FALSE);
 	ShowControlBar(&m_wndACComponentShapesBar, FALSE, FALSE);
 	ShowControlBar(&m_wndACFurnishingShapesBar, FALSE, FALSE);
 	ShowControlBar(&m_wndShapesBarPFlow, FALSE, FALSE);
@@ -641,7 +643,7 @@ void CMainFrame::AdjustToolbar(void)
 	DockControlBar(&m_wndAircraftModel,AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(&m_wndACComponentShapesBar,AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(&m_wndACFurnishingShapesBar,AFX_IDW_DOCKBAR_RIGHT);
-	DockControlBar(&m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
+	//DockControlBar(&m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(&m_wndShapesBarPFlow, AFX_IDW_DOCKBAR_RIGHT);
 	DockControlBar(&m_wndCompRepLogBar, AFX_IDW_DOCKBAR_BOTTOM);
 }
@@ -1610,14 +1612,15 @@ BOOL CMainFrame::CreateShapesBarPFlow()
 
 BOOL CMainFrame::CreateShapesBar()
 {
-	if(!m_wndShapesBar.Create(_T("Shape Templates"), this, IDC_LIST_SHAPES)) {
+	m_wndShapesBar = new CShapesBar;
+	if(!m_wndShapesBar->Create(_T("Shape Templates"), this, IDC_LIST_SHAPES)) {
         TRACE0("Failed to create shapes bar\n");
         return FALSE;      // fail to create
 	}
 
-    m_wndShapesBar.SetBarStyle(m_wndShapesBar.GetBarStyle() | CBRS_SIZE_DYNAMIC);
+    m_wndShapesBar->SetBarStyle(m_wndShapesBar->GetBarStyle() | CBRS_SIZE_DYNAMIC);
 
-	m_wndShapesBar.EnableDocking(CBRS_ALIGN_LEFT | CBRS_ALIGN_RIGHT);
+	m_wndShapesBar->EnableDocking(CBRS_ALIGN_LEFT | CBRS_ALIGN_RIGHT);
     return TRUE;
 }
 
@@ -3089,15 +3092,21 @@ void CMainFrame::OnShowShapesToolbar()
 	if( EnvMode_OnBoard == ((CTermPlanDoc*)pTermDoc)->m_systemMode )		//will add function further
 		return;
 
-	CWnd* pWnd = &m_wndShapesBar;
+	CWnd* pWnd = m_wndShapesBar;
 	BOOL bIsShown = ((pWnd->GetStyle() & WS_VISIBLE) != 0);
-	ShowControlBar((CToolBar*) pWnd, !bIsShown, FALSE);
+	if (pWnd)
+	{
+			ShowControlBar((CToolBar*) pWnd, !bIsShown, FALSE);
+	}
 }
 
 void CMainFrame::OnUpdateShowShapesToolbar(CCmdUI* pCmdUI)
 {
-	CWnd* pWnd = &m_wndShapesBar;
-	pCmdUI->SetCheck((pWnd->GetStyle() & WS_VISIBLE) != 0);
+	CWnd* pWnd = m_wndShapesBar;
+	if(pWnd)
+		pCmdUI->SetCheck((pWnd->GetStyle() & WS_VISIBLE) != 0);
+	else
+		pCmdUI->SetCheck(FALSE);
 }
 
 void CMainFrame::LoadState()
@@ -3461,7 +3470,10 @@ void CMainFrame::OnUpdateBarShowCamera(CCmdUI* pCmdUI)
 void CMainFrame::OnBarShowShape() 
 {
 	// TODO: Add your command handler code here
-	ShowControlBar(&m_wndShapesBar,!m_wndShapesBar.IsWindowVisible(),FALSE);	
+	if (m_wndShapesBar)
+	{
+		ShowControlBar(m_wndShapesBar,!m_wndShapesBar->IsWindowVisible(),FALSE);	
+	}	
 }
 
 void CMainFrame::OnBarShowACComponentShape() 
@@ -3479,7 +3491,10 @@ void CMainFrame::OnBarShowACFurnishingShape()
 void CMainFrame::OnUpdateBarShowShape(CCmdUI* pCmdUI) 
 {
 	// TODO: Add your command update UI handler code here
-	pCmdUI->SetCheck(m_wndShapesBar.IsWindowVisible());
+	if(m_wndShapesBar)
+		pCmdUI->SetCheck(m_wndShapesBar->IsWindowVisible());
+	else
+		pCmdUI->SetCheck(FALSE);
 	
 }
 
@@ -4030,7 +4045,7 @@ void CMainFrame::OnProjectExportAsInputzip()
 	CTermPlanDoc* pDoc = (CTermPlanDoc*)pMDIActive->GetActiveDocument();
 	ASSERT(pDoc != NULL);
 	pDoc->ShrinkDatabase(((CTermPlanApp *)AfxGetApp())->GetMasterDatabase(),pDoc->m_ProjInfo.name);
-
+	m_wndShapesBar->ExportUserShapeBars();
 	ExportAsInputZip(pDoc->m_ProjInfo.name,pDoc->m_ProjInfo.path,false);
 }
 
@@ -4053,7 +4068,7 @@ void CMainFrame::OnProjectExportAndEmail()
 	ASSERT(pDoc != NULL);
 	
 	pDoc->ShrinkDatabase(((CTermPlanApp *)AfxGetApp())->GetMasterDatabase(),pDoc->m_ProjInfo.name);
-
+	m_wndShapesBar->ExportUserShapeBars();
 	ExportAndEmail(pDoc->m_ProjInfo.name,pDoc->m_ProjInfo.path,false);
 }
 
@@ -4596,7 +4611,6 @@ void CMainFrame::ExportAsInputZip(const CString& strProjName, const CString& str
 
 		CProjectExport projExport(this,pDoc);
 		projExport.ExportAsInputZip(strProjName,strProjPath,bNotForceDB,bOpenProject);
-
 	}
 	return;	
 }

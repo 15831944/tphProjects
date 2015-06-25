@@ -16,11 +16,6 @@ ACTypeDoor::ACTypeDoor(void)
 	  m_strACName = _T("");
 }
 
-ACTypeDoor::ACTypeDoor(const ACTypeDoor& other)
-{
-    *this = other;
-}
-
 ACTypeDoor::~ACTypeDoor(void)
 {
 }

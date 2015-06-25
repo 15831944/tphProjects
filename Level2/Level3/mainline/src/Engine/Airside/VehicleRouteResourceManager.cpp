@@ -121,73 +121,20 @@ bool VehicleRouteResourceManager::InitRelations(StandResourceManager& standRes,
 
 bool VehicleRouteResourceManager::InitRelationsWithPaxBusParking(CPaxBusParkingResourceManager& paxBusRes)
 {
-	//for(size_t i=0;i< paxBusRes.GetPaxBusParkingCount();i++)
-	//{
-	//	CPaxBusParkingInSim * pBusParking = paxBusRes.GetPaxBusParkingByIndex(i);
-	//	CPoint2008 ptPaxBusParking = pBusParking->GetDistancePoint(0);
-	//	DistanceUnit MinDist = ARCMath::DISTANCE_INFINITE;
-	//	//DistanceUnit distInLane = 0;
-	//	VehicleLaneInSim * pNearestlane = NULL;	
-
-	//	for(int stretchidx = 0;stretchidx < (int)m_vStretches.size(); stretchidx++ )
-	//	{
-	//		VehicleStretchInSim * pStretch = m_vStretches.at(stretchidx);
-	//		for(int segidx = 0; segidx < pStretch->GetSegmentCount(); segidx++ )
-	//		{	
-	//			VehicleStretchSegmentInSim* pSeg = pStretch->GetSegment(segidx);
-	//		
-	//			for(int laneidx = 0; laneidx < pSeg->GetLaneCount(); laneidx++ )
-	//			{
-	//				VehicleLaneInSim * pLane = pSeg->GetLane(laneidx);
-	//				DistancePointPath3D distPtPath(ptPaxBusParking, pLane->GetPath() );
-	//				DistanceUnit squareDist = distPtPath.GetSquared();
-	//				if(squareDist < MinDist )
-	//				{
-	//					MinDist = squareDist;
-	//					pNearestlane = pLane;
-	//				}
-	//			}
-	//		}
-	//	}
-
-	//	if(pNearestlane)
-	//	{
-	//	
-	//		//get sibling lane
-	//		VehicleStretchSegmentInSim* pParentSeg = (VehicleStretchSegmentInSim*)pNearestlane->getRouteResource();
-	//		int nLaneCount = pParentSeg->GetLaneCount();
-	//		
-	//		for (int nLane = 0; nLane < nLaneCount; ++nLane)
-	//		{
-	//			VehicleLaneInSim * pCurLane = pParentSeg->GetLane(nLane);
-
-	//			DistanceUnit dEndDist = pCurLane->GetLength();
-	//			
-	//			DistancePointPath3D distPtPath(ptPaxBusParking, pCurLane->GetPath() );
-	//			DistanceUnit squareDist = distPtPath.GetSquared();
-	//
-	//			DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)distPtPath.m_fPathParameter );
-	//
-
-	//			pCurLane->AddEntry( new VehicleLaneEntry(pCurLane, pBusParking, min(dEndDist,distInLane +sdEntryExitOffset) ) );
-	//			pCurLane->AddExit( new VehicleLaneExit(pCurLane, pBusParking, max(0,distInLane -sdEntryExitOffset) ) );
-	//		}
-	//	
-	//	}	
-
-	//}
-
 	for(size_t i=0;i< paxBusRes.GetPaxBusParkingCount();i++)
 	{
 		AirsidePaxBusParkSpotInSim * pBusParking = paxBusRes.GetPaxBusParkingByIndex(i);
-		CPoint2008 ptPaxBusParking = pBusParking->GetDistancePoint(0);
-		DistanceUnit MinDist = ARCMath::DISTANCE_INFINITE;
-		//DistanceUnit distInLane = 0;
-		VehicleLaneInSim * pNearestlane = NULL;	
+		CString strName = pBusParking->GetParkSpot()->getName().GetIDString();
+		DistanceUnit MinLeadInDist = ARCMath::DISTANCE_INFINITE;	
+		DistanceUnit MinLeadOutDist = ARCMath::DISTANCE_INFINITE;	
+
+		VehicleLaneInSim* pNearestLeadInLane = NULL;
+		VehicleLaneInSim* pNearestLeadoutLane = NULL;
 
 		for(int stretchidx = 0;stretchidx < (int)m_vStretches.size(); stretchidx++ )
 		{
 			VehicleStretchInSim * pStretch = m_vStretches.at(stretchidx);
+			CString strStretch = pStretch->GetInput()->getName().GetIDString();
 			for(int segidx = 0; segidx < pStretch->GetSegmentCount(); segidx++ )
 			{	
 				VehicleStretchSegmentInSim* pSeg = pStretch->GetSegment(segidx);
@@ -195,88 +142,133 @@ bool VehicleRouteResourceManager::InitRelationsWithPaxBusParking(CPaxBusParkingR
 				for(int laneidx = 0; laneidx < pSeg->GetLaneCount(); laneidx++ )
 				{
 					VehicleLaneInSim * pLane = pSeg->GetLane(laneidx);
-					DistancePointPath3D distPtPath;
-					DistanceUnit squareDist = distPtPath.GetSquared(ptPaxBusParking, pLane->GetPath());
-					if(squareDist < MinDist )
+
+					//lead in line
 					{
-						MinDist = squareDist;
-						pNearestlane = pLane;
+						CPath2008 leadinPath = pBusParking->GetParkSpot()->getLeadInLine();
+						IntersectPathPath2D intersectPath;
+						if(intersectPath.Intersects(leadinPath,pLane->GetPath(),5))//path and path intersect
+						{
+							DistanceUnit distInLane = pLane->GetPath().GetIndexDist( (float)intersectPath.m_vIntersectPtIndexInPath2[0] );
+							CPoint2008 ptIntersect = pLane->GetPath().GetDistPoint(distInLane);
+							pLane->AddExit( new VehicleLaneExit(pLane, pBusParking, max(0,distInLane) ) );
+						}
+						else
+						{
+							//does not intersection with
+							int nCount = leadinPath.getCount();
+							if (nCount > 0)
+							{
+								CPoint2008 ptPaxBusParking = leadinPath.getPoint(0);
+								DistancePointPath3D distPtPath;
+								DistanceUnit squareDist = distPtPath.GetSquared(ptPaxBusParking, pLane->GetPath());
+								if(squareDist < MinLeadInDist )
+								{
+									MinLeadInDist = squareDist;
+									pNearestLeadInLane = pLane;
+								}
+							}
+						}
+					}
+
+					//lead out line
+					{
+						DistanceUnit dEndDist = pLane->GetLength();
+						CPath2008 leadOutPath = pBusParking->GetParkSpot()->getLeadOutLine();
+						IntersectPathPath2D intersectPath;
+						if (intersectPath.Intersects(leadOutPath,pLane->GetPath(),5))//path and path intersect
+						{
+							DistanceUnit distInLane = pLane->GetPath().GetIndexDist( (float)intersectPath.m_vIntersectPtIndexInPath2[0] );
+							pLane->AddEntry( new VehicleLaneEntry(pLane, pBusParking, min(dEndDist,distInLane) ) );
+						}
+						else
+						{
+							//does not intersection with
+							int nCount = leadOutPath.getCount();
+							if (nCount > 0)
+							{	
+								CPoint2008 ptPaxBusParking = leadOutPath.getPoint(nCount - 1);
+								DistancePointPath3D distPtPath;
+								DistanceUnit squareDist = distPtPath.GetSquared(ptPaxBusParking, pLane->GetPath());
+								if(squareDist < MinLeadOutDist )
+								{
+									MinLeadOutDist = squareDist;
+									pNearestLeadoutLane = pLane;
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 
-		if(pNearestlane)
+		if (pNearestLeadInLane)
 		{
+			VehicleStretchSegmentInSim* pParentSeg = (VehicleStretchSegmentInSim*)pNearestLeadInLane->getRouteResource();
+			InitRelationParkingLeadinLine(pParentSeg,pBusParking);
+		}
 
-			//get sibling lane
-			VehicleStretchSegmentInSim* pParentSeg = (VehicleStretchSegmentInSim*)pNearestlane->getRouteResource();
-			int nLaneCount = pParentSeg->GetLaneCount();
-
-			for (int nLane = 0; nLane < nLaneCount; ++nLane)
-			{
-				VehicleLaneInSim * pCurLane = pParentSeg->GetLane(nLane);
-
-				DistanceUnit dEndDist = pCurLane->GetLength();
-
-				//lead in and lead out
-				{
-					//lead in
-					CPath2008 leadinPath = pBusParking->GetParkSpot()->getLeadInLine();
-					{
-						IntersectPathPath2D intersectPath;
-						if(intersectPath.Intersects(leadinPath,pCurLane->GetPath(),5))//path and path intersect
-						{
-							DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)intersectPath.m_vIntersectPtIndexInPath2[0] );
-							CPoint2008 ptIntersect = pCurLane->GetPath().GetDistPoint(distInLane);
-							pCurLane->AddExit( new VehicleLaneExit(pCurLane, pBusParking, max(0,distInLane) ) );
-						}
-						else//use lead in line front point to find shortest distance in the path
-						{
-							if(leadinPath.getCount())
-							{
-								CPoint2008 ptLeadin = leadinPath.getPoint(0);
-								DistancePointPath3D distPtPath;
-								DistanceUnit squareDist = distPtPath.GetSquared(ptLeadin, pCurLane->GetPath() );
-
-								DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)distPtPath.m_fPathParameter );
-								pCurLane->AddExit( new VehicleLaneExit(pCurLane, pBusParking, max(0,distInLane) ) );
-							}
-						}
-					}
-					//lead out
-					CPath2008 leadOutPath = pBusParking->GetParkSpot()->getLeadOutLine();
-					{
-						IntersectPathPath2D intersectPath;
-						if (intersectPath.Intersects(leadOutPath,pCurLane->GetPath(),5))//path and path intersect
-						{
-							DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)intersectPath.m_vIntersectPtIndexInPath2[0] );
-							pCurLane->AddEntry( new VehicleLaneEntry(pCurLane, pBusParking, min(dEndDist,distInLane) ) );
-						}
-						else //use lead out line last point to find shortest distance in the path
-						{
-							int nCount = leadOutPath.getCount();
-							if (nCount > 0)
-							{	
-								CPoint2008 ptLeadout = leadOutPath.getPoint(nCount - 1);
-								DistancePointPath3D distPtPath;
-								DistanceUnit squareDist = distPtPath.GetSquared(ptLeadout, pCurLane->GetPath());
-					
-								DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)distPtPath.m_fPathParameter );
-								pCurLane->AddEntry( new VehicleLaneEntry(pCurLane, pBusParking, min(dEndDist,distInLane) ) );
-							}
-							
-						}
-					}
-
-				}
-			}
-
-		}	
-
+		if (pNearestLeadoutLane)
+		{
+			VehicleStretchSegmentInSim* pParentSeg = (VehicleStretchSegmentInSim*)pNearestLeadoutLane->getRouteResource();
+			InitRelationParkingLeadoutLine(pParentSeg,pBusParking);
+		}
 	}
 	return true;
 }
+
+//doesn't intersection with any lane segment
+void VehicleRouteResourceManager::InitRelationParkingLeadinLine( VehicleStretchSegmentInSim* pSegment,AirsidePaxBusParkSpotInSim * pBusParking )
+{
+	int nLaneCount = pSegment->GetLaneCount();
+
+	for (int nLane = 0; nLane < nLaneCount; ++nLane)
+	{
+		VehicleLaneInSim * pCurLane = pSegment->GetLane(nLane);
+		//lead in
+		CPath2008 leadinPath = pBusParking->GetParkSpot()->getLeadInLine();
+		{
+			if(leadinPath.getCount())
+			{
+				CPoint2008 ptLeadin = leadinPath.getPoint(0);
+				DistancePointPath3D distPtPath;
+				DistanceUnit squareDist = distPtPath.GetSquared(ptLeadin, pCurLane->GetPath() );
+
+				DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)distPtPath.m_fPathParameter );
+				pCurLane->AddExit( new VehicleLaneExit(pCurLane, pBusParking, max(0,distInLane) ) );
+			}
+		}
+		
+	}
+}
+
+void VehicleRouteResourceManager::InitRelationParkingLeadoutLine( VehicleStretchSegmentInSim* pSegment,AirsidePaxBusParkSpotInSim * pBusParking )
+{
+	int nLaneCount = pSegment->GetLaneCount();
+
+	for (int nLane = 0; nLane < nLaneCount; ++nLane)
+	{
+		VehicleLaneInSim * pCurLane = pSegment->GetLane(nLane);
+		DistanceUnit dEndDist = pCurLane->GetLength();
+
+		//lead out
+		CPath2008 leadOutPath = pBusParking->GetParkSpot()->getLeadOutLine();
+		{
+			int nCount = leadOutPath.getCount();
+			if (nCount > 0)
+			{	
+				CPoint2008 ptLeadout = leadOutPath.getPoint(nCount - 1);
+				DistancePointPath3D distPtPath;
+				DistanceUnit squareDist = distPtPath.GetSquared(ptLeadout, pCurLane->GetPath());
+
+				DistanceUnit distInLane = pCurLane->GetPath().GetIndexDist( (float)distPtPath.m_fPathParameter );
+				pCurLane->AddEntry( new VehicleLaneEntry(pCurLane, pBusParking, min(dEndDist,distInLane) ) );
+			}
+		}
+	}
+
+}
+
 //
 void VehicleRouteResourceManager::InitDIJShortesRoute()
 {
@@ -1194,3 +1186,4 @@ bool VehicleRouteResourceManager::InitRelationsWithBagCartsParkingSpot( CBagCart
 	}
 	return true;
 }
+

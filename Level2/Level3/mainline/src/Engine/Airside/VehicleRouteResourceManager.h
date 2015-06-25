@@ -17,6 +17,7 @@ class CPaxBusParkingResourceManager;
 class DeiceResourceManager;
 class AirsideMeetingPointInSim;
 class CBagCartsParkingSpotResourceManager;
+class AirsidePaxBusParkSpotInSim;
 
 class VehicleRouteResourceManager
 {
@@ -65,6 +66,10 @@ protected:
 	void InitTaxiwayLanes(TaxiwayResourceManager& taxiRes);
 	
 	bool InitRelationsWithBagCartsParkingSpot(CBagCartsParkingSpotResourceManager& pBagCartsParkingSpotResManager);	
+
+private:
+	void InitRelationParkingLeadinLine(VehicleStretchSegmentInSim*  pSegment,AirsidePaxBusParkSpotInSim * pBusParking );
+	void InitRelationParkingLeadoutLine(VehicleStretchSegmentInSim*  pSegment,AirsidePaxBusParkSpotInSim * pBusParking);
 protected:
 	std::vector<VehicleStretchInSim*> m_vStretches;
 	std::vector<VehicleRoadIntersectionInSim*> m_vIntersections;	

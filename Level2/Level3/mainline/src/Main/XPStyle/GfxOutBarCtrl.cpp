@@ -14,7 +14,10 @@
 #include "NewMenu.h"
 #include "Draw.h"
 #include "Tools.h"
-
+// #include "..\ShapeFolder.h"
+// #include "..\ShapeItem.h"
+#include "..\ShapesBar.h"
+#include "..\..\common\ProjectManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -118,6 +121,7 @@ BEGIN_MESSAGE_MAP(CGfxOutBarCtrl, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_GFX_SMALLICON, OnUpdateGfxSmallicon)
 	ON_COMMAND(ID_GFX_RENAMEITEM, OnGfxRenameitem)
 	ON_UPDATE_COMMAND_UI(ID_GFX_RENAMEITEM, OnUpdateGfxRenameitem)
+
 	//}}AFX_MSG_MAP
 	ON_MESSAGE(WM_OUTBAR_NOTIFY, OnEndLabelEdit)
 END_MESSAGE_MAP()
@@ -172,6 +176,19 @@ void CGfxOutBarCtrl::SetFolderText(const int index, const char * text)
 	}
 	pbf->cName = new char [lstrlen(text)+1];
 	lstrcpy(pbf->cName, text);
+}
+
+void CGfxOutBarCtrl::SetFolderPathText(const int index, const char * text)
+{
+	ASSERT(index >= 0 && index < GetFolderCount());
+	CBarFolder * pbf = (CBarFolder *) arFolder.GetAt(index);
+	if (pbf->cFolderPath) 
+	{
+		delete [] pbf->cFolderPath;
+		pbf->cFolderPath = NULL;
+	}
+	pbf->cFolderPath = new char [lstrlen(text)+1];
+	lstrcpy(pbf->cFolderPath, text);
 }
 
 void CGfxOutBarCtrl::SetItemText(const int index, const char * text)
@@ -550,6 +567,7 @@ int CGfxOutBarCtrl::AddFolder(const char * cFolderName, const DWORD exData)
 	return arFolder.GetSize() - 1;
 }
 
+//#define DefinedPath "C:\\ARCTerm\\Databases\\Shapes"
 CGfxOutBarCtrl::CBarFolder::CBarFolder(const char * name, DWORD exData)
 {
 	cName = NULL;
@@ -564,11 +582,17 @@ CGfxOutBarCtrl::CBarFolder::CBarFolder(const char * name, DWORD exData)
 	pLargeImageList = NULL;
 	pSmallImageList = NULL;
 	pChild = NULL;
+	
+	CString path = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\";
+	cFolderPath = new char[lstrlen(path)+1];
+	ASSERT(cFolderPath);
+	lstrcpy(cFolderPath,path);
 }
 
 CGfxOutBarCtrl::CBarFolder::~CBarFolder()
 {
 	if (cName) delete [] cName;
+	if (cFolderPath) delete [] cFolderPath; 
 	for (int t = 0; t < arItems.GetSize(); t++)
 		if (arItems.GetAt(t)) delete (CBarFolder*) arItems.GetAt(t);
 
@@ -1259,8 +1283,6 @@ void CGfxOutBarCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 	CWnd::OnLButtonDown(nFlags, point);
 }
 
-
-
 int CGfxOutBarCtrl::InsertItem(const int folder, const int index, const char * text, const int image, const DWORD exData)
 {
 	ASSERT(folder >= 0 && folder < GetFolderCount());
@@ -1322,8 +1344,9 @@ void CGfxOutBarCtrl::RemoveFolder(const int index)
 	CBarFolder * pbf = (CBarFolder *) arFolder.GetAt(index);
 	delete pbf;
 	arFolder.RemoveAt(index);
-	if (iSelFolder >= index) iSelFolder = index - 1;
+	if (iSelFolder >= index) iSelFolder = iSelFolder - 1;//iSelFolder = index - 1;
 	if (iSelFolder < 0 && GetFolderCount() > 0) iSelFolder = 0;
+	if (iLastFolderHighlighted >= GetFolderCount()) iLastFolderHighlighted = GetFolderCount() - 1;
 	Invalidate();
 }
 
@@ -1864,18 +1887,8 @@ void CGfxOutBarCtrl::StartItemEdit(const int index)
 
 void CGfxOutBarCtrl::OnRButtonDown(UINT nFlags, CPoint point) 
 {
-	/*
-	CNewMenu cMenu,*pMenu;
-	cMenu.LoadMenu(IDR_OUTLOOK_BAR);
-	pMenu=	DYNAMIC_DOWNCAST(CNewMenu, cMenu.GetSubMenu(0));
-
-
-	CPoint pt(point);
-	ClientToScreen(&pt);
-	pMenu->LoadToolBar(IDR_MAINFRAME); 
-	pMenu->TrackPopupMenu(TPM_LEFTALIGN|TPM_RIGHTBUTTON, pt.x, pt.y, this);
-	*/
-	CWnd::OnRButtonDown(nFlags, point);
+	CShapesBar* hWindow = (CShapesBar*)GetOwner();
+	hWindow->SendMessage(WM_SHAPEBAR_NOTIFY,NULL,NULL);
 }
 
 void CGfxOutBarCtrl::OnGfxLargeicon() 
@@ -2216,8 +2229,29 @@ void CGfxOutBarCtrl::AnimateFolderScroll(const int iFrom, const int iTo)
 	pDC->SelectObject(obmp);
 }
 
+CString CGfxOutBarCtrl::GetFolderText(const int index)
+{
+	CString name;
+	ASSERT(index >= 0 && index < GetFolderCount());
+	CBarFolder * pbf = (CBarFolder *) arFolder.GetAt(index);
+	if (pbf->cName) 
+	{
+		name = pbf->cName;
+	}
+	return name;
+}
 
-
+CString CGfxOutBarCtrl::GetFolderPathText(const int index)
+{
+	CString path;
+	ASSERT(index >= 0 && index < GetFolderCount());
+	CBarFolder * pbf = (CBarFolder *) arFolder.GetAt(index);
+	if (pbf->cFolderPath) 
+	{
+		path = pbf->cFolderPath;
+	}
+	return path;
+}
 
 CString CGfxOutBarCtrl::GetItemText(const int index)
 {

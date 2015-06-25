@@ -129,7 +129,7 @@ Point Point::calcMidPoint (const Point& p, DistanceUnit speed,
 
 	if (!vector.length())
 		return *this;
-    double distance = remainingTravelTime.asSeconds() * speed;
+    double distance = (remainingTravelTime.getPrecisely()*1.0/TimePrecision) * speed;
 	vector.length (distance);
 	return (p - vector);
 }

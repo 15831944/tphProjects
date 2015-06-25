@@ -14,6 +14,8 @@ public:
 	
 	virtual void setPersonCurrentPosition(Person *aPerson,const ElapsedTime& arriveTime);
 
+    virtual void arriveAtQueue (Person *aPerson, ElapsedTime arriveTime);
+
 	Point getLocation (Person *aPerson, DistanceUnit inStep) const;
 protected:
 	Point m_TailPos;

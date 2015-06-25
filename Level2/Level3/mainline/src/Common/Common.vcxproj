@@ -75,6 +75,7 @@
     <ClCompile Include="DATASET.CPP" />
     <ClCompile Include="DBData.cpp" />
     <ClCompile Include="DepFlightOperation.cpp" />
+    <ClCompile Include="DirectoryOperation.cpp" />
     <ClCompile Include="DirectoryUtil.cpp" />
     <ClCompile Include="DispProperties.cpp" />
     <ClCompile Include="DistanceLineLine.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="DATASET.H" />
     <ClInclude Include="DBData.h" />
     <ClInclude Include="DepFlightOperation.h" />
+    <ClInclude Include="DirectoryOperation.h" />
     <ClInclude Include="DirectoryUtil.h" />
     <ClInclude Include="DispProperties.h" />
     <ClInclude Include="DistanceLineLine.h" />

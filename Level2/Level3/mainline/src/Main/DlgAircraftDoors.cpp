@@ -182,15 +182,29 @@ int CDlgAircraftDoors::OnCreate( LPCREATESTRUCT lpCreateStruct )
 
 void CDlgAircraftDoors::OnAddDoor()
 {
-	ACTypeDoor* pactype = new ACTypeDoor ;
-		CDlgAircraftDoorDef dlg(pactype,this) ;
-		if(dlg.DoModal() == IDOK)
-		{
-			AddDoorListItem(pactype) ;
-			pactype->SetACID(m_SelActype->GetID()) ;
-			m_SelActype->m_vACDoorList.push_back(pactype);
-		}else
-			delete pactype ;
+    ACTypeDoor* pACTypeDoor = new ACTypeDoor;
+    CDlgAircraftDoorDef dlg(pACTypeDoor,this);
+    LONG lRet = IDCANCEL;
+    while((lRet = dlg.DoModal()) == IDOK)
+    {
+        CString strDoorName = pACTypeDoor->GetDoorName();
+        if(m_SelActype->FindACTypeDoorByDoorName(strDoorName) != NULL)
+        {
+            CString strErr;
+            strErr.Format("This aircraft already contains a door named '%s'.", strDoorName);
+            MessageBox(strErr, NULL, MB_ICONWARNING | MB_OK);
+            continue;
+        }
+        AddDoorListItem(pACTypeDoor);
+        pACTypeDoor->SetACID(m_SelActype->GetID());
+        m_SelActype->m_vACDoorList.push_back(pACTypeDoor);
+        break;
+    }
+    
+    if(lRet == IDCANCEL)
+    {
+        delete pACTypeDoor;
+    }
 }
 
 void CDlgAircraftDoors::OnDeleteDoor()
@@ -213,13 +227,27 @@ ACTypeDoor* CDlgAircraftDoors::GetCurrentSelectDoor(int& _selNdx)
 }
 void CDlgAircraftDoors::OnEditDoor()
 {
-	int ndx = 0 ;
-	CDlgAircraftDoorDef dlg(GetCurrentSelectDoor(ndx),this) ;
-	dlg.SetDlgTitle("Edit aircraft door");
-	if(dlg.DoModal() == IDOK)
-	{
-		EditDoorListItem(GetCurrentSelectDoor(ndx)) ;
-	}
+    int ndx = 0;
+    ACTypeDoor* pSelDoor = GetCurrentSelectDoor(ndx);
+    ACTypeDoor pTempDoor = *pSelDoor;
+    CDlgAircraftDoorDef dlg(&pTempDoor,this);
+    dlg.SetDlgTitle("Edit aircraft door");
+    while(dlg.DoModal() == IDOK)
+    {
+        CString strDoorName = pTempDoor.GetDoorName();
+        ACTypeDoor* pFoundDoor = m_SelActype->FindACTypeDoorByDoorName(strDoorName);
+        if(pFoundDoor != NULL && pFoundDoor != pSelDoor)
+        {
+            CString strErr;
+            strErr.Format("This aircraft already contains a door named '%s'.", strDoorName);
+            MessageBox(strErr, NULL, MB_ICONWARNING | MB_OK);
+            continue;
+        }
+
+        *pSelDoor = pTempDoor;
+        EditDoorListItem(pSelDoor);
+        break;
+    }
 }
 void CDlgAircraftDoors::OnOK()
 {

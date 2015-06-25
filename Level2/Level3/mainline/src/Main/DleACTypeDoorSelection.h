@@ -26,14 +26,9 @@ public:
 	virtual BOOL OnInitDialog();
 	void OnInitDoors();
 
-	int GetDoorID(){ return m_nDoorID; }
-	const CString& GetDoorName(){ return m_strDoorName; }
-	ACTypeDoor* GetAcTypeDoor() {return m_pDoor;}
+	ACTypeDoor* GetSelectedAcTypeDoor() {return m_pDoor;}
 private:
 	CTreeCtrl m_wndTreeCtrl;
-
-	int m_nDoorID;
-	CString m_strDoorName;
 	ACTYPEDOORLIST* m_pAcDoors;
 	CString m_strACType;
 	ACTypeDoor* m_pDoor;

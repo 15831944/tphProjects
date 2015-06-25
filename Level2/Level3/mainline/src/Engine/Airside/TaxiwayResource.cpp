@@ -492,7 +492,8 @@ protected:
 
 bool TaxiwayInSim::InitSegments( IntersectionNodeInSimList& NodeList,const HoldShortLinePropList& vHoldList )
 {
-	
+	const static DistanceUnit DefaultHoldOffset = 3200;
+
 	std::vector<IntersectionNodeInSim*> vNodesInSim;
 
 	for(int i=0;i< (int)NodeList.GetNodeCount();i++)

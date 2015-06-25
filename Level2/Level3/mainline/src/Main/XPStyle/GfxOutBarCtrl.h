@@ -99,6 +99,7 @@ public:
 		CImageList *	pSmallImageList;
 		CPtrArray		arItems;
 		CWnd *			pChild;
+		char *			cFolderPath;
 	};
 
 	int iSelFolder;
@@ -144,6 +145,9 @@ public:
 	void SetItemText(const int index, const char * text);
 	void StartItemEdit(const int index);
 	void SetFolderText(const int index, const char * text);
+	void SetFolderPathText(const int index, const char * text);
+	CString GetFolderText(const int index);
+	CString GetFolderPathText(const int index);
 	void StartGroupEdit(const int index);
 	void GetLabelRect(const int iFolder, const int iIndex, CRect &rect);
 	void GetIconRect(const int iFolder, const int iIndex, CRect &rect);
@@ -173,7 +177,7 @@ public:
 	DWORD GetFlag() const;
 	void SetSmallIconView(const bool bSet);
 	bool IsSmallIconView() const;
-	BOOL Create(DWORD dwStyle, const RECT& rect, CWnd * pParentWnd, UINT nID, const DWORD dwFlag = fDragItems|fEditGroups|fEditItems|fRemoveGroups|fRemoveItems|fAddGroups|fAnimation|fSelHighlight);
+	BOOL Create(DWORD dwStyle, const RECT& rect, CWnd * pParentWnd, UINT nID, const DWORD dwFlag = fDragItems|fEditGroups|fEditItems|fRemoveGroups|fRemoveItems|fAddGroups|fAnimation|fSelHighlight);	
 	virtual ~CGfxOutBarCtrl();
 
 	// Generated message map functions
@@ -195,6 +199,7 @@ protected:
 	afx_msg void OnUpdateGfxSmallicon(CCmdUI* pCmdUI);
 	afx_msg void OnGfxRenameitem();
 	afx_msg void OnUpdateGfxRenameitem(CCmdUI* pCmdUI);
+
 	//}}AFX_MSG
 	afx_msg long OnEndLabelEdit(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()

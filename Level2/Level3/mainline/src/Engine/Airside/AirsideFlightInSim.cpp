@@ -894,6 +894,32 @@ AirsideFlightEventLog* getLogFromClearanceItem(AirsideFlightInSim* pFlight,Clear
 	return newLog;
 }
 
+class FlightExitTaxiRouteEvent : public AirsideEvent
+{
+public:
+	FlightExitTaxiRouteEvent(TaxiRouteInSim* pRoute, AirsideFlightInSim* pFlight)
+	{
+		m_pRoute = pRoute;
+		m_pFlight = pFlight;
+	}
+	//It returns event's name
+	virtual const char *getTypeName (void) const { return "Flight Exit Route"; }
+
+	//It returns event type
+	virtual int getEventType (void) const { return NormalEvent ;}
+	virtual int Process()
+	{
+		m_pRoute->FlightExitRoute(m_pFlight,getTime());
+		delete m_pRoute;
+		m_pRoute = NULL;
+		return TRUE;
+	}
+protected:
+	TaxiRouteInSim* m_pRoute;
+	AirsideFlightInSim* m_pFlight;
+};
+
+
 void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 {
 	PLACE_METHOD_TRACK_STRING();
@@ -1132,8 +1158,9 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 	{
 		if( m_pRouteToStand )
 		{
-			m_pRouteToStand->FlightExitRoute(this, item.GetTime() );	
-			delete m_pRouteToStand;
+			FlightExitTaxiRouteEvent * eEvent  = new FlightExitTaxiRouteEvent(m_pRouteToStand,this);
+			eEvent->setTime(item.GetTime());
+			eEvent->addEvent();
 			m_pRouteToStand = NULL;
 		}
 		if( m_pRouteToTempParking)

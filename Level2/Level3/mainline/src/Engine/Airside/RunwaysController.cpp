@@ -1709,7 +1709,7 @@ bool  CRunwaySystem::GenerateLandingCleaerance(AirsideFlightInSim * pFlight,Logi
 	{		
 		if (!bBackTrack)
 		{
-			CString strTime = lastItem.GetTime().printTime();
+			/*CString strTime = lastItem.GetTime().printTime();
 			char fltstr[255];
 			pFlight->getFullID(fltstr);
 			CString strID;
@@ -1718,7 +1718,23 @@ bool  CRunwaySystem::GenerateLandingCleaerance(AirsideFlightInSim * pFlight,Logi
 			CString strDetals;
 			strDetals.Format("NOT ENOUGH LANDING DISTANCE ON RUNWAY %s", pFlight->GetLandingRunway()->PrintResource() );
 			pNewDiagnose->SetDetails(strDetals);
-			throw new AirsideSystemError(pNewDiagnose);	
+			throw new AirsideSystemError(pNewDiagnose);	*/
+
+
+			CString strError;
+			strError.Format(_T("NOT ENOUGH LANDING DISTANCE TO RUNWAY EXIT %s"),pRunwayExit->GetExitInput().GetName().GetString()); 
+			CString strErrorType = "AIRCRAFT TERMINATE";
+			AirsideSimErrorShown::SimWarning(pFlight,strError,strErrorType);
+
+			plandingRunway->RemoveElementOccupancyInfo(pFlight);
+			plandingRunway->RemoveLeftFlight(pFlight);
+
+			ClearanceItem newItem(NULL,OnTerminate,0);
+			newItem.SetTime(lastItem.GetTime());
+			newClearance.AddItem(newItem);	
+
+			pFlight->PerformClearance(newClearance);
+			return true;
 		}
 
 		ClearanceItem BacktrackItem(plandingRunway,OnLanding,dTouchDownDistance + dRollingDist);		
@@ -2104,7 +2120,7 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 	{		
 		if (!bBackup)
 		{
-			CString strTime = lastItem.GetTime().printTime();
+			/*	CString strTime = lastItem.GetTime().printTime();
 			char fltstr[255];
 			pFlight->getFullID(fltstr);
 			CString strID;
@@ -2113,7 +2129,21 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 			CString strDetals;
 			strDetals.Format("NOT ENOUGH LANDING DISTANCE ON RUNWAY %s", pFlight->GetLandingRunway()->PrintResource() );
 			pNewDiagnose->SetDetails(strDetals);
-			throw new AirsideSystemError(pNewDiagnose);	
+			throw new AirsideSystemError(pNewDiagnose);	*/
+			CString strError;
+			strError.Format(_T("NOT ENOUGH LANDING DISTANCE TO RUNWAY EXIT %s"),pFlight->GetRunwayExit()->GetExitInput().GetName().GetString()); 
+			CString strErrorType = "AIRCRAFT TERMINATE";
+			AirsideSimErrorShown::SimWarning(pFlight,strError,strErrorType);
+
+			plandingRunway->RemoveElementOccupancyInfo(pFlight);
+			plandingRunway->RemoveLeftFlight(pFlight);
+
+			ClearanceItem newItem(NULL,OnTerminate,0);
+			newItem.SetTime(lastItem.GetTime());
+			newClearance.AddItem(newItem);	
+
+			//pFlight->PerformClearance(newClearance);
+			return ;
 		}
 
 		ClearanceItem BacktrackItem(plandingRunway,OnLanding,dTouchDownDistance + dRollingDist);		

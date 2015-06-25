@@ -133,6 +133,7 @@ public:
 	void AddDoor(ACTypeDoor* _door) ;
 	void RemoveDoor(ACTypeDoor* _door) ;
 	void clearAllDoorData() ;
+    ACTypeDoor* FindACTypeDoorByDoorName(CString strDoorName);
 public:
 	void DeleteDoorData(DATABASESOURCE_TYPE type = DATABASESOURCE_TYPE_ACCESS) ;
 public:

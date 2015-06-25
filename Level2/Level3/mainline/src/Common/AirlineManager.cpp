@@ -623,16 +623,16 @@ CAirlinesManager*  _g_GetActiveAirlineMan( CAirportDatabase* _pAirportDB )
 	return _pAirportDB->getAirlineMan();
 }
 long CAirlinesManager::GetCode(CString codeName){
-	char cstr[5]={0,};
+	char cstr[AIRLINE_LEN]={0,};
 	std::string str(codeName);
 	memcpy(cstr,str.c_str(),str.size());
 	long *ret = (long*) cstr;
 	return  *ret;
 }
 CString CAirlinesManager::GetCodeStr(long code){
-	 char str[5];
+	char str[AIRLINE_LEN] = {0};
 	 memcpy(str,&code,sizeof(str));
-	 str[4] = 0;
+	// str[4] = 0;
 	 return str;
 }
 ////////////new version database read and save//////////////////////////////////////////////

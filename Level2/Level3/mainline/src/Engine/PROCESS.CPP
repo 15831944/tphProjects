@@ -836,26 +836,27 @@ long Processor::getServiceTime  (Person* person, const ElapsedTime& curTime ) co
 }
 
 
-int Processor::getNextState(int state) const
+void Processor::getNextState (int& state,Person* _pPerson) const
 {
+	assert( _pPerson );
 
     if (state == FreeMoving && In_Constr.getCount())
-        return MoveAlongInConstraint;
+        state = MoveAlongInConstraint;
     else if (state == LeaveServer && Out_Constr.getCount())
-        return MoveAlongOutConstraint;
+        state = MoveAlongOutConstraint;
     else if (state == LeaveServer)
-        return FreeMoving;
+        state = FreeMoving;
     else if (m_pQueue != NULL)
 	{
 		if(state == FreeMoving && m_pQueue->isFixed() == 'Y')
 		{
-			return MoveToInterestedEntryPoint;
+			state = MoveToInterestedEntryPoint;
 		}
 		else
-			return MoveToQueue;
+			state = MoveToQueue;
 	}
     else
-        return ArriveAtServer;
+        state = ArriveAtServer;
 }
 
 //It sets Person's next destination based on state & processor data

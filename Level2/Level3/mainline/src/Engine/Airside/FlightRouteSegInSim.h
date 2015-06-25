@@ -192,8 +192,6 @@ protected:
 
 
 protected:
-	const static int DefaultHoldOffset = 3200;
-
 	double m_dWidth;
 	int m_nDBId;
 	CPath2008 m_path;

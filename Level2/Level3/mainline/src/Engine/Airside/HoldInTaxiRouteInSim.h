@@ -78,16 +78,21 @@ public:
 class ENGINE_TRANSFER FiletPointInTaxiRoute
 {
 public:
-	enum emFiletPointType{ FiletBegin,FiletEnd };
-	FiletPointInTaxiRoute(const DistanceUnit& dist, emFiletPointType ftype){ m_distInRoute = dist; m_type = ftype; }
-	DistanceUnit GetDistInRoute()const{ return m_distInRoute ;}
-	void SetDistInRoute(const DistanceUnit& distInRoute){ m_distInRoute = distInRoute;  }
-	DistanceUnit m_distInRoute;
+	//enum emFiletPointType{ FiletBegin,FiletEnd };
+	FiletPointInTaxiRoute(const DistanceUnit& Fdist, const DistanceUnit& Tdist){ m_fdistInRoute = Fdist; m_tdistInRoute = Tdist; }
+	DistanceUnit GetFromDistInRoute()const{ return m_fdistInRoute ;}
+	DistanceUnit GetToDistInRoute()const{ return m_tdistInRoute; }
+	//void SetDistInRoute(const DistanceUnit& distInRoute){ m_distInRoute = distInRoute;  }
+	
 	bool operator <(const FiletPointInTaxiRoute& otherFilet)const{ 
-		return m_distInRoute < otherFilet.m_distInRoute;
+		return m_fdistInRoute < otherFilet.m_fdistInRoute;
 	}
 
-	emFiletPointType m_type;
+protected:
+	DistanceUnit m_fdistInRoute;
+	DistanceUnit m_tdistInRoute;
+
+	//emFiletPointType m_type;
 	
 };
 
@@ -97,8 +102,8 @@ class ENGINE_TRANSFER FiletPointListInTaxiRoute
 public:
 	void Init(TaxiRouteInSim& theRoute);
 	std::vector<FiletPointInTaxiRoute> GetFiletPointsBetween(const DistanceUnit& distF, const DistanceUnit& distT)const;
-	FiletPointInTaxiRoute* IsDistInFilet(const DistanceUnit& dist)const;
-	FiletPointInTaxiRoute *GetNextEndPoint(int idx)const;
+	const FiletPointInTaxiRoute* IsDistInFilet(const DistanceUnit& dist)const;
+	//FiletPointInTaxiRoute *GetNextEndPoint(int idx)const;
 
 protected:
 	std::vector<FiletPointInTaxiRoute> m_vFiletPoints;

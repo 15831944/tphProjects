@@ -415,18 +415,25 @@ void TravelToNextDistInRoute(AirsideFlightInSim* pFlight,
 	//get clearance items
 	//add clearance items	
 	std::vector<FiletPointInTaxiRoute> midFiltPts = theRoute.m_vFiletPts.GetFiletPointsBetween(curDist, nextDist);
-	DistanceUnit lastItemDistInRoute = curDist;
 	MobileTravelTrace modifytrace = travelTrace;
-	if(midFiltPts.size())
-		modifytrace.removeDistItem(midFiltPts.begin()->GetDistInRoute()-curDist,midFiltPts.rbegin()->GetDistInRoute()-curDist);
+
+	for(size_t i=0;i<midFiltPts.size();i++)
+	{
+		FiletPointInTaxiRoute& filet = midFiltPts.at(i);
+		modifytrace.removeDistItem(filet.GetFromDistInRoute()-curDist, filet.GetToDistInRoute()-curDist);
+	}
 	if(curDist<0)
 		modifytrace.removeMidItems();
 
 	for(int i=0;i< (int)midFiltPts.size();i++)
 	{
 		FiletPointInTaxiRoute& theFtPt = midFiltPts[i];
-		DistanceUnit distInRoute  = theFtPt.GetDistInRoute();
+		DistanceUnit distInRoute  = theFtPt.GetFromDistInRoute();
 		DistanceUnit dTravelDist = distInRoute - curDist;
+		modifytrace.addDistItem(dTravelDist, travelTrace.getDistSpeed(dTravelDist) ); //add fillet points
+
+		distInRoute = theFtPt.GetToDistInRoute();
+		dTravelDist = distInRoute - curDist;
 		modifytrace.addDistItem(dTravelDist, travelTrace.getDistSpeed(dTravelDist) ); //add fillet points
 	}
 
@@ -904,6 +911,12 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 		if( pAgent->IsKindof(typeof(AirsideFlightInSim)) )	
 		{
 			AirsideFlightInSim * sepLeadFlight = (AirsideFlightInSim*)pAgent;
+			if (HasRunwaySegmentInRoute(dCurDistInRoute))
+			{
+				pFlight->mGroundPerform.mAccSpd = pLeadMob->mGroundPerform.mAccSpd;
+				pFlight->mGroundPerform.mDecSpd = pLeadMob->mGroundPerform.mDecSpd;
+				pFlight->mGroundPerform.mNoramlSpd = pLeadMob->mGroundPerform.mNoramlSpd;
+			}
 			//DynamicConflictGraph::getInstance().SetAFollowB(pFlight,sepLeadFlight);					
 			if(newClearance.GetItemCount()==0)//write a speed ==0 log
 			{
@@ -1853,62 +1866,62 @@ void TaxiRouteInSim::UpdateData()
 }
 
 
-int TaxiRouteInSim::AddTaxiRouteClearanceItems( AirsideFlightInSim* pFlight,  const DistanceUnit nextDist,double endSpd, double dAngle, ClearanceItem& lastClearanceItem, Clearance& newClearance )
-{
-	int nAddItemCount = 0;
-	
-	TaxiRouteInSim& theRoute = *this;
-	int nNextItemIdx; DistanceUnit nextDistInItem;
-	theRoute.GetItemIndexAndDistInRoute(nextDist,  nNextItemIdx, nextDistInItem);
-	const int nCurItemIndex = theRoute.GetItemIndex(lastClearanceItem.GetResource());
-	const DistanceUnit dCurDistInItem = lastClearanceItem.GetDistInResource();
-
-	DistanceUnit curDistInRoute = theRoute.GetDistInRoute(nCurItemIndex, dCurDistInItem);
-
-	std::vector<FiletPointInTaxiRoute> midFiltPts = theRoute.m_vFiletPts.GetFiletPointsBetween(curDistInRoute, nextDist);
-	std::vector<HoldInTaxiRoute> midHolds = theRoute.GetHoldList().GetHoldFromTo(curDistInRoute,nextDist);
-	std::vector<DistanceUnit> vDistInRoute;
-	for(int i=0;i< (int)midFiltPts.size();i++)
-		vDistInRoute.push_back( midFiltPts[i].GetDistInRoute() );
-	for( int i=0;i< (int)midHolds.size();i++)
-		vDistInRoute.push_back( midHolds[i].m_dDistInRoute );
-
-	std::sort(vDistInRoute.begin(),vDistInRoute.end());
-	DistanceUnit lastItemDistInRoute = curDistInRoute;
-	
-	double avgspd = (lastClearanceItem.GetSpeed() + endSpd)*0.5;
-	ElapsedTime dT = ElapsedTime((nextDist - curDistInRoute)/avgspd);
-	ElapsedTime endTime = lastClearanceItem.GetTime() + dT;
-	for(int i=0;i< (int)vDistInRoute.size();i++)
-	{
-		//FiletPointInTaxiRoute& theFtPt = midFiltPts[i];
-		DistanceUnit distInRoute  = vDistInRoute.at(i);
-		
-		double dAlpha = (distInRoute - curDistInRoute)/(nextDist - curDistInRoute);
-		int nItem; DistanceUnit dDist;
-		theRoute.GetItemIndexAndDistInRoute(distInRoute, nItem, dDist);
-		double dSpd = lastClearanceItem.GetSpeed()*(1-dAlpha) + endSpd * dAlpha;
-		ElapsedTime atTime = lastClearanceItem.GetTime() + ElapsedTime(dAlpha*(double)dT);
-		ClearanceItem newItem(theRoute.ItemAt(nItem).GetResource(), theRoute.GetMode(), dDist);
-		newItem.SetSpeed(dSpd);
-		newItem.SetTime(atTime);		
-		lastClearanceItem = newItem;
-		newClearance.AddItem(lastClearanceItem);	
-		nAddItemCount++;
-	}
-	//add last item
-	int nItem; DistanceUnit dDist;
-	theRoute.GetItemIndexAndDistInRoute(nextDist, nItem, dDist);
-	ClearanceItem lastItem(theRoute.ItemAt(nItem).GetResource(), theRoute.GetMode(), dDist);
-	lastItem.SetSpeed(endSpd);
-	lastItem.SetTime(endTime);
-	lastItem.SetOffsetAngle(dAngle);
-	lastClearanceItem = lastItem;
-	newClearance.AddItem(lastClearanceItem);
-	nAddItemCount++;
-	
-	return nAddItemCount;
-}
+//int TaxiRouteInSim::AddTaxiRouteClearanceItems( AirsideFlightInSim* pFlight,  const DistanceUnit nextDist,double endSpd, double dAngle, ClearanceItem& lastClearanceItem, Clearance& newClearance )
+//{
+//	int nAddItemCount = 0;
+//	
+//	TaxiRouteInSim& theRoute = *this;
+//	int nNextItemIdx; DistanceUnit nextDistInItem;
+//	theRoute.GetItemIndexAndDistInRoute(nextDist,  nNextItemIdx, nextDistInItem);
+//	const int nCurItemIndex = theRoute.GetItemIndex(lastClearanceItem.GetResource());
+//	const DistanceUnit dCurDistInItem = lastClearanceItem.GetDistInResource();
+//
+//	DistanceUnit curDistInRoute = theRoute.GetDistInRoute(nCurItemIndex, dCurDistInItem);
+//
+//	std::vector<FiletPointInTaxiRoute> midFiltPts = theRoute.m_vFiletPts.GetFiletPointsBetween(curDistInRoute, nextDist);
+//	std::vector<HoldInTaxiRoute> midHolds = theRoute.GetHoldList().GetHoldFromTo(curDistInRoute,nextDist);
+//	std::vector<DistanceUnit> vDistInRoute;
+//	for(int i=0;i< (int)midFiltPts.size();i++)
+//		vDistInRoute.push_back( midFiltPts[i].GetDistInRoute() );
+//	for( int i=0;i< (int)midHolds.size();i++)
+//		vDistInRoute.push_back( midHolds[i].m_dDistInRoute );
+//
+//	std::sort(vDistInRoute.begin(),vDistInRoute.end());
+//	DistanceUnit lastItemDistInRoute = curDistInRoute;
+//	
+//	double avgspd = (lastClearanceItem.GetSpeed() + endSpd)*0.5;
+//	ElapsedTime dT = ElapsedTime((nextDist - curDistInRoute)/avgspd);
+//	ElapsedTime endTime = lastClearanceItem.GetTime() + dT;
+//	for(int i=0;i< (int)vDistInRoute.size();i++)
+//	{
+//		//FiletPointInTaxiRoute& theFtPt = midFiltPts[i];
+//		DistanceUnit distInRoute  = vDistInRoute.at(i);
+//		
+//		double dAlpha = (distInRoute - curDistInRoute)/(nextDist - curDistInRoute);
+//		int nItem; DistanceUnit dDist;
+//		theRoute.GetItemIndexAndDistInRoute(distInRoute, nItem, dDist);
+//		double dSpd = lastClearanceItem.GetSpeed()*(1-dAlpha) + endSpd * dAlpha;
+//		ElapsedTime atTime = lastClearanceItem.GetTime() + ElapsedTime(dAlpha*(double)dT);
+//		ClearanceItem newItem(theRoute.ItemAt(nItem).GetResource(), theRoute.GetMode(), dDist);
+//		newItem.SetSpeed(dSpd);
+//		newItem.SetTime(atTime);		
+//		lastClearanceItem = newItem;
+//		newClearance.AddItem(lastClearanceItem);	
+//		nAddItemCount++;
+//	}
+//	//add last item
+//	int nItem; DistanceUnit dDist;
+//	theRoute.GetItemIndexAndDistInRoute(nextDist, nItem, dDist);
+//	ClearanceItem lastItem(theRoute.ItemAt(nItem).GetResource(), theRoute.GetMode(), dDist);
+//	lastItem.SetSpeed(endSpd);
+//	lastItem.SetTime(endTime);
+//	lastItem.SetOffsetAngle(dAngle);
+//	lastClearanceItem = lastItem;
+//	newClearance.AddItem(lastClearanceItem);
+//	nAddItemCount++;
+//	
+//	return nAddItemCount;
+//}
 
 void TaxiRouteInSim::GetTaxiInterruptLinesInRoute(std::vector<TaxiInterruptLineInSim*>& vInterruptLines)
 {
@@ -2130,6 +2143,26 @@ void TaxiRouteInSim::TravelRunwaySegInRoute( AirsideFlightInSim* pFlight,TaxiRou
 	//	}
 	//}
 }
+bool TaxiRouteInSim::HasRunwaySegmentInRoute(const DistanceUnit& curDist)
+{
+	if (curDist < 0)
+	{
+		return false;
+	}
+	int nCurItemIdx;
+	DistanceUnit curDistInItem;
+	GetItemIndexAndDistInRoute(curDist,nCurItemIdx,curDistInItem);
+	int nItemCount = GetItemCount();   
+	for (int i = nCurItemIdx; i< nItemCount; i++)
+	{
+		TaxiRouteItemInSim taxiRouteItem = GetItem(i);
+		if(taxiRouteItem.GetResource()->GetType() == AirsideResource::ResType_RunwayDirSeg)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 bool TaxiRouteInSim::IsNextResourceIsRunwaySegment( TaxiRouteInSim& theRoute,const DistanceUnit& curDist )
 {
@@ -2266,9 +2299,9 @@ TaxiRouteInSim::CheckResultLead TaxiRouteInSim::checkConflictWithLeadMobile(Airs
 
 		if(pFlight->GetMode()==OnExitRunway)
 		{
-			FiletPointInTaxiRoute *pWaitfilet = m_vFiletPts.IsDistInFilet(dSafeDist);
+			const FiletPointInTaxiRoute *pWaitfilet = m_vFiletPts.IsDistInFilet(dSafeDist);
 			if(pWaitfilet)
-				dSafeDist = pWaitfilet->m_distInRoute;
+				dSafeDist = pWaitfilet->GetFromDistInRoute();
 		}
 		else
 		{

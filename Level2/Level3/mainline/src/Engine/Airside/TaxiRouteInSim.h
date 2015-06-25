@@ -78,7 +78,7 @@ public:
 	virtual bool IsLockDirectionOfWholeRoute();
 
 	//add clearance items to the next dist
-	int AddTaxiRouteClearanceItems(AirsideFlightInSim* pFlight,  const DistanceUnit nextDist,double endSpd, double dAngle, ClearanceItem& lastClearanceItem, Clearance& newClearance );
+	//int AddTaxiRouteClearanceItems(AirsideFlightInSim* pFlight,  const DistanceUnit nextDist,double endSpd, double dAngle, ClearanceItem& lastClearanceItem, Clearance& newClearance );
 
 	//
 	bool CheckFlightConflictInResource(AirsideFlightInSim *pFlight,AirsideResource *pResouce,AirsideResource *pNextResource,ElapsedTime& nextEventTime);
@@ -135,6 +135,8 @@ protected:
 
 	void TravelRunwaySegInRoute(AirsideFlightInSim* pFlight,TaxiRouteInSim& theRoute,double taxiSpd, const DistanceUnit& curDist, ClearanceItem& lastClearanceItem, Clearance& newClearance ,const ElapsedTime& supEndTime );
 	bool IsNextResourceIsRunwaySegment(TaxiRouteInSim& theRoute,const DistanceUnit& curDist);
+	bool HasRunwaySegmentInRoute(const DistanceUnit& curDist);
+
 	
 	AirsideMobileElementMode m_mode;
 	double m_dTaxiSpd;

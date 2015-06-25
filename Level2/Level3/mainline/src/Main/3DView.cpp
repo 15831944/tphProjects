@@ -6306,8 +6306,7 @@ void C3DView::DrawPax(CTermPlanDoc* pDoc,BOOL* bOn,double* dAlt,BOOL bSelectMode
 		bool bInTimeRange = (nStartTime <= nTime && nEndTime >= nTime);
 		if(!bInTimeRange)
 			continue;
-        part_event_list elist = it->second;
-        int nPerson = elist.at(0).elementID;
+
 		const part_event_list& part_list = it->second;				
 
 		int pesAIdx = 0;

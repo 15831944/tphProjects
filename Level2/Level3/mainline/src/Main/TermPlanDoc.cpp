@@ -939,6 +939,19 @@ BOOL CTermPlanDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 			//initialize UnitManager for project id
 			InitiaUnitManager();
+
+			CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+			if(pMF->m_wndShapesBar)
+			{
+				delete pMF->m_wndShapesBar;
+				pMF->m_wndShapesBar = NULL;
+			}
+			pMF->CreateShapesBar();
+			pMF->m_wndShapesBar->UserProjectPath = lpszPathName;
+			pMF->m_wndShapesBar->ImportUserShapeBars();
+			pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
+			pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
+
 			m_bOpenDocSuccess = ReloadInputData();
 
 			CheckTheFlightActype() ;

@@ -575,8 +575,8 @@ void CTermPlanApp::OnFileNew()
 	}
 	ASSERT(pTemplate != NULL);
 	ASSERT_KINDOF(CDocTemplate, pTemplate);
-
-	if(pTemplate->OpenDocumentFile(NULL))
+	CDocument* pDoc = pTemplate->OpenDocumentFile(NULL);
+	if(pDoc)
 	{	
 		ToolBarUpdateParameters updatePara;
 		updatePara.m_operatType = ToolBarUpdateParameters::OpenProject;
@@ -584,6 +584,19 @@ void CTermPlanApp::OnFileNew()
 		AfxGetMainWnd()->SendMessage(UM_SHOW_CONTROL_BAR,1,(LPARAM)&updatePara) ;
 		// if returns NULL, the user has already been alerted
 		((CMainFrame*)m_pMainWnd)->UpdateProjSelectBar();
+
+		CMainFrame* pMF = ((CMainFrame*)m_pMainWnd);
+		if(pMF->m_wndShapesBar)
+		{
+			delete pMF->m_wndShapesBar;
+			pMF->m_wndShapesBar = NULL;
+		}
+		pMF->CreateShapesBar();
+		pMF->m_wndShapesBar->UserProjectPath = pDoc->GetPathName();
+		pMF->m_wndShapesBar->ImportUserShapeBars();
+		pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
+		pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
+		
 	}
 }
 
@@ -633,6 +646,10 @@ BOOL CTermPlanApp::DoPromptForProjectName(CString &fileName)
 void CTermPlanApp::OnCloseProject()
 {
 	((CMainFrame*)m_pMainWnd)->UpdateProjSelectBar();
+	CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+	pMF->m_wndShapesBar->ExportUserShapeBars();
+	if(pMF->m_wndShapesBar->IsWindowVisible() == TRUE)
+	pMF->ShowControlBar(pMF->m_wndShapesBar,FALSE,FALSE);
 }
 
 CDocument* CTermPlanApp::OpenDocumentFile(LPCTSTR lpszFileName) 
@@ -677,11 +694,27 @@ CDocument* CTermPlanApp::OpenDocumentFile(LPCTSTR lpszFileName)
 	//catch (FileOpenError *exception) {
 	//	delete exception;
 	//}
+
 	CDocument* pRet =  CWinApp::OpenDocumentFile(lpszFileName);
 	if(pRet)
 	{
 		((CMainFrame*)m_pMainWnd)->UpdateProjSelectBar();
 		((CMainFrame*)m_pMainWnd)->GetMainBarTool().setCombox( ((CMainFrame*)m_pMainWnd)->MDIGetActive()->GetActiveDocument()) ;
+
+		//CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+		//if(pMF->m_wndShapesBar)
+		//{
+		//	delete pMF->m_wndShapesBar;
+		//	pMF->m_wndShapesBar = NULL;
+		//}
+		//pMF->CreateShapesBar();
+		///*CString str = pRet->GetPathName();*/
+		//pMF->m_wndShapesBar->UserProjectPath = pRet->GetPathName();
+		//pMF->m_wndShapesBar->ImportUserShapeBars();
+		//// 	if(PathFileExists(str) == FALSE)
+		//// 		CreateDirectory(str, NULL);
+		//pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
+		//pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
 	}
 	return pRet;
 }

@@ -395,7 +395,7 @@ int TerminalMobElementBehavior::processBirth (ElapsedTime p_time)
 		return FALSE;
 
 	int nState = FreeMoving;
-	nState = m_pProcessor->getNextState(nState);
+	m_pProcessor->getNextState (nState,m_pPerson);
 	m_pPerson->setState(nState);
 	m_pProcessor->getNextLocation (m_pPerson);
 
@@ -617,7 +617,7 @@ void TerminalMobElementBehavior::processGeneralMovement (ElapsedTime p_time)
 		{
 			//// TRACE(m_pProcessor->getID()->GetIDString().GetBuffer(0));
 			int nState = m_pPerson->getState();
-			nState = m_pProcessor->getNextState(nState);
+			m_pProcessor->getNextState (nState,m_pPerson);
 			m_pPerson->setState(nState);
 			m_nNextState = m_pPerson->getState();
 			m_pProcessor->getNextLocation (m_pPerson);
@@ -858,22 +858,22 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 	// modified by tutu at 10/8/2003 .move m_pPerson after calling getNextProcessor ,
 	// because before call getNextProcessor, m_pPerson person has not been added into next processor,
 	// then when we call makeAvailable on current processor, if current processor has queue and next
-	// processor has capacity limited, errors will occur.
+	// processor has capacity limitied, errors will occur.
 	int nState = m_pPerson->getState();
-	nState = m_pProcessor->getNextState(nState);
+	m_pProcessor->getNextState (nState,m_pPerson);
 	m_pPerson->setState(nState);
 
 	if (m_pPerson->getState() == MoveAlongOutConstraint)
 	{
 		// must remove m_pPerson person , because after call makeAvailable ,
 		// processor will notify all its source processor in conveyor system, if its source is pusher
-		// then pusher will release a baggage randomly, if not remove person from m_pPerson processor, then
+		// then pusher will release a baggage ramdomly, if not remove person from m_pPerson processor, then
 		// when baggage which is just be released from pusher getNextProcessor, maybe can not find next processor
 		// because of the capacity problem. so should remove it before any makeAvailable
 		m_pProcessor->removePerson (m_pPerson);
 		if (_pool == NULL)
 		{
-			m_pProcessor->makeAvailable (m_pPerson, p_time, false);//has pool service and not make next available
+			m_pProcessor->makeAvailable (m_pPerson, p_time, false);//has pool service and not make nexavailable
 		}
 		else if( _pool->getPoolType() == ConcurrentType)
 		{
@@ -1100,7 +1100,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 void TerminalMobElementBehavior::setDestination( Point p)
 {
 	m_ptDestination = p;
-    int nPerson = m_pPerson->getID();
+
 	m_pPerson->m_pGroupInfo->SetFollowerDestination( location, m_ptDestination, Person::m_pRotation );
 }
 void TerminalMobElementBehavior::setState (short newState)
@@ -5653,6 +5653,7 @@ void TerminalMobElementBehavior::SetInfoFromLeader(Person* pLeader)
 		m_nextHoldAiearPoint = spTerminalBehavior->m_nextHoldAiearPoint;
 		m_nextHoldAiearPoTag = spTerminalBehavior->m_nextHoldAiearPoTag;
         m_entryPointCorner = spTerminalBehavior->m_entryPointCorner;
+        m_pPreFlowList = spTerminalBehavior->m_pPreFlowList;
 	}
 	
 }

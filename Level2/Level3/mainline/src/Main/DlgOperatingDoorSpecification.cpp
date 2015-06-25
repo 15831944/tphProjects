@@ -65,8 +65,9 @@ void DlgOperatingDoorSpecification::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(DlgOperatingDoorSpecification, CDialog)
 	ON_WM_CREATE()
-	ON_COMMAND(ID_TOOLBARBUTTONADD,AddNewItem)
-	ON_COMMAND(ID_TOOLBARBUTTONDEL,RemoveItem)
+	ON_COMMAND(ID_TOOLBAR_MAIN_ADD,OnToolBarAdd)
+	ON_COMMAND(ID_TOOLBAR_MAIN_DEL,OnToolbarDel)
+    ON_COMMAND(ID_TOOLBAR_MAIN_EDIT,OnToolbarEdit)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_OPERATINGDOOR, OnTvnSelchangedTreeOperatingdoor)
 	ON_BN_CLICKED(IDOK, OnBnClickedOk)
 END_MESSAGE_MAP()
@@ -76,13 +77,15 @@ END_MESSAGE_MAP()
 
 void DlgOperatingDoorSpecification::OnTvnSelchangedTreeOperatingdoor(NMHDR *pNMHDR, LRESULT *pResult)
 {
+    m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_ADD, FALSE);
+    m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_DEL, FALSE);
+    m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_EDIT, FALSE);
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: Add your control notification handler code here
 	HTREEITEM hItem = m_wndTreeCtrl.GetSelectedItem();
 	if (hItem == NULL)
 	{
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, TRUE);
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE );
+		m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_ADD, TRUE);
 		*pResult = 0;
 		return;
 	}
@@ -90,8 +93,9 @@ void DlgOperatingDoorSpecification::OnTvnSelchangedTreeOperatingdoor(NMHDR *pNMH
 	HTREEITEM hParItem = m_wndTreeCtrl.GetParentItem(hItem);
 	if (hParItem == NULL)
 	{
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, TRUE);
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE);
+		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_ADD, TRUE);
+		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_DEL, TRUE);
+		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_EDIT, TRUE);
 		*pResult = 0;
 		return;
 	}
@@ -99,22 +103,21 @@ void DlgOperatingDoorSpecification::OnTvnSelchangedTreeOperatingdoor(NMHDR *pNMH
 	HTREEITEM hGrandItem = m_wndTreeCtrl.GetParentItem(hParItem);
 	if (hGrandItem == NULL)
 	{
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE);
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE);
+		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_DEL, TRUE);
+		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_EDIT, TRUE);
 		*pResult = 0;
 		return;
 	}	
 	HTREEITEM hGrandParItem = m_wndTreeCtrl.GetParentItem(hGrandItem);
 	if (hGrandParItem == NULL)
 	{
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, TRUE);
-		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE);
+		m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_ADD, TRUE);
 		*pResult = 0;
 		return;
 	}
 
-	m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONADD, FALSE);
-	m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE);
+	m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_EDIT, TRUE);
+	m_wndToolbar.GetToolBarCtrl().EnableButton( ID_TOOLBAR_MAIN_DEL, TRUE);
 
 	*pResult = 0;
 }
@@ -176,15 +179,12 @@ int DlgOperatingDoorSpecification::OnCreate( LPCREATESTRUCT lpCreateStruct )
 	if (CXTResizeDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	if (!m_wndToolbar.CreateEx(this, TBSTYLE_FLAT,WS_CHILD|WS_VISIBLE|CBRS_ALIGN_TOP)
+    if (!m_wndToolbar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP
+        | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC)
 		|| !m_wndToolbar.LoadToolBar(IDR_TOOLBAR_MAIN_ADD_DEL_EDIT))
 	{
 		return -1;
 	}
-
-	CToolBarCtrl& toolbar = m_wndToolbar.GetToolBarCtrl();
-	toolbar.SetCmdID(0, ID_TOOLBARBUTTONADD);
-	toolbar.SetCmdID(1, ID_TOOLBARBUTTONDEL);
 	return 0;
 }
 
@@ -243,17 +243,18 @@ void DlgOperatingDoorSpecification::InitTree()
 			m_wndTreeCtrl.SetItemData(hDoorsItem, (DWORD_PTR)pFltData);
 
 		//	int nDoorCount = pStandData->GetOpDoorCount();
-			int nDoorCount = (int)pStandData->m_vOpDoors.size();
+            std::vector<StandOperatingDoorData::OperationDoor>* pDoorOpList = pStandData->GetDoorOpList();
+			int nDoorCount = (int)pDoorOpList->size();
 			HTREEITEM hDoorItem = NULL;
 			for(int idx = 0; idx <nDoorCount; idx++)
 			{
 				//int nDoorID = pStandData->GetOpDoorID(idx);
-				StandOperatingDoorData::OperationDoor doorOp = pStandData->m_vOpDoors.at(idx);
-				int nDoorID = doorOp.m_nID;
+				StandOperatingDoorData::OperationDoor doorOp = pDoorOpList->at(idx);
+				CString strDoorName = doorOp.GetDoorName();
 				iter = pAcDoors->begin();
 				while(iter != pAcDoors->end())
 				{
-					if ((*iter)->GetID() == nDoorID)
+					if ((*iter)->GetDoorName() == strDoorName)
 						break;
 
 					iter++;
@@ -267,8 +268,8 @@ void DlgOperatingDoorSpecification::InitTree()
 				hDoorItem = m_wndTreeCtrl.InsertItem(strDoor,cni, FALSE, FALSE, hDoorsItem, TVI_LAST);
 
 				StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
-				pNodeData->m_nID = nDoorID;
-				pNodeData->m_iHandType = doorOp.m_iHandType;
+				pNodeData->SetDoorName(strDoorName);
+				pNodeData->SetHandType(doorOp.GetHandType());
 				m_vDoorOp.push_back(pNodeData);
 				m_wndTreeCtrl.SetItemData(hDoorItem,(DWORD)pNodeData);
 			}
@@ -279,7 +280,7 @@ void DlgOperatingDoorSpecification::InitTree()
 	}
 }
 
-void DlgOperatingDoorSpecification::AddNewItem()
+void DlgOperatingDoorSpecification::OnToolBarAdd()
 {
 	HTREEITEM hItem = m_wndTreeCtrl.GetSelectedItem();
 	if (hItem == NULL)
@@ -317,7 +318,7 @@ void DlgOperatingDoorSpecification::AddNewItem()
 	}
 }
 
-void DlgOperatingDoorSpecification::RemoveItem()
+void DlgOperatingDoorSpecification::OnToolbarDel()
 {
 	HTREEITEM hItem = m_wndTreeCtrl.GetSelectedItem();
 	if (hItem == NULL)
@@ -343,7 +344,46 @@ void DlgOperatingDoorSpecification::RemoveItem()
 	{
 		StandOperatingDoorData* pStandData = (StandOperatingDoorData*)m_wndTreeCtrl.GetItemData(hGrandItem);
 		DelDoorItem(hItem,pStandData);
+        return;
 	}
+}
+
+void DlgOperatingDoorSpecification::OnToolbarEdit()
+{
+    CString strData = _T("");
+    HTREEITEM hItem = m_wndTreeCtrl.GetSelectedItem();
+    if (hItem != NULL)
+    {
+        HTREEITEM hParItem = m_wndTreeCtrl.GetParentItem(hItem);
+        if (hParItem == NULL)
+        {
+            FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hItem);
+            EditFltItem(hItem);
+        }
+        else
+        {
+            HTREEITEM hGrandItem = m_wndTreeCtrl.GetParentItem(hParItem);
+            if (hGrandItem == NULL)
+            {
+                FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hParItem);
+                EditStandItem(hItem,pFltData);
+            }
+            else if (m_wndTreeCtrl.GetItemText(hParItem) == "Doors used:")
+            {
+                FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hParItem);
+                FlightConstraint flightType = pFltData->GetFltType();
+
+                char szBuffer[1024] = {0};
+                flightType.getACType(szBuffer);
+                ACTYPEDOORLIST* pAcDoors = m_pAirportDatabase->getAcDoorMan()->GetAcTypeDoorList(szBuffer);
+
+                flightType.screenPrint(szBuffer);
+
+                StandOperatingDoorData* pStandData = (StandOperatingDoorData*)m_wndTreeCtrl.GetItemData(hGrandItem);
+                EditDoorItem(hItem,pStandData,pAcDoors,szBuffer);
+            }
+        }
+    }
 }
 
 void DlgOperatingDoorSpecification::AddNewFltItem()
@@ -383,12 +423,12 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 		m_wndTreeCtrl.SetItemData(hFltItem, (DWORD_PTR)pFltData);
 
 		StandOperatingDoorData* pStandData = new StandOperatingDoorData;
-
+        std::vector<StandOperatingDoorData::OperationDoor>* pDoorOpList = pStandData->GetDoorOpList();
 		CString strStandNode = "Stand Family: All";
 		HTREEITEM hStandItem = m_wndTreeCtrl.InsertItem(strStandNode,cni,FALSE,FALSE,hFltItem,TVI_LAST);
 		m_wndTreeCtrl.SetItemData(hStandItem, (DWORD_PTR)pStandData);
 		HTREEITEM hDoorItem = m_wndTreeCtrl.InsertItem("Doors used:",cni, FALSE, FALSE, hStandItem, TVI_LAST);
-
+        m_wndTreeCtrl.SetItemData(hDoorItem, (DWORD_PTR)pFltData);
 		if (pAcDoors == NULL)
 			return;
 
@@ -397,7 +437,7 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 		{
 		//	CString strName = pAcDoors->at(idx)->m_strName;
 			std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
-			int nDoorID = pAcDoors->at(idx)->GetID();
+			CString strDoorName = pAcDoors->at(idx)->GetDoorName();
 			if (pStandData->GetDoorOperation(pAcDoors->at(idx),vDoorOp) == true)
 			{
 				int nHandCount = (int)vDoorOp.size();
@@ -407,12 +447,12 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 					CString strName;
 					strName.Format(_T("%s(%s)"),pAcDoors->at(idx)->m_strName,doorOp.GetHandTypeString());
 					HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
-					StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
-					pNodeData->m_nID = nDoorID;
-					pNodeData->m_iHandType = doorOp.m_iHandType;
-					pStandData->m_vOpDoors.push_back(doorOp);
-					m_vDoorOp.push_back(pNodeData);
-					m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
+					StandOperatingDoorData::OperationDoor* pDoorOp = new StandOperatingDoorData::OperationDoor();
+                    pDoorOp->SetDoorName(doorOp.GetDoorName());
+                    pDoorOp->SetHandType(doorOp.GetHandType());
+					pDoorOpList->push_back(doorOp);
+					m_vDoorOp.push_back(pDoorOp);
+					m_wndTreeCtrl.SetItemData(hDetail, (DWORD)pDoorOp);
 				}
 			}
 //			pStandData->AddDoorOperation(pAcDoors->at(idx));
@@ -457,7 +497,7 @@ void DlgOperatingDoorSpecification::AddNewStandItem( HTREEITEM hSelItem,FltOpera
 
 	StandOperatingDoorData* pStandData = new StandOperatingDoorData;
 	pStandData->SetStandName( ALTObjectID((const char*)pnewIDstr));
-
+    std::vector<StandOperatingDoorData::OperationDoor>* pDoorOpList = pStandData->GetDoorOpList();
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	cni.nt = NT_NORMAL;
@@ -479,13 +519,13 @@ void DlgOperatingDoorSpecification::AddNewStandItem( HTREEITEM hSelItem,FltOpera
 	for (int idx =0; idx < nDoorCount; idx++)
 	{
 		CString strName = pAcDoors->at(idx)->m_strName;
-		int nDoorID = pAcDoors->at(idx)->GetID();
+		CString strDoorName = pAcDoors->at(idx)->GetDoorName();
 
 		std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
 		if (pStandData->GetDoorOperation(pAcDoors->at(idx),vDoorOp) == true)
 		{
-			int nHandCount = (int)vDoorOp.size();
-			for(int iHand = 0; iHand < nHandCount; iHand++)
+			int nDoorOp = (int)vDoorOp.size();
+			for(int iHand = 0; iHand < nDoorOp; iHand++)
 			{
 				StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
 				CString strName;
@@ -493,9 +533,9 @@ void DlgOperatingDoorSpecification::AddNewStandItem( HTREEITEM hSelItem,FltOpera
 				HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
 
 				StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
-				pNodeData->m_nID = nDoorID;
-				pNodeData->m_iHandType = doorOp.m_iHandType;
-				pStandData->m_vOpDoors.push_back(doorOp);
+				pNodeData->SetDoorName(strDoorName);
+				pNodeData->SetHandType(doorOp.GetHandType());
+				pDoorOpList->push_back(doorOp);
 				m_vDoorOp.push_back(pNodeData);
 				m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
 			}
@@ -514,9 +554,7 @@ void DlgOperatingDoorSpecification::AddNewDoorItem( HTREEITEM hSelItem, StandOpe
 	if (dlg.DoModal()!= IDOK )
 		return;
 
-	//CString strName = dlg.GetDoorName();
-	//int nDoorID  = dlg.GetDoorID();
-	ACTypeDoor* pDoor = dlg.GetAcTypeDoor();
+	ACTypeDoor* pDoor = dlg.GetSelectedAcTypeDoor();
 	if (pDoor == NULL)
 		return;
 	
@@ -525,27 +563,26 @@ void DlgOperatingDoorSpecification::AddNewDoorItem( HTREEITEM hSelItem, StandOpe
 	cni.nt = NT_NORMAL;
 	cni.net = NET_SHOW_DIALOGBOX;
 
-	//pStandData->AddDoorOperation(pDoor);
 	std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
-	int nDoorID = pDoor->GetID();
+	CString strDoorName = pDoor->GetDoorName();
 	if (pStandData->GetDoorOperation(pDoor,vDoorOp) == true)
 	{
-		int nHandCount = (int)vDoorOp.size();
-		for(int iHand = 0; iHand < nHandCount; iHand++)
+		int nDoorOp = (int)vDoorOp.size();
+		for(int i = 0; i < nDoorOp; i++)
 		{
-			StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
+			StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(i);
 			if (pStandData->findOpDoor(&doorOp) == false)
 			{
 				CString strName;
 				strName.Format(_T("%s(%s)"),pDoor->m_strName,doorOp.GetHandTypeString());
 				HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hSelItem, TVI_LAST);
 
-				StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
-				pNodeData->m_nID = nDoorID;
-				pNodeData->m_iHandType = doorOp.m_iHandType;
-				m_vDoorOp.push_back(pNodeData);
-				pStandData->m_vOpDoors.push_back(doorOp);
-				m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
+				StandOperatingDoorData::OperationDoor* pDoorOp = new StandOperatingDoorData::OperationDoor();
+				pDoorOp->SetDoorName(strDoorName);
+				pDoorOp->SetHandType(doorOp.GetHandType());
+				m_vDoorOp.push_back(pDoorOp);
+				pStandData->GetDoorOpList()->push_back(doorOp);
+				m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pDoorOp);
 			}
 		}
 	}
@@ -561,6 +598,7 @@ void DlgOperatingDoorSpecification::DelFltItem( HTREEITEM hSelItem )
 	FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hSelItem);
 	m_pOperatingDoorSpec->DelFltData(pFltData);
 	DeleteTreeFltNode(pFltData);
+    SelectNextTreeItem(hSelItem);
 	m_wndTreeCtrl.DeleteItem(hSelItem);
 }
 
@@ -569,6 +607,7 @@ void DlgOperatingDoorSpecification::DelStandItem( HTREEITEM hSelItem,FltOperatin
 	StandOperatingDoorData* pStandData = (StandOperatingDoorData*)m_wndTreeCtrl.GetItemData(hSelItem);
 	pFltData->DelStandData(pStandData);
 	DeleteTreeStandNode(pStandData);
+    SelectNextTreeItem(hSelItem);
 	m_wndTreeCtrl.DeleteItem(hSelItem);
 }
 
@@ -577,7 +616,8 @@ void DlgOperatingDoorSpecification::DelDoorItem( HTREEITEM hSelItem, StandOperat
 	StandOperatingDoorData::OperationDoor* pDoorOp = (StandOperatingDoorData::OperationDoor*)m_wndTreeCtrl.GetItemData(hSelItem);
 	pStandData->DelOpDoor(pDoorOp);
 
-	DeleteTreeNode(pDoorOp);
+	DeleteTreeNodeData(pDoorOp);
+    SelectNextTreeItem(hSelItem);
 	m_wndTreeCtrl.DeleteItem(hSelItem);
 }
 
@@ -585,46 +625,7 @@ LRESULT DlgOperatingDoorSpecification::DefWindowProc(UINT message, WPARAM wParam
 {
 	if(message == UM_CEW_SHOW_DIALOGBOX_BEGIN)
 	{
-		CString strData = _T("");
-		HTREEITEM hItem = (HTREEITEM)wParam;
-		if (hItem != NULL)
-		{
-			HTREEITEM hParItem = m_wndTreeCtrl.GetParentItem(hItem);
-			if (hParItem == NULL)
-			{
-				FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hItem);
-				EditFltItem(hItem);
-			}
-			else
-			{
-				HTREEITEM hGrandItem = m_wndTreeCtrl.GetParentItem(hParItem);
-				if (hGrandItem == NULL)
-				{
-					FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hParItem);
-					EditStandItem(hItem,pFltData);
-				}
-				else if (m_wndTreeCtrl.GetItemText(hParItem) == "Doors used:")
-				{
-					FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hParItem);
-					FlightConstraint flightType = pFltData->GetFltType();
-
-					char szBuffer[1024] = {0};
-					flightType.getACType(szBuffer);
-					ACTYPEDOORLIST* pAcDoors = m_pAirportDatabase->getAcDoorMan()->GetAcTypeDoorList(szBuffer);
-
-					flightType.screenPrint(szBuffer);
-
-					StandOperatingDoorData* pStandData = (StandOperatingDoorData*)m_wndTreeCtrl.GetItemData(hGrandItem);
-					EditDoorItem(hItem,pStandData,pAcDoors,szBuffer);
-				}
-			}
-
-
-		}
-
-
-
-
+        OnToolbarEdit();
 	}
 	return CXTResizeDialog::DefWindowProc(message, wParam, lParam);
 }
@@ -701,75 +702,65 @@ void DlgOperatingDoorSpecification::EditStandItem( HTREEITEM hSelItem,FltOperati
 
 void DlgOperatingDoorSpecification::EditDoorItem( HTREEITEM hSelItem, StandOperatingDoorData* pStandData, ACTYPEDOORLIST* pACTypeDoors, const CString& strACType )
 {
-	//int nDoorID = (int)m_wndTreeCtrl.GetItemData(hSelItem);
-//	pStandData->DelOpDoor(nDoorID);
-	DlgACTypeDoorSelection dlg(pACTypeDoors,strACType);
-	if (dlg.DoModal()!= IDOK )
-		return;
+    DlgACTypeDoorSelection dlg(pACTypeDoors,strACType);
+    if (dlg.DoModal()!= IDOK )
+        return;
 
-	ACTypeDoor* pDoor = dlg.GetAcTypeDoor();
-	if (pDoor == NULL)
-		return;
+    ACTypeDoor* pDoor = dlg.GetSelectedAcTypeDoor();
+    if (pDoor == NULL)
+        return;
 
-	std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
-	if (pStandData->GetDoorOperation(pDoor,vDoorOp) == true)
-	{
-		StandOperatingDoorData::OperationDoor* pNodeData = (StandOperatingDoorData::OperationDoor*)m_wndTreeCtrl.GetItemData(hSelItem);
-		pStandData->DelOpDoor(pNodeData);
+    std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
+    pStandData->GetDoorOperation(pDoor,vDoorOp);
 
-		int nHandCount = (int)vDoorOp.size();
-		int idx = 0;
-		for(int iHand = 0; iHand < nHandCount; iHand++)
-		{
-			StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
-			if (pStandData->findOpDoor(&doorOp) == false)
-			{
-				DeleteTreeNode(pNodeData);
-				StandOperatingDoorData::OperationDoor* pDoorData = new StandOperatingDoorData::OperationDoor();
-				pNodeData->m_nID = pDoor->GetID();
-				pNodeData->m_iHandType = pDoor->m_enumDoorDir;
-				m_vDoorOp.push_back(pDoorData);
+    // remove the existed door
+    int nCount = (int)vDoorOp.size();
+    for(int i=nCount-1; i>=0; i--)
+    {
+        if (pStandData->findOpDoor(&vDoorOp.at(i)))
+        {
+            vDoorOp.erase(vDoorOp.begin() + i);
+        }
+    }
 
-				CString strName;
-				strName.Format(_T("%s(%s)"),pDoor->m_strName,doorOp.GetHandTypeString());
-				if (iHand == 0)
-				{
-					m_wndTreeCtrl.SetItemText(hSelItem,strName);
-					m_wndTreeCtrl.SetItemData(hSelItem,(DWORD)pDoorData);
-				}
-				else 
-				{
-					COOLTREE_NODE_INFO cni;
-					CCoolTree::InitNodeInfo(this,cni);
-					cni.nt = NT_NORMAL;
-					cni.net = NET_SHOW_DIALOGBOX;
-					HTREEITEM hParentItem = m_wndTreeCtrl.GetParentItem(hSelItem);
-					HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hParentItem, hSelItem);
-					m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pDoorData);
-				}
-				pStandData->m_vOpDoors.push_back(doorOp);
-			}
-			else
-			{
-				idx++;
-			}
-		}
-		if (idx == nHandCount)
-		{
-			pStandData->m_vOpDoors.push_back(*pNodeData);
-		}
-	}
+    if (!vDoorOp.empty())
+    {
+        std::vector<StandOperatingDoorData::OperationDoor>* pDoorList = pStandData->GetDoorOpList();
+        StandOperatingDoorData::OperationDoor* pNodeData = (StandOperatingDoorData::OperationDoor*)m_wndTreeCtrl.GetItemData(hSelItem);
+        pStandData->DelOpDoor(pNodeData);
+        int nOpDoor = (int)vDoorOp.size();
+        for(int i = 0; i < nOpDoor; i++)
+        {
+            StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(i);
+            DeleteTreeNodeData(pNodeData);
+            StandOperatingDoorData::OperationDoor* pDoorOp = new StandOperatingDoorData::OperationDoor();
+            pDoorOp->SetDoorName(doorOp.GetDoorName());
+            pDoorOp->SetHandType(doorOp.GetHandType());
+            m_vDoorOp.push_back(pDoorOp);
 
-	//CString strName = dlg.GetDoorName();
-	//nDoorID  = dlg.GetDoorID();
-
-	//pStandData->AddOpDoor(nDoorID);
-	//m_wndTreeCtrl.SetItemText(hSelItem,strName);
-	//m_wndTreeCtrl.SetItemData(hSelItem,nDoorID);
-
+            CString strName;
+            strName.Format(_T("%s(%s)"),pDoor->m_strName,doorOp.GetHandTypeString());
+            if (i == 0)
+            {
+                m_wndTreeCtrl.SetItemText(hSelItem,strName);
+                m_wndTreeCtrl.SetItemData(hSelItem,(DWORD)pDoorOp);
+            }
+            else 
+            {
+                COOLTREE_NODE_INFO cni;
+                CCoolTree::InitNodeInfo(this,cni);
+                cni.nt = NT_NORMAL;
+                cni.net = NET_SHOW_DIALOGBOX;
+                HTREEITEM hParentItem = m_wndTreeCtrl.GetParentItem(hSelItem);
+                HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hParentItem, hSelItem);
+                m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pDoorOp);
+            }
+            pDoorList->push_back(doorOp);
+        }
+    }
 }
 
-void DlgOperatingDoorSpecification::DeleteTreeNode( StandOperatingDoorData::OperationDoor* pNodeData)
+void DlgOperatingDoorSpecification::DeleteTreeNodeData( StandOperatingDoorData::OperationDoor* pNodeData)
 {
 	std::vector<StandOperatingDoorData::OperationDoor*>::iterator iter = std::find(m_vDoorOp.begin(),m_vDoorOp.end(),pNodeData);
 	if (iter != m_vDoorOp.end())
@@ -780,7 +771,7 @@ void DlgOperatingDoorSpecification::DeleteTreeNode( StandOperatingDoorData::Oper
 
 }
 
-void DlgOperatingDoorSpecification::DeleteTreeNode( const StandOperatingDoorData::OperationDoor& doorOp )
+void DlgOperatingDoorSpecification::DeleteTreeNodeData( const StandOperatingDoorData::OperationDoor& doorOp )
 {
 	for (unsigned i = 0; i < m_vDoorOp.size(); i++)
 	{
@@ -814,9 +805,41 @@ void DlgOperatingDoorSpecification::DeleteTreeFltNode( FltOperatingDoorData* pFl
 
 void DlgOperatingDoorSpecification::DeleteTreeStandNode( StandOperatingDoorData* pStandData )
 {
+    std::vector<StandOperatingDoorData::OperationDoor>* pDoorList = pStandData->GetDoorOpList();
 	for (int i = 0; i < pStandData->GetOpDoorCount(); i++)
 	{
-		StandOperatingDoorData::OperationDoor doorOp = pStandData->m_vOpDoors.at(i);
-		DeleteTreeNode(doorOp);
+		StandOperatingDoorData::OperationDoor doorOp = pDoorList->at(i);
+		DeleteTreeNodeData(doorOp);
 	}
 }
+
+// before deleting a tree item, select its sibling node or its parent.
+void DlgOperatingDoorSpecification::SelectNextTreeItem(HTREEITEM hSelItem)
+{
+    HTREEITEM hPrevItem = m_wndTreeCtrl.GetPrevSiblingItem(hSelItem);
+    if(hPrevItem != NULL)
+    {
+        m_wndTreeCtrl.SelectItem(hPrevItem);
+        return;
+    }
+
+    HTREEITEM hNextItem = m_wndTreeCtrl.GetNextSiblingItem(hSelItem);
+    if(hNextItem != NULL)
+    {
+        m_wndTreeCtrl.SelectItem(hNextItem);
+        return;
+    }
+
+    HTREEITEM hParentItem = m_wndTreeCtrl.GetParentItem(hSelItem);
+    if(hParentItem != NULL)
+    {
+        m_wndTreeCtrl.SelectItem(hParentItem);
+        return;
+    }
+
+    // there is not any tree item left, only enable add button
+    m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_ADD, TRUE);
+    m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_DEL, FALSE);
+    m_wndToolbar.GetToolBarCtrl().EnableButton(ID_TOOLBAR_MAIN_EDIT, FALSE);
+}
+

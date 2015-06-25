@@ -364,6 +364,32 @@ bool CImportIntoNewProject::unzipInputLandsideFile(const CString oldProjName,con
 	}
 	return true;
 }
+
+bool CImportIntoNewProject::unzipInputUserBarsFile(const CString oldProjName,const CString& _strPath)
+{
+	//unzip UserBars zip
+	CString strLandsideZipPath = _T("");
+	strLandsideZipPath.Format(_T("%s//%sUserBars.zip"),_strPath,oldProjName);
+
+	if (PathFileExists((LPCSTR)strLandsideZipPath))
+	{
+		CString strAirsidePath = _T("");
+		strAirsidePath.Format(_T("%s\\UserBars"),_strPath);
+		if (!PathFileExists((LPCSTR)strAirsidePath))
+		{
+			if (!CreateDirectory(strAirsidePath,NULL))
+			{
+				return false;
+			}
+		}
+		if (!unzipFiles(strLandsideZipPath,strAirsidePath))
+			return false;
+
+		DeleteFile((LPCSTR)strLandsideZipPath );
+	}
+	return true;
+}
+
 void CImportIntoNewProject::DoCreateNewProject()
 {
 	_rmdir(PROJMANAGER->m_csRootProjectPath + _T("\\") + m_strProjectName);
@@ -699,11 +725,14 @@ bool CImportIntoNewProject::DoExtractInputFiles( const CString& strPath,const CS
 	nPositon = strOldProjName.ReverseFind('_');
 	strOldProjName = strOldProjName.Mid(0,nPositon + 1);
 
+
 	unzipAirportFiles(strOldProjName,strPath);
 
 	unzipAirsideExportFiles(strOldProjName,strPath);
 
 	unzipInputLandsideFile(strOldProjName,strPath);
+
+	unzipInputUserBarsFile(strOldProjName,strPath);
 
 	if(m_ZipFileVersion > 2)
 		UnZipImportDBFiles(strTempFilePath,strOldProjName,strPath);
