@@ -186,7 +186,6 @@ public:
 			,m_lMinCrossings(0)
 			,m_lMaxCrossings(0)
 			,m_dAverageCrosings(0.0)
-			,m_lIntervalMaxCrossings(0)
 			,m_lTotalCrossings(0)
 			,m_lMinWaitTime(0L)
 			,m_lIntervalMinWaitTime(0L)
@@ -196,6 +195,7 @@ public:
 			,m_lTotalWaitTime(0L)
 		{
 			m_vMinCrossingIntervals.clear();
+			m_vMaxCrossingIntervals.clear();
 		}
 
 		~SummaryRunwayCrossingsItem()
@@ -215,7 +215,7 @@ public:
 		std::vector<long> m_vMinCrossingIntervals;
 		long m_lMaxCrossings;
 		double m_dAverageCrosings;
-		long m_lIntervalMaxCrossings;
+		std::vector<long> m_vMaxCrossingIntervals;
 		long m_lTotalCrossings;
 		long m_lMinWaitTime;
 		long m_lIntervalMinWaitTime;

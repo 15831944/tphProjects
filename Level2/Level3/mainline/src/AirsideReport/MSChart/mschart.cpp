@@ -950,3 +950,55 @@ bool CMSChart::ExportToBMPFile(void)
 	return (bReturn);
 }
 
+//export chart to bitmap file
+bool CMSChart::ExportToClipboard(void)
+{
+	CDC* pChartDC;
+
+	// Get device context from MSChart
+	pChartDC = GetDC();
+
+	// Get dimensions of MSChart
+	RECT mschartRect;
+	GetClientRect( &mschartRect );
+	int mschartWidth = mschartRect.right - mschartRect.left;
+	int mschartHeight = mschartRect.bottom - mschartRect.top;
+
+	// Create CBitmap
+	CBitmap myBitmap;
+
+	// Create Compatible Bitmap for MSChart
+	myBitmap.CreateCompatibleBitmap( pChartDC, 
+		mschartWidth, mschartHeight );
+
+	// Define device-context object
+	CDC myCopy;
+	myCopy.CreateCompatibleDC( pChartDC );
+
+	// Get pointer to object being replaced
+	myCopy.SelectObject( myBitmap );
+
+	// Raster copy Bitmap from object pChartDC is pointing to, which is MSChart
+
+	// CAUTION: this process copies _exactly_ what is shown on screen. If MSChart is
+	// off-screen (ie. if the page is scrollable and it is currently hidden from
+	// view) OR a dialog or other window is blocking its view, then you will not
+	// get the correct result, as it will either turn out all black or have
+	// artifacts from other windows on it. It is for this reason I have chosen to
+	// copy the MSChart _before_ showing the 'Save File Dialog'
+	myCopy.BitBlt( 0, 0, mschartWidth, mschartHeight, pChartDC, 0, 0, SRCCOPY );
+
+	// Retrieve information about the CBitmap
+	BITMAP bits;
+	myBitmap.GetBitmap( &bits );
+
+	// Open clipboard and empty its contents
+	OpenClipboard();
+	EmptyClipboard();
+
+	// Copy our new MSChart bitmap to clipboard and close it
+	SetClipboardData( CF_BITMAP, myBitmap.GetSafeHandle() );
+	CloseClipboard();
+	
+	return true;
+}

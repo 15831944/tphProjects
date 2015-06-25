@@ -109,16 +109,16 @@ void CRunwayCrossingSummaryCountResult::Draw3DChart(CARC3DChart& chartWnd, CPara
 		vLegendData[0].push_back((*statisticItem).m_lMinCrossings);
 		vLegendData[1].push_back((*statisticItem).m_dAverageCrosings);
 		vLegendData[2].push_back((*statisticItem).m_lMaxCrossings);
-		vLegendData[3].push_back((*statisticItem).m_staWaitTime.m_nQ1);
-		vLegendData[4].push_back((*statisticItem).m_staWaitTime.m_nQ2);
-		vLegendData[5].push_back((*statisticItem).m_staWaitTime.m_nQ3);
-		vLegendData[6].push_back((*statisticItem).m_staWaitTime.m_nP1);
-		vLegendData[7].push_back((*statisticItem).m_staWaitTime.m_nP5);
-		vLegendData[8].push_back((*statisticItem).m_staWaitTime.m_nP10);
-		vLegendData[9].push_back((*statisticItem).m_staWaitTime.m_nP90);
-		vLegendData[10].push_back((*statisticItem).m_staWaitTime.m_nP95);
-		vLegendData[11].push_back((*statisticItem).m_staWaitTime.m_nP99);
-		vLegendData[12].push_back((*statisticItem).m_staWaitTime.m_nStdDev);
+		vLegendData[3].push_back((*statisticItem).m_staCrossingCount.m_nQ1);
+		vLegendData[4].push_back((*statisticItem).m_staCrossingCount.m_nQ2);
+		vLegendData[5].push_back((*statisticItem).m_staCrossingCount.m_nQ3);
+		vLegendData[6].push_back((*statisticItem).m_staCrossingCount.m_nP1);
+		vLegendData[7].push_back((*statisticItem).m_staCrossingCount.m_nP5);
+		vLegendData[8].push_back((*statisticItem).m_staCrossingCount.m_nP10);
+		vLegendData[9].push_back((*statisticItem).m_staCrossingCount.m_nP90);
+		vLegendData[10].push_back((*statisticItem).m_staCrossingCount.m_nP95);
+		vLegendData[11].push_back((*statisticItem).m_staCrossingCount.m_nP99);
+		vLegendData[12].push_back((*statisticItem).m_staCrossingCount.m_nStdDev);
 	}
 
 	int nLegendCount = vLegendData.size();
@@ -210,16 +210,16 @@ void CRunwayCrossingSummaryWaitTimeResult::Draw3DChart(CARC3DChart& chartWnd, CP
 		vLegendData[0].push_back((*statisticItem).m_lMinWaitTime);
 		vLegendData[1].push_back((*statisticItem).m_lAverageWaitTime);
 		vLegendData[2].push_back((*statisticItem).m_lMaxWaitTime);
-		vLegendData[3].push_back((*statisticItem).m_staCrossingCount.m_nQ1);
-		vLegendData[4].push_back((*statisticItem).m_staCrossingCount.m_nQ2);
-		vLegendData[5].push_back((*statisticItem).m_staCrossingCount.m_nQ3);
-		vLegendData[6].push_back((*statisticItem).m_staCrossingCount.m_nP1);
-		vLegendData[7].push_back((*statisticItem).m_staCrossingCount.m_nP5);
-		vLegendData[8].push_back((*statisticItem).m_staCrossingCount.m_nP10);
-		vLegendData[9].push_back((*statisticItem).m_staCrossingCount.m_nP90);
-		vLegendData[10].push_back((*statisticItem).m_staCrossingCount.m_nP95);
-		vLegendData[11].push_back((*statisticItem).m_staCrossingCount.m_nP99);
-		vLegendData[12].push_back((*statisticItem).m_staCrossingCount.m_nStdDev);
+		vLegendData[3].push_back((*statisticItem).m_staWaitTime.m_nQ1);
+		vLegendData[4].push_back((*statisticItem).m_staWaitTime.m_nQ2);
+		vLegendData[5].push_back((*statisticItem).m_staWaitTime.m_nQ3);
+		vLegendData[6].push_back((*statisticItem).m_staWaitTime.m_nP1);
+		vLegendData[7].push_back((*statisticItem).m_staWaitTime.m_nP5);
+		vLegendData[8].push_back((*statisticItem).m_staWaitTime.m_nP10);
+		vLegendData[9].push_back((*statisticItem).m_staWaitTime.m_nP90);
+		vLegendData[10].push_back((*statisticItem).m_staWaitTime.m_nP95);
+		vLegendData[11].push_back((*statisticItem).m_staWaitTime.m_nP99);
+		vLegendData[12].push_back((*statisticItem).m_staWaitTime.m_nStdDev);
 	}
 
 	int nLegendCount = vLegendData.size();
