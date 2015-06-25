@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "ErrorHandling.h"
 #include "AirsideFlightManager.h"
 #include <assert.h>

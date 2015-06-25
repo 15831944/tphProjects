@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "AirsidePassenger.h"
 #include <assert.h>
 

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Macros.h"
 #include "AirsideFlight.h"
 #include "CommonOperations.h"
