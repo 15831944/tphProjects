@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TransformGeometriesSample",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CombineGeometriesSample", "CombineGeometriesSample\CombineGeometriesSample.vcxproj", "{94C0D17C-4583-4105-8568-0B9B845D30A6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LayersWithContentBoundsSample", "LayersWithContentBoundsSample\LayersWithContentBoundsSample.vcxproj", "{755BE83F-3A72-4B1C-8D01-071DE448100A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -49,6 +51,10 @@ Global
 		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Debug|Win32.Build.0 = Debug|Win32
 		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Release|Win32.ActiveCfg = Release|Win32
 		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Release|Win32.Build.0 = Release|Win32
+		{755BE83F-3A72-4B1C-8D01-071DE448100A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{755BE83F-3A72-4B1C-8D01-071DE448100A}.Debug|Win32.Build.0 = Debug|Win32
+		{755BE83F-3A72-4B1C-8D01-071DE448100A}.Release|Win32.ActiveCfg = Release|Win32
+		{755BE83F-3A72-4B1C-8D01-071DE448100A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

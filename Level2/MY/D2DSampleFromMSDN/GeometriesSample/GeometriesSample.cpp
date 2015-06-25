@@ -455,9 +455,9 @@ HRESULT DemoApp::CreateDeviceResources()
             D2D1_GRADIENT_STOP gradientStops[3];
             gradientStops[0].color = D2D1::ColorF(D2D1::ColorF::Gold, 1);
             gradientStops[0].position = 0.0f;
-            gradientStops[1].color = D2D1::ColorF(D2D1::ColorF::Orange, 0.8);
+            gradientStops[1].color = D2D1::ColorF(D2D1::ColorF::Orange, 0.8f);
             gradientStops[1].position = 0.85f;
-            gradientStops[2].color = D2D1::ColorF(D2D1::ColorF::OrangeRed, 0.7);
+            gradientStops[2].color = D2D1::ColorF(D2D1::ColorF::OrangeRed, 0.7f);
             gradientStops[2].position = 1.0f;
 
             // Create the ID2D1GradientStopCollection from a previously
