@@ -49,6 +49,18 @@ public:
 		return *this;
 	}
 
+	CFileOutput& tab()
+	{
+		outstream<< '\t';
+		return *this;
+	}
+
+	CFileOutput& line()
+	{
+		outstream<< std::endl;
+		return *this;
+	}
+
 	CFileOutput& LogItem(const CString& str)
 	{
 		outstream<< str.GetString() << ITEMSEP;		

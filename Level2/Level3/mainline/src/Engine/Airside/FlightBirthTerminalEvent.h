@@ -14,7 +14,7 @@ public:
 	explicit FlightBirthTerminalEvent(AirsideFlightInSim* flt, StandResourceManager* pStandRes);
 
 	virtual int Process();
-	bool GetStandClearence(StandInSim* pStand,ElapsedTime& tStartTime, ElapsedTime& tEndTime,Clearance& theClearance);
+	bool GetStandClearence(StandInSim* pStand,const ElapsedTime& tStartTime, const ElapsedTime& tEndTime,Clearance& theClearance);
 
 	//For shut down event
 	virtual int kill (void) { return 0; }

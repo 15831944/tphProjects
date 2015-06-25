@@ -44,6 +44,8 @@ public:
 
 	RouteResource* getRouteResource()const;
 	IntersectionNodeInSim* GetEndNode();
+
+	virtual StandInSim* IsStandResource()const;
 public:
 	//void SetStandInSim(StandInSim* pStand){ m_pStand = pStand; }
 	StandInSim* GetStandInSim()const{ return m_pStand; }

@@ -4956,12 +4956,12 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 
 void CMainFrame::OnComparativereportopen() 
 {
-	COpenComparativeReportsGroup dlg;
+	CDlgOpenComparativeReport dlg;
 	if (dlg.DoModal() == IDOK)
 	{
 		CString strName = dlg.m_strName;
 		CString strDesc = dlg.m_strDesc;
-		CreateCompareReportAndResultView(strName, strDesc);
+		CreateCompareReportAndResultView(strName, strDesc );
 	}
 }
 
@@ -4972,6 +4972,10 @@ void CMainFrame::OnComparativereportnew()
 	{
 		CString strName = dlg.m_strName;
 		CString strDesc = dlg.m_strDesc;
+
+		//Create new project
+		CMPPROJECTMANAGER->CreateNewProject(strName, strDesc);
+
 		CreateCompareReportAndResultView(strName, strDesc);
 	}
 }
@@ -4985,7 +4989,15 @@ void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NU
 
 	if (!strName.IsEmpty())// && !strDesc.IsEmpty())
 	{
-		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
+		if(((CCompareReportDoc*)pDoc)->GetCmpReport()->InitReport(strName))
+			((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
+		else
+		{
+			CString strMsg;
+			strMsg.Format(_T("The report %s can not be initialized."), strName);
+			MessageBox(strMsg, _T("Comparative Report"), MB_OK);
+			return;
+		}
 	}
 	TCHAR szText[256+_MAX_PATH];
 	const CString projName = ((CCompareReportDoc*)pDoc)->GetCmpReport()->GetComparativeProject()->GetName();

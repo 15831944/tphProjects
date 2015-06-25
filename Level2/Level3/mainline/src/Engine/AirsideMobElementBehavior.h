@@ -64,7 +64,7 @@ protected:
 	BOOL  IsFlightArrived() ;
 
 
-	bool GetFlightDoorPostion(CPoint2008& doorpoint, CPoint2008& groundpoint);
+	bool GetFlightDoorPostion(const ElapsedTime& t, CPoint2008& doorpoint, CPoint2008& groundpoint);
 
 
 

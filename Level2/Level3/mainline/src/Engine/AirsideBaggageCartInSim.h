@@ -22,7 +22,7 @@ public:
 
 	int GetBagCount() const;
 
-	void ReleaseBaggage(Processor *pProc, CBagCartsParkingSpotInSim* pBagCartsSpotInSim, ElapsedTime &eTime);
+	void ReleaseBaggage(Processor *pProc, CBagCartsParkingSpotInSim* pBagCartsSpotInSim, const ElapsedTime& bagServiceTime, ElapsedTime &eTime);
 	void ReleaseBaggageToFlight(const CPoint2008& ptCargoDoor, const ElapsedTime& bagServiceTime,  ElapsedTime &eTime);
 
 

@@ -66,21 +66,12 @@ void DlgAddNewCmpReport::OnOK()
 	}
 	else
 	{
-		CComparativeProjectDataSet dsProj;
-		dsProj.loadDataSet(PROJMANAGER->GetAppPath());
-		std::vector<CComparativeProject *> vProjs;
-		if (dsProj.GetProjects(vProjs))
+		if(!CMPPROJECTMANAGER->isNameAvailable(m_strName))
 		{
-			for (int i = 0; i < static_cast<int>(vProjs.size()); i++)
-			{
-				if (vProjs[i]->GetName().CompareNoCase(m_strName) == 0)
-				{
-					CString strTemp;
-					strTemp.Format(_T("The Comparative Report \"%s\" already exists."), m_strName);
-					MessageBox(strTemp, NULL, MB_ICONWARNING | MB_OK);
-					return;
-				}
-			}
+			CString strTemp;
+			strTemp.Format(_T("The Comparative Report \"%s\" already exists."), m_strName);
+			MessageBox(strTemp, NULL, MB_ICONWARNING | MB_OK);
+			return;
 		}
 	}
 	CDialog::OnOK();

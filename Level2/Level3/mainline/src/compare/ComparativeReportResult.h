@@ -23,7 +23,7 @@ enum ComparativeReportType
 	DistanceTravelReport
 };
 
-class CComparativeReportResult  
+class CCmpBaseReport  
 {
 protected:
 	std::vector<std::string> m_vSampleRepPaths;
@@ -32,8 +32,8 @@ protected:
 public:
 	ElapsedTime m_ReportStartTime, m_ReportEndTime;
 public:
-	CComparativeReportResult();
-	virtual ~CComparativeReportResult();
+	CCmpBaseReport();
+	virtual ~CCmpBaseReport();
 public:
 	void AddSamplePath(const std::vector<std::string>& _vSamplePaths);
 	virtual void MergeSample(const ElapsedTime& tInteval) = 0;

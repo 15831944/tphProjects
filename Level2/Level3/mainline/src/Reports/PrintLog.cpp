@@ -107,3 +107,9 @@ void CPrintLog::GenerateSummary (ArctermFile& p_file)
 //	AfxGetMainWnd()->Invalidate();
 }
 
+void CPrintLog::InitParameter( const CReportParameter* _pPara )
+{
+	CBaseReport::InitParameter( _pPara );
+	m_usesInterval = 1;
+}
+

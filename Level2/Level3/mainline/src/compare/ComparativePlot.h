@@ -2,7 +2,7 @@
 #include ".\ThreeDChartType.h"
 #include "..\AirsideReport\CARC3DChart.h"
 
-class CComparativeReportResult;
+class CCmpBaseReport;
 class CComparativeQLengthReport;
 class CComparativeQTimeReport;
 class CComparativeThroughputReport;
@@ -22,7 +22,7 @@ public:
 	{
 	}
 
-	bool Draw3DChart(CComparativeReportResult& _reportData);
+	bool Draw3DChart(CCmpBaseReport& _reportData);
 	bool Update3DChart(ThreeDChartType iType);
 
 private:

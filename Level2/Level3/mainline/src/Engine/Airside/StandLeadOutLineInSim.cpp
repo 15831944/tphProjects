@@ -205,3 +205,8 @@ IntersectionNodeInSim* StandLeadOutLineInSim::GetEndNode()
 	return (*mapNode.rbegin()).second;
 }
 
+StandInSim* StandLeadOutLineInSim::IsStandResource() const
+{
+	return m_pStand;
+}
+

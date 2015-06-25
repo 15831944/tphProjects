@@ -14,7 +14,7 @@
 
 typedef std::map< ElapsedTime, std::vector<int> > PaxDensMap;
 
-class CComparativeSpaceDensityReport : public CComparativeReportResult  
+class CComparativeSpaceDensityReport : public CCmpBaseReport  
 {
 protected:
 	PaxDensMap		m_mapPaxDens;

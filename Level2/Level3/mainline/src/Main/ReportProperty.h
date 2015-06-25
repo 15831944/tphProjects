@@ -19,7 +19,7 @@
 // CReportProperty dialog
 //
 
-class CDlgCmpReportProperty : public CDialog
+class CDlgReportProperty : public CDialog
 {
 // Construction
 public:
@@ -49,12 +49,12 @@ public:
 		long m_nIndex;
 	};
 public:
-	CDlgCmpReportProperty(CWnd* pParent = NULL);   // standard constructor
+	CDlgReportProperty(CWnd* pParent = NULL);   // standard constructor
 	//~CReportProperty();
 
 	void DeleteTreeData(CTreeCtrl& tree);
 	void DeleteTreeSubItemData(CTreeCtrl& tree,HTREEITEM hItem);
-	void SetManager(CModelsManager* pModelManager,CReportsManager* pReportManager);
+	void SetManager(CModelsManager* pModelManager,CSingleReportsManager* pReportManager);
 	void SetProjName(const CString& strName)
 	{
 		m_strProjName = strName;
@@ -147,7 +147,7 @@ protected:
 	CToolBar m_ToolBar2;
 	CToolBar m_ToolBar3;
 	CToolBar m_ToolBar4;
-	CReportsManager* m_reportsManager;
+	CSingleReportsManager* m_reportsManager;
 
 	CString m_strOldName;
 

@@ -149,7 +149,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_bIsArrivalDoor(false)
 ,m_IsWalkOnBridge(FALSE)
 ,m_bhasBusServer(TRUE)
-,m_nBridgeIndex(-1)
+//,m_nBridgeIndex(-1)
 ,m_pLastTerminalProc(NULL)
 {
 	m_pProcessor = m_pTerm->procList->getProcessor (START_PROCESSOR_INDEX);
@@ -410,6 +410,11 @@ int TerminalMobElementBehavior::processBirth (ElapsedTime p_time)
 	ElapsedTime dt = moveTime();
 	m_pPerson->writeTerminalBeginLogEntry(p_time + dt);
 
+	if (m_pProcessor->getProcessorType() == BridgeConnectorProc)
+	{
+	//	m_bIsArrivalDoor = true;
+		m_pPerson->SetFollowerArrivalDoor(true);
+	}
 	generateEvent (p_time + dt,false);
 	return TRUE;
 }
@@ -665,7 +670,7 @@ void TerminalMobElementBehavior::processInConstraint (ElapsedTime p_time)
 
 // It simply notify queue, who will either tell the next m_nWaiting person to advance or adjust the tail location (possibly end of overflow).
 // If arrival, set personal flag to m_nWaiting.
-// Else, notify queue of arrival for adjustment of tail void.
+// Else, notify p of arrival for adjustment of tail void.
 void TerminalMobElementBehavior::processQueueMovement (ElapsedTime p_time)
 {
 	/*
@@ -1026,7 +1031,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 			m_pProcessor->removePerson(m_pPerson);
 			Point startPs, endPs;
 	
-			pBridgePro->GetStartEndPoint(m_nBridgeIndex,startPs,endPs);
+			pBridgePro->GetStartEndPoint(startPs,endPs);
 			m_pPerson->setTerminalDestination(startPs);
 
 			location = endPs;	
@@ -1053,7 +1058,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 
 		BridgeConnector* pBridgePro = (BridgeConnector*)m_pProcessor;
 		Point startPs, endPs;
-		pBridgePro->GetStartEndPoint(m_nBridgeIndex,startPs,endPs);
+		pBridgePro->GetStartEndPoint(startPs,endPs);
 		setDestination(endPs);	
 		m_pPerson->SetFollowerArrivalDoor(true);
 
@@ -1392,29 +1397,35 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 
 	if(m_pPerson->m_logEntry.isArriving() \
 		&&getTerminal()->procList->getProcessor (START_PROCESSOR_INDEX) == m_pProcessor \
-		&& nextProc && nextProc->getProcessorType() == GateProc && m_emBridgeState == NonState)
+		&& nextProc && nextProc->getProcessorType() != BridgeConnectorProc \
+		&&m_pPerson->getGateIndex() != -1&& m_emBridgeState == NonState)
 	{
 		Point startPs, endPs;
 		if (m_pPerson->m_logEntry.isArrival())
 		{
 			m_pPerson->getTerminalBehavior()->SetTransferTypeState(TRANSFER_ARRIVAL);
 		}
-		BridgeConnector* pBridgePro = (BridgeConnector*)GetBridgeConnector(nextProc);
-		if (pBridgePro)
+		Processor* pGateProc = m_pTerm->procList->getProcessor(m_pPerson->getGateIndex());
+		if (pGateProc)
 		{
-			m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
-			if(m_nBridgeIndex != -1)
+			BridgeConnector* pBridgePro = (BridgeConnector*)GetBridgeConnector(pGateProc);
+			if (pBridgePro)
 			{
-				m_emBridgeState = ArrBridge;
-				m_pPerson->setTerminalDestination(endPs);
-				m_pProcessor = pBridgePro;
-				m_pProcessor->addPerson(m_pPerson);
-				m_pPerson->SetFollowerArrivalDoor(true);
-				generateEvent(p_time,false);
-				setState( WalkOnBridge );
-				return FALSE;
+				int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+				if(m_nBridgeIndex != -1)
+				{
+					m_emBridgeState = ArrBridge;
+					m_pPerson->setTerminalDestination(endPs);
+					m_pProcessor = pBridgePro;
+					m_pProcessor->addPerson(m_pPerson);
+					m_pPerson->SetFollowerArrivalDoor(true);
+					generateEvent(p_time,false);
+					setState( WalkOnBridge );
+					return FALSE;
+				}
 			}
 		}
+	
 	}
 
 	//------------------------------Added by frank 05-11-21
@@ -1537,8 +1548,6 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		}		
 	}
 
-
-
 	if( nextProc && nextProc->getProcessorType() == EscalatorProc ) //EscalatorProc have only one direction
 	{
 		//// TRACE(m_pProcessor->getID()->GetIDString());
@@ -1618,6 +1627,8 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		pConveyor->RemoveHeadPerson(p_time);
 	}
 
+
+
 	assert( getTerminal() );
 	// handle case where Person exits Terminal (arrive at End Processor)
 	if (nextProc == getTerminal()->procList->getProcessor (END_PROCESSOR_INDEX))
@@ -1638,8 +1649,14 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		}
 		else // for other pax go to bridge or airside
 		{
-			BridgeConnector* pProce = GetBridgeConnector(m_pProcessor);		
-			if(!pProce )
+			Processor* pGateProc = m_pTerm->procList->getProcessor(m_pPerson->getGateIndex());
+			BridgeConnector* pProce  = NULL;
+			if (pGateProc)
+			{
+				pProce = (BridgeConnector*)GetBridgeConnector(pGateProc);
+			}
+			
+			if(!pProce || m_pProcessor->getProcessorType() == BridgeConnectorProc )
 			{
 				setState( EntryAirside );
 				generateEvent (p_time,false);
@@ -1649,7 +1666,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 			{
 				Point startPs, endPs;
 				BridgeConnector* pBridgePro = (BridgeConnector*)pProce;
-				m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+				int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
 				if(m_nBridgeIndex != -1 &&  m_pPerson->m_logEntry.isDeparting())
 				{
 					m_emBridgeState = DepBridge;
@@ -1672,6 +1689,18 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		
 	}
 
+	if(nextProc && nextProc->getProcessorType()==BridgeConnectorProc)
+	{
+		m_emBridgeState = NonState;
+		if(m_pPerson->m_logEntry.isArrival() && m_pProcessor ==  getTerminal()->procList->getProcessor (START_PROCESSOR_INDEX) )
+		{
+			m_emBridgeState = ArrBridge;
+		}
+		if(m_pPerson->m_logEntry.isDeparting())
+		{
+			m_emBridgeState =  DepBridge;
+		}
+	}
 
 	m_pProcessor = nextProc;
 	m_pProcessor->addPerson (m_pPerson);
@@ -1772,7 +1801,33 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		}
 	}
 
-
+	if(nextProc && nextProc->getProcessorType()== BridgeConnectorProc)
+	{
+		CString strNextProc = nextProc->getIDName();
+		Point startPs, endPs;
+		BridgeConnector* pBridgePro = (BridgeConnector*)nextProc;
+		int nFltId = m_pPerson->GetCurFlightIndex();
+		if( !pBridgePro->IsBridgeConnectToFlight(nFltId) )
+		{
+			char strTmp[128];
+			m_pTerm->flightSchedule->getFlightID(strTmp,nFltId,'D');//m_pPerson->getEngine()->GetAirsideSimulation()->GetAirsideFlight(m_pPerson->GetCurFlightIndex());
+			
+			CString errmes;
+			errmes.Format(_T("The %s is not Connected to Flight %s"),strNextProc, strTmp );
+			throw new ARCDestProcessorUnavailableError( szMobType, strProcNameTmp ,errmes, ClacTimeString(p_time) );	
+			return FALSE;
+		}
+		/*int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+		if(m_nBridgeIndex != -1 &&  m_pPerson->m_logEntry.isDeparting())
+		{
+		m_emBridgeState = DepBridge;
+		m_pPerson->setTerminalDestination(startPs);
+		EnterFromTerminalModeToOtherMode();
+		setState( WalkOnBridge );
+		generateEvent(p_time + moveTime(),false);
+		return TRUE;
+		}*/
+	}
 
 
 	//if Baggage device has capacity, at m_pPerson time, need let it to know someone(checked bag) will arrival 
@@ -5667,6 +5722,13 @@ void TerminalMobElementBehavior::release ( int _iStageID )
 ElapsedTime TerminalMobElementBehavior::moveTime (void) const
 {
 	ElapsedTime t;
+
+	if(m_pProcessor && m_pProcessor->getProcessorType()==BridgeConnectorProc)
+	{
+		double dL = location.distance3D(m_ptDestination);
+		t = (float) (dL / (double)m_pPerson->getSpeed());
+		return t;
+	}
 	//	if (location.getZ() != destination.getZ() || !location)
 	if (!location)
 		t = 0l;
@@ -5705,6 +5767,12 @@ ElapsedTime TerminalMobElementBehavior::moveTime (void) const
 ElapsedTime TerminalMobElementBehavior::moveTime( DistanceUnit _dExtraSpeed, bool _bExtra ) const
 {
 	ElapsedTime t;
+	if(m_pProcessor && m_pProcessor->getProcessorType()==BridgeConnectorProc)
+	{
+		double dL = location.distance3D(m_ptDestination);
+		t = (float) (dL / (double)m_pPerson->getSpeed());
+		return t;
+	}
 	//	if (location.getZ() != destination.getZ() || !location)
 	if (!location)
 		t = 0l;
@@ -5750,12 +5818,15 @@ void TerminalMobElementBehavior::writeLog (ElapsedTime time, bool _bBackup, bool
 
 	if (getProcessor() == 0)
 		return;
+	BOOL m_bInBridge = (getProcessor()->getProcessorType()==BridgeConnectorProc);
+
+
 	track.procNumber = (short)getProcessor()->getIndex();
 	track.bDynamicCreatedProc = getProcessor()->GetDynamicCreatedFlag();
 	track.followowner	= false;
 	track.reason = m_iStopReason;
 	track.backup = _bBackup;
-	track.m_IsRealZ = m_bIsArrivalDoor?TRUE:FALSE;
+	track.m_IsRealZ = m_bInBridge || (m_bIsArrivalDoor?TRUE:FALSE);
 
 	PLACE_TRACK_STRING("2010224-11:04:47");
 	if(m_pPerson->m_type.GetTypeIndex() != 0 )

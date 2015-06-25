@@ -876,17 +876,16 @@ void CRepGraphViewSingleReportOperator::PaxLogSysEntryDistribution()
 	CString strFootnote;
 	strFootnote.Format("%s %s %s %s",NoUnderline(CString(string[0])),string[1],string[2],string[3]);
 	SetHeadXYTitle("System Entry Distribution","Entry Time","Passenger Count",strFootnote);
+
+	//get interval
+	int nInterval = GetInterval(string[1]);	//interval, unit: minute
+
 	//3.)Draw it
 	chartFile.reset();
 	chartFile.skipLines(3);
-	int xValue[8];
-	int yValue[8];
-	for(int i=0;i<8;i++)
-	{
-		xValue[i]=yValue[i]=0;
-	}
+
 	int maxXValue=0;
-	int minXValue=1440;// max minutes in 1 day
+	int minXValue=14400;// max minutes in 1 day
 	float ft = 0.0;   
 	ElapsedTime value;
 	while (chartFile.getLine())
@@ -898,23 +897,59 @@ void CRepGraphViewSingleReportOperator::PaxLogSysEntryDistribution()
 		if (value.asMinutes() > maxXValue)
 			maxXValue = value.asMinutes();
 	}
-	minXValue=minXValue-(minXValue%30);
-	maxXValue=maxXValue-(maxXValue%30)+30;
-	int nScale;//
-	int n=(maxXValue-minXValue)%210;//210=30*7;  7 Column
-	if(n==0)
-	{
-		nScale=(maxXValue-minXValue)/210;
-	}
-	else
-	{
-		nScale=(maxXValue-minXValue)/210+1;
-	}
+	if(nInterval <= 0)
+		nInterval = 30;
+
+	minXValue=minXValue-(minXValue%nInterval);
+	maxXValue=maxXValue-(maxXValue%nInterval)+nInterval;
+	
+	//int nScale = 0;
+	int nCount = 7;
+	//if(nInterval > 0 )
+	//{
+		//nScale = nInterval;
+		nCount = (maxXValue-minXValue)%nInterval;
+		if(nCount == 0)
+		{
+			nCount = (maxXValue-minXValue)/nInterval;
+		}
+		else
+		{
+			nCount = (maxXValue-minXValue)/nInterval + 1;
+		}
+	//}
+	//else
+	//{
+	//	nInterval = 30;//30 mins
+	//	int n=(maxXValue-minXValue)%210;//210=30*7;  7 Column
+	//	if(n==0)
+	//	{
+	//		nCount=(maxXValue-minXValue)/210;
+	//	}
+	//	else
+	//	{
+	//		nCount=(maxXValue-minXValue)/210+1;
+	//	}
+	//}
+	//int xValue[nCount + 1];
+	std::vector<int> xValue;
+	std::vector<int> yValue;
+	//int yValue[nCount + 1];
+	xValue.resize(nCount + 1, 0 );
+	yValue.resize(nCount + 1, 0);
+
+	//for(int i=0;i<nCount + 1;i++)
+	//{
+	//	xValue[i]=yValue[i]=0;
+	//}
+	
+	//int nScale;//
+	
 
 	xValue[0]=minXValue;
-	for(int i=1;i<=7;i++)
+	for(int i=1;i<=nCount;i++)
 	{
-		xValue[i]=xValue[i-1]+30*nScale;
+		xValue[i]=xValue[i-1]+nInterval;
 	}
 
 	chartFile.reset();
@@ -923,7 +958,7 @@ void CRepGraphViewSingleReportOperator::PaxLogSysEntryDistribution()
 	{
 		chartFile.setToField (1);
 		chartFile.getTime (value, TRUE);
-		for(int ii=1;ii<=7;ii++)
+		for(int ii=1;ii<=nCount;ii++)
 		{
 			if(value.asMinutes()>=xValue[ii-1] && value.asMinutes()<xValue[ii])
 			{
@@ -931,8 +966,8 @@ void CRepGraphViewSingleReportOperator::PaxLogSysEntryDistribution()
 			}
 		}
 	}
-	int nCount=7;
-	for(int i=7;i>0;i--)
+	
+	for(int i=nCount;i>0;i--)
 	{
 		if(yValue[i]==0)
 		{
@@ -953,7 +988,7 @@ void CRepGraphViewSingleReportOperator::PaxLogSysEntryDistribution()
 		m_MSChartCtrl.SetRow(i);
 		//		strLabel.Format("%s-%s",FormatTime(xValue[i-1]),FormatTime(xValue[i]));
 		strLabel.Format("%s-%s",
-			FormatTime(xValue[i-1] % (24 * 60)), FormatTime( xValue[i] % (24 * 60)) );
+			FormatTime(xValue[i-1]), FormatTime( xValue[i] ) );
 		DealRowLabel(strLabel);
 		m_MSChartCtrl.SetRowLabel(strLabel);
 		strLabel.Format("%d",yValue[i]);
@@ -981,6 +1016,8 @@ void CRepGraphViewSingleReportOperator::PaxLogSysExitDistribution()
 		chartFile.closeIn();
 		return;
 	}
+
+
 	//2.)Draw Title,X Axis Title,Y Axis Title,Footnote
 	chartFile.reset();
 	chartFile.getLine();
@@ -993,17 +1030,16 @@ void CRepGraphViewSingleReportOperator::PaxLogSysExitDistribution()
 	CString strFootnote;
 	strFootnote.Format("%s %s %s %s",NoUnderline(CString(string[0])),string[1],string[2],string[3]);
 	SetHeadXYTitle("System Exit Distribution","Exit Time","Passenger Count",strFootnote);
+
+	//get interval
+	int nInterval = GetInterval(string[1]);	//interval, unit: minute
+
 	//3.)Draw it
 	chartFile.reset();
 	chartFile.skipLines(3);
-	int xValue[8];
-	int yValue[8];
-	for(int i=0;i<8;i++)
-	{
-		xValue[i]=yValue[i]=0;
-	}
+
 	int maxXValue=0;
-	int minXValue=1440;// max minutes in 1 day
+	int minXValue=14400;// max minutes in 1 day
 	float ft = 0.0;   
 	ElapsedTime value;
 	while (chartFile.getLine())
@@ -1015,23 +1051,40 @@ void CRepGraphViewSingleReportOperator::PaxLogSysExitDistribution()
 		if (value.asMinutes() > maxXValue)
 			maxXValue = value.asMinutes();
 	}
-	minXValue=minXValue-(minXValue%30);
-	maxXValue=maxXValue-(maxXValue%30)+30;
-	int nScale;//
-	int n=(maxXValue-minXValue)%210;//210=30*7;  7 Column
+	if(nInterval <= 0)
+		nInterval = 30;
+
+	minXValue=minXValue-(minXValue%nInterval);
+	maxXValue=maxXValue-(maxXValue%nInterval) + nInterval;
+
+	int nCount = 7;
+
+	//int nScale;//
+	int n=(maxXValue-minXValue)%nInterval;//210=30*7;  7 Column
 	if(n==0)
 	{
-		nScale=(maxXValue-minXValue)/210;
+		nCount = (maxXValue-minXValue)/nInterval;
 	}
 	else
 	{
-		nScale=(maxXValue-minXValue)/210+1;
+		nCount = (maxXValue-minXValue)/nInterval + 1;
 	}
 
+	//int xValue[8];
+	//int yValue[8];
+	std::vector<int> xValue;
+	std::vector<int> yValue;
+	xValue.resize(nCount + 1, 0);
+	yValue.resize(nCount + 1, 0);
+	//for(int i=0;i< nCount + 1;i++)
+	//{
+	//	xValue[i]=yValue[i]=0;
+	//}
+
 	xValue[0]=minXValue;
-	for(int i=1;i<=7;i++)
+	for(int i=1;i<=nCount;i++)
 	{
-		xValue[i]=xValue[i-1]+30*nScale;
+		xValue[i]=xValue[i-1]+nInterval;
 	}
 
 	chartFile.reset();
@@ -1040,7 +1093,7 @@ void CRepGraphViewSingleReportOperator::PaxLogSysExitDistribution()
 	{
 		chartFile.setToField (2);
 		chartFile.getTime (value, TRUE);
-		for(int i=1;i<=7;i++)
+		for(int i=1;i<=nCount;i++)
 		{
 			if(value.asMinutes()>=xValue[i-1] && value.asMinutes()<xValue[i])
 			{
@@ -1048,8 +1101,7 @@ void CRepGraphViewSingleReportOperator::PaxLogSysExitDistribution()
 			}
 		}
 	}
-	int nCount=7;
-	for(int i=7;i>0;i--)
+	for(int i=nCount;i>0;i--)
 	{
 		if(yValue[i]==0)
 		{
@@ -1064,7 +1116,7 @@ void CRepGraphViewSingleReportOperator::PaxLogSysExitDistribution()
 	m_MSChartCtrl.SetColumnCount(1);
 	m_MSChartCtrl.SetColumnLabelCount(1);
 	m_MSChartCtrl.SetColumn(1);
-	m_MSChartCtrl.SetColumnLabel("Meters Travelled");
+	m_MSChartCtrl.SetColumnLabel("Meters Traveled");
 
 	CString strLabel;
 	for(int i=1;i<=nCount;i++)

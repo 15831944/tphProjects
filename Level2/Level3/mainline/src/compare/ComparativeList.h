@@ -1,7 +1,8 @@
 // ComparativeList.h: interface for the CComparativeList class.
 #pragma once
+#include "MFCExControl\XListCtrl.h"
 
-class CComparativeReportResult;
+class CCmpBaseReport;
 class CComparativeQLengthReport;
 class CComparativeQTimeReport;
 class CComparativeThroughputReport;
@@ -16,17 +17,17 @@ class CModelToCompare;
 class CComparativeList  
 {
 public:
-	CComparativeList(Terminal* pTerminal, CListCtrl& listCtrl)
+	CComparativeList(Terminal* pTerminal, CXListCtrl& listCtrl)
 	 : m_pTerminal(pTerminal)
 	 , m_listCtrl(listCtrl)
 	{
 	}
 
-	void RefreshData(const CComparativeReportResult& _reportData);
+	void RefreshData(const CCmpBaseReport& _reportData);
 
 private:
 	Terminal* m_pTerminal;
-	CListCtrl& m_listCtrl;
+	CXListCtrl& m_listCtrl;
 
 	void RefreshData(CComparativeQLengthReport& _reportData);
 	void RefreshData(CComparativeQTimeReport& _reportData);

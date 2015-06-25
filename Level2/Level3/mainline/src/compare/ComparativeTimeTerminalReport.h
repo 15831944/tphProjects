@@ -6,7 +6,7 @@
 #include "ComparativeQTimeReport.h"
 
 class CComparativeTimeTerminalReport :
-	public CComparativeReportResult
+	public CCmpBaseReport
 {
 public:
 	CComparativeTimeTerminalReport(void);

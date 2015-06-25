@@ -1399,9 +1399,9 @@ void CProcessor2::DrawSelectOGL(CTermPlanDoc* pDoc, double* dAlt)
 		{
 			glLoadName(m_nSelectName);
 			BridgeConnector* pConnector = (BridgeConnector*)GetProcessor();
-			for(int i=0;i<pConnector->GetConnectPointCount();i++)
+			//for(int i=0;i<pConnector->GetConnectPointCount();i++)
 			{
-				const BridgeConnector::ConnectPoint& pConectPoint =  pConnector->GetConnectPointByIdx(i);			
+				const BridgeConnector::ConnectPoint& pConectPoint =  pConnector->m_connectPoint;//(i);			
 				CRenderUtility::SelectBridgeConPtr(pConectPoint,dAlt[m_nFloor] );				
 			}
 		}

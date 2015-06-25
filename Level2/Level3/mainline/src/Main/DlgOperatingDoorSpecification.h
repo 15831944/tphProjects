@@ -3,14 +3,12 @@
 #include "../MFCExControl/ARCTreeCtrl.h"
 #include "../Common/ACTypeDoor.h"
 #include "../MFCExControl/XTResizeDialog.h"
-
+#include "../Inputs/OperatingDoorSpec.h"
 
 
 // DlgOperatingDoorSpecification dialog
 class CAirportDatabase;
-class OperatingDoorSpec;
-class FltOperatingDoorData;
-class StandOperatingDoorData;
+
 class DlgOperatingDoorSpecification : public CXTResizeDialog
 {
 	DECLARE_DYNAMIC(DlgOperatingDoorSpecification)
@@ -49,9 +47,15 @@ public:
 	void EditStandItem(HTREEITEM hSelItem,FltOperatingDoorData* pFltData);
 	void EditDoorItem(HTREEITEM hSelItem, StandOperatingDoorData* pStandData, ACTYPEDOORLIST* pACTypeDoors, const CString& strACType);	
 
+	void DeleteTreeNode(StandOperatingDoorData::OperationDoor* pNodeData);
+	void DeleteTreeNode(const StandOperatingDoorData::OperationDoor& doorOp);
+	void ClearTreeNode();
+	void DeleteTreeStandNode(StandOperatingDoorData* pStandData);
+	void DeleteTreeFltNode(FltOperatingDoorData* pFltData);
 private:
 	CAirportDatabase* m_pAirportDatabase;
 	CToolBar m_wndToolbar;
 	CARCTreeCtrl m_wndTreeCtrl;
 	OperatingDoorSpec* m_pOperatingDoorSpec;
+	std::vector<StandOperatingDoorData::OperationDoor*> m_vDoorOp;
 };

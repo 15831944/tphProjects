@@ -241,7 +241,7 @@ void CModelSelectionDlg::SaveHostInfo()
 int CModelSelectionDlg::GetSelectionModelsFromTree()
 {
 	std::vector<CModelToCompare *> vOldModels = m_modelsManager->GetModelsList();
-	m_modelsManager->GetModelsList().clear();
+	m_modelsManager->Clear();
 
 	for (HTREEITEM hItem = m_cooltree.GetRootItem(); hItem != NULL; hItem = m_cooltree.GetNextSiblingItem(hItem))
 	{
@@ -303,11 +303,8 @@ int CModelSelectionDlg::GetSelectionModelsFromTree()
 						hItemResult = m_cooltree.GetNextSiblingItem(hItemResult))
 					{
 						if (m_cooltree.IsCheckItem(hItemResult))
-						{
-							SimResultWithCheckedFlag simResult;
-							simResult.SetSimResultName(m_cooltree.GetItemText(hItemResult));
-							simResult.SetChecked(TRUE);
-							model->AddSimResult(simResult);
+						{			
+							model->AddSimResult(m_cooltree.GetItemText(hItemResult).GetBuffer());
 						}
 					}
 
@@ -393,11 +390,12 @@ void CModelSelectionDlg::RemoveTreeItem(const CString &strHostName)
 
 void CModelSelectionDlg::InitSelectedNodes()
 {
-	std::vector<CModelToCompare *> vModels = m_modelsManager->GetModelsList();
-	for (int i = 0; i < static_cast<int>(vModels.size()); i++)
+	int nCount = m_modelsManager->getCount();
+	for (int i = 0; i < nCount; i++)
 	{
+		CModelToCompare* pCmpModel = m_modelsManager->getModel(i);
 		BOOL bFound = FALSE;
-		CString str = vModels[i]->GetModelName();
+		CString str = pCmpModel->GetModelName();
 		str.MakeUpper();
 		for (HTREEITEM hItem = m_cooltree.GetRootItem(); hItem != NULL; hItem = m_cooltree.GetNextSiblingItem(hItem))
 		{
@@ -408,7 +406,7 @@ void CModelSelectionDlg::InitSelectedNodes()
 				{
 					CString strModuleName = m_cooltree.GetItemText(hItemChild);
 					strModuleName.MakeUpper();
-					if ((m_cooltree.GetItemText(hItem) == GetHostName(vModels[i]->GetModelLocation())) &&
+					if ((m_cooltree.GetItemText(hItem) == GetHostName(pCmpModel->GetModelLocation())) &&
 						(strModuleName == str))
 					{
 						if (!m_cooltree.IsCheckItem(hItem))
@@ -540,18 +538,8 @@ void CModelSelectionDlg::OnTvnItemexpandingTree1(NMHDR *pNMHDR, LRESULT *pResult
 				}
 
 				//check the Model is in the old model list
-				std::vector<CModelToCompare *> vModels = m_modelsManager->GetModelsList();
-				CModelToCompare *model = NULL;
-				std::vector<CModelToCompare *>::iterator iterModel = vModels.begin();
-				std::vector<CModelToCompare *>::iterator iterModelEnd = vModels.end();
-				for (; iterModel != iterModelEnd; ++iterModel)
-				{
-					if((*iterModel)->GetUniqueName().CompareNoCase(strUniqueName) == 0)
-					{
-						model = *iterModel;
-						break;
-					}
-				}
+
+				CModelToCompare *model = m_modelsManager->GetModelByUniqueName(strUniqueName);
 //				/////
 //				//test code
 //					if(model != NULL)

@@ -3,9 +3,12 @@
 #include ".\Common\ALTObjectID.h"
 #include "../Results/BridgeConnectorLogEntry.h"
 #include <CommonData/ExtraProcProp.h>
+#include "Inputs/MISCPROC.H"
+class MiscBridgeIDListWithDoor;
 class OnboardFlightInSim;
 
 class AirsideFlightInSim;
+class StandDoorPriortyMap;
 
 class Terminal;
 class BridgeConnector : public Processor, public BridgeConnectorProp
@@ -14,7 +17,7 @@ public:
 	BridgeConnector(void);
 	~BridgeConnector(void);
 
-	void FlushLog();
+	void FlushLog(const ElapsedTime& t);
 
 public:
 	// Returns ProcessorClassType corresponding to proc type.
@@ -36,15 +39,16 @@ public:
 	virtual int writeSpecialField(ArctermFile& procFile)const;
 	void initSpecificMisc (const MiscData *p_miscData);
 	void initMiscData( bool _bDisallowGroup, int visitors, int count, const GroupIndex *gates );
-	void appendLinkedStandProcs(const MiscProcessorIDList* _pLinkedStandIdList);
+	void appendLinkedStandProcs(const MiscBridgeIDListWithDoor* _pLinkedStandIdList);
 
-	void setConnectPointCount(int nCount){ m_nConnectPointCount = nCount; }
-	int GetConnectPointCount(){ return m_nConnectPointCount;}
-	const ConnectPoint& GetConnectPointByIdx(int idx);
-	void AddConnectPoint(ConnectPoint& conPoint);
-	void ClearConnectPointData(){ m_vConnectPoints.clear(); }
+	//void setConnectPointCount(int nCount){ m_nConnectPointCount = nCount; }
+	
+	//void AddConnectPoint(ConnectPoint& conPoint);
+	void SetConnectPoint(const ConnectPoint& conPoint);
+	const ConnectPoint& GetConnectPoint()const;
+	//void ClearConnectPointData(){ m_vConnectPoints.clear(); }
 	int GetRandomPoint(Point& pStart, Point& pEnd,Person* pPerson);
-	bool GetStartEndPoint( int nBridgeIndex,Point& pStart, Point& pEnd);
+	bool GetStartEndPoint( Point& pStart, Point& pEnd);
 
 	void SetAllStandList(const ALTObjectIDList& allStandIDList);
 	//status of the connect point
@@ -54,19 +58,22 @@ public:
 		ConnectPointStatus(){ mbConnected = false;	}
 		bool mbConnected;
 		Point m_EndPoint;  //end point of the connect point
+		ElapsedTime m_tLastTime;
 		
 		void SetLogEntryOfBridge( const CBridgeConnectorLogEntry& _logEntry );
-	
-		void FlushLog(Terminal* pTerm);
+		
+		void FlushLog(const ElapsedTime& t,Terminal* pTerm);
 		//log entry
 		CBridgeConnectorLogEntry m_logEntryOfBridge;
 
 	};
 	//engine part
-	std::vector<ConnectPointStatus> m_vStatus;
-	ConnectPointStatus& GetConnectPointStatus(int idx);
+	ConnectPointStatus m_Status;
+	//std::vector<ConnectPointStatus> m_vStatus;
+	//ConnectPointStatus& GetConnectPointStatus(int idx);
 	AirsideFlightInSim* m_pConnectFlight; //connected flight, null if no
 	OnboardFlightInSim* m_pOnboardConnectFlight;
+	int m_iDoorIndex;   //connected door index;
 
 	//connect the Flight
 	void ConnectFlight(AirsideFlightInSim* pFlight,const ElapsedTime& t);
@@ -85,8 +92,22 @@ public:
 
 	void UpdateFloorIndex(const FloorChangeMap& changMap);
 
+	 void beginService (Person *person, ElapsedTime curTime);
+
+	 void GenerateQueue();
+	 virtual void getNextState (int& state,Person* _pPerson) const;
+	 virtual Point AcquireServiceLocation( Person* _pPerson  );
+
+
+	 virtual void getNextLocation (Person *aPerson);
 private:
 	ALTObjectID GetOne2OneStand(const Processor& _pSourceProcessor, const ALTObjectIDList& _destStandArray,int _nDestIdLength);
-	bool ConnectFlight(const CPoint2008& ptDoorPos, int idxDoor,const ElapsedTime& t );
-	void DisConnect(int idxDoor, const ElapsedTime& t);
+	bool _connectFlight(const CPoint2008& ptDoorPos, const ElapsedTime& t );
+	void DisConnect(const ElapsedTime& t);
+	
+	typedef std::map<ALTObjectID, MiscBridgeIDWithDoor::DoorPriorityList> StandDoorPriorityMap;
+	StandDoorPriorityMap m_doorPriorityMap;
+
+	MiscBridgeIDWithDoor::DoorPriorityList _getLinkDoorPriority(const ALTObjectID& standname)const;
+	
 };

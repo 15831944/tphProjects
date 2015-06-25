@@ -1927,6 +1927,14 @@ void CNodeView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 				dlg.DoModal();
 			}
 			
+			// passenger entry flight time distribution
+			s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
+			if( s.Compare( pNode->Name()) == 0)
+			{
+				CFltPaxDataDlg dlg(ENTRY_FLIGHT_TIME_DISTRIBUTION, this );
+				dlg.DoModal();
+			}
+
 			//Gate Assignment
 			s.LoadString(IDS_TVNN_STAND_GATE_ASSIGNMENT);
 			if(s.Compare(pNode->Name())==0)

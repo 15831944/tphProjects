@@ -1902,6 +1902,110 @@ void MiscProcessorIDListWithLevel::writeIDList (ArctermFile& p_file) const
     p_file.writeField (str);
 }
 
+
+void MiscBridgeIDListWithDoor::readIDList( ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne /*= true */ )
+{
+	clear();
+	char *str1, *str2, *str3, str[1024];
+	p_file.getField (str, 1024);
+	if (!str[0])
+		return;
+
+	str2 = str - 1;
+	MiscBridgeIDWithDoor *id;
+	while (str2)
+	{
+		str1 = str2 + 1;
+		str2 = strstr (str1, ";");
+		if (str2)
+			str2[0] = '\0';
+
+		id = new MiscBridgeIDWithDoor;
+		id->SetStrDict( _pInTerm->inStrDict );
+		{
+			str3 = strstr( str1, "@" );
+			if( str3 )
+				str3[0] = '\0';
+
+			id->setID (str1);
+			id->setOne2OneFlag( str3[1] == 'Y' ? true : false );
+			
+			str3 ++;
+			char* strPirorityList = strstr( str3, "@" );
+			if( strPirorityList )
+				strPirorityList[0] = '\0';
+			strPirorityList ++;
+			int iStrlen = strlen(strPirorityList);
+			for(int i=0; i<iStrlen; i++)
+			{
+				if(strPirorityList[i] == '-')
+				{
+					strPirorityList[i] = ',';
+				}
+			}
+			if (strPirorityList)
+				strPirorityList[0] = '\0';
+		
+			strPirorityList++;
+			ArctermFile tempFile;
+			tempFile.InitDataFromString( strPirorityList );
+			int  countOfPriority;
+	
+			tempFile.getInteger(countOfPriority); 
+			for(int i=0; i<countOfPriority; i++)
+			{
+				CString strPriority;
+				tempFile.getField(strPriority.GetBuffer(256),256);
+				strPriority.ReleaseBuffer();
+				MiscBridgeIDWithDoor::DoorPriority priorityDoor;
+				priorityDoor.ParseString(strPriority);
+				id->m_vDoorPriority.push_back(priorityDoor);
+			}
+
+			if (id->m_vDoorPriority.empty())
+			{
+				MiscBridgeIDWithDoor::DoorPriority priorityDoor;
+				priorityDoor.m_iIndex = 1;
+				priorityDoor.m_iHandType =  ACTypeDoor::LeftHand;
+				id->m_vDoorPriority.push_back(priorityDoor);
+			}
+		}
+		addItem (id);
+	}
+}
+
+void MiscBridgeIDListWithDoor::writeIDList( ArctermFile& p_file ) const
+{
+	char str[1024] = "";
+	MiscBridgeIDWithDoor* pProc = NULL;
+	int procCount = getCount();
+
+	for (int i = 0; i < procCount; i++)
+	{
+		if(i > 0)
+			strcat (str, ";");
+		pProc = (MiscBridgeIDWithDoor*)getItem (i);
+		pProc->printID (str + strlen (str));
+		strcat( str, pProc->getOne2OneFlag() ? "@Y" : "@N" );
+		strcat( str, "@");
+		char tempBuf[256];
+		int count = (int)pProc->m_vDoorPriority.size();
+		_itoa(count, tempBuf, 10);
+		strcat( str, "-");
+		strcat( str, tempBuf );
+		for(int i=0; i<count; i++)
+		{
+			CString strPriority = pProc->m_vDoorPriority.at(i).GetPriorityString();
+			strcpy(tempBuf,strPriority.GetBuffer(255));
+			strPriority.ReleaseBuffer();
+			strcat( str, "-");
+			strcat( str, tempBuf);
+		}
+		
+	}
+	p_file.writeField (str);
+}
+
 void MiscEscalatorData::readSpecificData(ArctermFile& p_file)
 {
 	p_file.getInteger (m_nCapacity);
@@ -2041,7 +2145,7 @@ bool MiscBillboardData::FindCoefficient(const CMobileElemConstraint& paxType,int
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 MiscBridgeConnectorData::MiscBridgeConnectorData()
 {
-	m_pStandLinkedProcList = new MiscProcessorIDList();
+	m_pStandLinkedProcList = new MiscBridgeIDListWithDoor();
 }
 
 MiscBridgeConnectorData::MiscBridgeConnectorData(const MiscBridgeConnectorData& anothermiscData)

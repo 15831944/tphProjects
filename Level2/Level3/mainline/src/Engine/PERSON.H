@@ -118,6 +118,8 @@ public:
     //This function is used for direction changes.
     void setCurrentPosition (ElapsedTime moveTime);
 
+	void setCurrentPositionRealZ( ElapsedTime moveTime);
+
     //Returns reequired gap between Persons m_in queues.
    virtual DistanceUnit getInStep (void) const;
 

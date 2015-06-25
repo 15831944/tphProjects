@@ -6403,7 +6403,7 @@ void C3DView::DrawPax(CTermPlanDoc* pDoc,BOOL* bOn,double* dAlt,BOOL bSelectMode
 
 	}
 
-	CHECK_GL_ERRORS("C3DView::DrawPax(...). end");
+	//CHECK_GL_ERRORS("C3DView::DrawPax(...). end");
 }
 
 

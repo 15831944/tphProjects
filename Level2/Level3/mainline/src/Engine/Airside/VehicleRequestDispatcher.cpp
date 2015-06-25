@@ -827,6 +827,8 @@ void VehicleRequestDispatcher::BaggageTrainServiceRequestDispatch()
 
 				pBagTrainRequest->SetServiceVehicleTypeID(nVehicleTypeID);
 				pBagTrainRequest->SetServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetServiceTimeDistribution()));
+				pBagTrainRequest->SetSubServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetSubServiceTimeDistribution()));
+
 
 				m_pPoolsDeployment->GetServicePool(pFlight, nVehicleTypeID, vServicePoolList);
 
@@ -930,6 +932,7 @@ void VehicleRequestDispatcher::BaggageTrainServiceRequestDispatch()
 
 				pBagTrainRequest->SetServiceVehicleTypeID(nVehicleTypeID);
 				pBagTrainRequest->SetServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetServiceTimeDistribution()));
+				pBagTrainRequest->SetSubServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetSubServiceTimeDistribution()));
 
 				m_pPoolsDeployment->GetServicePool(pFlight, nVehicleTypeID, vServicePoolList);
 

@@ -16,6 +16,9 @@
 
 //using namespace std;
 class CModelToCompare;
+class CCmpReportParameter;
+class CModelsManager;
+
 class CReportToCompare  
 {
 public:
@@ -37,9 +40,7 @@ public:
 	int GetCategory() const { return m_nReportCategory; }
 
 	void SetParameter(const CReportParamToCompare& reportParam) { m_reportParam = reportParam; }
-	const CReportParamToCompare& GetParameterConst() const { return m_reportParam; }
-	CReportParamToCompare& GetParameter() { return m_reportParam; }
-
+	const CReportParamToCompare& GetParameter() const { return m_reportParam; }
 	BOOL GetChecked() const { return m_isChecked; }
 	void SetChecked(BOOL val) { m_isChecked = val; }
 
@@ -79,16 +80,16 @@ public:
 	virtual const char* getHeaders() const{return "Name, Category, Start, End, Interval, Passenger Type, Processor Type";}
 	
 	
-	void GetReports(OUT std::vector<CReportToCompare>& vReports);
+	int GetReports(OUT std::vector<CReportToCompare>& vReports);
 	void SetReports(const std::vector<CReportToCompare>& vReports);
 	int GetReportCount(){ return (int)m_vReports.size(); }
 
-	void SetModels(const std::vector<CModelToCompare *>& vModel );
+	void SetInputParam(CModelsManager *pModelsManager );
 	CModelToCompare* GetModelByUniqueName(const CString& strUniqueName);
 	
 protected:
 	std::vector<CReportToCompare>	m_vReports;
-	std::vector<CModelToCompare *>  m_vModel;
+	CModelsManager *m_pModelsManager;
 };
 
 #endif // !defined(AFX_REPORTTOCOMPARE_H__F52B6C8D_A668_4D02_9C6E_719C285CD02A__INCLUDED_)

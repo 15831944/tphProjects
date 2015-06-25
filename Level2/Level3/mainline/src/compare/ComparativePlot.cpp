@@ -58,7 +58,7 @@ static void GetUniqueColors(std::vector<COLORREF>& vUniqueColors, size_t count)
 		vUniqueColors[i] = UniqueColors[i % (sizeof(UniqueColors)/sizeof(OLE_COLOR))];
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeReportResult& _reportData)
+bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData)
 {
 	bool bResult = true;
 

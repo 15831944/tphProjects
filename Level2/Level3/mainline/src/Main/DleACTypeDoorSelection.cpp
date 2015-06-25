@@ -14,6 +14,7 @@ DlgACTypeDoorSelection::DlgACTypeDoorSelection(ACTYPEDOORLIST* pAcDoors,const CS
 	: CDialog(DlgACTypeDoorSelection::IDD, pParent)
 	,m_pAcDoors(pAcDoors)
 	,m_strACType(strACName)
+	,m_pDoor(NULL)
 {
 }
 
@@ -49,6 +50,15 @@ void DlgACTypeDoorSelection::OnBnClickedOk()
 	HTREEITEM hSelItem = m_wndTreeCtrl.GetSelectedItem();
 	m_strDoorName = m_wndTreeCtrl.GetItemText(hSelItem);
 	m_nDoorID = (int)m_wndTreeCtrl.GetItemData(hSelItem);
+	for (unsigned i = 0; i < m_pAcDoors->size(); i++)
+	{
+		ACTypeDoor* pDoor = m_pAcDoors->at(i);
+		if (m_nDoorID == pDoor->GetID())
+		{
+			m_pDoor = pDoor;
+			break;
+		}
+	}
 	OnOK();
 }
 

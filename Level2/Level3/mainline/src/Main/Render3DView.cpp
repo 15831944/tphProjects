@@ -1485,12 +1485,12 @@ void CRender3DView::UpdateAnimationProcessor( CTermPlanDoc* pDoc , double* dAlt 
 			ARCColor3 cDisplay;
 			cDisplay = bShowStateOnTag ? pProc2->m_dispProperties.color[PDP_DISP_SHAPE] : stateOffColor;
 			{
-				for(int idx=0;idx<pBridge->GetConnectPointCount();++idx)
+				//for(int idx=0;idx<pBridge->GetConnectPointCount();++idx)
 				{
 					CPoint2008 pF, pT;
-					const BridgeConnector::ConnectPoint& pCon =  pBridge->GetConnectPointByIdx(idx);					
-					bool bMoving  = CAnimationManager::GetBridgeShow(pBridge,idx,pDoc,dAlt[nProcFloor],pF,pT);
-					pBridge3D.DrawConnector(idx,bMoving,pF,pT,pCon.m_dWidth,/*pProc2->m_dispProperties.color[PDP_DISP_SHAPE]*/cDisplay);
+					const BridgeConnector::ConnectPoint& pCon =  pBridge->m_connectPoint;					
+					bool bMoving  = CAnimationManager::GetBridgeShow(pBridge,0,pDoc,dAlt[nProcFloor],pF,pT);
+					pBridge3D.DrawConnector(0,bMoving,pF,pT,pCon.m_dWidth,/*pProc2->m_dispProperties.color[PDP_DISP_SHAPE]*/cDisplay);
 				}					
 			}			
 		}

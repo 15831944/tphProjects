@@ -47,7 +47,7 @@ CString CComparativeList::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
 }
 
 
-void CComparativeList::RefreshData(const CComparativeReportResult& _reportData)
+void CComparativeList::RefreshData(const CCmpBaseReport& _reportData)
 {
 	if(::IsWindow( m_listCtrl.GetSafeHwnd()) == FALSE || (m_listCtrl.GetStyle() & LVS_REPORT) == 0)
 		return ;

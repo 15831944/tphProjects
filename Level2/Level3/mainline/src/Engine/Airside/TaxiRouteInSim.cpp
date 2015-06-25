@@ -283,12 +283,12 @@ void DoMoveToNextDistInRoute(MobileTravelTrace& travelTrace, const ElapsedTime& 
 				if (theHold.m_pDirSeg->GetType() == AirsideResource::ResType_TaxiwayDirSeg)
 				{
 					pEnterRunwayCrossingLog->sTaxiway = ((TaxiwayDirectSegInSim*)theHold.m_pDirSeg)->GetTaxiwaySeg()->m_pTaxiway->GetTaxiwayInput()->GetObjNameString();
-				}
-				pEnterRunwayCrossingLog->sNodeName = theHold.m_pNode->GetNodeInput().GetName();
-				pEnterRunwayCrossingLog->time = atHoldTime.getPrecisely();
-				pEnterRunwayCrossingLog->sRunway = pRwItem->GetNameString();
-				pEnterRunwayCrossingLog->state = AirsideRunwayCrossigsLog::OnEnterRunway;
-				pFlight->LogEventItem(pEnterRunwayCrossingLog);
+					pEnterRunwayCrossingLog->sNodeName = theHold.m_pNode->GetNodeInput().GetName();
+					pEnterRunwayCrossingLog->time = atHoldTime.getPrecisely();
+					pEnterRunwayCrossingLog->sRunway = pRwItem->GetNameString();
+					pEnterRunwayCrossingLog->state = AirsideRunwayCrossigsLog::OnEnterRunway;
+					pFlight->LogEventItem(pEnterRunwayCrossingLog);
+				}			
 			}
 
 			getConflictGraph(pFlight)->OnFlightEnterNode(pFlight,theHold.m_pNode, atHoldTime);
@@ -333,12 +333,13 @@ void DoMoveToNextDistInRoute(MobileTravelTrace& travelTrace, const ElapsedTime& 
 				if (theHold.m_pDirSeg->GetType() == AirsideResource::ResType_TaxiwayDirSeg)
 				{
 					pExitRunwayCrossingLog->sTaxiway = ((TaxiwayDirectSegInSim*)theHold.m_pDirSeg)->GetTaxiwaySeg()->m_pTaxiway->GetTaxiwayInput()->GetObjNameString();
+					pExitRunwayCrossingLog->sNodeName = theHold.m_pNode->GetNodeInput().GetName();
+					pExitRunwayCrossingLog->time = atHoldTime.getPrecisely();
+					pExitRunwayCrossingLog->sRunway = pRwItem->GetNameString();
+					pExitRunwayCrossingLog->state = AirsideRunwayCrossigsLog::OnExitRunway;
+					pFlight->LogEventItem(pExitRunwayCrossingLog);
 				}
-				pExitRunwayCrossingLog->sNodeName = theHold.m_pNode->GetNodeInput().GetName();
-				pExitRunwayCrossingLog->time = atHoldTime.getPrecisely();
-				pExitRunwayCrossingLog->sRunway = pRwItem->GetNameString();
-				pExitRunwayCrossingLog->state = AirsideRunwayCrossigsLog::OnExitRunway;
-				pFlight->LogEventItem(pExitRunwayCrossingLog);
+				
 			}
 		}	
 		//create log

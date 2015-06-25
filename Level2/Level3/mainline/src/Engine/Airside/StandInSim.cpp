@@ -676,6 +676,11 @@ bool StandInSim::IsStandResource(AirsideResource* pResource)
 	return false;
 }
 
+StandInSim* StandInSim::IsStandResource() const
+{
+	return const_cast<StandInSim*>(this);
+}
+
 FlightTypeStandAssignment* StandInSim::getFlightTypeStandAssignment(AirsideFlightInSim* pFlight)
 {
 	if (m_pStandCriteriaAssignment == NULL)

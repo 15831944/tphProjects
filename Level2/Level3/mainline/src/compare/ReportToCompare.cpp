@@ -6,6 +6,7 @@
 #include "ReportToCompare.h"
 #include "ModelToCompare.h"
 #include <Inputs/in_term.h>
+#include "InputParameter.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -38,6 +39,7 @@ void CReportToCompare::DeleteModelParameter(const CString& strModelUniqueName)
 //	CReportToCompareDataSet
 CReportToCompareDataSet::CReportToCompareDataSet() : DataSet(ReportInfoFile)
 {
+	 m_pModelsManager = NULL;
 }
 
 CReportToCompareDataSet::~CReportToCompareDataSet()
@@ -124,6 +126,8 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 			int iCount = 0;
 			p_file.getInteger(iCount);
 
+			std::vector<CMobileElemConstraint> vPaxType;
+			vPaxType.clear();
 			for (int i = 0; i < iCount; i++)
 			{
 				if (pModel == NULL)
@@ -132,22 +136,19 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 				}
 				else
 				{
-					CMobileElemConstraint paxType(pModel->GetInputTerminal());
-					paxType.readConstraint(p_file);
-					isChecked = FALSE;
-					cFlag = 'F';
-					p_file.getChar(cFlag);
-					if(cFlag == 'T')
-					{
-						isChecked = TRUE;
-					}
-					modelParam.AddPaxType(paxType, isChecked);
+					CMobileElemConstraint pax(pModel->GetInputTerminal());
+					//pax.SetInputTerminal(pModel->GetInputTerminal());
+					pax.readConstraint(p_file);
+					vPaxType.push_back(pax);
 				}
 			}
+			modelParam.SetPaxType(vPaxType);
 			
 			p_file.getLine();
 
 			//	Processor type
+			std::vector<ProcessorID> vProcGroup;
+			vProcGroup.clear();
 			p_file.getInteger(iCount);
 			for (int ii = 0; ii < iCount; ii++)
 			{		
@@ -160,22 +161,16 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 					ProcessorID proc;
 					proc.SetStrDict(pModel->GetInputTerminal()->inStrDict);
 					proc.readProcessorID(p_file);
-					isChecked = FALSE;
-					cFlag = 'F';
-					p_file.getChar(cFlag);
-					if(cFlag == 'T')
-					{
-						isChecked = TRUE;
-					}
-					modelParam.AddProcID(proc, isChecked);
+					vProcGroup.push_back(proc);
 				}
+
 			}
+			modelParam.SetProcessorID(vProcGroup);
 		
 			p_file.getLine();
 
-			std::vector<ProcessorID> vProcGroup;
-			vProcGroup.clear();
 			CReportParameter::FROM_TO_PROCS _fromtoprocs ;
+			vProcGroup.clear();
 			p_file.getInteger(iCount);
 			for (int i = 0; i < iCount; i++)
 			{
@@ -220,62 +215,6 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 
 		param.SetModelParameter(vModelparam);
 
-
-
-		////	pax type
-		//int iCount = 0;
-		//p_file.getInteger(iCount);
-
-		//std::vector<CMobileElemConstraint> vPaxType;
-		//vPaxType.clear();
-		//for (int i = 0; i < iCount; i++)
-		//{
-		//	CMobileElemConstraint pax;
-		//	pax.SetInputTerminal(m_pInTerm);
-		//	pax.readConstraint(p_file);
-		//	vPaxType.push_back(pax);
-		//}
-		//param.SetPaxType(vPaxType);
-
-
-		////	Processor type
-		//std::vector<ProcessorID> vProcGroup;
-		//vProcGroup.clear();
-		//p_file.getInteger(iCount);
-		//for (i = 0; i < iCount; i++)
-		//{
-		//	ProcessorID proc;
-		//	proc.SetStrDict(m_pInTerm->inStrDict);
-		//	proc.readProcessorID(p_file);
-		//	vProcGroup.push_back(proc);
-		//}
-		//param.SetProcessorID(vProcGroup);
-
-		//CReportParameter::FROM_TO_PROCS _fromtoprocs ;
-		//vProcGroup.clear();
-		//p_file.getInteger(iCount);
-		//for (i = 0; i < iCount; i++)
-		//{
-		//	ProcessorID proc;
-		//	proc.SetStrDict(m_pInTerm->inStrDict);
-		//	proc.readProcessorID(p_file);
-		//	vProcGroup.push_back(proc);
-		//}
-		//_fromtoprocs.m_vFromProcs = vProcGroup;
-
-		//vProcGroup.clear();
-		//p_file.getInteger(iCount);
-		//for (i = 0; i < iCount; i++)
-		//{
-		//	ProcessorID proc;
-		//	proc.SetStrDict(m_pInTerm->inStrDict);
-		//	proc.readProcessorID(p_file);
-		//	vProcGroup.push_back(proc);
-		//}
-		//_fromtoprocs.m_vToProcs = vProcGroup;
-
-		//param.SetFromToProcs(_fromtoprocs);
-
 		report.SetParameter(param);
 		
 		m_vReports.push_back(report);
@@ -304,7 +243,8 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			p_file.writeChar('F');
 		}
 		
-		const CReportParamToCompare& param = m_vReports[i].GetParameterConst();
+		CReportParamToCompare param = m_vReports[i].GetParameter();
+
 		p_file.writeTime(param.GetStartTime(), TRUE);
 		p_file.writeTime(param.GetEndTime(), TRUE);
 		p_file.writeTime(param.GetInterval(), TRUE);
@@ -314,55 +254,39 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 		p_file.writeLine();
 
 		//Model Parameter
-		const std::vector<CModelParameter>& vModelParam = param.GetModelParameterConst();
+		std::vector<CModelParameter> vModelParam;
+		param.GetModelParameter(vModelParam);
 		int nModelCount = static_cast<int>(vModelParam.size());
 		p_file.writeInt(nModelCount);
 		p_file.writeField(_T("Model Count"));
 		p_file.writeLine();
 
-		for (int nModel=0; nModel<nModelCount; nModel++)
-		{
-			CModelParameter& modelParam = const_cast<CModelParameter&>(vModelParam[nModel]);
+		for (int nModel = 0; nModel < nModelCount; ++nModel)
+		{		
+
+			CModelParameter& modelParam = vModelParam[nModel];
+			
 			p_file.writeField(modelParam.GetModelUniqueName());
 
 			p_file.writeField(modelParam.GetArea());
 			p_file.writeLine();
-
-			// write passenger types.
-			int iCount = modelParam.GetPaxTypeCount();
+			// write pax
+			std::vector<CMobileElemConstraint> vPaxType;
+			int iCount = modelParam.GetPaxType(vPaxType);
 			p_file.writeInt(iCount);
-			std::vector<MobConstWithCheckedFlag>& vPaxType = modelParam.GetPaxTypeWithCheckedFlagList();
-			char bFlag = 'F';
+
+
 			for (int m = 0; m < iCount; m++)
 			{
-				vPaxType[m].GetPaxType().writeConstraint(p_file);
-				if(vPaxType[m].GetChecked() == TRUE)
-				{
-					bFlag = 'T';
-				}
-				else
-				{
-					bFlag = 'F';
-				}
-				p_file.writeChar(bFlag);
+				vPaxType[m].writeConstraint( p_file );
 			}
 			p_file.writeLine();
-
-			iCount = modelParam.GetProcIDCount();
+			std::vector<ProcessorID> vProcGroup;
+			iCount = modelParam.GetProcessorID(vProcGroup);
 			p_file.writeInt(iCount);
-			std::vector<ProcessIDWithCheckedFlag>& vProcID = modelParam.GetProcIDWithCheckedFlagGroup();
-			for (int k = 0; k<iCount; k++)
+			for (int k = 0; k < iCount; k++)
 			{
-				vProcID[k].GetProcID().writeProcessorID(p_file);
-				if(vProcID[k].GetChecked() == TRUE)
-				{
-					bFlag = 'T';
-				}
-				else
-				{
-					bFlag = 'F';
-				}
-				p_file.writeChar(bFlag);
+				vProcGroup[k].writeProcessorID(p_file);
 			}
 			p_file.writeLine();
 			CReportParameter::FROM_TO_PROCS _fromtoprocs ;
@@ -384,74 +308,32 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			}
 			p_file.writeLine();
 		}
-
-		//p_file.writeField(param.GetArea());
-
-		//// write pax
-		//std::vector<CMobileElemConstraint> vPaxType;
-		//int iCount = param.GetPaxType(vPaxType);
-		//p_file.writeInt(iCount);
-		//for (int m = 0; m < iCount; m++)
-		//{
-		//	vPaxType[m].writeConstraint( p_file );
-		//}
-
-		//std::vector<ProcessorID> vProcGroup;
-		//iCount = param.GetProcessorID(vProcGroup);
-		//p_file.writeInt(iCount);
-		//for (int k = 0; k < iCount; k++)
-		//{
-		//	vProcGroup[k].writeProcessorID(p_file);
-		//}
-
-		//CReportParameter::FROM_TO_PROCS _fromtoprocs ;
-		//param.GetFromToProcs(_fromtoprocs);
-
-		//int nCount = static_cast<int>(_fromtoprocs.m_vFromProcs.size());
-		//p_file.writeInt(nCount);
-		//for (int nFrom =0; nFrom < nCount; ++nFrom)
-		//{
-		//	_fromtoprocs.m_vFromProcs.at(nFrom).writeProcessorID(p_file);
-		//}
-		//nCount = static_cast<int>(_fromtoprocs.m_vToProcs.size());
-		//p_file.writeInt(nCount);
-		//for (int nTo =0; nTo < nCount; ++nTo)
-		//{
-		//	_fromtoprocs.m_vToProcs.at(nTo).writeProcessorID(p_file);
-		//}
-		//p_file.writeLine();
 	}
 
 	if (m_vReports.empty())
 		p_file.writeLine();
 }
 
-void CReportToCompareDataSet::GetReports(OUT std::vector<CReportToCompare>& vReports)
+int CReportToCompareDataSet::GetReports(OUT std::vector<CReportToCompare>& vReports)
 {
 	vReports = m_vReports;
+	return m_vReports.size();
 }
 
 void CReportToCompareDataSet::SetReports(const std::vector<CReportToCompare>& vReports)
 {
 	m_vReports = vReports;
 }
-void CReportToCompareDataSet::SetModels(const std::vector<CModelToCompare *>& vModel )
+void CReportToCompareDataSet::SetInputParam( CModelsManager *pModelsManager)
 {
-	m_vModel = vModel;
+	m_pModelsManager = pModelsManager;
 }
 
 CModelToCompare* CReportToCompareDataSet::GetModelByUniqueName(const CString& strUniqueName)
 {
-	CModelToCompare *pModel = NULL;
-	std::vector<CModelToCompare *>::size_type i = 0;
-	for (;i< m_vModel.size(); ++i)
-	{
-		if (strUniqueName.CompareNoCase(m_vModel.at(i)->GetUniqueName()) == 0)
-		{	
-			pModel = m_vModel.at(i);
-//			m_vModel.erase(m_vModel.begin()+ i);
-			break;
-		}
-	}
-	return pModel;
+	if(m_pModelsManager)
+		return m_pModelsManager->GetModelByUniqueName(strUniqueName);
+
+	ASSERT(0);
+	return NULL;
 }

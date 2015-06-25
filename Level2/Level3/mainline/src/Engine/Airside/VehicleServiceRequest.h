@@ -26,6 +26,8 @@ public:
 	void DecreaseServiceCount(int n=1){ m_nServiceCount-=n; }
 	void SetServiceTime(ProbabilityDistribution* pTimeDistribution){ m_pServiceTimeDistribution = pTimeDistribution;}
 	ProbabilityDistribution* GetServiceTime(){ return m_pServiceTimeDistribution;}
+	void SetSubServiceTime(ProbabilityDistribution* pTimeDistribution){ m_pSubServiceTimeDistribution = pTimeDistribution;}
+	ProbabilityDistribution* GetSubServiceTime(){ return m_pSubServiceTimeDistribution;}
 
 	void AddServiceVehicle(AirsideVehicleInSim * pVehicle);
 	virtual void RemoveServiceVehicle(AirsideVehicleInSim *pVehicle);
@@ -48,6 +50,7 @@ protected:
 	std::vector<AirsideVehicleInSim *> m_vServiceVehicle; // assigned service vehicle
 	int m_nServiceVehicleTypeID;
 	ProbabilityDistribution* m_pServiceTimeDistribution;
+	ProbabilityDistribution* m_pSubServiceTimeDistribution;
 	int m_nServiceCount;  //unserviced count left //unassigned vehicle service point
 	bool m_bProceed;//check the request has been proceed or not, TRUE, yes
 };

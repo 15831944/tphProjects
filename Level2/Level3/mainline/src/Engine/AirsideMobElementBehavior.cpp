@@ -17,6 +17,7 @@
 #include "OnboardSimulation.h"
 #include "OnboardFlightInSim.h"
 #include "OnboardDoorInSim.h"
+#include "Airside/FlightOpenDoors.h"
 
 
 AirsidePassengerBehavior::AirsidePassengerBehavior(Person* pax)
@@ -178,7 +179,7 @@ void AirsidePassengerBehavior::ProcessWhenTakeOffFlight(ElapsedTime time)
 		
 
 	CPoint2008 point,groundpoint ;
-	if (GetFlightDoorPostion(point, groundpoint))
+	if (GetFlightDoorPostion(time, point, groundpoint))
 	{
 		setLocation(point) ;
 
@@ -303,9 +304,17 @@ void AirsidePassengerBehavior::ProcessWhenWalkOutGate(ElapsedTime time)
 	PLACE_METHOD_TRACK_STRING();
 	if(!m_pax->getEngine()->IsAirsideSel())
 		return;
-	ResetTerminalToAirsideLocation();
-	CPoint2008 point;
+
 	TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)m_pax->getBehavior(MobElementBehavior::TerminalBehavior);
+	if(spTerminalBehavior && !spTerminalBehavior->IsWalkOnBridge())
+	{
+		ResetTerminalToAirsideLocation();
+	}
+	if(spTerminalBehavior && spTerminalBehavior->IsWalkOnBridge() )
+	{
+		Point pt = spTerminalBehavior->getPoint();
+		setLocation(CPoint2008(pt.getX(),pt.getY(),pt.getZ()));
+	}
 
 	if(spTerminalBehavior&&spTerminalBehavior->HasBusServer() == FALSE)
 	{
@@ -313,6 +322,8 @@ void AirsidePassengerBehavior::ProcessWhenWalkOutGate(ElapsedTime time)
 		GenetateEvent(time) ;
 		return ;
 	}
+
+	CPoint2008 point;
 	if(!GetBusPosition(point))
 	{
 		setState(_DEATH) ;
@@ -330,7 +341,7 @@ void AirsidePassengerBehavior::ProcessWhenTakeOffBusToFlight(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	CPoint2008 point, groundpoint;
-	if (GetFlightDoorPostion(point, groundpoint))
+	if (GetFlightDoorPostion(time , point, groundpoint))
 	{
 		AirsideSimulation* airsideSim = m_pax->getEngine()->GetAirsideSimulation() ;
 		if(airsideSim == NULL)
@@ -659,7 +670,7 @@ BOOL AirsidePassengerBehavior::IsGateOpen()
 	return TRUE ;
 }
 
-bool AirsidePassengerBehavior::GetFlightDoorPostion( CPoint2008& doorpoint, CPoint2008& groundpoint)
+bool AirsidePassengerBehavior::GetFlightDoorPostion( const ElapsedTime& t,CPoint2008& doorpoint, CPoint2008& groundpoint)
 {
 	PLACE_METHOD_TRACK_STRING();
 	AirsideSimulation* airsideSim = m_pax->getEngine()->GetAirsideSimulation() ;
@@ -667,8 +678,11 @@ bool AirsidePassengerBehavior::GetFlightDoorPostion( CPoint2008& doorpoint, CPoi
 		return false;
 	AirsideFlightInSim* airFlight = airsideSim->GetAirsideFlight(m_pax->GetCurFlightIndex()) ;
 
-	std::vector< std::pair<CPoint2008, CPoint2008> > vDoorpoints;
-	if (!airFlight->GetOpenDoorAndStairGroundPostions(vDoorpoints))
+	//std::vector< std::pair<CPoint2008, CPoint2008> > vDoorpoints;
+	//if (!airFlight->GetOpenDoorAndStairGroundPostions(vDoorpoints))
+	//	return false;
+	CFlightOpenDoors* openDoors = airFlight->OpenDoors(t);
+	if(!openDoors)
 		return false;
 
 	if (m_pax->getEngine()->IsOnboardSel())
@@ -696,30 +710,16 @@ bool AirsidePassengerBehavior::GetFlightDoorPostion( CPoint2008& doorpoint, CPoi
 	}
 	else
 	{
-		int nSize = vDoorpoints.size();
-		if(nSize == 0)
+		if(openDoors->getCount()==0)
 			return false;
 
-		std::pair<CPoint2008, CPoint2008> iter = vDoorpoints.at(0);
-		if (nSize > 1)
-		{
-			int idx = random((int)vDoorpoints.size());
-			iter = vDoorpoints.at(idx);
-		}
-
-		doorpoint.setX(iter.first.getX()) ;
-		doorpoint.setY(iter.first.getY() ) ;
-		doorpoint.setZ(iter.first.getZ() ) ;	
-
-		groundpoint.setX(iter.second.getX());
-		groundpoint.setY(iter.second.getY());
+		const COpenDoorInfo& doorInfo = openDoors->getDoor(0);
+		doorpoint  = doorInfo.mDoorPos; 
+		groundpoint = doorInfo.mGroundPos;
 		CPoint2008 stand ;
 		GetStandPosition(stand) ;
 		groundpoint.setZ(stand.getZ());
 	}
-
-	
-
 	return true;
 	
 }

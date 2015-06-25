@@ -1132,9 +1132,9 @@ CFloor2* CFloors::ActiveFloor(int nlevel)
 	m_vFloors[nlevel]->IsActive(TRUE);
 	return m_vFloors[nlevel];
 }
-double CFloors::getVisibleAltitude(double visiblefloorAltitude)const
+double CFloors::getVisibleAltitude(double floorIndex)const
 {
-	int _ifloor = (int)(visiblefloorAltitude/SCALE_FACTOR);
+	int _ifloor = (int)(floorIndex/SCALE_FACTOR);
 	/*if(_ifloor<0 || _ifloor>m_vFloors.size() )
 	{
 		_ifloor = 0;
@@ -1156,7 +1156,7 @@ double CFloors::getVisibleAltitude(double visiblefloorAltitude)const
 		dUpAlt = dAlt + 10*SCALE_FACTOR;
 	}
 	
-	dAlt = (visiblefloorAltitude/SCALE_FACTOR - _ifloor)*(dUpAlt-dAlt) + dAlt;
+	dAlt = (floorIndex/SCALE_FACTOR - _ifloor)*(dUpAlt-dAlt) + dAlt;
 	return dAlt;
 }
 

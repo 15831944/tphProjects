@@ -21,8 +21,8 @@ static char THIS_FILE[] = __FILE__;
 // COpenComparativeReportsGroup dialog
 
 
-COpenComparativeReportsGroup::COpenComparativeReportsGroup(CWnd* pParent /*=NULL*/)
-	: CDialog(COpenComparativeReportsGroup::IDD, pParent)
+CDlgOpenComparativeReport::CDlgOpenComparativeReport(CWnd* pParent /*=NULL*/)
+	: CDialog(CDlgOpenComparativeReport::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(COpenComparativeReportsGroup)
 		// NOTE: the ClassWizard will add member initialization here
@@ -30,7 +30,7 @@ COpenComparativeReportsGroup::COpenComparativeReportsGroup(CWnd* pParent /*=NULL
 }
 
 
-void COpenComparativeReportsGroup::DoDataExchange(CDataExchange* pDX)
+void CDlgOpenComparativeReport::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(COpenComparativeReportsGroup)
@@ -39,7 +39,7 @@ void COpenComparativeReportsGroup::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(COpenComparativeReportsGroup, CDialog)
+BEGIN_MESSAGE_MAP(CDlgOpenComparativeReport, CDialog)
 	//{{AFX_MSG_MAP(COpenComparativeReportsGroup)
 	ON_WM_SIZE()
 	ON_NOTIFY(NM_DBLCLK, IDC_LISTREPORTGROUPS, OnDblclkProjlist)
@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // COpenComparativeReportsGroup message handlers
 
-void COpenComparativeReportsGroup::InitListCtrl()
+void CDlgOpenComparativeReport::InitListCtrl()
 {
 	//m_ListReportsGroup.DeleteAllItems();
 	//DWORD dystyle=m_ListReportsGroup.GetExtendedStyle();
@@ -89,7 +89,7 @@ void COpenComparativeReportsGroup::InitListCtrl()
 	}
 }
 
-void COpenComparativeReportsGroup::OnOK() 
+void CDlgOpenComparativeReport::OnOK() 
 {
 	// TODO: Add extra validation here
 	int nCurSel = GetSelIndex();
@@ -106,7 +106,7 @@ void COpenComparativeReportsGroup::OnOK()
 	CDialog::OnOK();
 }
 
-void COpenComparativeReportsGroup::OnCancel() 
+void CDlgOpenComparativeReport::OnCancel() 
 {
 	// TODO: Add extra cleanup here
 	
@@ -114,7 +114,7 @@ void COpenComparativeReportsGroup::OnCancel()
 }
 
 
-BOOL COpenComparativeReportsGroup::OnInitDialog() 
+BOOL CDlgOpenComparativeReport::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
 	
@@ -130,7 +130,7 @@ BOOL COpenComparativeReportsGroup::OnInitDialog()
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void COpenComparativeReportsGroup::OnSize(UINT nType, int cx, int cy)
+void CDlgOpenComparativeReport::OnSize(UINT nType, int cx, int cy)
 {
 	CDialog::OnSize(nType, cx, cy);
 	
@@ -150,37 +150,38 @@ void COpenComparativeReportsGroup::OnSize(UINT nType, int cx, int cy)
 	
 }
 
-void COpenComparativeReportsGroup::FillProjectList()
+void CDlgOpenComparativeReport::FillProjectList()
 {
-	CComparativeProjectDataSet dsProj;
-	std::vector<CComparativeProject *>	vProjs;
-	dsProj.loadDataSet(PROJMANAGER->GetAppPath());
-
-	if (dsProj.GetProjects(vProjs))
+	//	Fill listbox
+	for (int nCmp = 0; nCmp < CMPPROJECTMANAGER->getProjectCount(); nCmp++)
 	{
-		//	Fill listbox
-		for (int i = 0; i < static_cast<int>(vProjs.size()); i++)
+		CComparativeProject *pProject = CMPPROJECTMANAGER->getProject(nCmp);
+		if(pProject == NULL)
 		{
-			int nIndex = m_ListReportsGroup.GetItemCount();
-			m_ListReportsGroup.InsertItem(nIndex, vProjs[i]->GetName());
-			m_ListReportsGroup.SetItemText(nIndex, 1, vProjs[i]->GetDescription());
-			m_ListReportsGroup.SetItemText(nIndex, 2, vProjs[i]->GetUser());
-			m_ListReportsGroup.SetItemText(nIndex, 3, vProjs[i]->GetMachine());
-			CTime t = vProjs[i]->GetCreatedTime();
-			m_ListReportsGroup.SetItemText(nIndex, 4, t.Format("%m/%d/%Y %H:%M:%S"));
-			t = vProjs[i]->GetLastModifiedTime();
-			m_ListReportsGroup.SetItemText(nIndex, 5, t.Format("%m/%d/%Y %H:%M:%S"));
-			m_ListReportsGroup.SetItemData(nIndex, nIndex);
+			ASSERT(0);
+			continue;
 		}
+
+		int nIndex = m_ListReportsGroup.GetItemCount();
+		m_ListReportsGroup.InsertItem(nIndex, pProject->GetName());
+		m_ListReportsGroup.SetItemText(nIndex, 1, pProject->GetDescription());
+		m_ListReportsGroup.SetItemText(nIndex, 2, pProject->GetUser());
+		m_ListReportsGroup.SetItemText(nIndex, 3, pProject->GetMachine());
+		CTime t = pProject->GetCreatedTime();
+		m_ListReportsGroup.SetItemText(nIndex, 4, t.Format("%m/%d/%Y %H:%M:%S"));
+		t = pProject->GetLastModifiedTime();
+		m_ListReportsGroup.SetItemText(nIndex, 5, t.Format("%m/%d/%Y %H:%M:%S"));
+		m_ListReportsGroup.SetItemData(nIndex, nCmp);
 	}
+	
 }
 
-void COpenComparativeReportsGroup::OnDblclkProjlist(NMHDR* pNMHDR, LRESULT* pResult)
+void CDlgOpenComparativeReport::OnDblclkProjlist(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	OnOK();
 }
 
-void COpenComparativeReportsGroup::OnColumnclickListreportgroups(NMHDR* pNMHDR, LRESULT* pResult) 
+void CDlgOpenComparativeReport::OnColumnclickListreportgroups(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	// TODO: Add your control notification handler code here
@@ -199,7 +200,7 @@ void COpenComparativeReportsGroup::OnColumnclickListreportgroups(NMHDR* pNMHDR, 
 	*pResult = 0;
 }
 
-int COpenComparativeReportsGroup::GetSelIndex()
+int CDlgOpenComparativeReport::GetSelIndex()
 {
 	int i= m_ListReportsGroup.GetItemCount()-1;
 	for( ; i>-1; i-- )

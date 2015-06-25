@@ -25,10 +25,10 @@
 /////////////////////////////////////////////////////////////////////////////
 // CReportProperty dialog
 
-CRect CDlgCmpReportProperty::m_rcWindow[];
+CRect CDlgReportProperty::m_rcWindow[];
 
-CDlgCmpReportProperty::CDlgCmpReportProperty(CWnd* pParent /*=NULL*/)
-	: CDialog(CDlgCmpReportProperty::IDD, pParent)
+CDlgReportProperty::CDlgReportProperty(CWnd* pParent /*=NULL*/)
+	: CDialog(CDlgReportProperty::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CReportProperty)
 	m_strName = _T("");
@@ -58,7 +58,7 @@ CDlgCmpReportProperty::CDlgCmpReportProperty(CWnd* pParent /*=NULL*/)
 //{
 //
 //}
-void CDlgCmpReportProperty::DeleteTreeData(CTreeCtrl& tree)
+void CDlgReportProperty::DeleteTreeData(CTreeCtrl& tree)
 {
 	HTREEITEM hRoot = tree.GetRootItem();
 	while (hRoot)
@@ -72,7 +72,7 @@ void CDlgCmpReportProperty::DeleteTreeData(CTreeCtrl& tree)
 	}
 
 }
-void CDlgCmpReportProperty::DeleteTreeSubItemData(CTreeCtrl& tree,HTREEITEM hItem)
+void CDlgReportProperty::DeleteTreeSubItemData(CTreeCtrl& tree,HTREEITEM hItem)
 {
 	HTREEITEM hChildItem = tree.GetChildItem(hItem);
 	while(hChildItem)
@@ -85,7 +85,7 @@ void CDlgCmpReportProperty::DeleteTreeSubItemData(CTreeCtrl& tree,HTREEITEM hIte
 	}
 
 }
-void CDlgCmpReportProperty::DoDataExchange(CDataExchange* pDX)
+void CDlgReportProperty::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CReportProperty)
@@ -117,7 +117,7 @@ void CDlgCmpReportProperty::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CDlgCmpReportProperty, CDialog)
+BEGIN_MESSAGE_MAP(CDlgReportProperty, CDialog)
 	//{{AFX_MSG_MAP(CReportProperty)
 	ON_WM_CREATE()
 	ON_COMMAND(ID_BUTTONADDFIR,OnPessengerTypeAdd)
@@ -151,21 +151,26 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CReportProperty message handlers
-void CDlgCmpReportProperty::SetManager(CModelsManager* pModelManager,CReportsManager* pReportManager)
+void CDlgReportProperty::SetManager(CModelsManager* pModelManager,CSingleReportsManager* pReportManager)
 {
 	m_pModelsManager = pModelManager;
 	m_reportsManager = pReportManager;
 }
 
-BOOL CDlgCmpReportProperty::CheckParameter()
+BOOL CDlgReportProperty::CheckParameter()
 {
-	std::vector<CModelToCompare *> vModels = m_pModelsManager->GetModelsList();
-	CReportParamToCompare pReportParam = m_reportToCompare.GetParameterConst();
-	std::vector<CModelParameter>& vModelParam = pReportParam.GetModelParameter();
-	std::vector<CModelToCompare *>::size_type i = 0;
-	for (;i<vModels.size(); ++ i)
+	int nCmpModelCount = m_pModelsManager->getCount();
+	CReportParamToCompare pReportParam = m_reportToCompare.GetParameter();
+	std::vector<CModelParameter> vModelParam;
+	pReportParam.GetModelParameter( vModelParam);
+	int nModel = 0;
+	for (;nModel < nCmpModelCount; ++ nModel)
 	{
-		CString strModelName = vModels.at(i)->GetUniqueName();
+		CModelToCompare* pModel2Cmp = m_pModelsManager->getModel(nModel);
+		if(pModel2Cmp == NULL)
+			continue;
+
+		CString strModelName = pModel2Cmp->GetUniqueName();
 		std::vector<CModelParameter>::size_type j = 0;
 		
 		bool bFind = false;
@@ -182,13 +187,13 @@ BOOL CDlgCmpReportProperty::CheckParameter()
 		{
 			CModelParameter modelParam;
 			modelParam.SetModelUniqueName(strModelName);
-			modelParam.InitDefaultParameter(m_strProjName,vModels.at(i));
+			modelParam.InitDefaultParameter(m_strProjName,pModel2Cmp);
 			m_vModelParam.push_back(modelParam);
 		}
 	}
 	return TRUE;
 }
-BOOL CDlgCmpReportProperty::OnInitDialog() 
+BOOL CDlgReportProperty::OnInitDialog() 
 {
 	CDialog::OnInitDialog();
 	//check the report parameter and models
@@ -212,8 +217,8 @@ BOOL CDlgCmpReportProperty::OnInitDialog()
 	bool		bAbsDate;
 	int			nDayIndex;
 	COleDateTime	dtStart, dtEnd, dtTime;
-	ASSERT((int)m_pModelsManager->GetModelsList().size() > 0);
-	Terminal *pTerminal = m_pModelsManager->GetModelsList().at(0)->GetTerminal();
+	ASSERT((int)m_pModelsManager->getCount() > 0);
+	Terminal *pTerminal = m_pModelsManager->getTerminal();
 	CSimAndReportManager* pSim =pTerminal ->GetSimReportManager();
 	m_sdStart = pSim->GetStartDate();
 	time = pSim->GetUserEndTime();
@@ -274,7 +279,7 @@ BOOL CDlgCmpReportProperty::OnInitDialog()
 	return TRUE;
 }
 
-void CDlgCmpReportProperty::InitToolBar()
+void CDlgReportProperty::InitToolBar()
 {
 	m_ToolBar.GetToolBarCtrl().SetCmdID(0, ID_BUTTONADDFIR);
 	m_ToolBar.GetToolBarCtrl().SetCmdID(1, ID_BUTTONDELETEFIR);
@@ -320,7 +325,7 @@ void CDlgCmpReportProperty::InitToolBar()
 
 }
 
-int CDlgCmpReportProperty::OnCreate(LPCREATESTRUCT lpCreateStruct) 
+int CDlgReportProperty::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -359,7 +364,7 @@ int CDlgCmpReportProperty::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-void CDlgCmpReportProperty::OnOK() 
+void CDlgReportProperty::OnOK() 
 {
 	// TODO: Add extra validation here
 //*frank test
@@ -423,17 +428,11 @@ void CDlgCmpReportProperty::OnOK()
 	if(m_strName != m_strOldName)
 	{
 		//if report already exists, warning and return
-		std::vector<CReportToCompare>& report = m_reportsManager->GetReportsList();
-		std::vector<CReportToCompare>::size_type size;
-		for(size = 0; size < report.size(); size++)
+		if(!m_reportsManager->IsNameAvailable(m_strName))
 		{
-			if(m_strName.CompareNoCase(report[size].GetName()) == 0)
-			{
-				MessageBox("A report with the specified name already exists!", "Warning");
-				return;
-			}
+			MessageBox("A report with the specified name already exists!", "Warning");
+			return;
 		}
-		
 	}
 
 
@@ -469,13 +468,10 @@ void CDlgCmpReportProperty::OnOK()
 	}
 	if(m_enumOldType != nReportType)
 	{
-		for(int i = 0; i < (int)m_reportsManager->GetReportsList().size(); i++)
+		if(!m_reportsManager->IsCategoryAvailable(nReportType))
 		{
-			if(m_reportsManager->GetReport(i).GetCategory() == nReportType)
-			{
-				MessageBox("This category report already exists, please add other category report!");
-				return;
-			}
+			MessageBox("This category report already exists, please add other category report!");
+			return;
 		}
 	}
 
@@ -564,7 +560,7 @@ void CDlgCmpReportProperty::OnOK()
 }
 
 
-COleDateTime CDlgCmpReportProperty::GetOleDateTime(long _nTime)
+COleDateTime CDlgReportProperty::GetOleDateTime(long _nTime)
 {
     COleDateTime ret = COleDateTime::GetCurrentTime();
 	int nHour = _nTime/TIMETOHOURDIV;
@@ -574,7 +570,7 @@ COleDateTime CDlgCmpReportProperty::GetOleDateTime(long _nTime)
 	return ret;
 }
 
-void CDlgCmpReportProperty::OnPessengerTypeAdd()
+void CDlgReportProperty::OnPessengerTypeAdd()
 {
 	/*CPassengerTypeDialog dlg( this );
 	if( dlg.DoModal() == IDOK )
@@ -627,8 +623,8 @@ void CDlgCmpReportProperty::OnPessengerTypeAdd()
 
 	int nModelIndex = pItemData->m_nIndex;
 
-	CPassengerTypeDialog dlg(NULL);
-	CModelToCompare *pModel  = m_pModelsManager->GetModelsList().at(nModelIndex);
+	CPassengerTypeDialog dlg(NULL);//
+	CModelToCompare *pModel  = m_pModelsManager->getModel(nModelIndex);
 
 	dlg.SetTerminal(pModel->GetTerminal());
 
@@ -637,40 +633,62 @@ void CDlgCmpReportProperty::OnPessengerTypeAdd()
 	{
 		CMobileElemConstraint mobileConstr = dlg.GetMobileSelection();
 	 	CModelParameter& modelParam = m_vModelParam[nModelIndex];
-		if(modelParam.IsPaxTypeExist(mobileConstr))
+		std::vector<CMobileElemConstraint> vPaxType;
+		modelParam.GetPaxType(vPaxType);
+		
+		int nCount = static_cast<int>(vPaxType.size());
+		for( int i=0; i<nCount; i++ )
 		{
-			CString szPaxType;
-			mobileConstr.screenPrint( szPaxType );
-			CString csMsg;
-			csMsg.Format( "Passenger Type : %s exists in the list", szPaxType.GetBuffer(0) );
-			MessageBox( csMsg, "Error", MB_OK|MB_ICONWARNING );
-			return;
+			const CMobileElemConstraint& pPaxConstr = vPaxType.at( i );
+			if( mobileConstr.isEqual(&pPaxConstr) )
+			{
+				//char szPaxType[128];
+				CString szPaxType;
+				mobileConstr.screenPrint( szPaxType );
+				CString csMsg;
+				csMsg.Format( "Passenger Type : %s exists in the list", szPaxType.GetBuffer(0) );
+				MessageBox( csMsg, "Error", MB_OK|MB_ICONWARNING );
+				return;
+			}
 		}
-		modelParam.AddPaxType(mobileConstr);
+		vPaxType.push_back(mobileConstr);
+		modelParam.SetPaxType(vPaxType);
 		CString strItemText;
 		mobileConstr.screenPrint(strItemText);
+
 		HTREEITEM hPaxTypeItem = m_treePaxType.InsertItem(strItemText,hItem);
-		m_treePaxType.SetItemData(hPaxTypeItem,(DWORD_PTR)new ItemData(IT_PAXTYPE,modelParam.GetPaxTypeCount()-1));
+
+		
+		m_treePaxType.SetItemData(hPaxTypeItem,(DWORD_PTR)new ItemData(IT_PAXTYPE,nCount));
+	
 		m_treePaxType.Expand(hItem,TVE_EXPAND);
+
+		
+		//m_paxConst.addConstraint( mobileConstr );
+		//LoadPaxList();
 	}
 }
 
-CDlgCmpReportProperty::MODELTYPE CDlgCmpReportProperty::HasModelInLocation()
+CDlgReportProperty::MODELTYPE CDlgReportProperty::HasModelInLocation()
 {
-	std::vector<CModelToCompare *>& vModels = m_pModelsManager->GetModelsList();
-	if(vModels.size() <= 0)
+
+	if(m_pModelsManager->getCount() <= 0)
 		return MT_NOMODEL;
 
-	for(int i = 0; i < static_cast<int>(vModels.size()); i++)
+	for(int i = 0; i < m_pModelsManager->getCount(); i++)
 	{
-		if(vModels[i]->GetModelLocation().GetAt(0) != '\\')
+		CModelToCompare* pModel2Cmp = m_pModelsManager->getModel(i);
+		if(pModel2Cmp == NULL)
+			continue;
+
+		if(pModel2Cmp->GetModelLocation().GetAt(0) != '\\')
 			return MT_HASLOCATION;
 	}
 
 	return MT_NOLOCATION;
 }
 
-void CDlgCmpReportProperty::OnProcessorTypeAdd()
+void CDlgReportProperty::OnProcessorTypeAdd()
 {
 
 	HTREEITEM hItem = m_treeProcType.GetSelectedItem();
@@ -682,7 +700,7 @@ void CDlgCmpReportProperty::OnProcessorTypeAdd()
 		return;
 
 	int nModelIndex = pItemData->m_nIndex;
-	CModelToCompare *pModel  = m_pModelsManager->GetModelsList().at(nModelIndex);
+	CModelToCompare *pModel  = m_pModelsManager->getModel(nModelIndex);
 
 	CProcesserDialog dlg(pModel->GetTerminal());
 	if(dlg.DoModal() == IDOK)
@@ -695,14 +713,36 @@ void CDlgCmpReportProperty::OnProcessorTypeAdd()
 			for(int i = 0; i < nIDcount; i++)
 			{
 				id = *idList[i];
+				
 				// check if exist in the current list.
 	 			CModelParameter& modelParam = m_vModelParam[nModelIndex];
-				if(!modelParam.IsProcIDExist(id))
-				{
-					modelParam.AddProcID(id);
-				}
 				
-				// add into GUI list
+				std::vector<ProcessorID> vProcGroups;
+				modelParam.GetProcessorID(vProcGroups);
+
+				int nProcCount = vProcGroups.size();
+				bool bFind = false;
+				for( int j=0; j<nProcCount; j++ )
+				{
+					if( vProcGroups[j] == id )
+					{
+						bFind = true;
+						break;
+					}
+				}
+				if( bFind )
+					continue;
+				
+				
+				//if( nProcCount == 0 )
+				//	m_listProcessorType.ResetContent();
+				
+				// add into the data list
+				vProcGroups.clear();
+				vProcGroups.push_back( id );
+				modelParam.SetProcessorID(vProcGroups);
+				
+				// add into gui list
 				char szBuf[256];
 				id.printID(szBuf);
 				HTREEITEM hTempItem = NULL;
@@ -713,16 +753,23 @@ void CDlgCmpReportProperty::OnProcessorTypeAdd()
 				else
 				{
 					hTempItem= m_treeProcType.InsertItem(szBuf, hItem);
-					m_treeProcType.SetItemData(hTempItem, (DWORD_PTR)new ItemData(IT_PROCTYPE,0));
+					m_treeProcType.SetItemData(hTempItem,(DWORD_PTR)new ItemData(IT_PROCTYPE,0));
 				}
+
+
+
+	
 				m_treeProcType.Expand(hItem,TVE_EXPAND);
+				//int nIdx = m_listProcessorType.AddString( szBuf );
+				//m_listProcessorType.SetItemData( nIdx, m_vProcList.size()-1 );
+				//m_listProcessorType.SetCurSel( nIdx );
 			}
 		}
 		
 	}
 }
 
-void CDlgCmpReportProperty::OnPessengerTypeDelete()
+void CDlgReportProperty::OnPessengerTypeDelete()
 {
 
 	HTREEITEM hItem = m_treePaxType.GetSelectedItem();
@@ -740,17 +787,24 @@ void CDlgCmpReportProperty::OnPessengerTypeDelete()
 	ItemData *pParentData = (ItemData *)m_treePaxType.GetItemData(hParentItem);
 	if (pParentData == NULL)
 		return;
+	
+
 
 	int nModelIndex = pParentData->m_nIndex;
+	
 	CModelParameter& modelParam = m_vModelParam[nModelIndex];
-	modelParam.DeletePaxTypeByIndex(nPaxTypeIndex);
+	std::vector<CMobileElemConstraint> vPaxType;
+	modelParam.GetPaxType(vPaxType);
+	vPaxType.erase(vPaxType.begin() + nPaxTypeIndex);
+	
+	modelParam.SetPaxType(vPaxType);
 
 //	int iSel = m_listPessengerType.GetCurSel();
 //	m_paxConst.deleteConst(iSel);
 	LoadPaxListByModel(nModelIndex,hParentItem);
 }
 
-void CDlgCmpReportProperty::OnProcessorTypeDelete()
+void CDlgReportProperty::OnProcessorTypeDelete()
 {
 
 	HTREEITEM hItem = m_treeProcType.GetSelectedItem();
@@ -772,11 +826,46 @@ void CDlgCmpReportProperty::OnProcessorTypeDelete()
 	int nModelIndex = pParentData->m_nIndex;
 
 	CModelParameter& modelParam = m_vModelParam[nModelIndex];
-	modelParam.DeleteProcIDByIndex(nProcTypeIndex);
+
+	std::vector<ProcessorID> vProcGroups;
+	modelParam.GetProcessorID(vProcGroups);
+	vProcGroups.erase(vProcGroups.begin() + nProcTypeIndex);
+	modelParam.SetProcessorID(vProcGroups);
 	LoadProcListByModel(nModelIndex,hParentItem);
+
+	//int nCurSel = m_listProcessorType.GetCurSel();
+	//if( nCurSel == LB_ERR )
+	//{
+	//	return;
+	//}
+
+	//// Handle deleting all processors
+	//int nIdx = m_listProcessorType.GetItemData( nCurSel );
+	//if( nIdx == -1 )
+	//{
+	//	return;
+	//}
+	//
+	//// Delete from data
+	//m_vProcList.erase( m_vProcList.begin() + nIdx );
+	//
+	//
+	//// delete from gui
+	//
+	//
+	//m_listProcessorType.DeleteString( nCurSel );
+	//m_listProcessorType.SetCurSel( -1 );
+	//
+	//if( m_vProcList.size() == 0 )
+	//{
+	//	int nIdx = m_listProcessorType.AddString( "All Processors" );
+	//	m_listProcessorType.SetItemData( nIdx, -1 );
+	//}
+
+	//LoadProcList();
 }
 
-void CDlgCmpReportProperty::Init()
+void CDlgReportProperty::Init()
 {
 	if (!m_reportToCompare.GetName().IsEmpty())
 	{
@@ -818,7 +907,7 @@ void CDlgCmpReportProperty::Init()
 		bool bAbsDate;
 		int nDayIndex = -1;
 		COleDateTime dtStart, dtEnd, dtTime;
-		CReportParamToCompare param = m_reportToCompare.GetParameterConst();
+		CReportParamToCompare param = m_reportToCompare.GetParameter();
 		ElapsedTime et = param.GetStartTime();
 		m_sdStart.GetDateTime(et, bAbsDate, dtStart, nDayIndex, dtTime);
 		if (bAbsDate)
@@ -916,7 +1005,7 @@ void CDlgCmpReportProperty::Init()
 	}
 }
 
-BOOL CDlgCmpReportProperty::CopyModelToLocal()
+BOOL CDlgReportProperty::CopyModelToLocal()
 {
 	CString strPath = PROJMANAGER->GetAppPath();
 	ASSERT(strPath != "" && m_strProjName != "");
@@ -926,13 +1015,13 @@ BOOL CDlgCmpReportProperty::CopyModelToLocal()
 	strPath += "\\Comparative Report";
 	if(_access(strPath, 0) == -1)//dir not exist
 		CreateDirectory(strPath, NULL);
-	CString strRemoteModel = (*(m_pModelsManager->GetModelsList().begin()))->GetModelLocation();
+	CString strRemoteModel = (m_pModelsManager->getModel(0))->GetModelLocation();
 	if(strRemoteModel == "")
 		return FALSE;
 	strPath += "\\" + strRemoteModel;
 	if(_access(strPath, 0) == -1)//dir not exist
 		CreateDirectory(strPath, NULL);
-	CString strRModelPath = (*(m_pModelsManager->GetModelsList().begin()))->GetModelLocation();
+	CString strRModelPath = (m_pModelsManager->getModel(0))->GetModelLocation();
 	if(_access(strRModelPath, 0) == -1)//dir not exist
 		return FALSE;
 	
@@ -945,7 +1034,7 @@ BOOL CDlgCmpReportProperty::CopyModelToLocal()
 	return TRUE;
 }
 
-BOOL CDlgCmpReportProperty::CopyDirectory(const CString& strSrcDir, const CString& strDistDir, BOOL bDelSrc)
+BOOL CDlgReportProperty::CopyDirectory(const CString& strSrcDir, const CString& strDistDir, BOOL bDelSrc)
 {
     CFileFind tempFind;
     CString tempFileFind = strSrcDir + "\\*.*";
@@ -986,7 +1075,7 @@ BOOL CDlgCmpReportProperty::CopyDirectory(const CString& strSrcDir, const CStrin
 	return TRUE;
 }
 
-void CDlgCmpReportProperty::LoadPaxList()
+void CDlgReportProperty::LoadPaxList()
 {
 	switch( m_enumReportType )
 	{
@@ -1084,7 +1173,7 @@ void CDlgCmpReportProperty::LoadPaxList()
 	}
 
 }
-void CDlgCmpReportProperty::LoadPaxListByModel(int nModelIndex,HTREEITEM hItemModel)
+void CDlgReportProperty::LoadPaxListByModel(int nModelIndex,HTREEITEM hItemModel)
 {
 	CModelParameter modelParam = m_vModelParam[nModelIndex];
 
@@ -1111,22 +1200,29 @@ void CDlgCmpReportProperty::LoadPaxListByModel(int nModelIndex,HTREEITEM hItemMo
 	ItemData *pItemData = new ItemData(IT_MODEL,nModelIndex);
 	m_treePaxType.SetItemData(hItemModel,(DWORD_PTR)pItemData);
 
-	std::vector<MobConstWithCheckedFlag>& vPaxType = modelParam.GetPaxTypeWithCheckedFlagList();
-	int nCount = (int)vPaxType.size();
-	for(int i=0; i<nCount; i++)
+	std::vector<CMobileElemConstraint> vPaxType;
+
+	modelParam.GetPaxType(vPaxType);
+
+	int nCount = static_cast<int>(vPaxType.size());
+	for( int i=0; i<nCount; i++ )
 	{
-		CMobileElemConstraint paxType = vPaxType[i].GetPaxType();
+		CMobileElemConstraint paxConstr = vPaxType[i];
 		CString strItemText;
-		paxType.screenPrint(strItemText, 0, 128);
+		paxConstr.screenPrint( strItemText, 0, 128 );
 
 		HTREEITEM hItem = m_treePaxType.InsertItem(strItemText,hItemModel);
+
 		m_treePaxType.SetItemData(hItem,(DWORD_PTR)new ItemData(IT_PAXTYPE,i));
 	}
+	
 	m_treePaxType.Expand(hItemModel,TVE_EXPAND);
+
+
 }
 
 // load processor into the list base on the m_vProcList;
-void CDlgCmpReportProperty::LoadProcList()
+void CDlgReportProperty::LoadProcList()
 {
 
 	m_treeProcType.DeleteAllItems();
@@ -1158,7 +1254,7 @@ void CDlgCmpReportProperty::LoadProcList()
 	//}
 }
 
-void CDlgCmpReportProperty::LoadProcListByModel(int nModelIndex,HTREEITEM hItemModel)
+void CDlgReportProperty::LoadProcListByModel(int nModelIndex,HTREEITEM hItemModel)
 {
 	CModelParameter modelParam = m_vModelParam[nModelIndex];
 	if (hItemModel == NULL)
@@ -1181,12 +1277,12 @@ void CDlgCmpReportProperty::LoadProcListByModel(int nModelIndex,HTREEITEM hItemM
 	ItemData *pItemData = new ItemData(IT_MODEL,nModelIndex);
 	m_treeProcType.SetItemData(hItemModel,(DWORD_PTR)pItemData);
 
-	std::vector<ProcessIDWithCheckedFlag> vProcGroups = modelParam.GetProcIDWithCheckedFlagGroup();
-	int nProcTypeCount = (int)vProcGroups.size();
+	std::vector<ProcessorID> vProcGroups;
+	int nProcTypeCount = modelParam.GetProcessorID(vProcGroups);
 
 	for( int i=0; i<nProcTypeCount; i++ )
 	{
-		ProcessorID id = vProcGroups[i].GetProcID();
+		ProcessorID id = vProcGroups[i];
 		char szBuf[256];
 		id.printID(szBuf);
 
@@ -1196,7 +1292,7 @@ void CDlgCmpReportProperty::LoadProcListByModel(int nModelIndex,HTREEITEM hItemM
 	m_treeProcType.Expand(hItemModel,TVE_EXPAND);
 
 }
-void CDlgCmpReportProperty::LoadProcFromToList()
+void CDlgReportProperty::LoadProcFromToList()
 {
 	m_treeProcFromTo.DeleteAllItems();
 	m_treeProcFromTo.SetRedraw();
@@ -1230,7 +1326,7 @@ void CDlgCmpReportProperty::LoadProcFromToList()
 	//m_treeProcFromTo.Expand(m_hItemTo,TVE_EXPAND);
 }
 
-void CDlgCmpReportProperty::LoadProcFromToListByModel(int nModelIndex,HTREEITEM hItemModel)
+void CDlgReportProperty::LoadProcFromToListByModel(int nModelIndex,HTREEITEM hItemModel)
 {
 		CModelParameter modelParam = m_vModelParam[nModelIndex];
 		if (hItemModel == NULL)
@@ -1295,7 +1391,7 @@ void CDlgCmpReportProperty::LoadProcFromToListByModel(int nModelIndex,HTREEITEM 
 
 
 
-void CDlgCmpReportProperty::LoadArea()
+void CDlgReportProperty::LoadArea()
 {
 	m_treeArea.DeleteAllItems();
 	m_treeArea.SetImageList(m_treeArea.GetImageList(TVSIL_NORMAL),TVSIL_NORMAL);
@@ -1306,7 +1402,7 @@ void CDlgCmpReportProperty::LoadArea()
 		LoadAreaByModel(nModel,NULL);
 	}
 }
-void CDlgCmpReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel)
+void CDlgReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel)
 {
 	CModelParameter modelParam = m_vModelParam[nModelIndex];
 	if (hItemModel == NULL)
@@ -1340,12 +1436,12 @@ void CDlgCmpReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel
 m_treeArea.Expand(hItemModel,TVE_EXPAND);
 
 }
-void CDlgCmpReportProperty::OnSelchangeComboReporttype() 
+void CDlgReportProperty::OnSelchangeComboReporttype() 
 {
 	ArrangeControls();
 }
 
-void CDlgCmpReportProperty::ArrangeControls()
+void CDlgReportProperty::ArrangeControls()
 {
 	int nSel = m_nReportType.GetCurSel();
 	CRect rcClient;
@@ -1562,11 +1658,12 @@ void CDlgCmpReportProperty::ArrangeControls()
 	OnUpdateToolBarUI();
 }
 
-void CDlgCmpReportProperty::OnBnClickedOk()
+void CDlgReportProperty::OnBnClickedOk()
 {
+	// TODO: Add your control notification handler code here
 	OnOK();
 }
-void CDlgCmpReportProperty::OnProcessorFromToAdd()
+void CDlgReportProperty::OnProcessorFromToAdd()
 {
 
 	HTREEITEM hItem = m_treeProcFromTo.GetSelectedItem();
@@ -1592,7 +1689,7 @@ void CDlgCmpReportProperty::OnProcessorFromToAdd()
 
 	if(pItemData->m_itemType == IT_FROM  )
 	{
-		CProcesserDialog dlg(m_pModelsManager->GetModelsList().at(nModelIndex)->GetTerminal());
+		CProcesserDialog dlg(m_pModelsManager->getModel(nModelIndex)->GetTerminal());
 		if(dlg.DoModal() == IDOK)
 		{
 			ProcessorID id;
@@ -1630,7 +1727,7 @@ void CDlgCmpReportProperty::OnProcessorFromToAdd()
 					modelParam.SetFromToProcs(_fromToProcs);
 
 
-					// add into GUI list
+					// add into gui list
 					char szBuf[256];
 					id.printID(szBuf);						
 					HTREEITEM hTempItem = m_treeProcFromTo.InsertItem(szBuf,hItem);
@@ -1644,7 +1741,7 @@ void CDlgCmpReportProperty::OnProcessorFromToAdd()
 	}
 	if (pItemData->m_itemType == IT_TO)
 	{
-		CProcesserDialog dlg(m_pModelsManager->GetModelsList().at(nModelIndex)->GetTerminal());
+		CProcesserDialog dlg(m_pModelsManager->getModel(nModelIndex)->GetTerminal());
 		if(dlg.DoModal() == IDOK)
 		{
 			ProcessorID id;
@@ -1691,7 +1788,7 @@ void CDlgCmpReportProperty::OnProcessorFromToAdd()
 	}
 		m_treeProcFromTo.Expand(hItem,TVE_EXPAND);
 }
-void CDlgCmpReportProperty::OnProcessorFromToDelete()
+void CDlgReportProperty::OnProcessorFromToDelete()
 {
 
 	HTREEITEM hSelectItem = m_treeProcFromTo.GetSelectedItem();
@@ -1753,7 +1850,7 @@ void CDlgCmpReportProperty::OnProcessorFromToDelete()
 	//}
 
 }
-void CDlgCmpReportProperty::OnAddArea()
+void CDlgReportProperty::OnAddArea()
 {
 	HTREEITEM hItem = m_treeArea.GetSelectedItem();
 	if (hItem == NULL)
@@ -1764,7 +1861,9 @@ void CDlgCmpReportProperty::OnAddArea()
 		return;
 
 	int nModelIndex = pItemData->m_nIndex;	
-	CModelToCompare *pModel  = m_pModelsManager->GetModelsList().at(nModelIndex);
+	CModelToCompare *pModel  = m_pModelsManager->getModel(nModelIndex);
+	if(pModel == NULL)
+		return;
 
 	CDlgSelectArea dlg(pModel->GetTerminal(),this);
 	if(dlg.DoModal() == IDOK)
@@ -1787,7 +1886,7 @@ void CDlgCmpReportProperty::OnAddArea()
 	}
 
 }
-void CDlgCmpReportProperty::OnDelArea()
+void CDlgReportProperty::OnDelArea()
 {
 
 	HTREEITEM hItem = m_treeArea.GetSelectedItem();
@@ -1802,7 +1901,7 @@ void CDlgCmpReportProperty::OnDelArea()
 	m_treeArea.DeleteItem(hItem);
 	delete pItemData;
 }
-void CDlgCmpReportProperty::OnUpdateUIPaxTypeAdd()
+void CDlgReportProperty::OnUpdateUIPaxTypeAdd()
 {
 	HTREEITEM hItem = m_treePaxType.GetSelectedItem();
 	if (hItem == NULL)
@@ -1819,7 +1918,7 @@ void CDlgCmpReportProperty::OnUpdateUIPaxTypeAdd()
 			m_ToolBar.GetToolBarCtrl().EnableButton(ID_BUTTONADDFIR,TRUE);
 	}
 }
-void CDlgCmpReportProperty::OnUpdateUIProcTypeAdd()
+void CDlgReportProperty::OnUpdateUIProcTypeAdd()
 {
 	HTREEITEM hItem = m_treeProcType.GetSelectedItem();
 	if (hItem == NULL)
@@ -1839,7 +1938,7 @@ void CDlgCmpReportProperty::OnUpdateUIProcTypeAdd()
 
 	m_ToolBar2.GetToolBarCtrl().EnableButton(ID_BUTTONADDSEC,TRUE);	
 }
-void CDlgCmpReportProperty::OnUpdateUIFromToAdd()
+void CDlgReportProperty::OnUpdateUIFromToAdd()
 {
 	HTREEITEM hItem = m_treeProcFromTo.GetSelectedItem();
 	if (hItem == NULL)
@@ -1863,7 +1962,7 @@ void CDlgCmpReportProperty::OnUpdateUIFromToAdd()
 	}
 
 }
-void CDlgCmpReportProperty::OnUpdateUIAreaAdd()
+void CDlgReportProperty::OnUpdateUIAreaAdd()
 {
 	HTREEITEM hItem = m_treeArea.GetSelectedItem();
 	if (hItem == NULL)
@@ -1880,7 +1979,7 @@ void CDlgCmpReportProperty::OnUpdateUIAreaAdd()
 			m_ToolBar4.GetToolBarCtrl().EnableButton(ID_TOOLBAR_NEWAREA,TRUE);		
 	}
 }
-void CDlgCmpReportProperty::OnUpdateUIAreaDel()
+void CDlgReportProperty::OnUpdateUIAreaDel()
 {
 	HTREEITEM hItem = m_treeArea.GetSelectedItem();
 	if (hItem == NULL)
@@ -1898,7 +1997,7 @@ void CDlgCmpReportProperty::OnUpdateUIAreaDel()
 
 
 }
-void CDlgCmpReportProperty::OnUpdateUIPaxTypeDel()
+void CDlgReportProperty::OnUpdateUIPaxTypeDel()
 {
 	HTREEITEM hItem = m_treePaxType.GetSelectedItem();
 	if (hItem == NULL)
@@ -1930,7 +2029,7 @@ void CDlgCmpReportProperty::OnUpdateUIPaxTypeDel()
 	m_ToolBar.GetToolBarCtrl().EnableButton(ID_BUTTONDELETEFIR,TRUE);
 
 }
-void CDlgCmpReportProperty::OnUpdateUIProcTypeDel()
+void CDlgReportProperty::OnUpdateUIProcTypeDel()
 {
 	HTREEITEM hItem = m_treeProcType.GetSelectedItem();
 	if (hItem == NULL)
@@ -1962,7 +2061,7 @@ void CDlgCmpReportProperty::OnUpdateUIProcTypeDel()
 	m_ToolBar2.GetToolBarCtrl().EnableButton(ID_BUTTONDELETESEC,TRUE);
 
 }
-void CDlgCmpReportProperty::OnUpdateUIFromToDel()
+void CDlgReportProperty::OnUpdateUIFromToDel()
 {
 	HTREEITEM hSelectItem = m_treeProcFromTo.GetSelectedItem();
 	if (hSelectItem == NULL)
@@ -2000,7 +2099,7 @@ void CDlgCmpReportProperty::OnUpdateUIFromToDel()
 	}
 	m_ToolBar3.GetToolBarCtrl().EnableButton(ID_BUTTONDELETEFROMTO,TRUE);
 }
-void CDlgCmpReportProperty::OnUpdateToolBarUI()
+void CDlgReportProperty::OnUpdateToolBarUI()
 {
 	OnUpdateUIProcTypeAdd();
 	OnUpdateUIFromToAdd();
@@ -2012,7 +2111,7 @@ void CDlgCmpReportProperty::OnUpdateToolBarUI()
 	OnUpdateUIPaxTypeAdd();
 }
 
-void CDlgCmpReportProperty::OnTvnSelchangedTreePaxtype(NMHDR *pNMHDR, LRESULT *pResult)
+void CDlgReportProperty::OnTvnSelchangedTreePaxtype(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: Add your control notification handler code here
@@ -2021,7 +2120,7 @@ void CDlgCmpReportProperty::OnTvnSelchangedTreePaxtype(NMHDR *pNMHDR, LRESULT *p
 	*pResult = 0;
 }
 
-void CDlgCmpReportProperty::OnTvnSelchangedTreeProcs(NMHDR *pNMHDR, LRESULT *pResult)
+void CDlgReportProperty::OnTvnSelchangedTreeProcs(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: Add your control notification handler code here
@@ -2031,7 +2130,7 @@ void CDlgCmpReportProperty::OnTvnSelchangedTreeProcs(NMHDR *pNMHDR, LRESULT *pRe
 	*pResult = 0;
 }
 
-void CDlgCmpReportProperty::OnTvnSelchangedTreeProcfromto(NMHDR *pNMHDR, LRESULT *pResult)
+void CDlgReportProperty::OnTvnSelchangedTreeProcfromto(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: Add your control notification handler code here
@@ -2040,7 +2139,7 @@ void CDlgCmpReportProperty::OnTvnSelchangedTreeProcfromto(NMHDR *pNMHDR, LRESULT
 	*pResult = 0;
 }
 
-void CDlgCmpReportProperty::OnTvnSelchangedTreeArea(NMHDR *pNMHDR, LRESULT *pResult)
+void CDlgReportProperty::OnTvnSelchangedTreeArea(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	// TODO: Add your control notification handler code here
@@ -2050,7 +2149,7 @@ void CDlgCmpReportProperty::OnTvnSelchangedTreeArea(NMHDR *pNMHDR, LRESULT *pRes
 	*pResult = 0;
 }
 
-void CDlgCmpReportProperty::OnCancel()
+void CDlgReportProperty::OnCancel()
 {
 	// TODO: Add your specialized code here and/or call the base class
 	DeleteTreeData(m_treeProcType);
@@ -2060,7 +2159,7 @@ void CDlgCmpReportProperty::OnCancel()
 	CDialog::OnCancel();
 }
 
-BOOL CDlgCmpReportProperty::CheckUserHasAssignedArea()
+BOOL CDlgReportProperty::CheckUserHasAssignedArea()
 {
 	std::vector<CModelParameter>::iterator itor = m_vModelParam.begin();
 	for(; itor!= m_vModelParam.end(); itor++)

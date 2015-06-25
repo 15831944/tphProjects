@@ -53,7 +53,6 @@ protected:
 	afx_msg void OnRun();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnChooseMenu(UINT nID);
-	afx_msg void OnClose();
 
 
 	CString GetRegularDateTime(LPCTSTR elaptimestr, bool needsec = true);

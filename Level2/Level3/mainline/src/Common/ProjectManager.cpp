@@ -657,6 +657,10 @@ int CProjectManager::getFileName( const CString& _csProjPath, int fileType, char
 		strcpy(filename,_csProjPath);
 		strcat(filename,"\\input\\Landside\\VEHICLE.DST");
 		return TRUE;
+	case BridgeConnectorPaxDataFile:
+		strcpy(filename, _csProjPath);
+		strcat(filename, "\\input\\BCPAXDATA.TXT");
+		return TRUE;
 	}
 
 

@@ -2,6 +2,7 @@
 #include ".\operatingdoorspec.h"
 #include "../Database/ADODatabase.h"
 #include "../InputAirside/ALTObjectGroup.h"
+#include "../Common/AirportDatabase.h"
 #include <algorithm>
 
 
@@ -38,19 +39,174 @@ int StandOperatingDoorData::GetOpDoorCount()
 	return m_vOpDoors.size();
 }
 
-int StandOperatingDoorData::GetOpDoorID(int nIdx)
-{
-	if(nIdx<0 || nIdx >= GetOpDoorCount())
-		return -1;
+//int StandOperatingDoorData::GetOpDoorID(int nIdx)
+//{
+//	if(nIdx<0 || nIdx >= GetOpDoorCount())
+//		return -1;
+//
+////	return m_vOpDoors.at(nIdx);
+//	return 0;
+//}
 
-	return m_vOpDoors.at(nIdx);
+//void StandOperatingDoorData::AddOpDoor( int nID )
+//{
+////	m_vOpDoors.push_back(nID);
+//}
+
+
+ACTypeDoor* StandOperatingDoorData::GetAcTypeDoor( int nID,ACTYPEDOORLIST* pDoorList ) const
+{
+	for (unsigned i = 0; i < pDoorList->size(); i++)
+	{
+		ACTypeDoor* pDoor = pDoorList->at(i);
+		if (pDoor && pDoor->GetID() == nID)
+		{
+			return pDoor;
+		}
+	}
+	return NULL;
+}
+void StandOperatingDoorData::AddDoorOperation( ACTypeDoor* pDoor )
+{
+	if (pDoor)
+	{
+		switch (pDoor->m_enumDoorDir)
+		{
+		case ACTypeDoor::LeftHand:
+			{
+				OperationDoor leftDoor;
+				leftDoor.m_nID = pDoor->GetID();
+				leftDoor.m_iHandType = ACTypeDoor::LeftHand;
+				m_vOpDoors.push_back(leftDoor);
+			}
+			break;
+		case ACTypeDoor::RightHand:
+			{
+				OperationDoor rightDoor;
+				rightDoor.m_nID = pDoor->GetID();
+				rightDoor.m_iHandType = ACTypeDoor::RightHand;
+				m_vOpDoors.push_back(rightDoor);
+			}
+			break;
+		case ACTypeDoor::BothSide:
+			{
+				OperationDoor leftDoor;
+				leftDoor.m_nID = pDoor->GetID();
+				leftDoor.m_iHandType = ACTypeDoor::LeftHand;
+				m_vOpDoors.push_back(leftDoor);
+
+				OperationDoor rightDoor;
+				rightDoor.m_nID = pDoor->GetID();
+				rightDoor.m_iHandType = ACTypeDoor::RightHand;
+				m_vOpDoors.push_back(rightDoor);
+			}
+			break;
+		default:
+			break;
+		}
+	}
 }
 
-void StandOperatingDoorData::AddOpDoor( int nID )
+bool StandOperatingDoorData::GetDoorOperation(ACTypeDoor* pDoor,std::vector<OperationDoor>& vDoorOp)
 {
-	m_vOpDoors.push_back(nID);
-}
+	if (pDoor)
+	{
+		switch (pDoor->m_enumDoorDir)
+		{
+		case ACTypeDoor::LeftHand:
+			{
+				OperationDoor leftDoor;
+				leftDoor.m_nID = pDoor->GetID();
+				leftDoor.m_iHandType = ACTypeDoor::LeftHand;
+				vDoorOp.push_back(leftDoor);
+			}
+			break;
+		case ACTypeDoor::RightHand:
+			{
+				OperationDoor rightDoor;
+				rightDoor.m_nID = pDoor->GetID();
+				rightDoor.m_iHandType = ACTypeDoor::RightHand;
+				vDoorOp.push_back(rightDoor);
+			}
+			break;
+		case ACTypeDoor::BothSide:
+			{
+				OperationDoor leftDoor;
+				leftDoor.m_nID = pDoor->GetID();
+				leftDoor.m_iHandType = ACTypeDoor::LeftHand;
+				vDoorOp.push_back(leftDoor);
 
+				OperationDoor rightDoor;
+				rightDoor.m_nID = pDoor->GetID();
+				rightDoor.m_iHandType = ACTypeDoor::RightHand;
+				vDoorOp.push_back(rightDoor);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (vDoorOp.empty())
+	{
+		return false;
+	}
+	return true;
+}
+void StandOperatingDoorData::DoCompatible( const CString& strDoors,ACTYPEDOORLIST* pDoorList )
+{
+	int nDoorID;
+	int nIdx0 =0;
+	int nIdx =0;
+	while(nIdx >=0 && nIdx <strDoors.GetLength()-1)
+	{
+		nIdx = strDoors.Find(',',nIdx0);
+		nDoorID = atoi(strDoors.Mid(nIdx0,nIdx));
+		if (nDoorID >=0)
+		{
+			ACTypeDoor* pDoor = GetAcTypeDoor(nDoorID,pDoorList);
+			AddDoorOperation(pDoor);
+			//if (pDoor)
+			//{
+			//	switch (pDoor->m_enumDoorDir)
+			//	{
+			//	case ACTypeDoor::LeftHand:
+			//		{
+			//			OperationDoor leftDoor;
+			//			leftDoor.m_nID = nDoorID;
+			//			leftDoor.m_iHandType = ACTypeDoor::LeftHand;
+			//			m_vOpDoors.push_back(leftDoor);
+			//		}
+			//		break;
+			//	case ACTypeDoor::RightHand:
+			//		{
+			//			OperationDoor rightDoor;
+			//			rightDoor.m_nID = nDoorID;
+			//			rightDoor.m_iHandType = ACTypeDoor::RightHand;
+			//			m_vOpDoors.push_back(rightDoor);
+			//		}
+			//		break;
+			//	case ACTypeDoor::BothSide:
+			//		{
+			//			OperationDoor leftDoor;
+			//			leftDoor.m_nID = nDoorID;
+			//			leftDoor.m_iHandType = ACTypeDoor::LeftHand;
+			//			m_vOpDoors.push_back(leftDoor);
+
+			//			OperationDoor rightDoor;
+			//			rightDoor.m_nID = nDoorID;
+			//			rightDoor.m_iHandType = ACTypeDoor::RightHand;
+			//			m_vOpDoors.push_back(rightDoor);
+			//		}
+			//		break;
+			//	default:
+			//		break;
+			//	}
+			//}
+		}
+		nIdx0 = nIdx+1;
+	}
+}
 void StandOperatingDoorData::ReadData( CADORecordset& recordset )
 {
 	recordset.GetFieldValue(_T("ID"),m_nID);
@@ -64,17 +220,51 @@ void StandOperatingDoorData::ReadData( CADORecordset& recordset )
 	standGroup.ReadData(m_nStandID);
 	m_standName = standGroup.getName();
 
-	int nDoorID;
-	int nIdx0 =0;
-	int nIdx =0;
-	while(nIdx >=0 && nIdx <strDoors.GetLength()-1)
+	if (strDoors.IsEmpty())
+		return;
+	
+	int nLeftPos = strDoors.Find('L');
+	int nRightPos = strDoors.Find('R');
+	if (nLeftPos == -1 && nRightPos == -1)//need do compatible
 	{
-		nIdx = strDoors.Find(',',nIdx0);
-		nDoorID = atoi(strDoors.Mid(nIdx0,nIdx));
-		if (nDoorID >=0)
-			m_vOpDoors.push_back(nDoorID);
-		nIdx0 = nIdx+1;
+		ACTYPEDOORLIST* pAcDoors = m_pAirportDB->getAcDoorMan()->GetAcTypeDoorList(m_strActype);
+		if (pAcDoors == NULL)
+			return;
+
+		DoCompatible(strDoors,pAcDoors);
+		return;
 	}
+
+	int nPos = strDoors.Find(',');
+	CString strLeft;
+	CString strRight = strDoors;
+	while(nPos != -1)
+	{
+		strLeft = strRight.Left(nPos);
+		OperationDoor doorOp;
+		doorOp.ParseString(strLeft);
+		m_vOpDoors.push_back(doorOp);
+		strRight = strRight.Right(strRight.GetLength() - nPos - 1);
+		nPos = strRight.Find(',');
+	}
+
+	if (strRight.IsEmpty() == false)
+	{
+		OperationDoor doorOp;
+		doorOp.ParseString(strRight);
+		m_vOpDoors.push_back(doorOp);
+	}
+	//int nDoorID;
+	//int nIdx0 =0;
+	//int nIdx =0;
+	//while(nIdx >=0 && nIdx <strDoors.GetLength()-1)
+	//{
+	//	nIdx = strDoors.Find(',',nIdx0);
+	//	nDoorID = atoi(strDoors.Mid(nIdx0,nIdx));
+	//	if (nDoorID >=0)
+	//		m_vOpDoors.push_back(nDoorID);
+	//	nIdx0 = nIdx+1;
+	//}
 }
 
 void StandOperatingDoorData::SaveData( int nParentID )
@@ -92,14 +282,29 @@ void StandOperatingDoorData::SaveData( int nParentID )
 	standGroup.SaveData(1);
 	m_nStandID = standGroup.getID();
 
-	CString strDoors = "";	
-	CString strName;
 	int nCount = m_vOpDoors.size();
-	for (int i =0; i < nCount; i++)
+	CString strDoors;
+	for (int i = 0; i < nCount; i++)
 	{
-		strName.Format("%d,", m_vOpDoors.at(i));
-		strDoors += strName;
+		OperationDoor doorOp = m_vOpDoors.at(i);
+		CString strDoor = doorOp.GetDoorString();
+		if (strDoors.IsEmpty())
+		{
+			strDoors = strDoor;
+		}
+		else
+		{
+			strDoors = strDoors + CString(",") + strDoor;
+		}
 	}
+	//CString strDoors = "";	
+	//CString strName;
+	//int nCount = m_vOpDoors.size();
+	//for (int i =0; i < nCount; i++)
+	//{
+	//	strName.Format("%d,", m_vOpDoors.at(i));
+	//	strDoors += strName;
+	//}
 
 	if (m_nID < 0)
 	{
@@ -151,18 +356,38 @@ void StandOperatingDoorData::SetStandName( const ALTObjectID& altName )
 	m_standName = altName;
 }
 
-void StandOperatingDoorData::DelOpDoor( int nID )
+
+void StandOperatingDoorData::DelOpDoor( OperationDoor* pDoorOp )
 {
-	std::vector<int>::iterator iter = std::find(m_vOpDoors.begin(),m_vOpDoors.end(),nID);
-	if (iter != m_vOpDoors.end())
-		m_vOpDoors.erase(iter);
-	
+	for (int i = 0; i< GetOpDoorCount(); i++)
+	{
+		OperationDoor doorOp = m_vOpDoors.at(i);
+		if (doorOp.m_iHandType == pDoorOp->m_iHandType && doorOp.m_nID == pDoorOp->m_nID)
+		{
+			m_vOpDoors.erase(m_vOpDoors.begin() + i);
+			break;
+		}
+	}
 }
 
-void StandOperatingDoorData::GetOpDoors( std::vector<int>& vDoors )
+bool StandOperatingDoorData::findOpDoor( OperationDoor* pDoorOp )
 {
-	vDoors.assign(m_vOpDoors.begin(),m_vOpDoors.end());
+	for (int i = 0; i< GetOpDoorCount(); i++)
+	{
+		OperationDoor doorOp = m_vOpDoors.at(i);
+		if (doorOp.m_iHandType == pDoorOp->m_iHandType && doorOp.m_nID == pDoorOp->m_nID)
+		{
+			return true;
+		}
+	}
+	return false;
 }
+
+//void StandOperatingDoorData::GetOpDoors( std::vector<int>& vDoors )
+//{
+////	vDoors.assign(m_vOpDoors.begin(),m_vOpDoors.end());
+//}
+
 ///////////////////////////////////////////////////////////////////
 FltOperatingDoorData::FltOperatingDoorData( CAirportDatabase* pAirportDatabase )
 :m_nID(-1)
@@ -237,10 +462,12 @@ void FltOperatingDoorData::ReadData( CADORecordset& adoRecordset )
 	CString strFltType;
 	adoRecordset.GetFieldValue(_T("FLTTYPE"),strFltType);
 
+	char szBuffer[1024] = {0};
 	if (m_pAirportDB)
 	{
 		m_FltType.SetAirportDB(m_pAirportDB);
 		m_FltType.setConstraintWithVersion(strFltType);
+		m_FltType.getACType(szBuffer);
 	}
 
 	CString strSQL;
@@ -254,6 +481,8 @@ void FltOperatingDoorData::ReadData( CADORecordset& adoRecordset )
 		while(!adoRecordset.IsEOF())
 		{
 			StandOperatingDoorData* pData = new StandOperatingDoorData;
+			pData->SetAircraftType(CString(szBuffer));
+			pData->SetAirportDatabase(m_pAirportDB);
 			if (pData != NULL)
 				pData->ReadData(adoRecordset);
 

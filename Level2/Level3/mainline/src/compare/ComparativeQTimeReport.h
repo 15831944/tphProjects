@@ -25,7 +25,7 @@ typedef std::vector<CmpQTime> CmpQTimeVector;//Q Time report data of one model
 typedef std::map<ElapsedTime, std::vector<int> > QTimeMap;//QueueTime report data table,save all models'  QueueTime report data
 
 
-class CComparativeQTimeReport : public CComparativeReportResult  
+class CComparativeQTimeReport : public CCmpBaseReport  
 {
 protected:
 	QTimeMap		m_mapQTime;

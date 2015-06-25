@@ -25,6 +25,8 @@ protected:
     virtual int GetSpecFileType (void) const { return PaxLogSpecFile; };
     virtual const char *GetTitle (void) const { return "Passenger_Log_Report"; };
 
+	void InitParameter( const CReportParameter* _pPara );
+
 };
 
 #endif // !defined(AFX_PRINTLOG_H__62FB9821_D5C9_4866_B5D0_34312445DCBD__INCLUDED_)

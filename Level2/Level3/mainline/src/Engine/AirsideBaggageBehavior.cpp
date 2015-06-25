@@ -87,7 +87,7 @@ int AirsideBaggageBehavior::performanceMove( ElapsedTime p_time,bool bNoLog )
 //	ASSERT(0);
 //}
 
-void AirsideBaggageBehavior::MoveToCartFromPusher(AirsideBaggageCartInSim *pBagCart, ElapsedTime& eTime)
+void AirsideBaggageBehavior::MoveToCartFromPusher(AirsideBaggageCartInSim *pBagCart,const ElapsedTime& serviceTime, ElapsedTime& eTime)
 {
 	ResetTerminalToAirsideLocation();
 	
@@ -102,7 +102,7 @@ void AirsideBaggageBehavior::MoveToCartFromPusher(AirsideBaggageCartInSim *pBagC
 	ptCart += ptRandom;
 	ptCart.setZ(pBagCart->GetVehicleRandomZ());
 	setDestination(ptCart);
-	ElapsedTime eMoveTime = moveTime();
+	ElapsedTime eMoveTime = serviceTime;//moveTime();
 	setState(ARRIVEATBAGCART);
 
 	eTime += eMoveTime;

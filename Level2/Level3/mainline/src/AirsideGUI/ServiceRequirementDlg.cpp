@@ -192,7 +192,7 @@ void CServiceRequirementDlg::InitListCtrl(void)
 	strCaption.LoadString(IDS_SERVICETIME);
 	lvc.pszText = (LPSTR)(LPCTSTR)strCaption;
 	lvc.cx = 130;
-	lvc.fmt = LVCFMT_DROPDOWN;
+	lvc.fmt = LVCFMT_NOEDIT;
 	lvc.csList = &m_ServiceTimeList;
 	m_ListFltTypeServiceRequirement.InsertColumn(3, &lvc);
 
@@ -271,7 +271,9 @@ void CServiceRequirementDlg::SetListContent(bool bIsNewItem)
 				m_ListFltTypeServiceRequirement.SetItemText(i, 1, strNum);
 				m_ListFltTypeServiceRequirement.SetItemText(i, 2, pServicingRequirement->GetDistScreenPrint());
 				if(strVehiclename == "BAGGAGE TUG"|| strVehiclename == "PAX BUS A"||strVehiclename == "PAX BUS B"||strVehiclename == "PAX BUS C")
+				{
 					m_ListFltTypeServiceRequirement.SetItemText(i, 3, pServicingRequirement->GetSubDistScreenPrint());
+				}
 // 				else
 // 					m_ListFltTypeServiceRequirement.SetItemState(i,LVCFMT_NOEDIT,LVCFMT_NOEDIT);
 				m_ListFltTypeServiceRequirement.SetItemText(i, 4, strCondition);
@@ -532,6 +534,20 @@ void CServiceRequirementDlg::OnLvnItemchangedListVehicleNum(NMHDR *pNMHDR, LRESU
 	}
 	
 	m_pServicingRequirement = (CServicingRequirement*)m_ListFltTypeServiceRequirement.GetItemData(nCurSel);
+
+	LVCOLDROPLIST *pColumnStyle = m_ListFltTypeServiceRequirement.GetColumnStyle(3);
+	if(pColumnStyle)
+	{
+		CVehicleSpecificationItem *pVehiSepcItem = m_pVehicleSpecifications->GetItem(m_pServicingRequirement->GetServicingRequirementNameID()-1);
+		if (pVehiSepcItem)
+		{
+			CString strVehiclename = pVehiSepcItem->getName();
+			if(strVehiclename == "BAGGAGE TUG"|| strVehiclename == "PAX BUS A"||strVehiclename == "PAX BUS B"||strVehiclename == "PAX BUS C")
+				pColumnStyle->Style = DROP_DOWN;
+			else
+				pColumnStyle->Style = NO_EDIT;
+		}
+	}
 }
 
 void CServiceRequirementDlg::OnLbnSelchangeListFlightType()

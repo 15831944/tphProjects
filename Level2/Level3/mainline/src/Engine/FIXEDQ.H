@@ -30,7 +30,7 @@ protected:
 
     //It is called after a person arrives at the corner of the queue.
     //It is used to determine if the Person is now approaching the actual queue.
-    void approachQueue (Person *aPerson, ElapsedTime approachTime);
+	virtual void approachQueue (Person *aPerson, ElapsedTime approachTime);
     
 
 //int getNumOftwoPathSegment(int index,Person *aPerson) ;
@@ -40,9 +40,11 @@ protected:
 //	DOUBLE GetDistanceFormCurrentSegmentToHead(int cur_index) ;
 
 	int getSegment (Person *aPerson, DistanceUnit inStep) const ;
-	Point getLocation (Person *aPerson, DistanceUnit inStep) const ;
+	virtual Point getLocation (Person *aPerson, DistanceUnit inStep) const ;
 	void getQueuePosition (Person *aPerson) const ;
 
+
+	virtual void setPersonCurrentPosition(Person *aPerson,const ElapsedTime& arriveTime);
 
 public:
     FixedQueue (const Path& path) : SequentialQueue (path) {
@@ -51,9 +53,9 @@ public:
     virtual ~FixedQueue () {};
 
     //It adds a person to the list of approaching Persons and calculates the first waiting position (tail of the queue or last path corner).
-    void addToQueue (Person *aPerson);
+   virtual void addToQueue (Person *aPerson);
 
-    void arriveAtQueue (Person *aPerson, ElapsedTime arriveTime);
+   virtual void arriveAtQueue (Person *aPerson, ElapsedTime arriveTime);
 
     //it gets the current location of the tail
     void getTailPoint (Person *aPerson) const;

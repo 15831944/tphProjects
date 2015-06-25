@@ -26,7 +26,7 @@ public:
 	// _bBackup: if the log is backwards.
 	//virtual void writeLog (ElapsedTime time, bool _bBackup, bool bOffset = true );
 
-	void MoveToCartFromPusher(AirsideBaggageCartInSim *pBagCart, ElapsedTime& eTime);
+	void MoveToCartFromPusher(AirsideBaggageCartInSim *pBagCart, const ElapsedTime& serviceTime,ElapsedTime& eTime);
 
 protected:
 	CPoint2008 _offSetInBus ;

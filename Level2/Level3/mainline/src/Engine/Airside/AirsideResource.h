@@ -11,6 +11,7 @@
 //class CAirsideMobileElement;
 class AirsideFlightInSim ;
 class AirsideVehicleInSim;
+class StandInSim;
 
 class ENGINE_TRANSFER OccupancyInstance
 {
@@ -112,7 +113,7 @@ public:
 
 	typedef ref_ptr<AirsideResource> RefPtr;
 
-	bool IsStandResource()const;
+	virtual StandInSim* IsStandResource()const;
 public:	
 	
 	virtual ResourceType GetType()const = 0;

@@ -85,8 +85,10 @@ public:
 
 	void RemoveFloor(int nLevel, bool nodelete= true);
 
-	double getVisibleAltitude(double visiblefloorAltitude)const;
+	double getVisibleAltitude(double floorIndex)const;
 	double getVisibleFloorAltitude(double visibleAlitude)const;
+
+
 private:
 	bool m_bReadOnly;
 public:

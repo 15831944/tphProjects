@@ -8,6 +8,28 @@
 #include "../Engine/terminal.h"
 //////////////////////////////////////////////////////////////////////////
 //class CModelParameter
+void CModelParameter::SetPaxType(const std::vector<CMobileElemConstraint>& vPaxType)
+{
+	m_vPaxType = vPaxType;
+}
+
+void CModelParameter::SetProcessorID(const std::vector<ProcessorID>& vProcGroups)
+{
+	m_vProcGroups = vProcGroups;
+}
+
+int CModelParameter::GetPaxType(std::vector<CMobileElemConstraint>& vPaxType)
+{
+	vPaxType = m_vPaxType;
+	return m_vPaxType.size();
+}
+
+int CModelParameter::GetProcessorID(std::vector<ProcessorID>& vProcGroups)
+{
+	vProcGroups = m_vProcGroups;
+	return m_vProcGroups.size();
+}
+
 void CModelParameter::InitDefaultParameter(const CString& strProjName,CModelToCompare * pModel)
 {
 
@@ -16,7 +38,7 @@ void CModelParameter::InitDefaultParameter(const CString& strProjName,CModelToCo
 
 	CMobileElemConstraint constarint(pTerminal);
 	constarint.SetInputTerminal(pTerminal);
-	AddPaxType(constarint);
+	m_vPaxType.push_back(constarint);
 
 	ProcessorID procID;
 	procID.SetStrDict(pTerminal->inStrDict);
@@ -27,67 +49,6 @@ void CModelParameter::InitDefaultParameter(const CString& strProjName,CModelToCo
 	m_fromToProcs.m_vToProcs.push_back(procID);
 
 }
-
-void CModelParameter::AddPaxType(CMobileElemConstraint mobConst, BOOL isChecked)
-{
-	MobConstWithCheckedFlag mobConstWithFlag;
-	mobConstWithFlag.SetChecked(isChecked);
-	mobConstWithFlag.SetPaxType(mobConst);
-	m_vPaxType.push_back(mobConstWithFlag);
-}
-
-BOOL CModelParameter::IsPaxTypeExist(CMobileElemConstraint paxType)
-{
-	int nPaxTypeCount = (int)m_vPaxType.size();
-	for(int i=0; i<nPaxTypeCount; i++)
-	{
-		if(m_vPaxType[i].GetPaxType().isEqual(&paxType))
-		{
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-void CModelParameter::GetPaxTpyeList(std::vector<CMobileElemConstraint>& vPaxTpye)
-{
-	int nPaxTypeCount = (int)m_vPaxType.size();
-	for(int i=0; i<nPaxTypeCount; i++)
-	{
-		vPaxTpye.push_back(m_vPaxType[i].GetPaxType());
-	}
-}
-
-void CModelParameter::GetProcIDGroup(std::vector<ProcessorID>& vProcGroup)
-{
-	int nProcIDCount = (int)m_vProcGroup.size();
-	for(int i=0; i<nProcIDCount; i++)
-	{
-		vProcGroup.push_back(m_vProcGroup[i].GetProcID());
-	}
-}
-
-void CModelParameter::AddProcID( ProcessorID procID, BOOL isChecked /*= TRUE*/ )
-{
-	ProcessIDWithCheckedFlag item;
-	item.SetChecked(isChecked);
-	item.SetProcID(procID);
-	m_vProcGroup.push_back(item);
-}
-
-BOOL CModelParameter::IsProcIDExist(ProcessorID procID)
-{
-	int nProcIDCount = (int)m_vProcGroup.size();
-	for(int i=0; i<nProcIDCount; i++)
-	{
-		if(m_vProcGroup[i].GetProcID() == procID)
-		{
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -151,9 +112,9 @@ void CReportParamToCompare::SetModelParameter(std::vector<CModelParameter>& vMod
 
 	m_vModelParam = vModelParam;
 }
-std::vector<CModelParameter>& CReportParamToCompare::GetModelParameter()
+void CReportParamToCompare::GetModelParameter(std::vector<CModelParameter>& vModelParam)
 {
-	return m_vModelParam;
+	vModelParam = m_vModelParam;
 }
 
 int CReportParamToCompare::GetModelParameterCount()

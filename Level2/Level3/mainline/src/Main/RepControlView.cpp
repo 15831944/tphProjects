@@ -535,12 +535,20 @@ void CRepControlView::InitGUI()
 
 	// interval 
 	bEnable = FALSE;
-	if( m_enumReportType == ENUM_QUEUELENGTH_REP || m_enumReportType == ENUM_PAXDENS_REP || m_enumReportType == ENUM_BAGDISTRIBUTION_REP
-		|| m_enumReportType == ENUM_BAGCOUNT_REP || m_enumReportType == ENUM_PAXCOUNT_REP
-		|| m_enumReportType == ENUM_SPACETHROUGHPUT_REP || m_enumReportType == ENUM_COLLISIONS_REP 
-		|| m_enumReportType == ENUM_ACOPERATION_REP || 	m_enumReportType == ENUM_THROUGHPUT_REP	
-		|| m_enumReportType == ENUM_CONVEYOR_WAIT_LENGTH_REP || m_enumReportType == ENUM_BILLBOARD_EXPOSUREINCIDENCE_REP
-		|| m_enumReportType == ENUM_BILLBOARD_LINKEDPROCINCREMENTVISIT_REP || m_enumReportType == ENUM_RETAIL_REP)
+	if( m_enumReportType == ENUM_QUEUELENGTH_REP || 
+		m_enumReportType == ENUM_PAXDENS_REP || 
+		m_enumReportType == ENUM_BAGDISTRIBUTION_REP|| 
+		m_enumReportType == ENUM_BAGCOUNT_REP || 
+		m_enumReportType == ENUM_PAXCOUNT_REP|| 
+		m_enumReportType == ENUM_SPACETHROUGHPUT_REP || 
+		m_enumReportType == ENUM_COLLISIONS_REP || 
+		m_enumReportType == ENUM_ACOPERATION_REP || 	
+		m_enumReportType == ENUM_THROUGHPUT_REP	|| 
+		m_enumReportType == ENUM_CONVEYOR_WAIT_LENGTH_REP || 
+		m_enumReportType == ENUM_BILLBOARD_EXPOSUREINCIDENCE_REP|| 
+		m_enumReportType == ENUM_BILLBOARD_LINKEDPROCINCREMENTVISIT_REP || 
+		m_enumReportType == ENUM_RETAIL_REP ||
+		m_enumReportType == ENUM_PAXLOG_REP)
 		bEnable = TRUE;
 	m_staticInterval.EnableWindow( bEnable );
 	m_dtctrlInterval.EnableWindow(bEnable);

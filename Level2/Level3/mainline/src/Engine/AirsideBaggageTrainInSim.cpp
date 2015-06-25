@@ -421,6 +421,7 @@ void AirsideBaggageTrainInSim::LoadBaggageFromPusher( ElapsedTime eTime )
 	paxCons.MergeFlightConstraint(&fltCons);
 
 	int nCapacity = pCurCartInSim->getCapacity();
+	ElapsedTime serviceTime = GetSubServiceTimePerBag();
 	pPusher->ReleaseBaggageToBaggageCart(this, paxCons, nCapacity, eTime);
 
 	//find bags belong to this flight
@@ -448,8 +449,9 @@ void AirsideBaggageTrainInSim::UnloadBaggageToLoader(ElapsedTime time)
 	if(!pBagCart)
 		return;
 	
-	ElapsedTime eFinishedTime = time;	
-	pBagCart->ReleaseBaggage(m_pTermProc, m_pBagCartsSpotInSim, eFinishedTime);
+	ElapsedTime eFinishedTime = time;
+	ElapsedTime bagServiceTime = GetSubServiceTimePerBag();
+	pBagCart->ReleaseBaggage(m_pTermProc, m_pBagCartsSpotInSim, bagServiceTime, eFinishedTime);
 
 	//move to next cart
 	if(isLastCart())
@@ -510,7 +512,7 @@ void AirsideBaggageTrainInSim::TransferTheBag( Person *pBag,const ElapsedTime& e
 	ASSERT(pBagCart);
 
 	ElapsedTime eArriveTime = eTime;
-	pBagBehavior->MoveToCartFromPusher(pBagCart, eArriveTime);
+	pBagBehavior->MoveToCartFromPusher(pBagCart, GetSubServiceTimePerBag(),eArriveTime);
 
 	retTime = MAX(retTime,eArriveTime);
 	//CPoint2008  m_pBagCartsSpotInSim->GetServicePoint();
@@ -842,34 +844,11 @@ ElapsedTime AirsideBaggageTrainInSim::GetServiceTimePerBag() const
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ElapsedTime AirsideBaggageTrainInSim::GetSubServiceTimePerBag() const
+{
+	if(m_pSubServiceTimeDistribution)
+	{
+		return ElapsedTime(m_pSubServiceTimeDistribution->getRandomValue()*60L/10);
+	}
+	return ElapsedTime(1L);
+}

@@ -16,7 +16,7 @@ typedef std::map<long, std::vector<int> > DistanceMap;//Distance travel report d
 
 
 class CComparativeDistanceTravelReport :
-	public CComparativeReportResult
+	public CCmpBaseReport
 {
 public:
 	CComparativeDistanceTravelReport(void);

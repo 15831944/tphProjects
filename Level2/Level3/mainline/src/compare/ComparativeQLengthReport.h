@@ -15,7 +15,7 @@
 
 typedef std::map<ElapsedTime, std::vector<int> > QLengthMap;//QueueLength report data table,save all models'  QueueLength report data
 
-class CComparativeQLengthReport : public CComparativeReportResult  
+class CComparativeQLengthReport : public CCmpBaseReport  
 {
 protected:
 	QLengthMap m_mapQLength;

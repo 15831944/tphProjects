@@ -211,6 +211,11 @@ Person * AirsideMobElementBaseBehavior::getMobileElement()
 	return m_pMobileElemment;
 }
 
+void AirsideMobElementBaseBehavior::setLocation( const CPoint2008& _ptLocation )
+{
+	location = _ptLocation;
+}
+
 
 
 

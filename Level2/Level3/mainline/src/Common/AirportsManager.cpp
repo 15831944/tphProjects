@@ -662,11 +662,9 @@ bool CAirportsManager::deleteDatabase(CAirportDatabase* pAirportDatabase)
 //global function
 CAirportsManager* _g_GetActiveAirportMan( CAirportDatabase* _pAirportDB )
 {
-	
 	assert( _pAirportDB );
 	if(!_pAirportDB)
 		return NULL;
-
 	return _pAirportDB->getAirportMan();
 }
 void CAirportsManager::ReadDataFromDB(int _airportDBID,DATABASESOURCE_TYPE type )

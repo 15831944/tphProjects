@@ -489,8 +489,9 @@ void Person::setCurrentPosition (ElapsedTime moveTime)
 	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
 
     if (destTime >= ElapsedTime(0l))
+	{
         spTerminalBehavior->setDestination (spTerminalBehavior->location.calcMidPoint (spTerminalBehavior->m_ptDestination, speed, (destTime - moveTime)));
-
+	}
     writeLogEntry (moveTime, false);
 }
 
@@ -648,12 +649,32 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 		m_logEntry.setTerminalEndTime(time);
 	}
 
+
+	BOOL bInBridge = spTerminalBehavior->IsWalkOnBridge() && spTerminalBehavior->getBridgeState()==DepBridge;
+	BOOL bIsArrivalDoor = spTerminalBehavior->m_bIsArrivalDoor;
+
+	if( m_pGroupInfo->IsFollower() )
+	{
+		if( Person* leader =  m_pGroupInfo->GetGroupLeader() )
+		{
+			if( TerminalMobElementBehavior* pLeaderBehavior = leader->getTerminalBehavior() )
+			{
+				bInBridge = pLeaderBehavior->IsWalkOnBridge() && pLeaderBehavior->getBridgeState()==DepBridge;
+				//bIsArrivalDoor = pLeaderBehavior->m_bIsArrivalDoor;
+			}
+		}
+	}
+	
+	BOOL bIsRealZ = bInBridge || (bIsArrivalDoor?TRUE:FALSE);
+
+
+
 	track.procNumber = (short)spTerminalBehavior->getProcessor()->getIndex();
 	track.bDynamicCreatedProc = spTerminalBehavior->getProcessor()->GetDynamicCreatedFlag();
 	track.followowner	= false;
 	track.reason = spTerminalBehavior->m_iStopReason;
 	track.backup = _bBackup;
-	track.m_IsRealZ = spTerminalBehavior->m_bIsArrivalDoor?TRUE:FALSE;
+	track.m_IsRealZ = bIsRealZ;
 
 	PLACE_TRACK_STRING("2010224-11:04:47");
 	if(m_type.GetTypeIndex() != 0 )
@@ -691,7 +712,7 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 		}
 
 		if(bOffset)
-			spTerminalBehavior->location = spTerminalBehavior->m_ptDestination + latPoint;
+			spTerminalBehavior->location = spTerminalBehavior->m_ptDestination;// + latPoint;
 		else
 			spTerminalBehavior->location = spTerminalBehavior->m_ptDestination;
 
@@ -699,7 +720,7 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 		spTerminalBehavior->setDestination( spTerminalBehavior->location );
     }
 
-	if (spTerminalBehavior->m_bIsArrivalDoor)
+	if (bIsRealZ)
 	{
 		track.m_RealZ = (float)spTerminalBehavior->location.getZ();
 		spTerminalBehavior->m_bIsArrivalDoor = false;
@@ -1127,4 +1148,25 @@ bool Person::getOnboardDest( ARCVector3& pt ) const
 DistanceUnit Person::getInStep( void ) const
 {
 	  return (m_in*SCALE_FACTOR + ((GetActiveGroupSize() < 4)? 0: ((GetActiveGroupSize() < 6)? 20: 40))); 
+}
+
+void Person::setCurrentPositionRealZ( ElapsedTime moveTime )
+{
+	PLACE_METHOD_TRACK_STRING();
+	MobileElementMovementEvent dummy;
+	ElapsedTime destTime = dummy.removeMoveEvent (this);
+	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
+
+	if (destTime >= ElapsedTime(0l))
+	{
+		ARCPoint3 dest(spTerminalBehavior->m_ptDestination);
+		ARCPoint3 location(spTerminalBehavior->location);
+		ARCVector3 vector = dest- location;
+		DistanceUnit dist= (destTime - moveTime).asSeconds()*speed;
+		vector.SetLength(dist);
+		ARCPoint3 midPt  = dest - vector;
+
+		spTerminalBehavior->setDestination ( Point(midPt.x,midPt.y,midPt.z) );
+	}
+	writeLogEntry (moveTime, false);
 }

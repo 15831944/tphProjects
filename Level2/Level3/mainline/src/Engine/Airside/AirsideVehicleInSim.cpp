@@ -120,6 +120,7 @@ AirsideVehicleInSim::AirsideVehicleInSim( int id,int nPrjID,CVehicleSpecificatio
 	m_pReportlogItem = NULL;
 
 	m_pServiceTimeDistribution = NULL;
+	m_pSubServiceTimeDistribution = NULL;
 }
 CPoint2008 AirsideVehicleInSim::GetRanddomPoint()
 {

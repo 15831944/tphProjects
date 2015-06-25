@@ -28,7 +28,7 @@ public:
 
 	int GetDoorID(){ return m_nDoorID; }
 	const CString& GetDoorName(){ return m_strDoorName; }
-
+	ACTypeDoor* GetAcTypeDoor() {return m_pDoor;}
 private:
 	CTreeCtrl m_wndTreeCtrl;
 
@@ -36,4 +36,5 @@ private:
 	CString m_strDoorName;
 	ACTYPEDOORLIST* m_pAcDoors;
 	CString m_strACType;
+	ACTypeDoor* m_pDoor;
 };

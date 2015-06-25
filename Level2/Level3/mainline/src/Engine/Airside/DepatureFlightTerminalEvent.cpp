@@ -23,11 +23,11 @@ DepatureFlightTerminalEvent::~DepatureFlightTerminalEvent(void)
 {
 }
 
-int DepatureFlightTerminalEvent::Process()
+int DepatureFlightTerminalEvent::process(CARCportEngine* _pEngine)
 {
 	Clearance theClearance;
 	ElapsedTime tEndTime = time;
-	DisConnectBridge();
+	m_pCFlight->DisConnectBridges(_pEngine, getTime());
 
 	m_pCFlight->ChangeToDeparture();
 
@@ -214,56 +214,62 @@ bool DepatureFlightTerminalEvent::GetStandClearence( StandInSim* pStand,ElapsedT
 	return false;
 }
 
-void DepatureFlightTerminalEvent::DisConnectBridge() const
+int DepatureFlightTerminalEvent::Process()
 {
-	BridgeConnector* pBridgeConnector = GetBridgeConnector();
-	if (pBridgeConnector == NULL)
-		return;
-
-
-	pBridgeConnector->DisAirsideConnect(getTime());
-
+	ASSERT(FALSE);
+	return 1;
 }
 
-BridgeConnector* DepatureFlightTerminalEvent::GetBridgeConnector() const
-{
-	if (m_pCFlight == NULL)
-		return NULL;
-	
-	Flight* pFlight = m_pCFlight->GetFlightInput();
-	if (pFlight == NULL)
-		return NULL;
-	
-	Terminal* pTerminal =  pFlight->GetTerminal();
-	if(pTerminal )
-	{
-		//get stand
-		if(m_pCFlight->GetOperationParkingStand())//m_pAirsideFlt->GetResource() && m_pAirsideFlt->GetResource()->GetType() == AirsideResource::ResType_StandLeadInLine)
-		{
-			//StandLeadInLineInSim *pStandLeadInSim = (StandLeadInLineInSim *)m_pAirsideFlt->GetResource();
-			//ASSERT(pStandLeadInSim);
-			StandInSim* pStandInSim = m_pCFlight->GetOperationParkingStand();
-			//if(pStandInSim)
-			{
-				ALTObjectID standName;
-				pStandInSim->GetStandInput()->getObjName(standName);
-
-				ProcessorList *pProcList =  pTerminal->GetTerminalProcessorList();
-				std::vector<BaseProcessor*> vBridgeProcessor;
-				if(pProcList)
-					pProcList->GetProcessorsByType(vBridgeProcessor,BridgeConnectorProc);
-
-				std::vector<BaseProcessor *>::iterator iterBridge = vBridgeProcessor.begin();
-				for (; iterBridge != vBridgeProcessor.end(); ++ iterBridge)
-				{
-					BridgeConnector *pBridgeConnector = (BridgeConnector *)*iterBridge;
-					if(pBridgeConnector && pBridgeConnector->IsBridgeConnectToFlight(pFlight->getFlightIndex()))
-					{
-						return pBridgeConnector;
-					}
-				}
-			}
-		}
-	}
-	return NULL;
-}
+//void DepatureFlightTerminalEvent::DisConnectBridge() const
+//{
+//	BridgeConnector* pBridgeConnector = GetBridgeConnector();
+//	if (pBridgeConnector == NULL)
+//		return;
+//
+//
+//	pBridgeConnector->DisAirsideConnect(getTime());
+//
+//}
+//
+//BridgeConnector* DepatureFlightTerminalEvent::GetBridgeConnector() const
+//{
+//	if (m_pCFlight == NULL)
+//		return NULL;
+//	
+//	Flight* pFlight = m_pCFlight->GetFlightInput();
+//	if (pFlight == NULL)
+//		return NULL;
+//	
+//	Terminal* pTerminal =  pFlight->GetTerminal();
+//	if(pTerminal )
+//	{
+//		//get stand
+//		if(m_pCFlight->GetOperationParkingStand())//m_pAirsideFlt->GetResource() && m_pAirsideFlt->GetResource()->GetType() == AirsideResource::ResType_StandLeadInLine)
+//		{
+//			//StandLeadInLineInSim *pStandLeadInSim = (StandLeadInLineInSim *)m_pAirsideFlt->GetResource();
+//			//ASSERT(pStandLeadInSim);
+//			StandInSim* pStandInSim = m_pCFlight->GetOperationParkingStand();
+//			//if(pStandInSim)
+//			{
+//				ALTObjectID standName;
+//				pStandInSim->GetStandInput()->getObjName(standName);
+//
+//				ProcessorList *pProcList =  pTerminal->GetTerminalProcessorList();
+//				std::vector<BaseProcessor*> vBridgeProcessor;
+//				if(pProcList)
+//					pProcList->GetProcessorsByType(vBridgeProcessor,BridgeConnectorProc);
+//
+//				std::vector<BaseProcessor *>::iterator iterBridge = vBridgeProcessor.begin();
+//				for (; iterBridge != vBridgeProcessor.end(); ++ iterBridge)
+//				{
+//					BridgeConnector *pBridgeConnector = (BridgeConnector *)*iterBridge;
+//					if(pBridgeConnector && pBridgeConnector->IsBridgeConnectToFlight(pFlight->getFlightIndex()))
+//					{
+//						return pBridgeConnector;
+//					}
+//				}
+//			}
+//		}
+//	}
+//	return NULL;
+//}

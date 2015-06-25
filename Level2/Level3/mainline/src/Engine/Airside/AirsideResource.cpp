@@ -199,9 +199,14 @@ std::vector<AirsideFlightInSim *> AirsideResource::GetFlightsAfterFlight( Airsid
 	return vFlights;
 }
 
-bool AirsideResource::IsStandResource() const
+//bool AirsideResource::IsStandResource() const
+//{
+//	return GetType()==ResType_Stand||GetType()==ResType_StandLeadInLine||GetType()==ResType_StandLeadOutLine;
+//}
+
+StandInSim* AirsideResource::IsStandResource() const
 {
-	return GetType()==ResType_Stand||GetType()==ResType_StandLeadInLine||GetType()==ResType_StandLeadOutLine;
+	return NULL;
 }
 
 

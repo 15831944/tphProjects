@@ -34,7 +34,7 @@ int FlightBirthTerminalEvent::Process()
 	
 		if (!m_pCFlight->IsTransfer())
 		{
-			//teminate
+			//terminate
 			/*ClearanceItem teminatItem(NULL,OnTerminate, 0);
 			teminatItem.SetTime(tEndTime);
 			theClearance.AddItem(teminatItem);*/
@@ -75,7 +75,7 @@ int FlightBirthTerminalEvent::Process()
 
 }
 
-bool FlightBirthTerminalEvent::GetStandClearence(StandInSim* pStand,ElapsedTime& tStartTime, ElapsedTime& tEndTime,	Clearance& theClearance)
+bool FlightBirthTerminalEvent::GetStandClearence(StandInSim* pStand,const ElapsedTime& tStartTime, const ElapsedTime& tEndTime,	Clearance& theClearance)
 {
 	if(pStand)
 	{

@@ -93,7 +93,7 @@
 // which processor's queue will be traced
 const int constiIntervalMeter = 30;
 
-ProcessorList::ProcessorList( StringDictionary* _pStrDict ) : DataSet (ProcessorLayoutFile,float(2.6))
+ProcessorList::ProcessorList( StringDictionary* _pStrDict ) : DataSet (ProcessorLayoutFile,float(2.7))
 {
 	m_procCount = 0;
 	startProcessor = endProcessor = NULL;
@@ -667,7 +667,15 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 				_pInfo->insertDiagnoseInfo(strProcessor,"can not lead to Landside Destination:" + strErrorInfo);
 				continue;
 			}
-
+			if(aProc && aProc->getProcessorType()==BridgeConnectorProc)
+			{
+				BridgeConnector* bridge = (BridgeConnector*)aProc;
+				if( !bridge->IsBridgeConnectToFlight( pPerson->GetCurFlightIndex() ) )
+				{
+					_pInfo->insertDiagnoseInfo(strProcessor,"Bridge is not connected to the flight" + strErrorInfo);
+					continue;
+				}
+			}
 			if (!CanLeadToTerminalProcessor(curProc, aProc,vAltLandsideSelectedProc, pEngine))
 			{
 				CString strErrorInfo;
@@ -2976,10 +2984,86 @@ void ProcessorList::readObsoleteData ( ArctermFile& p_file )
 		setIndexes();
 
 	}
-	else if (p_file.getVersion() < float(2.6))
+	else if (p_file.getVersion() < float(2.7))
 	{
-		readData(p_file);
+		//readData(p_file);
+		p_file.getLine();
+		Processor *aProc=NULL;
+		m_pServicePoints = new Point[MAX_POINTS];
+		m_pQueue = new Point[MAX_POINTS];
+
+		bool bFirst = true;
+		int co = 0;
+		while (!p_file.isBlank ())
+		{
+			co ++;
+			try
+			{
+				aProc = readProcessor (p_file, bFirst);
+			}catch (...) 
+			{
+				Sleep(0);
+			}
+			if(aProc==NULL)return;
+			bFirst = false;
+			if( aProc->getProcessorType() == Elevator )
+			{
+				((ElevatorProc*)aProc)->InitLayout();
+			}
+			else if( aProc->getProcessorType() == ConveyorProc )
+			{
+				((Conveyor*)aProc)->CalculateTheBisectLine();
+			}
+			else if( aProc->getProcessorType() == StairProc )
+			{
+				((Stair*)aProc)->CalculateTheBisectLine();
+			}
+			else if( aProc->getProcessorType() == EscalatorProc )
+			{	
+				((Escalator*)aProc)->CheckAndRectifyQueueInOutConstraint();
+				((Escalator*)aProc)->CalculateTheBisectLine();
+
+			}
+			else if (aProc->getProcessorType() == BridgeConnectorProc)
+			{
+				BridgeConnector* pBridgeConnector = (BridgeConnector*)aProc;
+				int nCountPoint = pBridgeConnector->_GetConnectPointCount();
+				pBridgeConnector->SetConnectPoint(pBridgeConnector->_GetConnectPointByIdx(0));
+				BridgeConvert bridgeConvert;
+				bridgeConvert.SetBridgeConnector(pBridgeConnector);
+				for (int i = 1; i < nCountPoint; i++)
+				{
+					BridgeConnector* pNewBridge = new BridgeConnector();
+					*pNewBridge = *pBridgeConnector;
+					CString strBridge;
+					strBridge.Format(_T("%s_%d"),aProc->getID()->GetIDString(),i+1);
+					ProcessorID newBridgeID;
+					newBridgeID.SetStrDict(m_pInTerm->inStrDict);
+					newBridgeID.setID(strBridge);
+					pNewBridge->init(newBridgeID);
+					pNewBridge->SetConnectPoint(pBridgeConnector->_GetConnectPointByIdx(i));
+					bridgeConvert.AddBridgeConvert(pNewBridge);
+
+					addProcessor(pNewBridge,false);
+				}
+				if (bridgeConvert.GetConvertCount() != 0)
+				{
+					m_vBridgeConvert.push_back(bridgeConvert);
+				}
+			}
+
+			addProcessor (aProc,false);
+		}
+
+		BuildProcGroupIdxTree();
+		if( m_bDoOffset )
+			DoOffset();
+
+		delete m_pServicePoints;
+		delete m_pQueue;
+		setIndexes();
 	}
+
 
 }
 
@@ -3173,7 +3257,7 @@ void ProcessorList::ClearAllProcDynamicFlag()
 	}
 }
 
-void ProcessorList::FlushBridgeLog()
+void ProcessorList::FlushBridgeLog(const ElapsedTime& t)
 {
 	PLACE_METHOD_TRACK_STRING();
 	int iProcessorCount = getProcessorCount();
@@ -3183,7 +3267,7 @@ void ProcessorList::FlushBridgeLog()
 		pTemp = getProcessor( i );
 		if( pTemp->getProcessorType() == BridgeConnectorProc )
 		{	
-			((BridgeConnector*)pTemp)->FlushLog();		
+			((BridgeConnector*)pTemp)->FlushLog(t);		
 		}
 	}
 }

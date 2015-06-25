@@ -9,6 +9,7 @@
 #include "typelist.h"
 #include "distlist.h"
 #include "paxdata.h"
+#include "BridgeConnectorPaxData.h"
 #include "bagdata.h"
 #include "engine\proclist.h"
 #include "procdata.h"
@@ -101,6 +102,7 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
     inTypeList = new PassengerTypeList( inStrDict );
     paxDistList = new PassengerDistributionList;
     paxDataList = new PassengerData;
+	bcPaxData = new BridgeConnectorPaxData;
 
     // Baggage Data
     bagData = new BaggageData;
@@ -200,6 +202,7 @@ InputTerminal::~InputTerminal ()
     delete inTypeList;
     delete paxDistList;
     delete paxDataList;
+	delete bcPaxData;
 
     // Baggage Data
     delete bagData;
@@ -344,6 +347,9 @@ void InputTerminal::loadInputs ( const CString& _pProjPath )
 	paxDataList->SetInputTerminal( this );
 	//bool IsConvertGroupSizeData = CheckConvertPaxGroupSizeData(_pProjPath);
     paxDataList->loadDataSet( _pProjPath );
+
+	bcPaxData->SetInputTerminal(this);
+	bcPaxData->loadDataSet(_pProjPath);
 	bar.StepIt();
 
 
@@ -550,6 +556,7 @@ void InputTerminal::saveInputs ( const CString& _pProjPath) const
     flightData->saveDataSet(_pProjPath, false);
     bagData->saveDataSet(_pProjPath, false);
     paxDataList->saveDataSet(_pProjPath, false);
+	bcPaxData->saveDataSet(_pProjPath, false);
     m_pHubbing->saveDataSet(_pProjPath, false);
 
     procList->saveDataSet(_pProjPath, false);
@@ -782,6 +789,7 @@ BOOL InputTerminal::ProcessorRename(ProcessorID&oldID,const char* newName, const
 void InputTerminal::deletePaxType (int p_level, int p_index)
 {
     paxDataList->deletePaxType (p_level, p_index);
+	bcPaxData->deletePaxType(p_level, p_index);
     m_pHubbing->deletePaxType (p_level, p_index);
     serviceTimeDB->deletePaxType (p_level, p_index);
     m_pPassengerFlowDB->deletePaxType (p_level, p_index);
@@ -795,6 +803,7 @@ void InputTerminal::deletePaxType (int p_level, int p_index)
 void InputTerminal::savePaxData ( const CString& _csProjPath)
 {
     paxDataList->saveDataSet(_csProjPath, false);
+	bcPaxData->saveDataSet(_csProjPath, false);
     m_pHubbing->saveDataSet(_csProjPath, false);
     serviceTimeDB->saveDataSet(_csProjPath, false);
     m_pPassengerFlowDB->saveDataSet(_csProjPath, false);

@@ -845,6 +845,8 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 					pVehicle->SetServicePointCount(request.GetServiceCount());
 					if (request.GetServiceTime())
 						pVehicle->SetServiceTimeDistribution(request.GetServiceTime());
+					if (request.GetSubServiceTime())
+						pVehicle->SetSubServiceTimeDistribution(request.GetSubServiceTime());
 
 					request.AddServiceVehicle(pBaggageTrain);
 					if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -892,6 +894,8 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 								m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
 								if (request.GetServiceTime())
 									m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+								if (request.GetSubServiceTime())
+									m_vVehicleList[i]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
 
 								request.AddServiceVehicle(pBaggageTrain);
 								if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -915,6 +919,8 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
 							if (request.GetServiceTime())
 								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+							if (request.GetSubServiceTime())
+								m_vVehicleList[i]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
 
 							request.AddServiceVehicle(pBaggageTrain);
 							if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -937,6 +943,8 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
 							if (request.GetServiceTime())
 								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+							if (request.GetSubServiceTime())
+								m_vVehicleList[i]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
 
 							request.AddServiceVehicle(pBaggageTrain);
 							if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -983,6 +991,9 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 		m_vVehicleList[nServiceIdx]->SetServicePointCount(request.GetServiceCount());
 		if (request.GetServiceTime())
 			m_vVehicleList[nServiceIdx]->SetServiceTimeDistribution(request.GetServiceTime());
+		if (request.GetSubServiceTime())
+			m_vVehicleList[nServiceIdx]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
+
 		if(request.GetBaggageLeft() - nVehicleCapacity > 0)
 		{
 			pBaggageTrain->SetServiceCount(nVehicleCapacity);

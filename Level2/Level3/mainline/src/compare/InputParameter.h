@@ -12,28 +12,30 @@
 #include "ModelsManager.h"
 #include "ReportsManager.h"
 
-class CInputParameter  
+class CCmpReportParameter  
 {
 public:
-	CInputParameter();
-	virtual ~CInputParameter();
+	CCmpReportParameter();
+	virtual ~CCmpReportParameter();
 
 public:
-	const CModelsManager& GetModelsManager();
-	void SetModelsManager(const CModelsManager& modelsManager);
 
-	const CReportsManager& GetReportsManager();
-	void SetReportsManager(const CReportsManager& reportsManager);
-
-	CModelsManager* GetModelsManagerPtr(){return &m_modelsManager;}
-	CReportsManager* GetReportsManagerPtr(){return &m_reportsManager;}
+	CModelsManager* GetModelsManager(){return &m_modelsManager;}
+	CSingleReportsManager* GetReportsManager(){return &m_reportsManager;}
 
 	BOOL DeleteModel(const CString& strUniqueName);
+	BOOL DeleteReport(const CString& strReportName);
+public:
+	bool LoadData(const CString& strProjName, const CString& strProjPath);
 
+	void SaveData(const CString& strPath);
 
+	CModelToCompare* GetModelByUniqueName(const CString& strUniqueName);
+
+	Terminal *getTerminal();
 private:
-	CModelsManager	m_modelsManager;
-	CReportsManager	m_reportsManager;
+	CModelsManager			m_modelsManager;
+	CSingleReportsManager	m_reportsManager;
 };
 
 #endif // !defined(AFX_INPUTPARAMETER_H__237A4BF6_AC33_4921_91D9_ABF8ECBBB17E__INCLUDED_)

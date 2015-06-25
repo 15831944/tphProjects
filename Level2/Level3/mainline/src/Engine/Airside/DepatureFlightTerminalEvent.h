@@ -13,6 +13,7 @@ public:
 	explicit DepatureFlightTerminalEvent(AirsideFlightInSim* flt, StandResourceManager* pStandRes);
 	~DepatureFlightTerminalEvent(void);
 
+	virtual int process(CARCportEngine* _pEngine);
 	virtual int Process();
 	bool GetStandClearence(StandInSim* pStand,ElapsedTime& tStartTime, ElapsedTime& tEndTime,Clearance& theClearance);
 	bool WaitAtStand(StandInSim* pStand,ElapsedTime& tStartTime, ElapsedTime& tEndTime,Clearance& theClearance);
@@ -25,8 +26,8 @@ public:
 	virtual int getEventType (void) const {return DepatureFlightStandEvent;}
 
 private:
-	void DisConnectBridge()const;
-	BridgeConnector* GetBridgeConnector()const;
+	//void DisConnectBridge()const;
+	//BridgeConnector* GetBridgeConnector()const;
 private:
 	AirsideFlightInSim* m_pCFlight;
 	StandResourceManager* m_pStandResource;;

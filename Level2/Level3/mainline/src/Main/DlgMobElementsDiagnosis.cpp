@@ -15,6 +15,9 @@
 #include "Common/termfile.h"
 #include "Common/exeption.h"
 #include "Common/fileman.h"
+#include "TermPlanDoc.h"
+#include "Results/LogReader.h"
+#include "Engine/TERMINAL.H"
 class DiagnosisMobElementsIDConfig
 {
 public:
@@ -351,6 +354,27 @@ void CDlgMobElementsDiagnosis::OnBnClickedOpen()
 	std::string strDiagnosisFilePath;
 	strDiagnosisFilePath = m_strProjPath;
 	strDiagnosisFilePath.append(DiagnosisFilePath);
+
+
+	CTermPlanDoc* pDoc = (CTermPlanDoc*) ((CMDIChildWnd *)((CMDIFrameWnd*)AfxGetApp()->m_pMainWnd)->GetActiveFrame())->GetActiveDocument();
+	
+	//print logs
+	std::vector<int> ids;
+	for( int i = 0 ; i < m_wndListBox.GetCount(); i++)
+	{
+		CString strMobIDString;
+		m_wndListBox.GetText( i, strMobIDString );
+
+		long nValue = atoi(strMobIDString);
+		if(nValue < 0 || nValue > INT_MAX)
+			continue;
+		ids.push_back(nValue);
+
+	}
+	//CString outDir = 
+	LogReader::PrintPaxLog(&pDoc->GetTerminal(),ids, pDoc->m_ProjInfo.path, strDiagnosisFilePath.c_str() );
+	LogReader::PrintBridgeLog(&pDoc->GetTerminal(), pDoc->m_ProjInfo.path, strDiagnosisFilePath.c_str());
+
 
 	ShellExecute(NULL, "open", strDiagnosisFilePath.c_str(), NULL, NULL, SW_SHOW);
 }

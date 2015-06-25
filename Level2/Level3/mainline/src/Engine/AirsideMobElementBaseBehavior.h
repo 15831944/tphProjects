@@ -37,7 +37,7 @@ public:
 	//Sets Element's destination
 	virtual void setDestination (CPoint2008 p);
 
-	virtual void setLocation( const CPoint2008& _ptLocation ){ location = _ptLocation;	}
+	virtual void setLocation( const CPoint2008& _ptLocation );
 
 	virtual int	WriteLog(ElapsedTime time,const double speed = 0, enum EntityEvents enumState = FreeMoving) ;
 

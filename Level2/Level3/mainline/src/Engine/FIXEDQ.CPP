@@ -170,7 +170,7 @@ Point FixedQueue::getLocation (Person *aPerson, DistanceUnit inStep) const
 }
 // If Person has only arrived at a corner of the path, call approachQueue to determine next destination and return.
 // Otherwise, it removes the Person from m_approachList, adds him to waitList, set pathIndex, resets destination of all other approaching passengers.
-// If next Person in queue has advanced, continue movemnt.
+// If next Person in queue has advanced, continue movement.
 void FixedQueue::arriveAtQueue (Person *aPerson, ElapsedTime arriveTime)
 {
 #ifdef WANT_TO_TRACE_QUUEU_INFO
@@ -199,7 +199,7 @@ void FixedQueue::arriveAtQueue (Person *aPerson, ElapsedTime arriveTime)
 						index = cornerCount() - 1 ;
 					if(spTerminalBehavior->first < index)
 					{
-						aPerson->setCurrentPosition (arriveTime);
+						setPersonCurrentPosition(aPerson,arriveTime);//aPerson->setCurrentPosition (arriveTime);
 						spTerminalBehavior->setQueuePathSegmentIndex(index + 1);
 						aPerson->setTerminalDestination(corner(index )) ;
 						spTerminalBehavior->SetEntryPoint(corner(index )) ;
@@ -306,7 +306,7 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
 			if(spTerminalBehavior->HasArrivedFixQueue())
 			{
 				aPerson->setState (MoveToQueue);
-				aPerson->setCurrentPosition(updateTime) ;
+				setPersonCurrentPosition(aPerson,updateTime);//aPerson->setCurrentPosition(updateTime) ;
 			}else
 			{
 				if(EntryPoints.GetCurrentIndex() != -1 )
@@ -334,7 +334,7 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
         else if (aPerson->getState() == WaitInQueue)
         {
             aPerson->setState (MoveToQueue);
-            aPerson->setCurrentPosition (updateTime);
+            setPersonCurrentPosition(aPerson,updateTime);//aPerson->setCurrentPosition (updateTime);
             approachQueue (aPerson, updateTime);
         }
     }
@@ -383,4 +383,9 @@ int FixedQueue::onTailSegment (const Person *aPerson) const
 void FixedQueue::getTailPoint(Person *aPerson)const
 {
 	aPerson->setTerminalDestination(corner (LAST_SEGMENT));
+}
+
+void FixedQueue::setPersonCurrentPosition( Person *aPerson,const ElapsedTime& arriveTime )
+{
+	aPerson->setCurrentPosition(arriveTime);
 }

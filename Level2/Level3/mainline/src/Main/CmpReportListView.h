@@ -22,10 +22,14 @@ public:
 #endif
 
 protected:
-	CListCtrl m_wndListCtrl;
+	CCmpReport* m_pCmpReport;
+	int m_categoryType;
+	CXListCtrl m_wndListCtrl;
 	CSortableHeaderCtrl m_ctlHeaderCtrl;
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
+	CString m_sHeader;
+	CString m_sFoot;
+	CString m_sExtension;
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual void OnInitialUpdate();
@@ -34,11 +38,19 @@ protected:
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnChooseMenu(UINT nID);
+
+	afx_msg void OnMenuItemMax();
+	afx_msg void OnMenuItemNormal();
+	afx_msg void OnMenuItemPrint();
+	afx_msg void OnMenuItemExport();
+	afx_msg void OnColumnclickListCtrl(NMHDR* pNMHDR, LRESULT* pResult);
+
+	void OnPrint(CDC* pDC, CPrintInfo* pInfo);				//print all of the items
+	void PrintSelectedItems(CDC *pDC, CPrintInfo *pInfo);	//print the selected items only
 public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-protected:
-	CCmpReport* m_pCmpReport;
-	int m_categoryType;
+	BOOL ExportListCtrlToCvsFile(ArctermFile& _file);
+	BOOL ExportListData(ArctermFile& _file);
 };
 
 

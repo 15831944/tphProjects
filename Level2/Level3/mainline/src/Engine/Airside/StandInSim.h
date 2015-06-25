@@ -81,7 +81,7 @@ public:
 	virtual bool bLocked(ARCMobileElement* pmob,const RouteDirPath* pPath)const;
 	virtual bool bMobileInResource(ARCMobileElement* pmob)const;
 
-
+	virtual StandInSim* IsStandResource()const;
 protected:
 	std::vector<VehicleLaneEntry*> m_vOutLanes;	
 	Stand::RefPtr m_pStandInput;

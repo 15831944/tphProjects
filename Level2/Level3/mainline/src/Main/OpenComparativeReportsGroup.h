@@ -12,13 +12,13 @@
 /////////////////////////////////////////////////////////////////////////////
 // COpenComparativeReportsGroup dialog
 
-class COpenComparativeReportsGroup : public CDialog
+class CDlgOpenComparativeReport : public CDialog
 {
 // Construction
 public:
 	int GetSelIndex();
 	void InitListCtrl();
-	COpenComparativeReportsGroup(CWnd* pParent = NULL);   // standard constructor
+	CDlgOpenComparativeReport(CWnd* pParent = NULL);   // standard constructor
 
 	CString m_strName;
 	CString m_strDesc;

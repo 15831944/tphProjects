@@ -351,7 +351,7 @@ bool IsAtTheDecisionPoint(AirsideFlightInSim* pFlight,CTakeOffPriorityRunwayItem
 	AirsideResource* pRes = pFlight->GetResource();
 	if(pItem && pRes)
 	{
-		bool bAtStand = pRes->IsStandResource();
+		bool bAtStand = pRes->IsStandResource()!=NULL;
 		if(pItem->m_eDecision==DP_DepStand && bAtStand)
 		{
 			return true;

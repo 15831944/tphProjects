@@ -42,11 +42,7 @@ typedef enum
 	CMP_REPORT_TN_MODEL = 0,
 	CMP_REPORT_TN_SIMRESULT_ALL,
 	CMP_REPORT_TN_SIMRESULT,
-	CMP_REPORT_TN_REPORT,
-	CMP_REPORT_TN_PAX_TYPE,
-	CMP_REPORT_TN_PROC_ID,
-	TREE_NODE_7,
-	TREE_NODE_8
+	CMP_REPORT_TN_REPORT
 } CMP_REPORT_TREE_NODE_DATA_TYPE;
 class CmpReportTreeNodeDataWithType
 {
@@ -232,16 +228,16 @@ void CCmpReportTreeView::InitParaWnd()
 
 BOOL CCmpReportTreeView::CheckData()
 {
-	CInputParameter* pInputParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
+	CCmpReportParameter* pInputParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
 	//	Any models
-	if (!pInputParam->GetModelsManagerPtr()->GetModelsList().size())
+	if (!pInputParam->GetModelsManager()->getCount())
 	{
 		AfxMessageBox(_T("Please assign one or more models."));
 		return FALSE;
 	}
 
 	//	Any Reports
-	if (!pInputParam->GetReportsManagerPtr()->GetReportsList().size())
+	if (!pInputParam->GetReportsManager()->getCount())
 	{
 		AfxMessageBox(_T("Please assign one or more reports."));
 		return FALSE;
@@ -335,25 +331,26 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 		RemoveSubItem(m_hModelRoot);
 		COOLTREE_NODE_INFO cni;
 		InitCooltreeNodeInfo(this, cni);
-		CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-		std::vector<CModelToCompare*>& vModels = pManager->GetModelsList();
-		int modelCount = (int)vModels.size();
+		CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
+		
+		int modelCount = pManager->getCount();
 		for(int i = 0; i < modelCount; i++)
 		{
+			CModelToCompare* pCmpModel = pManager->getModel(i);
 			cni.nt = NT_CHECKBOX;
 			CString strModel = "";
 			strModel.Format("Model-%d", i);
-			HTREEITEM hModel = m_propTree.InsertItem(strModel, cni, vModels[i]->GetChecked(), FALSE, m_hModelRoot);
+			HTREEITEM hModel = m_propTree.InsertItem(strModel, cni, pCmpModel->GetChecked(), FALSE, m_hModelRoot);
 			cni.nt = NT_NORMAL;
 			CmpReportTreeNodeDataWithType* pNodeData = NULL;
 			pNodeData = new CmpReportTreeNodeDataWithType();
-			pNodeData->m_data = (DWORD)vModels[i];
+			pNodeData->m_data = (DWORD)pCmpModel;
 			pNodeData->m_type = CMP_REPORT_TN_MODEL;
 			m_propTree.SetItemData(hModel, (DWORD)pNodeData);
 
 			cni.net =  NET_SHOW_DIALOGBOX;
 			cni.nt = NT_NORMAL;
-			CModelToCompare *pModelToCompare = pManager->GetModelsList().at(i);
+			CModelToCompare *pModelToCompare = pManager->getModel(i);
 			CString strName = pModelToCompare->GetUniqueName();
 			strItemText.Format("Name: %s", strName);
 			HTREEITEM hItemTemp = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModel);
@@ -396,13 +393,14 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 		COOLTREE_NODE_INFO cni;
 		InitCooltreeNodeInfo(this, cni);
 		cni.net = NET_SHOW_DIALOGBOX;
-		CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-		std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-		int reportCount = (int)vReports.size();
+		CSingleReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManager();
+		
+		int nReportCount = pRManager->getCount();
+		
 		CString strRep = _T("");
-		for(int i = 0; i < reportCount; i++)
+		for(int nReport = 0; nReport < nReportCount; nReport++)
 		{
-			CReportToCompare& report = vReports.at(i);
+			CReportToCompare& report = pRManager->getReport(nReport);
 			cni.nt = NT_CHECKBOX;
 			strRep = report.GetName();
 			strRep.MakeUpper();
@@ -414,7 +412,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			pNodeData->m_type = CMP_REPORT_TN_REPORT;
 			m_propTree.SetItemData(hItem2, (DWORD)pNodeData);
 
-			CReportParamToCompare& param = report.GetParameter();
+			CReportParamToCompare param = report.GetParameter();
 			int iIndex = -1;
 			switch (report.GetCategory())
 			{
@@ -478,15 +476,16 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 			SetItemDataDefault(hInterval);
 
 			//write Model Parameter
-			std::vector<CModelParameter>& vModelParam = param.GetModelParameter();
+			std::vector<CModelParameter> vModelParam;
+			param.GetModelParameter(vModelParam);
 			int nModelParamCount = param.GetModelParameterCount();
 
-			CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+			CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 
 			for (int i=0; i<nModelParamCount; i++)
 			{
 				CModelParameter& modelParam = vModelParam[i];
-				CString strModelName = pModelManager->GetModelsList().at(i)->GetModelName();
+				CString strModelName = pModelManager->getModel(i)->GetModelName();
 				HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
 				SetItemDataDefault(hModelItem);
 
@@ -507,27 +506,19 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 					report.GetCategory() == ENUM_ACOPERATION_REP||
 					report.GetCategory() == ENUM_PAXDENS_REP)
 				{
-					if (modelParam.GetPaxTypeCount() > 0)
+					std::vector<CMobileElemConstraint> vPaxType;
+					if (modelParam.GetPaxType(vPaxType))
 					{
-						std::vector<MobConstWithCheckedFlag>& vPaxType = modelParam.GetPaxTypeWithCheckedFlagList();
-						strTemp = _T("Passenger Type");
-						HTREEITEM hPaxItemParent = m_propTree.InsertItem("Passenger Type", cni, FALSE, FALSE, hModelItem);
-						SetItemDataDefault(hPaxItemParent);
-
-						cni.nt = NT_CHECKBOX;
+						strTemp = _T("Passanger Type");
+						HTREEITEM hPaxItem = m_propTree.InsertItem("Passenger Type", cni, FALSE, FALSE, hModelItem);
 						CString strPax;
-						for (int i = 0; i < (int)vPaxType.size(); i++)
+						for (int i = 0; i < static_cast<int>(vPaxType.size()); i++)
 						{
-							MobConstWithCheckedFlag& paxType = vPaxType.at(i);
-							paxType.GetPaxType().screenPrint(strPax);
-							HTREEITEM hPaxItem = m_propTree.InsertItem(strPax, cni, paxType.GetChecked(), FALSE, hPaxItemParent);
-							pNodeData = new CmpReportTreeNodeDataWithType();
-							pNodeData->m_data = (DWORD)(&paxType);
-							pNodeData->m_type = CMP_REPORT_TN_PAX_TYPE;
-							m_propTree.SetItemData(hPaxItem, (DWORD)pNodeData);
+							vPaxType[i].screenPrint(strPax);
+							HTREEITEM hPaxItem2 = m_propTree.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
+							SetItemDataDefault(hPaxItem2);
 						}
-						m_propTree.Expand(hPaxItemParent, TVE_EXPAND);
-						cni.nt = NT_NORMAL;
+						m_propTree.Expand(hPaxItem, TVE_EXPAND);
 					}	
 				}
 				if (report.GetCategory() == ENUM_DURATION_REP ||
@@ -555,25 +546,19 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 				}
 				else if(report.GetCategory() != ENUM_ACOPERATION_REP)
 				{
-					if (modelParam.GetProcIDCount() > 0)
+					std::vector<ProcessorID> vProcGroup;
+					if (modelParam.GetProcessorID(vProcGroup))
 					{
-						std::vector<ProcessIDWithCheckedFlag>& vProcGroup = modelParam.GetProcIDWithCheckedFlagGroup();
-						HTREEITEM hProcIDParent = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
-
-						cni.nt = NT_CHECKBOX;
+						HTREEITEM hProcTypeItem = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
 						char szProc[128];
 						for (int i = 0; i < static_cast<int>(vProcGroup.size()); i++)
 						{
 							memset(szProc, 0, sizeof(szProc) / sizeof(char));
-							vProcGroup[i].GetProcID().printID(szProc);
-							HTREEITEM hProcIDItem = m_propTree.InsertItem(szProc, cni, vProcGroup[i].GetChecked(), FALSE, hProcIDParent);
-							pNodeData = new CmpReportTreeNodeDataWithType();
-							pNodeData->m_data = (DWORD)(&vProcGroup[i]);
-							pNodeData->m_type = CMP_REPORT_TN_PROC_ID;
-							m_propTree.SetItemData(hProcIDItem, (DWORD)pNodeData);
+							vProcGroup[i].printID(szProc);
+							HTREEITEM hProcID = m_propTree.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
+							SetItemDataDefault(hProcID);
 						}
-						cni.nt = NT_NORMAL;
-						m_propTree.Expand(hProcIDParent, TVE_EXPAND);
+						m_propTree.Expand(hProcTypeItem, TVE_EXPAND);
 					}
 				}
 				m_propTree.Expand(hModelItem, TVE_EXPAND);
@@ -595,12 +580,12 @@ void CCmpReportTreeView::UpdateWholeTree()
 
 CString CCmpReportTreeView::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
 {
-	CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 
-	if((int)pModelManager->GetModelsList().size()  == 0)
+	Terminal *pTerminal = pModelManager->getTerminal();
+
+	if(pTerminal == NULL)
 		return "";
-
-	Terminal *pTerminal = pModelManager->GetModelsList().at(0)->GetTerminal();
 
 	CSimAndReportManager *ptSim = pTerminal->GetSimReportManager();
 	CStartDate tstartdate = ptSim->GetStartDate();
@@ -644,7 +629,7 @@ void CCmpReportTreeView::AddModel()
 {
 	CWaitCursor wc;
 
-	CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 	CModelSelectionDlg dlg(pManager,this);
 	wc.Restore();
 	if(dlg.DoModal() == IDOK)
@@ -676,7 +661,7 @@ void CCmpReportTreeView::DeleteAllModel()
 	if(MessageBox("Delete all Models?", NULL, MB_ICONWARNING | MB_YESNO) == IDYES)
 	{
 		CModelsManager* pModelManager = 
-			m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+			m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 		MessageBox("TODO: Delete all models.");
 		/*pModelManager->RemoveAllModels();*/
 		UpdateSubItems(m_hModelRoot);
@@ -687,9 +672,9 @@ void CCmpReportTreeView::DeleteAllModel()
 void CCmpReportTreeView::AddReport()
 {
 	CWaitCursor wc;
-	CDlgCmpReportProperty dlg(this);
+	CDlgReportProperty dlg(this);
 	dlg.m_strProjName = m_pCmpReport->GetComparativeProject()->GetName();
-	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 	CString strError = pMManager->InitTerminal(NULL,dlg.m_strProjName,NULL);
 	if (!strError.IsEmpty())
 	{
@@ -697,13 +682,13 @@ void CCmpReportTreeView::AddReport()
 		return;
 	}
 
-	CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
+	CSingleReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManager();
 
 	dlg.SetManager(pMManager,pRManager);
 
 	dlg.SetProjName(dlg.m_strProjName);
 	wc.Restore();
-	if(dlg.HasModelInLocation() == CDlgCmpReportProperty::MT_NOMODEL)
+	if(dlg.HasModelInLocation() == CDlgReportProperty::MT_NOMODEL)
 	{
 		MessageBox("No valid model, please add one at least!");
 		return ;
@@ -711,7 +696,7 @@ void CCmpReportTreeView::AddReport()
 
 	if(dlg.DoModal() == IDOK)
 	{
-		CReportToCompare& report = dlg.GetReport();
+		const CReportToCompare& report = dlg.GetReport();
 		pRManager->AddReport(report);
 		UpdateSubItems(m_hReportRoot);
 		m_pCmpReport->SetModifyFlag(TRUE);
@@ -725,36 +710,27 @@ void CCmpReportTreeView::EditReport()
 
 	BOOL bFound = FALSE;
 	CString strReportName = m_propTree.GetItemText(m_propTree.GetSelectedItem());
-	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
-	CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-	std::vector<CReportToCompare>::iterator iter;
-	CReportToCompare report;
-	for (iter = vReports.begin(); iter != vReports.end(); iter++)
-	{
-		if (strReportName.CompareNoCase(iter->GetName()) == 0)
-		{
-			report = *iter;
-			bFound = TRUE;
-			break;
-		}
-	}
 
-	if (bFound)
+	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
+	CSingleReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManager();
+	CReportToCompare* pReport2Cmp =	pRManager->GetReportByName(strReportName);
+	if(pReport2Cmp)//check the report exists
 	{
-		CDlgCmpReportProperty dlg(this);
+		CDlgReportProperty dlg(this);
 		dlg.m_strProjName = m_pCmpReport->GetComparativeProject()->GetName();
 		dlg.SetManager(pMManager,pRManager);
 
 		dlg.SetProjName(dlg.m_strProjName);
-		dlg.GetReport() = report;
+		dlg.GetReport() = *pReport2Cmp;
+
 		wc.Restore();
 
 		if(dlg.DoModal() == IDOK)
 		{
 			const CReportToCompare& report = dlg.GetReport();
-			vReports.erase(iter);
-			pRManager->AddReport(report);
+			
+			pRManager->UpdateReport(strReportName, report);
+			
 			UpdateSubItems(m_hReportRoot);
 			m_pCmpReport->SetModifyFlag(TRUE);
 			m_pCmpReport->SaveProject();
@@ -766,19 +742,12 @@ void CCmpReportTreeView::DeleteReport()
 {
 	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 	CString strReportName = m_propTree.GetItemText(hSelItem);
-	CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
-	std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-	std::vector<CReportToCompare>::iterator iter;
-	CString strTemp;
-	for (iter = vReports.begin(); iter != vReports.end(); iter++)
-	{
-		strTemp = iter->GetName();
-		if (strTemp.CompareNoCase(strReportName) == 0)
-		{
-			vReports.erase(iter);
-			break;
-		}
-	}
+	
+	CCmpReportParameter* pProjectReportParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
+	if(pProjectReportParam)
+		pProjectReportParam->DeleteReport(strReportName);
+
+
 	UpdateSubItems(m_hReportRoot);
 	m_pCmpReport->SetModifyFlag(TRUE);
 	m_pCmpReport->SaveProject();
@@ -863,23 +832,16 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 		CComparativeProject* pComProj = m_pCmpReport->GetComparativeProject();
 		if(hCurItem == m_hProjName)
 		{
-			CString strOriName = m_pCmpReport->GetOriginProjName();
+			CString strOriName = pComProj->GetOriName();
 			if(strValue.IsEmpty())
 			{
 				ReleaseCapture();
 				MessageBox("The name is empty, please input the project name.", NULL, MB_OK | MB_ICONWARNING);
-				if(strOriName.IsEmpty())
-					strItemText = "Name";
-				else
-					strItemText.Format("Name: %s", strOriName);
-				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
 			if (strValue.CompareNoCase(strOriName) == 0)
 			{
 				ReleaseCapture();
-				strItemText.Format("Name: %s", strOriName);
-				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
 			if(m_pCmpReport->ProjExists(strValue))
@@ -888,11 +850,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				CString strTemp;
 				strTemp.Format(_T("The Comparative Report \"%s\" already exists, please rename."), strValue);
 				MessageBox(strTemp, NULL, MB_ICONWARNING | MB_OK);
-				if(strOriName.IsEmpty())
-					strItemText = "Name";
-				else
-					strItemText.Format("Name: %s", strOriName);
-				m_propTree.SetItemText(hCurItem, strItemText);
 				return 0;
 			}
 			strItemText.Format("Name: %s", strValue.MakeUpper());
@@ -940,18 +897,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 			{
 				SimResultWithCheckedFlag* pSimResult = (SimResultWithCheckedFlag*)pNodeData->m_data;
 				pSimResult->SetChecked(!pSimResult->GetChecked());
-			}
-			break;
-		case CMP_REPORT_TN_PAX_TYPE:
-			{
-				MobConstWithCheckedFlag* pPaxType = (MobConstWithCheckedFlag*)pNodeData->m_data;
-				pPaxType->SetChecked(!pPaxType->GetChecked());
-			}
-			break;
-		case CMP_REPORT_TN_PROC_ID:
-			{
-				ProcessIDWithCheckedFlag* pProcID = (ProcessIDWithCheckedFlag*)pNodeData->m_data;
-				pProcID->SetChecked(!pProcID->GetChecked());
 			}
 			break;
 		default:

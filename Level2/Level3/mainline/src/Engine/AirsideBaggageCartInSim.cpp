@@ -22,11 +22,11 @@ int AirsideBaggageCartInSim::getCapacity() const
 	return static_cast<int>(m_pVehicleSpecificationItem->getCapacity());
 }
 
-void AirsideBaggageCartInSim::ReleaseBaggage(Processor *pProc, CBagCartsParkingSpotInSim *pBagCartsSpotInSim, ElapsedTime &eTime )
+void AirsideBaggageCartInSim::ReleaseBaggage(Processor *pProc, CBagCartsParkingSpotInSim *pBagCartsSpotInSim,const ElapsedTime& bagServiceTime, ElapsedTime &eTime )
 {
 	PLACE_METHOD_TRACK_STRING();
 	int nBagCount = static_cast<int>(m_vBaggage.size());
-	ElapsedTime eMoveTime;
+	//ElapsedTime eMoveTime;
 	int nBag;
 	for (nBag = 0; nBag < nBagCount; ++ nBag)
 	{
@@ -37,9 +37,9 @@ void AirsideBaggageCartInSim::ReleaseBaggage(Processor *pProc, CBagCartsParkingS
 	//	pBagBehavior->setLocation(ptParkingSpot);
 
 		pBagBehavior->setDestination( ptParkingSpot);
-		eMoveTime = MAX(eMoveTime,pBagBehavior->moveTime());
+		//eMoveTime = MAX(eMoveTime,pBagBehavior->moveTime());
 		//m_pax->getLogEntry().setEntryTime(time) ;
-		ElapsedTime tEntryTime = eTime + eMoveTime;
+		ElapsedTime tEntryTime = eTime + bagServiceTime;
 		pBagBehavior->setLocation(ptParkingSpot);
 		pBagBehavior->WriteLog(tEntryTime) ;
 		Person *pBag = pBagBehavior->getMobileElement();
@@ -55,11 +55,11 @@ void AirsideBaggageCartInSim::ReleaseBaggage(Processor *pProc, CBagCartsParkingS
 			spTerminalBehavior->setLocation(ptLoader);
 			spTerminalBehavior->setDestination(ptLoader);
 			//spTerminalBehavior->SetTransferTypeState(TerminalMobElementBehavior::TRANSFER_DEPARTURE) ;
-			pBag->generateEvent(tEntryTime + ElapsedTime(nBag *1L) ,FALSE) ;
-
+			pBag->generateEvent(tEntryTime ,FALSE) ;
 		}
+		eTime = tEntryTime;
 	}
-	eTime +=  (eMoveTime + ElapsedTime(nBag *1L));
+	//eTime +=  (eMoveTime + ElapsedTime(nBag *1L));
 
 	m_vBaggage.clear();
 

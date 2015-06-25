@@ -15,28 +15,24 @@
 #define UM_COMPREPORT_ADDNEW	WM_USER + 30
 #define UM_COMPREPORT_REMOVE	WM_USER + 31
 
-typedef std::vector<CComparativeReportResult*> CmpReportResultVector;
-class CComparativeReportResultList  
+class CCmpReportParameter;
+
+typedef std::vector<CCmpBaseReport*> CmpReportResultVector;
+class CCmpReportManager  
 {
 public:
-	CComparativeReportResultList();
-	virtual ~CComparativeReportResultList();
+	CCmpReportManager();
+	virtual ~CCmpReportManager();
 protected:
 	CmpReportResultVector m_vReport;
 public:
-	void LoadData();
+	void LoadData(CCmpReportParameter *pParam, const CString& strProjPath);
 	void Save();
 	const CmpReportResultVector& GetReportResult() const;
-	const CComparativeReportResult* GetReportResult(int _nIdx) const;
-	void GetReportResult( ComparativeReportType repType, std::vector<const CComparativeReportResult*>& _vResult) const;
+	const CCmpBaseReport* GetReportResult(int _nIdx) const;
+	void GetReportResult( ComparativeReportType repType, std::vector<const CCmpBaseReport*>& _vResult) const;
 
-	void AddReportResult(CComparativeReportResult* pResult)
-	{
-		if(pResult)
-		{
-			m_vReport.push_back(pResult);
-		}
-	}
+	void AddReportResult(CCmpBaseReport* pResult);
 
 	void ClearReportResult();
 };

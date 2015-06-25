@@ -65,8 +65,8 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 	if(!IsWindowVisible())
 		return;
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
- 	CInputParameter* inputParam = pCompProj->GetInputParam();
-	const CComparativeReportResultList &resultList = pCompProj->GetCompReportResultList();
+ 	CCmpReportParameter* inputParam = pCompProj->GetInputParam();
+	const CCmpReportManager &resultList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vResult = resultList.GetReportResult();
 
 	CString selectedReport;
@@ -149,7 +149,7 @@ void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
 {
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
-	const CComparativeReportResultList &resultList = pCompProj->GetCompReportResultList();
+	const CCmpReportManager &resultList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vResult = resultList.GetReportResult();
 	for(int i = 0; i < static_cast<int>(vResult.size()); i++)
 	{

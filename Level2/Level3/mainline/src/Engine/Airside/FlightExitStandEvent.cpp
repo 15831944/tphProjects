@@ -29,48 +29,8 @@ int FlightExitStandEvent::process(CARCportEngine* _pEngine)
 {
 	PLACE_METHOD_TRACK_STRING();
 
-	Terminal* pTerminal = _pEngine->getTerminal();
-	//check the flight has bus service or not
-	if(pTerminal && m_pAirsideFlt)
-	{
-		//get stand
-		//if(m_pAirsideFlt->GetResource() && m_pAirsideFlt->GetResource()->GetType() == AirsideResource::ResType_StandLeadInLine)
-		{
-			//StandInSim *pStandInSim = (StandInSim *)m_pAirsideFlt->GetResource();
-			//if(pStandInSim)
-			//{
-			//	ALTObjectID standName;
-			//	pStandInSim->GetStandInput()->getObjName(standName);
-
-				ProcessorList *pProcList =  pTerminal->GetTerminalProcessorList();
-				std::vector<BaseProcessor*> vBridgeProcessor;
-				if(pProcList)
-					pProcList->GetProcessorsByType(vBridgeProcessor,BridgeConnectorProc);
-
-				std::vector<BaseProcessor *>::iterator iterBridge = vBridgeProcessor.begin();
-				for (; iterBridge != vBridgeProcessor.end(); ++ iterBridge)
-				{
-					BridgeConnector *pBridgeConnector = (BridgeConnector *)*iterBridge;
-					if(pBridgeConnector && pBridgeConnector->IsBridgeConnectToFlight(m_pAirsideFlt->GetFlightInput()->getFlightIndex()))
-					{
-						if(_pEngine->IsOnboardSel())
-						{
-							bool bArrival = m_pAirsideFlt->IsArrivingOperation();
-							OnboardFlightInSim* pOnboardFlightInSim = _pEngine->GetOnboardSimulation()->GetOnboardFlightInSim(m_pAirsideFlt,bArrival);
-							if (pOnboardFlightInSim)
-							{
-								pBridgeConnector->DisOnboardConnect(getTime());
-								return 0;
-							}	
-						}
-				
-						pBridgeConnector->DisAirsideConnect(getTime());
-						break;
-					}
-				}
-			//}
-		}
-	}
+	if(m_pAirsideFlt)
+		m_pAirsideFlt->DisConnectBridges(_pEngine,getTime());
 
 	return 0;
 }

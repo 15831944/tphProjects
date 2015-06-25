@@ -86,6 +86,7 @@ public:
 
 	void processBridge( ElapsedTime p_time );
 
+
 	int getNextProcessor (ElapsedTime& p_time);
 	Processor *selectProcessor ( ElapsedTime _curTime, bool _bStationOnly = false, bool _bExcludeFlowBeltProc = false, bool bTryExcludeElevatorProc = false);
 	Processor *selectBestProcessor (const ProcessorArray *p_procList);
@@ -592,7 +593,7 @@ protected:
 	TRANSFER_STATE m_TransferState;
 
 	//Current coordinates
-	Point location;       
+	Point location;
 
 	//Current destination, used for
 	Point m_ptDestination;      
@@ -623,9 +624,12 @@ public:
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
 
 	inline void SetWalkOnBridge(BOOL b){ m_IsWalkOnBridge = b; }
+	inline BOOL IsWalkOnBridge()const{ return m_IsWalkOnBridge; }
 
 	Processor * getLastTerminalProc() const { return m_pLastTerminalProc; }
 	void setLastTerminalProc(Processor * pProc) { m_pLastTerminalProc = pProc; }
+
+	ArrDepBridgeState getBridgeState()const{ return m_emBridgeState;}
 public:
 	int inElevotor;
 
@@ -657,7 +661,7 @@ public:
 	void setLandsideSelectedProc(const std::vector<ALTObjectID>& altLandsideSelectedProc);
 	const std::vector<ALTObjectID>& GetLandsideSelectedProc()const;
 private:
-	int m_nBridgeIndex;
+	//int m_nBridgeIndex;
 
 	std::vector<ALTObjectID> m_vAltLandsideSelectedProc;
 

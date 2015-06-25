@@ -11,7 +11,6 @@
 #include "TermPlanDoc.h"
 #include "SelectALTObjectDialog.h"
 #include "../Common/AirportDatabase.h"
-#include "../Inputs/OperatingDoorSpec.h"
 #include "../AirsideGUI/DlgStandFamily.h"
 
 #include "DleACTypeDoorSelection.h"
@@ -54,6 +53,7 @@ DlgOperatingDoorSpecification::~DlgOperatingDoorSpecification()
 		delete m_pOperatingDoorSpec;
 		m_pOperatingDoorSpec = NULL;
 	}
+	ClearTreeNode();
 }
 
 void DlgOperatingDoorSpecification::DoDataExchange(CDataExchange* pDX)
@@ -242,12 +242,14 @@ void DlgOperatingDoorSpecification::InitTree()
 			HTREEITEM hDoorsItem = m_wndTreeCtrl.InsertItem("Doors used:",cni, FALSE, FALSE, hStandItem, TVI_LAST);
 			m_wndTreeCtrl.SetItemData(hDoorsItem, (DWORD_PTR)pFltData);
 
-			int nDoorCount = pStandData->GetOpDoorCount();
+		//	int nDoorCount = pStandData->GetOpDoorCount();
+			int nDoorCount = (int)pStandData->m_vOpDoors.size();
 			HTREEITEM hDoorItem = NULL;
 			for(int idx = 0; idx <nDoorCount; idx++)
 			{
-				int nDoorID = pStandData->GetOpDoorID(idx);
-
+				//int nDoorID = pStandData->GetOpDoorID(idx);
+				StandOperatingDoorData::OperationDoor doorOp = pStandData->m_vOpDoors.at(idx);
+				int nDoorID = doorOp.m_nID;
 				iter = pAcDoors->begin();
 				while(iter != pAcDoors->end())
 				{
@@ -259,9 +261,16 @@ void DlgOperatingDoorSpecification::InitTree()
 				if (iter == pAcDoors->end())
 					continue;
 
-				CString strDoor = (*iter)->m_strName;
+			//	CString strDoor = (*iter)->m_strName;
+				CString strDoor;
+				strDoor.Format(_T("%s(%s)"), (*iter)->m_strName,doorOp.GetHandTypeString());
 				hDoorItem = m_wndTreeCtrl.InsertItem(strDoor,cni, FALSE, FALSE, hDoorsItem, TVI_LAST);
-				m_wndTreeCtrl.SetItemData(hDoorItem,nDoorID);
+
+				StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
+				pNodeData->m_nID = nDoorID;
+				pNodeData->m_iHandType = doorOp.m_iHandType;
+				m_vDoorOp.push_back(pNodeData);
+				m_wndTreeCtrl.SetItemData(hDoorItem,(DWORD)pNodeData);
 			}
 			m_wndTreeCtrl.Expand(hDoorsItem,TVE_EXPAND);
 			m_wndTreeCtrl.Expand(hStandItem,TVE_EXPAND);
@@ -386,12 +395,31 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 		int nDoorCount = pAcDoors->size();
 		for (int idx =0; idx < nDoorCount; idx++)
 		{
-			CString strName = pAcDoors->at(idx)->m_strName;
+		//	CString strName = pAcDoors->at(idx)->m_strName;
+			std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
 			int nDoorID = pAcDoors->at(idx)->GetID();
-
-			pStandData->AddOpDoor(nDoorID);
-			HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
-			m_wndTreeCtrl.SetItemData(hDetail,nDoorID);
+			if (pStandData->GetDoorOperation(pAcDoors->at(idx),vDoorOp) == true)
+			{
+				int nHandCount = (int)vDoorOp.size();
+				for(int iHand = 0; iHand < nHandCount; iHand++)
+				{
+					StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
+					CString strName;
+					strName.Format(_T("%s(%s)"),pAcDoors->at(idx)->m_strName,doorOp.GetHandTypeString());
+					HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
+					StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
+					pNodeData->m_nID = nDoorID;
+					pNodeData->m_iHandType = doorOp.m_iHandType;
+					pStandData->m_vOpDoors.push_back(doorOp);
+					m_vDoorOp.push_back(pNodeData);
+					m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
+				}
+			}
+//			pStandData->AddDoorOperation(pAcDoors->at(idx));
+//			int nDoorID = pAcDoors->at(idx)->GetID();
+//// 			pStandData->AddOpDoor(nDoorID);
+//			HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
+//			m_wndTreeCtrl.SetItemData(hDetail,nDoorID);
 		}
 		pFltData->AddStandDoor(pStandData);
 		m_pOperatingDoorSpec->AddFlightOpDoor(pFltData);
@@ -453,9 +481,28 @@ void DlgOperatingDoorSpecification::AddNewStandItem( HTREEITEM hSelItem,FltOpera
 		CString strName = pAcDoors->at(idx)->m_strName;
 		int nDoorID = pAcDoors->at(idx)->GetID();
 
-		pStandData->AddOpDoor(nDoorID);
-		HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
-		m_wndTreeCtrl.SetItemData(hDetail,nDoorID);
+		std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
+		if (pStandData->GetDoorOperation(pAcDoors->at(idx),vDoorOp) == true)
+		{
+			int nHandCount = (int)vDoorOp.size();
+			for(int iHand = 0; iHand < nHandCount; iHand++)
+			{
+				StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
+				CString strName;
+				strName.Format(_T("%s(%s)"),pAcDoors->at(idx)->m_strName,doorOp.GetHandTypeString());
+				HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
+
+				StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
+				pNodeData->m_nID = nDoorID;
+				pNodeData->m_iHandType = doorOp.m_iHandType;
+				pStandData->m_vOpDoors.push_back(doorOp);
+				m_vDoorOp.push_back(pNodeData);
+				m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
+			}
+		}
+		//pStandData->AddOpDoor(nDoorID);
+		//HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
+		//m_wndTreeCtrl.SetItemData(hDetail,nDoorID);
 	}
 	pFltData->AddStandDoor(pStandData);
 }
@@ -467,17 +514,45 @@ void DlgOperatingDoorSpecification::AddNewDoorItem( HTREEITEM hSelItem, StandOpe
 	if (dlg.DoModal()!= IDOK )
 		return;
 
-	CString strName = dlg.GetDoorName();
-	int nDoorID  = dlg.GetDoorID();
-
+	//CString strName = dlg.GetDoorName();
+	//int nDoorID  = dlg.GetDoorID();
+	ACTypeDoor* pDoor = dlg.GetAcTypeDoor();
+	if (pDoor == NULL)
+		return;
+	
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	cni.nt = NT_NORMAL;
 	cni.net = NET_SHOW_DIALOGBOX;
 
-	pStandData->AddOpDoor(nDoorID);
-	HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hSelItem, TVI_LAST);
-	m_wndTreeCtrl.SetItemData(hDetail,nDoorID);
+	//pStandData->AddDoorOperation(pDoor);
+	std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
+	int nDoorID = pDoor->GetID();
+	if (pStandData->GetDoorOperation(pDoor,vDoorOp) == true)
+	{
+		int nHandCount = (int)vDoorOp.size();
+		for(int iHand = 0; iHand < nHandCount; iHand++)
+		{
+			StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
+			if (pStandData->findOpDoor(&doorOp) == false)
+			{
+				CString strName;
+				strName.Format(_T("%s(%s)"),pDoor->m_strName,doorOp.GetHandTypeString());
+				HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hSelItem, TVI_LAST);
+
+				StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
+				pNodeData->m_nID = nDoorID;
+				pNodeData->m_iHandType = doorOp.m_iHandType;
+				m_vDoorOp.push_back(pNodeData);
+				pStandData->m_vOpDoors.push_back(doorOp);
+				m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
+			}
+		}
+	}
+
+	//pStandData->AddOpDoor(nDoorID);
+	//HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hSelItem, TVI_LAST);
+	//m_wndTreeCtrl.SetItemData(hDetail,nDoorID);
 
 }
 
@@ -485,6 +560,7 @@ void DlgOperatingDoorSpecification::DelFltItem( HTREEITEM hSelItem )
 {
 	FltOperatingDoorData* pFltData = (FltOperatingDoorData*)m_wndTreeCtrl.GetItemData(hSelItem);
 	m_pOperatingDoorSpec->DelFltData(pFltData);
+	DeleteTreeFltNode(pFltData);
 	m_wndTreeCtrl.DeleteItem(hSelItem);
 }
 
@@ -492,13 +568,16 @@ void DlgOperatingDoorSpecification::DelStandItem( HTREEITEM hSelItem,FltOperatin
 {
 	StandOperatingDoorData* pStandData = (StandOperatingDoorData*)m_wndTreeCtrl.GetItemData(hSelItem);
 	pFltData->DelStandData(pStandData);
+	DeleteTreeStandNode(pStandData);
 	m_wndTreeCtrl.DeleteItem(hSelItem);
 }
 
 void DlgOperatingDoorSpecification::DelDoorItem( HTREEITEM hSelItem, StandOperatingDoorData* pStandData )
 {
-	int nDoorID = (int)m_wndTreeCtrl.GetItemData(hSelItem);
-	pStandData->DelOpDoor(nDoorID);
+	StandOperatingDoorData::OperationDoor* pDoorOp = (StandOperatingDoorData::OperationDoor*)m_wndTreeCtrl.GetItemData(hSelItem);
+	pStandData->DelOpDoor(pDoorOp);
+
+	DeleteTreeNode(pDoorOp);
 	m_wndTreeCtrl.DeleteItem(hSelItem);
 }
 
@@ -622,18 +701,122 @@ void DlgOperatingDoorSpecification::EditStandItem( HTREEITEM hSelItem,FltOperati
 
 void DlgOperatingDoorSpecification::EditDoorItem( HTREEITEM hSelItem, StandOperatingDoorData* pStandData, ACTYPEDOORLIST* pACTypeDoors, const CString& strACType )
 {
-	int nDoorID = (int)m_wndTreeCtrl.GetItemData(hSelItem);
-	pStandData->DelOpDoor(nDoorID);
-
+	//int nDoorID = (int)m_wndTreeCtrl.GetItemData(hSelItem);
+//	pStandData->DelOpDoor(nDoorID);
 	DlgACTypeDoorSelection dlg(pACTypeDoors,strACType);
 	if (dlg.DoModal()!= IDOK )
 		return;
 
-	CString strName = dlg.GetDoorName();
-	nDoorID  = dlg.GetDoorID();
+	ACTypeDoor* pDoor = dlg.GetAcTypeDoor();
+	if (pDoor == NULL)
+		return;
 
-	pStandData->AddOpDoor(nDoorID);
-	m_wndTreeCtrl.SetItemText(hSelItem,strName);
-	m_wndTreeCtrl.SetItemData(hSelItem,nDoorID);
+	std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
+	if (pStandData->GetDoorOperation(pDoor,vDoorOp) == true)
+	{
+		StandOperatingDoorData::OperationDoor* pNodeData = (StandOperatingDoorData::OperationDoor*)m_wndTreeCtrl.GetItemData(hSelItem);
+		pStandData->DelOpDoor(pNodeData);
 
+		int nHandCount = (int)vDoorOp.size();
+		int idx = 0;
+		for(int iHand = 0; iHand < nHandCount; iHand++)
+		{
+			StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
+			if (pStandData->findOpDoor(&doorOp) == false)
+			{
+				DeleteTreeNode(pNodeData);
+				StandOperatingDoorData::OperationDoor* pDoorData = new StandOperatingDoorData::OperationDoor();
+				pNodeData->m_nID = pDoor->GetID();
+				pNodeData->m_iHandType = pDoor->m_enumDoorDir;
+				m_vDoorOp.push_back(pDoorData);
+
+				CString strName;
+				strName.Format(_T("%s(%s)"),pDoor->m_strName,doorOp.GetHandTypeString());
+				if (iHand == 0)
+				{
+					m_wndTreeCtrl.SetItemText(hSelItem,strName);
+					m_wndTreeCtrl.SetItemData(hSelItem,(DWORD)pDoorData);
+				}
+				else 
+				{
+					COOLTREE_NODE_INFO cni;
+					CCoolTree::InitNodeInfo(this,cni);
+					cni.nt = NT_NORMAL;
+					cni.net = NET_SHOW_DIALOGBOX;
+					HTREEITEM hParentItem = m_wndTreeCtrl.GetParentItem(hSelItem);
+					HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hParentItem, hSelItem);
+					m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pDoorData);
+				}
+				pStandData->m_vOpDoors.push_back(doorOp);
+			}
+			else
+			{
+				idx++;
+			}
+		}
+		if (idx == nHandCount)
+		{
+			pStandData->m_vOpDoors.push_back(*pNodeData);
+		}
+	}
+
+	//CString strName = dlg.GetDoorName();
+	//nDoorID  = dlg.GetDoorID();
+
+	//pStandData->AddOpDoor(nDoorID);
+	//m_wndTreeCtrl.SetItemText(hSelItem,strName);
+	//m_wndTreeCtrl.SetItemData(hSelItem,nDoorID);
+
+}
+
+void DlgOperatingDoorSpecification::DeleteTreeNode( StandOperatingDoorData::OperationDoor* pNodeData)
+{
+	std::vector<StandOperatingDoorData::OperationDoor*>::iterator iter = std::find(m_vDoorOp.begin(),m_vDoorOp.end(),pNodeData);
+	if (iter != m_vDoorOp.end())
+	{
+		m_vDoorOp.erase(iter);
+		delete pNodeData;
+	}
+
+}
+
+void DlgOperatingDoorSpecification::DeleteTreeNode( const StandOperatingDoorData::OperationDoor& doorOp )
+{
+	for (unsigned i = 0; i < m_vDoorOp.size(); i++)
+	{
+		StandOperatingDoorData::OperationDoor* doorData = m_vDoorOp.at(i);
+		if (*doorData == doorOp)
+		{
+			delete m_vDoorOp[i];
+			m_vDoorOp.erase(m_vDoorOp.begin() + i);
+			break;
+		}
+	}
+}
+
+void DlgOperatingDoorSpecification::ClearTreeNode()
+{
+	for (unsigned i = 0; i < m_vDoorOp.size(); i++)
+	{
+		delete m_vDoorOp[i];
+	}
+	m_vDoorOp.clear();
+}
+
+void DlgOperatingDoorSpecification::DeleteTreeFltNode( FltOperatingDoorData* pFltData )
+{
+	for (int i = 0; i < pFltData->GetStandDoorCount(); i++)
+	{
+		StandOperatingDoorData* pStandData = pFltData->GetStandDoorData(i);
+		DeleteTreeStandNode(pStandData);
+	}
+}
+
+void DlgOperatingDoorSpecification::DeleteTreeStandNode( StandOperatingDoorData* pStandData )
+{
+	for (int i = 0; i < pStandData->GetOpDoorCount(); i++)
+	{
+		StandOperatingDoorData::OperationDoor doorOp = pStandData->m_vOpDoors.at(i);
+		DeleteTreeNode(doorOp);
+	}
 }

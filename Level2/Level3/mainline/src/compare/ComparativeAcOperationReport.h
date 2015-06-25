@@ -16,7 +16,7 @@ typedef std::map<ElapsedTime, std::vector<int> > AcOperationMap;//AcOperation re
 
 
 class CComparativeAcOperationReport :
-	public CComparativeReportResult
+	public CCmpBaseReport
 {
 public:
 	CComparativeAcOperationReport(void);

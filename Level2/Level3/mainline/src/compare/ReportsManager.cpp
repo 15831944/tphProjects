@@ -9,59 +9,142 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CReportsManager::CReportsManager()
+CSingleReportsManager::CSingleReportsManager()
 {
 	m_vReportToCompare.clear();
 }
 
-CReportsManager::~CReportsManager()
+CSingleReportsManager::~CSingleReportsManager()
 {
 
 }
 
-BOOL CReportsManager::LoadData( const CString& strPath )
+BOOL CSingleReportsManager::LoadData( const CString& strPath, CModelsManager *pModelsManager )
 {
 	if(strPath == "")
 		return FALSE;
 	
-	return TRUE;
+	m_vReportToCompare.clear();
+	
+	CReportToCompareDataSet dsReport;
+
+	dsReport.SetInputParam(pModelsManager);
+	dsReport.loadDataSet(strPath);
+	if (dsReport.GetReports(m_vReportToCompare))
+		return TRUE;
+	else
+		return FALSE;
 }
 
-BOOL CReportsManager::AddReport( const CReportToCompare& report)
+BOOL CSingleReportsManager::AddReport( const CReportToCompare& report)
 {
 	m_vReportToCompare.push_back(report);
 	
 	return TRUE;
 }
 
-void CReportsManager::RemoveReport( int nIndex )
+void CSingleReportsManager::RemoveReport( int nIndex )
 {
 	ASSERT( nIndex >= 0 && (unsigned)nIndex < m_vReportToCompare.size() );
 	
 	m_vReportToCompare.erase( m_vReportToCompare.begin() + nIndex );
 }
 
-CReportToCompare& CReportsManager::GetReport( int nIndex )
+CReportToCompare& CSingleReportsManager::getReport( int nIndex )
 {
 	ASSERT( nIndex >= 0 && (unsigned)nIndex< m_vReportToCompare.size() );
 	
 	return m_vReportToCompare[nIndex];
 }
 
-void CReportsManager::SetReports(const std::vector<CReportToCompare>& vReports)
+
+void CSingleReportsManager::DeleteModelParameter(const CString& strModelUniqueName)
 {
-	m_vReportToCompare = vReports;
+	std::vector<CReportToCompare>::size_type i = 0;
+
+	for (;i < m_vReportToCompare.size(); ++i)
+	{
+		m_vReportToCompare.at(i).DeleteModelParameter(strModelUniqueName);
+	}
 }
 
-void CReportsManager::DeleteModelParameter(const CString& strModelUniqueName)
+bool CSingleReportsManager::IsNameAvailable( const CString& strName ) const
 {
-	int reportCount = (int)m_vReportToCompare.size();
-	for (int i=0; i<reportCount; i++)
+	std::vector<CReportToCompare>::size_type nReport;
+	for(nReport = 0; nReport < m_vReportToCompare.size(); nReport++)
 	{
-		m_vReportToCompare[i].DeleteModelParameter(strModelUniqueName);
-		if(m_vReportToCompare[i].GetParameterConst().GetModelParameterCountConst() == 0)
+		if(strName.CompareNoCase(m_vReportToCompare[nReport].GetName()) == 0)
 		{
-			m_vReportToCompare.erase(m_vReportToCompare.begin()+i);
+			return false;
 		}
 	}
+	return true;
+}
+
+bool CSingleReportsManager::IsCategoryAvailable( int nReportType ) const
+{
+	for(int i = 0; i < (int)m_vReportToCompare.size(); i++)
+	{
+		if(m_vReportToCompare.at(i).GetCategory() == nReportType)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void CSingleReportsManager::SaveData( const CString& strPath )
+{
+	CReportToCompareDataSet dsReport;
+	dsReport.SetReports(m_vReportToCompare);
+	dsReport.saveDataSet(strPath, false);
+}
+
+BOOL CSingleReportsManager::DeleteReport( const CString& strReportName )
+{
+	std::vector<CReportToCompare>::iterator iter;
+	CString strTemp;
+	for (iter = m_vReportToCompare.begin(); iter != m_vReportToCompare.end(); iter++)
+	{
+		strTemp = iter->GetName();
+		if (strTemp.CompareNoCase(strReportName) == 0)
+		{
+			m_vReportToCompare.erase(iter);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+int CSingleReportsManager::getCount() const
+{
+	return static_cast<int>(m_vReportToCompare.size());
+}
+
+CReportToCompare* CSingleReportsManager::GetReportByName( const CString& strName )
+{
+	std::vector<CReportToCompare>::iterator iter;
+	for (iter = m_vReportToCompare.begin(); iter != m_vReportToCompare.end(); iter++)
+	{
+		if (strName.CompareNoCase(iter->GetName()) == 0)
+		{
+			return &(*iter);
+		}
+	}
+	return NULL;
+}
+
+void CSingleReportsManager::UpdateReport( const CString& strOldName, const CReportToCompare& report )
+{
+	std::vector<CReportToCompare>::iterator iter;
+	for (iter = m_vReportToCompare.begin(); iter != m_vReportToCompare.end(); iter++)
+	{
+		if (strOldName.CompareNoCase(iter->GetName()) == 0)
+		{
+			m_vReportToCompare.erase(iter);
+			break;
+		}
+	}
+
+	m_vReportToCompare.push_back(report);
 }

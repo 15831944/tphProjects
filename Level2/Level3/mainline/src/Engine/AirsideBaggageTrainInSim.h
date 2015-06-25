@@ -39,6 +39,7 @@ public:
 	void Initialize(int& nNextVehicleUnqiueID);
 
 	ElapsedTime GetServiceTimePerBag()const;
+	ElapsedTime GetSubServiceTimePerBag()const;
 public:
 	void UnloadBaggageToLoader(ElapsedTime time);
 

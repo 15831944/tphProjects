@@ -54,20 +54,9 @@ void CModelsManager::AddModel(CModelToCompare* model)
 	m_vModels.push_back(model);
 }
 
-int CModelsManager::GetAvailableModels(OUT std::vector<CModelToCompare *>& vModels)
-{
-	vModels = m_vModels;
-	return m_vModels.size();
-}
-
 void CModelsManager::RemoveModel(int nIndex)
 {
 	
-}
-
-void CModelsManager::SetModels(const std::vector<CModelToCompare*>& vModels)
-{
-	m_vModels = vModels;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,6 +104,71 @@ CString  CModelsManager::InitTerminal(CCompRepLogBar* pStatus, CString strName, 
 	}
 
 	return "";
+}
+
+CModelToCompare* CModelsManager::GetModelByUniqueName( const CString& strUniqueName )
+{
+	CModelToCompare *pModel = NULL;
+	std::vector<CModelToCompare *>::size_type nModel = 0;
+	for (;nModel< m_vModels.size(); ++nModel)
+	{
+		if (strUniqueName.CompareNoCase(m_vModels.at(nModel)->GetUniqueName()) == 0)
+		{	
+			pModel = m_vModels.at(nModel);
+			break;
+		}
+	}
+	return pModel;
+}
+bool CModelsManager::LoadData( const CString& strProjName, const CString& strProjPath )
+{
+	m_vModels.clear();
+
+	CModelToCompareDataSet dsModel;
+	dsModel.SetProjName(strProjName);
+	dsModel.loadDataSet(strProjPath);
+	if (dsModel.GetModels(m_vModels)) 
+	{
+		return true;
+	}
+	
+	return false;
+}
+
+void CModelsManager::SaveData( const CString& strPath )
+{
+	CModelToCompareDataSet dsModel;
+
+	dsModel.SetModels(m_vModels);
+	dsModel.saveDataSet(strPath, false);
+}
+
+Terminal * CModelsManager::getTerminal()
+{
+	if ((int)m_vModels.size() > 0)
+	{
+		return m_vModels[0]->GetTerminal();
+	}
+	return NULL;
+}
+
+int CModelsManager::getCount()
+{
+	return static_cast<int>(m_vModels.size());
+}
+
+CModelToCompare* CModelsManager::getModel( int nIndex )
+{
+	ASSERT(nIndex >= 0 && nIndex < static_cast<int>(m_vModels.size()));
+	if(nIndex >=0 && nIndex < getCount())
+		return m_vModels.at(nIndex);
+
+	return NULL;
+}
+
+void CModelsManager::Clear()
+{
+	m_vModels.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////

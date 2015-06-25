@@ -5,7 +5,7 @@
 typedef std::map< ElapsedTime, std::vector<int> > PaxCountMap;//PaxCount report data table,save all models'  PaxCount report data
 
 class CComparativePaxCountReport :
-	public CComparativeReportResult
+	public CCmpBaseReport
 {
 
 protected:

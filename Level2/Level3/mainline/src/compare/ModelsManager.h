@@ -31,19 +31,29 @@ public:
 		m_vModels = _rhs.m_vModels;
 		return *this;
 	}
-
-	std::vector<CModelToCompare *>& GetModelsList() 
-	{
-		return m_vModels;
-	}
+	//stop using this method if you have no other way
+	//instead with getCount() and getModel()
+	std::vector<CModelToCompare *>& GetModelsList(){return m_vModels;}
 public:
+	int getCount();
+	CModelToCompare* getModel(int nIndex);
+
 	//	Model
 	void	AddModel(CModelToCompare* model);
-	int		GetAvailableModels(OUT std::vector<CModelToCompare*>& vModels);
 	void	RemoveModel(int nIndex);
-	void	SetModels(const std::vector<CModelToCompare *>& vModels);
+
 	
 	CString  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+
+	CModelToCompare* GetModelByUniqueName( const CString& strUniqueName );
+	
+	
+	bool LoadData( const CString& strProjName, const CString& strProjPath );
+	void SaveData(const CString& strPath);
+	Terminal * getTerminal();
+
+	void Clear();
+
 private:
 	std::vector<CModelToCompare*>	m_vModels;
 };

@@ -150,6 +150,7 @@
     <ClCompile Include="Airside\AirsideTrainFlightTypeManagerInSim.cpp" />
     <ClCompile Include="Airside\AirTrafficController.cpp" />
     <ClCompile Include="Airside\EnrouteQueueCapacityInSim.cpp" />
+    <ClCompile Include="Airside\FlightOpenDoors.cpp" />
     <ClCompile Include="Airside\FlightTerminateEvent.cpp" />
     <ClCompile Include="anServeProcList.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -285,6 +286,7 @@
     <ClCompile Include="BoardingCallPolicy.cpp" />
     <ClCompile Include="BoostPathFinder.cpp" />
     <ClCompile Include="BridgeConnector.cpp" />
+    <ClCompile Include="BridgeQueue.cpp" />
     <ClCompile Include="BusBoardingCall.cpp" />
     <ClCompile Include="Car.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -1466,6 +1468,7 @@
     <ClInclude Include="Airside\AirsidePaxBusParkSpotInSim.h" />
     <ClInclude Include="Airside\AirsideTrainFlightTypeManagerInSim.h" />
     <ClInclude Include="Airside\EnrouteQueueCapacityInSim.h" />
+    <ClInclude Include="Airside\FlightOpenDoors.h" />
     <ClInclude Include="ASSEVENT.H" />
     <ClInclude Include="ACCESSQ.H" />
     <ClInclude Include="AdjacentStation.h" />
@@ -1496,6 +1499,7 @@
     <ClInclude Include="BoardingCallPolicy.h" />
     <ClInclude Include="BoostPathFinder.h" />
     <ClInclude Include="BridgeConnector.h" />
+    <ClInclude Include="BridgeQueue.h" />
     <ClInclude Include="BusBoardingCall.h" />
     <ClInclude Include="Car.h" />
     <ClInclude Include="CarFollowingModel.h" />

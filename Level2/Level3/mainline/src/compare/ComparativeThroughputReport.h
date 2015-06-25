@@ -30,7 +30,7 @@ typedef struct tagCompThroughtputData
 	}
 }CompThroughputData;
 
-class CComparativeThroughputReport : public CComparativeReportResult  
+class CComparativeThroughputReport : public CCmpBaseReport  
 {
 public:
 	CComparativeThroughputReport();

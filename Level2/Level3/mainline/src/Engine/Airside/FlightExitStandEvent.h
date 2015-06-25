@@ -29,10 +29,4 @@ protected:
 	Flight* m_pFlight;
 	AirsideFlightInSim* m_pAirsideFlt ;
 	ElapsedTime m_dtActualDepTime;
-
-
-
-
-
-
 };

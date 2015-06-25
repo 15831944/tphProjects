@@ -12,33 +12,47 @@
 #include <vector>
 #include "ReportToCompare.h"
 
-class CReportsManager  
+class CSingleReportsManager  
 {
 public:
-	CReportsManager();
-	CReportsManager(const CReportsManager& _other) { *this=_other;}
+	CSingleReportsManager();
+	CSingleReportsManager(const CSingleReportsManager& _other) { *this=_other;}
 
-	virtual ~CReportsManager();
+	virtual ~CSingleReportsManager();
 
-	BOOL LoadData( const CString& strPath );
+	BOOL LoadData( const CString& strPath, CModelsManager *pModelsManager );
+	void SaveData(const CString& strPath);
+
 	BOOL AddReport( const CReportToCompare& report);
-	void RemoveReport( int nIndex );
-	CReportToCompare& GetReport( int nIndex );
+	//delete old report, add new one
+	void UpdateReport(const CString& strOldName, const CReportToCompare& report);
 
+	int getCount()const;
+	CReportToCompare& getReport( int nIndex );
+	CReportToCompare* GetReportByName( const CString& strName);
+
+	//stop using this method if you have to
+	//consider to use getCount(), getReport()
 	std::vector<CReportToCompare>& GetReportsList()
 	{
 		return m_vReportToCompare;
 	}
 	
-	CReportsManager& operator = ( const CReportsManager& _rhs )
+	CSingleReportsManager& operator = ( const CSingleReportsManager& _rhs )
 	{
 		m_vReportToCompare = _rhs.m_vReportToCompare;
 		return *this;
 	}
 
-	void SetReports(const std::vector<CReportToCompare>& vReports);
-
 	void DeleteModelParameter(const CString& strModelUniqueName);
+
+	bool IsNameAvailable(const CString& strName) const;
+	
+	//
+	bool IsCategoryAvailable(int nReportType) const;
+
+	BOOL DeleteReport( const CString& strReportName );
+	void RemoveReport( int nIndex );
 
 private:
 	std::vector<CReportToCompare> m_vReportToCompare;

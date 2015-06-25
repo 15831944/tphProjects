@@ -132,6 +132,8 @@ void CSinglePaxTypeFlow::InsertBetwwen( const ProcessorID & _firstProcID, const 
 	{
 		return;
 	}
+
+	bool bFindNewProcessor = false;
 	PAXFLOWIDGRAPH::iterator iterFirstProc = m_vPaxFlowDigraph.end();
 	PAXFLOWIDGRAPH::iterator iterSecondProc = m_vPaxFlowDigraph.end();
 	PAXFLOWIDGRAPH::iterator iterNewProc = m_vPaxFlowDigraph.end();
@@ -149,6 +151,7 @@ void CSinglePaxTypeFlow::InsertBetwwen( const ProcessorID & _firstProcID, const 
 		}
 		else if ( iter->GetProcID() == _newProc.GetProcID()  )
 		{
+			bFindNewProcessor = true;
 			iterNewProc = iter;
 		}
 
@@ -168,7 +171,8 @@ void CSinglePaxTypeFlow::InsertBetwwen( const ProcessorID & _firstProcID, const 
 		iterFirstProc->AddDestProc( _newProc );
 		iterFirstProc->DeleteDestProc( _secondProcID );		
 		
-		if( !&(*iterNewProc) )
+		//	if( !&(*iterNewProc) )
+		if(bFindNewProcessor == false)
 		{	
 			AddIsolatedProc( _newProc.GetProcID() );
 			iterNewProc = m_vPaxFlowDigraph.begin() + m_vPaxFlowDigraph.size() -1;			

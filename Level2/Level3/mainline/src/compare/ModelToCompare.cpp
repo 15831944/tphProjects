@@ -243,62 +243,72 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 			if ( pi.modifytime != piLocal.modifytime)//if modify,copy project again 
 			{
 
-				TransferFiles(m_strModelLocation, strPath,_ShowCopyInfo);
-				m_lastModifiedTime = pi.modifytime.Format("%y %m %d %H %M");//save the last modify time
+				//TransferFiles(m_strModelLocation, strPath,_ShowCopyInfo);
+				//m_lastModifiedTime = pi.modifytime.Format("%y %m %d %H %M");//save the last modify time
 
-				if (strlen(pi.dbname) != 0)
-				{
+				//if (strlen(pi.dbname) != 0)
+				//{
 
-					strDbName = pi.dbname;//get AirportDataBase name
-					CString strNetImportDbPath = strNetworkDBPath + strDbName;
-					TransferFiles(strNetImportDbPath, strPath,_ShowCopyInfo);
+				//	strDbName = pi.dbname;//get AirportDataBase name
+				//	CString strNetImportDbPath = strNetworkDBPath + strDbName;
+				//	TransferFiles(strNetImportDbPath, strPath,_ShowCopyInfo);
 
-					m_strDatabasePath = strPath +  _T('\\') + strDbName;//save the database's path
+				//	m_strDatabasePath = strPath +  _T('\\') + strDbName;//save the database's path
 
-				}
-				else//dbname is not exist ,get the Globaldblist and find out the dbname according to the index
-				{
-					strDbPath = strNetGetAppPath + _T("\\GlobalDBList.ini");
+				//}
+				//else//dbname is not exist ,get the Globaldblist and find out the dbname according to the index
+				//{
+				//	strDbPath = strNetGetAppPath + _T("\\GlobalDBList.ini");
 
-					CAirportDatabaseList dbList;
-					dbList._LoadDataSet(strDbPath);
+				//	CAirportDatabaseList dbList;
+				//	dbList._LoadDataSet(strDbPath);
 
-					if (dbList.getDBCount() < pi.lUniqueIndex)
-					{
+				//	if (dbList.getDBCount() < pi.lUniqueIndex)
+				//	{
 
-						return NULL;
-					}
+				//		return NULL;
+				//	}
 
-					strDbName = dbList.getAirportDBByIndex(pi.lUniqueIndex)->getName();//get AirportDataBase name
+				//	strDbName = dbList.getAirportDBByIndex(pi.lUniqueIndex)->getName();//get AirportDataBase name
 
-					CString strDBFolderPath = dbList.getAirportDBByIndex(pi.lUniqueIndex)->getFolder();
-					nPos = strDBFolderPath.ReverseFind('\\');
-					CString strName = strDBFolderPath.Mid(nPos+1,strDBFolderPath.GetLength()-1);//get the database real name
+				//	CString strDBFolderPath = dbList.getAirportDBByIndex(pi.lUniqueIndex)->getFolder();
+				//	nPos = strDBFolderPath.ReverseFind('\\');
+				//	CString strName = strDBFolderPath.Mid(nPos+1,strDBFolderPath.GetLength()-1);//get the database real name
 
-					CString strImportDbPath = strNetworkDBPath + strName;//database path
+				//	CString strImportDbPath = strNetworkDBPath + strName;//database path
 
 
-					TransferFiles(strImportDbPath, strPath,_ShowCopyInfo);
+				//	TransferFiles(strImportDbPath, strPath,_ShowCopyInfo);
 
-					m_strDatabasePath = strPath +  _T('\\') + strDbName;
+				//	m_strDatabasePath = strPath +  _T('\\') + strDbName;
 
-				}
+				//}
 			}
 			else//project exist in local,and the time is the same as network,and do not copy the project
 			{
 
 
+				m_strDatabasePath = strPath;
 				//get the terminal data
 				Terminal *term = new Terminal;
 		
-				nPos = m_strDatabasePath.ReverseFind('\\');
-				CString strLocalDB = m_strDatabasePath.Mid(nPos+1,m_strDatabasePath.GetLength()-1);//get the database real name
+
+				//for project database load
+				CString  strProjectDataFilePath(_T(""));
+				CString	 strARCDatabaseFilePath(_T(""));
+
+				strProjectDataFilePath.Format("%s\\%s\\%s",strPath,strModelname, "INPUT\\parts.mdb");
+				strARCDatabaseFilePath.Format(_T("%s"),PROJMANAGER->GetAppPath() + "\\Databases\\arc.mdb");
+				CARCProjectDatabase* pAirportDB = new CARCProjectDatabase(strARCDatabaseFilePath,strProjectDataFilePath);
+
+			//	nPos = m_strDatabasePath.ReverseFind('\\');
+			//	CString strLocalDB = m_strDatabasePath.Mid(nPos+1,m_strDatabasePath.GetLength()-1);//get the database real name
 
 
-				CAirportDatabase *pAirPort = new CAirportDatabase;
-				pAirPort->setFolder(m_strDatabasePath);
+			////	CAirportDatabase *pAirPort = new CAirportDatabase;
+			//	pAirPort->setFolder(m_strDatabasePath);
 
-				term->m_pAirportDB = pAirPort;
+				term->m_pAirportDB = pAirportDB;
 				if( !term->m_pAirportDB->hadLoadDatabase() )
 					term->m_pAirportDB->loadDatabase();
 				term->loadInputs(strPath + _T("\\") + m_strModelName);
@@ -334,7 +344,7 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 			CString  strProjectDataFilePath(_T(""));
 			CString  strFolder(_T(""));
 			CString	 strARCDatabaseFilePath(_T(""));
-
+	
 			strProjectDataFilePath.Format("%s\\%s", pi.path, "INPUT\\parts.mdb");
 			strARCDatabaseFilePath.Format(_T("%s"),PROJMANAGER->GetAppPath() + "\\Databases\\arc.mdb");
 			CARCProjectDatabase airportDB(strARCDatabaseFilePath,strProjectDataFilePath);
@@ -359,10 +369,17 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 	}		
 	else
 	{
-		CAirportDatabase *pAirPort = new CAirportDatabase;
-		pAirPort->setFolder(m_strDatabasePath);
+		//CAirportDatabase *pAirPort = new CAirportDatabase;
+		//pAirPort->setFolder(m_strDatabasePath);
+		//for project database load
+		CString  strProjectDataFilePath(_T(""));
+		CString	 strARCDatabaseFilePath(_T(""));
 
-		term->m_pAirportDB = pAirPort;
+		strProjectDataFilePath.Format("%s\\%s\\%s",strPath,m_strModelName,"INPUT\\parts.mdb");
+		strARCDatabaseFilePath.Format(_T("%s"),PROJMANAGER->GetAppPath() + "\\Databases\\arc.mdb");
+		CARCProjectDatabase* pAirportDB = new CARCProjectDatabase(strARCDatabaseFilePath,strProjectDataFilePath);
+
+		term->m_pAirportDB = pAirportDB;
 		if( !term->m_pAirportDB->hadLoadDatabase() )
 			term->m_pAirportDB->loadDatabase();
 	}			

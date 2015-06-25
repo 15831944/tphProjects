@@ -20319,6 +20319,7 @@ BEGIN
     IDS_TVNN_PROCCONGAREA   "Congestion Area"
     IDS_TVNN_GROUNDROUTES   "GroundRoutes"
     IDS_TVNN_HELIPORT       "Heliport"
+    IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION "Entry Flight Time Distribution"
 END
 
 STRINGTABLE

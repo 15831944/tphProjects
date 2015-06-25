@@ -513,15 +513,12 @@ void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain
 				
 				pBaggage->setState( LeaveServer );
 				//Leave Server Time
-				ElapsedTime eLeavTime = eTime +  ElapsedTime(nBagLoad *1L);
+				ElapsedTime eLeavTime = eRetTime;//eTime +  ElapsedTime(nBagLoad *1L);
 				pBaggage->writeLogEntry(eLeavTime, false);
 				m_vServiceSlot[nBag].SetBaggageOnSlot( NULL);
 
 				//move to airside and baggage cart
 				pBaggageTrain->TransferTheBag(pBaggage, eLeavTime,eRetTime);
-
-
-			
 				nBagLoad += 1;
 			}
 		}
