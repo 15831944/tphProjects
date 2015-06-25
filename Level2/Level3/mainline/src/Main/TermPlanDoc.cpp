@@ -474,7 +474,7 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 
 	m_bHideACTags				= FALSE;
 	
-	m_bHideTrafficLight			= FALSE;
+	m_bHideTrafficLight			= TRUE;
 
 	m_vFlow.clear();
 	m_vProcess.clear();
@@ -9832,8 +9832,15 @@ void CTermPlanDoc::OnTrafficLight()
 
 void CTermPlanDoc::OnUpdateTrafficLight(CCmdUI* pCmdUI)
 {
-	//pCmdUI->SetCheck(!m_bHideTrafficLight);
-	//pCmdUI->Enable(!m_bHideTrafficLight);
+	if(m_systemMode == EnvMode_LandSide)
+	{
+		pCmdUI->Enable(TRUE);
+		pCmdUI->SetCheck(!m_bHideTrafficLight);
+	}
+	else
+	{
+		pCmdUI->Enable(FALSE);
+	}
 }
 
 CSurfaceMaterialLib& CTermPlanDoc::GetSurfaceMaterialLib()

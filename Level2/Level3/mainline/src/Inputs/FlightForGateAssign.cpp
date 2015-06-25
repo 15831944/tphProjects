@@ -311,6 +311,8 @@ void FlightForAssignment::EmptyStand()
 	m_pFlight->setArrStand(standID);
 	m_pFlight->setDepStand(standID);
 	m_pFlight->setIntermediateStand(standID);
+	m_pFlight->SetExIntStandTime(-1);
+	m_pFlight->SetTowoffTime(-1);
 	ClearGateIdx();
 }
 

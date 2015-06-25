@@ -61,7 +61,7 @@ int CAnimationBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		IDB_TOOLBAR_LIGHT_DISABLE,RGB(255,0,255));
 	SetImageList();
 	
-	static const int BUTTONCOUNT = 14;
+	static const int BUTTONCOUNT = 15;
 
 	TBBUTTON pButtonInfo[BUTTONCOUNT]; 
 
@@ -120,52 +120,51 @@ int CAnimationBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	i++;
 	pButtonInfo[i].iBitmap = 12;
 	pButtonInfo[i].idCommand = ID_ANIMPAX;
+	i++;
+	pButtonInfo[i].iBitmap = 0;
+	pButtonInfo[i].idCommand = 0;
+	pButtonInfo[i].fsStyle =BTNS_SEP;
+	m_nCountNotButton++;
 
 	AddButtons(BUTTONCOUNT,pButtonInfo);
 
-	AddTextComboBox(" ",&m_cbPax,CSize(170,160),IDC_COMBO_PAXSELED,CBS_DROPDOWNLIST);
+	AddTextComboBox(" ",&m_cbPax,CSize(180,170),IDC_COMBO_PAXSELED,CBS_DROPDOWNLIST);
 	for(int j=0;j<5;j++)
 	{
 		TBBUTTON tbb;
 		CToolBar24X24::InitTBBUTTON(tbb) ;
 		tbb.iBitmap = -1;
-		tbb.idCommand =TEMP_ID_FOR_NOT_BUTTON+m_nCountNotButton;
+		tbb.idCommand = TEMP_ID_FOR_NOT_BUTTON+m_nCountNotButton;
 		tbb.fsState &=~ TBSTATE_ENABLED;
 		AddButton(&tbb,0,TRUE);
 	}
 
-	{
-		TBBUTTON tbbb;
-		CToolBar24X24::InitTBBUTTON(tbbb) ;
-		tbbb.iBitmap = -1;
-		tbbb.idCommand = 0;
-		tbbb.fsStyle = TBSTYLE_SEP;
-		tbbb.fsState = TBSTATE_INDETERMINATE;
-		AddButton(&tbbb);
+	TBBUTTON pButton[5]; 
+	for(i=0;i<5;i++)
+		CToolBar24X24::InitTBBUTTON(pButton[i]);
+	i=0;
+	pButton[i].iBitmap = 0;
+	pButton[i].idCommand = 0;
+	pButton[i].fsStyle =BTNS_SEP;
+	m_nCountNotButton++;
+	i++;
+	pButton[i].iBitmap = 17;
+	pButton[i].idCommand = ID_SCALE_SIZE;
+	i++;
+	pButton[i].iBitmap = 0;
+	pButton[i].idCommand = 0;
+	pButton[i].fsStyle =BTNS_SEP;
+	m_nCountNotButton++;
+	i++;
+	pButton[i].iBitmap = 18;
+	pButton[i].idCommand = ID_TOOLLIGHT;
+	i++;
+	pButton[i].iBitmap = 0;
+	pButton[i].idCommand = 0;
+	pButton[i].fsStyle =BTNS_SEP;
+	m_nCountNotButton++;
 
-		TBBUTTON tb;
-		CToolBar24X24::InitTBBUTTON(tb) ;
-		tb.iBitmap = 17;
-		tb.idCommand = ID_SCALE_SIZE;
-		AddButton(&tb);		
-	}
-
-	{
-		/*TBBUTTON tbbb;
-		CToolBar24X24::InitTBBUTTON(tbbb) ;
-		tbbb.iBitmap = -1;
-		tbbb.idCommand = 0;
-		tbbb.fsStyle = TBSTYLE_SEP;
-		tbbb.fsState = TBSTATE_INDETERMINATE;
-		AddButton(&tbbb);*/
-
-		TBBUTTON tb;
-		CToolBar24X24::InitTBBUTTON(tb) ;
-		tb.iBitmap = 18;
-		tb.idCommand = ID_TOOLLIGHT;
-		AddButton(&tb);
-	}
-	
+	AddButtons(5,pButton);
 
 	SetWindowText (_T ("Animation"));
 	EnableDocking(CBRS_ALIGN_ANY);

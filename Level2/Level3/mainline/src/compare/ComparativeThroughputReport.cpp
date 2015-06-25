@@ -13,7 +13,7 @@
 
 CComparativeThroughputReport::CComparativeThroughputReport()
 {
-
+	m_vThoughputData.clear();
 }
 
 CComparativeThroughputReport::~CComparativeThroughputReport()
@@ -31,7 +31,7 @@ void CComparativeThroughputReport::MergeSample(const ElapsedTime& tInteval)
 	if(m_vSampleRepPaths.size()==0) return;
 
 	ArctermFile file;
-	int			nLength=0;
+	int			nPax=0;
 	BOOL		bFound = FALSE;
 	CompThroughputData data;
 
@@ -49,25 +49,26 @@ void CComparativeThroughputReport::MergeSample(const ElapsedTime& tInteval)
 					data.clear();
 
 					//start time
-					file.setToField( 1 );
-					file.getTime( data.etStart );
+					file.setToField(1);
+					file.getTime(data.etStart);
 
 					//end time
-					file.setToField( 2 );
-					file.getTime( data.etEnd );
+					file.setToField(2);
+					file.getTime(data.etEnd);
 
 					//q length
-					file.setToField( 3 );
-					file.getInteger( nLength );
-					data.vPaxServed.push_back(nLength);
+					file.setToField(3);
+					file.getInteger(nPax);
+					data.nPaxServed = nPax;
 					
 					//PaxServed
+					int nSize = (int)m_vThoughputData.size();
 					for (unsigned i = 0; i < m_vThoughputData.size(); i++)
 					{
 						if ((m_vThoughputData[i].etStart == data.etStart) &&
 							(m_vThoughputData[i].etEnd == data.etEnd))//if find ,then update the data
 						{
-							m_vThoughputData[i].vPaxServed.push_back(nLength);
+							m_vThoughputData[i].nPaxServed += nPax;
 							bFound = TRUE;
 							break;
 						}
@@ -132,12 +133,7 @@ bool CComparativeThroughputReport::SaveReport(const std::string& _sPath) const
 		{
 			file.writeTime( iterLine->etStart );//start time
 			file.writeTime( iterLine->etEnd );//end time
-			//queue length
-			for(std::vector<int>::const_iterator iterLength = iterLine->vPaxServed.begin(); 
-				iterLength!=iterLine->vPaxServed.end(); iterLength++)//fields of per model
-			{
-				file.writeInt( *iterLength );
-			}
+			file.writeInt(iterLine->nPaxServed);// served passenger count
 			file.writeLine();
 		}
 

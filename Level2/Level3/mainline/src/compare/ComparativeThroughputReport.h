@@ -15,7 +15,7 @@ typedef struct tagCompThroughtputData
 {
 	ElapsedTime	etStart;
 	ElapsedTime etEnd;
-	std::vector<int>	vPaxServed;
+	int	nPaxServed;
 
 	tagCompThroughtputData()
 	{
@@ -26,7 +26,7 @@ typedef struct tagCompThroughtputData
 	{
 		etStart = 0L;
 		etEnd = 0L;
-		vPaxServed.clear();
+		nPaxServed = 0;
 	}
 }CompThroughputData;
 

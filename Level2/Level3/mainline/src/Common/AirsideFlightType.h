@@ -9,15 +9,15 @@ public:
 	AirsideFlightType(void);
 	~AirsideFlightType(void);
 
-	bool IsFit(ARCFlight* pflight, char mode);	//for fit part of flight, arr or dep
-	bool IsFit(ARCFlight* pflight);		//for fit flight
+	bool IsFit(ARCFlight* pflight, char mode)const;	//for fit part of flight, arr or dep
+	bool IsFit(ARCFlight* pflight)const;		//for fit flight
 
 	//for compare whether include the other flight type if both arr --> dep or both not arr --> dep
 	//otherwise compare whether is more detailed the other flight type
-	bool IsFit(const AirsideFlightType& flttype);	
+	bool IsFit(const AirsideFlightType& flttype)const;	
 
-	CString getPrintString();
-	CString getDBString();
+	CString getPrintString()const;
+	CString getDBString()const;
 	void FormatDBStringToFlightType(const CString& strFlightType);
 
 	bool IsArrToDep();

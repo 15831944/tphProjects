@@ -94,50 +94,49 @@ void LandsideIntersectionPropDlgImpl::LoadTreeSubItemLaneLinkages( HTREEITEM pre
 		m_hLinkageItems.push_back(hLink);
 
 		//add from
-
-		aoidDataEx.lSize = sizeof(aoidDataEx);
-		aoidDataEx.dwptrItemData = 0;
-		isscStringColor.colorSection = RGB(0,0,255);
+		//aoidDataEx.lSize = sizeof(aoidDataEx);
+		//aoidDataEx.dwptrItemData = 0;
+		//isscStringColor.colorSection = RGB(0,0,255);
 	
-		aoidDataEx.vrItemStringSectionColorShow.clear(); 
+		//aoidDataEx.vrItemStringSectionColorShow.clear(); 
 		CString strFromStretch = linkage.mLaneExit.m_pStretch->getName().GetIDString();
 		CString strLaneIdx; strLaneIdx.Format("%d",linkage.mLaneExit.nLaneIdx + 1);
 		CString strFrom;
 		strFrom.Format("From:%s (Lane Index %d)",strFromStretch.GetString(),linkage.mLaneExit.nLaneIdx+1);
 
-		isscStringColor.strSection = strFromStretch;
+		/*isscStringColor.strSection = strFromStretch;
 		aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
 		isscStringColor.strSection = strLaneIdx;
-		aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
+		aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);*/
 
 		HTREEITEM hFromItem = m_treeProp.InsertItem(strFrom,hLink);
-		m_treeProp.SetItemDataEx(hFromItem,aoidDataEx);
+		/*m_treeProp.SetItemDataEx(hFromItem,aoidDataEx);*/
 
 	
-
-		aoidDataEx.vrItemStringSectionColorShow.clear();
+		//add to
+		//aoidDataEx.vrItemStringSectionColorShow.clear();
 		CString strToStretch = linkage.mLaneEntry.m_pStretch->getName().GetIDString();
 		strLaneIdx.Format("%d",linkage.mLaneEntry.nLaneIdx + 1);
 		CString strTo;
 		strTo.Format("To:%s (Lane Index %d)",strToStretch.GetString(),linkage.mLaneEntry.nLaneIdx+1);
 
-		isscStringColor.strSection = strToStretch;
+		/*isscStringColor.strSection = strToStretch;
 		aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
 		isscStringColor.strSection = strTo;
-		aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
+		aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);*/
 
 		HTREEITEM hToItem = m_treeProp.InsertItem(strTo,hLink);
-		m_treeProp.SetItemDataEx(hToItem,aoidDataEx);
+		/*m_treeProp.SetItemDataEx(hToItem,aoidDataEx);*/
+
 		LandsideIntersectionNode* pNode = (LandsideIntersectionNode*)m_pObject;
 		if(pNode->getNodeType() == LandsideIntersectionNode::NodeType::_Signalized)
 		{
-			AirsideObjectTreeCtrlItemDataEx aoidDataEx;
-
 			CString strID;
 			//strGroupID.Format(_T("%d"),linkage.getGroupID());
 			strID=GROUP_ID+linkage.getGroupName();
 			HTREEITEM item = m_treeProp.InsertItem(strID,hLink);
-			m_treeProp.SetItemText(item, strID);
+			//m_hLinkageItems.push_back(item);
+			//m_treeProp.SetItemText(item, strID);
 
 			aoidDataEx.lSize = sizeof(aoidDataEx);
 			aoidDataEx.dwptrItemData = (DWORD)&linkage;
@@ -146,7 +145,6 @@ void LandsideIntersectionPropDlgImpl::LoadTreeSubItemLaneLinkages( HTREEITEM pre
 
 			isscStringColor.strSection = linkage.getGroupName();
 			aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
-
 			m_treeProp.SetItemDataEx(item, aoidDataEx);
 			//unsigned int v = (unsigned int)i;
 			//m_treeProp.SetItemData(hLink, (v << 16) + (unsigned int)linkage.getGroupID());
@@ -158,7 +156,7 @@ void LandsideIntersectionPropDlgImpl::LoadTreeSubItemLaneLinkages( HTREEITEM pre
 				strCrossOver += "No";
 			HTREEITEM hCrossOver = m_treeProp.InsertItem(strCrossOver,hLink);
 			m_hCrossOverItems.push_back(hCrossOver);
-			m_treeProp.SetItemText(hCrossOver, strCrossOver);
+			//m_treeProp.SetItemText(hCrossOver, strCrossOver);
 
 			aoidDataEx.lSize = sizeof(aoidDataEx);
 			aoidDataEx.dwptrItemData = (DWORD)&linkage;
@@ -169,7 +167,6 @@ void LandsideIntersectionPropDlgImpl::LoadTreeSubItemLaneLinkages( HTREEITEM pre
 			else
 				isscStringColor.strSection= "No";
 			aoidDataEx.vrItemStringSectionColorShow.push_back(isscStringColor);
-
 			m_treeProp.SetItemDataEx(hCrossOver, aoidDataEx);
 		}
 	}
@@ -198,6 +195,7 @@ BOOL LandsideIntersectionPropDlgImpl::OnDefWindowProc( UINT message, WPARAM wPar
 				pNode->setNodeType((LandsideIntersectionNode::NodeType)selitem);
 				LoadTree();
 				Update3D();
+				return TRUE;
 			}
 		}
 		std::vector<HTREEITEM>::iterator it;
@@ -401,7 +399,7 @@ void LandsideIntersectionPropDlgImpl::OnEditCrossOver(HTREEITEM& item)
 	vCrossStyle.insert(vCrossStyle.begin(),"No");
 	vCrossStyle.insert(vCrossStyle.begin()+1,"Yes");
 	m_treeProp.SetComboWidth(200);
-	m_treeProp.SetEditableComboString(item,vCrossStyle);
+	m_treeProp.SetComboString(item,vCrossStyle);
 }
 
 void LandsideIntersectionPropDlgImpl::OnPropDelete()

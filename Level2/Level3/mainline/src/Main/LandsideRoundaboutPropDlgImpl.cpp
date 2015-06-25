@@ -19,7 +19,7 @@ LandsideRoundabout* LandsideRoundaboutPropDlgImpl::getRoundabout()
 
 int LandsideRoundaboutPropDlgImpl::getBitmapResourceID()
 {
-	return IDB_BITMAP_LANDSIDE_INTERSECTION;
+	return IDB_BITMAP_LANDSIDE_ROUNDABOUT;
 }
 
 CString LandsideRoundaboutPropDlgImpl::getTitle()

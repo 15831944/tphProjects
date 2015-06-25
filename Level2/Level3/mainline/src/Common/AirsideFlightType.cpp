@@ -14,7 +14,7 @@ AirsideFlightType::~AirsideFlightType(void)
 {
 }
 
-bool AirsideFlightType::IsFit( ARCFlight* pflight, char mode)
+bool AirsideFlightType::IsFit( ARCFlight* pflight, char mode)const
 {
 	if (!m_bArrToDep)
 	{
@@ -36,7 +36,7 @@ bool AirsideFlightType::IsFit( ARCFlight* pflight, char mode)
 	return false;
 }
 
-bool AirsideFlightType::IsFit( ARCFlight* pflight )
+bool AirsideFlightType::IsFit( ARCFlight* pflight )const
 {
 	if (!m_bArrToDep)
 	{
@@ -46,7 +46,7 @@ bool AirsideFlightType::IsFit( ARCFlight* pflight )
 	return m_fltConst1.fits(pflight->getOpLogEntry('A')) && m_fltConst2.fits(pflight->getOpLogEntry('D'));
 }
 
-bool AirsideFlightType::IsFit( const AirsideFlightType& flttype )
+bool AirsideFlightType::IsFit( const AirsideFlightType& flttype )const
 {
 	if(!m_bArrToDep && !flttype.m_bArrToDep)		//both not arr --> dep
 		return m_fltConst1.fits(flttype.m_fltConst1) >0? true:false;
@@ -60,7 +60,7 @@ bool AirsideFlightType::IsFit( const AirsideFlightType& flttype )
 	return true;
 }
 
-CString AirsideFlightType::getPrintString()
+CString AirsideFlightType::getPrintString()const
 {
 	CString strFltCnst1;
 	m_fltConst1.screenPrint(strFltCnst1);
@@ -74,7 +74,7 @@ CString AirsideFlightType::getPrintString()
 	return strFltCnst1+strTO+strFltCnst2;
 }
 
-CString AirsideFlightType::getDBString()
+CString AirsideFlightType::getDBString()const
 {
 	char sFltCnst1[1024];
 	m_fltConst1.WriteSyntaxStringWithVersion(sFltCnst1);

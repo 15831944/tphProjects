@@ -6,6 +6,7 @@
 #include "..\compare\ReportDef.h"
 #include "..\compare\InputParameter.h"
 #include "..\compare\ModelToCompare.h"
+#include "..\compare\CompareReportZipManager.h"
 #include "..\Main\CompRepLogBar.h"
 #include "..\main\resource.h"
 #include "..\main\ModelSelectionDlg.h"
@@ -15,6 +16,7 @@
 #include "..\common\elaptime.h"
 #include "..\common\SimAndReportManager.h"
 #include "..\common\EchoSystem.h"
+
 
 static const UINT ID_RUN = 101;
 static const UINT ID_CANCEL = 102;
@@ -931,12 +933,20 @@ void CCmpReportTreeView::OnClickMultiBtn()
 
 void CCmpReportTreeView::SavePara()
 {
-	CFileDialog savedlg(FALSE,".par",NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
+	CFileDialog savedlg(FALSE,".zip",NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		"Report Parameter(*.zip)|*.zip||",this, 0, FALSE);
 	if(savedlg.DoModal() == IDOK)
 	{
 		CString strFileName = savedlg.GetPathName();
-		MessageBox("TODO: Save Parameters.");
+	//	MessageBox("TODO: Save Parameters.");
+		if(CompareReportZipManager::DoExportPara(strFileName,m_pCmpReport->GetComparativeProject()->GetName()))
+		{
+			AfxMessageBox("Save Report Parameters Successfully",MB_OK|MB_ICONINFORMATION);
+		}
+		else
+		{
+			AfxMessageBox("Save Report Parameters Failed",MB_OK|MB_ICONINFORMATION);
+		}
 // 		CReportParameter* pReportPara = GetReportPara();	
 // 		assert(pReportPara);
 // 		pReportPara->SaveReportParaToFile(strFileName);
@@ -946,11 +956,24 @@ void CCmpReportTreeView::SavePara()
 void CCmpReportTreeView::LoadPara()
 {	
 	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
+		"Report Parameter(*.zip)|*.zip||",this, 0, FALSE);
 	if(loaddlg.DoModal() == IDOK)
 	{
  		CString strFileName = loaddlg.GetPathName();
-		MessageBox("TODO: Load Parameters.");
+		//MessageBox("TODO: Load Parameters.");
+		CString strProjectName = m_pCmpReport->GetComparativeProject()->GetName();
+		CString strProjectPath = PROJMANAGER->GetAppPath() + _T("\\Comparative Report\\") + strProjectName;
+		if(CompareReportZipManager::DoImportPara(strFileName,strProjectName))
+		{
+			AfxMessageBox("Load Report Parameters Successfully",MB_OK|MB_ICONINFORMATION);
+			m_pCmpReport->GetComparativeProject()->GetInputParam()->LoadData(strProjectName,strProjectPath);
+			UpdateWholeTree();
+			GetDocument()->UpdateAllViews(this);
+		}
+		else
+		{
+			AfxMessageBox("Load Report Parameters Failed",MB_OK|MB_ICONINFORMATION);
+		}
 	}
 // 		CReportParameter* pPara = NULL;
 // 		try
@@ -986,12 +1009,22 @@ void CCmpReportTreeView::SaveReport()
 // 		return;
 // 	}
 // 
- 	CString strExten	= "rep";/*getExtensionString();*/
+ 	CString strExten	= "zip";/*getExtensionString();*/
  	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
 	CFileDialog savedlg(FALSE,strExten,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,strFilter,this, 0 ,FALSE);
 	if(savedlg.DoModal() == IDOK)
 	{
-		MessageBox("TODO: Save Report.");
+		CString strFileName = savedlg.GetPathName();
+		if(CompareReportZipManager::DoExportProject(strFileName,savedlg.GetFileName(),m_pCmpReport->GetComparativeProject()->GetName()))
+		{
+			AfxMessageBox("Save Report Successfully",MB_OK|MB_ICONINFORMATION);
+		}
+		else
+		{
+			AfxMessageBox("Save Report Failed",MB_OK|MB_ICONINFORMATION);
+		}
+
+	//	MessageBox("TODO: Save Report.");
 // 		CString strFileName = savedlg.GetPathName();
 // 		CopyFile(m_strCurReportFile, strFileName, FALSE);
  	}
@@ -999,14 +1032,25 @@ void CCmpReportTreeView::SaveReport()
 
 void CCmpReportTreeView::LoadReport()
 {
-	CString strExten	= "rep";/*getExtensionString();*/
+	CString strExten	= "zip";/*getExtensionString();*/
 	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
 	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter,this, 0, FALSE);
 // 
 	if(loaddlg.DoModal() == IDOK)
 	{
  		CString strFileName = loaddlg.GetPathName();
-		MessageBox("TODO: LoadReport");
+		if(CompareReportZipManager::DoImportProject(strFileName,m_pCmpReport->GetComparativeProject()->GetName()))
+		{
+			AfxMessageBox("Load Report Successfully",MB_OK|MB_ICONINFORMATION);
+			m_pCmpReport->GetComparativeProject()->LoadData();
+			UpdateWholeTree();
+			GetDocument()->UpdateAllViews(this);
+		}
+		else
+		{
+			AfxMessageBox("Load Report Failed",MB_OK|MB_ICONINFORMATION);
+		}
+//		MessageBox("TODO: LoadReport");
 // 		if(!CheckReportFileFormat(strFileName))
 // 		{
 // 			AfxMessageBox("The report file format is error. Can not load the report!",MB_OK|MB_ICONINFORMATION);

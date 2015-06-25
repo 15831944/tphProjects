@@ -1009,7 +1009,7 @@ void CAirsideRepControlView::InitializeTree()
 	case Airside_FlightConflict:
 		{
 			m_treePaxType.DeleteAllItems();
-			m_hRootReportingArea = m_treePaxType.InsertItem("Areas/Sectors:");
+			m_hRootReportingArea = m_treePaxType.InsertItem("Areas/Sectors");
 			m_treePaxType.SetItemData(m_hRootReportingArea,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ReportingAreaRoot));
 			//m_hRootSector = m_treePaxType.InsertItem("Sectors:");
 			//m_treePaxType.SetItemData(m_hRootSector,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_SectorRoot));
@@ -1018,7 +1018,7 @@ void CAirsideRepControlView::InitializeTree()
 	case Airside_TaxiwayDelay:
 		{
 			m_treePaxType.DeleteAllItems();
-			m_hRootReportingArea = m_treePaxType.InsertItem("Taxiway:");
+			m_hRootReportingArea = m_treePaxType.InsertItem("Taxiway");
 			m_treePaxType.SetItemData(m_hRootReportingArea,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_Taxiways));
 		}
 		break ;

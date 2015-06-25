@@ -1342,7 +1342,7 @@
 #define IDC_TARGETX                     1040
 #define IDB_BITMAP_LANDSIDE_CURBSIDE    1040
 #define IDC_TARGETY                     1041
-#define IDB_BITMAP_LANDSIDE_INTERSECTION 1041
+#define IDB_BITMAP_LANDSIDE_ROUNDABOUT  1041
 #define IDC_TARGETZ                     1042
 #define IDB_BITMAP_LANDSIDE_PARKINGLOT  1042
 #define IDC_UPX                         1043
@@ -1477,9 +1477,12 @@
 #define IDC_EDT_APICAOCODE              1107
 #define IDD_CMPREPORTADDNEW             1107
 #define IDC_EDT_APELEVATION             1108
+#define IDB_BITMAP15                    1108
+#define IDB_BITMAP_LANDSIDE_INTERSECTION 1108
 #define IDC_EDT_APARPCOORDINATES        1109
 #define IDC_PERCENT                     1110
 #define IDC_EDT_APNUMBEROFRUNWAYS       1110
+#define IDB_BITMAP16                    1110
 #define IDC_EDIT_START                  1111
 #define IDC_MAPSCALE                    1111
 #define IDC_EDT_APMAXIMUMRUNWAYLENGTH   1111
@@ -5458,7 +5461,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1108
+#define _APS_NEXT_RESOURCE_VALUE        1111
 #define _APS_NEXT_COMMAND_VALUE         35334
 #define _APS_NEXT_CONTROL_VALUE         2412
 #define _APS_NEXT_SYMED_VALUE           491

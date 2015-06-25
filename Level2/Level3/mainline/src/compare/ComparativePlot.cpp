@@ -11,6 +11,7 @@
 #include "../compare/ComparativeTimeTerminalReport.h"
 #include "../compare/ModelToCompare.h"
 #include "../compare/ModelsManager.h"
+#include "Main/RepGraphViewBaseOperator.h"
 
 static const OLE_COLOR UniqueColors[] =
 {
@@ -210,64 +211,198 @@ void CComparativePlot::UniformAppearances()
 
 bool CComparativePlot::Draw3DChart(CComparativeQTimeReport& _reportData,int nSubType)
 {
-	const QTimeMap& mapQTime = _reportData.GetResult();
-
-	C2DChartData c2dGraphData;
-	// Update Title
-	c2dGraphData.m_strChartTitle = _T(" Queue Time Report ");
-	c2dGraphData.m_strYtitle = _T("Passenger Count");
-	c2dGraphData.m_strXtitle = _T("Time");
-
-	//set footer
-	CString strFooter;
-	c2dGraphData.m_strFooter = strFooter;
-
-	// Alloc data space
-	if( mapQTime.size()>0)
+	if(_reportData.m_cmpParam.GetReportDetail()==REPORT_TYPE_DETAIL)
 	{
-		const std::vector<int>& vLength = mapQTime.begin()->second;
-		std::vector<double> vSegmentData(mapQTime.size());
-		vSegmentData.clear();
-		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		const QTimeMap& mapQTime = _reportData.GetResultDetail();
+
+		C2DChartData c2dGraphData;
+		// Update Title
+		c2dGraphData.m_strChartTitle = _T(" Queue Time Report ");
+		c2dGraphData.m_strYtitle = _T("Passenger Count");
+		c2dGraphData.m_strXtitle = _T("Time");
+
+		//set footer
+		CString strFooter;
+		c2dGraphData.m_strFooter = strFooter;
+
+		// Alloc data space
+		if( mapQTime.size()>0)
 		{
-			//c2dGraphData.m_vrLegend.push_back(mapQTime.first);
-			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
-		}	
-	}
-
-	// Insert legend.
-	std::vector<CString> vSimName  =  _reportData.GetSimNameList();
-	int simNameCount = vSimName.size();
-	for(int i=0; i<simNameCount; i++)
-	{
-		c2dGraphData.m_vrLegend.push_back(vSimName[i]);
-	}
-
-	// Insert data
-	CString XTickTitle;
-	std::vector<CString> vXTickTitle;
-	ElapsedTime tDuration, tPrev;
-	tDuration.set(0, 0, 0);
-	int nXTick = 0;
-	for( QTimeMap::const_iterator iterLine = mapQTime.begin(); iterLine != mapQTime.end(); iterLine++, nXTick++)
-	{
-		const std::vector<int>& vLength = iterLine->second;
-
-		if (tDuration.asSeconds() == 0)
-			tDuration = iterLine->first;
-		tPrev = iterLine->first - tDuration;
-		XTickTitle = tPrev.printTime();
-		XTickTitle += _T(" - ");
-		XTickTitle += iterLine->first.printTime();
-		vXTickTitle.push_back(XTickTitle);
-		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
-		{
-			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
+			const std::vector<int>& vLength = mapQTime.begin()->second;
+			std::vector<double> vSegmentData(mapQTime.size());
+			vSegmentData.clear();
+			for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+			{
+				//c2dGraphData.m_vrLegend.push_back(mapQTime.first);
+				c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+			}	
 		}
-	}
 
-	c2dGraphData.m_vrXTickTitle = vXTickTitle;
-	m_3DChart.DrawChart(c2dGraphData);
+		// Insert legend.
+		std::vector<CString> vSimName  =  _reportData.GetSimNameList();
+		int simNameCount = vSimName.size();
+		for(int i=0; i<simNameCount; i++)
+		{
+			c2dGraphData.m_vrLegend.push_back(vSimName[i]);
+		}
+
+		// Insert data
+		CString XTickTitle;
+		std::vector<CString> vXTickTitle;
+		ElapsedTime tDuration, tPrev;
+		tDuration.set(0, 0, 0);
+		int nXTick = 0;
+		for( QTimeMap::const_iterator iterLine = mapQTime.begin(); iterLine != mapQTime.end(); iterLine++, nXTick++)
+		{
+			const std::vector<int>& vLength = iterLine->second;
+
+			if (tDuration.asSeconds() == 0)
+				tDuration = iterLine->first;
+			tPrev = iterLine->first - tDuration;
+			XTickTitle = tPrev.printTime();
+			XTickTitle += _T(" - ");
+			XTickTitle += iterLine->first.printTime();
+			vXTickTitle.push_back(XTickTitle);
+			for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+			{
+				(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
+			}
+		}
+
+		c2dGraphData.m_vrXTickTitle = vXTickTitle;
+		m_3DChart.DrawChart(c2dGraphData);
+	}
+	else//summary report graph
+	{
+		MultiRunSummarySubReportType summmarySubType = (MultiRunSummarySubReportType)nSubType;
+		if(!(nSubType>=SubType_Average && nSubType<= SubType_All))
+		{
+			return false;
+		}
+		CString strSubReportType = MultiRunSummarySubReportTypeName[summmarySubType];
+
+		C2DChartData c2dGraphData;
+		// Update Title
+		c2dGraphData.m_strChartTitle = _T(" Queue Time Summary ");
+		c2dGraphData.m_strYtitle = _T("Q Time(mins)");
+		c2dGraphData.m_strXtitle = _T("Statistical Items");
+
+		const MultiRunsReport::Summary::SummaryQTimeList& dataList = _reportData.GetResultSummary();
+		std::vector<CString> vSimName  =  _reportData.GetSimNameList();
+		CString XTickTitle;
+		std::vector<CString> vXTickTitle;
+	
+		if(summmarySubType!=SubType_All)
+		{
+			XTickTitle = strSubReportType;
+			vXTickTitle.push_back(XTickTitle);		
+
+			int nItemCount=0;
+			for(size_t i=0;i<dataList.size();i++)
+			{
+				CString simName;
+				if(i<vSimName.size())
+					simName = vSimName[i];
+
+				CString paxType;
+
+				int nPaxSize = dataList.at(i).size();
+				for(int j=0;j<nPaxSize;j++)
+				{
+					const MultiRunsReport::Summary::SummaryQueueTimeValue& data =  dataList[i][j];
+					paxType = data.strPaxType;
+
+					ElapsedTime tValue;
+					if(summmarySubType == SubType_Minimum)
+						tValue = data.eMinimum;
+					else if(summmarySubType == SubType_Average)
+						tValue = data.eAverage;
+					else if(summmarySubType == SubType_Maximum)
+						tValue = data.eMaximum;
+					else if(summmarySubType == SubType_Q1)
+						tValue = data.eQ1;
+					else if(summmarySubType == SubType_Q2)
+						tValue = data.eQ2;
+					else if(summmarySubType == SubType_Q3)
+						tValue = data.eQ3;
+					else if(summmarySubType == SubType_P1)
+						tValue = data.eP1;
+					else if(summmarySubType == SubType_P5)
+						tValue = data.eP5;
+					else if(summmarySubType == SubType_P10)
+						tValue = data.eP10;
+					else if(summmarySubType == SubType_P90)
+						tValue = data.eP90;
+					else if(summmarySubType == SubType_P95)
+						tValue = data.eP95;
+					else if(summmarySubType == SubType_P99)
+						tValue = data.eP99;
+					else if(summmarySubType == SubType_Sigma)
+						tValue = data.eSigma;
+					else
+					{
+						ASSERT(NULL);
+						continue;
+					}
+
+					c2dGraphData.m_vr2DChartData.resize(nItemCount+1);
+					(c2dGraphData.m_vr2DChartData[nItemCount]).push_back(tValue.asMinutes());
+					c2dGraphData.m_vrLegend.push_back(simName + paxType);
+					nItemCount++;
+				}
+			}
+		}
+		else//display all in one chart
+		{
+			for(int subType = SubType_Average;subType<SubType_All;++subType)
+			{
+				XTickTitle = MultiRunSummarySubReportTypeName[subType];
+				vXTickTitle.push_back(XTickTitle);
+			}
+			//
+			int nItemCount=0;
+			for(size_t i=0;i<dataList.size();i++)
+			{
+				CString simName;
+				if(i<vSimName.size())
+					simName = vSimName[i];
+
+				CString paxType;
+
+				int nPaxSize = dataList.at(i).size();
+				for(int j=0;j<nPaxSize;j++)
+				{
+					const MultiRunsReport::Summary::SummaryQueueTimeValue& data =  dataList[i][j];
+					paxType = data.strPaxType;				
+
+					
+					std::vector<double> dataItem;
+					
+					dataItem.push_back(data.eAverage.asMinutes());
+					dataItem.push_back(data.eMinimum.asMinutes());
+					dataItem.push_back(data.eMaximum.asMinutes());
+					dataItem.push_back(data.eQ1.asMinutes());
+					dataItem.push_back(data.eQ2.asMinutes());
+					dataItem.push_back(data.eQ3.asMinutes());
+					dataItem.push_back(data.eP1.asMinutes());
+					dataItem.push_back(data.eP5.asMinutes());
+					dataItem.push_back(data.eP10.asMinutes());
+					dataItem.push_back(data.eP90.asMinutes());
+					dataItem.push_back(data.eP95.asMinutes());
+					dataItem.push_back(data.eP99.asMinutes());	
+					dataItem.push_back(data.eSigma.asMinutes());	
+
+					c2dGraphData.m_vr2DChartData.push_back(dataItem);									
+					c2dGraphData.m_vrLegend.push_back(simName + paxType);
+					nItemCount++;
+				}
+			}
+		}
+
+		c2dGraphData.m_vrXTickTitle = vXTickTitle;
+		m_3DChart.DrawChart(c2dGraphData);
+	}
+	
 	return true;
 }
 

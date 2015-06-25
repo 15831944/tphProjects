@@ -22,7 +22,7 @@ enum MultiRunSummarySubReportType
 	SubType_P95,
 	SubType_P99,
 	SubType_Sigma,
-
+	SubType_All,
 
 	//before this line
 	SubType_Count
@@ -43,7 +43,7 @@ const CString MultiRunSummarySubReportTypeName[] =
 	_T("P99"),
 	_T("Sigma"),
 
-
+	_T("All"),
 
 	//before this line
 	_T("Count")

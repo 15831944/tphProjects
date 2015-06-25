@@ -204,7 +204,7 @@ void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &i
 	pOutParam->SetInterval(inParam.GetInterval().asSeconds());
 	pOutParam->SetReportType(inParam.GetReportDetail());
 
-//	pOutParam->SetReportType(0);
+
 	pOutParam->SetThreshold(LONG_MAX);
 	CModelParameter modelParam;
 	inParam.GetModelParamByModelName(pModel->GetUniqueName(),modelParam);

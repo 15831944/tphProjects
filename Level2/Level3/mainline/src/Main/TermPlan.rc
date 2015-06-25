@@ -20,6 +20,126 @@
 /////////////////////////////////////////////////////////////////////////////
 // Neutral (Sys. Default) resources
 
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
+LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_VEHICLETYPEDEF DIALOGEX 0, 0, 411, 255
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "General Vehicle Characteristics"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "Level",IDC_STATIC,7,7,18,8
+    COMBOBOX        IDC_COMBO_LEVEL,8,18,133,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_PAXNAME,9,83,130,138,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Vehicle Type Hierarchy",IDC_STATIC,153,7,84,8
+    CONTROL         "Tree1",IDC_TREE_PAX,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | WS_BORDER | WS_TABSTOP,153,18,251,202
+    GROUPBOX        "",IDC_STATIC_FRAME,9,61,129,160
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,11,66,125,16,SS_SUNKEN
+    LTEXT           "Name",IDC_STATIC,10,35,40,8
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,235,234,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,295,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,353,234,50,14
+    EDITTEXT        IDC_EDIT_NAME,8,47,130,14,ES_AUTOHSCROLL
+END
+
+IDD_DIALOG_VEHICLEDIST DIALOGEX 0, 0, 436, 255
+STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Distribution of Characteristics"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER2,155,18,119,16,SS_SUNKEN
+    LTEXT           "Distribution",IDC_STATIC_PAXDIST,155,5,81,11
+    LISTBOX         IDC_LIST_FLIGHT,15,34,123,192,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Tree1",IDC_TREE_DIST,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,155,34,274,192
+    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,234,50,14,WS_DISABLED
+    DEFPUSHBUTTON   "OK",IDOK,325,234,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,379,234,50,14
+    LTEXT           "Vehicles",IDC_STATIC,16,5,54,10
+    GROUPBOX        "",IDC_STATIC_FRAME,15,14,126,215
+    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,17,18,119,16,SS_SUNKEN
+    GROUPBOX        "",IDC_STATIC_FRAME3,155,14,277,215
+    PUSHBUTTON      "Copy",IDC_BUTTON_COPY,163,234,50,14
+    PUSHBUTTON      "Paste",IDC_BUTTON_PASTE,217,234,50,14
+END
+
+IDD_DIALOG_LAYOUTOPTIONS DIALOGEX 0, 0, 160, 102
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Set Layout Options"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,46,79,50,16
+    PUSHBUTTON      "Cancel",IDCANCEL,103,79,50,16
+    LTEXT           "Drive",IDC_STATIC_DRIVE,11,35,17,8
+    COMBOBOX        IDC_COMBO_DATA,46,33,107,43,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 404
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_VEHICLEDIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 429
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 153
+        VERTGUIDE, 46
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 95
+        HORZGUIDE, 44
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_CTX_LANDSIDELAYOUT MENU
+BEGIN
+    POPUP "Submenu"
+    BEGIN
+        MENUITEM "Set Options...",              ID_CTX_LAYOUT
+        MENUITEM "Comments...",                 ID_CTX_COMMENTS
+        MENUITEM "Help",                        ID_CTX_HELP
+    END
+END
+
+#endif    // Neutral (Sys. Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (Simplified, PRC) resources
+
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
@@ -687,9 +807,7 @@ EXSTYLE WS_EX_STATICEDGE
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_STATIC_HOR,"Static",SS_ETCHEDHORZ,11,21,578,1
-    CONTROL         "",IDC_LIST_ROSTERS,"SysListView32",LVS_REPORT | 
-                    LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | 
-                    WS_TABSTOP,9,23,580,108
+    CONTROL         "",IDC_LIST_ROSTERS,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,23,580,108
 END
 
 IDD_DIALOG_SELECTESIMULATIONMODE DIALOGEX 0, 0, 295, 86
@@ -6572,10 +6690,8 @@ BEGIN
     PUSHBUTTON      "Unassign All",IDC_BUTTON_UNASSIGNALL,222,321,50,14
     CONTROL         "",IDC_PROGRESS_ASSIGNMENT,"msctls_progress32",WS_BORDER,370,109,193,11
     LTEXT           "Assigning progress:",IDC_STATIC_ASSIGNPRO,300,109,65,11,SS_CENTERIMAGE
-    CONTROL         "Departures",IDC_ROSTER_DEP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,82,5,51,10
-    CONTROL         "Arrivals",IDC_ROSTER_ARR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,138,5,39,10
+    CONTROL         "Departures",IDC_ROSTER_DEP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,82,5,51,10
+    CONTROL         "Arrivals",IDC_ROSTER_ARR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,5,39,10
 END
 
 IDD_DIALOG_ROSTER_ASSIGN_SUMMARY DIALOGEX 0, 0, 455, 242
@@ -6590,8 +6706,7 @@ BEGIN
 END
 
 IDD_DIALOG_AIRSIDE_ENROUTEQCAPACITY DIALOGEX 0, 0, 438, 249
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU | WS_THICKFRAME
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Enroute Queue Capacity"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -6599,10 +6714,9 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,381,228,50,14
     PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,228,50,14
     GROUPBOX        "",IDC_STATIC_FRAME,7,3,424,217
-    CONTROL         "",IDC_TREE_CONTENT,"SysTreeView32",TVS_HASBUTTONS | 
-                    TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,
-                    7,23,424,196
+    CONTROL         "",IDC_TREE_CONTENT,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,7,23,424,196
 END
+
 IDD_CMPREPORTTREEVIEW DIALOGEX 0, 0, 180, 180
 STYLE DS_SETFONT | WS_CHILD
 FONT 8, "MS Sans Serif", 0, 0, 0x0
@@ -6619,12 +6733,10 @@ IDD_CMPREPORTGRAPHVIEW DIALOGEX 0, 0, 599, 239
 STYLE DS_SETFONT | WS_CHILD
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    COMBOBOX        IDC_REPORT_LIST_COMBO,100,3,123,80,CBS_DROPDOWNLIST |
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_REPORT_LIST_COMBO,100,3,123,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Reports:",IDC_STATIC_REPORTS,70,6,29,11
     LTEXT           "Chart Type:",IDC_STATIC_CHARTTYPE,415,6,40,12
-    COMBOBOX        IDC_CHART_TYPE_COMBO,455,3,72,93,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CHART_TYPE_COMBO,455,3,72,93,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Select Charts:",IDC_STATIC_CHARTTYPE2,241,6,47,12
     COMBOBOX        IDC_REPORT_SUBTYPE_COMBO,289,3,107,93,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
@@ -16162,12 +16274,11 @@ BEGIN
     END
 END
 
-IDR_MENU_ENROUTEQCAPACITY MENU 
+IDR_MENU_ENROUTEQCAPACITY MENU
 BEGIN
     POPUP "EnrouteQueueCapacity Menu"
     BEGIN
         MENUITEM "Enroute Queue Capacity...",   ID_ENROUTEQCAPACITY_ENROUTEQCAPACITY
-
         MENUITEM SEPARATOR
         MENUITEM "Comments ...",                ID_CTX_COMMENTS
         MENUITEM "Help",                        ID_CTX_HELP
@@ -16440,6 +16551,7 @@ IDB_MOVE_UP_FLOOR2      BITMAP                  "Res\\bmp_move_up_floor2.bmp"
 IDB_MOVE_DOWN_FLOOR     BITMAP                  "Res\\bmp_move_down_floor.bmp"
 IDB_MOVE_DOWN_FLOOR1    BITMAP                  "Res\\bmp_move_down_floor1.bmp"
 IDB_MOVE_DOWN_FLOOR2    BITMAP                  "Res\\bmp_move_down_floor2.bmp"
+IDB_BITMAP_LANDSIDE_ROUNDABOUT BITMAP                  "Res\\landside_roundabout.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -19411,7 +19523,7 @@ BEGIN
     BUTTON      ID_TOOLBARBUTTONDEL
 END
 
-IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY TOOLBAR  16, 16
+IDR_ADDDELEDITTOOLBAR_ENROUTEQCAPACITY TOOLBAR 16, 16
 BEGIN
     BUTTON      ID_TOOLBARBUTTON_ADD
     BUTTON      ID_TOOLBARBUTTON_DEL
@@ -20933,126 +21045,6 @@ BEGIN
 END
 
 #endif    // English (United States) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Sys. Default) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
-LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG_VEHICLETYPEDEF DIALOGEX 0, 0, 411, 255
-STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
-CAPTION "General Vehicle Characteristics"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    LTEXT           "Level",IDC_STATIC,7,7,18,8
-    COMBOBOX        IDC_COMBO_LEVEL,8,18,133,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LISTBOX         IDC_LIST_PAXNAME,9,83,130,138,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Vehicle Type Hierarchy",IDC_STATIC,153,7,84,8
-    CONTROL         "Tree1",IDC_TREE_PAX,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | WS_BORDER | WS_TABSTOP,153,18,251,202
-    GROUPBOX        "",IDC_STATIC_FRAME,9,61,129,160
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,11,66,125,16,SS_SUNKEN
-    LTEXT           "Name",IDC_STATIC,10,35,40,8
-    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,235,234,50,14,WS_DISABLED
-    DEFPUSHBUTTON   "OK",IDOK,295,234,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,353,234,50,14
-    EDITTEXT        IDC_EDIT_NAME,8,47,130,14,ES_AUTOHSCROLL
-END
-
-IDD_DIALOG_VEHICLEDIST DIALOGEX 0, 0, 436, 255
-STYLE DS_SETFONT | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Distribution of Characteristics"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER2,155,18,119,16,SS_SUNKEN
-    LTEXT           "Distribution",IDC_STATIC_PAXDIST,155,5,81,11
-    LISTBOX         IDC_LIST_FLIGHT,15,34,123,192,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Tree1",IDC_TREE_DIST,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,155,34,274,192
-    PUSHBUTTON      "Save",IDC_BUTTON_SAVE,272,234,50,14,WS_DISABLED
-    DEFPUSHBUTTON   "OK",IDOK,325,234,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,379,234,50,14
-    LTEXT           "Vehicles",IDC_STATIC,16,5,54,10
-    GROUPBOX        "",IDC_STATIC_FRAME,15,14,126,215
-    LTEXT           "ToolbarConternt",IDC_STATIC_TOOLBARCONTENTER,17,18,119,16,SS_SUNKEN
-    GROUPBOX        "",IDC_STATIC_FRAME3,155,14,277,215
-    PUSHBUTTON      "Copy",IDC_BUTTON_COPY,163,234,50,14
-    PUSHBUTTON      "Paste",IDC_BUTTON_PASTE,217,234,50,14
-END
-
-IDD_DIALOG_LAYOUTOPTIONS DIALOGEX 0, 0, 160, 102
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Set Layout Options"
-FONT 8, "MS Sans Serif", 0, 0, 0x0
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,46,79,50,16
-    PUSHBUTTON      "Cancel",IDCANCEL,103,79,50,16
-    LTEXT           "Drive",IDC_STATIC_DRIVE,11,35,17,8
-    COMBOBOX        IDC_COMBO_DATA,46,33,107,43,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 404
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_VEHICLEDIST, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 429
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 153
-        VERTGUIDE, 46
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 95
-        HORZGUIDE, 44
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_CTX_LANDSIDELAYOUT MENU
-BEGIN
-    POPUP "Submenu"
-    BEGIN
-        MENUITEM "Set Options...",              ID_CTX_LAYOUT
-        MENUITEM "Comments...",                 ID_CTX_COMMENTS
-        MENUITEM "Help",                        ID_CTX_HELP
-    END
-END
-
-#endif    // Neutral (Sys. Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

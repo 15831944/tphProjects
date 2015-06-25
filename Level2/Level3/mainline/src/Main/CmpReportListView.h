@@ -34,6 +34,8 @@ protected:
 public:
 	virtual void OnInitialUpdate();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+
+	CSortableHeaderCtrl* GetHeadCtrl(){ return &m_ctlHeaderCtrl; } 
 protected:
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);

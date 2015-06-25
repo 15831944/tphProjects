@@ -15,6 +15,7 @@
 #include "../inputs/simparameter.h"
 #include "../compare/ModelsManager.h"
 #include "../compare/ModelToCompare.h"
+#include "MFCExControl/SortableHeaderCtrl.h"
 
 
 CString CComparativeList::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
@@ -242,41 +243,184 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 		m_listCtrl.DeleteColumn(0);
 	}
 
-	//set header control
-	TCHAR sData[32]	= _T("");
 
-	//_stprintf(sData, _T("Total Time"), i*2+1);
-	strcpy(sData, _T("Total Time"));
-	m_listCtrl.InsertColumn(0, sData, LVCFMT_CENTER, 50);
+	//load detail report 
+	if(_reportData.m_cmpParam.GetReportDetail()==REPORT_TYPE_DETAIL)
+	{
+		//set header control
+		TCHAR sData[32]	= _T("");
 
-	std::vector<CString>& vSimName = _reportData.GetSimNameList();
-	int nColCount = 1;
-	CString strColText;
-	for(int i=0; i<(int)vSimName.size(); i++)
-	{
-		_stprintf(sData, _T("Passenger Count %d"), i+1);
-		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
-	}
-	//set list control
-	
-	int nRow = 0, nCol =0;
-	//const std::vector<CmpQTimeVector>& vMultiQTime = _reportData.GetResult();
-	const QTimeMap& mapQTime = _reportData.GetResult();
-	for(QLengthMap::const_iterator iterLine = mapQTime.begin(); iterLine!=mapQTime.end(); iterLine++, nRow++)
-	{
-		iterLine->first.printTime(sData);
-		m_listCtrl.InsertItem(nRow, sData );
-		const std::vector<int>& vLength = iterLine->second;
-		nCol =1;
-		for(std::vector<int>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
+		//_stprintf(sData, _T("Total Time"), i*2+1);
+		strcpy(sData, _T("Total Time"));
+		m_listCtrl.InsertColumn(0, sData, LVCFMT_CENTER, 50);
+
+		std::vector<CString>& vSimName = _reportData.GetSimNameList();
+		int nColCount = 1;
+		CString strColText;
+		for(int i=0; i<(int)vSimName.size(); i++)
 		{
-			_stprintf(sData, "%d", *iterLength );
-			m_listCtrl.SetItemText(nRow, nCol, sData );
+			_stprintf(sData, _T("Passenger Count %d"), i+1);
+			strColText = vSimName[i];
+			m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
+			m_listCtrl.SetColumnWidth(nColCount, 80);
+			nColCount += 1;
+		}
+		//set list control
+
+		int nRow = 0, nCol =0;
+		//const std::vector<CmpQTimeVector>& vMultiQTime = _reportData.GetResult();
+		const QTimeMap& mapQTime = _reportData.GetResultDetail();
+		for(QLengthMap::const_iterator iterLine = mapQTime.begin(); iterLine!=mapQTime.end(); iterLine++, nRow++)
+		{
+			iterLine->first.printTime(sData);
+			m_listCtrl.InsertItem(nRow, sData );
+			const std::vector<int>& vLength = iterLine->second;
+			nCol =1;
+			for(std::vector<int>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
+			{
+				_stprintf(sData, "%d", *iterLength );
+				m_listCtrl.SetItemText(nRow, nCol, sData );
+			}
 		}
 	}
+	else //load summary report
+	{
+		//insert column project name and run
+		DWORD headStyle = LVCFMT_CENTER;
+		headStyle &= ~HDF_OWNERDRAW;
+
+		m_listCtrl.InsertColumn(0,"",headStyle,30);
+		GetListHeaderCtrl()->SetDataType( 0,  dtINT);
+		m_listCtrl.InsertColumn( 1, _T("RUN"), headStyle, 60);
+		GetListHeaderCtrl()->SetDataType( 1,  dtSTRING);
+
+		const int m_nColumnCount = 15;
+		CString csColumnLabel[m_nColumnCount];
+		int nDefaultColumnWidth[m_nColumnCount];
+		int nFormat[m_nColumnCount];
+		EDataType type[m_nColumnCount];
+
+	
+		csColumnLabel[0] = CString("Min");
+		csColumnLabel[1] = CString("Avg");
+		csColumnLabel[2] = CString("Max");
+
+		CString str = " (s)";
+		csColumnLabel[3] = CString("Q1");
+		csColumnLabel[4] = CString("Q2");
+		csColumnLabel[5] = CString("Q3");
+		csColumnLabel[6] = CString("P1");
+		csColumnLabel[7] = CString("P5");
+		csColumnLabel[8] = CString("P10");
+		csColumnLabel[9] = CString("P90");
+		csColumnLabel[10] = CString("P95");
+		csColumnLabel[11] = CString("P99");
+		csColumnLabel[12] = CString("Sigma");
+
+		csColumnLabel[13] = CString("Passenger Type");
+		csColumnLabel[14] = CString("Count");
+
+
+
+		nDefaultColumnWidth[0] = 60;
+		nDefaultColumnWidth[1] = 60;
+		nDefaultColumnWidth[2] = 60;
+		nDefaultColumnWidth[3] = 60;
+		nDefaultColumnWidth[4] = 60;
+		nDefaultColumnWidth[5] = 60;
+		nDefaultColumnWidth[6] = 60;
+		nDefaultColumnWidth[7] = 60;
+		nDefaultColumnWidth[8] = 60;
+		nDefaultColumnWidth[9] = 60;
+		nDefaultColumnWidth[10] = 60;
+		nDefaultColumnWidth[11] = 60;
+		nDefaultColumnWidth[12] = 60;
+		nDefaultColumnWidth[13] = 120;
+		nDefaultColumnWidth[14] = 60;
+
+
+		for( int i=0; i<15; i++ )
+		{
+			nFormat[i] = LVCFMT_CENTER; 
+		}
+
+		type[0] = dtDATETIME;	
+		type[1] = dtDATETIME;
+		type[2] = dtDATETIME;
+		type[3] = dtDATETIME;
+		type[4] = dtDATETIME;
+		type[5] = dtDATETIME;
+		type[6] = dtDATETIME;
+		type[7] = dtDATETIME;
+		type[8] = dtDATETIME;
+		type[9] = dtDATETIME;
+		type[10] = dtDATETIME;
+		type[11] = dtDATETIME;
+		type[12] = dtDATETIME;
+		type[13] = dtSTRING;
+		type[14] = dtINT;
+
+		for( int i=0; i<m_nColumnCount; i++ )
+		{
+			DWORD dwStyle = nFormat[i];
+			dwStyle &= ~HDF_OWNERDRAW;
+
+			GetListCtrl().InsertColumn( i+2, csColumnLabel[i], /*nFormat[i]*/dwStyle, nDefaultColumnWidth[i] );
+			GetListHeaderCtrl()->SetDataType( i+2, type[i] );
+		}
+
+		const MultiRunsReport::Summary::SummaryQTimeList&  dataList = _reportData.GetResultSummary();
+		
+		
+		
+		size_t nResultSize = dataList.size();
+		const std::vector<CString>& simNamelist =  _reportData.GetSimNameList(); 
+		//insert average
+		int nItemIndex = 0;
+		for (size_t i = 0; i < nResultSize; ++i)
+		{	
+			CString simName=_T("Error");
+			if(i<simNamelist.size())
+				simName  = simNamelist[i];
+
+			size_t nPaxTypeCount = dataList[i].size();
+
+			for(size_t j=0;j<nPaxTypeCount;++j)
+			{
+				const MultiRunsReport::Summary::SummaryQueueTimeValue& data = dataList[i][j];
+				CString strIndex;
+				strIndex.Format(_T("%d"),i+1);
+				GetListCtrl().InsertItem(nItemIndex,strIndex);
+				GetListCtrl().SetItemText(nItemIndex,1,simName);
+
+
+				GetListCtrl().SetItemText(nItemIndex,2,data.eMinimum.printTime());
+				GetListCtrl().SetItemText(nItemIndex,3,data.eAverage.printTime());
+				GetListCtrl().SetItemText(nItemIndex,4,data.eMaximum.printTime());
+
+				GetListCtrl().SetItemText(nItemIndex,5,data.eQ1.printTime());
+				GetListCtrl().SetItemText(nItemIndex,6,data.eQ2.printTime());
+				GetListCtrl().SetItemText(nItemIndex,7,data.eQ3.printTime());
+				GetListCtrl().SetItemText(nItemIndex,8,data.eP1.printTime());
+				GetListCtrl().SetItemText(nItemIndex,9,data.eP5.printTime());
+				GetListCtrl().SetItemText(nItemIndex,10,data.eP10.printTime());
+				GetListCtrl().SetItemText(nItemIndex,11,data.eP90.printTime());
+				GetListCtrl().SetItemText(nItemIndex,12,data.eP95.printTime());
+				GetListCtrl().SetItemText(nItemIndex,13,data.eP99.printTime());
+				GetListCtrl().SetItemText(nItemIndex,14,data.eSigma.printTime());
+				GetListCtrl().SetItemText(nItemIndex,15,data.strPaxType);
+
+				CString strCount;
+				strCount.Format(_T("%d"),data.nCount);
+				GetListCtrl().SetItemText(nItemIndex,16,strCount);
+
+
+				GetListCtrl().SetItemData(nItemIndex,nItemIndex);
+				nItemIndex++;
+			}			
+		}
+	}
+	
 }
 
 void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
@@ -294,44 +438,48 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 
 	//set header control
 	TCHAR sData[32]	= _T("");
-	m_listCtrl.InsertColumn( 0 , _T("Start Time"));
-	m_listCtrl.SetColumnWidth(0, 100);
-	m_listCtrl.InsertColumn( 1, _T("End Time"));
-	m_listCtrl.SetColumnWidth(1, 100);
+	int nColCount = 0;
+	m_listCtrl.InsertColumn( 0 , _T("Start Time"), LVCFMT_CENTER, 100); 
+	nColCount++;
+	m_listCtrl.InsertColumn( 1, _T("End Time"), LVCFMT_CENTER, 100);
+	nColCount++;
 
-	int nColCount = 2;
 	CString strColText;
 	std::vector<CString>& vSimName = _reportData.GetSimNameList();
 	for(int i=0; i<(int)vSimName.size(); i++)
 	{
-		_stprintf(sData, _T("Pax Served %d"), i+1);
 		strColText = vSimName[i];
-		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
-		m_listCtrl.SetColumnWidth(nColCount, 80);
-		nColCount += 1;
+		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 80);
+		nColCount ++;
 	}
 	//set list control
 	int nRow = 0, nCol =0;
-	//const CompThroughputData& mapQLength = _reportData.GetResult();
 	std::vector<CompThroughputData> vData = _reportData.GetResult();
 	for(std::vector<CompThroughputData>::const_iterator iterLine = vData.begin(); 
 		iterLine != vData.end(); iterLine++, nRow++)
 	{
 		iterLine->etStart.printTime(sData);
 		CString str = GetRegularDateTime(sData, TRUE);
-		m_listCtrl.InsertItem(nRow, str );
+		nCol = 0;
+		m_listCtrl.InsertItem(nRow, str);
+		nCol++;
 
 		iterLine->etEnd.printTime(sData);
 		str = GetRegularDateTime(sData, TRUE);
-		m_listCtrl.SetItemText(nRow, 1, str );
+		m_listCtrl.SetItemText(nRow, nCol, str);
+		nCol++;
 
-		//m_listCtrl.InsertItem(nRow, sData );
-		nCol =2;
-		for(std::vector<int>::const_iterator iterLength=iterLine->vPaxServed.begin(); 
-			iterLength!=iterLine->vPaxServed.end(); iterLength++, nCol++)
+// 		for(std::vector<int>::const_iterator iterLength=iterLine->vPaxServed.begin(); 
+// 			iterLength!=iterLine->vPaxServed.end(); iterLength++, nCol++)
+// 		{
+// 			_stprintf(sData, "%d", *iterLength );
+// 			m_listCtrl.SetItemText(nRow, nCol, sData );
+// 		}
+		for(int i=0; i<(int)vSimName.size(); i++)
 		{
-			_stprintf(sData, "%d", *iterLength );
-			m_listCtrl.SetItemText(nRow, nCol, sData );
+			strColText = vSimName[i];
+			m_listCtrl.SetItemText(nRow, nCol, strColText);
+			nCol ++;
 		}
 	}
 }
@@ -558,6 +706,7 @@ void CComparativeList::RefreshData(CComparativeDistanceTravelReport& _reportData
 		}
 	}
 }
+
 
 
 

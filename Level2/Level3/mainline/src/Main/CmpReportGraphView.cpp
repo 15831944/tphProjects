@@ -4,6 +4,7 @@
 #include ".\compare\ComparativePlot.h"
 #include ".\cmpreportgraphview.h"
 #include ".\compare\ComparativeQLengthReport.h"
+#include "RepGraphViewBaseOperator.h"
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
 #define COMPARE_REPORT_GRAPH_COMBOBOX1	COMPARE_REPORT_GRAPH_BASE+2
@@ -82,8 +83,15 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 
 	UpdateRepSubTypeCombo();
 	CString strCurReport = m_pCmpReport->GetFocusReportName();
-	m_comboReportList.SelectString(0, strCurReport);
-	int nCurSel = m_comboRepSubType.GetCurSel();
+	int nCurSel = m_comboReportList.SelectString(0, strCurReport);
+	if (nCurSel == LB_ERR)
+	{
+		// no report is selected, hide the chart.
+		m_3DChart.m_p3DChart->ShowWindow(SW_HIDE);
+		return;
+	}
+
+	nCurSel = m_comboRepSubType.GetCurSel();
 	if (nCurSel == LB_ERR)
 		return;
 	
@@ -185,9 +193,6 @@ void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport,int nS
 			return;
 		}
 	}
-
-	// no data to show, hide the chart.
-	m_3DChart.m_p3DChart->ShowWindow(SW_HIDE);
 }
 
 void CCmpReportGraphView::OnSelColorBtn() 
@@ -288,7 +293,11 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
 			}
 			else
 			{
-				m_comboRepSubType.AddString("Queue Time(Summary)");
+				for(int i= SubType_Average; i<= SubType_All;i++)
+				{
+					int nIdx = m_comboRepSubType.AddString(MultiRunSummarySubReportTypeName[i]);
+					m_comboRepSubType.SetItemData(nIdx, i);
+				}
 				m_comboRepSubType.SetCurSel(0);
 			}
 		}
