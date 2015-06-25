@@ -188,6 +188,7 @@ public:
 	
 };
 #endif
+#include "FlightOpenDoors.h"
 //////////////////////////////////////////////////////////////////////////
 
 AirsideFlightInSim::AirsideFlightInSim(CARCportEngine *pARCPortEngine,Flight* pFlt, int id)
@@ -295,6 +296,7 @@ AirsideFlightInSim::AirsideFlightInSim(CARCportEngine *pARCPortEngine,Flight* pF
 
 	mbReadyForDeice = false;
 	m_pBaggageManager = new AirsideFlightBaggageManager;
+	m_pOpenDoors = NULL;
 }
 
 AirsideFlightInSim::~AirsideFlightInSim(void)
@@ -404,6 +406,8 @@ AirsideFlightInSim::~AirsideFlightInSim(void)
 	delete m_pFlightPerformanceManager;
 
 	delete m_pBaggageManager;
+
+	cpputil::autoPtrReset(m_pOpenDoors);
 }
 
 BOOL AirsideFlightInSim::IsThroughOut() const
@@ -1039,7 +1043,7 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 		}
 		if( item.GetResource() &&item.GetResource()->GetType() != AirsideResource::ResType_LogicRunway )
 		{
-			item.GetResource()->SetEnterTime(this,item.GetTime(),item.GetMode(),item.GetSpeed());
+			item.GetResource()->SetEnterTime(this,item.GetTime(),item.GetMode());
 		}
 
 		//if resource change to runway
@@ -2489,15 +2493,11 @@ AirsidePaxBusParkSpotInSim * AirsideFlightInSim::GetPaxBusParking(bool bArrival)
 }
 
 
-ElapsedTime AirsideFlightInSim::GetEstimateStandTime()  //this function is no correct , need to refactor it later
+ElapsedTime AirsideFlightInSim::GetEstimateStandTime()
 {
 	PLACE_METHOD_TRACK_STRING();
 	ElapsedTime tTime = GetTime();
 	m_pRouteToStand = GetRouteToStand();
-	double dSpeed = GetPerformance()->getTaxiInNormalSpeed(this);
-	if(GetMode()==OnHeldAtStand)
-		return tTime;
-
 	if (m_pRouteToStand)
 	{
 		int nCount = m_pRouteToStand->GetItemCount();
@@ -2506,7 +2506,7 @@ ElapsedTime AirsideFlightInSim::GetEstimateStandTime()  //this function is no co
 		{
 			dLength += m_pRouteToStand->GetItem(i).m_distTo - m_pRouteToStand->GetItem(i).m_distFrom;
 		}
-		tTime += ElapsedTime(dLength/dSpeed) ;
+		tTime += ElapsedTime(dLength/GetSpeed()) ;
 	}
 	else
 	{
@@ -3924,13 +3924,7 @@ FLIGHTTOWCRITERIATYPE AirsideFlightInSim::GetTowOffStandType()
 }
 
 
-struct OpenDoorsOrder
-{
-	bool operator()(ACTypeDoor* door1, ACTypeDoor*door2)
-	{
-		return door1->m_dNoseDist < door2->m_dNoseDist;
-	}
-};
+
 
 bool AirsideFlightInSim::GetOpenDoorAndStairGroundPostions(std::vector< std::pair<CPoint2008, CPoint2008> >& vPoints )
 {
@@ -4064,7 +4058,7 @@ void AirsideFlightInSim::DecreasePaxNumber(const ElapsedTime& tTime)
 			m_bStairShowState = false;
 		}
 		
-		m_vOpenDoors.clear();
+		cpputil::autoPtrReset(m_pOpenDoors);//.clear();//?
 
 		//if find flight wait for passenger take on and the last passenger take on need wakeup flight
 		if(m_bWaitPaxTakeOn)
@@ -4089,11 +4083,14 @@ void AirsideFlightInSim::WriteStairsLog(const ElapsedTime& tTime)
 {
 
 	//std::pair<CPoint2008, CPoint2008> stairpos;
+	ASSERT(m_pOpenDoors);
+	if(!m_pOpenDoors)
+		return;
 
-	int nCount = m_vOpenDoors.size();
+	int nCount = m_pOpenDoors->getCount();//.size();
 	for (int i = 0; i < nCount; i++)
 	{
-		COpenDoorInfo& openDoor = m_vOpenDoors.at(i);
+		COpenDoorInfo& openDoor = m_pOpenDoors->getDoor(i);//.at(i);
 		AirsideFlightStairsLog* pLog = new AirsideFlightStairsLog;
 		pLog->m_tStartTime = openDoor.mOpenTime;
 		pLog->m_tEndTime = tTime;
@@ -4121,21 +4118,77 @@ AirsideFollowMeCarInSim* AirsideFlightInSim::GetServiceFollowMeCar()
 	return m_pServiceFollowMeCar;
 }
 
-void AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
+CFlightOpenDoors* AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
 {
 	PLACE_METHOD_TRACK_STRING();
-	m_vOpenDoors.clear();
-	std::vector< pair<CPoint2008, CPoint2008> > vStairs;
-	GetOpenDoorAndStairGroundPostions(vStairs);
-	//
-	m_vOpenDoors.resize(vStairs.size());
-	for(int i=0;i<(int)m_vOpenDoors.size();i++)
+	CPoint2008 pos;
+	ARCVector3 dir;
+	if(!GetPosAtStand(pos,dir))
+		return NULL;
+	
+
+	if(m_pOpenDoors)
+		return m_pOpenDoors;
+
+	CFlightOpenDoors* openDoors = new CFlightOpenDoors();
+	cpputil::autoPtrReset(m_pOpenDoors, openDoors);
+
+
+	FltOperatingDoorSpecInSim* pFltDoorSpec =  GetAirTrafficController()->GetFltOperatingDoorSpec();
+	if (!pFltDoorSpec)
+		return m_pOpenDoors;
+
+	std::vector<ACTypeDoorOpen> vDoorList = pFltDoorSpec->getFlightDoors(GetFlightInput()->getType(m_curFlightType),GetOperationParkingStand()->GetStandInput()->GetObjectName() );
+	
+	DistanceUnit fltLen = GetLength();
+	CPath2008 flightPath;
+	flightPath.push_back(pos + dir.SetLength(fltLen/2) );
+	flightPath.push_back(pos - dir.SetLength(fltLen/2) );
+	ARCVector3 cabinLoffset = dir.PerpendicularLCopy().SetLength( GetCabinWidth()*0.5 );
+	
+
+	int nLeftIdex =0 ;int nRightIndex =0;
+	for(size_t i=0;i<vDoorList.size();i++)
 	{
-		COpenDoorInfo& doorInfo =  m_vOpenDoors[i];
-		doorInfo.mDoorPos = vStairs[i].first;
-		doorInfo.mGroundPos = vStairs[i].second;
-		doorInfo.mOpenTime = tTime;
+		const ACTypeDoorOpen& door = vDoorList.at(i);
+		ACTypeDoor::DoorDir door_side = door.pDoor->m_enumDoorDir ;
+		ACTypeDoor* pACDoor = door.pDoor;
+		CPoint2008 doorCenterPos = flightPath.GetDistPoint(pACDoor->m_dNoseDist*100);
+		DistanceUnit doorHeight = (pACDoor->m_dHeight + pACDoor->m_dSillHeight)*100;
+		ARCVector3 groundLoffset =  cabinLoffset.SetLength( GetCabinWidth()*0.5 + pACDoor->m_dSillHeight*100 );
+
+		if(  door_side == ACTypeDoor::BothSide || door_side == ACTypeDoor::RightHand )
+		{
+			if(door.bOpen)
+			{
+				CPoint2008 doorPos = doorCenterPos - cabinLoffset;
+				doorPos.setZ(doorHeight);
+				COpenDoorInfo doorInfo;
+				doorInfo.m_doorSide = ACTypeDoor::RightHand;
+				doorInfo.m_sideIndex = nRightIndex;
+				doorInfo.mDoorPos= doorPos;
+				doorInfo.mGroundPos= doorCenterPos - groundLoffset;
+				m_pOpenDoors->add(doorInfo);
+			}
+			++nRightIndex;
+		}
+		if( door_side == ACTypeDoor::BothSide || door_side == ACTypeDoor::LeftHand)
+		{
+			if(door.bOpen)
+			{
+				CPoint2008 doorPos = doorCenterPos + cabinLoffset;
+				doorPos.setZ(doorHeight);
+				COpenDoorInfo doorInfo;
+				doorInfo.m_doorSide = ACTypeDoor::LeftHand;
+				doorInfo.m_sideIndex = nLeftIdex;
+				doorInfo.mDoorPos= doorPos;
+				doorInfo.mGroundPos= doorCenterPos + groundLoffset;
+				m_pOpenDoors->add(doorInfo);
+			}
+			++nLeftIdex;
+		}	
 	}
+	return m_pOpenDoors;
 }
 
 void AirsideFlightInSim::ConnectBridge(const ElapsedTime&  tTime)
@@ -4169,8 +4222,7 @@ void AirsideFlightInSim::ConnectBridge(const ElapsedTime&  tTime)
 						!pBridgeConnector->IsBridgeConnectToFlight(GetFlightInput()->getFlightIndex()) &&
 						pBridgeConnector->IsBridgeConnectToStand(standName))
 					{
-						pBridgeConnector->ConnectFlight(this,tTime);
-						break;
+						pBridgeConnector->ConnectFlight(this,tTime);						
 					}
 				}
 			}
@@ -4922,31 +4974,13 @@ AirsideFlightBaggageManager * AirsideFlightInSim::getBaggageManager()
 
 BOOL AirsideFlightInSim::getCargoDoorPosition(CPoint2008 &ptCargoDoor)
 {
-	//ASSERT(0);
-	PLACE_METHOD_TRACK_STRING();
-	if(!m_curState.m_pResource)
+	
+
+	ARCVector3 dir; //= path.GetDistDir(m_curState.m_dist);
+	CPoint2008 pos; //= m_curState.m_pPosition;
+	if(!GetPosAtStand(pos,dir))
 		return FALSE;
 
-	CPath2008 path;
-	if (m_curState.m_pResource->GetType() == AirsideResource::ResType_StandLeadOutLine)//lead out line
-	{
-		StandLeadOutLineInSim* pLeadOutLine = (StandLeadOutLineInSim*)(m_curState.m_pResource);
-		if (pLeadOutLine==NULL)
-			return false;
-		path = pLeadOutLine->GetPath();
-	}
-	else if(m_curState.m_pResource->GetType() == AirsideResource::ResType_StandLeadInLine) // lead in line
-	{
-		StandLeadInLineInSim* pLeadInLine = (StandLeadInLineInSim*)(m_curState.m_pResource);
-		if (pLeadInLine==NULL)
-			return false;
-		path = pLeadInLine->GetPath();
-	}
-	else 
-		return FALSE;
-
-	ARCVector3 dir = path.GetDistDir(m_curState.m_dist);
-	CPoint2008 pos = m_curState.m_pPosition;
 	DistanceUnit fltLen = GetLength();
 
 	CPath2008 flightPath;
@@ -4975,4 +5009,37 @@ BOOL AirsideFlightInSim::getCargoDoorPosition(CPoint2008 &ptCargoDoor)
 
 
 	return TRUE;
+}
+
+BOOL AirsideFlightInSim::GetPosAtStand( CPoint2008& pos ,ARCVector3& dir ) const
+{
+	if(!m_curState.m_pResource)
+		return FALSE;
+
+	CPath2008 path;
+	if (m_curState.m_pResource->GetType() == AirsideResource::ResType_StandLeadOutLine)//lead out line
+	{
+		StandLeadOutLineInSim* pLeadOutLine = (StandLeadOutLineInSim*)(m_curState.m_pResource);
+		if (pLeadOutLine==NULL)
+			return false;
+		path = pLeadOutLine->GetPath();
+	}
+	else if(m_curState.m_pResource->GetType() == AirsideResource::ResType_StandLeadInLine) // lead in line
+	{
+		StandLeadInLineInSim* pLeadInLine = (StandLeadInLineInSim*)(m_curState.m_pResource);
+		if (pLeadInLine==NULL)
+			return false;
+		path = pLeadInLine->GetPath();
+	}
+	else 
+		return FALSE;
+
+	dir = path.GetDistDir(m_curState.m_dist);
+	pos = m_curState.m_pPosition;
+	return TRUE;
+}
+
+void AirsideFlightInSim::CloseDoors()
+{
+	cpputil::autoPtrReset(m_pOpenDoors);
 }

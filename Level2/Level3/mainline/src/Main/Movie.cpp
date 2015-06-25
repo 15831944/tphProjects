@@ -161,18 +161,6 @@ int CMovie::InsertKF(const CCameraData& _cam, long _time)
 	return i;
 }
 
-int CMovie::InsertKF(const C3DCamera& _cam, long _time)
-{
-	int nCount = m_vKFVec.size();
-	for(int i=0; i<nCount; i++) {
-		if(m_vKFVec[i]->GetTime() >= _time) {
-			break;
-		}
-	}
-	m_vKFVec.insert( m_vKFVec.begin()+i, new CMovieKeyFrame(_cam, _time) );
-	return i;
-}
-
 void CMovie::SetName(const CString& _sName)
 {
 	m_sName = _sName;

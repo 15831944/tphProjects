@@ -34,7 +34,6 @@ public:
 	const CString& GetName() const { return m_sName; }
 	void Interpolate(long _time, C3DCamera& _cam) const; //sets _cam to interpolation at time _time
 	int InsertKF(const CCameraData& _cam, long _time);
-	int InsertKF(const C3DCamera& _cam, long _time);
 	int DeleteKF(long _time);
 	int MoveKF(long _fromtime, long _totime);
 	void SetAnimSpeed(int _speed) { m_nAnimSpeed = _speed; }

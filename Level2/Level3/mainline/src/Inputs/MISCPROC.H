@@ -10,6 +10,7 @@
 
 #include "CapacityAttributes.h"
 #include "PROCIDList.h"
+#include "Common/ACTypeDoor.h"
 
 #define USE_NOTHING				0
 #define USE_PIPE_SYSTEM			1
@@ -105,6 +106,67 @@ private:
 		
 };
 
+class INPUTS_TRANSFER MiscBridgeIDWithDoor : public MiscProcessorIDWithOne2OneFlag
+{
+public:
+	struct DoorPriority 
+	{
+		CString GetPriorityString()const
+		{
+			CString strPriority;
+			if (m_iHandType == ACTypeDoor::LeftHand)
+			{
+				strPriority.Format(_T("L%d"),m_iIndex);
+			}
+			else if (m_iHandType == ACTypeDoor::RightHand)
+			{
+				strPriority.Format(_T("R%d"),m_iIndex);
+			}
+
+			return strPriority;
+		}
+
+		void ParseString(const CString strPirority)
+		{
+			CString strLeft;
+			CString strRight;
+			strLeft = strPirority.Left(1);
+			strRight = strPirority.Right(1);
+			if (strLeft.Compare("L") == 0)
+			{
+				m_iHandType = ACTypeDoor::LeftHand;
+			}
+			else
+			{
+				m_iHandType = ACTypeDoor::RightHand;
+			}
+
+			m_iIndex = atoi(strRight);
+		}
+
+		int m_iIndex;
+		ACTypeDoor::DoorDir m_iHandType;
+	};
+	
+	MiscBridgeIDWithDoor(){}
+	MiscBridgeIDWithDoor(ProcessorID& entry) : MiscProcessorIDWithOne2OneFlag(entry) { }
+	~MiscBridgeIDWithDoor(){}
+
+	//for door priority
+	typedef std::vector<DoorPriority> DoorPriorityList;
+	DoorPriorityList m_vDoorPriority;
+};
+
+class INPUTS_TRANSFER MiscBridgeIDListWithDoor : public ProcessorIDList
+{
+public:
+	MiscBridgeIDListWithDoor(){};
+	~MiscBridgeIDListWithDoor(){};
+
+	// read and wite 
+	virtual void readIDList (ArctermFile& p_file, InputTerminal* _pInTerm ,bool _bWithOneToOne = true );
+	virtual void writeIDList (ArctermFile& p_file) const;
+};
 //////////////////////////////////////////////////////////////////////////
 class INPUTS_TRANSFER MiscData
 {
@@ -754,15 +816,17 @@ public:
 	MiscBridgeConnectorData();
 	MiscBridgeConnectorData(const MiscBridgeConnectorData& anothermiscData);
 	~MiscBridgeConnectorData();
+
+
 protected:
-	MiscProcessorIDList* m_pStandLinkedProcList;
+	MiscBridgeIDListWithDoor* m_pStandLinkedProcList;
 public:
 	virtual int getType(void) const {return BridgeConnectorProc;}
 	virtual void readSpecificData (ArctermFile& p_file);
 	virtual void writeSpecificData (ArctermFile& p_file) const;
 
-	MiscProcessorIDList *GetBridgeConnectorLinkedProcList(){return m_pStandLinkedProcList;}
-	void SetBridgeConnectorLinkedProcList(const MiscProcessorIDList *p_ids) { *m_pStandLinkedProcList = *p_ids; }
+	MiscBridgeIDListWithDoor *GetBridgeConnectorLinkedProcList(){return m_pStandLinkedProcList;}
+	void SetBridgeConnectorLinkedProcList(const MiscBridgeIDListWithDoor *p_ids) { *m_pStandLinkedProcList = *p_ids; }
 };
 
 

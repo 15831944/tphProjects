@@ -187,7 +187,9 @@ CProcPropDlg::CProcPropDlg(Processor* _pProc, const ARCVector3& _location,CWnd* 
 	 m_dminAlt=0;
 
 	 m_dbandinterval = 0;
-	 m_vBridgeConnectPoints.clear();
+	 m_connectPoint.m_dWidth = 3*SCALE_FACTOR;
+	 m_connectPoint.m_dLength = 10*SCALE_FACTOR;
+	// m_vBridgeConnectPoints.clear();
 	 m_nBridgeConnectPointCount =1;
 }
 
@@ -333,12 +335,13 @@ BOOL CProcPropDlg::OnInitDialog()
 			BridgeConnector* pConnector = (BridgeConnector*)m_pProc;
 			if (pConnector)
 			{
-				m_nBridgeConnectPointCount = pConnector->GetConnectPointCount();
-				for(int idx =0; idx < m_nBridgeConnectPointCount; idx++)
-				{						
-					BridgeConnector::ConnectPoint conPoint = pConnector->GetConnectPointByIdx(idx);
-					m_vBridgeConnectPoints.push_back(conPoint);
-				}
+				//m_nBridgeConnectPointCount = pConnector->GetConnectPointCount();
+				//for(int idx =0; idx < m_nBridgeConnectPointCount; idx++)
+				//{						
+				//	BridgeConnector::ConnectPoint conPoint = pConnector->GetConnectPointByIdx(idx);
+				//	m_vBridgeConnectPoints.push_back(conPoint);
+				//}
+				m_connectPoint = pConnector->GetConnectPoint();
 			}
 
 		}
@@ -657,27 +660,27 @@ CFloor2 * CProcPropDlg::GetFloorFromZPos(float fZ)
 	
 }
 
-void CProcPropDlg::InitBridgeConnectPointDefaultValue( int idx, HTREEITEM hItem )
+void CProcPropDlg::InitBridgeConnectPointDefaultValue()
 {
 	CString sLabel;
 
-	sLabel.Format("Connect point %d", idx+1);
-	HTREEITEM hSubItem = m_treeProp.InsertItem(sLabel, hItem);
-	m_treeProp.SetItemData(hSubItem,idx);
-	BridgeConnector::ConnectPoint conPoint;
+	//sLabel.Format("Connect point %d", idx+1);
+	//HTREEITEM hSubItem = m_treeProp.InsertItem(sLabel, hItem);
+	//m_treeProp.SetItemData(hSubItem,idx);
+	//BridgeConnector::ConnectPoint conPoint;
 
-	if (idx < (int)m_vBridgeConnectPoints.size())
-	{
-		conPoint = m_vBridgeConnectPoints.at(idx);
-	}	
-	else
-	{
-		conPoint.m_dWidth = 3*SCALE_FACTOR;
-		conPoint.m_dLength = 10*SCALE_FACTOR;
-		m_vBridgeConnectPoints.push_back(conPoint);
-	}
+	//if (idx < (int)m_vBridgeConnectPoints.size())
+	//{
+	//	conPoint = m_vBridgeConnectPoints.at(idx);
+	//}	
+	//else
+	//{
+	//	conPoint.m_dWidth = 3*SCALE_FACTOR;
+	//	conPoint.m_dLength = 10*SCALE_FACTOR;
+	//	m_vBridgeConnectPoints.push_back(conPoint);
+	//}
 
-	Point pt = conPoint.m_Location;
+	Point pt = m_connectPoint.m_Location;
 	CString csPoint;
 	csPoint.Format( "Location x = %.2f; y = %.2f", 
 		UNITSMANAGER->ConvertLength(pt.getX()),
@@ -686,29 +689,29 @@ void CProcPropDlg::InitBridgeConnectPointDefaultValue( int idx, HTREEITEM hItem 
 	CFloor2* pFloor = GetPointFloor(pt);
 	if (pFloor)
 		csPoint += _T("; Floor:") + pFloor->FloorName();
-	m_treeProp.InsertItem( csPoint, hSubItem);
+	m_treeProp.InsertItem( csPoint, TVI_ROOT);
 
-	sLabel.Format("Width("+UNITSMANAGER->GetLengthUnitString( UNITSMANAGER->GetLengthUnits() )+")(%.2f)", UNITSMANAGER->ConvertLength(conPoint.m_dWidth));
-	HTREEITEM hValueItem = m_treeProp.InsertItem(sLabel, hSubItem);
-	m_treeProp.SetItemData(hValueItem,(DWORD)conPoint.m_dWidth);
+	sLabel.Format("Width("+UNITSMANAGER->GetLengthUnitString( UNITSMANAGER->GetLengthUnits() )+")(%.2f)", UNITSMANAGER->ConvertLength(m_connectPoint.m_dWidth));
+	HTREEITEM hValueItem = m_treeProp.InsertItem(sLabel, TVI_ROOT);
+	m_treeProp.SetItemData(hValueItem,(DWORD)m_connectPoint.m_dWidth);
 
-	sLabel.Format("Collapsed length("+UNITSMANAGER->GetLengthUnitString( UNITSMANAGER->GetLengthUnits() )+")(%.2f)", UNITSMANAGER->ConvertLength(conPoint.m_dLength));
-	hValueItem = m_treeProp.InsertItem(sLabel, hSubItem);
-	m_treeProp.SetItemData(hValueItem, (DWORD)conPoint.m_dLength);
+	sLabel.Format("Collapsed length("+UNITSMANAGER->GetLengthUnitString( UNITSMANAGER->GetLengthUnits() )+")(%.2f)", UNITSMANAGER->ConvertLength(m_connectPoint.m_dLength));
+	hValueItem = m_treeProp.InsertItem(sLabel, TVI_ROOT);
+	m_treeProp.SetItemData(hValueItem, (DWORD)m_connectPoint.m_dLength);
 
-	pt = conPoint.m_dirFrom;
+	pt = m_connectPoint.m_dirFrom;
 	csPoint.Format( "Static direction from x = %.2f; y = %.2f", 
 		UNITSMANAGER->ConvertLength(pt.getX()),
 		UNITSMANAGER->ConvertLength(pt.getY()) );
-	m_treeProp.InsertItem( csPoint, hSubItem);
+	m_treeProp.InsertItem( csPoint, TVI_ROOT);
 
-	pt = conPoint.m_dirTo;
+	pt = m_connectPoint.m_dirTo;
 	csPoint.Format( "Static direction to x = %.2f; y = %.2f", 
 		UNITSMANAGER->ConvertLength(pt.getX()),
 		UNITSMANAGER->ConvertLength(pt.getY()) );
-	m_treeProp.InsertItem( csPoint, hSubItem);
+	m_treeProp.InsertItem( csPoint, TVI_ROOT);
 	
-	m_treeProp.Expand( hSubItem, TVE_EXPAND );
+	m_treeProp.Expand( TVI_ROOT, TVE_EXPAND );
 }
 
 void CProcPropDlg::LoadTree()
@@ -1839,18 +1842,19 @@ void CProcPropDlg::LoadTree()
 	}
 	else if (nProcType== BridgeConnectorProc)
 	{
-		CString sLabel;
-		sLabel.Format("Connect points: %d",m_nBridgeConnectPointCount);
-		HTREEITEM hItem = m_treeProp.InsertItem(sLabel);
-		m_dProcessorLength = 10*SCALE_FACTOR;
-		m_dConveyWidth = SCALE_FACTOR;
+		//CString sLabel;
+		//sLabel.Format("Connect points: %d",m_nBridgeConnectPointCount);
+		//HTREEITEM hItem = m_treeProp.InsertItem(sLabel);
+		//m_dProcessorLength = 10*SCALE_FACTOR;
+		//m_dConveyWidth = SCALE_FACTOR;
 
-		for (int idx =0; idx < m_nBridgeConnectPointCount; idx++)
-		{
-			InitBridgeConnectPointDefaultValue(idx,hItem);
-			m_treeProp.Expand( hItem, TVE_EXPAND );
-		}
+		//for (int idx =0; idx < m_nBridgeConnectPointCount; idx++)
+		//{
+		//	InitBridgeConnectPointDefaultValue(idx,hItem);
+		//	m_treeProp.Expand( hItem, TVE_EXPAND );
+		//}
 		
+		InitBridgeConnectPointDefaultValue();
 	}	
 	else //is integrated station 
 	{
@@ -2469,8 +2473,8 @@ void CProcPropDlg::OnContextMenu(CWnd* pWnd, CPoint point)
 			pMenu = menuPopup.GetSubMenu(42);
 		else if (sLabel.Find("Collapsed length") >=0)
 			pMenu = menuPopup.GetSubMenu(44);
-		else if (m_treeProp.GetParentItem(m_hRClickItem) == NULL)	//connect points
-			pMenu = menuPopup.GetSubMenu(75);
+		//else if (m_treeProp.GetParentItem(m_hRClickItem) == NULL)	//connect points
+		//	pMenu = menuPopup.GetSubMenu(75);
 		else
 			pMenu = menuPopup.GetSubMenu(10);
 		pMenu->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);	
@@ -2940,11 +2944,11 @@ LRESULT CProcPropDlg::OnTempFallbackFinished(WPARAM wParam, LPARAM lParam)
 		pos.setY( v3D[VY] );
 		pos.setZ( pDoc->m_nActiveFloor * SCALE_FACTOR );
 
-		HTREEITEM hParItem = m_treeProp.GetParentItem(m_hRClickItem);
-		if (hParItem)
+		//HTREEITEM hParItem = m_treeProp.GetParentItem(m_hRClickItem);
+		//if (hParItem)
 		{
-			int idx = m_treeProp.GetItemData(hParItem);
-			BridgeConnector::ConnectPoint& conPoint = m_vBridgeConnectPoints[idx];
+		//	int idx = m_treeProp.GetItemData(hParItem);
+			BridgeConnector::ConnectPoint& conPoint = m_connectPoint;
 			CString sLabel = m_treeProp.GetItemText(m_hRClickItem);
 			if (sLabel.Find("Location") >=0)
 				conPoint.m_Location = pos;
@@ -4546,13 +4550,13 @@ LRESULT CProcPropDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else if (nProcType == BridgeConnectorProc)
 		{
-			HTREEITEM hParItem = m_treeProp.GetParentItem(m_hRClickItem);
-			if (hParItem == NULL)
-				m_nBridgeConnectPointCount = pst->iPercent;
-			else
+			//HTREEITEM hParItem = m_treeProp.GetParentItem(m_hRClickItem);
+			//if (hParItem == NULL)
+			//	m_nBridgeConnectPointCount = pst->iPercent;
+			//else
 			{
-				int idx = m_treeProp.GetItemData(hParItem);
-				BridgeConnector::ConnectPoint& conPoint = m_vBridgeConnectPoints[idx];
+			//	int idx = m_treeProp.GetItemData(hParItem);
+				BridgeConnector::ConnectPoint& conPoint = m_connectPoint;
 				CString sLabel = m_treeProp.GetItemText(m_hRClickItem);
 				if (sLabel.Find("Width") >=0)
 					conPoint.m_dWidth = UNITSMANAGER->UnConvertLength(pst->iPercent);
@@ -6772,14 +6776,15 @@ void CProcPropDlg::AcquireDataForBridgeConnector()
 	BridgeConnector* pConnector = dynamic_cast<BridgeConnector*>(m_pProc);
 	if (pConnector)
 	{
-		pConnector->setConnectPointCount(m_nBridgeConnectPointCount);
-		pConnector->ClearConnectPointData();
+		//pConnector->setConnectPointCount(m_nBridgeConnectPointCount);
+		//pConnector->ClearConnectPointData();
 
-		for (int i =0; i < m_nBridgeConnectPointCount; i++)
-		{
-			BridgeConnector::ConnectPoint conPoint = m_vBridgeConnectPoints.at(i);
-			pConnector->AddConnectPoint(conPoint);
-		}
+		//for (int i =0; i < m_nBridgeConnectPointCount; i++)
+		//{
+		//	BridgeConnector::ConnectPoint conPoint = m_vBridgeConnectPoints.at(i);
+		//	pConnector->AddConnectPoint(conPoint);
+		//}
+		pConnector->SetConnectPoint(m_connectPoint);
 	}
 }
 

@@ -60,17 +60,18 @@ int FlightExitStandEvent::process(CARCportEngine* _pEngine)
 							if (pOnboardFlightInSim)
 							{
 								pBridgeConnector->DisOnboardConnect(getTime());
-								return 0;
+								//return 0;
 							}	
 						}
 				
 						pBridgeConnector->DisAirsideConnect(getTime());
-						break;
+						//break;
 					}
 				}
 			//}
 		}
 	}
+	m_pAirsideFlt->CloseDoors();
 
 	return 0;
 }

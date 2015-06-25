@@ -325,7 +325,7 @@ void CTerminalMSImpl::BuildTVNodeTree()
 		pNode->AddChild(pPN);
 	}
 
-	//add railway layout
+	//add railway layou
 	s.LoadString(IDS_RAILWAY_LAYOUT);
 	pNode = new CTVNode(s,IDR_RAILWAY_LAYOUT);
 	pLayoutNode->AddChild(pNode);
@@ -335,10 +335,6 @@ void CTerminalMSImpl::BuildTVNodeTree()
 	pNode = new CTVNode(s, IDR_CTX_NAMELIST/*IDS_TVNN_NAMELIST*/);
 	pLayoutNode->AddChild(pNode);
 
-	//add entry flight time node
-	s.LoadString(IDS_TVNN_ENTRYFLIGHTTIME);
-	pNode = new CTVNode(s);
-	pLayoutNode->AddChild(pNode);
 
 	//add extend data
 	s.LoadString(IDS_TVNN_DATA);

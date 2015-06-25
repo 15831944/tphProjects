@@ -53,21 +53,15 @@ END_MESSAGE_MAP()
 // DlgACTypeStandConstraint message handlers
 void DlgACTypeStandConstraint::OnBnClickedImportFromFile()
 {
-	ACTypeStandConstraintList importConstraints;
-	DlgImportACTypeConstraintFromFile dlg(m_nAirportID, &importConstraints);
-	if (dlg.DoModal() == IDOK)
+	ACTypeStandConstraintList ImportCons;
+	DlgImportACTypeConstraintFromFile dlg(m_nAirportID, &ImportCons);
+	if (dlg.DoModal() == IDOK && !ImportCons.m_vDataList.empty())
 	{
-		int constCount = importConstraints.GetConstaintCount();
-		if(importConstraints.GetConstaintCount() > 0)
-		{
-			m_pACTypeStandConstraints->DeleteAllItem();
-			for(int i=0; i<constCount; i++)
-			{
-				m_pACTypeStandConstraints->AddItem(importConstraints.GetItemByIndex(i));
-			}
-			importConstraints.ClearConstraintPtrs();
-			OnInitTreeCtrl();
-		}
+		m_pACTypeStandConstraints->m_vDelDataList.assign(m_pACTypeStandConstraints->m_vDataList.begin(),m_pACTypeStandConstraints->m_vDataList.end());
+		m_pACTypeStandConstraints->m_vDataList.assign(ImportCons.m_vDataList.begin(),ImportCons.m_vDataList.end());
+		ImportCons.m_vDataList.clear();
+
+		OnInitTreeCtrl();
 	}
 }
 
@@ -259,19 +253,19 @@ void DlgACTypeStandConstraint::OnInitTreeCtrl()
 	cni.net = NET_NORMAL;
 
 	HTREEITEM hRoot = m_wndTreeCtrl.InsertItem("Constraints:",cni,FALSE,FALSE,TVI_ROOT,TVI_LAST);
-	int nCount =  m_pACTypeStandConstraints->GetConstaintCount();
+	int nCount =  m_pACTypeStandConstraints->getConstaintCount();
 
 
 
 	for(int i = 0; i < nCount; i++)
 	{
-		ACTypeStandConstraint* pData = m_pACTypeStandConstraints->GetItemByIndex(i);
+		ACTypeStandConstraint* pData = m_pACTypeStandConstraints->GetConstraintByIdx(i);
 
 		ASSERT(pData);	//pData cannot be null
 		if (pData == NULL)
 			continue;
 
-		CString strName = pData->GetStandGroupIDString();
+		CString strName = pData->m_StandGroup.getName().GetIDString();
 		if (strName.IsEmpty())
 			strName = "All Stands";
 
@@ -281,10 +275,9 @@ void DlgACTypeStandConstraint::OnInitTreeCtrl()
 		m_wndTreeCtrl.SetItemData(hItem,(DWORD_PTR)pData);
 
 		POSITION pos;
-		const CStringList& strACTypeList = pData->GetACTypeList();
-		for( pos = strACTypeList.GetHeadPosition(); pos != NULL; )
+		for( pos = pData->m_strACTypeList.GetHeadPosition(); pos != NULL; )
 		{
-			CString strAC = strACTypeList.GetNext( pos );
+			CString strAC = pData->m_strACTypeList.GetNext( pos );
 			hChildItem = m_wndTreeCtrl.InsertItem(strAC,cni,FALSE,FALSE,hItem,TVI_LAST);			
 		}
 		m_wndTreeCtrl.Expand(hItem,TVE_EXPAND);
@@ -325,7 +318,7 @@ void DlgACTypeStandConstraint::AddNewItem()
 			return;
 		ACTypeStandConstraint* pData = new ACTypeStandConstraint;
 		ALTObjectID GroupName(newIDstr.GetString());
-		pData->SetStandGroupName(GroupName);
+		pData->m_StandGroup.setName(GroupName);
 
 		COOLTREE_NODE_INFO cni;
 		CCoolTree::InitNodeInfo(this,cni);
@@ -336,9 +329,9 @@ void DlgACTypeStandConstraint::AddNewItem()
 		HTREEITEM hItem = m_wndTreeCtrl.InsertItem(strName,cni,FALSE,FALSE,hSel,TVI_LAST);
 		m_wndTreeCtrl.SetItemData(hItem,(DWORD_PTR)pData);
 		strName = _T("All AC Types");
-		pData->AddACType(strName);
+		pData->m_strACTypeList.AddTail(strName);
 		HTREEITEM hChild = m_wndTreeCtrl.InsertItem(strName,cni,FALSE,FALSE,hItem,TVI_LAST);
-		m_pACTypeStandConstraints->AddItem(pData);
+		m_pACTypeStandConstraints->m_vDataList.push_back(pData);
 		GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
 		m_wndTreeCtrl.Expand(hSel,TVE_EXPAND);
 		m_wndTreeCtrl.Expand(hItem,TVE_EXPAND);
@@ -367,7 +360,7 @@ void DlgACTypeStandConstraint::RemoveItem()
 	if (hGrand == NULL)
 	{
 		ACTypeStandConstraint* pDelData = (ACTypeStandConstraint*)m_wndTreeCtrl.GetItemData(hSel);
-		m_pACTypeStandConstraints->DeleteItemByConstraint(pDelData);
+		m_pACTypeStandConstraints->DelConstraint(pDelData);
 		m_wndTreeCtrl.DeleteItem(hSel);
 		GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
 	}
@@ -398,7 +391,7 @@ void DlgACTypeStandConstraint::AddACTypes()
 	for( pos = dlg.getSelACTyeps().GetHeadPosition(); pos != NULL; )
 	{
 		CString strAC = dlg.getSelACTyeps().GetNext( pos );
-		pData->AddACType(strAC);	
+		pData->m_strACTypeList.AddTail(strAC);	
 		hChildItem = m_wndTreeCtrl.InsertItem(strAC,cni,FALSE,FALSE,hSel,TVI_LAST);	
 	}
 }
@@ -413,7 +406,7 @@ void DlgACTypeStandConstraint::DelACType()
 	if (pData == NULL)
 		return;
 
-	pData->RemoveAllACTypes();
+	pData->m_strACTypeList.RemoveAll();
 	if (m_wndTreeCtrl.ItemHasChildren(hParentItem))
 	{
 		HTREEITEM hItem = m_wndTreeCtrl.GetChildItem(hParentItem);
@@ -421,7 +414,7 @@ void DlgACTypeStandConstraint::DelACType()
 		while (hItem != NULL)
 		{
 			CString strAC = m_wndTreeCtrl.GetItemText(hItem);
-			pData->AddACType(strAC);
+			pData->m_strACTypeList.AddTail(strAC);
 			hItem = m_wndTreeCtrl.GetNextSiblingItem(hItem);
 		}
 	}

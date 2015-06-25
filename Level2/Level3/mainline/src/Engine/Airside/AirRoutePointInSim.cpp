@@ -103,19 +103,6 @@ void AirRoutePointInSim::setDistToRunway( double dDist )
 {
 	m_dDistToRunway = dDist;
 }
-
-void AirRoutePointInSim::SetEnterTime( CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode )
-{
-	ASSERT(FALSE);
-	__super::SetEnterTime(pFlight, enterT, fltMode);
-}
-
-void AirRoutePointInSim::SetEnterTime( CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode,double dSpd )
-{
-	ASSERT(dSpd>0);
-	__super::SetEnterTime(pFlight, enterT, fltMode,dSpd);
-}
-
 //////////////////////////////AirWaypointInSimList////////////////////////////////
 AirRoutePointInSim * AirRoutePointInSimList::GetRoutePointByIdx( int nIdx )
 {

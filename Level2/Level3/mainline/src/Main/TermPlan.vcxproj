@@ -257,7 +257,6 @@
     <ClInclude Include="DlgAssignmentConstraintSpec.h" />
     <ClInclude Include="DlgBaseResident.h" />
     <ClInclude Include="DlgCurbsideStrategy.h" />
-    <ClInclude Include="DlgEntryFlightTime.h" />
     <ClInclude Include="DlgExportNames.h" />
     <ClInclude Include="DlgInitCondition.h" />
     <ClInclude Include="DlgLandsideEntryOffset.h" />
@@ -1070,7 +1069,6 @@
     <ClCompile Include="DlgAssignmentConstraintSpec.cpp" />
     <ClCompile Include="DlgBaseResident.cpp" />
     <ClCompile Include="DlgCurbsideStrategy.cpp" />
-    <ClCompile Include="DlgEntryFlightTime.cpp" />
     <ClCompile Include="DlgExportNames.cpp" />
     <ClCompile Include="DlgInitCondition.cpp" />
     <ClCompile Include="DlgLandsideEntryOffset.cpp" />
@@ -5323,13 +5321,6 @@
     <None Include="res\bmp00050.bmp" />
     <None Include="res\bmp00051.bmp" />
     <None Include="res\bmp00052.bmp" />
-    <None Include="res\bmp00053.bmp" />
-    <None Include="Res\bmp_move_down_floor.bmp" />
-    <None Include="Res\bmp_move_down_floor1.bmp" />
-    <None Include="Res\bmp_move_down_floor2.bmp" />
-    <None Include="Res\bmp_move_up_floor.bmp" />
-    <None Include="Res\bmp_move_up_floor1.bmp" />
-    <None Include="Res\bmp_move_up_floor2.bmp" />
     <None Include="Res\bmp_seldefined.bmp" />
     <None Include="Res\bmpPipeBar.bmp" />
     <None Include="Res\bus_station.bmp" />
@@ -5386,7 +5377,6 @@
     <None Include="Res\edit.bmp" />
     <None Include="Res\element_.ico" />
     <None Include="Res\emptynode.bmp" />
-    <None Include="Res\entryflighttime.bmp" />
     <None Include="Res\Expirical.bmp" />
     <None Include="Res\Exponential.bmp" />
     <None Include="Res\export.bmp" />
@@ -5503,7 +5493,6 @@
     <None Include="Res\procassi.bmp" />
     <None Include="Res\process1.bmp" />
     <None Include="Res\process_.bmp" />
-    <None Include="res\PROGRESS.BIN" />
     <None Include="Res\reportto.bmp" />
     <None Include="res\ResidentPlan.bmp" />
     <None Include="Res\roster_p.bmp" />

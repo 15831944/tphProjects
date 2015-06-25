@@ -44,10 +44,6 @@ public:
 
 	double getDistToRunway() const;
 	void setDistToRunway(double dDist);
-
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode,double dSpd);
-
 protected:	
 	CPoint2008 m_pos;
 	double m_dAltHigh;

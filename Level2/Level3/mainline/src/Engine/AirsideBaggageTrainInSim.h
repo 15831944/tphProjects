@@ -38,7 +38,7 @@ public:
 	//initialize the baggage train with the full baggage carts
 	void Initialize(int& nNextVehicleUnqiueID);
 
-	ElapsedTime GetServiceTimePerBag()const;
+
 public:
 	void UnloadBaggageToLoader(ElapsedTime time);
 

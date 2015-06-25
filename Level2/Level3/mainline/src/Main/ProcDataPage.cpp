@@ -42,6 +42,7 @@
 #define MOBILE_ELEMENT_MENU_START 0x10000
 #define MOBILE_ELEMENT_MENU_COMBINATION 0x11000
 #define MOBILE_ELEMENT_MENU_ALLNOPAX 0x11100
+#define DOOR_PRIORITY_MENU_START 10000
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -154,6 +155,7 @@ BEGIN_MESSAGE_MAP(CProcDataPage, CResizablePage)
 //	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTW, 0, 0xFFFF, OnToolTipText)
 //	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTA, 0, 0xFFFF, OnToolTipText)
 	ON_COMMAND_RANGE(MOBILE_ELEMENT_MENU_START, MOBILE_ELEMENT_MENU_START + 100, OnSelectMobileElementType)
+	ON_COMMAND_RANGE(DOOR_PRIORITY_MENU_START,DOOR_PRIORITY_MENU_START + 100,OnAddDoorPriority)
 	ON_COMMAND(MOBILE_ELEMENT_MENU_ALLNOPAX,OnSelAllNoPax) 
 	ON_COMMAND(MOBILE_ELEMENT_MENU_COMBINATION,OnSelCombination)
 	ON_WM_CONTEXTMENU()
@@ -259,7 +261,7 @@ BOOL CProcDataPage::OnInitDialog()
 	InitToolbar();
 	m_csTreeItemLabel = "";
 	
-
+	InitDoorPriority();
 	LoadProcessorList();
 
 	//Init FlowConvetor,use to update Flow( only temp)
@@ -419,7 +421,7 @@ bool CProcDataPage::SelectStand(const ProcessorID& _id)
 	if( m_hGateItem == NULL )
 		return false;
 
-	MiscProcessorIDList* pProcIDList = ((MiscBridgeConnectorData*)pMiscData)->GetBridgeConnectorLinkedProcList();
+	MiscBridgeIDListWithDoor * pProcIDList = ((MiscBridgeConnectorData*)pMiscData)->GetBridgeConnectorLinkedProcList();
 	HTREEITEM hItem = m_TreeData.GetChildItem( m_hStandConnect );
 	while( hItem )
 	{
@@ -1302,6 +1304,11 @@ void CProcDataPage::OnToolbarbuttondel()
 		DelStandConnector(hItem);
 	else if (hParentItem == m_hDisallowedNonPaxItem)
 		DelDisallowedNonPaxItem(hItem);
+	else if (std::find(m_vStandPriorityItem.begin(),m_vStandPriorityItem.end(),hParentItem) != m_vStandPriorityItem.end())
+	{
+		DelDoorPriorityItem(hItem);
+	}
+
 }
 
 void CProcDataPage::AddGate()
@@ -3540,6 +3547,26 @@ void CProcDataPage::SetToolBarState(const HTREEITEM hItem )
 				m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_EDITPIPE_AUTO, TRUE );
 			}
 		}
+
+		HTREEITEM hParentItem = m_TreeData.GetParentItem(hItem);
+		if (hParentItem == m_hStandConnect)
+		{
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE );
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, TRUE );
+			return;
+		}
+		else if (std::find(m_vStandPriorityItem.begin(),m_vStandPriorityItem.end(),hParentItem) != m_vStandPriorityItem.end())
+		{
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, TRUE );
+			return;
+		}
+		else if (std::find(m_vStandPriorityItem.begin(),m_vStandPriorityItem.end(),hItem) != m_vStandPriorityItem.end())
+		{
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_LINKAGE_ONETOONE, FALSE );
+			m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL, FALSE );
+			return;
+		}
 	}
 	else
 		m_ToolBar.GetToolBarCtrl().EnableButton(ID_EDIT_OR_SPIN_VALUE,FALSE);
@@ -3824,6 +3851,24 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 		menuMobileElement.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
 		return;
 	}
+	if (std::find(m_vStandPriorityItem.begin(),m_vStandPriorityItem.end(),hCurrentTreeItem) != m_vStandPriorityItem.end())
+	{
+		CMenu menuDoorPriority;
+		menuDoorPriority.CreatePopupMenu();
+		CMenu sepMenu;
+		sepMenu.CreateMenu();
+
+		int nCount = (int)m_vDoorPriority.size();
+		for (int i = 0; i < nCount; i++)
+		{
+			MiscBridgeIDWithDoor::DoorPriority doorPriority = m_vDoorPriority[i];
+			sepMenu.AppendMenu(MF_STRING | MF_ENABLED , DOOR_PRIORITY_MENU_START + i +1, doorPriority.GetPriorityString());
+		}
+		menuDoorPriority.InsertMenu(0, MF_BYPOSITION|MF_POPUP, (UINT) sepMenu.m_hMenu, _T("Add Priority..."));
+		menuDoorPriority.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+		return;
+	}
+
 	if(hCurrentTreeItem != m_hTreeItemCapacity)
 	{
 		if(m_TreeData.GetParentItem(hCurrentTreeItem) != m_hTreeItemCapacity)
@@ -3835,6 +3880,7 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 		if(pAttribute->m_Type != CapacityAttributes::TY_Combination)
 			return ;
 	}
+
 	//Get Defined Pax
 	std::vector<CString> vPaxDefined;
 	HTREEITEM hItemChild= m_TreeData.GetChildItem(hCurrentTreeItem);
@@ -3874,6 +3920,35 @@ void CProcDataPage::OnContextMenu(CWnd* pWnd, CPoint point)
 
 }
 
+
+void CProcDataPage::OnAddDoorPriority( UINT nID )
+{
+	MiscData* pMiscData = GetCurMiscData();
+	if (pMiscData == NULL || hCurrentTreeItem == NULL)
+		return;
+	
+	if (pMiscData->getType() != BridgeConnectorProc)
+		return;
+
+	MiscBridgeConnectorData* pBridgeConnectorData = (MiscBridgeConnectorData*)pMiscData;
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+	cni.nt=NT_NORMAL;
+	cni.net = NET_NORMAL;
+
+	int idx = nID  - DOOR_PRIORITY_MENU_START - 1;
+	int iStand = (int)m_TreeData.GetItemData(hCurrentTreeItem);
+	MiscBridgeIDWithDoor* pBridgeID =  (MiscBridgeIDWithDoor*)pBridgeConnectorData->GetBridgeConnectorLinkedProcList()->getItem(iStand);
+	MiscBridgeIDWithDoor::DoorPriority doorPriority = m_vDoorPriority.at(idx);
+	pBridgeID->m_vDoorPriority.push_back(doorPriority);
+	int iPriority = (int)pBridgeID->m_vDoorPriority.size();
+	CString strPriority;
+	strPriority.Format(_T("Priority %d %s"),iPriority,doorPriority.GetPriorityString());
+	HTREEITEM hItem =  m_TreeData.InsertItem(strPriority, cni, FALSE, FALSE, hCurrentTreeItem);
+	m_TreeData.SetItemData(hItem,iPriority - 1);
+	m_TreeData.Expand(hCurrentTreeItem,TVE_EXPAND) ;
+	SetModified();	
+}
 
 void CProcDataPage::OnSelectMobileElementType(UINT nID)
 {
@@ -4179,6 +4254,7 @@ void CProcDataPage::ReloadBridgeConnectorList( MiscData* _pMiscData )
 
 		HTREEITEM hItem = m_TreeData.InsertItem( str,cni,FALSE,FALSE, m_hConnectBridge );
 		m_TreeData.SetItemData( hItem, i );
+		
 	}
 	m_TreeData.Expand( m_hConnectBridge, TVE_EXPAND );
 	m_TreeData.SelectItem(m_hConnectBridge);
@@ -4245,8 +4321,8 @@ void CProcDataPage::AddStandConnector()
 	for (int i = 0; i < nIDcount; i++ )
 	{
 		id = *(idListShow.getID(i));		
-		MiscProcessorIDList* pProcIDList = ((MiscBridgeConnectorData*)pMiscData)->GetBridgeConnectorLinkedProcList();
-		MiscProcessorIDWithOne2OneFlag* pID = new MiscProcessorIDWithOne2OneFlag( id );
+		MiscBridgeIDListWithDoor* pProcIDList = ((MiscBridgeConnectorData*)pMiscData)->GetBridgeConnectorLinkedProcList();
+		MiscProcessorIDWithOne2OneFlag* pID = new MiscBridgeIDWithDoor( id );
 		pProcIDList->addItem( pID );
 	}
 	if ( nIDcount > 0)
@@ -4310,23 +4386,69 @@ void CProcDataPage::ReloadStandConnectorList(MiscData* _pMiscData)
 
 	DeleteAllChildItems( m_hStandConnect );
 
+	MiscBridgeConnectorData* pBridgeConnectorData = (MiscBridgeConnectorData*)_pMiscData;
 	// inster item
-	MiscProcessorIDList* pProcIDList = ((MiscBridgeConnectorData*)_pMiscData)->GetBridgeConnectorLinkedProcList();
+	MiscBridgeIDListWithDoor* pProcIDList = ((MiscBridgeConnectorData*)_pMiscData)->GetBridgeConnectorLinkedProcList();
 	char str[80];
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	for (int i = 0; i < pProcIDList->getCount (); i++)
 	{
-		const MiscProcessorIDWithOne2OneFlag* pProcID = (MiscProcessorIDWithOne2OneFlag*)pProcIDList->getID( i );
+		const MiscBridgeIDWithDoor* pProcID = (MiscBridgeIDWithDoor*)pProcIDList->getID( i );
 		pProcID->printID( str );
 		if( pProcID->getOne2OneFlag() )
 			strcat(str ,"{1:1}");
 
 		HTREEITEM hItem = m_TreeData.InsertItem( str,cni,FALSE,FALSE, m_hStandConnect );
 		m_TreeData.SetItemData( hItem, i );
+
+		//add door priority
+		HTREEITEM hDoorItem = m_TreeData.InsertItem("Door",cni,FALSE,FALSE,hItem);
+		m_TreeData.SetItemData(hDoorItem,i);
+		m_vStandPriorityItem.push_back(hDoorItem);
+		{
+			int nCount = (int)pProcID->m_vDoorPriority.size();
+			for (int j = 0; j < nCount; j++)
+			{
+				MiscBridgeIDWithDoor::DoorPriority doorPriority = pProcID->m_vDoorPriority.at(j);
+				CString strPriority;
+				strPriority.Format(_T("Priority %d %s"),j+1,doorPriority.GetPriorityString());
+				HTREEITEM hPriorityItem = m_TreeData.InsertItem(strPriority,cni,FALSE,FALSE,hDoorItem);
+				m_TreeData.SetItemData(hPriorityItem,j);
+			}
+			m_TreeData.Expand(hDoorItem,TVE_EXPAND);
+		}
+
+		m_TreeData.Expand(hItem,TVE_EXPAND);
 	}
 	m_TreeData.Expand( m_hStandConnect, TVE_EXPAND );
 	m_TreeData.SelectItem(m_hStandConnect);
+}
+
+void CProcDataPage::DelDoorPriorityItem( HTREEITEM hItem )
+{
+	if(hItem == NULL)
+		return ;
+
+	MiscData* pMiscData = GetCurMiscData();
+	if(pMiscData == NULL) 
+		return;
+	if (pMiscData->getType() != BridgeConnectorProc)
+		return;
+	
+	MiscBridgeConnectorData* pBridgeConnectorData = (MiscBridgeConnectorData*)pMiscData;
+
+	HTREEITEM hParentItem = m_TreeData.GetParentItem(hItem);
+	int iStand = (int)m_TreeData.GetItemData(hParentItem);
+
+	MiscBridgeIDListWithDoor* pProcIDList = ((MiscBridgeConnectorData*)pMiscData)->GetBridgeConnectorLinkedProcList();
+	MiscBridgeIDWithDoor* bridgeID = (MiscBridgeIDWithDoor*)pProcIDList->getItem(iStand);
+
+	int iPriority = (int)m_TreeData.GetItemData(hItem);
+	bridgeID->m_vDoorPriority.erase(bridgeID->m_vDoorPriority.begin() + iPriority);
+	ReloadStandConnectorList( pMiscData );	;
+	m_TreeData.SetFocus();
+	SetModified();
 }
 
 void CProcDataPage::DelDisallowedNonPaxItem( HTREEITEM hItem )
@@ -4561,6 +4683,29 @@ void CProcDataPage::ReloadDisallowedNonPaxItem()
 		CString treeItemText = pNonPaxItem->m_Name;
 		HTREEITEM hTreeItemPaxCapacity = m_TreeData.InsertItem(treeItemText, cni, FALSE, FALSE, m_hDisallowedNonPaxItem);
 		m_TreeData.Expand(m_hDisallowedNonPaxItem, TVE_EXPAND);
+	}
+}
+
+void CProcDataPage::InitDoorPriority()
+{
+	//left hand priority
+	for (int i = 0; i < 5; i++)
+	{
+		MiscBridgeIDWithDoor::DoorPriority leftPriority;
+		leftPriority.m_iIndex = i+1;
+		leftPriority.m_iHandType = ACTypeDoor::LeftHand;
+
+		m_vDoorPriority.push_back(leftPriority);
+	}
+
+	//right hand priority
+	for (int j = 0; j < 5; j++)
+	{
+		MiscBridgeIDWithDoor::DoorPriority rightPriority;
+		rightPriority.m_iIndex = j+1;
+		rightPriority.m_iHandType = ACTypeDoor::RightHand;
+
+		m_vDoorPriority.push_back(rightPriority);
 	}
 }
 

@@ -830,7 +830,7 @@ bool CAnimationManager::GetBridgeShow( BridgeConnector* pConnector,int idx, CTer
 {
 	
 	CBridgeConnectorLog* pLog = pDoc->GetTerminal().m_pBridgeConnectorLog;
-	const BridgeConnector::ConnectPoint& p = pConnector->GetConnectPointByIdx(idx);
+	const BridgeConnector::ConnectPoint& p = pConnector->m_connectPoint;//(idx);
 
 	if(pDoc->m_eAnimState != CTermPlanDoc::anim_none)
 	{
@@ -848,9 +848,11 @@ bool CAnimationManager::GetBridgeShow( BridgeConnector* pConnector,int idx, CTer
 			bridgeElment.SetEventLog(pDoc->GetTerminal().m_pBridgeConnectorEventLog);
 			bridgeElment.initStruct(bds);	
 
-			CString sLift;
-			sLift.Format("%d", idx );
-			if( (pConnector->getIDName()+sLift).CompareNoCase(bds.id)!=0 )
+			//CString sLift;
+			//sLift.Format("%d", idx );
+			ProcessorID bid;
+			bid.setIDS(bds.name);
+			if( !(bid == *pConnector->getID()) )
 				continue;
 		
 

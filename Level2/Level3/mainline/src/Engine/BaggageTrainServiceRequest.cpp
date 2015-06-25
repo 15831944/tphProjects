@@ -23,12 +23,7 @@ void BaggageTrainServiceRequest::setUnserviceBaggageCount( int nLeft )
 
 bool BaggageTrainServiceRequest::IsCompleteService()
 {
-	if (m_nBaggageLeft >0 )
-		return false;
-
-
-	return VehicleServiceRequest::IsCompleteService();
-	//return m_nBaggageLeft == 0;
+	return m_nBaggageLeft == 0;
 }
 
 enumVehicleBaseType BaggageTrainServiceRequest::GetType() const

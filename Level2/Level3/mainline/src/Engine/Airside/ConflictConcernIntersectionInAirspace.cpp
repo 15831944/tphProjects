@@ -453,10 +453,7 @@ void AirRouteIntersectionInSim::GetAvailableTimeAtIntersection(AirsideFlightInSi
 	if (pSpatialFlight != pFlight&& pSpatialFlight != pLeadFlight)
 		pIntrailSeparation->GetInTrailSeparationSpatialConvergingAndDiverging(pFlight,pSpatialFlight,dAlt,dSpatialConvergentDist,dSpatialDivergentDist);
 
-	double dSpeed = m_pConcernIntersection->GetLastOccupyInstance().GetSpeed();
-	ASSERT(dSpeed>0);
-
-	dDivergingSepTime = ElapsedTime(dSpatialConvergentDist/dSpeed);
+	dDivergingSepTime = ElapsedTime(dSpatialConvergentDist/m_pConcernIntersection->GetLastOccupyInstance().GetSpeed());
 	tAvailStartTime = m_pConcernIntersection->GetLastOccupyInstance().GetExitTime() + dDivergingSepTime;
 
 	if (tAvailStartTime < tAvailEnterTime)

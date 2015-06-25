@@ -433,10 +433,12 @@ public:
 ///////////for Bridge processor//////////////////
 	afx_msg void OnPropNumberModify();
 protected:
-	void InitBridgeConnectPointDefaultValue(int idx, HTREEITEM hItem);
+	//void InitBridgeConnectPointDefaultValue(int idx, HTREEITEM hItem);
+	void InitBridgeConnectPointDefaultValue();
 	void AcquireDataForBridgeConnector();
 
-	std::vector<BridgeConnector::ConnectPoint> m_vBridgeConnectPoints;
+	//std::vector<BridgeConnector::ConnectPoint> m_vBridgeConnectPoints;
+	BridgeConnector::ConnectPoint m_connectPoint;
 	int m_nBridgeConnectPointCount;
 };
 

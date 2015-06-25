@@ -149,7 +149,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_bIsArrivalDoor(false)
 ,m_IsWalkOnBridge(FALSE)
 ,m_bhasBusServer(TRUE)
-,m_nBridgeIndex(-1)
+//,m_nBridgeIndex(-1)
 ,m_pLastTerminalProc(NULL)
 {
 	m_pProcessor = m_pTerm->procList->getProcessor (START_PROCESSOR_INDEX);
@@ -790,16 +790,7 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 // 			(false == m_pSimFlowSync->CanIGoFurther(m_pPerson, *m_pProcessor->getID(), p_time)))
 // 			return TRUE;
 // 	}
-	int personID = m_pPerson->getID();
-	CString procStr = m_pProcessor->getIDName();
-	if(procStr.Find("DEP>PODIUM-FIRST-BUS-2") != -1)
-	{
-		if(personID == 31704 || personID == 31501 || personID == 31464 || personID == 17369 )
-		{
-			int x=1;
-			x=1;
-		}
-	}
+
 	if( waitForResourceIfNeed( p_time ) )
 		return TRUE;
 
@@ -1035,7 +1026,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 			m_pProcessor->removePerson(m_pPerson);
 			Point startPs, endPs;
 	
-			pBridgePro->GetStartEndPoint(m_nBridgeIndex,startPs,endPs);
+			pBridgePro->GetStartEndPoint(startPs,endPs);
 			m_pPerson->setTerminalDestination(startPs);
 
 			location = endPs;	
@@ -1062,7 +1053,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 
 		BridgeConnector* pBridgePro = (BridgeConnector*)m_pProcessor;
 		Point startPs, endPs;
-		pBridgePro->GetStartEndPoint(m_nBridgeIndex,startPs,endPs);
+		pBridgePro->GetStartEndPoint(startPs,endPs);
 		setDestination(endPs);	
 		m_pPerson->SetFollowerArrivalDoor(true);
 
@@ -1411,7 +1402,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		BridgeConnector* pBridgePro = (BridgeConnector*)GetBridgeConnector(nextProc);
 		if (pBridgePro)
 		{
-			m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+			int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
 			if(m_nBridgeIndex != -1)
 			{
 				m_emBridgeState = ArrBridge;
@@ -1658,7 +1649,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 			{
 				Point startPs, endPs;
 				BridgeConnector* pBridgePro = (BridgeConnector*)pProce;
-				m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+				int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
 				if(m_nBridgeIndex != -1 &&  m_pPerson->m_logEntry.isDeparting())
 				{
 					m_emBridgeState = DepBridge;

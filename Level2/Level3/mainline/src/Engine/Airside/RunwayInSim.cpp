@@ -237,9 +237,6 @@ RunwayInSim* RunwayExitInSim::GetQueueWaitingRunway()
 
 bool RunwayExitInSim::CanHoldFlight( AirsideFlightInSim* pFlight )
 {
-	if(m_pRouteDirSeg->IsForbidDirection())
-		return false;
-
 	if (!m_pRouteDirSeg->IsActiveFor(pFlight))
 		return false;
 

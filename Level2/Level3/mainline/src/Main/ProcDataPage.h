@@ -171,6 +171,11 @@ public:
 
 	CString GetMobileElementString(int nIndex);
 	void DeleteCapacityItem(HTREEITEM hItem);
+
+	//for door priority
+	std::vector<HTREEITEM> m_vStandPriorityItem;
+	std::vector<MiscBridgeIDWithDoor::DoorPriority> m_vDoorPriority;
+	void InitDoorPriority();
 private:
 	void DelLinkedDest();
 	void AddWaitAreaForLoader();
@@ -265,7 +270,8 @@ protected:
 	void DelStandConnector(HTREEITEM hItem);
 	bool SelectStandConnector(ProcessorID _id);
 	void ReloadStandConnectorList(MiscData* _pMiscData);
-	
+	void DelDoorPriorityItem( HTREEITEM hItem );
+
 	//Disallowed Non-Passenger Item
 	void DelDisallowedNonPaxItem(HTREEITEM hItem);
 	void ReloadDisallowedNonPaxItem();
@@ -304,6 +310,7 @@ protected:
 public:
 	afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
 	afx_msg void OnSelectMobileElementType(UINT nID);
+	afx_msg void OnAddDoorPriority(UINT nID);
 	void OnSelAllNoPax();
 	void OnSelCombination();
 	void DeleteCapacityCombinationItem(HTREEITEM hItem,HTREEITEM hSunItem);

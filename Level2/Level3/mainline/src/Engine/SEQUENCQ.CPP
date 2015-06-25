@@ -380,12 +380,7 @@ void SequentialQueue::balanceQueue (Processor *changedProc, ElapsedTime p_time)
     for (int i = 0; i < m_waitList.getCount(); i++)
     {
         jumper = (Person *)m_waitList.getItem(i);
-		int personID = jumper->getID();
-		if(personID == 31908 || personID == 31960 || personID == 31867 )
-		{
-			int x=1;
-			x=1;
-		}		
+		
 		TerminalMobElementBehavior* spTerminalBehavior = jumper->getTerminalBehavior();
 		//if (isTail (jumper->getCurrentIndex()))
 		//	updateApproaching (p_time);
@@ -432,13 +427,7 @@ void SequentialQueue::balanceQueue (Processor *changedProc, ElapsedTime p_time)
 			}
 		}
 	
-		// the changed processor can not lead to the gate of jumper's flight.
-		if(!changedProc->CanLeadTo(jumper->getType(), *jumper->GetTerminal()->GetProcessorList()->getProcessor(jumper->getGateIndex())->getID()))
-		{
-		 	continue;
-		}
-
-
+		
         if (	/* !changedProc->canServe (jumper->getType()) */  // can use this method this way !!!
 				!changedProc->leadsToGate (jumper->getGateIndex())
 			||	!spTerminalBehavior->canJumpToProcessor(changedProc)

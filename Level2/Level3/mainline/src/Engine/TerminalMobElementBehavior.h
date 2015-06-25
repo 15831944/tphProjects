@@ -657,7 +657,7 @@ public:
 	void setLandsideSelectedProc(const std::vector<ALTObjectID>& altLandsideSelectedProc);
 	const std::vector<ALTObjectID>& GetLandsideSelectedProc()const;
 private:
-	int m_nBridgeIndex;
+	//int m_nBridgeIndex;
 
 	std::vector<ALTObjectID> m_vAltLandsideSelectedProc;
 

@@ -83,15 +83,7 @@ protected:
 	AirsideFlightInSim* m_pFlight;
 };
 
-
-class COpenDoorInfo
-{
-public:
-	CPoint2008 mDoorPos; //door position
-	CPoint2008 mGroundPos; //stair ground pos at dir 
-	ElapsedTime mOpenTime; //open time
-};
-
+class CFlightOpenDoors;
 
 //Flight in Simulation	
 class ENGINE_TRANSFER AirsideFlightInSim: public CAirsideMobileElement
@@ -515,13 +507,16 @@ public:
 	void WriteStairsLog(const ElapsedTime& tTime);
 	bool GetOpenDoorAndStairGroundPostions(std::vector< std::pair<CPoint2008, CPoint2008> >& vPoints );
 	void SetShowStair(const ElapsedTime&  tTime);
-	void OpenDoors(const ElapsedTime&  tTime);
+	CFlightOpenDoors* OpenDoors(const ElapsedTime&  tTime);
+	void CloseDoors();
 
 	AirsideFollowMeCarInSim* GetServiceFollowMeCar();
 
 	void ConnectBridge(const ElapsedTime&  tTime);
 	
-	std::vector<COpenDoorInfo> m_vOpenDoors; //opened doors	
+	//std::vector<COpenDoorInfo> m_vOpenDoors; //opened doors	
+	CFlightOpenDoors* m_pOpenDoors;
+
 	BOOL HasBrrdgeServer(BOOL _arrival);
 
 	CPath2008 GetFilletPathFromTaxiwayToRwyport(RUNWAY_MARK  port);
@@ -708,6 +703,7 @@ public:
 	CAirsidePaxBusInSim* GetAvailablePassengerBus(Person* pPerson,bool bArrival);
 private:
 	void InitPaxBusContext(bool bArrival);
+	BOOL GetPosAtStand(CPoint2008& pos ,ARCVector3& dir)const;
 };
 
 
