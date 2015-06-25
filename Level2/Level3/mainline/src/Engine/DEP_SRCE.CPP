@@ -59,10 +59,13 @@ void DependentSource::initDependent (int listCount, const GroupIndex *sinkList)
         for (int j = m_pSinks[i].start; j <= m_pSinks[i].end; j++)
         {
             aProc = m_pTerm->procList->getProcessor(j);
-            if (aProc->getProcessorType() != DepSinkProc)
-                continue;
-            depSink = (DependentSink *)aProc;
-            depSink->initDependent (1, &source);
+			if(aProc)
+			{
+				if (aProc->getProcessorType() != DepSinkProc)
+					continue;
+				depSink = (DependentSink *)aProc;
+				depSink->initDependent (1, &source);
+			}
         }
 }
 

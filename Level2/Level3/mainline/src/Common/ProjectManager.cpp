@@ -1232,6 +1232,19 @@ int CProjectManager::getCurrentFileName( const CString& _csProjDir, int lineNum,
 		strcpy(str, "Stand2GateMapping.txt");
 		return TRUE;
 	}
+
+    if(lineNum == ArrivalGateAdjacency)
+    {
+        strcpy(str, "ArrivalGateAdjacency.txt");
+        return TRUE;
+    }
+
+    if(lineNum == DepartureGateAdjacency)
+    {
+        strcpy(str, "DepartureGateAdjacency.txt");
+        return TRUE;
+    }
+
     if(lineNum == RosterRulesFile)
 	{
 		strcpy(str , "RosterRules.txt");

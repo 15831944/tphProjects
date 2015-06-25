@@ -2773,6 +2773,7 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	ScreenToClient(&cliPt);
 	CNewMenu menu;
 	CMenu *pCtxMenu = NULL;
+	CNewMenu* pSubMenu = NULL;
 	UINT uFlags;
 	HTREEITEM hItem = GetTreeCtrl().HitTest(cliPt, &uFlags);
 	m_hRightClkItem = hItem;
@@ -3018,6 +3019,43 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 						bNowLocked ? _T("Unlock") : _T("Lock"));
 					pCtxMenu->EnableMenuItem(ID_AIRSIDEOBJECT_DELETE, nEnableCode);
 				}
+				else if (pNodeData->nodeType == NodeType_Level)
+				{
+					CString strPictureName (_T("No Picture"));
+					if (m_hRightClkItem)
+					{
+						CNodeData* pNodeData = (CNodeData*)GetTreeCtrl().GetItemData( m_hRightClkItem );
+						if(pNodeData)
+						{
+							int nLevelID = pNodeData->dwData;
+							int nCurAirportID = pNodeData->nOtherData;
+							CAirsideGround asGround(_T("Airside Ground"));
+							asGround.ReadOverlayInfo(nLevelID);
+							CString strFileName = asGround.m_picInfo.sFileName;
+							if (strFileName.IsEmpty() == false)
+							{
+								int nPos = strFileName.ReverseFind('\\');
+								strPictureName = strFileName.Right(strFileName.GetLength() - nPos - 1);
+							}
+						}
+					}				
+
+					pSubMenu = new CNewMenu;
+					pSubMenu->CreateMenu();
+					{
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_INSERT, "Open");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_REMOVE, "Remove");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_HIDE, "Hide");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_SHOW, "Show");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_CROP, "Crop");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_TRIM, "Trim");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_PERFORATE, "Perforate");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_SAVE, "Save");
+						pSubMenu->AppendMenu(MF_ENABLED | MF_STRING,ID_CTX_FLOORPICTURE_LOAD, "Load");
+					}
+					pCtxMenu->ModifyMenu(3, MF_BYPOSITION|MF_POPUP,(UINT)pSubMenu->m_hMenu,strPictureName);
+					
+				}
 			}
 		}
 	}
@@ -3025,6 +3063,12 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 	{
 		//UpdatePopMenu(this, pCtxMenu);
 		pCtxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON , point.x, point.y, AfxGetMainWnd());
+		if (pSubMenu)
+		{
+			pSubMenu->DestroyMenu();
+			delete pSubMenu;
+			pSubMenu = NULL;
+		}
 	}
 }
 

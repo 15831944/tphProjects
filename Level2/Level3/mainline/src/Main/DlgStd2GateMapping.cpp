@@ -272,12 +272,12 @@ void CDlgStd2GateMapping::OnButtonPreference()
 {
 	if (m_enumGateType == GateType_ARR) 
 	{
-		CDlgArrivalGateAssignPreference DlgArrivalGate(m_pConstraint->GetArrivalPreferenceMan(),m_pInTerm,this) ;
+		CDlgArrivalGateAssignPreference DlgArrivalGate(m_pConstraint->GetArrivalPreferenceMan(), m_pConstraint->GetArrGateAdja(),m_pInTerm,this) ;
 		DlgArrivalGate.DoModal() ;
 	}
 	else if (m_enumGateType == GateType_DEP) 
 	{
-		CDlgDepGateAssignPreference DlgArrivalGate(m_pConstraint->GetDepPreferenceMan(),m_pInTerm,this) ;
+		CDlgDepGateAssignPreference DlgArrivalGate(m_pConstraint->GetDepPreferenceMan(), m_pConstraint->GetDepGateAdja(), m_pInTerm,this) ;
 		DlgArrivalGate.DoModal() ;	
 	}
 }

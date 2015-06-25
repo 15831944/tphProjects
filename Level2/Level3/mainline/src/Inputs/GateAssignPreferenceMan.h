@@ -2,6 +2,8 @@
 #include "../Common/FLT_CNST.H"
 #include <CommonData/procid.h>
 #include "../Database/ADODatabase.h"
+#include "Common/DATASET.H"
+#include "GateAdjacencyMan.h"
 
 class CGateAssignmentMgr ;
 class  CFlightOperationForGateAssign ;
@@ -117,40 +119,6 @@ protected:
 	void ClearDelData() ;
 }; 
 
-class CGateAdjacency
-{
-public:
-    CGateAdjacency() : m_bReciprocate(false) { m_originalGate.init(); m_adjacentGate.init();}
-    ~CGateAdjacency(){}
-private:
-    ProcessorID m_originalGate;
-    ProcessorID m_adjacentGate;
-    bool m_bReciprocate;
-public:
-    ProcessorID GetOriginalGate() const { return m_originalGate; }
-    void SetOriginalGate(ProcessorID procID) { m_originalGate = procID; }
-    ProcessorID GetAdjacentGate() const { return m_adjacentGate; }
-    void SetAdjacentGate(ProcessorID procID) { m_adjacentGate = procID; }
-    bool GetReciprocate() const { return m_bReciprocate; }
-    void SetReciprocate(bool reci) { m_bReciprocate = reci; }
-
-    bool operator==(const CGateAdjacency& other)
-    {
-        if( other.m_originalGate == m_originalGate &&
-            other.m_adjacentGate == m_adjacentGate)
-            return true;
-        return false;
-    }
-
-    CGateAdjacency& operator=(const CGateAdjacency& other)
-    {
-        m_originalGate = other.m_originalGate;
-        m_adjacentGate = other.m_adjacentGate;
-        m_bReciprocate = other.m_bReciprocate;
-        return *this;
-    }
-};
-
 class CGateAssignPreferenceMan
 {
 public:
@@ -164,10 +132,11 @@ protected:
 	DATA_TYPE m_GateAssignPreference ;
 	DATA_TYPE m_DelGateAssignPreference ;
     CGateAssignmentMgr* m_GateAssignMgr ;
-    std::vector<CGateAdjacency*> m_vAdjacency;
 public:
-	void ReadData(InputTerminal* _Terminal) ;
-	void SaveData() ;
+	void SaveData();
+    void WriteData();
+    void ReadData(InputTerminal* _Terminal);
+    void ReadDataFromDB(InputTerminal* _Terminal);
 public:
 	CGateAssignPreferenceItem* AddPreferenceItem(ProcessorID& _GateID) ;
 	//----------------------------------------------------------
@@ -178,17 +147,18 @@ public:
 
 	void DelPreferenceItem(CGateAssignPreferenceItem* _Item) ;
 
-
 public:
-	 BOOL CheckTheGateByPreference( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight , bool& bPrefer);
+	 BOOL CheckTheGateByPreference( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight , bool& bPrefer,ElapsedTime& eDurationTime);
 	//---------------------------------------------------------------
 	//Summary:
 	//		Check Gate whether define flight type
 	//---------------------------------------------------------------
 	 bool FlightAvailableByPreference(const ProcessorID& gateID,CFlightOperationForGateAssign* pFlight);
 
+	 virtual bool IsGateAssignmentConfilict(const ProcessorID& gateID,CFlightOperationForGateAssign* pFlight, std::vector<CGateAdjacency*>* vGateAdja) = 0;
+
 protected:
-	virtual BOOL CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer) = 0;
+	virtual BOOL CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer,ElapsedTime& eDurationTime) = 0;
 	char GetAssignMode()const;
 protected:
 	void ClearData() ;
@@ -199,8 +169,6 @@ public:
 	DATA_TYPE* GetPreferenceData() { return &m_GateAssignPreference ;} ;
 	CGateAssignmentMgr* GetGateAssignMgr() { return m_GateAssignMgr ;} ;
 	void SetGateAssignMgr(CGateAssignmentMgr* _gateAssignmgr) { m_GateAssignMgr = _gateAssignmgr ;} ;
-    std::vector<CGateAdjacency*>* GetGateAdjacency() { return &m_vAdjacency; }
-    int FindGateAdjacencyIndex(CGateAdjacency* pGateAdj);
 };
 class CArrivalGateAssignPreferenceMan : public CGateAssignPreferenceMan
 {
@@ -212,7 +180,8 @@ public:
 	~CArrivalGateAssignPreferenceMan() {} ;
 
 protected:
-	BOOL CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer) ;
+	BOOL CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer,ElapsedTime& eDurationTime) ;
+	 bool IsGateAssignmentConfilict(const ProcessorID& gateID,CFlightOperationForGateAssign* pFlight, std::vector<CGateAdjacency*>* vGateAdja);
 ;
 };
 class CDepGateAssignPreferenceMan : public CGateAssignPreferenceMan
@@ -220,11 +189,12 @@ class CDepGateAssignPreferenceMan : public CGateAssignPreferenceMan
 public:
 	CDepGateAssignPreferenceMan(CGateAssignmentMgr* _GateAssignMgr):CGateAssignPreferenceMan(_GateAssignMgr)
 	{
-m_type = CGateAssignPreferenceItem::Dep_Preference;
+        m_type = CGateAssignPreferenceItem::Dep_Preference;
 	}
 	~CDepGateAssignPreferenceMan() {} ;
 
 protected:
-	BOOL CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer) ;
+	BOOL CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer,ElapsedTime& eDurationTime) ;
+	 bool IsGateAssignmentConfilict(const ProcessorID& gateID,CFlightOperationForGateAssign* pFlight, std::vector<CGateAdjacency*>* vGateAdja);
 
 };

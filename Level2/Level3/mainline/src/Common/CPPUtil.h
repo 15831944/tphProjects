@@ -200,7 +200,7 @@ namespace cpputil
 
 	//object have scope
 	class Object;
-	class Scope
+	class Scope : public noncopyable
 	{
 	public:
 		void add(Object* o)
@@ -213,8 +213,8 @@ namespace cpputil
 		}
 		~Scope()
 		{
-			TPtrVector<Object> olist = m_objlist;
-			m_objlist.clear();
+			TPtrVector<Object> olist;
+			m_objlist.swap(olist);			
 			olist.deepClear();
 		}
 	protected:

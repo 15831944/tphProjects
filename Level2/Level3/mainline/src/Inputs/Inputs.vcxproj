@@ -357,6 +357,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="GateAdjacencyMan.cpp" />
     <ClCompile Include="GateAssignmentConstraints.cpp" />
     <ClCompile Include="GateAssignmentMgr.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -1084,6 +1085,7 @@
     <ClInclude Include="FLTDIST.H" />
     <ClInclude Include="FLTLIST.H" />
     <ClInclude Include="GageLagTimeData.h" />
+    <ClInclude Include="GateAdjacencyMan.h" />
     <ClInclude Include="GateAssignmentConstraints.h" />
     <ClInclude Include="GateAssignmentMgr.h" />
     <ClInclude Include="GateAssignPreferenceMan.h" />

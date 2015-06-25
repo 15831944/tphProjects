@@ -11,7 +11,8 @@
 
 IMPLEMENT_DYNAMIC(CDlgGateSelect, CXTResizeDialog)
 CDlgGateSelect::CDlgGateSelect(InputTerminal* _pInTerm ,int _Type ,CWnd* pParent /*=NULL*/)
-	: m_pInTerm(_pInTerm),m_Type(_Type),CXTResizeDialog(CDlgGateSelect::IDD, pParent)
+	: m_pInTerm(_pInTerm),m_Type(_Type),CXTResizeDialog(CDlgGateSelect::IDD, pParent),
+    m_bSelLeafOnly(FALSE)
 {
 
 	m_Caption.Format(_T("Gate Select")) ;
@@ -31,6 +32,7 @@ void CDlgGateSelect::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDlgGateSelect, CDialog)
 ON_WM_SIZE()
+ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_GATE, &CDlgGateSelect::OnTvnSelchangedTreeGate)
 END_MESSAGE_MAP()
 void CDlgGateSelect::OnSize(UINT nType, int cx, int cy)
 {
@@ -45,6 +47,8 @@ BOOL CDlgGateSelect::OnInitDialog()
 	SetResize(IDOK,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
 	SetResize(IDCANCEL,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
 	m_treeProc.m_bDisplayAll = TRUE ;
+    if(m_bSelLeafOnly)
+        GetDlgItem(IDOK)->EnableWindow(FALSE);
 	return TRUE ;
 }
 void CDlgGateSelect::InintListBox()
@@ -63,4 +67,26 @@ void CDlgGateSelect::OnOK()
 	
 	CXTResizeDialog::OnOK() ;
 }
+
+void CDlgGateSelect::SetSelectLeafNodeOnly(BOOL bSel)
+{
+    m_bSelLeafOnly = bSel;
+}
+
 // CDlgGateSelect message handlers
+
+
+void CDlgGateSelect::OnTvnSelchangedTreeGate(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+    HTREEITEM hSelItem = pNMTreeView->itemNew.hItem;
+    if(hSelItem == NULL)
+        return;
+    if(m_bSelLeafOnly)
+    {
+        GetDlgItem(IDOK)->EnableWindow(FALSE);
+        if(m_treeProc.GetChildItem(hSelItem) == NULL)
+            GetDlgItem(IDOK)->EnableWindow(TRUE);
+        *pResult = 0;
+    }
+}

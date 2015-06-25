@@ -71,7 +71,7 @@
 #include "DlgSelectLandsideObject.h"
 #include "DlgWallDisplayProperties.h"
 #include "Engine\Airside\AirsideFlightStairsLog.h"
-
+#include "glutil.h"
 
 
 #ifdef _DEBUG  
@@ -2831,7 +2831,7 @@ BOOL C3DView::PostRenderScene()
 	while(node!=NULL){
 		HillProc *hill=new HillProc(node);
 		hill->setDoc(pDoc);
-		hill->setTextureid(GetParentFrame()->AllTexIDs()[Textures::TextureEnum::Hill_Grass]);				
+		hill->setTextureid(GetParentFrame()->AllTexIDs()[Textures::Hill_Grass]);				
 		hill->DrawProc();
 		delete hill;
 		node=node->m_pNext;

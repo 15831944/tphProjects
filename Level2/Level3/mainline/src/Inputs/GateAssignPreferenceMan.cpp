@@ -3,6 +3,7 @@
 #include "Inputs\GateAssignmentMgr.h"
 #include "Inputs\TerminalGateAssignmentMgr.h"
 #include "in_term.h"
+#include "GateAdjacencyMan.h"
 
 bool ComparePreference(CGateAssignPreferenceItem* pItem1,CGateAssignPreferenceItem* pItem2)
 {
@@ -357,43 +358,24 @@ bool CGateAssignPreferenceItem::operator<( const CGateAssignPreferenceItem& gate
 	{
 		return false;
 	}
-	return true;
+	else if(gateMap.m_GateID.idFits(m_GateID))
+	{
+		return true;
+	}
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 CGateAssignPreferenceMan::CGateAssignPreferenceMan(CGateAssignmentMgr* _GateAssignMgr):m_GateAssignMgr(_GateAssignMgr)
 {
-    m_vAdjacency.clear();
 }
 CGateAssignPreferenceMan::~CGateAssignPreferenceMan()
 {
 	ClearData() ;
 	ClearDelData() ;
 }
-void CGateAssignPreferenceMan::ReadData(InputTerminal* _Terminal)
-{		
-	ClearData() ;
-	ClearDelData() ;
-	try
-	{
-			CGateAssignPreferenceItem::ReadData(m_GateAssignPreference,m_type,_Terminal) ;
-			std::sort(m_GateAssignPreference.begin(),m_GateAssignPreference.end(),ComparePreference);
-	}
-	catch (CADOException& e)
-	{
-		e.ErrorMessage() ;
-		return ;
-	}
 
-}
-
-void CGateAssignPreferenceMan::SaveData()
-{
-	CGateAssignPreferenceItem::WriteData(m_GateAssignPreference) ;
-	CGateAssignPreferenceItem::DeleteData(m_DelGateAssignPreference) ;
-	ClearDelData() ;
-}
 void CGateAssignPreferenceMan::DelPreferenceItem(CGateAssignPreferenceItem* _Item)
 {
 	DATA_TYPE_ITER iter = std::find(m_GateAssignPreference.begin() ,m_GateAssignPreference.end(),_Item) ;
@@ -446,14 +428,14 @@ void CGateAssignPreferenceMan::ClearDelData()
 	m_DelGateAssignPreference.clear() ;
 }
 
-BOOL CGateAssignPreferenceMan::CheckTheGateByPreference( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight , bool& bPrefer )
+BOOL CGateAssignPreferenceMan::CheckTheGateByPreference( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight , bool& bPrefer,ElapsedTime& eDurationTime )
 {
 	BOOL res = FALSE ;
 	if(pFlight == NULL)
 		return TRUE ;
 
 	std::sort(m_GateAssignPreference.begin(),m_GateAssignPreference.end(),ComparePreference);
-	return	CheckTheGate(_GateID, pFlight, bPrefer);
+	return	CheckTheGate(_GateID, pFlight, bPrefer,eDurationTime);
 }
 
 char CGateAssignPreferenceMan::GetAssignMode() const
@@ -498,17 +480,37 @@ int CGateAssignPreferenceMan::FindPreferenceIndex( CGateAssignPreferenceItem* pI
 	return -1;
 }
 
-int CGateAssignPreferenceMan::FindGateAdjacencyIndex(CGateAdjacency* pGateAdj)
+void CGateAssignPreferenceMan::SaveData()
 {
-    int nCount = (int)m_vAdjacency.size();
-    for(int i=0; i<nCount; i++)
+    CGateAssignPreferenceItem::WriteData(m_GateAssignPreference) ;
+    CGateAssignPreferenceItem::DeleteData(m_DelGateAssignPreference) ;
+    ClearDelData() ;
+}
+
+void CGateAssignPreferenceMan::WriteData()
+{
+    SaveData();
+}
+
+void CGateAssignPreferenceMan::ReadData(InputTerminal* _pInTerm)
+{
+    ReadDataFromDB(_pInTerm);
+}
+
+void CGateAssignPreferenceMan::ReadDataFromDB(InputTerminal* _Terminal)
+{
+    ClearData();
+    ClearDelData();
+    try
     {
-        if(m_vAdjacency.at(i) == pGateAdj)
-        {
-            return i;
-        }
+        CGateAssignPreferenceItem::ReadData(m_GateAssignPreference,m_type,_Terminal);
+        std::sort(m_GateAssignPreference.begin(),m_GateAssignPreference.end(),ComparePreference);
     }
-    return -1;
+    catch (CADOException& e)
+    {
+        e.ErrorMessage();
+        return;
+    }
 }
 
 //BOOL CArrivalGateAssignPreferenceMan::CheckTheGateByPreference( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight  ,int _type)
@@ -562,8 +564,91 @@ int CGateAssignPreferenceMan::FindGateAdjacencyIndex(CGateAdjacency* pGateAdj)
 //{
 //
 //}
+bool CArrivalGateAssignPreferenceMan::IsGateAssignmentConfilict(const ProcessorID& gateID,
+    CFlightOperationForGateAssign* pFlight, 
+    std::vector<CGateAdjacency*>* vGateAdja)
+{
+	for (size_t i = 0; i < vGateAdja->size(); i++)
+	{
+		CGateAdjacency* pAdjacencyItem = vGateAdja->at(i);
+		if (pAdjacencyItem->GetOriginalGate() == gateID)
+		{
+			ProcessorID originalID = gateID;
+			CGateAssignPreferenceItem* pItem = FindItemByGateID(originalID) ;
+			ElapsedTime tStartTime = pFlight->GetStartTime();
+			ElapsedTime tEndTime = pFlight->GetEndTime();
+			if (pItem)
+			{
+				Flight* _flightID = (Flight*)pFlight->getFlight();
+				CGatePreferenceSubItem* pSubItem = pItem->FindGatePreferenceSubItem(_flightID->getType('A'));
+				if (pSubItem)
+				{
+					ElapsedTime tDurationTime ;
+					tDurationTime.SetMinute( pSubItem->GetDuration()) ;
+					tEndTime = tStartTime + tDurationTime;
+				}
+			}
 
-BOOL CArrivalGateAssignPreferenceMan::CheckTheGate( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer )
+			ProcessorID adjacencyID = pAdjacencyItem->GetAdjacentGate();
+			CAssignTerminalGate* pAssignGate =  (CAssignTerminalGate*)m_GateAssignMgr->GetGate(adjacencyID.GetIDString()) ;
+			if (pAssignGate == NULL)
+				continue;
+
+			if (pAdjacencyItem->GetReciprocate() == true)
+			{
+				for (int  j = 0; j < pAssignGate->GetFlightCount(); j++)
+				{
+					ElapsedTime tOccupiedStartTime = pAssignGate->GetFlight(j).GetStartTime();
+					ElapsedTime tOccupiedEndTime = pAssignGate->GetFlight(j).GetEndTime();
+					bool bOverlap =  (tEndTime < tOccupiedStartTime || tStartTime > tOccupiedEndTime) ? false : true;
+					if (bOverlap)
+					{
+						return true;
+					}
+				}
+			}
+		}
+		else if (pAdjacencyItem->GetAdjacentGate() == gateID)
+		{
+			ProcessorID originalID = pAdjacencyItem->GetOriginalGate();
+			CAssignTerminalGate* pAssignGate =  (CAssignTerminalGate*)m_GateAssignMgr->GetGate(originalID.GetIDString()) ;
+			if (pAssignGate == NULL)
+				continue;
+
+			ProcessorID adjacencyID = gateID;
+			CGateAssignPreferenceItem* pItem = FindItemByGateID(adjacencyID) ;
+			ElapsedTime tStartTime = pFlight->GetStartTime();
+			ElapsedTime tEndTime = pFlight->GetEndTime();
+			if (pItem)
+			{
+				Flight* _flightID = (Flight*)pFlight->getFlight();
+				CGatePreferenceSubItem* pSubItem = pItem->FindGatePreferenceSubItem(_flightID->getType('A'));
+				if (pSubItem)
+				{
+					ElapsedTime tDurationTime ;
+					tDurationTime.SetMinute( pSubItem->GetDuration()) ;
+				    tEndTime = tStartTime + tDurationTime;
+				}
+			}
+
+			for (int  j = 0; j < pAssignGate->GetFlightCount(); j++)
+			{
+				ElapsedTime tOccupiedStartTime = pAssignGate->GetFlight(j).GetStartTime();
+				ElapsedTime tOccupiedEndTime = pAssignGate->GetFlight(j).GetEndTime();
+				bool bOverlap =  (tEndTime < tOccupiedStartTime || tStartTime > tOccupiedEndTime) ? false : true;
+				if (bOverlap)
+				{
+					return true;
+				}
+			}
+		}	
+
+	}
+
+	return false;
+}
+
+BOOL CArrivalGateAssignPreferenceMan::CheckTheGate( ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer,ElapsedTime& eDurationTime )
 {
 	Flight* _flightID = (Flight*)pFlight->getFlight();
 	CGateAssignPreferenceItem* Item = FindItemByGateID(_GateID) ;
@@ -583,10 +668,20 @@ BOOL CArrivalGateAssignPreferenceMan::CheckTheGate( ProcessorID& _GateID ,CFligh
 	ElapsedTime startTime = pFlight->GetStartTime() ;
 	ElapsedTime endtime = startTime + duration ;
 
+	eDurationTime = duration;
+
 	for (int i = 0 ; i< AssignGate->GetFlightCount() ;i++)
 	{
 		if(!Item->GetFlightDurationtime(((Flight*)AssignGate->GetFlight(i).getFlight())->getType('A'),duration))
 			duration = AssignGate->GetFlight(i).GetEndTime() - AssignGate->GetFlight(i).GetStartTime() ;
+		//if (Item->GetFlightDurationtime(((Flight*)AssignGate->GetFlight(i).getFlight())->getType('A'),duration))
+		//{
+		//	duration = MIN(duration,AssignGate->GetFlight(i).GetEndTime() - AssignGate->GetFlight(i).GetStartTime());
+		//}
+		//else
+		//{
+		//	duration = AssignGate->GetFlight(i).GetEndTime() - AssignGate->GetFlight(i).GetStartTime();
+		//}
 		if(AssignGate->GetFlight(i).GetStartTime() < startTime && (AssignGate->GetFlight(i).GetStartTime() + duration) <= startTime ||
 			AssignGate->GetFlight(i).GetStartTime()>= (startTime + duration))
 			continue ;
@@ -607,7 +702,7 @@ BOOL CArrivalGateAssignPreferenceMan::CheckTheGate( ProcessorID& _GateID ,CFligh
 //
 //	return	CheckTheGate(_GateID, pFlight, bPrefer);
 //}
-BOOL CDepGateAssignPreferenceMan::CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer)
+BOOL CDepGateAssignPreferenceMan::CheckTheGate(ProcessorID& _GateID ,CFlightOperationForGateAssign* pFlight, bool& bPrefer,ElapsedTime& eDurationTime)
 {
 	Flight* _flightID = (Flight*)pFlight->getFlight();
 	CGateAssignPreferenceItem* Item = FindItemByGateID(_GateID) ;
@@ -630,12 +725,21 @@ BOOL CDepGateAssignPreferenceMan::CheckTheGate(ProcessorID& _GateID ,CFlightOper
 	ElapsedTime duration ;
 	duration.SetMinute( SubItem->GetDuration()) ;
 
+	eDurationTime = duration;
 	ElapsedTime endtime = startTime + duration;
 
 	for (int i = 0 ; i< AssignGate->GetFlightCount() ;i++)
 	{
 		if(!Item->GetFlightDurationtime(((Flight*)AssignGate->GetFlight(i).getFlight())->getType('D'),duration))
 			duration = AssignGate->GetFlight(i).GetEndTime() - AssignGate->GetFlight(i).GetStartTime() ;
+		//if (Item->GetFlightDurationtime(((Flight*)AssignGate->GetFlight(i).getFlight())->getType('D'),duration))
+		//{
+		//	duration = MIN(duration,AssignGate->GetFlight(i).GetEndTime() - AssignGate->GetFlight(i).GetStartTime());
+		//}
+		//else
+		//{
+		//	duration = AssignGate->GetFlight(i).GetEndTime() - AssignGate->GetFlight(i).GetStartTime();
+		//}
 		if(AssignGate->GetFlight(i).GetStartTime() < startTime && (AssignGate->GetFlight(i).GetStartTime() + duration)<= startTime ||
 			AssignGate->GetFlight(i).GetStartTime()>= (startTime + duration))
 			continue ;
@@ -646,6 +750,97 @@ BOOL CDepGateAssignPreferenceMan::CheckTheGate(ProcessorID& _GateID ,CFlightOper
 				return FALSE ;
 	}
 	return TRUE ;
+}
+
+bool CDepGateAssignPreferenceMan::IsGateAssignmentConfilict(
+    const ProcessorID& gateID,
+    CFlightOperationForGateAssign* pFlight,
+    std::vector<CGateAdjacency*>* vGateAdja)
+{
+    for (size_t i = 0; i < vGateAdja->size(); i++)
+	{
+		CGateAdjacency* pAdjacencyItem = vGateAdja->at(i);
+		if (pAdjacencyItem->GetOriginalGate() == gateID)
+		{
+			ProcessorID originalID = gateID;
+			CGateAssignPreferenceItem* pItem = FindItemByGateID(originalID) ;
+			ElapsedTime tStartTime = pFlight->GetStartTime();
+			ElapsedTime tEndTime = pFlight->GetEndTime();
+			if (pItem)
+			{
+				Flight* _flightID = (Flight*)pFlight->getFlight();
+				CGatePreferenceSubItem* pSubItem = pItem->FindGatePreferenceSubItem(_flightID->getType('D'));
+				if (pSubItem)
+				{
+					ElapsedTime tDurationTime ;
+					tDurationTime.SetMinute( pSubItem->GetDuration()) ;
+					tStartTime = tEndTime - tDurationTime;
+				}
+			}
+
+			ProcessorID adjacencyID = pAdjacencyItem->GetAdjacentGate();
+			CAssignTerminalGate* pAssignGate =  (CAssignTerminalGate*)m_GateAssignMgr->GetGate(adjacencyID.GetIDString()) ;
+			if (pAssignGate == NULL)
+				continue;
+
+			if (pAdjacencyItem->GetReciprocate() == true)
+			{
+				for (int  j = 0; j < pAssignGate->GetFlightCount(); j++)
+				{
+					if (*pFlight == pAssignGate->GetFlight(j))
+						continue;
+
+					ElapsedTime tOccupiedStartTime = pAssignGate->GetFlight(j).GetStartTime();
+					ElapsedTime tOccupiedEndTime = pAssignGate->GetFlight(j).GetEndTime();
+					bool bOverlap =  (tEndTime < tOccupiedStartTime || tStartTime > tOccupiedEndTime) ? false : true;
+					if (bOverlap)
+					{
+						return true;
+					}
+				}
+			}
+		}
+		else if (pAdjacencyItem->GetAdjacentGate() == gateID)
+		{
+			ProcessorID adjacencyID = gateID;
+			ProcessorID originalID = pAdjacencyItem->GetOriginalGate();
+			CAssignTerminalGate* pAssignGate =  (CAssignTerminalGate*)m_GateAssignMgr->GetGate(originalID.GetIDString()) ;
+			if (pAssignGate == NULL)
+				continue;
+
+			CGateAssignPreferenceItem* pItem = FindItemByGateID(adjacencyID) ;
+			ElapsedTime tStartTime = pFlight->GetStartTime();
+			ElapsedTime tEndTime = pFlight->GetEndTime();
+			if (pItem)
+			{
+				Flight* _flightID = (Flight*)pFlight->getFlight();
+				CGatePreferenceSubItem* pSubItem = pItem->FindGatePreferenceSubItem(_flightID->getType('D'));
+				if (pSubItem)
+				{
+					ElapsedTime tDurationTime ;
+					tDurationTime.SetMinute( pSubItem->GetDuration()) ;
+					tStartTime = tEndTime - tDurationTime;
+				}
+			}
+
+			for (int  j = 0; j < pAssignGate->GetFlightCount(); j++)
+			{
+				if (*pFlight == pAssignGate->GetFlight(j))
+					continue;
+				
+				ElapsedTime tOccupiedStartTime = pAssignGate->GetFlight(j).GetStartTime();
+				ElapsedTime tOccupiedEndTime = pAssignGate->GetFlight(j).GetEndTime();
+				bool bOverlap =  (tEndTime < tOccupiedStartTime || tStartTime > tOccupiedEndTime) ? false : true;
+				if (bOverlap)
+				{
+					return true;
+				}
+			}
+		}	
+
+	}
+
+	return false;
 }
 
 
@@ -683,3 +878,5 @@ BOOL CDepGateAssignPreferenceMan::CheckTheGate(ProcessorID& _GateID ,CFlightOper
 //	}
 //	return TRUE ;
 //}
+
+

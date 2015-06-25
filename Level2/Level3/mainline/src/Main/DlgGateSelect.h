@@ -22,6 +22,7 @@ protected:
    int m_Type ;
 	CString m_Caption ;
 	CString m_SelGateName ;
+    BOOL m_bSelLeafOnly;
 protected:
 	BOOL OnInitDialog() ;
 	void OnSize(UINT nType, int cx, int cy) ;
@@ -29,5 +30,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CString GetSelGateName() { return m_SelGateName ;} ;
+    void SetSelectLeafNodeOnly(BOOL bSel = FALSE);
     void OnOK() ;   
+    afx_msg void OnTvnSelchangedTreeGate(NMHDR *pNMHDR, LRESULT *pResult);
 };

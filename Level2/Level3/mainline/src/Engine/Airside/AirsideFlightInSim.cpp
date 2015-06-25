@@ -4175,7 +4175,7 @@ CFlightOpenDoors* AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
 	if (!pFltDoorSpec)
 		return m_pOpenDoors;
 
-	//getd door infos
+	//get door infos
 	ARCVector3 cabinLoffset = dir.PerpendicularLCopy().SetLength( GetCabinWidth()*0.5 );
 
 	std::vector<ACTypeDoorOpen> vDoorList = pFltDoorSpec->getFlightOpenDoors(GetFlightInput()->getType(m_curFlightType),GetOperationParkingStand()->GetStandInput()->GetObjectName() );	
@@ -4188,7 +4188,11 @@ CFlightOpenDoors* AirsideFlightInSim::OpenDoors(const ElapsedTime&  tTime)
 
 		CPoint2008 doorCenterPos = flightPath.GetDistPoint(pACDoor->m_dNoseDist*100);
 		DistanceUnit doorHeight = (pACDoor->m_dHeight + pACDoor->m_dSillHeight)*100;
-		ARCVector3 groundLoffset =  cabinLoffset.SetLength(  doorHeight );
+
+		//stair's ground position
+		//45 degree horizon
+		ARCVector3 groundLoffset =  cabinLoffset;
+		groundLoffset.SetLength(  doorHeight );
 
 		if(  openSide == ACTypeDoor::RightHand )
 		{		

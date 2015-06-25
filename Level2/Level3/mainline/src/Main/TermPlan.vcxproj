@@ -291,6 +291,7 @@
     <ClInclude Include="DlgVehicleOperationNonRelated.h" />
     <ClInclude Include="FacilityDataPage.h" />
     <ClInclude Include="FacilityDataSheet.h" />
+    <ClInclude Include="glutil.h" />
     <ClInclude Include="LandsideControlDevicePropDlgImpl.h" />
     <ClInclude Include="LandsideDecisionPointPropDlgImpl.h" />
     <ClInclude Include="LandsideTaxiPoolProDlgImpl.h" />

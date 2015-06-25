@@ -13,15 +13,15 @@ public:
 protected:
 	Terminal* m_pTerm;
 
-	GLuint m_displaylist;
-	GLuint m_floordisplaylist;
+	//GLuint m_displaylist;
+	//GLuint m_floordisplaylist;
 public:
 	WallShape(void);
 	~WallShape(void);
 
 	void SetTerminal( Terminal* _pTerm );
 
-	void GenDisplayList();
+	//void GenDisplayList();
 	void DrawOGL(bool drawfloor= false);
 	void DrawSelectArea();
 

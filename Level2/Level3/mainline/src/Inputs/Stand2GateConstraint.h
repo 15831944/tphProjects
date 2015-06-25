@@ -3,6 +3,8 @@
 #include "../InputAirside/ALTObject.h"
 #include "../Common/dataset.h"
 #include "GateAssignPreferenceMan.h"
+#include "GateAdjacencyMan.h"
+#include "Main/TermPlanDoc.h"
 class ProcessorArray;
 class CGateAssignmentMgr;
 class CFlightOperationForGateAssign;
@@ -43,10 +45,11 @@ public:
 
 	virtual const char *getTitle (void) const { return "Stand 2 Gate Mapping"; }
 	virtual const char *getHeaders (void) const{  return "size,Stand,Arrival Gate,Departure Gate,IsOne2One,"; }
-	virtual void readData (ArctermFile& p_file);
 	virtual void writeData (ArctermFile& p_file) const;
-	virtual void readObsoleteData(ArctermFile& p_file ){ read2Data(p_file);}
-	void read2Data(ArctermFile& p_file);
+    virtual void readData (ArctermFile& p_file);
+	virtual void readObsoleteData(ArctermFile& p_file);
+	void readObsoleteData22(ArctermFile& p_file);
+    void readObsoleteData23(ArctermFile& p_file);
 	virtual void clear (void);
 
 	virtual ProcessorID GetArrGateIDInSim(Flight * pFlight, ALTObjectID &standID);
@@ -66,17 +69,32 @@ public:
 	virtual ProcessorID GetArrGateID(CFlightOperationForGateAssign* pFlight);
 	virtual ProcessorID GetDepGateID(CFlightOperationForGateAssign* pFlight);
 protected:
-	ProcessorID GetGateID(CFlightOperationForGateAssign* pFlight, std::vector<CStand2GateMapping>& gateConstraint, CGateAssignPreferenceMan* gatePreference,const ALTObjectID& standID, BOOL bArrival);
+	ProcessorID GetGateID(CFlightOperationForGateAssign* pFlight, 
+                            std::vector<CStand2GateMapping>& gateConstraint, 
+                            CGateAssignPreferenceMan* gatePreference,
+                            GateAdjacencyMan* gateAdjacency,
+                            const ALTObjectID& standID, BOOL bArrival);
 
 private:
-	bool GetOneToOneGateID(CFlightOperationForGateAssign* pFlight,CGateAssignPreferenceMan* gatePreference,const std::vector<ProcessorID>& vCandidateGate,ProcessorID& gateProID);
+	bool GetOneToOneGateID(CFlightOperationForGateAssign* pFlight,
+                            CGateAssignPreferenceMan* gatePreference,
+                            GateAdjacencyMan* gateAdjacency,
+                            const std::vector<ProcessorID>& vCandidateGate,
+                            ProcessorID& gateProID,BOOL bArrival);
+
+    CString GetProjPath() const;
 protected:
 	int m_nProjID;
 	CGateAssignmentMgr* m_pGateAssignManager;
 protected:
 	CArrivalGateAssignPreferenceMan* m_ArrivalPreference ;
-	CDepGateAssignPreferenceMan* m_DepPreference ;
+    CDepGateAssignPreferenceMan* m_DepPreference ;
+    ArrivalGateAdjacencyMgr* m_pArrGateAdja;
+    DepartureGateAdjacencyMgr* m_pDepGateAdja;
 public:
 	CArrivalGateAssignPreferenceMan* GetArrivalPreferenceMan() { return m_ArrivalPreference ;} ;
 	CDepGateAssignPreferenceMan* GetDepPreferenceMan() { return m_DepPreference ;} ;
+
+    ArrivalGateAdjacencyMgr* GetArrGateAdja() { return m_pArrGateAdja; }
+    DepartureGateAdjacencyMgr* GetDepGateAdja() { return m_pDepGateAdja; }
 };

@@ -258,6 +258,16 @@ void CDlgDepartureGateAssignment::SetAssignedFlight()
            CGateAssignPreferenceItem* PreferenceItem = ((TerminalGateAssignmentMgr*)m_pGateAssignmentMgr)->m_std2gateConstraint.GetDepPreferenceMan()->FindItemByGateID(GateID) ;
 		   if(PreferenceItem == NULL||!PreferenceItem->GetFlightDurationtime(flight.getFlight()->getType('D'),tService)) 
 				 tService = flight.GetEndTime() - flight.GetStartTime();
+
+		   //if (PreferenceItem && PreferenceItem->GetFlightDurationtime(flight.getFlight()->getType('D'),tService))
+		   //{
+			  // tService = MIN(tService,flight.GetEndTime() - flight.GetStartTime());
+		   //}
+		   //else
+		   //{
+			  // tService = flight.GetEndTime() - flight.GetStartTime();
+		   //}
+
 			lSeverTime = tService.asMinutes();	   
 			long lIdx;
 			COLORREF colorBegin;

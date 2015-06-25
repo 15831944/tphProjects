@@ -11,7 +11,7 @@ class InputTerminal;
 class DlgGateAdjacency : public CToolTipDialog
 {
 public:
-    DlgGateAdjacency(CGateAssignPreferenceMan* pGateMan, InputTerminal* _pInputTerm, CWnd* pParent = NULL);
+    DlgGateAdjacency(GateAdjacencyMan* pGateMan, InputTerminal* _pInputTerm, CWnd* pParent = NULL);
     virtual ~DlgGateAdjacency();
     enum { IDD = IDD_DIALOG_GATE_ADJACENCY };
 
@@ -28,11 +28,9 @@ protected:
     void AddGateAdjacencyItem(const CGateAdjacency* pGateAdj);
     void SetListItemContent(int nIndex, const CGateAdjacency* pGateAdj);
     int FindGateAdjacency(const CGateAdjacency& gateAdj);
-    CString GetProjPath();
+    CString GetProjPath() const;
 private:
-    std::vector<CGateAdjacency*> m_vGateAdjas;
-    std::vector<CGateAdjacency*> m_vDelGateAdjas; // Gate Adjacency list going to be deleted.
-    CGateAssignPreferenceMan* m_pGateMan;
+    GateAdjacencyMan* m_pGateAdjaMan;
     InputTerminal* m_pInputTerm;
     CToolBar m_wndToolBar;
     CListCtrlEx m_wndListCtrl;

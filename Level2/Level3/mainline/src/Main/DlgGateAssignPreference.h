@@ -3,6 +3,7 @@
 #include "../Inputs/GateAssignPreferenceMan.h"
 #include "../MFCExControl/ARCTreeCtrl.h"
 #include "../MFCExControl/XTResizeDialog.h"
+#include "Inputs/GateAdjacencyMan.h"
 
 // CDlgGateAssignPreference dialog
 class CDlgGateAssignPreference : public CXTResizeDialog
@@ -19,7 +20,7 @@ protected:
 		void* m_Data ;
 	};
 public:
-	CDlgGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent = NULL);   // standard constructor
+	CDlgGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan, GateAdjacencyMan* _GateAdjaMan, InputTerminal* _terminal,CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgGateAssignPreference();
 
 // Dialog Data
@@ -30,6 +31,7 @@ protected:
 	CARCTreeCtrl m_TreeCtrl ;
 	CToolBar m_ToolBar ;
 	InputTerminal* m_pInputTerm ;
+    GateAdjacencyMan* m_pGateAdjaMan;
 protected:
 	CGateAssignPreferenceMan* m_PreferenceMan ;
 	CGateAssignmentMgr* m_pGateAssignmentMgr;
@@ -80,7 +82,7 @@ protected:
 class CDlgArrivalGateAssignPreference : public CDlgGateAssignPreference
 {
 public:
-      CDlgArrivalGateAssignPreference(CArrivalGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent = NULL) ;
+      CDlgArrivalGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan, GateAdjacencyMan* _GateAdjaMan, InputTerminal* _terminal,CWnd* pParent = NULL);
 	  ~CDlgArrivalGateAssignPreference() {} ;
 protected:
 	  CString FormatGateNodeName(ProcessorID& _id) ;
@@ -88,7 +90,7 @@ protected:
 class CDlgDepGateAssignPreference : public CDlgGateAssignPreference
 {
 public:
-	CDlgDepGateAssignPreference(CDepGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent = NULL) ;
+	CDlgDepGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan, GateAdjacencyMan* _GateAdjaMan, InputTerminal* _terminal,CWnd* pParent = NULL);
 	~CDlgDepGateAssignPreference() {} ;
 protected:
 	CString FormatGateNodeName(ProcessorID& _id) ;

@@ -58,7 +58,7 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::ve
 	if(_pair == NULL)
 		return 0 ;
 	Flight* fli = m_pEngine->GetAirsideSimulation()->GetAirsideFlight(Fli_ID)->GetFlightInput();
-	ElapsedTime _delaytime ;
+	ElapsedTime _delaytime = ElapsedTime(0L);
 	if(fli != NULL)
 	{
 		_delaytime = Time - fli->getArrTime() ;
@@ -75,7 +75,11 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::ve
 			{
 				if(bagentry.GetMobileType()>0)
 				{
-					bagentry.setEntryTime(Time);
+					if(bHasCartService)
+						bagentry.setEntryTime(Time);
+					else
+						bagentry.setEntryTime(_delaytime + bagentry.getEntryTime());
+
 					p_contaner->updateItem(bagentry);
 					p_pax = new TurnaroundVisitor(bagentry, m_pEngine);
 				}
@@ -84,7 +88,11 @@ int CPaxGenerator::GenerateDelayMobileBag(int Fli_ID ,ElapsedTime& Time, std::ve
 			{
 				if(bagentry.GetMobileType()>0)
 				{
-					bagentry.setEntryTime(Time);
+					if(bHasCartService)
+						bagentry.setEntryTime(Time);
+					else
+						bagentry.setEntryTime(_delaytime + bagentry.getEntryTime());
+
 					p_contaner->updateItem(bagentry);
 					p_pax = new PaxVisitor ( bagentry, m_pEngine );
 				}

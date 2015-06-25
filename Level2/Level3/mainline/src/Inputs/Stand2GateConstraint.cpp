@@ -26,12 +26,14 @@ bool CStand2GateMapping::operator<( const CStand2GateMapping& gateMap ) const
 }
 
 CStand2GateConstraint::CStand2GateConstraint(int nProjID)
-:DataSet(Stand2GateMapping,(float)2.3)
+:DataSet(Stand2GateMapping, 2.4f)
 ,m_nProjID(nProjID)
 {
 	m_ArrivalPreference = new CArrivalGateAssignPreferenceMan(NULL) ;
 	m_DepPreference = new CDepGateAssignPreferenceMan(NULL) ;
 
+    m_pArrGateAdja = new ArrivalGateAdjacencyMgr();
+    m_pDepGateAdja = new DepartureGateAdjacencyMgr();
 }
 
 CStand2GateConstraint::~CStand2GateConstraint(void)
@@ -43,49 +45,6 @@ CStand2GateConstraint::~CStand2GateConstraint(void)
 	    delete m_DepPreference ;
 }
 
-void CStand2GateConstraint::read2Data(ArctermFile& p_file)
-{
-	int nCount = -1;
-	p_file.getLine();
-	//p_file.getLine();
-	p_file.getInteger(nCount);
-	for (int i = 0;i < nCount;++i) 
-	{
-		CStand2GateMapping mappingAdd;
-		mappingAdd.m_StandID.readALTObjectID(p_file);
-		mappingAdd.m_ArrGateID.SetStrDict(m_pInTerm->inStrDict);
-		mappingAdd.m_ArrGateID.readProcessorID(p_file);
-		mappingAdd.m_DepGateID.SetStrDict(m_pInTerm->inStrDict);
-		mappingAdd.m_DepGateID.readProcessorID(p_file);
-		
-		int nMapType = CStand2GateMapping::MapType_Normal;
-		p_file.getInteger(nMapType);
-		mappingAdd.m_enumMappingFlag = (CStand2GateMapping::MapType) nMapType;
-
-		push_back(mappingAdd);
-	}
-	iterator iter = begin();
-	for (; iter != end(); ++iter)
-	{
-		if ((*iter).m_enumMappingFlag == CStand2GateMapping::MapType_1to1/*0x1*/)
-		{
-			m_pStand2Arrgateconstraint.push_back(*iter);
-		}
-		else if ((*iter).m_enumMappingFlag == CStand2GateMapping::MapType_Random/*0x2*/)
-		{
-			m_pStand2Depgateconstraint.push_back(*iter);
-		}
-	}
-	p_file.getLine();
-
-	//read preference data
-	m_ArrivalPreference->ReadData(m_pInTerm) ;
-	m_DepPreference->ReadData(m_pInTerm) ;
-
-	std::sort(m_pStand2Arrgateconstraint.begin(),m_pStand2Arrgateconstraint.end());
-	std::sort(m_pStand2Depgateconstraint.begin(),m_pStand2Depgateconstraint.end());
-	
-}
 void CStand2GateConstraint::readData (ArctermFile& p_file)
 {
 	clear();
@@ -130,14 +89,125 @@ void CStand2GateConstraint::readData (ArctermFile& p_file)
 
 		m_pStand2Depgateconstraint.push_back(mappingAdd);
 	}
-	p_file.getLine();
 
 	//read preference data
-	m_ArrivalPreference->ReadData(m_pInTerm) ;
-	m_DepPreference->ReadData(m_pInTerm) ;
+	m_ArrivalPreference->ReadData(m_pInTerm);
+	m_DepPreference->ReadData(m_pInTerm);
+
+    m_pArrGateAdja->SetInputTerminal(m_pInTerm);
+    m_pArrGateAdja->loadDataSet(GetProjPath());
+    m_pDepGateAdja->SetInputTerminal(m_pInTerm);
+    m_pDepGateAdja->loadDataSet(GetProjPath());
 
 	std::sort(m_pStand2Arrgateconstraint.begin(),m_pStand2Arrgateconstraint.end());
 	std::sort(m_pStand2Depgateconstraint.begin(),m_pStand2Depgateconstraint.end());
+}
+
+void CStand2GateConstraint::readObsoleteData(ArctermFile& p_file)
+{
+    float fVersion = p_file.getVersion();
+    if(fVersion < 2.2999f)
+        readObsoleteData22(p_file);
+    else if(2.2999f < fVersion && fVersion <2.3001f)
+        readObsoleteData23(p_file);
+    else
+        readData(p_file);
+}
+
+void CStand2GateConstraint::readObsoleteData22(ArctermFile& p_file)
+{
+    clear();
+    int nCount = -1;
+    p_file.getLine();
+    //p_file.getLine();
+    p_file.getInteger(nCount);
+    for (int i = 0;i < nCount;++i) 
+    {
+        CStand2GateMapping mappingAdd;
+        mappingAdd.m_StandID.readALTObjectID(p_file);
+        mappingAdd.m_ArrGateID.SetStrDict(m_pInTerm->inStrDict);
+        mappingAdd.m_ArrGateID.readProcessorID(p_file);
+        mappingAdd.m_DepGateID.SetStrDict(m_pInTerm->inStrDict);
+        mappingAdd.m_DepGateID.readProcessorID(p_file);
+
+        int nMapType = CStand2GateMapping::MapType_Normal;
+        p_file.getInteger(nMapType);
+        mappingAdd.m_enumMappingFlag = (CStand2GateMapping::MapType) nMapType;
+
+        push_back(mappingAdd);
+    }
+    iterator iter = begin();
+    for (; iter != end(); ++iter)
+    {
+        if ((*iter).m_enumMappingFlag == CStand2GateMapping::MapType_1to1/*0x1*/)
+        {
+            m_pStand2Arrgateconstraint.push_back(*iter);
+        }
+        else if ((*iter).m_enumMappingFlag == CStand2GateMapping::MapType_Random/*0x2*/)
+        {
+            m_pStand2Depgateconstraint.push_back(*iter);
+        }
+    }
+
+    //read preference data
+    m_ArrivalPreference->ReadData(m_pInTerm);
+    m_DepPreference->ReadData(m_pInTerm);
+
+    std::sort(m_pStand2Arrgateconstraint.begin(),m_pStand2Arrgateconstraint.end());
+    std::sort(m_pStand2Depgateconstraint.begin(),m_pStand2Depgateconstraint.end());
+}
+
+void CStand2GateConstraint::readObsoleteData23(ArctermFile& p_file)
+{
+    clear();
+
+    int nCount = -1;
+    p_file.getLine();
+    //p_file.getLine();
+    p_file.getInteger(nCount);
+    for (int i = 0;i < nCount;++i)
+    {
+        CStand2GateMapping mappingAdd;
+        mappingAdd.m_StandID.readALTObjectID(p_file);
+        mappingAdd.m_ArrGateID.SetStrDict(m_pInTerm->inStrDict);
+        mappingAdd.m_ArrGateID.readProcessorID(p_file);
+        mappingAdd.m_DepGateID.SetStrDict(m_pInTerm->inStrDict);
+        mappingAdd.m_DepGateID.readProcessorID(p_file);
+
+        int nMapType = CStand2GateMapping::MapType_Normal;
+        p_file.getInteger(nMapType);
+        mappingAdd.m_enumMappingFlag = (CStand2GateMapping::MapType) nMapType;
+
+
+        m_pStand2Arrgateconstraint.push_back(mappingAdd);
+    }
+    p_file.getLine();
+
+    nCount = -1;
+    p_file.getInteger(nCount);
+    for (int i = 0; i < nCount;++i)
+    {	
+        CStand2GateMapping mappingAdd;
+        mappingAdd.m_StandID.readALTObjectID(p_file);
+        mappingAdd.m_ArrGateID.SetStrDict(m_pInTerm->inStrDict);
+        mappingAdd.m_ArrGateID.readProcessorID(p_file);
+        mappingAdd.m_DepGateID.SetStrDict(m_pInTerm->inStrDict);
+        mappingAdd.m_DepGateID.readProcessorID(p_file);
+
+        int nMapType = CStand2GateMapping::MapType_Normal;
+        p_file.getInteger(nMapType);
+        mappingAdd.m_enumMappingFlag = (CStand2GateMapping::MapType) nMapType;
+
+
+        m_pStand2Depgateconstraint.push_back(mappingAdd);
+    }
+
+    //read preference data
+    m_ArrivalPreference->ReadData(m_pInTerm);
+    m_DepPreference->ReadData(m_pInTerm);
+
+    std::sort(m_pStand2Arrgateconstraint.begin(),m_pStand2Arrgateconstraint.end());
+    std::sort(m_pStand2Depgateconstraint.begin(),m_pStand2Depgateconstraint.end());
 }
 
 void CStand2GateConstraint::writeData (ArctermFile& p_file) const
@@ -164,6 +234,12 @@ void CStand2GateConstraint::writeData (ArctermFile& p_file) const
 		p_file.writeInt((*itrMapping).m_enumMappingFlag);
 	}
 	p_file.writeLine();
+
+    //write preference data
+    m_ArrivalPreference->WriteData();
+    m_DepPreference->WriteData();
+    m_pArrGateAdja->saveDataSet(GetProjPath(), false);
+    m_pDepGateAdja->saveDataSet(GetProjPath(), false);
 }
 
 void CStand2GateConstraint::clear (void)
@@ -176,14 +252,18 @@ void CStand2GateConstraint::clear (void)
 ProcessorID CStand2GateConstraint::GetArrGateID(CFlightOperationForGateAssign *pFlight)
 {
 	ALTObjectID standID = pFlight->getFlight()->getArrStand();
-	return GetGateID(pFlight, m_pStand2Arrgateconstraint, m_ArrivalPreference,standID, TRUE);
+	return GetGateID(pFlight, m_pStand2Arrgateconstraint, m_ArrivalPreference, m_pArrGateAdja, standID, TRUE);
 }
  ProcessorID CStand2GateConstraint::GetDepGateID(CFlightOperationForGateAssign* pFlight)
 {	
 	ALTObjectID standID = pFlight->getFlight()->getDepStand();
-	return GetGateID(pFlight, m_pStand2Depgateconstraint, m_DepPreference, standID, FALSE );
+	return GetGateID(pFlight, m_pStand2Depgateconstraint, m_DepPreference, m_pDepGateAdja, standID, FALSE );
 }
-ProcessorID CStand2GateConstraint::GetGateID( CFlightOperationForGateAssign* pFlight, std::vector<CStand2GateMapping>& vStand2gateConstraint, CGateAssignPreferenceMan* gatePreference,const ALTObjectID& standID, BOOL bArrival)
+ProcessorID CStand2GateConstraint::GetGateID( CFlightOperationForGateAssign* pFlight, 
+    std::vector<CStand2GateMapping>& vStand2gateConstraint, 
+    CGateAssignPreferenceMan* gatePreference,
+    GateAdjacencyMan* gateAdjacency,
+    const ALTObjectID& standID, BOOL bArrival)
 {
 	if (pFlight == NULL)
 		return ProcessorID();
@@ -238,7 +318,7 @@ ProcessorID CStand2GateConstraint::GetGateID( CFlightOperationForGateAssign* pFl
 					}
 					//if find one to one processor
 					ProcessorID gateProcID;
-					if (GetOneToOneGateID(pFlight,gatePreference,vCandidateGate,gateProcID))
+					if (GetOneToOneGateID(pFlight,gatePreference,gateAdjacency, vCandidateGate,gateProcID,bArrival))
 					{
 						return gateProcID;
 					}
@@ -269,7 +349,8 @@ ProcessorID CStand2GateConstraint::GetGateID( CFlightOperationForGateAssign* pFl
 	}
 	///step 2, filter out the item by preference
 	//vStep1ProcID
-	std::vector<ProcessorID > vPreferGate;
+ //   std::vector<ProcessorID > vPreferGate;
+	std::vector<std::pair<ProcessorID,ElapsedTime>> vPreferGate;
 	std::vector<ProcessorID > vNormalGate;
 	std::vector<ProcessorID> vAvailableGate;
 	int nProcCount = vRandomGate.size();
@@ -279,16 +360,27 @@ ProcessorID CStand2GateConstraint::GetGateID( CFlightOperationForGateAssign* pFl
 		ProcessorID& gateProcID = vRandomGate[nProc];
 		//check preference
 
+		if (gatePreference->IsGateAssignmentConfilict(gateProcID, pFlight, gateAdjacency->GetGateAdjacency()) == true)//has conflict
+			continue;
+
 		bool bPrefer = false;
 		bool bDefineFitGate = gatePreference->FlightAvailableByPreference(gateProcID,pFlight);
+		if (gatePreference->FindItemByGateID(gateProcID))
+		{
+			if (bDefineFitGate == false)
+				continue;
+		}
+
 		bHasDefineFitGate = (bHasDefineFitGate == false?bDefineFitGate : true);
-		if(gatePreference->CheckTheGateByPreference(gateProcID,pFlight, bPrefer))
+		ElapsedTime eDurationTime;
+		if(gatePreference->CheckTheGateByPreference(gateProcID,pFlight, bPrefer,eDurationTime))
 		{
 			vNormalGate.push_back(gateProcID);
 
 			if(bPrefer)
 			{
-				vPreferGate.push_back(gateProcID);
+				//vPreferGate.push_back(gateProcID);
+				vPreferGate.push_back(std::make_pair(gateProcID,eDurationTime));
 			}	
 			if (bDefineFitGate)
 			{
@@ -300,17 +392,33 @@ ProcessorID CStand2GateConstraint::GetGateID( CFlightOperationForGateAssign* pFl
 	///select the departure gate
 	if (bHasDefineFitGate)
 	{
-		if (vAvailableGate.size() > 0)
+		if(vPreferGate.size() > 0)
 		{
-			return vAvailableGate.at(random(vAvailableGate.size()));
+			int idx = random(vPreferGate.size());
+			std::pair<ProcessorID,ElapsedTime> preferData = vPreferGate[idx];
+			if (bArrival)
+			{
+				pFlight->SetTimeRange(pFlight->GetStartTime(),pFlight->GetStartTime() + preferData.second);
+			}
+			else
+			{
+				pFlight->SetTimeRange(pFlight->GetEndTime() - preferData.second,pFlight->GetEndTime());
+			}
+			
+			return vPreferGate.at(idx).first;
 		}
+
+		//if (vAvailableGate.size() > 0)
+		//{
+		//	return vAvailableGate.at(random(vAvailableGate.size()));
+		//}
 		return ProcessorID();
 	}
 	
-	if(vPreferGate.size() > 0)
-	{
-		return vPreferGate.at(random(vPreferGate.size()));
-	}
+	//if(vPreferGate.size() > 0)
+	//{
+	//	return vPreferGate.at(random(vPreferGate.size()));
+	//}
 	if(vNormalGate.size() > 0)
 	{
 		return vNormalGate.at(random(vNormalGate.size()));
@@ -613,9 +721,14 @@ void CStand2GateConstraint::setGateAssignManager( CGateAssignmentMgr* pGateAssig
 		m_DepPreference->SetGateAssignMgr(pGateAssignManager) ;
 }
 
-bool CStand2GateConstraint::GetOneToOneGateID( CFlightOperationForGateAssign* pFlight,CGateAssignPreferenceMan* gatePreference,const std::vector<ProcessorID>& vCandidateGate,ProcessorID& gateProID )
+bool CStand2GateConstraint::GetOneToOneGateID( CFlightOperationForGateAssign* pFlight,
+    CGateAssignPreferenceMan* gatePreference,
+    GateAdjacencyMan* gateAdjacency,
+    const std::vector<ProcessorID>& vCandidateGate,
+    ProcessorID& gateProID,BOOL bArrival )
 {
-	std::vector<ProcessorID > vPreferGate;
+//	std::vector<ProcessorID > vPreferGate;
+	std::vector<std::pair<ProcessorID,ElapsedTime>> vPreferGate;
 	std::vector<ProcessorID > vNormalGate;
 	std::vector<ProcessorID> vAvailableGate;
 	int nProcCount = vCandidateGate.size();
@@ -623,19 +736,27 @@ bool CStand2GateConstraint::GetOneToOneGateID( CFlightOperationForGateAssign* pF
 	for (int nProc = 0; nProc < nProcCount; ++ nProc)
 	{
 		const ProcessorID& gateProcID = vCandidateGate[nProc];
-		//check preference
 
+		//check preference
+		if (gatePreference->IsGateAssignmentConfilict(gateProcID, pFlight, gateAdjacency->GetGateAdjacency()) == true)//has conflict
+			continue;
 		bool bPrefer = false;
 		ProcessorID gateID;
 		gateID = gateProcID;
 		bool bDefineFitGate = gatePreference->FlightAvailableByPreference(gateProcID,pFlight);
+		if (gatePreference->FindItemByGateID(gateID))
+		{
+			if (bDefineFitGate == false)
+				continue;
+		}
 		bHasDefineFitGate = (bHasDefineFitGate == false?bDefineFitGate : true);
-		if(gatePreference->CheckTheGateByPreference(gateID,pFlight, bPrefer))
+		ElapsedTime eDurationTime;
+		if(gatePreference->CheckTheGateByPreference(gateID,pFlight, bPrefer,eDurationTime))
 		{
 			vNormalGate.push_back(gateProcID);
 
 			if(bPrefer)
-				vPreferGate.push_back(gateProcID);
+				vPreferGate.push_back(std::make_pair(gateProcID,eDurationTime));
 		
 			if (bDefineFitGate)
 				vAvailableGate.push_back(gateProcID);
@@ -645,18 +766,30 @@ bool CStand2GateConstraint::GetOneToOneGateID( CFlightOperationForGateAssign* pF
 	///select the departure gate
 	if (bHasDefineFitGate)
 	{
-		if (vAvailableGate.size() > 0)
+		if(vPreferGate.size() > 0)
 		{
-			gateProID = vAvailableGate.at(random(vAvailableGate.size()));
+			int idx = random(vPreferGate.size());
+			std::pair<ProcessorID,ElapsedTime> preferData = vPreferGate[idx];
+			if (bArrival)
+			{
+				pFlight->SetTimeRange(pFlight->GetStartTime(),pFlight->GetStartTime() + preferData.second);
+			}
+			else
+			{
+				pFlight->SetTimeRange(pFlight->GetEndTime() - preferData.second,pFlight->GetEndTime());
+			}
+			gateProID = vPreferGate.at(idx).first;
 			return true;
 		}
+
+		//if (vAvailableGate.size() > 0)
+		//{
+		//	gateProID = vAvailableGate.at(random(vAvailableGate.size()));
+		//	return true;
+		//}
 		return false;
 	}
-	if(vPreferGate.size() > 0)
-	{
-		 gateProID = vPreferGate.at(random(vPreferGate.size()));
-		 return true;
-	}
+	
 	if(vNormalGate.size() > 0)
 	{
 		gateProID = vNormalGate.at(random(vNormalGate.size()));
@@ -664,5 +797,17 @@ bool CStand2GateConstraint::GetOneToOneGateID( CFlightOperationForGateAssign* pF
 	}
 	return false;
 }
+
+CString CStand2GateConstraint::GetProjPath() const
+{
+    CMDIChildWnd* pMDIActive = ((CMDIFrameWnd*)AfxGetMainWnd())->MDIGetActive();
+    ASSERT( pMDIActive != NULL );
+
+    CTermPlanDoc* pDoc = (CTermPlanDoc*)pMDIActive->GetActiveDocument();
+    ASSERT( pDoc!= NULL );
+
+    return pDoc->m_ProjInfo.path;
+}
+
 
 

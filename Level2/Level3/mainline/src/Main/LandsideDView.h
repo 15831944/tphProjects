@@ -6,23 +6,8 @@
 #include "./SelectionHandler.h"
 #pragma once
 
-#ifdef _DEBUG
-static char g_pszErrorGL[256];
 
-#define CHECK_GL_ERRORS(msg)	\
-{ \
-	GLenum errorGL; \
-	while((errorGL = glGetError()) != GL_NO_ERROR) { \
-	sprintf(g_pszErrorGL, "OPENGL ERRORS in %s [%s]\n", (msg), gluErrorString(errorGL)); \
-	::OutputDebugString(g_pszErrorGL); \
-	} \
-}
 
-#else // _DEBUG
-
-#define CHECK_GL_ERRORS(msg)	__noop
-
-#endif
 
 
 	
@@ -50,10 +35,6 @@ static char g_pszErrorGL[256];
 
 	protected:
 		LandsideDocument * m_pDoc;
-
-	
-		
-		
 		
 	};
 

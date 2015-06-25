@@ -144,6 +144,8 @@ protected:
 	void ClearFlightInGtChart(CFlightOperationForGateAssign* flightOp);
 	int GetAllGateProcessor();
 	bool DisplayDrageErrorMessage(long lIdx,CString& strError);
+	bool DisplayGateAssignErrorMessage(long Idx, CString& strError);
+	void InsertGateAssignment(long nLineIndexTo,CAssignGate* pGate,CFlightOperationForGateAssign* flightOp);
 
 	CImageList m_imageList;
 	int m_nDragIndex;

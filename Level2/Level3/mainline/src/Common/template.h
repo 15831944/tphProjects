@@ -359,7 +359,9 @@ enum InputFiles
 	TempMobileElementLogFile,
 
 	VehicleDistributionFile,//vehicle distribution file
-	BridgeConnectorPaxDataFile //Bridge Connector passenger data
+	BridgeConnectorPaxDataFile, //Bridge Connector passenger data
+    ArrivalGateAdjacency,
+    DepartureGateAdjacency
 };
 
 enum GeneralFiles

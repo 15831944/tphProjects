@@ -2014,7 +2014,7 @@ inline static void DrawFlightTag(const AirsideFlightDescStruct& fds, const Airsi
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	*/
 
-	TEXTMANAGER3D->DrawFormattedBitmapText3D(sTag, worldPos, &fmts[0], fmts.size());
+	TEXTMANAGER3D->DrawFormattedBitmapText3D(sTag, worldPos, fmts.empty()?NULL:&fmts[0], fmts.size());
 	glDisable(GL_POLYGON_OFFSET_FILL);
 }
 

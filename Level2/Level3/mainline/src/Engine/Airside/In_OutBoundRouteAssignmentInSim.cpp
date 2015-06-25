@@ -1047,8 +1047,8 @@ bool In_OutBoundRouteAssignmentInSim::CheckRoutePriorityChangeCondition( Airside
 		{
 			(*iteSeg)->GetInPathAirsideFlightList(allFlightsOnRoute);
 		}
-		std::vector<AirsideFlightInSim* > flightsDiffPreferredRoute = pFlight->FindFlightsOnDiffPreferredRoute(allFlightsOnRoute, pPriority);
-		int nFlightDiffCount = (int)flightsDiffPreferredRoute.size();
+		std::vector<AirsideFlightInSim* > flightsDiffPreferredRoute = allFlightsOnRoute;// pFlight->FindFlightsOnDiffPreferredRoute(allFlightsOnRoute, pPriority);
+		int nFlightDiffCount = allFlightsOnRoute.size(); //int)flightsDiffPreferredRoute.size();
 		// 2.1 Number of AC on route > N
 		if (nFlightDiffCount>pPriority->m_RepConData.m_nAcOnRouteCount)
 			return true;

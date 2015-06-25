@@ -100,10 +100,16 @@ void TerminalGateAssignmentMgr::ResetGateContent(OpType eType, InputTerminal* _p
 
 		if (eType == ARR_OP && pFlight->isArriving()) 
 		{
-			CFlightOperationForGateAssign* aFlight = new CFlightOperationForGateAssign(pFlightInGate,ARR_OP);
-
+			ElapsedTime arrDurationTime = tDeplane;
+			ProcessorID arrGateID = pFlight->getArrGate();
+			CGateAssignPreferenceItem* pPreferenceItem = m_std2gateConstraint.GetArrivalPreferenceMan()->FindItemByGateID(arrGateID);
+			if (pPreferenceItem && pPreferenceItem->GetFlightDurationtime(pFlight->getType('A'),arrDurationTime))
 			{
-				aFlight->SetTimeRange(pFlight->getArrTime(),pFlight->getArrTime()+ tDeplane);
+				
+			}
+			CFlightOperationForGateAssign* aFlight = new CFlightOperationForGateAssign(pFlightInGate,ARR_OP);
+			{
+				aFlight->SetTimeRange(pFlight->getArrTime(),pFlight->getArrTime()+ arrDurationTime);
 				//TRACE("%s %s\n",aFlight->GetStartTime().printTime(), aFlight->GetEndTime().printTime());
 
 				pFlightInGate->SetFlightArrPart(aFlight);
@@ -142,12 +148,18 @@ void TerminalGateAssignmentMgr::ResetGateContent(OpType eType, InputTerminal* _p
 		}
 		else if (eType == DEP_OP && pFlight->isDeparting()) 
 		{
+			ElapsedTime depDurationTime = tEnplane;
+			ProcessorID depGateID = pFlight->getDepGate();
+			CGateAssignPreferenceItem* pPreferenceItem = m_std2gateConstraint.GetDepPreferenceMan()->FindItemByGateID(depGateID);
+			if (pPreferenceItem && pPreferenceItem->GetFlightDurationtime(pFlight->getType('D'),depDurationTime))
+			{
 
+			}
 			CFlightOperationForGateAssign* aFlight = new CFlightOperationForGateAssign(pFlightInGate,DEP_OP );
 			pFlightInGate->SetFlightDepPart(aFlight);
 
 			{
-				aFlight->SetTimeRange(pFlight->getDepTime() - tEnplane,pFlight->getDepTime());
+				aFlight->SetTimeRange(pFlight->getDepTime() - depDurationTime,pFlight->getDepTime());
 				//TRACE("%s %s\n",aFlight->GetStartTime().printTime(), aFlight->GetEndTime().printTime());
 			}
 			if( pFlight->getDepGate().GetIDString() == blankGateID.GetIDString())
@@ -255,7 +267,91 @@ void TerminalGateAssignmentMgr::RemoveAssignedFlight(FlightForAssignment* pFligh
 		m_vectUnassignedFlight.push_back(pFlight);
 }
 
-bool TerminalGateAssignmentMgr::IsFlightOperationFitInGate( int _nGateIdx, CFlightOperationForGateAssign* pFlight )
+bool TerminalGateAssignmentMgr::CheckFlightOperationFitInGate(int _nGateIdx, CFlightOperationForGateAssign* pFlight,CString& strError )
+{
+	if( !pFlight->IsSelected() )
+		return true;
+
+	ProcessorID gateID = ((CAssignTerminalGate *)&*m_vectGate[_nGateIdx])->GetProcessID();
+	if (pFlight->getOpType() == ARR_OP)
+	{
+		CGateAssignPreferenceMan* pGatePreference = m_std2gateConstraint.GetArrivalPreferenceMan();
+		if(pGatePreference->IsGateAssignmentConfilict(gateID,pFlight,m_std2gateConstraint.GetArrGateAdja()->GetGateAdjacency()))//check gate adjacency
+		{
+			strError = _T("The flight cannot be assigned to this gate because it conflict with gate adjacency");
+			return false;
+		}
+
+		bool bDefineFitGate = pGatePreference->FlightAvailableByPreference(gateID,pFlight);
+		if (pGatePreference->FindItemByGateID(gateID))//check constraint
+		{
+			if (bDefineFitGate == false)
+			{
+				strError = _T("The flight cannot assigned to this gate because it conflict with gate constraint");
+				return false;
+			}
+		}
+
+		if (pFlight && (!IsFlightOperationFitInGate( _nGateIdx, pFlight)))//check time buffer
+		{
+			ElapsedTime eDurationTime;
+			bool bPrefer = false;
+			if (bDefineFitGate == true)
+			{
+				if(pGatePreference->CheckTheGateByPreference(gateID,pFlight, bPrefer,eDurationTime) == FALSE)
+				{
+					strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+					return false;
+				}
+			}
+			else
+			{
+				strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+				return false;
+			}
+		}
+	}
+	else
+	{
+		CGateAssignPreferenceMan* pGatePreference = m_std2gateConstraint.GetDepPreferenceMan();
+		if(pGatePreference->IsGateAssignmentConfilict(gateID,pFlight,m_std2gateConstraint.GetDepGateAdja()->GetGateAdjacency()))//check gate adjacency
+		{
+			strError = _T("The flight cannot be assigned to this gate because it conflict with gate adjacency");
+			return false;
+		}
+		bool bDefineFitGate = pGatePreference->FlightAvailableByPreference(gateID,pFlight);
+		if (pGatePreference->FindItemByGateID(gateID))//check constraint
+		{
+			if (bDefineFitGate == false)
+			{
+				strError = _T("The flight cannot assigned to this gate because it conflict with gate constraint");
+				return false;
+			}
+		}
+
+		if (pFlight && (!IsFlightOperationFitInGate( _nGateIdx, pFlight)))
+		{
+			ElapsedTime eDurationTime;
+			bool bPrefer = false;
+			if (bDefineFitGate == true)
+			{
+				if(pGatePreference->CheckTheGateByPreference(gateID,pFlight, bPrefer,eDurationTime) == FALSE)
+				{
+					strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+					return false;
+				}
+			}
+			else
+			{
+				strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool TerminalGateAssignmentMgr::IsFlightOperationFitInGate( int _nGateIdx, CFlightOperationForGateAssign* pFlight )//just check overlap
 {
 	if( !pFlight->IsSelected() )
 		return true;
@@ -266,54 +362,261 @@ bool TerminalGateAssignmentMgr::IsFlightOperationFitInGate( int _nGateIdx, CFlig
 	return true;
 }
 
-int TerminalGateAssignmentMgr::AssignSelectedFlightToGate(int _nGateIdx, std::vector<int>& vGateIdx)
+bool TerminalGateAssignmentMgr::ProcessAssignFailedError( int _nGateIdx,OpType emType,CString& strError )
 {
-	int nFailedCount = 0;
 	int nFlightCount = m_vectUnassignedFlight.size();
+	ProcessorID gateID = ((CAssignTerminalGate *)&*m_vectGate[_nGateIdx])->GetProcessID();
 	for( int i=nFlightCount-1; i>=0; i-- )
 	{
 		FlightForAssignment* flight = m_vectUnassignedFlight[i];
 		bool bMatch = true;
 		if( flight->IsSelected())
 		{
-
-			CFlightOperationForGateAssign* pArrOp = flight->GetFlightArrPart();
-			if (pArrOp && (!IsFlightOperationFitInGate( _nGateIdx, pArrOp)))
+			if (emType == ARR_OP)
 			{
-				bMatch = false;
+				CFlightOperationForGateAssign* pArrOp = flight->GetFlightArrPart();
+				CGateAssignPreferenceMan* pGatePreference = m_std2gateConstraint.GetArrivalPreferenceMan();
+				if(pGatePreference->IsGateAssignmentConfilict(gateID,pArrOp,m_std2gateConstraint.GetArrGateAdja()->GetGateAdjacency()))//check gate adjacency
+				{
+					strError = _T("The flight cannot be assigned to this gate because it conflict with gate adjacency");
+					return false;
+				}
+
+				bool bDefineFitGate = pGatePreference->FlightAvailableByPreference(gateID,pArrOp);
+				if (pGatePreference->FindItemByGateID(gateID))//check constraint
+				{
+					if (bDefineFitGate == false)
+					{
+						strError = _T("The flight cannot assigned to this gate because it conflict with gate constraint");
+						return false;
+					}
+				}
+
+				if (pArrOp && (!IsFlightOperationFitInGate( _nGateIdx, pArrOp)))//check time buffer
+				{
+					ElapsedTime eDurationTime;
+					bool bPrefer = false;
+					if (bDefineFitGate == true)
+					{
+						if(pGatePreference->CheckTheGateByPreference(gateID,pArrOp, bPrefer,eDurationTime) == FALSE)
+						{
+							strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+							return false;
+						}
+					}
+					else
+					{
+						strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+						return false;
+					}
+				}
+
+			}
+			else if(emType == DEP_OP)
+			{
+				CFlightOperationForGateAssign* pDepOp = flight->GetFlightDepPart();
+				CGateAssignPreferenceMan* pGatePreference = m_std2gateConstraint.GetDepPreferenceMan();
+				if(pGatePreference->IsGateAssignmentConfilict(gateID,pDepOp,m_std2gateConstraint.GetDepGateAdja()->GetGateAdjacency()))//check gate adjacency
+				{
+					strError = _T("The flight cannot be assigned to this gate because it conflict with gate adjacency");
+					return false;
+				}
+				bool bDefineFitGate = pGatePreference->FlightAvailableByPreference(gateID,pDepOp);
+				if (pGatePreference->FindItemByGateID(gateID))//check constraint
+				{
+					if (bDefineFitGate == false)
+					{
+						strError = _T("The flight cannot assigned to this gate because it conflict with gate constraint");
+						return false;
+					}
+				}
+
+				if (pDepOp && (!IsFlightOperationFitInGate( _nGateIdx, pDepOp)))
+				{
+					ElapsedTime eDurationTime;
+					bool bPrefer = false;
+					if (bDefineFitGate == true)
+					{
+						if(pGatePreference->CheckTheGateByPreference(gateID,pDepOp, bPrefer,eDurationTime) == FALSE)
+						{
+							strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+							return false;
+						}
+					}
+					else
+					{
+						strError = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
+						return false;
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TerminalGateAssignmentMgr::SetFlightDurationTime(int _nGateIdx,CFlightOperationForGateAssign* pFlightOp)
+{
+	Flight* pFlight = (Flight*)pFlightOp->getFlight();
+	ElapsedTime tEnplane = pFlight->getEnplaneTime();
+	ElapsedTime tDeplane = pFlight->getDeplaneTime();
+	bool bChange = false;
+	if (pFlight->isTurnaround() && tEnplane > pFlight->getDepTime() - pFlight->getArrTime() )
+		tEnplane = pFlight->getDepTime() - pFlight->getArrTime();
+	if (pFlight->isTurnaround() && tDeplane > pFlight->getDepTime() - pFlight->getArrTime())
+		tDeplane = pFlight->getDepTime() - pFlight->getArrTime();
+
+	ProcessorID gateID = ((CAssignTerminalGate *)&*m_vectGate[_nGateIdx])->GetProcessID();
+	if (pFlightOp->getOpType() == ARR_OP)
+	{
+		ElapsedTime arrDurationTime = tDeplane;
+		ElapsedTime curDurationTime = pFlightOp->GetEndTime() - pFlightOp->GetStartTime();
+		ProcessorID arrGateID = pFlight->getArrGate();
+		CGateAssignPreferenceItem* pPreferenceItem = m_std2gateConstraint.GetArrivalPreferenceMan()->FindItemByGateID(gateID);
+		if (pPreferenceItem && pPreferenceItem->GetFlightDurationtime(pFlight->getType('A'),arrDurationTime))
+		{
+			
+		}
+		if (curDurationTime != arrDurationTime)
+		{
+			bChange = true;
+		}
+
+		pFlightOp->SetTimeRange(pFlight->getArrTime(),pFlight->getArrTime()+ arrDurationTime);
+	}
+	else if (pFlightOp->getOpType() == DEP_OP)
+	{
+		ElapsedTime depDurationTime = tEnplane;
+		ElapsedTime curDurationTime = pFlightOp->GetEndTime() - pFlightOp->GetStartTime();
+		ProcessorID depGateID = pFlight->getDepGate();
+		CGateAssignPreferenceItem* pPreferenceItem = m_std2gateConstraint.GetDepPreferenceMan()->FindItemByGateID(gateID);
+		if (pPreferenceItem && pPreferenceItem->GetFlightDurationtime(pFlight->getType('D'),depDurationTime))
+		{
+	
+		}
+
+		if (depDurationTime != curDurationTime)
+		{
+			bChange = true;
+		}
+		pFlightOp->SetTimeRange(pFlight->getDepTime() - depDurationTime,pFlight->getDepTime());
+	}
+	return bChange;
+}
+
+int TerminalGateAssignmentMgr::AssignSelectedFlightToGate(int _nGateIdx, std::vector<int>& vGateIdx)
+{
+	int nFailedCount = 0;
+	int nFlightCount = m_vectUnassignedFlight.size();
+	CString strError;
+	ProcessorID gateID = ((CAssignTerminalGate *)&*m_vectGate[_nGateIdx])->GetProcessID();
+	for( int i=nFlightCount-1; i>=0; i-- )
+	{
+		FlightForAssignment* flight = m_vectUnassignedFlight[i];
+		if( flight->IsSelected())
+		{
+			CFlightOperationForGateAssign* pArrOp = flight->GetFlightArrPart();
+			Flight* pFlight = (Flight*)flight->getFlight();
+			ElapsedTime tEnplane = pFlight->getEnplaneTime();
+			ElapsedTime tDeplane = pFlight->getDeplaneTime();
+
+			if (pFlight->isTurnaround() && tEnplane > pFlight->getDepTime() - pFlight->getArrTime() )
+				tEnplane = pFlight->getDepTime() - pFlight->getArrTime();
+			if (pFlight->isTurnaround() && tDeplane > pFlight->getDepTime() - pFlight->getArrTime())
+				tDeplane = pFlight->getDepTime() - pFlight->getArrTime();
+			if (pArrOp && CheckFlightOperationFitInGate(_nGateIdx,pArrOp,strError) == false)
+			{
 				nFailedCount++;
 				continue;
 			}
 
 			CFlightOperationForGateAssign* pDepOp = flight->GetFlightDepPart();
-			if (pDepOp && (!IsFlightOperationFitInGate( _nGateIdx, pDepOp)))
+			if (pDepOp && CheckFlightOperationFitInGate(_nGateIdx,pDepOp,strError) == false)
 			{
-				bMatch = false;
 				nFailedCount++;
 				continue;
-			}			
+			}
 
 			m_vAssignedFlight.push_back(flight);
 			m_vectUnassignedFlight.erase( m_vectUnassignedFlight.begin() + i );
 
 			if (pArrOp)
 			{
+				ElapsedTime arrDurationTime = tDeplane;
+				CGateAssignPreferenceItem* pPreferenceItem = m_std2gateConstraint.GetArrivalPreferenceMan()->FindItemByGateID(gateID);
+				if (pPreferenceItem && pPreferenceItem->GetFlightDurationtime(pFlight->getType('A'),arrDurationTime))
+				{
+
+				}
+				pArrOp->SetTimeRange(pFlight->getArrTime(),pFlight->getArrTime()+ arrDurationTime);
 				pArrOp->SetGateIdx(_nGateIdx);
 				m_vectGate[_nGateIdx]->AddFlight(*pArrOp);
 			}
 
 			if (pDepOp)
 			{
+				ElapsedTime depDurationTime = tEnplane;
+				CGateAssignPreferenceItem* pPreferenceItem = m_std2gateConstraint.GetDepPreferenceMan()->FindItemByGateID(gateID);
+				if (pPreferenceItem && pPreferenceItem->GetFlightDurationtime(pFlight->getType('D'),depDurationTime))
+				{
+
+				}
+				pDepOp->SetTimeRange(pFlight->getDepTime() - depDurationTime,pFlight->getDepTime());
 				pDepOp->SetGateIdx(_nGateIdx);
 				m_vectGate[_nGateIdx]->AddFlight(*pDepOp);
 			}
 
 			vGateIdx.push_back(_nGateIdx);
-
 		}
 	}
-
 	return nFailedCount;
+	//int nFailedCount = 0;
+	//int nFlightCount = m_vectUnassignedFlight.size();
+	//for( int i=nFlightCount-1; i>=0; i-- )
+	//{
+	//	FlightForAssignment* flight = m_vectUnassignedFlight[i];
+	//	bool bMatch = true;
+	//	if( flight->IsSelected())
+	//	{
+
+	//		CFlightOperationForGateAssign* pArrOp = flight->GetFlightArrPart();
+	//		if (pArrOp && (!IsFlightOperationFitInGate( _nGateIdx, pArrOp)))
+	//		{
+	//			bMatch = false;
+	//			nFailedCount++;
+	//			continue;
+	//		}
+
+	//		CFlightOperationForGateAssign* pDepOp = flight->GetFlightDepPart();
+	//		if (pDepOp && (!IsFlightOperationFitInGate( _nGateIdx, pDepOp)))
+	//		{
+	//			bMatch = false;
+	//			nFailedCount++;
+	//			continue;
+	//		}			
+
+	//		m_vAssignedFlight.push_back(flight);
+	//		m_vectUnassignedFlight.erase( m_vectUnassignedFlight.begin() + i );
+
+	//		if (pArrOp)
+	//		{
+	//			pArrOp->SetGateIdx(_nGateIdx);
+	//			m_vectGate[_nGateIdx]->AddFlight(*pArrOp);
+	//		}
+
+	//		if (pDepOp)
+	//		{
+	//			pDepOp->SetGateIdx(_nGateIdx);
+	//			m_vectGate[_nGateIdx]->AddFlight(*pDepOp);
+	//		}
+
+	//		vGateIdx.push_back(_nGateIdx);
+
+	//	}
+	//}
+
+	//return nFailedCount;
 }
 
 void TerminalGateAssignmentMgr::LoadData( InputTerminal* _pInTerm, const PROJECTINFO& ProjInfo )

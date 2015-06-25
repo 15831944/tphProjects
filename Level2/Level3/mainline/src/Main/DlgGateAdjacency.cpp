@@ -3,16 +3,16 @@
 #include "DlgGateAdjacency.h"
 #include "afxdialogex.h"
 #include "DlgGateSelect.h"
+#include "TermplanDoc.h"
 
 
-DlgGateAdjacency::DlgGateAdjacency( CGateAssignPreferenceMan* pGateMan, 
+DlgGateAdjacency::DlgGateAdjacency( GateAdjacencyMan* pGateAdjaMan, 
                                     InputTerminal* _pInputTerm,
                                     CWnd* pParent)
- :  CToolTipDialog(IDD, pParent), 
-    m_pGateMan(pGateMan),
-    m_pInputTerm(_pInputTerm)
+    : CToolTipDialog(IDD, pParent)
+    , m_pGateAdjaMan(pGateAdjaMan)
+    , m_pInputTerm(_pInputTerm)
 {
-    m_vGateAdjas = *pGateMan->GetGateAdjacency();
 }
 
 DlgGateAdjacency::~DlgGateAdjacency()
@@ -155,11 +155,12 @@ void DlgGateAdjacency::InitListControl()
     lvc.fmt = LVCFMT_DROPDOWN;
     m_wndListCtrl.InsertColumn(2, &lvc);
     strList.RemoveAll();
-
-    int nConstraintCount = (int)m_vGateAdjas.size();
+    
+    std::vector<CGateAdjacency*>* _pGateAdjas = m_pGateAdjaMan->GetGateAdjacency();
+    int nConstraintCount = (int)_pGateAdjas->size();
     for (int i = 0; i < nConstraintCount; i++)
     {
-        AddGateAdjacencyItem(m_vGateAdjas.at(i));
+        AddGateAdjacencyItem(_pGateAdjas->at(i));
     }
 }
 
@@ -225,38 +226,21 @@ void DlgGateAdjacency::OnOK()
 
 void DlgGateAdjacency::OnCancel()
 {
-    int nCount = (int)m_vGateAdjas.size();
-    for(int i=0; i<nCount; i++)
-    {
-        if(m_pGateMan->FindGateAdjacencyIndex(m_vGateAdjas.at(i)) == -1)
-            delete m_vGateAdjas.at(i);
-    }
-
-    nCount = (int)m_vDelGateAdjas.size();
-    for(int i=0; i<nCount; i++)
-    {
-        if(m_pGateMan->FindGateAdjacencyIndex(m_vDelGateAdjas.at(i)) == -1)
-            delete m_vDelGateAdjas.at(i);
-    }
+    m_pGateAdjaMan->loadDataSet(GetProjPath());
     CToolTipDialog::OnCancel();
 }
 
 void DlgGateAdjacency::OnButtonSave()
 {
-    *m_pGateMan->GetGateAdjacency() = m_vGateAdjas;
-    m_pGateMan->SaveData();
+    m_pGateAdjaMan->saveDataSet(GetProjPath(), false);
     GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(FALSE);
-    int nCount = (int)m_vDelGateAdjas.size();
-    for(int i=0; i<nCount; i++)
-    {
-        delete m_vDelGateAdjas.at(i);
-    }
-    m_vDelGateAdjas.clear();
 }
 
 void DlgGateAdjacency::OnToolbarAdd()
 {
-    CDlgGateSelect dlg(m_pInputTerm, ArrGate/*m_gateType*/);
+    CDlgGateSelect dlg(m_pInputTerm, m_gateType);
+    std::vector<CGateAdjacency*>* _pGateAdjas = m_pGateAdjaMan->GetGateAdjacency();
+    dlg.SetSelectLeafNodeOnly(TRUE);
     while(dlg.DoModal() == IDOK)
     {
         ProcessorID gateID;
@@ -275,7 +259,7 @@ void DlgGateAdjacency::OnToolbarAdd()
             MessageBox(strErr, NULL, MB_OK|MB_ICONWARNING);
             continue;
         }
-        m_vGateAdjas.push_back(pGateAdj);
+        _pGateAdjas->push_back(pGateAdj);
         AddGateAdjacencyItem(pGateAdj);
         GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow();
         break;
@@ -289,15 +273,18 @@ void DlgGateAdjacency::OnToolbarDelete()
         return;
 
     CGateAdjacency* pGateAdja = (CGateAdjacency*)m_wndListCtrl.GetItemData(nSelItem);
-    int nCount = (int)m_vGateAdjas.size();
+
+    std::vector<CGateAdjacency*>* _pGateAdjas = m_pGateAdjaMan->GetGateAdjacency();
+    int nCount = (int)_pGateAdjas->size();
     for(int i=0; i<nCount; i++)
     {
-        if(m_vGateAdjas.at(i) == pGateAdja)
+        if(_pGateAdjas->at(i) == pGateAdja)
         {
-            m_vDelGateAdjas.push_back(pGateAdja);
-            m_vGateAdjas.erase(m_vGateAdjas.begin() + i);
+            _pGateAdjas->erase(_pGateAdjas->begin() + i);
+            break;
         }
     }
+    delete pGateAdja;
     m_wndListCtrl.DeleteItem(nSelItem);
     UpdateToolBarState();
     GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow();
@@ -312,7 +299,10 @@ void DlgGateAdjacency::OnToolBarEdit() // This action will edit Original Gate.
     CGateAdjacency* pGateAdja = (CGateAdjacency*)m_wndListCtrl.GetItemData(nSelItem);
     if(pGateAdja == NULL)
         return;
-    CDlgGateSelect dlg(m_pInputTerm, ArrGate/*m_gateType*/);
+
+    std::vector<CGateAdjacency*>* _pGateAdjas = m_pGateAdjaMan->GetGateAdjacency();
+    CDlgGateSelect dlg(m_pInputTerm, m_gateType);
+    dlg.SetSelectLeafNodeOnly(TRUE);
     while(dlg.DoModal() == IDOK)
     {
         ProcessorID gateID;
@@ -322,7 +312,7 @@ void DlgGateAdjacency::OnToolBarEdit() // This action will edit Original Gate.
         CGateAdjacency tempGateAdja = *pGateAdja;
         tempGateAdja.SetOriginalGate(gateID);
         int nResult = FindGateAdjacency(tempGateAdja);
-        if(nResult != -1 && pGateAdja != m_vGateAdjas.at(nResult))
+        if(nResult != -1 && pGateAdja != _pGateAdjas->at(nResult))
         {
             CString strErr;
             strErr.Format("Gate Adjacency \"%s\" -> \"%s\" already exist.", 
@@ -351,8 +341,10 @@ LRESULT DlgGateAdjacency::OnCollumnIndex(WPARAM wParam,  LPARAM lParam)
             int nSelItem = m_wndListCtrl.GetCurSel();
             if (nSelItem < 0)
                 return -1;
+            std::vector<CGateAdjacency*>* _pGateAdjas = m_pGateAdjaMan->GetGateAdjacency();
             CGateAdjacency* pGateAdja = (CGateAdjacency*)m_wndListCtrl.GetItemData(nSelItem);
-            CDlgGateSelect dlg(m_pInputTerm, ArrGate/*m_gateType*/);
+            CDlgGateSelect dlg(m_pInputTerm, m_gateType);
+            dlg.SetSelectLeafNodeOnly(TRUE);
             while(dlg.DoModal() == IDOK)
             {
                 ProcessorID gateID;
@@ -361,7 +353,7 @@ LRESULT DlgGateAdjacency::OnCollumnIndex(WPARAM wParam,  LPARAM lParam)
                 CGateAdjacency tempGateAdja = *pGateAdja;
                 tempGateAdja.SetAdjacentGate(gateID);
                 int nResult = FindGateAdjacency(tempGateAdja);
-                if(nResult != -1 && pGateAdja != m_vGateAdjas.at(nResult))
+                if(nResult != -1 && pGateAdja != _pGateAdjas->at(nResult))
                 {
                     CString strErr;
                     strErr.Format("Gate Adjacency \"%s\" - \"%s\" already exist.", 
@@ -387,10 +379,11 @@ LRESULT DlgGateAdjacency::OnCollumnIndex(WPARAM wParam,  LPARAM lParam)
 
 int DlgGateAdjacency::FindGateAdjacency(const CGateAdjacency& gateAdj)
 {
-    int nCount = (int)m_vGateAdjas.size();
+    std::vector<CGateAdjacency*>* _pGateAdjas = m_pGateAdjaMan->GetGateAdjacency();
+    int nCount = (int)_pGateAdjas->size();
     for(int i=0; i<nCount; i++)
     {
-        if(*m_vGateAdjas.at(i) == gateAdj)
+        if(*_pGateAdjas->at(i) == gateAdj)
         {
             return i;
         }
@@ -441,4 +434,13 @@ void DlgGateAdjacency::OnLvnEndlabeleditListContents(NMHDR *pNMHDR, LRESULT *pRe
     *pResult = 0;
 }
 
+CString DlgGateAdjacency::GetProjPath() const
+{
+    CMDIChildWnd* pMDIActive = ((CMDIFrameWnd*)AfxGetMainWnd())->MDIGetActive();
+    ASSERT( pMDIActive != NULL );
 
+    CTermPlanDoc* pDoc = (CTermPlanDoc*)pMDIActive->GetActiveDocument();
+    ASSERT( pDoc!= NULL );
+
+    return pDoc->m_ProjInfo.path;
+}

@@ -758,11 +758,16 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 				pFlight->GetDeiceDecision().bAfterDeice = true;
 			}
 
+
+
 			btillEnd = pParkingStand->FindClearanceInConcern(pFlight,lastClearanceItem,pFlight->GetDepTime(),newclearance);	
-			if(btillEnd)return;	
+			if(btillEnd)
+				return;	
+			pFlight->GetFlightInput()->SetAirsideFlightDepartured(true);	
 			if(newclearance.GetItemCount())
 				return;
-			pFlight->GetFlightInput()->SetAirsideFlightDepartured(true);
+
+		
 
 		}
 			

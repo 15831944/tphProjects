@@ -453,6 +453,12 @@ void DlgWallShapeProp::OnOK()
 		AfxMessageBox("Please input the name  !");
 		return;	
 	}
+	if(m_pWallShape && m_pWallShape->GetPointCount() < 2)
+	{
+		AfxMessageBox("Define 2 Points at least!");
+		return;	
+	}
+
 	if (tempID.compare(m_pWallShape->getID()) != 0 )
 	{
 		if(IsNameValid(csName) == false)

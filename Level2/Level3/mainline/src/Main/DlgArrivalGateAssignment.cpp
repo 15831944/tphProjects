@@ -153,6 +153,7 @@ void CDlgArrivalGateAssignment::OnStandMapping(void)
 				ALTObjectID flightStandID = pCurrentGateFlight->getFlight()->getArrStand();
 
 				ProcessorID arrGateSet = ((TerminalGateAssignmentMgr*)m_pGateAssignmentMgr)->m_std2gateConstraint.GetArrGateID(pCurrentGateFlight);
+				CString strArrID = arrGateSet.GetIDString();
 				if (!arrGateSet.isBlank())
 				{
 					//add to chart
@@ -263,6 +264,15 @@ void CDlgArrivalGateAssignment::SetAssignedFlight()
 			CGateAssignPreferenceItem* PreferenceItem = ((TerminalGateAssignmentMgr*)m_pGateAssignmentMgr)->m_std2gateConstraint.GetArrivalPreferenceMan()->FindItemByGateID(GateID) ;
 			if(PreferenceItem == NULL||!PreferenceItem->GetFlightDurationtime(flight.getFlight()->getType('A'),tService)) 
 				 tService = flight.GetEndTime() - flight.GetStartTime();
+			//if (PreferenceItem && PreferenceItem->GetFlightDurationtime(flight.getFlight()->getType('A'),tService))
+			//{
+			//	tService = MIN(tService,flight.GetEndTime() - flight.GetStartTime());
+			//}
+			//else
+			//{
+			//	tService = flight.GetEndTime() - flight.GetStartTime();
+			//}
+
 			lSeverTime = tService.asMinutes();
 			long lIdx;
 			COLORREF colorBegin;

@@ -1132,6 +1132,8 @@ BOOL CProjectExport::ZipInputAirportLandsideFiles(const CString& strProjName, co
 			_T("LAYOUT.LAY"),
 			_T("Placements.txt"),
 			_T("Stand2GateMapping.txt"),
+            _T("ArrivalGateAdjacency.txt"),
+            _T("DepartureGateAdjacency.txt"),
 			_T("Views.txt")
 	};
 

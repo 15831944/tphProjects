@@ -11,10 +11,17 @@
 #include "Engine/gate.h"
 #include "DlgGateAdjacency.h"
 IMPLEMENT_DYNAMIC(CDlgGateAssignPreference, CXTResizeDialog)
-CDlgGateAssignPreference::CDlgGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent)
-	:m_PreferenceMan(_PreferenceMan),m_pInputTerm(_terminal), CXTResizeDialog(CDlgGateAssignPreference::IDD, pParent)
+
+CDlgGateAssignPreference::CDlgGateAssignPreference( CGateAssignPreferenceMan* _PreferenceMan, 
+                                                    GateAdjacencyMan* _GateAdjaMan, 
+                                                    InputTerminal* 
+                                                    _terminal,CWnd* pParent)
+    :m_PreferenceMan(_PreferenceMan)
+    ,m_pGateAdjaMan(_GateAdjaMan)
+    ,m_pInputTerm(_terminal)
+    ,CXTResizeDialog(CDlgGateAssignPreference::IDD, pParent)
 {
-	m_pGateAssignmentMgr = m_PreferenceMan->GetGateAssignMgr() ;
+    m_pGateAssignmentMgr = m_PreferenceMan->GetGateAssignMgr();
 }
 
 CDlgGateAssignPreference::~CDlgGateAssignPreference()
@@ -51,7 +58,8 @@ int CDlgGateAssignPreference::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if( CXTResizeDialog::OnCreate(lpCreateStruct)== -1)
 		return -1 ;
-	if (!m_ToolBar.CreateEx(this,  TBSTYLE_FLAT,WS_CHILD|WS_VISIBLE|CBRS_ALIGN_TOP ) ||
+	if (!m_ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP 
+        | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) || 
 		!m_ToolBar.LoadToolBar(IDR_GATE_PREFERENCE))
 	{
 		TRACE0("Failed to create toolbar\n");
@@ -83,12 +91,13 @@ BOOL CDlgGateAssignPreference::OnInitDialog()
 	InitToolBar() ;
     InitTree() ;
 
-	SetResize(IDC_STATIC_TOOLBAR,SZ_TOP_LEFT,SZ_TOP_LEFT);
-	SetResize(m_ToolBar.GetDlgCtrlID(),SZ_TOP_LEFT,SZ_TOP_LEFT) ;
+	SetResize(IDC_STATIC_TOOLBAR,SZ_TOP_LEFT,SZ_TOP_RIGHT);
+	SetResize(m_ToolBar.GetDlgCtrlID(),SZ_TOP_LEFT,SZ_TOP_RIGHT) ;
 	SetResize(IDC_TREE_PREFERENCE,SZ_TOP_LEFT,SZ_BOTTOM_RIGHT) ;
 	SetResize(IDOK,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
 	SetResize(IDCANCEL,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT) ;
     SetResize(IDC_BUTTON_GATE_ADJACENCY, SZ_BOTTOM_LEFT, SZ_BOTTOM_LEFT);
+//    GetDlgItem(IDC_BUTTON_GATE_ADJACENCY)->ShowWindow(FALSE);
 	return TRUE ;
 }
 void CDlgGateAssignPreference::InitTree()
@@ -140,7 +149,7 @@ void CDlgGateAssignPreference::AddPreferenceSubItem(CGatePreferenceSubItem* _ite
 
 	//add duration node 
 	info.nt=NT_NORMAL;
-	info.net = NET_EDIT_INT;
+	info.net = NET_EDITSPIN_WITH_VALUE;
 	CString DurationNode ;
 	DurationNode.Format(_T("Duration: %d(mins)"),_itemData->GetDuration()) ;
 	HTREEITEM DurationItem = m_TreeCtrl.InsertItem(DurationNode,info,TRUE,FALSE,FlightItem) ;
@@ -386,6 +395,18 @@ LRESULT CDlgGateAssignPreference::DefWindowProc(UINT message, WPARAM wParam, LPA
             OnEditButton(_item) ;
 		}
 		break;
+    case UM_CEW_EDITSPIN_BEGIN:
+    case UM_CEW_EDIT_BEGIN:
+        {
+            HTREEITEM hSelItem = (HTREEITEM)wParam;
+            CNodeData* nodedata = (CNodeData*)m_TreeCtrl.GetItemData(m_TreeCtrl.GetParentItem(hSelItem)) ;
+            CGatePreferenceSubItem* SubItem = (CGatePreferenceSubItem*)nodedata->m_Data;
+            CString strItemText;
+            strItemText.Format("%d", SubItem->GetDuration());
+            m_TreeCtrl.GetEditWnd(hSelItem)->SetWindowText(strItemText);
+            ((CEdit*)m_TreeCtrl.GetEditWnd(hSelItem))->SetSel(0, -1, true); 
+        }
+        break;
 	case UM_CEW_EDITSPIN_END:
 	case UM_CEW_EDITWND_END:
 		{
@@ -421,20 +442,20 @@ void CDlgGateAssignPreference::OnOK()
 }
 void CDlgGateAssignPreference::OnCancel()
 {
-	m_PreferenceMan->ReadData(m_pInputTerm) ;
+	m_PreferenceMan->ReadDataFromDB(m_pInputTerm) ;
 	CXTResizeDialog::OnCancel() ;
 }
 
 void CDlgGateAssignPreference::OnBnClickedButtonAdjacency()
 {
-    DlgGateAdjacency dlg(m_PreferenceMan, m_pInputTerm);
+    DlgGateAdjacency dlg(m_pGateAdjaMan, m_pInputTerm);
     dlg.SetGateType((GateType)m_Type);
     dlg.DoModal();
 }
 
 // CDlgGateAssignPreference message handlers
-CDlgArrivalGateAssignPreference::CDlgArrivalGateAssignPreference(CArrivalGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent /* = NULL */)
-:CDlgGateAssignPreference(_PreferenceMan,_terminal,pParent)
+CDlgArrivalGateAssignPreference::CDlgArrivalGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan, GateAdjacencyMan* _GateAdjaMan, InputTerminal* _terminal,CWnd* pParent /* = NULL */)
+:CDlgGateAssignPreference(_PreferenceMan, _GateAdjaMan, _terminal,pParent)
 {
 	m_Type = ArrGate ;
 	m_Caption = _T("Arrival Gate Assignment Constraints") ;
@@ -445,8 +466,8 @@ CString CDlgArrivalGateAssignPreference::FormatGateNodeName(ProcessorID& _id)
 	nodename.Format(_T("Arrival Gate: %s"),_id.GetIDString()) ;
 	return nodename ;
 }
-CDlgDepGateAssignPreference::CDlgDepGateAssignPreference(CDepGateAssignPreferenceMan* _PreferenceMan,InputTerminal* _terminal,CWnd* pParent /* = NULL */)
-:CDlgGateAssignPreference(_PreferenceMan,_terminal,pParent)
+CDlgDepGateAssignPreference::CDlgDepGateAssignPreference(CGateAssignPreferenceMan* _PreferenceMan, GateAdjacencyMan* _GateAdjaMan, InputTerminal* _terminal,CWnd* pParent)
+:CDlgGateAssignPreference(_PreferenceMan, _GateAdjaMan, _terminal,pParent)
 {
 	m_Type = DepGate ;
 	m_Caption = _T("Departure Gate Assignment Constraints") ;

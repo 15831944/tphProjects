@@ -361,7 +361,15 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 		}
 
 		ACTYPEDOORLIST* pAcDoors = m_pAirportDatabase->getAcDoorMan()->GetAcTypeDoorList(szBuffer);
-		if (pAcDoors == NULL || (pAcDoors && pAcDoors->empty()))
+        ACTYPEDOORLIST pUserDoors;
+        pUserDoors.clear();
+        int nCount = (int)pAcDoors->size();
+        for(int i=0; i<nCount; i++)
+        {
+            //if(pAcDoors->at(i)->GetID() != -1)
+                pUserDoors.push_back(pAcDoors->at(i));
+        }
+		if (pUserDoors.empty())
 		{
 			MessageBox("There is no door data about the aircraft type in database!", NULL, MB_OK);
 			return;
@@ -389,23 +397,20 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 		m_wndTreeCtrl.SetItemData(hStandItem, (DWORD_PTR)pStandData);
 		HTREEITEM hDoorItem = m_wndTreeCtrl.InsertItem("Doors used:",cni, FALSE, FALSE, hStandItem, TVI_LAST);
 
-		if (pAcDoors == NULL)
-			return;
-
-		int nDoorCount = pAcDoors->size();
+		int nDoorCount = pUserDoors.size();
 		for (int idx =0; idx < nDoorCount; idx++)
 		{
-		//	CString strName = pAcDoors->at(idx)->m_strName;
+		//	CString strName = pUserDoors.at(idx)->m_strName;
 			std::vector<StandOperatingDoorData::OperationDoor> vDoorOp;
-			int nDoorID = pAcDoors->at(idx)->GetID();
-			if (pStandData->GetDoorOperation(pAcDoors->at(idx),vDoorOp) == true)
+			int nDoorID = pUserDoors.at(idx)->GetID();
+			if (pStandData->GetDoorOperation(pUserDoors.at(idx),vDoorOp) == true)
 			{
 				int nHandCount = (int)vDoorOp.size();
 				for(int iHand = 0; iHand < nHandCount; iHand++)
 				{
 					StandOperatingDoorData::OperationDoor doorOp = vDoorOp.at(iHand);
 					CString strName;
-					strName.Format(_T("%s(%s)"),pAcDoors->at(idx)->m_strName,doorOp.GetHandTypeString());
+					strName.Format(_T("%s(%s)"),pUserDoors.at(idx)->m_strName,doorOp.GetHandTypeString());
 					HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
 					StandOperatingDoorData::OperationDoor* pNodeData = new StandOperatingDoorData::OperationDoor();
 					pNodeData->m_nID = nDoorID;
@@ -415,8 +420,8 @@ void DlgOperatingDoorSpecification::AddNewFltItem()
 					m_wndTreeCtrl.SetItemData(hDetail,(DWORD)pNodeData);
 				}
 			}
-//			pStandData->AddDoorOperation(pAcDoors->at(idx));
-//			int nDoorID = pAcDoors->at(idx)->GetID();
+//			pStandData->AddDoorOperation(pUserDoors.at(idx));
+//			int nDoorID = pUserDoors.at(idx)->GetID();
 //// 			pStandData->AddOpDoor(nDoorID);
 //			HTREEITEM hDetail = m_wndTreeCtrl.InsertItem(strName,cni, FALSE, FALSE, hDoorItem, TVI_LAST);
 //			m_wndTreeCtrl.SetItemData(hDetail,nDoorID);

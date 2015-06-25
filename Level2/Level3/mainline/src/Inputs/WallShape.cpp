@@ -19,10 +19,11 @@ static void RenderFlatSquare(double x, double y, double z, double size) {
 	glEnd();
 	glPopMatrix();
 }
-inline static void  RenderSolidPath(const std::vector<Point> & path_,DistanceUnit width_ ,DistanceUnit height_){
-	//caculate the width segment
+inline static void  RenderSolidPath(const std::vector<Point> & path_,DistanceUnit width_ ,DistanceUnit height_)
+{
+	//calculate the width segment
 	int nptCount=path_.size();	
-	if(nptCount<1)return;
+	if(nptCount<2)return;
 
 	ShapeGenerator::widthPath widthpath;
 	Path thepath;
@@ -50,31 +51,31 @@ inline static void  RenderSolidPath(const std::vector<Point> & path_,DistanceUni
 	
 	glBegin(GL_QUADS);
 	
-	int ii=0;
-	for(;ii<(int) widthpath.leftpts.size()-1;++ii)
-	{
-		ARCVector3 v1(widthpath.leftpts[ii],widthpath.leftpts[ii+1]);
-		ARCVector3 vnor = v1^ARCVector3(0,0,1);
-		vnor.Normalize();
-		glNormal3dv(vnor);
-		glVertex3dv(widthpath.leftpts[ii] + vheight);glVertex3dv(widthpath.leftpts[ii]);
-		glVertex3dv(widthpath.leftpts[ii+1]);glVertex3dv(widthpath.leftpts[ii+1] + vheight);
-		glNormal3dv(-vnor);
-		glVertex3dv(widthpath.rightpts[ii]);glVertex3dv(widthpath.rightpts[ii] + vheight);
-		glVertex3dv(widthpath.rightpts[ii+1] + vheight);glVertex3dv(widthpath.rightpts[ii+1]);
-	}
-	if(nptCount<2) 
-		return;
+		int ii=0;
+		for(;ii<(int) widthpath.leftpts.size()-1;++ii)
+		{
+			ARCVector3 v1(widthpath.leftpts[ii],widthpath.leftpts[ii+1]);
+			ARCVector3 vnor = v1^ARCVector3(0,0,1);
+			vnor.Normalize();
 
-	glNormal3dv(widthpath.leftpts[ii]- widthpath.leftpts[ii-1]);
+			glNormal3dv(vnor);
+			glVertex3dv(widthpath.leftpts[ii] + vheight);glVertex3dv(widthpath.leftpts[ii]);
+			glVertex3dv(widthpath.leftpts[ii+1]);glVertex3dv(widthpath.leftpts[ii+1] + vheight);
+
+			glNormal3dv(-vnor);
+			glVertex3dv(widthpath.rightpts[ii]);glVertex3dv(widthpath.rightpts[ii] + vheight);
+			glVertex3dv(widthpath.rightpts[ii+1] + vheight);glVertex3dv(widthpath.rightpts[ii+1]);
+		}
+		glNormal3dv( (widthpath.leftpts[ii]- widthpath.leftpts[ii-1]).Normalize() );	
+		glVertex3dv(widthpath.rightpts[ii]);glVertex3dv(widthpath.rightpts[ii] + vheight);
+		glVertex3dv(widthpath.leftpts[ii] + vheight);glVertex3dv(widthpath.leftpts[ii]);
 	
-	glVertex3dv(widthpath.rightpts[ii]);glVertex3dv(widthpath.rightpts[ii] + vheight);
-	glVertex3dv(widthpath.leftpts[ii] + vheight);glVertex3dv(widthpath.leftpts[ii]);
-	
-	ARCVector3 vnormal = widthpath.leftpts[0] - widthpath.leftpts[1];
-	glNormal3dv(vnormal);
-	glVertex3dv(widthpath.rightpts[0]);glVertex3dv(widthpath.leftpts[0]);
-	glVertex3dv(widthpath.leftpts[0] + vheight);glVertex3dv(widthpath.rightpts[0] + vheight );
+		ARCVector3 vnormal = widthpath.leftpts[0] - widthpath.leftpts[1];
+		glNormal3dv(vnormal.Normalize());
+
+		glVertex3dv(widthpath.rightpts[0]);glVertex3dv(widthpath.leftpts[0]);
+		glVertex3dv(widthpath.leftpts[0] + vheight);glVertex3dv(widthpath.rightpts[0] + vheight );
+
 	glEnd();
 
 	/*vnormal = widthpath.leftpts[nptCount-1] - widthpath.leftpts[nptCount-2];
@@ -83,10 +84,6 @@ inline static void  RenderSolidPath(const std::vector<Point> & path_,DistanceUni
 	glVertex3dv(widthpath.leftpts[nptCount-1] + vheight);glVertex3dv(widthpath.rightpts[nptCount-1] + vheight );
 	glEnd();
 	*/
-
-
-
-
 }
 
 WallShape::WallShape(void)
@@ -100,7 +97,10 @@ WallShape::WallShape(void)
 
 	m_bInEditMode=false;
 	m_bDirtflag=true;
-	m_displaylist=-1;
+
+	//m_displaylist=-1;
+	//m_floordisplaylist=-1;
+
 	m_path.clear();
 
 	//Default setting
@@ -109,87 +109,89 @@ WallShape::WallShape(void)
 	m_dispProperties.bDisplay[WSDP_DISP_PROCNAME] = FALSE;
 	m_dispProperties.color[WSDP_DISP_PROCNAME] = RGB(0,0,0);
 }
-void WallShape::DrawOGL(bool drawfloor){
-	if(!m_dispProperties.bDisplay[WSDP_DISP_SHAPE])return;
+void WallShape::DrawOGL(bool drawfloor)
+{
+	if(!m_dispProperties.bDisplay[WSDP_DISP_SHAPE])
+		return;
+
 	glDisable(GL_TEXTURE_2D);
-	GenDisplayList();
+	//GenDisplayList();
 	//call display list ;
 	if(m_bInEditMode){
 		//draw outline and edit line;
 		glDisable(GL_LIGHTING);	
 		glColor3ubv(m_dispProperties.color[WSDP_DISP_SHAPE]);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glCallList(m_displaylist);
+			RenderSolidPath(m_path,m_width,m_height);
+
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		for(size_t i=0;i<m_path.size();++i){
-			
+		for(size_t i=0;i<m_path.size();++i)
+		{		
 			RenderFlatSquare(m_path[i].getX(),m_path[i].getY(),0.0,m_width);
-			/*glPointSize(10.0);
-			glBegin(GL_POINTS);
-			glVertex3d(m_path[i].getX(),m_path[i].getY(),0.0);
-			glEnd();*/
 		}
 
 	}else{
 		//draw the solid cube;
 		
 		glColor3ubv(m_dispProperties.color[WSDP_DISP_SHAPE]);
-		glCallList(m_displaylist);
-		if(drawfloor){
+		RenderSolidPath(m_path,m_width,m_height);
+		/*if(drawfloor){
 			glCallList(m_floordisplaylist);
 			glPushMatrix();
 			glTranslated(0,0,GetHeight());
 			glCallList(m_floordisplaylist);
 			glPopMatrix();
-		}
+		}*/
 		
 		
 	}
 
 }
 void WallShape::DrawSelectArea(){
-	GenDisplayList();
+	//GenDisplayList();
 	//call display list ;
-	glCallList(m_displaylist);
-
-}
-void WallShape::GenDisplayList() {
-	glDeleteLists(m_displaylist,1);
-	m_displaylist=glGenLists(1);
-	glNewList(m_displaylist,GL_COMPILE);
-	//draw the shape here;
+	//glCallList(m_displaylist);
 	RenderSolidPath(m_path,m_width,m_height);
-	glEndList();
-	//draw floor
-	glDeleteLists(m_floordisplaylist,1);
-	m_floordisplaylist = glGenLists(1);
-	glNewList(m_floordisplaylist,GL_COMPILE);
-	glDisable(GL_CULL_FACE);
-	std::vector<ARCVector3> ptsbuf;
-	ptsbuf.resize(m_path.size());
-	for(size_t i=0;i<m_path.size();i++){
-		
-		ptsbuf[i] = ARCVector3(m_path[i].getX(),m_path[i].getY(),0);
-	}
-	glNormal3d(0,0,1);
-	CTessellationManager* pTM = CTessellationManager::GetInstance();
-	pTM->Init(CTessellationManager::Render);	
-	pTM->BeginPolygon();
-	pTM->BeginContour();
-	for(size_t i=0;i<ptsbuf.size();i++){
-		pTM->ContourVertex(ptsbuf[i]);
-	}		
-	pTM->EndContour();
-	pTM->EndPolygon();
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glEndList();
 
-	m_bDirtflag=false;
 }
+//void WallShape::GenDisplayList()
+//{
+//	glDeleteLists(m_displaylist,1);
+//	m_displaylist=glGenLists(1);
+//	glNewList(m_displaylist,GL_COMPILE);
+//	//draw the shape here;
+//	RenderSolidPath(m_path,m_width,m_height);
+//	glEndList();
+//	//draw floor
+//	/*glDeleteLists(m_floordisplaylist,1);
+//	m_floordisplaylist = glGenLists(1);
+//	glNewList(m_floordisplaylist,GL_COMPILE);
+//	glDisable(GL_CULL_FACE);
+//	std::vector<ARCVector3> ptsbuf;
+//	ptsbuf.resize(m_path.size());
+//	for(size_t i=0;i<m_path.size();i++){
+//
+//	ptsbuf[i] = ARCVector3(m_path[i].getX(),m_path[i].getY(),0);
+//	}
+//	glNormal3d(0,0,1);
+//	CTessellationManager* pTM = CTessellationManager::GetInstance();
+//	pTM->Init(CTessellationManager::Render);	
+//	pTM->BeginPolygon();
+//	pTM->BeginContour();
+//	for(size_t i=0;i<ptsbuf.size();i++){
+//	pTM->ContourVertex(ptsbuf[i]);
+//	}		
+//	pTM->EndContour();
+//	pTM->EndPolygon();
+//	glEnable(GL_CULL_FACE);
+//	glCullFace(GL_BACK);
+//	glEndList();*/
+//
+//	m_bDirtflag=false;
+//}
 WallShape::~WallShape(void)
 {
-	glDeleteLists(m_displaylist,1);
+	//glDeleteLists(m_displaylist,1);
 }
 
 void WallShape::SetTerminal( Terminal* _pTerm )

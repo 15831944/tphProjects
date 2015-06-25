@@ -302,7 +302,7 @@ ARCVector3 operator ^ ( const ARCVector2& _v, const ARCVector2& _u )		// v x u (
 ARCVector3& ARCVector3::Normalize()
 {
 	DistanceUnit dMag = Magnitude();
-	if(dMag) {
+	if(dMag>0) {
 		n[VX] /= dMag;
 		n[VY] /= dMag;
 		n[VZ] /= dMag;

@@ -14,6 +14,7 @@
 #include "Inputs\GateAssignmentMgr.h"
 #include "../Database/ADODatabase.h"
 #include "../Inputs/StandAssignmentMgr.h"
+#include "../Inputs/TerminalGateAssignmentMgr.h"
 
 #define ID_GATEASSIGN_ARRIVAL_MENU	20000		// use to define arrival gate
 #define ID_GATEASSIGN_DEPATURE_MENU	21000		// use to define departure gate
@@ -458,6 +459,21 @@ bool CGateAssignDlg::DisplayDrageErrorMessage(long lIdx,CString& strError)
 	return true;
 }
 
+bool CGateAssignDlg::DisplayGateAssignErrorMessage(long Idx, CString& strError)
+{
+	TerminalGateAssignmentMgr* pTerminalGateAssignMgr = (TerminalGateAssignmentMgr*)m_pGateAssignmentMgr;
+	GateDefineType emType = GetGateDefineType();
+	if (emType == ArrGateType)
+	{
+		pTerminalGateAssignMgr->ProcessAssignFailedError(Idx,ARR_OP,strError);
+	}
+	else if(emType == DepGateType)
+	{
+		pTerminalGateAssignMgr->ProcessAssignFailedError(Idx,DEP_OP,strError);
+	}
+	return true;
+}
+
 void CGateAssignDlg::OnLButtonUp(UINT nFlags, CPoint point) 
 {
 	// TODO: Add your message handler code here and/or call default
@@ -479,17 +495,10 @@ void CGateAssignDlg::OnLButtonUp(UINT nFlags, CPoint point)
 				if (GetGateDefineType() == StandType)
 				{
 					DisplayDrageErrorMessage(lIdx,strInfo);
-// 					if (nFailedCount == 1)
-// 						strInfo = _T("A flight cannot be assigned to the gate!");
-// 					else
-// 						strInfo.Format("%d flights cannot be assigned to the gate!",nFailedCount);
 				}
 				else
 				{
-					if (nFailedCount == 1)
-						strInfo = _T("The flight cannot be assigned to this gate because it conflicts with an existing assignment!");
-					else
-						strInfo.Format("%d flights cannot be assigned to the gate because they conflict with existing assignments!",nFailedCount);
+					DisplayGateAssignErrorMessage(lIdx,strInfo);
 				}
 				MessageBox( strInfo,NULL,MB_OK|MB_ICONINFORMATION );
 			}
@@ -928,7 +937,44 @@ void CGateAssignDlg::OnCheckFlightOperationMoveGtchartctral(long nLineIndexFrom,
 		CFlightOperationForGateAssign flight = pGate->GetFlight( lFlightData );
 		flight.SetSelected(true);
 
-		*pnLineData = m_pGateAssignmentMgr->IsFlightOperationFitInGate(nLineIndexTo,&flight)?1:0;
+		if (GetGateDefineType() != StandType)
+		{
+			TerminalGateAssignmentMgr* pTerminalGateAssginMgr = (TerminalGateAssignmentMgr*)m_pGateAssignmentMgr;
+			CString strError;
+			
+			*pnLineData = pTerminalGateAssginMgr->CheckFlightOperationFitInGate(nLineIndexTo,&flight,strError)?1:0;
+		}
+		else
+		{
+			*pnLineData = m_pGateAssignmentMgr->IsFlightOperationFitInGate(nLineIndexTo,&flight)?1:0;
+		}
+	}
+}
+
+void CGateAssignDlg::InsertGateAssignment( long nLineIndexTo,CAssignGate* pGate,CFlightOperationForGateAssign* flightOp )
+{
+	ElapsedTime eDurationTime = flightOp->GetEndTime() - flightOp->GetStartTime();
+	long lSeverTime = eDurationTime.asMinutes();	   
+	long lBegineTime = flightOp->GetStartTime().asMinutes();
+	long lIdx;
+	char szItem[256];
+	flightOp->getFlight()->getFlightIDString(szItem);
+	COLORREF colorBegin;
+	COLORREF colorEnd;
+	if(flightOp->getFlight()->getFlightType() == ItinerantFlightType)
+	{
+		colorBegin = RGB(204,255,204);
+		colorEnd = RGB(150,200,156);
+	}
+	else
+	{
+		colorBegin =RGB(255,255,255);; 
+		colorEnd = RGB(132,163,195);
+	}
+	if( m_gtcharCtrl.AddItem( &lIdx,nLineIndexTo, szItem,NULL,lBegineTime,lSeverTime ,true,colorBegin,colorEnd) == 0)	// add the item
+	{
+		pGate->AddFlight( *flightOp);
+		m_gtcharCtrl.SetItemData( lIdx, pGate->GetFlightCount()-1);
 	}
 }
 
@@ -945,17 +991,18 @@ void CGateAssignDlg::OnItemMovedGtchartctrl(long nLineIndexFrom, long nLineIndex
 		assert( pGate );		// from gate
 
 		CFlightOperationForGateAssign flight = pGate->GetFlight( lFlightData );
-
-		// remove from flight the gate
-		pGate->RemoveFlight( lFlightData );
-		// fresh_line
-		m_gtcharCtrl.ResetItemDataOfLine( nLineIndexFrom );
+		int nItemIdx = m_pGateAssignmentMgr->m_vectGate[nLineIndexFrom]->GetFlightIdx(flight);
+ 		// remove from flight the gate
+ 		pGate->RemoveFlight( lFlightData );
+ 		// fresh_line
+ 	   m_gtcharCtrl.ResetItemDataOfLine( nLineIndexFrom );
 
 		//////////////////////////////////////////////////////////////////////////
 		//then add the flight to the to_line, and fresg_line
 		pGate = m_pGateAssignmentMgr->GetGate( nLineIndexTo );
 		assert( pGate );
-
+		int nItemData = m_gtcharCtrl.GetItemNumOfLine(nLineIndexTo) - 1 ;
+		m_gtcharCtrl.SetItemData( nItemIndex, nItemData );
 		FlightForAssignment* pFlight = flight.GetAssignmentFlight();
 		if (flight.getOpType() == INTPAKRING_OP)
 		{
@@ -970,6 +1017,18 @@ void CGateAssignDlg::OnItemMovedGtchartctrl(long nLineIndexFrom, long nLineIndex
 				if (flight.getOpType() == _pflight->getOpType())
 				{
 					_pflight->SetGateIdx(nLineIndexTo);
+					if (GetGateDefineType() == ArrGateType)
+					{
+						TerminalGateAssignmentMgr* pTerminalGateAssignMgr = (TerminalGateAssignmentMgr*)m_pGateAssignmentMgr;
+						if(pTerminalGateAssignMgr->SetFlightDurationTime(nLineIndexTo,_pflight))
+						{
+							m_pGateAssignmentMgr->m_vectGate[nLineIndexFrom]->RemoveAssignedFlight(*_pflight);
+							m_gtcharCtrl.DelItem(nLineIndexTo,nItemData);
+							m_gtcharCtrl.ResetItemDataOfLine(nLineIndexTo);
+							m_btnSave.EnableWindow(TRUE);
+							return InsertGateAssignment(nLineIndexTo,pGate,_pflight);
+						}
+					}
 				}
 			}
 
@@ -979,6 +1038,19 @@ void CGateAssignDlg::OnItemMovedGtchartctrl(long nLineIndexFrom, long nLineIndex
 				if (flight.getOpType() == _pflight->getOpType())
 				{
 					_pflight->SetGateIdx(nLineIndexTo);
+					if (GetGateDefineType() == DepGateType)
+					{
+						TerminalGateAssignmentMgr* pTerminalGateAssignMgr = (TerminalGateAssignmentMgr*)m_pGateAssignmentMgr;
+						if(pTerminalGateAssignMgr->SetFlightDurationTime(nLineIndexTo,_pflight))
+						{
+							m_pGateAssignmentMgr->m_vectGate[nLineIndexFrom]->RemoveAssignedFlight(*_pflight);
+							m_gtcharCtrl.DelItem(nLineIndexTo,nItemData);
+							m_gtcharCtrl.ResetItemDataOfLine(nLineIndexTo);
+							m_btnSave.EnableWindow(TRUE);
+							return InsertGateAssignment(nLineIndexTo,pGate,_pflight);
+						}
+					
+					}
 				}
 			}			
 		}
