@@ -31,7 +31,7 @@ private:
 
 	bool Draw3DChart(CComparativeQTimeReport& _reportData,int nSubType);
 	bool Draw3DChart(CComparativeQLengthReport& _reportData,int nSubType);
-	bool Draw3DChart(CComparativeThroughputReport& _reportData);
+	bool Draw3DChart(CComparativeThroughputReport& _reportData,int nSubType);
 	bool Draw3DChart(CComparativeSpaceDensityReport& _reportData);
 	bool Draw3DChart(CComparativePaxCountReport& _reportData);
 	bool Draw3DChart(CComparativeAcOperationReport& _reportData);

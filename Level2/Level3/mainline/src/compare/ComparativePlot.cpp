@@ -76,7 +76,7 @@ bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData,int nSubType)
 			bResult = Draw3DChart((CComparativeQLengthReport&)_reportData,nSubType);
 			break;
 		case ThroughtputReport:
-			bResult = Draw3DChart((CComparativeThroughputReport&)_reportData);
+			bResult = Draw3DChart((CComparativeThroughputReport&)_reportData, nSubType);
 			break;
 		case SpaceDensityReport:
 			bResult = Draw3DChart((CComparativeSpaceDensityReport&)_reportData);
@@ -529,9 +529,9 @@ bool CComparativePlot::Draw3DChart(CComparativeQLengthReport& _reportData,int nS
 	return true;
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData)
+bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, int nSubType)
 {
-	const std::vector<CompThroughputData>& vData = _reportData.GetResult();
+	const std::vector<CmpThroughputData>& vData = _reportData.GetResult();
 	C2DChartData c2dGraphData;
 	// Update Title
 	c2dGraphData.m_strChartTitle = _T(" Throughput Report ");
@@ -545,7 +545,7 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData)
 	// Alloc data space
 	if( vData.size()>0)
 	{
-		int simCount = vData.begin()->vPaxServed.size();
+		int simCount = vData.begin()->m_vPaxServed.size();
 		std::vector<double> vSimData(vData.size());
 		vSimData.clear();
 		for(int nSim = 0; nSim < simCount; nSim++)
@@ -568,21 +568,44 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData)
 	CString sTime;
 	int nXTick = 0;
 
-	for(std::vector<CompThroughputData>::const_iterator iterLine = vData.begin(); 
+	for(std::vector<CmpThroughputData>::const_iterator iterLine = vData.begin(); 
 		iterLine != vData.end(); iterLine++, nXTick++)
 	{
 		//set row label
-		ElapsedTime t = iterLine->etStart;
+		ElapsedTime t = iterLine->m_startTime;
 		t.set(t.asSeconds() % WholeDay);
 		XTickTitle = t.printTime(0);
 		XTickTitle += "~";
-		t = iterLine->etEnd;
+		t = iterLine->m_endTime;
 		t.set(t.asSeconds() % WholeDay);
 		XTickTitle += t.printTime(0);
 		vXTickTitle.push_back(XTickTitle);
 		//set data
-		const std::vector<int>& vLength = iterLine->vPaxServed;
-		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		std::vector<int> vLength;
+		switch(nSubType)
+		{
+		case CComparativeThroughputReport::MIN_QLENGTH:
+			vLength = iterLine->m_vPaxServed;
+			break;
+		case CComparativeThroughputReport::AVA_QLENGTH:
+			vLength = iterLine->m_v1;
+			break;
+		case CComparativeThroughputReport::MAX_QLENGTH:
+			vLength = iterLine->m_v2;
+			break;
+		case CComparativeThroughputReport::TOTAL_QLENGTH:
+			vLength = iterLine->m_v3;
+			break;
+		case CComparativeThroughputReport::QUEUELENGTH_TYPE:
+			vLength = iterLine->m_v4;
+			break;
+		default:
+			break;
+		}
+		
+		int nSegCount = (int)vLength.size();
+		ASSERT(nSegCount == simNameCount);
+		for(int nSeg = 0; nSeg < nSegCount; nSeg++)
 		{
 			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
 		}

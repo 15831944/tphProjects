@@ -265,7 +265,7 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
 		{
 			if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
 			{
-				int nIdx = m_comboRepSubType.AddString("Queue Length(\"Detailed\")");
+				int nIdx = m_comboRepSubType.AddString("Queue Length(Detailed)");
 				m_comboRepSubType.SetItemData(nIdx,CComparativeQLengthReport::QUEUELENGTH_TYPE);
 
 				m_comboRepSubType.SetCurSel(0);

@@ -439,9 +439,9 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 	//set header control
 	TCHAR sData[32]	= _T("");
 	int nColCount = 0;
-	m_listCtrl.InsertColumn( 0 , _T("Start Time"), LVCFMT_CENTER, 100); 
+	m_listCtrl.InsertColumn(0, _T("Start Time"), LVCFMT_CENTER, 100); 
 	nColCount++;
-	m_listCtrl.InsertColumn( 1, _T("End Time"), LVCFMT_CENTER, 100);
+	m_listCtrl.InsertColumn(1, _T("End Time"), LVCFMT_CENTER, 100);
 	nColCount++;
 
 	CString strColText;
@@ -454,17 +454,17 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 	}
 	//set list control
 	int nRow = 0, nCol =0;
-	std::vector<CompThroughputData> vData = _reportData.GetResult();
-	for(std::vector<CompThroughputData>::const_iterator iterLine = vData.begin(); 
+	std::vector<CmpThroughputData> vData = _reportData.GetResult();
+	for(std::vector<CmpThroughputData>::const_iterator iterLine = vData.begin(); 
 		iterLine != vData.end(); iterLine++, nRow++)
 	{
-		iterLine->etStart.printTime(sData);
+		iterLine->m_startTime.printTime(sData);
 		CString str = GetRegularDateTime(sData, TRUE);
 		nCol = 0;
 		m_listCtrl.InsertItem(nRow, str);
 		nCol++;
 
-		iterLine->etEnd.printTime(sData);
+		iterLine->m_endTime.printTime(sData);
 		str = GetRegularDateTime(sData, TRUE);
 		m_listCtrl.SetItemText(nRow, nCol, str);
 		nCol++;
@@ -475,9 +475,11 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 // 			_stprintf(sData, "%d", *iterLength );
 // 			m_listCtrl.SetItemText(nRow, nCol, sData );
 // 		}
-		for(int i=0; i<(int)vSimName.size(); i++)
+		int nDataInPaxServed = static_cast<int>(iterLine->m_vPaxServed.size());
+		ASSERT(nDataInPaxServed == (int)vSimName.size());
+		for(int i=0; i<nDataInPaxServed; i++)
 		{
-			strColText = vSimName[i];
+			strColText.Format("%d", iterLine->m_vPaxServed[i]);
 			m_listCtrl.SetItemText(nRow, nCol, strColText);
 			nCol ++;
 		}
