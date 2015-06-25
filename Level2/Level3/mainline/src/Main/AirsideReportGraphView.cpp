@@ -1050,6 +1050,15 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 				pParam->setSubType(nSubType);
 
 
+				std::vector<int> vReportRun;
+				if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+				{
+					if (vReportRun.size() > 1)
+					{
+						GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+						return;
+					}
+				}
 				CAirsideFlightStandOperationReport *pPreport = reinterpret_cast<CAirsideFlightStandOperationReport *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 				pPreport->RefreshReport(pParam);
 
@@ -1088,6 +1097,15 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 				CFlightStandOperationParameter *pParam = reinterpret_cast<CFlightStandOperationParameter *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 				pParam->setSubType(nSubType);
 
+                std::vector<int> vReportRun;
+                if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+                {
+                    if (vReportRun.size() > 1)
+                    {
+                        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+                        return;
+                    }
+                }
 				CAirsideFlightStandOperationReport *pPreport = reinterpret_cast<CAirsideFlightStandOperationReport *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 				pPreport->RefreshReport(pParam);
 

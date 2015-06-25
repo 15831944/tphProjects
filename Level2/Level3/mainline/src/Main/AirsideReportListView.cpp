@@ -211,7 +211,7 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 					CFlightStandOperationParameter* pStandPara = (CFlightStandOperationParameter*)pParameter;
 					if (pStandPara->getReportType() == ASReportType_Detail)
 					{
-						pStandPara->setSubType(CAirsideFlightStandOperationReport::ChartType_Detail_Delay);
+						pStandPara->setSubType(CAirsideFlightStandOperationReport::ChartType_Detail_Occupancy);
 					}
 					else 
 					{
