@@ -24,11 +24,12 @@ public:
 	~BoardingCallFlightTypeDatabase();
 
 public:
-	void AddFlightType(FlightConstraint* pFlight, InputTerminal* _pInTerm);
+	void AddFlightType(FlightConstraint* pfltConst, InputTerminal* _pInTerm);
 	void AddFlightFor260OrOlder(FlightConWithProcIDDatabase* pOldStage, InputTerminal* _pInTerm);
 
 	void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm, int fltTypeCount);
 	void writeDatabase(ArctermFile& p_file);
 	virtual void deleteItem(ConstraintEntry* pConst);
+	int findItemByConstraint(FlightConstraint* pfltConst);
 };
 

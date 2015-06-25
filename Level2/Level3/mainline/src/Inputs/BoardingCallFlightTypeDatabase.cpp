@@ -36,13 +36,13 @@ void BoardingCallFlightTypeDatabase::AddFlightType(FlightConstraint* pInFlightCo
 	}
 	else
 	{
-		pFlightConstraint->SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP); /* Set 'Flight Type': DEFAULT */
+		pFlightConstraint->SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP); /* Set 'Flight Type': DEPARTING */
 		pFlightConstraint->SetAirportDB(_pInTerm->m_pAirportDB);
 	}
 	BoardingCallFlightTypeEntry* flightEntry = new BoardingCallFlightTypeEntry();
 	flightEntry->initialize(pFlightConstraint, NULL);
 	flightEntry->GetStandDatabase()->AddStand(NULL, _pInTerm);
-	addEntry(flightEntry, true);/* Replace if exists. */
+	addEntry(flightEntry);
 }
 
 // For version 2.6 or older.
@@ -98,4 +98,15 @@ void BoardingCallFlightTypeDatabase::writeDatabase(ArctermFile& p_file)
 		
 		pFlightEntry->GetStandDatabase()->writeDatabase(p_file);
 	}
+}
+
+int BoardingCallFlightTypeDatabase::findItemByConstraint(FlightConstraint* pfltConst)
+{
+	int count = getCount();
+	for(int i=0; i<count; i++)
+	{
+		if((*getItem(i)->getConstraint()) == *pfltConst)
+			return count;
+	}
+	return INT_MAX;
 }

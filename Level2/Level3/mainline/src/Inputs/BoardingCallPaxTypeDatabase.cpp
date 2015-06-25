@@ -125,7 +125,7 @@ void BoardingCallPaxTypeDatabase::deleteItem( ConstraintEntry* pConst )
 	delete pConst;
 }
 
-void BoardingCallPaxTypeDatabase::AddPaxType(CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm, BOOL bDefault)
+void BoardingCallPaxTypeDatabase::AddPaxType(CMobileElemConstraint* pInputConst, InputTerminal* _pInTerm)
 {
 	CMobileElemConstraint* pMBConst = new CMobileElemConstraint();
 	if(pInputConst)

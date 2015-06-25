@@ -320,11 +320,10 @@ void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREE
 	nodeDataAll->m_data = NULL;
 	m_tree.SetItemData(hTriggerAll, (DWORD)nodeDataAll);
 
-	ReloadAllTriggers(vTriggers, hTriggerAll);
-
+	ReloadTriggers(vTriggers, hTriggerAll);
 }
 
-void CBoardingCallDlg::ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll)
+void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll)
 {
 	RemoveTreeSubItem(hTriggerAll);
 	COOLTREE_NODE_INFO cni;
@@ -355,6 +354,7 @@ void CBoardingCallDlg::ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTrig
 		// Add proportion.
 		if(triggerIndex != triggerCount-1)
 		{
+			// user define trigger.
 			double prop = trigger->GetTriggerProportion();
 			strProp.Format("Proportion of Pax: %.2f", prop);
 			nodeDataTrigger = new TreeNodeDataWithType();
@@ -365,6 +365,7 @@ void CBoardingCallDlg::ReloadAllTriggers(std::vector<BoardingCallTrigger>* vTrig
 		}
 		else
 		{
+			// the 'residual' trigger.
 			double prop = trigger->GetTriggerProportion();
 			cni.net = NET_NORMAL;
 			strProp = "Proportion of Pax: Residual";
@@ -457,12 +458,25 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	fltConst.SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
 	CFlightDialog flightTypeDlg(m_pParentWnd);
 	flightTypeDlg.CustomizeDialog(fltConst, ENUM_DIALOG_TYPE_BOARDING_CALL);
-	if( flightTypeDlg.DoModal() == IDOK )
+	while( flightTypeDlg.DoModal() == IDOK )
 	{
 		fltConst = flightTypeDlg.GetFlightSelection();
-		pFlightTypeDB->AddFlightType(&fltConst, GetInputTerminal());
-		ReloadStage(pFlightTypeDB, hSelItem);
-		m_tree.Expand(hSelItem, TVE_EXPAND);
+		if(pFlightTypeDB->findItemByConstraint(&fltConst) != INT_MAX)
+		{
+			int b_YesNo = MessageBox("Selected Flight Type is already exists, select again?", NULL, MB_YESNO|MB_ICONWARNING);
+			if(b_YesNo == IDNO)
+			{
+				break;
+			}
+		}
+		else 
+		{
+			pFlightTypeDB->AddFlightType(&fltConst, GetInputTerminal());
+			ReloadStage(pFlightTypeDB, hSelItem);
+			m_tree.Expand(hSelItem, TVE_EXPAND);
+			m_btnSave.EnableWindow(TRUE);
+			break;
+		}
 	}
 }
 
@@ -488,17 +502,26 @@ void CBoardingCallDlg::OnToolbarButtonAddStand()
 void CBoardingCallDlg::OnToolbarButtonAddPaxType()
 {
 	HTREEITEM hSelItem = m_tree.GetSelectedItem();
-	TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-	ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
 
-	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+	HTREEITEM hParFltTypeItem = m_tree.GetParentItem(hSelItem);
+	TreeNodeDataWithType* pData = (TreeNodeDataWithType*)m_tree.GetItemData(hParFltTypeItem);
+	ASSERT(pData->m_type == TREE_NODE_FLIGHT_TYPE);
+	BoardingCallFlightTypeEntry* pFltTypeEntry = (BoardingCallFlightTypeEntry*)pData->m_data;
+
+	CMobileElemConstraint mobElemConst;
+	mobElemConst.SetInputTerminal(GetInputTerminal());
+	mobElemConst.MergeFlightConstraint((FlightConstraint*)pFltTypeEntry->getConstraint());
 
 	CPassengerTypeDialog paxTypeDlg(m_pParentWnd);
 	if(paxTypeDlg.DoModal() == IDOK)
 	{
-		CMobileElemConstraint mobileConst = paxTypeDlg.GetMobileSelection();
-		mobileConst.SetInputTerminal(GetInputTerminal());
-		pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobileConst, NULL);
+		mobElemConst = paxTypeDlg.GetMobileSelection();
+		mobElemConst.SetInputTerminal(GetInputTerminal());
+
+		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pDataWithType->m_type == TREE_NODE_STAND);
+		BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pDataWithType->m_data;
+		pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobElemConst, NULL);
 		ReloadStand(pStandEntry, hSelItem);
 		m_tree.Expand(hSelItem, TVE_EXPAND);
 		m_btnSave.EnableWindow(TRUE);
@@ -514,7 +537,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 	if(hSelItem == m_hRoot)
 	{
 		//Delete All Stages
-		BOOL b_YesNo = MessageBox("Delete All Stages?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
+		int b_YesNo = MessageBox("Delete All Stages?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
 		if(b_YesNo == IDYES)
 		{
 			// Check if boarding call stage is used in Behavior.
@@ -557,7 +580,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			{
 				MiscData* pMiscData = ((MiscDataElement*)pMiscDB->getItem( nProcIdx ))->getData();
 				long lStageNumber= ((MiscHoldAreaData*)pMiscData)->GetStageNumber();
-				if (lStageNumber >= GetInputTerminal()->flightData->GetStageCount())
+				if (lStageNumber >= GetInputTerminal()->flightData->GetStageCount() && lStageNumber!=1)
 				{
 					CString strTemp;
 					strTemp.Format(_T("Boarding Calls Stage can't less than %d"), lStageNumber);
@@ -752,19 +775,44 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 
 			CFlightDialog flightTypeDlg(m_pParentWnd);
 			flightTypeDlg.CustomizeDialog(*pOldConst, ENUM_DIALOG_TYPE_BOARDING_CALL);
-			if(flightTypeDlg.DoModal() == IDOK)
-			{
-				*pOldConst = flightTypeDlg.GetFlightSelection();
 
-				// Reload all sibling item.
-				HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
-				ASSERT(pParentData->m_type == TREE_NODE_STAGE);
-				BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)(pParentData->m_data);
-				ReloadStage(pFlightTypeDB, hStageItem);
-				m_tree.SelectItem(hStageItem);
-				m_tree.Expand(hStageItem, TVE_EXPAND);
-				m_btnSave.EnableWindow(TRUE);
+			HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
+			TreeNodeDataWithType* pParData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
+			if(!pParData)
+				return;
+			ASSERT(pParData->m_type == TREE_NODE_STAGE);
+			BoardingCallFlightTypeDatabase* pfltTypeDB = (BoardingCallFlightTypeDatabase*)pParData->m_data;
+
+			while(flightTypeDlg.DoModal() == IDOK)
+			{
+				FlightConstraint fltConst = flightTypeDlg.GetFlightSelection();
+				if(*pOldConst == fltConst)
+				{
+					break;
+				}
+				else if(pfltTypeDB->findItemByConstraint(&fltConst) != INT_MAX)
+				{
+					int b_YesNo = MessageBox("Selected Flight Type is already exists, select again?", NULL, MB_YESNO|MB_ICONWARNING);
+					if(b_YesNo == IDNO)
+					{
+						break;
+					}
+				}
+				else
+				{
+					*pOldConst = fltConst;
+
+					// Reload all sibling item.
+					HTREEITEM hStageItem = m_tree.GetParentItem(hSelItem);
+					TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStageItem);
+					ASSERT(pParentData->m_type == TREE_NODE_STAGE);
+					BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)(pParentData->m_data);
+					ReloadStage(pFlightTypeDB, hStageItem);
+					m_tree.SelectItem(hStageItem);
+					m_tree.Expand(hStageItem, TVE_EXPAND);
+					m_btnSave.EnableWindow(TRUE);
+					break;
+				}
 			}
 		}
 		break;
@@ -909,7 +957,7 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 				int userSetCount = atoi(strValue.GetBuffer());
 				strItemText.Format("Number of triggers: %d", userSetCount);
 				pPaxEntry->SetTriggerCount(userSetCount);
-				ReloadAllTriggers(pVecTrigger, hSelItem);
+				ReloadTriggers(pVecTrigger, hSelItem);
 				m_tree.Expand(hSelItem, TVE_EXPAND);
 			}
 			break;

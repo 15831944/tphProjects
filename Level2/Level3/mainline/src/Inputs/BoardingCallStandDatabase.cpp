@@ -81,7 +81,10 @@ void BoardingCallStandDatabase::AddStand( char* strProc, InputTerminal* _pInTerm
 	}
 	addEntry(*pStandProcID);
 	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);
-	pStandEntry->GetPaxTypeDatabase()->AddPaxType(NULL, _pInTerm); /*add a default mobile element constraint entry.*/
+	CMobileElemConstraint mobElemConst;
+	mobElemConst.SetInputTerminal(_pInTerm);
+	mobElemConst.SetFltConstraintMode(ENUM_FLTCNSTR_MODE_ALL);
+	pStandEntry->GetPaxTypeDatabase()->AddPaxType(&mobElemConst, _pInTerm); /*add a default mobile element constraint entry.*/
 }
 
 // For version 2.6 or older.
