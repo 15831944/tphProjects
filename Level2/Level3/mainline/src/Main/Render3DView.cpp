@@ -1536,7 +1536,7 @@ void CRender3DView::OnViewExport()
 		SetSnapshotTag(str);
 		try
 		{
-			TakeSnapshot((LPCTSTR)dlg.GetFileName());
+			TakeSnapshot((LPCTSTR)dlg.GetFileName(),GetEditor()->IsShowText());
 		}
 		catch (...)
 		{

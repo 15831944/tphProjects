@@ -6,6 +6,8 @@
 
 // CDlgLaneTollCriteria dialog
 class CTermPlanDoc;
+class InputLandside;
+
 class CDlgLaneTollCriteria : public CXTResizeDialog
 {
 	DECLARE_DYNAMIC(CDlgLaneTollCriteria)
@@ -78,6 +80,7 @@ private:
 
 	void DeleteTreeNodeData( TreeNodeData* pNodeData );
 	void ClearTreeNode();
+	InputLandside* GetInputLandside();
 private:
 	CToolBar  m_wndToolbar;
 	CCoolTree m_wndTreeCtrl;

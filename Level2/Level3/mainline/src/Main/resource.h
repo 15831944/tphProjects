@@ -1486,6 +1486,7 @@
 #define IDC_EDIT_START                  1111
 #define IDC_MAPSCALE                    1111
 #define IDC_EDT_APMAXIMUMRUNWAYLENGTH   1111
+#define IDD_DIALOG_VEHICLECHARA         1111
 #define IDC_SLIDER_START                1112
 #define IDC_LAYEROPTIONS                1112
 #define IDC_EDT_APCITY                  1112
@@ -5464,7 +5465,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1111
+#define _APS_NEXT_RESOURCE_VALUE        1112
 #define _APS_NEXT_COMMAND_VALUE         35336
 #define _APS_NEXT_CONTROL_VALUE         2412
 #define _APS_NEXT_SYMED_VALUE           491

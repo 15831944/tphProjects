@@ -296,6 +296,8 @@ AirsideFlightInSim::AirsideFlightInSim(CARCportEngine *pARCPortEngine,Flight* pF
 
 	mbReadyForDeice = false;
 	m_pBaggageManager = new AirsideFlightBaggageManager;
+	m_pBaggageManager->SetFlight(this);
+
 	m_pOpenDoors = NULL;
 }
 
@@ -2744,7 +2746,7 @@ void AirsideFlightInSim::InitBirth( const CArrivalETAOffsetList& etaoffsets,cons
 {
 	PLACE_METHOD_TRACK_STRING();
 
-	m_pBaggageManager->SetFlight(this);
+	//m_pBaggageManager->SetFlight(this);
 	{//init default
 		if(!IsArrival())
 			m_arrTime = max( ElapsedTime(0L), GetFlightInput()->getDepTime() -  GetFlightInput()->getServiceTime());

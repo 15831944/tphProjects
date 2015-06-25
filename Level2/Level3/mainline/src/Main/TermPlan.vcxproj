@@ -283,6 +283,7 @@
     <ClInclude Include="DlgSpeedControl.h" />
     <ClInclude Include="DlgVehicleAssignmentNonPaxRelated.h" />
     <ClInclude Include="DlgVehicleBehaviorDistritbution.h" />
+    <ClInclude Include="DlgVehicleCharaSelection.h" />
     <ClInclude Include="DlgVehicleDistribution.h" />
     <ClInclude Include="DlgVehicleOperationNonRelated.h" />
     <ClInclude Include="FacilityDataPage.h" />
@@ -1099,6 +1100,7 @@
     <ClCompile Include="DlgSpeedControl.cpp" />
     <ClCompile Include="DlgVehicleAssignmentNonPaxRelated.cpp" />
     <ClCompile Include="DlgVehicleBehaviorDistritbution.cpp" />
+    <ClCompile Include="DlgVehicleCharaSelection.cpp" />
     <ClCompile Include="DlgVehicleDistribution.cpp" />
     <ClCompile Include="DlgVehicleOperationNonRelated.cpp" />
     <ClCompile Include="FacilityDataPage.cpp" />
@@ -5378,7 +5380,6 @@
     <None Include="Res\direction.bmp" />
     <None Include="Res\disable_.bmp" />
     <None Include="res\distribution_toolbar.bmp" />
-    <None Include="res\distri_toolbar.bmp" />
     <None Include="Res\door.bmp" />
     <None Include="RES\dot1.bmp" />
     <None Include="RES\dot2.bmp" />

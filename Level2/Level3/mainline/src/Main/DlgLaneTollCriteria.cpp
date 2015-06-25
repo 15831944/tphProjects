@@ -13,6 +13,8 @@
 #include "landside/InputLandside.h"
 #include "DlgSelectLandsideObject.h"
 #include "DlgLaneRange.h"
+#include "DlgVehicleCharaSelection.h"
+#include "Landside/LandsideVehicleTypeList.h"
 
 // CDlgLaneTollCriteria dialog
 const CString strSeviceString[3] = {"Exclusive","Inclusive","Not"};
@@ -353,8 +355,11 @@ void CDlgLaneTollCriteria::InsertCharacterstiscItem( HTREEITEM hItem,LandsideCha
 	pNodeData->m_emType = TreeNodeData::Character_Node;
 	pNodeData->m_dwData = (DWORD)pChara;
 	cni.nt = NT_NORMAL;
-	cni.net = NET_NORMAL;
-	HTREEITEM hCharaItem = m_wndTreeCtrl.InsertItem("Characteristics",cni,FALSE,FALSE,hItem);
+	cni.net = NET_SHOW_DIALOGBOX;
+	int nVehicleType[MAX_VEHICLE_TYPE];
+	pChara->GetVehicleChara(nVehicleType);
+	CString strChara = GetInputLandside()->getLandsideVehicleTypeList()->GetString(nVehicleType);
+	HTREEITEM hCharaItem = m_wndTreeCtrl.InsertItem(strChara,cni,FALSE,FALSE,hItem);
 	m_wndTreeCtrl.SetItemData(hCharaItem,(DWORD)pNodeData);
 	m_vNodeData.push_back(pNodeData);
 
@@ -480,12 +485,37 @@ void CDlgLaneTollCriteria::OnCmdNewItem()
 	{
 		case TreeNodeData::VehicleType_Node:
 			{
-				LandsideCharactersitscAllocation* pChara = new LandsideCharactersitscAllocation();
-				LandsideVehicleAllocation* pVehicle = (LandsideVehicleAllocation*)(pNodeData->m_dwData);
-				pVehicle->m_charaContainer.AddItem(pChara);
-				InsertCharacterstiscItem(hItem,pChara);
-				m_wndTreeCtrl.Expand(hItem,TVE_EXPAND);
-				GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
+				CDlgVehicleCharaSelection dlg(GetInputLandside()->getLandsideVehicleTypeList());
+				if(dlg.DoModal() == IDOK)
+				{
+					int nUserType[MAX_VEHICLE_TYPE];
+					for( int i=0; i<MAX_VEHICLE_TYPE; i++ )
+						nUserType[i] = -1;	
+
+					for(unsigned int i = 0;i< dlg.m_vSelChara.size();i++)
+					{  
+						int j= dlg.m_vSelChara[i];
+						int SelLevel = dlg.m_TypeStrings[j].nLevel;
+						nUserType[SelLevel]= dlg.m_TypeStrings[j].nIdx;
+					}
+					LandsideVehicleAllocation* pVehicle = (LandsideVehicleAllocation*)(pNodeData->m_dwData);
+					if (pVehicle->existSameCharaAlloc(nUserType) == false)
+					{
+						LandsideCharactersitscAllocation* pChara = new LandsideCharactersitscAllocation();
+						pChara->SetVehicleChara(nUserType);
+
+						pVehicle->m_charaContainer.AddItem(pChara);
+						InsertCharacterstiscItem(hItem,pChara);
+						m_wndTreeCtrl.Expand(hItem,TVE_EXPAND);
+						GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
+					}
+					else
+					{
+						MessageBox(_T("Exist the Same Characteristics!!!"),_T("Warning"),MB_OK);
+					}
+					
+				}
+				
 			}
 			break;
 		case TreeNodeData::Character_Node:
@@ -544,6 +574,12 @@ void CDlgLaneTollCriteria::OnCmdNewItem()
 		default:
 			break;
 	}
+}
+
+InputLandside* CDlgLaneTollCriteria::GetInputLandside()
+{
+	CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();	
+	return pDoc->GetInputLandside();
 }
 
 void CDlgLaneTollCriteria::OnCmdDeleteItem()
@@ -703,6 +739,48 @@ LRESULT CDlgLaneTollCriteria::OnLeftDoubleClick( WPARAM wParam, LPARAM lParam )
 						MessageBox(_T("Exist the Same Vehicle Type!!!"),_T("Warning"),MB_OK);
 					}	
 				}
+			}
+		}
+		break;
+	case TreeNodeData::Character_Node:
+		{
+			LandsideCharactersitscAllocation* pLandsideChara = (LandsideCharactersitscAllocation*)(pNodeData->m_dwData);
+			CDlgVehicleCharaSelection dlg(GetInputLandside()->getLandsideVehicleTypeList());
+			if(dlg.DoModal() == IDOK)
+			{
+				int nUserType[MAX_VEHICLE_TYPE];
+				for( int i=0; i<MAX_VEHICLE_TYPE; i++ )
+					nUserType[i] = -1;	
+
+				for(unsigned int i = 0;i< dlg.m_vSelChara.size();i++)
+				{  
+					int j= dlg.m_vSelChara[i];
+					int SelLevel = dlg.m_TypeStrings[j].nLevel;
+					nUserType[SelLevel]= dlg.m_TypeStrings[j].nIdx;
+				}
+				if (pLandsideChara->equalVehicleChara(nUserType) == false)
+				{
+					HTREEITEM hParentItem = m_wndTreeCtrl.GetParentItem(hItem);
+					TreeNodeData* pParentData = (TreeNodeData*)(m_wndTreeCtrl.GetItemData(hParentItem));
+					if (pParentData == NULL)
+						return 0;
+
+					LandsideVehicleAllocation* pVehicle = (LandsideVehicleAllocation*)(pParentData->m_dwData);
+					if (pVehicle == NULL)
+						return 0;
+
+					if (pVehicle->existSameCharaAlloc(nUserType) == false)
+					{
+						pLandsideChara->SetVehicleChara(nUserType);
+						m_wndTreeCtrl.SetItemText(hItem,GetInputLandside()->getLandsideVehicleTypeList()->GetString(nUserType));
+						GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
+					}
+					else
+					{
+						MessageBox(_T("Exist the Same Characteristics!!!"),_T("Warning"),MB_OK);
+					}
+				}
+				
 			}
 		}
 		break;

@@ -461,7 +461,7 @@ CString LandsideParkingSpotInSim::print() const
 {
 	LandsideParkingSpotInSim* pSpot = (LandsideParkingSpotInSim*)this;
 	CString strRet;
-	strRet.Format("%s Spot(Level%d,Space%d,Index%d)"
+	strRet.Format("%s Spot(Level%d,Row%d,Index%d)"
 		,pSpot->getParkingLot()->print().GetString()
 		,getParkingLotLevelIndex()+1,mpSpace->GetIndex()+1,m_idx+1); 
 	return strRet;	
