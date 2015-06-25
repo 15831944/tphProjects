@@ -95,6 +95,7 @@ void CDlgReportProperty::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_DTANIMDATEEND, m_dtCtrlEndDate);
 	DDX_Control(pDX, IDC_DTANIMDATESTART, m_dtCtrlStartDate);
 	DDX_Control(pDX, IDC_COMBO_REPORTTYPE, m_nReportType);
+	DDX_Control(pDX, IDC_COMBO_IS_DETAIL, m_comboRepType);
 	DDX_Control(pDX, IDC_DTANIMTIMEINTERVAL, m_tInterval);
 	DDX_Control(pDX, IDC_STATICPROCESSORTYPE, m_toolbarProcessorType);
 	DDX_Control(pDX, IDC_STATICPESSENGERTYPE, m_toolbarPessengerType);
@@ -212,6 +213,20 @@ BOOL CDlgReportProperty::OnInitDialog()
 		m_nReportType.AddString(s_szReportCategoryName[i]);
 	}
 
+	m_comboRepType.AddString("Detail");
+	m_comboRepType.AddString("Summary");
+	switch(m_reportToCompare.GetReportType())
+	{
+	case 0: // "Detail"
+		m_comboRepType.SetCurSel(0);
+		break;
+	case 1: // "Summary"
+		m_comboRepType.SetCurSel(1);
+		break;
+	default:
+		m_comboRepType.SetCurSel(0);
+		break;
+	}
 
 	ElapsedTime time;
 	bool		bAbsDate;
@@ -555,6 +570,19 @@ void CDlgReportProperty::OnOK()
 	DeleteTreeData(m_treeProcFromTo);
 	DeleteTreeData(m_treeArea);
 	DeleteTreeData(m_treePaxType);
+
+	int nSel = m_comboRepType.GetCurSel();
+	switch (nSel)
+	{
+	case 0: // selected string is "Detail".
+		m_reportToCompare.SetReportType(0);
+		break;
+	case 1: // selected string is "Summary".
+		m_reportToCompare.SetReportType(1);
+		break;
+	default:
+		break;
+	}
 
 	CDialog::OnOK();
 }
@@ -1669,7 +1697,6 @@ void CDlgReportProperty::ArrangeControls()
 
 void CDlgReportProperty::OnBnClickedOk()
 {
-	// TODO: Add your control notification handler code here
 	OnOK();
 }
 void CDlgReportProperty::OnProcessorFromToAdd()

@@ -78,6 +78,7 @@ public:
 	CDateTimeCtrl	m_dtCtrlEndDate;
 	CDateTimeCtrl	m_dtCtrlStartDate;
 	CComboBox		m_nReportType;
+	CComboBox		m_comboRepType; // Report type: detail or summary.
 	CDateTimeCtrl	m_tInterval;
 	CStatic			m_toolbarProcessorType;
 	CStatic			m_toolbarPessengerType;
