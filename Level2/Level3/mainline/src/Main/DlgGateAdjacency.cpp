@@ -72,6 +72,11 @@ BOOL DlgGateAdjacency::OnInitDialog()
     // set the toolbar button state
     UpdateToolBarState();
 
+    if(m_gateType == ArrGate)
+        this->SetWindowText(_T("Arrival Gate Adjacency"));
+    else if(m_gateType == DepGate)
+        this->SetWindowText(_T("Departure Gate Adjacency"));
+
     return TRUE;
 }
 
@@ -251,7 +256,7 @@ void DlgGateAdjacency::OnButtonSave()
 
 void DlgGateAdjacency::OnToolbarAdd()
 {
-    CDlgGateSelect dlg(m_pInputTerm, m_Type);
+    CDlgGateSelect dlg(m_pInputTerm, ArrGate/*m_gateType*/);
     while(dlg.DoModal() == IDOK)
     {
         ProcessorID gateID;
@@ -265,9 +270,9 @@ void DlgGateAdjacency::OnToolbarAdd()
         if(nResult != -1)
         {
             CString strErr;
-            strErr.Format("Gate Adjacency %s - %s already exist.", 
+            strErr.Format("Gate Adjacency \"%s\" -> \"%s\" already exist.", 
                 pGateAdj->GetOriginalGate().GetIDString(), pGateAdj->GetAdjacentGate().GetIDString());
-            MessageBox(strErr);
+            MessageBox(strErr, NULL, MB_OK|MB_ICONWARNING);
             continue;
         }
         m_vGateAdjas.push_back(pGateAdj);
@@ -307,7 +312,7 @@ void DlgGateAdjacency::OnToolBarEdit() // This action will edit Original Gate.
     CGateAdjacency* pGateAdja = (CGateAdjacency*)m_wndListCtrl.GetItemData(nSelItem);
     if(pGateAdja == NULL)
         return;
-    CDlgGateSelect dlg(m_pInputTerm, m_Type);
+    CDlgGateSelect dlg(m_pInputTerm, ArrGate/*m_gateType*/);
     while(dlg.DoModal() == IDOK)
     {
         ProcessorID gateID;
@@ -320,9 +325,9 @@ void DlgGateAdjacency::OnToolBarEdit() // This action will edit Original Gate.
         if(nResult != -1 && pGateAdja != m_vGateAdjas.at(nResult))
         {
             CString strErr;
-            strErr.Format("Gate Adjacency %s - %s already exist.", 
+            strErr.Format("Gate Adjacency \"%s\" -> \"%s\" already exist.", 
                 tempGateAdja.GetOriginalGate().GetIDString(), tempGateAdja.GetAdjacentGate().GetIDString());
-            MessageBox(strErr);
+            MessageBox(strErr, NULL, MB_OK|MB_ICONWARNING);
             continue;
         }
         pGateAdja->SetOriginalGate(gateID);
@@ -347,7 +352,7 @@ LRESULT DlgGateAdjacency::OnCollumnIndex(WPARAM wParam,  LPARAM lParam)
             if (nSelItem < 0)
                 return -1;
             CGateAdjacency* pGateAdja = (CGateAdjacency*)m_wndListCtrl.GetItemData(nSelItem);
-            CDlgGateSelect dlg(m_pInputTerm, m_Type);
+            CDlgGateSelect dlg(m_pInputTerm, ArrGate/*m_gateType*/);
             while(dlg.DoModal() == IDOK)
             {
                 ProcessorID gateID;
@@ -359,9 +364,9 @@ LRESULT DlgGateAdjacency::OnCollumnIndex(WPARAM wParam,  LPARAM lParam)
                 if(nResult != -1 && pGateAdja != m_vGateAdjas.at(nResult))
                 {
                     CString strErr;
-                    strErr.Format("Gate Adjacency %s - %s already exist.", 
+                    strErr.Format("Gate Adjacency \"%s\" - \"%s\" already exist.", 
                         tempGateAdja.GetOriginalGate().GetIDString(), tempGateAdja.GetAdjacentGate().GetIDString());
-                    MessageBox(strErr);
+                    MessageBox(strErr, NULL, MB_OK|MB_ICONWARNING);
                     continue;
                 }
 

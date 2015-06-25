@@ -428,7 +428,7 @@ void CDlgGateAssignPreference::OnCancel()
 void CDlgGateAssignPreference::OnBnClickedButtonAdjacency()
 {
     DlgGateAdjacency dlg(m_PreferenceMan, m_pInputTerm);
-    dlg.SetType(m_Type);
+    dlg.SetGateType((GateType)m_Type);
     dlg.DoModal();
 }
 

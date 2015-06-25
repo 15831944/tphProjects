@@ -36,7 +36,7 @@ private:
     InputTerminal* m_pInputTerm;
     CToolBar m_wndToolBar;
     CListCtrlEx m_wndListCtrl;
-    GateType m_Type ; // ArrGate / DepGate
+    GateType m_gateType ; // ArrGate / DepGate
 protected:
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -50,8 +50,7 @@ protected:
 	afx_msg void OnLvnEndlabeleditListContents(NMHDR *pNMHDR, LRESULT *pResult);
 
 public:
-    GateType GetType() const { return m_Type; }
-    void SetType(int nType) { m_Type = (GateType)nType; }
-    void SetType(GateType nType) { m_Type = nType; }
+    GateType GetGateType() const { return m_gateType; }
+    void SetGateType(GateType nType) { m_gateType = nType; }
 };
 
