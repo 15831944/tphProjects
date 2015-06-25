@@ -53,7 +53,7 @@ private:
 	void SetListContent();
 	void InitRuleTimeSetting();
 	void InitDailySetting(CRosterRulesByAbsoluteTime* pRule);
-	void SaveRosterRules();
+
 	void GenerateProcRoster();
 
 	void NewPriority();
@@ -111,6 +111,7 @@ public:
 
 	void DisableSetting();
 	void SaveTimeSettingToCurrentRule();
+	void SaveRosterRules();
 public:
 	afx_msg void OnEnKillfocusEditNumproc();
 	afx_msg void OnTvnSelchangedTreePriority(NMHDR *pNMHDR, LRESULT *pResult);

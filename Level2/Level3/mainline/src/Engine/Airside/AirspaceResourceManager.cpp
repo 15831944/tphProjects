@@ -888,25 +888,28 @@ bool AirRouteNetworkInSim::FindClearanceInConcern(AirsideFlightInSim * pFlight,F
 		}
 	}
 
-	if ( CheckIsFlightNeedWaitingInHold(pFlight,resList, lastItem))
+	if( pFlight->IsArrivingOperation() )
 	{
-		if(pFlight->WaitingInHold()== false && pFlight->GetMode() != OnBirth)//cannot hold the flight, terminate it
+		if ( CheckIsFlightNeedWaitingInHold(pFlight,resList, lastItem))
 		{
-			CString strError = "Flight cannot land for there has no hold in the STAR to hold the flight";
-			CString strErrorType = "AIRCRAFT TERMINATE";
-			AirsideSimErrorShown::SimWarning(pFlight,strError,strErrorType);
+			if(pFlight->WaitingInHold()== false && pFlight->GetMode() != OnBirth)//cannot hold the flight, terminate it
+			{
+				CString strError = "Flight cannot land for there has no hold in the STAR to hold the flight";
+				CString strErrorType = "AIRCRAFT TERMINATE";
+				AirsideSimErrorShown::SimWarning(pFlight,strError,strErrorType);
 
-			pFlight->GetLandingRunway()->RemoveElementOccupancyInfo(pFlight);
+				pFlight->GetLandingRunway()->RemoveElementOccupancyInfo(pFlight);
 
-			ClearanceItem newItem(NULL,OnTerminate,0);
-			newItem.SetTime(lastItem.GetTime());
-			newClearance.AddItem(newItem);
+				ClearanceItem newItem(NULL,OnTerminate,0);
+				newItem.SetTime(lastItem.GetTime());
+				newClearance.AddItem(newItem);
 
-			pFlight->PerformClearance(newClearance);
+				pFlight->PerformClearance(newClearance);
+			}
+			return true;
 		}
-		return true;
 	}
-
+	
 	AirsideResource* pRes = resList.at(nSize-1);
 
 	if (pCurrentRes)

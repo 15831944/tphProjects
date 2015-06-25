@@ -1398,7 +1398,7 @@ void CDlgRosterGranttChart::OnBtnSave()
 	if (m_pParentWnd)
 	{
 		CDlgAutoRosterRules* pParentDlg = (CDlgAutoRosterRules*)m_pParentWnd;
-		pParentDlg->SaveTimeSettingToCurrentRule();
+		pParentDlg->SaveRosterRules();
 	}
 	m_btnSave.EnableWindow(FALSE);
 }

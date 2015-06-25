@@ -45,7 +45,7 @@ void CAllProcessorTreeCtrl::OnItemexpanded(NMHDR* pNMHDR, LRESULT* pResult)
 	if( GetItemText(hItem)=="ALL PROCESSOR")
 		return;
  
-	CProcessorTreeCtrl::OnItemexpanded( pNMHDR,pResult);
+	//CProcessorTreeCtrl::OnItemexpanded( pNMHDR,pResult);
 }
 
 void CAllProcessorTreeCtrl::LoadData(InputTerminal *_pInTerm, ProcessorDatabase *_pProcDB, int _nProcType)
@@ -145,7 +145,7 @@ bool CAllProcessorTreeCtrl::IsSelected( CString strProcess, ProcessorDatabase* _
 void CAllProcessorTreeCtrl::LoadChild( HTREEITEM _hItem, CString _csStr,BOOL bGateStandOnly )
 {
 	// Added by Xie Bo 2002.5.12
-	DeleteAllChild(_hItem);
+	//DeleteAllChild(_hItem);
 
 	ProcessorID id;
 	id.SetStrDict( m_pInTerm->inStrDict );
@@ -172,28 +172,29 @@ void CAllProcessorTreeCtrl::LoadChild( HTREEITEM _hItem, CString _csStr,BOOL bGa
 		if( !m_bAirsideMode && !checkACStandFlag( csLabel) )
 			continue;
 
-		HTREEITEM hItem = InsertItem( csLabel, _hItem );
+		HTREEITEM hNewItem = InsertItem( csLabel, _hItem );
 		if( m_pProcDB )
 		{
-			SetItemData( hItem, GetDBIndex( csLabel, m_pProcDB ) );
+			SetItemData( hNewItem, GetDBIndex( csLabel, m_pProcDB ) );
 
 
 			if( IsSelected( csLabel, m_pProcDB ) )
 			{
-				SetItemColor( hItem, SELECTED_COLOR );
-				SetItemBold( hItem, true );
+				SetItemColor( hNewItem, SELECTED_COLOR );
+				SetItemBold( hNewItem, true );
 				bNeedExpand = TRUE;
 			}
 			else
 			{
-				SetItemColor( hItem, RGB(0,0,0));
+				SetItemColor( hNewItem, RGB(0,0,0));
 				SetTextColor( -1);
 			}
 		}
 		if(csLabel==m_strSelectedID)
 		{
-			hSelItem=hItem;
+			hSelItem = hNewItem;
 		}
+		LoadChild(hNewItem, csLabel);
 	}
 	if ( bNeedExpand )
 	{

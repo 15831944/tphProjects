@@ -26,6 +26,28 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
+    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
+END
+
+#endif    // Neutral (Sys. Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Dialog
 //
 
@@ -80,87 +102,6 @@ BEGIN
     GROUPBOX        "Options",IDC_STATIC_GROUP,7,7,146,69
 END
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 404
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_VEHICLEDIST, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 429
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 248
-    END
-
-    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 153
-        VERTGUIDE, 46
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 95
-        HORZGUIDE, 44
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_CTX_LANDSIDELAYOUT MENU
-BEGIN
-    POPUP "Submenu"
-    BEGIN
-        MENUITEM "Set Options...",              ID_CTX_LAYOUT
-        MENUITEM "Comments...",                 ID_CTX_COMMENTS
-        MENUITEM "Help",                        ID_CTX_HELP
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE
-BEGIN
-    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
-    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
-END
-
-#endif    // Neutral (Sys. Default) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Chinese (Simplified, PRC) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
-#pragma code_page(936)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
 IDD_DIALOG_LANETOLLCRITERIA DIALOGEX 0, 0, 296, 267
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Lane / Toll Gate Allocation Criteria"
@@ -172,42 +113,6 @@ BEGIN
     GROUPBOX        "",IDC_STATIC_GROUP,7,7,282,233
     CONTROL         "",IDC_TREE_DATA,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER | WS_TABSTOP,7,27,282,213
 END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_DIALOG_LANETOLLCRITERIA, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 289
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 260
-        HORZGUIDE, 240
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-#endif    // Chinese (Simplified, PRC) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
 
 IDD_DIALOG_CURBSIDESTRATEGY DIALOGEX 0, 0, 330, 308
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
@@ -1597,16 +1502,16 @@ BEGIN
     PUSHBUTTON      "Refresh",IDC_BUT_RESTORE,646,366,50,14
 END
 
-IDD_DIALOG_PROCESSER DIALOG 0, 0, 477, 234
+IDD_DIALOG_PROCESSER DIALOG 0, 0, 480, 234
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Processor Selection"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_EDIT_PROCESSORID,5,6,220,12,ES_AUTOHSCROLL | ES_READONLY
-    CONTROL         "Tree1",IDC_TREE_PROCESSOR,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,40,218,167
-    LISTBOX         IDC_PROCESS_LIST,230,42,235,165,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Processor",IDC_STATIC,5,22,219,185
-    GROUPBOX        "Process",IDC_STATIC,230,22,235,184
+    EDITTEXT        IDC_EDIT_PROCESSORID,5,6,228,12,ES_AUTOHSCROLL | ES_READONLY
+    CONTROL         "Tree1",IDC_TREE_PROCESSOR,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,40,228,167
+    LISTBOX         IDC_PROCESS_LIST,241,42,232,165,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Processor",IDC_STATIC,5,22,228,185
+    GROUPBOX        "Process",IDC_STATIC,241,22,232,185
     DEFPUSHBUTTON   "Select",ID_BTN_SELECT,105,213,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,175,213,50,14
 END
@@ -6817,6 +6722,41 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
+    IDD_DIALOG_VEHICLETYPEDEF, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 404
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_VEHICLEDIST, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 429
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DIALOG_LAYOUTOPTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 153
+        VERTGUIDE, 46
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 95
+        HORZGUIDE, 44
+    END
+
+    IDD_DIALOG_LANETOLLCRITERIA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 289
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 260
+        HORZGUIDE, 240
+    END
+
     IDD_DIALOG_CURBSIDESTRATEGY, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -10152,6 +10092,16 @@ END
 //
 // Menu
 //
+
+IDR_CTX_LANDSIDELAYOUT MENU
+BEGIN
+    POPUP "Submenu"
+    BEGIN
+        MENUITEM "Set Options...",              ID_CTX_LAYOUT
+        MENUITEM "Comments...",                 ID_CTX_COMMENTS
+        MENUITEM "Help",                        ID_CTX_HELP
+    END
+END
 
 IDR_MENU27 MENU
 BEGIN

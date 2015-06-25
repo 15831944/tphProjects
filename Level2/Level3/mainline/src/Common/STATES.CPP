@@ -164,7 +164,7 @@ char *STATE_NAMES[] =
 	"StayOnVehicle",
 	"GetOffVehicle",
 	"PickCarryOnFromVehicle",
-
+    "MoveToInterestedEntryPoint",
     0
 };
 

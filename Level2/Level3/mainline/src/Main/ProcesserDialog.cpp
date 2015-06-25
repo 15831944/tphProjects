@@ -313,7 +313,10 @@ BOOL CProcesserDialog::OnInitDialog()
 		m_listProcess.ShowWindow( SW_HIDE );
 		CRect reWindow;
 		this->GetWindowRect( reWindow );
-		this->SetWindowPos( &wndTop, reWindow.TopLeft().x, reWindow.TopLeft().y, 350,410, SWP_SHOWWINDOW );
+        int nRight = (reWindow.TopLeft().x + reWindow.BottomRight().x) / 2; 
+        int nBottom = reWindow.BottomRight().y;
+        this->SetWindowPos( &wndTop, reWindow.TopLeft().x, reWindow.TopLeft().y, 
+            nRight, nBottom, SWP_SHOWWINDOW );
 		this->CenterWindow();
 	}
 	else

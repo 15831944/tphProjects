@@ -874,9 +874,11 @@ void Processor::getNextLocation (Person *aPerson)
             aPerson->setTerminalDestination(In_Constr.getPoint(0));
 			break;
 		case MoveToInterestedEntryPoint:
-			ASSERT(m_pQueue->isFixed() == 'Y');
-			aPerson->setTerminalDestination(spTerminalBehavior->getPoint());
-			break;
+            {
+                ASSERT(m_pQueue->isFixed() == 'Y');
+                aPerson->setTerminalDestination(spTerminalBehavior->getPoint());
+                break;
+            }
         case MoveToQueue:
             m_pQueue->getTailPoint (aPerson);
             break;

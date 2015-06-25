@@ -1062,5 +1062,5 @@ void CDlgAutoRosterRules::OnBnClickedShowGranttChart()
 	SaveTimeSettingToCurrentRule();
 	CDlgRosterGranttChart dlg(m_pProcRosterRules,m_vProcList ,m_pInTerm,this);
 	if(dlg.DoModal() == IDOK)
-		OnOK();
+		OnBnClickedOk();
 }
