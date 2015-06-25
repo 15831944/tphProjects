@@ -686,21 +686,27 @@ void CAirsideRunwayCrossingsBaseSummaryResult::GetMinCrossingsCountAndIntervalIn
 	}
 
 	long lMinCount = LONG_MAX;
-	long lMinIndex = 0;
 	long nIndex = 0;
+	std::vector<long> vIndexAtMin;
+	vIndexAtMin.clear();
 	for (;eStartTime < eEndTime + eInterval; eStartTime += eInterval)
 	{
 		int nCrossingCount = GetCrossingsCount(eStartTime,eEndTime,eInterval,item,vResult);
-		if (lMinCount > nCrossingCount)
+		if(nCrossingCount < lMinCount)
 		{
 			lMinCount = nCrossingCount;
-			lMinIndex = nIndex;
+			vIndexAtMin.clear();
+			vIndexAtMin.push_back(nIndex);
+		}
+		else if(nCrossingCount == lMinCount)
+		{
+			vIndexAtMin.push_back(nIndex);
 		}
 		nIndex++;
 	}
 
 	item.m_lMinCrossings = lMinCount;
-	item.m_lIntervalMinCrossings = lMinIndex; 
+	item.m_vMinCrossingIntervals = vIndexAtMin; 
 }
 
 void CAirsideRunwayCrossingsBaseSummaryResult::GetMaxCrossingsCountAndIntervalIndex(CParameters* pPara,SummaryRunwayCrossingsItem& item,std::vector<CAirsideRunwayCrossingsBaseSummaryResult::SummaryRunwayItem>&vResult)
@@ -973,7 +979,17 @@ void CAirsideRunwayCrossingsBaseSummaryResult::FillListContent(CXListCtrl& cxLis
 		cxListCtrl.SetItemText(i, 2,strMinCrossings);
 
 		CString strInterMinCrossings(_T(""));
-		strInterMinCrossings.Format(_T("%dth"),runwayCrossingsItem.m_lIntervalMinCrossings);
+		CString strTemp(_T(""));
+		int nCount = runwayCrossingsItem.m_vMinCrossingIntervals.size();
+		for(int j=0; j<nCount; j++)
+		{
+			strTemp.Format(_T("%dth"), runwayCrossingsItem.m_vMinCrossingIntervals.at(i));
+			strInterMinCrossings += strTemp;
+			if(j != (nCount - 1))
+			{
+				strInterMinCrossings += CString(", ");
+			}
+		}
 		cxListCtrl.SetItemText(i, 3,strInterMinCrossings);
 
 		CString strAverageCrossings(_T(""));
@@ -1119,7 +1135,14 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::ImportReportData(ArctermFile& _fi
 		_file.getField(item.m_sEnterTaxiway.GetBuffer(1024),1024);
 		_file.getField(item.m_sNodeName.GetBuffer(1024),1024);
 		_file.getInteger(item.m_lMinCrossings);
-		_file.getInteger(item.m_lIntervalMinCrossings);
+		char buf[16] = {0};
+		_file.getSubField(buf, ';');
+		int nCount = atoi(buf);
+		for(int i=0; i<nCount; i++)
+		{
+			_file.getSubField(buf, ';');
+			item.m_vMinCrossingIntervals.push_back(atoi(buf));
+		}
 		_file.getInteger(item.m_lMaxCrossings);
 		_file.getFloat(item.m_dAverageCrosings);
 		_file.getInteger(item.m_lIntervalMaxCrossings);
@@ -1191,7 +1214,16 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::ExportReportData(ArctermFile& _fi
 		_file.writeField(item.m_sEnterTaxiway);
 		_file.writeField(item.m_sNodeName);
 		_file.writeInt(item.m_lMinCrossings);
-		_file.writeInt(item.m_lIntervalMinCrossings);
+		int nIntervalMin = (int)item.m_vMinCrossingIntervals.size();
+		char buf[16] = {0};
+		_file.appendValue(_itoa(nIntervalMin, buf, 10));
+		for(int i=0; i<nIntervalMin; i++)
+		{
+			_file.appendValue(";");
+			memset(buf, 0, 16);
+			_file.appendValue(_itoa(item.m_vMinCrossingIntervals.at(i), buf, 10));
+		}
+		_file.appendValue(",");
 		_file.writeInt(item.m_lMaxCrossings);
 		_file.writeFloat((float)item.m_dAverageCrosings);
 		_file.writeInt(item.m_lIntervalMaxCrossings);
@@ -1265,7 +1297,16 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::WriteReportData( ArctermFile& _fi
 		_file.writeField(item.m_sEnterTaxiway);
 		_file.writeField(item.m_sNodeName);
 		_file.writeInt(item.m_lMinCrossings);
-		_file.writeInt(item.m_lIntervalMinCrossings);
+		int minCount = (int)item.m_vMinCrossingIntervals.size();
+		char buf[16] = {0};
+		_file.appendValue(_itoa(minCount, buf, 10));
+		for(int i=0; i<minCount; i++)
+		{
+			_file.appendValue(";");
+			memset(buf, 0, 16);
+			_file.appendValue(_itoa(item.m_vMinCrossingIntervals.at(i), buf, 10));
+		}
+		_file.appendValue(",");
 		_file.writeInt(item.m_lMaxCrossings);
 		_file.writeFloat((float)item.m_dAverageCrosings);
 		_file.writeInt(item.m_lIntervalMaxCrossings);
@@ -1335,7 +1376,14 @@ BOOL CAirsideRunwayCrossingsBaseSummaryResult::ReadReportData( ArctermFile& _fil
 		_file.getField(item.m_sEnterTaxiway.GetBuffer(1024),1024);
 		_file.getField(item.m_sNodeName.GetBuffer(1024),1024);
 		_file.getInteger(item.m_lMinCrossings);
-		_file.getInteger(item.m_lIntervalMinCrossings);
+		char buf[16] = {0};
+		_file.getSubField(buf, ';');
+		int nCount = atoi(buf);
+		for(int i=0; i<nCount; i++)
+		{
+			_file.getSubField(buf, ';');
+			item.m_vMinCrossingIntervals.push_back(atoi(buf));
+		}
 		_file.getInteger(item.m_lMaxCrossings);
 		_file.getFloat(item.m_dAverageCrosings);
 		_file.getInteger(item.m_lIntervalMaxCrossings);

@@ -184,7 +184,6 @@ public:
 			:m_sRunway(_T(""))
 			,m_sEnterTaxiway(_T(""))
 			,m_lMinCrossings(0)
-			,m_lIntervalMinCrossings(0)
 			,m_lMaxCrossings(0)
 			,m_dAverageCrosings(0.0)
 			,m_lIntervalMaxCrossings(0)
@@ -196,7 +195,7 @@ public:
 			,m_lIntervalMaxWaitTime(0L)
 			,m_lTotalWaitTime(0L)
 		{
-
+			m_vMinCrossingIntervals.clear();
 		}
 
 		~SummaryRunwayCrossingsItem()
@@ -213,7 +212,7 @@ public:
 		CString m_sEnterTaxiway;
 		CString m_sNodeName;
 		long m_lMinCrossings;
-		long m_lIntervalMinCrossings;
+		std::vector<long> m_vMinCrossingIntervals;
 		long m_lMaxCrossings;
 		double m_dAverageCrosings;
 		long m_lIntervalMaxCrossings;

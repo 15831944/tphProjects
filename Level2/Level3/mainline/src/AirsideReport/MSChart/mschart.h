@@ -165,9 +165,6 @@ public:
 
 	//property edit
 	void PropertyEdit(void);
-
-	//export the graph to clipboard
-	bool ExportToClipboard(void);
 	// Attributes
 public:
 	enum
