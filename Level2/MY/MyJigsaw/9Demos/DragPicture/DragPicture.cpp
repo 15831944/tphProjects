@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "DragPicture.h"
+#include "ErrorCode.h"
+#include "Macros.h"
 #include <atlstr.h>
 
 /******************************************************************
@@ -15,10 +17,10 @@ m_hwnd(NULL),
     m_pBlackBrush(NULL),
     m_pWICFactory(NULL),
     m_pOrigBitmap(NULL),
-    m_pBitmapMask(NULL),
     m_pOriginalBitmapBrush(NULL),
-    m_pBitmapMaskBrush(NULL),
-    m_fRotation(0.0f)
+    m_fRotateSpeed(0.0f),
+    m_fRA(0),
+    m_needRepaint(false)
 {
 }
 
@@ -35,9 +37,7 @@ DemoApp::~DemoApp()
     SafeRelease(&m_pBlackBrush);
     SafeRelease(&m_pWICFactory);
     SafeRelease(&m_pOrigBitmap);
-    SafeRelease(&m_pBitmapMask);
     SafeRelease(&m_pOriginalBitmapBrush);
-    SafeRelease(&m_pBitmapMaskBrush);
 }
 
 /*******************************************************************
@@ -121,7 +121,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             GWLP_USERDATA,
             PtrToUlong(pDemoApp)
             );
-
+        SetTimer(hwnd, TIMMER_ACCELERATION, 500, OnTimmer);
+        SetTimer(hwnd, TIMMER_PAINT, 50, OnTimmer);
         result = 1;
     }
     else
@@ -175,11 +176,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case WM_MOUSEWHEEL:
                 {
                     short sWheel = (short)HIWORD(wParam);
-                    CString strInfo;
-                    strInfo.Format(_T("%d\r\n"), sWheel);
-                    OutputDebugString(strInfo);
-                    pDemoApp->m_fRotation += sWheel / 120;
-                    InvalidateRect(hwnd,NULL,TRUE);
+                    pDemoApp->m_fRotateSpeed += sWheel / 120;
+                    pDemoApp->SetNeedRepaint(true);
                 }
                 wasHandled = true;
                 result = 1;
@@ -279,17 +277,6 @@ HRESULT DemoApp::CreateDeviceResources()
 
         if (SUCCEEDED(hr))
         {
-            hr = LoadResourceBitmap(
-                m_pRenderTarget,
-                m_pWICFactory,
-                L"GoldFishMask",
-                L"Image",
-                &m_pBitmapMask
-                );
-        }
-
-        if (SUCCEEDED(hr))
-        {
             D2D1_BITMAP_BRUSH_PROPERTIES propertiesXClampYClamp = D2D1::BitmapBrushProperties(
                 D2D1_EXTEND_MODE_CLAMP,
                 D2D1_EXTEND_MODE_CLAMP,
@@ -301,15 +288,6 @@ HRESULT DemoApp::CreateDeviceResources()
                 propertiesXClampYClamp,
                 &m_pOriginalBitmapBrush
                 );
-
-            if (SUCCEEDED(hr))
-            {
-                hr = m_pRenderTarget->CreateBitmapBrush(
-                    m_pBitmapMask,
-                    propertiesXClampYClamp,
-                    &m_pBitmapMaskBrush
-                    );
-            }
         }
     }
     return hr;
@@ -327,8 +305,6 @@ HRESULT DemoApp::CreateDeviceResources()
 void DemoApp::DiscardDeviceResources()
 {
     SafeRelease(&m_pBlackBrush);
-    SafeRelease(&m_pBitmapMaskBrush);
-    SafeRelease(&m_pBitmapMask);
     SafeRelease(&m_pOrigBitmap);
     SafeRelease(&m_pOriginalBitmapBrush);
     SafeRelease(&m_pRenderTarget);
@@ -382,7 +358,7 @@ HRESULT DemoApp::OnRender()
 
         // The original bitmap.
         m_pRenderTarget->SetTransform(
-            D2D1::Matrix3x2F::Rotation(m_fRotation, D2D1::Point2F(100, 66)) 
+            D2D1::Matrix3x2F::Rotation(m_fRotateSpeed, D2D1::Point2F(100, 66)) 
             * 
             D2D1::Matrix3x2F::Translation(5, 5)
             );
@@ -540,4 +516,51 @@ HRESULT DemoApp::LoadResourceBitmap(
     SafeRelease(&pConverter);
 
     return hr;
+}
+
+void CALLBACK DemoApp::OnTimmer(
+    HWND hwnd, 
+    UINT message, 
+    UINT timerID, 
+    DWORD time )
+{
+    DemoApp *pDemoApp = reinterpret_cast<DemoApp *>(static_cast<LONG_PTR>(
+        ::GetWindowLongPtrW(
+        hwnd,
+        GWLP_USERDATA
+        )));
+    if(pDemoApp == NULL)
+        return;
+
+    switch(timerID)
+    {
+    case TIMMER_ACCELERATION:
+        {
+            if(pDemoApp->GetRotateSpeed() < -UNIT_ACCELERATION_VALUE)
+            {
+                pDemoApp->SetRotateSpeed(pDemoApp->GetRotateSpeed() + UNIT_ACCELERATION_VALUE);
+            }
+            else if(-UNIT_ACCELERATION_VALUE <= pDemoApp->GetRotateSpeed() &&
+                pDemoApp->GetRotateSpeed() <= UNIT_ACCELERATION_VALUE)
+            {
+                pDemoApp->SetRotateSpeed(0.0f);
+            }
+            else if(UNIT_ACCELERATION_VALUE < pDemoApp->GetRotateSpeed())
+            {
+                pDemoApp->SetRotateSpeed(pDemoApp->GetRotateSpeed() - UNIT_ACCELERATION_VALUE);
+            }
+        }
+        break;
+    case TIMMER_PAINT:
+        {
+            if(pDemoApp->GetNeedRepaint())
+            {
+                InvalidateRect(hwnd, NULL, TRUE);
+                pDemoApp->SetNeedRepaint(false);
+            }
+        }
+        break;
+    default:
+        break;
+    }
 }

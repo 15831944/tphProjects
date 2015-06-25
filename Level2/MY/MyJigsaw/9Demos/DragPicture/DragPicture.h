@@ -50,12 +50,6 @@
 #pragma comment(lib, "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Lib\\x86\\d2d1.lib")
 #pragma comment(lib, "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Lib\\x86\\dwrite.lib")
 
-/******************************************************************
-*                                                                 *
-*  Macros                                                         *
-*                                                                 *
-******************************************************************/
-
 template<class Interface>
 inline void
     SafeRelease(
@@ -131,6 +125,13 @@ private:
         LPARAM lParam
         );
 
+    static void CALLBACK OnTimmer(
+        HWND hwnd, 
+        UINT message, 
+        UINT timerID, 
+        DWORD time
+);
+
 private:
     HWND m_hwnd;
 
@@ -141,14 +142,19 @@ private:
     // WIC and Bitmaps
     IWICImagingFactory *m_pWICFactory;
     ID2D1Bitmap *m_pOrigBitmap;
-    ID2D1Bitmap *m_pBitmapMask;
 
     // Bitmap brushes
     ID2D1BitmapBrush *m_pOriginalBitmapBrush;
-    ID2D1BitmapBrush *m_pBitmapMaskBrush;
 
 public:
-    float m_fRotation; // the rotation.
+    float GetRotateSpeed() const { return m_fRotateSpeed; }
+    void SetRotateSpeed(float val) { m_fRotateSpeed = val; }
+
+    bool GetNeedRepaint() const { return m_needRepaint; }
+    void SetNeedRepaint(bool val) { m_needRepaint = val; }
+protected:
+    float m_fRotateSpeed; // the rotation.
     short m_fRA; // rotation acceleration
+    bool m_needRepaint; // need to repaint?
 };
 
