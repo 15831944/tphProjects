@@ -5,6 +5,7 @@
 #include "flightdialog.h"
 #include "..\AirsideGUI\DlgStandFamily.h"
 #include "..\Main\PassengerTypeDialog.h"
+#include "Inputs\PROCDATA.H"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -503,6 +504,19 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		BOOL b_YesNo = MessageBox("Delete All Stages?","Delete All Stages", MB_YESNO|MB_ICONWARNING);
 		if(b_YesNo == IDYES)
 		{
+			MiscProcessorData* pMiscDB = GetInputTerminal()->miscData->getDatabase( (int)HoldAreaProc );
+			for (int nProcIdx = 0; nProcIdx < pMiscDB->getCount(); nProcIdx++)
+			{
+				MiscData* pMiscData = ((MiscDataElement*)pMiscDB->getItem( nProcIdx ))->getData();
+				long lStageNumber= ((MiscHoldAreaData*)pMiscData)->GetStageNumber();
+				if (lStageNumber > 1)
+				{
+					CString strTemp;
+					strTemp.Format(_T("Boarding Calls Stage can't less than %d"), lStageNumber);
+					MessageBox(strTemp,NULL,MB_OK);
+					return;
+				}
+			}
 			int nDBCount=GetInputTerminal()->flightData->GetStageCount();
 			for(int i=0;i<nDBCount;i++)
 			{
@@ -522,6 +536,20 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		break;
 	case TREE_NODE_STAGE:
 		{
+			MiscProcessorData* pMiscDB = GetInputTerminal()->miscData->getDatabase( (int)HoldAreaProc );
+			for (int nProcIdx = 0; nProcIdx < pMiscDB->getCount(); nProcIdx++)
+			{
+				MiscData* pMiscData = ((MiscDataElement*)pMiscDB->getItem( nProcIdx ))->getData();
+				long lStageNumber= ((MiscHoldAreaData*)pMiscData)->GetStageNumber();
+				if (lStageNumber >= GetInputTerminal()->flightData->GetStageCount())
+				{
+					CString strTemp;
+					strTemp.Format(_T("Boarding Calls Stage can't less than %d"), lStageNumber);
+					MessageBox(strTemp,NULL,MB_OK);
+					return;
+				}
+			}
+
 			HTREEITEM hRootItem = m_tree.GetParentItem(hSelItem);
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
