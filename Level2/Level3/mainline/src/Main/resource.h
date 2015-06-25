@@ -3301,6 +3301,7 @@
 #define IDC_COMBO_DATA                  2402
 #define IDC_LIST_ROSTER_ASIGN_SUMMARY   2404
 #define IDC_REPORT_LIST_COMBO           2406
+#define IDC_BOARDING_CALL_TREE          2407
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -3909,13 +3910,7 @@
 #define ID_CHART_PROPERTY               33607
 #define ID_NEXT_DIFF                    33608
 #define ID_PREV_DIFF                    33609
-#define ID_ADD_STAGE                    33610
 #define ID_UNIT_BAR_TEMP                33610
-#define ID_ADD_FLIGHT                   33611
-#define ID_DELETE                       33612
-#define ID_EDIT                         33613
-#define ID_CHANGE_PROCESSOR             33614
-#define ID_DEFAULT_PROCESSOR            33615
 #define ID_BUTTON_NEWMOVIE              33616
 #define ID_BUTTON_DELETEMOVIE           33617
 #define ID_BUTTON_RECORDMOVIE           33618
@@ -5436,7 +5431,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1102
 #define _APS_NEXT_COMMAND_VALUE         35330
-#define _APS_NEXT_CONTROL_VALUE         2407
+#define _APS_NEXT_CONTROL_VALUE         2408
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

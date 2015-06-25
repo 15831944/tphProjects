@@ -25,11 +25,9 @@ protected:
 	
 
 public:
-	void InitDemoStageData();
 	int GetStageCount(){ return m_vBoardingCallStages.size(); }
 	BoardingCallFlightTypeDatabase* GetFlightTypeDBInStage(int _index){ return m_vBoardingCallStages[_index]; }
 	void resortBoardingCallDB();
-	void DeleteOneStage(ConstraintDatabase* pFCDB);
     FlightData () : DataSet (FlightDataFile,(float)2.6 )
     {	
 		delays.setUnits ("MINUTES"); 
@@ -43,7 +41,8 @@ public:
 	void AddStage();
 
 	// remove one stage data
-	void DeleteOneStage( int _nStageNumber );
+	void DeleteOneStageByIndex(int _stageIndex);
+	BOOL DeleteOneStageByFlightConstDB(ConstraintDatabase* pFCDB);
 
 	int getBoardingCallsStageSize(){ return m_vCalls.size(); }
 
