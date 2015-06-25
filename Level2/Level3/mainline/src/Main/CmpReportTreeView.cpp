@@ -276,14 +276,14 @@ void CCmpReportTreeView::RunCompareReport()
 //	m_pReportManager->DisplayReport();
 }
 
-void CCmpReportTreeView::RemoveSubItem(HTREEITEM hItem)
+void CCmpReportTreeView::RemoveSubItems(HTREEITEM hItem)
 {
 	if(hItem == NULL)
 		return;
 	HTREEITEM hChildItem;
 	while((hChildItem = m_propTree.GetChildItem(hItem)) != NULL)
 	{
-		RemoveSubItem(hChildItem);
+		RemoveSubItems(hChildItem);
 		CmpReportTreeNodeDataWithType* pNodeData = (CmpReportTreeNodeDataWithType*)m_propTree.GetItemData(hChildItem);
 		if(pNodeData != NULL)
 			delete pNodeData;
@@ -321,7 +321,7 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 	}
 	else if(hItem == m_hModelRoot)
 	{
-		RemoveSubItem(m_hModelRoot);
+		RemoveSubItems(m_hModelRoot);
 		COOLTREE_NODE_INFO cni;
 		InitCooltreeNodeInfo(this, cni);
 		CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
@@ -378,167 +378,27 @@ void CCmpReportTreeView::UpdateSubItems(HTREEITEM hItem)
 	}
 	else if(hItem == m_hReportRoot)
 	{
-		RemoveSubItem(m_hReportRoot);
-		COOLTREE_NODE_INFO cni;
-		InitCooltreeNodeInfo(this, cni);
-		cni.net = NET_SHOW_DIALOGBOX;
+		RemoveSubItems(m_hReportRoot);
 		CSingleReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManager();
-		
 		int nReportCount = pRManager->getCount();
 		
-		CString strRep = _T("");
 		for(int nReport = 0; nReport < nReportCount; nReport++)
 		{
 			CReportToCompare& report = pRManager->getReport(nReport);
+			COOLTREE_NODE_INFO cni;
+			InitCooltreeNodeInfo(this, cni);
+			cni.net = NET_SHOW_DIALOGBOX;
+			CString strRep = _T("");
 			cni.nt = NT_CHECKBOX;
 			strRep = report.GetName();
 			strRep.MakeUpper();
-			HTREEITEM hItem2 = m_propTree.InsertItem(strRep, cni, report.GetChecked(), FALSE, m_hReportRoot);
-			cni.nt = NT_NORMAL;
+			HTREEITEM hReport = m_propTree.InsertItem(strRep, cni, report.GetChecked(), FALSE, m_hReportRoot);
 			CmpReportTreeNodeDataWithType* pNodeData = new CmpReportTreeNodeDataWithType();
 			pNodeData->m_data = (DWORD)(&report);
 			pNodeData->m_type = CMP_REPORT_TN_REPORT;
-			m_propTree.SetItemData(hItem2, (DWORD)pNodeData);
+			m_propTree.SetItemData(hReport, (DWORD)pNodeData);
 
-			CReportParamToCompare param = report.GetParameter();
-			int iIndex = -1;
-			switch (report.GetCategory())
-			{
-			case ENUM_QUEUELENGTH_REP:
-				iIndex = 0;
-				break;
-			case ENUM_QUEUETIME_REP:
-				iIndex = 1;
-				break;
-			case ENUM_THROUGHPUT_REP:
-				iIndex = 2;
-				break;
-			case ENUM_PAXDENS_REP:
-				iIndex = 3;
-				break;
-			case ENUM_PAXCOUNT_REP:
-				iIndex = 4;
-				break;	
-			case ENUM_ACOPERATION_REP:
-				iIndex = 5;
-				break;
-			case ENUM_DURATION_REP:
-				iIndex = 6;
-				break;
-			case ENUM_DISTANCE_REP:
-				iIndex = 7;
-				break;
-			}
-			if (iIndex == -1)
-			{
-				continue;
-			}
-			cni.nt = NT_NORMAL;
-			CString strTemp = s_szReportCategoryName[iIndex];
-			strItemText.Format("Report Type: %s", strTemp);
-			HTREEITEM hRepName = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2);
-			strTemp = GetRegularDateTime(param.GetStartTime().printTime());
-			strItemText.Format("Start Time: %s", strTemp);
-			HTREEITEM hRepStartTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepName);
-			strTemp = GetRegularDateTime(param.GetEndTime().printTime());
-			strItemText.Format("End Time: %s", strTemp);
-			HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepStartTime);
-			if(report.GetCategory() == ENUM_DISTANCE_REP)
-			{
-				LONG lInterval;
-				param.GetInterval(lInterval);
-				strItemText.Format("Interval: %d", lInterval);
-			}
-			else
-			{
-				strTemp = param.GetInterval().printTime();
-				strItemText.Format("Interval: %s", strTemp);
-			}
-			HTREEITEM hInterval = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hItem2, hRepEndTime);
-			
-			//write Model Parameter
-			std::vector<CModelParameter> vModelParam;
-			param.GetModelParameter(vModelParam);
-			int nModelParamCount = param.GetModelParameterCount();
-
-			CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
-
-			for (int i=0; i<nModelParamCount; i++)
-			{
-				CModelParameter& modelParam = vModelParam[i];
-				CString strModelName = pModelManager->getModel(i)->GetModelName();
-				HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
-				if(iIndex == 3)		//	case ENUM_PAXDENS_REP:	iIndex = 3;
-				{
-					CString strTemp = modelParam.GetArea();
-					if(strTemp.IsEmpty())
-						strItemText = "Areas";
-					else
-						strItemText.Format("Areas: %s", strTemp);
-					HTREEITEM hAreas = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
-				}
-
-				if(report.GetCategory() == ENUM_QUEUETIME_REP ||
-					report.GetCategory() == ENUM_DURATION_REP ||
-					report.GetCategory() == ENUM_DISTANCE_REP ||
-					report.GetCategory() == ENUM_ACOPERATION_REP||
-					report.GetCategory() == ENUM_PAXDENS_REP)
-				{
-					std::vector<CMobileElemConstraint> vPaxType;
-					if (modelParam.GetPaxType(vPaxType))
-					{
-						strTemp = _T("Passanger Type");
-						HTREEITEM hPaxItem = m_propTree.InsertItem("Passenger Type", cni, FALSE, FALSE, hModelItem);
-						CString strPax;
-						for (int i = 0; i < static_cast<int>(vPaxType.size()); i++)
-						{
-							vPaxType[i].screenPrint(strPax);
-							HTREEITEM hPaxItem2 = m_propTree.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
-						}
-						m_propTree.Expand(hPaxItem, TVE_EXPAND);
-					}	
-				}
-				if (report.GetCategory() == ENUM_DURATION_REP ||
-					report.GetCategory() == ENUM_DISTANCE_REP)
-				{
-					// from or to processor
-					CReportParameter::FROM_TO_PROCS _fromtoProcs;
-					modelParam.GetFromToProcs(_fromtoProcs);
-
-					HTREEITEM hFromToItem = m_propTree.InsertItem("From To Processors", cni, FALSE, FALSE, hModelItem);
-					HTREEITEM hFromItem = m_propTree.InsertItem("From", cni, FALSE, FALSE, hFromToItem);
-					HTREEITEM hToItem = m_propTree.InsertItem("To", cni, FALSE, FALSE, hFromToItem);
-
-					for (int nFrom = 0; nFrom < (int)_fromtoProcs.m_vFromProcs.size(); ++ nFrom)
-					{
-						CString strProc = _fromtoProcs.m_vFromProcs.at(nFrom).GetIDString();
-						m_propTree.InsertItem(strProc, cni, FALSE, FALSE, hFromItem);
-					}
-
-					for (int nTo = 0; nTo < (int)_fromtoProcs.m_vToProcs.size(); ++ nTo)
-					{
-						CString strProc = _fromtoProcs.m_vToProcs.at(nTo).GetIDString();
-						m_propTree.InsertItem(strProc, cni, FALSE, FALSE, hToItem);
-					}
-				}
-				else if(report.GetCategory() != ENUM_ACOPERATION_REP)
-				{
-					std::vector<ProcessorID> vProcGroup;
-					if (modelParam.GetProcessorID(vProcGroup))
-					{
-						HTREEITEM hProcTypeItem = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
-						char szProc[128];
-						for (int i = 0; i < static_cast<int>(vProcGroup.size()); i++)
-						{
-							memset(szProc, 0, sizeof(szProc) / sizeof(char));
-							vProcGroup[i].printID(szProc);
-							HTREEITEM hProcID = m_propTree.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
-						}
-						m_propTree.Expand(hProcTypeItem, TVE_EXPAND);
-					}
-				}
-				m_propTree.Expand(hModelItem, TVE_EXPAND);
-			}
+			ReloadReportDetailSubItems(report, hReport);
 		}
 		m_propTree.Expand(m_hReportRoot, TVE_EXPAND);
 	}
@@ -685,7 +545,8 @@ void CCmpReportTreeView::EditReport()
 	CWaitCursor wc;
 
 	BOOL bFound = FALSE;
-	CString strReportName = m_propTree.GetItemText(m_propTree.GetSelectedItem());
+	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
+	CString strReportName = m_propTree.GetItemText(hSelItem);
 
 	CModelsManager* pMManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 	CSingleReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManager();
@@ -702,7 +563,9 @@ void CCmpReportTreeView::EditReport()
 		{
 			const CReportToCompare& report = dlg.GetReport();
 			pRManager->UpdateReport(strReportName, report);
-			UpdateSubItems(m_hReportRoot);
+			strReportName = report.GetName();
+			m_propTree.SetItemText(hSelItem, strReportName.MakeUpper());
+			ReloadReportDetailSubItems(report, hSelItem);
 			m_pCmpReport->SetModifyFlag(TRUE);
 			m_pCmpReport->SaveProject();
 		}
@@ -1176,6 +1039,161 @@ void CCmpReportTreeView::ChangeFocusReport()
 			CString repName = report.GetName();
 			m_pCmpReport->SetFocusReportName(repName);
 		}
+	}
+}
+
+void CCmpReportTreeView::ReloadReportDetailSubItems(const CReportToCompare &report, HTREEITEM hReport)
+{
+	RemoveSubItems(hReport);
+	COOLTREE_NODE_INFO cni;
+	InitCooltreeNodeInfo(this, cni);
+	cni.nt = NT_NORMAL;
+	CReportParamToCompare param = report.GetParameter();
+	int iIndex;
+	switch (report.GetCategory())
+	{
+	case ENUM_QUEUELENGTH_REP:
+		iIndex = 0;
+		break;
+	case ENUM_QUEUETIME_REP:
+		iIndex = 1;
+		break;
+	case ENUM_THROUGHPUT_REP:
+		iIndex = 2;
+		break;
+	case ENUM_PAXDENS_REP:
+		iIndex = 3;
+		break;
+	case ENUM_PAXCOUNT_REP:
+		iIndex = 4;
+		break;	
+	case ENUM_ACOPERATION_REP:
+		iIndex = 5;
+		break;
+	case ENUM_DURATION_REP:
+		iIndex = 6;
+		break;
+	case ENUM_DISTANCE_REP:
+		iIndex = 7;
+		break;
+	default:
+		return;
+		break;
+	}
+
+	CString strItemText1;
+	cni.nt = NT_NORMAL;
+	CString strTemp = s_szReportCategoryName[iIndex];
+	strItemText1.Format("Report Category: %s", strTemp);
+	HTREEITEM hRepName = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport);
+	if(report.GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+		strTemp = _T("Detail");
+	else
+		strTemp = _T("Summary");
+	strItemText1.Format("Report Type: %s", strTemp);
+	HTREEITEM hIsDetail = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hRepName);
+	strTemp = GetRegularDateTime(param.GetStartTime().printTime());
+	strItemText1.Format("Start Time: %s", strTemp);
+	HTREEITEM hRepStartTime = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hIsDetail);
+	strTemp = GetRegularDateTime(param.GetEndTime().printTime());
+	strItemText1.Format("End Time: %s", strTemp);
+	HTREEITEM hRepEndTime = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hRepStartTime);
+
+	if(report.GetCategory() == ENUM_DISTANCE_REP)
+	{
+		LONG lInterval;
+		param.GetInterval(lInterval);
+		strItemText1.Format("Interval: %d", lInterval);
+	}
+	else
+	{
+		strTemp = param.GetInterval().printTime();
+		strItemText1.Format("Interval: %s", strTemp);
+	}
+	HTREEITEM hInterval = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hReport, hRepEndTime);
+
+	//write Model Parameter
+	std::vector<CModelParameter> vModelParam;
+	param.GetModelParameter(vModelParam);
+	int nModelParamCount = param.GetModelParameterCount();
+
+	CModelsManager* pModelManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
+
+	for (int i=0; i<nModelParamCount; i++)
+	{
+		CModelParameter& modelParam = vModelParam[i];
+		CString strModelName = pModelManager->getModel(i)->GetModelName();
+		HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hReport, hInterval);
+		if(iIndex == 3)		//	case ENUM_PAXDENS_REP:	iIndex = 3;
+		{
+			CString strTemp = modelParam.GetArea();
+			if(strTemp.IsEmpty())
+				strItemText1 = "Areas";
+			else
+				strItemText1.Format("Areas: %s", strTemp);
+			HTREEITEM hAreas = m_propTree.InsertItem(strItemText1, cni, FALSE, FALSE, hModelItem);
+		}
+
+		if(report.GetCategory() == ENUM_QUEUETIME_REP ||
+			report.GetCategory() == ENUM_DURATION_REP ||
+			report.GetCategory() == ENUM_DISTANCE_REP ||
+			report.GetCategory() == ENUM_ACOPERATION_REP||
+			report.GetCategory() == ENUM_PAXDENS_REP)
+		{
+			std::vector<CMobileElemConstraint> vPaxType;
+			if (modelParam.GetPaxType(vPaxType))
+			{
+				strTemp = _T("Passanger Type");
+				HTREEITEM hPaxItem = m_propTree.InsertItem("Passenger Type", cni, FALSE, FALSE, hModelItem);
+				CString strPax;
+				for (int i = 0; i < static_cast<int>(vPaxType.size()); i++)
+				{
+					vPaxType[i].screenPrint(strPax);
+					HTREEITEM hPaxItem2 = m_propTree.InsertItem(strPax, cni, FALSE, FALSE, hPaxItem);
+				}
+				m_propTree.Expand(hPaxItem, TVE_EXPAND);
+			}	
+		}
+		if (report.GetCategory() == ENUM_DURATION_REP ||
+			report.GetCategory() == ENUM_DISTANCE_REP)
+		{
+			// from or to processor
+			CReportParameter::FROM_TO_PROCS _fromtoProcs;
+			modelParam.GetFromToProcs(_fromtoProcs);
+
+			HTREEITEM hFromToItem = m_propTree.InsertItem("From To Processors", cni, FALSE, FALSE, hModelItem);
+			HTREEITEM hFromItem = m_propTree.InsertItem("From", cni, FALSE, FALSE, hFromToItem);
+			HTREEITEM hToItem = m_propTree.InsertItem("To", cni, FALSE, FALSE, hFromToItem);
+
+			for (int nFrom = 0; nFrom < (int)_fromtoProcs.m_vFromProcs.size(); ++ nFrom)
+			{
+				CString strProc = _fromtoProcs.m_vFromProcs.at(nFrom).GetIDString();
+				m_propTree.InsertItem(strProc, cni, FALSE, FALSE, hFromItem);
+			}
+
+			for (int nTo = 0; nTo < (int)_fromtoProcs.m_vToProcs.size(); ++ nTo)
+			{
+				CString strProc = _fromtoProcs.m_vToProcs.at(nTo).GetIDString();
+				m_propTree.InsertItem(strProc, cni, FALSE, FALSE, hToItem);
+			}
+		}
+		else if(report.GetCategory() != ENUM_ACOPERATION_REP)
+		{
+			std::vector<ProcessorID> vProcGroup;
+			if (modelParam.GetProcessorID(vProcGroup))
+			{
+				HTREEITEM hProcTypeItem = m_propTree.InsertItem("Processor Type", cni, FALSE, FALSE, hModelItem);
+				char szProc[128];
+				for (int i = 0; i < static_cast<int>(vProcGroup.size()); i++)
+				{
+					memset(szProc, 0, sizeof(szProc) / sizeof(char));
+					vProcGroup[i].printID(szProc);
+					HTREEITEM hProcID = m_propTree.InsertItem(szProc, cni, FALSE, FALSE, hProcTypeItem);
+				}
+				m_propTree.Expand(hProcTypeItem, TVE_EXPAND);
+			}
+		}
+		m_propTree.Expand(hModelItem, TVE_EXPAND);
 	}
 }
 

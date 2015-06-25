@@ -136,13 +136,23 @@ void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 	{
 		return;
 	}
-	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
 	CString strSelect;
 	m_comboReportList.GetLBText(nCurSel,strSelect);
+
+	
 	if(!strSelect.IsEmpty())
 	{
 		m_pCmpReport->SetFocusReportName(strSelect);
+		
 		UpdateRepSubTypeCombo();
+		int nSubCurSel = m_comboRepSubType.GetCurSel();
+		if (nSubCurSel == LB_ERR)
+		{
+			return;
+		}
+
+		int nSubType =  m_comboRepSubType.GetItemData(nSubCurSel);
+
 		Draw3DChartByReportName(strSelect,nSubType);
 		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 		pDoc->UpdateAllViews(this);
@@ -157,8 +167,7 @@ void CCmpReportGraphView::OnCbnSelchangeRepSubTypeCombo()
 		return;
 	}
 	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
-	CString strFocusRep;
-	m_comboReportList.GetLBText(nCurSel,strFocusRep);
+	CString strFocusRep = m_pCmpReport->GetFocusReportName();
 	Draw3DChartByReportName(strFocusRep,nSubType);
 }
 

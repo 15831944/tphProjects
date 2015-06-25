@@ -134,17 +134,15 @@ CReportToCompare* CSingleReportsManager::GetReportByName( const CString& strName
 	return NULL;
 }
 
-void CSingleReportsManager::UpdateReport( const CString& strOldName, const CReportToCompare& report )
+void CSingleReportsManager::UpdateReport(const CString& strOldName, const CReportToCompare& report)
 {
 	std::vector<CReportToCompare>::iterator iter;
 	for (iter = m_vReportToCompare.begin(); iter != m_vReportToCompare.end(); iter++)
 	{
 		if (strOldName.CompareNoCase(iter->GetName()) == 0)
 		{
-			m_vReportToCompare.erase(iter);
+			*iter = report;
 			break;
 		}
 	}
-
-	m_vReportToCompare.push_back(report);
 }
