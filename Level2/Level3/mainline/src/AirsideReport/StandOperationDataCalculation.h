@@ -230,7 +230,11 @@ static void CalculateStandDelay(std::vector<CStandOperationReportData*>& vResult
 	size_t nSize = vResult.size();
 	for (size_t i =0; i < nSize; i++)
 	{
-		pData = vResult.at(i);
+        pData = vResult.at(i);
+        CString str;
+        str.Format("m_sActualName: %s, m_lDelayEnter: %d, m_lDelayLeaving: %d\n",
+            pData->m_sActualName, pData->m_lDelayEnter, pData->m_lDelayLeaving);
+        TRACE(str);
 		if (!pData->IsDelay())
 			continue;
 

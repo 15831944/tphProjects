@@ -996,24 +996,24 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            tempTool.AddNewData((double)standIter->second);
+            tempTool.AddNewData((double)standIter->second/100);
         }
         tempTool.SortData();
 
-        m_summarySchedUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summarySchedUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+        m_summarySchedUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
+        m_summarySchedUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
+        m_summarySchedUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
+        m_summarySchedUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
+        m_summarySchedUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
+        m_summarySchedUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
+        m_summarySchedUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
+        m_summarySchedUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
+        m_summarySchedUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
+        m_summarySchedUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
+        m_summarySchedUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
+        m_summarySchedUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
+        m_summarySchedUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
+        m_summarySchedUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
     }
 }
 
@@ -1040,27 +1040,27 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            long lData = lDuration*100 - standIter->second;
+            long lData = lDuration - standIter->second/100;
             if(lData<0)
                 lData = 0;
             tempTool.AddNewData((double)(lData));
         }
         tempTool.SortData();
 
-        m_summarySchedIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summarySchedIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+        m_summarySchedIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
+        m_summarySchedIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
+        m_summarySchedIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
+        m_summarySchedIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
+        m_summarySchedIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
+        m_summarySchedIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
+        m_summarySchedIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
+        m_summarySchedIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
+        m_summarySchedIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
+        m_summarySchedIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
+        m_summarySchedIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
+        m_summarySchedIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
+        m_summarySchedIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
+        m_summarySchedIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
     }
 }
 
@@ -1086,24 +1086,24 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            tempTool.AddNewData((double)standIter->second);
+            tempTool.AddNewData((double)standIter->second/100);
         }
         tempTool.SortData();
 
-        m_summaryActualUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summaryActualUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+        m_summaryActualUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
+        m_summaryActualUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
+        m_summaryActualUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
+        m_summaryActualUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
+        m_summaryActualUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
+        m_summaryActualUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
+        m_summaryActualUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
+        m_summaryActualUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
+        m_summaryActualUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
+        m_summaryActualUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
+        m_summaryActualUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
+        m_summaryActualUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
+        m_summaryActualUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
+        m_summaryActualUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
     }
 }
 
@@ -1130,27 +1130,27 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            long lData = lDuration*100 - standIter->second;
+            long lData = lDuration - standIter->second/100;
             if(lData<0)
                 lData = 0;
             tempTool.AddNewData((double)(lData));
         }
         tempTool.SortData();
 
-        m_summaryActualIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summaryActualIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+        m_summaryActualIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
+        m_summaryActualIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
+        m_summaryActualIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
+        m_summaryActualIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
+        m_summaryActualIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
+        m_summaryActualIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
+        m_summaryActualIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
+        m_summaryActualIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
+        m_summaryActualIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
+        m_summaryActualIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
+        m_summaryActualIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
+        m_summaryActualIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
+        m_summaryActualIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
+        m_summaryActualIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
     }
 }
 
@@ -1167,6 +1167,12 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
             StandMultipleOperationData operationData = iter->second[i];
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayEnter;
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayLeaving;
+            CString str;
+            str.Format("m_sActualName: %s, m_lDelayEnter: %d, m_lDelayLeaving: %d\n",
+                operationData.m_sActualName,
+                operationData.m_lDelayEnter,
+                operationData.m_lDelayLeaving);
+            TRACE(str);
         }
     }
 
@@ -1177,24 +1183,24 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         mapStandResult::iterator standIter = simIter->second.begin();
         for(; standIter!=simIter->second.end(); standIter++)
         {
-            tempTool.AddNewData((double)standIter->second);
+            tempTool.AddNewData((double)standIter->second/100);
         }
         tempTool.SortData();
 
-        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
+        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
+        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
+        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
+        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
+        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
+        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
+        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
+        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
+        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
+        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
+        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
+        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
+        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
     }
 }
 
@@ -1225,20 +1231,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
         }
         tempTool.SortData();
 
-        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
-        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
+        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
+        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
+        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
+        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
+        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
+        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
+        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
+        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
+        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
+        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
+        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
+        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
+        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
     }
 }
 
