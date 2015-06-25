@@ -129,15 +129,7 @@ BOOL CProcDataSheet::OnInitDialog()
 	
 	// TODO: Add extra initialization here
 	// enable save/restore, with active page
-	EnableSaveRestore(_T("Properties"), TRUE, TRUE); 
-
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
-	if (pSysMenu != NULL)
-	{
-		pSysMenu->AppendMenu(MF_STRING,SC_MINIMIZE,"Minimize");
-		pSysMenu->AppendMenu(MF_STRING,SC_MAXIMIZE,"Maximize");
-		ModifyStyle(0,WS_MINIMIZEBOX|WS_MAXIMIZEBOX);
-	}
+	EnableSaveRestore(_T("Properties"), TRUE, TRUE);
 
 	m_btnLeft.Create("Gate Linkage",WS_CHILD|WS_VISIBLE,CRect(0,0,0,0),this,ID_BTN_PROCDATASHEET_LEFT);
 	m_btnLeft.SetFont(GetFont());

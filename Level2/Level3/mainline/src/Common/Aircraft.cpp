@@ -77,9 +77,9 @@ CACType::CACType( const CACType& acType )
 	m_fMinTurnRad = acType.m_fMinTurnRad;
 	m_bNeedUpdate = acType.m_bNeedUpdate;
 
-	for (size_t i = 0; i < m_vACDoorList.size(); i++)
+	for (size_t i = 0; i < acType.m_vACDoorList.size(); i++)
 	{
-		ACTypeDoor* pDoor = new ACTypeDoor(*m_vACDoorList[i]);
+		ACTypeDoor* pDoor = new ACTypeDoor(*(acType.m_vACDoorList[i]));
 		m_vACDoorList.push_back(pDoor);
 	}
 }

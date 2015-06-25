@@ -164,10 +164,10 @@ void DlgImportACTypeConstraintFromFile::OnBnClickedButtonImport()
 		if (IsValidateStandGroup(GroupName))
 		{
 			ACTypeStandConstraint* pData = new ACTypeStandConstraint;
-			pData->m_StandGroup.setName(GroupName);
+			pData->SetStandGroupName(GroupName);
 			strACTypes += ";";		//Add comma at the end of string
-			pData->InitACTypes(strACTypes);
-			m_pACTypeStandCons->m_vDataList.push_back(pData);
+			pData->InitACTypesFromString(strACTypes);
+			m_pACTypeStandCons->AddItem(pData);
 			m_wndListCtrl.SetItemData(i, 2);
 			m_wndListCtrl.SetItemImage(i,2,IDI_ICON_SUCCESS);
 			nSuccess++;

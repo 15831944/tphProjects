@@ -1459,15 +1459,15 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 			else if(nProcType == BridgeConnectorProc)
 			{
 				BridgeConnector* pConnector = (BridgeConnector*)pProc2->GetProcessor();
-				//for(int ii=0;ii<pConnector->GetConnectPointCount();ii++)
+				for(int ii=0;ii<pConnector->GetConnectPointCount();ii++)
 				{
-					const BridgeConnector::ConnectPoint& pConectPoint =  pConnector->m_connectPoint;
+					const BridgeConnector::ConnectPoint& pConectPoint =  pConnector->GetConnectPointByIdx(ii);
 					if(pProc2->m_dispProperties.bDisplay[PDP_DISP_SHAPE])
 					{
 						ARCColor3 cDisplay;
 						cDisplay = bShowStateOnTag ? pProc2->m_dispProperties.color[PDP_DISP_SHAPE] : stateOffColor;
 
-						CRenderUtility::DrawBridgeConPtr(pConnector,pDoc,cDisplay,dAlt[nProcFloor] );
+						CRenderUtility::DrawBridgeConPtr(ii,pConnector,pDoc,/*pProc2->m_dispProperties.color[PDP_DISP_SHAPE]*/cDisplay,dAlt[nProcFloor] );
 					}
 				}
 				pProc2->DrawOGL(pView,dAlt[nProcFloor], pDoc->m_displayoverrides.m_pbProcDisplayOverrides, DRAWALLNOSHAPENOSERVLOC);

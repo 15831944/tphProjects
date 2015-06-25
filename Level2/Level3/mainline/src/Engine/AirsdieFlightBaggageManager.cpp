@@ -35,6 +35,9 @@ bool AirsideFlightBaggageManager::LoadBagFromFlightAtStand( AirsideBaggageTrainI
 	int nLoadCount = pBagCartInSim->getCapacity();
 	int nFlightBagCount = m_vArrivalBag.size();
 
+	
+	ElapsedTime eBagServiceTime = pBaggageTrain->GetServiceTimePerBag();
+
 	for (int nBag = 0; nBag < nLoadCount; ++ nBag)
 	{
 		ElapsedTime eBagTime = eEntryTime;
@@ -55,7 +58,7 @@ bool AirsideFlightBaggageManager::LoadBagFromFlightAtStand( AirsideBaggageTrainI
 			pFlight->getCargoDoorPosition(ptCargoDoor);
 
 			//one bag 1 seconds
-			eBagTime += ElapsedTime(nBag * 1L);
+			eBagTime += ElapsedTime(1L);
 			//show at cargo door
 			pBagBehavior->setLocation(ptCargoDoor);
 			pBagBehavior->WriteLog(eBagTime);
@@ -80,7 +83,7 @@ bool AirsideFlightBaggageManager::LoadBagFromFlightAtStand( AirsideBaggageTrainI
 			pBagBehavior->setState(ARRIVEATBAGCART);
 			pBagBehavior->WriteLog(eBagTime);
 
-			ElapsedTime eServiceTime = ElapsedTime(1L);
+			ElapsedTime eServiceTime = eBagServiceTime ;
 			eBagTime += eServiceTime;
 
 			pBagBehavior->setState(STAYATCART);

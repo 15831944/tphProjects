@@ -657,8 +657,9 @@ void AirsideBaggageTrainInSim::UnloadBaggageFromCart( ElapsedTime time )
 	if(!pBagCart)
 		return;
 
+	ElapsedTime eServiceTime = GetServiceTimePerBag();
 	ElapsedTime eFinishedTime = time;	
-	pBagCart->ReleaseBaggageToFlight(ptCargoDoor, eFinishedTime);
+	pBagCart->ReleaseBaggageToFlight(ptCargoDoor, eServiceTime, eFinishedTime);
 
 	//move to next cart
 	if(isLastCart())
@@ -829,6 +830,15 @@ bool AirsideBaggageTrainInSim::CanServe(const CMobileElemConstraint& mobCons )
 	}
 
 	return false;
+}
+
+ElapsedTime AirsideBaggageTrainInSim::GetServiceTimePerBag() const
+{
+	if(m_pServiceTimeDistribution)
+	{
+		return ElapsedTime(m_pServiceTimeDistribution->getRandomValue()*60L/10);
+	}
+	return ElapsedTime(1L);
 }
 
 

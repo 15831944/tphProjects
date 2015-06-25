@@ -694,8 +694,6 @@ Flight* CStringConvertToFlight::ConvertToFlight(const CString _sFormateStr,Arcte
 	int nValue = -1;
 	if (_fAgentFile.getInteger(nValue))
 		pFlight->setCapacityInput(nValue);
-	else
-		_fAgentFile.skipField(1);
 
 	return pFlight;
 }

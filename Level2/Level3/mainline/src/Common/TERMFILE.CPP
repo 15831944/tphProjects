@@ -291,7 +291,7 @@ void ArctermFile::endFile (void)
 
 ArctermFile::ArctermFile()
 {
-	m_fversion = 0.0; trimSpaces = 0;
+	m_fversion = 0.0; trimSpaces = 1;
 }
 
 //#if 0

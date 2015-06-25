@@ -49,7 +49,7 @@ public:
 
 	TaxiwayDirectSegInSim  * GetOppositeSegment();
 	const TaxiwayDirectSegInSim * GetOppositeSegment()const;
-	bool IsForbidDirection();
+	bool IsForbidDirection()const;
 	//the dist to the exit node of radius of concern
 	double GetDistToRadiusofConcern(double radius);
 	

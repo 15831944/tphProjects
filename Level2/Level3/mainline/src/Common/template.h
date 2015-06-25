@@ -359,7 +359,6 @@ enum InputFiles
 	TempMobileElementLogFile,
 
 	VehicleDistributionFile,//vehicle distribution file
-	BridgeConnectorPaxDataFile //Bridge Connector passenger data
 };
 
 enum GeneralFiles
@@ -595,9 +594,6 @@ class PeopleMoverDataSet;
 class CSideMoveWalkDataSet;
 class CSideMoveWalkPaxDist;
 class CSimParameter;
-
-// bridge connector
-class BridgeConnectorPaxData;
 
 class Terminal;
 #endif

@@ -245,18 +245,18 @@ LRESULT CAirsideReportListView::OnXListCtrlCheckBoxClicked(WPARAM wParam,LPARAM 
 			listCtrl.InsertItem(nShowRows, nodeDelayItem.m_strResName);
 
 			CString strText;
-			ElapsedTime estTime(nodeDelayItem.eArriveTime/100.0);
+			ElapsedTime estTime(long(nodeDelayItem.eArriveTime/100.0+0.5));
 			//expect time
 			strText.Format(_T("Day%d %02d:%02d:%02d"), estTime.GetDay(), estTime.GetHour(), estTime.GetMinute(), estTime.GetSecond());
 			listCtrl.SetItemText(nShowRows,1,strText);
 
 			//actual time
-			ElapsedTime estActualTime(nodeDelayItem.eActArriveTime/100.0);
+			ElapsedTime estActualTime(long(nodeDelayItem.eActArriveTime/100.0+0.5));
 			strText.Format(_T("Day%d %02d:%02d:%02d"), estActualTime.GetDay(), estActualTime.GetHour(), estActualTime.GetMinute(), estActualTime.GetSecond());
 			listCtrl.SetItemText(nShowRows,2,strText);
 
 			//delay
-			ElapsedTime estDelayTime(nodeDelayItem.delayTime/100.0);
+			ElapsedTime estDelayTime(long(nodeDelayItem.delayTime/100.0+0.5));
 			listCtrl.SetItemText(nShowRows,3,estDelayTime.printTime());
 
 			//reason

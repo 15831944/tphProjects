@@ -1275,26 +1275,26 @@ void CARCportEngine::GenerateElevatorLogEntry( )
 			BridgeConnector* pBridgeConnector = (BridgeConnector*)pProc;
 
 			//	pDoc->GetFloorByMode( EnvMode_Terminal ).
-			ProcessorID sbridgeId = *pBridgeConnector->getID();
-			//int iBridgeCount = pBridgeConnector->GetConnectPointCount();	
+			CString sElevatorName = pBridgeConnector->getID()->GetIDString();
+			int iBridgeCount = pBridgeConnector->GetConnectPointCount();	
 
 			CSimGeneralPara* pSim = getTerminal()->m_pSimParam->GetSimPara();
 
-			//for( int j=0; j<iBridgeCount; ++j )
+			for( int j=0; j<iBridgeCount; ++j )
 			{
-				//CString sLift;
-				//sLift.Format("%d", j );
+				CString sLift;
+				sLift.Format("%d", j );
 				CBridgeConnectorLogEntry bridgeConnectorEntry;
 				bridgeConnectorEntry.SetEventLog( getTerminal()->m_pBridgeConnectorEventLog );
 
-				bridgeConnectorEntry.SetID( sbridgeId  );
+				bridgeConnectorEntry.SetID( sElevatorName + sLift );
 				//				elevatorEntry.SetStartTime( pSim->GetStartTime() );// ElapsedTime(0l)
 				static ElapsedTime tStartTime;
 				tStartTime.setPrecisely(nFirstInTime);
 				bridgeConnectorEntry.SetStartTime(tStartTime);
 				bridgeConnectorEntry.SetEndTime( pSim->GetEndTime() );//ElapsedTime(24l*60l*60l -1l )
 
-				BridgeConnector::ConnectPoint bridgeConnectPoint = pBridgeConnector->m_connectPoint;//(j);
+				BridgeConnector::ConnectPoint bridgeConnectPoint = pBridgeConnector->GetConnectPointByIdx(j);
 
 				bridgeConnectorEntry.SetLocation(bridgeConnectPoint.m_Location);
 				bridgeConnectorEntry.SetDirFromTo(bridgeConnectPoint.m_dirFrom,bridgeConnectPoint.m_dirTo);
@@ -1303,7 +1303,7 @@ void CARCportEngine::GenerateElevatorLogEntry( )
 				bridgeConnectorEntry.SetLength(bridgeConnectPoint.m_dLength);
 
 				bridgeConnectorEntry.SetIndex( nIndex++ );
-				pBridgeConnector->m_Status.SetLogEntryOfBridge( bridgeConnectorEntry );
+				pBridgeConnector->GetConnectPointStatus(j).SetLogEntryOfBridge( bridgeConnectorEntry );
 				getTerminal()->m_pBridgeConnectorLog->addItem( bridgeConnectorEntry );
 			}
 
@@ -1322,7 +1322,7 @@ void CARCportEngine::GenerateElevatorLogEntry( )
 
 			CRetailLogEntry retailEntry;
 			retailEntry.SetEventLog( getTerminal()->m_pRetailEventLog );
-			retailEntry.SetID(*pRetailProc->getID());
+			retailEntry.SetID(pRetailProc->getIDName());
 			retailEntry.SetIndex(nIndex++);
 			retailEntry.SetProcIndex(pRetailProc->getIndex());
 			retailEntry.SetProcessorType(pRetailProc->getProcessorType());

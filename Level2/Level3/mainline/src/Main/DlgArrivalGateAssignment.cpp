@@ -235,6 +235,7 @@ void CDlgArrivalGateAssignment::OnStandMapping(void)
 
 void CDlgArrivalGateAssignment::SetAssignedFlight()
 {
+	m_gtcharCtrl.SetEnableOverlap(TRUE);
 	char szItem[256];
 	CString strToolTips;
 	long lBegineTime, lSeverTime;
@@ -285,6 +286,7 @@ void CDlgArrivalGateAssignment::SetAssignedFlight()
 
 	m_pGateAssignmentMgr->RemoveSelectedFlight();
 	m_gtcharCtrl.ClearItemSeled(false);
+	m_gtcharCtrl.SetEnableOverlap(FALSE);
 }
 
 void CDlgArrivalGateAssignment::SetGate()

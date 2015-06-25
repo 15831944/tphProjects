@@ -149,7 +149,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_bIsArrivalDoor(false)
 ,m_IsWalkOnBridge(FALSE)
 ,m_bhasBusServer(TRUE)
-//,m_nBridgeIndex(-1)
+,m_nBridgeIndex(-1)
 ,m_pLastTerminalProc(NULL)
 {
 	m_pProcessor = m_pTerm->procList->getProcessor (START_PROCESSOR_INDEX);
@@ -1026,7 +1026,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 			m_pProcessor->removePerson(m_pPerson);
 			Point startPs, endPs;
 	
-			pBridgePro->GetStartEndPoint(startPs,endPs);
+			pBridgePro->GetStartEndPoint(m_nBridgeIndex,startPs,endPs);
 			m_pPerson->setTerminalDestination(startPs);
 
 			location = endPs;	
@@ -1053,7 +1053,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 
 		BridgeConnector* pBridgePro = (BridgeConnector*)m_pProcessor;
 		Point startPs, endPs;
-		pBridgePro->GetStartEndPoint(startPs,endPs);
+		pBridgePro->GetStartEndPoint(m_nBridgeIndex,startPs,endPs);
 		setDestination(endPs);	
 		m_pPerson->SetFollowerArrivalDoor(true);
 
@@ -1402,7 +1402,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		BridgeConnector* pBridgePro = (BridgeConnector*)GetBridgeConnector(nextProc);
 		if (pBridgePro)
 		{
-			int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+			m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
 			if(m_nBridgeIndex != -1)
 			{
 				m_emBridgeState = ArrBridge;
@@ -1649,7 +1649,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 			{
 				Point startPs, endPs;
 				BridgeConnector* pBridgePro = (BridgeConnector*)pProce;
-				int m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
+				m_nBridgeIndex = pBridgePro->GetRandomPoint(startPs,endPs,m_pPerson);
 				if(m_nBridgeIndex != -1 &&  m_pPerson->m_logEntry.isDeparting())
 				{
 					m_emBridgeState = DepBridge;
@@ -5142,6 +5142,14 @@ int TerminalMobElementBehavior::processorNum (void) const
 // that means it must be 'JUMP'
 bool TerminalMobElementBehavior::canJumpToProcessor(Processor* _proc)
 {
+	// the changed processor can not lead to the gate of jumper's flight.
+	if(!_proc->CanLeadTo(
+		m_pPerson->getType(), 
+		*getTerminal()->GetProcessorList()->getProcessor(m_pPerson->getGateIndex())->getID()))
+	{
+		return false;
+	}
+
 	CanServeProcList canServeProcList1;
 	if (!_proc->canServe(m_pPerson->getType(), &canServeProcList1))
 	{

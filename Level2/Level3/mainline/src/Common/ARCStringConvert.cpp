@@ -28,7 +28,7 @@ CString ARCStringConvert::toString( const ARCVector2& vec2)
 	return strRet;
 }
 
-CString ARCStringConvert::toString( const int& d )
+CString ARCStringConvert::toString( int d )
 {
 	CString strRet;
 	strRet.Format("%d",d);
@@ -65,7 +65,7 @@ CString ARCStringConvert::toString( const std::vector<bool>& blist )
 	return strRet;
 }
 
-CString ARCStringConvert::toString( const double& d )
+CString ARCStringConvert::toString( double d )
 {
 	CString strRet;
 	strRet.Format("%f",d);
@@ -333,6 +333,13 @@ std::vector<bool> ARCStringConvert::parseBoolList( CString str)
 	}
 	ASSERT(vPts.size()==nCount);	
 	return vPts;
+}
+
+bool ARCStringConvert::isInteger( const CString& val, int& iOut )
+{
+	std::istringstream str(val.GetString());	
+	str >> iOut;
+	return !str.fail() && str.eof();
 }
 
 

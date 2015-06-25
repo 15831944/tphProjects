@@ -414,7 +414,7 @@ typedef struct
 //Bridge resource information
 typedef struct 
 {
-	int name[MAX_PROC_IDS];   // full name of processor
+	char    id[BRIDGECONNECTOR_ID_LEN];   // full name of processor
     long indexNum;                // processor's index in list
     char procType;              // processor class
 
@@ -459,7 +459,7 @@ typedef struct
 
 typedef struct
 {
-	short	name[MAX_PROC_IDS];
+	char	name[MAX_PROC_IDS];
 	long	indexNum; 
 	long	procIndex;
 	char	procType;

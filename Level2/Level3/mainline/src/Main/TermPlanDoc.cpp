@@ -674,7 +674,6 @@ BOOL CTermPlanDoc::OnNewDocument()
 
 		m_defDispProp.loadDataSet( m_ProjInfo.path );
 		m_pPlacement->loadDataSet( m_ProjInfo.path );
-		DoBridgeConvertCompatible();
 		GetTerminal().m_AirsideInput->GetPlacementPtr()->loadDataSet( m_ProjInfo.path);
 		m_arcport.m_economicManager.loadInputs( m_ProjInfo.path, &GetTerminal() );
 		m_cameras.loadDataSet(m_ProjInfo.path);
@@ -5847,7 +5846,6 @@ BOOL CTermPlanDoc::ReloadInputData()
 
 		m_pPlacement->SetInputTerminal(&GetTerminal());
 		m_pPlacement->loadDataSet( m_ProjInfo.path );
-		DoBridgeConvertCompatible();
 
 		GetTerminal().m_AirsideInput->GetPlacementPtr()->SetInputTerminal(&GetTerminal());
 		GetTerminal().m_AirsideInput->GetPlacementPtr()->loadDataSet( m_ProjInfo.path);
@@ -9866,42 +9864,5 @@ void CTermPlanDoc::EnableViewPaint()
 	if (pRenderView)
 	{
 		pRenderView->SetBusy(FALSE);
-	}
-}
-
-void CTermPlanDoc::DoBridgeConvertCompatible()
-{
-	if (GetTerminal().procList->m_vBridgeConvert.empty() == true)
-		return;
-	
-	unsigned iCount = GetTerminal().procList->m_vBridgeConvert.size();
-	for (unsigned i = 0; i < iCount; i++)
-	{
-		BridgeConvert pConvert = GetTerminal().procList->m_vBridgeConvert[i];
-		Processor* pBridgeConnector = pConvert.GetBridgeConnector();
-		if (pBridgeConnector == NULL)
-			continue;
-		
-		CPROCESSOR2LIST* pDefList = &(m_pPlacement->m_vDefined);
-		unsigned size = pDefList->size();
-		for(unsigned j=0; j<size; j++) 
-		{
-			CProcessor2* pProc2 = pDefList->at(j);
-			if(pProc2->GetProcessor() == pBridgeConnector) 
-			{
-				for (int iConvert = 0; iConvert < pConvert.GetConvertCount(); iConvert++)
-				{
-					CProcessor2* pNewProc2 = pProc2->GetCopy();
-					pNewProc2->SetSelectName(GetUniqueNumber());
-					Processor* pConvertBridge = pConvert.GetBridgeConvert(iConvert);
-					pNewProc2->SetProcessor(pConvertBridge);
-
-					m_pPlacement->m_vDefined.insert( m_pPlacement->m_vDefined.begin(), pNewProc2 );
-					m_pPlacement->saveDataSet(m_ProjInfo.path, false);
-				}
-
-				break;
-			}
-		}
 	}
 }

@@ -83,10 +83,13 @@ bool AirsideBaggageCartInSim::IsFull() const
 
 }
 
-void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoDoor, ElapsedTime &eTime )
+void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoDoor,const ElapsedTime& bagServiceTime, ElapsedTime &eTime )
 {
 	ElapsedTime eFinishedTime = eTime;
 	PLACE_METHOD_TRACK_STRING();
+	
+	
+	
 	int nBagCount = static_cast<int>(m_vBaggage.size());
 	for (int nBag = 0; nBag < nBagCount; ++ nBag)
 	{
@@ -107,7 +110,7 @@ void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoD
 		Person *pBag = pBagBehavior->getMobileElement();
 
 		pBagBehavior->setState(Death);
-		eBagTime += ElapsedTime(100L);
+		eBagTime += bagServiceTime;
 		pBagBehavior->WriteLog(eBagTime); 
 
 		if(pBagBehavior->getMobileElement())

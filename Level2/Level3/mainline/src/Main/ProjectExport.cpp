@@ -1511,8 +1511,8 @@ BOOL CProjectExport::FindInputFiles( const CString& strInputFolder, std::vector<
 		_T("Walkthroughs.txt"),
 		_T("arcport.mdb"),
 		_T("NonPaxRelPos.txt"),
-		_T("parts.mdb"),
-		_T("BCPAXDATA.TXT")
+		_T("parts.mdb")
+
 	};
 
 	int nFileCcunt = sizeof(strZipFileName)/sizeof(strZipFileName[0]);

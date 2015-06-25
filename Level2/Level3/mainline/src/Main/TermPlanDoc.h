@@ -887,7 +887,6 @@ protected:
 	bool loadOldDatabaseFroNewProject(CAirportDatabase* pAirportDatabase);
 	void CTermPlanDoc::CopyAircraftFile(CString _path,CString courseDir) ;
 
-	void DoBridgeConvertCompatible();
 protected:
 	void CheckTheFlightActype() ;
 	BOOL StartAnimView();

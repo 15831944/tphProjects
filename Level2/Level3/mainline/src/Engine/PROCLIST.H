@@ -31,42 +31,6 @@ class CAllPaxTypeFlow;
 class CPaxDestDiagnoseInfo;
 class ProcessorFamily;
 
-class BridgeConvert
-{
-public:
-	BridgeConvert()
-	{
-		m_pBridgeConnector = NULL;
-	}
-
-	void SetBridgeConnector(Processor* pBridgeConnector)
-	{
-		m_pBridgeConnector = pBridgeConnector;
-	}
-
-	Processor* GetBridgeConnector()
-	{
-		return m_pBridgeConnector;
-	}
-
-	void AddBridgeConvert(Processor* pBridgeConnector)
-	{
-		m_convertBridges.Add(pBridgeConnector);
-	}
-	int GetConvertCount()const
-	{
-		return m_convertBridges.getCount();
-	}
-
-	Processor* GetBridgeConvert(int idx)
-	{
-		return m_convertBridges.getItem(idx);
-	}
-private:
-	Processor* m_pBridgeConnector;
-	ProcessorArray m_convertBridges;
-};
-
 class ENGINE_TRANSFER ProcessorList : public DataSet, public BaseProcessorList
 {
 protected:
@@ -126,9 +90,7 @@ protected:
 	ProcessorID m_FromGateID;
 	ProcessorID m_ToGateID;
 	ProcessorID m_BaggageDeviceID;
-	
-public:
-	std::vector<BridgeConvert> m_vBridgeConvert;//for new bridge engine convert one bridge to more than one bridge
+
 protected:
 
 	void DoOffset();

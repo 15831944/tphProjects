@@ -226,13 +226,13 @@ void SelectBridgeConnector( const Point& vFrom,const Point& vTo1, const Point& v
 }
 
 
-void CRenderUtility::DrawBridgeConPtr( const BridgeConnector* pConnector, CTermPlanDoc* pDoc , const ARCColor3& color,double dAlt )
+void CRenderUtility::DrawBridgeConPtr( int idx,BridgeConnector* pConnector, CTermPlanDoc* pDoc , const ARCColor3& color,double dAlt )
 {
-	//if(pConnector && pConnector->GetConnectPointCount()>idx)
+	if(pConnector && pConnector->GetConnectPointCount()>idx)
 	{
 		glDisable(GL_TEXTURE_2D);
 		glEnable(GL_LIGHTING);
-		const BridgeConnector::ConnectPoint& p = pConnector->m_connectPoint;
+		const BridgeConnector::ConnectPoint& p = pConnector->GetConnectPointByIdx(idx);
 		//glPushMatrix();
 		//glTranslated(0,0,dAlt);
 		glColor3ubv(color);
@@ -253,12 +253,10 @@ void CRenderUtility::DrawBridgeConPtr( const BridgeConnector* pConnector, CTermP
 					bridgeElment.SetEventLog(pDoc->GetTerminal().m_pBridgeConnectorEventLog);
 					bridgeElment.initStruct(bds);
 
-					
-					/*CString sLift;
-					sLift.Format("%d", idx );*/
-					ProcessorID bridgeID;
-					bridgeID.setIDS(bds.name);
-					if( !(bridgeID == *pConnector->getID()) )
+					CString sLift;
+					sLift.Format("%d", idx );
+
+					if( (pConnector->getIDName()+sLift).CompareNoCase(bds.id)!=0 )
 						continue;
 
 					//if(bds.indexNum != idx)continue;

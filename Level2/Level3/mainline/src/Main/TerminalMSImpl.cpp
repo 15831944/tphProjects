@@ -492,9 +492,7 @@ void CTerminalMSImpl::BuildTVNodeTree()
 	s.LoadString(IDS_TVNN_PROPENTOPUSH);
 	pChildNode = new CTVNode(s);
 	pNode->AddChild(pChildNode);
-	s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
-	pNode = new CTVNode(s);//, IDR_CTX_NONE);
-	pPAXNode->AddChild(pNode);
+
 
 	s.LoadString(IDS_TVNN_PROCESSORS);
 	CTVNode* pProcNode = new CTVNode(s);//, IDR_CTX_FLIGHTS);

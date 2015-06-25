@@ -19,7 +19,7 @@
 #include <inputs\allcarschedule.h>
 #include <InputAirside\ALTObject.h>
 #include <InputAirside\InputAirside.h>
-//#include "BridgeConnector.h"
+#include "BridgeConnector.h"
 #include "DependentProcessorList.h"
 #include "terminal.h"
 #include "inputs\pipegraph.h"
@@ -444,6 +444,25 @@ void Processor::initMisc (const MiscData *miscData)
 	appendLinkedDestProcs(miscData->getLinkedDestList());
 
 	initDependentProcList(miscData->getUseDependentProcFlag(), miscData->getDependentProcList());
+
+	//for bridge all standid init
+	if (getProcessorType() == BridgeConnectorProc)
+	{
+		std::vector<int> vAirports;
+		InputAirside::GetAirportList(GetTerminal()->m_nProjID,vAirports);
+		int airportID = -1;
+		if(vAirports.size()>0) 
+			airportID = vAirports.at(0);
+
+		if (vAirports.size() == 0)
+		{
+			return;
+		}
+
+		ALTObjectIDList tempList;
+		ALTObject::GetObjectNameList(ALT_STAND,airportID,tempList);
+		((BridgeConnector*)this)->SetAllStandList(tempList);
+	}
 
     initSpecificMisc (miscData);
 }

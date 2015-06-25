@@ -2946,7 +2946,6 @@ void CAirsideRepControlView::OnButtonApply()
 		GetDocument()->GetAirsideSimLogs().GetSimReportManager()->SetCurrentSimResult( iCurrentSimIdx );
 
 		GetDocument()->GetARCReportManager().GetAirsideReportManager()->GenerateResult();
-		//GetDocument()->GetARCReportManager().GetAirsideReportManager()->RefreshReport(0);
 		GetDocument()->UpdateAllViews(this,AIRSIDEREPORT_SHOWREPORT,NULL);
 	}
 	catch(StringError* pErr)

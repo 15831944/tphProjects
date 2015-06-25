@@ -18,10 +18,12 @@ public:
 	static CString toString(const ARCVector2& );
 	static ARCVector2 parseVector2(const CString& vec2str);
 
-	static CString toString(const int& d);
-	static CString toString(const double& d);
+	static CString toString( int d);
+	static CString toString( double d);
 
 	static bool isNumber(const CString& val, double& fout);
+
+	static bool isInteger(const CString& val, int& iOut);
 
 	static bool isAllNumeric(const char* buf);
 

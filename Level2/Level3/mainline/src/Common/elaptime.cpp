@@ -77,7 +77,7 @@ void ElapsedTime::printTime (char *str, int printSeconds) const
 {
 	
     long seconds;
-	seconds= m_time / TimePrecision;
+	seconds= m_time/ TimePrecision;
 	if(m_time<0) seconds= -m_time / TimePrecision;
 
 
@@ -101,13 +101,13 @@ void ElapsedTime::printTime (char *str, int printSeconds) const
         strcat (str, "0");
     _itoa (min, str + strlen(str), 10);
 
-    if (printSeconds)
-    {
-        strcat (str, ":");
-        if (sec < 10)
-            strcat (str, "0");
-        _itoa (sec, str + strlen(str), 10);
-    }
+	if (printSeconds)
+	{
+		strcat (str, ":");
+		if (sec < 10)
+			strcat (str, "0");
+		_itoa (sec, str + strlen(str), 10);
+	}
 }
 
 CString ElapsedTime::printTime( int printSeconds/* = 1*/ ) const

@@ -9,16 +9,11 @@
 #include "OnboardDoorInSim.h"
 #include "OnboardSimulation.h"
 #include "Common/FloorChangeMap.h"
-#include "Airside/FlightOpenDoors.h"
-#include "InputAirside/InputAirside.h"
-#include "Airside/StandInSim.h"
 
 BridgeConnector::BridgeConnector(void)
 {
-	//m_vConnectPoints.clear();
+	m_vConnectPoints.clear();
 
-	m_connectPoint.m_dWidth = 3*SCALE_FACTOR;
-	m_connectPoint.m_dLength = 10*SCALE_FACTOR;
 	Point pos;
 	m_location.init(1);
 	m_location[0] = pos;	
@@ -33,92 +28,65 @@ BridgeConnector::~BridgeConnector(void)
 int BridgeConnector::readSpecialField( ArctermFile& procFile )
 {
 
-	if (procFile.getVersion() > 2.60f)
+	procFile.getInteger( m_nConnectPointCount );
+
+	for (int i =0; i < m_nConnectPointCount; i++)
 	{
+		BridgeConnector::ConnectPoint conPoint;
+
 		Point ctPoint;
 		procFile.getPoint(ctPoint);
-		m_connectPoint.m_Location = ctPoint;
+		conPoint.m_Location = ctPoint;
 
-		procFile.getFloat(m_connectPoint.m_dWidth);
-		procFile.getFloat(m_connectPoint.m_dLength);
+		procFile.getFloat(conPoint.m_dWidth);
+		procFile.getFloat(conPoint.m_dLength);
 
 		procFile.getPoint(ctPoint);
-		m_connectPoint.m_dirFrom = ctPoint;
+		conPoint.m_dirFrom = ctPoint;
 		procFile.getPoint(ctPoint);
-		m_connectPoint.m_dirTo = ctPoint;
+		conPoint.m_dirTo = ctPoint;
+
+		m_vConnectPoints.push_back(conPoint);
+
 	}
-	else
-	{
-		int m_nConnectPointCount=0;
-		procFile.getInteger( m_nConnectPointCount );
-
-		for (int i =0; i < m_nConnectPointCount; i++)
-		{
-			BridgeConnector::ConnectPoint conPoint;
-
-			Point ctPoint;
-			procFile.getPoint(ctPoint);
-			conPoint.m_Location = ctPoint;
-
-			procFile.getFloat(conPoint.m_dWidth);
-			procFile.getFloat(conPoint.m_dLength);
-
-			procFile.getPoint(ctPoint);
-			conPoint.m_dirFrom = ctPoint;
-			procFile.getPoint(ctPoint);
-			conPoint.m_dirTo = ctPoint;
-
-			m_vConnectPoints.push_back(conPoint);
-
-		}
-	}
-	
 
 	return TRUE;
 }
 
 int BridgeConnector::writeSpecialField( ArctermFile& procFile ) const
 {
-	//procFile.writeInt(m_nConnectPointCount);
+	procFile.writeInt(m_nConnectPointCount);
 
-	//for (int i =0; i < m_nConnectPointCount; i++)
-	//{
-	//	BridgeConnector::ConnectPoint conPoint = m_vConnectPoints.at(i);
+	for (int i =0; i < m_nConnectPointCount; i++)
+	{
+		BridgeConnector::ConnectPoint conPoint = m_vConnectPoints.at(i);
 
-	//	procFile.writePoint(conPoint.m_Location);
-	//	procFile.writeDouble(conPoint.m_dWidth);
-	//	procFile.writeDouble(conPoint.m_dLength);
-	//	procFile.writePoint(conPoint.m_dirFrom);
-	//	procFile.writePoint(conPoint.m_dirTo);
-	//}
-
-	procFile.writePoint(m_connectPoint.m_Location);
-	procFile.writeDouble(m_connectPoint.m_dWidth);
-	procFile.writeDouble(m_connectPoint.m_dLength);
-	procFile.writePoint(m_connectPoint.m_dirFrom);
-	procFile.writePoint(m_connectPoint.m_dirTo);
+		procFile.writePoint(conPoint.m_Location);
+		procFile.writeDouble(conPoint.m_dWidth);
+		procFile.writeDouble(conPoint.m_dLength);
+		procFile.writePoint(conPoint.m_dirFrom);
+		procFile.writePoint(conPoint.m_dirTo);
+	}
 
 	return TRUE;
 }
 
-
-
-//void BridgeConnector::AddConnectPoint( ConnectPoint& conPoint )
-//{
-//	m_vConnectPoints.push_back(conPoint);
-//}
-
-void BridgeConnector::SetConnectPoint( const ConnectPoint& conPoint )
+const BridgeConnector::ConnectPoint& BridgeConnector::GetConnectPointByIdx( int idx )
 {
-	m_connectPoint = conPoint;
+	return m_vConnectPoints.at(idx);
+}
+
+void BridgeConnector::AddConnectPoint( ConnectPoint& conPoint )
+{
+	m_vConnectPoints.push_back(conPoint);
 }
 
 void BridgeConnector::DoOffset( DistanceUnit _xOffset, DistanceUnit _yOffset )
 {
 	Processor::DoOffset(_xOffset,_yOffset);
-	//for(int i=0;i<(int)m_vConnectPoints.size();i++)
+	for(int i=0;i<(int)m_vConnectPoints.size();i++)
 	{
-		ConnectPoint& cp = m_connectPoint;//m_vConnectPoints[i];
+		ConnectPoint& cp = m_vConnectPoints[i];
 		Point offset(_xOffset,_yOffset,0);
 		cp.m_dirFrom+=offset;
 		cp.m_dirTo += offset;
@@ -129,9 +97,9 @@ void BridgeConnector::DoOffset( DistanceUnit _xOffset, DistanceUnit _yOffset )
 void BridgeConnector::Rotate( DistanceUnit _degree )
 {
 	Processor::Rotate(_degree);
-	//for (int i =0; i < m_nConnectPointCount; i++)
+	for (int i =0; i < m_nConnectPointCount; i++)
 	{
-		ConnectPoint* pPoint = &m_connectPoint;//m_vConnectPoints.at(i);
+		ConnectPoint* pPoint = &m_vConnectPoints.at(i);
 		pPoint->m_Location.rotate(_degree);
 		pPoint->m_dirFrom.rotate(_degree);
 
@@ -143,16 +111,19 @@ void BridgeConnector::Mirror( const Path* _p )
 	Processor::Mirror(_p);
 }
 
-//BridgeConnector::ConnectPointStatus& BridgeConnector::GetConnectPointStatus( int idx )
-//{
-//	return m_vStatus[idx];
-//}
-
-bool BridgeConnector::_connectFlight(const CPoint2008& ptDoorPos, const ElapsedTime& t )
+BridgeConnector::ConnectPointStatus& BridgeConnector::GetConnectPointStatus( int idx )
 {
+	return m_vStatus[idx];
+}
 
+bool BridgeConnector::ConnectFlight(const CPoint2008& ptDoorPos, int idxDoor,const ElapsedTime& t )
+{
+	int nConnnectCount = GetConnectPointCount();
+
+	//for (int nConnectPoint = idxDoor; nConnectPoint < nConnnectCount; ++nConnectPoint )
+	if(idxDoor<nConnnectCount)
 	{
-		BridgeConnector::ConnectPointStatus& connectStatus = m_Status; //(idxDoor);
+		BridgeConnector::ConnectPointStatus& connectStatus = GetConnectPointStatus(idxDoor);
 
 		if(!connectStatus.mbConnected)
 		{
@@ -224,57 +195,17 @@ void BridgeConnector::ConnectAirsideFlight( AirsideFlightInSim* pFlight,const El
 	if(pFlight == NULL)
 		return;
 
-	CFlightOpenDoors* openDoors = pFlight->OpenDoors(t);
-	if(!openDoors)
-	{
-		ASSERT(FALSE);
-		return;
-	}
-	StandInSim* pStand = pFlight->GetOperationParkingStand();
-	if(!pStand)
-	{
-		ASSERT(FALSE);
-		return ;
-	}
+	pFlight->OpenDoors(t);
+	int nCountOpenDoors = pFlight->m_vOpenDoors.size();
 
+	for (int idxDoor =0;idxDoor<nCountOpenDoors;idxDoor++)
+	{		
+		CPoint2008 ptDoorPos = pFlight->m_vOpenDoors[idxDoor].mDoorPos;
 
-	MiscBridgeIDWithDoor::DoorPriorityList doorPriority =  _getLinkDoorPriority(pStand->GetStandInput()->getName());
-
-	for(size_t i =0; i < doorPriority.size();++i)
-	{
-		const MiscBridgeIDWithDoor::DoorPriority& p = doorPriority[i];
-		int doorIdx = openDoors->getDoorIndex(p.m_iHandType,p.m_iIndex-1);
-		if( doorIdx >= 0)
-		{
-			COpenDoorInfo& doorInfo = openDoors->getDoor(doorIdx);
-			if(doorInfo.m_bConnected)
-				continue;
-			if(_connectFlight(doorInfo.mDoorPos,t))
-			{
-				m_pConnectFlight = pFlight;
-				m_iDoorIndex = doorIdx;
-				doorInfo.m_bConnected = true;
-				return;
-			}
-		}
-	}
-	//use the first one
-	for(int i=0;i< openDoors->getCount();i++)
-	{
-		COpenDoorInfo& doorInfo = openDoors->getDoor(i);
-		if(doorInfo.m_bConnected)
-			continue;
-		if(_connectFlight(doorInfo.mDoorPos,t))
-		{
+		if(ConnectFlight(ptDoorPos,idxDoor,t))
 			m_pConnectFlight = pFlight;
-			m_iDoorIndex = 0;
-			doorInfo.m_bConnected = true;
-			return;
-		}
 	}
-	
 }
-
 void BridgeConnector::ConnectOnboardFlight( OnboardFlightInSim* pFlight,const ElapsedTime& t )
 {
 	if(pFlight == NULL)
@@ -282,21 +213,21 @@ void BridgeConnector::ConnectOnboardFlight( OnboardFlightInSim* pFlight,const El
 
 	std::vector<OnboardDoorInSim *>* pDoorSet = pFlight->GetOnboardDoorList();
 
-	//int idxDoor = 0;
+	int idxDoor = 0;
 	for (size_t i = 0; i < pDoorSet->size(); i++)
 	{
 		OnboardDoorInSim* pDoorInSim = pDoorSet->at(i);
 		if (pDoorInSim->ConnectValid())
 		{
-			//int nConnnectCount = GetConnectPointCount();
+			int nConnnectCount = GetConnectPointCount();
 
 			CPoint2008 ptDoorPos;
 			ptDoorPos = pDoorInSim->GetConnectionPos();
 			
-			if (_connectFlight(ptDoorPos,t))
+			if (ConnectFlight(ptDoorPos,idxDoor,t))
 			{
 				m_pOnboardConnectFlight = pFlight;
-				return;
+				idxDoor++;
 			}
 		}
 	}
@@ -304,9 +235,13 @@ void BridgeConnector::ConnectOnboardFlight( OnboardFlightInSim* pFlight,const El
 
 void BridgeConnector::DisAirsideConnect( const ElapsedTime& t )
 {
-	DisConnect(t);
+	int nConnnectCount = GetConnectPointCount();
+
+	for (int nConnectPoint = 0; nConnectPoint < nConnnectCount; ++nConnectPoint )
+	{
+		DisConnect(nConnectPoint,t);
+	}
 	m_pConnectFlight = NULL;
-	m_iDoorIndex = -1;
 }
 
 void BridgeConnector::DisOnboardConnect( const ElapsedTime& t )
@@ -317,15 +252,19 @@ void BridgeConnector::DisOnboardConnect( const ElapsedTime& t )
 	if (occupants.IsEmpty())
 	{
 		m_pOnboardConnectFlight->ProcessCloseDoor(t);
-		DisConnect(t);
+		int nConnnectCount = GetConnectPointCount();
+
+		for (int nConnectPoint = 0; nConnectPoint < nConnnectCount; ++nConnectPoint )
+		{
+			DisConnect(nConnectPoint,t);
+		}
 		m_pOnboardConnectFlight = NULL;
-		m_iDoorIndex = -1;
 	}
 }
 
-void BridgeConnector::DisConnect(const ElapsedTime& t)
+void BridgeConnector::DisConnect(int idxDoor, const ElapsedTime& t)
 {
-	BridgeConnector::ConnectPointStatus& connectStatus = m_Status;//(idxDoor);
+	BridgeConnector::ConnectPointStatus& connectStatus = GetConnectPointStatus(idxDoor);
 
 	if (m_pConnectFlight == NULL && m_pOnboardConnectFlight == NULL)
 		return;
@@ -346,7 +285,7 @@ void BridgeConnector::DisConnect(const ElapsedTime& t)
 		connectStatus.m_logEntryOfBridge.addEvent(bridgeAfterEventDesc);
 
 
-		const ConnectPoint& cp = m_connectPoint;//m_vConnectPoints[idxDoor];
+		const ConnectPoint& cp = m_vConnectPoints[idxDoor];
 // 		Point endPoint = (cp.m_dirTo - cp.m_dirFrom);
 // 		endPoint.length(cp.m_dLength);
 // 		endPoint+=cp.m_dirFrom;
@@ -378,33 +317,30 @@ void BridgeConnector::initMiscData( bool _bDisallowGroup, int visitors, int coun
 
 void BridgeConnector::initSpecificMisc (const MiscData *p_miscData)
 {
-	const ConnectPoint& cp = m_connectPoint;
-	Point pVector;
-	pVector.initVector3D( cp.m_Location, cp.m_dirFrom );
-	pVector.length3D(cp.m_dLength);
-	pVector.plus(cp.m_Location);
-	m_Status.m_EndPoint = pVector;
-	m_pConnectFlight = NULL;
+
+	m_vStatus.clear();
+	m_vStatus.resize(m_vConnectPoints.size());
+	for(int i=0;i<(int)m_vConnectPoints.size();i++)
+	{
+		const ConnectPoint& cp = m_vConnectPoints[i];
+		/*Point endPoint = (cp.m_dirFrom - cp.m_Location);
+		endPoint.length(cp.m_dLength);
+		endPoint+=cp.m_Location;*/
+		Point pVector;
+		pVector.initVector3D( cp.m_Location, cp.m_dirFrom );
+		pVector.length3D(cp.m_dLength);
+		pVector.plus(cp.m_Location);
+		m_vStatus[i].m_EndPoint = pVector;
+	}
 
 	if( p_miscData != NULL )
 	{
-		std::vector<int> vAirports;
-		InputAirside::GetAirportList(GetTerminal()->m_nProjID,vAirports);
-		if (vAirports.empty())
-		{
-			return;
-		}
-		int airportID = vAirports.front();
-		
-		ALTObjectIDList tempList;
-		ALTObject::GetObjectNameList(ALT_STAND,airportID,tempList);
-		SetAllStandList(tempList);
-
 		MiscBridgeConnectorData *data = (MiscBridgeConnectorData *)p_miscData;
-		MiscBridgeIDListWithDoor* misIdList = data->GetBridgeConnectorLinkedProcList();
+
+		MiscProcessorIDList* misIdList = data->GetBridgeConnectorLinkedProcList();
 		appendLinkedStandProcs(misIdList);
 	}
-	
+	m_pConnectFlight = NULL;
 
 }
 
@@ -413,26 +349,21 @@ void BridgeConnector::SetAllStandList(const ALTObjectIDList& allStandIDList)
 	m_AllStandIDList = allStandIDList;
 }
 
-void BridgeConnector::appendLinkedStandProcs(const MiscBridgeIDListWithDoor* _pLinkedStandIdList)
+void BridgeConnector::appendLinkedStandProcs(const MiscProcessorIDList* _pLinkedStandIdList)
 {
 	m_standIDList.clear();
-	m_doorPriorityMap.clear();
-
 	if (_pLinkedStandIdList==NULL) return;
 
-	const MiscBridgeIDListWithDoor* pMiscLinkedBridgeIDList = _pLinkedStandIdList;
-	assert( m_pTerm );	
-
+	const MiscProcessorIDList* pMiscLinkedBridgeIDList = _pLinkedStandIdList;
+	assert( m_pTerm );		
 
 	for (int i = 0; i < pMiscLinkedBridgeIDList->getCount(); i++)
 	{
-		const MiscBridgeIDWithDoor* pIDWithFlag = (const MiscBridgeIDWithDoor*) pMiscLinkedBridgeIDList->getID( i ) ;
+		const MiscProcessorIDWithOne2OneFlag* pIDWithFlag = (const MiscProcessorIDWithOne2OneFlag*) pMiscLinkedBridgeIDList->getID( i ) ;
 		if( pIDWithFlag )
 		{
 			ALTObjectIDList tempArray;
-			ALTObjectID standID(pIDWithFlag->GetIDString());
-			m_doorPriorityMap[standID] = pIDWithFlag->m_vDoorPriority;
-
+			ALTObjectID standID(pMiscLinkedBridgeIDList->getID( i )->GetIDString());
 			for (int j = 0; j < (int)m_AllStandIDList.size(); j++)
 			{
 				if (m_AllStandIDList.at(j).idFits(standID))
@@ -542,16 +473,16 @@ bool BridgeConnector::IsBridgeConnectToFlight(int nFlightIndex)
 	return false;
 }
 
-bool BridgeConnector::GetStartEndPoint( Point& pStart, Point& pEnd )
+bool BridgeConnector::GetStartEndPoint( int nBridgeIndex,Point& pStart, Point& pEnd )
 {
-	//if (nBridgeIndex == -1)
-	//	return false;
-
-	//if (nBridgeIndex >= GetConnectPointCount())
-	//	return false;
-
-	ConnectPointStatus& conPtStatus = m_Status;//(nBridgeIndex);
-	ConnectPoint conPt = m_connectPoint;//(nBridgeIndex);
+	if (nBridgeIndex == -1)
+		return false;
+	
+	if (nBridgeIndex >= GetConnectPointCount())
+		return false;
+	
+	ConnectPointStatus& conPtStatus = GetConnectPointStatus(nBridgeIndex);
+	ConnectPoint conPt = GetConnectPointByIdx(nBridgeIndex);
 	if (conPtStatus.mbConnected)
 	{
 		pStart = conPt.m_Location;
@@ -576,17 +507,17 @@ int BridgeConnector::GetRandomPoint(Point& pStart, Point& pEnd,Person* pPerson)
 		if (pDoorInSim == NULL)
 			return -1;
 		
-		//for (int i = 0; i < GetConnectPointCount(); i++)
+		for (int i = 0; i < GetConnectPointCount(); i++)
 		{
-			ConnectPointStatus& conPtStatus = m_Status;//GetConnectPointStatus(i);
-			ConnectPoint& conPt = m_connectPoint; //(i);
+			ConnectPointStatus& conPtStatus = GetConnectPointStatus(i);
+			ConnectPoint conPt = GetConnectPointByIdx(i);
 			CPoint2008 ptEnd;
 			ptEnd.init(conPtStatus.m_EndPoint.getX(),conPtStatus.m_EndPoint.getY(),conPtStatus.m_EndPoint.getZ());
 			if (conPtStatus.mbConnected && ptEnd == pDoorInSim->GetConnectionPos())
 			{
 				pStart = conPt.m_Location;
 				pEnd = conPtStatus.m_EndPoint;
-				return 0;
+				return i;
 			}
 		}
 
@@ -595,10 +526,10 @@ int BridgeConnector::GetRandomPoint(Point& pStart, Point& pEnd,Person* pPerson)
 	{
 		std::vector<ConnectPointStatus> vStatus;
 		std::vector<ConnectPoint>vConPt;
-		//for (int i = 0; i < GetConnectPointCount(); i++)
+		for (int i = 0; i < GetConnectPointCount(); i++)
 		{
-			ConnectPointStatus& conPtStatus = m_Status;//GetConnectPointStatus(i);
-			ConnectPoint conPt = m_connectPoint; //(i);
+			ConnectPointStatus& conPtStatus = GetConnectPointStatus(i);
+			ConnectPoint conPt = GetConnectPointByIdx(i);
 			if (conPtStatus.mbConnected)
 			{
 				vStatus.push_back(conPtStatus);
@@ -628,17 +559,16 @@ bool BridgeConnector::IsBridgeConnectToFlight()
 
 void BridgeConnector::FlushLog()
 {
-	//for(int i=0;i<(int)m_vStatus.size();i++)
+	for(int i=0;i<(int)m_vStatus.size();i++)
 	{
-		m_Status.FlushLog(m_pTerm);
+		m_vStatus[i].FlushLog(m_pTerm);
 	}
 }
 
 void BridgeConnector::CopyDataToProc( BridgeConnector* pCopyToProc )
 {
-	//pCopyToProc->m_nConnectPointCount = m_nConnectPointCount;
-	//pCopyToProc->m_vConnectPoints.assign(m_vConnectPoints.begin(),m_vConnectPoints.end());
-	m_connectPoint = pCopyToProc->m_connectPoint;
+	pCopyToProc->m_nConnectPointCount = m_nConnectPointCount;
+	pCopyToProc->m_vConnectPoints.assign(m_vConnectPoints.begin(),m_vConnectPoints.end());
 }
 
 void BridgeConnector::AddOccupy( Person* pPerson )
@@ -658,31 +588,13 @@ void BridgeConnector::Release( Person* pPerson )
 void BridgeConnector::UpdateFloorIndex( const FloorChangeMap& changMap )
 {
 	__super::UpdateFloorIndex(changMap);
-	//for (int i =0; i < m_nConnectPointCount; i++)
+	for (int i =0; i < m_nConnectPointCount; i++)
 	{
-		BridgeConnector::ConnectPoint conPoint = m_connectPoint; //m_vConnectPoints.at(i);
+		BridgeConnector::ConnectPoint conPoint = m_vConnectPoints.at(i);
 		changMap.ChangePointFloor(conPoint.m_Location);
-		m_connectPoint = conPoint;
-		//m_vConnectPoints.at(i) = conPoint;
+		m_vConnectPoints.at(i) = conPoint;
 		//conPoint.m_Location.setZ( changMap.getNewFloor(conPoint.m_Location.getZ()) );
 	}
-}
-
-const BridgeConnector::ConnectPoint& BridgeConnector::GetConnectPoint() const
-{
-	return m_connectPoint;
-}
-
-MiscBridgeIDWithDoor::DoorPriorityList BridgeConnector::_getLinkDoorPriority( const ALTObjectID& standname ) const
-{
-	for(StandDoorPriorityMap::const_iterator itr = m_doorPriorityMap.begin();itr!=m_doorPriorityMap.end();++itr)
-	{
-		if( standname.idFits(itr->first))
-		{
-			return itr->second;
-		}
-	}
-	return MiscBridgeIDWithDoor::DoorPriorityList();
 }
 
 

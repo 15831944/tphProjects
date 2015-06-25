@@ -813,6 +813,105 @@ void CDlgMovieWriter::RecordPanoramaRender()
 
 }
 
+void CDlgMovieWriter::RecordPanoramaMovie()
+{
+	long nStartTime = m_pPanoramViewData->GetStartTime();
+	long nEndTime = m_pPanoramViewData->GetEndTime();
+
+	//movie	
+	int nAnimSpeed = 100;
+	CVideoParams videoparams = m_pDoc->m_videoParams;
+	UINT fps = videoparams.GetFPS();
+	UINT nStep = 10*nAnimSpeed/fps;
+	UINT nCount = (nEndTime-nStartTime)/nStep;	
+	int nBPP = 3;
+	int nWidth = videoparams.GetFrameWidth();
+	int nHeight = videoparams.GetFrameHeight();
+	DWORD dwSize = nWidth*nHeight*nBPP;
+	std::vector<BYTE> mBytesBuffer;
+	mBytesBuffer.resize(dwSize);
+
+	CString sFileName = GetMovieFileName();
+	ASSERT(!sFileName.IsEmpty());
+	CMovieWriter mvWriter;
+	mvWriter.InitializeMovie(sFileName, nWidth, nHeight, fps, videoparams.GetQuality());
+	//start anim
+	if(m_pDoc->m_eAnimState == CTermPlanDoc::anim_none) {
+		if(!m_pDoc->StartAnimation(FALSE)){
+			THROW_STDEXCEPTION(_T("Start Animation Failed!"));
+		}
+	}
+	//start read
+	std::auto_ptr<IMovieReader> pMovieReader ( CreateMovieReader());
+	if(!pMovieReader.get()){	THROW_STDEXCEPTION(_T("3DView is not Open!"));	}
+
+	m_bIsCancel = FALSE;
+	m_progressMW.SetPos(0);
+	m_progressMW.UpdateWindow();
+	C3DCamera newCam = 	pMovieReader->BeginRead();
+
+	ALTAirport theAirport;
+	int aptID = InputAirside::GetAirportID(m_pDoc->GetProjectID());
+	theAirport.ReadAirport(aptID);
+
+	ARCVector3 camLocation = m_pPanoramViewData->m_pos;
+	camLocation[VZ] = m_pPanoramViewData->m_dAltitude - theAirport.getElevation();
+	double dAngleFrom = 90 -  m_pPanoramViewData->m_dStartBearing - theAirport.GetMagnectVariation().GetRealVariation(); 
+	double dAngleTo = 90 - m_pPanoramViewData->m_dEndBearing - theAirport.GetMagnectVariation().GetRealVariation();
+	double dAngleRange = dAngleFrom - dAngleTo;
+	DistanceUnit dFarViewLen = 50000;//500 m
+
+	UINT t=nStartTime;
+	for(UINT nFrameIdx=0; nFrameIdx<nCount; nFrameIdx++)
+	{
+		m_pDoc->m_animData.nLastAnimTime = t;
+		//update camera
+		double dAngle = (t - nStartTime)* m_pPanoramViewData->m_dTurnSpeed/100;
+		int nCircle = (int)(dAngle/dAngleRange);
+		if(nCircle%2==0)
+			dAngle = dAngle - nCircle*dAngleRange;
+		else
+			dAngle = dAngleRange - (dAngle - nCircle*dAngleRange);
+
+		double rkeyAngle = ARCMath::DegreesToRadians(dAngle);
+		double rInc = ARCMath::DegreesToRadians(m_pPanoramViewData->m_dInclination);
+		ARCVector3 vLookDir = ARCVector3( cos(rInc) * cos(rkeyAngle), cos(rInc)*sin(rkeyAngle), sin(rInc) ) * dFarViewLen; 
+		newCam.SetCamera(camLocation,vLookDir,ARCVector3(0.0,0.0,1.0) );
+		pMovieReader->setCamera(newCam);
+
+		//write frame to
+		BYTE* pBuffer = &mBytesBuffer[0];
+		pMovieReader->RenderScreenToMem(mvWriter.GetWidth(),mvWriter.GetHeight(),pBuffer);
+		mvWriter.WriteFrame(nFrameIdx,pBuffer);
+
+		//pump messages
+		BOOL bCanceled = PumpMessages();
+
+		if(m_bIsCancel || bCanceled) {
+			pMovieReader->EndRead();
+			mvWriter.EndMovie();
+			EndDialog(IDCANCEL);
+			return;
+		}
+
+		m_sText.Empty();
+		m_sText.Format("Writing file \'%s\'...\nWriting frame %d of %d.",sFileName,nFrameIdx,nCount);
+		UpdateData(FALSE);
+
+		int pct = 100*nFrameIdx/nCount;
+		m_progressMW.SetPos(pct);
+		m_progressMW.UpdateWindow();
+		t+=nStep;
+	}
+
+	m_progressMW.SetPos(100);
+	m_progressMW.UpdateWindow();
+	pMovieReader->EndRead();
+	mvWriter.EndMovie();
+	EndDialog(IDOK);
+	return;
+}
+
 const DistanceUnit dFarViewLen = 50000; //500 m
 void CDlgMovieWriter::BuildMovieFromPanorama( const PanoramaViewData* pPD, CTermPlanDoc* pDoc, CMovie* pMovies )
 {
@@ -921,7 +1020,8 @@ void CDlgMovieWriter::DoRecord()
 				}
 				else
 				{
-					RecordPanorama();
+					//RecordPanorama();
+					RecordPanoramaMovie();
 				}
 			}
 			break;

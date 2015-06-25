@@ -9,7 +9,7 @@
 #include "inputs\SimParameter.h"
 #include "projectmanager.h"
 #include "UndoManager.h"
-#include "main\resource.h"
+//#include "main\resource.h"
 #include "ARCTracker.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

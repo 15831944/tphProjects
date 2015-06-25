@@ -66,7 +66,7 @@ public:
 	// OnBoard Config handle
 	void* m_pVoidOnBoardConfig;
 
-    // Miscellaneous Parameters
+    // Miscellaneous Paramters
 	StringDictionary *inStrDict;
 	StringDictionary *inUndefineShapeStrDict;
 	StringDictionary *inDefineShapeStrDict;
@@ -82,9 +82,6 @@ public:
     PassengerTypeList *inTypeList;
     PassengerDistributionList *paxDistList;
     PassengerData *paxDataList;
-
-	// Bridge Connector passenger data.
-	BridgeConnectorPaxData* bcPaxData;
     // Baggage Data
     BaggageData *bagData;
 

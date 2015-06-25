@@ -76,7 +76,7 @@ protected:
 	void RecordWalkthroughRender();
 	void RecordPanorama();
 	void RecordPanoramaRender();
-	
+	void RecordPanoramaMovie();
 
 	IMovieReader* CreateMovieReader();
 

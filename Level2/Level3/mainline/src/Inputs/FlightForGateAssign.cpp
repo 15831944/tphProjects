@@ -483,7 +483,7 @@ bool FlightForAssignment::getDepStartTime( ElapsedTime& startTime )
 	if (!m_pFlight->isDeparting())
 		return false;
 	
-	if (m_pFlight->GetTowoffTime() > -1l)
+	if (m_pFlight->GetTowoffTime() > 0l)
 	{
 		ElapsedTime exIntStandTime;
 		exIntStandTime.setPrecisely(m_pFlight->GetExIntStandTime());
@@ -522,7 +522,7 @@ bool FlightForAssignment::getArrEndTime( ElapsedTime& endTime )
 		return false;
 
 
-	if (m_pFlight->GetTowoffTime() > -1l)
+	if (m_pFlight->GetTowoffTime() > 0l)
 	{
 		endTime.setPrecisely(m_pFlight->GetTowoffTime());
 	}
@@ -552,7 +552,7 @@ bool FlightForAssignment::getIntEndTime( ElapsedTime& endTime,CString& strError 
 	if (m_pFlight->getIntermediateStand().IsBlank())
 		return false;
 
-	if (m_pFlight->GetExIntStandTime() == -1l)
+	if (m_pFlight->GetExIntStandTime() <= 0l)
 		return false;
 
 	endTime.setPrecisely(m_pFlight->GetExIntStandTime());
@@ -643,7 +643,7 @@ bool FlightForAssignment::getDepEndTime( ElapsedTime& endTime )
 	if (!m_pFlight->isDeparting())
 		return false;
 
-	if (m_pFlight->getArrStand() == m_pFlight->getDepStand() && m_pFlight->GetTowoffTime() == -1l)
+	if (m_pFlight->getArrStand() == m_pFlight->getDepStand() && m_pFlight->GetTowoffTime() <= 0l)
 		return false;
 	
 	endTime = m_pFlight->getDepTime();

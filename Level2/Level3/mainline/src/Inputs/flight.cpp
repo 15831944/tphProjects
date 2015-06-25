@@ -1928,8 +1928,6 @@ void Flight::readFligt3_5(ArctermFile& p_file,StringDictionary* _pStrDict, CStar
 	{
 		m_capacityInput = nCapacity;
 	}
-	else
-		p_file.skipField(1);
 
 	//new add member
 	p_file.getInteger(m_ataTime);

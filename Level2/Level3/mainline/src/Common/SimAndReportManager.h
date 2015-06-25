@@ -11,12 +11,10 @@
 #include"common\template.h"
 #include<vector>
 #include<map>
-#include "reports\ReportType.h"
+
 #include "common\SimResult.h"
 #include "common\dataset.h"
 #include "StartDate.h"	// Added by ClassView
-
-#include "../Common/StartDate.h"
 
 class CSimParameter;
 class CSimAndReportManager :public DataSet
