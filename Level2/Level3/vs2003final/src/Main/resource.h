@@ -1468,7 +1468,6 @@
 #define IDC_EDT_APIATACODE              1105
 #define IDB_MOVE_UP_FLOOR               1105
 #define IDC_EDT_APLONGNAME              1106
-#define IDB_BITMAP20                    1106
 #define IDB_MOVE_UP_FLOOR1              1106
 #define IDC_TREE_PROBDIST               1107
 #define IDC_EDT_APICAOCODE              1107
