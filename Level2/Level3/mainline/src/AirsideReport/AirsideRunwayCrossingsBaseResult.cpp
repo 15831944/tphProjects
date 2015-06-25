@@ -983,7 +983,7 @@ void CAirsideRunwayCrossingsBaseSummaryResult::FillListContent(CXListCtrl& cxLis
 		int nCount = runwayCrossingsItem.m_vMinCrossingIntervals.size();
 		for(int j=0; j<nCount; j++)
 		{
-			strTemp.Format(_T("%dth"), runwayCrossingsItem.m_vMinCrossingIntervals.at(i));
+			strTemp.Format(_T("%dth"), runwayCrossingsItem.m_vMinCrossingIntervals.at(j));
 			strInterMinCrossings += strTemp;
 			if(j != (nCount - 1))
 			{
