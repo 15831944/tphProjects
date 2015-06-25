@@ -125,16 +125,8 @@ private:
         LPARAM lParam
         );
 
-    static void CALLBACK OnTimmer(
-        HWND hwnd, 
-        UINT message, 
-        UINT timerID, 
-        DWORD time
-);
-
 private:
     HWND m_hwnd;
-
     ID2D1HwndRenderTarget *m_pRenderTarget;
     ID2D1Factory *m_pD2DFactory;
     ID2D1SolidColorBrush *m_pBlackBrush;
@@ -146,15 +138,9 @@ private:
     // Bitmap brushes
     ID2D1BitmapBrush *m_pOriginalBitmapBrush;
 
-public:
-    float GetRotateSpeed() const { return m_fRotateSpeed; }
-    void SetRotateSpeed(float val) { m_fRotateSpeed = val; }
-
-    void IncreaseRotate(){ m_fRotate += m_fRotateSpeed; }
+    // Transform Matrix
+    D2D1::Matrix3x2F m_transMatrix;
 protected:
-
     float m_fRotate; // the rotation.
-    float m_fRotateSpeed; // the rotation speed.
-    short m_fRA; // rotation acceleration
 };
 

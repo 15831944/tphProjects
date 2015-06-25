@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5DF855C8-EBD2-415A-BF83-46ED753FF3D4}</ProjectGuid>
+    <ProjectGuid>{5CFA71BE-FA8D-43EF-A16A-BC124704CA26}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ClipWithBitmapMasksSample</RootNamespace>
+    <RootNamespace>MapColor</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -51,7 +51,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -72,26 +72,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ErrorCode.h" />
-    <ClInclude Include="AirsideFlightInfo.h" />
-    <ClInclude Include="DragPicture.h" />
-    <ClInclude Include="ErrorMessage.h" />
-    <ClInclude Include="Macros.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AirsideFlightInfo.cpp" />
-    <ClCompile Include="DragPicture.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MapColor.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="DragPicture.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

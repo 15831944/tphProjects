@@ -18,8 +18,7 @@ m_hwnd(NULL),
     m_pWICFactory(NULL),
     m_pOrigBitmap(NULL),
     m_pOriginalBitmapBrush(NULL),
-    m_fRotateSpeed(0.0f),
-    m_fRA(0)
+    m_fRotate(0.0f)
 {
 }
 
@@ -120,8 +119,6 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             GWLP_USERDATA,
             PtrToUlong(pDemoApp)
             );
-        SetTimer(hwnd, TIMMER_ACCELERATION, 50, OnTimmer);
-        SetTimer(hwnd, TIMMER_PAINT, 50, OnTimmer);
         result = 1;
     }
     else
@@ -175,7 +172,8 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case WM_MOUSEWHEEL:
                 {
                     short sWheel = (short)HIWORD(wParam);
-                    pDemoApp->m_fRotateSpeed += sWheel / 120;
+                    pDemoApp->m_fRotate += sWheel / 60;
+                    InvalidateRect(hwnd, NULL, TRUE);
                 }
                 wasHandled = true;
                 result = 1;
@@ -355,11 +353,10 @@ HRESULT DemoApp::OnRender()
         m_pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
         // The original bitmap.
-        m_pRenderTarget->SetTransform(
-            D2D1::Matrix3x2F::Rotation(m_fRotate, D2D1::Point2F(100, 66)) 
-            * 
-            D2D1::Matrix3x2F::Translation(5, 5)
-            );
+        m_transMatrix = D2D1::Matrix3x2F::Rotation(m_fRotate, D2D1::Point2F(100, 66)) 
+                        * 
+                        D2D1::Matrix3x2F::Translation(5, 5);
+        m_pRenderTarget->SetTransform(m_transMatrix);
         m_pRenderTarget->FillRectangle(&rcBrushRect, m_pOriginalBitmapBrush);
 
         hr = m_pRenderTarget->EndDraw();
@@ -516,50 +513,4 @@ HRESULT DemoApp::LoadResourceBitmap(
     return hr;
 }
 
-void CALLBACK DemoApp::OnTimmer(
-    HWND hwnd, 
-    UINT message, 
-    UINT timerID, 
-    DWORD time )
-{
-    DemoApp *pDemoApp = reinterpret_cast<DemoApp *>(static_cast<LONG_PTR>(
-        ::GetWindowLongPtrW(
-        hwnd,
-        GWLP_USERDATA
-        )));
-    if(pDemoApp == NULL)
-        return;
 
-    switch(timerID)
-    {
-    case TIMMER_ACCELERATION:
-        {
-            if(pDemoApp->GetRotateSpeed() < -UNIT_ACCELERATION_VALUE)
-            {
-                pDemoApp->SetRotateSpeed(pDemoApp->GetRotateSpeed() + UNIT_ACCELERATION_VALUE);
-            }
-            else if(-UNIT_ACCELERATION_VALUE <= pDemoApp->GetRotateSpeed() &&
-                pDemoApp->GetRotateSpeed() <= UNIT_ACCELERATION_VALUE)
-            {
-                pDemoApp->SetRotateSpeed(0.0f);
-            }
-            else if(UNIT_ACCELERATION_VALUE < pDemoApp->GetRotateSpeed())
-            {
-                pDemoApp->SetRotateSpeed(pDemoApp->GetRotateSpeed() - UNIT_ACCELERATION_VALUE);
-            }
-        }
-        break;
-    case TIMMER_PAINT:
-        {
-            if(pDemoApp->GetRotateSpeed() < -0.0001 ||
-                pDemoApp->GetRotateSpeed() > 0.0001)
-            {
-                pDemoApp->IncreaseRotate();
-                InvalidateRect(hwnd, NULL, TRUE);
-            }
-        }
-        break;
-    default:
-        break;
-    }
-}
