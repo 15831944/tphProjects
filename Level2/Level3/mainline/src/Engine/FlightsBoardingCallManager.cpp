@@ -231,7 +231,7 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 									{
 										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(iPax);
 										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());// This Pax Type filter is user set on GUI. 
-										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D'))); // Now merge flight information into Pax Type. 
+										(FlightConstraint&)mobElemConst = pFlight->getType ('D'); // Now merge flight information into Pax Type. 
 										std::vector<BoardingCallTrigger*>& vTrigger = pPaxTypeEntry->GetTriggersDatabase();
 										int triggerCount = vTrigger.size();
 										ElapsedTime tempTime, triggerTime;

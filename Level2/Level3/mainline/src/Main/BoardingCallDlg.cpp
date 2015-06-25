@@ -381,6 +381,7 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTrigge
 			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
 		}
+		m_tree.Expand(hTrigger, TVE_EXPAND);
 	}
 }
 
@@ -649,7 +650,19 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAGE);
 			BoardingCallFlightTypeDatabase* pFlightTypeDB = (BoardingCallFlightTypeDatabase*)(pParentData->m_data);
 
-			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+			if(hPrevSiblingItem != NULL)
+			{
+				m_tree.SelectItem(hPrevSiblingItem);
+				RemoveTreeItem(hSelItem);
+				pFlightTypeDB->deleteItem(pFlightTypeEntry);
+			}
+			else if(hNextSiblingItem != NULL)
+			{
+				m_tree.SelectItem(hNextSiblingItem);
+				RemoveTreeItem(hSelItem);
+				pFlightTypeDB->deleteItem(pFlightTypeEntry);
+			}
+			else
 			{
 				BOOL b_YesNo = MessageBox("Delete All Flight Types?","Delete Flight Type", MB_YESNO|MB_ICONWARNING);
 				if(b_YesNo == IDNO)
@@ -661,15 +674,8 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 				m_tree.SelectItem(hStageItem);
 				pFlightTypeDB->AddFlightType(NULL, GetInputTerminal());
 				ReloadStage(pFlightTypeDB, hStageItem);
-				m_btnSave.EnableWindow(TRUE);
-				break;
+				m_tree.Expand(hStageItem, TVE_EXPAND);
 			}
-
-			pFlightTypeDB->deleteItem(pFlightTypeEntry);
-			m_tree.SelectItem(hStageItem);
-			// Reload all sibling item.
-			ReloadStage(pFlightTypeDB, hStageItem);
-			m_tree.Expand(hStageItem, TVE_EXPAND);
 			m_btnSave.EnableWindow(TRUE);
 		}
 		break;
@@ -679,15 +685,25 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
 
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pSelItemData->m_data;
-
-			// Reload all sibling item.
 			HTREEITEM hFlightTypeItem = m_tree.GetParentItem(hSelItem);
 			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hFlightTypeItem);
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_FLIGHT_TYPE);
 			BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)(pParentData->m_data);
 			BoardingCallStandDatabase* pStandDB = pFlightEntry->GetStandDatabase();
 
-			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+			if(hPrevSiblingItem != NULL)
+			{
+				m_tree.SelectItem(hPrevSiblingItem);
+				RemoveTreeItem(hSelItem);
+				pStandDB->deleteItem(pStandEntry);
+			}
+			else if(hNextSiblingItem != NULL)
+			{
+				m_tree.SelectItem(hNextSiblingItem);
+				RemoveTreeItem(hSelItem);
+				pStandDB->deleteItem(pStandEntry);
+			}
+			else
 			{
 				BOOL b_YesNo = MessageBox("Delete All Stands?","Delete Stand", MB_YESNO|MB_ICONWARNING);
 				if(b_YesNo == IDNO)
@@ -698,13 +714,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 				m_tree.SelectItem(hFlightTypeItem);
 				pStandDB->AddStand(NULL, GetInputTerminal());
 				ReloadFlightType(pFlightEntry, hFlightTypeItem);
-				m_btnSave.EnableWindow(TRUE);
-				break;
 			}
-			pStandDB->deleteItem(pStandEntry);
-			m_tree.SelectItem(hFlightTypeItem);
-			ReloadFlightType(pFlightEntry, hFlightTypeItem);
-			m_tree.Expand(hFlightTypeItem, TVE_EXPAND);
 			m_btnSave.EnableWindow(TRUE);
 		}
 		break;
@@ -712,7 +722,6 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 		{
 			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pSelItemData->m_data;
 
-			// Reload all sibling item.
 			HTREEITEM hStandItem = m_tree.GetParentItem(hSelItem);
 			TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hStandItem);
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAND);
@@ -727,7 +736,20 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
-			if(hPrevSiblingItem == NULL && hNextSiblingItem == NULL)
+
+			if(hPrevSiblingItem != NULL)
+			{
+				m_tree.SelectItem(hPrevSiblingItem);
+				RemoveTreeItem(hSelItem);
+				pPaxTypeDB->deleteItem(pPaxEntry);
+			}
+			else if(hNextSiblingItem != NULL)
+			{
+				m_tree.SelectItem(hNextSiblingItem);
+				RemoveTreeItem(hSelItem);
+				pPaxTypeDB->deleteItem(pPaxEntry);
+			}
+			else
 			{
 				BOOL b_YesNo = MessageBox("Delete All Passenger Types?","Delete Passenger Type", MB_YESNO|MB_ICONWARNING);
 				if(b_YesNo == IDNO)
@@ -738,13 +760,7 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 				m_tree.SelectItem(hStandItem);
 				pPaxTypeDB->AddPaxType(NULL, GetInputTerminal());
 				ReloadStand(pStandEntry, hStandItem);
-				m_btnSave.EnableWindow(TRUE);
-				break;
 			}
-			pPaxTypeDB->deleteItem(pPaxEntry);
-			m_tree.SelectItem(hStandItem);
-			ReloadStand(pStandEntry, hStandItem);
-			m_tree.Expand(hStandItem, TVE_EXPAND);
 			m_btnSave.EnableWindow(TRUE);
 		}
 		break;
