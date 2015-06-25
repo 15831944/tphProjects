@@ -247,7 +247,7 @@ void LandsideSimulation::End(CARCportEngine *pEngine,const ElapsedTime& endTime,
 		{
 			//ASSERT(FALSE);
 		}
-		pVehicle->Kill(this,endTime);
+		pVehicle->Terminate(pEngine);
 	}
 
 
@@ -478,7 +478,7 @@ int LandsideSimulation::GetLinkLandsideFloor( int terminalFloor ) const
 
 bool LandsideSimulation::IsLeftDrive() const
 {
-	return !getInput()->IsLeftDrive();
+	return getInput()->IsLeftDrive();
 }
 
 

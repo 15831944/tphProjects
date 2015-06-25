@@ -26,6 +26,13 @@ LandsideTaxiPoolInSim::LandsideTaxiPoolInSim( LandsideTaxiPool *pStation )
 	m_dTotalLength = getTaxiPoolInput()->getControlPath().getBuildPath().GetTotalLength(); 
 	m_pAllRes = NULL;
 	m_dsepInPool  = 150;
+	int iLaneNum = getTaxiPoolInput()->getLaneNum();
+	for(int i=0;i<iLaneNum;i++)
+	{
+		CPath2008* newPath = new CPath2008();
+		GetPoolLanePath(i,newPath);
+		m_pLanes.push_back(newPath);
+	}
 }
 
 LandsideLayoutObjectInSim* LandsideTaxiPoolInSim::getLayoutObject() const
@@ -107,6 +114,23 @@ LandsideVehicleInSim* LandsideTaxiPoolInSim::GetHeadVehicle() const
 	if(m_vInResVehicle.empty())
 		return NULL;
 	return m_vInResVehicle.front();
+}
+
+bool LandsideTaxiPoolInSim::GetPoolLanePath( int i,CPath2008* lanePath )
+{
+	CPath2008& centerPath  = getTaxiPoolInput()->getControlPath().getBuildPath();
+	int nPtCount = centerPath.getCount();
+	lanePath->Resize(nPtCount);
+	double dWidth = getTaxiPoolInput()->getLaneNum()*getTaxiPoolInput()->getLaneWidth();
+	ARCPipe pipe(centerPath, dWidth);
+	for(int j=0;j<nPtCount;j++)
+	{		
+		ARCVector3 vPt;
+		double drat = (0.5+i)/getTaxiPoolInput()->getLaneNum();
+		vPt  = pipe.m_sidePath1[j]*(1.0-drat) + pipe.m_sidePath2[j]*drat;				
+		(*lanePath)[j] = CPoint2008(vPt.x,vPt.y,vPt.z);
+	}
+	return true;
 }
 
 const CPath2008& LandsideTaxiPoolInSim::GetPath() const
@@ -193,13 +217,15 @@ bool LandsideTaxiPoolInSim::IsHaveCapacityAndFull( LandsideVehicleInSim*pVeh ) c
 			continue;
 		
 		DistanceUnit distEnd = pVehicle->getLastState().distInRes - pVeh->GetLength()*1.5 - m_dsepInPool;
-		if(distEnd > 0)
+		if(distEnd < 0)
 		{
-			return false;
+			return true;
 		}
+		else 
+			return false;
 	}
 
-	return true;
+	return false;
 	
 }
 
@@ -265,9 +291,3 @@ int LandsideTaxiPoolInSim::GetNonServiceTaxiCount() const
 	}
 	return nRetCount;
 }
-
-
-
-
-
-

@@ -32,7 +32,17 @@ void State_ProcessAtTaxiQ::Entry( CARCportEngine* pEngine )
 //////////////////////////////////////////////////////////////////////////
 void State_EnterTaxiPool::Execute( CARCportEngine* pEngine )
 {
-	LandsideVehicleInSim* pVehBefore = m_pTaxiPool->GetVehicleBefore(m_pOwner);
+	int laneNum = m_pTaxiPool->m_pLanes.size();
+	LandsideVehicleInSim *pVehBefore=NULL;
+	LandsideVehicleInSim *pVehNow = getVehicle();
+	for (int i=0;i<laneNum;i++)
+	{
+		pVehBefore = m_pTaxiPool->GetVehicleBefore(pVehNow);
+		if(pVehBefore == NULL)
+			break;
+		pVehNow = pVehBefore;
+	}
+	//LandsideVehicleInSim* pVehBefore = m_pTaxiPool->GetVehicleBefore(m_pOwner);
 	double dMaxSpeed = getVehicle()->getSpeed(m_pTaxiPool);
 	double dCurSpeed = getVehicle()->getLastState().dSpeed;
 	ElapsedTime curT = curTime();
@@ -44,7 +54,12 @@ void State_EnterTaxiPool::Execute( CARCportEngine* pEngine )
 
 	if(pVehBefore)
 	{
-		nextDist = pVehBefore->getLastState().distInRes - getVehicle()->GetLength()*0.5- pVehBefore->GetLength()*0.5 - m_pTaxiPool->GetVehicleSep();
+		/*LandsideVehicleInSim* pVeh;
+		for (int i=0;i<laneNum;i++)
+		{
+			pVeh = m_pTaxiPool->GetVehicleBefore(pVeh);
+		}*/
+		nextDist = pVehBefore->getLastState().distInRes - pVehBefore->GetLength()*0.5  - m_pTaxiPool->GetVehicleSep() - getVehicle()->GetLength()*0.5;
 	}
 
 	if(m_dCurDist < nextDist)
@@ -142,54 +157,54 @@ void State_LeaveTaxiQ::Entry( CARCportEngine* pEngine )
 
 void State_LeaveTaxiQ::Execute( CARCportEngine* pEngine )
 {
-	if(m_bMoveOut)
+	if(m_bOutPath)
 	{	
-		m_pTaxiQ->getParkingSpot().ReleaseParkingPos(getVehicle(), curTime());	
-		m_pTaxiQ->NotifyObservers();
-		getVehicle()->ChangeStateMoveToDest(pEngine);
+		return getVehicle()->ChangeStateMoveToDest(pEngine);
 	}
-	else
+	//finding leave position 
+	LandsidePosition exitPos;
+	if(m_pTaxiQ->getParkingSpot().FindLeavePosition(getVehicle(), m_spot, exitPos) )
 	{
-		LandsideLaneNodeList mPath;
-		if( m_pTaxiQ->getParkingSpot().FindLeavePath(getVehicle(),m_spot,mPath))//find the path
-		{		
-			ASSERT(!mPath.empty());
-			{
-				LandsideLaneNodeInSim* pNode = mPath.back();
-				LandsideLaneInSim* plane =  pNode->mpLane;
-				DistanceUnit distF = pNode->m_distInlane - getVehicle()->GetHalfLength();
-				DistanceUnit distT = pNode->m_distInlane + getVehicle()->GetHalfLength();
+		LandsideLaneInSim* plane = exitPos.pRes->toLane();
+		DistanceUnit distF = exitPos.distInRes - getVehicle()->GetHalfLength();
+		DistanceUnit distT = exitPos.distInRes + getVehicle()->GetHalfLength();
 
-				double dSpeed = getVehicle()->getSpeed(plane, pNode->m_distInlane);
+		if(plane->isSpaceEmpty(getVehicle(), distF,distT))
+		{
+			double dSpeed = getVehicle()->getSpeed(plane, exitPos.distInRes);
+			MobileState lastState = m_pOwner->getLastState();
+			lastState.pos = exitPos.pos;
+			lastState.pRes = plane;
+			lastState.distInRes = exitPos.distInRes-1;
+			lastState.dSpeed = dSpeed*0.5;
+			m_pOwner->MoveToPos(lastState);	
 
-				if(plane->isSpaceEmpty(getVehicle(), distF,distT))
-				{
-					MobileState lastState = getVehicle()->getLastState();
-					lastState.pos = pNode->m_pos;
-					lastState.pRes = plane;
-					lastState.distInRes = pNode->m_distInlane-1;
-					lastState.dSpeed = dSpeed*0.5;
-					getVehicle()->MoveToPos(lastState);	
+			lastState.distInRes = exitPos.distInRes;
+			m_pOwner->MoveToPos(lastState);
 
-					lastState.distInRes = pNode->m_distInlane;
-					getVehicle()->MoveToPos(lastState);
-
-					m_bMoveOut = true;
-					return getVehicle()->Continue();
-				}								
-			}
-		}		
-		getVehicle()->StepTime(pEngine);
-	}
+			m_bOutPath = true;
+			return getVehicle()->Continue();
+		}							
+	}	
+	return getVehicle()->StepTime(pEngine);
 
 }
 
-State_LeaveTaxiQ::State_LeaveTaxiQ( LandsideTaxiInSim* pTaxi, LandsideTaxiQueueInSim* pQ ,LaneParkingSpot* spot)
+State_LeaveTaxiQ::State_LeaveTaxiQ( LandsideTaxiInSim* pTaxi, LandsideTaxiQueueInSim* pQ ,IParkingSpotInSim* spot)
 :State_LandsideVehicle<LandsideVehicleInSim>(pTaxi)
 {
 	m_pTaxiQ = pQ; 
-	m_bMoveOut = false;
+	m_bOutPath = false;
 	m_spot = spot;
+}
+
+void State_LeaveTaxiQ::Exit( CARCportEngine* pEngine )
+{
+	if(m_spot)
+	{
+		m_spot->OnVehicleExit(getVehicle(), curTime());
+	}
+	m_pTaxiQ->NotifyObservers();//notify waiting vehicles
 }
 
 
@@ -208,7 +223,10 @@ void State_EnterTaxiPool::Entry( CARCportEngine* pEngine )
 {
 	//ASSERT(!m_pOwner->getSerivceQueue());
 	m_path.Clear();
-	m_path.addPath(m_pTaxiPool, &m_pTaxiPool->GetPath(), 0);
+	int iLaneNum = m_pTaxiPool->m_pLanes.size();
+	int curLaneIdx;
+	curLaneIdx = m_pTaxiPool->InResVehicle().size() % iLaneNum;
+	m_path.addPath(m_pTaxiPool,m_pTaxiPool->m_pLanes.at(curLaneIdx),0);
 	Execute(pEngine);
 	m_pOwner->ChangeToPoolPlan(m_pTaxiPool,pEngine);
 	m_pTaxiPool->NotifyVehicleArrival(m_pOwner);

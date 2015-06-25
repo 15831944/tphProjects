@@ -63,7 +63,6 @@
 				GenerateMapFile="FALSE"
 				MapFileName="../../bin/ARCTerm.map"
 				SubSystem="2"
-				StackReserveSize="52428800"
 				ImportLibrary=""
 				TargetMachine="1"/>
 			<Tool

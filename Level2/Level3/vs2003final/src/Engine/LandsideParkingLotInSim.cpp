@@ -11,6 +11,9 @@
 #include "Landside/LandsideWalkway.h"
 #include "PaxLandsideBehavior.h"
 #include "Common\States.h"
+#include "LandsideSimulation.h"
+#include "LandsideBusStationInSim.h"
+#include "Landside/LandsideBusStation.h"
 
 LandsideParkingLotInSim::~LandsideParkingLotInSim(void)
 {
@@ -362,6 +365,53 @@ LandsideBusStationInSim * LandsideParkingLotInSim::GetEmbedBusStation( int nInde
 void LandsideParkingLotInSim::AddEmbedBusStation( LandsideBusStationInSim * pStation )
 {
 	m_vEmbedBusStationInSim.push_back(pStation);
+}
+
+LandsideBusStationInSim* LandsideParkingLotInSim::GetBestBusStationGetOff( LandsideSimulation *pSimulation,PaxLandsideBehavior* pLandsideBehavior )
+{
+	LandsideVehicleInSim* pVehicle = pSimulation->FindPaxVehicle(pLandsideBehavior->GetPersonID());
+	if(pVehicle == NULL)
+		return NULL;
+		
+	LandsideResourceInSim* pDestResource = pVehicle->getLastState().getLandsideRes();
+	if (pDestResource == NULL)
+		return NULL;
+	
+	LandsideParkingSpotInSim* pParkSpot = pDestResource->toParkLotSpot();
+	if (pParkSpot == NULL)
+		return NULL;
+	
+	std::vector<LandsideBusStationInSim *> vCanSelectedStation;
+	double dShortestdist = (std::numeric_limits<double>::max)();
+	ARCVector3 ptPoint = pParkSpot->getPos();
+	CPoint2008 ptSpot;
+	ptSpot.init(ptPoint.n[VX],ptPoint.n[VY],ptPoint.n[VZ]);
+	for (int i = 0; i < GetEmbedBusStationCount(); i++)
+	{
+		LandsideBusStationInSim* pBusStation = GetEmbedBusStation(i);
+		if (pBusStation == NULL)
+			continue;
+		
+		CPoint2008 ptBusStation = pBusStation->getBusStation()->get2DCenter();
+		double dDist = ptSpot.distance3D(ptBusStation);
+		if (dDist < dShortestdist)
+		{
+			dShortestdist = dDist;
+			vCanSelectedStation.clear();
+			vCanSelectedStation.push_back(pBusStation);
+		}
+		else if (dDist == dShortestdist)
+		{
+			vCanSelectedStation.push_back(pBusStation);
+		}
+	}
+
+	if (vCanSelectedStation.empty())
+		return NULL;
+	
+	int nCanSelCount = static_cast<int>(vCanSelectedStation.size()); 
+	int nSelIndex = random(nCanSelCount);
+	return vCanSelectedStation[nSelIndex];
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1022,7 +1072,7 @@ void LandsideParkingLotLevelInSim::Init(bool bLeftDrive)
 {
 	LandsideParkingLotLevel* level=  getLot()->getLotInput()->GetLevel(m_idx);//(m_type==_other)?getLot()->getLotInput()->m_otherLevels[m_idx]:getLot()->getLotInput()->m_baselevel;
 
-	ParkingSpaceList& spacelist=  level->m_parkspaces;
+	ParkingLotParkingSpaceList& spacelist=  level->m_parkspaces;
 	for(int i=0;i<spacelist.getCount();i++)
 	{
 		LandsideParkingSpaceInSim* pspaceinsim = new LandsideParkingSpaceInSim(this, spacelist.getSpace(i),i);

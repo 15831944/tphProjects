@@ -195,7 +195,7 @@ bool LandsideRouteGraph::FindRouteStretchPosToRes( LandsideLaneInSim* plane, Dis
 {
 	if(distInLane >= plane->GetLength() )
 	{
-		ASSERT(false);
+		//ASSERT(false);
 		distInLane = plane->GetLength()-1;
 	}
 	std::vector<LandsideLaneExit*> vLaneExit = plane->GetLaneExitsAfterDist(distInLane);
@@ -430,7 +430,7 @@ void InitBehavior(Tlist& vTlist,ALTOBJECT_TYPE objType, CFacilityBehaviorList* p
 
 void LandsideResourceManager::Init( InputLandside* pInput ,CFacilityBehaviorList* pBehaior)
 {
-	bool bLeftDrive = !pInput->IsLeftDrive();
+	bool bLeftDrive = pInput->IsLeftDrive();
 
 	LandsideFacilityLayoutObjectList& layoutObjlist=  pInput->getObjectList();
 	for(int i=0;i<layoutObjlist.getCount();i++)
@@ -482,7 +482,14 @@ void LandsideResourceManager::CreatInSimObject( LandsideFacilityLayoutObject* pO
 	switch(pObj->GetType())
 	{
 	case ALT_LSTRETCH:
-		m_vStretches.push_back(new LandsideStretchInSim((LandsideStretch*)pObj));
+		{
+			LandsideStretch* pStretch = (LandsideStretch*)pObj;
+			if(pStretch->getControlPath().getCount()>1)
+			{
+				m_vStretches.push_back(new LandsideStretchInSim(pStretch));
+			}
+		}
+		
 		break;
 	case ALT_LINTERSECTION:
 		m_Intersections.push_back(new LandsideIntersectionInSim((LandsideIntersectionNode*)pObj));

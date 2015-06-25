@@ -1497,7 +1497,19 @@ bool CAirport3D::ReflectChangeOf( ALTObject3DList obj3DList )
 	bar.StepIt();
 	bar.SetText( "Updating Runway Exits...");
 
-	UpdateRunwayExits(m_vRunways, m_vAirportNodes, vChangeNodesIdx);	
+	try
+	{
+		UpdateRunwayExits(m_vRunways, m_vAirportNodes, vChangeNodesIdx);	
+	}
+	catch(CException* e)
+	{
+	}
+	catch(...)
+	{
+		ASSERT(false);
+	}
+
+
 
 	//update Runway exit	
 

@@ -10,39 +10,10 @@ class LandsideParkingLot;
 class ParkingDrivePipe;
 class CFloor2;
 
-enum PLItemType
-{
-	_NonType,
-		_LevelRoot,
-			_BaseLevel,	
-			_OtherLevel,
-				_Height,
-				_Thickness,
-				_AreaRoot,
-					_Area,		
-					_AreaPath,
-					_AreaVisible,
-				_ParkSpaceRoot,
-					_ParkSpace,
-					_PSType,
-					_PSPath,
-					_PSWidth,
-					_PSLength,
-					_PSAngle,
-					_PSOperation,
-				_EntryExitRoot,
-					_EntryExit,
-					_LinePath,
-					_EntExitPort,
-					_LaneNodeRoot,
-					_LaneNode,
-				_ParkDrivePipeRoot,
-					_ParkDrivePipe,
-					_PPPath,
-					_PPWidth,
-					_PPLaneNum,
-					_PPDirection,
-};	
+
+
+
+
 class ParkingLotTreeItem;
 class LandsideParkingLotLevel;
 class ParkLotTreeItemData;

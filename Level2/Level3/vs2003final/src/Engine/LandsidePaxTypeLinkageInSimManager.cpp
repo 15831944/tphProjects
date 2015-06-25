@@ -126,7 +126,12 @@ void LandsidePaxTypeLinkageInSimManager::ProcessRouteData(ResidentVehicleRoute *
 		if(nObjectID >= 0)
 		{
 			const LandsideFacilityLayoutObject* pLandsideObject = layoutObjectList.getObjectByID(nObjectID);
-			pTimeRangeLinkage->AddObject(pLandsideObject->getName());
+			if(pLandsideObject != NULL)
+				pTimeRangeLinkage->AddObject(pLandsideObject->getName());
+			else
+			{
+				ASSERT(0);
+			}
 		}
 	}
 

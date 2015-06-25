@@ -518,7 +518,13 @@ void CRender3DView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 		{
 			Invalidate(FALSE);
 		}
-		break;	
+		break;
+	case VM_UPDATETRACE:
+		{
+			UpdateLandsideVehicleTraces();
+			Invalidate();
+		}
+		break;
 	default:
 		{
 			bool bUpdate = GetModelEditScene().OnUpdate(lHint,pHint);			
@@ -752,7 +758,7 @@ void CRender3DView::OnDraw( CDC* pDC )
 	C3DDragDropView::OnDraw(pDC);
 	CRender3DFrame* pRender3DFrame = GetParentFrame();
 	pRender3DFrame->GetStatusBar().OnUpdateCmdUI(pRender3DFrame, FALSE);
-	UpdateLandsideVehicleTraces();
+	//UpdateLandsideVehicleTraces();
 }
 
 void CRender3DView::OnMouseMove(UINT nFlags, CPoint point)

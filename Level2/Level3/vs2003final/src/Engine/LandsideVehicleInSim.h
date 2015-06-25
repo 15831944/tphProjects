@@ -55,7 +55,7 @@ class LandsideTaxiInSim;
 class LandsidePrivateVehicleInSim;
 class CurbsideStrategyStateInSim;
 class ParkinglotStrategyStateInSim;
-
+class IParkingSpotInSim;
 
 class landsideResourceQueue
 {
@@ -184,8 +184,7 @@ public:
 
 	virtual bool InitBirth(CARCportEngine *_pEngine);
 	void OnActive( CARCportEngine*pEngine );
-	virtual void Kill(LandsideSimulation*pEngine,const ElapsedTime&t);
-	virtual void OnTerminate(CARCportEngine*pEngine);
+	//virtual void Kill(LandsideSimulation*pEngine,const ElapsedTime&t);
 	bool IsTerminated()const;
 	void ShowError(const CString& sError, const CString& erroType);
 
@@ -274,8 +273,8 @@ public:
 
 	virtual void SuccessBirthInLotSpot(LandsideParkingSpotInSim* plot, CARCportEngine* pEngine);
 	virtual void SuccessParkInLotSpot(LandsideParkingSpotInSim* plot);
-	virtual void SuccessParkInCurb(LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot);
-	virtual void SuccessParkInBusStation(LandsideBusStationInSim* pStation, LaneParkingSpot* spot);
+	virtual void SuccessParkInCurb(LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot);
+	virtual void SuccessParkInBusStation(LandsideBusStationInSim* pStation, IParkingSpotInSim* spot);
 	virtual void FailedParkInCurb(LandsideCurbSideInSim*pCurb,CARCportEngine* pEngine);
 
 
@@ -328,10 +327,11 @@ public:
 
 
 
-	void DoParkingToSpot(LaneParkingSpot* pSpot);
+	void DoParkingToSpot(IParkingSpotInSim* pSpot);
 protected:	
 	LandsideVehicleInSim();	
 	void ChangeDest(LandsideLayoutObjectInSim* pdest);
+	virtual void OnTerminate(CARCportEngine*pEngine);
 
 	int m_id;
 	CHierachyName m_TypeName;

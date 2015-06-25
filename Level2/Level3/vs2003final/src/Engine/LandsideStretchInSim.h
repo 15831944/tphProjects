@@ -139,6 +139,7 @@ public:
 	
 
 	void SetPath(const CPath2008& path );
+	const CPath2008& GetPath()const{ return m_path; }
 public:
 	LandsideLaneNodeList mvEntryExits;
 protected:
@@ -172,7 +173,8 @@ public:
 
 	//is the lane empty in the dist range
 	//bool isSpaceEmpty(LandsideVehicleInSim* pV, DistanceUnit distF, DistanceUnit distT)const;
-
+	void SetHasParkingSpot(bool b){ m_bHasParkingSpot = b; }
+	bool HasParkingSpot()const{ return m_bHasParkingSpot; }
 
 	//cross walks in this lane
 	struct CrossWalkInlane
@@ -214,7 +216,7 @@ public:
 protected:
 	LandsideStretchInSim* mpParent;
 	int m_Idx;
-
+	bool m_bHasParkingSpot;
 	typedef std::vector<CrossWalkInlane> CrossWalkInlaneList;
 	CrossWalkInlaneList m_crosswalks;
 	LandsideLaneEntry* mpFirstEntry;
@@ -237,6 +239,9 @@ public:
 	virtual LandsideLayoutObjectInSim* getLayoutObject()const;
 	virtual CString print()const;
 
+
+	//find the nearest lane to the Point return the Lane and the dist in the lane
+	LandsideStretchLaneInSim* GetNearestLane(const CPoint2008& pos, DistanceUnit& distInlane )const;
 
 	void AddCrossWalk(CCrossWalkInSim* pCross);
 	//lane s

@@ -2,6 +2,7 @@
 #include "CmpReportGraphView.h"
 #include "CompareReportDoc.h"
 #include ".\compare\ComparativePlot.h"
+#include ".\cmpreportgraphview.h"
 
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
@@ -24,18 +25,35 @@ void CCmpReportGraphView::DoDataExchange(CDataExchange* pDX)
 	CFormView::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHART_TYPE_COMBO, m_comboChartType);
 	DDX_Control(pDX, IDC_REPORT_LIST_COMBO, m_comboReportList);
-	DDX_Control(pDX, IDC_STATIC_TOOLBARCONTENTER, m_toolbarContent);
+	DDX_Control(pDX, IDC_STATIC_TOOLBARCONTENTER, m_toolbarContainer);
 }
 
 BEGIN_MESSAGE_MAP(CCmpReportGraphView, CFormView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_SEL_COLOR_BTN, OnSelColorBtn)
+	ON_BN_CLICKED(IDC_PRINT_BTN, OnPrintBtn)
 	ON_CBN_SELCHANGE(IDC_REPORT_LIST_COMBO, OnCbnSelchangeReportListCombo)
+	ON_CBN_SELCHANGE(IDC_CHART_TYPE_COMBO, OnCbnSelchangeChartTypeCombo)
 END_MESSAGE_MAP()
 
 void CCmpReportGraphView::OnInitialUpdate()
 {
 	CFormView::OnInitialUpdate();
+	InitToolbar();
+	//*****************Fill Chart Type Combox***********************
+	m_comboChartType.AddString("3D Bar");
+	m_comboChartType.AddString("2D Bar");
+	m_comboChartType.AddString("2D Pie");
+	//m_comboChartType.AddString("2D XY");
+	m_comboChartType.AddString("3D Line");
+	m_comboChartType.AddString("2D Line");
+	m_comboChartType.AddString("3D Area");
+	m_comboChartType.AddString("2D Area");
+	m_comboChartType.AddString("3D Step");
+	m_comboChartType.AddString("2D Step");
+	m_comboChartType.AddString("3D Combination");
+	m_comboChartType.AddString("2D Combination");
 	m_pCmpReport = ((CCompareReportDoc*)GetDocument())->GetCmpReport();
 }
 
@@ -70,7 +88,6 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 		m_pCmpReport->SetCurReport(selectedReport);
 		Draw3DChartByReportName(selectedReport);
 		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-		pDoc->SetModifiedFlag(TRUE);
 		pDoc->UpdateAllViews(this);
 	}
 }
@@ -147,5 +164,68 @@ void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
 			cmpPlot.Draw3DChart(*vResult[i]);
 			break;
 		}
+	}
+}
+
+void CCmpReportGraphView::InitToolbar()
+{
+	CRect rc;
+	m_toolbarContainer.GetWindowRect( &rc );
+	ScreenToClient(&rc);
+	m_ToolBar.MoveWindow(2, -2, 90, rc.Height());
+	m_toolbarContainer.ShowWindow(SW_HIDE);
+	m_ToolBar.ShowWindow(SW_SHOW);
+
+}
+
+void CCmpReportGraphView::OnSelColorBtn() 
+{
+	m_3DChart.PropertyEdit();
+}
+void CCmpReportGraphView::OnPrintBtn() 
+{
+	m_3DChart.Print3DChart();
+}
+
+void CCmpReportGraphView::OnCbnSelchangeChartTypeCombo()
+{
+	int nSelGraphType = m_comboChartType.GetCurSel();
+	switch(nSelGraphType) 
+	{
+	case 0://3D Bar
+		m_3DChart.Set3DChartType(Arc3DChartType_3D_Bar);
+		break;
+	case 1://2D Bar
+		m_3DChart.Set3DChartType(Arc3DChartType_2D_Bar);
+		break;
+	case 2://2D Pie
+		m_3DChart.Set3DChartType(Arc3DChartType(14));
+		break;
+	case 3://3D Line
+		m_3DChart.Set3DChartType(Arc3DChartType_3D_Line);
+		break;
+	case 4://2D Line
+		m_3DChart.Set3DChartType(Arc3DChartType_2D_Line);
+		break;
+	case 5://3D Area
+		m_3DChart.Set3DChartType(Arc3DChartType_3D_Area);
+		break;
+	case 6://2D Area
+		m_3DChart.Set3DChartType(Arc3DChartType_2D_Area);
+		break;
+	case 7://3D Step
+		m_3DChart.Set3DChartType(Arc3DChartType(6));
+		break;
+	case 8://2D Step
+		m_3DChart.Set3DChartType(Arc3DChartType(7));
+		break;
+	case 9://3D Combination
+		m_3DChart.Set3DChartType(Arc3DChartType(8));
+		break;
+	case 10://2D Combination
+		m_3DChart.Set3DChartType(Arc3DChartType(9));
+		break;
+	default:
+		break;
 	}
 }

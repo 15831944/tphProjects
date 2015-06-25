@@ -166,7 +166,7 @@ bool CAllCarSchedule::SelectBestSchedule( IntegratedStation* _pCurrentStation, I
 //	// TRACE("\n arriveCurStationTime = %s \n ",temptime );
 	
 	if( iBestScheduleIndex > -1)
-		return m_allCarSchedule[ iBestScheduleIndex ]->SelectBestSchedule( _pCurrentStation, _pDesStation, arriveCurStationTime, _bestMovePath );
+		return m_allCarSchedule[ iBestScheduleIndex ]->SelectBestScheduleCircualtion( _pCurrentStation, _pDesStation, arriveCurStationTime, _bestMovePath );
 	else
 		return false;
 }

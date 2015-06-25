@@ -1495,6 +1495,7 @@ void AirTrafficController::AssignSTAR( AirsideFlightInSim * pFlight )
 	if(pRoute)
 		pRoute->InitializeSegments(pFlight);
 
+	ASSERT(pRoute->GetItemCount()>1);
 	pFlight->m_pSTAR = pRoute;
 }
 

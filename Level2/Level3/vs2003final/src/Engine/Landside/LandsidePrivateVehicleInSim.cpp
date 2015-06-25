@@ -65,7 +65,7 @@ bool LandsidePrivateVehicleInSim::ProceedToNextFcObject( CARCportEngine* pEngine
 	return false;	
 }
 
-void LandsidePrivateVehicleInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot )
+void LandsidePrivateVehicleInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot )
 {
 	if(isArrival())
 	{
@@ -102,7 +102,7 @@ void LandsidePrivateVehicleInSim::SuccessParkInLotSpot( LandsideParkingSpotInSim
 	}
 }
 
-void LandsidePrivateVehicleInSim::OnFailPickPaxAtCurb(LandsideCurbSideInSim* pCurb,  LaneParkingSpot* spot,CARCportEngine* pEngine )
+void LandsidePrivateVehicleInSim::OnFailPickPaxAtCurb(LandsideCurbSideInSim* pCurb,  IParkingSpotInSim* spot,CARCportEngine* pEngine )
 {
 	if( CurbsideStrategyStateInSim* curbStratgy = getCurbStragy() )
 	{
@@ -239,7 +239,7 @@ void State_PickPaxAtCurbsidePrivate::Exit( CARCportEngine* pEngine )
 	m_pOwner->SetLoadingPax(false);
 }
 
-State_PickPaxAtCurbsidePrivate::State_PickPaxAtCurbsidePrivate( LandsidePrivateVehicleInSim* pV,LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot) 
+State_PickPaxAtCurbsidePrivate::State_PickPaxAtCurbsidePrivate( LandsidePrivateVehicleInSim* pV,LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot) 
 :State_LandsideVehicle<LandsidePrivateVehicleInSim>(pV)
 {
 	m_pCurb = pCurb;

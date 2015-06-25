@@ -7,6 +7,7 @@
 #include ".\InputAirside\ALTAirport.h"
 #include "PrintableListCtrl.h"
 #include ".\Common\dataset.h"
+#include <Controls\XTResizeDialog.h>
 
 
 //////////////////for export

@@ -17,6 +17,11 @@
 
 void State_MoveInRoad::Execute( CARCportEngine* _pEngine )
 {	
+	if(m_path.getPtCount()==0)
+	{
+		ASSERT(false);
+		return OnMoveOutRoute(_pEngine);
+	}
 
 	LandsideVehicleInSim* pVehicle = getVehicle();
 	
@@ -135,6 +140,39 @@ void State_MoveInRoad::DoMovementsInPath(CARCportEngine* _pEngine, const Elapsed
 #define TEST_COUNT 5
 //
 #define CONCERN_RADIUS 10000 //500 meters
+
+struct StretchChangeLaneSorter
+{
+public:
+	StretchChangeLaneSorter(int nCurLaneIndex, bool bLeftDrive)
+	{
+		m_nCurLane = nCurLaneIndex;
+		m_bLeftDrive = bLeftDrive;
+	}
+	bool operator()(LandsideStretchLaneInSim * pLane1, LandsideStretchLaneInSim* pLane2)
+	{
+		bool bLane1Left = pLane1->GetLaneIndex()<m_nCurLane;
+		bool bLane2Left = pLane2->GetLaneIndex()<m_nCurLane;
+		
+		if(bLane1Left!=bLane2Left)
+		{
+			if(m_bLeftDrive)
+			{
+				return bLane1Left;
+			} 
+			else 
+				return bLane2Left;
+		}
+		else
+		{
+			return abs(pLane1->GetLaneIndex()-m_nCurLane)<abs(pLane2->GetLaneIndex()-m_nCurLane);
+		}
+	}
+	int m_nCurLane;
+	bool m_bLeftDrive;
+};
+
+
 bool State_MoveInRoad::ChangeLane( CARCportEngine *_pEngine )
 {
 	LandsideResourceInSim* pCurRes = m_pOwner->getLastState().getLandsideRes();
@@ -154,11 +192,11 @@ bool State_MoveInRoad::ChangeLane( CARCportEngine *_pEngine )
 	LandsideLaneNodeInSim* pLastNode = *mRoutePath.rbegin();
 	LandsideResourceInSim* pDest = pLastNode->getToRes();
 	
-
+	UpdateChangeLanes(pStretchLane,_pEngine->GetLandsideSimulation()->IsLeftDrive());
 	//search left 
-	for(int i=pStretchLane->GetLaneIndex()-1;i>=0;i--)
+	for(int i=0;i<(int)m_vChangeLanes.size();i++)
 	{
-		LandsideLaneInSim* pOtherLane = pStretch->GetLane(i);
+		LandsideStretchLaneInSim* pOtherLane = m_vChangeLanes.at(i);
 		if(!pOtherLane->IsSameDirToLane(pThisLane))
 			break;
 
@@ -190,45 +228,7 @@ bool State_MoveInRoad::ChangeLane( CARCportEngine *_pEngine )
 		DoChangeLane(_pEngine,pOtherLane,dChangeLaneDist,routepath);
 		return true;
 
-	}
-
-
-	for(int i=pStretchLane->GetLaneIndex()+1;i<pStretch->GetLaneCount();i++)
-	{
-		LandsideLaneInSim* pOtherLane = pStretch->GetLane(i);
-		if(!pOtherLane->IsSameDirToLane(pThisLane))
-			break;
-
-		double dChangeLaneDist = pOtherLane->GetPointDist(m_pOwner->getLastState().pos) + m_pOwner->GetLength();
-		if(!pOtherLane->isSpaceEmpty(getVehicle(),dChangeLaneDist-m_pOwner->GetLength(), dChangeLaneDist+m_pOwner->GetLength()))
-			break;
-
-		if(dChangeLaneDist > pOtherLane->GetLength() - 1000 )
-			break;		
-
-		LandsideLaneNodeList routepath;
-		bool leadtoDest = pRes->mRouteGraph.FindRouteStretchPosToRes(pOtherLane,dChangeLaneDist, pDest, routepath);
-		if(!leadtoDest)
-			continue;
-
-
-		double dNewLaneSpeed = m_pOwner->getSpeed(pOtherLane,dChangeLaneDist);
-		DistanceUnit distAheadFromLane;
-		DistanceUnit distAheadToLane;
-		LandsideVehicleInSim* pOldAhead = pThisLane->GetAheadVehicle(m_pOwner,m_pOwner->getLastState().distInRes,distAheadFromLane);
-		LandsideVehicleInSim* pNewAhead = pOtherLane->GetAheadVehicle(m_pOwner, dChangeLaneDist,distAheadToLane);
-		LandsideVehicleInSim* pNewBack = pOtherLane->GetBehindVehicle(m_pOwner,dChangeLaneDist);
-
-		
-		bool bChangeOK = m_pOwner->GetChangeLaneModel().bChangOk(m_pOwner,false,pOldAhead,dChangeLaneDist,pOtherLane->GetLength(), pNewAhead,pNewBack);
-		if(!bChangeOK)
-			continue;
-
-		//change lane
-		DoChangeLane(_pEngine,pOtherLane,dChangeLaneDist,routepath);
-		return true;
-	}
-	
+	}	
 	return false;
 }
 
@@ -253,6 +253,8 @@ State_MoveInRoad::State_MoveInRoad( LandsideVehicleInSim* pEnt)
 	m_bStopAtEnd = true;//init list of acc operations 
 	m_dLastDistInRoute = 0;
 	m_nChangeLaneCount = 0;
+
+	m_plastStretchLane= NULL;
 }
 
 
@@ -986,6 +988,29 @@ void State_MoveInRoad::UpdateConflictResolvePath()
 	m_path.getPath(m_dLastDistInRoute, m_dLastDistInRoute + distSpan + m_pOwner->GetHalfLength(),  m_pOwner->getSpanPath() );
 }
 
+void State_MoveInRoad::UpdateChangeLanes( LandsideStretchLaneInSim* pthislane ,bool bLeftDrive)
+{
+	if(m_plastStretchLane == pthislane)
+		return;
+	m_plastStretchLane = pthislane;
+
+	m_vChangeLanes.clear();
+
+	LandsideStretchInSim* pStretch = (LandsideStretchInSim*)pthislane->getLayoutObject();
+	for(int i=0;i<pStretch->GetLaneCount();i++)
+	{
+		LandsideStretchLaneInSim* pLane = pStretch->GetLane(i);
+		if(pLane!=pthislane)
+		{
+			if(!pLane->HasParkingSpot())
+			{
+				m_vChangeLanes.push_back(pLane);
+			}
+		}
+	}
+	std::sort( m_vChangeLanes.begin(),m_vChangeLanes.end(),StretchChangeLaneSorter(pthislane->GetLaneIndex(),bLeftDrive) );
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 void State_MoveToDest::Entry( CARCportEngine* pEngine )
@@ -1002,7 +1027,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 			CString sError;
 			sError.Format(_T("Can not Find a Entry Door of  %s"),pLot->getName().GetIDString().GetString() );
 			m_pOwner->ShowError(sError,"Simulation Error");
-			m_pOwner->Terminate(curTime());
+			m_pOwner->Terminate(pEngine);
 			return;
 		}
 		m_pDestResource = pDoor;	
@@ -1017,7 +1042,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 	if(pOrign==NULL||m_pDestResource==NULL)
 	{
 		ASSERT(FALSE);
-		m_pOwner->OnTerminate(pEngine);
+		m_pOwner->Terminate(pEngine);
 		return;
 	}
 
@@ -1038,7 +1063,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 				str.Format("Can not find Route From %s to %s", pOrign->print().GetString(),m_pDestResource->print().GetString());
 			}		
 			m_pOwner->ShowError(str, "Simulation Error");
-			return m_pOwner->OnTerminate(pEngine);
+			return m_pOwner->Terminate(pEngine);
 		}
 
 		m_pLaneEntry = new LandsideLaneEntry();
@@ -1057,7 +1082,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 				str.Format("Can not find Route From %s to %s", pOrign->print().GetString(),m_pDestResource->print().GetString());
 			}		
 			m_pOwner->ShowError(str, "Simulation Error");
-			return m_pOwner->OnTerminate(pEngine);
+			return m_pOwner->Terminate(pEngine);
 		}
 	}
 

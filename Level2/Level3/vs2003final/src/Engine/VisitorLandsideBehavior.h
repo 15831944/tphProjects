@@ -14,7 +14,7 @@ public:
 	virtual int performanceMove(ElapsedTime p_time,bool bNoLog);
 	
 	virtual void InitializeBehavior();
-
+	virtual void flushLog (ElapsedTime p_time, bool bmissflight = false);
 	//
 	void UpdateEntryTime( const ElapsedTime& eEntryTime );
 	//write visitor log himself

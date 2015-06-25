@@ -155,13 +155,15 @@ BOOL CDlgFlightDB::OnInitDialog()
 	m_wndListCtrl.SetExtendedStyle( dwStyle );
 	m_wndListCtrl.SubClassHeadCtrl();
 	m_wndListCtrl.GetClientRect(&listrect);
-	m_wndListCtrl.InsertColumn(0, "Airline", LVCFMT_LEFT, listrect.Width()/3);
-	m_wndListCtrl.InsertColumn(1, "ID", LVCFMT_LEFT, listrect.Width()/3);
-	m_wndListCtrl.InsertColumn(2, "Day",LVCFMT_LEFT, listrect.Width()/3);
+	m_wndListCtrl.InsertColumn(0, "Airline", LVCFMT_LEFT, listrect.Width()/4);
+	m_wndListCtrl.InsertColumn(1, "ID", LVCFMT_LEFT, listrect.Width()/4);
+	m_wndListCtrl.InsertColumn(2, "Day",LVCFMT_LEFT, listrect.Width()/4);
+	m_wndListCtrl.InsertColumn(3, "Operation Time", LVCFMT_LEFT,listrect.Width()/4);
 //	m_wndListCtrl.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
 	m_wndListCtrl.SetDataType(0,CSortAndPrintListCtrl::ITEM_STRING);
 	m_wndListCtrl.SetDataType(1,CSortAndPrintListCtrl::ITEM_INT);
 	m_wndListCtrl.SetDataType(2,CSortAndPrintListCtrl::ITEM_INT);
+	m_wndListCtrl.SetDataType(3,CSortAndPrintListCtrl::ITEM_TIME);
 
 	PopulateGroupsList();
 	if (m_wndListBox.GetCount()>0)
@@ -508,6 +510,7 @@ void CDlgFlightDB::PopulateFlightList(int _nItem)
 
 		char str[128];
 		CString strDay = _T("");
+		CString strTime;
 		ElapsedTime etDayTime;
 		int nIndex = 0;
 		if (m_pTerm->flightSchedule->getCount() != 0)
@@ -530,6 +533,9 @@ void CDlgFlightDB::PopulateFlightList(int _nItem)
 						strDay.Format("%d", etDayTime.GetDay());
 						m_wndListCtrl.SetItemText(nIndex,2,strDay);
 
+						strTime.Format(_T("%02d:%02d"),etDayTime.GetHour(),etDayTime.GetMinute());
+						m_wndListCtrl.SetItemText(nIndex,3,strTime);
+
 						nIndex++;
 					}
 				}
@@ -546,6 +552,9 @@ void CDlgFlightDB::PopulateFlightList(int _nItem)
 						etDayTime = pFlight->getDepTime();
 						strDay.Format("%d", etDayTime.GetDay());
 						m_wndListCtrl.SetItemText(nIndex,2,strDay);
+
+						strTime.Format(_T("%02d:%02d"),etDayTime.GetHour(),etDayTime.GetMinute());
+						m_wndListCtrl.SetItemText(nIndex,3,strTime);
 						nIndex++;
 					}
 				}

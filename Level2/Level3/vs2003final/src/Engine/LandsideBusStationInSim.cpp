@@ -33,7 +33,7 @@ LandsideBusStationInSim::LandsideBusStationInSim( LandsideBusStation *pStation,b
 	}
 
 	m_queueProcessSys = new LandsideQueueSystemProcess(this);
-	getParkingSpot().SetLeftDrive(bLeftDrive);
+	getParkingSpot().getInStretchSpots().SetLeftDrive(bLeftDrive);
 }
 
 LandsideBusStationInSim::~LandsideBusStationInSim(void)
@@ -128,95 +128,56 @@ void LandsideBusStationInSim::InitRelateWithOtherObject(LandsideResourceManager*
 		return;
 
 	LandsideStretchInSim*pStretch = allRes->getStretchByID(m_pBusStation->getStrech()->getID());
-	if(pStretch)
+	if(!pStretch)
+		return;
+
+	mParkingSpots.Init(getBusStation(), allRes, this);
+	for(int i=0;i<pStretch->GetLaneCount();i++)
 	{
-		CPoint2008 ptFrom = pStretch->m_Path.GetDistPoint(m_pBusStation->getDistFrom());
-		CPoint2008 ptTo = pStretch->m_Path.GetDistPoint(m_pBusStation->getDistTo());
+		LandsideStretchLaneInSim* pLane = pStretch->GetLane(i);		
+		bool bIsCurbParkingLane  = pLane->HasParkingSpot();
 
-		int iLaneForm = MIN(m_pBusStation->GetLaneTo()-1,m_pBusStation->GetLaneFrom());
-		int iLaneTo = MAX(m_pBusStation->GetLaneTo()-1,m_pBusStation->GetLaneFrom());
-		iLaneForm = MAX(0,iLaneForm); 
-		iLaneForm = MIN(iLaneForm,pStretch->GetLaneCount()-1);
-		iLaneTo = MAX(0,iLaneTo); 
-		iLaneTo = MIN(iLaneTo,pStretch->GetLaneCount()-1);
+		DistanceUnit distF = pLane->GetPath().GetIndexDist(mParkingSpots.GetEntryIndexInStrech() );
+		DistanceUnit distT = pLane->GetPath().GetIndexDist(mParkingSpots.GetExitIndexInStretch() );
 
-
-		for(int i=iLaneForm;i<=iLaneTo;i++)
+		if(!pLane->HasParkingSpot())
 		{
-			LandsideLaneInSim* pLane = pStretch->GetLane(i);
-			if(pLane)
 			{
-				LandsideLaneExit* pLaneExit = new LandsideLaneExit();
-				DistanceUnit distF = pLane->GetPointDist(ptFrom);
-				DistanceUnit distT = pLane->GetPointDist(ptTo);
+				LandsideBusStationExit* pCurbExit = new LandsideBusStationExit;
+				pCurbExit->SetFromRes(this);
+				pCurbExit->SetDistRangeInlane(distF,distT);
+				pCurbExit->SetPosition(pLane,distF);
 
-				pLaneExit->SetPosition(pLane,distF);
-				pLaneExit->SetToRes(this);
-				m_vLaneExits.push_back(pLaneExit);
-				pLane->AddLaneNode(pLaneExit);
+				m_vLaneEntries.push_back(pCurbExit);
+				pLane->AddLaneNode(pCurbExit);
+			}
+			{
+				LandsideBusStationEntry* pCurbEntry = new LandsideBusStationEntry;
+				pCurbEntry->SetToRes(this);
+				pCurbEntry->SetDistRangeInlane(distF,distT);
+				pCurbEntry->SetPosition(pLane,distF);
 
-				LandsideLaneEntry* pLaneEntry = new LandsideLaneEntry();
-				pLaneEntry->SetPosition(pLane,distT);
-				pLaneEntry->SetFromRes(this);				
-				pLane->AddLaneNode(pLaneEntry);
-				m_vLaneEntries.push_back(pLaneEntry);
-
-				mParkingSpots.addLane(pLane,distF,distT,600,this);
-				//m_vLaneOccupy.push_back(new LaneSegInSim(pLane, pLaneExit->m_distInlane,pLaneEntry->m_distInlane));
+				m_vLaneExits.push_back(pCurbEntry);
+				pLane->AddLaneNode(pCurbEntry);
 			}
 		}
-		mParkingSpots.InitSpotRelations();
-
-
-		//add next to lane
-		if(iLaneForm>0)
+		else
 		{
-			LandsideLaneInSim* pLane = pStretch->GetLane(iLaneForm-1);
-			DistanceUnit distF = pLane->GetPointDist(ptFrom);
-			DistanceUnit distT = pLane->GetPointDist(ptTo);
+			LandsideLaneExit* pLaneExit = new LandsideLaneExit();
+			pLaneExit->SetPosition(pLane,distF);
+			pLaneExit->SetToRes(this);
+			m_vLaneExits.push_back(pLaneExit);
+			pLane->AddLaneNode(pLaneExit);
 
-			{
-				LandsideBusStationExit* pStationExit = new LandsideBusStationExit;
-				pStationExit->SetFromRes(this);
-				pStationExit->SetDistRangeInlane(distF,distT);
-				pStationExit->SetPosition(pLane,distF);
-				m_vLaneEntries.push_back(pStationExit);
-				pLane->AddLaneNode(pStationExit);
-			}
-			{
-				LandsideBusStationEntry* pStationEntry = new LandsideBusStationEntry;
-				pStationEntry->SetToRes(this);
-				pStationEntry->SetDistRangeInlane(distF,distT);
-				pStationEntry->SetPosition(pLane,distF);
-				m_vLaneExits.push_back(pStationEntry);
-				pLane->AddLaneNode(pStationEntry);
-			}
-		}
-		if(iLaneTo<pStretch->GetLaneCount()-1)
-		{
-			LandsideLaneInSim* pLane = pStretch->GetLane(iLaneTo+1);
-			DistanceUnit distF = pLane->GetPointDist(ptFrom);
-			DistanceUnit distT = pLane->GetPointDist(ptTo);
-
-			{
-				LandsideBusStationExit* pStationExit = new LandsideBusStationExit;
-				pStationExit->SetFromRes(this);
-				pStationExit->SetDistRangeInlane(distF,distT);
-				pStationExit->SetPosition(pLane,distF);
-				m_vLaneEntries.push_back(pStationExit);
-				pLane->AddLaneNode(pStationExit);
-			}
-			{
-				LandsideBusStationEntry* pStationEntry = new LandsideBusStationEntry;
-				pStationEntry->SetToRes(this);
-				pStationEntry->SetDistRangeInlane(distF,distT);
-				pStationEntry->SetPosition(pLane,distF);
-				m_vLaneExits.push_back(pStationEntry);
-				pLane->AddLaneNode(pStationEntry);
-			}
-		}
-
+			LandsideLaneEntry* pLaneEntry = new LandsideLaneEntry();
+			pLaneEntry->SetPosition(pLane,distT);
+			pLaneEntry->SetFromRes(this);				
+			pLane->AddLaneNode(pLaneEntry);
+			m_vLaneEntries.push_back(pLaneEntry);
+		}		
 	}
+
+	
 
 	m_pEmbeddedParkingLotInSim = NULL;
 	if(m_pBusStation->getEmbedParkingLotID() >= 0)
@@ -264,15 +225,6 @@ void LandsideBusStationInSim::AddWaitingBus( LandsideVehicleInSim* pBus )
 	m_vWaitingBus.Add(pBus);
 }
 
-//void LandsideBusStationInSim::AddWaitingPax( PaxLandsideBehavior* pPax )
-//{
-//	m_vWaitingPax.Add(pPax);
-//}
-//
-LaneParkingSpotsGroup& LandsideBusStationInSim::getParkingSpot()
-{
-	return mParkingSpots;
-}
 
 bool LandsideBusStationInSim::PaxTakeOnBus( PaxLandsideBehavior *pBehavior, LandsideSimulation *pSimulation, const ElapsedTime& eTime )
 {

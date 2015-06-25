@@ -25,11 +25,12 @@ public:
 
 private:
 	void OnEditWidth(HTREEITEM hItem);
-
+	void OnEditLaneNum(HTREEITEM hItem);
 private:
 	HTREEITEM	m_hQueue;
 	HTREEITEM	m_hArea;
 	HTREEITEM	m_hWidth;
+	HTREEITEM   m_hLaneNum;
 	HTREEITEM	m_hEnterStretch;
 	HTREEITEM	m_hExitStretch;
 };

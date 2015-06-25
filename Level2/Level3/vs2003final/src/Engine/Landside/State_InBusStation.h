@@ -11,7 +11,7 @@ public:
 protected:
 	LandsideBusStationInSim *m_pBusStation;
 	LandsideLaneNodeList mPath;
-	LaneParkingSpot* m_spot;
+	IParkingSpotInSim* m_spot;
 	void OnMoveOutRoute( CARCportEngine* _pEngine );
 
 };
@@ -19,19 +19,13 @@ protected:
 class State_LeaveBusStation: public State_LandsideVehicle<LandsideVehicleInSim>
 {
 public:
-	State_LeaveBusStation(LandsideVehicleInSim* pV, LandsideBusStationInSim* pBusStation,LaneParkingSpot* spot)
-		:State_LandsideVehicle<LandsideVehicleInSim>(pV)
-	{
-		m_pBusStation = pBusStation;  
-		m_bFindLeavePath = false;
-		m_spot = spot;
-	}
+	State_LeaveBusStation(LandsideVehicleInSim* pV, LandsideBusStationInSim* pBusStation,IParkingSpotInSim* spot);
 	void Execute( CARCportEngine* pEngine );
 	virtual const char* getDesc()const{ return _T("Leave Bus Station"); }
 	virtual void Entry(CARCportEngine* pEngine);
+	virtual void Exit(CARCportEngine* pEngine);
 protected:
-	void OnMoveOutRoute( CARCportEngine* _pEngine );
 	LandsideBusStationInSim *m_pBusStation;
-	LaneParkingSpot* m_spot;
-	bool m_bFindLeavePath;
+	IParkingSpotInSim* m_spot;
+	bool m_bOutPath;
 };

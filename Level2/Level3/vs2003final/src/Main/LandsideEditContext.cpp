@@ -943,7 +943,7 @@ void CLandsideEditContext::OnCtxLandsideAreaColor( CLandsideArea *pArea )
 
 bool CLandsideEditContext::isLeftDrive() const
 {
-	return !getInput()->IsLeftDrive(); //left hand drive , drive right
+	return getInput()->IsLeftDrive(); //left hand drive
 }
 
 

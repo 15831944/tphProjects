@@ -86,32 +86,21 @@ BOOL CCmpReportChildFrameSplit::OnCreateClient( LPCREATESTRUCT lpcs, CCreateCont
 
 	GetWindowRect(&rect);
  	m_wndSplitter1.SetColumnInfo(0, 350, 0);
- 	m_wndSplitter2.SetRowInfo(0, 500, 200);
+ 	m_wndSplitter2.SetRowInfo(0, 468, 0);
 	return TRUE;
 }
 
 void CCmpReportChildFrameSplit::OnSize(UINT nType, int cx, int cy)
 {
 	CMDIChildWnd::OnSize(nType,cx,cy);
-}
-void CCmpReportChildFrameSplit::OnUpdateFrameTitle(BOOL bAddToTitle)
-{
-	// update our parent window first
-	GetMDIFrame()->OnUpdateFrameTitle(bAddToTitle);
-
-	if ((GetStyle() & FWS_ADDTOTITLE) == 0)
-		return;     // leave child window alone!
-
-	CDocument * pDocument = GetActiveDocument();
-	if(bAddToTitle)
+	if(IsWindowVisible())
 	{
-		TCHAR szText[256+_MAX_PATH];
-		if (pDocument == NULL)
-			lstrcpy(szText, m_strTitle);
-		else
-			lstrcpy(szText, 
-			pDocument->GetTitle() + " - " + "TODO: CmpReportChildFrameSplit.cpp:101" );
-		this->SetWindowText(szText);
+		CWnd* pTreeView = m_wndSplitter2.GetPane(0, 0);
+		CRect rect;
+		pTreeView->GetWindowRect(rect);
+		CSize size = rect.Size();
+		if(size.cy >= cy)
+			m_wndSplitter2.SetRowInfo(0, cy, 0);
 	}
 }
 

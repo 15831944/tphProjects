@@ -2,8 +2,11 @@
 #include "LayoutObjectPropDlgImpl.h"
 #include "TreeCtrlItemInDlg.h"
 
+
 //////////////////////////////////////////////////////////////////////////
 class LandsideCurbSide;
+class ParkingSpace;
+
 class LandsideCurbSidePropDlgImpl : public ILayoutObjectPropDlgImpl
 {
 public:
@@ -18,30 +21,40 @@ public:
 	
 	virtual void DoFallBackFinished( WPARAM wParam, LPARAM lPara);
 	virtual BOOL OnDefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
-	void LoadTreeSubItemPickArea(HTREEITEM preItem,const CPath2008& path );
+	virtual void OnPropDelete();
+
+	//void LoadTreeSubItemPickArea(HTREEITEM preItem,const CPath2008& path );
 
 	virtual void GetFallBackReasonData(FallbackData& data);
 	bool OnOK( CString& errorMsg );
 
+
+	void UpdateInStretchItem(TreeCtrlItemInDlg& );
+	void LoadOutParkingSpacees(TreeCtrlItemInDlg& parentItem, BOOL bExpandLast);
 protected:
-	HTREEITEM m_hFloor;
+	//HTREEITEM m_hFloor;
 	HTREEITEM m_hPickArea;
 	
 	HTREEITEM m_hLinkStretch;
-	HTREEITEM m_hLength;
 
-	HTREEITEM m_hLaneFrom;
-	HTREEITEM m_hLaneTo;
-	HTREEITEM m_hSpotLength;
+	HTREEITEM m_hUseInPark;
+		HTREEITEM m_hLength;
+		HTREEITEM m_hLaneFrom;
+		HTREEITEM m_hLaneTo;
+		HTREEITEM m_hSpotLength;
 
-	HTREEITEM m_hDecisionLine;
+	HTREEITEM m_hUseOutPark;
+		
+
+	//HTREEITEM m_hDecisionLine;
 
 	LandsideCurbSide* getCurbside();
 
-	void OnComboFloors(HTREEITEM hItem);
+	//void OnComboFloors(HTREEITEM hItem);
 	void OnEditLength(HTREEITEM hItem);
 	void OnEditLaneFrom(HTREEITEM hItem);
 	void OnEditLaneTo(HTREEITEM hItem);
 	void OnEditSpotlength(HTREEITEM hItem);
+
 	
 };

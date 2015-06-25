@@ -626,6 +626,13 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 			getTerminal()->m_pPaxBulkInfo->initBulk();
 
 			bool bInitializeNoError = true;
+
+			//clear the statistic data
+			for( int i=0; i<iMobleTypeCount; ++i )
+			{
+				m_vNonPaxCountByType[i] = 0;
+			}
+
 			long nPax = 0;
 			try
 			{
@@ -709,10 +716,6 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 			tempUtil.InitAllProcDirection( tempConvetor, pLinkage);
 			getTerminal()->procList->InitAllProcDirection();
 
-			for( int i=0; i<iMobleTypeCount; ++i )
-			{
-				m_vNonPaxCountByType[i] = 0;
-			}
 
 			//init every single processor's state
 			// by doing this ,all processors,no mater it is in proclist or not, for example, 
@@ -2878,13 +2881,20 @@ void CARCportEngine::CloseLogs( const CString& _csProjPath )
 				}
 				else
 				{
-					pLogEntry = new MobLogEntry;
-					if(getPaxLog()->GetItemByID(*pLogEntry,mobEvent.elementID) )
+					if(mobEvent.state != Death)
 					{
-						MobEventStruct* pNewItem = new MobEventStruct(mobEvent);
-						pLogEntry->getMobEventList().push_back(pNewItem);
+						pLogEntry = new MobLogEntry;
+						if(getPaxLog()->GetItemByID(*pLogEntry,mobEvent.elementID) )
+						{
+							MobEventStruct* pNewItem = new MobEventStruct(mobEvent);
+							pLogEntry->getMobEventList().push_back(pNewItem);
 
-						vFileMobEntry[nPaxIndex] = pLogEntry;
+							vFileMobEntry[nPaxIndex] = pLogEntry;
+						}
+					}
+					else
+					{
+						//the element died twice times ...
 					}
 				}
 			}

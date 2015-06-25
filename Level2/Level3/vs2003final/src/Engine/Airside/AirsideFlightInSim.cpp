@@ -3874,6 +3874,15 @@ FLIGHTTOWCRITERIATYPE AirsideFlightInSim::GetTowOffStandType()
 	return REPOSITIONFORDEP;
 }
 
+
+struct OpenDoorsOrder
+{
+	bool operator()(ACTypeDoor* door1, ACTypeDoor*door2)
+	{
+		return door1->m_dNoseDist < door2->m_dNoseDist;
+	}
+};
+
 bool AirsideFlightInSim::GetOpenDoorAndStairGroundPostions(std::vector< std::pair<CPoint2008, CPoint2008> >& vPoints )
 {
 	PLACE_METHOD_TRACK_STRING();
@@ -3936,8 +3945,8 @@ bool AirsideFlightInSim::GetOpenDoorAndStairGroundPostions(std::vector< std::pai
 	{
 
 		pFltDoorSpec->getFlightOpDoors(GetFlightInput()->getType(m_curFlightType),GetOperationParkingStand()->GetStandInput()->GetObjectName(), vOpenDoors);
-
-
+		std::sort(vOpenDoors.begin(),vOpenDoors.end(),OpenDoorsOrder());
+	
 		if (m_curState.m_pResource == NULL)
 		{
 			return false;

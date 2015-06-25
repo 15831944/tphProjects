@@ -19,7 +19,6 @@ public:
 	protected:
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
 	//}}AFX_VIRTUAL
-	virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 
 	CDocument* GetDocument() { return (CDocument*) GetActiveDocument(); }
 

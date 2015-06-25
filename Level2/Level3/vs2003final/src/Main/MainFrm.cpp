@@ -4982,7 +4982,10 @@ void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NU
 	{
 		((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
 	}
-
+	TCHAR szText[256+_MAX_PATH];
+	const CString projName = ((CCompareReportDoc*)pDoc)->GetCmpReport()->GetComparativeProject()->GetName();
+	lstrcpy(szText, projName + " - " + "Comparative report");
+	pNewFrame->SetWindowText(szText);
 	pDoc->UpdateAllViews(NULL);
 }
 

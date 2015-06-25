@@ -47,11 +47,11 @@ void LandsideTaxiPoolProDlgImpl::LoadTree()
 		//TreeCtrlItemInDlg waitItem(m_treeProp, m_hQueue);
 		//m_treeProp.SetItemText(m_hQueue, sPath);
 
-		CString strLabel = CString( "Queue Point(") + CARCLengthUnit::GetLengthUnitString(curLengthUnit) + CString( ")" );
+		CString strLabel = CString( "Queue Path(") + CARCLengthUnit::GetLengthUnitString(curLengthUnit) + CString( ")" );
 
 		m_hQueue = m_treeProp.InsertItem(strLabel);
 		LoadTreeSubItemCtrlPoints(m_hQueue,pTaxiPool->getControlPath());	
-		m_treeProp.Expand( m_hQueue, TVE_EXPAND );
+		//m_treeProp.Expand( m_hQueue, TVE_EXPAND );
 
 
 		//CPath2008& path = pTaxiPool->getPath();
@@ -103,7 +103,7 @@ void LandsideTaxiPoolProDlgImpl::LoadTree()
 					CString sAreaPath = CString( "AreaPath(") + CARCLengthUnit::GetLengthUnitString(curLengthUnit) + CString( ")" );;
 					HTREEITEM m_hAreaPath = m_treeProp.InsertItem(sAreaPath,m_hRegion);
 					LoadTreeSubItemCtrlPoints(m_hAreaPath,pTaxiPool->getAreaPath());
-					m_treeProp.Expand( m_hAreaPath, TVE_EXPAND );
+					//m_treeProp.Expand( m_hAreaPath, TVE_EXPAND );
 				}
 				m_treeProp.Expand( m_hRegion, TVE_EXPAND );
 
@@ -114,16 +114,23 @@ void LandsideTaxiPoolProDlgImpl::LoadTree()
 				m_treeProp.Expand( m_hVisible, TVE_EXPAND );
 			}
 		}
-		m_treeProp.Expand( m_hArea, TVE_EXPAND );
+		//m_treeProp.Expand( m_hArea, TVE_EXPAND );
 	}
 
-	//queue width
+	//queue lane width
 	{
-		CString sWidth = "Queue width";
+		CString sWidth = "Queue Lane Width";
 		m_hWidth = m_treeProp.InsertItem(sWidth);
 		TreeCtrlItemInDlg widthItem(m_treeProp,m_hWidth);
 		widthItem.SetLengthValueText(sWidth, pTaxiPool->GetWidth(),curLengthUnit);
+	}
 
+	//queue lane number
+	{
+		CString sNum = "Queue Lane Number";
+		m_hLaneNum = m_treeProp.InsertItem(sNum);
+		TreeCtrlItemInDlg NumItem(m_treeProp,m_hLaneNum);
+		NumItem.SetIntValueText(sNum, pTaxiPool->getLaneNum());
 	}
 
 	//enter stretch
@@ -208,6 +215,8 @@ void LandsideTaxiPoolProDlgImpl::OnDoubleClickPropTree( HTREEITEM hTreeItem )
 	m_hRClickItem = hTreeItem;
 	if (hTreeItem == m_hWidth)
 		OnEditWidth(hTreeItem);
+	if (hTreeItem == m_hLaneNum)
+		OnEditLaneNum(hTreeItem);
 }
 
 void LandsideTaxiPoolProDlgImpl::DoFallBackFinished( WPARAM wParam, LPARAM lPara )
@@ -307,6 +316,12 @@ BOOL LandsideTaxiPoolProDlgImpl::OnDefWindowProc( UINT message, WPARAM wParam, L
 			double dValue = UnConvertLength(pst->iPercent);
 			pTaxiPool->SetWidth(dValue);
 		}
+		if(m_hLaneNum == m_hRClickItem)
+		{
+			LPSPINTEXT pst = (LPSPINTEXT) lParam;
+			double dValue = UnConvertLength(pst->iPercent);
+			pTaxiPool->setLaneNum(dValue);
+		}
 
 		LoadTree();	
 		Update3D();
@@ -361,8 +376,21 @@ void LandsideTaxiPoolProDlgImpl::OnEditWidth( HTREEITEM hItem )
 {
 	LandsideTaxiPool* pTaxiPool = (LandsideTaxiPool*)m_pObject;
 
-	int dMaxLen = (std::numeric_limits<int>::max)();
+	int dMaxLen = (std::numeric_limits<short int>::max)();
 	double dUnitNum = ConvertLength(pTaxiPool->GetWidth());	
+
+	GetTreeCtrl().SetDisplayType( 2 );
+	GetTreeCtrl().SetSpinRange(0,dMaxLen);
+	GetTreeCtrl().SetDisplayNum(static_cast<int>(dUnitNum+0.5));	
+	GetTreeCtrl().SpinEditLabel( hItem );
+}
+
+void LandsideTaxiPoolProDlgImpl::OnEditLaneNum( HTREEITEM hItem )
+{
+	LandsideTaxiPool* pTaxiPool = (LandsideTaxiPool*)m_pObject;
+
+	int dMaxLen = (std::numeric_limits<short int>::max)();
+	double dUnitNum = ConvertLength(pTaxiPool->getLaneNum());	
 
 	GetTreeCtrl().SetDisplayType( 2 );
 	GetTreeCtrl().SetSpinRange(0,dMaxLen);

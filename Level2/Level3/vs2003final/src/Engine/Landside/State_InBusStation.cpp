@@ -45,53 +45,58 @@ State_ParkingBusStation::State_ParkingBusStation( LandsideVehicleInSim* pV, Land
 //////////////////////////////////////////////////////////////////////////
 void State_LeaveBusStation::Execute( CARCportEngine* pEngine )
 {
-	if(m_bFindLeavePath)
-	{
-		OnMoveOutRoute(pEngine);
+	if(m_bOutPath)
+	{	
+		return getVehicle()->ChangeStateMoveToDest(pEngine);
 	}
-	else
+	//finding leave position 
+	LandsidePosition exitPos;
+	if(m_pBusStation->getParkingSpot().FindLeavePosition(getVehicle(), m_spot, exitPos) )
 	{
-		LandsideLaneNodeList mPath;
-		if(m_bFindLeavePath = m_pBusStation->getParkingSpot().FindLeavePath(getVehicle(),m_spot,mPath))//find the path
-		{		
-			ASSERT(!mPath.empty());
-			{
-				LandsideLaneNodeInSim* pNode = mPath.back();
-				LandsideLaneInSim* plane =  pNode->mpLane;
-				DistanceUnit distF = pNode->m_distInlane - getVehicle()->GetHalfLength();
-				DistanceUnit distT = pNode->m_distInlane + getVehicle()->GetHalfLength();
+		LandsideLaneInSim* plane = exitPos.pRes->toLane();
+		DistanceUnit distF = exitPos.distInRes - getVehicle()->GetHalfLength();
+		DistanceUnit distT = exitPos.distInRes + getVehicle()->GetHalfLength();
 
-				double dSpeed = getVehicle()->getSpeed(plane, pNode->m_distInlane);
+		if(plane->isSpaceEmpty(getVehicle(), distF,distT))
+		{
+			double dSpeed = getVehicle()->getSpeed(plane, exitPos.distInRes);
+			MobileState lastState = m_pOwner->getLastState();
+			lastState.pos = exitPos.pos;
+			lastState.pRes = plane;
+			lastState.distInRes = exitPos.distInRes-1;
+			lastState.dSpeed = dSpeed*0.5;
+			m_pOwner->MoveToPos(lastState);	
 
-				if(plane->isSpaceEmpty(getVehicle(), distF,distT))
-				{
-					MobileState lastState = getVehicle()->getLastState();
-					lastState.pos = pNode->m_pos;
-					lastState.pRes = plane;
-					lastState.distInRes = pNode->m_distInlane-1;
-					lastState.dSpeed = dSpeed*0.5;
-					getVehicle()->MoveToPos(lastState);	
+			lastState.distInRes = exitPos.distInRes;
+			m_pOwner->MoveToPos(lastState);
 
-					lastState.distInRes = pNode->m_distInlane;
-					getVehicle()->MoveToPos(lastState);
-
-					return getVehicle()->Continue();
-				}								
-			}
-		}		
-		getVehicle()->StepTime(pEngine);
-	}
+			m_bOutPath = true;
+			return getVehicle()->Continue();
+		}							
+	}	
+	return getVehicle()->StepTime(pEngine);
 }
 
-void State_LeaveBusStation::OnMoveOutRoute( CARCportEngine* _pEngine )
+void State_LeaveBusStation::Exit( CARCportEngine* _pEngine )
 {
-	m_pBusStation->getParkingSpot().ReleaseParkingPos(getVehicle(), curTime());	
-	m_pBusStation->NotifyObservers();//SendSignal(new SNormalSignal());
-	getVehicle()->ChangeStateMoveToDest(_pEngine);
+	/*if(m_spot)
+	{
+		m_spot->OnVehicleExit(getVehicle(), curTime());
+	}*/
+	m_pBusStation->getParkingSpot().getInStretchSpots().ReleaseParkingPos(getVehicle(),curTime());
+	m_pBusStation->NotifyObservers();//notify waiting vehicles
 }
 
 void State_LeaveBusStation::Entry( CARCportEngine* pEngine )
 {
 	m_pBusStation->DelWaitingBus(m_pOwner);
 	Execute(pEngine);
+}
+
+State_LeaveBusStation::State_LeaveBusStation( LandsideVehicleInSim* pV, LandsideBusStationInSim* pBusStation,IParkingSpotInSim* spot )
+:State_LandsideVehicle<LandsideVehicleInSim>(pV)
+{
+	m_pBusStation = pBusStation;  
+	m_bOutPath = false;
+	m_spot = spot;
 }

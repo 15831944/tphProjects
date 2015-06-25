@@ -10,6 +10,9 @@
 #include "RunwaySegInSim.h"
 #include "../../Database/ADODatabase.h"
 
+#define POSITIVE_NUM 1.0
+#define NEGTIVE_NUM -1.0
+
 IntersectionNodeInSim * IntersectionNodeInSimList::GetNodeByID( int nId )
 {
 	for(int i=0;i < GetNodeCount() ;i++)
@@ -298,7 +301,7 @@ FilletTaxiway* IntersectionNodeInSim::GetFilletFromTo( TaxiwayDirectSegInSim * p
 	int runwayid = pRunway->GetRunwayInSim()->GetRunwayInput()->getID();
 	int taxiid = pSeg->GetTaxiwaySeg()->GetTaxiwayID();
 
-	DistanceUnit distoff = ( (pRunway->getLogicRunwayType() == RUNWAYMARK_FIRST) ? (1):(-1) );
+	DistanceUnit rwOFFSET = ( (pRunway->getLogicRunwayType() == RUNWAYMARK_FIRST) ?  POSITIVE_NUM : NEGTIVE_NUM );
 	
 	int nRwItemID = -1;
 	RunwayIntersectItem* pItem = m_nodeinput.GetRunwayItem(runwayid);
@@ -309,8 +312,16 @@ FilletTaxiway* IntersectionNodeInSim::GetFilletFromTo( TaxiwayDirectSegInSim * p
 	if(pTaxiItem)
 		nTaxiItemID = pTaxiItem->GetUID();
 
-	matchfilet.SetFilletPoint1( FilletPoint(nRwItemID, distoff) );
-	matchfilet.SetFilletPoint2( FilletPoint(nTaxiItemID, pSeg->IsPositiveDir()?-1.0:1.0 ) );
+	DistanceUnit taxiOFFSET = 0; 
+	if(pSeg->GetTaxiwaySeg()->GetNode1()->GetID()== this->GetID())
+	{
+		taxiOFFSET = POSITIVE_NUM;
+	}
+	else
+		taxiOFFSET = NEGTIVE_NUM;
+
+	matchfilet.SetFilletPoint1( FilletPoint(nRwItemID, rwOFFSET) );
+	matchfilet.SetFilletPoint2( FilletPoint(nTaxiItemID,taxiOFFSET) );
 	for(int i=0;i< (int)m_vFilletTaxiways.size();i++)
 	{
 		FilletTaxiway& thefilet = m_vFilletTaxiways[i];

@@ -8,7 +8,7 @@ class LandsideTaxiQueueInSim;
 class State_ProcessAtTaxiQ : public State_LandsideVehicle<LandsideTaxiInSim>
 {
 public:
-	State_ProcessAtTaxiQ(LandsideTaxiInSim* pTaxi, LandsideTaxiQueueInSim* pQ,LaneParkingSpot* spot)
+	State_ProcessAtTaxiQ(LandsideTaxiInSim* pTaxi, LandsideTaxiQueueInSim* pQ,IParkingSpotInSim* spot)
 		: State_LandsideVehicle<LandsideTaxiInSim>(pTaxi){  m_pTaxiQ = pQ; m_spot = spot; }
 
 	virtual void Entry(CARCportEngine* pEngine);
@@ -16,7 +16,7 @@ public:
 	virtual const char* getDesc()const{ return _T("Process at  Taxi Queue"); }
 protected:
 	LandsideTaxiQueueInSim* m_pTaxiQ;
-	LaneParkingSpot* m_spot;
+	IParkingSpotInSim* m_spot;
 };
 
 class State_EnterTaxiQ :  public State_MoveInRoad
@@ -29,22 +29,23 @@ public:
 protected:
 	virtual void OnMoveOutRoute(CARCportEngine* _pEngine );
 	LandsideTaxiQueueInSim* m_pTaxiQ;
-	LaneParkingSpot* m_spot; 
+	IParkingSpotInSim* m_spot; 
 };
 
 
 class State_LeaveTaxiQ : public State_LandsideVehicle<LandsideVehicleInSim>
 {
 public:
-	State_LeaveTaxiQ(LandsideTaxiInSim* pTaxi, LandsideTaxiQueueInSim* pQ, LaneParkingSpot* spot);
+	State_LeaveTaxiQ(LandsideTaxiInSim* pTaxi, LandsideTaxiQueueInSim* pQ, IParkingSpotInSim* spot);
 	virtual const char* getDesc()const{ return _T("Leave Taxi Queue"); }
 
 	virtual void Entry(CARCportEngine* pEngine);
 	virtual void Execute(CARCportEngine* pEngine);
+	virtual void Exit(CARCportEngine* pEngine);
 protected:
 	LandsideTaxiQueueInSim* m_pTaxiQ;
-	LaneParkingSpot* m_spot;
-	bool m_bMoveOut;
+	IParkingSpotInSim* m_spot;
+	bool m_bOutPath;
 };
 
 //////////////////////////////////////////////////////////////////////////

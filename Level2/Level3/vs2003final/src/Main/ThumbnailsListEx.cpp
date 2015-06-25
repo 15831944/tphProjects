@@ -201,7 +201,7 @@ void CThumbnailsListEx::DrawThumbnails(int _nSet,int nShapeRelationFlag /*= -1*/
 
 		UINT cbBufferSize = bm.bmWidthBytes*bm.bmHeight;
 
-		if(!pBuffer)
+	//	if(!pBuffer)
 			pBuffer = new BYTE[cbBufferSize];
 
 		::GetBitmapBits( hBitmapOrig, cbBufferSize, pBuffer );
@@ -263,9 +263,10 @@ void CThumbnailsListEx::DrawThumbnails(int _nSet,int nShapeRelationFlag /*= -1*/
 		pImage->Detach();
 					
 		delete pImage;
+		delete [] pBuffer;
 	}
 
-	delete [] pBuffer;
+//	delete [] pBuffer;
 
 	// let's show the new thumbnails
 	SetRedraw(TRUE); 

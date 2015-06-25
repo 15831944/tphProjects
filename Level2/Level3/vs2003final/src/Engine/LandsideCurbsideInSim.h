@@ -14,7 +14,8 @@ class LaneSegInSim;
 class LandsideCursideSideEntry : public LandsideLaneExit
 {
 public:
-	void SetDistRangeInlane(DistanceUnit distF, DistanceUnit distT){ 
+	void SetDistRangeInlane(DistanceUnit distF, DistanceUnit distT)
+	{ 
 		distFromInLane = distF; distToInLane = distT;
 	}
 
@@ -67,22 +68,21 @@ public:
 
 	LandsideLaneNodeInSim* GetExitNode(LandsideLaneNodeInSim* pFromNode)const;
 	LandsideLaneNodeInSim* GetExitNode(LandsideLaneInSim* pLane)const;
-	LaneSegInSim* GetLaneSeg(LandsideLaneInSim* plane )const;
+	//LaneSegInSim* GetLaneSeg(LandsideLaneInSim* plane )const;
 	
 
-	LandsideLaneInSim* GetNotAtlane(LandsideLaneInSim* pLane)const; //get the lane next to the lane and the curbside not at
+	//LandsideLaneInSim* GetNotAtlane(LandsideLaneInSim* pLane)const; //get the lane next to the lane and the curbside not at
 
 	CLandsideWalkTrafficObjectInSim* getBestTrafficObjectInSim(const CPoint2008& pt,LandsideResourceManager* allRes);
 
 	LandsideCurbSide* getCurbInput()const;
 	
-	LaneParkingSpotsGroup& getParkingSpot(){ return mParkingSpots; }
+	LandsideInterfaceParkingSpotsGroup& getParkingSpot(){ return mParkingSpots; }
 
 	//use seg occupy
-	bool FindParkingPos(LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath);
-	bool FindLeavePath(LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath);
-
-	void RemoveVehicleParkPos(LandsideVehicleInSim* pVehicle);
+	//bool FindParkingPos(LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath);
+	//bool FindLeavePath(LandsideVehicleInSim* pVehicle, LandsideLaneNodeList& followPath);
+	//void RemoveVehicleParkPos(LandsideVehicleInSim* pVehicle);
 
 	//passenger operation
 	virtual void PassengerMoveInto(PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime);
@@ -97,8 +97,7 @@ private:
 	void InitTrafficObjectOverlap( LandsideResourceManager* allRes );
 protected:
 	
-	std::vector<LaneSegInSim*> m_vLaneOccupy; //replace with 
-	LaneParkingSpotsGroup mParkingSpots;
+	LandsideInterfaceParkingSpotsGroup mParkingSpots;
 	
 	
 	std::vector<LandsideLaneEntry*> m_vLaneEntries;

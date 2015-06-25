@@ -379,7 +379,8 @@ void CFacilityBehaviorsInSim::GetTerminalProcLinkedWithParkingLot( ALTObjectID o
 		CFacilityParkingLotBehaviorLinkage* pLinkage = pLinkageList->GetItem(nItem);
 		if(pLinkage == NULL)
 			continue;
-		if(nItem == nLevel)
+	//	if(nItem == nLevel)
+		if(pLinkage->GetLevelID() == nLevel)
 		{
 			ALTObjectID procID;
 			pLinkage->getName(procID);

@@ -6075,7 +6075,9 @@ bool TerminalMobElementBehavior::GetAvailbleEntryProcList( std::vector<Processor
 
 							if(pCurProc->isClosed())
 								continue;
-							
+							if(!pCurProc->canServe(m_pPerson->m_type))
+								continue;
+
 							vAvailableProc.push_back(pCurProc);
 							
 						}

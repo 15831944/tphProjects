@@ -27,7 +27,9 @@ public:
 	CListCtrlEx	m_wndListCtrl;
 	CToolBar m_wndToolBar;
 	std::vector<FlightGroup::CFlightGroupFilter* > m_vFilter;
-
+	CStringList m_stringList;
+private:
+	void InitStringList();
 public:
 	afx_msg void OnAddFilter();
 	afx_msg void OnRemoveFilter();
@@ -37,11 +39,12 @@ public:
 	void OnInitListCtrl();
 	void DisplayFilter();
 
-	CString m_strAirline;
-	CString m_strFlightID;
-	CString m_strDay;
+	//CString m_strAirline;
+	//CString m_strFlightID;
+	//CString m_strDay;
 	afx_msg void OnLbnSelchangeListCondition();
 	afx_msg void OnLvnEndlabeleditListCondition(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLvnItemchangingListCondition(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg LRESULT OnMsgComboChange(WPARAM wParam, LPARAM lParam);
 };

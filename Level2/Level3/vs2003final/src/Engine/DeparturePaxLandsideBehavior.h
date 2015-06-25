@@ -41,7 +41,7 @@ protected:
 	void processMoveToFacility(const ElapsedTime& t);
 	void processArriveAtFacility(const ElapsedTime& t);
 
-	void processArrivalAtCurbside(const ElapsedTime& t);
+	//void processArrivalAtCurbside(const ElapsedTime& t);
 	void processArrivalAtTerminalPosition(const ElapsedTime& t);
 	void processEntryTerminal( ElapsedTime p_time, double ifloor);
 	void ProcessPutCarryonToVehicle( const ElapsedTime& eEventTime );

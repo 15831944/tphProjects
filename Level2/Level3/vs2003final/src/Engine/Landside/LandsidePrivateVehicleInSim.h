@@ -13,12 +13,12 @@ public:
 	LandsidePrivateVehicleInSim(const PaxVehicleEntryInfo& entryInfo);
 	virtual bool InitBirth(CARCportEngine *_pEngine);
 
-	virtual void SuccessParkInCurb( LandsideCurbSideInSim*pCurb ,LaneParkingSpot* spot);
+	virtual void SuccessParkInCurb( LandsideCurbSideInSim*pCurb ,IParkingSpotInSim* spot);
 	virtual void SuccessParkInLotSpot(LandsideParkingSpotInSim* plot);
 
 	virtual bool ProceedToNextFcObject(CARCportEngine* pEngine);
 
-	virtual void OnFailPickPaxAtCurb(LandsideCurbSideInSim* pCurb, LaneParkingSpot* spot, CARCportEngine* pEngine);
+	virtual void OnFailPickPaxAtCurb(LandsideCurbSideInSim* pCurb, IParkingSpotInSim* spot, CARCportEngine* pEngine);
 
 	bool isArrival()const;
 	bool isDepLongTerm(LandsideLayoutObjectInSim* pObj);
@@ -37,7 +37,7 @@ public:
 class State_PickPaxAtCurbsidePrivate : public State_LandsideVehicle<LandsidePrivateVehicleInSim> 
 {
 public:
-	State_PickPaxAtCurbsidePrivate(LandsidePrivateVehicleInSim* pV,LandsideCurbSideInSim*pCurb,LaneParkingSpot* spot);
+	State_PickPaxAtCurbsidePrivate(LandsidePrivateVehicleInSim* pV,LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot);
 	virtual const char* getDesc()const{ return _T("Arr Parking at Curbside"); }
 
 	virtual void Entry(CARCportEngine* pEngine);
@@ -46,7 +46,7 @@ public:
 protected:
 	LandsideCurbSideInSim* m_pCurb;
 	State_ServiceTimer m_waitTimer;
-	LaneParkingSpot* m_spot;
+	IParkingSpotInSim* m_spot;
 };
 
 

@@ -3,6 +3,7 @@
 
 class CTrainLogEntry;
 class Terminal;
+class IntegratedStation;
 
 class TrainCarInSim
 {
@@ -10,15 +11,17 @@ public:
 	TrainCarInSim(CCar* pCar);
 	~TrainCarInSim();
 
-	void AddPax(Person* pPerson);
+	void AddPax(Person* pPerson, IntegratedStation *pDestStation );
 	void DeletePax(Person* pPerson);
 	int GetPaxCount()const;
 	bool Valid()const;
 
 	bool Exist(Person* pPerson)const;
+
+	bool ClearThisStationPerson(IntegratedStation *thisStation);
 private:
 	CCar*  m_pCar;
-	std::vector<Person*> m_vPerson;
+	std::vector< std::pair< Person*, IntegratedStation *> > m_vPerson;
 };
 class MovingTrain :public MobileElement
 {
@@ -44,5 +47,7 @@ private:
 	bool GetSchedule( ElapsedTime _time );
 	IntegratedStation* GetSourceStation(int nFlowIndex);
 	void InitTrain();
+
+	bool ClearThisStationPerson(IntegratedStation *thisStation);
 
 };

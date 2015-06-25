@@ -187,7 +187,7 @@ ElapsedTime EventList::start (CARCportEngine *_pEngine, bool* _pBCancel, bool _b
 		
 
 
-			TRACE("E-----------: %d\r\n",eventNumber);
+			//TRACE("E-----------: %d\r\n",eventNumber);
 			
 			//debugfile.Log(eventNumber).Log("{").Log(nextEvent->getTypeName());
             // process the event

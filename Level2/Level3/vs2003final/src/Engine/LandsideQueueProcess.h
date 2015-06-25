@@ -78,6 +78,7 @@ public:
 	void RemoveApproach(PaxLandsideBehavior* pLandsideBehavior);
 	void RemoveWait(PaxLandsideBehavior* pLandsideBehavior);
 	void AddApproach(PaxLandsideBehavior* pLandsideBehavior);
+	void AddWait(PaxLandsideBehavior* pLandsideBehavior);
 
 	void StartQueueMove(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
 	void WaitInQueue(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
@@ -104,6 +105,7 @@ public:
 		sp_waitinQueue,
 		sp_advanceQueue,
 		sp_leaveQueue,
+		sp_WaitLeave,//debug
 	};
 	LandsidePaxQueueProcess(PaxLandsideBehavior* pLandsideBehavior);
 	~LandsidePaxQueueProcess();
@@ -128,6 +130,7 @@ public:
 	void SetDes(bool bDes) {m_bDes = bDes;}
 	bool GetDes()const {return m_bDes;}
 
+	void WriteQueuePaxLog(const ElapsedTime& p_time);
 private:
 	bool m_bDes;
 	int m_endState;
@@ -167,6 +170,8 @@ public:
 	ARCVector3 GetTailPoint()const;
 
 	LandsideQueue* GetlandsideQueue()const;
+
+	void FlushOnVehiclePaxLog(CARCportEngine* pEngine,const ElapsedTime& t);
 
 private:
 	void Release(PaxLandsideBehavior* pLandsideBehavior);

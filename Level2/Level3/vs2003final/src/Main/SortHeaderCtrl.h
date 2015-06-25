@@ -5,7 +5,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-class AFX_EXT_CLASS CSortHeaderCtrl : public CHeaderCtrl
+class CSortHeaderCtrl : public CHeaderCtrl
 {
 // Construction
 public:

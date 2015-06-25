@@ -21,8 +21,12 @@ void LandsidePaxSericeInSim::FlushOnVehiclePaxLog(CARCportEngine* pEngine, const
 	
 		if(p->getState()!=Death)
 		{
-			p->flushLog(t);
-			p->setState(Death);
+		//	p->flushLog(t);
+			if (p->getLandsideBehavior())
+			{
+				p->getLandsideBehavior()->flushLog(t);
+				p->setState(Death);
+			}
 		}		
 	}
 }

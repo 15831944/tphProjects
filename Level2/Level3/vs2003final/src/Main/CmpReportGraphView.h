@@ -20,7 +20,7 @@ public:
 public:
 	CARC3DChart	m_3DChart;
 	CToolBar	m_ToolBar;
-	CStatic		m_toolbarContent;
+	CStatic		m_toolbarContainer;
 	CComboBox	m_comboChartType;
 	CComboBox	m_comboReportList;
 public:
@@ -36,8 +36,13 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnCbnSelchangeReportListCombo();
+	afx_msg void OnSelColorBtn();
+	afx_msg void OnPrintBtn();
 private:
 	void Draw3DChartByReportName(CString &reportSelected);
+	void InitToolbar();
+public:
+	afx_msg void OnCbnSelchangeChartTypeCombo();
 };
 
 

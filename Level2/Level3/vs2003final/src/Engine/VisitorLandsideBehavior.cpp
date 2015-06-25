@@ -17,6 +17,7 @@
 #include "..\Landside\LandsideCurbSide.h"
 #include "PaxTerminalBehavior.h"
 #include "PaxLandsideBehavior.h"
+#include "MobileElementExitSystemEvent.h"
 
 VisitorLandsideBehavior::VisitorLandsideBehavior( Person* p ) 
 :LandsideBaseBehavior(p)
@@ -479,4 +480,26 @@ void VisitorLandsideBehavior::setDestination( const ARCVector3& p ,MobDir emWalk
 	//separate with passenger or not in group
 	m_ptDestination = p;
 	
+}
+
+void VisitorLandsideBehavior::flushLog( ElapsedTime p_time, bool bmissflight /*= false*/ )
+{
+	m_pPerson->setState(Death);
+	WriteLogEntry(p_time,false);
+	m_pPerson->getLogEntry().setExitTime( p_time );
+
+	m_pPerson->getLogEntry().saveEventsToLog();
+	m_pPerson->GetTerminal()->paxLog->updateItem (m_pPerson->getLogEntry(), m_pPerson->getLogEntry().getIndex());
+
+	FlushLogforFollower(p_time);
+
+	if(m_pPerson->getEngine()->m_simBobileelemList.IsAlive(m_pPerson))
+	{
+		MobileElementExitSystemEvent *pEvent = new MobileElementExitSystemEvent(m_pPerson, p_time);
+		pEvent->addEvent();
+	}
+	else
+	{
+		ASSERT(0);
+	}
 }
