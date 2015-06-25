@@ -2,7 +2,6 @@
 #include "termplan.h"
 #include "BoardingCallDlg.h"
 #include "termplandoc.h"
-#include "flightdialog.h"
 #include "..\AirsideGUI\DlgStandFamily.h"
 #include "..\Main\PassengerTypeDialog.h"
 #include "Inputs\PROCDATA.H"
@@ -12,6 +11,7 @@
 #include "Common\ProbDistEntry.h"
 #include "Common\ProbDistManager.h"
 #include "DlgProbDist.h"
+#include "BoardingCallFlightDialog.h"
 static char THIS_FILE[] = __FILE__;
 #endif
 
@@ -460,7 +460,8 @@ void CBoardingCallDlg::OnToolbarButtonAddFlightType()
 	FlightConstraint fltConst;
 	fltConst.SetAirportDB(GetInputTerminal()->m_pAirportDB);
 	fltConst.SetFltConstraintMode(ENUM_FLTCNSTR_MODE_DEP);
-	CFlightDialog flightTypeDlg(m_pParentWnd);
+	BoardingCallFlightDialog flightTypeDlg(m_pParentWnd, DIALOG_MODE_BOARDINGCALL);
+	flightTypeDlg.InitFltConst(fltConst);
 	while( flightTypeDlg.DoModal() == IDOK )
 	{
 		fltConst = flightTypeDlg.GetFlightSelection();

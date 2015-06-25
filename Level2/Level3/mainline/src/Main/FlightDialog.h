@@ -16,7 +16,7 @@ protected:
 	virtual void	DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL	OnInitDialog();
 	InputTerminal*	GetInputTerminal();
-	void			ResetSeletion();
+	virtual void	ResetSeletion();
 	void			ResetFlightID();
 
 	FlightConstraint    m_FlightSelection;
