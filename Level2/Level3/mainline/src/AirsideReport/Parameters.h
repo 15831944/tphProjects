@@ -107,7 +107,7 @@ public:
 	//the 2 function are not used in new structure
 	virtual BOOL ExportFile(ArctermFile& _file) ;
 	virtual BOOL ImportFile(ArctermFile& _file) ;
-
+    virtual BOOL ImportFileVersion1(ArctermFile& _file);
 public:
 	//the following functions are used in new structure
 	//read and save data from the report path, in the project path

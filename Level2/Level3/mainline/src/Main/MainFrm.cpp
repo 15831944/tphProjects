@@ -2394,6 +2394,21 @@ void CMainFrame::LoadReport(enum ENUM_REPORT_TYPE _enumRepType )
 //	((CRepControlView *)pView)->Clear();
 
 }
+
+static void CallBackSetCurrentSimResult(int iCurrentSimIdx)
+{
+	CMainFrame *pMainFrame = (CMainFrame *)(((CTermPlanApp *)AfxGetApp())->m_pMainWnd);
+	CMDIChildWnd* pMDIActive = pMainFrame->MDIGetActive();
+	CTermPlanDoc* pDoc = NULL;
+	if (pMDIActive != NULL)
+	{
+
+		pDoc = (CTermPlanDoc*)pMDIActive->GetActiveDocument();
+		ASSERT(pDoc->IsKindOf(RUNTIME_CLASS(CTermPlanDoc)));
+		pDoc->GetTerminal().setCurrentSimResult(iCurrentSimIdx);
+	}
+}
+
 static CString CallbackGetAirsideLogFilePath(InputFiles enumInputFile)
 {
 	CString strPath = _T("");
@@ -2447,6 +2462,7 @@ void CMainFrame::LoadAirsideReport_New(enum reportType airsideRpType)
 	reportType type = pDoc->GetARCReportManager().GetAirsideReportManager()->GetReportType() ;
 	pDoc->GetARCReportManager().GetAirsideReportManager()->SetReportType(airsideRpType);
 	pDoc->GetARCReportManager().GetAirsideReportManager()->SetCBGetLogFilePath(CallbackGetAirsideLogFilePath);
+	pDoc->GetARCReportManager().GetAirsideReportManager()->SetCBCurrentSimResult(CallBackSetCurrentSimResult);
     pDoc->GetARCReportManager().GetAirsideReportManager()->SetAirportDB(pDoc->GetTerminal().m_pAirportDB) ;
 
 	//get report file directory
@@ -2456,6 +2472,7 @@ void CMainFrame::LoadAirsideReport_New(enum reportType airsideRpType)
 	CString strReportFileDir;
 	strReportFileDir.Format(_T("%s\\SimResult\\%s\\report"),pDoc->m_ProjInfo.path,strSimResultFolderName);
 	pDoc->GetARCReportManager().GetAirsideReportManager()->SetReportPath(strReportFileDir);
+	pDoc->GetARCReportManager().GetAirsideReportManager()->SetTerminalAndProjectPath(&pDoc->GetTerminal(),pDoc->m_ProjInfo.path);
 
 
 	//if(type != airsideRpType)

@@ -3,6 +3,7 @@
 #include "../common/UnitsManager.h"
 #include "../Common/exeption.h"
 #include "../Common/fileman.h"
+#include <algorithm>
 using namespace ADODB;
 
 CParameters::CParameters()
@@ -14,9 +15,11 @@ CParameters::CParameters()
 ,m_unitLength(0)
 ,m_pUnitManager(NULL)
 ,m_AirportDB(NULL)
+,m_multiRun(false)
 {
 	//memset(m_modelName,0,sizeof(char)*255) ;
 	_tcscpy(m_modelName,_T("UnknowDef")) ;
+    m_vReportRuns.clear();
 }
 
 CParameters::~CParameters()
@@ -134,6 +137,10 @@ CString CParameters::GetParameterString()
 
 BOOL CParameters::ExportFile(ArctermFile& _file)
 {
+    _file.appendValue("VERSION");
+    _file.appendValue(";");
+    _file.appendValue("1"); // version 1
+    _file.writeLine();
 	_file.writeField(m_modelName) ;
 	_file.writeInt(m_startTime.asSeconds()) ;
 	_file.writeInt(m_endTime.asSeconds()) ;
@@ -153,42 +160,135 @@ BOOL CParameters::ExportFile(ArctermFile& _file)
 		_file.writeField(th) ;
 		_file.writeLine() ;
 	}
+
+    if(m_multiRun)
+        _file.writeChar('T');
+    else
+        _file.writeChar('F');
+    _file.writeLine();
+
+    int nCount = (int)m_vReportRuns.size();
+    _file.writeInt(nCount);
+    _file.writeLine();
+
+    for(int i=0; i<nCount; i++)
+    {
+        _file.writeInt(m_vReportRuns.at(i));
+    }
+    _file.writeLine();
+
 	return TRUE ;
 }
 BOOL CParameters::ImportFile(ArctermFile& _file)
 {
-	m_vFlightConstraint.clear();
-	_file.getField(m_modelName,255) ;
-	long time ;
-	_file.getInteger(time) ;
-	m_startTime = ElapsedTime(time) ;
-	_file.getInteger(time) ;
-	m_endTime = ElapsedTime(time) ;
+    char buf[256] = {0};
+    _file.getSubField(buf, ';');
+    if(strcmp(buf, "VERSION") != 0)
+    {
+        m_vFlightConstraint.clear();
+        strcpy(m_modelName, buf) ;
+        long time ;
+        _file.getInteger(time) ;
+        m_startTime = ElapsedTime(time) ;
+        _file.getInteger(time) ;
+        m_endTime = ElapsedTime(time) ;
 
-	_file.getInteger(m_lInterval) ;
-	_file.getInteger(m_nProjID) ;
-	int type ;
-	_file.getInteger(type) ;
-	m_reportType = (enumASReportType_Detail_Summary)type ;
+        _file.getInteger(m_lInterval) ;
+        _file.getInteger(m_nProjID) ;
+        int type ;
+        _file.getInteger(type) ;
+        m_reportType = (enumASReportType_Detail_Summary)type ;
 
-	_file.getInteger(m_unitLength) ;
-	_file.getLine() ;
+        _file.getInteger(m_unitLength) ;
+        _file.getLine() ;
 
-	int size = 0 ;
-	if(!_file.getInteger(size) )
-		return FALSE ;
+        int size = 0 ;
+        if(!_file.getInteger(size) )
+            return FALSE ;
 
-	_file.getLine() ;
-	TCHAR th[1024] = {0} ;
-	for (int i = 0 ; i < size ;i++)
-	{
-		_file.getField(th,1024) ;
-		FlightConstraint constrain(m_AirportDB) ;
-		constrain.setConstraintWithVersion(th) ;
-		m_vFlightConstraint.push_back(constrain) ;
-		_file.getLine();
-	}
-	return TRUE ;
+        _file.getLine() ;
+        TCHAR th[1024] = {0} ;
+        for (int i = 0 ; i < size ;i++)
+        {
+            _file.getField(th,1024) ;
+            FlightConstraint constrain(m_AirportDB) ;
+            constrain.setConstraintWithVersion(th) ;
+            m_vFlightConstraint.push_back(constrain) ;
+            _file.getLine();
+        }
+    }
+    else
+    {
+        int nVersion = -1;
+        _file.getSubField(buf, 255);
+        nVersion = atoi(buf);
+        switch(nVersion)
+        {
+        case 1: // version 1
+            ImportFileVersion1(_file);
+            break;
+        default:
+            return FALSE;
+            break;
+        }
+    }
+    return TRUE ;
+}
+
+BOOL CParameters::ImportFileVersion1( ArctermFile& _file )
+{
+    _file.getLine();
+    m_vFlightConstraint.clear();
+    _file.getField(m_modelName, 255) ;
+    long time ;
+    _file.getInteger(time) ;
+    m_startTime = ElapsedTime(time) ;
+    _file.getInteger(time) ;
+    m_endTime = ElapsedTime(time) ;
+
+    _file.getInteger(m_lInterval) ;
+    _file.getInteger(m_nProjID) ;
+    int type ;
+    _file.getInteger(type) ;
+    m_reportType = (enumASReportType_Detail_Summary)type ;
+
+    _file.getInteger(m_unitLength) ;
+    _file.getLine() ;
+
+    int size = 0 ;
+    if(!_file.getInteger(size) )
+        return FALSE ;
+
+    _file.getLine() ;
+    TCHAR th[1024] = {0} ;
+    for (int i = 0 ; i < size ;i++)
+    {
+        _file.getField(th,1024) ;
+        FlightConstraint constrain(m_AirportDB) ;
+        constrain.setConstraintWithVersion(th) ;
+        m_vFlightConstraint.push_back(constrain) ;
+        _file.getLine();
+    }
+
+    char isMultiRun;
+    _file.getChar(isMultiRun);
+    if(isMultiRun == 'T')
+        m_multiRun = true;
+    else
+        m_multiRun = false;
+
+    _file.getLine();
+    _file.getInteger(size);
+
+    _file.getLine();
+    int nTemp;
+    for(int i=0; i<size; i++)
+    {
+        _file.getInteger(nTemp);
+        m_vReportRuns.push_back(nTemp);
+    }
+
+    return true;
 }
 
 void CParameters::SetReportFileDir( const CString& strReportPath )

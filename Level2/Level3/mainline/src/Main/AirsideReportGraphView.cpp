@@ -356,8 +356,18 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 			CAirsideFlightDelayParam *pParam = reinterpret_cast<CAirsideFlightDelayParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			pParam->setSubType(nSubType);
 			CAirsideFlightDelayReport *pPreport = reinterpret_cast< CAirsideFlightDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+			std::vector<int> vReportRun;
+			if(pParam->GetReportRuns(vReportRun))
+			{
+				if (vReportRun.size() > 1)
+				{
+					GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					return;
+				}
+			}
 			pPreport->RefreshReport(pParam);
-			pPreport->GetReportResult()->Draw3DChart(m_MSChartCtrl, pParam);
+            CAirsideFlightDelayBaseResult* pRepResult = pPreport->GetReportResult();
+			pRepResult->Draw3DChart(m_MSChartCtrl, pParam);
 		}
 		break;
 	case Airside_DistanceTravel:
@@ -1437,11 +1447,57 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			pParam->setSubType(nSubType);
 			CAirsideFlightDelayReport *pPreport = reinterpret_cast< CAirsideFlightDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 		
+            if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_SEGMENTDELAY || 
+                nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_SEGMENTDELAY)
+            {
+//                 int nTaxiwayCount = (int)vTempResult.size();
+//                 for (int nTaxiway = 0; nTaxiway < nTaxiwayCount; ++nTaxiway)
+//                 {
+//                     CTaxiwayUtilizationData* pItem = vTempResult.at(nTaxiway);
+// 
+//                     CString strText(_T(""));
+//                     strText.Format(_T("%s intersection %s to intersection %s"),pItem->m_sTaxiway,pItem->m_sStartNode,\
+//                         pItem->m_sEndNode);
+//                     int nTaxiwayIndex = m_ComBoxSubType.AddString(strText);
+//                     m_ComBoxSubType.SetItemData(nTaxiwayIndex,(DWORD_PTR)pItem);
+//                     int nWidth2 = m_ComBoxSubType.GetDC()->GetTextExtent(strText).cx;
+//                     if (nWidth2>nWidth)
+//                         nWidth = nWidth2;
+//                 }
+//                 m_ComBoxSubType.SetDroppedWidth(nWidth);
+// 
+//                 m_ComBoxSubType.SetCurSel(0);
+            }
+            else if(nSubType == CAirsideFlightDelayReport::subReportType::SRT_DETAIL_COMPONENTDELAY || 
+                nSubType == CAirsideFlightDelayReport::subReportType::SRT_SUMMARY_COMPONENTDELAY)
+            {
+
+            }
 			pPreport->RefreshReport(pParam);
 			CAirsideFlightDelayBaseResult *pResult =  pPreport->GetReportResult();
 			if (pResult)
 				pResult->Draw3DChart(m_MSChartCtrl, pParam);
 			
+			std::vector<int> vReportRun;
+			bool bMultiple = false;
+			if(pParam->GetReportRuns(vReportRun))
+			{
+				if (vReportRun.size() > 1)
+				{
+					GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					bMultiple = true;
+				}
+			}
+
+			if (bMultiple == false)
+			{
+				CAirsideFlightDelayReport *pPreport = reinterpret_cast< CAirsideFlightDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+
+				pPreport->RefreshReport(pParam);
+				CAirsideFlightDelayBaseResult *pResult =  pPreport->GetReportResult();
+				if (pResult)
+					pResult->Draw3DChart(m_MSChartCtrl, pParam);
+			}
 		}
 		break;
 	case Airside_NodeDelay:

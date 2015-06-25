@@ -154,6 +154,7 @@
     <ClCompile Include="AirsideFlightDistanceTravelReportSummaryResult.cpp" />
     <ClCompile Include="AirsideFlightFuelBurnReport.cpp" />
     <ClCompile Include="AirsideFlightFuelBurnReportResult.cpp" />
+    <ClCompile Include="AirsideFlightMutiRunDelayReport.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayBaseResult.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayData.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayReport.cpp" />
@@ -166,6 +167,9 @@
     <ClCompile Include="AirsideIntersectionReportParam.cpp" />
     <ClCompile Include="AirsideIntersectionReportResult.cpp" />
     <ClCompile Include="AirsideIntersectionSummaryChartResult.cpp" />
+    <ClCompile Include="AirsideMultipleRunReport.cpp" />
+    <ClCompile Include="AirsideMultipleRunReportAgent.cpp" />
+    <ClCompile Include="AirsideMultipleRunResult.cpp" />
     <ClCompile Include="AirsideNodeDelayReport.cpp" />
     <ClCompile Include="AirsideNodeDelayReportParameter.cpp" />
     <ClCompile Include="AirsideOperationParam.cpp" />
@@ -364,6 +368,7 @@
     <ClInclude Include="AirsideFlightDistanceTravelReportSummaryResult.h" />
     <ClInclude Include="AirsideFlightFuelBurnReport.h" />
     <ClInclude Include="AirsideFlightFuelBurnReportResult.h" />
+    <ClInclude Include="AirsideFlightMutiRunDelayReport.h" />
     <ClInclude Include="AirsideFlightRunwayDelayBaseResult.h" />
     <ClInclude Include="AirsideFlightRunwayDelayData.h" />
     <ClInclude Include="AirsideFlightRunwayDelayReport.h" />
@@ -376,6 +381,9 @@
     <ClInclude Include="AirsideIntersectionReportParam.h" />
     <ClInclude Include="AirsideIntersectionReportResult.h" />
     <ClInclude Include="AirsideIntersectionSummaryChartResult.h" />
+    <ClInclude Include="AirsideMultipleRunReport.h" />
+    <ClInclude Include="AirsideMultipleRunReportAgent.h" />
+    <ClInclude Include="AirsideMultipleRunResult.h" />
     <ClInclude Include="AirsideNodeDelayReport.h" />
     <ClInclude Include="AirsideNodeDelayReportParameter.h" />
     <ClInclude Include="AirsideOperationParam.h" />

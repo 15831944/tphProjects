@@ -149,8 +149,8 @@ bool CPaxBulk::takeCurrentBulk(ElapsedTime& time , long& nIndex, int _nPaxGroup,
 		percentAll += m_vBulkPercent[i];
 	}
 
-	//if(percentAll<=0)
-	//	return false;
+	if(percentAll<=0)
+		return false;
 
 	int randP = random(percentAll);
 	int iPercent = 0;

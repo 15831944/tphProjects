@@ -268,9 +268,27 @@ void CAirsideReportManager::GenerateResult()
 {
 	if (m_pAirsideReport == NULL || m_pParamters == NULL)
 		return;
-	m_pParamters->SaveParameterFile();
-	m_pAirsideReport->GenerateReport(m_pParamters);
-	m_pAirsideReport->IsReportGenerate(TRUE) ;
+
+	if (m_emReportType == Airside_FlightDelay)
+	{
+		std::vector<int> vReportRun;
+		if (m_pParamters->GetReportRuns(vReportRun))
+		{
+			if (vReportRun.size() > 1)
+			{
+				m_multiRunReport.GenerateReport(m_pTerminal,m_pGetLogFilePath,m_pGetSetSimResult,m_csProjPath,m_emReportType,m_pParamters);
+				return;
+			}
+		}	
+	}
+
+//	else
+	{
+		m_pParamters->SaveParameterFile();
+		m_pAirsideReport->GenerateReport(m_pParamters);
+		m_pAirsideReport->IsReportGenerate(TRUE) ;
+	}
+
 }
 
 void CAirsideReportManager::RefreshReport(int nUnit)
@@ -328,6 +346,7 @@ void CAirsideReportManager::SetReportListContent(CXListCtrl& cxListCtrl)
 	}
 	m_pAirsideReport->FillListContent(cxListCtrl, m_pParamters);
 }
+
 CString CAirsideReportManager::GetCurrentReportName()
 {
 	reportType rpType = GetReportType();
@@ -709,3 +728,19 @@ void CAirsideReportManager::SetTerminalAndProjectPath(Terminal* pTerminal,const 
 	m_pTerminal = pTerminal;
 	m_csProjPath = _csProjPath;
 }
+
+void CAirsideReportManager::InitMultiReportList( CXListCtrl& cxListCtrl, int iType /*=0*/,CSortableHeaderCtrl* piSHC /*= NULL*/ )
+{
+	m_multiRunReport.InitListHead(m_emReportType,cxListCtrl,m_pParamters,iType,piSHC);
+}
+
+void CAirsideReportManager::SetMultiReportListContent( CXListCtrl& cxListCtr,int iType /*=0*/ )
+{
+	m_multiRunReport.FillListContent(m_emReportType,cxListCtr,m_pParamters,iType);
+}
+
+void CAirsideReportManager::updateMultiRun3Dchart( CARC3DChart& chartWnd,int iType /*=0*/ )
+{
+	m_multiRunReport.Draw3DChart(m_emReportType,chartWnd,m_pParamters,iType);
+}
+

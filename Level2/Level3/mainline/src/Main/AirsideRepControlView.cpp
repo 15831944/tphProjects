@@ -957,27 +957,26 @@ void CAirsideRepControlView::InitializeTree()
             m_treePaxType.SetItemData(hRunsRoot, (DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_MultiRunRoot));
 
             std::vector<int> vMultiRun;
-            if(m_pParameter->GetReportRuns(vMultiRun))
+            m_pParameter->GetReportRuns(vMultiRun);
+            CSimAndReportManager *pSimAndReportManager = ((CTermPlanDoc *)GetDocument())->GetTerminal().GetSimReportManager();
+            int nSimCount = pSimAndReportManager->getSubSimResultCout();
+            for (int nSim =0; nSim < nSimCount; ++nSim )
             {
-                CSimAndReportManager *pSimAndReportManager = ((CTermPlanDoc *)GetDocument())->GetTerminal().GetSimReportManager();
-                int nSimCount = pSimAndReportManager->getSubSimResultCout();
-                for (int nSim =0; nSim < nSimCount; ++nSim )
-                {
-                    //CSimItem *pSimItem = pSimAndReportManager->getSimItem(nSim);
-                    //CString strSimName = pSimItem->getSubSimName();
-                    CString strSimName;
-                    strSimName.Format(_T("RUN %d"),nSim+1);
-                    HTREEITEM hSubSimItem = TreeInsertItem(strSimName, hRunsRoot, true);
-                    repControlTreeNodeData pNodeData = new repControlTreeNodeData(repControlTreeNodeType_Runs);
-                    pNodeData->m_Data = (DWORD)nSim;
-                    m_treePaxType.SetItemData(hSubSimItem, pNodeData);
+                //CSimItem *pSimItem = pSimAndReportManager->getSimItem(nSim);
+                //CString strSimName = pSimItem->getSubSimName();
+                CString strSimName;
+                strSimName.Format(_T("RUN %d"),nSim+1);
+                HTREEITEM hSubSimItem = m_treePaxType.InsertItem(strSimName, cni, FALSE, FALSE, hRunsRoot);
+                repControlTreeNodeData* pNodeData = new repControlTreeNodeData(repControlTreeNodeType_Runs);
+                pNodeData->m_Data = (DWORD)nSim;
+                m_treePaxType.SetItemData(hSubSimItem, (DWORD)pNodeData);
 
-                    if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
-                    {
-                        m_treePaxType.SetCheckStatus(hSubSimItem,TRUE);
-                    }
+                if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
+                {
+                    m_treePaxType.SetCheckStatus(hSubSimItem,TRUE);
                 }
             }
+            m_treePaxType.Expand(hRunsRoot, TVE_EXPAND);
 		}
 		break;
 	case Airside_NodeDelay:

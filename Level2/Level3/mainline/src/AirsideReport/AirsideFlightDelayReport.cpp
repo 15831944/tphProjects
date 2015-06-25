@@ -139,6 +139,7 @@ void CAirsideFlightDelayReport::GenerateReport(CParameters * parameter)
 		bar.StepIt();
 	}
 
+	SaveReportData();
 }
 
 long CAirsideFlightDelayReport::getHeldAtStandTime(AirsideFlightLogEntry& logEntry)const
@@ -2643,6 +2644,48 @@ BOOL CAirsideFlightDelayReport::ImportReportData(ArctermFile& _file,CString& Err
 	}
 	return TRUE ;
 }
+
+CString CAirsideFlightDelayReport::GetReportFileName()
+{
+	return _T("FlightDelays\\FlightDelays.rep");
+}
+
+BOOL CAirsideFlightDelayReport::WriteReportData( ArctermFile& _file )
+{
+	_file.writeField("Flight Delay Report");
+	_file.writeLine();
+
+	_file.writeInt((int)m_vResult.size()) ;
+	_file.writeLine() ;
+	for (int i = 0 ;i < (int)m_vResult.size() ;i++)
+	{
+		if(!m_vResult[i].ExportFile(_file))
+			return FALSE ;
+	}
+	return TRUE ;
+}
+
+BOOL CAirsideFlightDelayReport::ReadReportData( ArctermFile& _file )
+{
+	m_vResult.clear() ;
+	int size = 0 ;
+	if(!_file.getInteger(size))
+		return FALSE ;
+	for(int i = 0 ; i < size ;i++)
+	{
+		_file.getLine() ;
+		FltTypeDelayItem delayitem(m_AirportDB) ;
+		delayitem.ImportFile(_file) ;
+		for (int j = 0 ; j < (int)delayitem.m_vDelayData.size() ;j++)
+		{
+			m_vTotalResult.push_back(delayitem.m_vDelayData[j]) ;
+		}
+		m_vResult.push_back(delayitem) ;
+
+	}
+	return TRUE ;
+}
+
 BOOL CAirsideFlightDelayReport::FltTypeDelayItem::ExportFile(ArctermFile& _file)
 {
 	TCHAR th[1024] = {0} ;

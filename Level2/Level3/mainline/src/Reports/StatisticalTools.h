@@ -160,6 +160,16 @@ public:
 		return dValue1;
 	}
 
+    DataType GetSum()
+    {
+        DataType sum = 0;
+        for(size_t i=0; i<m_vDatas.size(); ++i )
+        {
+            sum += m_vDatas[i];
+        }
+        return sum;
+    }
+
 	void Clear()
 	{
 		m_vDatas.clear();

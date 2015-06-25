@@ -258,6 +258,11 @@ private:
 	void FillSummaryScheduleListContent(CXListCtrl& cxListCtrl, CParameters * parameter);
 
 	bool GetAirsideFlightLogItem(AirsideFlightLogItem& item,AirsideFlightLogEntry logEntry,ARCBaseLog<AirsideFlightLogItem>& mFlightLogData)const;
+
+public:
+	virtual CString GetReportFileName();
+	virtual BOOL WriteReportData(ArctermFile& _file);
+	virtual BOOL ReadReportData(ArctermFile& _file);
 protected:
 	std::vector<FltTypeDelayItem> m_vResult;
 	//include all flights' delay time 

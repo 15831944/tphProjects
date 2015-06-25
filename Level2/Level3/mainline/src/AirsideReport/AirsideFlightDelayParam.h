@@ -30,6 +30,9 @@ public:
 	void SetStartNode(CAirsideReportNode& node){ m_startNode = node;}
 	void SetEndNode(CAirsideReportNode& node){ m_endNode = node;}
 
+	virtual CString GetReportParamName();
+	virtual void WriteParameter(ArctermFile& _file);
+	virtual void ReadParameter(ArctermFile& _file);
 protected:
 
 

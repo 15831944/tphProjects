@@ -55,3 +55,35 @@ BOOL CAirsideFlightDelayParam::ImportFile(ArctermFile& _file)
     
 	return TRUE ;
 }
+
+CString CAirsideFlightDelayParam::GetReportParamName()
+{
+	return _T("FlightDelays\\FlightDelays.prm");
+}
+
+void CAirsideFlightDelayParam::WriteParameter( ArctermFile& _file )
+{
+	if(!CParameters::ExportFile(_file))
+		return;
+
+	m_startNode.ExportFile(_file) ;
+
+	m_endNode.ExportFile(_file) ;
+
+	_file.writeInt(m_nSubType) ;
+	_file.writeLine() ;
+}
+
+void CAirsideFlightDelayParam::ReadParameter( ArctermFile& _file )
+{
+	if(!CParameters::ImportFile(_file))
+		return;
+
+	m_startNode.ImportFile(_file) ;
+
+	_file.getLine();
+	m_endNode.ImportFile(_file) ;
+
+	_file.getInteger(m_nSubType) ;
+	_file.getLine() ;
+}

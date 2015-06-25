@@ -3,12 +3,15 @@
 #include "AirsideBaseReport.h"
 //#include "TypeDefs.h"
 #include "AirsideReportObjectIntersecNodeIDNameMap.h"
+#include "AirsideMultipleRunReport.h"
 
 class Terminal;
 class CParameters;
 class CAirsideBaseReport;
 class CAirportDatabase ;
 class CARCUnitManager;
+class CARC3DChart;
+typedef void (*CBSetCurrentSimResult)(int);
 class AIRSIDEREPORT_API CAirsideReportManager
 {
 public:
@@ -25,6 +28,9 @@ public:
 	void SetCBGetLogFilePath(CBGetLogFilePath pFunc){ m_pGetLogFilePath = pFunc;}
 	CBGetLogFilePath GetCBGetLogFilePath(){ return m_pGetLogFilePath;}
 
+	void SetCBCurrentSimResult(CBSetCurrentSimResult pFunc){m_pGetSetSimResult = pFunc;}
+	CBSetCurrentSimResult GetCBSetCurrentSimResult() {return m_pGetSetSimResult;}
+
 	void SetReportPath(const CString& strReportPath);
 	void SetTerminalAndProjectPath(Terminal* pTerminal,const CString& _csProjPath);
 
@@ -37,12 +43,12 @@ protected:
 
 	int m_nProjID;
 	CBGetLogFilePath		m_pGetLogFilePath;
-	
+	CBSetCurrentSimResult m_pGetSetSimResult;
 	//report file path, such as d:\\arcterm\\aaa\\simresult0
 	CString					m_strReportFilePath;
 	Terminal*				m_pTerminal;
 	CString					m_csProjPath;
-
+	CAirsideMultipleRunReport m_multiRunReport;
 
 	CAirsideReportObjectIntersecNodeIDNameMap m_projObjectData;
 	//operation
@@ -59,8 +65,11 @@ public:
 
 	void InitReportList(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
 	void SetReportListContent(CXListCtrl& cxListCtrl);
-		
 
+	void InitMultiReportList(CXListCtrl& cxListCtrl,int iType = 0, CSortableHeaderCtrl* piSHC = NULL);
+	void SetMultiReportListContent( CXListCtrl& cxListCtr,int iType = 0);
+	void updateMultiRun3Dchart(CARC3DChart& chartWnd,int iType = 0);
+		
 	//PRINT GRAPH ,EXPORT GRAPH
 	void PrintGraph();
 	void ExportGraph(BSTR bstrFileName);
