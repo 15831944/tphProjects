@@ -433,8 +433,12 @@ void SequentialQueue::balanceQueue (Processor *changedProc, ElapsedTime p_time)
 			||	!spTerminalBehavior->canJumpToProcessor(changedProc)
 			)
 			continue;
-
-
+		int personID = jumper->getID();
+		if(personID == 31517 || personID == 31501 || personID == 31464 )
+		{
+			int x=1;
+			x=1;
+		}
         if (changedProc->getTotalQueueLength() < i )
         {
 			#ifdef WANT_TO_TRACE_QUUEU_INFO
