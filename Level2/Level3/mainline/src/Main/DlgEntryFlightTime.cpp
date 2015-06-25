@@ -3,11 +3,10 @@
 #include "DlgEntryFlightTime.h"
 #include "afxdialogex.h"
 
-IMPLEMENT_DYNAMIC(DlgEntryFlightTime, CDialogEx)
+IMPLEMENT_DYNAMIC(DlgEntryFlightTime, CDialog)
 
-DlgEntryFlightTime::DlgEntryFlightTime(InputTerminal* pTerminal, EntryFlightTimeDB* pDB, CWnd* pParent /*= NULL*/)
+DlgEntryFlightTime::DlgEntryFlightTime(InputTerminal* pTerminal, CWnd* pParent /*=NULL*/)
 	: CDialog(DlgEntryFlightTime::IDD, pParent),
-	m_pEntryFltTimeDB(pDB),
 	m_pTerminal(pTerminal)
 { 
 }
@@ -19,16 +18,17 @@ DlgEntryFlightTime::~DlgEntryFlightTime()
 void DlgEntryFlightTime::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDSAVE, m_btnSave);
 	DDX_Control(pDX, IDOK, m_btnOk);
-	DDX_Control(pDX, ID_BUTTON_SAVE, m_btnCancel);
-	DDX_Control(pDX, ID_BUTTON_IMPORT, m_btnImport);
+	DDX_Control(pDX, IDC_BUTTON_SAVE, m_btnSave);
+	DDX_Control(pDX, IDC_BUTTON_IMPORT, m_btnImport);
+	DDX_Control(pDX, IDCANCEL, m_btnCancel);
 }
 
 
 BEGIN_MESSAGE_MAP(DlgEntryFlightTime, CDialog)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDOK, &DlgEntryFlightTime::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
@@ -60,9 +60,10 @@ int DlgEntryFlightTime::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 BOOL DlgEntryFlightTime::OnInitDialog()
 {
+ 	CDialog::OnInitDialog();
 	CRect rect;
 	GetClientRect(rect);
-	m_listCtrl.SetWindowPos(NULL, 10, 10+rect.Height(), rect.Width()-20, rect.Height()-50, NULL);
+	m_listCtrl.SetWindowPos(NULL, 10, 26, rect.Width()-20, rect.Height()-76, NULL);
 
 	m_listCtrl.GetWindowRect(rect);
 	ScreenToClient(rect);
@@ -96,3 +97,7 @@ void DlgEntryFlightTime::ReloadData()
 
 }
 
+void DlgEntryFlightTime::OnBnClickedOk()
+{
+	CDialog::OnOK();
+}

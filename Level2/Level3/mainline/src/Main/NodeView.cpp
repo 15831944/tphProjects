@@ -165,6 +165,7 @@
 #include <map>
 #include "Common/FloorChangeMap.h"
 #include "Inputs/Procdata.h"
+#include "DlgEntryFlightTime.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -2680,7 +2681,13 @@ void CNodeView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 				dlg.setDocument( GetDocument() );
 				dlg.DoModal();
 			}
-
+			
+			s.LoadString(IDS_TVNN_ENTRYFLIGHTTIME);
+			if(s == pNode->Name())
+			{
+				DlgEntryFlightTime dlg(GetInputTerminal(), this);
+				dlg.DoModal();
+			}
 			GetDocument()->SelectNode(pNode);
 		}
 	}	

@@ -5323,6 +5323,13 @@
     <None Include="res\bmp00050.bmp" />
     <None Include="res\bmp00051.bmp" />
     <None Include="res\bmp00052.bmp" />
+    <None Include="res\bmp00053.bmp" />
+    <None Include="Res\bmp_move_down_floor.bmp" />
+    <None Include="Res\bmp_move_down_floor1.bmp" />
+    <None Include="Res\bmp_move_down_floor2.bmp" />
+    <None Include="Res\bmp_move_up_floor.bmp" />
+    <None Include="Res\bmp_move_up_floor1.bmp" />
+    <None Include="Res\bmp_move_up_floor2.bmp" />
     <None Include="Res\bmp_seldefined.bmp" />
     <None Include="Res\bmpPipeBar.bmp" />
     <None Include="Res\bus_station.bmp" />
@@ -5495,6 +5502,7 @@
     <None Include="Res\procassi.bmp" />
     <None Include="Res\process1.bmp" />
     <None Include="Res\process_.bmp" />
+    <None Include="res\PROGRESS.BIN" />
     <None Include="Res\reportto.bmp" />
     <None Include="res\ResidentPlan.bmp" />
     <None Include="Res\roster_p.bmp" />
