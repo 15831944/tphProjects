@@ -562,6 +562,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="PaxTypeWithEntryFlightTime.cpp" />
     <ClCompile Include="PAX_CNST.CPP">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1109,6 +1110,7 @@
     <ClInclude Include="NonPaxRelativePosSpec.h" />
     <ClInclude Include="OperatingDoorSpec.h" />
     <ClInclude Include="PassengerFlowByPaxDatabase.h" />
+    <ClInclude Include="PaxTypeWithEntryFlightTime.h" />
     <ClInclude Include="PAX_CNST.H" />
     <ClInclude Include="PAX_DB.H" />
     <ClInclude Include="PaxBulkInfo.h" />

@@ -257,6 +257,7 @@
     <ClInclude Include="DlgAssignmentConstraintSpec.h" />
     <ClInclude Include="DlgBaseResident.h" />
     <ClInclude Include="DlgCurbsideStrategy.h" />
+    <ClInclude Include="DlgEntryFlightTime.h" />
     <ClInclude Include="DlgExportNames.h" />
     <ClInclude Include="DlgInitCondition.h" />
     <ClInclude Include="DlgLandsideEntryOffset.h" />
@@ -1069,6 +1070,7 @@
     <ClCompile Include="DlgAssignmentConstraintSpec.cpp" />
     <ClCompile Include="DlgBaseResident.cpp" />
     <ClCompile Include="DlgCurbsideStrategy.cpp" />
+    <ClCompile Include="DlgEntryFlightTime.cpp" />
     <ClCompile Include="DlgExportNames.cpp" />
     <ClCompile Include="DlgInitCondition.cpp" />
     <ClCompile Include="DlgLandsideEntryOffset.cpp" />
