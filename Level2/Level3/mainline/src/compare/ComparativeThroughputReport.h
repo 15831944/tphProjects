@@ -43,16 +43,15 @@ public:
 	}
 };
 
-class CComparativeThroughputReport;
 class CmpThroughputSummaryData
 {
 public:
 	CmpThroughputSummaryData(){ clear(); }
 
-	int	m_totalPax;
-	int m_avgPax;
-	int m_totalPerHour;
-	int m_avgPerHour;
+	int	m_totalPax;			// Total Pax
+	int m_avgPax;			// Avg Pax
+	int m_totalPerHour;		// Total / Hour
+	int m_avgPerHour;		// Avg / Hour
 
 public:
 	void clear()
@@ -60,7 +59,7 @@ public:
 		m_totalPax = m_avgPax = m_totalPerHour = m_avgPerHour = 0;
 	}
 	
-	int GetData(ThroughPutSubType nSubType)
+	int GetData(int nSubType) const
 	{
 		switch(nSubType)
 		{
@@ -99,8 +98,8 @@ public:
 	bool SaveReport(const std::string& _sPath) const;
 	bool LoadReport(const std::string& _sPath);
 	int GetReportType() const{return ThroughtputReport;}
-	const std::vector<CmpThroughputDetailData>& GetResult() const{ return m_vThoughputData; }
-
+	const std::vector<CmpThroughputDetailData>& GetDetailResult() const{ return m_vThoughputData; }
+	const std::vector<CmpThroughputSummaryData>& GetSummaryResult() const{ return m_vSummary; }
 private:
 	void MergeDetailSample(const ElapsedTime& tInteval);
 	void MergeSummarySample(const ElapsedTime& tInteval);

@@ -165,11 +165,21 @@ BOOL CComparativeProject::TransferLogFiles(CModelToCompare *pCmpModel, const CSt
 	CString strDestPath = _T("");
 	strDestPath.Format("%s\\SimResult",strDest);
 
+	CString strDestSimResultPath;
+	strDestSimResultPath.Format("%s\\SimResult\\%s",strDest,strSimResult);
+	
 	CFileOperation fo;
-
-	if ( (pCmpModel->IsNeedToCopy() == TRUE) || fo.CheckPath(strDestPath))
+	if(fo.CheckPath(strDestSimResultPath) == PATH_IS_FOLDER)//this path exists 
 	{
-		return TRUE;
+		if ( (pCmpModel->IsNeedToCopy() == TRUE) )
+		{
+			return TRUE;
+		}
+	}
+
+	if(!fo.CheckPath(strSourcePath))
+	{
+		return FALSE;
 	}
 
 	if(!fo.CheckPath(strDestPath))
@@ -177,11 +187,6 @@ BOOL CComparativeProject::TransferLogFiles(CModelToCompare *pCmpModel, const CSt
 		::CreateDirectory(strDestPath,NULL);
 	}
 
-
-	if(!fo.CheckPath(strSourcePath))
-	{
-		return FALSE;
-	}
 	fo.SetAskIfReadOnly(false);
 	fo.SetOverwriteMode(true);
 	return fo.Copy(strSourcePath, strDestPath,_ShowCopyInfo);
@@ -325,6 +330,8 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					break;
 				case ENUM_THROUGHPUT_REP: //8
 				case ENUM_QUEUELENGTH_REP:
+					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs( NULL) )));
+					break;
 
 				default:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(NULL) )));

@@ -6274,7 +6274,18 @@ void CPaxFlowDlg::SetViewPickConveyor(BOOL bActive3DView)
 	C3DView* p3DView = pDoc->Get3DView();
 	if( p3DView == NULL )
 	{
-		pDoc->GetMainFrame()->CreateOrActive3DView();
+		CMDIChildWnd* pMDIChild = pDoc->GetMainFrame()->CreateOrActive3DView();
+		CChildFrame* pChildFrame = (CChildFrame*)pMDIChild;
+
+		if(pChildFrame->GetWorkingCamera(0,0)->GetProjectionType() != C3DCamera::perspective) 
+		{
+			//save current working view to 2D user view
+			pChildFrame->SaveWorkingViews(&(pDoc->GetCurModeCameras().m_userView2D));
+		}
+
+		pChildFrame->LoadWorkingViews(&(pDoc->GetCurModeCameras().m_userView3D));
+		pChildFrame->SaveWorkingViews(&(pDoc->GetCurModeCameras().m_userView3D));
+
 		p3DView = pDoc->Get3DView();
 	}
 	if (!p3DView)

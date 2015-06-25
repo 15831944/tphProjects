@@ -187,7 +187,6 @@ bool CComparativeThroughputReport::SaveReport(const std::string& _sPath) const
 		file.writeLine();
 
 		//write data lines
-
 		if(m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 		{
 			for(std::vector<CmpThroughputDetailData>::const_iterator iterLine=m_vThoughputData.begin(); 

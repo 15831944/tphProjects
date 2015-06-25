@@ -126,7 +126,7 @@ protected:
 	
 	//bool WriteVisitorEntryLog(const ARCVector3& locationPt,PaxVisitor* pVisitor,ElapsedTime time, int ntype,bool _bBackup = false, bool bOffset  = true );
 
-	void SetFollowerLocation(const ARCVector3& _ptCurrent);
+	void SetFollowerEnterLandsideLocation(const ARCVector3& _ptCurrent);
 	void SetFollowerDestination(const ARCVector3& _ptCurrent, const ARCVector3& _ptDestination, float* _pRotation );
 	
 	void SetRelativePosition(const Point& paxDirection,const Point& paxLocation,MobDir emWalk);

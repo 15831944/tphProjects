@@ -271,11 +271,10 @@ void CCmpReportTreeView::RunCompareReport()
 	pFram->ChangeSize(rc1, rc2, 1);
 
 	((CCompRepLogBar*)pWnd)->DeleteLogText();
-	//__statusBar = &(pFram->m_wndStatusBar);
 	m_pCmpReport->Run(this->GetSafeHwnd(), (CCompRepLogBar*)pWnd,_ShowCopyInfo);
 	((CCompRepLogBar*)pWnd)->SetProgressPos(0);
 	GetDocument()->UpdateAllViews(this);
-//	m_pReportManager->DisplayReport();
+
 }
 
 void CCmpReportTreeView::RemoveSubItems(HTREEITEM hItem)

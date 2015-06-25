@@ -455,7 +455,7 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 		}
 		//set list control
 		int nRow = 0, nCol =0;
-		std::vector<CmpThroughputDetailData> vData = _reportData.GetResult();
+		const std::vector<CmpThroughputDetailData>& vData = _reportData.GetDetailResult();
 
 		for(std::vector<CmpThroughputDetailData>::const_iterator iterLine = vData.begin(); 
 			iterLine != vData.end(); iterLine++, nRow++)
@@ -488,6 +488,30 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 		m_listCtrl.InsertColumn(3, _T("Avg Pax"),LVCFMT_CENTER,50);
 		m_listCtrl.InsertColumn(4, _T("Total / Hour"),LVCFMT_CENTER,50);
 		m_listCtrl.InsertColumn(5, _T("Avg / Hour"),LVCFMT_CENTER,50);
+		const std::vector<CmpThroughputSummaryData>& vData = _reportData.GetSummaryResult();
+		std::vector<CString>& vSimName = _reportData.GetSimNameList();
+		//set list control
+		CString str;
+		int nRow = 0, nCol =0;
+		for(std::vector<CmpThroughputSummaryData>::const_iterator iterLine = vData.begin(); 
+			iterLine != vData.end(); iterLine++, nRow++)
+		{
+			m_listCtrl.InsertItem(nRow, vSimName[nRow]);
+
+			nCol = 0;
+			str.Format(_T("%d"), iterLine->GetData(TOTAL_PAX));
+			m_listCtrl.SetItemText(nRow, nCol, str);
+			nCol++;
+			str.Format(_T("%d"), iterLine->GetData(AVG_PAX));
+			m_listCtrl.SetItemText(nRow, nCol, str);
+			nCol++;
+			str.Format(_T("%d"), iterLine->GetData(TOTAL_HOUR));
+			m_listCtrl.SetItemText(nRow, nCol, str);
+			nCol++;
+			str.Format(_T("%d"), iterLine->GetData(AVG_HOUR));
+			m_listCtrl.SetItemText(nRow, nCol, str);
+			nCol++;
+		}
 	}
 }
 

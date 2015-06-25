@@ -83,7 +83,7 @@ void LandsideBaseBehavior::writeLog( ElapsedTime time, bool _bBackup, bool bOffs
 	}
 }
 
-void LandsideBaseBehavior::SetFollowerLocation( const ARCVector3& _ptCurrent )
+void LandsideBaseBehavior::SetFollowerEnterLandsideLocation( const ARCVector3& _ptCurrent )
 {
 	CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pPerson->m_pGroupInfo;
 	if(!pGroupLeaderInfo->isInGroup() || m_pPerson->m_pGroupInfo->IsFollower())
@@ -178,7 +178,9 @@ void LandsideBaseBehavior::SetRelativePosition( const Point& paxDirection,const 
 void LandsideBaseBehavior::SetEnterLandsideLocation( const ARCVector3& _ptCurrent )
 {
 	location = _ptCurrent;
-	SetFollowerLocation(location);
+	m_ptDestination = _ptCurrent;
+
+	SetFollowerEnterLandsideLocation(location);
 
 	if (m_pPerson->getType().GetTypeIndex() != 0)
 	{
