@@ -1,16 +1,23 @@
 #pragma once
 #include <vector>
 
-typedef struct 
+class PointFXY
 {
+public:
+    PointFXY(){}
+    PointFXY(float x, float y);
+    ~PointFXY(){}
+
+private:
     float m_x; // x coordinate of top-left point.
     float m_y; // y coordinate of top-left point.
-    PointFXY& operator=(const PointFXY& other)
-    {
-        m_x = other.m_x;
-        m_y = other.m_y;
-    }
-} PointFXY;
+public:
+    float GetX() const { return m_x; }
+    void SetX(float val) { m_x = val; }
+
+    float GetY() const { return m_y; }
+    void SetY(float val) { m_y = val; }
+};
 
 typedef enum
 {
@@ -29,7 +36,6 @@ protected:
     float m_rotation; // the rotation of this piece it self.
     short m_xInAirsideFlight;
     short m_yInAirsideFlight;
-
     AirsidePassengerEdgeType m_leftEdgeType;
     AirsidePassengerEdgeType m_rightEdgeType;
     AirsidePassengerEdgeType m_topEdgeType;
@@ -43,6 +49,16 @@ protected:
     //ID2D1BitmapBrush *m_pBitmapBrush;
 public:
     bool IsThisPointFXYInsideMe(const PointFXY& pt);
+    bool CanAboveMe(ClassAirsidePassenger* pOther);
+    bool CanBelowMe(ClassAirsidePassenger* pOther);
+    bool CanLeftsideMe(ClassAirsidePassenger* pOther);
+    bool CanRightsideMe(ClassAirsidePassenger* pOther);
+
+    short GetXInAirsideFlight(){ return m_xInAirsideFlight; }
+    void SetXInAirsideFlight(short val) { m_xInAirsideFlight = val; }
+
+    short GetYInAirsideFlight(){ return m_yInAirsideFlight; }
+    void SetYInAirsideFlight(short val) { m_yInAirsideFlight = val; }
 
     float Rotation() const { return m_rotation; }
     void Rotation(float val) { m_rotation = val; }
@@ -65,11 +81,12 @@ protected:
     ClassAirsideFlight* m_pNextAirsideFlight;
 public:
     void Clear();
-    void AddPassenger();
+    void AddAirsidePassenger();
+    size_t GetAirsidePassengerCount(){ return m_vAirsidePassengers.size(); }
     PointFXY GetRotationCenter();
     bool IsThisPointFXYInsideMe(const PointFXY& pt);
-    bool CanJoinToMe(int& errorCode, ClassAirsideFlight* pOther);
-    ClassAirsideFlight* JoinToMe(int& errorCode, ClassAirsideFlight* pOther);
+    bool CanCombinedToMe(int& errorCode, ClassAirsideFlight* pOther);
+    void CombineToMe(int& errorCode, ClassAirsideFlight* pOther);
 
     float GetRotation(){ return m_rotation; }
     void SetRotation(float val) { m_rotation = val; }

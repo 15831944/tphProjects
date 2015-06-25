@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "DragPicture.h"
-#include "ErrorCode.h"
 #include "Macros.h"
 #include <atlstr.h>
 
