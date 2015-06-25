@@ -727,7 +727,7 @@ LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM l
 			if(strValue.IsEmpty())
 			{
 				ReleaseCapture();
-				MessageBox("The name is empty, please set the project name!");
+				MessageBox("The name is empty, please input the project name.", NULL, MB_OK | MB_ICONWARNING);
 				if(strOriName.IsEmpty())
 					strItemText = "Name";
 				else
@@ -745,7 +745,9 @@ LRESULT CCmpReportTreeView::DefWindowProc( UINT message, WPARAM wParam, LPARAM l
 			if(m_pCmpReport->ProjExists(strValue))
 			{
 				ReleaseCapture();
-				MessageBox("The name is already exists, please rename!");
+				CString strTemp;
+				strTemp.Format(_T("The Comparative Report \"%s\" already exists, please rename."), strValue);
+				MessageBox(strTemp, NULL, MB_ICONWARNING | MB_OK);
 				if(strOriName.IsEmpty())
 					strItemText = "Name";
 				else

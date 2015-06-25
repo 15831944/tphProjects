@@ -177,6 +177,7 @@
 #include "Common/IEnvModeEditContext.h"
 #include "DlgAnimationSpeed.h"
 #include "CompareReportDoc.h"
+#include "DlgAddNewCmpReport.h"
 
 //IMPL_CHLOE_SYSTEM()
 //
@@ -4955,7 +4956,6 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 
 void CMainFrame::OnComparativereportopen() 
 {
-	// TODO: Add your command handler code here
 	COpenComparativeReportsGroup dlg;
 	if (dlg.DoModal() == IDOK)
 	{
@@ -4967,8 +4967,13 @@ void CMainFrame::OnComparativereportopen()
 
 void CMainFrame::OnComparativereportnew() 
 {
-	// TODO: Add your command handler code here
-	CreateCompareReportAndResultView();
+	DlgAddNewCmpReport dlg;
+	if(dlg.DoModal() == IDOK)
+	{
+		CString strName = dlg.m_strName;
+		CString strDesc = dlg.m_strDesc;
+		CreateCompareReportAndResultView(strName, strDesc);
+	}
 }
 void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NULL*/, const CString& strDesc /* = NULL */)
 {

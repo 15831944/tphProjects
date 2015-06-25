@@ -1461,7 +1461,6 @@
 #define IDC_LST_AIRPORTS                1101
 #define IDC_LIST_AIRPORTS               1101
 #define IDB_MOVE_DOWN_FLOOR             1101
-//#define IDB_LANDSIDE_TAXIPOOL           1101
 #define IDB_BITMAP_LANDSIDE_TAXIPOOL    1101
 #define IDC_TREE_SECTORS                1102
 #define IDB_MOVE_DOWN_FLOOR1            1102
@@ -1476,6 +1475,7 @@
 #define IDB_MOVE_UP_FLOOR2              1106
 #define IDC_TREE_PROBDIST               1107
 #define IDC_EDT_APICAOCODE              1107
+#define IDD_CMPREPORTADDNEW             1107
 #define IDC_EDT_APELEVATION             1108
 #define IDC_EDT_APARPCOORDINATES        1109
 #define IDC_PERCENT                     1110
@@ -1559,6 +1559,7 @@
 #define IDC_EDIT_GRIDSIZE2              1143
 #define IDC_EDIT_UNIQUE_NAME            1143
 #define IDC_EDIT_POS_Y                  1143
+#define IDC_CMPREPORTDESCRI             1143
 #define IDC_PROGRESS_SIM                1144
 #define IDC_EDIT_OCCASIONALY2           1144
 #define IDC_EDIT_FREQ                   1144
@@ -3310,10 +3311,13 @@
 #define IDC_STATIC_DRIVE                2401
 #define IDC_COMBO_DATA                  2402
 #define IDC_LIST_ROSTER_ASIGN_SUMMARY   2404
-#define IDC_REPORT_LIST_COMBO           2406
 #define IDC_ROSTER_DEP                  2405
+#define IDC_REPORT_LIST_COMBO           2406
 #define IDC_ROSTER_ARR                  2406
 #define IDC_BOARDING_CALL_TREE          2407
+#define IDC_STATIC_CMPREPORTNAME        2408
+#define IDC_STATIC_CMPREPORTDESCRI      2409
+#define IDC_CMPREPORTNAME               2410
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5183,11 +5187,11 @@
 #define ID_TOOLBARBUTTON_ADD            35325
 #define ID_TOOLBARBUTTON_DEL            35326
 #define ID_TOOLBARBUTTON_EDIT           35327
-#define ID_CTX_MOVEUPFLOOR              35330
-#define ID_CTX_MOVEDOWNFLOOR            35331
 #define ID_BOARDING_CALL_ADD_STAND      35328
 #define ID_BOARDING_CALL_ADD_STAGE      35329
+#define ID_CTX_MOVEUPFLOOR              35330
 #define ID_BOARDING_CALL_ADD_FLIGHT     35330
+#define ID_CTX_MOVEDOWNFLOOR            35331
 #define ID_BOARDING_CALL_ADD_PAX        35331
 #define ID_BOARDING_CALL_DELETE         35332
 #define ID_BOARDING_CALL_EDIT           35333
@@ -5448,9 +5452,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1107
+#define _APS_NEXT_RESOURCE_VALUE        1108
 #define _APS_NEXT_COMMAND_VALUE         35334
-#define _APS_NEXT_CONTROL_VALUE         2408
+#define _APS_NEXT_CONTROL_VALUE         2411
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif
