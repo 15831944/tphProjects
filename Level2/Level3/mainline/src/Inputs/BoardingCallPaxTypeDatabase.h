@@ -7,27 +7,27 @@
 class BoardingCallTrigger
 {
 protected:
-	ProbabilityDistribution* m_time;
-	ProbabilityDistribution* m_prop;
+	ConstantDistribution m_time;
+	ConstantDistribution m_prop;
 public:
 	BoardingCallTrigger(){ InitTrigger(); }
-	BoardingCallTrigger(ProbabilityDistribution*, ProbabilityDistribution*);
+	BoardingCallTrigger(long _seconds, double _prop);
 	~BoardingCallTrigger();
 
 	BoardingCallTrigger& operator=( const BoardingCallTrigger& _entry )
 	{
-		*m_time = *_entry.m_time;
-		*m_prop = *_entry.m_prop; 
+		m_time = _entry.m_time;
+		m_prop = _entry.m_prop; 
 		return *this;
 	}
 
 	void InitTrigger();
-	void SetTriggerTime(ProbabilityDistribution* _time);
 	void SetTriggerTime(long _seconds);
-	void SetTriggerProp(ProbabilityDistribution* _prop);
 	void SetTriggerProp(double _prop);
-	double GetTriggerTimeValue(){ return m_time->getRandomValue(); }
-	double GetTriggerPropValue(){ return m_prop->getRandomValue(); }
+	double GetTriggerTimeValue(){ return m_time.getConstant(); }
+	double GetTriggerPropValue(){ return m_prop.getConstant(); }
+	CString GetTriggerTimeStr(){ return "";}//m_time.screenPrint(); }
+	CString GetTriggerPropStr(){ return ""; }
 	void writeTrigger(ArctermFile& p_file);
 	void readTrigger(ArctermFile& p_file);
 };
@@ -53,6 +53,7 @@ public:
 	void readTriggerDatabase( ArctermFile& p_file, int triggerCount);
 	void writeTriggerDatabase( ArctermFile& p_file);
 private:
+	void AddRegularTrigger(long _seconds, double _prop);
 	void AddResidualTrigger();
 };
 

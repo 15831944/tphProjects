@@ -9,6 +9,8 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
+#include "Common\ProbDistEntry.h"
+#include "Common\ProbDistManager.h"
 static char THIS_FILE[] = __FILE__;
 #endif
 
@@ -337,42 +339,39 @@ void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger>* vTrigger
 		HTREEITEM hTrigger = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTriggerAll);
 		TreeNodeDataWithType* nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER;
-		nodeDataTrigger->m_data = (DWORD)triggerIndex;
+		nodeDataTrigger->m_data = (DWORD)&vTriggers->at(triggerIndex);
 		m_tree.SetItemData(hTrigger, (DWORD)nodeDataTrigger);
 		BoardingCallTrigger* trigger = &vTriggers->at(triggerIndex);
 		CString strTime, strProp;
 		// Add time.
-		int seconds = (int)trigger->GetTriggerTimeValue();
-		strTime.Format("Time range before STD(seconds): %d", seconds);
+		strTime.Format("Time range before STD(seconds): %s", trigger->GetTriggerTimeStr());
 		nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER_TIME;
-		nodeDataTrigger->m_data = (DWORD)seconds;
-		cni.net = NET_EDIT_WITH_VALUE;
+		nodeDataTrigger->m_data = (DWORD)trigger->GetTriggerTimeValue();
+		cni.net = NET_COMBOBOX;
 		HTREEITEM hTriggerTime = m_tree.InsertItem(strTime, cni, FALSE, FALSE, hTrigger);
 		m_tree.SetItemData(hTriggerTime, (DWORD)nodeDataTrigger);
-		// Add proportion.
-
+		
+		// Add proportion, the last one is 'residual', so don't show its proportion.
 		if(triggerIndex != triggerCount-1)
 		{
 			// user define trigger.
-			double prop = trigger->GetTriggerPropValue();
-			strProp.Format("Proportion of Pax: %.2f", prop);
+			strProp.Format("Proportion of Pax: %s", trigger->GetTriggerPropStr());
 			nodeDataTrigger = new TreeNodeDataWithType();
 			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
-			nodeDataTrigger->m_data = (DWORD)prop;
-			cni.net = NET_EDITSPIN_WITH_VALUE;
+			nodeDataTrigger->m_data = (DWORD)trigger->GetTriggerPropValue();
+			cni.net = NET_COMBOBOX;
 			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
 		}
 		else
 		{
 			// the 'residual' trigger.
-			double prop = trigger->GetTriggerPropValue();
-			cni.net = NET_NORMAL;
 			strProp = "Proportion of Pax: Residual";
 			nodeDataTrigger = new TreeNodeDataWithType();
 			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
-			nodeDataTrigger->m_data = (DWORD)prop;
+			nodeDataTrigger->m_data = (DWORD)-1;
+			cni.net = NET_NORMAL;
 			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
 		}
@@ -948,16 +947,114 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 	int index;
 	if(message==UM_CEW_COMBOBOX_BEGIN)	
 	{
-		CWnd* pWnd=m_tree.GetEditWnd((HTREEITEM)wParam);
+		HTREEITEM hSelItem = (HTREEITEM)wParam;
+		CWnd* pWnd=m_tree.GetEditWnd(hSelItem);
 		CComboBox* pCB=(CComboBox*)pWnd;
-		if(pCB->GetCount()==0)
+		pCB->ResetContent();
+		pCB->SetDroppedWidth(250);
+		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pDataWithType);
+		switch(pDataWithType->m_type)
 		{
-		}			
+		case TREE_NODE_TRIGGER_TIME:
+		case TREE_NODE_TRIGGER_PROP:
+			{
+
+				//			HTREEITEM hparent = m_tree.GetParentItem(hSelItem);
+				// 			TreeNodeDataWithType* pPareData = (TreeNodeDataWithType*)m_tree.GetItemData(hparent);
+				// 			ASSERT(pPareData->m_type == TREE_NODE_TRIGGER_ALL);
+				pCB->AddString( "NEW PROBABILITY DISTRIBUTION" );
+				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
+				int nCount = static_cast<int>(pProbDistMan->getCount());
+				for( int m=0; m<nCount; m++ )
+				{
+					CProbDistEntry* pPBEntry = pProbDistMan->getItem( m );
+					pCB->AddString( pPBEntry->m_csName );
+				}
+				// 			int nIndex = 0;
+				// 			if ((nIndex=pCB->FindString(nIndex, GetDistName())) != CB_ERR)
+				// 			{
+				// 				pCB->SetCurSel( nIndex );
+				// 			}
+			}
+			break;
+		default:
+			break;
+		}
 	}
 	if(message==UM_CEW_COMBOBOX_SELCHANGE)
 	{
 		HTREEITEM hSelItem=(HTREEITEM)wParam;
+		CWnd* pWnd=m_tree.GetEditWnd(hSelItem);
+		CComboBox* pCB=(CComboBox*)pWnd;
+
 		int nIndexSeled=m_tree.GetCmbBoxCurSel(hSelItem);
+		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pDataWithType);
+		switch(pDataWithType->m_type)
+		{
+		case TREE_NODE_TRIGGER_TIME:
+			{
+				int nIndex = pCB->GetCurSel();
+				CString strSel;
+
+				int LBTextLen = pCB->GetLBTextLen(nIndex);
+				pCB->GetLBText(nIndex, strSel.GetBuffer(LBTextLen));
+				strSel.ReleaseBuffer();
+				ProbabilityDistribution* pProbDist = NULL;
+				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
+				if( strcmp( strSel, "NEW PROBABILITY DISTRIBUTION" ) == 0 )
+				{
+					return 0;
+// 					CProbDistEntry* pPDEntry = (*m_pSelectProbDistEntry)(NULL, m_pInputAirside);
+// 					if(pPDEntry == NULL)
+// 						return 0;
+// 					pProbDist = pPDEntry->m_pProbDist;
+// 					ASSERT(pProbDist);
+// 					CString strDistName = pPDEntry->m_csName;
+// 					//if(strDistName == pTimeRangeItem->GetDistName())
+// 					//	return 0;
+// 					pVehiclePoolItem->SetDistName(strDistName);
+// 					char szBuffer[1024] = {0};
+// 					pProbDist->screenPrint(szBuffer);
+// 					pVehiclePoolItem->SetDistScreenPrint(szBuffer);
+// 					pVehiclePoolItem->SetProbTypes((ProbTypes)pProbDist->getProbabilityType());
+// 					pProbDist->printDistribution(szBuffer);
+// 					pVehiclePoolItem->SetPrintDist(szBuffer);
+// 					int nIndex = 0;
+// 					if ((nIndex=pCB->FindString(nIndex,strDistName)) != CB_ERR)
+// 						pCB->SetCurSel(nIndex);	
+// 					else
+// 					{
+// 						nIndex = pCB->AddString(strDistName);
+// 						pCB->SetCurSel(nIndex);
+// 					}
+				}
+				else
+				{
+					CProbDistEntry* pPDEntry = NULL;
+					int nCount = pProbDistMan->getCount();
+					for( int i=0; i<nCount; i++ )
+					{
+						pPDEntry = pProbDistMan->getItem( i );
+						if( strcmp( pPDEntry->m_csName, strSel ) == 0 )
+							break;
+					}
+					ASSERT(i<nCount);
+					pProbDist = pPDEntry->m_pProbDist;
+					ASSERT(pProbDist);
+					HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+					TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+					ASSERT(pDataWithType->m_type == TREE_NODE_TRIGGER);
+					BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pDataWithType->m_data;
+					pTrigger->SetTriggerTime(pProbDist->getRandomValue());
+					//m_tree.SelectItem(hPareItem);
+				}
+			}
+		case TREE_NODE_TRIGGER_PROP:
+		default:
+			break;
+		}
 		m_btnSave.EnableWindow(TRUE);
 	}
 	if(message==UM_CEW_SHOWMENU_READY)
@@ -975,12 +1072,6 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		switch(pDataWithType->m_type)
 		{
 		case TREE_NODE_TRIGGER_ALL:
-			m_tree.SetItemValueRange(hSelItem, 1, 100);
-			break;
-		case TREE_NODE_TRIGGER_TIME:
-			m_tree.SetItemValueRange(hSelItem, 0, 864000);
-			break;
-		case TREE_NODE_TRIGGER_PROP:
 			m_tree.SetItemValueRange(hSelItem, 1, 100);
 			break;
 		default:
@@ -1012,40 +1103,6 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 				pPaxEntry->SetTriggerCount(userSetCount);
 				ReloadTriggers(pVecTrigger, hSelItem);
 				m_tree.Expand(hSelItem, TVE_EXPAND);
-				m_btnSave.EnableWindow(TRUE);
-			}
-			break;
-		case TREE_NODE_TRIGGER_TIME:
-			{
-				int userSetTime = atoi(strValue.GetBuffer());
-				strItemText.Format("Time range before STD(s): %d", userSetTime);
-				HTREEITEM hTriggerItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hTriggerItem);
-				ASSERT(pTriggerData && pTriggerData->m_type == TREE_NODE_TRIGGER);
-				HTREEITEM hPaxTypeItem = m_tree.GetParentItem(m_tree.GetParentItem(hTriggerItem));
-				TreeNodeDataWithType* pPaxTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
-				ASSERT(pPaxTypeData && pPaxTypeData->m_type == TREE_NODE_PASSENGER_TYPE);
-				BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeData->m_data;
-
-				int triggerIndex = (int)pTriggerData->m_data;
-				pPaxTypeEntry->SetTriggerTime(triggerIndex, userSetTime);
-				m_btnSave.EnableWindow(TRUE);
-			}
-			break;
-		case TREE_NODE_TRIGGER_PROP:
-			{
-				double userSetProp = atof(strValue.GetBuffer());
-				strItemText.Format("Proportion of Pax: %.2f", userSetProp);
-				HTREEITEM hTriggerItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pTriggerData = (TreeNodeDataWithType*)m_tree.GetItemData(hTriggerItem);
-				ASSERT(pTriggerData && pTriggerData->m_type == TREE_NODE_TRIGGER);
-				HTREEITEM hPaxTypeItem = m_tree.GetParentItem(m_tree.GetParentItem(hTriggerItem));
-				TreeNodeDataWithType* pPaxTypeData = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
-				ASSERT(pPaxTypeData && pPaxTypeData->m_type == TREE_NODE_PASSENGER_TYPE);
-				BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeData->m_data;
-
-				int triggerIndex = (int)pTriggerData->m_data;
-				pPaxTypeEntry->SetTriggerProportion(triggerIndex, userSetProp);
 				m_btnSave.EnableWindow(TRUE);
 			}
 			break;

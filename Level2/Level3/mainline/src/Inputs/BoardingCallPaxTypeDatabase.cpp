@@ -15,18 +15,9 @@ BoardingCallPaxTypeEntry::~BoardingCallPaxTypeEntry(void)
 // initialize triggers
 void BoardingCallPaxTypeEntry::InitTriggerDatabase()
 {
-	BoardingCallTrigger trigger;
-	m_vTriggers.push_back(trigger);
-	trigger.SetTriggerTime(-1200L);
-	trigger.SetTriggerProp(20);
-	m_vTriggers.push_back(trigger);
-	trigger.SetTriggerTime(-1000L);
-	trigger.SetTriggerProp(70);
-	m_vTriggers.push_back(trigger);
-	trigger.SetTriggerTime(-600L);
-	trigger.SetTriggerProp(10);
-	m_vTriggers.push_back(trigger);
-
+	AddRegularTrigger(-1200L, 20);
+	AddRegularTrigger(-1000L, 70);
+	AddRegularTrigger(-600L, 10);
 	AddResidualTrigger();
 }
 
@@ -109,77 +100,67 @@ void BoardingCallPaxTypeEntry::writeTriggerDatabase( ArctermFile& p_file)
 
 void BoardingCallPaxTypeEntry::AddResidualTrigger()
 {
+	AddRegularTrigger(-500L, -1);/* The 'RESIDUAL' trigger. */
+}
+
+void BoardingCallPaxTypeEntry::AddRegularTrigger( long _seconds, double _prop )
+{
 	BoardingCallTrigger trigger;
-	trigger.SetTriggerTime(-500L);
-	trigger.SetTriggerProp(-1);
-	m_vTriggers.push_back(trigger);/* The 'RESIDUAL' trigger. */
+	trigger.SetTriggerTime(_seconds);
+	trigger.SetTriggerProp(_prop);
+	m_vTriggers.push_back(trigger);
 }
 
 BoardingCallPaxTypeDatabase::BoardingCallPaxTypeDatabase()
 {
 }
 
-BoardingCallTrigger::BoardingCallTrigger(ProbabilityDistribution* _time, ProbabilityDistribution* _prop)
+BoardingCallTrigger::BoardingCallTrigger(long _seconds, double _prop)
 {
-	m_time = _time;
-	m_prop = _prop;
+	m_time.init(_seconds);
+	m_prop.init(_prop);
 }
 
 void BoardingCallTrigger::InitTrigger()
 {
-	if(m_time)
-	{
-		delete m_time;
-	}
-	m_time = new ConstantDistribution;
-	((ConstantDistribution*)m_time)->init(0);
-
-	if(m_prop)
-	{
-		delete m_prop;
-	}
-	m_prop = new ConstantDistribution;
-	((ConstantDistribution*)m_time)->init(0);
+	m_time.init(0);
+	m_prop.init(0);
 }
 
 BoardingCallTrigger::~BoardingCallTrigger()
 {
-	if(m_time)
-	{
-		delete m_time;
-		m_time = NULL;
-	}
-	if(m_prop)
-	{
-		delete m_prop;
-		m_prop = NULL;
-	}
 }
 
-void BoardingCallTrigger::SetTriggerTime(ProbabilityDistribution* _time)
+void BoardingCallTrigger::SetTriggerTime(long _seconds)
 {
-	if(m_time)
-		delete m_time;
-	m_time = ProbabilityDistribution::CopyProbDistribution(_time);
+	m_time.init(_seconds);
 }
 
-void BoardingCallTrigger::SetTriggerProp( ProbabilityDistribution* _prop )
+void BoardingCallTrigger::SetTriggerProp(double _prop)
 {
-	if(m_prop)
-		delete m_prop;
-	m_prop = ProbabilityDistribution::CopyProbDistribution(_prop);
+	m_prop.init(_prop);
 }
 
 void BoardingCallTrigger::writeTrigger(ArctermFile& p_file)
 {
-	m_time->writeDistribution(p_file);
-	m_prop->writeDistribution(p_file);
+	m_time.writeDistribution(p_file);
+	m_prop.writeDistribution(p_file);
 }
 
 void BoardingCallTrigger::readTrigger(ArctermFile& p_file)
 {
-	m_time = GetProbDistribution(p_file);
-	m_prop = GetProbDistribution(p_file);
+ 	ProbabilityDistribution* pPD = GetProbDistribution(p_file);
+	if(pPD->getProbabilityType() == CONSTANT)
+	{
+		m_time.setConstant(((ConstantDistribution*)pPD)->getConstant());
+		delete pPD;
+	}
+	pPD = GetProbDistribution(p_file);
+	if(pPD->getProbabilityType() == CONSTANT)
+	{
+		m_prop.setConstant(((ConstantDistribution*)pPD)->getConstant());
+		delete pPD;
+	}
 }
 
 
