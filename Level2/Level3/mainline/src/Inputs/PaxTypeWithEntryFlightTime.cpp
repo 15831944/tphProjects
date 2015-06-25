@@ -26,7 +26,7 @@ void PaxTypeWithEntryFlightTime::write( ArctermFile& p_file )
 ElapsedTime PaxTypeWithEntryFlightTime::getTime()
 {
 	long seconds = 0;
-	seconds = m_entryFlightTime->getRandomValue();
+	seconds = (long)m_entryFlightTime->getRandomValue();
 	return ElapsedTime(seconds);
 }
 

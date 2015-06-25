@@ -5,7 +5,7 @@
 #include "afxwin.h"
 
 
-class DlgEntryFlightTime : public CDialogEx
+class DlgEntryFlightTime : public CDialog
 {
 	DECLARE_DYNAMIC(DlgEntryFlightTime)
 
@@ -13,7 +13,7 @@ public:
 	DlgEntryFlightTime(InputTerminal* pTerminal, EntryFlightTimeDB* pDB, CWnd* pParent = NULL); 
 	virtual ~DlgEntryFlightTime();
 
-	enum { IDD = IDD_ENTRYFLIGHTTIME };
+	enum { IDD = IDD_DIALOG_ENTRYFLIGHTTIME };
 
 protected:
 	InputTerminal* m_pTerminal;
@@ -27,10 +27,10 @@ protected:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	void ReloadData();
-	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	
+
+	DECLARE_MESSAGE_MAP()
 };

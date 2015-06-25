@@ -6,7 +6,7 @@
 IMPLEMENT_DYNAMIC(DlgEntryFlightTime, CDialogEx)
 
 DlgEntryFlightTime::DlgEntryFlightTime(InputTerminal* pTerminal, EntryFlightTimeDB* pDB, CWnd* pParent /*= NULL*/)
-	: CDialogEx(DlgEntryFlightTime::IDD, pParent),
+	: CDialog(DlgEntryFlightTime::IDD, pParent),
 	m_pEntryFltTimeDB(pDB),
 	m_pTerminal(pTerminal)
 { 
@@ -18,7 +18,7 @@ DlgEntryFlightTime::~DlgEntryFlightTime()
 
 void DlgEntryFlightTime::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX);
+	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDSAVE, m_btnSave);
 	DDX_Control(pDX, IDOK, m_btnOk);
 	DDX_Control(pDX, ID_BUTTON_SAVE, m_btnCancel);
@@ -26,7 +26,7 @@ void DlgEntryFlightTime::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(DlgEntryFlightTime, CDialogEx)
+BEGIN_MESSAGE_MAP(DlgEntryFlightTime, CDialog)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
@@ -34,7 +34,7 @@ END_MESSAGE_MAP()
 
 int DlgEntryFlightTime::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
+	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
 	CRect rect;
@@ -75,7 +75,7 @@ BOOL DlgEntryFlightTime::OnInitDialog()
 
 void DlgEntryFlightTime::OnSize(UINT nType, int cx, int cy)
 {
-	CDialogEx::OnSize(nType, cx, cy);
+	CDialog::OnSize(nType, cx, cy);
 
 	if(m_btnOk.m_hWnd == NULL)
 		return;

@@ -1,6 +1,6 @@
 #pragma once
 #include "con_db.h"
-#include "Common\ProbabilityDistribution.h"
+#include "..\Common\ProbabilityDistribution.h"
 #include "MobileElemConstraintDatabase.h"
 
 class PaxTypeWithEntryFlightTime : public ConstraintEntry
