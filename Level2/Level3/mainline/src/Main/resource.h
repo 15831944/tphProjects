@@ -3319,6 +3319,7 @@
 #define IDC_STATIC_CMPREPORTNAME        2408
 #define IDC_STATIC_CMPREPORTDESCRI      2409
 #define IDC_CMPREPORTNAME               2410
+#define IDC_STATIC_REPORTS              2411
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5455,7 +5456,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1108
 #define _APS_NEXT_COMMAND_VALUE         35334
-#define _APS_NEXT_CONTROL_VALUE         2411
+#define _APS_NEXT_CONTROL_VALUE         2412
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

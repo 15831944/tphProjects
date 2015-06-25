@@ -22,17 +22,7 @@ class CModelSelectionDlg : public CDialog
 		ITEM_SIMRESULT	= 100,
 		ITEM_SIMRESULT_LOAD		= 1000,
 		ITEM_SIMRESULT_UNLOAD    = 10000	
-	};
-
-// Construction
-public:
-	HTREEITEM m_hLocal;
-	HTREEITEM m_hLocalModel1;
-	HTREEITEM m_hLocalModel2;
-	HTREEITEM m_hHostModel1;
-	HTREEITEM m_hHostModel2;
-	HTREEITEM m_hHost;
-	
+	};	
 public:
 	void SaveHostInfo();
 

@@ -130,13 +130,14 @@ int CCmpReportTreeView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CCmpReportTreeView::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
-	// for form view, set tree's image list here is necessary.
+	// CFormView should initialize tree's image list here.
 	if (m_imageList.m_hImageList == NULL)
 	{
 		m_imageList.Create(16,16,ILC_COLOR8|ILC_MASK,0,1);
-		CBitmap bmp;
+		CBitmap bmp, bmp2;
 		bmp.LoadBitmap(IDB_COOLTREE);
 		m_imageList.Add(&bmp,RGB(255,0,255));
+		m_imageList.Replace(TIIT_NORMAL, NULL);
 	}
 	m_propTree.SetImageList(&m_imageList,TVSIL_NORMAL);
 
@@ -282,9 +283,14 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 	{
 		CString strName = m_pCmpReport->GetComparativeProject()->GetName();
 		if(strName.IsEmpty())
+		{
 			strItemText = "Name";
+		}
 		else
-			strItemText.Format("Name: %s", m_pCmpReport->GetComparativeProject()->GetName());
+		{
+			strName.MakeUpper();
+			strItemText.Format("Name: %s", strName);
+		}
 		m_propTree.SetItemText(hItem, strItemText);
 	}
 	else if(hItem == m_hProjDesc)
@@ -348,11 +354,14 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 		cni.net = NET_SHOW_DIALOGBOX;
 		CReportsManager* pRManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetReportsManagerPtr();
 		std::vector<CReportToCompare>& vReports = pRManager->GetReportsList();
-		for (int i = 0; i < static_cast<int>(vReports.size()); i++)
+		CString strRep = _T("");
+		for(int i = 0; i < static_cast<int>(vReports.size()); i++)
 		{
 			const CReportToCompare& report = vReports.at(i);
 			cni.nt = NT_CHECKBOX;
-			HTREEITEM hItem2 = m_propTree.InsertItem(report.GetName(), cni, FALSE, FALSE, m_hReportRoot);
+			strRep = report.GetName();
+			strRep.MakeUpper();
+			HTREEITEM hItem2 = m_propTree.InsertItem(strRep, cni, FALSE, FALSE, m_hReportRoot);
 			CReportParamToCompare param = report.GetParameter();
 			int iIndex = -1;
 			switch (report.GetCategory())
@@ -422,7 +431,7 @@ void CCmpReportTreeView::UpdateParaItem(HTREEITEM hItem)
 			for (int i=0; i<nModelParamCount; i++)
 			{
 				CModelParameter& modelParam = vModelParam[i];
-				CString strModelName = _T("aaaaaaaaa");/*pModelManager->GetModelsList().at(i)->GetModelName();*/
+				CString strModelName = pModelManager->GetModelsList().at(i)->GetModelName();
 				HTREEITEM hModelItem = m_propTree.InsertItem(strModelName, cni, FALSE, FALSE, hItem2, hInterval);
 
 				if(iIndex == 3)
@@ -595,6 +604,7 @@ void CCmpReportTreeView::DeleteAllModel()
 	{
 		CModelsManager* pModelManager = 
 			m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManagerPtr();
+		MessageBox("TODO: Delete all models.");
 		/*pModelManager->RemoveAllModels();*/
 		UpdateParaItem(m_hModelRoot);
 		UpdateParaItem(m_hReportRoot);
@@ -980,26 +990,27 @@ void CCmpReportTreeView::OnClickMultiBtn()
 
 void CCmpReportTreeView::SavePara()
 {
-// 	GetParaFromGUI(GetReportParameter());
-// 
-// 	CFileDialog savedlg(FALSE,".par",NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-// 		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
-// 	if(savedlg.DoModal() == IDOK)
-// 	{
-// 		CString strFileName = savedlg.GetPathName();
+	CFileDialog savedlg(FALSE,".par",NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
+	if(savedlg.DoModal() == IDOK)
+	{
+		CString strFileName = savedlg.GetPathName();
+		MessageBox("TODO: Save Parameters.");
 // 		CReportParameter* pReportPara = GetReportPara();	
 // 		assert(pReportPara);
 // 		pReportPara->SaveReportParaToFile(strFileName);
-// 	}
+	}
 }
 
 void CCmpReportTreeView::LoadPara()
 {	
-// 	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-// 		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
-// 	if(loaddlg.DoModal() == IDOK)
-// 	{
-// 		CString strFileName = loaddlg.GetPathName();
+	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		"Report Parameter(*.par)|*.par||",this, 0, FALSE);
+	if(loaddlg.DoModal() == IDOK)
+	{
+ 		CString strFileName = loaddlg.GetPathName();
+		MessageBox("TODO: Load Parameters.");
+	}
 // 		CReportParameter* pPara = NULL;
 // 		try
 // 		{
@@ -1034,26 +1045,27 @@ void CCmpReportTreeView::SaveReport()
 // 		return;
 // 	}
 // 
-// 	CString strExten	= getExtensionString();
-// 	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
-// 	CFileDialog savedlg(FALSE,strExten,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,strFilter,this, 0 ,FALSE);
-// 	if(savedlg.DoModal() == IDOK)
-// 	{
+ 	CString strExten	= "rep";/*getExtensionString();*/
+ 	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
+	CFileDialog savedlg(FALSE,strExten,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,strFilter,this, 0 ,FALSE);
+	if(savedlg.DoModal() == IDOK)
+	{
+		MessageBox("TODO: Save Report.");
 // 		CString strFileName = savedlg.GetPathName();
 // 		CopyFile(m_strCurReportFile, strFileName, FALSE);
-// 	}
-
+ 	}
 }
 
 void CCmpReportTreeView::LoadReport()
 {
-// 	CString strExten	= getExtensionString();
-// 	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
-// 	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter,this, 0, FALSE);
+	CString strExten	= "rep";/*getExtensionString();*/
+	CString strFilter	= "Report File(*." + strExten + ")|*." + strExten + "|All Type(*.*)|*.*||";
+	CFileDialog loaddlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, strFilter,this, 0, FALSE);
 // 
-// 	if(loaddlg.DoModal() == IDOK)
-// 	{
-// 		CString strFileName = loaddlg.GetPathName();
+	if(loaddlg.DoModal() == IDOK)
+	{
+ 		CString strFileName = loaddlg.GetPathName();
+		MessageBox("TODO: LoadReport");
 // 		if(!CheckReportFileFormat(strFileName))
 // 		{
 // 			AfxMessageBox("The report file format is error. Can not load the report!",MB_OK|MB_ICONINFORMATION);
@@ -1067,5 +1079,5 @@ void CCmpReportTreeView::LoadReport()
 // 
 // 		m_bCanToSave = true;
 // 		m_strCurReportFile = strFileName;
-// 	}
+	}
 }

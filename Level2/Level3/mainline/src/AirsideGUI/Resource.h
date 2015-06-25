@@ -66,6 +66,7 @@
 #define IDS_STAND_PRIORITY              54
 #define IDS_TIME_BEFORE_ENPLANEMENT     55
 #define IDS_BACKTO_ARR_STAND            56
+#define IDS_AIRSERVICETIME				57
 #define IDR_MAINFRAME                   128
 #define IDR_PRIORITY_ASSIGNMENT         397
 #define IDB_COOLTREE                    532

@@ -25,7 +25,6 @@ void CCmpReportGraphView::DoDataExchange(CDataExchange* pDX)
 	CFormView::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_CHART_TYPE_COMBO, m_comboChartType);
 	DDX_Control(pDX, IDC_REPORT_LIST_COMBO, m_comboReportList);
-	DDX_Control(pDX, IDC_STATIC_TOOLBARCONTENTER, m_toolbarContainer);
 }
 
 BEGIN_MESSAGE_MAP(CCmpReportGraphView, CFormView)
@@ -40,7 +39,8 @@ END_MESSAGE_MAP()
 void CCmpReportGraphView::OnInitialUpdate()
 {
 	CFormView::OnInitialUpdate();
-	InitToolbar();
+	m_ToolBar.MoveWindow(4, 4, 60, 28);
+	m_ToolBar.ShowWindow(SW_SHOW);
 	//*****************Fill Chart Type Combox***********************
 	m_comboChartType.AddString("3D Bar");
 	m_comboChartType.AddString("2D Bar(Default)");
@@ -103,12 +103,7 @@ void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)
 	{
 		CRect rcClient;
 		GetClientRect(&rcClient);
-		CRect rcChart;
-		rcChart.right  = rcClient.right - 10;
-		rcChart.left   = rcClient.left+10;
-		rcChart.top    = rcClient.top+50;
-		rcChart.bottom = rcClient.bottom;
-		m_3DChart.m_p3DChart->MoveWindow(rcChart);
+		m_3DChart.m_p3DChart->MoveWindow(0, 34, rcClient.Width(), rcClient.Height()-34);
 	}
 }
 
@@ -165,17 +160,6 @@ void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport)
 			break;
 		}
 	}
-}
-
-void CCmpReportGraphView::InitToolbar()
-{
-	CRect rc;
-	m_toolbarContainer.GetWindowRect( &rc );
-	ScreenToClient(&rc);
-	m_ToolBar.MoveWindow(2, -2, 90, rc.Height());
-	m_toolbarContainer.ShowWindow(SW_HIDE);
-	m_ToolBar.ShowWindow(SW_SHOW);
-
 }
 
 void CCmpReportGraphView::OnSelColorBtn() 

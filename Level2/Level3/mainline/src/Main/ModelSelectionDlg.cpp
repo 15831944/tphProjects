@@ -66,7 +66,7 @@ BOOL CModelSelectionDlg::OnInitDialog()
 	InitToolBar();
 	
 	//Disable EnableStatus effect
-	m_cooltree.EnableMutiTree();
+/*	m_cooltree.EnableMutiTree();*/
 	InitTree();
 
 	
@@ -245,7 +245,7 @@ int CModelSelectionDlg::GetSelectionModelsFromTree()
 
 	for (HTREEITEM hItem = m_cooltree.GetRootItem(); hItem != NULL; hItem = m_cooltree.GetNextSiblingItem(hItem))
 	{
-		if (m_cooltree.ItemHasChildren(hItem))
+		if (m_cooltree.ItemHasChildren(hItem) && m_cooltree.IsCheckItem(hItem))
 		{
 			for (HTREEITEM hItemChild = m_cooltree.GetChildItem(hItem); hItemChild != NULL; 
 				hItemChild = m_cooltree.GetNextSiblingItem(hItemChild))
@@ -394,7 +394,8 @@ void CModelSelectionDlg::InitSelectedNodes()
 	for (int i = 0; i < static_cast<int>(vModels.size()); i++)
 	{
 		BOOL bFound = FALSE;
-
+		CString str = vModels[i]->GetModelName();
+		str.MakeUpper();
 		for (HTREEITEM hItem = m_cooltree.GetRootItem(); hItem != NULL; hItem = m_cooltree.GetNextSiblingItem(hItem))
 		{
 			if (m_cooltree.ItemHasChildren(hItem))
@@ -404,8 +405,6 @@ void CModelSelectionDlg::InitSelectedNodes()
 				{
 					CString strModuleName = m_cooltree.GetItemText(hItemChild);
 					strModuleName.MakeUpper();
-					CString str = vModels[i]->GetModelName();
-					str.MakeUpper();
 					if ((m_cooltree.GetItemText(hItem) == GetHostName(vModels[i]->GetModelLocation())) &&
 						(strModuleName == str))
 					{

@@ -3,7 +3,12 @@
 #include "CompareReportDoc.h"
 #include ".\compare\ComparativeList.h"
 
-#define  IDC_CMPREPORT_LISTCTRL 0x01
+#define IDC_CMPREPORT_LISTCTRL 0x01
+#define MENU_MAXIMIZE					0x101
+#define MENU_NORMAL					0x102
+#define MENU_PRINT					0x103
+#define MENU_EXPORT					0x104
+#define MENU_UNAVAILABLE		0x200
 
 IMPLEMENT_DYNCREATE(CCmpReportListView, CFormView)
 
@@ -26,6 +31,8 @@ void CCmpReportListView::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CCmpReportListView, CFormView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
+	ON_WM_CONTEXTMENU()
+	ON_COMMAND_RANGE(MENU_MAXIMIZE, MENU_UNAVAILABLE, OnChooseMenu)
 END_MESSAGE_MAP()
 
 #ifdef _DEBUG
@@ -99,4 +106,42 @@ int CCmpReportListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 
 	return 0;
+}
+
+void CCmpReportListView::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	CPoint pt = point;
+	CMenu menu;
+	menu.CreatePopupMenu();
+	menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_MAXIMIZE, _T("Maximize"));
+	menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_NORMAL, _T("Normal"));
+	menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_PRINT, _T("Print"));
+	menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EXPORT, _T("Export"));
+	menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+	return;
+}
+
+void CCmpReportListView::OnChooseMenu( UINT nID )
+{
+	if(nID == MENU_UNAVAILABLE)
+		return;
+	switch(nID)
+	{
+	case MENU_MAXIMIZE:
+		MessageBox("TODO: Maximize.");
+		break;
+	case MENU_NORMAL:
+		MessageBox("TODO: Normal.");
+		break;
+	case MENU_PRINT:
+		MessageBox("TODO: Print.");
+		break;
+	case MENU_EXPORT:
+		MessageBox("TODO: Export.");
+		break;
+	default:
+		break;
+	}
+	return;
+
 }

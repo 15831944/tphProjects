@@ -32,6 +32,8 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 protected:
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnChooseMenu(UINT nID);
 public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 protected:

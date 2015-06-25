@@ -21,7 +21,6 @@ public:
 public:
 	CARC3DChart	m_3DChart;
 	CToolBar	m_ToolBar;
-	CStatic		m_toolbarContainer;
 	CComboBox	m_comboChartType;
 	CComboBox	m_comboReportList;
 public:
@@ -41,7 +40,6 @@ public:
 	afx_msg void OnPrintBtn();
 private:
 	void Draw3DChartByReportName(CString &reportSelected);
-	void InitToolbar();
 public:
 	afx_msg void OnCbnSelchangeChartTypeCombo();
 };

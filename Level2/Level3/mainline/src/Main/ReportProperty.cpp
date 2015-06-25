@@ -162,7 +162,7 @@ BOOL CReportProperty::CheckParameter()
 	std::vector<CModelToCompare *> vModels = m_pModelsManager->GetModelsList();
 	CReportParamToCompare pReportParam = m_reportToCompare.GetParameter();
 	std::vector<CModelParameter> vModelParam;
-	pReportParam.GetModelParameter(vModelParam);
+	pReportParam.GetModelParameter( vModelParam);
 	std::vector<CModelToCompare *>::size_type i = 0;
 	for (;i<vModels.size(); ++ i)
 	{

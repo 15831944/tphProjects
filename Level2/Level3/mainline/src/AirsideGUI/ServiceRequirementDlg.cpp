@@ -182,12 +182,19 @@ void CServiceRequirementDlg::InitListCtrl(void)
 	lvc.fmt = LVCFMT_EDIT;
 	m_ListFltTypeServiceRequirement.InsertColumn(1, &lvc);
 
-	strCaption.LoadString(IDS_SERVICETIME);
+	strCaption.LoadString(IDS_AIRSERVICETIME);
 	lvc.pszText = (LPSTR)(LPCTSTR)strCaption;
 	lvc.cx = 130;
 	lvc.fmt = LVCFMT_DROPDOWN;
 	lvc.csList = &m_ServiceTimeList;
 	m_ListFltTypeServiceRequirement.InsertColumn(2, &lvc);
+
+	strCaption.LoadString(IDS_SERVICETIME);
+	lvc.pszText = (LPSTR)(LPCTSTR)strCaption;
+	lvc.cx = 130;
+	lvc.fmt = LVCFMT_DROPDOWN;
+	lvc.csList = &m_ServiceTimeList;
+	m_ListFltTypeServiceRequirement.InsertColumn(3, &lvc);
 
 	//condition
 	strCaption.LoadString(IDS_CONDITION);
@@ -195,7 +202,7 @@ void CServiceRequirementDlg::InitListCtrl(void)
 	lvc.cx = 130;
 	lvc.fmt = LVCFMT_DROPDOWN;
 	lvc.csList = &m_ConditionNameList;
-	m_ListFltTypeServiceRequirement.InsertColumn(3, &lvc);
+	m_ListFltTypeServiceRequirement.InsertColumn(4, &lvc);
 }
 
 //if is new item set bIsNewItem true,else set false
@@ -254,15 +261,21 @@ void CServiceRequirementDlg::SetListContent(bool bIsNewItem)
 					}
 					else
 					{
-						m_pFlightServicingRequirement->SetDefaultValue(pServicingRequirement, pVehiSepcItem);
+						//m_pFlightServicingRequirement->SetDefaultValue(pServicingRequirement, pVehiSepcItem);
+						if(pServicingRequirement->GetConditionType() == enumVehicleTypeCondition_DurationOfCarts)
+							pServicingRequirement->SetConditionType(enumVehicleTypeCondition_Per10Bags);
 						strCondition = VehicleConditionName[pServicingRequirement->GetConditionType()];
 					}
 				}
 				
 				m_ListFltTypeServiceRequirement.SetItemText(i, 1, strNum);
 				m_ListFltTypeServiceRequirement.SetItemText(i, 2, pServicingRequirement->GetDistScreenPrint());
-
-				m_ListFltTypeServiceRequirement.SetItemText(i, 3, strCondition);
+				if(strVehiclename == "BAGGAGE TUG"|| strVehiclename == "PAX BUS A"||strVehiclename == "PAX BUS B"||strVehiclename == "PAX BUS C")
+					m_ListFltTypeServiceRequirement.SetItemText(i, 3, pServicingRequirement->GetSubDistScreenPrint());
+// 				else
+// 					m_ListFltTypeServiceRequirement.SetItemState(i,LVCFMT_NOEDIT,LVCFMT_NOEDIT);
+				m_ListFltTypeServiceRequirement.SetItemText(i, 4, strCondition);
+				
 
 				break;
 			}			
@@ -648,8 +661,77 @@ LRESULT CServiceRequirementDlg::OnMsgComboChange(WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
-	//condition
 	case 3:
+		{
+			ProbabilityDistribution* pProbDist = NULL;
+			CProbDistManager* pProbDistMan = m_pInputAirside->m_pAirportDB->getProbDistMan();
+
+			//if select the first item
+			if( nComboxSel == 0 )
+			{
+				CProbDistEntry* pPDEntry = NULL;
+				pPDEntry = (*m_pSelectProbDistEntry)(NULL, m_pInputAirside);
+				if(pPDEntry == NULL)
+					return 0;
+				pProbDist = pPDEntry->m_pProbDist;
+				assert( pProbDist );
+
+				CString strDistName = pPDEntry->m_csName;
+				//if(strDistName == m_strDistName)
+				//	return;
+
+				//m_strDistName = strDistName;
+				char szBuffer[1024] = {0};
+				pProbDist->screenPrint(szBuffer);
+				m_pServicingRequirement->SetSubDistScreenPrint(szBuffer);
+				m_pServicingRequirement->SetSubProbTypes((ProbTypes)pProbDist->getProbabilityType());
+				pProbDist->printDistribution(szBuffer);
+				m_pServicingRequirement->SetSubPrintDist(szBuffer);
+
+				//m_strDistScreenPrint = szBuffer;
+				//----------------
+				//int nIndex = 0;
+				//if ((nIndex=m_ComBoDistribution.FindString(nIndex, m_strDistName)) != CB_ERR)
+				//	m_ComBoDistribution.SetCurSel( nIndex );	
+				//else
+				//{
+				//	nIndex = m_ComBoDistribution.AddString(m_strDistName);
+				//	m_ComBoDistribution.SetCurSel(nIndex);
+				//}
+				InitServiceTimeList();
+
+				m_ListFltTypeServiceRequirement.SetItemText(plvItem->iItem, plvItem->iSubItem, strDistName);
+				m_pServicingRequirement->SetSubServiceTime(strDistName);
+
+			}
+			else
+			{
+				map<int, CString>::const_iterator iter = m_ServiceTimeMap.find(nComboxSel);
+				CString strServiceTime = iter->second;
+				m_pServicingRequirement->SetSubServiceTime(strServiceTime);
+
+				CProbDistEntry* pPDEntry = NULL;
+				int nCount = pProbDistMan->getCount();
+				for( int i=0; i<nCount; i++ )
+				{
+					pPDEntry = pProbDistMan->getItem( i );
+					if( strcmp( pPDEntry->m_csName, strServiceTime ) == 0 )
+						break;
+				}
+				//assert( i < nCount );
+				pProbDist = pPDEntry->m_pProbDist;
+				assert( pProbDist );
+				char szBuffer[1024] = {0};
+				pProbDist->screenPrint(szBuffer);
+				m_pServicingRequirement->SetSubDistScreenPrint(szBuffer);
+				m_pServicingRequirement->SetSubProbTypes((ProbTypes)pProbDist->getProbabilityType());
+				pProbDist->printDistribution(szBuffer);
+				m_pServicingRequirement->SetSubPrintDist(szBuffer);
+			}
+		}
+		break;
+	//condition
+	case 4:
 		{
 			enumVehicleTypeCondition nConditionType = enumVehicleTypeCondition_Per100Liters;
 			if (nComboxSel >= enumVehicleTypeCondition_Per100Liters && nComboxSel < enumVehicleTypeCondition_Count)
