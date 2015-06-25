@@ -209,8 +209,8 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
  					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
  				}
 
-// 				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )// In this flight , the last call does not exist
-// 				{
+				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )// In this flight , the last call does not exist
+ 				{
 					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetFlightTypeDB(iStage -1);
 					int ifltTypeCount = pFltTypeDB->getCount();
 					for(int iFlt=0; iFlt<ifltTypeCount; iFlt++)
@@ -262,7 +262,7 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 							}
 						}
 					}
-/*				}*/
+				}
 			}
 		}
 	}

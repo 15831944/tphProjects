@@ -13,9 +13,8 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
-
 static char THIS_FILE[] = __FILE__;
-#endif
+#endif // _DEBUG
 
 static const UINT MENU_ADD_STAGE = 200;
 static const UINT MENU_ADD_FLIGHTTYPE = 201;
@@ -211,7 +210,7 @@ void CBoardingCallDlg::ReloadRoot()
 	for(int i=0; i<stageCount; i++)
 	{
 		CString strItemText;
-		strItemText.Format("Stage: %d", (i+1));
+		strItemText.Format("Stage %d", (i+1));
 		HTREEITEM hTreeItemStage = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, m_hRoot);
 		TreeNodeDataWithType* nodeDataStage = new TreeNodeDataWithType();
 		nodeDataStage->m_type = TREE_NODE_STAGE;
@@ -232,6 +231,7 @@ void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
+	cni.net = NET_SHOW_DIALOGBOX;
 	int flightCount = pFlightTypeDB->getCount();
 	for(int iFlight=0; iFlight<flightCount; iFlight++)
 	{
@@ -245,7 +245,6 @@ void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB
 		nodeDataFlight->m_type = TREE_NODE_FLIGHT_TYPE;
 		nodeDataFlight->m_data = (DWORD)pFlightEntry;
 		m_tree.SetItemData(hTreeItemFlight, (DWORD)nodeDataFlight);
-
 		ReloadFlightType(pFlightEntry, hTreeItemFlight);
 	}
 }
@@ -258,6 +257,7 @@ void CBoardingCallDlg::ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEnt
 	CString strItemText;
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
+	cni.net = NET_SHOW_DIALOGBOX;
 	int standCount = pStandDB->getCount();
 	for(int iStand=0; iStand<standCount; iStand++)
 	{
@@ -298,6 +298,14 @@ void CBoardingCallDlg::ReloadStand(BoardingCallStandEntry* pStandEntry, HTREEITE
 		CString strPaxType;
 		BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pPaxDB->getItem(iPax);
 		CMobileElemConstraint* pMobElemConst = (CMobileElemConstraint*)(pPaxEntry->getConstraint());
+		if(pMobElemConst->isDefault())
+		{
+			cni.net = NET_NORMAL;
+		}
+		else
+		{
+			cni.net = NET_SHOW_DIALOGBOX;
+		}
 		pMobElemConst->screenPrint(strPaxType);
 		strItemText.Format("Passenger Type: %s", strPaxType);
 		HTREEITEM hTreeItemPax = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemStand);
@@ -422,8 +430,13 @@ void CBoardingCallDlg::OnSelchangedBoardingCallTree(NMHDR* pNMHDR, LRESULT* pRes
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
-			m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
+ 			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pSelData->m_data;
+ 			CMobileElemConstraint* pMobElemConst = (CMobileElemConstraint*)(pPaxEntry->getConstraint());
+ 			if(!pMobElemConst->isDefault())
+ 			{
+				m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_DELETE, TRUE);
+				m_toolbar.GetToolBarCtrl().EnableButton(ID_BOARDING_CALL_EDIT, TRUE);
+			}
 		}
 		break;
 	case TREE_NODE_TRIGGER_ALL:
@@ -730,13 +743,6 @@ void CBoardingCallDlg::OnToolbarButtonDel()
 			ASSERT(pParentData && pParentData->m_type == TREE_NODE_STAND);
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)(pParentData->m_data);
 			BoardingCallPaxTypeDatabase* pPaxTypeDB = pStandEntry->GetPaxTypeDatabase();
-
-			if(pPaxTypeDB->Find(pPaxEntry)!=INT_MAX && pPaxEntry->getConstraint()->isDefault())
-			{
-				MessageBox("Can't delete the DEFAULT Passenger Type.");
-				return;
-			}
-
 			HTREEITEM hPrevSiblingItem = m_tree.GetPrevSiblingItem(hSelItem);
 			HTREEITEM hNextSiblingItem = m_tree.GetNextSiblingItem(hSelItem);
 
@@ -910,13 +916,6 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 			HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
 			TreeNodeDataWithType* pPareData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
 			BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)pPareData->m_data;
-
-			if(pStandEntry->GetPaxTypeDatabase()->Find(pPaxTypeEntry)!=INT_MAX &&
-				pPaxTypeEntry->getConstraint()->isDefault())
-			{
-				MessageBox("Can't change the DEFAULT Passenger Type.");
-				return;
-			}
 			BoardingCallPassengerTypeDlg paxTypeDlg(m_pParentWnd);
 			CMobileElemConstraint mobElemConst = (*(CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
 			paxTypeDlg.InitFltConst(mobElemConst);
@@ -1277,13 +1276,18 @@ void CBoardingCallDlg::OnContextMenu( CWnd* pWnd, CPoint point )
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-			CMenu menu;
-			menu.CreatePopupMenu();
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_PAXTYPE, _T("Edit Passenger Type"));
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_PAXTYPE, _T("Delete Passenger Type"));
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
-			menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
-			menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);		
+			BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pSelData->m_data;
+			CMobileElemConstraint* pMobElemConst = (CMobileElemConstraint*)(pPaxEntry->getConstraint());
+			if(!pMobElemConst->isDefault())
+			{
+				CMenu menu;
+				menu.CreatePopupMenu();
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_EDIT_PAXTYPE, _T("Edit Passenger Type"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_PAXTYPE, _T("Delete Passenger Type"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
+				menu.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
+				menu.TrackPopupMenu(TPM_LEFTALIGN,point.x,point.y,this);
+			}		
 		}
 		break;
 	case TREE_NODE_TRIGGER_ALL:
