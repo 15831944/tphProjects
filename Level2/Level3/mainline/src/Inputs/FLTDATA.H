@@ -39,11 +39,11 @@ public:
 	// remove one stage data
 	void DeleteOneStageByIndex(int _stageIndex);
 	BOOL DeleteOneStageByFlightConstDB(ConstraintDatabase* pFCDB);
-
+	// get stage information 
+	BoardingCallFlightTypeDatabase* GetStageInformation(int stageIndex) const;
     void setFlightDelay (Flight *p_flight) const;
     void setFlightLoadFactor (Flight *p_flight, char p_mode) const;
     int getCapacity (Flight *p_flight) const;
-    const HistogramDistribution *getBoardingCalls (const FlightConstraint &p_type, const ProcessorID& _id, int _nStageNumber ) const;
 
     FlightConstraintDatabase *getDelays (void) { return &delays; }
     FlightConstraintDatabase *getLoads (void) { return &loads; }

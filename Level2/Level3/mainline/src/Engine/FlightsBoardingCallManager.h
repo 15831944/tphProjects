@@ -30,7 +30,6 @@ public:
 
 protected:
 	void LoadDefaultBoardingCalls(const ProcessorList *p_procs, const FlightData *p_data, InputTerminal* _pInTerm);
-
 	void LoadDefaultBoardingCallEventToFltItem(const Flight* pFlight, BoardingCallEvent* pEvent);
 
 	//int GetFlightIndex(const Flight* pFlight); 

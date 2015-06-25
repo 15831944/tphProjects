@@ -318,25 +318,6 @@ int FlightData::getCapacity (Flight *p_flight) const
         return (int)prob->getRandomValue();
 }
 
-const HistogramDistribution *FlightData::getBoardingCalls
-    (const FlightConstraint &p_type,  const ProcessorID& _id, int _nStageNumber ) const
-{
-//     const ProbabilityDistribution *prob = m_vCalls[_nStageNumber-1]->lookup_with_procid (p_type, _id);
-// 	if(prob)
-// 	{
-// 	 
-// 	 if(prob->getProbabilityType() == HISTOGRAM || prob->getProbabilityType() == EMPIRICAL )
-// 	 {
-// 		 return (const HistogramDistribution *)prob;
-// 	 }
-// 	}
-	return NULL;
-	// return ( prob && (prob->getProbabilityType() == HISTOGRAM || prob->getProbabilityType() == EMPIRICAL )) ? (const HistogramDistribution *)prob : NULL;
-
-}
-
-
-
 // go through all the file get the size of boardina call stage size;
 int FlightData::ReadBoardingCallStageCount( ArctermFile& _file )
 {
@@ -447,6 +428,12 @@ BOOL FlightData::DeleteOneStageByFlightConstDB(ConstraintDatabase *pFCDB)
 	}
 	return FALSE;
 }
+
+BoardingCallFlightTypeDatabase* FlightData::GetStageInformation(int stageIndex) const
+{
+	return m_vStages[stageIndex];
+}
+
 // 
 // void FlightData::resortBoardingCallDB()
 // {

@@ -14,13 +14,13 @@ BoardingCallPaxTypeEntry::~BoardingCallPaxTypeEntry(void)
 // initialize triggers
 void BoardingCallPaxTypeEntry::InitTriggerDatabase()
 {
-	BoardingCallTrigger trigger(10000L, 20.0);
+	BoardingCallTrigger trigger(-7200L, 20.0);
 	m_vTriggers.push_back(trigger);
-	trigger.SetTrigger(20000L, 20.0);
+	trigger.SetTrigger(-5400L, 20.0);
 	m_vTriggers.push_back(trigger);
-	trigger.SetTrigger(30000L, 20.0);
+	trigger.SetTrigger(-3600L, 20.0);
 	m_vTriggers.push_back(trigger);
-	trigger.SetTrigger(40000L, -1);/* The 'RESIDUAL' trigger. */
+	trigger.SetTrigger(-1800L, -1);/* The 'RESIDUAL' trigger. */
 	m_vTriggers.push_back(trigger);
 }
 
@@ -110,7 +110,7 @@ BoardingCallPaxTypeDatabase::BoardingCallPaxTypeDatabase()
 
 BoardingCallTrigger::BoardingCallTrigger(long _time, double _prop)
 {
-	m_time = _time;
+	m_time.set(_time);
 	m_proportion = _prop;
 }
 

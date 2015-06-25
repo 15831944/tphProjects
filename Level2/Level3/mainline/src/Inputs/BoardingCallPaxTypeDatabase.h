@@ -11,7 +11,7 @@ protected:
 	double m_proportion;
 public:
 	BoardingCallTrigger(){ m_time = 0L; m_proportion = 0.0; }
-	BoardingCallTrigger(long _time, double _prop);
+	BoardingCallTrigger(long seconds, double _prop);
 	~BoardingCallTrigger(){}
 	int operator==( const BoardingCallTrigger& _entry ) const
 	{

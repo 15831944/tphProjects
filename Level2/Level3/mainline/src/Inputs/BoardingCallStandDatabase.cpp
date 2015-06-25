@@ -77,7 +77,7 @@ void BoardingCallStandDatabase::AddStand( char* strProc, InputTerminal* _pInTerm
 	}
 	else
 	{
-		pStandProcID->setID("All Stand"); /* Set 'Stand group': All Stand */
+		pStandProcID->init(); /* Set 'Stand group': All Stand */
 	}
 	addEntry(*pStandProcID);
 	BoardingCallStandEntry* pStandEntry = (BoardingCallStandEntry*)FindEntry(*pStandProcID);

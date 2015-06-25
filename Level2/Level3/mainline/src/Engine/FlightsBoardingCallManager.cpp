@@ -22,6 +22,7 @@
 #include "../Inputs/SubFlow.h"
 #include "../Common/ARCTracker.h"
 #include <Common/ProbabilityDistribution.h>
+#include "Inputs/BoardingCallFlightTypeDatabase.h"
 
 FlightsBoardingCallManager::FlightsBoardingCallManager(void)
 :m_pFlightSchedule(NULL)
@@ -98,29 +99,30 @@ bool FlightsBoardingCallManager::CheckBoardingCallValid(const Flight* pFlight,co
 
 		if(operaterFlow.IfFits(ProcID)|| IsSubFlowInPaxFlow(operaterFlow,ProcIDList))
 		{
-// 			FlightConWithProcIDDatabase* pProcDB = _pInTerm->flightData->getCalls(pHoldArea->getStageID());
-// 			if (pProcDB == NULL)
-// 				continue;
-// 
-// 			for (int j = 0; j < pProcDB->getCount(); j++)
-// 			{
-// 				const FlightConstraint* pFlightConstraint = pProcDB->getConstraint(j);
-// 				const FlightConstraint& fltCons(*pConstrint);
-// 				if (pFlightConstraint->fits(pFlight->getType('D'))\
-// 					&&pFlightConstraint->fits(fltCons)\
-// 					&& fltCons.fits(pFlight->getType('D')))
-// 				{
-// 					ALTObjectID standID = pFlight->getDepStand();
-// 					if (standID.IsBlank())
-// 					{
-// 						return true;
-// 					}
-// 				}
-// 			}
+ 			const BoardingCallFlightTypeDatabase* pFlightTypeDB = _pInTerm->flightData->GetStageInformation(pHoldArea->getStageID()-1);
+			if (pFlightTypeDB == NULL)
+				continue;
+ 
+			int flightTypeCount = pFlightTypeDB->getCount();
+			for (int j = 0; j < flightTypeCount; j++)
+			{
+				const FlightConstraint* pFlightConstraint = pFlightTypeDB->getConstraint(j);
+				const FlightConstraint& fltCons(*pConstrint);
+				if (pFlightConstraint->fits(pFlight->getType('D'))\
+					&&pFlightConstraint->fits(fltCons)\
+					&& fltCons.fits(pFlight->getType('D')))
+				{
+					ALTObjectID standID = pFlight->getDepStand();
+					if (standID.IsBlank())
+					{
+						return false;
+					}
+				}
+			}
 		}
 	}
 	
-	return false;
+	return true;
 }
 
 bool FlightsBoardingCallManager::GetProcIDInSubFlowList(const ProcessorID& ProcID,std::vector<ProcessorID>& ProIDList,InputTerminal* _pInTerm)
@@ -160,28 +162,28 @@ bool FlightsBoardingCallManager::IsSubFlowInPaxFlow(const CSinglePaxTypeFlow& pS
 	return false;
 }
 
-void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p_procs, const FlightData *p_data, InputTerminal* _pInTerm)
+void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p_procs, const FlightData *_fltData, InputTerminal* _pInTerm)
 {
 
 	if (!p_procs->getProcessorsOfType (GateProc))
 		return;
 
-	//const HistogramDistribution *distribution;
-	CMobileElemConstraint paxType(_pInTerm);
-	Flight *aFlight;
+	CMobileElemConstraint mobElemConst(_pInTerm);
+	Flight *pFlight;
 
-	//float percent;
-	//BoardingCallEvent *event;
+	double percent;
+	BoardingCallEvent *event;
 	ProcessorArray vHoldingAreas;
 
 	_pInTerm->procList->getProcessorsOfType (HoldAreaProc, vHoldingAreas);
 	int iHoldAreaCount = vHoldingAreas.getCount();
-	for (int i = 0; i < m_pFlightSchedule->getCount(); i++)
+	int iFltCount = m_pFlightSchedule->getCount();
+	for (int i = 0; i < iFltCount; i++)
 	{
-		aFlight = m_pFlightSchedule->getItem(i);
-		if (aFlight->isDeparting())
+		pFlight = m_pFlightSchedule->getItem(i);
+		if (pFlight->isDeparting())
 		{
-			ALTObjectID standID = aFlight->getDepStand();
+			ALTObjectID standID = pFlight->getDepStand();
 
 			ProcessorID procID;
 			procID.SetStrDict(_pInTerm->inStrDict);
@@ -189,66 +191,86 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
  			if (procID.isBlank())
 				continue;
 
-			std::map<int,ElapsedTime>&mapLastCalls  = aFlight->GetLastCallOfEveryStage();
+			std::map<int,ElapsedTime>& mapLastCalls  = pFlight->GetLastCallOfEveryStage();
 			mapLastCalls.clear();
-			(FlightConstraint &)paxType = aFlight->getType ('D');
-			ElapsedTime time = aFlight->getDepTime();
+			FlightConstraint& fltConst = pFlight->getType ('D');
+			ElapsedTime fltDepTime = pFlight->getDepTime();
 			for( int k=0; k<iHoldAreaCount; ++k )
 			{
 				HoldingArea* pHoldArea = ( HoldingArea* )vHoldingAreas.getItem( k );
 				int iStage = pHoldArea->getStageID();
 				if( iStage <= 0 )
 					continue;
-//  				if(CheckBoardingCallValid(aFlight,pHoldArea,_pInTerm))
-//  				{
-//  					char buf[128];
-//  					aFlight->getFullID(buf,'D');
-//  					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",time.printTime());
-//  				}
+ 				if(!CheckBoardingCallValid(pFlight, pHoldArea, _pInTerm))
+ 				{
+ 					char buf[128];
+ 					pFlight->getFullID(buf,'D');
+ 					throw new ARCSystemError("Flight (" + CString(buf) + ")  using boarding call must have a departure stand","",fltDepTime.printTime());
+ 				}
 
 				if( mapLastCalls.find( iStage ) == mapLastCalls.end() )//not exist
 				{
-// 					distribution = p_data->getBoardingCalls (paxType, procID, iStage);
-// 					if (!distribution)
-// 						continue;
-// 
-// 					for (int j = 0; j < distribution->getCount(); j++)
-// 					{
-// 						ElapsedTime tempTime = time;	                
-// 						tempTime += (long) distribution->getValue(j);
-// 						percent = (float)((float) (distribution->getProb(j)) / 100.0);
-// 
-// 						if( percent == 1.0 )
-// 						{
-// 							if( pHoldArea->getStageID() == 1 )
-// 							{
-// 								// set time of last call
-// 								aFlight->setLastCall (tempTime);
-// 							}
-// 
-// 							mapLastCalls.insert( std::map<int,ElapsedTime>::value_type( iStage, tempTime ) );														
-// 						}
-// 
-// 
-// 						event = new BoardingCallEvent;
-// 						event->setTime (tempTime);
-// 						event->init (percent, NULL, paxType,iStage );
-// 
-// 						LoadDefaultBoardingCallEventToFltItem(aFlight, event);
-//
-//					}	
+					BoardingCallFlightTypeDatabase* pFltTypeDB = _fltData->GetStageInformation(iStage -1);
+					int ifltTypeCount = pFltTypeDB->getCount();
+					for(int xx=0; xx<ifltTypeCount; xx++)
+					{
+						if(pFltTypeDB->getConstraint(xx)->fits(fltConst))
+						{
+							BoardingCallStandDatabase* pStandDB = ((BoardingCallFlightTypeEntry*)pFltTypeDB->getItem(xx))->GetStandDatabase();
+							int standCount = pStandDB->getCount();
+							for(int yy=0; yy<standCount; yy++)
+							{
+								CString id1, id2;
+								pStandDB->getItem(yy)->getID()->printID(id1.GetBuffer(64));
+								procID.printID(id2.GetBuffer(64));
+								id1.ReleaseBuffer();
+								id2.ReleaseBuffer();
+								if(pStandDB->getItem(yy)->getID()->idFits(procID))
+								{
+									BoardingCallPaxTypeDatabase* pPaxTypeDB = ((BoardingCallStandEntry*)pStandDB->getItem(yy))->GetPaxTypeDatabase();
+									int paxTypeCount = pPaxTypeDB->getCount();
+									for(int zz=0; zz<paxTypeCount; zz++)
+									{
+										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(zz);
+										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
+										std::vector<BoardingCallTrigger>* vTrigger = pPaxTypeEntry->GetTriggersDatabase();
+										int triggerCount = vTrigger->size();
+										ElapsedTime tempTime;
+										double releasedProp = 0.0;
+										for(int aa=0; aa<triggerCount; aa++)
+										{
+											tempTime = fltDepTime + vTrigger->at(aa).GetTriggerTime();
+											
+											if(aa < triggerCount-1)
+											{
+												percent = vTrigger->at(aa).GetTriggerProportion() / (100.0 - releasedProp);
+												releasedProp += vTrigger->at(aa).GetTriggerProportion();
+											}
+											else/* the 'residual' trigger. */
+											{
+												percent = 1.0f;
+												mapLastCalls.insert(std::map<int,ElapsedTime>::value_type(iStage, tempTime));
+											}
+											event = new BoardingCallEvent;
+											event->setTime (tempTime);
+											event->init ((float)percent, NULL, mobElemConst, iStage);
+											
+											LoadDefaultBoardingCallEventToFltItem(pFlight, event);
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 			}
-
 		}
 	}
-
 }
 
 void FlightsBoardingCallManager::LoadDefaultBoardingCallEventToFltItem(const Flight* pFlight, BoardingCallEvent* pEvent)
 {
-	FlightItemBoardingCallMgr* pItem = 
-					GetFlightItemBoardingCallMgr(pFlight);
+	FlightItemBoardingCallMgr* pItem = GetFlightItemBoardingCallMgr(pFlight);
 
 	if(pItem == NULL)
 	{
@@ -301,8 +323,7 @@ void FlightsBoardingCallManager::ScheduleBoardingCallEvents(const Flight* pFligh
 	if(m_pFlightSchedule == NULL)
 		return;
 
-	FlightItemBoardingCallMgr* pItem = 
-		GetFlightItemBoardingCallMgr(pFlight);
+	FlightItemBoardingCallMgr* pItem = GetFlightItemBoardingCallMgr(pFlight);
 	
 	if(pItem == NULL || pItem->IsStarted())
 		return;

@@ -230,11 +230,10 @@ void CBoardingCallDlg::ReloadStage(BoardingCallFlightTypeDatabase* pFlightTypeDB
 	int flightCount = pFlightTypeDB->getCount();
 	for(int iFlight=0; iFlight<flightCount; iFlight++)
 	{
-		CString strFlightType;
 		BoardingCallFlightTypeEntry* pFlightEntry = (BoardingCallFlightTypeEntry*)pFlightTypeDB->getItem(iFlight);
 		FlightConstraint* pFlightConst = (FlightConstraint*)(pFlightEntry->getConstraint());
-		pFlightConst->getFullID(strFlightType.GetBuffer(256));
-		strFlightType.ReleaseBuffer();
+		CString strFlightType;
+		pFlightConst->screenPrint(strFlightType);
 		strItemText.Format("Flight Type: %s", strFlightType);
 		HTREEITEM hTreeItemFlight = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTreeItemStage);
 		TreeNodeDataWithType* nodeDataFlight = new TreeNodeDataWithType();
