@@ -11,6 +11,7 @@
 #undef THIS_FILE
 #include "Common\ProbDistEntry.h"
 #include "Common\ProbDistManager.h"
+#include "DlgProbDist.h"
 static char THIS_FILE[] = __FILE__;
 #endif
 
@@ -310,9 +311,9 @@ void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREE
 	RemoveTreeSubItem(hTreeItemPax);
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
-	std::vector<BoardingCallTrigger>* vTriggers = pPaxEntry->GetTriggersDatabase();
+	std::vector<BoardingCallTrigger*>& vTriggers = pPaxEntry->GetTriggersDatabase();
 
-	int triggerCount = vTriggers->size();
+	int triggerCount = vTriggers.size();
 	cni.net = NET_EDITSPIN_WITH_VALUE;
 	CString strItemText;
 	strItemText.Format("Number of triggers: %d", triggerCount);
@@ -325,41 +326,41 @@ void CBoardingCallDlg::ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREE
 	ReloadTriggers(vTriggers, hTriggerAll);
 }
 
-void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll)
+void CBoardingCallDlg::ReloadTriggers(std::vector<BoardingCallTrigger*>& vTriggers, HTREEITEM hTriggerAll)
 {
 	RemoveTreeSubItem(hTriggerAll);
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 	CString strItemText;
-	int triggerCount = vTriggers->size();
-	for(int triggerIndex=0; triggerIndex<triggerCount; triggerIndex++)
+	int triggerCount = vTriggers.size();
+	for(int iTrigger=0; iTrigger<triggerCount; iTrigger++)
 	{
-		strItemText.Format("Trigger: %d", (triggerIndex+1));
+		strItemText.Format("Trigger: %d", (iTrigger+1));
 		cni.net = NET_NORMAL;
 		HTREEITEM hTrigger = m_tree.InsertItem(strItemText, cni, FALSE, FALSE, hTriggerAll);
 		TreeNodeDataWithType* nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER;
-		nodeDataTrigger->m_data = (DWORD)&vTriggers->at(triggerIndex);
+		nodeDataTrigger->m_data = (DWORD)vTriggers.at(iTrigger);
 		m_tree.SetItemData(hTrigger, (DWORD)nodeDataTrigger);
-		BoardingCallTrigger* trigger = &vTriggers->at(triggerIndex);
+		BoardingCallTrigger* trigger = vTriggers.at(iTrigger);
 		CString strTime, strProp;
 		// Add time.
-		strTime.Format("Time range before STD(seconds): %s", trigger->GetTriggerTimeStr());
+		strTime.Format("Time range before STD(seconds): %s", trigger->m_time->screenPrint());
 		nodeDataTrigger = new TreeNodeDataWithType();
 		nodeDataTrigger->m_type = TREE_NODE_TRIGGER_TIME;
-		nodeDataTrigger->m_data = (DWORD)trigger->GetTriggerTimeValue();
+		nodeDataTrigger->m_data = (DWORD)trigger->m_time;
 		cni.net = NET_COMBOBOX;
 		HTREEITEM hTriggerTime = m_tree.InsertItem(strTime, cni, FALSE, FALSE, hTrigger);
 		m_tree.SetItemData(hTriggerTime, (DWORD)nodeDataTrigger);
 		
 		// Add proportion, the last one is 'residual', so don't show its proportion.
-		if(triggerIndex != triggerCount-1)
+		if(iTrigger != triggerCount-1)
 		{
 			// user define trigger.
-			strProp.Format("Proportion of Pax: %s", trigger->GetTriggerPropStr());
+			strProp.Format("Proportion of Pax: %s", trigger->m_prop->screenPrint());
 			nodeDataTrigger = new TreeNodeDataWithType();
 			nodeDataTrigger->m_type = TREE_NODE_TRIGGER_PROP;
-			nodeDataTrigger->m_data = (DWORD)trigger->GetTriggerPropValue();
+			nodeDataTrigger->m_data = (DWORD)trigger->m_prop;
 			cni.net = NET_COMBOBOX;
 			HTREEITEM hTriggerProp = m_tree.InsertItem(strProp, cni, FALSE, FALSE, hTrigger);
 			m_tree.SetItemData(hTriggerProp, (DWORD)nodeDataTrigger);
@@ -959,10 +960,6 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		case TREE_NODE_TRIGGER_TIME:
 		case TREE_NODE_TRIGGER_PROP:
 			{
-
-				//			HTREEITEM hparent = m_tree.GetParentItem(hSelItem);
-				// 			TreeNodeDataWithType* pPareData = (TreeNodeDataWithType*)m_tree.GetItemData(hparent);
-				// 			ASSERT(pPareData->m_type == TREE_NODE_TRIGGER_ALL);
 				pCB->AddString( "NEW PROBABILITY DISTRIBUTION" );
 				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
 				int nCount = static_cast<int>(pProbDistMan->getCount());
@@ -971,11 +968,6 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 					CProbDistEntry* pPBEntry = pProbDistMan->getItem( m );
 					pCB->AddString( pPBEntry->m_csName );
 				}
-				// 			int nIndex = 0;
-				// 			if ((nIndex=pCB->FindString(nIndex, GetDistName())) != CB_ERR)
-				// 			{
-				// 				pCB->SetCurSel( nIndex );
-				// 			}
 			}
 			break;
 		default:
@@ -989,46 +981,39 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		CComboBox* pCB=(CComboBox*)pWnd;
 
 		int nIndexSeled=m_tree.GetCmbBoxCurSel(hSelItem);
-		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-		ASSERT(pDataWithType);
-		switch(pDataWithType->m_type)
+		TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+		ASSERT(pSelItemData);
+		switch(pSelItemData->m_type)
 		{
 		case TREE_NODE_TRIGGER_TIME:
 			{
-				int nIndex = pCB->GetCurSel();
-				CString strSel;
+				HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+				ASSERT(pParentData->m_type == TREE_NODE_TRIGGER);
+				BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pParentData->m_data;
 
+				int nIndex = pCB->GetCurSel();
 				int LBTextLen = pCB->GetLBTextLen(nIndex);
+				CString strSel;
 				pCB->GetLBText(nIndex, strSel.GetBuffer(LBTextLen));
 				strSel.ReleaseBuffer();
 				ProbabilityDistribution* pProbDist = NULL;
 				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
-				if( strcmp( strSel, "NEW PROBABILITY DISTRIBUTION" ) == 0 )
+				if(strSel == "NEW PROBABILITY DISTRIBUTION")
 				{
-					return 0;
-// 					CProbDistEntry* pPDEntry = (*m_pSelectProbDistEntry)(NULL, m_pInputAirside);
-// 					if(pPDEntry == NULL)
-// 						return 0;
-// 					pProbDist = pPDEntry->m_pProbDist;
-// 					ASSERT(pProbDist);
-// 					CString strDistName = pPDEntry->m_csName;
-// 					//if(strDistName == pTimeRangeItem->GetDistName())
-// 					//	return 0;
-// 					pVehiclePoolItem->SetDistName(strDistName);
-// 					char szBuffer[1024] = {0};
-// 					pProbDist->screenPrint(szBuffer);
-// 					pVehiclePoolItem->SetDistScreenPrint(szBuffer);
-// 					pVehiclePoolItem->SetProbTypes((ProbTypes)pProbDist->getProbabilityType());
-// 					pProbDist->printDistribution(szBuffer);
-// 					pVehiclePoolItem->SetPrintDist(szBuffer);
-// 					int nIndex = 0;
-// 					if ((nIndex=pCB->FindString(nIndex,strDistName)) != CB_ERR)
-// 						pCB->SetCurSel(nIndex);	
-// 					else
-// 					{
-// 						nIndex = pCB->AddString(strDistName);
-// 						pCB->SetCurSel(nIndex);
-// 					}
+					CProbDistEntry* pPDEntry = NULL;
+					CDlgProbDist dlg( GetInputTerminal()->m_pAirportDB,true,this);
+					if (dlg.DoModal() == IDOK)
+					{
+						pPDEntry = dlg.GetSelectedPD();
+						if(pPDEntry != NULL)
+						{
+							ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+							ASSERT(pProbDist);
+							pTrigger->m_time = pProbDist;
+							pSelItemData->m_data = DWORD(pTrigger->m_time);
+						}
+					}
 				}
 				else
 				{
@@ -1041,17 +1026,73 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 							break;
 					}
 					ASSERT(i<nCount);
-					pProbDist = pPDEntry->m_pProbDist;
+					ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
 					ASSERT(pProbDist);
-					HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
-					TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-					ASSERT(pDataWithType->m_type == TREE_NODE_TRIGGER);
-					BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pDataWithType->m_data;
-					pTrigger->SetTriggerTime(pProbDist->getRandomValue());
-					//m_tree.SelectItem(hPareItem);
+					ProbabilityDistribution* pTT = pTrigger->m_time;
+					if(pTrigger->m_time) 
+						delete pTrigger->m_time;
+					pTrigger->m_time = pProbDist;
+					pSelItemData->m_data = DWORD(pTrigger->m_time);
 				}
+				CString strTime;
+				strTime.Format("Time range before STD(seconds): %s", pTrigger->m_time->screenPrint());
+				m_tree.SetItemText(hSelItem, strTime);
 			}
+			break;
 		case TREE_NODE_TRIGGER_PROP:
+			{
+				HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+				ASSERT(pParentData->m_type == TREE_NODE_TRIGGER);
+				BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pParentData->m_data;
+
+				int nIndex = pCB->GetCurSel();
+				int LBTextLen = pCB->GetLBTextLen(nIndex);
+				CString strSel;
+				pCB->GetLBText(nIndex, strSel.GetBuffer(LBTextLen));
+				strSel.ReleaseBuffer();
+				ProbabilityDistribution* pProbDist = NULL;
+				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
+				if(strSel == "NEW PROBABILITY DISTRIBUTION")
+				{
+					CProbDistEntry* pPDEntry = NULL;
+					CDlgProbDist dlg( GetInputTerminal()->m_pAirportDB,true,this);
+					if (dlg.DoModal() == IDOK)
+					{
+						pPDEntry = dlg.GetSelectedPD();
+						if(pPDEntry != NULL)
+						{
+							ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+							ASSERT(pProbDist);
+							pTrigger->m_time = pProbDist;
+							pSelItemData->m_data = DWORD(pTrigger->m_time);
+						}
+					}
+				}
+				else
+				{
+					CProbDistEntry* pPDEntry = NULL;
+					int nCount = pProbDistMan->getCount();
+					for( int i=0; i<nCount; i++ )
+					{
+						pPDEntry = pProbDistMan->getItem( i );
+						if( strcmp( pPDEntry->m_csName, strSel ) == 0 )
+							break;
+					}
+					ASSERT(i<nCount);
+					ProbabilityDistribution* pProbDist = CopyProbDistribution(pPDEntry->m_pProbDist);
+					ASSERT(pProbDist);
+					ProbabilityDistribution* pTT = pTrigger->m_time;
+					if(pTrigger->m_time) 
+						delete pTrigger->m_time;
+					pTrigger->m_time = pProbDist;
+					pSelItemData->m_data = DWORD(pTrigger->m_time);
+				}
+				CString strTime;
+				strTime.Format("Proportion of Pax: %s", pTrigger->m_time->screenPrint());
+				m_tree.SetItemText(hSelItem, strTime);
+			}
+			break;
 		default:
 			break;
 		}
@@ -1097,11 +1138,11 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 				TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hPaxTypeItem);
 				ASSERT(pDataWithType && pDataWithType->m_type == TREE_NODE_PASSENGER_TYPE);
 				BoardingCallPaxTypeEntry* pPaxEntry = (BoardingCallPaxTypeEntry*)pDataWithType->m_data;
-				std::vector<BoardingCallTrigger>* pVecTrigger = pPaxEntry->GetTriggersDatabase();
+				std::vector<BoardingCallTrigger*>& vTrigger = pPaxEntry->GetTriggersDatabase();
 				int userSetCount = atoi(strValue.GetBuffer());
 				strItemText.Format("Number of triggers: %d", userSetCount);
 				pPaxEntry->SetTriggerCount(userSetCount);
-				ReloadTriggers(pVecTrigger, hSelItem);
+				ReloadTriggers(vTrigger, hSelItem);
 				m_tree.Expand(hSelItem, TVE_EXPAND);
 				m_btnSave.EnableWindow(TRUE);
 			}
@@ -1399,4 +1440,83 @@ void CBoardingCallDlg::OnChooseMenu( UINT nID )
 		break;
 	}
 	return;
+}
+
+ProbabilityDistribution* CBoardingCallDlg::CopyProbDistribution(ProbabilityDistribution* _pPD)
+{
+	if(!_pPD)
+		return NULL;
+
+	ProbabilityDistribution* pDist = NULL;
+	switch( _pPD->getProbabilityType() ) 
+	{
+	case BERNOULLI:
+		pDist = new BernoulliDistribution( ((BernoulliDistribution*)_pPD)->getValue1(),
+			((BernoulliDistribution*)_pPD)->getValue2(),
+			((BernoulliDistribution*)_pPD)->getProb1()	);
+		break;
+	case BETA:
+		pDist = new BetaDistribution( ((BetaDistribution*)_pPD)->getMin(),
+			((BetaDistribution*)_pPD)->getMax(),
+			((BetaDistribution*)_pPD)->getAlpha(),
+			((BetaDistribution*)_pPD)->getBeta() );
+		break;
+	case CONSTANT:
+		pDist = new ConstantDistribution( ((ConstantDistribution*)_pPD)->getMean() );
+		break;
+	case EXPONENTIAL:
+		pDist = new ExponentialDistribution( ((ExponentialDistribution*)_pPD)->getLambda() );
+		break;
+	case NORMAL:
+		pDist = new NormalDistribution( ((NormalDistribution*)_pPD)->getMean(),
+			((NormalDistribution*)_pPD)->getStdDev(),
+			((NormalDistribution*)_pPD)->getTruncation());
+		break;
+	case UNIFORM:
+		pDist = new UniformDistribution( ((UniformDistribution*)_pPD)->getMin(),
+			((UniformDistribution*)_pPD)->getMax() );
+		break;
+	case WEIBULL:
+		pDist = new WeibullDistribution( ((WeibullDistribution*)_pPD)->getAlpha(),
+			((WeibullDistribution*)_pPD)->getGamma(),
+			((WeibullDistribution*)_pPD)->getMu());
+		break;
+	case GAMMA:
+		pDist = new GammaDistribution( ((GammaDistribution*)_pPD)->getGamma(),
+			((GammaDistribution*)_pPD)->getBeta(),
+			((GammaDistribution*)_pPD)->getMu());
+		break;
+	case ERLANG:
+		pDist = new ErlangDistribution( ((ErlangDistribution*)_pPD)->getGamma(),
+			((ErlangDistribution*)_pPD)->getBeta(),
+			((ErlangDistribution*)_pPD)->getMu() );
+		break;
+	case TRIANGLE:
+		pDist = new TriangleDistribution( ((TriangleDistribution*)_pPD)->getMin(),
+			((TriangleDistribution*)_pPD)->getMax(),
+			((TriangleDistribution*)_pPD)->getMode());
+		break;
+	case EMPIRICAL:
+		{
+			pDist = new EmpiricalDistribution();
+			char szDist[1024];
+			((EmpiricalDistribution*)_pPD)->printDistribution( szDist );
+			char* pStr = strstr( szDist, ":" ) + 1;
+			((EmpiricalDistribution*)pDist)->setDistribution( pStr );
+			break;
+		}
+	case HISTOGRAM:
+		{
+			pDist = new HistogramDistribution();
+			char szDist[1024];
+			((HistogramDistribution*)_pPD)->printDistribution( szDist );
+			char* pStr = strstr( szDist, ":" ) + 1;
+			((HistogramDistribution*)pDist)->setDistribution( pStr );
+			break;
+		}
+	default:
+		ASSERT(0);
+	}
+
+	return pDist;
 }

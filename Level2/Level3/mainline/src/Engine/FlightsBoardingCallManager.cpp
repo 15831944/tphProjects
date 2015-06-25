@@ -22,7 +22,8 @@
 #include "../Inputs/SubFlow.h"
 #include "../Common/ARCTracker.h"
 #include <Common/ProbabilityDistribution.h>
-#include "Inputs/BoardingCallFlightTypeDatabase.h"
+#include "Inputs\BoardingCallFlightTypeDatabase.h"
+#include "Inputs\BoardingCallPaxTypeDatabase.h"
 
 FlightsBoardingCallManager::FlightsBoardingCallManager(void)
 :m_pFlightSchedule(NULL)
@@ -229,18 +230,19 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
 										BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pPaxTypeDB->getItem(iPax);
 										mobElemConst = *((CMobileElemConstraint*)pPaxTypeEntry->getConstraint());
 										mobElemConst.MergeFlightConstraint(&(pFlight->getType ('D')));
-										std::vector<BoardingCallTrigger>* vTrigger = pPaxTypeEntry->GetTriggersDatabase();
-										int triggerCount = vTrigger->size();
-										ElapsedTime tempTime;
+										std::vector<BoardingCallTrigger*>& vTrigger = pPaxTypeEntry->GetTriggersDatabase();
+										int triggerCount = vTrigger.size();
+										ElapsedTime tempTime, triggerTime;
 										double releasedProp = 0.0;
 										for(int iStage=0; iStage<triggerCount; iStage++)
 										{
-											tempTime = fltDepTime + (long)vTrigger->at(iStage).GetTriggerTimeValue();
+											triggerTime.set((long)(vTrigger.at(i)->m_time)->getRandomValue());
+											tempTime = fltDepTime + triggerTime;
 											
 											if(iStage < triggerCount-1)
 											{
-												percent = vTrigger->at(iStage).GetTriggerPropValue() / (100.0 - releasedProp);
-												releasedProp += vTrigger->at(iStage).GetTriggerPropValue();
+												percent = 20 / (100.0 - releasedProp);
+												releasedProp += 20;
 											}
 											else/* the 'residual' trigger. */
 											{

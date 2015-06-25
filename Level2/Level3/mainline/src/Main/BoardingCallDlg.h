@@ -16,7 +16,7 @@ public:
 	void ReloadFlightType( BoardingCallFlightTypeEntry* pFlightEntry, HTREEITEM hTreeItemFlight );
 	void ReloadStand( BoardingCallStandEntry* pStandEntry, HTREEITEM hTreeItemStand );
 	void ReloadPaxType( BoardingCallPaxTypeEntry* pPaxEntry, HTREEITEM hTreeItemPax );
-	void ReloadTriggers(std::vector<BoardingCallTrigger>* vTriggers, HTREEITEM hTriggerAll);
+	void ReloadTriggers(std::vector<BoardingCallTrigger*>& vTriggers, HTREEITEM hTriggerAll);
 
 	CString GetProjPath();
 	InputTerminal* GetInputTerminal();
@@ -59,6 +59,8 @@ protected:
 	void RemoveTreeSubItem(HTREEITEM hItem);
 	void RemoveTreeItemAndDeleteData(HTREEITEM hChildItem);
 
+private:
+	ProbabilityDistribution* CopyProbDistribution(ProbabilityDistribution* _pPD);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
