@@ -15,6 +15,7 @@
 #include "ViewMsg.h"
 #include "../InputAirside/RunwayExit.h"
 #include "../AirsideReport/AirsideFlightMutiRunDelayReport.h"
+#include "../AirsideReport/AirsideFlightDelayParam.h"
 // CAirsideReportListView
 
 IMPLEMENT_DYNCREATE(CAirsideReportListView, CFormView)
@@ -143,7 +144,7 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 		if(pReportManager->GetReportType() == Airside_FlightDelay)
 		{
 			std::vector<int> vReportRun;
-			if (pParameter->GetReportRuns(vReportRun) == true)
+			if (pParameter->GetReportRuns(vReportRun) == true && pParameter->GetEnableMultiRun())
 			{
 				if (vReportRun.size() > 1)
 				{
@@ -172,20 +173,24 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 	if(pReportManager->GetReportType() == Airside_FlightDelay)
 	{
 		std::vector<int> vReportRun;
-		if (pParameter->GetReportRuns(vReportRun) == true)
+		if (pParameter->GetReportRuns(vReportRun) == true && pParameter->GetEnableMultiRun())
 		{
 			if (vReportRun.size() > 1)
 			{
+				CAirsideFlightDelayParam* pDelayPara = (CAirsideFlightDelayParam*)pParameter;
+				if (pDelayPara->getReportType() == ASReportType_Detail)
+				{
+					pDelayPara->setSubType(CAirsideFlightDelayReport::SRT_DETAIL_SCHEDULEDELAY);
+				}
+				else 
+				{
+					pDelayPara->setSubType(CAirsideFlightDelayReport::SRT_SUMMARY_SCHEDULEDELAY);
+				}
 				pReportManager->InitMultiReportList(m_lstCtrl,1,&m_wndSortableHeaderCtrl);
 				pReportManager->SetMultiReportListContent(m_lstCtrl,1);
 				return;
 			}
 		}
-
-		CAirsideFlightDelayReport* pDelayReport = (CAirsideFlightDelayReport*)pReportManager->GetReport();
-		pDelayReport->InitResultListHead(m_lstCtrl,pParameter,&m_wndSortableHeaderCtrl);
-		pDelayReport->FillResultListContent(m_lstCtrl,pParameter);
-		return;
 	}
 	pTermPlanDoc->GetARCReportManager().GetAirsideReportManager()->InitReportList(m_lstCtrl, &m_wndSortableHeaderCtrl);
 	pTermPlanDoc->GetARCReportManager().GetAirsideReportManager()->SetReportListContent(m_lstCtrl);

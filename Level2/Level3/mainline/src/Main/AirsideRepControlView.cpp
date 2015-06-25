@@ -953,7 +953,7 @@ void CAirsideRepControlView::InitializeTree()
 			m_treePaxType.SetItemData(hItemTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToRoot));
             
             cni.nt = NT_CHECKBOX;
-            HTREEITEM hRunsRoot = m_treePaxType.InsertItem("Multi Runs", cni, m_pParameter->GetMultiRun(), FALSE);
+            HTREEITEM hRunsRoot = m_treePaxType.InsertItem("Multi Runs", cni, m_pParameter->GetEnableMultiRun(), FALSE);
             m_treePaxType.SetItemData(hRunsRoot, (DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_MultiRunRoot));
 
             std::vector<int> vMultiRun;
@@ -3363,7 +3363,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
             repControlTreeNodeData* pNodeData = (repControlTreeNodeData*)m_treePaxType.GetItemData(hSelItem);
             if(pNodeData->nodeType == repControlTreeNodeType_MultiRunRoot)
             {
-                m_pParameter->SetMultiRun(!m_pParameter->GetMultiRun());
+                m_pParameter->SetEnableMultiRun(!m_pParameter->GetEnableMultiRun());
             }
             else if(pNodeData->nodeType == repControlTreeNodeType_Runs)
             {
