@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="BAGDATA.CPP" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BAGDATA.H" />
+    <ClInclude Include="CON_DB.H" />
+    <ClInclude Include="IN_TERM.H" />
+    <ClInclude Include="PAX_CNST.H" />
+    <ClInclude Include="PAXDIST.H" />
+    <ClInclude Include="PROCDB.H" />
+    <ClInclude Include="PROCHRCH.H" />
+    <ClInclude Include="SECTLIST.H" />
+  </ItemGroup>
+</Project>
