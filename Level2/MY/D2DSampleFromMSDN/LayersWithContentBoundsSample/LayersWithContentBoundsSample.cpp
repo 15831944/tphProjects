@@ -101,7 +101,7 @@ HRESULT DemoApp::Initialize()
 {
     HRESULT hr;
 
-    // Initialize device-indpendent resources, such
+    // Initialize device-independent resources, such
     // as the Direct2D factory.
     hr = CreateDeviceIndependentResources();
     if (SUCCEEDED(hr))
