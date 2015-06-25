@@ -211,7 +211,7 @@ HRESULT DemoApp::CreateDeviceIndependentResources()
         hr = m_pD2DFactory->CreateTransformedGeometry(
             m_pPathGeometry,
             D2D1::Matrix3x2F::Rotation(
-            45.f,
+            60.f,
             D2D1::Point2F(100, 100)),
             &m_pTransformedGeometry
             );

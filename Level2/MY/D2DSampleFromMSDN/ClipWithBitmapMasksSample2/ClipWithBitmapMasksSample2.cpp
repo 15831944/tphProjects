@@ -197,10 +197,39 @@ HRESULT DemoApp::CreateDeviceIndependentResources()
 
     if (SUCCEEDED(hr))
     {
-        hr = m_pDirect2DFactory->CreateRectangleGeometry(
-            D2D1::RectF(5,5,155,155),
-            &m_pRectGeo
-            );
+        hr = m_pDirect2DFactory->CreatePathGeometry(&m_pRectGeo);
+        if(SUCCEEDED(hr))
+        {
+            ID2D1GeometrySink* pSink = NULL;
+            hr = m_pRectGeo->Open(&pSink);
+            if(SUCCEEDED(hr))
+            {
+                pSink->BeginFigure(
+                    D2D1::Point2F(0.0f, 0.0f),
+                    D2D1_FIGURE_BEGIN_FILLED
+                    );
+
+                pSink->AddLine(D2D1::Point2F(200, 0));
+                pSink->AddBezier(
+                    D2D1::BezierSegment(
+                    D2D1::Point2F(150, 50),
+                    D2D1::Point2F(150, 150),
+                    D2D1::Point2F(200, 200))
+                    );
+
+                pSink->AddLine(D2D1::Point2F(0, 200));
+                pSink->AddBezier(
+                    D2D1::BezierSegment(
+                    D2D1::Point2F(50, 150),
+                    D2D1::Point2F(50, 50),
+                    D2D1::Point2F(0, 0))
+                    );
+
+                pSink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                hr = pSink->Close();
+            }
+            SafeRelease(&pSink);
+        }
     }
     return hr;
 }

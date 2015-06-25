@@ -1,3 +1,4 @@
+
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
 // ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 // THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -7,7 +8,7 @@
 
 #pragma once
 
-// Modify the following defines if you have to target a platform prior to the ones specified below.
+// Modify the following definitions if you need to target a platform prior to the ones specified below.
 // Refer to MSDN for the latest info on corresponding values for different platforms.
 #ifndef WINVER              // Allow use of features specific to Windows 7 or later.
 #define WINVER 0x0700       // Change this to the appropriate value to target other versions of Windows.
@@ -21,7 +22,8 @@
 #define UNICODE
 #endif
 
-#define WIN32_LEAN_AND_MEAN     // Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN     // Exclude rarely-used items from Windows headers
+
 // Windows Header Files:
 #include <windows.h>
 
@@ -37,17 +39,14 @@
 #include <dwrite.h>
 #include <wincodec.h>
 
-
 #pragma comment(lib, "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Lib\\x86\\d2d1.lib")
 #pragma comment(lib, "C:\\Program Files (x86)\\Microsoft DirectX SDK (June 2010)\\Lib\\x86\\dwrite.lib")
-
 
 /******************************************************************
 *                                                                 *
 *  Macros                                                         *
 *                                                                 *
 ******************************************************************/
-
 template<class Interface>
 inline void
     SafeRelease(
@@ -61,10 +60,9 @@ inline void
         (*ppInterfaceToRelease) = NULL;
     }
 }
-
 #ifndef Assert
 #if defined( DEBUG ) || defined( _DEBUG )
-#define Assert(b) do {if (!(b)) {OutputDebugStringA("Assert: " #b "\n");}} while(0)
+#define Assert(b) if (!(b)) {OutputDebugStringA("Assert: " #b "\n");}
 #else
 #define Assert(b)
 #endif //DEBUG || _DEBUG
@@ -75,7 +73,6 @@ inline void
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 #endif
-
 
 /******************************************************************
 *                                                                 *
@@ -95,19 +92,18 @@ public:
 
 private:
     HRESULT CreateDeviceIndependentResources();
-    void DiscardDeviceIndependentResources();
     HRESULT CreateDeviceResources();
+
+    HRESULT CreateGeometryResources();
+
+    HRESULT CreateGridPatternBrush(
+        ID2D1RenderTarget *pRenderTarget,
+        ID2D1BitmapBrush **ppBitmapBrush
+        );
+
     void DiscardDeviceResources();
 
     HRESULT OnRender();
-
-    HRESULT LoadResourceBitmap(
-        ID2D1RenderTarget *pRT,
-        IWICImagingFactory *pIWICFactory,
-        PCWSTR resourceName,
-        PCWSTR resourceType,
-        __deref_out ID2D1Bitmap **ppBitmap
-        );
 
     void OnResize(
         UINT width,
@@ -124,31 +120,23 @@ private:
 private:
     HWND m_hwnd;
 
-    ID2D1Factory *m_pDirect2DFactory;
+    ID2D1Factory *m_pD2DFactory;
     ID2D1HwndRenderTarget *m_pRenderTarget;
-    ID2D1SolidColorBrush *m_pBlackBrush;
+    ID2D1SolidColorBrush *m_pOutlineBrush;
+    ID2D1SolidColorBrush *m_pTextBrush;
+    ID2D1SolidColorBrush *m_pShapeFillBrush;
+    ID2D1BitmapBrush *m_pGridPatternBitmapBrush;
 
-    // Rectangle Geometry
-    ID2D1PathGeometry *m_pRectGeo;
+    ID2D1EllipseGeometry *m_pCircleGeometry1;
+    ID2D1EllipseGeometry *m_pCircleGeometry2;
 
-    // WIC and Bitmaps
-    IWICImagingFactory *m_pWICFactory;
+    ID2D1PathGeometry *m_pPathGeometryUnion;
+    ID2D1PathGeometry *m_pPathGeometryIntersect;
+    ID2D1PathGeometry *m_pPathGeometryXOR;
+    ID2D1PathGeometry *m_pPathGeometryExclude;
 
-    ID2D1Bitmap *m_pBitmapMask;
+    IDWriteFactory *m_pDWriteFactory;
+    IDWriteTextFormat *m_pTextFormat;
 
-    ID2D1Bitmap *m_pFernBitmap;
-    ID2D1Bitmap *m_pLinearFadeFlowersBitmap;
-    ID2D1Bitmap *m_pRadialFadeFlowersBitmap;
-
-    // Gradients
-    ID2D1LinearGradientBrush *m_pLinearGradientBrush;
-    ID2D1RadialGradientBrush *m_pRadialGradientBrush;
-
-    // Bitmap brushes
-    ID2D1BitmapBrush *m_pBitmapMaskBrush;
-    ID2D1BitmapBrush *m_pFernBitmapBrush;
-    ID2D1BitmapBrush *m_pLinearFadeFlowersBitmapBrush;
-    ID2D1BitmapBrush *m_pRadialFadeFlowersBitmapBrush;
-
-    IDWriteFactory *m_pDirectWriteFactory;
+    ID2D1StrokeStyle *m_pStrokeStyle;
 };

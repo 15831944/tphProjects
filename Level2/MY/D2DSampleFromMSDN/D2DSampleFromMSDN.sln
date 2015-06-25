@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClipWithBitmapMasksSample2"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TransformGeometriesSample", "TransformGeometriesSample\TransformGeometriesSample.vcxproj", "{05DFB133-98DE-4CFC-AB39-D89C11DB37FE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CombineGeometriesSample", "CombineGeometriesSample\CombineGeometriesSample.vcxproj", "{94C0D17C-4583-4105-8568-0B9B845D30A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -43,6 +45,10 @@ Global
 		{05DFB133-98DE-4CFC-AB39-D89C11DB37FE}.Debug|Win32.Build.0 = Debug|Win32
 		{05DFB133-98DE-4CFC-AB39-D89C11DB37FE}.Release|Win32.ActiveCfg = Release|Win32
 		{05DFB133-98DE-4CFC-AB39-D89C11DB37FE}.Release|Win32.Build.0 = Release|Win32
+		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Debug|Win32.Build.0 = Debug|Win32
+		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Release|Win32.ActiveCfg = Release|Win32
+		{94C0D17C-4583-4105-8568-0B9B845D30A6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
