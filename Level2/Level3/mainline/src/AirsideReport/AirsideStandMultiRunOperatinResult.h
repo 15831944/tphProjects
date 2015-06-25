@@ -6,7 +6,8 @@ class C2DChartData;
 struct StandMultipleOperationData
 {
 	StandMultipleOperationData()
-		:m_lOccupiedTime(0l)
+		:m_lSchedOccupancy(0)
+        ,m_lOccupiedTime(0l)
 		,m_lDelayEnter(0l)
 		,m_lDelayLeaving(0l)
 		,m_fltmode('A')
@@ -38,12 +39,14 @@ struct StandMultipleOperationData
 
 	CString m_sSchedName;
 	CString m_sActualName;
+    long m_lSchedOccupancy;
 	long m_lOccupiedTime;
 	long m_lDelayEnter;
 	long m_lDelayLeaving;
 	char m_fltmode;
 };
-
+typedef std::map<CString,long> mapStandResult;
+typedef std::map<CString,mapStandResult> mapStandOpResult;
 typedef std::map<CString,std::vector<StandMultipleOperationData>> MapMultiRunStandOperationData;
 class AIRSIDEREPORT_API CAirsideStandMultiRunOperatinResult :
 	public CAirsideMultipleRunResult
@@ -54,8 +57,11 @@ public:
 
 	virtual void LoadMultipleRunReport(CParameters* pParameter);
 	virtual void InitListHead(CXListCtrl& cxListCtrl,CParameters * parameter,  int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
-	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
-	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
+
+    virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
+
+
+    virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
 
 
 private:
@@ -66,10 +72,12 @@ private:
 	void BuildDetailStandOperationConflict(CParameters* pParameter,MultiRunDetailMap& mapDetailData,MapMultiRunStandOperationData standOperationData,char fltMode);
 
 	void InitDetailListHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC=NULL);
-	void FillDetailListTimeContent(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData);
-	void FilllDetailDelayConflictContent(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,int iType);
+	void InitDetailListConfictHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC=NULL);
+	void InitDetailListPercentagetHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC/* =NULL */);
+	void FillDetailListCountContent(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData);
 
 	void Generate3DChartCountData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);
+	void Generate3DChartPercentageData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter);
 	void Generate3DChartConflictData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter,int iType);
 	void Generate3DChartDelayData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter,int iType);
 
@@ -80,7 +88,26 @@ private:
 	void SetDetail3DRatioChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 	void SetDetail3DOccupancyChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 
-	int GetIntervalCount(long iStart, long iEnd, std::vector<long> vData,long iIgnore = 0)const;
+    void BuildSummaryStandOperationData(CParameters* pParameter, MapMultiRunStandOperationData& standOperationData);
+    void InitSummaryListHead(CXListCtrl &cxListCtrl, CSortableHeaderCtrl* piSHC);
+    void FillSummaryListContent(CXListCtrl &cxListCtrl, MultiRunSummaryMap &multiRunSummaryMap);
+
+    void DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter);
+    void GenerateSummary2DChartData(C2DChartData& c2dGraphData, MultiRunSummaryMap& multiRunSummaryMap);
+    void SetSummarySchedUtilize3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummarySchedIdle3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummaryActualUtilize3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummaryActualIdle3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummaryDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummaryConflict3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+
+//     void BuildSummaryActualUtilizationData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
+//     void BuildSummarySchedIdleData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
+//     void BuildSummaryActualIdleData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
+//     void BuildSummaryDelayData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
+//     void BuildSummaryConflictData(CParameters* pParameter, const MapMultiRunStandOperationData& standOperationData);
+
+	int GetIntervalCount(long iStart, long iEnd, mapStandResult mapData,long iIgnore = 0)const;
 	void ClearData();
 private:
 	MultiRunDetailMap m_standOccupMap;
@@ -90,5 +117,12 @@ private:
 	MultiRunDetailMap m_standDepDelayMap;
 	MultiRunDetailMap m_standArrConflictsMap;
 	MultiRunDetailMap m_standDepConfictsMap;
+
+    MultiRunSummaryMap m_summarySchedUtilizeMap;
+    MultiRunSummaryMap m_summaryActualUtilizeMap;
+    MultiRunSummaryMap m_summarySchedIdleMap;
+    MultiRunSummaryMap m_summaryActualIdleMap;
+    MultiRunSummaryMap m_summaryDelayMap;
+    MultiRunSummaryMap m_summaryConflictMap;
 };
 

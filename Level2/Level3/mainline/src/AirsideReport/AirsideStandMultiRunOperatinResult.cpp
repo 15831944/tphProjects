@@ -7,7 +7,26 @@
 #include "FlightStandOperationParameter.h"
 #include "AirsideFlightStandOperationReport.h"
 #include <algorithm>
+#include <map>
 #include "Parameters.h"
+#include "StandOperationDataCalculation.h"
+
+static const char* strSummaryListTitle[] = 
+{
+    "Min Delay(hh:mm:ss)",
+    "Mean Delay(hh:mm:ss)",
+    "Max Delay(hh:mm:ss)",
+    "Q1(hh:mm:ss)",
+    "Q2(hh:mm:ss)",
+    "Q3(hh:mm:ss)",
+    "P1(hh:mm:ss)",
+    "P5(hh:mm:ss)",
+    "P10(hh:mm:ss)",
+    "P90(hh:mm:ss)",
+    "P95(hh:mm:ss)",
+    "P99(hh:mm:ss)",
+    "Std dev(hh:mm:ss)"
+};
 
 CAirsideStandMultiRunOperatinResult::CAirsideStandMultiRunOperatinResult(void)
 {
@@ -21,6 +40,7 @@ CAirsideStandMultiRunOperatinResult::~CAirsideStandMultiRunOperatinResult(void)
 
 void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pParameter )
 {
+	ClearData();
 	ArctermFile file;
 	MapMultiRunStandOperationData mapStandLoadData;
 	DelayResultPath::iterator iter = m_mapResultPath.begin();
@@ -45,6 +65,9 @@ void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pP
 					file.getChar(standOperationData.m_fltmode);
 					file.getField(standOperationData.m_sSchedName.GetBuffer(1024),1024);
 					standOperationData.m_sSchedName.ReleaseBuffer();
+
+					file.skipField(2);
+                    file.getInteger(standOperationData.m_lSchedOccupancy);
 
 					file.getField(standOperationData.m_sActualName.GetBuffer(1024),1024);
 					standOperationData.m_sActualName.ReleaseBuffer();
@@ -88,6 +111,47 @@ void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pP
 	BuildDetailStandOperationConflict(pParameter,m_standArrConflictsMap,mapStandLoadData,'A');
 	//generate stand dep conflicts
 	BuildDetailStandOperationConflict(pParameter,m_standDepConfictsMap,mapStandLoadData,'D');
+
+    //
+    BuildSummaryStandOperationData(pParameter, mapStandLoadData);
+}
+
+void CAirsideStandMultiRunOperatinResult::InitDetailListPercentagetHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC/* =NULL */)
+{
+	if (mapDetailData.empty())
+		return;
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	size_t rangeCount = iter->second.size();
+	for (size_t i = 0; i < rangeCount; ++i)
+	{
+		MultipleRunReportData delayData = iter->second.at(i);
+		CString strRange;
+		strRange.Format(_T("%d - %d(%%)"),delayData.m_iStart, delayData.m_iEnd);
+
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		cxListCtrl.InsertColumn(2+i, strRange, dwStyle, 100);
+	}
+}
+
+void CAirsideStandMultiRunOperatinResult::InitDetailListConfictHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC/* =NULL */)
+{
+	if (mapDetailData.empty())
+		return;
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	size_t rangeCount = iter->second.size();
+	for (size_t i = 0; i < rangeCount; ++i)
+	{
+		MultipleRunReportData delayData = iter->second.at(i);
+		CString strRange;
+		strRange.Format(_T("%d - %d(Number of Conflicts)"),delayData.m_iStart, delayData.m_iEnd);
+
+		DWORD dwStyle = LVCFMT_LEFT;
+		dwStyle &= ~HDF_OWNERDRAW;
+
+		cxListCtrl.InsertColumn(2+i, strRange, /*LVCFMT_LEFT*/dwStyle, 100);
+	}
 }
 
 void CAirsideStandMultiRunOperatinResult::InitListHead( CXListCtrl& cxListCtrl,CParameters * parameter, int iType /*= 0*/,CSortableHeaderCtrl* piSHC/*=NULL*/ )
@@ -123,18 +187,18 @@ void CAirsideStandMultiRunOperatinResult::InitListHead( CXListCtrl& cxListCtrl,C
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Conflict:
 			if (iType == 0)
 			{
-				InitDetailListHead(cxListCtrl,m_standArrConflictsMap,piSHC);
+				InitDetailListConfictHead(cxListCtrl,m_standArrConflictsMap,piSHC);
 			}
 			else
 			{
-				InitDetailListHead(cxListCtrl,m_standDepConfictsMap,piSHC);
+				InitDetailListConfictHead(cxListCtrl,m_standDepConfictsMap,piSHC);
 			}
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_IdleTime:
 			InitDetailListHead(cxListCtrl,m_standidlemap,piSHC);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Percentage:
-			InitDetailListHead(cxListCtrl,m_standRatiomap,piSHC);
+			InitDetailListPercentagetHead(cxListCtrl,m_standRatiomap,piSHC);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Occupancy:
 			InitDetailListHead(cxListCtrl,m_standOccupMap,piSHC);
@@ -143,6 +207,10 @@ void CAirsideStandMultiRunOperatinResult::InitListHead( CXListCtrl& cxListCtrl,C
 			break;
 		}
 	}
+    else if (parameter->getReportType() == ASReportType_Summary)
+    {
+        InitSummaryListHead(cxListCtrl, piSHC);
+    }
 }
 
 
@@ -184,10 +252,10 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DChartString( C2DChartData& 
 			SetDetail3DConflictChartString(c2dGraphData,pParameter,iType);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_IdleTime:
-			SetDetail3DRatioChartString(c2dGraphData,pParameter);
+			SetDetail3DIdleChartString(c2dGraphData,pParameter);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Percentage:
-			SetDetail3DIdleChartString(c2dGraphData,pParameter);
+			SetDetail3DRatioChartString(c2dGraphData,pParameter);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Occupancy:
 			SetDetail3DOccupancyChartString(c2dGraphData,pParameter);
@@ -229,7 +297,7 @@ void CAirsideStandMultiRunOperatinResult::Draw3DChart( CARC3DChart& chartWnd, CP
 			Generate3DChartCountData(m_standidlemap,chartWnd,pStandPara);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Percentage:
-			Generate3DChartCountData(m_standRatiomap,chartWnd,pStandPara);
+			Generate3DChartPercentageData(m_standRatiomap,chartWnd,pStandPara);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Occupancy:
 			Generate3DChartCountData(m_standOccupMap,chartWnd,pStandPara);
@@ -238,6 +306,10 @@ void CAirsideStandMultiRunOperatinResult::Draw3DChart( CARC3DChart& chartWnd, CP
 			break;
 		}
 	}
+    else if (pParameter->getReportType() == ASReportType_Summary)
+    {
+        DrawSummary3DChart(chartWnd, pParameter);
+    }
 }
 void CAirsideStandMultiRunOperatinResult::FillListContent( CXListCtrl& cxListCtrl, CParameters * parameter, int iType /*= 0*/ )
 {
@@ -250,39 +322,66 @@ void CAirsideStandMultiRunOperatinResult::FillListContent( CXListCtrl& cxListCtr
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Delay:
 			if (iType == 0)
 			{
-				FilllDetailDelayConflictContent(cxListCtrl,m_standArrDelayMap,0);
+				FillDetailListCountContent(cxListCtrl,m_standArrDelayMap);
 			}
 			else
 			{
-				FilllDetailDelayConflictContent(cxListCtrl,m_standDepDelayMap,1);
+				FillDetailListCountContent(cxListCtrl,m_standDepDelayMap);
 			}
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Conflict:
 			if (iType == 0)
 			{
-				FilllDetailDelayConflictContent(cxListCtrl,m_standArrConflictsMap,0);
+				FillDetailListCountContent(cxListCtrl,m_standArrConflictsMap);
 			}
 			else
 			{
-				FilllDetailDelayConflictContent(cxListCtrl,m_standDepConfictsMap,1);
+				FillDetailListCountContent(cxListCtrl,m_standDepConfictsMap);
 			}
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_IdleTime:
-			FillDetailListTimeContent(cxListCtrl,m_standidlemap);
+			FillDetailListCountContent(cxListCtrl,m_standidlemap);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Percentage:
-			FillDetailListTimeContent(cxListCtrl,m_standRatiomap);
+			FillDetailListCountContent(cxListCtrl,m_standRatiomap);
 			break;
 		case CAirsideFlightStandOperationReport::ChartType_Detail_Occupancy:
-			FillDetailListTimeContent(cxListCtrl,m_standOccupMap);
+			FillDetailListCountContent(cxListCtrl,m_standOccupMap);
 			break;
 		default:
 			break;
 		}
 	}
+    else if (parameter->getReportType() == ASReportType_Summary)
+    {
+        CFlightStandOperationParameter* pStandPara = (CFlightStandOperationParameter*)parameter;
+        switch (pStandPara->getSubType())
+        {
+        case CAirsideFlightStandOperationReport::ChartType_Summary_SchedUtilization:
+            FillSummaryListContent(cxListCtrl, m_summarySchedUtilizeMap);
+            break;
+        case CAirsideFlightStandOperationReport::ChartType_Summary_ActualUtilization:
+            FillSummaryListContent(cxListCtrl, m_summaryActualUtilizeMap);
+            break;
+        case CAirsideFlightStandOperationReport::ChartType_Summary_SchedIdle:
+            FillSummaryListContent(cxListCtrl, m_summarySchedIdleMap);
+            break;
+        case CAirsideFlightStandOperationReport::ChartType_Summary_ActualIdle:
+            FillSummaryListContent(cxListCtrl, m_summaryActualIdleMap);
+            break;
+        case CAirsideFlightStandOperationReport::ChartType_Summary_Delay:
+            FillSummaryListContent(cxListCtrl, m_summaryDelayMap);
+            break;
+        case CAirsideFlightStandOperationReport::ChartType_Summary_Conflict:
+            FillSummaryListContent(cxListCtrl, m_summaryConflictMap);
+            break;
+        default:
+            break;
+        }
+    }
 }
 
-void CAirsideStandMultiRunOperatinResult::FillDetailListTimeContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData )
+void CAirsideStandMultiRunOperatinResult::FillDetailListCountContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData )
 {
 	MultiRunDetailMap::iterator iter = mapDetailData.begin();
 	int idx = 0;
@@ -297,37 +396,6 @@ void CAirsideStandMultiRunOperatinResult::FillDetailListTimeContent( CXListCtrl&
 		CString strRun = _T("");
 		strRun.Format(_T("Run%d"),nCurSimResult+1);
 
-		cxListCtrl.SetItemText(idx,1,strRun);
-		cxListCtrl.SetItemData(idx,idx);
-		for (size_t n = 0; n < iter->second.size(); ++n)
-		{
-			MultipleRunReportData delayData = iter->second.at(n);
-			ElapsedTime eTime;
-			if(n <  iter->second.size())
-				eTime.setPrecisely(delayData.m_iData);
-
-			cxListCtrl.SetItemText(idx, n + 2, eTime.printTime());
-		}
-		idx++;
-	}
-}
-
-void CAirsideStandMultiRunOperatinResult::FilllDetailDelayConflictContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,int iType )
-{
-	MultiRunDetailMap::iterator iter = mapDetailData.begin();
-	int idx = 0;
-	for (; iter != mapDetailData.end(); ++iter)
-	{
-		CString strIndex;
-		strIndex.Format(_T("%d"),idx+1);
-		cxListCtrl.InsertItem(idx,strIndex);
-
-		CString strSimName = iter->first;
-		int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
-		CString strRun = _T("");
-		strRun.Format(_T("Run%d"),nCurSimResult+1);
-
-		//	wndListCtrl.InsertItem(i, strRun);
 		cxListCtrl.SetItemText(idx,1,strRun);
 		cxListCtrl.SetItemData(idx,idx);
 		for (size_t n = 0; n < iter->second.size(); ++n)
@@ -359,7 +427,7 @@ void CAirsideStandMultiRunOperatinResult::ClearData()
 
 void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CParameters* pParameter,MapMultiRunStandOperationData standOperationData )
 {
-	mapLoadResult  mapLoadData;
+	mapStandOpResult  mapLoadData;
 	MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
 	long lMaxOccupancyTime = 0;
 	for (; iter != standOperationData.end(); ++iter)
@@ -368,30 +436,31 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
-			mapLoadData[iter->first].push_back(operationData.m_lOccupiedTime);
-			if (operationData.m_lOccupiedTime > lMaxOccupancyTime)
+			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
+
+			if (mapLoadData[iter->first][operationData.m_sActualName] > lMaxOccupancyTime)
 			{
-				lMaxOccupancyTime = operationData.m_lOccupiedTime;
+				lMaxOccupancyTime = mapLoadData[iter->first][operationData.m_sActualName];
 			}
 		}
-
-		std::sort(mapLoadData[iter->first].begin(),mapLoadData[iter->first].end());
 	}
 
 	int nIntervalSize = 0;
-	nIntervalSize = lMaxOccupancyTime / pParameter->getInterval() ;
+	ElapsedTime eMaxTime;
+	eMaxTime.setPrecisely(lMaxOccupancyTime);
+	nIntervalSize = eMaxTime.asSeconds() / pParameter->getInterval() ;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
-	mapLoadResult::iterator mapIter = mapLoadData.begin();
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
 	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
 			MultipleRunReportData reportData;
-			reportData.m_iStart = pParameter->getInterval()*i;
-			reportData.m_iEnd = pParameter->getInterval()*(i+1);
+			reportData.m_iStart = pParameter->getInterval()*i*100;
+			reportData.m_iEnd = pParameter->getInterval()*(i+1)*100;
 
 			reportData.m_iData = GetIntervalCount(reportData.m_iStart,reportData.m_iEnd,mapIter->second);
 
@@ -403,7 +472,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 
 void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParameters* pParameter,MapMultiRunStandOperationData standOperationData )
 {
-	mapLoadResult  mapLoadData;
+	mapStandOpResult  mapLoadData;
 	MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
 	long lMinOccupancyTime = (std::numeric_limits<long>::max)();
 	for (; iter != standOperationData.end(); ++iter)
@@ -412,34 +481,35 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
-			mapLoadData[iter->first].push_back(operationData.m_lOccupiedTime);
-			if (operationData.m_lOccupiedTime < lMinOccupancyTime)
+			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
+			if(mapLoadData[iter->first][operationData.m_sActualName]  < lMinOccupancyTime)
 			{
-				lMinOccupancyTime = operationData.m_lOccupiedTime;
+				lMinOccupancyTime = mapLoadData[iter->first][operationData.m_sActualName];
 			}
 		}
-
-		std::sort(mapLoadData[iter->first].begin(),mapLoadData[iter->first].end());
 	}
 
+	ElapsedTime eMinTime;
+	eMinTime.setPrecisely(lMinOccupancyTime);
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
-	int nIntervalSize = (nDuration - lMinOccupancyTime) / pParameter->getInterval() ;
+	int nIntervalSize = (nDuration - eMinTime.asSeconds()) / (pParameter->getInterval()) ;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
-	mapLoadResult::iterator mapIter = mapLoadData.begin();
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
 	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
 			MultipleRunReportData reportData;
-			reportData.m_iStart = pParameter->getInterval()*i;
-			reportData.m_iEnd = pParameter->getInterval()*(i+1);
+			reportData.m_iStart = pParameter->getInterval()*i*100;
+			reportData.m_iEnd = pParameter->getInterval()*(i+1)*100;
 
-			for (size_t j = 0; j < mapIter->second.size(); j++)
+			mapStandResult::iterator standIter = mapIter->second.begin();
+			for (; standIter != mapIter->second.end(); ++standIter)
 			{
-				long lTime = nDuration - mapIter->second.at(j);
+				long lTime = nDuration*100 -  standIter->second;
 
 				if( reportData.m_iStart <= lTime && lTime < reportData.m_iEnd)
 					reportData.m_iData++;
@@ -451,7 +521,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 
 void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( CParameters* pParameter,MapMultiRunStandOperationData standOperationData )
 {
-	mapLoadResult  mapLoadData;
+	mapStandOpResult  mapLoadData;
 	MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
 	long lMaxOccupancyTime = 0;
 	for (; iter != standOperationData.end(); ++iter)
@@ -460,21 +530,21 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
-			mapLoadData[iter->first].push_back(operationData.m_lOccupiedTime);
-			if (operationData.m_lOccupiedTime > lMaxOccupancyTime)
+			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
+			if (mapLoadData[iter->first][operationData.m_sActualName] > lMaxOccupancyTime)
 			{
-				lMaxOccupancyTime = operationData.m_lOccupiedTime;
+				lMaxOccupancyTime = mapLoadData[iter->first][operationData.m_sActualName];
 			}
 		}
-
-		std::sort(mapLoadData[iter->first].begin(),mapLoadData[iter->first].end());
 	}
 
 	int nIntervalSize = 0;
-	int nDuration = pParameter->getEndTime() - pParameter->getStartTime();
-	nIntervalSize = int((double)lMaxOccupancyTime/ (double)(nDuration)*100)/10 ;
+	ElapsedTime eMaxTime;
+	eMaxTime.setPrecisely(lMaxOccupancyTime);
+	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
+	nIntervalSize = int((double)eMaxTime.asSeconds()/ (double)(nDuration)*100)/10 ;
 
-	mapLoadResult::iterator mapIter = mapLoadData.begin();
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
 	for (; mapIter != mapLoadData.end(); ++mapIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
@@ -483,14 +553,26 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 			reportData.m_iStart = i *10;
 			reportData.m_iEnd = (i+1) *10;
 
-			for (size_t j = 0; j < mapIter->second.size(); j++)
+			mapStandResult::iterator standIter = mapIter->second.begin();
+			for (; standIter != mapIter->second.end(); ++standIter)
 			{
-				long lTime = nDuration - mapIter->second.at(j);
-				int nPercent = static_cast<int>(((double)lTime)/nDuration*100);
+				long lTime = standIter->second;
+				ElapsedTime eTime;
+				eTime.setPrecisely(lTime);
+				int nPercent = static_cast<int>(((double)eTime.asSeconds())/nDuration * 100);
 
-				if( reportData.m_iStart <= lTime && lTime < reportData.m_iEnd)
+				if( reportData.m_iStart <= nPercent && nPercent < reportData.m_iEnd)
 					reportData.m_iData++;
 			}
+			m_standRatiomap[mapIter->first].push_back(reportData);
+		}
+
+		for (int idx = nIntervalSize; idx < 10; idx++)
+		{
+			MultipleRunReportData reportData;
+			reportData.m_iStart = idx *10;
+			reportData.m_iEnd = (idx+1) *10;
+			reportData.m_iData = 0;
 			m_standRatiomap[mapIter->first].push_back(reportData);
 		}
 	}
@@ -542,7 +624,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 	}
 
 	int nIntervalSize = 0;
-	nIntervalSize = lMaxDelayTime / pParameter->getInterval() ;;
+	ElapsedTime eMaxTime;
+	eMaxTime.setPrecisely(lMaxDelayTime);
+	nIntervalSize = eMaxTime.asSeconds() / pParameter->getInterval();
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
@@ -553,8 +637,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 		for (int i=0; i< nIntervalSize; i++)
 		{
 			MultipleRunReportData reportData;
-			reportData.m_iStart = pParameter->getInterval()*i;
-			reportData.m_iEnd = pParameter->getInterval()*(i+1);;
+			reportData.m_iStart = pParameter->getInterval()*i*100;
+			reportData.m_iEnd = pParameter->getInterval()*(i+1)*100;;
 
 			for (size_t j = 0; j < mapIter->second.size(); j++)
 			{
@@ -629,12 +713,13 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 	}
 }
 
-int CAirsideStandMultiRunOperatinResult::GetIntervalCount( long iStart, long iEnd, std::vector<long> vData,long iIgnore /*= 0*/ ) const
+int CAirsideStandMultiRunOperatinResult::GetIntervalCount( long iStart, long iEnd, mapStandResult mapData,long iIgnore /*= 0*/ ) const
 {
 	int iCount = 0;
-	for (unsigned i = 0; i < vData.size(); i++)
+	mapStandResult::iterator iter = mapData.begin();
+	for ( ;iter != mapData.end(); ++iter)
 	{
-		long iData = vData.at(i);
+		long iData = iter->second;
 		if (iData < iIgnore)//ignore necessary secs
 			continue;
 
@@ -644,6 +729,44 @@ int CAirsideStandMultiRunOperatinResult::GetIntervalCount( long iStart, long iEn
 		}
 	}
 	return iCount;
+}
+
+void CAirsideStandMultiRunOperatinResult::Generate3DChartPercentageData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter)
+{
+	C2DChartData c2dGraphData;
+
+	SetDetail3DChartString(c2dGraphData,pParameter);
+
+	if (mapDetailData.empty() == true)
+		return;
+
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	for (unsigned iTitle = 0; iTitle < iter->second.size(); iTitle++)
+	{
+		MultipleRunReportData delayData = iter->second.at(iTitle);
+		long iInterval = (delayData.m_iEnd - delayData.m_iStart) * (iTitle + 1);
+		CString strTimeRange;
+		strTimeRange.Format(_T("%d"),iInterval);
+		c2dGraphData.m_vrXTickTitle.push_back(strTimeRange);
+	}
+
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimName = iter->first;
+		int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
+		CString strLegend;
+		strLegend.Format(_T("Run%d"),nCurSimResult+1);
+		c2dGraphData.m_vrLegend.push_back(strLegend);
+
+		std::vector<double>  vData;
+		for (unsigned i = 0; i < iter->second.size(); i++)
+		{
+			MultipleRunReportData delayData = iter->second.at(i);
+			vData.push_back(delayData.m_iData);
+		}
+		c2dGraphData.m_vr2DChartData.push_back(vData);
+	}
+	chartWnd.DrawChart(c2dGraphData);
 }
 
 void CAirsideStandMultiRunOperatinResult::Generate3DChartCountData( MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter )
@@ -666,7 +789,8 @@ void CAirsideStandMultiRunOperatinResult::Generate3DChartCountData( MultiRunDeta
 
 		long iInterval = delayData.m_iEnd - delayData.m_iStart;
 		long lTime = iInterval*(iTitle+1);
-		ElapsedTime estTempTime(lTime);
+		ElapsedTime estTempTime;
+		estTempTime.setPrecisely(lTime);
 		CString strTimeRange;
 		strTimeRange.Format(_T("%d"),estTempTime.asMinutes());
 		c2dGraphData.m_vrXTickTitle.push_back(strTimeRange);
@@ -753,7 +877,8 @@ void CAirsideStandMultiRunOperatinResult::Generate3DChartDelayData( MultiRunDeta
 
 		long iInterval = delayData.m_iEnd - delayData.m_iStart;
 		long lTime = iInterval*(iTitle+1);
-		ElapsedTime estTempTime(lTime);
+		ElapsedTime estTempTime;
+		estTempTime.setPrecisely(lTime);
 		CString strTimeRange;
 		strTimeRange.Format(_T("%d"),estTempTime.asMinutes());
 		c2dGraphData.m_vrXTickTitle.push_back(strTimeRange);
@@ -794,7 +919,7 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DDelayChartString( C2DChartD
 {
 	c2dGraphData.m_strChartTitle = _T("Stand Delays");
 	c2dGraphData.m_strYtitle = _T("Number of Stands");
-	c2dGraphData.m_strXtitle = _T("Time (hh:mm:ss)");	
+	c2dGraphData.m_strXtitle = _T("Time (mins)");	
 
 	//set footer
 	CString strFooter(_T(""));
@@ -839,6 +964,284 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DOccupancyChartString( C2DCh
 	c2dGraphData.m_strFooter = strFooter;
 }
 
+void CAirsideStandMultiRunOperatinResult::BuildSummaryStandOperationData(CParameters* pParameter, MapMultiRunStandOperationData& standOperationData)
+{
+    mapStandOpResult  mapLoadData;
+    MapMultiRunStandOperationData::iterator iter = standOperationData.begin();
 
+    for (; iter != standOperationData.end(); ++iter)
+    {
+        int iCount = iter->second.size();
+        for (int i = 0; i < iCount; i++)
+        {
+            StandMultipleOperationData operationData = iter->second[i];
+            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lSchedOccupancy;
+        }
+    }
 
+    CStatisticalTools<double> tempTool;
+    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    for(; simIter!=mapLoadData.end(); simIter++)
+    {
+        mapStandResult::iterator standIter = simIter->second.begin();
+        for(; standIter!=simIter->second.end(); standIter++)
+        {
+            tempTool.AddNewData((double)standIter->second);
+        }
 
+        m_summarySchedUtilizeMap[iter->first].m_estTotal = (long)(tempTool.GetSum()/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estMin = (long)(tempTool.GetMin()/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estAverage = (long)(tempTool.GetAvarage()/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estMax = (long)(tempTool.GetMax()/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estQ1 = (long)(tempTool.GetPercentile(25)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estQ2 = (long)(tempTool.GetPercentile(50)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estQ3 = (long)(tempTool.GetPercentile(75)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estP1 = (long)(tempTool.GetPercentile(1)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estP5 = (long)(tempTool.GetPercentile(5)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estP10 = (long)(tempTool.GetPercentile(10)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estP90 = (long)(tempTool.GetPercentile(90)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estP95 = (long)(tempTool.GetPercentile(95)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estP99 = (long)(tempTool.GetPercentile(99)/100.0+0.5);
+        m_summarySchedUtilizeMap[iter->first].m_estSigma = (long)(tempTool.GetSigma()/100.0+0.5);
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::InitSummaryListHead( CXListCtrl &cxListCtrl, CSortableHeaderCtrl* piSHC )
+{
+    int nCurCol = 0;
+    DWORD headStyle = LVCFMT_CENTER;
+    headStyle &= ~HDF_OWNERDRAW;
+    cxListCtrl.InsertColumn(nCurCol,"",headStyle,20);
+    nCurCol++;
+
+    headStyle = LVCFMT_LEFT;
+    headStyle &= ~HDF_OWNERDRAW;
+    cxListCtrl.InsertColumn(nCurCol, _T("SimResult"), headStyle, 80);
+    nCurCol++;
+    int nCount = sizeof(strSummaryListTitle)/sizeof(strSummaryListTitle[0]);
+    for(int i=0; i<nCount; i++)
+    {
+        cxListCtrl.InsertColumn(nCurCol, strSummaryListTitle[i], LVCFMT_LEFT, 100);
+        if(piSHC)
+        {
+            piSHC->SetDataType(nCurCol,dtTIME);
+        }
+        nCurCol++;
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::FillSummaryListContent(CXListCtrl &cxListCtrl, MultiRunSummaryMap &multiRunSummaryMap)
+{
+    MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
+    int idx = 0;
+    for (; iter != m_summarySchedUtilizeMap.end(); iter++)
+    {
+        CString strIndex;
+        strIndex.Format(_T("%d"),idx+1);
+        cxListCtrl.InsertItem(idx,strIndex);
+
+        CString strSimName = iter->first;
+        int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
+        CString strRun = _T("");
+        strRun.Format(_T("Run%d"),nCurSimResult+1);
+        int nCurCol = 1;
+        cxListCtrl.SetItemText(idx, nCurCol, strRun);
+        cxListCtrl.SetItemData(idx, idx);
+        nCurCol++;
+
+        CString strTemp;
+        strTemp = iter->second.m_estTotal.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estMin.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estAverage.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estMax.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estQ1.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estQ2.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estQ3.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estP1.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estP5.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estP10.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estP90.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estP95.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estP99.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        strTemp = iter->second.m_estSigma.printTime();
+        cxListCtrl.SetItemText(idx, nCurCol, strTemp);
+        nCurCol++;
+
+        idx++;
+    }
+}
+
+void CAirsideStandMultiRunOperatinResult::DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter)
+{
+    C2DChartData c2dGraphData;
+
+    CFlightStandOperationParameter* pStandPara = (CFlightStandOperationParameter*)pParameter;
+    switch (pStandPara->getSubType())
+    {
+    case CAirsideFlightStandOperationReport::ChartType_Summary_SchedUtilization:
+        SetSummarySchedUtilize3DChartString(c2dGraphData, pParameter);
+        GenerateSummary2DChartData(c2dGraphData, m_summarySchedUtilizeMap);
+        break;
+    case CAirsideFlightStandOperationReport::ChartType_Summary_ActualUtilization:
+        SetSummaryActualUtilize3DChartString(c2dGraphData, pParameter);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryActualUtilizeMap);
+        break;
+    case CAirsideFlightStandOperationReport::ChartType_Summary_SchedIdle:
+        SetSummarySchedIdle3DChartString(c2dGraphData, pParameter);
+        GenerateSummary2DChartData(c2dGraphData, m_summarySchedIdleMap);
+        break;
+    case CAirsideFlightStandOperationReport::ChartType_Summary_ActualIdle:
+        SetSummaryActualIdle3DChartString(c2dGraphData, pParameter);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryActualIdleMap);
+        break;
+    case CAirsideFlightStandOperationReport::ChartType_Summary_Delay:
+        SetSummaryDelay3DChartString(c2dGraphData, pParameter);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryDelayMap);
+        break;
+    case CAirsideFlightStandOperationReport::ChartType_Summary_Conflict:
+        SetSummaryConflict3DChartString(c2dGraphData, pParameter);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryConflictMap);
+        break;
+    default:
+        break;
+    }
+
+    chartWnd.DrawChart(c2dGraphData);
+}
+
+void CAirsideStandMultiRunOperatinResult::SetSummarySchedUtilize3DChartString(C2DChartData& c2dGraphData,CParameters *pParameter)
+{
+    c2dGraphData.m_strChartTitle = _T(" Summary Schedule Stand Utilization ");
+    c2dGraphData.m_strYtitle = _T("Time(second)");
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
+
+    CString strFooter(_T(""));
+    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    c2dGraphData.m_strFooter = strFooter;
+}
+
+void CAirsideStandMultiRunOperatinResult::SetSummarySchedIdle3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter)
+{
+    c2dGraphData.m_strChartTitle = _T(" Summary Schedule Stand Idle ");
+    c2dGraphData.m_strYtitle = _T("Time(second)");
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
+
+    CString strFooter(_T(""));
+    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    c2dGraphData.m_strFooter = strFooter;
+}
+
+void CAirsideStandMultiRunOperatinResult::SetSummaryActualUtilize3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter)
+{
+    c2dGraphData.m_strChartTitle = _T(" Summary Actual Stand Utilization ");
+    c2dGraphData.m_strYtitle = _T("Time(second)");
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
+
+    CString strFooter(_T(""));
+    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    c2dGraphData.m_strFooter = strFooter;
+}
+
+void CAirsideStandMultiRunOperatinResult::SetSummaryActualIdle3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter)
+{
+    c2dGraphData.m_strChartTitle = _T(" Summary Actual Stand Idle ");
+    c2dGraphData.m_strYtitle = _T("Time(second)");
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
+
+    CString strFooter(_T(""));
+    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    c2dGraphData.m_strFooter = strFooter;
+}
+
+void CAirsideStandMultiRunOperatinResult::SetSummaryDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter)
+{
+    c2dGraphData.m_strChartTitle = _T(" Summary Stand Delays ");
+    c2dGraphData.m_strYtitle = _T("Time(second)");
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
+
+    CString strFooter(_T(""));
+    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    c2dGraphData.m_strFooter = strFooter;
+}
+
+void CAirsideStandMultiRunOperatinResult::SetSummaryConflict3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter)
+{
+    c2dGraphData.m_strChartTitle = _T(" Summary Stand Conflict ");
+    c2dGraphData.m_strYtitle = _T("Count");
+    c2dGraphData.m_strXtitle.Format(_T("Runs"));
+
+    CString strFooter(_T(""));
+    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    c2dGraphData.m_strFooter = strFooter;
+}
+
+void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartData& c2dGraphData, MultiRunSummaryMap& multiRunSummaryMap)
+{
+    int nCount = sizeof(strSummaryListTitle) / sizeof(strSummaryListTitle[0]);
+    for(int i=0; i<nCount; i++)
+        c2dGraphData.m_vrLegend.push_back(strSummaryListTitle[i]);
+
+    c2dGraphData.m_vr2DChartData.resize(13);
+    MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
+    for(; iter != multiRunSummaryMap.end(); iter++)
+    {
+        CString strSimName = iter->first;
+        int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
+        CString strXTickTitle;
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
+
+        c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second.m_estMin/60.0f);
+        c2dGraphData.m_vr2DChartData[1].push_back((double)iter->second.m_estAverage/60.0f);
+        c2dGraphData.m_vr2DChartData[2].push_back((double)iter->second.m_estMax/60.0f);
+        c2dGraphData.m_vr2DChartData[3].push_back((double)iter->second.m_estQ1/60.0f);
+        c2dGraphData.m_vr2DChartData[4].push_back((double)iter->second.m_estQ2/60.0f);
+        c2dGraphData.m_vr2DChartData[5].push_back((double)iter->second.m_estQ3/60.0f);
+        c2dGraphData.m_vr2DChartData[6].push_back((double)iter->second.m_estP1/60.0f);
+        c2dGraphData.m_vr2DChartData[7].push_back((double)iter->second.m_estP5/60.0f);
+        c2dGraphData.m_vr2DChartData[8].push_back((double)iter->second.m_estP10/60.0f);
+        c2dGraphData.m_vr2DChartData[9].push_back((double)iter->second.m_estP90/60.0f);
+        c2dGraphData.m_vr2DChartData[10].push_back((double)iter->second.m_estP95/60.0f);
+        c2dGraphData.m_vr2DChartData[11].push_back((double)iter->second.m_estP99/60.0f);
+        c2dGraphData.m_vr2DChartData[12].push_back((double)iter->second.m_estSigma/60.0f);
+    }
+}

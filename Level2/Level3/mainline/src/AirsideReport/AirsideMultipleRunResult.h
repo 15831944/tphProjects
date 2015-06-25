@@ -1,5 +1,6 @@
 #pragma once
 #include "ParameterCaptionDefine.h"
+#include "SummaryData.h"
 #include <map>
 #include <vector>
 class CARC3DChart;
@@ -23,6 +24,7 @@ struct MultipleRunReportData
 typedef std::map<CString,CString> DelayResultPath;
 typedef std::map<CString,std::vector<long>> mapLoadResult;
 typedef std::map<CString,std::vector<MultipleRunReportData>> MultiRunDetailMap;
+typedef std::map<CString, CSummaryData> MultiRunSummaryMap;
 
 class AIRSIDEREPORT_API CAirsideMultipleRunResult
 {

@@ -2,7 +2,6 @@
 #include <map>
 #include <vector>
 #include "AirsideMultipleRunResult.h"
-#include "SummaryData.h"
 #include "AirsideFlightDelayReport.h"
 class ElapsedTime;
 class CXListCtrl;
@@ -24,7 +23,6 @@ typedef std::map<CString,mapDelayData> mapDelayResultData;
 
 typedef std::map<int,std::vector<long>> summarySegmentData;
 typedef std::map<CString,summarySegmentData> mapSummarySegmentData;
-typedef std::map<CString, CSummaryData> SummaryDelayResultMap;
 typedef std::map<int, CSummaryData> SummaryComponentAndSegmentMap;
 typedef std::map<CString, SummaryComponentAndSegmentMap> SummaryCompomentAndSegmentResultMap;
 
@@ -48,7 +46,7 @@ private:
 	void FillDetailListTimeContent( CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData );
 	void FilllDetailComponentSegmentContent(CXListCtrl& cxListCtrl,DelayComponentAndSegmentMap mapDetailData,int iType);
     void InitSummaryListHead(CXListCtrl& cxListCtrl, CParameters* pParameter, CSortableHeaderCtrl* piSHC=NULL);
-    void FillSummaryListContent(CXListCtrl& cxListCtrl, CParameters* pParameter, SummaryDelayResultMap& mapDetailData);
+    void FillSummaryListContent(CXListCtrl& cxListCtrl, CParameters* pParameter, MultiRunSummaryMap& mapDetailData);
 	void FillSummaryComponentSegmentContent(CXListCtrl& cxListCtrl,SummaryCompomentAndSegmentResultMap mapSummaryData,int iType);
 	void ClearData();
 
@@ -77,15 +75,15 @@ private:
 	void SetDetailScheduleDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 	void SetDetailComponentDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter,int iType );
 
-    void BuildSummaryTotalDelayData(SummaryDelayResultMap& mapSummaryData, mapLoadResult mapTotalDelay);
-    void BuildSummarySegmentData(SummaryDelayResultMap& mapSummaryData, CAirsideFlightDelayReport::FltDelaySegment iType,
+    void BuildSummaryTotalDelayData(MultiRunSummaryMap& mapSummaryData, mapLoadResult mapTotalDelay);
+    void BuildSummarySegmentData(MultiRunSummaryMap& mapSummaryData, CAirsideFlightDelayReport::FltDelaySegment iType,
         mapSummarySegmentData& oriData, CParameters* pParameter);
     void BuildSummarySegmentData2(SummaryCompomentAndSegmentResultMap& mapSummaryData, mapSummarySegmentData& oriData);
     void BuildSummaryComponentSegmentData(SummaryCompomentAndSegmentResultMap& mapSummaryData, mapDelayResultData& componentSegmentMapData);
-//     void BulidSummaryMultiRunDelayTimeData(SummaryDelayResultMap& mapSummaryData, CAirsideFlightDelayReport::FltDelaySegment iType,
+//     void BulidSummaryMultiRunDelayTimeData(MultiRunSummaryMap& mapSummaryData, CAirsideFlightDelayReport::FltDelaySegment iType,
 //         mapDelayResultData mapData,CParameters* pParameter);
 
-    void GenerateSummary3DChartTimeData(SummaryDelayResultMap& mapSummaryData,CARC3DChart& chartWnd, CParameters *pParameter);
+    void GenerateSummary3DChartTimeData(MultiRunSummaryMap& mapSummaryData,CARC3DChart& chartWnd, CParameters *pParameter);
     void GenerateSummaryComponentSegmentTimeData(SummaryCompomentAndSegmentResultMap& mapSummaryData, 
         int iType, CARC3DChart& chartWnd, CParameters *pParameter);
 
@@ -112,13 +110,13 @@ private:
 	DelayComponentAndSegmentMap m_componentDelayData;
 	DelayComponentAndSegmentMap m_segmentDelayData;
 
-    SummaryDelayResultMap m_totalSummaryDelayData;
-    SummaryDelayResultMap m_airSummaryDelayData;
-    SummaryDelayResultMap m_taxiSummaryDelayData;
-    SummaryDelayResultMap m_standSummaryDelayData;
-    SummaryDelayResultMap m_serviceSummaryDelayData;
-    SummaryDelayResultMap m_takeoffSummaryDelayData;
-    SummaryDelayResultMap m_scheduleSummaryDelayData;
+    MultiRunSummaryMap m_totalSummaryDelayData;
+    MultiRunSummaryMap m_airSummaryDelayData;
+    MultiRunSummaryMap m_taxiSummaryDelayData;
+    MultiRunSummaryMap m_standSummaryDelayData;
+    MultiRunSummaryMap m_serviceSummaryDelayData;
+    MultiRunSummaryMap m_takeoffSummaryDelayData;
+    MultiRunSummaryMap m_scheduleSummaryDelayData;
     SummaryCompomentAndSegmentResultMap m_segmentSummaryDelayData;
     SummaryCompomentAndSegmentResultMap m_componentSummaryDelayData;
 };

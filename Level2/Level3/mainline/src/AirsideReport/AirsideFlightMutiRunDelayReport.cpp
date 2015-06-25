@@ -829,9 +829,9 @@ void CAirsideFlightMutiRunDelayResult::FillSummaryComponentSegmentContent(CXList
     }
 }
 
-void CAirsideFlightMutiRunDelayResult::FillSummaryListContent(CXListCtrl& cxListCtrl, CParameters* pParameter, SummaryDelayResultMap& mapSummaryData)
+void CAirsideFlightMutiRunDelayResult::FillSummaryListContent(CXListCtrl& cxListCtrl, CParameters* pParameter, MultiRunSummaryMap& mapSummaryData)
 {
-    SummaryDelayResultMap::iterator iter = mapSummaryData.begin();
+    MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
 
     int idx = 0;
     for (; iter != mapSummaryData.end(); ++iter)
@@ -1405,7 +1405,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailComponentDelay3DChartString( C2D
 }
 
 
-void CAirsideFlightMutiRunDelayResult::BuildSummaryTotalDelayData(SummaryDelayResultMap& mapSummaryData, mapLoadResult mapTotalDelay)
+void CAirsideFlightMutiRunDelayResult::BuildSummaryTotalDelayData(MultiRunSummaryMap& mapSummaryData, mapLoadResult mapTotalDelay)
 {
     mapLoadResult::iterator iter = mapTotalDelay.begin();
     for (; iter != mapTotalDelay.end(); ++iter)
@@ -1434,7 +1434,7 @@ void CAirsideFlightMutiRunDelayResult::BuildSummaryTotalDelayData(SummaryDelayRe
     }
 }
 
-void CAirsideFlightMutiRunDelayResult::BuildSummarySegmentData(SummaryDelayResultMap& mapSummaryData, 
+void CAirsideFlightMutiRunDelayResult::BuildSummarySegmentData(MultiRunSummaryMap& mapSummaryData, 
     CAirsideFlightDelayReport::FltDelaySegment iType, mapSummarySegmentData& oriData, CParameters* pParameter)
 {
     mapSummarySegmentData::iterator iter = oriData.begin();
@@ -1532,7 +1532,7 @@ void CAirsideFlightMutiRunDelayResult::BuildSummarySegmentData2(SummaryCompoment
 //     }
 // }
 
-void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(SummaryDelayResultMap& mapSummaryData, CARC3DChart& chartWnd, CParameters *pParameter )
+void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(MultiRunSummaryMap& mapSummaryData, CARC3DChart& chartWnd, CParameters *pParameter )
 {
     C2DChartData c2dGraphData;
     SetSummary3DChartString(c2dGraphData,pParameter);
@@ -1546,7 +1546,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(SummaryDel
         c2dGraphData.m_vrLegend.push_back(strSummaryContent[i]);
     }
 
-    SummaryDelayResultMap::iterator iter = mapSummaryData.begin();
+    MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
     for(; iter != mapSummaryData.end(); ++iter)
     {
         CString strSimName = iter->first;
@@ -1624,6 +1624,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(S
         c2dGraphData.m_vrLegend.push_back(strSummaryContent[i]);
     }
 
+    c2dGraphData.m_vr2DChartData.resize(13);
     SummaryCompomentAndSegmentResultMap::iterator iter = mapSummaryData.begin();
     for(; iter != mapSummaryData.end(); ++iter)
     {
@@ -1633,8 +1634,6 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(S
         strXTickTitle.Format(_T("Run%d"), nCurSimResult);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
-
-        c2dGraphData.m_vr2DChartData.resize(13);
         c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second[iType].m_estMin/60.0f);
         c2dGraphData.m_vr2DChartData[1].push_back((double)iter->second[iType].m_estAverage/60.0f);
         c2dGraphData.m_vr2DChartData[2].push_back((double)iter->second[iType].m_estMax/60.0f);
