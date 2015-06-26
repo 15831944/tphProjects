@@ -460,21 +460,31 @@ void CAircraftEntryProcessorDlg::OnRightClickListItem(NMHDR *pNMHDR, LRESULT *pR
     else if(pNMItemActivate->iSubItem == 1)
     {
         ASSERT(pNMItemActivate->iItem != -1);
-        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(pNMItemActivate->iItem);
-        ProbabilityDistribution* pProb = pEntry->getValue();
-        CDestributionParameterSpecificationDlg dlg(pProb, this);
-        if(dlg.DoModal() == IDOK)
+        int iItemData = (int)m_paxList.GetItemData(pNMItemActivate->iItem);
+        if(iItemData == -1)
         {
-            CProbDistEntry* pPDEntry = dlg.GetSelProbEntry();
-            if(pPDEntry != NULL)
+            MessageBox(_T("Use toolbar button \"add\" please."));
+            return;
+        }
+        else
+        {
+            AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(pNMItemActivate->iItem);
+            ASSERT(pEntry != NULL);
+            ProbabilityDistribution* pProb = pEntry->getValue();
+            CDestributionParameterSpecificationDlg dlg(pProb, this);
+            if(dlg.DoModal() == IDOK)
             {
-                ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
-                ASSERT(pProbDist);
-                delete pProb;
-                pEntry->setValue(pProbDist);
-                CString strItem = pProbDist->screenPrint();
-                m_paxList.SetItemText(pNMItemActivate->iItem, pNMItemActivate->iSubItem, strItem);
-                GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+                CProbDistEntry* pPDEntry = dlg.GetSelProbEntry();
+                if(pPDEntry != NULL)
+                {
+                    ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
+                    ASSERT(pProbDist);
+                    delete pProb;
+                    pEntry->setValue(pProbDist);
+                    CString strItem = pProbDist->screenPrint();
+                    m_paxList.SetItemText(pNMItemActivate->iItem, pNMItemActivate->iSubItem, strItem);
+                    GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+                }
             }
         }
     }
@@ -487,8 +497,13 @@ void CAircraftEntryProcessorDlg::OnSelChangedPaxList(NMHDR *pNMHDR, LRESULT *pRe
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
     m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_ADD, TRUE);
 
-    if(m_paxList.GetSelectedCount() != 0)
-        m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_DEL, TRUE);
+    POSITION pos = m_paxList.GetFirstSelectedItemPosition();
+    if(pos != NULL)
+    {
+        int iItemData = (int)m_paxList.GetItemData((int)pos-1);
+        if(iItemData != -1 && iItemData != 0)
+            m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_DEL, TRUE);
+    }
 
     *pResult = 0;
 }
@@ -521,60 +536,56 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonDel()
 {
     POSITION pos = m_paxList.GetFirstSelectedItemPosition();
     ASSERT(pos > 0);
+    int iItemData = (int)m_paxList.GetItemData((int)(pos-1));
+    ASSERT(iItemData != -1);
+
     AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData((int)(pos-1));
-    if(pEntry == NULL)
-        return;
-
+    ASSERT(pEntry != NULL);
     CMobileElemConstraint* pConst = (CMobileElemConstraint*)pEntry->getConstraint();
-    CString strMsg, strTem;
-    pConst->screenPrint(strTem);
-    strMsg.Format(_T("Delete pax type \"%s\"?"), strTem);
-    //if(MessageBox(strMsg, NULL, MB_YESNO) == IDYES)
+    m_pACEntryData->getEntryTimeDB()->DeleteEntry(pEntry);
+    m_paxList.DeleteItem((int)(pos-1));
+    int nItemCount = m_paxList.GetItemCount();
+    if(nItemCount >= (int)pos)
     {
-        m_pACEntryData->getEntryTimeDB()->DeleteEntry(pEntry);
-        m_paxList.DeleteItem((int)(pos-1));
-        int nItemCount = m_paxList.GetItemCount();
-        if(nItemCount >= (int)pos)
-        {
-            m_paxList.SetItemState((int)pos-1,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
-            m_paxList.SetFocus();
-        }
-        else if(nItemCount > 0)
-        {
-            m_paxList.SetItemState(nItemCount-1,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
-            m_paxList.SetFocus();
-        }
-
-        HTREEITEM hSelItem = m_procTree.GetSelectedItem();
-        ASSERT(hSelItem != NULL);
-        int iProcID = (int)m_procTree.GetItemData(hSelItem);
-        ProcessorID id = m_vProcs.at(iProcID);
-        if(m_pACEntryData->getEntryTimeDB()->getEntryCountByProcID(id) == 0)
-        {
-            ProcessorID idDefault;
-            idDefault.init();
-            if(id == idDefault)
-            {
-                AircraftEntryProcsEntry* pEntry = new AircraftEntryProcsEntry();
-                pEntry->useDefaultValue(m_pInTerm);
-                m_pACEntryData->getEntryTimeDB()->addEntry(pEntry);
-                ReloadPaxTypeList(hSelItem);
-                m_paxList.SetItemState(0,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
-                m_paxList.SetFocus();
-            }
-            else
-            {
-                COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hSelItem);
-                DWORD iData = m_procTree.GetItemData(hSelItem);
-                CCoolTree::InitNodeInfo(this, *pCni);
-                m_procTree.SetItemData(hSelItem, iData);
-                CRect recItem;
-                m_procTree.GetItemRect(hSelItem, recItem, FALSE);
-                m_procTree.InvalidateRect(&recItem);
-            }
-        }
-        GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+        m_paxList.SetItemState((int)pos-1,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+        m_paxList.SetFocus();
     }
+    else if(nItemCount > 0)
+    {
+        m_paxList.SetItemState(nItemCount-1,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+        m_paxList.SetFocus();
+    }
+
+    HTREEITEM hSelItem = m_procTree.GetSelectedItem();
+    ASSERT(hSelItem != NULL);
+    int iProcID = (int)m_procTree.GetItemData(hSelItem);
+    ProcessorID id = m_vProcs.at(iProcID);
+    if(m_pACEntryData->getEntryTimeDB()->getEntryCountByProcID(id) == 0)
+    {
+        ProcessorID idDefault;
+        idDefault.init();
+        if(id == idDefault)
+        {
+            AircraftEntryProcsEntry* pEntry = new AircraftEntryProcsEntry();
+            pEntry->useDefaultValue(m_pInTerm);
+            m_pACEntryData->getEntryTimeDB()->addEntry(pEntry);
+            ReloadPaxTypeList(hSelItem);
+            m_paxList.SetItemState(0,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+            m_paxList.SetFocus();
+        }
+        else
+        {
+            ReloadPaxTypeList(hSelItem);
+            COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hSelItem);
+            DWORD iData = m_procTree.GetItemData(hSelItem);
+            CCoolTree::InitNodeInfo(this, *pCni);
+            m_procTree.SetItemData(hSelItem, iData);
+            CRect recItem;
+            m_procTree.GetItemRect(hSelItem, recItem, FALSE);
+            m_procTree.InvalidateRect(&recItem);
+        }
+    }
+    GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
 }
 
 void CAircraftEntryProcessorDlg::OnSave()
@@ -714,6 +725,10 @@ void CAircraftEntryProcessorDlg::ReloadPaxTypeList(HTREEITEM hSelItem)
         {
             m_paxList.SetItemData(i, (DWORD)pEntry);
         }
+        else
+        {
+            m_paxList.SetItemData(i, (DWORD)(-1));
+        }
         ProbabilityDistribution* pProb = pEntry->getValue();
         m_paxList.SetItemText(i, 1, pProb->screenPrint());
         pEntry->GetBeginTime().printTime(strItem.GetBuffer(32));
@@ -727,7 +742,16 @@ void CAircraftEntryProcessorDlg::ReloadPaxTypeList(HTREEITEM hSelItem)
 
 LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if(message == WM_INPLACE_COMBO_KILLFOUCUS)
+    if(message == WM_COLLUM_INDEX)
+    {
+        int iItem = int(wParam);
+        int itemData = (int)m_paxList.GetItemData(iItem);
+        if(itemData == -1)
+        {
+            MessageBox(_T("Use toolbar button \"add\" please."));
+        }
+    }
+    else if(message == WM_INPLACE_COMBO_KILLFOUCUS)
     {
         int nCBSel = (int)wParam;
         LV_DISPINFO* pDispinfo = (LV_DISPINFO*)lParam;
@@ -735,11 +759,7 @@ LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, L
         int iSubItem = pDispinfo->item.iSubItem;
         ASSERT(nCBSel>=0 && nCBSel<=(int)_g_GetActiveProbMan(m_pInTerm)->getCount());
         AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(iItem);
-        if(pEntry == NULL)
-        {
-            ReloadPaxTypeList(m_procTree.GetSelectedItem());
-            return CDialog::DefWindowProc(message, wParam, lParam);
-        }
+        ASSERT(pEntry != NULL);
         CProbDistEntry* pPBEntry = NULL;
         if(nCBSel == 0) // NEW PROBABILITY DISTRIBUTION
         {
@@ -762,7 +782,6 @@ LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, L
             pPBEntry = _g_GetActiveProbMan(m_pInTerm)->getItem(nCBSel-1);
         }
 
-        ASSERT(pEntry);
         if(pEntry->getValue()->isEqual(pPBEntry->m_pProbDist))
         {
             CString strItem = pEntry->getValue()->screenPrint();
@@ -799,11 +818,14 @@ LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, L
             tempTime.set(*pOleTime);
 
             AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(iItem);
+            ASSERT(pEntry != NULL);
             if(iSubItem == 2) // edit begin time
             {
                 if(tempTime > pEntry->GetEndTime())
                 {
                     MessageBox("Begin Time can't be more than End Time", NULL,MB_OK|MB_ICONINFORMATION);
+                    CString strItem = pEntry->GetBeginTime().printTime();
+                    m_paxList.SetItemText(iItem, iSubItem, strItem);
                     pDispinfo = NULL;
                     return CDialog::DefWindowProc(message, wParam, lParam);;
                 }
@@ -819,6 +841,8 @@ LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, L
                 if(tempTime < pEntry->GetBeginTime())
                 {
                     MessageBox("End Time can't be less than Begin Time", NULL,MB_OK|MB_ICONINFORMATION);
+                    CString strItem = pEntry->GetEndTime().printTime();
+                    m_paxList.SetItemText(iItem, iSubItem, strItem);
                     pDispinfo = NULL;
                     return CDialog::DefWindowProc(message, wParam, lParam);
                 }
