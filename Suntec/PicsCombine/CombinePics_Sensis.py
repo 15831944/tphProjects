@@ -36,8 +36,9 @@ class GeneratorPicBinary_Sensis(object):
         print "--------------------------------------------------------------------------------------" 
         if os.path.isdir(destDir) == False:
             os.mkdir(destDir)
-        imageCount = len(imgList)
         destFile = os.path.join(destDir, self.get_output_image_name(imgList))
+        
+        imageCount = len(imgList)
         resultBuffer = struct.pack("<HH", 0xFEFE, imageCount)
     
         imageLens = []
