@@ -1,24 +1,39 @@
 #pragma once
 #include "afxcmn.h"
+#include "Inputs\IN_TERM.H"
+#include "CommonData\PROCID.H"
 #include "MFCExControl\CoolTree.h"
-#include "MFCExControl\ListCtrlEx.h"
+#include "Inputs\BridgeConnectorPaxData.h"
 
-class CDlgAircraftEntrySpec : public CDialog
+class CAircraftEntryProcessorDlg : public CDialog
 {
-    DECLARE_DYNAMIC(CDlgAircraftEntrySpec)
+    DECLARE_DYNAMIC(CAircraftEntryProcessorDlg)
 
 public:
-    CDlgAircraftEntrySpec(CWnd* pParent = NULL);
-    virtual ~CDlgAircraftEntrySpec();
-    enum { IDD = IDD_DIALOG_AIRCRAFTENTRYSPEC };
+    CAircraftEntryProcessorDlg(InputTerminal* _pInputTerm, CWnd* pParent = NULL);
+    virtual ~CAircraftEntryProcessorDlg();
+    enum { IDD = IDD_DIALOG_AIRCRAFTENTRYPROC };
 protected:
-    CCoolTree m_treeProcs;
-    CListCtrlEx m_listPaxTYpe;
+    BridgeConnectorPaxData* m_pPaxData;
+    InputTerminal* m_pInTerm;
+    CToolBar m_toolbarPaxType;
+    CCoolTree m_procTree;
+    CListCtrl m_listPaxType;
+private:
+    std::vector<int> m_vIncType; // included processor types
+    std::vector<ProcessorID> m_vProcs;
+
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);
+    afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    virtual BOOL OnInitDialog();
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+    afx_msg BOOL OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult);
     DECLARE_MESSAGE_MAP()
+private:
+    void InitACEntryProcTree();
+    void DisableAllToolBarButtons();
 private:
     int m_oldCx;
     int m_oldCy;

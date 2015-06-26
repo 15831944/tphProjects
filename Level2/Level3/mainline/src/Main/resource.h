@@ -1518,7 +1518,7 @@
 #define IDC_BUTTON_MODIFY               1119
 #define IDD_DIALOG_DISTRIBUTIONPARAMSPEC 1119
 #define IDC_PROGRESS_BCEXE              1120
-#define IDD_DIALOG_AIRCRAFTENTRYSPEC    1120
+#define IDD_DIALOG_AIRCRAFTENTRYPROC    1120
 #define IDC_STATIC_BCEXE                1121
 #define IDC_GATEASSIGNCTRL1             1122
 #define IDC_GATEASSIGNCTRL              1122
@@ -3458,8 +3458,7 @@
 #define IDC_STATIC11                    2449
 #define IDC_STATIC12                    2450
 #define IDC_TREE_ENTRYPROC              2451
-#define IDC_GROUPBOX_ENTRYPROC          2452
-#define IDC_GROUPBOX_PAXTYPE            2453
+#define IDC_STATIC_ENTRYPROC            2452
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5612,7 +5611,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1121
 #define _APS_NEXT_COMMAND_VALUE         35350
-#define _APS_NEXT_CONTROL_VALUE         2454
+#define _APS_NEXT_CONTROL_VALUE         2453
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

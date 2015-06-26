@@ -165,6 +165,7 @@
 #include <map>
 #include "Common/FloorChangeMap.h"
 #include "Inputs/Procdata.h"
+#include "DlgAircraftEntrySpec.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1931,7 +1932,7 @@ void CNodeView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 			s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
 			if( s.Compare( pNode->Name()) == 0)
 			{
-				CFltPaxDataDlg dlg(ENTRY_FLIGHT_TIME_DISTRIBUTION, this );
+				CAircraftEntryProcessorDlg dlg(GetInputTerminal(), this);
 				dlg.DoModal();
 			}
 
