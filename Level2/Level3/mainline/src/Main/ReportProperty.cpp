@@ -1950,6 +1950,7 @@ void CDlgReportProperty::OnAddArea()
 			{
 				m_treeArea.SetItemText(hPortalItem,strPortal);
 			}
+			m_treeArea.Expand(hItem, TVE_EXPAND);
 		}
 	}
 	else
@@ -1972,6 +1973,7 @@ void CDlgReportProperty::OnAddArea()
 			{
 				m_treeArea.SetItemText(hAreaItem,strArea);
 			}
+			m_treeArea.Expand(hItem, TVE_EXPAND);
 		}
 	}
 }

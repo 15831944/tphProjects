@@ -5,6 +5,7 @@
 #include "../compare/ModelsManager.h"
 #include "../common/ProjectManager.h"
 #include "DlgAddNewCmpReport.h"
+#include "CompareReportDoc.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -281,6 +282,7 @@ void CDlgOpenComparativeReport::OnEditProject()
     dlg.SetCmpProj(pCmpProj);
     if(dlg.DoModal() == IDOK)
     {
+        pCmpProj->RenameProjectPath(dlg.m_strName);
         pCmpProj->SetName(dlg.m_strName);
         pCmpProj->SetDescription(dlg.m_strDesc);
         CMPPROJECTMANAGER->saveDataSet(PROJMANAGER->GetAppPath(), false);
@@ -299,9 +301,17 @@ void CDlgOpenComparativeReport::OnDelProject()
 
     CString strCmpProj = pCmpProj->GetName();
     CString strMsg;
-    strMsg.Format(_T("Delete Comparative Report Project %s?"), strCmpProj);
-    if(MessageBox(strMsg, NULL, MB_YESNO) == IDYES)
+    strMsg.Format(_T("The comparative report project %s would be deleted permanently, are you sure to continue?"), strCmpProj);
+    if(MessageBox(strMsg, _T("Comparative Report"), MB_YESNO) == IDYES)
     {
+
+		if(IsCmpReportProjectOpen(strCmpProj))
+		{
+			strMsg.Format(_T("The project %s is opening, please close the project before deleting it."), strCmpProj );
+			MessageBox(strMsg, _T("Comparative Report"), MB_OK);
+			return;
+		}
+
         CMPPROJECTMANAGER->DeleteProjectByName(strCmpProj);
         CMPPROJECTMANAGER->saveDataSet(PROJMANAGER->GetAppPath(), false);
         m_ListReportsGroup.DeleteItem(nCurSel);
@@ -338,4 +348,47 @@ void CDlgOpenComparativeReport::OnLvnItemchangedListreportgroups(NMHDR *pNMHDR, 
     }
 
     *pResult = 0;
+}
+
+bool CDlgOpenComparativeReport::IsCmpReportProjectOpen( const CString& strCmpProjectName )
+{
+	//Check the comparative project is open
+	CWinApp* pWinApp = AfxGetApp();
+	ASSERT(pWinApp != NULL);
+	POSITION docTemplatePos = pWinApp->GetFirstDocTemplatePosition();
+	while(docTemplatePos)
+	{
+		CDocTemplate *pCurDocTemplate = pWinApp->GetNextDocTemplate(docTemplatePos);
+		POSITION posdoc = pCurDocTemplate->GetFirstDocPosition();
+		while (posdoc != NULL)
+		{
+			CDocument* pCurDoc = pCurDocTemplate->GetNextDoc(posdoc);
+			if (pCurDoc != NULL)
+			{
+				POSITION posview = pCurDoc->GetFirstViewPosition();
+				if (posview != NULL)
+				{
+					//CView* pV = pDoc->GetNextView(posview);
+					if(pCurDoc->IsKindOf(RUNTIME_CLASS(CCompareReportDoc)))
+					{
+						CCompareReportDoc *pCmpReportDoc = (CCompareReportDoc *)pCurDoc;
+						if(pCmpReportDoc)
+						{
+							CCmpReport* pCurCmpReport = pCmpReportDoc->GetCmpReport();
+							if( pCurCmpReport && pCurCmpReport->GetComparativeProject())
+							{
+								CString strCurDocReportName = pCurCmpReport->GetComparativeProject()->GetName();
+								if (strCurDocReportName.CompareNoCase(strCmpProjectName) == 0)
+								{
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false;
 }

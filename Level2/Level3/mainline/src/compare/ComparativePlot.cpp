@@ -99,7 +99,7 @@ bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData,int nSubType)
 			bResult = Draw3DChart((CComparativSpaceThroughputReport&)_reportData);
 			break;
         case ProcessorUtilizationReport:
-			bResult = Draw3DChart((CComparativeProcUtilizationReport&)_reportData);
+            bResult = Draw3DChart((CComparativeProcUtilizationReport&)_reportData,nSubType);
             break;
 		default:
 			ASSERT(FALSE);
@@ -1079,29 +1079,19 @@ bool CComparativePlot::Draw3DChart( CComparativSpaceThroughputReport& _reportDat
 	return true;
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportData)
+bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportData, int nSubType)
 {
+    CmpProcUtilizationSubType subType = (CmpProcUtilizationSubType)nSubType;
+
     C2DChartData c2dGraphData;
-    // Update Title
-    c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
-    c2dGraphData.m_strXtitle = _T("Processor");
 
-    //set footer
-    CString strFooter;
-    c2dGraphData.m_strFooter = _reportData.GetFooter(0);
-
-    // Insert legend.
-    c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
-    c2dGraphData.m_vrLegend.push_back(_T("Idle Time"));
+    _reportData.SetGraphTitle(c2dGraphData, nSubType);
 
     // Insert data
     CString strXTick;
     std::vector<CString> vStrXTick;
-    c2dGraphData.m_vr2DChartData.resize(2);
-
     if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
     {
-        c2dGraphData.m_strChartTitle = _T(" Utilization Time(Detail) ");
         const mapProcUtilizationDetail& mapDetail = _reportData.GetMapDetailResult();
         std::vector<CString>& vSimName = _reportData.GetSimNameList();
         std::vector<CString>::const_iterator simNameItor = vSimName.begin();
@@ -1113,14 +1103,61 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
             {
                 strXTick = *simNameItor + _T(".") + dataItor->m_strProc;
                 vStrXTick.push_back(strXTick);
-                c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
-                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dIdleTime/3600.0f));
+
+                switch(nSubType)
+                {
+                case UtilizationSubType_DetailUtilizationTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 2);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
+                        c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dIdleTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_DetailServiceTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_DetailIdleTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dIdleTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_DetailAvailableTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 2);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dScheduledTime/3600.0f));
+                        c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dOverTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_DetailScheduledTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dScheduledTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_DetailOvertime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dOverTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_DetailPercentage:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(dataItor->m_fUtilization);
+                    }
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
     else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
     {
-        c2dGraphData.m_strChartTitle = _T(" Utilization Time(Summary) ");
         const mapProcUtilizationSummary& mapSummary = _reportData.GetMapSummaryResult();
         std::vector<CString>& vSimName = _reportData.GetSimNameList();
         std::vector<CString>::const_iterator simNameItor = vSimName.begin();
@@ -1132,8 +1169,56 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
             {
                 strXTick = *simNameItor + _T(".") + dataItor->m_strProc;
                 vStrXTick.push_back(strXTick);
-                c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
-                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dIdleTime/3600.0f));
+
+                switch(nSubType)
+                {
+                case UtilizationSubType_SummaryUtilizationTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 2);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
+                        c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dIdleTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_SummaryServiceTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_SummaryIdleTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dIdleTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_SummaryAvailableTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 2);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dScheduledTime/3600.0f));
+                        c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dOverTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_SummaryScheduledTime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dScheduledTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_SummaryOvertime:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dOverTime/3600.0f));
+                    }
+                    break;
+                case UtilizationSubType_SummaryPercentage:
+                    {
+                        ASSERT(c2dGraphData.m_vr2DChartData.size() == 1);
+                        c2dGraphData.m_vr2DChartData[0].push_back(dataItor->m_fUtilization);
+                    }
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
@@ -1145,6 +1230,6 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
 
 bool CComparativePlot::Update3DChart(ThreeDChartType iType)
 {
-	m_iType = iType;
-	return true;
+    m_iType = iType;
+    return true;
 }

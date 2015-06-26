@@ -69,7 +69,7 @@ void CCmpReportListView::OnSize(UINT nType, int cx, int cy)
 		m_wndListCtrl.MoveWindow(&rc);
 	}
 
-	SetScaleToFitSize(CSize(cx,cy));
+//	SetScaleToFitSize(CSize(cx,cy));
 }
 void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {

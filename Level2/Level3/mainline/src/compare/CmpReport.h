@@ -11,9 +11,6 @@ public:
 public:
 	void SetFocusReportName(const CString& strFocusReport);
 	CString GetFocusReportName();
-	BOOL CheckData();
-	BOOL GetModifyFlag();
-	void SetModifyFlag(BOOL bModified);
 	CString GetHostName(const CString& strFolder);
 	Terminal* GetTerminal();
 	BOOL Run(HWND hwnd, CCompRepLogBar* pWndStatus,void (CALLBACK * _ShowCopyInfo)(int, LPCTSTR));
@@ -24,7 +21,6 @@ public:
 
 	bool InitReport(const CString& strName);
 protected:
-	BOOL m_bModified;
 	CString m_strFocusRepName;
 
 	CComparativeProject* m_compProject;

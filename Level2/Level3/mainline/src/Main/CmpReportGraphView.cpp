@@ -6,6 +6,7 @@
 #include ".\cmpreportgraphview.h"
 #include ".\compare\ComparativeQLengthReport.h"
 #include ".\compare\ComparativeSpaceDensityReport.h"
+#include ".\compare\ComparativeProcUtilizationReport.h"
 #include "RepGraphViewBaseOperator.h"
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
@@ -404,12 +405,40 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
         {
             if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
             {
-                m_comboRepSubType.AddString("Utilization(Detail)");
+                int nIndex = -1;
+                nIndex = m_comboRepSubType.AddString("Utilization Time(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailUtilizationTime);
+                nIndex = m_comboRepSubType.AddString("Utilization Time - Time in Service(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailServiceTime);
+                nIndex = m_comboRepSubType.AddString("Utilization Time - Idle Time(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailIdleTime);
+                nIndex = m_comboRepSubType.AddString("Time Available(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailAvailableTime);
+                nIndex = m_comboRepSubType.AddString("Time Available - Scheduled Time(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailScheduledTime);
+                nIndex = m_comboRepSubType.AddString("Time Available - OverTime(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailOvertime);
+                nIndex = m_comboRepSubType.AddString("Utilization Percentage(Detail)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_DetailPercentage);
                 m_comboRepSubType.SetCurSel(0);
             }
             else
             {
-                m_comboRepSubType.AddString("Utilization(Summary)");
+                int nIndex = -1;
+                nIndex = m_comboRepSubType.AddString("Utilization Time(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryUtilizationTime);
+                nIndex = m_comboRepSubType.AddString("Utilization Time - Time in Service(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryServiceTime);
+                nIndex = m_comboRepSubType.AddString("Utilization Time - Idle Time(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryIdleTime);
+                nIndex = m_comboRepSubType.AddString("Time Available(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryAvailableTime);
+                nIndex = m_comboRepSubType.AddString("Time Available - Scheduled Time(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryScheduledTime);
+                nIndex = m_comboRepSubType.AddString("Time Available - OverTime(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryOvertime);
+                nIndex = m_comboRepSubType.AddString("Utilization Percentage(Summary)");
+                m_comboRepSubType.SetItemData(nIndex, UtilizationSubType_SummaryPercentage);
                 m_comboRepSubType.SetCurSel(0);
             }
         }

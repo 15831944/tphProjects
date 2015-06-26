@@ -690,6 +690,18 @@ BOOL CComparativeProject::DeleteProjectPath()
     return TRUE;
 }
 
+BOOL CComparativeProject::RenameProjectPath(const CString& strNewName)
+{
+    CString strProjPath = PROJMANAGER->GetAppPath();
+
+    CString strSrc = strProjPath + _T("\\Comparative Report\\") + m_strName;
+    CString strDest = strProjPath += _T("\\Comparative Report\\") + strNewName;
+    if(m_fo.Rename(strSrc, strDest))
+        return TRUE;
+    else
+        return FALSE;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -723,7 +735,6 @@ void CComparativeProjectDataSet::readData(ArctermFile& p_file)
 		memset(buf, 0, sizeof(buf) / sizeof(char));
 		if (p_file.getField(buf, 255) != 0)
 			proj->SetName(buf);
-			proj->SetOriName(buf);
 		
 		// read the project description
 		memset(buf, 0, sizeof(buf) / sizeof(char));

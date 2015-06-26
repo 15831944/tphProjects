@@ -18,6 +18,28 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// Neutral (Sys. Default) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
+LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
+    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
+END
+
+#endif    // Neutral (Sys. Default) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
@@ -651,7 +673,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,51,188,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,108,188,50,14
-    LISTBOX         IDC_LIST_AREA,7,21,185,162,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_AREA,7,21,185,162,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Please select one area",IDC_STATIC,7,7,87,9
 END
 
@@ -1104,7 +1126,7 @@ FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,243,145,44,14
     PUSHBUTTON      "Cancel",IDCANCEL,293,145,44,14
-    CONTROL         "List1",IDC_LISTREPORTGROUPS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_TABSTOP,0,23,339,116,WS_EX_CLIENTEDGE
+    CONTROL         "List1",IDC_LISTREPORTGROUPS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_TABSTOP,3,23,340,116,WS_EX_CLIENTEDGE
 END
 
 IDD_DIALOG_MODELSSELECTION DIALOG 0, 0, 330, 178
@@ -6675,17 +6697,17 @@ BEGIN
     COMBOBOX        IDC_REPORT_SUBTYPE_COMBO,289,3,107,93,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
-IDD_CMPREPORTADDNEW DIALOGEX 0, 0, 233, 103
+IDD_CMPREPORTADDNEW DIALOGEX 0, 0, 283, 127
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Creating new Comparative Report"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,116,82,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,174,82,50,14
-    EDITTEXT        IDC_CMPREPORTNAME,13,14,207,12,ES_AUTOHSCROLL
-    EDITTEXT        IDC_CMPREPORTDESCRI,13,49,207,19,ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL
-    GROUPBOX        "Name",IDC_STATIC_CMPREPORTNAME,6,3,222,30
-    GROUPBOX        "Description",IDC_STATIC_CMPREPORTDESCRI,6,38,222,39
+    DEFPUSHBUTTON   "OK",IDOK,144,108,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,211,108,50,14
+    EDITTEXT        IDC_CMPREPORTNAME,13,14,262,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_CMPREPORTDESCRI,13,49,261,44,ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL
+    GROUPBOX        "Name",IDC_STATIC_CMPREPORTNAME,6,3,273,30
+    GROUPBOX        "Description",IDC_STATIC_CMPREPORTDESCRI,6,38,273,61
 END
 
 IDD_DIALOG_VEHICLECHARA DIALOGEX 0, 0, 254, 311
@@ -6784,7 +6806,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,51,188,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,108,188,50,14
-    LISTBOX         IDC_LIST_AREA,7,21,185,162,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LIST_AREA,7,21,185,162,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Please select one portal",IDC_STATIC,7,7,87,9
 END
 
@@ -6839,6 +6861,10 @@ BEGIN
         HORZGUIDE, 84
         HORZGUIDE, 120
         HORZGUIDE, 140
+    END
+
+    IDD_DIALOG_SELECTAREA, DIALOG
+    BEGIN
     END
 
     IDD_AIRSIDEREPORTLISTVIEW, DIALOG
@@ -6922,6 +6948,8 @@ BEGIN
 
     IDD_CMPREPORTADDNEW, DIALOG
     BEGIN
+        RIGHTMARGIN, 233
+        BOTTOMMARGIN, 103
     END
 
     IDD_DIALOG_IMPORT_SHAPEBAR, DIALOG
@@ -18003,28 +18031,6 @@ BEGIN
 END
 
 #endif    // English (United States) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Sys. Default) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
-LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE
-BEGIN
-    ID_TOOLBARBUTTONCOPY    "Copy\nCopy"
-    ID_TOOLBARBUTTONPASTE   "Paste\nPaste"
-END
-
-#endif    // Neutral (Sys. Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

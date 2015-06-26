@@ -217,7 +217,7 @@ void CCmpReportTreeView::InitRootItems()
 	m_hBasicInfo = m_propTree.InsertItem(_T("BASIC INFO"), cni, FALSE, FALSE, TVI_ROOT);
 	m_hModelRoot = m_propTree.InsertItem(_T("MODELS"),cni, FALSE, FALSE, TVI_ROOT);
 	m_hReportRoot = m_propTree.InsertItem(_T("REPORTS"),cni, FALSE, FALSE, TVI_ROOT);
-	cni.net = NET_LABLE;
+    cni.net =  NET_SHOW_DIALOGBOX;
 	m_hProjName = m_propTree.InsertItem(_T("Name"), cni, FALSE, FALSE,m_hBasicInfo, TVI_LAST);
 	m_hProjDesc = m_propTree.InsertItem(_T("Description"),cni, FALSE, FALSE, m_hBasicInfo, TVI_LAST);
 	m_propTree.Expand(m_hBasicInfo, TVE_EXPAND);
@@ -499,13 +499,16 @@ void CCmpReportTreeView::AddModel()
 	{
 		pManager->InitTerminal(NULL,strProj,_ShowCopyInfo);
 		UpdateSubItems(m_hModelRoot);
-		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
 	}
 }
 
 void CCmpReportTreeView::DeleteSelectedModel()
-{			
+{		
+
+	if(MessageBox(_T("Are you sure to delete this project?"), _T("Comparative Report"), MB_OKCANCEL) == IDCANCEL)
+		return;
+
 	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 	HTREEITEM hSubItem = m_propTree.GetChildItem(hSelItem);
 	CString strModelName = m_propTree.GetItemText(hSubItem);
@@ -515,7 +518,6 @@ void CCmpReportTreeView::DeleteSelectedModel()
 	{
 		UpdateSubItems(m_hModelRoot);
 		UpdateSubItems(m_hReportRoot);
-		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
 	}
 }
@@ -563,7 +565,6 @@ void CCmpReportTreeView::AddReport()
 		const CReportToCompare& report = dlg.GetReport();
 		pRManager->AddReport(report);
 		UpdateSubItems(m_hReportRoot);
-		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
 	}
 }
@@ -594,7 +595,6 @@ void CCmpReportTreeView::EditReport()
 			strReportName = report.GetName();
 			m_propTree.SetItemText(hSelItem, strReportName.MakeUpper());
 			ReloadReportDetailSubItems(report, hSelItem);
-			m_pCmpReport->SetModifyFlag(TRUE);
 			m_pCmpReport->SaveProject();
 		}
 	}
@@ -602,6 +602,9 @@ void CCmpReportTreeView::EditReport()
 
 void CCmpReportTreeView::DeleteReport()
 {
+	if(MessageBox(_T("Are you sure to delete this report?"), _T("Comparative Report"), MB_OKCANCEL) == IDCANCEL)
+		return;
+
 	HTREEITEM hSelItem = m_propTree.GetSelectedItem();
 	CString strReportName = m_propTree.GetItemText(hSelItem);
 	
@@ -617,7 +620,6 @@ void CCmpReportTreeView::DeleteReport()
 	}
 
 	UpdateSubItems(m_hReportRoot);
-	m_pCmpReport->SetModifyFlag(TRUE);
 	m_pCmpReport->SaveProject();
 }
 
@@ -698,49 +700,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 		HTREEITEM hCurItem = (HTREEITEM)wParam;
 		CString strValue=*((CString*)lParam);
 		CComparativeProject* pComProj = m_pCmpReport->GetComparativeProject();
-		if(hCurItem == m_hProjName)
-		{
-			CString strOriName = pComProj->GetOriName();
-			if(strValue.IsEmpty())
-			{
-				ReleaseCapture();
-				MessageBox("The name is empty, please input the project name.", NULL, MB_OK | MB_ICONWARNING);
-				return 0;
-			}
-			if (strValue.CompareNoCase(strOriName) == 0)
-			{
-				ReleaseCapture();
-				return 0;
-			}
-			if(m_pCmpReport->ProjExists(strValue))
-			{
-				ReleaseCapture();
-				CString strTemp;
-				strTemp.Format(_T("The Comparative Report \"%s\" already exists, please rename."), strValue);
-				MessageBox(strTemp, NULL, MB_ICONWARNING | MB_OK);
-				return 0;
-			}
-			strItemText.Format("Name: %s", strValue.MakeUpper());
-			m_propTree.SetItemText(hCurItem, strItemText);
-			pComProj->SetName(strValue);
-		}
-		else if(hCurItem == m_hProjDesc)
-		{
-			if(m_pCmpReport->GetComparativeProject()->GetName().IsEmpty())
-			{
-				MessageBox("The name is empty, please set the project name!");
-				m_propTree.SetItemText(hCurItem, "Description");
-				return 0;
-			}
-			if(strValue.IsEmpty())
-				strItemText = "Description";
-			else
-				strItemText.Format("Description: %s", strValue);
-			m_propTree.SetItemText(hCurItem, strItemText);
-			pComProj->SetDescription(strValue);
-		}
-		m_pCmpReport->SetModifyFlag(TRUE);
-		m_pCmpReport->SaveProject();
 	}
 	if(message == UM_CEW_STATUS_CHANGE)
 	{
@@ -777,7 +736,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 		default:
 			break;
 		}
-		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
 	}
 	if(message == WM_LBUTTONDBLCLK)

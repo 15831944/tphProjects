@@ -40,6 +40,8 @@ private:
     void FillProjectList();
     void AddProjInfoToListEnd(CComparativeProject* pProject);
 
+	bool IsCmpReportProjectOpen(const CString& strCmpProjectName);
+
 protected:
     CString m_strName;
     CString m_strDesc;

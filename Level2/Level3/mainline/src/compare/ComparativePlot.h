@@ -40,7 +40,7 @@ private:
 	bool Draw3DChart(CComparativeAcOperationReport& _reportData);
 	bool Draw3DChart(CComparativeTimeTerminalReport& _reportData);
 	bool Draw3DChart(CComparativeDistanceTravelReport & _reportData);
-    bool Draw3DChart(CComparativeProcUtilizationReport & _reportData);
+    bool Draw3DChart(CComparativeProcUtilizationReport & _reportData,int nSubType);
 	ThreeDChartType m_iType;
 	CARC3DChart& m_3DChart;
 };

@@ -41,9 +41,6 @@ public:
 public:
 	const CString& GetName() const;
 	void SetName(const CString& strName);
-	
-	CString GetOriName() const { return m_strOriName; }
-	void SetOriName(CString strName) { m_strOriName = strName; }
 
 	const CString& GetDescription() const;
 	void SetDescription(const CString& strDesc);
@@ -91,6 +88,7 @@ public:
 	BOOL	TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK *_ShowCopyInfo)(int, LPCTSTR));
 	BOOL	RemoveFolder();
 
+    BOOL    RenameProjectPath(const CString& strNewName);
 
 	BOOL	Run(CCompRepLogBar* pWndStatus,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 	void	Stop(BOOL bStop = TRUE){if (m_bRunning) m_bStop = bStop;}

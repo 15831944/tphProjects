@@ -117,3 +117,37 @@ void CCmpReportChildFrameSplit::OnUpdateFrameMenu (BOOL bActivate, CWnd* pActiva
 // 	if(bActivate)
 // 		GetDocument()->UpdateTrackersMenu();
 }
+
+void CCmpReportChildFrameSplit::OnUpdateFrameTitle( BOOL bAddToTitle )
+{
+	// update our parent window first
+	GetMDIFrame()->OnUpdateFrameTitle(bAddToTitle);
+
+	if ((GetStyle() & FWS_ADDTOTITLE) == 0)
+		return;     // leave child window alone!
+
+	CDocument * pDocument = GetActiveDocument();
+	if(bAddToTitle)
+	{
+		TCHAR szText[256+_MAX_PATH] = {0};
+		CCmpReport* pReport =  ((CCompareReportDoc*)pDocument)->GetCmpReport();
+		if (pReport)
+		{
+			CComparativeProject* pProject =  pReport->GetComparativeProject();
+			if (pProject)
+			{
+				const CString projName = pProject->GetName();
+				lstrcpy(szText, projName + " - " + "Comparative report");
+			}
+			else
+			{
+				lstrcpy(szText, "Comparative report");
+			}
+		}
+		else 
+		{
+				lstrcpy(szText, "Comparative report");
+		}
+		this->SetWindowText(szText);
+	}
+}

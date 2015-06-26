@@ -3,6 +3,7 @@
 #include "ComparativeReportResult.h"
 #include "Common\elaptime.h"
 #include <map>
+#include "AirsideReport\ChartDataDefine.h"
 
 class CmpProcUtilizationDetailData
 {
@@ -40,6 +41,25 @@ typedef std::map<CString, std::vector<CmpProcUtilizationDetailData>> mapProcUtil
 //              <strSim, vector<processor utilization data>>
 typedef std::map<CString, std::vector<CmpProcUtilizationSummaryData>> mapProcUtilizationSummary;
 
+typedef enum 
+{
+    UtilizationSubType_DetailUtilizationTime,
+    UtilizationSubType_DetailServiceTime,
+    UtilizationSubType_DetailIdleTime,
+    UtilizationSubType_DetailAvailableTime,
+    UtilizationSubType_DetailScheduledTime,
+    UtilizationSubType_DetailOvertime,
+    UtilizationSubType_DetailPercentage,
+
+    UtilizationSubType_SummaryUtilizationTime,
+    UtilizationSubType_SummaryServiceTime,
+    UtilizationSubType_SummaryIdleTime,
+    UtilizationSubType_SummaryAvailableTime,
+    UtilizationSubType_SummaryScheduledTime,
+    UtilizationSubType_SummaryOvertime,
+    UtilizationSubType_SummaryPercentage
+} CmpProcUtilizationSubType;
+
 class CComparativeProcUtilizationReport : public CCmpBaseReport
 {
 public:
@@ -55,6 +75,7 @@ public:
     const mapProcUtilizationSummary& GetMapSummaryResult() { return m_mapSummary; }
 
 	CString GetFooter(int iSubType)const;
+    void SetGraphTitle(C2DChartData& c2DChartData, int iSubType);
 protected:
 	void MergeSampleDetail(const ElapsedTime& tInteval);
 	bool SaveReportDetail(ArctermFile& file) const;

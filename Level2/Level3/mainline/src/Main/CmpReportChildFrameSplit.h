@@ -15,6 +15,7 @@ public:
 
 	// ClassWizard generated virtual function overrides
     virtual void OnUpdateFrameMenu (BOOL bActivate, CWnd* pActivateWnd, HMENU hMenuAlt);
+	virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 	//{{AFX_VIRTUAL(CReportChildFrameSplit)
 	protected:
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);

@@ -20,7 +20,6 @@
 CCmpReport::CCmpReport(void)
 {
 	m_strFocusRepName.Empty();
-	m_bModified = FALSE;
 	m_compProject = NULL;
 }
 
@@ -31,7 +30,7 @@ CCmpReport::~CCmpReport(void)
 
 CComparativeProject* CCmpReport::GetComparativeProject()
 {
-	ASSERT(m_compProject != NULL);
+//	ASSERT(m_compProject != NULL);
 
 	return m_compProject;
 }
@@ -61,78 +60,19 @@ BOOL CCmpReport::ProjExists(const CString& strName)
 
 BOOL CCmpReport::SaveProject()
 {
-	//	Save Project Information
+    CString strAppPath = PROJMANAGER->GetAppPath();
+    // check if the comparative report exists, if does not, create it
+    CString strPath = strAppPath + _T("\\Comparative Report\\");
+    if (!::PathFileExists(strPath))
+    {
+        if(::CreateDirectory(strPath, NULL) == FALSE)
+            return FALSE;
+    }
 
-	if (!CheckData())
-		return FALSE;
-
-	if (!m_bModified)
-		return TRUE;
-	//	create folder;
-	CString strPath = PROJMANAGER->GetAppPath();
-	strPath += _T("\\Comparative Report\\");
-
-
-
-
-	// check if the comparative report exists, if does not, create it
-	if (!::PathFileExists(strPath))
-	{
-		if(::CreateDirectory(strPath, NULL) == FALSE)
-			return FALSE;
-	}
-
-	CComparativeProjectDataSet dsProj;
-	dsProj.loadDataSet(PROJMANAGER->GetAppPath());
-
-
-	std::vector<CComparativeProject *> vProjs;
-	BOOL bFound = FALSE;
-	if (dsProj.GetProjects(vProjs))
-	{
-		CString strOriName = m_compProject->GetOriName();
-		for (int i = 0; i < static_cast<int>(vProjs.size()); i++)
-		{
-			if (vProjs[i]->GetName().CompareNoCase(strOriName) == 0)
-			{
-				vProjs[i]->SetName(m_compProject->GetName());
-				vProjs[i]->SetDescription(m_compProject->GetDescription());
-				vProjs[i]->SetLastModifiedTime(CTime::GetCurrentTime());
-				bFound = TRUE;
-				break;
-			}
-		}
-	}
-
-	if (!bFound)
-	{
-		TCHAR szName[128];
-		DWORD dwBufferLen = 128;
-		::GetUserName(szName, &dwBufferLen);
-		m_compProject->SetUser(szName);
-		::GetComputerName(szName, &dwBufferLen);
-		m_compProject->SetServerName(szName);
-		m_compProject->SetCreatedTime(CTime::GetCurrentTime());
-		m_compProject->SetLastModifiedTime(CTime::GetCurrentTime());
-		vProjs.push_back(m_compProject);
-	}
-
-	m_compProject->SetOriName(m_compProject->GetName());
-	dsProj.SetProjects(vProjs);
-	dsProj.saveDataSet(PROJMANAGER->GetAppPath(), false);
-
-
-	strPath += m_compProject->GetName();
-
-
-	m_compProject->GetInputParam()->SaveData(strPath);
-
-	m_bModified = FALSE;
-	SetModifyFlag(FALSE);
-
-	m_compProject->SetMatch(FALSE);	
-
-	return TRUE;
+    strPath += m_compProject->GetName();
+    m_compProject->GetInputParam()->SaveData(strPath);
+    m_compProject->SetMatch(FALSE);
+    return TRUE;
 }
 
 BOOL CCmpReport::LoadProject(const CString &strName, const CString& strDesc)
@@ -215,40 +155,6 @@ CString CCmpReport::GetHostName(const CString &strFolder)
 
 	str.MakeUpper();
 	return str;
-}
-
-void CCmpReport::SetModifyFlag(BOOL bModified)
-{
-	m_bModified = bModified;
-}
-
-BOOL CCmpReport::GetModifyFlag()
-{
-	return m_bModified;
-}
-
-BOOL CCmpReport::CheckData()
-{
-	if (m_compProject->GetName().IsEmpty())
-	{
-		AfxMessageBox(_T("Please fill the project name."));
-		return FALSE;
-	}
-
-	//if (!m_compProject.GetInputParam()->GetModelsManagerPtr()->GetModelsList().size())
-	//{
-	//	AfxMessageBox(_T("Please add one or more model(s)."));
-	//	return FALSE;
-	//}
-
-	//if (!m_compProject.GetInputParam()->GetReportsManagerPtr()->GetReportsList().size())
-	//{
-	//	AfxMessageBox(_T("Please add one or more report(s)."));
-	//	return FALSE;
-	//}
-
-
-	return TRUE;
 }
 
 void CCmpReport::SetFocusReportName( const CString& strFocusReport )

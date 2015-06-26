@@ -27,7 +27,10 @@ void CmpProcUtilizationDetailData::ReadData(ArctermFile& file)
     file.getTime(m_dActualTime);
     file.getTime(m_dServiceTime);
     file.getTime(m_dIdleTime);
-    file.getFloat(m_fUtilization);
+    CString strTemp;
+    file.getField(strTemp.GetBuffer(256), 255);
+    strTemp.ReleaseBuffer();
+    m_fUtilization = (float)atof(strTemp);
 }
 
 void CmpProcUtilizationDetailData::WriteData(ArctermFile& file) const
@@ -65,7 +68,10 @@ void CmpProcUtilizationSummaryData::ReadData(ArctermFile& file)
     file.getTime(m_dActualTime);
     file.getTime(m_dServiceTime);
     file.getTime(m_dIdleTime);
-    file.getFloat(m_fUtilization);
+    CString strTemp;
+    file.getField(strTemp.GetBuffer(256), 255);
+    strTemp.ReleaseBuffer();
+    m_fUtilization = (float)atof(strTemp);
 }
 
 void CmpProcUtilizationSummaryData::WriteData(ArctermFile& file) const
@@ -411,9 +417,261 @@ bool CComparativeProcUtilizationReport::LoadReportSummary(ArctermFile& file)
     return true;
 }
 
-CString CComparativeProcUtilizationReport::GetFooter( int iSubType ) const
+CString CComparativeProcUtilizationReport::GetFooter(int iSubType) const
 {
-	CString strFooter;
-	strFooter.Format(_T("Comparative Report Processor Utilization(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
-	return strFooter;
+    CString strFooter;
+    strFooter.Format(_T("Comparative Report Processor Utilization(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+    return strFooter;
+}
+
+void CComparativeProcUtilizationReport::SetGraphTitle(C2DChartData& c2dGraphData, int iSubType)
+{
+    CmpProcUtilizationSubType nSubType = (CmpProcUtilizationSubType)iSubType;
+    switch(nSubType)
+    {
+    case UtilizationSubType_DetailUtilizationTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Time(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
+            c2dGraphData.m_vrLegend.push_back(_T("Idle Time"));
+
+            c2dGraphData.m_vr2DChartData.resize(2);
+        }
+        break;
+    case UtilizationSubType_DetailServiceTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Time - Time in Service(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_DetailIdleTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Time - Idle Time(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Idle Time"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_DetailAvailableTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Time Available(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Time Available(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Scheduled Time"));
+            c2dGraphData.m_vrLegend.push_back(_T("Overtime"));
+
+            c2dGraphData.m_vr2DChartData.resize(2);
+        }
+        break;
+    case UtilizationSubType_DetailScheduledTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Time Available - Scheduled Time(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Time Available(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Scheduled Time"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_DetailOvertime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Time Available - Overtime(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Time Available(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Overtime"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_DetailPercentage:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Percentage(Detail) ");
+            c2dGraphData.m_strYtitle = _T("Utilization(100%)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Utilization"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_SummaryUtilizationTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Time(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
+            c2dGraphData.m_vrLegend.push_back(_T("Idle Time"));
+
+            c2dGraphData.m_vr2DChartData.resize(2);
+        }
+        break;
+    case UtilizationSubType_SummaryServiceTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Time - Time in Service(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter = GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_SummaryIdleTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Time - Idle Time(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter =  GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Idle Time"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_SummaryAvailableTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Time Available(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Time Available(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter =  GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Scheduled Time"));
+            c2dGraphData.m_vrLegend.push_back(_T("Overtime"));
+
+            c2dGraphData.m_vr2DChartData.resize(2);
+        }
+        break;
+    case UtilizationSubType_SummaryScheduledTime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Time Available - Scheduled Time(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Time Available(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter =  GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Scheduled Time"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_SummaryOvertime:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Time Available - Overtime(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Time Available(Hours)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter =  GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Overtime"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    case UtilizationSubType_SummaryPercentage:
+        {
+            // Update Title
+            c2dGraphData.m_strChartTitle = _T(" Utilization Percentage(Summary) ");
+            c2dGraphData.m_strYtitle = _T("Utilization(100%)");
+            c2dGraphData.m_strXtitle = _T("Processor");
+
+            //set footer
+            CString strFooter;
+            c2dGraphData.m_strFooter =  GetFooter(iSubType);
+
+            // Insert legend.
+            c2dGraphData.m_vrLegend.push_back(_T("Utilization"));
+
+            c2dGraphData.m_vr2DChartData.resize(1);
+        }
+        break;
+    default:
+        break;
+    }
 }
