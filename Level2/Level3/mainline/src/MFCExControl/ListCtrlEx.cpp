@@ -43,7 +43,6 @@ BEGIN_MESSAGE_MAP(CListCtrlEx, CListCtrl)
 	ON_WM_LBUTTONDOWN()
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 	ON_NOTIFY_REFLECT_EX(LVN_ENDLABELEDIT, OnEndlabeledit)
-    ON_NOTIFY_REFLECT_EX(LVN_ITEMCHANGED, OnLvnItemchanged)
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_RBUTTONDOWN()
 	ON_WM_KEYDOWN( )
@@ -235,6 +234,18 @@ BOOL CListCtrlEx::OnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult)
 		SetItemText(plvItem->iItem, plvItem->iSubItem, plvItem->pszText);
 	*pResult = FALSE;
 	return FALSE;
+}
+
+void CListCtrlEx::OnLButtonDown(UINT nFlags, CPoint point) 
+{
+    CListCtrl::OnLButtonDown(nFlags, point);
+	int index;
+	if((index = HitTestEx(point, NULL)) != -1)
+	{
+		LastTimeSelection = CurrentSelection;
+		CurrentSelection = index;
+		SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
+	}
 }
 
 // EditSubLabel		- Start edit of a sub item label
@@ -1002,21 +1013,6 @@ void CListCtrlEx::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
         dc.FillRect(&rcRemain, &brush);
         dc.Detach();
     }
-}
-
-BOOL CListCtrlEx::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
-{
-    LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
-    if (pNMLV->uChanged & LVIF_STATE)
-    {
-        if (((pNMLV->uOldState & LVIS_SELECTED) != (pNMLV->uNewState & LVIS_SELECTED)) 
-            || ((pNMLV->uOldState & LVIS_STATEIMAGEMASK) != (pNMLV->uNewState & LVIS_STATEIMAGEMASK)))
-        {
-            InvalidateItemRect(pNMLV->iItem);
-        }
-    }
-    *pResult = 0;
-    return FALSE;
 }
 
 void CListCtrlEx::InvalidateItemRect(int nItem)

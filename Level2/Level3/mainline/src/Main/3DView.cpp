@@ -2748,11 +2748,8 @@ void C3DView::OnDestroy()
 	ANIMTIMEMGR->Enroll3DView(NULL);
 	GetDocument()->StopAnimation();
 
-#if _USECHLOE_ONBOARD
-	//chloe
-	CHLOE_SYSTEM(ARCRSystem)->destory_scene(m_OnBoradScene);
-	//
-#endif
+	cpputil::autoPtrReset(m_pViewPBuffer);
+	cpputil::autoPtrReset(m_pFloorPBuffer);
 
 	CView::OnDestroy();
 	wglMakeCurrent(NULL, NULL);		// make RC non-current
@@ -9588,11 +9585,7 @@ void C3DView::OnDetachCrossWalk(UINT nID)
 
 
 C3DView::~C3DView()
-{
-	//	delete m_pDlgMovie;
+{	//	delete m_pDlgMovie;
 	delete m_pPickConveyorTree;
-
-	if(m_pViewPBuffer)delete m_pViewPBuffer;
-	if(m_pFloorPBuffer)delete m_pFloorPBuffer;
 
 }

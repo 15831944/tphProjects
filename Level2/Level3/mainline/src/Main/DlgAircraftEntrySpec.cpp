@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "TermPlan.h"
+#include "Common\WinMsg.h"
 #include "Common\strdict.h"
 #include "DlgAircraftEntrySpec.h"
 #include "afxdialogex.h"
@@ -9,6 +10,7 @@
 #include "DestributionParameterSpecificationDlg.h"
 #include "PassengerTypeDialog.h"
 #include "Inputs\PROBAB.H"
+#include "DlgProbDist.h"
 
 const static COLORREF SELECTED_COLOR = RGB(53, 151, 53);
 static UniformDistribution u2_10(2.0f, 10.0f);
@@ -47,7 +49,7 @@ BEGIN_MESSAGE_MAP(CAircraftEntryProcessorDlg, CDialog)
     ON_BN_CLICKED(IDC_BTN_SAVE, OnSave)
     ON_COMMAND(ID_TOOLBAR_ADD, OnToolbarButtonAdd)
     ON_COMMAND(ID_TOOLBAR_DEL, OnToolbarButtonDel)
-    //ON_NOTIFY(NM_DBLCLK, IDC_LIST_PAXTYPE, OnDblClickListItem)
+    ON_NOTIFY(NM_RCLICK, IDC_LIST_PAXTYPE, OnRightClickListItem)
     ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_PAXTYPE, OnSelChangedPaxList)
     ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_ENTRYPROC, OnSelChangedTree)
     ON_WM_MOUSEMOVE()
@@ -371,7 +373,7 @@ void CAircraftEntryProcessorDlg::InitPaxTypeListHeader()
     for( int m=0; m<nCount; m++ )
     {
         CProbDistEntry* pPBEntry = _g_GetActiveProbMan(m_pInTerm)->getItem(m);
-        strList.InsertAfter(strList.GetTailPosition(), pPBEntry->m_csName);
+        strList.AddTail(pPBEntry->m_csName);
     }
     lvc.cx = 320;
     lvc.pszText = _T("Probability Distribution(SECONDS)");
@@ -431,7 +433,7 @@ void CAircraftEntryProcessorDlg::OnSelChangedTree(NMHDR *pNMHDR, LRESULT *pResul
     *pResult = 0;
 }
 
-void CAircraftEntryProcessorDlg::OnDblClickListItem(NMHDR *pNMHDR, LRESULT *pResult)
+void CAircraftEntryProcessorDlg::OnRightClickListItem(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
     if(pNMItemActivate->iItem == -1)
@@ -697,4 +699,54 @@ void CAircraftEntryProcessorDlg::ReloadPaxTypeList(HTREEITEM hSelItem)
         ProbabilityDistribution* pProb = vEntry[i]->getValue();
         m_paxList.SetItemText(i, 1, pProb->screenPrint());
     }
+}
+
+LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if(message == WM_INPLACE_COMBO_KILLFOUCUS)
+    {
+        int nCBSel = (int)wParam;
+        LV_DISPINFO* pDispinfo = (LV_DISPINFO*)lParam;
+        int iItem = pDispinfo->item.iItem;
+        int iSubItem = pDispinfo->item.iSubItem;
+        ASSERT(nCBSel>=0 && nCBSel<=(int)_g_GetActiveProbMan(m_pInTerm)->getCount());
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(iItem);
+        CProbDistEntry* pPBEntry = NULL;
+        if(nCBSel == 0) // NEW PROBABILITY DISTRIBUTION
+        {
+            CDlgProbDist dlg(m_pInTerm->m_pAirportDB, true);
+            if(dlg.DoModal()==IDOK)
+            {
+                int iSelPD = dlg.GetSelectedPDIdx();
+                ASSERT(iSelPD!=-1);
+                pPBEntry = _g_GetActiveProbMan( m_pInTerm )->getItem(iSelPD);
+            }
+            else
+            {
+                CString strItem = pEntry->getValue()->screenPrint();
+                m_paxList.SetItemText(iItem, iSubItem, strItem);
+                return CDialog::DefWindowProc(message, wParam, lParam);
+            }
+        }
+        else
+        {
+            pPBEntry = _g_GetActiveProbMan(m_pInTerm)->getItem(nCBSel-1);
+        }
+
+        ASSERT(pEntry);
+        if(pEntry->getValue()->isEqual(pPBEntry->m_pProbDist))
+        {
+            CString strItem = pEntry->getValue()->screenPrint();
+            m_paxList.SetItemText(iItem, iSubItem, strItem);
+            return CDialog::DefWindowProc(message, wParam, lParam);
+        }
+        else// not equal, replace it.
+        {
+            delete pEntry->getValue();
+            pEntry->setValue(ProbabilityDistribution::CopyProbDistribution(pPBEntry->m_pProbDist));
+            CString strItem = pEntry->getValue()->screenPrint();
+            m_paxList.SetItemText(iItem, iSubItem, strItem);
+        }
+    }
+    return CDialog::DefWindowProc(message, wParam, lParam);
 }

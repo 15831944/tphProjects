@@ -25,6 +25,7 @@ private:
     AircraftEntryProcessorData* m_pBCPaxData;
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);
+    virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnToolbarButtonAdd();
     afx_msg void OnToolbarButtonDel();
@@ -34,7 +35,7 @@ protected:
     afx_msg void OnCancel();
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
-    afx_msg void OnDblClickListItem(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnRightClickListItem(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnSelChangedPaxList(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg BOOL OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnSelChangedTree(NMHDR *pNMHDR, LRESULT *pResult);

@@ -538,8 +538,12 @@ void CChildFrame::OnDestroy()
 		pstructure->SetDisplayDirtflag(true);
 	}
 	//mark floor textures as invalid
-	for(int i=0; i<static_cast<int>(GetDocument()->GetCurModeFloor().m_vFloors.size()); i++) {
-		GetDocument()->GetCurModeFloor().m_vFloors[i]->InvalidateTexture();
+	CFloors& floors = GetDocument()->GetFloorByMode(EnvMode_Terminal);
+	for(int i=0; i<floors.GetCount(); i++)
+	{
+		floors.GetFloor2(i)->InvalidateTexture();
+		floors.GetFloor2(i)->InvalidatePictureMap();
+		floors.GetFloor2(i)->InvalidateVisibleRegions();
 	}
 	
 	StorePanInfo();
