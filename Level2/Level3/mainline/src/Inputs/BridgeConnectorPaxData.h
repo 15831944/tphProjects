@@ -52,7 +52,7 @@ public:
 
     void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
     void writeDatabase(ArctermFile& p_file);
-    std::vector<BridgeConnectorPaxEntry*> FindPaxListByProcID(const ProcessorID& procID);
+    const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
     void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase);
 };
 

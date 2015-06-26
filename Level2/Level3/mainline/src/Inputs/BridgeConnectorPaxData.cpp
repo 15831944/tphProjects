@@ -22,7 +22,7 @@ void BridgeConnectorPaxEntry::writeData(ArctermFile& p_file)
 {
     m_procID.writeProcessorID(p_file);
     constraint->writeConstraint(p_file);
-    getValue()->writeDistribution(p_file);
+    value->writeDistribution(p_file);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::readDatabase(ArctermFile& p_file,
 {
     p_file.getLine();
     CString strField;
-    p_file.getField(strField.GetBuffer(255));
+    p_file.getField(strField.GetBuffer(256), 255);
     strField.ReleaseBuffer();
     ASSERT(strField.CompareNoCase(_T("ENTRY_FLIGHT_TIME_DESTRIBUTION")) == 0);
 
@@ -61,38 +61,34 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::writeDatabase(ArctermFile& p_file
     }
 }
 
-std::vector<BridgeConnectorPaxEntry*> BridgeConnectorPaxTypeWithProcIDDatabase::FindPaxListByProcID(const ProcessorID& procID)
+const ProbabilityDistribution*  BridgeConnectorPaxTypeWithProcIDDatabase::FindProbDist(const ProcessorID& procID, 
+    const CMobileElemConstraint& pPaxType)
 {
     std::vector<BridgeConnectorPaxEntry*> vResult;
-    ProcessorID appropriateProcID;
+    BridgeConnectorPaxEntry* pAppropriate = NULL;
     int nCount = getCount();
     for(int i=0; i<nCount; i++)
     {
-        ProcessorID curProcID = ((BridgeConnectorPaxEntry*)getItem(i))->getProcID();
-        if(procID == curProcID)
+        BridgeConnectorPaxEntry* pCurEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        const ProcessorID& curProcID = pCurEntry->getProcID();
+        const CMobileElemConstraint* pCurPaxType = (CMobileElemConstraint*)pCurEntry->getConstraint();
+        if(procID.idFits(curProcID) && pPaxType.fitex(*pCurPaxType))
         {
-            appropriateProcID == procID;
-            break;
-        }
-        else if(procID.idFits(curProcID))
-        {
-            if(curProcID.idFits(appropriateProcID))
+            if(pAppropriate == NULL)
             {
-                appropriateProcID = curProcID;
+                pAppropriate = pCurEntry;
+            }
+            else
+            {
+                if(curProcID.idFits(pAppropriate->getProcID()) && 
+                    pCurPaxType->fitex(*((CMobileElemConstraint*)pAppropriate->getConstraint())))
+                {
+                    pAppropriate = pCurEntry;
+                }
             }
         }
     }
-
-    for(int i=0; i<nCount; i++)
-    {
-        ProcessorID curProcID = ((BridgeConnectorPaxEntry*)getItem(i))->getProcID();
-        if(appropriateProcID == curProcID)
-        {
-            vResult.push_back((BridgeConnectorPaxEntry*)getItem(i));
-        }
-    }
-
-    return vResult;
+    return pAppropriate->getValue();
 }
 
 void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase)
@@ -109,9 +105,9 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(cons
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
 BridgeConnectorPaxData::BridgeConnectorPaxData() : DataSet(BridgeConnectorPaxDataFile, (float)100)
 {
     m_pPaxData = new CMobileElemConstraintDatabase;
