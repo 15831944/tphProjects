@@ -1,46 +1,50 @@
 #include "stdafx.h"
 #include "in_term.h"
 #include "MobileElemTypeStrDB.h"
-#include "BridgeConnectorPaxData.h"
-#include "../Common/termfile.h"
 #include "../Common/ProbabilityDistribution.h"
+#include "../Common/termfile.h"
+#include "BridgeConnectorPaxData.h"
 
-BridgeConnectorPaxDatabase::BridgeConnectorPaxDatabase() : 
-    CMobileElemConstraintDatabase(),
-    DataSet(BridgeConnectorPaxDataFile, (float)100)
+BridgeConnectorPaxData::BridgeConnectorPaxData() : DataSet(BridgeConnectorPaxDataFile, (float)100)
 {
+    m_pPaxData = new CMobileElemConstraintDatabase;
+    m_pPaxData->setUnits(_T("SECONDS"));
 }
 
-BridgeConnectorPaxDatabase::~BridgeConnectorPaxDatabase()
+BridgeConnectorPaxData::~BridgeConnectorPaxData()
 {
+    delete m_pPaxData;
 }
 
-void BridgeConnectorPaxDatabase::initDefaultValues()
+void BridgeConnectorPaxData::deletePaxType(int p_level, int p_index)
 {
-    clear();
+    m_pPaxData->deletePaxType (p_level, p_index);
+}
+
+void BridgeConnectorPaxData::initDefaultValues (void)
+{
     ProbabilityDistribution* defaultDist = new UniformDistribution(2, 10);
     ConstraintEntry* anEntry = new ConstraintEntry;
-    anEntry->initialize(new CMobileElemConstraint(m_pInTerm), defaultDist);
-    addEntry(anEntry);
+    anEntry->initialize( new CMobileElemConstraint(m_pInTerm),defaultDist );
+    m_pPaxData->addEntry(anEntry);
 }
 
-void BridgeConnectorPaxDatabase::clear()
+void BridgeConnectorPaxData::clear()
 {
-    ConstraintDatabase::clear();
+    m_pPaxData->clear();
 }
 
-void BridgeConnectorPaxDatabase::readData(ArctermFile& p_file)
+void BridgeConnectorPaxData::readData(ArctermFile& p_file)
 {
-    assert( m_pInTerm );
-    readDatabase(p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm );
+    m_pPaxData->readDatabase (p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm );
 }
 
-void BridgeConnectorPaxDatabase::readObsoleteData(ArctermFile& p_file)
+void BridgeConnectorPaxData::readObsoleteData ( ArctermFile& p_file )
 {
 }
 
-void BridgeConnectorPaxDatabase::writeData(ArctermFile& p_file)const
+
+void BridgeConnectorPaxData::writeData (ArctermFile& p_file) const
 {
-    assert( m_pInTerm );
-    writeDatabase(p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm);
+    m_pPaxData->writeDatabase (p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm);
 }

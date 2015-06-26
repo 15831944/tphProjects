@@ -102,7 +102,7 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
     inTypeList = new PassengerTypeList( inStrDict );
     paxDistList = new PassengerDistributionList;
     paxDataList = new PassengerData;
-	bcPaxData = new BridgeConnectorPaxDatabase;
+	bcPaxData = new BridgeConnectorPaxData;
 
     // Baggage Data
     bagData = new BaggageData;

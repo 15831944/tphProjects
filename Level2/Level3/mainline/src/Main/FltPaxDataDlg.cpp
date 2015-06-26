@@ -945,7 +945,7 @@ void CFltPaxDataDlg::ExportPaxData( CMobileElemConstraintDatabase* pPaxDatabasae
 	file.endFile();
 }
 
-void CFltPaxDataDlg::ExportBridgeData( BridgeConnectorPaxDatabase* pBridgeDatabase,const CString& strFileName )
+void CFltPaxDataDlg::ExportBridgeData( BridgeConnectorPaxData* pBridgeDatabase,const CString& strFileName )
 {
 	ArctermFile file;
 	file.openFile (strFileName, WRITE, 2.20f);

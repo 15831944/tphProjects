@@ -603,7 +603,7 @@ class CSideMoveWalkPaxDist;
 class CSimParameter;
 
 // bridge connector
-class BridgeConnectorPaxDatabase;
+class BridgeConnectorPaxData;
 
 class Terminal;
 #endif
