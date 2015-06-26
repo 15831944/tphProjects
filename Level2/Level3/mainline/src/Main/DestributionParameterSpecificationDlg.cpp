@@ -170,7 +170,7 @@ BEGIN_MESSAGE_MAP(CDestributionParameterSpecificationDlg, CDialog)
     ON_EN_CHANGE(IDC_EDIT_BER1STVALUE, OnEnChangeEditBer1stvalue)
     ON_EN_CHANGE(IDC_EDIT_BER2NDVALUE, OnEnChangeEditBer2ndvalue)
     ON_EN_CHANGE(IDC_EDIT_BER1STPRO, OnEnChangeEditBer1stpro)
-    ON_CBN_EDITCHANGE(IDC_COMBO_CONSTANT, OnCbnEditchangeComboConstant)
+    ON_CBN_EDITUPDATE(IDC_COMBO_CONSTANT, OnCbnEditchangeComboConstant)
     ON_CBN_EDITCHANGE(IDC_COMBO_UNIFORM, OnCbnEditchangeComboUniform)
     ON_CBN_EDITCHANGE(IDC_COMBO_BETA, OnCbnEditchangeComboBeta)
     ON_CBN_EDITCHANGE(IDC_COMBO_TRIANGLE, OnCbnEditchangeComboTriangle)
@@ -384,8 +384,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedBtnResetinput()
     m_comboNormal.SetWindowText(_T(""));
     m_comboWeibull.SetWindowText(_T(""));
     m_comboBernoulli.SetWindowText(_T(""));
-    m_comboEmpirical.SetWindowText(_T(""));
-    m_comboHistogram.SetWindowText(_T(""));
+    m_comboEmpirical.SetCurSel(-1);
+    m_comboHistogram.SetCurSel(-1);
 
     DisableAllEditBox();
     if(GetCheckedDistribution() != -1)
@@ -421,8 +421,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioConstant()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(CONSTANT);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -444,8 +444,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioUniform()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(UNIFORM);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -471,8 +471,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioBeta()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(BETA);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -496,8 +496,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioTriangle()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(TRIANGLE);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -521,8 +521,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioErlang()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(ERLANG);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -544,8 +544,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioExponential()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(EXPONENTIAL);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -569,8 +569,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioGamma()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(GAMMA);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -594,8 +594,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioNormal()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(NORMAL);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -619,8 +619,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioWeibull()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(WEIBULL);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -644,8 +644,8 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioBernoulli()
     if(strEntryName.IsEmpty())
     {
         ProbabilityDistribution* pNewProb = ProbDistHelper::CreateProbabilityDistribution(BERNOULLI);
-        InitUIFromProb(pNewProb);
-        delete pNewProb;
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
     }
 }
 
@@ -2273,7 +2273,7 @@ CString CDestributionParameterSpecificationDlg::GetTempHistogramDistributionName
 
 void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDistribution* pProb)
 {
-    const CProbDistEntry* pEntry = m_pProbMan->getItemByValue(m_pInputProb);
+    const CProbDistEntry* pEntry = m_pProbMan->getItemByValue(pProb);
     if(pEntry != NULL)
     {
         InitUIFromProbEntry(pEntry);
@@ -2282,10 +2282,9 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
     else
     {
         ProbabilityDistribution* pNewProb = 
-            ProbabilityDistribution::CopyProbDistribution(const_cast<ProbabilityDistribution*>(m_pInputProb));
+            ProbabilityDistribution::CopyProbDistribution(const_cast<ProbabilityDistribution*>(pProb));
         CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
         InitUIFromProbEntry(&tempEntry);
-        delete pNewProb;
     }
 }
 
@@ -2508,18 +2507,20 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
         break;
     case EMPIRICAL:
         {
+            ((CButton*)GetDlgItem(IDC_RADIO_EMPIRICAL))->SetCheck(TRUE);
             GetDlgItem(IDC_COMBO_EMPIRICAL)->EnableWindow(TRUE);
             CPROBDISTLIST vProb = m_pProbMan->getItemListByType(EMPIRICAL);
             LoadComboBoxString(&m_comboEmpirical, vProb);
-             m_comboEmpirical.SetWindowText(strEntryName);
+             m_comboEmpirical.SelectString(0, strEntryName);
         }
         break;
     case HISTOGRAM:
         {
+            ((CButton*)GetDlgItem(IDC_RADIO_HISTOGRAM))->SetCheck(TRUE);
             GetDlgItem(IDC_COMBO_HISTOGRAM)->EnableWindow(TRUE);
             CPROBDISTLIST vProb = m_pProbMan->getItemListByType(HISTOGRAM);
             LoadComboBoxString(&m_comboHistogram, vProb);
-            m_comboHistogram.SetWindowText(strEntryName);
+            m_comboHistogram.SelectString(0, strEntryName);
         }
         break;
     default:
@@ -2564,7 +2565,14 @@ void CDestributionParameterSpecificationDlg::TopInputString(CComboBox* pCb)
     pCb->GetWindowText(strCombo);
     int nIndex = pCb->FindString(0, strCombo);
     if(nIndex != CB_ERR)
-        pCb->SetTopIndex(nIndex);
+    {
+        CString strLBText;
+        pCb->GetLBText(nIndex, strLBText);
+        strLBText = strLBText.Right(strLBText.GetLength()-strCombo.GetLength());
+        CString strNewCombo = strCombo + strLBText;
+//         pCb->SetWindowText(strNewCombo);
+//         pCb->SetEditSel(strCombo.GetLength(), strNewCombo.GetLength()+1);
+    }
 }
 
 void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboConstant()

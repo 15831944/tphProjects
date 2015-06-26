@@ -310,7 +310,7 @@ CProbDistEntry* CProbDistManager::getItemByName( const CString& s ) const
 	for( size_t m=0; m<nCount; m++ )
 	{
 		CProbDistEntry* pPBEntry = getItem( m );			
-		if(pPBEntry->m_csName == s)
+		if(pPBEntry->m_csName.CompareNoCase(s) == 0)
 		{
 			return pPBEntry;
 		}

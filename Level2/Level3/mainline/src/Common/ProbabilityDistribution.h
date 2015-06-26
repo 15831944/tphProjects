@@ -88,7 +88,7 @@ public:
 	virtual double pdf(double _x) const;
 	virtual double cdf(double _x) const;
 	virtual void InitRules(){};
-    virtual bool isEqual(const ProbabilityDistribution* pOther)=0;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 //the interface for database 
 public:
 	virtual void readDistributionFromDB(CString str);

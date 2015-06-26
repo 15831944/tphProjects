@@ -265,6 +265,13 @@ CString ProbabilityDistribution::getErrorMessage(int iErr)
     return CString(errormessages[iErr]);
 }
 
+bool ProbabilityDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    return true;
+}
+
 /*****
 *
 *   Bernoulli Distribution
@@ -729,6 +736,7 @@ bool HistogramDistribution::isEqual(const ProbabilityDistribution* pOther)
         if(values[i] != pProb->values[i])
             return false;
     }
+    return true;
 }
 
 
@@ -1875,6 +1883,7 @@ bool BaseBetaDistribution::isEqual(const ProbabilityDistribution* pOther)
         if(probs[i] != pProb->probs[i])
             return false;
     }
+    return true;
 }
 
 
@@ -2034,8 +2043,9 @@ bool BetaDistribution::isEqual(const ProbabilityDistribution* pOther)
         return false;
     if(abs(max - pProb->max) >= 0.00001)
         return false;
-    if(!basebeta->isEqual(pOther))
+    if(!basebeta->isEqual(pProb->basebeta))
         return false;
+    return true;
 }
 
 /*****
