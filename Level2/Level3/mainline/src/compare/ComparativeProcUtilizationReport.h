@@ -53,6 +53,8 @@ public:
 
     const mapProcUtilizationDetail& GetMapDetailResult() { return m_mapDetail; }
     const mapProcUtilizationSummary& GetMapSummaryResult() { return m_mapSummary; }
+
+	CString GetFooter(int iSubType)const;
 protected:
 	void MergeSampleDetail(const ElapsedTime& tInteval);
 	bool SaveReportDetail(ArctermFile& file) const;

@@ -213,3 +213,10 @@ bool CComparativeSpaceDensityReport::LoadReport(const std::string& _sPath)
 	
 	return true;
 }
+
+CString CComparativeSpaceDensityReport::GetFooter( int iSubType ) const
+{
+	CString strFooter;
+	strFooter.Format(_T("Comparative Report Space Density(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+	return strFooter;
+}

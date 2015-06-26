@@ -51,8 +51,8 @@ public:
 	const CString& GetUser() const;
 	void SetUser(const CString& strUser);
 
-	const CString& GetMachine() const;
-	void SetMachine(const CString& strMachine);
+	const CString& GetServerName() const;
+	void SetServerName(const CString& strServer);
 	
 	const CTime& GetCreatedTime() const;
 	void SetCreatedTime(const CTime& t);
@@ -66,22 +66,21 @@ public:
 
 	const CCmpReportManager& GetCompReportResultList() const;
 
-	void AddReportResult(CCmpBaseReport* pResult);
+    void AddReportResult(CCmpBaseReport* pResult);
 
+    BOOL DeleteProjectPath();
 
 protected:
 
 
-	void AddReportPath(ENUM_REPORT_TYPE rptType, const CString& strPath);
-	//void RemoveFiles(const CString& strPath);
-	void MergeReports(const CString& sOutputPath);
+	void AddReportPath(CReportToCompare& rptToCmpare, const CString& strPath);
 	void GenerateReportParameter(const CReportParamToCompare& inParam, CReportParameter* pOutParam, CModelToCompare* pModel);
-	BOOL TransferLogFiles(CModelToCompare *pCmpModel, const CString& strDest,const CString& strSimResult,void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+	BOOL TransferLogFiles(CModelToCompare *pCmpModel, const CString& strDest,const CString& strSimResult,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 
 
 public:
 	void RemoveTempReport();
-	CString SaveTempReport(const CString& strReportPath, int iModelIndex, int iReportIndex,int nSimResult);
+	CString SaveTempReport(const CString& strReportPath, int iModelIndex, int iReportIndex,int nSimResult,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 	BOOL	LoadData();
 	BOOL	IsMatch() const;
 	void	AddModel();
@@ -89,11 +88,11 @@ public:
 	void	GetModel();
 
 	//	Transfer file(s)
-	BOOL	TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK *_ShowCopyInfo)(LPCTSTR));
+	BOOL	TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK *_ShowCopyInfo)(int, LPCTSTR));
 	BOOL	RemoveFolder();
 
 
-	BOOL	Run(CCompRepLogBar* pWndStatus,void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+	BOOL	Run(CCompRepLogBar* pWndStatus,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 	void	Stop(BOOL bStop = TRUE){if (m_bRunning) m_bStop = bStop;}
 
 	
@@ -101,7 +100,10 @@ protected:
 	BOOL IsLocalModel(const CString& strPath);
 	void RemoveTempData();
 	CString getProjectPath() const;
+	void MergeReport(CReportToCompare& ReportToMerge, const CString& sOutputPath);
 	CFileOperation	m_fo;
+
+	void UpdateProgressBar(CCompRepLogBar* pWndStatus, int nIncrement = 1);
 
 
 private:
@@ -118,7 +120,7 @@ private:
 	CString m_strOriName;
 	CString	m_strDesc;
 	CString m_strUser;
-	CString m_strMachine;
+	CString m_strServerName;
 	CTime	m_tmCreated;
 	CTime	m_tmLastModified;
 };
@@ -148,18 +150,15 @@ public:
 	int GetProjects(OUT std::vector<CComparativeProject *>& vProjs);
 	void SetProjects(const std::vector<CComparativeProject *>& vProjs);
 	void AddProject(CComparativeProject* proj);
-
-	bool isNameAvailable(const CString& strName) const;
-
+	CComparativeProject* FindCmpProjectByName(const CString& strName);
 	int getProjectCount() const;
-	CComparativeProject *getProject(int nIndex);
-
-
-	CComparativeProject *getProjectByName(const CString& strName);
+	CComparativeProject *getCmpProject(int nIndex);
 	//create new project
 	//return the new project
-	CComparativeProject *CreateNewProject(const CString& strName, const CString& strDesc);
-	
+	CComparativeProject *AddNewProject(const CString& strName, const CString& strDesc);
+
+    bool DeleteProjectByName(const CString& strProjName);
+
 protected:
 	std::vector<CComparativeProject *>	m_vProjs;
 

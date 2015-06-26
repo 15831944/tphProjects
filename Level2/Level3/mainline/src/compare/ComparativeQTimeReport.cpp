@@ -393,3 +393,10 @@ bool CComparativeQTimeReport::LoadReportSummary( ArctermFile& file )
 
 	return true;
 }
+
+CString CComparativeQTimeReport::GetFooter( int iSubType ) const
+{
+	CString strFooter;
+	strFooter.Format(_T("Comparative Report Queue Time(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+	return strFooter;
+}

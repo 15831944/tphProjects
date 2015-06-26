@@ -4988,8 +4988,8 @@ void CMainFrame::OnComparativereportopen()
 	CDlgOpenComparativeReport dlg;
 	if (dlg.DoModal() == IDOK)
 	{
-		CString strName = dlg.m_strName;
-		CString strDesc = dlg.m_strDesc;
+		CString strName = dlg.GetName();
+		CString strDesc = dlg.GetDesc();
 		CreateCompareReportAndResultView(strName, strDesc );
 	}
 }
@@ -5003,21 +5003,33 @@ void CMainFrame::OnComparativereportnew()
 		CString strDesc = dlg.m_strDesc;
 
 		//Create new project
-		CMPPROJECTMANAGER->CreateNewProject(strName, strDesc);
-
+		CMPPROJECTMANAGER->AddNewProject(strName, strDesc);
+        CMPPROJECTMANAGER->saveDataSet(PROJMANAGER->GetAppPath(), false);
 		CreateCompareReportAndResultView(strName, strDesc);
 	}
 }
 void CMainFrame::CreateCompareReportAndResultView(const CString& strName /* = NULL*/, const CString& strDesc /* = NULL */)
 {
+    ASSERT(!strName.IsEmpty());
 	CDocument * pDoc = theApp.m_pCompareReportTemplate2->CreateNewDocument();
-	
-	CMDIChildWnd* pNewFrame	= (CMDIChildWnd*)(theApp.m_pCompareReportTemplate2->CreateNewFrame(pDoc, NULL));
+	CMDIChildWnd* pNewFrame = (CMDIChildWnd*)(theApp.m_pCompareReportTemplate2->CreateNewFrame(pDoc, NULL));
 	theApp.m_pCompareReportTemplate2->InitialUpdateFrame(pNewFrame, pDoc);
 	pNewFrame->ShowWindow(SW_MAXIMIZE);
 
 	if (!strName.IsEmpty())// && !strDesc.IsEmpty())
 	{
+
+		//CWnd* pWnd = &(pFram->m_wndCompRepLogBar);
+		//m_wndCompRepLogBar->m_pProj = m_pCmpReport->GetComparativeProject();
+		m_wndCompRepLogBar.SetParentIndex(1);
+
+		ShowControlBar((CToolBar*) &m_wndCompRepLogBar, TRUE, FALSE);
+		CRect rc1, rc2;
+		m_wndCompRepLogBar.GetWindowRect(&rc1);
+		m_wndCompRepLogBar.GetClientRect(&rc2);
+		ChangeSize(rc1, rc2, 1);
+
+
 		if(((CCompareReportDoc*)pDoc)->GetCmpReport()->InitReport(strName))
 			((CCompareReportDoc*)pDoc)->GetCmpReport()->LoadProject(strName, strDesc);
 		else

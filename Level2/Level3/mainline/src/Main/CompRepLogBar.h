@@ -59,6 +59,8 @@ public:
 	}
 	void SetLogText(const CString& strText);
 	void AddLogText(const CString& strText, UINT nFlag = 0);
+	void UpdateLastLogText(const CString& strText);
+
 	void SetProgressRange(int nStart, int nEnd);
 	void SetProgressPos(int nPos);
 	int GetProgressPos();

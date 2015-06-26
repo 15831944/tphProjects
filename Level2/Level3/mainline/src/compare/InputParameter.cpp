@@ -60,6 +60,9 @@ BOOL CCmpReportParameter::DeleteModel(const CString& strUniqueName)
 bool CCmpReportParameter::LoadData( const CString& strProjName, const CString& strProjPath )
 {
 	 m_modelsManager.LoadData( strProjName,strProjPath );
+	 if(!m_modelsManager.IsAllProjectsSucessfullyLoaded())
+		 return false;
+
 	 m_reportsManager.LoadData(strProjPath, &m_modelsManager);
 	
 	return true;

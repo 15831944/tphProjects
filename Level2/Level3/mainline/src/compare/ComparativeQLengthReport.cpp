@@ -430,4 +430,12 @@ bool CComparativeQLengthReport::LoadSummaryReport( const std::string& _sPath )
 	return true;
 }
 
+CString CComparativeQLengthReport::GetFooter( int iSubType ) const
+{
+	CString strFooter;
+	strFooter.Format(_T("Comparative Report Queue Length(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+	return strFooter;
+}
+
+
 //#pragma warning(default:4786 4551 4800)

@@ -309,6 +309,13 @@ bool CComparativeThroughputReport::LoadReport(const std::string& _sPath)
 	return true;
 }
 
+CString CComparativeThroughputReport::GetFooter( int iSubType ) const
+{
+	CString strFooter;
+	strFooter.Format(_T("Comparative Report Processor Throughput(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+	return strFooter;
+}
+
 double CmpThroughputSummaryData::GetData( int nSubType ) const
 {
 	switch(nSubType)

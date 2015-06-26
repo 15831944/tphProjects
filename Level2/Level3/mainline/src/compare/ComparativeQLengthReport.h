@@ -85,6 +85,8 @@ public:
 	int  GetReportType() const { return QueueLengthReport; }
 	const QLengthMap& GetResult() const{ return m_mapQLength; }
 	const QLengthSummaryMap& GetSummaryResult()const {return m_mapSummaryQLength;}
+
+	CString GetFooter(int iSubType)const;
 private:
 	void MergeDetailSample(const ElapsedTime& tInteval);
 	void MergeSummarySample(const ElapsedTime& tInteval);

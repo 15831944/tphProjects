@@ -43,7 +43,7 @@ public:
 	void	RemoveModel(int nIndex);
 
 	
-	CString  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+	CString  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 
 	CModelToCompare* GetModelByUniqueName( const CString& strUniqueName );
 	
@@ -53,6 +53,8 @@ public:
 	Terminal * getTerminal();
 
 	void Clear();
+
+	bool IsAllProjectsSucessfullyLoaded();
 
 private:
 	std::vector<CModelToCompare*>	m_vModels;

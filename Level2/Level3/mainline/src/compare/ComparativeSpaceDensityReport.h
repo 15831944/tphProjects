@@ -67,6 +67,8 @@ public:
 	bool LoadReport(const std::string& _sPath);
 	int GetReportType() const{return SpaceDensityReport;}
 	const PaxDensityMap& GetResult() const{return m_mapPaxDens;}
+
+	CString GetFooter(int iSubType)const;
 };
 
 #endif // !defined(AFX_COMPARATIVESPACEDENSITYREPORT_H__63CC9911_B23A_4399_A79A_A08BEB9B5E5A__INCLUDED_)

@@ -286,7 +286,17 @@ void CCompRepLogBar::AddLogText(const CString& strText, UINT nFlag)
 	ShowLogText();
 	UpdateWindow();
 }
-
+void CCompRepLogBar::UpdateLastLogText(const CString& strText)
+{
+	if(strText == "")
+		return ;
+	if(m_vLogText.size() > 0)
+	{
+		m_vLogText[m_vLogText.size() - 1] = strText;
+	}	
+	ShowLogText();
+	UpdateWindow();
+}
 void CCompRepLogBar::ShowLogText()
 {
 	m_strLogText = "";

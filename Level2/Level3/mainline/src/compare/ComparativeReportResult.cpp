@@ -26,3 +26,22 @@ void CCmpBaseReport::AddSamplePath(const std::vector<std::string>& _vSamplePaths
 		m_vSampleRepPaths.push_back( *iter );
 	}
 }
+
+CString CCmpBaseReport::GetModelName() const
+{
+	CString strModel;
+	if (m_vSimName.empty() == false)
+	{
+		for (unsigned i = 0; i < m_vSimName.size(); i++)
+		{
+			if (strModel.IsEmpty())
+			{
+				strModel = m_vSimName.at(i);
+				continue;
+			}
+
+			strModel = strModel + "," + m_vSimName.at(i);
+		}
+	}
+	return strModel;
+}

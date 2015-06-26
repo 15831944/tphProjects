@@ -58,19 +58,18 @@ public:
 		m_sPortal = _rhs.m_sPortal;
 		m_fromToProcs = _rhs.m_fromToProcs;
 
+        m_strUniqueModelName = _rhs.m_strUniqueModelName;
 		return *this;
 	}
 
 	void InitDefaultParameter(const CString& strProjName,CModelToCompare * pModel);
 
-protected:
 private:
 	CString m_sArea;
 	CString m_sPortal;
 	CReportParameter::FROM_TO_PROCS m_fromToProcs;
 	std::vector<CMobileElemConstraint>	m_vPaxType;
 	std::vector<ProcessorID>			m_vProcGroups;
-	
 	CString m_strUniqueModelName;
 };
 

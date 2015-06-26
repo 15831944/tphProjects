@@ -95,6 +95,8 @@ public:
 	int GetReportType() const{return ThroughtputReport;}
 	const std::vector<OneCmpThroughputDetailVector>& GetDetailResult() const{ return m_vDetail; }
 	const std::vector<CmpThroughputSummaryData>& GetSummaryResult() const{ return m_vSummary; }
+
+	CString GetFooter(int iSubType)const;
 private:
 	void MergeDetailSample(const ElapsedTime& tInteval);
 	void MergeSummarySample(const ElapsedTime& tInteval);

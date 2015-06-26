@@ -103,6 +103,7 @@ Terminal *CModelToCompare::GetTerminal()
 	//{
 	//	m_terminal = InitTerminal();
 	//}
+	ASSERT(m_terminal != NULL);
 	return m_terminal;
 }
 InputTerminal *CModelToCompare::GetInputTerminal()
@@ -111,9 +112,10 @@ InputTerminal *CModelToCompare::GetInputTerminal()
 	//{
 	//	m_terminal = InitTerminal();
 	//}
+	ASSERT(m_terminal != NULL);
 	return m_terminal;
 }
-BOOL CModelToCompare::TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+BOOL CModelToCompare::TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	CFileOperation fo;
 	fo.SetAskIfReadOnly(false);
@@ -146,7 +148,7 @@ BOOL CModelToCompare::IsLocalModel(const CString &strPath)
 	return ((str == _T("(LOCAL)")) ? TRUE : FALSE);
 
 }
-Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	if (m_terminal != NULL)
 		return m_terminal;
@@ -154,18 +156,15 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 	CString strPath = PROJMANAGER->GetAppPath();
 	strPath += _T("\\Comparative Report\\") + strName;
 		
-
 	CString strStatus;
 	CString strTempPath = strPath;
 	CString strDbName = "";
 	int	 nProgressStatus = 0;
-	CString strImportDBPath = PROJMANAGER->GetAppPath() + _T("\\ImportDB\\");
-	
-	//	Copy data
-	BOOL bLocal = IsLocalModel(m_strModelLocation);
 
-	if ( !bLocal)// network model data
+	if ( !IsLocalModel(m_strModelLocation))// network model data
 	{
+		//check if the network project is available
+
 
 		CString strDbPath;   //get the GlobalDBList.ini path
 		CString strProjPath = m_strModelLocation; //the project path
@@ -179,43 +178,71 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 		nPos = strNetworkProjPath.ReverseFind('\\');
         strNetGetAppPath = strNetworkProjPath.Mid(0,nPos);
 
-		CString strNetworkDBPath;//the network ImportDB Path
-		strNetworkDBPath = strNetGetAppPath + _T("\\ImportDB\\");
-
-		//get the projInfo file  , read the dbIndex or dbName.
-		//if dbname is not exist ,get the Globaldblist and 
-		//find out the dbname according to the index
-		PROJECTINFO pi;	
-		PROJMANAGER->GetProjectInfo(m_strModelName, &pi, strNetworkProjPath);//get the project information
-
 		//get the project  name
 		nPos = m_strModelLocation.ReverseFind('\\');
 		CString strModelname = m_strModelLocation.Mid(nPos+1,m_strModelLocation.GetLength()-1);
 
 		//find that if the project exist or not in local
 		CString strLocalProjectPath = strPath + _T('\\') + strModelname;
-		CFileFind file; 
-		BOOL bFind = file.FindFile(strLocalProjectPath,0);
 
-		if ( !bFind)
+
+		//to find in network
+		CFileFind fileFind; 
+		BOOL bFindInNetwork = fileFind.FindFile(m_strModelLocation);
+		fileFind.Close();
+
+		//to find it in local
+		BOOL bFindInLocal = fileFind.FindFile(strLocalProjectPath,0);
+		fileFind.Close();
+		if(!bFindInNetwork && !bFindInLocal)
 		{
+			//cannot find in local and network
+			CString strMsg;
+			strMsg.Format(_T("Failed to load project %s, can not be accessed both in local or network."),strModelname);
+			if(_ShowCopyInfo)
+				(*_ShowCopyInfo)(0, strMsg);
+			AfxMessageBox(strMsg);
 
-			TransferFiles(m_strModelLocation, strPath,_ShowCopyInfo);//copy the project
-			m_lastModifiedTime = pi.modifytime.Format("%y %m %d %H %M");//save the last modify time
+			return NULL;
 		}
-		else//project exist in local
-		{
+		//find in local or find in network or both
+
+		//get the projInfo file  , read the dbIndex or dbName.
+		if ( bFindInLocal )//project exist in local
+		{			
 			PROJECTINFO piLocal;
 			PROJMANAGER->GetProjectInfo(strModelname, &piLocal, strPath);//get the project information
-
-			if ( pi.modifytime != piLocal.modifytime)//if modify,copy project again 
+				
+			if(bFindInNetwork)//find in network, check the latest modified time
 			{
+				PROJECTINFO piNetwork;
+				PROJMANAGER->GetProjectInfo(m_strModelName, &piNetwork, strNetworkProjPath);//get the project information
+				if ( piNetwork.modifytime != piLocal.modifytime)//if modify,copy project again 
+				{
+					TransferFiles(m_strModelLocation, strPath,_ShowCopyInfo);
+					m_lastModifiedTime = piNetwork.modifytime.Format("%y %m %d %H %M");//save the last modify time
+				}
+			}
+			else //not find in network
+			{
+				CString strMsg;
+				strMsg.Format(_T("The project %s can not be accessed in network."),strModelname);
+				if(_ShowCopyInfo)
+					(*_ShowCopyInfo)(0, strMsg);
 
-				TransferFiles(m_strModelLocation, strPath,_ShowCopyInfo);
-				m_lastModifiedTime = pi.modifytime.Format("%y %m %d %H %M");//save the last modify time
+				AfxMessageBox(strMsg);
 			}
 		}
-		//project exist in local,Load database
+		else
+		{
+			PROJECTINFO piNetwork;
+			PROJMANAGER->GetProjectInfo(m_strModelName, &piNetwork, strNetworkProjPath);//get the project information
+
+			TransferFiles(m_strModelLocation, strPath,_ShowCopyInfo);//copy the project
+			m_lastModifiedTime = piNetwork.modifytime.Format("%y %m %d %H %M");//save the last modify time
+		}
+
+		//project exists in local,Load database
 		{
 			m_strDatabasePath = strPath;
 			//get the terminal data
@@ -246,18 +273,11 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 		//	local data
 		strPath = PROJMANAGER->GetAppPath() + _T("\\Project");
 		m_strLocalPath = m_strModelLocation;
-	}
 
-	//get the terminal data
-	Terminal *term = new Terminal;
-	if(IsLocalModel(m_strModelLocation))
-	{
 		PROJECTINFO pi;	
-
 		PROJMANAGER->GetProjectInfo(m_strModelName, &pi, strPath);
 
 		CAirportDatabase *pAirPortDB = NULL;
-
 		pAirPortDB = AIRPORTDBLIST->getAirportDBByName( pi.dbname );
 		if(pAirPortDB == NULL)
 		{
@@ -280,6 +300,7 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 		{
 			return NULL;
 		}
+		Terminal *term = new Terminal;
 		term->m_pAirportDB = pAirPortDB;
 
 		if( !term->m_pAirportDB->hadLoadDatabase() )
@@ -287,40 +308,26 @@ Terminal* CModelToCompare::InitTerminal(CCompRepLogBar* pStatus, CString strName
 
 		m_strDatabasePath = PROJMANAGER->GetAppPath() + _T("\\ImportDB\\") + pAirPortDB->getName();
 		m_lastModifiedTime = pi.modifytime.Format("%y %m %d %H %M");
-	}		
-	else
-	{
-		//for project database load
-		CString  strProjectDataFilePath(_T(""));
-		CString	 strARCDatabaseFilePath(_T(""));
+						
+		//open database connection 
+		CString strDBPath;
+		strDBPath += _T("\"");
+		strDBPath += strPath;
+		strDBPath += _T("\\");
+		strDBPath += m_strModelName;
+		strDBPath += _T("\\input\\arcport.mdb");
+		strDBPath += _T("\"");
+		DATABASECONNECTION.SetAccessDatabasePath(strDBPath);
+		DATABASECONNECTION.GetConnection(DATABASESOURCE_TYPE_ACCESS);
 
-		strProjectDataFilePath.Format("%s\\%s\\%s",strPath,m_strModelName,"INPUT\\parts.mdb");
-		strARCDatabaseFilePath.Format(_T("%s"),PROJMANAGER->GetAppPath() + "\\Databases\\arc.mdb");
-		CARCProjectDatabase* pAirportDB = new CARCProjectDatabase(strARCDatabaseFilePath,strProjectDataFilePath);
+		term->loadInputs(strPath + _T("\\") + m_strModelName);
+		term->GetSimReportManager()->loadDataSet(strPath + _T("\\") + m_strModelName);
+		term->GetSimReportManager()->SetCurrentSimResult(0);
 
-		term->m_pAirportDB = pAirportDB;
-		if( !term->m_pAirportDB->hadLoadDatabase() )
-			term->m_pAirportDB->loadDatabase();
-	}			
+		m_terminal = term;
 
-	//open database connection 
-	CString strDBPath;
-	strDBPath += _T("\"");
-	strDBPath += strPath;
-	strDBPath += _T("\\");
-	strDBPath += m_strModelName;
-	strDBPath += _T("\\input\\arcport.mdb");
-	strDBPath += _T("\"");
-	DATABASECONNECTION.SetAccessDatabasePath(strDBPath);
-	DATABASECONNECTION.GetConnection(DATABASESOURCE_TYPE_ACCESS);
-
-	term->loadInputs(strPath + _T("\\") + m_strModelName);
-	term->GetSimReportManager()->loadDataSet(strPath + _T("\\") + m_strModelName);
-	term->GetSimReportManager()->SetCurrentSimResult(0);
-
-	m_terminal = term;
-
-	return term;
+	}
+	return m_terminal;
 }
 
 CAirportDatabase* CModelToCompare::OpenProjectDBForInitNewProject(const CString& sAirportName)

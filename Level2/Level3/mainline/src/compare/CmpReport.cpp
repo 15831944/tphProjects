@@ -26,10 +26,7 @@ CCmpReport::CCmpReport(void)
 
 CCmpReport::~CCmpReport(void)
 {
-	//if (m_terminalForReportParam.m_pAirportDB != NULL)
-	//{	
-	//	m_terminalForReportParam.m_pAirportDB->clearData();
-	//}
+
 }
 
 CComparativeProject* CCmpReport::GetComparativeProject()
@@ -39,11 +36,11 @@ CComparativeProject* CCmpReport::GetComparativeProject()
 	return m_compProject;
 }
 
-bool CCmpReport::InitReport( const CString& strName )
+bool CCmpReport::InitReport(const CString& strName)
 {
 	if(m_compProject == NULL)
 	{
-		 m_compProject = CMPPROJECTMANAGER->getProjectByName(strName);
+		 m_compProject = CMPPROJECTMANAGER->FindCmpProjectByName(strName);
 		 ASSERT(m_compProject != NULL);
 		 if(m_compProject)
 			m_compProject->LoadData();
@@ -57,7 +54,9 @@ bool CCmpReport::InitReport( const CString& strName )
 
 BOOL CCmpReport::ProjExists(const CString& strName)
 {
-	return !(CMPPROJECTMANAGER->isNameAvailable(strName));
+    if(CMPPROJECTMANAGER->FindCmpProjectByName(strName) == NULL)
+        return FALSE;
+    return TRUE;
 }
 
 BOOL CCmpReport::SaveProject()
@@ -79,15 +78,8 @@ BOOL CCmpReport::SaveProject()
 	// check if the comparative report exists, if does not, create it
 	if (!::PathFileExists(strPath))
 	{
-//		UINT nID = MessageBox(NULL, "The folder \\arcterm\\Comparative Report do not exists! Create it?", "Warning", MB_YESNOCANCEL);
-//		if(nID == IDYES)
 		if(::CreateDirectory(strPath, NULL) == FALSE)
 			return FALSE;
-//		else if(nID == IDCANCEL)
-//			return FALSE;
-//		else if(nID == IDNO)
-//			return TRUE;
-
 	}
 
 	CComparativeProjectDataSet dsProj;
@@ -119,7 +111,7 @@ BOOL CCmpReport::SaveProject()
 		::GetUserName(szName, &dwBufferLen);
 		m_compProject->SetUser(szName);
 		::GetComputerName(szName, &dwBufferLen);
-		m_compProject->SetMachine(szName);
+		m_compProject->SetServerName(szName);
 		m_compProject->SetCreatedTime(CTime::GetCurrentTime());
 		m_compProject->SetLastModifiedTime(CTime::GetCurrentTime());
 		vProjs.push_back(m_compProject);
@@ -148,88 +140,12 @@ BOOL CCmpReport::LoadProject(const CString &strName, const CString& strDesc)
 	if(!InitReport(strName))
 		return FALSE;
 
-
-
-//	CModelToCompareDataSet dsModel;
-//	std::vector<CModelToCompare *> vModels;
-//	dsModel.SetProjName(strName);
-//	dsModel.loadDataSet(strPath);
-//	if (dsModel.GetModels(vModels)) 
-//	{
-//		m_compProject->GetInputParam()->GetModelsManagerPtr()->SetModels(vModels);
-//	}
-//    
-//	//m_compProject->Run(NULL,NULL);
-//	//return TRUE;
-//
-//
-////	if (!InitTerminal())
-//	//	return FALSE;
-//
-//	CReportToCompareDataSet dsReport;
-//	//dsReport.SetInputTerminal(&m_terminalForReportParam);
-//	std::vector<CReportToCompare> vReports;
-//	dsReport.SetModels(vModels);
-//	dsReport.loadDataSet(strPath);
-//	if (dsReport.GetReports(vReports))
-//	{
-//		m_compProject->GetInputParam()->GetReportsManagerPtr()->SetReports(vReports);
-//
-//		for (int i = 0; i < static_cast<int>(vReports.size()); i++)
-//		{
-//			CComparativeReportResult* pResult = NULL;
-//			switch (vReports[i].GetCategory())
-//			{
-//			case ENUM_QUEUELENGTH_REP:
-//				pResult = new CComparativeQLengthReport;
-//				break;
-//
-//			case ENUM_QUEUETIME_REP:
-//				pResult = new CComparativeQTimeReport;
-//				break;
-//
-//			case ENUM_THROUGHPUT_REP:
-//				pResult = new CComparativeThroughputReport;
-//				break;
-//
-//			case ENUM_PAXDENS_REP:
-//				pResult = new CComparativeSpaceDensityReport;
-//				break;
-//
-//			case ENUM_PAXCOUNT_REP:
-//				pResult = new CComparativePaxCountReport;
-//				break;
-//			case ENUM_ACOPERATION_REP:
-//				pResult = new CComparativeAcOperationReport;
-//				break;
-//			case ENUM_DURATION_REP:
-//				pResult = new CComparativeTimeTerminalReport;
-//				break;
-//			case ENUM_DISTANCE_REP:
-//				pResult = new CComparativeDistanceTravelReport;
-//				break;
-//
-//			}
-//			if (pResult != NULL)
-//			{
-//				CString strReportPath = strPath + _T("\\Results\\") + vReports[i].GetName() + _T(".txt");
-//				if(pResult->LoadReport(strReportPath.GetBuffer(0)) == true)
-//					m_compProject->AddReportResult(pResult);
-//			}
-//		}
-//	}
-
-
-
-
 	return TRUE;
 }
 
-BOOL CCmpReport::Run(HWND hwnd, CCompRepLogBar* pWndStatus,void (CALLBACK * _ShowCopyInfo)(LPCTSTR))
+BOOL CCmpReport::Run(HWND hwnd, CCompRepLogBar* pWndStatus,void (CALLBACK * _ShowCopyInfo)(int, LPCTSTR))
 {
 	BOOL bRet = FALSE;
-	//if (m_compProject.IsMatch())
-	//	m_compProject.SetMatch(!m_bModified);
 	try
 	{
 		if (bRet = m_compProject->Run(pWndStatus,_ShowCopyInfo))
@@ -284,72 +200,6 @@ Terminal* CCmpReport::GetTerminal()
 	//is it right? please check it before use it
 	return m_compProject->GetInputParam()->getTerminal();
 }
-
-//BOOL CCmpReport::InitTerminal()
-//{
-//	int i = 0;
-//	std::vector<CModelToCompare *>& vModels = m_compProject->GetInputParam()->GetModelsManagerPtr()->GetModelsList();
-//
-//	if (!vModels.size())
-//		return FALSE;
-//
-//	for (; i < static_cast<int>(vModels.size()); i++)
-//	{
-//		if (vModels[i]->GetModelName() == m_strPrevModelName)
-//			return TRUE;
-//	}
-//
-//
-//	// Any Local Model?
-//	BOOL bHasLocalModel = FALSE;
-//	CString strModelName, strPath;
-//	for (i = 0; i < static_cast<int>(vModels.size()); i++)
-//	{
-//		if (GetHostName(vModels[i]->GetModelLocation()) == _T("LOCAL"))
-//		{
-//			bHasLocalModel = TRUE;
-//			strModelName = vModels[i]->GetModelName();
-//			break;
-//		}
-//	}
-//
-//	CFileOperation fo;
-//	if (bHasLocalModel)
-//	{
-//		strPath = PROJMANAGER->GetAppPath() + _T("\\Project");
-//	}
-//	else
-//	{
-//		//	Copy data
-//		strModelName = vModels[0]->GetModelName();
-//		CString strRemote = vModels[0]->GetModelLocation();
-//		strPath = PROJMANAGER->GetAppPath() + _T("\\Comparative Report\\Temp");
-//		if (fo.CheckPath(strPath) != PATH_IS_FOLDER)
-//			::CreateDirectory(strPath, NULL);
-//
-//		if (!fo.Copy(strRemote, strPath,NULL))
-//			return FALSE;
-//	}
-//
-//	PROJECTINFO pi;
-//	if (!PROJMANAGER->GetProjectInfo(strModelName, &pi, strPath))
-//		return FALSE;
-//	m_terminalForReportParam.m_pAirportDB = AIRPORTDBLIST->getAirportDBByID( pi.lUniqueIndex );
-//	if( !m_terminalForReportParam.m_pAirportDB->hadLoadDatabase() )
-//		m_terminalForReportParam.m_pAirportDB->loadDatabase();
-//	m_terminalForReportParam.loadInputs(strPath + _T("\\") + strModelName);
-//	m_terminalForReportParam.GetSimReportManager()->loadDataSet(strPath + _T("\\") + strModelName);
-//
-//	m_strPrevModelName = strModelName;
-//
-//	if (!bHasLocalModel)
-//	{
-//		fo.SetAskIfReadOnly(false);
-//		fo.Delete(strPath);
-//	}
-//
-//	return TRUE;
-//}
 
 CString CCmpReport::GetHostName(const CString &strFolder)
 {

@@ -133,6 +133,7 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 			nColCount += 1;
 		}
 		//set list control
+		m_listCtrl.SetRedraw(FALSE);
 		int nRow = 0, nCol =0;
 		for(QLengthMap::const_iterator iterLine = mapQLength.begin(); iterLine!=mapQLength.end(); iterLine++, nRow++)
 		{
@@ -148,6 +149,7 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 				m_listCtrl.SetItemText(nRow, nCol, sData );
 			}
 		}
+		m_listCtrl.SetRedraw(TRUE);
 	}
 	else
 	{
@@ -164,6 +166,7 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 		m_listCtrl.InsertColumn(5,_T("Total  Queue Length"),LVCFMT_CENTER,50);
 		m_pListCtrlHeader->SetDataType(5,dtINT);
 
+		m_listCtrl.SetRedraw(FALSE);
 		const QLengthSummaryMap& queueLengthSummary = _reportData.GetSummaryResult();
 		TCHAR sData[32] = _T("");
 		int nRow = 0;
@@ -198,8 +201,8 @@ void CComparativeList::RefreshData(CComparativeQLengthReport& _reportData)
 				m_listCtrl.SetItemText(nRow,5,strTotal);
 			}
 		}
+		m_listCtrl.SetRedraw(TRUE);
 	}
-
 }
 void CComparativeList::RefreshData(CComparativePaxCountReport& _reportData)
 {
@@ -260,7 +263,6 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 		m_listCtrl.DeleteColumn(0);
 	}
 
-
 	//load detail report 
 	if(_reportData.m_cmpParam.GetReportDetail()==REPORT_TYPE_DETAIL)
 	{
@@ -284,7 +286,7 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 			nColCount += 1;
 		}
 		//set list control
-
+		m_listCtrl.SetRedraw(FALSE);
 		int nRow = 0, nCol =0;
 		//const std::vector<CmpQTimeVector>& vMultiQTime = _reportData.GetResult();
 		const QTimeMap& mapQTime = _reportData.GetResultDetail();
@@ -300,6 +302,7 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 				m_listCtrl.SetItemText(nRow, nCol, sData );
 			}
 		}
+		m_listCtrl.SetRedraw(TRUE);
 	}
 	else //load summary report
 	{
@@ -390,7 +393,7 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 		const MultiRunsReport::Summary::SummaryQTimeList&  dataList = _reportData.GetResultSummary();
 		
 		
-		
+		m_listCtrl.SetRedraw(FALSE);
 		size_t nResultSize = dataList.size();
 		const std::vector<CString>& simNamelist =  _reportData.GetSimNameList(); 
 		//insert average
@@ -437,6 +440,7 @@ void CComparativeList::RefreshData(CComparativeQTimeReport& _reportData)
 				nItemIndex++;
 			}			
 		}
+		m_listCtrl.SetRedraw(TRUE);
 	}
 	
 }
@@ -453,6 +457,7 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 		m_listCtrl.DeleteColumn(0);
 	}
 
+	
 	if (_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 	{
 		//set header control
@@ -475,6 +480,7 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 			m_pListCtrlHeader->SetDataType(nColCount, dtINT);
 			nColCount ++;
 		}
+		m_listCtrl.SetRedraw(FALSE);
 		//set list control
 		if(!_reportData.GetDetailResult().empty())
 		{
@@ -502,6 +508,7 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 				}
 			}
 		}
+		m_listCtrl.SetRedraw(TRUE);
 	}
 	else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
 	{
@@ -520,6 +527,7 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 
 		const std::vector<CmpThroughputSummaryData>& vData = _reportData.GetSummaryResult();
 		std::vector<CString>& vSimName = _reportData.GetSimNameList();
+		m_listCtrl.SetRedraw(FALSE);
 		//set list control
 		CString strItem;
 		int nRow = 0, nCol =0;
@@ -545,7 +553,9 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 			m_listCtrl.SetItemText(nRow, nCol, strItem);
 			nCol++;
 		}
+		m_listCtrl.SetRedraw(TRUE);
 	}
+	
 }
 
 
@@ -650,6 +660,7 @@ void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData,i
 		m_listCtrl.SetColumnWidth(nColCount, 80);
 		nColCount += 1;
 	}
+	m_listCtrl.SetRedraw(FALSE);
 	//set list control
 	int nRow = 0, nCol =0;
 	const PaxDensityMap& mapPaxDens = _reportData.GetResult();
@@ -678,7 +689,7 @@ void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData,i
 			m_listCtrl.SetItemText(nRow, nCol, sData );
 		}
 	}
-
+	m_listCtrl.SetRedraw(TRUE);
 }
 void CComparativeList::RefreshData(CComparativeTimeTerminalReport& _reportData)
 {
@@ -816,6 +827,7 @@ void CComparativeList::RefreshData( CComparativSpaceThroughputReport& _reportDat
 		m_listCtrl.SetColumnWidth(nColCount, 80);
 		nColCount += 1;
 	}
+	m_listCtrl.SetRedraw(FALSE);
 	//set list control
 	int nRow = 0, nCol =0;
 	const PaxThroughputMap& mapPaxThroughput = _reportData.GetResult();
@@ -838,6 +850,7 @@ void CComparativeList::RefreshData( CComparativSpaceThroughputReport& _reportDat
 			m_listCtrl.SetItemText(nRow, nCol, sData );
 		}
 	}
+	m_listCtrl.SetRedraw(TRUE);
 }
 
 void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportData)
@@ -872,6 +885,7 @@ void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportDat
     m_listCtrl.InsertColumn(8 , _T("Utilization(%)"), LVCFMT_CENTER, 85);
     m_pListCtrlHeader->SetDataType(8, dtDEC);
 
+	m_listCtrl.SetRedraw(FALSE);
     if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
     {
         int nLine = 0;
@@ -947,6 +961,7 @@ void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportDat
             }
         }
     }
+	m_listCtrl.SetRedraw(TRUE);
 }
 
 

@@ -75,7 +75,7 @@ public:
 		return *this;
 	}
 
-	BOOL TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+	BOOL TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 	void RemoveFiles(const CString &strPath);
 
 	void AddSimResult(char* pBuf, BOOL isChecked = TRUE);
@@ -86,7 +86,7 @@ public:
 	CString GetSimResultName(int nIndex);
 	void ClearSimResult();
 
-	Terminal*  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+	Terminal*  InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 
 	BOOL GetChecked(){ return m_isChecked; }
 	void SetChecked(BOOL isChecked) { m_isChecked = isChecked; }

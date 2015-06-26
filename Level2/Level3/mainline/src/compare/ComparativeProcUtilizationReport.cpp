@@ -410,3 +410,10 @@ bool CComparativeProcUtilizationReport::LoadReportSummary(ArctermFile& file)
     }
     return true;
 }
+
+CString CComparativeProcUtilizationReport::GetFooter( int iSubType ) const
+{
+	CString strFooter;
+	strFooter.Format(_T("Comparative Report Processor Utilization(%s) %s %s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+	return strFooter;
+}

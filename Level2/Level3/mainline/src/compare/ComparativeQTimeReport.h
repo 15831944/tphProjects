@@ -39,6 +39,8 @@ public:
 	void MergeSample(const ElapsedTime& tInteval);
 	bool SaveReport(const std::string& _sPath)const;
 	bool LoadReport(const std::string& _sPath);
+
+	CString GetFooter(int iSubType)const;
 public:
 	int  GetReportType() const { return QueueTimeReport; }
 	//const std::vector<CmpQTimeVector>& GetResult() const { return m_vMultiQTimeReports; }

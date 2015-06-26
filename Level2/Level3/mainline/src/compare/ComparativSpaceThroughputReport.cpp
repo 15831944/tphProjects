@@ -196,3 +196,10 @@ bool CComparativSpaceThroughputReport::LoadReport(const std::string& _sPath)
 
 	return true;
 }
+
+CString CComparativSpaceThroughputReport::GetFooter( int iSubType ) const
+{
+	CString strFooter;
+	strFooter.Format(_T("Comparative Report Density Throughput(%s) %s%s"),GetModelName(),m_cmpParam.GetStartTime().printTime(),m_cmpParam.GetEndTime().printTime());
+	return strFooter;
+}

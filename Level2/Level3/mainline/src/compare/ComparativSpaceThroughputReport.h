@@ -16,7 +16,7 @@ public:
 	bool LoadReport(const std::string& _sPath);
 	int GetReportType() const{return SpaceThroughputReport;}
 	const PaxThroughputMap& GetResult() const{return m_mapPaxThroughput;}
-
+	CString GetFooter(int iSubType)const;
 protected:
 	PaxThroughputMap		m_mapPaxThroughput;
 };

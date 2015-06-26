@@ -383,23 +383,6 @@ int CDlgReportProperty::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CDlgReportProperty::OnOK() 
 {
 	// TODO: Add extra validation here
-//*frank test
-/*	CReportToCompare report;
-	CReportParamToCompare param;
-	ElapsedTime tStart;
-	tStart.set(0, 0, 0);
-	ElapsedTime tEnd;
-	tEnd.set(23, 59, 59);
-
-	for (int i = 0; i < 1; i++)
-	{
-		report.SetCategory(i);
-		param.SetReportParamter(tStart, tEnd, i, i, i, i, "ReportName");
-		report.SetParameter(param);
-		m_reportsManager.AddReport(report);
-	}
-//------------------------
-*/
 	UpdateData();
 
 	if(m_strName.IsEmpty())
@@ -488,14 +471,14 @@ void CDlgReportProperty::OnOK()
         nReportType = ENUM_UTILIZATION_REP;
         break;
 	}
-	if(m_enumOldType != nReportType)
-	{
-		if(!m_reportsManager->IsCategoryAvailable(nReportType))
-		{
-			MessageBox("This category report already exists, please add other category report!");
-			return;
-		}
-	}
+	//if(m_enumOldType != nReportType)
+	//{
+	//	if(!m_reportsManager->IsCategoryAvailable(nReportType))
+	//	{
+	//		MessageBox("This category report already exists, please add other category report!");
+	//		return;
+	//	}
+	//}
 
 	m_reportToCompare.SetCategory(nReportType);
 	if ((nReportType == 3 &&m_nReportType.GetCurSel() != 6) && m_strArea.IsEmpty())

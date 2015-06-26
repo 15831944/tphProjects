@@ -88,14 +88,14 @@ void CComparativeProject::SetUser(const CString& strUser)
 	m_strUser = strUser;
 }
 
-const CString& CComparativeProject::GetMachine() const
+const CString& CComparativeProject::GetServerName() const
 {
-	return m_strMachine;
+	return m_strServerName;
 }
 
-void CComparativeProject::SetMachine(const CString& strMachine)
+void CComparativeProject::SetServerName(const CString& strServerName)
 {
-	m_strMachine = strMachine;
+	m_strServerName = strServerName;
 }
 
 const CTime& CComparativeProject::GetCreatedTime() const
@@ -126,7 +126,9 @@ CString CComparativeProject::getProjectPath() const
 BOOL CComparativeProject::LoadData()
 {
 	CString strProjPath =getProjectPath();
-	m_inputParam.LoadData(m_strName, strProjPath);
+	if(!m_inputParam.LoadData(m_strName, strProjPath))
+		return FALSE;
+
 	m_rptList.LoadData(&m_inputParam, strProjPath);
 
 	return TRUE;
@@ -151,14 +153,14 @@ void CComparativeProject::GetModel()
 }
 
 //	Transfer files
-BOOL CComparativeProject::TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+BOOL CComparativeProject::TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	CFileOperation fo;
 	fo.SetAskIfReadOnly(false);
 	fo.SetOverwriteMode(true);
 	return fo.Copy(strSource, strDest,_ShowCopyInfo);
 }
-BOOL CComparativeProject::TransferLogFiles(CModelToCompare *pCmpModel, const CString& strDest,const CString& strSimResult,void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+BOOL CComparativeProject::TransferLogFiles(CModelToCompare *pCmpModel, const CString& strDest,const CString& strSimResult,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	
 	CString strSource = pCmpModel->GetModelLocation();
@@ -194,16 +196,6 @@ BOOL CComparativeProject::TransferLogFiles(CModelToCompare *pCmpModel, const CSt
 	fo.SetOverwriteMode(true);
 	return fo.Copy(strSourcePath, strDestPath,_ShowCopyInfo);
 }
-//void CComparativeProject::RemoveFiles(const CString &strPath)
-//{
-//	CFileOperation fo;
-//	fo.SetAskIfReadOnly(false);
-//	std::vector<CModelToCompare *>& vModels = m_inputParam.GetModelsManagerPtr()->GetModelsList();
-//	for (unsigned i = 0; i < vModels.size(); i++)
-//	{
-//		fo.Delete(strPath + _T("\\") + vModels[i]->GetModelName());
-//	}
-//}
 
 void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &inParam, CReportParameter* pOutParam, CModelToCompare* pModel)
 {
@@ -237,7 +229,7 @@ void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &i
 	pOutParam->SetFromToProcs(_fromtoProcs);
 }
 
-BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _ShowCopyInfo)(LPCTSTR))
+BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _ShowCopyInfo)(int, LPCTSTR))
 {
 	CString strStatus;
 	int	nStart = 0, nEnd = 0, nProgressStatus = 0;
@@ -262,39 +254,53 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 		vReports[ns].m_vstrOutput.clear();
 	}
 	
-	nEnd = (7 + 5 + 3) * vModels.size() + vModels.size() * vReports.size() + 5 + 3;
+	//get total progress		
+	int nTotalRuns = 0;
+	{
+
+		for (unsigned nModel = 0; nModel < vModels.size(); nModel++)
+		{
+			CModelToCompare* pCmpModel =  vModels[nModel];
+			nTotalRuns += pCmpModel->GetSimResultCount();
+		}
+
+		//each report, increment 1
+		nEnd = vReports.size() * nTotalRuns + vReports.size();
+	}
+
 	pWndStatus->SetProgressRange(nStart, nEnd);
 
 	SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
-
-	for (unsigned nModel = 0; nModel < vModels.size(); nModel++)
+	
+	for (unsigned nReport = 0; nReport < vReports.size(); nReport++)
 	{
-		CModelToCompare* pCmpModel =  vModels[nModel];
-
-		SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
-		if (m_bStop)
-			break;
-		if(!pCmpModel->GetChecked())
-		{
-			continue;
-		}
-
-
-		nProgressStatus += 7;
-		pWndStatus->SetProgressPos(nProgressStatus);
 		try
 		{
-			nProgressStatus += 5;
-			pWndStatus->SetProgressPos(nProgressStatus);
-
-			for (unsigned nReport = 0; nReport < vReports.size(); nReport++)
-			{
-				CReportToCompare& reportCmp = vReports[nReport];
-				if (reportCmp.GetChecked() == FALSE)
+			CReportToCompare& reportCmp = vReports[nReport];
+			if (reportCmp.GetChecked() == FALSE)
+				{
+					UpdateProgressBar(pWndStatus, nTotalRuns);
 					continue;
-				
+			}
+
+			for (unsigned nModel = 0; nModel < vModels.size(); nModel++)
+			{	
+				CModelToCompare* pCmpModel =  vModels[nModel];
+
+				SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
+				if (m_bStop)
+					break;
+
+				if(!pCmpModel->GetChecked())
+				{
+					//skip all sim result
+					UpdateProgressBar(pWndStatus, pCmpModel->GetSimResultCount());
+					continue;
+				}
+
 				int iReportIndex = -1;
-				switch(vReports[nReport].GetCategory()) {
+				switch(vReports[nReport].GetCategory())
+				{
 				case ENUM_QUEUELENGTH_REP:
 					iReportIndex = 0;
 					break;
@@ -369,12 +375,15 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 				for (int nResult = 0; nResult < nSimResultCount; ++nResult )
 				{
 					if (pCmpModel->GetSimResult(nResult).GetChecked() == FALSE)
+					{
+						UpdateProgressBar(pWndStatus);
 						continue;
+					}
 					
 					CString strSimResult = pCmpModel->GetSimResultName(nResult);
-					strStatus.Format(_T("%s%s%s%s :%s"), _T("Generate "), 
+					strStatus.Format(_T("%s%s%s%s :%s"), _T("Generating "), 
 						s_szReportCategoryName[iReportIndex],
-						_T(" report of "), pCmpModel->GetModelName(),strSimResult);
+						_T(" of "), pCmpModel->GetModelName(),strSimResult);
 					pWndStatus->AddLogText(strStatus);
 
 					TransferLogFiles(pCmpModel,pCmpModel->GetLocalPath(),strSimResult,_ShowCopyInfo);
@@ -392,19 +401,37 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					tempMultiRunAgent.GenerateAll();
 					CString strReportPath = pTerm->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
 				
-					strReportPath = SaveTempReport(strReportPath, nModel, nReport, nResult);
+					strReportPath = SaveTempReport(strReportPath, nModel, nReport, nResult,_ShowCopyInfo);
 					ASSERT(!strReportPath.IsEmpty());
-					AddReportPath((ENUM_REPORT_TYPE)vReports[nReport].GetCategory(), strReportPath);
+					if(strReportPath.IsEmpty()) // failed to generate this report
+					{
+						strStatus.Empty();
+						CString strSimResult = pCmpModel->GetSimResultName(nResult);
+						strStatus.Format(_T("%s%s%s%s :%s"), _T("Failed to generate "), 
+							s_szReportCategoryName[iReportIndex],
+							_T(" of "), pCmpModel->GetModelName(),strSimResult);
+						pWndStatus->AddLogText(strStatus);
+					}
+					AddReportPath(vReports[nReport], strReportPath);
+			
+					UpdateProgressBar(pWndStatus);
+
 				}
 				delete pOutParam;
 				pOutParam = NULL;
 
-				nProgressStatus++;
-				pWndStatus->SetProgressPos(nProgressStatus);
+
 
 				if (m_bStop)
 					break;
 			}
+
+			strStatus.Empty();
+			strStatus.Format(_T("Generating comparative report: %s "), vReports[nReport].GetName());
+			pWndStatus->AddLogText(strStatus);
+			MergeReport(vReports[nReport], strTempPath);
+			UpdateProgressBar(pWndStatus);
+
 		}
 		catch( FileOpenError* pError )
 		{
@@ -420,28 +447,19 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 			delete _pError;
 			return FALSE;	
 		}
-
+		catch(StringError* _pError)
+		{
+			AfxMessageBox("The log file is old, run simulation please!",MB_OK|MB_ICONWARNING);
+			delete _pError;
+			return FALSE;
+		}
+		
 		SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
 		if (m_bStop)
 			break;
-
-		nProgressStatus += 3;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	//	Merge report data
-	if (!m_bStop)
-	{
-		strStatus = _T("Merge reports...");
-		pWndStatus->AddLogText(strStatus);
-		MergeReports(strTempPath);
-
-		nProgressStatus += 5;
-		pWndStatus->SetProgressPos(nProgressStatus);
-	}
-
-	nProgressStatus += 3;
-	pWndStatus->SetProgressPos(nProgressStatus);
+	pWndStatus->SetProgressPos(nEnd);
 	if (m_bStop)
 		strStatus = _T("Canceled");
 	else
@@ -458,37 +476,20 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 	return m_bMatch;
 }
 
-void CComparativeProject::AddReportPath(ENUM_REPORT_TYPE rptType, const CString& strPath)
+void CComparativeProject::AddReportPath(CReportToCompare& rptToCmpare, const CString& strPath)
 {
-	BOOL bFound = FALSE;
-	std::vector<CReportToCompare>& vReports = m_inputParam.GetReportsManager()->GetReportsList();
-	for (unsigned i = 0; i < vReports.size(); i++)
-	{
-		if (vReports[i].GetCategory() == rptType)
-		{
-			vReports[i].m_vstrOutput.push_back(strPath);
-			bFound = TRUE;
-			break;
-		}
-	}
+	rptToCmpare.m_vstrOutput.push_back(strPath);
 }
 
-void CComparativeProject::MergeReports(const CString& sOutputPath)
+void CComparativeProject::MergeReport(CReportToCompare& ReportToMerge, const CString& sOutputPath)
 {
 	if (m_fo.CheckPath(sOutputPath + _T("\\Results")) != PATH_IS_FOLDER)
 	{
 		::CreateDirectory(sOutputPath + _T("\\Results"), NULL);
 	}
 
-	std::vector<CReportToCompare>& vReports = m_inputParam.GetReportsManager()->GetReportsList();
-	for (unsigned i = 0; i < vReports.size(); i++)
-	{
 		CCmpBaseReport* pResult = NULL;
-		CReportToCompare& reportCmp = vReports[i];
-		if (reportCmp.GetChecked() == FALSE)
-			continue;
-		
-		switch (vReports[i].GetCategory())
+		switch (ReportToMerge.GetCategory())
 		{
 		case ENUM_QUEUETIME_REP:
 			pResult = new CComparativeQTimeReport;
@@ -522,69 +523,68 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		case ENUM_SPACETHROUGHPUT_REP:
 			pResult = new CComparativSpaceThroughputReport;
 			break;
-        case ENUM_UTILIZATION_REP:
-            pResult = new CComparativeProcUtilizationReport;
-            break;
+		case ENUM_UTILIZATION_REP:
+			pResult = new CComparativeProcUtilizationReport;
+			break;
 		default:
 			ASSERT(0);
 			break;
 		}
 
-		pResult->m_cmpParam = m_inputParam.GetReportsManager()->GetReportsList()[i].GetParameter();
-		pResult->m_ReportStartTime = m_inputParam.GetReportsManager()->GetReportsList()[i].GetParameter().GetStartTime();
-		pResult->m_ReportEndTime = m_inputParam.GetReportsManager()->GetReportsList()[i].GetParameter().GetEndTime();//elapsetime.
+		pResult->m_cmpParam = ReportToMerge.GetParameter();
+		pResult->m_ReportStartTime = ReportToMerge.GetParameter().GetStartTime();
+		pResult->m_ReportEndTime = ReportToMerge.GetParameter().GetEndTime();//elapsed time.
 
-		pResult->SetCmpReportName(vReports[i].GetName());
+		pResult->SetCmpReportName(ReportToMerge.GetName());
 		std::vector<CModelToCompare*>& vModels = m_inputParam.GetModelsManager()->GetModelsList();
 		CString simName;
-		for(std::vector<CModelToCompare*>::iterator itor=vModels.begin();
-			itor!=vModels.end(); itor++)
+		for(std::vector<CModelToCompare*>::iterator itor=vModels.begin(); itor!=vModels.end(); itor++)
 		{
 			if ((*itor)->GetChecked() == FALSE)
 				continue;
-			
-			for(int i=0; i<(*itor)->GetSimResultCount(); i++)
+
+			for(int nSimResult=0; nSimResult<(*itor)->GetSimResultCount(); nSimResult++)
 			{
-				if((*itor)->GetSimResult(i).GetChecked() == FALSE)
+				if((*itor)->GetSimResult(nSimResult).GetChecked() == FALSE)
 					continue;
+
 				simName = _T("");
 				simName += (*itor)->GetModelName();
 				simName += ("(");
-				simName += (*itor)->GetSimResultName(i);
+				simName += (*itor)->GetSimResultName(nSimResult);
 				simName += (")");
 				pResult->AddSimName(simName);
 			}
 		}
 
 		std::vector<std::string> vstrOutput;
-		for (unsigned j = 0; j < vReports[i].m_vstrOutput.size(); j++)
+		for (unsigned nReportResultFile = 0; nReportResultFile < ReportToMerge.m_vstrOutput.size(); nReportResultFile++)
 		{
 			// TRACE("%s\n", vReports[i].m_vstrOutput[j]);
-			std::string tstr = vReports[i].m_vstrOutput[j];
+			std::string tstr = ReportToMerge.m_vstrOutput[nReportResultFile];
 			vstrOutput.push_back( tstr );
 		}
 		pResult->AddSamplePath(vstrOutput);
-	
+
 		//distance travel handle
-		if (vReports[i].GetCategory() == ENUM_DISTANCE_REP)
+		if (ReportToMerge.GetCategory() == ENUM_DISTANCE_REP)
 		{
 			long lInterval = 0;
-			vReports[i].GetParameter().GetInterval(lInterval);
+			ReportToMerge.GetParameter().GetInterval(lInterval);
 			pResult->MergeSample(lInterval);
 		}
 		else
 		{
-			pResult->MergeSample(vReports[i].GetParameter().GetInterval());
+			pResult->MergeSample(ReportToMerge.GetParameter().GetInterval());
 		}
-		
-		CString strResult = sOutputPath + _T("\\Results\\") + vReports[i].GetName() + _T(".txt");
+
+		CString strResult = sOutputPath + _T("\\Results\\") + ReportToMerge.GetName() + _T(".txt");
 		pResult->SaveReport(strResult.GetBuffer(0));
 		m_rptList.AddReportResult(pResult);
-	}
+	
 }
 
-CString CComparativeProject::SaveTempReport(const CString &strReportPath, int iModelIndex,
-											int iReportIndex,int nSimResult)
+CString CComparativeProject::SaveTempReport(const CString &strReportPath, int iModelIndex,int iReportIndex,int nSimResult, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	CString strDest;
 	CString strPath = PROJMANAGER->GetAppPath();
@@ -599,12 +599,16 @@ CString CComparativeProject::SaveTempReport(const CString &strReportPath, int iM
 
 	strDest.Format(_T("%s%s%d%d%d%s"), strPath, _T("\\"), iModelIndex,nSimResult ,iReportIndex, strName);
 
-	//if (m_fo.Copy(strReportPath, strPath))
-	//	return strDest;
-
+	if(_ShowCopyInfo != NULL)
+	{
+		CString strMessage = _T("Saving report result ") + strName;
+		(*_ShowCopyInfo)(0, strMessage);
+	}
+	
 	if (CopyFile(strReportPath, strDest, FALSE))
 		return strDest;
 
+	ASSERT(0);
 	return _T("");
 }
 
@@ -668,6 +672,24 @@ void CComparativeProject::AddReportResult( CCmpBaseReport* pResult )
 	m_rptList.AddReportResult(pResult);
 }
 
+void CComparativeProject::UpdateProgressBar( CCompRepLogBar* pWndStatus, int nIncrement /*= 1*/ )
+{
+	if(pWndStatus)
+	{
+		int nPos = pWndStatus->GetProgressPos();
+		pWndStatus->SetProgressPos(nPos + nIncrement);
+	}
+}
+BOOL CComparativeProject::DeleteProjectPath()
+{
+    CString strProjPath = PROJMANAGER->GetAppPath();
+    strProjPath += _T("\\Comparative Report\\") + m_strName;
+    m_fo.SetAskIfReadOnly(false);
+    if(!m_fo.Delete(strProjPath))
+        return FALSE;
+    return TRUE;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -714,7 +736,7 @@ void CComparativeProjectDataSet::readData(ArctermFile& p_file)
 
 		memset(buf, 0, sizeof(buf) / sizeof(char));
 		if (p_file.getField(buf, 255) != 0)
-			proj->SetMachine(buf);
+			proj->SetServerName(buf);
 		
 		memset(buf, 0, sizeof(buf) / sizeof(char));
 		if (p_file.getField(buf, 255) != 0)
@@ -801,7 +823,7 @@ void CComparativeProjectDataSet::writeData(ArctermFile& p_file) const
 		p_file.writeField(m_vProjs[i]->GetName());
 		p_file.writeField(m_vProjs[i]->GetDescription());
 		p_file.writeField(m_vProjs[i]->GetUser());
-		p_file.writeField(m_vProjs[i]->GetMachine());
+		p_file.writeField(m_vProjs[i]->GetServerName());
 		CTime tm = m_vProjs[i]->GetCreatedTime();
 		p_file.writeField(tm.Format("%Y %m %d %H %M %S"));
 		tm = m_vProjs[i]->GetLastModifiedTime();
@@ -855,7 +877,7 @@ int CComparativeProjectDataSet::getProjectCount() const
 	return static_cast<int>(m_vProjs.size());
 }
 
-CComparativeProject * CComparativeProjectDataSet::getProject( int nIndex )
+CComparativeProject * CComparativeProjectDataSet::getCmpProject( int nIndex )
 {
 	ASSERT(nIndex >= 0 && nIndex < getProjectCount());
 	if(nIndex >= 0 && nIndex < getProjectCount())
@@ -865,40 +887,23 @@ CComparativeProject * CComparativeProjectDataSet::getProject( int nIndex )
 	return NULL;
 }
 
-bool CComparativeProjectDataSet::isNameAvailable( const CString& strName ) const
+CComparativeProject* CComparativeProjectDataSet::FindCmpProjectByName(const CString& strName)
 {
-	for (int i = 0; i < static_cast<int>(m_vProjs.size()); i++)
-	{
-		const CComparativeProject* pProject = m_vProjs.at(i);
-		if(pProject == NULL)
-			continue;
-
-		if (pProject->GetName().CompareNoCase(strName) == 0)
-		{
-			return false;
-		}
-	}
-	return true;
+    for(size_t i=0; i<m_vProjs.size(); i++)
+    {
+        CComparativeProject* pProject = m_vProjs.at(i);
+        ASSERT(pProject != NULL);
+        if (strName.CompareNoCase(pProject->GetName()) == 0)
+        {
+            return pProject;
+        }
+    }
+    return NULL;
 }
 
-CComparativeProject *CComparativeProjectDataSet::getProjectByName( const CString& strName )
+CComparativeProject * CComparativeProjectDataSet::AddNewProject( const CString& strName, const CString& strDesc )
 {
-	for (int i = 0; i < static_cast<int>(m_vProjs.size()); i++)
-	{
-		CComparativeProject* pProject = m_vProjs.at(i);
-		if(pProject == NULL)
-			continue;
-
-		if (pProject->GetName().CompareNoCase(strName) == 0)
-		{
-			return pProject;
-		}
-	}
-	return NULL;
-}
-
-CComparativeProject * CComparativeProjectDataSet::CreateNewProject( const CString& strName, const CString& strDesc )
-{
+    ASSERT(FindCmpProjectByName(strName) == NULL);
 	CComparativeProject* pNewProj = new CComparativeProject;
 
 	pNewProj->SetName(strName);
@@ -909,11 +914,26 @@ CComparativeProject * CComparativeProjectDataSet::CreateNewProject( const CStrin
 	::GetUserName(szName, &dwBufferLen);
 	pNewProj->SetUser(szName);
 	::GetComputerName(szName, &dwBufferLen);
-	pNewProj->SetMachine(szName);
+	pNewProj->SetServerName(szName);
 	pNewProj->SetCreatedTime(CTime::GetCurrentTime());
 	pNewProj->SetLastModifiedTime(CTime::GetCurrentTime());
-	
 	m_vProjs.push_back(pNewProj);
 
 	return pNewProj;
+}
+
+bool CComparativeProjectDataSet::DeleteProjectByName(const CString& strProjName)
+{
+    std::vector<CComparativeProject *>::iterator itor = m_vProjs.begin();
+    for(; itor!=m_vProjs.end(); ++itor)
+    {
+        if(strProjName.CompareNoCase((*itor)->GetName()) == 0)
+        {
+            (*itor)->DeleteProjectPath();
+            delete (*itor);
+            m_vProjs.erase(itor);
+            return true;
+        }
+    }
+    return false;
 }

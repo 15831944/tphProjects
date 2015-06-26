@@ -84,7 +84,7 @@ void CFileOperation::DoDelete(CString sPathName)
 }
 
 
-void CFileOperation::DoFolderCopy(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(LPCTSTR),bool bDelteAfterCopy)
+void CFileOperation::DoFolderCopy(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR),bool bDelteAfterCopy)
 {
 	CFileFind ff;
 	CString sPathSource = sSourceFolder;
@@ -160,7 +160,7 @@ void CFileOperation::DoRename(CString sSource, CString sDest)
 }
 
 
-void CFileOperation::DoCopy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR),bool bDelteAfterCopy)
+void CFileOperation::DoCopy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR),bool bDelteAfterCopy)
 {
 	CheckSelfRecursion(sSource, sDest);
 	// source not found
@@ -232,8 +232,37 @@ void CFileOperation::DoCopy(CString sSource, CString sDest,void (CALLBACK* _Show
 	}
 }
 
+static DWORD CALLBACK CopyFileProgressRoutine(
+	LARGE_INTEGER TotalFileSize,
+	LARGE_INTEGER TotalBytesTransferred,
+	LARGE_INTEGER StreamSize,
+	LARGE_INTEGER StreamBytesTransferred,
+	DWORD dwStreamNumber,
+	DWORD dwCallbackReason,
+	HANDLE hSourceFile,
+	HANDLE hDestinationFile,
+	LPVOID lpData
+	)
+{
+	CopyFileExDescription *cFDesc = (CopyFileExDescription *)lpData;
+	
+	//void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR) = (void (CALLBACK* )(int, LPCTSTR) )lpData;
 
-void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CALLBACK* _ShowCopyInfo)(LPCTSTR),bool bDelteAfterCopy)
+	if(cFDesc && cFDesc->_ShowCopyInfo)
+	{
+		CString strMessage;
+		double nPercent = 100.0;
+		if(TotalFileSize.LowPart)
+			nPercent = TotalBytesTransferred.LowPart*1.0/TotalFileSize.LowPart;
+
+		strMessage.Format(_T("Copying %s ( %.1f%% )"), cFDesc->strSourceFile, nPercent * 100);
+		(* cFDesc->_ShowCopyInfo)(1, strMessage);
+	}
+
+	return PROGRESS_CONTINUE;
+}
+
+void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR),bool bDelteAfterCopy)
 {
 	BOOL bOvrwriteFails = FALSE;
 	if (!m_bOverwriteMode)
@@ -274,13 +303,35 @@ void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CA
 		}
 	}
 
+	//if (_ShowCopyInfo != NULL)
+	//{
+	//	(*_ShowCopyInfo)(0, sSourceFile);
+	//}
+
+	//if (!CopyFile(sSourceFile, sDestFile, bOvrwriteFails)) 
+		//throw new CFExeption(GetLastError());
+
+	CopyFileExDescription copyFileExDesc;
+	copyFileExDesc._ShowCopyInfo = _ShowCopyInfo;
+	copyFileExDesc.strSourceFile = sSourceFile;
+	copyFileExDesc.strDestFile = sDestFile;
 	if (_ShowCopyInfo != NULL)
 	{
-		(*_ShowCopyInfo)(sSourceFile);
+		CString strMessage;
+		strMessage.Format(_T("Copying %s ( %d%% )"), sSourceFile, 0);
+		(*_ShowCopyInfo)(0, strMessage);
 	}
 
-	if (!CopyFile(sSourceFile, sDestFile, bOvrwriteFails)) 
+	if(!CopyFileEx(sSourceFile, sDestFile, CopyFileProgressRoutine, &copyFileExDesc, FALSE, NULL))
 		throw new CFExeption(GetLastError());
+	if (_ShowCopyInfo != NULL)
+	{	
+		CString strMessage;
+		strMessage.Format(_T("Copying %s ( %d%% )"), sSourceFile, 100);
+		(*_ShowCopyInfo)(1, strMessage);
+	}
+
+
 	if (bDelteAfterCopy)
 	{
 		DoDelete(sSourceFile);
@@ -288,7 +339,7 @@ void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CA
 }
 
 
-bool CFileOperation::Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+bool CFileOperation::Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	if (CheckSelfCopy(sSource, sDest)) 
 		return true;
@@ -503,7 +554,7 @@ bool CFileOperation::CheckSelfCopy(CString sSource, CString sDest)
 	return bRes;
 }
 //not copying "SimResult" folder
-bool CFileOperation::NotCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+bool CFileOperation::NotCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	if (CheckSelfCopy(sSource, sDest)) return true;
 	bool bRes;
@@ -525,7 +576,7 @@ bool CFileOperation::NotCopyFolderOfSimResult(CString sSource, CString sDest,voi
 
 }
 
-void CFileOperation::NotDoCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR), bool bDelteAfterCopy )
+void CFileOperation::NotDoCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR), bool bDelteAfterCopy )
 {
 
 	CheckSelfRecursion(sSource, sDest);
@@ -598,7 +649,7 @@ void CFileOperation::NotDoCopyFolderOfSimResult(CString sSource, CString sDest,v
 	}
 }
 
-void CFileOperation::NoCopyFolderOfSimResult(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(LPCTSTR), bool bDelteAfterCopy)
+void CFileOperation::NoCopyFolderOfSimResult(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR), bool bDelteAfterCopy)
 {
 	CFileFind ff;
 	CString sPathSource = sSourceFolder;

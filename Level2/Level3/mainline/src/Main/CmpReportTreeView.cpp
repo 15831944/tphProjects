@@ -252,22 +252,36 @@ void CCmpReportTreeView::OnRun()
 			AfxMessageBox(_T("Save data failed!"));
 	}
 }
+// nOperation
+//0, append
+//1,update last one
 
-static void CALLBACK _ShowCopyInfo(LPCTSTR strPath)
+
+static void CALLBACK _ShowCopyInfo(int nOperation, LPCTSTR strMessage)
 {
-	CString fileName;
-	CString strFilePath = CString(strPath);
-	int nPos = strFilePath.ReverseFind('\\');
-	fileName = strFilePath.Mid(nPos + 1);
+	//CString fileName;
+	//CString strFilePath = CString(strPath);
+	//int nPos = strFilePath.ReverseFind('\\');
+	//fileName = strFilePath.Mid(nPos + 1);
 	CString strMsg;
-	strMsg = _T("Copying   ") + fileName;
+	strMsg = strMessage;// _T("Copying   ") + fileName;
+
 	CMainFrame* pFram = (CMainFrame*)AfxGetMainWnd();
 	CWnd* pWnd = &(pFram->m_wndCompRepLogBar);
 	if(pWnd)
 	{
 		CCompRepLogBar* pRepLogBarWnd = (CCompRepLogBar*)pWnd;
 		if(pRepLogBarWnd)
-			pRepLogBarWnd->AddLogText(strMsg);
+		{
+			if(nOperation == 0)
+			{
+				pRepLogBarWnd->AddLogText(strMsg);
+			}
+			else
+			{
+				pRepLogBarWnd->UpdateLastLogText(strMsg);
+			}
+		}
 	}
 }
 void CCmpReportTreeView::RunCompareReport()
@@ -483,7 +497,7 @@ void CCmpReportTreeView::AddModel()
 	wc.Restore();
 	if(dlg.DoModal() == IDOK)
 	{
-		pManager->InitTerminal(NULL,strProj,NULL);
+		pManager->InitTerminal(NULL,strProj,_ShowCopyInfo);
 		UpdateSubItems(m_hModelRoot);
 		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
@@ -745,7 +759,7 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				{
 					//ChangeFocusReport();
 				}
-                GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
+          //      GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 			}
 			break;
 		case CMP_REPORT_TN_MODEL:

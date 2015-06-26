@@ -92,7 +92,7 @@ int CModelsManager::ListAllModelsByPath(const CString& strPath, OUT std::vector<
 	return iCount;
 }
 
-CString  CModelsManager::InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
+CString  CModelsManager::InitTerminal(CCompRepLogBar* pStatus, CString strName, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR))
 {
 	std::vector<CModelToCompare *>::iterator iter = m_vModels.begin();
 	std::vector<CModelToCompare *>::iterator iterEnd = m_vModels.end();
@@ -169,6 +169,21 @@ CModelToCompare* CModelsManager::getModel( int nIndex )
 void CModelsManager::Clear()
 {
 	m_vModels.clear();
+}
+
+bool CModelsManager::IsAllProjectsSucessfullyLoaded()
+{
+	for(int nIndex = 0; nIndex < getCount(); ++ nIndex )
+	{
+		CModelToCompare* pModel = m_vModels.at(nIndex);
+		ASSERT(pModel != NULL);
+		if(pModel)
+		{
+			if(pModel->GetTerminal() == NULL)
+				return false;
+		}
+	}
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

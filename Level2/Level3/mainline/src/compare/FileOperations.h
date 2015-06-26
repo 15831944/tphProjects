@@ -27,6 +27,14 @@ private:
 	DWORD m_dwError;
 };
 
+class CopyFileExDescription
+{
+public:
+	void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR) ;
+	CString strSourceFile;
+	CString strDestFile;
+
+};
 
 //*****************************************************************************************************
 
@@ -35,7 +43,7 @@ class CFileOperation
 public:
 	CFileOperation(); // constructor
 	bool Delete(CString sPathName); // delete file or folder
-	bool Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR)); // copy file or folder
+	bool Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR)); // copy file or folder
 	bool Replace(CString sSource, CString sDest); // move file or folder
 	bool Rename(CString sSource, CString sDest); // rename file or folder
 	CString GetErrorString() {return m_sError;} // return error description
@@ -55,13 +63,13 @@ public:
 
 	//add by porter
 	//not copying "SimResult" folder
-	bool NotCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR));
+	bool NotCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 
 protected:
 	void DoDelete(CString sPathName);
-	void DoCopy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR), bool bDelteAfterCopy = false);
-	void DoFileCopy(CString sSourceFile, CString sDestFile, void (CALLBACK* _ShowCopyInfo)(LPCTSTR),bool bDelteAfterCopy = false);
-	void DoFolderCopy(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(LPCTSTR), bool bDelteAfterCopy = false);
+	void DoCopy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR), bool bDelteAfterCopy = false);
+	void DoFileCopy(CString sSourceFile, CString sDestFile, void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR),bool bDelteAfterCopy = false);
+	void DoFolderCopy(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR), bool bDelteAfterCopy = false);
 	void DoRename(CString sSource, CString sDest);
 	bool IsFileExist(CString sPathName);
 	void PreparePath(CString &sPath);
@@ -73,8 +81,8 @@ protected:
 
 	//add by porter
 	//not copying "SimResult" folder
-	void NotDoCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR), bool bDelteAfterCopy = false);
-	void NoCopyFolderOfSimResult(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(LPCTSTR), bool bDelteAfterCopy = false);
+	void NotDoCopyFolderOfSimResult(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR), bool bDelteAfterCopy = false);
+	void NoCopyFolderOfSimResult(CString sSourceFolder, CString sDestFolder,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR), bool bDelteAfterCopy = false);
 
 private:
 	CString m_sError;

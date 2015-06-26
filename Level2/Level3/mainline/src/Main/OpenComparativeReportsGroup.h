@@ -1,62 +1,51 @@
-#if !defined(AFX_OPENCOMPARATIVEREPORTSGROUP_H__73FBB898_A40D_429A_A70C_42D0BC7D7F88__INCLUDED_)
-#define AFX_OPENCOMPARATIVEREPORTSGROUP_H__73FBB898_A40D_429A_A70C_42D0BC7D7F88__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
-// OpenComparativeReportsGroup.h : header file
-//
-#include "..\MFCExControl\ListCtrlEx.h"
-#include "../MFCExControl/sortableheaderctrl.h"
 #include "printablelistctrl.h"
-/////////////////////////////////////////////////////////////////////////////
-// COpenComparativeReportsGroup dialog
+#include "../MFCExControl/ListCtrlEx.h"
+#include "../MFCExControl/sortableheaderctrl.h"
 
+class CComparativeProject;
 class CDlgOpenComparativeReport : public CDialog
 {
-// Construction
 public:
-	int GetSelIndex();
-	void InitListCtrl();
-	CDlgOpenComparativeReport(CWnd* pParent = NULL);   // standard constructor
+    CDlgOpenComparativeReport(CWnd* pParent = NULL);
+    enum { IDD = IDD_OPENCOMPARATIVEREPGROUPS };
 
-	CString m_strName;
-	CString m_strDesc;
+    int GetSelIndex();
+    void InitListCtrl();
 
-// Dialog Data
-	//{{AFX_DATA(COpenComparativeReportsGroup)
-	enum { IDD = IDD_OPENCOMPARATIVEREPGROUPS };
-	CPrintableListCtrl	m_ListReportsGroup;
-	CSortableHeaderCtrl	m_headerCtl;
-	//}}AFX_DATA
-
-
-// Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(COpenComparativeReportsGroup)
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);
-    // DDX/DDV support
-	//}}AFX_VIRTUAL
-
-// Implementation
+    CString GetName() const { return m_strName; }
+    void SetName(CString val) { m_strName = val; }
+    CString GetDesc() const { return m_strDesc; }
+    void SetDesc(CString val) { m_strDesc = val; }
+public:
+    CPrintableListCtrl m_ListReportsGroup;
+    CSortableHeaderCtrl m_headerCtl;
+    CToolBar m_toolbar;
 protected:
-	void FillProjectList();
-	
+    virtual void DoDataExchange(CDataExchange* pDX);
+    virtual void OnOK();
+    virtual void OnCancel();
+    virtual BOOL OnInitDialog();
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnDblclkProjlist(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg void OnColumnclickListreportgroups(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg void OnLvnItemchangedListreportgroups(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+    afx_msg void OnAddProject();
+    afx_msg void OnEditProject();
+    afx_msg void OnDelProject();
+    DECLARE_MESSAGE_MAP()
+private:
+    void FillProjectList();
+    void AddProjInfoToListEnd(CComparativeProject* pProject);
 
-	// Generated message map functions
-	//{{AFX_MSG(COpenComparativeReportsGroup)
-	virtual void OnOK();
-	virtual void OnCancel();
-	virtual BOOL OnInitDialog();
-	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg void OnDblclkProjlist(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnColumnclickListreportgroups(NMHDR* pNMHDR, LRESULT* pResult);
-	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+protected:
+    CString m_strName;
+    CString m_strDesc;
+private:
+    int m_oldCx; // for resize
+    int m_oldCy; // for resize
+    typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
+    void LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy);
 };
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_OPENCOMPARATIVEREPORTSGROUP_H__73FBB898_A40D_429A_A70C_42D0BC7D7F88__INCLUDED_)

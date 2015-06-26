@@ -230,8 +230,7 @@ bool CComparativePlot::Draw3DChart(CComparativeQTimeReport& _reportData,int nSub
 
 		//set footer
 		CString strFooter;
-		c2dGraphData.m_strFooter = strFooter;
-
+		 c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 		// Alloc data space
 		if( mapQTime.size()>0)
 		{
@@ -426,7 +425,7 @@ bool CComparativePlot::Draw3DChart(CComparativeQLengthReport& _reportData,int nS
 
 		//set footer
 		CString strFooter;
-		c2dGraphData.m_strFooter = strFooter;
+		 c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 
 		// Alloc data space
 		if( mapQLength.size()>0)
@@ -485,7 +484,7 @@ bool CComparativePlot::Draw3DChart(CComparativeQLengthReport& _reportData,int nS
 
 		//set footer
 		CString strFooter;
-		c2dGraphData.m_strFooter = strFooter;
+		 c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 
 		// Alloc data space
 		if( mapSummaryQLength.size()>0)
@@ -546,7 +545,7 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 
 	//set footer
 	CString strFooter;
-	c2dGraphData.m_strFooter = strFooter;
+	 c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 
 	// Insert legend.
 	std::vector<CString> vSimName = _reportData.GetSimNameList();
@@ -711,7 +710,7 @@ bool CComparativePlot::Draw3DChart(CComparativeSpaceDensityReport& _reportData,i
 
 	//set footer
 	CString strFooter;
-	c2dGraphData.m_strFooter = strFooter;
+	c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 
 	// Alloc data space
 	if( mapPaxDens.size()>0)
@@ -1021,7 +1020,7 @@ bool CComparativePlot::Draw3DChart( CComparativSpaceThroughputReport& _reportDat
 
 	//set footer
 	CString strFooter;
-	c2dGraphData.m_strFooter = strFooter;
+	 c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 
 	// Alloc data space
 	if( mapPaxThroughput.size()>0)
@@ -1089,7 +1088,7 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
 
     //set footer
     CString strFooter;
-    c2dGraphData.m_strFooter = strFooter;
+    c2dGraphData.m_strFooter = _reportData.GetFooter(0);
 
     // Insert legend.
     c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
