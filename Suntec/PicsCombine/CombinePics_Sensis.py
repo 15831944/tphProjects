@@ -18,27 +18,30 @@ class GeneratorPicBinary_Sensis(object):
                     if self.is_similar_images(imgList[0], img):
                         imgList.append(img)
                     elif len(imgList) >=1:
-                        self.do_combination(srcDir, destDir, imgList)
+                        self.do_combination(srcDir, imgList, destDir)
                         imgList = []
                         imgList.append(img)
                     else:
                         imgList = []
                         imgList.append(img)
             if len(fileNames) >= 1:
-                self.do_combination(srcDir, destDir, imgList)
-                
+                self.do_combination(srcDir, imgList, destDir)
+        
+        # 将srcDir里的imgList合并成一个.dat文件并输出至destDir
+        # 输出文件名字使用get_output_image_name获得
         # .dat 文件格式定义：
         # |         |              |             |               |             |   |
         # |2B:0xFEFE|2B:image count|1B:image info|4B:image offset|4B:image size|...|
-    def do_combination(self, srcDir, destDir, images):
+    def do_combination(self, srcDir, imgList, destDir): 
+        print "--------------------------------------------------------------------------------------" 
         if os.path.isdir(destDir) == False:
             os.mkdir(destDir)
-        imageCount = len(images)
-        destFile = os.path.join(destDir, self.get_output_image_name(images))
+        imageCount = len(imgList)
+        destFile = os.path.join(destDir, self.get_output_image_name(imgList))
         resultBuffer = struct.pack("<HH", 0xFEFE, imageCount)
     
         imageLens = []
-        for img in images:
+        for img in imgList:
             srcImg = os.path.join(srcDir, img)
             imgLen = os.path.getsize(srcImg)
             print srcImg
@@ -46,14 +49,13 @@ class GeneratorPicBinary_Sensis(object):
                                         4+imageCount*9+sum(imageLens), imgLen)
             imageLens.append(imgLen)
             
-        for img in images:
+        for img in imgList:
             tempFS = open(os.path.join(srcDir, img), 'rb')
             resultBuffer += tempFS.read()
             tempFS.close()
            
         outFS = open(destFile, 'wb')
-        print "        >>>>>>>>  " + destFile
-        print "--------------------------------------------------------------------------------------" 
+        print "    >>>>>>>>  " + destFile
         outFS.write(resultBuffer)
         outFS.close()
            

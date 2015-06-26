@@ -203,7 +203,7 @@ class GeneratorPicBinary_Here(object):
             destFile = destFileDir + "\\" + picname_bin.lower() + ".dat"
             arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
             if os.path.isdir(picDirPath):
-                # day and nigth illust
+                # day and night illust
                 if  os.path.isfile(destFile) == False:
                     dayPicPath = os.path.join(picDirPath, "DAY", picname_bin + ".jpg")
                     nightPicPath = os.path.join(picDirPath, "NIGHT", picname_bin + ".jpg")
@@ -215,13 +215,12 @@ class GeneratorPicBinary_Here(object):
                     headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                                dayPicLen, 2, 22 + dayPicLen, \
                                                nightPicLen)
-                    resultBuffer = headerBuffer + dayFis.read() \
-                                            + nightFis.read()
+                    resultBuffer = headerBuffer + dayFis.read() + nightFis.read()
                     dayFis.close()
                     nightFis.close()
                     fos.write(resultBuffer)
                     fos.close()
-                    # ARROW PIC BUILD
+                # ARROW PIC BUILD
                 if os.path.isfile(arrowFile) == False:
                     picPathFile = picDirPath + "\\DAY\\" + arrow_file_name + ".png"
                     arrowFis = open(picPathFile, 'rb')
@@ -298,92 +297,120 @@ class GeneratorPicBinary_Here(object):
                     fos.close()   
                                  
     # 首先处理driver pic
-    # 如果driver pic中背景图或者箭头图原图不存在，那么用bird pic对应
-    def makeEJunctionResultTable(self, dirFileDir, destFileDir, bUseCondition):
+    # 如果driver pic中背景图或者箭头图原图不存在，返回未处理列表给makeBIRDJunctionResultTable使用
+    # pics_unfinished类型：数组
+    def makeEJunctionResultTable(self, srcDir, destDir, bUseCondition, pics_unfinished):
+        #如果源文件夹不存在，报错,退出
+        if os.path.isdir(srcDir) == False:
+            print "the source directory \"" + srcDir + "\"dose not exist."
+            print "processing ejv end."
+            return
+        
+        srcArrowDir = os.path.join(srcDir, "DAY")
+        #如果arrow源文件夹不存在，报错,退出
+        if os.path.isdir(srcDir) == False:
+            print "the arrow directory \"" + srcArrowDir + "\"dose not exist."
+            print "processing ejv end."
+            return
+                
         pictures = None
         if bUseCondition == 'condition':
             pictures = self.select_ejv_condition_Data()
         else:
             pictures = self.select_ejv_Data()
-        arrowdir = os.path.join(dirFileDir, "DAY")
-        pics_unfinished = []
+        
         for pic in pictures:
-            exist_flag = 1
+            print "--------------------------------------------------------------------------------------"
+            print "processing " + pic.getDayName()
+            #处理day，night图片
+            picNameSplit = os.path.splitext(pic.getDayName())
+            destFile = destDir + "\\" + picNameSplit[0].lower() + ".dat"
+
+            dayPicPath = ''
+            nightPicPath = ''
+            # day and night illust
+            if  os.path.isfile(destFile) == False:
+                dayPicPath = os.path.join(srcDir, "DAY", picNameSplit[0] + ".jpg")
+                if not os.path.exists(dayPicPath):
+                    print "day file not found: " + dayPicPath
+                    pics_unfinished.append(pic)
+                    continue
+                
+                nightPicPath = os.path.join(srcDir, "NIGHT", picNameSplit[0] + ".jpg")
+                if not os.path.exists(nightPicPath):
+                    print "night file not found: " + nightPicPath
+                    pics_unfinished.append(pic)
+                    continue
+                dayFis = open(dayPicPath, 'rb')
+                nightFis = open(nightPicPath, 'rb')
+                b_fos = open(destFile, 'wb')
+                dayPicLen = os.path.getsize(dayPicPath)
+                nightPicLen = os.path.getsize(nightPicPath)
+                b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
+                                           dayPicLen, 2, 22 + dayPicLen, \
+                                           nightPicLen)
+                b_resultBuffer = b_headerBuffer + dayFis.read() + nightFis.read()
+                dayFis.close()
+                nightFis.close()
+                b_fos.write(b_resultBuffer)
+                b_fos.close()
+                print "        " + dayPicPath
+                print "        " + nightPicPath
+                print "            >>>>>>>>  " + destFile
+
+            # 处理arrow图片
+            dest_arrow_names = []
+            src_arrow_names = []
+            arrows = pic.getArrows()
+            for arrow in arrows:
+                arrow_file_name = '_'.join([picNameSplit[0], str(arrow)])
+                dest_arrow_name = destDir + "\\" + arrow_file_name.lower() + ".dat"
+                if os.path.isfile(dest_arrow_name) == False:
+                    dest_arrow_names.append(dest_arrow_name)
+                    srcArrowList = os.listdir(srcArrowDir)
+                    for srcArrow in srcArrowList:
+                        if srcArrow.find(arrow_file_name) >= 0:
+                            src_arrow_names.append(srcDir + "\\DAY\\" + srcArrow)
+
+            #如果某个arrow的图片未能找到，将设置此值为False
+            bGoOn = True
+            for src_arrow_name in src_arrow_names:
+                if not os.path.exists(src_arrow_name):
+                    print "source arrow file not found: " + src_arrow_name
+                    bGoOn = False
+                    break;
+
+            if(bGoOn == False):
+                #某个arrow图片未找到，将pic添加到未处理列表，并跳过此pic
+                pics_unfinished.append(pic)
+                continue
+            else:
+                #对应的arrow图片均能找到，继续
+                for dest_arrow_name, src_arrow_name in zip(dest_arrow_names,src_arrow_names):
+                    arrowFis = open(src_arrow_name, 'rb')
+                    a_fos = open(dest_arrow_name, 'wb')
+                    arrowPicLen = os.path.getsize(src_arrow_name)
+                    a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                    a_resultBuffer = a_headerBuffer + arrowFis.read()
+                    arrowFis.close()
+                    a_fos.write(a_resultBuffer)
+                    a_fos.close()
+                    print "        " + src_arrow_name
+                    print "            >>>>>>>>  " + dest_arrow_name
+        return
+
+    #处理makeEJunctionResultTable返回的未完成列表picsUnfinished
+    def makeBIRDJunctionResultTable(self, dirFileDir, destFileDir, picsUnfinished):
+        srcArrowDir = os.path.join(dirFileDir, "DAY")
+        for pic in picsUnfinished:
             pic_name_strs = pic.getDayName()
             back_picname = os.path.splitext(pic_name_strs)[0]
             destFile = destFileDir + "\\" + back_picname.lower() + ".dat"
-
-            if os.path.isdir(dirFileDir):
-                dayPicPath = ''
-                nightPicPath = ''
-                # day and nigth illust
-                if  os.path.isfile(destFile) == False:
-                    dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
-                    nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
-                    if not (os.path.exists(dayPicPath) and os.path.exists(nightPicPath)):
-                        print dayPicPath, 'or', nightPicPath, 'driver not exist!!!'
-                        pics_unfinished.append(pic)
-                        exist_flag = 0
-                        continue
-
-
-                    # ARROW PIC BUILD
-                dest_arrow_names = []
-                source_arrow_names = []
-                for arrow in pic.getArrows():
-                    arrow_file_name = back_picname + '_' + str(arrow)
-                    arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
-                    if os.path.isfile(arrowFile) == False:
-                        dest_arrow_names.append(arrowFile)
-                        picPathFile = ''
-                        for source_arrow in os.listdir(arrowdir):
-                            if source_arrow.find(arrow_file_name) >= 0:
-                                picPathFile = dirFileDir + "\\DAY\\" + source_arrow
-                                source_arrow_names.append(picPathFile)
-
-                        if not os.path.exists(picPathFile):
-                            print picPathFile, 'driver arrow not exist!!!'
-                            pics_unfinished.append(pic)
-                            exist_flag = 0
-                            break
-                if exist_flag > 0:
-                    dayFis = open(dayPicPath, 'rb')
-                    nightFis = open(nightPicPath, 'rb')
-                    b_fos = open(destFile, 'wb')
-                    dayPicLen = os.path.getsize(dayPicPath)
-                    nightPicLen = os.path.getsize(nightPicPath)
-                    b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
-                                               dayPicLen, 2, 22 + dayPicLen, \
-                                               nightPicLen)
-                    b_resultBuffer = b_headerBuffer + dayFis.read() \
-                                            + nightFis.read()
-                    dayFis.close()
-                    nightFis.close()
-                    b_fos.write(b_resultBuffer)
-                    b_fos.close()
-
-                    for dest_arrow_name, source_arrow_name in zip(dest_arrow_names,source_arrow_names):
-                        arrowFis = open(source_arrow_name, 'rb')
-                        a_fos = open(dest_arrow_name, 'wb')
-                        arrowPicLen = os.path.getsize(source_arrow_name)
-                        a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
-                        a_resultBuffer = a_headerBuffer + arrowFis.read()
-                        arrowFis.close()
-                        a_fos.write(a_resultBuffer)
-                        a_fos.close()
-        return pics_unfinished
-
-    def makeBIRDJunctionResultTable(self, dirFileDir, destFileDir, pics):
-        arrowdir = os.path.join(dirFileDir, "DAY")
-        for pic in pics:
-            pic_name_strs = pic.getDayName()
-            back_picname = os.path.splitext(pic_name_strs)[0]
-            destFile = destFileDir + "\\" + back_picname.lower() + ".dat"
             exist_flag = 1
             if os.path.isdir(dirFileDir):
                 dayPicPath = ''
                 nightPicPath = ''
-                # day and nigth illust
+                # day and night illust
                 if  os.path.isfile(destFile) == False:
                     dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
                     nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
@@ -393,17 +420,17 @@ class GeneratorPicBinary_Here(object):
                         continue
                     # ARROW PIC BUILD
                 dest_arrow_names = []
-                source_arrow_names = []
+                src_arrow_names = []
                 for arrow in pic.getArrows():
                     arrow_file_name = back_picname + '_' + str(arrow)
                     arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
                     if os.path.isfile(arrowFile) == False:
                         dest_arrow_names.append(arrowFile)
                         picPathFile = ''
-                        for source_arrow in os.listdir(arrowdir):
-                            if source_arrow.find(arrow_file_name) >= 0:
-                                picPathFile = dirFileDir + "\\DAY\\" + source_arrow
-                                source_arrow_names.append(picPathFile)
+                        for src_arrow in os.listdir(srcArrowDir):
+                            if src_arrow.find(arrow_file_name) >= 0:
+                                picPathFile = dirFileDir + "\\DAY\\" + src_arrow
+                                src_arrow_names.append(picPathFile)
 
                         if not os.path.exists(picPathFile):
                             print picPathFile, 'bird arrow not exist!!!'
@@ -418,17 +445,16 @@ class GeneratorPicBinary_Here(object):
                     b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                                dayPicLen, 2, 22 + dayPicLen, \
                                                nightPicLen)
-                    b_resultBuffer = b_headerBuffer + dayFis.read() \
-                                            + nightFis.read()
+                    b_resultBuffer = b_headerBuffer + dayFis.read() + nightFis.read()
                     dayFis.close()
                     nightFis.close()
                     b_fos.write(b_resultBuffer)
                     b_fos.close()
 
-                    for dest_arrow_name, source_arrow_name in zip(dest_arrow_names, source_arrow_names):
-                        arrowFis = open(source_arrow_name, 'rb')
+                    for dest_arrow_name, src_arrow_name in zip(dest_arrow_names, src_arrow_names):
+                        arrowFis = open(src_arrow_name, 'rb')
                         a_fos = open(dest_arrow_name, 'wb')
-                        arrowPicLen = os.path.getsize(source_arrow_name)
+                        arrowPicLen = os.path.getsize(src_arrow_name)
                         a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
                         a_resultBuffer = a_headerBuffer + arrowFis.read()
                         arrowFis.close()
@@ -437,7 +463,7 @@ class GeneratorPicBinary_Here(object):
                 else:
                     print pic.getDayName()
         return 0
-
+    
 def main():
     arglen = len(sys.argv)
     if(arglen <= 2):
@@ -483,8 +509,9 @@ def main():
         test = GeneratorPicBinary_Here(host, dbname, 
                                        user, password)
         test.makeGJunctionResultTable(gjvsrcdir, gjvdestdir)
-        pics = test.makeEJunctionResultTable(ejvsrcdir, ejvdestdir, ejvcondition)
-        #test.makeBIRDJunctionResultTable(birdsrcdir, birddestdir, pics)
+        pics_unfinished = []
+        test.makeEJunctionResultTable(ejvsrcdir, ejvdestdir, ejvcondition, pics_unfinished)
+        #test.makeBIRDJunctionResultTable(birdsrcdir, birddestdir, pics_unfinished)
     return    
 
 
