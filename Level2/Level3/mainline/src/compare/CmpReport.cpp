@@ -230,24 +230,36 @@ BOOL CCmpReport::Run(HWND hwnd, CCompRepLogBar* pWndStatus,void (CALLBACK * _Sho
 	BOOL bRet = FALSE;
 	//if (m_compProject.IsMatch())
 	//	m_compProject.SetMatch(!m_bModified);
-	if (bRet = m_compProject->Run(pWndStatus,_ShowCopyInfo))
+	try
 	{
-		m_compProject->SetMatch(bRet);
-
-		CCmpReportParameter* pProjectReportParam = GetComparativeProject()->GetInputParam();
-		CSingleReportsManager* pRepManager = pProjectReportParam->GetReportsManager();
-		int repCount = pRepManager->getCount();
-		for(int i=0; i<repCount; i++)
+		if (bRet = m_compProject->Run(pWndStatus,_ShowCopyInfo))
 		{
-			CReportToCompare& report = pRepManager->getReport(i);
-			if(report.GetChecked() == TRUE)
+			m_compProject->SetMatch(bRet);
+
+			CCmpReportParameter* pProjectReportParam = GetComparativeProject()->GetInputParam();
+			CSingleReportsManager* pRepManager = pProjectReportParam->GetReportsManager();
+			int repCount = pRepManager->getCount();
+			for(int i=0; i<repCount; i++)
 			{
-				CString repName = report.GetName();
-				SetFocusReportName(repName);
-				break;
+				CReportToCompare& report = pRepManager->getReport(i);
+				if(report.GetChecked() == TRUE)
+				{
+					CString repName = report.GetName();
+					SetFocusReportName(repName);
+					break;
+				}
 			}
 		}
+	}	
+	catch (ARCError* e)
+	{
+		char  strBuffer[256];
+		e->getMessage(strBuffer);
+		TRACE(strBuffer);
+		if(pWndStatus)
+			pWndStatus->AddLogText(strBuffer);
 	}
+	
 
 	return bRet;
 }

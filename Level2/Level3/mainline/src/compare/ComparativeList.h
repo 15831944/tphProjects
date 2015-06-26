@@ -1,6 +1,7 @@
 // ComparativeList.h: interface for the CComparativeList class.
 #pragma once
 #include "MFCExControl\XListCtrl.h"
+#include "ComparativeProcUtilizationReport.h"
 
 class CCmpBaseReport;
 class CComparativeQLengthReport;
@@ -41,6 +42,6 @@ private:
 	void RefreshData(CComparativeAcOperationReport& _reportData);
 	void RefreshData(CComparativeTimeTerminalReport& _reportData);
 	void RefreshData(CComparativeDistanceTravelReport& _reportData);
-
+    void RefreshData(CComparativeProcUtilizationReport& _reportData);
 	CString GetRegularDateTime(LPCTSTR elaptimestr, bool needsec);
 };

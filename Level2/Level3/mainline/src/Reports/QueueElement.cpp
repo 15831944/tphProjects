@@ -58,7 +58,7 @@ bool QueueElement::calculateDependentSourceServiceTime(Terminal* pTerminal,int n
 	arrivalEvent = track;
 	while(arrivalEvent.getState() != ArriveAtServer && nEvent < trackCount)
 	{
-		arrivalEvent.init(getEvent(++nEvent));
+		arrivalEvent.init(getEvent(nEvent++));
 	}
 
 	//if did not find
@@ -71,7 +71,7 @@ bool QueueElement::calculateDependentSourceServiceTime(Terminal* pTerminal,int n
 	LeaveEvent = arrivalEvent;
 	while(LeaveEvent.getState() != LeaveServer && nEvent < trackCount)
 	{
-		LeaveEvent.init(getEvent(++nEvent));
+		LeaveEvent.init(getEvent(nEvent++));
 	}
 
 	//if did not find

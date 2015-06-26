@@ -34,6 +34,10 @@ static const UINT LOADPARAFROMFILE = 222;
 static const UINT SAVEREPORTTOFILE = 223;
 static const UINT LOADREPORTFROMFILE = 224;
 
+static const int BUTTON_AREA_HEIGHT = 50;
+static const int BUTTON_HEIGHT = 22;
+static const int BUTTON_WIDTH = 80;
+
 typedef enum 
 {
 	CMP_REPORT_TN_INVALID = -1,
@@ -177,18 +181,18 @@ void CCmpReportTreeView::OnSize(UINT nType, int cx, int cy)
 
 	CDocument* pDoc = GetDocument();
 	if (::IsWindow(m_propTree.m_hWnd))
-		m_propTree.MoveWindow(5, 5, cx-5, cy-42);
+		m_propTree.MoveWindow(0, 0, cx, (cy - BUTTON_AREA_HEIGHT));
 
-
-    m_btnMulti.MoveWindow(5, 5, 110, iHeight );
-
-    int iWidth = (cx-1;
-    x = cx - iEdgeWidth - iWidth;
-    m_btnCancel.MoveWindow( x,y, iWidth, iHeight );
-
-    x = x - iWidth - 5;
-    m_btnRun.MoveWindow( x, y, iWidth, iHeight );
-
+	int x = 0, y = 0;
+	x = cx - 15 - BUTTON_WIDTH;
+	y = cy - BUTTON_AREA_HEIGHT + 10;
+	if (::IsWindow(m_btnCancel.m_hWnd))
+		m_btnCancel.MoveWindow(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
+	x = cx - (15 + BUTTON_WIDTH)*2;
+	if (::IsWindow(m_btnRun.m_hWnd))
+		m_btnRun.MoveWindow(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
+	if(::IsWindow(m_btnMulti.m_hWnd))
+		m_btnMulti.MoveWindow(10, y, BUTTON_WIDTH+40, BUTTON_HEIGHT);
 }
 
 BOOL CCmpReportTreeView::OnEraseBkgnd(CDC* pDC)
@@ -461,12 +465,13 @@ void CCmpReportTreeView::OnTimer(UINT nIDEvent)
 void CCmpReportTreeView::AddModel()
 {
 	CWaitCursor wc;
-
+	CString strProj =  m_pCmpReport->GetComparativeProject()->GetName();
 	CModelsManager* pManager = m_pCmpReport->GetComparativeProject()->GetInputParam()->GetModelsManager();
 	CModelSelectionDlg dlg(pManager,this);
 	wc.Restore();
 	if(dlg.DoModal() == IDOK)
 	{
+		pManager->InitTerminal(NULL,strProj,NULL);
 		UpdateSubItems(m_hModelRoot);
 		m_pCmpReport->SetModifyFlag(TRUE);
 		m_pCmpReport->SaveProject();
@@ -519,7 +524,7 @@ void CCmpReportTreeView::AddReport()
 
 	dlg.SetManager(pMManager,pRManager);
 
-	dlg.SetProjName(dlg.m_strProjName);
+	dlg.SetProjName(dlg.m_strProjName); //?
 	wc.Restore();
 	if(dlg.HasModelInLocation() == CDlgReportProperty::MT_NOMODEL)
 	{

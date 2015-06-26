@@ -1114,6 +1114,7 @@ void CDlgProbDist::OnParamToolbarbuttonADD()
 	m_lstParameters.InsertItem(LVIF_TEXT, idx, "      ", 0, 0, 0, NULL);
 	m_lstParameters.SetItemText(idx,1,"0.0");
 	m_lstParameters.SetFocus();
+    m_lstParameters.EnsureVisible(idx, FALSE);
 	EditSubItem(idx,0);
 	m_IsEdit = TRUE ;
 }

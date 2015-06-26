@@ -86,6 +86,9 @@ void CComparativeList::RefreshData(const CCmpBaseReport& _reportData)
 	case DistanceTravelReport:
 		RefreshData((CComparativeDistanceTravelReport&)_reportData);
 		break;
+    case ProcessorUtilizationReport:
+        RefreshData((CComparativeProcUtilizationReport&)_reportData);
+        break;
 	default:
 		ASSERT(FALSE);
 	}
@@ -752,6 +755,11 @@ void CComparativeList::RefreshData(CComparativeDistanceTravelReport& _reportData
 			m_listCtrl.SetItemText(nRow, nCol, sData );
 		}
 	}
+}
+
+void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportData)
+{
+
 }
 
 

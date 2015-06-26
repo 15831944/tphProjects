@@ -480,6 +480,9 @@ void CDlgReportProperty::OnOK()
 	case 7:
 		nReportType = ENUM_DISTANCE_REP;
 		break;
+    case 8:
+        nReportType = ENUM_UTILIZATION_REP;
+        break;
 	}
 	if(m_enumOldType != nReportType)
 	{
@@ -926,6 +929,9 @@ void CDlgReportProperty::Init()
 		case ENUM_DISTANCE_REP:
 			iCurSel = 7;
 			break;
+        case ENUM_UTILIZATION_REP:
+            iCurSel = 8;
+            break;
 		}
 		m_nReportType.SetCurSel(iCurSel);
 
@@ -1470,6 +1476,7 @@ void CDlgReportProperty::OnSelchangeComboReporttype()
 void CDlgReportProperty::ArrangeControls()
 {
 	int nSel = m_nReportType.GetCurSel();
+    CString strSelReport = s_szReportCategoryName[nSel];
 	CRect rcClient;
 	m_treeProcFromTo.ShowWindow(SW_HIDE);
 	m_ToolBar3.ShowWindow(SW_HIDE);
@@ -1621,7 +1628,8 @@ void CDlgReportProperty::ArrangeControls()
 			m_bShowProcessor = TRUE;
 		}
 		break;
-	case 0:			//	QLength
+	case 0: // QLength
+    case 8: // Utilization
 		{
 			//m_listPessengerType.MoveWindow(m_rcWindow[3]);
 			GetDlgItem(IDC_PROC_TYPE)->MoveWindow(m_rcWindow[0]);

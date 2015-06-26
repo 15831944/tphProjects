@@ -31,6 +31,7 @@
 #include "ComparativeAcOperationReport.h"
 #include "ComparativeDistanceTravelReport.h"
 #include "ComparativeTimeTerminalReport.h"
+#include "ComparativeProcUtilizationReport.h"
 
 
 #include "ComparativeSpaceDensityReport.h"
@@ -311,6 +312,9 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 				case ENUM_DISTANCE_REP:
 					iReportIndex = 7;
 					break;
+                case ENUM_UTILIZATION_REP:
+                    iReportIndex = 8;
+                    break;
 				default:
 					break;
 				}
@@ -337,10 +341,10 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					pOutParam =new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfPaxType( new CReportParaOfTwoGroupProcs( NULL ) ) ) ) );
 					break;
 				case ENUM_THROUGHPUT_REP: //8
-				case ENUM_QUEUELENGTH_REP:
+                case ENUM_QUEUELENGTH_REP:
+                case ENUM_UTILIZATION_REP:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(new CReportParaOfPaxType(NULL)))));
 					break;
-
 				default:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(NULL) )));
 					break;
@@ -360,14 +364,18 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 
 					TransferLogFiles(pCmpModel,pCmpModel->GetLocalPath(),strSimResult,_ShowCopyInfo);
 					
-					vModels[i]->GetTerminal()->GetSimReportManager()->SetCurrentSimResult(strSimResult);
-					CMutiRunReportAgent tempMultiRunAgent;
+				
 					CString projPath = pCmpModel->GetLocalPath();
-					Terminal* pTerm = vModels[i]->GetTerminal();
+					Terminal* pTerm = pCmpModel->GetTerminal();
+					ASSERT(pTerm);
+					ASSERT(!projPath.IsEmpty());
+
+					pTerm->GetSimReportManager()->SetCurrentSimResult(strSimResult);
+					CMutiRunReportAgent tempMultiRunAgent;					
 					tempMultiRunAgent.Init(projPath, pTerm);
 					tempMultiRunAgent.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
 					tempMultiRunAgent.GenerateAll();
-					CString strReportPath = vModels[i]->GetTerminal()->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
+					CString strReportPath = pTerm->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
 				
 					strReportPath = SaveTempReport(strReportPath, i, j, nResult);
 					ASSERT(!strReportPath.IsEmpty());
@@ -492,7 +500,9 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		case ENUM_DISTANCE_REP:
 			pResult = new CComparativeDistanceTravelReport;
 			break;
-
+        case ENUM_UTILIZATION_REP:
+            pResult = new CComparativeProcUtilizationReport;
+            break;
 		default:
 			ASSERT(0);
 			break;

@@ -21,7 +21,8 @@ enum ComparativeReportType
 	PaxCountReport,
 	AcOperationReport,
 	TimeTerminalReport,
-	DistanceTravelReport
+	DistanceTravelReport,
+    ProcessorUtilizationReport
 };
 
 class CCmpBaseReport  

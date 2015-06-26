@@ -118,6 +118,7 @@
     <ClCompile Include="ComparativeList.cpp" />
     <ClCompile Include="ComparativePaxCountReport.cpp" />
     <ClCompile Include="ComparativePlot.cpp" />
+    <ClCompile Include="ComparativeProcUtilizationReport.cpp" />
     <ClCompile Include="ComparativeProject.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -267,6 +268,7 @@
     <ClInclude Include="ComparativeList.h" />
     <ClInclude Include="ComparativePaxCountReport.h" />
     <ClInclude Include="ComparativePlot.h" />
+    <ClInclude Include="ComparativeProcUtilizationReport.h" />
     <ClInclude Include="ComparativeProject.h" />
     <ClInclude Include="ComparativeQLengthReport.h" />
     <ClInclude Include="ComparativeQTimeReport.h" />

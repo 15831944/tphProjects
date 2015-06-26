@@ -15,6 +15,7 @@
 #include "ComparativeAcOperationReport.h"
 #include "ComparativeTimeTerminalReport.h"
 #include "ComparativeDistanceTravelReport.h"
+#include "ComparativeProcUtilizationReport.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -75,7 +76,9 @@ void CCmpReportManager::LoadData( CCmpReportParameter *pParam, const CString& st
 		case ENUM_DISTANCE_REP:
 			pResult = new CComparativeDistanceTravelReport;
 			break;
-
+        case ENUM_UTILIZATION_REP:
+            pResult = new CComparativeProcUtilizationReport;
+            break;
 		}
 		if (pResult != NULL)
 		{
