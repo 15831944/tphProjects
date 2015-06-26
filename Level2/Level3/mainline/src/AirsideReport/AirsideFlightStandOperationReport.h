@@ -27,7 +27,7 @@ public:
 		ChartType_Summary_Conflict
 	};
 
-	CAirsideFlightStandOperationReport(CBGetLogFilePath pFunc);
+	CAirsideFlightStandOperationReport(CBCScheduleStand pShecuduleFunc,CBGetLogFilePath pFunc);
 	virtual ~CAirsideFlightStandOperationReport();
 
     CAirsideFlightStandOperationBaseResult* GetBaseResult() const { return m_pBaseResult; }
@@ -54,7 +54,8 @@ protected:
 	virtual BOOL WriteReportData(ArctermFile& _file);
 	virtual BOOL ReadReportData(ArctermFile& _file);
 
-
+private:
+	CBCScheduleStand  m_pScheduleStand;
 
 
 //	CAirsideReportBaseResult *GetReportResult();

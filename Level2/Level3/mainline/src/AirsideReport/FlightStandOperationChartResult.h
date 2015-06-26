@@ -14,9 +14,12 @@ public:
 public:
 	virtual void GenerateResult(std::vector<CStandOperationReportData*>& vResult,CParameters *pParameter) = 0;
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter) = 0;
-
+	void SetUnuseActualStandCount(int iCount);
+	void SetUnuseScheduleStandCount(int Count);
 protected:
 	std::vector<CString> m_vXAxisTitle;
+	int m_nUnuseScheduleStandCount;
+	int m_nUnuseActualStandCount;
 };
 
 

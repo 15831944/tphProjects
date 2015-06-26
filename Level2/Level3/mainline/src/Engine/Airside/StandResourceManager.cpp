@@ -1,13 +1,13 @@
 #include "stdafx.h"
-
-
 #include "StandResourceManager.h"
 #include "TaxiwayResourceManager.h"
 #include "../../InputAirside/ALTAirport.h"
 #include "../../Common/GetIntersection.h"
 #include <inputAirside\ALTObjectGroup.h>
+#include "../../Results/AirsideFlightLogItem.h"
+#include "../../Results/OutputAirside.h"
 
-bool StandResourceManager::Init( int nPrjID, int nAirportID )
+bool StandResourceManager::Init( int nPrjID, int nAirportID,OutputAirside *pOutput )
 {
 	ALTObjectList vStands;
 	ALTAirport::GetStandList(nAirportID,vStands);
@@ -18,6 +18,10 @@ bool StandResourceManager::Init( int nPrjID, int nAirportID )
 		
 		if (pStand->GetType() == ALT_STAND)
 		{
+			AirsideALTObjectLogItem objectItem;
+			objectItem.m_altObject = pStand->getName();
+			objectItem.m_emType = ALT_STAND;
+			pOutput->m_reportLog.AddAltObjectLogItem(objectItem);
 			m_vStands.push_back( new StandInSim(pStand) );
 		}
 		else

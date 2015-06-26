@@ -50,7 +50,10 @@ protected:
 	afx_msg void OnDelAttribute();
 	afx_msg void OnEditAttribute();
 	void LoadTree();
-	void LoadFollowMeCarTree(CVehiclePool* pItem);
+    HTREEITEM InsertStandItem(CVehicleServiceStandFamily* pStandFamilyItem, HTREEITEM hParent=NULL, HTREEITEM hAfter=NULL);
+    HTREEITEM InsertFlightTypeItem(CVehicleServiceFlightType* pFlightTypeItem, HTREEITEM hParent, HTREEITEM hAfter=NULL);
+    HTREEITEM InsertTimeRangeItem(CVehicleServiceTimeRange* pTimeRangeItem, HTREEITEM hParent, HTREEITEM hAfter=NULL);
+    void LoadFollowMeCarTree(CVehiclePool* pItem);
 	void LoadTowTruckTree(CVehiclePool* pVehiclePoolItem);
 public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

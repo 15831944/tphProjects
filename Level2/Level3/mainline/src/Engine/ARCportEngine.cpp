@@ -419,6 +419,18 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 
 	p_simAirside = NULL ;
 
+#ifdef ELEVATORPAXLOG_SWITCH
+	{
+		//CString strLog;
+		//Index, Name, Lift, Time, Time String, From Floor, to Floor, Group Count, Pax Count
+		CString strPath;
+		strPath.Format(_T("%s%s"),getTerminal()->m_strProjPath, _T("ElevatorPaxLog.csv"));
+		ofsstream echoFile (strPath, stdios::out);
+		echoFile<<_T("Proc Index, Elevator Name, Lift Number, Time, Time String, From Floor Index, To Floor Index, Pax Group Count, All Pax Count")<<"\n";
+		echoFile.close();
+	}
+#endif
+
 	try			
 	{	
 		//set the processor engine pointer

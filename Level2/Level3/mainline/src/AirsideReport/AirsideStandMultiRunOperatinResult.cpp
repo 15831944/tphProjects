@@ -51,7 +51,8 @@ void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pP
         CAirsideFlightStandOperationReport* pReport = (CAirsideFlightStandOperationReport*)(iter->second);
         CString strSimResult = iter->first;
         std::vector<CStandOperationReportData*> reportResult = pReport->GetBaseResult()->GetResult();
-
+		m_mapUnuseScheduleStand[strSimResult] = pReport->GetBaseResult()->GetUnuseScheduleStandCount();
+		m_mapUnuseActualStand[strSimResult] = pReport->GetBaseResult()->GetUnuseActualStandCount();
         int nCount = (int)reportResult.size();
         for (int i=0; i<nCount; i++)
         {
@@ -433,6 +434,22 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 		}
 	}
 
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
+
+		int nUnuseCount = m_mapUnuseActualStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
 	int nIntervalSize = 0;
 	ElapsedTime eMaxTime;
 	eMaxTime.setPrecisely(lMaxOccupancyTime);
@@ -444,8 +461,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
-	mapStandOpResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++mapIter)
+	mapLoadResult::iterator resultIter = resultDataMap.begin();
+	for (; resultIter != resultDataMap.end(); ++resultIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -453,9 +470,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 			reportData.m_iStart = pParameter->getInterval()*i*TimePrecision;
 			reportData.m_iEnd = pParameter->getInterval()*(i+1)*TimePrecision;
 
-			reportData.m_iData = GetIntervalCount(reportData.m_iStart,reportData.m_iEnd,mapIter->second);
+			reportData.m_iData = /*GetIntervalCount(reportData.m_iStart,reportData.m_iEnd,mapIter->second);*/GetIntervalCount(reportData.m_iStart,reportData.m_iEnd,resultIter->second);
 
-			m_standOccupMap[mapIter->first].push_back(reportData);
+			m_standOccupMap[resultIter->first].push_back(reportData);
 		}
 	}
 
@@ -479,7 +496,23 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 			}
 		}
 	}
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
 
+		int nUnuseCount = m_mapUnuseActualStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
+	lMinOccupancyTime = min(lMinOccupancyTime,0l);
 	ElapsedTime eMinTime;
 	eMinTime.setPrecisely(lMinOccupancyTime);
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
@@ -491,8 +524,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
-	mapStandOpResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++mapIter)
+	mapLoadResult::iterator standIter = resultDataMap.begin();
+	for (; standIter != resultDataMap.end(); ++standIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -500,17 +533,17 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 			reportData.m_iStart = pParameter->getInterval()*i*TimePrecision;
 			reportData.m_iEnd = pParameter->getInterval()*(i+1)*TimePrecision;
 
-			mapStandResult::iterator standIter = mapIter->second.begin();
-			for (; standIter != mapIter->second.end(); ++standIter)
+			unsigned nCount = standIter->second.size();
+			for (unsigned i = 0; i < nCount; i++)
 			{
 				//to second standIter->second/100
-				long lTime = (nDuration -  standIter->second/TimePrecision)*TimePrecision;
+				long lTime = (nDuration -  standIter->second[i]/TimePrecision)*TimePrecision;
 				TRACE("\r\n %d \r\n", lTime);
 
 				if( reportData.m_iStart <= lTime && lTime < reportData.m_iEnd)
 					reportData.m_iData++;
 			}
-			m_standidlemap[mapIter->first].push_back(reportData);
+			m_standidlemap[standIter->first].push_back(reportData);
 		}
 	}
 }
@@ -534,6 +567,23 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 		}
 	}
 
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
+
+		int nUnuseCount = m_mapUnuseActualStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
+
 	int nIntervalSize = 0;
 	ElapsedTime eMaxTime;
 	eMaxTime.setPrecisely(lMaxOccupancyTime);
@@ -549,8 +599,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 	if (eMaxTime.asSeconds() % nDuration != 0)
 		nIntervalSize = nIntervalSize + 1;
 
-	mapStandOpResult::iterator mapIter = mapLoadData.begin();
-	for (; mapIter != mapLoadData.end(); ++mapIter)
+	mapLoadResult::iterator standIter = resultDataMap.begin();
+	for (; standIter != resultDataMap.end(); ++standIter)
 	{
 		for (int i=0; i< nIntervalSize; i++)
 		{
@@ -558,10 +608,11 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 			reportData.m_iStart = i *10;
 			reportData.m_iEnd = (i+1) *10;
 
-			mapStandResult::iterator standIter = mapIter->second.begin();
-			for (; standIter != mapIter->second.end(); ++standIter)
+			unsigned nCount = standIter->second.size();
+		
+			for (unsigned i = 0; i < nCount; i++)
 			{
-				long lTime = standIter->second;
+				long lTime = standIter->second[i];
 				ElapsedTime eTime;
 				eTime.setPrecisely(lTime);
 				int nPercent = static_cast<int>(((double)eTime.asSeconds())/nDuration * 100);
@@ -569,7 +620,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 				if( reportData.m_iStart <= nPercent && nPercent < reportData.m_iEnd)
 					reportData.m_iData++;
 			}
-			m_standRatiomap[mapIter->first].push_back(reportData);
+			m_standRatiomap[standIter->first].push_back(reportData);
 		}
 
 		for (int idx = nIntervalSize; idx < 10; idx++)
@@ -726,23 +777,23 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 	}
 }
 
-int CAirsideStandMultiRunOperatinResult::GetIntervalCount( long iStart, long iEnd, mapStandResult mapData,long iIgnore /*= 0*/ ) const
-{
-	int iCount = 0;
-	mapStandResult::iterator iter = mapData.begin();
-	for ( ;iter != mapData.end(); ++iter)
-	{
-		long iData = iter->second;
-		if (iData < iIgnore)//ignore necessary secs
-			continue;
-
-		if (iData >= iStart && iData < iEnd)
-		{
-			iCount++;
-		}
-	}
-	return iCount;
-}
+//int CAirsideStandMultiRunOperatinResult::GetIntervalCount( long iStart, long iEnd, mapStandResult mapData,long iIgnore /*= 0*/ ) const
+//{
+//	int iCount = 0;
+//	mapStandResult::iterator iter = mapData.begin();
+//	for ( ;iter != mapData.end(); ++iter)
+//	{
+//		long iData = iter->second;
+//		if (iData < iIgnore)//ignore necessary secs
+//			continue;
+//
+//		if (iData >= iStart && iData < iEnd)
+//		{
+//			iCount++;
+//		}
+//	}
+//	return iCount;
+//}
 
 void CAirsideStandMultiRunOperatinResult::Generate3DChartPercentageData(MultiRunDetailMap mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter)
 {
@@ -992,16 +1043,32 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
             mapLoadData[iter->first][operationData.m_sSchedName] += operationData.m_lSchedOccupancy;
         }
     }
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
+
+		int nUnuseCount = m_mapUnuseScheduleStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
 
     CStatisticalTools<double> tempTool;
-    mapStandOpResult::iterator simIter = mapLoadData.begin();
-    for(; simIter!=mapLoadData.end(); ++simIter)
+    mapLoadResult::iterator simIter = resultDataMap.begin();
+    for(; simIter!=resultDataMap.end(); ++simIter)
     {
         tempTool.Clear();
-        mapStandResult::iterator standIter = simIter->second.begin();
-        for(; standIter!=simIter->second.end(); standIter++)
+		unsigned nCount = simIter->second.size();
+		for(unsigned i = 0; i < nCount; i++)
         {
-            tempTool.AddNewData(standIter->second/100);
+            tempTool.AddNewData(simIter->second[i]/100);
         }
         tempTool.SortData();
 
@@ -1037,17 +1104,33 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
             mapLoadData[iter->first][operationData.m_sSchedName] += operationData.m_lSchedOccupancy;
         }
     }
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
+
+		int nUnuseCount = m_mapUnuseScheduleStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
 
     CStatisticalTools<double> tempTool;
-    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    mapLoadResult::iterator simIter = resultDataMap.begin();
     long lDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
-    for(; simIter!=mapLoadData.end(); ++simIter)
+    for(; simIter!=resultDataMap.end(); ++simIter)
     {
         tempTool.Clear();
-        mapStandResult::iterator standIter = simIter->second.begin();
-        for(; standIter!=simIter->second.end(); ++standIter)
+		unsigned nCount = simIter->second.size();
+        for(unsigned i = 0; i < nCount; i++)
         {
-            long lData = lDuration - standIter->second/100;
+            long lData = lDuration - simIter->second[i]/100;
             if(lData<0)
                 lData = 0;
             tempTool.AddNewData(lData);
@@ -1086,16 +1169,32 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
         }
     }
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
+
+		int nUnuseCount = m_mapUnuseActualStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
 
     CStatisticalTools<double> tempTool;
-    mapStandOpResult::iterator simIter = mapLoadData.begin();
-    for(; simIter!=mapLoadData.end(); ++simIter)
+    mapLoadResult::iterator simIter = resultDataMap.begin();
+    for(; simIter!=resultDataMap.end(); ++simIter)
     {
         tempTool.Clear();
-        mapStandResult::iterator standIter = simIter->second.begin();
-        for(; standIter!=simIter->second.end(); ++standIter)
+		unsigned nCount = simIter->second.size();
+		for(unsigned i = 0; i < nCount; i++)
         {
-            tempTool.AddNewData(standIter->second/100);
+            tempTool.AddNewData(simIter->second[i]/100);
         }
         tempTool.SortData();
 
@@ -1131,17 +1230,33 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
         }
     }
+	mapLoadResult resultDataMap;
+	mapStandOpResult::iterator mapIter = mapLoadData.begin();
+	for (; mapIter != mapLoadData.end(); ++mapIter)
+	{
+		mapStandResult::iterator standIter = mapIter->second.begin();
+		for (; standIter != mapIter->second.end(); ++standIter)
+		{
+			resultDataMap[mapIter->first].push_back(standIter->second);
+		}
+
+		int nUnuseCount = m_mapUnuseActualStand[mapIter->first];
+		for (int i = 0; i < nUnuseCount; i++)
+		{
+			resultDataMap[mapIter->first].push_back(0l);
+		}
+	}
 
     CStatisticalTools<double> tempTool;
-    mapStandOpResult::iterator simIter = mapLoadData.begin();
+    mapLoadResult::iterator simIter = resultDataMap.begin();
     long lDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
-    for(; simIter!=mapLoadData.end(); ++simIter)
+    for(; simIter!=resultDataMap.end(); ++simIter)
     {
         tempTool.Clear();
-        mapStandResult::iterator standIter = simIter->second.begin();
-        for(; standIter!=simIter->second.end(); ++standIter)
+		unsigned nCount = simIter->second.size();
+		for(unsigned i = 0; i < nCount; i++)
         {
-            long lData = lDuration - standIter->second/100;
+            long lData = lDuration - simIter->second[i]/100;
             if(lData<0)
                 lData = 0;
             tempTool.AddNewData(lData);

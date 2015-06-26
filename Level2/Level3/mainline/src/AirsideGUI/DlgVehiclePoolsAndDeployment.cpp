@@ -436,7 +436,8 @@ void CDlgVehiclePoolsAndDeployment::OnNewAttribute()
 				else
 					pStandFamilyNewItem->SetStandfamilyID(nStandFamilyID);
 				CVehiclePool* pSelItem = GetCurSelVehiclePool();
-				pSelItem->AddServiceStandFamilyItem(pStandFamilyNewItem);
+                pSelItem->AddServiceStandFamilyItem(pStandFamilyNewItem);
+                LoadTree();
 			}
 		}
 	}
@@ -462,7 +463,9 @@ void CDlgVehiclePoolsAndDeployment::OnNewAttribute()
 			CVehicleServiceTimeRange* pTimeRangeNewItem = new CVehicleServiceTimeRange;
 			if (m_eSelVehicleType == VehicleType_DeicingTruck || m_eSelVehicleType == VehicleType_TowTruck)
 				pTimeRangeNewItem->SetLeaveType(BeforeAircraftDeparts);
-			pFlightTypeNewItem->AddServiceTimeRangeItem(pTimeRangeNewItem);		
+            pFlightTypeNewItem->AddServiceTimeRangeItem(pTimeRangeNewItem);
+            HTREEITEM hStandItem = InsertStandItem(pStandFamilyNewItem);
+            m_wndTreeAttributes.SelectItem(hStandItem);
 		}
 	}
 	else if(strSel == "St")
@@ -478,7 +481,9 @@ void CDlgVehiclePoolsAndDeployment::OnNewAttribute()
 		CVehicleServiceTimeRange* pTimeRangeNewItem = new CVehicleServiceTimeRange;
 		if (m_eSelVehicleType == VehicleType_DeicingTruck || m_eSelVehicleType == VehicleType_TowTruck)
 			pTimeRangeNewItem->SetLeaveType(BeforeAircraftDeparts);
-		pFlightTypeNewItem->AddServiceTimeRangeItem(pTimeRangeNewItem);	
+        pFlightTypeNewItem->AddServiceTimeRangeItem(pTimeRangeNewItem);
+        HTREEITEM hFlightTypeItem = InsertFlightTypeItem(pFlightTypeNewItem, hSelTreeItem);
+        m_wndTreeAttributes.SelectItem(hFlightTypeItem);
 	}
 	else if(strSel == "Fl")
 	{
@@ -492,9 +497,10 @@ void CDlgVehiclePoolsAndDeployment::OnNewAttribute()
 		pTimeRangeNewItem->SetStartTime(dlg.GetStartTime());
 		pTimeRangeNewItem->SetEndTime(dlg.GetEndTime());
 		CVehicleServiceFlightType* pSelItem = (CVehicleServiceFlightType*)m_wndTreeAttributes.GetItemData(hSelTreeItem);
-		pSelItem->AddServiceTimeRangeItem(pTimeRangeNewItem);
+        pSelItem->AddServiceTimeRangeItem(pTimeRangeNewItem);
+        HTREEITEM hTimeRangeItem = InsertTimeRangeItem(pTimeRangeNewItem, hSelTreeItem);
+        m_wndTreeAttributes.SelectItem(hTimeRangeItem);
 	}
-	LoadTree();
 }
 
 void CDlgVehiclePoolsAndDeployment::OnDelAttribute()
@@ -571,6 +577,20 @@ void CDlgVehiclePoolsAndDeployment::OnEditAttribute()
 				pSelItem->SetStandfamilyID(m_nDefaultStandFamilyID);
 			else
 				pSelItem->SetStandfamilyID(nStandFamilyID);
+
+            CString strValue;
+            if(nStandFamilyID == m_nDefaultStandFamilyID)
+            {
+                strValue = _T("All stand");
+            }
+            else
+            {
+                ALTObjectGroup altObjGroup;
+                altObjGroup.ReadData(nStandFamilyID);
+                strValue = altObjGroup.getName().GetIDString();
+            }
+            CString strStand = _T("Stand : ") + strValue;
+            m_wndTreeAttributes.SetItemText(hSelTreeItem, strStand);
 		}
 	}
 	else if(strSel == "Fl")
@@ -579,18 +599,26 @@ void CDlgVehiclePoolsAndDeployment::OnEditAttribute()
 			return;
 		FlightConstraint fltType = (*m_pSelectFlightType)(NULL);
 		CVehicleServiceFlightType* pSelItem = (CVehicleServiceFlightType*)m_wndTreeAttributes.GetItemData(hSelTreeItem);
-		pSelItem->SetFltType(fltType);
+        pSelItem->SetFltType(fltType);
+        CString strFltType = _T("Flight type : ");
+        CString strFltType2;
+        fltType.screenPrint(strFltType2);
+        strFltType = strFltType + strFltType2;
+        m_wndTreeAttributes.SetItemText(hSelTreeItem, strFltType);
 	}
 	else if(strSel == "Ti")
-	{	
+	{
 		CDlgTimeRange dlg(ElapsedTime(0L), ElapsedTime(0L));
 		if(IDOK != dlg.DoModal())
 			return;
 		CVehicleServiceTimeRange* pSelItem = (CVehicleServiceTimeRange*)m_wndTreeAttributes.GetItemData(hSelTreeItem);
 		pSelItem->SetStartTime(dlg.GetStartTime());
-		pSelItem->SetEndTime(dlg.GetEndTime());
+        pSelItem->SetEndTime(dlg.GetEndTime());
+        
+        CString strTimeRange;
+        strTimeRange.Format(_T("Time window : %s - %s"), dlg.GetStartTime().PrintDateTime(), dlg.GetEndTime().PrintDateTime());
+        m_wndTreeAttributes.SetItemText(hSelTreeItem, strTimeRange);
 	}
-	LoadTree();
 }
 
 void CDlgVehiclePoolsAndDeployment::LoadFollowMeCarTree( CVehiclePool* pItem )
@@ -732,152 +760,173 @@ void CDlgVehiclePoolsAndDeployment::LoadTree()
 	for(int i=0; i<nStandFamilyCount; i++)
 	{
 		CVehicleServiceStandFamily* pStandFamilyItem = pVehiclePoolItem->GetServiceStandFamilyItem(i);
-		CString strStand = _T("Stand : ");
-		int nStandfamilyID = pStandFamilyItem->GetStandfamilyID();
-		CString strValue;
-		if(nStandfamilyID == m_nDefaultStandFamilyID)
-			strValue = _T("All stand");
-		else
-		{
-			ALTObjectGroup altObjGroup;
-			altObjGroup.ReadData(nStandfamilyID);	
-			strValue = altObjGroup.getName().GetIDString();
-		}
-		strStand = strStand + strValue;
-		cni.net=NET_SHOW_DIALOGBOX;
-		HTREEITEM hTreeItemStand = m_wndTreeAttributes.InsertItem(strStand,cni,FALSE,FALSE,m_hTreeItemDeployment);
-		m_wndTreeAttributes.SetItemData(hTreeItemStand,(DWORD_PTR)pStandFamilyItem);
-
-		//FlightType
-		int nFlightTypeCount = pStandFamilyItem ->GetServiceFlightTypeCount();
-		for(int j=0; j<nFlightTypeCount; j++)
-		{
-			CVehicleServiceFlightType* pFlightTypeItem = pStandFamilyItem->GetServiceFlightTypeItem(j);
-			CString strFltType = _T("Flight type : ");
-			FlightConstraint fltType = pFlightTypeItem->GetFltType();
-			CString strFltType2;
-			fltType.screenPrint(strFltType2);
-			strFltType = strFltType + strFltType2;
-			cni.net=NET_SHOW_DIALOGBOX;
-			HTREEITEM hTreeItemFltType = m_wndTreeAttributes.InsertItem(strFltType,cni,FALSE,FALSE,hTreeItemStand);
-			m_wndTreeAttributes.SetItemData(hTreeItemFltType,(DWORD_PTR)pFlightTypeItem);
-
-			//TimeRange
-			int nTimeRangeCount = pFlightTypeItem->GetServiceTimeRangeCount();
-			for(int k=0; k<nTimeRangeCount; k++)
-			{
-				CVehicleServiceTimeRange* pTimeRangeItem = pFlightTypeItem->GetServiceTimeRangeItem(k);
-				CString strTimeRange = _T("Time window : "),strDay = _T("");
-
-				ElapsedTime etInsert = pTimeRangeItem->GetStartTime();
-				//strDay.Format(_T("day%d %02d:%02d:%02d"), etInsert.GetDay(),etInsert.GetHour(),etInsert.GetMinute(),etInsert.GetSecond());
-				strDay = etInsert.PrintDateTime();
-
-				strTimeRange = strTimeRange + strDay + _T(" - ");
-
-				etInsert = pTimeRangeItem->GetEndTime();
-				//strDay.Format(_T("day%d %02d:%02d:%02d"), etInsert.GetDay(),etInsert.GetHour(),etInsert.GetMinute(),etInsert.GetSecond());
-				strDay = etInsert.PrintDateTime();
-				strTimeRange += strDay;
-
-				cni.net=NET_SHOW_DIALOGBOX;
-				HTREEITEM hTreeItemTimeRange = m_wndTreeAttributes.InsertItem(strTimeRange,cni,FALSE,FALSE,hTreeItemFltType);
-				m_wndTreeAttributes.SetItemData(hTreeItemTimeRange, (DWORD_PTR)pTimeRangeItem);
-
-				//Service Regimen
-				CString strRegimenType = _T("Service regimen : ");
-				CString strRegimenType2;
-				VehicleRegimenType enumRegimenType = pTimeRangeItem->GetRegimenType();
-				if(enumRegimenType == ServiceCloset)
-					strRegimenType2 = _T("closest");
-				else if(enumRegimenType == ServiceNextDep)
-					strRegimenType2 = _T("next departure");
-				else if(enumRegimenType == ServiceRandom)
-					strRegimenType2 = _T("random");
-				else if(enumRegimenType == ServiceFIFO)
-					strRegimenType2 = _T("FIFO");
-				else if(enumRegimenType == NextArrival)
-					strRegimenType2 = _T("Next arrival");
-				else if(enumRegimenType == NextOperation)
-					strRegimenType2 = _T("Next operation");
-				else if(enumRegimenType == FillToCapacity)
-					strRegimenType2 = _T("For arr ac fill to capacity");
-
-				strRegimenType = strRegimenType + strRegimenType2;
-				cni.nt=NT_NORMAL;
-				cni.net=NET_COMBOBOX;
-				cni.bAutoSetItemText = false;
-				m_wndTreeAttributes.InsertItem(strRegimenType,cni,FALSE,FALSE,hTreeItemTimeRange);
-
-				//LeavePool
-				CString strLeavePool = _T("Leave pool");
-				CCoolTree::InitNodeInfo(this,cni);
-				HTREEITEM hTreeItemLeavePool = m_wndTreeAttributes.InsertItem(strLeavePool,cni,FALSE,FALSE,hTreeItemTimeRange);
-
-				VehicleLeaveType enumLeaveType = pTimeRangeItem->GetLeaveType();
-				ElapsedTime tLeaveTime = pTimeRangeItem->GetLeaveTime();
-				if ((m_eSelVehicleType == VehicleType_DeicingTruck || m_eSelVehicleType == VehicleType_TowTruck) 
-					&& enumLeaveType != BeforeAircraftDeparts )
-				{
-					pTimeRangeItem->SetLeaveType(BeforeAircraftDeparts);
-					enumLeaveType = BeforeAircraftDeparts;
-					if (tLeaveTime > 600L)
-					{
-						pTimeRangeItem->SetLeaveTime(ElapsedTime(600L));
-						tLeaveTime = 600L;
-					}
-				}
-
-				CString strLeaveTime,strLeaveType;
-				int lMinutes = tLeaveTime.asMinutes();
-				strLeaveTime.Format("%d",lMinutes);
-				strLeaveTime = _T("[") + strLeaveTime +_T("] mins");
-				cni.nt=NT_NORMAL;
-				cni.net=NET_EDITSPIN_WITH_VALUE;
-				cni.bAutoSetItemText = false;
-				HTREEITEM hTreeItemLeaveTime = m_wndTreeAttributes.InsertItem(strLeaveTime,cni,FALSE,FALSE,hTreeItemLeavePool);
-				m_wndTreeAttributes.SetItemData(hTreeItemLeaveTime,lMinutes);
-
-				if(enumLeaveType == BeforeAircraftArrival)
-					strLeaveType = _T("before aircraft arrive");
-				else if(enumLeaveType == AfterAircraftArrival)
-					strLeaveType = _T("after aircraft arrive");
-				else if(enumLeaveType == BeforeAircraftDeparts)
-					strLeaveType = _T("before aircraft departs");
-				strLeaveType = _T("(") + strLeaveType +_T(")");
-
-				cni.net=NET_COMBOBOX;
-				if (m_eSelVehicleType == VehicleType_DeicingTruck || m_eSelVehicleType == VehicleType_TowTruck)
-					cni.net = NET_NORMAL;
-
-				m_wndTreeAttributes.InsertItem(strLeaveType,cni,FALSE,FALSE,hTreeItemLeavePool);
-				m_wndTreeAttributes.Expand(hTreeItemLeavePool,TVE_EXPAND);
-
-				//Return after
-				CString strAircraftService =_T("Return after [");
-				int nAircraftServiceNum = pTimeRangeItem->GetAircraftServiceNum();
-				CString strAircraftServiceNum;
-				strAircraftServiceNum.Format("%s%d%s",strAircraftService,nAircraftServiceNum,_T("] arircraft services"));
-				cni.net=NET_EDITSPIN_WITH_VALUE;
-				HTREEITEM hTreeItemNum = m_wndTreeAttributes.InsertItem(strAircraftServiceNum,cni,FALSE,FALSE,hTreeItemTimeRange);
-				m_wndTreeAttributes.SetItemData(hTreeItemNum,nAircraftServiceNum);
-
-				//Time between vehicles
-				CProDistrubution* pProDestri =  pTimeRangeItem->GetProDistrubution();
-				CString strTimeBetweenVeh;
-				strTimeBetweenVeh.Format("Time between vehicles ( %s ) secs", pProDestri->getPrintDist());
-				cni.net=NET_COMBOBOX;
-				m_wndTreeAttributes.InsertItem(strTimeBetweenVeh,cni,FALSE, FALSE,hTreeItemTimeRange);
-				
-				m_wndTreeAttributes.Expand(hTreeItemTimeRange,TVE_EXPAND);
-			}
-			m_wndTreeAttributes.Expand(hTreeItemFltType,TVE_EXPAND);
-		}
-		m_wndTreeAttributes.Expand(hTreeItemStand,TVE_EXPAND);
+        InsertStandItem(pStandFamilyItem);
 	}
 	m_wndTreeAttributes.Expand(m_hTreeItemDeployment,TVE_EXPAND);
 	m_wndTreeAttributes.SetRedraw(TRUE);
 	UpdateToolBar();
+}
+
+HTREEITEM CDlgVehiclePoolsAndDeployment::InsertStandItem(CVehicleServiceStandFamily* pStandFamilyItem, HTREEITEM hParent, HTREEITEM hAfter)
+{
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
+    CString strStand = _T("Stand : ");
+    int nStandfamilyID = pStandFamilyItem->GetStandfamilyID();
+    CString strValue;
+    if(nStandfamilyID == m_nDefaultStandFamilyID)
+        strValue = _T("All stand");
+    else
+    {
+        ALTObjectGroup altObjGroup;
+        altObjGroup.ReadData(nStandfamilyID);	
+        strValue = altObjGroup.getName().GetIDString();
+    }
+    strStand = strStand + strValue;
+    cni.net=NET_SHOW_DIALOGBOX;
+    HTREEITEM hTreeItemStand = m_wndTreeAttributes.InsertItem(strStand,cni,FALSE,FALSE,m_hTreeItemDeployment);
+    m_wndTreeAttributes.SetItemData(hTreeItemStand,(DWORD_PTR)pStandFamilyItem);
+
+    //FlightType
+    int nFlightTypeCount = pStandFamilyItem ->GetServiceFlightTypeCount();
+    for(int j=0; j<nFlightTypeCount; j++)
+    {
+        InsertFlightTypeItem(pStandFamilyItem->GetServiceFlightTypeItem(j), hTreeItemStand);
+    }
+    m_wndTreeAttributes.Expand(hTreeItemStand,TVE_EXPAND);
+    return hTreeItemStand;
+}
+
+HTREEITEM CDlgVehiclePoolsAndDeployment::InsertFlightTypeItem(CVehicleServiceFlightType* pFlightTypeItem, HTREEITEM hParent, HTREEITEM hAfter)
+{
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
+    CString strFltType = _T("Flight type : ");
+    FlightConstraint fltType = pFlightTypeItem->GetFltType();
+    CString strFltType2;
+    fltType.screenPrint(strFltType2);
+    strFltType = strFltType + strFltType2;
+    cni.net=NET_SHOW_DIALOGBOX;
+    HTREEITEM hTreeItemFltType = m_wndTreeAttributes.InsertItem(strFltType,cni,FALSE,FALSE,hParent, hAfter);
+    m_wndTreeAttributes.SetItemData(hTreeItemFltType,(DWORD_PTR)pFlightTypeItem);
+
+    //TimeRange
+    int nTimeRangeCount = pFlightTypeItem->GetServiceTimeRangeCount();
+    for(int k=0; k<nTimeRangeCount; k++)
+    {
+        InsertTimeRangeItem(pFlightTypeItem->GetServiceTimeRangeItem(k), hTreeItemFltType);
+    }
+    m_wndTreeAttributes.Expand(hTreeItemFltType,TVE_EXPAND);
+    return hTreeItemFltType;
+}
+
+HTREEITEM CDlgVehiclePoolsAndDeployment::InsertTimeRangeItem(CVehicleServiceTimeRange* pTimeRangeItem, HTREEITEM hParent, HTREEITEM hAfter)
+{
+    COOLTREE_NODE_INFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
+    CString strTimeRange = _T("Time window : "),strDay = _T("");
+
+    ElapsedTime etInsert = pTimeRangeItem->GetStartTime();
+    //strDay.Format(_T("day%d %02d:%02d:%02d"), etInsert.GetDay(),etInsert.GetHour(),etInsert.GetMinute(),etInsert.GetSecond());
+    strDay = etInsert.PrintDateTime();
+
+    strTimeRange = strTimeRange + strDay + _T(" - ");
+
+    etInsert = pTimeRangeItem->GetEndTime();
+    //strDay.Format(_T("day%d %02d:%02d:%02d"), etInsert.GetDay(),etInsert.GetHour(),etInsert.GetMinute(),etInsert.GetSecond());
+    strDay = etInsert.PrintDateTime();
+    strTimeRange += strDay;
+
+    cni.net=NET_SHOW_DIALOGBOX;
+    HTREEITEM hTreeItemTimeRange = m_wndTreeAttributes.InsertItem(strTimeRange,cni,FALSE,FALSE,hParent, hAfter);
+    m_wndTreeAttributes.SetItemData(hTreeItemTimeRange, (DWORD_PTR)pTimeRangeItem);
+
+    //Service Regimen
+    CString strRegimenType = _T("Service regimen : ");
+    CString strRegimenType2;
+    VehicleRegimenType enumRegimenType = pTimeRangeItem->GetRegimenType();
+    if(enumRegimenType == ServiceCloset)
+        strRegimenType2 = _T("closest");
+    else if(enumRegimenType == ServiceNextDep)
+        strRegimenType2 = _T("next departure");
+    else if(enumRegimenType == ServiceRandom)
+        strRegimenType2 = _T("random");
+    else if(enumRegimenType == ServiceFIFO)
+        strRegimenType2 = _T("FIFO");
+    else if(enumRegimenType == NextArrival)
+        strRegimenType2 = _T("Next arrival");
+    else if(enumRegimenType == NextOperation)
+        strRegimenType2 = _T("Next operation");
+    else if(enumRegimenType == FillToCapacity)
+        strRegimenType2 = _T("For arr ac fill to capacity");
+
+    strRegimenType = strRegimenType + strRegimenType2;
+    cni.nt=NT_NORMAL;
+    cni.net=NET_COMBOBOX;
+    cni.bAutoSetItemText = false;
+    m_wndTreeAttributes.InsertItem(strRegimenType,cni,FALSE,FALSE,hTreeItemTimeRange);
+
+    //LeavePool
+    CString strLeavePool = _T("Leave pool");
+    CCoolTree::InitNodeInfo(this,cni);
+    HTREEITEM hTreeItemLeavePool = m_wndTreeAttributes.InsertItem(strLeavePool,cni,FALSE,FALSE,hTreeItemTimeRange);
+
+    VehicleLeaveType enumLeaveType = pTimeRangeItem->GetLeaveType();
+    ElapsedTime tLeaveTime = pTimeRangeItem->GetLeaveTime();
+    if ((m_eSelVehicleType == VehicleType_DeicingTruck || m_eSelVehicleType == VehicleType_TowTruck) 
+        && enumLeaveType != BeforeAircraftDeparts )
+    {
+        pTimeRangeItem->SetLeaveType(BeforeAircraftDeparts);
+        enumLeaveType = BeforeAircraftDeparts;
+        if (tLeaveTime > 600L)
+        {
+            pTimeRangeItem->SetLeaveTime(ElapsedTime(600L));
+            tLeaveTime = 600L;
+        }
+    }
+
+    CString strLeaveTime,strLeaveType;
+    int lMinutes = tLeaveTime.asMinutes();
+    strLeaveTime.Format("%d",lMinutes);
+    strLeaveTime = _T("[") + strLeaveTime +_T("] mins");
+    cni.nt=NT_NORMAL;
+    cni.net=NET_EDITSPIN_WITH_VALUE;
+    cni.bAutoSetItemText = false;
+    HTREEITEM hTreeItemLeaveTime = m_wndTreeAttributes.InsertItem(strLeaveTime,cni,FALSE,FALSE,hTreeItemLeavePool);
+    m_wndTreeAttributes.SetItemData(hTreeItemLeaveTime,lMinutes);
+
+    if(enumLeaveType == BeforeAircraftArrival)
+        strLeaveType = _T("before aircraft arrive");
+    else if(enumLeaveType == AfterAircraftArrival)
+        strLeaveType = _T("after aircraft arrive");
+    else if(enumLeaveType == BeforeAircraftDeparts)
+        strLeaveType = _T("before aircraft departs");
+    strLeaveType = _T("(") + strLeaveType +_T(")");
+
+    cni.net=NET_COMBOBOX;
+    if (m_eSelVehicleType == VehicleType_DeicingTruck || m_eSelVehicleType == VehicleType_TowTruck)
+        cni.net = NET_NORMAL;
+
+    m_wndTreeAttributes.InsertItem(strLeaveType,cni,FALSE,FALSE,hTreeItemLeavePool);
+    m_wndTreeAttributes.Expand(hTreeItemLeavePool,TVE_EXPAND);
+
+    //Return after
+    CString strAircraftService =_T("Return after [");
+    int nAircraftServiceNum = pTimeRangeItem->GetAircraftServiceNum();
+    CString strAircraftServiceNum;
+    strAircraftServiceNum.Format("%s%d%s",strAircraftService,nAircraftServiceNum,_T("] arircraft services"));
+    cni.net=NET_EDITSPIN_WITH_VALUE;
+    HTREEITEM hTreeItemNum = m_wndTreeAttributes.InsertItem(strAircraftServiceNum,cni,FALSE,FALSE,hTreeItemTimeRange);
+    m_wndTreeAttributes.SetItemData(hTreeItemNum,nAircraftServiceNum);
+
+    //Time between vehicles
+    CProDistrubution* pProDestri =  pTimeRangeItem->GetProDistrubution();
+    CString strTimeBetweenVeh;
+    strTimeBetweenVeh.Format("Time between vehicles ( %s ) secs", pProDestri->getPrintDist());
+    cni.net=NET_COMBOBOX;
+    m_wndTreeAttributes.InsertItem(strTimeBetweenVeh,cni,FALSE, FALSE,hTreeItemTimeRange);
+    m_wndTreeAttributes.Expand(hTreeItemTimeRange,TVE_EXPAND);
+    return hTreeItemTimeRange;
 }
 
 void CDlgVehiclePoolsAndDeployment::OnLbnSelchangeListboxVehicletype()
@@ -969,6 +1018,12 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 					CVehiclePool* pVehiclePoolItem = GetCurSelVehiclePool();
 					if(pVehiclePoolItem)
 						pVehiclePoolItem->SetVehicleQuantity(ntemp);
+                    int nQuantity = pVehiclePoolItem->GetVehicleQuantity();
+                    CString strQuantity;
+                    strQuantity.Format(_T("Quantity : %d"), nQuantity);
+                    m_wndTreeAttributes.SetItemText(m_hTreeItemQuantity, strQuantity);
+                    m_wndTreeAttributes.SetItemData(m_hTreeItemQuantity, ntemp);
+                    break;
 				}
 				CString strSel = m_wndTreeAttributes.GetItemText(hItem);
 				strSel = strSel.Left(1);
@@ -980,20 +1035,28 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 					ElapsedTime tLeaveTime;
 					tLeaveTime.set(ntemp*60);
 					pTimeRangeItem->SetLeaveTime(tLeaveTime);
+                    CString strItem;
+                    strItem.Format("[%d] mins",ntemp);
+                    m_wndTreeAttributes.SetItemText(hItem, strItem);
+                    m_wndTreeAttributes.SetItemData(hItem, ntemp);
 				}
 				else if(strSel == "R")
 				{
 					HTREEITEM hParentItem = m_wndTreeAttributes.GetParentItem(hItem);
 					CVehicleServiceTimeRange* pTimeRangeItem = (CVehicleServiceTimeRange*)m_wndTreeAttributes.GetItemData(hParentItem);
-					pTimeRangeItem->SetAircraftServiceNum(ntemp);
+                    pTimeRangeItem->SetAircraftServiceNum(ntemp);
+                    CString strItem;
+                    strItem.Format("%s%d%s", _T("Return after ["), ntemp, _T("] arircraft services"));
+                    m_wndTreeAttributes.SetItemText(hItem, strItem);
+                    m_wndTreeAttributes.SetItemData(hItem, ntemp);
 				}
 				else if (strSel == "L")
 				{
 					HTREEITEM hParentItem = m_wndTreeAttributes.GetParentItem(hItem);
 					CVehicleServiceStandFamily* pStandItem = (CVehicleServiceStandFamily*)m_wndTreeAttributes.GetItemData(hParentItem);
-					pStandItem->SetLeaveTime(ntemp*60L);
+                    pStandItem->SetLeaveTime(ntemp*60L);
+                    LoadTree();
 				}
-				LoadTree();
 			}
 			break;
 		case UM_CEW_COMBOBOX_BEGIN:
@@ -1081,7 +1144,17 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 					int nSel = pCB->GetCurSel();
 					int nParkingLotID = pCB->GetItemData(nSel);
 					CVehiclePool* pVehiclePoolItem = GetCurSelVehiclePool();
-					pVehiclePoolItem->SetParkingLotID(nParkingLotID);
+                    pVehiclePoolItem->SetParkingLotID(nParkingLotID);
+                    CString strLocation;
+                    for (int i = 0; i < static_cast<int>(m_vParkingLot.size()); ++i)
+                    {
+                        if(m_vParkingLot[i].getID() == nParkingLotID)
+                        {
+                            strLocation.Format(_T("Location : %s"), m_vParkingLot[i].GetObjNameString());
+                            break;
+                        }
+                    }
+                    m_wndTreeAttributes.SetItemText(hItem, strLocation);
 				}
 				else if(hItem == m_hTreeItemMintrunaroundtime)
 				{
@@ -1144,6 +1217,11 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 						pProbDist->printDistribution(szBuffer);
 						pVehiclePoolItem->SetPrintDist(szBuffer);
 					}
+
+                    CString strDistScreenPrint = pVehiclePoolItem->GetDistScreenPrint();
+                    CString strMinturnaround;
+                    strMinturnaround.Format(_T("Min turnaround time in pool (%s) mins"), strDistScreenPrint);
+                    m_wndTreeAttributes.SetItemText(hItem, strMinturnaround);
 				}
 				else
 				{
@@ -1171,6 +1249,24 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 							enumRegimenType = FillToCapacity;
 						pTimeRangeItem->SetRegimenType(enumRegimenType);
 
+                        CString strRegimenType = _T("Service regimen : ");
+                        CString strRegimenType2;
+                        if(enumRegimenType == ServiceCloset)
+                            strRegimenType2 = _T("closest");
+                        else if(enumRegimenType == ServiceNextDep)
+                            strRegimenType2 = _T("next departure");
+                        else if(enumRegimenType == ServiceRandom)
+                            strRegimenType2 = _T("random");
+                        else if(enumRegimenType == ServiceFIFO)
+                            strRegimenType2 = _T("FIFO");
+                        else if(enumRegimenType == NextArrival)
+                            strRegimenType2 = _T("Next arrival");
+                        else if(enumRegimenType == NextOperation)
+                            strRegimenType2 = _T("Next operation");
+                        else if(enumRegimenType == FillToCapacity)
+                            strRegimenType2 = _T("For arr ac fill to capacity");
+                        strRegimenType = strRegimenType + strRegimenType2;
+                        m_wndTreeAttributes.SetItemText(hItem, strRegimenType);
 					}
 					else if(strSel == "(")
 					{
@@ -1181,10 +1277,20 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 						if(nSel == 0)
 							pTimeRangeItem->SetLeaveType(BeforeAircraftDeparts);
 						else if(nSel == 1)
-							pTimeRangeItem->SetLeaveType(BeforeAircraftArrival);							
+							pTimeRangeItem->SetLeaveType(BeforeAircraftArrival);
 						else
 							pTimeRangeItem->SetLeaveType(AfterAircraftArrival);
-						
+
+                        VehicleLeaveType enumLeaveType = pTimeRangeItem->GetLeaveType();
+                        CString strLeaveType;
+                        if(enumLeaveType == BeforeAircraftArrival)
+                            strLeaveType = _T("before aircraft arrive");
+                        else if(enumLeaveType == AfterAircraftArrival)
+                            strLeaveType = _T("after aircraft arrive");
+                        else if(enumLeaveType == BeforeAircraftDeparts)
+                            strLeaveType = _T("before aircraft departs");
+                        strLeaveType = _T("(") + strLeaveType +_T(")");
+                        m_wndTreeAttributes.SetItemText(hItem, strLeaveType);
 					}
 					else if(strSel == "T")
 					{
@@ -1246,10 +1352,12 @@ LRESULT CDlgVehiclePoolsAndDeployment::DefWindowProc(UINT message, WPARAM wParam
 							pProDestri->setPrintDist(szBuffer);
  							pProDestri->setProType((ProbTypes)pProbDist->getProbabilityType());
 						}
-						pProDestri->initProbilityDistribution();
-					}
+                        pProDestri->initProbilityDistribution();
+                        CString strTimeBetweenVeh;
+                        strTimeBetweenVeh.Format("Time between vehicles ( %s ) secs", pProDestri->getPrintDist());
+                        m_wndTreeAttributes.SetItemText(hItem, strTimeBetweenVeh);
+                    }
 				}
-				LoadTree();
 			}
 			break;
 		case UM_CEW_SHOW_DIALOGBOX_BEGIN:
@@ -1386,3 +1494,5 @@ void CDlgVehiclePoolsAndDeployment::LoadTowTruckTree( CVehiclePool* pVehiclePool
 	m_wndTreeAttributes.SetRedraw(TRUE);
 	UpdateToolBar();
 }
+
+

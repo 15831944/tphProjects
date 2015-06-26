@@ -39,7 +39,7 @@ CAirsideBaseReport* CAirsideMultipleRunReportAgent::AddReportWhatToGen(reportTyp
 		pReport = new  AirsideFlightRunwayDelayReport(m_pGetLogFilePath,(AirsideFlightRunwayDelayReportPara*)parameter);
 		break;
 	case Airside_StandOperations:
-		pReport = new CAirsideFlightStandOperationReport(m_pGetLogFilePath);
+		pReport = new CAirsideFlightStandOperationReport(m_pScheduleStand,m_pGetLogFilePath);
 		break;
 	default:
 		break;

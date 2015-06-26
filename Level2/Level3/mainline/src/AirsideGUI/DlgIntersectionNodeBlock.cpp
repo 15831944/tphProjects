@@ -66,7 +66,7 @@ BOOL CDlgIntersectionNodeBlock::OnInitDialog()
 	m_lstNodeOption.InsertColumn( 1, "Node Name", LVCFMT_CENTER, 240 );
 	m_wndSortableHeaderCtrl.SetDataType( 1, dtSTRING );
 
-	m_lstNodeOption.InsertColumn( 2, "Block Disallowed", LVCFMT_CENTER, 80 );
+	m_lstNodeOption.InsertColumn( 2, "Block", LVCFMT_CENTER, 80 );
 	m_wndSortableHeaderCtrl.SetDataType( 2, dtINT );
 
 	SetResize(IDC_LIST_NODEBLOCK, SZ_TOP_LEFT,SZ_BOTTOM_RIGHT);

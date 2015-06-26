@@ -31,6 +31,9 @@ public:
 	void SetCBCurrentSimResult(CBSetCurrentSimResult pFunc){m_pGetSetSimResult = pFunc;}
 	CBSetCurrentSimResult GetCBSetCurrentSimResult() {return m_pGetSetSimResult;}
 
+	void SetCBSecheduleStand(CBCScheduleStand pFunc){m_pScheduleStand = pFunc;}
+	CBCScheduleStand GetCBScheduleStand(){return m_pScheduleStand;}
+
 	void SetReportPath(const CString& strReportPath);
 	void SetTerminalAndProjectPath(Terminal* pTerminal,const CString& _csProjPath);
 
@@ -48,6 +51,7 @@ protected:
 	int m_nProjID;
 	CBGetLogFilePath		m_pGetLogFilePath;
 	CBSetCurrentSimResult m_pGetSetSimResult;
+	CBCScheduleStand  m_pScheduleStand;
 	//report file path, such as d:\\arcterm\\aaa\\simresult0
 	CString					m_strReportFilePath;
 	Terminal*				m_pTerminal;

@@ -16,9 +16,14 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CSimpleConveyor::CSimpleConveyor() : m_dSpeed( 0.0 ), m_iCapacity( 0 ), 
-									 m_state( STOP ), m_StepTime( -1l),
-									 m_iOccapuiedCount( 0), m_pSlots( NULL )
+CSimpleConveyor::CSimpleConveyor()
+	:m_dSpeed( 0.0 )
+	,m_iCapacity( 0 )
+	,m_state( STOP )
+	,m_StepTime( -1l)
+	,m_iOccapuiedCount( 0)
+	,m_pSlots( NULL )
+	,m_preState(STOP)
 {
 	
 }
@@ -83,7 +88,12 @@ void CSimpleConveyor::InitData( const MiscConveyorData * _pMiscData )
 
 	slotsPath.init(*serviceLocationExceedTwoFloorPath(), m_iCapacity );
 	m_StepTime = (float)(slotsPath.getSegLen() / m_dSpeed);
+	ASSERT(m_StepTime > ElapsedTime(0L));
+	if(m_StepTime<=ElapsedTime(0L))
+		m_StepTime = ElapsedTime(1L);
+
 	
+
 	m_pSlots = new ElemTimePair[ m_iCapacity ];	
 	// init slot
 	for( int i=0; i< m_iCapacity; i++  )
@@ -342,32 +352,48 @@ void CSimpleConveyor::processorStepItEvent( InputTerminal* _pInTerm, const Elaps
 					
 			}
 			PLACE_TRACK_STRING("2010223-11:17:12");
-			if( releaseHeadPerson( pReleasePerson, time ) )
+			
+			bool bSuccessfulReleasePerson = true;
+
+			try
 			{
-				createStepItEventIfNeed( time );
-//			if( createStepItEventIfNeed( time ) )
-// 				{
-// 					stepIt( time );
-// 					noticeSourceConveyor( time );
-// 				}
-			}
-			else
-			{
-				PLACE_TRACK_STRING("2010223-11:17:17");
-				//m_state = STOP;
-				Processor* pDestProc = GetRandomDestProc( pReleasePerson );
-				if( pDestProc->GetStopReason() >=0 )
+				if( releaseHeadPerson( pReleasePerson, time ) )
 				{
-					setConveyorState( STOP, time , getLoad(), pDestProc->GetStopReason() );
-					writeAdditionLog( STOP, time, pDestProc->GetStopReason() );
+		
+					if( createStepItEventIfNeed( time ) )
+ 					{
+ 						stepIt( time );
+ 						noticeSourceConveyor( time );
+ 					}
 				}
 				else
 				{
-					setConveyorState( STOP, time , getLoad(), pDestProc->getIndex() );
-					writeAdditionLog( STOP, time,  pDestProc->getIndex() );
-				}								
+					PLACE_TRACK_STRING("2010223-11:17:17");
+					//m_state = STOP;
+					Processor* pDestProc = GetRandomDestProc( pReleasePerson );
+					if( pDestProc->GetStopReason() >=0 )
+					{
+						setConveyorState( STOP, time , getLoad(), pDestProc->GetStopReason() );
+						writeAdditionLog( STOP, time, pDestProc->GetStopReason() );
+					}
+					else
+					{
+						setConveyorState( STOP, time , getLoad(), pDestProc->getIndex() );
+						writeAdditionLog( STOP, time,  pDestProc->getIndex() );
+					}
+				}
+				PLACE_TRACK_STRING("2010223-11:17:21");
 			}
-			PLACE_TRACK_STRING("2010223-11:17:21");
+			catch (ARCSimEngineException* e)
+			{
+				if( createStepItEventIfNeed( time ) )
+				{
+					stepIt( time );
+					noticeSourceConveyor( time );
+				}
+
+				throw e;
+			}
 		}
 	}
 }
@@ -382,11 +408,11 @@ void CSimpleConveyor::RemoveHeadPerson(const ElapsedTime& time)
 		m_iOccapuiedCount--;
 	}
 
-// 	if( createStepItEventIfNeed( time ) )
-// 	{
-// 	 	stepIt( time );
-// 	 	noticeSourceConveyor( time );
-// 	}
+ 	//if( createStepItEventIfNeed( time ) )
+ 	//{
+ 	// 	stepIt( time );
+ 	// 	noticeSourceConveyor( time );
+ 	//}
 }
 
 // release the head person, and remove from this processor
@@ -591,13 +617,13 @@ void CSimpleConveyor::setConveyorState( CONVEYORSTATE _eState , const ElapsedTim
 		if( lReason ==-1 )//first time
 		{
 			Processor* pProc = m_pTerm->procList->getProcessor( _lReason );
-			ofsstream echoFile ("d:\\conveyor.log", stdios::app);
-			echoFile 
-				<< name.GetIDString().GetBuffer(2 ) << "  " << pProc->getID()->GetIDString().GetBuffer(2) 
-				<<  "  " <<_time.printTime().GetBuffer( 2 ) << " "
-				<< _lLoad <<" " << _lReason << "\n";
+			//ofsstream echoFile ("d:\\conveyor.log", stdios::app);
+			//echoFile 
+			//	<< name.GetIDString().GetBuffer(2 ) << "  " << pProc->getID()->GetIDString().GetBuffer(2) 
+			//	<<  "  " <<_time.printTime().GetBuffer( 2 ) << " "
+			//	<< _lLoad <<" " << _lReason << "\n";
 
-			echoFile.close();			
+			//echoFile.close();			
 			
 			lReason = _lReason;
 		}
@@ -606,11 +632,11 @@ void CSimpleConveyor::setConveyorState( CONVEYORSTATE _eState , const ElapsedTim
 			if( lReason != _lReason )
 			{
 				Processor* pProc = m_pTerm->procList->getProcessor( _lReason );
-				ofsstream echoFile ("d:\\conveyor.log", stdios::app);
-				echoFile << name.GetIDString().GetBuffer(2 ) <<"  " << pProc->getID()->GetIDString().GetBuffer(2) 
-					<<  "  " <<_time.printTime().GetBuffer( 2 ) <<" "
-					<< _lLoad <<" " << _lReason <<"\n";
-					echoFile.close();
+				//ofsstream echoFile ("d:\\conveyor.log", stdios::app);
+				//echoFile << name.GetIDString().GetBuffer(2 ) <<"  " << pProc->getID()->GetIDString().GetBuffer(2) 
+				//	<<  "  " <<_time.printTime().GetBuffer( 2 ) <<" "
+				//	<< _lLoad <<" " << _lReason <<"\n";
+				//	echoFile.close();
 
 			}
 			
@@ -660,21 +686,28 @@ void CSimpleConveyor::writeAdditionLog( CONVEYORSTATE _eState, const ElapsedTime
 	else
 	{
 		logState = ProcessorStateStop;
+
+
 	}
-	for( int i = 0; i < m_iCapacity; ++i )
+	if( m_preState != _eState)
 	{
-		Person* pPerson = m_pSlots[i].first;
-		if( pPerson )		// 
+		for( int i = 0; i < m_iCapacity; ++i )
 		{
-			TerminalMobElementBehavior* spTerminalBehavior = pPerson->getTerminalBehavior();
-			if (spTerminalBehavior)
+			Person* pPerson = m_pSlots[i].first;
+			if( pPerson )		// 
 			{
-				spTerminalBehavior->SetStopReason( _lReason );
-			}
+				TerminalMobElementBehavior* spTerminalBehavior = pPerson->getTerminalBehavior();
+				if (spTerminalBehavior)
+				{
+					spTerminalBehavior->SetStopReason( _lReason );
+				}
 		
-			pPerson->writeLogEntry( _time, false );	
-		}		
-	}	
+				pPerson->writeLogEntry( _time, false );	
+			}		
+		}
+
+		m_preState = _eState;
+	}
 }
 
 void CSimpleConveyor::removePersonFromOccupiedList(const Person *_pPerson )

@@ -140,6 +140,7 @@ public:
 	virtual void echo(EchoLogType key) const;
 	Flight* GetFlightByFlightIndex(int Fli_Index) ;
 	
+	bool ScheduleStand(const ALTObjectID& standID);
 };
 
 

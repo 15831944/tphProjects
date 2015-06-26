@@ -430,11 +430,49 @@ void DataOfEveryLift::MoveToNextFloor( const ElapsedTime& _currentTime , int _iL
 		// move person into elevator....;
 		ElapsedTime tempTimeMoveIn;
 		MovePersonIntoElevator( _currentTime, _iLift, _pElevator , tempTimeMoveIn );
-
+		
 		UpdataLiftStopFlags( _pElevator, _iLift );
-
 		if( RefreshCurrentFloor() )
 		{
+			
+#ifdef ELEVATORPAXLOG_SWITCH
+
+			{
+				int nTotalPaxCount = 0;
+				int nTotalGroup = 0;
+				std::list<Person*>::iterator iter = m_listPersonInLift.begin();
+				std::list<Person*>::iterator iterEnd = m_listPersonInLift.end();
+				for( ; iter != iterEnd; ++iter )
+				{
+					Person *pPerson = (*iter);
+					nTotalPaxCount += pPerson->GetActiveGroupSize();
+
+					nTotalGroup += 1;
+				}
+				ElapsedTime eTime = _currentTime + tempTimeMoveIn + tempTimeMoveOut;
+
+				CString strElevatorName = _pElevator->getIDName();
+				int nProcIndex = _pElevator->getIndex();
+				//lift
+
+				//start floor
+				//next floor
+				//m_iCurrentFloor;
+
+				CString strLog;
+				//Index, Name, Lift, Time, Time String, From Floor, to Floor, Group Count, Pax Count
+				strLog.Format(_T("%d, %s, %d, %d, %s, %d, %d, %d, %d"), 
+					nProcIndex, strElevatorName, _iLift, eTime.getPrecisely(), eTime.PrintDateTime(), iPreFloor, m_iCurrentFloor, nTotalGroup, nTotalPaxCount);
+
+				CString strPath;
+				strPath.Format(_T("%s%s"),m_pTerm->m_strProjPath, _T("ElevatorPaxLog.csv"));
+				ofsstream echoFile (strPath, stdios::app);
+				echoFile<<strLog<<"\n";
+				echoFile.close();
+			}
+
+#endif
+
 			GenerateEvent( _currentTime + tempTimeMoveIn + tempTimeMoveOut + GetNecessaryTimeToNextFloor( iPreFloor, m_iCurrentFloor ), _iLift, _pElevator );
 		}
 	}

@@ -3,7 +3,7 @@
 #include "AirsideReport/TypeDefs.h"
 #include "AirsideBaseReport.h"
 #include "Engine/Terminal.h"
-
+#include "AirsideFlightStandOperationReport.h"
 class CParameters;
 
 typedef std::vector<CAirsideBaseReport*> AirsideReportList;
@@ -21,10 +21,13 @@ public:
 	void SetCBGetLogFilePath(CBGetLogFilePath pFunc){ m_pGetLogFilePath = pFunc;}
 	CBGetLogFilePath GetCBGetLogFilePath(){ return m_pGetLogFilePath;}
 
+	void SetCBSecheduleStand(CBCScheduleStand pFunc){m_pScheduleStand = pFunc;}
+	CBCScheduleStand GetCBScheduleStand(){return m_pScheduleStand;}
 	CString GetSimResultPath(reportType _reportType);
 
 private:
 	CString m_strReportPath;
 	CBGetLogFilePath		m_pGetLogFilePath;
+	CBCScheduleStand  m_pScheduleStand;
 };
 

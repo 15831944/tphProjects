@@ -19,6 +19,7 @@ public:
 
 	bool InitBirth(CARCportEngine*pEngine);
 	virtual void SuccessParkInLotSpot(LandsideParkingSpotInSim* plot);
+	virtual void SuccessParkInCurb(LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot);
 	virtual bool ProceedToNextFcObject(CARCportEngine* pEngine);
 
 	NonPaxVehicleEntryInfo& getEntryInfo(){ return m_entryInfo; }

@@ -468,7 +468,7 @@ void CPaxBulkEdit::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef re
     }
     else if(refTopLeft == TopRight && refBottomRight == BottomRight)
     {
-        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), cy+deltaY);
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), rcS.Height()+deltaY);
     }
     else if(refTopLeft == BottomLeft && refBottomRight == BottomLeft)
     {
@@ -476,7 +476,7 @@ void CPaxBulkEdit::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef re
     }
     else if(refTopLeft == BottomLeft && refBottomRight == BottomRight)
     {
-        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, cx+deltaX, rcS.Height());
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, rcS.Width()+deltaX, rcS.Height());
     }
     else if(refTopLeft == BottomRight && refBottomRight == BottomRight)
     {

@@ -63,7 +63,7 @@ void CARCTreeCtrl::OnPaint()
         CWnd *pWndFocus = GetFocus();
         COLORREF textBackground = GetSysColor(COLOR_WINDOW);
         UINT itemState = GetItemState(hItem, TVIS_DROPHILITED | TVIS_SELECTED);
-        if(pWndFocus == this || IsChild(pWndFocus)) // CoolTree windows is focused
+        if(pWndFocus == this || IsChild(pWndFocus)) // CoolTree is focused
         {
             if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
             {
@@ -71,11 +71,11 @@ void CARCTreeCtrl::OnPaint()
                 continue;
             }
         }
-        else
+        else // CoolTree isn't focused
         {
             if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
             {
-                textBackground = RGB(200, 200, 200); // when lose focus set selected node's background gray
+                textBackground = RGB(206, 206, 206); // when lose focus set selected node's background gray
             }
         }
 

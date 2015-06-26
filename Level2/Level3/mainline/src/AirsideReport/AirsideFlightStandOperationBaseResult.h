@@ -4,7 +4,6 @@
 #include "../MFCExControl/XListCtrl.h"
 #include "AirsideBaseReport.h"
 #include "../Common/termfile.h"
-
 class CParameters;
 class CStandOperationReportData;
 class CFlightStandOperationChartResult;
@@ -38,15 +37,22 @@ public:
 	bool IsLoadFromFile();
 	void SetCBGetFilePath(CBGetLogFilePath pFunc);
 	CBGetLogFilePath m_pCBGetLogFilePath;
-	//void clear();
 
+	//void clear();
+	void SetCBSecheduleStand(CBCScheduleStand pFunc){m_pScheduleStand = pFunc;}
     std::vector<CStandOperationReportData*> GetResult() const { return m_vResult; }
     void SetResult(std::vector<CStandOperationReportData*> val) { m_vResult = val; }
+
+	int GetUnuseActualStandCount()const {return m_nUnuseActualStandCount;}
+	int GetUnuseScheduleStandCount()const {return m_nUnuseScheduleStandCount;}
 protected:
 	bool m_bLoadFromFile;
 	CFlightStandOperationChartResult* m_pChartResult; //draw graph
 	std::vector<CStandOperationReportData*> m_vResult;
+	int m_nUnuseActualStandCount;
+	int m_nUnuseScheduleStandCount;
     StandOperationDataProcessor* m_pStandOperationProcessor;
+	CBCScheduleStand  m_pScheduleStand;
 
 public:
 	static inline CString FormatDHMS(long lSecs); // format Day.Hour:Minute:Second

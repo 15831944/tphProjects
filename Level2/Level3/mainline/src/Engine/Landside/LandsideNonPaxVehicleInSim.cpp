@@ -23,8 +23,10 @@
 
 #include "../DeparturePaxLandsideBehavior.h"
 #include "State_InParkingLot.h"
+#include "State_InCurbside.h"
 #include "../LandsideExternalNodeInSim.h"
 #include "State_MoveInRoad.h"
+#include "../LaneParkingSpot.h"
 //#include "Process_MoveInRoad.h"
 
 
@@ -86,6 +88,11 @@ bool LandsideNonPaxVehicleInSim::ProceedToNextFcObject( CARCportEngine* pEngine 
 void LandsideNonPaxVehicleInSim::SuccessParkInLotSpot( LandsideParkingSpotInSim* pSpot )
 {
 	ChangeState(new State_NonPaxVParkingInLotSpot(this,pSpot),getLastState().time);
+}
+
+void LandsideNonPaxVehicleInSim::SuccessParkInCurb( LandsideCurbSideInSim*pCurb,IParkingSpotInSim* spot )
+{
+	ChangeState(new State_NonPaxCurbsideInLotSpot(this,pCurb,spot),getLastState().time);
 }
 
 

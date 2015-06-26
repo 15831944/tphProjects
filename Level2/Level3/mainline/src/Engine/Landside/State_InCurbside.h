@@ -2,6 +2,7 @@
 #include "State_MoveInRoad.h"
 #include <memory>
 #include "LandsidePaxVehicleInSim.h"
+#include "LandsideNonPaxVehicleInSim.h"
 class IParkingSpotInSim;
 
 class State_TryParkingCurbside : public State_LandsideVehicle<LandsideVehicleInSim>
@@ -54,4 +55,19 @@ public:
 protected:
 	LandsideCurbSideInSim* m_pCurb;
 	IParkingSpotInSim* m_spot;
+};
+
+
+class State_NonPaxCurbsideInLotSpot : public State_LandsideVehicle<LandsideNonPaxVehicleInSim>
+{
+public:
+	State_NonPaxCurbsideInLotSpot(LandsideNonPaxVehicleInSim* pV,LandsideCurbSideInSim*pCub,IParkingSpotInSim* spot);
+
+	virtual const char* getDesc()const{ return _T("Parking in curbside"); }
+	virtual void Entry(CARCportEngine* pEngine);
+	virtual void Execute(CARCportEngine* pEngine);
+protected:
+	IParkingSpotInSim* m_spot;
+	LandsideCurbSideInSim* m_pCurb;
+	State_ServiceTimer m_sExitTimer;
 };

@@ -61,6 +61,7 @@ class ProductStockingList;
 class INPUTS_TRANSFER InputTerminal
 {
 public:
+	CString m_strProjPath;
 	static char m_csDisplayMsg[512];
 
 	CSimParameter* m_pSimParam;
@@ -86,7 +87,7 @@ public:
     PassengerData *paxDataList;
 
 	// Bridge Connector passenger data.
-	BridgeConnectorPaxData* bcPaxData;
+	BridgeConnectorPaxDatabase* bcPaxData;
     // Baggage Data
     BaggageData *bagData;
 

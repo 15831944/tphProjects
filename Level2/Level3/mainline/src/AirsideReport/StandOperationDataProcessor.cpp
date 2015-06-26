@@ -1,18 +1,23 @@
 #include "StdAfx.h"
 #include "StandOperationDataProcessor.h"
 #include "Parameters.h"
-
-#include "Results/AirsideFlightEventLog.h"
+ #include "Results/AirsideFlightLogItem.h"
+ #include "Results/AirsideFlightEventLog.h"
+#include "Results/ARCBaseLog.h"
+#include "Results/ARCBaseLog.hpp"
 #include "Common/AIRSIDE_BIN.h"
 #include "Engine/Airside/AirsideFlightInSim.h"
 #include "../Common/Aircraft.h"
-
+#include "Inputs/IN_TERM.H"
+#include "Inputs/SCHEDULE.H"
 #include "Common/ProgressBar.h"
 #include "FlightStandOperationParameter.h"
 
-StandOperationDataProcessor::StandOperationDataProcessor()
+StandOperationDataProcessor::StandOperationDataProcessor(CBCScheduleStand pFunc)
+	:m_pScheduleStand(pFunc)
 {
-
+	m_nIdleActualStand = 0;
+	m_nIdleScheduleStand = 0;
 }
 
 StandOperationDataProcessor::~StandOperationDataProcessor()
@@ -50,7 +55,8 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 
 	CString strDescFilepath = (*pCBGetLogFilePath)(AirsideFlightDescFileReport);
 	CString strEventFilePath = (*pCBGetLogFilePath)(AirsideFlightEventFileReport);
-	if (strEventFilePath.IsEmpty() || strDescFilepath.IsEmpty())
+	CString strObjectPath = (*pCBGetLogFilePath)(AirsideALTObjectListFile);
+	if (strEventFilePath.IsEmpty() || strDescFilepath.IsEmpty() || strObjectPath.IsEmpty())
 		return;
 
 	ARCBaseLog<AirsideFlightLogItem> flightLogData;
@@ -59,7 +65,7 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 	CStandOperationReportData* pStandOpReportData = NULL;
 
 	int nCount = flightLogData.getItemCount();
-	
+
 	CProgressBar bar(_T("Fetch logs and build original data..."), 100, nCount, TRUE);
 
 	for (int i = 0; i < nCount; i++)
@@ -78,12 +84,12 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 
 			if (!pLog->IsKindof(typeof(AirsideFlightStandOperationLog)))
 				continue;
-			
+
 			if (!pStandOpPara->fits(((AirsideFlightStandOperationLog*)pLog)->m_altStandID))
 				continue;
-			
+
 			vStandOpLogs.push_back((AirsideFlightStandOperationLog*)pLog);
-			
+
 		}
 
 		if (vStandOpLogs.empty())
@@ -108,16 +114,43 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 			{
 				++iter;
 			}
-		
+
 			vOneStandOpLogs.assign(vStandOpLogs.begin(),iter);
 			vStandOpLogs.erase(vStandOpLogs.begin(),iter);
-			
+
 			ProcessLogs(vOneStandOpLogs, item, bOnlyStand);
 		}
 
 		bar.StepIt();
 	}
 	
+	ARCBaseLog<AirsideALTObjectLogItem> objectLogData;
+	objectLogData.OpenObjectInput(strObjectPath);
+	int nObjectCount = objectLogData.getItemCount();
+	std::vector<ALTObjectID> vStandID;
+	for (int nObject = 0; nObject < nObjectCount; nObject++)
+	{
+		AirsideALTObjectLogItem item = objectLogData.ItemAt(nObject);
+		if (!pStandOpPara->fits(item.m_altObject))
+			continue;
+
+		vStandID.push_back(item.m_altObject);
+	}
+
+	unsigned nAllStandCount = vStandID.size();
+	for (unsigned nStand = 0; nStand < nAllStandCount; nStand++)
+	{
+		ALTObjectID standID = vStandID.at(nStand);
+		if (FindStandUseActualInformation(standID) == false)
+		{
+			m_nIdleActualStand++;
+		}
+		
+		if (m_pScheduleStand(standID.GetIDString()) == false)
+		{
+			m_nIdleScheduleStand++;
+		}
+	}
 }
 
 
@@ -256,4 +289,46 @@ void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOpe
 const std::vector<CStandOperationReportData*>& StandOperationDataProcessor::GetData()
 {
 	return m_vStandOperationReportData;
+}
+
+
+bool StandOperationDataProcessor::FindStandUseScheduleInformation( const ALTObjectID& standID )
+{
+	unsigned nCount = m_vStandOperationReportData.size();
+	for (unsigned i = 0; i < nCount; i++)
+	{
+		CStandOperationReportData* pStandData = m_vStandOperationReportData.at(i);
+		ALTObjectID useStand;
+		useStand.FromString(pStandData->m_sSchedName);
+		if (standID == useStand)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool StandOperationDataProcessor::FindStandUseActualInformation(const ALTObjectID& standID)
+{
+	unsigned nCount = m_vStandOperationReportData.size();
+	for (unsigned i = 0; i < nCount; i++)
+	{
+		CStandOperationReportData* pStandData = m_vStandOperationReportData.at(i);
+		ALTObjectID useStand;
+		useStand.FromString(pStandData->m_sActualName);
+		if (standID == useStand)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+int StandOperationDataProcessor::GetUnuseScheduleStandCount() const
+{
+	return m_nIdleScheduleStand;
+}
+
+int StandOperationDataProcessor::GetUnuseActualStandCount()const
+{
+	return m_nIdleActualStand;
 }

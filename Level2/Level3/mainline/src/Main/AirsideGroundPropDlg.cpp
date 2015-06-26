@@ -29,7 +29,8 @@ void CAirsideGroundPropDlg::OnGridOptions()
 }
 void CAirsideGroundPropDlg::OnOK()
 {
-	SaveData();
+	if(!SaveData())
+        return;
 	CADODatabase::BeginTransaction();
 	try
 	{	

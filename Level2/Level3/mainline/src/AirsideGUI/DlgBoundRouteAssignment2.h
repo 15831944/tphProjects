@@ -136,7 +136,7 @@ protected:
 	CToolBar     m_toolbarOrgDst;
 	CToolBar     m_ToolBarRoute;
 
-	CTreeCtrl    m_wndTreeFltTime;
+	CARCTreeCtrl    m_wndTreeFltTime;
 	CARCTreeCtrl m_TreeCtrlRoute;
 	CListCtrlEx	 m_listOrgDst;
 

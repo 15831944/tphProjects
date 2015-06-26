@@ -10,11 +10,12 @@ class TaxiwayResourceManager;
 class StandCriteriaAssignmentList;
 class ALTObjectGroup;
 class ElapsedTime;
+class OutputAirside;
 class ENGINE_TRANSFER StandResourceManager : public ResourceManager
 {
 public:
 
-	bool Init(int nPrjID, int nAirportID);
+	bool Init(int nPrjID, int nAirportID,OutputAirside *pOutput);
 	bool InitRelations(IntersectionNodeInSimList& nodeList,TaxiwayResourceManager * pTaxiwayRes);
 	bool InitStandCriteriaAssignment( int nPrjID,CAirportDatabase* pAirPortdb);
 

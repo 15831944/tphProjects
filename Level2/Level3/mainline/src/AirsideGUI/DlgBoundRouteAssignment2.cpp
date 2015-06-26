@@ -236,7 +236,8 @@ void CDlgBoundRouteAssignment2::InitFlightTimeTree()
 	int nCount = m_pBoundRouteAssignment->GetElementCount();
 	CString strFilghtType;
 	HTREEITEM hFltTypeTreeItem;
-
+    COOLTREENODEINFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
 	for (int i=0; i<nCount; i++)
 	{
 		CFlightTypeRouteAssignment* pItem =m_pBoundRouteAssignment->GetItem(i);
@@ -245,11 +246,11 @@ void CDlgBoundRouteAssignment2::InitFlightTimeTree()
 		char szBuffer[1024] = {0};
 		pItem->GetFltType().screenPrint(szBuffer);
 
-		strFilghtType = szBuffer;
-		hFltTypeTreeItem = m_wndTreeFltTime.InsertItem(strFilghtType);
+		strFilghtType.Format(_T("Flight Type: %s"), szBuffer);
+		hFltTypeTreeItem = m_wndTreeFltTime.InsertItem(strFilghtType, cni, FALSE);
 		m_wndTreeFltTime.SetItemData(hFltTypeTreeItem, (DWORD_PTR)pItem);
 
-		CString strTimeRange = _T(""),strDay = _T("");		
+		CString strTimeRange, strFrom, strTo;
 
 		int nTimeCount = pItem->GetElementCount();
 		for (int j =0; j < nTimeCount; j++)
@@ -258,15 +259,13 @@ void CDlgBoundRouteAssignment2::InitFlightTimeTree()
 
 			ElapsedTime etInsert = pTimeItem->GetStartTime();
 			long lSecond = etInsert.asSeconds();
-			strDay.Format(_T("Day%d %02d:%02d:%02d"),lSecond/86400 + 1,(lSecond % 86400)/3600,(lSecond % 86400 % 3600)/60,lSecond % 86400 % 3600 % 60);
-			strTimeRange = strDay + _T(" - ");
-
+			strFrom.Format(_T("Day%d %02d:%02d:%02d"),lSecond/86400 + 1,(lSecond % 86400)/3600,(lSecond % 86400 % 3600)/60,lSecond % 86400 % 3600 % 60);
 			etInsert = pTimeItem->GetEndTime();
 			lSecond = etInsert.asSeconds();
-			strDay.Format(_T("Day%d %02d:%02d:%02d"),lSecond/86400 + 1,(lSecond % 86400)/3600,(lSecond % 86400 % 3600)/60,lSecond % 86400 % 3600 % 60);
-			strTimeRange += strDay;
+			strTo.Format(_T("Day%d %02d:%02d:%02d"),lSecond/86400 + 1,(lSecond % 86400)/3600,(lSecond % 86400 % 3600)/60,lSecond % 86400 % 3600 % 60);
+			strTimeRange.Format(_T("Time Range: %s - %s"), strFrom, strTo);
 
-			HTREEITEM hTimeRangeTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, hFltTypeTreeItem, TVI_LAST);
+			HTREEITEM hTimeRangeTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, cni, FALSE, FALSE,  hFltTypeTreeItem, TVI_LAST);
 			m_wndTreeFltTime.SetItemData(hTimeRangeTreeItem, (DWORD_PTR)pTimeItem);
 		}
 
@@ -1041,8 +1040,11 @@ void CDlgBoundRouteAssignment2::OnCmdNewFlightTime()
 
 	m_wndTreeFltTime.SetRedraw(FALSE);
 	fltType.screenPrint(szBuffer);
-
-	hItem = m_wndTreeFltTime.InsertItem(szBuffer);
+    COOLTREENODEINFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
+    CString strItem;
+    strItem.Format(_T("Flight Type: %s"), szBuffer);
+	hItem = m_wndTreeFltTime.InsertItem(strItem, cni, FALSE);
 	fltType.WriteSyntaxStringWithVersion(szBuffer);
 
 	CFlightTypeRouteAssignment* pAssignment = new CFlightTypeRouteAssignment;
@@ -1139,7 +1141,7 @@ void CDlgBoundRouteAssignment2::OnAddTimeRange()
 			return;
 
 		CString strTimeRange;
-		strTimeRange.Format("%s - %s", dlg.GetStartTimeString(), dlg.GetEndTimeString());
+		strTimeRange.Format("Time Range: %s - %s", dlg.GetStartTimeString(), dlg.GetEndTimeString());
 
 		estFromTime = dlg.GetStartTime();
 		estToTime = dlg.GetEndTime();
@@ -1151,7 +1153,9 @@ void CDlgBoundRouteAssignment2::OnAddTimeRange()
 		pItem->SetEndTime(estToTime);
 		pAssignment->AddNewItem(pItem);
 
-		HTREEITEM hChildTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, hSelItem, TVI_LAST);
+        COOLTREENODEINFO cni;
+        CCoolTree::InitNodeInfo(this, cni);
+		HTREEITEM hChildTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, cni, FALSE, FALSE, hSelItem, TVI_LAST);
 		m_wndTreeFltTime.SetItemData(hChildTreeItem, (DWORD_PTR)(pItem));
 		m_wndTreeFltTime.Expand(hSelItem, TVE_EXPAND);
 		GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
@@ -1204,14 +1208,17 @@ void CDlgBoundRouteAssignment2::OnDelTimeRange()
 		
 		CFlightTypeRouteAssignment* pFlightItem = (CFlightTypeRouteAssignment*)m_wndTreeFltTime.GetItemData(hFlightItem);
 		pFlightItem->DeleteItem(pItem);
-		m_wndTreeFltTime.DeleteItem(hSelItem);
-
-		hSelItem = m_wndTreeFltTime.GetSelectedItem();
-		m_pCurTimeAssignment = (CTimeRangeRouteAssignment*)m_wndTreeFltTime.GetItemData(hSelItem);
-
-		GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
-
-	}
+        HTREEITEM hPreSibling = m_wndTreeFltTime.GetPrevSiblingItem(hSelItem);
+        HTREEITEM hNextSibling = m_wndTreeFltTime.GetNextSiblingItem(hSelItem);
+        if(hPreSibling)
+            m_wndTreeFltTime.SelectItem(hPreSibling);
+        else if(hNextSibling)
+            m_wndTreeFltTime.SelectItem(hNextSibling);
+        else
+            m_wndTreeFltTime.SelectItem(hFlightItem);
+        m_wndTreeFltTime.DeleteItem(hSelItem);
+        GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
+    }
 }
 
 void CDlgBoundRouteAssignment2::OnContextMenu(CWnd* pWnd, CPoint point)

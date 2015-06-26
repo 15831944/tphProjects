@@ -501,7 +501,7 @@ bool AirsideSimulation::Initialize( int nPrjID,const AirsideSimConfig& simconf )
 	m_FlightPerformanceManager.Init(nPrjID,m_pEngine->getTerminal()->m_pAirportDB);
 	m_pAircraftClassification->Init(m_pEngine->getTerminal()->m_pAirportDB->getAcMan(),nPrjID);
 
-
+	m_Resource.SetOutputAirside(m_pOuput);
 	if( ! m_Resource.Init(nPrjID,m_pEngine->getTerminal()->m_pAirportDB, m_pAircraftClassification, simconf) )
 		return false;	
 

@@ -3,8 +3,9 @@
 #include "AirsideFlightStandOperationBaseResult.h"
 #include "Parameters.h"
 
-CAirsideFlightStandOperationReport::CAirsideFlightStandOperationReport(CBGetLogFilePath pFunc)
+CAirsideFlightStandOperationReport::CAirsideFlightStandOperationReport(CBCScheduleStand pShecuduleFunc,CBGetLogFilePath pFunc)
 :CAirsideBaseReport(pFunc)
+,m_pScheduleStand(pShecuduleFunc)
 ,m_pBaseResult(NULL)
 {
 
@@ -42,6 +43,7 @@ void CAirsideFlightStandOperationReport::GenerateReport(CParameters * parameter)
 
 	if(m_pBaseResult)
 	{
+		m_pBaseResult->SetCBSecheduleStand(m_pScheduleStand);
 		m_pBaseResult->GenerateResult(m_pCBGetLogFilePath,parameter);
 		m_pBaseResult->SetCBGetFilePath(m_pCBGetLogFilePath);
 		SaveReportData();

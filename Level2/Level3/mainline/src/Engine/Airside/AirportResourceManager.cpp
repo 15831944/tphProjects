@@ -49,7 +49,7 @@ bool AirportResourceManager::Init( int projID, int nAirportID, CAirportDatabase*
 		
 	}
 
-	m_StandRes.Init(projID,nAirportID);
+	m_StandRes.Init(projID,nAirportID,m_pOuput);
 	m_paxParkingResouceManager.initialize(projID,nAirportID);
 
 	//update intersection node;
@@ -309,4 +309,9 @@ void AirportResourceManager::GetStartPosition( const ALTObjectID& objID, std::ve
 CBagCartsParkingSpotResourceManager * AirportResourceManager::getBagCartsParkingSpotResManager()
 {
 	return &m_pBagCartsParkingSpotResManager;
+}
+
+void AirportResourceManager::SetOutputAirside( OutputAirside* pOutput )
+{
+	m_pOuput = pOutput;
 }

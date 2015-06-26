@@ -63,7 +63,7 @@ public:
 
 	const TaxiInterruptLineInSimList& GetTaxiInterruptLineList(){ return m_InterruptLineList; }
 	void GetStartPosition(const ALTObjectID& objID, std::vector<StartPositionInSim*>& vStartPos);
-
+	void SetOutputAirside(OutputAirside* pOutput);
 protected:
 
 	IntersectionNodeInSimList m_vIntersectionNodes;
@@ -88,5 +88,8 @@ protected:
 	TaxiwayToNearestStretchRouteFinder* m_pTaxiwayToNearestStretchRouteFinder;
 
 	CBagCartsParkingSpotResourceManager m_pBagCartsParkingSpotResManager;
+
+	OutputAirside * m_pOuput;
+
 	
 };

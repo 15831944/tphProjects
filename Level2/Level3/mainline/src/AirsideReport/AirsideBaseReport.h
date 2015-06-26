@@ -12,6 +12,7 @@
 class CAirportDatabase ;
 class CParameters;
 typedef CString (*CBGetLogFilePath)(InputFiles);
+typedef bool(*CBCScheduleStand)(const CString&);
 class AIRSIDEREPORT_API CAirsideBaseReport
 {
 public:

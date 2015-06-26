@@ -228,7 +228,7 @@ void CAirsideReportManager::InitUpdate(int nProjID)
 		{
 			m_pParamters = new CFlightStandOperationParameter;
 			m_pParamters->SetProjID(nProjID);
-			m_pAirsideReport = new CAirsideFlightStandOperationReport(m_pGetLogFilePath);
+			m_pAirsideReport = new CAirsideFlightStandOperationReport(m_pScheduleStand,m_pGetLogFilePath);
 		}
 		break;
 	case Airside_ControllerWorkload:
@@ -284,7 +284,7 @@ void CAirsideReportManager::GenerateResult()
 			{
 				if (vReportRun.size() > 1)
 				{
-					m_multiRunReport.GenerateReport(m_pTerminal,m_pGetLogFilePath,m_pGetSetSimResult,m_csProjPath,m_emReportType,m_pParamters);
+					m_multiRunReport.GenerateReport(m_pTerminal,m_pGetLogFilePath,m_pGetSetSimResult,m_pScheduleStand,m_csProjPath,m_emReportType,m_pParamters);
 					return;
 				}
 			}	
@@ -668,7 +668,7 @@ BOOL CAirsideReportManager::ImportReportFromFile(ArctermFile& _file,CString& Err
 	case Airside_StandOperations:
 		{
 			_paramter = new CFlightStandOperationParameter();
-			_Preport = new CAirsideFlightStandOperationReport(m_pGetLogFilePath);
+			_Preport = new CAirsideFlightStandOperationReport(m_pScheduleStand,m_pGetLogFilePath);
 		}
 		break;
 

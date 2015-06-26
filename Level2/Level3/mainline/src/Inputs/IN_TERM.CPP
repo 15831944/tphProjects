@@ -102,7 +102,7 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
     inTypeList = new PassengerTypeList( inStrDict );
     paxDistList = new PassengerDistributionList;
     paxDataList = new PassengerData;
-	bcPaxData = new BridgeConnectorPaxData;
+	bcPaxData = new BridgeConnectorPaxDatabase;
 
     // Baggage Data
     bagData = new BaggageData;
@@ -292,6 +292,8 @@ InputTerminal::~InputTerminal ()
 void InputTerminal::loadInputs ( const CString& _pProjPath )
 {
 	
+	m_strProjPath = _pProjPath;
+
 	CProgressBar bar( "Loading Input Data", 100, 16, TRUE );
 
 	m_pMobElemTypeStrDB->SetInputTerminal(this);

@@ -316,6 +316,8 @@ public:
 	void SetEntryPoint(const Point& point ) { Entry_point = point ;} ;
 	Point GetEntryPoint() {return Entry_point ;} ;
 	//void SetNextHoldAreaValue(bool HoldAreaPoTag,const Point &HoldareaPoint);
+	
+	void kill (ElapsedTime killTime);
 
 protected:
 	void writeLogEntry (ElapsedTime time, bool _bBackup, bool bOffset = true );;
@@ -330,7 +332,7 @@ protected:
 	virtual void flushLog (ElapsedTime p_time, bool bmissflight = false);
 
 	void ReleaseResource(const ElapsedTime& _congeeTime);
-	void kill (ElapsedTime killTime);
+
 
 	virtual CString GetPersonContextInfo()const;
 

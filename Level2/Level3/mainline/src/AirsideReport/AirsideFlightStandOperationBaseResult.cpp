@@ -25,6 +25,8 @@ static LPCTSTR const sSummaryDataType[] =
 ///////////base result class//////////////////////////////////////////////////////////////////////////////////
 CAirsideFlightStandOperationBaseResult::CAirsideFlightStandOperationBaseResult()
 :m_pChartResult(NULL)
+,m_nUnuseActualStandCount(0)
+,m_nUnuseScheduleStandCount(0)
 ,m_pStandOperationProcessor(NULL)
 {
 
@@ -120,14 +122,15 @@ void CAirsideFlightStandOperationBaseResult::GenerateResult( CBGetLogFilePath pC
 		m_pStandOperationProcessor = NULL;
 	}
 
-	m_pStandOperationProcessor = new StandOperationDataProcessor;
+	m_pStandOperationProcessor = new StandOperationDataProcessor(m_pScheduleStand);
 
 	CFlightStandOperationParameter* pStandOpPara = (CFlightStandOperationParameter*)pParameter;
 
 	m_pStandOperationProcessor->LoadDataAndProcess(pCBGetLogFilePath,pParameter);
 
 	m_vResult = m_pStandOperationProcessor->GetData();
-
+	m_nUnuseActualStandCount = m_pStandOperationProcessor->GetUnuseActualStandCount();
+	m_nUnuseScheduleStandCount = m_pStandOperationProcessor->GetUnuseScheduleStandCount();
 	RefreshReport(pParameter);
 }
 
@@ -365,7 +368,13 @@ void CDetailStandOperationResult::RefreshReport(CParameters * parameter)
 		return;
 	}
 
-	m_pChartResult->GenerateResult(m_vResult, parameter);
+	if (m_pChartResult)
+	{
+		m_pChartResult->SetUnuseActualStandCount(m_nUnuseActualStandCount);
+		m_pChartResult->SetUnuseScheduleStandCount(m_nUnuseScheduleStandCount);
+		m_pChartResult->GenerateResult(m_vResult, parameter);
+	}
+	
 }
 
 void CDetailStandOperationResult::InitListHead(CXListCtrl& cxListCtrl, enumASReportType_Detail_Summary reportType,CSortableHeaderCtrl* piSHC)
@@ -490,6 +499,15 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 
 	CalculateStandOccupancyTime(true, vSchedFitData,vSchedOccupiedTime);
 	CalculateStandOccupancyTime(false, vActualFitData, vActualOccupiedTime);
+	for (int nScheduleUnuse = 0; nScheduleUnuse < m_nUnuseScheduleStandCount; nScheduleUnuse++)
+	{
+		vSchedOccupiedTime.push_back(0l);
+	}
+
+	for (int nActualUnuse = 0; nActualUnuse < m_nUnuseActualStandCount; nActualUnuse++)
+	{
+		vActualOccupiedTime.push_back(0l);
+	}
 	CalculateStandConflict(vActualFitData, vStandConflict);
 	CalculateStandDelay(vActualFitData, vStandDelay);
 

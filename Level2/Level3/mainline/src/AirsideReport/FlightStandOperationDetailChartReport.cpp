@@ -49,6 +49,16 @@ void CDetailStandOccupancyUtilizationChartResult::GenerateResult(std::vector<CSt
 	CalculateStandOccupancyTime(true, vResult, vSchedStandTimeOccupany);
 	CalculateStandOccupancyTime(false, vResult, vActualStandTimeOccupany);
 
+	for (int nScheduleUnuse = 0; nScheduleUnuse < m_nUnuseScheduleStandCount; nScheduleUnuse++)
+	{
+		vSchedStandTimeOccupany.push_back(0l);
+	}
+
+	for (int nActualUnuse = 0; nActualUnuse < m_nUnuseActualStandCount; nActualUnuse++)
+	{
+		vActualStandTimeOccupany.push_back(0l);
+	}
+
 	std::sort(vSchedStandTimeOccupany.begin(), vSchedStandTimeOccupany.end());
 	std::sort(vActualStandTimeOccupany.begin(), vActualStandTimeOccupany.end());
 
@@ -125,6 +135,8 @@ void CDetailStandOccupancyUtilizationChartResult::GenerateResult(std::vector<CSt
 	m_vOccupancyData.push_back(ActualItem);
 
 }
+
+
 ////////////////detail percentage////////////////////////////////////////////////////////////////////////
 CDetailStandUtilizationPercentageChartResult::CDetailStandUtilizationPercentageChartResult()
 {
@@ -169,6 +181,16 @@ void CDetailStandUtilizationPercentageChartResult::GenerateResult(std::vector<CS
 
 	CalculateStandOccupancyTime(true, vResult, vSchedStandTimeOccupany);
 	CalculateStandOccupancyTime(false, vResult, vActualStandTimeOccupany);
+
+	for (int nScheduleUnuse = 0; nScheduleUnuse < m_nUnuseScheduleStandCount; nScheduleUnuse++)
+	{
+		vSchedStandTimeOccupany.push_back(0l);
+	}
+
+	for (int nActualUnuse = 0; nActualUnuse < m_nUnuseActualStandCount; nActualUnuse++)
+	{
+		vActualStandTimeOccupany.push_back(0l);
+	}
 
 	std::sort(vSchedStandTimeOccupany.begin(), vSchedStandTimeOccupany.end());
 	std::sort(vActualStandTimeOccupany.begin(), vActualStandTimeOccupany.end());
@@ -296,6 +318,15 @@ void CDetailStandIdleTimeUtiliztionChartResult::GenerateResult(std::vector<CStan
 
 	CalculateStandOccupancyTime(true, vResult, vSchedStandTimeOccupany);
 	CalculateStandOccupancyTime(false, vResult, vActualStandTimeOccupany);
+	for (int nScheduleUnuse = 0; nScheduleUnuse < m_nUnuseScheduleStandCount; nScheduleUnuse++)
+	{
+		vSchedStandTimeOccupany.push_back(0l);
+	}
+
+	for (int nActualUnuse = 0; nActualUnuse < m_nUnuseActualStandCount; nActualUnuse++)
+	{
+		vActualStandTimeOccupany.push_back(0l);
+	}
 
 	std::sort(vSchedStandTimeOccupany.begin(), vSchedStandTimeOccupany.end());
 	std::sort(vActualStandTimeOccupany.begin(), vActualStandTimeOccupany.end());

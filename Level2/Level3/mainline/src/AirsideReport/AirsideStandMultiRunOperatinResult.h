@@ -110,7 +110,7 @@ private:
     void SetSummaryDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
     void SetSummaryConflict3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 
-	int GetIntervalCount(long iStart, long iEnd, mapStandResult mapData,long iIgnore = 0)const;
+//	int GetIntervalCount(long iStart, long iEnd, mapStandResult mapData,long iIgnore = 0)const;
 	void ClearData();
 
 	BOOL WriteDetailMap(MultiRunDetailMap mapDetailData, ArctermFile& _file );
@@ -134,5 +134,8 @@ private:
     MultiRunSummaryMap m_summaryActualIdleMap;
     MultiRunSummaryMap m_summaryDelayMap;
     MultiRunSummaryMap m_summaryConflictMap;
+
+	std::map<CString,int> m_mapUnuseScheduleStand;
+	std::map<CString,int> m_mapUnuseActualStand;
 };
 

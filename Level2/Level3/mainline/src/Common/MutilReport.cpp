@@ -88,6 +88,7 @@ LOGTOFILENAME inputfilename[]=
 	LOGTOFILENAME((int)AirsideDescFile, (CString)"airsidedescfile.log"),
 	LOGTOFILENAME((int)AirsideFlightEventFileReport, (CString)"airsideflighteventfilereport.log"),
 	LOGTOFILENAME((int)AirsideFlightDescFileReport, (CString)"airsideflightdescfilereport.log"),
+	LOGTOFILENAME((int)AirsideALTObjectListFile, (CString)"airsidealtobjectlistfile.log"),
 	LOGTOFILENAME((int)LandsideDescFile, (CString)"landsidedescfile.log"),
 	LOGTOFILENAME((int)LandsideEventFile, (CString)"landsideeventfile.log"),
 	LOGTOFILENAME((int)LandsideLinkGroupDescFile, (CString)"landsidelinkgroupdescfile.log"),

@@ -1796,3 +1796,22 @@ void FlightSchedule::echo(EchoLogType key) const
 		}
 	}
 }
+
+bool FlightSchedule::ScheduleStand( const ALTObjectID& standID )
+{
+	int flightCount = getCount();
+	for (int i = 0; i < flightCount; i++)
+	{
+		Flight* aFlight = getItem (i);
+		//arr stand
+		if(aFlight->getArrStand() == standID)
+			return true;
+		//intermediate stand
+		if (aFlight->getIntermediateStand() == standID)
+			return true;
+		//dep stand
+		if (aFlight->getDepStand() == standID)
+			return true;
+	}
+	return false;
+}

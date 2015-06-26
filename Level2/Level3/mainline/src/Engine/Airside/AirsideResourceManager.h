@@ -31,7 +31,7 @@ public:
 	CString GetInSectorNameAndID(const CPoint2008& point,double dFltAlt,int& nSectorID);
 
 	typedef std::vector<AirportResourceManager*> AirportResourceList;
-
+	void SetOutputAirside(OutputAirside* pOutput);
 protected:
 	bool InitReportingArea(int nPrjID, int nAirportID);
 
@@ -42,5 +42,5 @@ protected:
 	std::vector<AirsideReportingAreaInSim*> m_vReportingArea; 
 	ALTObjectList vSectors;	
 
-	
+	OutputAirside * m_pOuput;
 };

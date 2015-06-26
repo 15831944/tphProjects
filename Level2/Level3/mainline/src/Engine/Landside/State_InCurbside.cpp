@@ -4,6 +4,7 @@
 #include "..\LandsideStrategyStateInSim.h"
 #include "LandsidePaxVehicleInSim.h"
 #include "Common\FileOutPut.h"
+#include "LandsideNonPaxVehicleInSim.h"
 
 void State_ParkingToCurbside::OnMoveOutRoute( CARCportEngine* _pEngine )
 {
@@ -141,4 +142,26 @@ void State_DropPaxAtCurbside::Entry( CARCportEngine* pEngine )
 {
 	m_pOwner->CallPaxGetOff(m_pCurb);
 	Execute(pEngine);
+}
+
+State_NonPaxCurbsideInLotSpot::State_NonPaxCurbsideInLotSpot( LandsideNonPaxVehicleInSim* pV,LandsideCurbSideInSim*pCub,IParkingSpotInSim* spot )
+	:State_LandsideVehicle<LandsideNonPaxVehicleInSim>(pV)
+{
+	m_pCurb=pCub;
+	m_spot = spot;
+}
+
+void State_NonPaxCurbsideInLotSpot::Entry( CARCportEngine* pEngine )
+{
+	ElapsedTime m_tExittime = curTime() + m_pOwner->GetParkingLotWaitTime(pEngine,m_pCurb->getName());
+	m_sExitTimer.StartTimer(this,m_tExittime);
+}
+
+void State_NonPaxCurbsideInLotSpot::Execute( CARCportEngine* pEngine )
+{
+	if(m_sExitTimer.isEnded())
+	{
+		return m_pOwner->SuccessProcessAtLayoutObject(m_pCurb,m_spot,pEngine);
+	}
+	ASSERT(FALSE);
 }

@@ -13,6 +13,7 @@ class ArctermFile;
 
 typedef CString (*CBGetLogFilePath)(InputFiles);
 typedef void (*CBSetCurrentSimResult)(int);
+typedef bool(*CBCScheduleStand)(const CString&);
 class AIRSIDEREPORT_API CAirsideMultipleRunReport
 {
 public:
@@ -20,7 +21,7 @@ public:
 	~CAirsideMultipleRunReport(void);
 	void AddReportWhatToGen(reportType _reportType,CParameters * parameter);
 	//generate airside report
-	void GenerateReport(Terminal* pTerminal,CBGetLogFilePath pFunc,CBSetCurrentSimResult pSimFunc,const CString& strPorjectPath,reportType _reportType,CParameters * parameter);
+	void GenerateReport(Terminal* pTerminal,CBGetLogFilePath pFunc,CBSetCurrentSimResult pSimFunc,CBCScheduleStand pScheduleFunc,const CString& strPorjectPath,reportType _reportType,CParameters * parameter);
 
 	void InitListHead(reportType _reportType,CXListCtrl& cxListCtrl,CParameters * parameter,  int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
 	void FillListContent(reportType _reportType,CXListCtrl& cxListCtrl, CParameters * parameter,  int iType = 0);

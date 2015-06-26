@@ -24,7 +24,7 @@ CAirsideMultipleRunReport::~CAirsideMultipleRunReport(void)
 }
 
 
-void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFilePath pFunc,CBSetCurrentSimResult pSimFunc,const CString& strPorjectPath,reportType _reportType,CParameters * parameter )
+void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFilePath pFunc,CBSetCurrentSimResult pSimFunc,CBCScheduleStand pScheduleFunc,const CString& strPorjectPath,reportType _reportType,CParameters * parameter )
 {
 	if (parameter == NULL)
 		return;
@@ -52,6 +52,7 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		CAirsideMultipleRunReportAgent reportAgent;
 		reportAgent.InitReportPath(strReportFileDir);
 		reportAgent.SetCBGetLogFilePath(pFunc);
+		reportAgent.SetCBSecheduleStand(pScheduleFunc);
 		CAirsideBaseReport* pReport = reportAgent.AddReportWhatToGen(_reportType,parameter, pTerminal);
 		reportAgent.GenerateReport(pReport,parameter);
 

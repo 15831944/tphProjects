@@ -35,7 +35,8 @@ protected:
 	double	m_dSpeed;		// conveyor's speed
 	int		m_iCapacity;	// conveyor's capacity
 	CONVEYORSTATE m_state;	// conveyor's state
-	
+	//to remember the prvious state of conveyor, if the state changes, it will write the log for the baggage on the conveyor
+	CONVEYORSTATE m_preState;	// conveyor's state	
 	// logic data 
 	ElapsedTime	m_StepTime;	// step time
 	int m_iOccapuiedCount;	// the count of all element on the conveyor

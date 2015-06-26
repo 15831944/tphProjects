@@ -74,22 +74,23 @@
 //};
 
 
-#include "Results/ARCBaseLog.h"
-#include "Results/AirsideFlightLogItem.h"
-#include "AirsideBaseReport.h"
 
+#include "AirsideBaseReport.h"
 
 class AirsideFlightStandOperationLog;
 class StandOperationAnalyzeTemp;
-
+class AirsideFlightLogItem;
+class InputTerminal;
 class StandOperationDataProcessor
 {
 public:
-	StandOperationDataProcessor();
+	StandOperationDataProcessor(CBCScheduleStand pFunc);
 	~StandOperationDataProcessor();
 
 	void LoadDataAndProcess(CBGetLogFilePath pCBGetLogFilePath, CParameters* pParameter);
 	const std::vector<CStandOperationReportData*>& GetData();
+	int GetUnuseScheduleStandCount()const;
+	int GetUnuseActualStandCount()const;
 
 	//long GetDelayTimeOnTaxiway(const AirsideFlightLogItem& item, long lFromTime, long lToTime);
 private:
@@ -98,9 +99,12 @@ private:
 
 	//void BuildDataFromMap( CParameters* pParameter, StandOperationDataMap& opDataPlanedMap, StandOperationDataMap& opDataActualMap );
 	//void AddStandOpItemToMap( StandOperationAnalyzeTemp* pTemp, StandOperationDataMap &opDataPlanedMap, StandOperationDataMap &opDataActualMap );
-
+	bool FindStandUseScheduleInformation(const ALTObjectID& standID);
+	bool FindStandUseActualInformation(const ALTObjectID& standID);
 	std::vector<CStandOperationReportData*> m_vStandOperationReportData;
-
+	int m_nIdleScheduleStand;//stand count schedule that never use
+	int m_nIdleActualStand;//stand count actual never use
+	CBCScheduleStand  m_pScheduleStand;
 	//StandOperationDataCollection m_allStandOperationData;
 
 	//class ActualOffTimeSorter

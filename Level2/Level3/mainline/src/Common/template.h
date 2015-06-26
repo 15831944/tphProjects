@@ -364,6 +364,8 @@ enum InputFiles
     ArrivalGateAdjacency,
     DepartureGateAdjacency,
 	UserShapeBar,
+
+	AirsideALTObjectListFile,
 };
 
 enum GeneralFiles
@@ -601,7 +603,7 @@ class CSideMoveWalkPaxDist;
 class CSimParameter;
 
 // bridge connector
-class BridgeConnectorPaxData;
+class BridgeConnectorPaxDatabase;
 
 class Terminal;
 #endif

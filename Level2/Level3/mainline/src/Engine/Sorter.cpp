@@ -9,6 +9,7 @@
 #include "inputs\\MiscProc.h"
 #include "engine\terminal.h"
 #include "TerminalMobElementBehavior.h"
+#include "Results\PaxDestDiagnoseInfo.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -322,6 +323,8 @@ void CSorter::beginService (Person *aPerson, ElapsedTime curTime)
 
 	//select person's exit belt.
 	ProcessorDistribution* pNextFlow=getNextDestinations( aPerson->getType(), spTerminalBehavior->GetInGateDetailMode());
+	if(spTerminalBehavior->GetPaxDestDiagnoseInfo())
+		spTerminalBehavior->GetPaxDestDiagnoseInfo()->clear();
 	const Processor* pExitConveyor=spTerminalBehavior->SelectNextProcessor( pNextFlow, curTime );//do like this way because of percent and roster.
 	//const Processor* pExitConveyor=aPerson->TryToSelectNextProcessor(curTime);
 	if(pExitConveyor)
@@ -335,11 +338,20 @@ void CSorter::beginService (Person *aPerson, ElapsedTime curTime)
 
 			CString szMobType = aPerson->getPersonErrorMsg();
 			CString strProcName = spTerminalBehavior->getProcessor() ? spTerminalBehavior->getProcessor()->getID()->GetIDString() : "";
-			aPerson->kill(curTime);
-			MobileElementMovementEvent::RemoveAllMobileElementEvent( aPerson );
 			//				delete pPerson;
+			CString strMsg;
+			strMsg.Format(_T("The eligible exit conveyor processor %s does not exist in Exit Belt list of Sorter in Behavior setting."), strProcessor);
+			ARCDestProcessorUnavailableError *pDestUnavaiableException = new ARCDestProcessorUnavailableError( szMobType, strProcName,"", curTime.printTime());
+			if(spTerminalBehavior->GetPaxDestDiagnoseInfo())
+				spTerminalBehavior->GetPaxDestDiagnoseInfo()->flushDiagnoseInfo();
+			pDestUnavaiableException->setDiagType( PAXDEST_DIAGNOS );
+			pDestUnavaiableException->setDiagData( aPerson->getID() );
+			
+			
+			spTerminalBehavior->kill(curTime);
+			MobileElementMovementEvent::RemoveAllMobileElementEvent( aPerson );
 
-			throw new ARCDestProcessorUnavailableError( szMobType, strProcName,"", curTime.printTime());
+			throw pDestUnavaiableException;
 		}
 		spTerminalBehavior->SetSorterEntryExitProcs( GetExitProcessor(pExitConveyor));
 	}
@@ -353,9 +365,19 @@ void CSorter::beginService (Person *aPerson, ElapsedTime curTime)
 
 		CString szMobType = aPerson->getPersonErrorMsg();
 		CString strProcName = spTerminalBehavior->getProcessor() ? spTerminalBehavior->getProcessor()->getID()->GetIDString() : "";
-		aPerson->kill(curTime);
+
+		if(spTerminalBehavior->GetPaxDestDiagnoseInfo())
+			spTerminalBehavior->GetPaxDestDiagnoseInfo()->flushDiagnoseInfo();
+		
+		
+		ARCDestProcessorUnavailableError *pDestUnavaiableException = new ARCDestProcessorUnavailableError( szMobType, strProcName,"Cannot find available Exit Belt in Sorter processor.", curTime.printTime());
+		pDestUnavaiableException->setDiagType( PAXDEST_DIAGNOS );
+		pDestUnavaiableException->setDiagData( aPerson->getID() );
+	
+		spTerminalBehavior->kill(curTime);
 		MobileElementMovementEvent::RemoveAllMobileElementEvent( aPerson );
-		throw new ARCDestProcessorUnavailableError( szMobType, strProcName,"Please check Roster,1:1, 1X1 ... ", curTime.printTime());
+
+		throw pDestUnavaiableException;
 
 	}
 

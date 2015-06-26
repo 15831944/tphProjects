@@ -16,6 +16,7 @@ bool AirsideResourceManager::Init( int nPrjID,CAirportDatabase* pAirportDB, Airc
 	for(int i=0;i< (int)vAirportID.size(); ++i)
 	{
 		AirportResourceManager * pNewAirport = new AirportResourceManager;
+		pNewAirport->SetOutputAirside(m_pOuput);
 		pNewAirport->Init(nPrjID,vAirportID.at(i), pAirportDB, pAircraftClassification, simconf);
 
 		m_vAirportRes.push_back(pNewAirport);
@@ -148,4 +149,9 @@ CString AirsideResourceManager::GetInSectorNameAndID(const CPoint2008& point,dou
 	}
 	nSectorID = -1;
 	return "All";
+}
+
+void AirsideResourceManager::SetOutputAirside( OutputAirside* pOutput )
+{
+	m_pOuput = pOutput;
 }
