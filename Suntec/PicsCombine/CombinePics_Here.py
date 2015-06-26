@@ -2,6 +2,7 @@
 import os.path
 import struct
 import psycopg2
+import sys
 
 #==============================================================================
 # comp_picture
@@ -436,3 +437,42 @@ class GeneratorPicBinary_Here(object):
                 else:
                     print pic.getDayName()
         return 0
+
+if __name__ == '__main__':
+    arglen = len(sys.argv)
+    if(arglen <= 2):
+        help()
+        return
+    else:
+        for i in range(1, arglen):
+            arg = sys.argv[i]
+            if(arg == "/host"):
+                host = str(sys.argv[i+1])
+            elif(arg == "/dbname"):
+                dbname = str(sys.argv[i+1])
+            elif(arg == "/user"):
+                user = str(sys.argv[i+1])
+            elif(arg == "/password"):
+                password = str(sys.argv[i+1])
+            elif(arg == "/gjvsrcdir"):
+                gjvsrcdir = str(sys.argv[i+1])
+            elif(arg == "/gjvdestdir"):
+                gjvdestdir = str(sys.argv[i+1])
+            elif(arg == "/ejvsrcdir"):
+                ejvsrcdir = str(sys.argv[i+1])
+            elif(arg == "/ejvdestdir"):
+                ejvdestdir = str(sys.argv[i+1]) 
+            elif(arg == "/ejvcondition"):
+                ejvcondition = str(sys.argv[i+1])
+            elif(arg == "/birdsrcdir"):
+                birdsrcdir = str(sys.argv[i+1]) 
+            elif(arg == "/birddestdir"):
+                birddestdir = str(sys.argv[i+1])
+            else:
+                pass
+    test = GeneratorPicBinary_Here(host, dbname, 
+                                   user, password)
+    test.makeGJunctionResultTable(gjvsrcdir, gjvdestdir)
+    pics = test.makeEJunctionResultTable(ejvsrcdir, ejvdestdir, ejvcondition)
+    test.makeBIRDJunctionResultTable(birdsrcdir, birddestdir, pics)
+    return    

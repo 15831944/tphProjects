@@ -1,5 +1,6 @@
 #encoding=utf-8
 import os.path
+import sys
 import struct
 
 class GeneratorPicBinary_Sensis(object):
@@ -127,3 +128,19 @@ class GeneratorPicBinary_Sensis(object):
         del imageSplit[3]
         del imageSplit[0]
         return '_'.join(imageSplit).replace(".jpg", ".dat")
+
+if __name__ == '__main__':
+    arglen = len(sys.argv)
+    if(arglen <= 2):
+        help()
+        return
+    else:
+        for i in range(1, arglen):
+            arg = sys.argv[i]
+            if(arg == "/srcdir"):
+                srcdir = str(sys.argv[i+1])
+            elif(arg == "/destdir"):
+                destdir = str(sys.argv[i+1])
+    test = GeneratorPicBinary_Sensis()
+    test.combine_images(srcdir, destdir)
+    
