@@ -267,100 +267,79 @@ class GeneratorPicBinary_Here(object):
             print "source directory not found: " + srcDir
             print "processing ejv end."
             return
-        
-        srcArrowDir = os.path.join(srcDir, "DAY")
-        #如果arrow源文件夹不存在，报错,退出
-        if os.path.isdir(srcArrowDir) == False:
-            print "arrow directory not found: " + srcArrowDir
-            print "processing ejv end."
-            return
-                
-        pictures = None
-        if bUseCondition == 'condition':
-            pictures = self.select_ejv_condition_Data()
-        else:
-            pictures = self.select_ejv_Data()
-            
-        srcArrowList = os.listdir(srcArrowDir)
-        
-        for pic in pictures:
-            print "--------------------------------------------------------------------------------------"
-            print "processing " + pic.getDayName()
-            #处理day，night图片
-            picNameSplit = os.path.splitext(pic.getDayName())
-            destFile = destDir + "\\" + picNameSplit[0].lower() + ".dat"
+        if os.path.isdir(destDir) == False:
+            os.mkdir(destDir)
+            print "created " + destDir
 
-            dayPicPath = ''
-            nightPicPath = ''
-            # day and night illust
-            dayPicPath = os.path.join(srcDir, "DAY", picNameSplit[0] + ".jpg")
-            if not os.path.exists(dayPicPath):
-                print "    day file not found: " + dayPicPath
-                pics_unfinished.append(pic)
+        dayPicList = []
+        arrowFileList = []
+        fileList = os.listdir(os.path.join(srcDir, "DAY"))
+        for fileIter in fileList:
+            picNameSplit = os.path.splitext(fileIter)
+            if(picNameSplit[1] == ".jpg"):
+                dayPicList.append(fileIter)
+            elif(picNameSplit[1] == ".png"):
+                arrowFileList.append(fileIter)
+            else:
                 continue
             
-            nightPicPath = os.path.join(srcDir, "NIGHT", picNameSplit[0] + ".jpg")
-            if not os.path.exists(nightPicPath):
-                print "    night file not found: " + nightPicPath
-                pics_unfinished.append(pic)
+        nightFileList = []
+        fileList = []
+        fileList = os.listdir(os.path.join(srcDir, "NIGHT"))
+        for fileIter in fileList:
+            picNameSplit = os.path.splitext(fileIter)
+            if(picNameSplit[1] == ".jpg"):
+                nightFileList.append(fileIter)
+            else:
                 continue
-            dayFis = open(dayPicPath, 'rb')
-            nightFis = open(nightPicPath, 'rb')
-            b_fos = open(destFile, 'wb')
-            dayPicLen = os.path.getsize(dayPicPath)
-            nightPicLen = os.path.getsize(nightPicPath)
-            b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
-                                       dayPicLen, 2, 22 + dayPicLen, \
-                                       nightPicLen)
-            b_resultBuffer = b_headerBuffer + dayFis.read() + nightFis.read()
-            dayFis.close()
-            nightFis.close()
-            b_fos.write(b_resultBuffer)
-            b_fos.close()
-            print "    " + dayPicPath
-            print "    " + nightPicPath
-            print "        >>>>>>>>  " + destFile
-
-            if(destFile.lower().find("jv_ar_752699408") >= 0):
-                inti = 0;
-                inti += 1;
-            # 处理arrow图片
-            dest_arrow_names = []
-            src_arrow_names = []
-            arrows = pic.getArrows()
-            for arrow in arrows:
-                arrow_file_name = '_'.join([picNameSplit[0], str(arrow)])
-                dest_arrow_name = destDir + "\\" + arrow_file_name.lower() + ".dat"
-                dest_arrow_names.append(dest_arrow_name)
-                for srcArrow in srcArrowList:
-                    if srcArrow.find(arrow_file_name) >= 0:
-                        src_arrow_names.append(srcDir + "\\DAY\\" + srcArrow)
-
-            #如果某个arrow的图片未能找到，将设置此值为False
-            bGoOn = True
-            for src_arrow_name in src_arrow_names:
-                if not os.path.exists(src_arrow_name):
-                    print "    source arrow file not found: " + src_arrow_name
-                    bGoOn = False
-                    break;
-
-            if(bGoOn == False):
-                #某个arrow图片未找到，将pic添加到未处理列表，并跳过此pic
-                pics_unfinished.append(pic)
+            
+        for dayPic in dayPicList:
+            try:
+                nightFileList.index(dayPic) # DAY和NIGHT下的文件名字相同，因此要求必须能在NIGHT文件夹下找到对应的dayFile，否则报错
+            except:
+                # 
+                nightPicFile = os.path.join(srcDir, "NIGHT", picNameSplit[0] + ".jpg")
+                print "    night file not found: " + nightPicFile
                 continue
             else:
-                #对应的arrow图片均能找到，继续                
-                for dest_arrow_name, src_arrow_name in zip(dest_arrow_names,src_arrow_names):
-                    arrowFis = open(src_arrow_name, 'rb')
-                    a_fos = open(dest_arrow_name, 'wb')
-                    arrowPicLen = os.path.getsize(src_arrow_name)
-                    a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
-                    a_resultBuffer = a_headerBuffer + arrowFis.read()
-                    arrowFis.close()
-                    a_fos.write(a_resultBuffer)
-                    a_fos.close()
-                    print "    " + src_arrow_name
-                    print "        >>>>>>>>  " + dest_arrow_name
+                print "--------------------------------------------------------------------------------------"
+                print "processing " + dayPic
+
+                # day and night illust
+                dayPicFile = os.path.join(srcDir, "DAY", dayPic)            
+                nightPicFile = os.path.join(srcDir, "NIGHT", dayPic)
+                dayFStream = open(dayPicFile, 'rb')
+                nightFStream = open(nightPicFile, 'rb')
+                dayPicLen = os.path.getsize(dayPicFile)
+                nightPicLen = os.path.getsize(nightPicFile)
+                b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, dayPicLen, 2, 22 + dayPicLen, nightPicLen)
+                b_resultBuffer = b_headerBuffer + dayFStream.read() + nightFStream.read()
+                dayFStream.close()
+                nightFStream.close()
+                
+                destFile = os.path.join(destDir, dayPic.replace(".jpg", ".dat"))
+                destFStream = open(destFile, 'wb')
+                destFStream.write(b_resultBuffer)
+                destFStream.close()
+                
+                print "    " + dayPicFile
+                print "    " + nightPicFile
+                print "        >>>>>>>>  " + destFile
+        
+        for arrowFile in arrowFileList:
+            # 处理arrow图片
+            arrowFStream = open(os.path.join(srcDir, "DAY", arrowFile), 'rb')
+            arrowPicLen = os.path.getsize(arrowFile)
+            a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+            a_resultBuffer = a_headerBuffer + arrowFStream.read()
+            
+            destArrowFile = os.path.join(destDir, arrowFile.replace(".jpg", ".dat"))
+            destFStream = open(destArrowFile, 'wb')
+            arrowFStream.close()
+            destFStream.write(a_resultBuffer)
+            destFStream.close()
+            print "    " + arrowFile
+            print "        >>>>>>>>  " + destArrowFile
         return
 
     #处理makeEJunctionResultTable返回的未完成列表picsUnfinished
