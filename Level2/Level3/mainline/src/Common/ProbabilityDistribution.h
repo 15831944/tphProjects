@@ -33,6 +33,24 @@ enum RandomVariableType
 };
 
 
+enum
+{
+    PDERROR_MINEXCEEDMAX = 0,
+    PDERROR_BERNOULLI_PROB1,
+    PDERROR_NORMAL_STDDEV,
+    PDERROR_NORMAL_TRUNCRANGE,
+    PDERROR_TRIANGLE_MINEXCEEDMODE,
+    PDERROR_TRIANGLE_MODEEXCEEDMAX,
+    PDERROR_EXPO_LAMBDA,
+    PDERROR_BETA_ALPHA,
+    PDERROR_BETA_BETA,
+    PDERROR_ERLANG_GAMMA,
+    PDERROR_ERLANG_BETA,
+    PDERROR_GAMMA_GAMMA,
+    PDERROR_GAMMA_BETA,
+    PDERROR_WEIBULL_ALPHA,
+    PDERROR_WEIBULL_GAMMA,
+};
 
 class ProbabilityDistribution
 {
@@ -61,6 +79,8 @@ public:
 	// simple encapsulation of virtual void printDistribution (char *p_str) const {};
 	// return string for persistence
 	CString printDistribution () const;
+
+    CString getErrorMessage(int iErr);
 
 	//for graphing
 	virtual double getMinXValue() const;
@@ -110,7 +130,7 @@ public:
 
 	void init (double val1, double val2, double prob1)
 	{ value1 = val1; value2 = val2; prob = prob1; }
-
+    bool resetValues(int& iErr, double val1, double val2, double prob1);
 	double getValue1 (void) { return value1; }
 	double getValue2 (void) { return value2; }
 	double getProb1 (void) { return prob; }
@@ -216,6 +236,7 @@ public:
 
 	void init (double Min, double Max) { interval = Max - Min;
 	max = Max; min = Min; }
+    bool resetValues(int& iErr, double Min, double Max);
 
 	double getRandomValue (void) const;
 	double getMean (void) const { return (max + min) / 2.0; }
@@ -253,6 +274,7 @@ public:
 	virtual ~ConstantDistribution (){};
 
 	void init (double Value) { value = Value; }
+    bool resetValues(double Value){ value = Value; return true; }
 
 	double getRandomValue (void) const { return value; }
 	double getMean (void) const { return value; }
@@ -287,7 +309,7 @@ public:
 	virtual ~TriangleDistribution (){};
 
 	void init (double _a, double _b, double _mode) { a=_a; b=_b; mode=_mode; }
-
+    bool resetValues(int& iErr, double _min, double _max, double _mode);
 	double getRandomValue (void) const;
 	double getMean (void) const { return (a+b+mode)/3; }
 	double getMin() const { return a; }
@@ -329,7 +351,7 @@ public:
 	virtual ~NormalDistribution (){};
 	void init (double Mean, double stdDev, int _truncation)
 	{ mean = Mean; stdDeviation = stdDev; truncation = _truncation; }
-
+    bool resetValues(int& iErr, double Mean, double stdDev, int _truncation);
 	double getRandomValue (void) const;
 	double getMean (void) const { return mean; }
 	double getStdDev (void) const { return stdDeviation; }
@@ -366,7 +388,7 @@ public:
 
 	void init (double _alpha, double _gamma, double _mu)
 	{ alpha = _alpha; gamma = _gamma; mu = _mu; }
-
+    bool resetValues(int& iErr, double _alpha, double _gamma, double _mu);
 	double getRandomValue (void) const;
 	double getMean (void) const;
 
@@ -404,7 +426,7 @@ public:
 
 	void init (double _gamma, double _beta, double _mu)
 	{ beta = _beta; gamma = _gamma; mu = _mu; gammaln = gammln(gamma); }
-
+    bool resetValues(int& iErr, double _gamma, double _beta, double _mu);
 	double getRandomValue (void) const;
 	double getMean (void) const { return mu+beta*gamma; }
 
@@ -449,7 +471,7 @@ public:
 
 	void init (int _gamma, double _beta, double _mu)
 	{ beta = _beta; gamma = _gamma; mu = _mu; }
-
+    bool resetValues(int& iErr, int _gamma, double _beta, double _mu);
 	double getRandomValue (void) const;
 	double getMean (void) const { return mu+beta*gamma; }
 
@@ -484,7 +506,7 @@ public:
 	virtual ~ExponentialDistribution (){};
 
 	void init (double Lambda) { lambda = Lambda; }
-
+    bool resetValues(int& iErr, double Lambda);
 	double getRandomValue (void) const;
 	double getMean (void) const { return 1.0/lambda; }
 	double getLambda() const { return lambda; }
@@ -545,11 +567,11 @@ class BetaDistribution : public ProbabilityDistribution
 {
 protected:
 
-	BaseBetaDistribution* beta;
+	BaseBetaDistribution* basebeta;
 	double min, max;
 
 public:
-	BetaDistribution () { beta = NULL; }
+	BetaDistribution () { basebeta = NULL; }
 	BetaDistribution (double p_min, double p_max,
 		double p_alpha = DEFAULT_ALPHA, double p_beta = DEFAULT_BETA)
 	{ init (p_min, p_max, p_alpha, p_beta); }
@@ -558,16 +580,17 @@ public:
 
 	void init (double min, double max, double alpha = DEFAULT_ALPHA,
 		double beta = DEFAULT_BETA);
+    
 
 	double getRandomValue (void) const;
-	double getMean (void) const { return beta->getMean() * (max-min); }
+	double getMean (void) const { return basebeta->getMean() * (max-min); }
 	double getMin (void) const { return min; }
 	double getMax (void) const { return max; }
-	int getAlpha (void) const { return beta->getAlpha(); }
-	int getBeta (void) const { return beta->getBeta(); }
+	int getAlpha (void) const { return basebeta->getAlpha(); }
+	int getBeta (void) const { return basebeta->getBeta(); }
 
 	void resetValues (double Min, double Max, int Alpha, int Beta);
-
+    bool resetValues(int& iErr, double Min, double Max, int Alpha, int Beta);
 	virtual const char *getProbabilityName (void) const { return "Beta"; }
 	virtual int getProbabilityType (void) const { return BETA; }
 	void readVersion1 (ArctermFile &p_file);

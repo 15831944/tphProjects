@@ -34,7 +34,8 @@ private:
     bool GetFloatFromEditbox(CEdit* pEdit, float& fConstValue);
     void SpinChangeEditboxValue(CEdit* pEdit, LPNMUPDOWN pNMUpDown);
     void InitUIFromProb(const ProbabilityDistribution* pNewProb);
-    void InitUIFromProbEntry( const CProbDistEntry* pEntry );
+    void InitUIFromProbEntry(const CProbDistEntry* pEntry);
+    bool AddOrEditPdDatabase(CString&  strMsg, CString strEntryName, ProbabilityDistribution* pNewProb, ProbTypes iType);
 
     CString GetTempConstDistributionName(CString strConstValue);
     CString GetTempUniformDistributionName(CString strMin, CString strMax);
@@ -77,7 +78,7 @@ protected:
     CFloatEdit m_editErlangMu;
     CFloatEdit m_editExpoLambda;
     CFloatEdit m_editExpoMean;
-    CFloatEdit m_editGaGamma;
+    CFloatEdit m_editGammaGamma;
     CFloatEdit m_editGammaBeta;
     CFloatEdit m_editGammaMu;
     CFloatEdit m_editNormalMean;
@@ -144,8 +145,9 @@ public:
     afx_msg void OnDeltaposSpinNormalmean(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDeltaposSpinNormalstd(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDeltaposSpinNormaltrunat(NMHDR *pNMHDR, LRESULT *pResult);
-    afx_msg void OnDeltaposSpinWeialpha(NMHDR *pNMHDR, LRESULT *pResult);
-    afx_msg void OnDeltaposSpinWeigamma(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDeltaposSpinWeibullalpha(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDeltaposSpinWeibullgamma(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDeltaposSpinWeibullmu(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDeltaposSpinBer1stvalue(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDeltaposSpinBer2ndvalue(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDeltaposSpinBer1stpro(NMHDR *pNMHDR, LRESULT *pResult);

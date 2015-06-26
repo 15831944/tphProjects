@@ -1015,7 +1015,7 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
                 }
 
                 TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-                ASSERT(pSelItemData->m_type == TREE_NODE_TRIGGER_TIME);
+                ASSERT(pSelItemData->m_type == TREE_NODE_TRIGGER_PROP);
                 pSelItemData->m_data = DWORD(pTrigger->m_prop);
                 CString strProp;
                 strProp.Format("Time range before STD(seconds): %s", pTrigger->m_prop->screenPrint());

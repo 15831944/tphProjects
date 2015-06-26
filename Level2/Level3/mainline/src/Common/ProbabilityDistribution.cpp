@@ -10,6 +10,25 @@
 #include "../Database/ARCportADODatabase.h"
 #include "AirportDatabase.h"
 #include "../Common/FloatUtils.h"
+
+static const char* errormessages[] = {
+    "Maximum value must be greater than minimum value",
+    "1st Probability of Bernoulli Distribution must be in range [0.0,1.0]",
+    "Std Dev of Normal Distribution must be greater or equal to zero.",
+    "Truncation of Normal Distribution must be in the range [3, 20]",
+    "Mode of Triangle Distribution must be greater than the minimum value",
+    "Mode of Triangle Distribution cannot exceed the maximum value",
+    "Lambda of Exponential Distribution must be greater than zero.",
+    "Alpha of Beta Distribution must be greater than zero",
+    "Beta of Beta Distribution must be greater than zero",
+    "Gamma of Erlang Distribution must be greater than zero",
+    "Beta of Erlang Distribution must be greater than zero",
+    "Gamma of Gamma Distribution must be greater than zero",
+    "Beta of Gamma Distribution must be greater than zero",
+    "Alpha of Weibull Distribution must be greater than zero",
+    "Gamma of Weibull Distribution must be greater than zero",
+};
+
 //////////////////////////////////////////////////////////////////////////
 //theterface for database
 //////////////////////////////////////////////////////////////////////////
@@ -241,6 +260,11 @@ ProbabilityDistribution* ProbabilityDistribution::GetTerminalRelateProbDistribut
 	return prob;
 }
 
+CString ProbabilityDistribution::getErrorMessage(int iErr)
+{
+    return CString(errormessages[iErr]);
+}
+
 /*****
 *
 *   Bernoulli Distribution
@@ -283,6 +307,19 @@ void BernoulliDistribution::printDistribution (char *p_str) const
 {
 	strcpy (p_str, getProbabilityName());
 	sprintf (p_str + strlen (p_str), ":%.2f;%.2f;%.2f;%.2f", value1, prob, value2, 1.0);
+}
+
+bool BernoulliDistribution::resetValues(int& iErr, double val1, double val2, double prob1)
+{
+    if(prob1 < 0.0 || prob1 > 1.0)
+    {
+        iErr = PDERROR_BERNOULLI_PROB1;
+        return false;
+    }
+    value1 = val1;
+    value2 = val2;
+    prob = prob1;
+    return true;
 }
 
 /*****
@@ -823,6 +860,19 @@ double UniformDistribution::cdf(double _x) const
 	}
 }
 
+bool UniformDistribution::resetValues(int& iErr, double Min, double Max)
+{
+    if(Min > Max)
+    {
+        iErr = PDERROR_MINEXCEEDMAX;
+        return false;
+    }
+    interval = Max - Min;
+    max = Max;
+    min = Min;
+    return true;
+}
+
 
 /*****
 *
@@ -913,6 +963,29 @@ double TriangleDistribution::cdf(double _x) const
 		double C = 1.0 -(M/2.0)*b*b - B*b;
 		return (M/2.0)*_x*_x + B*_x + C;
 	}
+}
+
+bool TriangleDistribution::resetValues(int& iErr, double _min, double _max, double _mode)
+{
+    if(_min > _max)
+    {
+        iErr = PDERROR_MINEXCEEDMAX;
+        return false;
+    }
+    if(_mode < _min)
+    {
+        iErr = PDERROR_TRIANGLE_MINEXCEEDMODE;
+        return false;
+    }
+    if(_mode > _max)
+    {
+        iErr = PDERROR_TRIANGLE_MODEEXCEEDMAX;
+        return false;
+    }
+    a=_min;
+    b=_max;
+    mode=_mode;
+    return true;
 }
 
 /*****
@@ -1063,6 +1136,24 @@ double NormalDistribution::cdf(double _x) const
 	}
 }
 
+bool NormalDistribution::resetValues(int& iErr, double Mean, double stdDev, int _truncation)
+{
+    if(stdDev < 0.0f)
+    {
+        iErr = PDERROR_NORMAL_STDDEV;
+        return false;
+    }
+    if(_truncation < 3 || _truncation > 20)
+    {
+        iErr = PDERROR_NORMAL_TRUNCRANGE;
+        return false;
+    }
+    mean = Mean;
+    stdDeviation = stdDev;
+    truncation = _truncation;
+    return true;
+}
+
 /*****
 *
 *   Weibull Distribution
@@ -1123,6 +1214,24 @@ double WeibullDistribution::pdf(double _x) const
 double WeibullDistribution::cdf(double _x) const
 {
 	return 1.0 - exp(-pow((_x-mu)/alpha, gamma));
+}
+
+bool WeibullDistribution::resetValues(int& iErr, double _alpha, double _gamma, double _mu)
+{
+    if(_alpha <= 0.00001f)
+    {
+        iErr = PDERROR_WEIBULL_ALPHA;
+        return false;
+    }
+    if(_gamma <= 0.00001f)
+    {
+        iErr = PDERROR_WEIBULL_GAMMA;
+        return false;
+    }
+    alpha = _alpha;
+    gamma = _gamma;
+    mu = _mu;
+    return true;
 }
 
 /*****
@@ -1294,6 +1403,24 @@ double GammaDistribution::cdf(double _x) const
 	return 0.0;
 }
 
+bool GammaDistribution::resetValues(int& iErr, double _gamma, double _beta, double _mu)
+{
+    if(_gamma <= 0.00001f)
+    {
+        iErr = PDERROR_GAMMA_GAMMA;
+        return false;
+    }
+    if(_beta <= 0.00001f)
+    {
+        iErr = PDERROR_GAMMA_BETA;
+        return false;
+    }
+    gamma = _gamma;
+    beta = _beta;
+    mu = _mu;
+    return true;
+}
+
 
 
 /*****
@@ -1355,6 +1482,24 @@ double ErlangDistribution::cdf(double _x) const
 	return GammaDistribution::gammp(gamma, (_x-mu)/beta);
 }
 
+bool ErlangDistribution::resetValues(int& iErr, int _gamma, double _beta, double _mu)
+{
+    if(_gamma <= 0.00001f)
+    {
+        iErr = PDERROR_ERLANG_GAMMA;
+        return false;
+    }
+    if(_beta <= 0.00001f)
+    {
+        iErr = PDERROR_ERLANG_BETA;
+        return false;
+    }
+    gamma = _gamma;
+    beta = _beta;
+    mu = _mu;
+    return true;
+}
+
 
 
 
@@ -1413,6 +1558,17 @@ double ExponentialDistribution::pdf(double _x) const
 double ExponentialDistribution::cdf(double _x) const
 {
 	return 1.0-exp(-lambda*_x);
+}
+
+bool ExponentialDistribution::resetValues(int& iErr, double Lambda)
+{
+    if(Lambda < 0.00001f)
+    {
+        iErr = PDERROR_EXPO_LAMBDA;
+        return false;
+    }
+    lambda = Lambda;
+    return true;
 }
 
 /*****
@@ -1595,8 +1751,8 @@ void BaseBetaDistribution::printDistribution (char *p_str) const
 
 BetaDistribution::~BetaDistribution ()
 {
-	if (beta && beta != defaultBaseBetaDistribution)
-		delete beta;
+	if (basebeta && basebeta != defaultBaseBetaDistribution)
+		delete basebeta;
 }
 
 void BetaDistribution::init (double Min, double Max, double Alpha, double Beta)
@@ -1604,9 +1760,9 @@ void BetaDistribution::init (double Min, double Max, double Alpha, double Beta)
 	min = Min;
 	max = Max;
 	if (Alpha == DEFAULT_ALPHA && Beta == DEFAULT_BETA)
-		beta = defaultBaseBetaDistribution;
+		basebeta = defaultBaseBetaDistribution;
 	else
-		beta = new BaseBetaDistribution ((int)Alpha, (int)Beta);
+		basebeta = new BaseBetaDistribution ((int)Alpha, (int)Beta);
 }
 
 void BetaDistribution::resetValues (double Min, double Max, int Alpha,
@@ -1614,22 +1770,55 @@ void BetaDistribution::resetValues (double Min, double Max, int Alpha,
 {
 	min = Min;
 	max = Max;
-	if (beta && Alpha == beta->getAlpha() && Beta == beta->getBeta())
+	if (basebeta && Alpha == basebeta->getAlpha() && Beta == basebeta->getBeta())
 		return;
 
-	if (beta && beta->getAlpha() != DEFAULT_ALPHA || beta->getBeta() != DEFAULT_BETA)
-		delete beta;
+	if (basebeta && basebeta->getAlpha() != DEFAULT_ALPHA || basebeta->getBeta() != DEFAULT_BETA)
+		delete basebeta;
 
 	if (Alpha == DEFAULT_ALPHA && Beta == DEFAULT_BETA)
-		beta = defaultBaseBetaDistribution;
+		basebeta = defaultBaseBetaDistribution;
 	else
-		beta = new BaseBetaDistribution ((int)Alpha, (int)Beta);
+		basebeta = new BaseBetaDistribution ((int)Alpha, (int)Beta);
+}
+
+bool BetaDistribution::resetValues(int& iErr, double Min, double Max, int Alpha, int Beta)
+{
+    min = Min;
+    max = Max;
+    if(Alpha <= 0)
+    {
+        iErr = PDERROR_BETA_ALPHA;
+        return false;
+    }
+    if(Beta <= 0)
+    {
+        iErr = PDERROR_BETA_BETA;
+        return false;
+    }
+    if(Min > Max)
+    {
+        iErr = PDERROR_MINEXCEEDMAX;
+        return false;
+    }
+
+    if (basebeta && Alpha == basebeta->getAlpha() && Beta == basebeta->getBeta())
+        return true;
+
+    if (basebeta && basebeta->getAlpha() != DEFAULT_ALPHA || basebeta->getBeta() != DEFAULT_BETA)
+        delete basebeta;
+
+    if (Alpha == DEFAULT_ALPHA && Beta == DEFAULT_BETA)
+        basebeta = defaultBaseBetaDistribution;
+    else
+        basebeta = new BaseBetaDistribution (Alpha, Beta);
+    return true;
 }
 
 double BetaDistribution::getRandomValue (void) const
 {
 	// get a beta random number from 0 to 1
-	double y = beta->getRandomValue();
+	double y = basebeta->getRandomValue();
 	return (min + y * (max-min));
 }
 
@@ -1639,11 +1828,11 @@ void BetaDistribution::readVersion1 (ArctermFile &p_file)
 	p_file.getFloat (max);
 	if (!p_file.isBlankField())
 	{
-		beta = new BaseBetaDistribution;
-		beta->readVersion1 (p_file);
+		basebeta = new BaseBetaDistribution;
+		basebeta->readVersion1 (p_file);
 	}
 	else
-		beta = defaultBaseBetaDistribution;
+		basebeta = defaultBaseBetaDistribution;
 }
 
 void BetaDistribution::setDistribution (char *p_str)
@@ -1655,19 +1844,19 @@ void BetaDistribution::setDistribution (char *p_str)
 	str1 = strstr (str1+1, ";");
 	if (str1)
 	{
-		beta = new BaseBetaDistribution;
-		beta->setDistribution (str1+1);
+		basebeta = new BaseBetaDistribution;
+		basebeta->setDistribution (str1+1);
 	}
 	else
-		beta = defaultBaseBetaDistribution;
+		basebeta = defaultBaseBetaDistribution;
 }
 
 void BetaDistribution::screenPrint (char *p_str) const
 {
 	strcpy (p_str, getProbabilityName());
 	sprintf (p_str + strlen (p_str), ": [%.2f,%.2f", min, max);
-	if (beta != defaultBaseBetaDistribution)
-		beta->printDistribution (p_str + strlen (p_str));
+	if (basebeta != defaultBaseBetaDistribution)
+		basebeta->printDistribution (p_str + strlen (p_str));
 	strcat( p_str, "]");
 }
 
@@ -1676,8 +1865,8 @@ void BetaDistribution::printDistribution (char *p_str) const
 {
 	strcpy (p_str, getProbabilityName());
 	sprintf (p_str + strlen (p_str), ":%.2f;%.2f", min, max);
-	if (beta != defaultBaseBetaDistribution)
-		beta->printDistribution (p_str + strlen (p_str));
+	if (basebeta != defaultBaseBetaDistribution)
+		basebeta->printDistribution (p_str + strlen (p_str));
 }
 
 double BetaDistribution::getMinXValue() const
@@ -1690,14 +1879,14 @@ double BetaDistribution::getMaxXValue() const
 }
 double BetaDistribution::pdf(double _x) const
 {
-	double a = beta->getAlpha();
-	double b = beta->getBeta();
+	double a = basebeta->getAlpha();
+	double b = basebeta->getBeta();
 	return pow(_x-min,a-1)*pow(max-_x, b-1)/( BaseBetaDistribution::Beta(a,b) * pow(max-min, a+b-1) );
 }
 double BetaDistribution::cdf(double _x) const
 {
-	double a = beta->getAlpha();
-	double b = beta->getBeta();
+	double a = basebeta->getAlpha();
+	double b = basebeta->getBeta();
 	return BaseBetaDistribution::betai(a, b, (_x-min)/(max-min));
 }
 

@@ -72,7 +72,7 @@ void CDestributionParameterSpecificationDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDIT_ERLANGMU, m_editErlangMu);
     DDX_Control(pDX, IDC_EDIT_EXPOLAMBDA, m_editExpoLambda);
     DDX_Control(pDX, IDC_EDIT_EXPOMEAN, m_editExpoMean);
-    DDX_Control(pDX, IDC_EDIT_GAGAMMA, m_editGaGamma);
+    DDX_Control(pDX, IDC_EDIT_GAGAMMA, m_editGammaGamma);
     DDX_Control(pDX, IDC_EDIT_GAMMABETA, m_editGammaBeta);
     DDX_Control(pDX, IDC_EDIT_GAMMAMU, m_editGammaMu);
     DDX_Control(pDX, IDC_EDIT_NORMALMEAN, m_editNormalMean);
@@ -137,8 +137,9 @@ BEGIN_MESSAGE_MAP(CDestributionParameterSpecificationDlg, CDialog)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_NORMALMEAN, OnDeltaposSpinNormalmean)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_NORMALSTD, OnDeltaposSpinNormalstd)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_NORMALTRUNAT, OnDeltaposSpinNormaltrunat)
-    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_WEIALPHA, OnDeltaposSpinWeialpha)
-    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_WEIGAMMA, OnDeltaposSpinWeigamma)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_WEIALPHA, OnDeltaposSpinWeibullalpha)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_WEIGAMMA, OnDeltaposSpinWeibullgamma)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_WEIMU, OnDeltaposSpinWeibullmu)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_BER1STVALUE, OnDeltaposSpinBer1stvalue)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_BER2NDVALUE, OnDeltaposSpinBer2ndvalue)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_BER1STPRO, OnDeltaposSpinBer1stpro)
@@ -181,6 +182,7 @@ BOOL CDestributionParameterSpecificationDlg::OnInitDialog()
     m_editBetaAlpha.SetPrecision(0);
     m_editBetaBeta.SetPrecision(0);
     m_editErlangGamma.SetPrecision(0);
+    m_editNormalTrunat.SetPrecision(0);
 
     m_pProbMan = GetTermPlanDoc()->GetTerminal().m_pAirportDB->getProbDistMan();
 
@@ -322,8 +324,11 @@ void CDestributionParameterSpecificationDlg::OnBnClickedBtnOpendb()
 {
     CProbDistEntry* pPDEntry = NULL;
     CDlgProbDist dlg(GetTermPlanDoc()->GetTerminal().m_pAirportDB, true, this);
-    dlg.DoModal();
-    ReloadCheckedDistributionComboString();
+    if(dlg.DoModal() == IDOK)
+    {
+        m_pSelProbEntry = dlg.GetSelectedPD();
+        CDialog::OnOK();
+    }
 }
 
 
@@ -679,6 +684,12 @@ bool CDestributionParameterSpecificationDlg::GetFloatFromEditbox(CEdit* pEdit, f
 {
     CString strValue;
     pEdit->GetWindowText(strValue);
+    if(strValue.IsEmpty())
+    {
+        MessageBox(_T("Please input the value."));
+        pEdit->SetFocus();
+        return false;
+    }
     fConstValue = (float)atof(strValue);
     return true;
 }
@@ -687,407 +698,487 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
 {
     if(IsDlgButtonChecked(IDC_RADIO_CONSTANT))
     {
-        float fConstValue;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_CONSTANTVALUE), fConstValue))
-            return;
-
         CString strEntryName;
         m_comboConst.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            ConstantDistribution* pNewProb = new ConstantDistribution(fConstValue);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboConst.SetFocus();
+            return;
         }
-        else
+        float fConstValue;
+        if(!GetFloatFromEditbox(&m_editConstValue, fConstValue))
+            return;
+
+        // generate a new distribution probability to check input values are available.
+        ConstantDistribution* pNewProb = (ConstantDistribution*)ProbDistHelper::CreateProbabilityDistribution(CONSTANT);
+        pNewProb->resetValues(fConstValue);
+
+        CString strMsg;
+        if(!AddOrEditPdDatabase(strMsg, strEntryName, pNewProb, CONSTANT))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
-            {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == CONSTANT);
-                ((ConstantDistribution*)pEntry->m_pProbDist)->setConstant(fConstValue);
-                m_pSelProbEntry = pEntry;
-            }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new ConstantDistribution(fConstValue));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            MessageBox(strMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
         }
+
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_UNIFORM))
     {
-        float fUniformMin, fUniformMax;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_UNIFORMMIN), fUniformMin))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_UNIFORMMAX), fUniformMax))
-            return;
-
         CString strEntryName;
         m_comboUniform.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            UniformDistribution* pNewProb = new UniformDistribution(fUniformMin, fUniformMax);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboUniform.SetFocus();
+            return;
         }
-        else
+        float fMin, fMax;
+        if(!GetFloatFromEditbox(&m_editUniformMin, fMin))
+            return;
+        if(!GetFloatFromEditbox(&m_editUniformMax, fMax))
+            return;
+
+        // generate a new distribution probability to check input values are available.
+        UniformDistribution* pNewProb = (UniformDistribution*)ProbDistHelper::CreateProbabilityDistribution(UNIFORM);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fMin, fMax))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == UNIFORM);
-                ((UniformDistribution*)pEntry->m_pProbDist)->setMin(fUniformMin);
-                ((UniformDistribution*)pEntry->m_pProbDist)->setMax(fUniformMax);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_MINEXCEEDMAX:
+                {
+                    m_editUniformMin.SetFocus();
+                    m_editUniformMin.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new UniformDistribution(fUniformMin, fUniformMax));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, UNIFORM))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_BETA))
     {
-        float fBetaAlpha, fBetaBeta, fBetaMax, fBetaMin;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_BETAALPHA), fBetaAlpha))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_BETABETA), fBetaBeta))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_BETAMAX), fBetaMax))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_BETAMIN), fBetaMin))
-            return;
-
         CString strEntryName;
         m_comboBeta.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            BetaDistribution* pNewProb = new BetaDistribution(fBetaMin, fBetaMax, fBetaAlpha, fBetaBeta);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboBeta.SetFocus();
+            return;
         }
-        else
+        float fBetaMax, fBetaMin;
+        int iBetaAlpha, iBetaBeta;
+
+        float fTemp;
+        if(!GetFloatFromEditbox(&m_editBetaAlpha, fTemp))
+            return;
+        iBetaAlpha = (int)fTemp;
+        if(!GetFloatFromEditbox(&m_editBetaBeta, fTemp))
+            return;
+        iBetaBeta = (int)fTemp;
+        if(!GetFloatFromEditbox(&m_editBetaMax, fBetaMax))
+            return;
+        if(!GetFloatFromEditbox(&m_editBetaMin, fBetaMin))
+            return;
+
+        // generate new distribution entry.
+        BetaDistribution* pNewProb = (BetaDistribution*)ProbDistHelper::CreateProbabilityDistribution(BETA);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fBetaMin, fBetaMax, iBetaAlpha, iBetaBeta))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == BETA);
-                ((BetaDistribution*)pEntry->m_pProbDist)->resetValues(fBetaMin, fBetaMax, (int)fBetaAlpha, (int)fBetaBeta);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_MINEXCEEDMAX:
+                {
+                    m_editBetaMax.SetFocus();
+                    m_editBetaMax.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_BETA_ALPHA:
+                {
+                    m_editBetaAlpha.SetFocus();
+                    m_editBetaAlpha.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_BETA_BETA:
+                {
+                    m_editBetaBeta.SetFocus();
+                    m_editBetaBeta.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new BetaDistribution(fBetaMin, fBetaMax, fBetaAlpha, fBetaBeta));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, UNIFORM))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_TRIANGLE))
     {
-        float fTriangleMax, fTriangleMin, fTriangleMode;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_TRIANGLEMAX), fTriangleMax))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_TRIANGLEMIN), fTriangleMin))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_TRIANGLEMODE), fTriangleMode))
-            return;
-
         CString strEntryName;
         m_comboTriangle.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            TriangleDistribution* pNewProb = new TriangleDistribution(fTriangleMax, fTriangleMin, fTriangleMode);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboTriangle.SetFocus();
+            return;
         }
-        else
+        float fTriangleMax, fTriangleMin, fTriangleMode;
+        if(!GetFloatFromEditbox(&m_editTriangleMax, fTriangleMax))
+            return;
+        if(!GetFloatFromEditbox(&m_editTriangleMin, fTriangleMin))
+            return;
+        if(!GetFloatFromEditbox(&m_editTriangleMode, fTriangleMode))
+            return;
+
+        // generate new distribution entry.
+        TriangleDistribution* pNewProb = (TriangleDistribution*)ProbDistHelper::CreateProbabilityDistribution(TRIANGLE);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fTriangleMin, fTriangleMax, fTriangleMode))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == TRIANGLE);
-                ((TriangleDistribution*)pEntry->m_pProbDist)->setMax(fTriangleMax);
-                ((TriangleDistribution*)pEntry->m_pProbDist)->setMin(fTriangleMin);
-                ((TriangleDistribution*)pEntry->m_pProbDist)->setMode(fTriangleMode);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_MINEXCEEDMAX:
+                {
+                    m_editTriangleMax.SetFocus();
+                    m_editTriangleMax.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_TRIANGLE_MINEXCEEDMODE:
+            case PDERROR_TRIANGLE_MODEEXCEEDMAX:
+                {
+                    m_editTriangleMode.SetFocus();
+                    m_editTriangleMode.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new TriangleDistribution(fTriangleMax, fTriangleMin, fTriangleMode));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, TRIANGLE))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_ERLANG))
     {
-        float fErlangGamma, fErlangBeta, fErlangMu;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_ERLANGGAMMA), fErlangGamma))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_ERLANGBETA), fErlangBeta))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_ERLANGMU), fErlangMu))
-            return;
-
         CString strEntryName;
         m_comboErlang.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            ErlangDistribution* pNewProb = new ErlangDistribution((int)fErlangGamma, fErlangBeta, fErlangMu);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboErlang.SetFocus();
+            return;
         }
-        else
+        float fErlangGamma, fErlangBeta, fErlangMu;
+        if(!GetFloatFromEditbox(&m_editErlangGamma, fErlangGamma))
+            return;
+        if(!GetFloatFromEditbox(&m_editErlangBeta, fErlangBeta))
+            return;
+        if(!GetFloatFromEditbox(&m_editErlangMu, fErlangMu))
+            return;
+
+        // generate new distribution entry.
+        ErlangDistribution* pNewProb = (ErlangDistribution*)ProbDistHelper::CreateProbabilityDistribution(ERLANG);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, (int)fErlangGamma, fErlangBeta, fErlangMu))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == ERLANG);
-                ((ErlangDistribution*)pEntry->m_pProbDist)->setGamma((int)fErlangGamma);
-                ((ErlangDistribution*)pEntry->m_pProbDist)->setBeta(fErlangBeta);
-                ((ErlangDistribution*)pEntry->m_pProbDist)->setMu(fErlangMu);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_ERLANG_GAMMA:
+                {
+                    m_editErlangGamma.SetFocus();
+                    m_editErlangGamma.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_ERLANG_BETA:
+                {
+                    m_editErlangBeta.SetFocus();
+                    m_editErlangBeta.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new ErlangDistribution((int)fErlangGamma, fErlangBeta, fErlangMu));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, ERLANG))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_EXPONENTIAL))
     {
-        float fExpLambda, fExpMean;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_ERLANGGAMMA), fExpLambda))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_ERLANGBETA), fExpMean))
-            return;
-
         CString strEntryName;
         m_comboExponential.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            ExponentialDistribution* pNewProb = new ExponentialDistribution(fExpLambda);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboExponential.SetFocus();
+            return;
         }
-        else
+        float fExpLambda, fExpMean;
+        if(!GetFloatFromEditbox(&m_editExpoLambda, fExpLambda))
+            return;
+        if(!GetFloatFromEditbox(&m_editExpoMean, fExpMean))
+            return;
+
+        ExponentialDistribution* pNewProb = (ExponentialDistribution*)ProbDistHelper::CreateProbabilityDistribution(EXPONENTIAL);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fExpLambda))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == EXPONENTIAL);
-                ((ExponentialDistribution*)pEntry->m_pProbDist)->setLambda(fExpLambda);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_EXPO_LAMBDA:
+                {
+                    m_editExpoLambda.SetFocus();
+                    m_editExpoLambda.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new ExponentialDistribution(fExpLambda));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, EXPONENTIAL))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_GAMMA))
     {
-        float fGammaGamma, fGammaBeta, fGammaMu;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_GAGAMMA), fGammaGamma))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_GAMMABETA), fGammaBeta))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_GAMMAMU), fGammaMu))
-            return;
-
         CString strEntryName;
         m_comboGamma.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            GammaDistribution* pNewProb = new GammaDistribution(fGammaGamma, fGammaBeta, fGammaMu);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboGamma.SetFocus();
+            return;
         }
-        else
+        float fGammaGamma, fGammaBeta, fGammaMu;
+        if(!GetFloatFromEditbox(&m_editGammaGamma, fGammaGamma))
+            return;
+        if(!GetFloatFromEditbox(&m_editGammaBeta, fGammaBeta))
+            return;
+        if(!GetFloatFromEditbox(&m_editGammaMu, fGammaMu))
+            return;
+
+        GammaDistribution* pNewProb = (GammaDistribution*)ProbDistHelper::CreateProbabilityDistribution(GAMMA);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fGammaGamma, fGammaBeta, fGammaMu))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == GAMMA);
-                ((GammaDistribution*)pEntry->m_pProbDist)->setGamma(fGammaGamma);
-                ((GammaDistribution*)pEntry->m_pProbDist)->setBeta(fGammaBeta);
-                ((GammaDistribution*)pEntry->m_pProbDist)->setMu(fGammaMu);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_GAMMA_GAMMA:
+                {
+                    m_editGammaGamma.SetFocus();
+                    m_editGammaGamma.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_GAMMA_BETA:
+                {
+                    m_editGammaBeta.SetFocus();
+                    m_editGammaBeta.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new GammaDistribution(fGammaGamma, fGammaBeta, fGammaMu));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, GAMMA))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_NORMAL))
     {
-        float fNormalMean, fNormalStd, fNormalTrunat;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_NORMALMEAN), fNormalMean))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_NORMALSTD), fNormalStd))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_NORMALTRUNAT), fNormalTrunat))
-            return;
-
         CString strEntryName;
         m_comboNormal.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            NormalDistribution* pNewProb = new NormalDistribution(fNormalMean, fNormalStd, (int)fNormalTrunat);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboNormal.SetFocus();
+            return;
         }
-        else
+        float fNormalMean, fNormalStd;
+        if(!GetFloatFromEditbox(&m_editNormalMean, fNormalMean))
+            return;
+        if(!GetFloatFromEditbox(&m_editNormalStd, fNormalStd))
+            return;
+
+        float fTemp;
+        if(!GetFloatFromEditbox(&m_editNormalTrunat, fTemp))
+            return;
+        int iNormalTrunat = (int)fTemp;
+
+        NormalDistribution* pNewProb = (NormalDistribution*)ProbDistHelper::CreateProbabilityDistribution(NORMAL);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fNormalMean, fNormalStd, iNormalTrunat))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == GAMMA);
-                ((NormalDistribution*)pEntry->m_pProbDist)->setMean(fNormalMean);
-                ((NormalDistribution*)pEntry->m_pProbDist)->setStdDev(fNormalStd);
-                ((NormalDistribution*)pEntry->m_pProbDist)->setTruncation((int)fNormalTrunat);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_NORMAL_STDDEV:
+                {
+                    m_editNormalStd.SetFocus();
+                    m_editNormalStd.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_NORMAL_TRUNCRANGE:
+                {
+                    m_editNormalTrunat.SetFocus();
+                    m_editNormalTrunat.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new NormalDistribution(fNormalMean, fNormalStd, (int)fNormalTrunat));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, NORMAL))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_WEIBULL))
     {
-        float fWeiAlpha, fWeiGamma, fWeiMu;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_WEIALPHA), fWeiAlpha))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_WEIGAMMA), fWeiGamma))
-            return;
-        if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_WEIMU), fWeiMu))
-            return;
-
         CString strEntryName;
         m_comboWeibull.GetWindowText(strEntryName);
+        strEntryName.Trim();
         if(strEntryName.IsEmpty())
         {
-            WeibullDistribution* pNewProb = new WeibullDistribution(fWeiAlpha, fWeiGamma, fWeiMu);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(_T("Please input a probability name."));
+            m_comboWeibull.SetFocus();
+            return;
         }
-        else
+        float fWeiAlpha, fWeiGamma, fWeiMu;
+        if(!GetFloatFromEditbox(&m_editWeiAlpha, fWeiAlpha))
+            return;
+        if(!GetFloatFromEditbox(&m_editWeiGamma, fWeiGamma))
+            return;
+        if(!GetFloatFromEditbox(&m_editWeiMu, fWeiMu))
+            return;
+
+        WeibullDistribution* pNewProb = (WeibullDistribution*)ProbDistHelper::CreateProbabilityDistribution(WEIBULL);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fWeiAlpha, fWeiGamma, fWeiMu))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
             {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == WEIBULL);
-                ((WeibullDistribution*)pEntry->m_pProbDist)->setAlpha(fWeiAlpha);
-                ((WeibullDistribution*)pEntry->m_pProbDist)->setGamma(fWeiGamma);
-                ((WeibullDistribution*)pEntry->m_pProbDist)->setMu(fWeiMu);
-                m_pSelProbEntry = pEntry;
+            case PDERROR_WEIBULL_ALPHA:
+                {
+                    m_editWeiAlpha.SetFocus();
+                    m_editWeiAlpha.SetSel(0, -1);
+                }
+                break;
+            case PDERROR_WEIBULL_GAMMA:
+                {
+                    m_editWeiGamma.SetFocus();
+                    m_editWeiGamma.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
             }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new WeibullDistribution(fWeiAlpha, fWeiGamma, fWeiMu));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            return;
         }
+
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, WEIBULL))
+        {
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
+        }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_BERNOULLI))
     {
+        CString strEntryName;
+        m_comboBernoulli.GetWindowText(strEntryName);
+        strEntryName.Trim();
+        if(strEntryName.IsEmpty())
+        {
+            MessageBox(_T("Please input a probability name."));
+            m_comboBernoulli.SetFocus();
+            return;
+        }
         float fBer1stValue, fBer2ndValue, fBer1stPro;
         if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_BER1STVALUE), fBer1stValue))
             return;
@@ -1096,48 +1187,42 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         if(!GetFloatFromEditbox((CEdit*)GetDlgItem(IDC_EDIT_BER1STPRO), fBer1stPro))
             return;
 
-        CString strEntryName;
-        m_comboWeibull.GetWindowText(strEntryName);
-        if(strEntryName.IsEmpty())
+        BernoulliDistribution* pNewProb = (BernoulliDistribution*)ProbDistHelper::CreateProbabilityDistribution(BERNOULLI);
+        int iErr;
+        if(!pNewProb->resetValues(iErr, fBer1stValue, fBer2ndValue, fBer1stPro))
         {
-            BernoulliDistribution* pNewProb = new BernoulliDistribution(fBer1stValue, fBer2ndValue, fBer1stPro);
-            pNewProb->screenPrint(strEntryName.GetBuffer(256)); // generate name by value
-            strEntryName.ReleaseBuffer();
-
-            if(m_pProbMan->getItemByName(strEntryName) != NULL) // handle duplicated name
-                strEntryName = m_pProbMan->GetCopyName(strEntryName);
-
-            CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
-            m_pProbMan->AddItem(pNewEntry);
-            m_pSelProbEntry = pNewEntry;
+            MessageBox(pNewProb->getErrorMessage(iErr));
+            delete pNewProb;
+            switch(iErr)
+            {
+            case PDERROR_BERNOULLI_PROB1:
+                {
+                    m_editBer1stPro.SetFocus();
+                    m_editBer1stPro.SetSel(0, -1);
+                }
+                break;
+            default:
+                break;
+            }
+            return;
         }
-        else
+
+        CString errMsg;
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, WEIBULL))
         {
-            CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-            if(pEntry != NULL)
-            {
-                // update existing distribution entry.
-                ASSERT(pEntry->m_pProbDist->getProbabilityType() == BERNOULLI);
-                ((BernoulliDistribution*)pEntry->m_pProbDist)->setValue1(fBer1stValue);
-                ((BernoulliDistribution*)pEntry->m_pProbDist)->setValue2(fBer2ndValue);
-                ((BernoulliDistribution*)pEntry->m_pProbDist)->setProb1(fBer1stPro);
-                m_pSelProbEntry = pEntry;
-            }
-            else
-            {
-                // generate new distribution entry.
-                CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, new BernoulliDistribution(fBer1stValue, fBer2ndValue, fBer1stPro));
-                m_pProbMan->AddItem(pNewEntry);
-                m_pSelProbEntry = pNewEntry;
-            }
+            MessageBox(errMsg);
+            delete pNewProb;
+            m_comboConst.SetFocus();
+            return;
         }
+        m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
     }
     else if(IsDlgButtonChecked(IDC_RADIO_EMPIRICAL))
     {
         CString strEntryName;
         m_comboEmpirical.GetWindowText(strEntryName);
-        CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-        if(strEntryName.IsEmpty() || pEntry == NULL)
+        strEntryName.Trim();
+        if(strEntryName.IsEmpty())
         {
             MessageBox("Please select an empirical distribution.");
             m_comboEmpirical.SetFocus();
@@ -1145,15 +1230,15 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
         else
         {
-            m_pSelProbEntry = pEntry;
+            m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
         }
     }
     else if(IsDlgButtonChecked(IDC_RADIO_HISTOGRAM))
     {
         CString strEntryName;
         m_comboHistogram.GetWindowText(strEntryName);
-        CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
-        if(strEntryName.IsEmpty() || pEntry == NULL)
+        strEntryName.Trim();
+        if(strEntryName.IsEmpty())
         {
             MessageBox("Please select a histogram distribution.");
             m_comboHistogram.SetFocus();
@@ -1161,10 +1246,14 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
         else
         {
-            m_pSelProbEntry = pEntry;
+            m_pSelProbEntry = m_pProbMan->getItemByName(strEntryName);
         }
     }
-
+    else
+    {
+        MessageBox(_T("No Probability selected."));
+        return;
+    }
     CDialog::OnOK();
 }
 
@@ -1205,9 +1294,9 @@ void CDestributionParameterSpecificationDlg::OnCbnSelchangeComboBeta()
     BetaDistribution* pProb = (BetaDistribution*)pEntry->m_pProbDist;
     ASSERT(pProb != NULL);
     CString strTemp;
-    strTemp.Format(_T("%.2f"), pProb->getAlpha());
+    strTemp.Format(_T("%d"), pProb->getAlpha());
     GetDlgItem(IDC_EDIT_BETAALPHA)->SetWindowText(strTemp);
-    strTemp.Format(_T("%.2f"), pProb->getBeta());
+    strTemp.Format(_T("%d"), pProb->getBeta());
     GetDlgItem(IDC_EDIT_BETABETA)->SetWindowText(strTemp);
     strTemp.Format(_T("%.2f"), pProb->getMax());
     GetDlgItem(IDC_EDIT_BETAMAX)->SetWindowText(strTemp);
@@ -1241,7 +1330,7 @@ void CDestributionParameterSpecificationDlg::OnCbnSelchangeComboErlang()
     ErlangDistribution* pProb = (ErlangDistribution*)pEntry->m_pProbDist;
     ASSERT(pProb != NULL);
     CString strTemp;
-    strTemp.Format(_T("%.2f"), pProb->getGamma());
+    strTemp.Format(_T("%d"), pProb->getGamma());
     GetDlgItem(IDC_EDIT_ERLANGGAMMA)->SetWindowText(strTemp);
     strTemp.Format(_T("%.2f"), pProb->getBeta());
     GetDlgItem(IDC_EDIT_ERLANGBETA)->SetWindowText(strTemp);
@@ -1294,7 +1383,7 @@ void CDestributionParameterSpecificationDlg::OnCbnSelchangeComboNormal()
     GetDlgItem(IDC_EDIT_NORMALMEAN)->SetWindowText(strTemp);
     strTemp.Format(_T("%.2f"), pProb->getStdDev());
     GetDlgItem(IDC_EDIT_NORMALSTD)->SetWindowText(strTemp);
-    strTemp.Format(_T("%.2f"), pProb->getTruncation());
+    strTemp.Format(_T("%d"), pProb->getTruncation());
     GetDlgItem(IDC_EDIT_NORMALTRUNAT)->SetWindowText(strTemp);
 }
 
@@ -1476,7 +1565,6 @@ void CDestributionParameterSpecificationDlg::OnDeltaposSpinErlanggamma(NMHDR *pN
     LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
     CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT_ERLANGGAMMA);
-    SpinChangeEditboxValue(pEdit, pNMUpDown);
     CString strValue;
     pEdit->GetWindowText(strValue);
     int iInput = atoi(strValue);
@@ -1579,11 +1667,23 @@ void CDestributionParameterSpecificationDlg::OnDeltaposSpinNormaltrunat(NMHDR *p
     LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
     CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT_NORMALTRUNAT);
-    SpinChangeEditboxValue(pEdit, pNMUpDown);
+    CString strValue;
+    pEdit->GetWindowText(strValue);
+    int iInput = atoi(strValue);
+    if(pNMUpDown->iDelta > 0 && iInput < iMax - 1)
+    {
+        iInput += 1;
+    }
+    else if(pNMUpDown->iDelta < 0 && iInput > iMin+1)
+    {
+        iInput -= 1;
+    }
+    strValue.Format(_T("%d"), iInput);
+    pEdit->SetWindowText(strValue);
     *pResult = 0;
 }
 
-void CDestributionParameterSpecificationDlg::OnDeltaposSpinWeialpha(NMHDR *pNMHDR, LRESULT *pResult)
+void CDestributionParameterSpecificationDlg::OnDeltaposSpinWeibullalpha(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
@@ -1592,11 +1692,20 @@ void CDestributionParameterSpecificationDlg::OnDeltaposSpinWeialpha(NMHDR *pNMHD
     *pResult = 0;
 }
 
-void CDestributionParameterSpecificationDlg::OnDeltaposSpinWeigamma(NMHDR *pNMHDR, LRESULT *pResult)
+void CDestributionParameterSpecificationDlg::OnDeltaposSpinWeibullgamma(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
     CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT_WEIGAMMA);
+    SpinChangeEditboxValue(pEdit, pNMUpDown);
+    *pResult = 0;
+}
+
+void CDestributionParameterSpecificationDlg::OnDeltaposSpinWeibullmu(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+
+    CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT_WEIMU);
     SpinChangeEditboxValue(pEdit, pNMUpDown);
     *pResult = 0;
 }
@@ -1902,7 +2011,7 @@ void CDestributionParameterSpecificationDlg::ChangeExpoComboName()
     {
         CString strLambda, strMean;
         m_editExpoLambda.GetWindowText(strLambda);
-        m_editExpoMean.GetWindowText(strLambda);
+        m_editExpoMean.GetWindowText(strMean);
         m_comboExponential.SetWindowText(GetTempExponentialDistributionName(strLambda, strMean));
     }
 }
@@ -1933,10 +2042,10 @@ void CDestributionParameterSpecificationDlg::ChangeGammaComboName()
         strName.Find(_T("Gamma: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strGamma, strBeta, strMu;
-        m_editGaGamma.GetWindowText(strGamma);
+        m_editGammaGamma.GetWindowText(strGamma);
         m_editGammaBeta.GetWindowText(strBeta);
         m_editGammaMu.GetWindowText(strMu);
-        m_comboErlang.SetWindowText(GetTempGammaDistributionName(strGamma, strBeta, strMu));
+        m_comboGamma.SetWindowText(GetTempGammaDistributionName(strGamma, strBeta, strMu));
     }
 }
 
@@ -2122,8 +2231,8 @@ CString CDestributionParameterSpecificationDlg::GetTempNormalDistributionName(CS
 CString CDestributionParameterSpecificationDlg::GetTempWeibullDistributionName(CString strAlpha, CString strGamma, CString strMu)
 {
     double fAlpha = atof(strAlpha);
-    double fGamma = atof(strAlpha);
-    double fMu = atof(strAlpha);
+    double fGamma = atof(strGamma);
+    double fMu = atof(strMu);
     CString strResult;
     strResult.Format(_T("Weibull: [%.2f, %.2f;  %.2f]"), fAlpha, fGamma, fMu);
     return strResult;
@@ -2156,6 +2265,7 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
     {
     case CONSTANT:
         {
+            
             ((CButton*)GetDlgItem(IDC_RADIO_CONSTANT))->SetCheck(TRUE);
             CString strEntryName;
             pNewProb->screenPrint(strEntryName.GetBuffer(256));
@@ -2166,6 +2276,14 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
             CString strEdit;
             strEdit.Format(_T("%.2f"), ((ConstantDistribution*)pNewProb)->getConstant());
             m_editConstValue.SetWindowText(strEdit);
+
+            DisableAllEditBox();
+            GetDlgItem(IDC_COMBO_CONSTANT)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_CONSTANTVALUE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_CONSTVALUE)->EnableWindow(TRUE);
+
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(CONSTANT);
+            LoadComboBoxString(&m_comboConst, vProb);
         }
         break;
     case UNIFORM:
@@ -2266,9 +2384,9 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
             OnBnClickedRadioGamma();
 
             CString strEdit;
-            strEdit.Format("%d", ((GammaDistribution*)pNewProb)->getGamma());
-            m_editGaGamma.SetWindowText(strEdit);
-            strEdit.Format("%d", ((GammaDistribution*)pNewProb)->getBeta());
+            strEdit.Format("%.2f", ((GammaDistribution*)pNewProb)->getGamma());
+            m_editGammaGamma.SetWindowText(strEdit);
+            strEdit.Format("%.2f", ((GammaDistribution*)pNewProb)->getBeta());
             m_editGammaBeta.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((GammaDistribution*)pNewProb)->getMu());
             m_editGammaMu.SetWindowText(strEdit);
@@ -2284,11 +2402,11 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
             OnBnClickedRadioNormal();
 
             CString strEdit;
-            strEdit.Format("%d", ((NormalDistribution*)pNewProb)->getMean());
+            strEdit.Format("%.2f", ((NormalDistribution*)pNewProb)->getMean());
             m_editNormalMean.SetWindowText(strEdit);
-            strEdit.Format("%d", ((NormalDistribution*)pNewProb)->getStdDev());
+            strEdit.Format("%.2f", ((NormalDistribution*)pNewProb)->getStdDev());
             m_editNormalStd.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((NormalDistribution*)pNewProb)->getTruncation());
+            strEdit.Format("%d", ((NormalDistribution*)pNewProb)->getTruncation());
             m_editNormalTrunat.SetWindowText(strEdit);
         }
         break;
@@ -2302,9 +2420,9 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
             OnBnClickedRadioWeibull();
 
             CString strEdit;
-            strEdit.Format("%d", ((WeibullDistribution*)pNewProb)->getAlpha());
+            strEdit.Format("%.2f", ((WeibullDistribution*)pNewProb)->getAlpha());
             m_editWeiAlpha.SetWindowText(strEdit);
-            strEdit.Format("%d", ((WeibullDistribution*)pNewProb)->getGamma());
+            strEdit.Format("%.2f", ((WeibullDistribution*)pNewProb)->getGamma());
             m_editWeiGamma.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((WeibullDistribution*)pNewProb)->getMu());
             m_editWeiMu.SetWindowText(strEdit);
@@ -2320,9 +2438,9 @@ void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDis
             OnBnClickedRadioBernoulli();
 
             CString strEdit;
-            strEdit.Format("%d", ((BernoulliDistribution*)pNewProb)->getValue1());
+            strEdit.Format("%.2f", ((BernoulliDistribution*)pNewProb)->getValue1());
             m_editBer1stValue.SetWindowText(strEdit);
-            strEdit.Format("%d", ((BernoulliDistribution*)pNewProb)->getValue2());
+            strEdit.Format("%.2f", ((BernoulliDistribution*)pNewProb)->getValue2());
             m_editBer2ndValue.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((BernoulliDistribution*)pNewProb)->getProb1());
             m_editBer1stPro.SetWindowText(strEdit);
@@ -2423,7 +2541,7 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
             m_comboGamma.SetWindowText(strEntryName);
             CString strEdit;
             strEdit.Format("%d", ((GammaDistribution*)pInProb)->getGamma());
-            m_editGaGamma.SetWindowText(strEdit);
+            m_editGammaGamma.SetWindowText(strEdit);
             strEdit.Format("%d", ((GammaDistribution*)pInProb)->getBeta());
             m_editGammaBeta.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((GammaDistribution*)pInProb)->getMu());
@@ -2476,5 +2594,36 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     default:
         break;
     }
+}
+
+// return true if success
+bool CDestributionParameterSpecificationDlg::AddOrEditPdDatabase(CString& strMsg, CString strEntryName, 
+    ProbabilityDistribution* pNewProb, ProbTypes iType)
+{
+    CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
+    if(pEntry == NULL)
+    {
+        CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
+        m_pProbMan->AddItem(pNewEntry);
+        return true;
+    }
+    else
+    {
+        if(pEntry->m_pProbDist->getProbabilityType() == iType)
+        {
+            if(pEntry->m_pProbDist)
+                delete pEntry->m_pProbDist;
+            pEntry->m_pProbDist = pNewProb;
+            m_pSelProbEntry = pEntry;
+            return true;
+        }
+        else
+        {
+            strMsg.Format(_T("A Probability Distribution named '%s' with different type '%s' exists, please input another name."), 
+                strEntryName, pEntry->m_pProbDist->getProbabilityName());
+            return false;
+        }
+    }
+    return false;
 }
 
