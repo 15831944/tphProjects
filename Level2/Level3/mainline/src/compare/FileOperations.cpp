@@ -248,6 +248,35 @@ void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CA
 	{
 		(*_ShowCopyInfo)(sSourceFile);
 	}
+
+	//check the last modified time, if same, no copying
+	CFileFind ffFind;
+	BOOL bFindDest = ffFind.FindFile(sDestFile);
+	if(bFindDest)
+	{
+		ffFind.FindNextFile();
+		{
+			CTime destTime;
+			ffFind.GetLastWriteTime(destTime);
+			ffFind.Close();
+			
+			
+			BOOL bFindSource = ffFind.FindFile(sSourceFile);
+			if(bFindSource)
+			{
+				ffFind.FindNextFile();
+				{
+					CTime sourceTime;
+					ffFind.GetLastWriteTime(sourceTime);
+					ffFind.Close();
+
+					if(sourceTime == destTime)
+						return;
+				}
+			}
+		}
+	}
+
 	if (!CopyFile(sSourceFile, sDestFile, bOvrwriteFails)) 
 		throw new CFExeption(GetLastError());
 	if (bDelteAfterCopy)
@@ -259,7 +288,9 @@ void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CA
 
 bool CFileOperation::Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCopyInfo)(LPCTSTR))
 {
-	if (CheckSelfCopy(sSource, sDest)) return true;
+	if (CheckSelfCopy(sSource, sDest)) 
+		return true;
+
 	bool bRes;
 	try
 	{
@@ -271,7 +302,9 @@ bool CFileOperation::Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCo
 		m_sError = e->GetErrorText();
 		m_dwError = e->GetErrorCode();
 		delete e;
-		if (m_dwError == 0) bRes = true;
+		if (m_dwError == 0) 
+			bRes = true;
+
 		bRes = false;
 	}
 	m_iRecursionLimit = -1;
@@ -281,7 +314,9 @@ bool CFileOperation::Copy(CString sSource, CString sDest,void (CALLBACK* _ShowCo
 
 bool CFileOperation::Replace(CString sSource, CString sDest)
 {
-	if (CheckSelfCopy(sSource, sDest)) return true;
+	if (CheckSelfCopy(sSource, sDest))
+		return true;
+
 	bool bRes;
 	try
 	{
@@ -569,12 +604,17 @@ void CFileOperation::NoCopyFolderOfSimResult(CString sSourceFolder, CString sDes
 	while (bRes)
 	{
 		bRes = ff.FindNextFile();
-		if (ff.GetFileName() == _T("SimResult"))continue;
+		if (ff.GetFileName() == _T("SimResult"))
+			continue;
 
-		if (ff.IsDots()) continue;
+		if (ff.IsDots()) 
+			continue;
+
 		if (ff.IsDirectory()) // source is a folder
 		{
-			if (m_iRecursionLimit == 0) continue;
+			if (m_iRecursionLimit == 0) 
+				continue;
+
 			sPathSource = ff.GetFilePath() + CString("\\") + CString("*.*");
 			CString sPathDest = sDestFolder + ff.GetFileName() + CString("\\");
 			if (CheckPath(sPathDest) == PATH_NOT_FOUND) 
@@ -585,7 +625,8 @@ void CFileOperation::NoCopyFolderOfSimResult(CString sSourceFolder, CString sDes
 					throw new CFExeption(GetLastError());
 				}
 			}
-			if (m_iRecursionLimit > 0) m_iRecursionLimit --;
+			if (m_iRecursionLimit > 0) 
+				m_iRecursionLimit --;
 			NoCopyFolderOfSimResult(sPathSource, sPathDest,_ShowCopyInfo, bDelteAfterCopy);
 		}
 		else // source is a file

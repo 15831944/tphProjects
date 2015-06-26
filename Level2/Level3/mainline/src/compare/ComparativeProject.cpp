@@ -267,9 +267,9 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 
 	SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
 
-	for (unsigned i = 0; i < vModels.size(); i++)
+	for (unsigned nModel = 0; nModel < vModels.size(); nModel++)
 	{
-		CModelToCompare* pCmpModel =  vModels[i];
+		CModelToCompare* pCmpModel =  vModels[nModel];
 
 		SendMessage(pWndStatus->GetSafeHwnd(), WM_COMPARE_RUN, 0, 0);
 		if (m_bStop)
@@ -289,10 +289,10 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 			nProgressStatus += 5;
 			pWndStatus->SetProgressPos(nProgressStatus);
 
-			for (unsigned j = 0; j < vReports.size(); j++)
+			for (unsigned nReport = 0; nReport < vReports.size(); nReport++)
 			{
 				int iReportIndex = -1;
-				switch(vReports[j].GetCategory()) {
+				switch(vReports[nReport].GetCategory()) {
 				case ENUM_QUEUELENGTH_REP:
 					iReportIndex = 0;
 					break;
@@ -328,7 +328,7 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 				}
 
 				CReportParameter* pOutParam = NULL;
-				switch (vReports[j].GetCategory())
+				switch (vReports[nReport].GetCategory())
 				{
 				case ENUM_QUEUETIME_REP:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( 
@@ -360,7 +360,7 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(NULL) )));
 					break;
 				}
-				GenerateReportParameter(vReports[j].GetParameter(), pOutParam,pCmpModel);
+				GenerateReportParameter(vReports[nReport].GetParameter(), pOutParam,pCmpModel);
 				
 				int nSimResultCount = pCmpModel->GetSimResultCount();
 
@@ -384,13 +384,13 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					pTerm->GetSimReportManager()->SetCurrentSimResult(strSimResult);
 					CMutiRunReportAgent tempMultiRunAgent;					
 					tempMultiRunAgent.Init(projPath, pTerm);
-					tempMultiRunAgent.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[j].GetCategory(), pOutParam);
+					tempMultiRunAgent.AddReportWhatToGen((ENUM_REPORT_TYPE)vReports[nReport].GetCategory(), pOutParam);
 					tempMultiRunAgent.GenerateAll();
 					CString strReportPath = pTerm->GetSimReportManager()->GetCurrentReportFileName(pCmpModel->GetLocalPath());
 				
-					strReportPath = SaveTempReport(strReportPath, i, j, nResult);
+					strReportPath = SaveTempReport(strReportPath, nModel, nReport, nResult);
 					ASSERT(!strReportPath.IsEmpty());
-					AddReportPath((ENUM_REPORT_TYPE)vReports[j].GetCategory(), strReportPath);
+					AddReportPath((ENUM_REPORT_TYPE)vReports[nReport].GetCategory(), strReportPath);
 				}
 				delete pOutParam;
 				pOutParam = NULL;

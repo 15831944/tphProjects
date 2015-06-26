@@ -70,7 +70,7 @@ void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*
 {
     if(!IsWindowVisible())
         return;
-    if (lHint == AIRSIDEREPORT_SHOWREPORT)
+    if (lHint == VM_COMPARATIVEREPORT_SHOWREPORT)
     {
         CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
         CCmpReportParameter* inputParam = pCompProj->GetInputParam();

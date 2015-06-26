@@ -624,56 +624,61 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		CString XTickTitle;
 		std::vector<CString> vXTickTitle;
 		
-		std::vector<CModelParameter> vModels;
+		/*std::vector<CModelParameter> vModels;
 		_reportData.m_cmpParam.GetModelParameter(vModels);
 		for(size_t i=0;i<vModels.size();++i)
 		{
-			std::vector<ProcessorID> idList;
-			vModels[i].GetProcessorID(idList);
-			CString strIDList;
-			for(size_t j = 0 ;j< idList.size();j++)
-			{
-				strIDList += idList[j].GetIDString();
-			}
-			vXTickTitle.push_back(strIDList);
+		std::vector<ProcessorID> idList;
+		vModels[i].GetProcessorID(idList);
+		CString strIDList;
+		for(size_t j = 0 ;j< idList.size();j++)
+		{
+		strIDList += idList[j].GetIDString();
 		}
-		c2dGraphData.m_vrXTickTitle = vXTickTitle;
-
+		vXTickTitle.push_back(strIDList);
+		}*/
+		
+		c2dGraphData.m_strXtitle = _T("");
 		switch(nSubType)
 		{
 		case PAX_GROUP:
 			{
 				c2dGraphData.m_strChartTitle = _T("Total Pax by Group");
 				c2dGraphData.m_strYtitle = _T("Total Passengers Served");
-				c2dGraphData.m_strXtitle = _T("Processor");
+				//c2dGraphData.m_strXtitle = _T("Processor");
+				vXTickTitle.push_back(_T("Pax/Group"));
 			}			
 			break;
 		case PAX_PROC:
 			{
 				c2dGraphData.m_strChartTitle = _T("Pax per Processor");
 				c2dGraphData.m_strYtitle = _T("Passengers Served by Processor");
-				c2dGraphData.m_strXtitle = _T("Processor");
+				//c2dGraphData.m_strXtitle = _T("Processor");
+				vXTickTitle.push_back(_T("Pax/Proc"));
 			}			
 			break;
 		case GROUP_THR_HR:
 			{
 				c2dGraphData.m_strChartTitle = _T("Group Throughput per Hour");
 				c2dGraphData.m_strYtitle = _T("Passengers Served per Hour");
-				c2dGraphData.m_strXtitle = _T("Processor");
+				//c2dGraphData.m_strXtitle = _T("Processor");
+				vXTickTitle.push_back(_T("Group Thrpt/Hr"));
 			}			
 			break;
 		case AVG_HOUR:
 			{
 				c2dGraphData.m_strChartTitle = _T("Processor Throughput per Hour");
 				c2dGraphData.m_strYtitle = _T("Passengers Served per Processor per Hour");
-				c2dGraphData.m_strXtitle = _T("Processor");
+				//c2dGraphData.m_strXtitle = _T("Processor");
+				vXTickTitle.push_back(_T("Avg/Hr"));
 			}			
 			break;
 		default:
 			return false;
 			break;
 		}
-		
+		ASSERT(vXTickTitle.size()==1);
+		c2dGraphData.m_vrXTickTitle = vXTickTitle;
 	}
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
@@ -1079,7 +1084,6 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
 {
     C2DChartData c2dGraphData;
     // Update Title
-    c2dGraphData.m_strChartTitle = _T(" Utilization Time(Summary) ");
     c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
     c2dGraphData.m_strXtitle = _T("Processor");
 
@@ -1098,6 +1102,7 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
 
     if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
     {
+        c2dGraphData.m_strChartTitle = _T(" Utilization Time(Detail) ");
         const mapProcUtilizationDetail& mapDetail = _reportData.GetMapDetailResult();
         std::vector<CString>& vSimName = _reportData.GetSimNameList();
         std::vector<CString>::const_iterator simNameItor = vSimName.begin();
@@ -1116,6 +1121,7 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
     }
     else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
     {
+        c2dGraphData.m_strChartTitle = _T(" Utilization Time(Summary) ");
         const mapProcUtilizationSummary& mapSummary = _reportData.GetMapSummaryResult();
         std::vector<CString>& vSimName = _reportData.GetSimNameList();
         std::vector<CString>::const_iterator simNameItor = vSimName.begin();

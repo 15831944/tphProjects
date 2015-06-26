@@ -75,7 +75,7 @@ void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
     if(!IsWindowVisible())
         return;
-    if(lHint == VM_COMPARATIVEREPORT_DISLISTVIEW || lHint == AIRSIDEREPORT_SHOWREPORT)
+    if(lHint == VM_COMPARATIVEREPORT_DISLISTVIEW || lHint == VM_COMPARATIVEREPORT_SHOWREPORT)
     {
         int iSubType = (int)pHint;
         CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();

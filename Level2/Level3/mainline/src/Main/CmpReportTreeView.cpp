@@ -166,8 +166,7 @@ void CCmpReportTreeView::OnInitialUpdate()
 	m_btnMulti.SetType(CCoolBtn::TY_CMPREPORTTREEVIEW);
 	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 	m_pCmpReport = pDoc->GetCmpReport();
-    InitRootItems();
-	UpdateWholeTree();
+	InitRootItems();
 }
 
 void CCmpReportTreeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
@@ -592,7 +591,6 @@ void CCmpReportTreeView::DeleteReport()
 		{
 			ChangeFocusReport();
 		}
-		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
         GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 	}
 
@@ -739,8 +737,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				{
 					//ChangeFocusReport();
 				}
-
-				CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
                 GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 			}
 			break;
@@ -779,8 +775,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				{
 					CString strReport = pReport->GetName();
 					m_pCmpReport->SetFocusReportName(strReport);
-
-                    CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
                     GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 				}
 				return 0;
