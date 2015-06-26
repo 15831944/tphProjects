@@ -590,6 +590,7 @@ void DeparturePaxLandsideBehavior::processEntryTerminal( ElapsedTime p_time, dou
 		Point ptTerm(location[VX],location[VY],ifloor*SCALE_FACTOR);
 		pTermPhase->setLocation( ptTerm  );	
 		pTermPhase->setDestination(ptTerm);
+        pTermPhase->SetFromLandSide(TRUE);
 	//	pTermPhase->SetWalkOnBridge(TRUE);
 		pTermPhase->setLandsideSelectedProc(m_vLinkTerminalProc);
 

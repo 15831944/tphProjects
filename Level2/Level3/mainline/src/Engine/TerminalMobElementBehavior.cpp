@@ -145,6 +145,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_pLoaderProc(NULL)
 ,m_bNeedLoaderToHoldArea(false)
 ,m_IsArrivedFixQueue(FALSE)
+,m_nPaxFrom(FromTerminal)
 ,inElevotor(false)
 ,m_iAvoidDirection(0)
 ,m_bCanServeWhenClosing(0)
@@ -412,10 +413,21 @@ int TerminalMobElementBehavior::processBirth (ElapsedTime p_time)
 	if (m_pPerson->getState() == MoveToQueue)
 		m_pProcessor->addToQueue (m_pPerson, p_time);
 
- 	if (!m_IsWalkOnBridge)
- 	{
- 		location = m_ptDestination;
- 	}
+    switch(GetPaxFrom())
+    {
+    case FromTerminal:
+        location = m_ptDestination;
+        break;
+    case FromLandside:
+        // do nothing.
+        break;
+    case FromBridge:
+        // do nothing.
+        break;
+    default:
+        location = m_ptDestination;
+        break;
+    }
 
 	getTerminal()->m_pAreas->handlePersonBirth( m_pPerson, getLocation(), p_time );
 	//enter terminal mode
@@ -1142,7 +1154,6 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 
 void TerminalMobElementBehavior::setDestination( Point p)
 {
-    int nPersonID = m_pPerson->getID();
 	m_ptDestination = p;
 
 	m_pPerson->m_pGroupInfo->SetFollowerDestination( location, m_ptDestination, Person::m_pRotation );

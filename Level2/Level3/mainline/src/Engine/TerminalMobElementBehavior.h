@@ -276,6 +276,15 @@ public:
 	BOOL HasArrivedFixQueue() { return m_IsArrivedFixQueue;}
 	void HasArrivedFixQueue(BOOL _res) {  m_IsArrivedFixQueue = _res;}
 
+    typedef enum
+    {
+        FromTerminal,
+        FromLandside,
+        FromBridge
+    }enumPaxFrom;
+    enumPaxFrom GetPaxFrom() const { return m_nPaxFrom; }
+    void SetPaxFrom(const enumPaxFrom& where_) { m_nPaxFrom = where_; }
+
 	BridgeConnector* GetBridgeConnector(Processor* pProcessor);
 
 	friend stdostream& operator << (stdostream& s, const TerminalMobElementBehavior& p);
@@ -589,12 +598,11 @@ protected:
 	ArrDepBridgeState m_emBridgeState;
 
 	AirsideFlightInSim* m_pFlightAirside;
-
 	BOOL m_bhasBusServer;//if has pax bus server 
 	BOOL m_IsWalkOnBridge ; // check if pax walk through the bridge ,not bus 
 	BOOL m_IsArrivedFixQueue ; // check if the person has arrived at the Fixqueue ;
-
-	Point Entry_point ;
+    enumPaxFrom m_nPaxFrom; // marked where do this guy from, use for entering terminal.
+    Point Entry_point ;
 
 	TRANSFER_STATE m_TransferState;
 
@@ -627,11 +635,7 @@ public:
 	//for non passenger follower relative position
 	void SetRelativePosition(const Point& paxDirection,const Point& paxLocation);
 
-	virtual void setLocation( const Point& _ptLocation )
-    { 
-        int nPersonID = m_pPerson->getID();
-        location = _ptLocation;	
-    }
+	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
 
 	inline void SetWalkOnBridge(BOOL b){ m_IsWalkOnBridge = b; }
 	inline BOOL IsWalkOnBridge()const{ return m_IsWalkOnBridge; }
