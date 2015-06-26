@@ -200,6 +200,12 @@ void FlightsBoardingCallManager::LoadDefaultBoardingCalls(const ProcessorList *p
  			for(int iHoldArea=0; iHoldArea<iHoldAreaCount; ++iHoldArea)
  			{
 				HoldingArea* pHoldArea = ( HoldingArea* )vHoldingAreas.getItem(iHoldArea);
+                CString strHoldingArea = pHoldArea->getIDName();
+                if(strHoldingArea.CompareNoCase(_T("RESTAURANT-NORTH-1")) == 0)
+                {
+                    int i=0;
+                    i=0;
+                }
 				int iStage = pHoldArea->getStageID();
 				if(iStage <= 0 || iStage > stageCount+1)
 					continue;

@@ -458,6 +458,7 @@ void HoldingArea::makeAvailable (const Person *aPerson, ElapsedTime availTime, b
 }
 bool HoldingArea::PersonShouldWaitOnStage( Person *_pPerson  , const ElapsedTime& _currentTime )const
 {
+    int nPersonID = _pPerson->getID();
 	TerminalMobElementBehavior* spTerminalBehavior = _pPerson->getTerminalBehavior();
 	if (spTerminalBehavior == NULL)
 	{
@@ -482,6 +483,7 @@ bool HoldingArea::PersonShouldWaitOnStage( Person *_pPerson  , const ElapsedTime
 			}
 			if( spTerminalBehavior->PersonShouldWaitOnThisStage( m_iStageID,_currentTime ) )
 			{
+                CString strProc = getIDName();
 				return true;
 			}
 			else

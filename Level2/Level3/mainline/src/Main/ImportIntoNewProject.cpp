@@ -112,13 +112,13 @@ void CImportIntoNewProject::OnOK()
 		return;
 	}
 
-    CString strU;
-    strU.LoadString(IDS_INVALID_PROJNAME_CHARACTER);
-    int nPos = m_strProjectName.FindOneOf(strU);
+    CString strTemp;
+    strTemp.LoadString(IDS_INVALID_PROJNAME_CHARACTER);
+    int nPos = m_strProjectName.FindOneOf(strTemp);
     if(nPos > -1)
     {
         CString strMsg;
-        strMsg.Format(_T("The project name should not contain the following characters:\n\n%s"), strU);
+        strMsg.Format(_T("The project name should not contain the following characters:\n\n%s"), strTemp);
         MessageBox(strMsg);
         m_controlProjectName.SetFocus();
         m_controlProjectName.SetSel(nPos, nPos+1);

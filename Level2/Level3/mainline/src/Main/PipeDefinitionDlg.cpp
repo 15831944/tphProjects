@@ -16,6 +16,7 @@
 #include "../common/UnitsManager.h"
 #include "ARCPort.h"
 #include "Render3DView.h"
+#include "Floor2.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -221,6 +222,13 @@ void CPipeDefinitionDlg::ShowPipePro( int nIndex )
 			strLabel = CString("Location(") + UNITSMANAGER->GetLengthUnitString(UNITSMANAGER->GetLengthUnits()) + CString( "): " );
 			strName.Format( "x = %.2f; y = %.2f", UNITSMANAGER->ConvertLength( pPipe->GetPipePointAt(i-1).m_point.getX() ), UNITSMANAGER->ConvertLength( pPipe->GetPipePointAt(i-1).m_point.getY() ) );
 			strLabel += strName;
+
+            CFloor2* pFloor = GetPointFloor(pPipe->GetPipePointAt(i-1).m_point);
+            if (pFloor)
+            {
+                strLabel += _T("; Floor:") + pFloor->FloorName();
+            }
+
 			m_treePipePro.InsertItem(strLabel,hTreeItem);
 
 			strLabel	=  CString("Width(") + UNITSMANAGER->GetLengthUnitString(UNITSMANAGER->GetLengthUnits()) + CString( ")" );
@@ -1006,4 +1014,18 @@ void CPipeDefinitionDlg::UpdateAllPipesInRender3D()
 void CPipeDefinitionDlg::UpdatePipeInRender3D(const CGuid& guid)
 {
 	m_pDoc->UpdateRender3DObject(guid, CPipe::getTypeGUID());
+}
+
+CFloor2* CPipeDefinitionDlg::GetPointFloor(const Point& pt)
+{
+    CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();
+    std::vector<CFloor2*> vFloors = pDoc->GetCurModeFloor().m_vFloors;
+    std::vector<CFloor2*>::iterator iter;
+    int nLevel = static_cast<int>(pt.getZ() / SCALE_FACTOR);
+    for (iter = vFloors.begin(); iter != vFloors.end(); iter++)
+    {
+        if ((*iter)->Level() == nLevel)
+            return (*iter);
+    }
+    return NULL;
 }

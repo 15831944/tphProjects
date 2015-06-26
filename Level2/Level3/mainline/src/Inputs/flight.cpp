@@ -2074,6 +2074,8 @@ long Flight::GetAtdTime() const
 
 void Flight::SetAirsideFlightDepartured( bool bDeparture )
 {
+    CString strFltName;
+    getFlightIDString(strFltName.GetBuffer(256));
 	m_bAirsideDepartured = bDeparture;
 }
 

@@ -2920,7 +2920,7 @@ void CNodeView::OnRailwaylayoutDefine()
 void CNodeView::OnPipeDefine()
 {
 	CTermPlanDoc* pDoc = GetDocument();
-	CPipeDefinitionDlg dlg(&(pDoc->GetTerminal()),pDoc);	
+	CPipeDefinitionDlg dlg(&(pDoc->GetTerminal()), pDoc, this);
 	dlg.DoModal();	
 }
 

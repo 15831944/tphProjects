@@ -125,8 +125,12 @@ bool LogReader::PrintPaxLog( OutputTerminal* pTerm, const std::vector<int>& mobI
 		LOG_MOBDEVENTDESC_MEM(y);
 		LOG_MOBDEVENTDESC_MEM(speed);
 		LOG_MOBDEVENTDESC_MEM(m_RealZ);
-		LOG_MOBDEVENTDESC_MEM(z);
-		LOG_MOBDEVENTDESC_MEM(procNumber);
+        LOG_MOBDEVENTDESC_MEM(z);
+        LOG_MOBDEVENTDESC_MEM(procNumber);
+        CString strProcName;
+        LOG_MOBDEVENTDESC_MEM(strProcName);
+        CString strFlt;
+        LOG_MOBDEVENTDESC_MEM(strFlt);
 		LOG_MOBDEVENTDESC_MEM(reason);
 		LOG_MOBDEVENTDESC_MEM(state);
 		LOG_MOBDEVENTDESC_MEM(m_IsRealZ);
@@ -151,8 +155,18 @@ bool LogReader::PrintPaxLog( OutputTerminal* pTerm, const std::vector<int>& mobI
 			LOG_MOBDEVENT_MEMBER(evt.y);
 			LOG_MOBDEVENT_MEMBER(evt.speed);
 			LOG_MOBDEVENT_MEMBER(evt.m_RealZ);
-			LOG_MOBDEVENT_MEMBER(evt.z);
-			LOG_MOBDEVENT_MEMBER(evt.procNumber);
+            LOG_MOBDEVENT_MEMBER(evt.z);
+            LOG_MOBDEVENT_MEMBER(evt.procNumber);
+            Terminal* pInterm = (Terminal*)pTerm;
+            if(pInterm && evt.procNumber != -1)
+                strProcName = pInterm->procList->getProcessor(evt.procNumber)->getIDName();
+            else
+                strProcName = _T("evt.procNumber == -1");
+            LOG_MOBDEVENT_MEMBER(strProcName);
+            if(pInterm)
+                LOG_MOBDEVENT_MEMBER(_T("abc"));
+            else
+                LOG_MOBDEVENT_MEMBER(_T("abc1"));
 			LOG_MOBDEVENT_MEMBER(evt.reason);
 			LOG_MOBDEVENT_MEMBER(STATE_NAMES[evt.state]);
 			LOG_MOBDEVENT_MEMBER( bool(evt.m_IsRealZ!=0) );

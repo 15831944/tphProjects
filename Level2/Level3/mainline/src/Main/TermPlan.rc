@@ -17815,7 +17815,8 @@ BEGIN
     IDS_TVNN_STARTPOSITIONS "Start Positions"
     IDS_ARRIVE_DAY          "Arrive Day"
     IDS_DEPART_DAY          "Departure Day"
-    IDS_INVALID_PROJNAME_CHARACTER "`~!@#$%^&*()+=|;""'<,>?/"
+    IDS_INVALID_PROJNAME_CHARACTER 
+                            ". , : ; ' "" \\ / < > = ! ? * | ` ~ @ $ % ^ &"
 END
 
 STRINGTABLE

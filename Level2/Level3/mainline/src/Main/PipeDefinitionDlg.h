@@ -57,6 +57,7 @@ protected:
 	void InitTree();
 	void LoadList( int _iSelIndex = -1 );
 	void InitToolBar();
+    CFloor2* GetPointFloor(const Point& pt);
 	Terminal* m_pTerm;
 	bool m_bPaxFlowChanged;
 

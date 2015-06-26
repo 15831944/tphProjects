@@ -676,6 +676,11 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 	//for flight departure
 	if(pFlight->IsDepartingOperation())
 	{
+        if (pFlight->GetMode() == OnBirth && pFlight->IsArrival() == FALSE)//retrieve dep time
+        {
+            pFlight->GetFlightInput()->NotifyCheckRealDepatureTime();
+        }
+
 		if (!pFlight->IsArrival() && pFlight->GetMode() == OnBirth && pFlight->GetPlanedParkingStand(INT_PARKING)\
 			&&!pFlight->NeedTowingToDepStand())		//only departure, birth				
 		{
