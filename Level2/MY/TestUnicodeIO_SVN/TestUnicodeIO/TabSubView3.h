@@ -1,6 +1,6 @@
 #pragma once
 #include "afxcmn.h"
-#include "CoolTreeKeepHighlight.h"
+#include "CoolTree.h"
 
 class CTabSubView3 : public CDialog
 {
@@ -11,7 +11,7 @@ public:
     virtual ~CTabSubView3();
     enum { IDD = IDD_TABSUBVIEW3 };
 protected:
-    CCoolTreeKeepHighlight m_mainTree;
+    CCoolTree m_mainTree;
 
 protected:
     void InertTempDataToTree();
