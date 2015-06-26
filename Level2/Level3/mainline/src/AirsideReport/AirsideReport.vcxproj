@@ -187,6 +187,7 @@
     <ClCompile Include="AirsideRunwayCrossingsBaseSummaryResult.cpp" />
     <ClCompile Include="AirsideRunwayCrossingsPara.cpp" />
     <ClCompile Include="AirsideRunwayCrossingsReport.cpp" />
+    <ClCompile Include="AirsideRunwayDelayMultiRunResult.cpp" />
     <ClCompile Include="AirsideRunwayOperationReportBaseResult.cpp" />
     <ClCompile Include="AirsideRunwayOperationReportDetailResult.cpp" />
     <ClCompile Include="AirsideRunwayOperationReportParam.cpp" />
@@ -404,6 +405,7 @@
     <ClInclude Include="AirsideRunwayCrossingsBaseSummaryResult.h" />
     <ClInclude Include="AirsideRunwayCrossingsPara.h" />
     <ClInclude Include="AirsideRunwayCrossingsReport.h" />
+    <ClInclude Include="AirsideRunwayDelayMultiRunResult.h" />
     <ClInclude Include="AirsideRunwayOperationReportBaseResult.h" />
     <ClInclude Include="AirsideRunwayOperationReportDetailResult.h" />
     <ClInclude Include="AirsideRunwayOperationReportParam.h" />

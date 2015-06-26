@@ -52,7 +52,7 @@ public:
 	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter);
 
 	CAirsideReportBaseResult *GetReportResult();
-
+    AirsideFlightRunwayDelayBaseResult* GetBaseResult() const { return m_pBaseResult; }
 protected:
 	virtual BOOL WriteReportData(ArctermFile& _file);
 	virtual BOOL ReadReportData(ArctermFile& _file);

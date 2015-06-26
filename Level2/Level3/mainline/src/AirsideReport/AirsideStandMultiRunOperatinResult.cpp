@@ -741,7 +741,7 @@ void CAirsideStandMultiRunOperatinResult::Generate3DChartPercentageData(MultiRun
 		strLegend.Format(_T("Run%d"),nCurSimResult+1);
 		c2dGraphData.m_vrLegend.push_back(strLegend);
 
-		std::vector<double>  vData;
+		std::vector<double> vData;
 		for (unsigned i = 0; i < iter->second.size(); i++)
 		{
 			MultipleRunReportData delayData = iter->second.at(i);

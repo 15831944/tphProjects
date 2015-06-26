@@ -67,6 +67,7 @@
 #include "../AirsideReport/AirsideTakeoffProcessDetailResult.h"
 #include "../AirsideReport/AirsideTakeoffProcessSummaryResult.h"
 #include "AirsideReport/AirsideAircraftMutiRunRunwayOperationResult.h"
+#include "AirsideReport/AirsideRunwayDelayMultiRunResult.h"
 
 
 // CAirsideReportGraphView
@@ -80,6 +81,19 @@ CAirsideReportGraphView::CAirsideReportGraphView()
 
 CAirsideReportGraphView::~CAirsideReportGraphView()
 {
+    size_t nCount = m_vTempRunwayMarks.size();
+    for(size_t i=0; i<nCount; i++)
+    {
+        delete m_vTempRunwayMarks.at(i);
+    }
+    m_vTempRunwayMarks.clear();
+
+    nCount = m_vTempStrRunways.size();
+    for(size_t i=0; i<nCount; i++)
+    {
+        delete m_vTempStrRunways.at(i);
+    }
+    m_vTempStrRunways.clear();
 }
 
 void CAirsideReportGraphView::DoDataExchange(CDataExchange* pDX)
@@ -550,6 +564,15 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 			int nSubType =  m_comboChartSelect.GetItemData(nCursel);
 			CFlightOperationalParam *pParam = reinterpret_cast<CFlightOperationalParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			pParam->setSubType(nSubType);
+			std::vector<int> vReportRun;
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			{
+				if (vReportRun.size() > 1)
+				{
+					GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					return;
+				}
+			}
 
 			CFlightOperationalReport *pPreport = reinterpret_cast<CFlightOperationalReport *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
 			pPreport->RefreshReport(pParam);
@@ -610,10 +633,10 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
                 {
                     GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
                     m_ComBoxSubType.ShowWindow(TRUE);
-                    DeleteComboboxItemDatas(m_ComBoxSubType);
                     m_ComBoxSubType.ResetContent();
                     int nIndex = m_ComBoxSubType.AddString("All");
                     RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
+                    m_vTempRunwayMarks.push_back(pRunwayMark);
                     pRunwayMark->m_mark.m_nRunwayID = -1;
                     pRunwayMark->m_mark.m_enumRunwayMark = RUNWAYMARK_FIRST;
                     pRunwayMark->m_mark.m_strMarkName = "All";
@@ -624,6 +647,7 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
                     {
                         int nIndex = m_ComBoxSubType.AddString(iter->m_strMarkName);
                         RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
+                        m_vTempRunwayMarks.push_back(pRunwayMark);
                         pRunwayMark->m_mark = *iter;
                         m_ComBoxSubType.SetItemData(nIndex, (DWORD)pRunwayMark);
                     }
@@ -959,13 +983,47 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
 
 			int nSubType =  m_comboChartSelect.GetItemData(nCursel);
 			pParam->setSubType(nSubType);
+            GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_HIDE);
+            GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Sub Type"));
+            m_ComBoxSubType.ShowWindow(FALSE);
 
-			AirsideFlightRunwayDelayReport *pPreport = reinterpret_cast< AirsideFlightRunwayDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-			pPreport->RefreshReport(pParam);
+            std::vector<int> vReportRun;
+            bool bMultiple = false;
+            if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+            {
+                if (vReportRun.size() > 1)
+                {
+                    GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
+                    m_ComBoxSubType.ShowWindow(TRUE);
+                    m_ComBoxSubType.ResetContent();
 
-			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
+                    CAirsideReportManager* pAirsideRepMan = GetDocument()->GetARCReportManager().GetAirsideReportManager();
+                    const CAirsideMultipleRunReport& multiRunRep = pAirsideRepMan->GetMultiRunReport();
+                    const CAirsideRunwayDelayMultiRunResult* pResult = (CAirsideRunwayDelayMultiRunResult*)multiRunRep.GetMultipleRunResultByReportType(Airside_RunwayDelay);
+                    std::vector<CString> vRunwayList = pResult->GetRunwayMarkList();
+                    size_t nCount = vRunwayList.size();
+                    int nIndex = -1;
+                    for(size_t i=0; i<nCount; i++)
+                    {
+                        nIndex = m_ComBoxSubType.AddString(vRunwayList.at(i));
+                        CString* pStr = new CString(vRunwayList.at(i));
+                        m_ComBoxSubType.SetItemData(nIndex, (DWORD)pStr);
+                        m_vTempStrRunways.push_back(pStr);
+                    }
+                    m_ComBoxSubType.SetCurSel(0);
+                    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, (int)m_ComBoxSubType.GetItemData(0));
+                    bMultiple = true;
+                }
+            }
+
+            if(!bMultiple)
+            {
+                AirsideFlightRunwayDelayReport *pPreport = reinterpret_cast< AirsideFlightRunwayDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+                pPreport->RefreshReport(pParam);
+                CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+                if (pResult)
+                    pResult->Draw3DChart(m_MSChartCtrl, pParam);
+            }
 		}
 		break;
 	case Airside_FlightFuelBurning:
@@ -1579,7 +1637,6 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			CAirsideOperationParam *pParam = reinterpret_cast<CAirsideOperationParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			//pParam->setSubType(nSubType);
 			CAirsideOperationReport *pPreport = reinterpret_cast< CAirsideOperationReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-
 			pPreport->RefreshReport(pParam);
 			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
 			if (pResult)
@@ -1605,11 +1662,23 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 			CFlightOperationalParam *pParam = reinterpret_cast<CFlightOperationalParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
 			pParam->setSubType(nSubType);
 			CFlightOperationalReport *pPreport = reinterpret_cast< CFlightOperationalReport*> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-
-			pPreport->RefreshReport(pParam);
-			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
+			std::vector<int> vReportRun;
+			bool bMultiple = false;
+			if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+			{
+				if (vReportRun.size() > 1)
+				{
+					GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl);
+					bMultiple = true;
+				}
+			}
+			if (bMultiple == false)
+			{
+				pPreport->RefreshReport(pParam);
+				CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+				if (pResult)
+					pResult->Draw3DChart(m_MSChartCtrl, pParam);
+			}
 		}
 		break;
 
@@ -1630,12 +1699,12 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                 {
                     GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
                     m_ComBoxSubType.ShowWindow(TRUE);
-                    DeleteComboboxItemDatas(m_ComBoxSubType);
                     m_ComBoxSubType.ResetContent();
 
 
                     int nIndex = m_ComBoxSubType.AddString("All");
                     RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
+                    m_vTempRunwayMarks.push_back(pRunwayMark);
                     pRunwayMark->m_mark.m_nRunwayID = -1;
                     pRunwayMark->m_mark.m_enumRunwayMark = RUNWAYMARK_FIRST;
                     pRunwayMark->m_mark.m_strMarkName = "All";
@@ -1651,6 +1720,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                             strCombo.Format("%s %s", iter->m_strMarkName, "Landings");
                             int nIndex = m_ComBoxSubType.AddString(strCombo);
                             RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
+                            m_vTempRunwayMarks.push_back(pRunwayMark);
                             pRunwayMark->m_mark = *iter;
                             pRunwayMark->m_strLandingTakeoff = "Landings";
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)pRunwayMark);
@@ -1658,6 +1728,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                             strCombo.Format("%s %s", iter->m_strMarkName, "TakeOff");
                             nIndex = m_ComBoxSubType.AddString(strCombo);
                             pRunwayMark = new RumwayMarkWithLandingTakeOff;
+                            m_vTempRunwayMarks.push_back(pRunwayMark);
                             pRunwayMark->m_mark = *iter;
                             pRunwayMark->m_strLandingTakeoff = "TakeOff";
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)pRunwayMark);
@@ -1672,6 +1743,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                             strCombo = iter->m_strMarkName;
                             int nIndex = m_ComBoxSubType.AddString(iter->m_strMarkName);
                             RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
+                            m_vTempRunwayMarks.push_back(pRunwayMark);
                             pRunwayMark->m_mark = *iter;
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)pRunwayMark);
                         }
@@ -1770,15 +1842,28 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 		break;
 	case Airside_RunwayDelay:
 		{
+            AirsideFlightRunwayDelayReportPara *pParam = (AirsideFlightRunwayDelayReportPara*)GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters();
+            pParam->setSubType(nSubType);
+            bool bMultiple = false;
+            std::vector<int> vReportRun;
+            if(pParam->GetReportRuns(vReportRun) && pParam->GetEnableMultiRun())
+            {
+                if (vReportRun.size() > 1)
+                {
+                    m_ComBoxSubType.SetCurSel(0);
+                    GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, (int)m_ComBoxSubType.GetItemData(0));
+                    bMultiple = true;
+                }
+            }
+            if (bMultiple == false)
+            {
+                AirsideFlightRunwayDelayReport *pPreport = reinterpret_cast< AirsideFlightRunwayDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+                pPreport->RefreshReport(pParam);
 
-			AirsideFlightRunwayDelayReportPara *pParam = reinterpret_cast<AirsideFlightRunwayDelayReportPara *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
-			pParam->setSubType(nSubType);
-			AirsideFlightRunwayDelayReport *pPreport = reinterpret_cast< AirsideFlightRunwayDelayReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-			pPreport->RefreshReport(pParam);
-
-			CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-			if (pResult)
-				pResult->Draw3DChart(m_MSChartCtrl, pParam);
+                CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+                if (pResult)
+                    pResult->Draw3DChart(m_MSChartCtrl, pParam);
+            }
 		}
 		break;
 	case Airside_RunwayCrossings:
@@ -2133,9 +2218,6 @@ void CAirsideReportGraphView::OnSelChangerChartSubType()
     }
     else if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType() == Airside_RunwayOperaitons)
     {
-        AirsideRunwayOperationReportParam *pParam = 
-            reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
-
         int nCurSel = m_ComBoxSubType.GetCurSel();
         if(nCurSel == LB_ERR)
             return;
@@ -2143,6 +2225,14 @@ void CAirsideReportGraphView::OnSelChangerChartSubType()
         RumwayMarkWithLandingTakeOff* pRunwayMark = (RumwayMarkWithLandingTakeOff*)m_ComBoxSubType.GetItemData(nCurSel);
         GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, (int)pRunwayMark);
         //GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)pRunwayMark);
+    }
+    else if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType() == Airside_RunwayDelay)
+    {
+        int nCurSel = m_ComBoxSubType.GetCurSel();
+        if(nCurSel == LB_ERR)
+            return;
+        CString* pStrRunway = (CString*)m_ComBoxSubType.GetItemData(nCurSel);
+        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, (int)pStrRunway);
     }
 }
 
@@ -2169,13 +2259,3 @@ void CAirsideReportGraphView::OnSelChangerChartSubTypes()
 	}
 }
 
-void CAirsideReportGraphView::DeleteComboboxItemDatas(CComboBox& pComboBox)
-{
-    int nItemCount =  pComboBox.GetCount();
-    for(int i=0; i<nItemCount; i++)
-    {
-        RumwayMarkWithLandingTakeOff* pRunwayMark = (RumwayMarkWithLandingTakeOff*)pComboBox.GetItemData(i);
-        ASSERT(pRunwayMark);
-        delete pRunwayMark;
-    }
-}
