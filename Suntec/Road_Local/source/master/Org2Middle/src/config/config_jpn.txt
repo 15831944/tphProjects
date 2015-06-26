@@ -1,0 +1,15 @@
+#################################################################
+# proj_jpn
+#proj_name=jpn
+#proj_country=hkg
+#illust=..\..\SourceData\JP\2012A\pictures
+#highway=..\..\..\..\SourceData\JP\2012A\highway
+#sf_highway=..\..\..\..\SourceData\JP\2012A\kensaku
+#toll=..\..\..\..\SourceData\JP\toll
+#admin_wav=..\..\..\..\SourceData\JP\admin_wav.txt
+#connectway=..\..\..\..\SourceData\JP\2013Spring\connectway
+#forceguide_patch_open=true
+#forceguide_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_append_patch.csv
+#forceguide_update=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_update_patch.csv
+#forceguide_friendly_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_friendly_append_patch.csv
+#################################################################

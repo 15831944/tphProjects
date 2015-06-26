@@ -1,0 +1,7 @@
+#################################################################
+# proj_ta
+proj_name=ta
+proj_country=aus
+ta_jv_sidefile=\\idata\Private\Data_Authoring\SourceData\Sensis\201503\aus_jv_link_org
+ta_phoneme_sidefile=\\idata\Private\Data_Authoring\SourceData\Sensis\201503\txt\mnvmlhp\
+#################################################################

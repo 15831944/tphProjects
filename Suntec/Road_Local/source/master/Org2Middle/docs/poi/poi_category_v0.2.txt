@@ -1,0 +1,145 @@
+#org_code;ucode;gen1;gen2;gen3;level;ALL;brand;imp;lang;nametype;table;condition;name;logmark
+0;16777216;1;0;0;1;0;N;9999;ENG;ON;;;Restaurant;
+7315;16777472;1;1;0;2;0;N;9999;ENG;ON;;;Restaurant;Y
+0;33554432;2;0;0;1;0;N;9999;ENG;ON;;;Car;
+9910;33554688;2;1;0;2;0;Y;9999;ENG;ON;org_pi;"Sub-Category (NS)=9910002& brandname= 'Lexus'";Lexus dealership;Y
+9910;33554944;2;2;0;2;0;Y;9999;ENG;ON;org_pi;"Sub-Category (NS)=9910002& brandname= 'Toyota'";Toyota dealership;
+0;33555200;2;3;0;2;0;N;9999;ENG;ON;;;Petrol;
+7311;33555201;2;3;1;3;1;N;9999;ENG;ON;;;Petrol(ALL);Y
+7311;33555202;2;3;2;3;0;Y;9999;ENG;ON;org_pi;brandname = '7-Eleven';7-Eleven;Y
+7311;33555203;2;3;3;3;0;Y;9999;ENG;ON;org_pi;brandname = 'AFD';AFD;
+7311;33555204;2;3;4;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Allied Petroleum';Allied Petroleum;
+7311;33555205;2;3;5;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Ampol';Ampol;
+7311;33555206;2;3;6;3;0;Y;9999;ENG;ON;org_pi;brandname = 'APCO';APCO;
+7311;33555207;2;3;7;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Astron';Astron;
+7311;33555208;2;3;8;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Better Choice';Better Choice;
+7311;33555209;2;3;9;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Blue Star';Blue Star;
+7311;33555210;2;3;10;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bogas';Bogas;
+7311;33555211;2;3;11;3;0;Y;9999;ENG;ON;org_pi;brandname = 'BP';BP;
+7311;33555212;2;3;12;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Branbac';Branbac;
+7311;33555213;2;3;13;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Budget';Budget;
+7311;33555214;2;3;14;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Caltex';Caltex;
+7311;33555215;2;3;15;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Challenge';Challenge;Y
+7311;33555216;2;3;16;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Choice';Choice;Y
+7311;33555217;2;3;17;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Cross Country';Cross Country;
+7311;33555218;2;3;18;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Excel';Excel;
+7311;33555219;2;3;19;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Freedom Fuels';Freedom Fuels;
+7311;33555220;2;3;20;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Fuel Zone';Fuel Zone;
+7311;33555221;2;3;21;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Gasoline Alley Services';Gasoline Alley Services;
+7311;33555222;2;3;22;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Gull';Gull;
+7311;33555223;2;3;23;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Liberty';Liberty;
+7311;33555224;2;3;24;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Major';Major;
+7311;33555225;2;3;25;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Matilda Fuels';Matilda Fuels;
+7311;33555226;2;3;26;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Metro Petroleum';Metro Petroleum;
+7311;33555227;2;3;27;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Mobil';Mobil;
+7311;33555228;2;3;28;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Mogas Regional';Mogas Regional;
+7311;33555229;2;3;29;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Nelson Petroleum';Nelson Petroleum;
+7311;33555230;2;3;30;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Neumann Petroleum';Neumann Petroleum;
+7311;33555231;2;3;31;3;0;Y;9999;ENG;ON;org_pi;brandname = 'New World';New World;
+7311;33555232;2;3;32;3;0;Y;9999;ENG;ON;org_pi;brandname = 'PAK'nSAVE';PAK'nSAVE;
+7311;33555233;2;3;33;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Peak Petroleum';Peak Petroleum;
+7311;33555234;2;3;34;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Pentaco';Pentaco;
+7311;33555235;2;3;35;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Power';Power;
+7311;33555236;2;3;36;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Shell';Shell;
+7311;33555237;2;3;37;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Solo';Solo;
+7311;33555238;2;3;38;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Speedway';Speedway;
+7311;33555239;2;3;39;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Spirit Taranaki';Spirit Taranaki;
+7311;33555240;2;3;40;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Sprint';Sprint;
+7311;33555241;2;3;41;3;0;Y;9999;ENG;ON;org_pi;brandname = 'United Petroleum';United Petroleum;
+7311;33555242;2;3;42;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Volume Plus';Volume Plus;
+7311;33555243;2;3;43;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Waitomo Petroleum';Waitomo Petroleum;
+7311;33555244;2;3;44;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Wesco';Wesco;
+7311;33555245;2;3;45;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Western Fuel';Western Fuel;
+7311;33555246;2;3;46;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Z';Z;
+7313;33555456;2;4;0;2;0;N;9999;ENG;ON;;;Parking garage/house;
+7312;33555712;2;5;0;2;0;N;9999;ENG;ON;;;Rental car facility;
+7312;33555713;2;5;1;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Budget';Budget;
+0;33555968;2;6;0;2;0;N;9999;ENG;ON;;;Auto service & maintenance;
+7310;33555969;2;6;1;3;0;N;9999;ENG;ON;;;Repair Facility;
+9155;33555970;2;6;2;3;0;N;9999;ENG;ON;;;Car Wash;
+0;50331648;3;0;0;1;0;N;9999;ENG;ON;;;Leisure;
+9911;50331904;3;1;0;2;0;N;9999;ENG;ON;;;Golf course;
+9902;50332160;3;2;0;2;0;N;9999;ENG;ON;;;Amusement park;
+7342;50332416;3;3;0;2;0;N;9999;ENG;ON;;;Cinema;
+7374;50332672;3;4;0;2;0;N;9999;ENG;ON;;;Sports complex;
+7341;50332928;3;5;0;2;0;N;9999;ENG;ON;;;Casino;
+7347;50333184;3;6;0;2;0;N;9999;ENG;ON;;;Marina;
+7320;50333440;3;7;0;2;0;N;9999;ENG;ON;;;Sports centre;
+0;50333696;3;8;0;2;0;N;9999;ENG;ON;;;Tourist attraction;
+7376;50333697;3;8;1;3;0;N;9999;ENG;ON;;;"Important Tourist Attraction";
+7349;50333952;3;9;0;2;0;N;9999;ENG;ON;;;Winery;
+9376;50333953;3;9;1;3;0;N;9999;ENG;ON;org_pi;Sub-Category (NS)=9376003;Pub;Y
+9376;50333954;3;9;2;3;0;N;9999;ENG;ON;org_pi;Sub-Category (NS)=9376007;Microbrewery/Beer Garden;
+0;67108864;4;0;0;1;0;N;9999;ENG;ON;;;Travel;
+7380;67109120;4;1;0;2;0;N;9999;ENG;ON;;;Railway station;
+7383;67109376;4;2;0;2;0;N;9999;ENG;ON;;;Airport;
+7352;67109632;4;3;0;2;0;N;9999;ENG;ON;;;Ferry port;
+7395;67109888;4;4;0;2;0;N;9999;ENG;ON;;;Fwy service;
+7316;67110144;4;5;0;2;0;N;9999;ENG;ON;;;Tourist information;Y
+0;83886080;5;0;0;1;0;N;9999;ENG;ON;;;Shopping;
+0;83886336;5;1;0;2;0;N;9999;ENG;ON;;;Shopping;
+7327;83886338;5;1;2;3;0;N;9999;ENG;ON;;;Department Store;
+9361;83886339;5;1;3;3;0;N;9999;ENG;ON;;;Shop;
+7373;83886340;5;1;4;3;0;N;9999;ENG;ON;;;Shopping Center;
+7332;83886341;5;1;5;3;0;N;9999;ENG;ON;;;Market;
+7332;83886342;5;1;6;3;0;Y;9999;ENG;ON;org_pi;"Sub-Category (NS)=73320005& brandname='New World'";New World;
+7332;83886343;5;1;7;3;0;Y;9999;ENG;ON;org_pi;"Sub-Category (NS)=73320005& brandname='PAK'nSAVE'";PAK'nSAVE;
+9361;83886344;5;1;8;3;0;Y;9999;ENG;ON;org_pi;"Sub-Category (NS)=9361009& brandname='7-Eleven'";7-Eleven;
+0;100663296;6;0;0;1;0;N;9999;ENG;ON;;;Hotel;
+7314;100663552;6;1;0;2;0;N;9999;ENG;ON;;;Hotel;
+0;117440512;7;0;0;1;0;N;9999;ENG;ON;;;Community;
+7322;117440768;7;1;0;2;0;N;9999;ENG;ON;;;Police station;Y
+9913;117441024;7;2;0;2;0;N;9999;ENG;ON;;;Library;
+0;117441280;7;3;0;2;0;N;9999;ENG;ON;;;Hospital;
+7321;117441281;7;3;1;2;0;N;9999;ENG;ON;;;;
+7392;117441536;7;4;0;2;0;N;9999;ENG;ON;;;Fire station;
+9362;117441792;7;5;0;2;0;N;9999;ENG;ON;;;Parks/Recreation;
+7363;117442048;7;6;0;2;0;N;9999;ENG;ON;;;Community centre;
+9377;117442304;7;7;0;2;0;N;9999;ENG;ON;;;Exhibition centre;
+9363;117442560;7;8;0;2;0;N;9999;ENG;ON;;;Court House;
+0;134217728;8;0;0;1;0;N;9999;ENG;ON;;;Others;
+7318;134217984;8;1;0;2;0;N;9999;ENG;ON;;;Theatre;
+7317;134218240;8;2;0;2;0;N;9999;ENG;ON;;;Museum;
+7328;134218496;8;3;0;2;0;N;9999;ENG;ON;;;Bank;
+7328;134218497;8;3;1;3;0;Y;9999;ENG;ON;org_pi;brandname = 'ANZ';ANZ;
+7328;134218498;8;3;2;3;0;Y;9999;ENG;ON;org_pi;brandname = 'ASB';ASB;
+7328;134218499;8;3;3;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bank of Melbourne';Bank of Melbourne;
+7328;134218500;8;3;4;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bank of South Australia';Bank of South Australia;
+7328;134218501;8;3;5;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bankwest';Bankwest;
+7328;134218502;8;3;6;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bendigo Bank';Bendigo Bank;
+7328;134218503;8;3;7;3;0;Y;9999;ENG;ON;org_pi;brandname = 'BNZ';BNZ;
+7328;134218504;8;3;8;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Commonwealth Bank of Australia';Commonwealth Bank of Australia;
+7328;134218505;8;3;9;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Heritage Bank';Heritage Bank;
+7328;134218506;8;3;10;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Kiwibank';Kiwibank;
+7328;134218507;8;3;11;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Newcastle Permanent Building Society';Newcastle Permanent Building Society;
+7328;134218508;8;3;12;3;0;Y;9999;ENG;ON;org_pi;brandname = 'St George';St George;
+7328;134218509;8;3;13;3;0;Y;9999;ENG;ON;org_pi;brandname = 'TSB';TSB;
+7328;134218510;8;3;14;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Westpac';Westpac;
+7328;134218511;8;3;15;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Widebay';Widebay;
+0;134218752;8;4;0;2;0;N;9999;ENG;ON;;;ATM;
+7397;134218753;8;4;1;3;1;N;9999;ENG;ON;;;ATM(ALL);Y
+7397;134218754;8;4;2;3;0;Y;9999;ENG;ON;org_pi;brandname = 'ANZ';ANZ;
+7397;134218755;8;4;3;3;0;Y;9999;ENG;ON;org_pi;brandname = 'ASB';ASB;
+7397;134218756;8;4;4;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bank of Melbourne';Bank of Melbourne;
+7397;134218757;8;4;5;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bank of South Australia';Bank of South Australia;
+7397;134218758;8;4;6;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bankwest';Bankwest;
+7397;134218759;8;4;7;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Bendigo Bank';Bendigo Bank;
+7397;134218760;8;4;8;3;0;Y;9999;ENG;ON;org_pi;brandname = 'BNZ';BNZ;
+7397;134218761;8;4;9;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Commonwealth Bank of Australia';Commonwealth Bank of Australia;
+7397;134218762;8;4;10;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Heritage Bank';Heritage Bank;
+7397;134218763;8;4;11;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Kiwibank';Kiwibank;
+7397;134218764;8;4;12;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Newcastle Permanent Building Society';Newcastle Permanent Building Society;
+7397;134218765;8;4;13;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Queensland Police Credit Union';Queensland Police Credit Union;
+7397;134218766;8;4;14;3;0;Y;9999;ENG;ON;org_pi;brandname = 'rediATM';rediATM;
+7397;134218767;8;4;15;3;0;Y;9999;ENG;ON;org_pi;brandname = 'St George';St George;
+7397;134218768;8;4;16;3;0;Y;9999;ENG;ON;org_pi;brandname = 'TSB';TSB;
+7397;134218769;8;4;17;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Westpac';Westpac;
+7397;134218770;8;4;18;3;0;Y;9999;ENG;ON;org_pi;brandname = 'Widebay';Widebay;
+7377;134219008;8;5;0;2;0;N;9999;ENG;ON;;;University;
+7372;134219264;8;6;0;2;0;N;9999;ENG;ON;;;School;
+0;134219520;8;7;0;2;0;N;9999;ENG;ON;;;Business facility;
+9382;134219521;8;7;1;3;0;N;9999;ENG;ON;;;Commercial Building;Y
+9352;134219522;8;7;2;3;0;N;9999;ENG;ON;;;Company;Y
+9352;134219523;8;7;3;3;0;N;9999;ENG;ON;org_pi;"Sub-Category (NS)=9352001& brandname='Liberty'";Liberty;
+9352;134219524;8;7;4;3;0;Y;9999;ENG;ON;org_pi;"Sub-Category (NS)=9352001& brandname='National Australia Bank'";National Australia Bank;
+7379;134219776;8;8;0;2;0;N;9999;ENG;ON;;;City centre;

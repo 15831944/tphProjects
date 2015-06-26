@@ -1,0 +1,8 @@
+eclipse.preferences.version=1
+encoding//src/base/rdb_ItemBase.py=cp936
+encoding//src/common/rdb_database.py=cp936
+encoding//src/item/rdb_guideinfo_safety_zone.py=cp936
+encoding//src/item/rdb_guideinfo_spotguide.py=cp936
+encoding//src/item/rdb_link_org2rdb.py=cp936
+encoding//src/item_client/rdb_guideinfo_spotguide_client.py=cp936
+encoding//src/main.py=cp936

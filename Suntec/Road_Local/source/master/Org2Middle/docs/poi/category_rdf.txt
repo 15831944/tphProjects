@@ -1,0 +1,260 @@
+#permanent_code;gen1;gen2;gen3;level;name;imp;org_code;tr_name
+436207616;26;0;0;1;dummy;9999;0;dummy
+436273152;26;1;0;2;Airport;9;4581;Bandara
+436338688;26;2;0;2;Amusement Park;9999;7996;Taman Hiburan
+436404224;26;3;0;2;Animal Park;9999;9718;Taman Satwa
+436469760;26;4;0;2;ATM;9;3578;ATM
+436535296;26;5;0;2;Auto Dealerships;9999;5511;Dealer Mobil
+436600832;26;6;0;2;Auto Dealership-Used Cars;9999;5512;Dealer Mobil Bekas
+436666368;26;7;0;2;Automobile Club;9999;8699;Klub Otomotif
+436731904;26;8;0;2;Auto Service & Maintenance;9999;7538;Servis & Pemeliharaan Mobil
+436797440;26;9;0;2;Bank;9;6000;Bank
+436862976;26;10;0;2;Book Store;9999;9995;Toko Buku
+436928512;26;11;0;2;Border Crossing;9999;9999;Lintas Perbatasan
+436994048;26;12;0;2;Bowling Centre;9999;7933;Pusat Boling
+437059584;26;13;0;2;Business Facility;9999;5000;Fasilitas Bisnis
+437125120;26;14;0;2;Bus Station;9999;4170;Stasiun Bus
+437190656;26;15;0;2;Campground;9999;9517;Bumi Perkemahan
+437256192;26;16;0;2;Cargo Centre;9999;9714;Pusat Kargo
+437321728;26;17;0;2;Casino;9999;7985;Kasino
+437387264;26;18;0;2;Cemetery;9999;9591;Pemakaman
+437452800;26;19;0;2;Cinema;9;7832;Bioskop
+437518336;26;20;0;2;City Hall;9999;9121;Balai Kota
+437583872;26;21;0;2;Civic/Community Centre;9999;7994;Pusat Masyarakat/Komunitas
+437649408;26;22;0;2;Clothing Store;9999;9537;Toko Pakaian
+437714944;26;23;0;2;Coffee Shop;9999;9996;Kafe
+437780480;26;24;0;2;Commuter Rail Station;9999;4100;Stasiun Kereta Komuter
+437846016;26;25;0;2;Consumer Electronics Store;9999;9987;Toko Elektronik Konsumen
+437911552;26;26;0;2;Convenience Store;9999;9535;Mini Market
+437977088;26;27;0;2;Convention/Exhibition Centre;9999;7990;Konvensi/Pusat Pameran
+438042624;26;28;0;2;County Council;9999;9994;Dewan Kota
+438108160;26;29;0;2;Court House;9999;9211;Pengadilan
+438173696;26;30;0;2;Delivery Entrance;9999;9722;Pintu Pengiriman
+438239232;26;31;0;2;Department Store;9;9545;Toko Serba Ada
+438304768;26;32;0;2;Dock;9999;9723;Dermaga
+438370304;26;33;0;2;Embassy;9999;9993;Kedutaan
+438435840;26;34;0;2;Ferry Terminal;9999;4482;Terminal Feri
+438501376;26;35;0;2;Golf Course;9999;7992;Lapangan Golf
+438566912;26;36;0;2;Golf Practice Range;9999;9573;Driving Range Golf
+438632448;26;37;0;2;Government Office;9;9525;Kantor Pemerintahan
+438697984;26;38;0;2;Grocery Store;9999;5400;Toko Grosir
+438763520;26;39;0;2;Higher Education;9;8200;Perguruan Tinggi
+438829056;26;40;0;2;Highway Exit;9999;9592;Pintu Keluar Tol
+438894592;26;41;0;2;Historical Monument;9999;5999;Monumen Bersejarah
+438960128;26;42;0;2;Home Improvement & Hardware Store;9999;9986;Toko Renovasi & Perkakas Rumah
+439025664;26;43;0;2;Home Specialty Store;9999;9560;Toko Spesialisasi Rumah
+439091200;26;44;0;2;Hospital;9;8060;Rumah Sakit
+439156736;26;45;0;2;Hotel;9;7011;Hotel
+439222272;26;46;0;2;Ice Skating Rink;9999;7998;Arena Seluncur Es
+439287808;26;47;0;2;Industrial Zone;9999;9991;Zona Industri
+439353344;26;48;0;2;Library;9999;8231;Perpustakaan
+439418880;26;49;0;2;Loading Zone;9999;9724;Zona Bongkar Muat
+439484416;26;50;0;2;Marina;9999;4493;Marina
+439549952;26;51;0;2;Medical Service;9999;9583;Layanan Medis
+439615488;26;52;0;2;Military Base;9999;9715;Basis Militer
+439681024;26;53;0;2;Motorcycle Dealership;9999;5571;Dealer Motor
+439746560;26;54;0;2;Museum;9;8410;Museum
+439812096;26;55;0;2;Named Intersection;9999;9730;Perlintasan Bernama
+439877632;26;56;0;2;Nightlife;9999;5813;Kehidupan Malam
+439943168;26;57;0;2;Office Supply and Service Store;9999;9988;Toko ATK dan Servis
+440008704;26;58;0;2;Other Accommodation;9999;7013;Akomodasi Lain
+440074240;26;59;0;2;Parking Garage/House;9999;7521;Garasi/Rumah Parkir
+440139776;26;60;0;2;Parking Lot;9999;7520;Lahan Parkir
+440205312;26;61;0;2;Park/Recreation Area;9999;7947;Taman/Area Rekreasi
+440270848;26;62;0;2;Park & Ride;9999;7522;Taman & Wahana Hiburan
+440336384;26;63;0;2;Performing Arts;9999;7929;Seni Pertunjukan
+440401920;26;64;0;2;Petrol/Gasoline Station;9999;5540;SPBU
+440467456;26;65;0;2;Pharmacy;9999;9565;Apotek
+440532992;26;66;0;2;Place of Worship;9999;9992;Rumah Ibadah
+440598528;26;67;0;2;Police Station;9;9221;Pos Polisi
+440664064;26;68;0;2;Post Office;9999;9530;Kantor Pos
+440729600;26;69;0;2;Public Restroom;9999;9589;WC Umum
+440795136;26;70;0;2;Public Sports Airport;9999;4580;Bandara Olahraga Umum
+440860672;26;71;0;2;Public Transit Access;9999;9708;Akses Transit Umum
+440926208;26;72;0;2;Public Transit Stop;9999;9707;Perhentian Transit Umum
+440991744;26;73;0;2;Rental Car Agency;9999;7510;Persewaan Mobil
+441057280;26;74;0;2;Repair Services;9999;9595;Layanan Perbaikan
+441057280;26;74;0;2;Repair Services;9999;9512;Layanan Perbaikan
+441122816;26;75;0;2;Residential Area/Building;9999;9590;Area/Bangunan Perumahan
+441188352;26;76;0;2;Rest Area;9999;7897;Area Istirahat
+441253888;26;77;0;2;Restaurant;9999;5800;Restoran
+441319424;26;78;0;2;School;9999;8211;Sekolah
+441384960;26;79;0;2;Shopping;9999;6512;Perbelanjaan
+441450496;26;80;0;2;Ski Lift;9999;7014;Lift Ski
+441516032;26;81;0;2;Ski Resort;9999;7012;Resor Ski
+441581568;26;82;0;2;Specialty Store;9999;9567;Toko Spesialis
+441647104;26;83;0;2;Sporting Good Store;9999;9568;Toko Produk Olahraga
+441712640;26;84;0;2;Sports Centre;9999;7997;Pusat Olahraga
+441778176;26;85;0;2;Sports Complex;9999;7940;Kompleks Olahraga
+441843712;26;86;0;2;Taxi Stand;9999;9989;Pos Taksi
+441909248;26;87;0;2;Toll Booth;9999;9717;Pintu Tol
+441974784;26;88;0;2;Tourist Attraction;9;7999;Atraksi Wisata
+442040320;26;89;0;2;Tourist Information;9999;7389;Informasi Turis
+442105856;26;90;0;2;Training Centre/Institute;9999;9596;Pusat/Institut Pelatihan
+442171392;26;91;0;2;Train Station;9;4013;Stasiun Kereta
+442236928;26;92;0;2;Transportation Service;9999;9593;Layanan Angkutan
+442302464;26;93;0;2;Truck Dealership;9999;9719;Dealer Truk
+442368000;26;94;0;2;Truck Stop/Plaza;9999;9522;Perhentian/Plasa Truk
+442433536;26;95;0;2;Weigh Station;9999;9710;Jembatan Timbang
+442499072;26;96;0;2;Winery;9999;2084;Kilang Anggur
+442564608;26;97;0;2;Business Service;9999;9500;Layanan Bisnis
+442630144;26;98;0;2;Other Communication;9999;9501;Komunikasi Lain
+442695680;26;99;0;2;Telephone Service;9999;9502;Layanan Telepon
+442761216;26;100;0;2;Cleaning & Laundry;9999;9503;Pembersihan & Binatu
+442826752;26;101;0;2;Hair & Beauty;9999;9504;Salon Kecantikan
+442892288;26;102;0;2;Mover;9999;9506;Jasa Pindahan
+442957824;26;103;0;2;Photography;9999;9507;Fotografi
+443023360;26;104;0;2;Video & Game Rental;9999;9508;Persewaan Video & Game
+443088896;26;105;0;2;Storage;9999;9509;Penyimpanan
+443154432;26;106;0;2;Tailor & Alteration;9999;9510;Penjahit & Vermak
+443219968;26;107;0;2;Tax Service;9999;9511;Konsultan Pajak
+443285504;26;108;0;2;Retirement/Nursing Home;9999;9513;Panti Jompo/Wredha
+443351040;26;109;0;2;Social Service;9999;9514;Layanan Sosial
+443416576;26;110;0;2;Utilities;9999;9515;Utilitas
+443482112;26;111;0;2;Waste & Sanitary;9999;9516;Limbah & Sanitasi
+443547648;26;112;0;2;Car Wash/Detailing;9999;9519;Cuci Mobil/Aksesori
+443613184;26;113;0;2;Local Transit;9999;9520;Transit Lokal
+443678720;26;114;0;2;Travel Agent & Ticketing;9999;9521;Biro Perjalanan & Tiket
+443744256;26;115;0;2;Fire Department;9999;9527;Pemadam Kebakaran
+443809792;26;116;0;2;Funeral Director;9999;9529;Rumah Duka
+443875328;26;117;0;2;Banquet Hall;9999;9531;Aula Resepsi
+443940864;26;118;0;2;Cocktail Lounge;9999;9533;Lounge Koktail
+444006400;26;119;0;2;Specialty Food Store;9999;9536;Toko Makanan Khusus
+444071936;26;120;0;2;Specialty Clothing Store;9999;9540;Toko Pakaian Khusus
+444137472;26;121;0;2;Check Cashing Service;9999;9542;Layanan Pencairan Cek
+444203008;26;122;0;2;Money Transferring Service;9999;9544;Layanan Pengiriman Uang
+444268544;26;123;0;2;Discount Store;9999;9546;Toko Diskon
+444334080;26;124;0;2;Other General Merchandise;9999;9547;Barang Dagangan Lain-Lain
+444399616;26;125;0;2;Variety Store;9999;9548;Toko Serbaneka
+444465152;26;126;0;2;Garden Center;9999;9549;Pusat Taman
+444530688;26;127;0;2;Glass & Window;9999;9550;Kaca & Jendela
+444596224;26;128;0;2;Hardware Store;9999;9551;Toko Besi
+444661760;26;129;0;2;Lumber;9999;9553;Tukang Kayu
+444727296;26;130;0;2;Other House & Garden;9999;9554;Rumah & Taman Lain-Lain
+444792832;26;131;0;2;Paint;9999;9555;Toko Cat
+444858368;26;132;0;2;Entertainment Electronics;9999;9556;Elektronik Hiburan
+444923904;26;133;0;2;Floor & Carpet;9999;9557;Lantai & Karpet
+444989440;26;134;0;2;Furniture Store;9999;9558;Toko Mebel
+445054976;26;135;0;2;Major Appliance;9999;9559;Toko Peralatan Rumah Tangga
+445120512;26;136;0;2;Computer & Software;9999;9561;Komputer & Perangkat Lunak
+445186048;26;137;0;2;Flowers & Jewelry;9999;9562;Bunga & Perhiasan
+445251584;26;138;0;2;Gift, Antique, & Art;9999;9563;Hadiah, Antik, & Seni
+445317120;26;139;0;2;Optical;9999;9564;Toko Kaca Mata/Optik
+445382656;26;140;0;2;Record, CD, & Video;9999;9566;Rekaman, CD, & Video
+445448192;26;141;0;2;Wine & Liquor;9999;9569;Anggur & Minuman Keras
+445513728;26;142;0;2;Boating;9999;9570;Kapal
+445579264;26;143;0;2;Race Track;9999;9572;Trek Balap
+445644800;26;144;0;2;Health Club;9999;9574;Klub Kesehatan
+445710336;26;145;0;2;Sports Activities;9999;9576;Aktivitas Olahraga
+445775872;26;146;0;2;Recreation Center;9999;9577;Pusat Rekreasi
+445841408;26;147;0;2;Attorney;9999;9578;Pengacara
+445906944;26;148;0;2;Physician;9999;9580;Dokter
+445972480;26;149;0;2;Realtor;9999;9581;Agen Properti
+446038016;26;150;0;2;Police Service;9999;9584;Layanan Polisi
+446103552;26;151;0;2;Veterinarian;9999;9585;Dokter Hewan
+446169088;26;152;0;2;Sporting & Instructional Camps;9999;9586;Perkemahan Olahraga & Instruksi
+446234624;26;153;0;2;Premium Default;9999;9990;Premi Standar
+446300160;26;154;0;2;Toyota Dealer;9999;99999;Toyota Dealer
+436404225;26;3;1;3;Aquarium;9999;9718058;Akuarium
+436404226;26;3;2;3;Wild Animal Park;9999;9718056;Taman Margasatwa
+436404227;26;3;3;3;Wildlife Refuge;9999;9718057;Cagar Hidupan Liar
+436404228;26;3;4;3;Zoo;9999;9718055;Bonbin
+436731905;26;8;1;3;Auto Parts;9999;7538002;Suku cadang Mobil
+436731905;26;8;1;3;Auto Parts;9999;9518;Suku cadang Mobil
+436731906;26;8;2;3;Car Repair;9999;7538003;Reparasi Mobil
+436731907;26;8;3;3;Car Wash;9999;7538001;Pencucian Mobil
+436731908;26;8;4;3;Emission Testing;9999;7538006;Uji Emisi
+436731909;26;8;5;3;Tire Repair;9999;7538005;Toko Reparasi Ban
+436731910;26;8;6;3;Truck Repair;9999;7538004;Reparasi Truk
+436731911;26;8;7;3;Van Repair;9999;7538064;Reparasi Van
+437256193;26;16;1;3;Airport Cargo;9999;9714054;Kargo Bandara
+437256194;26;16;2;3;Railyard;9999;9714053;Depot Gerbong
+437256195;26;16;3;3;Seaport/Harbour;9999;9714052;Pelabuhan Laut
+437387265;26;18;1;3;Cemetery;9999;9591032;Pemakaman
+437387266;26;18;2;3;Crematorium;9999;9591033;Krematorium
+437649409;26;22;1;3;Children's Apparel;9999;9537049;Pakaian Anak
+437649410;26;22;2;3;Men's Apparel;9999;9537047;Pakaian Pria
+437649410;26;22;2;3;Men's Apparel;9999;9538;Pakaian Pria
+437649411;26;22;3;3;Shoes/Footwear;9999;9537050;Sepatu/Alas Kaki
+437649411;26;22;3;3;Shoes/Footwear;9999;9539;Sepatu/Alas Kaki
+437649412;26;22;4;3;Women's Apparel;9999;9537048;Pakaian Wanita
+437649412;26;22;4;3;Women's Apparel;9999;9541;Pakaian Wanita
+437780481;26;24;1;3;Commuter Rail Station;9999;4100029;Stasiun Kereta Komuter
+437780482;26;24;2;3;Underground Train/Subway;9999;4100028;Kereta Bawah Tanah/MRT
+437846017;26;25;1;3;Mobile Retailer;9999;9987070;Toko & Aksesori Ponsel
+437846018;26;25;2;3;Mobile Service Centre;9999;9987071;Pusat Servis Ponsel
+438435841;26;34;1;3;Boat Ferry;9999;4482062;Kapal Feri
+438435842;26;34;2;3;Rail Ferry;9999;4482063;Rel Feri
+438697985;26;38;1;3;Indoor Market;9999;5400094;Pasar Modern
+438697986;26;38;2;3;Outdoor Market;9999;5400093;Pasar Kaget
+438960129;26;42;1;3;Power Equipment Dealer;9999;9986077;Dealer Peralatan Listrik
+439156737;26;45;1;3;Hotel;9;7011017;Hotel
+439156738;26;45;2;3;Motel;9;7011018;Motel
+439549953;26;51;1;3;Blood Bank;9999;9583092;Bank Darah
+439549954;26;51;2;3;Clinic/Medical Centre;9999;9583025;Klinik/Pusat Medis
+439549955;26;51;3;3;Dentist;9999;9583024;Dokter Gigi
+439549955;26;51;3;3;Dentist;9999;9579;Dokter Gigi
+439549956;26;51;4;3;Family/General Practice;9999;9583023;Dokter Umum/Keluarga
+439549957;26;51;5;3;Nursing Home;9999;9583026;Rumah Jompo/Panti Wredha
+439549958;26;51;6;3;Pediatrician;9999;9583081;Dokter Anak
+439549959;26;51;7;3;Psychiatric Institute;9999;9583027;Institut Pskiatri
+439746561;26;54;1;3;Art;9;8410069;Seni
+439746562;26;54;2;3;Children's;9;8410067;Anak
+439746563;26;54;3;3;History;9;8410068;Sejarah
+439746564;26;54;4;3;Science;9;8410066;Sains
+439877633;26;56;1;3;Bar/Pub/Stube/ Biergarten;9999;5813034;Bar/Pub/Lapo Tuak
+439877634;26;56;2;3;Billiards/Pool Hall;9999;5813040;Biliar/Bola Sodok
+439877635;26;56;3;3;Dancing;9999;5813037;Dansa
+439877636;26;56;4;3;Jazz Club;9999;5813042;Klub Jazz
+439877637;26;56;5;3;Karaoke;9999;5813038;Karaoke
+439877638;26;56;6;3;Live Entertainment/Music/Cabaret;9999;5813039;Hiburan/Musik/Kabaret Hidup
+439877639;26;56;7;3;Nightclub;9999;5813036;Klub Malam
+439877640;26;56;8;3;Video Arcade/Gaming Room;9999;5813041;Video Arcade/Game
+440008705;26;58;1;3;Bed & Breakfast;9999;7013022;Losmen
+440008706;26;58;2;3;Guest House;9999;7013019;Wisma
+440008707;26;58;3;3;Holiday Park;9999;7013021;Taman Liburan
+440008708;26;58;4;3;Hostel;9999;7013020;Hostel
+440008709;26;58;5;3;Short-Time Motel;9999;7013051;Motel Inap Singkat
+440139777;26;60;1;3;Cellphone Parking Lot;9999;7520074;Pengisian Baterai Ponsel
+440205313;26;61;1;3;Beach;9999;7947060;Pantai
+440205314;26;61;2;3;Garden;9999;7947059;Taman
+440205315;26;61;3;3;Off Road Vehicle (ORV) Area;9999;7947080;Area Mobil Offroad
+440205316;26;61;4;3;Sports Field;9999;7947061;Lapangan Olahraga
+440205317;26;61;5;3;Trailhead;9999;7947078;Jalur Setapak
+440467457;26;65;1;3;Drugstore;9999;9565031;Toko Obat
+440467458;26;65;2;3;Pharmacy;9999;9565030;Apotek
+440532993;26;66;1;3;Ashram;9999;9992005;Ashram
+440532994;26;66;2;3;Church;9999;9992002;Gereja
+440532995;26;66;3;3;Mosque;9999;9992001;Masjid
+440532996;26;66;4;3;Synagogue;9999;9992004;Synagogue
+440532997;26;66;5;3;Temple;9999;9992003;Kuil
+440532998;26;66;6;3;Other Places of Worship;9999;9992006;Other Places of Worship
+441057281;26;74;1;3;Electrical;9999;9595090;Toko Alat Listrik
+441057282;26;74;2;3;Plumbing;9999;9595091;Toko Ledeng
+441319425;26;78;1;3;PreSchool;9999;8211086;Prasekolah
+441581569;26;82;1;3;Bakery;9999;9567082;Toko Roti
+441581570;26;82;2;3;Butcher;9999;9567083;Tukang Jagal
+441581571;26;82;3;3;Dairy Goods;9999;9567084;Toko Produk Olahan Susu
+441581572;26;82;4;3;Food/Beverage;9999;9567046;Makanan/Minuman
+441581573;26;82;5;3;Hobby, Toy, and Game Store;9999;9567079;Hobi/Mainan, dan Toko Game
+441581574;26;82;6;3;Pet Supply;9999;9567044;Toko Hewan Peliharaan
+441581575;26;82;7;3;Sweets Shop;9999;9567085;Toko Permen
+441581576;26;82;8;3;Warehouse/Wholesale;9999;9567045;Gudang/Grosir
+441712641;26;84;1;3;Badminton;9999;7997073;Bulutangkis
+441712642;26;84;2;3;Basketball;9999;7997072;Bola Basket
+441712643;26;84;3;3;Diving Centre;9999;7997076;Pusat Loncat Indah
+441712644;26;84;4;3;Fitness & Health Club;9999;7997007;Klub Kesehatan & Kebugaran
+441712645;26;84;5;3;Hockey;9999;7997016;Hoki
+441712646;26;84;6;3;Indoor Ski;9999;7997010;Ski Dalam Ruang
+441712647;26;84;7;3;Indoor Sports;9999;7997015;Olahraga Dalam Ruang
+441712648;26;84;8;3;Racket Ball Court;9999;7997008;Lapangan Bola Raket
+441712649;26;84;9;3;Rugby;9999;7997075;Rugbi
+441712650;26;84;10;3;Shooting Range;9999;7997009;Lapangan Tembak
+441712651;26;84;11;3;Soccer Club;9999;7997011;Klub Sepakbola
+441712652;26;84;12;3;Squash;9999;7997012;Squash
+441712653;26;84;13;3;Swimming Pool;9999;7997013;Kolam Renang
+441712654;26;84;14;3;Tennis Court;9999;7997014;Lapangan Tenis
+441974785;26;88;1;3;Gallery;9;7999065;Galeri
+442105857;26;90;1;3;Coaching Institute;9999;9596087;Institut Pelatihan
+442105858;26;90;2;3;Fine Arts;9999;9596088;Seni Murni
+442105859;26;90;3;3;Language Studies;9999;9596089;Studi Bahasa

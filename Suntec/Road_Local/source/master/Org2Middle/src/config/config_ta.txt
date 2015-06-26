@@ -1,0 +1,9 @@
+#################################################################
+# proj_ta
+#proj_name=ta
+#proj_country=hkg
+#ta_jv_sidefile=\\172.26.179.195\share\ORG_DATA\Sensis\Sensis_201503\aus_jv_link_org
+#ta_phoneme_sidefile=\\172.26.179.195\share\ORG_DATA\tomtom_data\sea2013_12\txt\mnvmlhp\
+all_sign_as_real_file_name=
+POI_Code=..\docs\poi\category_sensis.txt
+#################################################################

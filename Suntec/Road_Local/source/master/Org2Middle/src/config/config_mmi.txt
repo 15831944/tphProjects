@@ -1,0 +1,5 @@
+#################################################################
+# proj_india
+mdb_path=\\iData\Private\Data_Authoring\SourceData\MMI\14Q4\mdb
+temp_sql_path=.\cache\temp_sql\
+#################################################################

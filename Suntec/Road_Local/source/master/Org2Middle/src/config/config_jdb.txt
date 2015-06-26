@@ -1,0 +1,16 @@
+#################################################################
+# JPN iPC RDB DATA
+#proj_name=jdb
+#proj_country=hkg
+#illust=..\..\SourceData\JP\2012A\pictures
+admin_wav=..\..\..\..\SourceData\JP\admin_wav.txt
+#highway=..\..\..\..\SourceData\JP\2013Spring\highway
+#sf_highway=..\..\..\..\SourceData\JP\2013Spring\kensaku
+forceguide_patch_open=true
+forceguide_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_append_patch.csv
+forceguide_update=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_update_patch.csv
+forceguide_friendly_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_friendly_append_patch.csv
+store_code_mapping=..\docs\store_code_mapping.xls
+org_caution_dir=D:\yudo_jiko.txt
+guidance_caution=..\..\..\..\SourceData\JP\caution\yudo_jiko.txt
+#################################################################

@@ -1,0 +1,8 @@
+#################################################################
+# proj_thailand
+#proj_name=nostra
+#proj_country=hkg
+#illust_name_mapping=C:\����\��Ŀ\WebGis\proj\SourceData\nostra\201307\illustname\signNameSort.txt
+forceguide_patch_full_path=C:\shp\forceguidepatch\nostra\temp_patch_force_guide_tbl.csv
+update_jv_dir=D:\upate_junctionview.csv
+#################################################################

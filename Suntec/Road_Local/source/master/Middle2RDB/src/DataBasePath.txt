@@ -1,0 +1,17 @@
+# config file of project
+db1=host='172.26.179.184' dbname='17cy_IND_MMI_CI' user='postgres' password='pset123456'
+db2=host='172.26.179.184' dbname='17cy_IND_MMI_CI' user='postgres' password='pset123456'
+kindcode=..\docs\kindcode_axf.xls
+sql_script=..\sql_script
+slope_data_support=false
+
+resore_paras=C:\progra~2\PostgreSQL\9.0\bin\pg_restore.exe --ignore-version --host=172.26.185.136 --port=5432 -U postgres -F c --dbname=CG_AXF5.5_0053_0200 X:\DataBase_Backup\??????\13??o_vics_mid\2???????D?BASE\jpn_vics.backup
+
+# if set this option, content of file(/cache/get_id_fund.bat) must be set too.
+#get_id_fund_batch=D:\workspace\WebGis\proj\Source_Branch\incremental_updating\Middle2RDB\src\cache\get_id_fund.bat
+
+illust=D:\workspace\WebGis\proj\SourceData\nostra\201307\illust
+#pointlist=..\..\SourceData\axf\pictures
+proj_name=mmi
+proj_country=ind
+version=1

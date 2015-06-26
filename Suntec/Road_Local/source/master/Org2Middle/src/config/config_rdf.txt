@@ -1,0 +1,12 @@
+#################################################################
+# proj_rdf
+#proj_name=rdf
+#proj_country=hkg
+#junctionview_data=\\172.26.179.195\share\SourceData\AP_rdf\HKGMAC\14Q1
+#jv_flag=by_file
+#jv_country=HKG
+#sign_as_real_path=\\172.26.179.195\share\SourceData\MEA_rdf\MEA8\14Q3\sign_as_real.csv
+#csv_path=..\..\..\..\SourceData\rdf\CSV
+#forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
+POI_Code=..\docs\poi\category_rdf.txt
+#################################################################
