@@ -102,20 +102,21 @@ void LandsideReportTreeDefaultPerformer::OnToolBarAdd( HTREEITEM hTreeItem )
 
 	if(pNodeData->m_nodeType == VEHICLE_ITEM_ROOT)
 	{
-		CDlgSelectLandsideVehicleType dlg(true); // multi select = 'true'
+		CDlgMultiSelectLandsideVehicleType dlg;
 		if(dlg.DoModal()== IDOK)
 		{
-			CString strName = dlg.GetName();
-			CHierachyName hierachyName;
-			hierachyName.fromString(strName);
-			
-			TreeNodeData* pTreeNode = new TreeNodeData;
-			pTreeNode->m_nodeType = VEHICLE_ITEM;
-			pTreeNode->vehicleName = hierachyName;
-
-			InsertItem(hTreeItem,strName,pTreeNode);
-			m_pTreeCtrl->Expand(m_hVehicleeRootItem, TVE_EXPAND);
-
+			std::vector<CString> vNames = dlg.GetNameList();
+            for(size_t i=0; i<vNames.size(); i++)
+            {
+                CString strName = vNames.at(i);
+                CHierachyName hierachyName;
+                hierachyName.fromString(strName);
+                TreeNodeData* pTreeNode = new TreeNodeData;
+                pTreeNode->m_nodeType = VEHICLE_ITEM;
+                pTreeNode->vehicleName = hierachyName;
+                InsertItem(hTreeItem,strName,pTreeNode);
+                m_pTreeCtrl->Expand(m_hVehicleeRootItem, TVE_EXPAND);
+            }
 		}
 	}
 	
@@ -356,27 +357,32 @@ void LSReportTreeVehicleDelayPerformer::OnToolBarAdd( HTREEITEM hTreeItem )
 		
 		if(dlg.DoModal() == IDOK)
 		{
-			ALTObjectID altObj = dlg.getSelectObject();
+		//	ALTObjectID altObj = dlg.getSelectObject();
 
-			CString strObjName;
+			ALTObjectIDList objectList = dlg.getSelectObjectList();
+			for (unsigned i = 0; i < objectList.size(); i++)
+			{
+				ALTObjectID altObj  = objectList.at(i);
+				CString strObjName;
 
-			if (altObj.IsBlank())
-				 strObjName =  LSR_TREE_ALLOBJECTS;
-			else
-				strObjName = altObj.GetIDString();
+				if (altObj.IsBlank())
+					strObjName =  LSR_TREE_ALLOBJECTS;
+				else
+					strObjName = altObj.GetIDString();
 
-			TreeNodeData* pNewTreeNode = new TreeNodeData;
-			
-			if(pNodeData->m_nodeType == FROM_ROOT)
-				pNewTreeNode->m_nodeType = FROM_ITEM;
-			if(pNodeData->m_nodeType == TO_ROOT)
-				pNewTreeNode->m_nodeType = TO_ITEM;
+				TreeNodeData* pNewTreeNode = new TreeNodeData;
+
+				if(pNodeData->m_nodeType == FROM_ROOT)
+					pNewTreeNode->m_nodeType = FROM_ITEM;
+				if(pNodeData->m_nodeType == TO_ROOT)
+					pNewTreeNode->m_nodeType = TO_ITEM;
 
 
-			pNewTreeNode->altObj	  = altObj;
+				pNewTreeNode->altObj	  = altObj;
 
-			InsertItem(hTreeItem,strObjName,pNewTreeNode);
-			m_pTreeCtrl->Expand(hTreeItem, TVE_EXPAND);
+				InsertItem(hTreeItem,strObjName,pNewTreeNode);
+				m_pTreeCtrl->Expand(hTreeItem, TVE_EXPAND);
+			}
 
 		}
 
@@ -708,23 +714,28 @@ void LSReportTreeResQueuePerformer::OnToolBarAdd( HTREEITEM hTreeItem )
 
 		if(dlg.DoModal()== IDOK )
 		{
-			ALTObjectID altObj = dlg.getSelectObject();
+	//		ALTObjectID altObj = dlg.getSelectObject();
+			ALTObjectIDList objectList = dlg.getSelectObjectList();
+			for (unsigned i = 0; i < objectList.size(); i++)
+			{
+				ALTObjectID altObj = objectList.at(i);
+				CString strObjName;
 
-			CString strObjName;
+				if (altObj.IsBlank())
+					strObjName =  LSR_TREE_ALLOBJECTS;
+				else
+					strObjName = altObj.GetIDString();
 
-			if (altObj.IsBlank())
-				strObjName =  LSR_TREE_ALLOBJECTS;
-			else
-				strObjName = altObj.GetIDString();
+				TreeNodeData* pNewTreeNode = new TreeNodeData;
+				pNewTreeNode->m_nodeType = FILTER_ITEM;
+				pNewTreeNode->altObj	  = altObj;
 
-			TreeNodeData* pNewTreeNode = new TreeNodeData;
-			pNewTreeNode->m_nodeType = FILTER_ITEM;
-			pNewTreeNode->altObj	  = altObj;
+				InsertItem(hTreeItem,strObjName,pNewTreeNode);
+				m_pTreeCtrl->Expand(hTreeItem, TVE_EXPAND);
 
-			InsertItem(hTreeItem,strObjName,pNewTreeNode);
-			m_pTreeCtrl->Expand(hTreeItem, TVE_EXPAND);
-
-			m_pParameter->AddFilterObject(altObj);
+				m_pParameter->AddFilterObject(altObj);
+			}
+		
 		}
 	}
 	
@@ -1053,23 +1064,36 @@ void LSReportTreeResThroughputPerformer::OnToolBarAdd( HTREEITEM hTreeItem )
 
 		if(dlg.DoModal()== IDOK )
 		{
-			ALTObjectID altObj = dlg.getSelectObject();
+	//		ALTObjectID altObj = dlg.getSelectObject();
 
-			CString strObjName;
+			ALTObjectIDList objectList = dlg.getSelectObjectList();
+			for (unsigned i = 0; i < objectList.size(); i++)
+			{
+				ALTObjectID altObj = objectList.at(i);
+				CString strObjName;
 
-			if (altObj.IsBlank())
-				strObjName =  LSR_TREE_ALLOBJECTS;
-			else
-				strObjName = altObj.GetIDString();
+				if (altObj.IsBlank())
+					strObjName =  LSR_TREE_ALLOBJECTS;
+				else
+				{
+					strObjName = altObj.GetIDString();
+					if (strObjName.CompareNoCase(_T("All")) == 0)
+					{
+						altObj = ALTObjectID();
+					}
+				}
 
-			TreeNodeData* pNewTreeNode = new TreeNodeData;
-			pNewTreeNode->m_nodeType = FILTER_ITEM;
-			pNewTreeNode->altObj	  = altObj;
+				TreeNodeData* pNewTreeNode = new TreeNodeData;
+				pNewTreeNode->m_nodeType = FILTER_ITEM;
+				pNewTreeNode->altObj	  = altObj;
 
-			InsertItem(hTreeItem,strObjName,pNewTreeNode);
-			m_pTreeCtrl->Expand(hTreeItem, TVE_EXPAND);
+				InsertItem(hTreeItem,strObjName,pNewTreeNode);
+				m_pTreeCtrl->Expand(hTreeItem, TVE_EXPAND);
 
-			m_pParameter->AddFilterObject(altObj);
+				m_pParameter->AddFilterObject(altObj);
+
+			}
+
 		}
 	}
 	
@@ -1088,7 +1112,28 @@ void LSReportTreeResThroughputPerformer::OnToolBarDel( HTREEITEM hTreeItem )
 	if(pNodeData->m_nodeType == VEHICLE_ITEM_ROOT || pNodeData->m_nodeType == OBJECT_ROOT)
 		return;
 
+	HTREEITEM hParentItem = m_pTreeCtrl->GetParentItem(hTreeItem);
 	m_pTreeCtrl->DeleteItem(hTreeItem);
+	HTREEITEM hNextSibItem = m_pTreeCtrl->GetChildItem(hParentItem);
+
+	if(hNextSibItem == NULL && hParentItem != NULL)
+	{
+		if (pNodeData->m_nodeType == VEHICLE_ITEM)
+		{
+			LandsideReportTreeDefaultPerformer::InitDefaultTree();
+		}
+		else if (pNodeData->m_nodeType == FILTER_ITEM)
+		{
+			CString strObjName =  LSR_TREE_ALLOBJECTS;
+
+			TreeNodeData* pTreeNode = new TreeNodeData;
+			pTreeNode->m_nodeType = FILTER_ITEM;
+			pTreeNode->altObj	  = ALTObjectID();
+
+			InsertItem(m_hObjectRoot,strObjName,pTreeNode);
+		}
+	}
+
 }
 
 void LSReportTreeResThroughputPerformer::OnToolBarEdit( HTREEITEM hTreeItem )

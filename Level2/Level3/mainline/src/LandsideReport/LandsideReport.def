@@ -1,0 +1,6 @@
+; LandsideReport.def : Declares the module parameters for the DLL.
+
+;LIBRARY      "LandsideReport"
+
+EXPORTS
+    ; Explicit exports can go here

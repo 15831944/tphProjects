@@ -2,6 +2,7 @@
 #include "afxwin.h"
 #include "afxcmn.h"
 #include "..\Common\ALTObjectID.h"
+#include "MuliSelTreeCtrlEx.h"
 
 class LandsideFacilityLayoutObjectList;
 
@@ -24,12 +25,14 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CEdit m_edtSelect;
-	CTreeCtrl m_TreeCtrl;
+	CMuliSeltTreeCtrlEx m_TreeCtrl;
 
 
 	LandsideFacilityLayoutObjectList *objectList;
 	ALTObjectID m_altID;
 	ALTObjectID getSelectObject();
+
+	ALTObjectIDList getSelectObjectList();
 
 	void AddObjType(int nType);
 	void SetObjectTypeVector(std::vector<int> objectTypeList);
@@ -40,12 +43,18 @@ protected:
 	HTREEITEM FindObjNode(HTREEITEM hParentItem,const CString& strNodeText);
 	bool FindRootItem(HTREEITEM hObjRoot);
 
+	ALTObjectID GetTreeAltObject(HTREEITEM hItem);
+
+	void InitAltObjectList();
+
 	virtual BOOL OnInitDialog();
 
 	bool TypeNeedToShow(int nType) const;
 	std::map<int,HTREEITEM> ObjectMap;
+	std::vector<HTREEITEM> m_vRootList;
 	HTREEITEM m_hItemALL;
 	HTREEITEM objectItem;
+	ALTObjectIDList m_altIDList;
 	//if size is ZERO, show all object
 	std::vector<int> m_vObjType;
 protected:

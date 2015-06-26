@@ -307,11 +307,13 @@ void CDlgDBAircraftTypes::InitColumnName()
 	std::vector<CString> vNameSplit;
 	//split the colnames into parts seperated by commas
 	int first = -1, next = -1;
-	while(TRUE) {
+	while(TRUE) 
+	{
 		next = colnames.Find(',', first+1);
 		if(next != -1)
 			m_vNameSplit.push_back(colnames.Mid(first+1,next-first-1));
-		else {
+		else 
+		{
 			m_vNameSplit.push_back(colnames.Mid(first+1));
 			break;
 		}
@@ -326,14 +328,22 @@ void CDlgDBAircraftTypes::InitACTypeListHeader()
 	m_lstACTypes.SetExtendedStyle( dwStyle );
 	CRect listrect;
 	m_lstACTypes.GetClientRect(&listrect);
-	int nWidth = listrect.Width()/m_vNameSplit.size();
+	int nWidth = 50;//listrect.Width()/m_vNameSplit.size();
 	for(int i=0; i<static_cast<int>(m_vNameSplit.size()); i++) 
 	{
 		int nListAlignFormat;
 		if (i == 0 || i == 1 || i == 2)
+		{
 			nListAlignFormat = LVCFMT_LEFT;
+			nWidth = 70;
+			if(i == 2)
+				nWidth = 90;
+		}
 		else
+		{
 			nListAlignFormat = LVCFMT_RIGHT;
+			nWidth = 50;
+		}
 		m_lstACTypes.InsertColumn(i, m_vNameSplit[i], nListAlignFormat, nWidth);
 	}
 
@@ -367,14 +377,22 @@ void CDlgDBAircraftTypes::InitACatListHeader()
 	m_lstACCats.SetExtendedStyle( dwStyle );
 	CRect listrect;
 	m_lstACCats.GetClientRect(&listrect);
-	int nWidth = listrect.Width()/m_vNameSplit.size();
+	int nWidth = 50;//listrect.Width()/m_vNameSplit.size();
 	for(int i=0; i<static_cast<int>(m_vNameSplit.size()); i++) 
 	{
 		int nListAlignFormat;
 		if (i == 0 || i == 1 || i == 2)
+		{
 			nListAlignFormat = LVCFMT_LEFT;
+			nWidth = 70;
+			if(i == 2)
+				nWidth = 90;
+		}
 		else
+		{
 			nListAlignFormat = LVCFMT_RIGHT;
+			nWidth = 50;
+		}
 		m_lstACCats.InsertColumn(i, m_vNameSplit[i], nListAlignFormat, nWidth);
 	}
 

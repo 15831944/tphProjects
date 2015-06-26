@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CA51CD08-9D38-40F4-AD00-0710FD169ECE}</ProjectGuid>
+    <Keyword>MFCDLLProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.\;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0804</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(SolutionDir)bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0804</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="GraphChartType.cpp" />
+    <ClCompile Include="LandsideBaseParam.cpp" />
+    <ClCompile Include="LandsideBaseReport.cpp" />
+    <ClCompile Include="LandsideBaseResult.cpp" />
+    <ClCompile Include="LandsideReport.cpp" />
+    <ClCompile Include="LandsideReportManager.cpp" />
+    <ClCompile Include="LSThroughputDetailResult.cpp" />
+    <ClCompile Include="LSThroughputSummaryResult.cpp" />
+    <ClCompile Include="LSVehicleThroughputParam.cpp" />
+    <ClCompile Include="LSVehicleThroughputReport.cpp" />
+    <ClCompile Include="LSVehicleThroughputResult.cpp" />
+    <ClCompile Include="LSVehicleTotalDelayDetailResult.cpp" />
+    <ClCompile Include="LSVehicleTotalDelayParam.cpp" />
+    <ClCompile Include="LSVehicleTotalDelayReport.cpp" />
+    <ClCompile Include="LSVehicleTotalDelayResult.cpp" />
+    <ClCompile Include="LSVehicleTotalDelaySummaryResult.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="LSVehicleActivityParam.cpp" />
+    <ClCompile Include="LSVehicleActivityReport.cpp" />
+    <ClCompile Include="LSVehicleActivityResult.cpp" />
+    <ClCompile Include="LSVehicleDelayDetailResult.cpp" />
+    <ClCompile Include="LSVehicleDelayParam.cpp" />
+    <ClCompile Include="LSVehicleDelayReport.cpp" />
+    <ClCompile Include="LSVehicleDelayResult.cpp" />
+    <ClCompile Include="LSVehicleDelaySummaryResult.cpp" />
+    <ClCompile Include="LSResourceQueueDetailResult.cpp" />
+    <ClCompile Include="LSResourceQueueParam.cpp" />
+    <ClCompile Include="LSResourceQueueReport.cpp" />
+    <ClCompile Include="LSResourceQueueResult.cpp" />
+    <ClCompile Include="LSResourceQueueSummaryResult.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LandsideReport.def" />
+    <None Include="res\LandsideReport.rc2" />
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GraphChartType.h" />
+    <ClInclude Include="LandsideBaseParam.h" />
+    <ClInclude Include="LandsideBaseReport.h" />
+    <ClInclude Include="LandsideBaseResult.h" />
+    <ClInclude Include="LandsideReport.h" />
+    <ClInclude Include="LandsideReportManager.h" />
+    <ClInclude Include="LandsideReportType.h" />
+    <ClInclude Include="LSThroughputDetailResult.h" />
+    <ClInclude Include="LSThroughputSummaryResult.h" />
+    <ClInclude Include="LSVehicleThroughputParam.h" />
+    <ClInclude Include="LSVehicleThroughputReport.h" />
+    <ClInclude Include="LSVehicleThroughputResult.h" />
+    <ClInclude Include="LSVehicleTotalDelayDetailResult.h" />
+    <ClInclude Include="LSVehicleTotalDelayParam.h" />
+    <ClInclude Include="LSVehicleTotalDelayReport.h" />
+    <ClInclude Include="LSVehicleTotalDelayResult.h" />
+    <ClInclude Include="LSVehicleTotalDelaySummaryResult.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="LSVehicleActivityParam.h" />
+    <ClInclude Include="LSVehicleActivityReport.h" />
+    <ClInclude Include="LSVehicleActivityResult.h" />
+    <ClInclude Include="LSVehicleDelayDetailResult.h" />
+    <ClInclude Include="LSVehicleDelayParam.h" />
+    <ClInclude Include="LSVehicleDelayReport.h" />
+    <ClInclude Include="LSVehicleDelayResult.h" />
+    <ClInclude Include="LSVehicleDelaySummaryResult.h" />
+    <ClInclude Include="LSResourceQueueDetailResult.h" />
+    <ClInclude Include="LSResourceQueueParam.h" />
+    <ClInclude Include="LSResourceQueueReport.h" />
+    <ClInclude Include="LSResourceQueueResult.h" />
+    <ClInclude Include="LSResourceQueueSummaryResult.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LandsideReport.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AirsideReport\AirsideReport.vcxproj">
+      <Project>{d7bb9935-8e41-4c02-9aea-b290c0aeeea8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\CommonData\CommanData.vcxproj">
+      <Project>{76210374-cc15-4f65-8b78-370747ad8d1f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{dcfed0d8-cafd-4077-88f3-fed91c6ca0e3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Database\Database.vcxproj">
+      <Project>{8adf9016-0814-45f2-90cb-0ea0964d47f4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Landside\Landside.vcxproj">
+      <Project>{03f2d2fd-aa1b-4a12-b3d6-130d3e3d8845}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\MFCExControl\MFCExControl.vcxproj">
+      <Project>{2fc576cd-35ff-4234-ba13-6b2a2dd47dbd}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Results\Results.vcxproj">
+      <Project>{ebdbf6ac-2bb9-59d3-1fb1-9292e4595a93}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -276,9 +276,8 @@ void LandsideReportListView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 void LandsideReportListView::OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
-	// TODO: Add your control notification handler code here
 	int nTestIndex = pNMListView->iSubItem;
-	if( nTestIndex >= 0 )
+	if( nTestIndex >= 1 )
 	{
 		CWaitCursor	wCursor;
 		if(::GetKeyState( VK_CONTROL ) < 0 ) // Is <CTRL> Key Down
@@ -286,7 +285,14 @@ void LandsideReportListView::OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult)
 		else
 			m_ctlHeaderCtrl.SortColumn( nTestIndex, SINGLE_COLUMN_SORT );
 		m_ctlHeaderCtrl.SaveSortList();
-	}		
+
+        for (int i = 0; i < m_wndListCtrl.GetItemCount(); i++)
+        {
+            CString strIndex;
+            strIndex.Format(_T("%d"),i+1);
+            m_wndListCtrl.SetItemText( i, 0, strIndex );
+        }
+	}
 	*pResult = 0;
 }
 void LandsideReportListView::ResetAllContent()

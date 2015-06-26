@@ -710,7 +710,7 @@ bool HoldingArea::CorralService(Person *person, ElapsedTime curTime)
 	}
 	else//wait the next person
 	{
-		person->writeLogEntry(curTime,false);
+		//person->writeLogEntry(curTime,false);
 
 		m_pCorralServiceEvent = new CorralServiceEvent(this, curTime + m_eTimeToService);
 		m_pCorralServiceEvent->addEvent();
@@ -876,8 +876,8 @@ bool HoldingArea::BeginCorralService( ElapsedTime curTime )
 		
 		//pTmp->writeLogEntry(curTime,false);
 
-		pTmp->setState(ArriveAtServer);
-		pTmp->writeLogEntry(curTime,false);
+		//pTmp->setState(WaitInHoldingArea);
+		//pTmp->writeLogEntry(curTime,false);
 
 
 		pTmp->setState(LeaveServer);

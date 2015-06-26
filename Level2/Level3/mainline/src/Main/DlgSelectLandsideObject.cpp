@@ -55,7 +55,7 @@ BOOL CDlgSelectLandsideObject::OnInitDialog()
 void CDlgSelectLandsideObject::InitTree()
 {
 	m_hItemALL = m_TreeCtrl.InsertItem("All",TVI_ROOT);
-
+	m_vRootList.push_back(m_hItemALL);
 	//if not defined the specified object type, default treat as all type
 
 
@@ -92,6 +92,7 @@ void CDlgSelectLandsideObject::InitTree()
 			CString NodeName;
 			NodeName = ALT_TypeString::Get((ALTOBJECT_TYPE)ObjType.at(j));
 			objectItem = m_TreeCtrl.InsertItem(NodeName,TVI_ROOT);
+			m_vRootList.push_back(objectItem);
 			ObjectMap.insert(std::make_pair(ObjType.at(j),objectItem));
 		}		
 	}
@@ -239,6 +240,7 @@ void CDlgSelectLandsideObject::OnTvnSelchangedTreeObjects(NMHDR *pNMHDR, LRESULT
 	HTREEITEM hItemsel=m_TreeCtrl.GetSelectedItem();
 	m_altID = ALTObjectID();
 
+	InitAltObjectList();
 	if (hItemsel == NULL)
 	{	
 		m_edtSelect.SetWindowText("");
@@ -345,6 +347,50 @@ bool CDlgSelectLandsideObject::FindRootItem( HTREEITEM hObjRoot )
 		}
 	}
 	return false;
+}
+
+ALTObjectIDList CDlgSelectLandsideObject::getSelectObjectList()
+{
+	return m_altIDList;
+}
+
+ALTObjectID CDlgSelectLandsideObject::GetTreeAltObject( HTREEITEM hItem )
+{
+	ALTObjectID altObject;
+	if( hItem == NULL ) return altObject;
+
+	CString strObject;
+	if (std::find(m_vRootList.begin(),m_vRootList.end(),hItem) != m_vRootList.end())
+		return altObject;
+	
+	strObject = m_TreeCtrl.GetItemText(hItem);
+	HTREEITEM parentItem = m_TreeCtrl.GetParentItem(hItem);
+	while(std::find(m_vRootList.begin(),m_vRootList.end(),parentItem) == m_vRootList.end())
+	{
+		CString newreslt = m_TreeCtrl.GetItemText(parentItem);
+		newreslt = newreslt + '-' + strObject;
+		strObject = newreslt;	
+		parentItem = m_TreeCtrl.GetParentItem(parentItem);
+	}
+	altObject.FromString(strObject);
+	return altObject;
+}
+
+void CDlgSelectLandsideObject::InitAltObjectList()
+{
+	HTREEITEM hItem = m_TreeCtrl.GetSelectedItem();
+	if (hItem == NULL) return;
+
+	m_altIDList.clear();
+	hItem = m_TreeCtrl.GetFirstSelectedItem();
+	while(hItem){
+		ALTObjectID objectID = GetTreeAltObject(hItem);
+		if (std::find(m_altIDList.begin(),m_altIDList.end(),objectID) == m_altIDList.end())
+		{
+			m_altIDList.push_back(objectID);
+		}
+		hItem = m_TreeCtrl.GetNextSelectedItem(hItem);
+	}
 }
 
 
