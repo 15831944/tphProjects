@@ -1267,10 +1267,15 @@ BOOL CAirsideAircraftMutiRunRunwayOperationResult::WriteSummaryMap( mapSummaryDa
 
 		long iCount = (long)iter->second.size();
 		_file.writeInt(iCount);
-		_file.getLine();
+		_file.writeLine();
 		for (int i = 0; i < iCount; i++)
 		{
 			SummaryRunwayOperationReportItem reportItem = iter->second.at(i);
+			_file.writeInt(reportItem.m_runWaymark.m_enumRunwayMark);
+			_file.writeInt(reportItem.m_runWaymark.m_nRunwayID);
+			_file.writeField(reportItem.m_runWaymark.m_strMarkName.GetBuffer(1024));
+			reportItem.m_runWaymark.m_strMarkName.ReleaseBuffer();
+
 			_file.writeInt(reportItem.m_minCount);
 			_file.writeField(reportItem.m_strMinInterval.GetBuffer(1024));
 			reportItem.m_strMinInterval.ReleaseBuffer();
@@ -1291,6 +1296,7 @@ BOOL CAirsideAircraftMutiRunRunwayOperationResult::WriteSummaryMap( mapSummaryDa
 
 			_file.writeLine();
 		}
+		_file.writeLine();
 	}
 	return TRUE;
 }
@@ -1313,6 +1319,13 @@ BOOL CAirsideAircraftMutiRunRunwayOperationResult::ReadSummayMap( mapSummaryData
 		for (int j = 0; j < iCount; j++)
 		{
 			SummaryRunwayOperationReportItem reportItem;
+			int iRunwayMark = 0;
+			_file.getInteger(iRunwayMark);
+			reportItem.m_runWaymark.m_enumRunwayMark = RUNWAY_MARK(iRunwayMark);
+			_file.getInteger(reportItem.m_runWaymark.m_nRunwayID);
+			_file.getField(reportItem.m_runWaymark.m_strMarkName.GetBuffer(1024),1024);
+			reportItem.m_runWaymark.m_strMarkName.ReleaseBuffer();
+
 			_file.getInteger(reportItem.m_minCount);
 			_file.getField(reportItem.m_strMinInterval.GetBuffer(1024),1024);
 			reportItem.m_strMinInterval.ReleaseBuffer();
@@ -1331,6 +1344,7 @@ BOOL CAirsideAircraftMutiRunRunwayOperationResult::ReadSummayMap( mapSummaryData
 			_file.getInteger(reportItem.m_nP99);
 			_file.getInteger(reportItem.m_nStdDev);
 
+			mapSummaryResult[strSimResult].push_back(reportItem);
 			_file.getLine();
 		}
 		_file.getLine();

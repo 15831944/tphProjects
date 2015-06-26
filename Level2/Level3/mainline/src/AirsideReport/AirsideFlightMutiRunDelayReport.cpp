@@ -184,6 +184,16 @@ void CAirsideFlightMutiRunDelayResult::ClearData()
 	m_segmentDelayData.clear();
 	m_componentDelayData.clear();
 	m_scheduleDelayData.clear();
+
+	m_totalSummaryDelayData.clear();
+	m_airSummaryDelayData.clear();
+	m_taxiSummaryDelayData.clear();
+	m_standSummaryDelayData.clear();
+	m_serviceSummaryDelayData.clear();
+	m_takeoffSummaryDelayData.clear();
+	m_scheduleSummaryDelayData.clear();
+	m_segmentSummaryDelayData.clear();
+	m_componentSummaryDelayData.clear();
 }
 
 void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComponentAndSegmentMap& mapDetailData,mapDelayResultData& componentSegmentMapData,CParameters* pParameter)
@@ -1762,6 +1772,8 @@ BOOL CAirsideFlightMutiRunDelayResult::WriteSummaryMap( MultiRunSummaryMap mapSu
 		_file.writeInt(iter->second.m_estQ2.getPrecisely());
 		_file.writeInt(iter->second.m_estQ3.getPrecisely());
 		_file.writeInt(iter->second.m_estSigma.getPrecisely());
+
+		_file.writeLine();
 	}
 	return TRUE;
 }
@@ -1806,6 +1818,7 @@ BOOL CAirsideFlightMutiRunDelayResult::ReadSummayMap( MultiRunSummaryMap& mapSum
 		mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
 		_file.getInteger(iTime);
 		mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+		_file.getLine();
 	}
 
 	return TRUE;
@@ -1901,7 +1914,10 @@ BOOL CAirsideFlightMutiRunDelayResult::ReadSummaryComponentAndSegment( SummaryCo
 			mapSummaryData[strSimResult][iValue].m_estQ3.setPrecisely(iTime);
 			_file.getInteger(iTime);
 			mapSummaryData[strSimResult][iValue].m_estSigma.setPrecisely(iTime);
+
+			_file.getLine();
 		}
+		_file.getLine();
 	}
 
 	return TRUE;

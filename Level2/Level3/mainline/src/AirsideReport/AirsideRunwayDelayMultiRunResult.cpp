@@ -30,12 +30,7 @@ CAirsideRunwayDelayMultiRunResult::CAirsideRunwayDelayMultiRunResult( void )
 
 CAirsideRunwayDelayMultiRunResult::~CAirsideRunwayDelayMultiRunResult( void )
 {
-    size_t nCount = m_vIntervalList.size();
-    for(size_t i=0; i<nCount; i++)
-    {
-        delete m_vIntervalList.at(i);
-    }
-    m_vIntervalList.clear();
+    ClearDelayedIntervalList();
 }
 
 void CAirsideRunwayDelayMultiRunResult::LoadMultipleRunReport(CParameters* pParameter)
@@ -973,6 +968,7 @@ void CAirsideRunwayDelayMultiRunResult::SetSummaryInPosition3DChartString( C2DCh
 // get delay occurred intervals according to the selected sub type.
 std::vector<TimeInterval*> CAirsideRunwayDelayMultiRunResult::GetDelayedIntervalList(CParameters *parameter)
 {
+    ClearDelayedIntervalList();
     ASSERT(parameter->getReportType() == ASReportType_Summary);
     const mapRunwaySummaryDelay* pSelSumData = NULL;
     AirsideFlightRunwayDelayReportPara* pPara = (AirsideFlightRunwayDelayReportPara*)parameter;
@@ -1010,13 +1006,33 @@ std::vector<TimeInterval*> CAirsideRunwayDelayMultiRunResult::GetDelayedInterval
             {
                 TimeInterval* pTimeInterval = new TimeInterval;
                 *pTimeInterval = intervalItor->first;
+                std::vector<TimeInterval*>::const_iterator intervalItor = m_vIntervalList.begin();
+                bool bIntervalExists = false;
+                for(; intervalItor!=m_vIntervalList.end(); ++intervalItor)
+                {
+                    if(*(*intervalItor) == *pTimeInterval)
+                    {
+                        bIntervalExists = true;
+                        break;
+                    }
+                }
+                if(!bIntervalExists)
+                    m_vIntervalList.push_back(pTimeInterval);
+            }
+        }
+    }
+    if(m_vIntervalList.empty())
+    {
+        if(!pSelSumData->empty())
+        {
+            if(!pSelSumData->begin()->second.empty())
+            {
+                TimeInterval* pTimeInterval = new TimeInterval;
+                *pTimeInterval = pSelSumData->begin()->second.begin()->first;
                 m_vIntervalList.push_back(pTimeInterval);
             }
         }
     }
-
-    sort(m_vIntervalList.begin(), m_vIntervalList.end(), TimeInterval::CompareTimeInterval);
-    m_vIntervalList.erase(unique(m_vIntervalList.begin(), m_vIntervalList.end() ), m_vIntervalList.end());
     return m_vIntervalList;
 }
 
@@ -1340,5 +1356,15 @@ BOOL CAirsideRunwayDelayMultiRunResult::ReadSummayMap( mapRunwaySummaryDelay& ma
 		_file.getLine();
 	}
 	return TRUE;
+}
+
+void CAirsideRunwayDelayMultiRunResult::ClearDelayedIntervalList()
+{
+    size_t nCount = m_vIntervalList.size();
+    for(size_t i=0; i<nCount; i++)
+    {
+        delete m_vIntervalList.at(i);
+    }
+    m_vIntervalList.clear();
 }
 

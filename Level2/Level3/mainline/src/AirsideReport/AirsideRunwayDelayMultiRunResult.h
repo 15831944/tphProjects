@@ -85,7 +85,6 @@ class AIRSIDEREPORT_API CAirsideRunwayDelayMultiRunResult : public CAirsideMulti
 public:
     CAirsideRunwayDelayMultiRunResult(void);
     ~CAirsideRunwayDelayMultiRunResult(void);
-
     virtual void LoadMultipleRunReport(CParameters* pParameter);
     virtual void InitListHead(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
     virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
@@ -130,6 +129,7 @@ private:
     bool IsAvailableRunwayMark(CString strRunwayMark, CParameters* pParameter);
     bool FindRunwayMark(CString strRunwayMark);
     bool FindTimeInterval(const std::vector<TimeInterval>& vTimeInterval, ElapsedTime time, TimeInterval& result);
+    void ClearDelayedIntervalList();
 
 	BOOL WriteDetailMap(mapRunwayDetailDelay mapDetailData, ArctermFile& _file );
 	BOOL ReadDetailMap(mapRunwayDetailDelay& mapDetailData,ArctermFile& _file);
