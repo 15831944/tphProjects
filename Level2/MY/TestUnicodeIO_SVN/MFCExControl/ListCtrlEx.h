@@ -122,6 +122,8 @@ public:
 
 	// Generated message map functions
 protected:
+    virtual void PreSubclassWindow();
+
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 
 	BOOL IsItemEmpty(int nItem);
@@ -156,6 +158,14 @@ public:
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnKeyDown( UINT nChar,	UINT nRepCnt, UINT nFlags );
+    afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg BOOL OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult);
+
+private:
+    void Init();
+    void InvalidateItemRect(int nItem);
+    void DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd);
+    void DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd);
 
 protected:
 	CPtrArray ddStyleList;

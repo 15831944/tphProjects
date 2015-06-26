@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
-#include "../MFCExControl/CARCTipComboBox.h"
+#include "CARCTipComboBox.h"
 
-enum UM_COOLTREE_EDIT_WND
+enum COOLTREE_MESSAGE
 {
     UM_CEW_EDIT_END=WM_USER+2000,
     UM_CEW_EDIT_BEGIN,

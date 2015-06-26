@@ -1,7 +1,6 @@
 #pragma once
 #include "afxcmn.h"
-#include "ListCtrlKeepHighlight.h"
-#include "ListCtrlTestLvnItemChanged.h"
+#include "ListCtrlEx.h"
 
 class CTabSubView2 : public CDialog
 {
@@ -12,7 +11,7 @@ public:
     virtual ~CTabSubView2();
     enum { IDD = IDD_TABSUBVIEW2 };
 protected:
-    CListCtrlKeepHighlight m_mainList;
+    CListCtrlEx m_mainList;
 protected:
     void InertTempDataToList();
     virtual void DoDataExchange(CDataExchange* pDX);

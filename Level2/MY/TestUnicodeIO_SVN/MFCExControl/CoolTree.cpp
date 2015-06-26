@@ -29,7 +29,6 @@ CCoolTree::~CCoolTree()
     for (size_t i = 0; i < nSize; i++)
     {
         COOLTREE_NODE_INFO* pCNI=m_vNOdeInfo[i];
-
         if(pCNI->pEditWnd&&::IsWindow(pCNI->pEditWnd->m_hWnd))
         {
             if (pCNI->pEditWnd != m_pWndEdit)
@@ -37,12 +36,10 @@ CCoolTree::~CCoolTree()
                 delete pCNI->pEditWnd;
             }
         }
-
         delete pCNI;
     }
 
     m_vNOdeInfo.clear();
-
     delete m_pWndEdit;
     delete m_pWndEditSpin;
     delete m_pWndComboBox;
@@ -51,13 +48,42 @@ CCoolTree::~CCoolTree()
 
 
 BEGIN_MESSAGE_MAP(CCoolTree, CTreeCtrl)
-    ON_NOTIFY_REFLECT_EX(NM_CLICK, OnClick)
-    ON_WM_LBUTTONDBLCLK()
-    ON_EN_KILLFOCUS(ID_COOLTREE_EDIT, OnKillfocusEdit1)
     ON_WM_PAINT()
+    ON_WM_LBUTTONDBLCLK()
     ON_NOTIFY_REFLECT(NM_RCLICK, OnRclick)
+    ON_NOTIFY_REFLECT_EX(NM_CLICK, OnClick)
+    ON_EN_KILLFOCUS(ID_COOLTREE_EDIT, OnKillfocusEdit1)
     ON_CBN_SELCHANGE(ID_COOLTREE_COMBO, OnSelchangeCombo)
 END_MESSAGE_MAP()
+
+BEGIN_MESSAGE_MAP(CCoolTree::CTreeComboBox, CARCTipComboBox)
+    ON_CONTROL_REFLECT(CBN_KILLFOCUS, CTreeComboBox::OnKillFocus)
+END_MESSAGE_MAP()
+
+void CCoolTree::CTreeComboBox::OnKillFocus() 
+{
+    ShowWindow(SW_HIDE);
+    m_nIndexSeled=GetCurSel();
+    if(m_nIndexSeled == -1)
+        return;
+    CString strValue;
+    GetWindowText(strValue);
+    GetParent()->SendMessage(UM_CEW_COMBOBOX_END,(WPARAM)0,(LPARAM)&strValue);
+}
+
+void CCoolTree::CTreeComboBox::OnSelChange(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    ShowWindow(SW_HIDE);
+    m_nIndexSeled=GetCurSel();
+    CString strValue;
+    GetWindowText(strValue);
+    GetParent()->SendMessage(UM_CEW_COMBOBOX_SELCHANGE,(WPARAM)0,(LPARAM)&strValue);
+}
+
+DWORD_PTR CCoolTree::CTreeComboBox::GetItemData(int nIndex)
+{
+    return CARCTipComboBox::GetItemData(nIndex);
+}
 
 HTREEITEM CCoolTree::InsertItem(LPCTSTR lpszItem, COOLTREE_NODE_INFO cni,BOOL bCheckOnOrRadioOn, 
     BOOL bHoldEditWnd,HTREEITEM hParent, HTREEITEM hInsertAfter)
@@ -102,7 +128,7 @@ HTREEITEM CCoolTree::InsertItem(LPCTSTR lpszItem, COOLTREE_NODE_INFO cni,BOOL bC
     {
         pNewCNI->pEditWnd=NULL;
     }
-    CTreeCtrl::SetItemData(hItem,(DWORD_PTR)pNewCNI);
+    CTreeCtrl::SetItemData(hItem, (DWORD)pNewCNI);
     AutoAdjustItemEnableStatus(hItem);
     m_hPreItem = hItem;
     return hItem;
@@ -154,7 +180,7 @@ CWnd* CCoolTree::CreateEditWnd(NODE_EDIT_TYPE net)
             else
                 dwComboBoxStyle |= CBS_DROPDOWNLIST;
             if(pCB->Create(dwComboBoxStyle, CRect(), this, ID_COOLTREE_COMBO))
-                pNewWnd=pCB;				
+                pNewWnd=pCB;
         }
         break;
     case NET_SHOW_DIALOGBOX:
@@ -232,7 +258,6 @@ void CCoolTree::PreSubclassWindow()
         m_imageList.Add(&bmp,RGB(255,0,255));
     }
     SetImageList(&m_imageList,TVSIL_NORMAL);
-
     CTreeCtrl::PreSubclassWindow();
 }
 
@@ -241,7 +266,6 @@ void CCoolTree::SetCheckStatus(HTREEITEM hItem, BOOL bCheck,BOOL bRecursive)
     if(IsCheckItem(hItem)==bCheck?1:0) return;
     if(bCheck)
     {
-
         if(IsEnableItem(hItem))
             SetItemImage(hItem,TIIT_CHECKBOX_TRUE,TIIT_CHECKBOX_TRUE);
         else
@@ -268,7 +292,6 @@ void CCoolTree::SetCheckStatus(HTREEITEM hItem, BOOL bCheck,BOOL bRecursive)
                 hParent = GetParentItem(hParent);
             }
         }
-
         AutoAdjustCheck2Status(hItem);
     }
     else
@@ -353,15 +376,13 @@ void CCoolTree::SetEnableStatus(HTREEITEM hItem, BOOL bEnable)
             SetEnableStatus(hItemChild,bEnable);
             hItemChild=GetNextSiblingItem(hItemChild);
         }
-
     }
-
 }
 
 TREENODE_IMAGE_INDEX_TABLE CCoolTree::GetItemImage(HTREEITEM hItem)
 {
     int nImage,nSelectedImage;
-    CTreeCtrl::GetItemImage(hItem,nImage,nSelectedImage);
+    CTreeCtrl::GetItemImage(hItem, nImage, nSelectedImage);
     return TREENODE_IMAGE_INDEX_TABLE(nImage);
 }
 
@@ -470,8 +491,7 @@ void CCoolTree::SetRadioStatus(HTREEITEM hItem,BOOL bRadio)
     {
         SetEnableStatus(hItemChild,bRadio);
         hItemChild=GetNextSiblingItem(hItemChild);
-    }		
-
+    }
 }
 
 BOOL CCoolTree::IsRadioItem(HTREEITEM hItem)
@@ -666,12 +686,10 @@ void CCoolTree::ShowEditWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI,BOOL bCreat
         {
             rect.left = rect.right;
             pWnd->SetWindowPos(NULL,rect.left,rect.top-1,0,0,SWP_NOSIZE);
-
-
             pWnd->SetWindowPos(NULL,rect.left,rect.top,0,0,SWP_NOSIZE);
             pWnd->SetWindowText(_T("")) ;
             pWnd->SetFocus() ;
-            GetParent()->SendMessage(UM_CEW_LABLE_BEGIN,(WPARAM)hItem,(LPARAM)pCNI);
+            GetParent()->SendMessage(UM_CEW_LABLE_BEGIN, (WPARAM)hItem, (LPARAM)pCNI);
             pWnd->ShowWindow(SW_SHOWNORMAL);
         }
         return;
@@ -770,7 +788,7 @@ void CCoolTree::ShowDateTimeWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI)
     CWnd* pWnd=NULL;
     if(pCNI->pEditWnd)
     {
-        pWnd=pCNI->pEditWnd;
+        pWnd = pCNI->pEditWnd;
     }
     else
     {
@@ -833,8 +851,6 @@ void CCoolTree::ShowComboBoxWnd(HTREEITEM hItem, COOLTREE_NODE_INFO *pCNI,BOOL b
             }
             pWnd=m_pWndComboBox;	
         }
-
-
     }
     else
     {
@@ -873,36 +889,6 @@ void CCoolTree::ShowComboBoxWnd(HTREEITEM hItem, COOLTREE_NODE_INFO *pCNI,BOOL b
         pWnd->ShowWindow(SW_SHOW);
         ((CTreeComboBox*)pWnd)->ShowDropDown(TRUE);
     }
-}
-
-BEGIN_MESSAGE_MAP(CCoolTree::CTreeComboBox, CARCTipComboBox)
-    ON_CONTROL_REFLECT(CBN_KILLFOCUS, CTreeComboBox::OnKillFocus)
-END_MESSAGE_MAP()
-void CCoolTree::CTreeComboBox::OnKillFocus() 
-{
-    ShowWindow(SW_HIDE);
-    m_nIndexSeled=GetCurSel();
-    if(m_nIndexSeled == -1)
-        return;
-    CString strValue;
-    GetWindowText(strValue);
-    GetParent()->SendMessage(UM_CEW_COMBOBOX_END,(WPARAM)0,(LPARAM)&strValue);
-
-}
-
-void CCoolTree::CTreeComboBox::OnSelChange(NMHDR* pNMHDR, LRESULT* pResult)
-{
-    ShowWindow(SW_HIDE);
-    m_nIndexSeled=GetCurSel();
-    CString strValue;
-    GetWindowText(strValue);
-    GetParent()->SendMessage(UM_CEW_COMBOBOX_SELCHANGE,(WPARAM)0,(LPARAM)&strValue);
-
-}
-
-DWORD_PTR CCoolTree::CTreeComboBox::GetItemData(int nIndex)
-{
-    return CARCTipComboBox::GetItemData(nIndex);
 }
 
 void CCoolTree::OnKillfocusEdit1() 
@@ -1010,7 +996,16 @@ void CCoolTree::InitNodeInfo(CWnd* pParent,COOLTREE_NODE_INFO& CNI,BOOL bVerify)
     CNI.bVerify=FALSE;
     CNI.clrItem=RGB(0,0,0);
     CNI.bAutoSetItemText=TRUE;
-    pParent->GetFont()->GetLogFont(&(CNI.lfontItem));
+    if(pParent != NULL)
+    {
+        pParent->GetFont()->GetLogFont(&(CNI.lfontItem));
+    }
+    else
+    {
+        CFont font;
+        font.CreateStockObject(SYSTEM_FONT);
+        font.GetLogFont(&(CNI.lfontItem));
+    }
     CNI.unMenuID=0;
     CNI.bInvalidData = FALSE;
 }
@@ -1022,26 +1017,26 @@ void CCoolTree::DoEdit(HTREEITEM hItem)
     switch(pCNI->net)
     {
     case NET_LABLE :
-        ShowEditWnd(hItem,pCNI) ;
+        ShowEditWnd(hItem, pCNI);
         break ;
     case NET_NORMAL:
-        OnClick(NULL,NULL);
+        OnClick(NULL, NULL);
         break;
     case NET_EDIT:
     case NET_EDIT_WITH_VALUE:
     case NET_EDIT_FLOAT:
     case NET_EDIT_INT:
-        ShowEditSpinWnd(hItem,pCNI);
+        ShowEditSpinWnd(hItem, pCNI);
         break;
     case NET_EDITSPIN_WITH_VALUE:
     case NET_EDITSPIN:
-        ShowEditSpinWnd(hItem,pCNI);
+        ShowEditSpinWnd(hItem, pCNI);
         break;
     case NET_COMBOBOX:
-        ShowComboBoxWnd(hItem,pCNI);
+        ShowComboBoxWnd(hItem, pCNI);
         break;
     case NET_COMBOBOX_WITH_EDIT:
-        ShowComboBoxWnd(hItem,pCNI,TRUE);
+        ShowComboBoxWnd(hItem, pCNI, TRUE);
         break;
     case NET_DATETIMEPICKER:
         ShowDateTimeWnd(hItem, pCNI);
@@ -1071,8 +1066,7 @@ void CCoolTree::SetItemValueRange(HTREEITEM hItem,int nMin, int nMax, BOOL bVeri
 
 void CCoolTree::OnPaint() 
 {
-    CPaintDC dc(this); // device context for painting
-    // Create a memory DC compatible with the paint DC
+    CPaintDC dc(this);
     CDC memDC;
     memDC.CreateCompatibleDC(&dc);
 
@@ -1080,12 +1074,10 @@ void CCoolTree::OnPaint()
     dc.GetClipBox(&rcClip);
     GetClientRect(&rcClient);
 
-    // Select a compatible bitmap into the memory DC
     CBitmap bitmap;
     bitmap.CreateCompatibleBitmap(&dc, rcClient.Width(), rcClient.Height());
     memDC.SelectObject(&bitmap);
 
-    // Set clip region to be same as that in paint DC
     CRgn rgn;
     rgn.CreateRectRgnIndirect(&rcClip);
     memDC.SelectClipRgn(&rgn);
@@ -1185,8 +1177,7 @@ void CCoolTree::OnPaint()
         memDC.RestoreDC(nSavedDC);
         hItem = GetNextVisibleItem(hItem);
     }
-    dc.BitBlt(rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height(), &memDC, 
-        rcClip.left, rcClip.top, SRCCOPY);
+    dc.BitBlt(rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height(), &memDC, rcClip.left, rcClip.top, SRCCOPY);
 }
 
 void CCoolTree::SetItemBold(HTREEITEM hItem,BOOL bBold,BOOL bRedraw)
@@ -1255,7 +1246,6 @@ void CCoolTree::AutoAdjustCheck2Status(HTREEITEM hItem)
         if(IsItemWithCheckBox(hChild)&&nCheckStatue!=-2&&
             IsCheckItem(hChild)!=nCheckStatue)
         {
-
             SetChect2Status(hItem);
             return;
         }

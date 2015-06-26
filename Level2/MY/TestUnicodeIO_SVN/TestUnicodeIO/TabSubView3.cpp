@@ -116,6 +116,7 @@ void CTabSubView3::InertTempDataToTree()
 {
     COOLTREENODEINFO cni;
     CCoolTree::InitNodeInfo(this, cni);
+    cni.nt = NT_CHECKBOX;
     for(int i1=0; i1<5; i1++)
     {
         CString str1;
