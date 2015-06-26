@@ -1097,25 +1097,6 @@ void CCoolTree::OnPaint()
             continue;
         }
 
-        CWnd *pWndFocus = GetFocus();
-        COLORREF textBackground = GetSysColor(COLOR_WINDOW);
-        UINT itemState = GetItemState(hItem, TVIS_DROPHILITED | TVIS_SELECTED);
-        if(pWndFocus == this || IsChild(pWndFocus)) // CoolTree windows is focused
-        {
-            if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
-            {
-                hItem = GetNextVisibleItem(hItem); // i won't draw selected items or drop highlighted items
-                continue;
-            }
-        }
-        else
-        {
-            if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
-            {
-                textBackground = RGB(206, 206, 206); // when lose focus set selected node's background gray
-            }
-        }
-
         int nSavedDC = memDC.SaveDC();
         CFont font;
         if(pCNI->lfontItem.lfFaceName[0] != '\0') 
@@ -1125,57 +1106,79 @@ void CCoolTree::OnPaint()
         }
         else
         {
-            // No font specified, so use window font
             memDC.SelectObject(GetFont());
         }
-        memDC.SetTextColor(pCNI->clrItem);
 
         CRect rect;
         GetItemRect(hItem, &rect, TRUE);
         CString sItem = GetItemText(hItem);
-        memDC.SetBkColor(textBackground);
-        switch(pCNI->net)
+        UINT itemState = GetItemState(hItem, TVIS_DROPHILITED | TVIS_SELECTED);
+        if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
         {
-        case NET_EDIT_INT:
-        case NET_EDIT_FLOAT:
-        case NET_COMBOBOX:
-        case NET_SHOW_DIALOGBOX:
-        case NET_EDITSPIN_WITH_VALUE:
-        case NET_EDIT_WITH_VALUE:
-        case NET_DATETIMEPICKER:
-        case NET_LABLE:
-        case NET_STATIC:
+            CWnd *pWndFocus = GetFocus();
+            if(pWndFocus == this || IsChild(pWndFocus)) // CoolTree windows is focused
             {
-                int nPosFind=sItem.Find(_T(":"),0);
-                CString strLeft,strRight;
-                if (-1!=nPosFind)
-                {
-                    strLeft=sItem.Left(nPosFind+1);
-                    strRight=sItem.Right(sItem.GetLength()-nPosFind-1);
-                } 
-                else
-                {
-                    strLeft=sItem;
-                }
-                memDC.TextOut(rect.left+2,rect.top+1,strLeft);
-                int nWidth=memDC.GetTextExtent(strLeft).cx;
-                memDC.SetTextColor(RGB(0,0,255));
-                memDC.TextOut(rect.left+2+nWidth,rect.top+1,strRight);
+                hItem = GetNextVisibleItem(hItem); // use default draw.
+                continue;
             }
-            break;
-        case NET_NORMAL:
-        case NET_EDIT:
-        case NET_EDITSPIN:
-        case NET_COMBOBOX_WITH_EDIT:
+            else
             {
+                memDC.SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
+                memDC.SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
+                memDC.FillSolidRect(rect, ::GetSysColor(COLOR_HIGHLIGHT));
                 memDC.TextOut(rect.left+2,rect.top+1,sItem);
+                memDC.RestoreDC(nSavedDC);
+                hItem = GetNextVisibleItem(hItem);
+                continue;
             }
-            break;
-        default:
-            break;
         }
-        memDC.RestoreDC(nSavedDC);
-        hItem = GetNextVisibleItem(hItem);
+        else
+        {
+            memDC.SetBkColor(GetSysColor(COLOR_WINDOW));
+            memDC.SetTextColor(pCNI->clrItem);
+            switch(pCNI->net)
+            {
+            case NET_EDIT_INT:
+            case NET_EDIT_FLOAT:
+            case NET_COMBOBOX:
+            case NET_SHOW_DIALOGBOX:
+            case NET_EDITSPIN_WITH_VALUE:
+            case NET_EDIT_WITH_VALUE:
+            case NET_DATETIMEPICKER:
+            case NET_LABLE:
+            case NET_STATIC:
+                {
+                    int nPosFind=sItem.Find(_T(":"),0);
+                    CString strLeft,strRight;
+                    if (-1!=nPosFind)
+                    {
+                        strLeft=sItem.Left(nPosFind+1);
+                        strRight=sItem.Right(sItem.GetLength()-nPosFind-1);
+                    } 
+                    else
+                    {
+                        strLeft=sItem;
+                    }
+                    memDC.TextOut(rect.left+2,rect.top+1,strLeft);
+                    int nWidth=memDC.GetTextExtent(strLeft).cx;
+                    memDC.SetTextColor(RGB(0,0,255));
+                    memDC.TextOut(rect.left+2+nWidth,rect.top+1,strRight);
+                }
+                break;
+            case NET_NORMAL:
+            case NET_EDIT:
+            case NET_EDITSPIN:
+            case NET_COMBOBOX_WITH_EDIT:
+                {
+                    memDC.TextOut(rect.left+2,rect.top+1,sItem);
+                }
+                break;
+            default:
+                break;
+            }
+            memDC.RestoreDC(nSavedDC);
+            hItem = GetNextVisibleItem(hItem);
+        }
     }
     dc.BitBlt(rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height(), &memDC, rcClip.left, rcClip.top, SRCCOPY);
 }

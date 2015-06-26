@@ -11,10 +11,12 @@ public:
     virtual ~CTabSubView3();
     enum { IDD = IDD_TABSUBVIEW3 };
 protected:
-    CCoolTree m_mainTree;
+    CCoolTree m_cooltree;
+    CTreeCtrl m_normaltree;
 
 protected:
-    void InertTempDataToTree();
+    void InertTempDataToCooltree();
+    void InertTempDataToNormaltree();
     virtual void DoDataExchange(CDataExchange* pDX);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     virtual BOOL OnInitDialog();

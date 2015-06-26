@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+#include "StockListCtrl.h"
 class CTabSubView4 : public CDialog
 {
     DECLARE_DYNAMIC(CTabSubView4)
@@ -11,7 +11,7 @@ public:
     enum { IDD = IDD_TABSUBVIEW4 };
 
 protected:
-    CListCtrl m_lstVirtual;
+    CStockListCtrl m_lstVirtual;
     std::vector<int> m_vInt;
 
 protected:

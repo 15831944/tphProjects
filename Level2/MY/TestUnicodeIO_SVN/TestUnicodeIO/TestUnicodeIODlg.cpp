@@ -42,11 +42,11 @@ BOOL CTestUnicodeIODlg::OnInitDialog()
     m_mainTab.InsertItem(1,_T("20141125"));
     m_mainTab.InsertItem(2,_T("20141126"));
     m_mainTab.InsertItem(3,_T("20141201"));
-    m_mainTab.SetCurSel(2);
+    m_mainTab.SetCurSel(3);
     m_tabView1.ShowWindow(FALSE);
     m_tabView2.ShowWindow(FALSE);
-    m_tabView3.ShowWindow(TRUE);
-    m_tabView4.ShowWindow(FALSE);
+    m_tabView3.ShowWindow(FALSE);
+    m_tabView4.ShowWindow(TRUE);
     LayoutTabViews();
 
     return TRUE;

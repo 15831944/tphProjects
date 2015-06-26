@@ -21,13 +21,14 @@ END_MESSAGE_MAP()
 void CTabSubView3::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
-    DDX_Control(pDX, IDC_TREE_MAIN, m_mainTree);
+    DDX_Control(pDX, IDC_TREE_MAIN, m_cooltree);
+    DDX_Control(pDX, IDC_TREE_NORMAL, m_normaltree);
 }
 
 void CTabSubView3::OnSize(UINT nType, int cx, int cy)
 {
     CDialog::OnSize(nType, cx, cy);
-    if(m_mainTree.GetSafeHwnd() == NULL)
+    if(m_cooltree.GetSafeHwnd() == NULL)
     {
         if(nType != SIZE_MINIMIZED)
         {
@@ -36,7 +37,8 @@ void CTabSubView3::OnSize(UINT nType, int cx, int cy)
         }
         return;
     }
-    LayoutControl(&m_mainTree, TopLeft, BottomRight, cx, cy);
+    LayoutControl(&m_cooltree, TopLeft, BottomRight, cx, cy);
+    LayoutControl(&m_normaltree, TopRight, BottomRight, cx, cy);
     if(nType != SIZE_MINIMIZED)
     {
         m_oldCx = cx;
@@ -48,8 +50,9 @@ void CTabSubView3::OnSize(UINT nType, int cx, int cy)
 BOOL CTabSubView3::OnInitDialog()
 {
     CDialog::OnInitDialog();
-    m_mainTree.SetParent(this);
-    InertTempDataToTree();
+    m_cooltree.SetParent(this);
+    InertTempDataToCooltree();
+    InertTempDataToNormaltree();
     return TRUE;
 }
 
@@ -112,7 +115,7 @@ void CTabSubView3::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef re
     }
 }
 
-void CTabSubView3::InertTempDataToTree()
+void CTabSubView3::InertTempDataToCooltree()
 {
     COOLTREENODEINFO cni;
     CCoolTree::InitNodeInfo(this, cni);
@@ -121,14 +124,31 @@ void CTabSubView3::InertTempDataToTree()
     {
         CString str1;
         str1.Format(_T("level1: %d"), i1);
-        HTREEITEM h1 = m_mainTree.InsertItem(str1, cni, FALSE);
+        HTREEITEM h1 = m_cooltree.InsertItem(str1, cni, FALSE);
         for(int i2=0; i2<5; i2++)
         {
             CString str2;
             str2.Format(_T("level2: %d,%d"), i1, i2);
-            HTREEITEM h2 = m_mainTree.InsertItem(str2, cni, FALSE, FALSE, h1);
+            HTREEITEM h2 = m_cooltree.InsertItem(str2, cni, FALSE, FALSE, h1);
         }
-        m_mainTree.Expand(h1, TVE_EXPAND);
+        m_cooltree.Expand(h1, TVE_EXPAND);
+    }
+}
+
+void CTabSubView3::InertTempDataToNormaltree()
+{
+    for(int i1=0; i1<5; i1++)
+    {
+        CString str1;
+        str1.Format(_T("level1: %d"), i1);
+        HTREEITEM h1 = m_normaltree.InsertItem(str1);
+        for(int i2=0; i2<5; i2++)
+        {
+            CString str2;
+            str2.Format(_T("level2: %d,%d"), i1, i2);
+            HTREEITEM h2 = m_normaltree.InsertItem(str2, h1);
+        }
+        m_cooltree.Expand(h1, TVE_EXPAND);
     }
 }
 

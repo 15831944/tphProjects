@@ -152,6 +152,7 @@
     <ClInclude Include="CARCTipEdit.h" />
     <ClInclude Include="CARCTipListBox.h" />
     <ClInclude Include="CellRange.h" />
+    <ClInclude Include="StockListCtrl.h" />
     <ClInclude Include="ComboBoxListBox.h" />
     <ClInclude Include="CoolTree.h" />
     <ClInclude Include="CoolTreeDateTimeCtrl.h" />
@@ -217,6 +218,7 @@
     <ClCompile Include="CARCTipComboBox.cpp" />
     <ClCompile Include="CARCTipEdit.cpp" />
     <ClCompile Include="CARCTipListBox.cpp" />
+    <ClCompile Include="StockListCtrl.cpp" />
     <ClCompile Include="ComboBoxListBox.cpp" />
     <ClCompile Include="CoolTree.cpp" />
     <ClCompile Include="CoolTreeDateTimeCtrl.cpp" />

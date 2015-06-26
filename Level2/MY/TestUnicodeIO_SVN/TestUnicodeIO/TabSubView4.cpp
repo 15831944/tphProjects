@@ -21,39 +21,117 @@ static void bs(std::vector<int>& pArray)
     }
 }
 
-// sort [begin, end]
-static void qs(std::vector<int>::iterator begin, std::vector<int>::iterator end)
+typedef std::vector<int>::iterator intItor;
+
+typedef struct 
 {
-    if(begin == end)
-        return;
+    intItor m_first;
+    intItor m_last;
+} IteratorRange;
 
-    int nBase = *begin;
-    std::vector<int>::iterator left = begin;
-    std::vector<int>::iterator right = end;
-    while(true)
+
+static void iter_swap_my(intItor first, intItor second)
+{
+    *first += *second;
+    *second = *first - *second;
+    *first -= *second;
+}
+
+static void _Med3_my(intItor first_, intItor mid_, intItor last_)
+{
+    if(*mid_ < *first_)
+        iter_swap_my(mid_, first_);
+
+    if(*last_ < *mid_)
+        iter_swap_my(last_, mid_);
+
+    if(*mid_ < *first_)
+        iter_swap_my(mid_, first_);
+}
+
+static void _Median_my(intItor first_, intItor mid_, intItor last_)
+{
+    if((last_-first_) > 40)
     {
-        while(*right>=nBase && left<right)
-            right--;
-        while(*left<nBase && left<right)
-            left++;
+        int nStep = (last_-first_+1)/8;
+        _Med3_my(first_,         first_+nStep,    first_+2*nStep);
+        _Med3_my(mid_-nStep,     mid_,            mid_+nStep);
+        _Med3_my(last_-2*nStep,   last_-nStep,    last_);
+        _Med3_my(first_+nStep,   mid_,            last_-nStep);
+    }
+    else
+    {
+        _Med3_my(first_,         mid_,            last_);
+    }
+}
 
-        if(left == right)
+static IteratorRange _Unguarded_partition_my(intItor first_, intItor last_)
+{
+    intItor mid_ = first_ - (last_-first_)/2;
+    _Median_my(first_, mid_, last_-1);
+    intItor pfirst_ = mid_;
+    intItor plast_ = pfirst_ + 1;
+
+    while(first_<pfirst_ && *(pfirst_-1) == *pfirst_)
+        --pfirst_;
+
+    while(plast_<last_ && *plast_ == *pfirst_)
+        ++plast_;
+
+    intItor gfirst_ = plast_;
+    intItor glast_ = pfirst_;
+
+    for( ; ; )
+    {
+        for(; gfirst_ < last_; ++gfirst_);
         {
-            *left = nBase;
-            if(left > begin)
+            if(*gfirst_ < *pfirst_)
+                break;
+
+            if(*gfirst_ == *pfirst_)
             {
-                qs(begin, left-1);
+                iter_swap_my(plast_, gfirst_);
+                ++plast_;
             }
-            if(left < end)
-            {
-                qs(left+1, end);
-            }
-            return;
         }
 
-        int nTemp = *left;
-        *left = *right;
-        *right = nTemp;
+        for(; first_<glast_; --glast_)
+        {
+            if(*pfirst_ < *(glast_-1))
+                break;
+
+            if(*pfirst_ == *(glast_-1))
+            {
+                --pfirst_;
+                iter_swap_my(pfirst_, glast_-1);
+            }
+        }
+
+        if(glast_ == first_ && gfirst_ == last_)
+        {
+            IteratorRange pair_;
+            pair_.m_first = pfirst_;
+            pair_.m_last = plast_;
+            return pair_;
+        }
+
+        if(glast_ == first_)
+        {
+            if(plast_ != gfirst_)
+            {
+                iter_swap_my(pfirst_, plast_);
+            }
+        }
+    }
+}
+
+// sort [first_, last_]
+static void _Sort_my(intItor first_, intItor last_, int nCount)
+{
+    int nCurCount;
+    for(; 32<(nCurCount= last_ - first_) && 0<nCount; )
+    {
+
     }
 }
 
@@ -72,8 +150,8 @@ CTabSubView4::~CTabSubView4()
 BEGIN_MESSAGE_MAP(CTabSubView4, CDialog)
     ON_WM_SIZE()
     ON_NOTIFY(LVN_GETDISPINFO, IDC_LIST_VIRTUAL, OnLvnGetdispinfoListVirtual)
-    ON_BN_CLICKED(IDC_BTN_REFRESH, &CTabSubView4::OnBnClickedBtnRefresh)
-    ON_BN_CLICKED(IDC_BTN_SORT, &CTabSubView4::OnBnClickedBtnSort)
+    ON_BN_CLICKED(IDC_BTN_REFRESH, OnBnClickedBtnRefresh)
+    ON_BN_CLICKED(IDC_BTN_SORT, OnBnClickedBtnSort)
 END_MESSAGE_MAP()
 
 void CTabSubView4::DoDataExchange(CDataExchange* pDX)
@@ -116,8 +194,7 @@ BOOL CTabSubView4::OnInitDialog()
     InitData();
 
     DWORD dwStyle = m_lstVirtual.GetExtendedStyle();
-    dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES;
-    m_lstVirtual.SetExtendedStyle(dwStyle);
+    m_lstVirtual.SetExtendedStyle(dwStyle|LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     LV_COLUMN lvc;
     lvc.mask = LVCF_WIDTH | LVCF_TEXT;
     lvc.pszText = _T("index");
@@ -286,7 +363,7 @@ void CTabSubView4::OnBnClickedBtnSort()
     }
     else if(strSortType.CompareNoCase(_T("qs")) == 0)
     {
-        qs(m_vInt.begin(), m_vInt.end()-1);
+        _Sort_my(m_vInt.begin(), m_vInt.end(), 10);
     }
     else if(strSortType.CompareNoCase(_T("std::sort")) == 0)
     {
@@ -294,7 +371,7 @@ void CTabSubView4::OnBnClickedBtnSort()
     }
     QueryPerformanceCounter(&time_end);
     CString strElapsed;
-    strElapsed.Format(_T("%.03fs"), (time_end.QuadPart-time_start.QuadPart)/dqFreq);
+    strElapsed.Format(_T("%.06fs"), (time_end.QuadPart-time_start.QuadPart)/dqFreq);
     GetDlgItem(IDC_STATIC_ELAPSED)->SetWindowText(strElapsed);
 
     CRect rcListVirtual;
