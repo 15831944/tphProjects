@@ -273,7 +273,7 @@ class GeneratorPicBinary_Here(object):
 
         dayPicList = []
         arrowFileList = []
-        fileList = os.listdir(os.path.join(srcDir, "DAY"))
+        fileList = os.listdir(os.path.join(srcDir, "DAY")) #DAY文件夹下会提供.jpg背景图片和。png的箭头图片
         for fileIter in fileList:
             picNameSplit = os.path.splitext(fileIter)
             if(picNameSplit[1] == ".jpg"):
@@ -295,11 +295,9 @@ class GeneratorPicBinary_Here(object):
             
         for dayPic in dayPicList:
             try:
-                nightFileList.index(dayPic) # DAY和NIGHT下的文件名字相同，因此要求必须能在NIGHT文件夹下找到对应的dayFile，否则报错
+                nightFileList.index(dayPic) # DAY和NIGHT下的文件名字必定相同，因此要求必须能在NIGHT文件夹下找到对应的dayFile，否则报错
             except:
-                # 
-                nightPicFile = os.path.join(srcDir, "NIGHT", picNameSplit[0] + ".jpg")
-                print "    night file not found: " + nightPicFile
+                print "    night file not found: " + os.path.join(srcDir, "NIGHT", picNameSplit[0] + ".jpg")
                 continue
             else:
                 print "--------------------------------------------------------------------------------------"
@@ -328,17 +326,18 @@ class GeneratorPicBinary_Here(object):
         
         for arrowFile in arrowFileList:
             # 处理arrow图片
-            arrowFStream = open(os.path.join(srcDir, "DAY", arrowFile), 'rb')
-            arrowPicLen = os.path.getsize(arrowFile)
+            arrowPicFile = os.path.join(srcDir, "DAY", arrowFile)
+            arrowFStream = open(arrowPicFile, 'rb')
+            arrowPicLen = os.path.getsize(arrowPicFile)
             a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
             a_resultBuffer = a_headerBuffer + arrowFStream.read()
             
-            destArrowFile = os.path.join(destDir, arrowFile.replace(".jpg", ".dat"))
+            destArrowFile = os.path.join(destDir, arrowFile.replace(".png", ".dat"))
             destFStream = open(destArrowFile, 'wb')
             arrowFStream.close()
             destFStream.write(a_resultBuffer)
             destFStream.close()
-            print "    " + arrowFile
+            print "    " + arrowPicFile
             print "        >>>>>>>>  " + destArrowFile
         return
 
