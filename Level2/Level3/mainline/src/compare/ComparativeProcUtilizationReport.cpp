@@ -9,7 +9,7 @@ CmpProcUtilizationDetailData::CmpProcUtilizationDetailData()
     m_dOverTime(0L),
     m_dActualTime(0L),
     m_dServiceTime(0L),
-    m_dActualTime_m_dServiceTime(0L),
+    m_dIdleTime(0L),
     m_fUtilization(0.0f)
 {
 }
@@ -26,7 +26,7 @@ void CmpProcUtilizationDetailData::ReadData(ArctermFile& file)
     file.getTime(m_dOverTime);
     file.getTime(m_dActualTime);
     file.getTime(m_dServiceTime);
-    file.getTime(m_dActualTime_m_dServiceTime);
+    file.getTime(m_dIdleTime);
     file.getFloat(m_fUtilization);
 }
 
@@ -38,7 +38,7 @@ void CmpProcUtilizationDetailData::WriteData(ArctermFile& file) const
     file.writeTime(m_dOverTime);
     file.writeTime(m_dActualTime);
     file.writeTime(m_dServiceTime);
-    file.writeTime(m_dActualTime_m_dServiceTime);
+    file.writeTime(m_dIdleTime);
     file.writeFloat(m_fUtilization);
 }
 
@@ -64,7 +64,7 @@ void CmpProcUtilizationSummaryData::ReadData(ArctermFile& file)
     file.getTime(m_dOverTime);
     file.getTime(m_dActualTime);
     file.getTime(m_dServiceTime);
-    file.getTime(m_dActualTime_m_dServiceTime);
+    file.getTime(m_dIdleTime);
     file.getFloat(m_fUtilization);
 }
 
@@ -77,7 +77,7 @@ void CmpProcUtilizationSummaryData::WriteData(ArctermFile& file) const
     file.writeTime(m_dOverTime);
     file.writeTime(m_dActualTime);
     file.writeTime(m_dServiceTime);
-    file.writeTime(m_dActualTime_m_dServiceTime);
+    file.writeTime(m_dIdleTime);
     file.writeFloat(m_fUtilization);
     file.writeFloat(m_fUtilization);
 }

@@ -390,40 +390,35 @@ void CModelSelectionDlg::RemoveTreeItem(const CString &strHostName)
 
 void CModelSelectionDlg::InitSelectedNodes()
 {
-	int nCount = m_modelsManager->getCount();
-	for (int i = 0; i < nCount; i++)
-	{
-		CModelToCompare* pCmpModel = m_modelsManager->getModel(i);
-		BOOL bFound = FALSE;
-		CString str = pCmpModel->GetModelName();
-		str.MakeUpper();
-		for (HTREEITEM hItem = m_cooltree.GetRootItem(); hItem != NULL; hItem = m_cooltree.GetNextSiblingItem(hItem))
-		{
-			if (m_cooltree.ItemHasChildren(hItem))
-			{
-				for (HTREEITEM hItemChild = m_cooltree.GetChildItem(hItem); hItemChild != NULL;
-					hItemChild = m_cooltree.GetNextSiblingItem(hItemChild))
-				{
-					CString strModuleName = m_cooltree.GetItemText(hItemChild);
-					strModuleName.MakeUpper();
-					if ((m_cooltree.GetItemText(hItem) == GetHostName(pCmpModel->GetModelLocation())) &&
-						(strModuleName == str))
-					{
-						if (!m_cooltree.IsCheckItem(hItem))
-							m_cooltree.SetCheckStatus(hItem, TRUE);
-
-						m_cooltree.SetCheckStatus(hItemChild, TRUE);
-						bFound = TRUE;
-						break;
-					}
-				}
-
-				if (bFound)
-					break;
-			}
-		}
-
-	}
+    for(HTREEITEM hRootItem = m_cooltree.GetRootItem(); hRootItem != NULL;
+        hRootItem = m_cooltree.GetNextSiblingItem(hRootItem))
+    {
+        if(m_cooltree.ItemHasChildren(hRootItem))
+        {
+            CString strServer = m_cooltree.GetItemText(hRootItem);
+            for(HTREEITEM hModelItem = m_cooltree.GetChildItem(hRootItem); hModelItem != NULL;
+                hModelItem = m_cooltree.GetNextSiblingItem(hModelItem))
+            {
+                CString strModel = m_cooltree.GetItemText(hModelItem);
+                CString strUniqueName = strServer + _T(".") + strModel;
+                CModelToCompare* pModelToCmp = m_modelsManager->GetModelByUniqueName(strUniqueName);
+                if(pModelToCmp != NULL && m_cooltree.ItemHasChildren(hModelItem))
+                {
+                    for(HTREEITEM hSimItem = m_cooltree.GetChildItem(hModelItem); hSimItem!=NULL; 
+                        hSimItem = m_cooltree.GetNextSiblingItem(hSimItem))
+                    {
+                        CString strSimName = m_cooltree.GetItemText(hSimItem);
+                        if(pModelToCmp->FindSimResultByName(strSimName))
+                        {
+                            m_cooltree.SetCheckStatus(hRootItem, TRUE);
+                            m_cooltree.SetCheckStatus(hModelItem, TRUE);
+                            m_cooltree.SetCheckStatus(hSimItem, TRUE);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 int CModelSelectionDlg::OnCreate(LPCREATESTRUCT lpCreateStruct) 

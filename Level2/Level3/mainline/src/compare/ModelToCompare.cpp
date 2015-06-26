@@ -385,6 +385,16 @@ void CModelToCompare::ClearSimResult()
 	m_vSimResult.clear();
 }
 
+bool CModelToCompare::FindSimResultByName(CString strSimName)
+{
+    size_t nCount = m_vSimResult.size();
+    for(size_t i=0; i<nCount; i++)
+    {
+        if(strSimName.CompareNoCase(m_vSimResult.at(i).GetSimResultName()) == 0)
+            return true;
+    }
+    return false;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //	CModelToCompareDataSet

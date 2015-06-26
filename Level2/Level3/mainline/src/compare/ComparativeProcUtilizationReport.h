@@ -18,7 +18,7 @@ public:
     ElapsedTime m_dOverTime;
     ElapsedTime m_dActualTime;
     ElapsedTime m_dServiceTime;
-    ElapsedTime m_dActualTime_m_dServiceTime;
+    ElapsedTime m_dIdleTime;
     float m_fUtilization;
 };
 

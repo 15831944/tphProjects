@@ -853,24 +853,24 @@ void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportDat
         m_listCtrl.DeleteColumn(0);
     }
 
-    m_listCtrl.InsertColumn(0 , _T(""), LVCFMT_CENTER, 10);
+    m_listCtrl.InsertColumn(0 , _T(""), LVCFMT_CENTER, 20);
     m_pListCtrlHeader->SetDataType(0, dtINT);
     m_listCtrl.InsertColumn(1 , _T("Model.Run"), LVCFMT_CENTER, 120);
-    m_pListCtrlHeader->SetDataType(0, dtSTRING);
+    m_pListCtrlHeader->SetDataType(1, dtSTRING);
     m_listCtrl.InsertColumn(2 , _T("Processor"), LVCFMT_CENTER, 120);
-    m_pListCtrlHeader->SetDataType(0, dtSTRING);
+    m_pListCtrlHeader->SetDataType(2, dtSTRING);
     m_listCtrl.InsertColumn(3 , _T("Scheduled"), LVCFMT_CENTER, 65);
-    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_pListCtrlHeader->SetDataType(3, dtTIME);
     m_listCtrl.InsertColumn(4 , _T("Overtime"), LVCFMT_CENTER, 65);
-    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_pListCtrlHeader->SetDataType(4, dtTIME);
     m_listCtrl.InsertColumn(5 , _T("Actual"), LVCFMT_CENTER, 60);
-    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_pListCtrlHeader->SetDataType(5, dtTIME);
     m_listCtrl.InsertColumn(6 , _T("Service"), LVCFMT_CENTER, 60);
-    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_pListCtrlHeader->SetDataType(6, dtTIME);
     m_listCtrl.InsertColumn(7 , _T("Idle"), LVCFMT_CENTER, 60);
-    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_pListCtrlHeader->SetDataType(7, dtTIME);
     m_listCtrl.InsertColumn(8 , _T("Utilization(%)"), LVCFMT_CENTER, 85);
-    m_pListCtrlHeader->SetDataType(0, dtDEC);
+    m_pListCtrlHeader->SetDataType(8, dtDEC);
 
     if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
     {
@@ -899,7 +899,7 @@ void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportDat
                 m_listCtrl.SetItemText(nLine, 5, strSubItem);
                 strSubItem = dataItor->m_dServiceTime.printTime();
                 m_listCtrl.SetItemText(nLine, 6, strSubItem);
-                strSubItem = dataItor->m_dActualTime_m_dServiceTime.printTime();
+                strSubItem = dataItor->m_dIdleTime.printTime();
                 m_listCtrl.SetItemText(nLine, 7, strSubItem);
                 strSubItem.Format(_T("%.2f"), dataItor->m_fUtilization);
                 m_listCtrl.SetItemText(nLine, 8, strSubItem);
@@ -910,7 +910,7 @@ void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportDat
     else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
     {
         m_listCtrl.InsertColumn(3, _T("Group Size"), LVCFMT_CENTER, 70);
-        m_pListCtrlHeader->SetDataType(0, dtINT);
+        m_pListCtrlHeader->SetDataType(3, dtINT);
 
         int nLine = 0;
         const mapProcUtilizationSummary& mapSummary = _reportData.GetMapSummaryResult();
@@ -939,7 +939,7 @@ void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportDat
                 m_listCtrl.SetItemText(nLine, 6, strSubItem);
                 strSubItem = dataItor->m_dServiceTime.printTime();
                 m_listCtrl.SetItemText(nLine, 7, strSubItem);
-                strSubItem = dataItor->m_dActualTime_m_dServiceTime.printTime();
+                strSubItem = dataItor->m_dIdleTime.printTime();
                 m_listCtrl.SetItemText(nLine, 8, strSubItem);
                 strSubItem.Format(_T("%.2f"), dataItor->m_fUtilization);
                 m_listCtrl.SetItemText(nLine, 9, strSubItem);

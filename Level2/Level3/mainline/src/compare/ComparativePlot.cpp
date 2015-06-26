@@ -1115,7 +1115,7 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
                 strXTick = *simNameItor + _T(".") + dataItor->m_strProc;
                 vStrXTick.push_back(strXTick);
                 c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
-                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dActualTime_m_dServiceTime/3600.0f));
+                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dIdleTime/3600.0f));
             }
         }
     }
@@ -1134,7 +1134,7 @@ bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportDat
                 strXTick = *simNameItor + _T(".") + dataItor->m_strProc;
                 vStrXTick.push_back(strXTick);
                 c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
-                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dActualTime_m_dServiceTime/3600.0f));
+                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dIdleTime/3600.0f));
             }
         }
     }

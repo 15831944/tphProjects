@@ -81,6 +81,7 @@ public:
 	void AddSimResult(char* pBuf, BOOL isChecked = TRUE);
 	void AddSimResult(SimResultWithCheckedFlag& simResult);
 	int GetSimResultCount();
+    bool FindSimResultByName(CString strSimName);
 	SimResultWithCheckedFlag& GetSimResult(int nIndex);
 	CString GetSimResultName(int nIndex);
 	void ClearSimResult();

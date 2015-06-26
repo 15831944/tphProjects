@@ -276,8 +276,6 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 			break;
 		if(!pCmpModel->GetChecked())
 		{
-			//pWndStatus->SetLogText();
-
 			continue;
 		}
 
@@ -291,6 +289,10 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 
 			for (unsigned nReport = 0; nReport < vReports.size(); nReport++)
 			{
+				CReportToCompare& reportCmp = vReports[nReport];
+				if (reportCmp.GetChecked() == FALSE)
+					continue;
+				
 				int iReportIndex = -1;
 				switch(vReports[nReport].GetCategory()) {
 				case ENUM_QUEUELENGTH_REP:
@@ -366,6 +368,8 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 
 				for (int nResult = 0; nResult < nSimResultCount; ++nResult )
 				{
+					if (pCmpModel->GetSimResult(nResult).GetChecked() == FALSE)
+						continue;
 					
 					CString strSimResult = pCmpModel->GetSimResultName(nResult);
 					strStatus.Format(_T("%s%s%s%s :%s"), _T("Generate "), 
@@ -480,6 +484,10 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 	for (unsigned i = 0; i < vReports.size(); i++)
 	{
 		CCmpBaseReport* pResult = NULL;
+		CReportToCompare& reportCmp = vReports[i];
+		if (reportCmp.GetChecked() == FALSE)
+			continue;
+		
 		switch (vReports[i].GetCategory())
 		{
 		case ENUM_QUEUETIME_REP:
@@ -532,8 +540,13 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 		for(std::vector<CModelToCompare*>::iterator itor=vModels.begin();
 			itor!=vModels.end(); itor++)
 		{
+			if ((*itor)->GetChecked() == FALSE)
+				continue;
+			
 			for(int i=0; i<(*itor)->GetSimResultCount(); i++)
 			{
+				if((*itor)->GetSimResult(i).GetChecked() == FALSE)
+					continue;
 				simName = _T("");
 				simName += (*itor)->GetModelName();
 				simName += ("(");

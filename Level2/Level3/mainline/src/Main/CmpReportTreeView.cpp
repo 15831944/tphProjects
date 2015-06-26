@@ -261,6 +261,14 @@ static void CALLBACK _ShowCopyInfo(LPCTSTR strPath)
 	fileName = strFilePath.Mid(nPos + 1);
 	CString strMsg;
 	strMsg = _T("Copying   ") + fileName;
+	CMainFrame* pFram = (CMainFrame*)AfxGetMainWnd();
+	CWnd* pWnd = &(pFram->m_wndCompRepLogBar);
+	if(pWnd)
+	{
+		CCompRepLogBar* pRepLogBarWnd = (CCompRepLogBar*)pWnd;
+		if(pRepLogBarWnd)
+			pRepLogBarWnd->AddLogText(strMsg);
+	}
 }
 void CCmpReportTreeView::RunCompareReport()
 {
@@ -587,6 +595,10 @@ void CCmpReportTreeView::DeleteReport()
 	if(pProjectReportParam)
 	{
 		pProjectReportParam->DeleteReport(strReportName);
+		if(m_pCmpReport->GetFocusReportName().CompareNoCase(strReportName) == 0)
+		{
+			ChangeFocusReport();
+		}
         GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 	}
 
@@ -609,7 +621,7 @@ void CCmpReportTreeView::OnContextMenu(CWnd* pWnd, CPoint point)
 	{
 		CMenu menuProj;
 		menuProj.CreatePopupMenu();
-		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_MODEL, _T("Add new model"));
+		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_ADD_MODEL, _T("Select model"));
 		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_DEL_ALL_MODEL, _T("Delete all models"));
 		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Comments"));
 		menuProj.AppendMenu(MF_STRING | MF_ENABLED , MENU_UNAVAILABLE, _T("Help"));
@@ -727,6 +739,12 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 			{
 				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
 				pReport->SetChecked(!pReport->GetChecked());
+
+				if( pReport->GetChecked() == FALSE &&
+					m_pCmpReport->GetFocusReportName().CompareNoCase(pReport->GetName()) == 0)
+				{
+					//ChangeFocusReport();
+				}
                 GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 			}
 			break;
@@ -763,6 +781,8 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
 				if(pReport->GetChecked() == TRUE)
 				{
+					CString strReport = pReport->GetName();
+					m_pCmpReport->SetFocusReportName(strReport);
                     GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 				}
 				return 0;
@@ -1058,6 +1078,7 @@ void CCmpReportTreeView::LoadReport()
 // If there is no report in the list, set focus report null.
 void CCmpReportTreeView::ChangeFocusReport()
 {
+	m_pCmpReport->SetFocusReportName(_T(""));
 	CCmpReportParameter* pProjectReportParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
 	CSingleReportsManager* pRepManager = pProjectReportParam->GetReportsManager();
 	int repCount = pRepManager->getCount();

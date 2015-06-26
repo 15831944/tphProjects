@@ -2946,7 +2946,7 @@ void CARCportEngine::CloseLogs( const CString& _csProjPath )
 	}
 
 	getTerminal()->m_pTempMobEventLog->closeEventFile();
-
+	getTerminal()->m_pTempMobEventLog->createEventFile(sFileName); //delete temporary files
 	//when TLOS created processor dynamicly ,we need update proc index in pax log to proc's new index
 	RefreshProcIdxInLogs();
 

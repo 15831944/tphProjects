@@ -244,10 +244,7 @@ void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CA
 		}
 		bOvrwriteFails = TRUE;
 	}
-	if (_ShowCopyInfo != NULL)
-	{
-		(*_ShowCopyInfo)(sSourceFile);
-	}
+
 
 	//check the last modified time, if same, no copying
 	CFileFind ffFind;
@@ -275,6 +272,11 @@ void CFileOperation::DoFileCopy(CString sSourceFile, CString sDestFile, void (CA
 				}
 			}
 		}
+	}
+
+	if (_ShowCopyInfo != NULL)
+	{
+		(*_ShowCopyInfo)(sSourceFile);
 	}
 
 	if (!CopyFile(sSourceFile, sDestFile, bOvrwriteFails)) 
