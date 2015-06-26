@@ -15,6 +15,7 @@
 #include "..\InputAirside\ALTAirport.h"
 #include "..\common\AirportDatabase.h"
 #include "../Database//DBElementCollection_Impl.h"
+#include "Common/CARCUnit.h"
 
 
 static const UINT ID_NEW_LIST = 10;
@@ -24,7 +25,7 @@ static const UINT ID_EDIT_ITEM = 12;
 // CDlgConflictResolution dialog
 
 IMPLEMENT_DYNAMIC(CDlgConflictResolution, CXTResizeDialog)
-CDlgConflictResolution::CDlgConflictResolution(int nProjID, PSelectFlightType pSelectFlightType, CAirportDatabase* pAirportDB, CWnd* pParent /*=NULL*/)
+CDlgConflictResolution::CDlgConflictResolution(int nProjID, PFuncSelectFlightType pSelectFlightType, CAirportDatabase* pAirportDB, CWnd* pParent /*=NULL*/)
 	: CXTResizeDialog(CDlgConflictResolution::IDD, pParent)
 	,m_nProjID(nProjID)
 	,m_pSelectFlightType(pSelectFlightType)
@@ -81,7 +82,7 @@ void CDlgConflictResolution::OnBnClickedSave()
 		CADODatabase::RollBackTransation() ;
 	}
 	
-	CXTResizeDialog::OnOK();
+	//CXTResizeDialog::OnOK();
 }
 
 
@@ -106,8 +107,22 @@ BOOL CDlgConflictResolution::OnInitDialog()
 	CXTResizeDialog::OnInitDialog();
 	// TODO:  Add extra initialization here
 	InitToolBar();
-	m_pConflictResolution->SetAirportDB(m_pAirportDB);
-	m_pConflictResolution->ReadData(m_nProjID);
+	SetResize(m_wndToolbar.GetDlgCtrlID(), SZ_TOP_LEFT, SZ_TOP_LEFT);
+	SetResize(IDC_TREE_CONFLICTRESOLUTION, SZ_TOP_LEFT , SZ_BOTTOM_RIGHT); 	
+	SetResize(IDC_SAVE, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
+	SetResize(IDOK, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
+	SetResize(IDCANCEL, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
+
+	try
+	{
+		m_pConflictResolution->SetAirportDB(m_pAirportDB);
+		m_pConflictResolution->ReadData(m_nProjID);
+	}	
+	catch (CADOException&)
+	{
+		AfxMessageBox("Error Reading Conflict Resolution Data");
+		return FALSE;
+	}	
 
 	std::vector<int> vAirportIds;
 	InputAirside::GetAirportList(m_nProjID, vAirportIds);
@@ -140,12 +155,7 @@ BOOL CDlgConflictResolution::OnInitDialog()
 
 	LoadTree();
 
-	SetResize(m_wndToolbar.GetDlgCtrlID(), SZ_TOP_LEFT, SZ_TOP_LEFT);
-	SetResize(IDC_TREE_CONFLICTRESOLUTION, SZ_TOP_LEFT , SZ_BOTTOM_RIGHT); 	
-	SetResize(IDC_SAVE, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
-	SetResize(IDOK, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
-	SetResize(IDCANCEL, SZ_BOTTOM_RIGHT, SZ_BOTTOM_RIGHT);
-
+	
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),TRUE);
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),FALSE);
 
@@ -272,16 +282,31 @@ void CDlgConflictResolution::OnContextMenu(CWnd* pWnd, CPoint point)
 		if(hRClickItem == m_hAtIntersectionOnRight && strcmp(strYesOrNo,"No") == 0 || hRClickItem == m_hFirstInATaxiway && strcmp(strYesOrNo,"No") == 0
 		   || hRClickItem == m_hOnSpecificTaxiways && strcmp(strYesOrNo,"es") == 0)
 				pSubMenu = menuPopup.GetSubMenu(0);
-	}
-	else if(hParentItem && !m_wndConflictResolutionTree.GetParentItem(hParentItem))
+	}	
+	
+	if(hRClickItem == m_hCaseLanding || hRClickItem == m_hCaseTakeoff)
 	{
+		pSubMenu = menuPopup.GetSubMenu(0);
+	}
+	else if(hParentItem == m_hCaseLanding || hParentItem == m_hCaseTakeoff)
+	{
+		pSubMenu = menuPopup.GetSubMenu(1);		
+	}
+
+	
+	if(hParentItem ==m_hAtIntersectionOnRight || hParentItem== m_hFirstInATaxiway|| hParentItem==m_hOnSpecificTaxiways)
+	{	
 		pSubMenu = menuPopup.GetSubMenu(1);
 		pSubMenu->DeleteMenu(ID_EDIT_MENUITEM ,MF_BYCOMMAND);		
 	}
-	else if(hParentItem && m_wndConflictResolutionTree.GetParentItem(hParentItem))
+	else if(hParentItem)
 	{
-		pSubMenu = menuPopup.GetSubMenu(1);
-		pSubMenu->DeleteMenu(ID_DELETE_MENUITEM ,MF_BYCOMMAND);	
+		HTREEITEM hParentParent = m_wndConflictResolutionTree.GetParentItem(hParentItem);		
+		if(hParentParent ==m_hAtIntersectionOnRight || hParentParent== m_hFirstInATaxiway|| hParentParent==m_hOnSpecificTaxiways)
+		{
+			pSubMenu = menuPopup.GetSubMenu(1);
+			pSubMenu->DeleteMenu(ID_DELETE_MENUITEM ,MF_BYCOMMAND);	
+		}
 	}
 
 	if (pSubMenu != NULL)
@@ -292,7 +317,8 @@ LRESULT CDlgConflictResolution::DefWindowProc(UINT message, WPARAM wParam, LPARA
 {
 	// TODO: Add your specialized code here and/or call the base class
 
-	switch(message){	
+	switch(message)
+	{	
 		case UM_CEW_EDITSPIN_END:
 			{
 				HTREEITEM hItem=(HTREEITEM)wParam;
@@ -303,13 +329,46 @@ LRESULT CDlgConflictResolution::DefWindowProc(UINT message, WPARAM wParam, LPARA
 				if (hItem == m_hRadiusOfConcern)
 				{
 					m_pConflictResolution->SetRadiusOfConcern(ntemp);
-					strtemp.Format("%s:%s","Radius of concern(ft):",strValue);
+					strtemp.Format("%s:%s","Radius of concern(ft)",strValue);
 				}
-				else
+				else if(hItem == m_hRunwayCrossBuffer)
 				{
 					m_pConflictResolution->SetRunwayCrossBuffer(ntemp);
-					strtemp.Format("%s:%s","Active Runway Cross Buffer(secs):",strValue);
+					strtemp.Format("%s:%s","Runway Cross Buffer(secs)",strValue);
 				}
+				if(isBuffeTime(hItem))
+				{
+					HTREEITEM hItemParent  = m_wndConflictResolutionTree.GetParentItem(hItem);
+					RunwayCrossBuffer* buffer =  (RunwayCrossBuffer*)m_wndConflictResolutionTree.GetItemData(hItemParent);
+					buffer->setTime( ElapsedTime((double)ntemp) );
+					strtemp.Format(_T("Buffer Time(secs):%d"), ntemp);
+				}
+
+				if(isBuffeDist(hItem))
+				{
+					HTREEITEM hItemParent  = m_wndConflictResolutionTree.GetParentItem(hItem);
+					RunwayCrossBuffer* buffer =  (RunwayCrossBuffer*)m_wndConflictResolutionTree.GetItemData(hItemParent);
+				
+					buffer->setDistanceNM(ntemp);
+					strtemp.Format(_T("Buffer Distance(nm):%d"), ntemp);
+
+				}
+				if(hItem == m_hApproachDistance)
+				{
+					m_pConflictResolution->setRunwayAsTaxiwayApproachDistNM(ntemp);
+					strtemp.Format(_T("Distance(nm): %d"),ntemp);
+				}
+				if(hItem == m_hApproachTime)
+				{
+					m_pConflictResolution->setRunwayAsTaxiwayApproachTime(ElapsedTime((double)ntemp));
+					strtemp.Format(_T("Time(secs): %d"),ntemp);
+				}
+				if(hItem == m_hTakeoffSeconds)
+				{
+					m_pConflictResolution->setRunwayAsTaxiwayTakeoffTime(ElapsedTime((double)ntemp));
+					strtemp.Format(_T("No takeoff scheduled in the next(secs): %d"),ntemp);
+				}
+				
 
 				m_wndConflictResolutionTree.SetItemText(hItem,strtemp);
 				m_wndConflictResolutionTree.SetItemData(hItem,ntemp);
@@ -450,15 +509,50 @@ void CDlgConflictResolution::OnTvnSelchangedTreeConflictresolution(NMHDR *pNMHDR
 	*pResult = 0;
 }
 
+void CDlgConflictResolution::addRunwayCrossBufferToTree(HTREEITEM hParent, RunwayCrossBuffer* buffer)
+{
+	COOLTREE_NODE_INFO cni;
+	CCoolTree::InitNodeInfo(this,cni);
+	
+
+	CString sfltType;
+	buffer->getFlightType().screenPrint(sfltType);
+	CString str; 
+	str.Format(_T("Flight Type: %s"), sfltType.GetString() );
+	HTREEITEM hItemFlight = m_wndConflictResolutionTree.InsertItem(str, cni, FALSE,0, hParent);
+
+
+	cni.net =  NET_EDITSPIN_WITH_VALUE;
+	str.Format(_T("Buffer Time(secs): %d"), buffer->getTime().asSeconds() );
+	HTREEITEM hItem = m_wndConflictResolutionTree.InsertItem(str, cni, FALSE,0, hItemFlight);
+	m_hBufferTimes.push_back(hItem);
+	m_wndConflictResolutionTree.SetItemData(hItem,buffer->getTime().asSeconds());
+
+	int nNM = (int)(buffer->getDistanceNM()+0.5);
+	str.Format(_T("Buffer Distance(nm): %d"), nNM );
+	hItem = m_wndConflictResolutionTree.InsertItem(str, cni, FALSE,0, hItemFlight);
+	m_hBufferDists.push_back(hItem);
+	m_wndConflictResolutionTree.SetItemData(hItem,nNM);
+
+	m_wndConflictResolutionTree.SetItemData(hItemFlight, (DWORD)buffer);
+	m_wndConflictResolutionTree.Expand(hItemFlight, TVE_EXPAND);
+	m_wndConflictResolutionTree.Expand(hParent, TVE_EXPAND);
+}
+
+
+
 void CDlgConflictResolution::LoadTree()
 {
 	COOLTREE_NODE_INFO cni;
 	CCoolTree::InitNodeInfo(this,cni);
 
+	m_hBufferDists.clear();
+	m_hBufferTimes.clear();
+
 	//radius concern
-	CString strRadiusOfConcern;
 	int nRadiusOfConcern = m_pConflictResolution->GetRadiusOfConcern();
-	strRadiusOfConcern.Format(_T("Radius of concern(ft): %d"),nRadiusOfConcern);
+	CString strRadiusOfConcern;
+	strRadiusOfConcern.Format(_T("Radius of concern(ft):%d"), nRadiusOfConcern);
 	cni.nt=NT_NORMAL; 
 	cni.net=NET_EDITSPIN_WITH_VALUE;
 	cni.fMaxValue = 10000;
@@ -468,13 +562,70 @@ void CDlgConflictResolution::LoadTree()
 	//runway cross buffer (seconds)
 	int nRunwayCrossBuffer = m_pConflictResolution->GetRunwayCrossBuffer();
 	CString strRunwayCrossBuffer;
-	strRunwayCrossBuffer.Format(_T("Active Runway Cross Buffer(secs): %d"),nRunwayCrossBuffer);
+	strRunwayCrossBuffer.Format(_T("Runway Cross Buffer(secs): %d"),nRunwayCrossBuffer);
 	cni.nt=NT_NORMAL; 
 	cni.net=NET_EDITSPIN_WITH_VALUE;
 	cni.fMaxValue = 10000;
 	m_hRunwayCrossBuffer = m_wndConflictResolutionTree.InsertItem(strRunwayCrossBuffer,cni,FALSE);
 	m_wndConflictResolutionTree.SetItemData(m_hRunwayCrossBuffer,nRunwayCrossBuffer);
+	
+	CString strCaseTakeoff = _T("Case Takeoff:");
+	cni.net =  NET_NORMAL;
+	m_hCaseTakeoff = m_wndConflictResolutionTree.InsertItem(strCaseTakeoff, cni, FALSE,0,m_hRunwayCrossBuffer);
+	for(size_t inserite=0;inserite<m_pConflictResolution->m_vCrossBuffers.GetElementCount(); inserite++)
+	{
+		RunwayCrossBuffer* buffer = m_pConflictResolution->m_vCrossBuffers.GetItem(inserite);
+		if(buffer->getCase()==RunwayCrossBuffer::_Takeoff)
+		{
+			addRunwayCrossBufferToTree(m_hCaseTakeoff, buffer);
+		}
+	}
+	m_wndConflictResolutionTree.Expand(m_hCaseTakeoff,TVE_EXPAND);
 
+	//add Cross buffers 
+	CString strCaseLanding = _T("Case Landing:");
+	m_hCaseLanding = m_wndConflictResolutionTree.InsertItem(strCaseLanding, cni, FALSE, 0,m_hRunwayCrossBuffer);
+	for(size_t inserite=0;inserite<m_pConflictResolution->m_vCrossBuffers.GetElementCount(); inserite++)
+	{
+		RunwayCrossBuffer* buffer = m_pConflictResolution->m_vCrossBuffers.GetItem(inserite);
+		if(buffer->getCase()==RunwayCrossBuffer::_Landing)
+		{
+			addRunwayCrossBufferToTree(m_hCaseLanding, buffer);
+		}
+	}
+	m_wndConflictResolutionTree.Expand(m_hCaseLanding,TVE_EXPAND);
+
+	m_wndConflictResolutionTree.Expand(m_hRunwayCrossBuffer,TVE_EXPAND);
+
+
+	CString strRunwayusTaxiway = _T("Runway use as Taxiway Criteria");
+	HTREEITEM hItemRuwnayasTaxiway = m_wndConflictResolutionTree.InsertItem(strRunwayusTaxiway, cni,FALSE);
+	{
+		CString strAppraoch  = _T("No Aircraft on approach threshold within ");
+		HTREEITEM hApproach = m_wndConflictResolutionTree.InsertItem(strAppraoch, cni, FALSE, 0 ,hItemRuwnayasTaxiway);
+		{
+			cni.net = NET_EDITSPIN_WITH_VALUE;
+			CString strNM;
+			int nm = (int)(m_pConflictResolution->getRunwayAsTaxiwayApproachDistNM()+0.5);
+			strNM.Format(_T("Distance(nm): %d"), nm );
+			m_hApproachDistance = m_wndConflictResolutionTree.InsertItem(strNM, cni,FALSE,0, hApproach);
+			m_wndConflictResolutionTree.SetItemData(m_hApproachDistance,nm);
+			CString strTime;
+			int nTime = m_pConflictResolution->getRunwayAsTaxiwayApproachTime().asSeconds();
+			strTime.Format(_T("Time(secs): %d"), nTime);
+			m_hApproachTime = m_wndConflictResolutionTree.InsertItem(strTime, cni, FALSE, 0, hApproach);
+			m_wndConflictResolutionTree.SetItemData(m_hApproachTime,nTime);
+			m_wndConflictResolutionTree.Expand(hApproach,TVE_EXPAND);
+
+			//
+			CString sTakeoff;
+			nTime = m_pConflictResolution->getRunwayAsTaxiwayTakeoffTime().asSeconds();
+			sTakeoff.Format(_T("No takeoff scheduled in the next(secs): %d"),  nTime);
+			m_hTakeoffSeconds = m_wndConflictResolutionTree.InsertItem(sTakeoff, cni, FALSE, 0 , hItemRuwnayasTaxiway);
+			m_wndConflictResolutionTree.SetItemData(m_hTakeoffSeconds,nTime);
+		}
+	}
+	m_wndConflictResolutionTree.Expand(hItemRuwnayasTaxiway,TVE_EXPAND);
 
 	
 	//At intersection Aircraft on right has right of way
@@ -661,7 +812,7 @@ void CDlgConflictResolution::OnNewItem()
 		m_wndConflictResolutionTree.Expand(m_hAtIntersectionOnRight,TVE_EXPAND);
 	}
 	else if(hSelItem == m_hFirstInATaxiway)
-	{
+	{ 
 		//FlightConstraint fltTypeA = (*m_pSelectFlightType)(NULL);
 		//CString strFltTypeA;
 		//fltTypeA.screenPrint(strFltTypeA);
@@ -722,6 +873,31 @@ void CDlgConflictResolution::OnNewItem()
 		m_wndConflictResolutionTree.Expand(hOnSpecificTaxiwaysItem,TVE_EXPAND);
 		m_wndConflictResolutionTree.Expand(m_hOnSpecificTaxiways,TVE_EXPAND);
 	}
+	if(m_hCaseLanding == hSelItem)
+	{
+		FlightConstraint fltType;
+		if( (*m_pSelectFlightType)(NULL, fltType))
+		{
+			RunwayCrossBuffer* newBuffer = new RunwayCrossBuffer;
+			newBuffer->setCase(RunwayCrossBuffer::_Landing);
+			newBuffer->setFlightType(fltType);
+			m_pConflictResolution->m_vCrossBuffers.AddNewItem(newBuffer);
+			addRunwayCrossBufferToTree(m_hCaseLanding, newBuffer);
+		}
+	}
+	if(m_hCaseTakeoff == hSelItem)
+	{
+		FlightConstraint fltType;
+		if( (*m_pSelectFlightType)(NULL, fltType))
+		{
+			RunwayCrossBuffer* newBuffer = new RunwayCrossBuffer;
+			newBuffer->setCase(RunwayCrossBuffer::_Takeoff);
+			newBuffer->setFlightType(fltType);
+			m_pConflictResolution->m_vCrossBuffers.AddNewItem(newBuffer);
+			addRunwayCrossBufferToTree(m_hCaseTakeoff, newBuffer);
+		}
+	}
+	
 }
 void CDlgConflictResolution::OnDelItem()
 {
@@ -745,6 +921,11 @@ void CDlgConflictResolution::OnDelItem()
 		COnSpecificTaxiwaysList* pOnSpecificTaxiwaysList = (COnSpecificTaxiwaysList*)m_pConflictResolution->GetOnSpecificTaxiwaysList();
 		pOnSpecificTaxiwaysList->DeleteItem(pSelItem);
 	}
+	else if (hParentItem == m_hCaseLanding || hParentItem == m_hCaseTakeoff)
+	{
+		RunwayCrossBuffer* buffer = (RunwayCrossBuffer*)m_wndConflictResolutionTree.GetItemData(hSelItem);
+		m_pConflictResolution->m_vCrossBuffers.DeleteItem(buffer);
+	}
 	m_wndConflictResolutionTree.DeleteItem(hSelItem);
 }
 void CDlgConflictResolution::OnEditItem()
@@ -767,7 +948,8 @@ void CDlgConflictResolution::OnEditItem()
 
 		if(strSelItem == _T("1"))
 		{
-			FlightConstraint fltTypeA = (*m_pSelectFlightType)(NULL);
+			FlightConstraint fltTypeA;
+			(*m_pSelectFlightType)(NULL, fltTypeA);
 			fltTypeA.screenPrint(strFltTypeA);
 			pSelItem->SetFltTypeA(fltTypeA);
 			strTempValue.Format(_T("Flight Type1: %s"),strFltTypeA);
@@ -775,7 +957,8 @@ void CDlgConflictResolution::OnEditItem()
 		}
 		else
 		{
-			FlightConstraint fltTypeB = (*m_pSelectFlightType)(NULL);
+			FlightConstraint fltTypeB ;
+			(*m_pSelectFlightType)(NULL, fltTypeB);
 			fltTypeB.screenPrint(strFltTypeB);
 			pSelItem->SetFltTypeB(fltTypeB);
 			strTempValue.Format(_T("Flight Type2: %s"),strFltTypeB);
@@ -793,7 +976,8 @@ void CDlgConflictResolution::OnEditItem()
 		CString strFltTypeA,strFltTypeB;
 		if(strSelItem == _T("1"))
 		{
-			FlightConstraint fltTypeA = (*m_pSelectFlightType)(NULL);
+			FlightConstraint fltTypeA;
+			(*m_pSelectFlightType)(NULL, fltTypeA);
 			fltTypeA.screenPrint(strFltTypeA);
 			pSelItem->SetFltTypeA(fltTypeA);
 			strTempValue.Format(_T("Flight Type1: %s"),strFltTypeA);
@@ -801,8 +985,8 @@ void CDlgConflictResolution::OnEditItem()
 		}
 		else
 		{
-			FlightConstraint fltTypeB = (*m_pSelectFlightType)(NULL);
-			fltTypeB.screenPrint(strFltTypeB);
+			FlightConstraint fltTypeB;// = (*m_pSelectFlightType)(NULL);
+			(*m_pSelectFlightType)(NULL, fltTypeB);
 			pSelItem->SetFltTypeB(fltTypeB);
 			strTempValue.Format(_T("Flight Type2: %s"),strFltTypeB);
 			(pSelItem->GetFltTypeA()).screenPrint(strFltTypeA);
@@ -819,7 +1003,8 @@ void CDlgConflictResolution::OnEditItem()
 		CString strFltType,strTaxiwayName;
 		if(strSelItem == _T("e"))
 		{
-			FlightConstraint fltType = (*m_pSelectFlightType)(NULL);
+			FlightConstraint fltType;
+			(*m_pSelectFlightType)(NULL,fltType);
 			fltType.screenPrint(strFltType);
 			pSelItem->SetFltType(fltType);
 			strTempValue.Format(_T("Flight Type: %s"),strFltType);
@@ -858,4 +1043,20 @@ void CDlgConflictResolution::OnEditItem()
 		strTempValue.Format(_T("%s on Taxiway %s has right of way"),strFltType,strTaxiwayName);
 		m_wndConflictResolutionTree.SetItemText(hParentItem,strTempValue);
 	}
+	
+	if(hParentItem == m_hCaseLanding || hParentItem == m_hCaseTakeoff) //edit flight type
+	{
+		RunwayCrossBuffer* buffer  = (RunwayCrossBuffer*)m_wndConflictResolutionTree.GetItemData(hSelItem);
+		FlightConstraint fltType;
+		if( (*m_pSelectFlightType)(NULL, fltType) )
+		{
+			buffer->setFlightType(fltType);
+			CString sFltType;
+			fltType.screenPrint(sFltType);
+			CString str; 
+			str.Format(_T("Flight Type: %s"), sFltType.GetString() );;
+			m_wndConflictResolutionTree.SetItemText(hSelItem, str);
+		}
+	}
+
 }

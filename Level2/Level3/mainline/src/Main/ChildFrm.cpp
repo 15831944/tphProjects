@@ -649,7 +649,7 @@ void CChildFrame::GenAircraftShapeDLIDs(CAircraftDispProps* pADP)
 {
 	wglMakeCurrent( GetPane(0,0)->GetClientDC()->GetSafeHdc(), GetPane(0,0)->GetHGLRC() );
 
-	int nACSet = SHAPESMANAGER->FindShapeIndexByName(_T("Aircraft"));
+	int nACSet = SHAPESMANAGER->FindShapeSetIndexByName(_T("Aircraft"));
 	ASSERT(nACSet != -1);
 	if(nACSet==-1){
 		AfxMessageBox(_T("Error Find Aircraft Shapes,try update resource packages!"));

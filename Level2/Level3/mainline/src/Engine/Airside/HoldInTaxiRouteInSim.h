@@ -48,6 +48,7 @@ public:
 	HoldInTaxiRoute* GetExitHold(IntersectionNodeInSim* pNode)const;
 
 	HoldInTaxiRoute* GetExitHold(const HoldInTaxiRoute& entryHold)const;
+	HoldInTaxiRoute* GetExitRunwayHold(const HoldInTaxiRoute& entryHold)const;
 
 
 	HoldInTaxiRoute* GetLastEntryHold()const;

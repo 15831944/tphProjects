@@ -409,7 +409,7 @@ namespace AirsideReControlView
 
 		virtual void OnUpdateToolBarAdd(CCmdUI *pCmdUI);
 		virtual void OnUpdateToolBarDel(CCmdUI *pCmdUI);
-        virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+
 	protected:
 		void InitDefaltTree();
 

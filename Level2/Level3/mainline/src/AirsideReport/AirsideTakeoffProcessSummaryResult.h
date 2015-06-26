@@ -35,10 +35,6 @@ public:
 	virtual BOOL WriteReportData(ArctermFile& _file);
 	virtual BOOL ReadReportData(ArctermFile& _file);
 	
-	const TakeoffSummaryDataList& GetResult()
-	{
-		return m_data;
-	}
 private:
 	void BuiltResultData();
 	void AddResultData(const CTakeoffProcessDetailData& detailData );

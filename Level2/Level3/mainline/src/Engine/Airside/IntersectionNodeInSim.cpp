@@ -9,6 +9,7 @@
 #include "RunwayInSim.h"
 #include "RunwaySegInSim.h"
 #include "../../Database/ADODatabase.h"
+#include "AirsideResourceManager.h"
 
 #define POSITIVE_NUM 1.0
 #define NEGTIVE_NUM -1.0
@@ -534,19 +535,37 @@ FilletTaxiway* IntersectionNodeInSim::GetFilletFromTo( FlightGroundRouteDirectSe
 	return NULL;
 }
 
-bool IntersectionNodeInSim::IsNoParking() const
+bool IntersectionNodeInSim::IsNoParking(AirsideFlightInSim* pFlight) const
 {
 	if(!m_bNoParking)
 		return false;
 
-	if(GetNodeInput().GetRunwayIntersectItemList().empty())
+	int nActiveRunway = 0;
+	int nRunwayItem = 	m_nodeinput.GetRunwayIntersectItemList().size();
+	for(int i=0;i<nRunwayItem;i++)
+	{
+		int nRunwayId  = m_nodeinput.GetRunwayIntersectItemList().at(i)->GetObjectID();
+		RunwayInSim* pRunway = pFlight->GetAirTrafficController()->GetAirsideResourceManager()->GetAirportResource()->getRunwayResource()->GetRunwayByID(nRunwayId);
+		if(pRunway)
+		{
+			if(!pFlight->GetAirTrafficController()->CanRunwayUseAsTaxiway(pFlight,pRunway))
+			{
+				nActiveRunway++;
+			}
+		}
+	}
+
+	if(nActiveRunway==0 && nRunwayItem>0)
+		return false;
+
+	if(nActiveRunway>0)
 	{
 		if( m_vFilletTaxiways.size()<3 )
 			return false;
 	}
 
 
-	int nValidIntersect = GetNodeInput().GetRunwayIntersectItemList().size()+GetNodeInput().GetTaxiwayIntersectItemList().size();
+	int nValidIntersect = GetNodeInput().GetRunwayIntersectItemList().size() + GetNodeInput().GetTaxiwayIntersectItemList().size();
 	if(nValidIntersect>=2)
 	{
 		return m_bNoParking;

@@ -347,7 +347,7 @@ void CAirsideTakeoffQueueSummaryChart::Draw3DChart( CARC3DChart& chartWnd, CPara
 	std::vector<CString> vLegends;
 	//get the legend
 	vLegends.push_back(_T("Min"));
-	vLegends.push_back(_T("Avg"));
+	vLegends.push_back(_T("Average"));
 	vLegends.push_back(_T("Max"));
 	vLegends.push_back(_T("Q1"));
 	vLegends.push_back(_T("Q2"));
@@ -358,7 +358,7 @@ void CAirsideTakeoffQueueSummaryChart::Draw3DChart( CARC3DChart& chartWnd, CPara
 	vLegends.push_back(_T("P90"));
 	vLegends.push_back(_T("P95"));
 	vLegends.push_back(_T("P99"));
-	vLegends.push_back(_T("Std Dev"));
+	vLegends.push_back(_T("Sigma"));
 
 
 	std::vector< std::vector<double> > vLegendData;
@@ -424,7 +424,7 @@ void CAirsideTimeAtHoldShortLineSummaryChart::Draw3DChart( CARC3DChart& chartWnd
 	std::vector<CString> vLegends;
 	//get the legend
 	vLegends.push_back(_T("Min"));
-	vLegends.push_back(_T("Avg"));
+	vLegends.push_back(_T("Average"));
 	vLegends.push_back(_T("Max"));
 	vLegends.push_back(_T("Q1"));
 	vLegends.push_back(_T("Q2"));
@@ -435,7 +435,7 @@ void CAirsideTimeAtHoldShortLineSummaryChart::Draw3DChart( CARC3DChart& chartWnd
 	vLegends.push_back(_T("P90"));
 	vLegends.push_back(_T("P95"));
 	vLegends.push_back(_T("P99"));
-	vLegends.push_back(_T("Std Dev"));
+	vLegends.push_back(_T("Sigma"));
 
 
 	std::vector< std::vector<double> > vLegendData;
@@ -501,7 +501,7 @@ void CAirsideTaxiToPositionSummaryChart::Draw3DChart( CARC3DChart& chartWnd, CPa
 	std::vector<CString> vLegends;
 	//get the legend
 	vLegends.push_back(_T("Min"));
-	vLegends.push_back(_T("Avg"));
+	vLegends.push_back(_T("Average"));
 	vLegends.push_back(_T("Max"));
 	vLegends.push_back(_T("Q1"));
 	vLegends.push_back(_T("Q2"));
@@ -512,7 +512,7 @@ void CAirsideTaxiToPositionSummaryChart::Draw3DChart( CARC3DChart& chartWnd, CPa
 	vLegends.push_back(_T("P90"));
 	vLegends.push_back(_T("P95"));
 	vLegends.push_back(_T("P99"));
-	vLegends.push_back(_T("Std Dev"));
+	vLegends.push_back(_T("Sigma"));
 
 
 	std::vector< std::vector<double> > vLegendData;
@@ -578,7 +578,7 @@ void CAirsideTimeInPositionSummaryChart::Draw3DChart( CARC3DChart& chartWnd, CPa
 	std::vector<CString> vLegends;
 	//get the legend
 	vLegends.push_back(_T("Min"));
-	vLegends.push_back(_T("Avg"));
+	vLegends.push_back(_T("Average"));
 	vLegends.push_back(_T("Max"));
 	vLegends.push_back(_T("Q1"));
 	vLegends.push_back(_T("Q2"));
@@ -589,7 +589,7 @@ void CAirsideTimeInPositionSummaryChart::Draw3DChart( CARC3DChart& chartWnd, CPa
 	vLegends.push_back(_T("P90"));
 	vLegends.push_back(_T("P95"));
 	vLegends.push_back(_T("P99"));
-	vLegends.push_back(_T("Std Dev"));
+	vLegends.push_back(_T("Sigma"));
 
 
 	std::vector< std::vector<double> > vLegendData;

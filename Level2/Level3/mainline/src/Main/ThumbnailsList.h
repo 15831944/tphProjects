@@ -25,7 +25,7 @@ public:
 	BOOL GetImageFileNames(CString strSection);
 
 	void SetImageDir(CString str);
-	void SetLabelString(const char* szLabel[]);
+	//void SetLabelString(const char* szLabel[]);
 	void ClearPrevSeledIndex() { m_nPrevSeledIndex = -1; }
 
 
@@ -51,12 +51,13 @@ protected:
 public:
 	CWnd* m_pParent;
 	CImageList m_ImageListThumb;
-	int m_nSelectedItem;CString m_strImageDir;
+	int m_nSelectedItem;
+	CString m_strImageDir;
 	std::vector<CString>	m_VectorImageNames;		// vector holding the image names
 	std::vector<CString> m_VectorItemDataLeft;
 	std::vector<CString> m_VectorItemDataRight;
 private:
-	char**				 m_szShapeLabel;	
+	//char**				 m_szShapeLabel;	
 	BOOL m_bPreview;
 	int m_nPrevSeledIndex;
 };

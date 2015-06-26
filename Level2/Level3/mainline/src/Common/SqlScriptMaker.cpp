@@ -39,7 +39,7 @@ CString SqlSelectScriptMaker::GetScript()
 	CString strSQL = _T("SELECT ");
 
 	//columns
-	ASSERT(m_vColName.size() > 0);
+	//ASSERT(m_vColName.size() > 0);
 
 	CString strCols;
 	std::vector<CString>::iterator iter = m_vColName.begin();
@@ -137,6 +137,13 @@ CString SqlScriptColumn::GetName()
 CString SqlScriptColumn::GetValue()
 {
 	return m_strValue;
+}
+
+CString SqlScriptColumn::EqualCondition()
+{
+	CString str;
+	str.Format(_T("(%s = %s)"), m_strColName.GetString(), m_strValue.GetString() );
+	return str;
 }
 
 

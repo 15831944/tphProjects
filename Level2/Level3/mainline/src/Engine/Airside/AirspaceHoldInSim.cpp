@@ -109,13 +109,13 @@ bool AirspaceHoldInSim::TryLock(AirsideFlightInSim * pFlight)
 	return nLockSize < m_nMaxFlightNum;
 }
 
-void AirspaceHoldInSim::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode)
+void AirspaceHoldInSim::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode, double dSpd)
 {
 	OccupancyInstance ocyInstance  = GetOccupyInstance(pFlight);
 	if (ocyInstance.GetFlight() == pFlight && (ocyInstance.GetEnterTime()< enterT && ocyInstance.GetEnterTime() == enterT))
 		return;
 
-	AirsideResource::SetEnterTime(pFlight,enterT,fltMode);
+	AirsideResource::SetEnterTime(pFlight,enterT,fltMode, dSpd);
 	AddHoldingFlight((AirsideFlightInSim*)pFlight);
 }
 

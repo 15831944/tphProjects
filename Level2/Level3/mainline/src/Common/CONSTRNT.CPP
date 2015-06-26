@@ -103,3 +103,10 @@ void Constraint::WriteSyntaxStringWithVersion (char *p_str) const
 	WriteSyntaxString( tempStr );
 	strcat( p_str, tempStr );
 }
+
+void Constraint::getSerialize( CString& p_str )const
+{
+	char str[2560] = "";  //changed by matt in 5,12,2004
+	WriteSyntaxStringWithVersion (str);
+	p_str = str;
+}

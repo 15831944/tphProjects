@@ -16,6 +16,7 @@
 #include "Airside/StandInSim.h"
 #include "BridgeQueue.h"
 #include "Inputs/BridgeConnectorPaxData.h"
+#include "SEvent.H"
 
 
 BridgeConnector::BridgeConnector(void)
@@ -29,6 +30,8 @@ BridgeConnector::BridgeConnector(void)
 	m_location[0] = pos;	
 	m_pConnectFlight = NULL;
 	m_pOnboardConnectFlight = NULL;
+
+	m_bDelayDisconnet = false;
 }
 
 BridgeConnector::~BridgeConnector(void)
@@ -256,7 +259,7 @@ void BridgeConnector::ConnectAirsideFlight( AirsideFlightInSim* pFlight,const El
 	for(size_t i =0; i < doorPriority.size();++i)
 	{
 		const MiscBridgeIDWithDoor::DoorPriority& p = doorPriority[i];
-		int doorIdx = openDoors->getDoorIndex(p.m_iHandType,p.m_iIndex-1);
+		int doorIdx = openDoors->getDoorIndex(p.m_iHandType,p.m_iIndex);
 		if( doorIdx >= 0)
 		{
 			COpenDoorInfo& doorInfo = openDoors->getDoor(doorIdx);
@@ -319,10 +322,16 @@ void BridgeConnector::ConnectOnboardFlight( OnboardFlightInSim* pFlight,const El
 
 void BridgeConnector::DisAirsideConnect( const ElapsedTime& t )
 {
-	cpputil::autoPtrReset(m_pQueue);
-	DisConnect(t);
-	m_pConnectFlight = NULL;
-	m_iDoorIndex = -1;
+	if(isDisconnectable())
+	{
+		cpputil::autoPtrReset(m_pQueue);
+		DisConnect(t);
+		m_pConnectFlight = NULL;
+		m_iDoorIndex = -1;
+		m_bDelayDisconnet = false;
+	}
+	else
+		m_bDelayDisconnet = true;
 }
 
 void BridgeConnector::DisOnboardConnect( const ElapsedTime& t )
@@ -665,19 +674,20 @@ void BridgeConnector::CopyDataToProc( BridgeConnector* pCopyToProc )
 	pCopyToProc->m_connectPoint = m_connectPoint ;
 }
 
-void BridgeConnector::AddOccupy( Person* pPerson )
-{
-	occupants.addItem(pPerson);
-}
-
-void BridgeConnector::Release( Person* pPerson )
-{
-	int nPos = occupants.Find(pPerson);
-	if (nPos != INT_MAX)
-	{
-		occupants.removeItem(nPos);
-	}
-}
+//void BridgeConnector::AddOccupy( Person* pPerson )
+//{
+//	occupants.addItem(pPerson);
+//}
+//
+//void BridgeConnector::Release( Person* pPerson )
+//{
+//	int nPos = occupants.Find(pPerson);
+//	if (nPos != INT_MAX)
+//	{
+//		occupants.removeItem(nPos);
+//		pPerson->SetWalkOnBridge(FALSE);
+//	}
+//}
 
 void BridgeConnector::UpdateFloorIndex( const FloorChangeMap& changMap )
 {
@@ -723,10 +733,6 @@ void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 		}
 		//
 		person->SetWalkOnBridge(TRUE);
-		/*	TerminalMobElementBehavior* spTerminalBehavior = person->getTerminalBehavior();
-		if (spTerminalBehavior != NULL)
-		spTerminalBehavior->SetWalkOnBridge(TRUE);*/
-		//person->setState();
 		person->generateEvent (curTime + serviceT,false);
 		return;
 	}
@@ -793,8 +799,12 @@ void BridgeConnector::GenerateQueue()
 void BridgeConnector::getNextState( int& state,Person* _pPerson ) const
 {
 	assert( _pPerson );
-	
-	if (_pPerson->getLogEntry().isArrival())
+
+	TerminalMobElementBehavior* pTermBehavior = _pPerson->getTerminalBehavior();
+	if(!pTermBehavior){
+		return;
+	}
+	if(pTermBehavior->getBridgeState()==ArrBridge)//if (_pPerson->getLogEntry().isArrival())
 	{
 		if (state == FreeMoving && In_Constr.getCount())
 			state = MoveAlongInConstraint;
@@ -822,7 +832,12 @@ void BridgeConnector::getNextState( int& state,Person* _pPerson ) const
 
 Point BridgeConnector::AcquireServiceLocation( Person* _pPerson )
 {
-	if (_pPerson->getLogEntry().isArrival())
+	TerminalMobElementBehavior* pTermBehavior = _pPerson->getTerminalBehavior();
+	if(!pTermBehavior){
+		ASSERT(FALSE);
+		return m_Status.m_EndPoint;
+	}
+	if(pTermBehavior->getBridgeState()==ArrBridge)
 	{
 		return m_Status.m_EndPoint;
 	}
@@ -840,6 +855,55 @@ void BridgeConnector::getNextLocation( Person *aPerson )
 		return;
 	}
 	return __super::getNextLocation(aPerson);	
+}
+
+int BridgeConnector::GetCurFlightOperation()
+{
+	if(m_pConnectFlight)
+	{
+		if(m_pConnectFlight->IsArrivingOperation())
+			return ARRIVAL_OPERATION;
+		else if(m_pConnectFlight->IsDepartingOperation())
+			return DEPARTURE_OPERATION;
+	}
+	if(m_pOnboardConnectFlight)
+	{
+		//m_pOnboardConnectFlight->get
+		ASSERT(0);
+	}
+
+	return -1;
+}
+
+void BridgeConnector::removePerson( const Person *aPerson )
+{
+	__super::removePerson(aPerson);
+	if(aPerson)
+	{
+		TerminalMobElementBehavior* pbahavir = aPerson->getTerminalBehavior();
+		if(pbahavir->getBridgeState() != DepBridge)
+		{
+			const_cast<Person*>(aPerson)->SetWalkOnBridge(FALSE);
+		}
+	}
+	if(m_bDelayDisconnet)
+		DisAirsideConnect(SEvent::curTime());
+}
+
+
+
+
+
+bool BridgeConnector::isDisconnectable()
+{
+	if(!occupants.empty())
+		return false;
+	if(m_pQueue)
+	{
+		if( m_pQueue->getQueueLength()>0)
+			return false;
+	}
+	return true;
 }
 
 

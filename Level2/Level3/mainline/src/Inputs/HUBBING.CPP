@@ -201,7 +201,7 @@ Flight *HubbingSpecs::getRandomDeparture (const CMobileElemConstraint& p_type, i
 	Flight *aFlight = _pFlightSchedule->getItem (p_ndx);
 	ElapsedTime startTime = aFlight->getArrTime() + getMinTransferTime (p_type);
 	ElapsedTime endTime = startTime + getTransferWindow (p_type);
-	return _pFlightSchedule->getRandomDeparture (startTime, endTime);
+	return _pFlightSchedule->getRandomDeparture (startTime, endTime, p_ndx);
 }
 
 // delete all references to the passed index at p_level

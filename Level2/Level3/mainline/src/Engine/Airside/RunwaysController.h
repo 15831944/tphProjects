@@ -101,7 +101,7 @@ protected:
 	std::vector<LogicRunwayInSim *> m_vRunwayInSim;
 	std::vector<RunwayRelatedIntersectionNodeInSim*> m_vRunwayRelatedIntersectionNodes;
 	int m_nProjID;
-	ElapsedTime m_eTimeCrossRunwayBuffer;
+	//ElapsedTime m_eTimeCrossRunwayBuffer;
 	AirRouteNetworkInSim* m_pAirRouteNetwork;
 	//ElapsedTime GetEstimateStayTimeInRunway(AirsideFlightInSim *pFlight);
 
@@ -116,10 +116,6 @@ protected:
 
 	CRunwayExitAssignmentStrategiesInSim* m_pRunwayExitStrategy;
 	CRunwayTakeoffPositionAssignInSim* m_pRunwayTakeoffPosStrategy;
-
-
-	//takeoff separation
-
 
 
 	//get logic runway free time

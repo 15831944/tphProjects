@@ -128,7 +128,7 @@ void FlightConflictReportData::AddFlightConflict(const AirsideFlightLogItem& ite
 			pLogItem->m_nOperationType = (int)FlightConflict::STAR;
 		else if (pConflictLog->mMode == OnExitRunway)
 			pLogItem->m_nOperationType = (int)FlightConflict::EXITRUNWAY;
-		else if (pConflictLog->mMode > OnExitRunway && pConflictLog->mMode <= OnTaxiToStand)
+		else if (pConflictLog->mMode > OnExitRunway && pConflictLog->mMode <= OnTaxiToStand && pConflictLog->time <= item.mFltDesc.actDepOn )
 			pLogItem->m_nOperationType = (int)FlightConflict::TAXIINBOUND;
 		else if (pConflictLog->mMode == OnEnterStand)
 			pLogItem->m_nOperationType = (int)FlightConflict::ENTERINGSTAND;

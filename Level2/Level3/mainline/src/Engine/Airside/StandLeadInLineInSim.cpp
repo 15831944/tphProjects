@@ -105,9 +105,9 @@ DistanceUnit StandLeadInLineInSim::GetEndDist()
 	return m_linePath.GetTotalLength();
 }
 
-void StandLeadInLineInSim::SetEnterTime( CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode )
+void StandLeadInLineInSim::SetEnterTime( CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode, double dSpd )
 {
-	m_pStand->SetEnterTime(pFlight,enterT, fltMode);
+	m_pStand->SetEnterTime(pFlight,enterT, fltMode, dSpd);
 	for(int i=0;i< (int)m_vInNodes.size();i++)
 	{
 		IntersectionNodeInSim* pNode = m_vInNodes.at(i);

@@ -699,6 +699,22 @@ void TerminalMobElementBehavior::processQueueMovement (ElapsedTime p_time)
 	return;
 	}
 	*/
+	if(m_pProcessor->GetQueue() == NULL)
+	{
+		if(m_pProcessor->getProcessorType() == BridgeConnectorProc)
+		{
+			//terminate passenger
+			if( IsLateForDepFlight( p_time, m_pProcessor->GetTerminateTime() ) )
+			{
+				m_pProcessor->removePerson( m_pPerson );
+			}
+		}
+		flushLog (p_time,true);
+		return ;
+		ASSERT(0);
+	}
+
+
 	// must first check for relayAdvance event
 	if (m_pPerson->getState() == StartMovement)
 		m_pProcessor->moveThroughQueue (m_pPerson, p_time);
@@ -926,6 +942,7 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 			return TRUE;
 		}
 	}
+	Processor *pPreProcessor = m_pProcessor;
 
 	if( !getNextProcessor (p_time) )
 	{
@@ -962,13 +979,30 @@ int TerminalMobElementBehavior::processServerDeparture (ElapsedTime p_time)
 
 	generateEvent (p_time + moveTime(),false);	
 
-	if (_pool == NULL)//has pool service and not make nexavailable
+	if (_pool == NULL)//has pool service and not make next available
 	{ 
 		pCurrentProc->makeAvailable (m_pPerson, tempTime, false);
 	}
 	else if( _pool->getPoolType() == ConcurrentType)
 	{
 		pCurrentProc->makeAvailable (m_pPerson, tempTime, false);
+	}
+
+	if(m_pPerson->getType().isTurround())
+	{
+		//if the passenger passed bridge processor, it changes to DEPARTURE mode
+		if(pPreProcessor && pPreProcessor->getProcessorType() == BridgeConnectorProc)
+		{
+			SetTransferTypeState(TRANSFER_DEPARTURE);
+		}
+		if(pPreProcessor && pPreProcessor->getProcessorType() == GateProc)
+		{
+			//GateProcessor *pGateProc = (GateProcessor *)pPreProcessor;
+			//if(pGateProc && pGateProc->getGateType() == ArrGate)//no matter arrival or depature gate
+			{
+				SetTransferTypeState(TRANSFER_DEPARTURE);
+			}
+		}
 	}
 
 	return TRUE;
@@ -1441,6 +1475,7 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 		}
 	}
 
+
 	//------------------------------Added by frank 05-11-21
 	//process pipe in process
 
@@ -1699,13 +1734,18 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 	if(nextProc && nextProc->getProcessorType()==BridgeConnectorProc)
 	{
 		m_pPerson->SetBridgeState(NonState);
-		if(m_pPerson->m_logEntry.isArrival() && m_pProcessor ==  getTerminal()->procList->getProcessor (START_PROCESSOR_INDEX) )
+		if(m_pPerson->m_logEntry.isArriving() && m_pProcessor ==  getTerminal()->procList->getProcessor (START_PROCESSOR_INDEX) )
 		{
 			m_pPerson->SetBridgeState(ArrBridge);
 		}
-		if(m_pPerson->m_logEntry.isDeparting())
+		else if(m_pPerson->m_logEntry.isDeparting())
 		{
 			m_pPerson->SetBridgeState(DepBridge);
+		}
+		else
+		{
+			//arrival flow, there has processor before bridge
+			ASSERT(0);
 		}
 
 	}
@@ -1957,6 +1997,71 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 	//dStepTime3 = GetTickCount();
 
 	nextGroup = m_pFlowList->getDestinationGroup (RANDOM);
+
+	//here is temporarily solution for bridge processor
+	//for transfer passenger, arrival and departure passenger are all have bridge processor
+	//that leads to a cycle
+	//but for arrival passenger, if have another choice to pick normal processor, except END
+	//he should not pick END processor
+	//similar to the Departure passengers, the departure passenger should=ld select END processor
+	//the follow logic should be refactored in near future
+
+	/*********/
+	
+	if(m_pProcessor && m_pProcessor->getProcessorType() == BridgeConnectorProc)
+	{ 
+		if(m_pPerson->getType().isTurround())//special for Trunaround passenger, those passengers might use the bridge processors twice
+		{
+			if(m_pFlowList )
+			{
+				BridgeConnector *pBridgeConnector = (BridgeConnector *)m_pProcessor;
+				if(pBridgeConnector)
+				{
+					if(m_TransferState == TRANSFER_ARRIVAL)
+					{
+						ASSERT(m_TransferState == TRANSFER_ARRIVAL);
+						while (nextGroup != NULL)//find not END processor
+						{
+							GroupIndex group = getTerminal()->GetProcessorList()->getGroupIndex (*nextGroup);
+							if (group.start == END_PROCESSOR_INDEX && group.start == group.end)
+							{
+								nextGroup = m_pFlowList->getDestinationGroup (SEQUENTIAL);
+							}
+							else
+								break;
+						}
+					}
+					else if(m_TransferState == TRANSFER_DEPARTURE)
+					{
+						//while (nextGroup != NULL) //Find END processor
+						//{
+						//	GroupIndex group = getTerminal()->GetProcessorList()->getGroupIndex (*nextGroup);
+						//	if (group.start != END_PROCESSOR_INDEX )
+						//	{
+						//		nextGroup = m_pFlowList->getDestinationGroup (SEQUENTIAL);
+						//	}
+						//	else
+						//		break;
+						//}
+						//this passenger end here, there has not allow processor after departure bridge processor
+						Processor * nextProc = getTerminal()->procList->getProcessor (END_PROCESSOR_INDEX);
+						return nextProc;
+
+					}
+					else 
+					{
+						ASSERT(FALSE);
+					}
+				}
+			}
+		}
+
+	}
+
+
+	/**********/
+
+
 
 	const ProcessorID* pToGate = getTerminal()->procList->getProcessor(TO_GATE_PROCESS_INDEX)->getID();
 	const ProcessorID* pFromGate = getTerminal()->procList->getProcessor(FROM_GATE_PROCESS_INDEX)->getID();
@@ -4697,12 +4802,20 @@ Point TerminalMobElementBehavior::GetPipeExitPoint( Processor* _pNextProc,int iC
 	if( _pNextProc->inConstraintLength())
 		return _pNextProc->inConstraint(0);
 
+
+	if(_pNextProc->getProcessorType()==BridgeConnectorProc)
+	{
+		return _pNextProc->getServicePoint(0);
+	}
+	
 	ProcessorQueue* procQueue = _pNextProc->GetProcessorQueue();
 	if( procQueue != NULL )
 	{	
 		int nQueuePointCount = _pNextProc->GetProcessorQueue()->cornerCount();
 		if(nQueuePointCount <= 0)
 			return _pNextProc->getServicePoint(0);
+
+		
 
 		if(procQueue->isFixed() == 'N')  // non fix queue, use the queue entry point as pipe entry/exit point
 		{

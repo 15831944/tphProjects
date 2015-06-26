@@ -391,6 +391,7 @@ protected:
 	void ForceControlStatus(void);
 
 public:
+	CProcessor2* pProc2;
 	int m_nForceProcType;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnProcpropChanglatlong();

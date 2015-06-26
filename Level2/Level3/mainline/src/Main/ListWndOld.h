@@ -44,7 +44,7 @@ public:
 
 	void ShouldHideParent(BOOL bHide = TRUE);
 	void SetImageDir(const CString& str);
-	void SetLabelString(const char* szLabel[]);
+	//void SetLabelString(const char* szLabel[]);
 
 	CThumbnailsList m_listCtrl;
 	CThumbnailsList m_listCtrlType;

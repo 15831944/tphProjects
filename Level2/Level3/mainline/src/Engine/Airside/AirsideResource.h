@@ -139,7 +139,7 @@ public:
 
 	
 	// set enter time of flight
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
+	//virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
 	// set exit time of flight
 	virtual void SetExitTime(CAirsideMobileElement * pFlight, const ElapsedTime& exitT);
 

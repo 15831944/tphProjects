@@ -100,6 +100,7 @@ AirsideVehicleInSim::AirsideVehicleInSim( int id,int nPrjID,CVehicleSpecificatio
 
 	//m_pVehicleSpecifications = new CVehicleSpecifications;
 	//m_pVehicleSpecifications->ReadData(nPrjID);
+	ASSERT(pVehicleSpecItem);
 	m_pVehicleSpecificationItem = pVehicleSpecItem;//m_pVehicleSpecifications->GetVehicleItemByID(desc.id);
 	m_pCurrentPointIndex = -1;
 	m_dist = 0.0;
@@ -842,7 +843,7 @@ void AirsideVehicleInSim::PerformClearanceItem( ClearanceItem& item )
 		}
 		if( GetResource() )
 		{
-			GetResource()->SetEnterTime(this,GetTime(),GetMode());
+			GetResource()->SetEnterTime(this,GetTime(),GetMode(), GetSpeed());
 		}
 	}
 	

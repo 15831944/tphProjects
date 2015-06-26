@@ -12,7 +12,7 @@
 
 #include "ListWndOld.h"
 
-#define BITMAP_NUM 30
+#define BITMAP_NUM 256
 
 class CIconComboBox : public CComboBox  
 {
@@ -20,8 +20,8 @@ public:
 	CIconComboBox();
 	virtual ~CIconComboBox();
 
-	static const char* s_szShapeLabel[];
-	static const char* s_szShapePath[];
+// 	static const char* s_szShapeLabel[];
+// 	static const char* s_szShapePath[];
 
 public:
 	void DisplayListWnd();

@@ -922,7 +922,7 @@ void NodeViewDbClickHandler::TemporaryParkingCriteria(int nProjID, CWnd *pWnd)
 }
 void NodeViewDbClickHandler::ConflictResolutionCriteria(int nProjID, CAirportDatabase* pAirportDB)
 {
-	CDlgConflictResolution dlg(nProjID, m_pSelectFlightType, pAirportDB);
+	CDlgConflictResolution dlg(nProjID, m_pFuncSelectFlightType, pAirportDB);
 	dlg.DoModal();
 }
 void NodeViewDbClickHandler::WeatherImpacts(int nProjID)

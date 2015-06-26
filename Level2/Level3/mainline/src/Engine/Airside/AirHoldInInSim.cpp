@@ -156,6 +156,10 @@ void AirEntrySystemHoldInInSim::OnFlightEnter( AirsideFlightInSim* pFlight, cons
 	pFlight->WriteLog();
 
 	SetEnterTime(pFlight, enterTime, OnBirth, 0);
+
+	ClearanceItem enterItem(this,OnBirth,0);
+	enterItem.SetTime(enterTime);
+	pFlight->StartDelay(enterItem, NULL, FlightConflict::HOLD_AIR, FlightConflict::BETWEENINTERSECTIONS,FltDelayReason_AirHold, _T("Holding delay") );
 }
 
 ARCVector3 AirEntrySystemHoldInInSim::GetDir() const
@@ -185,27 +189,31 @@ void AirEntrySystemHoldInInSim::OnFlightExit( AirsideFlightInSim* pFlight,const 
 		FlightGetClearanceEvent* newEvent = new FlightGetClearanceEvent(pNextFlight);
 		newEvent->setTime(exitTime);
 		newEvent->addEvent();
+
+		ClearanceItem endItem(this, OnBirth, 0);
+		endItem.SetTime(exitTime);
+		pNextFlight->EndDelay(endItem);
 	}
 
-	OccupancyInstance flightinstance  = GetOccupyInstance(pFlight);
+	/*OccupancyInstance flightinstance  = GetOccupyInstance(pFlight);
 	if(!flightinstance.IsValid() || !flightinstance.IsEnterTimeValid() )return;
-	ElapsedTime entryTime = flightinstance.GetEnterTime();
+	ElapsedTime entryTime = flightinstance.GetEnterTime();*/
 
-	if (exitTime - entryTime > 0L)
+	/*if (exitTime - entryTime > 0L)
 	{
-		AirsideConflictionDelayLog * pEnterSysDelay = new AirsideConflictionDelayLog();
-		pEnterSysDelay->mMode = OnBirth;
-		pEnterSysDelay->mAction = FlightConflict::HOLD_AIR;
-		pEnterSysDelay->mDelayTime = exitTime - entryTime;
-		pEnterSysDelay->time = exitTime;
-		pEnterSysDelay->distInRes = 0;
-		pEnterSysDelay->m_emFlightDelayReason = FltDelayReason_AirHold;
-		pEnterSysDelay->m_sDetailReason = _T("Holding delay");
-		getDesc(pEnterSysDelay->mAtResource);
-		pEnterSysDelay->mdSpd=0;
-		pEnterSysDelay->mConflictLocation = FlightConflict::BETWEENWAYPOINTS;
-		CString strName = pFlight->GetAirTrafficController()->GetAirsideResourceManager()->GetInSectorNameAndID(pFlight->GetPosition(),pFlight->GetCurState().m_dAlt, pEnterSysDelay->mAreaID);
-		pEnterSysDelay->sAreaName = strName.GetString();
-		pFlight->LogEventItem(pEnterSysDelay);
-	}
+	AirsideConflictionDelayLog * pEnterSysDelay = new AirsideConflictionDelayLog();
+	pEnterSysDelay->mMode = OnBirth;
+	pEnterSysDelay->mAction = FlightConflict::HOLD_AIR;
+	pEnterSysDelay->mDelayTime = exitTime - entryTime;
+	pEnterSysDelay->time = exitTime;
+	pEnterSysDelay->distInRes = 0;
+	pEnterSysDelay->m_emFlightDelayReason = FltDelayReason_AirHold;
+	pEnterSysDelay->m_sDetailReason = _T("Holding delay");
+	getDesc(pEnterSysDelay->mAtResource);
+	pEnterSysDelay->mdSpd=0;
+	pEnterSysDelay->mConflictLocation = FlightConflict::BETWEENWAYPOINTS;
+	CString strName = pFlight->GetAirTrafficController()->GetAirsideResourceManager()->GetInSectorNameAndID(pFlight->GetPosition(),pFlight->GetCurState().m_dAlt, pEnterSysDelay->mAreaID);
+	pEnterSysDelay->sAreaName = strName.GetString();
+	pFlight->LogEventItem(pEnterSysDelay);
+	}*/
 }

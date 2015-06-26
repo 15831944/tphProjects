@@ -28,6 +28,7 @@ public:
 	//true 1, false 0
 	//SqlScriptColumn(const CString& strColName, bool bVaule);
 
+	CString EqualCondition();
 public:
 	CString GetName();
 	CString GetValue();
@@ -36,6 +37,8 @@ protected:
 	CString m_strValue;
 private:
 };
+
+
 
 class SqlScriptColumnList
 {
@@ -48,6 +51,8 @@ protected:
 	std::vector<SqlScriptColumn> m_vColumnList;
 
 };
+
+
 
 class SqlInsertScriptMaker : public SqlScriptColumnList
 {
@@ -66,6 +71,7 @@ protected:
 private:
 };
 
+
 class SqlUpdateScriptMaker : public SqlScriptColumnList
 {
 public:
@@ -73,6 +79,7 @@ public:
 	
 
 public:	
+	
 	void SetCondition(const CString& strCondition);
 
 	CString GetScript();

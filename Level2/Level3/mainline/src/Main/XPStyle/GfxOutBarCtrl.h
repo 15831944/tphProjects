@@ -128,6 +128,7 @@ public:
 	void DrawAnimItem(const int xoffset, const int yoffset, const int index);
 	void SetAnimSelHighlight(const int iTime);
 	DWORD GetFolderData(int iFolder = -1);
+	void SetFolderData(int iFolder,DWORD exData);
 	CWnd * GetFolderChild(int iFolder = -1);
 	int AddFolderBar(const char * pFolder, CWnd * pSon, const DWORD exData = 0);
 	CString GetItemText(const int index);
@@ -164,6 +165,7 @@ public:
 	int GetCountPerPage() const;
 	void RemoveFolder(const int index);
 	int GetSelFolder() const;
+	int GetFolderIndex(CString name);
 	int GetFolderCount() const;
 	void SetSelFolder(const int index);
 	int GetItemCount() const;

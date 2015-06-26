@@ -93,7 +93,7 @@ void CPlacement::readData2_2(ArctermFile& p_file)
 		else
 		{
 			p_file.getShortField (name, 256);
-			pProc2->SetShape(SHAPESMANAGER->FindShapeByName(CString(name)));
+			pProc2->SetShape(SHAPESMANAGER->GetShapeByName(CString(name)));
 		}
 		// m_vLocation
 		Point aPoint;
@@ -187,7 +187,7 @@ void CPlacement::readData2_3(ArctermFile& p_file)
 		{
 			p_file.getShortField (name, 256);
 			strcpy(shapeDefaultName,name);
-			pProc2->SetShape(SHAPESMANAGER->FindShapeByName(CString(name)));
+			pProc2->SetShape(SHAPESMANAGER->GetShapeByName(CString(name)));
 		}
 
 		char shapeName[256];
@@ -292,7 +292,7 @@ void CPlacement::readData(ArctermFile& p_file)
 		{
 			p_file.getShortField (name, 256);
 			strcpy(shapeDefaultName,name);
-			pProc2->SetShape(SHAPESMANAGER->FindShapeByName(CString(name)));
+			pProc2->SetShape(SHAPESMANAGER->GetShapeByName(CString(name)));
 		}
 
 		char shapeName[256];
@@ -497,7 +497,7 @@ void CPlacement::BuildFromProcList(ProcessorList* _pProcList, CProcessor2::CProc
 			CProcessor2* pProc2 = new CProcessor2();
 			pProc2->SetProcessor(globlePTestProc);
 			//pProc2->SetShape( NULL );
-			pProc2->SetShape( SHAPESMANAGER->FindShapeByName( "Default" ) );
+			pProc2->SetShape( SHAPESMANAGER->GetShapeByName( "Default" ) );
 			pProc2->SetFloor(static_cast<int>(globlePTestProc->getFloor() / SCALE_FACTOR));
 			Path* pSLoc = globlePTestProc->serviceLocationPath();
 			ASSERT(pSLoc->getCount() > 0);

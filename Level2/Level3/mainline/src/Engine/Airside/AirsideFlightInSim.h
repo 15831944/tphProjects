@@ -182,6 +182,7 @@ public:
 	FlightRouteInSim* GetTakeoffCircuit();
 	LogicRunwayInSim * GetLandingRunway();
 	LogicRunwayInSim * GetAndAssignTakeoffRunway();
+	LogicRunwayInSim * GetTakeoffRunway();
 	
 
 	TaxiRouteInSim* GetRouteToTempParking();
@@ -331,6 +332,7 @@ public:
 
 	//if the flight in the air, calculate the estimate time before landing
 	bool GetEstimateLandingTime(ElapsedTime& estimateTime);
+	void SetEstimateLandingTime(const ElapsedTime& t);
 
 	virtual TYPE GetType() { return AIRSIDE_FLIGHT; }
 
@@ -683,7 +685,7 @@ protected:
 	CBagCartsParkingSpotInSim *m_pDeparturelBagCartsParkingSpot;
 	AirsideFlightBaggageManager *m_pBaggageManager;
 
-
+	ElapsedTime m_estimateLandingTime;
 public:
 	bool NeedMoveToIntStand()const;
 	bool NeedTowingToDepStand()const;

@@ -42,12 +42,17 @@ void CPipe::AttachSideWalk( const ProcessorID& _procID )
 		m_vSideWalkInPipe.push_back( _procID );
 }
 bool CPipe::IsSideWalkHasAttach( const ProcessorID& _procID ) const
-{	
-	MOVINGSIDEWALKID::const_iterator iter = std::find( m_vSideWalkInPipe.begin(), m_vSideWalkInPipe.end() , _procID );
-	return iter != m_vSideWalkInPipe.end();
+{
+    MOVINGSIDEWALKID::const_iterator iter = m_vSideWalkInPipe.begin();
+    for(; iter!=m_vSideWalkInPipe.end(); ++iter)
+    {
+        if(_procID.idFits(*iter))
+            return true;
+    }
+    return false;
 }
 
-//test if the processo can attach with this pipe
+//test if the processor can attach with this pipe
 bool CPipe::CanAttached( const ProcessorID& _procID  )const
 {
 	ASSERT( m_pTerm );	

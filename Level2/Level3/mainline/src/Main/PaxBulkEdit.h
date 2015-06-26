@@ -80,7 +80,7 @@ public:
 	std::vector<int> m_vBulkPercent;
 
 	void InitTimeValues(int& dayFreqStart, int& dayFreqEnd);
-	
+	void ShowTotalBulkPercentage();
 };
 
 //{{AFX_INSERT_LOCATION}}

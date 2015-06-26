@@ -709,7 +709,7 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 			}
 
 			if( !_bNeedCheckLeadGate || gateIndex == -1 
-				||aProc->CanLeadTo( type, *getProcessor( gateIndex )->getID() )  
+				||(aProc->CanLeadTo( type, *getProcessor( gateIndex )->getID()) || (aProc->GetGateList() && aProc->leadsToGate (gateIndex)) )  //aProc->leadsToGate (gateIndex) defined in behavior
 				|| *(aProc->getID()) == *(getProcessor( gateIndex )->getID())
 				||(aProc->getProcessorType()==BridgeConnectorProc) )
 			{
@@ -867,7 +867,7 @@ void ProcessorList::buildArray (const ProcessorID *groupID,
 				if ( openFlag || aProc->isOpen)
 				{
 					if( !_bNeedCheckLeadGate || gateIndex == -1 
-						||aProc->CanLeadTo( type, *getProcessor( gateIndex )->getID() )  
+						||(aProc->CanLeadTo( type, *getProcessor( gateIndex )->getID()) || (aProc->GetGateList() && aProc->leadsToGate (gateIndex)) )  
 						|| *(aProc->getID()) == *(getProcessor( gateIndex )->getID())
 						||(aProc->getProcessorType()==BridgeConnectorProc))
 					{

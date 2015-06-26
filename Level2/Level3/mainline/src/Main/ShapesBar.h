@@ -41,6 +41,7 @@ protected:
 	CImageList m_largeIL;
 	int m_iSelFolder;
 	int m_iSelItem;
+	int defBMP;
     CUserShapeBarManager* m_pUserBarMan;
     //{{AFX_MSG(CShapesBar)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

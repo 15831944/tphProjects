@@ -7173,17 +7173,17 @@ void CAirsideMSView::OnStretchOption(void)
 
 void CAirsideMSView::OnHideControl()
 {
-	//GetARCDocument()->GetCAirsideInputObject()->GetAirportInfo()->m_bHideControl = !(GetARCDocument()->GetCAirsideInputObject()->GetAirportInfo()->m_bHideControl);
-	//GetARCDocument()->UpdateAllViews(NULL);
+	GetARCDocument()->m_bHideARP = !GetARCDocument()->m_bHideARP;
+	GetARCDocument()->UpdateAllViews(NULL);
 }
 
 
 void CAirsideMSView::OnUpdateHideControl(CCmdUI* pCmdUI)
 {
-	//if(GetARCDocument()->GetCAirsideInputObject()->GetAirportInfo()->m_bHideControl==TRUE)
-	//	pCmdUI->SetText(_T("Hide ARP"));
-	//else
-	//	pCmdUI->SetText(_T("Show ARP"));
+	if(GetARCDocument()->m_bHideARP == FALSE)
+		pCmdUI->SetText(_T("Hide ARP"));
+	else
+		pCmdUI->SetText(_T("Show ARP"));
 }
 
 void CAirsideMSView::OnHoldShortLines(void)

@@ -144,25 +144,26 @@ bool CPaxBulk::takeCurrentBulk(ElapsedTime& time , long& nIndex, int _nPaxGroup,
 	
 	int percentAll = 0;
 	int nPercentCount = (int)m_vBulkPercent.size();
-	for (int i = iStart; i <= iEnd; i++)
+	for (int i = 0; i < nPercentCount; i++)
 	{
 		percentAll += m_vBulkPercent[i];
 	}
+	ASSERT(percentAll == 100);
 
-	if(percentAll<=0)
-		return false;
+	//if(percentAll<=0)
+	//	return false;
 
 	int randP = random(percentAll);
 	int iPercent = 0;
-	for (int j = iStart; j <= iEnd; j++)
+	for (int j = iStart, nProb = 0; j <= iEnd, nProb < nPercentCount; j++, nProb ++)
 	{
-		iPercent += m_vBulkPercent[j];
+		iPercent += m_vBulkPercent[nProb];
 		if (randP < iPercent)
 		{
 			long lInterVal = nIndex + j - iStart;
 			if (m_vBulkSeats[lInterVal] - _nPaxGroup < 0)
 			{
-				return false;
+				continue;
 			}
 			m_vBulkSeats[lInterVal] -= _nPaxGroup;
 			time= m_TimeStart + (m_TimeFrequency * lInterVal );

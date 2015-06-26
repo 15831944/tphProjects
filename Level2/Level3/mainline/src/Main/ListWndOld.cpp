@@ -6,6 +6,9 @@
 #include "ListWndOld.h"
 #include "Common\ProjectManager.h"
 #include "common\WinMsg.h"
+#include "MainFrm.h"
+#include "UserShapeBarManager.h"
+#include "ShapesManager.h"
 
 
 #ifdef _DEBUG
@@ -83,8 +86,6 @@ BOOL CListWndOld::CreateList()
 	m_listCtrl.m_ImageListThumb.Create(LW_THUMBNAIL_WIDTH, LW_THUMBNAIL_HEIGHT, ILC_COLOR24, 0, 1);
 	m_listCtrl.SetImageList(&m_listCtrl.m_ImageListThumb, LVSIL_NORMAL);
 	m_listCtrl.m_nSelectedItem = 0;
-
-	
 
 	// draw thumbnail images in list control
 	//m_listCtrl.DrawThumbnails();
@@ -224,10 +225,22 @@ BOOL CListWndOld::CreateListType()
 	m_listCtrlType.m_ImageListThumb.Create(LW_THUMBNAIL_WIDTH, LW_THUMBNAIL_HEIGHT, ILC_COLOR24, 0, 1);
 	m_listCtrlType.SetImageList(&m_listCtrlType.m_ImageListThumb, LVSIL_NORMAL);
 	m_listCtrlType.m_nSelectedItem = 0;
-
 	
 	if( !m_listCtrlType.GetImageFileNames("TYPE") )
 		return FALSE;
+	
+	CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+	CUserShapeBarManager* UserShapesBarManager = pMF->m_wndShapesBar->GetUserBarManager();
+	if(UserShapesBarManager)
+	{
+		for(int i=0;i<UserShapesBarManager->GetUserBarCount();i++)
+		{
+			CUserShapeBar* pUserbar = UserShapesBarManager->GetUserBarByIndex(i);
+			m_listCtrlType.m_VectorItemDataLeft.push_back(pUserbar->GetBarName());
+			m_listCtrlType.m_VectorItemDataRight.push_back(pUserbar->GetShapeByIndex(0)->Name());
+			m_listCtrlType.m_VectorImageNames.push_back(pUserbar->GetShapeByIndex(0)->ImageFileName());
+		}
+	}
 
 	// draw thumbnail images in list control
 	m_listCtrlType.DrawThumbnails();
@@ -285,8 +298,67 @@ LRESULT CListWndOld::OnListCtrlKillFocus(WPARAM wParam,LPARAM lParam)
 void CListWndOld::UpdateList(int nSeledIndex)
 {
 	CString strSection=m_listCtrlType.GetItemText(m_listCtrlType.m_nSelectedItem,0) ;
-	m_listCtrl.GetImageFileNames(strSection);
-	m_listCtrl.DrawThumbnails(); 
+
+//	CShape::CShapeList *pSL = SHAPESMANAGER->GetShapeList();
+// 	m_VectorImageNames.erase(m_VectorImageNames.begin(), m_VectorImageNames.end());
+// 	m_VectorItemDataLeft.erase (m_VectorItemDataLeft.begin(), m_VectorItemDataLeft.end());
+// 	m_VectorItemDataRight.erase (m_VectorItemDataRight.begin(), m_VectorItemDataRight.end());
+
+// 	CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+// 	CUserShapeBarManager* UserShapesBarManager = pMF->m_wndShapesBar->GetUserBarManager();
+// 	if(UserShapesBarManager)
+// 	{
+// 		int nCount = m_listCtrl.m_VectorImageNames.size();
+// 		for(int i=0;i<UserShapesBarManager->GetUserBarCount();i++)
+// 		{
+// 			CUserShapeBar* pUserbar = UserShapesBarManager->GetUserBarByIndex(i);
+// 			for (int j=0;j<pUserbar->GetShapeCount();j++)
+// 			{
+// 				CShape *pShape = pUserbar->GetShapeByIndex(j);
+// 				m_listCtrl.m_VectorItemDataLeft.push_back(pShape->Name());
+// 				CString str;
+// 				str.Format("%d",nCount);
+// 				m_listCtrl.m_VectorItemDataRight.push_back(str);
+// 				m_listCtrl.m_VectorImageNames.push_back(pShape->ImageFileName());
+// 				nCount++;
+// 			}
+// 		}
+// 	}
+
+	if(m_listCtrl.GetImageFileNames(strSection)==TRUE)
+		m_listCtrl.DrawThumbnails();
+	else
+	{
+		CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+		CUserShapeBarManager* UserShapesBarManager = pMF->m_wndShapesBar->GetUserBarManager();
+		if(UserShapesBarManager)
+		{
+			m_listCtrl.m_VectorImageNames.erase(m_listCtrl.m_VectorImageNames.begin(), m_listCtrl.m_VectorImageNames.end());
+			m_listCtrl.m_VectorItemDataLeft.erase (m_listCtrl.m_VectorItemDataLeft.begin(), m_listCtrl.m_VectorItemDataLeft.end());
+			m_listCtrl.m_VectorItemDataRight.erase (m_listCtrl.m_VectorItemDataRight.begin(), m_listCtrl.m_VectorItemDataRight.end());
+			
+			for(int i=0;i<UserShapesBarManager->GetUserBarCount();i++)
+			{
+				CUserShapeBar* pUserbar = UserShapesBarManager->GetUserBarByIndex(i);
+				if(!pUserbar->GetBarName().CompareNoCase(strSection))
+				{
+					for (int j=0;j<pUserbar->GetShapeCount();j++)
+					{
+						CShape *pShape = pUserbar->GetShapeByIndex(j);
+						int nCount = SHAPESMANAGER->FindShapeIndexByName(pShape->Name());
+						CString str;
+						str.Format("%d",nCount);
+						m_listCtrl.m_VectorItemDataLeft.push_back(pShape->Name());
+						m_listCtrl.m_VectorItemDataRight.push_back(str);
+						m_listCtrl.m_VectorImageNames.push_back(pShape->ImageFileName());
+						nCount++;
+					}
+					m_listCtrl.DrawThumbnails();
+					break;
+				}
+			}
+		}
+	}
 
 }
 
@@ -317,7 +389,7 @@ void CListWndOld::SetImageDir(const CString& str)
 	m_listCtrlType.SetImageDir(str);
 }
 
-void CListWndOld::SetLabelString(const char* szLabel[])
-{
-	m_listCtrl.SetLabelString(szLabel);
-}
+// void CListWndOld::SetLabelString(const char* szLabel[])
+// {
+//	m_listCtrl.SetLabelString(szLabel);
+//}

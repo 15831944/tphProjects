@@ -72,6 +72,7 @@ class FltOperatingDoorSpecInSim;
 class StandInSim;
 class DynamicConflictGraph;
 class AirsideCircuitFlightInSim;
+class RunwayInSim;
 
 #include <InputAirside/DeiceAndAnticeManager.h>
 // the role of ATC in the air side system , assign clearance to flight
@@ -185,6 +186,12 @@ public:
 	CStand2GateConstraint* GetStandToGateConstraint(){return m_pStand2gateConstraint;}
 	DynamicConflictGraph* getConflictGraph()const{ return m_pConfilctGraph; }
 	void RemoveFlightPlanedStandOccupancyTime(AirsideFlightInSim* pFlight,FLIGHT_PARKINGOP_TYPE eType);
+
+	bool CanRunwayUseAsTaxiway(AirsideFlightInSim* pFlight,RunwayInSim* pRunway);
+	ElapsedTime  getAvaiableTimeUseRunwayAsTaxiway(AirsideFlightInSim* pFlight,RunwayInSim* pRunway);
+	ElapsedTime getAvaiableCrossRunwayTime(AirsideFlightInSim* pFlight,RunwayInSim* pRunway, const ElapsedTime& tEnter, const ElapsedTime& tCross);
+	//
+ 
 protected:
 	//int GetAirRouteIntersectWaypointIdx(AirsideFlightInSim * pFlight);
 	StandInSim* ResolveStandConflict(AirsideFlightInSim* pFlight,FLIGHT_PARKINGOP_TYPE type/*,  ElapsedTime tStandBuffer*/);

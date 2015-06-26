@@ -70,6 +70,7 @@ public:
 	// need to get version info first and then call set
 	void setConstraintWithVersion( char *p_str );
 	void setConstraintWithVersion(const CString& p_str) ;
+	void getSerialize(CString& p_str)const;
 protected:
     virtual void WriteSyntaxString( char *p_str ) const = 0;
 	// constraint string and file I/O

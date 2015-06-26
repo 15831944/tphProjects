@@ -28,7 +28,7 @@ CThumbnailsList::CThumbnailsList(BOOL bPreview)
 {
 	m_strImageDir=PROJMANAGER->GetAppPath()+"\\Databases\\MobImages";
 	m_bPreview=bPreview;
-	m_szShapeLabel = NULL;//(char**)szShapeLabel;
+	//m_szShapeLabel = NULL;//(char**)szShapeLabel;
 }
 
 CThumbnailsList::~CThumbnailsList()
@@ -204,15 +204,17 @@ void CThumbnailsList::DrawThumbnails()
 
 		// put item to display
 		// set the image file name as item text
+
 		CString strFName;
 		int nData;
+		CShape::CShapeList *pSL = SHAPESMANAGER->GetShapeList();
 		if(m_bPreview)
 		{
 			strFName=m_VectorItemDataRight[i]; 
 			nData=atoi(strFName.GetBuffer(strFName.GetLength() ) );
 			
 			//strFName= szShapeLabel[nData];
-			strFName= m_szShapeLabel[nData];
+			strFName= pSL->at(nData)->Name();
 		}
 		else
 			strFName=m_VectorItemDataLeft[i]; 
@@ -239,6 +241,8 @@ BOOL CThumbnailsList::GetImageFileNames(CString strSection)
 	CIniReader IniReader(m_strImageDir+"\\Shape.INI");
 	
 	CStringList* pSL = IniReader.getSectionData(strSection);
+	if (pSL->GetSize()==0)
+		return FALSE;
 
 	POSITION position;
 	CString strLeft,strRight,str;
@@ -281,10 +285,10 @@ void CThumbnailsList::SetImageDir(CString str)
 	m_strImageDir=PROJMANAGER->GetAppPath()+str;
 }
 
-void CThumbnailsList::SetLabelString(const char* szLabel[])
-{
-	m_szShapeLabel = (char**)szLabel; 
-}
+// void CThumbnailsList::SetLabelString(const char* szLabel[])
+// {
+// 	m_szShapeLabel = (char**)szLabel; 
+// }
 
 
 

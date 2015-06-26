@@ -1111,9 +1111,10 @@ bool AirRouteNetworkInSim::FindClearanceInConcern(AirsideFlightInSim * pFlight,F
 	{
 
 		bool bEnterSystem  = FlightPrearrangeOnAirRoute(pFlight,pFlightRoute,resList,lastItem,newClearance);
-					
+				
 		if(bEnterSystem && newClearance.GetItemCount() && pFlight->GetMode() == OnBirth) // flight get the time enter the system
 		{
+			pFlight->EndDelay(	newClearance.GetItem(0) );
 			AirEntrySystemHoldInInSim* pEntryHold = pFlightRoute->GetEntrySystemHold();
 			if (pEntryHold == NULL)
 				return true;

@@ -28,8 +28,10 @@ public:
     CUserShapeBarManager& GetUserBarMan() { return m_userShapeMan; }
     CString GetZipFileName() const { return m_strZipFileName; }
 
-    CString GetShapeFileName() const { return m_strShapeFileName; }
-    void SetShapeFileName(CString val) { m_strShapeFileName = val; }
+    void SetBarLocation(CString val) { m_strBarLocation = val; }
+
+	CString GetShapeFileName() const { return m_strShapeFileName; }
+	void SetShapeFileName(CString val) { m_strShapeFileName = val; }
 
     CString GetTempPath() const { return m_strTempPath; }
     void SetTempPath(CString val) { m_strTempPath = val; }
@@ -44,6 +46,7 @@ protected:
     CEdit m_editBarName;
 
     CString m_strZipFileName;
+	CString m_strBarLocation;
     CUserShapeBarManager m_userShapeMan;
 private:
     int m_oldWindowWidth;

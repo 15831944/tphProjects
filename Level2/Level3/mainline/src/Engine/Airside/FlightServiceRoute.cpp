@@ -1001,7 +1001,7 @@ void CFlightServiceRoute::VehicleOnMoveToRingRoute( AirsideVehicleInSim * pVehic
 	ElapsedTime elapMoveTime = ElapsedTime((entryPoint.getDistanceTo(vehiclePos)/vehicleSpeed));
 
 
-	SetEnterTime(pVehicle,elapMoveTime+ pVehicle->GetTime(),OnMoveToRingRoute);
+	SetEnterTime(pVehicle,elapMoveTime+ pVehicle->GetTime(),OnMoveToRingRoute, vehicleSpeed);
 
 	pVehicle->WirteLog(pVehicle->GetPosition(),vehicleSpeed,pVehicle->GetTime());
 
@@ -1392,7 +1392,7 @@ void CFlightServiceRoute::VehicleOnVehicleMoveOutTempParking( AirsideVehicleInSi
 
 			GenerateNextEvent(pVehicle,pVehicle->GetTime());
 
-			SetEnterTime(pVehicle,pVehicle->GetTime(),pVehicle->GetMode());
+			SetEnterTime(pVehicle,pVehicle->GetTime(),pVehicle->GetMode(),vehicleSpeed);
 		}
 
 
@@ -1573,7 +1573,7 @@ void CFlightServiceRoute::VehicleOnLeaveServicePoint( AirsideVehicleInSim * pVeh
 
 		GenerateNextEvent(pVehicle,pVehicle->GetTime());
 
-		SetEnterTime(pVehicle,pVehicle->GetTime(),pVehicle->GetMode());
+		SetEnterTime(pVehicle,pVehicle->GetTime(),pVehicle->GetMode(),vehicleSpeed);
 
 	}
 	else

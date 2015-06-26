@@ -7,12 +7,6 @@
 #include "MFCExControl/XListCtrl.h"
 #include "CARC3DChart.h"
 #include "AirsideStandMultiRunOperatinResult.h"
-#include "AirsideAircraftMultiRunTakeoffProcessResult.h"
-#include "AirsideAircraftMutiRunRunwayOperationResult.h"
-#include "AirsideFlightOperationalMultiRunResult.h"
-#include "Common/TERMFILE.H"
-#include "AirsideRunwayDelayMultiRunResult.h"
-
 CAirsideMultipleRunReport::CAirsideMultipleRunReport(void)
 {
 }
@@ -35,7 +29,7 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		return;
 
 	AddReportWhatToGen(_reportType,parameter);
-	m_mapMutiRunResult[_reportType]->ClearSimReport();
+	m_mapMutiRunResult[_reportType]->ClearResultPath();
 	for (int nRun = 0; nRun < static_cast<int>(vReportRuns.size()); ++nRun)
 	{
 		CString strSimResult;
@@ -52,49 +46,13 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		CAirsideMultipleRunReportAgent reportAgent;
 		reportAgent.InitReportPath(strReportFileDir);
 		reportAgent.SetCBGetLogFilePath(pFunc);
-		CAirsideBaseReport* pReport = reportAgent.AddReportWhatToGen(_reportType,parameter, pTerminal);
-		reportAgent.GenerateReport(pReport,parameter);
+		reportAgent.AddReportWhatToGen(_reportType,parameter);
+		reportAgent.GenerateReport(_reportType,parameter);
 
-		m_mapMutiRunResult[_reportType]->AddSimReport(strSimResultFolderName,pReport);
+		m_mapMutiRunResult[_reportType]->AddSimResultPath(strSimResultFolderName,reportAgent.GetSimResultPath(_reportType));
 	}
 	
 	m_mapMutiRunResult[_reportType]->LoadMultipleRunReport(parameter);
-	//save result to default folder
-	CString strFilePath;
-	strFilePath.Format(_T("%s\\SimResult\\AirsideMultipleRunReport\\%s"),strPorjectPath,m_mapMutiRunResult[_reportType]->GetReportFileName());
-	if (PathFileExists(strFilePath) == FALSE)//doesn't exist
-	{
-		CString strFileName = m_mapMutiRunResult[_reportType]->GetReportFileName();
-		int iPos = strFileName.ReverseFind('\\');
-		if (iPos != -1)
-		{
-			CString strSubFolder = strFileName.Left(iPos);
-			CString strDefaultFolder;
-			strDefaultFolder.Format(_T("%s\\SimResult\\AirsideMultipleRunReport\\%s"),strPorjectPath,strSubFolder);
-			if (FileManager::IsDirectory(strDefaultFolder) == 0)
-			{
-				FileManager::MakePath(strDefaultFolder);
-			}
-		}
-	}
-
-	ArctermFile _file;
-	if (_file.openFile(strFilePath,WRITE))
-	{
-		m_mapMutiRunResult[_reportType]->WriteReportData(_file);
-		_file.endFile();
-	}
-}
-
-CString CAirsideMultipleRunReport::GetReportFilePath( reportType _reportType,const CString& strPorjectPath) 
-{
-	CString strFilePath;
-	CAirsideMultipleRunResult* pMultRunResult = m_mapMutiRunResult[ _reportType ];
-	if (pMultRunResult)
-	{
-		strFilePath.Format(_T("%s\\SimResult\\AirsideMultipleRunReport\\%s"),strPorjectPath,m_mapMutiRunResult[_reportType]->GetReportFileName());
-	}
-	return strFilePath;
 }
 
 void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CParameters * parameter )
@@ -110,17 +68,6 @@ void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CPara
         case Airside_StandOperations:
             m_mapMutiRunResult[_reportType] = new CAirsideStandMultiRunOperatinResult;
             break;
-		case Airside_TakeoffProcess:
-			m_mapMutiRunResult[_reportType] = new CAirsideAircraftMultiRunTakeoffProcessResult;
-			break;
-        case Airside_RunwayOperaitons:
-            m_mapMutiRunResult[_reportType] = new CAirsideAircraftMutiRunRunwayOperationResult;
-            break;
-		case Airside_AircraftOperational:
-			m_mapMutiRunResult[_reportType] = new CAirsideFlightOperationalMultiRunResult;
-			break;
-        case Airside_RunwayDelay:
-            m_mapMutiRunResult[_reportType] = new CAirsideRunwayDelayMultiRunResult;
 		default:
 			break;
 		}
@@ -163,26 +110,4 @@ void CAirsideMultipleRunReport::ClearMutipleRunResult()
 		delete iter->second;
 	}
 	m_mapMutiRunResult.clear();	
-}
-
-BOOL CAirsideMultipleRunReport::WriteReportData( reportType _reportType,ArctermFile& _file )
-{
-	AddReportWhatToGen(_reportType,NULL);
-	CAirsideMultipleRunResult* pMultRunResult = m_mapMutiRunResult[ _reportType ];
-	if (pMultRunResult )
-	{
-		pMultRunResult->WriteReportData(_file);
-	}
-	return TRUE;
-}
-
-BOOL CAirsideMultipleRunReport::ReadReportData( reportType _reportType,ArctermFile& _file )
-{
-	AddReportWhatToGen(_reportType,NULL);
-	CAirsideMultipleRunResult* pMultRunResult = m_mapMutiRunResult[ _reportType ];
-	if (pMultRunResult )
-	{
-		pMultRunResult->ReadReportData(_file);
-	}
-	return TRUE;
 }

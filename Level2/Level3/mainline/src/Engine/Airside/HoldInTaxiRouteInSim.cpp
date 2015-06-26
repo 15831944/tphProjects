@@ -58,7 +58,7 @@ void FlightHoldListInTaxiRoute::Init( TaxiRouteInSim& theRoute,AirsideFlightInSi
 
 			double dAccEndDist= AcummDist+ pSeg->GetEndDist();
 			//previous segment exit hold
-			bool bIsCrossNode = pSeg->GetEntryNode()->IsNoParking();
+			bool bIsCrossNode = pSeg->GetEntryNode()->IsNoParking(pFlight);
 			DistanceUnit dHoldDist = bIsCrossNode?max(pSeg->GetEntryHoldDist(), dNodeBuffer) : pSeg->GetEntryHoldDist();
 			DistanceUnit entryHoldDist = dHoldDist + dHalfFltLen;
 			DistanceUnit dHoldDistInRoute = min(AcummDist+entryHoldDist,dAccEndDist);//can not exceed the end dist
@@ -345,6 +345,22 @@ HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetLastRunwayEntryHold() const
 		}
 	}
 
+	return NULL;
+}
+
+HoldInTaxiRoute* FlightHoldListInTaxiRoute::GetExitRunwayHold( const HoldInTaxiRoute& entryHold ) const
+{
+	for(int i=0;i< GetCount();i++)
+	{
+		const HoldInTaxiRoute& theHold = ItemAt(i);
+		if(theHold.m_dDistInRoute < entryHold.m_dDistInRoute)
+			continue;
+
+		if( (theHold.m_hHoldType == HoldInTaxiRoute::EXITNODE_BUFFER ) && (theHold.m_pDirSeg?theHold.m_pDirSeg->GetType()!=AirsideResource::ResType_RunwayDirSeg:true) )
+		{
+			return (HoldInTaxiRoute*)&theHold;
+		}
+	}
 	return NULL;
 }
 

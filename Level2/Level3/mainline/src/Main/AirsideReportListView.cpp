@@ -18,15 +18,6 @@
 #include "../AirsideReport/AirsideFlightDelayParam.h"
 #include "../AirsideReport/AirsideFlightStandOperationReport.h"
 #include "../AirsideReport/FlightStandOperationParameter.h"
-#include "../AirsideReport/AirsideTakeoffProcessParameter.h"
-#include "../AirsideReport/AirsideTakeoffProcessDetailResult.h"
-#include "../AirsideReport/AirsideTakeoffProcessSummaryResult.h"
-#include "AirsideReport/AirsideRunwayOperationReportParam.h"
-#include "AirsideReport/AirsideRunwayOperationsReport.h"
-#include "AirsideReport/FlightOperationalReport.h"
-#include "AirsideReport/FlightOperationalParam.h"
-#include "AirsideReport/AirsideFlightRunwayDelayReportPara.h"
-#include "AirsideReport/AirsideFlightRunwayDelayReport.h"
 // CAirsideReportListView
 
 IMPLEMENT_DYNCREATE(CAirsideReportListView, CFormView)
@@ -230,62 +221,6 @@ void CAirsideReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHi
 					pReportManager->SetMultiReportListContent(m_lstCtrl,0);
 					return;
 				}
-                else if (pReportManager->GetReportType() == Airside_TakeoffProcess)
-                {
-                    CAirsideTakeoffProcessParameter* pTakeoffProcessPara = (CAirsideTakeoffProcessParameter*)pParameter;
-                    if (pTakeoffProcessPara->getReportType() == ASReportType_Detail)
-                    {
-                        pTakeoffProcessPara->setSubType(CAirsideTakeoffProcessDetailResult::TakeoffQueueDelay);
-                    }
-                    else
-                    {
-                        pTakeoffProcessPara->setSubType(CAirsideTakeoffProcessSummaryResult::TakeOffQueueTime);
-                    }
-                    pReportManager->InitMultiReportList(m_lstCtrl,0,&m_wndSortableHeaderCtrl);
-                    pReportManager->SetMultiReportListContent(m_lstCtrl,0);
-                    return;
-                }
-                else if (pReportManager->GetReportType() == Airside_RunwayOperaitons)
-                {
-                    AirsideRunwayOperationReportParam* pRunWayOpParam = (AirsideRunwayOperationReportParam*)pParameter;
-                    if (pRunWayOpParam->getReportType() == ASReportType_Detail)
-                    {
-                        pRunWayOpParam->setSubType(AirsideRunwayOperationsReport::ChartType_Detail_LandingsByRunway);
-                    }
-                    else
-                    {
-                        pRunWayOpParam->setSubType(AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Operations);
-                    }
-                    pReportManager->InitMultiReportList(m_lstCtrl,0,&m_wndSortableHeaderCtrl);
-                    pReportManager->SetMultiReportListContent(m_lstCtrl,0);
-                    return;
-                }
-				else if (pReportManager->GetReportType() == Airside_AircraftOperational)
-				{
-					CFlightOperationalParam* pFlightOpPara = (CFlightOperationalParam*)pParameter;
-					if (pFlightOpPara->getReportType() == ASReportType_Detail)
-					{
-						pFlightOpPara->setSubType(CFlightOperationalReport::OPERATIONAL_FLIGHTTYPEVSAIRDISTANCE);
-						pReportManager->InitMultiReportList(m_lstCtrl,0,&m_wndSortableHeaderCtrl);
-						pReportManager->SetMultiReportListContent(m_lstCtrl,0);
-						return;
-					}
-				}
-                else if (pReportManager->GetReportType() == Airside_RunwayDelay)
-                {
-                    AirsideFlightRunwayDelayReportPara* pPara = (AirsideFlightRunwayDelayReportPara*)pParameter;
-                    if (pPara->getReportType() == ASReportType_Detail)
-                    {
-                        pPara->setSubType(AirsideFlightRunwayDelayReport::ChartType_Detail_Total);
-                    }
-                    else
-                    {
-                        pPara->setSubType(AirsideFlightRunwayDelayReport::ChartType_Summary_Total);
-                    }
-                    pReportManager->InitMultiReportList(m_lstCtrl,0,&m_wndSortableHeaderCtrl);
-                    pReportManager->SetMultiReportListContent(m_lstCtrl,0);
-                    return;
-                }
 			}
 		}
 		

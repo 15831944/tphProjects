@@ -93,6 +93,7 @@
 #include "AirsideCircuitFlightInSim.h"
 #include "AirsideCircuitFlightProcess.h"
 #include "EnrouteQueueCapacityInSim.h"
+#include "Common/Range.h"
 
 //static DistanceUnit RadiusOfConcernOnAir = 100000;  // 1000 meters
 static DistanceUnit RadiusOfConcernOnGround = 50000;   //200 meters
@@ -2125,6 +2126,28 @@ bool AirTrafficController::IsDelayPushback(AirsideFlightInSim* pFlight, Clearanc
 				}
 			}
 
+			//check dist clearance
+			if(TaxiRouteInSim* pRoute = _pflight->GetOutBoundRoute())
+			{
+				int nItem = pRoute->GetItemIndex(_pflight->GetResource());
+				DistanceUnit distInRoute;
+				if( pRoute->getNodeDistInRoute(pOutNode, distInRoute) && nItem>=0)
+				{
+					DistanceUnit sep = distInRoute -  pRoute->GetDistInRoute(nItem, _pflight->GetDistInResource());
+					if(sep>0 && sep < DistanceClearance)
+					{						
+						pFlight->DependOnAgents(_pflight);
+						CString strReason;
+						strReason.Format("With other flight pushing back less than %d m", int(DistanceClearance/100) );
+						pDelay->SetReasonDescription(strReason);
+						pFlight->SetDelayed(pDelay);
+						pFlight->StartDelay(FltCurItem, _pflight, FlightConflict::STOPPED,FlightConflict::LEAVINGSTAND,FltDelayReason_Stop,_T("leave stand delay"));	//leaving stand delay
+
+						return true;						
+					}
+				}
+			}
+
 		}
 
 	}
@@ -3060,4 +3083,180 @@ TaxiRouteInSim* AirTrafficController::getFlightOutBoundRoute( AirsideResource* p
 	bool bCyclicGroundRoute=pFlight->GetEngine()->GetAirsideSimulation()->AllowCyclicGroundRoute();
 	pret->AddTaxiwaySegList(vSegmets,bCyclicGroundRoute);
 	return pret;
+}
+
+
+bool AirTrafficController::CanRunwayUseAsTaxiway( AirsideFlightInSim* pFlight,RunwayInSim* pRunway )
+{
+	CConflictResolution * conflictResolution =  GetTaxiwayConflictResolution()->GetConflictResolution();
+	ElapsedTime curTime = pFlight->getCurTime();
+	ElapsedTime approachWithinTime = conflictResolution->getRunwayAsTaxiwayApproachTime();
+	DistanceUnit approachWithinDist = conflictResolution->getRunwayAsTaxiwayApproachDistNM();
+	ElapsedTime takeoffWithTime = conflictResolution->getRunwayAsTaxiwayTakeoffTime();
+
+
+	for(size_t i=0;i<m_vFlights.size();i++)
+	{
+		AirsideFlightInSim* _pflight = m_vFlights[i];
+		if(_pflight==pFlight)
+			continue;
+
+		ElapsedTime eLandingTime;
+		if (_pflight->GetEstimateLandingTime(eLandingTime))	
+		{
+			if( LogicRunwayInSim* lrunway = _pflight->GetLandingRunway() )
+			{
+				if(lrunway->GetRunwayInSim() == pRunway)
+				{
+					ElapsedTime tDistTime = approachWithinDist/_pflight->GetPerformance()->getAvgApproachSpeedInKnots(_pflight);
+					if(   eLandingTime < curTime  + MAX(tDistTime,approachWithinTime) )
+					{
+						return false;
+					}
+				}
+			}
+		}
+
+		if (_pflight->GetMode() == OnTaxiToRunway || (_pflight->GetMode() == OnExitStand && !_pflight->m_bTowingToIntStand && !_pflight->m_bTowingToDepStand))	
+		{
+			if(LogicRunwayInSim* plRunway = _pflight->GetAndAssignTakeoffRunway())
+			{
+				if( plRunway->GetRunwayInSim() == pRunway && _pflight->GetOutBoundRoute() )
+				{
+					ElapsedTime tTakeoffTime = _pflight->GetOutBoundRoute()->getEsitmateFinishTime(_pflight);
+					if( tTakeoffTime < curTime + takeoffWithTime )
+					{
+						return false;
+					}
+				}
+			}
+		}
+	}
+	return true;
+}
+
+ElapsedTime AirTrafficController::getAvaiableTimeUseRunwayAsTaxiway( AirsideFlightInSim* pFlight,RunwayInSim* pRunway )
+{
+	CConflictResolution * conflictResolution =  GetTaxiwayConflictResolution()->GetConflictResolution();
+	ElapsedTime curTime = pFlight->getCurTime();
+	ElapsedTime approachWithinTime = conflictResolution->getRunwayAsTaxiwayApproachTime();
+	DistanceUnit approachWithinDist = conflictResolution->getRunwayAsTaxiwayApproachDistNM();
+	ElapsedTime takeoffWithTime = conflictResolution->getRunwayAsTaxiwayTakeoffTime();
+
+	ElapsedTime avaibleTime;
+
+	for(size_t i=0;i<m_vFlights.size();i++)
+	{
+		AirsideFlightInSim* _pflight = m_vFlights[i];
+		if(_pflight==pFlight)
+			continue;
+
+		ElapsedTime eLandingTime;
+		if (_pflight->GetEstimateLandingTime(eLandingTime))	
+		{
+			if( LogicRunwayInSim* lrunway = _pflight->GetLandingRunway() )
+			{
+				if(lrunway->GetRunwayInSim() == pRunway)
+				{
+					ElapsedTime tDistTime = approachWithinDist/_pflight->GetPerformance()->getAvgApproachSpeedInKnots(_pflight);
+					if(   eLandingTime < curTime  + MAX(tDistTime,approachWithinTime) )
+					{
+						avaibleTime = MAX(avaibleTime, eLandingTime);
+					}
+				}
+			}
+		}
+
+		if (_pflight->GetMode() == OnTaxiToRunway || (_pflight->GetMode() == OnExitStand && !_pflight->m_bTowingToIntStand && !_pflight->m_bTowingToDepStand))	
+		{
+			if(LogicRunwayInSim* plRunway = _pflight->GetAndAssignTakeoffRunway())
+			{
+				if( plRunway->GetRunwayInSim() == pRunway && _pflight->GetOutBoundRoute() )
+				{
+					ElapsedTime tTakeoffTime = _pflight->GetOutBoundRoute()->getEsitmateFinishTime(_pflight);
+					if( tTakeoffTime < curTime + takeoffWithTime )
+					{
+						avaibleTime = MAX(avaibleTime, tTakeoffTime);
+					}
+				}
+			}
+		}
+	}
+	return avaibleTime;
+}
+
+typedef CRange<ElapsedTime> CTimeRange;
+typedef std::vector<CTimeRange> CTimeRangeList;
+static bool sortTimeRange(const CTimeRange& t1, const CTimeRange&t2)
+{
+	return t1.from() < t2.from();
+}
+
+
+ElapsedTime AirTrafficController::getAvaiableCrossRunwayTime( AirsideFlightInSim* pFlight,RunwayInSim* pRunway, const ElapsedTime& tEnter, const ElapsedTime& tCrossTime)
+{
+	CConflictResolution * conflictResolution =  GetTaxiwayConflictResolution()->GetConflictResolution();
+	
+	ElapsedTime approachWithinTime = conflictResolution->getRunwayAsTaxiwayApproachTime();
+	DistanceUnit approachWithinDist = conflictResolution->getRunwayAsTaxiwayApproachDistNM();
+	ElapsedTime takeoffWithTime = conflictResolution->getRunwayAsTaxiwayTakeoffTime();
+
+	CTimeRangeList invalidTimeRanges;
+
+	{//logic Runway 1
+		OccupancyTable& ocyTable = pRunway->GetLogicRunway1()->GetOccupancyTable();
+		for(OccupancyTable::iterator i= ocyTable.begin();i!=ocyTable.end();i++)
+		{
+			if( ElapsedTime(0L)< i->GetExitTime() && i->GetExitTime()<tEnter)
+			{
+				if(i->GetOccupyType()== OnLanding)
+				{
+					ElapsedTime tDistTime = approachWithinDist/i->GetFlight()->GetPerformance()->getAvgApproachSpeedInKnots(i->GetFlight());
+					CTimeRange invalidTime(i->GetEnterTime()-MAX(tDistTime,approachWithinTime), i->GetExitTime() );
+					invalidTimeRanges.push_back(invalidTime);
+				}
+				if(i->GetOccupyType()==OnTakeoff)
+				{
+					invalidTimeRanges.push_back(CTimeRange(i->GetEnterTime(),i->GetExitTime()));
+				}
+			}
+		}
+	}
+	{//logic runway 2
+		OccupancyTable& ocyTable = pRunway->GetLogicRunway2()->GetOccupancyTable();
+		for(OccupancyTable::iterator i= ocyTable.begin();i!=ocyTable.end();i++)
+		{
+			if( ElapsedTime(0L)< i->GetExitTime() && i->GetExitTime()<tEnter)
+			{
+				if(i->GetOccupyType()== OnLanding)
+				{
+					ElapsedTime tDistTime = approachWithinDist/i->GetFlight()->GetPerformance()->getAvgApproachSpeedInKnots(i->GetFlight());
+					CTimeRange invalidTime(i->GetEnterTime()-MAX(tDistTime,approachWithinTime), i->GetExitTime() );
+					invalidTimeRanges.push_back(invalidTime);
+				}
+				if(i->GetOccupyType()==OnTakeoff)
+				{
+					invalidTimeRanges.push_back(CTimeRange(i->GetEnterTime(),i->GetExitTime()));
+				}
+			}
+		}
+	}
+	//
+	std::sort(invalidTimeRanges.begin(),invalidTimeRanges.end(),sortTimeRange);
+	if(invalidTimeRanges.size()==0)
+		return tEnter;
+
+	if(invalidTimeRanges.size()==1)
+		return MAX(invalidTimeRanges.front().to(), tEnter);
+
+	for(size_t i=1;i<invalidTimeRanges.size()-1;i++)
+	{
+		ElapsedTime tFrom = MAX(tEnter, invalidTimeRanges[i].to() );
+		ElapsedTime tTo = invalidTimeRanges[i+1].from();
+		if(tTo - tFrom > tCrossTime)
+			return tFrom;
+	}
+
+	return MAX(tEnter, invalidTimeRanges.back().to());
+
 }

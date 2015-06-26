@@ -206,6 +206,7 @@ static char THIS_FILE[] = __FILE__;
 #include "..\Common\elaptime.h"
 #include "Inputs/Walkthroughs.h"
 #include "Proc2DataForClipBoard.h"
+#include "Common/ARCStringConvert.h"
 
 
 
@@ -478,6 +479,7 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 	
 	m_bHideTrafficLight			= TRUE;
 
+	m_bHideARP					= FALSE;
 	m_vFlow.clear();
 	m_vProcess.clear();
 
@@ -952,9 +954,8 @@ BOOL CTermPlanDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
 
 			m_bOpenDocSuccess = ReloadInputData();
-
-            pMF->m_wndShapesBar->SetUserBarManager(GetTerminal().m_pUserBarMan);
-            pMF->m_wndShapesBar->AddUserShapesToShapesBar();
+			pMF->m_wndShapesBar->SetUserBarManager(GetTerminal().m_pUserBarMan);
+			pMF->m_wndShapesBar->AddUserShapesToShapesBar();
 
 			CheckTheFlightActype() ;
 			ReadAllCameras();
@@ -4287,21 +4288,31 @@ BOOL CTermPlanDoc::BuildTempTracerData()
 				
 				long nEventCount = element.getCount();
 				int nTrackIdx = m_tempTracerData.AddTrack(nEventCount, m_vPaxDispPropIdx[ii], ii);
-				std::vector<CTrackerVector3>& track = m_tempTracerData.GetTrack(nTrackIdx);
+				std::vector<CTrackerVector3>& vTrack = m_tempTracerData.GetTrack(nTrackIdx);
+			
+				vTrack.clear();
 
 				for(long jj=1; jj<nEventCount; jj++)  //for each event of this pax
 				{
+					
 					MobEventStruct pes = element.getEvent(jj);
-					track[jj][VX] = pes.x;
-					track[jj][VY] = pes.y;
+
+					if(pes.state==TerminalBegin || pes.state==TerminalEnd)
+					{
+						continue;
+					}
+					CTrackerVector3 track;
+					track[VX] = pes.x;
+					track[VY] = pes.y;
 
 					if(pes.m_IsRealZ)
 					{
-						track[jj].IsRealZ(pes.m_IsRealZ) ;
-						track[jj][VZ] = pes.m_RealZ;
+						track.IsRealZ(pes.m_IsRealZ) ;
+						track[VZ] = pes.m_RealZ;
 					}
 					else
-						track[jj][VZ] = pes.z;
+						track[VZ] = pes.z;	
+					vTrack.push_back(track);
 
 				}
 			}
@@ -6787,7 +6798,7 @@ void CTermPlanDoc::PasteProc(int nPasteToFloorIndex,
 	pNewProc2->SetRotation(pPDFC->m_dRotation);
 	pNewProc2->m_dispProperties = pPDFC->m_dispProperties;
 	//set shape
-	CShape* pShape=SHAPESMANAGER->FindShapeByName(pPDFC->m_strShapeName);
+	CShape* pShape=SHAPESMANAGER->GetShapeByName(pPDFC->m_strShapeName);
 	if(!pShape)
 	{
 		delete pNewProc2;

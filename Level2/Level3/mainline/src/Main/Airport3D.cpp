@@ -588,7 +588,7 @@ void CAirport3D::DrawOGL( C3DView * pView,bool bWithlevles )
 		pSpot3D->DrawOGL(pView);
 	}
 
-	if(pView->GetDocument()->GetCurrentMode() == EnvMode_AirSide /*&& pView->GetDocument()->GetCAirsideInputObject()->GetAirportInfo()->m_bHideControl==TRUE*/)
+	if(pView->GetDocument()->GetCurrentMode() == EnvMode_AirSide && pView->GetDocument()->m_bHideARP == FALSE)
 	{     
 		glPushMatrix();
 		ARCVector3 m_location = m_altAirport.getRefPoint();

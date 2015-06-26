@@ -1210,7 +1210,7 @@ static void RenderTempProcInfo(CTermPlanDoc* pDoc, double dAltActive)
 		glPushMatrix();
 		glTranslated(pos[VX],pos[VY],dAltActive);
 		glScalef(5,5,5);
-		CShape* pShape = SHAPESMANAGER->FindShapeByName(_T("Large Disk"));
+		CShape* pShape = SHAPESMANAGER->GetShapeByName(_T("Large Disk"));
 		if(pShape)pShape->DrawOGL();
 		glPopMatrix();
 	}
@@ -1863,20 +1863,26 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 	else { //no animation
 		if(pDoc->m_bShowTracers) {
 			int nTrackCount = pDoc->m_tempTracerData.GetTrackCount();
-			if(nTrackCount > 0) {
+			if(nTrackCount > 0) 
+			{
 				glEnable(GL_LINE_STIPPLE);
-				for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) {
+				for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) 
+				{					
 					std::vector<CTrackerVector3>& track = pDoc->m_tempTracerData.GetTrack(nTrackIdx);
+					int nHitCount = track.size();
+					if(nHitCount<2)
+						continue;
+
 					CPaxDispPropItem* pPDPI = pDoc->m_paxDispProps.GetDispPropItem(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
 					ARCColor3 pdpcol(pPDPI->GetColor());
 					int pdplt = (int) pPDPI->GetLineType();
 					glColor3ubv(pdpcol);
 					glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
 					glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
-					glBegin(GL_LINE_STRIP);
-					int nHitCount = track.size();
-					bool bBeginVertex = false;
-					for(int nHit=1; nHit<nHitCount; nHit++) {					
+
+					glBegin(GL_LINE_STRIP);					
+					for(int nHit=0; nHit<nHitCount; nHit++)
+					{					
 						CTrackerVector3& hit = track[nHit];
 						int nFloorIdx = static_cast<int>(hit[VZ] / 100);
 						double dAltitude = 0.0;
@@ -1889,17 +1895,7 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 							double dOffset = (hit[VZ]/100.0 - (double)nFloorIdx);
 							dAltitude = dAlt[nFloorIdx]*(1.0-dOffset)  + dAlt[nFloorIdx+1]*dOffset;	
 						}
-
-						if(bOn[nFloorIdx]){
-							glVertex3f(static_cast<GLfloat>(hit[VX]), static_cast<GLfloat>(hit[VY]),(GLfloat)dAltitude);
-							bBeginVertex = true;
-						}
-						else if(bBeginVertex)
-						{
-							glEnd();
-							glBegin(GL_LINE_STRIP);
-							bBeginVertex = false;
-						}
+						glVertex3f(static_cast<GLfloat>(hit[VX]), static_cast<GLfloat>(hit[VY]),(GLfloat)dAltitude);						
 					}
 					glEnd();
 				}

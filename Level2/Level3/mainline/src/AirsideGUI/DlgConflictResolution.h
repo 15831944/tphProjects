@@ -7,6 +7,8 @@
 // CDlgConflictResolution dialog
 class CConflictResolution;
 class CAirportDatabase;
+class RunwayCrossBuffer;
+
 class CDlgConflictResolution : public CXTResizeDialog
 {
 	DECLARE_DYNAMIC(CDlgConflictResolution)
@@ -19,7 +21,7 @@ public:
 	typedef std::map<CString, TaxiwayVector>::iterator TaxiwayVectorMapIter;
 
 public:
-	CDlgConflictResolution(int nProjID, PSelectFlightType pSelectFlightType, CAirportDatabase* pAirportDB, CWnd* pParent = NULL);   // standard constructor
+	CDlgConflictResolution(int nProjID, PFuncSelectFlightType pSelectFlightType, CAirportDatabase* pAirportDB, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgConflictResolution();
 
 // Dialog Data
@@ -41,13 +43,25 @@ private:
 	HTREEITEM   m_hFirstInATaxiway;
 	HTREEITEM   m_hOnSpecificTaxiways;
 	HTREEITEM	m_hRunwayCrossBuffer;
+	HTREEITEM	m_hCaseLanding;
+	HTREEITEM	m_hCaseTakeoff;
+
+	HTREEITEM m_hApproachDistance;
+	HTREEITEM m_hApproachTime;
+	HTREEITEM m_hTakeoffSeconds; 
+
+	std::vector<HTREEITEM> m_hBufferTimes;
+	std::vector<HTREEITEM> m_hBufferDists;
+
+	bool isBuffeTime(HTREEITEM hItem){ return std::find(m_hBufferTimes.begin(),m_hBufferTimes.end(),hItem)!=m_hBufferTimes.end(); }
+	bool isBuffeDist(HTREEITEM hItem){ return std::find(m_hBufferDists.begin(),m_hBufferDists.end(),hItem)!=m_hBufferDists.end(); }
 	CConflictResolution* m_pConflictResolution;
 	int m_nProjID;
 	CAirportDatabase* m_pAirportDB;
 
 	TaxiwayVectorMap m_TaxiwayVectorMap;
 	TaxiwayVectorMap* m_pTaxiwayVectorMap;
-	PSelectFlightType	m_pSelectFlightType;
+	PFuncSelectFlightType	m_pSelectFlightType;
 	int m_nDefaultTaxiwayID;
 	CString m_strDefaultTaxiwayName;
 
@@ -66,4 +80,7 @@ protected:
 	virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 public:
 	afx_msg void OnTvnSelchangedTreeConflictresolution(NMHDR *pNMHDR, LRESULT *pResult);
+
+
+	void addRunwayCrossBufferToTree(HTREEITEM hParent, RunwayCrossBuffer* buffer);
 };

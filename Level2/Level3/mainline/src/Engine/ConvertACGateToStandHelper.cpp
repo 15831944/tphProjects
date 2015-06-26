@@ -688,7 +688,7 @@ void CPlacementEx::readData (ArctermFile& p_file)
 		else
 		{
 			p_file.getShortField (name, 256);
-			pProc2->SetShape( SHAPESMANAGER->FindShapeByName( CString(name) ) );
+			pProc2->SetShape( SHAPESMANAGER->GetShapeByName( CString(name) ) );
 		}
 
 		// m_vLocation

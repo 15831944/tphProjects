@@ -78,9 +78,10 @@ void BridgeQueue::approachQueue( Person *aPerson, ElapsedTime approachTime )
 	spTerminalBehavior->SetWalkOnBridge(TRUE);*/
 
 	int index = cornerCount() - 1 ;
-	aPerson->setTerminalLocation(corner(index));
+
+	//aPerson->setTerminalLocation(corner(index)); // write log will set the location from destination, if set location here, there will miss the time from previous loction to the queue
 	aPerson->setTerminalDestination(corner(index));
-	aPerson->writeLog(approachTime,false);
+	aPerson->writeLogEntry(approachTime,false);
 
 	__super::approachQueue(aPerson,approachTime);
 }

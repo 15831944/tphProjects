@@ -95,7 +95,6 @@ bool CUsedProcInfoBox::IsNoInfo()
 {
 	bool testTag = false;
 	std::vector<CString> _vec;
-	std::vector<CString>::iterator iter = _vec.begin();
 	int iProcCount = m_vInfoList.size();
 	std::vector<CUsedProcInfo>::iterator it= m_vInfoList.begin();
 	CString sLine;

@@ -376,6 +376,11 @@ void AirsideSimulation::VehicleGeneration(int& nNextVehicleUnqiueID,int nCount, 
 	for (int i =0; i < nCount; i++)
 	{
 		AirsideVehicleInSim* pVehicle = GenerateBaseTypeVehicle(nNextVehicleUnqiueID,m_nPrjID,pVehicleSpecItem, pVehicleSpecifications);//new AirsideVehicleInSim(desc,i,m_nPrjID,pVehicleSpecItem);
+		if(!pVehicle)
+		{
+			ASSERT(false);
+			continue;
+		}
 		pVehicle->InitLogEntry(pPool,m_pOuput);
 
 		CPoint2008 pos;
@@ -447,14 +452,17 @@ AirsideVehicleInSim* AirsideSimulation::GenerateBaseTypeVehicle(int& nNextVehicl
 			{
 				pBagCartsSpecItem = pVehicleSpecifications->GetVehicleItemByID(vIDs.at(0));
 			}
-			AirsideBaggageTrainInSim *pBagTrain =  new AirsideBaggageTrainInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem, pBagCartsSpecItem, m_pEngine);
-			nNextVehicleUnqiueID += 1;
-			pVehicle = pBagTrain;
-
-			pBagTrain->Initialize(nNextVehicleUnqiueID);
-
-
-
+			if(pBagCartsSpecItem)
+			{
+				AirsideBaggageTrainInSim *pBagTrain =  new AirsideBaggageTrainInSim(nNextVehicleUnqiueID,nPrjID,pVehicleSpecItem, pBagCartsSpecItem, m_pEngine);
+				nNextVehicleUnqiueID += 1;
+				pVehicle = pBagTrain;
+				pBagTrain->Initialize(nNextVehicleUnqiueID);
+			}
+			else
+			{
+				
+			}
 		}
 		break;
 	case  VehicleType_JointBagTug:

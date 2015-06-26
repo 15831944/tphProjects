@@ -19,69 +19,99 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-const char* CIconComboBox::s_szShapeLabel[] = 
-{
-	"Default"					,		// 0
-	"Flat Square"				,		// 1
-	"Table"						,		// 2
-	"Cube"						,		// 3
-	"Cylinder"					,		// 4
-	"Security Arch"				,		// 5
-	"CTX 5500"					,		// 6
-	"Table 3'x6'"				,		// 7
-	"Security Guard"			,		// 8
-	"Police Officer"			,		// 9
-	"Woman Sitting"				,		// 10
-	"Ticket Counter 1"			,		// 11
-	"Ticket Counter 2"			,		// 12
-	"Ticket Counter 3"			,		// 13
-	"Ticket Counter 4"			,		// 14
-	"4 seats"					,		// 15
-	"Cylinder 2"				,		// 16
-	"Small Disk"				,		// 17
-	"Large Disk"				,		// 18
-	"BillBoard"					,		// 19
-	"AT"						,		// 20
-	"Cobra"						,		// 21
-	"Cobra Exit Belt"			,		// 22
-	"Streamline"				,		// 23
-	"TRX"						,		// 24
-	"Cobra Exit Belt Mirrored"	,		// 25
-	"Cobra Mirrored"			,		// 26
-	"Body Scanner"				,		// 27
-};
-
-const char* CIconComboBox::s_szShapePath[] = 
-{
-	"square24"					,		// 0
-	"square100"					,		// 1
-	"table_of"					,		// 2
-	"CUBE100"					,		// 3
-	"CYL"						,		// 4
-	"security_arch"				,		// 5
-	"CTX5500"					,		// 6
-	"table3by6"					,		// 7
-	"SecurityGuard"				,		// 8
-	"copeye"					,		// 9
-	"readingscene"				,		// 10
-	"3dTickCounter_1"			,		// 11
-	"3dTickCounter_2"			,		// 12
-	"3dTickCounter_3"			,		// 13
-	"3dTickCounter_4"			,		// 14
-	"airportseats"				,		// 15
-	"CYL2"						,		// 16
-	"disk24"					,		// 17
-	"disk100"					,		// 18
-	"billboard"					,		// 19
-	"AT"						,		// 20
-	"Cobra"						,		// 21
-	"Cobra_Exit_Belt"			,		// 22
-	"Streamline"				,		// 23
-	"TRX"						,		// 24
-	"Cobra_Exit_Belt_Mirrored"	,		// 25
-	"Cobra_Mirrored"			,		// 26
-	"BodyScanner"				,		// 27
-};
+// const char* CIconComboBox::s_szShapeLabel[] = 
+// {
+// 	"Default"					,		// 0
+// 	"Flat Square"				,		// 1
+// 	"Table"						,		// 2
+// 	"Cube"						,		// 3
+// 	"Cylinder"					,		// 4
+// 	"Security Arch"				,		// 5
+// 	"CTX 5500"					,		// 6
+// 	"Table 3'x6'"				,		// 7
+// 	"Security Guard"			,		// 8
+// 	"Police Officer"			,		// 9
+// 	"Woman Sitting"				,		// 10
+// 	"Ticket Counter 1"			,		// 11
+// 	"Ticket Counter 2"			,		// 12
+// 	"Ticket Counter 3"			,		// 13
+// 	"Ticket Counter 4"			,		// 14
+// 	"4 seats"					,		// 15
+// 	"Cylinder 2"				,		// 16
+// 	"Small Disk"				,		// 17
+// 	"Large Disk"				,		// 18
+// 	"Dash"						,		// 19
+// 	"Boeing 747"				,		// 20
+// 	"Boeing 757"				,		// 21
+// 	"Boeing 777"				,		// 22
+// 	"Airbus 320"				,		// 23
+// 	"Cesna"						,		// 24
+// 	"MD-8"						,		// 25
+// 	"Dodge"						,		// 26
+// 	"Mirage"					,		// 27
+// 	"Shadow"					,		// 28	
+// 	"Taxi"						,		// 29	
+// 	"Bussm"						,		// 30
+// 	"A380"						,		// 31
+// 	"AT"						,		// 32
+// 	"Cobra"						,		// 33
+// 	"Cobra_Exit_Belt"			,		// 34
+// 	"Streamline"				,		// 35
+// 	"TRX"						,		// 36
+// 	"Cobra Exit Belt Mirrored"	,		// 37
+// 	"Cobra Mirrored"			,		// 38
+// 	"Body Scanner"				,		// 39
+// 	"1 seat"					,		// 40
+// 	"Bell Helic"				,		// 41
+// 	"Saab-340 m"				,		// 42
+// };
+// 
+// const char* CIconComboBox::s_szShapePath[] = 
+// {
+// 	"square24"					,		// 0
+// 	"square100"					,		// 1
+// 	"table_of"					,		// 2
+// 	"CUBE100"					,		// 3
+// 	"CYL"						,		// 4
+// 	"security_arch"				,		// 5
+// 	"CTX5500"					,		// 6
+// 	"table3by6"					,		// 7
+// 	"SecurityGuard"				,		// 8
+// 	"copeye"					,		// 9
+// 	"readingscene"				,		// 10
+// 	"3dTickCounter_1"			,		// 11
+// 	"3dTickCounter_2"			,		// 12
+// 	"3dTickCounter_3"			,		// 13
+// 	"3dTickCounter_4"			,		// 14
+// 	"airportseats"				,		// 15
+// 	"CYL2"						,		// 16
+// 	"disk24"					,		// 17
+// 	"disk100"					,		// 18
+// 	"Dash"						,		// 19
+// 	"Boeing 747"				,		// 20
+// 	"Boeing 757"				,		// 21
+// 	"Boeing 777"				,		// 22
+// 	"Airbus 320"				,		// 23
+// 	"Cesna"						,		// 24
+// 	"MD-8"						,		// 25
+// 	"Dodge"						,		// 26
+// 	"Mirage"					,		// 27
+// 	"Shadow"					,		// 28	
+// 	"Taxi"						,		// 29	
+// 	"Bussm"						,		// 30
+// 	"A380"						,		// 31
+// 	"AT"						,		// 32
+// 	"Cobra"						,		// 33
+// 	"Cobra_Exit_Belt"			,		// 34
+// 	"Streamline"				,		// 35
+// 	"TRX"						,		// 36
+// 	"Cobra_Exit_Belt"			,		// 37
+// 	"Cobra"						,		// 38
+// 	"BodyScanner"				,		// 39
+// 	"airportseat"				,		// 40
+// 	"Bell Helic"				,		// 41
+// 	"Saab-340 m"				,		// 42
+// };
 
 CIconComboBox::CIconComboBox()
 {
@@ -132,6 +162,7 @@ void CIconComboBox::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	}
 	
 	//Draw the icon
+	CShape::CShapeList *pSL = SHAPESMANAGER->GetShapeList();
 	if (m_nIndex > -1)
 	{
 		CDC dcMem;
@@ -155,7 +186,7 @@ void CIconComboBox::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	
 			int nOldMode = pDC->SetBkMode(TRANSPARENT);
 			rc.top = rc.bottom - 25;
-			pDC->DrawText(s_szShapeLabel[m_nIndex], rc, DT_CENTER | DT_BOTTOM | DT_WORDBREAK);
+			pDC->DrawText(pSL->at(m_nIndex)->Name(), rc, DT_CENTER | DT_BOTTOM | DT_WORDBREAK);
 			pDC->SetBkMode(nOldMode);
 		}
 	}
@@ -191,7 +222,7 @@ void CIconComboBox::DisplayListWnd()
 	if(!m_listWnd.GetSafeHwnd() ) 
 	{
 		m_listWnd.SetImageDir(CString("\\Databases\\Shapes"));
-		m_listWnd.SetLabelString(s_szShapeLabel);
+		//m_listWnd.SetLabelString(s_szShapeLabel);
 		if (!CreateListWnd())
 			return;
 		m_listWnd.ShouldHideParent(FALSE);
@@ -320,11 +351,11 @@ BOOL CIconComboBox::LoadAllBitmaps()
 	
 	
 	// draw the thumbnails
-	for(int i = 0; i < sizeof(s_szShapePath) / sizeof(s_szShapePath[0]); i++)
-	{		
-		// load the bitmap
-		strPath = PROJMANAGER->GetAppPath() +
-			_T("\\Databases\\Shapes\\") + s_szShapePath[i] + _T(".bmp");
+// 	for(int i = 0; i < sizeof(s_szShapePath) / sizeof(s_szShapePath[0]); i++)
+// 	{		
+// 		// load the bitmap
+// 		strPath = PROJMANAGER->GetAppPath() +
+// 			_T("\\Databases\\Shapes\\") + s_szShapePath[i] + _T(".bmp");
 		/*ImgFile.Open(strPath, CFile::modeRead);
 
 		
@@ -388,14 +419,23 @@ BOOL CIconComboBox::LoadAllBitmaps()
 		// attach the thumbnail bitmap handle to an CBitmap object
 		//m_bitmaps[i].Attach(hBitmap);*/
 
-		hBitmap = (HBITMAP)LoadImage(AfxGetInstanceHandle(), strPath, IMAGE_BITMAP, 0, 0, 
-			LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_LOADFROMFILE);
-
-		m_bitmaps[i].Attach(hBitmap);
+// 		hBitmap = (HBITMAP)LoadImage(AfxGetInstanceHandle(), strPath, IMAGE_BITMAP, 0, 0, 
+// 			LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_LOADFROMFILE);
+// 
+// 		m_bitmaps[i].Attach(hBitmap);
 		/*
 		CBitmap bm;
 		bm.Attach(hBitmap);
 		m_imgList.Add(&bm, RGB(255, 0, 255));*/
+/*	}*/
+
+	CShape::CShapeList *pSL = SHAPESMANAGER->GetShapeList();
+	for(int i=0;i<pSL->size();i++)
+	{
+		strPath = pSL->at(i)->ImageFileName();
+		hBitmap = (HBITMAP)LoadImage(AfxGetInstanceHandle(), strPath, IMAGE_BITMAP, 0, 0, 
+		 			LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_LOADFROMFILE);
+ 		m_bitmaps[i].Attach(hBitmap);
 	}
 
 	return TRUE;
@@ -410,9 +450,11 @@ void CIconComboBox::SetSelectedIndex(int index)
 void CIconComboBox::SetSelectedIndex(const char* pszName)
 {
 	int nIndex = -1;
-	for (int i = 0; i < sizeof(s_szShapeLabel) / sizeof(s_szShapeLabel[0]); i++)
+	CShape::CShapeList *pSL = SHAPESMANAGER->GetShapeList();
+	/*for (int i = 0; i < sizeof(s_szShapeLabel) / sizeof(s_szShapeLabel[0]); i++)*/
+	for (int i = 0; i < pSL->size(); i++ )
 	{
-		if (strcmp(s_szShapeLabel[i], pszName) == 0)
+		if (strcmp(/*s_szShapeLabel[i]*/pSL->at(i)->Name(), pszName) == 0)
 		{
 			nIndex = i;
 			break;

@@ -194,7 +194,9 @@ bool CAirsideFlightDelayReport::setDepAirModeContent(FltDelayItem& fltDepartureD
 
 bool CAirsideFlightDelayReport::setArrTaxiwayModeContent(FltDelayItem& fltArrivalDelayItem,FltNodeDelayItem& nodeDelayItem,long lDelayTime,const FlightConflictReportData::ConflictDataItem* pData)const
 {
-	if (pData->m_nMode == OnTaxiToStand || pData->m_nMode == OnTaxiToHoldArea)
+	bool bTurnAround =	(strlen(pData->fltdesc.sArrID.c_str()) > 0 && strlen(pData->fltdesc.sDepID.c_str()) > 0); //turnaround
+
+	if ( (pData->m_nMode == OnTaxiToStand && (bTurnAround?pData->m_tTime.getPrecisely()<pData->fltdesc.actDepOn :true) ) || pData->m_nMode == OnTaxiToHoldArea )
 	{
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltArrivalDelayItem.totalDelayTime;
 		fltArrivalDelayItem.totalDelayTime += lDelayTime;
@@ -213,8 +215,13 @@ bool CAirsideFlightDelayReport::setArrTaxiwayModeContent(FltDelayItem& fltArriva
 
 bool CAirsideFlightDelayReport::setDepTaxiwayModeContent(FltDelayItem& fltDepartureDelayItem,FltNodeDelayItem& nodeDelayItem,long lDelayTime,const FlightConflictReportData::ConflictDataItem* pData)const
 {
-	if (pData->m_nMode == OnTaxiToRunway || pData->m_nMode == OnQueueToRunway || pData->m_nMode == OnTowToDestination \
-		|| pData->m_nMode == OnTakeOffWaitEnterRunway)
+	bool bTurnAround =	(strlen(pData->fltdesc.sArrID.c_str()) > 0 && strlen(pData->fltdesc.sDepID.c_str()) > 0); //turnaround
+	bool bFitInExtra = false;
+	if(bTurnAround )
+		bFitInExtra = pData->m_nMode == OnTaxiToStand && (pData->m_tTime.getPrecisely() >= pData->fltdesc.actDepOn) ;
+
+	if ( pData->m_nMode == OnTaxiToRunway || pData->m_nMode == OnQueueToRunway || pData->m_nMode == OnTowToDestination \
+		|| pData->m_nMode == OnTakeOffWaitEnterRunway || bFitInExtra  )
 	{
 		nodeDelayItem.eArriveTime = (long)pData->m_tTime - fltDepartureDelayItem.totalDelayTime;
 		fltDepartureDelayItem.totalDelayTime += (long)lDelayTime;

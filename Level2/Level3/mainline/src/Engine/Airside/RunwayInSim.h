@@ -12,6 +12,7 @@
 #include "QueueToTakeoffPos.h"
 //#include "RunwaysController.h"
 #include "AirsideObserver.h"
+#include "Common/CPPUtil.h"
 
 class RunwayInSim;
 class Clearance;
@@ -129,7 +130,7 @@ public:
 	bool FindClearanceInConcern(AirsideFlightInSim * pFlight,  ClearanceItem& lastItem ,DistanceUnit radius, Clearance& newClearance);
 	
 	// set enter time of flight
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
+	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode, double dSpd);
 	// set exit time of flight
 	virtual void SetExitTime(CAirsideMobileElement * pFlight, const ElapsedTime& exitT);
 
@@ -199,6 +200,8 @@ public:
 	bool HasHasMissedApproachFlight(){ return m_bHasMissedApproachFlight; }
 
 	CString GetMarkName();
+
+	
 protected:
 	//std::vector<TakeoffQueueInSim *> m_vTakeoffQueses;
 	QueueToTakeoffPosList m_vQueueList;
@@ -212,8 +215,7 @@ protected:
 	//flights occupied runway;
 	std::vector<AirsideFlightInSim*> m_vOccupiedFlights;
 	bool m_bHasMissedApproachFlight;
-
-	
+	//
 };
 
 
@@ -303,6 +305,7 @@ public:
 	CWakeUpRunwayEvent * GetWakeupRunwayEvent();
 
 	void AddWaveCrossHold(HoldPositionInSim *pHold, int pWaveCrossCount);
+
 protected:
 	CWakeUpRunwayEvent *m_pWakeUpRunwayEvent;
 	RunwayState m_runwayState;

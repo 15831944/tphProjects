@@ -21,7 +21,6 @@
 #include "PaxTags.h"
 #include "AircraftTags.h"
 #include "InputAirside\VehicleTag.h"
-#include "Landside\LandsideVehicleTags.h"
 #include "ActivityDensityParams.h"
 #include "Movies.h"
 #include "VideoParams.h"
@@ -309,6 +308,7 @@ public:
 	BOOL m_bLayoutLocked;
 	BOOL m_bHideACTags;
 	BOOL m_bHideTrafficLight;
+	BOOL m_bHideARP;
 	
 	BOOL m_bUnselectOnButonUp;
 	
@@ -447,7 +447,7 @@ public:
 	CPaxTags m_paxTags;
 	CAircraftTags m_aircraftTags;
 	CVehicleTag   m_vehicleTags;
-	CLandsideVehicleTagSetList m_landsideVehicleTags;
+	//CLandsideVehicleTagSetList m_landsideVehicleTags;
 	
 	CActivityDensityParams m_adParams;
 	

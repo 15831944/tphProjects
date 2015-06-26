@@ -221,7 +221,9 @@ void FixedQueue::arriveAtQueue (Person *aPerson, ElapsedTime arriveTime)
     }
     // place the Person in the list of waiting Persons
     int index = m_approachList.findItem (aPerson);
-    m_approachList.removeItem (index);
+	if(index != INT_MAX)
+		m_approachList.removeItem (index);
+
     m_waitList.addToTail (aPerson);
     // set position in queue
     spTerminalBehavior->updateIndex();

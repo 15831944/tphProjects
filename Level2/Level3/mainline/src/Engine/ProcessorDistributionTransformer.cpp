@@ -176,6 +176,8 @@ void CProcessorDistributionTransformer::UntieThisSubFlow(const CFlowItemTransfor
 			CFlowItemEx flowItemEx;
 			GetFlowItemEx(flowDest,flowItemEx);
 
+			flowItemEx.SetMaxSkipTime(subFlowItem.GetFlowItem().GetMaxSkipTime());
+
 			//end
 			tempFlowItem.SetFlowItemEx(flowItemEx);
 
@@ -200,7 +202,7 @@ void CProcessorDistributionTransformer::UntieThisSubFlow(const CFlowItemTransfor
 
 	
 		//leaf node does not need
-		CProcessorDestinationList* checkLeaf =  pPaxFlow->GetFlowPairAt(pDesinationList->GetProcID());
+		CProcessorDestinationList* checkLeaf =  pPaxFlow->GetEqualFlowPairAt(pDesinationList->GetProcID());
 		if(checkLeaf == NULL || checkLeaf->GetDestProcCount() == 0)
 			continue;
 

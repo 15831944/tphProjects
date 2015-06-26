@@ -286,47 +286,48 @@ void CAirsideTakeoffProcessDetailChart::GenerateResult( TakeoffDetailDataList& v
 {
 	ASSERT(pParameter);
 
-	long lMin = GetMinData(vResult)/100;
-	long lMax = GetMaxData(vResult)/100;
-    
-    long lUserInterval = pParameter->getInterval();
-    long lStart = lMin - lMin%pParameter->getInterval();
+	long lMinTime = GetMinData(vResult)/100;
+	long lMaxTime = GetMaxData(vResult)/100;
 
-    int intervalCount = (lMax - lStart) / lUserInterval;
-    if((lMax-lStart)%lUserInterval != 0)
-        intervalCount += 1;
-    if(intervalCount == 0)
-        intervalCount = 1;
+	int intervalSize = 0 ;
+	ElapsedTime IntervalTime ;
+	IntervalTime = lMaxTime - lMinTime;
+	intervalSize = IntervalTime.asSeconds() / pParameter->getInterval() + 1;//default value 1mins
 
-    CString strIntervalTime;
-    ElapsedTime estStartTime = lStart;
-    ElapsedTime estEndTime = lMax;
-    for (int i = 0 ; i < intervalCount ;i++)
-    {
-        ElapsedTime estIntervalStartTime, estIntervalEndTime;
-        estIntervalStartTime = lStart + lUserInterval*i;
-        estIntervalEndTime = lStart + lUserInterval*(i+1);
-        strIntervalTime.Format(_T("%s-%s"),estIntervalStartTime.printTime(),estIntervalEndTime.printTime()) ;
-        m_vXAxisTitle.push_back(strIntervalTime);
-    }
+	long lUserIntervalTime = pParameter->getInterval();
+	ElapsedTime estUserIntervalTime = ElapsedTime(lUserIntervalTime);
+
+	CString timeInterval;
+	ElapsedTime startTime = lMinTime - lMinTime%pParameter->getInterval();
+	ElapsedTime estStartTime = startTime;
+	ElapsedTime endtime ;
+	for (int i = 0 ; i < intervalSize ;i++)
+	{
+		endtime = startTime + estUserIntervalTime;
+		timeInterval.Format(_T("%s-%s"),startTime.printTime(),endtime.printTime()) ;
+		startTime = endtime ;
+		m_vXAxisTitle.push_back(timeInterval);
+	}
 
 	ElapsedTime estMinDelayTime = estStartTime;
+
+
 	detailChartDataList chartDataList;
 	InvertDetailToGraphData(vResult,chartDataList);
 
 	for (long j=0; j<(long)m_vXAxisTitle.size(); j++)
 	{
 		int nCount = 0;
-		ElapsedTime estIntervalStartTime = estMinDelayTime + ElapsedTime(lUserInterval*j);
-		ElapsedTime estIntervalEndTime = estMinDelayTime + ElapsedTime(lUserInterval*(j + 1));
+		ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*j);
+		ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(j + 1));
 		for (int n = 0; n < (int)chartDataList.size(); n++)
 		{
 			DetailChartData& chartData = chartDataList[n];
 			for (int m = 0; m < (int)chartData.m_vData.size(); m++)
 			{
 				double dData = chartData.m_vData[m];
-				if (dData >= estIntervalStartTime.asSeconds()*100\
-					&&dData < estIntervalEndTime.asSeconds()*100)
+				if (dData >= estTempMinDelayTime.asSeconds()*100\
+					&&dData < estTempMaxDelayTime.asSeconds()*100)
 				{
 					nCount++;
 				}

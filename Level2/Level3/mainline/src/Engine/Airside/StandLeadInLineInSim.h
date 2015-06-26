@@ -37,7 +37,7 @@ public:
 	virtual bool TryLock(AirsideFlightInSim * pFlight);
 
 	// set enter time of flight
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
+	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode, double dSpd);
 
 	const CPath2008&  GetPath()const{ return m_linePath; }
 	int GetID()const;

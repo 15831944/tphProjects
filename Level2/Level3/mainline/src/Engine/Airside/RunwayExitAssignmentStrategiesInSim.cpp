@@ -802,8 +802,7 @@ bool CRunwayExitAssignmentStrategiesInSim::IsExitAvailable( RunwayExitInSim *pRu
 	{
 		RunwayDirectSegInSim *pRunwaySeg = (RunwayDirectSegInSim *)pGroundSeg;
 
-		RUNWAY_MARK runwayMark = pRunwaySeg->GetLogicRunwayType();
-		LogicRunwayInSim * pRelatedRunway = pRunwaySeg->GetRunwaySeg()->GetLogicRunway(runwayMark);
+		LogicRunwayInSim * pRelatedRunway = pRunwaySeg->getLogicRunway();
 		if(pRelatedRunway->GetDepartureQueueLength() != 0)
 			return false;
 	}
@@ -830,8 +829,7 @@ RunwayExitInSim* CRunwayExitAssignmentStrategiesInSim::GetAvailableRunwayExit( A
 		{
 			RunwayDirectSegInSim *pRunwaySeg = (RunwayDirectSegInSim *)pGroundRoute;
 
-			RUNWAY_MARK runwayMark = pRunwaySeg->GetLogicRunwayType();
-			LogicRunwayInSim * pRelatedLogicRunway = pRunwaySeg->GetRunwaySeg()->GetLogicRunway(runwayMark);
+			LogicRunwayInSim * pRelatedLogicRunway = pRunwaySeg->getLogicRunway();
 
 			if(pRelatedLogicRunway == pRunwayExit->GetLogicRunway() 
 				|| pRelatedLogicRunway == pRunwayExit->GetLogicRunway()->GetOtherPort())//same runway cannot be runway exit

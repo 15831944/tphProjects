@@ -44,6 +44,8 @@ public:
 	//
 	TaxiRouteInSim(AirsideMobileElementMode mode,AirsideResource* pOrign, AirsideResource* pDest);
 	virtual ~TaxiRouteInSim();
+
+	ElapsedTime getEsitmateFinishTime(AirsideFlightInSim* pFlight);
 	
 	void reset();
 	//add taxiway segments to this list
@@ -57,6 +59,7 @@ public:
 	IntersectionNodeInSim* GetLastNode();
 
 	bool NodeInRoute(IntersectionNodeInSim* pNode);
+	bool getNodeDistInRoute(IntersectionNodeInSim* pNode, DistanceUnit& dist);
 	//
 	int  GetItemCount()const{ return m_vItems.size(); }
 	TaxiRouteItemInSim & ItemAt(int idx){ return m_vItems[idx]; }

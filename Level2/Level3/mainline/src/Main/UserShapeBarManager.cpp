@@ -11,7 +11,7 @@ static char THIS_FILE[]=__FILE__;
 
 CUserShapeBar::CUserShapeBar():
 m_barName(_T("")),
-    m_barLocation(_T(""))
+m_barLocation(_T(""))
 {
     m_vUserShapes.clear();
 }
@@ -24,25 +24,34 @@ CUserShapeBar::~CUserShapeBar()
 void CUserShapeBar::readData( ArctermFile& p_file )
 {
     char buf[256] = {0};
+	CString str;
     int nShapeCount = 0;
     p_file.getLine();
     p_file.getInteger(nShapeCount);
-    CShape::CShapeList* pShapeList = SHAPESMANAGER->GetShapeList();
     for(int j=0; j<nShapeCount; j++)
     {
-        CShape* pShape = new CShape;
         p_file.getLine();
         p_file.getField(buf, 255); // "Shape"
         p_file.getField(buf, 255);
-        pShape->Name(buf);
+		str.Format("%s",buf);
+		str.MakeLower();
+		str.SetAt(0,str.GetAt(0)-32);
+		CShape* pNewShape = SHAPESMANAGER->GetShapeByName(str);
 
-        p_file.getField(buf, 255);
-        pShape->ImageFileName(buf);
+		p_file.getField(buf, 255);
+		pNewShape->ImageFileName(buf);
 
-        p_file.getField(buf, 255);
-        pShape->ShapeFileName(buf);
-        m_vUserShapes.push_back(pShape);
-        pShapeList->push_back(pShape);
+		p_file.getField(buf, 255);
+		pNewShape->ShapeFileName(buf);
+
+		p_file.getField(buf, 255);
+		str.Format("%s",buf);
+		str.MakeLower();
+		double dScale = UnitToScale(str);
+		pNewShape->SetScale(dScale);
+
+		m_vUserShapes.push_back(pNewShape);
+		
     }
 }
 
@@ -61,6 +70,8 @@ void CUserShapeBar::writeData( ArctermFile& p_file ) const
         p_file.writeField(str.GetBuffer());
         str = pShape->ShapeFileName();
         p_file.writeField(str.GetBuffer());
+		str = ScaleToUnit(pShape->GetScale());
+		p_file.writeField(str.GetBuffer());
         p_file.writeLine();
     }
 }
@@ -72,17 +83,7 @@ BOOL CUserShapeBar::DeleteShape(CShape* pShape)
     for(int i=0; i<nCount; i++)
     {
         if(m_vUserShapes.at(i)== pShape)
-        {
-			
-			CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
-			pShape->Name("Cube");
-			pShape->ImageFileName(sPath + "CUBE100.bmp");
-			pShape->ShapeFileName(sPath + "CUBE100.dxf");
-			pShape->SetObjListValid(FALSE);
-
-			CShape::CShapeList* pDL = SHAPESMANAGER->GetDefaultList();
-			pDL->push_back(pShape);
-
+        {	
             m_vUserShapes.erase(m_vUserShapes.begin() + i);
             return TRUE;
         }
@@ -93,8 +94,6 @@ BOOL CUserShapeBar::DeleteShape(CShape* pShape)
 void CUserShapeBar::AddShape( CShape* pShape )
 {
     m_vUserShapes.push_back(pShape);
-    CShape::CShapeList* pShapeList = SHAPESMANAGER->GetShapeList();
-    pShapeList->push_back(pShape);
 }
 
 BOOL CUserShapeBar::IsShapeExist( CString str )
@@ -106,6 +105,17 @@ BOOL CUserShapeBar::IsShapeExist( CString str )
             return TRUE;
     }
     return FALSE;
+}
+
+int CUserShapeBar::GetShapeIndex( CString str )
+{
+	int nCount = (int)m_vUserShapes.size();
+	for(int i=0; i<nCount; i++)
+	{
+		if(str.CompareNoCase(m_vUserShapes.at(i)->Name()) == 0)
+			return i;
+	}
+	return -1;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -129,15 +139,20 @@ void CUserShapeBarManager::readData(ArctermFile& p_file)
     for(int i=0; i<nBarCount; i++)
     {
         char buf[256] = {0};
+		CString str;
         p_file.getLine();
         p_file.getField(buf, 255); // "Bar"
         p_file.getField(buf, 255);
-        CUserShapeBar* pUserBar = new CUserShapeBar;
-        pUserBar->SetBarName(buf);
-        p_file.getField(buf, 255);
-        pUserBar->SetBarLocation(buf);
-        pUserBar->readData(p_file);
-        m_vUserBars.push_back(pUserBar);
+		str.Format("%s",buf);
+		str.MakeLower();
+		str.SetAt(0,str.GetAt(0)-32);
+		CUserShapeBar* pUserBar = new CUserShapeBar;
+		pUserBar->SetBarName(str);
+
+		p_file.getField(buf, 255);
+		pUserBar->SetBarLocation(buf);
+		pUserBar->readData(p_file);
+		m_vUserBars.push_back(pUserBar);
     }
 }
 
@@ -174,18 +189,14 @@ BOOL CUserShapeBarManager::IsUserShapeBarExist(CString strBarName)
 // if a shape with name strNewShape exists, return true.
 BOOL CUserShapeBarManager::IsUserShapeExist(CString strShape)
 {
-    if(SHAPESMANAGER->IsShapeExist(strShape))
+	if(SHAPESMANAGER->IsShapeExist(strShape))
+		return TRUE;
+
+	int nCount = (int)m_vUserBars.size();
+	for(int i=0; i<nCount; i++)
     {
-        return TRUE;
-    }
-    else
-    {
-        int nCount = (int)m_vUserBars.size();
-        for(int i=0; i<nCount; i++)
-        {
-            if(m_vUserBars.at(i)->IsShapeExist(strShape))
-                return TRUE;
-        }
+        if(m_vUserBars.at(i)->IsShapeExist(strShape))
+            return TRUE;
     }
     return FALSE;
 }
@@ -195,7 +206,7 @@ CUserShapeBar* CUserShapeBarManager::FindUserBarByName(CString strBarName)
     int nBarCount = (int)m_vUserBars.size();
     for(int i=0; i<nBarCount; i++)
     {
-        if(strBarName.Compare(m_vUserBars.at(i)->GetBarName()) == 0)
+        if(strBarName.CompareNoCase(m_vUserBars.at(i)->GetBarName()) == 0)
             return m_vUserBars.at(i);
     }
     return NULL;
@@ -209,10 +220,17 @@ CUserShapeBar* CUserShapeBarManager::GetUserBarByIndex(int nIndex)
         return NULL;
 }
 
-CShape* CUserShapeBarManager::GetShapeByName(const CString& str)
+CShape* CUserShapeBarManager::FindShapeByName(const CString& str)
 {
-    if(SHAPESMANAGER->FindShapeIndexByName(str) != -1)
-        return SHAPESMANAGER->FindShapeByName(str);
+	int nBarCount = (int)m_vUserBars.size();
+	for(int i=0; i<nBarCount; i++)
+	{ 
+		CShape::CShapeList*	pShapeList = m_vUserBars.at(i)->GetUserShapeList();
+		int nShapeCount = (int)pShapeList->size();
+		for(int j=0; j<nShapeCount; j++)
+			if(!str.Compare(pShapeList->at(j)->Name()))
+				return pShapeList->at(j);
+	}
     return NULL;
 }
 

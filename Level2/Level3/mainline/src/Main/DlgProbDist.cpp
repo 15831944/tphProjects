@@ -591,22 +591,26 @@ void CDlgProbDist::OnEndLabelEditListParameters(NMHDR* pNMHDR, LRESULT* pResult)
 		if(!ProbDistHelper::SetParamValue(pde->m_pProbDist, nItem, atof(pDispInfo->item.pszText), &nError)) {
 			AfxMessageBox(ProbDistHelper::GetErrorMsg(nError));
 			return;
-		}
+        }
+        m_lstParameters.SetItemText(nItem, nSubItem, LPSTR_TEXTCALLBACK);
 	}
-	else { //histogram or emprical
+	else { //histogram or empirical
 		double val = atof(pDispInfo->item.pszText);
 		CString s;
 		if(nSubItem==0)
 			s.Format("%.2f", val);
 		else
 			s.Format("%.2f", RoundDouble(val,2));
-		m_lstParameters.SetItemText(nItem, nSubItem, s);
-		
-		SaveHistogramData(m_lstParameters, (HistogramDistribution*) GetSelectedPD()->m_pProbDist);
+
+        // update list view.
+        m_lstParameters.SetItemText(nItem, nSubItem, s);
+
+        // update data from list view.
+		SaveHistogramData(m_lstParameters, (HistogramDistribution*)pde->m_pProbDist);
 	}
 
-	UpdateDistributionData();
-
+    UpdateExtraParam(pde);
+    UpdateChart(pde);
 	*pResult=1;
 }
 

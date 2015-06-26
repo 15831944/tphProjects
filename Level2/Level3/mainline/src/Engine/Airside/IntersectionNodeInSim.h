@@ -60,7 +60,7 @@ public:
 
 	std::vector<FilletTaxiway>& GetFilletList(){ return m_vFilletTaxiways; }
 
-	bool IsNoParking()const;   //can not parking in this node 
+	bool IsNoParking(AirsideFlightInSim* pFlight)const;   //can not parking in this node 
 	void SetNoParking(bool b);
 	bool IsNeedToCheckHold()const; //need to hold and check this node
 

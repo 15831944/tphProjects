@@ -144,7 +144,7 @@ void AirRouteSegInSim::CalculateClearanceItems(AirsideFlightInSim* pFlight,Fligh
 
 	}
 
-	SetEnterTime(pFlight,tEnter,lastItem.GetMode());
+	SetEnterTime(pFlight,tEnter,lastItem.GetMode(), lastItem.GetSpeed() );
 	SetExitTime(pFlight,tExit);
 
 }

@@ -116,6 +116,8 @@ void CDetailFlightScheduleDelayResult::GenerateResult(vector<CAirsideFlightDelay
 	ElapsedTime estMinDelayTime = ElapsedTime(long(lMinDelayTime/100.0+0.5));
 	ElapsedTime estMaxDelayTime = ElapsedTime(long(lMaxDelayTime/100.0+0.5));
 
+	m_estStartTime = estMinDelayTime;
+	m_estEndTime   = estMaxDelayTime;
 
 	long lUserIntervalTime = pParameter->getInterval();
 	ElapsedTime estUserIntervalTime = ElapsedTime(lUserIntervalTime);
@@ -123,20 +125,15 @@ void CDetailFlightScheduleDelayResult::GenerateResult(vector<CAirsideFlightDelay
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < lUserIntervalTime)
 	{
-        long lActMinDelayTime = lMinDelayTime - lMinDelayTime%(lUserIntervalTime*100);
-        estMinDelayTime = ElapsedTime(lActMinDelayTime/100);
+		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime * 100);
+		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(lUserIntervalTime*100)) /100);
 
-        lDelayTimeSegmentCount = (lMaxDelayTime-lActMinDelayTime) / (lUserIntervalTime*100);
-        if((lMaxDelayTime-lActMinDelayTime)%(lUserIntervalTime*100) != 0)
-            lDelayTimeSegmentCount += 1;
-    }
+		lDelayTimeSegmentCount++;
+	}
 	else
 	{
 		lDelayTimeSegmentCount= ClacTimeRange(estMaxDelayTime, estMinDelayTime, estUserIntervalTime);
 	}
-
-    m_estStartTime = estMinDelayTime;
-    m_estEndTime   = estMaxDelayTime;
 
 	bool bSetTimeRange = false;
 	for (int j=0; j<(int)pParameter->getFlightConstraintCount(); j++)
@@ -206,11 +203,11 @@ long CDetailFlightScheduleDelayResult::GetScheduleDelayTime(CAirsideFlightDelayR
 {
 	if (item.bArrOrDeplDelay)
 	{
-		return max(item.smtaTime - item.planSt,0l);
+		return max(item.actEndTime - item.planSt,0l);
 	}
 	else
 	{
-		return max(item.smtdTime - item.planSt,0l);
+		return max(item.actStartTime - item.planSt,0l);
 	}
 }
 

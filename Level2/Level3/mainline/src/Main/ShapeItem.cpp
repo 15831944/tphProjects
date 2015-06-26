@@ -16,12 +16,13 @@ CShapeItem::CShapeItem(CString folderpath,CWnd* pParent /*=NULL*/)
     m_oldWindowWidth(0),
     m_oldWindowHeight(0)
 {
-	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\CUBE100.bmp";
-	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\CUBE100.dxf";
+	m_shapePicture = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\SQUARE24.bmp";
+	m_shapeModel = PROJMANAGER->GetAppPath()+"\\Databases\\Shapes\\FLATSQUARE24cm.dxf";
+	m_shapeUnit = "centimeters";
 	m_folderLocation = folderpath;
 }
 
-CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model,CWnd* pParent /* = NULL */)
+CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model, CString unit, CWnd* pParent /* = NULL */)
 	: CDialog(CShapeItem::IDD, pParent),
     m_oldWindowWidth(0),
     m_oldWindowHeight(0)
@@ -29,6 +30,7 @@ CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString
 	m_shapeName = name;
 	m_shapePicture = picture;
 	m_shapeModel = model;
+	m_shapeUnit = unit;
 	m_folderLocation = folderpath;
 }
 
@@ -43,6 +45,7 @@ void CShapeItem::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_SHAPENAME, m_editShapeName);
 	DDX_Control(pDX, IDC_EDIT_MODELLOCATION, m_editShapeModel);
 	DDX_Control(pDX, IDC_PIC_STATIC, m_staticPic);
+	DDX_Control(pDX, IDC_COMBO2, m_Units);
 }
 
 
@@ -88,6 +91,10 @@ BOOL CShapeItem::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	for(int i=0; i<SOURCEUNITS_COUNT; i++) {
+		m_Units.AddString(UNIT_NAMES[i]);
+	}
+	m_Units.SetCurSel(m_Units.FindString(0,m_shapeUnit));
     SetWindowText(m_strTitle);
 	m_editShapeName.SetWindowText(m_shapeName);
 	m_editShapeModel.SetWindowText(m_shapeModel);
@@ -112,6 +119,17 @@ void CShapeItem::OnCancel()
 void CShapeItem::OnOk()
 {
 	m_editShapeName.GetWindowText(m_shapeName);
+
+	int nSel = -1;
+	if(-1 != (nSel = m_Units.GetCurSel()))
+	{
+		m_Units.GetLBText(nSel,m_shapeUnit);
+	}
+	else
+	{
+		m_shapeUnit = "centimeters";
+	}
+
 	CDialog::OnOK();
 }
 

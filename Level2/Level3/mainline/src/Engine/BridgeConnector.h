@@ -30,6 +30,7 @@ public:
 	virtual void Mirror( const Path* _p );
 	void CopyDataToProc(BridgeConnector* pCopyToProc);
 
+	 virtual Point getServicePoint (int ndx) const { return m_connectPoint.m_Location; }
 
 	//Returns processor name. It will be override by subclasses.
 	//Without special specific, define a processor name value as "Point". 
@@ -87,19 +88,23 @@ public:
 	bool IsBridgeConnectToFlight(int nFlightIndex);
 	bool IsBridgeConnectToStand(const ALTObjectID& standID);
 
-	void AddOccupy(Person* pPerson);
-	void Release(Person* pPerson);
+	/*void AddOccupy(Person* pPerson);
+	void Release(Person* pPerson);*/
 
 	void UpdateFloorIndex(const FloorChangeMap& changMap);
 
 	 void beginService (Person *person, ElapsedTime curTime);
+	 virtual void removePerson (const Person *aPerson);
 
 	 void GenerateQueue();
 	 virtual void getNextState (int& state,Person* _pPerson) const;
 	 virtual Point AcquireServiceLocation( Person* _pPerson  );
 
-
 	 virtual void getNextLocation (Person *aPerson);
+
+	 bool isDisconnectable();
+
+	 int GetCurFlightOperation();
 private:
 	ALTObjectID GetOne2OneStand(const Processor& _pSourceProcessor, const ALTObjectIDList& _destStandArray,int _nDestIdLength);
 	bool _connectFlight(const CPoint2008& ptDoorPos, const ElapsedTime& t );
@@ -110,4 +115,5 @@ private:
 
 	MiscBridgeIDWithDoor::DoorPriorityList _getLinkDoorPriority(const ALTObjectID& standname)const;
 	
+	bool m_bDelayDisconnet;
 };

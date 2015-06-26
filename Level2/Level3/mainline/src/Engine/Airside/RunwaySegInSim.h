@@ -14,16 +14,9 @@ public:
 	~RunwayDirectSegInSim();
 
 	virtual int GetObjectID()const;
+
+	LogicRunwayInSim* getLogicRunway();
 public:
-
-
-	// set enter time of flight
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
-	// set exit time of flight
-	virtual void SetExitTime(CAirsideMobileElement * pFlight, const ElapsedTime& exitT);
-
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode,double dSpd);
-
 	virtual ResourceType GetType()const { return AirsideResource::ResType_RunwayDirSeg; }
 	virtual CString GetTypeName()const{ return _T("RunwayDirectSegment"); }
 	virtual CString PrintResource()const ;

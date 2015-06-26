@@ -191,18 +191,18 @@ int FlightInHoldEvent::Process()
 					{
 						stepIt(startTime,pt);
 					}
-
-					//step end item
-					{
-						CPoint2008 WPpos = m_pHold->GetDistancePoint(0.0);
-						ClearanceItem newItem((AirsideResource*)m_pHold->GetWaypointInSim() ,OnWaitInHold, 0.0);
-						WPpos.setZ(pt.getZ());
-						newItem.SetPosition(WPpos);
-						newItem.SetTime(endTime);
-						newItem.SetSpeed(m_pCFlight->GetSpeed());
-						newItem.SetAltitude(pt.getZ());
-						m_pCFlight->PerformClearanceItem(newItem);
-					}
+					stepIt(endTime,pt);
+					////step end item
+					//{
+					//	CPoint2008 WPpos = m_pHold->GetDistancePoint(0.0);
+					//	ClearanceItem newItem((AirsideResource*)m_pHold->GetWaypointInSim() ,OnWaitInHold, 0.0);
+					//	WPpos.setZ(pt.getZ());
+					//	newItem.SetPosition(WPpos);
+					//	newItem.SetTime(endTime);
+					//	newItem.SetSpeed(m_pCFlight->GetSpeed());
+					//	newItem.SetAltitude(pt.getZ());
+					//	m_pCFlight->PerformClearanceItem(newItem);
+					//}
 					firstItem.SetPosition(WPpos);
 					firstItem.SetAltitude(pt.getZ());
 				}

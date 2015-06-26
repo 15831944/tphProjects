@@ -64,6 +64,7 @@
 #include "../Engine/FixProc.h"
 #include "../Engine/fixedq.h"
 #include "../Engine/RetailProcessor.h"
+#include "ShapesManager.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -370,8 +371,8 @@ BOOL CProcPropDlg::OnInitDialog()
 		CObjectDisplay *pObjDisplay = pDoc->GetSelectedObjectDisplay(0);
 		if(pObjDisplay && pObjDisplay->GetType() == ObjectDisplayType_Processor2)
 		{
-			CProcessor2* pProc2= (CProcessor2 *)pObjDisplay;
-			CShape* pShape = pProc2->GetShape();
+			pProc2= (CProcessor2 *)pObjDisplay;
+			CShape *pShape = pProc2->GetShape();
 			if(pShape)
 				m_cmbShape.SetSelectedIndex(pShape->Name());
 		}
@@ -3022,7 +3023,7 @@ void CProcPropDlg::OnOK()
 	int nProcType = m_comboType.GetItemData( nSelIdx );
 
 	m_nShapeIndex = m_cmbShape.GetSelectedIndex();
-	
+
 	// save the data from the m_pProc place.
 	UpdateData();
 	PreProcessName();
@@ -3683,8 +3684,13 @@ void CProcPropDlg::OnOK()
 				pDoc->m_tempProcInfo.SetProcIndex( -1 );
 
 		}
-	
 	m_pProc->UpdateMinMax();
+
+	CShape::CShapeList* pSL = SHAPESMANAGER->GetShapeList();
+	CShape* pShape = pSL->at(m_nShapeIndex);
+	pProc2->SetShape(pShape);
+	CString shapeID = pShape->Name();
+	pProc2->ShapeName(shapeID.MakeUpper());
 	//delete m_pTempHoldingArea;
 	CDialog::OnOK();
 }

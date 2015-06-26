@@ -90,10 +90,10 @@ public:
     int getAllCarriersFlights (const char *carrier, int *indexes,
         ElapsedTime start, ElapsedTime end) const;
 
-    Flight *getRandomDeparture (ElapsedTime start, ElapsedTime end) const;
-
-    Flight *getDeparture (ElapsedTime p_start, ElapsedTime p_end,
-        const FlightConstraint &p_type) const;
+	//for transfer passenger, he should not transfer to his arrival flight.
+	//if tasfter to his arrival flight, it is called Transit
+    Flight *getRandomDeparture (ElapsedTime start, ElapsedTime end, int nArrFlightIndex) const;
+    Flight *getDeparture (ElapsedTime p_start, ElapsedTime p_end, const FlightConstraint &p_type, int nArrFlightIndex) const;
 
     // methods used to fill out FlightSelectionTool lists
     void getFlightList (StringList& p_strDict,

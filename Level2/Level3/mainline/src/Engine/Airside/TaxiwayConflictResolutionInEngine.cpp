@@ -4,6 +4,7 @@
 #include "..\..\InputAirside\ConflictAtIntersectionOnRight.h"
 #include "..\..\InputAirside\ConflictFirstInATaxiway.h"
 #include "..\..\InputAirside\ConflictOnSpecificTaxiways.h"
+#include "Common\ARCUnit.h"
 CTaxiwayConflictResolutionInEngine::CTaxiwayConflictResolutionInEngine(int nProjID,CAirportDatabase *pAirportDatabase)
 :m_nProjID(nProjID)
 {
@@ -87,4 +88,27 @@ bool CTaxiwayConflictResolutionInEngine::IsConflictSpecifiedTaxiway(int nTaxiway
 	}
 
 	return false;
+}
+
+
+ElapsedTime CTaxiwayConflictResolutionInEngine::getCrossRunwayBufferTime( AirsideFlightInSim* pFligt, double dSpd, AirsideMobileElementMode mode )
+{	
+	CConflictResolution* conflictReslv = GetConflictResolution();
+	for(size_t i=0;i<conflictReslv->m_vCrossBuffers.GetElementCount();i++)
+	{
+		RunwayCrossBuffer* buffer = conflictReslv->m_vCrossBuffers.GetItem(i);
+		if( (buffer->getCase() == RunwayCrossBuffer::_Landing && mode == OnLanding)
+			|| (buffer->getCase()== RunwayCrossBuffer::_Takeoff && mode == OnTakeoff) )
+		{
+			if(pFligt->fits(buffer->getFlightType()))
+			{
+				ElapsedTime  bufferTime = buffer->getTime();
+				ElapsedTime distTime = ARCUnit::ConvertLength(buffer->getDistanceNM(), ARCUnit::NM, ARCUnit::CM)/dSpd;
+				return MAX(bufferTime, distTime);
+			}
+		}
+	}
+	ElapsedTime tDefault( (double)conflictReslv->GetRunwayCrossBuffer());
+	return tDefault;
+
 }

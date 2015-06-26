@@ -1,15 +1,18 @@
 #pragma once
 #include "afxwin.h"
 
+#define SOURCEUNITS_COUNT 9
+const CString UNIT_NAMES[] = {
+	"inches", "feet", "millimeters", "centimeters", "meters", "kilometers", "nautical miles", "stat. miles", "yards"
+};
 
 // CShapeItem dialog
-
 class CShapeItem : public CDialog
 {
 	DECLARE_DYNAMIC(CShapeItem)
 public:
 	CShapeItem(CString folderpath,CWnd* pParent = NULL);   // standard constructor
-	CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model,CWnd* pParent  = NULL );
+	CShapeItem::CShapeItem(CString folderpath,CString name, CString picture, CString model,CString unit, CWnd* pParent  = NULL );
 	virtual ~CShapeItem();
 
 // Dialog Data
@@ -42,6 +45,9 @@ public:
     CString GetShapeModel() const { return m_shapeModel; }
     void SetShapeModel(CString str) { m_shapeModel = str; }
 
+	CString GetShapeUnit() const { return m_shapeUnit; }
+	void SetShapeUnit(CString str) { m_shapeUnit = str; }
+
     CString GetTitle() const { return m_strTitle; }
     void SetTitle(CString str) { m_strTitle = str; }
 
@@ -57,9 +63,11 @@ protected:
     CString m_shapeName;
     CString m_shapePicture;
     CString m_shapeModel;
+	CString m_shapeUnit;
 private:
     CString m_strTitle;
     int m_oldWindowWidth;
     int m_oldWindowHeight;
-
+public:
+	CComboBox m_Units;
 };

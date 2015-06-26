@@ -1493,13 +1493,13 @@ void CFlightOperationalReport::FillListContent(CXListCtrl& cxListCtrl, CParamete
 			//Takeoff Distance(m)
 			double dTakeoffDistance = ARCUnit::ConvertLength(fltOperationalItem.m_fTakeoffDistance, ARCUnit::CM, ARCUnit::M);
 			strText.Format(_T("%.2f"), dTakeoffDistance);
-			cxListCtrl.SetItemText(i, 20, strText);
+			cxListCtrl.SetItemText(i, 19, strText);
 		}
 		
 		//Takeoff runway
 		cxListCtrl.SetItemText(i, 18, fltOperationalItem.m_strTakeoffRunway);
 		//Takeoff intersection
-		cxListCtrl.SetItemText(i, 19, fltOperationalItem.m_strTakeoffIntersection);
+		cxListCtrl.SetItemText(i, 20, fltOperationalItem.m_strTakeoffIntersection);
 		
 		//Max airspeed(kts)
 		//double dAirSpeed = ARCUnit::ConvertVelocity(fltOperationalItem.m_fMaxAirSpeed, ARCUnit::MpS, ARCUnit::KNOT);

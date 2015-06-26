@@ -135,8 +135,3 @@ BOOL AirsideRunwayOperationsReport::ReadReportData( ArctermFile& _file )
 
 	return FALSE;
 }
-
-CAirsideRunwayOperationReportBaseResult* AirsideRunwayOperationsReport::GetRunwayOperationResult()
-{
-	return m_pBaseResult;
-}

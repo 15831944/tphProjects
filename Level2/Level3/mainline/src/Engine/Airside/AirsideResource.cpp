@@ -42,14 +42,14 @@ AirsideVehicleInSim * AirsideResource::GetLastInResourceVehicle(void)
 	}
 	return NULL;
 }
-void AirsideResource::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode)
-{
-	OccupancyInstance& ocyInstance  = GetAddOccupyInstance(pFlight);
-	ocyInstance.m_tEntry = enterT;
-	ocyInstance.m_tExit = ElapsedTime(-1L);
-	ocyInstance.m_ocyType = (AirsideMobileElementMode)fltMode;
-	std::sort(m_vOccupancyTable.begin(),m_vOccupancyTable.end());
-}
+//void AirsideResource::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode)
+//{
+//OccupancyInstance& ocyInstance  = GetAddOccupyInstance(pFlight);
+//ocyInstance.m_tEntry = enterT;
+//ocyInstance.m_tExit = ElapsedTime(-1L);
+//ocyInstance.m_ocyType = (AirsideMobileElementMode)fltMode;
+//std::sort(m_vOccupancyTable.begin(),m_vOccupancyTable.end());
+//}
 
 void AirsideResource::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode,double dSpd)
 {

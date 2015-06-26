@@ -353,7 +353,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 			glColor3ubv(m_dispProperties.color[PDP_DISP_SHAPE]);
 			glTranslated(m_vLocation[VX], m_vLocation[VY], m_vLocation[VZ]+dAlt);
 			glRotated(m_dRotation, 0.0, 0.0, 1.0);
-			glScaled(m_vScale[VX], m_vScale[VY], m_vScale[VZ]);
+			glScaled(m_vScale[VX]*m_pShape->GetScale(), m_vScale[VY]*m_pShape->GetScale(), m_vScale[VZ]*m_pShape->GetScale());
 			m_pShape->DrawOGL();
 			glPopMatrix();
 
@@ -1688,7 +1688,7 @@ bool CProcessor2::CopyProcToDest(CTermPlanDoc* _pSrcDoc, CTermPlanDoc* _pDestDoc
 	m_dispProperties = _pProc->m_dispProperties;
 	if (_pProc->HasShape())
 	{
-		SetShape(SHAPESMANAGER->FindShapeByName(_pProc->GetShape()->Name()));
+		SetShape(SHAPESMANAGER->GetShapeByName(_pProc->GetShape()->Name()));
 	}
 	SetSelectName(_pSrcDoc->GetUniqueNumber());
 

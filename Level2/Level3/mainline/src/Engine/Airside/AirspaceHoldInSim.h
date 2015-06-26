@@ -19,7 +19,7 @@ public:
 
 	virtual ResourceType GetType()const{ return ResType_AirspaceHold; }
 
-	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode);
+	virtual void SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode, double dSpd);
 
 	virtual CString GetTypeName()const{ return _T("AirspaceHold"); }
 	virtual CString PrintResource()const;

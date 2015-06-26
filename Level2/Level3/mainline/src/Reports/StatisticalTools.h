@@ -160,7 +160,7 @@ public:
 		return dValue1;
 	}
 
-    DataType GetSum()const
+    DataType GetSum()
     {
         DataType sum = 0;
         for(size_t i=0; i<m_vDatas.size(); ++i )
@@ -174,8 +174,6 @@ public:
 	{
 		m_vDatas.clear();
 	}
-
-    int GetDataCount() const { return (int)m_vDatas.size(); }
 };
 
 #endif // !defined(AFX_STATISTICALTOOLS_H__85EAE664_A839_4EA1_BA3E_33F2E1827DDB__INCLUDED_)

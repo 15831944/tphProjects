@@ -1422,6 +1422,10 @@ void Processor::leaveQueue (const Person *aPerson, ElapsedTime p_time, bool _bNo
 {
     available = FALSE;
     writeLogEvent (aPerson, p_time, DecreaseQueue);
+	ASSERT(m_pQueue);
+	if(!m_pQueue)
+		return;
+
 	if( _bNoDelay )
 		m_pQueue->leaveQueue ( aPerson, p_time );
 	else
@@ -1431,6 +1435,10 @@ void Processor::leaveQueue (const Person *aPerson, ElapsedTime p_time, bool _bNo
 //When a person arrives at a wait point in the m_pQueue, it updates info and check to see if further movement is possible.
 void Processor::notifyQueueAdvance (Person *aPerson, ElapsedTime p_time, bool _bStation )
 {
+	ASSERT(m_pQueue);
+	if(!m_pQueue)
+		return;
+
     m_pQueue->arriveAtWaitPoint (aPerson, p_time);
     processPerson (aPerson, p_time, _bStation );
 }

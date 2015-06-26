@@ -2261,13 +2261,54 @@ void C3DView::OnRButtonDown(UINT nFlags, CPoint point)
 
 									newSubMenu.AppendMenu(MF_POPUP,(UINT)pMenuCH[nCount].m_hMenu,strLeft);
 									nCount++;
-								}	
+								}
+
+								CMainFrame* pMF = (CMainFrame*)AfxGetMainWnd();
+								CUserShapeBarManager* UserShapesBarManager = pMF->m_wndShapesBar->GetUserBarManager();
+
+								int UserBarCount = 0;
+								if(UserShapesBarManager!=NULL)
+									UserBarCount = UserShapesBarManager->GetUserBarCount();
+								CMenuCH* pMenuCH2=new CMenuCH[UserBarCount];
+								for(int i=0;i<UserBarCount;i++)
+								{
+									CString sBarName;
+									CUserShapeBar* UserShapesBar = UserShapesBarManager->GetUserBarByIndex(i);
+									sBarName = UserShapesBar->GetBarName();
+									pMenuCH2[i].CreateMenu();
+									pMenuCH2[i].SetMenuType(MIT_XP);
+									pMenuCH2[i].SetBmpSize(32,32);
+									pMenuCH2[i].SetMenuHeight(60);
+									pMenuCH2[i].SetMenuWidth(52);
+									int nIntCount = UserShapesBar->GetShapeCount();
+									for (int j=0;j<nIntCount;j++)
+									{
+										CShape *pShape = UserShapesBar->GetShapeByIndex(j);
+										HBITMAP hBitmap = (HBITMAP) ::LoadImage(NULL,pShape->ImageFileName(), IMAGE_BITMAP, 32, 32, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
+										if(j%CHANGE_SHAPES_MENU_LIST_ITEMCOUNT_PER_COLUMN==0)
+											pMenuCH2[i].AppendMenu(MF_ENABLED|MF_MENUBARBREAK,
+											CHANGE_SHAPES_MENU_LIST_ID_BEGIN+SHAPESMANAGER->FindShapeIndexByName(pShape->Name()),pShape->Name(),
+											hBitmap);
+
+										else
+											pMenuCH2[i].AppendMenu(MF_ENABLED,
+											CHANGE_SHAPES_MENU_LIST_ID_BEGIN+SHAPESMANAGER->FindShapeIndexByName(pShape->Name()),pShape->Name(),
+											hBitmap);
+									}
+									if(nIntCount>CHANGE_SHAPES_MENU_LIST_ITEMCOUNT_PER_COLUMN)
+										for(int k=0;k<(CHANGE_SHAPES_MENU_LIST_ITEMCOUNT_PER_COLUMN-nIntCount%CHANGE_SHAPES_MENU_LIST_ITEMCOUNT_PER_COLUMN);k++)
+											pMenuCH2[i].AppendMenu(MF_DISABLED,0,"",(HBITMAP)NULL);
+
+									newSubMenu.AppendMenu(MF_POPUP,(UINT)pMenuCH2[i].m_hMenu,sBarName);
+								}
+								
 								pCtxMenu->InsertMenu(9, MF_BYPOSITION|MF_POPUP,(UINT)newSubMenu.m_hMenu,"Change Shapes");
 								//************************************************************************
 								pCtxMenu->LoadToolBar(IDR_MAINFRAME); 
 								pCtxMenu->SetMenuTitle(_T("Processor"),MFT_GRADIENT|MFT_TOP_TITLE);
 								pCtxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_LEFTBUTTON, pt.x, pt.y, AfxGetMainWnd() );
 								delete[] pMenuCH;
+								delete[] pMenuCH2;
 								if (pmnuDocs)
 									delete[] pmnuDocs;
 							}
@@ -2890,152 +2931,152 @@ BOOL C3DView::RenderScene(BOOL bRenderFloors)
 	glGetDoublev(GL_PROJECTION_MATRIX, projmatrix); //store the projection matrix
 
 
-	if(GetCamera()->GetProjectionType() == C3DCamera::perspective)
-	{
-		//draw floors & get altitudes & vis
-		glPushMatrix();
-		//if (pDoc->m_systemMode == EnvMode_AirSide)
-		//{
-		//	for(i=0; i<nFloorCount; i++)
-		//	{
-		//		// the Altitude of every floor
-		//		dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->RealAltitude()*pDoc->m_iScale;
-		//		//dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->Altitude();
-		//		// if the floors are visible
-		//		bOn[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->IsVisible();
-		//	}
-		//	dAlt[pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide )] = pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->RealAltitude()*pDoc->m_iScale;
-		//}
-		//else
-		{
-			for(i=0; i<nFloorCount; i++)
-			{
-				// the Altitude of every floor
-				dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->Altitude();
-				// if the floors are visible
-				bOn[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->IsVisible();
-			}
-		    dAlt[pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide )] = pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->Altitude();
-		}
-
-		//
-		bOn[pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide )] = pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->IsVisible();
-		nCurFloorCount = pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide ) + 1;
-
-		dAlt[nCurFloorCount] = dAlt[nCurFloorCount-1] + 1000.0;	//set alt for dummy floor 
-															//above top floor (used when
-															//drawing multi-floor procs
-		
-		if(bRenderFloors) {
-			glDisable(GL_LIGHTING);
-			std::vector<CFloor2*> vSortedFloors;
-			CFloorList teminalFloors =  GetFloorsByMode(EnvMode_Terminal);
-			CAirsideGround* pAirsideFloor = GetAirside3D()->GetActiveLevel();
-
-			vSortedFloors.insert(vSortedFloors.end(), teminalFloors.begin(), teminalFloors.end());
-			vSortedFloors.push_back(pAirsideFloor);
-			//CFloorList airsideFloors = GetFloorsByMode(EnvMode_AirSide);
-			//CFloorList landsideFloors = GetFloorsByMode(EnvMode_LandSide);
-
-			//vSortedFloors.insert(vSortedFloors.end(),airsideFloors.begin(),airsideFloors.end());
-			//vSortedFloors.insert(vSortedFloors.end(),landsideFloors.begin(),landsideFloors.end());
-			
-			std::sort(vSortedFloors.begin(), vSortedFloors.end(), CBaseFloor::CompareFloors);
-
-			CHECK_GL_ERRORS("3DView::RenderScene(...), pre draw floors");
-			
-			//draw floors
-			/*if (pDoc->m_systemMode == EnvMode_AirSide)
-			{	
-				for(size_t i=0; i<vSortedFloors.size(); i++) 			
-				{
-					vSortedFloors[i]->DrawOGL(this,vSortedFloors[i]->RealAltitude()*pDoc->m_iScale);
-				}
-			}
-			else*/
-			{
-				for(size_t i=0; i<vSortedFloors.size(); i++) 			
-				{
-					vSortedFloors[i]->DrawOGL(this,vSortedFloors[i]->Altitude());
-				}
-			}
-
-			//
-			
-			CHECK_GL_ERRORS("3DView::RenderScene(...), post draw floors");
-		}
-		
-		GLuint nConeDLID = GetParentFrame()->ConeDLID();
-		
-		for(i=0; i<nFloorCount; i++) 
-		{			
-			//draw marker
-			if(bOn[i] && (pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->UseAlignLine())
-			{
-				CAlignLine alignline = (pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->GetAlignLine();
-				ARCVector2 vMarkerLoc = alignline.getBeginPoint();
-				glEnable(GL_LIGHTING);
-				glColor3ubv(markercolor);
-				DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], dAlt[i], 100.0, 200.0);
-				DrawCone(nConeDLID, alignline.getEndPoint()[VX], alignline.getEndPoint()[VY], dAlt[i], 100.0,200.0);
-			}
-			else if(bOn[i] && (pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->UseMarker())
-			{
-				ARCVector2 vMarkerLoc;
-				(pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->GetMarkerLocation(vMarkerLoc);
-				glEnable(GL_LIGHTING);
-				glColor3ubv(markercolor);
-				DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], dAlt[i], 100.0, 200.0);
-			}
-		}
-		//
-		CFloor2* pAirsideGround = GetParentFrame()->GetAirside3D()->GetActiveLevel();
-		if( pAirsideGround && pAirsideGround->UseAlignLine())
-		{
-			CAlignLine alignline = pAirsideGround->GetAlignLine();
-			ARCVector2 vMarkerLoc = alignline.getBeginPoint();
-			glEnable(GL_LIGHTING);
-			glColor3ubv(markercolor);
-			DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], 0, 1000.0, 2000.0);
-			DrawCone(nConeDLID, alignline.getEndPoint()[VX], alignline.getEndPoint()[VY], 0, 1000.0,2000.0);
-		}
-		else if( pAirsideGround && pAirsideGround->UseMarker() )
-		{
-			ARCVector2 vMarkerLoc;
-			pAirsideGround->GetMarkerLocation(vMarkerLoc);
-			glEnable(GL_LIGHTING);
-			glColor3ubv(markercolor);
-			DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], 0, 1000.0, 2000.0);
-		}
-		
-
-		//draw marker
-		glPopMatrix();
-	}
-	else
-	{ //only draw active floor
-		DistanceUnit distActiveFloor = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[pDoc->m_nActiveFloor]->Altitude();
-		for(i=0; i<nFloorCount; i++) 
-		{
-			dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->Altitude() - distActiveFloor;
-			bOn[i] = FALSE;
-		}
-		//modify ben 2005-9-8
-		if( EnvMode_AirSide == GetDocument()->m_systemMode){
-			 dAlt[nFloorCount]=0.0;
-			 bOn[nFloorCount]=TRUE;
-		}
-			
-		else{
-			bOn[pDoc->m_nActiveFloor]=TRUE;
-		}
-			
-		
-		if(bRenderFloors)
-			GetDocument()->GetActiveFloor()->DrawOGL(this,0.0);
-
-		
-	}
+ 	if(GetCamera()->GetProjectionType() == C3DCamera::perspective)
+ 	{
+ 		//draw floors & get altitudes & vis
+ 		glPushMatrix();
+ 		//if (pDoc->m_systemMode == EnvMode_AirSide)
+ 		//{
+ 		//	for(i=0; i<nFloorCount; i++)
+ 		//	{
+ 		//		// the Altitude of every floor
+ 		//		dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->RealAltitude()*pDoc->m_iScale;
+ 		//		//dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->Altitude();
+ 		//		// if the floors are visible
+ 		//		bOn[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->IsVisible();
+ 		//	}
+ 		//	dAlt[pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide )] = pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->RealAltitude()*pDoc->m_iScale;
+ 		//}
+ 		//else
+ 		{
+ 			for(i=0; i<nFloorCount; i++)
+ 			{
+ 				// the Altitude of every floor
+ 				dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->Altitude();
+ 				// if the floors are visible
+ 				bOn[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->IsVisible();
+ 			}
+ 		    dAlt[pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide )] = pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->Altitude();
+ 		}
+ 
+ 		//
+ 		bOn[pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide )] = pDoc->GetFloorByMode(EnvMode_AirSide).m_vFloors[0]->IsVisible();
+ 		nCurFloorCount = pDoc->GetDrawFloorsNumberByMode( EnvMode_AirSide ) + 1;
+ 
+ 		dAlt[nCurFloorCount] = dAlt[nCurFloorCount-1] + 1000.0;	//set alt for dummy floor 
+ 															//above top floor (used when
+ 															//drawing multi-floor procs
+ 		
+ 		if(bRenderFloors) {
+ 			glDisable(GL_LIGHTING);
+ 			std::vector<CFloor2*> vSortedFloors;
+ 			CFloorList teminalFloors =  GetFloorsByMode(EnvMode_Terminal);
+ 			CAirsideGround* pAirsideFloor = GetAirside3D()->GetActiveLevel();
+ 
+ 			vSortedFloors.insert(vSortedFloors.end(), teminalFloors.begin(), teminalFloors.end());
+ 			vSortedFloors.push_back(pAirsideFloor);
+ 			//CFloorList airsideFloors = GetFloorsByMode(EnvMode_AirSide);
+ 			//CFloorList landsideFloors = GetFloorsByMode(EnvMode_LandSide);
+ 
+ 			//vSortedFloors.insert(vSortedFloors.end(),airsideFloors.begin(),airsideFloors.end());
+ 			//vSortedFloors.insert(vSortedFloors.end(),landsideFloors.begin(),landsideFloors.end());
+ 			
+ 			std::sort(vSortedFloors.begin(), vSortedFloors.end(), CBaseFloor::CompareFloors);
+ 
+ 			CHECK_GL_ERRORS("3DView::RenderScene(...), pre draw floors");
+ 			
+ 			//draw floors
+ 			/*if (pDoc->m_systemMode == EnvMode_AirSide)
+ 			{	
+ 				for(size_t i=0; i<vSortedFloors.size(); i++) 			
+ 				{
+ 					vSortedFloors[i]->DrawOGL(this,vSortedFloors[i]->RealAltitude()*pDoc->m_iScale);
+ 				}
+ 			}
+ 			else*/
+ 			{
+ 				for(size_t i=0; i<vSortedFloors.size(); i++) 			
+ 				{
+ 					vSortedFloors[i]->DrawOGL(this,vSortedFloors[i]->Altitude());
+ 				}
+ 			}
+ 
+ 			//
+ 			
+ 			CHECK_GL_ERRORS("3DView::RenderScene(...), post draw floors");
+ 		}
+ 		
+ 		GLuint nConeDLID = GetParentFrame()->ConeDLID();
+ 		
+ 		for(i=0; i<nFloorCount; i++) 
+ 		{			
+ 			//draw marker
+  			if(bOn[i] && (pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->UseAlignLine())
+  			{
+  				CAlignLine alignline = (pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->GetAlignLine();
+  				ARCVector2 vMarkerLoc = alignline.getBeginPoint();
+  				glEnable(GL_LIGHTING);
+  				glColor3ubv(markercolor);
+  				DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], dAlt[i], 100.0, 200.0);
+  				DrawCone(nConeDLID, alignline.getEndPoint()[VX], alignline.getEndPoint()[VY], dAlt[i], 100.0,200.0);
+  			}
+  			else if(bOn[i] && (pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->UseMarker())
+  			{
+  				ARCVector2 vMarkerLoc;
+  				(pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i])->GetMarkerLocation(vMarkerLoc);
+  				glEnable(GL_LIGHTING);
+  				glColor3ubv(markercolor);
+  				DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], dAlt[i], 100.0, 200.0);
+  			}
+ 		}
+ 		//
+ 		CFloor2* pAirsideGround = GetParentFrame()->GetAirside3D()->GetActiveLevel();
+ 		if( pAirsideGround && pAirsideGround->UseAlignLine())
+ 		{
+ 			CAlignLine alignline = pAirsideGround->GetAlignLine();
+ 			ARCVector2 vMarkerLoc = alignline.getBeginPoint();
+ 			glEnable(GL_LIGHTING);
+ 			glColor3ubv(markercolor);
+ 			DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], 0, 1000.0, 2000.0);
+ 			DrawCone(nConeDLID, alignline.getEndPoint()[VX], alignline.getEndPoint()[VY], 0, 1000.0,2000.0);
+ 		}
+ 		else if( pAirsideGround && pAirsideGround->UseMarker() )
+ 		{
+ 			ARCVector2 vMarkerLoc;
+ 			pAirsideGround->GetMarkerLocation(vMarkerLoc);
+ 			glEnable(GL_LIGHTING);
+ 			glColor3ubv(markercolor);
+ 			DrawCone(nConeDLID, vMarkerLoc[VX], vMarkerLoc[VY], 0, 1000.0, 2000.0);
+ 		}
+ 		
+ 
+ 		//draw marker
+ 		glPopMatrix();
+ 	}
+ 	else
+ 	{ //only draw active floor
+ 		DistanceUnit distActiveFloor = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[pDoc->m_nActiveFloor]->Altitude();
+ 		for(i=0; i<nFloorCount; i++) 
+ 		{
+ 			dAlt[i] = pDoc->GetFloorByMode( EnvMode_Terminal ).m_vFloors[i]->Altitude() - distActiveFloor;
+ 			bOn[i] = FALSE;
+ 		}
+ 		//modify ben 2005-9-8
+ 		if( EnvMode_AirSide == GetDocument()->m_systemMode){
+ 			 dAlt[nFloorCount]=0.0;
+ 			 bOn[nFloorCount]=TRUE;
+ 		}
+ 			
+ 		else{
+ 			bOn[pDoc->m_nActiveFloor]=TRUE;
+ 		}
+ 			
+ 		
+ 		if(bRenderFloors)
+ 			GetDocument()->GetActiveFloor()->DrawOGL(this,0.0);
+ 
+ 		
+ 	}
 
 	if( EnvMode_AirSide == GetDocument()->m_systemMode)
 		dAltActive = dAlt[nFloorCount];
@@ -3983,12 +4024,19 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 		CHECK_GL_ERRORS("3DView::SelectScene(...), post render railways");
 		// render tracers
 		if(procType==-1){
-			if(pDoc->m_bShowTracers) {
+			if(pDoc->m_bShowTracers) 
+			{
 				int nTrackCount = pDoc->m_tempTracerData.GetTrackCount();
-				if(nTrackCount > 0) {
+				if(nTrackCount > 0)
+				{
 					glEnable(GL_LINE_STIPPLE);
-					for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) {
-						std::vector<CTrackerVector3>& track = pDoc->m_tempTracerData.GetTrack(nTrackIdx);
+					for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) 
+					{
+						const std::vector<CTrackerVector3>& track = pDoc->m_tempTracerData.GetTrack(nTrackIdx);
+						int nHitCount = track.size();
+						if(nHitCount<2)
+							continue;
+
 						CPaxDispPropItem* pPDPI = pDoc->m_paxDispProps.GetDispPropItem(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
 						ARCColor3 pdpcol(pPDPI->GetColor());
 						int pdplt = (int) pPDPI->GetLineType();
@@ -3996,11 +4044,11 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
 						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
 						glLoadName(GenerateSelectionID(SELTYPE_TERMINALTRACER, SELSUBTYPE_MAIN, (nTrackIdx)));
-						glBegin(GL_LINE_STRIP);
-						int nHitCount = track.size();
-						bool bBeginVertex = false;
-						for(int nHit=1; nHit<nHitCount; nHit++) {					
-							 CTrackerVector3& hit = track[nHit];
+
+						glBegin(GL_LINE_STRIP);						
+						for(int nHit=0; nHit<nHitCount; nHit++) 
+						{					
+							const CTrackerVector3& hit = track[nHit];
 							int nFloorIdx = 0;
 							double dAltitude =0 ;
 							if(hit.IsRealZ())
@@ -4012,18 +4060,8 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 								nFloorIdx = static_cast<int>(hit[VZ] / 100);
 								double dOffset = (hit[VZ]/100.0 - (double)nFloorIdx);
 								dAltitude = dAlt[nFloorIdx]*(1.0-dOffset)  + dAlt[nFloorIdx+1]*dOffset;
-							}
-							if(true/*bOn[nFloorIdx]*/)
-							{
-								glVertex3f(static_cast<GLfloat>(hit[VX]), static_cast<GLfloat>(hit[VY]),(GLfloat)dAltitude);
-								bBeginVertex = true; 
-							}
-							else if(bBeginVertex)
-							{
-								glEnd();
-								glBegin(GL_LINE_STIPPLE);
-								bBeginVertex =false;
-							}
+							}					
+							glVertex3f(static_cast<GLfloat>(hit[VX]), static_cast<GLfloat>(hit[VY]),(GLfloat)dAltitude);							
 						}
 						glEnd();
 					}
@@ -7899,9 +7937,9 @@ void C3DView::OnWallshapemenuWallshapeproperty()
 
 		DlgWallShapeProp dlg(wallsh,this);
 
-		if (IDOK == dlg.DoFakeModal()){
-			wallsh->SetPath(dlg.m_Wallpath);
-		
+		if (IDOK == dlg.DoFakeModal())
+		{
+			wallsh->SetPath(dlg.m_Wallpath);		
 			CString strProcTypeName;
 			if (strProcTypeName.LoadString(IDS_TVNN_WALLSHAPE))
 			{
@@ -7933,7 +7971,9 @@ void C3DView::OnWallshapemenuWallshapeproperty()
 				idNew.SetStrDict(GetDocument()->GetTerminal().inStrDict);
 				idNew.setID(wallsh->getID().GetIDString());
 				GetDocument()->GetNodeView()->RefreshProcessorItem(pNode,pWallNode,idNew);
+				
 			}
+			GetDocument()->GetCurWallShapeList().saveDataSet(GetDocument()->m_ProjInfo.path, false);
 		}
 		Invalidate(FALSE);
 	}

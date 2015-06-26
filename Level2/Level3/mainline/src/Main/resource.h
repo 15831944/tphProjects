@@ -1506,6 +1506,8 @@
 #define IDD_DIALOG_IMPORT_SHAPEBAR      1115
 #define IDC_BUTTON_ADD                  1116
 #define IDC_INPUTSTRING                 1116
+#define IDD_DIALOG38                    1116
+#define IDD_DIALOG_IMPORTFLTPAX         1116
 #define IDC_BUTTON_DEL                  1117
 #define IDC_TREE_PROCNAMES              1117
 #define IDC_BUTTON_GENERATE             1118
@@ -3354,9 +3356,16 @@
 #define IDC_BTN_SELECTLOCATION          2428
 #define IDC_EDIT_ZIPFILENAME            2430
 #define IDC_EDIT_SHAPEBARLOCATION       2431
+#define IDC_RADIO_LOCAL                 2432
 #define IDC_STATIC_SHAPEBARNAME         2433
+#define IDC_RADIO_EXPORTED              2433
 #define IDC_EDIT_ZIPFILENAME2           2434
 #define IDC_EDIT_SHAPEBARNAME           2434
+#define IDC_RADIO_CSVFILE               2434
+#define IDC_BROWSE_EXPORTED             2435
+#define IDC_BROWSE_CSVFILE              2436
+#define IDC_CHECK_APPEND                2437
+#define IDC_EDIT_TOTALPERCENT           2438
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5503,9 +5512,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1116
+#define _APS_NEXT_RESOURCE_VALUE        1118
 #define _APS_NEXT_COMMAND_VALUE         35346
-#define _APS_NEXT_CONTROL_VALUE         2432
+#define _APS_NEXT_CONTROL_VALUE         2439
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

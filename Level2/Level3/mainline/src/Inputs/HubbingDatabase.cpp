@@ -637,8 +637,7 @@ Flight* CHubbingDatabase::getDepartingFlight (const CPassengerConstraint& _type,
 			xferWindow = (float)(60.0 * pTransferWindow->getRandomValue());
 		ElapsedTime endTime = startTime + xferWindow;
 
-		  destFlight = _pFlightSchedule->getDeparture
-				(startTime, endTime, *destType);
+		  destFlight = _pFlightSchedule->getDeparture(startTime, endTime, *destType, _ndx);
         if (destFlight) //Jan98 don't know why negative :  (!destFlight)
             return destFlight;
 
@@ -666,8 +665,7 @@ Flight* CHubbingDatabase::getDepartingFlight (const CPassengerConstraint& _type,
 			xferWindow = (float)(60.0 * pTransferWindow->getRandomValue());
 		ElapsedTime endTime = startTime + xferWindow;
 
-        destFlight = _pFlightSchedule->getDeparture
-            (startTime, endTime, *destType);
+        destFlight = _pFlightSchedule->getDeparture(startTime, endTime, *destType, _ndx);
         if (destFlight)
             return destFlight;
     }
@@ -682,7 +680,7 @@ Flight* CHubbingDatabase::getRandomDeparture (const CPassengerConstraint& _type,
 	Flight *aFlight = _pFlightSchedule->getItem (_ndx);
 	ElapsedTime startTime = aFlight->getArrTime() + getMinTransferTime (_type);
 	ElapsedTime endTime = startTime + getTransferWindow (_type);
-	return _pFlightSchedule->getRandomDeparture (startTime, endTime);
+	return _pFlightSchedule->getRandomDeparture (startTime, endTime, _ndx);
 }
 
 

@@ -69,10 +69,6 @@ void CRunwaySystem::Initlization(int nProjID,
 	m_pTakeOffSeparationInSim = pRunwayResManager->GetTakeoffSeparation();
 	m_pApproachSeparationInSim = pRunwayResManager->GetApproachSeparation();
 
-
-	long lBufferTime = pATC->GetTaxiwayConflictResolution()->GetConflictResolution()->GetRunwayCrossBuffer();
-	m_eTimeCrossRunwayBuffer = ElapsedTime(lBufferTime);
-
 	m_pRunwayExitStrategy = pExitStrategy;
 	m_pRunwayTakeoffPosStrategy = pTakeoffStrategy;
 
@@ -80,6 +76,7 @@ void CRunwaySystem::Initlization(int nProjID,
 	m_pOutput = pOutputAirside;
 
 	InitlizationRelatedUnintersectedRunways();
+
 }
 
 bool CRunwaySystem::IsLandingFlightCrossingRunwayIntersectionNodes(AirsideFlightInSim* pFlight,LogicRunwayInSim* pLandingRunway, ElapsedTime& timeToLanding, const std::vector<IntersectionNodeInSim*>& vIntNodes)
@@ -154,6 +151,7 @@ bool CRunwaySystem::IsLandingFlightCrossingRunwayIntersectionNodes(AirsideFlight
 bool CRunwaySystem::ApplyForLandingTime(AirsideFlightInSim* pFlight,ElapsedTime timeToLanding, TimeRange& landingTimeRange,std::vector<RunwayOccupyInfo>& vRunwayArrangeInfo)
 {
 
+	pFlight->SetEstimateLandingTime(timeToLanding);
 	//ASSERT(pFlight->GetUID() != 130);
 	vRunwayArrangeInfo.clear();
 	LogicRunwayInSim *pLandingRunway = pFlight->GetLandingRunway();		
@@ -257,7 +255,8 @@ bool CRunwaySystem::ApplyForLandingTime(AirsideFlightInSim* pFlight,ElapsedTime 
 	landingTimeRange = timeRange;
 
 	//pLandingRunway->AddFlightOccupyRunwayInfo(pFlight,vRunwayArrangeInfo);
-	pLandingRunway->SetEnterTime(pFlight,landingTimeRange.GetStartTime(),OnLanding);
+	double dLandingSpd = pFlight->GetPerformance()->getLandingSpeed(pFlight);
+	pLandingRunway->SetEnterTime(pFlight,landingTimeRange.GetStartTime(),OnLanding,dLandingSpd);
 	pLandingRunway->SetExitTime(pFlight,landingTimeRange.GetEndTime());
 
 	return true;
@@ -425,7 +424,8 @@ void CRunwaySystem::PerformanceApproachSeparation( AirsideFlightInSim *pFlight,
 			}
 			else
 			{
-				tAvailLandingTime = MAX(tAvailLandingTime, frontIns.GetExitTime() );
+				ElapsedTime dSepTime(60L);
+				tAvailLandingTime = MAX(tAvailLandingTime, frontIns.GetExitTime() +  dSepTime );
 			}
 			
 		}
@@ -1283,14 +1283,16 @@ void CRunwaySystem::_WriteRunwayNodeTime(AirsideFlightInSim* pFlight , LogicRunw
 
 		DistanceUnit nodedistInRw = pRunway->GetPointDist(pIntNode->GetNodeInput().GetPosition() );
 		ElapsedTime nodeTime = dynMove.GetDistTime(nodedistInRw-itemFrom.GetDistInResource())+itemFrom.GetTime();
+		ElapsedTime crossRunwayBuffer = pFlight->GetAirTrafficController()->GetTaxiwayConflictResolution()->getCrossRunwayBufferTime(pFlight, itemFrom.GetSpeed(), OnLanding);
+
 		if(!pIntNode->GetNodeInput().IsRunwaysIntersection())
 		{
-			pIntNode->SetEnterTime(pFlight, nodeTime -m_eTimeCrossRunwayBuffer  ,OnLanding);
-			pIntNode->SetExitTime(pFlight, nodeTime +m_eTimeCrossRunwayBuffer);
+			pIntNode->SetEnterTime(pFlight, nodeTime - crossRunwayBuffer  ,OnLanding, itemFrom.GetSpeed() );
+			pIntNode->SetExitTime(pFlight, nodeTime + crossRunwayBuffer);
 		}
 		else	//intersection node of runway
 		{
-			pIntNode->SetEnterTime(pFlight,ocyInst.GetEnterTime() ,OnLanding);
+			pIntNode->SetEnterTime(pFlight,ocyInst.GetEnterTime() ,OnLanding,itemFrom.GetSpeed() );
 			pIntNode->SetExitTime(pFlight,ocyInst.GetExitTime() );
 		}
 	}
@@ -1353,10 +1355,10 @@ bool CRunwaySystem::GenerateTouchAndGoClearance( AirsideCircuitFlightInSim * pFl
 	if(bOccupyRunway)
 	{		
 		//set runway time table
-		plandingRunway->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding);
+		plandingRunway->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding,dTouchSpeed);
 		plandingRunway->SetExitTime(pFlight,liftItem.GetTime());
 
-		plandingRunway->GetOtherPort()->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding);
+		plandingRunway->GetOtherPort()->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding,dTouchSpeed);
 		plandingRunway->GetOtherPort()->SetExitTime(pFlight,liftItem.GetTime());		
 		//node dec to 
 		_WritePreNodesTime(pFlight,plandingRunway,touchdownItem);
@@ -1420,10 +1422,10 @@ bool CRunwaySystem::GenerateStopAndGoClearance( AirsideCircuitFlightInSim * pFli
 	if(bOccupyRunway)
 	{		
 		//set runway time table
-		plandingRunway->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding);
+		plandingRunway->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding,landspd);
 		plandingRunway->SetExitTime(pFlight,liftItem.GetTime());
 
-		plandingRunway->GetOtherPort()->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding);
+		plandingRunway->GetOtherPort()->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding,landspd);
 		plandingRunway->GetOtherPort()->SetExitTime(pFlight,liftItem.GetTime());		
 		//node dec to 
 		_WritePreNodesTime(pFlight,plandingRunway,touchdownItem);
@@ -1838,10 +1840,10 @@ bool  CRunwaySystem::GenerateLandingCleaerance(AirsideFlightInSim * pFlight,Logi
 	if(OccupyRunway)
 	{		
 		//set runway time table
-		plandingRunway->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding);
+		plandingRunway->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding,landspd);
 		plandingRunway->SetExitTime(pFlight,lastItem.GetTime());
 
-		plandingRunway->GetOtherPort()->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding);
+		plandingRunway->GetOtherPort()->SetEnterTime(pFlight,touchdownItem.GetTime(),OnLanding,landspd);
 		plandingRunway->GetOtherPort()->SetExitTime(pFlight,lastItem.GetTime());		
 		//node dec to 
 		_WritePreNodesTime(pFlight,plandingRunway,touchdownItem);
@@ -1897,6 +1899,7 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 		dRollingDist = dExitDistance - dTouchDownDistance;
 
 	double dDecel = (landspd*landspd - dExitSpeed*dExitSpeed)/(2.0* dRollingDist);
+	ElapsedTime crossBuffer = pFlight->GetAirTrafficController()->GetTaxiwayConflictResolution()->getCrossRunwayBufferTime(pFlight, landspd, OnLanding);
 
 
 	//Deceleration
@@ -1905,7 +1908,8 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 	//std::vector<RunwayOccupyInfo> vOtherIntRunwayOccupanyInfo;
 	//vOtherIntRunwayOccupanyInfo.insert(vOtherIntRunwayOccupanyInfo.begin(),vRunwayArrangeInfo.begin(),vRunwayArrangeInfo.end());
 	DistanceUnit dExitDistInRunway = pFlight->GetRunwayExit()->GetPosAtRunway();
-	{
+
+	{ //write runway nodes time
 		std::vector<IntersectionNodeInSim *> vDecelNodes;
 		plandingRunway->GetIntersectNodeInRange(dTouchDownDistance,dExitDistInRunway + 1,vDecelNodes);
 
@@ -1918,27 +1922,7 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 			bool bIntRunwayNode = false;
 			//int nIntRunwayCount = vOtherIntRunwayOccupanyInfo.size();
 			int nIntRunwayNode = 0;
-			//for (; nIntRunwayNode < nIntRunwayCount; ++ nIntRunwayNode)
-			//{
-			//	if (vOtherIntRunwayOccupanyInfo[nIntRunwayNode].pIntNode == pCurNode)
-			//	{
-			//		bIntRunwayNode = true;
-			//		break;
-			//	}
-			//}
-
-			//if(bIntRunwayNode)
-			//{
-			//	vIntRunwayNodeNeedWriteOccupancyTable.push_back(vOtherIntRunwayOccupanyInfo[nIntRunwayNode]);
-			//	//calculate the time that flight pass the intersection
-			//	double dNodePosition = plandingRunway->GetPointDist(pCurNode->GetNodeInput().GetPosition());
-			//	double dNodeSpeed = (1-(dNodePosition - dTouchDownDistance)/dRollingDist)*(landspd-dExitSpeed);
-			//	double dNodeTime = (landspd - dNodeSpeed)/dDecel;
-			//	ElapsedTime eNodeTime = ElapsedTime(dNodeTime);
-			//	pCurNode->SetEnterTime(pFlight, lastItem.GetTime() + eNodeTime -m_eTimeCrossRunwayBuffer,OnLanding);
-
-			//}
-			//else
+			
 			{
 				double dNodePosition = plandingRunway->GetPointDist(pCurNode->GetNodeInput().GetPosition()) ;
 
@@ -1947,7 +1931,7 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 				ElapsedTime tDifference = 0L;			//calculation difference
 				if (pCurNode->GetNodeInput().IsRunwaysIntersection())		//if node is runways intersection, needn't taxi cross buffer
 				{
-					pCurNode->SetEnterTime(pFlight, lastItem.GetTime() + eNodeTime - tDifference,OnLanding);
+					pCurNode->SetEnterTime(pFlight, lastItem.GetTime() + eNodeTime - tDifference,OnLanding,landspd);
 					pCurNode->SetExitTime(pFlight, lastItem.GetTime()+ eNodeTime + tDifference);
 
 					//vRunwayIntNodes.push_back(pCurNode);
@@ -1978,8 +1962,8 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 				}
 				else
 				{
-					ElapsedTime eT =  lastItem.GetTime() + eNodeTime - m_eTimeCrossRunwayBuffer;
-					ElapsedTime exT = lastItem.GetTime()+ eNodeTime + m_eTimeCrossRunwayBuffer;
+					//ElapsedTime eT =  lastItem.GetTime() + eNodeTime - crossBuffer;
+					ElapsedTime exT = lastItem.GetTime()+ eNodeTime + crossBuffer;
 #if _DEBUGLOG
 					{
 						CString debugfileName;
@@ -1998,124 +1982,13 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 						outfile.close();
 					}
 #endif
-					pCurNode->SetEnterTime(pFlight,eT,OnLanding);
+					pCurNode->SetEnterTime(pFlight,eLandingTime,OnLanding,landspd);
 					pCurNode->SetExitTime(pFlight,exT);
 				}
 			}
 		}
 	}
 
-	//	ElapsedTime eTotalTimeDecel = (landspd - dExitSpeed)/dDecel;
-	//	ClearanceItem decelEndItem = lastItem;
-
-	//	decelEndItem.SetTime(lastItem.GetTime() + eTotalTimeDecel);
-	//	decelEndItem.SetSpeed(dExitSpeed);
-
-	//	//if(dExitDistance >= dRollingDist + dTouchDownDistance)
-	//	//	decelEndItem.SetDistInResource(dExitDistance);
-	//	//else
-	//	decelEndItem.SetDistInResource(dRollingDist + dTouchDownDistance);
-
-	//	ElapsedTime dDecelEndTime = pFlight->GetTimeBetween(lastItem,decelEndItem);
-
-	//	decelEndItem.SetTime(lastItem.GetTime() + dDecelEndTime);
-
-	//	//decel end
-	//	lastItem = decelEndItem;
-	//	newClearance.AddItem(lastItem);
-	//}
-	////Decelerate end to runway exit
-
-	//{
-	//	ElapsedTime eCurTime = lastItem.GetTime();
-	//	CPoint2008 pPreNodePosition = lastItem.GetPosition();
-	//	std::vector<IntersectionNodeInSim *> vNormalNodes;
-	//	DistanceUnit dExitDistInRunway = pFlight->GetRunwayExit()->GetPosAtRunway();
-	//	plandingRunway->GetIntersectNodeInRange(dTouchDownDistance+dRollingDist,dExitDistInRunway,vNormalNodes);
-
-	//	for (int nNormalNode =0; nNormalNode< (int)vNormalNodes.size(); ++nNormalNode)
-	//	{
-	//		IntersectionNodeInSim *pCurNode = vNormalNodes[nNormalNode];
-
-	//		double dNodeDistance = plandingRunway->GetPointDist(pCurNode->GetNodeInput().GetPosition());
-	//		double dPreDistance = plandingRunway->GetPointDist(pPreNodePosition);
-	//		double dNodeTime = (dNodeDistance - dPreDistance)/dExitSpeed;
-	//		ElapsedTime eNodeTime = ElapsedTime(dNodeTime);	
-
-	//		//check the node is intersection node with runway
-	//		bool bIntRunwayNode = false;
-	//		int nIntRunwayCount = vOtherIntRunwayOccupanyInfo.size();
-	//		int nIntRunwayNode = 0;
-	//		for (; nIntRunwayNode < nIntRunwayCount; ++ nIntRunwayNode)
-	//		{
-	//			if (vOtherIntRunwayOccupanyInfo[nIntRunwayNode].pIntNode == pCurNode)
-	//			{
-	//				bIntRunwayNode = true;
-	//				break;
-	//			}
-	//		}
-
-	//		if(bIntRunwayNode)
-	//		{
-	//			RunwayOccupyInfo runwayOccupyInfo = vOtherIntRunwayOccupanyInfo[nNormalNode];
-	//			if (runwayOccupyInfo.bLASHO)
-	//			{
-
-	//				//stop
-	//				ClearanceItem nodeItem = lastItem;
-	//				nodeItem.SetTime(eCurTime + eNodeTime);
-	//				nodeItem.SetPosition(pCurNode->GetNodeInput().GetPosition());
-	//				nodeItem.SetSpeed(0);
-	//				lastItem = nodeItem;
-	//				newClearance.AddItem(lastItem);
-
-
-	//				nodeItem.SetTime(runwayOccupyInfo.eLASHOTime);
-	//				nodeItem.SetSpeed(dExitSpeed);
-	//				nodeItem.SetPosition(pCurNode->GetNodeInput().GetPosition());
-	//				lastItem = nodeItem;
-	//				newClearance.AddItem(lastItem);
-
-	//				pCurNode->SetEnterTime(pFlight,runwayOccupyInfo.eLASHOTime,OnLanding,dExitSpeed);
-
-	//				eCurTime = runwayOccupyInfo.eLASHOTime;
-
-	//			}
-	//			else
-	//			{
-	//				if (pCurNode->GetNodeInput().IsRunwaysIntersection())
-	//					pCurNode->SetEnterTime(pFlight, eCurTime + eNodeTime ,OnLanding);
-	//				else
-	//					pCurNode->SetEnterTime(pFlight, eCurTime + eNodeTime -m_eTimeCrossRunwayBuffer,OnLanding);
-
-	//				vIntRunwayNodeNeedWriteOccupancyTable.push_back(vOtherIntRunwayOccupanyInfo[nIntRunwayNode]);
-	//				eCurTime += eNodeTime;
-
-	//			}
-	//		}
-	//		else
-	//		{
-	//			if (pCurNode->GetNodeInput().IsRunwaysIntersection())
-	//			{
-	//				pCurNode->SetEnterTime(pFlight, eCurTime + eNodeTime,OnLanding);
-	//				pCurNode->SetExitTime(pFlight, eCurTime+ eNodeTime);
-	//			}
-	//			else
-	//			{
-	//				pCurNode->SetEnterTime(pFlight, eCurTime + eNodeTime -m_eTimeCrossRunwayBuffer,OnLanding);
-	//				pCurNode->SetExitTime(pFlight, eCurTime+ eNodeTime + m_eTimeCrossRunwayBuffer);
-	//			}
-
-	//			eCurTime += eNodeTime;
-	//		}
-
-	//		pPreNodePosition = pCurNode->GetNodeInput().GetPosition();
-	//	}
-
-	//}
-
-
-	//backtrack clearance	
 	if( dRollingDist >  dExitDistance - dTouchDownDistance)
 	{		
 		if (!bBackup)
@@ -2261,7 +2134,7 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 		{
 			pCurPort = pFlight->GetLandingRunway()->GetOtherPort();
 		}
-		pCurPort->SetEnterTime(pFlight,eLandingTime,OnLanding);
+		pCurPort->SetEnterTime(pFlight,eLandingTime,OnLanding, landspd);
 		pCurPort->SetExitTime(pFlight,nextTimeExit);
 
 
@@ -2297,7 +2170,7 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 		IntersectionNodeInSim *pIntNode = vRunwayIntNodes[nNode];
 		if(pIntNode)
 		{
-			pIntNode->SetEnterTime(pFlight,eLandingTime,OnLanding);
+			pIntNode->SetEnterTime(pFlight,eLandingTime,OnLanding, landspd);
 			pIntNode->SetExitTime(pFlight,nextTimeExit);
 #if _DEBUGLOG
 			CString debugfileName;
@@ -2321,10 +2194,9 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 		IntersectionNodeInSim *pIntNode = vPreIntNodes[nNode];
 		if(pIntNode)
 		{
-			pIntNode->SetEnterTime(pFlight,eLandingTime - m_eTimeCrossRunwayBuffer,OnLanding);
-			pIntNode->SetExitTime(pFlight,eLandingTime + m_eTimeCrossRunwayBuffer);
+			pIntNode->SetEnterTime(pFlight,eLandingTime,OnLanding, landspd);
+			pIntNode->SetExitTime(pFlight,eLandingTime + crossBuffer);
 		}
-
 	}
 
 	double dLandingRunwayDistance = dExitDistance;
@@ -2340,13 +2212,13 @@ void CRunwaySystem::WriteRunwayLogs(AirsideFlightInSim *pFlight,bool bBackup,Cle
 		IntersectionNodeInSim *pIntNode = vAfterIntNodes[nNode];
 		if(pIntNode && !pIntNode->GetNodeInput().IsRunwaysIntersection())
 		{
-			pIntNode->SetEnterTime(pFlight,eLandingTime,OnLanding);
+			pIntNode->SetEnterTime(pFlight,eLandingTime,OnLanding, landspd);
 			pIntNode->SetExitTime(pFlight,nextTimeExit);
 		}
 
 		if(pIntNode && pIntNode->GetNodeInput().IsRunwaysIntersection())		//intersection node of runway
 		{
-			pIntNode->SetEnterTime(pFlight,lastItem.GetTime(),OnLanding);
+			pIntNode->SetEnterTime(pFlight,lastItem.GetTime(),OnLanding, landspd);
 			pIntNode->SetExitTime(pFlight,lastItem.GetTime()+1L);
 		}
 
@@ -2454,7 +2326,7 @@ void CRunwaySystem::WriteCircuitFlightRunwayTakeoffLogs(AirsideCircuitFlightInSi
 		else
 			pCurPort = pFlight->GetAndAssignTakeoffRunway()->GetOtherPort();
 
-		pCurPort->SetEnterTime(pFlight,eTimeBegin,OnTakeoff);
+		pCurPort->SetEnterTime(pFlight,eTimeBegin,OnTakeoff, 0);
 		pCurPort->SetExitTime(pFlight,eTimeEnd);
 
 	}
@@ -2495,7 +2367,7 @@ void CRunwaySystem::WriteCircuitFlightRunwayTakeoffLogs(AirsideCircuitFlightInSi
 	double dTakeoffRollTime = (2.0 *dTakeoffRoll)/dLiftSpeed;
 	double dAccelSpeed = dLiftSpeed/dTakeoffRollTime;
 
-
+	ElapsedTime crossBuffer = pFlight->GetAirTrafficController()->GetTaxiwayConflictResolution()->getCrossRunwayBufferTime(pFlight,dLiftSpeed, OnTakeoff);
 	for (size_t nNode = 0; nNode < vIntNodes.size(); ++ nNode)
 	{
 		IntersectionNodeInSim *pIntNode = vIntNodes[nNode];
@@ -2520,14 +2392,14 @@ void CRunwaySystem::WriteCircuitFlightRunwayTakeoffLogs(AirsideCircuitFlightInSi
 
 		if (pIntNode->GetNodeInput().IsRunwaysIntersection())		//runways intersection needn't taxi cross buffer time 
 		{
-			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode,OnTakeoff);
+			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode,OnTakeoff, 0 );
 			pIntNode->SetExitTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode);
 
 		}
 		else
 		{
-			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode - m_eTimeCrossRunwayBuffer,OnTakeoff);
-			pIntNode->SetExitTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode + m_eTimeCrossRunwayBuffer);
+			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode - crossBuffer,OnTakeoff ,dLiftSpeed);
+			pIntNode->SetExitTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode + crossBuffer);
 		}
 	}
 
@@ -2540,7 +2412,7 @@ void CRunwaySystem::WriteCircuitFlightRunwayTakeoffLogs(AirsideCircuitFlightInSi
 		IntersectionNodeInSim *pIntNode = vPreIntNodes[nNode];
 		if(pIntNode)
 		{
-			pIntNode->SetEnterTime(pFlight,eTimeBegin,OnTakeoff);
+			pIntNode->SetEnterTime(pFlight,eTimeBegin,OnTakeoff, dLiftSpeed);
 			pIntNode->SetExitTime(pFlight,eTimeEnd);
 		}
 	}
@@ -2568,7 +2440,7 @@ void CRunwaySystem::WriteRunwayTakeOffLogs(AirsideFlightInSim *pFlight, std::vec
 		else
 			pCurPort = pFlight->GetAndAssignTakeoffRunway()->GetOtherPort();
 
-		pCurPort->SetEnterTime(pFlight,eTimeBegin,OnTakeoff);
+		pCurPort->SetEnterTime(pFlight,eTimeBegin,OnTakeoff,0 );
 		pCurPort->SetExitTime(pFlight,eTimeEnd);
 
 		//////////////////////////////////////////////////////////////////////////
@@ -2634,6 +2506,7 @@ void CRunwaySystem::WriteRunwayTakeOffLogs(AirsideFlightInSim *pFlight, std::vec
 	double dTakeoffRollTime = (2.0 *dTakeoffRoll)/dLiftSpeed;
 	double dAccelSpeed = dLiftSpeed/dTakeoffRollTime;
 
+	ElapsedTime dCrossBuffer = pFlight->GetAirTrafficController()->GetTaxiwayConflictResolution()->getCrossRunwayBufferTime(pFlight, dLiftSpeed, OnTakeoff);
 
 	for (size_t nNode = 0; nNode < vIntNodes.size(); ++ nNode)
 	{
@@ -2668,7 +2541,7 @@ void CRunwaySystem::WriteRunwayTakeOffLogs(AirsideFlightInSim *pFlight, std::vec
 
 		if (pIntNode->GetNodeInput().IsRunwaysIntersection())		//runways intersection needn't taxi cross buffer time 
 		{
-			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode,OnTakeoff);
+			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode,OnTakeoff,dLiftSpeed);
 			pIntNode->SetExitTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode);
 
 			//pIntNode->SetEnterTime(pFlight,eTimeBegin,OnTakeoff);
@@ -2691,8 +2564,8 @@ void CRunwaySystem::WriteRunwayTakeOffLogs(AirsideFlightInSim *pFlight, std::vec
 		}
 		else
 		{
-			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode - m_eTimeCrossRunwayBuffer,OnTakeoff);
-			pIntNode->SetExitTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode + m_eTimeCrossRunwayBuffer);
+			pIntNode->SetEnterTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode - dCrossBuffer,OnTakeoff, dLiftSpeed);
+			pIntNode->SetExitTime(pFlight,pFlight->getRealOpTimeOnRunway() + tToNode + dCrossBuffer);
 		}
 	}
 	
@@ -2705,7 +2578,7 @@ void CRunwaySystem::WriteRunwayTakeOffLogs(AirsideFlightInSim *pFlight, std::vec
 		IntersectionNodeInSim *pIntNode = vPreIntNodes[nNode];
 		if(pIntNode)
 		{
-			pIntNode->SetEnterTime(pFlight,eTimeBegin,OnTakeoff);
+			pIntNode->SetEnterTime(pFlight,eTimeBegin,OnTakeoff,0);
 			pIntNode->SetExitTime(pFlight,eTimeEnd);
 		}
 	}
@@ -3545,12 +3418,12 @@ void CRunwaySystem::_WriteAfterNodesTime( AirsideFlightInSim* pFlight, LogicRunw
 
 		if(!pIntNode->GetNodeInput().IsRunwaysIntersection())
 		{
-			pIntNode->SetEnterTime(pFlight,ocyInst.GetEnterTime(),OnLanding);
+			pIntNode->SetEnterTime(pFlight,ocyInst.GetEnterTime(),OnLanding,0 );
 			pIntNode->SetExitTime(pFlight,ocyInst.GetExitTime() );
 		}
 		else
 		{
-			pIntNode->SetEnterTime(pFlight,endItem.GetTime(),OnLanding);
+			pIntNode->SetEnterTime(pFlight,endItem.GetTime(),OnLanding,0);
 			pIntNode->SetExitTime(pFlight,endItem.GetTime()+1L);
 		}
 	}
@@ -3559,6 +3432,7 @@ void CRunwaySystem::_WriteAfterNodesTime( AirsideFlightInSim* pFlight, LogicRunw
 
 void CRunwaySystem::_WritePreNodesTime( AirsideFlightInSim* pFlight , LogicRunwayInSim* pRunway , const ClearanceItem& beginItem )
 {
+	ElapsedTime crossBuffer = pFlight->GetAirTrafficController()->GetTaxiwayConflictResolution()->getCrossRunwayBufferTime(pFlight, beginItem.GetSpeed(), OnLanding);
 	std::vector<IntersectionNodeInSim *> vPreIntNodes;
 	pRunway->GetIntersectNodeInRange(0,beginItem.GetDistInResource(),vPreIntNodes);
 	for (size_t nNode = 0; nNode < vPreIntNodes.size(); ++ nNode)
@@ -3566,8 +3440,8 @@ void CRunwaySystem::_WritePreNodesTime( AirsideFlightInSim* pFlight , LogicRunwa
 		IntersectionNodeInSim *pIntNode = vPreIntNodes[nNode];
 		if(pIntNode)
 		{
-			pIntNode->SetEnterTime(pFlight,beginItem.GetTime() - m_eTimeCrossRunwayBuffer,OnLanding);
-			pIntNode->SetExitTime(pFlight,beginItem.GetTime()  + m_eTimeCrossRunwayBuffer);
+			pIntNode->SetEnterTime(pFlight,beginItem.GetTime(),OnLanding, beginItem.GetSpeed());
+			pIntNode->SetExitTime(pFlight,beginItem.GetTime()  + crossBuffer);
 		}
 	}
 }

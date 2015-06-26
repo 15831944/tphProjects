@@ -81,7 +81,6 @@ public:
 
 
 	void SetRunway(int nRunwayID,RUNWAY_MARK runwayMark,const CString& strMarkName);
-    bool operator==(const CAirsideReportRunwayMark& other) const;
 public:
 	int m_nRunwayID; 
 	RUNWAY_MARK m_enumRunwayMark;

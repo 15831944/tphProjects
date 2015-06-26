@@ -30,8 +30,7 @@ public:
 	CAirsideFlightStandOperationReport(CBGetLogFilePath pFunc);
 	virtual ~CAirsideFlightStandOperationReport();
 
-    CAirsideFlightStandOperationBaseResult* GetBaseResult() const { return m_pBaseResult; }
-    void SetBaseResult(CAirsideFlightStandOperationBaseResult* val) { m_pBaseResult = val; }
+
 public:
 	//load flight log files, and then generate report data
 	virtual void GenerateReport(CParameters * parameter);

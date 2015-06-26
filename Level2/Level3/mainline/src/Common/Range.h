@@ -39,7 +39,9 @@ public:
 		return !( t.m_max < m_min || m_max < t.m_min );
 	}
 
+	const T& from()const{ return m_min; }
+	const T& to()const{ return m_max; }
 protected:
-	double m_min;
-	double m_max;
+	T m_min;
+	T m_max;
 };

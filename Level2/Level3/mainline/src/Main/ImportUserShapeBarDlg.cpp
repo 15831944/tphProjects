@@ -80,6 +80,7 @@ void CImportUserShapeBarDlg::OnLoadZip()
         m_userShapeMan.loadDataSetFromOtherFile(m_strTempPath + "\\" + m_strShapeFileName);
 
         CUserShapeBar* pImportBar = m_userShapeMan.GetUserBarByIndex(0);
+		pImportBar->SetBarLocation(m_strBarLocation);
         m_editZipFileName.SetWindowText(m_strZipFileName);
         m_editBarName.SetWindowText(pImportBar->GetBarName());
         m_editBarLocation.SetWindowText(pImportBar->GetBarLocation());
@@ -159,6 +160,7 @@ void CImportUserShapeBarDlg::OnOk()
         MessageBox(strErr, NULL, MB_OK);
         return;
     }
+
     CDialog::OnOK();
 }
 

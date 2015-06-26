@@ -109,6 +109,7 @@ BOOL CPaxBulkEdit::OnInitDialog()
 
 	InitListCtrlHeader();
 	SetListCtrlContent();
+    ShowTotalBulkPercentage();
 	UpdateData(true);
 	return true;
 }
@@ -292,6 +293,7 @@ void CPaxBulkEdit::OnLvnEndlabeleditPercent( NMHDR *pNMHDR, LRESULT *pResult )
 	
 	int iPercent = atoi(m_wndListCtrl.GetItemText(nItem, 1));
 	m_vBulkPercent[nItem] = iPercent;
+    ShowTotalBulkPercentage();
 	*pResult = 0;
 }
 
@@ -337,6 +339,8 @@ void CPaxBulkEdit::UpdatePercentData()
 		m_wndListCtrl.SetItemData(i,(DWORD)iPercent);
 		m_vBulkPercent.push_back(iPercent);
 	}
+
+    ShowTotalBulkPercentage();
 }
 
 
@@ -360,4 +364,16 @@ void CPaxBulkEdit::OnNMKillfocusEndrangetime(NMHDR *pNMHDR, LRESULT *pResult)
 	// TODO: Add your control notification handler code here
 	UpdatePercentData();
 	*pResult = 0;
+}
+
+void CPaxBulkEdit::ShowTotalBulkPercentage()
+{
+    int iPercent = 0;
+    for (int i = 0; i < (int)m_vBulkPercent.size(); i++)
+    {
+        iPercent += m_vBulkPercent[i];
+    }
+    CString strEdit;
+    strEdit.Format("%d", iPercent);
+    GetDlgItem(IDC_EDIT_TOTALPERCENT)->SetWindowText(strEdit);
 }

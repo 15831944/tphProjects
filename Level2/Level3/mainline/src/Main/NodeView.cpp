@@ -3938,7 +3938,7 @@ void CNodeView::OnMenuNewProc(UINT nID)
 //	ProcessorClassList enumProcType;
 	
 	//	Create Processor2
-	CShape* pShape = SHAPESMANAGER->FindShapeByName(_T("Default"));
+	CShape* pShape = SHAPESMANAGER->GetShapeByName(_T("Default"));
 	ASSERT(pShape);
 
 	//ARCVector3 mpos = Get3DMousePos(point);
@@ -4230,7 +4230,7 @@ void CNodeView::OnContourAddNextContour()
 
 
 	//	Create Processor2
-	CShape* pShape = SHAPESMANAGER->FindShapeByName(_T("Default"));
+	CShape* pShape = SHAPESMANAGER->GetShapeByName(_T("Default"));
 	ASSERT(pShape);
 
 	//ARCVector3 mpos = Get3DMousePos(point);
@@ -4519,7 +4519,7 @@ void CNodeView::OnNewProc(ProcessorClassList procType)
 {
 	ProcessorClassList enumProcType = procType;
 	//	Create Processor2
-	CShape* pShape = SHAPESMANAGER->FindShapeByName(_T("Default"));
+	CShape* pShape = SHAPESMANAGER->GetShapeByName(_T("Default"));
 	
 	ASSERT(pShape);
 

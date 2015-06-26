@@ -22,22 +22,26 @@ private:
 	CShapesManager();
 	virtual ~CShapesManager();
 	CShape::CShapeList m_vShapeList;
-	CShape::CShapeList m_vDefaultList;
+	CShape::CShapeList m_vDefautShapeList;
 public:
 	static CShapesManager* GetInstance();
 	static void DeleteInstance();
 
 	CShape::CShapeList* GetShapeList() { return &m_vShapeList; }
-	CShape::CShapeList* GetDefaultList() { return &m_vDefaultList; }
+	CShape::CShapeList* GetDefaultShapeList() { return &m_vDefautShapeList; }
 	// return NULL, if not found
 	CShape* FindShapeByName( CString _csName );
-
+	// return -1, if not found
+	int FindShapeIndexByName( CString _csName );
+	// return default shape, if not found
+	CShape* GetShapeByName(CString _csName);
     // 
     BOOL IsShapeExist(CString str);
 
 	// return -1, if not found
-	int FindShapeIndexByName( CString _csName );
-
+	int FindShapeSetIndexByName( CString _csName );
+	void AddShapeByName(CString _csName,CShape* shape);
+	void RemoveShapeByName(CString _csName);
 
 	//////////////////////////////////////////////////////////////////////////
 public:	

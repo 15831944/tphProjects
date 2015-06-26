@@ -15,7 +15,7 @@ public:
 
 public:
 	virtual void SetReportData( AirsideFlightRunwayDelayData* pReportData);
-    virtual AirsideFlightRunwayDelayData* GetReportData() const{ return m_pReportData; }
+
 	void SetCBGetFilePath(CBGetLogFilePath pFunc);
 
 	CBGetLogFilePath m_pCBGetLogFilePath;

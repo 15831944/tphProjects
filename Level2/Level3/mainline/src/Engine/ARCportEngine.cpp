@@ -875,7 +875,8 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 					//		procList->writeProcLog();
 
 					//landside simulation
-					if(m_pLandsideSim){	
+					if(m_pLandsideSim)
+					{	
 						m_pLandsideSim->SetEstSimStartEndTime(estStartTime,estEndTime);
 						m_pLandsideSim->Start(this);
 					}

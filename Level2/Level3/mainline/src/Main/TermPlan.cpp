@@ -596,6 +596,7 @@ void CTermPlanApp::OnFileNew()
 		pMF->DockControlBar(pMF->m_wndShapesBar, AFX_IDW_DOCKBAR_RIGHT);
 		pMF->ShowControlBar(pMF->m_wndShapesBar, FALSE, FALSE);
 		pMF->m_wndShapesBar->SetUserBarManager(((CTermPlanDoc*)pDoc)->GetTerminal().m_pUserBarMan);
+		pMF->m_wndShapesBar->AddUserShapesToShapesBar();
 	}
 }
 

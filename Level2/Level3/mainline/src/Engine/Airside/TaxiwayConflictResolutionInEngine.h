@@ -2,6 +2,7 @@
 
 
 #include "../../InputAirside/ConflictResolution.h"
+#include "CommonInSim.h"
 
 class AirsideFlightInSim;
 class CAirportDatabase;
@@ -11,6 +12,7 @@ public:
 	CTaxiwayConflictResolutionInEngine(int nProjID,CAirportDatabase *pAirportDatabase);
 	~CTaxiwayConflictResolutionInEngine(void);
 
+	ElapsedTime getCrossRunwayBufferTime(AirsideFlightInSim* pFligt, double dSpd, AirsideMobileElementMode mode);
 
 public:
 	//whether  set the conflict settings 

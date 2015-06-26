@@ -1321,6 +1321,16 @@ int CGfxOutBarCtrl::GetFolderCount() const
 	return arFolder.GetSize();
 }
 
+int CGfxOutBarCtrl::GetFolderIndex(CString name)
+{
+	for (int i=0;i<GetFolderCount();i++)
+	{
+		if(!GetFolderText(i).CompareNoCase(name))
+			return i;
+	}
+	return -1;
+}
+
 int CGfxOutBarCtrl::GetSelFolder() const
 {
 	return iSelFolder;
@@ -2284,6 +2294,13 @@ DWORD CGfxOutBarCtrl::GetFolderData(int iFolder)
 	if (iFolder < 0) iFolder = iSelFolder;
 	CBarFolder * pbf = (CBarFolder *) arFolder.GetAt(iFolder);
 	return pbf->dwData;
+}
+
+void CGfxOutBarCtrl::SetFolderData(int iFolder,DWORD exData)
+{
+	if (iFolder < 0) iFolder = iSelFolder;
+	CBarFolder * pbf = (CBarFolder *) arFolder.GetAt(iFolder);
+	pbf->dwData = exData;
 }
 
 void CGfxOutBarCtrl::SetAnimSelHighlight(const int iTime)

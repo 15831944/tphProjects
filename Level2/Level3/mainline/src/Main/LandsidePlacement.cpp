@@ -32,7 +32,7 @@ void CLandsidePlacement::readData (ArctermFile& p_file)
 		{
 			p_file.getShortField (name, 256);
 			strcpy(shapeDefaultName,name);
-			pProc2->SetShape(SHAPESMANAGER->FindShapeByName(CString(name)));
+			pProc2->SetShape(SHAPESMANAGER->GetShapeByName(CString(name)));
 		}
 
 		char shapeName[256];
@@ -146,7 +146,7 @@ void CLandsidePlacement::BuildFromProcList(ProcessorList* _pProcList, CProcessor
 			CProcessor2* pProc2 = new CLandProcessor2();
 			pProc2->SetProcessor(_globlePTestProc);
 			//pProc2->SetShape( NULL );
-			pProc2->SetShape( SHAPESMANAGER->FindShapeByName( "Default" ) );
+			pProc2->SetShape( SHAPESMANAGER->GetShapeByName( "Default" ) );
 			pProc2->SetFloor(static_cast<int>(_globlePTestProc->getFloor() / SCALE_FACTOR));
 			Path* pSLoc = _globlePTestProc->serviceLocationPath();
 			ASSERT(pSLoc->getCount() > 0);

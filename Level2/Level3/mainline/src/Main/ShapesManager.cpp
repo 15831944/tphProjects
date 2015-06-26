@@ -74,9 +74,10 @@ CShapesManager::~CShapesManager()
 	for(int i=0; i<static_cast<int>(m_vShapeList.size()); i++)
 		delete m_vShapeList[i];
 	m_vShapeList.clear();
-	for(int i=0; i<static_cast<int>(m_vDefaultList.size()); i++)
-		delete m_vDefaultList[i];
-	m_vDefaultList.clear();
+
+	for(int i=0; i<static_cast<int>(m_vShapeList.size()); i++)
+		delete m_vDefautShapeList[i];
+	m_vDefautShapeList.clear();
 }
 
 CShapesManager* CShapesManager::GetInstance()
@@ -100,6 +101,7 @@ BOOL CShapesManager::LoadData()
 	CString sFileName = ((CTermPlanApp*) AfxGetApp())->GetShapesDBPath() + "\\Shapes.dat";
 	BOOL bRet = TRUE;
 	m_vShapeList.clear();
+	m_vDefautShapeList.clear();
 	try
 	{
 		pFile = new CFile(sFileName, CFile::modeRead | CFile::shareDenyNone);
@@ -187,35 +189,53 @@ CShape* CShapesManager::FindShapeByName( CString _csName )
 	for( int i=0; i<nCount; i++ )
 	{
 		CShape* pShape = m_vShapeList[i];
-
 		if( pShape->Name().CompareNoCase( _csName ) == 0 )
 		{
-			if (PathFileExists(pShape->ShapeFileName())==FALSE)			
-				break;
-
 			return pShape;
 		}
 	}	
 
-	nCount = m_vDefaultList.size();
+	return NULL;
+}
+
+int CShapesManager::FindShapeIndexByName( CString _csName )
+{
+	int nCount = m_vShapeList.size();
 	for( int i=0; i<nCount; i++ )
 	{
-		CShape* pShape = m_vDefaultList[i];
+		CShape* pShape = m_vShapeList[i];
 
 		if( pShape->Name().CompareNoCase( _csName ) == 0 )
 		{
-			return pShape;
+			return i;
 		}
+	}	
+
+	return -1;
+}
+
+// return default shape, if not found
+CShape* CShapesManager::GetShapeByName(CString _csName)
+{
+	CShape* pShape = FindShapeByName(_csName);
+	if (pShape)
+		return pShape;
+
+	int nCount = m_vDefautShapeList.size();
+	for( int i=0; i<nCount; i++ )
+	{
+		pShape = m_vDefautShapeList[i];
+		if( pShape->Name().CompareNoCase( _csName ) == 0 )
+			return pShape;
 	}
 
-	CShape* pDefaultShape = new CShape();
+	pShape = new CShape();
 	CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
-	pDefaultShape->Name(_csName);
-	pDefaultShape->ImageFileName(sPath + "CUBE100.bmp");
-	pDefaultShape->ShapeFileName(sPath + "CUBE100.dxf");
-	m_vDefaultList.push_back(pDefaultShape);
-
-	return pDefaultShape;
+	pShape->Name(_csName);
+	pShape->ImageFileName(sPath + "SQUARE24.bmp");
+	pShape->ShapeFileName(sPath + "FLATSQUARE24cm.dxf");
+	m_vDefautShapeList.push_back(pShape);
+	return pShape;
 }
 
 BOOL CShapesManager::IsShapeExist( CString _csName )
@@ -234,7 +254,7 @@ BOOL CShapesManager::IsShapeExist( CString _csName )
 }
 
 // return -1, if not found
-int CShapesManager::FindShapeIndexByName( CString _csName )
+int CShapesManager::FindShapeSetIndexByName( CString _csName )
 {
 	int nCount = static_cast<int>(m_vShapeSetsModules.size());
 	for( int i = 0; i < nCount; i++ )
@@ -245,6 +265,55 @@ int CShapesManager::FindShapeIndexByName( CString _csName )
 	}
 
 	return -1;
+}
+
+void CShapesManager::AddShapeByName(CString _csName,CShape* shape)
+{
+	CShape* pDefShape = SHAPESMANAGER->FindShapeByName(_csName);
+	if (pDefShape)
+	{
+		pDefShape->ImageFileName(shape->ImageFileName());
+		pDefShape->ShapeFileName(shape->ShapeFileName());
+		pDefShape->SetObjListValid(FALSE);
+	}
+	else
+	{
+		pDefShape = SHAPESMANAGER->GetShapeByName(_csName);
+		pDefShape->ImageFileName(shape->ImageFileName());
+		pDefShape->ShapeFileName(shape->ShapeFileName());
+		pDefShape->SetObjListValid(FALSE);
+		SHAPESMANAGER->GetShapeList()->push_back(pDefShape);
+
+		int nCount = m_vDefautShapeList.size();
+		int idx;
+		for( int i=0; i<nCount; i++ )
+		{
+			if( m_vDefautShapeList[i]->Name().CompareNoCase( _csName ) == 0 )
+			{
+				idx = i;
+				break;
+			}
+		}
+		CShape::CShapeList* pDefShapeList =  SHAPESMANAGER->GetDefaultShapeList();
+		pDefShapeList->erase(pDefShapeList->begin() + idx);
+	}
+}
+
+void CShapesManager::RemoveShapeByName(CString _csName)
+{
+	CShape* pDefShape = SHAPESMANAGER->FindShapeByName(_csName);
+	if(pDefShape)
+	{
+		SHAPESMANAGER->GetDefaultShapeList()->push_back(pDefShape);  		
+		int idx = SHAPESMANAGER->FindShapeIndexByName(_csName);
+  		CShape::CShapeList* pShapeList =  SHAPESMANAGER->GetShapeList();
+  		pShapeList->erase(pShapeList->begin() + idx);
+
+		CString sPath = ((CTermPlanApp*) AfxGetApp())->GetShapeDataPath() + "\\";
+		pDefShape->ImageFileName(sPath + "SQUARE24.bmp");
+		pDefShape->ShapeFileName(sPath + "FLATSQUARE24cm.dxf");
+		pDefShape->SetObjListValid(FALSE);
+	}
 }
 
 int CShapesManager::GetShapeSetCount() const

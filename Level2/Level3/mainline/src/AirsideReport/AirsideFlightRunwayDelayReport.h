@@ -14,7 +14,7 @@ public:
 		ChartType_Detail = 0,
 		ChartType_Detail_Total,
 		ChartType_Detail_ByLandingRoll,
-		ChartType_Detail_ByExiting,
+		ChartType_Detail_ByExisting,
 		ChartType_Detail_ByInTakeoffQueue,
 		ChartType_Detail_ByHoldShort,
 		ChartType_Detail_ByInPosition,
@@ -24,7 +24,7 @@ public:
 		ChartType_Summary = 100,
 		ChartType_Summary_Total,
 		ChartType_Summary_ByLandingRoll,
-		ChartType_Summary_ByExiting,
+		ChartType_Summary_ByExisting,
 		ChartType_Summary_ByInTakeoffQueue,
 		ChartType_Summary_ByHoldShort,
 		ChartType_Summary_ByInPosition,
@@ -52,7 +52,7 @@ public:
 	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter);
 
 	CAirsideReportBaseResult *GetReportResult();
-    AirsideFlightRunwayDelayBaseResult* GetBaseResult() const { return m_pBaseResult; }
+
 protected:
 	virtual BOOL WriteReportData(ArctermFile& _file);
 	virtual BOOL ReadReportData(ArctermFile& _file);

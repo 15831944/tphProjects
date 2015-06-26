@@ -67,37 +67,10 @@ int RunwayDirectSegInSim::GetObjectID() const
 	return GetRunwaySeg()->GetRunwayID();
 }
 
-void RunwayDirectSegInSim::SetEnterTime( CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode )
+LogicRunwayInSim* RunwayDirectSegInSim::getLogicRunway()
 {
-	__super::SetEnterTime(pFlight, enterT, fltMode);
-	LogicRunwayInSim* pRunway = GetRunwaySeg()->GetLogicRunway(GetLogicRunwayType());
-	if(pRunway)
-	{
-		pRunway->SetEnterTime(pFlight,enterT, fltMode);
-	}
+	return GetRunwaySeg()->GetLogicRunway(GetLogicRunwayType());
 }
-
-void RunwayDirectSegInSim::SetEnterTime( CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode,double dSpd )
-{
-	__super::SetEnterTime(pFlight, enterT, fltMode,dSpd);
-	LogicRunwayInSim* pRunway = GetRunwaySeg()->GetLogicRunway(GetLogicRunwayType());
-	if(pRunway)
-	{
-		pRunway->SetEnterTime(pFlight,enterT, fltMode);
-	}
-}
-
-void RunwayDirectSegInSim::SetExitTime( CAirsideMobileElement * pFlight, const ElapsedTime& exitT )
-{
-	__super::SetExitTime(pFlight, exitT);
-	LogicRunwayInSim* pRunway = GetRunwaySeg()->GetLogicRunway(GetLogicRunwayType());
-	if(pRunway)
-	{
-		pRunway->SetExitTime(pFlight,exitT);
-	}
-}
-
-
 
 
 

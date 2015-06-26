@@ -555,8 +555,7 @@ int FlightSchedule::getAllCarriersFlights (const char *carrier,
     return count;
 }
 
-Flight *FlightSchedule::getRandomDeparture (ElapsedTime p_start,
-    ElapsedTime p_end) const
+Flight *FlightSchedule::getRandomDeparture (ElapsedTime p_start, ElapsedTime p_end,int nArrFlightIndex) const
 {
     UnsortedContainer<Flight> destList (64, 0, 64);
     Flight *aFlight;
@@ -564,6 +563,9 @@ Flight *FlightSchedule::getRandomDeparture (ElapsedTime p_start,
     int flightCount = getCount();
     for (int i = 0; i < flightCount; i++)
     {
+		if(i == nArrFlightIndex)//skip the given flight 
+			continue;
+
         aFlight = getItem (i);
         if (aFlight->getDepTime() < p_end && aFlight->isDeparting() &&
             aFlight->getDepTime() > p_start && aFlight->getSpace ('D') > 0 )
@@ -574,8 +576,7 @@ Flight *FlightSchedule::getRandomDeparture (ElapsedTime p_start,
     return (count)? destList.getItem (random (count)): NULL;
 }
 
-Flight *FlightSchedule::getDeparture (ElapsedTime p_start,
-    ElapsedTime p_end, const FlightConstraint &p_type) const
+Flight *FlightSchedule::getDeparture (ElapsedTime p_start, ElapsedTime p_end, const FlightConstraint &p_type,int nArrFlightIndex) const
 {
     UnsortedContainer<Flight> destList (64, 0, 64);
     FlightConstraint flightType;
@@ -584,6 +585,9 @@ Flight *FlightSchedule::getDeparture (ElapsedTime p_start,
     int flightCount = getCount();
     for (int i = 0; i < flightCount; i++)
     {
+		if( i == nArrFlightIndex)//skip the given flight 
+			continue;
+
         aFlight = getItem (i);
 
         if (aFlight->getDepTime() > p_end || !aFlight->isDeparting() ||

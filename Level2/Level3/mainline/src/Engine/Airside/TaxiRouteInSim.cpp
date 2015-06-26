@@ -271,7 +271,7 @@ void DoMoveToNextDistInRoute(MobileTravelTrace& travelTrace, const ElapsedTime& 
 
 		if( theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE )
 		{
-			theHold.m_pNode->SetEnterTime(pFlight, atHoldTime,theRoute.GetMode());
+			theHold.m_pNode->SetEnterTime(pFlight, atHoldTime,theRoute.GetMode(), 0);
 			//enter runway log
 			if (theHold.m_pNode->GetNodeInput().GetRunwayIntersectItemList().size()> 0)
 			{
@@ -1013,9 +1013,6 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 	}
 
 
-
-	
-
 	////////////////////////get next safe dist//////////////////////////////////////////////////
 	double dMinBlockPos;
 	double dNextSafeDistInRoute;
@@ -1241,8 +1238,8 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 		if( theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE && theHold.IsRunwayHold() )
 		{
 			//calculate the time that the flight could go through the node
-			DistanceUnit dThroughNodeDist;
-			HoldInTaxiRoute* pExitHold = m_vHoldList.GetExitHold(theHold);
+			DistanceUnit dThroughNodeDist  = 1;
+			HoldInTaxiRoute* pExitHold = m_vHoldList.GetExitRunwayHold(theHold);
 			if(pExitHold)
 			{
 				dThroughNodeDist = pExitHold->m_dDistInRoute - dCurDistInRoute;	
@@ -1254,10 +1251,15 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 			ElapsedTime dThroughNodeTime = travelTrace.getEndTime();
 			ElapsedTime dNextTime = lastClearanceItem.GetTime();
 
-			ElapsedTime AvaEnterTime ;
+			ElapsedTime AvaEnterTime = dNextTime;
+
 			if(theHold.mLinkDirSeg && theHold.mLinkDirSeg->GetType()== AirsideResource::ResType_RunwayDirSeg)
 			{
-				AvaEnterTime  = MAX(dNextTime, theHold.m_pNode->GetLastLandingTakeoffTime());
+				RunwayDirectSegInSim* runwaySeg = (RunwayDirectSegInSim* )theHold.mLinkDirSeg;
+				RunwayInSim* pRunway  = runwaySeg->getLogicRunway()->GetRunwayInSim();
+				AvaEnterTime = MAX(AvaEnterTime, pFlight->GetAirTrafficController()->getAvaiableCrossRunwayTime(pFlight,pRunway, dNextTime,dThroughNodeTime));
+				AvaEnterTime  = MAX(AvaEnterTime, pFlight->GetAirTrafficController()->getAvaiableTimeUseRunwayAsTaxiway(pFlight,pRunway));
+				//AvaEnterTime = MAX(AvaEnterTime, theHold.m_pNode->GetLastLandingTakeoffTime()  );
 			}
 			else
 			{
@@ -1475,7 +1477,7 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 		{
 			if( theHold.mLinkDirSeg  )
 			{
-				if( theHold.m_pNode->IsNoParking() && !IsDistInNoParkingNodeRange(theHold.m_dDistInRoute) )
+				if( theHold.m_pNode->IsNoParking(pFlight) && !IsDistInNoParkingNodeRange(theHold.m_dDistInRoute) )
 				{
 					MinTimeTravelToNexDist(pFlight, *this,dCurDistInRoute, theHold.m_dDistInRoute, dNomalSpd, lastClearanceItem, newClearance, bPushbackByTowTruck);
 					return true;
@@ -2714,8 +2716,9 @@ HoldInTaxiRoute* TaxiRouteInSim::IsDistInNoParkingNodeRange( const DistanceUnit&
 {
 	for(int i=0;i<m_vHoldList.GetCount();i++)
 	{
-		const HoldInTaxiRoute& theHold =m_vHoldList.ItemAt(i);
-		if( theHold.m_dDistInRoute < dist && theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE && theHold.m_pNode->IsNoParking() && !theHold.m_bIsRunwayExit )
+		const HoldInTaxiRoute& theHold = m_vHoldList.ItemAt(i);
+
+		if( theHold.m_dDistInRoute < dist && theHold.m_hHoldType == HoldInTaxiRoute::ENTRYNODE && theHold.m_pNode->IsNoParking(m_vHoldList.m_pFlight) && !theHold.m_bIsRunwayExit )
 		{
 			HoldInTaxiRoute* pExitHold = m_vHoldList.GetExitHold(theHold);
 			if( pExitHold && dist < pExitHold->m_dDistInRoute )
@@ -2724,21 +2727,28 @@ HoldInTaxiRoute* TaxiRouteInSim::IsDistInNoParkingNodeRange( const DistanceUnit&
 			}
 		}
 	}	
-
+	AirsideFlightInSim* pFlight = m_vHoldList.m_pFlight;
+	AirTrafficController* pATC = pFlight->GetAirTrafficController();
 	//check dist in runway segment
 	for(size_t i=0;i<m_vItems.size();i++)
 	{
 		AirsideResource* atRes = GetItem(i).GetResource();
 		if( atRes->GetType() == AirsideResource::ResType_RunwayDirSeg)
 		{
-			RunwayDirectSegInSim* pSeg = (RunwayDirectSegInSim*)atRes;		
-			HoldInTaxiRoute* entryHold = m_vHoldList.GetEntryHold(pSeg->GetEntryNode());
-			HoldInTaxiRoute* exitHold = m_vHoldList.GetExitHold(pSeg->GetExitNode());
-			if(entryHold&&exitHold)
+			RunwayDirectSegInSim* pSeg = (RunwayDirectSegInSim*)atRes;	
+			RunwayInSim* pRunway =  pSeg->GetRunwaySeg()->getRunway();
+			bool buseAsTaxiway = pATC->CanRunwayUseAsTaxiway(pFlight,pRunway);
+
+			if(!buseAsTaxiway)
 			{
-				if( entryHold->m_dDistInRoute < dist && dist < exitHold->m_dDistInRoute)
+				HoldInTaxiRoute* entryHold = m_vHoldList.GetEntryHold(pSeg->GetEntryNode());
+				HoldInTaxiRoute* exitHold = m_vHoldList.GetExitHold(pSeg->GetExitNode());
+				if(entryHold&&exitHold)
 				{
-					return entryHold;
+					if( entryHold->m_dDistInRoute < dist && dist < exitHold->m_dDistInRoute)
+					{
+						return entryHold;
+					}
 				}
 			}
 		}
@@ -2805,4 +2815,36 @@ int TaxiRouteInSim::getDirPathIndex( int fIndex, RouteDirPath* path ) const
 			return i;
 	}
 	return -1;
+}
+
+ElapsedTime TaxiRouteInSim::getEsitmateFinishTime(AirsideFlightInSim* pFlight)
+{
+	DistanceUnit endDist = GetEndDist();
+	const int nBeginItemIdx = GetItemIndex(pFlight->GetResource());
+	DistanceUnit dCurDistInRoute = GetDistInRoute( nBeginItemIdx ,pFlight->GetDistInResource() );
+
+
+	DistanceUnit distLeft = endDist - dCurDistInRoute;
+	ElapsedTime tLeft = distLeft / m_dTaxiSpd; 
+
+	return pFlight->GetTime() + tLeft;
+}
+
+bool TaxiRouteInSim::getNodeDistInRoute( IntersectionNodeInSim* pNode, DistanceUnit& dist )
+{
+	for( int i= 0;i < GetItemCount();i++)
+	{
+		TaxiRouteItemInSim& theItem = ItemAt(i);
+		if( theItem.GetResource() && theItem.GetResource()->IsKindof(typeof(FlightGroundRouteDirectSegInSim)) )
+		{
+			FlightGroundRouteDirectSegInSim* pSeg = (FlightGroundRouteDirectSegInSim*)theItem.GetResource();
+			IntersectionNodeInSim* pExitNode = pSeg->GetExitNode();
+			if (pExitNode == pNode)
+			{
+				dist = GetItemEndDist(i);
+				return true;
+			}
+		}
+	}
+	return false;
 }

@@ -144,7 +144,7 @@ public:
 		
 		outfile <<"<" << Event::getCurEventNum()<<">" << std::endl;
 		outfile << pFlight->GetTime()<<"," << long(pFlight->GetTime())<<std::endl;
-		outfile << pFlight->GetPosition().getX() <<" ," <<pFlight->GetPosition().getY() << std::endl;
+		outfile << pFlight->GetPosition().getX() <<" ," <<pFlight->GetPosition().getY() << pFlight->GetPosition().getZ()<< std::endl;
 		outfile << clearance;
 		outfile.close();
 		//log to all file
@@ -156,7 +156,7 @@ public:
 		alloutfile.close();
 	}
 
-	static void LogEvent(AirsideFlightInSim* pFlight, const ElapsedTime& eventTime)
+	static void LogEvent(AirsideFlightInSim* pFlight, const AirsideFlightEventStruct& event )
 	{
 
 		//log to flight file
@@ -164,16 +164,16 @@ public:
 		debugfileName.Format( "%s%d.txt",LOGFOLDER,pFlight->GetUID());
 		std::ofstream outfile;
 		outfile.open(debugfileName,ios::app);
-		outfile <<"Event Time:"<<eventTime<<","<<long(eventTime)<<" Flight time: " <<pFlight->GetTime()<<"," << long(pFlight->GetTime())<<std::endl;
-		outfile << AIRSIDEMOBILE_MODE_NAME[pFlight->GetMode()]<<"Position:" <<pFlight->GetPosition().getX() <<" ," <<pFlight->GetPosition().getY() << std::endl;
+		outfile <<"Event Time:"<<event.time<<","<<long(event.time)<<" Flight time: " <<pFlight->GetTime()<<"," << long(pFlight->GetTime())<<std::endl;
+		outfile << AIRSIDEMOBILE_MODE_NAME[event.mode]<<"Position:" <<event.x <<" ," <<event.y << "," << event.z << std::endl;
 
 		outfile.close();
-		//log to all file
-		CString allfile = LOGFOLDER+_T("AllFlight.txt");
-		std::ofstream alloutfile;
-		alloutfile.open(allfile,ios::app);		
-		alloutfile<< pFlight->GetCurrentFlightID().GetString()<<"("<<pFlight->GetUID()<<"),"<<"Event Time:"<<eventTime<<","<<long(eventTime)<<" Flight time: "<<pFlight->GetTime()<<"," << long(pFlight->GetTime())<<" Mode: " <<AIRSIDEMOBILE_MODE_NAME[pFlight->GetMode()]<<"Position:" <<std::endl;
-		alloutfile.close();
+		////log to all file
+		//CString allfile = LOGFOLDER+_T("AllFlight.txt");
+		//std::ofstream alloutfile;
+		//alloutfile.open(allfile,ios::app);		
+		//alloutfile<< pFlight->GetCurrentFlightID().GetString()<<"("<<pFlight->GetUID()<<"),"<<"Event Time:"<<eventTime<<","<<long(eventTime)<<" Flight time: "<<pFlight->GetTime()<<"," << long(pFlight->GetTime())<<" Mode: " <<AIRSIDEMOBILE_MODE_NAME[pFlight->GetMode()]<<"Position:" <<std::endl;
+		//alloutfile.close();
 	}
 
 	static void LogLog(AirsideFlightInSim* pFlight, const AirsideFlightEventStruct& newEvent)
@@ -1112,7 +1112,41 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 			}
 		}
 
+		//enter runway in seg
+		if( GetResource() && GetResource()->GetType()== AirsideResource::ResType_RunwayDirSeg )
+		{
+			RunwayDirectSegInSim* pRunwaySegFrom = (RunwayDirectSegInSim*)GetResource();
+			LogicRunwayInSim* pRunwayFrom = pRunwaySegFrom->getLogicRunway();
+			if(item.GetResource() && item.GetResource()->GetType() == AirsideResource::ResType_RunwayDirSeg)
+			{
+				RunwayDirectSegInSim* pRunwaySegTo = (RunwayDirectSegInSim*)item.GetResource();
+				LogicRunwayInSim* pRunwayTo = pRunwaySegTo->getLogicRunway();
+				if(pRunwayFrom == pRunwayTo)
+				{//do nothing
+				}
+				else//exit current runway to next runway
+				{
+					pRunwayFrom->SetExitTime(this, item.GetTime());
+					pRunwayTo->SetEnterTime(this, item.GetTime(), item.GetMode(), item.GetSpeed() );
+				}
+			}
+			else
+			{
+				pRunwayFrom->SetExitTime(this, item.GetTime());
+			}
+		}
+		else if(item.GetResource() && item.GetResource()->GetType() == AirsideResource::ResType_RunwayDirSeg)
+		{
+			RunwayDirectSegInSim* pRunwaySegTo = (RunwayDirectSegInSim*)item.GetResource();
+			LogicRunwayInSim* pRunwayTo = pRunwaySegTo->getLogicRunway();
+			pRunwayTo->SetEnterTime(this, item.GetTime(), item.GetMode(), item.GetSpeed() );
+		}
 	}
+
+
+	
+	
+
 
 	//flight exit takeoff Queue && exit taxiway;
 	if( item.GetResource() && GetResource()!=item.GetResource() && item.GetResource()->GetType() == AirsideResource::ResType_LogicRunway && item.GetMode() >= OnPreTakeoff )
@@ -2186,12 +2220,7 @@ void AirsideFlightInSim::WriteLog( bool bEnterRes /*= false*/)
 	newEvent.IsSpeedConstraint = IsSpeedConstrainedByOtherFlight();
 
 
-	//AirsideFlightWriteLogItem *pLogItem = new AirsideFlightWriteLogItem(this);
-	//pLogItem->m_logItem = newEvent;
-	//pLogItem->m_fltState = GetCurState();
-	//m_lstWirteLog.AddItem(pLogItem);
-	//FligthLogFile::LogLog(this,newEvent);
-	FligthLogFile::LogEvent(this,GetTime());
+	FligthLogFile::LogEvent(this,newEvent);
 
 	m_pOutput->LogFlightEvent(this ,newEvent);	
 
@@ -2930,6 +2959,7 @@ void AirsideFlightInSim::InitLogEntry()
 
 	fltLogDesc.actAtaTime = m_pflightInput->GetAtaTime();
 	fltLogDesc.actAtdTime = m_pflightInput->GetAtdTime();
+	fltLogDesc.actDepOn = m_pflightInput->getDepTime();
 
 	if (!m_pflightInput->getArrStand().GetIDString().IsEmpty())
 	{
@@ -3018,11 +3048,10 @@ void AirsideFlightInSim::UpdateState( const AirsideFlightState& fltState , bool 
 
 bool AirsideFlightInSim::GetEstimateLandingTime(ElapsedTime& estimateTime)
 {
-	if (GetMode() < OnLanding) //the flight is still in the air
+	if (GetMode() <= OnLanding) //the flight is still in the air
 	{
-		//get
+		estimateTime = m_estimateLandingTime;
 	}
-
 	return false;
 }
 
@@ -5211,4 +5240,14 @@ bool AirsideFlightInSim::isFlightInTakeoffQueue() const
 			return true;
 	}
 	return false;
+}
+
+LogicRunwayInSim * AirsideFlightInSim::GetTakeoffRunway()
+{
+	return m_pDepatrueRunway;
+}
+
+void AirsideFlightInSim::SetEstimateLandingTime( const ElapsedTime& t )
+{
+	m_estimateLandingTime = t;
 }

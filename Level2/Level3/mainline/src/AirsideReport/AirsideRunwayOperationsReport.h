@@ -63,7 +63,6 @@ public:
 	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter);
 
 	CAirsideReportBaseResult *GetReportResult();
-	CAirsideRunwayOperationReportBaseResult* GetRunwayOperationResult();
 };
 
 

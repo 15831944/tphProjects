@@ -30,7 +30,7 @@ public:
 protected:
 	int m_IsRealZ ;
 public:
-	int IsRealZ() { return m_IsRealZ ;} ;
+	int IsRealZ() const{ return m_IsRealZ ;} ;
 	void IsRealZ(int _is) { m_IsRealZ = _is ;} ;
 	CTrackerVector3& operator	+=	( const CTrackerVector3& _v )
 	{ n[VX]+=_v.n[VX]; n[VY]+=_v.n[VY]; n[VZ]+=_v.n[VZ]; return *this; }

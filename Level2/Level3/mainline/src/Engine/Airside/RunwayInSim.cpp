@@ -67,6 +67,9 @@ protected:
 CString TakeoffQueueCountLog::strLogFile =  _T("C:\\arportdebug\\queueCountLog.txt");
 TakeoffQueueCountLog TakeoffQueueCountLog::m_singleInstance;
 #endif
+#include "Common\Range.h"
+#include "TaxiwayConflictResolutionInEngine.h"
+#include "InputAirside\ConflictResolution.h"
 //////////////////////////////////////////////////////////////////////////
 
 bool RunwayExitInSim::operator < (const RunwayExitInSim& rwExit)const
@@ -1075,6 +1078,8 @@ void RunwayInSim::AddWaveCrossHold( HoldPositionInSim *pHold, int nWaveCrossCoun
 		m_vWaveCrossHold.push_back(pHold);
 	}
 }
+
+
 //initialization
 LogicRunwayInSim::LogicRunwayInSim( RunwayInSim * pRunway, RUNWAY_MARK porttype )
 {
@@ -1119,11 +1124,13 @@ LogicRunwayInSim * LogicRunwayInSim::GetOtherPort()const
 	else return GetRunwayInSim()->GetLogicRunway1();
 }
 
-void LogicRunwayInSim::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode)
+void LogicRunwayInSim::SetEnterTime(CAirsideMobileElement * pFlight, const ElapsedTime& enterT, AirsideMobileElementMode fltMode, double dSpd)
 {
 	if(pFlight->IsKindof(typeof(AirsideFlightInSim)))
-		AirsideResource::SetEnterTime(pFlight,enterT,fltMode);
-	//for(int i=0;i<m_vIntersectionWithRunways.GetNodeCount();i++)
+	{
+		AirsideResource::SetEnterTime(pFlight,enterT,fltMode,dSpd);		
+	}
+		//for(int i=0;i<m_vIntersectionWithRunways.GetNodeCount();i++)
 	//{
 	//	m_vIntersectionWithRunways.GetNodeByIndex(i)->SetEnterTime(pFlight,enterT,fltMode);
 	//}
@@ -1132,7 +1139,9 @@ void LogicRunwayInSim::SetEnterTime(CAirsideMobileElement * pFlight, const Elaps
 void LogicRunwayInSim::SetExitTime( CAirsideMobileElement * pFlight, const ElapsedTime& exitT )
 {
 	if(pFlight->IsKindof(typeof(AirsideFlightInSim)))
-		AirsideResource::SetExitTime(pFlight,exitT);
+	{
+		AirsideResource::SetExitTime(pFlight,exitT);		
+	}
 	//for(int i=0;i<m_vIntersectionWithRunways.GetNodeCount();i++)
 	//{
 	//	m_vIntersectionWithRunways.GetNodeByIndex(i)->SetExitTime(pFlight,exitT);
