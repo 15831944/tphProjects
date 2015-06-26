@@ -237,20 +237,6 @@ BOOL CListCtrlEx::OnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult)
 	return FALSE;
 }
 
-void CListCtrlEx::OnLButtonDown(UINT nFlags, CPoint point) 
-{
-	SetFocus();
-	int index;
-	if((index = HitTestEx(point, NULL)) != -1)
-	{
-		LastTimeSelection = CurrentSelection;
-		CurrentSelection = index;
-		SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
-	}
-
-	//CListCtrl::OnLButtonDown(nFlags, point);
-}
-
 // EditSubLabel		- Start edit of a sub item label
 // Returns		- Temporary pointer to the new edit control
 // nItem		- The row index of the item to edit

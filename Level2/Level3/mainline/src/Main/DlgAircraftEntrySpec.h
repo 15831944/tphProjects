@@ -4,6 +4,7 @@
 #include "CommonData\PROCID.H"
 #include "MFCExControl\CoolTree.h"
 #include "Inputs\AircraftEntryProcessorData.h"
+#include "MFCExControl\ListCtrlEx.h"
 
 class CAircraftEntryProcessorDlg : public CDialog
 {
@@ -46,6 +47,7 @@ private:
     void LoadProcTree();
     void ReloadPaxTypeList(HTREEITEM hSelItem);
     void DisableAllToolBarButtons();
+    void InitPaxTypeListHeader();
 private:
     int m_oldCx;
     int m_oldCy;

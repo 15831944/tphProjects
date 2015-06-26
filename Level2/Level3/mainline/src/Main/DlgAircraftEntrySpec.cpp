@@ -8,6 +8,7 @@
 #include "Common\ProbabilityDistribution.h"
 #include "DestributionParameterSpecificationDlg.h"
 #include "PassengerTypeDialog.h"
+#include "Inputs\PROBAB.H"
 
 const static COLORREF SELECTED_COLOR = RGB(53, 151, 53);
 static UniformDistribution u2_10(2.0f, 10.0f);
@@ -46,7 +47,7 @@ BEGIN_MESSAGE_MAP(CAircraftEntryProcessorDlg, CDialog)
     ON_BN_CLICKED(IDC_BTN_SAVE, OnSave)
     ON_COMMAND(ID_TOOLBAR_ADD, OnToolbarButtonAdd)
     ON_COMMAND(ID_TOOLBAR_DEL, OnToolbarButtonDel)
-    ON_NOTIFY(NM_DBLCLK, IDC_LIST_PAXTYPE, OnDblClickListItem)
+    //ON_NOTIFY(NM_DBLCLK, IDC_LIST_PAXTYPE, OnDblClickListItem)
     ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_PAXTYPE, OnSelChangedPaxList)
     ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_ENTRYPROC, OnSelChangedTree)
     ON_WM_MOUSEMOVE()
@@ -88,9 +89,8 @@ BOOL CAircraftEntryProcessorDlg::OnInitDialog()
     DWORD dwStyle = m_paxList.GetExtendedStyle();
     dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES;
     m_paxList.SetExtendedStyle(dwStyle);
-    m_paxList.InsertColumn(0, _T("Passenger Type"), LVCFMT_LEFT, 180);
-    m_paxList.InsertColumn(1, _T("Probability Distribution(SECONDS)"), LVCFMT_LEFT, 320);
 
+    InitPaxTypeListHeader();
     return TRUE;
 }
 
@@ -347,6 +347,35 @@ void CAircraftEntryProcessorDlg::DisableAllToolBarButtons()
 {
     m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_ADD, FALSE);
     m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_DEL, FALSE);
+}
+
+void CAircraftEntryProcessorDlg::InitPaxTypeListHeader()
+{
+    LV_COLUMNEX lvc;
+    CStringList strList;
+    strList.RemoveAll();
+    lvc.csList = &strList;
+    lvc.mask = LVCF_WIDTH | LVCF_TEXT;
+    // column 0
+    lvc.fmt = LVCFMT_NOEDIT;
+    lvc.cx = 180;
+    lvc.pszText = _T("Passenger Type");
+    m_paxList.InsertColumn(0, &lvc);
+
+    // column 1
+    lvc.fmt = LVCFMT_DROPDOWN;
+    CString s;
+    s.LoadString(IDS_STRING_NEWDIST);
+    strList.InsertAfter(strList.GetTailPosition(), s);
+    int nCount = _g_GetActiveProbMan(m_pInTerm)->getCount();
+    for( int m=0; m<nCount; m++ )
+    {
+        CProbDistEntry* pPBEntry = _g_GetActiveProbMan(m_pInTerm)->getItem(m);
+        strList.InsertAfter(strList.GetTailPosition(), pPBEntry->m_csName);
+    }
+    lvc.cx = 320;
+    lvc.pszText = _T("Probability Distribution(SECONDS)");
+    m_paxList.InsertColumn(1, &lvc);
 }
 
 BOOL CAircraftEntryProcessorDlg::OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult)
