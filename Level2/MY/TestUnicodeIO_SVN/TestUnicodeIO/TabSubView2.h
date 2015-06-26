@@ -13,7 +13,7 @@ public:
     enum { IDD = IDD_TABSUBVIEW2 };
 protected:
     CListCtrlTestLvnItemChanged m_mainList;
-
+    //CListCtrlKeepHighlight m_mainList;
 protected:
     void InertTempDataToList();
     virtual void DoDataExchange(CDataExchange* pDX);

@@ -243,14 +243,14 @@ void CListCtrlEx::OnLButtonDown(UINT nFlags, CPoint point)
 //         int iii = 0;
     }
 
-    TRACE(_T("CListCtrlEx::OnLButtonDown()\r\n"));
-    for(int i=0; i<10; i++)
-    {
-        int itemState = GetItemState(i, 7);
-        CString strDbgLog;
-        strDbgLog.Format(_T("item: %d, state: %d\r\n"), i, itemState);
-        TRACE(strDbgLog);
-    }
+//     TRACE(_T("CListCtrlEx::OnLButtonDown()\r\n"));
+//     for(int i=0; i<10; i++)
+//     {
+//         int itemState = GetItemState(i, 7);
+//         CString strDbgLog;
+//         strDbgLog.Format(_T("item: %d, state: %d\r\n"), i, itemState);
+//         TRACE(strDbgLog);
+//     }
 
     //CListCtrl::OnLButtonDown(nFlags, point);
 }
@@ -540,6 +540,11 @@ void CListCtrlEx::SetCurSel(int nItem)
 }
 LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
 {
+    if(message == 0x00000201)
+    {
+        int i=0;
+        i=8;
+    }
     if (message == WM_INPLACE_SPIN)
     {
         LPSPINTEXT pst = (LPSPINTEXT) lParam;
