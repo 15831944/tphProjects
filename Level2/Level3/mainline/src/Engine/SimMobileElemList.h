@@ -9,7 +9,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "engine\mobile.h"
+class MobileElement;
 
 class CSimMobileElemList  
 {

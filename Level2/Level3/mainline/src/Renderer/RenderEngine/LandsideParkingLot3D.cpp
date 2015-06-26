@@ -1810,7 +1810,11 @@ void ParkingLotAreaControlPath3D::OnRButtonDown( const MouseSceneInfo& mouseInfo
 		pData->GetData(KeyControlPathIndex,pathIndex);
 		pData->GetData(KeyLevelIndex,levelIndex);
 		CPath2008 path2008 = getPath(getLot(),levelIndex,pathIndex);
-        //path2008.insertPointAfterAt(path2008.getPoint(0), path2008.getCount()-1);
+        if(path2008.getCount() == 0)
+        {
+            pData->SetData(KeyRClickWorldPos, ARCStringConvert::toString(ARCVector3(0.0f, 0.0f, 0.0f)));
+        }
+        path2008.insertPointAfterAt(path2008.getPoint(0), path2008.getCount()-1);
 		Path path = path2008;
 		DistanceRay3Path3 dsitraypath(ray,path);
 		dsitraypath.GetSquared(0);

@@ -72,6 +72,7 @@
 #include "DlgWallDisplayProperties.h"
 #include "Engine\Airside\AirsideFlightStairsLog.h"
 #include "glutil.h"
+#include <stack>
 
 
 #ifdef _DEBUG  

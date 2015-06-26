@@ -25,6 +25,7 @@
 #include "Accessq.h"
 #include "Inputs\Prochrch.h"
 #include "CorralServiceEvent.h"
+#include "PAX.H"
 
 using namespace std;
 HoldingArea::HoldingArea()

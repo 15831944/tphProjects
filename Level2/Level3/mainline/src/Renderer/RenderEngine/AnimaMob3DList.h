@@ -5,7 +5,7 @@ template <class _Mob3D>
 class CAnimaMob3DList
 {
 public:
-	CAnimaMob3DList(void){ }
+	CAnimaMob3DList(const CString& sType):m_sType(sType){ }
 	//~CAnimaMob3DList(void);
 
 	inline _Mob3D* CreateOrRetrieveMob3D(int nMobID, bool& bCreated)
@@ -18,7 +18,9 @@ public:
 		if(!mob)
 		{
 			bCreated = true;
-			mob = _Mob3D(nMobID,m_rootNode.CreateNewChild().GetSceneNode());		
+			CString sID;
+			sID.Format(_T("%s%d"), m_sType,nMobID);
+			mob = _Mob3D(nMobID,m_rootNode.CreateChild(sID).GetSceneNode());		
 		}
 		return &mob;
 	}
@@ -50,4 +52,5 @@ public:
 protected:
 	C3DNodeObject m_rootNode; // hold the root scene node of the scene
 	MobList m_vMobList;
+	CString m_sType;
 };

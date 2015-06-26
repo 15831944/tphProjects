@@ -821,7 +821,18 @@ void Passenger::SetWalkOnBridge( bool b )
 		}
 	}
 }
-
+void Passenger::ChangeZ(double dz)
+{
+	Person::ChangeZ( dz);
+	for (int i = 0; i < (int)m_pVisitorList.size(); i++)
+	{
+		PaxVisitor* pVis = m_pVisitorList[i];
+		if(pVis)
+		{
+			pVis->ChangeZ(dz);
+		}
+	}
+}
 void Passenger::SetBridgeState(ArrDepBridgeState state)
 {
 	Person::SetBridgeState( state);
@@ -835,6 +846,8 @@ void Passenger::SetBridgeState(ArrDepBridgeState state)
 		}
 	}
 }
+
+
 
 RetailPaxShoppingCondition::~RetailPaxShoppingCondition()
 {

@@ -3,7 +3,7 @@
 #include "..\Common\dataset.h"
 #include "..\Inputs\Pipe.h"
 #include "..\Inputs\AreasPortals.h"
-#include "..\engine\PERSON.H"
+class Person;
 #include "..\engine\CongestionAreaEvent.h"
 #include <vector>
 

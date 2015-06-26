@@ -23,6 +23,7 @@
 #include "results\EventLogBufManager.h"
 #include "ChildFrm.h"
 #include "Common\LandsideVehicleState.h"
+#include "Common\STATES.H"
 
 static const double CORNEREPSION = 0.0035;
 

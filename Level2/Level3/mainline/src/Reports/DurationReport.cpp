@@ -9,6 +9,7 @@
 #include "Rep_PAX.h"
 #include "engine\proclist.h"
 #include "engine\terminal.h"
+#include "Common\STATES.H"
 
 #ifdef _DEBUG
 #undef THIS_FILE

@@ -4,7 +4,6 @@
 #include "common\template.h"
 #include "engine\procq.h"
 #include "engine\accessq.h"
-//#include "engine\person.h"
 //#include "arctools\general\containr.h"
 
 

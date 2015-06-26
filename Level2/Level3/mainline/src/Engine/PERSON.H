@@ -198,6 +198,8 @@ public:
 	virtual void SetEntryTime(const ElapsedTime& tEntryTime);
 	virtual void SetBridgeState(ArrDepBridgeState state);
 	virtual void SetWalkOnBridge(bool b);
+	//use for change floor z to real z or reverse
+	virtual void ChangeZ(double dz);
 
 /////mobile element position interface
 	//Returns current coordinates

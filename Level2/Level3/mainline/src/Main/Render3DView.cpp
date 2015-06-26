@@ -87,6 +87,7 @@
 #include "InputAirside/ALTAirportLayout.h"
 #include "Common/ViewMsg.h"
 #include <shobjidl.h>
+#include "Common/STATES.H"
 
 
 
@@ -948,12 +949,17 @@ void CRender3DView::UpdateAnimationPax(CTermPlanDoc* pDoc, double* dAlt , BOOL* 
 				CAnimaPax3D* pPax3D = pax3DList.CreateOrRetrieveMob3D(nPaxID, bCreated);
 				if (bCreated)
 					CRender3DScene::SetSceneNodeQueryDataInt(*pPax3D, SceneNode_Pax, pPax3D->GetPaxID());
-				if (bCreated || bReloadPaxDispProp /*|| !pax3DList.IsMob3DShow(pPax3D)*/)
+
+				if(pPax3D->WhetherNeedUpdateShape(pPDPI->GetShape()) == true)
 				{
 					pPax3D->SetShape(pPDPI->GetShape());
 					pPax3D->SetColor(pPDPI->GetColor());
 				}
-
+				
+				if ( bReloadPaxDispProp /*|| !pax3DList.IsMob3DShow(pPax3D)*/)
+				{
+					pPax3D->SetColor(pPDPI->GetColor());
+				}
 				const part_event_list& part_list = it->second;				
 
 				int pesAIdx = 0;
@@ -1024,7 +1030,11 @@ void CRender3DView::UpdateAnimationPax(CTermPlanDoc* pDoc, double* dAlt , BOOL* 
 					if(!bAttachToFlight)
 					{
 						pPax3D->AttachTo(GetModelEditScene().GetRoot());
-					}							
+					}					
+					if(pPax3D->GetPaxID()==630)
+					{
+						TRACE(_T("pos:%f,%f,%f time: %d \n"),geoData.pos.x, geoData.pos.y, geoData.pos.z, nTime);
+					}
 					pPax3D->SetPosition( geoData.pos );
 
 

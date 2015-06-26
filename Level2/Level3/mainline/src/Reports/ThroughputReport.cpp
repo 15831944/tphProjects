@@ -106,6 +106,11 @@ void CThroughputReport::GenerateDetailed( ArctermFile& p_file )
 	logEntry.SetOutputTerminal( m_pTerm );
 	nProcCount = m_pTerm->procLog->getCount();
 	CProgressBar bar( "Generating Throughput  Report", 100, nProcCount, TRUE );
+	if(nProcCount >= 500)//it will crash while drawing graph
+	{
+		MessageBox(NULL, _T("The number of processors selected cannot exceed 500. Please, reduce the amount of selected processors.\r\nNote that a family can have many processors."), _T("Throughput Report"), MB_OK);
+		return;
+	}
 	for (int i = 0; i < nProcCount; i++)
 	{
 		bar.StepIt();

@@ -16,6 +16,7 @@
 #include "PaxFlowSelectPipes.h"
 #include "../Inputs/PipeDataSet.h"
 #include "..\Inputs\HandleSingleFlowLogic.h"
+#include "Engine\PERSON.H"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -517,7 +518,16 @@ void CProcessDefineDlg::OnSelchangeListProcess()
 		m_treeProcess.EnableWindow( true );
 	}
 	m_vFocusInPath.clear();
-	m_hPocessSelItem = NULL; 		// make sure no item is selected
+    if(m_treeProcess.GetRootItem())
+    {
+        m_treeProcess.SelectItem(m_treeProcess.GetRootItem());
+        if( !m_treeProcess.SelectSetFirstVisible(m_treeProcess.GetRootItem()) )
+        {
+            m_treeProcess.EnsureVisible( m_treeProcess.GetRootItem() );
+        }
+    }
+
+    m_hPocessSelItem = m_treeProcess.GetSelectedItem();
 	SetProcessTreeToolBar();
 }
 
@@ -601,7 +611,8 @@ void CProcessDefineDlg::ReloadProcessFlow()
 		LoadSubTree(hStartRoot,pStartPair);
 
 	}
-	
+
+    m_treeProcess.SetFocus();
 	CollapsedTree();
 	if( m_hInterestItem )
 	{
@@ -612,8 +623,19 @@ void CProcessDefineDlg::ReloadProcessFlow()
 		}
 
 	}
+    else
+    {
+        m_hInterestItem = m_treeProcess.GetRootItem();
+        if(m_hInterestItem)
+        {
+            m_treeProcess.SelectItem(m_hInterestItem);
+            if( !m_treeProcess.SelectSetFirstVisible( m_hInterestItem ) )
+            {
+                m_treeProcess.EnsureVisible( m_hInterestItem );
+            }
+        }
+    }
 
-    m_treeProcess.SetFocus();
 	m_hPocessSelItem = m_treeProcess.GetSelectedItem(); 		// make sure no item is selected
 	SetProcessTreeToolBar();
 }

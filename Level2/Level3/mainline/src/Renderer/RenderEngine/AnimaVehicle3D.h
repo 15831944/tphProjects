@@ -37,7 +37,8 @@ protected:
 
 class RENDERENGINE_API CAnimaVehicle3DList : public CAnimaMob3DList<CAnimaVehicle3D> 
 {
-
+public:
+	CAnimaVehicle3DList():CAnimaMob3DList(_T("AirsideVehicle")){}
 };
 //class RENDERENGINE_API CAnimaVehicle3DList
 //{

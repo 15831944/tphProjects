@@ -174,6 +174,17 @@ void MobileElement::ClearBehaviors()
 
 	m_vBehavior.clear();
 }
+
+void MobileElement::setState(short newState)
+{
+	//if( state == WaitInQueue  && newState == MoveToQueue)
+	//{
+	//	ASSERT(FALSE);
+	//}
+	m_iPreState = state;
+	state = newState;
+}
+
 //Searches unsorted contain for a given mobile element and returns its index if found; otherwise returns INT_MAX.
 int MobileElementList::findElement (long p_id)
 {

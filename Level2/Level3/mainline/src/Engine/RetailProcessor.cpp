@@ -15,6 +15,7 @@
 #include "person.h"
 #include "..\Common\ProbabilityDistribution.h"
 #include "..\Economic\ProcEconomicDataElement.h"
+#include "PAX.H"
 
 RetailProcessor::RetailProcessor(void)
 :m_pRetailMisData(NULL)

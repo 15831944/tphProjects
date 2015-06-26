@@ -893,7 +893,7 @@ bool OnboardFlightInSim::RegisterPax( int nPaxID )
 	}
 
 	//the passenger already exists
-	ASSERT(0);
+	//ASSERT(0);
 	return false;
 }
 

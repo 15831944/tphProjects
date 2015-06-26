@@ -3,6 +3,7 @@
 #include "AirsideMobileElementEvent.h"
 #include "../MobileElementGenerator.h"
 class Flight;
+class BridgeConnector;
 class ENGINE_TRANSFER FlightArrivalStandEvent : public CAirsideMobileElementEvent
 {
 public:

@@ -297,7 +297,7 @@ void FixedQueue::getQueuePosition (Person *aPerson) const
 
 void FixedQueue::updateApproaching (ElapsedTime updateTime)
 {
-
+	
     Person *aPerson;
     for (int i = 0; i < m_approachList.getCount(); i++)
     {
@@ -305,6 +305,7 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
 		TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)aPerson->getBehavior(MobElementBehavior::TerminalBehavior);
         if (spTerminalBehavior&&onTailSegment (aPerson))
         {
+
 			if(spTerminalBehavior->HasArrivedFixQueue())
 			{
 				aPerson->setState (MoveToQueue);
@@ -321,16 +322,16 @@ void FixedQueue::updateApproaching (ElapsedTime updateTime)
 			{
 				if(EntryPoints.GetCurrentIndex() != -1 )
 					spTerminalBehavior->first = EntryPoints.GetCurrentIndex() ;
-                    aPerson->setCurrentPosition(updateTime);
+                aPerson->setCurrentPosition(updateTime);
 
-
-                    aPerson->setState (MoveToQueue);
-                    spTerminalBehavior->setNextIndex (APPROACHING);
-                    spTerminalBehavior->updateIndex();
-                    getQueuePosition (aPerson);
-                    aPerson->setTerminalDestination(corner(spTerminalBehavior->first)) ;
-                    ElapsedTime time = updateTime + aPerson->moveTime() ;
-                    aPerson->generateEvent (time,false);
+                aPerson->setState (MoveToQueue);
+                spTerminalBehavior->setNextIndex (APPROACHING);
+                spTerminalBehavior->updateIndex();
+                getQueuePosition (aPerson);
+                aPerson->setTerminalDestination(corner(spTerminalBehavior->first)) ;
+                ElapsedTime time = updateTime + aPerson->moveTime() ;
+                aPerson->generateEvent (time,false);
+			
 			}
 
         }

@@ -102,6 +102,7 @@ public:
 	virtual void SetEntryTime(const ElapsedTime& tEntryTime);
 	virtual void SetBridgeState(ArrDepBridgeState state);
 	virtual void SetWalkOnBridge(bool b);
+	virtual void ChangeZ(double dz);
 
 	void NewConvergePair(long _iVisitorId,long _iVisitorType);
 	void DeleteConvergePair(long _iVisitorId,bool _IsMyWantDele);

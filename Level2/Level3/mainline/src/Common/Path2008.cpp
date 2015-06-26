@@ -200,7 +200,8 @@ void CPath2008::ConnectPath(const CPath2008& path)
 void CPath2008::insertPointAfterAt(const CPoint2008 & _p,int _iIdx){
 
 	ASSERT( _iIdx>=0 && _iIdx< getCount() );
-	points.insert(points.begin()+_iIdx+1,_p);
+    if(_iIdx>=0 && _iIdx< getCount())
+        points.insert(points.begin()+_iIdx+1,_p);
 
 	/*int iTotalCount = getCount()+1;
 	CPoint2008* pNewPointList = new CPoint2008[ iTotalCount ];
@@ -215,7 +216,8 @@ void CPath2008::insertPointAfterAt(const CPoint2008 & _p,int _iIdx){
 void CPath2008 ::insertPointBeforeAt(const CPoint2008 & _p,int _iIdx)
 {
 	ASSERT( _iIdx>=0 && _iIdx<= getCount() );
-	points.insert(points.begin()+_iIdx,_p);
+    if(_iIdx>=0 && _iIdx< getCount())
+        points.insert(points.begin()+_iIdx,_p);
 	/*int nTotalCount = getCount() + 1;
 	CPoint2008* pNewPointList = new CPoint2008[nTotalCount];
 	std::copy(points, points + _iIdx, pNewPointList);
@@ -912,40 +914,36 @@ CPath2008 CPath2008::GetSubPathIndex( double relatPos1, double relatPos2 ) const
 
 int CPath2008::GetSegmentNearPos(CPoint2008& pos)
 {
-    int index = -1;
-    int nPointCount = getCount();
-    double minCosValue = ARCMath::DISTANCE_INFINITE, cosValue = 0.0;
-    for(int i=0; i<nPointCount-1; i++)
-    {
-        // if point pos insides the rectangle Rect(points[i], points[i+1])
-        if(((points[i].x<pos.x && pos.x<points[i+1].x) || (points[i].x>pos.x && pos.x>points[i+1].x)) &&
-           ((points[i].y<pos.y && pos.y<points[i+1].y) || (points[i].y>pos.y && pos.y>points[i+1].y)))
-        {
-            ARCVector3 unitVec1 = (points[i+1]-points[i]).PerpendicularLCopy().Normalize();
-            ARCVector3 unitVec2 = (pos-points[i]).Normalize();
-            cosValue = std::abs(unitVec1.dot(unitVec2)); // cosValue = cos(pos -> points[i] -> point[i+1])
-            if(cosValue < minCosValue)
-            {
-                minCosValue = cosValue;
-                index = i;
-            }
-        }
-    }
+	int i = 0, index = -1;
+	double minValue = ARCMath::DISTANCE_INFINITE, upValue = 0.0;
+	for (; i < getCount() -1; i++)
+	{
+		if (((points[i].x < points[i+1].x) ? (pos.x > points[i].x ? ( pos.x < points[i+1].x ) : 0) : (pos.x < points[i].x ? ( pos.x > points[i+1].x ) : 0))
+		   ||((points[i].y < points[i+1].y) ? (pos.y > points[i].y ? ( pos.y < points[i+1].y ) : 0) : (pos.y < points[i].y ? ( pos.y > points[i+1].y ) : 0)))
+		{
+			upValue =  std::abs( (points[i] - pos).dot((points[i]-points[i+1]).PerpendicularLCopy().Normalize()) );
+			if ( upValue < minValue ) {
+				minValue = upValue;
+				index = i;
+			}
+		}
+	}
 
-    // if point pos insides the rectangle Rect(points[nPointCount-1], points[0])
-    if(((points[nPointCount-1].x<pos.x && pos.x<points[0].x) || (points[nPointCount-1].x>pos.x && pos.x>points[0].x)) &&
-        ((points[nPointCount-1].y<pos.y && pos.y<points[0].y) || (points[nPointCount-1].y>pos.y && pos.y>points[0].y)))
-    {
-        ARCVector3 unitVec1 = (points[0]-points[nPointCount-1]).PerpendicularLCopy().Normalize();
-        ARCVector3 unitVec2 = (pos - points[nPointCount-1]).Normalize();
-        cosValue = std::abs(unitVec1.dot(unitVec2)); // cosValue = cos(pos -> points[i] -> point[i+1])
-        if(cosValue < minCosValue)
-        {
-            minCosValue = cosValue;
-            index = nPointCount-1;
-        }
-    }
-    return index;
+	if (((points[getCount()-1].x < points[0].x) ? (pos.x > points[getCount()-1].x ? ( pos.x < points[0].x ) : 0) : (pos.x < points[getCount()-1].x ? ( pos.x > points[0].x ) : 0))
+	   ||((points[getCount()-1].y < points[0].y) ? (pos.y > points[getCount()-1].y ? ( pos.y < points[0].y ) : 0) : (pos.y < points[getCount()-1].y ? ( pos.y > points[0].y ) : 0)))
+	{
+		//upValue =  std::abs( (points[getCount()-1] - pos).crossProduct(pos - points[0]).z );
+		ARCVector3 n( points[getCount()-1].y-points[0].y, -points[getCount()-1].x + points[0].x, points[0].z);
+		n.Normalize();
+		upValue = (pos - points[0]).dot(n);
+		upValue = std::abs(upValue);
+		if ( upValue < minValue ) {
+			minValue = upValue;
+			index = getCount() - 1;
+		}
+	}
+
+	return index;
 }
 
 CPoint2008 CPath2008::GetDistPointEx( double dist ) const

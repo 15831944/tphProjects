@@ -907,7 +907,7 @@ void CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::Init( TaxiSegment
 		return;
 
 	m_taxiwayDirectSegLst.clear();
-	pTaxiwayResManager->GetTaxiwaySegment( m_pTaxiSeg->m_iTaxiwayID, m_pTaxiSeg->m_iStartNode, m_pTaxiSeg->m_iEndNode, m_taxiwayDirectSegLst);
+	pTaxiwayResManager->GetTaxiwaySegments( m_pTaxiSeg->m_iTaxiwayID, m_pTaxiSeg->m_iStartNode, m_pTaxiSeg->m_iEndNode, m_taxiwayDirectSegLst);
 }
 
 bool CRunwayExitAssignmentStrategiesInSim::TaxiConditionInSim::IsAvailable( AirsideFlightInSim* pFlight )

@@ -860,9 +860,9 @@ IntersectionNodeInSim* In_OutBoundRouteAssignmentInSim::GetRouteItemListInPriori
 					FlightGroundRouteDirectSegList vSegmentList;
 
 					if (m_pRunwayResManager->GetRunwayByID(nTailTaxiwayID) != NULL)		//rwy item
-						m_pRunwayResManager->GetRunwaySegment(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
+						m_pRunwayResManager->GetRunwaySegments(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
 					else
-						m_pTaxiResManager->GetTaxiwaySegment(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
+						m_pTaxiResManager->GetTaxiwaySegments(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
 
 					vRouteItems.insert(vRouteItems.end(),vSegmentList.begin(),vSegmentList.end());
 				}
@@ -966,9 +966,9 @@ int In_OutBoundRouteAssignmentInSim::GetRouteItemsFromGroundRoute(
 			{
 				FlightGroundRouteDirectSegList vSegments;
 				if (m_pRunwayResManager->GetRunwayByID(nPreTaxiwayID) != NULL)		//rwy item
-					m_pRunwayResManager->GetRunwaySegment(nPreTaxiwayID,nTailIntersetionNodeID,pNode->GetID(),vSegments);
+					m_pRunwayResManager->GetRunwaySegments(nPreTaxiwayID,nTailIntersetionNodeID,pNode->GetID(),vSegments);
 				else
-					m_pTaxiResManager->GetTaxiwaySegment(nPreTaxiwayID,nTailIntersetionNodeID,pNode->GetID(),vSegments);
+					m_pTaxiResManager->GetTaxiwaySegments(nPreTaxiwayID,nTailIntersetionNodeID,pNode->GetID(),vSegments);
 				vRouteItems.insert(vRouteItems.end(), vSegments.begin(), vSegments.end());
 			}
 			if (-1 == nHeadIntersectionNodeID)
@@ -1103,7 +1103,12 @@ bool In_OutBoundRouteAssignmentInSim::GetPreRoute(
 			if (m_pTaxiResManager->IsNodeOnTaxiway(nHeadTaxiwayID, pNodeIn->GetID())) // if both in-node and start-node are on the taxiway
 			{
 				// just retrieve segments from this taxiway
-				m_pTaxiResManager->GetTaxiwaySegment(nHeadTaxiwayID, pNodeIn->GetID(), pStartNode->GetID(), vPreItems);
+				m_pTaxiResManager->GetTaxiwaySegments(nHeadTaxiwayID, pNodeIn->GetID(), pStartNode->GetID(), vPreItems);
+				bHeadTaxiwayOK = true;
+			}
+			else if(m_pRunwayResManager->IsNodeOnRunway(nHeadTaxiwayID, pNodeIn->GetID()))
+			{
+				m_pRunwayResManager->GetRunwaySegments(nHeadTaxiwayID, pNodeIn->GetID(), pStartNode->GetID(), vPreItems);
 				bHeadTaxiwayOK = true;
 			}
 			else
@@ -1152,7 +1157,7 @@ bool In_OutBoundRouteAssignmentInSim::GetPreRoute(
 						if (pExceptNode)
 						{
 							FlightGroundRouteDirectSegList vPreSegLink;
-							m_pTaxiResManager->GetTaxiwaySegment(nHeadTaxiwayID, pNode->GetID(), pExceptNode->GetID(), vPreSegLink);
+							m_pTaxiResManager->GetTaxiwaySegments(nHeadTaxiwayID, pNode->GetID(), pExceptNode->GetID(), vPreSegLink);
 							vPreSegTmp.insert(vPreSegTmp.end(), vPreSegLink.begin(), vPreSegLink.end());
 						}
 
@@ -1230,7 +1235,7 @@ bool In_OutBoundRouteAssignmentInSim::GetPostRoute(
 		if (m_pTaxiResManager->IsNodeOnTaxiway(nTailTaxiwayID, pNodeOut->GetID())) // if both end-node and out-node are on the taxiway
 		{
 			// just retrieve segments from this taxiway
-			m_pTaxiResManager->GetTaxiwaySegment(nTailTaxiwayID, pEndNode->GetID(), pNodeOut->GetID(), vPostItems);
+			m_pTaxiResManager->GetTaxiwaySegments(nTailTaxiwayID, pEndNode->GetID(), pNodeOut->GetID(), vPostItems);
 			bTailTaxiwayOK = true;
 		}
 		else
@@ -1276,7 +1281,7 @@ bool In_OutBoundRouteAssignmentInSim::GetPostRoute(
 					{
 						// get linking segments
 						FlightGroundRouteDirectSegList vPostSegLink;
-						m_pTaxiResManager->GetTaxiwaySegment(nTailTaxiwayID, pExceptNode->GetID(), pNode->GetID(), vPostSegLink);
+						m_pTaxiResManager->GetTaxiwaySegments(nTailTaxiwayID, pExceptNode->GetID(), pNode->GetID(), vPostSegLink);
 						vPostSegTmp.insert(vPostSegTmp.begin(), vPostSegLink.begin(), vPostSegLink.end());
 
 						// record
@@ -1644,9 +1649,9 @@ IntersectionNodeInSim* In_OutBoundRouteAssignmentInSim::_getCirculateRouteItems(
 					FlightGroundRouteDirectSegList vSegmentList;
 
 					if (m_pRunwayResManager->GetRunwayByID(nTailTaxiwayID) != NULL)		//rwy item
-						m_pRunwayResManager->GetRunwaySegment(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
+						m_pRunwayResManager->GetRunwaySegments(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
 					else
-						m_pTaxiResManager->GetTaxiwaySegment(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
+						m_pTaxiResManager->GetTaxiwaySegments(nTailTaxiwayID,nPreIntersectionID,nThisIntersectionID,vSegmentList);
 
 					vRouteItems.insert(vRouteItems.end(),vSegmentList.begin(),vSegmentList.end());
 				}

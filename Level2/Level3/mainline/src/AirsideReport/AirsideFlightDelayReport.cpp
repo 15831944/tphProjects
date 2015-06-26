@@ -1484,11 +1484,7 @@ void CAirsideFlightDelayReport::FillDetailTypeListContent(CXListCtrl& cxListCtrl
 				break;
 			}
 			cxListCtrl.SetItemText(nShowRows,6,strText);
-            if(strText.CompareNoCase("Service") == 0)
-            {
-                int i=0;
-                i=100;
-            }
+
 			//detail
 
 			cxListCtrl.SetItemText(nShowRows,7,nodeDelayItem.m_strDetailReason);

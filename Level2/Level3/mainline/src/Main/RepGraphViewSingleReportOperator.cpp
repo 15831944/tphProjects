@@ -3988,6 +3988,18 @@ void CRepGraphViewSingleReportOperator::ThroughputTotalPaxDetailed()
 		if(strxValue[nProcCount]!=strTemp)
 		{
 			nProcCount++;
+
+			if(nProcCount >= 1000)// the array is set to 1000
+			{
+				for(int k = 0; k < 1000; k++)
+				{
+					delete[] yValue[k];
+				}
+				delete[] yValue;
+				chartFile.closeIn();
+
+				return;
+			}
 			strxValue[nProcCount]=strTemp;
 			IntervalNum = 1;
 		}
@@ -4002,6 +4014,7 @@ void CRepGraphViewSingleReportOperator::ThroughputTotalPaxDetailed()
 
 		//		// TRACE("the time is %d hours,or %d minutes\n",hours,minutes);
 		yValue[nProcCount][IntervalNum++]=value;
+
 
 	}
 

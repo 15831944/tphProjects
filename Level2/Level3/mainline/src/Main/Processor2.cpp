@@ -38,6 +38,7 @@
 #include <Common/Guid.h>
 #include <boost/bind.hpp>
 #include "../Engine/fixedq.h"
+#include <stack>
 
 #ifdef _DEBUG
 #undef THIS_FILE

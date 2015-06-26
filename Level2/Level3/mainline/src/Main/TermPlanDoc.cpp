@@ -207,6 +207,7 @@ static char THIS_FILE[] = __FILE__;
 #include "Inputs/Walkthroughs.h"
 #include "Proc2DataForClipBoard.h"
 #include "Common/ARCStringConvert.h"
+#include "Common/STATES.H"
 
 
 
@@ -4350,12 +4351,53 @@ BOOL CTermPlanDoc::BuildTempTracerData()
 				std::vector<CTrackerVector3>& vTrack = m_tempTracerData.GetTrack(nTrackIdx);
 			
 				vTrack.clear();
+				
+				bool bNeedDeleteBirthEvent = false;
+				if (nEventCount > 0)
+				{
+					MobEventStruct firstEvent = element.getEvent(0);
+					if(firstEvent.state != Birth)
+						bNeedDeleteBirthEvent = true;
+				}
 
+				long iFirstBirthIndex = -1;
 				for(long jj=1; jj<nEventCount; jj++)  //for each event of this pax
 				{
 					
 					MobEventStruct pes = element.getEvent(jj);
+					if (pes.state >= EntryOnboard)
+					{
+						continue;
+					}
 
+					//remove terminal birth at start processor
+					if (bNeedDeleteBirthEvent == true)
+					{
+						if (pes.state == Birth)
+						{
+							if (iFirstBirthIndex >= 0)
+							{
+								if (iFirstBirthIndex + 1 == jj)
+								{
+									iFirstBirthIndex = jj;
+									continue;
+								}
+							}
+							else
+							{
+								iFirstBirthIndex = jj;
+							}
+						}
+						else
+						{
+							if (iFirstBirthIndex >= 0)
+							{
+								vTrack.pop_back();
+								bNeedDeleteBirthEvent = false;
+							}
+						}
+					}
+					
 					if(pes.state==TerminalBegin || pes.state==TerminalEnd)
 					{
 						continue;

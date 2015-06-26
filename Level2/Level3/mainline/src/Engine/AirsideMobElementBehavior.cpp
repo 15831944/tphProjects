@@ -18,6 +18,7 @@
 #include "OnboardFlightInSim.h"
 #include "OnboardDoorInSim.h"
 #include "Airside/FlightOpenDoors.h"
+#include "PAX.H"
 
 
 AirsidePassengerBehavior::AirsidePassengerBehavior(Person* pax)

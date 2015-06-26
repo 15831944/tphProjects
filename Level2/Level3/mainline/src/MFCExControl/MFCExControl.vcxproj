@@ -173,7 +173,6 @@
     <ClInclude Include="ListCtrlDef.h" />
     <ClInclude Include="ListCtrlEx.h" />
     <ClInclude Include="ListCtrlExEx.h" />
-    <ClInclude Include="ListCtrlExExEx.h" />
     <ClInclude Include="ListCtrlReSizeColum.h" />
     <ClInclude Include="MemDC.h" />
     <ClInclude Include="MFCExControlAPI.h" />
@@ -240,7 +239,6 @@
     <ClCompile Include="ListCtrlDef.cpp" />
     <ClCompile Include="ListCtrlEx.cpp" />
     <ClCompile Include="ListCtrlExEx.cpp" />
-    <ClCompile Include="ListCtrlExExEx.cpp" />
     <ClCompile Include="ListCtrlReSizeColum.cpp" />
     <ClCompile Include="MFCExControl.cpp" />
     <ClCompile Include="MySpin.cpp" />

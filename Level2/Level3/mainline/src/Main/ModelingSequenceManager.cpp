@@ -2,6 +2,7 @@
 #include "modelingsequencemanager.h"
 #include "TermPlanDoc.h"
 #include "resource.h"
+#include <deque>
 
 CModelingSequenceManager::CModelingSequenceManager()
 {

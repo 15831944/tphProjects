@@ -10,6 +10,7 @@
 #include "ScheduleStepEvent.h"
 #include "EntryPointInSim.h"
 #include "OnboardSeatInSim.h"
+#include "PAX.H"
 
 const static  ElapsedTime Interval= ElapsedTime(0.2); 
 #define PI 3.141592653589793f

@@ -80,6 +80,7 @@
 #include "ARCportEngine.h"
 #include "AirsideMobElementBaseBehavior.h"
 
+
 extern std::vector<ConvergePair *> GreetPool;
 
 const long PAX_PICKUP_BAG_INTERUPT_SECOND = 1;
@@ -318,8 +319,6 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 
 
    int nReturnValue = 1;
-    int nPersonID = getID();
-    CString strProc = spTerminalBehavior->getProcessor()->getIDName();
 	switch (state)
     {
 
@@ -618,7 +617,6 @@ void Person::writeTerminalBeginLogEntry(ElapsedTime p_time)
 
 void Person::writeTerminalEndLogEntry(ElapsedTime p_time)
 {
-    int nPersonID = getID();
 	PLACE_METHOD_TRACK_STRING();
 	int nState = state;
 	setState(TerminalEnd);
@@ -730,10 +728,6 @@ void Person::writeLog (ElapsedTime time, bool _bBackup, bool bOffset /*= true*/ 
 	//{
 	//	TRACE(" \r\n ------------------------------------- %d, %d, %d, %s, %s", id, track.time, (int)track.state, STATE_NAMES[(int)track.state], time.printTime());
 	//}
-
-
-
-
 }
 
 
@@ -947,7 +941,11 @@ void Person::RepeatLastLogWithNewDest()
 	{
 		MobEventStruct eventItem = *pPreTrack;		
 		spTerminalBehavior->m_ptDestination.getPoint(eventItem.x, eventItem.y, eventItem.z);
-
+		/*if(spTerminalBehavior->getBridgeState()==DepBridge)
+		{
+		eventItem.m_IsRealZ = spTerminalBehavior->IsWalkOnBridge() ;
+		eventItem.m_RealZ = eventItem.z;
+		}*/
 		m_logEntry.addEvent(eventItem);
 	}
 }
@@ -1204,7 +1202,7 @@ void Person::SetBridgeState( ArrDepBridgeState state )
 	}
 }
 
-void Person::SetWalkOnBridge( bool b )
+void Person::SetWalkOnBridge( bool b)
 {
 	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
 	if(spTerminalBehavior)
@@ -1218,16 +1216,61 @@ void Person::SetWalkOnBridge( bool b )
 	if(!m_pGroupInfo->IsFollower())
 	{
 		CGroupLeaderInfo* leadinfo =  (CGroupLeaderInfo*)m_pGroupInfo;
+		
 		ASSERT(leadinfo->GetGroupLeader()==this);
-		MobileElementList& followers = leadinfo->GetFollowerList();
-		for(int i=0;i<followers.getCount();i++)
+		if(leadinfo->isInGroup())
 		{
-			MobileElement* elm = followers.getItem(i);
-			TerminalMobElementBehavior* spTerminalBehavior = elm->getTerminalBehavior();
-			if(spTerminalBehavior)
+			MobileElementList& followers = leadinfo->GetFollowerList();
+			for(int i=0;i<followers.getCount();i++)
 			{
-				spTerminalBehavior->SetWalkOnBridge(b);				
+				MobileElement* elm = followers.getItem(i);
+				TerminalMobElementBehavior* spTerminalBehavior = elm->getTerminalBehavior();
+				if(spTerminalBehavior)
+				{
+					spTerminalBehavior->SetWalkOnBridge(b);				
+				}
 			}
-		}
+		}		
+	}
+}
+
+void Person::ChangeZ(double dz)
+{
+	TerminalMobElementBehavior* spTerminalBehavior = getTerminalBehavior();
+	if(spTerminalBehavior)
+	{
+		Point pt = spTerminalBehavior->getLocation();
+		pt.z = dz;
+		spTerminalBehavior->setLocation(pt);
+		pt = spTerminalBehavior->getDest();
+		pt.z = dz;
+		spTerminalBehavior->setDestination(pt);
+	}
+
+	if(!m_pGroupInfo)
+		return;
+
+	if(!m_pGroupInfo->IsFollower())
+	{
+		CGroupLeaderInfo* leadinfo =  (CGroupLeaderInfo*)m_pGroupInfo;
+		ASSERT(leadinfo->GetGroupLeader()==this);
+		if(leadinfo->isInGroup())
+		{
+			MobileElementList& followers = leadinfo->GetFollowerList();
+			for(int i=0;i<followers.getCount();i++)
+			{
+				MobileElement* elm = followers.getItem(i);
+				TerminalMobElementBehavior* spTerminalBehavior = elm->getTerminalBehavior();
+				if(spTerminalBehavior)
+				{
+					Point pt = spTerminalBehavior->getLocation();
+					pt.z = dz;
+					spTerminalBehavior->setLocation(pt);
+					pt = spTerminalBehavior->getDest();
+					pt.z = dz;
+					spTerminalBehavior->setDestination(pt);
+				}
+			}
+		}		
 	}
 }

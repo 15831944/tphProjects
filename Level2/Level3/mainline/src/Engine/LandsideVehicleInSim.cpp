@@ -23,6 +23,7 @@
 #include "LandsideStrategyStateInSim.h"
 #include "LandsideCurbsideInSim.h"
 #include "LandsideResourceManager.h"
+#include "PERSON.H"
 
 #define VEHICLE0LOG _T("D:\\LandsideDebug\\Vehicle0.log")
 

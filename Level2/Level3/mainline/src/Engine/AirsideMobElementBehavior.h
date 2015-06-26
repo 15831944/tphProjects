@@ -1,9 +1,8 @@
 #pragma once
-#include "pax.h"
 #include "terminal.h"
 #include "Common/Point2008.h"
 #include "AirsideMobElementBaseBehavior.h"
-
+class Person;
 
 class ENGINE_TRANSFER AirsidePassengerBehavior :  public AirsideMobElementBaseBehavior
 {

@@ -114,7 +114,7 @@ private:
 	
 	//can lead to entry point for deplane
 	bool CanLeadToEntryPoint();
-
+	void WritePassengerGroupLog(ElapsedTime time);
 	//create entry point seat to entry point direction
 	//PaxOnboardBaseBehavior::MobDir GetDirectionSidle(CPoint2008& dir)const;
 private:

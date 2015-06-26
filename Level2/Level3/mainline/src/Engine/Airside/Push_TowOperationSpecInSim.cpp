@@ -764,9 +764,9 @@ IntersectionNodeInSim* Push_TowOperationSpecInSim::GetReturnRouteItemList( CTowO
 		FlightGroundRouteDirectSegList vSegmentList;
 		vSegmentList.clear();
 		if(pFirstItem->GetEnumType() ==CTowOperationRouteItem::ItemType_Runway)
-			m_pAirportRes->getRunwayResource()->GetRunwaySegment(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
+			m_pAirportRes->getRunwayResource()->GetRunwaySegments(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
 		else
-			m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegment(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
+			m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegments(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
 
 		vRouteItems.insert(vRouteItems.end(),vSegmentList.begin(),vSegmentList.end());
 
@@ -844,9 +844,9 @@ IntersectionNodeInSim* Push_TowOperationSpecInSim::GetRouteItemList(CTowOperatio
 		FlightGroundRouteDirectSegList vSegmentList;
 		vSegmentList.clear();
 		if(pFirstItem->GetEnumType() ==CTowOperationRouteItem::ItemType_Runway)
-			m_pAirportRes->getRunwayResource()->GetRunwaySegment(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
+			m_pAirportRes->getRunwayResource()->GetRunwaySegments(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
 		else
-			m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegment(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
+			m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegments(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
 
 		vRouteItems.insert(vRouteItems.end(),vSegmentList.begin(),vSegmentList.end());
 
@@ -887,7 +887,7 @@ void Push_TowOperationSpecInSim::GetRouteItemsFromTowingRoute(CTowingRoute* pGro
 
 		FlightGroundRouteDirectSegList vSegments;
 		vSegments.clear();
-		m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegment(nFirstTaxiwayID,nFirstNodeID,pNode->GetID(),vSegments);
+		m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegments(nFirstTaxiwayID,nFirstNodeID,pNode->GetID(),vSegments);
 
 		vRouteItems.insert(vRouteItems.end(), vSegments.begin(), vSegments.end());
 

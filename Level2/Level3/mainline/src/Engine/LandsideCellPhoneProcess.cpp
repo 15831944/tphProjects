@@ -8,6 +8,7 @@
 #include "../Landside/LandsideParkingLot.h"
 #include "./LandsideVehicleLeadToInSimManager.h" 
 #include "LandsideBaseBehavior.h"
+#include "PAX.H"
 
 LandsideCellPhoneProcess::LandsideCellPhoneProcess(LandsidePaxVehicleInSim* pVehicle,ResidentVehicleRouteList* pRoute)
 :m_pVehicleInSim(pVehicle)

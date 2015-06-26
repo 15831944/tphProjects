@@ -26,7 +26,7 @@
 #include "State_InCurbside.h"
 #include "Landside/VehicleOperationNonPaxRelatedContainer.h"
 #include "../LandsideSimErrorShown.h"
-
+#include "../PAX.H"
 
 
 LandsideTaxiInSim::LandsideTaxiInSim( const PaxVehicleEntryInfo& entryInfo) 

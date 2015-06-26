@@ -1,7 +1,9 @@
 #pragma once
 #include "MobElementBehavior.h"
 #include "Common/point.h"
-#include "person.h"
+#include "Inputs/TimePointOnSideWalk.h"
+#include "FLowChannelList.h"
+#include "PERSON.H"
 /**
 *	Class to provide Mobile Element in Terminal Mode's Movement logic.
 	<TODO::>  Reconstruction class 'Person'. move associated code from 'Person' to this class.
@@ -18,7 +20,12 @@ class CPersonOnStation;
 class CPaxDestDiagnoseInfo;
 class CFLowChannelList;
 class CAirsidePaxBusInSim;
-
+class BridgeConnector;
+class CArea;
+class CFlowChannel;
+class AirsideFlightInSim;
+class ProcessorOccupantsState;
+class CFlowItemEx;
 
 class ENGINE_TRANSFER TerminalMobElementBehavior : public MobElementBehavior
 {
@@ -322,6 +329,13 @@ public:
 	
 	void kill (ElapsedTime killTime);
 
+	//--------------------------------------------------------------------------------------------
+	//Summary:
+	//		passenger enter from terminal to onboard mode need add passenger to onboard flight and 
+	//		check all passenger whether enter onboard flight
+	//--------------------------------------------------------------------------------------------
+	bool EnterFromTerminalModeToOtherMode();
+
 protected:
 	void writeLogEntry (ElapsedTime time, bool _bBackup, bool bOffset = true );;
 	void generateEvent (ElapsedTime eventTime,bool bNoLog );
@@ -420,12 +434,6 @@ private:
 	// if _eCurTime > FlightDepTime - _eDeltaTime
 	bool IsLateForDepFlight( ElapsedTime _eCurTime, long _lMinutes );
 
-	//--------------------------------------------------------------------------------------------
-	//Summary:
-	//		passenger enter from terminal to onboard mode need add passenger to onboard flight and 
-	//		check all passenger whether enter onboard flight
-	//--------------------------------------------------------------------------------------------
-	bool EnterFromTerminalModeToOtherMode();
 	//--------------------------------------------------------------------------------------
 	//Summary:
 	//		passenger from onboard to enter terminal and check door whether close
@@ -632,7 +640,7 @@ public:
 
 	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
 
-	inline void SetWalkOnBridge(BOOL b){ m_IsWalkOnBridge = b; }
+	void SetWalkOnBridge(BOOL b);
 	inline BOOL IsWalkOnBridge()const{ return m_IsWalkOnBridge; }
 	ArrDepBridgeState getBridgeState()const{ return m_emBridgeState;}
 	void setBridgeState(ArrDepBridgeState state){ m_emBridgeState = state; }

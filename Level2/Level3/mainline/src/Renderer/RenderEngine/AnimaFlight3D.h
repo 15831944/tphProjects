@@ -41,7 +41,8 @@ protected:
 
 class RENDERENGINE_API CAnimaFlight3DList : public CAnimaMob3DList<CAnimaFlight3D>
 {
-
+public:
+	CAnimaFlight3DList():CAnimaMob3DList(_T("Flight")){}
 };
 
 //class RENDERENGINE_API CAnimaFlight3DList

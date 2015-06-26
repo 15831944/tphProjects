@@ -47,7 +47,7 @@ void LineProcessor::initServiceLocation (int pathCount, const Point *pointList)
     m_serviceCoords.init (points);
 
 	int nServicePointCount = points.getCount();
-
+    m_vOccupiedID.clear();
 	for( int i=0; i<nServicePointCount; i++ )
 	{
 		m_vOccupiedID.push_back( -1 );

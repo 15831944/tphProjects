@@ -8,7 +8,7 @@
 #include "..\common\point.h"
 #include "..\common\line.h"
 #ifdef _DEBUG
-#include "person.h"
+class Person;
 #endif
 
 #define	CELLWIDTH	1

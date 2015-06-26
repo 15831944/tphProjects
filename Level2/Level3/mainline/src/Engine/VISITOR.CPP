@@ -412,7 +412,14 @@ void PaxVisitor::writeVisitorLog(ElapsedTime time, Point _OwnerPreLocation, bool
 			writeCurrentLogItem(_OwnerPreLocation, firstLog);
 			// add the first log entry
 			MobEventStruct eventItem = *pPreTrack;
+
 			spTerminalBehavior->getLocation().getPoint (eventItem.x, eventItem.y, eventItem.z);
+			/*if(spTerminalBehavior->getBridgeState()==DepBridge)
+			{
+				eventItem.m_IsRealZ = track.m_IsRealZ;
+				if(eventItem.m_IsRealZ)
+					eventItem.m_RealZ = eventItem.z;
+			}*/
 			m_logEntry.addEvent (eventItem);
 		}
 

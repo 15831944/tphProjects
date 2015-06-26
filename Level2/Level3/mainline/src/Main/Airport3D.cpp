@@ -234,8 +234,7 @@ void CAirport3D::Init()
 		CTaxiway3D * pTaxiway3D = (CTaxiway3D*)m_vTaxways.at(i).get();
 		pTaxiway3D->UpdateIntersectionNodes(m_vAirportNodes);
 	}
-	UpdateObjectsRelations();
-	
+	UpdateObjectsRelations();	
 }
 
 void CAirport3D::DrawOGL( C3DView * pView,bool bWithlevles )
@@ -1633,6 +1632,7 @@ bool CAirport3D::ReflectChangeOf( ALTObject3DList obj3DList )
 	}
 	catch(CException* e)
 	{
+		delete e;
 	}
 	catch(...)
 	{

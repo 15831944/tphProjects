@@ -23,6 +23,7 @@ protected:
 	
 class RENDERENGINE_API CAnimaLandsideVehicle3DList: public  CAnimaMob3DList<CLandsideVehicle3D>
 {
-
+public:
+	CAnimaLandsideVehicle3DList():CAnimaMob3DList(_T("LandsideVehicle")){}
 };
 

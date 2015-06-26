@@ -1140,6 +1140,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 		t = (float) (time / (double)m_pPerson->speed );
 
 		m_pPerson->SetWalkOnBridge(TRUE);//m_IsWalkOnBridge = TRUE ;
+		m_pPerson->ChangeZ(startPs.z);
 
 		setState(EntryOnboard);//move to onboard in next event, if no onboard selected, flush log
 		generateEvent (p_time + t,false);
@@ -1148,6 +1149,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 
 void TerminalMobElementBehavior::setDestination( Point p)
 {
+	
 	m_ptDestination = p;
 
 	m_pPerson->m_pGroupInfo->SetFollowerDestination( location, m_ptDestination, Person::m_pRotation );
@@ -5804,6 +5806,8 @@ void TerminalMobElementBehavior::SetInfoFromLeader(Person* pLeader)
 		m_nextHoldAiearPoTag = spTerminalBehavior->m_nextHoldAiearPoTag;
         m_entryPointCorner = spTerminalBehavior->m_entryPointCorner;
         m_pPreFlowList = spTerminalBehavior->m_pPreFlowList;
+
+		m_nQueuePathSegmentIndex = spTerminalBehavior->getQueuePathSegmentIndex();
 	}
 	
 }
@@ -6540,6 +6544,11 @@ void TerminalMobElementBehavior::processMoveToInterestedEntryPoint(ElapsedTime p
 	pEvent->addEvent();
 	m_pPerson->SetPrevEventTime(pEvent->getTime());
 	return;
+}
+
+void TerminalMobElementBehavior::SetWalkOnBridge(BOOL b)
+{
+	m_IsWalkOnBridge = b;
 }
 
 

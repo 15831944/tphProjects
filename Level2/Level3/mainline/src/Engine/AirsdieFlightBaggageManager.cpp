@@ -6,6 +6,7 @@
 #include "Airside\AirsideFlightInSim.h"
 #include "AirsideBaggageTrainInSim.h"
 #include "Airside\VehicleRequestDispatcher.h"
+#include "PERSON.H"
 
 AirsideFlightBaggageManager::AirsideFlightBaggageManager(void)
 :m_pFlight(NULL)

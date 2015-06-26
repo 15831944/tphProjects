@@ -1,6 +1,6 @@
 #pragma once
 //#include "Airside/AirsideFlightInSim.h"
-#include "pax.h"
+
 //this class is charge to generate mobileElements according to the LogData . 
 //The LogData will be init before the simulation . 
 //EX: PaxLog , when before Run simulation ,it will create the data base on flightID .
@@ -13,6 +13,11 @@ class LandsideVehicleInSim;
 class LandsideCurbSideInSim;
 class LandSidePublicVehicleType;
 class LandsideBusStationInSim;
+class Person;
+class Passenger;
+class ElapsedTime;
+class TerminalEntryEvent;
+
 class CMobileElementGenerator
 {
 public:

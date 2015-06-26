@@ -82,6 +82,14 @@ static CString GetPaxShapeName(int nID,const std::pair<int, int>& _shape)
 	return strShapeName;
 }
 
+bool CAnimaPax3D::WhetherNeedUpdateShape( const std::pair<int, int>& shapePair )
+{
+	CString strShape = GetPaxShapeName(m_nPaxID,shapePair);
+	if (m_strShape == strShape)
+		return false;
+	
+	return true;
+}
 
 void CAnimaPax3D::SetShape( const std::pair<int, int>& shapePair )
 {
@@ -255,6 +263,7 @@ CString CAnimaPax3D::GetShapeName() const
 {
 	return m_strShape;
 }
+
 
 //void CAnimaPax3DList::Clear()
 //{

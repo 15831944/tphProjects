@@ -23,7 +23,7 @@ public:
 	//DistanceUnit GetRoute(IntersectionNodeInSim * pSrc, IntersectionNodeInSim * pDest, AirsideFlightInSim *pFlight,int nPRI, FlightGroundRouteDirectSegList& pathNodes );	
 
 	TaxiwaySegInSim * GetTaxiwaySegment(IntersectionNodeInSim  *pNode1, IntersectionNodeInSim * pNode2);
-	void GetTaxiwaySegment(int nTaxiwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst);
+	void GetTaxiwaySegments(int nTaxiwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst);
 	bool IsNodeOnTaxiway(int nTaxiwayID, int nIntersectNodeID);
 	TaxiwayDirectSegInSim* GetTaxiwayDirectSegment(int nIntersectNodeIDFrom, int nIntersectNodeIDTo, int nTaxiwayID);
 
@@ -35,6 +35,7 @@ public:
 	TaxiwayInSim * GetTaxiwayByIdx(int idx);
 
 	TaxiwayInSim * GetTaxiwayByID(int id);
+	FlightGroundRouteInSim* GetGroundRouteByID(int id);
 
 	int GetLinkedTaxiwayID(IntersectionNodeInSim * pNode1, IntersectionNodeInSim* pNode2);
 	//nTaxiwayID, the taxiway which hold position belong to

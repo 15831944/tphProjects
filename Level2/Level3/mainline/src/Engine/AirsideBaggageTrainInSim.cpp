@@ -21,6 +21,7 @@
 #include "BaggageCartServiceStandtEvent.h"
 #include "TERMINAL.H"
 #include "BagCartsServiceParkingSpotEvent.h"
+#include "PERSON.H"
 
 AirsideBaggageTrainInSim::AirsideBaggageTrainInSim(int id,int nPrjID,CVehicleSpecificationItem *pVehicleSpecItem, CVehicleSpecificationItem * pCartsSpecifications, CARCportEngine *_pEngine)
 :AirsideBaggageTugInSim(id, nPrjID, pVehicleSpecItem)

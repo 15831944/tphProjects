@@ -1,6 +1,5 @@
 #pragma once
 #include "../MFCExControl/TabPageSSL.h"
-#include "../MFCExControl/ListCtrlExExEx.h"
 #include "afxcmn.h"
 #include "../InputAirside/TakeoffClearanceCriteria.h"
 #include "../MFCExControl/ListCtrlEx.h"
@@ -30,8 +29,8 @@ public:
 
 	void SetTakeoffClearanceCriteria(CTakeoffClearanceCriteria* pData);
 
-	CListCtrlExExEx m_wndListCtrlApproach;
-	CListCtrlExExEx m_wndListCtrlBasis;
+	CListCtrlEx m_wndListCtrlApproach;
+	CListCtrlEx m_wndListCtrlBasis;
 	CToolBar  m_wndToolbar;
 protected:
 	void SetApproachListCtrlContent(void);

@@ -17,6 +17,8 @@
 #include "BridgeQueue.h"
 #include "Inputs/AircraftEntryProcessorData.h"
 #include "SEvent.H"
+#include "PERSON.H"
+#include "TerminalMobElementBehavior.h"
 
 
 BridgeConnector::BridgeConnector(void)
@@ -724,15 +726,25 @@ void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 	ArrDepBridgeState BridgeState  = person->getTerminalBehavior()->getBridgeState();
 	if( BridgeState == DepBridge)
 	{
-		ACEntryTimeDistDatabase* pDataBase = person->GetTerminal()->m_pACEntryData->getEntryTimeDB();
-        const ProbabilityDistribution* dist = pDataBase->FindProbDist(*getID(), person->getType(), curTime);
 		ElapsedTime serviceT(0L);
-		if(dist)
+		if (m_pConnectFlight)
 		{
-			serviceT = ElapsedTime(dist->getRandomValue());
+			ACEntryTimeDistDatabase* pDataBase = person->GetTerminal()->m_pACEntryData->getEntryTimeDB();
+			const ProbabilityDistribution* dist = pDataBase->FindProbDist(*getID(), person->getType(), curTime);
+
+			if(dist)
+			{
+				serviceT = ElapsedTime(dist->getRandomValue());
+			}
 		}
+		
 		//
-		person->SetWalkOnBridge(TRUE);
+		if(!person->getTerminalBehavior()->IsWalkOnBridge())
+		{
+			ASSERT(FALSE);
+			person->SetWalkOnBridge(TRUE);
+		}
+		
 		person->generateEvent (curTime + serviceT,false);
 		return;
 	}

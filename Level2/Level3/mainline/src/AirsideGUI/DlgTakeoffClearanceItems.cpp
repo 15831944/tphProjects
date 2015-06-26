@@ -505,18 +505,43 @@ void CDlgTakeoffClearanceItems::OnSelComboBox( NMHDR * pNotifyStruct, LRESULT * 
 	if(!dispinfo)
 		return;
 
-	//number edit
-	if (dispinfo->item.iSubItem == 2) {
-		if(m_pCurItem){
-			m_pCurItem->m_dMinDistance = atof(dispinfo->item.pszText);
-		}
-		return;
-	}else if (dispinfo->item.iSubItem == 4) {
-		if(m_pCurItem){
-			m_pCurItem->m_dMinTime = atof(dispinfo->item.pszText);
-		}
-		return;
-	}
+    //number edit
+    if (dispinfo->item.iSubItem == 2)
+    {
+        if(m_pCurItem)
+        {
+            if(dispinfo->item.pszText != NULL)
+            {
+                m_pCurItem->m_dMinDistance = atof(dispinfo->item.pszText);
+                CString strTmp;
+                strTmp.Format(_T("%.02f"), m_pCurItem->m_dMinDistance);
+                m_wndListCtrlBasis.SetItemText(dispinfo->item.iItem, dispinfo->item.iSubItem, strTmp);
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+    }
+    else if (dispinfo->item.iSubItem == 4)
+    {
+        if(m_pCurItem)
+        {
+            if(dispinfo->item.pszText != NULL)
+            {
+                m_pCurItem->m_dMinTime = atof(dispinfo->item.pszText);
+                CString strTmp;
+                strTmp.Format(_T("%.02f"), m_pCurItem->m_dMinTime);
+                m_wndListCtrlBasis.SetItemText(dispinfo->item.iItem, dispinfo->item.iSubItem, strTmp);
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+    }
 
 
 	//distribution edit

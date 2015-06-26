@@ -5,6 +5,7 @@
 #include ".\Inputs\AllCarSchedule.h"
 #include ".\movingtrain.h"
 #include "../Common/ARCTracker.h"
+#include "PERSON.H"
 
 TrainCarInSim::TrainCarInSim(CCar* pCar)
 :m_pCar(pCar)

@@ -6,6 +6,7 @@
 #include "..\Main\Floor2.h"
 #include "MobElementsDiagnosis.h"
 #include "..\Common\ARCTracker.h"
+#include "PAX.H"
 
 
 

@@ -641,10 +641,12 @@ int RunwayInSim::GetRunwayID()
 	return GetRunwayInput()->getID();
 }
 
-RunwaySegInSim * RunwayInSim::GetSegment( int idx )
+RunwaySegInSim * RunwayInSim::GetSegment( int idx )const
 {
 	ASSERT(idx<(int)m_vSegments.size()); 
-	return m_vSegments.at(idx);
+	if(idx>=0 && idx< (int)m_vSegments.size())
+		return m_vSegments.at(idx);
+	return NULL;
 }
 
 void RunwayInSim::GetRunwayDirectSegmentList( int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegList )
@@ -1078,6 +1080,22 @@ void RunwayInSim::AddWaveCrossHold( HoldPositionInSim *pHold, int nWaveCrossCoun
 		m_vWaveCrossHold.push_back(pHold);
 	}
 }
+
+IntersectionNodeInSimList RunwayInSim::GetIntersectionNodeList() const
+{
+	IntersectionNodeInSimList vNodeList;
+	int nCount = GetSegmentCount();
+	for(int i=0;i<nCount;i++)
+	{
+		if (i == 0)
+		{
+			vNodeList.Add(GetSegment(i)->GetNode1());
+		}
+		vNodeList.Add(GetSegment(i)->GetNode2());
+	}
+	return vNodeList;
+}
+
 
 
 //initialization

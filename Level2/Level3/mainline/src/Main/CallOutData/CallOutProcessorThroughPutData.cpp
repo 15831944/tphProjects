@@ -5,6 +5,7 @@
 #include "..\..\Engine\terminal.h"
 #include "..\..\Results\Outpax.h"
 #include "BaseCallOutDlg.h"
+#include "Common\STATES.H"
 CCallOutProcessorThroughPutData::CCallOutProcessorThroughPutData
 (const ElapsedTime& _startTime,
  const ElapsedTime& _endtime,

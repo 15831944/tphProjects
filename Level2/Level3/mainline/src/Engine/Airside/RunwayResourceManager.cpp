@@ -167,6 +167,15 @@ LogicRunwayInSim * RunwayResourceManager::GetLogicRunway( int nrwId, RUNWAY_MARK
 		return pRunway->GetLogicRunway2();
 }
 
+const RunwayInSim * RunwayResourceManager::GetRunwayByID( int rwid )const
+{
+	for(int i=0 ;i< (int)m_vRunways.size();i++)
+	{
+		if( m_vRunways.at(i)->GetRunwayInput()->getID() == rwid ) 
+			return m_vRunways.at(i).get();
+	}
+	return NULL;
+}
 RunwayInSim * RunwayResourceManager::GetRunwayByID( int rwid )
 {
 	for(int i=0 ;i< (int)m_vRunways.size();i++)
@@ -240,7 +249,7 @@ FlightGroundRouteDirectSegList RunwayResourceManager::GetAllLinkedDirectSegments
 	return reslt;
 }
 
-void RunwayResourceManager::GetRunwaySegment( int nRunwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst )
+void RunwayResourceManager::GetRunwaySegments( int nRunwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst )
 {
 	if (nRunwayID < 0 || nIntersectNodeIDFrom < 0 || nIntersectNodeIDTo < 0)
 		return;
@@ -352,9 +361,22 @@ RunwayExitInSim* RunwayResourceManager::GetRunwayExitByID( int nExitID )
 	return NULL;
 }
 
-
-
-
-
+bool RunwayResourceManager::IsNodeOnRunway(int nRunwayID, int nIntersectNodeID) const
+{
+	const RunwayInSim* pRunway = GetRunwayByID(nRunwayID);
+	if (pRunway)
+	{
+		IntersectionNodeInSimList vNodeList = pRunway->GetIntersectionNodeList();
+		int nCount = vNodeList.GetNodeCount();
+		for (int i=0;i<nCount;i++)
+		{
+			if ( vNodeList.GetNodeByIndex(i)->GetID() == nIntersectNodeID )
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 

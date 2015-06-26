@@ -125,6 +125,7 @@
     <ClInclude Include="boost_text_serialize.h" />
     <ClInclude Include="BridgeConnectorLog.h" />
     <ClInclude Include="BridgeConnectorLogEntry.h" />
+    <ClInclude Include="CheckEvent.h" />
     <ClInclude Include="ElevatorLog.h" />
     <ClInclude Include="ElevatorLogEntry.h" />
     <ClInclude Include="EVENTLOG.H" />
@@ -203,6 +204,7 @@
     </ClCompile>
     <ClCompile Include="BridgeConnectorLog.cpp" />
     <ClCompile Include="BridgeConnectorLogEntry.cpp" />
+    <ClCompile Include="CheckEvent.cpp" />
     <ClCompile Include="ElevatorLog.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

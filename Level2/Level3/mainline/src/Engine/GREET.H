@@ -11,9 +11,10 @@
 #define GREET_EVENT_H
 
 #include "common\template.h"
-#include "engine\pax.h"
 #include "engine\terminalevent.h"
 #include "common\elaptime.h"
+class Passenger;
+class PaxVisitor;
 
 class CARCportEngine;
 //This class processes "greeting" between a visitor and an arrival.

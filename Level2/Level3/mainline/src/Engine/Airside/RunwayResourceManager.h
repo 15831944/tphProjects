@@ -33,6 +33,7 @@ public:
 	
 	LogicRunwayInSim * GetLogicRunway(int nrwId, RUNWAY_MARK rwMark);
 
+	const RunwayInSim * GetRunwayByID(int rwid)const;
 	RunwayInSim * GetRunwayByID(int rwid);
 	RunwayExitInSim* GetExitByRunwayExitDescription(const RunwayExitDescription& runwayDes);
 	RunwayExitInSim* GetRunwayExitByID(int nExitID);
@@ -44,11 +45,15 @@ public:
 	std::vector<RunwayInSim::RefPtr>& getRunwayResource();
 	RunwayInSim * GetRunwayByIdx( int rwidx );
 
+	bool IsNodeOnRunway(int nRunwayID, int nIntersectNodeID)const;
+	void GetRunwaySegments(int nRunwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst);
+
+
 
 	FlightGroundRouteDirectSegList GetAllLinkedDirectSegments( IntersectionNodeInSim * pNode );
 	FlightGroundRouteDirectSegList GetLinkedDirectSegments( IntersectionNodeInSim * pNode );
 
-	void GetRunwaySegment(int nRunwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst);
+	void GetRunwaySegmentss(int nRunwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst);
 
 	CApproachSeparationInSim* GetApproachSeparation(){return &m_pApproachSeparationInSim;}
 	CTakeoffSeparationInSim* GetTakeoffSeparation(){return &m_pTakeoffSeparationInSim; }

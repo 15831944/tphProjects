@@ -15,7 +15,7 @@
 #include "common\path.h"
 #include "common\point.h"
 #include "common\elaptime.h"
-#include "person.h"
+class Person;
 //It handles fixed queue functions.
 class FixedQueue : public SequentialQueue
 {

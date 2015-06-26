@@ -80,6 +80,7 @@ public:
 	void SetShape( const CString& strShape );
 	void SetColor( COLORREF color );
 
+	bool WhetherNeedUpdateShape(const std::pair<int, int>& shapePair);
 	void SetAnimationData( const PaxAnimationData& animaData );
 	const PaxAnimationData& GetAnimationData() const { return m_animaData; } // direct modification disallowed
 
@@ -103,7 +104,8 @@ protected:
 
 class RENDERENGINE_API CAnimaPax3DList: public  CAnimaMob3DList<CAnimaPax3D>
 {
-
+public:
+	CAnimaPax3DList():CAnimaMob3DList(_T("Pax")){}
 };
 
 
@@ -126,7 +128,8 @@ protected:
 
 class RENDERENGINE_API CAnimaElevator3DList: public  CAnimaMob3DList<CAnimaElevator3D>
 {
-
+public:
+	CAnimaElevator3DList():CAnimaMob3DList(_T("Elevator")){}
 };
 
 
@@ -151,7 +154,7 @@ protected:
 class RENDERENGINE_API CAnimaTrain3DList : public CAnimaMob3DList<CAnimaTrain3D>
 {
 public:
-
+	CAnimaTrain3DList():CAnimaMob3DList(_T("Train")){}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -174,5 +177,5 @@ protected:
 class RENDERENGINE_API CAnimaResourceElm3DList : public CAnimaMob3DList<CAnimaResourceElm3D>
 {
 public:
-
+	CAnimaResourceElm3DList():CAnimaMob3DList(_T("ResoureceElm")){}
 };

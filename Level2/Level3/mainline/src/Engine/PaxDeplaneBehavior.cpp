@@ -26,6 +26,8 @@
 #include "OnboardCellFreeMoveLogic.h"
 #include "OnboardCellFreeMoveEvent.h"
 #include "CarryonStoragePrioritiesInSim.h"
+#include "TerminalMobElementBehavior.h"
+#include "PAX.H"
 
 PaxDeplaneBehavior::PaxDeplaneBehavior(Person* pPerson)
 :PaxOnboardBaseBehavior(pPerson)
@@ -575,6 +577,44 @@ void PaxDeplaneBehavior::GenerateEvent(Person *pPerson, ElapsedTime time )
 
 }
 
+void PaxDeplaneBehavior::WritePassengerGroupLog(ElapsedTime time)
+{
+	if (m_pPerson->m_pGroupInfo->IsFollower() == true)
+	{
+		Person* pLeader = m_pPerson->m_pGroupInfo->GetGroupLeader();
+		CGroupLeaderInfo* pGroupLeader = (CGroupLeaderInfo*)pLeader->m_pGroupInfo;
+		if(pGroupLeader->AllReadytoRegroup())
+		{
+			PaxOnboardBaseBehavior* pLeaderBehavior = pLeader->getOnboardBehavior();
+			pLeaderBehavior->writeLog(time);
+			int nFollowerCount = pGroupLeader->GetFollowerList().getCount();
+			for( int i=0; i< nFollowerCount; i++ )
+			{
+				Person* pFollower = (Person*) pGroupLeader->GetFollowerList().getItem( i );
+				PaxOnboardBaseBehavior* pOnboardBehavior = pFollower->getOnboardBehavior();
+				if( pOnboardBehavior)
+					pOnboardBehavior->writeLog(time);
+			}
+		}
+	}
+	else 
+	{
+		CGroupLeaderInfo* pGroupLeader = (CGroupLeaderInfo*)m_pPerson->m_pGroupInfo;
+		if(pGroupLeader->AllReadytoRegroup())
+		{
+			writeLog(time);
+			int nFollowerCount =pGroupLeader->GetFollowerList().getCount();
+			for( int i=0; i< nFollowerCount; i++ )
+			{
+				Person* pFollower = (Person*) pGroupLeader->GetFollowerList().getItem( i );
+				PaxOnboardBaseBehavior* pOnboardBehavior = pFollower->getOnboardBehavior();
+				if( pOnboardBehavior)
+					pOnboardBehavior->writeLog(time);
+			}
+		}
+	}
+}
+
 void PaxDeplaneBehavior::FlushLog( ElapsedTime p_time )
 {
 	if(m_pPerson)
@@ -666,8 +706,10 @@ void PaxDeplaneBehavior::processEntryTerminal( ElapsedTime p_time )
 	{
 		m_pPerson->setState(Birth);
 		m_pPerson->setBehavior( new TerminalMobElementBehavior( m_pPerson));
-		writeLog(p_time);
+
+		//writeLog(p_time);
 		GenerateEvent( p_time);
+		WritePassengerGroupLog(p_time);
 		return;//to Airside mode.
 
 	}

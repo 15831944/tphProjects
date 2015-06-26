@@ -244,6 +244,7 @@ public:
 	//init from a runway input
 	Runway * GetRunwayInput()const{ return (Runway*)m_RunwayInput.get(); }	
 
+	IntersectionNodeInSimList GetIntersectionNodeList()const;
 public:
 	RUNWAY_MARK GetActivePort()const { return m_activePort; }
 	void SetActivePort(AirsideFlightInSim * pFlight, RUNWAY_MARK port){ m_pLockFlight = pFlight, m_activePort = port; }
@@ -258,7 +259,7 @@ public:
 	void SetWaveCrossSpecification(CWaveCrossingSpecificationItem* pWaveCrossSettingItem );
 	CRunwayCrossSpecificationInSim* GetWaveCrossSpecification();
 
-	RunwaySegInSim * GetSegment(int idx);
+	RunwaySegInSim * GetSegment(int idx)const;
 	int GetSegmentCount ()const{ return static_cast<int>(m_vSegments.size()); }	
 	void GetRunwayDirectSegmentList(int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegList);
 
@@ -323,7 +324,8 @@ protected:
 
 	double m_dMissApproachDistance;
 
-	std::vector<RunwaySegInSim*>  m_vSegments;  //sequence of segments of the taxiway;	
+	typedef std::vector<RunwaySegInSim*> SegmentList;
+	SegmentList m_vSegments;  //sequence of segments of the taxiway;	
 
 	//the hold positions, which belong to taxiway. NOTE:Runway has no hold position.
 	std::vector<HoldPositionInSim *> m_vTaxiwayHodPostions;

@@ -30,6 +30,7 @@
 #include "..\Inputs\InputFlowSync.h"
 #include "DlgSyncPointDefine.h"
 #include "PickConveyorTree.h"
+#include "Engine\PERSON.H"
 
 #define SHOW_STYLE SWP_NOZORDER|SWP_NOACTIVATE
 #define PROCESS_COLOR RGB( 145,79,91 )

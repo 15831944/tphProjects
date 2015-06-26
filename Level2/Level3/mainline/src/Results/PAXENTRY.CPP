@@ -6,6 +6,7 @@
 //#include "Ogre\Ogre.h"
 #include "MultiFileEventLog.h"
 #include "TempMobileEventLog.h"
+#include "CheckEvent.h"
 
 
 MobLogEntry::MobLogEntry() : TerminalLogItem<MobDescStruct,MobEventStruct> ()
@@ -319,7 +320,7 @@ std::vector<MobEventStruct*>& MobLogEntry::getMobEventList( void )
 
 void MobLogEntry::addEvent( const MobEventStruct &p_item )
 {
-
+	CHECKEVENT(item.id, p_item);
 	m_preEvent = p_item;
 	m_preEvent.elementID = item.id;
 

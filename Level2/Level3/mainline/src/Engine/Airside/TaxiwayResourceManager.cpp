@@ -111,7 +111,7 @@ TaxiwaySegInSim * TaxiwayResourceManager::GetTaxiwaySegment( IntersectionNodeInS
 	return NULL;
 }
 
-void TaxiwayResourceManager::GetTaxiwaySegment(int nTaxiwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst)
+void TaxiwayResourceManager::GetTaxiwaySegments(int nTaxiwayID, int nIntersectNodeIDFrom, int nIntersectNodeIDTo, FlightGroundRouteDirectSegList& taxiwayDirectSegLst)
 {
 	if (nTaxiwayID < 0 || nIntersectNodeIDFrom < 0 || nIntersectNodeIDTo < 0)
 		return;
@@ -215,13 +215,13 @@ TaxiwayInSim* TaxiwayResourceManager::GetTaxiwayByID(int nID)
 		if(pTaxiway->GetTaxiwayInput()->getID() == nID)
 			return pTaxiway;
 	}
-	for (int i =0; i < (int)m_vTaxiways.size(); i++)
+	/*for (int i =0; i < (int)m_vTaxiways.size(); i++)
 	{
-		if (m_vTaxiways[i].GetTaxiwayInput()->getID() == nID)
-		{
-			return &m_vTaxiways[i];
-		}
+	if (m_vTaxiways[i].GetTaxiwayInput()->getID() == nID)
+	{
+	return &m_vTaxiways[i];
 	}
+	}*/
 	return NULL;
 }
 
