@@ -102,7 +102,7 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
     inTypeList = new PassengerTypeList( inStrDict );
     paxDistList = new PassengerDistributionList;
     paxDataList = new PassengerData;
-	bcPaxData = new AircraftEntryProcessorData;
+	m_pACEntryData = new AircraftEntryProcessorData;
 
     // Baggage Data
     bagData = new BaggageData;
@@ -205,7 +205,7 @@ InputTerminal::~InputTerminal ()
     delete inTypeList;
     delete paxDistList;
     delete paxDataList;
-	delete bcPaxData;
+	delete m_pACEntryData;
 
     // Baggage Data
     delete bagData;
@@ -357,8 +357,8 @@ void InputTerminal::loadInputs ( const CString& _pProjPath )
 	//bool IsConvertGroupSizeData = CheckConvertPaxGroupSizeData(_pProjPath);
     paxDataList->loadDataSet( _pProjPath );
 
-	bcPaxData->SetInputTerminal(this);
-	bcPaxData->loadDataSet(_pProjPath);
+	m_pACEntryData->SetInputTerminal(this);
+	m_pACEntryData->loadDataSet(_pProjPath);
 	bar.StepIt();
 
 
@@ -568,7 +568,7 @@ void InputTerminal::saveInputs ( const CString& _pProjPath) const
     flightData->saveDataSet(_pProjPath, false);
     bagData->saveDataSet(_pProjPath, false);
     paxDataList->saveDataSet(_pProjPath, false);
-	bcPaxData->saveDataSet(_pProjPath, false);
+	m_pACEntryData->saveDataSet(_pProjPath, false);
     m_pHubbing->saveDataSet(_pProjPath, false);
 
     procList->saveDataSet(_pProjPath, false);
@@ -653,7 +653,7 @@ void InputTerminal::deleteProcessor (Processor *p_proc,  const CString& _csProjP
     peopleMovers->removeAllEntries (id,this);
 	m_pMovingSideWalk->removeAllEntries( id,this );
 	m_pMovingSideWalkPaxDist->removeAllEntries( id,this );
-    bcPaxData->removeEntriesByProcID(id, this);
+    m_pACEntryData->removeEntriesByProcID(id, this);
 	GetProcessorList()->removeProcessor (p_proc);
 
     delete p_proc;
@@ -681,7 +681,7 @@ void InputTerminal::replaceProcessor (Processor *p_oldProc,
 		peopleMovers->replaceAllEntries (oldID, newID,this);
 		m_pMovingSideWalk->replaceAllEntries( oldID , newID ,this);
         m_pMovingSideWalkPaxDist->replaceAllEntries( oldID, newID,this );
-        bcPaxData->replaceEntryProcID(oldID, newID, this);
+        m_pACEntryData->replaceEntryProcID(oldID, newID, this);
 	}
     
 	GetProcessorList()->removeProcessor (p_oldProc);
@@ -705,7 +705,7 @@ void InputTerminal::replaceProcessor (ProcessorID&oldID,
 		peopleMovers->replaceAllEntries (oldID, newID,this);
 		m_pMovingSideWalk->replaceAllEntries( oldID , newID ,this);
 		m_pMovingSideWalkPaxDist->replaceAllEntries( oldID, newID,this );
-        bcPaxData->replaceEntryProcID(oldID, newID, this);
+        m_pACEntryData->replaceEntryProcID(oldID, newID, this);
 	}
     
 	GroupIndex proIndex = GetProcessorList()->getGroupIndex(oldID);
@@ -789,7 +789,7 @@ BOOL InputTerminal::ProcessorRename(ProcessorID&oldID,const char* newName, const
 			m_pSpecificFlightPaxFlowDB->replaceAllEntries( p_old,p_new,this );
 			procAssignDB->replaceAllEntries (p_old, p_new,this);
 			peopleMovers->replaceAllEntries (p_old, p_new,this);
-            bcPaxData->replaceEntryProcID(p_old, p_new, this);
+            m_pACEntryData->replaceEntryProcID(p_old, p_new, this);
 		}
 	}
 	//m_pPipeDataSet->ReplaceMovingSideWalk( )
@@ -803,7 +803,7 @@ BOOL InputTerminal::ProcessorRename(ProcessorID&oldID,const char* newName, const
 void InputTerminal::deletePaxType (int p_level, int p_index)
 {
     paxDataList->deletePaxType (p_level, p_index);
-	bcPaxData->deletePaxType(p_level, p_index);
+	m_pACEntryData->deletePaxType(p_level, p_index);
     m_pHubbing->deletePaxType (p_level, p_index);
     serviceTimeDB->deletePaxType (p_level, p_index);
     m_pPassengerFlowDB->deletePaxType (p_level, p_index);
@@ -817,7 +817,7 @@ void InputTerminal::deletePaxType (int p_level, int p_index)
 void InputTerminal::savePaxData ( const CString& _csProjPath)
 {
     paxDataList->saveDataSet(_csProjPath, false);
-	bcPaxData->saveDataSet(_csProjPath, false);
+	m_pACEntryData->saveDataSet(_csProjPath, false);
     m_pHubbing->saveDataSet(_csProjPath, false);
     serviceTimeDB->saveDataSet(_csProjPath, false);
     m_pPassengerFlowDB->saveDataSet(_csProjPath, false);
@@ -840,7 +840,7 @@ void InputTerminal::SaveProcsData ( const CString& _csProjPath, bool _bUndoParam
 	m_pMovingSideWalkPaxDist->saveDataSet( _csProjPath, _bUndoParam );
     procList->saveDataSet(_csProjPath, _bUndoParam);
 	m_AirsideInput->SaveAirsideInputData(_csProjPath, _bUndoParam);
-    bcPaxData->saveDataSet(_csProjPath, _bUndoParam);
+    m_pACEntryData->saveDataSet(_csProjPath, _bUndoParam);
 }
 
 // read the DOS version's database

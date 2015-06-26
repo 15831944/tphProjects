@@ -210,7 +210,7 @@ void CDlgImportFltPaxData::SetImportDialogTitle()
 	case VISITOR_STA_TRIGGER:
 		SetWindowText("Importing(Visitor STA Trigger)");
 		break;
-	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+	case AIRCRAFT_ENTRY_DATA:
 	{
 		CString s;
 		s.LoadString(IDS_TVNN_ACENTRYPROCS);
@@ -507,7 +507,7 @@ bool CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName,bool bCh
 			m_pContraintDB->setUnits("MIN");
 			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
-		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+		case AIRCRAFT_ENTRY_DATA:
 			m_pContraintDB = new CMobileElemConstraintDatabase();
 			m_pContraintDB->setUnits("SECONDS");
 			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
@@ -940,7 +940,7 @@ CString CDlgImportFltPaxData::GetFileName()
 	case VISITOR_STA_TRIGGER:
 		strFileName = "PAXDATA.MSC";
 		break;
-	case  ENTRY_FLIGHT_TIME_DISTRIBUTION:
+	case  AIRCRAFT_ENTRY_DATA:
 		strFileName = "BCPAXDATA.TXT";
 		break;
 	}

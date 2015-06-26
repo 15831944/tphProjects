@@ -787,16 +787,19 @@ void LandsideVehicleInSim::MoveToExtNode( LandsideExternalNodeInSim* pNode )
 }
 
 void LandsideVehicleInSim::OnActive( CARCportEngine*pEngine )
-{	
-	try
+{
+	if(!IsTerminated())
 	{
-		ExecuteCurState(pEngine);
-	}
-	catch(SGoalException& e)
-	{
-		LandsideSimErrorShown::VehicleSimWarning(this, e.getDesc(),"RunTimeError",curTime());
-		OnTerminate(pEngine);
-	}
+		try
+		{
+			ExecuteCurState(pEngine);
+		}
+		catch(SGoalException& e)
+		{
+			LandsideSimErrorShown::VehicleSimWarning(this, e.getDesc(),"RunTimeError",curTime());
+			OnTerminate(pEngine);
+		}
+	}	
 }
 
 bool LandsideVehicleInSim::InitBirthInLayoutObject( LandsideLayoutObjectInSim* pObj,CARCportEngine* pEngine )
@@ -896,13 +899,15 @@ void LandsideVehicleInSim::ArrivalLayoutObject( LandsideLayoutObjectInSim* pObj,
 {
 	if(LandsideParkingLotInSim* pLot = pObj->toParkLot())
 	{
-		if(LandsideParkingLotDoorInSim* pDoor = pDetailRes->toParkLotDoor())
+		if(pDetailRes)
 		{
-			ChangeState(new State_EntryLotDoor(this,pDoor),pEngine);
-			return;
-		}
-		else 
-			ASSERT(FALSE);
+			if(LandsideParkingLotDoorInSim* pDoor = pDetailRes->toParkLotDoor())
+			{
+				ChangeState(new State_EntryLotDoor(this,pDoor),pEngine);
+				return;
+			}
+		}		
+		ASSERT(FALSE);
 	}
 	else if(LandsideCurbSideInSim* pCurb = pObj->toCurbSide() )
 	{

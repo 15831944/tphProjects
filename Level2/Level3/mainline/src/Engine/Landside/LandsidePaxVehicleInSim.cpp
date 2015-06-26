@@ -26,7 +26,8 @@ int LandsidePaxVehicleInSim::GenerateDeparturePax( CARCportEngine*pEngine )
 
 		if(!logentry.getOwnStart())
 		{
-			i = i + (logentry.getGroupSize() - 1) ;
+			ASSERT(0);
+			//i = i + (logentry.getGroupSize() - 1) ;
 			continue ;
 		}
 
@@ -49,7 +50,7 @@ int LandsidePaxVehicleInSim::GenerateDeparturePax( CARCportEngine*pEngine )
 		if (logentry.GetMobileType() != 2)
 		{
 			p_pax->newGroupFollower();
-			i = i + logentry.getGroupSize() - 1;
+			//i = i + logentry.getGroupSize() - 1;
 		}
 		else
 		{

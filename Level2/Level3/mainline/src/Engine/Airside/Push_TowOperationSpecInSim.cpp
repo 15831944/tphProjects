@@ -638,6 +638,7 @@ void Push_TowOperationSpecInSim::GetTowingRoute(CReleasePoint* pData,AirsideFlig
 	}
 
 	CTowOperationRoute* pTowRoute = pData->GetOutBoundRoute();
+
 	if (pTowRoute)
 	{
 		IntersectionNodeInSim* pStartNode = NULL;
@@ -685,6 +686,97 @@ void Push_TowOperationSpecInSim::GetTowingRoute(CReleasePoint* pData,AirsideFlig
 
 }
 
+IntersectionNodeInSim* Push_TowOperationSpecInSim::GetReturnRouteItemList( CTowOperationRoute* pRoute, FlightGroundRouteDirectSegList& vRouteItems )
+{
+	ASSERT(pRoute);
+
+	if (pRoute == NULL)
+		return NULL;
+
+	int nBranchCount = pRoute->GetElementCount();
+	if (nBranchCount <=0)
+		return NULL;
+
+	int nRandomIdx = 0;
+	if (nBranchCount > 1)
+		nRandomIdx = rand()%nBranchCount;
+
+	CTowOperationRouteItem* pFirstItem = pRoute->GetItem(nRandomIdx);
+
+	int nFirstIntersectionID = -1;
+	int nSecondIntersectionID = -1;
+	int nLastObjectID = -1;
+
+	std::vector<int>  vIntersectionID;
+	while(pFirstItem)
+	{
+		if (pFirstItem->GetEnumType() ==CTowOperationRouteItem::ItemType_TowRoute)
+		{
+			FlightGroundRouteDirectSegList vSegments;
+			vSegments.clear();
+			CTowingRoute* pTowRoute = m_pTowingRouteList->GetTowingRouteByID(pFirstItem->GetObjectID());
+			GetRouteItemsFromTowingRoute(pTowRoute,nFirstIntersectionID,vSegments, nLastObjectID);
+			vRouteItems.insert(vRouteItems.end(),vSegments.begin(),vSegments.end());
+			int nSize =vSegments.size();
+			if (nSize >0)
+				nFirstIntersectionID = vSegments[nSize -1]->GetExitNode()->GetID();
+		}
+		else
+		{
+			nFirstIntersectionID = pFirstItem->GetIntersectionID();
+		}
+
+		if (nFirstIntersectionID >= 0)
+		{
+			vIntersectionID.push_back(nFirstIntersectionID);
+		}
+
+		nBranchCount = pFirstItem->GetElementCount();
+		if (nBranchCount <= 0)
+		{
+			if (nFirstIntersectionID >= 0 && vRouteItems.empty())	//only defined an entry node
+			{
+				return m_pAirportRes->GetIntersectionNodeList().GetNodeByID(nFirstIntersectionID);
+			}
+
+			if (nFirstIntersectionID < 0 && vRouteItems.empty())
+			{
+				if (vIntersectionID.empty() == false)
+				{
+					int nItersectionNodeID = vIntersectionID.back();
+					return m_pAirportRes->GetIntersectionNodeList().GetNodeByID(nItersectionNodeID);
+				}
+			}
+			return NULL;
+		}
+
+		if (nBranchCount > 1)
+			nRandomIdx = rand()%nBranchCount;
+		else
+			nRandomIdx = 0;
+
+		CTowOperationRouteItem* pNextItem = pFirstItem->GetItem(nRandomIdx);
+		if (pNextItem->GetObjectID() == nLastObjectID)		//same taxiway with last item
+			continue;
+
+		nSecondIntersectionID = pNextItem->GetIntersectionID();
+
+		FlightGroundRouteDirectSegList vSegmentList;
+		vSegmentList.clear();
+		if(pFirstItem->GetEnumType() ==CTowOperationRouteItem::ItemType_Runway)
+			m_pAirportRes->getRunwayResource()->GetRunwaySegment(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
+		else
+			m_pAirportRes->getTaxiwayResource()->GetTaxiwaySegment(nLastObjectID,nFirstIntersectionID,nSecondIntersectionID,vSegmentList);
+
+		vRouteItems.insert(vRouteItems.end(),vSegmentList.begin(),vSegmentList.end());
+
+		pFirstItem = pNextItem;
+		nLastObjectID = pFirstItem->GetObjectID();
+
+	}
+	return NULL;
+}
+
 IntersectionNodeInSim* Push_TowOperationSpecInSim::GetRouteItemList(CTowOperationRoute* pRoute, FlightGroundRouteDirectSegList& vRouteItems)
 {
 	ASSERT(pRoute);
@@ -726,9 +818,14 @@ IntersectionNodeInSim* Push_TowOperationSpecInSim::GetRouteItemList(CTowOperatio
 		nBranchCount = pFirstItem->GetElementCount();
 		if (nBranchCount <= 0)
 		{
-			if (nFirstIntersectionID >0 && vRouteItems.empty())	//only defined an entry node
+			if (nFirstIntersectionID >= 0 && vRouteItems.empty())	//only defined an entry node
 			{
 				return m_pAirportRes->GetIntersectionNodeList().GetNodeByID(nFirstIntersectionID);;
+			}
+
+			if (nFirstIntersectionID < 0 && vRouteItems.empty())
+			{
+
 			}
 			return NULL;
 		}
@@ -846,42 +943,79 @@ void Push_TowOperationSpecInSim::GetReturnRoute(CReleasePoint* pData,AirsideFlig
 
 			FlightGroundRouteDirectSegList vRouteItems;
 			vRouteItems.clear();
-			GetRouteItemList(pRetRoute,vRouteItems);
-
+		//	GetRouteItemList(pRetRoute,vRouteItems);
+			IntersectionNodeInSim* pIntersectionNode = GetReturnRouteItemList(pRetRoute,vRouteItems);
 			int nSize = vRouteItems.size();
 			if (nSize >0)
 			{
 				pStartNode = vRouteItems[0]->GetEntryNode();		
 				pEndNode = vRouteItems[nSize -1]->GetExitNode();
-			}
 
-			FlightGroundRouteDirectSegList vItems;
-			if (pStartNode)
-			{
-				vItems.clear();
-				double dPathWeight = (std::numeric_limits<double>::max)();
-				m_pAirportRes->getGroundRouteResourceManager()->GetRoute(pNodeIn,pStartNode,pFlight,0,vItems,dPathWeight);
-				if (!vItems.empty())
+				FlightGroundRouteDirectSegList vItems;
+				if (pStartNode)
 				{
-					if (vItems[0]->GetOppositeSegment() != pStartSeg && pStartSeg)
+					vItems.clear();
+					double dPathWeight = (std::numeric_limits<double>::max)();
+					m_pAirportRes->getGroundRouteResourceManager()->GetRoute(pNodeIn,pStartNode,pFlight,0,vItems,dPathWeight);
+					if (!vItems.empty())
+					{
+						if (vItems[0]->GetOppositeSegment() != pStartSeg && pStartSeg)
+						{
+							vSegments.push_back(pStartSeg);
+						}
+						vSegments.insert(vSegments.end(),vItems.begin(),vItems.end());
+					}
+					else
+					{
+						if (pStartSeg)
+						{
+							if (pStartSeg->GetEntryNode() == pStartNode)
+							{
+								vSegments.push_back(pStartSeg);
+							}
+							else if (pStartSeg->GetExitNode() == pStartNode)
+							{
+								vSegments.push_back(pStartSeg->GetOppositeSegment());
+							}
+						}
+					
+					}
+				}
+
+				vSegments.insert(vSegments.end(),vRouteItems.begin(),vRouteItems.end());
+
+				if (pEndNode)
+				{
+					vItems.clear();
+					m_pTaxiwayToStretchRouteFinder->GetShortestPathFromTaxiIntersectionToNearestStretch(pEndNode,vItems);
+					if (!vItems.empty())
+						vSegments.insert(vSegments.end(),vItems.begin(),vItems.end());
+				}
+				vTowSegments = vSegments;
+				return;
+			}
+			else if (pIntersectionNode)
+			{
+				if (pStartSeg)
+				{
+					if (pStartSeg->GetEntryNode() == pIntersectionNode)
 					{
 						vSegments.push_back(pStartSeg);
 					}
-					vSegments.insert(vSegments.end(),vItems.begin(),vItems.end());
+					else if (pStartSeg->GetExitNode() == pIntersectionNode)
+					{
+						vSegments.push_back(pStartSeg->GetOppositeSegment());
+					}
 				}
-			}
-
-			vSegments.insert(vSegments.end(),vRouteItems.begin(),vRouteItems.end());
-
-			if (pEndNode)
-			{
-				vItems.clear();
-				m_pTaxiwayToStretchRouteFinder->GetShortestPathFromTaxiIntersectionToNearestStretch(pEndNode,vItems);
+				
+				FlightGroundRouteDirectSegList vItems;
+				m_pTaxiwayToStretchRouteFinder->GetShortestPathFromTaxiIntersectionToNearestStretch(pIntersectionNode,vItems);
 				if (!vItems.empty())
 					vSegments.insert(vSegments.end(),vItems.begin(),vItems.end());
+				
+				vTowSegments = vSegments;
+				return;
 			}
-
-			return;
 		}
 	}
 
@@ -937,4 +1071,6 @@ bool Push_TowOperationSpecInSim::GetTowtruckReturnRoute( CReleasePoint* pData, A
 
 	return true;
 }
+
+
 

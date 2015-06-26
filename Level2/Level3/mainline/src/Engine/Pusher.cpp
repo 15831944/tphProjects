@@ -14,6 +14,7 @@
 #include "Process.h"
 #include "Terminal.h"
 #include "AirsideBaggageTrainInSim.h"
+#include "Airside\AirsideFlightInSim.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -126,8 +127,13 @@ void Pusher::beginService (Person *_pPerson, ElapsedTime curTime)
 					AirsideBaggageTrainInSim *pTrain = m_vBaggageTrain.at(nTrain);
 					if(pTrain == NULL)
 						continue;
+					AirsideFlightInSim *pFlight = pTrain->GetServiceFlight();
+					ASSERT(pFlight != NULL);
+					if(pFlight == NULL)
+						continue;
 
-					if(pTrain->CanServe(_pPerson->getType()))
+					//if(pTrain->CanServe(_pPerson->getType()))
+					if(_pPerson->GetCurFlightIndex() == pFlight->GetFlightInput()->getFlightIndex())
 					{
 						pTrain->LoadBaggageFromPusher(curTime);
 					}
@@ -498,6 +504,14 @@ void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain
 	int nBagLoad = 0;
 	int nBagCount = m_vServiceSlot.size();
 
+	AirsideFlightInSim* pFlight = pBaggageTrain->GetServiceFlight();
+	ASSERT(pFlight != NULL);
+	if(pFlight == NULL)
+		return;
+	int nServiceFlightIndex = pFlight->GetFlightInput()->getFlightIndex();
+
+
+
 	ElapsedTime eRetTime = eTime;
 	for( int nBag = 0; nBag < nBagCount; ++ nBag )
 	{
@@ -507,7 +521,8 @@ void Pusher::ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain
 		Person* pBaggage = m_vServiceSlot[nBag].GetBaggageOnSlot();
 		if( pBaggage)
 		{
-			if(bagCons.fits(pBaggage->getType()))
+			if(pBaggage->GetCurFlightIndex() == nServiceFlightIndex)
+			//if(bagCons.fits(pBaggage->getType()))
 			{
 				pBaggage->setState( TerminalEnd );
 				pBaggage->writeLogEntry( eTime, false );
@@ -540,6 +555,24 @@ void Pusher::ReportBaggageTrainLeave( AirsideBaggageTrainInSim *pBaggageTrain )
 	{
 		m_vBaggageTrain.erase(iter);
 	}
+}
+
+bool Pusher::HaveBagOfFlight( int nFlightIndex )
+{
+	int nBagLoad = 0;
+	int nBagCount = m_vServiceSlot.size();
+
+	for( int nBag = 0; nBag < nBagCount; ++ nBag )
+	{
+		Person* pBaggage = m_vServiceSlot[nBag].GetBaggageOnSlot();
+		if( pBaggage)
+		{
+			if(pBaggage->GetCurFlightIndex() == nFlightIndex)
+				return true;
+		}
+	}
+
+	return false;
 }
 
 

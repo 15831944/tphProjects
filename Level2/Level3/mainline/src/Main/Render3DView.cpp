@@ -1375,6 +1375,8 @@ void CRender3DView::UpdateAnimationVehicle(const DistanceUnit& dAirprotAlt, BOOL
 						vehicleTags.SetTag(nIndexID,pVehicle3D->GetSceneNode(),sTag);
 						vehicleTags.Show(nIndexID,true);	
 					}
+					else
+						vehicleTags.Show(nIndexID,false);
 					continue;
 				}				
 			}

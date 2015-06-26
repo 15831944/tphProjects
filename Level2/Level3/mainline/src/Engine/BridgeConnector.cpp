@@ -721,12 +721,10 @@ const BridgeConnector::ConnectPoint& BridgeConnector::GetConnectPoint() const
 
 void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 {
-    CString strPerson;
-    person->getType().screenPaxPrint(strPerson);
 	ArrDepBridgeState BridgeState  = person->getTerminalBehavior()->getBridgeState();
 	if( BridgeState == DepBridge)
 	{
-		ACEntryTimeDistDatabase* pDataBase = person->GetTerminal()->bcPaxData->getEntryTimeDB();
+		ACEntryTimeDistDatabase* pDataBase = person->GetTerminal()->m_pACEntryData->getEntryTimeDB();
         const ProbabilityDistribution* dist = pDataBase->FindProbDist(*getID(), person->getType());
 		ElapsedTime serviceT(0L);
 		if(dist)

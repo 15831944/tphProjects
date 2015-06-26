@@ -74,9 +74,6 @@ void ACEntryTimeDistDatabase::writeDatabase(ArctermFile& p_file)
 const ProbabilityDistribution*  ACEntryTimeDistDatabase::FindProbDist(const ProcessorID& procID, 
     const CMobileElemConstraint& paxType)
 {
-    CString strPax;
-    paxType.screenPrint(strPax.GetBuffer(256));
-    CString strProcID = procID.GetIDString();
     std::vector<AircraftEntryProcsEntry*> vResult;
     AircraftEntryProcsEntry* pTempEntry = NULL;
     int nCount = getCount();
@@ -86,9 +83,6 @@ const ProbabilityDistribution*  ACEntryTimeDistDatabase::FindProbDist(const Proc
         const ProcessorID& curProcID = pCurEntry->getProcID();
         const CMobileElemConstraint* pCurPaxType = (CMobileElemConstraint*)pCurEntry->getConstraint();
 
-        CString strCurPax;
-        pCurPaxType->screenPrint(strCurPax.GetBuffer(256));
-        CString strCurProcID = curProcID.GetIDString();
         if(!curProcID.idFits(procID) || !pCurPaxType->fitex(paxType))
         {
             continue;
@@ -176,6 +170,19 @@ std::vector<AircraftEntryProcsEntry*> ACEntryTimeDistDatabase::FindEntryByProcID
     return vResult;
 }
 
+int ACEntryTimeDistDatabase::getEntryCountByProcID(const ProcessorID& procID)
+{
+    int nRes=0;
+    int nCount = getCount();
+    for(int i=0; i<nCount; i++)
+    {
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)getItem(i);
+        if(pEntry->getProcID() == procID)
+            nRes++;
+    }
+    return nRes;
+}
+
 void ACEntryTimeDistDatabase::removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm)
 {
     int nCount = getCount();
@@ -237,12 +244,8 @@ void AircraftEntryProcessorData::deletePaxType(int p_level, int p_index)
 
 void AircraftEntryProcessorData::initDefaultValues()
 {
-    ProbabilityDistribution* defaultDist = new UniformDistribution(2, 10);
     AircraftEntryProcsEntry* anEntry = new AircraftEntryProcsEntry;
-    ProcessorID pID;
-    pID.init();
-    pID.SetStrDict(m_pInTerm->inStrDict);
-    anEntry->initialize(new CMobileElemConstraint(m_pInTerm), defaultDist, pID);
+    anEntry->useDefaultValue(m_pInTerm);
     m_pPaxData->addEntry(anEntry);
 }
 

@@ -3925,7 +3925,7 @@ BEGIN
     IDS_TAKEOFFPOSITION     "Takeoff Position"
     IDS_NAME                "Vehicle Type"
     IDS_NUMBER              "Number Of Vehicle"
-    IDS_SERVICETIME         "ServiceTime(Pusher/Loader)"
+    IDS_SERVICETIME         "ServiceTime Pusher/Loader(mins)"
     IDS_TVNN_AIRCRAFTS      "AircraftAlias"
     IDS_CONDITION           "Condition"
     IDS_DEPLANEMENTTIME     "Deplanement time(mins)"
@@ -3949,7 +3949,7 @@ BEGIN
     IDS_STAND_PRIORITY      "Priority"
     IDS_TIME_BEFORE_ENPLANEMENT "Time Before Enplanement(mins)"
     IDS_BACKTO_ARR_STAND    "Back to Arrival Stand"
-    IDS_AIRSERVICETIME      "ServiceTime(Aircraft)"
+    IDS_AIRSERVICETIME      "ServiceTime Aircraft(mins)"
 END
 
 STRINGTABLE

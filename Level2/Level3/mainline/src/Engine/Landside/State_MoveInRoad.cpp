@@ -1029,11 +1029,16 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 	LandsideResourceInSim* pOrign = m_pOwner->getLastState().getLandsideRes();
 	if(LandsideParkingLotInSim* pLot = m_pDestObject->toParkLot())
 	{
+		LandsideResourceInSim* pOrign = m_pOwner->getLastState().getLandsideRes();
+		CString sOrign  ="UnKnown";
+		if(pOrign)
+			sOrign = pOrign->print();
+
 		LandsideParkingLotDoorInSim* pDoor = pLot->getNearestEntryDoor(pResMan,m_pOwner);
 		if(!pDoor)
 		{
 			CString sError;
-			sError.Format(_T("Can not Find a Entry Door of  %s"),pLot->getName().GetIDString().GetString() );
+			sError.Format(_T("Can not Find a Entry Door of  %s  from  %s"),pLot->getName().GetIDString().GetString() , sOrign.GetString() );
 			m_pOwner->ShowError(sError,"Simulation Error");
 			m_pOwner->Terminate(pEngine);
 			return;
@@ -1044,6 +1049,7 @@ void State_MoveToDest::Entry( CARCportEngine* pEngine )
 	{
 		m_pDestResource = m_pDestObject->IsResource();
 	}
+	ASSERT(m_pDestResource);
 
 	DistanceUnit distInRes = m_pOwner->getLastState().distInRes;
 	

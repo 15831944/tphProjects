@@ -87,7 +87,7 @@ public:
     PassengerData *paxDataList;
 
 	// Bridge Connector passenger data.
-	AircraftEntryProcessorData* bcPaxData;
+	AircraftEntryProcessorData* m_pACEntryData;
     // Baggage Data
     BaggageData *bagData;
 

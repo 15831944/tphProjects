@@ -53,6 +53,8 @@ public:
 	void NeedGenerateScheduleEvent(){ m_bHasGeneratedScheduleEvent = false;	}
 	
 	void ReleaseBaggageToBaggageCart(AirsideBaggageTrainInSim *pBaggageTrain, CMobileElemConstraint& bagCons, int nReleaseCount, ElapsedTime eTime);
+
+	bool HaveBagOfFlight(int nFlightIndex);
 private:
 	//to generate a max time checking event in order to release baggage which is on pusher more than max time
 	void GenerateCheckMaxTimeEvent( Person* _pPerson, const ElapsedTime& _eventTime );

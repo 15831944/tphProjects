@@ -104,7 +104,7 @@ void AirsideBaggageCartInSim::ReleaseBaggageToFlight( const CPoint2008& ptCargoD
 
 		ElapsedTime eNextBagTime = eBagTime + bagServiceTime;
 		pBagBehavior->setDestination( ptCargoDoor);
-		eBagTime += pBagBehavior->moveTime();
+		//eBagTime += pBagBehavior->moveTime();
 		pBagBehavior->setLocation(ptCargoDoor);
 		pBagBehavior->setState(ARRIVEATFLIGHTCARGO);
 		pBagBehavior->WriteLog(eBagTime) ;

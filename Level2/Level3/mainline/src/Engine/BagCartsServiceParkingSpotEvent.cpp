@@ -64,7 +64,7 @@ int CBagCartsServiceParkingSpotEvent::Process()
 			pBaggageTrain->SetSpeed(0.0);
 			pBaggageTrain->WirteLog(ptPos,pBaggageTrain->GetSpeed(),moveInItem.GetTime());*/
 			pBaggageTrain->GenerateNextEvent(newEvent);
-
+			pBaggageTrain->NotifyOtherAgents(SimMessage().setTime(pBaggageTrain->GetTime()));
 			//newEvent->addEvent();		
 			return true;
 

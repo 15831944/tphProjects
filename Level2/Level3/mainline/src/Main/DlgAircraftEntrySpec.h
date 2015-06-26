@@ -17,7 +17,7 @@ protected:
     InputTerminal* m_pInTerm;
     CToolBar m_toolbarPaxType;
     CCoolTree m_procTree;
-    CListCtrl m_paxList;
+    CListCtrlEx m_paxList;
 private:
     std::vector<int> m_vIncType; // included processor types
     std::vector<ProcessorID> m_vProcs;
@@ -44,6 +44,7 @@ protected:
 private:
     CString GetProjPath();
     void LoadProcTree();
+    void ReloadPaxTypeList(HTREEITEM hSelItem);
     void DisableAllToolBarButtons();
 private:
     int m_oldCx;

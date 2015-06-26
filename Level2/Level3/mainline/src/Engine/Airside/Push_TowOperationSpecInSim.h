@@ -50,6 +50,7 @@ private:
 	void InitRequestRouteInfo(CReleasePoint* pData,AirsideFlightInSim* pFlight, StandInSim* pOrigin,AirsideResource* pDest, TowTruckServiceRequest* pRequest);
 	
 	IntersectionNodeInSim* GetRouteItemList(CTowOperationRoute* pRoute, FlightGroundRouteDirectSegList& vRouteItems);
+	IntersectionNodeInSim* GetReturnRouteItemList(CTowOperationRoute* pRoute, FlightGroundRouteDirectSegList& vRouteItems);
 	void GetRouteItemsFromTowingRoute(CTowingRoute* pGroundRoute, int nIntersectionID, FlightGroundRouteDirectSegList& vRouteItems, int& nLastTaxiwayID);
 	void GetReturnRoute(CReleasePoint* pData,AirsideFlightInSim* pFlight,AirsideResource* pOrigin, FlightGroundRouteDirectSegList& vSegments,FlightGroundRouteDirectSegList& vTowSegments);
 private:

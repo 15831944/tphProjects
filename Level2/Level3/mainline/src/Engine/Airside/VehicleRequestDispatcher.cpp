@@ -891,10 +891,10 @@ void VehicleRequestDispatcher::BaggageTrainServiceRequestDispatch()
 					continue;
 				if(pConveyProc->GetSubConveyorType() == PUSHER)
 				{
-					//Pusher *pPusherProc = (Pusher *)pConveyProc->GetPerformer();
+					Pusher *pPusherProc = (Pusher *)pConveyProc->GetPerformer();
 
-					//if(pPusherProc == NULL)
-						//continue;
+					if(pPusherProc == NULL)
+						continue;
 
 					CMobileElemConstraint paxCons;
 					Flight* pFlightInput = pFlight->GetFlightInput();
@@ -906,7 +906,7 @@ void VehicleRequestDispatcher::BaggageTrainServiceRequestDispatch()
 					paxCons.MergeFlightConstraint(&fltCons);
 
 
-					if(pConveyProc->canServe(paxCons))
+					if(pPusherProc->canServe(paxCons) || pPusherProc->HaveBagOfFlight(pFlight->GetFlightInput()->getFlightIndex()))
 					{
 						//check which load linked with parking Spot
 						ALTObjectID altTermProcID;

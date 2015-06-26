@@ -12,8 +12,6 @@ class CDestributionParameterSpecificationDlg : public CDialog
 public:
     CDestributionParameterSpecificationDlg(CWnd* pParent = NULL);
     CDestributionParameterSpecificationDlg(CProbDistEntry* pInputEntry, CWnd* pParent = NULL);
-
-    // i won't handle this pointer *pInputProb, delete it yourself.
     CDestributionParameterSpecificationDlg(ProbabilityDistribution* pInputProb, CWnd* pParent = NULL);
     virtual ~CDestributionParameterSpecificationDlg();
 

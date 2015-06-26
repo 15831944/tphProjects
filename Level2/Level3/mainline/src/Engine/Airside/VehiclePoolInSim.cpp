@@ -98,11 +98,14 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 
 	double MinDist = -1.0;
 	int nServiceIdx = -1;
-
+	ElapsedTime tSepTime(0L);
+	CProDistrubution* probDistInterval = pTimeRange->GetProDistrubution();
 
 	int nVehicleCount = m_vVehicleList.size();
 	for (int i =0; i < nVehicleCount; i++)
 	{
+		ElapsedTime tInteval =  probDistInterval?ElapsedTime(probDistInterval->GetProbDistribution()->getRandomValue()):ElapsedTime(0L);
+
 		AirsideVehicleInSim* pVehicle = m_vVehicleList.at(i);
 		if ( pVehicle->GetVehicleTypeID() == vehicleTypeID && pVehicle->IsAvailable())
 		{
@@ -117,18 +120,21 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 						ElapsedTime tTime = pRequest->GetServiceFlight()->GetEstimateStandTime() - tLeaveTime;
 						if (tTime < SAgent::curTime() )
 							tTime = SAgent::curTime();
-						pVehicle->SetLeavePoolTime(tTime);
+						pVehicle->SetLeavePoolTime(tTime + tSepTime);
+						tSepTime += tInteval;
 					}
 					else if (LeaveType == BeforeAircraftDeparts)
 					{
 						ElapsedTime tTime = pRequest->GetServiceFlight()->GetDepTime() - tLeaveTime;
 						if (tTime < SAgent::curTime() )
 							tTime = SAgent::curTime();
-						m_vVehicleList[i]->SetLeavePoolTime(tTime);
+						m_vVehicleList[i]->SetLeavePoolTime(tTime + tSepTime);
+						tSepTime += tInteval;
 					}
-					else
-						pVehicle->SetLeavePoolTime(pRequest->GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
-
+					else{
+						pVehicle->SetLeavePoolTime(pRequest->GetServiceFlight()->GetEstimateStandTime() + tLeaveTime + tSepTime);
+						tSepTime += tInteval;
+					}
 					//LeavePool(pVehicle);
 					pVehicle->SetServiceFlight(pFlight, vStuffPercent);
 					pRequest->AddServiceVehicle(pVehicle);
@@ -247,7 +253,7 @@ bool VehiclePoolInSim::HandleTowingServiceRequest(TowTruckServiceRequest* pReque
 	int vehicleTypeID = pRequest->GetServiceVehicleTypeID();
 
 	CVehicleTypePools* pPools = m_pPoolsDeployment->GetVehicleServicePool(vehicleTypeID);
-
+	
 	if (pPools)
 	{
 		CVehiclePool* pPool = NULL;
@@ -273,7 +279,7 @@ bool VehiclePoolInSim::HandleTowingServiceRequest(TowTruckServiceRequest* pReque
 				if ( objectID.idFits(pPool->GetServiceStandFamilyItem(i)->GetStandALTObjectID()) )
 				{
 					CVehicleServiceStandFamily* pStandFamily = pPool->GetServiceStandFamilyItem(i);
-
+					
 					int nVehicleCount = m_vVehicleList.size();
 					for (int i =0; i < nVehicleCount; i++)
 					{
@@ -287,7 +293,7 @@ bool VehiclePoolInSim::HandleTowingServiceRequest(TowTruckServiceRequest* pReque
 							if (pTowTruck->GetResource()->GetType()== AirsideResource::ResType_VehiclePool)
 							{				
 								ElapsedTime tTime = pRequest->m_tApplyTime - pStandFamily->GetLeaveTime();
-								pTowTruck->SetLeavePoolTime(tTime);
+								pTowTruck->SetLeavePoolTime(tTime );								
 
 								//LeavePool(pTowTruck);
 								pTowTruck->SetServiceFlight(pFlight, 0);
@@ -444,9 +450,12 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 	double vStuffPercent = 100.0/pTimeRange->GetAircraftServiceNum();
 	ElapsedTime tLeaveTime = pTimeRange->GetLeaveTime();
 	VehicleLeaveType LeaveType = pTimeRange->GetLeaveType();
-
+	
+	ElapsedTime tSepTime(0L);
+	CProDistrubution* probDistInterval = pTimeRange->GetProDistrubution();
 	double MinDist = -1.0;
 	int nServiceIdx = -1;
+	
 
 	for (int i =0; i < int(m_vVehicleList.size()); i++)
 	{
@@ -454,6 +463,7 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 		{
 			CAirsidePaxBusInSim *pPaxBus = (CAirsidePaxBusInSim *)m_vVehicleList[i];
 			int nVehicleCapacity = pPaxBus->GetVehicleCapacity();
+			ElapsedTime tInteval =  probDistInterval?ElapsedTime(probDistInterval->GetProbDistribution()->getRandomValue()):ElapsedTime(0L);
 			
 			if ( m_vVehicleList[i]->GetStuffCount() < vStuffPercent)
 				m_vVehicleList[i]->ReturnVehiclePool(m_pPoolsDeployment->GetTurnAroundTimeDistribution(vehicleTypeID,m_pPoolInput->getID()));
@@ -466,18 +476,23 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 						ElapsedTime tTime = request.GetServiceFlight()->GetEstimateStandTime() - tLeaveTime;
 						if (tTime < SAgent::curTime() )
 							tTime = SAgent::curTime();
-						m_vVehicleList[i]->SetLeavePoolTime(tTime);
+						m_vVehicleList[i]->SetLeavePoolTime(tTime + tSepTime );
+						tSepTime += tInteval;
 					}
 					else if (LeaveType == BeforeAircraftDeparts)
 					{
 						ElapsedTime tTime = request.GetServiceFlight()->GetDepTime() - tLeaveTime;
 						if (tTime < SAgent::curTime() )
 							tTime = SAgent::curTime();
-						m_vVehicleList[i]->SetLeavePoolTime(tTime);
+						m_vVehicleList[i]->SetLeavePoolTime(tTime + tSepTime );
+						tSepTime += tInteval;
 					}
 					else
-						m_vVehicleList[i]->SetLeavePoolTime(request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
-
+					{
+						ElapsedTime tTime = request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime;
+						m_vVehicleList[i]->SetLeavePoolTime(tTime + tSepTime );
+						tSepTime += tInteval;
+					}
 					//LeavePool(pPaxBus);
 					pPaxBus->SetServiceFlight(pFlight, vStuffPercent,request.IsArrival());
 					m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
@@ -698,10 +713,15 @@ bool VehiclePoolInSim::HandleDeiceServiceRequest( DeiceVehicleServiceRequest *pR
 
 	if(pTimeRange == NULL)
 		return FALSE ;
+
+	ElapsedTime tSepTime(0L);
+	CProDistrubution* probDistInterval = pTimeRange->GetProDistrubution();
 	
 	for (int i =0; i < int(m_vVehicleList.size()); i++)
 	{
 		AirsideVehicleInSim* pVehicle = m_vVehicleList.at(i);
+		ElapsedTime tInteval =  probDistInterval?ElapsedTime(probDistInterval->GetProbDistribution()->getRandomValue()):ElapsedTime(0L);
+
 		if(pVehicle->GetVehicleBaseType() == VehicleType_DeicingTruck && pVehicle->IsAvailable() )
 		{
 			DeiceVehicleInSim* pDeiceVehicle = (DeiceVehicleInSim*)pVehicle;
@@ -710,7 +730,8 @@ bool VehiclePoolInSim::HandleDeiceServiceRequest( DeiceVehicleServiceRequest *pR
 				//ASSERT(pTimeRange);
 				if( pDeiceVehicle->getFluidAvaiable()>0)
 				{
-					pDeiceVehicle->SetLeavePoolTime(pRequest->getRequestTime() - pTimeRange->GetLeaveTime() );
+					pDeiceVehicle->SetLeavePoolTime(pRequest->getRequestTime() - pTimeRange->GetLeaveTime() + tSepTime);
+					tSepTime += tInteval;
 					//LeavePool(pDeiceVehicle);
 					pDeiceVehicle->SetServicePointCount(1);
 					pRequest->AssignVehicle( pDeiceVehicle );
@@ -803,12 +824,16 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 	ElapsedTime tLeaveTime = pTimeRange->GetLeaveTime();
 	VehicleLeaveType LeaveType = pTimeRange->GetLeaveType();
 
+	ElapsedTime tSepTime(0L);
+	CProDistrubution* probDistInterval = pTimeRange->GetProDistrubution();
+
 	double MinDist = -1.0;
 	int nServiceIdx = -1;
 
 	for (int i =0; i < int(m_vVehicleList.size()); i++)
 	{
 		AirsideVehicleInSim* pVehicle = m_vVehicleList[i];
+		ElapsedTime tInteval =  probDistInterval?ElapsedTime(probDistInterval->GetProbDistribution()->getRandomValue()):ElapsedTime(0L);
 
 		if ( pVehicle->GetVehicleTypeID() == vehicleTypeID && pVehicle->IsAvailable() )
 		{
@@ -828,18 +853,22 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 						ElapsedTime tTime = request.GetServiceFlight()->GetEstimateStandTime() - tLeaveTime;
 						if (tTime < SAgent::curTime() )
 							tTime = SAgent::curTime();
-						pVehicle->SetLeavePoolTime(tTime);
+						pVehicle->SetLeavePoolTime(tTime + tSepTime);
+						tSepTime += tInteval;
 					}
 					else if (LeaveType == BeforeAircraftDeparts)
 					{
 						ElapsedTime tTime = request.GetServiceFlight()->GetDepTime() - tLeaveTime;
 						if (tTime < SAgent::curTime() )
 							tTime = SAgent::curTime();
-						pVehicle->SetLeavePoolTime(tTime);
+						pVehicle->SetLeavePoolTime(tTime + tSepTime);
+						tSepTime += tInteval;
 					}
 					else
-						pVehicle->SetLeavePoolTime(request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime);
-
+					{
+						pVehicle->SetLeavePoolTime(request.GetServiceFlight()->GetEstimateStandTime() + tLeaveTime + tSepTime);
+						tSepTime += tInteval;
+					}
 					//LeavePool(pBaggageTrain);
 					pBaggageTrain->SetServiceFlight(pFlight, vStuffPercent,request);
 					pVehicle->SetServicePointCount(request.GetServiceCount());

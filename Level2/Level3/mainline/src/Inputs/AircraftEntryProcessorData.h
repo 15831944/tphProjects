@@ -2,6 +2,7 @@
 #include "common\template.h"
 #include "common\dataset.h"
 #include "CommonData\PROCID.H"
+#include "Common\ProbabilityDistribution.h"
 #include "inputs\MobileElemConstraintDatabase.h"
 
 
@@ -19,6 +20,16 @@ public:
         ConstraintEntry::initialize(pConst, pProb);
         m_procID = id;
     }
+
+    void useDefaultValue(InputTerminal* _pInTerm)
+    {
+        ProbabilityDistribution* defaultDist = new UniformDistribution(2, 10);
+        ProcessorID pID;
+        pID.init();
+        pID.SetStrDict(_pInTerm->inStrDict);
+        initialize(new CMobileElemConstraint(_pInTerm), defaultDist, pID);
+    }
+
     virtual void clear()
     {
         ConstraintEntry::clear();
@@ -74,6 +85,7 @@ public:
     void replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm);
     bool DeleteEntry(AircraftEntryProcsEntry* pEntry);
     std::vector<AircraftEntryProcsEntry*> FindEntryByProcID(const ProcessorID& procID);
+    int getEntryCountByProcID(const ProcessorID& procID);
     const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
     void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm);
 };

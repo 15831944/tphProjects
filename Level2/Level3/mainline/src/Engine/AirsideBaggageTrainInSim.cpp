@@ -45,6 +45,7 @@ AirsideBaggageTrainInSim::~AirsideBaggageTrainInSim(void)
 
 void AirsideBaggageTrainInSim::SetServiceCount( int nCount )
 {
+	m_nBagLoaded = 0; // reset the loaded count of previous operation
 	m_nBagCount = nCount;
 	
 	m_vCartAssigned.clear();

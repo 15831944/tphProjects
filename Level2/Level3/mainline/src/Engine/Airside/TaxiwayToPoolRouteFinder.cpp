@@ -47,23 +47,26 @@ IntersectionNodeInSim* TaxiwayToNearestStretchRouteFinder::GetTaxiIntersectionBe
 {
 	IntersectionNodeInSim* pNode = const_cast<IntersectionNodeInSim*>(pInNode);
 
-	std::vector<IntersectionNodeInSim*> vUnSearchParNodes, vSearchedNodes;
-	std::vector<IntersectionNodeInSim*> vSubLevelNodes;
+	std::vector<IntersectionNodeInSim*> vSearchedNodes;
+	std::map<IntersectionNodeInSim*,double> vUnSearchParNodes;
+	std::map<IntersectionNodeInSim*,double> vSubLevelNodes;
 	vSearchedNodes.clear();
-	vUnSearchParNodes.push_back(pNode);
+	vUnSearchParNodes.insert(std::make_pair(pNode,0.0));
 
 	IntersectionNodeInSim* pSearchNode = NULL;
 	IntersectionNodeInSim* pSubLevelNode = NULL;
+	IntersectionNodeInSim* pBestNode = NULL;
 
+	double dMinDistancePath = (std::numeric_limits<double>::max)();
 	while (true)
 	{	
+		std::map<IntersectionNodeInSim*,double>::iterator iter = vUnSearchParNodes.begin();
 
-		int nNodeCount = vUnSearchParNodes.size();
-
-		for (int i =0; i < nNodeCount; i++)
+		for(; iter != vUnSearchParNodes.end(); ++iter)
 		{
-			pSearchNode = vUnSearchParNodes.at(i);
+			pSearchNode = iter->first;
 
+			vSearchedNodes.push_back(pSearchNode);
 			FlightGroundRouteDirectSegList segList = m_pAirportRes->getTaxiwayResource()->GetLinkedDirectSegmentsTaxiway(pSearchNode);
 			int nSize = segList.size();
 
@@ -78,36 +81,46 @@ IntersectionNodeInSim* TaxiwayToNearestStretchRouteFinder::GetTaxiIntersectionBe
 				else
 					pSubLevelNode = pDirSeg->GetTaxiwaySeg()->GetNode1();
 
+				CPoint2008 pSearchPos = pSearchNode->GetNodeInput().GetPosition();
+				CPoint2008 pSubLevelPos = pSubLevelNode->GetNodeInput().GetPosition();
+			
+				double dDistance = pSearchPos.distance3D(pSubLevelPos);
+				double dPathDistance = iter->second + dDistance;
 				if (pDirSeg->GetTaxiwaySeg()->getIntersectLaneCount() >0)
 				{
-					*pLaneEntrySeg = pDirSeg;
-					return pSearchNode;
+					if (dPathDistance < dMinDistancePath)
+					{
+						dMinDistancePath = dPathDistance;
+						*pLaneEntrySeg = pDirSeg;
+						pBestNode = pSearchNode;
+					}
 				}
 
 				if (std::find(vSearchedNodes.begin(),vSearchedNodes.end(),pSubLevelNode) != vSearchedNodes.end())
 					continue;
 
-				if (std::find(vUnSearchParNodes.begin(),vUnSearchParNodes.end(),pSubLevelNode) != vUnSearchParNodes.end())
+	
+				if (vUnSearchParNodes.find(pSubLevelNode) != vUnSearchParNodes.end())
 					continue;
 
-				if (std::find(vSubLevelNodes.begin(),vSubLevelNodes.end(),pSubLevelNode) != vSubLevelNodes.end())
+				if (vSubLevelNodes.find(pSubLevelNode) != vSubLevelNodes.end())
 					continue;
 
-				vSubLevelNodes.push_back(pSubLevelNode);
+				vSubLevelNodes.insert(std::make_pair(pSubLevelNode,dPathDistance));
 
 			}
 		}
 
 		if (vSubLevelNodes.empty())
-			return NULL;
+			break;
 
-		vSearchedNodes.insert(vSearchedNodes.end(),vUnSearchParNodes.begin(),vUnSearchParNodes.end());
 		vUnSearchParNodes.clear();
 
-		vUnSearchParNodes.assign(vSubLevelNodes.begin(),vSubLevelNodes.end());
+		vUnSearchParNodes.insert(vSubLevelNodes.begin(),vSubLevelNodes.end());
 		vSubLevelNodes.clear();
 	}
 
-	*pLaneEntrySeg = NULL;
-	return NULL;
+	return pBestNode;
+	//*pLaneEntrySeg = NULL;
+	//return NULL;
 }

@@ -166,7 +166,7 @@ BOOL CFltPaxDataDlg::OnInitDialog()
 	case VISITOR_STA_TRIGGER:
 		SetWindowText("Visitor STA Trigger");
 		break;
-	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+	case AIRCRAFT_ENTRY_DATA:
 		{
 			CString s;
 			s.LoadString(IDS_TVNN_ACENTRYPROCS);
@@ -382,8 +382,8 @@ void CFltPaxDataDlg::OnButtonSave()
 	case VISITOR_STA_TRIGGER:
 		GetInputTerminal()->paxDataList->saveDataSet( GetProjPath(), true );
 		break;
-	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-		GetInputTerminal()->bcPaxData->saveDataSet( GetProjPath(), true );
+	case AIRCRAFT_ENTRY_DATA:
+		GetInputTerminal()->m_pACEntryData->saveDataSet( GetProjPath(), true );
 		break;
 	}
 	m_btnSave.EnableWindow( FALSE );
@@ -451,8 +451,8 @@ void CFltPaxDataDlg::OnCancel()
 		case VISITOR_STA_TRIGGER:
 			GetInputTerminal()->paxDataList->loadDataSet( GetProjPath() );
 			break;
-		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-			GetInputTerminal()->bcPaxData->loadDataSet(GetProjPath());
+		case AIRCRAFT_ENTRY_DATA:
+			GetInputTerminal()->m_pACEntryData->loadDataSet(GetProjPath());
 			break;
 		}
 	}
@@ -541,8 +541,8 @@ ConstraintDatabase* CFltPaxDataDlg::GetConstraintDatabase()
 	case VISITOR_STA_TRIGGER:
 		pConDB = GetInputTerminal()->paxDataList->getVisitorSTATrigger();
 		break;
-	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-		pConDB = GetInputTerminal()->bcPaxData->getEntryTimeDB();
+	case AIRCRAFT_ENTRY_DATA:
+		pConDB = GetInputTerminal()->m_pACEntryData->getEntryTimeDB();
 		break;
 	}
 	return pConDB;
@@ -892,8 +892,8 @@ void CFltPaxDataDlg::OnExportData()
 		case VISITOR_STA_TRIGGER:
 			ExportPaxData(GetInputTerminal()->paxDataList->getVisitorSTATrigger(),sExportFileName,"VISITOR_STA_TRIGGER");
 			break;
-		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-			ExportBridgeData(GetInputTerminal()->bcPaxData,sExportFileName);
+		case AIRCRAFT_ENTRY_DATA:
+			ExportBridgeData(GetInputTerminal()->m_pACEntryData,sExportFileName);
 			break;
 		}
 	}
