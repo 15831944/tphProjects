@@ -11,6 +11,7 @@
 
 void BridgeConnectorPaxEntry::readData(ArctermFile& p_file, InputTerminal* _pInTerm)
 {
+    m_procID.SetStrDict(_pInTerm->inStrDict);
     m_procID.readProcessorID(p_file);
     CMobileElemConstraint* pConst = new CMobileElemConstraint(_pInTerm);
     pConst->readConstraint (p_file);
@@ -27,6 +28,14 @@ void BridgeConnectorPaxEntry::writeData(ArctermFile& p_file)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
+
+BridgeConnectorPaxTypeWithProcIDDatabase::BridgeConnectorPaxTypeWithProcIDDatabase()
+{
+}
+
+BridgeConnectorPaxTypeWithProcIDDatabase::~BridgeConnectorPaxTypeWithProcIDDatabase()
+{
+}
 
 void BridgeConnectorPaxTypeWithProcIDDatabase::readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm)
 {
@@ -88,29 +97,36 @@ const ProbabilityDistribution*  BridgeConnectorPaxTypeWithProcIDDatabase::FindPr
             }
         }
     }
-    return pAppropriate->getValue();
+
+    if(pAppropriate)
+        return pAppropriate->getValue();
+    else
+        return NULL;
 }
 
-void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase)
+void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm)
 {
     clear();
     int nCount = meDatabase.getCount();
     for(int i=0; i<nCount; i++)
     {
-        BridgeConnectorPaxEntry* pPax = new BridgeConnectorPaxEntry();
+        BridgeConnectorPaxEntry* pEntry = new BridgeConnectorPaxEntry();
         CMobileElemConstraint* pMbConst = new CMobileElemConstraint(*meDatabase.GetConstraint(i));
         ProbabilityDistribution* pProb = ProbabilityDistribution::CopyProbDistribution(meDatabase.getItem(i)->getValue());
-        pPax->initialize(pMbConst, pProb, ProcessorID());
-        addEntry(pPax);
+        ProcessorID pID;
+        pID.init();
+        pID.SetStrDict(_pInTerm->inStrDict);
+        pEntry->initialize(pMbConst, pProb, pID);
+        addEntry(pEntry);
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-BridgeConnectorPaxData::BridgeConnectorPaxData() : DataSet(BridgeConnectorPaxDataFile, (float)100)
+BridgeConnectorPaxData::BridgeConnectorPaxData() : DataSet(BridgeConnectorPaxDataFile, (float)101)
 {
-    m_pPaxData = new CMobileElemConstraintDatabase;
+    m_pPaxData = new BridgeConnectorPaxTypeWithProcIDDatabase;
     m_pPaxData->setUnits(_T("SECONDS"));
 }
 
@@ -125,11 +141,14 @@ void BridgeConnectorPaxData::deletePaxType(int p_level, int p_index)
     m_pPaxData->deletePaxType (p_level, p_index);
 }
 
-void BridgeConnectorPaxData::initDefaultValues ()
+void BridgeConnectorPaxData::initDefaultValues()
 {
     ProbabilityDistribution* defaultDist = new UniformDistribution(2, 10);
-    ConstraintEntry* anEntry = new ConstraintEntry;
-    anEntry->initialize(new CMobileElemConstraint(m_pInTerm),defaultDist);
+    BridgeConnectorPaxEntry* anEntry = new BridgeConnectorPaxEntry;
+    ProcessorID pID;
+    pID.init();
+    pID.SetStrDict(m_pInTerm->inStrDict);
+    anEntry->initialize(new CMobileElemConstraint(m_pInTerm), defaultDist, pID);
     m_pPaxData->addEntry(anEntry);
 }
 
@@ -140,14 +159,27 @@ void BridgeConnectorPaxData::clear()
 
 void BridgeConnectorPaxData::readData(ArctermFile& p_file)
 {
-    m_pPaxData->readDatabase(p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm);
+    m_pPaxData->readDatabase(p_file, m_pInTerm);
 }
 
 void BridgeConnectorPaxData::readObsoleteData(ArctermFile& p_file)
 {
+    float fVersion = p_file.getVersion();
+    if(abs(fVersion-100.0f) < 0.00001f)
+    {
+        readData100(p_file);
+    }
 }
 
 void BridgeConnectorPaxData::writeData(ArctermFile& p_file) const
 {
-    m_pPaxData->writeDatabase (p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm);
+    m_pPaxData->writeDatabase(p_file);
+}
+
+void BridgeConnectorPaxData::readData100(ArctermFile& p_file)
+{
+    CMobileElemConstraintDatabase paxTypeDB;
+    paxTypeDB.setUnits(_T("SECONDS"));
+    paxTypeDB.readDatabase(p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm);
+    m_pPaxData->initFromMobElemConstDatabase(paxTypeDB, m_pInTerm);
 }

@@ -259,6 +259,7 @@
     <ClInclude Include="DestributionParameterSpecificationDlg.h" />
     <ClInclude Include="DlgAddNewCmpReport.h" />
     <ClInclude Include="DlgAdjacencyConstraintSpec.h" />
+    <ClInclude Include="DlgAircraftEntrySpec.h" />
     <ClInclude Include="DlgAirsideEnrouteQueueCapacity.h" />
     <ClInclude Include="DlgAnimationSpeed.h" />
     <ClInclude Include="DlgAssignmentConstraintSpec.h" />
@@ -1082,6 +1083,7 @@
     <ClCompile Include="DestributionParameterSpecificationDlg.cpp" />
     <ClCompile Include="DlgAddNewCmpReport.cpp" />
     <ClCompile Include="DlgAdjacencyConstraintSpec.cpp" />
+    <ClCompile Include="DlgAircraftEntrySpec.cpp" />
     <ClCompile Include="DlgAirsideEnrouteQueueCapacity.cpp" />
     <ClCompile Include="DlgAnimationSpeed.cpp" />
     <ClCompile Include="DlgAssignmentConstraintSpec.cpp" />

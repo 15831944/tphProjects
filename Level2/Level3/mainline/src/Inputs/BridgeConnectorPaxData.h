@@ -44,7 +44,7 @@ public:
     }
 };
 
-class INPUTS_TRANSFER BridgeConnectorPaxTypeWithProcIDDatabase : CMobileElemConstraintDatabase
+class INPUTS_TRANSFER BridgeConnectorPaxTypeWithProcIDDatabase : public CMobileElemConstraintDatabase
 {
 public:
     BridgeConnectorPaxTypeWithProcIDDatabase();
@@ -53,13 +53,13 @@ public:
     void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
     void writeDatabase(ArctermFile& p_file);
     const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
-    void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase);
+    void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm);
 };
 
 class INPUTS_TRANSFER BridgeConnectorPaxData : public DataSet
 {
 protected:
-    CMobileElemConstraintDatabase* m_pPaxData;
+    BridgeConnectorPaxTypeWithProcIDDatabase* m_pPaxData;
 
 public:
     BridgeConnectorPaxData();
@@ -71,6 +71,7 @@ public:
     virtual void readData(ArctermFile& p_file);
     virtual void writeData(ArctermFile& p_file) const;
     virtual void readObsoleteData(ArctermFile& p_file);
+    virtual void readData100(ArctermFile& p_file);
 
     virtual const char *getTitle() const
     { 
@@ -81,7 +82,7 @@ public:
         return "Variable,Pax Type,Units,Distribution,Parameters"; 
     }
 
-    CMobileElemConstraintDatabase* getEntryFlightTimeDestribution() const
+    BridgeConnectorPaxTypeWithProcIDDatabase* getEntryFlightTimeDestribution() const
     {
         return m_pPaxData;
     }

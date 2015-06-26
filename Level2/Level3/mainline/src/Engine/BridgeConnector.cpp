@@ -724,8 +724,8 @@ void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 	ArrDepBridgeState BridgeState  = person->getTerminalBehavior()->getBridgeState();
 	if( BridgeState == DepBridge)
 	{
-		CMobileElemConstraintDatabase* pDataBase = person->GetTerminal()->bcPaxData->getEntryFlightTimeDestribution();
-		const ProbabilityDistribution* dist = pDataBase->FindFit(person->getType());
+		BridgeConnectorPaxTypeWithProcIDDatabase* pDataBase = person->GetTerminal()->bcPaxData->getEntryFlightTimeDestribution();
+        const ProbabilityDistribution* dist = pDataBase->FindProbDist(*getID(), person->getType());
 		ElapsedTime serviceT(0L);
 		if(dist)
 		{
