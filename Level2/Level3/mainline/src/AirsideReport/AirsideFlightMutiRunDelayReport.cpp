@@ -268,10 +268,12 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( MultiRunDe
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval * 100);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval*100)) /100);
+        long lActualMin = lMinDelayTime - lMinDelayTime%(iInterval*100);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lActualMin) / (iInterval * 100);
+        estMinDelayTime = ElapsedTime(lActualMin/100);
 
-		lDelayTimeSegmentCount++;
+        if((lMaxDelayTime-lActualMin)%(iInterval*100) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -314,10 +316,12 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDet
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+        long actualMinTime = lMinDelayTime - lMinDelayTime%iInterval;
+		lDelayTimeSegmentCount = (lMaxDelayTime - actualMinTime) / (iInterval);
+		estMinDelayTime = ElapsedTime(actualMinTime);
 
-	//	lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - actualMinTime) % iInterval != 0)
+            lDelayTimeSegmentCount++;
 	}
 	else
 	{
