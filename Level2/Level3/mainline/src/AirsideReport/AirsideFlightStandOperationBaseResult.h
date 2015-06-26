@@ -40,11 +40,13 @@ public:
 	CBGetLogFilePath m_pCBGetLogFilePath;
 	//void clear();
 
+    std::vector<CStandOperationReportData*> GetResult() const { return m_vResult; }
+    void SetResult(std::vector<CStandOperationReportData*> val) { m_vResult = val; }
 protected:
 	bool m_bLoadFromFile;
 	CFlightStandOperationChartResult* m_pChartResult; //draw graph
 	std::vector<CStandOperationReportData*> m_vResult;
-	StandOperationDataProcessor* m_pStandOperationProcessor;
+    StandOperationDataProcessor* m_pStandOperationProcessor;
 
 public:
 	static inline CString FormatDHMS(long lSecs); // format Day.Hour:Minute:Second

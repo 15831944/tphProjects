@@ -200,6 +200,15 @@ void CAirsideReportRunwayMark::SetRunway( int nRunwayID,RUNWAY_MARK runwayMark,c
 	m_strMarkName = strMarkName;
 }
 
+bool CAirsideReportRunwayMark::operator==( const CAirsideReportRunwayMark& other ) const
+{
+    if(m_nRunwayID == other.m_nRunwayID &&
+        m_enumRunwayMark == other.m_enumRunwayMark &&
+        !m_strMarkName.CompareNoCase(other.m_strMarkName))
+            return true;
+    return false;
+}
+
 
 
 

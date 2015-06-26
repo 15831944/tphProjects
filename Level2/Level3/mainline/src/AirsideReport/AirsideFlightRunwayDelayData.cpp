@@ -27,7 +27,18 @@ AirsideFlightRunwayDelayData::~AirsideFlightRunwayDelayData(void)
 
 AirsideFlightRunwayDelayData::RunwayDelayItem::RunwayDelayItem()
 {
+    m_nACID = 0;
+    m_nRwyID = 0;
+    m_nRwyMark = 0;
+    mMode = OnBirth;
+    m_tStartTime = 0L;
+    m_OperationType = 0;
+    m_PositionType = 0;
+    m_lExpectOpTime = 0;
+    m_lRealityOpTime = 0;
+    m_lTotalDelay = 0;
 
+    m_vReasonDetail.clear();
 }
 
 AirsideFlightRunwayDelayData::RunwayDelayItem::~RunwayDelayItem()
