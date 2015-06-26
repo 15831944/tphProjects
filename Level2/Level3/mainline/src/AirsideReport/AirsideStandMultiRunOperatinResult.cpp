@@ -1172,10 +1172,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         }
 
         mapStandResult::iterator standIter = simIter->second.begin();
-        unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 246
-        // the last one data is discarded, need to be fixed.
         unsigned iSize = simIter->second.size();
-        for(; standIter!=simIter->second.end()&& idx < iSize - 1; ++standIter, ++idx)
+        for(; standIter!=simIter->second.end(); ++standIter)
         {
             if(standIter->second != 0)
                 tempTool.AddNewData(standIter->second/100);
@@ -1224,10 +1222,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
     {
         tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
-        unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 182
-                          // the last one data is discarded.
         unsigned iSize = simIter->second.size();
-        for(; standIter!=simIter->second.end()&& idx < iSize - 1; ++standIter, ++idx)
+        for(; standIter!=simIter->second.end(); ++standIter)
         {
             tempTool.AddNewData(standIter->second);
         }

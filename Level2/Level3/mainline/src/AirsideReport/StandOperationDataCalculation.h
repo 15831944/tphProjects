@@ -183,6 +183,11 @@ static void CalculateStandConflict(std::vector<CStandOperationReportData*>& vRes
 			sStandName = pData->m_sActualName;
 			nTotal = 1;
 		}
+
+        if(i == nSize-1 && nTotal != 0)
+        {
+            vConflicts.push_back(nTotal);
+        }
 	}
 }
 
@@ -245,5 +250,10 @@ static void CalculateStandDelay(std::vector<CStandOperationReportData*>& vResult
 			sStandName = pData->m_sActualName;
 			lTotal = pData->m_lDelayEnter + pData->m_lDelayLeaving;
 		}
+
+        if(i == nSize-1 && lTotal != 0)
+        {
+            vOccupanyTime.push_back(lTotal/100);
+        }
 	}
 }
