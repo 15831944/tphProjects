@@ -1861,8 +1861,8 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 		}
 	}
 	else { //no animation
-		if(pDoc->m_bShowTracers) 
-		{
+		if(pDoc->m_bShowTerminalPaxTracers)
+		{//Pax
 			int nTrackCount = pDoc->m_tempTracerData.GetTrackCount();
 			if(nTrackCount > 0) 
 			{
@@ -1873,27 +1873,14 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 					int nHitCount = track.size();
 					if(nHitCount<2)
 						continue;
-					if(pDoc->GetCurrentMode() == EnvMode_Terminal)
-					{
-						CPaxDispPropItem* pPDPI = pDoc->m_paxDispProps.GetDispPropItem(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
-						ARCColor3 pdpcol(pPDPI->GetColor());
-						int pdplt = (int) pPDPI->GetLineType();
-						glColor3ubv(pdpcol);
-						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
-						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
-					}
-					else if(pDoc->GetCurrentMode() == EnvMode_AirSide)
-					{
-						CVehicleDispPropItem* pVDPI = pDoc->m_vehicleDispProps.GetVehicleDispProp(pDoc->m_vehicleDispProps.GetCurSelVehicle())
-							->GetVehicleDispProp(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
-						ARCColor3 pdpcol(pVDPI->GetColor());
-						int pdplt = (int) pVDPI->GetLineType();
-						glColor3ubv(pdpcol);
-						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
-						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
-					}
-					else
-						return;
+					
+					CPaxDispPropItem* pPDPI = pDoc->m_paxDispProps.GetDispPropItem(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
+					ARCColor3 pdpcol(pPDPI->GetColor());
+					int pdplt = (int) pPDPI->GetLineType();
+					glColor3ubv(pdpcol);
+					glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
+					glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
+					glLoadName(GenerateSelectionID(SELTYPE_TERMINALTRACER, SELSUBTYPE_MAIN, (nTrackIdx)));
 
 					glBegin(GL_LINE_STRIP);					
 					for(int nHit=0; nHit<nHitCount; nHit++)
@@ -1915,16 +1902,61 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 					glEnd();
 				}
 				glDisable(GL_LINE_STIPPLE);
+				}
 			}
+			if(pDoc->m_bShowAirsideVehicleTracers)
+			{
+				//Airside Vehicle
+				int nTrackCount = pDoc->m_tempAirsideVTracerData.GetTrackCount();
+				if(nTrackCount > 0)
+				{
+					glEnable(GL_LINE_STIPPLE);
+					for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) 
+					{
+						const std::vector<CTrackerVector3>& track = pDoc->m_tempAirsideVTracerData.GetTrack(nTrackIdx);
+						int nHitCount = track.size();
+						if(nHitCount<2)
+							continue;
 
-		}
-		if(pDoc->m_bShowAirsideFlightTracers)
-		{
-			//airside
+						int nVDspIdx = pDoc->m_vAVehicleDispPropIdx.at(nTrackIdx);
+						CVehicleDispPropItem* pVDPI = pDoc->m_vehicleDispProps.GetVehicleDispProp(pDoc->m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(nVDspIdx);
+
+						ARCColor3 pdpcol(pVDPI->GetColor());
+						int pdplt = (int) pVDPI->GetLineType();
+						glColor3ubv(pdpcol);
+						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
+						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
+						
+						glBegin(GL_LINE_STRIP);						
+						for(int nHit=0; nHit<nHitCount; nHit++) 
+						{					
+							const CTrackerVector3& hit = track[nHit];
+							int nFloorIdx = 0;
+							double dAltitude =0 ;
+							if(hit.IsRealZ())
+							{
+								dAltitude = hit[VZ];
+							}
+							else
+							{
+								nFloorIdx = static_cast<int>(hit[VZ] / 100);
+								double dOffset = (hit[VZ]/100.0 - (double)nFloorIdx);
+								dAltitude = dAlt[nFloorIdx]*(1.0-dOffset)  + dAlt[nFloorIdx+1]*dOffset;
+							}					
+							glVertex3f(static_cast<GLfloat>(hit[VX]), static_cast<GLfloat>(hit[VY]),(GLfloat)dAltitude);							
+						}
+						glEnd();
+					}
+					glDisable(GL_LINE_STIPPLE);
+				}
+			}
+			if(pDoc->m_bShowAirsideFlightTracers)
+			{//Flight
 			int nTrackCount = pDoc->m_tempAirsideTracerData.GetTrackCount();
 			if(nTrackCount > 0) {
 				glEnable(GL_LINE_STIPPLE);
-				for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) {
+				for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) 
+				{
 					const std::vector<CTrackerVector3>& track = pDoc->m_tempAirsideTracerData.GetTrack(nTrackIdx);
 					CAircraftDispPropItem* pADPI = pDoc->m_aircraftDispProps.GetDispPropItem(pDoc->m_tempAirsideTracerData.GetDispPropIdx(nTrackIdx));
 					ARCColor3 adpcol(pADPI->GetColor());
@@ -1940,12 +1972,11 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 					}
 					glEnd();
 				}
-				glDisable(GL_LINE_STIPPLE);
+			glDisable(GL_LINE_STIPPLE);
 			}
 		}
 		glLineWidth(1.0); 
 	}
-
 	glPopMatrix();
 
 }

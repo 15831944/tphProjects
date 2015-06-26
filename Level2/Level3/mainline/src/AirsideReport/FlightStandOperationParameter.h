@@ -27,6 +27,8 @@ public:
 	void clear();
 	bool fits(const ALTObjectID& objID)const;
 
+	bool timeFit(const ElapsedTime& eTime)const;
+
 protected:
 	virtual void WriteParameter(ArctermFile& _file);
 	virtual void ReadParameter(ArctermFile& _file);

@@ -35,6 +35,8 @@ public:
 
 	virtual void OnVehicleExit(LandsideVehicleInSim* pVehicle,const ElapsedTime& t);
 
+	LandsideResourceInSim *GetParentResource();
+
 	
 protected:
 	LandsideVehicleInSim* mpOrderVehicle;

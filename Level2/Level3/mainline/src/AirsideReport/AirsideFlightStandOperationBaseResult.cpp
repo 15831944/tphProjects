@@ -110,6 +110,29 @@ CString CAirsideFlightStandOperationBaseResult::FormatHMS( long lSecs ) /* forma
 	return strTime;
 }
 
+CString CAirsideFlightStandOperationBaseResult::PrintHMS( double dSecs )
+{
+	CString strTime;
+
+	if (dSecs >= 0)
+	{
+		long hours = (long) (dSecs / 3600L);
+		long min = (long) ((dSecs - (hours * 3600L)) / 60L);
+		long sec = (long) (dSecs - (hours * 3600L) - (min * 60L));
+		strTime.Format(_T("%d:%02d:%02d"), hours, min, sec);
+	}
+	else // takecare of the negtive number
+	{
+		dSecs = -dSecs;
+		long hours = (long) (dSecs / 3600L);
+		long min = (long) ((dSecs - (hours * 3600L)) / 60L);
+		long sec = (long) (dSecs - (hours * 3600L) - (min * 60L));
+		strTime.Format(_T("-%d:%02d:%02d"), hours, min, sec);
+	}
+
+	return strTime;
+}
+
 void CAirsideFlightStandOperationBaseResult::GenerateResult( CBGetLogFilePath pCBGetLogFilePath,CParameters *pParameter )
 {
 	if (pParameter == NULL)
@@ -142,6 +165,9 @@ BOOL CAirsideFlightStandOperationBaseResult::ExportReportData( ArctermFile& _fil
 	_file.writeInt(ASReportType_Detail);
 	_file.writeLine();
 
+	_file.writeInt(m_nUnuseScheduleStandCount);
+	_file.writeInt(m_nUnuseActualStandCount);
+
 	int nCount = (int)m_vResult.size();
 	_file.writeInt(nCount);
 	_file.writeLine();
@@ -150,6 +176,7 @@ BOOL CAirsideFlightStandOperationBaseResult::ExportReportData( ArctermFile& _fil
 		CStandOperationReportData* pData = m_vResult.at(nIndex);
 
 		_file.writeField(pData->m_sID);
+		_file.writeInt(pData->m_lFlightIndex);
 		_file.writeField(pData->m_sACType);
 		_file.writeChar(pData->m_fltmode);
 
@@ -157,11 +184,13 @@ BOOL CAirsideFlightStandOperationBaseResult::ExportReportData( ArctermFile& _fil
 		_file.writeInt(pData->m_lSchedOn);
 		_file.writeInt(pData->m_lSchedOff);
 		_file.writeInt(pData->m_lSchedOccupancy);
+		_file.writeInt(pData->m_lSchedAvailableOccupancy);
 
 		_file.writeField(pData->m_sActualName);
 		_file.writeInt(pData->m_lActualOn);
 		_file.writeInt(pData->m_lActualOff);
 		_file.writeInt(pData->m_lActualOccupancy);
+		_file.writeInt(pData->m_lActualAvailableOccupancy);
 
 		_file.writeInt(pData->m_lDelayEnter);
 		_file.writeInt(pData->m_lDueStandOccupied);
@@ -178,8 +207,11 @@ BOOL CAirsideFlightStandOperationBaseResult::ExportReportData( ArctermFile& _fil
 
 BOOL CAirsideFlightStandOperationBaseResult::ImportReportData( ArctermFile& _file,CString& Errmsg )
 {
-	int nCount = 0;
 	_file.getLine();
+	_file.getInteger(m_nUnuseScheduleStandCount);
+	_file.getInteger(m_nUnuseActualStandCount);
+
+	int nCount = 0;
 	_file.getInteger(nCount);
 	_file.getLine();
 
@@ -189,6 +221,7 @@ BOOL CAirsideFlightStandOperationBaseResult::ImportReportData( ArctermFile& _fil
 
 		_file.getField(pData->m_sID.GetBuffer(1024),1024);
 		pData->m_sID.ReleaseBuffer();
+		_file.getInteger(pData->m_lFlightIndex);
 		_file.getField(pData->m_sACType.GetBuffer(1024),1024);
 		pData->m_sACType.ReleaseBuffer();
 		_file.getChar(pData->m_fltmode);
@@ -198,12 +231,14 @@ BOOL CAirsideFlightStandOperationBaseResult::ImportReportData( ArctermFile& _fil
 		_file.getInteger(pData->m_lSchedOn);
 		_file.getInteger(pData->m_lSchedOff);
 		_file.getInteger(pData->m_lSchedOccupancy);
+		_file.getInteger(pData->m_lSchedAvailableOccupancy);
 
 		_file.getField(pData->m_sActualName.GetBuffer(1024),1024);
 		pData->m_sActualName.ReleaseBuffer();
 		_file.getInteger(pData->m_lActualOn);
 		_file.getInteger(pData->m_lActualOff);
 		_file.getInteger(pData->m_lActualOccupancy);
+		_file.getInteger(pData->m_lActualAvailableOccupancy);
 
 		_file.getInteger(pData->m_lDelayEnter);
 		_file.getInteger(pData->m_lDueStandOccupied);
@@ -232,6 +267,8 @@ BOOL CAirsideFlightStandOperationBaseResult::WriteReportData( ArctermFile& _file
 	_file.writeInt(ASReportType_Detail);
 	_file.writeLine();
 
+	_file.writeInt(m_nUnuseScheduleStandCount);
+	_file.writeInt(m_nUnuseActualStandCount);
 	int nCount = (int)m_vResult.size();
 	_file.writeInt(nCount);
 	_file.writeLine();
@@ -240,6 +277,7 @@ BOOL CAirsideFlightStandOperationBaseResult::WriteReportData( ArctermFile& _file
 		CStandOperationReportData* pData = m_vResult.at(nIndex);
 
 		_file.writeField(pData->m_sID);
+		_file.writeInt(pData->m_lFlightIndex);
 		_file.writeField(pData->m_sACType);
 		_file.writeChar(pData->m_fltmode);
 
@@ -247,11 +285,13 @@ BOOL CAirsideFlightStandOperationBaseResult::WriteReportData( ArctermFile& _file
 		_file.writeInt(pData->m_lSchedOn);
 		_file.writeInt(pData->m_lSchedOff);
 		_file.writeInt(pData->m_lSchedOccupancy);
+		_file.writeInt(pData->m_lSchedAvailableOccupancy);
 
 		_file.writeField(pData->m_sActualName);
 		_file.writeInt(pData->m_lActualOn);
 		_file.writeInt(pData->m_lActualOff);
 		_file.writeInt(pData->m_lActualOccupancy);
+		_file.writeInt(pData->m_lActualAvailableOccupancy);
 
 		_file.writeInt(pData->m_lDelayEnter);
 		_file.writeInt(pData->m_lDueStandOccupied);
@@ -268,6 +308,8 @@ BOOL CAirsideFlightStandOperationBaseResult::WriteReportData( ArctermFile& _file
 
 BOOL CAirsideFlightStandOperationBaseResult::ReadReportData( ArctermFile& _file )
 {
+	_file.getInteger(m_nUnuseScheduleStandCount);
+	_file.getInteger(m_nUnuseActualStandCount);
 	int nCount = 0;
 	_file.getInteger(nCount);
 	_file.getLine();
@@ -278,6 +320,7 @@ BOOL CAirsideFlightStandOperationBaseResult::ReadReportData( ArctermFile& _file 
 
 		_file.getField(pData->m_sID.GetBuffer(1024),1024);
 		pData->m_sID.ReleaseBuffer();
+		_file.getInteger(pData->m_lFlightIndex);
 		_file.getField(pData->m_sACType.GetBuffer(1024),1024);
 		pData->m_sACType.ReleaseBuffer();
 		_file.getChar(pData->m_fltmode);
@@ -287,12 +330,14 @@ BOOL CAirsideFlightStandOperationBaseResult::ReadReportData( ArctermFile& _file 
 		_file.getInteger(pData->m_lSchedOn);
 		_file.getInteger(pData->m_lSchedOff);
 		_file.getInteger(pData->m_lSchedOccupancy);
+		_file.getInteger(pData->m_lSchedAvailableOccupancy);
 
 		_file.getField(pData->m_sActualName.GetBuffer(1024),1024);
 		pData->m_sActualName.ReleaseBuffer();
 		_file.getInteger(pData->m_lActualOn);
 		_file.getInteger(pData->m_lActualOff);
 		_file.getInteger(pData->m_lActualOccupancy);
+		_file.getInteger(pData->m_lActualAvailableOccupancy);
 
 		_file.getInteger(pData->m_lDelayEnter);
 		_file.getInteger(pData->m_lDueStandOccupied);
@@ -307,6 +352,7 @@ BOOL CAirsideFlightStandOperationBaseResult::ReadReportData( ArctermFile& _file 
 	}
 	return TRUE;
 }
+
 ///////////////////////////////detail result//////////////////////////////////////////////////////////
 CDetailStandOperationResult::CDetailStandOperationResult()
 {
@@ -433,6 +479,9 @@ void CDetailStandOperationResult::FillListContent(CXListCtrl& cxListCtrl, CParam
 	{
 		CStandOperationReportData* pData = m_vResult[i];
 
+		if (pData->m_sActualName.IsEmpty() == true)
+			continue;
+		
 		int nIndex = cxListCtrl.InsertItem(i, pData->m_sID);
 
 		cxListCtrl.SetItemText(nIndex,  1, pData->m_sACType);
@@ -483,10 +532,10 @@ void CSummaryStandOperationResult::RebuildResultData(CFlightStandOperationParame
 		ALTObjectID ActualStandObj(pOpData->m_sActualName);
 		ALTObjectID checkID(strStandName);
 
-		if (SchedStandObj.idFits(checkID))		//Schedule data
+		if (SchedStandObj.idFits(checkID) && SchedStandObj.IsBlank() == false)		//Schedule data
 			vSchedFitData.push_back(pOpData);
 
-		if (ActualStandObj.idFits(checkID))		//Actual data
+		if (ActualStandObj.idFits(checkID) && ActualStandObj.IsBlank() == false)		//Actual data
 			vActualFitData.push_back(pOpData);
 	}
 	
@@ -759,8 +808,11 @@ void CSummaryStandOperationResult::FillListContent(CXListCtrl& cxListCtrl, CPara
 
 		if (pSummaryData->m_eDataType != CSummaryStandOperationData::StandConflictSummaryData)
 		{
-			ElapsedTime tTotal(pSummaryData->m_dTotal);		
-			cxListCtrl.SetItemText(i,2,tTotal.printTime());
+		//	ElapsedTime tTotal(pSummaryData->m_dTotal);		
+		//	cxListCtrl.SetItemText(i,2,tTotal.printTime());
+			CString strTotal = PrintHMS(pSummaryData->m_dTotal);
+			cxListCtrl.SetItemText(i,2,strTotal);
+			
 
 			ElapsedTime tMin(pSummaryData->m_SummaryData.GetMin());		
 			cxListCtrl.SetItemText(i,3,tMin.printTime());

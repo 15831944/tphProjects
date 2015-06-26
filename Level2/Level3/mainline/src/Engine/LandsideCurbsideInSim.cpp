@@ -234,7 +234,8 @@ LandsideCurbSide* LandsideCurbSideInSim::getCurbInput() const
 void LandsideCurbSideInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eEventTime )
 {
 
-	ARCVector3 pos = GetPaxWaitPos();
+	//passenger moves to the curbside
+	ARCVector3 pos = GetPaxWaitPos(); // the position at curbside
 	pPaxBehvior->setResource(this);
 	//move from terminal to landside
 	pPaxBehvior->setDestination(pos);			
@@ -245,6 +246,8 @@ void LandsideCurbSideInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior,
 	pPaxBehvior->getPerson()->setState(WaitingForVehicle);
 	AddWaitingPax(pPaxBehvior->GetPersonID());
 
+	//
+	
 	LandsideVehicleInSim* pVehicle = pPaxBehvior->getVehicle();
 	if(!pVehicle)
 	{
@@ -253,37 +256,70 @@ void LandsideCurbSideInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior,
 	}
 
 	if(pVehicle == NULL)
-		return;
+		return;//the vehicle has not been generated, the passenger stays at the curbside
+
+	//this is the resource the vehicle is on currently, it could be any landside object
+	//it is curbside or parking lot(cellphone feature, if the passenger does not arrive at curbside 
+	//
 	LandsideResourceInSim* pParkingResource = pVehicle->getLastState().getLandsideRes();
 	if (pParkingResource == NULL)
 		return;
 
+	//cellphone feature, the vehicle is parking on the parking lot and waiting till the passenger calls.
 	//notify vehicle in cellphone lot
-	if(LandsideParkingLotInSim* pParkingLotInSim = pParkingResource->getLayoutObject()->toParkLot())
+	if(pParkingResource->toParkLotSpot())
+	{
+		LandsideParkingSpotInSim* pParkingSpotInSim = pParkingResource->toParkLotSpot();
+		LandsideParkingLotInSim* pParkingLotInSim = pParkingSpotInSim->getParkingLot();
+		if(pParkingLotInSim && pParkingLotInSim->IsCellPhone())
+		{
+			pVehicle->Activate(eNextTime);
+			return;// the passenger stays at curbside, and awaits for the vehicle to pick him up.
+		}
+	}
+	else if(LandsideParkingLotInSim* pParkingLotInSim = pParkingResource->getLayoutObject()->toParkLot())
 	{
 		if (pParkingLotInSim->IsCellPhone())
 		{
 			pVehicle->Activate(eNextTime);
-			return;
+			return;// the passenger stays at curbside, and awaits for the vehicle to pick him up.
 		}
 	}
 
 	//check if the vehicle is ready to loading pax
-	if(!pVehicle->IsLoadingPax())
+	if(!pVehicle->IsLoadingPax())//if the vehicle is not ready to serve the pax, the pax will stay at curbside
 		return;
 
+	//make sure the vehicle is parking on the curbside
+	IParkingSpotInSim *pCurbsideParkingSpot = pParkingResource->toLaneSpot();
+	ASSERT(pCurbsideParkingSpot != NULL);
+	if(pCurbsideParkingSpot == NULL)
+	{
+		//the vehicle is not on curbside
+		//so the passenger will stay and wait
+		return;
+	}
+	LandsideResourceInSim *pParentResCurbsideParkingSpot = pCurbsideParkingSpot->GetParentResource();
+	ASSERT(pParentResCurbsideParkingSpot != NULL);
+	if(pParentResCurbsideParkingSpot == NULL || pParentResCurbsideParkingSpot->toCurbSide() == NULL)
+	{
+		//the vehicle is not on curbside
+		//stay and wait for his vehicle
+		return;
+	}
+	LandsideCurbSideInSim* pCurbsideVehicleParking = pParentResCurbsideParkingSpot->toCurbSide();
 
 	//the vehicle is parking in the same curbside
-	if( pParkingResource == this )
+	if( pCurbsideVehicleParking == this )
 	{
 		pPaxBehvior->setState(MoveToVehicle);
 		pPaxBehvior->setVehicle(pVehicle);
 		pPaxBehvior->GenerateEvent(eNextTime);
 		return;
 	}
-	else
+	else// the vehicle's parking place is not the curbside that 
 	{
-		pPaxBehvior->setDestResource(pParkingResource);
+		pPaxBehvior->setDestResource(pCurbsideParkingSpot);
 		pPaxBehvior->setVehicle(pVehicle);
 		pPaxBehvior->setState(MoveToFacility);
 		pPaxBehvior->GenerateEvent(eEventTime);

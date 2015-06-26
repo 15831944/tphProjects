@@ -1254,7 +1254,7 @@ void CProcessDefineDlg::SubFlowInsertBeforeNode(HTREEITEM hItem)
 	{
 		// check if exist a circle
 		CSinglePaxTypeFlow tmpFlow( *m_pCurFlow );
-		tmpFlow.InsertBetwwen( pFatherData->m_procId, pData->m_procId, temp );
+		tmpFlow.InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
 		tmpFlow.SetChangedFlag( true );
 
 
@@ -1265,7 +1265,7 @@ void CProcessDefineDlg::SubFlowInsertBeforeNode(HTREEITEM hItem)
 			return;
 		}
 
-		m_pCurFlow->InsertBetwwen( pFatherData->m_procId, pData->m_procId, temp );
+		m_pCurFlow->InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
 	}
 
 	
@@ -1327,15 +1327,15 @@ void CProcessDefineDlg::SubFlowInsertAfterNode(HTREEITEM hItem)
 
 	if (pData->m_procId.GetIDString().CompareNoCase("PROCESSSTART") == 0)
 	{
-		m_pCurFlow->AddIsolatedProc( id );
-	
+// 		m_pCurFlow->AddIsolatedProc( id );
+// 	
 		CProcessorDestinationList *pStartPair = ((CSingleProcessFlow *)m_pCurFlow)->GetStartPair();
 		if (pStartPair == NULL)
 			return;
-		pStartPair->AddDestProc(temp);
-		pStartPair->EvenPercent();
+// 		pStartPair->AddDestProc(temp);
+// 		pStartPair->EvenPercent();
 	}
-	else
+	//else
 	{
 		// check if exist a circle
 		CSinglePaxTypeFlow tmpFlow( *m_pCurFlow );
@@ -1910,7 +1910,7 @@ void CProcessDefineDlg::SetToolbarAddBut()
 	if( m_treeProcess.GetParentItem( m_hPocessSelItem)==NULL )
 	{
 		m_toolBarProcessTree.GetToolBarCtrl().EnableButton( ID_PD_INSERT_BEFORE,false );
-		m_toolBarProcessTree.GetToolBarCtrl().EnableButton( ID_PD_INSERT_AFTER,false );
+		//m_toolBarProcessTree.GetToolBarCtrl().EnableButton( ID_PD_INSERT_AFTER,false );
 	}
 	else
 	{

@@ -348,11 +348,11 @@ void CDetailStandIdleTimeUtiliztionChartResult::GenerateResult(std::vector<CStan
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
 	nIntervalSize = (nDuration - lMinOccupancyTime) / pParameter->getInterval() ;
 
-    if((nDuration-lMinOccupancyTime)%pParameter->getInterval() != 0)
+//    if((nDuration-lMinOccupancyTime)%pParameter->getInterval() != 0)
         nIntervalSize += 1;
 
-	if (nIntervalSize ==0)
-		nIntervalSize = 1;
+// 	if (nIntervalSize ==0)
+// 		nIntervalSize = 1;
 
 	CString strTimeInt(_T(""));
 	for (int i = 0 ; i < nIntervalSize ;i++)

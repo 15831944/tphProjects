@@ -58,7 +58,7 @@ bool LandsidePrivateVehicleInSim::ProceedToNextFcObject( CARCportEngine* pEngine
 				return true;
 			}
 			CString sError;
-			sError.Format(_T("Error Find Facility Object %d"),nNextID);
+			sError.Format(_T("Error to find facility object %d"),nNextID);
 			ShowError(sError,"Definition Error");
 		}
 	}
@@ -82,11 +82,6 @@ bool LandsidePrivateVehicleInSim::isArrival() const
 	return getEntryInfo().vPaxEntryList.begin()->isArrival()!=0;
 }
 
-
-
-
-
-
 void LandsidePrivateVehicleInSim::SuccessParkInLotSpot( LandsideParkingSpotInSim* pSpot )
 {
 	if(pSpot->getParkingLot()->IsCellPhone())
@@ -104,19 +99,21 @@ void LandsidePrivateVehicleInSim::SuccessParkInLotSpot( LandsideParkingSpotInSim
 
 void LandsidePrivateVehicleInSim::OnFailPickPaxAtCurb(LandsideCurbSideInSim* pCurb,  IParkingSpotInSim* spot,CARCportEngine* pEngine )
 {
-	if( CurbsideStrategyStateInSim* curbStratgy = getCurbStragy() )
+	CurbsideStrategyStateInSim *pCurbStratgy  = getCurbStragy();
+	if( pCurbStratgy )
 	{
-		if(LandsideLayoutObjectInSim * pNextDest = curbStratgy->GoNextLoop(pEngine))
+		LandsideLayoutObjectInSim * pNextDest = pCurbStratgy->GoNextLoop(pEngine);
+		if( pNextDest)
 		{
 			ChangeDest(pNextDest);
 			ChangeState(new State_LeaveCurbside(this, pCurb,spot),pEngine);
-			if(curbStratgy->isFinalState())
+			if(pCurbStratgy->isFinalState())
 				EndCurbStrategy();
 			return;
 		}		
 	}
 	CString sError;
-	sError.Format(_T("Fail Pick Arr Pax at %s"),pCurb->getName().GetIDString().GetString() );
+	sError.Format(_T("Failed to pick arrival passenger at curbside %s, has not Curbside Strategy defined for this curbside. "),pCurb->getName().GetIDString().GetString() );
 	ShowError(sError, "Simulation Error");
 	SuccessProcessAtLayoutObject(pCurb,spot,pEngine);
 }

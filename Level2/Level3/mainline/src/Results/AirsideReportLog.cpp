@@ -68,6 +68,12 @@ void AirsideReportLog::OpenWrite( Terminal* pTerminal,const CString& _csProjPath
 		mVehicleLogData.OpenOutput(sEventFileName.GetString());
 
 	}
+
+	//load altobject log
+	{
+		CString sAltObjectFileName = GetSimReportManager()->GetCurrentLogsFileName(AirsideALTObjectListFile, _csProjPath );
+		mAltObjectLogData.Clean();
+	}
 }
 
 void AirsideReportLog::CloseSave( const CString& _csProjPath )

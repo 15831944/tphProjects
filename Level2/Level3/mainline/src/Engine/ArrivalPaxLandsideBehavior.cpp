@@ -355,6 +355,10 @@ bool ArrivalPaxLandsideBehavior::OnVehicleParkAtPlace( LandsideVehicleInSim* pVe
 		GenerateEvent(eTime);
 		return true;
 	}
+	//ASSERT(0);
+	//here has 2 possibilities
+	//1. the passenger has not arrived at curbside or Parking Lot
+	//2. the passenger is at another curbside and Parking Lot
 	return false;
 }
 
@@ -569,8 +573,8 @@ void ArrivalPaxLandsideBehavior::ProcessMoveToFacility( const ElapsedTime& eEven
 		endPos.init(nextPos.n[VX],nextPos.n[VY],nextPos.n[VZ]);
 
 		CLandsideTrafficSystem* pLandsideTrafficInSim = m_pLandsideSim->GetLandsideTrafficeManager();
-		LandsideResourceInSim* pStartLandsideResInSim = getResource();
-		LandsideResourceInSim* pEndLandsideResInSim = pParkSpot->getParkingLot();
+//		LandsideResourceInSim* pStartLandsideResInSim = getResource();
+//		LandsideResourceInSim* pEndLandsideResInSim = pParkSpot->getParkingLot();
 
 		CPoint2008 startPos;
 		startPos.init(getPoint().n[VX],getPoint().n[VY],getPoint().n[VZ]);
@@ -587,6 +591,35 @@ void ArrivalPaxLandsideBehavior::ProcessMoveToFacility( const ElapsedTime& eEven
 			GenerateEvent(dNextTime);
 			return;
 		}
+	}
+	else if(pDestResource->toLaneSpot())//move to curbside
+	{
+		//go to the waiting area of curbside
+		IParkingSpotInSim *pCurbsideSpot = pDestResource->toLaneSpot();
+		LandsideResourceInSim *pParentResource = pCurbsideSpot->GetParentResource();
+		LandsideCurbSideInSim *pCurbsideInsim = pParentResource->toCurbSide();
+		ASSERT(pCurbsideInsim != NULL);
+		CPoint2008 pPaxWaitAreaPosInCurbside = pCurbsideInsim->GetPaxWaitPos();
+
+		CPoint2008 startPos;
+		startPos.init(getPoint().n[VX],getPoint().n[VY],getPoint().n[VZ]);
+
+		CPoint2008 endPos = pPaxWaitAreaPosInCurbside;
+
+		CLandsideTrafficSystem* pLandsideTrafficInSim = m_pLandsideSim->GetLandsideTrafficeManager();
+		if( !pLandsideTrafficInSim->EnterTrafficSystem(eEventTime,ArriveAtFacility,this,startPos,endPos))
+		{
+			ElapsedTime dNextTime = eEventTime;
+			setDestination(endPos);
+			ElapsedTime etime = moveTime();
+			//setLocation(nextPos);	
+			dNextTime += etime;
+			WriteLogEntry(dNextTime);
+			m_pPerson->setState(ArriveAtFacility);
+			GenerateEvent(dNextTime);
+			return;
+		}
+
 	}
 	else
 	{
@@ -605,6 +638,11 @@ void ArrivalPaxLandsideBehavior::ProcessArriveAtFacility( const ElapsedTime& eEv
 	{
 		LandsideParkingSpotInSim* pParkSpot = pDestResource->toParkLotSpot();
 		pDestResource->PassengerMoveInto(this, eEventTime);
+	}
+	else if (pDestResource->toLaneSpot())
+	{
+		setState(MoveToVehicle);
+		GenerateEvent(eEventTime);
 	}
 	else
 	{

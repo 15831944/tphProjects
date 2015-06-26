@@ -142,3 +142,12 @@ void CFlightStandOperationParameter::removeItem(int nIdx)
 	ASSERT(nIdx >= 0 && nIdx < getCount());
 	m_vStandIDList.erase(m_vStandIDList.begin() + nIdx);
 }
+
+bool CFlightStandOperationParameter::timeFit( const ElapsedTime& eTime ) const
+{
+	if (eTime < m_startTime || eTime > m_endTime)
+	{
+		return false;
+	}
+	return true;
+}

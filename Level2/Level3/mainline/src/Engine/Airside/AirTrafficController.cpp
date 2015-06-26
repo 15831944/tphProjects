@@ -2349,12 +2349,12 @@ bool AirTrafficController::DepartureFlightIntermediateStandProcess(AirsideFlight
 			|| pFlight->m_pDepParkingStand == NULL)
 		{
 			StandInSim* pDepStand = pFlight->GetPlanedParkingStand(DEP_PARKING);
-			if (pDepStand == NULL || (pDepStand && !pDepStand->GetLock(pFlight)))
+			//if (pDepStand == NULL || (pDepStand && !pDepStand->GetLock(pFlight)))
 			{
 				AssignOperationParkingStand(pFlight,DEP_PARKING);
 			}
-			else
-				pFlight->SetParkingStand(pDepStand,DEP_PARKING);
+			//else
+				//pFlight->SetParkingStand(pDepStand,DEP_PARKING);
 		}
 
 		StandInSim* pDepStand = pFlight->m_pDepParkingStand;

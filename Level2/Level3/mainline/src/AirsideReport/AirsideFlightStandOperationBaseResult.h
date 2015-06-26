@@ -57,6 +57,7 @@ protected:
 public:
 	static inline CString FormatDHMS(long lSecs); // format Day.Hour:Minute:Second
 	static inline CString FormatHMS(long lSecs);  // format Hour:Minute:Second
+	static inline CString PrintHMS(double dSecs);//
 
 };
 

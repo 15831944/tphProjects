@@ -26,6 +26,14 @@ bool StandResourceManager::Init( int nPrjID, int nAirportID,OutputAirside *pOutp
 		}
 		else
 		{
+			DeicePad* pDeicePad = (DeicePad*)pStand;
+			if (pDeicePad->IsAsStand() == true)
+			{
+				AirsideALTObjectLogItem objectItem;
+				objectItem.m_altObject = pStand->getName();
+				objectItem.m_emType = ALT_STAND;
+				pOutput->m_reportLog.AddAltObjectLogItem(objectItem);
+			}
 			m_vStands.push_back( new DeiceStandInSim(pStand) );
 		}
 	}

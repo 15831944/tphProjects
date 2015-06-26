@@ -457,8 +457,10 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 	m_bMobileElementDisplay		= TRUE;
 	m_bActivityDensityDisplay	= FALSE;
 	m_bFlightInfoDisplay		= FALSE;
-	m_bShowTracers				= FALSE;
+	m_bShowTerminalPaxTracers	= FALSE;
+	m_bShowLandsideVehcleTraces = FALSE;
 	m_bShowAirsideFlightTracers = FALSE;
+	m_bShowAirsideVehicleTracers = FALSE;
 	m_iScale = 10;
 	m_bIsOpenStencil = FALSE;
 
@@ -4190,18 +4192,6 @@ BOOL CTermPlanDoc::BuildTempAirsideTracerData()
 	ALTAirport altAirport;
 	altAirport.ReadAirport(aptID);
 	DistanceUnit dALt = altAirport.getElevation();
-// 	int barLong;
-// 	if(m_bShowTracers&&m_bShowAirsideVehicleTracers)
-// 		barLong = airsideFlightLog.getCount()+airsideVechileLog.getCount()+10;
-// 	else if(m_bShowTracers&&!m_bShowAirsideVehicleTracers)
-// 		barLong = airsideFlightLog.getCount()+10;
-// 	else if(!m_bShowTracers&&m_bShowAirsideVehicleTracers)
-// 		barLong = airsideVechileLog.getCount()+10;
-// 	else
-// 		return FALSE;
-
-// 	CProgressBar bar( "Generating Airside Tracers...", 100, barLong , TRUE );
-// 	bar.SetPos(10);
 
 	//airside flight
 	if(m_bShowAirsideFlightTracers)
@@ -4267,7 +4257,7 @@ BOOL CTermPlanDoc::BuildTempAirsideTracerData()
 			{					
 				int nTrackIdx = m_tempAirsideTracerData.AddTrack(nArrCount, nArrDspIdx, ii);
 				std::vector<CTrackerVector3>& track = m_tempAirsideTracerData.GetTrack(nTrackIdx);
-				track.assign(ArrTarce.begin(),ArrTarce.end());			
+				track.assign(ArrTarce.begin(),ArrTarce.end());
 			}
 
 			if(pDepADPI != NULL && (pDepADPI->IsLeaveTrail() && pDepADPI->IsVisible())) 
@@ -4281,22 +4271,19 @@ BOOL CTermPlanDoc::BuildTempAirsideTracerData()
 		}
 	}
 
-	///////////////////////////////////////////////////
  	//airside vehicle
-	if(m_bShowTracers)
+	if(m_bShowAirsideVehicleTracers)
 	{
 		CProgressBar bar( "Generating Airside Vehicle Tracers...", 100, airsideVechileLog.getCount()+10 , TRUE );
 		bar.SetPos(10);
 
 		AirsideVehicleLogEntry vElement;
 		vElement.SetEventLog(&(airsideSimLogs.m_airsideVehicleEventLog));
-		m_tempTracerData.clear();
+		m_tempAirsideVTracerData.clear();
 
-		//m_tempAirsideTracerData.clear();
 		std::vector<CTrackerVector3> VTarce;
 		for(long ii=0; ii<airsideVechileLog.getCount(); ii++) 
 		{//for each Vehicle			
-			//int nVDspIdx = vElement.GetAirsideDesc().id;
 			int nVDspIdx = m_vAVehicleDispPropIdx.at(ii);
 			CVehicleDispPropItem* pVADPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(nVDspIdx);
 			int nVCount = 0;
@@ -4321,8 +4308,8 @@ BOOL CTermPlanDoc::BuildTempAirsideTracerData()
 
 			if(pVADPI != NULL && (pVADPI->IsLeaveTrail() && pVADPI->IsVisible())) 
 			{					
-				int nTrackIdx = m_tempTracerData.AddTrack(nVCount, nVDspIdx, ii);
-				std::vector<CTrackerVector3>& track = m_tempTracerData.GetTrack(nTrackIdx);
+				int nTrackIdx = m_tempAirsideVTracerData.AddTrack(nVCount, nVDspIdx, ii);
+				std::vector<CTrackerVector3>& track = m_tempAirsideVTracerData.GetTrack(nTrackIdx);
 				track.assign(VTarce.begin(),VTarce.end());			
 			}
 			bar.StepIt();
@@ -4555,7 +4542,7 @@ BOOL CTermPlanDoc::ReadACDescriptions(long* pnFIT, long* pnLOT)
 			*pnLOT = vds.endTime;
 
 		CVehicleDispPropItem *pVDPI = m_vehicleDispProps.FindBestMatch(vds.id);
-		m_vAVehicleDispPropIdx.push_back(pVDPI->GetID());
+		m_vAVehicleDispPropIdx.push_back(pVDPI->GetID()-1);
 		m_vAVehicleShapeNameIdx.push_back(pVDPI->GetVehicleType()->getName());
 	}
 
@@ -4972,9 +4959,18 @@ BOOL CTermPlanDoc::StartAnimation(BOOL bGetTimeRangeFromUser)
 void CTermPlanDoc::OnAnimationStart() 
 {
 	//take off traces
-	m_bShowTracers = TRUE;
-	m_bShowAirsideFlightTracers = TRUE;
-	OnTracersOn();
+	m_bShowTerminalPaxTracers = FALSE;
+	m_bShowLandsideVehcleTraces = FALSE;
+	m_bShowAirsideFlightTracers = FALSE;
+	m_bShowAirsideVehicleTracers = FALSE;
+	m_pPaxCountPerDispProp.clear();
+	m_pACCountPerDispProp.clear();
+	m_pVehicleCountPerDispProp.clear();
+	m_tempTracerData.clear();
+	m_tempVehicleTracerData.clear();
+	m_tempAirsideTracerData.clear();
+	m_tempAirsideVTracerData.clear();
+	//OnTracersOn();
 	GetMainFrame()->GetMenu()->GetSubMenu(5)->CheckMenuItem(0,MF_UNCHECKED);
 
 	if(m_eAnimState == anim_none)
@@ -5101,9 +5097,18 @@ void CTermPlanDoc::OnAnimationPlayF()
 	//GetAirsideSimLogs().m_pLogBufManager->InitBuffer();
 
 	//take off traces
-	m_bShowTracers = TRUE;
-	m_bShowAirsideFlightTracers = TRUE;
-	OnTracersOn();
+	m_bShowTerminalPaxTracers = FALSE;
+	m_bShowLandsideVehcleTraces = FALSE;
+	m_bShowAirsideFlightTracers = FALSE;
+	m_bShowAirsideVehicleTracers = FALSE;
+	m_pPaxCountPerDispProp.clear();
+	m_pACCountPerDispProp.clear();
+	m_pVehicleCountPerDispProp.clear();
+	m_tempTracerData.clear();
+	m_tempVehicleTracerData.clear();
+	m_tempAirsideTracerData.clear();
+	m_tempAirsideVTracerData.clear();
+	//OnTracersOn();
 	GetMainFrame()->GetMenu()->GetSubMenu(5)->CheckMenuItem(0,MF_UNCHECKED);
 
 	m_eAnimState = anim_playF;
@@ -6240,23 +6245,40 @@ void CTermPlanDoc::InitActiveFloorCB()
 
 void CTermPlanDoc::OnUpdateTracersOn(CCmdUI* pCmdUI) 
 {
-	pCmdUI->SetCheck(m_bShowTracers);
+	if(GetCurrentMode() == EnvMode_Terminal)
+		pCmdUI->SetCheck(m_bShowTerminalPaxTracers);
+	if(GetCurrentMode() == EnvMode_AirSide)
+		pCmdUI->SetCheck(m_bShowAirsideVehicleTracers);
+	if(GetCurrentMode() == EnvMode_LandSide)
+		pCmdUI->SetCheck(m_bShowLandsideVehcleTraces);
 }
 
 void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 {
-	if(m_bShowTracers) {
-		m_bShowTracers = FALSE;
-		
-// 		m_pPaxCountPerDispProp.clear();
-// 		m_pACCountPerDispProp.clear();
-// 		m_pVehicleCountPerDispProp.clear();
-// 
+	if(GetCurrentMode() == EnvMode_Terminal&&m_bShowTerminalPaxTracers) {
+		m_bShowTerminalPaxTracers = FALSE;
+ 		m_pPaxCountPerDispProp.clear();
  		m_tempTracerData.clear();
-// 		m_tempAirsideTracerData.clear();
+		UpdateAllViews(NULL,VM_UPDATETRACE);
+		return;
 	}
-	else {
-		m_bShowTracers = TRUE;
+	if(GetCurrentMode() == EnvMode_AirSide&&m_bShowAirsideVehicleTracers)
+	{
+		m_bShowAirsideVehicleTracers = FALSE;
+		m_pVehicleCountPerDispProp.clear();
+		m_tempAirsideVTracerData.clear();
+		UpdateAllViews(NULL,VM_UPDATETRACE);
+		return;
+	}
+	if(GetCurrentMode() == EnvMode_LandSide&&m_bShowLandsideVehcleTraces)
+	{
+		m_bShowLandsideVehcleTraces = FALSE;
+		m_pVehicleCountPerDispProp.clear();
+		m_tempVehicleTracerData.clear();
+		UpdateAllViews(NULL,VM_UPDATETRACE);
+		return;
+	}
+	{
 		long nFirstInTime, nLastOutTime;
 		int iCurSimResult = GetTerminal().getCurrentSimResult();
 		if( iCurSimResult>=0 )	// have valid sim_result
@@ -6270,20 +6292,24 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 			
 			if(GetCurrentMode() == EnvMode_Terminal)
 			{
+				m_bShowTerminalPaxTracers = TRUE;
 				BuildTempTracerData();
 			}
 			else if(GetCurrentMode() == EnvMode_AirSide)
 			{
+				m_bShowAirsideVehicleTracers = TRUE;
 				BuildTempAirsideTracerData();
 			}
 			else if(GetCurrentMode()==EnvMode_LandSide)
 			{
+				m_bShowLandsideVehcleTraces = TRUE;
 				BuildTempVehicleTracerData();
 			}
 			else
 			{
 				if (GetTerminal().GetSimReportManager() && GetTerminal().GetSimReportManager()->IsAirsideSim())
 				{
+					m_bShowAirsideVehicleTracers = TRUE;
 					BuildTempAirsideTracerData();
 				}
 			}
@@ -6293,8 +6319,8 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 			AfxMessageBox("No Valid SimResult!", MB_OK|MB_ICONERROR);
 			return;
 		}
+		UpdateAllViews(NULL,VM_UPDATETRACE);
 	}
-	UpdateAllViews(NULL,VM_UPDATETRACE);
 }
 
 void CTermPlanDoc::OnUpdateAirsideFlightTracersOn(CCmdUI* pCmdUI)
@@ -6307,12 +6333,11 @@ void CTermPlanDoc::OnAirsideFlightTracersOn()
 	if(m_bShowAirsideFlightTracers) {
 		m_bShowAirsideFlightTracers = FALSE;
 
-// 		m_pPaxCountPerDispProp.clear();
-// 		m_pACCountPerDispProp.clear();
-// 		m_pVehicleCountPerDispProp.clear();
-// 
-// 		m_tempTracerData.clear();
- 		m_tempAirsideTracerData.clear();
+//		m_pPaxCountPerDispProp.clear();
+		m_pACCountPerDispProp.clear();
+//		m_pVehicleCountPerDispProp.clear();
+
+		m_tempAirsideTracerData.clear();
 	}
 	else {
 		m_bShowAirsideFlightTracers = TRUE;
@@ -6358,7 +6383,14 @@ void CTermPlanDoc::OnAirsideFlightTracersOn()
 
 void CTermPlanDoc::OnUpdateVehicleTagsOn(CCmdUI* pCmdUI)
 {
-	pCmdUI->SetCheck(!m_bHideVehicleTags);
+	if(m_eAnimState==anim_none) {
+		pCmdUI->SetCheck(FALSE);
+		pCmdUI->Enable(FALSE);
+	}
+	else {
+		pCmdUI->SetCheck(!m_bHideVehicleTags);
+		pCmdUI->Enable(TRUE);
+	}
 }
 
 void CTermPlanDoc::OnVehicleTagsOn()
@@ -6369,7 +6401,14 @@ void CTermPlanDoc::OnVehicleTagsOn()
 
 void CTermPlanDoc::OnUpdateAircraftTagsOn(CCmdUI* pCmdUI)
 {
-	pCmdUI->SetCheck(!m_bHideAircraftTags);
+	if(m_eAnimState==anim_none) {
+		pCmdUI->SetCheck(FALSE);
+		pCmdUI->Enable(FALSE);
+	}
+	else {
+		pCmdUI->SetCheck(!m_bHideAircraftTags);
+		pCmdUI->Enable(TRUE);
+	}
 }
 
 void CTermPlanDoc::OnAircraftTagsOn()
@@ -7238,13 +7277,23 @@ void CTermPlanDoc::OnTracerParamsOn(UINT nID)
 		}
 	}
 
-	if (m_bShowTracers||m_bShowAirsideFlightTracers)
+	if (m_bShowTerminalPaxTracers||m_bShowLandsideVehcleTraces||m_bShowAirsideFlightTracers||m_bShowAirsideVehicleTracers)
 	{
 		// let's clear all first, code copied from CTermPlanDoc::OnTracersOn()
 		m_pPaxCountPerDispProp.clear();
 		m_pACCountPerDispProp.clear();
-		m_tempTracerData.clear();
-		m_tempAirsideTracerData.clear();
+		m_pVehicleCountPerDispProp.clear();
+		if (GetCurrentMode()==EnvMode_Terminal)
+			m_tempTracerData.clear();
+		if (GetCurrentMode()==EnvMode_AirSide)
+		{
+			if(m_bShowAirsideFlightTracers)
+				m_tempAirsideTracerData.clear();
+			if(m_bShowAirsideVehicleTracers)
+				m_tempAirsideVTracerData.clear();
+		}
+		if (GetCurrentMode()==EnvMode_LandSide)
+			m_tempVehicleTracerData.clear();
 
 		// then build, code copied from CTermPlanDoc::OnTracersOn()
 		long nFirstInTime, nLastOutTime;
@@ -9832,7 +9881,7 @@ BOOL CTermPlanDoc::LoadAirsideLogs(long &nFirstInTime,long &nLastOutTime)
 		AirsideVehicleLogEntry vehileE;		
 		GetAirsideSimLogs().m_airsideVehicleLog.getItem(vehileE,i);
 		CVehicleDispPropItem *displayItem = m_vehicleDispProps.FindBestMatch(vehileE.GetAirsideDesc().id);		
-		m_vAVehicleDispPropIdx.push_back(displayItem->GetID());
+		m_vAVehicleDispPropIdx.push_back(displayItem->GetID()-1);
 		m_vAVehicleShapeNameIdx.push_back(displayItem->GetVehicleType()->getName());
 	}
 

@@ -68,6 +68,7 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 
 	CProgressBar bar(_T("Fetch logs and build original data..."), 100, nCount, TRUE);
 
+	std::vector<AirsideFlightLogDesc> logDesList;
 	for (int i = 0; i < nCount; i++)
 	{
 		std::vector<AirsideFlightStandOperationLog*> vStandOpLogs;
@@ -75,6 +76,7 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 		flightLogData.LoadItem(flightLogData.ItemAt(i));
 		AirsideFlightLogItem item = flightLogData.ItemAt(i);
 
+		logDesList.push_back(item.mFltDesc);
 		ARCEventLog* pLog = NULL;
 
 		size_t nLogCount = item.mpEventList->mEventList.size();
@@ -118,12 +120,95 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 			vOneStandOpLogs.assign(vStandOpLogs.begin(),iter);
 			vStandOpLogs.erase(vStandOpLogs.begin(),iter);
 
-			ProcessLogs(vOneStandOpLogs, item, bOnlyStand);
+			ProcessLogs(vOneStandOpLogs, pParameter,item, bOnlyStand);
 		}
 
 		bar.StepIt();
 	}
 	
+	for (int iDesc = 0; iDesc< nCount;  iDesc++)
+	{
+		AirsideFlightLogDesc fltdesc = logDesList[iDesc];
+		//arr stand
+		if(fltdesc.sSchedArrStand.empty() == false)
+		{	
+			if (TimeRangeOverlap(fltdesc.SchedArrOn,fltdesc.SchedArrOff,pParameter))//time range in start to end
+			{
+				ALTObjectID arrStand;
+				arrStand.FromString(fltdesc.sSchedArrStand.c_str());
+				if (FindFlightScheduleStand(arrStand,fltdesc.id,fltdesc.SchedArrOn,fltdesc.SchedArrOff) == false)
+				{
+					CStandOperationReportData* pData = new CStandOperationReportData();
+					pData->m_lFlightIndex = fltdesc.id;
+					pData->m_fltmode = 'A';
+					pData->m_lSchedOn = fltdesc.SchedArrOn;
+					pData->m_lSchedOff = fltdesc.SchedArrOff;
+					pData->m_sSchedName = fltdesc.sSchedArrStand.c_str();
+					pData->m_lSchedOccupancy = fltdesc.SchedArrOff - fltdesc.SchedArrOn;
+
+					long lMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),fltdesc.SchedArrOff);
+					long lMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),fltdesc.SchedArrOn);
+					pData->m_lSchedAvailableOccupancy = MAX(lMinOffTime - lMaxOnTime,0);
+					m_vStandOperationReportData.push_back(pData);
+				}
+			}
+	
+			
+		}
+		//intermediate stand
+		if(fltdesc.sSchedIntStand.empty() == false)
+		{
+			if (TimeRangeOverlap(fltdesc.SchedIntOn,fltdesc.SchedIntOff,pParameter))//time range in start to end
+			{
+				ALTObjectID intStand;
+				intStand.FromString(fltdesc.sSchedIntStand.c_str());
+				if (FindFlightScheduleStand(intStand,fltdesc.id,fltdesc.SchedIntOn,fltdesc.SchedIntOff) == false)
+				{
+					CStandOperationReportData* pData = new CStandOperationReportData();
+					pData->m_lFlightIndex = fltdesc.id;
+					pData->m_fltmode = 'D';
+					pData->m_lSchedOn = fltdesc.SchedIntOn;
+					pData->m_lSchedOff = fltdesc.SchedIntOff;
+					pData->m_sSchedName = fltdesc.sSchedIntStand.c_str();
+					pData->m_lSchedOccupancy = fltdesc.SchedIntOff - fltdesc.SchedIntOn;
+					long lMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),fltdesc.SchedIntOff);
+					long lMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),fltdesc.SchedIntOn);
+					pData->m_lSchedAvailableOccupancy = MAX(lMinOffTime - lMaxOnTime,0);
+					m_vStandOperationReportData.push_back(pData);
+				}
+			}
+		}
+
+		//departure stand
+		if(fltdesc.sSchedDepStand.empty() == false)
+		{
+			long lSchedOn = fltdesc.SchedDepOn;
+			if (fltdesc.sSchedArrStand == fltdesc.sSchedDepStand && fltdesc.sSchedIntStand.empty() == true)
+			{
+				lSchedOn = fltdesc.SchedArrOn;
+			}
+			if (TimeRangeOverlap(lSchedOn,fltdesc.SchedDepOff,pParameter))//time range in start to end
+			{
+				ALTObjectID depStand;
+				depStand.FromString(fltdesc.sSchedDepStand.c_str());
+				if (FindFlightScheduleStand(depStand,fltdesc.id,lSchedOn,fltdesc.SchedDepOff) == false)
+				{
+					CStandOperationReportData* pData = new CStandOperationReportData();
+					pData->m_lFlightIndex = fltdesc.id;
+					pData->m_fltmode = 'D';
+					pData->m_lSchedOn = lSchedOn;
+					pData->m_lSchedOff = fltdesc.SchedDepOff;
+					pData->m_sSchedName = fltdesc.sSchedDepStand.c_str();
+					pData->m_lSchedOccupancy = fltdesc.SchedDepOff - lSchedOn;
+					long lMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),fltdesc.SchedDepOff);
+					long lMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),lSchedOn);
+					pData->m_lSchedAvailableOccupancy = MAX(lMinOffTime - lMaxOnTime,0);
+					m_vStandOperationReportData.push_back(pData);
+				}
+			}
+		}
+	
+	}
 	ARCBaseLog<AirsideALTObjectLogItem> objectLogData;
 	objectLogData.OpenObjectInput(strObjectPath);
 	int nObjectCount = objectLogData.getItemCount();
@@ -154,7 +239,24 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 }
 
 
-void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOperationLog*>& vStandOpLogs, AirsideFlightLogItem& item, bool bOnlyStand)
+bool StandOperationDataProcessor::FindFlightScheduleStand( const ALTObjectID& standID,long lFlightIndex,long lScheduleOn,long lScheduleOff )
+{
+	unsigned nCount = m_vStandOperationReportData.size();
+	for (unsigned i = 0; i < nCount; i++)
+	{
+		CStandOperationReportData* pStandData = m_vStandOperationReportData.at(i);
+		ALTObjectID useStand;
+		useStand.FromString(pStandData->m_sSchedName);
+		if (standID == useStand && pStandData->m_lFlightIndex == lFlightIndex&&
+			pStandData->m_lSchedOn == lScheduleOn&&pStandData->m_lSchedOff == lScheduleOff)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOperationLog*>& vStandOpLogs, CParameters* pParameter,AirsideFlightLogItem& item, bool bOnlyStand)
 {
 	AirsideFlightLogDesc fltdesc = item.mFltDesc;
 
@@ -196,16 +298,31 @@ void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOpe
 				pData = new CStandOperationReportData;
 				pData->m_sACType = fltdesc.sAcType.c_str();
 
-				if(pLog->m_eParkingOpType == ARR_PARKING)
+				if (fltdesc.sArrID.empty() == false)
 				{
 					std::string str = fltdesc.sAirline + fltdesc.sArrID;
 					pData->m_sID = str.c_str();
-					if (bOnlyStand)			//arrival stand same as departure stand and without intermediate parking
-					{
-						pData->m_sID += "/";
-						str = fltdesc.sAirline+ fltdesc.sDepID;
-						pData->m_sID += str.c_str();
-					}
+				}
+
+				if (fltdesc.sDepID.empty() == false)
+				{
+					pData->m_sID += "/";
+					std::string str = fltdesc.sAirline + fltdesc.sDepID;
+					pData->m_sID += str.c_str();
+				}
+
+				pData->m_lFlightIndex = fltdesc.id;
+
+				if(pLog->m_eParkingOpType == ARR_PARKING)
+				{
+					//std::string str = fltdesc.sAirline + fltdesc.sArrID;
+					//pData->m_sID = str.c_str();
+					//if (bOnlyStand)			//arrival stand same as departure stand and without intermediate parking
+					//{
+					//	pData->m_sID += "/";
+					//	str = fltdesc.sAirline+ fltdesc.sDepID;
+					//	pData->m_sID += str.c_str();
+					//}
 					pData->m_fltmode = 'A';
 
 					pData->m_sSchedName = fltdesc.sSchedArrStand.c_str();
@@ -215,8 +332,8 @@ void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOpe
 				}
 				else
 				{
-					std::string str = fltdesc.sAirline + fltdesc.sDepID;
-					pData->m_sID = str.c_str();
+					//std::string str = fltdesc.sAirline + fltdesc.sDepID;
+					//pData->m_sID = str.c_str();
 					pData->m_fltmode = 'D';
 
 					if(pLog->m_eParkingOpType == INT_PARKING)
@@ -265,14 +382,30 @@ void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOpe
 			if (pLog->m_eOpType == AirsideFlightStandOperationLog::LeavingStand)
 			{
 				pData->m_lActualOff = pLog->time;
-				pData->m_lActualOccupancy = pData->m_lActualOff - pData->m_lActualOn;
+				if (TimeRangeOverlap(pData->m_lActualOn,pData->m_lActualOff,pParameter) == false)
+				{
+					delete pData;
+				}
+				else
+				{
+					pData->m_lActualOccupancy = pData->m_lActualOff - pData->m_lActualOn;
 
-				pData->m_lDueTaxiwayOccupied = lTaxiwayOccupiedDelay;
-				pData->m_lDueGSE = lGSEDelay;
-				pData->m_lDuePushbackClearance = lPushbackClearanceDelay;
-				pData->m_lDelayLeaving = lTaxiwayOccupiedDelay + lGSEDelay + lPushbackClearanceDelay;
+					long lSchedMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),pData->m_lSchedOff );
+					long lSchedMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),pData->m_lSchedOn);
+					pData->m_lSchedAvailableOccupancy = MAX(lSchedMinOffTime - lSchedMaxOnTime,0);
+					
+					long lActualMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),pData->m_lActualOff );
+					long lActualMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),pData->m_lActualOn);
+					pData->m_lActualAvailableOccupancy = MAX(lActualMinOffTime - lActualMaxOnTime,0);
 
-				m_vStandOperationReportData.push_back(pData);
+					pData->m_lDueTaxiwayOccupied = lTaxiwayOccupiedDelay;
+					pData->m_lDueGSE = lGSEDelay;
+					pData->m_lDuePushbackClearance = lPushbackClearanceDelay;
+					pData->m_lDelayLeaving = lTaxiwayOccupiedDelay + lGSEDelay + lPushbackClearanceDelay;
+
+					m_vStandOperationReportData.push_back(pData);
+				}
+				
 
 				pData = NULL;
 
@@ -332,3 +465,18 @@ int StandOperationDataProcessor::GetUnuseActualStandCount()const
 {
 	return m_nIdleActualStand;
 }
+
+bool StandOperationDataProcessor::TimeRangeOverlap( long eOnTime,long eOffTime,CParameters* pParameter ) const
+{
+	ElapsedTime eOnStand;
+	ElapsedTime eOffStand;
+	eOnStand.setPrecisely(eOnTime);
+	eOffStand.setPrecisely(eOffTime);
+	if (eOnStand > pParameter->getEndTime() || eOffStand < pParameter->getStartTime())//filter not in the time range
+	{
+		return false;
+	}
+
+	return true;
+}
+

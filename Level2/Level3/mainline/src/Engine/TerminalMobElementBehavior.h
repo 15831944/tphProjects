@@ -276,14 +276,8 @@ public:
 	BOOL HasArrivedFixQueue() { return m_IsArrivedFixQueue;}
 	void HasArrivedFixQueue(BOOL _res) {  m_IsArrivedFixQueue = _res;}
 
-    typedef enum
-    {
-        FromTerminal,
-        FromLandside,
-        FromBridge
-    }enumPaxFrom;
-    enumPaxFrom GetPaxFrom() const { return m_nPaxFrom; }
-    void SetPaxFrom(const enumPaxFrom& where_) { m_nPaxFrom = where_; }
+    BOOL GetFromLandSide() const { return m_bFromLandSide; }
+    void SetFromLandSide(BOOL b) { m_bFromLandSide = b; }
 
 	BridgeConnector* GetBridgeConnector(Processor* pProcessor);
 
@@ -598,10 +592,11 @@ protected:
 	ArrDepBridgeState m_emBridgeState;
 
 	AirsideFlightInSim* m_pFlightAirside;
+
 	BOOL m_bhasBusServer;//if has pax bus server 
 	BOOL m_IsWalkOnBridge ; // check if pax walk through the bridge ,not bus 
 	BOOL m_IsArrivedFixQueue ; // check if the person has arrived at the Fixqueue ;
-    enumPaxFrom m_nPaxFrom; // marked where do this guy from, use for entering terminal.
+    BOOL m_bFromLandSide; // true if this pax from landside, used by terminal processBirth().
     Point Entry_point ;
 
 	TRANSFER_STATE m_TransferState;

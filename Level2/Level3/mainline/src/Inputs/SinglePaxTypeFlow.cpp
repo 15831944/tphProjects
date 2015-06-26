@@ -125,7 +125,7 @@ void CSinglePaxTypeFlow::AddDestProc(const ProcessorID & _sourceProcID,const CFl
 }
 
 // add _secondProc to _newProc's destination list  , add _newProc  to _firstProc's destination list and remove _secondProc from _firstProc's destination list
-void CSinglePaxTypeFlow::InsertBetwwen( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc )
+void CSinglePaxTypeFlow::InsertBetween( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc )
 {
 	if( _firstProcID == _newProc.GetProcID() ||
 		_secondProcID == _newProc.GetProcID() )

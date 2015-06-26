@@ -983,7 +983,7 @@ void LandsideVehicleInSim::FailedParkInCurb( LandsideCurbSideInSim*pCurb,CARCpor
 		}		
 	}
 	CString sError;
-	sError.Format(_T("Failed Parking at Curbside %s,Define Curbside Strategy"),pCurb->getName().GetIDString().GetString() );
+	sError.Format(_T("Failed to park at curbside %s, please define Curbside Strategy."),pCurb->getName().GetIDString().GetString() );
 	ShowError(sError, "Simulation Error");
 
 	if(ProceedToNextFcObject(pEngine))

@@ -95,12 +95,16 @@ public:
 	//long GetDelayTimeOnTaxiway(const AirsideFlightLogItem& item, long lFromTime, long lToTime);
 private:
 	//typedef std::map<int/*stand id in database*/, StandOperationDataItem*> StandOperationDataMap;
-	void ProcessLogs( std::vector<AirsideFlightStandOperationLog*>& vStandOpLogs, AirsideFlightLogItem& item, bool bOnlyStand);
+	void ProcessLogs( std::vector<AirsideFlightStandOperationLog*>& vStandOpLogs, CParameters* pParameter,AirsideFlightLogItem& item, bool bOnlyStand);
 
 	//void BuildDataFromMap( CParameters* pParameter, StandOperationDataMap& opDataPlanedMap, StandOperationDataMap& opDataActualMap );
 	//void AddStandOpItemToMap( StandOperationAnalyzeTemp* pTemp, StandOperationDataMap &opDataPlanedMap, StandOperationDataMap &opDataActualMap );
 	bool FindStandUseScheduleInformation(const ALTObjectID& standID);
 	bool FindStandUseActualInformation(const ALTObjectID& standID);
+
+	bool FindFlightScheduleStand(const ALTObjectID& standID,long lFlightIndex,long lScheduleOn,long lScheduleOff);
+
+	bool TimeRangeOverlap(long eOnTime,long eOffTime,CParameters* pParameter)const;
 	std::vector<CStandOperationReportData*> m_vStandOperationReportData;
 	int m_nIdleScheduleStand;//stand count schedule that never use
 	int m_nIdleActualStand;//stand count actual never use

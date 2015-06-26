@@ -130,7 +130,6 @@ CRender3DView::CRender3DView()
 
 	m_bReloadLandsideVehicleTagDispProp = true;
 	m_bReloadLandsideVehicleDispProp = true;
-
 }
 
 CRender3DView::~CRender3DView()
@@ -353,6 +352,7 @@ void CRender3DView::OnInitialUpdate()
 	RelocateCameraData();
 	InitSeledPaxList();
 	CreateOnboardFlightInSim();
+	GetDocument()->m_bShowLandsideVehcleTraces = FALSE;
 	Invalidate(FALSE);
 }
 
@@ -2354,7 +2354,7 @@ void CRender3DView::UpdateLandsideVehicleAnima(BOOL bSelectMode,BOOL _bShowTag)
 void CRender3DView::UpdateLandsideVehicleTraces()
 {
 	CTermPlanDoc *pDoc=GetDocument();
-	bool bShow = pDoc->m_bShowTracers ? true : false;
+	bool bShow = pDoc->m_bShowLandsideVehcleTraces ? true : false;
 	GetModelEditScene().RenderVehicleTraces(&pDoc->m_tempVehicleTracerData,bShow);
 }
 

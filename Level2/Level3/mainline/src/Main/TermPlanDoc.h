@@ -501,7 +501,8 @@ public:
 	CTempTracerData m_tempTracerData;
 
 	std::vector<int> m_pACCountPerDispProp;   //used for tracer densities to count #of aircraft
-	CTempTracerData m_tempAirsideTracerData;  //aircraft trace data
+	CTempTracerData m_tempAirsideTracerData;  //Airside aircraft trace data
+	CTempTracerData m_tempAirsideVTracerData;  //Airside vehicle trace data
 
 	std::vector<int> m_pVehicleCountPerDispProp;		//used for Vehicle tracer densities to count # of Vehicle for each PDPI
 	CTempTracerData m_tempVehicleTracerData;  //vehicle trace data
@@ -510,8 +511,10 @@ public:
 	//////// End Anim Data ////////
 	
 	//////// Begin Tracer Data ///////
-	BOOL m_bShowTracers;
+	BOOL m_bShowTerminalPaxTracers;
+	BOOL m_bShowLandsideVehcleTraces;
 	BOOL m_bShowAirsideFlightTracers;
+	BOOL m_bShowAirsideVehicleTracers;
 	////////Mathematic Data///////////
 	std::vector<CMathFlow> m_vFlow;
 	std::vector<CMathProcess> m_vProcess;

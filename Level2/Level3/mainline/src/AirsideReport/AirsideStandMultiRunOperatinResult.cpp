@@ -60,9 +60,11 @@ void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pP
             StandMultipleOperationData standOperationData;
             standOperationData.m_fltmode = pData->m_fltmode;
             standOperationData.m_sSchedName = pData->m_sSchedName;
-            standOperationData.m_lSchedOccupancy = pData->m_lSchedOccupancy;
+          //standOperationData.m_lSchedOccupancy = pData->m_lSchedOccupancy;
+			standOperationData.m_lSchedOccupancy = pData->m_lSchedAvailableOccupancy;
             standOperationData.m_sActualName = pData->m_sActualName;
-            standOperationData.m_lOccupiedTime = pData->m_lActualOccupancy;
+          //standOperationData.m_lOccupiedTime = pData->m_lActualOccupancy;
+			standOperationData.m_lOccupiedTime = pData->m_lActualAvailableOccupancy;
             standOperationData.m_lDelayEnter = pData->m_lDelayEnter;
             standOperationData.m_lDelayLeaving = pData->m_lDelayLeaving;
             mapStandLoadData[strSimResult].push_back(standOperationData);
@@ -398,6 +400,9 @@ void CAirsideStandMultiRunOperatinResult::FillDetailListCountContent( CXListCtrl
 
 void CAirsideStandMultiRunOperatinResult::ClearData()
 {
+	m_mapUnuseScheduleStand.clear();
+	m_mapUnuseActualStand.clear();
+
 	m_standOccupMap.clear();
 	m_standidlemap.clear();
 	m_standRatiomap.clear();
@@ -414,6 +419,11 @@ void CAirsideStandMultiRunOperatinResult::ClearData()
 	m_summaryConflictMap.clear();
 }
 
+static bool IfMultiActualStandIsBlank(const StandMultipleOperationData& operationData)
+{
+	return operationData.m_sActualName.IsEmpty();
+}
+
 void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CParameters* pParameter,MapMultiRunStandOperationData standOperationData )
 {
 	mapStandOpResult  mapLoadData;
@@ -425,6 +435,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty() == true)
+				continue;
+			
 			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
 
 			if (mapLoadData[iter->first][operationData.m_sActualName] > lMaxOccupancyTime)
@@ -489,6 +502,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty() == true)
+				continue;
+
 			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
 			if(mapLoadData[iter->first][operationData.m_sActualName]  < lMinOccupancyTime)
 			{
@@ -518,11 +534,11 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
 	int nIntervalSize = (nDuration - eMinTime.asSeconds()) / (pParameter->getInterval()) ;
 
-    if((nDuration-eMinTime.asSeconds()) % pParameter->getInterval() != 0)
+ //   if((nDuration-eMinTime.asSeconds()) % pParameter->getInterval() != 0)
         nIntervalSize += 1;
 
-	if (nIntervalSize ==0)
-		nIntervalSize = 1;
+// 	if (nIntervalSize ==0)
+// 		nIntervalSize = 1;
 
 	mapLoadResult::iterator standIter = resultDataMap.begin();
 	for (; standIter != resultDataMap.end(); ++standIter)
@@ -559,6 +575,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty() == true)
+				continue;
 			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
 			if (mapLoadData[iter->first][operationData.m_sActualName] > lMaxOccupancyTime)
 			{
@@ -629,7 +647,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 			reportData.m_iStart = idx *10;
 			reportData.m_iEnd = (idx+1) *10;
 			reportData.m_iData = 0;
-			m_standRatiomap[mapIter->first].push_back(reportData);
+			m_standRatiomap[standIter->first].push_back(reportData);
 		}
 	}
 }
@@ -649,6 +667,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 	long lMaxDelayTime = 0;
 	for (; iter != standOperationData.end(); ++iter)
 	{
+		std::vector<StandMultipleOperationData>::iterator reIter = std::remove_if(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),IfMultiActualStandIsBlank);
+		standOperationData[iter->first].erase(reIter,standOperationData[iter->first].end());
+
 		std::sort(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),DataCompareByStand);
 		if(standOperationData[iter->first].empty())
 			continue;
@@ -719,6 +740,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 	long nMaxConflicts = 0;
 	for (; iter != standOperationData.end(); ++iter)
 	{
+		std::vector<StandMultipleOperationData>::iterator reIter = std::remove_if(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),IfMultiActualStandIsBlank);
+		standOperationData[iter->first].erase(reIter,standOperationData[iter->first].end());
+
 		std::sort(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),DataCompareByStand);
 		if(standOperationData[iter->first].empty())
 			continue;
@@ -1072,20 +1096,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
         }
         tempTool.SortData();
 
-        m_summarySchedUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
-        m_summarySchedUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
-        m_summarySchedUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
-        m_summarySchedUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
-        m_summarySchedUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
-        m_summarySchedUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
-        m_summarySchedUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
-        m_summarySchedUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
-        m_summarySchedUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
-        m_summarySchedUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
-        m_summarySchedUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
-        m_summarySchedUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
-        m_summarySchedUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
-        m_summarySchedUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
+        m_summarySchedUtilizeMap[simIter->first].m_dTotal = (tempTool.GetSum());
+        m_summarySchedUtilizeMap[simIter->first].m_dMin = (tempTool.GetMin());
+        m_summarySchedUtilizeMap[simIter->first].m_dAverage = (tempTool.GetAvarage());
+        m_summarySchedUtilizeMap[simIter->first].m_dMax = (tempTool.GetMax());
+        m_summarySchedUtilizeMap[simIter->first].m_dQ1 = (tempTool.GetPercentile(25));
+        m_summarySchedUtilizeMap[simIter->first].m_dQ2 = (tempTool.GetPercentile(50));
+        m_summarySchedUtilizeMap[simIter->first].m_dQ3 = (tempTool.GetPercentile(75));
+        m_summarySchedUtilizeMap[simIter->first].m_dP1 = (tempTool.GetPercentile(1));
+        m_summarySchedUtilizeMap[simIter->first].m_dP5 = (tempTool.GetPercentile(5));
+        m_summarySchedUtilizeMap[simIter->first].m_dP10 = (tempTool.GetPercentile(10));
+        m_summarySchedUtilizeMap[simIter->first].m_dP90 = (tempTool.GetPercentile(90));
+        m_summarySchedUtilizeMap[simIter->first].m_dP95 = (tempTool.GetPercentile(95));
+        m_summarySchedUtilizeMap[simIter->first].m_dP99 = (tempTool.GetPercentile(99));
+        m_summarySchedUtilizeMap[simIter->first].m_dSigma = (tempTool.GetSigma());
     }
 }
 
@@ -1137,20 +1161,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
         }
         tempTool.SortData();
 
-        m_summarySchedIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
-        m_summarySchedIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
-        m_summarySchedIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
-        m_summarySchedIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
-        m_summarySchedIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
-        m_summarySchedIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
-        m_summarySchedIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
-        m_summarySchedIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
-        m_summarySchedIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
-        m_summarySchedIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
-        m_summarySchedIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
-        m_summarySchedIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
-        m_summarySchedIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
-        m_summarySchedIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
+        m_summarySchedIdleMap[simIter->first].m_dTotal = (tempTool.GetSum());
+        m_summarySchedIdleMap[simIter->first].m_dMin = (tempTool.GetMin());
+        m_summarySchedIdleMap[simIter->first].m_dAverage = (tempTool.GetAvarage());
+        m_summarySchedIdleMap[simIter->first].m_dMax = (tempTool.GetMax());
+        m_summarySchedIdleMap[simIter->first].m_dQ1 = (tempTool.GetPercentile(25));
+        m_summarySchedIdleMap[simIter->first].m_dQ2 = (tempTool.GetPercentile(50));
+        m_summarySchedIdleMap[simIter->first].m_dQ3 = (tempTool.GetPercentile(75));
+        m_summarySchedIdleMap[simIter->first].m_dP1 = (tempTool.GetPercentile(1));
+        m_summarySchedIdleMap[simIter->first].m_dP5 = (tempTool.GetPercentile(5));
+        m_summarySchedIdleMap[simIter->first].m_dP10 = (tempTool.GetPercentile(10));
+        m_summarySchedIdleMap[simIter->first].m_dP90 = (tempTool.GetPercentile(90));
+        m_summarySchedIdleMap[simIter->first].m_dP95 = (tempTool.GetPercentile(95));
+        m_summarySchedIdleMap[simIter->first].m_dP99 = (tempTool.GetPercentile(99));
+        m_summarySchedIdleMap[simIter->first].m_dSigma = (tempTool.GetSigma());
     }
 }
 
@@ -1166,6 +1190,9 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty())
+				continue;
+			
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
         }
     }
@@ -1198,20 +1225,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
         }
         tempTool.SortData();
 
-        m_summaryActualUtilizeMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
-        m_summaryActualUtilizeMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
-        m_summaryActualUtilizeMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
-        m_summaryActualUtilizeMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
-        m_summaryActualUtilizeMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
-        m_summaryActualUtilizeMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
-        m_summaryActualUtilizeMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
-        m_summaryActualUtilizeMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
-        m_summaryActualUtilizeMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
-        m_summaryActualUtilizeMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
-        m_summaryActualUtilizeMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
-        m_summaryActualUtilizeMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
-        m_summaryActualUtilizeMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
-        m_summaryActualUtilizeMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
+        m_summaryActualUtilizeMap[simIter->first].m_dTotal = (tempTool.GetSum());
+        m_summaryActualUtilizeMap[simIter->first].m_dMin = (tempTool.GetMin());
+        m_summaryActualUtilizeMap[simIter->first].m_dAverage = (tempTool.GetAvarage());
+        m_summaryActualUtilizeMap[simIter->first].m_dMax = (tempTool.GetMax());
+        m_summaryActualUtilizeMap[simIter->first].m_dQ1 = (tempTool.GetPercentile(25));
+        m_summaryActualUtilizeMap[simIter->first].m_dQ2 = (tempTool.GetPercentile(50));
+        m_summaryActualUtilizeMap[simIter->first].m_dQ3 = (tempTool.GetPercentile(75));
+        m_summaryActualUtilizeMap[simIter->first].m_dP1 = (tempTool.GetPercentile(1));
+        m_summaryActualUtilizeMap[simIter->first].m_dP5 = (tempTool.GetPercentile(5));
+        m_summaryActualUtilizeMap[simIter->first].m_dP10 = (tempTool.GetPercentile(10));
+        m_summaryActualUtilizeMap[simIter->first].m_dP90 = (tempTool.GetPercentile(90));
+        m_summaryActualUtilizeMap[simIter->first].m_dP95 = (tempTool.GetPercentile(95));
+        m_summaryActualUtilizeMap[simIter->first].m_dP99 = (tempTool.GetPercentile(99));
+        m_summaryActualUtilizeMap[simIter->first].m_dSigma = (tempTool.GetSigma());
     }
 }
 
@@ -1227,6 +1254,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty())
+				continue;
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
         }
     }
@@ -1263,20 +1292,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
         }
         tempTool.SortData();
 
-        m_summaryActualIdleMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
-        m_summaryActualIdleMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
-        m_summaryActualIdleMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
-        m_summaryActualIdleMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
-        m_summaryActualIdleMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
-        m_summaryActualIdleMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
-        m_summaryActualIdleMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
-        m_summaryActualIdleMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
-        m_summaryActualIdleMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
-        m_summaryActualIdleMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
-        m_summaryActualIdleMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
-        m_summaryActualIdleMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
-        m_summaryActualIdleMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
-        m_summaryActualIdleMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
+        m_summaryActualIdleMap[simIter->first].m_dTotal = (tempTool.GetSum());
+        m_summaryActualIdleMap[simIter->first].m_dMin = (tempTool.GetMin());
+        m_summaryActualIdleMap[simIter->first].m_dAverage = (tempTool.GetAvarage());
+        m_summaryActualIdleMap[simIter->first].m_dMax = (tempTool.GetMax());
+        m_summaryActualIdleMap[simIter->first].m_dQ1 = (tempTool.GetPercentile(25));
+        m_summaryActualIdleMap[simIter->first].m_dQ2 = (tempTool.GetPercentile(50));
+        m_summaryActualIdleMap[simIter->first].m_dQ3 = (tempTool.GetPercentile(75));
+        m_summaryActualIdleMap[simIter->first].m_dP1 = (tempTool.GetPercentile(1));
+        m_summaryActualIdleMap[simIter->first].m_dP5 = (tempTool.GetPercentile(5));
+        m_summaryActualIdleMap[simIter->first].m_dP10 = (tempTool.GetPercentile(10));
+        m_summaryActualIdleMap[simIter->first].m_dP90 = (tempTool.GetPercentile(90));
+        m_summaryActualIdleMap[simIter->first].m_dP95 = (tempTool.GetPercentile(95));
+        m_summaryActualIdleMap[simIter->first].m_dP99 = (tempTool.GetPercentile(99));
+        m_summaryActualIdleMap[simIter->first].m_dSigma = (tempTool.GetSigma());
     }
 }
 
@@ -1292,6 +1321,9 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty())
+				continue;
+
 			if (operationData.IsDelay() == true)//has delay
 			{
 				mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayEnter;
@@ -1315,20 +1347,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         }
         tempTool.SortData();
 
-        m_summaryDelayMap[simIter->first].m_estTotal = (long)(tempTool.GetSum());
-        m_summaryDelayMap[simIter->first].m_estMin = (long)(tempTool.GetMin());
-        m_summaryDelayMap[simIter->first].m_estAverage = (long)(tempTool.GetAvarage());
-        m_summaryDelayMap[simIter->first].m_estMax = (long)(tempTool.GetMax());
-        m_summaryDelayMap[simIter->first].m_estQ1 = (long)(tempTool.GetPercentile(25));
-        m_summaryDelayMap[simIter->first].m_estQ2 = (long)(tempTool.GetPercentile(50));
-        m_summaryDelayMap[simIter->first].m_estQ3 = (long)(tempTool.GetPercentile(75));
-        m_summaryDelayMap[simIter->first].m_estP1 = (long)(tempTool.GetPercentile(1));
-        m_summaryDelayMap[simIter->first].m_estP5 = (long)(tempTool.GetPercentile(5));
-        m_summaryDelayMap[simIter->first].m_estP10 = (long)(tempTool.GetPercentile(10));
-        m_summaryDelayMap[simIter->first].m_estP90 = (long)(tempTool.GetPercentile(90));
-        m_summaryDelayMap[simIter->first].m_estP95 = (long)(tempTool.GetPercentile(95));
-        m_summaryDelayMap[simIter->first].m_estP99 = (long)(tempTool.GetPercentile(99));
-        m_summaryDelayMap[simIter->first].m_estSigma = (long)(tempTool.GetSigma());
+        m_summaryDelayMap[simIter->first].m_dTotal = (tempTool.GetSum());
+        m_summaryDelayMap[simIter->first].m_dMin = (tempTool.GetMin());
+        m_summaryDelayMap[simIter->first].m_dAverage = (tempTool.GetAvarage());
+        m_summaryDelayMap[simIter->first].m_dMax = (tempTool.GetMax());
+        m_summaryDelayMap[simIter->first].m_dQ1 = (tempTool.GetPercentile(25));
+        m_summaryDelayMap[simIter->first].m_dQ2 = (tempTool.GetPercentile(50));
+        m_summaryDelayMap[simIter->first].m_dQ3 = (tempTool.GetPercentile(75));
+        m_summaryDelayMap[simIter->first].m_dP1 = (tempTool.GetPercentile(1));
+        m_summaryDelayMap[simIter->first].m_dP5 = (tempTool.GetPercentile(5));
+        m_summaryDelayMap[simIter->first].m_dP10 = (tempTool.GetPercentile(10));
+        m_summaryDelayMap[simIter->first].m_dP90 = (tempTool.GetPercentile(90));
+        m_summaryDelayMap[simIter->first].m_dP95 = (tempTool.GetPercentile(95));
+        m_summaryDelayMap[simIter->first].m_dP99 = (tempTool.GetPercentile(99));
+        m_summaryDelayMap[simIter->first].m_dSigma = (tempTool.GetSigma());
     }
 }
 
@@ -1344,6 +1376,9 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sActualName.IsEmpty())
+				continue;
+
         //    if(operationData.m_sActualName != operationData.m_sSchedName)
 			if(operationData.IsConflict() == true)//has conflict
             {
@@ -1365,20 +1400,20 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
         }
         tempTool.SortData();
 
-        m_summaryConflictMap[simIter->first].m_estTotal.setPrecisely((long)(tempTool.GetSum()*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estMin.setPrecisely((long)(tempTool.GetMin()*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estAverage.setPrecisely((long)(tempTool.GetAvarage()*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estMax.setPrecisely((long)(tempTool.GetMax()*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estQ1.setPrecisely((long)(tempTool.GetPercentile(25)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estQ2.setPrecisely((long)(tempTool.GetPercentile(50)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estQ3.setPrecisely((long)(tempTool.GetPercentile(75)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estP1.setPrecisely((long)(tempTool.GetPercentile(1)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estP5.setPrecisely((long)(tempTool.GetPercentile(5)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estP10.setPrecisely((long)(tempTool.GetPercentile(10)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estP90.setPrecisely((long)(tempTool.GetPercentile(90)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estP95.setPrecisely((long)(tempTool.GetPercentile(95)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estP99.setPrecisely((long)(tempTool.GetPercentile(99)*100 + 0.5));
-        m_summaryConflictMap[simIter->first].m_estSigma.setPrecisely((long)(tempTool.GetSigma()*100 + 0.5));
+        m_summaryConflictMap[simIter->first].m_dTotal= tempTool.GetSum();
+        m_summaryConflictMap[simIter->first].m_dMin = tempTool.GetMin();
+        m_summaryConflictMap[simIter->first].m_dAverage = tempTool.GetAvarage();
+        m_summaryConflictMap[simIter->first].m_dMax = tempTool.GetMax();
+        m_summaryConflictMap[simIter->first].m_dQ1 = tempTool.GetPercentile(25);
+        m_summaryConflictMap[simIter->first].m_dQ2 = tempTool.GetPercentile(50);
+        m_summaryConflictMap[simIter->first].m_dQ3 = tempTool.GetPercentile(75);
+        m_summaryConflictMap[simIter->first].m_dP1 = tempTool.GetPercentile(1);
+        m_summaryConflictMap[simIter->first].m_dP5 = tempTool.GetPercentile(5);
+        m_summaryConflictMap[simIter->first].m_dP10 = tempTool.GetPercentile(10);
+        m_summaryConflictMap[simIter->first].m_dP90 = tempTool.GetPercentile(90);
+        m_summaryConflictMap[simIter->first].m_dP95 = tempTool.GetPercentile(95);
+        m_summaryConflictMap[simIter->first].m_dP99 = tempTool.GetPercentile(99);
+        m_summaryConflictMap[simIter->first].m_dSigma = tempTool.GetSigma();
     }
 }
 
@@ -1410,11 +1445,34 @@ void CAirsideStandMultiRunOperatinResult::InitSummaryListHead( CXListCtrl &cxLis
     }
 }
 
-void CAirsideStandMultiRunOperatinResult::FillSummaryListContent(CXListCtrl &cxListCtrl, MultiRunSummaryMap &multiRunSummaryMap)
+CString CAirsideStandMultiRunOperatinResult::PrintHMS( double dSecs )
 {
-    MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
+	CString strTime;
+
+	if (dSecs >= 0)
+	{
+		long hours = (long) (dSecs / 3600L);
+		long min = (long) ((dSecs - (hours * 3600L)) / 60L);
+		long sec = (long) (dSecs - (hours * 3600L) - (min * 60L));
+		strTime.Format(_T("%d:%02d:%02d"), hours, min, sec);
+	}
+	else // takecare of the negtive number
+	{
+		dSecs = -dSecs;
+		long hours = (long) (dSecs / 3600L);
+		long min = (long) ((dSecs - (hours * 3600L)) / 60L);
+		long sec = (long) (dSecs - (hours * 3600L) - (min * 60L));
+		strTime.Format(_T("-%d:%02d:%02d"), hours, min, sec);
+	}
+
+	return strTime;
+}
+
+void CAirsideStandMultiRunOperatinResult::FillSummaryListContent(CXListCtrl &cxListCtrl, MultiStandRunSummaryMap &MultiStandRunSummaryMap)
+{
+    MultiStandRunSummaryMap::iterator iter = MultiStandRunSummaryMap.begin();
     int idx = 0;
-    for (; iter != multiRunSummaryMap.end(); iter++)
+    for (; iter != MultiStandRunSummaryMap.end(); iter++)
     {
         CString strIndex;
         strIndex.Format(_T("%d"),idx+1);
@@ -1430,59 +1488,60 @@ void CAirsideStandMultiRunOperatinResult::FillSummaryListContent(CXListCtrl &cxL
         nCurCol++;
 
         CString strTemp;
-        strTemp = iter->second.m_estTotal.printTime();
+     //   strTemp = iter->second.m_estTotal.printTime();
+		strTemp = PrintHMS(iter->second.m_dTotal);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estMin.printTime();
+        strTemp = PrintHMS(iter->second.m_dMin);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estAverage.printTime();
+        strTemp = PrintHMS(iter->second.m_dAverage);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estMax.printTime();
+        strTemp = PrintHMS(iter->second.m_dMax);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estQ1.printTime();
+        strTemp = PrintHMS(iter->second.m_dQ1);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estQ2.printTime();
+        strTemp = PrintHMS(iter->second.m_dQ2);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estQ3.printTime();
+        strTemp = PrintHMS(iter->second.m_dQ3);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estP1.printTime();
+        strTemp = PrintHMS(iter->second.m_dP1);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estP5.printTime();
+        strTemp = PrintHMS(iter->second.m_dP5);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estP10.printTime();
+        strTemp = PrintHMS(iter->second.m_dP10);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estP90.printTime();
+        strTemp = PrintHMS(iter->second.m_dP90);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estP95.printTime();
+        strTemp = PrintHMS(iter->second.m_dP95);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estP99.printTime();
+        strTemp = PrintHMS(iter->second.m_dP99);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp = iter->second.m_estSigma.printTime();
+        strTemp = PrintHMS(iter->second.m_dSigma);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
@@ -1594,15 +1653,15 @@ void CAirsideStandMultiRunOperatinResult::SetSummaryConflict3DChartString(C2DCha
     c2dGraphData.m_strFooter = strFooter;
 }
 
-void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartData& c2dGraphData, MultiRunSummaryMap& multiRunSummaryMap)
+void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartData& c2dGraphData, MultiStandRunSummaryMap& MultiStandRunSummaryMap)
 {
     int nCount = sizeof(strSummaryListTitle) / sizeof(strSummaryListTitle[0]);
     for(int i=0; i<nCount; i++)
         c2dGraphData.m_vrLegend.push_back(strSummaryListTitle[i]);
 
     c2dGraphData.m_vr2DChartData.resize(nCount);
-    MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
-    for(; iter != multiRunSummaryMap.end(); iter++)
+    MultiStandRunSummaryMap::iterator iter = MultiStandRunSummaryMap.begin();
+    for(; iter != MultiStandRunSummaryMap.end(); iter++)
     {
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
@@ -1610,27 +1669,27 @@ void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartDat
         strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
-        c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second.m_estMin);
-        c2dGraphData.m_vr2DChartData[1].push_back((double)iter->second.m_estAverage);
-        c2dGraphData.m_vr2DChartData[2].push_back((double)iter->second.m_estMax);
-        c2dGraphData.m_vr2DChartData[3].push_back((double)iter->second.m_estQ1);
-        c2dGraphData.m_vr2DChartData[4].push_back((double)iter->second.m_estQ2);
-        c2dGraphData.m_vr2DChartData[5].push_back((double)iter->second.m_estQ3);
-        c2dGraphData.m_vr2DChartData[6].push_back((double)iter->second.m_estP1);
-        c2dGraphData.m_vr2DChartData[7].push_back((double)iter->second.m_estP5);
-        c2dGraphData.m_vr2DChartData[8].push_back((double)iter->second.m_estP10);
-        c2dGraphData.m_vr2DChartData[9].push_back((double)iter->second.m_estP90);
-        c2dGraphData.m_vr2DChartData[10].push_back((double)iter->second.m_estP95);
-        c2dGraphData.m_vr2DChartData[11].push_back((double)iter->second.m_estP99);
-        c2dGraphData.m_vr2DChartData[12].push_back((double)iter->second.m_estSigma);
+        c2dGraphData.m_vr2DChartData[0].push_back(iter->second.m_dMin);
+        c2dGraphData.m_vr2DChartData[1].push_back(iter->second.m_dAverage);
+        c2dGraphData.m_vr2DChartData[2].push_back(iter->second.m_dMax);
+        c2dGraphData.m_vr2DChartData[3].push_back(iter->second.m_dQ1);
+        c2dGraphData.m_vr2DChartData[4].push_back(iter->second.m_dQ2);
+        c2dGraphData.m_vr2DChartData[5].push_back(iter->second.m_dQ3);
+        c2dGraphData.m_vr2DChartData[6].push_back(iter->second.m_dP1);
+        c2dGraphData.m_vr2DChartData[7].push_back(iter->second.m_dP5);
+        c2dGraphData.m_vr2DChartData[8].push_back(iter->second.m_dP10);
+        c2dGraphData.m_vr2DChartData[9].push_back(iter->second.m_dP90);
+        c2dGraphData.m_vr2DChartData[10].push_back(iter->second.m_dP95);
+        c2dGraphData.m_vr2DChartData[11].push_back(iter->second.m_dP99);
+        c2dGraphData.m_vr2DChartData[12].push_back(iter->second.m_dSigma);
     }
 }
 
-void CAirsideStandMultiRunOperatinResult::FillSummaryConflictListContent(CXListCtrl& cxListCtrl, MultiRunSummaryMap& multiRunSummaryMap)
+void CAirsideStandMultiRunOperatinResult::FillSummaryConflictListContent(CXListCtrl& cxListCtrl, MultiStandRunSummaryMap& MultiStandRunSummaryMap)
 {
-    MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
+    MultiStandRunSummaryMap::iterator iter = MultiStandRunSummaryMap.begin();
     int idx = 0;
-    for (; iter != multiRunSummaryMap.end(); ++iter)
+    for (; iter != MultiStandRunSummaryMap.end(); ++iter)
     {
         CString strIndex;
         strIndex.Format(_T("%d"),idx+1);
@@ -1646,59 +1705,59 @@ void CAirsideStandMultiRunOperatinResult::FillSummaryConflictListContent(CXListC
         nCurCol++;
 
         CString strTemp;
-        strTemp.Format("%.2f", (float)iter->second.m_estTotal.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dTotal);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estMin.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dMin);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estAverage.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dAverage);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estMax.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dMax);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estQ1.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dQ1);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estQ2.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dQ2);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estQ3.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dQ3);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estP1.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dP1);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estP5.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dP5);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estP10.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dP10);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estP90.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dP90);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estP95.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dP95);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estP99.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dP99);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
-        strTemp.Format("%.2f", (float)iter->second.m_estSigma.getPrecisely()/100);
+        strTemp.Format("%.2f", (float)iter->second.m_dSigma);
         cxListCtrl.SetItemText(idx, nCurCol, strTemp);
         nCurCol++;
 
@@ -1713,6 +1772,10 @@ BOOL CAirsideStandMultiRunOperatinResult::WriteReportData( ArctermFile& _file )
 
 	_file.writeField("Detail Result");//write detail type
 	_file.writeLine();
+
+	WriteUnuseStandMap(m_mapUnuseScheduleStand,_file);
+	WriteUnuseStandMap(m_mapUnuseActualStand,_file);
+
 	WriteDetailMap(m_standOccupMap,_file);
 	WriteDetailMap(m_standidlemap,_file);
 	WriteDetailMap(m_standRatiomap,_file);
@@ -1736,6 +1799,10 @@ BOOL CAirsideStandMultiRunOperatinResult::ReadReportData( ArctermFile& _file )
 {
 	ClearData();
 	_file.getLine();
+
+	ReadUnuseStandMap(m_mapUnuseScheduleStand,_file);
+	ReadUnuseStandMap(m_mapUnuseActualStand,_file);
+
 	//read detail
 	ReadDetailMap(m_standOccupMap,_file);
 	ReadDetailMap(m_standidlemap,_file);
@@ -1823,38 +1890,53 @@ BOOL CAirsideStandMultiRunOperatinResult::ReadDetailMap( MultiRunDetailMap& mapD
 	return TRUE;
 }
 
-BOOL CAirsideStandMultiRunOperatinResult::WriteSummaryMap( MultiRunSummaryMap mapSummaryData,ArctermFile& _file )
+BOOL CAirsideStandMultiRunOperatinResult::WriteSummaryMap( MultiStandRunSummaryMap mapSummaryData,ArctermFile& _file )
 {
 	long iSize = (long)mapSummaryData.size();
 	_file.writeInt(iSize);
 
-	MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
+	MultiStandRunSummaryMap::iterator iter = mapSummaryData.begin();
 	for (; iter != mapSummaryData.end(); ++iter)
 	{
 		CString strSimResult = iter->first;
 		_file.writeField(strSimResult.GetBuffer(1024));
 		strSimResult.ReleaseBuffer();
 
-		_file.writeInt(iter->second.m_estTotal.getPrecisely());
-		_file.writeInt(iter->second.m_estMax.getPrecisely());
-		_file.writeInt(iter->second.m_estMin.getPrecisely());
-		_file.writeInt(iter->second.m_estAverage.getPrecisely());
-		_file.writeInt(iter->second.m_estP1.getPrecisely());
-		_file.writeInt(iter->second.m_estP5.getPrecisely());
-		_file.writeInt(iter->second.m_estP10.getPrecisely());
-		_file.writeInt(iter->second.m_estP90.getPrecisely());
-		_file.writeInt(iter->second.m_estP95.getPrecisely());
-		_file.writeInt(iter->second.m_estP99.getPrecisely());
-		_file.writeInt(iter->second.m_estQ1.getPrecisely());
-		_file.writeInt(iter->second.m_estQ2.getPrecisely());
-		_file.writeInt(iter->second.m_estQ3.getPrecisely());
-		_file.writeInt(iter->second.m_estSigma.getPrecisely());
+		//_file.writeInt(iter->second.m_estTotal.getPrecisely());
+		//_file.writeInt(iter->second.m_estMax.getPrecisely());
+		//_file.writeInt(iter->second.m_estMin.getPrecisely());
+		//_file.writeInt(iter->second.m_estAverage.getPrecisely());
+		//_file.writeInt(iter->second.m_estP1.getPrecisely());
+		//_file.writeInt(iter->second.m_estP5.getPrecisely());
+		//_file.writeInt(iter->second.m_estP10.getPrecisely());
+		//_file.writeInt(iter->second.m_estP90.getPrecisely());
+		//_file.writeInt(iter->second.m_estP95.getPrecisely());
+		//_file.writeInt(iter->second.m_estP99.getPrecisely());
+		//_file.writeInt(iter->second.m_estQ1.getPrecisely());
+		//_file.writeInt(iter->second.m_estQ2.getPrecisely());
+		//_file.writeInt(iter->second.m_estQ3.getPrecisely());
+		//_file.writeInt(iter->second.m_estSigma.getPrecisely());
+
+		_file.writeDouble(iter->second.m_dTotal);
+		_file.writeDouble(iter->second.m_dMax);
+		_file.writeDouble(iter->second.m_dMin);
+		_file.writeDouble(iter->second.m_dAverage);
+		_file.writeDouble(iter->second.m_dP1);
+		_file.writeDouble(iter->second.m_dP5);
+		_file.writeDouble(iter->second.m_dP10);
+		_file.writeDouble(iter->second.m_dP90);
+		_file.writeDouble(iter->second.m_dP95);
+		_file.writeDouble(iter->second.m_dP99);
+		_file.writeDouble(iter->second.m_dQ1);
+		_file.writeDouble(iter->second.m_dQ2);
+		_file.writeDouble(iter->second.m_dQ3);
+		_file.writeDouble(iter->second.m_dSigma);
 		_file.writeLine();
 	}
 	return TRUE;
 }
 
-BOOL CAirsideStandMultiRunOperatinResult::ReadSummayMap( MultiRunSummaryMap& mapSummaryData,ArctermFile& _file )
+BOOL CAirsideStandMultiRunOperatinResult::ReadSummayMap( MultiStandRunSummaryMap& mapSummaryData,ArctermFile& _file )
 {
 	int iSize = 0;
 	_file.getInteger(iSize);
@@ -1865,35 +1947,89 @@ BOOL CAirsideStandMultiRunOperatinResult::ReadSummayMap( MultiRunSummaryMap& map
 		_file.getField(strSimResult.GetBuffer(1024),1024);
 		strSimResult.ReleaseBuffer();
 
-		int iTime = 0;
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estTotal.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estMax.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estMin.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estAverage.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estP1.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estP5.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estP10.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estP90.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estP95.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estP99.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estQ1.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estQ2.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
-		_file.getInteger(iTime);
-		mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+		//int iTime = 0;
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estTotal.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estMax.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estMin.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estAverage.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estP1.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estP5.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estP10.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estP90.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estP95.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estP99.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estQ1.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estQ2.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
+		//_file.getInteger(iTime);
+		//mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+
+		_file.getFloat(mapSummaryData[strSimResult].m_dTotal);
+		_file.getFloat(mapSummaryData[strSimResult].m_dMax);
+		_file.getFloat(mapSummaryData[strSimResult].m_dMin);
+		_file.getFloat(mapSummaryData[strSimResult].m_dAverage);
+		_file.getFloat(mapSummaryData[strSimResult].m_dP1);
+		_file.getFloat(mapSummaryData[strSimResult].m_dP5);
+		_file.getFloat(mapSummaryData[strSimResult].m_dP10);
+		_file.getFloat(mapSummaryData[strSimResult].m_dP90);
+		_file.getFloat(mapSummaryData[strSimResult].m_dP95);
+		_file.getFloat(mapSummaryData[strSimResult].m_dP99);
+		_file.getFloat(mapSummaryData[strSimResult].m_dQ1);
+		_file.getFloat(mapSummaryData[strSimResult].m_dQ2);
+		_file.getFloat(mapSummaryData[strSimResult].m_dQ3);
+		_file.getFloat(mapSummaryData[strSimResult].m_dSigma);
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteUnuseStandMap( std::map<CString,int> mapUnuseData,ArctermFile& _file )
+{
+	long iSize = (long)mapUnuseData.size();
+	_file.writeInt(iSize);
+
+	std::map<CString,int>::iterator iter = mapUnuseData.begin();
+	for (; iter != mapUnuseData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		_file.writeInt(iter->second);
+		_file.writeLine();
+	}
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadUnuseStandMap( std::map<CString,int> mapUnuseData,ArctermFile& _file )
+{
+	int iSize = 0;
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int nUseCount = 0;
+		_file.getInteger(nUseCount);
+		mapUnuseData[strSimResult] = nUseCount;
+		
 		_file.getLine();
 	}
 

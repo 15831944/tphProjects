@@ -831,6 +831,13 @@ IParkingSpotInSim::IParkingSpotInSim()
 	m_pParent = NULL;
 }
 
+LandsideResourceInSim * IParkingSpotInSim::GetParentResource()
+{
+	ASSERT(m_pParent != NULL);
+
+	return m_pParent;
+}
+
 OutLaneParkingSpot::OutLaneParkingSpot( LandsideLaneInSim* pLinkLane, LandsideResourceInSim* parent )
 {
 	m_pLinkLane = pLinkLane;

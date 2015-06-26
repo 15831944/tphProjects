@@ -37,7 +37,7 @@ public:
 	void AddDestProc(const ProcessorID & _sourceProcID,const CFlowDestination& _destProc , bool _bMustEvenPercent = true);
 
 	// add _secondProc to _newProc's destination list  , add _newProc  to _firstProc's destination list and remove _secondProc from _firstProc's destination list
-	void InsertBetwwen( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc );
+	virtual void InsertBetween( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc );
 
 	//remove _destProc from _sourceProc's destination list if this pair is derived from father and _sourceProc has only one destination ,that is _destProc, then this operation is not allowed.
 	void CutLinkWithSourceProc( const  ProcessorID& _sourceProcID, const ProcessorID& _destProcID );
@@ -55,7 +55,7 @@ public:
 	void AddIsolatedProc( const ProcessorID& _procID );
 
 	//add  _sourceProcID's dest proc into _insertProcID's dest list , and delete _sourceProcID's all dest list ,then add _insertProcID into _sourceProcID's dest list
-	void InsertProceoosorAfter( const ProcessorID& _sourceProcID , const ProcessorID& _insertProcID  );
+	virtual void InsertProceoosorAfter( const ProcessorID& _sourceProcID , const ProcessorID& _insertProcID  );
 
 	// make the flow _flowPairProcID's dest ( exclude _operateProcID ) proc's percent balance 
 	void EvenRemainDestPercent( const ProcessorID& _flowPairProcID , const ProcessorID& _operateProcID  );

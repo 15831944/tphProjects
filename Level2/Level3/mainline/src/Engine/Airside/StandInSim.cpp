@@ -339,24 +339,24 @@ bool StandInSim::GetEnterStandClearance(AirsideFlightInSim * pFlight, ClearanceI
 	if (pFlight->IsArrivingOperation())
 	{
 		pEnterLog->m_eParkingOpType = ARR_PARKING;
+		StandInSim* pArrStand = pFlight->GetOperationParkingStand();
+		StandInSim* pIntermediateStand = pFlight->GetIntermediateParking();
+		if (pArrStand != pIntermediateStand && pIntermediateStand == this)
+			pEnterLog->m_eParkingOpType = INT_PARKING;
 	}
 	else
 	{
 		StandInSim* pIntermediateStand = pFlight->GetIntermediateParking();
-		if (pIntermediateStand == this)
-			pEnterLog->m_eParkingOpType = INT_PARKING;
-		else
+		if (pIntermediateStand)
 		{
-			if (pIntermediateStand)
-			{
-				pIntermediateStand->ReleaseLock(pFlight,pFlight->GetTime());
-				int nIdx = pIntermediateStand->GetStandAssignmentRegister()->FindRecord(pFlight, INT_PARKING);
-				if (nIdx >= 0)
-					pIntermediateStand->GetStandAssignmentRegister()->DeleteRecord(nIdx);	
-				
-			}
-			pEnterLog->m_eParkingOpType = DEP_PARKING;
+			pIntermediateStand->ReleaseLock(pFlight,pFlight->GetTime());
+			int nIdx = pIntermediateStand->GetStandAssignmentRegister()->FindRecord(pFlight, INT_PARKING);
+			if (nIdx >= 0)
+				pIntermediateStand->GetStandAssignmentRegister()->DeleteRecord(nIdx);	
+
 		}
+		pEnterLog->m_eParkingOpType = DEP_PARKING;
+		
 	}
 	pFlight->LogEventItem(pEnterLog);
 

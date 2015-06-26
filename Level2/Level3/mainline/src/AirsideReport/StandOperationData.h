@@ -15,6 +15,7 @@ public:
 
 public:
 	CString m_sID;//airline + ID
+	long m_lFlightIndex;
 	CString m_sACType;
 	char m_fltmode;
 
@@ -22,11 +23,13 @@ public:
 	long m_lSchedOn;
 	long m_lSchedOff;
 	long m_lSchedOccupancy;
+	long m_lSchedAvailableOccupancy;
 
 	CString m_sActualName;
 	long m_lActualOn;
 	long m_lActualOff;
 	long m_lActualOccupancy;
+	long m_lActualAvailableOccupancy;
 
 	long m_lDelayEnter;
 	long m_lDueStandOccupied;
