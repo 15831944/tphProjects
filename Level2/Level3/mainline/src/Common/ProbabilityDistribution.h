@@ -88,7 +88,7 @@ public:
 	virtual double pdf(double _x) const;
 	virtual double cdf(double _x) const;
 	virtual void InitRules(){};
-
+    virtual bool isEqual(const ProbabilityDistribution* pOther)=0;
 //the interface for database 
 public:
 	virtual void readDistributionFromDB(CString str);
@@ -149,6 +149,7 @@ public:
 	virtual int getProbabilityType (void) const { return BERNOULLI; }
 	virtual int getRandomVariableType(void) const { return DISCRETE; }
 	virtual const char *getRandomVariableTypeName(void) const { return "DISCRETE"; }
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 typedef std::pair<double, double> pair_range;
@@ -201,6 +202,7 @@ public:
 		virtual double getMaxXValue() const;
 		virtual double pdf(double _x) const;
 		virtual double cdf(double _x) const; 
+        virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class EmpiricalDistribution : public HistogramDistribution
@@ -259,7 +261,8 @@ public:
 	virtual double getMinXValue() const;
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
-	virtual double cdf(double _x) const;
+    virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 
@@ -293,7 +296,8 @@ public:
 	virtual double getMinXValue() const;
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
-	virtual double cdf(double _x) const;
+    virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class TriangleDistribution : public ProbabilityDistribution
@@ -331,7 +335,7 @@ public:
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
 	virtual double cdf(double _x) const;
-
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class NormalDistribution : public ProbabilityDistribution
@@ -373,6 +377,7 @@ public:
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
 	virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class WeibullDistribution : public ProbabilityDistribution
@@ -409,7 +414,8 @@ public:
 	virtual double getMinXValue() const;
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
-	virtual double cdf(double _x) const;
+    virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class GammaDistribution : public ProbabilityDistribution
@@ -452,7 +458,8 @@ public:
 	static double gammln(double _x);
 	static double gammp(double _a, double _x);
 	static void gser(double* _gamser, double _a, double _x, double* _gln);
-	static void gcf(double* _gammcf, double _a, double _x, double* _gln);
+    static void gcf(double* _gammcf, double _a, double _x, double* _gln);
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class ErlangDistribution : public ProbabilityDistribution
@@ -492,7 +499,8 @@ public:
 	virtual double getMinXValue() const;
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
-	virtual double cdf(double _x) const;
+    virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class ExponentialDistribution : public ProbabilityDistribution
@@ -522,7 +530,8 @@ public:
 	virtual double getMinXValue() const;
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
-	virtual double cdf(double _x) const;
+    virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 
@@ -560,7 +569,8 @@ public:
 	virtual void setDistribution (char *p_str);
 	virtual void readVersion1 (ArctermFile& p_file);
 	virtual void screenPrint (char *p_str) const;
-	virtual void printDistribution (char *p_str) const;
+    virtual void printDistribution (char *p_str) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 class BetaDistribution : public ProbabilityDistribution
@@ -601,7 +611,8 @@ public:
 	virtual double getMinXValue() const;
 	virtual double getMaxXValue() const;
 	virtual double pdf(double _x) const;
-	virtual double cdf(double _x) const;
+    virtual double cdf(double _x) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 };
 
 extern BaseBetaDistribution * defaultBaseBetaDistribution;

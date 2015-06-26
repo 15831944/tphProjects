@@ -331,4 +331,15 @@ CPROBDISTLIST CProbDistManager::getItemListByType(ProbTypes probType)
     return vResult;
 }
 
+CProbDistEntry* CProbDistManager::getItemByValue(const ProbabilityDistribution* pProb) const
+{
+    size_t nCount = m_vProbDist.size();
+    for(size_t i=0; i<nCount; i++)
+    {
+        if(m_vProbDist[i]->m_pProbDist->isEqual(pProb))
+            return m_vProbDist[i];
+    }
+    return NULL;
+}
+
 

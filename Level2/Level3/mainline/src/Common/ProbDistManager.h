@@ -35,6 +35,7 @@ public:
 	CProbDistEntry* getItem( int _nIdx )const{ return m_vProbDist[_nIdx];	}
 	CProbDistEntry* getItemByName(const CString& s)const;
     CPROBDISTLIST getItemListByType(ProbTypes probType);
+    CProbDistEntry* getItemByValue(const ProbabilityDistribution* pProb)const;
 	void AddItem( CProbDistEntry* _pPDEntry ){ m_vProbDist.push_back(_pPDEntry); }
 	virtual void clear();
 

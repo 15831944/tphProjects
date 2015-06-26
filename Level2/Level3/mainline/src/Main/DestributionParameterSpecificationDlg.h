@@ -194,4 +194,18 @@ public:
     afx_msg void OnEnChangeEditBer2ndvalue();
     afx_msg void OnEnChangeEditBer1stpro();
     void ChangeBernoulliComboName();
+
+    void TopInputString( CComboBox* pCb );
+    afx_msg void OnCbnEditchangeComboConstant();
+    afx_msg void OnCbnEditchangeComboUniform();
+    afx_msg void OnCbnEditchangeComboBeta();
+    afx_msg void OnCbnEditchangeComboTriangle();
+    afx_msg void OnCbnEditchangeComboErlang();
+    afx_msg void OnCbnEditchangeComboExponential();
+    afx_msg void OnCbnEditchangeComboGamma();
+    afx_msg void OnCbnEditchangeComboNormal();
+    afx_msg void OnCbnEditchangeComboWeibull();
+    afx_msg void OnCbnEditchangeComboBernoulli();
+    afx_msg void OnCbnEditchangeComboEmpirical();
+    afx_msg void OnCbnEditchangeComboHistogram();
 };

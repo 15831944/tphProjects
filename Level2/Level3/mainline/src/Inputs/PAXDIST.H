@@ -87,6 +87,7 @@ public:
     virtual void readDistribution (ArctermFile& p_file);
 	void readOldDistribution(ArctermFile& p_file);
     virtual void writeDistribution (ArctermFile& p_file) const;
+    virtual bool isEqual(const ProbabilityDistribution* pOther);
 
 public:
 	void ClearEngineInitializeFlag() const;

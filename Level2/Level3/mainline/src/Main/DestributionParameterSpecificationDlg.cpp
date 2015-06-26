@@ -170,7 +170,18 @@ BEGIN_MESSAGE_MAP(CDestributionParameterSpecificationDlg, CDialog)
     ON_EN_CHANGE(IDC_EDIT_BER1STVALUE, OnEnChangeEditBer1stvalue)
     ON_EN_CHANGE(IDC_EDIT_BER2NDVALUE, OnEnChangeEditBer2ndvalue)
     ON_EN_CHANGE(IDC_EDIT_BER1STPRO, OnEnChangeEditBer1stpro)
-    ON_CBN_EDITCHANGE(IDC_COMBO_CONSTANT, &CDestributionParameterSpecificationDlg::OnCbnEditchangeComboConstant)
+    ON_CBN_EDITCHANGE(IDC_COMBO_CONSTANT, OnCbnEditchangeComboConstant)
+    ON_CBN_EDITCHANGE(IDC_COMBO_UNIFORM, OnCbnEditchangeComboUniform)
+    ON_CBN_EDITCHANGE(IDC_COMBO_BETA, OnCbnEditchangeComboBeta)
+    ON_CBN_EDITCHANGE(IDC_COMBO_TRIANGLE, OnCbnEditchangeComboTriangle)
+    ON_CBN_EDITCHANGE(IDC_COMBO_ERLANG, OnCbnEditchangeComboErlang)
+    ON_CBN_EDITCHANGE(IDC_COMBO_EXPONENTIAL, OnCbnEditchangeComboExponential)
+    ON_CBN_EDITCHANGE(IDC_COMBO_GAMMA, OnCbnEditchangeComboGamma)
+    ON_CBN_EDITCHANGE(IDC_COMBO_NORMAL, OnCbnEditchangeComboNormal)
+    ON_CBN_EDITCHANGE(IDC_COMBO_WEIBULL, OnCbnEditchangeComboWeibull)
+    ON_CBN_EDITCHANGE(IDC_COMBO_BERNOULLI, OnCbnEditchangeComboBernoulli)
+    ON_CBN_EDITCHANGE(IDC_COMBO_EMPIRICAL, OnCbnEditchangeComboEmpirical)
+    ON_CBN_EDITCHANGE(IDC_COMBO_HISTOGRAM, OnCbnEditchangeComboHistogram)
 END_MESSAGE_MAP()
 
 BOOL CDestributionParameterSpecificationDlg::OnInitDialog()
@@ -2260,204 +2271,27 @@ CString CDestributionParameterSpecificationDlg::GetTempHistogramDistributionName
     return _T("");
 }
 
-void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDistribution* pNewProb)
+void CDestributionParameterSpecificationDlg::InitUIFromProb(const ProbabilityDistribution* pProb)
 {
-    switch(pNewProb->getProbabilityType())
+    const CProbDistEntry* pEntry = m_pProbMan->getItemByValue(m_pInputProb);
+    if(pEntry != NULL)
     {
-    case CONSTANT:
-        {
-            
-            ((CButton*)GetDlgItem(IDC_RADIO_CONSTANT))->SetCheck(TRUE);
-            CString strEntryName;
-            pNewProb->screenPrint(strEntryName.GetBuffer(256));
-            strEntryName.ReleaseBuffer();
-            m_comboConst.SetWindowText(strEntryName);
-            OnBnClickedRadioConstant();
-
-            CString strEdit;
-            strEdit.Format(_T("%.2f"), ((ConstantDistribution*)pNewProb)->getConstant());
-            m_editConstValue.SetWindowText(strEdit);
-
-            DisableAllEditBox();
-            GetDlgItem(IDC_COMBO_CONSTANT)->EnableWindow(TRUE);
-            GetDlgItem(IDC_EDIT_CONSTANTVALUE)->EnableWindow(TRUE);
-            GetDlgItem(IDC_SPIN_CONSTVALUE)->EnableWindow(TRUE);
-
-            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(CONSTANT);
-            LoadComboBoxString(&m_comboConst, vProb);
-        }
-        break;
-    case UNIFORM:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_UNIFORM))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboUniform.SetWindowText(strNewEntryName);
-            OnBnClickedRadioUniform();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((UniformDistribution*)pNewProb)->getMin());
-            m_editUniformMin.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((UniformDistribution*)pNewProb)->getMax());
-            m_editUniformMax.SetWindowText(strEdit);
-        }
-        break;
-    case BETA:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_BETA))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboBeta.SetWindowText(strNewEntryName);
-            OnBnClickedRadioBeta();
-
-            CString strEdit;
-            strEdit.Format("%d", ((BetaDistribution*)pNewProb)->getAlpha());
-            m_editBetaAlpha.SetWindowText(strEdit);
-            strEdit.Format("%d", ((BetaDistribution*)pNewProb)->getBeta());
-            m_editBetaBeta.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((BetaDistribution*)pNewProb)->getMax());
-            m_editBetaMax.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((BetaDistribution*)pNewProb)->getMin());
-            m_editBetaMin.SetWindowText(strEdit);
-        }
-        break;
-    case TRIANGLE:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_TRIANGLE))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboTriangle.SetWindowText(strNewEntryName);
-            OnBnClickedRadioTriangle();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((TriangleDistribution*)pNewProb)->getMax());
-            m_editTriangleMax.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((TriangleDistribution*)pNewProb)->getMin());
-            m_editTriangleMin.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((TriangleDistribution*)pNewProb)->getMode());
-            m_editTriangleMode.SetWindowText(strEdit);
-        }
-        break;
-    case ERLANG:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_ERLANG))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboErlang.SetWindowText(strNewEntryName);
-            OnBnClickedRadioErlang();
-
-            CString strEdit;
-            strEdit.Format("%d", ((ErlangDistribution*)pNewProb)->getGamma());
-            m_editErlangGamma.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((ErlangDistribution*)pNewProb)->getBeta());
-            m_editErlangBeta.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((ErlangDistribution*)pNewProb)->getMu());
-            m_editErlangMu.SetWindowText(strEdit);
-        }
-        break;
-    case EXPONENTIAL:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_EXPONENTIAL))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboExponential.SetWindowText(strNewEntryName);
-            OnBnClickedRadioExponential();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((ExponentialDistribution*)pNewProb)->getLambda());
-            m_editExpoLambda.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((ExponentialDistribution*)pNewProb)->getMean());
-            m_editExpoMean.SetWindowText(strEdit);
-        }
-        break;
-    case GAMMA:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_GAMMA))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboGamma.SetWindowText(strNewEntryName);
-            OnBnClickedRadioGamma();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((GammaDistribution*)pNewProb)->getGamma());
-            m_editGammaGamma.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((GammaDistribution*)pNewProb)->getBeta());
-            m_editGammaBeta.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((GammaDistribution*)pNewProb)->getMu());
-            m_editGammaMu.SetWindowText(strEdit);
-        }
-        break;
-    case NORMAL:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_NORMAL))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboNormal.SetWindowText(strNewEntryName);
-            OnBnClickedRadioNormal();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((NormalDistribution*)pNewProb)->getMean());
-            m_editNormalMean.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((NormalDistribution*)pNewProb)->getStdDev());
-            m_editNormalStd.SetWindowText(strEdit);
-            strEdit.Format("%d", ((NormalDistribution*)pNewProb)->getTruncation());
-            m_editNormalTrunat.SetWindowText(strEdit);
-        }
-        break;
-    case WEIBULL:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_WEIBULL))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboWeibull.SetWindowText(strNewEntryName);
-            OnBnClickedRadioWeibull();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((WeibullDistribution*)pNewProb)->getAlpha());
-            m_editWeiAlpha.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((WeibullDistribution*)pNewProb)->getGamma());
-            m_editWeiGamma.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((WeibullDistribution*)pNewProb)->getMu());
-            m_editWeiMu.SetWindowText(strEdit);
-        }
-        break;
-    case BERNOULLI:
-        {
-            ((CButton*)GetDlgItem(IDC_RADIO_BERNOULLI))->SetCheck(TRUE);
-            CString strNewEntryName;
-            pNewProb->screenPrint(strNewEntryName.GetBuffer(256));
-            strNewEntryName.ReleaseBuffer();
-            m_comboBernoulli.SetWindowText(strNewEntryName);
-            OnBnClickedRadioBernoulli();
-
-            CString strEdit;
-            strEdit.Format("%.2f", ((BernoulliDistribution*)pNewProb)->getValue1());
-            m_editBer1stValue.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((BernoulliDistribution*)pNewProb)->getValue2());
-            m_editBer2ndValue.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((BernoulliDistribution*)pNewProb)->getProb1());
-            m_editBer1stPro.SetWindowText(strEdit);
-        }
-        break;
-    case EMPIRICAL:
-        break;
-    case HISTOGRAM:
-        break;
-    default:
-        break;
+        InitUIFromProbEntry(pEntry);
+        return;
+    }
+    else
+    {
+        ProbabilityDistribution* pNewProb = 
+            ProbabilityDistribution::CopyProbDistribution(const_cast<ProbabilityDistribution*>(m_pInputProb));
+        CProbDistEntry tempEntry(pNewProb->screenPrint(), pNewProb);
+        InitUIFromProbEntry(&tempEntry);
+        delete pNewProb;
     }
 }
 
 void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDistEntry* pEntry)
 {
+    DisableAllEditBox();
     const ProbabilityDistribution* pInProb = pEntry->m_pProbDist;
     CString strEntryName = pEntry->m_csName;
     if(pInProb == NULL)
@@ -2467,6 +2301,11 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case CONSTANT:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_CONSTANT))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_CONSTANT)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_CONSTANTVALUE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_CONSTVALUE)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(CONSTANT);
+            LoadComboBoxString(&m_comboConst, vProb);
             m_comboConst.SetWindowText(strEntryName);
             CString strEdit;
             strEdit.Format(_T("%.2f"), ((ConstantDistribution*)pInProb)->getConstant());
@@ -2476,6 +2315,13 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case UNIFORM:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_UNIFORM))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_UNIFORM)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_UNIFORMMIN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_UNIFORMMIN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_UNIFORMMAX)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_UNIFORMMAX)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(UNIFORM);
+            LoadComboBoxString(&m_comboUniform, vProb);
             m_comboUniform.SetWindowText(strEntryName);
             CString strEdit;
             strEdit.Format("%.2f", ((UniformDistribution*)pInProb)->getMin());
@@ -2486,6 +2332,17 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
         break;
     case BETA:
         {
+            GetDlgItem(IDC_COMBO_BETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BETAALPHA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BETAALPHA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BETABETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BETABETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BETAMAX)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BETAMAX)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BETAMIN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BETAMIN)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(BETA);
+            LoadComboBoxString(&m_comboBeta, vProb);
             ((CButton*)GetDlgItem(IDC_RADIO_BETA))->SetCheck(TRUE);
             m_comboBeta.SetWindowText(strEntryName);
             CString strEdit;
@@ -2502,6 +2359,15 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case TRIANGLE:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_TRIANGLE))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_TRIANGLE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_TRIANGLEMAX)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_TRIANGLEMAX)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_TRIANGLEMIN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_TRIANGLEMIN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_TRIANGLEMODE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_TRIANGLEMODE)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(TRIANGLE);
+            LoadComboBoxString(&m_comboTriangle, vProb);
             m_comboTriangle.SetWindowText(strEntryName);
             CString strEdit;
             strEdit.Format("%.2f", ((TriangleDistribution*)pInProb)->getMax());
@@ -2515,6 +2381,15 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case ERLANG:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_ERLANG))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_ERLANG)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_ERLANGGAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_ERLANGGAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_ERLANGBETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_ERLANGBETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_ERLANGMU)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_ERLANGMU)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(ERLANG);
+            LoadComboBoxString(&m_comboErlang, vProb);
             m_comboErlang.SetWindowText(strEntryName);
             CString strEdit;
             strEdit.Format("%d", ((ErlangDistribution*)pInProb)->getGamma());
@@ -2528,6 +2403,13 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case EXPONENTIAL:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_EXPONENTIAL))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_EXPONENTIAL)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_EXPOLAMBDA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_EXPOLAMBDA)->EnableWindow(TRUE);
+            //     GetDlgItem(IDC_EDIT_EXPOMEAN)->EnableWindow(TRUE);
+            //     GetDlgItem(IDC_SPIN_EXPOMEAN)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(EXPONENTIAL);
+            LoadComboBoxString(&m_comboExponential, vProb);
             m_comboExponential.SetWindowText(strEntryName);
             CString strEdit;
             strEdit.Format("%.2f", ((ExponentialDistribution*)pInProb)->getLambda());
@@ -2539,11 +2421,20 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case GAMMA:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_GAMMA))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_GAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_GAGAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_GAGAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_GAMMABETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_GAMMABETA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_GAMMAMU)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_GAMMAMU)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(GAMMA);
+            LoadComboBoxString(&m_comboGamma, vProb);
             m_comboGamma.SetWindowText(strEntryName);
             CString strEdit;
-            strEdit.Format("%d", ((GammaDistribution*)pInProb)->getGamma());
+            strEdit.Format("%.2f", ((GammaDistribution*)pInProb)->getGamma());
             m_editGammaGamma.SetWindowText(strEdit);
-            strEdit.Format("%d", ((GammaDistribution*)pInProb)->getBeta());
+            strEdit.Format("%.2f", ((GammaDistribution*)pInProb)->getBeta());
             m_editGammaBeta.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((GammaDistribution*)pInProb)->getMu());
             m_editGammaMu.SetWindowText(strEdit);
@@ -2552,24 +2443,42 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case NORMAL:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_NORMAL))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_NORMAL)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_NORMALMEAN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_NORMALMEAN)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_NORMALSTD)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_NORMALSTD)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_NORMALTRUNAT)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_NORMALTRUNAT)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(NORMAL);
+            LoadComboBoxString(&m_comboNormal, vProb);
             m_comboNormal.SetWindowText(strEntryName);
             CString strEdit;
-            strEdit.Format("%d", ((NormalDistribution*)pInProb)->getMean());
+            strEdit.Format("%.2f", ((NormalDistribution*)pInProb)->getMean());
             m_editNormalMean.SetWindowText(strEdit);
-            strEdit.Format("%d", ((NormalDistribution*)pInProb)->getStdDev());
+            strEdit.Format("%.2f", ((NormalDistribution*)pInProb)->getStdDev());
             m_editNormalStd.SetWindowText(strEdit);
-            strEdit.Format("%.2f", ((NormalDistribution*)pInProb)->getTruncation());
+            strEdit.Format("%d", ((NormalDistribution*)pInProb)->getTruncation());
             m_editNormalTrunat.SetWindowText(strEdit);
         }
         break;
     case WEIBULL:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_WEIBULL))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_WEIBULL)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_WEIALPHA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_WEIALPHA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_WEIGAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_WEIGAMMA)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_WEIMU)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_WEIMU)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(WEIBULL);
+            LoadComboBoxString(&m_comboWeibull, vProb);
             m_comboWeibull.SetWindowText(strEntryName);
             CString strEdit;
-            strEdit.Format("%d", ((WeibullDistribution*)pInProb)->getAlpha());
+            strEdit.Format("%.2f", ((WeibullDistribution*)pInProb)->getAlpha());
             m_editWeiAlpha.SetWindowText(strEdit);
-            strEdit.Format("%d", ((WeibullDistribution*)pInProb)->getGamma());
+            strEdit.Format("%.2f", ((WeibullDistribution*)pInProb)->getGamma());
             m_editWeiGamma.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((WeibullDistribution*)pInProb)->getMu());
             m_editWeiMu.SetWindowText(strEdit);
@@ -2578,19 +2487,40 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
     case BERNOULLI:
         {
             ((CButton*)GetDlgItem(IDC_RADIO_BERNOULLI))->SetCheck(TRUE);
+            GetDlgItem(IDC_COMBO_BERNOULLI)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BER1STVALUE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BER1STVALUE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BER2NDVALUE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BER2NDVALUE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_EDIT_BER1STPRO)->EnableWindow(TRUE);
+            GetDlgItem(IDC_SPIN_BER1STPRO)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(BERNOULLI);
+            LoadComboBoxString(&m_comboBernoulli, vProb);
             m_comboBernoulli.SetWindowText(strEntryName);
             CString strEdit;
-            strEdit.Format("%d", ((BernoulliDistribution*)pInProb)->getValue1());
+            strEdit.Format("%.2f", ((BernoulliDistribution*)pInProb)->getValue1());
             m_editBer1stValue.SetWindowText(strEdit);
-            strEdit.Format("%d", ((BernoulliDistribution*)pInProb)->getValue2());
+            strEdit.Format("%.2f", ((BernoulliDistribution*)pInProb)->getValue2());
             m_editBer2ndValue.SetWindowText(strEdit);
             strEdit.Format("%.2f", ((BernoulliDistribution*)pInProb)->getProb1());
             m_editBer1stPro.SetWindowText(strEdit);
         }
         break;
     case EMPIRICAL:
+        {
+            GetDlgItem(IDC_COMBO_EMPIRICAL)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(EMPIRICAL);
+            LoadComboBoxString(&m_comboEmpirical, vProb);
+             m_comboEmpirical.SetWindowText(strEntryName);
+        }
         break;
     case HISTOGRAM:
+        {
+            GetDlgItem(IDC_COMBO_HISTOGRAM)->EnableWindow(TRUE);
+            CPROBDISTLIST vProb = m_pProbMan->getItemListByType(HISTOGRAM);
+            LoadComboBoxString(&m_comboHistogram, vProb);
+            m_comboHistogram.SetWindowText(strEntryName);
+        }
         break;
     default:
         break;
@@ -2628,9 +2558,74 @@ bool CDestributionParameterSpecificationDlg::AddOrEditPdDatabase(CString& strMsg
     return false;
 }
 
-
+void CDestributionParameterSpecificationDlg::TopInputString(CComboBox* pCb)
+{
+    CString strCombo;
+    pCb->GetWindowText(strCombo);
+    int nIndex = pCb->FindString(0, strCombo);
+    if(nIndex != CB_ERR)
+        pCb->SetTopIndex(nIndex);
+}
 
 void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboConstant()
 {
-    CString strCombo;
+    TopInputString(&m_comboConst);
 }
+
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboUniform()
+{
+    TopInputString(&m_comboUniform);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboBeta()
+{
+    TopInputString(&m_comboBeta);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboTriangle()
+{
+    TopInputString(&m_comboTriangle);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboErlang()
+{
+    TopInputString(&m_comboErlang);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboExponential()
+{
+    TopInputString(&m_comboExponential);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboGamma()
+{
+    TopInputString(&m_comboGamma);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboNormal()
+{
+    TopInputString(&m_comboNormal);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboWeibull()
+{
+    TopInputString(&m_comboWeibull);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboBernoulli()
+{
+    TopInputString(&m_comboBernoulli);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboEmpirical()
+{
+    TopInputString(&m_comboEmpirical);
+}
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboHistogram()
+{
+    TopInputString(&m_comboHistogram);
+}
+
+

@@ -322,6 +322,19 @@ bool BernoulliDistribution::resetValues(int& iErr, double val1, double val2, dou
     return true;
 }
 
+bool BernoulliDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    BernoulliDistribution* pProb = (BernoulliDistribution*)pOther;
+    if(abs(value1 - pProb->value1)<0.00001 && 
+        abs(value2 - pProb->value2)<0.00001 &&
+        abs(prob - pProb->prob)<0.00001)
+        return true;
+    else
+        return false;
+}
+
 /*****
 *
 *   Histogram Distribution
@@ -702,6 +715,22 @@ double HistogramDistribution::cdf(double _x) const
 	return 0.0;
 }
 
+bool HistogramDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    HistogramDistribution* pProb = (HistogramDistribution*)pOther;
+    if(count != pProb->count)
+        return false;
+    for(int i=0; i<count; i++)
+    {
+        if(probs[i] != pProb->probs[i])
+            return false;
+        if(values[i] != pProb->values[i])
+            return false;
+    }
+}
+
 
 /*****
 *
@@ -873,6 +902,19 @@ bool UniformDistribution::resetValues(int& iErr, double Min, double Max)
     return true;
 }
 
+bool UniformDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    UniformDistribution* pProb = (UniformDistribution*)pOther;
+    if(abs(min - pProb->min)<0.00001 &&
+        abs(max - pProb->max)<0.00001 &&
+        abs(interval - pProb->interval)<0.00001)
+        return true;
+    else 
+        return false;
+}
+
 
 /*****
 *
@@ -986,6 +1028,19 @@ bool TriangleDistribution::resetValues(int& iErr, double _min, double _max, doub
     b=_max;
     mode=_mode;
     return true;
+}
+
+bool TriangleDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    TriangleDistribution* pProb = (TriangleDistribution*)pOther;
+    if(abs(a - pProb->a)<0.00001 &&
+        abs(b - pProb->b)<0.00001 &&
+        abs(mode - pProb->mode)<0.00001)
+        return true;
+    else 
+        return false;
 }
 
 /*****
@@ -1154,6 +1209,19 @@ bool NormalDistribution::resetValues(int& iErr, double Mean, double stdDev, int 
     return true;
 }
 
+bool NormalDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    NormalDistribution* pProb = (NormalDistribution*)pOther;
+    if(abs(mean - pProb->mean)<0.00001 &&
+        abs(stdDeviation - pProb->stdDeviation)<0.00001 &&
+        truncation == pProb->truncation)
+        return true;
+    else 
+        return false;
+}
+
 /*****
 *
 *   Weibull Distribution
@@ -1218,12 +1286,12 @@ double WeibullDistribution::cdf(double _x) const
 
 bool WeibullDistribution::resetValues(int& iErr, double _alpha, double _gamma, double _mu)
 {
-    if(_alpha <= 0.00001f)
+    if(_alpha < 0.00001f)
     {
         iErr = PDERROR_WEIBULL_ALPHA;
         return false;
     }
-    if(_gamma <= 0.00001f)
+    if(_gamma < 0.00001f)
     {
         iErr = PDERROR_WEIBULL_GAMMA;
         return false;
@@ -1232,6 +1300,19 @@ bool WeibullDistribution::resetValues(int& iErr, double _alpha, double _gamma, d
     gamma = _gamma;
     mu = _mu;
     return true;
+}
+
+bool WeibullDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    WeibullDistribution* pProb = (WeibullDistribution*)pOther;
+    if(abs(alpha - pProb->alpha)<0.00001 &&
+        abs(gamma - pProb->gamma)<0.00001 &&
+        abs(mu - pProb->mu)<0.00001)
+        return true;
+    else 
+        return false;
 }
 
 /*****
@@ -1405,12 +1486,12 @@ double GammaDistribution::cdf(double _x) const
 
 bool GammaDistribution::resetValues(int& iErr, double _gamma, double _beta, double _mu)
 {
-    if(_gamma <= 0.00001f)
+    if(_gamma < 0.00001f)
     {
         iErr = PDERROR_GAMMA_GAMMA;
         return false;
     }
-    if(_beta <= 0.00001f)
+    if(_beta < 0.00001f)
     {
         iErr = PDERROR_GAMMA_BETA;
         return false;
@@ -1419,6 +1500,20 @@ bool GammaDistribution::resetValues(int& iErr, double _gamma, double _beta, doub
     beta = _beta;
     mu = _mu;
     return true;
+}
+
+bool GammaDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    GammaDistribution* pProb = (GammaDistribution*)pOther;
+    if(abs(beta  -pProb->beta)<0.00001 &&
+        abs(gamma - pProb->gamma)<0.00001 &&
+        abs(mu - pProb->mu)<0.00001 &&
+        abs(gammaln - pProb->gammaln)<0.00001)
+        return true;
+    else 
+        return false;
 }
 
 
@@ -1484,12 +1579,12 @@ double ErlangDistribution::cdf(double _x) const
 
 bool ErlangDistribution::resetValues(int& iErr, int _gamma, double _beta, double _mu)
 {
-    if(_gamma <= 0.00001f)
+    if(_gamma < 0.00001f)
     {
         iErr = PDERROR_ERLANG_GAMMA;
         return false;
     }
-    if(_beta <= 0.00001f)
+    if(_beta < 0.00001f)
     {
         iErr = PDERROR_ERLANG_BETA;
         return false;
@@ -1498,6 +1593,20 @@ bool ErlangDistribution::resetValues(int& iErr, int _gamma, double _beta, double
     beta = _beta;
     mu = _mu;
     return true;
+}
+
+bool ErlangDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    ErlangDistribution* pProb = (ErlangDistribution*)pOther;
+    if(abs(beta  -pProb->beta)<0.00001 &&
+        gamma == pProb->gamma &&
+        abs(mu - pProb->mu)<0.00001 &&
+        abs(gammaln - pProb->gammaln)<0.00001)
+        return true;
+    else 
+        return false;
 }
 
 
@@ -1569,6 +1678,17 @@ bool ExponentialDistribution::resetValues(int& iErr, double Lambda)
     }
     lambda = Lambda;
     return true;
+}
+
+bool ExponentialDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    ExponentialDistribution* pProb = (ExponentialDistribution*)pOther;
+    if(abs(lambda  -pProb->lambda)<0.00001)
+        return true;
+    else 
+        return false;
 }
 
 /*****
@@ -1742,6 +1862,21 @@ void BaseBetaDistribution::printDistribution (char *p_str) const
 	sprintf (p_str, ";%d;%d", alpha, beta);
 }
 
+bool BaseBetaDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    BaseBetaDistribution* pProb = (BaseBetaDistribution*)pOther;
+    if(alpha != pProb->alpha || beta != pProb->beta)
+        return false;
+
+    for(int i=0; i<Count; i++)
+    {
+        if(probs[i] != pProb->probs[i])
+            return false;
+    }
+}
+
 
 /*****
 *
@@ -1890,6 +2025,19 @@ double BetaDistribution::cdf(double _x) const
 	return BaseBetaDistribution::betai(a, b, (_x-min)/(max-min));
 }
 
+bool BetaDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    BetaDistribution* pProb = (BetaDistribution*)pOther;
+    if(abs(min - pProb->min) >= 0.00001)
+        return false;
+    if(abs(max - pProb->max) >= 0.00001)
+        return false;
+    if(!basebeta->isEqual(pOther))
+        return false;
+}
+
 /*****
 *
 *   Constant Distribution
@@ -1942,4 +2090,15 @@ double ConstantDistribution::cdf(double _x) const
 		return 0.0;
 	else
 		return 1.0;
+}
+
+bool ConstantDistribution::isEqual(const ProbabilityDistribution* pOther)
+{
+    if(pOther->getProbabilityType() != getProbabilityType())
+        return false;
+    ConstantDistribution* pProb = (ConstantDistribution*)pOther;
+    if(abs(value - pProb->value)<0.00001)
+        return true;
+    else
+        return false;
 }
