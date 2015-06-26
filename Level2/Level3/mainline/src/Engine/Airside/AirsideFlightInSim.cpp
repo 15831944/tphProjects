@@ -1878,17 +1878,26 @@ void AirsideFlightInSim::PerformClearanceItem( const ClearanceItem& _item )
 	//m_nDelayRe = item.GetDelayReason();
 		
 	AirsideFlightState ItemState;
-	ItemState.m_pResource = item.GetResource();
-	ItemState.m_fltMode = item.GetMode();
-	ItemState.m_pPosition = item.GetPosition();
-	ItemState.m_dAlt = item.GetAltitude();
-	ItemState.m_tTime = max(item.GetTime(),GetTime());
-	ItemState.m_dist = item.GetDistInResource();
-	ItemState.m_vSpeed = item.GetSpeed();
-	ItemState.m_offsetAngle = item.GetOffsetAngle();
-	ItemState.m_nDelayId = item.GetDelayId();
-	ItemState.m_dAcc = 0.0;//item.GetAcceleration(); // by Benny, search "forAccOrDecTag" in this .cpp file for help  #2
-	ItemState.m_bPushBack = item.IsPushback();
+	if(item.GetMode()!=OnTerminate)
+	{
+		ItemState.m_pResource = item.GetResource();
+		ItemState.m_fltMode = item.GetMode();
+		ItemState.m_pPosition = item.GetPosition();
+		ItemState.m_dAlt = item.GetAltitude();
+		ItemState.m_tTime = max(item.GetTime(),GetTime());
+		ItemState.m_dist = item.GetDistInResource();
+		ItemState.m_vSpeed = item.GetSpeed();
+		ItemState.m_offsetAngle = item.GetOffsetAngle();
+		ItemState.m_nDelayId = item.GetDelayId();
+		ItemState.m_dAcc = 0.0;//item.GetAcceleration(); // by Benny, search "forAccOrDecTag" in this .cpp file for help  #2
+		ItemState.m_bPushBack = item.IsPushback();
+	}
+	else
+	{
+		ItemState = m_curState;
+		ItemState.m_fltMode = item.GetMode();
+		ItemState.m_tTime = item.GetTime();
+	}
 
 	//if(item.GetResource() && item.GetResource()->GetType() == AirsideResource::ResType_StandLeadOutLine)
 	//{

@@ -31,9 +31,12 @@ protected:
 	void InitEntryTime(CARCportEngine* pEngine);  //estimate the entry time of the vehicles and start
 
 	PaxVehicleEntryInfo* CreateNewVehicleInfo(LandsideVehicleAssignEntry* pVehicleAssignEntry, const ElapsedTime& tEntry,CARCportEngine *pEngine);
-	PaxVehicleEntryInfo* FindtheCloseVehicleInfo(LandsideVehicleAssignEntry* pVehicleAssignEntry,const ElapsedTime& tEntry);
+	PaxVehicleEntryInfo* FindtheCloseVehicleInfo(LandsideVehicleAssignEntry* pVehicleAssignEntry,const MobLogEntry& paxEntry);
 	void UpdateStartTime( const ElapsedTime& t );
-	void AddPaxToVehicleInfo(LandsideVehicleAssignEntry* pVehicleAssignEntry,MobLogEntry& paxEntry, CARCportEngine *pEngine);
+
+	//if success, return true
+	bool AssignPaxToVehicleInfo(LandsideVehicleAssignEntry* pVehicleAssignEntry,MobLogEntry& paxEntry, CARCportEngine *pEngine);
 	
-	void ScheduleNext();	
+	void ScheduleNext();
+
 };

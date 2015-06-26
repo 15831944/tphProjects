@@ -9,6 +9,8 @@ class NonResidentVehicleTypePlan;
 class ResidentVehicleRouteList;
 class NonResidentVehicleTypePlan;
 class CARCportEngine;
+class LandsideVehicleProperty;
+
 
 class VehicleEntryInfo
 {
@@ -61,18 +63,26 @@ public:
 	bool isScheduleBus()const;
 
 
-	PaxVehicleEntryInfo(){		pVehicleAssignEntry = NULL;	}
-	void AddPaxEntry(const MobLogEntry& mobEntry){ vPaxEntryList.push_back(mobEntry); }
+	PaxVehicleEntryInfo();
+	void AddPaxEntry(const MobLogEntry& mobEntry);
 
-	void setVehicleAssignEntry(LandsideVehicleAssignEntry* p){ pVehicleAssignEntry=p;  } 
-	LandsideVehicleAssignEntry* getVehicleAssignEntry()const{ return pVehicleAssignEntry; }
+	void setVehicleAssignEntry(LandsideVehicleAssignEntry* p); 
+	LandsideVehicleAssignEntry* getVehicleAssignEntry()const;
 
 	//
 	static CMobileElemConstraint getConstrain(MobLogEntry& m_logEntry,CARCportEngine* pEngine );
+	
+	int getPaxCountInEntryList() const;
 
+	bool IsVacant(int nCount) const;
+
+	LandsideVehicleProperty* getVehicleProperty() const;
+	void setVehicleProperty(LandsideVehicleProperty* pVehicleProp);
 public:
 	std::vector<MobLogEntry> vPaxEntryList;
 protected:
 	//vehicle assignment 
 	LandsideVehicleAssignEntry* pVehicleAssignEntry;
+	LandsideVehicleProperty* m_pVehicleProperty;
+
 };

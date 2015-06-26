@@ -13,6 +13,7 @@
 #include "..\Inputs\MobileElemConstraint.h"
 #include "TERMINAL.H"
 #include "Landside\LandsideVehicleTypeNode.h"
+#include "Landside\VehicleGroupProperty.h"
 
 bool VehicleEntryInfo::InitNoResidentRoute(CARCportEngine* pEngine )
 {
@@ -321,6 +322,60 @@ bool PaxVehicleEntryInfo::isScheduleBus() const
 		}
 	}
 	return false;
+}
+
+void PaxVehicleEntryInfo::AddPaxEntry( const MobLogEntry& mobEntry )
+{
+	vPaxEntryList.push_back(mobEntry);
+}
+
+void PaxVehicleEntryInfo::setVehicleAssignEntry( LandsideVehicleAssignEntry* p )
+{
+	pVehicleAssignEntry = p;
+}
+
+LandsideVehicleAssignEntry* PaxVehicleEntryInfo::getVehicleAssignEntry() const
+{
+	return pVehicleAssignEntry;
+}
+
+PaxVehicleEntryInfo::PaxVehicleEntryInfo()
+{
+	pVehicleAssignEntry = NULL;
+}
+
+int PaxVehicleEntryInfo::getPaxCountInEntryList() const
+{
+	int nTotalPaxCount = 0;
+	std::vector<MobLogEntry>::const_iterator iter = vPaxEntryList.begin();
+	for (; iter != vPaxEntryList.end(); ++ iter)
+	{
+		const MobLogEntry& paxEntry = *iter;
+		nTotalPaxCount += paxEntry.getGroupSize();
+	}
+
+	return nTotalPaxCount;
+}
+
+bool PaxVehicleEntryInfo::IsVacant( int nCount ) const
+{
+	int nCurCount = getPaxCountInEntryList();
+
+	ASSERT(m_pVehicleProperty != NULL);
+	if(m_pVehicleProperty && m_pVehicleProperty->GetCapacity() < nCurCount + nCount)
+		return false;
+
+	return true;
+}
+
+LandsideVehicleProperty* PaxVehicleEntryInfo::getVehicleProperty() const
+{
+	return m_pVehicleProperty;
+}
+
+void PaxVehicleEntryInfo::setVehicleProperty( LandsideVehicleProperty* pVehicleProp )
+{
+	m_pVehicleProperty = pVehicleProp;
 }
 
 

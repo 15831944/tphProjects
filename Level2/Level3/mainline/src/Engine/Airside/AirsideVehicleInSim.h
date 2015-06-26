@@ -96,9 +96,9 @@ public:
 	int GetServicePointCount() { return m_nServicePointCount;}
 
 
-	ProbabilityDistribution* GetServiceTimeDistribution(){ return m_pServiceTimeDistribution;}
+	ProbabilityDistribution* GetServiceTimeDistribution()const{ return m_pServiceTimeDistribution;}
 	void SetServiceTimeDistribution(ProbabilityDistribution* pDistribution){ m_pServiceTimeDistribution = pDistribution;}
-	ProbabilityDistribution* GetSubServiceTimeDistribution(){ return m_pSubServiceTimeDistribution;}
+	ProbabilityDistribution* GetSubServiceTimeDistribution()const{ return m_pSubServiceTimeDistribution;}
 	void SetSubServiceTimeDistribution(ProbabilityDistribution* pDistribution){ m_pSubServiceTimeDistribution = pDistribution;}
 
 	bool IsAvailable() { return m_bAvailable; }

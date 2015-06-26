@@ -243,7 +243,7 @@ void BridgeConnector::ConnectAirsideFlight( AirsideFlightInSim* pFlight,const El
 	CFlightOpenDoors* openDoors = pFlight->OpenDoors(t);
 	if(!openDoors)
 	{
-		ASSERT(FALSE);
+		//ASSERT(FALSE);
 		return;
 	}
 	StandInSim* pStand = pFlight->GetOperationParkingStand();

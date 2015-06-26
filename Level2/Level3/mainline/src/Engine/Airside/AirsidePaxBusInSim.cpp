@@ -372,6 +372,7 @@ void  CAirsidePaxBusInSim::TakeOnPasseneger(Person* _pax,ElapsedTime time)
 			if(m_pax[i] == _pax)
 			{
 				m_currentpaxNum ++ ;
+				m_tLastPersonOnBus = time;
 				break ;
 			}
 		}
@@ -469,13 +470,16 @@ double CAirsidePaxBusInSim::getDirect(CPoint2008 _curPoint)
 }
 int CAirsidePaxBusInSim::ArriveAtStand(ElapsedTime time)
 {
+	
+
 	if(!getEngine()->IsTerminal())
 	{
-
 		SetMode(OnLeaveServicePoint) ;
+		ElapsedTime serviceTime =  GetServiceTimePerPerson() *  GetVehicleCapacity() ;		
+
 		CFlightServiceEvent * pNextEvent = new CFlightServiceEvent(this);
-		SetTime(time + ElapsedTime(150L));
-		pNextEvent->setTime(time+ ElapsedTime(150L));
+		SetTime(time + serviceTime);
+		pNextEvent->setTime(time+ serviceTime);
 		pNextEvent->addEvent();
 		return 1;
 	}
@@ -647,9 +651,16 @@ BOOL CAirsidePaxBusInSim::TryTakePaxLeave( const ElapsedTime&t )
 	if(  m_currentpaxNum == m_pax.size() )
 		//notice the bus move 
 	{
+		//leave at least service time
+		
 		SetLeaveTime(t) ;
 		BusMoving(t) ;
 		return TRUE;
 	}
 	return FALSE;
+}
+
+ElapsedTime CAirsidePaxBusInSim::GetServiceTimePerPerson() const
+{
+	return ElapsedTime(GetServiceTimeDistribution()->getRandomValue());
 }

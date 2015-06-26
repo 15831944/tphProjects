@@ -540,6 +540,14 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 		//note: if engine run with TLOS which has dynamically create processor function, number of run must be 1
 		for( int iRun=0; iRun<iRunNumber; ++iRun )
 		{	
+			CString strSimComponent;
+			strSimComponent.Format(_T("Running %s%s%s%s"),
+									IsAirsideSel()?_T("Airside"):_T(""), 
+									IsLandSel()?_T(", Landside"):_T(""),
+									IsTerminal()?_T(", Terminal"):_T(""),
+									IsOnboardSel()?_T(", Onboard"):_T(""));
+			SendSimMessage( strSimComponent );
+
 			int nPos = 100 / iRunNumber * iRun;
 			SetPercentOfRuns( nPos );
 			SetRunNumber( iRun + 1 );
@@ -645,11 +653,11 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 				m_vNonPaxCountByType[i] = 0;
 			}
 
-			long nPax = 0;
+			long nPaxGenerated = 0;
 			try
 			{
 				if(!simEngineConfig()->isSimAirsideModeAlone())
-					nPax = generatePassengers(&m_simFlightSchedule);
+					nPaxGenerated = generatePassengers(&m_simFlightSchedule);
 
 				if(simEngineConfig()->isSimTerminalModeAlone())
 				{
@@ -683,7 +691,7 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 				SendSimMessage( m_csDisplayMsg );
 				delete except;
 
-				nPax = 0;
+				nPaxGenerated = 0;
 				bInitializeNoError = false;
 			}
 			catch( ARCException* arc_exception )
@@ -691,7 +699,7 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 				SendSimFormatMessage(arc_exception->getFormatErrorMsg() );
 				delete arc_exception;
 
-				nPax = 0;
+				nPaxGenerated = 0;
 				bInitializeNoError = false;
 			}
 
@@ -832,7 +840,7 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 
 			if( simEngineConfig()->isSimALTOModes() && bInitializeNoError )
 			{	
-				m_simBobileelemList.Initialize( nPax );
+				m_simBobileelemList.Initialize( nPaxGenerated );
 
 				ElapsedTime startTime, endTime, simTime;
 				EventList simulationEngine;
@@ -860,21 +868,14 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 					//if(simEngineConfig()->isSimOnBoardAlone())
 					//	MobElementsLifeCycleMgr()->initialize(getPaxLog(), &m_simFlightSchedule);
 					//else
-					{//TODO:: Generate passenger's logic has problem in code below. need replace in the future. 
-						//All pax generation and activation logic implemented in MobElementsLifeCycleMgr object.
-						CFlightPaxLogContainer* container = CFlightPaxLogContainer::GetInstance() ;
-						container->Reset() ;
-						container->SetFlightSchedule(&m_simFlightSchedule) ;
-						container->SetPaxLog(getPaxLog()) ;
-						container->InitContainer(simEngineConfig()) ;
-						ActivePassenger();
-					}
+					
+
 
 					if(simEngineConfig()->isSimTerminalMode())
 						TrainEvent.initList(getTerminal()->m_pTrainLog,-1);
 
 					// before run engine, create all resource element
-					long _lResourceElementCount =getTerminal()->m_pResourcePoolDB->createResourceElement( getTerminal(), nPax );
+					long _lResourceElementCount =getTerminal()->m_pResourcePoolDB->createResourceElement( getTerminal(), nPaxGenerated );
 
 					//bagEvent.initBagList (bagLog);
 					getTerminal()->procAssignDB->initEvents();
@@ -892,6 +893,19 @@ void CARCportEngine::runSimulation (HWND _hWnd, const CString& _csProjPath,const
 						m_pLandsideSim->SetEstSimStartEndTime(estStartTime,estEndTime);
 						m_pLandsideSim->Start(this);
 					}
+
+					{//TODO:: Generate passenger's logic has problem in code below. need replace in the future. 
+						//All pax generation and activation logic implemented in MobElementsLifeCycleMgr object.
+						CFlightPaxLogContainer* container = CFlightPaxLogContainer::GetInstance() ;
+						container->Reset() ;
+						container->SetFlightSchedule(&m_simFlightSchedule) ;
+						container->SetPaxLog(getPaxLog()) ;
+						container->InitContainer(simEngineConfig()) ;
+						//Trigger passenger birth event
+						ActivePassenger();
+					}
+
+
 
 					SetPercent( 27 );
 					SendSimMessage( "Running..." );
@@ -2143,7 +2157,7 @@ void CARCportEngine::generateDepartures (CMobileElemConstraint p_type,
 			initElement (p_type, elem, p_count - count);
 			// set the entry time
 			elem.setEntryTime (getLeadTime (p_type, aFlight->getDepTime(), _standGate));
-			elem.setBulkCapacityFull(true);
+			elem.setBirthExceptionCode(BEC_BULKCAPACITY);
 		}
 		aFlight->addDepPax (elem.getGroupSize());
 

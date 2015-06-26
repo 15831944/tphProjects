@@ -190,9 +190,15 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 	{
 		if (_paxlist[i]->m_pGroupInfo && _paxlist[i]->m_pGroupInfo->IsFollower())		//ignore follower in group
 			continue;
-
 		vPerson.push_back(_paxlist[i]);	
 	}
+
+	struct SortPerson{
+		bool operator ()(Person* p1, Person* p2){
+			return p1->getLogEntry().getEntryTime() < p2->getLogEntry().getEntryTime();
+		}
+	};
+	std::sort(vPerson.begin(),vPerson.end(), SortPerson());
 
 	for (int i = 0 ; i < pPaxBusContext->GetPaxBusCount() ;i++) // when flight arrived ,notice all waiting bus to take the passenger 
 	{
@@ -509,6 +515,14 @@ void AirsidePassengerBusContext::ProcessPassengerTakeonBus( const ElapsedTime& t
 {
 	if(m_vPerson.empty())
 		pPaxBus->BusMoving(time) ;
+
+
+	struct SortPerson{
+		bool operator ()(Person* p1, Person* p2){
+			return p1->getLogEntry().getEntryTime() > p2->getLogEntry().getEntryTime();
+		}
+	};
+	std::sort(m_vPerson.begin(),m_vPerson.end(), SortPerson());
 
 	while(!m_vPerson.empty())
 	{

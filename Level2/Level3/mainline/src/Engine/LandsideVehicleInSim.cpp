@@ -95,7 +95,9 @@ void LandsideVehicleInSim::AddOnPax( LandsideBaseBehavior* plandsidePax )
 
 	m_vOnVehiclePax.push_back(plandsidePax);
 	int& paxload = m_logEntry.GetVehicleDesc().paxcount;
-	paxload++;
+	ASSERT(plandsidePax->getPerson());
+	if(plandsidePax->getPerson())
+		paxload += plandsidePax->getPerson()->GetActiveGroupSize();
 }
 
 void LandsideVehicleInSim::RemoveOnPax( LandsideBaseBehavior* plandsidePax ,const ElapsedTime& t)

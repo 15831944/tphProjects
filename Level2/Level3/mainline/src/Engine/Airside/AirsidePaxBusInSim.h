@@ -29,6 +29,17 @@ public:
 	bool IsServiceArrival();
 	ElapsedTime m_preTime ;
 	double m_preSpeed ;
+	
+
+	bool GetTimeOfLastPerson(ElapsedTime& t)const
+	{
+		if(m_currentpaxNum>0){
+			t = m_tLastPersonOnBus;
+			return true;
+		}
+		return false;
+	}
+	ElapsedTime GetServiceTimePerPerson()const;
 
 	CARCportEngine *getEngine();
 protected:
@@ -42,6 +53,8 @@ protected:
 	ElapsedTime m_takeoff_sepeed ;
      
 	int m_currentpaxNum ;
+	ElapsedTime m_tLastPersonOnBus;  //time of last person take on this bus
+
 	CPaxBusParkingResourceManager * m_pPaxBusParkingManager;
 	CPoint2008 prePos;
 

@@ -63,16 +63,31 @@ void CFlightPaxLogContainer::InitContainer(CSimEngineConfig* pSimConf)
 				AddArrDelayMobLogEntry(nextEntry);
 				continue ;
 			}
-			if(!pSimConf->IsTerminalSel()){
+			if(!pSimConf->IsTerminalSel())
+			{
 				continue;
 			}
 		}
 		if(nextEntry.isDeparture() && pSimConf->isSimLandsideMode())
 		{
-			//AddDepDelayMobLogEntry(nextEntry) ;
-			continue;
-		}			
-		
+
+			//if landside runs, 
+			//1. the passenger might not catch his bus, currently, the capacity is one reason
+			//after assign the passengers to public vehicles(bus), the passenger will push to m_NodelayPaxlog, and give an error in the passenger's Birth event
+			//2. there also might have some passenger who has no vehicle assigned, the reason is Vehicle Assignment does not cover all types of passengers
+			//those passenger will directly show in Terminal, those passenger entry also will push to vector m_NodelayPaxlog
+
+			//The deail refers to bool LandsidePaxVehicleManager::Init( CARCportEngine *pEngine,ElapsedTime& t )
+			if(nextEntry.getBirthExceptionCode() == BEC_LANDSIDENOVEHICLECOVERED || 
+				nextEntry.getBirthExceptionCode() == BEC_LANDSIDEVEHICLEOVERCAPACITY)
+			{
+				//Do nothing, the passenger would be generated with no delay
+				int nID = nextEntry.getID();
+				int nsize = nextEntry.getGroupSize();
+			}
+			else
+				continue;
+		}
 
 		m_NodelayPaxlog->addItem(nextEntry);
 	}

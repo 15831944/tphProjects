@@ -606,5 +606,14 @@ class CSimParameter;
 class AircraftEntryProcessorData;
 
 class Terminal;
+
+enum BirthExceptionCode
+{
+	BEC_UNKNOWN = 0,
+	BEC_BULKCAPACITY,//pax cannot take on bulkBEC_LANDSIDEVEHICLECAPACITY
+	BEC_LANDSIDEVEHICLEOVERCAPACITY,//vehicles have no enough space
+	BEC_LANDSIDENOVEHICLECOVERED,//have no vehicle to serve this passenger
+};
+
 #endif
 #endif

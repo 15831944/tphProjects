@@ -60,7 +60,7 @@ typedef struct
 	long	nFreqIndex;			//bulk freq
 	long	missFlightTime;
 	long	flightRealDepartureTime;
-	bool	bBulkProfileCapacity;
+	short	bBulkProfileCapacity;
 
 	// Mobile Element Rotation angle
 	float   xAngle;

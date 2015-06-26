@@ -184,14 +184,14 @@ void CServiceRequirementDlg::InitListCtrl(void)
 
 	strCaption.LoadString(IDS_AIRSERVICETIME);
 	lvc.pszText = (LPSTR)(LPCTSTR)strCaption;
-	lvc.cx = 150;
+	lvc.cx = 130;
 	lvc.fmt = LVCFMT_DROPDOWN;
 	lvc.csList = &m_ServiceTimeList;
 	m_ListFltTypeServiceRequirement.InsertColumn(2, &lvc);
 
 	strCaption.LoadString(IDS_SERVICETIME);
 	lvc.pszText = (LPSTR)(LPCTSTR)strCaption;
-	lvc.cx = 190;
+	lvc.cx = 130;
 	lvc.fmt = LVCFMT_NOEDIT;
 	lvc.csList = &m_ServiceTimeList;
 	m_ListFltTypeServiceRequirement.InsertColumn(3, &lvc);

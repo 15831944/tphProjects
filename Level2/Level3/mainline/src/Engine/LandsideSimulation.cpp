@@ -103,13 +103,16 @@ void LandsideSimulation::Start(CARCportEngine *pEngine)
 
 	//init vehicles and update est start time
 	ElapsedTime tmpT;
-	if( m_pResidentVehicles->GetStartTime(tmpT) ){
+	if( m_pResidentVehicles->GetStartTime(tmpT) )
+	{
 		m_estSimulationStartTime = MIN(tmpT,m_estSimulationStartTime);
 	}
-	if( m_pPaxVehicles->Init(pEngine,tmpT) ){
+	if( m_pPaxVehicles->Init(pEngine,tmpT) )
+	{
 		m_estSimulationStartTime = MIN(tmpT,m_estSimulationStartTime);
 	}
-	if( m_pNonPaxVehicles->Init(pEngine,tmpT) ){
+	if( m_pNonPaxVehicles->Init(pEngine,tmpT) )
+	{
 		m_estSimulationStartTime = MIN(tmpT,m_estSimulationStartTime);
 	}
 

@@ -199,20 +199,22 @@ void AirsidePassengerBehavior::ProcessWhenTakeOffFlight(ElapsedTime time)
 		WriteLog(time) ;
 	}
 
-	if(!GetBusPosition(point))
+	if(!GetBusEntryPosition(point))
 	{
 		setDestination(GetServiceHoldAreaPoint());
-		WriteLog(time + moveTime()) ;
 		setState(HOLDAREA_FOR_BUS);
+		//ElapsedTime tMoveTime = moveTime();
+		//setLocation(getDest());
+		GenetateEvent(time + moveTime()) ;
 		return ;
 	}
-
-
 	CloseDoor(time);
 
 	setDestination(point) ;
 	setState(TAKE_ON_BUS) ;
-	GenetateEvent(time + moveTime()) ;
+
+	ElapsedTime tMoveTime = moveTime();
+	GenetateEvent(time + tMoveTime) ;
 }
 void AirsidePassengerBehavior::ProcessWhenWaitforBus(ElapsedTime time)
 {
@@ -226,7 +228,28 @@ void AirsidePassengerBehavior::ProcessWhenTakeOnBus(ElapsedTime time)
 {
 	PLACE_METHOD_TRACK_STRING();
 	setLocation(getDest()) ;
-	WriteLog(time) ;
+	WriteLog(time);
+
+	//wait at the entry pos to the time of last person on bus.
+	ElapsedTime lastPersonTime;
+	if(m_pPaxBus && m_pPaxBus->GetTimeOfLastPerson(lastPersonTime))
+	{
+		if(lastPersonTime>time)
+		{
+			time = lastPersonTime; 
+			WriteLog(time);
+		}
+	}
+
+	//get on bus
+	CPoint2008 posOnBus;
+	if(m_pPaxBus && GetBusPosition(posOnBus))
+	{
+		setLocation(posOnBus);
+		time += m_pPaxBus->GetServiceTimePerPerson();
+		WriteLog(time);
+	}
+
 	m_IsOnBus = TRUE ;
 	if(m_bArrivalPax)
 	{
@@ -714,7 +737,9 @@ bool AirsidePassengerBehavior::GetFlightDoorPostion( const ElapsedTime& t,CPoint
 		if(openDoors->getCount()==0)
 			return false;
 
-		const COpenDoorInfo& doorInfo = openDoors->getDoor(0);
+		int nCount = openDoors->getCount();
+		int nRandDoor = random(nCount);
+		const COpenDoorInfo& doorInfo = openDoors->getDoor(nRandDoor);
 		doorpoint  = doorInfo.mDoorPos; 
 		groundpoint = doorInfo.mGroundPos;
 		CPoint2008 stand ;
@@ -731,18 +756,18 @@ CPoint2008 AirsidePassengerBehavior::GetServiceHoldAreaPoint()
 	CPoint2008 point = getPoint();
 
 	// init the hold are 
-	Point vPath[4];
+	/*Point vPath[4];
 	vPath[0].setPoint(point.getX()-500,point.getY()+500,point.getZ());
 	vPath[1].setPoint(point.getX()+500,point.getY()+500,point.getZ());
 	vPath[2].setPoint(point.getX()+500,point.getY()-500,point.getZ());
 	vPath[3].setPoint(point.getX()-500,point.getY()-500,point.getZ());
-
-	Pollygon serviceArea;
-	serviceArea.init(4,vPath);
-
-	CPoint2008 outPoint;
-	outPoint.setPoint(serviceArea.getRandPoint().getX(),serviceArea.getRandPoint().getY(),serviceArea.getRandPoint().getZ());
-	return outPoint;
+	*/
+	/*Pollygon serviceArea;
+	serviceArea.init(4,vPath);*/
+	double randX = random(500) - 250;
+	double randY = random(500) - 250;
+	
+	return point + CPoint2008(randX,randY,0);
 }
 
 void AirsidePassengerBehavior::ProcessHoldAreaToBus(ElapsedTime time)
@@ -750,14 +775,19 @@ void AirsidePassengerBehavior::ProcessHoldAreaToBus(ElapsedTime time)
 	PLACE_METHOD_TRACK_STRING();
 
 	CPoint2008 point;
-	if(!GetBusPosition(point))
+	if(!GetBusEntryPosition(point))
 	{
-		setDestination(GetServiceHoldAreaPoint());
-		WriteLog(time + moveTime()) ;
-		setState(HOLDAREA_FOR_BUS);
+		if( m_pax->getPreState()!=m_pax->getState() )
+		{
+			setLocation(getDest());
+			WriteLog(time);
+		}
 		return ;
 	}
 
+	// 
+	setLocation(getDest());
+	WriteLog(time);
 
 	AirsideSimulation* airsideSim = m_pax->getEngine()->GetAirsideSimulation() ;
 	if(airsideSim == NULL)
@@ -767,7 +797,8 @@ void AirsidePassengerBehavior::ProcessHoldAreaToBus(ElapsedTime time)
 	CloseDoor(time);
 	setDestination(point) ;
 	setState(TAKE_ON_BUS) ;
-	GenetateEvent(time + moveTime()) ;
+	ElapsedTime tMoveTime = moveTime();
+	GenetateEvent(time + tMoveTime) ;
 }
 
 void AirsidePassengerBehavior::CloseDoor(const ElapsedTime& time)
@@ -949,4 +980,40 @@ void AirsidePassengerBehavior::SetFollowerDestination(const CPoint2008& _ptCurre
 
 }
 
+
+
+BOOL AirsidePassengerBehavior::GetBusEntryPosition(CPoint2008& point)
+{
+	CAirsidePaxBusInSim* pCurPaxBus = NULL;
+
+	if (m_pPaxBus)
+	{
+		pCurPaxBus = m_pPaxBus;
+	}
+	else
+	{
+		TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)m_pax->getBehavior(MobElementBehavior::TerminalBehavior);
+
+		if (spTerminalBehavior == NULL)
+			return FALSE;
+
+		if(spTerminalBehavior->GetAirsideBus() == NULL)
+			return FALSE;
+
+		pCurPaxBus = spTerminalBehavior->GetAirsideBus();
+	}
+
+	CPoint2008 point2008 = pCurPaxBus->GetPosition() ;
+	
+	m_ZPosition = (float)(pCurPaxBus->GetVehicleLength()/2 - abs(_offSetInBus.getX()) ) / (float)(pCurPaxBus->GetVehicleLength()/2 + abs(_offSetInBus.getX()) ) ;
+	CPoint2008 _off;
+	
+	_off.setY(  pCurPaxBus->GetVehicleWidth()/2   + random(100) );
+	_off.setX(  pCurPaxBus->GetVehicleLength()/2 * 0.8 + random(100) -50 );
+	_off.rotate( pCurPaxBus->getDirect(point2008) );
+
+	point = point2008 + _off;
+
+	return TRUE ;
+}
 

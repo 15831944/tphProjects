@@ -20,10 +20,7 @@ private :
 
 	CPoint2008 _offSetInBus ;
     float  m_ZPosition ;
-
-
-	 
-
+	
 
 	//check pax have pax bus service, just for take off passenger
 	bool m_bPaxBusSerivce;
@@ -35,11 +32,6 @@ private :
 
 //Mobile behavior in airside position interface
 public:
-
-
-
-
-
 	void CancelPaxBusService(){m_bPaxBusSerivce = false;}
 	void SetAirsideBus(CAirsidePaxBusInSim* pBus){m_pPaxBus = pBus;}
 public:
@@ -58,7 +50,9 @@ protected:
 	CPoint2008 GetStandWaiteAreaPosition() ;
 	BOOL GetGatePosition(CPoint2008& point) ;
 	CPoint2008 GetGateWaiteAreaPosition() ;
+	BOOL GetBusEntryPosition(CPoint2008& point) ;
 	BOOL GetBusPosition(CPoint2008& point) ;
+
 	BOOL  IsBusArrived() ;
 	BOOL  IsGateOpen() ;
 	BOOL  IsFlightArrived() ;

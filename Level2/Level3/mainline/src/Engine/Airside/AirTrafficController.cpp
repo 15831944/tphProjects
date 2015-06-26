@@ -910,6 +910,7 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 	//end item 
 	ClearanceItem newItem(NULL,OnTerminate,0);
 	newItem.SetTime(lastClearanceItem.GetTime());
+	newItem.SetPosition(lastClearanceItem.GetPosition());
 	newclearance.AddItem(newItem);	
 
 	pFlight->PerformClearance(newclearance);

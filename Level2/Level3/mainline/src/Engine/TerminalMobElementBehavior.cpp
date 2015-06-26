@@ -317,7 +317,8 @@ int TerminalMobElementBehavior::processBirth (ElapsedTime p_time)
 	}
 
 	//The passenger might not be generated based on the bulk profile
-	if(m_pPerson->getLogEntry().getBulkCapacityFull())
+	if(m_pPerson->getLogEntry().getBirthExceptionCode() == BEC_BULKCAPACITY ||
+		m_pPerson->getLogEntry().getBirthExceptionCode() == BEC_LANDSIDEVEHICLEOVERCAPACITY)
 	{//the passenger would be terminate here, for him cannot take Bulk
 
 		int nDepFlightIdx = m_pPerson->getLogEntry().getDepFlight();
@@ -364,9 +365,17 @@ int TerminalMobElementBehavior::processBirth (ElapsedTime p_time)
 			long lID = m_pPerson->m_pGroupInfo->GetGroupLeader()->getID();
 			msgEx.strOther.Format("missed its flight by leader %d in group", lID);
 		}
-		else
+		else if(m_pPerson->getLogEntry().getBirthExceptionCode() == BEC_BULKCAPACITY)
 		{
 			msgEx.strOther.Format( "Cannot take Bulk for having no enough capacity,please refer to Bulk Profile settings.");
+		}
+		else if(m_pPerson->getLogEntry().getBirthExceptionCode() == BEC_LANDSIDEVEHICLEOVERCAPACITY)
+		{
+			msgEx.strOther.Format( "Has no landside vehicle to serve the passenger due to the capacity limitation.");
+		}
+		else
+		{
+			ASSERT(0);
 		}
 		msgEx.diag_entry.eType	= MISS_FLIGHT;
 		msgEx.diag_entry.lData	= m_pPerson->getLogEntry().getIndex();
@@ -1546,11 +1555,13 @@ int TerminalMobElementBehavior::getNextProcessor (ElapsedTime& p_time)
 			}
 			else 
 			{
-				ReleaseResource(p_time);
-				kill(p_time);
-
-				throw new ARCDestProcessorUnavailableError( szMobType, strProcName, "IN ELEVATOR SYSTEM", ClacTimeString(p_time));
-
+                ReleaseResource(p_time);
+                kill(p_time);
+                m_pDiagnoseInfo->flushDiagnoseInfo();
+				ARCDestProcessorUnavailableError* pException = new ARCDestProcessorUnavailableError( szMobType, strProcName, "IN ELEVATOR SYSTEM", ClacTimeString(p_time));
+                pException->setDiagType( PAXDEST_DIAGNOS );
+                pException->setDiagData( m_pPerson->id );
+                throw pException;
 				//						throw new ARCDestProcessorUnavailableError( szMobType, strProcName, "IN ELEVATOR SYSTEM", p_time.printTime() );
 			}
 		}
@@ -2070,6 +2081,7 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 	// no proc can be selected because of the roster
 	bool bRosterReason = false;
 
+	//CString strRandomProcGroup = nextGroup->GetIDString();
 	do 
 	{
 		if(nextGroup!=NULL)
@@ -2166,6 +2178,19 @@ Processor *TerminalMobElementBehavior::selectProcessor ( ElapsedTime _curTime, b
 		// if randomly selected group invalid, try each group m_in order
 	} while ((nextGroup = m_pFlowList->getDestinationGroup (SEQUENTIAL)) != NULL);
 
+	//CString strSelectedProcGroup = nextGroup->GetIDString();
+	//if(m_pProcessor && m_pProcessor->getID()->GetIDString().CompareNoCase(_T("CUSTOMSENTRYMAIN-1")) == 0)
+	//{	
+	//	CString strLog;
+	//	//pax id, Time, Time String,Random Proc Group, selected Proc Group
+	//	strLog.Format(_T("%d, %d, %s, %s, %s"), m_pPerson->getID(), _curTime.getPrecisely(), _curTime.PrintDateTime(), strRandomProcGroup, strSelectedProcGroup);
+
+	//	CString strPath;
+	//	strPath.Format(_T("%s%s"),getTerminal()->m_strProjPath, _T("FlowBranchRandomDistribution.csv"));
+	//	ofsstream echoFile (strPath, stdios::app);
+	//	echoFile<<strLog<<"\n";
+	//	echoFile.close();
+	//}
 
 
 
