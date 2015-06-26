@@ -38,7 +38,7 @@ int CInPlaceList::OnCreate(LPCREATESTRUCT lpCreateStruct)
     CFont* font = GetParent()->GetFont();
     SetFont(font);
 
-    for(POSITION pos = m_lstItems->GetHeadPosition(); pos != NULL; )
+    for(POSITION pos = m_lstItems->GetHeadPosition(); pos != NULL;)
         AddString((LPCTSTR)(m_lstItems->GetNext(pos)));
 
     SetCurSel(m_nSel);
@@ -79,8 +79,8 @@ void CInPlaceList::OnKillFocus(CWnd* pNewWnd)
     dispinfo.item.pszText = m_bESC ? NULL : LPTSTR((LPCTSTR)str);
     dispinfo.item.cchTextMax = str.GetLength();
 
-    GetParent()->GetParent()->SendMessage( WM_NOTIFY, GetParent()->GetDlgCtrlID(), (LPARAM)&dispinfo);
-    GetParent()->SendMessage( WM_INPLACE_COMBO_KILLFOUCUS, GetCurSel(), (LPARAM)&dispinfo);
+    GetParent()->GetParent()->SendMessage(WM_NOTIFY, GetParent()->GetDlgCtrlID(), (LPARAM)&dispinfo);
+    GetParent()->SendMessage(WM_INPLACE_COMBO_KILLFOUCUS, GetCurSel(), (LPARAM)&dispinfo);
 
     PostMessage(WM_CLOSE);
 }

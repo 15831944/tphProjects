@@ -58,8 +58,8 @@ CString CNumericEdit::GetClipboardText(void) const
             {
                 if (!::_istdigit(*lpsz))
                 {
-                    if ( (m_chDigitsAfterDecimal) && 
-                        (*lpsz != DefUserLocale.chDecimalSymbol) )
+                    if ((m_chDigitsAfterDecimal) && 
+                        (*lpsz != DefUserLocale.chDecimalSymbol))
                         break;
 
                     // a decimal symbol is already there?
@@ -74,7 +74,7 @@ CString CNumericEdit::GetClipboardText(void) const
 
             strClipBrdText.UnlockBuffer();
 
-            if ( (!iStart) && (!iCount) )
+            if ((!iStart) && (!iCount))
                 strClipBrdText.Empty();
             else
                 strClipBrdText = strClipBrdText.Mid(iStart, iCount);
@@ -109,7 +109,7 @@ LRESULT CNumericEdit::OnPaste(WPARAM wParam, LPARAM lParam)
     SendMessage(EM_GETSEL, (WPARAM)&dwSelStart, (LPARAM)&dwSelEnd);
 
     // pasting a negative value somewhere in between the current text?
-    if ( (strClipBrdText[0] == DefUserLocale.chNegationSymbol) && (dwSelStart) )
+    if ((strClipBrdText[0] == DefUserLocale.chNegationSymbol) && (dwSelStart))
     {
         ::MessageBeep(MB_ICONEXCLAMATION);
         return (0L);
@@ -131,8 +131,8 @@ LRESULT CNumericEdit::OnPaste(WPARAM wParam, LPARAM lParam)
         iDecimalPos[1] = strClipBrdText.Find(DefUserLocale.chDecimalSymbol);
         // both control and clipboard text contain a decimal symbol and 
         // decimal symbol doesn't fall within the current selection range
-        if ( (iDecimalPos[0] >= 0 && iDecimalPos[1] >= 0) && 
-            (iDecimalPos[0] < dwSelStart || iDecimalPos[0] > dwSelEnd) )
+        if ((iDecimalPos[0] >= 0 && iDecimalPos[1] >= 0) && 
+            (iDecimalPos[0] < dwSelStart || iDecimalPos[0] > dwSelEnd))
         {
             // extract only that much data from clipboard text 
             // that comes before the decimal symbol position
@@ -181,8 +181,8 @@ BOOL CNumericEdit::PreTranslateMessage(MSG *pMSG)
         goto LForwardMsg;
 
     // CTRL+C, CTRL+X, or, CTRL+V?
-    if ( (nKeyCode == _T('C') || nKeyCode == _T('X') || nKeyCode == _T('V')) && 
-        (::GetKeyState(VK_CONTROL) & 0x8000) )
+    if ((nKeyCode == _T('C') || nKeyCode == _T('X') || nKeyCode == _T('V')) && 
+        (::GetKeyState(VK_CONTROL) & 0x8000))
         goto LForwardMsg;
 
     //TRACE1("(Info) CNumericEdit::PreTranslateMessage:"
@@ -269,8 +269,8 @@ BOOL CNumericEdit::PreTranslateMessage(MSG *pMSG)
                 // a decimal symbol is already there?
                 if (iPos >= 0)
                 {
-                    if ( (dwSelEnd == dwSelStart) && 
-                        (iPos < dwSelStart || iPos > dwSelEnd) )
+                    if ((dwSelEnd == dwSelStart) && 
+                        (iPos < dwSelStart || iPos > dwSelEnd))
                     {
                         // there can be only one decimal symbol in a numeric value
                         ::MessageBeep(MB_ICONEXCLAMATION);
@@ -282,10 +282,10 @@ BOOL CNumericEdit::PreTranslateMessage(MSG *pMSG)
             // one of the digit keys has been pressed?
             else
             {
-                if ( (iPos >= 0) && 
+                if ((iPos >= 0) && 
                     (dwSelStart > iPos) && 
                     (dwSelStart == dwSelEnd) &&
-                    (strBuffer.Mid(iPos+1).GetLength() >= m_chDigitsAfterDecimal) )
+                    (strBuffer.Mid(iPos+1).GetLength() >= m_chDigitsAfterDecimal))
                 {
                     ::MessageBeep(MB_ICONEXCLAMATION);
                     return (TRUE);
@@ -295,7 +295,7 @@ BOOL CNumericEdit::PreTranslateMessage(MSG *pMSG)
             // neither a digit nor a decimal symbol is allowed 
             // at the starting of the text when the value in the 
             // text buffer is a negative value
-            if ( (!dwSelStart) && (strBuffer[0] == DefUserLocale.chNegationSymbol) )
+            if ((!dwSelStart) && (strBuffer[0] == DefUserLocale.chNegationSymbol))
             {
                 // negative sign is within the current selection range?
                 if (dwSelEnd == dwSelStart)

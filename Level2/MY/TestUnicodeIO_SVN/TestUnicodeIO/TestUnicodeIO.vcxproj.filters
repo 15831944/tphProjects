@@ -88,6 +88,30 @@
     <ClInclude Include="TabSubView3.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="TreeCtrlKeepHighlight.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="CoolTree.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="CARCTipComboBox.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="CARCTipListBox.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="CoolTreeDateTimeCtrl.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="CoolTreeEdit.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="CoolTreeEditSpin.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="CARCTipEdit.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestUnicodeIO.cpp">
@@ -137,6 +161,30 @@
     </ClCompile>
     <ClCompile Include="TabSubView3.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeCtrlKeepHighlight.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="CoolTree.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="CARCTipComboBox.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="CARCTipListBox.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="CoolTreeDateTimeCtrl.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="CoolTreeEdit.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="CoolTreeEditSpin.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="CARCTipEdit.cpp">
+      <Filter>Controls\ob</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

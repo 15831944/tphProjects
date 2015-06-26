@@ -39,10 +39,10 @@ void CInPlaceDateTimeCtrl::OnKillFocus(CWnd* pNewWnd)
     GetOwner()->Invalidate();
 
     COleDateTime oTime;
-    GetTime( oTime );
+    GetTime(oTime);
 
-    // TRACE("Time:%d:%d:%d",oTime.GetHour(), oTime.GetMinute(), oTime.GetSecond() );
-    GetParent()->SendMessage( WM_INPLACE_DATETIME, (WPARAM)m_bESC, (LPARAM)&oTime ); 
+    // TRACE("Time:%d:%d:%d",oTime.GetHour(), oTime.GetMinute(), oTime.GetSecond());
+    GetParent()->SendMessage(WM_INPLACE_DATETIME, (WPARAM)m_bESC, (LPARAM)&oTime); 
 
     DestroyWindow();
 
@@ -54,16 +54,16 @@ int CInPlaceDateTimeCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
 
     CFont* font = GetParent()->GetFont();
-    SetFont( font );
+    SetFont(font);
 
     return 0;
 }
 
 void CInPlaceDateTimeCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
-    if( nChar == VK_ESCAPE || nChar == VK_RETURN)
+    if(nChar == VK_ESCAPE || nChar == VK_RETURN)
     {
-        if( nChar == VK_ESCAPE )
+        if(nChar == VK_ESCAPE)
             m_bESC = TRUE;
         GetParent()->SetFocus();
         return;
@@ -76,44 +76,44 @@ void CInPlaceDateTimeCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
     // Get text extent
     CString str;
 
-    GetWindowText( str );
+    GetWindowText(str);
     CWindowDC dc(this);
     CFont *pFont = GetParent()->GetFont();
-    CFont *pFontDC = dc.SelectObject( pFont );
-    CSize size = dc.GetTextExtent( str );
-    dc.SelectObject( pFontDC );
+    CFont *pFontDC = dc.SelectObject(pFont);
+    CSize size = dc.GetTextExtent(str);
+    dc.SelectObject(pFontDC);
     size.cx += 5; // add some extra buffer
 
     // Get client rect
     CRect rect, parentrect;
-    GetClientRect( &rect );
-    GetParent()->GetClientRect( &parentrect );
+    GetClientRect(&rect);
+    GetParent()->GetClientRect(&parentrect);
 
     // Transform rect to parent coordinates
-    ClientToScreen( &rect );
-    GetParent()->ScreenToClient( &rect );
+    ClientToScreen(&rect);
+    GetParent()->ScreenToClient(&rect);
 
     // Check whether control needs to be resized
     // and whether there is space to grow
-    if( size.cx > rect.Width() )
+    if(size.cx > rect.Width())
     {
-        if( size.cx + rect.left < parentrect.right )
+        if(size.cx + rect.left < parentrect.right)
             rect.right = rect.left + size.cx;
         else
             rect.right = parentrect.right;
-        MoveWindow( &rect );
+        MoveWindow(&rect);
     }
 }
 
 BOOL CInPlaceDateTimeCtrl::PreTranslateMessage(MSG* pMsg) 
 {
-    if( pMsg->message == WM_KEYDOWN )
+    if(pMsg->message == WM_KEYDOWN)
     {
         if(pMsg->wParam == VK_RETURN
             || pMsg->wParam == VK_DELETE
             || pMsg->wParam == VK_ESCAPE
-            || GetKeyState( VK_CONTROL)
-            )
+            || GetKeyState(VK_CONTROL)
+           )
         {
             ::TranslateMessage(pMsg);
             ::DispatchMessage(pMsg);

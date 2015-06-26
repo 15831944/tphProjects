@@ -108,6 +108,7 @@ void CTestUnicodeIODlg::OnTcnSelchangeMainTab(NMHDR *pNMHDR, LRESULT *pResult)
         m_tabView1.ShowWindow(FALSE);
         m_tabView2.ShowWindow(TRUE);
         m_tabView3.ShowWindow(FALSE);
+        break;
     case 2:
         m_tabView1.ShowWindow(FALSE);
         m_tabView2.ShowWindow(FALSE);
@@ -200,6 +201,7 @@ void CTestUnicodeIODlg::LayoutTabViews()
     rTabClient.right -= 5;
     m_tabView1.MoveWindow(&rTabClient);
     m_tabView2.MoveWindow(&rTabClient);
+    m_tabView3.MoveWindow(&rTabClient);
 }
 
 

@@ -89,7 +89,7 @@ public:
     // Returns            - Temporary pointer to the new edit control
     // nItem            - The row index of the item to edit
     // nCol                - The column of the sub item.
-    CEdit* EditSubLabel( int nItem, int nCol );
+    CEdit* EditSubLabel(int nItem, int nCol);
 
     // [HitTestEx] - Determine the row index and column index for a point
     // Returns   - the row index or -1 if point is not over a row
@@ -98,7 +98,7 @@ public:
     int HitTestEx(CPoint &point, int *col);
 
     //[DeleteItemEx] - Delete the selected item from the list
-    void DeleteItemEx( int p_index );
+    void DeleteItemEx(int p_index);
 
     //[DeleteAllItems] - Delete all items in list
     BOOL DeleteAllItems();
@@ -111,7 +111,7 @@ public:
     //[InsertColumn] - 
     int InsertColumn(int nCol, const LV_COLUMNEX* pColumn);
 
-    void SetSpinDisplayType( int _iType );;    
+    void SetSpinDisplayType(int _iType);;    
     virtual ~CListCtrlEx();
     void SetHHmmTimeFormat();;
     void SetEditSpinRange(int _low,int _Upp);
@@ -134,7 +134,7 @@ protected:
     // nCol            - The column index of the cell
     // lstItems        - A list of strings to populate the control with
     // nSel            - Index of the initial selection in the drop down list
-    CComboBox* ShowInPlaceList( int nItem, int nCol);
+    CComboBox* ShowInPlaceList(int nItem, int nCol);
 
     // [EditDateTimeLabel]
     // Similar with EditSpinLabel
@@ -151,7 +151,7 @@ public:
     afx_msg BOOL OnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
     afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
-    afx_msg void OnKeyDown( UINT nChar,    UINT nRepCnt, UINT nFlags );
+    afx_msg void OnKeyDown(UINT nChar,    UINT nRepCnt, UINT nFlags);
 
 protected:
     CPtrArray ddStyleList;

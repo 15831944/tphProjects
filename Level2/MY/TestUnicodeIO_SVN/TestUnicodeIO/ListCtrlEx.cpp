@@ -38,7 +38,7 @@ BEGIN_MESSAGE_MAP(CListCtrlEx, CListCtrl)
     ON_NOTIFY_REFLECT_EX(LVN_ENDLABELEDIT, OnEndlabeledit)
     ON_WM_LBUTTONDBLCLK()
     ON_WM_RBUTTONDOWN()
-    ON_WM_KEYDOWN( )
+    ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -72,16 +72,16 @@ int CListCtrlEx::HitTestEx(CPoint& point, int* col)
         bottom = GetItemCount();
 
     // Loop through the visible rows
-    for( ;row <=bottom; row++)
+    for(;row <=bottom; row++)
     {
         // Get bounding rect of item and check whether point falls in it.
         CRect rect;
-        if( GetItemRect(row, &rect, LVIR_BOUNDS) )
+        if(GetItemRect(row, &rect, LVIR_BOUNDS))
         {
-            if( rect.PtInRect(point) )
+            if(rect.PtInRect(point))
             {
                 // Now find the column
-                for( colnum = 0; colnum < nColumnCount; colnum++ )
+                for(colnum = 0; colnum < nColumnCount; colnum++)
                 {
                     int colwidth = GetColumnWidth(colnum);
                     if(point.x >= rect.left && point.x <= (rect.left + colwidth))
@@ -94,22 +94,22 @@ int CListCtrlEx::HitTestEx(CPoint& point, int* col)
                 }
             }
         }
-        else if( col )
+        else if(col)
         {
             // Is pre item is empty
-            if (row > 0 && IsPreItemEmpty(row) )
+            if (row > 0 && IsPreItemEmpty(row))
                 return -1;
             if(IsItemEmpty(row))
                 return -1;
 
             // Clicked on the 'empty' row
-            int newInsertIndex = InsertItem( row + 1, _T(""));
-            SetItemState( newInsertIndex, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
+            int newInsertIndex = InsertItem(row + 1, _T(""));
+            SetItemState(newInsertIndex, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
             GetItemRect(row, &rect, LVIR_BOUNDS);
             if(rect.PtInRect(point))
             {
                 // Now find the column
-                for( colnum = 0; colnum < nColumnCount; colnum++ )
+                for(colnum = 0; colnum < nColumnCount; colnum++)
                 {
                     int colwidth = GetColumnWidth(colnum);
                     if(point.x >= rect.left && point.x <= (rect.left + colwidth))
@@ -122,7 +122,7 @@ int CListCtrlEx::HitTestEx(CPoint& point, int* col)
             }
             else
             {
-                DeleteItemEx( newInsertIndex );
+                DeleteItemEx(newInsertIndex);
             }
         }
     }
@@ -136,7 +136,7 @@ int CListCtrlEx::HitTestEx(CPoint& point, int* col)
 // nCol            - The column index of the cell
 // lstItems        - A list of strings to populate the control with
 // nSel            - Index of the initial selection in the drop down list
-CComboBox* CListCtrlEx::ShowInPlaceList( int nItem, int nCol)
+CComboBox* CListCtrlEx::ShowInPlaceList(int nItem, int nCol)
 {
     // The returned pointer should not be saved
 
@@ -180,23 +180,23 @@ CComboBox* CListCtrlEx::ShowInPlaceList( int nItem, int nCol)
 
 
     CStringList& strList = ((LVCOLDROPLIST*)ddStyleList[nCol])->List;
-    CString csSelStr = GetItemText( nItem, nCol );
+    CString csSelStr = GetItemText(nItem, nCol);
     POSITION pos;
     int ii = 0;
     int nSelIndex = 0;
-    for( pos = strList.GetHeadPosition(); pos; ii++ )
+    for(pos = strList.GetHeadPosition(); pos; ii++)
     {
 
-        CString csStr = strList.GetAt( pos );
-        if( csStr == csSelStr )
+        CString csStr = strList.GetAt(pos);
+        if(csStr == csSelStr)
         {
             nSelIndex = ii;
             break;
         }
-        strList.GetNext( pos );
+        strList.GetNext(pos);
     } 
 
-    CComboBox *pList = new CInPlaceList(nItem, nCol, &((LVCOLDROPLIST*)ddStyleList[nCol])->List, nSelIndex );
+    CComboBox *pList = new CInPlaceList(nItem, nCol, &((LVCOLDROPLIST*)ddStyleList[nCol])->List, nSelIndex);
     pList->Create(dwStyle, rect, this, ID_IPEDIT);
     pList->SetItemHeight(-1, height);
     pList->SetHorizontalExtent(GetColumnWidth(nCol));
@@ -205,7 +205,7 @@ CComboBox* CListCtrlEx::ShowInPlaceList( int nItem, int nCol)
 
 void CListCtrlEx::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-    if(GetFocus() != this ) 
+    if(GetFocus() != this) 
         SetFocus();
     CListCtrl::OnHScroll(nSBCode, nPos, pScrollBar);
 }
@@ -301,11 +301,11 @@ CEdit* CListCtrlEx::EditSubLabel(int nItem, int nCol)
     int nUseType = IPEDIT_TYPE_NORMAL;
     if (((LVCOLDROPLIST*)ddStyleList[nCol])->Style == NUMBER_ONLY)
         nUseType = IPEDIT_TYPE_NUMBER;
-    if( ((LVCOLDROPLIST*)ddStyleList[nCol])->Style == TEXT_EDIT )
+    if(((LVCOLDROPLIST*)ddStyleList[nCol])->Style == TEXT_EDIT)
         dwStyle |=ES_UPPERCASE;
 
     CEdit *pEdit = new CInPlaceEdit(nItem, nCol, GetItemText(nItem, nCol), nUseType);
-    pEdit->Create( dwStyle, rect, this, ID_IPEDIT );
+    pEdit->Create(dwStyle, rect, this, ID_IPEDIT);
     return pEdit;
 }
 
@@ -320,11 +320,11 @@ CEdit* CListCtrlEx::EditSpinLabel(int nItem, int nCol)
 
     // Set title and percent
     CString strPercent;
-    strPercent = GetItemText( nItem, nCol );
+    strPercent = GetItemText(nItem, nCol);
     strPercent.Remove('%');
     m_SpinEdit.SetTitle(_T(""));
 
-    m_SpinEdit.SetDisplayType( m_iSpinDisplayType );
+    m_SpinEdit.SetDisplayType(m_iSpinDisplayType);
 
     int iPercent = 0;
     if (strPercent.GetLength() > 0)
@@ -369,7 +369,7 @@ CEdit* CListCtrlEx::EditSpinLabel(int nItem, int nCol)
     if (!m_SpinEdit.GetSafeHwnd())
         m_SpinEdit.Create(_T("STATIC"), NULL, WS_CHILD|WS_VISIBLE|WS_BORDER, rect, this, NULL);
     else
-        m_SpinEdit.MoveWindow( &rect );
+        m_SpinEdit.MoveWindow(&rect);
 
     LVCOLDROPLIST* dropList = (LVCOLDROPLIST*)ddStyleList[nCol];
     if (-1 != dropList->nParam1
@@ -404,9 +404,9 @@ int CListCtrlEx::InsertColumn(int nCol, const LV_COLUMNEX* pColumn)
         DropList->Style = DATE_TIME;
     else if(pColumn->fmt & LVCFMT_POPUP_GATE_SELECTION)
         DropList->Style = POPUP_GATE_SELECTION;
-    if( pColumn->fmt & LVCFMT_EDIT )
+    if(pColumn->fmt & LVCFMT_EDIT)
         DropList->Style = TEXT_EDIT;
-    if (pColumn->fmt & LVCFMT_CHECK ) 
+    if (pColumn->fmt & LVCFMT_CHECK) 
         DropList->Style = CHECKBOX;  
 
     DropList->List.AddTail(pColumn->csList);
@@ -457,7 +457,7 @@ void CListCtrlEx::OnRButtonDown(UINT nFlags, CPoint point)
     CListCtrl::OnRButtonDown(nFlags, point);
 }
 
-void CListCtrlEx::OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags )
+void CListCtrlEx::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     // TODO: Add your message handler code here and/or call default
 
@@ -496,14 +496,14 @@ void CListCtrlEx::OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags )
 
 void CListCtrlEx::DeleteItemEx(int p_index)
 {
-    if( DeleteItem( p_index ) )
+    if(DeleteItem(p_index))
     {
-        if( p_index > 0 )
+        if(p_index > 0)
         {
             CurrentSelection = p_index - 1;
             SetItemState(p_index-1, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
         }
-        else if( GetItemCount()>0 )
+        else if(GetItemCount()>0)
         {
             CurrentSelection = 0;
             SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
@@ -533,14 +533,14 @@ LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
         LPSPINTEXT pst = (LPSPINTEXT) lParam;
 
         CString strPercent;
-        if( m_iSpinDisplayType == 0 )
+        if(m_iSpinDisplayType == 0)
             strPercent.Format(_T("%d%%"), pst->iPercent);
-        else if ( m_iSpinDisplayType == 1 ) //add by tutu 2002-11-20
+        else if (m_iSpinDisplayType == 1) //add by tutu 2002-11-20
             strPercent.Format(_T("%d"), pst->iPercent);
         pst->nItem = m_nSpinSelItem;
         pst->nColumn = m_nSpinSelCol;
-        SetItemText( m_nSpinSelItem, m_nSpinSelCol, strPercent );
-        GetParent()->SendMessage( message, wParam, lParam );
+        SetItemText(m_nSpinSelItem, m_nSpinSelCol, strPercent);
+        GetParent()->SendMessage(message, wParam, lParam);
         return TRUE;
     }
 
@@ -568,7 +568,7 @@ LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
         }
 
 
-        SetItemText( m_nTimeSelItem , m_nTimeSelCol, strTime);
+        SetItemText(m_nTimeSelItem , m_nTimeSelCol, strTime);
         // GetParent()->SendMessage(message, wParam, lParam);
 
         CString str;
@@ -587,15 +587,15 @@ LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
         int Id = GetDlgCtrlID();
 
-        //GetParent()->SendMessage( WM_NOTIFY, Id, (LPARAM)&dispinfo );
-        GetParent()->SendMessage( message, 1, (LPARAM)&dispinfo );
-        GetParent()->SendMessage( message, 2, lParam);
+        //GetParent()->SendMessage(WM_NOTIFY, Id, (LPARAM)&dispinfo);
+        GetParent()->SendMessage(message, 1, (LPARAM)&dispinfo);
+        GetParent()->SendMessage(message, 2, lParam);
         return TRUE;
     }
 
-    if( message == WM_INPLACE_COMBO_KILLFOUCUS )
+    if(message == WM_INPLACE_COMBO_KILLFOUCUS)
     {
-        GetParent()->SendMessage( message, wParam, lParam );
+        GetParent()->SendMessage(message, wParam, lParam);
         return TRUE;
     }
     return CListCtrl::DefWindowProc(message, wParam, lParam);
@@ -614,9 +614,9 @@ void CListCtrlEx::EditNew()
     if (nCount > 0 && IsPreItemEmpty(nCount))
         nNewIdx = nCount - 1;
     else
-        nNewIdx = InsertItem( nCount, _T(""));
+        nNewIdx = InsertItem(nCount, _T(""));
 
-    SetItemState( nNewIdx, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED );
+    SetItemState(nNewIdx, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
     CurrentSelection = nNewIdx;
 
     UINT flag = LVIS_FOCUSED;
@@ -639,15 +639,15 @@ void CListCtrlEx::EditNew()
         break;
 
     case SPIN_EDIT:
-        EditSpinLabel( CurrentSelection, 0 );
+        EditSpinLabel(CurrentSelection, 0);
         break;
 
     case DATE_TIME:
         {
             COleDateTime oTime;
-            oTime.SetTime( 0, 0, 0 );
+            oTime.SetTime(0, 0, 0);
             CString csTime = oTime.Format(_T("%X"));
-            SetItemText( CurrentSelection, 0, csTime );
+            SetItemText(CurrentSelection, 0, csTime);
             EditDateTimeLabel(CurrentSelection, 0);
             break;
         }
@@ -656,7 +656,7 @@ void CListCtrlEx::EditNew()
     case CHECKBOX:
         break;
     default:
-        EditSubLabel( CurrentSelection, 0 );
+        EditSubLabel(CurrentSelection, 0);
         break;
     }
 }
@@ -689,7 +689,7 @@ BOOL CListCtrlEx::IsPreItemEmpty(int nItem)
 BOOL CListCtrlEx::IsItemEmpty(int nItem)
 {
     ASSERT(nItem >= 0);
-    if ( nItem >= GetItemCount())
+    if (nItem >= GetItemCount())
         return TRUE;
 
     int nPre = nItem ;
@@ -721,7 +721,7 @@ COleDateTime* CListCtrlEx::EditDateTimeLabel(int nItem, int nCol)
 
     // Set title and percent
     CString strTime;
-    strTime = GetItemText( nItem, nCol );
+    strTime = GetItemText(nItem, nCol);
 
     if (wcscmp(strTime , _T("")) == 0) 
     {
@@ -729,7 +729,7 @@ COleDateTime* CListCtrlEx::EditDateTimeLabel(int nItem, int nCol)
     }
 
     COleDateTime dt;
-    dt.ParseDateTime( strTime );
+    dt.ParseDateTime(strTime);
 
     // Create or move it
     // Make sure that nCol is valid
@@ -766,7 +766,7 @@ COleDateTime* CListCtrlEx::EditDateTimeLabel(int nItem, int nCol)
 
     if (!m_inPlaceDateTimeCtrl.GetSafeHwnd())
     {
-        m_inPlaceDateTimeCtrl.Create( DTS_TIMEFORMAT, rect,this, ID_DATETIMEPICKER_TIME );
+        m_inPlaceDateTimeCtrl.Create(DTS_TIMEFORMAT, rect,this, ID_DATETIMEPICKER_TIME);
         if (m_bHHmmFormat)
         {
             m_inPlaceDateTimeCtrl.SetFormat(_T("HH:mm"));
@@ -790,8 +790,8 @@ void CListCtrlEx::DblClickItem(int index, int column)
     ASSERT(index>=0 && index<GetItemCount());
     //ASSERT(column>=0 && column<???);
 
-    ::SendMessage( this->GetParent()->GetSafeHwnd(), WM_COLLUM_INDEX,WPARAM ( index ),column); 
-    if( GetItemData( index ) == -1 )
+    ::SendMessage(this->GetParent()->GetSafeHwnd(), WM_COLLUM_INDEX,WPARAM (index),column); 
+    if(GetItemData(index) == -1)
         return;
 
     CurrentSelection = index;
@@ -802,7 +802,7 @@ void CListCtrlEx::DblClickItem(int index, int column)
     switch(((LVCOLDROPLIST*)ddStyleList[column])->Style)
     {
     case NO_EDIT:
-        GetParent()->SendMessage( WM_NOEDIT_DBCLICK, index, column );
+        GetParent()->SendMessage(WM_NOEDIT_DBCLICK, index, column);
         return;
         break;
     case DROP_DOWN:
@@ -816,17 +816,17 @@ void CListCtrlEx::DblClickItem(int index, int column)
             SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
         break;
     case SPIN_EDIT:
-        EditSpinLabel( index, column);
+        EditSpinLabel(index, column);
         break;
     case DATE_TIME:
-        EditDateTimeLabel( index, column);
+        EditDateTimeLabel(index, column);
         break;
     case POPUP_GATE_SELECTION:
         break;
     case CHECKBOX:
         break;
     default:
-        EditSubLabel( index, column);
+        EditSubLabel(index, column);
         break;
     }
 }
@@ -838,7 +838,7 @@ int CListCtrlEx::GetLastDblClk(int& column)
     return m_nLastDblClkRow;
 }
 
-int CListCtrlEx::GetCurSel( void ) const
+int CListCtrlEx::GetCurSel(void) const
 {
     return CurrentSelection;
 }
@@ -848,12 +848,12 @@ void CListCtrlEx::SetHHmmTimeFormat()
     m_bHHmmFormat = TRUE;
 }
 
-void CListCtrlEx::SetEditSpinRange( int _low,int _Upp )
+void CListCtrlEx::SetEditSpinRange(int _low,int _Upp)
 {
     m_SpinEdit.m_nSpinEditLower=_low; m_SpinEdit.m_nSpinEditUpper = _Upp;
 }
 
-void CListCtrlEx::SetSpinDisplayType( int _iType )
+void CListCtrlEx::SetSpinDisplayType(int _iType)
 {
     m_iSpinDisplayType = _iType ;
 }

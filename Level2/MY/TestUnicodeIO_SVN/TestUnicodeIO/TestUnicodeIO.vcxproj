@@ -51,10 +51,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\MFCExControl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>..\Debug;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>MFCExControl.lib</ModuleDefinitionFile>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -98,6 +101,13 @@
     <None Include="res\TestUnicodeIO.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CARCTipComboBox.h" />
+    <ClInclude Include="CARCTipEdit.h" />
+    <ClInclude Include="CARCTipListBox.h" />
+    <ClInclude Include="CoolTree.h" />
+    <ClInclude Include="CoolTreeDateTimeCtrl.h" />
+    <ClInclude Include="CoolTreeEdit.h" />
+    <ClInclude Include="CoolTreeEditSpin.h" />
     <ClInclude Include="FloatEdit.h" />
     <ClInclude Include="AutoFillComboBox.h" />
     <ClInclude Include="InPlaceDateTimeCtrl.h" />
@@ -116,9 +126,17 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestUnicodeIO.h" />
     <ClInclude Include="TestUnicodeIODlg.h" />
+    <ClInclude Include="TreeCtrlKeepHighlight.h" />
     <ClInclude Include="WinMsg.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CARCTipComboBox.cpp" />
+    <ClCompile Include="CARCTipEdit.cpp" />
+    <ClCompile Include="CARCTipListBox.cpp" />
+    <ClCompile Include="CoolTree.cpp" />
+    <ClCompile Include="CoolTreeDateTimeCtrl.cpp" />
+    <ClCompile Include="CoolTreeEdit.cpp" />
+    <ClCompile Include="CoolTreeEditSpin.cpp" />
     <ClCompile Include="FloatEdit.cpp" />
     <ClCompile Include="AutoFillComboBox.cpp" />
     <ClCompile Include="InPlaceDateTimeCtrl.cpp" />
@@ -138,6 +156,7 @@
     <ClCompile Include="TabSubView3.cpp" />
     <ClCompile Include="TestUnicodeIO.cpp" />
     <ClCompile Include="TestUnicodeIODlg.cpp" />
+    <ClCompile Include="TreeCtrlKeepHighlight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TestUnicodeIO.rc" />

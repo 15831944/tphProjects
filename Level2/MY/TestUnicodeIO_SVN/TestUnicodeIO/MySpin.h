@@ -19,10 +19,10 @@ public:
 
     void SetPercent(int iPercent);
     void SetTitle(CString strTitle);
-    void SetDisplayType( int _iDisplayType );;
+    void SetDisplayType(int _iDisplayType);;
     virtual ~CMySpin();
 
-    void SetSpinRange( int _nLower, int _nUpper );
+    void SetSpinRange(int _nLower, int _nUpper);
     int m_nSpinEditLower;
     int m_nSpinEditUpper;
 
