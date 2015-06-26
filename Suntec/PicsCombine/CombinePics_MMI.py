@@ -96,14 +96,32 @@ class GeneratorPicBinary(object):
         return pics
 
     def makeJunctionResultTable(self, srcDir, destDir):
-        pictures = self.selectData()
-        for pic in pictures:
-            destFile = os.path.join(destDir, pic.getCommonPatter() + '.dat')
-            destArrowFile = os.path.join(destDir, pic.getCommonArrow() + '.dat')
-            if os.path.isdir(srcDir):
+        if os.path.isdir(srcDir) == False:
+            print "input directory not exist! " + srcDir
+            return
+        else:
+            if os.path.isdir(destDir) == False:
+                print "destination directory not exist! " + destDir
+                print "creating directory..."
+                os.mkdir(destDir)
+                
+            pictures = self.selectData()
+            i=1
+            for pic in pictures:
+                print "-%d----------------------------------------------------------------------------------------"% i
+                i += 1
                 # day and night illust
-                dayPicPath = os.path.join(srcDir, pic.getDayName() + ".jpg")
-                nightPicPath = os.path.join(srcDir, pic.getNightName() + ".jpg")
+                destFile = os.path.join(destDir, pic.getCommonPatter() + '.dat')
+                dayPicPath = os.path.join(srcDir, pic.getDayName() + ".png")
+                if(os.path.exists(dayPicPath) == False):
+                    print "day file not exist: " + dayPicPath
+                    continue
+                
+                nightPicPath = os.path.join(srcDir, pic.getNightName() + ".png")
+                if(os.path.exists(nightPicPath) == False):
+                    print "night file not exist: " + nightPicPath
+                    continue
+                
                 dayFis = open(dayPicPath, 'rb')
                 nightFis = open(nightPicPath, 'rb')
                 dayPicLen = os.path.getsize(dayPicPath)
@@ -118,13 +136,24 @@ class GeneratorPicBinary(object):
                 fos = open(destFile, 'wb')
                 fos.write(resultBuffer)
                 fos.close()
+                print "    " + dayPicPath
+                print "    " + nightPicPath
+                print "        >>>>>>>>  " + destFile
                 
                 # ARROW PIC BUILD
+                destArrowFile = os.path.join(destDir, pic.getCommonArrow() + '.dat')
                 d_arrow_path = os.path.join(srcDir, pic.getDayArrow() + '.png')
+                if(os.path.exists(dayPicPath) == False):
+                    print "day arrow file not exist: " + d_arrow_path
+                    continue
+                
                 n_arrow_path = os.path.join(srcDir, pic.getNightArrow() + '.png')
+                if(os.path.exists(nightPicPath) == False):
+                    print "night arrow file not exist: " + n_arrow_path
+                    continue
+                
                 dayArrowFis = open(d_arrow_path, 'rb')
                 nightArrowFis = open(n_arrow_path, 'rb')
-                a_fos = open(destArrowFile, 'wb')
                 dayArrowLen = os.path.getsize(d_arrow_path)
                 nightArrowLen = os.path.getsize(n_arrow_path)
                 a_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
@@ -133,10 +162,15 @@ class GeneratorPicBinary(object):
                 a_resultBuffer = a_headerBuffer + dayArrowFis.read() + nightArrowFis.read()
                 dayArrowFis.close()
                 nightArrowFis.close()
+                
+                a_fos = open(destArrowFile, 'wb')
                 a_fos.write(a_resultBuffer)
                 a_fos.close()
+                print "    " + d_arrow_path
+                print "    " + n_arrow_path
+                print "        >>>>>>>>  " + destFile
 
 if __name__ == '__main__':
     test = GeneratorPicBinary()
-    test.makeJunctionResultTable("C:\\psdlib\\Pattern", "C:\\illustsource\\mmipic")
+    test.makeJunctionResultTable("C:\\My\\work\\20150410_mmi_pic\\Pattern", "C:\\My\\work\\20150410_mmi_pic\\illust_pic")
     pass
