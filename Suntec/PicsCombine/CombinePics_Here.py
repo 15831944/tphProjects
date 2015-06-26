@@ -255,7 +255,7 @@ class GeneratorPicBinary_Here(object):
                     print "    " + picPathFile
                     print "        >>>>>>>>  " + arrowFile
                 else:
-                    print "    file exists: " + destFile
+                    print "    arrow file exists: " + arrowFile
                     
                     
     def makeGJunctionResultTable_17cy(self, dirFileDir, destFileDir):
@@ -323,7 +323,7 @@ class GeneratorPicBinary_Here(object):
                                  
     # 首先处理driver pic
     # 如果driver pic中背景图或者箭头图原图不存在，返回未处理列表供makeBIRDJunctionResultTable使用
-    # pics_unfinished类型：数组
+    # pics_unfinished: 未处理的图片列表
     def makeEJunctionResultTable(self, srcDir, destDir, bUseCondition, pics_unfinished):
         #如果源文件夹不存在，报错,退出
         if os.path.isdir(srcDir) == False:
@@ -540,7 +540,6 @@ def main():
         test.makeEJunctionResultTable(ejvsrcdir, ejvdestdir, ejvcondition, pics_unfinished)
         #test.makeBIRDJunctionResultTable(birdsrcdir, birddestdir, pics_unfinished)
     return    
-
 
 if __name__ == '__main__':
     main()
