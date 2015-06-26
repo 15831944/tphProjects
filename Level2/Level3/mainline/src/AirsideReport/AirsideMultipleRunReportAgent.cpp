@@ -2,12 +2,11 @@
 #include "AirsideMultipleRunReportAgent.h"
 #include "AirsideReport/Parameters.h"
 #include "AirsideReport/AirsideFlightDelayReport.h"
-#include "AirsideReport/AirsideOperationReport.h"
+#include "FlightOperationalReport.h"
 #include "AirsideReport/AirsideTakeoffProcessReport.h"
 #include "AirsideReport/AirsideRunwayOperationsReport.h"
 #include "AirsideReport/AirsideFlightRunwayDelayReport.h"
 #include "AirsideReport/AirsideFlightStandOperationReport.h"
-#include "AirsideReport/AirsideRunwayCrossingsReport.h"
 
 CAirsideMultipleRunReportAgent::CAirsideMultipleRunReportAgent(void)
 {
@@ -26,8 +25,8 @@ CAirsideBaseReport* CAirsideMultipleRunReportAgent::AddReportWhatToGen(reportTyp
 	case Airside_FlightDelay:
 		pReport = new CAirsideFlightDelayReport(m_pGetLogFilePath);
 		break;
-	case Airside_AircraftOperation:
-		pReport = new CAirsideOperationReport(m_pGetLogFilePath);
+	case Airside_AircraftOperational:
+		pReport = new CFlightOperationalReport(m_pGetLogFilePath);
 		break;
 	case Airside_TakeoffProcess:
 		pReport = new CAirsideTakeoffProcessReport(m_pGetLogFilePath);
@@ -42,8 +41,6 @@ CAirsideBaseReport* CAirsideMultipleRunReportAgent::AddReportWhatToGen(reportTyp
 	case Airside_StandOperations:
 		pReport = new CAirsideFlightStandOperationReport(m_pGetLogFilePath);
 		break;
-	case Airside_RunwayCrossings:
-		pReport = new CAirsideRunwayCrossingsReport(m_pGetLogFilePath);
 	default:
 		break;
 	}

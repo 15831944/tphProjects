@@ -265,6 +265,22 @@ void CAirsideRepControlView::OnSaveReport()
 	else
 		return ;
 	
+	//export multiple run file
+	std::vector<int> vReportRun;
+	if (m_pParameter->GetReportRuns(vReportRun) == true && m_pParameter->GetEnableMultiRun())
+	{
+		ArctermFile  _file ;
+		if(!_file.openFile(sZipFileName,WRITE) )
+		{
+			MessageBox(_T("Create File error"),_T("Error"),MB_OK) ;
+			return;
+		}
+		GetDocument()->GetARCReportManager().GetAirsideReportManager()->WriteMultipleRunReport(_file);
+		_file.endFile() ;
+		MessageBox(_T("Export Report Successfully"),NULL,MB_OK) ;
+		return ;
+	}
+
 	//get report type
 	CTermPlanDoc *pTermPlanDoc = GetDocument();	
 	ASSERT(pTermPlanDoc);
@@ -422,6 +438,23 @@ void CAirsideRepControlView::OnLoadReport()
 		return ;
 
 
+	//load multiple run report file 
+	std::vector<int> vReportRun;
+	if (m_pParameter->GetReportRuns(vReportRun) == true && m_pParameter->GetEnableMultiRun())
+	{
+		ArctermFile  _file ;
+		if(!_file.openFile(sZipFileName,READ) )
+		{
+			_file.endFile();
+			MessageBox(_T("Read File error"),_T("Error"),MB_OK) ;
+			return;
+		}
+		GetDocument()->GetARCReportManager().GetAirsideReportManager()->ReadMultipleRunReport(_file);
+		GetDocument()->UpdateAllViews(this,AIRSIDEREPORT_SHOWREPORT,NULL);
+		ResetAllContent() ;
+		return ;
+	}
+
 	CTermPlanDoc *pTermPlanDoc = GetDocument();	
 	ASSERT(pTermPlanDoc);
 	reportType rpType = pTermPlanDoc->GetARCReportManager().GetAirsideReportManager()->GetReportType();
@@ -454,6 +487,7 @@ void CAirsideRepControlView::OnLoadReport()
 	if(!GetDocument()->GetARCReportManager().GetAirsideReportManager()->ImportReportFromFile(_file,errormsg,nProjID))
 	{
 		MessageBox(errormsg,_T("Error"),MB_OK) ;
+		_file.endFile();
 		return  ;
 	}else
 	{

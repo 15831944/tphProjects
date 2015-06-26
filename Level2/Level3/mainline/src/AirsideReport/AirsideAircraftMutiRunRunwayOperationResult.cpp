@@ -1038,3 +1038,297 @@ void CAirsideAircraftMutiRunRunwayOperationResult::InitSummaryRunwayOperationDat
 	staSumItem.m_nStdDev = dataItem.m_nStdDev;
 }
 
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::WriteReportData( ArctermFile& _file )
+{
+	_file.writeField("Airside Multiple Run Runway Operation Report");//write report string
+	_file.writeLine();
+
+	_file.writeField("Detail Result");//write detail type
+	_file.getLine();
+	WriteDetailMap(m_mapLandingOperation,_file);
+	WriteDetailMap(m_mapTakeoffOperation,_file);
+	WriteLandTrailMap(m_mapLandTrailOperation,_file);
+	WriteDetailMap(m_mapMovementInterval,_file);
+
+	_file.writeField("Summary Result");//write summary type
+	_file.getLine();
+	WriteSummaryMap(m_summaryDataLanding,_file);
+	WriteSummaryMap(m_summaryDataTakeOff,_file);
+	WriteSummaryMap(m_summaryDataMovement,_file);
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::ReadReportData( ArctermFile& _file )
+{
+	_file.getLine();
+	_file.getLine();
+	//read detail
+	ReadDetailMap(m_mapLandingOperation,_file);
+	ReadDetailMap(m_mapTakeoffOperation,_file);
+	ReadLandTrailMap(m_mapLandTrailOperation,_file);
+	ReadDetailMap(m_mapMovementInterval,_file);
+
+	_file.getLine();
+	//read summary
+	ReadSummayMap(m_summaryDataLanding,_file);
+	ReadSummayMap(m_summaryDataTakeOff,_file);
+	ReadSummayMap(m_summaryDataMovement,_file);
+	return TRUE;
+}
+
+CString CAirsideAircraftMutiRunRunwayOperationResult::GetReportFileName() const
+{
+	return CString("RunwayOperations\\RunwayOperations.rep");
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::WriteDetailMap( mapRunwayDetailOperation mapDetailData, ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	mapRunwayDetailOperation::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		_file.writeLine();
+		MultiRunDetailMap::iterator detailIter = iter->second.begin();
+		for (; detailIter != iter->second.end(); ++detailIter)
+		{
+			CString strRunway = detailIter->first;
+			_file.writeField(strRunway.GetBuffer(1024));
+			strRunway.ReleaseBuffer();
+
+			for (int i = 0; i < iCount; i++)
+			{
+				const MultipleRunReportData& reportData = detailIter->second.at(i);
+				_file.writeInt(reportData.m_iStart);
+				_file.writeInt(reportData.m_iEnd);
+				_file.writeInt(reportData.m_iData);
+
+				_file.writeLine();
+			}
+
+			_file.writeLine();
+		}
+
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::ReadDetailMap( mapRunwayDetailOperation& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			CString strRunway;
+			_file.getField(strRunway.GetBuffer(1024),1024);
+			strRunway.ReleaseBuffer();
+
+			int iCapacity = 0;
+			_file.getInteger(iCapacity);
+			for (int n = 0; n < iCapacity; n++)
+			{
+				MultipleRunReportData reportData;
+				_file.getInteger(reportData.m_iStart);
+				_file.getInteger(reportData.m_iEnd);
+				_file.getInteger(reportData.m_iData);
+
+				mapDetailData[strSimResult][strRunway].push_back(reportData);
+				_file.getLine();
+			}
+		
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::WriteLandTrailMap( mapLandTrailOperation mapDetailData,ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	mapLandTrailOperation::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		_file.writeLine();
+		mapRunwayMark::iterator detailIter = iter->second.begin();
+		for (; detailIter != iter->second.end(); ++detailIter)
+		{
+			CString strRunway = detailIter->first;
+			_file.writeField(strRunway.GetBuffer(1024));
+			strRunway.ReleaseBuffer();
+
+			for (int i = 0; i < iCount; i++)
+			{
+				ClassificationValue reportData = detailIter->second.at(i);
+				_file.writeField(reportData.m_strLandTrail.GetBuffer(1024));
+				reportData.m_strLandTrail.ReleaseBuffer();
+				_file.writeInt(reportData.m_lFlightCount);
+
+				_file.writeLine();
+			}
+
+			_file.writeLine();
+		}
+
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::ReadLandTrailMap( mapLandTrailOperation& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			CString strRunway;
+			_file.getField(strRunway.GetBuffer(1024),1024);
+			strRunway.ReleaseBuffer();
+
+			int iCapacity = 0;
+			_file.getInteger(iCapacity);
+			for (int n = 0; n < iCapacity; n++)
+			{
+				ClassificationValue reportData;
+				_file.getField(reportData.m_strLandTrail.GetBuffer(1024),1024);
+				reportData.m_strLandTrail.ReleaseBuffer();
+				_file.getInteger(reportData.m_lFlightCount);
+
+				mapDetailData[strSimResult][strRunway].push_back(reportData);
+				_file.getLine();
+			}
+
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::WriteSummaryMap( mapSummaryData mapSummaryResult,ArctermFile& _file )
+{
+	long iSize = (long)mapSummaryResult.size();
+	_file.writeInt(iSize);
+
+	mapSummaryData::iterator iter = mapSummaryResult.begin();
+	for (; iter != mapSummaryResult.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		long iCount = (long)iter->second.size();
+		for (int i = 0; i < iCount; i++)
+		{
+			SummaryRunwayOperationReportItem reportItem = iter->second.at(i);
+			_file.writeInt(reportItem.m_minCount);
+			_file.writeField(reportItem.m_strMinInterval.GetBuffer(1024));
+			reportItem.m_strMinInterval.ReleaseBuffer();
+			_file.writeInt(reportItem.m_nAverageCount);
+			_file.writeInt(reportItem.m_maxCount);
+			_file.writeField(reportItem.m_strMaxInterval.GetBuffer(1024));
+			reportItem.m_strMaxInterval.ReleaseBuffer();
+			_file.writeInt(reportItem.m_nQ1);
+			_file.writeInt(reportItem.m_nQ2);
+			_file.writeInt(reportItem.m_nQ3);
+			_file.writeInt(reportItem.m_nP1);
+			_file.writeInt(reportItem.m_nP5);
+			_file.writeInt(reportItem.m_nP10);
+			_file.writeInt(reportItem.m_nP90);
+			_file.writeInt(reportItem.m_nP95);
+			_file.writeInt(reportItem.m_nP99);
+			_file.writeInt(reportItem.m_nStdDev);
+
+			_file.writeLine();
+		}
+	}
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMutiRunRunwayOperationResult::ReadSummayMap( mapSummaryData& mapSummaryResult,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			SummaryRunwayOperationReportItem reportItem;
+			_file.getInteger(reportItem.m_minCount);
+			_file.getField(reportItem.m_strMinInterval.GetBuffer(1024),1024);
+			reportItem.m_strMinInterval.ReleaseBuffer();
+			_file.getInteger(reportItem.m_nAverageCount);
+			_file.getInteger(reportItem.m_maxCount);
+			_file.getField(reportItem.m_strMaxInterval.GetBuffer(1024),1024);
+			reportItem.m_strMaxInterval.ReleaseBuffer();
+			_file.getInteger(reportItem.m_nQ1);
+			_file.getInteger(reportItem.m_nQ2);
+			_file.getInteger(reportItem.m_nQ3);
+			_file.getInteger(reportItem.m_nP1);
+			_file.getInteger(reportItem.m_nP5);
+			_file.getInteger(reportItem.m_nP10);
+			_file.getInteger(reportItem.m_nP90);
+			_file.getInteger(reportItem.m_nP95);
+			_file.getInteger(reportItem.m_nP99);
+			_file.getInteger(reportItem.m_nStdDev);
+
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+	return TRUE;
+}
+

@@ -95,6 +95,9 @@ public:
 	BOOL ImportParaFromFile(ArctermFile& _file);
 	BOOL ExportParaToFile(ArctermFile& _file);
 	BOOL GenerateCvsFileFormList(ArctermFile& _file,CXListCtrl& cxListCtrl,CString& ErrorMsg);
+
+	void WriteMultipleRunReport(ArctermFile& _file);
+	void ReadMultipleRunReport(ArctermFile& _file);
 public:
 	void SetGlobalUnit(CARCUnitManager* _UnitManger) ;
 };

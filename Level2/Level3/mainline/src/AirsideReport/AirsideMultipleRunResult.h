@@ -8,6 +8,8 @@ class CXListCtrl;
 class CParameters;
 class CSortableHeaderCtrl;
 class CAirsideBaseReport;
+class ArctermFile;
+
 struct MultipleRunReportData
 {
 	MultipleRunReportData()
@@ -40,6 +42,10 @@ public:
 	void AddSimReport(const CString& strSimResult, CAirsideBaseReport* pReport);
 	void ClearSimReport();
 
+	virtual BOOL WriteReportData( ArctermFile& _file ) = 0;
+	virtual BOOL ReadReportData( ArctermFile& _file ) = 0;
+
+	virtual CString GetReportFileName()const = 0;
 protected:
 	long GetMapMinValue(mapLoadResult mapData);
 	long GetMapMaxValue(mapLoadResult mapData);

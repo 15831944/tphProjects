@@ -686,3 +686,183 @@ void CAirsideAircraftMultiRunTakeoffProcessResult::GenerateSummary2DChartData(C2
         c2dGraphData.m_vr2DChartData[12].push_back((double)iter->second.m_estSigma.getPrecisely()/6000.0);
     }
 }
+
+BOOL CAirsideAircraftMultiRunTakeoffProcessResult::WriteReportData( ArctermFile& _file )
+{
+	_file.writeField("Airside Multiple Run Aircraft Takeoff Process Report");//write report string
+	_file.writeLine();
+
+	_file.writeField("Detail Result");//write detail type
+	_file.getLine();
+	WriteDetailMap(m_mapTakeoffQDelay,_file);
+	WriteDetailMap(m_mapTimeToPosition,_file);
+	WriteDetailMap(m_mapTakeoffDelay,_file);
+
+	_file.writeField("Summary Result");//write summary type
+	_file.getLine();
+	WriteSummaryMap(m_mapSumTakeoffQueue,_file);
+	WriteSummaryMap(m_mapSumHoldShortLine,_file);
+	WriteSummaryMap(m_mapSumTaxiToPosition,_file);
+	WriteSummaryMap(m_mapSumTimeToPosition,_file);
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMultiRunTakeoffProcessResult::ReadReportData( ArctermFile& _file )
+{
+	_file.getLine();
+	_file.getLine();
+	//read detail
+	ReadDetailMap(m_mapTakeoffQDelay,_file);
+	ReadDetailMap(m_mapTimeToPosition,_file);
+	ReadDetailMap(m_mapTakeoffDelay,_file);
+
+	_file.getLine();
+	//read summary
+	ReadSummayMap(m_mapSumTakeoffQueue,_file);
+	ReadSummayMap(m_mapSumHoldShortLine,_file);
+	ReadSummayMap(m_mapSumTaxiToPosition,_file);
+	ReadSummayMap(m_mapSumTimeToPosition,_file);
+	return TRUE;
+}
+
+CString CAirsideAircraftMultiRunTakeoffProcessResult::GetReportFileName() const
+{
+	return CString("TakeoffProcess\\TakeoffProcess.rep");
+}
+
+BOOL CAirsideAircraftMultiRunTakeoffProcessResult::WriteDetailMap( MultiRunDetailMap mapDetailData, ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		_file.writeLine();
+		for (int i = 0; i < iCount; i++)
+		{
+			const MultipleRunReportData& reportData = iter->second.at(i);
+			_file.writeInt(reportData.m_iStart);
+			_file.writeInt(reportData.m_iEnd);
+			_file.writeInt(reportData.m_iData);
+
+			_file.writeLine();
+		}
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMultiRunTakeoffProcessResult::ReadDetailMap( MultiRunDetailMap& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			MultipleRunReportData reportData;
+			_file.getInteger(reportData.m_iStart);
+			_file.getInteger(reportData.m_iEnd);
+			_file.getInteger(reportData.m_iData);
+
+			mapDetailData[strSimResult].push_back(reportData);
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMultiRunTakeoffProcessResult::WriteSummaryMap( MultiRunSummaryMap mapSummaryData,ArctermFile& _file )
+{
+	long iSize = (long)mapSummaryData.size();
+	_file.writeInt(iSize);
+
+	MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
+	for (; iter != mapSummaryData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		_file.writeInt(iter->second.m_estTotal.getPrecisely());
+		_file.writeInt(iter->second.m_estMax.getPrecisely());
+		_file.writeInt(iter->second.m_estMin.getPrecisely());
+		_file.writeInt(iter->second.m_estAverage.getPrecisely());
+		_file.writeInt(iter->second.m_estP1.getPrecisely());
+		_file.writeInt(iter->second.m_estP5.getPrecisely());
+		_file.writeInt(iter->second.m_estP10.getPrecisely());
+		_file.writeInt(iter->second.m_estP90.getPrecisely());
+		_file.writeInt(iter->second.m_estP95.getPrecisely());
+		_file.writeInt(iter->second.m_estP99.getPrecisely());
+		_file.writeInt(iter->second.m_estQ1.getPrecisely());
+		_file.writeInt(iter->second.m_estQ2.getPrecisely());
+		_file.writeInt(iter->second.m_estQ3.getPrecisely());
+		_file.writeInt(iter->second.m_estSigma.getPrecisely());
+	}
+	return TRUE;
+}
+
+BOOL CAirsideAircraftMultiRunTakeoffProcessResult::ReadSummayMap( MultiRunSummaryMap& mapSummaryData,ArctermFile& _file )
+{
+	int iSize = 0;
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iTime = 0;
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estTotal.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMax.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMin.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estAverage.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP5.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP10.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP90.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP95.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP99.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ2.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+	}
+
+	return TRUE;
+}

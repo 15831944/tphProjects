@@ -9,6 +9,7 @@ class CAirsideMultipleRunResult;
 class CXListCtrl;
 class CSortableHeaderCtrl;
 class CARC3DChart;
+class ArctermFile;
 
 typedef CString (*CBGetLogFilePath)(InputFiles);
 typedef void (*CBSetCurrentSimResult)(int);
@@ -25,6 +26,9 @@ public:
 	void FillListContent(reportType _reportType,CXListCtrl& cxListCtrl, CParameters * parameter,  int iType = 0);
 	void Draw3DChart(reportType _reportType,CARC3DChart& chartWnd, CParameters *pParameter,  int iType = 0);
     CAirsideMultipleRunResult* GetMultipleRunResultByReportType(reportType reportT) const { return m_mapMutiRunResult.at(reportT); }
+	BOOL WriteReportData( reportType _reportType,ArctermFile& _file );
+	BOOL ReadReportData( reportType _reportType,ArctermFile& _file );
+
 private:
 	void ClearMutipleRunResult();
 private:

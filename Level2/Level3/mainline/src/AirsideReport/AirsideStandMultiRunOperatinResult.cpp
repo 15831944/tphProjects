@@ -1468,7 +1468,7 @@ void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartDat
     for(int i=0; i<nCount; i++)
         c2dGraphData.m_vrLegend.push_back(strSummaryListTitle[i]);
 
-    c2dGraphData.m_vr2DChartData.resize(13);
+    c2dGraphData.m_vr2DChartData.resize(nCount);
     MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
     for(; iter != multiRunSummaryMap.end(); iter++)
     {
@@ -1572,4 +1572,196 @@ void CAirsideStandMultiRunOperatinResult::FillSummaryConflictListContent(CXListC
 
         idx++;
     }
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteReportData( ArctermFile& _file )
+{
+	_file.writeField("Airside Multiple Run Stand Operation Report");//write report string
+	_file.writeLine();
+
+	_file.writeField("Detail Result");//write detail type
+	_file.getLine();
+	WriteDetailMap(m_standOccupMap,_file);
+	WriteDetailMap(m_standidlemap,_file);
+	WriteDetailMap(m_standRatiomap,_file);
+	WriteDetailMap(m_standArrDelayMap,_file);
+	WriteDetailMap(m_standDepDelayMap,_file);
+	WriteDetailMap(m_standArrConflictsMap,_file);
+	WriteDetailMap(m_standDepConfictsMap,_file);
+
+	_file.writeField("Summary Result");//write summary type
+	_file.getLine();
+	WriteSummaryMap(m_summarySchedUtilizeMap,_file);
+	WriteSummaryMap(m_summarySchedIdleMap,_file);
+	WriteSummaryMap(m_summaryActualUtilizeMap,_file);
+	WriteSummaryMap(m_summaryActualIdleMap,_file);
+	WriteSummaryMap(m_summaryDelayMap,_file);
+	WriteSummaryMap(m_summaryConflictMap,_file);
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadReportData( ArctermFile& _file )
+{
+	_file.getLine();
+	_file.getLine();
+	//read detail
+	ReadDetailMap(m_standOccupMap,_file);
+	ReadDetailMap(m_standidlemap,_file);
+	ReadDetailMap(m_standRatiomap,_file);
+	ReadDetailMap(m_standArrDelayMap,_file);
+	ReadDetailMap(m_standDepDelayMap,_file);
+	ReadDetailMap(m_standArrConflictsMap,_file);
+	ReadDetailMap(m_standDepConfictsMap,_file);
+
+	_file.getLine();
+	//read summary
+	ReadSummayMap(m_summarySchedUtilizeMap,_file);
+	ReadSummayMap(m_summarySchedIdleMap,_file);
+	ReadSummayMap(m_summaryActualUtilizeMap,_file);
+	ReadSummayMap(m_summaryActualIdleMap,_file);
+	ReadSummayMap(m_summaryDelayMap,_file);
+	ReadSummayMap(m_summaryConflictMap,_file);
+	return TRUE;
+}
+
+CString CAirsideStandMultiRunOperatinResult::GetReportFileName() const
+{
+	return CString("StandOperations\\StandOperations.rep");
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteDetailMap( MultiRunDetailMap mapDetailData, ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		_file.writeLine();
+		for (int i = 0; i < iCount; i++)
+		{
+			const MultipleRunReportData& reportData = iter->second.at(i);
+			_file.writeInt(reportData.m_iStart);
+			_file.writeInt(reportData.m_iEnd);
+			_file.writeInt(reportData.m_iData);
+
+			_file.writeLine();
+		}
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadDetailMap( MultiRunDetailMap& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			MultipleRunReportData reportData;
+			_file.getInteger(reportData.m_iStart);
+			_file.getInteger(reportData.m_iEnd);
+			_file.getInteger(reportData.m_iData);
+
+			mapDetailData[strSimResult].push_back(reportData);
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteSummaryMap( MultiRunSummaryMap mapSummaryData,ArctermFile& _file )
+{
+	long iSize = (long)mapSummaryData.size();
+	_file.writeInt(iSize);
+
+	MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
+	for (; iter != mapSummaryData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		_file.writeInt(iter->second.m_estTotal.getPrecisely());
+		_file.writeInt(iter->second.m_estMax.getPrecisely());
+		_file.writeInt(iter->second.m_estMin.getPrecisely());
+		_file.writeInt(iter->second.m_estAverage.getPrecisely());
+		_file.writeInt(iter->second.m_estP1.getPrecisely());
+		_file.writeInt(iter->second.m_estP5.getPrecisely());
+		_file.writeInt(iter->second.m_estP10.getPrecisely());
+		_file.writeInt(iter->second.m_estP90.getPrecisely());
+		_file.writeInt(iter->second.m_estP95.getPrecisely());
+		_file.writeInt(iter->second.m_estP99.getPrecisely());
+		_file.writeInt(iter->second.m_estQ1.getPrecisely());
+		_file.writeInt(iter->second.m_estQ2.getPrecisely());
+		_file.writeInt(iter->second.m_estQ3.getPrecisely());
+		_file.writeInt(iter->second.m_estSigma.getPrecisely());
+	}
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadSummayMap( MultiRunSummaryMap& mapSummaryData,ArctermFile& _file )
+{
+	int iSize = 0;
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iTime = 0;
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estTotal.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMax.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMin.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estAverage.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP5.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP10.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP90.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP95.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP99.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ2.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+	}
+
+	return TRUE;
 }

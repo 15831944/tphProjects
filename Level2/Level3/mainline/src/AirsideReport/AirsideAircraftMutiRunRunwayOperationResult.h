@@ -119,6 +119,10 @@ public:
     virtual void InitListHead(CXListCtrl& cxListCtrl,CParameters * parameter,  int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
     virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
     virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
+
+	virtual BOOL WriteReportData( ArctermFile& _file );
+	virtual BOOL ReadReportData( ArctermFile& _file );
+	virtual CString GetReportFileName()const;
 private:
 	void ClearData();
 	void InitDetailListHead(CXListCtrl& cxListCtrl,mapRunwayDetailOperation mapDetailData,CSortableHeaderCtrl* piSHC=NULL);
@@ -149,6 +153,14 @@ private:
 	void Generate3DChartLeadTrailData(mapLandTrailOperation mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter,int iType);
 
 	void InitSummaryRunwayOperationData(SummaryRunwayOperationReportItem& staSumItem,const CAirsideRunwayOperationReportSummaryResult::StatisticsSummaryItem& dataItem);
+
+	BOOL WriteDetailMap(mapRunwayDetailOperation mapDetailData, ArctermFile& _file );
+	BOOL ReadDetailMap(mapRunwayDetailOperation& mapDetailData,ArctermFile& _file);
+	BOOL WriteLandTrailMap(mapLandTrailOperation mapDetailData,ArctermFile& _file);
+	BOOL ReadLandTrailMap(mapLandTrailOperation& mapDetailData,ArctermFile& _file);
+
+	BOOL WriteSummaryMap(mapSummaryData mapSummaryResult,ArctermFile& _file);
+	BOOL ReadSummayMap(mapSummaryData& mapSummaryResult,ArctermFile& _file);
 private:
 	std::vector<CString> m_lstColumns;
     mapSummaryData m_summaryDataLanding;

@@ -8,10 +8,68 @@
 #include "Parameters.h"
 #include <atlstr.h>
 #include "AirsideFlightRunwayDelayData.h"
+#include "Reports\StatisticalTools.h"
+
+class TimeInterval
+{
+public:
+    TimeInterval():m_tStart(0l), m_tEnd(0l){}
+    ~TimeInterval(){}
+
+    ElapsedTime m_tStart;
+    ElapsedTime m_tEnd;
+
+public:
+    bool IsTimeInMe(const ElapsedTime& time)
+    {
+        if(m_tStart<=time && time<m_tEnd)
+            return true;
+        return false;
+    }
+
+    bool operator==(const TimeInterval& other)
+    {
+        if(m_tStart == other.m_tStart && m_tEnd == other.m_tEnd)
+            return true;
+        return false;
+    }
+
+    bool operator<(const TimeInterval& other) const
+    {
+        if(m_tStart < other.m_tStart)
+        {
+            return true;
+        }
+        else if(m_tStart == other.m_tStart)
+        {
+            if(m_tEnd < other.m_tEnd)
+                return true;
+        }
+        return false;
+    }
+
+    TimeInterval& operator=(const TimeInterval& other)
+    {
+        m_tStart = other.m_tStart;
+        m_tEnd = other.m_tEnd;
+    }
+};
+
+class RunwayDelaySummaryData : public CSummaryData
+{
+public:
+    RunwayDelaySummaryData():m_nDataCount(0){}
+    ~RunwayDelaySummaryData(){}
+    void Clear(){ m_nDataCount = 0; }
+public:
+    int m_nDataCount;
+};
 
 typedef std::map<CString,MultiRunDetailMap> mapRunwayDetailDelay;
 typedef std::map<CString, std::vector<AirsideFlightRunwayDelayData::RunwayDelayItem*>> mapRunwayDelayItem;
 typedef std::map<CString, mapRunwayDelayItem> mapRunwayDelayResult;
+typedef std::map<TimeInterval, RunwayDelaySummaryData> mapSummaryDataOfInterval;
+typedef std::map<CString, mapSummaryDataOfInterval> mapRunwaySummaryDelay;
 
 class AIRSIDEREPORT_API CAirsideRunwayDelayMultiRunResult : public CAirsideMultipleRunResult
 {
@@ -23,7 +81,13 @@ public:
     virtual void InitListHead(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
     virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
     virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
+    virtual BOOL WriteReportData( ArctermFile& _file ){ return TRUE; }
+    virtual BOOL ReadReportData( ArctermFile& _file ){ return TRUE; }
+
+    virtual CString GetReportFileName()const { return ""; }
+
     std::vector<CString> GetRunwayMarkList() const { return m_vRunwayMarkList; }
+    std::vector<TimeInterval*> GetIntervalList() const { return m_vIntervalList; }
     void ClearData();
 private:
     void BuildDetailRunwayDelayData(mapRunwayDetailDelay& mapToBuild, const mapRunwayDelayResult& oriData, CParameters* parameter);
@@ -38,25 +102,39 @@ private:
     void SetDetailHoldShortLine3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
     void SetDetailInPosition3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 
-//    void InitSummaryListHead(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC=NULL);
-//     void FillSummaryListContent(CXListCtrl& cxListCtrl,const MultiRunSummaryMap& mapSum);
-//     void DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter);
-//     void GenerateSummary2DChartData(C2DChartData& c2dGraphData, const MultiRunSummaryMap& multiRunSummaryMap);
-//     void SetSummaryTakeoffQDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-//     void SetSummaryHoldShortLind3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-//     void SetSummaryToPositionTime3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-//     void SetSummaryArrivalPosition3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void BuildSummaryRunwayDelayData(mapRunwaySummaryDelay& mapToBuild, const mapRunwayDelayResult& oriData, CParameters* parameter);
+    void InitSummaryListHead(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC=NULL);
+    void FillSummaryListContent(CXListCtrl& cxListCtrl,const mapRunwaySummaryDelay& mapSum, CString strPosition);
+    void FillListItemData(mapSummaryDataOfInterval::const_iterator intItor, 
+        int idx, CXListCtrl &cxListCtrl, CString strSimResult, CString strPosition );
+    void DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType);
+    void GenerateSummary2DChartData(C2DChartData& c2dGraphData, const mapRunwaySummaryDelay& mapSummaryData, int iType);
+    void SetSummaryTotalDelay3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
+    void SetSummaryLandingRoll3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
+    void SetSummaryExisting3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
+    void SetSummaryInTakeoffQ3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
+    void SetSummaryHoldShortLine3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
+    void SetSummaryInPosition3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
 
     void SetIntervalBegin2End(std::vector<MultipleRunReportData>& vec, long interval);
     void AddRunwayMarkIfNotExist(CString strRunwayMark);
     bool FindRunwayMark(CString strRunwayMark);
+    TimeInterval* FindTimeInterval(ElapsedTime time);
 private:
     std::vector<CString> m_vRunwayMarkList;
     mapRunwayDetailDelay m_detailTotal;
     mapRunwayDetailDelay m_detailLandingRoll;
-    mapRunwayDetailDelay m_detailExisting;
+    mapRunwayDetailDelay m_detailExiting;
     mapRunwayDetailDelay m_detailInTakeoffQ;
     mapRunwayDetailDelay m_detailHoldShortL;
     mapRunwayDetailDelay m_detailInPosition;
+
+    std::vector<TimeInterval*> m_vIntervalList; // for summary report: generate intervals 
+    mapRunwaySummaryDelay m_summaryTotal;
+    mapRunwaySummaryDelay m_summaryLandingRoll;
+    mapRunwaySummaryDelay m_summaryExiting;
+    mapRunwaySummaryDelay m_summaryInTakeoffQ;
+    mapRunwaySummaryDelay m_summaryHoldShortL;
+    mapRunwaySummaryDelay m_summaryInPosition;
 };
 

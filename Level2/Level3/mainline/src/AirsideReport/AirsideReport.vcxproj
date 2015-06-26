@@ -157,6 +157,7 @@
     <ClCompile Include="AirsideFlightFuelBurnReport.cpp" />
     <ClCompile Include="AirsideFlightFuelBurnReportResult.cpp" />
     <ClCompile Include="AirsideFlightMutiRunDelayReport.cpp" />
+    <ClCompile Include="AirsideFlightOperationalMultiRunResult.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayBaseResult.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayData.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayReport.cpp" />
@@ -375,6 +376,7 @@
     <ClInclude Include="AirsideFlightFuelBurnReport.h" />
     <ClInclude Include="AirsideFlightFuelBurnReportResult.h" />
     <ClInclude Include="AirsideFlightMutiRunDelayReport.h" />
+    <ClInclude Include="AirsideFlightOperationalMultiRunResult.h" />
     <ClInclude Include="AirsideFlightRunwayDelayBaseResult.h" />
     <ClInclude Include="AirsideFlightRunwayDelayData.h" />
     <ClInclude Include="AirsideFlightRunwayDelayReport.h" />

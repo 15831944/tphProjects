@@ -24,7 +24,7 @@ void SummaryDelayChartResult::GenerateResult(std::vector<AirsideFlightRunwayDela
 
 bool CompareDataTimeInterval(AirsideFlightRunwayDelaySummaryData* pData1, AirsideFlightRunwayDelaySummaryData* pData2)
 {
-	if (pData1->m_tStart <= pData2->m_tStart)
+	if (pData1->m_tStart < pData2->m_tStart)
 		return true;
 
 	return false;
@@ -113,18 +113,18 @@ void SummaryDelayChartResult::Draw3DChart(CARC3DChart& chartWnd, CParameters *pP
 		AirsideFlightRunwayDelaySummaryData* pData = m_vSummaryData.at(i);
 		if (pReportPara->IsSummaryDataFitChartType(pData) == false)
 			continue;
-
+        if(pData->m_tStart > pParameter->getEndTime() || pData->m_tStart < pParameter->getStartTime())
+            continue;
 		if (pData->m_tStart.asSeconds() > lTimeStart)		//new interval
 		{
 			if (lTimeStart >=0L)
 			{
 				int nIdx = (lTimeStart - pReportPara->getStartTime().asSeconds())/pReportPara->getInterval();
 
-				double dAvg = lTotal/nCount;
 				//legend data
-				c2dGraphData.m_vr2DChartData[0][nIdx] = lMin;
-				c2dGraphData.m_vr2DChartData[1][nIdx] = dAvg;
-				c2dGraphData.m_vr2DChartData[2][nIdx] = lMax;
+				c2dGraphData.m_vr2DChartData[0][nIdx] = statisticalTool.GetMin();
+				c2dGraphData.m_vr2DChartData[1][nIdx] = statisticalTool.GetAvarage();
+				c2dGraphData.m_vr2DChartData[2][nIdx] = statisticalTool.GetMax();
 				c2dGraphData.m_vr2DChartData[3][nIdx] = statisticalTool.GetPercentile(25);
 				c2dGraphData.m_vr2DChartData[4][nIdx] = statisticalTool.GetPercentile(50);
 				c2dGraphData.m_vr2DChartData[5][nIdx] = statisticalTool.GetPercentile(75);
@@ -176,13 +176,10 @@ void SummaryDelayChartResult::Draw3DChart(CARC3DChart& chartWnd, CParameters *pP
 	if ( lTimeStart < pReportPara->getEndTime().asSeconds() )
 	{
 		int nIdx = (lTimeStart - pReportPara->getStartTime().asSeconds())/pReportPara->getInterval();
-		//int nIdx = nIntCount-1;
-
-		double dAvg = lTotal/nCount;
 		//legend data
-		c2dGraphData.m_vr2DChartData[0][nIdx] = lMin;
-		c2dGraphData.m_vr2DChartData[1][nIdx] = dAvg;
-		c2dGraphData.m_vr2DChartData[2][nIdx] = lMax;
+		c2dGraphData.m_vr2DChartData[0][nIdx] = statisticalTool.GetMin();
+		c2dGraphData.m_vr2DChartData[1][nIdx] = statisticalTool.GetAvarage();
+		c2dGraphData.m_vr2DChartData[2][nIdx] = statisticalTool.GetMax();
 		c2dGraphData.m_vr2DChartData[3][nIdx] = statisticalTool.GetPercentile(25);
 		c2dGraphData.m_vr2DChartData[4][nIdx] = statisticalTool.GetPercentile(50);
 		c2dGraphData.m_vr2DChartData[5][nIdx] = statisticalTool.GetPercentile(75);

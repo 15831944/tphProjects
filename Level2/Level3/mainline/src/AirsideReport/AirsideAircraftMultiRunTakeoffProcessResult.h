@@ -34,7 +34,9 @@ public:
 
 
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
-
+	virtual BOOL WriteReportData( ArctermFile& _file );
+	virtual BOOL ReadReportData( ArctermFile& _file );
+	virtual CString GetReportFileName()const;
 private:
 	void BuillDetailMutipleTakeoffProcess(MultiRunDetailMap& mapDetailData,mapLoadResult mapData,long iInterval);
 	void InitDetailListHead(CXListCtrl& cxListCtrl,MultiRunDetailMap mapDetailData,CSortableHeaderCtrl* piSHC=NULL);
@@ -57,6 +59,12 @@ private:
     void StatisticSummaryData(CString strSim, const CStatisticalTools<double> &tool, MultiRunSummaryMap &mapSum);
 
 	void ClearData();
+
+	BOOL WriteDetailMap(MultiRunDetailMap mapDetailData, ArctermFile& _file );
+	BOOL ReadDetailMap(MultiRunDetailMap& mapDetailData,ArctermFile& _file);
+
+	BOOL WriteSummaryMap(MultiRunSummaryMap mapSummaryData,ArctermFile& _file);
+	BOOL ReadSummayMap(MultiRunSummaryMap& mapSummaryData,ArctermFile& _file);
 private:
 	MultiRunDetailMap m_mapTakeoffQDelay;
 	MultiRunDetailMap m_mapTimeToPosition;

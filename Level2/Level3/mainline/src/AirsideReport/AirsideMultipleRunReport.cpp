@@ -9,6 +9,8 @@
 #include "AirsideStandMultiRunOperatinResult.h"
 #include "AirsideAircraftMultiRunTakeoffProcessResult.h"
 #include "AirsideAircraftMutiRunRunwayOperationResult.h"
+#include "AirsideFlightOperationalMultiRunResult.h"
+#include "Common/TERMFILE.H"
 #include "AirsideRunwayDelayMultiRunResult.h"
 
 CAirsideMultipleRunReport::CAirsideMultipleRunReport(void)
@@ -57,6 +59,21 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 	}
 	
 	m_mapMutiRunResult[_reportType]->LoadMultipleRunReport(parameter);
+	//save result to default folder
+	CString strDefaultFolder;
+	strDefaultFolder.Format(_T("%s\\SimResult\\AirsideMultipleRunReport"),strPorjectPath);
+	
+	if(FileManager::IsDirectory(strDefaultFolder) == 0)//doesn't exist
+	{
+		CreateDirectory(strDefaultFolder,NULL);
+	}
+	CString strFilePath;
+	strFilePath.Format(_T("%s\\SimResult\\AirsideMultipleRunReport\\%s"),strPorjectPath,m_mapMutiRunResult[_reportType]->GetReportFileName());
+	ArctermFile _file;
+	if (_file.openFile(strFilePath,WRITE))
+	{
+		m_mapMutiRunResult[_reportType]->WriteReportData(_file);
+	}
 }
 
 void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CParameters * parameter )
@@ -78,6 +95,9 @@ void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CPara
         case Airside_RunwayOperaitons:
             m_mapMutiRunResult[_reportType] = new CAirsideAircraftMutiRunRunwayOperationResult;
             break;
+		case Airside_AircraftOperational:
+			m_mapMutiRunResult[_reportType] = new CAirsideFlightOperationalMultiRunResult;
+			break;
         case Airside_RunwayDelay:
             m_mapMutiRunResult[_reportType] = new CAirsideRunwayDelayMultiRunResult;
 		default:
@@ -122,4 +142,24 @@ void CAirsideMultipleRunReport::ClearMutipleRunResult()
 		delete iter->second;
 	}
 	m_mapMutiRunResult.clear();	
+}
+
+BOOL CAirsideMultipleRunReport::WriteReportData( reportType _reportType,ArctermFile& _file )
+{
+	CAirsideMultipleRunResult* pMultRunResult = m_mapMutiRunResult[ _reportType ];
+	if (pMultRunResult )
+	{
+		pMultRunResult->WriteReportData(_file);
+	}
+	return TRUE;
+}
+
+BOOL CAirsideMultipleRunReport::ReadReportData( reportType _reportType,ArctermFile& _file )
+{
+	CAirsideMultipleRunResult* pMultRunResult = m_mapMutiRunResult[ _reportType ];
+	if (pMultRunResult )
+	{
+		pMultRunResult->ReadReportData(_file);
+	}
+	return TRUE;
 }
