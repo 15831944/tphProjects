@@ -203,14 +203,16 @@ void CDlgAircraftFurnishingDB::OnAddFurnishingSection()
 	CAircraftFurnishingModel* section = new CAircraftFurnishingModel(m_pFurnishishManger) ;
 	CDlgAircraftFurnishingNameSpec dlg(section,GetParent()) ;
 	dlg.SetNew(true);
-	if(dlg.DoModal() == IDOK)
-	{
-		m_pFurnishishManger->AddModel(section);
-		int item = InsertItemToList(section,m_wndListCtrl.GetItemCount()) ;
-	}else
+	if(dlg.DoModal() != IDOK)
 	{
 		delete section ;
+		return;
 	}
+	m_pFurnishishManger->AddModel(section);
+	int item = InsertItemToList(section,m_wndListCtrl.GetItemCount()) ;
+	m_wndListCtrl.SetItemState(item, LVIS_SELECTED, LVIS_SELECTED);
+	m_wndListCtrl.SetFocus();
+	return;
 }
 
 void CDlgAircraftFurnishingDB::OnEditFurnishingSection()
@@ -313,10 +315,11 @@ void CDlgAircraftFurnishingDB::OnSelChangeFurnishingSection(NMHDR *pNMHDR, LRESU
 		LoadBmp(pFurnish);
 		DisplayAllBmpInCtrl();
 	}
-	GetDlgItem(IDC_MODEL_VIEW_Z)->Invalidate(FALSE);
-	GetDlgItem(IDC_MODEL_VIEW_Y)->Invalidate(FALSE);
-	GetDlgItem(IDC_STATIC_FRONT_X)->Invalidate(FALSE);
-	GetDlgItem(IDC_STATIC_ISOMETRIC_FURNISH)->Invalidate(FALSE);
+// 	GetDlgItem(IDC_MODEL_VIEW_Z)->Invalidate(FALSE);
+// 	GetDlgItem(IDC_MODEL_VIEW_Y)->Invalidate(FALSE);
+// 	GetDlgItem(IDC_STATIC_FRONT_X)->Invalidate(FALSE);
+// 	GetDlgItem(IDC_STATIC_ISOMETRIC_FURNISH)->Invalidate(FALSE);
+	Invalidate(FALSE);
 }
 
 void CDlgAircraftFurnishingDB::InitListData()

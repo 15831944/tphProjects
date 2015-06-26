@@ -98,6 +98,7 @@ public:
     virtual void writeData(ArctermFile& p_file) const;
     virtual void readObsoleteData(ArctermFile& p_file);
     virtual void readData100(ArctermFile& p_file);
+    virtual void readData101(ArctermFile& p_file);// fix bug: end time is equal to 0
 
     virtual const char *getTitle() const
     { 

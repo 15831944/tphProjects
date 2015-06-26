@@ -318,6 +318,8 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 
 
    int nReturnValue = 1;
+    int nPersonID = getID();
+    CString strProc = spTerminalBehavior->getProcessor()->getIDName();
 	switch (state)
     {
 
@@ -616,6 +618,7 @@ void Person::writeTerminalBeginLogEntry(ElapsedTime p_time)
 
 void Person::writeTerminalEndLogEntry(ElapsedTime p_time)
 {
+    int nPersonID = getID();
 	PLACE_METHOD_TRACK_STRING();
 	int nState = state;
 	setState(TerminalEnd);
@@ -826,8 +829,16 @@ void Person::generateEvent (ElapsedTime eventTime ,bool bNoLog)
 		return;
 	
 	bool bDisallowGroup = spTerminalBehavior->getProcessor()->GetDisallowGroupFlag()|| 
-		spTerminalBehavior->getProcessor()->getProcessorType() == ConveyorProc||
-		getState()==EntryOnboard;
+		spTerminalBehavior->getProcessor()->getProcessorType() == ConveyorProc;
+	//check is Entry Onboard
+	if(m_pEngine->IsOnboardSel())
+	{
+		if(spTerminalBehavior->getProcessor()->getProcessorType() == BridgeConnectorProc && m_type.isDeparture())
+			bDisallowGroup = true;
+
+		if(getState() == EntryOnboard)
+			bDisallowGroup = true;
+	}
 
 	enum EVENT_OPERATION_DECISTION enumRes = m_pGroupInfo->ProcessEvent( eventTime, bDisallowGroup );
 	if( enumRes == REMOVE_FROM_PROCESSOR_AND_NO_EVENT )

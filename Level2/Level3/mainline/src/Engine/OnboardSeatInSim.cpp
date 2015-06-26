@@ -446,3 +446,13 @@ double OnboardSeatInSim::GetAvailableSpace() const
 {
 	return m_pSeat->GetCapacity() - m_dCarryonLoad;
 }
+
+void OnboardSeatInSim::ClearAssignedPerson()
+{
+	m_pAssigndPerson = NULL;
+}
+
+Person* OnboardSeatInSim::GetAsignedPerson() const
+{
+	return m_pAssigndPerson;
+}

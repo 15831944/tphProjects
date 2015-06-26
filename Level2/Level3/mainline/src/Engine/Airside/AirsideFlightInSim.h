@@ -276,6 +276,7 @@ public:  //properties
 	void GenerateDepartureCloseDoorEvent();
 
 	OnboardFlightInSim* GetOnboardFlight();
+	OnboardFlightInSim* GetOnboardFlight(FlightOperation fltOperation);
 public: // statues
 	const AirsideFlightState& GetPreState()const{ return m_preState; }
 	AirsideFlightState& GetCurState(){ return m_curState; }
@@ -507,6 +508,7 @@ public:
 	void AddPaxInFlight();
 	int GetPaxCount();
 	void DecreasePaxNumber(const ElapsedTime& tTime);
+	bool IsAllPaxOnBoard();
 
 	void WriteStairsLog(const ElapsedTime& tTime);
 	//bool GetOpenDoorAndStairGroundPostions(std::vector< std::pair<CPoint2008, CPoint2008> >& vPoints );

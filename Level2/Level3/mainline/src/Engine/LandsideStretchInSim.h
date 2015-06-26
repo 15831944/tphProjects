@@ -74,7 +74,7 @@ protected:
 class LandsideLaneExit : public LandsideLaneNodeInSim
 {
 public:
-	LandsideLaneExit(){ mpToRes = NULL; }
+	LandsideLaneExit(){ mpToRes = NULL; mLaneCountToRes = 0;}
 	virtual bool IsLaneDirectToCurb()const;;
 
 	virtual LandsideResourceInSim* getFromRes()const;
@@ -82,8 +82,11 @@ public:
 
 	virtual LandsideLaneExit* toExit(){ return this; }
 	void SetToRes(LandsideResourceInSim* pRes){ mpToRes = pRes; }
+	void SetLaneCountToRes(int nLaneCount) {mLaneCountToRes = nLaneCount;}
+	int GetLaneCountToRes()const {return mLaneCountToRes;}
 protected:
 	LandsideResourceInSim* mpToRes;
+	int mLaneCountToRes;//curbside distance to lane
 };
 
 

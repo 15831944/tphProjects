@@ -88,24 +88,45 @@ int PaxDeplaneBehavior::performanceMove(ElapsedTime p_time,bool bNoLog)
 
 	case WaitTakeOff:
 		{
+			//remove this passenger from flight
+			if(m_pSeat)
+			{
+				m_pSeat->ClearAssignedPerson();
+			}
+
 			AirsideFlightInSim* pFlightInAirside = m_pPerson->getEngine()->GetAirsideSimulation()->GetAirsideFlight(m_pPerson->GetCurFlightIndex()) ;
 
 			if(pFlightInAirside->HasBrrdgeServer(TRUE) || pFlightInAirside->GetServiceRequestDispatcher() == NULL 
 				|| !pFlightInAirside->GetServiceRequestDispatcher()->HasVehicleServiceFlight(pFlightInAirside,VehicleType_PaxTruck))
 				
 			{
-				m_pOnboardFlight->ClearPaxFromHisSeat(getPerson()->getID(), p_time);
-				m_pOnboardFlight->ReadyCloseDoor();
+
+				//m_pOnboardFlight->ReadyCloseDoor();
 			
 				bDisallowGroup=false;
 				processEntryTerminal(p_time);
+				
+				if(m_pOnboardFlight)
+				{				
+					m_pOnboardFlight->ClearPaxFromHisSeat(getPerson()->getID(), p_time);
+					m_pOnboardFlight->DeRegisterPax(getPerson()->getID());
+					m_pOnboardFlight->ProcessCloseDoor(p_time);
+				}
 			}
 			else
 			{
-				m_pOnboardFlight->ClearPaxFromHisSeat(getPerson()->getID(), p_time);
-				m_pOnboardFlight->ReadyCloseDoor();
+
+				//m_pOnboardFlight->ReadyCloseDoor();
 			
 				processEntryAirside(p_time);
+			
+				if(m_pOnboardFlight)
+				{
+					m_pOnboardFlight->ClearPaxFromHisSeat(getPerson()->getID(), p_time);
+					//this function has been called in processEntryAirside()
+					//m_pOnboardFlight->DecCount();
+					m_pOnboardFlight->ProcessCloseDoor(p_time);
+				}
 			}
 		}
 
@@ -126,7 +147,7 @@ void PaxDeplaneBehavior::processEnterOnBoardMode(ElapsedTime p_time)
 		return;
 	}
 
-	m_pOnboardFlight->AddCount();
+	m_pOnboardFlight->RegisterPax(m_pPerson->getID());
 	//assign door
 	m_pDoor = m_pOnboardFlight->GetExitDoor();
 	if(m_pDoor == NULL)
@@ -600,7 +621,7 @@ void PaxDeplaneBehavior::processEntryAirside( ElapsedTime p_time )
 	if(m_pPerson->getLogEntry().GetMobileType() == 0)
 	{
 		EntityEvents state = TAKE_OFF_FLIGHT ;
-		m_pOnboardFlight->DecCount();
+		m_pOnboardFlight->DeRegisterPax(m_pPerson->getID());
 		m_pPerson->setBehavior( new AirsidePassengerBehavior( m_pPerson,state));
 		m_pPerson->generateEvent( p_time, false);
 		return;//to Airside mode.

@@ -309,6 +309,11 @@ void C3DObjModelEditTreeView::OnInitialUpdate()
 
 void C3DObjModelEditTreeView::OnAdd()
 {
+	if(m_3DObjTree.IsLocked())
+	{
+		MessageBox(_T("The model is locked. It could be unlocked from Toolbar."));
+		return;
+	}
 	m_3DObjTree.DoAdd();
 }
 

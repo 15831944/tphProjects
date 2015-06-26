@@ -2667,7 +2667,7 @@ void CPaxFlowDlg::PaxFlowInsertBeforeNode(HTREEITEM hItem)
 	CFlowDestination temp;
 	temp.SetProcID( id );
 
-	m_OperatedPaxFlow.InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
+	m_OperatedPaxFlow.InsertBetwwen( pFatherData->m_procId, pData->m_procId, temp );
 	m_bChanged = true;
 	m_btnSave.EnableWindow();
 
@@ -3928,7 +3928,7 @@ void CPaxFlowDlg::GateflowInsertBettween()
 	temp.SetProcID( id );
 	 
 	// TRACE("%s, %s\n", pData->m_procId.GetIDString(), id.GetIDString() );
-	m_GateFlow.InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
+	m_GateFlow.InsertBetwwen( pFatherData->m_procId, pData->m_procId, temp );
 	m_bGateChanged = true;
 	m_btnSave.EnableWindow();
 	LoadGateTree();
@@ -6246,7 +6246,7 @@ LRESULT CPaxFlowDlg::OnPCTreeSelectProc(WPARAM wParam,LPARAM lParam)
 			temp.SetProcID( *pProcID );
 			
 //			// TRACE("%s, %s\n", pData->m_procId.GetIDString(), id.GetIDString() );
-			m_OperatedPaxFlow.InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
+			m_OperatedPaxFlow.InsertBetwwen( pFatherData->m_procId, pData->m_procId, temp );
 			
 			
 			BuildInterestInPath( hFather );

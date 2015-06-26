@@ -916,8 +916,8 @@ int CPath2008::GetSegmentNearPos(CPoint2008& pos)
 	double minValue = ARCMath::DISTANCE_INFINITE, upValue = 0.0;
 	for (; i < getCount() -1; i++)
 	{
-		if ( (points[i].x < points[i+1].x) ? (pos.x > points[i].x ? ( pos.x < points[i+1].x ) : 0) : (pos.x < points[i].x ? ( pos.x > points[i+1].x ) : 0)
-		   ||(points[i].y < points[i+1].y) ? (pos.y > points[i].y ? ( pos.y < points[i+1].y ) : 0) : (pos.y < points[i].y ? ( pos.y > points[i+1].y ) : 0) )
+		if (((points[i].x < points[i+1].x) ? (pos.x > points[i].x ? ( pos.x < points[i+1].x ) : 0) : (pos.x < points[i].x ? ( pos.x > points[i+1].x ) : 0))
+		   ||((points[i].y < points[i+1].y) ? (pos.y > points[i].y ? ( pos.y < points[i+1].y ) : 0) : (pos.y < points[i].y ? ( pos.y > points[i+1].y ) : 0)))
 		{
 			upValue =  std::abs( (points[i] - pos).dot((points[i]-points[i+1]).PerpendicularLCopy().Normalize()) );
 			if ( upValue < minValue ) {
@@ -927,8 +927,8 @@ int CPath2008::GetSegmentNearPos(CPoint2008& pos)
 		}
 	}
 
-	if ( (points[getCount()-1].x < points[0].x) ? (pos.x > points[getCount()-1].x ? ( pos.x < points[0].x ) : 0) : (pos.x < points[getCount()-1].x ? ( pos.x > points[0].x ) : 0)
-	   ||(points[getCount()-1].y < points[0].y) ? (pos.y > points[getCount()-1].y ? ( pos.x < points[0].y ) : 0) : (pos.y < points[getCount()-1].y ? ( pos.x > points[0].y ) : 0) )
+	if (((points[getCount()-1].x < points[0].x) ? (pos.x > points[getCount()-1].x ? ( pos.x < points[0].x ) : 0) : (pos.x < points[getCount()-1].x ? ( pos.x > points[0].x ) : 0))
+	   ||((points[getCount()-1].y < points[0].y) ? (pos.y > points[getCount()-1].y ? ( pos.y < points[0].y ) : 0) : (pos.y < points[getCount()-1].y ? ( pos.y > points[0].y ) : 0)))
 	{
 		//upValue =  std::abs( (points[getCount()-1] - pos).crossProduct(pos - points[0]).z );
 		ARCVector3 n( points[getCount()-1].y-points[0].y, -points[getCount()-1].x + points[0].x, points[0].z);

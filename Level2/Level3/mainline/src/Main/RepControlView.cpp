@@ -1811,7 +1811,18 @@ void CRepControlView::GetParaFromGUI(CReportParameter* pReportPara)
 	long lThreshold;
 	if( m_chkThreshold.GetCheck() == 0 )	// uncheck
 	{
-		lThreshold = LONG_MAX;
+		if(m_enumReportType == ENUM_COLLISIONS_REP)
+		{
+			//refer to CollisionReport.cpp
+			//#define THRESHOLD	200
+			//here is 2, because it will multiply SCALE_FACTOR
+			lThreshold = 2;
+		}
+		else
+		{
+			lThreshold = LONG_MAX;
+		}
+
 	}
 	else
 	{
@@ -1972,14 +1983,26 @@ void CRepControlView::SetGUIFromPara(CReportParameter* pReportPara, const CStart
 	int iReportType;
 	if( pReportPara->GetReportType( iReportType ) )
 		m_nRepType = iReportType;
-	//throdhold
+	//threshold
 	long lThreshold;
 	if( pReportPara->GetThreshold( lThreshold) )
 	{
 		if( lThreshold == LONG_MAX )
 		{
-			m_chkThreshold.SetCheck( 0 );
-			time = 0l;
+			if(m_enumReportType == ENUM_COLLISIONS_REP)
+			{
+				//#define THRESHOLD	200
+				//here is 2, because it will multiply SCALE_FACTOR
+				lThreshold = 2;
+				m_chkThreshold.SetCheck(1);
+				time = 2l;
+				m_fThreshold = static_cast<float>(lThreshold);
+			}
+			else
+			{
+				m_chkThreshold.SetCheck( 0 );
+				time = 0l;
+			}
 		}
 		else
 		{

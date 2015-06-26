@@ -172,7 +172,7 @@ bool StandInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight, Clearance
 		//check passenger whether take on flight
 		if(pFlight->IsDeparture())
 		{
-			if (pFlight->GetPaxCount() != 0)
+			if (!pFlight->IsAllPaxOnBoard())
 			{
 				pFlight->SetWaitPassengerTag(true);
 				return true;

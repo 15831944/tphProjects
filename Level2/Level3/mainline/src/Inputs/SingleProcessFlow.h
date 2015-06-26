@@ -11,14 +11,14 @@ public:
 public:
     CProcessorDestinationList* GetStartPair() const;
     void SetStartPair(CProcessorDestinationList* pStartPair);
-    // add _secondProc to _newProc's destination list, add _newProc to _firstProc's destination list and remove _secondProc from _firstProc's destination list
-    virtual void InsertBetwwen( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc);
+    // add _secondProc to _insertProcID's destination list, add _insertProcID to _firstProc's destination list and remove _secondProc from _firstProc's destination list
+    virtual void InsertBetwwen(const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _insertProcID);
     //add  _sourceProcID's dest proc into _insertProcID's dest list , and delete _sourceProcID's all dest list ,then add _insertProcID into _sourceProcID's dest list
     virtual void InsertProceoosorAfter(const ProcessorID& _sourceProcID, const ProcessorID& _insertProcID);
-    // add all destnition proccessors of _oldDestProcId to _soruceProcID and remove all destproc from _oldDestProcId , then remove _oldDestProcID
+    // add all destination processors of _oldDestProcId to _soruceProcID and remove all dest proc from _oldDestProcId , then remove _oldDestProcID
 	void TakeOverDestProc( const  ProcessorID& _sourceProcID, const ProcessorID& _oldDestProcID , bool _bEraseOldProc = false );
 	virtual void ClearIsolateNode();
-	//check sub flow percentag valid
+	//check sub flow percentage valid
 	bool IfSubFlowValid(const CString& sProcessName)const;
 private:
     // find processor destination list by processor id, return NULL if not found.

@@ -41,7 +41,9 @@ public:
 	Person* GetSittingPerson();//
 	void PersonLeave();
 
-	Person* GetAsignedPerson()const{ return m_pAssigndPerson; }
+	Person* GetAsignedPerson()const;
+	//when passenger walks out of Door, clear the person in flight
+	void ClearAssignedPerson();
 
 	EntryPointInSim* GetEntryPoint()const;
 	virtual OnboardCellInSim *GetEntryCell() const;

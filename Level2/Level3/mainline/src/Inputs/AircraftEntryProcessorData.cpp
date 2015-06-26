@@ -18,8 +18,8 @@ void AircraftEntryProcsEntry::readData(ArctermFile& p_file, InputTerminal* _pInT
     pConst->readConstraint (p_file);
     ProbabilityDistribution* pProb = GetTerminalRelateProbDistribution(p_file,_pInTerm);
     ElapsedTime beginTime, endTime;
-    p_file.getTime(beginTime);
-    p_file.getTime(endTime);
+    p_file.getTime(beginTime, TRUE);
+    p_file.getTime(endTime, TRUE);
     initialize(pConst, pProb, pID, beginTime, endTime);
 }
 
@@ -28,8 +28,8 @@ void AircraftEntryProcsEntry::writeData(ArctermFile& p_file)
     m_procID.writeProcessorID(p_file);
     constraint->writeConstraint(p_file);
     value->writeDistribution(p_file);
-    p_file.writeTime(m_beginTime);
-    p_file.writeTime(m_endTime);
+    p_file.writeTime(m_beginTime, TRUE);
+    p_file.writeTime(m_endTime, TRUE);
 }
 
 bool AircraftEntryProcsEntry::operator<(const AircraftEntryProcsEntry& other) const
@@ -314,7 +314,7 @@ void ACEntryTimeDistDatabase::replaceEntryProcID(const ProcessorID& oldID, const
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-AircraftEntryProcessorData::AircraftEntryProcessorData() : DataSet(BridgeConnectorPaxDataFile, (float)101)
+AircraftEntryProcessorData::AircraftEntryProcessorData() : DataSet(BridgeConnectorPaxDataFile, (float)102)
 {
     m_pPaxData = new ACEntryTimeDistDatabase;
     m_pPaxData->setUnits(_T("SECONDS"));
@@ -355,6 +355,10 @@ void AircraftEntryProcessorData::readObsoleteData(ArctermFile& p_file)
     {
         readData100(p_file);
     }
+    else if(abs(fVersion-101.0f) < 0.00001f)
+    {
+        readData101(p_file);
+    }
 }
 
 void AircraftEntryProcessorData::writeData(ArctermFile& p_file) const
@@ -368,6 +372,38 @@ void AircraftEntryProcessorData::readData100(ArctermFile& p_file)
     paxTypeDB.setUnits(_T("SECONDS"));
     paxTypeDB.readDatabase(p_file, _T("ENTRY_FLIGHT_TIME_DESTRIBUTION"), m_pInTerm);
     m_pPaxData->initFromMobElemConstDatabase(paxTypeDB, m_pInTerm);
+}
+
+void AircraftEntryProcessorData::readData101( ArctermFile& p_file )
+{
+    p_file.getLine();
+    CString strField;
+    p_file.getField(strField.GetBuffer(256), 255);
+    strField.ReleaseBuffer();
+    ASSERT(strField.CompareNoCase(_T("ENTRY_FLIGHT_TIME_DESTRIBUTION")) == 0);
+
+    int paxCount;
+    p_file.getInteger(paxCount);
+    for(int i=0; i<paxCount; i++)
+    {
+        p_file.getLine();
+        AircraftEntryProcsEntry* pEntry = new AircraftEntryProcsEntry();
+        ProcessorID pID;
+        pID.SetStrDict(m_pInTerm->inStrDict);
+        pID.readProcessorID(p_file);
+        CMobileElemConstraint* pConst = new CMobileElemConstraint(m_pInTerm);
+        pConst->readConstraint (p_file);
+        ProbabilityDistribution* pProb = GetTerminalRelateProbDistribution(p_file, m_pInTerm);
+        ElapsedTime beginTime, endTime;
+        p_file.getTime(beginTime);
+        p_file.getTime(endTime);
+        if(endTime.getPrecisely() == 0L) // if end time == 0, set it 23:59:59
+        {
+            endTime = ElapsedTime(WholeDay-1L);
+        }
+        pEntry->initialize(pConst, pProb, pID, beginTime, endTime);
+        m_pPaxData->addEntry(pEntry);
+    }
 }
 
 void AircraftEntryProcessorData::removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm)

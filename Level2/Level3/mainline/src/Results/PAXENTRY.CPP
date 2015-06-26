@@ -334,31 +334,31 @@ void MobLogEntry::addEvent( const MobEventStruct &p_item )
 	//	TRACE(_T("\r\n %d , time = %s(%d),X= %f, Y = %f, Z= %f,    %f \r\n"),m_preEvent.elementID, eTime.printTime(1), m_preEvent.time,m_preEvent.x, m_preEvent.y, m_preEvent.z, m_preEvent.m_RealZ);
 	//}
 
-	//if(m_preEvent.time >= 4*60*60*100)
-	{
-		if(m_preEvent.elementID == 506 )
-		{
-		
-			int nMobElemID = m_preEvent.elementID;
-			CString strLogFile;
-			strLogFile.Format(_T("%sPaxEntry%d.log"), _T("F:\\landsidedebug\\"), nMobElemID);
+	//////if(m_preEvent.time >= 4*60*60*100)
+	////{
+	////	//if(m_preEvent.elementID == 506 )
+	////	{
+	////	
+	////		int nMobElemID = m_preEvent.elementID;
+	////		CString strLogFile;
+	////		strLogFile.Format(_T("%sPaxEntry%d.log"), _T("F:\\landsidedebug\\"), 111);
 
-			ofsstream echoFile (strLogFile.GetBuffer(0), stdios::app);
-			echoFile	
-				<< m_preEvent.time<<", "
-				<<m_preEvent.elementID<<", "
-				<<m_preEvent.x <<", "
-				<<m_preEvent.y <<", "		
-				<<m_preEvent.z <<", "
-				<<m_preEvent.m_RealZ <<", "
-				<<(int)m_preEvent.m_IsRealZ<<", "
-				<<m_preEvent.state<<", "
-				<<ElapsedTime(m_preEvent.time/100.0).PrintDateTime()
-				<<"\r\n";
+	////		ofsstream echoFile (strLogFile.GetBuffer(0), stdios::app);
+	////		echoFile	
+	////			<< m_preEvent.time<<", "
+	////			<<m_preEvent.elementID<<", "
+	////			<<m_preEvent.x <<", "
+	////			<<m_preEvent.y <<", "		
+	////			<<m_preEvent.z <<", "
+	////			<<m_preEvent.m_RealZ <<", "
+	////			<<(int)m_preEvent.m_IsRealZ<<", "
+	////			<<m_preEvent.state<<", "
+	////			<<ElapsedTime(m_preEvent.time/100.0).PrintDateTime()
+	////			<<"\r\n";
 
-				echoFile.close();
-		}
-	}
+	////			echoFile.close();
+	////	}
+	////}
 
 
 	

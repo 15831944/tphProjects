@@ -31,6 +31,7 @@ CCollisionReport::CCollisionReport(Terminal* _pTerm, const CString& _csProjPath,
 	:CBaseReport(_pTerm, _csProjPath)
 {
 	m_iFloorCount = _iFloorCount;
+	m_bThreshold = 1;
 }
 
 CCollisionReport::~CCollisionReport()
@@ -115,10 +116,11 @@ void CCollisionReport::GenerateDetailed(ArctermFile& p_file)
 void CCollisionReport::calculateCollisionReport (const CMobileElemConstraint& paxType, ArctermFile& p_file)
 {
 
-	float threshold;
+	float threshold = THRESHOLD;
 	if(m_bThreshold)
 		threshold = m_fThreshold;
-	else 
+
+	if(threshold <= 0.0)
 		threshold = THRESHOLD;
 
 	ReportPaxEntry element,element_tmp;

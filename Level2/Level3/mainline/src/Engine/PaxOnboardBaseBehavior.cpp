@@ -1314,6 +1314,9 @@ void PaxOnboardBaseBehavior::SetGroupBehavior()
 
 	//set group behavior
 	CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pPerson->m_pGroupInfo;
+	if(!pGroupLeaderInfo->isInGroup())
+		return;
+
 	MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
 	int nFollowerCount = elemList.getCount();
 	for( int i=0; i<nFollowerCount; i++ )
@@ -1385,6 +1388,9 @@ void PaxOnboardBaseBehavior::SetFollowerEnplaneTime(const ElapsedTime& time)
 
 	//set group behavior
 	CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pPerson->m_pGroupInfo;
+	if(!pGroupLeaderInfo->isInGroup())
+		return;
+
 	MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
 	int nFollowerCount = elemList.getCount();
 	for( int i=0; i<nFollowerCount; i++ )

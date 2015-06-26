@@ -151,7 +151,7 @@ std::vector<ACTypeDoorOpen> FltOperatingDoorSpecInSim::getAllFlightDoors( const 
 			ACTypeDoorOpen door;
 			door.pDoor = pDoor; 
 			door.openSide = ACTypeDoor::RightHand;
-			door.index = ++RIndex;
+			door.index = ++RIndex;//start with 1
 			vDefaultOpenDoors.push_back(door);
 		}
 
@@ -160,7 +160,7 @@ std::vector<ACTypeDoorOpen> FltOperatingDoorSpecInSim::getAllFlightDoors( const 
 			ACTypeDoorOpen door;
 			door.pDoor = pDoor; 
 			door.openSide = ACTypeDoor::LeftHand;
-			door.index = ++LIndex;
+			door.index = ++LIndex;//start with 1
 			vDefaultOpenDoors.push_back(door);
 		}		
 	}

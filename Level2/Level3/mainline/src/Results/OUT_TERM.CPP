@@ -245,7 +245,7 @@ void OutputTerminal::openLogs ( const CString& _csProjPath )
         outStrDict = new StringDictionary;
 		outStrDict->addString( "ALL TYPES" ); // for backward compatible
 	}
-    PROJMANAGER->getFileName (_csProjPath, StringDictBinFile, filename);
+     PROJMANAGER->getFileName (_csProjPath, StringDictBinFile, filename);
     outStrDict->retrieveDictionary (filename);
 	bar.StepIt();
 

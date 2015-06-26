@@ -6,17 +6,18 @@
 CStandOperationReportData::CStandOperationReportData()
 {
 	m_lFlightIndex = -1;
+	m_fltmode = 'A';
 	m_sSchedName = _T("");
-	m_lSchedOn = 0;
-	m_lSchedOff = 0;
+	m_lSchedOn = -1;
+	m_lSchedOff = -1;
 	m_lSchedOccupancy = 0;
-	m_lSchedAvailableOccupancy = 0;
+	m_lSchedAvailableOccupancy = -1;
 
 	m_sActualName = _T("");
-	m_lActualOn = 0;
-	m_lActualOff = 0;
+	m_lActualOn = -1;
+	m_lActualOff = -1;
 	m_lActualOccupancy = 0;
-	m_lActualAvailableOccupancy = 0;
+	m_lActualAvailableOccupancy = -1;
 
 	m_lDelayEnter = 0;
 	m_lDueStandOccupied = 0;

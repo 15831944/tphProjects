@@ -166,84 +166,54 @@ bool CSingleProcessFlow::IfSubFlowValid(const CString& sProcessName) const
 	return true;
 }
 
-void CSingleProcessFlow::InsertBetween(const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc)
+void CSingleProcessFlow::InsertBetwwen(const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _insertProcID)
 {
-    if(_firstProcID == _newProc.GetProcID() || 
-        _secondProcID == _newProc.GetProcID() ||
+    if(_firstProcID == _insertProcID.GetProcID() ||
+        _secondProcID == _insertProcID.GetProcID() ||
         _firstProcID == _secondProcID)
         return;
 
-    if(!IfExist(_insertProcID))
+    if(!IfExist(_insertProcID.GetProcID()))
     {
-        AddIsolatedProc(_insertProcID);
+        AddIsolatedProc(_insertProcID.GetProcID());
     }
 
-    CProcessorDestinationList* pSourceProcDestList = NULL;
+    CProcessorDestinationList* pFirstProcDestList = NULL;
     if(_firstProcID.GetIDString().CompareNoCase(m_pStartPair->GetProcID().GetIDString()) == 0)
     {
-        pSourceProcDestList = m_pStartPair;
+        pFirstProcDestList = m_pStartPair;
     }
     else
     {
-        pSourceProcDestList = FindProcDestinationListByProcID(_firstProcID);
+        pFirstProcDestList = FindProcDestinationListByProcID(_firstProcID);
     }
-    ASSERT(pSourceProcDestList);
+    ASSERT(pFirstProcDestList);
 
-    CFlowDestination* pDestInfo = pSourceProcDestList->GetDestProcArcInfo(_secondProcID);
-    ASSERT(pDestInfo);// _secondProcID must be in _firstProcID's destination list.
+    CProcessorDestinationList* pSecondProcDestList = FindProcDestinationListByProcID(_secondProcID);
+    ASSERT(pSecondProcDestList);
 
-    bool bFindNewProcessor = false;
-    PAXFLOWIDGRAPH::iterator iterFirstProc = m_vPaxFlowDigraph.end();
-    PAXFLOWIDGRAPH::iterator iterSecondProc = m_vPaxFlowDigraph.end();
-    PAXFLOWIDGRAPH::iterator iterNewProc = m_vPaxFlowDigraph.end();
-    PAXFLOWIDGRAPH::iterator iter = m_vPaxFlowDigraph.begin();
-    PAXFLOWIDGRAPH::iterator iterEnd = m_vPaxFlowDigraph.end();
-    for(; iter != iterEnd; ++iter)
-    {
-        if(iter->GetProcID() == _firstProcID)
-        {
-            iterFirstProc = iter;
-        }
-        else if(iter->GetProcID() == _secondProcID)
-        {
-            iterSecondProc = iter;
-        }
-        else if (iter->GetProcID() == _newProc.GetProcID())
-        {
-            bFindNewProcessor = true;
-            iterNewProc = iter;
-        }
+    CProcessorDestinationList* pInsertProcDestList = FindProcDestinationListByProcID(_insertProcID.GetProcID());
+    ASSERT(pInsertProcDestList);
 
-        if(iterFirstProc != m_vPaxFlowDigraph.end() &&
-            iterSecondProc != m_vPaxFlowDigraph.end() && 
-            iterNewProc != m_vPaxFlowDigraph.end())
-            break;
-    }
+    // _secondProcID must in the destination list of _firstProcID
+    CFlowDestination* pDestInfo = pFirstProcDestList->GetDestProcArcInfo(_secondProcID);
+    ASSERT(pDestInfo);
 
-    if(iterFirstProc != m_vPaxFlowDigraph.end() && iterSecondProc != m_vPaxFlowDigraph.end())
-    {
-        CFlowDestination* pDestInfo = iterFirstProc->GetDestProcArcInfo(_secondProcID);
-        ASSERT(pDestInfo);
+    // now we will add _secondProcID to the destination list of _insertProcID
+    CFlowDestination tempInfo = *pDestInfo;
+    tempInfo.SetTypeOfOwnership(0);
+    pInsertProcDestList->AddDestProc(tempInfo);
 
-        CFlowDestination tempInfo ;
-        tempInfo= *pDestInfo;
-        iterFirstProc->AddDestProc(_newProc);
-        iterFirstProc->DeleteDestProc(_secondProcID);
+    // and then remove _secondProcID from the destination list of _firstProcID
+    pFirstProcDestList->DeleteDestProc(_secondProcID);
 
-        //	if(!&(*iterNewProc))
-        if(bFindNewProcessor == false)
-        {
-            AddIsolatedProc(_newProc.GetProcID());
-            iterNewProc = m_vPaxFlowDigraph.begin() + m_vPaxFlowDigraph.size() -1;
-        }
+    // and then add _insertProcID to the destination list of _firstProcID
+    CFlowDestination insertFlowDest;
+    insertFlowDest.SetProcID(_insertProcID.GetProcID());
+    pFirstProcDestList->AddDestProc(insertFlowDest);
 
-        // tempInfo.SetInheritedFlag(false);
-        tempInfo.SetTypeOfOwnership(0);
-        iterNewProc->AddDestProc(tempInfo);
-
-        m_bHasChanged = true;
-        return;
-    }
+    m_bHasChanged = true;
+    return;
 }
 
 void CSingleProcessFlow::InsertProceoosorAfter(const ProcessorID& _sourceProcID, const ProcessorID& _insertProcID)

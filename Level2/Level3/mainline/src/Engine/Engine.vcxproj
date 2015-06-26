@@ -791,7 +791,9 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="NoseInParkingProc.cpp" />
+    <ClCompile Include="OnboardArrivalFlightInSim.cpp" />
     <ClCompile Include="OnboardCellFreeMoveEvent.cpp" />
+    <ClCompile Include="OnboardDepartureFlightInSim.cpp" />
     <ClCompile Include="OnboardPaxCellMoveToSeatEvent.cpp" />
     <ClCompile Include="OnboardPaxFreeMovingConflict.cpp" />
     <ClCompile Include="OverPassProc.cpp" />
@@ -1634,7 +1636,9 @@
     <ClInclude Include="NFIXEDQ.H" />
     <ClInclude Include="NodeProc.h" />
     <ClInclude Include="NoseInParkingProc.h" />
+    <ClInclude Include="OnboardArrivalFlightInSim.h" />
     <ClInclude Include="OnboardCellFreeMoveEvent.h" />
+    <ClInclude Include="OnboardDepartureFlightInSim.h" />
     <ClInclude Include="OnboardPaxCellMoveToSeatEvent.h" />
     <ClInclude Include="OnboardPaxFreeMovingConflict.h" />
     <ClInclude Include="OverPassProc.h" />

@@ -234,6 +234,8 @@ std::vector<HoldInTaxiRoute> FlightHoldListInTaxiRoute::GetNextRouteNodeHoldList
 	for(int i=0;i< GetCount();i++)
 	{
 		const HoldInTaxiRoute& theHold = ItemAt(i);
+
+		//TRACE("\r\n %d, %d, %f ",theHold.m_pNode->GetID(), (int)theHold.m_hHoldType, theHold.m_dDistInRoute);
 		if( theHold.m_dDistInRoute < 0 && distInRoute < 0)
 		{
 			vNextHoldList.push_back(theHold);
@@ -243,6 +245,9 @@ std::vector<HoldInTaxiRoute> FlightHoldListInTaxiRoute::GetNextRouteNodeHoldList
 			vNextHoldList.push_back(theHold);
 		}			
 	}
+	
+	//TRACE("\r\n");
+	
 	return vNextHoldList;
 	
 }

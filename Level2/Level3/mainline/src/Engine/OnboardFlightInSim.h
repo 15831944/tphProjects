@@ -85,6 +85,8 @@ public:
 	void GenerateCloseDoorEvent(const ElapsedTime& time);
 	bool ProcessCloseDoor(const ElapsedTime& time);
 	bool ReadyCloseDoor()const;
+
+	bool IsAllPaxOnBoard();
 public:
 	OnboardDoorInSim* GetEntryDoor() const;
 	OnboardDoorInSim* GetDoor(Person* pPerson,OnboardSeatInSim* pSeatInSim)const;
@@ -130,8 +132,13 @@ public:
 	void SetEngine(CARCportEngine* pEngine){m_pArcportEngine = pEngine;}
 	CARCportEngine* GetEngine()const {return m_pArcportEngine;}
 
-	void AddCount();
-	void DecCount();
+	//register the passenger to this onboard flight
+	//if the pax already exists in the flight, return false
+	bool RegisterPax(int nPaxID);
+	//if passenger is not existing on the flight, return false
+	bool DeRegisterPax(int nPaxID);
+
+
 	void SetWaitAirsideFlight(AirsideFlightInSim* pFlightInSim){m_pWaitAirsideFlight = pFlightInSim;}
 	void WriteDoorCloseLog(OnboardDoorLog* pLog);
 	void GetFitestDoor(const DoorOperationInSim* pDoorOperationInSim,std::vector<OnboardDoorInSim*>& vDoorList)const;
@@ -190,13 +197,13 @@ protected:
 
 	CARCportEngine*	m_pArcportEngine;
 
-	int m_nCloseCondition;//0, can close door;1, can not close
 	bool m_bGenerateCloseDoorEvent;//true, generate; false, does not
 
 	//record person and seat relationship
 	CMap<Person*,Person*,OnboardSeatInSim*,OnboardSeatInSim*> m_mapObjects;
 
 	AirsideFlightInSim*	m_pWaitAirsideFlight;
+	std::vector<int> m_vRegisterPax;
 };
 
 class OnboardFlightInSimList

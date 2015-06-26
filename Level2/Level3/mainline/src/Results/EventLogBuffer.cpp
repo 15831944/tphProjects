@@ -82,6 +82,9 @@ void readData( void* _pPara )
 			long endPos		= element.GetMobDesc().endPos + sizeof( MobEventStruct ) ;
 			long eventNum   = ( endPos-beginPos )/sizeof( MobEventStruct );
 			
+			if(endPos - beginPos <= 0 || eventNum <= 0)//it will crash if <= 0 while reading the log file
+				continue;
+
 			//////////////////////////////////////////////////////////////////////////
 			// read full event
 			// push an empty item to data list.

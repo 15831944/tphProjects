@@ -79,11 +79,15 @@ BOOL CAirsideBaseReport::ExportListData(ArctermFile& _file,CParameters * paramet
 		for (int colum = 0 ; colum < m_ListCtrl->GetColumns() ; colum++)
 		{
 			val = m_ListCtrl->GetItemText(line,colum) ;
+			val.Trim();
+			if (val.GetLength() == 0)
+				val = _T("*");
+			
 			_file.writeField(val) ;
 		}
 		_file.writeLine() ;
 	}
-return TRUE;
+	return TRUE;
 }
 
 void CAirsideBaseReport::SetReportFileDir( const CString& strReportPath )

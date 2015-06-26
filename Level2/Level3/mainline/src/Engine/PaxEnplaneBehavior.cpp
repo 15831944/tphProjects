@@ -141,7 +141,7 @@ void PaxEnplaneBehavior::processEnterOnBoardMode(ElapsedTime p_time)
 		return;
 	}
 
-	m_pOnboardFlight->DecCount();
+	m_pOnboardFlight->DeRegisterPax(m_pPerson->getID());
 
 	m_pOnboardFlight->ProcessCloseDoor(p_time);
 	//assign door

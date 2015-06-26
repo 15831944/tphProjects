@@ -419,9 +419,9 @@ void CAirsideStandMultiRunOperatinResult::ClearData()
 	m_summaryConflictMap.clear();
 }
 
-static bool IfMultiActualStandIsBlank(const StandMultipleOperationData& operationData)
+static bool IfMultiActualStandOperationAvailable(const StandMultipleOperationData& operationData)
 {
-	return operationData.m_sActualName.IsEmpty();
+	return (operationData.m_lSchedOccupancy < 0 || operationData.m_lOccupiedTime < 0);
 }
 
 void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CParameters* pParameter,MapMultiRunStandOperationData standOperationData )
@@ -435,7 +435,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty() == true)
+			if (operationData.m_sActualName.IsEmpty() == true ||operationData.m_lOccupiedTime < 0)
 				continue;
 			
 			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
@@ -502,7 +502,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty() == true)
+			if (operationData.m_sActualName.IsEmpty() == true || operationData.m_lOccupiedTime < 0)
 				continue;
 
 			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
@@ -575,7 +575,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 		for (int i = 0; i < iCount; i++)
 		{
 			StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty() == true)
+			if (operationData.m_sActualName.IsEmpty() == true || operationData.m_lOccupiedTime < 0)
 				continue;
 			mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
 			if (mapLoadData[iter->first][operationData.m_sActualName] > lMaxOccupancyTime)
@@ -667,7 +667,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 	long lMaxDelayTime = 0;
 	for (; iter != standOperationData.end(); ++iter)
 	{
-		std::vector<StandMultipleOperationData>::iterator reIter = std::remove_if(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),IfMultiActualStandIsBlank);
+		std::vector<StandMultipleOperationData>::iterator reIter = std::remove_if(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),IfMultiActualStandOperationAvailable);
 		standOperationData[iter->first].erase(reIter,standOperationData[iter->first].end());
 
 		std::sort(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),DataCompareByStand);
@@ -740,7 +740,7 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 	long nMaxConflicts = 0;
 	for (; iter != standOperationData.end(); ++iter)
 	{
-		std::vector<StandMultipleOperationData>::iterator reIter = std::remove_if(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),IfMultiActualStandIsBlank);
+		std::vector<StandMultipleOperationData>::iterator reIter = std::remove_if(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),IfMultiActualStandOperationAvailable);
 		standOperationData[iter->first].erase(reIter,standOperationData[iter->first].end());
 
 		std::sort(standOperationData[iter->first].begin(),standOperationData[iter->first].end(),DataCompareByStand);
@@ -1064,6 +1064,9 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleUtilizationData(Ma
         for (int i = 0; i < iCount; ++i)
         {
             StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sSchedName.IsEmpty() == true || operationData.m_lSchedOccupancy < 0)
+				continue;
+			
             mapLoadData[iter->first][operationData.m_sSchedName] += operationData.m_lSchedOccupancy;
         }
     }
@@ -1125,6 +1128,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryScheduleIdleData(MapMultiR
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
+			if (operationData.m_sSchedName.IsEmpty() == true || operationData.m_lSchedOccupancy < 0)
+				continue;
             mapLoadData[iter->first][operationData.m_sSchedName] += operationData.m_lSchedOccupancy;
         }
     }
@@ -1190,7 +1195,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualUtilizationData(MapM
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty())
+			if (operationData.m_sActualName.IsEmpty() || operationData.m_lOccupiedTime < 0)
 				continue;
 			
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
@@ -1254,7 +1259,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryActualIdleData(MapMultiRun
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty())
+			if (operationData.m_sActualName.IsEmpty() || operationData.m_lOccupiedTime < 0)
 				continue;
             mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lOccupiedTime;
         }
@@ -1321,7 +1326,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty())
+			if (operationData.m_sActualName.IsEmpty() || operationData.m_lOccupiedTime < 0)
 				continue;
 
 			if (operationData.IsDelay() == true)//has delay
@@ -1376,7 +1381,7 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-			if (operationData.m_sActualName.IsEmpty())
+			if (operationData.m_sActualName.IsEmpty() || operationData.m_lOccupiedTime < 0)
 				continue;
 
         //    if(operationData.m_sActualName != operationData.m_sSchedName)

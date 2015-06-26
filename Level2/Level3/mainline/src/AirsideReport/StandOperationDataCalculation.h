@@ -41,9 +41,9 @@ public:
 	long _data;
 };
 
-static bool IfActualStandIsBlank(CStandOperationReportData* pData)
+static bool IfStandOperationAvailable(CStandOperationReportData* pData)
 {
-	return pData->m_sActualName.IsEmpty();
+	return (pData->m_lSchedOn < 0 && pData->m_lSchedOff < 0) || (pData->m_lActualOn < 0 && pData->m_lActualOff < 0);
 }
 
 static void CalculateStandOccupancyTime(bool bSchedStand, std::vector<CStandOperationReportData*>& vResult, std::vector<long>& vOccupanyTime)
@@ -54,7 +54,7 @@ static void CalculateStandOccupancyTime(bool bSchedStand, std::vector<CStandOper
 		for(size_t i=0;i< vResult.size();i++)
 		{
 			CStandOperationReportData* data = vResult.at(i);
-			if (data->m_sSchedName.IsEmpty() == false)
+			if (data->m_sSchedName.IsEmpty() == false && (data->m_lSchedOn>=0 && data->m_lSchedOff>=0))
 			{
 				standMap[data->m_sSchedName]+= data->m_lSchedAvailableOccupancy;
 			}
@@ -71,7 +71,7 @@ static void CalculateStandOccupancyTime(bool bSchedStand, std::vector<CStandOper
 		for(size_t i=0;i< vResult.size();i++)
 		{
 			CStandOperationReportData* data = vResult.at(i);
-			if (data->m_sActualName.IsEmpty() == false)
+			if (data->m_sActualName.IsEmpty() == false &&(data->m_lActualOn>=0&&data->m_lActualOff>=0))
 			{
 				standMap[data->m_sActualName]+= data->m_lActualAvailableOccupancy;
 			}	
@@ -88,7 +88,7 @@ static void CalculateStandOccupancyTime(bool bSchedStand, std::vector<CStandOper
 static void CalculateStandConflict(char mode, std::vector<CStandOperationReportData*>& vResult, std::vector<int>& vConflicts )
 {
 	std::vector<CStandOperationReportData*> vReportData = vResult;
-	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfActualStandIsBlank);
+	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfStandOperationAvailable);
 	vReportData.erase(iter,vReportData.end());
 
 	if (vReportData.empty())
@@ -126,7 +126,7 @@ static void CalculateStandConflict(char mode, std::vector<CStandOperationReportD
 static void CalculateStandConflict(std::vector<CStandOperationReportData*>& vResult, std::vector<int>& vConflicts )
 {
 	std::vector<CStandOperationReportData*> vReportData = vResult;
-	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfActualStandIsBlank);
+	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfStandOperationAvailable);
 	vReportData.erase(iter,vReportData.end());
 
 	if (vReportData.empty())
@@ -168,7 +168,7 @@ static void CalculateStandConflict(std::vector<CStandOperationReportData*>& vRes
 static void CalculateStandDelay(char mode, std::vector<CStandOperationReportData*>& vResult, std::vector<long>& vOccupanyTime )
 {
 	std::vector<CStandOperationReportData*> vReportData = vResult;
-	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfActualStandIsBlank);
+	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfStandOperationAvailable);
 	vReportData.erase(iter,vReportData.end());
 
 	if (vReportData.empty())
@@ -210,7 +210,7 @@ static void CalculateStandDelay(char mode, std::vector<CStandOperationReportData
 static void CalculateStandDelay(std::vector<CStandOperationReportData*>& vResult, std::vector<long>& vOccupanyTime )
 {
 	std::vector<CStandOperationReportData*> vReportData = vResult;
-	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfActualStandIsBlank);
+	std::vector<CStandOperationReportData*>::iterator iter = std::remove_if(vReportData.begin(),vReportData.end(),IfStandOperationAvailable);
 	vReportData.erase(iter,vReportData.end());
 
 	std::sort(vReportData.begin(), vReportData.end(),DataCompareByActualStand);

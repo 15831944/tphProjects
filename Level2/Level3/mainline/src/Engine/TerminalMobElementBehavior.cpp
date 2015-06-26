@@ -151,7 +151,7 @@ TerminalMobElementBehavior::TerminalMobElementBehavior(Person* _pPerson)
 ,m_bCanServeWhenClosing(0)
 ,m_bIsArrivalDoor(false)
 ,m_IsWalkOnBridge(FALSE)
-,m_bhasBusServer(TRUE)
+,m_bhasBusServer(FALSE)
 //,m_nBridgeIndex(-1)
 ,m_entryPointCorner(-1)
 ,m_pLastTerminalProc(NULL)
@@ -479,19 +479,23 @@ void TerminalMobElementBehavior::processEntryAirside(ElapsedTime p_time)
 
 		if(HasBusForThisFlight(m_pPerson->getLogEntry().getDepFlight()),m_pPerson)
 			State = WALK_OUT_GATE ;
+
 		if(State == WALK_OUT_GATE)
 		{
-			if(!EnterFromTerminalModeToOtherMode())
+			if(EnterFromTerminalModeToOtherMode())//onboard mode
+			{
+				setState(EntryOnboard);
+				generateEvent (p_time,false);
+			}
+			else
 			{
 				AirsideFlightInSim* Airflight = getEngine()->GetAirsideSimulation()->GetAirsideFlight(m_pPerson->GetCurFlightIndex()) ;
 				if (Airflight)
 					Airflight->AddPaxInFlight();
+				generateEvent( p_time, false);
+				m_pPerson->setBehavior( new AirsidePassengerBehavior( m_pPerson,State));// departing to Airside mode.
 			}
-
-			generateEvent( p_time, false);
-			m_pPerson->setBehavior( new AirsidePassengerBehavior( m_pPerson,State));
-
-			return;// departing to Airside mode.
+			return;
 		}
 		else// just stop departing to Airside.(NO stand defined for passenger's flight)
 		{
@@ -6216,7 +6220,30 @@ bool TerminalMobElementBehavior::EnterFromTerminalModeToOtherMode()
 	if (pOnboardFlightInSim == NULL)
 		return false;
 	
-	pOnboardFlightInSim->AddCount();
+	if(m_pPerson->m_pGroupInfo->IsFollower())
+	{
+		pOnboardFlightInSim->RegisterPax(m_pPerson->getID());
+	}
+	else
+	{
+		CGroupLeaderInfo* pGroupLeaderInfo = (CGroupLeaderInfo*)m_pPerson->m_pGroupInfo;
+		//add passenger
+		pOnboardFlightInSim->RegisterPax(m_pPerson->getID());		
+		if(pGroupLeaderInfo->isInGroup())
+		{//pax in the group
+			MobileElementList &elemList = pGroupLeaderInfo->GetFollowerList();
+			int nFollowerCount = elemList.getCount();
+			for( int i=0; i< nFollowerCount; i++ )
+			{
+				Person* _pFollower = (Person*) elemList.getItem( i );
+				if(_pFollower != NULL)
+				{
+					pOnboardFlightInSim->RegisterPax(_pFollower->getID());
+				}
+			}
+		}
+	}
+
 	return true;
 }
 //--------------------------------------------------------------------------------------
@@ -6250,7 +6277,7 @@ void TerminalMobElementBehavior::EnterFromOnboardModeToTerminalMode(const Elapse
 	if (pOnboardFlightInSim == NULL)
 		return;
 
-	pOnboardFlightInSim->DecCount();
+	pOnboardFlightInSim->DeRegisterPax(m_pPerson->getID());
 
 	pOnboardFlightInSim->ProcessCloseDoor(tTime);
 }

@@ -661,7 +661,9 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			if (!pFlight->IsAllVehicleServiceExceptTowingCompleted())
 				return;
 
-			OnboardFlightInSim* pOnboardFlightInSim = pFlight->GetOnboardFlight();
+			//Check if all the passengers are leave the aircraft
+			//if not, the flight would not change to DEP mode
+			OnboardFlightInSim* pOnboardFlightInSim = pFlight->GetOnboardFlight(ARRIVAL_OPERATION);
 			if (pOnboardFlightInSim && !pOnboardFlightInSim->ReadyCloseDoor())
 			{
 				pOnboardFlightInSim->SetWaitAirsideFlight(pFlight);
@@ -669,6 +671,14 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			}
 
 			pFlight->ChangeToDeparture();
+
+			////switch to 
+			//pOnboardFlightInSim = pFlight->GetOnboardFlight();
+			//if (pOnboardFlightInSim && !pOnboardFlightInSim->ReadyCloseDoor())
+			//{
+			//	pOnboardFlightInSim->SetWaitAirsideFlight(pFlight);
+			//	return;
+			//}
 			pFlight->ResetVehicleService();
 		}	
 	}
@@ -694,18 +704,30 @@ void AirTrafficController::GetNextClearance( AirsideFlightInSim * pFlight, Clear
 			pFlight->ApplyTowingToDepStand();
 		}
 
+		//here need to check if all passengers are on board
+		//if has no onboard simulation, it would not check the passengers are on board or not
+		//if have, the flight should wait till all passenger are siting on their seat 
+		OnboardFlightInSim* pOnboardFlightInSim = pFlight->GetOnboardFlight(DEPARTURE_OPERATION);// it will return NULL if the flight is not simulated
+		if (pOnboardFlightInSim && !pOnboardFlightInSim->ReadyCloseDoor())
+		{
+			pOnboardFlightInSim->SetWaitAirsideFlight(pFlight);
+			return;
+		}
+
 		FLIGHTTOWCRITERIATYPE eTowType = pFlight->GetTowOffStandType();
  		if(eTowType != NOTTOW && !pFlight->HasTowingToDepStand())
  		{
  			if(!pFlight->IsAllVehicleServiceExceptTowingCompleted())
  				return;
- 
+
  		//	btillEnd = GetNextClearanceOfIntermediateParkingPart(pFlight,newclearance,lastClearanceItem);
 			btillEnd = DepartureFlightIntermediateStandProcess(pFlight,newclearance,lastClearanceItem);
  			if(btillEnd)
  				return;
  
  		}
+
+
 
 		if(pFlight->GetOperationParkingStand() == NULL )// if the departure flight cann't assign a parking stand, return and terminate it.
 		{

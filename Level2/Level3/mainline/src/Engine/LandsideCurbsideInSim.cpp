@@ -29,7 +29,13 @@ void LandsideCurbSideInSim::InitRelateWithOtherObject( LandsideResourceManager* 
 	mParkingSpots.Init(pCurbInput, allRes, this);
 	//init 
 
-
+	Side side = _Left;
+	int iAtLane = -1;
+	bool bHaveDecisionPoint = false;
+	if( pCurbInput->getDecisionLinePos(iAtLane,side))
+	{
+		bHaveDecisionPoint = true;
+	}
 	//add next to lane
 	for(int i=0;i<pStretch->GetLaneCount();i++)
 	{
@@ -39,11 +45,13 @@ void LandsideCurbSideInSim::InitRelateWithOtherObject( LandsideResourceManager* 
 
 		if(!pLane->HasParkingSpot())
 		{
+			
 			{
 				LandsideCurbsideSideExit* pCurbExit = new LandsideCurbsideSideExit;
 				pCurbExit->SetFromRes(this);
 				pCurbExit->SetDistRangeInlane(distF,distT);
 				pCurbExit->SetPosition(pLane,distF-RADIUS_CONVERN);
+				
 
 				m_vLaneEntries.push_back(pCurbExit);
 				pLane->AddLaneNode(pCurbExit);
@@ -53,7 +61,12 @@ void LandsideCurbSideInSim::InitRelateWithOtherObject( LandsideResourceManager* 
 				pCurbEntry->SetToRes(this);
 				pCurbEntry->SetDistRangeInlane(distF,distT);
 				pCurbEntry->SetPosition(pLane,distF);
-
+				if (bHaveDecisionPoint)
+				{
+					int nLaneCountToCurbside = abs(i - iAtLane) + 1;
+					pCurbEntry->SetLaneCountToRes(nLaneCountToCurbside);
+				}
+				
 				m_vLaneExits.push_back(pCurbEntry);
 				pLane->AddLaneNode(pCurbEntry);
 			}

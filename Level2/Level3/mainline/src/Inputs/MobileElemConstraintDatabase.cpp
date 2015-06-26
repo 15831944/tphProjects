@@ -266,8 +266,8 @@ void CMobileElemConstraintDatabase::writeDatabaseEx (ArctermFile& p_file, const 
 		aProbDist->writeDistribution (p_file);
 		//////////////////////////////////////////////////////////////////////////
 		// add by bird 2003/8/11, to write begin_time , end_time 
-		p_file.writeTime( pEntry->getBeginTime() );
-		p_file.writeTime( pEntry->getEndTime() );
+		p_file.writeTime( pEntry->getBeginTime(), TRUE );
+		p_file.writeTime( pEntry->getEndTime(), TRUE );
 		//////////////////////////////////////////////////////////////////////////
 		p_file.writeLine();
 	}

@@ -613,6 +613,7 @@ void CProcessDefineDlg::ReloadProcessFlow()
 
 	}
 
+    m_treeProcess.SetFocus();
 	m_hPocessSelItem = m_treeProcess.GetSelectedItem(); 		// make sure no item is selected
 	SetProcessTreeToolBar();
 }
@@ -620,6 +621,14 @@ void CProcessDefineDlg::ReloadProcessFlow()
 
 void CProcessDefineDlg::LoadSubTree(HTREEITEM hStartRoot, CProcessorDestinationList *startPair)
 {
+    if(!m_hInterestItem)
+    {
+        if(IsInterestNode(hStartRoot))
+        {
+            m_hInterestItem = hStartRoot;
+        }
+    }
+
 	CProcessorDestinationList *tempPair = startPair;
 	int iDestCount = tempPair->GetDestCount();
 	for(int i=0; i<iDestCount; ++i )
@@ -1220,55 +1229,34 @@ void CProcessDefineDlg::OnProcessAddDestNode()
 
 void CProcessDefineDlg::SubFlowInsertBeforeNode(HTREEITEM hItem)
 {
-	// TODO: Add your command handler code here
-	ASSERT( m_pCurFlow!= NULL );
-	ASSERT(m_hItemDragSrc != NULL);
-	if(m_hItemDragSrc == NULL)
-		return;
+    ASSERT(m_pCurFlow!= NULL);
+    ASSERT(m_hItemDragSrc != NULL);
+    if(m_hItemDragSrc == NULL)
+        return;
 
-	int iIdx = m_treeAllProcessor.GetItemData( m_hItemDragSrc );
-	ASSERT( iIdx>=0 && iIdx < static_cast<int>(m_vectProcessorID.size()) );
+    int iIdx = m_treeAllProcessor.GetItemData(m_hItemDragSrc);
+    ASSERT( iIdx>=0 && iIdx < static_cast<int>(m_vectProcessorID.size()));
 
-	ProcessorID id = m_vectProcessorID[iIdx];
-	TREEITEMDATA* pData = (TREEITEMDATA* )m_treeProcess.GetItemData( hItem );
-	ASSERT( pData );
+    ProcessorID id = m_vectProcessorID[iIdx];
+    TREEITEMDATA* pData = (TREEITEMDATA*)m_treeProcess.GetItemData(hItem);
+    ASSERT(pData);
+    ASSERT(((CSingleProcessFlow*)m_pCurFlow)->GetStartPair());
+    HTREEITEM hFather = m_treeProcess.GetParentItem(hItem);
+    TREEITEMDATA* pFatherData = (TREEITEMDATA*)m_treeProcess.GetItemData(hFather);
+    ASSERT(pFatherData);
+    CFlowDestination temp;
+    temp.SetProcID(id);
 
-	HTREEITEM hFather = m_treeProcess.GetParentItem( hItem );	
-	TREEITEMDATA* pFatherData = (TREEITEMDATA* )m_treeProcess.GetItemData( hFather );
-	ASSERT( pFatherData ); 
-	CFlowDestination temp;
-	temp.SetProcID( id );
-
-	if (pFatherData->m_procId.GetIDString().CompareNoCase("PROCESSSTART") == 0)
-	{
-
-		m_pCurFlow->AddIsolatedProc( id );
-
-		CProcessorDestinationList *pStartPair = ((CSingleProcessFlow *)m_pCurFlow)->GetStartPair();
-		if (pStartPair == NULL)
-			return;
-		pStartPair->AddDestProc(temp);
-		pStartPair->EvenPercent();
-	}
-	else
-	{
-		// check if exist a circle
-		CSinglePaxTypeFlow tmpFlow( *m_pCurFlow );
-		tmpFlow.InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
-		tmpFlow.SetChangedFlag( true );
-
-
-		if(HandleSingleFlowLogic::IfHaveCircleFromProc(&tmpFlow,pFatherData->m_procId))
-		{
-
-			MessageBox("If you add the processor,will make a circle!\r\nSo can not add the processor",NULL, MB_OK|MB_ICONINFORMATION );
-			return;
-		}
-
-		m_pCurFlow->InsertBetween( pFatherData->m_procId, pData->m_procId, temp );
-	}
-
-	
+    // check if exist a circle
+    CSingleProcessFlow tmpFlow(*m_pCurFlow);
+    tmpFlow.InsertBetwwen(pFatherData->m_procId, pData->m_procId, temp);
+    tmpFlow.SetChangedFlag(true);
+    if(HandleSingleFlowLogic::IfHaveCircleFromProc(&tmpFlow,pFatherData->m_procId))
+    {
+        MessageBox("If you add the processor,will make a circle!\r\nSo can not add the processor",NULL, MB_OK|MB_ICONINFORMATION);
+        return;
+    }
+    m_pCurFlow->InsertBetwwen(pFatherData->m_procId, pData->m_procId, temp);
 }
 
 void CProcessDefineDlg::OnProcessAddBefore() 
@@ -1311,47 +1299,24 @@ void CProcessDefineDlg::OnProcessAddBefore()
 
 void CProcessDefineDlg::SubFlowInsertAfterNode(HTREEITEM hItem)
 {
+    ASSERT(m_pCurFlow != NULL);
+    int iIdx = m_treeAllProcessor.GetItemData(m_hItemDragSrc);
+    ASSERT(iIdx>=0 && iIdx < static_cast<int>(m_vectProcessorID.size()));
+    ProcessorID id = m_vectProcessorID[iIdx];
+    TREEITEMDATA* pData = (TREEITEMDATA*)m_treeProcess.GetItemData(m_hItemDragDes);
+    ASSERT(pData);
+    ASSERT(((CSingleProcessFlow*)m_pCurFlow)->GetStartPair());
 
-	ASSERT( m_pCurFlow!= NULL );
-
-	int iIdx = m_treeAllProcessor.GetItemData( m_hItemDragSrc );
-	ASSERT( iIdx>=0 && iIdx < static_cast<int>(m_vectProcessorID.size()) );
-
-	ProcessorID id = m_vectProcessorID[iIdx];
-
-	TREEITEMDATA* pData = (TREEITEMDATA* )m_treeProcess.GetItemData( m_hItemDragDes );
-	ASSERT( pData );
-
-	CFlowDestination temp;
-	temp.SetProcID( id );
-
-	if (pData->m_procId.GetIDString().CompareNoCase("PROCESSSTART") == 0)
-	{
-// 		m_pCurFlow->AddIsolatedProc( id );
-// 	
-		CProcessorDestinationList *pStartPair = ((CSingleProcessFlow *)m_pCurFlow)->GetStartPair();
-		if (pStartPair == NULL)
-			return;
-// 		pStartPair->AddDestProc(temp);
-// 		pStartPair->EvenPercent();
-	}
-	//else
-	{
-		// check if exist a circle
-		CSinglePaxTypeFlow tmpFlow( *m_pCurFlow );
-		tmpFlow.InsertProceoosorAfter( pData->m_procId, id );
-		tmpFlow.SetChangedFlag( true );
-
-
-		if( HandleSingleFlowLogic::IfHaveCircleFromProc(&tmpFlow,pData->m_procId))
-		{
-			MessageBox("If you add the processor,will make a circle!\r\nSo can not add the processor",NULL, MB_OK|MB_ICONINFORMATION );
-			return;
-		}
-
-
-		m_pCurFlow->InsertProceoosorAfter( pData->m_procId, id );
-	}
+    // check if exist a circle
+    CSingleProcessFlow tmpFlow(*m_pCurFlow);
+    tmpFlow.InsertProceoosorAfter(pData->m_procId, id);
+    tmpFlow.SetChangedFlag(true);
+    if( HandleSingleFlowLogic::IfHaveCircleFromProc(&tmpFlow,pData->m_procId))
+    {
+        MessageBox("If you add the processor,will make a circle!\r\nSo can not add the processor", NULL, MB_OK|MB_ICONINFORMATION);
+        return;
+    }
+    m_pCurFlow->InsertProceoosorAfter(pData->m_procId, id);
 }
 
 void CProcessDefineDlg::OnProessAddAfter() 
@@ -1910,14 +1875,6 @@ void CProcessDefineDlg::SetToolbarAddBut()
 	if( m_treeProcess.GetParentItem( m_hPocessSelItem)==NULL )
 	{
 		m_toolBarProcessTree.GetToolBarCtrl().EnableButton( ID_PD_INSERT_BEFORE,false );
-		//m_toolBarProcessTree.GetToolBarCtrl().EnableButton( ID_PD_INSERT_AFTER,false );
-	}
-	else
-	{
-		if (m_treeProcess.GetParentItem(m_treeProcess.GetParentItem( m_hPocessSelItem)) == NULL)
-		{
-			m_toolBarProcessTree.GetToolBarCtrl().EnableButton( ID_PD_INSERT_BEFORE,false );
-		}	
 	}
 	
 	if( !m_treeProcess.ItemHasChildren( m_hPocessSelItem) )

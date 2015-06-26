@@ -23,7 +23,7 @@ class COMMON_TRANSFER DistanceRay3Line3
 public:
 	DistanceRay3Line3(const ARCRay& ray,const Line& line);
 
-	DistanceUnit GetSquared(DistanceUnit dTolerance);
+	DistanceUnit GetSquared(DistanceUnit dTolerance);// calculate distance from segment to ray, return distance^2
 	bool intersects();//ray intersect with line
 
 	DistanceUnit m_fRayParameter;

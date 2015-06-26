@@ -37,7 +37,7 @@ public:
 	void AddDestProc(const ProcessorID & _sourceProcID,const CFlowDestination& _destProc , bool _bMustEvenPercent = true);
 
 	// add _secondProc to _newProc's destination list  , add _newProc  to _firstProc's destination list and remove _secondProc from _firstProc's destination list
-	virtual void InsertBetween( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc );
+	virtual void InsertBetwwen( const ProcessorID & _firstProcID, const ProcessorID & _secondProcID, const CFlowDestination& _newProc );
 
 	//remove _destProc from _sourceProc's destination list if this pair is derived from father and _sourceProc has only one destination ,that is _destProc, then this operation is not allowed.
 	void CutLinkWithSourceProc( const  ProcessorID& _sourceProcID, const ProcessorID& _destProcID );

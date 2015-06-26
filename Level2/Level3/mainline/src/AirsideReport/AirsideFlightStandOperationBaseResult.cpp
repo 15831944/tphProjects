@@ -175,8 +175,8 @@ BOOL CAirsideFlightStandOperationBaseResult::ExportReportData( ArctermFile& _fil
 	{
 		CStandOperationReportData* pData = m_vResult.at(nIndex);
 
-		_file.writeField(pData->m_sID);
 		_file.writeInt(pData->m_lFlightIndex);
+		_file.writeField(pData->m_sID);
 		_file.writeField(pData->m_sACType);
 		_file.writeChar(pData->m_fltmode);
 
@@ -219,9 +219,9 @@ BOOL CAirsideFlightStandOperationBaseResult::ImportReportData( ArctermFile& _fil
 	{
 		CStandOperationReportData* pData = new CStandOperationReportData;
 
+		_file.getInteger(pData->m_lFlightIndex);
 		_file.getField(pData->m_sID.GetBuffer(1024),1024);
 		pData->m_sID.ReleaseBuffer();
-		_file.getInteger(pData->m_lFlightIndex);
 		_file.getField(pData->m_sACType.GetBuffer(1024),1024);
 		pData->m_sACType.ReleaseBuffer();
 		_file.getChar(pData->m_fltmode);
@@ -276,8 +276,8 @@ BOOL CAirsideFlightStandOperationBaseResult::WriteReportData( ArctermFile& _file
 	{
 		CStandOperationReportData* pData = m_vResult.at(nIndex);
 
-		_file.writeField(pData->m_sID);
 		_file.writeInt(pData->m_lFlightIndex);
+		_file.writeField(pData->m_sID);
 		_file.writeField(pData->m_sACType);
 		_file.writeChar(pData->m_fltmode);
 
@@ -317,10 +317,9 @@ BOOL CAirsideFlightStandOperationBaseResult::ReadReportData( ArctermFile& _file 
 	for (int nIndex = 0; nIndex < nCount; nIndex++)
 	{
 		CStandOperationReportData* pData = new CStandOperationReportData;
-
+		_file.getInteger(pData->m_lFlightIndex);
 		_file.getField(pData->m_sID.GetBuffer(1024),1024);
 		pData->m_sID.ReleaseBuffer();
-		_file.getInteger(pData->m_lFlightIndex);
 		_file.getField(pData->m_sACType.GetBuffer(1024),1024);
 		pData->m_sACType.ReleaseBuffer();
 		_file.getChar(pData->m_fltmode);
@@ -479,30 +478,45 @@ void CDetailStandOperationResult::FillListContent(CXListCtrl& cxListCtrl, CParam
 	{
 		CStandOperationReportData* pData = m_vResult[i];
 
-		if (pData->m_sActualName.IsEmpty() == true)
-			continue;
-		
 		int nIndex = cxListCtrl.InsertItem(i, pData->m_sID);
 
 		cxListCtrl.SetItemText(nIndex,  1, pData->m_sACType);
 
 		cxListCtrl.SetItemText(nIndex,  2, pData->m_sSchedName);
-		cxListCtrl.SetItemText(nIndex,  3, FormatDHMS(pData->m_lSchedOn/100));
-		cxListCtrl.SetItemText(nIndex,  4, FormatDHMS(pData->m_lSchedOff/100));
-		cxListCtrl.SetItemText(nIndex,  5, FormatHMS(pData->m_lSchedOccupancy/100));
+		if (pData->m_lSchedOn >= 0 && pData->m_lSchedOff >=0)
+		{
+			cxListCtrl.SetItemText(nIndex,  3, FormatDHMS(pData->m_lSchedOn/100));
+			cxListCtrl.SetItemText(nIndex,  4, FormatDHMS(pData->m_lSchedOff/100));
+		}
 
+		if (pData->m_sSchedName.IsEmpty() == false)
+		{
+			cxListCtrl.SetItemText(nIndex,  5, FormatHMS(pData->m_lSchedOccupancy/100));
+		}
+		
 		cxListCtrl.SetItemText(nIndex,  6, pData->m_sActualName);	
-		cxListCtrl.SetItemText(nIndex,  7, FormatDHMS(pData->m_lActualOn/100));
-		cxListCtrl.SetItemText(nIndex,  8, FormatDHMS(pData->m_lActualOff/100));
-		cxListCtrl.SetItemText(nIndex,  9, FormatHMS(pData->m_lActualOccupancy/100));
+		if (pData->m_lActualOn >= 0 && pData->m_lActualOff>=0)
+		{
+			cxListCtrl.SetItemText(nIndex,  7, FormatDHMS(pData->m_lActualOn/100));
+			cxListCtrl.SetItemText(nIndex,  8, FormatDHMS(pData->m_lActualOff/100));
+		}
 
-		cxListCtrl.SetItemText(nIndex, 10, FormatHMS(pData->m_lDelayEnter/100));
-		cxListCtrl.SetItemText(nIndex, 11, FormatHMS(pData->m_lDueStandOccupied/100));
+		if (pData->m_sActualName.IsEmpty() == false)
+		{
+			cxListCtrl.SetItemText(nIndex,  9, FormatHMS(pData->m_lActualOccupancy/100));
+		}
+		
+		if (pData->m_lActualOn >= 0 && pData->m_lActualOff>=0)
+		{
+			cxListCtrl.SetItemText(nIndex, 10, FormatHMS(pData->m_lDelayEnter/100));
+			cxListCtrl.SetItemText(nIndex, 11, FormatHMS(pData->m_lDueStandOccupied/100));
 
-		cxListCtrl.SetItemText(nIndex, 12, FormatHMS(pData->m_lDelayLeaving/100));
-		cxListCtrl.SetItemText(nIndex, 13, FormatHMS(pData->m_lDueTaxiwayOccupied/100));
-		cxListCtrl.SetItemText(nIndex, 14, FormatHMS(pData->m_lDueGSE/100));
-		cxListCtrl.SetItemText(nIndex, 15, FormatHMS(pData->m_lDuePushbackClearance/100));
+			cxListCtrl.SetItemText(nIndex, 12, FormatHMS(pData->m_lDelayLeaving/100));
+			cxListCtrl.SetItemText(nIndex, 13, FormatHMS(pData->m_lDueTaxiwayOccupied/100));
+			cxListCtrl.SetItemText(nIndex, 14, FormatHMS(pData->m_lDueGSE/100));
+			cxListCtrl.SetItemText(nIndex, 15, FormatHMS(pData->m_lDuePushbackClearance/100));
+		}
+	
 	
 	}	
 }

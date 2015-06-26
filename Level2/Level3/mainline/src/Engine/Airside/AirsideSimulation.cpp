@@ -614,7 +614,7 @@ void AirsideSimulation::OnboardFlightGeneration(AirsideFlightInSim * pFlightInSi
 	//onboard departure flight
 	if(pFlightInSim->IsDeparture())
 	{
-		OnboardFlightInSim* pDepFlightInSim = pOnboardSim->GetOnboardFlightInSim(pFlightInSim,true);
+		OnboardFlightInSim* pDepFlightInSim = pOnboardSim->GetOnboardFlightInSim(pFlightInSim,false);
 		if (pDepFlightInSim)
 		{
 			ElapsedTime& tDepTime = pFlightInSim->GetDepTime();

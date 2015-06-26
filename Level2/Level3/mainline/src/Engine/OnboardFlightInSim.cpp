@@ -39,6 +39,8 @@
 #include "Airside/AirsideSimulation.h"
 #include "../Results/OutputAirside.h"
 #include "../InputOnboard/OnBoardSeatBlockData.h"
+#include "OnboardArrivalFlightInSim.h"
+#include "OnboardDepartureFlightInSim.h"
 
 OnboardFlightInSim::OnboardFlightInSim(Flight *pFlight,bool bArrival, COnboardFlight *pOnboardFlight)
 :m_pCellGraph(NULL)
@@ -64,7 +66,6 @@ OnboardFlightInSim::OnboardFlightInSim(Flight *pFlight,bool bArrival, COnboardFl
 	m_pDoorAssignmentInSim = NULL;
 
 	m_pArcportEngine = NULL;
-	m_nCloseCondition = 0;
 	m_bGenerateCloseDoorEvent = false;
 	m_pWaitAirsideFlight = NULL;
 	Initialize();
@@ -818,12 +819,7 @@ bool OnboardFlightInSim::ProcessCloseDoor(const ElapsedTime& time)
 
 bool OnboardFlightInSim::ReadyCloseDoor() const
 {
-	return (m_nCloseCondition == 0 && m_bGenerateCloseDoorEvent) ? true : false;
-}
-
-void OnboardFlightInSim::AddCount()
-{
-	m_nCloseCondition++;
+	return (m_vRegisterPax.size()== 0 && m_bGenerateCloseDoorEvent) ? true : false;
 }
 
 void OnboardFlightInSim::ClearPaxFromHisSeat(int nPaxID, ElapsedTime eTime)
@@ -847,13 +843,6 @@ void OnboardFlightInSim::ClearPaxFromHisSeat(int nPaxID, ElapsedTime eTime)
 				}
 			}			
 		}	
-	}
-}
-void OnboardFlightInSim::DecCount()
-{
-	if (m_nCloseCondition != 0)
-	{
-		m_nCloseCondition--;
 	}
 }
 
@@ -886,6 +875,43 @@ void OnboardFlightInSim::GetFitestDoor( const DoorOperationInSim* pDoorOperation
 		}
 	}
 }
+
+bool OnboardFlightInSim::IsAllPaxOnBoard()
+{
+	if(m_vRegisterPax.size())
+		return false;
+
+	return true;
+}
+
+bool OnboardFlightInSim::RegisterPax( int nPaxID )
+{
+	if(std::find(m_vRegisterPax.begin(), m_vRegisterPax.end(), nPaxID) == m_vRegisterPax.end())
+	{
+		m_vRegisterPax.push_back(nPaxID);
+		return true;
+	}
+
+	//the passenger already exists
+	ASSERT(0);
+	return false;
+}
+
+bool OnboardFlightInSim::DeRegisterPax( int nPaxID )
+{
+	TRACE("\r\n Removing %d \r\n", nPaxID);
+	std::vector<int>::iterator iterFind = std::find(m_vRegisterPax.begin(), m_vRegisterPax.end(), nPaxID);
+	if(iterFind != m_vRegisterPax.end())
+	{	
+		m_vRegisterPax.erase(iterFind);
+		return true;
+	}
+	
+	//the pax does not exist in flight
+	ASSERT(0);
+	return false;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 OnboardFlightInSimList::OnboardFlightInSimList(COnBoardAnalysisCandidates* pFlightCandiates)
@@ -940,13 +966,19 @@ OnboardFlightInSim * OnboardFlightInSimList::GetOnboardFlightInSim(AirsideFlight
 	
 	if(pExistFlight)
 	{
-		pOnboardFlightInSim  = new OnboardFlightInSim(pFlight,bArrival,pExistFlight);
+
 
 		AirsideFlightDescStruct& fltDesc = pFlightInSim->GetLogEntry().GetAirsideDesc();	
 		if(bArrival)
+		{
+			pOnboardFlightInSim  = new OnboardArrivalFlightInSim(pFlight,pExistFlight);
 			fltDesc.nOnboardArrID = pExistFlight->getID();
+		}
 		else
+		{
+			pOnboardFlightInSim  = new OnboardDepartureFlightInSim(pFlight,pExistFlight);
 			fltDesc.nOnboardDepID = pExistFlight->getID();
+		}
 		
 		m_vOnboardFlight.push_back(pOnboardFlightInSim);
 	}

@@ -65,14 +65,14 @@ public:
 		ComponentItem,
 	};
 	void UpdateSelcetedItemType();
-
+	BOOL IsLocked();
 protected:
 	void SetDefaultCursor() ;
 	BOOL IsDragAllowed(HTREEITEM hDragItem, HTREEITEM hDropItem);
 	void CheckChildItems(HTREEITEM hParentItem, BOOL bVisible);
 	// call this method when a new component is drop into the 3d view
 	void UpdateNewComponent(const C3DNodeObject& nodeNew);
-	BOOL IsLocked();
+
 protected:
 	//{{AFX_MSG(cBuddyTree)
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);

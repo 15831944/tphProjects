@@ -221,12 +221,19 @@ bool LandsideRouteGraph::FindRouteStretchPosToRes( LandsideLaneInSim* plane, Dis
 bool LandsideRouteGraph::_FindRouteNodesToNodes( const LandsideLaneNodeList& vNodesF,const LandsideLaneNodeList& vNodesT, LandsideLaneNodeList& routeRet,DistanceUnit& shortestDist )
 {	
 	bool bGetRoute = false;
+	int iShortestLaneCountToRes = 0;
 	for(size_t i=0;i<vNodesF.size();i++)
 	{
 		LandsideLaneNodeInSim* pNodeF = vNodesF.at(i);
 		for(size_t j=0;j<vNodesT.size();j++)
 		{
 			LandsideLaneNodeInSim*pNodeT = vNodesT.at(j);
+			LandsideLaneExit* pExit = pNodeT->toExit();
+			int iLaneCountToCurbside = 0;
+			if (pExit)
+			{
+				iLaneCountToCurbside = pExit->GetLaneCountToRes();
+			}
 			LandsideLaneNodeList routepath;
 			DistanceUnit pathDist ;
 			if(_FindRouteNodeToNode(pNodeF,pNodeT,routepath,pathDist))
@@ -236,12 +243,27 @@ bool LandsideRouteGraph::_FindRouteNodesToNodes( const LandsideLaneNodeList& vNo
 					shortestDist = pathDist;
 					routeRet = routepath;
 					bGetRoute = true;
+					iShortestLaneCountToRes = iLaneCountToCurbside;
 				}
-				else if(pathDist < shortestDist)
+				else if (iShortestLaneCountToRes > iLaneCountToCurbside)
 				{
+					iShortestLaneCountToRes = iLaneCountToCurbside;
 					shortestDist = pathDist;
 					routeRet = routepath;
 				}
+				else if (iShortestLaneCountToRes == iLaneCountToCurbside)
+				{
+					if (pathDist < shortestDist)
+					{
+						shortestDist = pathDist;
+						routeRet = routepath;
+					}
+				}
+				//else if(pathDist < shortestDist)
+				//{
+				//	shortestDist = pathDist;
+				//	routeRet = routepath;
+				//}
 			}
 		}
 	}

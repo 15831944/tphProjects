@@ -126,9 +126,25 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 		bar.StepIt();
 	}
 	
+	std::vector<ALTObjectID> vScheduleStandID;
 	for (int iDesc = 0; iDesc< nCount;  iDesc++)
 	{
 		AirsideFlightLogDesc fltdesc = logDesList[iDesc];
+		CString strAcType = fltdesc.sAcType.c_str();
+		CString strFlightID;
+
+		if (fltdesc.sArrID.empty() == false)
+		{
+			std::string str = fltdesc.sAirline + fltdesc.sArrID;
+			strFlightID= str.c_str();
+		}
+
+		if (fltdesc.sDepID.empty() == false)
+		{
+			strFlightID += "/";
+			std::string str = fltdesc.sAirline + fltdesc.sDepID;
+			strFlightID += str.c_str();
+		}
 		//arr stand
 		if(fltdesc.sSchedArrStand.empty() == false)
 		{	
@@ -140,20 +156,25 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 				{
 					CStandOperationReportData* pData = new CStandOperationReportData();
 					pData->m_lFlightIndex = fltdesc.id;
+					pData->m_sID = strFlightID;
+					pData->m_sACType = strAcType;
 					pData->m_fltmode = 'A';
 					pData->m_lSchedOn = fltdesc.SchedArrOn;
 					pData->m_lSchedOff = fltdesc.SchedArrOff;
 					pData->m_sSchedName = fltdesc.sSchedArrStand.c_str();
 					pData->m_lSchedOccupancy = fltdesc.SchedArrOff - fltdesc.SchedArrOn;
 
+
 					long lMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),fltdesc.SchedArrOff);
 					long lMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),fltdesc.SchedArrOn);
 					pData->m_lSchedAvailableOccupancy = MAX(lMinOffTime - lMaxOnTime,0);
 					m_vStandOperationReportData.push_back(pData);
 				}
+				if (std::find(vScheduleStandID.begin(),vScheduleStandID.end(),arrStand) == vScheduleStandID.end())
+				{
+					vScheduleStandID.push_back(arrStand);
+				}
 			}
-	
-			
 		}
 		//intermediate stand
 		if(fltdesc.sSchedIntStand.empty() == false)
@@ -166,17 +187,27 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 				{
 					CStandOperationReportData* pData = new CStandOperationReportData();
 					pData->m_lFlightIndex = fltdesc.id;
+					pData->m_sID = strFlightID;
+					pData->m_sACType = strAcType;
 					pData->m_fltmode = 'D';
 					pData->m_lSchedOn = fltdesc.SchedIntOn;
 					pData->m_lSchedOff = fltdesc.SchedIntOff;
 					pData->m_sSchedName = fltdesc.sSchedIntStand.c_str();
 					pData->m_lSchedOccupancy = fltdesc.SchedIntOff - fltdesc.SchedIntOn;
+
+
 					long lMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),fltdesc.SchedIntOff);
 					long lMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),fltdesc.SchedIntOn);
 					pData->m_lSchedAvailableOccupancy = MAX(lMinOffTime - lMaxOnTime,0);
 					m_vStandOperationReportData.push_back(pData);
 				}
+				if (std::find(vScheduleStandID.begin(),vScheduleStandID.end(),intStand) == vScheduleStandID.end())
+				{
+					vScheduleStandID.push_back(intStand);
+				}
 			}
+
+		
 		}
 
 		//departure stand
@@ -195,17 +226,25 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 				{
 					CStandOperationReportData* pData = new CStandOperationReportData();
 					pData->m_lFlightIndex = fltdesc.id;
+					pData->m_sID = strFlightID;
+					pData->m_sACType = strAcType;
 					pData->m_fltmode = 'D';
 					pData->m_lSchedOn = lSchedOn;
 					pData->m_lSchedOff = fltdesc.SchedDepOff;
 					pData->m_sSchedName = fltdesc.sSchedDepStand.c_str();
 					pData->m_lSchedOccupancy = fltdesc.SchedDepOff - lSchedOn;
+
 					long lMinOffTime =MIN(pParameter->getEndTime().getPrecisely(),fltdesc.SchedDepOff);
 					long lMaxOnTime = MAX(pParameter->getStartTime().getPrecisely(),lSchedOn);
 					pData->m_lSchedAvailableOccupancy = MAX(lMinOffTime - lMaxOnTime,0);
 					m_vStandOperationReportData.push_back(pData);
 				}
+				if (std::find(vScheduleStandID.begin(),vScheduleStandID.end(),depStand) == vScheduleStandID.end())
+				{
+					vScheduleStandID.push_back(depStand);
+				}
 			}
+			
 		}
 	
 	}
@@ -226,14 +265,46 @@ void StandOperationDataProcessor::LoadDataAndProcess( CBGetLogFilePath pCBGetLog
 	for (unsigned nStand = 0; nStand < nAllStandCount; nStand++)
 	{
 		ALTObjectID standID = vStandID.at(nStand);
+		bool bSchedule = true;
+		bool bActual = true;
 		if (FindStandUseActualInformation(standID) == false)
 		{
 			m_nIdleActualStand++;
+			bActual = false;
 		}
 		
-		if (m_pScheduleStand(standID.GetIDString()) == false)
+		if (std::find(vScheduleStandID.begin(),vScheduleStandID.end(),standID) == vScheduleStandID.end())
 		{
 			m_nIdleScheduleStand++;
+			bSchedule = false;
+		}
+
+		if (bSchedule == false && bActual == false)
+		{
+			CStandOperationReportData* pData = new CStandOperationReportData();
+			pData->m_sSchedName = standID.GetIDString();
+			pData->m_lSchedOccupancy = 0l;
+
+			pData->m_sActualName = standID.GetIDString();
+			pData->m_lActualOccupancy = 0l;
+
+			m_vStandOperationReportData.push_back(pData);
+		}
+		else if (bSchedule == false)
+		{
+			CStandOperationReportData* pData = new CStandOperationReportData();
+			pData->m_sSchedName = standID.GetIDString();
+			pData->m_lSchedOccupancy = 0l;
+
+			m_vStandOperationReportData.push_back(pData);
+		}
+		else if (bActual == false)
+		{
+			CStandOperationReportData* pData = new CStandOperationReportData();
+			pData->m_sActualName = standID.GetIDString();
+			pData->m_lActualOccupancy = 0l;
+
+			m_vStandOperationReportData.push_back(pData);
 		}
 	}
 }

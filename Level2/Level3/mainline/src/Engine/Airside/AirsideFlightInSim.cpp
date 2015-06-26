@@ -4864,6 +4864,25 @@ OnboardFlightInSim* AirsideFlightInSim::GetOnboardFlight()
 	return pOnboardFlightInSim;
 }
 
+OnboardFlightInSim* AirsideFlightInSim::GetOnboardFlight( FlightOperation fltOperation )
+{
+	if (m_pARCPortEngine == NULL)
+		return NULL;
+
+	if(!m_pARCPortEngine->IsOnboardSel())
+		return NULL;
+
+	OnboardSimulation* pOnboardSim = m_pARCPortEngine->GetOnboardSimulation();
+	if (pOnboardSim == NULL)
+		return NULL;
+
+	bool bArrival = (fltOperation == ARRIVAL_OPERATION)? true : false;
+
+	OnboardFlightInSim* pOnboardFlightInSim = pOnboardSim->GetOnboardFlightInSim(this,bArrival);
+
+	return pOnboardFlightInSim;
+}
+
 BOOL AirsideFlightInSim::hasPaxBusService(char mode) const
 {
 	PLACE_METHOD_TRACK_STRING();
@@ -4885,7 +4904,7 @@ BOOL AirsideFlightInSim::hasPaxBusService(char mode) const
 bool AirsideFlightInSim::DeparturePaxBusService()
 {
 	if(GetDepParkingStand() == NULL)
-		return true;
+		return false;
 
 	if (m_pServiceRequestDispatcher->IsVehicleService() == false)
 		return false;
@@ -5260,4 +5279,30 @@ LogicRunwayInSim * AirsideFlightInSim::GetTakeoffRunway()
 void AirsideFlightInSim::SetEstimateLandingTime( const ElapsedTime& t )
 {
 	m_estimateLandingTime = t;
+}
+
+bool AirsideFlightInSim::IsAllPaxOnBoard()
+{
+	ASSERT( m_pARCPortEngine != NULL);
+	if(m_pARCPortEngine == NULL)
+		return true;
+
+
+	if(m_pARCPortEngine->IsOnboardSel())//if onboard selected in simulation, and has onboard flight simulated.
+	{
+		OnboardFlightInSim * pOnboardFlight = m_pARCPortEngine->GetOnboardSimulation()->GetOnboardFlightInSim(this, IsArrivingOperation());
+		if(pOnboardFlight != NULL)
+		{
+			if(pOnboardFlight->IsAllPaxOnBoard())
+				return true;
+			else
+				return false;
+		}
+	}
+
+	//airside
+	if(GetPaxCount() != 0)
+		return false;
+	else
+		return true;
 }
