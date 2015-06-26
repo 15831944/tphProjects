@@ -17,6 +17,10 @@ IMPLEMENT_DYNAMIC(CAircraftEntryProcessorDlg, CDialog)
     CAircraftEntryProcessorDlg::CAircraftEntryProcessorDlg(InputTerminal* _pInTerm, CWnd* pParent)
     : CDialog(CAircraftEntryProcessorDlg::IDD, pParent)
     , m_pInTerm(_pInTerm)
+    , m_pBCPaxData(NULL)
+    , m_oldCx(0)
+    , m_oldCy(0)
+    , m_bDragging(false)
 {
 }
 
@@ -28,7 +32,7 @@ void CAircraftEntryProcessorDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_TREE_ENTRYPROC, m_procTree);
-    DDX_Control(pDX, IDC_LIST_PAXTYPE, m_listPaxType);
+    DDX_Control(pDX, IDC_LIST_PAXTYPE, m_paxList);
 }
 
 
@@ -37,12 +41,17 @@ BEGIN_MESSAGE_MAP(CAircraftEntryProcessorDlg, CDialog)
     ON_WM_CREATE()
     ON_WM_GETMINMAXINFO()
     ON_NOTIFY_EX(TTN_NEEDTEXTA, 0, OnToolTipText)
-    ON_BN_CLICKED(IDC_BTN_SAVE, OnBnClickedBtnSave)
+    ON_BN_CLICKED(IDOK, OnOK)
+    ON_BN_CLICKED(IDCANCEL, OnCancel)
+    ON_BN_CLICKED(IDC_BTN_SAVE, OnSave)
     ON_COMMAND(ID_TOOLBAR_ADD, OnToolbarButtonAdd)
     ON_COMMAND(ID_TOOLBAR_DEL, OnToolbarButtonDel)
-    ON_NOTIFY(NM_DBLCLK, IDC_LIST_PAXTYPE, OnNMDblclkListPaxtype)
-    ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_PAXTYPE, OnLvnItemchangedListPaxtype)
-    ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_ENTRYPROC, OnTvnSelchangedTreeEntryproc)
+    ON_NOTIFY(NM_DBLCLK, IDC_LIST_PAXTYPE, OnDblClickListItem)
+    ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_PAXTYPE, OnSelChangedPaxList)
+    ON_NOTIFY(TVN_SELCHANGED, IDC_TREE_ENTRYPROC, OnSelChangedTree)
+    ON_WM_MOUSEMOVE()
+    ON_WM_LBUTTONDOWN()
+    ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 int CAircraftEntryProcessorDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -64,6 +73,8 @@ BOOL CAircraftEntryProcessorDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
+    GetDlgItem(IDC_BTN_SAVE)->EnableWindow(FALSE);
+
     m_pBCPaxData = m_pInTerm->bcPaxData;
     m_vIncType.push_back(PointProc);
     m_vIncType.push_back(DepSourceProc);
@@ -83,25 +94,24 @@ BOOL CAircraftEntryProcessorDlg::OnInitDialog()
     m_vIncType.push_back(BillboardProcessor);
     m_vIncType.push_back(BridgeConnectorProc);
     m_vIncType.push_back(RetailProc);
-    ReloadACEntryProcTree();
+    LoadProcTree();
 
     CRect rect;
-    m_listPaxType.GetWindowRect(rect);
+    m_paxList.GetWindowRect(rect);
     ScreenToClient(rect);
     m_toolbarPaxType.SetWindowPos(NULL,rect.left,rect.top-26,rect.Width(),26,NULL);
     DisableAllToolBarButtons();
-    m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_ADD, TRUE);
 
-    DWORD dwStyle = m_listPaxType.GetExtendedStyle();
+    DWORD dwStyle = m_paxList.GetExtendedStyle();
     dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES;
-    m_listPaxType.SetExtendedStyle(dwStyle);
-    m_listPaxType.InsertColumn(0, _T("Passenger Type"), LVCFMT_LEFT, 180);
-    m_listPaxType.InsertColumn(1, _T("Probability Distribution(SECONDS)"), LVCFMT_LEFT, 320);
+    m_paxList.SetExtendedStyle(dwStyle);
+    m_paxList.InsertColumn(0, _T("Passenger Type"), LVCFMT_LEFT, 180);
+    m_paxList.InsertColumn(1, _T("Probability Distribution(SECONDS)"), LVCFMT_LEFT, 320);
 
     return TRUE;
 }
 
-void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
+void CAircraftEntryProcessorDlg::LoadProcTree()
 {
     AfxGetApp()->BeginWaitCursor();
     if(m_pInTerm == NULL)
@@ -134,6 +144,7 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
     StringList strDict;
     for(size_t level1=0; level1<m_vIncType.size(); level1++)
         procList->getAllGroupNames(strDict, m_vIncType[level1]);
+
     for(int level1=0; level1<strDict.getCount(); level1++)
     {
         CString strLevel1 = strDict.getString(level1);
@@ -162,6 +173,7 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
         for(int level2=0; level2<static_cast<int>(m_vIncType.size()); level2++)
             procList->getMemberNames(id, strDictLevel2, m_vIncType[level2]);
 
+        int bExpandL1 = TVE_COLLAPSE;
         for(int level2=0; level2<strDictLevel2.getCount(); level2++)
         {
             CString strLevel2 = strDictLevel2.getString (level2);
@@ -176,6 +188,7 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
             vData = pEntryTimeDB->FindEntryByProcID(id);
             if(!vData.empty())
             {
+                bExpandL1 = TVE_EXPAND;
                 cni.clrItem = SELECTED_COLOR;
                 cni.lfontItem.lfWeight = 700;
             }
@@ -190,6 +203,7 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
             for(int level3=0; level3<static_cast<int>(m_vIncType.size()); level3++)
                 procList->getMemberNames(id,strDictLevel3, m_vIncType[level3]);
 
+            int bExpandL2 = TVE_COLLAPSE;
             for(int level3=0; level3<strDictLevel3.getCount(); level3++)
             {
                 CString strLevel3 = strDictLevel3.getString(level3);
@@ -204,6 +218,8 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
                 vData = pEntryTimeDB->FindEntryByProcID(id);
                 if(!vData.empty())
                 {
+                    bExpandL1 = TVE_EXPAND;
+                    bExpandL2 = TVE_EXPAND;
                     cni.clrItem = SELECTED_COLOR;
                     cni.lfontItem.lfWeight = 700;
                 }
@@ -218,6 +234,7 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
                 for(int level4=0; level4<static_cast<int>(m_vIncType.size()); level4++)
                     procList->getMemberNames(id, strDictL4, m_vIncType[level4]);
 
+                int bExpandL3 = TVE_COLLAPSE;
                 for (int level4=0; level4<strDictL4.getCount(); level4++)
                 {
                     CString strLevel4 = strDictL4.getString(level4);
@@ -232,6 +249,9 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
                     vData = pEntryTimeDB->FindEntryByProcID(id);
                     if(!vData.empty())
                     {
+                        bExpandL1 = TVE_EXPAND;
+                        bExpandL2 = TVE_EXPAND;
+                        bExpandL3 = TVE_EXPAND;
                         cni.clrItem = SELECTED_COLOR;
                         cni.lfontItem.lfWeight = 700;
                     }
@@ -242,8 +262,11 @@ void CAircraftEntryProcessorDlg::ReloadACEntryProcTree()
                     HTREEITEM hLevel4 = m_procTree.InsertItem(strProcID, cni, FALSE, FALSE, hLevel3);
                     m_procTree.SetItemData(hLevel4, (DWORD)(m_vProcs.size()-1));
                 }
+                m_procTree.Expand(hLevel3, bExpandL3);
             }
+            m_procTree.Expand(hLevel2, bExpandL2);
         }
+        m_procTree.Expand(hLevel1, bExpandL1);
     }
     m_procTree.Expand(hRoot, TVE_EXPAND);
     AfxGetApp()->EndWaitCursor();
@@ -265,7 +288,7 @@ void CAircraftEntryProcessorDlg::OnSize(UINT nType, int cx, int cy)
     }
 
     LayoutControl(&m_procTree, TopLeft,  BottomLeft, cx, cy);
-    LayoutControl(&m_listPaxType, TopLeft,  BottomRight, cx, cy);
+    LayoutControl(&m_paxList, TopLeft,  BottomRight, cx, cy);
     LayoutControl(&m_toolbarPaxType, TopLeft,  TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_STATIC_ENTRYPROC), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_SAVE), BottomRight,  BottomRight, cx, cy);
@@ -376,42 +399,54 @@ BOOL CAircraftEntryProcessorDlg::OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *
     return TRUE;
 }
 
-void CAircraftEntryProcessorDlg::OnTvnSelchangedTreeEntryproc(NMHDR *pNMHDR, LRESULT *pResult)
+void CAircraftEntryProcessorDlg::OnSelChangedTree(NMHDR *pNMHDR, LRESULT *pResult)
 {
-    m_listPaxType.DeleteAllItems();
+    m_paxList.DeleteAllItems();
     LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
     HTREEITEM hSelItem = m_procTree.GetSelectedItem();
     if(hSelItem == NULL)
-        return;
-
-    int iProcID = (int)m_procTree.GetItemData(hSelItem);
-    ProcessorID id = m_vProcs.at(iProcID);
-    std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
-
-    size_t nCount = vEntry.size();
-    for(size_t i=0; i<nCount; i++)
     {
-        CString strItem;
-        CMobileElemConstraint* pConst = (CMobileElemConstraint*)vEntry[i]->getConstraint();
-        pConst->screenPrint(strItem);
-        m_listPaxType.InsertItem(i, strItem);
-        m_listPaxType.SetItemData(i, (DWORD_PTR)vEntry[i]);
-        ProbabilityDistribution* pProb = vEntry[i]->getValue();
-        m_listPaxType.SetItemText(i, 1, pProb->screenPrint());
+        m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_ADD, FALSE);
+        *pResult = 0;
+        return;
+    }
+    else
+    {
+        m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_ADD, TRUE);
+        // reload pax type list
+        int iProcID = (int)m_procTree.GetItemData(hSelItem);
+        ProcessorID id = m_vProcs.at(iProcID);
+        std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
+        std::sort(vEntry.begin(), vEntry.end(), BridgeConnectorPaxEntry::sortByPaxTypeString);
+        size_t nCount = vEntry.size();
+        for(size_t i=0; i<nCount; i++)
+        {
+            CString strItem;
+            CMobileElemConstraint* pConst = (CMobileElemConstraint*)vEntry[i]->getConstraint();
+            pConst->screenPrint(strItem);
+            m_paxList.InsertItem(i, strItem);
+            m_paxList.SetItemData(i, (DWORD)vEntry[i]);
+            ProbabilityDistribution* pProb = vEntry[i]->getValue();
+            m_paxList.SetItemText(i, 1, pProb->screenPrint());
+        }
     }
     *pResult = 0;
 }
 
-void CAircraftEntryProcessorDlg::OnNMDblclkListPaxtype(NMHDR *pNMHDR, LRESULT *pResult)
+void CAircraftEntryProcessorDlg::OnDblClickListItem(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+    if(pNMItemActivate->iItem == -1)
+        return;
+
     if(pNMItemActivate->iSubItem == 0)
     {
         return;
     }
     else if(pNMItemActivate->iSubItem == 1)
     {
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)m_listPaxType.GetItemData(pNMItemActivate->iItem);
+        ASSERT(pNMItemActivate->iItem != -1);
+        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)m_paxList.GetItemData(pNMItemActivate->iItem);
         ProbabilityDistribution* pProb = pEntry->getValue();
         CDestributionParameterSpecificationDlg dlg(pProb, this);
         if(dlg.DoModal() == IDOK)
@@ -424,20 +459,20 @@ void CAircraftEntryProcessorDlg::OnNMDblclkListPaxtype(NMHDR *pNMHDR, LRESULT *p
                 delete pProb;
                 pEntry->setValue(pProbDist);
                 CString strItem = pProbDist->screenPrint();
-                m_listPaxType.SetItemText(pNMItemActivate->iItem, pNMItemActivate->iSubItem, strItem);
+                m_paxList.SetItemText(pNMItemActivate->iItem, pNMItemActivate->iSubItem, strItem);
             }
         }
     }
     *pResult = 0;
 }
 
-void CAircraftEntryProcessorDlg::OnLvnItemchangedListPaxtype(NMHDR *pNMHDR, LRESULT *pResult)
+void CAircraftEntryProcessorDlg::OnSelChangedPaxList(NMHDR *pNMHDR, LRESULT *pResult)
 {
     DisableAllToolBarButtons();
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
     m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_ADD, TRUE);
 
-    if(m_listPaxType.GetSelectedCount() != 0)
+    if(m_paxList.GetSelectedCount() != 0)
         m_toolbarPaxType.GetToolBarCtrl().EnableButton(ID_TOOLBAR_DEL, TRUE);
 
     *pResult = 0;
@@ -445,41 +480,194 @@ void CAircraftEntryProcessorDlg::OnLvnItemchangedListPaxtype(NMHDR *pNMHDR, LRES
 
 void CAircraftEntryProcessorDlg::OnToolbarButtonAdd()
 {
-    CPassengerTypeDialog dlg( m_pParentWnd );
-    if (dlg.DoModal() == IDOK)
+    while(true)
     {
-        CMobileElemConstraint* pNewConst = new CMobileElemConstraint(dlg.GetMobileSelection());
-        pNewConst->SetInputTerminal(m_pInTerm);
-        ProbabilityDistribution* pNewProb = ProbabilityDistribution::CopyProbDistribution(&u2_10);
+        CPassengerTypeDialog dlg(m_pParentWnd);
+        if(dlg.DoModal() == IDOK)
+        {
+            HTREEITEM hItem = m_procTree.GetSelectedItem();
+            int iItem = (int)m_procTree.GetItemData(hItem);
+            ProcessorID id = m_vProcs.at(iItem);
+            std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
+            size_t nCount = vEntry.size();
+            bool bFound = false;
+            for(size_t i=0; i<nCount; i++)
+            {
+                CMobileElemConstraint* pConst = (CMobileElemConstraint*)vEntry[i]->getConstraint();
+                if(*pConst == dlg.GetMobileSelection())
+                {
+                    bFound = true;
+                    break;
+                }
+            }
+            if(bFound)
+            {
+                MessageBox(_T("Same Pax Type!"));
+                continue;
+            }
+            else
+            {
+                CMobileElemConstraint* pNewConst = new CMobileElemConstraint(dlg.GetMobileSelection());
+                pNewConst->SetInputTerminal(m_pInTerm);
+                ProbabilityDistribution* pNewProb = ProbabilityDistribution::CopyProbDistribution(&u2_10);
 
-        HTREEITEM hItem = m_procTree.GetSelectedItem();
-        COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hItem);
-        pCni->clrItem = SELECTED_COLOR;
-        pCni->lfontItem.lfWeight = 700;
-        CRect recItem;
-        m_procTree.GetItemRect(hItem, recItem, FALSE);
-        InvalidateRect(&recItem);
 
-        ProcessorID id = m_vProcs.at((int)m_procTree.GetItemData(hItem));
-        BridgeConnectorPaxEntry* pNewEntry = new BridgeConnectorPaxEntry();
-        pNewEntry->initialize(pNewConst, pNewProb, id);
-        m_pBCPaxData->getEntryTimeDB()->addEntry(pNewEntry);
+                BridgeConnectorPaxEntry* pNewEntry = new BridgeConnectorPaxEntry();
+                pNewEntry->initialize(pNewConst, pNewProb, id);
+                m_pBCPaxData->getEntryTimeDB()->addEntry(pNewEntry);
 
-        CString strItem;
-        pNewConst->screenPrint(strItem);
-        int iItem = m_listPaxType.InsertItem(m_listPaxType.GetItemCount(), strItem);
-        m_listPaxType.SetItemText(iItem, 1, pNewProb->screenPrint());
+                COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hItem);
+                pCni->clrItem = SELECTED_COLOR;
+                pCni->lfontItem.lfWeight = 700;
+                CRect recItem;
+                m_procTree.GetItemRect(hItem, recItem, FALSE);
+                InvalidateRect(&recItem);
+                GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+
+                // reload pax type list
+                m_paxList.DeleteAllItems();
+                int iProcID = (int)m_procTree.GetItemData(hItem);
+                ProcessorID id = m_vProcs.at(iProcID);
+                std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
+                std::sort(vEntry.begin(), vEntry.end(), BridgeConnectorPaxEntry::sortByPaxTypeString);
+                size_t nCount = vEntry.size();
+                for(size_t i=0; i<nCount; i++)
+                {
+                    CString strItem;
+                    CMobileElemConstraint* pConst = (CMobileElemConstraint*)vEntry[i]->getConstraint();
+                    pConst->screenPrint(strItem);
+                    m_paxList.InsertItem(i, strItem);
+                    m_paxList.SetItemData(i, (DWORD)vEntry[i]);
+                    ProbabilityDistribution* pProb = vEntry[i]->getValue();
+                    m_paxList.SetItemText(i, 1, pProb->screenPrint());
+                }
+                break;
+            }
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
 void CAircraftEntryProcessorDlg::OnToolbarButtonDel()
 {
-    ASSERT(m_listPaxType.GetItemCount() > 0);
+    POSITION pos = m_paxList.GetFirstSelectedItemPosition();
+    ASSERT(pos > 0);
+    if(MessageBox(_T("delete item, go?"), NULL, MB_YESNO) == IDYES)
+    {
+        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)m_paxList.GetItemData((int)(pos-1));
+        m_pBCPaxData->getEntryTimeDB()->DeleteEntry(pEntry);
+        m_paxList.DeleteItem((int)(pos-1));
+
+        HTREEITEM hItem = m_procTree.GetSelectedItem();
+        COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hItem);
+        DWORD iData = m_procTree.GetItemData(hItem);
+        CCoolTree::InitNodeInfo(this, *pCni);
+        m_procTree.SetItemData(hItem, iData);
+        CRect recItem;
+        m_procTree.GetItemRect(hItem, recItem, FALSE);
+        InvalidateRect(&recItem);
+        GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+    }
 }
 
-void CAircraftEntryProcessorDlg::OnBnClickedBtnSave()
+void CAircraftEntryProcessorDlg::OnSave()
 {
     m_pBCPaxData->saveDataSet(GetProjPath(), false);
+    GetDlgItem(IDC_BTN_SAVE)->EnableWindow(FALSE);
+}
+
+void CAircraftEntryProcessorDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+    CRect recTree;
+    m_procTree.GetWindowRect(&recTree);
+    ScreenToClient(&recTree);
+
+    CRect recList;
+    m_paxList.GetWindowRect(&recList);
+    ScreenToClient(&recList);
+    if(!m_bDragging)
+    {
+        if(recTree.right<point.x && point.x<recList.left &&
+            recTree.top<point.y && point.y<recTree.bottom)
+        {
+            HCURSOR hCur = LoadCursor(NULL , IDC_SIZEWE);
+            ::SetCursor(hCur);
+        }
+        else
+        {
+            HCURSOR hCur = LoadCursor(NULL , IDC_ARROW);
+            ::SetCursor(hCur);
+        }
+    }
+    else
+    {
+        HCURSOR hCur = LoadCursor(NULL , IDC_SIZEWE);
+        ::SetCursor(hCur);
+        recList.left = point.x+(recList.left-recTree.right)-3;
+        recTree.right = point.x-3;
+        if(recTree.Width()>180 && recList.Width()>180)
+        {
+            m_procTree.MoveWindow(recTree);
+            m_paxList.MoveWindow(recList);
+            m_toolbarPaxType.MoveWindow(recList.left,recList.top-26,recList.Width(),26);
+        }
+    }
+    CDialog::OnMouseMove(nFlags, point);
 }
 
 
+void CAircraftEntryProcessorDlg::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    CRect recTree;
+    m_procTree.GetWindowRect(&recTree);
+    ScreenToClient(&recTree);
+
+    CRect recList;
+    m_paxList.GetWindowRect(&recList);
+    ScreenToClient(&recList);
+
+    if(recTree.right<point.x && point.x<recList.left &&
+        recTree.top<point.y && point.y<recTree.bottom)
+    {
+        HCURSOR hCur = LoadCursor(NULL , IDC_SIZEWE);
+        ::SetCursor(hCur);
+        m_bDragging = true;
+        SetCapture();
+    }
+    CDialog::OnLButtonDown(nFlags, point);
+}
+
+
+void CAircraftEntryProcessorDlg::OnLButtonUp(UINT nFlags, CPoint point)
+{
+    m_bDragging = false;
+    ReleaseCapture();
+    CDialog::OnLButtonUp(nFlags, point);
+}
+
+
+void CAircraftEntryProcessorDlg::OnOK()
+{
+    if(GetDlgItem(IDC_BTN_SAVE)->IsWindowEnabled())
+    {
+        AfxGetApp()->BeginWaitCursor();
+        OnSave();
+        AfxGetApp()->EndWaitCursor();
+    }
+    CDialog::OnOK();
+}
+
+
+void CAircraftEntryProcessorDlg::OnCancel()
+{
+    if(GetDlgItem(IDC_BTN_SAVE)->IsWindowEnabled())
+    {
+        AfxGetApp()->BeginWaitCursor();
+        m_pBCPaxData->loadDataSet(GetProjPath());
+        AfxGetApp()->EndWaitCursor();
+    }
+    CDialog::OnCancel();
+}

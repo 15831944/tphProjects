@@ -648,13 +648,12 @@ void InputTerminal::deleteProcessor (Processor *p_proc,  const CString& _csProjP
     m_pPassengerFlowDB->removeAllEntries (id);
     m_pStationPaxFlowDB->removeAllEntries (id);
 	m_pSpecificFlightPaxFlowDB->removeAllEntries( id);
-	
     procAssignDB->removeAllEntries (id,this);
     //flightSchedule->clearGates (id,this);
     peopleMovers->removeAllEntries (id,this);
 	m_pMovingSideWalk->removeAllEntries( id,this );
 	m_pMovingSideWalkPaxDist->removeAllEntries( id,this );
-	
+    bcPaxData->removeEntriesByProcID(id, this);
 	GetProcessorList()->removeProcessor (p_proc);
 
     delete p_proc;
@@ -681,7 +680,8 @@ void InputTerminal::replaceProcessor (Processor *p_oldProc,
 		procAssignDB->replaceAllEntries (oldID, newID,this);
 		peopleMovers->replaceAllEntries (oldID, newID,this);
 		m_pMovingSideWalk->replaceAllEntries( oldID , newID ,this);
-		m_pMovingSideWalkPaxDist->replaceAllEntries( oldID, newID,this );
+        m_pMovingSideWalkPaxDist->replaceAllEntries( oldID, newID,this );
+        bcPaxData->replaceEntryProcID(oldID, newID, this);
 	}
     
 	GetProcessorList()->removeProcessor (p_oldProc);
@@ -705,6 +705,7 @@ void InputTerminal::replaceProcessor (ProcessorID&oldID,
 		peopleMovers->replaceAllEntries (oldID, newID,this);
 		m_pMovingSideWalk->replaceAllEntries( oldID , newID ,this);
 		m_pMovingSideWalkPaxDist->replaceAllEntries( oldID, newID,this );
+        bcPaxData->replaceEntryProcID(oldID, newID, this);
 	}
     
 	GroupIndex proIndex = GetProcessorList()->getGroupIndex(oldID);
@@ -788,6 +789,7 @@ BOOL InputTerminal::ProcessorRename(ProcessorID&oldID,const char* newName, const
 			m_pSpecificFlightPaxFlowDB->replaceAllEntries( p_old,p_new,this );
 			procAssignDB->replaceAllEntries (p_old, p_new,this);
 			peopleMovers->replaceAllEntries (p_old, p_new,this);
+            bcPaxData->replaceEntryProcID(p_old, p_new, this);
 		}
 	}
 	//m_pPipeDataSet->ReplaceMovingSideWalk( )
@@ -838,6 +840,7 @@ void InputTerminal::SaveProcsData ( const CString& _csProjPath, bool _bUndoParam
 	m_pMovingSideWalkPaxDist->saveDataSet( _csProjPath, _bUndoParam );
     procList->saveDataSet(_csProjPath, _bUndoParam);
 	m_AirsideInput->SaveAirsideInputData(_csProjPath, _bUndoParam);
+    bcPaxData->saveDataSet(_csProjPath, _bUndoParam);
 }
 
 // read the DOS version's database

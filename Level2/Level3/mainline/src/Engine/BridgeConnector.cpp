@@ -725,7 +725,7 @@ void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 	if( BridgeState == DepBridge)
 	{
 		BridgeConnectorPaxTypeWithProcIDDatabase* pDataBase = person->GetTerminal()->bcPaxData->getEntryTimeDB();
-        const ProbabilityDistribution* dist = pDataBase->FindProbDistFitsProcID(*getID(), person->getType());
+        const ProbabilityDistribution* dist = pDataBase->FindProbDist(*getID(), person->getType());
 		ElapsedTime serviceT(0L);
 		if(dist)
 		{

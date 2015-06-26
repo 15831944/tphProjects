@@ -17,7 +17,7 @@ protected:
     InputTerminal* m_pInTerm;
     CToolBar m_toolbarPaxType;
     CCoolTree m_procTree;
-    CListCtrl m_listPaxType;
+    CListCtrl m_paxList;
 private:
     std::vector<int> m_vIncType; // included processor types
     std::vector<ProcessorID> m_vProcs;
@@ -27,22 +27,28 @@ protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnToolbarButtonAdd();
     afx_msg void OnToolbarButtonDel();
-    afx_msg void OnBnClickedBtnSave();
     virtual BOOL OnInitDialog();
+    afx_msg void OnOK();
+    afx_msg void OnSave();
+    afx_msg void OnCancel();
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
-    afx_msg void OnNMDblclkListPaxtype(NMHDR *pNMHDR, LRESULT *pResult);
-    afx_msg void OnLvnItemchangedListPaxtype(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDblClickListItem(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnSelChangedPaxList(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg BOOL OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult);
-    afx_msg void OnTvnSelchangedTreeEntryproc(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnSelChangedTree(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
     DECLARE_MESSAGE_MAP()
 private:
     CString GetProjPath();
-    void ReloadACEntryProcTree();
+    void LoadProcTree();
     void DisableAllToolBarButtons();
 private:
     int m_oldCx;
     int m_oldCy;
+    int m_bDragging;
     typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
     void LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy);
 };

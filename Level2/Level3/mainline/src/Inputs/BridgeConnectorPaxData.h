@@ -4,6 +4,7 @@
 #include "CommonData\PROCID.H"
 #include "inputs\MobileElemConstraintDatabase.h"
 
+
 class INPUTS_TRANSFER BridgeConnectorPaxEntry : public ConstraintEntry
 {
 protected:
@@ -17,7 +18,7 @@ public:
         ConstraintEntry::initialize(pConst, pProb);
         m_procID = id;
     }
-    void clear()
+    virtual void clear()
     {
         ConstraintEntry::clear();
         m_procID.init();
@@ -42,6 +43,21 @@ public:
     {
         return *constraint == *(_entry.constraint) && m_procID == _entry.m_procID; 
     }
+
+    int operator<(const BridgeConnectorPaxEntry& _entry) const
+    {
+        return *constraint < *(_entry.constraint)
+            ||  !(*(_entry.constraint) < *constraint) && !(m_procID < _entry.m_procID);
+    }
+
+    static bool sortByPaxTypeString(const void* p1, const void* p2)
+    {
+        CString strProc1;
+        CString strProc2;
+        ((CMobileElemConstraint*)((BridgeConnectorPaxEntry*)p1)->getConstraint())->screenPrint(strProc1);
+        ((CMobileElemConstraint*)((BridgeConnectorPaxEntry*)p2)->getConstraint())->screenPrint(strProc2);
+        return strProc1 < strProc2;
+    }
 };
 
 class INPUTS_TRANSFER BridgeConnectorPaxTypeWithProcIDDatabase : public CMobileElemConstraintDatabase
@@ -53,9 +69,11 @@ public:
     void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
     void writeDatabase(ArctermFile& p_file);
 
+    void removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm);
+    void replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm);
     bool DeleteEntry(BridgeConnectorPaxEntry* pEntry);
     std::vector<BridgeConnectorPaxEntry*> FindEntryByProcID(const ProcessorID& procID);
-    const ProbabilityDistribution* FindProbDistFitsProcID(const ProcessorID& procID, const CMobileElemConstraint& p_const);
+    const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
     void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm);
 };
 
@@ -69,7 +87,8 @@ public:
     virtual ~BridgeConnectorPaxData();
 
     void deletePaxType(int p_level, int p_index);
-    void deleteProcessor();
+    void removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm);
+    void replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm);
     void replaceProcessor();
 //  ...
     virtual void initDefaultValues();
