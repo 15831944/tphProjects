@@ -211,6 +211,7 @@ void CAirsideRunwayDelayMultiRunResult::InitListHead(CXListCtrl& cxListCtrl,CPar
 
 void CAirsideRunwayDelayMultiRunResult::FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType)
 {
+    cxListCtrl.DeleteAllItems();
     ASSERT(parameter);
     if (parameter->getReportType() == ASReportType_Detail)
     {
@@ -290,6 +291,14 @@ void CAirsideRunwayDelayMultiRunResult::ClearData()
     m_detailHoldShortL.clear();
     m_detailInPosition.clear();
     m_vRunwayMarkList.clear();
+
+    m_summaryTotal.clear();
+    m_summaryLandingRoll.clear();
+    m_summaryExiting.clear();
+    m_summaryInTakeoffQ.clear();
+    m_summaryHoldShortL.clear();
+    m_summaryInPosition.clear();
+    m_vIntervalList.clear();
 }
 
 void CAirsideRunwayDelayMultiRunResult::InitDetailListHead(CXListCtrl& cxListCtrl, const mapRunwayDetailDelay& mapDetailData, CSortableHeaderCtrl* piSHC)
@@ -826,23 +835,23 @@ void CAirsideRunwayDelayMultiRunResult::DrawSummary3DChart(CARC3DChart& chartWnd
         break;
     case AirsideFlightRunwayDelayReport::ChartType_Summary_ByLandingRoll:
         SetSummaryLandingRoll3DChartString(c2dGraphData, pTimeInterval);
-        GenerateSummary2DChartData(c2dGraphData, m_summaryTotal, iType);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryLandingRoll, iType);
         break;
     case AirsideFlightRunwayDelayReport::ChartType_Summary_ByExiting:
         SetSummaryExisting3DChartString(c2dGraphData, pTimeInterval);
-        GenerateSummary2DChartData(c2dGraphData, m_summaryTotal, iType);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryExiting, iType);
         break;
     case AirsideFlightRunwayDelayReport::ChartType_Summary_ByInTakeoffQueue:
         SetSummaryInTakeoffQ3DChartString(c2dGraphData, pTimeInterval);
-        GenerateSummary2DChartData(c2dGraphData, m_summaryTotal, iType);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryInTakeoffQ, iType);
         break;
     case AirsideFlightRunwayDelayReport::ChartType_Summary_ByHoldShort:
         SetSummaryHoldShortLine3DChartString(c2dGraphData, pTimeInterval);
-        GenerateSummary2DChartData(c2dGraphData, m_summaryTotal, iType);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryHoldShortL, iType);
         break;
     case AirsideFlightRunwayDelayReport::ChartType_Summary_ByInPosition:
         SetSummaryInPosition3DChartString(c2dGraphData, pTimeInterval);
-        GenerateSummary2DChartData(c2dGraphData, m_summaryTotal, iType);
+        GenerateSummary2DChartData(c2dGraphData, m_summaryInPosition, iType);
         break;
     default:
         break;
@@ -956,4 +965,63 @@ void CAirsideRunwayDelayMultiRunResult::SetSummaryInPosition3DChartString( C2DCh
     CString strFooter(_T(""));
     strFooter.Format(_T("Runway Delay Summary In Position %s;%s "), pTimeInterval->m_tStart.printTime(), pTimeInterval->m_tEnd.printTime());
     c2dGraphData.m_strFooter = strFooter;
+}
+
+// get delay occurred intervals according to the selected sub type.
+std::vector<TimeInterval*> CAirsideRunwayDelayMultiRunResult::GetDelayedIntervalList(CParameters *parameter) const
+{
+    ASSERT(parameter->getReportType() == ASReportType_Summary);
+    std::vector<TimeInterval*> vResult;
+    if(m_vIntervalList.empty())
+        return vResult;
+    const mapRunwaySummaryDelay* pSelSumData = NULL;
+    AirsideFlightRunwayDelayReportPara* pPara = (AirsideFlightRunwayDelayReportPara*)parameter;
+    switch (pPara->getSubType())
+    {
+    case AirsideFlightRunwayDelayReport::ChartType_Summary_Total:
+        pSelSumData = &m_summaryTotal;
+        break;
+    case AirsideFlightRunwayDelayReport::ChartType_Summary_ByLandingRoll:
+        pSelSumData = &m_summaryLandingRoll;
+        break;
+    case AirsideFlightRunwayDelayReport::ChartType_Summary_ByExiting:
+        pSelSumData = &m_summaryExiting;
+        break;
+    case AirsideFlightRunwayDelayReport::ChartType_Summary_ByInTakeoffQueue:
+        pSelSumData = &m_summaryInTakeoffQ;
+        break;
+    case AirsideFlightRunwayDelayReport::ChartType_Summary_ByHoldShort:
+        pSelSumData = &m_summaryHoldShortL;
+        break;
+    case AirsideFlightRunwayDelayReport::ChartType_Summary_ByInPosition:
+        pSelSumData = &m_summaryInPosition;
+        break;
+    default:
+        break;
+    }
+    ASSERT(pSelSumData);
+    mapRunwaySummaryDelay::const_iterator itor = pSelSumData->begin();
+    for(; itor!=pSelSumData->end(); ++itor)
+    {
+        std::vector<TimeInterval*>::const_iterator itor2 = m_vIntervalList.begin();
+        for(; itor2!=m_vIntervalList.end(); ++itor2)
+        {
+            if(itor->second.at(*(*itor2)).m_nDataCount != 0)
+                vResult.push_back(*itor2);
+        }
+    }
+    if(vResult.empty())
+    {
+        vResult.push_back(*m_vIntervalList.begin());
+        return vResult; // do not need to remove duplicated items.
+    }
+
+    sort(vResult.begin(), vResult.end(), TimeInterval::CompareTimeInterval);
+    vResult.erase(unique(vResult.begin(), vResult.end() ), vResult.end());
+    return vResult;
+}
+
+bool CAirsideRunwayDelayMultiRunResult::IsAvailableRunwayMark( CString strRunwayMark )
+{
+    std::vector<
 }

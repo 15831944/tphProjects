@@ -34,6 +34,14 @@ public:
         return false;
     }
 
+    // return true if *p1 < *p2.
+    static bool CompareTimeInterval(TimeInterval* p1, TimeInterval* p2)
+    {
+        if((*p1) < (*p2))
+            return true;
+        return false;
+    }
+
     bool operator<(const TimeInterval& other) const
     {
         if(m_tStart < other.m_tStart)
@@ -85,9 +93,7 @@ public:
     virtual BOOL ReadReportData( ArctermFile& _file ){ return TRUE; }
 
     virtual CString GetReportFileName()const { return ""; }
-
-    std::vector<CString> GetRunwayMarkList() const { return m_vRunwayMarkList; }
-    std::vector<TimeInterval*> GetIntervalList() const { return m_vIntervalList; }
+    std::vector<TimeInterval*> GetDelayedIntervalList(CParameters *pParameter) const;
     void ClearData();
 private:
     void BuildDetailRunwayDelayData(mapRunwayDetailDelay& mapToBuild, const mapRunwayDelayResult& oriData, CParameters* parameter);
@@ -117,11 +123,10 @@ private:
     void SetSummaryInPosition3DChartString(C2DChartData& c2dGraphData, TimeInterval* pTimeInterval);
 
     void SetIntervalBegin2End(std::vector<MultipleRunReportData>& vec, long interval);
-    void AddRunwayMarkIfNotExist(CString strRunwayMark);
+    bool IsAvailableRunwayMark(CString strRunwayMark);
     bool FindRunwayMark(CString strRunwayMark);
     TimeInterval* FindTimeInterval(ElapsedTime time);
 private:
-    std::vector<CString> m_vRunwayMarkList;
     mapRunwayDetailDelay m_detailTotal;
     mapRunwayDetailDelay m_detailLandingRoll;
     mapRunwayDetailDelay m_detailExiting;

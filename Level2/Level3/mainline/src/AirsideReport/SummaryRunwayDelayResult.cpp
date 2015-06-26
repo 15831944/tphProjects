@@ -62,7 +62,8 @@ void SummaryRunwayDelayResult::StatisticSummaryDataFromReportData()
 		pItem = m_pReportData->m_vDataItemList.at(i);
 		if (pItem->m_lTotalDelay ==0)
 			continue;
-
+        if(pItem->m_tStartTime >= m_pParameter->getEndTime() || pItem->m_tStartTime < m_pParameter->getStartTime())
+            continue;
 		if (pItem->m_PositionType == nPostion 
 			&& (pItem->m_tStartTime.asSeconds() >= lTimeStart && pItem->m_tStartTime.asSeconds() <= lTimeEnd))		//same interval
 		{
@@ -84,6 +85,7 @@ void SummaryRunwayDelayResult::StatisticSummaryDataFromReportData()
 			pSummaryData->m_nPosition = nPostion;
 			pSummaryData->m_nDelayCount = nDelayCount;
 			pSummaryData->m_statisticalTool = statisticalTool;
+			pSummaryData->m_statisticalTool.SortData();
 			m_vSummaryData.push_back(pSummaryData);
 
 			nTimIdx = pItem->GetTimeInIntervalIndex((CParameters*)m_pParameter);

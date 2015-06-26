@@ -1004,10 +1004,9 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
                         GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Select Runway"));
                         std::vector<CString> vRunwayList = pResult->GetRunwayMarkList();
                         size_t nCount = vRunwayList.size();
-                        int nIndex = -1;
                         for(size_t i=0; i<nCount; i++)
                         {
-                            nIndex = m_ComBoxSubType.AddString(vRunwayList.at(i));
+                            int nIndex = m_ComBoxSubType.AddString(vRunwayList.at(i));
                             CString* pStr = new CString(vRunwayList.at(i));
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)pStr);
                             m_vTempStrRunways.push_back(pStr);
@@ -1016,14 +1015,13 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
                     else if(pParam->getReportType() == ASReportType_Summary)
                     {
                         GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Time Interval"));
-                        const std::vector<TimeInterval*>& vTimeInterval = pResult->GetIntervalList();
-                        std::vector<TimeInterval*>::const_iterator itor = vTimeInterval.begin();
-                        int nIndex = -1;
-                        for(; itor!=vTimeInterval.end(); ++itor)
+                        std::vector<TimeInterval*> setTimeInterval = pResult->GetDelayedIntervalList(pParam);
+                        std::vector<TimeInterval*>::const_iterator itor = setTimeInterval.begin();
+                        for(; itor!=setTimeInterval.end(); ++itor)
                         {
                             CString strCombo;
                             strCombo.Format("%s - %s", (*itor)->m_tStart.printTime(), (*itor)->m_tEnd.printTime());
-                            nIndex = m_ComBoxSubType.AddString(strCombo);
+                            int nIndex = m_ComBoxSubType.AddString(strCombo);
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)(*itor));
                         }
                     }
@@ -1869,8 +1867,27 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
             {
                 if (vReportRun.size() > 1)
                 {
+                    if(pParam->getReportType() == ASReportType_Summary)
+                    {
+                        m_ComBoxSubType.ResetContent();
+
+                        CAirsideReportManager* pAirsideRepMan = GetDocument()->GetARCReportManager().GetAirsideReportManager();
+                        const CAirsideMultipleRunReport& multiRunRep = pAirsideRepMan->GetMultiRunReport();
+                        const CAirsideRunwayDelayMultiRunResult* pResult = 
+                            (CAirsideRunwayDelayMultiRunResult*)multiRunRep.GetMultipleRunResultByReportType(Airside_RunwayDelay);
+                        std::vector<TimeInterval*> setTimeInterval = pResult->GetDelayedIntervalList(pParam);
+                        std::vector<TimeInterval*>::const_iterator itor = setTimeInterval.begin();
+                        for(; itor!=setTimeInterval.end(); ++itor)
+                        {
+                            CString strCombo;
+                            strCombo.Format("%s - %s", (*itor)->m_tStart.printTime(), (*itor)->m_tEnd.printTime());
+                            int nIndex = m_ComBoxSubType.AddString(strCombo);
+                            m_ComBoxSubType.SetItemData(nIndex, (DWORD)(*itor));
+                        }
+                    }
                     m_ComBoxSubType.SetCurSel(0);
                     GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, (int)m_ComBoxSubType.GetItemData(0));
+
                     bMultiple = true;
                 }
             }

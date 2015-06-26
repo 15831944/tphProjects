@@ -113,8 +113,6 @@ void SummaryDelayChartResult::Draw3DChart(CARC3DChart& chartWnd, CParameters *pP
 		AirsideFlightRunwayDelaySummaryData* pData = m_vSummaryData.at(i);
 		if (pReportPara->IsSummaryDataFitChartType(pData) == false)
 			continue;
-        if(pData->m_tStart > pParameter->getEndTime() || pData->m_tStart < pParameter->getStartTime())
-            continue;
 		if (pData->m_tStart.asSeconds() > lTimeStart)		//new interval
 		{
 			if (lTimeStart >=0L)
