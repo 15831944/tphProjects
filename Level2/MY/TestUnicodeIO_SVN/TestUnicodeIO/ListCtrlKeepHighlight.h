@@ -5,22 +5,25 @@ class CListCtrlKeepHighlight : public CListCtrlEx
 {
     DECLARE_DYNAMIC(CListCtrlKeepHighlight)
 public:
-    unsigned int LIST_ITEM_HEIGHT;
-public:
     CListCtrlKeepHighlight();
     virtual ~CListCtrlKeepHighlight();
-protected:
     DECLARE_MESSAGE_MAP()
-public:
-    afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
+
 protected:
-    void Init();
+    LOGFONT logfont;
+    unsigned short LIST_ITEM_HEIGHT;
+public:
+    LOGFONT Logfont() const { return logfont; }
+    void Logfont(LOGFONT val) { logfont = val; }
+protected:
+    virtual void PreSubclassWindow();
+    virtual void InvalidateItem(int nItem);
+    virtual void DrawItem(LPDRAWITEMSTRUCT /*lpDrawItemStruct*/);
     virtual void DrawSubItem(CDC *pDC, int nItem, int nSubItem, CRect &rSubItem, bool bSelected, bool bFocus);
     virtual void DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd);
     virtual void draw_row_bg(CDC *pDC, RECT rc, bool bSelected, bool bFocus,int nRow);
-    void InvalidateItem(int nItem);
-public:
+    afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult);
-    virtual void PreSubclassWindow();
-    virtual void DrawItem(LPDRAWITEMSTRUCT /*lpDrawItemStruct*/);
+private:
+    void Init();
 };

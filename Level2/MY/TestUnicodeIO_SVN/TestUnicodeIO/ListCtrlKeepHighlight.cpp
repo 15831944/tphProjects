@@ -5,7 +5,7 @@ IMPLEMENT_DYNAMIC(CListCtrlKeepHighlight, CListCtrlEx)
 
     CListCtrlKeepHighlight::CListCtrlKeepHighlight()
 {
-    LIST_ITEM_HEIGHT = 20;
+    LIST_ITEM_HEIGHT = 13;
 }
 CListCtrlKeepHighlight::~CListCtrlKeepHighlight()
 {
@@ -99,7 +99,7 @@ void CListCtrlKeepHighlight::DrawSubItem(CDC *pDC, int nItem, int nSubItem, CRec
     pDC->SetBkMode(TRANSPARENT);
     pDC->SetTextColor(RGB(0, 0, 0));
     CFont font;
-    font.CreateFont(12,   // nHeight
+    font.CreateFont(12,            // nHeight
         0,                         // nWidth
         0,                         // nEscapement
         0,                         // nOrientation
@@ -139,7 +139,7 @@ void CListCtrlKeepHighlight::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
         rcRemain.top = nTop;
         rcRemain.right = rectClient.right;
         int nRemainItem = rcRemain.Height() / LIST_ITEM_HEIGHT;
-        if (rcRemain.Height() % LIST_ITEM_HEIGHT)
+        if (rcRemain.Height() % LIST_ITEM_HEIGHT != 0)
         {
             nRemainItem++;
         }

@@ -1,7 +1,7 @@
 #pragma once
+#include <afxcmn.h>
 #include "TabSubView1.h"
 #include "TabSubView2.h"
-#include <afxcmn.h>
 
 class CTestUnicodeIODlg : public CDialogEx
 {

@@ -38,10 +38,12 @@ BOOL CTestUnicodeIODlg::OnInitDialog()
     SetIcon(m_hIcon, TRUE);
     SetIcon(m_hIcon, FALSE);
 
-    m_mainTab.InsertItem(0,_T("memo0"));
-    m_mainTab.InsertItem(1,_T("memo1"));
+    m_mainTab.InsertItem(0,_T("20141124"));
+    m_mainTab.InsertItem(1,_T("20141125"));
+    m_mainTab.SetCurSel(0);
+    m_tabView1.ShowWindow(TRUE);
+    m_tabView2.ShowWindow(FALSE);
     LayoutTabViews();
-
 
     return TRUE;
 }
@@ -183,15 +185,12 @@ void CTestUnicodeIODlg::LayoutTabViews()
 {
     CRect rTabClient;
     m_mainTab.GetClientRect(&rTabClient);
-    m_mainTab.SetCurSel(0);
-    rTabClient.top += 60;
-    rTabClient.left += 20;
-    rTabClient.bottom -= 3;
-    rTabClient.right -= 3;
+    rTabClient.top += 40;
+    rTabClient.left += 25;
+    rTabClient.bottom -= 5;
+    rTabClient.right -= 5;
     m_tabView1.MoveWindow(&rTabClient);
     m_tabView2.MoveWindow(&rTabClient);
-    m_tabView1.ShowWindow(TRUE);
-    m_tabView2.ShowWindow(FALSE);
 }
 
 
