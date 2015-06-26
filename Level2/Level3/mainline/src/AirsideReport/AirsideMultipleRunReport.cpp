@@ -8,6 +8,7 @@
 #include "CARC3DChart.h"
 #include "AirsideStandMultiRunOperatinResult.h"
 #include "AirsideAircraftMultiRunTakeoffProcessResult.h"
+#include "AirsideAircraftMutiRunRunwayOperationResult.h"
 CAirsideMultipleRunReport::CAirsideMultipleRunReport(void)
 {
 }
@@ -47,7 +48,7 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		CAirsideMultipleRunReportAgent reportAgent;
 		reportAgent.InitReportPath(strReportFileDir);
 		reportAgent.SetCBGetLogFilePath(pFunc);
-		reportAgent.AddReportWhatToGen(_reportType,parameter);
+		reportAgent.AddReportWhatToGen(_reportType,parameter, pTerminal);
 		reportAgent.GenerateReport(_reportType,parameter);
 
 		m_mapMutiRunResult[_reportType]->AddSimResultPath(strSimResultFolderName,reportAgent.GetSimResultPath(_reportType));
@@ -72,6 +73,9 @@ void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CPara
 		case Airside_TakeoffProcess:
 			m_mapMutiRunResult[_reportType] = new CAirsideAircraftMultiRunTakeoffProcessResult;
 			break;
+        case Airside_RunwayOperaitons:
+            m_mapMutiRunResult[_reportType] = new CAirsideAircraftMutiRunRunwayOperationResult;
+            break;
 		default:
 			break;
 		}

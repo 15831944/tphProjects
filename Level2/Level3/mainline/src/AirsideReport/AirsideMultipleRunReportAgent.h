@@ -2,6 +2,7 @@
 #include<map>
 #include "AirsideReport/TypeDefs.h"
 #include "AirsideBaseReport.h"
+#include "Engine/Terminal.h"
 
 class CParameters;
 
@@ -12,7 +13,7 @@ public:
 	~CAirsideMultipleRunReportAgent(void);
 
 	void InitReportPath(const CString& strReportPath);
-	void AddReportWhatToGen(reportType _reportType,CParameters * parameter);
+	void AddReportWhatToGen(reportType _reportType,CParameters * parameter, Terminal* pTerm);
 	void GenerateReport(reportType _reportType,CParameters * parameter);
 
 	void SetCBGetLogFilePath(CBGetLogFilePath pFunc){ m_pGetLogFilePath = pFunc;}

@@ -19,7 +19,7 @@ CAirsideMultipleRunReportAgent::~CAirsideMultipleRunReportAgent(void)
 	Clear();
 }
 
-void CAirsideMultipleRunReportAgent::AddReportWhatToGen( reportType _reportType,CParameters * parameter )
+void CAirsideMultipleRunReportAgent::AddReportWhatToGen(reportType _reportType,CParameters * parameter, Terminal* pTerm)
 {
 	CAirsideBaseReport* pReport = m_mapMutiRunPerformers[ _reportType ];
 	if (pReport == NULL)
@@ -37,6 +37,7 @@ void CAirsideMultipleRunReportAgent::AddReportWhatToGen( reportType _reportType,
 			break;
 		case Airside_RunwayOperaitons:
 			m_mapMutiRunPerformers[ _reportType ] = new AirsideRunwayOperationsReport(m_pGetLogFilePath);
+            ((AirsideRunwayOperationsReport*)m_mapMutiRunPerformers[_reportType])->SetAirportDB(pTerm->m_pAirportDB);
 			break;
 		case Airside_RunwayDelay:
 			m_mapMutiRunPerformers[ _reportType ] = new AirsideFlightRunwayDelayReport(m_pGetLogFilePath,(AirsideFlightRunwayDelayReportPara*)parameter);

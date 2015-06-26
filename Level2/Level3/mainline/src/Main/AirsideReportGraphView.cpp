@@ -1630,9 +1630,13 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                         for(; iter!=vRunway.end(); ++iter)
                         {
                             CString strCombo;
-                            strCombo.Format("%s - %s", iter->m_strMarkName, "abdead1633");
+                            strCombo.Format("%s - %s", iter->m_strMarkName, "Landings");
                             int nIndex = m_ComBoxSubType.AddString(strCombo);
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)iter->m_nRunwayID);
+
+                            strCombo.Format("%s - %s", iter->m_strMarkName, "TakeOff");
+                            nIndex = m_ComBoxSubType.AddString(strCombo);
+                            m_ComBoxSubType.SetItemData(nIndex, (DWORD)(iter->m_nRunwayID));
                         }
                     }
                     else
@@ -2090,9 +2094,34 @@ void CAirsideReportGraphView::OnSelChangerChartSubType()
         int nCurSel = m_ComBoxSubType.GetCurSel();
         if(nCurSel == LB_ERR)
             return;
-        int iSutType = (int)m_ComBoxSubType.GetItemData(nCurSel);
-        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iSutType);
-        GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iSutType);
+        int iSubType = (int)m_ComBoxSubType.GetItemData(nCurSel);
+        GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iSubType);
+        GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iSubType);
+    }
+    else if(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType() == Airside_RunwayOperaitons)
+    {
+        AirsideRunwayOperationReportParam *pParam = 
+            reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
+
+        int nCurSel = m_ComBoxSubType.GetCurSel();
+        if(nCurSel == LB_ERR)
+            return;
+
+        if(pParam->getSubType() == AirsideRunwayOperationsReport::ChartType_Detail_MovementsPerRunway)
+        {
+            CString strCombo;
+            m_ComBoxSubType.GetWindowText(strCombo.GetBuffer(256), 255);
+            strCombo.ReleaseBuffer();
+            int iSubType = (int)m_ComBoxSubType.GetItemData(nCurSel);
+            GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iSubType);
+            GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iSubType);
+        }
+        else
+        {
+            int iSubType = (int)m_ComBoxSubType.GetItemData(nCurSel);
+            GetDocument()->GetARCReportManager().GetAirsideReportManager()->updateMultiRun3Dchart(m_MSChartCtrl, iSubType);
+            GetDocument()->UpdateAllViews(this, AIRSIDEREPORT_DISLISTVIEW, (CObject*)iSubType);
+        }
     }
 }
 

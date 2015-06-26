@@ -256,6 +256,11 @@ void CAirsideAircraftMultiRunTakeoffProcessResult::ClearData()
 	m_mapTakeoffQDelay.clear();
 	m_mapTimeToPosition.clear();
 	m_mapTakeoffDelay.clear();
+
+    m_mapSumTakeoffQueue.clear();
+    m_mapSumHoldShortLine.clear();
+    m_mapSumTaxiToPosition.clear();
+    m_mapSumTimeToPosition.clear();
 }
 
 void CAirsideAircraftMultiRunTakeoffProcessResult::BuillDetailMutipleTakeoffProcess( MultiRunDetailMap& mapDetailData,mapLoadResult mapData,long iInterval )
