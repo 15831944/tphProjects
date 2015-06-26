@@ -6,6 +6,7 @@
 #include "AirsideTakeoffProcessParameter.h"
 #include "AirsideTakeoffProcessDetailResult.h"
 #include "AirsideTakeoffProcessSummaryResult.h"
+#include "AirsideTakeoffProcessReport.h"
 
 static const char* summaryTitle[] = 
 {
@@ -44,70 +45,45 @@ void CAirsideAircraftMultiRunTakeoffProcessResult::LoadMultipleRunReport( CParam
     mapSummaryLoadResult mapSumResult;
 	ArctermFile file;
 	MapMultiRunTakeoffProcessData mapTakeoffLoadData;
-	DelayResultPath::iterator iter = m_mapResultPath.begin();
-	for (; iter != m_mapResultPath.end(); ++iter)
-	{
-		CString strResultPath = iter->second;
-		CString strSimResult = iter->first;
-
-		try
-		{
-			if (file.openFile(strResultPath.GetString(),READ))
-			{
-				int iReportType = 0;
-				file.getInteger(iReportType);
-				file.getLine();
-				if (iReportType == ASReportType_Detail)
-				{
-					int nCount = 0;
-					file.getInteger(nCount);
-					file.getLine();
-					for (int i = 0; i < nCount; i++)
-					{
-						file.skipField(4);
-						long iTakeoffQDelay = 0;
-						file.getInteger(iTakeoffQDelay);
-						mapTakeoffQDelay[strSimResult].push_back(iTakeoffQDelay);
-						file.skipField(4);
-						long iTimeToPosition = 0;
-						file.getInteger(iTimeToPosition);
-						mapTimeToPosition[strSimResult].push_back(iTimeToPosition);
-						file.skipField(3);
-						long iTakeoffDelay = 0;
-						file.getInteger(iTakeoffDelay);
-						mapTakeoffDelay[strSimResult].push_back(iTakeoffDelay);
-						file.getLine();
-					}
-				}
-				else if(iReportType == ASReportType_Summary)
-				{
-                    int nFltType = 0;
-                    file.getInteger(nFltType);
-                    file.getLine();
-                    for (int i = 0; i < nFltType; i++)
+	mapSimReport::iterator iter = m_mapSimReport.begin();
+    for (; iter != m_mapSimReport.end(); ++iter)
+    {
+        CAirsideTakeoffProcessReport* pTakeoffReport = (CAirsideTakeoffProcessReport*)iter->second;
+        CString strSimResult = iter->first;
+        if (pParameter->getReportType() == ASReportType_Detail)
+        {
+            TakeoffDetailDataList dataList;
+            if(pTakeoffReport->GeDetailtResult(pParameter,dataList))
+            {
+                for (unsigned i = 0; i < dataList.size(); i++)
+                {
+                    CTakeoffProcessDetailData detailData = dataList.at(i);
+                    mapTakeoffQDelay[strSimResult].push_back(detailData.m_lTakeoffQueueDelay);
+                    mapTimeToPosition[strSimResult].push_back(detailData.m_lToPostionTime);
+                    mapTakeoffDelay[strSimResult].push_back(detailData.m_lTakeoffDelay);
+                }
+            }
+            else
+            {
+            }
+        }
+        else if(pParameter->getReportType() == ASReportType_Summary)
+        {
+            TakeoffSummaryDataList dataList;
+            if (pTakeoffReport->GetSummaryResult(pParameter,dataList))
+            {
+                for(unsigned i=0; i<dataList.size(); i++)
+                {
+                    TakeoffDetailDataList& detailDataList = dataList.at(i).detailDataList;
+                    for(unsigned j=0; j<detailDataList.size(); j++)
                     {
-                        file.skipField(1); // skip flight type.
-                        int nDataCount = 0;
-                        file.getInteger(nDataCount);
-                        file.getLine();
-                        for (int i = 0; i < nDataCount; i++)
-                        {
-                            CTakeoffProcessDetailData newData;
-                            newData.ReadReportData(file);
-                            mapSumResult[strSimResult].push_back(newData);
-                            file.getLine();
-                        }
+                        mapSumResult[strSimResult].push_back(detailDataList.at(j));
                     }
-				}
-				file.closeIn();
-			}
-		}
-		catch(...)
-		{
-			ClearData();
-		}
-	}
-	//generate takeoff queue delay
+                }
+            }
+        }
+    }
+
 	BuillDetailMutipleTakeoffProcess(m_mapTakeoffQDelay,mapTakeoffQDelay,pParameter->getInterval());
 	//generate time to position
 	BuillDetailMutipleTakeoffProcess(m_mapTimeToPosition,mapTimeToPosition,pParameter->getInterval());

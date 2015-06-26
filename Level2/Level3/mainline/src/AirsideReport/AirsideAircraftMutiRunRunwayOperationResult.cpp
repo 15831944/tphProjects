@@ -38,233 +38,233 @@ void CAirsideAircraftMutiRunRunwayOperationResult::LoadMultipleRunReport(CParame
 {
     ClearData();
 
-	maRunwayLoadOperation mapLandingOperation;
-	maRunwayLoadOperation mapTakeoffOperation;
-	mapRunwayTimeOperation mapMovementInterval; 
-    ArctermFile file;
-    DelayResultPath::iterator iter = m_mapResultPath.begin();
-    for (; iter != m_mapResultPath.end(); ++iter)
-    {
-        CString strResultPath = iter->second;
-        CString strSimResult = iter->first;
-        try
-        {
-            if (file.openFile(strResultPath.GetString(),READ))
-            {
-                file.getLine(); // 'Column'
-                int iReportType = 0;
-                file.getInteger(iReportType);
-                file.getLine();
-                if (iReportType == ASReportType_Detail)
-                {
-					file.getLine();
-					int nOperationCount = 0;
-					file.getInteger(nOperationCount);
-					for (int i = 0; i < nOperationCount; i++)
-					{
-						file.skipField(1); 
-						long lTime = 0;
-						file.getInteger(lTime);
-						CString strRunway;
-						file.getField(strRunway.GetBuffer(1024),1024);
-						strRunway.ReleaseBuffer();
-						CString strOperation;
-						file.getField(strOperation.GetBuffer(1024),1024);
-						strOperation.ReleaseBuffer();
-						if (strOperation.CompareNoCase("Landing") == 0)
-						{
-							mapLandingOperation[strSimResult][strRunway].push_back(lTime);
-						}
-						else if (strOperation.CompareNoCase("Takeoff") == 0)
-						{
-							mapTakeoffOperation[strSimResult][strRunway].push_back(lTime);
-						}
-						file.getLine();
-					}
+// 	maRunwayLoadOperation mapLandingOperation;
+// 	maRunwayLoadOperation mapTakeoffOperation;
+// 	mapRunwayTimeOperation mapMovementInterval; 
+//     ArctermFile file;
+//     DelayResultPath::iterator iter = m_mapResultPath.begin();
+//     for (; iter != m_mapResultPath.end(); ++iter)
+//     {
+//         CString strResultPath = iter->second;
+//         CString strSimResult = iter->first;
+//         try
+//         {
+//             if (file.openFile(strResultPath.GetString(),READ))
+//             {
+//                 file.getLine(); // 'Column'
+//                 int iReportType = 0;
+//                 file.getInteger(iReportType);
+//                 file.getLine();
+//                 if (iReportType == ASReportType_Detail)
+//                 {
+// 					file.getLine();
+// 					int nOperationCount = 0;
+// 					file.getInteger(nOperationCount);
+// 					for (int i = 0; i < nOperationCount; i++)
+// 					{
+// 						file.skipField(1); 
+// 						long lTime = 0;
+// 						file.getInteger(lTime);
+// 						CString strRunway;
+// 						file.getField(strRunway.GetBuffer(1024),1024);
+// 						strRunway.ReleaseBuffer();
+// 						CString strOperation;
+// 						file.getField(strOperation.GetBuffer(1024),1024);
+// 						strOperation.ReleaseBuffer();
+// 						if (strOperation.CompareNoCase("Landing") == 0)
+// 						{
+// 							mapLandingOperation[strSimResult][strRunway].push_back(lTime);
+// 						}
+// 						else if (strOperation.CompareNoCase("Takeoff") == 0)
+// 						{
+// 							mapTakeoffOperation[strSimResult][strRunway].push_back(lTime);
+// 						}
+// 						file.getLine();
+// 					}
+// 
+// 					int nRunwwayCount = 0;
+// 					file.skipField(1);//skip runway count
+// 					file.getInteger(nRunwwayCount);
+// 					file.getLine();
+// 
+// 					for (int nRunway = 0; nRunway < nRunwwayCount; ++ nRunway)
+// 					{
+// 						file.skipField(2);
+// 						CString strMark;
+// 						file.getField(strMark.GetBuffer(1024),1024);
+// 						strMark.ReleaseBuffer();
+// 
+// 						file.getLine();
+// 						file.getLine();
+// 						file.getLine();
+// 						file.getLine();
+// 
+// 						int nLeadTrailCount = 0;
+// 						file.getInteger(nLeadTrailCount);
+// 						for (int nLeadtrail = 0; nLeadtrail < nLeadTrailCount; ++ nLeadtrail)
+// 						{
+// 							file.skipField(1);
+// 							CString strClassLeadName;
+// 							file.getField(strClassLeadName.GetBuffer(1024),1024);
+// 							file.skipField(1);
+// 							CString strClassTrailName;
+// 							file.getField(strClassTrailName.GetBuffer(1024),1024);
+// 							int nFlightCount = 0;
+// 							file.getInteger(nFlightCount);
+// 							CString strClassification;
+// 							strClassification.Format(_T("%s-%s"),strClassLeadName,strClassTrailName);
+// 
+// 							ClassificationValue landTrail;
+// 							landTrail.m_strLandTrail = strClassification;
+// 							landTrail.m_lFlightCount = nFlightCount;
+// 							m_mapLandTrailOperation[strSimResult][strMark].push_back(landTrail);
+// 
+// 							std::vector<ClassificationValue>::iterator findIter = std::find(m_mapLandTrailOperation[strSimResult]["All"].begin(),m_mapLandTrailOperation[strSimResult]["All"].end(),landTrail);
+// 							if (findIter != m_mapLandTrailOperation[strSimResult]["All"].end())
+// 							{
+// 								findIter->m_lFlightCount += landTrail.m_lFlightCount;
+// 							}
+// 							else
+// 							{
+// 								m_mapLandTrailOperation[strSimResult]["All"].push_back(landTrail);
+// 							}
+// 						}
+// 
+// 						file.getLine();
+// 						int nTimeValueCount = 0;
+// 						file.getInteger(nTimeValueCount);
+// 						for (int nTime = 0; nTime < nTimeValueCount; ++ nTime)
+// 						{
+// 							int nTimeValue = 0;
+// 							file.getInteger(nTimeValue);
+// 							int nLandingCount = 0;
+// 							file.getInteger(nLandingCount);
+// 							int nTakeOffCount = 0;
+// 							file.getInteger(nTakeOffCount);
+// 
+// 							//make runway mark and landing/takeoff format
+// 							CString strLandingMark;
+// 							strLandingMark.Format(_T("%s Landings"),strMark);
+// 							RunwayTimeValue landingTime;
+// 							landingTime.m_eTime = nTimeValue*100l;
+// 							landingTime.m_iOperation = nLandingCount;
+// 							CString strTakeoffMark;
+// 							strTakeoffMark.Format(_T("%s TakeOff"),strMark);
+// 							RunwayTimeValue takeoffTime;
+// 							takeoffTime.m_eTime = nTimeValue*100l;
+// 							takeoffTime.m_iOperation = nTakeOffCount;
+// 
+// 							mapMovementInterval[strSimResult][strLandingMark].push_back(landingTime);
+// 							mapMovementInterval[strSimResult][strTakeoffMark].push_back(takeoffTime);
+// 						}
+// 						file.getLine();
+// 					}
+//                 }
+//                 else if(iReportType == ASReportType_Summary)
+//                 {
+//                     file.getLine(); // skip the list titles
+//                     int nRunwwayCount = 0;
+//                     file.skipField(1);//skip runway count
+//                     file.getInteger(nRunwwayCount);
+//                     file.getLine();
+//                     for (int nRunway = 0; nRunway < nRunwwayCount; ++ nRunway)
+//                     {
+//                         CAirsideReportRunwayMark runWaymark;
+//                         //runway information
+//                         file.getInteger(runWaymark.m_nRunwayID);
+//                         file.getInteger((int&)runWaymark.m_enumRunwayMark);
+//                         file.getField(runWaymark.m_strMarkName.GetBuffer(1024),1024);
+//                         runWaymark.m_strMarkName.ReleaseBuffer();
+// 
+//                         //landing
+//                         {
+//                             SummaryRunwayOperationReportItem staSumItem;
+//                             staSumItem.m_runWaymark = runWaymark;
+//                             file.getInteger(staSumItem.m_minCount);
+//                             file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
+//                             staSumItem.m_strMinInterval.ReleaseBuffer();
+//                             file.getInteger(staSumItem.m_nAverageCount);
+//                             file.getInteger(staSumItem.m_maxCount);
+//                             file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
+//                             staSumItem.m_strMaxInterval.ReleaseBuffer();
+//                             file.getInteger(staSumItem.m_nQ1);
+//                             file.getInteger(staSumItem.m_nQ2);
+//                             file.getInteger(staSumItem.m_nQ3);
+//                             file.getInteger(staSumItem.m_nP1);
+//                             file.getInteger(staSumItem.m_nP5);
+//                             file.getInteger(staSumItem.m_nP10);
+//                             file.getInteger(staSumItem.m_nP90);
+//                             file.getInteger(staSumItem.m_nP95);
+//                             file.getInteger(staSumItem.m_nP99);
+//                             file.getInteger(staSumItem.m_nStdDev);
+//                             m_summaryDataLanding[strSimResult].push_back(staSumItem);
+//                         }
+// 
+//                         //take off 
+//                         {
+//                             SummaryRunwayOperationReportItem staSumItem;
+//                             staSumItem.m_runWaymark = runWaymark;
+//                             file.getInteger(staSumItem.m_minCount);
+//                             file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
+//                             staSumItem.m_strMinInterval.ReleaseBuffer();
+//                             file.getInteger(staSumItem.m_nAverageCount);
+//                             file.getInteger(staSumItem.m_maxCount);
+//                             file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
+//                             staSumItem.m_strMaxInterval.ReleaseBuffer();
+//                             file.getInteger(staSumItem.m_nQ1);
+//                             file.getInteger(staSumItem.m_nQ2);
+//                             file.getInteger(staSumItem.m_nQ3);
+//                             file.getInteger(staSumItem.m_nP1);
+//                             file.getInteger(staSumItem.m_nP5);
+//                             file.getInteger(staSumItem.m_nP10);
+//                             file.getInteger(staSumItem.m_nP90);
+//                             file.getInteger(staSumItem.m_nP95);
+//                             file.getInteger(staSumItem.m_nP99);
+//                             file.getInteger(staSumItem.m_nStdDev);
+//                             m_summaryDataTakeOff[strSimResult].push_back(staSumItem);
+//                         }
+// 
+//                         //movements
+//                         {
+//                             SummaryRunwayOperationReportItem staSumItem;
+//                             staSumItem.m_runWaymark = runWaymark;
+//                             file.getInteger(staSumItem.m_minCount);
+//                             file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
+//                             staSumItem.m_strMinInterval.ReleaseBuffer();
+//                             file.getInteger(staSumItem.m_nAverageCount);
+//                             file.getInteger(staSumItem.m_maxCount);
+//                             file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
+//                             staSumItem.m_strMaxInterval.ReleaseBuffer();
+//                             file.getInteger(staSumItem.m_nQ1);
+//                             file.getInteger(staSumItem.m_nQ2);
+//                             file.getInteger(staSumItem.m_nQ3);
+//                             file.getInteger(staSumItem.m_nP1);
+//                             file.getInteger(staSumItem.m_nP5);
+//                             file.getInteger(staSumItem.m_nP10);
+//                             file.getInteger(staSumItem.m_nP90);
+//                             file.getInteger(staSumItem.m_nP95);
+//                             file.getInteger(staSumItem.m_nP99);
+//                             file.getInteger(staSumItem.m_nStdDev);
+//                             m_summaryDataMovement[strSimResult].push_back(staSumItem);
+//                         }
+//                         file.getLine();
+//                     }
+//                 }
+//                 file.closeIn();
+//             }
+//         }
+//         catch(...)
+//         {
+//             ClearData();
+//         }
+//     }
 
-					int nRunwwayCount = 0;
-					file.skipField(1);//skip runway count
-					file.getInteger(nRunwwayCount);
-					file.getLine();
-
-					for (int nRunway = 0; nRunway < nRunwwayCount; ++ nRunway)
-					{
-						file.skipField(2);
-						CString strMark;
-						file.getField(strMark.GetBuffer(1024),1024);
-						strMark.ReleaseBuffer();
-
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						file.getLine();
-
-						int nLeadTrailCount = 0;
-						file.getInteger(nLeadTrailCount);
-						for (int nLeadtrail = 0; nLeadtrail < nLeadTrailCount; ++ nLeadtrail)
-						{
-							file.skipField(1);
-							CString strClassLeadName;
-							file.getField(strClassLeadName.GetBuffer(1024),1024);
-							file.skipField(1);
-							CString strClassTrailName;
-							file.getField(strClassTrailName.GetBuffer(1024),1024);
-							int nFlightCount = 0;
-							file.getInteger(nFlightCount);
-							CString strClassification;
-							strClassification.Format(_T("%s-%s"),strClassLeadName,strClassTrailName);
-
-							ClassificationValue landTrail;
-							landTrail.m_strLandTrail = strClassification;
-							landTrail.m_lFlightCount = nFlightCount;
-							m_mapLandTrailOperation[strSimResult][strMark].push_back(landTrail);
-
-							std::vector<ClassificationValue>::iterator findIter = std::find(m_mapLandTrailOperation[strSimResult]["All"].begin(),m_mapLandTrailOperation[strSimResult]["All"].end(),landTrail);
-							if (findIter != m_mapLandTrailOperation[strSimResult]["All"].end())
-							{
-								findIter->m_lFlightCount += landTrail.m_lFlightCount;
-							}
-							else
-							{
-								m_mapLandTrailOperation[strSimResult]["All"].push_back(landTrail);
-							}
-						}
-
-						file.getLine();
-						int nTimeValueCount = 0;
-						file.getInteger(nTimeValueCount);
-						for (int nTime = 0; nTime < nTimeValueCount; ++ nTime)
-						{
-							int nTimeValue = 0;
-							file.getInteger(nTimeValue);
-							int nLandingCount = 0;
-							file.getInteger(nLandingCount);
-							int nTakeOffCount = 0;
-							file.getInteger(nTakeOffCount);
-
-							//make runway mark and landing/takeoff format
-							CString strLandingMark;
-							strLandingMark.Format(_T("%s Landings"),strMark);
-							RunwayTimeValue landingTime;
-							landingTime.m_eTime = nTimeValue*100l;
-							landingTime.m_iOperation = nLandingCount;
-							CString strTakeoffMark;
-							strTakeoffMark.Format(_T("%s TakeOff"),strMark);
-							RunwayTimeValue takeoffTime;
-							takeoffTime.m_eTime = nTimeValue*100l;
-							takeoffTime.m_iOperation = nTakeOffCount;
-
-							mapMovementInterval[strSimResult][strLandingMark].push_back(landingTime);
-							mapMovementInterval[strSimResult][strTakeoffMark].push_back(takeoffTime);
-						}
-						file.getLine();
-					}
-                }
-                else if(iReportType == ASReportType_Summary)
-                {
-                    file.getLine(); // skip the list titles
-                    int nRunwwayCount = 0;
-                    file.skipField(1);//skip runway count
-                    file.getInteger(nRunwwayCount);
-                    file.getLine();
-                    for (int nRunway = 0; nRunway < nRunwwayCount; ++ nRunway)
-                    {
-                        CAirsideReportRunwayMark runWaymark;
-                        //runway information
-                        file.getInteger(runWaymark.m_nRunwayID);
-                        file.getInteger((int&)runWaymark.m_enumRunwayMark);
-                        file.getField(runWaymark.m_strMarkName.GetBuffer(1024),1024);
-                        runWaymark.m_strMarkName.ReleaseBuffer();
-
-                        //landing
-                        {
-                            SummaryRunwayOperationReportItem staSumItem;
-                            staSumItem.m_runWaymark = runWaymark;
-                            file.getInteger(staSumItem.m_minCount);
-                            file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
-                            staSumItem.m_strMinInterval.ReleaseBuffer();
-                            file.getInteger(staSumItem.m_nAverageCount);
-                            file.getInteger(staSumItem.m_maxCount);
-                            file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
-                            staSumItem.m_strMaxInterval.ReleaseBuffer();
-                            file.getInteger(staSumItem.m_nQ1);
-                            file.getInteger(staSumItem.m_nQ2);
-                            file.getInteger(staSumItem.m_nQ3);
-                            file.getInteger(staSumItem.m_nP1);
-                            file.getInteger(staSumItem.m_nP5);
-                            file.getInteger(staSumItem.m_nP10);
-                            file.getInteger(staSumItem.m_nP90);
-                            file.getInteger(staSumItem.m_nP95);
-                            file.getInteger(staSumItem.m_nP99);
-                            file.getInteger(staSumItem.m_nStdDev);
-                            m_summaryDataLanding[strSimResult].push_back(staSumItem);
-                        }
-
-                        //take off 
-                        {
-                            SummaryRunwayOperationReportItem staSumItem;
-                            staSumItem.m_runWaymark = runWaymark;
-                            file.getInteger(staSumItem.m_minCount);
-                            file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
-                            staSumItem.m_strMinInterval.ReleaseBuffer();
-                            file.getInteger(staSumItem.m_nAverageCount);
-                            file.getInteger(staSumItem.m_maxCount);
-                            file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
-                            staSumItem.m_strMaxInterval.ReleaseBuffer();
-                            file.getInteger(staSumItem.m_nQ1);
-                            file.getInteger(staSumItem.m_nQ2);
-                            file.getInteger(staSumItem.m_nQ3);
-                            file.getInteger(staSumItem.m_nP1);
-                            file.getInteger(staSumItem.m_nP5);
-                            file.getInteger(staSumItem.m_nP10);
-                            file.getInteger(staSumItem.m_nP90);
-                            file.getInteger(staSumItem.m_nP95);
-                            file.getInteger(staSumItem.m_nP99);
-                            file.getInteger(staSumItem.m_nStdDev);
-                            m_summaryDataTakeOff[strSimResult].push_back(staSumItem);
-                        }
-
-                        //movements
-                        {
-                            SummaryRunwayOperationReportItem staSumItem;
-                            staSumItem.m_runWaymark = runWaymark;
-                            file.getInteger(staSumItem.m_minCount);
-                            file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
-                            staSumItem.m_strMinInterval.ReleaseBuffer();
-                            file.getInteger(staSumItem.m_nAverageCount);
-                            file.getInteger(staSumItem.m_maxCount);
-                            file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
-                            staSumItem.m_strMaxInterval.ReleaseBuffer();
-                            file.getInteger(staSumItem.m_nQ1);
-                            file.getInteger(staSumItem.m_nQ2);
-                            file.getInteger(staSumItem.m_nQ3);
-                            file.getInteger(staSumItem.m_nP1);
-                            file.getInteger(staSumItem.m_nP5);
-                            file.getInteger(staSumItem.m_nP10);
-                            file.getInteger(staSumItem.m_nP90);
-                            file.getInteger(staSumItem.m_nP95);
-                            file.getInteger(staSumItem.m_nP99);
-                            file.getInteger(staSumItem.m_nStdDev);
-                            m_summaryDataMovement[strSimResult].push_back(staSumItem);
-                        }
-                        file.getLine();
-                    }
-                }
-                file.closeIn();
-            }
-        }
-        catch(...)
-        {
-            ClearData();
-        }
-    }
-
-	//generate runway operation multiple run landing 
-	BuildDetailMultipleRunwayOperation(m_mapLandingOperation,mapLandingOperation,pParameter);
-	//generate runway operation multiple run takeoff
-	BuildDetailMultipleRunwayOperation(m_mapTakeoffOperation,mapTakeoffOperation,pParameter);
-	//generate runway operation multiple run movement interval
-	BuildDetailMultipleRunwayTimeValue(m_mapMovementInterval,mapMovementInterval,pParameter);
+// 	//generate runway operation multiple run landing 
+// 	BuildDetailMultipleRunwayOperation(m_mapLandingOperation,mapLandingOperation,pParameter);
+// 	//generate runway operation multiple run takeoff
+// 	BuildDetailMultipleRunwayOperation(m_mapTakeoffOperation,mapTakeoffOperation,pParameter);
+// 	//generate runway operation multiple run movement interval
+// 	BuildDetailMultipleRunwayTimeValue(m_mapMovementInterval,mapMovementInterval,pParameter);
 }
 
 void CAirsideAircraftMutiRunRunwayOperationResult::InitListHead(CXListCtrl& cxListCtrl, CParameters* parameter, int iType, CSortableHeaderCtrl* piSHC)

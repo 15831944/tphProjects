@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "AirsideFlightMutiRunDelayReport.h"
-#include "Common/TERMFILE.H"
 #include "Common/elaptime.h"
 #include "MFCExControl/XListCtrl.h"
 #include "Parameters.h"
@@ -9,6 +8,7 @@
 #include "ParameterCaptionDefine.h"
 #include "AirsideFlightDelayParam.h"
 #include "Reports/StatisticalTools.h"
+#include "AirsideFlightDelayReport.h"
 
 const char* strSegmentString[] = {"Unknown","Air","Taxi","Stand","Service","Takeoff"};
 const char* strComponentString[] = {"Unknown","Slowed","Vectored","Hold","RunWay Hold","Alt change","Side step","Stop","Service"};
@@ -48,159 +48,80 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParam
 	mapDelayResultData mapComponentDelay;
 
     mapSummarySegmentData mapSummarySegmentDelay;
-	ArctermFile file;
-	DelayResultPath::iterator iter = m_mapResultPath.begin();
-	for (; iter != m_mapResultPath.end(); ++iter)
+	mapSimReport::iterator iter = m_mapSimReport.begin();
+	for (; iter != m_mapSimReport.end(); ++iter)
 	{
-		CString strResultPath = iter->second;
+		CAirsideFlightDelayReport* pDelayReport = (CAirsideFlightDelayReport*)iter->second;
 		CString strSimResult = iter->first;
+		const std::vector<CAirsideFlightDelayReport::FltTypeDelayItem> reportResult = pDelayReport->GetResult();
 
-		try
+		for (unsigned i = 0; i < reportResult.size(); i++)
 		{
-			if (file.openFile(strResultPath.GetString(),READ))
+			CAirsideFlightDelayReport::FltTypeDelayItem delayitem = reportResult.at(i);
+
+			for (unsigned j = 0 ; j < delayitem.m_vDelayData.size(); j++)
 			{
-				int iCount = 0; 
-				if (file.getInteger(iCount) == 0)
-					return;
-		
-				file.getLine();
-				file.getLine();
-				for (int i = 0; i < iCount; i++)
+				CAirsideFlightDelayReport::FltDelayItem dataItem = delayitem.m_vDelayData.at(j);
+				mapTotalDelay[strSimResult].push_back(dataItem.totalDelayTime);
+
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].push_back(dataItem.airDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].push_back(dataItem.taxiDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].push_back(dataItem.standDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].push_back(dataItem.serviceDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].push_back(dataItem.takeoffDelayTime);
+
+				long iScheduleDelay = 0;
+				if (dataItem.bArrOrDeplDelay)
 				{
-					int iSize = 0;
-					if(file.getInteger(iSize) == 0)
-						return;
+					iScheduleDelay = max(dataItem.smtaTime - dataItem.planSt,0l);
+				}
+				else
+				{
+					iScheduleDelay = max(dataItem.smtdTime - dataItem.planSt,0l);
+				}
+				mapScheduleDelay[strSimResult].push_back(iScheduleDelay);
 
-					file.getLine();
-					for (int j = 0; j < iSize; j++)
+				if(mapComponentDelay[strSimResult].empty())
+				{
+					mapComponentDelay[strSimResult][FltDelayReason_Slowed].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_Vectored].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_AirHold].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_AltitudeChanged].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_SideStep].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_Stop].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_Service].clear();
+				}
+
+				if (mapSegmentDelay[strSimResult].empty())
+				{
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
+				}
+
+				for (unsigned iNode = 0; iNode < dataItem.vNodeDelay.size(); iNode)
+				{
+					FlightDelayData delaySegmentData;
+					delaySegmentData.m_iArrTime = dataItem.vNodeDelay.at(iNode).eActArriveTime;
+					delaySegmentData.m_lDelayTime = dataItem.vNodeDelay.at(iNode).delayTime;
+					int iSegment = dataItem.vNodeDelay.at(iNode).nSegment;
+					if (mapSegmentDelay[strSimResult].find(iSegment) != mapSegmentDelay[strSimResult].end())
 					{
-						file.skipField(1);
-						int iTotalDelay = 0;
-						file.getInteger(iTotalDelay);
-						mapTotalDelay[strSimResult].push_back(iTotalDelay);
+						mapSegmentDelay[strSimResult][iSegment].push_back(delaySegmentData);
+					}
 
-                        long lData = 0l;
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].push_back(lData);
-
-                        //file.skipField(5);
-
-						//long actStartTime = 0;
-						//file.getInteger(actStartTime);
-						//long actEndTime = 0;
-						//file.getInteger(actEndTime);
-			
-						file.skipField(2);
-						long smtaTime = 0;
-						file.getInteger(smtaTime);
-						long smtdTime = 0;
-						file.getInteger(smtdTime);
-						long planSt = 0;
-						file.getInteger(planSt);
-
-						file.skipField(2);
-						int iArrOrDeplDelay = 0;
-						file.getInteger(iArrOrDeplDelay);
-
-						int iScheduleDelay = 0;
-						if (iArrOrDeplDelay)
-						{
-							if (smtaTime >= 0)
-							{
-								iScheduleDelay = max(smtaTime - planSt,0l);
-							}
-						}
-						else
-						{
-							if (smtdTime >= 0)
-							{
-								iScheduleDelay = max(smtdTime - planSt,0l);
-							}
-							
-						}
-						mapScheduleDelay[strSimResult].push_back(iScheduleDelay);
-
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						
-						int nNodeCount = 0;
-						file.getInteger(nNodeCount);
-						file.getLine();
-						//node delay start, will implement
-						if(mapComponentDelay[strSimResult].empty())
-						{
-							mapComponentDelay[strSimResult][FltDelayReason_Slowed].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_Vectored].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_AirHold].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_AltitudeChanged].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_SideStep].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_Stop].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_Service].clear();
-						}
-
-						if (mapSegmentDelay[strSimResult].empty())
-						{
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
-						}
-						for (int iSkip = 0; iSkip < nNodeCount; iSkip++)
-						{
-							long lDelay = 0;
-							file.getInteger(lDelay);
-							file.skipField(1);
-							int iSegment = 0;
-							file.getInteger(iSegment);
-
-							long lArrTime = 0;
-							file.getInteger(lArrTime);
-
-							long lActArrTime = 0;
-							file.getInteger(lActArrTime);
-							FlightDelayData delaySegmentData;
-							delaySegmentData.m_iArrTime = lActArrTime;
-							delaySegmentData.m_lDelayTime = lDelay;
-							if (mapSegmentDelay[strSimResult].find(iSegment) != mapSegmentDelay[strSimResult].end())
-							{
-								mapSegmentDelay[strSimResult][iSegment].push_back(delaySegmentData);
-							}
-							
-							int iReason = 0;
-							file.getInteger(iReason);
-							FlightDelayData delayComponentData;
-							delayComponentData.m_iArrTime = lArrTime;
-							delayComponentData.m_lDelayTime = lDelay;
-							if (mapComponentDelay[strSimResult].find(iReason) != mapComponentDelay[strSimResult].end())
-							{
-								mapComponentDelay[strSimResult][iReason].push_back(delayComponentData);
-							}
-							file.getLine();
-						}
+					FlightDelayData delayComponentData;
+					delayComponentData.m_iArrTime = dataItem.vNodeDelay.at(iNode).eArriveTime;
+					delayComponentData.m_lDelayTime = dataItem.vNodeDelay.at(iNode).delayTime;;
+					int iReason = dataItem.vNodeDelay.at(iNode).nReason;
+					if (mapComponentDelay[strSimResult].find(iReason) != mapComponentDelay[strSimResult].end())
+					{
+						mapComponentDelay[strSimResult][iReason].push_back(delayComponentData);
 					}
 				}
-				file.closeIn();
 			}
-		}
-		catch (...)
-		{
-			ClearData();
 		}
 	}
 

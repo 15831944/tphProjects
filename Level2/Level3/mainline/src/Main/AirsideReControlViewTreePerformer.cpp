@@ -787,34 +787,6 @@ void AirsideReControlView::CRunwayDelayParaTreePerformer::InitTree()
 
 	}
 	m_pTreeCtrl->Expand(m_hItemRunwayRoot,TVE_EXPAND);
-
-    // Add multi run check button
-    cni.nt = NT_CHECKBOX;
-    HTREEITEM hMultiRunRoot = m_pTreeCtrl->InsertItem("Multi Runs", cni, pParam->GetEnableMultiRun(), FALSE, TVI_ROOT);
-    TreeItemData* pItemData = new TreeItemData;
-    pItemData->itemType = Item_MultiRunRoot;
-    m_pTreeCtrl->SetItemData(hMultiRunRoot, (DWORD_PTR)pItemData);
-
-    std::vector<int> vMultiRun;
-    pParam->GetReportRuns(vMultiRun);
-    CSimAndReportManager *pSimAndReportManager = (m_pTermDoc->GetTerminal().GetSimReportManager());
-    int nSimCount = pSimAndReportManager->getSubSimResultCout();
-    for (int nSim =0; nSim < nSimCount; ++nSim )
-    {
-        CString strSimName;
-        strSimName.Format(_T("RUN %d"),nSim+1);
-        HTREEITEM hRun = m_pTreeCtrl->InsertItem(strSimName, cni, FALSE, FALSE, hMultiRunRoot);
-        TreeItemData* pItemData = new TreeItemData;
-        pItemData->nOperation = nSim;
-        pItemData->itemType = Item_Run;
-        m_pTreeCtrl->SetItemData(hRun, (DWORD_PTR)pItemData);
-
-        if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
-        {
-            m_pTreeCtrl->SetCheckStatus(hRun,TRUE);
-        }
-    }
-    m_pTreeCtrl->Expand(hMultiRunRoot, TVE_EXPAND);
 }
 
 void AirsideReControlView::CRunwayDelayParaTreePerformer::LoadData()
@@ -1210,26 +1182,6 @@ LRESULT AirsideReControlView::CRunwayDelayParaTreePerformer::DefWindowProc( UINT
             pItemData->nOperation = nSel;
         }
         m_pTreeCtrl->SetItemText(hSelItem, GetOperationName(pItemData->nOperation));
-    }
-    else if(message == UM_CEW_STATUS_CHANGE)
-    {
-        HTREEITEM hSelItem = (HTREEITEM)wParam;
-        TreeItemData* pItemData = (TreeItemData*)m_pTreeCtrl->GetItemData(hSelItem);
-        if(pItemData->itemType == Item_MultiRunRoot)
-        {
-            m_pParam->SetEnableMultiRun(!m_pParam->GetEnableMultiRun());
-        }
-        else if(pItemData->itemType == Item_Run)
-        {
-            if(m_pTreeCtrl->IsCheckItem(hSelItem))
-            {
-                m_pParam->AddReportRuns(pItemData->nOperation);
-            }
-            else
-            {
-                m_pParam->RemoveReportRuns(pItemData->nOperation);
-            }
-        }
     }
     return 0;
 }

@@ -9,6 +9,9 @@
 #include <algorithm>
 #include "Parameters.h"
 #include "StandOperationDataCalculation.h"
+#include "StandOperationData.h"
+#include "AirsideFlightStandOperationBaseResult.h"
+#include <vector>
 
 static const char* strSummaryListTitle[] = 
 {
@@ -39,61 +42,33 @@ CAirsideStandMultiRunOperatinResult::~CAirsideStandMultiRunOperatinResult(void)
 
 void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pParameter )
 {
-	ClearData();
-	ArctermFile file;
-	MapMultiRunStandOperationData mapStandLoadData;
-	DelayResultPath::iterator iter = m_mapResultPath.begin();
-	for (; iter != m_mapResultPath.end(); ++iter)
-	{
-		CString strResultPath = iter->second;
-		CString strSimResult = iter->first;
+    ClearData();
+    ArctermFile file;
+    MapMultiRunStandOperationData mapStandLoadData;
+    mapSimReport::iterator iter = m_mapSimReport.begin();
+    for (; iter != m_mapSimReport.end(); ++iter)
+    {
+        CAirsideFlightStandOperationReport* pReport = (CAirsideFlightStandOperationReport*)(iter->second);
+        CString strSimResult = iter->first;
+        std::vector<CStandOperationReportData*> reportResult = pReport->GetBaseResult()->GetResult();
 
-		try
-		{
-			if (file.openFile(strResultPath.GetString(),READ))
-			{
-				int nCount = 0;
-				file.getLine();
-				file.getInteger(nCount);
-				file.getLine();
+        int nCount = (int)reportResult.size();
+        for (int i=0; i<nCount; i++)
+        {
+            CStandOperationReportData* pData = reportResult.at(i);
+            StandMultipleOperationData standOperationData;
+            standOperationData.m_fltmode = pData->m_fltmode;
+            standOperationData.m_sSchedName = pData->m_sSchedName;
+            standOperationData.m_lSchedOccupancy = pData->m_lSchedOccupancy;
+            standOperationData.m_sActualName = pData->m_sActualName;
 
-				for (int nIndex = 0; nIndex < nCount; nIndex++)
-				{
-					file.skipField(2);
-					StandMultipleOperationData standOperationData;
-					file.getChar(standOperationData.m_fltmode);
-					file.getField(standOperationData.m_sSchedName.GetBuffer(1024),1024);
-					standOperationData.m_sSchedName.ReleaseBuffer();
+            // TODO
+            standOperationData.m_lOccupiedTime = pData->m_lDueTaxiwayOccupied;
 
-					file.skipField(2);
-                    file.getInteger(standOperationData.m_lSchedOccupancy);
-
-					file.getField(standOperationData.m_sActualName.GetBuffer(1024),1024);
-					standOperationData.m_sActualName.ReleaseBuffer();
-
-					file.skipField(2);
-					file.getInteger(standOperationData.m_lOccupiedTime);
-
-					long lDelayEnter = 0;
-					file.getInteger(lDelayEnter);
-
-					file.skipField(1);
-					long lDelayLeaving = 0;
-					file.getInteger(lDelayLeaving);
-					standOperationData.m_lDelayEnter = lDelayEnter;
-					standOperationData.m_lDelayLeaving = lDelayLeaving;
-					mapStandLoadData[strSimResult].push_back(standOperationData);
-
-					file.getLine();
-				}
-
-				file.closeIn();
-			}
-		}
-		catch(...)
-		{
-			ClearData();
-		}
+            standOperationData.m_lDelayEnter = pData->m_lDelayEnter;
+            standOperationData.m_lDelayLeaving = pData->m_lDelayLeaving;
+            mapStandLoadData[strSimResult].push_back(standOperationData);
+        }
 	}
 
 	//generate detail stand occupancy

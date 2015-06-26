@@ -6,6 +6,10 @@
 //------------------------------------------------------------------------------------
 #pragma once
 #include "AirsideBaseReport.h"
+#include "TakeoffProcessData.h"
+#include "AirsideTakeoffProcessResult.h"
+#include "AirsideTakeoffProcessSummaryResult.h"
+#include "Parameters.h"
 class CAirsideTakeoffProcessResult;
 class CParameters;
 class CXListCtrl;
@@ -120,6 +124,25 @@ public:
 	CString GetReportFileName();
 
 	CAirsideReportBaseResult *GetReportResult();
+	bool GeDetailtResult(CParameters* pParameter,TakeoffDetailDataList& dataList)
+	{
+		if (pParameter->getReportType() == ASReportType_Detail && m_pResult)
+		{
+			dataList = m_pResult->GetResult();
+			return true;
+		}
+		return false;
+	}
+
+	bool GetSummaryResult(CParameters* pParameter, TakeoffSummaryDataList& dataList)
+	{
+		if (pParameter->getReportType() == ASReportType_Summary && m_pResult)
+		{
+			dataList = ((CAirsideTakeoffProcessSummaryResult*)m_pResult)->GetResult();
+			return true;
+		}
+		return false;
+	}
 private:
 	CAirsideTakeoffProcessResult* m_pResult;//result pointer
 };

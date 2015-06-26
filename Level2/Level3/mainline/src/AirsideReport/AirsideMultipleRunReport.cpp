@@ -9,8 +9,6 @@
 #include "AirsideStandMultiRunOperatinResult.h"
 #include "AirsideAircraftMultiRunTakeoffProcessResult.h"
 #include "AirsideAircraftMutiRunRunwayOperationResult.h"
-#include "AirsideRunwayDelayMultiRunResult.h"
-
 CAirsideMultipleRunReport::CAirsideMultipleRunReport(void)
 {
 }
@@ -33,7 +31,7 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		return;
 
 	AddReportWhatToGen(_reportType,parameter);
-	m_mapMutiRunResult[_reportType]->ClearResultPath();
+	m_mapMutiRunResult[_reportType]->ClearSimReport();
 	for (int nRun = 0; nRun < static_cast<int>(vReportRuns.size()); ++nRun)
 	{
 		CString strSimResult;
@@ -50,10 +48,10 @@ void CAirsideMultipleRunReport::GenerateReport( Terminal* pTerminal,CBGetLogFile
 		CAirsideMultipleRunReportAgent reportAgent;
 		reportAgent.InitReportPath(strReportFileDir);
 		reportAgent.SetCBGetLogFilePath(pFunc);
-		reportAgent.AddReportWhatToGen(_reportType,parameter, pTerminal);
-		reportAgent.GenerateReport(_reportType,parameter);
+		CAirsideBaseReport* pReport = reportAgent.AddReportWhatToGen(_reportType,parameter, pTerminal);
+		reportAgent.GenerateReport(pReport,parameter);
 
-		m_mapMutiRunResult[_reportType]->AddSimResultPath(strSimResultFolderName,reportAgent.GetSimResultPath(_reportType));
+		m_mapMutiRunResult[_reportType]->AddSimReport(strSimResultFolderName,pReport);
 	}
 	
 	m_mapMutiRunResult[_reportType]->LoadMultipleRunReport(parameter);
@@ -78,8 +76,6 @@ void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CPara
         case Airside_RunwayOperaitons:
             m_mapMutiRunResult[_reportType] = new CAirsideAircraftMutiRunRunwayOperationResult;
             break;
-        case Airside_RunwayDelay:
-            m_mapMutiRunResult[_reportType] = new CAirsideRunwayDelayMultiRunResult;
 		default:
 			break;
 		}
