@@ -690,18 +690,6 @@ BOOL CComparativeProject::DeleteProjectPath()
     return TRUE;
 }
 
-BOOL CComparativeProject::RenameProjectPath(const CString& strNewName)
-{
-    CString strProjPath = PROJMANAGER->GetAppPath();
-
-    CString strSrc = strProjPath + _T("\\Comparative Report\\") + m_strName;
-    CString strDest = strProjPath += _T("\\Comparative Report\\") + strNewName;
-    if(m_fo.Rename(strSrc, strDest))
-        return TRUE;
-    else
-        return FALSE;
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////

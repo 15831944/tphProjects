@@ -35,6 +35,7 @@ public:
     void SetCmpProj(const CComparativeProject* val);
 protected:
     virtual void OnOK();
+    virtual BOOL OnInitDialog();
     const CComparativeProject* m_pCmpProj;
 };
 

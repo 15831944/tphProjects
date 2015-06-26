@@ -181,4 +181,11 @@ void DlgEditCmpReport::OnOK()
     CDialog::OnOK();
 }
 
+BOOL DlgEditCmpReport::OnInitDialog()
+{
+    DlgAddNewCmpReport::OnInitDialog();
+    GetDlgItem(IDC_CMPREPORTNAME)->EnableWindow(FALSE);
+    return TRUE;
+}
+
 

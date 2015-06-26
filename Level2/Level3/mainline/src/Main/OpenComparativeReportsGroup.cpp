@@ -282,7 +282,6 @@ void CDlgOpenComparativeReport::OnEditProject()
     dlg.SetCmpProj(pCmpProj);
     if(dlg.DoModal() == IDOK)
     {
-        pCmpProj->RenameProjectPath(dlg.m_strName);
         pCmpProj->SetName(dlg.m_strName);
         pCmpProj->SetDescription(dlg.m_strDesc);
         CMPPROJECTMANAGER->saveDataSet(PROJMANAGER->GetAppPath(), false);

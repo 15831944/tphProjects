@@ -88,7 +88,6 @@ public:
 	BOOL	TransferFiles(const CString& strSource, const CString& strDest,void (CALLBACK *_ShowCopyInfo)(int, LPCTSTR));
 	BOOL	RemoveFolder();
 
-    BOOL    RenameProjectPath(const CString& strNewName);
 
 	BOOL	Run(CCompRepLogBar* pWndStatus,void (CALLBACK* _ShowCopyInfo)(int, LPCTSTR));
 	void	Stop(BOOL bStop = TRUE){if (m_bRunning) m_bStop = bStop;}
