@@ -26,7 +26,7 @@ void CTabSubView1::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CTabSubView1, CDialog)
     ON_BN_CLICKED(IDC_BTN_READ, OnBnClickedBtnRead)
     ON_BN_CLICKED(IDC_BTN_WRITE, OnBnClickedBtnWrite)
-    ON_BN_CLICKED(IDC_BUTTON1, OnBnClickedButton1)
+    ON_BN_CLICKED(IDC_BTN_FORMAT, OnBnClickedBtnFormat)
     ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_FLOAT, OnDeltaposSpinFloat)
     ON_CBN_EDITCHANGE(IDC_COMBO_TEST, OnCbnEditchangeComboTest)
     ON_WM_SIZE()
@@ -47,7 +47,7 @@ void CTabSubView1::OnBnClickedBtnWrite()
 {
 }
 
-void CTabSubView1::OnBnClickedButton1()
+void CTabSubView1::OnBnClickedBtnFormat()
 {
     CString str;
     m_editFloat.GetWindowText(str);
@@ -132,7 +132,7 @@ void CTabSubView1::OnSize(UINT nType, int cx, int cy)
     LayoutControl(GetDlgItem(IDC_SPIN_FLOAT), TopRight, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_READ), TopRight, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_WRITE), TopRight, TopRight, cx, cy);
-    LayoutControl(GetDlgItem(IDC_BUTTON1), TopRight, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BTN_FORMAT), TopRight, TopRight, cx, cy);
     if(nType != SIZE_MINIMIZED)
     {
         m_oldCx = cx;

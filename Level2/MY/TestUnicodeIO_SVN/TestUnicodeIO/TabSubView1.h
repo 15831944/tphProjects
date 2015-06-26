@@ -21,7 +21,7 @@ public:
     CEdit m_editWrite;
     CNumericEdit m_editFloat;
     CAutoFillComboBox m_cbTest;
-    afx_msg void OnBnClickedButton1();
+    afx_msg void OnBnClickedBtnFormat();
     afx_msg void OnBnClickedBtnRead();
     afx_msg void OnBnClickedBtnWrite();
     afx_msg void OnCbnEditchangeComboTest();
