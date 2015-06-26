@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "AirsideFlightMutiRunDelayReport.h"
-#include "Common/TERMFILE.H"
 #include "Common/elaptime.h"
 #include "MFCExControl/XListCtrl.h"
 #include "Parameters.h"
@@ -9,6 +8,7 @@
 #include "ParameterCaptionDefine.h"
 #include "AirsideFlightDelayParam.h"
 #include "Reports/StatisticalTools.h"
+#include "AirsideFlightDelayReport.h"
 
 const char* strSegmentString[] = {"Unknown","Air","Taxi","Stand","Service","Takeoff"};
 const char* strComponentString[] = {"Unknown","Slowed","Vectored","Hold","RunWay Hold","Alt change","Side step","Stop","Service"};
@@ -48,159 +48,88 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParam
 	mapDelayResultData mapComponentDelay;
 
     mapSummarySegmentData mapSummarySegmentDelay;
-	ArctermFile file;
-	DelayResultPath::iterator iter = m_mapResultPath.begin();
-	for (; iter != m_mapResultPath.end(); ++iter)
+	mapSimReport::iterator iter = m_mapSimReport.begin();
+	for (; iter != m_mapSimReport.end(); ++iter)
 	{
-		CString strResultPath = iter->second;
+		CAirsideFlightDelayReport* pDelayReport = (CAirsideFlightDelayReport*)iter->second;
 		CString strSimResult = iter->first;
-
-		try
+	//	const std::vector<CAirsideFlightDelayReport::FltTypeDelayItem> reportResult = pDelayReport->GetResult();
+		const std::vector<CAirsideFlightDelayReport::FltDelayItem> reportResult = pDelayReport->GetTotalResult();
+//		for (unsigned i = 0; i < reportResult.size(); i++)
 		{
-			if (file.openFile(strResultPath.GetString(),READ))
+//			CAirsideFlightDelayReport::FltTypeDelayItem delayitem = reportResult.at(i);
+
+//			for (unsigned j = 0 ; j < delayitem.m_vDelayData.size(); j++)
+			for(unsigned j = 0; j < reportResult.size(); j++)
 			{
-				int iCount = 0; 
-				if (file.getInteger(iCount) == 0)
-					return;
-		
-				file.getLine();
-				file.getLine();
-				for (int i = 0; i < iCount; i++)
+			//	CAirsideFlightDelayReport::FltDelayItem dataItem = delayitem.m_vDelayData.at(j);
+				CAirsideFlightDelayReport::FltDelayItem dataItem = reportResult.at(j);
+				mapTotalDelay[strSimResult].push_back(dataItem.totalDelayTime);
+
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].push_back(dataItem.airDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].push_back(dataItem.taxiDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].push_back(dataItem.standDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].push_back(dataItem.serviceDelayTime);
+				mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].push_back(dataItem.takeoffDelayTime);
+
+				long iScheduleDelay = 0;
+				if (dataItem.bArrOrDeplDelay)
 				{
-					int iSize = 0;
-					if(file.getInteger(iSize) == 0)
-						return;
-
-					file.getLine();
-					for (int j = 0; j < iSize; j++)
+					if (dataItem.actEndTime >= 0)
 					{
-						file.skipField(1);
-						int iTotalDelay = 0;
-						file.getInteger(iTotalDelay);
-						mapTotalDelay[strSimResult].push_back(iTotalDelay);
-
-                        long lData = 0l;
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].push_back(lData);
-
-                        file.getInteger(lData);
-                        mapSummarySegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].push_back(lData);
-
-                        //file.skipField(5);
-
-						//long actStartTime = 0;
-						//file.getInteger(actStartTime);
-						//long actEndTime = 0;
-						//file.getInteger(actEndTime);
-			
-						file.skipField(2);
-						long smtaTime = 0;
-						file.getInteger(smtaTime);
-						long smtdTime = 0;
-						file.getInteger(smtdTime);
-						long planSt = 0;
-						file.getInteger(planSt);
-
-						file.skipField(2);
-						int iArrOrDeplDelay = 0;
-						file.getInteger(iArrOrDeplDelay);
-
-						int iScheduleDelay = 0;
-						if (iArrOrDeplDelay)
-						{
-							if (smtaTime >= 0)
-							{
-								iScheduleDelay = max(smtaTime - planSt,0l);
-							}
-						}
-						else
-						{
-							if (smtdTime >= 0)
-							{
-								iScheduleDelay = max(smtdTime - planSt,0l);
-							}
-							
-						}
-						mapScheduleDelay[strSimResult].push_back(iScheduleDelay);
-
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						file.getLine();
-						
-						int nNodeCount = 0;
-						file.getInteger(nNodeCount);
-						file.getLine();
-						//node delay start, will implement
-						if(mapComponentDelay[strSimResult].empty())
-						{
-							mapComponentDelay[strSimResult][FltDelayReason_Slowed].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_Vectored].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_AirHold].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_AltitudeChanged].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_SideStep].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_Stop].clear();
-							mapComponentDelay[strSimResult][FltDelayReason_Service].clear();
-						}
-
-						if (mapSegmentDelay[strSimResult].empty())
-						{
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].clear();
-							mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
-						}
-						for (int iSkip = 0; iSkip < nNodeCount; iSkip++)
-						{
-							long lDelay = 0;
-							file.getInteger(lDelay);
-							file.skipField(1);
-							int iSegment = 0;
-							file.getInteger(iSegment);
-
-							long lArrTime = 0;
-							file.getInteger(lArrTime);
-
-							long lActArrTime = 0;
-							file.getInteger(lActArrTime);
-							FlightDelayData delaySegmentData;
-							delaySegmentData.m_iArrTime = lActArrTime;
-							delaySegmentData.m_lDelayTime = lDelay;
-							if (mapSegmentDelay[strSimResult].find(iSegment) != mapSegmentDelay[strSimResult].end())
-							{
-								mapSegmentDelay[strSimResult][iSegment].push_back(delaySegmentData);
-							}
-							
-							int iReason = 0;
-							file.getInteger(iReason);
-							FlightDelayData delayComponentData;
-							delayComponentData.m_iArrTime = lArrTime;
-							delayComponentData.m_lDelayTime = lDelay;
-							if (mapComponentDelay[strSimResult].find(iReason) != mapComponentDelay[strSimResult].end())
-							{
-								mapComponentDelay[strSimResult][iReason].push_back(delayComponentData);
-							}
-							file.getLine();
-						}
+						iScheduleDelay = max(dataItem.smtaTime - dataItem.planSt,0l);
 					}
 				}
-				file.closeIn();
+				else
+				{
+					if (dataItem.actStartTime >= 0)
+					{
+						iScheduleDelay = max(dataItem.smtdTime - dataItem.planSt,0l);
+					}
+				}
+				mapScheduleDelay[strSimResult].push_back(iScheduleDelay);
+
+				if(mapComponentDelay[strSimResult].empty())
+				{
+					mapComponentDelay[strSimResult][FltDelayReason_Slowed].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_Vectored].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_AirHold].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_AltitudeChanged].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_SideStep].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_Stop].clear();
+					mapComponentDelay[strSimResult][FltDelayReason_Service].clear();
+				}
+
+				if (mapSegmentDelay[strSimResult].empty())
+				{
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Air].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Taxi].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Stand].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_Service].clear();
+					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
+				}
+
+				for (unsigned iNode = 0; iNode < dataItem.vNodeDelay.size(); iNode++)
+				{
+					FlightDelayData delaySegmentData;
+					delaySegmentData.m_iArrTime = dataItem.vNodeDelay.at(iNode).eActArriveTime;
+					delaySegmentData.m_lDelayTime = dataItem.vNodeDelay.at(iNode).delayTime;
+					int iSegment = dataItem.vNodeDelay.at(iNode).nSegment;
+					if (mapSegmentDelay[strSimResult].find(iSegment) != mapSegmentDelay[strSimResult].end())
+					{
+						mapSegmentDelay[strSimResult][iSegment].push_back(delaySegmentData);
+					}
+
+					FlightDelayData delayComponentData;
+					delayComponentData.m_iArrTime = dataItem.vNodeDelay.at(iNode).eArriveTime;
+					delayComponentData.m_lDelayTime = dataItem.vNodeDelay.at(iNode).delayTime;;
+					int iReason = dataItem.vNodeDelay.at(iNode).nReason;
+					if (mapComponentDelay[strSimResult].find(iReason) != mapComponentDelay[strSimResult].end())
+					{
+						mapComponentDelay[strSimResult][iReason].push_back(delayComponentData);
+					}
+				}
 			}
-		}
-		catch (...)
-		{
-			ClearData();
 		}
 	}
 
@@ -257,66 +186,16 @@ void CAirsideFlightMutiRunDelayResult::ClearData()
 	m_segmentDelayData.clear();
 	m_componentDelayData.clear();
 	m_scheduleDelayData.clear();
-}
 
-long CAirsideFlightMutiRunDelayResult::ClacTimeRange(ElapsedTime& eMaxTime,ElapsedTime& eMinValue,ElapsedTime& eInterval)
-{
-	if (eMinValue == eMaxTime)
-	{
-		eMinValue = ElapsedTime(0L);
-	}
-	bool bInSecond = false;
-	int _nMinNumCol = 3;
-	ElapsedTime timeDiff = eMaxTime - eMinValue;
-
-	ElapsedTime eUnitTimeOnX;
-
-	int nTimeDiffAsHours = timeDiff.asHours();
-	int nTimeDiffAsMin = timeDiff.asMinutes();
-	int nTimeDiffAsSec = timeDiff.asSeconds();
-
-	if( nTimeDiffAsHours > _nMinNumCol )
-	{
-		// if hh  > _nMinNumCol, display column up to 2*_nMinNumCol
-		int nMinHours = nTimeDiffAsHours / (2*_nMinNumCol) + 1;
-		eUnitTimeOnX.set( nMinHours, 0, 0 );
-		eMinValue.SetMinute( 0 );
-		eMinValue.SetSecond( 0 );
-		if( nTimeDiffAsHours > (2*_nMinNumCol) )
-			_nMinNumCol = (2*_nMinNumCol);
-		else
-			_nMinNumCol = nTimeDiffAsHours;
-	}
-	else if( nTimeDiffAsMin > _nMinNumCol )
-	{
-		// else if hhmm > nNumCol min, so the column unit should be hhmm % 2 nNumCol min
-		int nMinMinutes = nTimeDiffAsMin / ( 2*_nMinNumCol ) + 1;
-		eUnitTimeOnX.set( nMinMinutes / 60, nMinMinutes % 60, 0 );
-		eMinValue.SetSecond( 0 );
-		if( nTimeDiffAsMin > 2 * _nMinNumCol )
-			_nMinNumCol = 2 * _nMinNumCol;
-		else
-			_nMinNumCol = nTimeDiffAsMin;
-	}
-	else if( nTimeDiffAsSec > _nMinNumCol )
-	{
-		// be hhmmss % 2 nNumCol sec.
-		int mMinSeconds = nTimeDiffAsSec / ( 2*_nMinNumCol ) + 1;
-		eUnitTimeOnX.set( mMinSeconds / 3600, mMinSeconds / 60, mMinSeconds % 60 );
-		if( nTimeDiffAsSec > 2 * _nMinNumCol )
-			_nMinNumCol = 2 * _nMinNumCol;
-		else
-			_nMinNumCol = nTimeDiffAsSec;
-		bInSecond = true;
-	}
-
-	eInterval = eUnitTimeOnX;
-	if (eInterval == ElapsedTime(0L))
-	{
-		eInterval = ElapsedTime(60L);
-	}
-
-	return _nMinNumCol;
+	m_totalSummaryDelayData.clear();
+	m_airSummaryDelayData.clear();
+	m_taxiSummaryDelayData.clear();
+	m_standSummaryDelayData.clear();
+	m_serviceSummaryDelayData.clear();
+	m_takeoffSummaryDelayData.clear();
+	m_scheduleSummaryDelayData.clear();
+	m_segmentSummaryDelayData.clear();
+	m_componentSummaryDelayData.clear();
 }
 
 void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComponentAndSegmentMap& mapDetailData,mapDelayResultData& componentSegmentMapData,CParameters* pParameter)
@@ -330,16 +209,17 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 	if (lMinDelayTime > lMaxDelayTime)
 		return;
 
-	long iInterval = pParameter->getInterval();
-	ElapsedTime estUserIntervalTime = ElapsedTime(iInterval);
+	long lUserIntervalTime = pParameter->getInterval();
+	ElapsedTime estUserIntervalTime = ElapsedTime(lUserIntervalTime);
 
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < pParameter->getInterval())
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+        estMinDelayTime = ElapsedTime(lMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime);
 
-//		lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lMinDelayTime)%(lUserIntervalTime) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -362,6 +242,9 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 			{
 				ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 				ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
+
+                if(estTempMaxDelayTime > estMaxDelayTime)
+                    estTempMaxDelayTime = estMaxDelayTime;
 
 				MultipleRunReportData delayData;
 				delayData.m_iStart = estTempMinDelayTime.getPrecisely();
@@ -391,10 +274,12 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( MultiRunDe
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval * 100);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval*100)) /100);
+        long lActMinDelayTime =lMinDelayTime - lMinDelayTime%(iInterval*100);
+        estMinDelayTime = ElapsedTime(lActMinDelayTime / 100);
 
-		lDelayTimeSegmentCount++;
+        lDelayTimeSegmentCount = (lMaxDelayTime-lActMinDelayTime) / (iInterval*100);
+        if((lMaxDelayTime-lActMinDelayTime)%(iInterval*100) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -436,11 +321,12 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDet
 
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
-	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+    {
+        estMinDelayTime = ElapsedTime(lMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
 
-	//	lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lMinDelayTime) % (iInterval) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -455,6 +341,9 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDet
 			ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 			ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
 
+            if(estTempMaxDelayTime > estMaxDelayTime)
+                estTempMaxDelayTime = estMaxDelayTime;
+
 			MultipleRunReportData delayData;
 			delayData.m_iStart = estTempMinDelayTime.getPrecisely();
 			delayData.m_iEnd = estTempMaxDelayTime.getPrecisely();
@@ -466,104 +355,6 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDet
 	}
 }
 
-long CAirsideFlightMutiRunDelayResult::GetMapMinValue( mapLoadResult mapData )
-{
-	bool bInitFlag = true;
-	long iMin = 0;
-	mapLoadResult::iterator iter = mapData.begin();
-	for (; iter != mapData.end(); ++iter)
-	{
-		 int iValue = GetMinValue(iter->second);
-		if (bInitFlag)
-		{
-			iMin = iValue;
-			bInitFlag = false;
-		}
-		else if (iMin > iValue)
-		{
-			iMin = iValue;
-		}
-	}
-	return iMin;
-}
-
-long CAirsideFlightMutiRunDelayResult::GetMapMaxValue( mapLoadResult mapData )
-{
-	bool bInitFlag = true;
-	long iMax = 0;
-	mapLoadResult::iterator iter = mapData.begin();
-	for (; iter != mapData.end(); ++iter)
-	{
-		int iValue = GetMaxValue(iter->second);
-		if (bInitFlag)
-		{
-			iMax = iValue;
-			bInitFlag = false;
-		}
-		else if (iMax < iValue)
-		{
-			iMax = iValue;
-		}
-	}
-	return iMax;
-}
-
-long CAirsideFlightMutiRunDelayResult::GetMinValue( std::vector<long> vData ) const
-{
-	bool bInitFlag = true;
-	long iMin = 0;
-	for (size_t i = 0; i < vData.size(); i++)
-	{
-		int iValue = vData.at(i);
-		if (bInitFlag)
-		{
-			iMin = iValue;
-			bInitFlag = false;
-		}
-		else if (iMin > iValue)
-		{
-			iMin = iValue;
-		}
-	}
-	return iMin;
-}
-
-long CAirsideFlightMutiRunDelayResult::GetMaxValue( std::vector<long> vData ) const
-{
-	bool bInitFlag = true;
-	long iMax = 0;
-	for (size_t i = 0; i < vData.size(); i++)
-	{
-		int iValue = vData.at(i);
-		if (bInitFlag)
-		{
-			iMax = iValue;
-			bInitFlag = false;
-		}
-		else if (iMax < iValue)
-		{
-			iMax = iValue;
-		}
-	}
-	return iMax;
-}
-
-int CAirsideFlightMutiRunDelayResult::GetIntervalCount( long iStart, long iEnd, std::vector<long> vData,long iIgnore/*=0*/  ) const
-{
-	int iCount = 0;
-	for (unsigned i = 0; i < vData.size(); i++)
-	{
-		long iData = vData.at(i);
-		if (iData < iIgnore)//ignore necessary secs
-			continue;
-		
-		if (iData >= iStart && iData < iEnd)
-		{
-			iCount++;
-		}
-	}
-	return iCount;
-}
 
 long CAirsideFlightMutiRunDelayResult::GetIntervalDelayTime( long iStart,long iEnd,std::vector<FlightDelayData> vData) const
 {
@@ -1267,7 +1058,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailTotalDelay3DChartString(  C2DCha
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("TOTAL DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report TOTAL DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1278,7 +1069,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailAirDelay3DChartString(  C2DChart
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));	
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("AIR DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report AIR DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1289,7 +1080,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailTaxiDelay3DChartString(  C2DChar
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));	
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("TAXI DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report TAXI DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1300,7 +1091,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailStandDelay3DChartString(  C2DCha
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("STAND DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report STAND DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1311,7 +1102,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailTakeoffDelay3DChartString(  C2DC
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));	
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("TAKEOFF DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report TAKEOFF DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1363,7 +1154,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailServiceDelay3DChartString( C2DCh
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));	
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("GSE INDUCED DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report GSE INDUCED DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1376,7 +1167,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailSegmentDelay3DChartString( C2DCh
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("SEGMENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report %s %s,%s "), strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1387,7 +1178,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailScheduleDelay3DChartString( C2DC
 	c2dGraphData.m_strXtitle = _T("Delay (hh:mm )");	
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("SCHEDULE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report SCHEDULE DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1400,7 +1191,7 @@ void CAirsideFlightMutiRunDelayResult::SetDetailComponentDelay3DChartString( C2D
 	c2dGraphData.m_strXtitle.Format(_T("Time of day"));
 
 	CString strFooter(_T(""));
-	strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Mulitple Run Report % %s,%s "), strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1543,7 +1334,9 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(MultiRunSu
     int nCount = sizeof(strSummaryContent)/sizeof(strSummaryContent[0]);
     for(int i=0; i<nCount; i++)
     {
-        c2dGraphData.m_vrLegend.push_back(strSummaryContent[i]);
+        CString strLegend = strSummaryContent[i];
+        strLegend.TrimRight(_T("(hh:mm:ss)"));
+        c2dGraphData.m_vrLegend.push_back(strLegend);
     }
 
     MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
@@ -1552,7 +1345,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(MultiRunSu
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
         CString strXTickTitle;
-        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
 
@@ -1621,7 +1414,9 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(S
     int nCount = sizeof(strSummaryContent)/sizeof(strSummaryContent[0]);
     for(int i=0; i<nCount; i++)
     {
-        c2dGraphData.m_vrLegend.push_back(strSummaryContent[i]);
+        CString strLegend = strSummaryContent[i];
+        strLegend.TrimRight(_T("(hh:mm:ss)"));
+        c2dGraphData.m_vrLegend.push_back(strLegend);
     }
 
     c2dGraphData.m_vr2DChartData.resize(13);
@@ -1631,7 +1426,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(S
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
         CString strXTickTitle;
-        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
         c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second[iType].m_estMin/60.0f);
@@ -1701,7 +1496,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryTotalDelay3DChartString( C2DCha
 
     //set footer
     CString strFooter(_T(""));
-    strFooter.Format(_T("TOTAL DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report TOTAL DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1712,7 +1507,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryAirDelay3DChartString( C2DChart
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("AIR DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report AIR DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1723,7 +1518,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryTaxiDelay3DChartString( C2DChar
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("TAXI DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report TAXI DELAY REPORT %s,%s "),GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1734,7 +1529,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryStandDelay3DChartString( C2DCha
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("STAND DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report STAND DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1745,7 +1540,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryTakeoffDelay3DChartString( C2DC
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("TAKEOFF DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report TAKEOFF DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1756,7 +1551,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryServiceDelay3DChartString( C2DC
     c2dGraphData.m_strXtitle.Format(_T("Simulation Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("SERVICE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report SERVICE DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1769,7 +1564,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummarySegmentDelay3DChartString( C2DC
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("SEGMENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report %s %s,%s "), strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1780,7 +1575,7 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryScheduleDelay3DChartString( C2D
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("SCHEDULE DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report SCHEDULE DELAY REPORT %s,%s "), GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1793,8 +1588,420 @@ void CAirsideFlightMutiRunDelayResult::SetSummaryComponentDelay3DChartString( C2
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("COMPONENT DELAY REPORT %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Mulitple Run Report %s %s,%s "), strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteReportData( ArctermFile& _file )
+{
+	_file.writeField("Airside Multiple Run Aircraft Delay Report");//write report string
+	_file.writeLine();
+
+	_file.writeField("Detail Result");//write detail type
+	_file.writeLine();
+	WriteDetailReport(_file);
+
+	_file.writeField("Summary Result");//write summary type
+	_file.writeLine();
+	WriteSummaryReport(_file);
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::ReadReportData( ArctermFile& _file )
+{
+	ClearData();
+
+	_file.getLine();//skip detail
+	LoadDetailReport(_file);
+	_file.getLine();//skip summary
+	LoadSummaryReport(_file);
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteDetailMap( MultiRunDetailMap mapDetailData, ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		_file.writeLine();
+		for (int i = 0; i < iCount; i++)
+		{
+			const MultipleRunReportData& reportData = iter->second.at(i);
+			_file.writeInt(reportData.m_iStart);
+			_file.writeInt(reportData.m_iEnd);
+			_file.writeInt(reportData.m_iData);
+
+			_file.writeLine();
+		}
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteDetailComponentAndSegmentMap( DelayComponentAndSegmentMap mapDetailData,ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	DelayComponentAndSegmentMap::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = iter->second.size();
+		_file.writeInt(iCount);
+		_file.writeLine();
+		ComponentAndSegmentMap::iterator mapIter = iter->second.begin();
+		for (; mapIter != iter->second.end(); ++mapIter)
+		{
+			_file.writeInt(mapIter->first);
+			int iCapacity = (int)mapIter->second.size();
+			_file.writeInt(iCapacity);
+			for (int i = 0; i < iCapacity; i++)
+			{
+				const MultipleRunReportData& reportData = mapIter->second.at(i);
+				_file.writeInt(reportData.m_iStart);
+				_file.writeInt(reportData.m_iEnd);
+				_file.writeInt(reportData.m_iData);
+
+				_file.writeLine();
+			}
+			_file.writeLine();
+		}
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::ReadDetailComponentAndSegmentMap( DelayComponentAndSegmentMap& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			int iValue = 0;
+			_file.getInteger(iValue);
+
+			int iCapacity = 0;
+			_file.getInteger(iCapacity);
+
+			for (int n = 0; n < iCapacity; n++)
+			{
+				MultipleRunReportData reportData;
+				_file.getInteger(reportData.m_iStart);
+				_file.getInteger(reportData.m_iEnd);
+				_file.getInteger(reportData.m_iData);
+
+				mapDetailData[strSimResult][iValue].push_back(reportData);
+				_file.getLine();
+			}
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::ReadDetailMap( MultiRunDetailMap& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			MultipleRunReportData reportData;
+			_file.getInteger(reportData.m_iStart);
+			_file.getInteger(reportData.m_iEnd);
+			_file.getInteger(reportData.m_iData);
+
+			mapDetailData[strSimResult].push_back(reportData);
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteSummaryMap( MultiRunSummaryMap mapSummaryData,ArctermFile& _file )
+{
+	long iSize = (long)mapSummaryData.size();
+	_file.writeInt(iSize);
+
+	MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
+	for (; iter != mapSummaryData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		_file.writeInt(iter->second.m_estTotal.getPrecisely());
+		_file.writeInt(iter->second.m_estMax.getPrecisely());
+		_file.writeInt(iter->second.m_estMin.getPrecisely());
+		_file.writeInt(iter->second.m_estAverage.getPrecisely());
+		_file.writeInt(iter->second.m_estP1.getPrecisely());
+		_file.writeInt(iter->second.m_estP5.getPrecisely());
+		_file.writeInt(iter->second.m_estP10.getPrecisely());
+		_file.writeInt(iter->second.m_estP90.getPrecisely());
+		_file.writeInt(iter->second.m_estP95.getPrecisely());
+		_file.writeInt(iter->second.m_estP99.getPrecisely());
+		_file.writeInt(iter->second.m_estQ1.getPrecisely());
+		_file.writeInt(iter->second.m_estQ2.getPrecisely());
+		_file.writeInt(iter->second.m_estQ3.getPrecisely());
+		_file.writeInt(iter->second.m_estSigma.getPrecisely());
+
+		_file.writeLine();
+	}
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::ReadSummayMap( MultiRunSummaryMap& mapSummaryData,ArctermFile& _file )
+{
+	int iSize = 0;
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iTime = 0;
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estTotal.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMax.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMin.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estAverage.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP5.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP10.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP90.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP95.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP99.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ2.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteSummaryComponentAndSegmentMap( SummaryCompomentAndSegmentResultMap mapSummaryData,ArctermFile& _file )
+{
+	long iSize = (long)mapSummaryData.size();
+	_file.writeInt(iSize);
+
+	SummaryCompomentAndSegmentResultMap::iterator iter = mapSummaryData.begin();
+	for (; iter != mapSummaryData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		SummaryComponentAndSegmentMap::iterator mapIter = iter->second.begin();
+		for (; mapIter != iter->second.end(); ++mapIter)
+		{
+			_file.writeInt(mapIter->first);
+			_file.writeInt(mapIter->second.m_estTotal.getPrecisely());
+			_file.writeInt(mapIter->second.m_estMax.getPrecisely());
+			_file.writeInt(mapIter->second.m_estMin.getPrecisely());
+			_file.writeInt(mapIter->second.m_estAverage.getPrecisely());
+			_file.writeInt(mapIter->second.m_estP1.getPrecisely());
+			_file.writeInt(mapIter->second.m_estP5.getPrecisely());
+			_file.writeInt(mapIter->second.m_estP10.getPrecisely());
+			_file.writeInt(mapIter->second.m_estP90.getPrecisely());
+			_file.writeInt(mapIter->second.m_estP95.getPrecisely());
+			_file.writeInt(mapIter->second.m_estP99.getPrecisely());
+			_file.writeInt(mapIter->second.m_estQ1.getPrecisely());
+			_file.writeInt(mapIter->second.m_estQ2.getPrecisely());
+			_file.writeInt(mapIter->second.m_estQ3.getPrecisely());
+			_file.writeInt(mapIter->second.m_estSigma.getPrecisely());
+
+			_file.writeLine();
+		}
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+
+BOOL CAirsideFlightMutiRunDelayResult::ReadSummaryComponentAndSegment( SummaryCompomentAndSegmentResultMap& mapSummaryData,ArctermFile& _file )
+{
+	int iSize = 0;
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0; 
+		_file.getInteger(iCount);
+		for (int j = 0; j < iCount; j++)
+		{
+			int iValue = 0;
+			_file.getInteger(iValue);
+
+			int iTime = 0;
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estTotal.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estMax.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estMin.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estAverage.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estP1.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estP5.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estP10.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estP90.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estP95.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estP99.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estQ1.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estQ2.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estQ3.setPrecisely(iTime);
+			_file.getInteger(iTime);
+			mapSummaryData[strSimResult][iValue].m_estSigma.setPrecisely(iTime);
+
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteDetailReport( ArctermFile& _file )
+{
+	WriteDetailMap(m_totalDelayData,_file);
+	WriteDetailMap(m_scheduleDelayData,_file);
+	WriteDetailMap(m_airDelayData,_file);
+	WriteDetailMap(m_taxiDelayData,_file);
+	WriteDetailMap(m_standDelayData,_file);
+	WriteDetailMap(m_serviceDelayData,_file);
+	WriteDetailMap(m_takeoffDelayData,_file);
+
+	WriteDetailComponentAndSegmentMap(m_componentDelayData,_file);
+	WriteDetailComponentAndSegmentMap(m_segmentDelayData,_file);
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::LoadDetailReport( ArctermFile& _file )
+{
+	ReadDetailMap(m_totalDelayData,_file);
+	ReadDetailMap(m_scheduleDelayData,_file);
+	ReadDetailMap(m_airDelayData,_file);
+	ReadDetailMap(m_taxiDelayData,_file);
+	ReadDetailMap(m_standDelayData,_file);
+	ReadDetailMap(m_serviceDelayData,_file);
+	ReadDetailMap(m_takeoffDelayData,_file);
+
+	ReadDetailComponentAndSegmentMap(m_componentDelayData,_file);
+	ReadDetailComponentAndSegmentMap(m_segmentDelayData,_file);
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::WriteSummaryReport( ArctermFile& _file )
+{
+	WriteSummaryMap(m_totalSummaryDelayData,_file);
+	WriteSummaryMap(m_scheduleSummaryDelayData,_file);
+	WriteSummaryMap(m_airSummaryDelayData,_file);
+	WriteSummaryMap(m_taxiSummaryDelayData,_file);
+	WriteSummaryMap(m_standSummaryDelayData,_file);
+	WriteSummaryMap(m_serviceSummaryDelayData,_file);
+	WriteSummaryMap(m_takeoffSummaryDelayData,_file);
+
+	WriteSummaryComponentAndSegmentMap(m_componentSummaryDelayData,_file);
+	WriteSummaryComponentAndSegmentMap(m_segmentSummaryDelayData,_file);
+	return TRUE;
+}
+
+BOOL CAirsideFlightMutiRunDelayResult::LoadSummaryReport( ArctermFile& _file )
+{
+	ReadSummayMap(m_totalSummaryDelayData,_file);
+	ReadSummayMap(m_scheduleSummaryDelayData,_file);
+	ReadSummayMap(m_airSummaryDelayData,_file);
+	ReadSummayMap(m_taxiSummaryDelayData,_file);
+	ReadSummayMap(m_standSummaryDelayData,_file);
+	ReadSummayMap(m_serviceSummaryDelayData,_file);
+	ReadSummayMap(m_takeoffSummaryDelayData,_file);
+
+	ReadSummaryComponentAndSegment(m_componentSummaryDelayData,_file);
+	ReadSummaryComponentAndSegment(m_segmentSummaryDelayData,_file);
+	return TRUE;
+}
+
+CString CAirsideFlightMutiRunDelayResult::GetReportFileName() const
+{
+	return _T("FlightDelays\\FlightDelays.rep");
 }
 
 

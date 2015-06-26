@@ -199,6 +199,10 @@ void AirsideRunwayOperationReportParam::WriteParameter( ArctermFile& _file )
 
 void AirsideRunwayOperationReportParam::ReadParameter( ArctermFile& _file )
 {
+	m_vFlightConstraint.clear();
+	m_vRunwayParameter.clear();
+	m_vTypes.clear();
+
 	CParameters::ReadParameter(_file);
 
 	int size = 0 ;

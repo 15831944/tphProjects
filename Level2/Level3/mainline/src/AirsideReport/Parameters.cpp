@@ -208,6 +208,7 @@ BOOL CParameters::ImportFile(ArctermFile& _file)
 
         _file.getLine() ;
         TCHAR th[1024] = {0} ;
+		m_vFlightConstraint.clear();
         for (int i = 0 ; i < size ;i++)
         {
             _file.getField(th,1024) ;
@@ -262,6 +263,7 @@ BOOL CParameters::ImportFileVersion1( ArctermFile& _file )
 
     _file.getLine() ;
     TCHAR th[1024] = {0} ;
+	m_vFlightConstraint.clear();
     for (int i = 0 ; i < size ;i++)
     {
         _file.getField(th,1024) ;
@@ -283,6 +285,7 @@ BOOL CParameters::ImportFileVersion1( ArctermFile& _file )
 
     _file.getLine();
     int nTemp;
+	m_vReportRuns.clear();
     for(int i=0; i<size; i++)
     {
         _file.getInteger(nTemp);
@@ -468,6 +471,7 @@ void CParameters::ReadParameterVersion1( ArctermFile& _file )
 
     _file.getLine();
     int nTemp;
+	m_vReportRuns.clear();
     for(int i=0; i<nCount; i++)
     {
         _file.getInteger(nTemp);

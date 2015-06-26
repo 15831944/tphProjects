@@ -53,6 +53,7 @@ static void CalculateStandOccupancyTime(bool bSchedStand, std::vector<CStandOper
 		}
 		for(std::map<CString,LongValue>::const_iterator itr= standMap.begin();itr!=standMap.end();++itr)
 		{
+			//to second
 			vOccupanyTime.push_back(itr->second._data/100);
 		}
 	}
@@ -66,6 +67,7 @@ static void CalculateStandOccupancyTime(bool bSchedStand, std::vector<CStandOper
 		}
 		for(std::map<CString,LongValue>::const_iterator itr= standMap.begin();itr!=standMap.end();++itr)
 		{
+			//to second
 			vOccupanyTime.push_back(itr->second._data/100);
 		}
 	}
@@ -82,7 +84,7 @@ static void CalculateStandOccupancyTime2( bool bSchedStand, std::vector<CStandOp
 			std::sort(vResult.begin(), vResult.end(),DataCompareBySchedStand);
 
 			CStandOperationReportData* pData = vResult.at(0);
-			CString sStandName = pData->m_sSchedName;
+			CString sStandName;// = pData->m_sSchedName;
 			
 			size_t nSize = vResult.size();
 			for (size_t i =0; i < nSize; i++)
@@ -92,18 +94,27 @@ static void CalculateStandOccupancyTime2( bool bSchedStand, std::vector<CStandOp
 					lTotal += pData->m_lSchedOccupancy;
 				else
 				{
-					vOccupanyTime.push_back(lTotal/100);
+					if(!sStandName.IsEmpty())
+						vOccupanyTime.push_back(lTotal/100);
+					
 					sStandName = pData->m_sSchedName;
 					lTotal = pData->m_lSchedOccupancy;
 				}
+
 			}
+
+            if(/*i == nSize-1 &&*/ lTotal != 0)
+            {
+                vOccupanyTime.push_back(lTotal/100);
+            }
+
 		}
 		else
 		{
 			std::sort(vResult.begin(), vResult.end(),DataCompareByActualStand);
 
 			CStandOperationReportData* pData = vResult.at(0);
-			CString sStandName = pData->m_sActualName;
+			CString sStandName;// = pData->m_sActualName;
 
 			size_t nSize = vResult.size();
 			for (size_t i =0; i < nSize; i++)
@@ -113,11 +124,19 @@ static void CalculateStandOccupancyTime2( bool bSchedStand, std::vector<CStandOp
 					lTotal += pData->m_lActualOccupancy;
 				else
 				{
-					vOccupanyTime.push_back(lTotal/100);
+					if(!sStandName.IsEmpty())
+						vOccupanyTime.push_back(lTotal/100);
+					
 					sStandName = pData->m_sActualName;
 					lTotal = pData->m_lActualOccupancy;
 				}
-			}
+
+
+			} 
+			if(/*i == nSize-1 &&*/ lTotal != 0)
+            {
+                vOccupanyTime.push_back(lTotal/100);
+            }
 
 		}
 	}
@@ -154,6 +173,11 @@ static void CalculateStandConflict(char mode, std::vector<CStandOperationReportD
 			sStandName = pData->m_sActualName;
 			nTotal = 1;
 		}
+
+        if(i == nSize-1 && nTotal != 0)
+        {
+            vConflicts.push_back(nTotal);
+        }
 	}
 }
 
@@ -165,7 +189,7 @@ static void CalculateStandConflict(std::vector<CStandOperationReportData*>& vRes
 	std::sort(vResult.begin(), vResult.end(),DataCompareByActualStand);
 
 	CStandOperationReportData* pData = vResult.at(0);
-	CString sStandName = pData->m_sActualName;
+	CString sStandName;// = pData->m_sActualName;
 	int nTotal = 0; 
 
 	size_t nSize = vResult.size();
@@ -179,11 +203,19 @@ static void CalculateStandConflict(std::vector<CStandOperationReportData*>& vRes
 			nTotal ++;
 		else
 		{
-			vConflicts.push_back(nTotal);
+			if(!sStandName.IsEmpty())
+				vConflicts.push_back(nTotal);
+			
 			sStandName = pData->m_sActualName;
 			nTotal = 1;
 		}
-	}
+
+
+	} 
+	if(/*i == nSize-1 &&*/ nTotal != 0)
+    {
+        vConflicts.push_back(nTotal);
+    }
 }
 
 
@@ -195,7 +227,7 @@ static void CalculateStandDelay(char mode, std::vector<CStandOperationReportData
 	std::sort(vResult.begin(), vResult.end(),DataCompareByActualStandWithMode);
 
 	CStandOperationReportData* pData = vResult.at(0);
-	CString sStandName = pData->m_sActualName;
+	CString sStandName;// = pData->m_sActualName;
 	long lTotal = 0; 
 
 	size_t nSize = vResult.size();
@@ -212,11 +244,17 @@ static void CalculateStandDelay(char mode, std::vector<CStandOperationReportData
 		}
 		else
 		{
-			vOccupanyTime.push_back(lTotal/100);
+			if(!sStandName.IsEmpty())
+				vOccupanyTime.push_back(lTotal/100);
+			
 			sStandName = pData->m_sActualName;
 			lTotal = pData->m_lDelayEnter + pData->m_lDelayLeaving;
 		}
 	}
+    if(/*i == nSize-1 &&*/ lTotal != 0)
+    {
+        vOccupanyTime.push_back(lTotal/100);
+    }
 }
 
 static void CalculateStandDelay(std::vector<CStandOperationReportData*>& vResult, std::vector<long>& vOccupanyTime )
@@ -224,7 +262,7 @@ static void CalculateStandDelay(std::vector<CStandOperationReportData*>& vResult
 	std::sort(vResult.begin(), vResult.end(),DataCompareByActualStand);
 
 	CStandOperationReportData* pData = vResult.at(0);
-	CString sStandName = pData->m_sActualName;
+	CString sStandName;// = pData->m_sActualName;
 	long lTotal = 0; 
 
 	size_t nSize = vResult.size();
@@ -241,9 +279,14 @@ static void CalculateStandDelay(std::vector<CStandOperationReportData*>& vResult
 		}
 		else
 		{
+			if(!sStandName.IsEmpty())
 			vOccupanyTime.push_back(lTotal/100);
 			sStandName = pData->m_sActualName;
 			lTotal = pData->m_lDelayEnter + pData->m_lDelayLeaving;
 		}
+	} 
+	if(/*i == nSize-1 &&*/ lTotal != 0)
+    {
+        vOccupanyTime.push_back(lTotal/100);
 	}
 }

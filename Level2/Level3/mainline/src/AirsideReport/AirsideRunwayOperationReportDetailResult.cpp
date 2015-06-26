@@ -364,12 +364,17 @@ void CAirsideRunwayOperationReportDetailResult::RunwayOperationDetail::InitRunwa
 	if(eInterval == ElapsedTime(0L) )
 		return;
 
-	for (;eStartTime <= eEndTime; eStartTime += eInterval)
+	for (;eStartTime < eEndTime; eStartTime += eInterval)
 	{
 		RunwayOperationTimeValue timevalue;
 		timevalue.m_eTime = eStartTime;
 		m_vRunwayTimeValue.push_back(timevalue);
 	}
+
+
+    RunwayOperationTimeValue endTimeValue;
+    endTimeValue.m_eTime = eEndTime;
+    m_vRunwayTimeValue.push_back(endTimeValue);
 }
 
 void CAirsideRunwayOperationReportDetailResult::RunwayOperationDetail::InitClassValue(AircraftClassificationManager *pAircraftManager, CParameters * parameter )
@@ -801,7 +806,7 @@ BOOL CAirsideRunwayOperationReportDetailResult::WriteReportData( ArctermFile& _f
 		{
 			RunwayOperationTimeValue& timeValue = pRunwayDetail->m_vRunwayTimeValue[nTime];
 
-			_file.writeInt(timeValue.m_eTime.GetSecond());
+			_file.writeInt(timeValue.m_eTime.asSeconds());
 			_file.writeInt(timeValue.m_nLandingCount);
 			_file.writeInt(timeValue.m_nTakeOffCount);
 		}
@@ -1117,25 +1122,30 @@ void AirsideRunwayOperationReportDetail::LandingTakeOffChartResult::Draw3DChart(
 
 	ASSERT(pParameter);
 
-	int intervalSize = 0 ;
-	ElapsedTime IntervalTime ;
-	IntervalTime = (pParameter->getEndTime() - pParameter->getStartTime()) ;
-	intervalSize = IntervalTime.asSeconds() / pParameter->getInterval() ;
+    int intervalCount = 0 ;
+    long lUserIntervalTime = pParameter->getInterval();
+	ElapsedTime durationTime = (pParameter->getEndTime() - pParameter->getStartTime()) ;
+	intervalCount = durationTime.asSeconds() / lUserIntervalTime;
+    if(durationTime.asSeconds() % lUserIntervalTime != 0)
+        intervalCount += 1;
+    if(intervalCount == 0)
+        intervalCount = 1;
 
-	long lUserIntervalTime = pParameter->getInterval();
-	ElapsedTime estUserIntervalTime = ElapsedTime(lUserIntervalTime);
+    CString timeInterval ;
+    ElapsedTime startTime = pParameter->getStartTime();
+    ElapsedTime endTime = pParameter->getEndTime();
+    std::vector<CString> vTimeRange;
+    for (int i = 0 ; i < intervalCount ;i++)
+    {
+        ElapsedTime estIntervalStartTime, estIntervalEndTime;
+        estIntervalStartTime = startTime + (lUserIntervalTime * i);
+        estIntervalEndTime = startTime + (lUserIntervalTime * (i+1));
+        if(estIntervalEndTime > endTime)
+            estIntervalEndTime = endTime;
+        timeInterval.Format(_T("%s-%s"),estIntervalStartTime.printTime(),estIntervalEndTime.printTime()) ;
+        vTimeRange.push_back(timeInterval) ;
 
-	CString timeInterval ;
-	ElapsedTime startTime = pParameter->getStartTime();
-	ElapsedTime endtime;
-	std::vector<CString> vTimeRange;
-	for (int i = 0 ; i < intervalSize ;i++)
-	{
-		endtime = startTime + ElapsedTime(pParameter->getInterval()) ;
-		timeInterval.Format(_T("%s-%s"),startTime.printTime(),endtime.printTime()) ;
-		startTime = endtime ;
-		vTimeRange.push_back(timeInterval) ;
-	}
+    }
 
 	c2dGraphData.m_vrXTickTitle = vTimeRange;
 
@@ -1143,12 +1153,12 @@ void AirsideRunwayOperationReportDetail::LandingTakeOffChartResult::Draw3DChart(
 	for (int i = 0; i < nRunwayCount; i++)
 	{
 		std::vector<double> vData;
-		for (long j=0; j<intervalSize; j++)
+		for (long j=0; j<intervalCount; j++)
 		{
 			int nCount = 0;
-			ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*j);
-			ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(j + 1));
-			nCount = m_OperationData.GetOperationCount(m_bLanding,vRunway[i],estTempMinDelayTime,estTempMaxDelayTime);
+			ElapsedTime estIntervalStartTime = estMinDelayTime + ElapsedTime(lUserIntervalTime*j);
+			ElapsedTime estIntervalEndTime = estMinDelayTime + ElapsedTime(lUserIntervalTime*(j + 1));
+			nCount = m_OperationData.GetOperationCount(m_bLanding,vRunway[i],estIntervalStartTime,estIntervalEndTime);
 			vData.push_back(nCount);
 		}
 		c2dGraphData.m_vr2DChartData.push_back(vData);

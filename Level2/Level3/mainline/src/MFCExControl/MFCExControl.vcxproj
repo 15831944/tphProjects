@@ -1,0 +1,282 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|Win32">
+      <Configuration>Template</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}</ProjectGuid>
+    <Keyword>MFCDLLProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(SolutionDir)bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Manifest>
+      <EnableDPIAwareness>false</EnableDPIAwareness>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="res\bitmap1.bmp" />
+    <None Include="res\cooltree.bmp" />
+    <None Include="res\DownArrow.bmp" />
+    <None Include="res\MFCExControl.rc2" />
+    <None Include="res\UpArrow.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MFCExControl.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{dcfed0d8-cafd-4077-88f3-fed91c6ca0e3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ARCBaseTree.h" />
+    <ClInclude Include="ARCGridCtrl.h" />
+    <ClInclude Include="ARCToolbar.h" />
+    <ClInclude Include="ARCTreeCtrl.h" />
+    <ClInclude Include="ARCTreeCtrlEx.h" />
+    <ClInclude Include="ARCTreeCtrlExWithColor.h" />
+    <ClInclude Include="ATCRWPairListCtrl.h" />
+    <ClInclude Include="BtnST.h" />
+    <ClInclude Include="CARCTipComboBox.h" />
+    <ClInclude Include="CARCTipEdit.h" />
+    <ClInclude Include="CARCTipListBox.h" />
+    <ClInclude Include="CellRange.h" />
+    <ClInclude Include="ComboBoxListBox.h" />
+    <ClInclude Include="CoolTree.h" />
+    <ClInclude Include="CoolTreeDateTimeCtrl.h" />
+    <ClInclude Include="CoolTreeEdit.h" />
+    <ClInclude Include="CoolTreeEditSpin.h" />
+    <ClInclude Include="EditHelper.h" />
+    <ClInclude Include="EditListBox.h" />
+    <ClInclude Include="FloarEdit.h" />
+    <ClInclude Include="FloatEdit.h" />
+    <ClInclude Include="FloorMapCtrl.h" />
+    <ClInclude Include="GridCtrl.h" />
+    <ClInclude Include="GridDropTarget.h" />
+    <ClInclude Include="InPlaceComboBox.h" />
+    <ClInclude Include="InplaceComboBox2.h" />
+    <ClInclude Include="InPlaceDateTimeCtrl.h" />
+    <ClInclude Include="InPlaceEdit.h" />
+    <ClInclude Include="InPlaceEdit2.h" />
+    <ClInclude Include="InPlaceList.h" />
+    <ClInclude Include="ListCtrlDef.h" />
+    <ClInclude Include="ListCtrlEx.h" />
+    <ClInclude Include="ListCtrlExEx.h" />
+    <ClInclude Include="ListCtrlExExEx.h" />
+    <ClInclude Include="ListCtrlReSizeColum.h" />
+    <ClInclude Include="MemDC.h" />
+    <ClInclude Include="MFCExControlAPI.h" />
+    <ClInclude Include="MySpin.h" />
+    <ClInclude Include="PopupDetailWnd.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SimpleToolTipListBox.h" />
+    <ClInclude Include="SmartEdit.h" />
+    <ClInclude Include="SortableHeaderCtrl.h" />
+    <ClInclude Include="SortableListCtrl.h" />
+    <ClInclude Include="SortableListCtrlEx.h" />
+    <ClInclude Include="SortAndPrintListCtrl.h" />
+    <ClInclude Include="SortHeaderCtrl.h" />
+    <ClInclude Include="SortListCtrl.h" />
+    <ClInclude Include="SplitterControl.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TabCtrlSSL.h" />
+    <ClInclude Include="TabPageSSL.h" />
+    <ClInclude Include="TitleTip.h" />
+    <ClInclude Include="ToolbarWithDropMenu.h" />
+    <ClInclude Include="ToolTipDialog.h" />
+    <ClInclude Include="XListCtrl.h" />
+    <ClInclude Include="XTPCommon.h" />
+    <ClInclude Include="XTPMacros.h" />
+    <ClInclude Include="XTResize.h" />
+    <ClInclude Include="XTResizeDialog.h" />
+    <ClInclude Include="XTResizeDialogEx.h" />
+    <ClInclude Include="XTResizeFormView.h" />
+    <ClInclude Include="XTResizeGroupBox.h" />
+    <ClInclude Include="XTResizePoint.h" />
+    <ClInclude Include="XTResizeRect.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ARCBaseTree.cpp" />
+    <ClCompile Include="ARCGridCtrl.cpp" />
+    <ClCompile Include="ARCToolbar.cpp" />
+    <ClCompile Include="ARCTreeCtrl.cpp" />
+    <ClCompile Include="ARCTreeCtrlEx.cpp" />
+    <ClCompile Include="ARCTreeCtrlExWithColor.cpp" />
+    <ClCompile Include="ATCRWPairListCtrl.cpp" />
+    <ClCompile Include="BtnST.cpp" />
+    <ClCompile Include="CARCTipComboBox.cpp" />
+    <ClCompile Include="CARCTipEdit.cpp" />
+    <ClCompile Include="CARCTipListBox.cpp" />
+    <ClCompile Include="ComboBoxListBox.cpp" />
+    <ClCompile Include="CoolTree.cpp" />
+    <ClCompile Include="CoolTreeDateTimeCtrl.cpp" />
+    <ClCompile Include="CoolTreeEdit.cpp" />
+    <ClCompile Include="CoolTreeEditSpin.cpp" />
+    <ClCompile Include="EditHelper.cpp" />
+    <ClCompile Include="EditListBox.cpp" />
+    <ClCompile Include="FloarEdit.cpp" />
+    <ClCompile Include="FloatEdit.cpp" />
+    <ClCompile Include="FloorMapCtrl.cpp" />
+    <ClCompile Include="GridCtrl.cpp" />
+    <ClCompile Include="GridDropTarget.cpp" />
+    <ClCompile Include="InPlaceComboBox.cpp" />
+    <ClCompile Include="InplaceComboBox2.cpp" />
+    <ClCompile Include="InPlaceDateTimeCtrl.cpp" />
+    <ClCompile Include="InPlaceEdit.cpp" />
+    <ClCompile Include="InPlaceEdit2.cpp" />
+    <ClCompile Include="InPlaceList.cpp" />
+    <ClCompile Include="ListCtrlDef.cpp" />
+    <ClCompile Include="ListCtrlEx.cpp" />
+    <ClCompile Include="ListCtrlExEx.cpp" />
+    <ClCompile Include="ListCtrlExExEx.cpp" />
+    <ClCompile Include="ListCtrlReSizeColum.cpp" />
+    <ClCompile Include="MFCExControl.cpp" />
+    <ClCompile Include="MySpin.cpp" />
+    <ClCompile Include="PopupDetailWnd.cpp" />
+    <ClCompile Include="SimpleToolTipListBox.cpp" />
+    <ClCompile Include="SmartEdit.cpp" />
+    <ClCompile Include="SortableHeaderCtrl.cpp" />
+    <ClCompile Include="SortableListCtrl.cpp" />
+    <ClCompile Include="SortableListCtrlEx.cpp" />
+    <ClCompile Include="SortAndPrintListCtrl.cpp" />
+    <ClCompile Include="SortHeaderCtrl.cpp" />
+    <ClCompile Include="SortListCtrl.cpp" />
+    <ClCompile Include="SplitterControl.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TabCtrlSSL.cpp" />
+    <ClCompile Include="TabPageSSL.cpp" />
+    <ClCompile Include="TitleTip.cpp" />
+    <ClCompile Include="ToolbarWithDropMenu.cpp" />
+    <ClCompile Include="ToolTipDialog.cpp" />
+    <ClCompile Include="XListCtrl.cpp" />
+    <ClCompile Include="XTPCommon.cpp" />
+    <ClCompile Include="XTResize.cpp" />
+    <ClCompile Include="XTResizeDialog.cpp" />
+    <ClCompile Include="XTResizeDialogEx.cpp" />
+    <ClCompile Include="XTResizeFormView.cpp" />
+    <ClCompile Include="XTResizeGroupBox.cpp" />
+    <ClCompile Include="XTResizePoint.cpp" />
+    <ClCompile Include="XTResizeRect.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="MFCExControl.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

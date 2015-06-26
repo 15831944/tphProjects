@@ -365,7 +365,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 				glColor4ubv(shadowcolor);
 				glTranslated(m_vLocation[VX],m_vLocation[VY],dAlt);
 				glRotated(m_dRotation,0.0,0.0,1.0);
-				glScaled(m_vScale[VX],m_vScale[VY],0);
+				glScaled(m_vScale[VX]*m_pShape->GetScale(),m_vScale[VY]*m_pShape->GetScale(),0);
 				m_pShape->DrawOGL();
 				glPopMatrix();
 			}
@@ -820,7 +820,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 			glColor3ubv(/*m_dispProperties.color[PDP_DISP_SHAPE]*/cDisplay);
 			glTranslated(m_vLocation[VX], m_vLocation[VY], m_vLocation[VZ]+dAlt);
 			glRotated(m_dRotation, 0.0, 0.0, 1.0);
-			glScaled(m_vScale[VX], m_vScale[VY], m_vScale[VZ]);
+			glScaled(m_vScale[VX]*m_pShape->GetScale(), m_vScale[VY]*m_pShape->GetScale(), m_vScale[VZ]*m_pShape->GetScale());
 			m_pShape->DrawOGL();
 			glPopMatrix();
 
@@ -834,7 +834,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 				glColor4ubv(shadowcolor);
 				glTranslated(m_vLocation[VX],m_vLocation[VY],dAlt);
 				glRotated(m_dRotation,0.0,0.0,1.0);
-				glScaled(m_vScale[VX],m_vScale[VY],0);
+				glScaled(m_vScale[VX]*m_pShape->GetScale(),m_vScale[VY]*m_pShape->GetScale(),0);
 				m_pShape->DrawOGL();
 				glPopMatrix();
 			}
@@ -997,7 +997,7 @@ void CProcessor2::DrawBB(double dAlt, BOOL bFirst)
 	if(m_pShape != NULL) {
 		glPushMatrix();
 		glTranslated(m_vLocation[VX], m_vLocation[VY], m_vLocation[VZ]+dAlt);
-		glScaled(m_vScale[VX], m_vScale[VY], m_vScale[VZ]);
+		glScaled(m_vScale[VX]*m_pShape->GetScale(), m_vScale[VY]*m_pShape->GetScale(), m_vScale[VZ]*m_pShape->GetScale());
 		glRotated(m_dRotation, 0.0, 0.0, 1.0);
 		//draw bounding box
 		
@@ -1529,7 +1529,7 @@ void CProcessor2::DrawSelectOGL(CTermPlanDoc* pDoc, double* dAlt)
 		glPushMatrix();
 		glTranslated(m_vLocation[VX], m_vLocation[VY], m_vLocation[VZ]+dAlt[m_nFloor]);
 		glRotated(m_dRotation, 0.0, 0.0, 1.0);
-		glScaled(m_vScale[VX], m_vScale[VY], m_vScale[VZ]);
+		glScaled(m_vScale[VX]*m_pShape->GetScale(), m_vScale[VY]*m_pShape->GetScale(), m_vScale[VZ]*m_pShape->GetScale());
 	
 		//draw bounding cube
 		ARCVector3 vExtMax = m_pShape->ExtentsMax();

@@ -16,7 +16,7 @@ class AIRSIDEREPORT_API CAirsideBaseReport
 {
 public:
 	CAirsideBaseReport(CBGetLogFilePath pFunc);
-	~CAirsideBaseReport(void);
+	virtual ~CAirsideBaseReport(void);
 
 public:
 	//load flight log files, and then generate report data

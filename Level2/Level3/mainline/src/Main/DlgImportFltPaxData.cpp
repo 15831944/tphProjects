@@ -8,6 +8,7 @@
 #include "Common\exeption.h"
 #include "Common\fileman.h"
 #include "Common\ZipInfo.h"
+#include "Inputs\PROBAB.H"
 
 IMPLEMENT_DYNAMIC(CDlgImportFltPaxData, CXTResizeDialog)
 CDlgImportFltPaxData::CDlgImportFltPaxData(FLTPAXDATATTYPE emType,InputTerminal* pInTerm,ConstraintDatabase* pFltPaxDB,CWnd* pParent)
@@ -16,8 +17,8 @@ CDlgImportFltPaxData::CDlgImportFltPaxData(FLTPAXDATATTYPE emType,InputTerminal*
 	,m_pInterm(pInTerm)
 	,m_pFltPaxDB(pFltPaxDB)
 {
-	m_pDataSet = NULL;
-	m_pCSVDB = NULL;
+	m_pContraintDB = NULL;
+	m_bHit = false;
 }
 
 
@@ -45,6 +46,8 @@ BEGIN_MESSAGE_MAP(CDlgImportFltPaxData, CXTResizeDialog)
 	ON_BN_CLICKED(IDC_RADIO_LOCAL,OnCheckLocalProject)
 	ON_BN_CLICKED(IDC_RADIO_EXPORTED,OnCheckExportedProject)
 	ON_BN_CLICKED(IDC_RADIO_CSVFILE,OnCheckCSVFile)
+	ON_NOTIFY(NM_CLICK, IDC_LIST_DATA, OnClickListContentItem)
+	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_DATA, OnLvnItemchangedListcontrol)
 END_MESSAGE_MAP()
 
 
@@ -52,13 +55,15 @@ BOOL CDlgImportFltPaxData::OnInitDialog()
 {
 	CXTResizeDialog::OnInitDialog();
 	SetImportDialogTitle();
-	InitRadioStatus();
 	InitComboxContent();
 	((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(TRUE);
-	SetListCtrlContent(NULL);
+	SetListCtrlContent();
 	m_wndExportedProject.EnableFileBrowseButton(".zip","zip Files (*.zip)|*.zip||");
 	m_wndCSVFile.EnableFileBrowseButton(".CSV","CSV Files (*.CSV)|*.CSV||");
 
+	ResetButtonStatus(FALSE);
+
+	InitRadioStatus();
 	SetResize(IDC_RADIO_LOCAL,SZ_TOP_LEFT,SZ_TOP_LEFT);
 	SetResize(IDC_COMBO_PROJECT,SZ_TOP_LEFT,SZ_TOP_RIGHT);
 	SetResize(IDC_RADIO_EXPORTED,SZ_TOP_LEFT,SZ_TOP_LEFT);
@@ -68,8 +73,8 @@ BOOL CDlgImportFltPaxData::OnInitDialog()
 	SetResize(IDC_LIST_DATA,SZ_TOP_LEFT,SZ_BOTTOM_RIGHT);
 	SetResize(IDC_CHECK_ALL,SZ_BOTTOM_LEFT,SZ_BOTTOM_RIGHT);
 	SetResize(IDC_CHECK_APPEND,SZ_BOTTOM_LEFT,SZ_BOTTOM_RIGHT);
-	SetResize(IDC_BUTTON_APPEND,SZ_BOTTOM_LEFT,SZ_BOTTOM_RIGHT);
-	SetResize(IDC_BUTTON_REPLACE,SZ_BOTTOM_LEFT,SZ_BOTTOM_RIGHT);
+	SetResize(IDC_BUTTON_APPEND,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT);
+	SetResize(IDC_BUTTON_REPLACE,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT);
 	SetResize(IDCANCEL,SZ_BOTTOM_RIGHT,SZ_BOTTOM_RIGHT);
 
 	SetIcon(LoadIcon( AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME) ),TRUE);
@@ -89,10 +94,16 @@ void CDlgImportFltPaxData::OnCbnSelchangeComboProject()
 	PROJECTINFO pi;	
 	PROJMANAGER->GetProjectInfo(strLocalProject, &pi, "");//get the project information
 
-	ClearData();//reset data
-	ConstraintDatabase* pConDB = LoadDataFromFile(pi.path);
+	CString strFileName;
+	strFileName = GetFileName();
+	CString strProjectPath;
+	strProjectPath.Format(_T("%s\\INPUT\\%s"),pi.path,strFileName);
 
-	SetListCtrlContent(pConDB);
+	LoadDataFromFile(strProjectPath,false);
+
+	SetListCtrlContent();
+
+	ResetButtonStatus(TRUE);
 }
 
 void CDlgImportFltPaxData::OnUpdateExport()
@@ -113,7 +124,7 @@ void CDlgImportFltPaxData::OnUpdateExport()
 	{
 		FileManager::CopyDirectory( strTempPathFile, strPath ,NULL);
 		FileManager::DeleteDirectory( strTempPathFile );
-		SetListCtrlContent(NULL);
+		SetListCtrlContent();
 		return;
 	}
 
@@ -121,43 +132,18 @@ void CDlgImportFltPaxData::OnUpdateExport()
 	readIniFileData( strTempPathFile, _strInputZip);
 	if(unzipFiles( _strInputZip, strPath) == false)
 	{
-		SetListCtrlContent(NULL);
+		SetListCtrlContent();
 		return;
 	}
 
-	InputFiles fileType = FlightDataFile;
 	CString strFileName;
-	switch (m_emType)
-	{
-	case FLIGHT_DELAYS:
-	case FLIGHT_LOAD_FACTORS:
-	case FLIGHT_AC_CAPACITIES:
-		 fileType = FlightDataFile;
-		 strFileName = "FLIGHT.DAT";
-		break;
-	case PAX_GROUP_SIZE:
-	case PAX_LEAD_LAG:
-	case PAX_IN_STEP:
-	case PAX_SIDE_STEP:
-	case PAX_SPEED:
-	case PAX_VISIT_TIME:
-	case PAX_RESPONSE_TIME:
-	case PAX_SPEED_IMPACT:
-	case PAX_PUSH_PROPENSITY:
-	case VISITOR_STA_TRIGGER:
-		fileType = PassengerDataFile;
-		strFileName = "PAXDATA.MSC";
-		break;
-	case  ENTRY_FLIGHT_TIME_DISTRIBUTION:
-		fileType = BridgeConnectorPaxDataFile;
-		strFileName = "BCPAXDATA.TXT";
-		break;
-	}
-
+	strFileName = GetFileName();
 	CString strProjectPath;
 	strProjectPath.Format(_T("%s\\%s"),strPath,strFileName);
-	ConstraintDatabase* pConDB = LoadDataFromFile(strProjectPath);
-	SetListCtrlContent(pConDB);
+	LoadDataFromFile(strProjectPath,false);
+	SetListCtrlContent();
+
+	ResetButtonStatus(TRUE);
 }
 
 void CDlgImportFltPaxData::OnUpdateCSVFile()
@@ -168,97 +154,9 @@ void CDlgImportFltPaxData::OnUpdateCSVFile()
 	if (strFilePath.IsEmpty())
 		return;
 	
-	ArctermFile p_file;
-	if(p_file.openFile(strFilePath,READ) )
-	{
-		p_file.getLine();
-		char str[64];
-		p_file.getField (str, SMALL);
-		if (_stricmp (str, sFltPaxString[m_emType]))
-		{
-			CString strMsg;
-			strMsg.Format("Can not open file:\r\n%s", strFilePath );
-			MessageBox( strMsg, "ERROR", MB_OK|MB_ICONERROR );
-			SetListCtrlContent(NULL);
-			return;
-		}
-			
-		switch (m_emType)
-		{
-		case FLIGHT_DELAYS:
-			m_pCSVDB = new FlightConstraintDatabase();
-			m_pCSVDB->setUnits("MINUTES");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case FLIGHT_LOAD_FACTORS:
-			m_pCSVDB = new FlightConstraintDatabaseWithSchedData();
-			m_pCSVDB->setUnits("PERCENT");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case FLIGHT_AC_CAPACITIES:
-			m_pCSVDB = new FlightConstraintDatabaseWithSchedData();
-			m_pCSVDB->setUnits("COUNT");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_GROUP_SIZE:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("COUNT");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_LEAD_LAG:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("MIN");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_IN_STEP:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("METERS");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_SIDE_STEP:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("METERS");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_SPEED:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("METERS/SEC");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_VISIT_TIME:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("MIN");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_RESPONSE_TIME:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("SECONDS");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_SPEED_IMPACT:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("METERS");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case PAX_PUSH_PROPENSITY:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("PERCENT");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case VISITOR_STA_TRIGGER:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("MIN");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-			m_pCSVDB = new CMobileElemConstraintDatabase();
-			m_pCSVDB->setUnits("SECONDS");
-			m_pCSVDB->readDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
-			break;
-		}
-	}
-	
-	SetListCtrlContent(m_pCSVDB);
+	LoadDataFromFile(strFilePath,true);
+	SetListCtrlContent();
+	ResetButtonStatus(TRUE);
 }
 
 void CDlgImportFltPaxData::SetImportDialogTitle()
@@ -351,7 +249,7 @@ void CDlgImportFltPaxData::InitComboxContent()
 	}
 }
 
-void CDlgImportFltPaxData::InitListCtrlHeader(ConstraintDatabase* pConDB)
+void CDlgImportFltPaxData::InitListCtrlHeader()
 {
 	while(m_wndListCtrl.GetHeaderCtrl()->GetItemCount() >0)
 		m_wndListCtrl.DeleteColumn(0);
@@ -363,14 +261,14 @@ void CDlgImportFltPaxData::InitListCtrlHeader(ConstraintDatabase* pConDB)
 
 	LVCOLUMN lvc;
 	lvc.mask = LVCF_WIDTH | LVCF_TEXT ;
-	char columnLabel[2][128];
-	if (pConDB == NULL)
+	char columnLabel[3][128];
+	if (m_pContraintDB == NULL)
 	{
 		strcpy( columnLabel[1], "Distribution ( UNIT )" );
 	}
 	else
 	{
-		sprintf( columnLabel[1], "Distribution ( %s )", pConDB->getUnits() );
+		sprintf( columnLabel[1], "Distribution ( %s )", m_pContraintDB->getUnits() );
 	}
 
 	CString csLabel;
@@ -387,30 +285,33 @@ void CDlgImportFltPaxData::InitListCtrlHeader(ConstraintDatabase* pConDB)
 		break;
 	}
 
-	int DefaultColumnWidth[] = { 288, 450 };
-	int nFormat[] = {	LVCFMT_CENTER, LVCFMT_CENTER };
-	for( int i=0; i<2; i++ )
+	strcpy( columnLabel[2], "Importing Result" );	
+
+	int DefaultColumnWidth[] = { 180, 300,255 };
+	int nFormat[] = {	LVCFMT_CENTER, LVCFMT_CENTER,LVCFMT_CENTER };
+	for( int i=0; i<3; i++ )
 	{
 		CStringList strList;
 		lvc.pszText = columnLabel[i];
 		lvc.cx = DefaultColumnWidth[i];
-		lvc.fmt = LVCFMT_NOEDIT;
+		lvc.fmt = nFormat[i];
 		m_wndListCtrl.InsertColumn( i, &lvc );
 	}
 }
 
-void CDlgImportFltPaxData::SetListCtrlContent(ConstraintDatabase* pConDB)
+void CDlgImportFltPaxData::SetListCtrlContent()
 {
-	InitListCtrlHeader(pConDB);
+	InitListCtrlHeader();
 	m_wndListCtrl.DeleteAllItems();
 
-	if( pConDB == NULL )
+	if( m_pContraintDB == NULL )
 		return;
-	int nCount = pConDB->getCount();
+	int nCount = m_pContraintDB->getCount();
 	BOOL bCheckAll = ((CButton*)GetDlgItem(IDC_CHECK_ALL))->GetCheck();
+	bool bFailed = false;
 	for( int i=0; i<nCount; i++ )
 	{
-		ConstraintEntry* pEntry = pConDB->getItem( i );
+		ConstraintEntry* pEntry = m_pContraintDB->getItem( i );
 		const Constraint* pCon = pEntry->getConstraint();
 		CString szName;
 		pCon->screenPrint( szName, 0, 256 );
@@ -419,10 +320,24 @@ void CDlgImportFltPaxData::SetListCtrlContent(ConstraintDatabase* pConDB)
 		pProbDist->screenPrint( szDist);
 		int nIdx = m_wndListCtrl.InsertItem( i, szName.GetBuffer(0) );
 		m_wndListCtrl.SetItemText( nIdx, 1, szDist);
-
-		m_wndListCtrl.SetItemData(i,(DWORD)pEntry);
 		m_wndListCtrl.SetCheck(i,bCheckAll);
+		mapConstraintData::iterator iter = m_mapConstraintData.find(pEntry);
+		if(iter != m_mapConstraintData.end())
+		{
+			m_wndListCtrl.SetItemText(nIdx,2,iter->second);
+			if (_strcmpi(iter->second,"Successed"))
+			{
+				m_wndListCtrl.SetCheck(i,FALSE);
+				bFailed = true;
+			}
+		}
+		m_wndListCtrl.SetItemData(i,(DWORD)pEntry);
 	}	
+
+	if (bFailed)
+	{
+		 ((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(FALSE);
+	}
 }
 
 bool CDlgImportFltPaxData::CreateTempZipFile( CString& strTempExtractPath,const CString& strFilePath )
@@ -489,110 +404,112 @@ CString CDlgImportFltPaxData::getTempPath( const CString& _strDefault  )
 		return  _strDefault;
 	return CString( _szTempPath );
 }
+bool CDlgImportFltPaxData::CheckFileFormat( ArctermFile& p_file )
+{
+	while (p_file.getLine())
+	{
+		if (sFltPaxString[m_emType])
+		{
+			char str[64];
+			p_file.getField (str, SMALL);
+			if (_stricmp (str, sFltPaxString[m_emType]) == 0)
+				return true;
+		}
+	}
+	return false;
+}
 
-ConstraintDatabase* CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName )
+void CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName,bool bCheckFile )
 {
 	ClearData();
-	ConstraintDatabase* pConDB = NULL;
-	try
+	ArctermFile p_file;
+	if(p_file.openFile(strFileName,READ) )
 	{
-		switch( m_emType )
+		if (bCheckFile)//check load from csv
+		{
+			if(CheckFileFormat(p_file) == false)
+			{
+				CString strMsg;
+				strMsg.Format("The Importing File is not complying with required file format.  file:\r\n%s", strFileName );
+				MessageBox( strMsg, "ERROR", MB_OK|MB_ICONERROR );
+				SetListCtrlContent();
+				return;
+			}
+		}
+		switch (m_emType)
 		{
 		case FLIGHT_DELAYS:
-			m_pDataSet = new FlightData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet(strFileName);
-			pConDB = ((FlightData*)m_pDataSet)->getDelays();
+			m_pContraintDB = new FlightConstraintDatabase();
+			m_pContraintDB->setUnits("MINUTES");
+			ReadFlightConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case FLIGHT_LOAD_FACTORS:
-			m_pDataSet = new FlightData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((FlightData*)m_pDataSet)->getLoads();
+			m_pContraintDB = new FlightConstraintDatabaseWithSchedData();
+			m_pContraintDB->setUnits("PERCENT");
+			ReadFlightConstrainWithSchedDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case FLIGHT_AC_CAPACITIES:
-			m_pDataSet = new FlightData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((FlightData*)m_pDataSet)->getCapacity();
+			m_pContraintDB = new FlightConstraintDatabaseWithSchedData();
+			m_pContraintDB->setUnits("COUNT");
+			ReadFlightConstrainWithSchedDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_GROUP_SIZE:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getGroups();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("COUNT");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_LEAD_LAG:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getLeadLagTime();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("MIN");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_IN_STEP:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getInStep();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("METERS");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_SIDE_STEP:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getSideStep();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("METERS");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_SPEED:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getSpeed();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("METERS/SEC");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_VISIT_TIME:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getVisitTime();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("MIN");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_RESPONSE_TIME:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getResponseTime();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("SECONDS");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_SPEED_IMPACT:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getImpactSpeed();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("METERS");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case PAX_PUSH_PROPENSITY:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet( strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getPushPropensity();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("PERCENT");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case VISITOR_STA_TRIGGER:
-			m_pDataSet = new PassengerData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet(strFileName );
-			pConDB = ((PassengerData*)m_pDataSet)->getVisitorSTATrigger();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("MIN");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-			m_pDataSet = new BridgeConnectorPaxData();
-			m_pDataSet->SetInputTerminal(m_pInterm);
-			m_pDataSet->loadDataSet(strFileName);
-			pConDB = ((BridgeConnectorPaxData*)m_pDataSet)->getEntryFlightTimeDestribution();
+			m_pContraintDB = new CMobileElemConstraintDatabase();
+			m_pContraintDB->setUnits("SECONDS");
+			ReadMobileElemConstrainDatabase(p_file,sFltPaxString[m_emType],m_pInterm);
 			break;
 		}
 	}
-	catch( FileVersionTooNewError* _pError )
-	{
-		char szBuf[128];
-		_pError->getMessage( szBuf );
-		MessageBox( szBuf, "Error", MB_OK|MB_ICONWARNING );
-		delete _pError;	
-	}
-
-	return pConDB;
 }
 
 void CDlgImportFltPaxData::SetOperation( int iType )
@@ -613,12 +530,14 @@ void CDlgImportFltPaxData::InitRadioStatus()
 		((CButton*)GetDlgItem(IDC_RADIO_EXPORTED))->SetCheck(TRUE);
 		m_wndCombox.EnableWindow(FALSE);
 		m_wndCSVFile.EnableWindow(FALSE);
+		m_wndExportedProject.OnBrowse();
 	}
 	else if (m_iOperation == 2)
 	{
 		((CButton*)GetDlgItem(IDC_RADIO_CSVFILE))->SetCheck(TRUE);
 		m_wndCombox.EnableWindow(FALSE);
 		m_wndExportedProject.EnableWindow(FALSE);
+		m_wndCSVFile.OnBrowse();
 	}
 }
 
@@ -710,28 +629,21 @@ int CDlgImportFltPaxData::GetExsitFltPaxData( ConstraintEntry* pEntry )
 
 void CDlgImportFltPaxData::ClearData()
 {
-	if (m_pDataSet)
+	m_mapConstraintData.clear();
+	if (m_pContraintDB)
 	{
-		delete m_pDataSet;
-		m_pDataSet = NULL;
-	}
-
-	if (m_pCSVDB)
-	{
-		delete m_pCSVDB;
-		m_pCSVDB = NULL;
+		delete m_pContraintDB;
+		m_pContraintDB = NULL;
 	}
 }
 
 void CDlgImportFltPaxData::OnCheckAll()
 {
 	BOOL bCheckAll = ((CButton*)GetDlgItem(IDC_CHECK_ALL))->GetCheck();
-	if (bCheckAll)//need check all item of list control
+	
+	for (int i = 0; i < m_wndListCtrl.GetItemCount(); i++)
 	{
-		for (int i = 0; i < m_wndListCtrl.GetItemCount(); i++)
-		{
-			m_wndListCtrl.SetCheck(i,TRUE);
-		}
+		m_wndListCtrl.SetCheck(i,bCheckAll);
 	}
 }
 
@@ -740,6 +652,8 @@ void CDlgImportFltPaxData::OnCheckLocalProject()
 	GetDlgItem(IDC_COMBO_PROJECT)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BROWSE_EXPORTED)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BROWSE_CSVFILE)->EnableWindow(FALSE);
+
+	m_wndCombox.ShowDropDown();
 }
 
 void CDlgImportFltPaxData::OnCheckExportedProject()
@@ -747,6 +661,8 @@ void CDlgImportFltPaxData::OnCheckExportedProject()
 	GetDlgItem(IDC_COMBO_PROJECT)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BROWSE_EXPORTED)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BROWSE_CSVFILE)->EnableWindow(FALSE);
+
+	m_wndExportedProject.OnBrowse();
 }
 
 void CDlgImportFltPaxData::OnCheckCSVFile()
@@ -754,4 +670,309 @@ void CDlgImportFltPaxData::OnCheckCSVFile()
 	GetDlgItem(IDC_COMBO_PROJECT)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BROWSE_EXPORTED)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BROWSE_CSVFILE)->EnableWindow(TRUE);
+
+	m_wndCSVFile.OnBrowse();
+}
+
+void CDlgImportFltPaxData::ResetButtonStatus( BOOL bTrue )
+{
+	GetDlgItem(IDC_BUTTON_APPEND)->EnableWindow(bTrue);
+	GetDlgItem(IDC_BUTTON_REPLACE)->EnableWindow(bTrue);
+}
+
+void CDlgImportFltPaxData::OnClickListContentItem( NMHDR* pNMHDR, LRESULT* pResult )
+{
+	CPoint Pt = GetMessagePos();
+	m_wndListCtrl.ScreenToClient(&Pt);
+	UINT uFlags;
+	int nHitItem = m_wndListCtrl.HitTest(Pt, &uFlags);
+	BOOL bCheck = ((CButton*)GetDlgItem(IDC_CHECK_ALL))->GetCheck();
+	if (uFlags == LVHT_ONITEMSTATEICON)
+	{
+		m_bHit = true;
+	}
+	else
+	{
+		m_bHit = false;
+	}
+	*pResult = 0;
+}
+
+void CDlgImportFltPaxData::OnLvnItemchangedListcontrol( NMHDR *pNMHDR, LRESULT *pResult )
+{
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	if (m_bHit)
+	{
+		for (int i = 0; i < m_wndListCtrl.GetItemCount(); i++)
+		{
+			if (m_wndListCtrl.GetCheck(i) == FALSE)
+			{
+				((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(FALSE);
+				*pResult = 0;
+				return;
+			}
+		}
+		((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(TRUE);
+	}
+	*pResult = 0;
+}
+
+void CDlgImportFltPaxData::ReadFlightConstrainDatabase( ArctermFile& p_file, const char *p_keyword, InputTerminal* _pInTerm )
+{
+	p_file.reset();
+	p_file.skipLines (3);
+
+	SortedContainer<ConstraintEntry> sortedList;
+	sortedList.ownsElements (0);
+
+	FlightConstraint *aConst;
+	ProbabilityDistribution *aProbDist;
+	ConstraintEntry *anEntry;
+	char str[64];
+	int probField = 1 + (p_keyword != NULL) + (m_pContraintDB->getUnits() != NULL);
+
+	while (p_file.getLine())
+	{
+		if (p_keyword)
+		{
+			p_file.getField (str, SMALL);
+			if (_stricmp (str, p_keyword))
+				continue;
+		}
+		char strConstraint[256] = {0};
+		p_file.getSubField (strConstraint, ';');
+		p_file.setToField(1);
+
+		aConst = new FlightConstraint;
+		aConst->SetAirportDB( _pInTerm->m_pAirportDB );
+		aConst->readConstraint (p_file);
+
+		CString strResult;
+		char strCompare[2560] = {0}; 
+		aConst->WriteSyntaxStringWithVersion (strCompare);
+		if (_strcmpi(strConstraint,strCompare) == 0)
+		{
+			strResult = _T("Successed");
+		}
+		else 
+		{
+			strResult.Format(_T("Cannot parse flight type: %s"),strConstraint);
+		}
+
+		if (m_pContraintDB->getUnits())
+			p_file.getField (str, SMALL);
+
+		p_file.setToField (probField);
+		aProbDist = GetTerminalRelateProbDistribution (p_file,_pInTerm);
+
+		anEntry = new ConstraintEntry;
+		anEntry->initialize (aConst, aProbDist);
+		m_mapConstraintData[anEntry] = strResult;
+	}
+
+	mapConstraintData::iterator iter = m_mapConstraintData.begin();
+	for (; iter != m_mapConstraintData.end(); ++iter)
+	{
+		m_pContraintDB->addEntry(iter->first);
+	}
+}
+
+void CDlgImportFltPaxData::ReadFlightConstrainWithSchedDatabase( ArctermFile& p_file, const char *p_keyword, InputTerminal* _pInTerm)
+{
+	p_file.reset();
+	p_file.skipLines (3);
+
+	FlightConstraint *aConst;
+	ProbabilityDistribution *aProbDist;
+	ConstraintEntry *anEntry;
+	char str[64];
+	int probField = 1 + (p_keyword != NULL) + (m_pContraintDB->getUnits() != NULL);
+
+	while (p_file.getLine())
+	{
+		if (p_keyword)
+		{
+			p_file.getField (str, SMALL);
+			if (_stricmp (str, p_keyword))
+				continue;
+		}
+
+		char strConstraint[256] = {0};
+		p_file.getSubField (strConstraint, ';');
+		p_file.setToField(1);
+
+		aConst = new FlightConstraint;
+		aConst->SetAirportDB( _pInTerm->m_pAirportDB );
+		aConst->readConstraint (p_file);
+
+		CString strResult;
+		char strCompare[2560] = {0}; 
+		aConst->WriteSyntaxStringWithVersion (strCompare);
+		if (_strcmpi(strConstraint,strCompare) == 0)
+		{
+			strResult = _T("Successed");
+		}
+		else 
+		{
+			strResult.Format(_T("Cannot parse flight type: %s"),strConstraint);
+		}
+
+		if (m_pContraintDB->getUnits())
+			p_file.getField (str, SMALL);
+
+		p_file.setToField (probField);
+		aProbDist = GetTerminalRelateProbDistribution (p_file,_pInTerm);
+
+		int nValue;
+		p_file.getInteger(nValue);
+		((FlightConstraintDatabaseWithSchedData*)m_pContraintDB)->SetNeglectSchedData(nValue >0?true:false);
+		anEntry = new ConstraintEntry;
+		anEntry->initialize (aConst, aProbDist);
+		m_mapConstraintData[anEntry] = strResult;
+	}
+
+	mapConstraintData::iterator iter = m_mapConstraintData.begin();
+	for (; iter != m_mapConstraintData.end(); ++iter)
+	{
+		m_pContraintDB->addEntry(iter->first);
+	}
+}
+
+void CDlgImportFltPaxData::ReadMobileElemConstrainDatabase( ArctermFile& p_file, const char *p_keyword, InputTerminal* _pInTerm)
+{
+	p_file.reset();
+	p_file.skipLines (3);
+
+	CMobileElemConstraint* pConst;
+	ProbabilityDistribution* pProbDist;
+	ConstraintEntry* pEntry;
+	char str[64];
+	int probField = 1 + (p_keyword != NULL) + (m_pContraintDB->getUnits() != NULL);
+
+	while (p_file.getLine())
+	{
+		if (p_keyword)
+		{
+			p_file.getField (str, SMALL);
+			if (_stricmp (str, p_keyword))
+				continue;
+		}
+
+		char strConstraint[256] = {0};
+		p_file.getSubField (strConstraint, ';');
+		p_file.setToField(1);
+		pConst = new CMobileElemConstraint(_pInTerm);
+		pConst->readConstraint (p_file);
+
+		CString strResult;
+		char strCompare[2560] = {0}; 
+		pConst->WriteSyntaxStringWithVersion (strCompare);
+		if (_strcmpi(strConstraint,strCompare) == 0)
+		{
+			strResult = _T("Successed");
+		}
+		else 
+		{
+			strResult.Format(_T("Cannot parse mobile element type: %s"),strConstraint);
+		}
+
+		if (m_pContraintDB->getUnits())
+			p_file.getField (str, SMALL);
+
+		p_file.setToField (probField);
+		pProbDist = GetTerminalRelateProbDistribution (p_file,_pInTerm);
+
+		pEntry = new ConstraintEntry;
+		pEntry->initialize( pConst, pProbDist );
+		m_mapConstraintData[pEntry] = strResult;
+	}
+
+	mapConstraintData::iterator iter = m_mapConstraintData.begin();
+	for (; iter != m_mapConstraintData.end(); ++iter)
+	{
+		m_pContraintDB->addEntry(iter->first);
+	}
+}
+
+CString CDlgImportFltPaxData::GetFileName()
+{
+	CString strFileName;
+	switch (m_emType)
+	{
+	case FLIGHT_DELAYS:
+	case FLIGHT_LOAD_FACTORS:
+	case FLIGHT_AC_CAPACITIES:
+		strFileName = "FLIGHT.DAT";
+		break;
+	case PAX_GROUP_SIZE:
+	case PAX_LEAD_LAG:
+	case PAX_IN_STEP:
+	case PAX_SIDE_STEP:
+	case PAX_SPEED:
+	case PAX_VISIT_TIME:
+	case PAX_RESPONSE_TIME:
+	case PAX_SPEED_IMPACT:
+	case PAX_PUSH_PROPENSITY:
+	case VISITOR_STA_TRIGGER:
+		strFileName = "PAXDATA.MSC";
+		break;
+	case  ENTRY_FLIGHT_TIME_DISTRIBUTION:
+		strFileName = "BCPAXDATA.TXT";
+		break;
+	}
+	return strFileName;
+}
+
+void CBrowserARCEdit::OnBrowse()
+{
+	ASSERT_VALID(this);
+	ENSURE(GetSafeHwnd() != NULL);
+
+	if (m_Mode == BrowseMode_File)
+	{
+		CString strFile;
+		GetWindowText(strFile);
+
+		if (!strFile.IsEmpty())
+		{
+			TCHAR fname [_MAX_FNAME];
+
+			_tsplitpath_s(strFile, NULL, 0, NULL, 0, fname, _MAX_FNAME, NULL, 0);
+
+			CString strFileName = fname;
+			strFileName.TrimLeft();
+			strFileName.TrimRight();
+
+			if (strFileName.IsEmpty())
+			{
+				strFile.Empty();
+			}
+
+			const CString strInvalidChars = _T("*?<>|");
+			if (strFile.FindOneOf(strInvalidChars) >= 0)
+			{
+				if (!OnIllegalFileName(strFile))
+				{
+					SetFocus();
+					return;
+				}
+			}
+		}
+
+		CFileDialog dlg(TRUE, !m_strDefFileExt.IsEmpty() ? (LPCTSTR)m_strDefFileExt : (LPCTSTR)NULL, strFile, 0, !m_strFileFilter.IsEmpty() ? (LPCTSTR)m_strFileFilter : (LPCTSTR)NULL, NULL);
+		if (dlg.DoModal() == IDOK && dlg.GetPathName().IsEmpty() == FALSE)
+		{
+			SetWindowText(dlg.GetPathName());
+			SetModify(TRUE);
+			OnAfterUpdate();
+		}
+
+		if (GetParent() != NULL)
+		{
+			GetParent()->RedrawWindow(NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN);
+		}
+
+	}
+
+	SetFocus();
 }

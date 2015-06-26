@@ -130,6 +130,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="3DChartWnd.cpp" />
+    <ClCompile Include="AirsideAircraftMultiRunTakeoffProcessResult.cpp" />
+    <ClCompile Include="AirsideAircraftMutiRunRunwayOperationResult.cpp" />
     <ClCompile Include="AirsideBaseReport.cpp" />
     <ClCompile Include="AirsideControllerWorkloadParam.cpp" />
     <ClCompile Include="AirsideControllerWorkloadReport.cpp" />
@@ -155,6 +157,7 @@
     <ClCompile Include="AirsideFlightFuelBurnReport.cpp" />
     <ClCompile Include="AirsideFlightFuelBurnReportResult.cpp" />
     <ClCompile Include="AirsideFlightMutiRunDelayReport.cpp" />
+    <ClCompile Include="AirsideFlightOperationalMultiRunResult.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayBaseResult.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayData.cpp" />
     <ClCompile Include="AirsideFlightRunwayDelayReport.cpp" />
@@ -185,6 +188,7 @@
     <ClCompile Include="AirsideRunwayCrossingsBaseSummaryResult.cpp" />
     <ClCompile Include="AirsideRunwayCrossingsPara.cpp" />
     <ClCompile Include="AirsideRunwayCrossingsReport.cpp" />
+    <ClCompile Include="AirsideRunwayDelayMultiRunResult.cpp" />
     <ClCompile Include="AirsideRunwayOperationReportBaseResult.cpp" />
     <ClCompile Include="AirsideRunwayOperationReportDetailResult.cpp" />
     <ClCompile Include="AirsideRunwayOperationReportParam.cpp" />
@@ -345,6 +349,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3DChartWnd.h" />
+    <ClInclude Include="AirsideAircraftMultiRunTakeoffProcessResult.h" />
+    <ClInclude Include="AirsideAircraftMutiRunRunwayOperationResult.h" />
     <ClInclude Include="AirsideBaseReport.h" />
     <ClInclude Include="AirsideControllerWorkloadParam.h" />
     <ClInclude Include="AirsideControllerWorkloadReport.h" />
@@ -370,6 +376,7 @@
     <ClInclude Include="AirsideFlightFuelBurnReport.h" />
     <ClInclude Include="AirsideFlightFuelBurnReportResult.h" />
     <ClInclude Include="AirsideFlightMutiRunDelayReport.h" />
+    <ClInclude Include="AirsideFlightOperationalMultiRunResult.h" />
     <ClInclude Include="AirsideFlightRunwayDelayBaseResult.h" />
     <ClInclude Include="AirsideFlightRunwayDelayData.h" />
     <ClInclude Include="AirsideFlightRunwayDelayReport.h" />
@@ -400,6 +407,7 @@
     <ClInclude Include="AirsideRunwayCrossingsBaseSummaryResult.h" />
     <ClInclude Include="AirsideRunwayCrossingsPara.h" />
     <ClInclude Include="AirsideRunwayCrossingsReport.h" />
+    <ClInclude Include="AirsideRunwayDelayMultiRunResult.h" />
     <ClInclude Include="AirsideRunwayOperationReportBaseResult.h" />
     <ClInclude Include="AirsideRunwayOperationReportDetailResult.h" />
     <ClInclude Include="AirsideRunwayOperationReportParam.h" />

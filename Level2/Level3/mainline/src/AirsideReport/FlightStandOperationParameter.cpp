@@ -64,6 +64,7 @@ BOOL CFlightStandOperationParameter::ExportFile(ArctermFile& _file)
 
 void CFlightStandOperationParameter::ReadParameter(ArctermFile& _file)
 {
+	clear();
 	CParameters::ReadParameter(_file);
 
 	int nCount = 0;

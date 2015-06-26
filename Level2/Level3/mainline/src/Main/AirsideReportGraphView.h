@@ -3,6 +3,7 @@
 #include "../AirsideReport/CARC3DChart.h"
 #include "afxwin.h"
 class CTermPlanDoc;
+class RumwayMarkWithLandingTakeOff;
 
 // CAirsideReportGraphView form view
 class AirsideFlightConflictPara;
@@ -41,6 +42,10 @@ protected:
 	void InitFlightConflictSummaryReportFilter(AirsideFlightConflictPara *pParam );
 	void InitTaxiwayDelayReport();
 
+private:
+    std::vector<RumwayMarkWithLandingTakeOff*> m_vTempRunwayMarks; // for multi run runway operation report combobox only, objects newed will 
+                                                                   // be pushed here, then they will be deleted when this view destructs.
+    std::vector<CString*> m_vTempStrRunways; // for multi run runway delay report combobox only.
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 

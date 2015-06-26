@@ -71,6 +71,9 @@ void CDetailStandOccupancyUtilizationChartResult::GenerateResult(std::vector<CSt
 	long lMaxOccupancyTime  = max(lSchedStandTimeOccupany, lActualStandTimeOccupany);
 	nIntervalSize = lMaxOccupancyTime / pParameter->getInterval() ;
 
+    if(lMaxOccupancyTime%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -189,6 +192,9 @@ void CDetailStandUtilizationPercentageChartResult::GenerateResult(std::vector<CS
 	ElapsedTime lMaxOccupancyTime  = ElapsedTime(max(lSchedStandTimeOccupany, lActualStandTimeOccupany));
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
 	nIntervalSize = int((double)lMaxOccupancyTime.asSeconds() / (double)(nDuration)*100)/10 ;
+
+    if(lMaxOccupancyTime.asSeconds()%(nDuration*100*10) != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
@@ -311,6 +317,9 @@ void CDetailStandIdleTimeUtiliztionChartResult::GenerateResult(std::vector<CStan
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
 	nIntervalSize = (nDuration - lMinOccupancyTime) / pParameter->getInterval() ;
 
+    if((nDuration-lMinOccupancyTime)%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -353,6 +362,7 @@ void CDetailStandIdleTimeUtiliztionChartResult::GenerateResult(std::vector<CStan
 		{
 			long lTime = nDuration - vActualStandTimeOccupany.at(j);
 
+//			TRACE("\r\n %d \r\n", lTime);
 			if( lStart <= lTime && lTime < lEnd)
 				nActualCount++;						
 		}
@@ -429,6 +439,9 @@ void CDetailStandConflictChartResult::GenerateResult(std::vector<CStandOperation
 	int nIntervalSize = 0;
 	int nMaxConflicts  =  max(lArrStandConflicts, lDepStandConflicts);
 	nIntervalSize = nMaxConflicts / 5 ;
+
+    if(nMaxConflicts%5 != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
@@ -547,6 +560,9 @@ void CDetailStandDelayChartResult::GenerateResult(std::vector<CStandOperationRep
 
 	long lMaxDelay  =  max(lArrStandDelay, lDepStandDelay);
 	nIntervalSize = lMaxDelay / pParameter->getInterval() ;
+
+    if((lMaxDelay%pParameter->getInterval()) != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;

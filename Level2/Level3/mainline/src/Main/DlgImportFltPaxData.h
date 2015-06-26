@@ -6,6 +6,13 @@
 #include "FltPaxDataDlg.h"
 #include "afxeditbrowsectrl.h "
 
+class CBrowserARCEdit : public CMFCEditBrowseCtrl
+{
+public:
+	virtual void OnBrowse();
+};
+
+typedef std::map<ConstraintEntry*,CString> mapConstraintData;
 
 class CDlgImportFltPaxData : public CXTResizeDialog
 {
@@ -33,12 +40,13 @@ protected:
 	afx_msg void OnCheckLocalProject();
 	afx_msg void OnCheckExportedProject();
 	afx_msg void OnCheckCSVFile();
-
+	afx_msg void OnClickListContentItem(NMHDR* pNMHDR, LRESULT* pResult); 
+	afx_msg void OnLvnItemchangedListcontrol(NMHDR *pNMHDR, LRESULT *pResult);
 private:
 	void SetImportDialogTitle();
 	void InitComboxContent();
-	void InitListCtrlHeader(ConstraintDatabase* pConDB);
-	void SetListCtrlContent(ConstraintDatabase* pConDB);
+	void InitListCtrlHeader();
+	void SetListCtrlContent();
 	void InitRadioStatus();
 
 	bool readIniFileData( const CString& _strTempExtractPath, CString& _strInputZip);
@@ -46,21 +54,31 @@ private:
 	bool CreateTempZipFile( CString& strTempExtractPath,const CString& strFilePath );
 	CString getTempPath( const CString& _strDefault = "c:\\"  );
 
-	ConstraintDatabase* LoadDataFromFile(const CString& strFileName);
+	CString GetFileName();
+	bool CheckFileFormat(ArctermFile& p_file);
+
+	void LoadDataFromFile(const CString& strFileName,bool bCheckFile);
 	int GetExsitFltPaxData(ConstraintEntry* pEntry);
 	void ClearData();
 	void AddData(ConstraintEntry* pEntry);
+
+	void ResetButtonStatus(BOOL bTrue);
+
+	void ReadFlightConstrainDatabase(ArctermFile& p_file, const char *p_keyword, InputTerminal* _pInTerm);
+	void ReadFlightConstrainWithSchedDatabase(ArctermFile& p_file, const char *p_keyword, InputTerminal* _pInTerm);
+	void ReadMobileElemConstrainDatabase( ArctermFile& p_file, const char *p_keyword, InputTerminal* _pInTerm);
 private:
 	CListCtrl m_wndListCtrl;
 	CComboBox m_wndCombox;
-	CMFCEditBrowseCtrl m_wndExportedProject;
-	CMFCEditBrowseCtrl m_wndCSVFile;
+	CBrowserARCEdit m_wndExportedProject;
+	CBrowserARCEdit m_wndCSVFile;
 	FLTPAXDATATTYPE m_emType;
 	int m_iOperation;
 	InputTerminal* m_pInterm;
-	DataSet* m_pDataSet;
-
+	
+	ConstraintDatabase* m_pContraintDB;
 	ConstraintDatabase* m_pFltPaxDB;
-	ConstraintDatabase* m_pCSVDB;
+	bool m_bHit;
+	mapConstraintData m_mapConstraintData;
 };
 

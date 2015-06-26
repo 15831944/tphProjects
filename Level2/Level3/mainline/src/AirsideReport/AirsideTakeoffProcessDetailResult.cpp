@@ -286,48 +286,47 @@ void CAirsideTakeoffProcessDetailChart::GenerateResult( TakeoffDetailDataList& v
 {
 	ASSERT(pParameter);
 
-	long lMinTime = GetMinData(vResult)/100;
-	long lMaxTime = GetMaxData(vResult)/100;
+	long lMin = GetMinData(vResult)/100;
+	long lMax = GetMaxData(vResult)/100;
+    
+    long lUserInterval = pParameter->getInterval();
+    long lStart = lMin - lMin%pParameter->getInterval();
 
-	int intervalSize = 0 ;
-	ElapsedTime IntervalTime ;
-	IntervalTime = lMaxTime - lMinTime;
-	intervalSize = IntervalTime.asSeconds() / pParameter->getInterval() + 1;//default value 1mins
+    int intervalCount = (lMax - lStart) / lUserInterval;
+    if((lMax-lStart)%lUserInterval != 0)
+        intervalCount += 1;
+    if(intervalCount == 0)
+        intervalCount = 1;
 
-	long lUserIntervalTime = pParameter->getInterval();
-	ElapsedTime estUserIntervalTime = ElapsedTime(lUserIntervalTime);
-
-	CString timeInterval;
-	ElapsedTime startTime = lMinTime - lMinTime%pParameter->getInterval();
-	ElapsedTime estStartTime = startTime;
-	ElapsedTime endtime ;
-	for (int i = 0 ; i < intervalSize ;i++)
-	{
-		endtime = startTime + estUserIntervalTime;
-		timeInterval.Format(_T("%s-%s"),startTime.printTime(),endtime.printTime()) ;
-		startTime = endtime ;
-		m_vXAxisTitle.push_back(timeInterval);
-	}
+    CString strIntervalTime;
+    ElapsedTime estStartTime = lStart;
+    ElapsedTime estEndTime = lMax;
+    for (int i = 0 ; i < intervalCount ;i++)
+    {
+        ElapsedTime estIntervalStartTime, estIntervalEndTime;
+        estIntervalStartTime = lStart + lUserInterval*i;
+        estIntervalEndTime = lStart + lUserInterval*(i+1);
+        strIntervalTime.Format(_T("%s-%s"),estIntervalStartTime.printTime(),estIntervalEndTime.printTime()) ;
+        m_vXAxisTitle.push_back(strIntervalTime);
+    }
 
 	ElapsedTime estMinDelayTime = estStartTime;
-
-
 	detailChartDataList chartDataList;
 	InvertDetailToGraphData(vResult,chartDataList);
 
 	for (long j=0; j<(long)m_vXAxisTitle.size(); j++)
 	{
 		int nCount = 0;
-		ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*j);
-		ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(j + 1));
+		ElapsedTime estIntervalStartTime = estMinDelayTime + ElapsedTime(lUserInterval*j);
+		ElapsedTime estIntervalEndTime = estMinDelayTime + ElapsedTime(lUserInterval*(j + 1));
 		for (int n = 0; n < (int)chartDataList.size(); n++)
 		{
 			DetailChartData& chartData = chartDataList[n];
 			for (int m = 0; m < (int)chartData.m_vData.size(); m++)
 			{
 				double dData = chartData.m_vData[m];
-				if (dData >= estTempMinDelayTime.asSeconds()*100\
-					&&dData < estTempMaxDelayTime.asSeconds()*100)
+				if (dData >= estIntervalStartTime.asSeconds()*100\
+					&&dData < estIntervalEndTime.asSeconds()*100)
 				{
 					nCount++;
 				}
@@ -367,14 +366,14 @@ void CAirsideTakeoffQueueChart::Draw3DChart( CARC3DChart& chartWnd, CParameters 
 {
 	CString strLabel = _T("");
 	C2DChartData c2dGraphData;
-	c2dGraphData.m_strChartTitle = _T("Take off delay(Detailed)");
+	c2dGraphData.m_strChartTitle = _T("Take off Q delay(Detailed)");
 	c2dGraphData.m_strYtitle = _T("Number of flights ");
 	c2dGraphData.m_strXtitle = _T("Time(HH:MM:SS)");	
 	c2dGraphData.m_vrXTickTitle = m_vXAxisTitle;
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("Airside Take off delay Report(Detailed) %s "),pParameter->GetParameterString());
+	strFooter.Format(_T("Airside Take off Q delay Report(Detailed) %s "),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 
 	detailChartDataList::iterator iter = m_vData.begin();

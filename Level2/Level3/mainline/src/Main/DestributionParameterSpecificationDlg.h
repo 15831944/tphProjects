@@ -2,8 +2,7 @@
 #include "afxwin.h"
 #include "Common\ProbDistManager.h"
 #include "TermPlanDoc.h"
-#include "MFCExControl\FloatEdit.h"
-#include "d:\work\mainline\src\mfcexcontrol\floatedit.h"
+#include "..\MFCExControl\FloatEdit.h"
 
 class CDestributionParameterSpecificationDlg : public CDialog
 {

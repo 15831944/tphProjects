@@ -54,6 +54,9 @@ void CAirsideTakeoffProcessParameter::WriteParameter( ArctermFile& _file )
 
 void CAirsideTakeoffProcessParameter::ReadParameter( ArctermFile& _file )
 {
+	m_vTakeoffPosition.clear();
+	m_vFlightConstraint.clear();
+
 	CParameters::ReadParameter(_file);
 
 	int nCount = 0;

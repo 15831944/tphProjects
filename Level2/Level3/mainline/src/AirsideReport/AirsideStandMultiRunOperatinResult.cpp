@@ -9,6 +9,9 @@
 #include <algorithm>
 #include "Parameters.h"
 #include "StandOperationDataCalculation.h"
+#include "StandOperationData.h"
+#include "AirsideFlightStandOperationBaseResult.h"
+#include <vector>
 
 static const char* strSummaryListTitle[] = 
 {
@@ -39,61 +42,30 @@ CAirsideStandMultiRunOperatinResult::~CAirsideStandMultiRunOperatinResult(void)
 
 void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pParameter )
 {
-	ClearData();
-	ArctermFile file;
-	MapMultiRunStandOperationData mapStandLoadData;
-	DelayResultPath::iterator iter = m_mapResultPath.begin();
-	for (; iter != m_mapResultPath.end(); ++iter)
-	{
-		CString strResultPath = iter->second;
-		CString strSimResult = iter->first;
+    ClearData();
+    ArctermFile file;
+    MapMultiRunStandOperationData mapStandLoadData;
+    mapSimReport::iterator iter = m_mapSimReport.begin();
+    for (; iter != m_mapSimReport.end(); ++iter)
+    {
+        CAirsideFlightStandOperationReport* pReport = (CAirsideFlightStandOperationReport*)(iter->second);
+        CString strSimResult = iter->first;
+        std::vector<CStandOperationReportData*> reportResult = pReport->GetBaseResult()->GetResult();
 
-		try
-		{
-			if (file.openFile(strResultPath.GetString(),READ))
-			{
-				int nCount = 0;
-				file.getLine();
-				file.getInteger(nCount);
-				file.getLine();
-
-				for (int nIndex = 0; nIndex < nCount; nIndex++)
-				{
-					file.skipField(2);
-					StandMultipleOperationData standOperationData;
-					file.getChar(standOperationData.m_fltmode);
-					file.getField(standOperationData.m_sSchedName.GetBuffer(1024),1024);
-					standOperationData.m_sSchedName.ReleaseBuffer();
-
-					file.skipField(2);
-                    file.getInteger(standOperationData.m_lSchedOccupancy);
-
-					file.getField(standOperationData.m_sActualName.GetBuffer(1024),1024);
-					standOperationData.m_sActualName.ReleaseBuffer();
-
-					file.skipField(2);
-					file.getInteger(standOperationData.m_lOccupiedTime);
-
-					long lDelayEnter = 0;
-					file.getInteger(lDelayEnter);
-
-					file.skipField(1);
-					long lDelayLeaving = 0;
-					file.getInteger(lDelayLeaving);
-					standOperationData.m_lDelayEnter = lDelayEnter;
-					standOperationData.m_lDelayLeaving = lDelayLeaving;
-					mapStandLoadData[strSimResult].push_back(standOperationData);
-
-					file.getLine();
-				}
-
-				file.closeIn();
-			}
-		}
-		catch(...)
-		{
-			ClearData();
-		}
+        int nCount = (int)reportResult.size();
+        for (int i=0; i<nCount; i++)
+        {
+            CStandOperationReportData* pData = reportResult.at(i);
+            StandMultipleOperationData standOperationData;
+            standOperationData.m_fltmode = pData->m_fltmode;
+            standOperationData.m_sSchedName = pData->m_sSchedName;
+            standOperationData.m_lSchedOccupancy = pData->m_lSchedOccupancy;
+            standOperationData.m_sActualName = pData->m_sActualName;
+            standOperationData.m_lOccupiedTime = pData->m_lActualOccupancy;
+            standOperationData.m_lDelayEnter = pData->m_lDelayEnter;
+            standOperationData.m_lDelayLeaving = pData->m_lDelayLeaving;
+            mapStandLoadData[strSimResult].push_back(standOperationData);
+        }
 	}
 
 	//generate detail stand occupancy
@@ -432,6 +404,13 @@ void CAirsideStandMultiRunOperatinResult::ClearData()
 	m_standDepDelayMap.clear();
 	m_standArrConflictsMap.clear();
 	m_standDepConfictsMap.clear();
+
+	m_summarySchedUtilizeMap.clear();
+	m_summarySchedIdleMap.clear();
+	m_summaryActualUtilizeMap.clear();
+	m_summaryActualIdleMap.clear();
+	m_summaryDelayMap.clear();
+	m_summaryConflictMap.clear();
 }
 
 void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CParameters* pParameter,MapMultiRunStandOperationData standOperationData )
@@ -459,6 +438,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 	eMaxTime.setPrecisely(lMaxOccupancyTime);
 	nIntervalSize = eMaxTime.asSeconds() / pParameter->getInterval() ;
 
+    if(eMaxTime.asSeconds()%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -468,8 +450,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 		for (int i=0; i< nIntervalSize; i++)
 		{
 			MultipleRunReportData reportData;
-			reportData.m_iStart = pParameter->getInterval()*i*100;
-			reportData.m_iEnd = pParameter->getInterval()*(i+1)*100;
+			reportData.m_iStart = pParameter->getInterval()*i*TimePrecision;
+			reportData.m_iEnd = pParameter->getInterval()*(i+1)*TimePrecision;
 
 			reportData.m_iData = GetIntervalCount(reportData.m_iStart,reportData.m_iEnd,mapIter->second);
 
@@ -503,6 +485,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
 	int nIntervalSize = (nDuration - eMinTime.asSeconds()) / (pParameter->getInterval()) ;
 
+    if((nDuration-eMinTime.asSeconds()) % pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -512,13 +497,15 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 		for (int i=0; i< nIntervalSize; i++)
 		{
 			MultipleRunReportData reportData;
-			reportData.m_iStart = pParameter->getInterval()*i*100;
-			reportData.m_iEnd = pParameter->getInterval()*(i+1)*100;
+			reportData.m_iStart = pParameter->getInterval()*i*TimePrecision;
+			reportData.m_iEnd = pParameter->getInterval()*(i+1)*TimePrecision;
 
 			mapStandResult::iterator standIter = mapIter->second.begin();
 			for (; standIter != mapIter->second.end(); ++standIter)
 			{
-				long lTime = nDuration*100 -  standIter->second;
+				//to second standIter->second/100
+				long lTime = (nDuration -  standIter->second/TimePrecision)*TimePrecision;
+				TRACE("\r\n %d \r\n", lTime);
 
 				if( reportData.m_iStart <= lTime && lTime < reportData.m_iEnd)
 					reportData.m_iData++;
@@ -551,7 +538,16 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationPencentage( C
 	ElapsedTime eMaxTime;
 	eMaxTime.setPrecisely(lMaxOccupancyTime);
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
-	nIntervalSize = int((double)eMaxTime.asSeconds()/ (double)(nDuration)*100)/10 ;
+	ASSERT(nDuration > 0);
+	if(nDuration <= 0)
+		return;
+
+	//step value, 10
+	nIntervalSize = int((double)eMaxTime.asSeconds()/ (double)(nDuration)*TimePrecision)/10 ;
+	
+	//add one more column for the decimal
+	if (eMaxTime.asSeconds() % nDuration != 0)
+		nIntervalSize = nIntervalSize + 1;
 
 	mapStandOpResult::iterator mapIter = mapLoadData.begin();
 	for (; mapIter != mapLoadData.end(); ++mapIter)
@@ -638,6 +634,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 	eMaxTime.setPrecisely(lMaxDelayTime);
 	nIntervalSize = eMaxTime.asSeconds() / pParameter->getInterval();
 
+    if(eMaxTime.asSeconds()%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -647,8 +646,8 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 		for (int i=0; i< nIntervalSize; i++)
 		{
 			MultipleRunReportData reportData;
-			reportData.m_iStart = pParameter->getInterval()*i*100;
-			reportData.m_iEnd = pParameter->getInterval()*(i+1)*100;;
+			reportData.m_iStart = pParameter->getInterval()*i*TimePrecision;
+			reportData.m_iEnd = pParameter->getInterval()*(i+1)*TimePrecision;;
 
 			for (size_t j = 0; j < mapIter->second.size(); j++)
 			{
@@ -699,6 +698,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 
 	int nIntervalSize = 0;
 	nIntervalSize = nMaxConflicts / 5 ;
+
+    if(nMaxConflicts%5 != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
@@ -769,7 +771,7 @@ void CAirsideStandMultiRunOperatinResult::Generate3DChartPercentageData(MultiRun
 		strLegend.Format(_T("Run%d"),nCurSimResult+1);
 		c2dGraphData.m_vrLegend.push_back(strLegend);
 
-		std::vector<double>  vData;
+		std::vector<double> vData;
 		for (unsigned i = 0; i < iter->second.size(); i++)
 		{
 			MultipleRunReportData delayData = iter->second.at(i);
@@ -922,7 +924,7 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DConflictChartString( C2DCha
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("Detailed Stand Utilization %s;%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Multiple Run Report Detailed %s %s;%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -934,20 +936,20 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DDelayChartString( C2DChartD
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("Detailed Stand Utilization %s;%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Multiple Run Report  Detailed %s %s;%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
 
 void CAirsideStandMultiRunOperatinResult::SetDetail3DIdleChartString( C2DChartData& c2dGraphData, CParameters *pParameter )
 {
-	c2dGraphData.m_strChartTitle = _T("Detailed Stand Utilization Report(Unused time)");
+	c2dGraphData.m_strChartTitle = _T("Detailed Stand Utilization Report(Idle time)");
 	c2dGraphData.m_strYtitle = _T("Number of Stands");
-	c2dGraphData.m_strXtitle = _T("Unused time (mins at stand)");	
+	c2dGraphData.m_strXtitle = _T("Idle time (mins at stand)");	
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("Detailed Stand Utilization %s;%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Multiple Run Report %s %s;%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -959,7 +961,7 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DRatioChartString( C2DChartD
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("Detailed Stand Utilization %s;%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Multiple Run Report %s %s;%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -971,7 +973,7 @@ void CAirsideStandMultiRunOperatinResult::SetDetail3DOccupancyChartString( C2DCh
 
 	//set footer
 	CString strFooter(_T(""));
-	strFooter.Format(_T("Detailed Stand Utilization %s;%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+	strFooter.Format(_T("Multiple Run Report %s %s;%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
 	c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1175,8 +1177,11 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayEnter;
-            mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayLeaving;
+			if (operationData.IsDelay() == true)//has delay
+			{
+				mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayEnter;
+				mapLoadData[iter->first][operationData.m_sActualName] += operationData.m_lDelayLeaving;
+			}
         }
     }
 
@@ -1186,24 +1191,9 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryDelayData(MapMultiRunStand
     {
         tempTool.Clear();
 
-        // Remove the zero item.
-        mapStandResult::iterator standIter2 = simIter->second.begin();
-        while(standIter2!=simIter->second.end())
-        {
-            mapStandResult::iterator tempIter = standIter2;
-            standIter2++;
-
-            if(tempIter->second == 0)
-            {
-                simIter->second.erase(tempIter);
-            }
-        }
-
         mapStandResult::iterator standIter = simIter->second.begin();
-        unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 246
-        // the last one data is discarded, need to be fixed.
         unsigned iSize = simIter->second.size();
-        for(; standIter!=simIter->second.end()&& idx < iSize - 1; ++standIter, ++idx)
+        for(; standIter!=simIter->second.end(); ++standIter)
         {
             if(standIter->second != 0)
                 tempTool.AddNewData(standIter->second/100);
@@ -1239,7 +1229,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
         for (int i = 0; i < iCount; i++)
         {
             StandMultipleOperationData operationData = iter->second[i];
-            if(operationData.m_sActualName != operationData.m_sSchedName)
+        //    if(operationData.m_sActualName != operationData.m_sSchedName)
+			if(operationData.IsConflict() == true)//has conflict
             {
                 mapLoadData[iter->first][operationData.m_sActualName]++;
             }
@@ -1252,10 +1243,8 @@ void CAirsideStandMultiRunOperatinResult::BuildSummaryConflictData(MapMultiRunSt
     {
         tempTool.Clear();
         mapStandResult::iterator standIter = simIter->second.begin();
-        unsigned idx = 0; // single report calculation of stand conflict: StandOperationDataCalculation.h: 182
-                          // the last one data is discarded.
         unsigned iSize = simIter->second.size();
-        for(; standIter!=simIter->second.end()&& idx < iSize - 1; ++standIter, ++idx)
+        for(; standIter!=simIter->second.end(); ++standIter)
         {
             tempTool.AddNewData(standIter->second);
         }
@@ -1431,7 +1420,7 @@ void CAirsideStandMultiRunOperatinResult::SetSummarySchedUtilize3DChartString(C2
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Multiple Run Report %s %s,%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1442,7 +1431,7 @@ void CAirsideStandMultiRunOperatinResult::SetSummarySchedIdle3DChartString(C2DCh
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Multiple Run Report %s %s,%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1453,7 +1442,7 @@ void CAirsideStandMultiRunOperatinResult::SetSummaryActualUtilize3DChartString(C
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Multiple Run Report %s %s,%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1464,7 +1453,7 @@ void CAirsideStandMultiRunOperatinResult::SetSummaryActualIdle3DChartString(C2DC
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Multiple Run Report %s %s,%s "),c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1475,7 +1464,7 @@ void CAirsideStandMultiRunOperatinResult::SetSummaryDelay3DChartString(C2DChartD
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Multiple Run Report %s %s,%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1486,7 +1475,7 @@ void CAirsideStandMultiRunOperatinResult::SetSummaryConflict3DChartString(C2DCha
     c2dGraphData.m_strXtitle.Format(_T("Runs"));
 
     CString strFooter(_T(""));
-    strFooter.Format(_T("Summary Stand Operations %s,%s "), pParameter->getStartTime().printTime(), pParameter->getEndTime().printTime());
+    strFooter.Format(_T("Multiple Run Report %s %s,%s "), c2dGraphData.m_strChartTitle,GetMultipleRunReportString(),pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
 
@@ -1496,14 +1485,14 @@ void CAirsideStandMultiRunOperatinResult::GenerateSummary2DChartData(C2DChartDat
     for(int i=0; i<nCount; i++)
         c2dGraphData.m_vrLegend.push_back(strSummaryListTitle[i]);
 
-    c2dGraphData.m_vr2DChartData.resize(13);
+    c2dGraphData.m_vr2DChartData.resize(nCount);
     MultiRunSummaryMap::iterator iter = multiRunSummaryMap.begin();
     for(; iter != multiRunSummaryMap.end(); iter++)
     {
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
         CString strXTickTitle;
-        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
         c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second.m_estMin);
@@ -1600,4 +1589,198 @@ void CAirsideStandMultiRunOperatinResult::FillSummaryConflictListContent(CXListC
 
         idx++;
     }
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteReportData( ArctermFile& _file )
+{
+	_file.writeField("Airside Multiple Run Stand Operation Report");//write report string
+	_file.writeLine();
+
+	_file.writeField("Detail Result");//write detail type
+	_file.writeLine();
+	WriteDetailMap(m_standOccupMap,_file);
+	WriteDetailMap(m_standidlemap,_file);
+	WriteDetailMap(m_standRatiomap,_file);
+	WriteDetailMap(m_standArrDelayMap,_file);
+	WriteDetailMap(m_standDepDelayMap,_file);
+	WriteDetailMap(m_standArrConflictsMap,_file);
+	WriteDetailMap(m_standDepConfictsMap,_file);
+
+	_file.writeField("Summary Result");//write summary type
+	_file.writeLine();
+	WriteSummaryMap(m_summarySchedUtilizeMap,_file);
+	WriteSummaryMap(m_summarySchedIdleMap,_file);
+	WriteSummaryMap(m_summaryActualUtilizeMap,_file);
+	WriteSummaryMap(m_summaryActualIdleMap,_file);
+	WriteSummaryMap(m_summaryDelayMap,_file);
+	WriteSummaryMap(m_summaryConflictMap,_file);
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadReportData( ArctermFile& _file )
+{
+	ClearData();
+	_file.getLine();
+	//read detail
+	ReadDetailMap(m_standOccupMap,_file);
+	ReadDetailMap(m_standidlemap,_file);
+	ReadDetailMap(m_standRatiomap,_file);
+	ReadDetailMap(m_standArrDelayMap,_file);
+	ReadDetailMap(m_standDepDelayMap,_file);
+	ReadDetailMap(m_standArrConflictsMap,_file);
+	ReadDetailMap(m_standDepConfictsMap,_file);
+
+	_file.getLine();
+	//read summary
+	ReadSummayMap(m_summarySchedUtilizeMap,_file);
+	ReadSummayMap(m_summarySchedIdleMap,_file);
+	ReadSummayMap(m_summaryActualUtilizeMap,_file);
+	ReadSummayMap(m_summaryActualIdleMap,_file);
+	ReadSummayMap(m_summaryDelayMap,_file);
+	ReadSummayMap(m_summaryConflictMap,_file);
+	return TRUE;
+}
+
+CString CAirsideStandMultiRunOperatinResult::GetReportFileName() const
+{
+	return CString("StandOperations\\StandOperations.rep");
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteDetailMap( MultiRunDetailMap mapDetailData, ArctermFile& _file )
+{
+	long iSize = (long)mapDetailData.size();
+	_file.writeInt(iSize);
+
+	MultiRunDetailMap::iterator iter = mapDetailData.begin();
+	for (; iter != mapDetailData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		int iCount = (int)iter->second.size();
+		_file.writeInt(iCount);
+
+		_file.writeLine();
+		for (int i = 0; i < iCount; i++)
+		{
+			const MultipleRunReportData& reportData = iter->second.at(i);
+			_file.writeInt(reportData.m_iStart);
+			_file.writeInt(reportData.m_iEnd);
+			_file.writeInt(reportData.m_iData);
+
+			_file.writeLine();
+		}
+		_file.writeLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadDetailMap( MultiRunDetailMap& mapDetailData,ArctermFile& _file )
+{
+	int iSize = 0; 
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iCount = 0;
+		_file.getInteger(iCount);
+		_file.getLine();
+
+		for (int j = 0; j < iCount; j++)
+		{
+			MultipleRunReportData reportData;
+			_file.getInteger(reportData.m_iStart);
+			_file.getInteger(reportData.m_iEnd);
+			_file.getInteger(reportData.m_iData);
+
+			mapDetailData[strSimResult].push_back(reportData);
+			_file.getLine();
+		}
+		_file.getLine();
+	}
+
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::WriteSummaryMap( MultiRunSummaryMap mapSummaryData,ArctermFile& _file )
+{
+	long iSize = (long)mapSummaryData.size();
+	_file.writeInt(iSize);
+
+	MultiRunSummaryMap::iterator iter = mapSummaryData.begin();
+	for (; iter != mapSummaryData.end(); ++iter)
+	{
+		CString strSimResult = iter->first;
+		_file.writeField(strSimResult.GetBuffer(1024));
+		strSimResult.ReleaseBuffer();
+
+		_file.writeInt(iter->second.m_estTotal.getPrecisely());
+		_file.writeInt(iter->second.m_estMax.getPrecisely());
+		_file.writeInt(iter->second.m_estMin.getPrecisely());
+		_file.writeInt(iter->second.m_estAverage.getPrecisely());
+		_file.writeInt(iter->second.m_estP1.getPrecisely());
+		_file.writeInt(iter->second.m_estP5.getPrecisely());
+		_file.writeInt(iter->second.m_estP10.getPrecisely());
+		_file.writeInt(iter->second.m_estP90.getPrecisely());
+		_file.writeInt(iter->second.m_estP95.getPrecisely());
+		_file.writeInt(iter->second.m_estP99.getPrecisely());
+		_file.writeInt(iter->second.m_estQ1.getPrecisely());
+		_file.writeInt(iter->second.m_estQ2.getPrecisely());
+		_file.writeInt(iter->second.m_estQ3.getPrecisely());
+		_file.writeInt(iter->second.m_estSigma.getPrecisely());
+		_file.writeLine();
+	}
+	return TRUE;
+}
+
+BOOL CAirsideStandMultiRunOperatinResult::ReadSummayMap( MultiRunSummaryMap& mapSummaryData,ArctermFile& _file )
+{
+	int iSize = 0;
+	_file.getInteger(iSize);
+
+	for (int i = 0; i < iSize; i++)
+	{
+		CString strSimResult;
+		_file.getField(strSimResult.GetBuffer(1024),1024);
+		strSimResult.ReleaseBuffer();
+
+		int iTime = 0;
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estTotal.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMax.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estMin.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estAverage.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP5.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP10.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP90.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP95.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estP99.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ1.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ2.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estQ3.setPrecisely(iTime);
+		_file.getInteger(iTime);
+		mapSummaryData[strSimResult].m_estSigma.setPrecisely(iTime);
+		_file.getLine();
+	}
+
+	return TRUE;
 }

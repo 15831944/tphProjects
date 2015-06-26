@@ -20,10 +20,12 @@ public:
 	//refresh chart
 	void RefreshReport(CParameters * parameter );
 	virtual BOOL ReadReportData(ArctermFile& _file);
+	void StatisticSummaryDataFromReportData();
+	std::vector<AirsideFlightRunwayDelaySummaryData*> GetSummaryData();
 protected:
 
 	void GetListColumns(std::vector<CString>& lstColumns);
-	void StatisticSummaryDataFromReportData();
+//	void StatisticSummaryDataFromReportData();
 
 private:
 	std::vector<CString> m_lstColumns;

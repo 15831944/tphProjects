@@ -797,7 +797,13 @@ void CFltPaxDataDlg::OnSize( UINT nType, int cx, int cy )
 	m_btnCancel.MoveWindow(cx-rc.Width()-10,cy-15-rc.Height(),rc.Width(),rc.Height());
 	m_btnOk.MoveWindow(cx-2*rc.Width()-30,cy-15-rc.Height(),rc.Width(),rc.Height());
 	m_btnSave.MoveWindow(cx-3*rc.Width()-50,cy-15-rc.Height(),rc.Width(),rc.Height());	
-	m_btnImport.MoveWindow(10,cy-15-rc.Height(),rc.Width(),rc.Height());
+
+	CRect importRect;
+	m_btnImport.GetWindowRect(&importRect);
+	m_btnImport.MoveWindow(10,cy-15-importRect.Height(),importRect.Width(),importRect.Height());
+
+	//export button
+	GetDlgItem(IDC_BUTTON_EXPORT)->MoveWindow(10 + importRect.Width() + 10,cy-15-importRect.Height(),rc.Width(),rc.Height());
 	if (m_enumType == FLIGHT_LOAD_FACTORS || m_enumType == FLIGHT_AC_CAPACITIES)
 	{
 		m_btnNeglectSchedData.GetWindowRect(&Selrc);
@@ -842,6 +848,7 @@ void CFltPaxDataDlg::OnExportData()
 	else
 		return;
 
+	bool bSucessed = true;
 	try
 	{
 		switch( m_enumType )
@@ -862,7 +869,7 @@ void CFltPaxDataDlg::OnExportData()
 			ExportPaxData(GetInputTerminal()->paxDataList->getLeadLagTime(),sExportFileName,"LEAD_LAG_TIME");
 			break;
 		case PAX_IN_STEP:
-			ExportPaxData(GetInputTerminal()->paxDataList->getImpactInStep(),sExportFileName,"IN_STEP");
+			ExportPaxData(GetInputTerminal()->paxDataList->getInStep(),sExportFileName,"IN_STEP");
 			break;
 		case PAX_SIDE_STEP:
 			ExportPaxData(GetInputTerminal()->paxDataList->getSideStep(),sExportFileName,"SIDE_STEP");
@@ -892,13 +899,17 @@ void CFltPaxDataDlg::OnExportData()
 	}
 	catch( FileVersionTooNewError* _pError )
 	{
+		bSucessed = false;
 		char szBuf[128];
 		_pError->getMessage( szBuf );
 		MessageBox( szBuf, "Error", MB_OK|MB_ICONWARNING );
 		delete _pError;			
 	}
 
-
+	if (bSucessed)
+	{
+		MessageBox(_T("Export File Successfully"),NULL,MB_OK) ;
+	}
 	AfxGetApp()->EndWaitCursor();
 }
 

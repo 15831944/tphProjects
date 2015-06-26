@@ -75,6 +75,7 @@ void CAirsideRunwayUtilizationReportParam::WriteParameter( ArctermFile& _file )
 
 void CAirsideRunwayUtilizationReportParam::ReadParameter( ArctermFile& _file )
 {
+	m_vReportMarkParam.clear();
 	CParameters::ReadParameter(_file);
 
 	//read runway parameter data

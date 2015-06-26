@@ -26,7 +26,7 @@ void State_TryParkingCurbside::Entry( CARCportEngine* pEngine )
 	{
 		pStragy = getVehicle()->BeginCurbStrategy(m_pCurb->getName(),pEngine);
 	}
-	ElapsedTime maxWaitSpotTime(0L);
+	ElapsedTime maxWaitSpotTime(12*3600L);
 	if(pStragy)
 	{
 		maxWaitSpotTime = pStragy->getMaxWaitSpotTime();

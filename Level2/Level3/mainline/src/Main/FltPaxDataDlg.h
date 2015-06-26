@@ -57,7 +57,7 @@ static const char* sFltPaxString[] =
 	"RESPONSE_TIME",
 	"SPEED_IMPACT",
 	"PUSH_PROPENSITY",
-	"VISITOR_STA_TRIGGER"
+	"VISITOR_STA_TRIGGER",
 	"ENTRY_FLIGHT_TIME_DESTRIBUTION"
 };
 class CFltPaxDataDlg : public CDialog
