@@ -13,6 +13,7 @@ BridgeConnectorPaxData::BridgeConnectorPaxData() : DataSet(BridgeConnectorPaxDat
 
 BridgeConnectorPaxData::~BridgeConnectorPaxData()
 {
+    m_pPaxData->clear();
     delete m_pPaxData;
 }
 
@@ -42,7 +43,6 @@ void BridgeConnectorPaxData::readData(ArctermFile& p_file)
 void BridgeConnectorPaxData::readObsoleteData ( ArctermFile& p_file )
 {
 }
-
 
 void BridgeConnectorPaxData::writeData (ArctermFile& p_file) const
 {
