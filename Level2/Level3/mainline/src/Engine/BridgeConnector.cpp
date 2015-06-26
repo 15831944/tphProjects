@@ -15,7 +15,7 @@
 #include "InputAirside/InputAirside.h"
 #include "Airside/StandInSim.h"
 #include "BridgeQueue.h"
-#include "Inputs/BridgeConnectorPaxData.h"
+#include "Inputs/AircraftEntryProcessorData.h"
 #include "SEvent.H"
 
 
@@ -721,10 +721,12 @@ const BridgeConnector::ConnectPoint& BridgeConnector::GetConnectPoint() const
 
 void BridgeConnector::beginService( Person *person, ElapsedTime curTime )
 {
+    CString strPerson;
+    person->getType().screenPaxPrint(strPerson);
 	ArrDepBridgeState BridgeState  = person->getTerminalBehavior()->getBridgeState();
 	if( BridgeState == DepBridge)
 	{
-		BridgeConnectorPaxTypeWithProcIDDatabase* pDataBase = person->GetTerminal()->bcPaxData->getEntryTimeDB();
+		ACEntryTimeDistDatabase* pDataBase = person->GetTerminal()->bcPaxData->getEntryTimeDB();
         const ProbabilityDistribution* dist = pDataBase->FindProbDist(*getID(), person->getType());
 		ElapsedTime serviceT(0L);
 		if(dist)

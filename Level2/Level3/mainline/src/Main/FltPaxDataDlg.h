@@ -148,7 +148,7 @@ protected:
 private:
 	void ExportFlightData(ConstraintDatabase* pFlightDatabase,const CString& strFileName,const CString& strFlightName);
 	void ExportPaxData(CMobileElemConstraintDatabase* pPaxDatabasae,const CString& strFileName,const CString& strPaxName);
-	void ExportBridgeData(BridgeConnectorPaxData* pBridgeDatabase,const CString& strFileName);
+	void ExportBridgeData(AircraftEntryProcessorData* pBridgeDatabase,const CString& strFileName);
 public:
 	CButton m_btnNeglectSchedData;
 	afx_msg void OnBnClickedCheckNeglectscheddata();

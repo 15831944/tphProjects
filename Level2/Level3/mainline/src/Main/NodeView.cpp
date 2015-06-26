@@ -1929,7 +1929,7 @@ void CNodeView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 			}
 			
 			// passenger entry flight time distribution
-			s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
+			s.LoadString(IDS_TVNN_ACENTRYPROCS);
 			if( s.Compare( pNode->Name()) == 0)
 			{
 				CAircraftEntryProcessorDlg dlg(GetInputTerminal(), this);

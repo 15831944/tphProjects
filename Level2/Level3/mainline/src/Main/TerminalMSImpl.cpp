@@ -492,9 +492,6 @@ void CTerminalMSImpl::BuildTVNodeTree()
 	s.LoadString(IDS_TVNN_PROPENTOPUSH);
 	pChildNode = new CTVNode(s);
 	pNode->AddChild(pChildNode);
-	s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
-	pNode = new CTVNode(s);//, IDR_CTX_NONE);
-	pPAXNode->AddChild(pNode);
 
 	s.LoadString(IDS_TVNN_PROCESSORS);
 	CTVNode* pProcNode = new CTVNode(s);//, IDR_CTX_FLIGHTS);
@@ -546,6 +543,9 @@ void CTerminalMSImpl::BuildTVNodeTree()
 	pNode = new CTVNode(s);
 	pProcNode->AddChild( pNode );
 
+    s.LoadString(IDS_TVNN_ACENTRYPROCS);
+    pNode = new CTVNode(s);
+    pProcNode->AddChild(pNode);
 	// ---------------------- Loading Economic Menu Begin ---------------------- //
 
 	CTVNode* pNode1 = NULL, * pNode2 = NULL;

@@ -76,24 +76,7 @@ BOOL CAircraftEntryProcessorDlg::OnInitDialog()
     GetDlgItem(IDC_BTN_SAVE)->EnableWindow(FALSE);
 
     m_pBCPaxData = m_pInTerm->bcPaxData;
-    m_vIncType.push_back(PointProc);
-    m_vIncType.push_back(DepSourceProc);
-    m_vIncType.push_back(DepSinkProc);
-    m_vIncType.push_back(LineProc);
-    m_vIncType.push_back(BaggageProc);
-    m_vIncType.push_back(HoldAreaProc);
-    m_vIncType.push_back(GateProc);
-    m_vIncType.push_back(FloorChangeProc);
-    m_vIncType.push_back(BarrierProc);
-    m_vIncType.push_back(IntegratedStationProc);
-    m_vIncType.push_back(MovingSideWalkProc);
-    m_vIncType.push_back(Elevator);
-    m_vIncType.push_back(ConveyorProc);
-    m_vIncType.push_back(StairProc);
-    m_vIncType.push_back(EscalatorProc);
-    m_vIncType.push_back(BillboardProcessor);
     m_vIncType.push_back(BridgeConnectorProc);
-    m_vIncType.push_back(RetailProc);
     LoadProcTree();
 
     CRect rect;
@@ -127,8 +110,8 @@ void CAircraftEntryProcessorDlg::LoadProcTree()
     CString strAll = _T("ALL PROCESSORS");
     id.setID(strAll);
     m_vProcs.push_back(id);
-    BridgeConnectorPaxTypeWithProcIDDatabase* pEntryTimeDB = m_pBCPaxData->getEntryTimeDB();
-    std::vector<BridgeConnectorPaxEntry*> vData = pEntryTimeDB->FindEntryByProcID(id);
+    ACEntryTimeDistDatabase* pEntryTimeDB = m_pBCPaxData->getEntryTimeDB();
+    std::vector<AircraftEntryProcsEntry*> vData = pEntryTimeDB->FindEntryByProcID(id);
     if(!vData.empty())
     {
         cni.clrItem = SELECTED_COLOR;
@@ -416,8 +399,8 @@ void CAircraftEntryProcessorDlg::OnSelChangedTree(NMHDR *pNMHDR, LRESULT *pResul
         // reload pax type list
         int iProcID = (int)m_procTree.GetItemData(hSelItem);
         ProcessorID id = m_vProcs.at(iProcID);
-        std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
-        std::sort(vEntry.begin(), vEntry.end(), BridgeConnectorPaxEntry::sortByPaxTypeString);
+        std::vector<AircraftEntryProcsEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
+        std::sort(vEntry.begin(), vEntry.end(), AircraftEntryProcsEntry::sortByPaxTypeString);
         size_t nCount = vEntry.size();
         for(size_t i=0; i<nCount; i++)
         {
@@ -446,7 +429,7 @@ void CAircraftEntryProcessorDlg::OnDblClickListItem(NMHDR *pNMHDR, LRESULT *pRes
     else if(pNMItemActivate->iSubItem == 1)
     {
         ASSERT(pNMItemActivate->iItem != -1);
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)m_paxList.GetItemData(pNMItemActivate->iItem);
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(pNMItemActivate->iItem);
         ProbabilityDistribution* pProb = pEntry->getValue();
         CDestributionParameterSpecificationDlg dlg(pProb, this);
         if(dlg.DoModal() == IDOK)
@@ -460,6 +443,7 @@ void CAircraftEntryProcessorDlg::OnDblClickListItem(NMHDR *pNMHDR, LRESULT *pRes
                 pEntry->setValue(pProbDist);
                 CString strItem = pProbDist->screenPrint();
                 m_paxList.SetItemText(pNMItemActivate->iItem, pNMItemActivate->iSubItem, strItem);
+                GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
             }
         }
     }
@@ -488,7 +472,7 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonAdd()
             HTREEITEM hItem = m_procTree.GetSelectedItem();
             int iItem = (int)m_procTree.GetItemData(hItem);
             ProcessorID id = m_vProcs.at(iItem);
-            std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
+            std::vector<AircraftEntryProcsEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
             size_t nCount = vEntry.size();
             bool bFound = false;
             for(size_t i=0; i<nCount; i++)
@@ -512,7 +496,7 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonAdd()
                 ProbabilityDistribution* pNewProb = ProbabilityDistribution::CopyProbDistribution(&u2_10);
 
 
-                BridgeConnectorPaxEntry* pNewEntry = new BridgeConnectorPaxEntry();
+                AircraftEntryProcsEntry* pNewEntry = new AircraftEntryProcsEntry();
                 pNewEntry->initialize(pNewConst, pNewProb, id);
                 m_pBCPaxData->getEntryTimeDB()->addEntry(pNewEntry);
 
@@ -528,8 +512,8 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonAdd()
                 m_paxList.DeleteAllItems();
                 int iProcID = (int)m_procTree.GetItemData(hItem);
                 ProcessorID id = m_vProcs.at(iProcID);
-                std::vector<BridgeConnectorPaxEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
-                std::sort(vEntry.begin(), vEntry.end(), BridgeConnectorPaxEntry::sortByPaxTypeString);
+                std::vector<AircraftEntryProcsEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
+                std::sort(vEntry.begin(), vEntry.end(), AircraftEntryProcsEntry::sortByPaxTypeString);
                 size_t nCount = vEntry.size();
                 for(size_t i=0; i<nCount; i++)
                 {
@@ -557,7 +541,7 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonDel()
     ASSERT(pos > 0);
     if(MessageBox(_T("delete item, go?"), NULL, MB_YESNO) == IDYES)
     {
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)m_paxList.GetItemData((int)(pos-1));
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData((int)(pos-1));
         m_pBCPaxData->getEntryTimeDB()->DeleteEntry(pEntry);
         m_paxList.DeleteItem((int)(pos-1));
 

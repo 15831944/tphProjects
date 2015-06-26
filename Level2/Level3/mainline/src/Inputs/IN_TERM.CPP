@@ -9,7 +9,7 @@
 #include "typelist.h"
 #include "distlist.h"
 #include "paxdata.h"
-#include "BridgeConnectorPaxData.h"
+#include "AircraftEntryProcessorData.h"
 #include "bagdata.h"
 #include "engine\proclist.h"
 #include "procdata.h"
@@ -102,7 +102,7 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
     inTypeList = new PassengerTypeList( inStrDict );
     paxDistList = new PassengerDistributionList;
     paxDataList = new PassengerData;
-	bcPaxData = new BridgeConnectorPaxData;
+	bcPaxData = new AircraftEntryProcessorData;
 
     // Baggage Data
     bagData = new BaggageData;

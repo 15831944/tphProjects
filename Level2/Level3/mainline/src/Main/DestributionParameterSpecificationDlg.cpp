@@ -1856,8 +1856,9 @@ void CDestributionParameterSpecificationDlg::OnEnChangeEditConstantvalue()
 {
     CString strName;
     m_comboConst.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        (strName.Find(_T("Constant: [")) == 0 && strName[strName.GetLength()-1] == ']'))
+        (strName.Find(_T("CONSTANT: [")) == 0 && strName[strName.GetLength()-1] == ']'))
     {
         CString strConstValue;
         m_editConstValue.GetWindowText(strConstValue);
@@ -1881,8 +1882,9 @@ void CDestributionParameterSpecificationDlg::ChangeUniformComboName()
 {
     CString strName;
     m_comboUniform.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Uniform: [")) == 0 && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("UNIFORM: [")) == 0 && strName[strName.GetLength()-1] == ']')
     {
         CString strMin, strMax;
         m_editUniformMin.GetWindowText(strMin);
@@ -1918,8 +1920,9 @@ void CDestributionParameterSpecificationDlg::ChangeBetaComboName()
 {
     CString strName;
     m_comboBeta.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Beta: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("BETA: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strAlpha, strBeta, strMax, strMin;
         m_editBetaAlpha.GetWindowText(strAlpha);
@@ -1952,8 +1955,9 @@ void CDestributionParameterSpecificationDlg::ChangeTriangComboName()
 {
     CString strName;
     m_comboTriangle.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("ssss") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("TRIANGLE: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strMax, strMin, strMode;
         m_editTriangleMax.GetWindowText(strMax);
@@ -1984,8 +1988,9 @@ void CDestributionParameterSpecificationDlg::ChangeErlangComboName()
 {
     CString strName;
     m_comboErlang.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Erlang: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("ERLANG: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strGamma, strBeta, strMu;
         m_editErlangGamma.GetWindowText(strGamma);
@@ -2023,8 +2028,9 @@ void CDestributionParameterSpecificationDlg::ChangeExpoComboName()
 {
     CString strName;
     m_comboExponential.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Exponential: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("EXPONENTIAL: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strLambda, strMean;
         m_editExpoLambda.GetWindowText(strLambda);
@@ -2055,8 +2061,9 @@ void CDestributionParameterSpecificationDlg::ChangeGammaComboName()
 {
     CString strName;
     m_comboGamma.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Gamma: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("GAMMA: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strGamma, strBeta, strMu;
         m_editGammaGamma.GetWindowText(strGamma);
@@ -2088,8 +2095,9 @@ void CDestributionParameterSpecificationDlg::ChangeNormalComboName()
 {
     CString strName;
     m_comboNormal.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Normal: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("NORMAL: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strMean, strStd, strTrunAt;
         m_editNormalMean.GetWindowText(strMean);
@@ -2121,8 +2129,9 @@ void CDestributionParameterSpecificationDlg::ChangeWeiComboName()
 {
     CString strName;
     m_comboWeibull.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Weibull: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("WEIBULL: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString strAlpha, strGamma, strMu;
         m_editWeiAlpha.GetWindowText(strAlpha);
@@ -2154,8 +2163,9 @@ void CDestributionParameterSpecificationDlg::ChangeBernoulliComboName()
 {
     CString strName;
     m_comboBernoulli.GetWindowText(strName);
+    strName.MakeUpper();
     if(strName.IsEmpty() ||
-        strName.Find(_T("Bernoulli: [") == 0) && strName[strName.GetLength()-1] == ']')
+        strName.Find(_T("BERNOULLI: [") == 0) && strName[strName.GetLength()-1] == ']')
     {
         CString str1stValue, str2ndValue, str1stPro;
         m_editBer1stValue.GetWindowText(str1stValue);

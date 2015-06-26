@@ -3,7 +3,7 @@
 #include "Common/ProjectManager.h"
 #include "..\inputs\fltdata.h"
 #include "..\inputs\paxdata.h"
-#include "..\Inputs\BridgeConnectorPaxData.h"
+#include "..\Inputs\AircraftEntryProcessorData.h"
 #include "..\Inputs\CON_DB.H"
 #include "Common\exeption.h"
 #include "Common\fileman.h"
@@ -213,7 +213,7 @@ void CDlgImportFltPaxData::SetImportDialogTitle()
 	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
 	{
 		CString s;
-		s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
+		s.LoadString(IDS_TVNN_ACENTRYPROCS);
 		CString strTitle;
 		strTitle.Format(_T("Importing(%s)"),s);
 		SetWindowText(strTitle);

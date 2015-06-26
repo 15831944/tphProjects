@@ -16,7 +16,7 @@
 #include "ImportFlightFromFileDlg.h"
 #include "../InputAirside/InputAirside.h"
 #include ".\fltpaxdatadlg.h"
-#include "..\Inputs\BridgeConnectorPaxData.h"
+#include "..\Inputs\AircraftEntryProcessorData.h"
 #include "DlgImportFltPaxData.h"
 
 #ifdef _DEBUG
@@ -169,7 +169,7 @@ BOOL CFltPaxDataDlg::OnInitDialog()
 	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
 		{
 			CString s;
-			s.LoadString(IDS_TVNN_ENTRYFLIGHTTIMEDISTRIBUTION);
+			s.LoadString(IDS_TVNN_ACENTRYPROCS);
 			SetWindowText(s);
 			break;
 		}
@@ -945,7 +945,7 @@ void CFltPaxDataDlg::ExportPaxData( CMobileElemConstraintDatabase* pPaxDatabasae
 	file.endFile();
 }
 
-void CFltPaxDataDlg::ExportBridgeData( BridgeConnectorPaxData* pBridgeDatabase,const CString& strFileName )
+void CFltPaxDataDlg::ExportBridgeData( AircraftEntryProcessorData* pBridgeDatabase,const CString& strFileName )
 {
 	ArctermFile file;
 	file.openFile (strFileName, WRITE, 2.20f);

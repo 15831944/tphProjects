@@ -5,16 +5,17 @@
 #include "inputs\MobileElemConstraintDatabase.h"
 
 
-class INPUTS_TRANSFER BridgeConnectorPaxEntry : public ConstraintEntry
+class INPUTS_TRANSFER AircraftEntryProcsEntry : public ConstraintEntry
 {
 protected:
     ProcessorID m_procID;
 public:
-    BridgeConnectorPaxEntry(){ m_procID.init(); }
-    ~BridgeConnectorPaxEntry(){ clear(); }
+    AircraftEntryProcsEntry(){ m_procID.init(); }
+    ~AircraftEntryProcsEntry(){ clear(); }
 
     void initialize(CMobileElemConstraint* pConst, ProbabilityDistribution* pProb, const ProcessorID& id)
     {
+        clear();
         ConstraintEntry::initialize(pConst, pProb);
         m_procID = id;
     }
@@ -31,7 +32,7 @@ public:
     ProcessorID obtainProcID()const{ return m_procID; }
     void setProcID(const ProcessorID& _id){ m_procID = _id; }
 
-    BridgeConnectorPaxEntry& operator=(const BridgeConnectorPaxEntry& _entry)
+    AircraftEntryProcsEntry& operator=(const AircraftEntryProcsEntry& _entry)
     {
         clear();
         ConstraintEntry::operator =(_entry);
@@ -39,12 +40,12 @@ public:
         return *this;
     }
 
-    int operator==(const BridgeConnectorPaxEntry& _entry)const
+    int operator==(const AircraftEntryProcsEntry& _entry)const
     {
         return *constraint == *(_entry.constraint) && m_procID == _entry.m_procID; 
     }
 
-    int operator<(const BridgeConnectorPaxEntry& _entry) const
+    int operator<(const AircraftEntryProcsEntry& _entry) const
     {
         return *constraint < *(_entry.constraint)
             ||  !(*(_entry.constraint) < *constraint) && !(m_procID < _entry.m_procID);
@@ -52,45 +53,45 @@ public:
 
     static bool sortByPaxTypeString(const void* p1, const void* p2)
     {
-        CString strProc1;
-        CString strProc2;
-        ((CMobileElemConstraint*)((BridgeConnectorPaxEntry*)p1)->getConstraint())->screenPrint(strProc1);
-        ((CMobileElemConstraint*)((BridgeConnectorPaxEntry*)p2)->getConstraint())->screenPrint(strProc2);
-        return strProc1 < strProc2;
+        CString strPax1;
+        CString strPax2;
+        ((CMobileElemConstraint*)((AircraftEntryProcsEntry*)p1)->getConstraint())->screenPrint(strPax1);
+        ((CMobileElemConstraint*)((AircraftEntryProcsEntry*)p2)->getConstraint())->screenPrint(strPax2);
+        return strPax1 < strPax2;
     }
 };
 
-class INPUTS_TRANSFER BridgeConnectorPaxTypeWithProcIDDatabase : public CMobileElemConstraintDatabase
+class INPUTS_TRANSFER ACEntryTimeDistDatabase : public CMobileElemConstraintDatabase
 {
 public:
-    BridgeConnectorPaxTypeWithProcIDDatabase();
-    ~BridgeConnectorPaxTypeWithProcIDDatabase();
+    ACEntryTimeDistDatabase();
+    ~ACEntryTimeDistDatabase();
 
     void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
     void writeDatabase(ArctermFile& p_file);
 
     void removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm);
     void replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm);
-    bool DeleteEntry(BridgeConnectorPaxEntry* pEntry);
-    std::vector<BridgeConnectorPaxEntry*> FindEntryByProcID(const ProcessorID& procID);
+    bool DeleteEntry(AircraftEntryProcsEntry* pEntry);
+    std::vector<AircraftEntryProcsEntry*> FindEntryByProcID(const ProcessorID& procID);
     const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
     void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm);
 };
 
-class INPUTS_TRANSFER BridgeConnectorPaxData : public DataSet
+class INPUTS_TRANSFER AircraftEntryProcessorData : public DataSet
 {
 protected:
-    BridgeConnectorPaxTypeWithProcIDDatabase* m_pPaxData;
+    ACEntryTimeDistDatabase* m_pPaxData;
 
 public:
-    BridgeConnectorPaxData();
-    virtual ~BridgeConnectorPaxData();
+    AircraftEntryProcessorData();
+    virtual ~AircraftEntryProcessorData();
 
     void deletePaxType(int p_level, int p_index);
     void removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm);
     void replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm);
     void replaceProcessor();
-//  ...
+
     virtual void initDefaultValues();
     virtual void clear();
     virtual void readData(ArctermFile& p_file);
@@ -107,7 +108,7 @@ public:
         return "Variable,Pax Type,Units,Distribution,Parameters"; 
     }
 
-    BridgeConnectorPaxTypeWithProcIDDatabase* getEntryTimeDB() const
+    ACEntryTimeDistDatabase* getEntryTimeDB() const
     {
         return m_pPaxData;
     }

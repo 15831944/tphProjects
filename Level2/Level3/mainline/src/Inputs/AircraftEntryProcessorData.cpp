@@ -4,12 +4,12 @@
 #include "MobileElemTypeStrDB.h"
 #include "../Common/ProbabilityDistribution.h"
 #include "../Common/termfile.h"
-#include "BridgeConnectorPaxData.h"
+#include "AircraftEntryProcessorData.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-void BridgeConnectorPaxEntry::readData(ArctermFile& p_file, InputTerminal* _pInTerm)
+void AircraftEntryProcsEntry::readData(ArctermFile& p_file, InputTerminal* _pInTerm)
 {
     ProcessorID pID;
     pID.SetStrDict(_pInTerm->inStrDict);
@@ -20,7 +20,7 @@ void BridgeConnectorPaxEntry::readData(ArctermFile& p_file, InputTerminal* _pInT
     initialize(pConst, pProb, pID);
 }
 
-void BridgeConnectorPaxEntry::writeData(ArctermFile& p_file)
+void AircraftEntryProcsEntry::writeData(ArctermFile& p_file)
 {
     m_procID.writeProcessorID(p_file);
     constraint->writeConstraint(p_file);
@@ -30,15 +30,15 @@ void BridgeConnectorPaxEntry::writeData(ArctermFile& p_file)
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-BridgeConnectorPaxTypeWithProcIDDatabase::BridgeConnectorPaxTypeWithProcIDDatabase()
+ACEntryTimeDistDatabase::ACEntryTimeDistDatabase()
 {
 }
 
-BridgeConnectorPaxTypeWithProcIDDatabase::~BridgeConnectorPaxTypeWithProcIDDatabase()
+ACEntryTimeDistDatabase::~ACEntryTimeDistDatabase()
 {
 }
 
-void BridgeConnectorPaxTypeWithProcIDDatabase::readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm)
+void ACEntryTimeDistDatabase::readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm)
 {
     p_file.getLine();
     CString strField;
@@ -51,13 +51,13 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::readDatabase(ArctermFile& p_file,
     for(int i=0; i<paxCount; i++)
     {
         p_file.getLine();
-        BridgeConnectorPaxEntry* pEntry = new BridgeConnectorPaxEntry();
+        AircraftEntryProcsEntry* pEntry = new AircraftEntryProcsEntry();
         pEntry->readData(p_file, _pInTerm);
         addEntry(pEntry);
     }
 }
 
-void BridgeConnectorPaxTypeWithProcIDDatabase::writeDatabase(ArctermFile& p_file)
+void ACEntryTimeDistDatabase::writeDatabase(ArctermFile& p_file)
 {
     p_file.writeField(_T("ENTRY_FLIGHT_TIME_DESTRIBUTION"));
     int nCount = getCount();
@@ -65,53 +65,80 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::writeDatabase(ArctermFile& p_file
     p_file.writeLine();
     for(int i=0; i<nCount; i++)
     {
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)getItem(i);
         pEntry->writeData(p_file);
         p_file.writeLine();
     }
 }
 
-const ProbabilityDistribution*  BridgeConnectorPaxTypeWithProcIDDatabase::FindProbDist(const ProcessorID& procID, 
-    const CMobileElemConstraint& pPaxType)
+const ProbabilityDistribution*  ACEntryTimeDistDatabase::FindProbDist(const ProcessorID& procID, 
+    const CMobileElemConstraint& paxType)
 {
-    std::vector<BridgeConnectorPaxEntry*> vResult;
-    BridgeConnectorPaxEntry* pAppropriate = NULL;
+    CString strPax;
+    paxType.screenPrint(strPax.GetBuffer(256));
+    CString strProcID = procID.GetIDString();
+    std::vector<AircraftEntryProcsEntry*> vResult;
+    AircraftEntryProcsEntry* pTempEntry = NULL;
     int nCount = getCount();
     for(int i=0; i<nCount; i++)
     {
-        BridgeConnectorPaxEntry* pCurEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        AircraftEntryProcsEntry* pCurEntry = (AircraftEntryProcsEntry*)getItem(i);
         const ProcessorID& curProcID = pCurEntry->getProcID();
         const CMobileElemConstraint* pCurPaxType = (CMobileElemConstraint*)pCurEntry->getConstraint();
-        if(procID.idFits(curProcID) && pPaxType.fitex(*pCurPaxType))
+
+        CString strCurPax;
+        pCurPaxType->screenPrint(strCurPax.GetBuffer(256));
+        CString strCurProcID = curProcID.GetIDString();
+        if(!curProcID.idFits(procID) || !pCurPaxType->fitex(paxType))
         {
-            if(pAppropriate == NULL)
+            continue;
+        }
+        else
+        {
+            if(pTempEntry == NULL)
             {
-                pAppropriate = pCurEntry;
+                pTempEntry = pCurEntry;
+                continue;
             }
             else
             {
-                if(curProcID.idFits(pAppropriate->getProcID()) && 
-                    pCurPaxType->fitex(*((CMobileElemConstraint*)pAppropriate->getConstraint())))
+                if(pTempEntry->getProcID() == curProcID)
                 {
-                    pAppropriate = pCurEntry;
+                    CMobileElemConstraint* pMobConst = (CMobileElemConstraint*)pTempEntry->getConstraint();
+                    if(pMobConst->fitex(*pCurPaxType))
+                    {
+                        pTempEntry = pCurEntry;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else if(pTempEntry->getProcID().idFits(curProcID))
+                {
+                    pTempEntry = pCurEntry;
+                }
+                else
+                {
+                    continue;
                 }
             }
         }
     }
 
-    if(pAppropriate)
-        return pAppropriate->getValue();
+    if(pTempEntry)
+        return pTempEntry->getValue();
     else
         return NULL;
 }
 
-void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm)
+void ACEntryTimeDistDatabase::initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm)
 {
     clear();
     int nCount = meDatabase.getCount();
     for(int i=0; i<nCount; i++)
     {
-        BridgeConnectorPaxEntry* pEntry = new BridgeConnectorPaxEntry();
+        AircraftEntryProcsEntry* pEntry = new AircraftEntryProcsEntry();
         CMobileElemConstraint* pMbConst = new CMobileElemConstraint(*meDatabase.GetConstraint(i));
         ProbabilityDistribution* pProb = ProbabilityDistribution::CopyProbDistribution(meDatabase.getItem(i)->getValue());
         ProcessorID pID;
@@ -122,7 +149,7 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(cons
     }
 }
 
-bool BridgeConnectorPaxTypeWithProcIDDatabase::DeleteEntry(BridgeConnectorPaxEntry* pEntry)
+bool ACEntryTimeDistDatabase::DeleteEntry(AircraftEntryProcsEntry* pEntry)
 {
     int nCount = getCount();
     for(int i=nCount-1; i>=0; i--)
@@ -136,25 +163,25 @@ bool BridgeConnectorPaxTypeWithProcIDDatabase::DeleteEntry(BridgeConnectorPaxEnt
     return false;
 }
 
-std::vector<BridgeConnectorPaxEntry*> BridgeConnectorPaxTypeWithProcIDDatabase::FindEntryByProcID(const ProcessorID& procID)
+std::vector<AircraftEntryProcsEntry*> ACEntryTimeDistDatabase::FindEntryByProcID(const ProcessorID& procID)
 {
-    std::vector<BridgeConnectorPaxEntry*> vResult;
+    std::vector<AircraftEntryProcsEntry*> vResult;
     int nCount = getCount();
     for(int i=0; i<nCount; i++)
     {
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)getItem(i);
         if(pEntry->getProcID() == procID)
             vResult.push_back(pEntry);
     }
     return vResult;
 }
 
-void BridgeConnectorPaxTypeWithProcIDDatabase::removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm)
+void ACEntryTimeDistDatabase::removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm)
 {
     int nCount = getCount();
     for(int i=nCount-1; i>=0; i--)
     {
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)getItem(i);
         if (pID.idFits (pEntry->getProcID()))
         {
             deleteItem(i);
@@ -167,12 +194,12 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::removeEntriesByProcID(const Proce
     }
 }
 
-void BridgeConnectorPaxTypeWithProcIDDatabase::replaceEntryProcID(const ProcessorID& oldID, const ProcessorID& newID, InputTerminal* _pInTerm)
+void ACEntryTimeDistDatabase::replaceEntryProcID(const ProcessorID& oldID, const ProcessorID& newID, InputTerminal* _pInTerm)
 {
     int nCount = getCount();
     for (int i=nCount-1; i>=0; i--)
     {
-        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)getItem(i);
         if (oldID.idFits (pEntry->getProcID()))
         {
             pEntry->setProcID(newID);
@@ -191,27 +218,27 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::replaceEntryProcID(const Processo
 ////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
 
-BridgeConnectorPaxData::BridgeConnectorPaxData() : DataSet(BridgeConnectorPaxDataFile, (float)101)
+AircraftEntryProcessorData::AircraftEntryProcessorData() : DataSet(BridgeConnectorPaxDataFile, (float)101)
 {
-    m_pPaxData = new BridgeConnectorPaxTypeWithProcIDDatabase;
+    m_pPaxData = new ACEntryTimeDistDatabase;
     m_pPaxData->setUnits(_T("SECONDS"));
 }
 
-BridgeConnectorPaxData::~BridgeConnectorPaxData()
+AircraftEntryProcessorData::~AircraftEntryProcessorData()
 {
     m_pPaxData->clear();
     delete m_pPaxData;
 }
 
-void BridgeConnectorPaxData::deletePaxType(int p_level, int p_index)
+void AircraftEntryProcessorData::deletePaxType(int p_level, int p_index)
 {
     m_pPaxData->deletePaxType(p_level, p_index);
 }
 
-void BridgeConnectorPaxData::initDefaultValues()
+void AircraftEntryProcessorData::initDefaultValues()
 {
     ProbabilityDistribution* defaultDist = new UniformDistribution(2, 10);
-    BridgeConnectorPaxEntry* anEntry = new BridgeConnectorPaxEntry;
+    AircraftEntryProcsEntry* anEntry = new AircraftEntryProcsEntry;
     ProcessorID pID;
     pID.init();
     pID.SetStrDict(m_pInTerm->inStrDict);
@@ -219,17 +246,17 @@ void BridgeConnectorPaxData::initDefaultValues()
     m_pPaxData->addEntry(anEntry);
 }
 
-void BridgeConnectorPaxData::clear()
+void AircraftEntryProcessorData::clear()
 {
     m_pPaxData->clear();
 }
 
-void BridgeConnectorPaxData::readData(ArctermFile& p_file)
+void AircraftEntryProcessorData::readData(ArctermFile& p_file)
 {
     m_pPaxData->readDatabase(p_file, m_pInTerm);
 }
 
-void BridgeConnectorPaxData::readObsoleteData(ArctermFile& p_file)
+void AircraftEntryProcessorData::readObsoleteData(ArctermFile& p_file)
 {
     float fVersion = p_file.getVersion();
     if(abs(fVersion-100.0f) < 0.00001f)
@@ -238,12 +265,12 @@ void BridgeConnectorPaxData::readObsoleteData(ArctermFile& p_file)
     }
 }
 
-void BridgeConnectorPaxData::writeData(ArctermFile& p_file) const
+void AircraftEntryProcessorData::writeData(ArctermFile& p_file) const
 {
     m_pPaxData->writeDatabase(p_file);
 }
 
-void BridgeConnectorPaxData::readData100(ArctermFile& p_file)
+void AircraftEntryProcessorData::readData100(ArctermFile& p_file)
 {
     CMobileElemConstraintDatabase paxTypeDB;
     paxTypeDB.setUnits(_T("SECONDS"));
@@ -251,12 +278,12 @@ void BridgeConnectorPaxData::readData100(ArctermFile& p_file)
     m_pPaxData->initFromMobElemConstDatabase(paxTypeDB, m_pInTerm);
 }
 
-void BridgeConnectorPaxData::removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm)
+void AircraftEntryProcessorData::removeEntriesByProcID(const ProcessorID& pID, InputTerminal* _pInTerm)
 {
     m_pPaxData->removeEntriesByProcID(pID, _pInTerm);
 }
 
-void BridgeConnectorPaxData::replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm)
+void AircraftEntryProcessorData::replaceEntryProcID(const ProcessorID& pOldID, const ProcessorID& pNewID, InputTerminal* _pInTerm)
 {
     m_pPaxData->replaceEntryProcID(pOldID, pNewID, _pInTerm);
 }

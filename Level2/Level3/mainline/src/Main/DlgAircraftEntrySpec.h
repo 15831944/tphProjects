@@ -3,7 +3,7 @@
 #include "Inputs\IN_TERM.H"
 #include "CommonData\PROCID.H"
 #include "MFCExControl\CoolTree.h"
-#include "Inputs\BridgeConnectorPaxData.h"
+#include "Inputs\AircraftEntryProcessorData.h"
 
 class CAircraftEntryProcessorDlg : public CDialog
 {
@@ -21,7 +21,7 @@ protected:
 private:
     std::vector<int> m_vIncType; // included processor types
     std::vector<ProcessorID> m_vProcs;
-    BridgeConnectorPaxData* m_pBCPaxData;
+    AircraftEntryProcessorData* m_pBCPaxData;
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
