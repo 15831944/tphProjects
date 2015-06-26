@@ -15,14 +15,14 @@ int _tmain(int argc, _TCHAR* argv[])
     char buf6[] = "-5.-";
     char buf7[] = "--5.0-09";
     char buf8[] = ".-50";
-    float f = atof(buf);
-    float f2 = atof(buf2);
-    float f3 = atof(buf3);
-    float f4 = atof(buf4);
-    float f5 = atof(buf5);
-    float f6 = atof(buf6);
-    float f7 = atof(buf7);
-    float f8 = atof(buf8);
+    double f = atof(buf);
+    double f2 = atof(buf2);
+    double f3 = atof(buf3);
+    double f4 = atof(buf4);
+    double f5 = atof(buf5);
+    double f6 = atof(buf6);
+    double f7 = atof(buf7);
+    double f8 = atof(buf8);
 	return 0;
 }
 

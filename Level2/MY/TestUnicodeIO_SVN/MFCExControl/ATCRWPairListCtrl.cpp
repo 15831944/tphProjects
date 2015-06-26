@@ -168,23 +168,23 @@ void CATCRWPairListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 void CATCRWPairListCtrl::SetItemStatus(int nItem,int nSubItem,CHECKSTATUS nStatus)
 {
 	if(nStatus == CHECKED)
-		SetItemText(nItem,nSubItem,"3");
+		SetItemText(nItem,nSubItem, _T("3"));
 	else if (nStatus == UNCHECKED ) 
-		SetItemText(nItem,nSubItem,"2");
+		SetItemText(nItem,nSubItem, _T("2"));
 	else if (nStatus == DISABLECHECKED) //DISABLE
-		SetItemText(nItem,nSubItem,"1");
+		SetItemText(nItem,nSubItem, _T("1"));
 	else
-		SetItemText(nItem,nSubItem,"0");
+		SetItemText(nItem,nSubItem, _T("0"));
 }
 
 CHECKSTATUS CATCRWPairListCtrl::GetItemStatus(int nItem,int nSubItem)
 {
 	CString strCheck=GetItemText(nItem,nSubItem);
-	if(strCheck==CString("3"))
+	if(strCheck== _T("3"))
 		return CHECKED;
-	if (strCheck == CString("2"))
+	if (strCheck ==  _T("2"))
 		return UNCHECKED;
-	if (strCheck == CString("1"))
+	if (strCheck ==  _T("1"))
 		return DISABLECHECKED;
 
 	return DISABLEUNCHECKED;

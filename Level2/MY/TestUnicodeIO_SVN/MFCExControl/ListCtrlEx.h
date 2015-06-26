@@ -34,7 +34,7 @@ public:
     UINT mask;
     int fmt;
     int cx;
-    LPSTR pszText;
+    TCHAR* pszText;
     int cchTextMax;
     int iSubItem;
     int iImage;

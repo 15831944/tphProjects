@@ -109,7 +109,7 @@ BOOL CXTResizeFormView::OnInitDialog()
 	CXTResize::Init();
 
 	if (!UpdateData(FALSE))
-		TRACE0("UpdateData failed during CXTResizeFormView::OnInitDialog().\n");
+		TRACE(_T("UpdateData failed during CXTResizeFormView::OnInitDialog().\n"));
 
 	return TRUE;
 }

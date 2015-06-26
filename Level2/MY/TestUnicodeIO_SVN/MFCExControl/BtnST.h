@@ -105,7 +105,7 @@ public:
 	DWORD SetBitmaps(HBITMAP hBitmapIn, COLORREF crTransColorIn, HBITMAP hBitmapOut = NULL, COLORREF crTransColorOut = 0);
 
 	static short GetVersionI()		{return 31;}
-	static LPCTSTR GetVersionC()	{return (LPCTSTR)_T("3.1");}
+	static LPCTSTR GetVersionC()	{return (LPCTSTR)(_T("3.1"));}
 
 protected:
     //{{AFX_MSG(CButtonST)

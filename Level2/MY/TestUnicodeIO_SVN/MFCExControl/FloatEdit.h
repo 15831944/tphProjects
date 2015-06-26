@@ -1,4 +1,5 @@
 #pragma once
+#include "MFCExControlAPI.h"
 
 class MFCEXCONTROL_API CFloatEdit : public CEdit
 {

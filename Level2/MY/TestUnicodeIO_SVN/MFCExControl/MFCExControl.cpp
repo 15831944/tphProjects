@@ -18,7 +18,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		TRACE0("MFCExControl.DLL Initializing!\n");
+		TRACE(_T("MFCExControl.DLL Initializing!\n"));
 		
 		// Extension DLL one-time initialization
 		if (!AfxInitExtensionModule(MFCExControlDLL, hInstance))
@@ -41,7 +41,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
-		TRACE0("MFCExControl.DLL Terminating!\n");
+		TRACE(_T("MFCExControl.DLL Terminating!\n"));
 
 		// Terminate the library before destructors are called
 		AfxTermExtensionModule(MFCExControlDLL);

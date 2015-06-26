@@ -116,7 +116,7 @@ void CMySpin::OnKillFocus(CWnd* pNewWnd)
 	CWnd::OnKillFocus(pNewWnd);
 	if((pNewWnd==&m_Edit)||(pNewWnd==&m_Spin))
 		return;
-	SetWindowText("");
+	SetWindowText(_T(""));
 	ShowWindow(SW_HIDE);
 
 	GetOwner()->Invalidate();
@@ -137,7 +137,7 @@ void CMySpin::SetTitle(CString strTitle)
 
 	CString strEdit, strPercent;
 	strEdit = m_strTitle;
-	strPercent.Format("  ( %d", m_iPercent);
+	strPercent.Format(_T("  ( %d"), m_iPercent);
 	if ( m_iDisplayType == 1 )
 	{
 		m_Edit.SetWindowText(strEdit);		
@@ -146,11 +146,11 @@ void CMySpin::SetTitle(CString strTitle)
 	{
 		if( m_iDisplayType == 0 || m_iDisplayType == 4)
 		{
-			strEdit += strPercent + "% ) ";
+			strEdit += strPercent + _T("% ) ");
 		}
 		else 
 		{
-			strEdit += strPercent +" )";
+			strEdit += strPercent + _T(" )");
 		}
 	}
 	
@@ -167,16 +167,16 @@ void CMySpin::SetPercent(int iPercent)
 		strEdit = m_strTitle;
 		if (m_iDisplayType == 1)
 		{
-			strPercent.Format("%d", m_iPercent);
+			strPercent.Format(_T("%d"), m_iPercent);
 			m_Edit.SetWindowText(strPercent);
 		}
 		else
 		{
-			strPercent.Format("  ( %d", m_iPercent);
+			strPercent.Format(_T("  ( %d"), m_iPercent);
 			if( m_iDisplayType == 0 || m_iDisplayType == 4)
-				strEdit += strPercent + "% ) ";
+				strEdit += strPercent + _T("% ) ");
 			else 
-				strEdit += strPercent + " )";
+				strEdit += strPercent + _T(" )");
 			m_Edit.SetWindowText(strEdit);
 		}			
 	}
@@ -194,7 +194,7 @@ void CMySpin::OnDeltaposSpin(NMHDR* pNMHDR, LRESULT* pResult)
 	int nPos ;
 	CString strPos ;
 	m_Edit.GetWindowText(strPos);
-	nPos = atoi(strPos);
+	nPos = wcstol(strPos, NULL, 10);
 	if (nPos >= m_nSpinEditLower && nPos <= m_nSpinEditUpper )//&&
 	{
 		pNMUpDown->iPos = nPos;
@@ -215,7 +215,7 @@ void CMySpin::OnKillfocusMyEdit()
 	int nPos ;
 	CString strPos ;
 	m_Edit.GetWindowText(strPos);
-	nPos = atoi(strPos);
+	nPos = wcstol(strPos, NULL, 10);
 	if (nPos >= m_nSpinEditLower && nPos <= m_nSpinEditUpper )
 	{
 		m_Spin.SetPos(nPos);

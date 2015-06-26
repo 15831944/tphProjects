@@ -41,7 +41,7 @@
 // Example:
 // <code>
 // CName* pName = new CName;          // Allocate memory for the object
-// pName->SetName("Firstname", "Lastname");
+// pName->SetName(_T("Firstname", "Lastname");
 // SAFE_DELETE(pName);                // Deallocate memory for the object
 // ASSERT(pName == NULL);
 // </code>
@@ -210,8 +210,8 @@
 // CAge* pAge = new CAge(21); // CAge is derived from CObject.
 //
 // // Terminates program only if pAge is NOT a CAge*.
-// XT_ASSERT_MSG(pAge!= NULL, _T("Failed to allocate memory."));
-// XT_ASSERT_MSG(pAge->IsKindOf(RUNTIME_CLASS(CAge)), _T("This is not a CAge object."));
+// XT_ASSERT_MSG(pAge!= NULL, (_T("Failed to allocate memory."));
+// XT_ASSERT_MSG(pAge->IsKindOf(RUNTIME_CLASS(CAge)), (_T("This is not a CAge object."));
 // </code>
 // See Also:
 //     ASSERT, VERIFY
@@ -228,7 +228,7 @@
 } \
 
 #else
-#define XT_ASSERT_MSG(exp, msg) (void)((exp) || (_assert("\n-----------------------\n" msg "\n-----------------------", __FILE__, __LINE__), 0))
+#define XT_ASSERT_MSG(exp, msg) (void)((exp) || (_assert(_T("\n-----------------------\n" msg "\n-----------------------", __FILE__, __LINE__), 0))
 #endif//_AFX_NO_DEBUG_CRT
 
 #else
@@ -246,7 +246,7 @@
 } \
 
 #else
-#define XTP_ERROR_MSG(msg) (void)((_assert("\n-----------------------\n" msg "\n-----------------------", __FILE__, __LINE__), 0))
+#define XTP_ERROR_MSG(msg) (void)((_assert(_T("\n-----------------------\n" msg "\n-----------------------", __FILE__, __LINE__), 0))
 #endif//_AFX_NO_DEBUG_CRT
 
 #else
@@ -275,7 +275,7 @@
 
 #define __STR2__(x) #x
 #define __STR1__(x) __STR2__(x)
-#define __LOC__ __FILE__ "("__STR1__(__LINE__)"): "
+#define __LOC__ __FILE__ "(_T("__STR1__(__LINE__)"): "
 
 // usage: #pragma message(__LOC__"Need to do 3D collision testing")
 

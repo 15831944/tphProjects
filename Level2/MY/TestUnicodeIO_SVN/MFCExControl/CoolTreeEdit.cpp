@@ -34,7 +34,7 @@ void CCoolTreeEdit::OnKillFocus(CWnd* pNewWnd)
 
 	CString csLabel;
 	GetWindowText( csLabel );
-	SetWindowText("");
+	SetWindowText(_T(""));
 
 	if( !m_bESC )
 		GetParent()->SendMessage( UM_CEW_LABLE_END, 0, (LPARAM)&csLabel );		

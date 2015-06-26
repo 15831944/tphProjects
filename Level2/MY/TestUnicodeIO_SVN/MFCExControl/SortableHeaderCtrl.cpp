@@ -101,10 +101,10 @@ void CSortableHeaderCtrl::LoadSortList()
 	CWaitCursor	wCursor;
 	while ( EndIdx != -1 )
 	{
-		if ( (EndIdx = sortDesc.Find( "|", BegIdx ) ) != -1 )
+		if ( (EndIdx = sortDesc.Find(_T("|"), BegIdx ) ) != -1 )
 		{
 			sortState = ( sortDesc.Mid( BegIdx, 1 ) == "1" ) ? true : false;
-			colNumber = atoi( sortDesc.Mid( BegIdx+2, EndIdx-BegIdx-3 ) );
+			colNumber = wcstol(sortDesc.Mid( BegIdx+2, EndIdx-BegIdx-3 ), NULL, 10);
 
 			if ( singleSort )
 			{
@@ -219,8 +219,8 @@ int CSortableHeaderCtrl::CompareItem( LPARAM p_lParam1, LPARAM p_lParam2 )
 			{
 				case  dtINT:
 				{
-					int nValue1 = (int)atof( csText1 );
-					int nValue2 = (int)atof( csText2 );
+					int nValue1 = (int)_wtof( csText1 );
+					int nValue2 = (int)_wtof( csText2 );
 					if( nValue1 != nValue2)
 						return ( nValue1 < nValue2 ? -1 : 1 ) * nOrder;
 				}
@@ -228,8 +228,8 @@ int CSortableHeaderCtrl::CompareItem( LPARAM p_lParam1, LPARAM p_lParam2 )
 
 				case  dtDEC:
 				{
-					float fValue1 = (float)atof( csText1 );
-					float fValue2 = (float)atof( csText2 );
+					float fValue1 = (float)_wtof( csText1 );
+					float fValue2 = (float)_wtof( csText2 );
 					if( fValue1 != fValue2 )
 						return ( fValue1 < fValue2 ? -1 : 1 ) * nOrder;
 				}
@@ -252,18 +252,18 @@ int CSortableHeaderCtrl::CompareItem( LPARAM p_lParam1, LPARAM p_lParam2 )
 					int nData1 = 0;
 					int nPosH1 = csText1.Find(':');
 					CString strHour1 = csText1.Left(nPosH1);
-					nData1 += atoi(strHour1) * 3600;
+					nData1 += wcstol(strHour1, NULL, 10 ) * 3600;
 					int nPosM1 = csText1.Find(':',nPosH1+1);
 					CString strMin1;
 					if (nPosM1 != -1)
 						strMin1 = csText1.Mid(nPosH1+1, nPosM1-nPosH1-1);
 					else
 						strMin1 = csText1.Right(csText1.GetLength()-nPosH1-1);
-					nData1 += atoi(strMin1) * 60;
+					nData1 += wcstol(strMin1, NULL, 10 ) * 60;
 					if (nPosM1 != -1)
 					{
 						CString strSec1 = csText1.Right(csText1.GetLength()-nPosM1-1);
-						nData1 += atoi(strSec1);
+						nData1 += wcstol(strSec1, NULL, 10 );
 					}
 					int nSign1 = 1;
 					if (csText1.Find('-') != -1)
@@ -273,18 +273,18 @@ int CSortableHeaderCtrl::CompareItem( LPARAM p_lParam1, LPARAM p_lParam2 )
 					int nData2 = 0;
 					int nPosH2 = csText2.Find(':');
 					CString strHour2 = csText2.Left(nPosH2);
-					nData2 += atoi(strHour2) * 3600;
+					nData2 += wcstol(strHour2, NULL, 10 ) * 3600;
 					int nPosM2 = csText2.Find(':',nPosH2+1);
 					CString strMin2;
 					if (nPosM2 != -1)
 						strMin2 = csText2.Mid(nPosH2+1, nPosM2-nPosH2-1);
 					else
 						strMin2 = csText2.Right(csText2.GetLength()-nPosH2-1);
-					nData2 += atoi(strMin2) * 60;
+					nData2 += wcstol(strMin2, NULL, 10 ) * 60;
 					if (nPosM2 != -1)
 					{
 						CString strSec2 = csText2.Right(csText2.GetLength()-nPosM2-1);
-						nData2 += atoi(strSec2);
+						nData2 += wcstol(strSec2, NULL, 10 );
 					}
 					int nSign2 = 1;
 					if (csText2.Find('-') != -1)
@@ -307,7 +307,7 @@ int CSortableHeaderCtrl::CompareItem( LPARAM p_lParam1, LPARAM p_lParam2 )
 				break;
 
 				default:
-					ASSERT("Error: attempt to sort a column without type.");
+					ASSERT(_T("Error: attempt to sort a column without type."));
 					return 0;
 			}
 		}
@@ -403,7 +403,7 @@ void CSortableHeaderCtrl::SaveSortList()
 		colNumber = m_aCombinedSortedColumns[i];
 		sortState = GetItemSortState(m_aCombinedSortedColumns[i]);
 
-		cs.Format( "%d-%d|", sortState ,colNumber );
+		cs.Format(_T("%d-%d|"), sortState ,colNumber );
 		sortDesc += cs;
 	}
 

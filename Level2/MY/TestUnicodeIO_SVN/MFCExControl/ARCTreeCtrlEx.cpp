@@ -69,7 +69,7 @@ CEdit* CARCTreeCtrlEx::SpinEditLabel(HTREEITEM hItem,CString sDisplayTitle)
 		}
 		if (strPercent.GetLength() > 0)
 		{
-			iPercent = atoi(strPercent.GetBuffer(0));
+			iPercent = wcstol(strPercent.GetBuffer(0), NULL, 10);
 		}
 
 
@@ -78,19 +78,19 @@ CEdit* CARCTreeCtrlEx::SpinEditLabel(HTREEITEM hItem,CString sDisplayTitle)
 	else if( m_iSpinEditType == 1 )
 	{
 		iPercent = m_iNum;
-		strPercent.Format( "( %d )",m_iNum );
+		strPercent.Format( _T("( %d )"),m_iNum );
 		strTitle = strTitle.Left( 20 );
 	}
 	else if( m_iSpinEditType == 2 )
 	{
 		iPercent = m_iNum;
-		strPercent.Format( "( %d )",m_iNum );
+		strPercent.Format( _T("( %d )"),m_iNum );
 		strTitle = strTitle.Left( 12 );
 	}
 	else if( m_iSpinEditType == 3 )
 	{
 		iPercent = m_iNum;
-		strPercent.Format( "( %d )",m_iNum );
+		strPercent.Format( _T("( %d )"),m_iNum );
 		strTitle = strTitle.Left( 15 );
 	}
 	else if( m_iSpinEditType == 4 )
@@ -101,12 +101,12 @@ CEdit* CARCTreeCtrlEx::SpinEditLabel(HTREEITEM hItem,CString sDisplayTitle)
 		//		strPercent.Format( "( %d%% )",m_iNum );
 		//strTitle = strPercent;
 		strPercent = sDisplayTitle; 
-		iPercent = atoi(strPercent.GetBuffer(0));	
+		iPercent = wcstol(strPercent.GetBuffer(0), NULL, 10);	
 	}
 	else if( m_iSpinEditType == 99 )
 	{	
 		iPercent = m_iNum;
-		strPercent.Format( "( %d )",m_iNum );
+		strPercent.Format( _T("( %d )"),m_iNum );
 	}
 
 	if( iPercent < 10 )
@@ -136,7 +136,7 @@ CEdit* CARCTreeCtrlEx::SpinEditLabel(HTREEITEM hItem,CString sDisplayTitle)
 
 	m_spinEdit.SetWindowPos(NULL,rcItem.right,rcItem.top,0,0,SWP_NOSIZE);
 	CString strValue;
-	strValue.Format("%d",iPercent);
+	strValue.Format(_T("%d"),iPercent);
 	m_spinEdit.m_editValue.SetWindowText(strValue);
 	GetParent()->SendMessage(UM_CEW_EDITSPIN_BEGIN,(WPARAM)hItem,(LPARAM)(&m_spinEdit));
 	m_spinEdit.SetSpinRange(m_nSpinEditLower, m_nSpinEditUpper );
@@ -157,9 +157,9 @@ LRESULT CARCTreeCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam
 	case UM_CEW_EDITSPIN_END:
 		{
 			SPINTEXT st;
-			_tcscpy(st.szTitle, "");
+			_tcscpy(st.szTitle, _T(""));
 			CString strValue=*((CString*)lParam);
-			st.iPercent =atoi(strValue);
+			st.iPercent =wcstol(strValue, NULL, 10);
 
 			GetParent()->SendMessage(WM_INPLACE_SPIN,0,(LPARAM)&st);
 		}
@@ -173,15 +173,15 @@ LRESULT CARCTreeCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam
 
 			CString strItem, strPercent;
 			strItem = pst->szTitle;
-			strPercent.Format(" (%d", pst->iPercent);
+			strPercent.Format(_T(" (%d"), pst->iPercent);
 			m_iNum = pst->iPercent;
 			if( m_iSpinEditType == 0 )
 			{	
-				strItem += strPercent + "%)";
+				strItem += strPercent + _T("%)");
 			}
 			else 
 			{
-				strItem += strPercent +")";
+				strItem += strPercent + _T(")");
 			}
 
 

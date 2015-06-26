@@ -175,7 +175,7 @@ void CSortHeaderCtrl::Serialize( CArchive& ar )
 		ar >> iItemCount;
 		
 		if( GetItemCount() != iItemCount )
-			TRACE0( _T("Different number of columns in registry.") );
+			TRACE(_T("Different number of columns in registry."));
 		else
 		{
 			HD_ITEM hdItem = { 0 };

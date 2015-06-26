@@ -115,7 +115,7 @@ void CTitleTip::Show(CRect rectTitle, LPCTSTR lpszTitleText, int xoffset /*=0*/,
 	m_pParentWnd->ClientToScreen( rectTitle );
 
 	CClientDC dc(this);
-	CString strTitle = _T("");
+	CString strTitle;
     strTitle += _T(" ");
     strTitle += lpszTitleText; 
     strTitle += _T(" ");

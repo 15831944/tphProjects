@@ -41,7 +41,7 @@ public:
 		m_bGradient = bGradient;
 	}
 
-	void SetTitle(LPCTSTR lpszTitle){ m_strTitle = _T("* "); m_strTitle += lpszTitle; }
+	void SetTitle(LPCTSTR lpszTitle){ m_strTitle = (_T("* ")); m_strTitle += lpszTitle; }
 
 	void EnableButton(int nID, bool bEnabled = true);
 	void SetImageList(CImageList * pImageList);

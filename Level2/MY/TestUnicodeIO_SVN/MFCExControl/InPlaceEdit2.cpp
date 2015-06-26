@@ -48,7 +48,7 @@ void CInPlaceEdit2::OnKillFocus(CWnd* pNewWnd)
 
 	CString csLabel;
 	GetWindowText( csLabel );
-	SetWindowText("");
+	SetWindowText(_T(""));
 
 	if( !m_bESC )
 		GetParent()->SendMessage( WM_INPLACE_EDIT, 0, (LPARAM)&csLabel );		

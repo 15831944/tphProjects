@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{7FD61251-16AD-4DA9-AF9D-7091E5771BB2}</ProjectGuid>
-    <RootNamespace>TestUnicodeIO</RootNamespace>
+    <ProjectGuid>{903A7DFE-EC65-44D4-8B01-05B677DD2A7D}</ProjectGuid>
+    <RootNamespace>MFCTest</RootNamespace>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -51,15 +51,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\MFCExControl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>MFCExControl.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -99,45 +94,28 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="res\TestUnicodeIO.ico" />
-    <None Include="res\TestUnicodeIO.rc2" />
+    <None Include="res\MFCTest.ico" />
+    <None Include="res\MFCTest.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MFCTest.h" />
+    <ClInclude Include="MFCTestDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="TabSubView1.h" />
-    <ClInclude Include="TabSubView2.h" />
-    <ClInclude Include="TabSubView3.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TestUnicodeIO.h" />
-    <ClInclude Include="TestUnicodeIODlg.h" />
-    <ClInclude Include="WinMsg.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MFCTest.cpp" />
+    <ClCompile Include="MFCTestDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TabSubView1.cpp" />
-    <ClCompile Include="TabSubView2.cpp" />
-    <ClCompile Include="TabSubView3.cpp" />
-    <ClCompile Include="TestUnicodeIO.cpp" />
-    <ClCompile Include="TestUnicodeIODlg.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="TestUnicodeIO.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MFCExControl\MFCExControl.vcxproj">
-      <Project>{2fc576cd-35ff-4234-ba13-6b2a2dd47dbd}</Project>
-    </ProjectReference>
+    <ResourceCompile Include="MFCTest.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties RESOURCE_FILE="TestUnicodeIO.rc" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>

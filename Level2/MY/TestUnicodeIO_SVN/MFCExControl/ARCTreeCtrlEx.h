@@ -29,7 +29,7 @@ public:
 	void EditLabel( HTREEITEM _hItem );
 	void EditTime( HTREEITEM _hItem, COleDateTime _oTime );
 
-	CEdit* SpinEditLabel( HTREEITEM hItem ,CString sDisplayTitle="" );
+	CEdit* SpinEditLabel( HTREEITEM hItem ,CString sDisplayTitle=_T(""));
 	void SetDisplayType( int _type );;
 	void SetDisplayNum ( int _num );;
 	void SetSpinRange( int _nLower, int _nUpper );;
@@ -43,7 +43,7 @@ public:
 
 
 public:
-	CEdit* StringEditLabel(HTREEITEM hItem, CString sDisplayTitle="");
+	CEdit* StringEditLabel(HTREEITEM hItem, CString sDisplayTitle=_T(""));
 	CInPlaceEdit2 m_inPlaceEdit;
 	CInPlaceComboBox m_inPlaceComboBox;
 	CInPlaceDateTimeCtrl m_inPlaceDateTimeCtrl;

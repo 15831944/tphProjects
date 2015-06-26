@@ -184,7 +184,7 @@ CWnd* CCoolTree::CreateEditWnd(NODE_EDIT_TYPE net)
 			CCoolTreeDateTimeCtrl *pDTC = new CCoolTreeDateTimeCtrl(m_hEditedItem);
 			if (pDTC->Create(WS_VISIBLE | WS_CHILD | WS_TABSTOP | DTS_TIMEFORMAT | DTS_UPDOWN, CRect(), this, IDC_DATETIMEPICKER_TIMESET))
 			{
-				pDTC->SetFormat("HH:mm:ss");
+				pDTC->SetFormat(_T("HH:mm:ss"));
 				pNewWnd = pDTC;
 			}
 		}
@@ -593,13 +593,13 @@ void CCoolTree::ShowEditSpinWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI)
 			if(pCNI->net==NET_EDIT_WITH_VALUE)
 			{
 				float fItemData=static_cast<float>(GetItemData(hItem)/100.0);
-				strItemData.Format("%.2f",fItemData);	
+				strItemData.Format(_T("%.2f"),fItemData);
 			}
 			else
 			{
 				long lItemData;
 				lItemData= GetItemData( hItem );
-				strItemData.Format("%d",lItemData);
+				strItemData.Format(_T("%d"),lItemData);
 			}
 			pWnd->SetWindowPos(NULL,rect.left,rect.top,0,0,SWP_NOSIZE);
 			((CCoolTreeEditSpin*)pWnd)->m_editValue.SetWindowText( strItemData );
@@ -619,7 +619,7 @@ void CCoolTree::ShowEditSpinWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI)
 			rect.left = rect.right;
 			pWnd->SetWindowPos(NULL,rect.left,rect.top-1,0,0,SWP_NOSIZE);
 			CString strItemData;
-			strItemData.Format("%d",int(pCNI->fMinValue));
+			strItemData.Format(_T("%d"),int(pCNI->fMinValue));
 
 			pWnd->SetWindowPos(NULL,rect.left,rect.top,0,0,SWP_NOSIZE);
 			((CCoolTreeEditSpin*)pWnd)->m_editValue.SetWindowText( strItemData );
@@ -639,7 +639,7 @@ void CCoolTree::ShowEditSpinWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI)
 			rect.left = rect.right;
 			pWnd->SetWindowPos(NULL,rect.left,rect.top-1,0,0,SWP_NOSIZE);
 			CString strItemData;
-			strItemData.Format("%.2f",pCNI->fMinValue);
+			strItemData.Format(_T("%.2f"),pCNI->fMinValue);
 
 			pWnd->SetWindowPos(NULL,rect.left,rect.top,0,0,SWP_NOSIZE);
 			((CCoolTreeEditSpin*)pWnd)->m_editValue.SetWindowText( strItemData );
@@ -700,7 +700,7 @@ void CCoolTree::ShowEditWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI,BOOL bCreat
 			
 			long lItemData= GetItemData( hItem );
 			CString strItemData;
-			strItemData.Format("%d",lItemData);
+			strItemData.Format(_T("%d"),lItemData));
 			
 			pWnd->SetWindowPos(NULL,rect.left,rect.top,0,0,SWP_NOSIZE);
 			pWnd->SetWindowText( strItemData );
@@ -738,7 +738,7 @@ void CCoolTree::ShowEditWnd(HTREEITEM hItem,COOLTREE_NODE_INFO* pCNI,BOOL bCreat
 			rect.left=rect.right;
 			long lItemData= GetItemData( hItem );
 			CString strItemData;
-			strItemData.Format("%d",lItemData);
+			strItemData.Format(_T("%d"),lItemData);
 			pWnd->SetWindowText( strItemData );
 		
 		}
@@ -779,11 +779,11 @@ LRESULT CCoolTree::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 				case NET_EDITSPIN:
 				case NET_EDITSPIN_WITH_VALUE:
 					{
-						int nVal=atoi(strValue);
+						int nVal=wcstol(strValue, NULL, 10);
 						if(pCNI->bVerify&&(nVal<pCNI->fMinValue||nVal>pCNI->fMaxValue))
 						{
 							CString strMsg;
-							strMsg.Format("Please enter a number between %d and %d.",int(pCNI->fMinValue), int(pCNI->fMaxValue));
+							strMsg.Format(_T("Please enter a number between %d and %d."),int(pCNI->fMinValue), int(pCNI->fMaxValue));
 							AfxMessageBox(strMsg);
 							return TRUE;
 						}
@@ -1215,7 +1215,7 @@ void CCoolTree::OnPaint()
 				|| pCNI->net == NET_STATIC
 				)
 			{
-				int nPosFind=sItem.Find(":",0);
+				int nPosFind=sItem.Find(_T(":"),0);
 				CString strLeft,strRight;
 				if (-1!=nPosFind)
 				{

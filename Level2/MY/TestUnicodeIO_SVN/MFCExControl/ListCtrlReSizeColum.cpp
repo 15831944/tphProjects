@@ -89,7 +89,7 @@ int CALLBACK ListCompare(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	if ( (nIndex=pV->FindItem(&info)) != -1)
 		strItem2 = pV->GetItemText(nIndex, pV->m_nSortedCol); 
 	int iCompRes ;
-	iCompRes = strcmp(strItem1, strItem2);     //
+	iCompRes = wcscmp(strItem1, strItem2);     //
 	if(pV->m_fAsc) 
 		return iCompRes;
 	else 
@@ -171,7 +171,7 @@ void CSortListCtrlEx::PrintHead(CDC* pDC,int nPageWidth ,int nPageHMargin,int y)
 	HDITEM hi;
 	hi.mask = HDI_TEXT ;
 	hi.cchTextMax = 40;
-	char chBuffer[1024];
+	TCHAR chBuffer[1024];
 	hi.pszText = chBuffer;
 	int nSpace=(nPageWidth-2*nPageHMargin) / nCol;
 	for(int i = 0; i < nCol; i++ )
@@ -203,7 +203,7 @@ void CSortListCtrlEx::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 	short cyInch=pDC->GetDeviceCaps(LOGPIXELSY); 
 
 #define MYFONTSIZE 14 
-#define HFONTNAME "MS Sans Serif"
+#define HFONTNAME _T("MS Sans Serif")
 	//
 	int nFontHeight=MulDiv(MYFONTSIZE, -cyInch, 72); 
 	if(nFontHeight % 2) nFontHeight++; 
@@ -288,7 +288,7 @@ void CSortListCtrlEx::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 				//Set the footer font
 				pDC->SelectObject(&FooterFont);
 				//Format the footer
-				line.Format(" \tPage %d",pInfo->m_nCurPage);
+				line.Format(_T(" \tPage %d"),pInfo->m_nCurPage);
 				line = m_sFoot + line;
 				//Output the footer at the bottom using tabs
 				pDC->TabbedTextOut(nPageHMargin, nPageHeight-nPageVMargin-nFooterHeight, line, 2, FooterTabStops, 0);
@@ -328,11 +328,11 @@ void CSortListCtrlEx::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 		for( int nSubitem = 0; nSubitem < nCol; nSubitem++ )
 		{
 
-			char chLine[1024];
+			TCHAR chLine[1024];
 			this->GetItemText(nIndex-1,nSubitem,chLine,1023);
-			CSize size = pDC->GetTextExtent("a");
+			CSize size = pDC->GetTextExtent(_T("a"));
 			int NewFontWidth = size.cx ;
-			long str = strlen(chLine)*NewFontWidth ;
+			long str = wcslen(chLine)*NewFontWidth ;
 			int x = nPageHMargin+nSubitem*nSpace ;
 			int _nextx = nPageHMargin+(nSubitem+1)*nSpace ;
 			if((x + str) >= _nextx)
@@ -355,7 +355,7 @@ void CSortListCtrlEx::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 		//Set the footer font
 		pDC->SelectObject(&FooterFont);
 		//Format the footer
-		line.Format(" \tPage %d",pInfo->m_nCurPage);
+		line.Format(_T(" \tPage %d"),pInfo->m_nCurPage);
 		line = m_sFoot + line;
 		//Output the footer at the bottom using tabs
 		pDC->TabbedTextOut(nPageHMargin, nPageHeight-nPageVMargin-nFooterHeight, line, 2, FooterTabStops, 0);
@@ -367,13 +367,13 @@ void CSortListCtrlEx::PrintMutiLine(CDC* pDC,int _x,int _nextX ,int _y ,TCHAR* _
 {
 	int len ;
 	CutStringForPrint(_x,_nextX,_val,_charwidth,len) ;
-	if(len == strlen(_val))
+	if(len == wcslen(_val))
 	{
          pDC->TextOut(_x, _y,_val);
 		 return ;
 	}
 	TCHAR cutstr[1024] = {0} ;
-	strncpy(cutstr,_val,len) ;
+	wcsncpy(cutstr,_val,len) ;
 	pDC->TextOut(_x,_y,cutstr);
 	 lines++ ;
 	PrintMutiLine(pDC,_x, _nextX ,_y+_charHight, _val+len, _charwidth,_charHight,lines);
@@ -383,7 +383,7 @@ void CSortListCtrlEx::CutStringForPrint(int _x,int _nextX ,TCHAR* _val,int _char
 {
 	if(_val == NULL)
 		return ;
-	int strlength = strlen(_val) ;
+	int strlength = wcslen(_val) ;
 	cutlen = strlength ;
 	if((_x + strlength* _charwidth) >= _nextX)
 	{

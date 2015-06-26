@@ -87,7 +87,7 @@ void CARCTipEdit::OnMouseMove(UINT nFlags, CPoint point)
 		TRACE(_T("in ccombo\n"));
 		ClientToScreen(&rectClient);
 
-		CString strText = _T("");
+		CString strText = (_T(""));
 		GetWindowText(strText);
 		m_ToolInfo.lpszText = (LPTSTR)(LPCTSTR)strText;
 

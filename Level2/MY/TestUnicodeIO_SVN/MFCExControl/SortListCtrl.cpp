@@ -96,7 +96,7 @@ BOOL CSortListCtrl::SetHeadings( const CString& strHeadings )
 		if( iSemiColon == -1 )
 			iSemiColon = strHeadings.GetLength();
 
-		const int iWidth = atoi( strHeadings.Mid( iStart, iSemiColon - iStart ) );
+		const int iWidth = wcstol( strHeadings.Mid( iStart, iSemiColon - iStart ), NULL, 10 );
 		
 		iStart = iSemiColon + 1;
 
@@ -237,8 +237,8 @@ int NumberCompare( LPCTSTR pszNumber1, LPCTSTR pszNumber2 )
 	ASSERT_VALID_STRING( pszNumber1 );
 	ASSERT_VALID_STRING( pszNumber2 );
 
-	const int iNumber1 = atoi( pszNumber1 );
-	const int iNumber2 = atoi( pszNumber2 );
+	const int iNumber1 = wcstol( pszNumber1, NULL, 10 );
+	const int iNumber2 = wcstol( pszNumber2, NULL, 10 );
 
 	if( iNumber1 < iNumber2 )
 		return -1;
@@ -274,8 +274,8 @@ bool IsDate( LPCTSTR pszText )
 
 int DateCompare( const CString& strDate1, const CString& strDate2 )
 {
-	const int iYear1 = atoi( strDate1.Mid( 6, 4 ) );
-	const int iYear2 = atoi( strDate2.Mid( 6, 4 ) );
+	const int iYear1 = wcstol( strDate1.Mid( 6, 4 ), NULL, 10 );
+	const int iYear2 = wcstol( strDate2.Mid( 6, 4 ), NULL, 10 );
 
 	if( iYear1 < iYear2 )
 		return -1;
@@ -283,8 +283,8 @@ int DateCompare( const CString& strDate1, const CString& strDate2 )
 	if( iYear1 > iYear2 )
 		return 1;
 
-	const int iMonth1 = atoi( strDate1.Mid( 3, 2 ) );
-	const int iMonth2 = atoi( strDate2.Mid( 3, 2 ) );
+	const int iMonth1 = wcstol( strDate1.Mid( 3, 2 ), NULL, 10 );
+	const int iMonth2 = wcstol( strDate2.Mid( 3, 2 ), NULL, 10 );
 
 	if( iMonth1 < iMonth2 )
 		return -1;
@@ -292,8 +292,8 @@ int DateCompare( const CString& strDate1, const CString& strDate2 )
 	if( iMonth1 > iMonth2 )
 		return 1;
 
-	const int iDay1 = atoi( strDate1.Mid( 0, 2 ) );
-	const int iDay2 = atoi( strDate2.Mid( 0, 2 ) );
+	const int iDay1 = wcstol( strDate1.Mid( 0, 2 ), NULL, 10  );
+	const int iDay2 = wcstol( strDate2.Mid( 0, 2 ), NULL, 10  );
 
 	if( iDay1 < iDay2 )
 		return -1;
@@ -375,7 +375,7 @@ void CSortListCtrl::LoadColumnInfo()
 	ASSERT( m_iNumColumns > 0 );
 
 	CString strKey;
-	strKey.Format( _T("%d"), GetDlgCtrlID() );
+	strKey.Format(_T("%d"), GetDlgCtrlID());
 
 	UINT nBytes = 0;
 	BYTE* buf = NULL;
@@ -401,7 +401,7 @@ void CSortListCtrl::SaveColumnInfo()
 	ASSERT( m_iNumColumns > 0 );
 
 	CString strKey;
-	strKey.Format( _T("%d"), GetDlgCtrlID() );
+	strKey.Format(_T("%d"), GetDlgCtrlID() );
 
 	CMemFile memFile;
 

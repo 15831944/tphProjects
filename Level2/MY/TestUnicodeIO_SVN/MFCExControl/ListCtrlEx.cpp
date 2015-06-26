@@ -109,7 +109,7 @@ int CListCtrlEx::HitTestEx(CPoint& point, int* col)
 				return -1;
 			
 			// Clicked on the 'empty' row
-			int newInsertIndex = InsertItem( row + 1, "" );
+			int newInsertIndex = InsertItem( row + 1, _T(""));
 			SetItemState( newInsertIndex, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
 			GetItemRect(row, &rect, LVIR_BOUNDS);
 			if(rect.PtInRect(point))
@@ -328,14 +328,14 @@ CEdit* CListCtrlEx::EditSpinLabel(int nItem, int nCol)
 	CString strPercent;
 	strPercent = GetItemText( nItem, nCol );
 	strPercent.Remove('%');
-	m_SpinEdit.SetTitle("");
+	m_SpinEdit.SetTitle(_T(""));
 
 	m_SpinEdit.SetDisplayType( m_iSpinDisplayType );
 	
 	int iPercent = 0;
 	if (strPercent.GetLength() > 0)
 	{
-		iPercent = atoi(strPercent.GetBuffer(0));
+		iPercent = wcstol(strPercent.GetBuffer(0), NULL, 10);
 	}
 	m_SpinEdit.SetPercent(iPercent);
 
@@ -373,7 +373,7 @@ CEdit* CListCtrlEx::EditSpinLabel(int nItem, int nCol)
 
 	
 	if (!m_SpinEdit.GetSafeHwnd())
-		m_SpinEdit.Create(_T("STATIC"), "", WS_CHILD|WS_VISIBLE|WS_BORDER, rect, this, NULL);
+		m_SpinEdit.Create(_T("STATIC"), _T(""), WS_CHILD|WS_VISIBLE|WS_BORDER, rect, this, NULL);
 	else
 		m_SpinEdit.MoveWindow( &rect );
 
@@ -541,9 +541,9 @@ LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 		CString strPercent;
 		if( m_iSpinDisplayType == 0 )
-			strPercent.Format("%d%%", pst->iPercent);
+			strPercent.Format(_T("%d%%"), pst->iPercent);
 		else if ( m_iSpinDisplayType == 1 ) //add by tutu 2002-11-20
-			strPercent.Format("%d", pst->iPercent);
+			strPercent.Format(_T("%d"), pst->iPercent);
 		pst->nItem = m_nSpinSelItem;
 		pst->nColumn = m_nSpinSelCol;
 		SetItemText( m_nSpinSelItem, m_nSpinSelCol, strPercent );
@@ -566,11 +566,11 @@ LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (m_bHHmmFormat)
 			{
-				strTime= oTime->Format("%H:%M");
+				strTime= oTime->Format(_T("%H:%M"));
 			}
 			else
 			{
-				strTime = oTime->Format("%H:%M:%S");
+				strTime = oTime->Format(_T("%H:%M:%S"));
 			}
 		}
 
@@ -621,7 +621,7 @@ void CListCtrlEx::EditNew()
 	if (nCount > 0 && IsPreItemEmpty(nCount))
 		nNewIdx = nCount - 1;
 	else
-		nNewIdx = InsertItem( nCount, "" );
+		nNewIdx = InsertItem( nCount, _T(""));
 	
 	SetItemState( nNewIdx, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED );
 	CurrentSelection = nNewIdx;
@@ -653,7 +653,7 @@ void CListCtrlEx::EditNew()
 		{
 		COleDateTime oTime;
 		oTime.SetTime( 0, 0, 0 );
-		CString csTime = oTime.Format( "%X" );
+		CString csTime = oTime.Format(  _T("%X") );
 		SetItemText( CurrentSelection, 0, csTime );
 		EditDateTimeLabel(CurrentSelection, 0);
 		break;
@@ -731,9 +731,9 @@ COleDateTime* CListCtrlEx::EditDateTimeLabel(int nItem, int nCol)
 	CString strTime;
 	strTime = GetItemText( nItem, nCol );
 	
-	if (strcmp( strTime ,"") == 0) 
+	if (wcscmp( strTime ,_T("")) == 0) 
 	{
-		strTime="00:00:00";
+		strTime= _T("00:00:00");
 	}
 
 	COleDateTime dt;
@@ -777,7 +777,7 @@ COleDateTime* CListCtrlEx::EditDateTimeLabel(int nItem, int nCol)
 		m_inPlaceDateTimeCtrl.Create( DTS_TIMEFORMAT, rect,this, ID_DATETIMEPICKER_TIME );
 		if (m_bHHmmFormat)
 		{
-             m_inPlaceDateTimeCtrl.SetFormat("HH:mm");
+             m_inPlaceDateTimeCtrl.SetFormat(_T("HH:mm"));
 		}
 	}	
 	else

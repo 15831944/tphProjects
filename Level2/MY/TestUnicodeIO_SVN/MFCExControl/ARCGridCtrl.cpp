@@ -68,7 +68,7 @@ int ARCGridCtrl::InsertItem(int nItem, LPCTSTR lpszItem)
  	}
 	else
 	{
-		CString strRowTitle = _T("");
+		CString strRowTitle = (_T(""));
 		strRowTitle.Format(_T("%d"),GetRowCount());
 		InsertRow(strRowTitle);
 		SetItemText(nItem+1,1,lpszItem);

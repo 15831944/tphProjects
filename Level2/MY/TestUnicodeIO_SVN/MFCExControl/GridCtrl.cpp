@@ -51,7 +51,7 @@
 //          1.02    4  Mar 1998   Scrolling a little neater (less dead area)
 //                                Cell selection via OnTimer correctly updates Focus cell (Suggested by Lyn Newton)
 //          1.03    17 Mar 1998   Clipboard functions added, Intellimouse support
-//                                Using 32 bit scroll pos functions instead of 16 bit ("cronos")
+//                                Using 32 bit scroll pos functions instead of 16 bit (_T("cronos")
 //                                Added OLE drag and drop.
 //          1.04     6 Apr 1998   Added Ctrl-A = Select All, fixed CGridDropTarget 
 //                                problem, minor bug in CopyTextFromGrid (assert on
@@ -1750,7 +1750,7 @@ void CGridCtrl::SetSelectedRange(int nMinRow, int nMinCol, int nMaxRow, int nMax
 						InvalidateCellRect(cell);
 				}
 		}
-		//    TRACE(_T("%d cells selected.\n"), m_SelectedCellMap.GetCount());
+		//    TRACE((_T("%d cells selected.\n"), m_SelectedCellMap.GetCount());
 
 		if (pDC != NULL) 
 			ReleaseDC(pDC);
@@ -1940,7 +1940,7 @@ BOOL CGridCtrl::PasteTextToGrid(CCellID cell, COleDataObject* pDataObject)
 
 	// CF_TEXT is ANSI text, so we need to allocate a char* buffer
 	// to hold this.
-	LPSTR szBuffer = new char[::GlobalSize(hmem)];
+	TCHAR* szBuffer = new TCHAR[::GlobalSize(hmem)];
 	if (!szBuffer)
 		return FALSE;
 
@@ -2365,7 +2365,7 @@ CCellID CGridCtrl::GetTopleftNonFixedCell() const
 	while (nTop < nVertScroll && nRow < (GetRowCount()-1))
 		nTop += GetRowHeight(nRow++);
 
-	//TRACE("TopLeft cell is row %d, col %d\n",nRow, nColumn);
+	//TRACE(_T("TopLeft cell is row %d, col %d\n",nRow, nColumn);
 	return CCellID(nRow, nColumn);
 }
 
@@ -2645,7 +2645,7 @@ BOOL CGridCtrl::GetCellRect(int nRow, int nCol, LPRECT pRect) const
 	pRect->right  = CellOrigin.x + GetColumnWidth(nCol)-1;
 	pRect->bottom = CellOrigin.y + GetRowHeight(nRow)-1;
 
-	//TRACE("Row %d, col %d: L %d, T %d, W %d, H %d:  %d,%d - %d,%d\n",
+	//TRACE(_T("Row %d, col %d: L %d, T %d, W %d, H %d:  %d,%d - %d,%d\n",
 	//      nRow,nCol, CellOrigin.x, CellOrigin.y, GetColumnWidth(nCol), GetRowHeight(nRow),
 	//      pRect->left, pRect->top, pRect->right, pRect->bottom);
 
@@ -3410,8 +3410,8 @@ int CGridCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csText1, const 
 	{
 	case  GridINT:
 		{
-			int nValue1 = (int)atof( csText1 );
-			int nValue2 = (int)atof( csText2 );
+			int nValue1 = (int)_wtof( csText1 );
+			int nValue2 = (int)_wtof( csText2 );
 			if( nValue1 != nValue2)
 			{
 				if (nValue1 > nValue2)
@@ -3428,8 +3428,8 @@ int CGridCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csText1, const 
 
 	case  GridDEC:
 		{
-			float fValue1 = (float)atof( csText1 );
-			float fValue2 = (float)atof( csText2 );
+			float fValue1 = (float)_wtof( csText1 );
+			float fValue2 = (float)_wtof( csText2 );
 			if( fValue1 != fValue2 )
 			{
 				if (fValue1 > fValue2)
@@ -3472,8 +3472,8 @@ int CGridCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csText1, const 
 			CString strHour2 = csText2.Left(nPos2);
 			CString strMin2 = csText2.Right(csText2.GetLength() - nPos2 - 1);
 
-			int nData1 = atoi(strHour1) * 60 + atoi(strMin1);
-			int nData2 = atoi(strHour2) * 60 + atoi(strMin2);
+			int nData1 = wcstol(strHour1, NULL, 10) * 60 + wcstol(strMin1, NULL, 10);
+			int nData2 = wcstol(strHour2, NULL, 10) * 60 + wcstol(strMin2, NULL, 10);
 
 			if (nData1 != nData2)
 			{
@@ -3488,7 +3488,7 @@ int CGridCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csText1, const 
 			}
 		}
 	default:
-		ASSERT("Error: attempt to sort a column without type.");
+		ASSERT(_T("Error: attempt to sort a column without type."));
 		return 0;
 	}
 	return 0;
@@ -4090,7 +4090,7 @@ void CGridCtrl::FitSize()
 
 	while(VisRect.Height() < ClipRect.Height())
 	{
-		CString strRowTitle = _T("");
+		CString strRowTitle = (_T(""));
 		strRowTitle.Format(_T("%d"),nNumRows);
 		InsertRow(strRowTitle,-1);
 		m_arRowHeights[0] = max(DEFAULT_HEIGHT, m_arRowHeights[0]);
@@ -4943,7 +4943,7 @@ void CGridCtrl::OnBeginPrinting(CDC *pDC, CPrintInfo *pInfo)
 
     // Create the printer font
     int nFontSize = -9;
-    CString strFontName = "Times New Roman";
+    CString strFontName = _T("Times New Roman");
     m_PrinterFont.CreateFont(nFontSize, 0,0,0, FW_NORMAL, 0,0,0, DEFAULT_CHARSET,
                              OUT_CHARACTER_PRECIS, CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
                              DEFAULT_PITCH | FF_DONTCARE, strFontName);
@@ -5439,7 +5439,7 @@ CImageList* CGridCtrl::CreateDragImage(CPoint *pHotSpot)
 
 void CGridCtrl::SortFixRowContent()
 {
-	CString strRowTitle = _T("");
+	CString strRowTitle = (_T(""));
 	for (int i = 1; i < GetVirtualRowCount()+1; i++)
 	{
 		strRowTitle.Format(_T("%d"),i);
@@ -5907,18 +5907,18 @@ void CGridCtrl::OnEndEditCell(int nRow, int nCol, CString str)
 
 CString CGridCtrl::GetItemText(int nRow, int nCol)
 {
-    if (nRow < 0 || nRow >= m_nRows || nCol < 0 || nCol >= m_nCols) return "";
+    if (nRow < 0 || nRow >= m_nRows || nCol < 0 || nCol >= m_nCols) return _T("");
 
     CGridCell* pCell = GetCell(nRow, nCol);
     ASSERT(pCell);
-    if (!pCell) return "";
+    if (!pCell) return _T("");
 
     return pCell->szText;
 }
 
 int CGridCtrl::GetVirtualColumnCount()
 {
-	CString strColumn = _T("");
+	CString strColumn;
 	for (int i = GetColumnCount() - 1; i >= 0; i--)
 	{
 		strColumn = GetItemText(0,i);
@@ -5932,7 +5932,7 @@ int CGridCtrl::GetVirtualColumnCount()
 
 int CGridCtrl::GetVirtualRowCount()
 {
-	CString strRow = _T("");
+	CString strRow;
 	for (int i = GetRowCount(); i >= 0; i--)
 	{
 		for (int j = 1; j < GetColumnCount(); j++)

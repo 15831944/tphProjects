@@ -24,7 +24,7 @@ END_MESSAGE_MAP()
 
 int CComboBoxListBox::AddItem(CStringList* pStrList)
 {	
-	CString strFirst = pStrList->GetCount()>0 ? pStrList->GetHead() : "";
+	CString strFirst = pStrList->GetCount()>0 ? pStrList->GetHead() : _T("");
 	int nAddIndex = AddString(strFirst);
 	SetCurSel(nAddIndex);
 	SetFocus();

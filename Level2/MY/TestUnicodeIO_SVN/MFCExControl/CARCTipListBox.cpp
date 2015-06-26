@@ -94,7 +94,7 @@ void CARCTipListBox::OnMouseMove(UINT nFlags, CPoint point)
 
 		if (!bOutside && (nItem >= 0))
 		{
-			CString strText = _T("");
+			CString strText;
 			GetText(nItem, strText);
 			m_ToolInfo.lpszText = (LPTSTR)(LPCTSTR)strText;
 
@@ -113,7 +113,7 @@ void CARCTipListBox::OnMouseMove(UINT nFlags, CPoint point)
 			::SelectObject(hDC, hOldFont);
 			::ReleaseDC(m_hWnd, hDC);
 
-			//TRACE(_T("<%s>  cx=%d  width=%d\n"), strText, size.cx, rect.Width());
+			//TRACE((_T("<%s>  cx=%d  width=%d\n"), strText, size.cx, rect.Width());
 			if (size.cx > (rect.Width() - 3))
 			{
 				::SendMessage(m_hWndToolTip, TTM_UPDATETIPTEXT, 0, (LPARAM) &m_ToolInfo);

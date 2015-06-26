@@ -1,7 +1,7 @@
 #pragma once
 #include "ListCtrlEx.h"
 
-class MFCEXCONTROL_API CListCtrlKeepHighlight : public CListCtrlEx
+class MFCEXCONTROL_API CListCtrlKeepHighlight : public CListCtrl
 {
     DECLARE_DYNAMIC(CListCtrlKeepHighlight)
 public:

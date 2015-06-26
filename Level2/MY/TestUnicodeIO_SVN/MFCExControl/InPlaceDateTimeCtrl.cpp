@@ -36,7 +36,7 @@ void CInPlaceDateTimeCtrl::OnKillFocus(CWnd* pNewWnd)
 	CDateTimeCtrl::OnKillFocus(pNewWnd);
 	
 	// TODO: Add your message handler code here	
-	SetWindowText("");
+	SetWindowText(_T(""));
 	ShowWindow(SW_HIDE);
 
 	GetOwner()->Invalidate();
@@ -44,7 +44,7 @@ void CInPlaceDateTimeCtrl::OnKillFocus(CWnd* pNewWnd)
 	COleDateTime oTime;
 	GetTime( oTime );
 
-	// TRACE("Time:%d:%d:%d",oTime.GetHour(), oTime.GetMinute(), oTime.GetSecond() );
+	// TRACE(_T("Time:%d:%d:%d",oTime.GetHour(), oTime.GetMinute(), oTime.GetSecond() );
 	GetParent()->SendMessage( WM_INPLACE_DATETIME, (WPARAM)m_bESC, (LPARAM)&oTime );	
 
 	DestroyWindow();

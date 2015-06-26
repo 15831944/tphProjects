@@ -92,13 +92,13 @@ void CARCTreeCtrl::OnPaint()
 			//		if(pCNI->net==	NET_EDITSPIN_WITH_VALUE||pCNI->net==NET_EDIT_WITH_VALUE)
 			//		{
 			int nFlag = -1;
-			int nPosFind = sItem.Find(":",0);
+			int nPosFind = sItem.Find(_T(":"),0);
 			if(nPosFind == -1)
 			{
-				nPosFind = sItem.Find("(",0);
+				nPosFind = sItem.Find(_T("("),0);
 				if(nPosFind == -1)
 				{
-					nPosFind = sItem.Find("[",0);
+					nPosFind = sItem.Find(_T("["),0);
 					if(nPosFind != -1)
 						nFlag = 2;
 				}
@@ -115,7 +115,7 @@ void CARCTreeCtrl::OnPaint()
 					CString strLeft,strRightTemp,strMid,strRight;
 					strLeft=sItem.Left(nPosFind+1);
 					strRightTemp=sItem.Right(sItem.GetLength()-nPosFind-1);
-					int nPosFind2 = strRightTemp.Find(")",0);
+					int nPosFind2 = strRightTemp.Find(_T(")"),0);
 					strMid = strRightTemp.Left(nPosFind2);
 					strRight = strRightTemp.Right(strRightTemp.GetLength()-nPosFind2);
 					memDC.TextOut(rect.left+2,rect.top+1,strLeft);
@@ -161,7 +161,7 @@ void CARCTreeCtrl::OnPaint()
 					CString strLeft,strRightTemp,strMid,strRight;
 					strLeft=sItem.Left(nPosFind+1);
 					strRightTemp=sItem.Right(sItem.GetLength()-nPosFind-1);
-					int nPosFind2 = strRightTemp.Find("]",0);
+					int nPosFind2 = strRightTemp.Find(_T("]"),0);
 					strMid = strRightTemp.Left(nPosFind2);
 					strRight = strRightTemp.Right(strRightTemp.GetLength()-nPosFind2);
 					memDC.TextOut(rect.left+2,rect.top+1,strLeft);

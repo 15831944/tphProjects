@@ -11,7 +11,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 static const int ID_STATIC_EDIT = 103;
-//UINT NEAR WM_XLISTCTRL_CHECKBOX_CLICKED =WM_USER+927; //::RegisterWindowMessage(_T("WM_XLISTCTRL_CHECKBOX_CLICKED"));
+//UINT NEAR WM_XLISTCTRL_CHECKBOX_CLICKED =WM_USER+927; //::RegisterWindowMessage((_T("WM_XLISTCTRL_CHECKBOX_CLICKED"));
 
 /////////////////////////////////////////////////////////////////////////////
 // CXListCtrl
@@ -538,7 +538,7 @@ BOOL CXListCtrl::GetSubItemRect(int nItem,
 // OnLButtonDown
 void CXListCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	// TRACE(_T("in CXListCtrl::OnLButtonDown\n"));
+	// TRACE((_T("in CXListCtrl::OnLButtonDown\n"));
 	if(m_bShowCheckBtn)
 	{
 	int nItem = -1;
@@ -650,7 +650,7 @@ void CXListCtrl::OnPaint()
 // 		}
 // 		rc.top += 10;
 // 		CString strText;
-// 		strText = _T("There are no items to show in this view.");
+// 		strText = (_T("There are no items to show in this view.");
 // 
 // 		COLORREF crText = m_crWindowText;
 // 		COLORREF crBkgnd = m_crWindow;
@@ -1217,7 +1217,7 @@ int CXListCtrl::CountCheckedItems(int nSubItem)
 // OnSysColorChange
 void CXListCtrl::OnSysColorChange()
 {
-	// TRACE(_T("in CXListCtrl::OnSysColorChange\n"));
+	// TRACE((_T("in CXListCtrl::OnSysColorChange\n"));
 
 	CListCtrl::OnSysColorChange();
 

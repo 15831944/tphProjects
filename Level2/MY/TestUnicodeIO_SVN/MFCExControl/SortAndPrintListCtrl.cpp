@@ -223,8 +223,8 @@ int CSortAndPrintListCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csT
 	{
 	case  ITEM_INT:
 		{
-			int nValue1 = atoi( csText1 );
-			int nValue2 = atoi( csText2 );
+			int nValue1 = wcstol(csText1, NULL, 10);
+			int nValue2 = wcstol(csText2, NULL, 10);
 			if( nValue1 != nValue2)
 			{
 				if (nValue1 > nValue2)
@@ -241,8 +241,8 @@ int CSortAndPrintListCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csT
 
 	case  ITEM_DOUBLE:
 		{
-			double fValue1 = atof( csText1 );
-			double fValue2 = atof( csText2 );
+			double fValue1 = wcstol(csText1, NULL, 10);
+			double fValue2 = wcstol(csText2, NULL, 10);
 			if( fValue1 != fValue2 )
 			{
 				if (fValue1 > fValue2)
@@ -285,8 +285,8 @@ int CSortAndPrintListCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csT
 			CString strHour2 = csText2.Left(nPos2);
 			CString strMin2 = csText2.Right(csText2.GetLength() - nPos2 - 1);
 
-			int nData1 = atoi(strHour1) * 60 + atoi(strMin1);
-			int nData2 = atoi(strHour2) * 60 + atoi(strMin2);
+			int nData1 = wcstol(strHour1, NULL, 10) * 60 + wcstol(strMin1, NULL, 10);
+			int nData2 = wcstol(strHour2, NULL, 10) * 60 + wcstol(strMin2, NULL, 10);
 
 			if (nData1 != nData2)
 			{
@@ -301,7 +301,7 @@ int CSortAndPrintListCtrl::GridCtrlItemCompare(int nSortedCol,const CString& csT
 			}
 		}
 	default:
-		ASSERT("Error: attempt to sort a column without type.");
+		ASSERT(_T("Error: attempt to sort a column without type."));
 		return 0;
 	}
 	return 0;
@@ -561,7 +561,7 @@ void CSortAndPrintListCtrl::OnBeginPrinting(CDC *pDC, CPrintInfo *pInfo)
 
 	// Create the printer font
 	int nFontSize = -12;
-	CString strFontName = "Times New Roman";
+	CString strFontName = _T("Times New Roman");
 	m_PrinterFont.CreateFont(nFontSize, 0,0,0, FW_NORMAL, 0,0,0, DEFAULT_CHARSET,
 		OUT_CHARACTER_PRECIS, CLIP_CHARACTER_PRECIS, DEFAULT_QUALITY,
 		DEFAULT_PITCH | FF_DONTCARE, strFontName);
@@ -936,13 +936,13 @@ void CSortAndPrintListCtrl::AutoSize()
 	{
 		for (int nCurRow = 0; nCurRow < nNumRows; nCurRow++)
 		{
-			CString strValue(_T(""));
+			CString strValue;
 			if (nCurRow == 0)
 			{
 				HD_ITEM hditem;
 				hditem.mask = HDI_TEXT;
 				hditem.cchTextMax = 39;
-				char chBuffer[40];
+				TCHAR chBuffer[40];
 				hditem.pszText = chBuffer;
 				m_wndSortableHeaderCtrl.GetItem(nCurCol,&hditem);
 				strValue = hditem.pszText;
@@ -974,11 +974,11 @@ void CSortAndPrintListCtrl::DrawHeadItem(CDC* pDC, int nRow, int nCol, CRect rec
 	pDC->FillRect(rect, &brush);
 
 	int nSavedDC = pDC->SaveDC();
-	CString strHead(_T(""));
+	CString strHead;
 	HD_ITEM hditem;
 	hditem.mask = HDI_TEXT;
 	hditem.cchTextMax = 39;
-	char chBuffer[40];
+	TCHAR chBuffer[40];
 	hditem.pszText = chBuffer;
 	m_wndSortableHeaderCtrl.GetItem(nCol,&hditem);
 	strHead = hditem.pszText;
