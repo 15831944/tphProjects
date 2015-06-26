@@ -19,6 +19,7 @@ bool ClassAirsideFlightManager::WorkIsDone()
 {
     if(m_listAirsideFlight.size() != 1)
         return false;
+
     return true;
 }
 
@@ -61,6 +62,15 @@ void ClassAirsideFlightManager::CancelFocus()
 void ClassAirsideFlightManager::AddAirsideFlight(ClassAirsideFlight* pAirsideFlight)
 {
     m_listAirsideFlight.push_front(pAirsideFlight);
+}
+
+void ClassAirsideFlightManager::AddAirsideFlights(std::list<ClassAirsideFlight*> listAirsideFlight)
+{
+    std::list<ClassAirsideFlight*>::iterator itor = listAirsideFlight.begin();
+    for(; itor!=listAirsideFlight.end(); ++itor)
+    {
+        m_listAirsideFlight.push_back(*itor);
+    }
 }
 
 void ClassAirsideFlightManager::RemoveAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight)

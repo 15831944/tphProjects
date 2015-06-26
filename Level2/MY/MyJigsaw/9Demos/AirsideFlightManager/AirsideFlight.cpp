@@ -459,9 +459,12 @@ void ClassAirsideFlight::MarkAllAirsidePassengersTraversed(bool isTraversed)
 
 void ClassAirsideFlight::AddAirsidePassenger(ClassAirsidePassenger* pAirsidePassenger)
 {
+    pAirsidePassenger->SetParentAirsideFlight(this);
     m_vAirsidePassengers.push_back(pAirsidePassenger);
 }
 
+// When removing a AirsidePassenger from a AirsideFlight, must consider whether this AirsideFlight should be 
+// separated into several AirsideFlights. So, we should traverse the four neighbor AirsidePassengers.
 void ClassAirsideFlight::TraverseAirsidePassengers(ClassAirsideFlight* pAirsideFlight, ClassAirsidePassenger* pAirsidePassenger)
 {
     if(pAirsidePassenger == 0 || pAirsidePassenger->GetIsTraversed())
@@ -485,6 +488,7 @@ void ClassAirsideFlight::RemoveAirsidePassenger(int& errorCode, ClassAirsidePass
     {
         if(*itor == pAirsidePassenger)
         {
+            (*itor)->SetParentAirsideFlight(0);
             m_vAirsidePassengers.erase(itor);
             break;
         }

@@ -12,11 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AirsideFlight.cpp" />
+    <ClCompile Include="AirsideFlightGenerator.cpp" />
     <ClCompile Include="AirsideFlightManager.cpp" />
     <ClCompile Include="AirsidePassenger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AirsideFlight.h" />
+    <ClInclude Include="AirsideFlightGenerator.h" />
     <ClInclude Include="AirsideFlightManager.h" />
     <ClInclude Include="AirsidePassenger.h" />
     <ClInclude Include="CommonOperations.h" />

@@ -12,6 +12,7 @@ protected:
     ClassAirsideFlight* m_pFloatingAirsideFlight;
     PointFXY m_vectorAirsideFlightToMouse;
     std::list<ClassAirsideFlight*> m_listAirsideFlight;
+    std::vector<ClassAirsidePassenger*> m_vecAirsidePassenger;
 public:
     void InitializeAirsideFlightManager(std::vector<ClassAirsidePassenger*> vecAirsidePassenger);
     void MouseLButtonDown(int& errorCode, PointFXY pt);
@@ -24,6 +25,7 @@ protected:
     void CancelFocus();
     void TopAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight);
     void AddAirsideFlight(ClassAirsideFlight* pAirsideFlight);
+    void AddAirsideFlights(std::list<ClassAirsideFlight*> listAirsideFlight);
     void RemoveAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight);
     void DeleteAirsideFlight(int& errorCode, ClassAirsideFlight* pAirsideFlight);
     void InsertAirsideFlightAfter(int& errorCode, ClassAirsideFlight* pAirsideFlight, ClassAirsideFlight* pAfter);

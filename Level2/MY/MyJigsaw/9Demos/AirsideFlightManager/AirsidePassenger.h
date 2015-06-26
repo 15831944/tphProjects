@@ -1,5 +1,6 @@
 #pragma once
 #include "CommonOperations.h"
+class ClassAirsideFlight;
 
 typedef enum
 {
@@ -35,6 +36,8 @@ protected:
 
     bool m_bIsTraversed; // use for traversing the maze and get subsets.
     //ID2D1BitmapBrush *m_pBitmapBrush;
+
+    ClassAirsideFlight* m_pParentAirsideFlight; // The AirsideFlight that holding this AirsidePassenger.
 public:
     bool CanAboveMe(ClassAirsidePassenger* pOther);
     bool CanBelowMe(ClassAirsidePassenger* pOther);
@@ -65,5 +68,8 @@ public:
 
     bool GetIsTraversed(){ return m_bIsTraversed; }
     void SetIsTraversed(bool val) { m_bIsTraversed = val; }
+
+    ClassAirsideFlight* GetParentAirsideFlight() const { return m_pParentAirsideFlight; }
+    void SetParentAirsideFlight(ClassAirsideFlight* val) { m_pParentAirsideFlight = val; }
 };
 
