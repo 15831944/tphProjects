@@ -138,7 +138,6 @@
     <ClCompile Include="AirportTowRouteNetwork.cpp" />
     <ClCompile Include="AirRoute.cpp" />
     <ClCompile Include="AirRouteIntersection.cpp" />
-    <ClCompile Include="AirRoutePoint.cpp" />
     <ClCompile Include="AirSector.cpp" />
     <ClCompile Include="AirsideAircraft.cpp" />
     <ClCompile Include="AirsideBagCartParkSpot.cpp" />
@@ -373,7 +372,6 @@
     <ClInclude Include="AirportTowRouteNetwork.h" />
     <ClInclude Include="AirRoute.h" />
     <ClInclude Include="AirRouteIntersection.h" />
-    <ClInclude Include="AirRoutePoint.h" />
     <ClInclude Include="AirSector.h" />
     <ClInclude Include="AirsideAircraft.h" />
     <ClInclude Include="AirsideBagCartParkSpot.h" />

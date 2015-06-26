@@ -10,13 +10,129 @@
 #include "../Common/Point2008.h"
 #include "../Common/Path2008.h"
 #include "InputAirsideAPI.h"
-#include "AirRoutePoint.h"
 
 class Runway;
 class AirRouteIntersectionList;
 class CAirRouteIntersection;
 
 using namespace std;
+
+class INPUTAIRSIDE_API ARWaypoint
+{
+public:
+    enum ARWaypointType
+    {
+        ARWayPoint_AirWayPoint = 0, // AirWayPoint
+        ARWayPoint_Altitude = 1 // Altitude & Intercept angle.
+    };
+
+	enum DepartType{ NextWaypoint = 0, Heading };
+	enum HeadingType{ Aligned = 0, Direct ,None };
+
+    enum ToNextType{ ToNextWaitPoint = 0, ToNextAltitude };
+    enum DirectType{ DirectType_Direct = 0, InterceptTrack };
+public:
+
+	ARWaypoint(int nID = -1);
+	~ARWaypoint();
+
+	ARWaypoint(const ARWaypoint&);
+protected:
+	//AirWayPoint m_pWaypoint;
+	int m_nID;
+	double m_lMinSpeed;
+	double m_lMaxSpeed;
+	double m_lMinHeight;
+    double m_lMaxHeight;
+    int m_nSequenceNum;
+
+    ARWaypointType m_nWaypointType;
+    // if m_nWaypointType is ARWayPoint_AirWayPoint, these members are used.
+    AirWayPoint m_wayPoint;
+	DepartType m_DepartType;
+	HeadingType m_HeadingType;
+	long m_lDegree;
+	double m_lVisDistance;
+	CPoint2008 m_ExtentPoint;
+
+    // m_nWaypointType is ARWayPoint_Altitude, these members are used
+    double m_fAltitude;
+    double m_fAngle;
+    ToNextType m_toNextPtType;
+    DirectType m_directTpye;
+    double m_inboundTrackAngle;
+    double m_interceptAngle;
+
+public:
+	// get a copy of this object , change its name in sequence
+	//virtual ALTObject * NewCopy();
+
+	int getID()const;
+	void setID(int nID);
+
+	void setMinSpeed(double lSpeed);
+	void setMaxSpeed(double lSpeed);
+	
+	void SetSequenceNum(int nSequenceNum);
+	int GetSequenceNum(void);
+
+	double getMinSpeed() const;
+	double getMaxSpeed() const;
+
+	void setMinHeight(double lMinHeight);
+	void setMaxHeight(double lMaxHeight);
+
+	double getMinHeight() const;
+	double getMaxHeight() const;
+
+	void setWaypoint(const AirWayPoint& altobj){ m_wayPoint = altobj;}
+	AirWayPoint& getWaypoint();
+	const AirWayPoint& getWaypoint() const;
+
+	void setDepartType(DepartType type);
+	void setHeadingType(HeadingType type);
+	void setDegrees(long lDegrees);
+	void setVisDistance(double lDistance);
+	void setExtentPoint( CPoint2008 extentPoint);
+
+	DepartType getDepartType();
+	HeadingType getHeadingType();
+	long getDegrees();
+	double getVisDistance();
+	CPoint2008 getExtentPoint() const;
+
+
+	double getDefaultAltitude();
+
+    ARWaypoint::ARWaypointType GetWaypointType() const { return m_nWaypointType; }
+    void SetWaypointType(ARWaypoint::ARWaypointType val) { m_nWaypointType = val; }
+    double GetAltitude() const { return m_fAltitude; }
+    void SetAltitude(double val) { m_fAltitude = val; }
+    double GetAngle() const { return m_fAngle; }
+    void SetAngle(double val) { m_fAngle = val; }
+    ARWaypoint::ToNextType GetNextPtType() const { return m_toNextPtType; }
+    void SetNextPtType(ARWaypoint::ToNextType val) { m_toNextPtType = val; }
+    ARWaypoint::DirectType GetDirectTpye() const { return m_directTpye; }
+    void SetDirectTpye(ARWaypoint::DirectType val) { m_directTpye = val; }
+    double GetInboundTrackAngle() const { return m_inboundTrackAngle; }
+    void SetInboundTrackAngle(double val) { m_inboundTrackAngle = val; }
+    double GetInterceptAngle() const { return m_interceptAngle; }
+    void SetInterceptAngle(double val) { m_interceptAngle = val; }
+
+	ARWaypoint&  operator =(const ARWaypoint& );
+
+	//database operation
+public:
+	void UpdateData();
+	void DeleteData();
+	void SaveData(int nAirRouteID);
+
+public:
+	void ImportObject(CAirsideImportFile& importFile,int nAirRouteID);
+	void ExportObject(CAirsideExportFile& exportFile);
+
+};
+
 typedef pair <int,int> LogicRunway_Pair;
 
 class INPUTAIRSIDE_API CAirRoute  : public ALTObject
