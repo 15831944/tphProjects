@@ -3,6 +3,7 @@
 #include "TabSubView1.h"
 #include "TabSubView2.h"
 #include "TabSubView3.h"
+#include "TabSubView4.h"
 
 class CTestUnicodeIODlg : public CDialogEx
 {
@@ -28,6 +29,7 @@ protected:
     CTabSubView1 m_tabView1;
     CTabSubView2 m_tabView2;
     CTabSubView3 m_tabView3;
+    CTabSubView4 m_tabView4;
 private:
     int m_oldCx;
     int m_oldCy;

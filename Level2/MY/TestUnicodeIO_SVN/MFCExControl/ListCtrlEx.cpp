@@ -912,7 +912,6 @@ void CListCtrlEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 void CListCtrlEx::DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd)
 {
     CRect rSubItem;
-    HDC hDC = lpnmcd->nmcd.hdc;
     int iItem = lpnmcd->nmcd.dwItemSpec;
     int iSubItem = lpnmcd->iSubItem;
     GetSubItemRect(iItem, iSubItem, LVIR_LABEL,rSubItem);
@@ -923,7 +922,7 @@ void CListCtrlEx::DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd)
     CDC dc;
     dc.Attach(lpnmcd->nmcd.hdc);
     dc.SetBkMode(TRANSPARENT);
-    dc.SetTextColor(RGB(0, 0, 0));
+    dc.SetTextColor(::GetSysColor(COLOR_WINDOWTEXT));
 
     CWnd* pParentWnd = GetParent();
     if(pParentWnd != NULL)
@@ -945,17 +944,20 @@ void CListCtrlEx::DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd)
     if(bSelected)
     {
         if(bFocus)
-            brush.CreateSolidBrush(RGB(51, 153, 255));
+        {
+            brush.CreateSolidBrush(::GetSysColor(COLOR_HIGHLIGHT));
+            dc.SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
+        }
         else
+        {
             brush.CreateSolidBrush(RGB(206, 206, 206));
+        }
     }
     else
     {
-        brush.CreateSolidBrush(RGB(255, 255, 255));
+        brush.CreateSolidBrush(::GetSysColor(COLOR_WINDOW));
     }
     dc.FillRect(&rSubItem, &brush); // draw background
-    dc.RestoreDC(nSave);
-
     CString strText = GetItemText(iItem, iSubItem);
     GetSubItemRect(iItem, iSubItem, LVIR_LABEL,rSubItem);
     if(iSubItem != 0)
@@ -971,6 +973,7 @@ void CListCtrlEx::DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd)
     else if(columnInfo.fmt & LVCFMT_RIGHT)
         pos = DT_RIGHT;
     dc.DrawText(strText, strText.GetLength(), &rSubItem, DT_SINGLELINE | pos | DT_VCENTER | DT_END_ELLIPSIS);
+    dc.RestoreDC(nSave);
     dc.Detach();
 }
 
@@ -994,7 +997,7 @@ void CListCtrlEx::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
         CDC dc;
         dc.Attach(lpnmcd->nmcd.hdc);
         CBrush brush;
-        brush.CreateSolidBrush(RGB(255, 255, 255));
+        brush.CreateSolidBrush(::GetSysColor(COLOR_WINDOW));
         dc.FillRect(&rcRemain, &brush);
         dc.Detach();
     }

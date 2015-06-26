@@ -1112,7 +1112,7 @@ void CCoolTree::OnPaint()
         {
             if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
             {
-                textBackground = RGB(200, 200, 200); // when lose focus set selected node's background gray
+                textBackground = RGB(206, 206, 206); // when lose focus set selected node's background gray
             }
         }
 

@@ -41,10 +41,12 @@ BOOL CTestUnicodeIODlg::OnInitDialog()
     m_mainTab.InsertItem(0,_T("20141124"));
     m_mainTab.InsertItem(1,_T("20141125"));
     m_mainTab.InsertItem(2,_T("20141126"));
+    m_mainTab.InsertItem(3,_T("20141201"));
     m_mainTab.SetCurSel(2);
     m_tabView1.ShowWindow(FALSE);
     m_tabView2.ShowWindow(FALSE);
     m_tabView3.ShowWindow(TRUE);
+    m_tabView4.ShowWindow(FALSE);
     LayoutTabViews();
 
     return TRUE;
@@ -88,6 +90,7 @@ int CTestUnicodeIODlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_tabView1.Create(IDD_TABSUBVIEW1,GetDlgItem(IDC_MAIN_TAB));
     m_tabView2.Create(IDD_TABSUBVIEW2,GetDlgItem(IDC_MAIN_TAB));
     m_tabView3.Create(IDD_TABSUBVIEW3,GetDlgItem(IDC_MAIN_TAB));
+    m_tabView4.Create(IDD_TABSUBVIEW4,GetDlgItem(IDC_MAIN_TAB));
 
     return 0;
 }
@@ -103,16 +106,25 @@ void CTestUnicodeIODlg::OnTcnSelchangeMainTab(NMHDR *pNMHDR, LRESULT *pResult)
         m_tabView1.ShowWindow(TRUE);
         m_tabView2.ShowWindow(FALSE);
         m_tabView3.ShowWindow(FALSE);
+        m_tabView4.ShowWindow(FALSE);
         break;
     case 1:
         m_tabView1.ShowWindow(FALSE);
         m_tabView2.ShowWindow(TRUE);
         m_tabView3.ShowWindow(FALSE);
+        m_tabView4.ShowWindow(FALSE);
         break;
     case 2:
         m_tabView1.ShowWindow(FALSE);
         m_tabView2.ShowWindow(FALSE);
         m_tabView3.ShowWindow(TRUE);
+        m_tabView4.ShowWindow(FALSE);
+        break;
+    case 3:
+        m_tabView1.ShowWindow(FALSE);
+        m_tabView2.ShowWindow(FALSE);
+        m_tabView3.ShowWindow(FALSE);
+        m_tabView4.ShowWindow(TRUE);
         break;
     default:
         break;
@@ -149,7 +161,7 @@ void CTestUnicodeIODlg::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutR
     }
     else if(refTopLeft == TopRight && refBottomRight == BottomRight)
     {
-        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), cy+deltaY);
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), rcS.Height()+deltaY);
     }
     else if(refTopLeft == BottomLeft && refBottomRight == BottomLeft)
     {
@@ -157,7 +169,7 @@ void CTestUnicodeIODlg::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutR
     }
     else if(refTopLeft == BottomLeft && refBottomRight == BottomRight)
     {
-        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, cx+deltaX, rcS.Height());
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, rcS.Width()+deltaX, rcS.Height());
     }
     else if(refTopLeft == BottomRight && refBottomRight == BottomRight)
     {
@@ -202,6 +214,7 @@ void CTestUnicodeIODlg::LayoutTabViews()
     m_tabView1.MoveWindow(&rTabClient);
     m_tabView2.MoveWindow(&rTabClient);
     m_tabView3.MoveWindow(&rTabClient);
+    m_tabView4.MoveWindow(&rTabClient);
 }
 
 
