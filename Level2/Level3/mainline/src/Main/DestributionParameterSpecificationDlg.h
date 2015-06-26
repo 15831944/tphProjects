@@ -11,14 +11,14 @@ class CDestributionParameterSpecificationDlg : public CDialog
 
 public:
     CDestributionParameterSpecificationDlg(CWnd* pParent = NULL);
+    CDestributionParameterSpecificationDlg(CProbDistEntry* pInputEntry, CWnd* pParent = NULL);
+    CDestributionParameterSpecificationDlg(ProbabilityDistribution* pInputProb, CWnd* pParent = NULL);
     virtual ~CDestributionParameterSpecificationDlg();
 
     enum { IDD = IDD_DIALOG_DISTRIBUTIONPARAMSPEC };
 
 public:
-    virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);
     CProbDistEntry* GetSelProbEntry() const { return m_pSelProbEntry; }
-    void SetSelProbEntry(CProbDistEntry* val) { m_pSelProbEntry = val; }
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);
     virtual BOOL OnInitDialog();
@@ -31,9 +31,23 @@ private:
     long GetCheckedDistribution();
     void ReloadCheckedDistributionComboString();
     CTermPlanDoc* GetTermPlanDoc();
-    bool IsFloatString(CString str);
     bool GetFloatFromEditbox(CEdit* pEdit, float& fConstValue);
     void SpinChangeEditboxValue(CEdit* pEdit, LPNMUPDOWN pNMUpDown);
+    void InitUIFromProb(const ProbabilityDistribution* pNewProb);
+    void InitUIFromProbEntry( const CProbDistEntry* pEntry );
+
+    CString GetTempConstDistributionName(CString strConstValue);
+    CString GetTempUniformDistributionName(CString strMin, CString strMax);
+    CString GetTempBetaDistributionName(CString strAlpha, CString strBeta, CString strMax, CString strMin);
+    CString GetTempTriangleDistributionName(CString strMax, CString strMin, CString strMode);
+    CString GetTempErlangDistributionName(CString strGamma, CString strBeta, CString strMu);
+    CString GetTempExponentialDistributionName(CString strLambda, CString strMean);
+    CString GetTempGammaDistributionName(CString strGamma, CString strBeta, CString strMu);
+    CString GetTempNormalDistributionName(CString strMean, CString strStd, CString strTrunAt);
+    CString GetTempWeibullDistributionName(CString strAlpha, CString strGamma, CString strMu);
+    CString GetTempBernoulliDistributionName(CString str1stValue, CString str2ndValue, CString str1stPro);
+    CString GetTempEmpiricalDistributionName();
+    CString GetTempHistogramDistributionName();
 protected:
     CComboBox m_comboConst;
     CComboBox m_comboUniform;
@@ -78,6 +92,8 @@ protected:
 protected:
     CProbDistManager* m_pProbMan;
     CProbDistEntry* m_pSelProbEntry;
+    const CProbDistEntry* m_pInputEntry;
+    const ProbabilityDistribution* m_pInputProb;
 public:
     afx_msg void OnBnClickedOk();
     afx_msg void OnBnClickedBtnOpendb();
@@ -134,4 +150,47 @@ public:
     afx_msg void OnDeltaposSpinBer2ndvalue(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDeltaposSpinBer1stpro(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnEnChangeEditConstantvalue();
+    afx_msg void OnEnChangeEditUniformmin();
+    afx_msg void OnEnChangeEditUniformmax();
+    void ChangeUniformComboName();
+
+    afx_msg void OnEnChangeEditBetaalpha();
+    afx_msg void OnEnChangeEditBetabeta();
+    afx_msg void OnEnChangeEditBetamax();
+    afx_msg void OnEnChangeEditBetamin();
+    void ChangeBetaComboName();
+
+    afx_msg void OnEnChangeEditTrianglemax();
+    afx_msg void OnEnChangeEditTrianglemin();
+    afx_msg void OnEnChangeEditTrianglemode();
+    void ChangeTriangComboName();
+
+    afx_msg void OnEnChangeEditErlanggamma();
+    afx_msg void OnEnChangeEditErlangbeta();
+    afx_msg void OnEnChangeEditErlangmu();
+    void ChangeErlangComboName();
+
+    afx_msg void OnEnChangeEditExpolambda();
+    afx_msg void OnEnChangeEditExpomean();
+    void ChangeExpoComboName();
+
+    afx_msg void OnEnChangeEditGagamma();
+    afx_msg void OnEnChangeEditGammabeta();
+    afx_msg void OnEnChangeEditGammamu();
+    void ChangeGammaComboName();
+
+    afx_msg void OnEnChangeEditNormalmean();
+    afx_msg void OnEnChangeEditNormalstd();
+    afx_msg void OnEnChangeEditNormaltrunat();
+    void ChangeNormalComboName();
+
+    afx_msg void OnEnChangeEditWeialpha();
+    afx_msg void OnEnChangeEditWeigamma();
+    afx_msg void OnEnChangeEditWeimu();
+    void ChangeWeiComboName();
+
+    afx_msg void OnEnChangeEditBer1stvalue();
+    afx_msg void OnEnChangeEditBer2ndvalue();
+    afx_msg void OnEnChangeEditBer1stpro();
+    void ChangeBernoulliComboName();
 };
