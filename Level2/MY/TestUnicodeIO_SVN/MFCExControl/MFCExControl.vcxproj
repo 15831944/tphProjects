@@ -195,7 +195,6 @@
     <ClInclude Include="TitleTip.h" />
     <ClInclude Include="ToolbarWithDropMenu.h" />
     <ClInclude Include="ToolTipDialog.h" />
-    <ClInclude Include="CoolTreeKeepHighlight.h" />
     <ClInclude Include="XListCtrl.h" />
     <ClInclude Include="XTPCommon.h" />
     <ClInclude Include="XTPMacros.h" />
@@ -264,7 +263,6 @@
     <ClCompile Include="TitleTip.cpp" />
     <ClCompile Include="ToolbarWithDropMenu.cpp" />
     <ClCompile Include="ToolTipDialog.cpp" />
-    <ClCompile Include="CoolTreeKeepHighlight.cpp" />
     <ClCompile Include="XListCtrl.cpp" />
     <ClCompile Include="XTPCommon.cpp" />
     <ClCompile Include="XTResize.cpp" />
