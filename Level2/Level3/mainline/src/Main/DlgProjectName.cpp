@@ -104,6 +104,18 @@ void CDlgProjectName::OnOK()
 {
 	m_strProjectName.TrimLeft();
 	m_strProjectName.TrimRight();
+    CString strU;
+    strU.LoadString(IDS_INVALID_PROJNAME_CHARACTER);
+    int nPos = m_strProjectName.FindOneOf(strU);
+    if(nPos > -1)
+    {
+        CString strMsg;
+        strMsg.Format(_T("The project name should not contain the following characters:\n\n%s"), strU);
+        MessageBox(strMsg);
+        m_editName.SetFocus();
+        m_editName.SetSel(nPos, nPos+1);
+        return;
+    }
 	UpdateData( FALSE );
 
 	UpdateData( TRUE );

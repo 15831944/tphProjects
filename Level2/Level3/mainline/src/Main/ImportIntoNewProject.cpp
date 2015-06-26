@@ -112,6 +112,19 @@ void CImportIntoNewProject::OnOK()
 		return;
 	}
 
+    CString strU;
+    strU.LoadString(IDS_INVALID_PROJNAME_CHARACTER);
+    int nPos = m_strProjectName.FindOneOf(strU);
+    if(nPos > -1)
+    {
+        CString strMsg;
+        strMsg.Format(_T("The project name should not contain the following characters:\n\n%s"), strU);
+        MessageBox(strMsg);
+        m_controlProjectName.SetFocus();
+        m_controlProjectName.SetSel(nPos, nPos+1);
+        return;
+    }
+
 	CString sProjectName = PROJMANAGER->m_csRootProjectPath + _T("\\") + m_strProjectName;
 	if((_mkdir( sProjectName ))!=0)//Director exist
 	{

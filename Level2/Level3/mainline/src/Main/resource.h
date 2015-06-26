@@ -28,6 +28,7 @@
 #define ID_CAR_SCHEDULE_NEW2            5
 #define ID_CAR_SCHEDULE_DELETE          5
 #define IDC_BUTTON_ADD_AREA             5
+#define IDS_INVALID_PROJNAME_CHARACTER  5
 #define ID_NODEIMG_FLOORACTIVE          6
 #define ID_NODEIMG_AREA                 7
 #define ID_NODEIMG_PORTAL               8
