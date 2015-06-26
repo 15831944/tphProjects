@@ -1089,6 +1089,9 @@ void CProcPropDlg::LoadTree()
 							csPoint.Format( "x = %.2f; y = %.2f", 
 											UNITSMANAGER->ConvertLength(v3D[VX]), 
 											UNITSMANAGER->ConvertLength(v3D[VY]) );
+							CFloor2* pFloor = GetFloorFromZPos( static_cast<float>(v3D[VZ]) );
+							if (pFloor)
+								csPoint += _T("; Floor:") + pFloor->FloorName();
 						}
 
 						m_treeProp.InsertItem( csPoint, m_hQueue  );
@@ -1138,6 +1141,11 @@ void CProcPropDlg::LoadTree()
 							else
 							{
 								csPoint.Format( "x = %.2f; y = %.2f", UNITSMANAGER->ConvertLength(pt.getX()), UNITSMANAGER->ConvertLength(pt.getY()) );
+								CFloor2* pFloor = GetPointFloor(int((pt.getZ()) / SCALE_FACTOR));
+								if (pFloor)
+								{
+									csPoint += _T("; Floor:") + pFloor->FloorName();
+								}
 							}
 							m_treeProp.InsertItem( csPoint, m_hQueue  );
 						}
@@ -1247,6 +1255,12 @@ void CProcPropDlg::LoadTree()
 							csPoint.Format( "x = %.2f; y = %.2f", 
 							UNITSMANAGER->ConvertLength(v3D[VX]), 
 							UNITSMANAGER->ConvertLength(v3D[VY]) );
+							CFloor2* pFloor = NULL;
+							pFloor = GetFloorFromZPos( static_cast<float>(v3D[VZ])  );
+							if (pFloor)
+							{
+								csPoint += _T("; Floor:") + pFloor->FloorName();
+							}
 						}
 
 						m_treeProp.InsertItem( csPoint, m_hInConstraint  );
@@ -1277,6 +1291,11 @@ void CProcPropDlg::LoadTree()
 						else
 						{
 							csPoint.Format( "x = %.2f; y = %.2f", UNITSMANAGER->ConvertLength(pt.getX()), UNITSMANAGER->ConvertLength(pt.getY()) );
+							CFloor2* pFloor = GetPointFloor(int((pt.getZ()) / SCALE_FACTOR));
+							if (pFloor)
+							{
+								csPoint += _T("; Floor:") + pFloor->FloorName();
+							}
 						}
 						m_treeProp.InsertItem( csPoint, m_hInConstraint  );
 					}
@@ -1327,6 +1346,11 @@ void CProcPropDlg::LoadTree()
 							csPoint.Format( "x = %.2f; y = %.2f", 
 							UNITSMANAGER->ConvertLength(v3D[VX]), 
 							UNITSMANAGER->ConvertLength(v3D[VY]) );
+							CFloor2* pFloor = NULL;
+							pFloor = GetFloorFromZPos( static_cast<float>(v3D[VZ]) );
+
+							if (pFloor)
+								csPoint += _T("; Floor:") + pFloor->FloorName();
 						}
 
 						m_treeProp.InsertItem( csPoint, m_hOutConstraint  );
@@ -1355,6 +1379,11 @@ void CProcPropDlg::LoadTree()
 						else
 						{
 							csPoint.Format( "x = %.2f; y = %.2f", UNITSMANAGER->ConvertLength(pt.getX()), UNITSMANAGER->ConvertLength(pt.getY()) );
+							CFloor2* pFloor = GetPointFloor(int((pt.getZ()) / SCALE_FACTOR));
+							if (pFloor)
+							{
+								csPoint += _T("; Floor:") + pFloor->FloorName();
+							}
 						}
 
 						m_treeProp.InsertItem( csPoint, m_hOutConstraint  );

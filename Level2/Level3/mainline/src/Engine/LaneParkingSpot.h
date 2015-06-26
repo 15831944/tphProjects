@@ -96,8 +96,8 @@ public:
 	LaneParkingSpot(LandsideLaneInSim * plane, DistanceUnit distf, DistanceUnit distT, LandsideResourceInSim* pParent);
 
 
-	const CPoint2008& GetEndPos()const{ return m_startPos; }
-	const CPoint2008& GetStartPos()const{ return m_endPos; }
+	const CPoint2008& GetEndPos()const{ return m_endPos; }
+	const CPoint2008& GetStartPos()const{ return m_startPos; }
 
 
 
@@ -165,13 +165,13 @@ protected:
 
 	//find the entry point can go to the spot
 	LandsideLaneInSim* FindPosEntrySpot(LaneParkingSpot* pSpot, CPoint2008& pos)const;
-	LandsideLaneInSim* FindPosEntrySpotR(LaneParkingSpot* pSpot, CPoint2008& pos)const;
-	LandsideLaneInSim* FindPosEntrySpotL(LaneParkingSpot* pSpot, CPoint2008& pos)const;
+	LandsideLaneInSim* FindPosEntrySpotR(LaneParkingSpot* pSpot, CPoint2008& pos, bool bHead)const;
+	LandsideLaneInSim* FindPosEntrySpotL(LaneParkingSpot* pSpot, CPoint2008& pos, bool bHead)const;
 
 	//find the exit point can exit the spot
 	LandsideLaneInSim* FindPosExitToLane(LaneParkingSpot* pSpot,CPoint2008& pos)const;
-	LandsideLaneInSim* FindPosExitToLaneR(LaneParkingSpot* pSpot,CPoint2008& pos)const;
-	LandsideLaneInSim* FindPosExitToLaneL(LaneParkingSpot* pSpot,CPoint2008& pos)const;
+	LandsideLaneInSim* FindPosExitToLaneR(LaneParkingSpot* pSpot,CPoint2008& pos, bool bHead)const;
+	LandsideLaneInSim* FindPosExitToLaneL(LaneParkingSpot* pSpot,CPoint2008& pos, bool bHead)const;
 
 	bool m_bLeftDrive;
 	std::vector<LaneSegInSim*> m_vLaneOccupy; //replace with 

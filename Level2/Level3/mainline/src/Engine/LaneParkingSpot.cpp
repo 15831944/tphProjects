@@ -260,6 +260,7 @@ bool InLaneParkingSpotsGroup::FindParkspotPath( LandsideLaneInSim* pFromlane, co
 
 			LandsideLaneExit* pLastLaneExit = new LandsideLaneExit();
 			pLastLaneExit->SetPosition(pLane,entryPos);
+			pLastLaneExit->SetPosition(pLane, pLastLaneExit->m_distInlane);
 			pLastLaneExit->SetToRes(pSpot);
 			followPath.push_back(pLastLaneExit);	
 			//////////////////////////////////////////////////////////////////////////
@@ -283,53 +284,49 @@ LandsideResourceInSim* InLaneParkingSpotsGroup::getBehind( LaneParkingSpot* pthi
 
 LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpot( LaneParkingSpot* pSpot, CPoint2008& pos )const
 {
-	if(m_bLeftDrive)
-	{
 		
-		if(LandsideLaneInSim* pLane = FindPosEntrySpotR(pSpot,pos))
-		{
-			return pLane;
-		}
-		if(LandsideLaneInSim* pLane  = FindPosEntrySpotL(pSpot,pos) )
-		{
-			return pLane;
-		}
+	if(LandsideLaneInSim* pLane = FindPosEntrySpotR(pSpot,pos, false))
+	{
+		return pLane;
 	}
-	else
+	if(LandsideLaneInSim* pLane  = FindPosEntrySpotL(pSpot,pos, false) )
 	{
+		return pLane;
+	}
 		
-		if(LandsideLaneInSim* pLane  = FindPosEntrySpotL(pSpot,pos) )
-		{
-			return pLane;
-		}	
-		if(LandsideLaneInSim* pLane = FindPosEntrySpotR(pSpot,pos))
-		{
-			return pLane;
-		}
+		
+	if(LandsideLaneInSim* pLane  = FindPosEntrySpotL(pSpot,pos,true) )
+	{
+		return pLane;
 	}	
+	if(LandsideLaneInSim* pLane = FindPosEntrySpotR(pSpot,pos,true))
+	{
+		return pLane;
+	}
+	
 	return NULL;	
 }
 
 LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLane( LaneParkingSpot* pSpot,CPoint2008& pos )const
 {	
-	if(m_bLeftDrive)
+
 	{
-		if(LandsideLaneInSim* pLane = FindPosExitToLaneR(pSpot,pos))
+		if(LandsideLaneInSim* pLane = FindPosExitToLaneR(pSpot,pos,false))
 		{
 			return pLane;
 		}
-		if(LandsideLaneInSim* pLane = FindPosExitToLaneL(pSpot,pos) )
+		if(LandsideLaneInSim* pLane = FindPosExitToLaneL(pSpot,pos,false) )
 		{
 			return pLane;
 		}
 	}
-	else 
+
 	{	
-		if(LandsideLaneInSim* pLane = FindPosExitToLaneL(pSpot,pos) )
+		if(LandsideLaneInSim* pLane = FindPosExitToLaneL(pSpot,pos,true) )
 		{
 			return pLane;
 		}
-		if(LandsideLaneInSim* pLane = FindPosExitToLaneR(pSpot,pos))
+		if(LandsideLaneInSim* pLane = FindPosExitToLaneR(pSpot,pos,true))
 		{
 			return pLane;
 		}
@@ -367,7 +364,7 @@ void InLaneParkingSpotsGroup::InitSpotRelations()
 	std::sort(mvParkingSpots.begin(),mvParkingSpots.end(),ParkingSpotOrder());
 }
 
-LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* pSpot, CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* pSpot, CPoint2008& pos , bool bHead) const
 {
 	//find right
 	if(LandsideResourceInSim* pRes = pSpot->pRight)
@@ -388,6 +385,9 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* 
 			}
 		}
 	}
+	if(!bHead)
+		return NULL;
+
 	//find head
 	if(LandsideResourceInSim* pRes = pSpot->pHead){
 		if(LandsideLaneInSim* pLane = pRes->toLane()){
@@ -407,7 +407,7 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotR( LaneParkingSpot* 
 	return NULL;
 }
 
-LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* pSpot, CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* pSpot, CPoint2008& pos, bool bHead ) const
 {	
 	//find left
 	if(LandsideResourceInSim* pRes = pSpot->pLeft)
@@ -428,6 +428,8 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* 
 			}
 		}
 	}
+	if(!bHead)
+		return NULL;
 
 	//find head
 	if(LandsideResourceInSim* pRes = pSpot->pHead)
@@ -452,7 +454,7 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosEntrySpotL( LaneParkingSpot* 
 	return NULL;
 }
 
-LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* pSpot,CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot* pSpot,CPoint2008& pos, bool bHead ) const
 {
 	
 	//find right
@@ -470,6 +472,8 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot*
 			}	
 		}
 	}	
+	if(!bHead)
+		return NULL;
 	//find behind
 	if(LandsideResourceInSim* pRes = pSpot->pBehind)
 	{
@@ -489,7 +493,7 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneR( LaneParkingSpot*
 	return NULL;
 }
 
-LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* pSpot,CPoint2008& pos ) const
+LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot* pSpot,CPoint2008& pos, bool bHead ) const
 {
 	
 	//find left
@@ -507,6 +511,8 @@ LandsideLaneInSim* InLaneParkingSpotsGroup::FindPosExitToLaneL( LaneParkingSpot*
 			}	
 		}
 	}
+	if(!bHead)
+		return NULL;
 //find behind
 	if(LandsideResourceInSim* pRes = pSpot->pBehind){
 		if(LandsideLaneInSim* pLane = pRes->toLane()){

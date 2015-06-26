@@ -910,7 +910,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 			{
 				double _dAlt = dAlt;
 
-				//_dAlt = pView->GetDocument()->GetFloorByMode(EnvMode_Terminal).getVisibleAltitude( path->getPoint(0).getZ());
+				_dAlt = pView->GetDocument()->GetFloorByMode(EnvMode_Terminal).getVisibleAltitude( path->getPoint(0).getZ());
 
 				DrawPath(path, _dAlt);
 
@@ -932,7 +932,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 			if(path && path->getCount()>0 ) 
 			{
 				double _dAlt = dAlt;
-				//_dAlt = pView->GetDocument()->GetFloorByMode(EnvMode_Terminal).getVisibleAltitude( path->getPoint(0).getZ());
+				_dAlt = pView->GetDocument()->GetFloorByMode(EnvMode_Terminal).getVisibleAltitude( path->getPoint(0).getZ());
 				DrawPath(path, _dAlt);
 
 				glPushMatrix();
@@ -970,7 +970,7 @@ void CProcessor2::DrawOGL(C3DView* pView,double dAlt, BOOL* pbDO, UINT nDrawMask
 						DrawCircle(pt,_dAlt);
 					}
 				}
-				//_dAlt = pView->GetDocument()->GetFloorByMode(EnvMode_Terminal).getVisibleAltitude( path->getPoint(0).getZ());
+				_dAlt = pView->GetDocument()->GetFloorByMode(EnvMode_Terminal).getVisibleAltitude( path->getPoint(0).getZ());
 
 				DrawPath(path, _dAlt);
 

@@ -210,6 +210,11 @@ bool LandsidePrivateVehicleInSim::isDepShortTerm( LandsideLayoutObjectInSim* pOb
 //////////////////////////////////////////////////////////////////////////
 void State_PickPaxAtCurbsidePrivate::Entry( CARCportEngine* pEngine )
 {
+	if(!simEngineConfig()->isSimTerminalMode())
+	{
+		m_pOwner->GenerateArrivalPax(pEngine);
+	}
+
 	ElapsedTime maxStopTime = m_pCurb->GetMaxStopTime();
 	ASSERT(maxStopTime>=ElapsedTime(0L));
 

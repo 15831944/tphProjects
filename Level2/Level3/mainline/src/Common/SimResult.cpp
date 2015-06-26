@@ -14,7 +14,7 @@
 
 extern CString arrayReortName[];
 extern LOGTOFILENAME inputfilename[];
-#define INPUT_FILE_COUNT 39 // Whenever change input file array, must change this value 
+#define INPUT_FILE_COUNT 40 // Whenever change input file array, must change this value 
 
 CSimItem::CSimItem()
 {

@@ -6102,7 +6102,7 @@ void CTermPlanDoc::InitActiveFloorCB()
 		pCB->SetCurSel( 0 );
 		m_nActiveFloor = 0;
 	}
-	if (EnvMode_LandSide == m_systemMode)
+	else if (EnvMode_LandSide == m_systemMode)
 	{
 		int nFloorCount = GetCurModeFloor().GetCount();
 		for(int i=0; i<nFloorCount; i++) 
@@ -6120,12 +6120,17 @@ void CTermPlanDoc::InitActiveFloorCB()
 
 		pCB->SetCurSel(nFloorCount -1 -m_nActiveFloor);
 	}
-	else
+	else //as default, shows terminal floor
 	{
+		m_nActiveFloor = 0;
 		int nFloorCount = GetCurModeFloor().GetCount();
-		//	for(i=0; i<nFloorCount; i++) {
 		for(int i=nFloorCount-1;i>=0;i--)
 		{
+			const CFloor2* pTerminalFloor2 = GetCurModeFloor().GetFloor2(i);
+			ASSERT(pTerminalFloor2 != NULL);
+			if(pTerminalFloor2 && pTerminalFloor2->IsActive())
+				m_nActiveFloor = i;
+
 			pCB->AddString(GetCurModeFloor().GetFloor2(i)->FloorName());
 			pCB->SetItemData(i, GetCurModeFloor().GetFloor2(i)->Level());
 		}

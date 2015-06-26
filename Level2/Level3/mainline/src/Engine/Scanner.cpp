@@ -77,7 +77,7 @@ void Scanner::beginService (Person *aPerson, ElapsedTime curTime)
 	writePersonLog( aPerson, ptList, curTime );
 
 	// determine service time, based on the Person's type
-	ElapsedTime _serviceTime = (long) max( getServiceTime( aPerson, curTime ), 2l );
+	ElapsedTime _serviceTime = (long) max( getServiceTime( aPerson, curTime ), 0l );
 	aPerson->setState( MovingInConveyor );
 	aPerson->writeLogEntry( curTime + _serviceTime, false );
 

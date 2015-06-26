@@ -162,12 +162,12 @@ CPoint2008 LandsideResourceInSim::GetPaxWaitPos() const
 
 void LandsideResourceInSim::PassengerMoveInto( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	ASSERT(0);
+	//ASSERT(0);
 }
 
 void LandsideResourceInSim::PassengerMoveOut( PaxLandsideBehavior *pPaxBehvior, ElapsedTime eTime )
 {
-	ASSERT(0);
+	//ASSERT(0);
 }
 
 LandsideVehicleInSim* LandsideResourceInSim::GetAheadVehicleByDistInRes( LandsideVehicleInSim* mpVehicle, DistanceUnit distInLane, DistanceUnit& aheadDist )
