@@ -1,7 +1,7 @@
 #encoding=utf-8
 import os.path
-import sys
 import struct
+import sys
 
 class GeneratorPicBinary_Sensis(object):
     def __init__(self):
@@ -39,17 +39,21 @@ class GeneratorPicBinary_Sensis(object):
     
         imageLens = []
         for img in images:
-            imgLen = os.path.getsize(os.path.join(srcDir, img))
+            srcImg = os.path.join(srcDir, img)
+            imgLen = os.path.getsize(srcImg)
+            print srcImg
             resultBuffer += struct.pack("<bii", self.get_image_information(img), \
                                         4+imageCount*9+sum(imageLens), imgLen)
             imageLens.append(imgLen)
             
         for img in images:
-            tempFS = open(os.path.join(srcDir , img), 'rb')
+            tempFS = open(os.path.join(srcDir, img), 'rb')
             resultBuffer += tempFS.read()
             tempFS.close()
-            
+           
         outFS = open(destFile, 'wb')
+        print "        >>>>>>>>  " + destFile
+        print "--------------------------------------------------------------------------------------" 
         outFS.write(resultBuffer)
         outFS.close()
            
@@ -128,13 +132,14 @@ class GeneratorPicBinary_Sensis(object):
         del imageSplit[3]
         del imageSplit[0]
         return '_'.join(imageSplit).replace(".jpg", ".dat")
-
-if __name__ == '__main__':
+ 
+def main():   
     arglen = len(sys.argv)
     if(arglen <= 2):
-        help()
-        return
+        pass
     else:
+        srcdir = ""
+        destdir = ""
         for i in range(1, arglen):
             arg = sys.argv[i]
             if(arg == "/srcdir"):
@@ -143,4 +148,7 @@ if __name__ == '__main__':
                 destdir = str(sys.argv[i+1])
     test = GeneratorPicBinary_Sensis()
     test.combine_images(srcdir, destdir)
-    
+
+
+if __name__ == '__main__':
+    main()

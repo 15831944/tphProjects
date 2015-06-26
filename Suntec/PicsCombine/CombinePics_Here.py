@@ -438,12 +438,22 @@ class GeneratorPicBinary_Here(object):
                     print pic.getDayName()
         return 0
 
-if __name__ == '__main__':
+def main():
     arglen = len(sys.argv)
     if(arglen <= 2):
-        help()
         return
     else:
+        host = ""
+        dbname = ""
+        user = ""
+        password = ""
+        gjvsrcdir = ""
+        gjvdestdir = ""
+        ejvsrcdir = ""
+        ejvdestdir = "" 
+        ejvcondition = ""
+        birdsrcdir = "" 
+        birddestdir = ""
         for i in range(1, arglen):
             arg = sys.argv[i]
             if(arg == "/host"):
@@ -470,9 +480,13 @@ if __name__ == '__main__':
                 birddestdir = str(sys.argv[i+1])
             else:
                 pass
-    test = GeneratorPicBinary_Here(host, dbname, 
-                                   user, password)
-    test.makeGJunctionResultTable(gjvsrcdir, gjvdestdir)
-    pics = test.makeEJunctionResultTable(ejvsrcdir, ejvdestdir, ejvcondition)
-    test.makeBIRDJunctionResultTable(birdsrcdir, birddestdir, pics)
+        test = GeneratorPicBinary_Here(host, dbname, 
+                                       user, password)
+        test.makeGJunctionResultTable(gjvsrcdir, gjvdestdir)
+        pics = test.makeEJunctionResultTable(ejvsrcdir, ejvdestdir, ejvcondition)
+        #test.makeBIRDJunctionResultTable(birdsrcdir, birddestdir, pics)
     return    
+
+
+if __name__ == '__main__':
+    main()
