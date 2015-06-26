@@ -31,6 +31,8 @@ class comp_admin_mmi(component.component_base.comp_base):
         self.CreateTable2('temp_admin_order1')
         self.CreateTable2('temp_admin_order2')
         self.CreateTable2('temp_admin_order8')
+        self.CreateTable2('temp_admin_order8_part')
+        self.CreateTable2('temp_admin_order8_compare')
         self.CreateTable2('temp_adminid_newandold')
        
         self.CreateTable2('mid_admin_zone')
@@ -81,11 +83,15 @@ class comp_admin_mmi(component.component_base.comp_base):
         
         self.CreateTable2('temp_admin_state_difference_district')       
         self.CreateIndex2('temp_admin_state_difference_district_geom_idx')
+        
+        self.CreateTable2('temp_admin_district_new_all')
+        self.CreateTable2('temp_admin_district_new_combine')
                
         self.log.info('end admin different..')     
     
     def __makeAdminOrder0_8(self):           
         self.log.info('Begin make admin table 0_8.')
+       
        
         self.CreateFunction2('mid_admin_get_order0_8')          
         self.pg.callproc('mid_admin_get_order0_8')

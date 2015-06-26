@@ -4,13 +4,12 @@ Created on 2012-4-27
 
 @author: zhangliang
 '''
-import component
+
 import os
 import common
 import psycopg2
 from common.dirwalker import DirWalker
 import struct
-import logging
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 from common.common_func import GetPath
 
@@ -549,10 +548,14 @@ class comp_picture(object):
 class GeneratorPicBinary(object):
 
     def __init__(self):
-        self.conn = psycopg2.connect('''host='172.26.179.195'
-                        dbname='SGP_RDF_2014Q1_20140617'
+        self.conn = psycopg2.connect('''host='172.26.179.184'
+                        dbname='tmap_SGPMYS_RDF_CI_backup'
                         user='postgres' password='pset123456' ''')
         self.pgcur2 = self.conn.cursor()
+        self.mylogger = open("C:\\My\\20150417_asean_pic\\1.txt", 'w')
+        
+    def __del__(self):
+        self.mylogger.close()
 
     def select_gjv_Data(self):
         self.pgcur2.execute('''SELECT distinct dp_node_id, filename, side
@@ -679,7 +682,7 @@ class GeneratorPicBinary(object):
                 elif side == 'L':
                     arrow_file_name = picname_bin + '_lane2'
                 else:
-                    logging.error('SDPS side wrong!')
+                    self.mylogger.write('SDPS side wrong!')
             elif pic_type == 'MDPS':
                 picDirPath = dirFileDir + "\\" + "MDPS"
                 if side == 'M':
@@ -689,10 +692,13 @@ class GeneratorPicBinary(object):
                 elif side == 'L':
                     arrow_file_name = picname_bin + '_lane3'
                 else:
-                    logging.error('MDPS side wrong!!')
+                    self.mylogger.write('MDPS side wrong!!')
             else:
-                logging.error('pic_type wrong!')
+                self.mylogger.write('pic_type wrong!')
 
+            if (picname_bin.lower() == "gjv_l12"):
+                inti = 1
+                inti += 1
             destFile = destFileDir + "\\" + picname_bin.lower() + ".dat"
             arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
             if os.path.isdir(picDirPath):
@@ -705,7 +711,7 @@ class GeneratorPicBinary(object):
                     fos = open(destFile, 'wb')
                     dayPicLen = os.path.getsize(dayPicPath)
                     nightPicLen = os.path.getsize(nightPicPath)
-                    headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 1, 22, \
+                    headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                                dayPicLen, 2, 22 + dayPicLen, \
                                                nightPicLen)
                     resultBuffer = headerBuffer + dayFis.read() \
@@ -720,7 +726,7 @@ class GeneratorPicBinary(object):
                     arrowFis = open(picPathFile, 'rb')
                     fos = open(arrowFile, 'wb')
                     arrowPicLen = os.path.getsize(picPathFile)
-                    headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                    headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
                     resultBuffer = headerBuffer + arrowFis.read()
                     arrowFis.close()
                     fos.write(resultBuffer)
@@ -744,7 +750,7 @@ class GeneratorPicBinary(object):
                 elif side == 'L':
                     arrow_file_name = picname_bin + '_lane2'
                 else:
-                    logging.error('SDPS side wrong!')
+                    self.mylogger.write('SDPS side wrong!')
             elif pic_type == 'MDPS':
                 picDirPath = dirFileDir + "\\" + "MDPS"
                 if side == 'M':
@@ -754,9 +760,9 @@ class GeneratorPicBinary(object):
                 elif side == 'L':
                     arrow_file_name = picname_bin + '_lane3'
                 else:
-                    logging.error('MDPS side wrong!!')
+                    self.mylogger.write('MDPS side wrong!!')
             else:
-                logging.error('pic_type wrong!')
+                self.mylogger.write('pic_type wrong!')
 
             destFile = destFileDir + "\\" + picname_bin.lower() + ".dat"
             arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
@@ -765,12 +771,18 @@ class GeneratorPicBinary(object):
                 if  os.path.isfile(destFile) == False:
                     dayPicPath = os.path.join(picDirPath, "DAY", picname_bin + ".jpg")
                     nightPicPath = os.path.join(picDirPath, "NIGHT", picname_bin + ".jpg")
+                    if os.path.exists(dayPicPath) == False:
+                        self.mylogger.write("gjv day picture not exist," + picname_bin + ".jpg")
+                        continue
+                    if os.path.exists(nightPicPath) == False:
+                        self.mylogger.write("gjv night picture not exist," + picname_bin + ".jpg")
+                        continue
                     dayFis = open(dayPicPath, 'rb')
                     nightFis = open(nightPicPath, 'rb')
                     fos = open(destFile, 'wb')
                     dayPicLen = os.path.getsize(dayPicPath)
                     nightPicLen = os.path.getsize(nightPicPath)
-                    headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 1, 22, \
+                    headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                                dayPicLen, 2, 22 + dayPicLen, \
                                                nightPicLen)
                     resultBuffer = headerBuffer + dayFis.read() \
@@ -782,10 +794,13 @@ class GeneratorPicBinary(object):
                     # ARROW PIC BUILD
                 if os.path.isfile(arrowFile) == False:
                     picPathFile = picDirPath + "\\DAY\\" + arrow_file_name + ".png"
+                    if os.path.exists(nightPicPath) == False:
+                        self.mylogger.write("gjv arrow picture not exist," + arrow_file_name + ".png")
+                        continue
                     arrowFis = open(picPathFile, 'rb')
                     fos = open(arrowFile, 'wb')
                     arrowPicLen = os.path.getsize(picPathFile)
-                    headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                    headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
                     resultBuffer = headerBuffer + arrowFis.read()
                     arrowFis.close()
                     fos.write(resultBuffer)
@@ -814,11 +829,15 @@ class GeneratorPicBinary(object):
                 if  os.path.isfile(destFile) == False:
                     dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
                     nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
-                    if not (os.path.exists(dayPicPath) and os.path.exists(nightPicPath)):
-                        print dayPicPath, 'or', nightPicPath, 'driver not exist!!!'
+                    if os.path.exists(dayPicPath) == False:
+                        self.mylogger.write("day picture not exist," + back_picname + ".jpg")
                         pics_unfinished.append(pic)
                         exist_flag = 0
                         continue
+                    if os.path.exists(nightPicPath) == False:
+                        self.mylogger.write("night picture not exist," + back_picname + ".jpg") 
+                        pics_unfinished.append(pic)
+                        exist_flag = 0
 
 
                     # ARROW PIC BUILD
@@ -836,7 +855,7 @@ class GeneratorPicBinary(object):
                                 source_arrow_names.append(picPathFile)
 
                         if not os.path.exists(picPathFile):
-                            print picPathFile, 'driver arrow not exist!!!'
+                            self.mylogger.write("arrow picture not exist," + source_arrow) 
                             pics_unfinished.append(pic)
                             exist_flag = 0
                             break
@@ -846,7 +865,7 @@ class GeneratorPicBinary(object):
                     b_fos = open(destFile, 'wb')
                     dayPicLen = os.path.getsize(dayPicPath)
                     nightPicLen = os.path.getsize(nightPicPath)
-                    b_headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 1, 22, \
+                    b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                                dayPicLen, 2, 22 + dayPicLen, \
                                                nightPicLen)
                     b_resultBuffer = b_headerBuffer + dayFis.read() \
@@ -860,7 +879,7 @@ class GeneratorPicBinary(object):
                         arrowFis = open(source_arrow_name, 'rb')
                         a_fos = open(dest_arrow_name, 'wb')
                         arrowPicLen = os.path.getsize(source_arrow_name)
-                        a_headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                        a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
                         a_resultBuffer = a_headerBuffer + arrowFis.read()
                         arrowFis.close()
                         a_fos.write(a_resultBuffer)
@@ -881,8 +900,12 @@ class GeneratorPicBinary(object):
                 if  os.path.isfile(destFile) == False:
                     dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
                     nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
-                    if not (os.path.exists(dayPicPath) and os.path.exists(nightPicPath)):
-                        print dayPicPath, 'or', nightPicPath, 'bird not exist!!!'
+                    if os.path.exists(dayPicPath) == False:
+                        self.mylogger.write("bird day picture not exist," + back_picname)
+                        exist_flag = 0
+                        continue
+                    if os.path.exists(nightPicPath) == False:
+                        self.mylogger.write("bird night picture not exist," + back_picname)
                         exist_flag = 0
                         continue
                     # ARROW PIC BUILD
@@ -900,7 +923,7 @@ class GeneratorPicBinary(object):
                                 source_arrow_names.append(picPathFile)
 
                         if not os.path.exists(picPathFile):
-                            print picPathFile, 'bird arrow not exist!!!'
+                            self.mylogger.write("bird arrow not exist," + source_arrow) 
                             exist_flag = 0
                             break
                 if exist_flag > 0:
@@ -909,7 +932,7 @@ class GeneratorPicBinary(object):
                     b_fos = open(destFile, 'wb')
                     dayPicLen = os.path.getsize(dayPicPath)
                     nightPicLen = os.path.getsize(nightPicPath)
-                    b_headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 1, 22, \
+                    b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                                dayPicLen, 2, 22 + dayPicLen, \
                                                nightPicLen)
                     b_resultBuffer = b_headerBuffer + dayFis.read() \
@@ -923,7 +946,7 @@ class GeneratorPicBinary(object):
                         arrowFis = open(source_arrow_name, 'rb')
                         a_fos = open(dest_arrow_name, 'wb')
                         arrowPicLen = os.path.getsize(source_arrow_name)
-                        a_headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                        a_headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
                         a_resultBuffer = a_headerBuffer + arrowFis.read()
                         arrowFis.close()
                         a_fos.write(a_resultBuffer)
@@ -934,8 +957,8 @@ class GeneratorPicBinary(object):
 
 if __name__ == '__main__':
     test = GeneratorPicBinary()
-    test.makeGJunctionResultTable("E:\\orgdata\\EJV14Q1\\APC_jpg\\GJV\\APC", "E:\\orgdata\\EJV14Q1\\SGP_MSL")
-    pics = test.makeEJunctionResultTable("E:\\orgdata\\EJV14Q1\\ejv_driver_jpg_sgp_msl", "E:\\orgdata\\EJV14Q1\\SGP_MSL", '')
+    test.makeGJunctionResultTable("C:\\My\\20150417_asean_pic\\2DGJ_2015Q1_ASEAN_OUTPUT_resized\\2DGJ_2015Q1_ASEAN\\ASEAN", "C:\\My\\20150417_asean_pic\\2DGJ_2015Q1_ASEAN_OUTPUT_DAT")
+    pics = test.makeEJunctionResultTable("C:\\My\\20150417_asean_pic\\2DJ_2015Q1_ASEAN_OUTPUT_resized\\2DJ_2015Q1_ASEAN\\DRIVER_VIEW\\LANDSCAPE\\ASPECT_RATIO_4x3", "C:\\My\\20150417_asean_pic\\2DJ_2015Q1_ASEAN_OUTPUT_DAT", '')
     print len(pics)
-    test.makeBIRDJunctionResultTable('E:\\orgdata\\EJV14Q1\\ejv_bird_jpg_sgp_msl', "E:\\orgdata\\EJV14Q1\\SGP_MSL", pics)
+    test.makeBIRDJunctionResultTable("C:\\My\\20150417_asean_pic\\2DJ_2015Q1_ASEAN_OUTPUT_resized\\2DJ_2015Q1_ASEAN\\BIRD_VIEW\\LANDSCAPE\\ASPECT_RATIO_4x3", "C:\\My\\20150417_asean_pic\\2DJ_2015Q1_ASEAN_OUTPUT_DAT_bird", pics)
     pass

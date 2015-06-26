@@ -108,7 +108,7 @@ class rdb_guideinfo_spotguide(ItemBase):
         rdb_log.log(self.ItemName, 'insert data to spot guide end.', 'info')
     
     def _DoCheckValues(self):
-        'checkWV6NV5'
+        'check字段值'
         sqlcmd = """
                 ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists check_type;
                 ALTER TABLE rdb_guideinfo_spotguidepoint
@@ -121,8 +121,8 @@ class rdb_guideinfo_spotguide(ItemBase):
             return 0
             
     def _DoContraints(self):
-        'Lm<SMb<|'
-        # <l2iArrowM<F,ID
+        '添加外键'
+        # 检查Arrow图片ID
         self._DoCheckArrowID()
         
         sqlcmd = """
@@ -157,7 +157,7 @@ class rdb_guideinfo_spotguide(ItemBase):
             return 0
         
     def _DoCheckArrowID(self):
-        '<l2iArrowM<F,ID.'
+        '检查Arrow图片ID.'
         rdb_log.log(self.ItemName, 'Check Arrow_ids of SpotGuide.', 'info') 
         sqlcmd = """
                 select 
@@ -175,10 +175,10 @@ class rdb_guideinfo_spotguide(ItemBase):
         if row:
             all_num   = row[0]
             arrow_num = row[1]
-            # KySP5DArrow_id6<N*0
+            # 所有的Arrow_id都为0
             if all_num == arrow_num:
                 return 0
-            # C;SPArrow_idN*0, DG>M8xArrow_id44=(Mb<|
+            # 没有Arrow_id为0, 那就给Arrow_id创建外键
             if arrow_num == 0:
                 sqlcmd = """
                         ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists rdb_guideinfo_spotguidepoint_arrow_id_fkey;
@@ -190,7 +190,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                 self.pg.execute2(sqlcmd) 
                 self.pg.commit2()
                 return 0
-            # SPR;2?7VArrow_idN*0, Jd3vWarningLaJ>
+            # 有一部分Arrow_id为0, 输出Warning提示
             rdb_log.log(self.ItemName, 'There are ' + str(arrow_num) +' records(Arrow_id is 0 or NUll).', 'warning')
          
         return 0

@@ -29,6 +29,13 @@ CREATE TABLE temp_admin_order8
   country_code character varying(10)
 );SELECT AddGeometryColumn('public', 'temp_admin_order8', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 
+CREATE TABLE temp_admin_order8_part
+(
+  order8_id character varying(10) PRIMARY KEY,
+  order1_id character varying(10),
+  country_code character varying(10)
+);SELECT AddGeometryColumn('public', 'temp_admin_order8_part', 'the_geom', 4326, 'MULTIPOLYGON', 2);
+
 CREATE TABLE temp_adminid_newandold
 (
   ID_old character varying(10) not null primary key,
@@ -52,6 +59,39 @@ as
 																	(select st_union(the_geom) as the_geom from org_state_islands_region) as b
 																),											
 																(select st_union(the_geom) from org_district_region)))).geom as the_geom
+);
+CREATE TABLE temp_admin_district_new_all
+as
+(
+	select  (900000001 + row_number() over())::character varying as order8_id,
+	        a.stt_id::character varying(10) 			 		   as order1_id,
+	        ST_Multi(b.the_geom) as the_geom
+	from org_state_region as a
+	left join  temp_admin_state_difference_district as b
+	on st_within(b.the_geom,a.the_geom)
+	where b.the_geom is not null
+	order by a.stt_id
+);
+CREATE TABLE temp_admin_district_new_combine
+as
+(
+	select order8_id, order1_id, the_geom
+	from temp_admin_district_new_all
+	where st_area(the_geom) < 0.0001
+	
+	union
+	
+	select (array_agg(order8_id))[1] as order8_id,
+         order1_id,
+	       st_union(ST_Multi(the_geom)) as the_geom
+	from temp_admin_district_new_all
+	where st_area(the_geom) > 0.0001
+	group by order1_id
+);
+CREATE TABLE temp_admin_order8_compare
+(
+	id_old varchar,
+	id_new varchar
 );
 -----------------------------------------------------------------
 CREATE TABLE temp_link_name
@@ -221,5 +261,34 @@ CREATE TABLE mid_temp_hwy_poi_regional_name_group
 -------------------------------------------------------------------------------------------------
 CREATE TABLE mid_temp_sapa_store_info
 (
+
+);
+
+create table temp_poi_category
+(
+    per_code   bigint       not null,
+    gen1       int          not null,
+    gen2       int          not null,
+    gen3       int          not null,
+    level      smallint     not null,
+    name       varchar(128) not null,
+    imp        smallint     not null,
+    org_code   varchar(6)       not null,
+    logmark    varchar(128) not null default ''
+);
+
+create table temp_brand_icon
+(
+    brandname    varchar(128) not null default ''
+);
+
+CREATE TABLE temp_poi_logmark
+(
+  uid double precision NOT NULL,
+  std_name character varying(100),
+  cat_code character varying(6),
+  lat numeric,
+  lon numeric,
+  the_geom geometry 
 
 );

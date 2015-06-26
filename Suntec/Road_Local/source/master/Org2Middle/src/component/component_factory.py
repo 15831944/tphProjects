@@ -773,6 +773,11 @@ class comp_factory_mmi(comp_factory):
         if comp_name == 'Highway':
             from component.mmi.hwy.highway_mmi import HighwayMMi
             return HighwayMMi()
+        
+        if comp_name == 'Guideinfo_building':
+            from component.mmi import guideinfo_building_mmi
+            return guideinfo_building_mmi.comp_guideinfo_building_mmi()
+            pass
         return comp_factory.CreateOneComponent(self, comp_name)
 
 

@@ -192,7 +192,7 @@ DECLARE
 	New_id_temp integer;
 BEGIN
 	---org_data
-	insert into temp_admin_order8(order8_id,order1_id,country_code,the_geom)
+	insert into temp_admin_order8_part(order8_id,order1_id,country_code,the_geom)
   select  a.dst_id 						 				 as order8_id, 
 	        a.parent_id 				 				 as order1_id, 
 	        country_code_temp  					 as country_code,
@@ -205,20 +205,32 @@ BEGIN
 	order by a.dst_id,a.parent_id;
 		
 	---Difference from state	
-	dirst_num := 900000001;
+	insert into temp_admin_order8_part(order8_id,order1_id,country_code,the_geom)
+  select order8_id, order1_id, country_code_temp, the_geom
+  from temp_admin_district_new_combine
+  where st_area(the_geom) > 0.0001;
+  
+  insert into temp_admin_order8_compare(id_old, id_new)
+  SELECT a.order8_id as id_old, (array_agg(b.order8_id))[1] as id_new_array
+  FROM temp_admin_district_new_combine as a
+  left join temp_admin_order8_part as b
+  on a.order1_id = b.order1_id and ST_Intersects(a.the_geom,b.the_geom) and b.order8_id not like '%90000%'
+  where st_area(a.the_geom) < 0.0001
+  group by a.order8_id;
+	
 	insert into temp_admin_order8(order8_id,order1_id,country_code,the_geom)
-  select  (dirst_num + (a.stt_id :: integer)) :: character varying			as order8_id, 
-	        a.stt_id 			 		 as order1_id, 
-	        country_code_temp  as country_code,
-	        st_union(ST_Multi(b.the_geom)) as the_geom
-	from org_state_region as a
-	left join  temp_admin_state_difference_district as b
-	on st_within(b.the_geom,a.the_geom)
-	where a.parent_id = country_id
-	group by a.stt_id
-	order by a.stt_id;
-	
-	
+	select a.order8_id,
+         a.order1_id,
+         a.country_code,
+         (case when st_union(c.the_geom) is null then a.the_geom 
+             else ST_Multi(st_union(a.the_geom, st_union(c.the_geom))) end) as the_geom
+  from temp_admin_order8_part as a
+  left join temp_admin_order8_compare as b
+  on a.order8_id = b.id_new
+  left join temp_admin_district_new_combine as c
+  on b.id_old = c.order8_id
+  group by a.order8_id, a.order1_id, a.country_code, a.the_geom;
+  
 	--- insert into temp_adminid_newandold
 	New_id_temp := country_idx*100000 + 30000;
 	insert into temp_adminid_newandold(ID_old,New_ID,level,country_code)

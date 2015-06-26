@@ -4541,3 +4541,160 @@ BEGIN
 	END;
 END;
 $$;
+
+
+-----------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION mid_find_highaccid_links(orgTable character varying, objTable character varying)
+  RETURNS integer 
+  LANGUAGE plpgsql VOLATILE
+AS $$ 
+DECLARE
+	rec				record;
+	curs 				refcursor;
+	tmp_rec            		record;
+	pos_rec				record;
+	neg_rec				record;
+	start_node			bigint;
+	end_node			bigint;
+	link_array			bigint[];
+	nCount_pos			integer;
+	nCount_neg			integer;
+	nCount				integer;
+	nIndex				integer;
+	group_id			integer;
+	seq				integer;
+	array_walked			bigint[];				
+BEGIN
+
+	group_id := 0;
+	
+	open curs for execute 'select * from ' || quote_ident(orgTable);	
+	fetch curs into rec;
+	
+	while rec.link_id is not null 
+	LOOP
+		select link_id from temp_link_walked where link_id = rec.link_id into tmp_rec;
+		
+		if found then
+			fetch curs into rec;
+			continue;
+		else 
+			insert into temp_link_walked values (rec.link_id);
+		end if;	
+
+		pos_rec			:= mid_find_highaccid_links_in_one_direction(orgTable, rec.link_id, rec.s_node);
+		end_node		:= pos_rec.reach_node;
+
+		neg_rec			:= mid_find_highaccid_links_in_one_direction(orgTable, rec.link_id, rec.e_node);
+		start_node		:= neg_rec.reach_node;
+
+		nCount_pos		:= array_upper(pos_rec.linkrow, 1);		
+		nCount_neg		:= array_upper(neg_rec.linkrow, 1);
+
+		IF nCount_pos IS NOT NULL and nCount_neg IS NOT NULL THEN
+		
+			group_id 	:= group_id + 1;
+			
+			link_array		:= ARRAY[rec.link_id];
+			
+			fOR nIndex in 2..nCount_neg loop
+				link_array	:= array_prepend(neg_rec.linkrow[nIndex], link_array);
+			end loop;
+			
+			fOR nIndex in 2..nCount_pos loop
+				link_array	:= array_append(link_array, pos_rec.linkrow[nIndex]);
+			end loop;
+
+			nCount			:= array_upper(link_array, 1);			
+			nIndex := 1;
+				
+			while nIndex  <= nCount loop	
+				execute 'insert into ' || quote_ident(objTable) || '(link_id,group_id) 
+				values('||link_array[nIndex]||','||group_id||')';
+				nIndex := nIndex + 1;	
+			end loop;
+		END IF;	
+
+	fetch curs into rec;	
+	END LOOP;
+
+	close curs;
+	RETURN 1;
+	
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION mid_find_highaccid_links_in_one_direction( 
+	orgTable character varying, search_link bigint,
+	search_node int, OUT linkrow bigint[], OUT reach_node bigint)
+RETURNS record
+LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec2			record;
+	curs2 			refcursor;
+	reach_link              bigint;
+	
+	tmpLastNodeArray	bigint[];
+	tmpPathArray		bigint[];
+	tmpPathCount		integer;
+	tmpPathIndex		integer;	
+
+	nIndex			integer;
+	nCount			integer;
+	sqlcmd			character varying;	
+BEGIN
+	reach_link	:= search_link;
+	reach_node	:= search_node;
+
+	tmpLastNodeArray	:= ARRAY[reach_node];
+	tmpPathArray		:= ARRAY[reach_link];
+	tmpPathCount		:= 1;
+	tmpPathIndex		:= 1;
+	linkrow 		:= ARRAY[reach_link];
+
+	WHILE tmpPathIndex <= tmpPathCount LOOP
+
+		open curs2 for execute
+		'select	*
+		from
+		(
+			(
+				select	link_id, e_node as nextnode
+				from '|| quote_ident(orgTable) || '
+				where 	(' || tmpLastNodeArray[tmpPathIndex] || '= s_node) 
+					and (link_id != ' || reach_link || ')
+					and not (link_id = any(' || quote_literal(tmpPathArray) || '))
+			)
+			union
+			(
+				select	link_id, s_node as nextnode
+				from '|| quote_ident(orgTable) || '
+				where 	(' || tmpLastNodeArray[tmpPathIndex] || ' = e_node) 
+					and (link_id != ' || reach_link || ')
+					and not (link_id = any(' || quote_literal(tmpPathArray) || '))
+			)
+		)as a ';
+
+		fetch curs2 into rec2;
+	
+		while rec2.link_id is not null 
+		LOOP
+			insert into temp_link_walked values (rec2.link_id);
+			tmpPathCount	:= tmpPathCount + 1;
+			linkrow		:= array_append(linkrow, rec2.link_id);
+			reach_link	:= rec2.link_id;
+			reach_node	:= rec2.nextnode;
+			tmpLastNodeArray := array_append(tmpLastNodeArray, cast(rec2.nextnode as bigint));
+			tmpPathArray	:= array_append(tmpPathArray,cast(rec2.link_id as bigint));
+		fetch curs2 into rec2;
+		end loop;
+
+		tmpPathIndex := tmpPathIndex + 1;
+
+		close curs2;
+	end loop;
+END;
+$$;

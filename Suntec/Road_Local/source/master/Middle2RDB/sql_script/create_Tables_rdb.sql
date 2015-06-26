@@ -1,4 +1,4 @@
-﻿
+﻿锘�
 CREATE TABLE rdb_cond_speed
 (
   gid serial NOT NULL PRIMARY KEY, 

@@ -684,3 +684,9 @@ CREATE INDEX mid_temp_hwy_exit_poi_the_geom_idx
   ON mid_temp_hwy_exit_poi
   USING gist
   (the_geom);
+
+--------------------------------------------------------------
+CREATE INDEX temp_highaccid_links_link_id_s_node_e_node_idx
+  ON temp_highaccid_links
+  USING btree
+  (link_id, s_node, e_node);

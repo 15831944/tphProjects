@@ -35,7 +35,10 @@ class comp_guideinfo_safety_zone_rdf(comp_base):
     def _Do(self):
         safetyzone_flag = common.common_func.GetPath('safetyzone_flag')
         if safetyzone_flag == 'true':
-            self._organize_org_data()
+            pass
+        
+#            RDF safety camera data has no type of average speed camera, cancle.
+#            self._organize_org_data()
         return
     
     def _organize_org_data(self):

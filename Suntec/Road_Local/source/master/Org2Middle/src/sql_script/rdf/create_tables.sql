@@ -1724,3 +1724,28 @@ CREATE TABLE mid_temp_hwy_exit_poi
    poi_id          bigint not null,
    cat_id          bigint
 ); SELECT AddGeometryColumn('','mid_temp_hwy_exit_poi','the_geom','4326','POINT',2);
+
+--------------------------------------------------------------------------------------------------------
+create table temp_highaccid_links 
+as
+(
+	select c.link_id, 
+		case when a.direction = 1 then 2
+			when a.direction = 2 then 3
+			when a.direction = 3 then 1
+			else 0
+		end as dir, 
+		d.ref_node_id as s_node, d.nonref_node_id as e_node
+	FROM (
+		select *
+		from rdf_condition
+		where condition_type = 38
+	) as b
+	left join rdf_condition_blackspot as a
+	on b.condition_id = a.condition_id
+	left join rdf_nav_strand as c
+	on b.nav_strand_id = c.nav_strand_id
+	left join temp_rdf_nav_link d
+	on c.link_id = d.link_id
+	where c.node_id is null
+);

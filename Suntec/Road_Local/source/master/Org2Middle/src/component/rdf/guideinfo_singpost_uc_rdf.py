@@ -199,7 +199,7 @@ class comp_guideinfo_signpost_uc_rdf(comp_guideinfo_signpost_uc):
             # ## 番号
             if self._is_route_number(text_type):
                 if iso_country_code == 'SGP':
-                    shield_id = 4111
+                    shield_id = str(4111)
                 else:
                     shield_id = INVALID_SHIELD_ID
                 shield_number = official_name

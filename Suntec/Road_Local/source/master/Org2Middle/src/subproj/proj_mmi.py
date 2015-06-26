@@ -39,7 +39,7 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             #park
 #            self.AddComponent(self.comp_factory.CreateOneComponent('park'))
-            
+#            self.AddComponent(self.comp_factory.CreateOneComponent('height'))
             #guide
 #            self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Safety_Alert'))
@@ -54,15 +54,13 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_NaturalGuidence'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('hook_turn'))
-			
-            #
-#            self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
-            
+            # Highway_Prepare
+#            self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
             #
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
-
 #            self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))
-            
+            # Highway
+#            self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
             pass
