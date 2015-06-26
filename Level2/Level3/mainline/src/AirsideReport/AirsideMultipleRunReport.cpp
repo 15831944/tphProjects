@@ -9,6 +9,8 @@
 #include "AirsideStandMultiRunOperatinResult.h"
 #include "AirsideAircraftMultiRunTakeoffProcessResult.h"
 #include "AirsideAircraftMutiRunRunwayOperationResult.h"
+#include "AirsideRunwayDelayMultiRunResult.h"
+
 CAirsideMultipleRunReport::CAirsideMultipleRunReport(void)
 {
 }
@@ -76,6 +78,8 @@ void CAirsideMultipleRunReport::AddReportWhatToGen( reportType _reportType,CPara
         case Airside_RunwayOperaitons:
             m_mapMutiRunResult[_reportType] = new CAirsideAircraftMutiRunRunwayOperationResult;
             break;
+        case Airside_RunwayDelay:
+            m_mapMutiRunResult[_reportType] = new CAirsideRunwayDelayMultiRunResult;
 		default:
 			break;
 		}

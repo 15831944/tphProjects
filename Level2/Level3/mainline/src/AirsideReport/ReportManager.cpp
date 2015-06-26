@@ -66,6 +66,7 @@ CAirsideReportManager::CAirsideReportManager()
 	m_vMultipleRun.push_back(Airside_StandOperations);
 	m_vMultipleRun.push_back(Airside_TakeoffProcess);
     m_vMultipleRun.push_back(Airside_RunwayOperaitons);
+    m_vMultipleRun.push_back(Airside_RunwayDelay);
 }
 
 CAirsideReportManager::~CAirsideReportManager()
