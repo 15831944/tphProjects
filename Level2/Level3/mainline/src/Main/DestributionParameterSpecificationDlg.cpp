@@ -170,6 +170,7 @@ BEGIN_MESSAGE_MAP(CDestributionParameterSpecificationDlg, CDialog)
     ON_EN_CHANGE(IDC_EDIT_BER1STVALUE, OnEnChangeEditBer1stvalue)
     ON_EN_CHANGE(IDC_EDIT_BER2NDVALUE, OnEnChangeEditBer2ndvalue)
     ON_EN_CHANGE(IDC_EDIT_BER1STPRO, OnEnChangeEditBer1stpro)
+    ON_CBN_EDITCHANGE(IDC_COMBO_CONSTANT, &CDestributionParameterSpecificationDlg::OnCbnEditchangeComboConstant)
 END_MESSAGE_MAP()
 
 BOOL CDestributionParameterSpecificationDlg::OnInitDialog()
@@ -833,7 +834,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
             return;
         }
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, UNIFORM))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, BETA))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -1208,7 +1209,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, WEIBULL))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, BERNOULLI))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -2627,3 +2628,9 @@ bool CDestributionParameterSpecificationDlg::AddOrEditPdDatabase(CString& strMsg
     return false;
 }
 
+
+
+void CDestributionParameterSpecificationDlg::OnCbnEditchangeComboConstant()
+{
+    CString strCombo;
+}

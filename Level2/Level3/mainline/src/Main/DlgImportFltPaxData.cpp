@@ -154,7 +154,12 @@ void CDlgImportFltPaxData::OnUpdateCSVFile()
 	if (strFilePath.IsEmpty())
 		return;
 	
-	LoadDataFromFile(strFilePath,true);
+	if(LoadDataFromFile(strFilePath,true) == false)
+	{
+		CString strMsg;
+		strMsg.Format("The Importing File is not complying with required file format.  file:\r\n%s", strFilePath );
+		MessageBox( strMsg, "ERROR", MB_OK|MB_ICONERROR );
+	}
 	SetListCtrlContent();
 	ResetButtonStatus(TRUE);
 }
@@ -419,7 +424,7 @@ bool CDlgImportFltPaxData::CheckFileFormat( ArctermFile& p_file )
 	return false;
 }
 
-void CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName,bool bCheckFile )
+bool CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName,bool bCheckFile )
 {
 	ClearData();
 	ArctermFile p_file;
@@ -429,11 +434,7 @@ void CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName,bool bCh
 		{
 			if(CheckFileFormat(p_file) == false)
 			{
-				CString strMsg;
-				strMsg.Format("The Importing File is not complying with required file format.  file:\r\n%s", strFileName );
-				MessageBox( strMsg, "ERROR", MB_OK|MB_ICONERROR );
-				SetListCtrlContent();
-				return;
+				return false;
 			}
 		}
 		switch (m_emType)
@@ -510,6 +511,8 @@ void CDlgImportFltPaxData::LoadDataFromFile( const CString& strFileName,bool bCh
 			break;
 		}
 	}
+
+	return true;
 }
 
 void CDlgImportFltPaxData::SetOperation( int iType )

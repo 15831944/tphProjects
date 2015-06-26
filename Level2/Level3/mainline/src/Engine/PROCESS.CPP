@@ -3140,7 +3140,7 @@ void Processor::notifyGateFlowPair(const CMobileElemConstraint& mobileType)
 		Processor* pProc = m_pTerm->procList->getProcessor(nProcIndex);
 		if (pProc == NULL || pProc == this )
 			return;
-		pProc->GetDirection().Insert(m_direction,mobileType);
+		pProc->InsertGateDirection(m_direction,mobileType);
 	}
 }
 
@@ -3162,7 +3162,7 @@ void Processor::notifyReclaimFlowPair(const CMobileElemConstraint& mobileType)
 		{
 			return;
 		}
-		pProc->GetReclaimDrection().Insert(m_reclaimDirection,mobileType);
+		pProc->InsertReclaimDirection(m_reclaimDirection,mobileType);
 	}
 }
 
@@ -3192,7 +3192,7 @@ void Processor::notifyLandsideFacilityFlowPair(const CMobileElemConstraint& mobi
 		{
 			return;
 		}
-		pProc->GetLandsideDrection().Insert(m_landsideDirection,mobileType);
+		pProc->InsertLandsideDirection(m_landsideDirection,mobileType);
 	}
 }
 
@@ -3210,6 +3210,41 @@ void Processor::UpdateFloorIndex( const FloorChangeMap& changMap )
 	{
 		changMap.ChangePathFloor(m_pQueue->m_qCorners);
 	}
+}
+
+void Processor::InsertGateDirection( const CMobileElemConstraint& _paxType , const ProcessorID& _destProcID )
+{
+	GetDirection().Insert(_paxType,_destProcID);
+}
+
+void Processor::InsertGateDirection( CDirection& Dirctions,const CMobileElemConstraint& _paxType )
+{
+	GetDirection().Insert(Dirctions,_paxType);
+}
+
+void Processor::InsertReclaimDirection( const CMobileElemConstraint& _paxType , const ProcessorID& _destProcID )
+{
+	GetReclaimDrection().Insert(_paxType, _destProcID);
+}
+
+void Processor::InsertReclaimDirection( CDirection& Dirctions,const CMobileElemConstraint& _paxType )
+{
+	GetReclaimDrection().Insert(Dirctions, _paxType);
+}
+
+void Processor::InsertLandsideDirection( const CMobileElemConstraint& _paxType , const std::vector<LandsideObjectLinkageItemInSim>& _vDestProcID )
+{
+	GetLandsideDrection().Insert(_paxType, _vDestProcID);
+}
+
+void Processor::InsertLandsideDirection( const CMobileElemConstraint& _paxType , const LandsideObjectLinkageItemInSim& _destProcID )
+{
+	GetLandsideDrection().Insert(_paxType, _destProcID);
+}
+
+void Processor::InsertLandsideDirection( CDirection& Dirctions,const CMobileElemConstraint& _paxType )
+{
+	GetLandsideDrection().Insert(Dirctions,_paxType);
 }
 
 /************************************************************************/

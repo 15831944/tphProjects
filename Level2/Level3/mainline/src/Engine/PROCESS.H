@@ -234,12 +234,21 @@ public:
 	bool CanLeadTo( const CMobileElemConstraint& _paxType,  const ProcessorID& _destProcID)const;
 	CDirection& GetDirection() { return m_direction;	}
 	void SetDirection( CDirection& _direction ){ m_direction = _direction;	}
+	void InsertGateDirection( const CMobileElemConstraint& _paxType , const ProcessorID& _destProcID );
+	void InsertGateDirection(CDirection& Dirctions,const CMobileElemConstraint& _paxType);
+
 
 	bool CanLeadToReclaim(const CMobileElemConstraint& _paxType,  const ProcessorID& _destProcID)const;
 	CDirection& GetReclaimDrection(){return m_reclaimDirection;}
 	void SetReclaimDirection(CDirection& _reclaimDirection){m_reclaimDirection = _reclaimDirection;}
+	void InsertReclaimDirection(const CMobileElemConstraint& _paxType , const ProcessorID& _destProcID);
+	void InsertReclaimDirection(CDirection& Dirctions,const CMobileElemConstraint& _paxType);
+
 
 	CDirection& GetLandsideDrection(){return m_landsideDirection;}
+	void InsertLandsideDirection( const CMobileElemConstraint& _paxType , const std::vector<LandsideObjectLinkageItemInSim>& _vDestProcID);
+	void InsertLandsideDirection( const CMobileElemConstraint& _paxType , const LandsideObjectLinkageItemInSim& _destProcID);
+	void InsertLandsideDirection(CDirection& Dirctions,const CMobileElemConstraint& _paxType);
 
 
 	void ClearGateAndReclaim();

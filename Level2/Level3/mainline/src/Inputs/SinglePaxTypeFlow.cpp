@@ -1164,19 +1164,19 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 		Processor* pToGate = m_pTerm->procList->getProcessor( TO_GATE_PROCESS_INDEX );
 		if (pToGate)
 		{
-			pToGate->GetDirection().Insert(*m_pPaxConstrain,*(pToGate->getID()));
+			pToGate->InsertGateDirection(*m_pPaxConstrain,*(pToGate->getID()));
 		}
 
 		Processor* pFromGate = m_pTerm->procList->getProcessor( FROM_GATE_PROCESS_INDEX );
 		if (pFromGate)
 		{
-			pFromGate->GetDirection().Insert(*m_pPaxConstrain,*(pFromGate->getID()));
+			pFromGate->InsertGateDirection(*m_pPaxConstrain,*(pFromGate->getID()));
 		}
 
 		Processor* pBaggage = m_pTerm->procList->getProcessor( BAGGAGE_DEVICE_PROCEOR_INDEX );
 		if (pBaggage)
 		{
-			pBaggage->GetReclaimDrection().Insert(*m_pPaxConstrain,*(pBaggage->getID()));
+			pBaggage->InsertReclaimDirection(*m_pPaxConstrain,*(pBaggage->getID()));
 		}
 		
 		//landside object
@@ -1219,8 +1219,9 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 						if(pLinkageInSim)
 						{
 							const std::vector<LandsideObjectLinkageItemInSim>& vThisLandsideDest = pLinkageInSim->GetLandsideObject();
-							pProc->GetLandsideDrection().Insert(*m_pPaxConstrain, vThisLandsideDest);
-							pProc->GetLandsideDrection().Insert(*m_pPaxConstrain, _vGroupLandsideDestObject);
+							pProc->InsertLandsideDirection(*m_pPaxConstrain, vThisLandsideDest);
+							pProc->InsertLandsideDirection(*m_pPaxConstrain, _vGroupLandsideDestObject);
+
 							_vLandsideDestObject.insert(_vLandsideDestObject.begin(), vThisLandsideDest.begin(), vThisLandsideDest.end());
 						}
 					}
@@ -1262,7 +1263,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 					Processor* pSourcePro = m_pTerm->procList->getProcessor(n);
 					if (pSourcePro)
 					{
-						pSourcePro->GetReclaimDrection().Insert(*m_pPaxConstrain,*(pSourcePro->getID()));
+						pSourcePro->InsertReclaimDirection(*m_pPaxConstrain,*(pSourcePro->getID()));
 					}
 				}
 			}
@@ -1275,7 +1276,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 					Processor* pSourcePro = m_pTerm->procList->getProcessor(n);
 					if (pSourcePro)
 					{
-						pSourcePro->GetDirection().Insert(*m_pPaxConstrain,*(pSourcePro->getID()));
+						pSourcePro->InsertGateDirection(*m_pPaxConstrain,*(pSourcePro->getID()));
 					}
 				}
 			}
@@ -1289,48 +1290,7 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 
 			_vProc.push_back( *destArc );
 
-			GroupIndex groupSource = m_pTerm->procList->getGroupIndex ( _rootID );
-			GroupIndex groupDest = m_pTerm->procList->getGroupIndex(destArc->GetProcID());
-
-			if (destArc->GetOneToOneFlag())
-			{
-				ProcessorArray proArray;
-				
-				for (int n = groupDest.start; n <= groupDest.end; n++)
-				{
-					Processor* pDestProc = m_pTerm->procList->getProcessor(n);
-					
-					proArray.addItem(pDestProc);
-				}
-
-				for (int m = groupSource.start; m <= groupSource.end; m++)
-				{
-					Processor* pSourceProc = m_pTerm->procList->getProcessor( m );
-					const ProcessorID* sourceID = pSourceProc->getID();
-					GroupIndex sourceIndex = m_pTerm->procList->getGroupIndex(*sourceID);
-
-					Processor* pReslutProc = CFlowChannel::GetOutChannelProc(*pSourceProc,proArray,destArc->GetProcID().idLength());
-					if (pReslutProc)
-					{
-						pReslutProc->AddGateFlowPairProcessor(m);
-						pReslutProc->AddReclaimFlowPairProcessor(m);
-						pReslutProc->AddLandsideFacilityFlowPair(m);
-					}
-				}
-			}
-			else
-			{
-				for (int n = groupDest.start; n <= groupDest.end; n++)
-				{
-					for (int m = groupSource.start; m <= groupSource.end; m++)
-					{
-						m_pTerm->procList->getProcessor( n )->AddGateFlowPairProcessor(m);
-						m_pTerm->procList->getProcessor( n )->AddReclaimFlowPairProcessor(m);
-						m_pTerm->procList->getProcessor( n )->AddLandsideFacilityFlowPair(m);
-					}
-				}
-			}
-
+			bool bNeedToInheritTheDirection = true;//if true, this processor's leadto information won't set to its parent processor
 			if( std::find(m_vFlowDestion.begin(),m_vFlowDestion.end(),*destArc) == m_vFlowDestion.end() || pFlowPair->FlowDistinationUnVisit())
 			{
 				if (!RepeatPattern( _vProc ))
@@ -1339,28 +1299,84 @@ void CSinglePaxTypeFlow::BuildAllPathOfSingleTree( const ProcessorID& _rootID , 
 					m_vFlowDestion.push_back(*destArc);
 					BuildAllPathOfSingleTree( destArc->GetProcID(), _vProc , _vAllPossiblePath, pDir);
 				}
+				else//cycled bridge processor
+				{
+					GroupIndex gIndexProc = m_pTerm->procList->getGroupIndex( destArc->GetProcID() );
+					ASSERT(gIndexProc.start >= 0);
+					if(gIndexProc.start >= 0 && m_pTerm->procList->getProcessor( gIndexProc.start )->getProcessorType() == BridgeConnectorProc)
+					{
+						bNeedToInheritTheDirection = false;
+					}
+				}
+			}
+
+			GroupIndex groupSource = m_pTerm->procList->getGroupIndex ( _rootID );
+			GroupIndex groupDest = m_pTerm->procList->getGroupIndex(destArc->GetProcID());
+
+			if (destArc->GetOneToOneFlag())
+			{
+				ProcessorArray proArray;
+				
+				for (int nDest = groupDest.start; nDest <= groupDest.end; nDest++)
+				{
+					Processor* pDestProc = m_pTerm->procList->getProcessor(nDest);
+					
+					proArray.addItem(pDestProc);
+				}
+
+				for (int mSource = groupSource.start; mSource <= groupSource.end; mSource++)
+				{
+					Processor* pSourceProc = m_pTerm->procList->getProcessor( mSource );
+					const ProcessorID* sourceID = pSourceProc->getID();
+					GroupIndex sourceIndex = m_pTerm->procList->getGroupIndex(*sourceID);
+
+					Processor* pReslutProc = CFlowChannel::GetOutChannelProc(*pSourceProc,proArray,destArc->GetProcID().idLength());
+					if (pReslutProc && bNeedToInheritTheDirection)
+					{
+						pReslutProc->AddGateFlowPairProcessor(mSource);
+						pReslutProc->AddReclaimFlowPairProcessor(mSource);
+						pReslutProc->AddLandsideFacilityFlowPair(mSource);
+					}
+				}
+			}
+			else if(bNeedToInheritTheDirection)
+			{
+				for (int nDest = groupDest.start; nDest <= groupDest.end; nDest++)
+				{
+					for (int mSource = groupSource.start; mSource <= groupSource.end; mSource++)
+					{
+						m_pTerm->procList->getProcessor( nDest )->AddGateFlowPairProcessor(mSource);
+						m_pTerm->procList->getProcessor( nDest )->AddReclaimFlowPairProcessor(mSource);
+						m_pTerm->procList->getProcessor( nDest )->AddLandsideFacilityFlowPair(mSource);
+					}
+				}
+			}
+
+			if(bNeedToInheritTheDirection)//cycled bridge processor's LEAD TO info would not give to its parents' processor
+			{
+ 				for (int nDestIndex = groupDest.start; nDestIndex <= groupDest.end; nDestIndex++)
+				{
+					Processor* pDestProc = m_pTerm->procList->getProcessor(nDestIndex);
+					if (pDestProc->getProcessorType() == BaggageProc)
+					{
+						pDestProc->InsertReclaimDirection(*m_pPaxConstrain,*(pDestProc->getID()));
+					}
+
+					if (pDestProc->getProcessorType() == GateProc)
+					{
+						pDestProc->InsertGateDirection(*m_pPaxConstrain,*(pDestProc->getID()));
+					}
+
+ 					m_pTerm->procList->getProcessor( nDestIndex )->notifyGateFlowPair(*m_pPaxConstrain);
+ 					m_pTerm->procList->getProcessor( nDestIndex )->notifyReclaimFlowPair(*m_pPaxConstrain);
+					m_pTerm->procList->getProcessor( nDestIndex )->notifyLandsideFacilityFlowPair(*m_pPaxConstrain);
+ 				}
 			}
 			
- 			for (int n = groupDest.start; n <= groupDest.end; n++)
-			{
-				Processor* pDestProc = m_pTerm->procList->getProcessor(n);
-				if (pDestProc->getProcessorType() == BaggageProc)
-				{
-					pDestProc->GetReclaimDrection().Insert(*m_pPaxConstrain,*(pDestProc->getID()));
-				}
-
-				if (pDestProc->getProcessorType() == GateProc)
-				{
-					pDestProc->GetDirection().Insert(*m_pPaxConstrain,*(pDestProc->getID()));
-				}
-
- 				m_pTerm->procList->getProcessor( n )->notifyGateFlowPair(*m_pPaxConstrain);
- 				m_pTerm->procList->getProcessor( n )->notifyReclaimFlowPair(*m_pPaxConstrain);
-				m_pTerm->procList->getProcessor( n )->notifyLandsideFacilityFlowPair(*m_pPaxConstrain);
- 			}
 
 			_vProc.pop_back();
 		}
+
 	}
 
 }
@@ -1394,11 +1410,11 @@ bool CSinglePaxTypeFlow::RepeatPattern( std::vector<CFlowDestination>& _vProc )
 		//}
 
 		//1, 2, 3,
-		if(_vProc[nCount-1].GetProcID().GetIDString() == "SKYLINE-A3-NONSHENGEN")
-		{
-			int i = 0;
-			i = 3;
-		}
+		//if(_vProc[nCount-1].GetProcID().GetIDString() == "SKYLINE-A3-NONSHENGEN")
+		//{
+		//	int i = 0;
+		//	i = 3;
+		//}
 		if(gIndex2.start >= 0
 			&& m_pTerm->procList->getProcessor( gIndex2.start )->getProcessorType() == IntegratedStationProc)
 		{
@@ -1479,8 +1495,7 @@ bool CSinglePaxTypeFlow::RepeatPattern( std::vector<CFlowDestination>& _vProc )
 	//}
 
 	typedef std::vector<CFlowDestination>::iterator FlowDestIter;
-	for (FlowDestIter iter1 = _vProc.begin();
-		 iter1 != _vProc.end() - 1; ++iter1)
+	for (FlowDestIter iter1 = _vProc.begin(); iter1 != _vProc.end() - 1; ++iter1)
 	{
 		if( iter1->GetProcID() == _vProc.back().GetProcID() )
 		{

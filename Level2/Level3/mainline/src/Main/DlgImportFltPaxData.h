@@ -57,7 +57,7 @@ private:
 	CString GetFileName();
 	bool CheckFileFormat(ArctermFile& p_file);
 
-	void LoadDataFromFile(const CString& strFileName,bool bCheckFile);
+	bool LoadDataFromFile(const CString& strFileName,bool bCheckFile);
 	int GetExsitFltPaxData(ConstraintEntry* pEntry);
 	void ClearData();
 	void AddData(ConstraintEntry* pEntry);
