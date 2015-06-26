@@ -225,8 +225,24 @@ const ProbabilityDistribution*  ACEntryTimeDistDatabase::FindProbDist(const Proc
             {
                 if(pTempEntry->getProcID() == curProcID)
                 {
-                    CMobileElemConstraint* pMobConst = (CMobileElemConstraint*)pTempEntry->getConstraint();
-                    if(pMobConst->fitex(*pCurPaxType))
+                    CMobileElemConstraint* pTempConst = (CMobileElemConstraint*)pTempEntry->getConstraint();
+                    if(pTempConst->fits(*pCurPaxType) && pCurPaxType->fits(*pTempConst))
+                    {
+                        if(pCurEntry->GetBeginTime() < pTempEntry->GetBeginTime())
+                        {
+                            pTempEntry = pCurEntry;
+                        }
+                        else if(pCurEntry->GetBeginTime() == pTempEntry->GetBeginTime())
+                        {
+                            if(pCurEntry->GetEndTime() < pTempEntry->GetEndTime())
+                                pTempEntry = pCurEntry;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else if(pTempConst->fits(*pCurPaxType))
                     {
                         pTempEntry = pCurEntry;
                     }
