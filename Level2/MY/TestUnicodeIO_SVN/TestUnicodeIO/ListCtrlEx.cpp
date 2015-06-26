@@ -231,26 +231,14 @@ BOOL CListCtrlEx::OnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CListCtrlEx::OnLButtonDown(UINT nFlags, CPoint point) 
 {
-    //SetFocus();
+    SetFocus();
     int index;
     if((index = HitTestEx(point, NULL)) != -1)
     {
         LastTimeSelection = CurrentSelection;
         CurrentSelection = index;
         SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
-//        SetItemState(index, LVIS_SELECTED, LVIS_SELECTED|LVIS_FOCUSED);
-//         int istate = GetItemState(index, 3);
-//         int iii = 0;
     }
-
-//     TRACE(_T("CListCtrlEx::OnLButtonDown()\r\n"));
-//     for(int i=0; i<10; i++)
-//     {
-//         int itemState = GetItemState(i, 7);
-//         CString strDbgLog;
-//         strDbgLog.Format(_T("item: %d, state: %d\r\n"), i, itemState);
-//         TRACE(strDbgLog);
-//     }
 
     //CListCtrl::OnLButtonDown(nFlags, point);
 }

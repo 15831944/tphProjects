@@ -12,7 +12,7 @@ CListCtrlKeepHighlight::~CListCtrlKeepHighlight()
 
 BEGIN_MESSAGE_MAP(CListCtrlKeepHighlight, CListCtrlEx)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
-    ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnLvnItemchanged)
+    ON_NOTIFY_REFLECT_EX(LVN_ITEMCHANGED, OnLvnItemchanged)
 END_MESSAGE_MAP()
 
 void CListCtrlKeepHighlight::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
@@ -62,7 +62,7 @@ void CListCtrlKeepHighlight::DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd)
     int iItem = lpnmcd->nmcd.dwItemSpec;
     int iSubItem = lpnmcd->iSubItem;
     GetSubItemRect(iItem, iSubItem, LVIR_LABEL,rSubItem);
-    if (iSubItem == 0)
+    if(iSubItem == 0 && rSubItem.left > 0)
         rSubItem.left = 0;
     rSubItem.NormalizeRect();
 
@@ -85,10 +85,38 @@ void CListCtrlKeepHighlight::DrawSubItem(LPNMLVCUSTOMDRAW lpnmcd)
     CWnd *pWndFocus = GetFocus();
     if (pWndFocus == this || IsChild(pWndFocus))
         bFocus = true;
-    DrawSubItemBackground(dc, rSubItem, bSelected, bFocus);
+
+    int nSave = dc.SaveDC();
+    CBrush brush;
+    if(bSelected)
+    {
+        if(bFocus)
+            brush.CreateSolidBrush(RGB(51, 153, 255));
+        else
+            brush.CreateSolidBrush(RGB(206, 206, 206));
+    }
+    else
+    {
+        brush.CreateSolidBrush(RGB(255, 255, 255));
+    }
+    dc.FillRect(&rSubItem, &brush); // draw background
+    dc.RestoreDC(nSave);
 
     CString strText = GetItemText(iItem, iSubItem);
-    dc.DrawText(strText, strText.GetLength(), &rSubItem, GetHeaderCtrl()->GetStyle());
+    GetSubItemRect(iItem, iSubItem, LVIR_LABEL,rSubItem);
+    if(iSubItem != 0)
+        rSubItem.left += 4;
+    rSubItem.right -= 2;
+    // draw text
+    LVCOLUMN columnInfo;
+    columnInfo.mask = LVCF_FMT;
+    GetColumn(iSubItem, &columnInfo);
+    UINT pos = DT_LEFT;
+    if(columnInfo.fmt & LVCFMT_CENTER)
+        pos = DT_CENTER;
+    else if(columnInfo.fmt & LVCFMT_RIGHT)
+        pos = DT_RIGHT;
+    dc.DrawText(strText, strText.GetLength(), &rSubItem, DT_SINGLELINE | pos | DT_VCENTER | DT_END_ELLIPSIS);
     dc.Detach();
 }
 
@@ -118,30 +146,7 @@ void CListCtrlKeepHighlight::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
     }
 }
 
-void CListCtrlKeepHighlight::DrawSubItemBackground(CDC& dc, RECT rSubItem, bool bSelected, bool bFocus)
-{
-    CRect rect = rSubItem;
-    if (rect.Width() == 0)
-        return;
-
-    int nSave = dc.SaveDC();
-    CBrush brush;
-    if(bSelected)
-    {
-        if(bFocus)
-            brush.CreateSolidBrush(RGB(51, 153, 255));
-        else
-            brush.CreateSolidBrush(RGB(206, 206, 206));
-    }
-    else
-    {
-        brush.CreateSolidBrush(RGB(255, 255, 255));
-    }
-    dc.FillRect(&rSubItem, &brush);
-    dc.RestoreDC(nSave);
-}
-
-void CListCtrlKeepHighlight::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
+BOOL CListCtrlKeepHighlight::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
     if (pNMLV->uChanged & LVIF_STATE)
@@ -153,6 +158,7 @@ void CListCtrlKeepHighlight::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
         }
     }
     *pResult = 0;
+    return FALSE;
 }
 
 void CListCtrlKeepHighlight::InvalidateItemRect(int nItem)

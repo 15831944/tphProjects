@@ -2,6 +2,7 @@
 #include <afxcmn.h>
 #include "TabSubView1.h"
 #include "TabSubView2.h"
+#include "TabSubView3.h"
 
 class CTestUnicodeIODlg : public CDialogEx
 {
@@ -26,6 +27,7 @@ protected:
     CTabCtrl m_mainTab;
     CTabSubView1 m_tabView1;
     CTabSubView2 m_tabView2;
+    CTabSubView3 m_tabView3;
 private:
     int m_oldCx;
     int m_oldCy;

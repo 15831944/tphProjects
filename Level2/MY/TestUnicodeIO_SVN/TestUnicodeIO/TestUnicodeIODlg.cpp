@@ -24,7 +24,7 @@ BEGIN_MESSAGE_MAP(CTestUnicodeIODlg, CDialogEx)
     ON_WM_PAINT()
     ON_WM_QUERYDRAGICON()
     ON_WM_CREATE()
-    ON_NOTIFY(TCN_SELCHANGE, IDC_MAIN_TAB, &CTestUnicodeIODlg::OnTcnSelchangeMainTab)
+    ON_NOTIFY(TCN_SELCHANGE, IDC_MAIN_TAB, OnTcnSelchangeMainTab)
     ON_WM_SIZE()
     ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
@@ -40,9 +40,11 @@ BOOL CTestUnicodeIODlg::OnInitDialog()
 
     m_mainTab.InsertItem(0,_T("20141124"));
     m_mainTab.InsertItem(1,_T("20141125"));
-    m_mainTab.SetCurSel(1);
+    m_mainTab.InsertItem(2,_T("20141126"));
+    m_mainTab.SetCurSel(2);
     m_tabView1.ShowWindow(FALSE);
-    m_tabView2.ShowWindow(TRUE);
+    m_tabView2.ShowWindow(FALSE);
+    m_tabView3.ShowWindow(TRUE);
     LayoutTabViews();
 
     return TRUE;
@@ -85,6 +87,7 @@ int CTestUnicodeIODlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
     m_tabView1.Create(IDD_TABSUBVIEW1,GetDlgItem(IDC_MAIN_TAB));
     m_tabView2.Create(IDD_TABSUBVIEW2,GetDlgItem(IDC_MAIN_TAB));
+    m_tabView3.Create(IDD_TABSUBVIEW3,GetDlgItem(IDC_MAIN_TAB));
 
     return 0;
 }
@@ -99,10 +102,16 @@ void CTestUnicodeIODlg::OnTcnSelchangeMainTab(NMHDR *pNMHDR, LRESULT *pResult)
     case 0:
         m_tabView1.ShowWindow(TRUE);
         m_tabView2.ShowWindow(FALSE);
+        m_tabView3.ShowWindow(FALSE);
         break;
     case 1:
         m_tabView1.ShowWindow(FALSE);
         m_tabView2.ShowWindow(TRUE);
+        m_tabView3.ShowWindow(FALSE);
+    case 2:
+        m_tabView1.ShowWindow(FALSE);
+        m_tabView2.ShowWindow(FALSE);
+        m_tabView3.ShowWindow(TRUE);
         break;
     default:
         break;

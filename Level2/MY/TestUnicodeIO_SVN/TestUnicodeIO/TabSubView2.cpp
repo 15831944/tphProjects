@@ -14,6 +14,7 @@ CTabSubView2::~CTabSubView2()
 
 BEGIN_MESSAGE_MAP(CTabSubView2, CDialog)
     ON_WM_SIZE()
+    ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_TABVIEW2MAIN, OnLvnItemchangedListTabview2main)
 END_MESSAGE_MAP()
 
 void CTabSubView2::DoDataExchange(CDataExchange* pDX)
@@ -167,3 +168,12 @@ void CTabSubView2::InertTempDataToList()
     }
 }
 
+
+
+void CTabSubView2::OnLvnItemchangedListTabview2main(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+    int i=0;
+    i=100;
+    *pResult = 0;
+}

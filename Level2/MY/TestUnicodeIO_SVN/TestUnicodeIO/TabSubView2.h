@@ -26,4 +26,6 @@ private:
     int m_oldCy;
     typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
     void LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy);
+public:
+    afx_msg void OnLvnItemchangedListTabview2main(NMHDR *pNMHDR, LRESULT *pResult);
 };

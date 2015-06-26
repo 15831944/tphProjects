@@ -18,6 +18,9 @@
     <Filter Include="Temp">
       <UniqueIdentifier>{ab8572ad-3cb3-46f3-92cc-4962adcb5e1b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Controls\ob">
+      <UniqueIdentifier>{111ca8c5-21b9-45cb-97cd-23829983b9c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\TestUnicodeIO.rc2">
@@ -28,13 +31,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ListCtrlEx.h">
-      <Filter>Controls</Filter>
-    </ClInclude>
     <ClInclude Include="AutoFillComboBox.h">
-      <Filter>Controls</Filter>
-    </ClInclude>
-    <ClInclude Include="NumericEdit.h">
       <Filter>Controls</Filter>
     </ClInclude>
     <ClInclude Include="FloatEdit.h">
@@ -43,20 +40,8 @@
     <ClInclude Include="ListCtrlKeepHighlight.h">
       <Filter>Controls</Filter>
     </ClInclude>
-    <ClInclude Include="InPlaceDateTimeCtrl.h">
-      <Filter>Controls</Filter>
-    </ClInclude>
-    <ClInclude Include="MySpin.h">
-      <Filter>Controls</Filter>
-    </ClInclude>
     <ClInclude Include="WinMsg.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="InPlaceEdit.h">
-      <Filter>Controls</Filter>
-    </ClInclude>
-    <ClInclude Include="InPlaceList.h">
-      <Filter>Controls</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Source Files</Filter>
@@ -82,6 +67,27 @@
     <ClInclude Include="ListCtrlTestLvnItemChanged.h">
       <Filter>Temp</Filter>
     </ClInclude>
+    <ClInclude Include="InPlaceDateTimeCtrl.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="InPlaceEdit.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="InPlaceList.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="ListCtrlEx.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="MySpin.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="NumericEdit.h">
+      <Filter>Controls\ob</Filter>
+    </ClInclude>
+    <ClInclude Include="TabSubView3.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestUnicodeIO.cpp">
@@ -99,25 +105,7 @@
     <ClCompile Include="FloatEdit.cpp">
       <Filter>Controls</Filter>
     </ClCompile>
-    <ClCompile Include="NumericEdit.cpp">
-      <Filter>Controls</Filter>
-    </ClCompile>
     <ClCompile Include="ListCtrlKeepHighlight.cpp">
-      <Filter>Controls</Filter>
-    </ClCompile>
-    <ClCompile Include="InPlaceDateTimeCtrl.cpp">
-      <Filter>Controls</Filter>
-    </ClCompile>
-    <ClCompile Include="MySpin.cpp">
-      <Filter>Controls</Filter>
-    </ClCompile>
-    <ClCompile Include="ListCtrlEx.cpp">
-      <Filter>Controls</Filter>
-    </ClCompile>
-    <ClCompile Include="InPlaceEdit.cpp">
-      <Filter>Controls</Filter>
-    </ClCompile>
-    <ClCompile Include="InPlaceList.cpp">
       <Filter>Controls</Filter>
     </ClCompile>
     <ClCompile Include="TabSubView2.cpp">
@@ -128,6 +116,27 @@
     </ClCompile>
     <ClCompile Include="ListCtrlTestLvnItemChanged.cpp">
       <Filter>Temp</Filter>
+    </ClCompile>
+    <ClCompile Include="InPlaceDateTimeCtrl.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="InPlaceEdit.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="InPlaceList.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="ListCtrlEx.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="MySpin.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="NumericEdit.cpp">
+      <Filter>Controls\ob</Filter>
+    </ClCompile>
+    <ClCompile Include="TabSubView3.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
