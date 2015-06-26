@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Common\ViewMsg.h"
 #include "CmpReportGraphView.h"
 #include "CompareReportDoc.h"
 #include ".\compare\ComparativePlot.h"
@@ -67,38 +68,41 @@ void CCmpReportGraphView::OnInitialUpdate()
 
 void CCmpReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHint*/)
 {
-	if(!IsWindowVisible())
-		return;
-	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
- 	CCmpReportParameter* inputParam = pCompProj->GetInputParam();
-	CSingleReportsManager* pReportManager = inputParam->GetReportsManager();
-	m_comboReportList.ResetContent();
-	for(int i = 0; i < pReportManager->getCount(); i++)
-	{
-		CReportToCompare& report = pReportManager->getReport(i);
-		//if(report.GetChecked() == TRUE)
-		{
-			CString strRepName = report.GetName();
-			m_comboReportList.AddString(strRepName.MakeUpper());
-		}
-	}
+    if(!IsWindowVisible())
+        return;
+    if (lHint == AIRSIDEREPORT_SHOWREPORT)
+    {
+        CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
+        CCmpReportParameter* inputParam = pCompProj->GetInputParam();
+        CSingleReportsManager* pReportManager = inputParam->GetReportsManager();
+        m_comboReportList.ResetContent();
+        for(int i = 0; i < pReportManager->getCount(); i++)
+        {
+            CReportToCompare& report = pReportManager->getReport(i);
+            //if(report.GetChecked() == TRUE)
+            {
+                CString strRepName = report.GetName();
+                m_comboReportList.AddString(strRepName.MakeUpper());
+            }
+        }
 
-	UpdateRepSubTypeCombo();
-	CString strCurReport = m_pCmpReport->GetFocusReportName();
-	int nCurSel = m_comboReportList.SelectString(0, strCurReport);
-	if (nCurSel == LB_ERR)
-	{
-		// no report is selected, hide the chart.
-		m_3DChart.m_p3DChart->ShowWindow(SW_HIDE);
-		return;
-	}
+        UpdateRepSubTypeCombo();
+        CString strCurReport = m_pCmpReport->GetFocusReportName();
+        int nCurSel = m_comboReportList.SelectString(0, strCurReport);
+        if (nCurSel == LB_ERR)
+        {
+            // no report is selected, hide the chart.
+            m_3DChart.m_p3DChart->ShowWindow(SW_HIDE);
+            return;
+        }
 
-	nCurSel = m_comboRepSubType.GetCurSel();
-	if (nCurSel == LB_ERR)
-		return;
-	
-	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
-	Draw3DChartByReportName(strCurReport,nSubType);
+        nCurSel = m_comboRepSubType.GetCurSel();
+        if (nCurSel == LB_ERR)
+            return;
+
+        int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
+        Draw3DChartByReportName(strCurReport,nSubType);
+    }
 }
 
 void CCmpReportGraphView::OnSize(UINT nType, int cx, int cy)
@@ -165,7 +169,7 @@ void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 
 		Draw3DChartByReportName(strSelect,nSubType);
 		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-		pDoc->UpdateAllViews(this,0, (CObject*)nSubType);
+		pDoc->UpdateAllViews(this, VM_COMPARATIVEREPORT_DISLISTVIEW, (CObject*)nSubType);
 	}
 }
 
@@ -180,7 +184,7 @@ void CCmpReportGraphView::OnCbnSelchangeRepSubTypeCombo()
 	CString strFocusRep = m_pCmpReport->GetFocusReportName();
 	Draw3DChartByReportName(strFocusRep, nSubType);
 	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-	pDoc->UpdateAllViews(this,0, (CObject*)nSubType);
+	pDoc->UpdateAllViews(this, VM_COMPARATIVEREPORT_DISLISTVIEW, (CObject*)nSubType);
 }
 
 void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport,int nSubType)
@@ -395,6 +399,22 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
 				m_comboRepSubType.SetCurSel(0);			
 			}
 		}
-		break;
+        break;
+    case ENUM_UTILIZATION_REP:
+        {
+            if(pReport->GetParameter().GetReportDetail() == REPORT_TYPE_DETAIL)
+            {
+                m_comboRepSubType.AddString("Utilization(Detail)");
+                m_comboRepSubType.SetCurSel(0);
+            }
+            else
+            {
+                m_comboRepSubType.AddString("Utilization(Summary)");
+                m_comboRepSubType.SetCurSel(0);
+            }
+        }
+        break;
+    default:
+        break;
 	}
 }

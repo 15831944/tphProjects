@@ -4,14 +4,14 @@
 #include "Common\elaptime.h"
 #include <map>
 
-class CmpProcUtilizationData
+class CmpProcUtilizationDetailData
 {
 public:
-    CmpProcUtilizationData();
-    ~CmpProcUtilizationData();
+    CmpProcUtilizationDetailData();
+    ~CmpProcUtilizationDetailData();
 public:
     void ReadData(ArctermFile& file);
-    void WriteData(ArctermFile& file);
+    void WriteData(ArctermFile& file) const;
 public:
     CString m_strProc;
     ElapsedTime m_dScheduledTime;
@@ -19,10 +19,26 @@ public:
     ElapsedTime m_dActualTime;
     ElapsedTime m_dServiceTime;
     ElapsedTime m_dActualTime_m_dServiceTime;
+    float m_fUtilization;
 };
 
-//              <strSim, processor utilization list>
-typedef std::map<CString, std::vector<CmpProcUtilizationData>> mapProcUtilization;
+class CmpProcUtilizationSummaryData : public CmpProcUtilizationDetailData
+{
+public:
+    CmpProcUtilizationSummaryData();
+    ~CmpProcUtilizationSummaryData();
+public:
+    void ReadData(ArctermFile& file);
+    void WriteData(ArctermFile& file) const;
+public:
+    int m_nProcCount;
+};
+
+//              <strSim, vector<processor utilization data>>
+typedef std::map<CString, std::vector<CmpProcUtilizationDetailData>> mapProcUtilizationDetail;
+
+//              <strSim, vector<processor utilization data>>
+typedef std::map<CString, std::vector<CmpProcUtilizationSummaryData>> mapProcUtilizationSummary;
 
 class CComparativeProcUtilizationReport : public CCmpBaseReport
 {
@@ -34,6 +50,9 @@ public:
 	bool SaveReport(const std::string& _sPath)const;
 	bool LoadReport(const std::string& _sPath);
 	int  GetReportType() const { return ProcessorUtilizationReport; }
+
+    const mapProcUtilizationDetail& GetMapDetailResult() { return m_mapDetail; }
+    const mapProcUtilizationSummary& GetMapSummaryResult() { return m_mapSummary; }
 protected:
 	void MergeSampleDetail(const ElapsedTime& tInteval);
 	bool SaveReportDetail(ArctermFile& file) const;
@@ -42,6 +61,9 @@ protected:
 	void MergeSampleSummary(const ElapsedTime& tInteval);
 	bool SaveReportSummary(ArctermFile& file) const;
 	bool LoadReportSummary(ArctermFile& file);
-    mapProcUtilization m_mapProcUtilization;
+
+protected:
+    mapProcUtilizationDetail m_mapDetail;
+    mapProcUtilizationSummary m_mapSummary;
 };
 

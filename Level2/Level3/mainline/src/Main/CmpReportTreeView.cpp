@@ -16,6 +16,7 @@
 #include "..\common\elaptime.h"
 #include "..\common\SimAndReportManager.h"
 #include "..\common\EchoSystem.h"
+#include "Common\ViewMsg.h"
 
 
 static const UINT ID_RUN = 101;
@@ -165,14 +166,19 @@ void CCmpReportTreeView::OnInitialUpdate()
 	m_btnMulti.SetType(CCoolBtn::TY_CMPREPORTTREEVIEW);
 	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
 	m_pCmpReport = pDoc->GetCmpReport();
-	InitRootItems();
+    InitRootItems();
+	UpdateWholeTree();
 }
 
 void CCmpReportTreeView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
 	if(!IsWindowVisible())
 		return;
-	UpdateWholeTree();
+
+    if (lHint == VM_COMPARATIVEREPORT_SHOWREPORT)
+    {
+        UpdateWholeTree();
+    }
 }
 
 void CCmpReportTreeView::OnSize(UINT nType, int cx, int cy)
@@ -273,8 +279,7 @@ void CCmpReportTreeView::RunCompareReport()
 	((CCompRepLogBar*)pWnd)->DeleteLogText();
 	m_pCmpReport->Run(this->GetSafeHwnd(), (CCompRepLogBar*)pWnd,_ShowCopyInfo);
 	((CCompRepLogBar*)pWnd)->SetProgressPos(0);
-	GetDocument()->UpdateAllViews(this);
-
+	GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 }
 
 void CCmpReportTreeView::RemoveSubItems(HTREEITEM hItem)
@@ -588,7 +593,7 @@ void CCmpReportTreeView::DeleteReport()
 			ChangeFocusReport();
 		}
 		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-		pDoc->UpdateAllViews(this);
+        GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 	}
 
 	UpdateSubItems(m_hReportRoot);
@@ -736,7 +741,7 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				}
 
 				CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-				pDoc->UpdateAllViews(this);
+                GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 			}
 			break;
 		case CMP_REPORT_TN_MODEL:
@@ -775,8 +780,8 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 					CString strReport = pReport->GetName();
 					m_pCmpReport->SetFocusReportName(strReport);
 
-					CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-					pDoc->UpdateAllViews(this);
+                    CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+                    GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 				}
 				return 0;
 			}
@@ -968,7 +973,7 @@ void CCmpReportTreeView::LoadPara()
 			AfxMessageBox("Load Report Parameters Successfully",MB_OK|MB_ICONINFORMATION);
 			m_pCmpReport->GetComparativeProject()->GetInputParam()->LoadData(strProjectName,strProjectPath);
 			UpdateWholeTree();
-			GetDocument()->UpdateAllViews(this);
+			GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 		}
 		else
 		{
@@ -1043,8 +1048,8 @@ void CCmpReportTreeView::LoadReport()
 		{
 			AfxMessageBox("Load Report Successfully",MB_OK|MB_ICONINFORMATION);
 			m_pCmpReport->GetComparativeProject()->LoadData();
-			UpdateWholeTree();
-			GetDocument()->UpdateAllViews(this);
+            UpdateWholeTree();
+            GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 		}
 		else
 		{
@@ -1125,6 +1130,9 @@ void CCmpReportTreeView::ReloadReportDetailSubItems(const CReportToCompare &repo
 	case ENUM_SPACETHROUGHPUT_REP:
 		strTemp = s_szReportCategoryName[8];
 		break;
+    case ENUM_UTILIZATION_REP:
+        strTemp = s_szReportCategoryName[9];
+        break;
 	default:
 		return;
 		break;

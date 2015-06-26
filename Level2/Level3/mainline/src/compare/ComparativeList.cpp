@@ -9,6 +9,7 @@
 #include "../compare/ComparativeDistanceTravelReport.h"
 #include "../compare/ComparativeTimeTerminalReport.h"
 #include "../compare/ComparativSpaceThroughputReport.h"
+#include "../compare/ComparativeProcUtilizationReport.h"
 #include "../Engine/terminal.h"
 #include "../common/SimAndReportManager.h"
 #include "../compare/ComparativePaxCountReport.h"
@@ -839,9 +840,113 @@ void CComparativeList::RefreshData( CComparativSpaceThroughputReport& _reportDat
 	}
 }
 
-void CComparativeList::RefreshData( CComparativeProcUtilizationReport& _reportData )
+void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportData)
 {
+    ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
+    //clear old data
+    m_listCtrl.DeleteAllItems();
 
+    // Delete all of the columns.
+    int nColumnCount = m_listCtrl.GetHeaderCtrl()->GetItemCount();
+    for (int i=0;i < nColumnCount;i++)
+    {
+        m_listCtrl.DeleteColumn(0);
+    }
+
+    m_listCtrl.InsertColumn(0 , _T(""), LVCFMT_CENTER, 10);
+    m_pListCtrlHeader->SetDataType(0, dtINT);
+    m_listCtrl.InsertColumn(1 , _T("Model.Run"), LVCFMT_CENTER, 120);
+    m_pListCtrlHeader->SetDataType(0, dtSTRING);
+    m_listCtrl.InsertColumn(2 , _T("Processor"), LVCFMT_CENTER, 120);
+    m_pListCtrlHeader->SetDataType(0, dtSTRING);
+    m_listCtrl.InsertColumn(3 , _T("Scheduled"), LVCFMT_CENTER, 65);
+    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_listCtrl.InsertColumn(4 , _T("Overtime"), LVCFMT_CENTER, 65);
+    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_listCtrl.InsertColumn(5 , _T("Actual"), LVCFMT_CENTER, 60);
+    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_listCtrl.InsertColumn(6 , _T("Service"), LVCFMT_CENTER, 60);
+    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_listCtrl.InsertColumn(7 , _T("Idle"), LVCFMT_CENTER, 60);
+    m_pListCtrlHeader->SetDataType(0, dtTIME);
+    m_listCtrl.InsertColumn(8 , _T("Utilization(%)"), LVCFMT_CENTER, 85);
+    m_pListCtrlHeader->SetDataType(0, dtDEC);
+
+    if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
+    {
+        int nLine = 0;
+        const mapProcUtilizationDetail& mapDetail = _reportData.GetMapDetailResult();
+        std::vector<CString>& vSimName = _reportData.GetSimNameList();
+        std::vector<CString>::const_iterator simNameItor = vSimName.begin();
+        for(; simNameItor != vSimName.end(); ++simNameItor)
+        {
+            const std::vector<CmpProcUtilizationDetailData>& vDetailData = mapDetail.at(*simNameItor);
+            std::vector<CmpProcUtilizationDetailData>::const_iterator dataItor = vDetailData.begin();
+            for(; dataItor != vDetailData.end(); ++dataItor)
+            {
+                CString strSubItem;
+                strSubItem.Format(_T("%d"), nLine+1);
+                m_listCtrl.InsertItem(nLine, strSubItem);
+                strSubItem = *simNameItor;
+                m_listCtrl.SetItemText(nLine, 1, strSubItem);
+                strSubItem = dataItor->m_strProc;
+                m_listCtrl.SetItemText(nLine, 2, strSubItem);
+                strSubItem = dataItor->m_dScheduledTime.printTime();
+                m_listCtrl.SetItemText(nLine, 3, strSubItem);
+                strSubItem = dataItor->m_dOverTime.printTime();
+                m_listCtrl.SetItemText(nLine, 4, strSubItem);
+                strSubItem = dataItor->m_dActualTime.printTime();
+                m_listCtrl.SetItemText(nLine, 5, strSubItem);
+                strSubItem = dataItor->m_dServiceTime.printTime();
+                m_listCtrl.SetItemText(nLine, 6, strSubItem);
+                strSubItem = dataItor->m_dActualTime_m_dServiceTime.printTime();
+                m_listCtrl.SetItemText(nLine, 7, strSubItem);
+                strSubItem.Format(_T("%.2f"), dataItor->m_fUtilization);
+                m_listCtrl.SetItemText(nLine, 8, strSubItem);
+                nLine++;
+            }
+        }
+    }
+    else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
+    {
+        m_listCtrl.InsertColumn(3, _T("Group Size"), LVCFMT_CENTER, 70);
+        m_pListCtrlHeader->SetDataType(0, dtINT);
+
+        int nLine = 0;
+        const mapProcUtilizationSummary& mapSummary = _reportData.GetMapSummaryResult();
+        std::vector<CString>& vSimName = _reportData.GetSimNameList();
+        std::vector<CString>::const_iterator simNameItor = vSimName.begin();
+        for(; simNameItor != vSimName.end(); ++simNameItor)
+        {
+            const std::vector<CmpProcUtilizationSummaryData>& vSummaryData = mapSummary.at(*simNameItor);
+            std::vector<CmpProcUtilizationSummaryData>::const_iterator dataItor = vSummaryData.begin();
+            for(; dataItor != vSummaryData.end(); ++dataItor)
+            {
+                CString strSubItem;
+                strSubItem.Format(_T("%d"), nLine+1);
+                m_listCtrl.InsertItem(nLine, strSubItem);
+                strSubItem = *simNameItor;
+                m_listCtrl.SetItemText(nLine, 1, strSubItem);
+                strSubItem = dataItor->m_strProc;
+                m_listCtrl.SetItemText(nLine, 2, strSubItem);
+                strSubItem.Format(_T("%d"), dataItor->m_nProcCount);
+                m_listCtrl.SetItemText(nLine, 3, strSubItem);
+                strSubItem = dataItor->m_dScheduledTime.printTime();
+                m_listCtrl.SetItemText(nLine, 4, strSubItem);
+                strSubItem = dataItor->m_dOverTime.printTime();
+                m_listCtrl.SetItemText(nLine, 5, strSubItem);
+                strSubItem = dataItor->m_dActualTime.printTime();
+                m_listCtrl.SetItemText(nLine, 6, strSubItem);
+                strSubItem = dataItor->m_dServiceTime.printTime();
+                m_listCtrl.SetItemText(nLine, 7, strSubItem);
+                strSubItem = dataItor->m_dActualTime_m_dServiceTime.printTime();
+                m_listCtrl.SetItemText(nLine, 8, strSubItem);
+                strSubItem.Format(_T("%.2f"), dataItor->m_fUtilization);
+                m_listCtrl.SetItemText(nLine, 9, strSubItem);
+                nLine++;
+            }
+        }
+    }
 }
 
 

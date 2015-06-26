@@ -13,6 +13,7 @@
 #include "../compare/ModelToCompare.h"
 #include "../compare/ModelsManager.h"
 #include "Main/RepGraphViewBaseOperator.h"
+#include "ComparativeProcUtilizationReport.h"
 
 static const OLE_COLOR UniqueColors[] =
 {
@@ -1074,8 +1075,66 @@ bool CComparativePlot::Draw3DChart( CComparativSpaceThroughputReport& _reportDat
 	return true;
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport & _reportData)
+bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport& _reportData)
 {
+    C2DChartData c2dGraphData;
+    // Update Title
+    c2dGraphData.m_strChartTitle = _T(" Utilization Time(Summary) ");
+    c2dGraphData.m_strYtitle = _T("Utilization Time(Hours)");
+    c2dGraphData.m_strXtitle = _T("Processor");
+
+    //set footer
+    CString strFooter;
+    c2dGraphData.m_strFooter = strFooter;
+
+    // Insert legend.
+    c2dGraphData.m_vrLegend.push_back(_T("Time in Service"));
+    c2dGraphData.m_vrLegend.push_back(_T("Idle Time"));
+
+    // Insert data
+    CString strXTick;
+    std::vector<CString> vStrXTick;
+    c2dGraphData.m_vr2DChartData.resize(2);
+
+    if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
+    {
+        const mapProcUtilizationDetail& mapDetail = _reportData.GetMapDetailResult();
+        std::vector<CString>& vSimName = _reportData.GetSimNameList();
+        std::vector<CString>::const_iterator simNameItor = vSimName.begin();
+        for(; simNameItor != vSimName.end(); ++simNameItor)
+        {
+            const std::vector<CmpProcUtilizationDetailData>& vDetailData = mapDetail.at(*simNameItor);
+            std::vector<CmpProcUtilizationDetailData>::const_iterator dataItor = vDetailData.begin();
+            for(; dataItor != vDetailData.end(); ++dataItor)
+            {
+                strXTick = *simNameItor + _T(".") + dataItor->m_strProc;
+                vStrXTick.push_back(strXTick);
+                c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
+                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dActualTime_m_dServiceTime/3600.0f));
+            }
+        }
+    }
+    else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
+    {
+        const mapProcUtilizationSummary& mapSummary = _reportData.GetMapSummaryResult();
+        std::vector<CString>& vSimName = _reportData.GetSimNameList();
+        std::vector<CString>::const_iterator simNameItor = vSimName.begin();
+        for(; simNameItor != vSimName.end(); ++simNameItor)
+        {
+            const std::vector<CmpProcUtilizationSummaryData>& vSummaryData = mapSummary.at(*simNameItor);
+            std::vector<CmpProcUtilizationSummaryData>::const_iterator dataItor = vSummaryData.begin();
+            for(; dataItor != vSummaryData.end(); ++dataItor)
+            {
+                strXTick = *simNameItor + _T(".") + dataItor->m_strProc;
+                vStrXTick.push_back(strXTick);
+                c2dGraphData.m_vr2DChartData[0].push_back(((double)dataItor->m_dServiceTime/3600.0f));
+                c2dGraphData.m_vr2DChartData[1].push_back(((double)dataItor->m_dActualTime_m_dServiceTime/3600.0f));
+            }
+        }
+    }
+
+    c2dGraphData.m_vrXTickTitle = vStrXTick;
+    m_3DChart.DrawChart(c2dGraphData);
     return true;
 }
 

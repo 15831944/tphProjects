@@ -4,6 +4,7 @@
 #include ".\compare\ComparativeList.h"
 #include "CmpReportTreeView.h"
 #include "CmpReportGraphView.h"
+#include "Common\ViewMsg.h"
 
 #define IDC_CMPREPORT_LISTCTRL		0x01
 #define MENU_MAXIMIZE				0x101
@@ -72,29 +73,31 @@ void CCmpReportListView::OnSize(UINT nType, int cx, int cy)
 }
 void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 {
-	if(!IsWindowVisible())
-		return;
+    if(!IsWindowVisible())
+        return;
+    if(lHint == VM_COMPARATIVEREPORT_DISLISTVIEW || lHint == AIRSIDEREPORT_SHOWREPORT)
+    {
+        int iSubType = (int)pHint;
+        CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
+        const CCmpReportManager &crrList = pCompProj->GetCompReportResultList();
+        const CmpReportResultVector& vReport = crrList.GetReportResult();
 
-	int iSubType = (int)pHint;
-	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
-	const CCmpReportManager &crrList = pCompProj->GetCompReportResultList();
-	const CmpReportResultVector& vReport = crrList.GetReportResult();
+        CString strFocusReport = m_pCmpReport->GetFocusReportName();
+        CComparativeList cmpList(m_pCmpReport->GetTerminal(), m_wndListCtrl, &m_ctlHeaderCtrl);
+        for(int i = 0; i < static_cast<int>(vReport.size()); i++)
+        {
+            CString reportName = vReport[i]->GetCmpReportName();
+            if(reportName.CompareNoCase(strFocusReport) == 0)
+            {
+                m_wndListCtrl.ShowWindow(SW_SHOW);
+                cmpList.RefreshData(*vReport[i],iSubType);
+                return;
+            }
+        }
 
-	CString strFocusReport = m_pCmpReport->GetFocusReportName();
-	CComparativeList cmpList(m_pCmpReport->GetTerminal(), m_wndListCtrl, &m_ctlHeaderCtrl);
-	for(int i = 0; i < static_cast<int>(vReport.size()); i++)
-	{
-		CString reportName = vReport[i]->GetCmpReportName();
-		if(reportName.CompareNoCase(strFocusReport) == 0)
-		{
-			m_wndListCtrl.ShowWindow(SW_SHOW);
-			cmpList.RefreshData(*vReport[i],iSubType);
-			return;
-		}
-	}
-
-	// no data to show, hide the list control
-	m_wndListCtrl.ShowWindow(SW_HIDE);
+        // no data to show, hide the list control
+        m_wndListCtrl.ShowWindow(SW_HIDE);
+    }
 }
 int CCmpReportListView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
