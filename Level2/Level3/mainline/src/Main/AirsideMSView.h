@@ -259,6 +259,8 @@ protected:
 	void UpdatePopMenu(CCmdTarget* pThis, CMenu* pPopMenu);
 	HTREEITEM FindAirportObjRootByType(ALTOBJECT_TYPE altType);
 	HTREEITEM FindAirspaceObjRootByType(ALTOBJECT_TYPE altType);
+	HTREEITEM FindAirrouteRoot();
+	HTREEITEM FindAirrouteItem(HTREEITEM hItem, int nObjID);
 	HTREEITEM FindTopographyObjRootByType(ALTOBJECT_TYPE altType);
 
 	HTREEITEM FindObjectRootByType(ALTOBJECT_TYPE altType);

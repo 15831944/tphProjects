@@ -5,6 +5,7 @@
 #include "../InputAirside/ALTObject.h"
 #include "../InputAirside/AirWayPoint.h"
 #include "MFCExControl/FloarEdit.h"
+#include "MFCExControl/FloatEdit.h"
 
 class ARWaypoint;
 class CDlgAirRouteWayPointDefine : public CDialog
@@ -33,7 +34,11 @@ public:
 	CFloarEdit m_edtMinSpeed;
 	CFloarEdit m_edtMaxSpeed;
 	CFloarEdit m_edtMinHeight;
-	CFloarEdit m_edtMaxHeight;
+    CFloarEdit m_edtMaxHeight;
+    CFloatEdit m_editAltitude;
+    CFloatEdit m_editOnTrack;
+    CFloatEdit m_editTrackToNext;
+    CFloatEdit m_editInterceptAngle;
 	CComboBox m_cmbHeadingChoice;
 	CEdit m_edtDegrees;
 	CFloarEdit m_edtVisDistance;
@@ -67,4 +72,23 @@ public:
 	afx_msg void OnBnClickedRadioheading();
 	afx_msg void OnBnClickedRadionextwaypoint();
 
+    afx_msg void OnBnClickedRadioAltitude();
+    afx_msg void OnBnClickedRadioWaypoint();
+    afx_msg void OnBnClickedRadioToNextAltitude();
+private:
+    void ShowWaypointControls(BOOL bShow=TRUE);
+    void ShowAltitudeControls(BOOL bShow=TRUE);
+    void SpinChangeEditboxValue(CEdit* pEdit, LPNMUPDOWN pNMUpDown);
+    void EnableLevel1(BOOL bEnable=TRUE);
+    void EnableLevel2(BOOL bEnable=TRUE);
+    void EnableLevel3(BOOL bEnable=TRUE);
+    void SetAllSpinControlRange();
+public:
+    afx_msg void OnDeltaposSpinInterceptangle(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDeltaposSpinTracktonextwp(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDeltaposSpinAltitude(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnDeltaposSpinOntrack(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnBnClickedRadioToNextWaypoint();
+    afx_msg void OnBnClickedRadioDirect();
+    afx_msg void OnBnClickedRadioInterceptTrack();
 };

@@ -37,12 +37,12 @@ ARWaypoint::ARWaypoint(int nID)
 	m_nSequenceNum = 0;
 
     m_nWaypointType = ARWayPoint_AirWayPoint;
-    m_fAltitude = -1;
-    m_fAngle = -1;
+    m_fAltitude = 500.0f;
+    m_fOnTrack = 0.0f;
     m_toNextPtType = ToNextWaitPoint;
     m_directTpye = DirectType_Direct;
-    m_inboundTrackAngle = -1;
-    m_interceptAngle = -1;
+    m_inboundTrackAngle = 0.0f;
+    m_interceptAngle = 30.0f;
 }
 ARWaypoint::ARWaypoint( const ARWaypoint& leftWayPt)
 {
@@ -62,7 +62,7 @@ ARWaypoint::ARWaypoint( const ARWaypoint& leftWayPt)
 
     m_nWaypointType = leftWayPt.m_nWaypointType;
     m_fAltitude = leftWayPt.m_fAltitude;
-    m_fAngle = leftWayPt.m_fAngle;
+    m_fOnTrack = leftWayPt.m_fOnTrack;
     m_toNextPtType = leftWayPt.m_toNextPtType;
     m_directTpye = leftWayPt.m_directTpye;
     m_inboundTrackAngle = leftWayPt.m_inboundTrackAngle;
@@ -167,7 +167,7 @@ void ARWaypoint::UpdateData()
  WHERE ID = %d"),
  m_wayPoint.getID(),m_lMinSpeed,m_lMaxSpeed,m_lMinHeight,m_lMaxHeight,m_DepartType,
  m_lDegree,m_HeadingType, m_lVisDistance,m_nSequenceNum, int(m_nWaypointType), m_fAltitude, 
- m_fAngle, int(m_toNextPtType), int(m_directTpye), m_inboundTrackAngle, m_interceptAngle, m_nID);
+ m_fOnTrack, int(m_toNextPtType), int(m_directTpye), m_inboundTrackAngle, m_interceptAngle, m_nID);
 	CADODatabase::ExecuteSQLStatement(strSQL);
 }
 
@@ -187,7 +187,7 @@ void ARWaypoint::SaveData(int nAirRouteID)
  VALUES (%d,%d,%f,%f,%f,%f,%d,%d,%d,%f,%d,%d,%f,%f,%d,%d,%f,%f)"),
  m_wayPoint.getID(),nAirRouteID,m_lMinSpeed,m_lMaxSpeed,m_lMinHeight,m_lMaxHeight,
  int(m_DepartType),m_lDegree,int(m_HeadingType),m_lVisDistance,m_nSequenceNum,int(m_nWaypointType), m_fAltitude, 
- m_fAngle, int(m_toNextPtType), int(m_directTpye), m_inboundTrackAngle, m_interceptAngle, m_nID);
+ m_fOnTrack, int(m_toNextPtType), int(m_directTpye), m_inboundTrackAngle, m_interceptAngle, m_nID);
 
 	m_nID = CADODatabase::ExecuteSQLStatementAndReturnScopeID(strSQL);
 }
@@ -210,7 +210,7 @@ ARWaypoint& ARWaypoint::operator=( const ARWaypoint& leftWayPt )
 
      m_nWaypointType = leftWayPt.m_nWaypointType;
      m_fAltitude = leftWayPt.m_fAltitude;
-     m_fAngle = leftWayPt.m_fAngle;
+     m_fOnTrack = leftWayPt.m_fOnTrack;
      m_toNextPtType = leftWayPt.m_toNextPtType;
      m_directTpye = leftWayPt.m_directTpye;
      m_inboundTrackAngle = leftWayPt.m_inboundTrackAngle;

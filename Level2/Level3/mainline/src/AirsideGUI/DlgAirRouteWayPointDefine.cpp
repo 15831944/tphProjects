@@ -9,7 +9,8 @@
 #include "../InputAirside/AirRoute.h"
 //#include <Common/ARCConsole.h>
 
-// CDlgAirRouteWayPointDefine dialog
+const static short iAngleMax = 360;
+const static short iAngleMin = 0;
 
 IMPLEMENT_DYNAMIC(CDlgAirRouteWayPointDefine, CDialog)
 CDlgAirRouteWayPointDefine::CDlgAirRouteWayPointDefine(ARWaypoint* pARWayPoint,std::vector<AirWayPoint>& vWaypoint, bool bStar, CWnd* pParent /*=NULL*/)
@@ -33,24 +34,28 @@ CDlgAirRouteWayPointDefine::~CDlgAirRouteWayPointDefine()
 
 void CDlgAirRouteWayPointDefine::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_COMBO_WAYPOINT, m_cmbWayPoint);
-	DDX_Control(pDX, IDC_EDIT_MINSPEED, m_edtMinSpeed);
-	DDX_Control(pDX, IDC_EDIT_MAXSPEED, m_edtMaxSpeed);
-	DDX_Control(pDX, IDC_EDIT_MINHEIGHT, m_edtMinHeight);
-	DDX_Control(pDX, IDC_EDIT_HEIGHT, m_edtMaxHeight);
-	DDX_Control(pDX, IDC_EDITDEGREES,m_edtDegrees);
-	DDX_Control(pDX, IDC_EDITVISDISTANCE, m_edtVisDistance);
-	DDX_Text(pDX, IDC_EDIT_MINSPEED, m_lMinSpeed);
-	DDX_Text(pDX, IDC_EDIT_MAXSPEED, m_lMaxSpeed);
-	DDX_Text(pDX, IDC_EDIT_MINHEIGHT, m_lMinHeight);
-	DDX_Text(pDX, IDC_EDIT_HEIGHT, m_lMaxHeight);
-	DDX_Text(pDX, IDC_EDITDEGREES, m_lDegrees);
-	DDX_Text(pDX, IDC_EDITVISDISTANCE, m_lVisDistance);
+    CDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_COMBO_WAYPOINT, m_cmbWayPoint);
+    DDX_Control(pDX, IDC_EDIT_MINSPEED, m_edtMinSpeed);
+    DDX_Control(pDX, IDC_EDIT_MAXSPEED, m_edtMaxSpeed);
+    DDX_Control(pDX, IDC_EDIT_MINHEIGHT, m_edtMinHeight);
+    DDX_Control(pDX, IDC_EDIT_HEIGHT, m_edtMaxHeight);
+    DDX_Control(pDX, IDC_EDITDEGREES,m_edtDegrees);
+    DDX_Control(pDX, IDC_EDITVISDISTANCE, m_edtVisDistance);
+    DDX_Text(pDX, IDC_EDIT_MINSPEED, m_lMinSpeed);
+    DDX_Text(pDX, IDC_EDIT_MAXSPEED, m_lMaxSpeed);
+    DDX_Text(pDX, IDC_EDIT_MINHEIGHT, m_lMinHeight);
+    DDX_Text(pDX, IDC_EDIT_HEIGHT, m_lMaxHeight);
+    DDX_Text(pDX, IDC_EDITDEGREES, m_lDegrees);
+    DDX_Text(pDX, IDC_EDITVISDISTANCE, m_lVisDistance);
 
 
-	DDX_Control(pDX, IDC_COMBOHEADINGCHOICE, m_cmbHeadingChoice);
-	DDX_Control(pDX, IDC_SPIN_DEGREES, m_spinDegrees);
+    DDX_Control(pDX, IDC_COMBOHEADINGCHOICE, m_cmbHeadingChoice);
+    DDX_Control(pDX, IDC_SPIN_DEGREES, m_spinDegrees);
+    DDX_Control(pDX, IDC_EDIT_ALTITUDE, m_editAltitude);
+    DDX_Control(pDX, IDC_EDIT_ONTRACK, m_editOnTrack);
+    DDX_Control(pDX, IDC_EDIT_TRACKTONEXTWP, m_editTrackToNext);
+    DDX_Control(pDX, IDC_EDIT_INTERCEPTANGLE, m_editInterceptAngle);
 }
 
 
@@ -70,6 +75,16 @@ BEGIN_MESSAGE_MAP(CDlgAirRouteWayPointDefine, CDialog)
 	ON_CBN_SELCHANGE(IDC_COMBO_WAYPOINT, OnCbnSelchangeComboWaypoint)
 	ON_BN_CLICKED(IDC_RADIOHEADING, OnBnClickedRadioheading)
 	ON_BN_CLICKED(IDC_RADIONEXTWAYPOINT, OnBnClickedRadionextwaypoint)
+    ON_BN_CLICKED(IDC_RADIO_ALTITUDE, &CDlgAirRouteWayPointDefine::OnBnClickedRadioAltitude)
+    ON_BN_CLICKED(IDC_RADIO_WAYPOINT, &CDlgAirRouteWayPointDefine::OnBnClickedRadioWaypoint)
+    ON_BN_CLICKED(IDC_RADIO_TO_NEXT_ALTITUDE, &CDlgAirRouteWayPointDefine::OnBnClickedRadioToNextAltitude)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_INTERCEPTANGLE, &CDlgAirRouteWayPointDefine::OnDeltaposSpinInterceptangle)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_TRACKTONEXTWP, &CDlgAirRouteWayPointDefine::OnDeltaposSpinTracktonextwp)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_ALTITUDE, &CDlgAirRouteWayPointDefine::OnDeltaposSpinAltitude)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_ONTRACK, &CDlgAirRouteWayPointDefine::OnDeltaposSpinOntrack)
+    ON_BN_CLICKED(IDC_RADIO_TONEXTWAYPOINT, &CDlgAirRouteWayPointDefine::OnBnClickedRadioToNextWaypoint)
+    ON_BN_CLICKED(IDC_RADIO_DIRECT, &CDlgAirRouteWayPointDefine::OnBnClickedRadioDirect)
+    ON_BN_CLICKED(IDC_RADIO_INTERCEPTTRACK, &CDlgAirRouteWayPointDefine::OnBnClickedRadioInterceptTrack)
 END_MESSAGE_MAP()
 
 
@@ -215,40 +230,34 @@ BOOL CDlgAirRouteWayPointDefine::OnInitDialog()
 		GetDlgItem(IDC_EDIT_HEIGHT)->SetWindowText(strTitle);
 	}	
 
-	m_spinDegrees.SetRange(0,359);
 
-	ARWaypoint::DepartType Departtype = m_pARWayPoint->getDepartType();
-	if (Departtype == ARWaypoint::NextWaypoint)
-	{
-		((CButton *)GetDlgItem(IDC_RADIONEXTWAYPOINT))->SetCheck(TRUE);
-		OnBnClickedRadionextwaypoint();
-	}
-	else
-	{
-		((CButton *)GetDlgItem(IDC_RADIOHEADING))->EnableWindow(TRUE);
-		((CButton *)GetDlgItem(IDC_RADIOHEADING))->SetCheck(TRUE);
-		m_lDegrees = m_pARWayPoint->getDegrees();
-		m_lVisDistance = m_pARWayPoint->getVisDistance();
-		if(pParentWnd)
-			m_lVisDistance = CARCLengthUnit::ConvertLength(DEFAULT_DATABASE_LENGTH_UNIT,pParentWnd->CUnitPiece::GetCurSelLengthUnit(),(double)m_lVisDistance);
-		CString strTitle = _T("");
-		strTitle.Format(_T("%.2f"),m_lVisDistance);
-		GetDlgItem(IDC_EDITVISDISTANCE)->SetWindowText(strTitle);
+    m_editAltitude.SetPrecision(2);
+    m_editOnTrack.SetPrecision(2);
+    m_editTrackToNext.SetPrecision(2);
+    m_editInterceptAngle.SetPrecision(2);
+    SetAllSpinControlRange();
 
-		m_spinDegrees.SetRange(0,359);
-		m_spinDegrees.SetPos(m_lDegrees);
+    if(m_pARWayPoint->GetWaypointType() == ARWaypoint::ARWayPoint_AirWayPoint)
+    {
+        ((CButton *)GetDlgItem(IDC_RADIO_WAYPOINT))->SetCheck(TRUE);
+        OnBnClickedRadioWaypoint();
+    }
+    else // AirWayPoint::ARWayPoint_Altitude
+    {
+        ((CButton *)GetDlgItem(IDC_RADIO_ALTITUDE))->SetCheck(TRUE);
+        OnBnClickedRadioAltitude();
+    }
 
-		if (m_pARWayPoint->getHeadingType() == ARWaypoint::Direct )
-		{
-			m_cmbHeadingChoice.SetCurSel(0);
-		}
-		else
-		{
-			m_cmbHeadingChoice.SetCurSel(1);
-		}
-		OnBnClickedRadioheading();
-	}
-
+    // initialize EditBox values from m_pARWayPoint
+    CString strTemp;
+    strTemp.Format(_T("%.2f"), m_pARWayPoint->GetAltitude());
+    GetDlgItem(IDC_EDIT_ALTITUDE)->SetWindowText(strTemp);
+    strTemp.Format(_T("%.2f"), m_pARWayPoint->GetOnTrack());
+    GetDlgItem(IDC_EDIT_ONTRACK)->SetWindowText(strTemp);
+    strTemp.Format(_T("%.2f"), m_pARWayPoint->GetInboundTrackAngle());
+    GetDlgItem(IDC_EDIT_TRACKTONEXTWP)->SetWindowText(strTemp);
+    strTemp.Format(_T("%.2f"), m_pARWayPoint->GetInterceptAngle());
+    GetDlgItem(IDC_EDIT_INTERCEPTANGLE)->SetWindowText(strTemp);
 	UpdateData(TRUE);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -486,4 +495,235 @@ void CDlgAirRouteWayPointDefine::OnBnClickedRadionextwaypoint()
 	GetDlgItem(IDC_STATICDEGREE)->EnableWindow(FALSE);
 	GetDlgItem(IDC_STATICVISUAL)->EnableWindow(FALSE);
 }
+
+void CDlgAirRouteWayPointDefine::OnBnClickedRadioWaypoint()
+{
+    EnableLevel1(FALSE);
+    GetDlgItem(IDC_COMBO_WAYPOINT)->EnableWindow(TRUE);
+    ShowWaypointControls(TRUE);
+    ShowAltitudeControls(FALSE);
+
+    m_spinDegrees.SetRange(0,359);
+
+    ARWaypoint::DepartType Departtype = m_pARWayPoint->getDepartType();
+    if (Departtype == ARWaypoint::NextWaypoint)
+    {
+        OnBnClickedRadionextwaypoint();
+    }
+    else
+    {
+        ((CButton *)GetDlgItem(IDC_RADIOHEADING))->EnableWindow(TRUE);
+        ((CButton *)GetDlgItem(IDC_RADIOHEADING))->SetCheck(TRUE);
+        m_lDegrees = m_pARWayPoint->getDegrees();
+        m_lVisDistance = m_pARWayPoint->getVisDistance();
+        AirsideGUI::CDlgAirRoute* pParentWnd = (AirsideGUI::CDlgAirRoute*)GetParent();
+        if(pParentWnd)
+            m_lVisDistance = CARCLengthUnit::ConvertLength(DEFAULT_DATABASE_LENGTH_UNIT,pParentWnd->CUnitPiece::GetCurSelLengthUnit(),(double)m_lVisDistance);
+        CString strTitle = _T("");
+        strTitle.Format(_T("%.2f"),m_lVisDistance);
+        GetDlgItem(IDC_EDITVISDISTANCE)->SetWindowText(strTitle);
+
+        m_spinDegrees.SetRange(0,359);
+        m_spinDegrees.SetPos(m_lDegrees);
+
+        if (m_pARWayPoint->getHeadingType() == ARWaypoint::Direct )
+        {
+            m_cmbHeadingChoice.SetCurSel(0);
+        }
+        else
+        {
+            m_cmbHeadingChoice.SetCurSel(1);
+        }
+        OnBnClickedRadioheading();
+    }
+}
+
+
+void CDlgAirRouteWayPointDefine::SpinChangeEditboxValue(CEdit* pEdit, LPNMUPDOWN pNMUpDown)
+{
+    CString strValue;
+    pEdit->GetWindowText(strValue);
+    float fInput = (float)atof(strValue);
+    if(pNMUpDown->iDelta > 0 && fInput < iAngleMax - 1)
+    {
+        fInput += 1;
+    }
+    else if(pNMUpDown->iDelta < 0 && fInput >= iAngleMin+1)
+    {
+        fInput -= 1;
+    }
+    strValue.Format(_T("%.2f"), fInput);
+    pEdit->SetWindowText(strValue);
+}
+
+void CDlgAirRouteWayPointDefine::OnBnClickedRadioAltitude()
+{
+    EnableLevel1(FALSE);
+    GetDlgItem(IDC_EDIT_ALTITUDE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_SPIN_ALTITUDE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_ONTRACK)->EnableWindow(TRUE);
+    GetDlgItem(IDC_EDIT_ONTRACK)->EnableWindow(TRUE);
+    GetDlgItem(IDC_SPIN_ONTRACK)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_ANGLE)->EnableWindow(TRUE);
+    ShowWaypointControls(FALSE);
+    ShowAltitudeControls(TRUE);
+    if(m_pARWayPoint->GetNextPtType() == ARWaypoint::ToNextWaitPoint)
+    {
+        ((CButton *)GetDlgItem(IDC_RADIO_TONEXTWAYPOINT))->SetCheck(TRUE);
+        ((CButton *)GetDlgItem(IDC_RADIO_TO_NEXT_ALTITUDE))->SetCheck(FALSE);
+        OnBnClickedRadioToNextWaypoint();
+    }
+    else // ARWaypoint::ToNextAltitude
+    {
+        ((CButton *)GetDlgItem(IDC_RADIO_TONEXTWAYPOINT))->SetCheck(FALSE);
+        ((CButton *)GetDlgItem(IDC_RADIO_TO_NEXT_ALTITUDE))->SetCheck(TRUE);
+        OnBnClickedRadioToNextAltitude();
+    }
+}
+
+void CDlgAirRouteWayPointDefine::OnBnClickedRadioToNextWaypoint()
+{
+    EnableLevel2(FALSE);
+    GetDlgItem(IDC_RADIO_DIRECT)->EnableWindow(TRUE);
+    GetDlgItem(IDC_RADIO_INTERCEPTTRACK)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP)->EnableWindow(TRUE);
+    GetDlgItem(IDC_EDIT_TRACKTONEXTWP)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP2)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_EDIT_INTERCEPTANGLE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE2)->EnableWindow(TRUE);
+    if(m_pARWayPoint->GetDirectTpye() == ARWaypoint::DirectType_Direct)
+    {
+        ((CButton *)GetDlgItem(IDC_RADIO_DIRECT))->SetCheck(TRUE);
+        ((CButton *)GetDlgItem(IDC_RADIO_INTERCEPTTRACK))->SetCheck(FALSE);
+        OnBnClickedRadioDirect();
+    }
+    else // ARWaypoint::InterceptTrack
+    {
+        ((CButton *)GetDlgItem(IDC_RADIO_DIRECT))->SetCheck(FALSE);
+        ((CButton *)GetDlgItem(IDC_RADIO_INTERCEPTTRACK))->SetCheck(TRUE);
+        OnBnClickedRadioInterceptTrack();
+    }
+}
+
+void CDlgAirRouteWayPointDefine::OnBnClickedRadioToNextAltitude()
+{
+    EnableLevel2(FALSE);
+}
+
+void CDlgAirRouteWayPointDefine::OnBnClickedRadioDirect()
+{
+    EnableLevel3(FALSE);
+}
+
+void CDlgAirRouteWayPointDefine::OnBnClickedRadioInterceptTrack()
+{
+    EnableLevel3(FALSE);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP)->EnableWindow(TRUE);
+    GetDlgItem(IDC_EDIT_TRACKTONEXTWP)->EnableWindow(TRUE);
+    GetDlgItem(IDC_SPIN_TRACKTONEXTWP)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP2)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_EDIT_INTERCEPTANGLE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_SPIN_INTERCEPTANGLE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE2)->EnableWindow(TRUE);
+}
+
+void CDlgAirRouteWayPointDefine::OnDeltaposSpinAltitude(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+    SpinChangeEditboxValue(&m_editAltitude, pNMUpDown);
+    *pResult = 0;
+}
+
+void CDlgAirRouteWayPointDefine::OnDeltaposSpinOntrack(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+    SpinChangeEditboxValue(&m_editOnTrack, pNMUpDown);
+    *pResult = 0;
+}
+
+void CDlgAirRouteWayPointDefine::OnDeltaposSpinInterceptangle(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+    SpinChangeEditboxValue(&m_editInterceptAngle, pNMUpDown);
+    *pResult = 0;
+}
+
+
+void CDlgAirRouteWayPointDefine::OnDeltaposSpinTracktonextwp(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+    SpinChangeEditboxValue(&m_editTrackToNext, pNMUpDown);
+    *pResult = 0;
+}
+
+void CDlgAirRouteWayPointDefine::ShowWaypointControls(BOOL bEnable)
+{
+    GetDlgItem(IDC_STATIC_DEPARTFOR)->ShowWindow(bEnable);
+    GetDlgItem(IDC_RADIONEXTWAYPOINT)->ShowWindow(bEnable);
+    GetDlgItem(IDC_RADIOHEADING)->ShowWindow(bEnable);
+    GetDlgItem(IDC_EDITDEGREES)->ShowWindow(bEnable);
+    GetDlgItem(IDC_SPIN_DEGREES)->ShowWindow(bEnable);
+    GetDlgItem(IDC_STATICDEGREE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_COMBOHEADINGCHOICE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_EDITVISDISTANCE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_STATICVISUAL)->ShowWindow(bEnable);
+}
+
+void CDlgAirRouteWayPointDefine::ShowAltitudeControls(BOOL bEnable)
+{
+    GetDlgItem(IDC_RADIO_TONEXTWAYPOINT)->ShowWindow(bEnable);
+    GetDlgItem(IDC_RADIO_TO_NEXT_ALTITUDE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_RADIO_DIRECT)->ShowWindow(bEnable);
+    GetDlgItem(IDC_RADIO_INTERCEPTTRACK)->ShowWindow(bEnable);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP)->ShowWindow(bEnable);
+    GetDlgItem(IDC_EDIT_TRACKTONEXTWP)->ShowWindow(bEnable);
+    GetDlgItem(IDC_SPIN_TRACKTONEXTWP)->ShowWindow(bEnable);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP2)->ShowWindow(bEnable);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_EDIT_INTERCEPTANGLE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_SPIN_INTERCEPTANGLE)->ShowWindow(bEnable);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE2)->ShowWindow(bEnable);
+}
+
+void CDlgAirRouteWayPointDefine::EnableLevel1(BOOL bEnable)
+{
+    GetDlgItem(IDC_COMBO_WAYPOINT)->EnableWindow(FALSE);
+    GetDlgItem(IDC_EDIT_ALTITUDE)->EnableWindow(FALSE);
+    GetDlgItem(IDC_SPIN_ALTITUDE)->EnableWindow(FALSE);
+    GetDlgItem(IDC_STATIC_ONTRACK)->EnableWindow(FALSE);
+    GetDlgItem(IDC_EDIT_ONTRACK)->EnableWindow(FALSE);
+    GetDlgItem(IDC_SPIN_ONTRACK)->EnableWindow(FALSE);
+    GetDlgItem(IDC_STATIC_ANGLE)->EnableWindow(FALSE);
+}
+
+void CDlgAirRouteWayPointDefine::EnableLevel2(BOOL bEnable)
+{
+    GetDlgItem(IDC_RADIO_DIRECT)->EnableWindow(bEnable);
+    GetDlgItem(IDC_RADIO_INTERCEPTTRACK)->EnableWindow(bEnable);
+    EnableLevel3(bEnable);
+}
+
+void CDlgAirRouteWayPointDefine::EnableLevel3(BOOL bEnable)
+{
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP)->EnableWindow(bEnable);
+    GetDlgItem(IDC_EDIT_TRACKTONEXTWP)->EnableWindow(bEnable);
+    GetDlgItem(IDC_SPIN_TRACKTONEXTWP)->EnableWindow(bEnable);
+    GetDlgItem(IDC_STATIC_TRACKTONEXTWP2)->EnableWindow(bEnable);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE)->EnableWindow(bEnable);
+    GetDlgItem(IDC_EDIT_INTERCEPTANGLE)->EnableWindow(bEnable);
+    GetDlgItem(IDC_SPIN_INTERCEPTANGLE)->EnableWindow(bEnable);
+    GetDlgItem(IDC_STATIC_INTERCEPTANGLE2)->EnableWindow(bEnable);
+}
+
+void CDlgAirRouteWayPointDefine::SetAllSpinControlRange()
+{
+    ((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_INTERCEPTANGLE))->SetRange(iAngleMin, iAngleMax);
+    ((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_TRACKTONEXTWP))->SetRange(iAngleMin, iAngleMax);
+    ((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_ALTITUDE))->SetRange(iAngleMin, iAngleMax);
+    ((CSpinButtonCtrl*)GetDlgItem(IDC_SPIN_ONTRACK))->SetRange(iAngleMin, iAngleMax);
+}
+
+
 

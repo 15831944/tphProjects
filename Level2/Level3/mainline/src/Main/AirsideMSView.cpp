@@ -5670,7 +5670,38 @@ void MSV::CAirsideMSView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 
 			}		
 		}
-
+		break;
+	case VM_MODIFY_AIRROUTENAME:
+		{
+			ALTObject *pObject = (ALTObject *)pHint;
+			HTREEITEM hObjRoot = FindAirrouteRoot();
+			HTREEITEM hCurItem = FindAirrouteItem(hObjRoot,pObject->getID());
+			if (hObjRoot)
+			{
+				GetTreeCtrl().SelectItem(hCurItem);
+				CNodeData* pNodeData = (CNodeData*)GetTreeCtrl().GetItemData(hCurItem);
+				AirRouteList airRouteList;
+				airRouteList.ReadData(pNodeData->nOtherData);
+				CAirRoute* pAirRoute = airRouteList.GetAirRouteByID(pNodeData->dwData);
+				if (pAirRoute)
+				{
+					bool bSameAirRouteName = false;
+					bSameAirRouteName = CheckAirRouteByName(pAirRoute->getName(),hObjRoot);
+					if (bSameAirRouteName)
+					{
+						if ( pAirRoute->getName().CompareNoCase(GetTreeCtrl().GetItemText(hCurItem)) != 0)
+						{
+							::AfxMessageBox("please change the AirRoute Name");
+						}
+					}
+					else
+					{
+						GetTreeCtrl().SetItemText(hCurItem,pAirRoute->getName());
+					}
+				}	
+			}
+		}
+		break;
 	default:
 		break;
 	}
@@ -5706,6 +5737,7 @@ HTREEITEM CAirsideMSView::FindAirspaceObjRootByType(ALTOBJECT_TYPE altType)
 {
 	return  FindObjectRootByType(altType, m_hItemAirspace); 	
 }
+
 
 HTREEITEM CAirsideMSView::FindTopographyObjRootByType(ALTOBJECT_TYPE altType)
 {
@@ -7048,6 +7080,45 @@ HTREEITEM MSV::CAirsideMSView::FindObjectRootByType( ALTOBJECT_TYPE altType, HTR
 
 }
 
+HTREEITEM MSV::CAirsideMSView::FindAirrouteRoot()
+{
+	HTREEITEM hChildItem = GetTreeCtrl().GetChildItem(m_hItemAirspace);
+	while (hChildItem)
+	{	
+		CNodeData *pRootNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hChildItem));
+		if(pRootNodeData)
+		{
+			if(pRootNodeData->nSubType == Dlg_AirRoute )
+				return hChildItem;
+		}
+
+		hChildItem = GetTreeCtrl().GetNextSiblingItem(hChildItem);
+	}
+
+	return NULL;
+}
+
+HTREEITEM MSV::CAirsideMSView::FindAirrouteItem( HTREEITEM hItem, int nObjID )
+{
+	HTREEITEM hChildItem = GetTreeCtrl().GetChildItem(hItem);
+	while (hChildItem)
+	{	
+		CNodeData *pNodeData = reinterpret_cast<CNodeData *>(GetTreeCtrl().GetItemData(hChildItem));
+		if(pNodeData)
+		{
+			if(pNodeData->nSubType == Dlg_AirRoute )
+			{
+				int nAirRouteID = (int)pNodeData->dwData;
+				if (nAirRouteID == nObjID)
+					return hChildItem;
+			}
+		}
+
+		hChildItem = GetTreeCtrl().GetNextSiblingItem(hChildItem);
+	}
+	return NULL;
+}
+
 HTREEITEM MSV::CAirsideMSView::FindObjectRootByType( ALTOBJECT_TYPE altType )
 {
 	HTREEITEM ret = FindAirportObjRootByType(altType);
@@ -7072,6 +7143,8 @@ HTREEITEM MSV::CAirsideMSView::FindTreeItemByTypeID( ALTOBJECT_TYPE type, int nO
 	}
 	return NULL;
 }
+
+
 
 
 

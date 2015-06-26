@@ -73,6 +73,7 @@
 #include "Engine\Airside\AirsideFlightStairsLog.h"
 #include "glutil.h"
 #include <stack>
+#include "AirsideGUI/NodeViewDbClickHandler.h"
 
 
 #ifdef _DEBUG  
@@ -341,6 +342,7 @@ BEGIN_MESSAGE_MAP(C3DView, IRender3DView)
 	
 	ON_COMMAND(ID_ALTOBJECT_OBJECTPROPERTY, OnALTObjectProperty)
 	ON_COMMAND(ID_ALTOBJECT_LOCK, OnALTObjectLock)
+	ON_COMMAND(ID_AIRROUTE_AIRROUTEPROPERTIES,OnAirRouteProperties)
 	ON_COMMAND(ID_ALTOBJECT_DISPLAYPROPERTIES, OnALTObjectDisplayProperty)
 	ON_COMMAND(ID_ALTOBJECT_COPY, OnAltobjectCopy)
 	ON_COMMAND(ID_ALTOBJECT_MOVE, OnAltobjectMove)
@@ -8668,6 +8670,23 @@ void C3DView::OnALTObjectProperty()
 	}
 	
 }
+
+void C3DView::OnAirRouteProperties()
+{
+	if(GetParentFrame()->m_vSelected.size()<1)return;
+	Selectable *pSel = ( *GetParentFrame()->m_vSelected.begin() ).get();
+
+	if( pSel->GetSelectType() == Selectable::ALT_OBJECT )
+	{
+		ALTObject3D * pObj3D = (ALTObject3D*)pSel;
+		ALTObject* pObj = pObj3D->GetObject();
+		AirsideGUI::NodeViewDbClickHandler airsideNodeHandler(GetDocument()->GetTerminal().GetProcessorList(),&GetDocument()->GetInputAirside());
+		airsideNodeHandler.DefineAirRoute(TRUE,GetDocument()->GetProjectID(),pObj->getID());
+		GetDocument()->UpdateAllViews(this,VM_MODIFY_AIRROUTENAME,(CObject*)pObj);	
+		GetDocument()->UpdateAllViews(this,VM_MODIFY_AIRROUTE,(CObject*)pObj->getID() );	
+	}
+}
+
 void C3DView::OnALTObjectDisplayProperty()
 {
 	if(GetParentFrame()->m_vSelected.size()<1)return;
@@ -9643,3 +9662,4 @@ C3DView::~C3DView()
 	delete m_pPickConveyorTree;
 
 }
+

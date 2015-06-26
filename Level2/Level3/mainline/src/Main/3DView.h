@@ -496,6 +496,7 @@ public:
 	afx_msg void OnALTObjectProperty();
 	afx_msg void OnALTObjectLock();
 	afx_msg void OnALTObjectDisplayProperty();
+	afx_msg void OnAirRouteProperties();
 	afx_msg void OnAltobjectCopy();
 	afx_msg void OnAltobjectMove();
 	afx_msg void OnAltobjectRotate();

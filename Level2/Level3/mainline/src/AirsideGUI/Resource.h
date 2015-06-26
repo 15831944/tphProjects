@@ -397,6 +397,7 @@
 #define IDD_DIALOG_SIDASSIGNMENT        2095
 #define IDC_EDIT_TAXIWAY                2096
 #define IDC_EDIT_DISDIFF_FLIGHTPLAN     2096
+#define IDC_EDIT_ONTRACK                2096
 #define IDC_EDIT1                       2097
 #define IDC_EDIT_ROLLINGSPD             2097
 #define IDC_EDIT_SPEEDFACTOR            2097
@@ -711,6 +712,7 @@
 #define IDC_EDIT5                       2213
 #define IDR_DEICEQUEUE_TOOLBAR          2213
 #define IDR_ROUTEPATH_TOOLBAR           2214
+#define IDC_EDIT_INTERCEPTANGLE         2214
 #define IDC_STATIC_PRIORITYONE          2215
 #define IDD_DIALOG_SELECTSECTOR         2215
 #define IDC_STATIC_PRIORITYTWO          2216
@@ -951,9 +953,12 @@
 #define IDC_STATICVISUAL                2367
 #define IDC_SPIN_DEGREES                2368
 #define IDC_SPIN_VISDISTANCE            2369
+#define IDC_SPIN_TRACKTONEXTWP          2369
 #define IDC_STATIC_PROPERTY             2370
 #define IDC_STATIC_TYPE                 2371
+#define IDC_SPIN_INTERCEPTANGLE         2371
 #define IDC_STATIC_RUNWAY               2372
+#define IDC_SPIN_ALTITUDE               2372
 #define IDC_STATIC_MARK                 2373
 #define IDC_STATIC_MinSpeedUnit         2374
 #define IDC_STATIC_MaxSpeedUnit         2375
@@ -961,6 +966,7 @@
 #define IDC_STATIC_MaxHeightUnit        2377
 #define IDC_EDIT_LANEWIDTH              2378
 #define IDC_LANEWIDTH                   2378
+#define IDC_SPIN_ONTRACK                2378
 #define IDC_EDIT_LANENUMBER             2379
 #define IDC_LANENUMBER                  2379
 #define IDC_COMBO_DRIVE                 2380
@@ -1128,6 +1134,21 @@
 #define IDC_COMBO_TAXIWAY               2555
 #define IDC_COMBO_START                 2556
 #define IDC_COMBO_END                   2557
+#define IDC_RADIO_TONEXTWAYPOINT        2558
+#define IDC_RADIO_TO_NEXT_ALTITUDE      2559
+#define IDC_RADIO_DIRECT                2560
+#define IDC_RADIO_INTERCEPTTRACK        2561
+#define IDC_STATIC_TRACKTONEXTWP        2562
+#define IDC_STATIC_INTERCEPTANGLE       2563
+#define IDC_EDIT_TRACKTONEXTWP          2564
+#define IDC_STATIC_TRACKTONEXTWP2       2565
+#define IDC_STATIC_INTERCEPTANGLE2      2566
+#define IDC_EDIT_ALTITUDE               2567
+#define IDC_RADIO_ALTITUDE              2568
+#define IDC_RADIO_WAYPOINT              2569
+#define IDC_STATIC_DEPARTFOR            2570
+#define IDC_STATIC_ONTRACK              2571
+#define IDC_STATIC_ANGLE                2572
 #define ID_TOOLBAR_ADD                  32771
 #define ID_TOOLBAR_DEL                  32772
 #define ID_TOOLBAR_EDIT                 32773
@@ -1358,7 +1379,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        2283
 #define _APS_NEXT_COMMAND_VALUE         33064
-#define _APS_NEXT_CONTROL_VALUE         2558
+#define _APS_NEXT_CONTROL_VALUE         2573
 #define _APS_NEXT_SYMED_VALUE           2338
 #endif
 #endif

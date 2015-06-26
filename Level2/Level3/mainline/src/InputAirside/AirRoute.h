@@ -57,7 +57,7 @@ protected:
 
     // m_nWaypointType is ARWayPoint_Altitude, these members are used
     double m_fAltitude;
-    double m_fAngle;
+    double m_fOnTrack;
     ToNextType m_toNextPtType;
     DirectType m_directTpye;
     double m_inboundTrackAngle;
@@ -108,8 +108,8 @@ public:
     void SetWaypointType(ARWaypoint::ARWaypointType val) { m_nWaypointType = val; }
     double GetAltitude() const { return m_fAltitude; }
     void SetAltitude(double val) { m_fAltitude = val; }
-    double GetAngle() const { return m_fAngle; }
-    void SetAngle(double val) { m_fAngle = val; }
+    double GetOnTrack() const { return m_fOnTrack; }
+    void SetAngle(double val) { m_fOnTrack = val; }
     ARWaypoint::ToNextType GetNextPtType() const { return m_toNextPtType; }
     void SetNextPtType(ARWaypoint::ToNextType val) { m_toNextPtType = val; }
     ARWaypoint::DirectType GetDirectTpye() const { return m_directTpye; }

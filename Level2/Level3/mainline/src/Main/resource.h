@@ -5356,6 +5356,7 @@
 #define ID_FLTPAX_EXPORTEDPROJECT       35347
 #define ID_Menu35348                    35348
 #define ID_CSV_FILE                     35349
+#define ID_AIRROUTE_AIRROUTEPROPERTIES  35350
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5616,7 +5617,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1125
-#define _APS_NEXT_COMMAND_VALUE         35350
+#define _APS_NEXT_COMMAND_VALUE         35351
 #define _APS_NEXT_CONTROL_VALUE         2454
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
