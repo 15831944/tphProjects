@@ -323,9 +323,9 @@ bool CComparativeProcUtilizationReport::LoadReport(const std::string& _sPath)
 
         //load m_cmpParam
         file.getLine();
-        int ReportType;
-        file.getInteger(ReportType);
-        m_cmpParam.SetReportDetail((ENUM_REPORT_DETAIL)ReportType);
+        int iDetail;
+        file.getInteger(iDetail);
+        m_cmpParam.SetReportDetail((ENUM_REPORT_DETAIL)iDetail);
 
         //get data
         if(m_cmpParam.GetReportDetail()==REPORT_TYPE_DETAIL)
@@ -377,6 +377,7 @@ bool CComparativeProcUtilizationReport::LoadReportDetail(ArctermFile& file)
             file.getLine();
             CmpProcUtilizationDetailData tempDetailData;
             tempDetailData.ReadData(file);
+            m_mapDetail[strSimName].push_back(tempDetailData);
         }
     }
     return true;
@@ -395,7 +396,7 @@ bool CComparativeProcUtilizationReport::LoadReportSummary(ArctermFile& file)
         CString strSimName;
         file.getLine();
         file.getField(strSimName.GetBuffer(256), 255);
-        m_mapDetail[strSimName].clear();
+        m_mapSummary[strSimName].clear();
         int nProcCount;
         file.getInteger(nProcCount);
 
@@ -404,6 +405,7 @@ bool CComparativeProcUtilizationReport::LoadReportSummary(ArctermFile& file)
             file.getLine();
             CmpProcUtilizationSummaryData tempSummaryData;
             tempSummaryData.ReadData(file);
+            m_mapSummary[strSimName].push_back(tempSummaryData);
         }
     }
     return true;
