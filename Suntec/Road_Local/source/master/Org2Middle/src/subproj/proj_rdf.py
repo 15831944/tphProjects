@@ -23,8 +23,8 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
         if self.comp_factory != None:
             #
 #            self.AddComponent(self.comp_factory.CreateOneComponent('rawdata'))    #revise the rawdata about phoneme
-#            self.AddComponent(self.comp_factory.CreateOneComponent('ImportCSV')) 
-#            self.AddComponent(self.comp_factory.CreateOneComponent('ImportJCV'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('ImportCSV')) 
+            self.AddComponent(self.comp_factory.CreateOneComponent('ImportJCV'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Trans_Geom'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('trans_Srid'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('slope'))

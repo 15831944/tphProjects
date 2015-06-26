@@ -113,7 +113,10 @@ class comp_factory(object):
         if comp_name == 'hook_turn':
             from component.default import hook_turn
             return hook_turn.comp_hook_turn()
-
+        
+        if comp_name == 'stopsign':
+            from component.default import stopsign
+            return stopsign.comp_stopsign()
         return None
 
 ########################################################################
@@ -346,7 +349,11 @@ class comp_factory_rdf(comp_factory):
         if comp_name == 'Highway_Prepare':
             from component.rdf.hwy.hwy_prepare_rdf import HwyPrepareRDF
             return HwyPrepareRDF()
-
+        if comp_name == 'stopsign':
+            from component.rdf import stopsign_rdf
+            return stopsign_rdf.comp_stopsign_rdf()
+            pass
+        
         return comp_factory.CreateOneComponent(self, comp_name)
 
 
@@ -497,6 +504,10 @@ class comp_factory_ta(comp_factory):
         if comp_name == 'Guideinfo_building':
             from component.ta.guideinfo_building_ta import comp_guideinfo_building_ta
             return comp_guideinfo_building_ta()
+        if comp_name == 'stopsign':
+            from component.ta import stopsign_ta
+            return stopsign_ta.comp_stopsign_ta()
+            pass
         return comp_factory.CreateOneComponent(self, comp_name)
 
 

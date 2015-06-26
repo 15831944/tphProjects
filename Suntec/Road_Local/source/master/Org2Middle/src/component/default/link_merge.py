@@ -25,6 +25,7 @@ class comp_link_merge(component.component_base.comp_base):
         self.__updateReletedTables()
         self.__update_park_merge()
         self.__update_height()
+        self.__updateStopSign()
         return 0
     
     def __prepareSuspectLinkNode(self):
@@ -377,4 +378,55 @@ class comp_link_merge(component.component_base.comp_base):
         self.pg.commit2()
         
         self.log.info('updating node end.')
-        return 0            
+        return 0 
+    
+    def __updateStopSign(self):
+        self.log.info('updating stopsign begin...')        
+        
+        self.CreateTable2('stopsign_tbl_bak_merge')
+        self.CreateTable2('stopsign_tbl') 
+        
+        sqlcmd = '''
+            insert into stopsign_tbl(link_id, node_id, pos_flag,the_geom)
+            (
+                select case when b.link_id is not null then b.link_id
+                        else a.link_id
+                    end as link_id
+                    ,a.node_id
+                    ,case when (b.link_id is not null and b.merge_link_dir = 't')
+                            or b.link_id is null then a.pos_flag
+                        when b.link_id is not null and b.merge_link_dir = 'f' then 3
+                        else 0
+                    end as pos_flag
+                    ,a.the_geom 
+                from stopsign_tbl_bak_merge a
+                left join temp_merge_link_mapping b
+                on a.link_id = b.merge_link_id
+                where pos_flag = 2
+                
+                union
+                
+                select case when b.link_id is not null then b.link_id
+                        else a.link_id
+                    end as link_id
+                    ,a.node_id
+                    ,case when (b.link_id is not null and b.merge_link_dir = 't')
+                            or b.link_id is null then a.pos_flag
+                        when b.link_id is not null and b.merge_link_dir = 'f' then 2
+                        else 0
+                    end as pos_flag
+                    ,a.the_geom 
+                from stopsign_tbl_bak_merge a
+                left join temp_merge_link_mapping b
+                on a.link_id = b.merge_link_id
+                where pos_flag = 3
+            );
+            '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        self.CreateIndex2('stopsign_tbl_link_id_idx')
+        
+        self.log.info('updating stopsign end.')
+        return 0      
+               

@@ -110,3 +110,13 @@ CREATE INDEX mid_temp_sapa_link_poi_id_idx
   ON mid_temp_sapa_link
   USING btree
   (poi_id);
+
+CREATE INDEX temp_poi_name_poi_id_idx
+  ON temp_poi_name
+  USING btree
+  (poi_id);
+
+CREATE INDEX temp_poi_logmark_poi_id_idx
+  ON temp_poi_logmark
+  USING btree
+  (uid);

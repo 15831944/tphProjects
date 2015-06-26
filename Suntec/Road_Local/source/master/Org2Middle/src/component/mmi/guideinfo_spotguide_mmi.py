@@ -56,6 +56,14 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
 
     def _make_junction_link(self):
         '''get oneinlink to oneoutlink,nodeid record'''
+        insert_sqlcmd = '''
+            INSERT INTO temp_junction_tbl(
+                inlinkid, outlinkid, nodeid, sky_lyr, arrow, "time"
+                )
+            VALUES (%s, %s, %s, %s, %s, %s);
+
+
+        '''
         sqlcmd = '''
             SELECT fm_edge,
                 array[to_edge1, to_edge2, to_edge3, to_edge4] as outlinks,
@@ -75,10 +83,8 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
                 if outlink and arrow:
                     '''get nodeid'''
                     nodeid = self._getnode_between_links(inlink, outlink)
-                    self.pg.execute2('''INSERT INTO temp_junction_tbl
-                                        (inlinkid, outlinkid, nodeid, sky_lyr, arrow, "time")
-                                        VALUES (%s, %s, %s, %s, %s, %s);''', 
-                                    (inlink, outlink, nodeid, sky_lyr, arrow, time))
+                    self.pg.execute2(insert_sqlcmd, (inlink, outlink, nodeid,
+                                              sky_lyr, arrow, time))
                 elif not outlink and not arrow:
                     pass
                 else:

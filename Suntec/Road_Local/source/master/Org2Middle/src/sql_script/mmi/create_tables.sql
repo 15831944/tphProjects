@@ -287,8 +287,16 @@ CREATE TABLE temp_poi_logmark
   uid double precision NOT NULL,
   std_name character varying(100),
   cat_code character varying(6),
+  type_code integer,
   lat numeric,
   lon numeric,
   the_geom geometry 
 
 );
+
+create table temp_poi_name
+(
+	poi_id bigint,
+	poi_name varchar
+);
+

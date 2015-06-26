@@ -28,7 +28,6 @@ class comp_split_link_jpn(component.component_base.comp_base):
         self.CreateFunction2('rdb_min')
         self.CreateFunction2('rdb_max') 
         self.CreateFunction2('rdb_line_substring')
-        self.CreateFunction2('mid_get_fraction')
         self.CreateFunction2('rdb_split_link_by_attr')
         self.CreateFunction2('rdb_make_new_link_by_attr')
         self.CreateFunction2('rdb_make_new_node_link')

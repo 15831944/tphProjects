@@ -31,6 +31,7 @@ class proj_msm_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Topo'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Dictionary'))
             self.AddComponent(self.comp_factory.CreateOneComponent('slope'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('stopsign'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('Admin'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))

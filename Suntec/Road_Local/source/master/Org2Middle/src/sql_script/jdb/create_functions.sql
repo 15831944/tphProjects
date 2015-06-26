@@ -236,8 +236,8 @@ BEGIN
                                link_geom
                           FROM (
                                SELECT A.objectid, link_id, linkattr_c, A.the_geom, 
-                                      mid_get_fraction(ST_LineMerge(road_link_4326.the_geom), ST_StartPoint(A.the_geom)) as start_fraction,
-                                      mid_get_fraction(ST_LineMerge(road_link_4326.the_geom), ST_EndPoint(A.the_geom)) as end_fraction,
+                                      ST_Line_Locate_Point(ST_LineMerge(road_link_4326.the_geom), ST_StartPoint(A.the_geom)) as start_fraction,
+                                      ST_Line_Locate_Point(ST_LineMerge(road_link_4326.the_geom), ST_EndPoint(A.the_geom)) as end_fraction,
                                       ST_LineMerge(road_link_4326.the_geom) as link_geom
                                 FROM (
                                       SELECT objectid, link_id, linkattr_c, ST_LineMerge(the_geom) as the_geom

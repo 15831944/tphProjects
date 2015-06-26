@@ -28,7 +28,8 @@ class proj_axf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Name'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('slope'))
-           
+            self.AddComponent(self.comp_factory.CreateOneComponent('stopsign'))
+            
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))

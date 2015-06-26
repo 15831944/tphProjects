@@ -40,11 +40,11 @@ class CCheckAdminCodeCount(platform.TestCase.CTestCase):
         
             for row in rows:    
                 rdf_adminname = row[0]
-                if rdf_adminname == 'MYS':
-                    rdbTileAdminCount = rdbTileAdminCount + 2
+#                if rdf_adminname == 'MYS':
+#                    rdbTileAdminCount = rdbTileAdminCount + 2
 #                elif rdf_adminname == 'HKG':
 #                    rdbTileAdminCount = rdbTileAdminCount + 1
-                elif rdf_adminname == 'VNM':
+                if rdf_adminname == 'VNM':
                     rdbTileAdminCount = rdbTileAdminCount + 1
                 elif rdf_adminname == 'ARG':
                     rdbTileAdminCount = rdbTileAdminCount + 2       

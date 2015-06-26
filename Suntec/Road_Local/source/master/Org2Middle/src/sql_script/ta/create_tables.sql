@@ -1195,3 +1195,18 @@ CREATE TABLE temp_mid_iso_country_code
   iso_country_num        bigint not null,
   iso_country_code       character varying(3)
 );
+
+-------------------------------------------------------------------------------------------------
+create table temp_stopsign 
+as
+(
+	select a.featid,d.id,d.f_jnctid,d.t_jnctid
+		,ST_GeomFromEWKT('SRID=4326' || chr(59) || 'POINT(' || xcoordinate || ' ' || ycoordinate || ')') as the_geom
+		,st_linemerge(d.the_geom) as the_geom_link
+	from scpoint_ext a
+	left join scpoint_ext_ll b
+	on a.featid = b.featid
+	left join org_nw d
+	on cast(b.shape_line_id as double precision) = d.id 
+	where a.cameratype in ('68')
+);

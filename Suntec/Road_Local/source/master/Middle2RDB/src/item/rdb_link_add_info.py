@@ -82,7 +82,8 @@ class rdb_link_add_info(ItemBase):
                                    when b.gid is not null then 2 
                                    else 0 
                              end) as etc_lane_flag,
-                             rdb_cnv_path_extra_info(paved, uturn, ipd, urban, a.display_class = 19) AS path_extra_info                             
+                             rdb_cnv_path_extra_info(paved, uturn, ipd, urban, a.display_class = 19, e.pos_type) 
+                                 AS path_extra_info                             
                      FROM link_tbl as a
                      left join (
                          select * from spotguide_tbl where type in (9,10)
@@ -91,13 +92,29 @@ class rdb_link_add_info(ItemBase):
                      left join safety_zone_tbl c
                      on a.link_id = c.linkid  
                      left join  rdb_tile_link d
-                     on a.link_id = d.old_link_id                 
+                     on a.link_id = d.old_link_id 
+                     left join (
+                         select link_id
+                            ,case when 2 = any(pos_flag_array) and 3 = any(pos_flag_array) then 1
+                                else pos_flag_array[1]
+                            end as pos_type
+                        from (
+                            select link_id,array_agg(pos_flag) as pos_flag_array 
+                            from (
+                                select distinct link_id,pos_flag
+                                from stopsign_tbl
+                            ) a
+                            group by link_id 
+                        ) b
+                     ) e
+                     on a.link_id = e.link_id                
                      where (elevated <> 0 or tunnel <> 0 or structure <> 0 
                             or rail_cross <> 0
                             or (etc_only_flag <> 0 or b.gid is not null)
                             or paved = 0 or uturn = 1
                             or ipd != 0 or urban != 0 or erp != 0 or rodizio != 0
                             or c.linkid is not null)
+                            or e.link_id is not null
                   ) AS A
                   LEFT JOIN rdb_link_add_info2 B
                   ON A.tile_link_id = B.link_id             

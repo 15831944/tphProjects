@@ -27,6 +27,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('sidefiles'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Sidefiles_Phoneme'))
             self.AddComponent(self.comp_factory.CreateOneComponent('slope'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('stopsign'))
             # ×Öµä
             self.AddComponent(self.comp_factory.CreateOneComponent('Dictionary'))
             # Regulation

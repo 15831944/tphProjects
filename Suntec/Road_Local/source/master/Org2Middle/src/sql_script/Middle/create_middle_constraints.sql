@@ -1007,3 +1007,9 @@ CREATE INDEX hwy_same_info_road_code_p_road_seq_updown_c_p_node_id_idx
   ON hwy_same_info
   USING btree
   (road_code, p_road_seq, updown_c, p_node_id);
+  
+------------------------------------------------------------------------    
+CREATE INDEX stopsign_tbl_link_id_idx
+  ON stopsign_tbl
+  USING btree
+  (link_id);

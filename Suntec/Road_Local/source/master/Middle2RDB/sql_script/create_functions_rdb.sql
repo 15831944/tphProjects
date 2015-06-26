@@ -1583,7 +1583,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION rdb_cnv_path_extra_info(paved smallint, uturn smallint, ipd smallint, urban smallint, four_wheel boolean) 
+CREATE OR REPLACE FUNCTION rdb_cnv_path_extra_info(paved smallint, uturn smallint, ipd smallint, urban smallint, four_wheel boolean, stopsign integer) 
   RETURNS smallint 
   LANGUAGE plpgsql VOLATILE
   AS $$ 
@@ -1611,7 +1611,11 @@ BEGIN
 	IF four_wheel = 't' THEN
 		rtnValue = rtnValue | (1 << 4);
 	END IF;
-		
+
+	IF stopsign is not null THEN
+		rtnValue = rtnValue | (stopsign << 6);
+	END IF;
+	
 	RETURN rtnValue;
 END;
 $$;

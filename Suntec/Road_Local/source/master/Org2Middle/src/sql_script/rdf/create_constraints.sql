@@ -133,11 +133,6 @@ CREATE INDEX temp_node_light_node_id_idx
 CREATE INDEX temp_node_toll_node_id_idx
   ON temp_node_toll
   USING btree
-  (node_id);  
-  
-CREATE INDEX temp_node_stopsign_node_id_idx
-  ON temp_node_stopsign
-  USING btree
   (node_id);
 
 CREATE INDEX temp_node_bifurcation_node_id_idx

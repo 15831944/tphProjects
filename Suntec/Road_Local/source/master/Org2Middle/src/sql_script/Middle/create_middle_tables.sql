@@ -412,7 +412,10 @@ as
 		from natural_guidence_tbl
 		union
 		select nodeid
-		from hook_turn_tbl	
+		from hook_turn_tbl
+		union
+		select node_id as nodeid
+		from stopsign_tbl
 	) as b
 	union
 	select s_node from link_tbl where erp in (1,2)
@@ -2064,7 +2067,7 @@ as
 				,array_agg(fraction) as fraction_array
 				,array_upper(array_agg(id),1) + 1 as sum
 			from (
-				select a.*,mid_get_fraction(a.link_geom,a.node_geom) as fraction 
+				select a.*,ST_Line_Locate_Point(a.link_geom,a.node_geom) as fraction 
 				from temp_tollgate_before_split a
 				left join temp_tollgate_not_split b
 				on a.id = b.id 
@@ -2451,4 +2454,19 @@ CREATE TABLE mid_temp_hwy_sapa_info
  facilcls_c    integer not null,
  poi_id        bigint,
  sapa_name     CHARACTER VARYING(4096)
+);
+
+------------------------------------------------------------------------
+CREATE TABLE stopsign_tbl
+(
+ id    		   serial not null primary key,
+ link_id       bigint not null,
+ node_id       bigint not null,
+ pos_flag      smallint not null
+);SELECT AddGeometryColumn('','stopsign_tbl','the_geom','4326','POINT',2);
+
+create table stopsign_tbl_bak_merge 
+as
+(
+	select * from stopsign_tbl
 );

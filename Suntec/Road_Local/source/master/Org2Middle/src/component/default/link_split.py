@@ -39,6 +39,7 @@ class comp_link_split(component.component_base.comp_base):
         self.__update_park_link()
         self.__update_park_node()
         self.__updateSafetyAlert()
+        self.__updateStopSign()
         
         if common.common_func.GetProjName().lower() == 'rdf':
             self.__update_height()     
@@ -75,7 +76,8 @@ class comp_link_split(component.component_base.comp_base):
                             'natural_guidence_tbl',
                             'safety_zone_tbl',
                             'safety_alert_tbl',
-                            'hook_turn_tbl'
+                            'hook_turn_tbl',
+                            'stopsign_tbl',
                             ]
         
         for the_table in guide_table_list:
@@ -1154,8 +1156,8 @@ class comp_link_split(component.component_base.comp_base):
                         , case when sub_index < sub_count then e_node
                             else s_node
                         end as node_id
-                        , case when sub_index < sub_count then mid_get_fraction(a.the_geom, st_endpoint(d.the_geom))
-                            else mid_get_fraction(a.the_geom, st_startpoint(d.the_geom))
+                        , case when sub_index < sub_count then ST_Line_Locate_Point(a.the_geom, st_endpoint(d.the_geom))
+                            else ST_Line_Locate_Point(a.the_geom, st_startpoint(d.the_geom))
                         end percent
                     from temp_rdf_nav_link a
                     left join node_height_tbl b
@@ -1425,4 +1427,47 @@ class comp_link_split(component.component_base.comp_base):
         self.pg.commit2()
         
         self.log.info('updating Safety Alert end.')
-        return 0    
+        return 0 
+    
+    def __updateStopSign(self):
+        self.log.info('updating stopsign begin...')        
+        
+        self.CreateTable2('stopsign_tbl') 
+        
+        sqlcmd = '''
+            insert into stopsign_tbl(link_id, node_id, pos_flag,the_geom)
+            (
+                select case when b.link_id is not null then b.link_id
+                        else a.link_id
+                    end as link_id
+                    ,a.node_id
+                    ,a.pos_flag
+                    ,a.the_geom
+                from stopsign_tbl_bak_splitting a
+                left join temp_split_newlink b
+                on a.link_id = b.old_link_id
+                and a.node_id = b.s_node
+                where pos_flag = 2
+                
+                union
+                
+                select case when b.link_id is not null then b.link_id
+                        else a.link_id
+                    end as link_id
+                    ,a.node_id
+                    ,a.pos_flag
+                    ,a.the_geom 
+                from stopsign_tbl_bak_splitting a
+                left join temp_split_newlink b
+                on a.link_id = b.old_link_id
+                and a.node_id = b.e_node
+                where pos_flag = 3
+            );
+            '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        self.CreateIndex2('stopsign_tbl_link_id_idx')
+        
+        self.log.info('updating stopsign end.')
+        return 0        

@@ -48,6 +48,7 @@ class proj_nostra_module(subproj.proj_base.proj_base_module):
             # illust name
             self.AddComponent(self.comp_factory.CreateOneComponent('illustname'))
             self.AddComponent(self.comp_factory.CreateOneComponent('slope'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('stopsign'))
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('Topo'))
 
