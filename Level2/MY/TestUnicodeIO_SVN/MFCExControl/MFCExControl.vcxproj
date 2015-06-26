@@ -179,6 +179,7 @@
     <ClInclude Include="MemDC.h" />
     <ClInclude Include="MFCExControlAPI.h" />
     <ClInclude Include="MySpin.h" />
+    <ClInclude Include="NumericEdit.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SimpleToolTipListBox.h" />
     <ClInclude Include="SmartEdit.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="TitleTip.h" />
     <ClInclude Include="ToolbarWithDropMenu.h" />
     <ClInclude Include="ToolTipDialog.h" />
+    <ClInclude Include="TreeCtrlKeepHighlight.h" />
     <ClInclude Include="XListCtrl.h" />
     <ClInclude Include="XTPCommon.h" />
     <ClInclude Include="XTPMacros.h" />
@@ -245,6 +247,7 @@
     <ClCompile Include="ListCtrlReSizeColum.cpp" />
     <ClCompile Include="MFCExControl.cpp" />
     <ClCompile Include="MySpin.cpp" />
+    <ClCompile Include="NumericEdit.cpp" />
     <ClCompile Include="SimpleToolTipListBox.cpp" />
     <ClCompile Include="SmartEdit.cpp" />
     <ClCompile Include="SortableHeaderCtrl.cpp" />
@@ -263,6 +266,7 @@
     <ClCompile Include="TitleTip.cpp" />
     <ClCompile Include="ToolbarWithDropMenu.cpp" />
     <ClCompile Include="ToolTipDialog.cpp" />
+    <ClCompile Include="TreeCtrlKeepHighlight.cpp" />
     <ClCompile Include="XListCtrl.cpp" />
     <ClCompile Include="XTPCommon.cpp" />
     <ClCompile Include="XTResize.cpp" />

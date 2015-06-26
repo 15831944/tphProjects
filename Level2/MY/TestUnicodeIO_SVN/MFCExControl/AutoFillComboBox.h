@@ -1,7 +1,5 @@
 #pragma once
 
-#include "MFCExControlAPI.h"
-
 class CComboChildEditBox : public CEdit
 {
     DECLARE_DYNAMIC(CComboChildEditBox)

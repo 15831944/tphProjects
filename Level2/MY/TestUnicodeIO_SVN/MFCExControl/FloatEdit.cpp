@@ -13,6 +13,7 @@ CFloatEdit::~CFloatEdit()
 }
 
 BEGIN_MESSAGE_MAP(CFloatEdit, CEdit)
+    ON_WM_KEYDOWN()
     ON_WM_CHAR()
 END_MESSAGE_MAP()
 
@@ -26,9 +27,6 @@ void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     if(nChar=='.')
     {
-        if(m_nPrecision <= 0)
-            return;
-
         CString strEdit;
         GetWindowText(strEdit);
         int dotPos=strEdit.Find('.');
@@ -160,4 +158,10 @@ void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
             }
         }
     }
+    ::MessageBeep(MB_ICONEXCLAMATION);
+}
+
+void CFloatEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+
 }

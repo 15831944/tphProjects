@@ -101,23 +101,6 @@
     <None Include="res\TestUnicodeIO.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CARCTipComboBox.h" />
-    <ClInclude Include="CARCTipEdit.h" />
-    <ClInclude Include="CARCTipListBox.h" />
-    <ClInclude Include="CoolTree.h" />
-    <ClInclude Include="CoolTreeDateTimeCtrl.h" />
-    <ClInclude Include="CoolTreeEdit.h" />
-    <ClInclude Include="CoolTreeEditSpin.h" />
-    <ClInclude Include="FloatEdit.h" />
-    <ClInclude Include="AutoFillComboBox.h" />
-    <ClInclude Include="InPlaceDateTimeCtrl.h" />
-    <ClInclude Include="InPlaceEdit.h" />
-    <ClInclude Include="InPlaceList.h" />
-    <ClInclude Include="ListCtrlEx.h" />
-    <ClInclude Include="ListCtrlKeepHighlight.h" />
-    <ClInclude Include="ListCtrlTestLvnItemChanged.h" />
-    <ClInclude Include="MySpin.h" />
-    <ClInclude Include="NumericEdit.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TabSubView1.h" />
@@ -126,27 +109,9 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestUnicodeIO.h" />
     <ClInclude Include="TestUnicodeIODlg.h" />
-    <ClInclude Include="TreeCtrlKeepHighlight.h" />
     <ClInclude Include="WinMsg.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CARCTipComboBox.cpp" />
-    <ClCompile Include="CARCTipEdit.cpp" />
-    <ClCompile Include="CARCTipListBox.cpp" />
-    <ClCompile Include="CoolTree.cpp" />
-    <ClCompile Include="CoolTreeDateTimeCtrl.cpp" />
-    <ClCompile Include="CoolTreeEdit.cpp" />
-    <ClCompile Include="CoolTreeEditSpin.cpp" />
-    <ClCompile Include="FloatEdit.cpp" />
-    <ClCompile Include="AutoFillComboBox.cpp" />
-    <ClCompile Include="InPlaceDateTimeCtrl.cpp" />
-    <ClCompile Include="InPlaceEdit.cpp" />
-    <ClCompile Include="InPlaceList.cpp" />
-    <ClCompile Include="ListCtrlEx.cpp" />
-    <ClCompile Include="ListCtrlKeepHighlight.cpp" />
-    <ClCompile Include="ListCtrlTestLvnItemChanged.cpp" />
-    <ClCompile Include="MySpin.cpp" />
-    <ClCompile Include="NumericEdit.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -156,7 +121,6 @@
     <ClCompile Include="TabSubView3.cpp" />
     <ClCompile Include="TestUnicodeIO.cpp" />
     <ClCompile Include="TestUnicodeIODlg.cpp" />
-    <ClCompile Include="TreeCtrlKeepHighlight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TestUnicodeIO.rc" />

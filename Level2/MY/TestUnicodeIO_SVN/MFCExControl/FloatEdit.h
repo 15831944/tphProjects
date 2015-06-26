@@ -1,5 +1,5 @@
 #pragma once
-#include "MFCExControlAPI.h"
+
 class MFCEXCONTROL_API CFloatEdit : public CEdit
 {
     DECLARE_DYNAMIC(CFloatEdit)
@@ -15,6 +15,7 @@ public:
 
 protected:
     DECLARE_MESSAGE_MAP()
+    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) ;
     afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 private:
     short m_nPrecision;
