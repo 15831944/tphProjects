@@ -570,7 +570,7 @@ void CAircraftFilterDlg::LoadPortal()
 	CTermPlanDoc* pDoc	= (CTermPlanDoc*)((CView*)m_pParentWnd)->GetDocument();
 	m_comboAreaPortal.ResetContent();
 	CString str;
-	CPortalList pl = pDoc->m_portals.m_vPortals;
+	CPortalList pl = pDoc->GetTerminal().m_pPortals->m_vPortals;
 	int nSize = pl.size();
 	for( int i=0; i< nSize; i++ )
 	{

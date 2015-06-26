@@ -22,6 +22,7 @@ enum ComparativeReportType
 	AcOperationReport,
 	TimeTerminalReport,
 	DistanceTravelReport,
+	SpaceThroughputReport,
     ProcessorUtilizationReport
 };
 

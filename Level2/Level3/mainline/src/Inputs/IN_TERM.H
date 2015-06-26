@@ -44,6 +44,7 @@ class CResourcePoolDataSet;
 class CProcToResourceDataSet;
 class CAirportDatabase;
 class CAreas;
+class CPortals;
 class CPaxBulkInfo;
 class CStructureList;
 class WallShapeList;
@@ -146,6 +147,7 @@ public:
 	//CAircaftLayOut* m_pLayout ;
 	// areas
 	CAreas*			m_pAreas;
+	CPortals	*        m_pPortals;
 
 	CInputFlowSync* m_pInputFlowSync;
 

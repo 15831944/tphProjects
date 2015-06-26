@@ -5026,7 +5026,7 @@ void CNodeView::ResetFloorIndexToAll()
 	}
 	arealist->saveDataSet(pDoc->m_ProjInfo.path, false);
 	//
-	CPortals& portals  = pDoc->m_portals;
+	CPortals& portals  = *pDoc->GetTerminal().m_pPortals;
 	for(int i=0;i<portals.getCount();i++)
 	{
 		CPortal* portal = portals.getPortal(i);

@@ -162,6 +162,8 @@ InputTerminal::InputTerminal () : m_pAirportDB( NULL ),m_pVoidOnBoardConfig(NULL
 	m_pProcToResourceDB = new CProcToResourceDataSet();
 
 	m_pAreas = new CAreas();
+	m_pPortals = new CPortals();
+
 	m_pPaxBulkInfo = new CPaxBulkInfo();
 
 	m_AirsideInput = new CAirsideInput(inStrDict, m_pAirportDB, flightSchedule);
@@ -256,6 +258,7 @@ InputTerminal::~InputTerminal ()
 	delete m_pProcToResourceDB;
 
 	delete m_pAreas;
+	delete m_pPortals;
 
 	delete m_pPaxBulkInfo;
 
@@ -483,6 +486,7 @@ void InputTerminal::loadInputs ( const CString& _pProjPath )
 	m_pProcToResourceDB->loadDataSet( _pProjPath );
 	
 	m_pAreas->loadDataSet( _pProjPath );
+	m_pPortals->loadDataSet(_pProjPath);
 
 	
 	m_pPaxBulkInfo->SetInputTerminal( this );	

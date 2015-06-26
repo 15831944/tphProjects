@@ -1122,6 +1122,9 @@ void CCmpReportTreeView::ReloadReportDetailSubItems(const CReportToCompare &repo
 	case ENUM_DISTANCE_REP:
 		strTemp = s_szReportCategoryName[7];
 		break;
+	case ENUM_SPACETHROUGHPUT_REP:
+		strTemp = s_szReportCategoryName[8];
+		break;
 	default:
 		return;
 		break;
@@ -1178,11 +1181,22 @@ void CCmpReportTreeView::ReloadReportDetailSubItems(const CReportToCompare &repo
 			HTREEITEM hAreas = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
 		}
 
+		if (report.GetCategory() == ENUM_SPACETHROUGHPUT_REP)
+		{
+			CString strTemp = modelParam.GetPortal();
+			if(strTemp.IsEmpty())
+				strItemText = "Portals";
+			else
+				strItemText.Format("Portals: %s", strTemp);
+			HTREEITEM hAreas = m_propTree.InsertItem(strItemText, cni, FALSE, FALSE, hModelItem);
+		}
+
 		if(report.GetCategory() == ENUM_QUEUETIME_REP ||
 			report.GetCategory() == ENUM_DURATION_REP ||
 			report.GetCategory() == ENUM_DISTANCE_REP ||
 			report.GetCategory() == ENUM_ACOPERATION_REP||
 			report.GetCategory() == ENUM_PAXDENS_REP ||
+			report.GetCategory() == ENUM_SPACETHROUGHPUT_REP ||
 			report.GetCategory() == ENUM_THROUGHPUT_REP)
 		{
 			std::vector<CMobileElemConstraint> vPaxType;

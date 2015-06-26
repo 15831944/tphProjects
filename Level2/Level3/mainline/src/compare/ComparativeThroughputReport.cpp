@@ -123,21 +123,23 @@ void CComparativeThroughputReport::MergeSummarySample( const ElapsedTime& tIntev
 			{
 				file.getLine();
 
+				file.setToField(1);
+				file.getInteger(data.m_grpSize);
 				// Total Pax
 				file.setToField(2);
-				file.getInteger(data.m_totalPax);
+				file.getInteger(data.m_paxGrp);
 
 				// Avg Pax
 				file.setToField(3);
-				file.getInteger(data.m_avgPax);
+				file.getFloat(data.m_paxProc);
 
 				// Total / Hour
 				file.setToField(4);
-				file.getInteger(data.m_totalPerHour);
+				file.getFloat(data.m_grpThrHr);
 
 				// Avg / Hour
 				file.setToField(5);
-				file.getInteger(data.m_avgPerHour);
+				file.getFloat(data.m_avgPerHour);
 
 				m_vSummary.push_back(data);
 				file.closeIn();
@@ -197,10 +199,11 @@ bool CComparativeThroughputReport::SaveReport(const std::string& _sPath) const
 			}
 			else if(m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
 			{
-				file.writeInt(m_vSummary[i].m_totalPax);
-				file.writeInt(m_vSummary[i].m_avgPax);
-				file.writeInt(m_vSummary[i].m_totalPerHour);
-				file.writeInt(m_vSummary[i].m_avgPerHour);
+				file.writeInt(m_vSummary[i].m_grpSize);
+				file.writeInt(m_vSummary[i].m_paxGrp);
+				file.writeDouble(m_vSummary[i].m_paxProc);
+				file.writeDouble(m_vSummary[i].m_grpThrHr);
+				file.writeDouble(m_vSummary[i].m_avgPerHour);
 				file.writeLine();
 			}
 		}
@@ -280,14 +283,16 @@ bool CComparativeThroughputReport::LoadReport(const std::string& _sPath)
 				CmpThroughputSummaryData data;
 
 				file.getLine();
+				//grp size
+				file.getInteger(data.m_grpSize);
 				// Total Pax
-				file.getInteger(data.m_totalPax);
+				file.getInteger(data.m_paxGrp);
 				// Avg Pax
-				file.getInteger(data.m_avgPax);
+				file.getFloat(data.m_paxProc);
 				// Total / Hour
-				file.getInteger(data.m_totalPerHour);
+				file.getFloat(data.m_grpThrHr);
 				// Avg / Hour
-				file.getInteger(data.m_avgPerHour);
+				file.getFloat(data.m_avgPerHour);
 			}
 		}
 		file.closeIn();
@@ -302,4 +307,34 @@ bool CComparativeThroughputReport::LoadReport(const std::string& _sPath)
 	}
 
 	return true;
+}
+
+double CmpThroughputSummaryData::GetData( int nSubType ) const
+{
+	switch(nSubType)
+	{
+		/*	case TOTAL_PAX:
+		return m_totalPax;
+		break;
+		case AVG_PAX:
+		return m_avgPax;
+		break;
+		case TOTAL_HOUR:
+		return m_totalPerHour;
+		break;*/
+	case GROUP_SIZE:
+		return m_grpSize;
+	case PAX_GROUP:
+		return m_paxGrp;
+	case PAX_PROC:
+		return m_paxProc;
+	case GROUP_THR_HR:
+		return m_grpThrHr;
+	case AVG_HOUR:
+		return m_avgPerHour;
+		break;
+	default:
+		return -1;
+		break;
+	}
 }

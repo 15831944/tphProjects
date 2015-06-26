@@ -234,8 +234,8 @@ void CDlgAreaPortal::OnOK()
 			if (m_pDoc->m_systemMode == EnvMode_Terminal)
 			{
 				CPortalList::iterator it;
-				for(it=m_pDoc->m_portals.m_vPortals.begin();
-					it!=m_pDoc->m_portals.m_vPortals.end();it++)
+				for(it=m_pDoc->GetTerminal().m_pPortals->m_vPortals.begin();
+					it!=m_pDoc->GetTerminal().m_pPortals->m_vPortals.end();it++)
 				{
 					strTemp1=(*it)->name;
 					strTemp2=m_sName;

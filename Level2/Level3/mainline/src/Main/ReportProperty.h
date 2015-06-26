@@ -32,7 +32,8 @@ public:
 		IT_TO,
 		IT_FROMPROC,
 		IT_TOPROC,
-		IT_AREA
+		IT_AREA,
+		IT_PORTAL
 	};
 
 	class ItemData
@@ -136,6 +137,7 @@ protected:
 
 	void LoadArea();
 	BOOL CheckUserHasAssignedArea();
+	BOOL CheckUserHasAssignedProtal();
 	void LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel);
 	void OnUpdateToolBarUI();
 

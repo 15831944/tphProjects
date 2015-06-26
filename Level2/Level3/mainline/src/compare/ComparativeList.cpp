@@ -8,6 +8,7 @@
 #include "../compare/ComparativeSpaceDensityReport.h"
 #include "../compare/ComparativeDistanceTravelReport.h"
 #include "../compare/ComparativeTimeTerminalReport.h"
+#include "../compare/ComparativSpaceThroughputReport.h"
 #include "../Engine/terminal.h"
 #include "../common/SimAndReportManager.h"
 #include "../compare/ComparativePaxCountReport.h"
@@ -48,7 +49,7 @@ CString CComparativeList::GetRegularDateTime(LPCTSTR elaptimestr, bool needsec)
 }
 
 
-void CComparativeList::RefreshData(const CCmpBaseReport& _reportData)
+void CComparativeList::RefreshData(const CCmpBaseReport& _reportData,int nSubType)
 {
 	if(::IsWindow( m_listCtrl.GetSafeHwnd()) == FALSE || (m_listCtrl.GetStyle() & LVS_REPORT) == 0)
 		return ;
@@ -72,7 +73,10 @@ void CComparativeList::RefreshData(const CCmpBaseReport& _reportData)
 		RefreshData((CComparativeThroughputReport&)_reportData);
 		break;
 	case SpaceDensityReport:
-		RefreshData((CComparativeSpaceDensityReport&)_reportData);
+		RefreshData((CComparativeSpaceDensityReport&)_reportData,nSubType);
+		break;
+	case SpaceThroughputReport:
+		RefreshData((CComparativSpaceThroughputReport&)_reportData);
 		break;
 	case PaxCountReport:
 		RefreshData((CComparativePaxCountReport&)_reportData);
@@ -471,27 +475,30 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 			nColCount ++;
 		}
 		//set list control
-		int nRow = 0, nCol =0;
-		const std::vector<CmpThroughputDetailData>& vData = _reportData.GetDetailResult()[0];
-		int dataCount = static_cast<int>(vData.size());
-		for(int i=0; i<dataCount; i++)
+		if(!_reportData.GetDetailResult().empty())
 		{
-			vData[i].m_startTime.printTime(sData);
-			CString str = GetRegularDateTime(sData, TRUE);
-			nCol = 0;
-			m_listCtrl.InsertItem(nRow, str);
-			nCol++;
-
-			vData[i].m_endTime.printTime(sData);
-			str = GetRegularDateTime(sData, TRUE);
-			m_listCtrl.SetItemText(nRow, nCol, str);
-			nCol++;
-
-			for(int j=0; j<nSimCount; j++)
+			int nRow = 0, nCol =0;
+			const std::vector<CmpThroughputDetailData>& vData = _reportData.GetDetailResult()[0];
+			int dataCount = static_cast<int>(vData.size());
+			for(int i=0; i<dataCount; i++)
 			{
-				strColText.Format("%d", _reportData.GetDetailResult()[j][i].m_nPaxServed);
-				m_listCtrl.SetItemText(nRow, nCol, strColText);
+				vData[i].m_startTime.printTime(sData);
+				CString str = GetRegularDateTime(sData, TRUE);
+				nCol = 0;
+				m_listCtrl.InsertItem(nRow, str);
 				nCol++;
+
+				vData[i].m_endTime.printTime(sData);
+				str = GetRegularDateTime(sData, TRUE);
+				m_listCtrl.SetItemText(nRow, nCol, str);
+				nCol++;
+
+				for(int j=0; j<nSimCount; j++)
+				{
+					strColText.Format("%d", _reportData.GetDetailResult()[j][i].m_nPaxServed);
+					m_listCtrl.SetItemText(nRow, nCol, strColText);
+					nCol++;
+				}
 			}
 		}
 	}
@@ -499,14 +506,17 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 	{
 		m_listCtrl.InsertColumn(0, _T("Name"),LVCFMT_CENTER,100);
 		m_pListCtrlHeader->SetDataType(0, dtSTRING);
-		m_listCtrl.InsertColumn(1, _T("Total Pax"),LVCFMT_CENTER,60);
+		m_listCtrl.InsertColumn(1, _T("Group Size"),LVCFMT_CENTER,60);
 		m_pListCtrlHeader->SetDataType(1, dtINT);
-		m_listCtrl.InsertColumn(2, _T("Avg Pax"),LVCFMT_CENTER,60);
+		m_listCtrl.InsertColumn(2, _T("Pax/Group"),LVCFMT_CENTER,60);
 		m_pListCtrlHeader->SetDataType(2, dtINT);
-		m_listCtrl.InsertColumn(3, _T("Total / Hour"),LVCFMT_CENTER,80);
-		m_pListCtrlHeader->SetDataType(3, dtINT);
-		m_listCtrl.InsertColumn(4, _T("Avg / Hour"),LVCFMT_CENTER,80);
-		m_pListCtrlHeader->SetDataType(4, dtINT);
+		m_listCtrl.InsertColumn(3, _T("Pax/Proc"),LVCFMT_CENTER,80);
+		m_pListCtrlHeader->SetDataType(3, dtDEC);
+		m_listCtrl.InsertColumn(4, _T("Group Thrpt/Hr"),LVCFMT_CENTER,80);
+		m_pListCtrlHeader->SetDataType(4, dtDEC);
+		m_listCtrl.InsertColumn(5, _T("Avg/Hr"),LVCFMT_CENTER,80);
+		m_pListCtrlHeader->SetDataType(5, dtDEC);
+
 		const std::vector<CmpThroughputSummaryData>& vData = _reportData.GetSummaryResult();
 		std::vector<CString>& vSimName = _reportData.GetSimNameList();
 		//set list control
@@ -518,16 +528,19 @@ void CComparativeList::RefreshData(CComparativeThroughputReport& _reportData)
 			m_listCtrl.InsertItem(nRow, vSimName[nRow]);
 
 			nCol = 1;
-			strItem.Format(_T("%d"), iterLine->GetData(TOTAL_PAX));
+			strItem.Format(_T("%d"), iterLine->m_grpSize);
 			m_listCtrl.SetItemText(nRow, nCol, strItem);
 			nCol++;
-			strItem.Format(_T("%d"), iterLine->GetData(AVG_PAX));
+			strItem.Format(_T("%d"), iterLine->m_paxGrp);
 			m_listCtrl.SetItemText(nRow, nCol, strItem);
 			nCol++;
-			strItem.Format(_T("%d"), iterLine->GetData(TOTAL_HOUR));
+			strItem.Format(_T("%.2f"), iterLine->m_paxProc);
 			m_listCtrl.SetItemText(nRow, nCol, strItem);
 			nCol++;
-			strItem.Format(_T("%d"), iterLine->GetData(AVG_HOUR));
+			strItem.Format(_T("%.2f"), iterLine->m_grpThrHr);
+			m_listCtrl.SetItemText(nRow, nCol, strItem);
+			nCol++;
+			strItem.Format(_T("%.2f"), iterLine->m_avgPerHour);
 			m_listCtrl.SetItemText(nRow, nCol, strItem);
 			nCol++;
 		}
@@ -606,7 +619,7 @@ void CComparativeList::RefreshData(CComparativeAcOperationReport& _reportData)
 
 }
 
-void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData)
+void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData,int nSubType)
 {
 	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
 	//clear old data
@@ -638,19 +651,29 @@ void CComparativeList::RefreshData(CComparativeSpaceDensityReport& _reportData)
 	}
 	//set list control
 	int nRow = 0, nCol =0;
-	const PaxDensMap& mapPaxDens = _reportData.GetResult();
-	for(QLengthMap::const_iterator iterLine = mapPaxDens.begin(); 
+	const PaxDensityMap& mapPaxDens = _reportData.GetResult();
+	for(PaxDensityMap::const_iterator iterLine = mapPaxDens.begin(); 
 		iterLine!=mapPaxDens.end(); iterLine++, nRow++)
 	{
 		iterLine->first.printTime(sData);
 		CString str = GetRegularDateTime(sData, TRUE);
 		m_listCtrl.InsertItem(nRow, str );
 		//m_listCtrl.InsertItem(nRow, sData );
-		const std::vector<int>& vLength = iterLine->second;
+		const std::vector<SpaceDensigyGroup>& vLength = iterLine->second;
 		nCol =1;
-		for(std::vector<int>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
+		for(std::vector<SpaceDensigyGroup>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
 		{
-			_stprintf(sData, "%d", *iterLength );
+			SpaceDensigyGroup groupData = *iterLength;
+			double dValue = groupData.GetValue(nSubType);
+			if (nSubType == 0)
+			{
+				_stprintf(sData, "%.f", dValue );
+			}
+			else
+			{
+				_stprintf(sData, "%.4f", dValue );
+			}
+		
 			m_listCtrl.SetItemText(nRow, nCol, sData );
 		}
 	}
@@ -757,7 +780,66 @@ void CComparativeList::RefreshData(CComparativeDistanceTravelReport& _reportData
 	}
 }
 
-void CComparativeList::RefreshData(CComparativeProcUtilizationReport& _reportData)
+void CComparativeList::RefreshData( CComparativSpaceThroughputReport& _reportData )
+{
+	ASSERT( ::IsWindow(m_listCtrl.GetSafeHwnd()) && m_listCtrl.GetStyle()&LVS_REPORT);
+	//clear old data
+	m_listCtrl.DeleteAllItems();
+
+	int nColumnCount = m_listCtrl.GetHeaderCtrl()->GetItemCount();
+	// Delete all of the columns.
+	for (int i=0;i < nColumnCount;i++)
+	{
+		m_listCtrl.DeleteColumn(0);
+	}
+
+
+	//set header control
+	TCHAR sStartData[32]	= _T("");
+	TCHAR sEndData[32]	= _T("");
+	m_listCtrl.InsertColumn( 0 , _T("Start Time"));
+	m_listCtrl.SetColumnWidth(0, 100);
+
+	m_listCtrl.InsertColumn( 1, _T("End Time"));
+	m_listCtrl.SetColumnWidth(1, 100);
+
+	int nColCount = 2;
+	CString strColText;
+	TCHAR sData[32]	= _T("");
+	std::vector<CString>& vSimName = _reportData.GetSimNameList();
+	for(int i=0; i<(int)vSimName.size(); i++)
+	{
+		_stprintf(sData, _T("Count %d"), i+1);
+		strColText = vSimName[i];
+		m_listCtrl.InsertColumn(nColCount, strColText, LVCFMT_CENTER, 50);
+		m_listCtrl.SetColumnWidth(nColCount, 80);
+		nColCount += 1;
+	}
+	//set list control
+	int nRow = 0, nCol =0;
+	const PaxThroughputMap& mapPaxThroughput = _reportData.GetResult();
+	for(PaxThroughputMap::const_iterator iterLine = mapPaxThroughput.begin(); 
+		iterLine!=mapPaxThroughput.end(); iterLine++, nRow++)
+	{
+		iterLine->first.GetStartTime().printTime(sStartData);
+		CString strStart = GetRegularDateTime(sStartData, TRUE);
+		m_listCtrl.InsertItem(nRow, strStart );
+
+		iterLine->first.GetEndTime().printTime(sEndData);
+		CString strEnd = GetRegularDateTime(sEndData, TRUE);
+		m_listCtrl.SetItemText(nRow, 1,strEnd );
+		//m_listCtrl.InsertItem(nRow, sData );
+		const std::vector<int>& vLength = iterLine->second;
+		nCol =2;
+		for(std::vector<int>::const_iterator iterLength=vLength.begin(); iterLength!=vLength.end(); iterLength++, nCol++)
+		{
+			_stprintf(sData, "%d", *iterLength );
+			m_listCtrl.SetItemText(nRow, nCol, sData );
+		}
+	}
+}
+
+void CComparativeList::RefreshData( CComparativeProcUtilizationReport& _reportData )
 {
 
 }

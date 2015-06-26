@@ -30,6 +30,9 @@ public:
 
 	bool IsOverlapped(const TimeRange& passedRange) const;
 
+	bool operator == (const TimeRange& timeRange)const;
+	bool operator < (const TimeRange& timeRange)const;
+
 private:
 //	void ConvertElapsedTime(int& nDay, COleDateTime& time, const ElapsedTime& elapsedTime);
 	ElapsedTime m_etStart;

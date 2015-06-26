@@ -12,12 +12,50 @@
 #include "ComparativeReportResult.h"
 #include <map>
 
-typedef std::map< ElapsedTime, std::vector<int> > PaxDensMap;
+enum SpaceDensitySubType
+{
+	/* detail */
+	SpaceDensity_Count,
+	SpaceDensity_PaxToM,
+	SpaceDensity_MtoPax
+};
+
+struct SpaceDensigyGroup 
+{
+	SpaceDensigyGroup()
+	{
+		m_iCount = 0;
+		m_iPaxToM = 0.0;
+		m_iMToPax = 0.0;
+	}
+
+	double GetValue(int nSubType)const
+	{
+		switch (nSubType)
+		{
+		case 0:
+			return static_cast<double>(m_iCount);
+		case 1:
+			return m_iPaxToM;
+		case 2:
+			return m_iMToPax;
+		default:
+			break;
+		}
+		return static_cast<double>(m_iCount);
+	}
+
+	int m_iCount;
+	double m_iPaxToM;
+	double m_iMToPax;
+};
+
+typedef std::map< ElapsedTime, std::vector<SpaceDensigyGroup> > PaxDensityMap;
 
 class CComparativeSpaceDensityReport : public CCmpBaseReport  
 {
 protected:
-	PaxDensMap		m_mapPaxDens;
+	PaxDensityMap		m_mapPaxDens;
 
 public:
 	CComparativeSpaceDensityReport();
@@ -28,7 +66,7 @@ public:
 	bool SaveReport(const std::string& _sPath) const;
 	bool LoadReport(const std::string& _sPath);
 	int GetReportType() const{return SpaceDensityReport;}
-	const PaxDensMap& GetResult() const{return m_mapPaxDens;}
+	const PaxDensityMap& GetResult() const{return m_mapPaxDens;}
 };
 
 #endif // !defined(AFX_COMPARATIVESPACEDENSITYREPORT_H__63CC9911_B23A_4399_A79A_A08BEB9B5E5A__INCLUDED_)

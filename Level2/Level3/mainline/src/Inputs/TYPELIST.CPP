@@ -102,7 +102,7 @@ void PassengerTypeList::writeData (ArctermFile& p_file) const
 	CString levelName ;
 	for (int i = 0 ; i < 16 ; i++)
 	{
-		levelName.Format("%s",LevelName[i]) ;
+		levelName.Format("%s",LevelName[i].GetString()) ;
 		p_file.writeField(levelName) ;
 	}
 	p_file.writeLine();

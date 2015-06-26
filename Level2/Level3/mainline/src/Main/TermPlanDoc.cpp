@@ -672,7 +672,7 @@ BOOL CTermPlanDoc::OnNewDocument()
 		GetTerminal().m_pPipeDataSet->SetLandsideInput(m_arcport.m_pInputLandside);
 		GetTerminal().loadInputs( m_ProjInfo.path );
 		GetTerminal().GetSimReportManager()->loadDataSet( m_ProjInfo.path  );
-		m_portals.loadDataSet( m_ProjInfo.path );
+	//	m_portals.loadDataSet( m_ProjInfo.path );
 		m_floors.loadDataSet( m_ProjInfo.path );
 		GetTerminal().m_AirsideInput->GetFloors().loadDataSet( m_ProjInfo.path );
 
@@ -3000,7 +3000,8 @@ void CTermPlanDoc::OnProcEditFinished()
 	GetTerminal().pRailWay->saveDataSet( m_ProjInfo.path, false );
 	GetTerminal().m_pAllCarSchedule->saveDataSet( m_ProjInfo.path,false );
 
-	m_portals.saveDataSet( m_ProjInfo.path,false);
+//	m_portals.saveDataSet( m_ProjInfo.path,false);
+	GetTerminal().m_pPortals->saveDataSet(m_ProjInfo.path,false);
 	GetTerminal().m_pAreas->saveDataSet(  m_ProjInfo.path,false );
 	GetTerminal().m_pStructureList->saveDataSet(  m_ProjInfo.path,false );
 	GetTerminal().m_pPipeDataSet->saveDataSet(  m_ProjInfo.path,false );
@@ -5078,17 +5079,17 @@ void CTermPlanDoc::OnCtxNewPortal()
 	CDlgAreaPortal dlg(this,CDlgAreaPortal::portal, pNewPortal, p3DView );
 	if(dlg.DoFakeModal() == IDOK) {
 		pNewPortal->floor = m_nActiveFloor;
-		m_portals.m_vPortals.push_back(pNewPortal);
+		GetTerminal().m_pPortals->m_vPortals.push_back(pNewPortal);
 		CTVNode* pAllPortalsNode =m_msManager.FindNodeByName(IDS_TVNN_PORTALS);
 		ASSERT(pAllPortalsNode != NULL);
-		CPortalNode* pNode = new CPortalNode(m_portals.m_vPortals.size()-1);
+		CPortalNode* pNode = new CPortalNode(GetTerminal().m_pPortals->m_vPortals.size()-1);
 		pAllPortalsNode->m_eState = CTVNode::expanded;
 		pNode->Name(pNewPortal->name);
 		pAllPortalsNode->AddChild(pNode);
 
 		UpdateRender3DObject(pNewPortal);
 		UpdateAllViews(NULL, NODE_HINT_REFRESHNODE, (CObject*) pAllPortalsNode);
-		m_portals.saveDataSet(m_ProjInfo.path, true);
+		GetTerminal().m_pPortals->saveDataSet(m_ProjInfo.path, true);
 	}
 	else {
 		delete pNewPortal;
@@ -5128,7 +5129,7 @@ void CTermPlanDoc::OnCtxEditPortal()
 {
 	ASSERT(m_pSelectedNode->IsKindOf(RUNTIME_CLASS(CPortalNode)));
 	int idx = ((CPortalNode*) m_pSelectedNode)->GetIdx();
-	CPortal* pPortal = m_portals.m_vPortals[idx];
+	CPortal* pPortal = GetTerminal().m_pPortals->m_vPortals[idx];
 	//bring up 3d window
 	C3DView* p3DView = NULL;
 	if((p3DView = Get3DView()) == NULL) 
@@ -5149,7 +5150,7 @@ void CTermPlanDoc::OnCtxEditPortal()
 
 		UpdateRender3DObject(pPortal);
 		UpdateAllViews(NULL, NODE_HINT_REFRESHNODE, (CObject*) pPortalsNode);
-		m_portals.saveDataSet(m_ProjInfo.path, true);
+		GetTerminal().m_pPortals->saveDataSet(m_ProjInfo.path, true);
 	}
 }
 
@@ -5205,8 +5206,8 @@ void CTermPlanDoc::OnCtxDeletePortal()
 	if(AfxMessageBox(_T("Are you sure?"), MB_YESNO | MB_ICONQUESTION) == IDYES) 
 	{
 		int idx = ((CPortalNode*) m_pSelectedNode)->GetIdx();
-		CPortal* pPortal = m_portals.m_vPortals[idx];
-		CPortalList& portals = m_portals.m_vPortals;
+		CPortal* pPortal = GetTerminal().m_pPortals->m_vPortals[idx];
+		CPortalList& portals = GetTerminal().m_pPortals->m_vPortals;
 		CPortalList::iterator iteDel = portals.begin() + idx;
 		const CGuid guid = (*iteDel)->getGuid();
 		delete pPortal;
@@ -5223,7 +5224,7 @@ void CTermPlanDoc::OnCtxDeletePortal()
 				((CPortalNode*)pPortalsNode->GetChildByIdx(i))->SetIdx(oldIdx-1);
 		}
 		UpdateAllViews(NULL, NODE_HINT_REFRESHNODE, (CObject*) pPortalsNode);
-		m_portals.saveDataSet(m_ProjInfo.path, true);
+		 GetTerminal().m_pPortals->saveDataSet(m_ProjInfo.path, true);
 	}
 }
 
@@ -5242,7 +5243,7 @@ void CTermPlanDoc::OnCtxPortalColor()
 {
 	ASSERT(m_pSelectedNode->IsKindOf(RUNTIME_CLASS(CPortalNode)));
 	int idx = ((CPortalNode*) m_pSelectedNode)->GetIdx();
-	CNamedPointList* pNPL = m_portals.m_vPortals[idx];
+	CNamedPointList* pNPL = GetTerminal().m_pPortals->m_vPortals[idx];
 	CColorDialog colorDlg(pNPL->color, CC_ANYCOLOR | CC_FULLOPEN);
 	if(colorDlg.DoModal() == IDOK) {
 		pNPL->color = colorDlg.GetColor();
@@ -5945,7 +5946,7 @@ BOOL CTermPlanDoc::ReloadInputData()
 		GetInputOnboard()->GetOnBoardFlightCandiates()->ReadData(GetProjectID());
 		
 		GetTerminal().GetSimReportManager()->loadDataSet( m_ProjInfo.path);
-		m_portals.loadDataSet( m_ProjInfo.path );	
+		//m_portals.loadDataSet( m_ProjInfo.path );	
 
 		
 		m_floors.loadDataSet( m_ProjInfo.path );
@@ -9786,7 +9787,7 @@ void CTermPlanDoc::DeleteAreaObject(int nIndex)
 
 void CTermPlanDoc::DeletePortalObject(int nIndex)
 {
-	CObjectDisplay *pObjectDisplay = m_pPlacement->GetPortalDisplay(&m_portals ,nIndex);
+	CObjectDisplay *pObjectDisplay = m_pPlacement->GetPortalDisplay(GetTerminal().m_pPortals ,nIndex);
 	if (pObjectDisplay)
 	{
 		GetSelectProcessors().DelItem(pObjectDisplay);

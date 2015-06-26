@@ -286,6 +286,7 @@
     <ClInclude Include="DlgPipeAttachCrosswalk.h" />
     <ClInclude Include="DlgRosterGranttChart.h" />
     <ClInclude Include="DlgSelectLandsideVehicleType.h" />
+    <ClInclude Include="DlgSelectPortal.h" />
     <ClInclude Include="DlgSequentialLightSyn.h" />
     <ClInclude Include="DlgSpeedControl.h" />
     <ClInclude Include="DlgVehicleAssignmentNonPaxRelated.h" />
@@ -1110,6 +1111,7 @@
     <ClCompile Include="DlgPipeAttachCrosswalk.cpp" />
     <ClCompile Include="DlgRosterGranttChart.cpp" />
     <ClCompile Include="DlgSelectLandsideVehicleType.cpp" />
+    <ClCompile Include="DlgSelectPortal.cpp" />
     <ClCompile Include="DlgSequentialLightSyn.cpp" />
     <ClCompile Include="DlgSpeedControl.cpp" />
     <ClCompile Include="DlgVehicleAssignmentNonPaxRelated.cpp" />

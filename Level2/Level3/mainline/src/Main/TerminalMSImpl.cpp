@@ -319,9 +319,9 @@ void CTerminalMSImpl::BuildTVNodeTree()
 	pNode = new CTVNode(s, IDR_CTX_PORTALS);
 	pLayoutNode->AddChild(pNode);
 	//add each portal to the portals node
-	for(int i=0; i<static_cast<int>(m_pTermPlanDoc->m_portals.m_vPortals.size()); i++) {
+	for(int i=0; i<static_cast<int>(m_pTermPlanDoc->GetTerminal().m_pPortals->m_vPortals.size()); i++) {
 		CPortalNode* pPN = new CPortalNode(i);
-		pPN->Name(m_pTermPlanDoc->m_portals.m_vPortals[i]->name);
+		pPN->Name(m_pTermPlanDoc->GetTerminal().m_pPortals->m_vPortals[i]->name);
 		pNode->AddChild(pPN);
 	}
 

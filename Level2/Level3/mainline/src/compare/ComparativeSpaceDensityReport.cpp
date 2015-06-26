@@ -48,13 +48,22 @@ void CComparativeSpaceDensityReport::MergeSample(const ElapsedTime& tInteval)
 					//count
 					file.setToField( 2 );
 					file.getInteger( nLength );
+					//pax/m2
+					double dPaxToM  = 0.0;
+					file.getFloat(dPaxToM);
 
-					std::vector<int>& vLengths = m_mapPaxDens[time];
+					//m2/pax
+					double dMToPax = 0.0;
+					file.getFloat(dMToPax);
+
+					std::vector<SpaceDensigyGroup>& vLengths = m_mapPaxDens[time];
 					if( vLengths.size()!= m_vSampleRepPaths.size())
 					{
-						vLengths.resize( m_vSampleRepPaths.size(), 0);
+						vLengths.resize( m_vSampleRepPaths.size());
 					}
-					vLengths[nIndex] += nLength;
+					vLengths[nIndex].m_iCount += nLength;
+					vLengths[nIndex].m_iPaxToM += dPaxToM;
+					vLengths[nIndex].m_iMToPax += dMToPax;
 				}
 				file.closeIn();
 			}
@@ -105,14 +114,17 @@ bool CComparativeSpaceDensityReport::SaveReport(const std::string& _sPath) const
 		file.writeLine();
 
 		//write data lines
-		for(PaxDensMap::const_iterator iterLine=m_mapPaxDens.begin(); 
+		for(PaxDensityMap::const_iterator iterLine=m_mapPaxDens.begin(); 
 			iterLine!=m_mapPaxDens.end(); iterLine++)//line
 		{
 			file.writeTime( iterLine->first );//time
 			//queue length
-			for(std::vector<int>::const_iterator iterLength=iterLine->second.begin(); iterLength!=iterLine->second.end(); iterLength++)//fields of per model
+			for(std::vector<SpaceDensigyGroup>::const_iterator iterLength=iterLine->second.begin(); iterLength!=iterLine->second.end(); iterLength++)//fields of per model
 			{
-				file.writeInt( *iterLength );
+				SpaceDensigyGroup groupData = *iterLength;
+				file.writeInt( groupData.m_iCount );
+				file.writeDouble( groupData.m_iPaxToM );
+				file.writeDouble( groupData.m_iMToPax );
 			}
 			file.writeLine();
 		}
@@ -177,11 +189,14 @@ bool CComparativeSpaceDensityReport::LoadReport(const std::string& _sPath)
 		while( file.getLine() == 1)
 		{
 			file.getTime( time );
-			std::vector<int>& vLengths = m_mapPaxDens[time];
+			std::vector<SpaceDensigyGroup>& vLengths = m_mapPaxDens[time];
 			for(int n=0; n<nSampleCount; n++)
 			{
-				file.getInteger( nQLength );
-				vLengths.push_back( nQLength );
+				SpaceDensigyGroup groupData;
+				file.getInteger( groupData.m_iCount );
+				file.getFloat( groupData.m_iPaxToM );
+				file.getFloat( groupData.m_iMToPax );
+				vLengths.push_back( groupData );
 			}
 		}
 		file.closeIn();

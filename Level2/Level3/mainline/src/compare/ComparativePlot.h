@@ -11,6 +11,8 @@ class CComparativePaxCountReport;
 class CComparativeAcOperationReport;
 class CComparativeTimeTerminalReport;
 class CComparativeDistanceTravelReport;
+class CComparativSpaceThroughputReport;
+class CComparativeProcUtilizationReport;
 class CModelToCompare;
 
 class CComparativePlot
@@ -32,12 +34,13 @@ private:
 	bool Draw3DChart(CComparativeQTimeReport& _reportData,int nSubType);
 	bool Draw3DChart(CComparativeQLengthReport& _reportData,int nSubType);
 	bool Draw3DChart(CComparativeThroughputReport& _reportData,int nSubType);
-	bool Draw3DChart(CComparativeSpaceDensityReport& _reportData);
+	bool Draw3DChart(CComparativeSpaceDensityReport& _reportData,int nSubType);
+	bool Draw3DChart(CComparativSpaceThroughputReport& _reportData);
 	bool Draw3DChart(CComparativePaxCountReport& _reportData);
 	bool Draw3DChart(CComparativeAcOperationReport& _reportData);
 	bool Draw3DChart(CComparativeTimeTerminalReport& _reportData);
 	bool Draw3DChart(CComparativeDistanceTravelReport & _reportData);
-
+    bool Draw3DChart(CComparativeProcUtilizationReport & _reportData);
 	ThreeDChartType m_iType;
 	CARC3DChart& m_3DChart;
 };

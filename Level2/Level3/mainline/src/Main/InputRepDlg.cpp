@@ -313,7 +313,7 @@ void CInputRepDlg::LoadFlight(int &nNextIdx)
 
 void CInputRepDlg::LoadLayout(int &nNextIdx)
 {
-	int nPortalCount = m_pDoc->m_portals.m_vPortals.size();
+	int nPortalCount = m_pDoc->GetTerminal().m_pPortals->m_vPortals.size();
 	int nAreaCount = m_pDoc->GetTerminal().m_pAreas->m_vAreas.size();
 	int nFloorCount = m_pDoc->GetCurModeFloor().m_vFloors.size();
 	int nLayoutCount = nPortalCount + nAreaCount + nFloorCount;

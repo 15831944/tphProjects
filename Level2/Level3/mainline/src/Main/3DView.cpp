@@ -1827,7 +1827,7 @@ void C3DView::OnLButtonUp(UINT nFlags, CPoint point)
 				GetDocument()->GetProcessorList().saveDataSet(sPath, true);
 				GetDocument()->GetTerminal().pRailWay->saveDataSet( sPath, false );
 				GetDocument()->GetTerminal().m_pAllCarSchedule->saveDataSet( sPath,false );
-				GetDocument()->m_portals.saveDataSet(sPath,false);
+				GetDocument()->GetTerminal().m_pPortals->saveDataSet(sPath,false);
 				GetDocument()->GetTerminal().m_pAreas->saveDataSet( sPath,false );
 				GetDocument()->GetTerminal().m_pStructureList->saveDataSet( sPath,false );
 				GetDocument()->GetTerminal().m_pPipeDataSet->saveDataSet( sPath,false );
@@ -3212,7 +3212,7 @@ BOOL C3DView::RenderScene(BOOL bRenderFloors)
 			glEnd();
 		}
 	}
-	CPortalList* vPortalList = &(pDoc->m_portals.m_vPortals);
+	CPortalList* vPortalList = &(pDoc->GetTerminal().m_pPortals->m_vPortals);
 	for(i=0; i<static_cast<int>(vPortalList->size()); i++) 
 	{
 		CNamedPointList* pPortal = vPortalList->at(i);
@@ -4241,7 +4241,7 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 					glEnd();
 				}
 			}
-			CPortalList* vPortalList = &(pDoc->m_portals.m_vPortals);
+			CPortalList* vPortalList = &(pDoc->GetTerminal().m_pPortals->m_vPortals);
 			for(int nPortal=0; nPortal<static_cast<int>(vPortalList->size()); nPortal++) 
 			{
 				CNamedPointList* pPortal = vPortalList->at(nPortal);
@@ -6935,7 +6935,7 @@ void C3DView::SelectProc(int& nSelectCount,UINT nFlags,CPoint point,GLuint* idx,
 				m_bProcHasMoved = FALSE;
 				int nSelectPortal = GetSelectIdx(idx[i]);
 				CObjectDisplay* pObjectDisplay = 
-					GetDocument()->GetTerminalPlacement()->GetPortalDisplay( &(GetDocument()->m_portals) , nSelectPortal);
+					GetDocument()->GetTerminalPlacement()->GetPortalDisplay( GetDocument()->GetTerminal().m_pPortals , nSelectPortal);
 
 				if(pObjectDisplay)
 				{
@@ -8882,7 +8882,8 @@ void C3DView::OnSubmenuEnableeditcontrolpoint()
 				if(GetDocument()->GetTerminal().m_pAllCarSchedule)
 					GetDocument()->GetTerminal().m_pAllCarSchedule->saveDataSet( sPath,false );
 
-				GetDocument()->m_portals.saveDataSet(sPath,false);
+			//	GetDocument()->m_portals.saveDataSet(sPath,false);
+				GetDocument()->GetTerminal().m_pPortals->saveDataSet(sPath,false);
 
 				if(GetDocument()->GetTerminal().m_pAreas)
 					GetDocument()->GetTerminal().m_pAreas->saveDataSet( sPath,false );

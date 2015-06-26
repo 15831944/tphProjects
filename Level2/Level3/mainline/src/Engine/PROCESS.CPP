@@ -483,14 +483,18 @@ void Processor::appendLinkedDestProcs(const MiscProcessorIDList* _pLinkedDestIdL
 					//						// TRACE("\n%s\n", pProcOneToOne->getID()->GetIDString() );
 					//pLinkedDestGroupIndex=new GroupIndex;
 					pLinkedDestGroupIndex = GetTerminal()->procList->getGroupIndex ( *pProcOneToOne->getID());
-					m_vLinkedDestProcs.push_back(pLinkedDestGroupIndex);
+					ASSERT(pLinkedDestGroupIndex.start >= 0);
+					if(pLinkedDestGroupIndex.start >= 0)
+						m_vLinkedDestProcs.push_back(pLinkedDestGroupIndex);
 				}
 			}
 			else
 			{
 				//pLinkedDestGroupIndex=new GroupIndex;
 				pLinkedDestGroupIndex = GetTerminal()->procList->getGroupIndex (*(pMiscLinkedDestIDList->getID (i)));
-				m_vLinkedDestProcs.push_back(pLinkedDestGroupIndex);
+				ASSERT(pLinkedDestGroupIndex.start >= 0);
+				if(pLinkedDestGroupIndex.start >= 0)
+					m_vLinkedDestProcs.push_back(pLinkedDestGroupIndex);
 			}
 		}
 		

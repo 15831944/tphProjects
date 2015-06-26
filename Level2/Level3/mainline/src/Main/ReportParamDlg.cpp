@@ -746,7 +746,7 @@ void CReportParamDlg::ModifyControl()
 		m_staticArea.ShowWindow( SW_SHOW );
 		m_comboAreaPortal.ShowWindow( SW_SHOW );
 		m_comboAreaPortal.EnableWindow(TRUE);
-		CPortals* pPortals = &m_pDoc->m_portals;
+		CPortals* pPortals = m_pDoc->GetTerminal().m_pPortals;
 		int nCount = pPortals->m_vPortals.size();
 		m_comboAreaPortal.ResetContent();
 		for( int i=0; i<nCount; i++ )

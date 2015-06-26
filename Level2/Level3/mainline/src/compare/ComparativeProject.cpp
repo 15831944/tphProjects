@@ -14,6 +14,7 @@
 #include "../Reports/ReportParaOfReportType.h"
 #include "../Reports/ReportParaOfThreshold.h"
 #include "../Reports/ReportParaOfPaxType.h"
+#include "../Reports/ReportParaWithPortal.h"
 #include "../Reports/ReportParaOfTwoGroupProcs.h"
 
 
@@ -31,6 +32,7 @@
 #include "ComparativeAcOperationReport.h"
 #include "ComparativeDistanceTravelReport.h"
 #include "ComparativeTimeTerminalReport.h"
+#include "ComparativSpaceThroughputReport.h"
 #include "ComparativeProcUtilizationReport.h"
 
 
@@ -218,6 +220,9 @@ void CComparativeProject::GenerateReportParameter(const CReportParamToCompare &i
 	std::vector<CString> vsAreas;
 	vsAreas.push_back(modelParam.GetArea());
 	pOutParam->SetAreas(vsAreas);
+	std::vector<CString>vPortals;
+	vPortals.push_back(modelParam.GetPortal());
+	pOutParam->SetPortals(vPortals);
 	std::vector<CMobileElemConstraint> vPaxType;
 	modelParam.GetPaxType(vPaxType);
 
@@ -312,8 +317,11 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 				case ENUM_DISTANCE_REP:
 					iReportIndex = 7;
 					break;
+				case ENUM_SPACETHROUGHPUT_REP:
+					iReportIndex = 8;
+					break;
                 case ENUM_UTILIZATION_REP:
-                    iReportIndex = 8;
+                    iReportIndex = 9;
                     break;
 				default:
 					break;
@@ -329,7 +337,9 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 				case ENUM_PAXDENS_REP:
 					pOutParam = new CReportParaOfTime( new CReportParaOfPaxType( new CReportParaWithArea( new CReportParaOfReportType( NULL)) ) );
 					break;
-
+				case ENUM_SPACETHROUGHPUT_REP:
+					pOutParam = new CReportParaOfTime( new CReportParaOfPaxType( new CReportParaWithPortal( new CReportParaOfReportType( NULL)) ) );
+					break;
 				case ENUM_ACOPERATION_REP:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfPaxType( NULL) ) );
 					break;
@@ -341,10 +351,11 @@ BOOL CComparativeProject::Run(CCompRepLogBar* pWndStatus ,void (CALLBACK * _Show
 					pOutParam =new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfPaxType( new CReportParaOfTwoGroupProcs( NULL ) ) ) ) );
 					break;
 				case ENUM_THROUGHPUT_REP: //8
-                case ENUM_QUEUELENGTH_REP:
+				case ENUM_QUEUELENGTH_REP:
                 case ENUM_UTILIZATION_REP:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(new CReportParaOfPaxType(NULL)))));
 					break;
+
 				default:
 					pOutParam = new CReportParaOfTime( new CReportParaOfReportType( new CReportParaOfThreshold( new CReportParaOfProcs(NULL) )));
 					break;
@@ -499,6 +510,9 @@ void CComparativeProject::MergeReports(const CString& sOutputPath)
 			break;
 		case ENUM_DISTANCE_REP:
 			pResult = new CComparativeDistanceTravelReport;
+			break;
+		case ENUM_SPACETHROUGHPUT_REP:
+			pResult = new CComparativSpaceThroughputReport;
 			break;
         case ENUM_UTILIZATION_REP:
             pResult = new CComparativeProcUtilizationReport;

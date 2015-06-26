@@ -9,6 +9,7 @@
 #include "../compare/ComparativeAcOperationReport.h"
 #include "../compare/ComparativeDistanceTravelReport.h"
 #include "../compare/ComparativeTimeTerminalReport.h"
+#include "../compare/ComparativSpaceThroughputReport.h"
 #include "../compare/ModelToCompare.h"
 #include "../compare/ModelsManager.h"
 #include "Main/RepGraphViewBaseOperator.h"
@@ -79,7 +80,7 @@ bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData,int nSubType)
 			bResult = Draw3DChart((CComparativeThroughputReport&)_reportData, nSubType);
 			break;
 		case SpaceDensityReport:
-			bResult = Draw3DChart((CComparativeSpaceDensityReport&)_reportData);
+			bResult = Draw3DChart((CComparativeSpaceDensityReport&)_reportData,nSubType);
 			break;
 		case PaxCountReport:
 			bResult = Draw3DChart((CComparativePaxCountReport&)_reportData);
@@ -93,7 +94,12 @@ bool CComparativePlot::Draw3DChart(CCmpBaseReport& _reportData,int nSubType)
 		case DistanceTravelReport:
 			bResult = Draw3DChart((CComparativeDistanceTravelReport&)_reportData);
 			break;
-
+		case SpaceThroughputReport:
+			bResult = Draw3DChart((CComparativSpaceThroughputReport&)_reportData);
+			break;
+        case ProcessorUtilizationReport:
+			bResult = Draw3DChart((CComparativeProcUtilizationReport&)_reportData);
+            break;
 		default:
 			ASSERT(FALSE);
 			break;
@@ -549,6 +555,8 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		c2dGraphData.m_vrLegend.push_back(vSimName[i]);
 	}
 
+	
+
 	if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_DETAIL)
 	{
 
@@ -589,7 +597,8 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		}
 	}
 	else if(_reportData.m_cmpParam.GetReportDetail() == REPORT_TYPE_SUMMARY)
-	{
+	{		
+
 		const std::vector<CmpThroughputSummaryData>& vData = _reportData.GetSummaryResult();
 
 		// Alloc data space
@@ -613,38 +622,86 @@ bool CComparativePlot::Draw3DChart(CComparativeThroughputReport& _reportData, in
 		//set row label
 		CString XTickTitle;
 		std::vector<CString> vXTickTitle;
+		
+		std::vector<CModelParameter> vModels;
+		_reportData.m_cmpParam.GetModelParameter(vModels);
+		for(size_t i=0;i<vModels.size();++i)
+		{
+			std::vector<ProcessorID> idList;
+			vModels[i].GetProcessorID(idList);
+			CString strIDList;
+			for(size_t j = 0 ;j< idList.size();j++)
+			{
+				strIDList += idList[j].GetIDString();
+			}
+			vXTickTitle.push_back(strIDList);
+		}
+		c2dGraphData.m_vrXTickTitle = vXTickTitle;
+
 		switch(nSubType)
 		{
-		case TOTAL_PAX:
-			vXTickTitle.push_back(_T("Total Pax"));
+		case PAX_GROUP:
+			{
+				c2dGraphData.m_strChartTitle = _T("Total Pax by Group");
+				c2dGraphData.m_strYtitle = _T("Total Passengers Served");
+				c2dGraphData.m_strXtitle = _T("Processor");
+			}			
 			break;
-		case AVG_PAX:
-			vXTickTitle.push_back(_T("Avg Pax"));
+		case PAX_PROC:
+			{
+				c2dGraphData.m_strChartTitle = _T("Pax per Processor");
+				c2dGraphData.m_strYtitle = _T("Passengers Served by Processor");
+				c2dGraphData.m_strXtitle = _T("Processor");
+			}			
 			break;
-		case TOTAL_HOUR:
-			vXTickTitle.push_back(_T("Total / Hour"));
+		case GROUP_THR_HR:
+			{
+				c2dGraphData.m_strChartTitle = _T("Group Throughput per Hour");
+				c2dGraphData.m_strYtitle = _T("Passengers Served per Hour");
+				c2dGraphData.m_strXtitle = _T("Processor");
+			}			
 			break;
 		case AVG_HOUR:
-			vXTickTitle.push_back(_T("Avg / Hour"));
+			{
+				c2dGraphData.m_strChartTitle = _T("Processor Throughput per Hour");
+				c2dGraphData.m_strYtitle = _T("Passengers Served per Processor per Hour");
+				c2dGraphData.m_strXtitle = _T("Processor");
+			}			
 			break;
 		default:
 			return false;
 			break;
 		}
-		c2dGraphData.m_vrXTickTitle = vXTickTitle;
+		
 	}
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
 }
 
-bool CComparativePlot::Draw3DChart(CComparativeSpaceDensityReport& _reportData)
+bool CComparativePlot::Draw3DChart(CComparativeSpaceDensityReport& _reportData,int nSubType)
 {
-	const PaxDensMap& mapPaxDens = _reportData.GetResult();
+	const PaxDensityMap& mapPaxDens = _reportData.GetResult();
 	C2DChartData c2dGraphData;
 	// Update Title
-	c2dGraphData.m_strChartTitle = _T(" Space Density Report ");
-	c2dGraphData.m_strYtitle = _T("Passengers In Area");
-	c2dGraphData.m_strXtitle = _T("Time of Day");
+	if (nSubType == 0)
+	{
+		c2dGraphData.m_strChartTitle = _T(" Count ");
+		c2dGraphData.m_strYtitle = _T("Passengers In Area");
+		c2dGraphData.m_strXtitle = _T("Time of Day");
+	}
+	else if (nSubType == 1)
+	{
+		c2dGraphData.m_strChartTitle = _T(" Pax/m2 ");
+		c2dGraphData.m_strYtitle = _T("Passengers per Square Meter");
+		c2dGraphData.m_strXtitle = _T("Time of Day");
+	}
+	else
+	{
+		c2dGraphData.m_strChartTitle = _T(" m2/Pax ");
+		c2dGraphData.m_strYtitle = _T("Square Meters per Passenger");
+		c2dGraphData.m_strXtitle = _T("Time of Day");
+	}
+	
 
 	//set footer
 	CString strFooter;
@@ -676,9 +733,9 @@ bool CComparativePlot::Draw3DChart(CComparativeSpaceDensityReport& _reportData)
 	CString sTime;
 	int nXTick = 0;
 
-	for( PaxDensMap::const_iterator iterLine = mapPaxDens.begin(); iterLine != mapPaxDens.end(); iterLine++, nXTick++)
+	for( PaxDensityMap::const_iterator iterLine = mapPaxDens.begin(); iterLine != mapPaxDens.end(); iterLine++, nXTick++)
 	{
-		const std::vector<int>& vLength = iterLine->second;
+		const std::vector<SpaceDensigyGroup>& vLength = iterLine->second;
 
 		//set row label
 		ElapsedTime t = iterLine->first;
@@ -690,7 +747,8 @@ bool CComparativePlot::Draw3DChart(CComparativeSpaceDensityReport& _reportData)
 		//set data
 		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
 		{
-			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
+			double dValue = vLength[nSeg].GetValue(nSubType);
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back(dValue);
 		}
 	}
 	c2dGraphData.m_vrXTickTitle = vXTickTitle;
@@ -737,7 +795,7 @@ bool CComparativePlot::Draw3DChart(CComparativePaxCountReport& _reportData)
 	CString sTime;
 	int nXTick = 0;
 
-	for( PaxDensMap::const_iterator iterLine = mapPaxCount.begin(); iterLine != mapPaxCount.end(); iterLine++, nXTick++)
+	for( PaxCountMap::const_iterator iterLine = mapPaxCount.begin(); iterLine != mapPaxCount.end(); iterLine++, nXTick++)
 	{
 		const std::vector<int>& vLength = iterLine->second;
 
@@ -799,7 +857,7 @@ bool CComparativePlot::Draw3DChart(CComparativeAcOperationReport& _reportData)
 	CString sTime;
 	int nXTick = 0;
 
-	for( PaxDensMap::const_iterator iterLine = mapPaxDens.begin(); iterLine != mapPaxDens.end(); iterLine++, nXTick++)
+	for( AcOperationMap::const_iterator iterLine = mapPaxDens.begin(); iterLine != mapPaxDens.end(); iterLine++, nXTick++)
 	{
 		const std::vector<int>& vLength = iterLine->second;
 
@@ -944,6 +1002,81 @@ bool CComparativePlot::Draw3DChart(CComparativeDistanceTravelReport & _reportDat
 	c2dGraphData.m_vrXTickTitle = vXTickTitle;
 	m_3DChart.DrawChart(c2dGraphData);
 	return true;
+}
+
+bool CComparativePlot::Draw3DChart( CComparativSpaceThroughputReport& _reportData )
+{
+	const PaxThroughputMap& mapPaxThroughput = _reportData.GetResult();
+	C2DChartData c2dGraphData;
+	// Update Title
+	c2dGraphData.m_strChartTitle = _T(" Space Through Report ");
+	c2dGraphData.m_strYtitle = _T("Space Throughput Count");
+	c2dGraphData.m_strXtitle = _T("Time of Day");
+
+	//set footer
+	CString strFooter;
+	c2dGraphData.m_strFooter = strFooter;
+
+	// Alloc data space
+	if( mapPaxThroughput.size()>0)
+	{
+		int simCount = mapPaxThroughput.begin()->second.size();
+		std::vector<double> vSegmentData(mapPaxThroughput.size());
+		vSegmentData.clear();
+		for(int nSeg = 0; nSeg < simCount; nSeg++)
+		{
+			c2dGraphData.m_vr2DChartData.push_back(vSegmentData);
+		}	
+	}
+
+	// Insert legend.
+	std::vector<CString> vSimName  =  _reportData.GetSimNameList();
+	int simNameCount = vSimName.size();
+	for(int i=0; i<simNameCount; i++)
+	{
+		c2dGraphData.m_vrLegend.push_back(vSimName[i]);
+	}
+
+	// Insert data
+	CString XTickTitle;
+	std::vector<CString> vXTickTitle;
+	CString sTime;
+	int nXTick = 0;
+
+	for( PaxThroughputMap::const_iterator iterLine = mapPaxThroughput.begin(); iterLine != mapPaxThroughput.end(); iterLine++, nXTick++)
+	{
+		const std::vector<int>& vLength = iterLine->second;
+
+		//set row label
+		CString strStart;
+		CString strEnd;
+		ElapsedTime tStartTime = iterLine->first.GetStartTime();
+		ElapsedTime tEndTime = iterLine->first.GetEndTime();
+		tStartTime.set(tStartTime.asSeconds() % WholeDay);
+		tStartTime.printTime(strStart.GetBuffer(32), FALSE);
+		strStart.ReleaseBuffer();
+
+		tEndTime.set(tEndTime.asSeconds() % WholeDay);
+		tEndTime.printTime(strEnd.GetBuffer(32), FALSE);
+		strEnd.ReleaseBuffer();
+
+		sTime.Format(_T("%s-%s"),strStart,strEnd);
+		XTickTitle = sTime;
+		vXTickTitle.push_back(XTickTitle);
+		//set data
+		for(int nSeg = 0; nSeg < (int)vLength.size(); nSeg++)
+		{
+			(c2dGraphData.m_vr2DChartData[nSeg]).push_back((double)vLength[nSeg]);
+		}
+	}
+	c2dGraphData.m_vrXTickTitle = vXTickTitle;
+	m_3DChart.DrawChart(c2dGraphData);
+	return true;
+}
+
+bool CComparativePlot::Draw3DChart(CComparativeProcUtilizationReport & _reportData)
+{
+    return true;
 }
 
 bool CComparativePlot::Update3DChart(ThreeDChartType iType)

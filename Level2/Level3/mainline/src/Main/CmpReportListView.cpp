@@ -75,6 +75,7 @@ void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 	if(!IsWindowVisible())
 		return;
 
+	int iSubType = (int)pHint;
 	CComparativeProject* pCompProj = m_pCmpReport->GetComparativeProject();
 	const CCmpReportManager &crrList = pCompProj->GetCompReportResultList();
 	const CmpReportResultVector& vReport = crrList.GetReportResult();
@@ -87,7 +88,7 @@ void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 		if(reportName.CompareNoCase(strFocusReport) == 0)
 		{
 			m_wndListCtrl.ShowWindow(SW_SHOW);
-			cmpList.RefreshData(*vReport[i]);
+			cmpList.RefreshData(*vReport[i],iSubType);
 			return;
 		}
 	}

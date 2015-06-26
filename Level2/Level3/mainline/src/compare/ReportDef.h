@@ -23,6 +23,7 @@ static char* s_szReportCategoryName[] =
 	_T("AcOperation Report"),
 	_T("Time Terminal Report"),
 	_T("Distance Travel Report"),
+	_T("Space Throughput Report"),
     _T("Processor Utilization Report")
 };
 

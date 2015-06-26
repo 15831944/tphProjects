@@ -865,7 +865,7 @@ void* CARCportLayoutEditor::OnQueryDataObject( const CGuid& guid, const GUID& cl
 	}
 	else if (cls_guid == CPortalBase::getTypeGUID())
 	{
-		return pDoc->m_portals.FindPortalByGuid(guid);
+		return pDoc->GetTerminal().m_pPortals->FindPortalByGuid(guid);
 	}
 	else if (cls_guid == CProcessor2Base::getTypeGUID())
 	{
@@ -971,7 +971,7 @@ bool CARCportLayoutEditor::OnQueryDataObjectList( std::vector<void*>& vData, con
 	}
 	else if (cls_guid == CPortalBase::getTypeGUID())
 	{
-		CPortalList& portals = pDoc->m_portals.m_vPortals;
+		CPortalList& portals = pDoc->GetTerminal().m_pPortals->m_vPortals;
 		vData.resize(nFirst + portals.size());
 		std::copy(portals.begin(), portals.end(), vData.begin() + nFirst);
 		return true;

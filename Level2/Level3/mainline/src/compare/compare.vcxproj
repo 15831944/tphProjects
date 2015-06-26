@@ -192,6 +192,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="ComparativeTimeTerminalReport.cpp" />
+    <ClCompile Include="ComparativSpaceThroughputReport.cpp" />
     <ClCompile Include="CompareReportZipManager.cpp" />
     <ClCompile Include="FileOperations.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
@@ -278,6 +279,7 @@
     <ClInclude Include="ComparativeSpaceDensityReport.h" />
     <ClInclude Include="ComparativeThroughputReport.h" />
     <ClInclude Include="ComparativeTimeTerminalReport.h" />
+    <ClInclude Include="ComparativSpaceThroughputReport.h" />
     <ClInclude Include="CompareReportZipManager.h" />
     <ClInclude Include="FileOperations.h" />
     <ClInclude Include="InputParameter.h" />

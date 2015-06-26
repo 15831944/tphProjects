@@ -4,6 +4,7 @@
 #include ".\compare\ComparativePlot.h"
 #include ".\cmpreportgraphview.h"
 #include ".\compare\ComparativeQLengthReport.h"
+#include ".\compare\ComparativeSpaceDensityReport.h"
 #include "RepGraphViewBaseOperator.h"
 #define COMPARE_REPORT_GRAPH_BASE 1000
 #define COMPARE_REPORT_GRAPH_CHART_CTRL	COMPARE_REPORT_GRAPH_BASE+1
@@ -164,7 +165,7 @@ void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 
 		Draw3DChartByReportName(strSelect,nSubType);
 		CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
-		pDoc->UpdateAllViews(this);
+		pDoc->UpdateAllViews(this,0, (CObject*)nSubType);
 	}
 }
 
@@ -178,6 +179,8 @@ void CCmpReportGraphView::OnCbnSelchangeRepSubTypeCombo()
 	int nSubType =  m_comboRepSubType.GetItemData(nCurSel);
 	CString strFocusRep = m_pCmpReport->GetFocusReportName();
 	Draw3DChartByReportName(strFocusRep, nSubType);
+	CCompareReportDoc* pDoc = (CCompareReportDoc*)GetDocument();
+	pDoc->UpdateAllViews(this,0, (CObject*)nSubType);
 }
 
 void CCmpReportGraphView::Draw3DChartByReportName(CString &selectedReport,int nSubType)
@@ -314,11 +317,11 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
 			else
 			{
 				int nIdx = m_comboRepSubType.AddString("Total Pax by Group(Summary)");
-				m_comboRepSubType.SetItemData(nIdx, TOTAL_PAX);
+				m_comboRepSubType.SetItemData(nIdx, PAX_GROUP);
 				nIdx = m_comboRepSubType.AddString("Pax per Processor(Summary)");
-				m_comboRepSubType.SetItemData(nIdx, AVG_PAX);
+				m_comboRepSubType.SetItemData(nIdx, PAX_PROC);
 				nIdx = m_comboRepSubType.AddString("Group Throughput per Hour(Summary)");
-				m_comboRepSubType.SetItemData(nIdx, TOTAL_HOUR);
+				m_comboRepSubType.SetItemData(nIdx, GROUP_THR_HR);
 				nIdx = m_comboRepSubType.AddString("Processor Throughput per Hour(Summary)");
 				m_comboRepSubType.SetItemData(nIdx, AVG_HOUR);
 				m_comboRepSubType.SetCurSel(0);			
@@ -327,10 +330,20 @@ void CCmpReportGraphView::UpdateRepSubTypeCombo()
 		break;
 	case ENUM_PAXDENS_REP:
 		{
-			m_comboRepSubType.AddString("Count");
-			m_comboRepSubType.AddString("Pax/m2");
-			m_comboRepSubType.AddString("m2/Pax");
-			m_comboRepSubType.SetCurSel(0);
+			int nIdx = m_comboRepSubType.AddString("Count");
+			m_comboRepSubType.SetItemData(nIdx,SpaceDensity_Count);
+			nIdx = m_comboRepSubType.AddString("Pax/m2");
+			m_comboRepSubType.SetItemData(nIdx,SpaceDensity_PaxToM);
+			nIdx = m_comboRepSubType.AddString("m2/Pax");
+			m_comboRepSubType.SetItemData(nIdx,SpaceDensity_MtoPax);
+			nIdx = m_comboRepSubType.SetCurSel(0);
+		}
+		break;
+	case ENUM_SPACETHROUGHPUT_REP:
+		{
+			int nIdx = m_comboRepSubType.AddString("Count");
+			m_comboRepSubType.SetItemData(nIdx,0);
+			nIdx = m_comboRepSubType.SetCurSel(0);
 		}
 		break;
 	case ENUM_PAXCOUNT_REP:

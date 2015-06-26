@@ -50,18 +50,30 @@ void CThroughputReport::GenerateSummary( ArctermFile& p_file )
 	p_file.writeField ("Processor,Group Size,Total Pax,Avg Pax,Total / Hour,Avg / Hour");
 	p_file.writeLine();
 
-	const ProcessorID *procID;
-
-	CProgressBar bar( "Generating Throughput Report", 100, m_procIDlist.getCount(), TRUE );
-
-	for (int i = 0; i < m_procIDlist.getCount(); i++)
+	int nProcCount = m_procIDlist.getCount();
+	if(nProcCount>0)
 	{
-		bar.StepIt();
-		clear();
-		procID = m_procIDlist.getID(i);
-		getAverageThroughput (procID);
-		writeAverage (procID, p_file);
+		
+		CProgressBar bar( "Generating Throughput Report", 100, m_procIDlist.getCount(), TRUE );
+		for (int i = 0; i < m_procIDlist.getCount(); i++)
+		{
+			bar.StepIt();
+			clear();
+			const ProcessorID *procID = m_procIDlist.getID(i);
+			getAverageThroughput (procID);
+			writeAverage (procID, p_file);
+		}
+		return;
 	}
+	//generate all processors
+	CProgressBar bar( "Generating Throughput Report", 100, 1, TRUE );
+	clear();
+	ProcessorID defaultAll;
+	defaultAll.SetStrDict(m_pTerm->inStrDict);
+	getAverageThroughput (&defaultAll);
+	writeAverage (&defaultAll, p_file);
+
+	
 }
 
 

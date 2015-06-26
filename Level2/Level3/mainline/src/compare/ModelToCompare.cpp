@@ -15,7 +15,7 @@
 #include "..\Database\PartsAndShareTemplateUpdate.h"
 
 #include "../Engine/terminal.h"
-
+#include "Inputs/AreasPortals.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -26,6 +26,7 @@ CModelToCompare::CModelToCompare()
 	m_terminal = NULL;
 	m_bNeedCopy = false;
 	m_isChecked = TRUE;
+
 }
 
 CModelToCompare::~CModelToCompare()
@@ -36,6 +37,7 @@ CModelToCompare::~CModelToCompare()
 	}
 	delete m_terminal;
 	m_terminal = NULL;
+
 }
 
 const CString& CModelToCompare::GetModelName() const
@@ -465,6 +467,7 @@ void CModelToCompare::ClearSimResult()
 {
 	m_vSimResult.clear();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //	CModelToCompareDataSet

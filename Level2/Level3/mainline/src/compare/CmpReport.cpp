@@ -258,6 +258,20 @@ BOOL CCmpReport::Run(HWND hwnd, CCompRepLogBar* pWndStatus,void (CALLBACK * _Sho
 		TRACE(strBuffer);
 		if(pWndStatus)
 			pWndStatus->AddLogText(strBuffer);
+		delete e;
+	}
+	catch(ARCError& e)
+	{
+		char  strBuffer[256];
+		e.getMessage(strBuffer);
+		TRACE(strBuffer);
+		if(pWndStatus)
+			pWndStatus->AddLogText(strBuffer);
+	}
+	catch(std::exception& e)
+	{
+		if(pWndStatus)
+			pWndStatus->AddLogText(e.what());
 	}
 	
 

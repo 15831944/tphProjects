@@ -1025,7 +1025,7 @@ bool TaxiRouteInSim::FindClearanceInConcern( AirsideFlightInSim * pFlight,Cleara
 	}
 	else{
 		dNextSafeDistInRoute = checkResultLead.endDist;
-		dEndSpd = checkResultLead.endSpeed;
+		dEndSpd = checkResultLead.endSpeed; 
 		dMinBlockPos = checkResultLead.nextmobDist;
 	}	
 	if(dMinBlockPos > checkInterruptLine.waitDist )

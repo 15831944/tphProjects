@@ -44,19 +44,19 @@ void CSpaceThroughputReport::InitParameter( const CReportParameter* _pPara )
 	_pPara->GetPortals( vPortals );
 	if( vPortals.size() >0 )
 	{
-		CTermPlanDoc* pDoc = (CTermPlanDoc*) ((CMDIChildWnd *)((CMDIFrameWnd*)AfxGetApp()->m_pMainWnd)->GetActiveFrame())->GetActiveDocument();
-		assert( pDoc );
+	//	CTermPlanDoc* pDoc = (CTermPlanDoc*) ((CMDIChildWnd *)((CMDIFrameWnd*)AfxGetApp()->m_pMainWnd)->GetActiveFrame())->GetActiveDocument();
+	//	assert( pDoc );
 		CString sPortalName = vPortals[0];//only one portal can be selected
-		int iCount =pDoc->m_portals.m_vPortals.size();
+		int iCount = m_pTerm->m_pPortals->m_vPortals.size();
 		for( int i=0; i<iCount; ++i )
 		{
-			if( pDoc->m_portals.m_vPortals[ i ]->name == sPortalName )
+			if( m_pTerm->m_pPortals->m_vPortals[ i ]->name == sPortalName )
 			{
 				for( int j=0; j<2; ++j )
 				{
-					m_pointList[j].setX( pDoc->m_portals.m_vPortals[ i ]->points.at( j )[0] );
-					m_pointList[j].setY( pDoc->m_portals.m_vPortals[ i ]->points.at( j )[1] );
-					m_pointList[j].setZ( pDoc->m_portals.m_vPortals[ i ]->floor * SCALE_FACTOR );
+					m_pointList[j].setX( m_pTerm->m_pPortals->m_vPortals[ i ]->points.at( j )[0] );
+					m_pointList[j].setY( m_pTerm->m_pPortals->m_vPortals[ i ]->points.at( j )[1] );
+					m_pointList[j].setZ( m_pTerm->m_pPortals->m_vPortals[ i ]->floor * SCALE_FACTOR );
 				}
 				
 				return;

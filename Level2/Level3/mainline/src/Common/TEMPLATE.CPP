@@ -124,3 +124,22 @@ char* ErrorMessageDB[]=
 	0
 };
 
+template<int T1, int T2>
+struct must_be_same_value
+{
+public:
+	must_be_same_value(){ constrain(); }
+private:
+	static void constrain()
+	{
+		const int T1_not_same_T2 = (T1 == T2);
+		int i[T1_not_same_T2];i;
+	}
+};
+void CheckInputFilesEnumConsistense()
+{
+	//do not add new file enumerations in the middle
+	must_be_same_value<DistanceSpecFile,59>();
+	must_be_same_value<DepartureGateAdjacency,248>();
+	must_be_same_value<RosterRulesFile,22>();
+}

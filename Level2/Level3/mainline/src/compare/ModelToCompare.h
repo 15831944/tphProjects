@@ -31,6 +31,8 @@ private:
 	CString m_simResultName;
 };
 class Terminal;
+class CPortals;
+
 class CModelToCompare  
 {
 public:

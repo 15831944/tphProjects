@@ -288,7 +288,7 @@ LRESULT CCalloutDispSpecsListCtrl::DefWindowProc(UINT message, WPARAM wParam, LP
 							case CalloutDispSpecDataItem::Facility_Portal:
 								{
 									CDlgIdeticalNameSelect::IdenticalNameList portalNameList;
-									const CPortalList& portalList = m_pTermPlanDoc->m_portals.m_vPortals;
+									const CPortalList& portalList = m_pTermPlanDoc->GetTerminal().m_pPortals->m_vPortals;
 									size_t nCount = portalList.size();
 									for(size_t i=0;i<nCount;i++)
 									{

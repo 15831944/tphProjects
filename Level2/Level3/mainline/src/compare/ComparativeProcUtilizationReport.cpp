@@ -4,6 +4,44 @@
 #include "Common\exeption.h"
 #include "Main\MultiRunsReportDataLoader.h"
 
+CmpProcUtilizationData::CmpProcUtilizationData()
+    : m_dScheduledTime(0L),
+    m_dOverTime(0L),
+    m_dActualTime(0L),
+    m_dServiceTime(0L),
+    m_dActualTime_m_dServiceTime(0L)
+{
+}
+
+CmpProcUtilizationData::~CmpProcUtilizationData()
+{
+}
+
+void CmpProcUtilizationData::ReadData(ArctermFile& file)
+{
+    file.getField(m_strProc.GetBuffer(256), 255);
+    m_strProc.ReleaseBuffer();
+    file.getTime(m_dScheduledTime);
+    file.getTime(m_dOverTime);
+    file.getTime(m_dActualTime);
+    file.getTime(m_dServiceTime);
+    file.getTime(m_dActualTime_m_dServiceTime);
+}
+
+void CmpProcUtilizationData::WriteData(ArctermFile& file)
+{
+    file.writeField(m_strProc.GetBuffer());
+    file.writeTime(m_dScheduledTime);
+    file.writeTime(m_dOverTime);
+    file.writeTime(m_dActualTime);
+    file.writeTime(m_dServiceTime);
+    file.writeTime(m_dActualTime_m_dServiceTime);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 CComparativeProcUtilizationReport::CComparativeProcUtilizationReport()
 {
 }
@@ -18,63 +56,29 @@ void CComparativeProcUtilizationReport::MergeSampleDetail(const ElapsedTime& tIn
     if(m_vSampleRepPaths.size()==0) return;
 
     ArctermFile file;
-
-    for(std::vector<std::string>::iterator iter=m_vSampleRepPaths.begin(); iter!=m_vSampleRepPaths.end(); iter++)
+    size_t nCount = m_vSimName.size();
+    for(size_t i=0; i<nCount; i++)
     {
+        CString strSimName = m_vSimName.at(i);
+        m_mapProcUtilization[strSimName].clear();
+
+        std::string strRepFile = m_vSampleRepPaths.at(i);
         try
         {
-            if(file.openFile(iter->c_str(), READ))
+            if(file.openFile(strRepFile.c_str(), READ))
             {
                 while(file.getLine())
                 {
-                    int i=0; 
-                    i=1;
+                    CmpProcUtilizationData tempData;
+                    tempData.ReadData(file);
+                    m_mapProcUtilization[strSimName].push_back(tempData);
                 }
                 file.closeIn();
             }
-            vMultiQTimeReports.push_back(vQTime);
-            vQTime.clear();
         }
         catch(...)
         {
-            vMultiQTimeReports.clear();
             return ;
-        }
-    }
-
-    // find max time
-    ElapsedTime t;
-    t.set(0, 0, 0);
-    for (std::vector<CmpQTimeVector>::const_iterator iterQTime = vMultiQTimeReports.begin(); 
-        iterQTime != vMultiQTimeReports.end(); iterQTime++)
-    {
-        CmpQTimeVector v = *iterQTime;
-        for (CmpQTimeVector::const_iterator iterItem = v.begin(); iterItem != v.end(); iterItem++)
-            t = max(t, iterItem->totalTime);
-    }
-
-    //get the time interval number
-    int nCount = t.asSeconds() / tInterval.asSeconds();
-    nCount = (t.asSeconds() % tInterval.asSeconds()) ? (nCount + 1) : nCount;
-
-    //	fill data structure
-    t.set(0, 0, 0);
-    for (int i = 0; i < nCount; i++)
-    {
-        t += tInterval;
-        std::vector<int>& v = m_mapQTime[t];
-        if (v.size() != m_vSampleRepPaths.size())
-            v.resize(m_vSampleRepPaths.size(), 0);
-    }
-
-    for (unsigned k = 0; k < vMultiQTimeReports.size(); k++)
-    {
-        CmpQTimeVector v = vMultiQTimeReports[k];
-        for (CmpQTimeVector::const_iterator iterItem = v.begin(); iterItem != v.end(); iterItem++)
-        {
-            std::vector<int>& vi = GetTimePos(iterItem->totalTime, tInterval);
-            if(int(vi.size()) > k)
-                vi[k]++;
         }
     }
 }

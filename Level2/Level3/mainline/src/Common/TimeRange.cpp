@@ -107,6 +107,24 @@ bool TimeRange::IsOverlapped( const TimeRange& passedRange ) const
 
 }
 
+bool TimeRange::operator==( const TimeRange& timeRange ) const
+{
+	if (m_etStart == timeRange.m_etStart && m_etEnd == timeRange.m_etEnd)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool TimeRange::operator<( const TimeRange& timeRange ) const
+{
+	if (m_etStart < timeRange.m_etStart)
+	{
+		return true;
+	}
+	return false;
+}
+
 //void TimeRange::ConvertElapsedTime(int& nDay, COleDateTime& time, const ElapsedTime& elapsedTime)
 //{
 //	int nTotalSeconds = elapsedTime.asSeconds();

@@ -424,7 +424,7 @@ public:
 
 	
 	//Areas, Portals
-	CPortals m_portals;
+//	CPortals m_portals;
 	
 	
 	CDefaultDisplayProperties m_defDispProp;

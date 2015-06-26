@@ -17,10 +17,15 @@ enum ThroughPutSubType
 	TR_DETAIL = 0,
 
 	/* summary */
-	TOTAL_PAX,
-	AVG_PAX,
-	TOTAL_HOUR,
-	AVG_HOUR
+	//TOTAL_PAX,
+	//AVG_PAX,
+	GROUP_SIZE,
+	PAX_GROUP,
+	PAX_PROC,
+	GROUP_THR_HR,
+	//TOTAL_HOUR,
+	AVG_HOUR,
+
 };
 
 class CmpThroughputDetailData
@@ -47,38 +52,29 @@ class CmpThroughputSummaryData
 public:
 	CmpThroughputSummaryData(){ clear(); }
 
-	int	m_totalPax;			// Total Pax
-	int m_avgPax;			// Avg Pax
-	int m_totalPerHour;		// Total / Hour
-	int m_avgPerHour;		// Avg / Hour
+	//int	m_totalPax;			// Total Pax
+	//int m_avgPax;			// Avg Pax
+	//int m_totalPerHour;		// Total / Hour
+
+	int m_grpSize;
+	int m_paxGrp;
+	double m_paxProc;
+	double m_grpThrHr;
+	double m_avgPerHour;		// Avg / Hour
+
 
 public:
 	void clear()
 	{
-		m_totalPax = m_avgPax = m_totalPerHour = m_avgPerHour = 0;
+		//m_totalPax = m_avgPax = m_totalPerHour = m_avgPerHour = 0;
+		m_grpSize = 0;
+		m_paxGrp = 0;
+		m_paxProc = 0;
+		m_grpThrHr = 0;
+		m_avgPerHour = 0;
 	}
 	
-	int GetData(int nSubType) const
-	{
-		switch(nSubType)
-		{
-		case TOTAL_PAX:
-			return m_totalPax;
-			break;
-		case AVG_PAX:
-			return m_avgPax;
-			break;
-		case TOTAL_HOUR:
-			return m_totalPerHour;
-			break;
-		case AVG_HOUR:
-			return m_avgPerHour;
-			break;
-		default:
-			return -1;
-			break;
-		}
-	}
+	double GetData(int nSubType) const;
 };
 
 class CComparativeThroughputReport : public CCmpBaseReport  

@@ -14,6 +14,7 @@
 #include "../inputs/AreasPortals.h"
 #include "../engine/terminal.h"
 #include "../compare/ModelToCompare.h"
+#include "DlgSelectPortal.h"
 #include <io.h>
 #include <Inputs/PROCIDList.h>
 
@@ -480,7 +481,10 @@ void CDlgReportProperty::OnOK()
 	case 7:
 		nReportType = ENUM_DISTANCE_REP;
 		break;
-    case 8:
+	case 8:
+		nReportType = ENUM_SPACETHROUGHPUT_REP;
+		break;
+    case 9:
         nReportType = ENUM_UTILIZATION_REP;
         break;
 	}
@@ -502,6 +506,13 @@ void CDlgReportProperty::OnOK()
 	if(nReportType == ENUM_PAXDENS_REP && !CheckUserHasAssignedArea())
 	{
 		if(AfxMessageBox("No Area Is Selected, Continue?", MB_YESNO|MB_ICONSTOP) == IDNO)
+		{
+			return;
+		}
+	}
+	if (nReportType == ENUM_SPACETHROUGHPUT_REP && !CheckUserHasAssignedProtal())
+	{
+		if(AfxMessageBox("No Portal Is Selected, Continue?", MB_YESNO|MB_ICONSTOP) == IDNO)
 		{
 			return;
 		}
@@ -929,8 +940,11 @@ void CDlgReportProperty::Init()
 		case ENUM_DISTANCE_REP:
 			iCurSel = 7;
 			break;
+		case ENUM_SPACETHROUGHPUT_REP:
+			iCurSel = 8;
+			break;
         case ENUM_UTILIZATION_REP:
-            iCurSel = 8;
+            iCurSel = 9;
             break;
 		}
 		m_nReportType.SetCurSel(iCurSel);
@@ -1457,15 +1471,31 @@ void CDlgReportProperty::LoadAreaByModel(int nModelIndex,HTREEITEM hItemModel)
 	ItemData *pItemData = new ItemData(IT_MODEL,nModelIndex);
 	m_treeArea.SetItemData(hItemModel,(DWORD_PTR)pItemData);
 
-	CString strArea = modelParam.GetArea();
-	strArea.Trim();
-	if (!strArea.IsEmpty())
+	int nSel = m_nReportType.GetCurSel();
+	if (nSel == 8)
 	{
-		HTREEITEM hItem = m_treeArea.InsertItem(strArea,hItemModel);
+		CString strPortal = modelParam.GetPortal();
+		strPortal.Trim();
+		if (!strPortal.IsEmpty())
+		{
+			HTREEITEM hItem = m_treeArea.InsertItem(strPortal,hItemModel);
 
-		m_treeArea.SetItemData(hItem,(DWORD_PTR)new ItemData(IT_AREA,nModelIndex));
+			m_treeArea.SetItemData(hItem,(DWORD_PTR)new ItemData(IT_PORTAL,nModelIndex));
+		}
 	}
-m_treeArea.Expand(hItemModel,TVE_EXPAND);
+	else
+	{
+		CString strArea = modelParam.GetArea();
+		strArea.Trim();
+		if (!strArea.IsEmpty())
+		{
+			HTREEITEM hItem = m_treeArea.InsertItem(strArea,hItemModel);
+
+			m_treeArea.SetItemData(hItem,(DWORD_PTR)new ItemData(IT_AREA,nModelIndex));
+		}
+	}
+
+	m_treeArea.Expand(hItemModel,TVE_EXPAND);
 
 }
 void CDlgReportProperty::OnSelchangeComboReporttype() 
@@ -1476,7 +1506,6 @@ void CDlgReportProperty::OnSelchangeComboReporttype()
 void CDlgReportProperty::ArrangeControls()
 {
 	int nSel = m_nReportType.GetCurSel();
-    CString strSelReport = s_szReportCategoryName[nSel];
 	CRect rcClient;
 	m_treeProcFromTo.ShowWindow(SW_HIDE);
 	m_ToolBar3.ShowWindow(SW_HIDE);
@@ -1492,6 +1521,7 @@ void CDlgReportProperty::ArrangeControls()
 
 	switch (nSel)
 	{
+	case 8:
 	case 5:
 	case 4:
 	case 3:
@@ -1505,14 +1535,23 @@ void CDlgReportProperty::ArrangeControls()
 			m_ToolBar2.ShowWindow(SW_HIDE);
 			m_treeProcType.ShowWindow(SW_HIDE);
 			
-			if (nSel == 3)
+			if (nSel == 3 || nSel == 8)
 			{		
 				m_treePaxType.GetWindowRect(rcClient);
 				m_treePaxType.SetWindowPos(NULL, 0, 0, rcClient.Width(), rcClient.Height(), SWP_NOMOVE);
-					GetDlgItem(IDC_STATIC_AREATEXT)->ShowWindow(SW_SHOW);
+				GetDlgItem(IDC_STATIC_AREATEXT)->ShowWindow(SW_SHOW);
+				if (nSel == 3)
+				{
+					GetDlgItem(IDC_STATIC_AREATEXT)->SetWindowText("Area");
+				}
+				else
+				{
+					GetDlgItem(IDC_STATIC_AREATEXT)->SetWindowText("Portal");
+				}
 				m_ToolBar4.ShowWindow(SW_SHOW);
 				m_treeArea.ShowWindow(SW_SHOW);
 				m_treeArea.MoveWindow(m_rcWindow[2]);
+				m_comboRepType.EnableWindow(FALSE);
 			}
 			else
 			{
@@ -1629,7 +1668,7 @@ void CDlgReportProperty::ArrangeControls()
 		}
 		break;
 	case 0: // QLength
-    case 8: // Utilization
+    case 9: // Utilization
 		{
 			//m_listPessengerType.MoveWindow(m_rcWindow[3]);
 			GetDlgItem(IDC_PROC_TYPE)->MoveWindow(m_rcWindow[0]);
@@ -1907,26 +1946,51 @@ void CDlgReportProperty::OnAddArea()
 	if(pModel == NULL)
 		return;
 
-	CDlgSelectArea dlg(pModel->GetTerminal(),this);
-	if(dlg.DoModal() == IDOK)
+	int nSel = m_nReportType.GetCurSel();
+	if (nSel == 8)//space throughput
 	{
-		CString strArea = dlg.GetSelectArea();
-		if(strArea.IsEmpty())
-			return;
-		m_vModelParam[nModelIndex].SetArea(strArea);
-		
-	 	HTREEITEM hAreaItem = m_treeArea.GetChildItem(hItem);
-		if (hAreaItem == NULL)
+		CDlgSelectPortal dlg(pModel->GetTerminal(),this);
+		if(dlg.DoModal() == IDOK)
 		{
-			hAreaItem = m_treeArea.InsertItem(strArea,hItem);
-			m_treeArea.SetItemData(hAreaItem,(DWORD_PTR)new ItemData(IT_AREA,nModelIndex));
-		}
-		else
-		{
-			m_treeArea.SetItemText(hAreaItem,strArea);
+			CString strPortal = dlg.GetSelectPortal();
+			if(strPortal.IsEmpty())
+				return;
+			m_vModelParam[nModelIndex].SetPortal(strPortal);
+
+			HTREEITEM hPortalItem = m_treeArea.GetChildItem(hItem);
+			if (hPortalItem == NULL)
+			{
+				hPortalItem = m_treeArea.InsertItem(strPortal,hItem);
+				m_treeArea.SetItemData(hPortalItem,(DWORD_PTR)new ItemData(IT_PORTAL,nModelIndex));
+			}
+			else
+			{
+				m_treeArea.SetItemText(hPortalItem,strPortal);
+			}
 		}
 	}
+	else
+	{
+		CDlgSelectArea dlg(pModel->GetTerminal(),this);
+		if(dlg.DoModal() == IDOK)
+		{
+			CString strArea = dlg.GetSelectArea();
+			if(strArea.IsEmpty())
+				return;
+			m_vModelParam[nModelIndex].SetArea(strArea);
 
+			HTREEITEM hAreaItem = m_treeArea.GetChildItem(hItem);
+			if (hAreaItem == NULL)
+			{
+				hAreaItem = m_treeArea.InsertItem(strArea,hItem);
+				m_treeArea.SetItemData(hAreaItem,(DWORD_PTR)new ItemData(IT_AREA,nModelIndex));
+			}
+			else
+			{
+				m_treeArea.SetItemText(hAreaItem,strArea);
+			}
+		}
+	}
 }
 void CDlgReportProperty::OnDelArea()
 {
@@ -1936,12 +2000,29 @@ void CDlgReportProperty::OnDelArea()
 		return;
 
 	ItemData *pItemData =  (ItemData *)m_treeArea.GetItemData(hItem);
-	if (pItemData == NULL || pItemData->m_itemType != IT_AREA)
+	if (pItemData == NULL)
+	{
 		return;
+	}
+	int nSel = m_nReportType.GetCurSel();
+	if (nSel ==  8)//space throughput
+	{
+		if (pItemData->m_itemType != IT_PORTAL)
+			return;
 
-	m_vModelParam[pItemData->m_nIndex].SetArea(_T(""));
-	m_treeArea.DeleteItem(hItem);
-	delete pItemData;
+		m_vModelParam[pItemData->m_nIndex].SetPortal(_T(""));
+		m_treeArea.DeleteItem(hItem);
+		delete pItemData;
+	}
+	else
+	{
+		if (pItemData->m_itemType != IT_AREA)
+			return;
+
+		m_vModelParam[pItemData->m_nIndex].SetArea(_T(""));
+		m_treeArea.DeleteItem(hItem);
+		delete pItemData;
+	}
 }
 void CDlgReportProperty::OnUpdateUIPaxTypeAdd()
 {
@@ -2031,7 +2112,7 @@ void CDlgReportProperty::OnUpdateUIAreaDel()
 	else
 	{
 		ItemData *pItemData =  (ItemData *)m_treeArea.GetItemData(hItem);
-		if (hItem == NULL || pItemData->m_itemType != IT_AREA)
+		if (hItem == NULL || (pItemData->m_itemType != IT_AREA && pItemData->m_itemType != IT_PORTAL))
 			m_ToolBar4.GetToolBarCtrl().EnableButton(ID_TOOLBAR_DELAREA,FALSE);				
 		else
 			m_ToolBar4.GetToolBarCtrl().EnableButton(ID_TOOLBAR_DELAREA,TRUE);				
@@ -2207,6 +2288,19 @@ BOOL CDlgReportProperty::CheckUserHasAssignedArea()
 	for(; itor!= m_vModelParam.end(); itor++)
 	{
 		if(!itor->GetArea().IsEmpty())
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+BOOL CDlgReportProperty::CheckUserHasAssignedProtal()
+{
+	std::vector<CModelParameter>::iterator itor = m_vModelParam.begin();
+	for(; itor!= m_vModelParam.end(); itor++)
+	{
+		if(!itor->GetPortal().IsEmpty())
 		{
 			return TRUE;
 		}

@@ -36,6 +36,10 @@ public:
 	void SetArea(const CString& sArea){m_sArea = sArea;}
 	
 	const CString& GetArea() const{return m_sArea;}
+
+	void SetPortal(const CString& sPortal) {m_sPortal = sPortal;}
+
+	const CString& GetPortal()const {return m_sPortal;}
 	int GetPaxType(std::vector<CMobileElemConstraint>& vPaxType);
 
 	//from---to processors	
@@ -51,6 +55,7 @@ public:
 		m_vPaxType = _rhs.m_vPaxType;
 		m_vProcGroups = _rhs.m_vProcGroups;
 		m_sArea = _rhs.m_sArea;
+		m_sPortal = _rhs.m_sPortal;
 		m_fromToProcs = _rhs.m_fromToProcs;
 
 		return *this;
@@ -61,6 +66,7 @@ public:
 protected:
 private:
 	CString m_sArea;
+	CString m_sPortal;
 	CReportParameter::FROM_TO_PROCS m_fromToProcs;
 	std::vector<CMobileElemConstraint>	m_vPaxType;
 	std::vector<ProcessorID>			m_vProcGroups;

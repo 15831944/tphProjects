@@ -2,26 +2,17 @@
 
 #include "ComparativeReportResult.h"
 #include "Common\elaptime.h"
-#include <vector>
 #include <map>
-#include "Main\MultiRunsReportDataLoader.h"
 
 class CmpProcUtilizationData
 {
 public:
-    CmpProcUtilizationData():
-        m_dScheduledTime(0L),
-        m_dOverTime(0L),
-        m_dActualTime(0L),
-        m_dServiceTime(0L),
-        m_dActualTime_m_dServiceTime(0L)
-        {}
-
-    ~CmpProcUtilizationData(){}
-
+    CmpProcUtilizationData();
+    ~CmpProcUtilizationData();
 public:
-    CString m_strModel;
-    CString m_strSim;
+    void ReadData(ArctermFile& file);
+    void WriteData(ArctermFile& file);
+public:
     CString m_strProc;
     ElapsedTime m_dScheduledTime;
     ElapsedTime m_dOverTime;
@@ -29,6 +20,9 @@ public:
     ElapsedTime m_dServiceTime;
     ElapsedTime m_dActualTime_m_dServiceTime;
 };
+
+//              <strSim, processor utilization list>
+typedef std::map<CString, std::vector<CmpProcUtilizationData>> mapProcUtilization;
 
 class CComparativeProcUtilizationReport : public CCmpBaseReport
 {
@@ -48,5 +42,6 @@ protected:
 	void MergeSampleSummary(const ElapsedTime& tInteval);
 	bool SaveReportSummary(ArctermFile& file) const;
 	bool LoadReportSummary(ArctermFile& file);
+    mapProcUtilization m_mapProcUtilization;
 };
 

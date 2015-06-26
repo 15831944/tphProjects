@@ -136,6 +136,8 @@ void CReportToCompareDataSet::readData(ArctermFile& p_file)
 
 			p_file.getField(buf, 256);
 			modelParam.SetArea(buf);
+			p_file.getField(buf,256);
+			modelParam.SetPortal(buf);
 			p_file.getLine();
 
 			//pax type
@@ -297,6 +299,7 @@ void CReportToCompareDataSet::writeData(ArctermFile& p_file) const
 			p_file.writeField(modelParam.GetModelUniqueName());
 
 			p_file.writeField(modelParam.GetArea());
+			p_file.writeField(modelParam.GetPortal());
 			p_file.writeLine();
 			// write pax
 			std::vector<CMobileElemConstraint> vPaxType;

@@ -1512,6 +1512,7 @@
 #define IDC_TREE_PROCNAMES              1117
 #define IDC_BUTTON_GENERATE             1118
 #define IDC_EDIT_PROCNAME               1118
+#define IDD_DIALOG_SELECTPORTAL         1118
 #define IDC_BUTTON_KILL                 1119
 #define IDC_TXT_FLOOR                   1119
 #define IDC_BUTTON_MODIFY               1119
@@ -5517,7 +5518,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1118
+#define _APS_NEXT_RESOURCE_VALUE        1119
 #define _APS_NEXT_COMMAND_VALUE         35350
 #define _APS_NEXT_CONTROL_VALUE         2440
 #define _APS_NEXT_SYMED_VALUE           491

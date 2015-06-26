@@ -609,7 +609,7 @@ void CRepControlView::InitGUI()
 		m_comboAreaPortal.ShowWindow( SW_SHOW );
 
 		//CPortals portals = ((CTermPlanDoc*)GetDocument())->m_portals;
-		CPortals* pPortals = &((CTermPlanDoc*)GetDocument())->m_portals;;
+		CPortals* pPortals = ((CTermPlanDoc*)GetDocument())->GetTerminal().m_pPortals;
 		int nCount = pPortals->m_vPortals.size();
 		m_comboAreaPortal.ResetContent();
 		for( int i=0; i<nCount; i++ )
