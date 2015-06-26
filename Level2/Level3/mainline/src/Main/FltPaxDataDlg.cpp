@@ -542,7 +542,7 @@ ConstraintDatabase* CFltPaxDataDlg::GetConstraintDatabase()
 		pConDB = GetInputTerminal()->paxDataList->getVisitorSTATrigger();
 		break;
 	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-		pConDB = GetInputTerminal()->bcPaxData->getEntryFlightTimeDestribution();
+		pConDB = GetInputTerminal()->bcPaxData->getEntryTimeDB();
 		break;
 	}
 	return pConDB;

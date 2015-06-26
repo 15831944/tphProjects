@@ -70,7 +70,7 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::writeDatabase(ArctermFile& p_file
     }
 }
 
-const ProbabilityDistribution*  BridgeConnectorPaxTypeWithProcIDDatabase::FindProbDist(const ProcessorID& procID, 
+const ProbabilityDistribution*  BridgeConnectorPaxTypeWithProcIDDatabase::FindProbDistFitsProcID(const ProcessorID& procID, 
     const CMobileElemConstraint& pPaxType)
 {
     std::vector<BridgeConnectorPaxEntry*> vResult;
@@ -119,6 +119,33 @@ void BridgeConnectorPaxTypeWithProcIDDatabase::initFromMobElemConstDatabase(cons
         pEntry->initialize(pMbConst, pProb, pID);
         addEntry(pEntry);
     }
+}
+
+bool BridgeConnectorPaxTypeWithProcIDDatabase::DeleteEntry(BridgeConnectorPaxEntry* pEntry)
+{
+    int nCount = getCount();
+    for(int i=nCount-1; i>=0; i--)
+    {
+        if(getItem(i) == pEntry)
+        {
+            deleteItem(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<BridgeConnectorPaxEntry*> BridgeConnectorPaxTypeWithProcIDDatabase::FindEntryByProcID(const ProcessorID& procID)
+{
+    std::vector<BridgeConnectorPaxEntry*> vResult;
+    int nCount = getCount();
+    for(int i=0; i<nCount; i++)
+    {
+        BridgeConnectorPaxEntry* pEntry = (BridgeConnectorPaxEntry*)getItem(i);
+        if(pEntry->getProcID() == procID)
+            vResult.push_back(pEntry);
+    }
+    return vResult;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

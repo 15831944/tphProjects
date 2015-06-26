@@ -52,7 +52,10 @@ public:
 
     void readDatabase(ArctermFile& p_file, InputTerminal* _pInTerm);
     void writeDatabase(ArctermFile& p_file);
-    const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
+
+    bool DeleteEntry(BridgeConnectorPaxEntry* pEntry);
+    std::vector<BridgeConnectorPaxEntry*> FindEntryByProcID(const ProcessorID& procID);
+    const ProbabilityDistribution* FindProbDistFitsProcID(const ProcessorID& procID, const CMobileElemConstraint& p_const);
     void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm);
 };
 
@@ -66,6 +69,9 @@ public:
     virtual ~BridgeConnectorPaxData();
 
     void deletePaxType(int p_level, int p_index);
+    void deleteProcessor();
+    void replaceProcessor();
+//  ...
     virtual void initDefaultValues();
     virtual void clear();
     virtual void readData(ArctermFile& p_file);
@@ -82,7 +88,7 @@ public:
         return "Variable,Pax Type,Units,Distribution,Parameters"; 
     }
 
-    BridgeConnectorPaxTypeWithProcIDDatabase* getEntryFlightTimeDestribution() const
+    BridgeConnectorPaxTypeWithProcIDDatabase* getEntryTimeDB() const
     {
         return m_pPaxData;
     }
