@@ -587,10 +587,6 @@ void CCmpReportTreeView::DeleteReport()
 	if(pProjectReportParam)
 	{
 		pProjectReportParam->DeleteReport(strReportName);
-		if(m_pCmpReport->GetFocusReportName().CompareNoCase(strReportName) == 0)
-		{
-			ChangeFocusReport();
-		}
         GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 	}
 
@@ -731,12 +727,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 			{
 				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
 				pReport->SetChecked(!pReport->GetChecked());
-
-				if( pReport->GetChecked() == FALSE &&
-					m_pCmpReport->GetFocusReportName().CompareNoCase(pReport->GetName()) == 0)
-				{
-					//ChangeFocusReport();
-				}
                 GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 			}
 			break;
@@ -773,8 +763,6 @@ LRESULT CCmpReportTreeView::DefWindowProc(UINT message, WPARAM wParam, LPARAM lP
 				CReportToCompare* pReport = (CReportToCompare*)pNodeData->m_data;
 				if(pReport->GetChecked() == TRUE)
 				{
-					CString strReport = pReport->GetName();
-					m_pCmpReport->SetFocusReportName(strReport);
                     GetDocument()->UpdateAllViews(this, VM_COMPARATIVEREPORT_SHOWREPORT, 0);
 				}
 				return 0;
@@ -1070,7 +1058,6 @@ void CCmpReportTreeView::LoadReport()
 // If there is no report in the list, set focus report null.
 void CCmpReportTreeView::ChangeFocusReport()
 {
-	m_pCmpReport->SetFocusReportName(_T(""));
 	CCmpReportParameter* pProjectReportParam = m_pCmpReport->GetComparativeProject()->GetInputParam();
 	CSingleReportsManager* pRepManager = pProjectReportParam->GetReportsManager();
 	int repCount = pRepManager->getCount();

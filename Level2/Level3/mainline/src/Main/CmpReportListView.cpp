@@ -82,7 +82,6 @@ void CCmpReportListView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
         const CCmpReportManager &crrList = pCompProj->GetCompReportResultList();
         const CmpReportResultVector& vReport = crrList.GetReportResult();
 
-        CString strFocusReport = m_pCmpReport->GetFocusReportName();
         CComparativeList cmpList(m_pCmpReport->GetTerminal(), m_wndListCtrl, &m_ctlHeaderCtrl);
         for(int i = 0; i < static_cast<int>(vReport.size()); i++)
         {

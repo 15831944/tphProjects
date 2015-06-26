@@ -156,8 +156,6 @@ void CCmpReportGraphView::OnCbnSelchangeReportListCombo()
 	
 	if(!strSelect.IsEmpty())
 	{
-		m_pCmpReport->SetFocusReportName(strSelect);
-		
 		UpdateRepSubTypeCombo();
 		int nSubCurSel = m_comboRepSubType.GetCurSel();
 		if (nSubCurSel == LB_ERR)
@@ -258,13 +256,7 @@ void CCmpReportGraphView::OnCbnSelchangeChartTypeCombo()
 void CCmpReportGraphView::UpdateRepSubTypeCombo()
 {
 	m_comboRepSubType.ResetContent();
-	CString strFocusRep = m_pCmpReport->GetFocusReportName();
-	if(strFocusRep.IsEmpty())
-	{
-		return;
-	}
 	CCmpReportParameter* param = m_pCmpReport->GetComparativeProject()->GetInputParam();
-	CReportToCompare* pReport = param->GetReportsManager()->GetReportByName(strFocusRep);
 
 	CString strCombo;
 	switch(pReport->GetCategory())
