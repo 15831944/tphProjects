@@ -91,59 +91,13 @@ void CTabSubView2::OnSize(UINT nType, int cx, int cy)
 BOOL CTabSubView2::OnInitDialog()
 {
     CDialog::OnInitDialog();
+
+    m_mainList.SetParent(this);
     DWORD dwStyle = m_mainList.GetExtendedStyle();
     dwStyle |= LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES;
     m_mainList.SetExtendedStyle(dwStyle);
 
-    const int nColCount = 4;
-    CString columnLabel[] = {_T("Flight Type"), _T("Taxiway"), _T("From") ,_T("To")};
-    int DefaultColumnWidth[] = { 140, 140, 140, 140 };
-    int nColFormat[] = { LVCFMT_NOEDIT, LVCFMT_DROPDOWN, LVCFMT_DROPDOWN, LVCFMT_DROPDOWN };
-
-    LV_COLUMNEX lvc;
-    lvc.mask = LVCF_WIDTH | LVCF_TEXT;
-
-    CStringList strList;
-    strList.RemoveAll();
-    lvc.csList = &strList;
-
-    lvc.fmt = nColFormat[0];
-    lvc.pszText = columnLabel[0].GetBuffer();
-    lvc.cx = 140;
-    m_mainList.InsertColumn(0, &lvc);
-
-    lvc.fmt = nColFormat[1];
-    lvc.pszText = columnLabel[1].GetBuffer();
-    lvc.cx = 140;
-    lvc.csList = &strList;
-    m_mainList.InsertColumn(1, &lvc);
-
-    lvc.fmt = nColFormat[2];
-    lvc.pszText = columnLabel[2].GetBuffer();
-    lvc.cx = 140;
-    lvc.csList = &strList;
-    m_mainList.InsertColumn(2, &lvc);
-
-    lvc.fmt = nColFormat[3];
-    lvc.pszText = columnLabel[3].GetBuffer();
-    lvc.cx = 140;
-    lvc.csList = &strList;
-    m_mainList.InsertColumn(3, &lvc);
-
-
-    for(int i=0; i<10; i++)
-    {
-        CString strItem;
-        strItem.Format(_T("item%d"), i+1);
-        m_mainList.InsertItem(i, strItem);
-        strItem.Format(_T("b%d"), i+1);
-        m_mainList.SetItemText(i, 1, strItem);
-        strItem.Format(_T("c%d"), i+1);
-        m_mainList.SetItemText(i, 2, strItem);
-        strItem.Format(_T("d%d"), i+1);
-        m_mainList.SetItemText(i, 3, strItem);
-    }
-
+    InertTempDataToList();
     return TRUE;
 }
 
@@ -159,5 +113,57 @@ BOOL CTabSubView2::PreTranslateMessage(MSG* pMsg)
         }
     }
     return CDialog::PreTranslateMessage(pMsg);
+}
+
+void CTabSubView2::InertTempDataToList()
+{
+    const int nColCount = 4;
+    CString columnLabel[] = {_T("Flight Type"), _T("Taxiway"), _T("From") ,_T("To")};
+    int DefaultColumnWidth[] = { 140, 140, 140, 140 };
+    int nColFormat[] = { LVCFMT_NOEDIT, LVCFMT_DROPDOWN, LVCFMT_DROPDOWN, LVCFMT_DROPDOWN };
+
+    /*LV_COLUMNEX*/LVCOLUMN lvc;
+    lvc.mask = LVCF_WIDTH | LVCF_TEXT;
+
+    CStringList strList;
+    strList.RemoveAll();
+    //lvc.csList = &strList;
+
+    lvc.fmt = nColFormat[0];
+    lvc.pszText = columnLabel[0].GetBuffer();
+    lvc.cx = 140;
+    m_mainList.InsertColumn(0, &lvc);
+
+    lvc.fmt = nColFormat[1];
+    lvc.pszText = columnLabel[1].GetBuffer();
+    lvc.cx = 140;
+    //lvc.csList = &strList;
+    m_mainList.InsertColumn(1, &lvc);
+
+    lvc.fmt = nColFormat[2];
+    lvc.pszText = columnLabel[2].GetBuffer();
+    lvc.cx = 140;
+    //lvc.csList = &strList;
+    m_mainList.InsertColumn(2, &lvc);
+
+    lvc.fmt = nColFormat[3];
+    lvc.pszText = columnLabel[3].GetBuffer();
+    lvc.cx = 140;
+    //lvc.csList = &strList;
+    m_mainList.InsertColumn(3, &lvc);
+
+
+    for(int i=0; i<10; i++)
+    {
+        CString strItem;
+        strItem.Format(_T("item%d"), i+1);
+        m_mainList.InsertItem(i, strItem);
+        strItem.Format(_T("b%d"), i+1);
+        m_mainList.SetItemText(i, 1, strItem);
+        strItem.Format(_T("c%d"), i+1);
+        m_mainList.SetItemText(i, 2, strItem);
+        strItem.Format(_T("d%d"), i+1);
+        m_mainList.SetItemText(i, 3, strItem);
+    }
 }
 

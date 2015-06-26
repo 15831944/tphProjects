@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #include "ListCtrlKeepHighlight.h"
 
+#define LIST_ITEM_HEIGHT 13
+
+
 IMPLEMENT_DYNAMIC(CListCtrlKeepHighlight, CListCtrlEx)
 
-    CListCtrlKeepHighlight::CListCtrlKeepHighlight()
+CListCtrlKeepHighlight::CListCtrlKeepHighlight()
 {
-    LIST_ITEM_HEIGHT = 13;
 }
 CListCtrlKeepHighlight::~CListCtrlKeepHighlight()
 {
@@ -13,7 +15,7 @@ CListCtrlKeepHighlight::~CListCtrlKeepHighlight()
 
 BEGIN_MESSAGE_MAP(CListCtrlKeepHighlight, CListCtrlEx)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
-    //ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnLvnItemchanged)
+    ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnLvnItemchanged)
 END_MESSAGE_MAP()
 
 void CListCtrlKeepHighlight::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
@@ -50,7 +52,7 @@ void CListCtrlKeepHighlight::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
         *pResult =  CDRF_NOTIFYSUBITEMDRAW;
         return;
     }
-    else if (lpnmcd ->nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT))
+    else if(lpnmcd ->nmcd.dwDrawStage == (CDDS_SUBITEM | CDDS_ITEMPREPAINT))
     {
         int iItem = lpnmcd->nmcd.dwItemSpec;
         int iSubItem = lpnmcd->iSubItem;
@@ -98,27 +100,21 @@ void CListCtrlKeepHighlight::DrawSubItem(CDC *pDC, int nItem, int nSubItem, CRec
 {
     pDC->SetBkMode(TRANSPARENT);
     pDC->SetTextColor(RGB(0, 0, 0));
-    CFont font;
-    font.CreateFont(12,            // nHeight
-        0,                         // nWidth
-        0,                         // nEscapement
-        0,                         // nOrientation
-        FW_NORMAL,                 // nWeight
-        FALSE,                     // bItalic
-        FALSE,                     // bUnderline
-        0,                         // cStrikeOut
-        ANSI_CHARSET,              // nCharSet
-        OUT_DEFAULT_PRECIS,        // nOutPrecision
-        CLIP_DEFAULT_PRECIS,       // nClipPrecision
-        DEFAULT_QUALITY,           // nQuality
-        DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
-        _T("ËÎÌו"));
-    pDC->SelectObject(&font);
-    CString strText;
-    strText = GetItemText(nItem, nSubItem);
-    draw_row_bg(pDC, rSubItem, bSelected, bFocus, nItem);
-    pDC->DrawText(strText, strText.GetLength(), &rSubItem, DT_SINGLELINE | DT_RIGHT | DT_VCENTER | DT_END_ELLIPSIS);
 
+    CWnd* pParentWnd = GetParent();
+    if(pParentWnd != NULL)
+    {
+        CFont* pFont = pParentWnd->GetFont();
+        pDC->SelectObject(pParentWnd->GetFont());
+    }
+    else
+    {
+        pDC->SelectObject(::GetStockObject(SYSTEM_FONT));
+    }
+
+    CString strText = GetItemText(nItem, nSubItem);
+    DrawRowBackground(pDC, rSubItem, bSelected, bFocus, nItem);
+    pDC->DrawText(strText, strText.GetLength(), &rSubItem, DT_SINGLELINE | DT_RIGHT | DT_VCENTER | DT_END_ELLIPSIS);
 }
 
 void CListCtrlKeepHighlight::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
@@ -163,7 +159,7 @@ void CListCtrlKeepHighlight::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
                 rcSubItem.OffsetRect(-pos, 0);
                 if(rcSubItem.right < rcRemain.left || rcSubItem.left > rcRemain.right)
                     continue;
-                draw_row_bg(&dc, rcSubItem, false, false, i + nCount);
+                DrawRowBackground(&dc, rcSubItem, false, false, i + nCount);
             }
             /*if (rcSubItem.right<rectClient.right)
             {
@@ -176,7 +172,7 @@ void CListCtrlKeepHighlight::DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd)
     }
 }
 
-void CListCtrlKeepHighlight::draw_row_bg(CDC *pDC, RECT rc, bool bSelected, bool bFocus,int nRow)
+void CListCtrlKeepHighlight::DrawRowBackground(CDC *pDC, RECT rc, bool bSelected, bool bFocus,int nRow)
 {
     CRect rect = rc;
     if (rect.Width() == 0)
@@ -190,7 +186,7 @@ void CListCtrlKeepHighlight::draw_row_bg(CDC *pDC, RECT rc, bool bSelected, bool
         if (bFocus)
         {
             CBrush selectBrush;
-            selectBrush.CreateSolidBrush(RGB(203, 223, 239));
+            selectBrush.CreateSolidBrush(RGB(51, 153, 255));
             pDC->FillRect(&rc, &selectBrush);
         }
         else
@@ -233,21 +229,25 @@ void CListCtrlKeepHighlight::draw_row_bg(CDC *pDC, RECT rc, bool bSelected, bool
 
 void CListCtrlKeepHighlight::Init()
 {
-    LOGFONT logfont;
-    memset(&logfont, 0, sizeof(logfont));
-    logfont.lfWeight = FW_NORMAL;
-    logfont.lfCharSet = GB2312_CHARSET;
-    _tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("ËÎÌו"));// TODO
-    logfont.lfHeight = -(LIST_ITEM_HEIGHT-1);
-    CFont font;
-    font.CreateFontIndirect(&logfont);
-    SetFont(&font);
-    font.Detach();
+    CFont* pFont = NULL;
+    CWnd* pWnd = GetParent();
+    if(pWnd)
+        pFont = pWnd->GetFont();
+    else
+        pFont = CFont::FromHandle((HFONT)::GetStockObject(SYSTEM_FONT));
+
+    SetFont(pFont);
+    pFont->Detach();
+
 }
 
 void CListCtrlKeepHighlight::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+    CString strDebugLog;
+    TRACE(_T("CListCtrlKeepHighlight::OnLvnItemchanged()\r\n"));
+    strDebugLog.Format(_T("select item: %d, old state: %d, new state: %d\r\n"), pNMLV->iItem, pNMLV->uOldState, pNMLV->uNewState);
+    TRACE(strDebugLog);
     if (pNMLV->uChanged & LVIF_STATE)
     {
         if (((pNMLV->uOldState & LVIS_SELECTED) != (pNMLV->uNewState & LVIS_SELECTED)) 
@@ -256,6 +256,15 @@ void CListCtrlKeepHighlight::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
             InvalidateItem(pNMLV->iItem);
         }
     }
+
+    for(int i=0; i<10; i++)
+    {
+        int itemState = GetItemState(i, 7);
+        CString strDbgLog;
+        strDbgLog.Format(_T("item: %d, state: %d\r\n"), i, itemState);
+        TRACE(strDbgLog);
+    }
+
     *pResult = 0;
 }
 
@@ -267,15 +276,11 @@ void CListCtrlKeepHighlight::InvalidateItem(int nItem)
     GetItemRect(nItem, &rcItem, LVIR_BOUNDS);
     rcItem.left = rcClient.left;
     rcItem.right = rcClient.right;
-    InvalidateRect(&rcItem,FALSE);
+    InvalidateRect(&rcItem, FALSE);
 }
 
 void CListCtrlKeepHighlight::PreSubclassWindow()
 {
     Init();
     CListCtrl::PreSubclassWindow();
-}
-
-void CListCtrlKeepHighlight::DrawItem(LPDRAWITEMSTRUCT /*lpDrawItemStruct*/)
-{
 }

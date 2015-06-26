@@ -105,6 +105,7 @@
     <ClInclude Include="InPlaceList.h" />
     <ClInclude Include="ListCtrlEx.h" />
     <ClInclude Include="ListCtrlKeepHighlight.h" />
+    <ClInclude Include="ListCtrlTestLvnItemChanged.h" />
     <ClInclude Include="MySpin.h" />
     <ClInclude Include="NumericEdit.h" />
     <ClInclude Include="Resource.h" />
@@ -124,6 +125,7 @@
     <ClCompile Include="InPlaceList.cpp" />
     <ClCompile Include="ListCtrlEx.cpp" />
     <ClCompile Include="ListCtrlKeepHighlight.cpp" />
+    <ClCompile Include="ListCtrlTestLvnItemChanged.cpp" />
     <ClCompile Include="MySpin.cpp" />
     <ClCompile Include="NumericEdit.cpp" />
     <ClCompile Include="stdafx.cpp">

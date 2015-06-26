@@ -15,6 +15,9 @@
     <Filter Include="Controls">
       <UniqueIdentifier>{76fd7e9e-fb5c-44fd-9c8a-71d5dd031a49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Temp">
+      <UniqueIdentifier>{ab8572ad-3cb3-46f3-92cc-4962adcb5e1b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\TestUnicodeIO.rc2">
@@ -76,6 +79,9 @@
     <ClInclude Include="TestUnicodeIO.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ListCtrlTestLvnItemChanged.h">
+      <Filter>Temp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestUnicodeIO.cpp">
@@ -119,6 +125,9 @@
     </ClCompile>
     <ClCompile Include="TabSubView1.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ListCtrlTestLvnItemChanged.cpp">
+      <Filter>Temp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

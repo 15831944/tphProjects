@@ -1,6 +1,7 @@
 #pragma once
 #include "afxcmn.h"
 #include "ListCtrlKeepHighlight.h"
+#include "ListCtrlTestLvnItemChanged.h"
 
 class CTabSubView2 : public CDialog
 {
@@ -11,9 +12,10 @@ public:
     virtual ~CTabSubView2();
     enum { IDD = IDD_TABSUBVIEW2 };
 protected:
-    CListCtrlKeepHighlight m_mainList;
+    CListCtrlTestLvnItemChanged m_mainList;
 
 protected:
+    void InertTempDataToList();
     virtual void DoDataExchange(CDataExchange* pDX);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     virtual BOOL OnInitDialog();
