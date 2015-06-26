@@ -3036,6 +3036,7 @@ void CAirsideMSView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 							{
 								int nPos = strFileName.ReverseFind('\\');
 								strPictureName = strFileName.Right(strFileName.GetLength() - nPos - 1);
+								strPictureName = "Picture("+ strPictureName + ")";
 							}
 						}
 					}				

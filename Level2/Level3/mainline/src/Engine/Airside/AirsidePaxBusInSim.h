@@ -31,15 +31,9 @@ public:
 	double m_preSpeed ;
 	
 
-	bool GetTimeOfLastPerson(ElapsedTime& t)const
-	{
-		if(m_currentpaxNum>0){
-			t = m_tLastPersonOnBus;
-			return true;
-		}
-		return false;
-	}
-	ElapsedTime GetServiceTimePerPerson()const;
+	bool GetTimeOfLastPerson(ElapsedTime& t)const;
+	ElapsedTime GetLoadTimePerPerson()const;
+	ElapsedTime GetUnloadTimePerPerson()const;
 
 	CARCportEngine *getEngine();
 protected:
@@ -50,7 +44,7 @@ protected:
 
 	int m_nPaxLoad;
 	//the time of each pax takeoff bus
-	ElapsedTime m_takeoff_sepeed ;
+	//ElapsedTime m_takeoff_sepeed ;
      
 	int m_currentpaxNum ;
 	ElapsedTime m_tLastPersonOnBus;  //time of last person take on this bus

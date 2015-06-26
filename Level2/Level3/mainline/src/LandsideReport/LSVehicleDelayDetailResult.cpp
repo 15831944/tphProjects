@@ -138,9 +138,9 @@ void LSVehicleDelayDetailResult::InitListHead( CXListCtrl& cxListCtrl, LandsideB
 	cxListCtrl.InsertColumn(colIndex, "Operation", LVCFMT_LEFT,100);
 	piSHC->SetDataType(colIndex, dtSTRING );
 
-	colIndex += 1;
-	cxListCtrl.InsertColumn(colIndex,"Vehicle Complete Type",LVCFMT_LEFT,150);
-	piSHC->SetDataType(colIndex,dtSTRING);
+	//colIndex += 1;
+	//cxListCtrl.InsertColumn(colIndex,"Vehicle Complete Type",LVCFMT_LEFT,150);
+	//piSHC->SetDataType(colIndex,dtSTRING);
 	//colIndex += 1;
 	//cxListCtrl.InsertColumn(colIndex, "Description", LVCFMT_LEFT,100);
 	//piSHC->SetDataType(colIndex, dtSTRING );
@@ -204,10 +204,12 @@ void LSVehicleDelayDetailResult::FillListContent( CXListCtrl& cxListCtrl, Landsi
 			//cxListCtrl.SetItemText(nRowIndex,colIndex, dItem.m_strDesc);
 
 
-			colIndex += 1;
-			cxListCtrl.SetItemText(nRowIndex,colIndex,dItem.m_strCompleteTypeName);
-			nRowIndex += 1;
+			//colIndex += 1;
+			//cxListCtrl.SetItemText(nRowIndex,colIndex,dItem.m_strCompleteTypeName);
 
+
+			//move to next row
+			nRowIndex += 1;
 		}
 	}
 

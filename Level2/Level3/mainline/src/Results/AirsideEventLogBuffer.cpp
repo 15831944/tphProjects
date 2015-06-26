@@ -108,7 +108,8 @@ void CAirsideEventLogBufferManager::LoadFlightLog()
 
 bool CAirsideEventLogBufferManager::IsPointOnAirRoute(AirsideFlightEventStruct& eventStruct)
 {
-	if (eventStruct.mode < OnLanding && eventStruct.mode>OnBirth
+	if ((eventStruct.mode < OnLanding && eventStruct.mode>OnBirth)
+		||(eventStruct.mode == OnWaitInHold)
 		|| ((eventStruct.mode < OnTerminate) && (OnClimbout < eventStruct.mode)))
 	{
 		return true;
@@ -193,46 +194,55 @@ bool CAirsideEventLogBufferManager::GenerateSmoothFlightPath(const CAirsideEvent
 		CPoint2008 p2 = _inputPts[i];//(thisEvt.x,thisEvt.y,thisEvt.z);
 		CPoint2008 p3 = _inputPts[i+1];//(nextEvt.x, nextEvt.y, nextEvt.z);
 
+		
 		DistanceUnit distPre = p2.distance3D(p1);	
 		DistanceUnit distNext = p2.distance3D(p3);
-
-
-		double smoothLen = GetSmoothLength(thisEvt.speed, CPoint2008(p2-p1), CPoint2008(p3-p2) );
 		
-		//generate smooth path and push to result
-		{//midevet1
-			DistanceUnit dist1 = MAX(distPre/2.0, distPre - smoothLen);
-			DynamicMovement dynMov(preEvt.speed,thisEvt.speed,distPre );
-			double trat = dynMov.getTrate(dist1);
-			double srat = dist1/distPre;
-			//end the smooth
-			CPoint2008 midP = p1*(1-srat)+p2*srat;
-			double midSpd = preEvt.speed*(1-trat)+thisEvt.speed*trat;
-			AirsideFlightEventStruct midEvt = preEvt;
-			midEvt.time = preEvt.time + (long)((thisEvt.time-preEvt.time)*trat);
-			midEvt.speed  = midSpd;
-			midEvt.x = (float)(midP.x); midEvt.y=float(midP.y); midEvt.z = float(midP.z);
-			vTempSmoothEvts.push_back(midEvt);			
-		}
-		vTempSmoothEvts.push_back(thisEvt);
-		{//midevt2
-			DistanceUnit dist2 = MIN(distNext/2.0, smoothLen);
-			DynamicMovement dynMov(thisEvt.speed,nextEvt.speed,distNext );
-			double trat = dynMov.getTrate(dist2);
-			double srat = dist2/distNext;
-			//end the smooth
-			CPoint2008 midP = p2*(1-srat)+p3*srat;
-			double midSpd = thisEvt.speed*(1-trat)+nextEvt.speed*trat;
-			AirsideFlightEventStruct midEvt = thisEvt;
-			midEvt.time = thisEvt.time + (long)((nextEvt.time-thisEvt.time)*trat);
-			midEvt.speed  = midSpd;
-			midEvt.x = (float)(midP.x); midEvt.y=float(midP.y); midEvt.z = float(midP.z);
-			vTempSmoothEvts.push_back(midEvt);		
-		}
 
-		CAirsideEventLogBuffer<AirsideFlightEventStruct>::VECTOREVENT vSubResult;
-		CreateSmoothPath(vTempSmoothEvts,vSubResult);
-		vResult.insert(vResult.end(),vSubResult.begin(),vSubResult.end());
+		double smoothLen;
+		if(  GetSmoothLength(thisEvt.speed, CPoint2008(p2-p1), CPoint2008(p3-p2), smoothLen ) )
+		{
+			//generate smooth path and push to result
+			{//midevet1
+				DistanceUnit dist1 = MAX(distPre/2.0, distPre - smoothLen);
+				DynamicMovement dynMov(preEvt.speed,thisEvt.speed,distPre );
+				double trat = dynMov.getTrate(dist1);
+				double srat = dist1/distPre;
+				//end the smooth
+				CPoint2008 midP = p1*(1-srat)+p2*srat;
+				double midSpd = preEvt.speed*(1-trat)+thisEvt.speed*trat;
+				AirsideFlightEventStruct midEvt = preEvt;
+				midEvt.time = preEvt.time + (long)((thisEvt.time-preEvt.time)*trat);
+				midEvt.speed  = midSpd;
+				midEvt.x = (float)(midP.x); midEvt.y=float(midP.y); midEvt.z = float(midP.z);
+				vTempSmoothEvts.push_back(midEvt);			
+			}
+			vTempSmoothEvts.push_back(thisEvt);
+			{//midevt2
+				DistanceUnit dist2 = MIN(distNext/2.0, smoothLen);
+				DynamicMovement dynMov(thisEvt.speed,nextEvt.speed,distNext );
+				double trat = dynMov.getTrate(dist2);
+				double srat = dist2/distNext;
+				//end the smooth
+				CPoint2008 midP = p2*(1-srat)+p3*srat;
+				double midSpd = thisEvt.speed*(1-trat)+nextEvt.speed*trat;
+				AirsideFlightEventStruct midEvt = thisEvt;
+				midEvt.time = thisEvt.time + (long)((nextEvt.time-thisEvt.time)*trat);
+				midEvt.speed  = midSpd;
+				midEvt.x = (float)(midP.x); midEvt.y=float(midP.y); midEvt.z = float(midP.z);
+				vTempSmoothEvts.push_back(midEvt);		
+			}
+
+			CAirsideEventLogBuffer<AirsideFlightEventStruct>::VECTOREVENT vSubResult;
+			CreateSmoothPath(vTempSmoothEvts,vSubResult);
+			vResult.insert(vResult.end(),vSubResult.begin(),vSubResult.end());
+		}
+		else
+		{
+			vResult.push_back(thisEvt);
+		}
+		
+		
 	}
 	vResult.push_back(mapEvent.back());
 
@@ -354,24 +364,29 @@ bool CAirsideEventLogBufferManager::GenerateSmoothFlightPath(const CAirsideEvent
 //	return true;
 //}
 
-double CAirsideEventLogBufferManager::GetSmoothLength(double dSpeed, const CPoint2008& dir1,const CPoint2008& dir2) const
+bool CAirsideEventLogBufferManager::GetSmoothLength(double dSpeed, const CPoint2008& dir1,const CPoint2008& dir2,double& dlen) const
 {
-	double dAngle = 0.0;
+	double dCosAngle = 0.0;
 	DistanceUnit dDotValue = (dir1.getX()*dir2.getX() + dir1.getY()*dir2.getY()+dir1.getZ()*dir2.getZ());
-	dir1.crossProduct(dir2);
+	//dir1.crossProduct(dir2);
 	if (dir1.length3D() != 0 && dir2.length3D() != 0)
 	{
-		dAngle = dDotValue / ( dir1.length3D() * dir2.length3D() );
+		dCosAngle = dDotValue / ( dir1.length3D() * dir2.length3D() );
 	}
-	
-	double dDegree = ARCMath::RadiansToDegrees(acos(dAngle));
+	if(dCosAngle>=1)
+		return false;
+
+	if(dCosAngle<-1)
+		dCosAngle = -1;	
+	double dDegree = ARCMath::RadiansToDegrees(acos(dCosAngle));
 
 	//calculate the time 2.0 degree per second
 	double time = dDegree / 2.0;
 	
 	double dDist = dSpeed * time / 2.0;
 
-	return dDist;
+	dlen = dDist;
+	return true;
 }
 
 void CAirsideEventLogBufferManager::SmoothFlightMotion(CAirsideEventLogBuffer<AirsideFlightEventStruct>& flightLog)

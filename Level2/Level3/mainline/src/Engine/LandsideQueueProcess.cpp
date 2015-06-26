@@ -16,298 +16,40 @@ LandsideQueueBase::~LandsideQueueBase()
 
 }
 
-bool LandsideQueue::StepItValid( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys )
+ARCVector3 LandsideQueue::getLocation( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys )
 {
+	if (pQueueProcess && pQueueProcess->getNextIndex() == QUEUE_HEAD)
+		return corner (QUEUE_HEAD);
+
 	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	ASSERT(pLandsideBehavior);
-	ARCVector3 locationPt;
-	ARCVector3 destPt;
-	locationPt = pLandsideBehavior->getPoint();
-	destPt = pLandsideBehavior->getDest();
-
- 	if (isHead(pLandsideBehavior))
- 		return true;
-
 	Person* pPerson = pLandsideBehavior->getPerson();
 	ASSERT(pPerson);
 	double dInStep = pPerson->getInStep();
 
-	int nSegment = pQueueProcess->GetSegment();
-	if (nSegment == QUEUE_OVERFLOW)
-	{
-		PaxLandsideBehavior *pPreLandsideBehavior = NULL;
-		int idx = m_approachList.findElement(pLandsideBehavior->GetPersonID());
-		if (idx == 0)
-		{
-			pPreLandsideBehavior = GetTailBehavior();
-		}
-		else
-		{
-			pPreLandsideBehavior = m_approachList.getItem(idx - 1);
-		}
-		if (pPreLandsideBehavior == NULL)
-			return true;
+	ARCVector3 locationPt;
+	locationPt = pLandsideBehavior->getPoint();
 
-		LandsidePaxQueueProcess* pPreQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pPreLandsideBehavior);
-		ASSERT(pPreQueueProcess);
+	PaxLandsideBehavior *pNextBehavior;
+	pNextBehavior = PeekWait (pQueueProcess->getNextIndex()-1,pLandsideQueueSys);
+	if(!pNextBehavior)
+		return corner (QUEUE_HEAD);
 
-		//if (!pPreQueueProcess->GetStuck())
-		//{
-		//	return true;
-		//}
-
-		ARCVector3 locationNextPt = pPreLandsideBehavior->getPoint();
-		ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
-		if (pPreQueueProcess->GetSegment() == QUEUE_OVERFLOW)
-		{
-			double dDist = locationPt.DistanceTo(destNextPt);
-			if (dDist >= dInStep*1.05)
-			{
-				return true;
-			}
-		}
-		else
-		{
-			if (pPreQueueProcess->GetSegment() == cornerCount() - 1)
-			{
-				double dDist = destNextPt.DistanceTo(destPt);
-				//if(destNextPt.DistanceTo(corner(cornerCount() - 1)) > dInStep)
-				if (dDist > dInStep)
-					return true;
-				return false;
-			}
-			return  true;
-		}
-
-	
-		return false;
-	}
-
-	int idx = m_waitList.findElement(pLandsideBehavior->GetPersonID());
-	if (idx == INT_MAX)
-	{
-		idx = m_waitList.getCount();
-	}
-
-	PaxLandsideBehavior *pPreLandsideBehavior = PeekWait(idx - 1);
-	ASSERT(pPreLandsideBehavior);
-	LandsidePaxQueueProcess* pPreQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pPreLandsideBehavior);
-	ASSERT(pPreQueueProcess);
-	ARCVector3 locationNextPt = pPreLandsideBehavior->getPoint();
-	ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
-
-	if (!pPreQueueProcess->GetStuck())
-	{
-		return true;
-	}
+	ARCVector3 destPt;
+	destPt = pNextBehavior->getDest();
 	ARCVector3 vector;
-	if (nSegment == pPreQueueProcess->GetSegment())
-	{
-		double dDist = locationPt.DistanceTo(destNextPt);
-		if (dDist >= 1.05*dInStep)
-		{
-			return true;
-		}
-	}
-	else if (nSegment - 1== pPreQueueProcess->GetSegment())
-	{
-		double dNextDist = destNextPt.DistanceTo(corner(pPreQueueProcess->GetSegment()));
-		double dCurtDist = destPt.DistanceTo(corner(pPreQueueProcess->GetSegment()));
-		if (dNextDist>= 1.05*dInStep)
-		{
-			return true;
-		}
-		else if (dCurtDist >= 1.05*dInStep)
-		{
-			return true;	
-		}
-	}
+
+	LandsidePaxQueueProcess* pNextQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pNextBehavior);
+	if (pQueueProcess->getQueuePathSegmentIndex() == QUEUE_OVERFLOW)
+		vector = locationPt - destPt;
+	else if (pQueueProcess->getQueuePathSegmentIndex() == pNextQueueProcess->getQueuePathSegmentIndex())
+		vector = corner (pNextQueueProcess->getQueuePathSegmentIndex()) - destPt;
 	else
-	{
-		double dDist = locationPt.DistanceTo(destNextPt);
-		if (dDist >= 1.05*dInStep)
-		{
-			return true;
-		}
-	}
-	
-	return false;
-
-}
-
-int LandsideQueue::CalculateSegment( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys )
-{
-	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	ASSERT(pLandsideBehavior);
-	ARCVector3 locationPt;
-	ARCVector3 destPt;
-	locationPt = pLandsideBehavior->getPoint();
-	destPt = pLandsideBehavior->getDest();
-
-	//retrieve pre person
-	int idx = m_waitList.findElement(pLandsideBehavior->GetPersonID());
-	if (idx == INT_MAX)
-	{
-		idx = m_waitList.getCount();
-	}
-
-	PaxLandsideBehavior *pPreLandsideBehavior = PeekWait(idx - 1);
-	ASSERT(pPreLandsideBehavior);
-	LandsidePaxQueueProcess* pPreQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pPreLandsideBehavior);
-	ASSERT(pPreQueueProcess);
-	double dSpeed = pPreLandsideBehavior->getPerson()->getSpeed();
-
-	ARCVector3 locationNextPt = pPreLandsideBehavior->getPoint();
-	ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
-
-	Person* pPerson = pLandsideBehavior->getPerson();
-	ASSERT(pPerson);
-	double dInStep = pPerson->getInStep();
-
-	if (destNextPt.DistanceTo(corner(pPreQueueProcess->GetSegment()))> dInStep)
-		return pQueueProcess->GetSegment() - 1;
-	return pQueueProcess->GetSegment();
-}
-
-ARCVector3 LandsideQueue::GetNextStep(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys)
-{
-	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	ASSERT(pLandsideBehavior);
-	ARCVector3 locationPt;
-	ARCVector3 destPt;
-	locationPt = pLandsideBehavior->getPoint();
-	destPt = pLandsideBehavior->getDest();
-
-	if (isHead(pLandsideBehavior))
-		return corner (0);
-
-	int nSegment = pQueueProcess->GetSegment();
-	Person* pPerson = pLandsideBehavior->getPerson();
-	ASSERT(pPerson);
-	double dInStep = pPerson->getInStep();
-	//retrieve pre person
-	if (nSegment == QUEUE_OVERFLOW)
-	{
- 		PaxLandsideBehavior *pPreLandsideBehavior = NULL;
- 		int idx = m_approachList.findElement(pLandsideBehavior->GetPersonID());
- 		if (idx == 0)
- 		{
- 			pPreLandsideBehavior = GetTailBehavior();
- 		}
- 		else
- 		{
- 			pPreLandsideBehavior = m_approachList.getItem(idx - 1);
- 		}
- 
-		if (pPreLandsideBehavior == NULL)
-		{
-			RemoveApproach(pLandsideBehavior);
-			pQueueProcess->SetSegment(cornerCount() -1);
-			return corner(cornerCount() -1);
-		}
-
- 		LandsidePaxQueueProcess* pPreQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pPreLandsideBehavior);
- 		ASSERT(pPreQueueProcess);
- 
- 		int preSegment = pPreQueueProcess->GetSegment();
- 		if (pPreQueueProcess->GetSegment() == QUEUE_OVERFLOW)
- 		{
- 			ARCVector3 locationNextPt = pPreLandsideBehavior->getPoint();
- 			ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
- 
- 		//	ARCVector3 vector = locationPt - destNextPt;
-			ARCVector3 vector = corner(cornerCount() - 1) - corner(cornerCount() - 2);
- 			vector.SetLength(dInStep);
- 			return destNextPt + vector;
- 		}
- 		else if(pPreQueueProcess->GetSegment() != cornerCount() - 1)
- 		{
-			RemoveApproach(pLandsideBehavior);
- 			pQueueProcess->SetSegment(cornerCount() -1);
- 			return corner(cornerCount() -1);
- 		}
- 		else
- 		{
-			/*RemoveApproach(pLandsideBehavior);
-			pQueueProcess->SetSegment(cornerCount() -1);*/
- 			ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
-			double dToSegment = destNextPt.DistanceTo(corner(cornerCount() - 1));
-			if (dToSegment >= dInStep)
-			{
-				RemoveApproach(pLandsideBehavior);
-				pQueueProcess->SetSegment(cornerCount() -1);
-				return corner(cornerCount() -1);
-			}
-			else
-			{
-				ARCVector3 vector = corner(cornerCount() - 1) - corner(cornerCount() - 2);
-				double dDist = destNextPt.DistanceTo(destPt);
-				if (dDist > dInStep)
-				{
-					ARCVector3 newDest;
-					vector.SetLength(dInStep);
-					newDest = destNextPt + vector;
-
-					if (destPt.DistanceTo(corner(cornerCount() - 1)) < newDest.DistanceTo(destPt))
-					{
-						RemoveApproach(pLandsideBehavior);
-						pQueueProcess->SetSegment(cornerCount() -1);
-					}
-					return newDest;
-				}
-			}
- 			
- 			return destPt;
- 		}
-	}
-	
-	int idx = m_waitList.findElement(pLandsideBehavior->GetPersonID());
-	if (idx == INT_MAX)
-	{
-		idx = m_waitList.getCount();
-	}
-	PaxLandsideBehavior *pPreLandsideBehavior = PeekWait(idx - 1);
-	ASSERT(pPreLandsideBehavior);
-	LandsidePaxQueueProcess* pPreQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(pPreLandsideBehavior);
-	ASSERT(pPreQueueProcess);
-	double dSpeed = pPreLandsideBehavior->getPerson()->getSpeed();
-	
-	ARCVector3 locationNextPt = pPreLandsideBehavior->getPoint();
-	ARCVector3 destNextPt = pPreLandsideBehavior->getDest();
-
-	ARCVector3 vector;
-	if (nSegment == pPreQueueProcess->GetSegment())
-		vector = corner (pPreQueueProcess->GetSegment()) - destNextPt;
-	else if (nSegment-1 == pPreQueueProcess->GetSegment())
-	{
-		int nCurSegment = CalculateSegment(pQueueProcess,pLandsideQueueSys);
-		if (nCurSegment != nSegment)
-		{
-			pQueueProcess->SetSegment(nCurSegment);
-			return corner(nCurSegment);
-		}
-		else
-		{
-			double dDist = destNextPt.DistanceTo(corner(pPreQueueProcess->GetSegment())) + destPt.DistanceTo(corner(pPreQueueProcess->GetSegment()));
-			if (dDist > dInStep)
-			{
-				dDist -= dInStep;
-				vector = corner(nSegment - 1) - corner(nSegment);
-				vector.SetLength(dDist);
-				return destPt+vector;
-			}
-			return destPt;
-		}
-	}
-	else
-	{
-		pQueueProcess->SetSegment(nSegment - 1);
-		return corner(nSegment - 1);
-	}
+		vector = corner (pQueueProcess->getQueuePathSegmentIndex()) - destPt;
 
 	vector.SetLength(dInStep);
-	return destNextPt + vector;
+	return destPt + vector;
 }
+
 
 bool LandsideQueue::isHead( PaxLandsideBehavior* pLandsideBehavior )
 {
@@ -336,20 +78,6 @@ PaxLandsideBehavior* LandsideQueue::GetTailBehavior() const
 	return NULL;
 }
 
-void LandsideQueue::RemoveApproach( PaxLandsideBehavior* pLandsideBehavior )
-{
-	int index = m_approachList.findElement (pLandsideBehavior->GetPersonID());
-	if (index != INT_MAX)
-	{
-		m_approachList.removeItem (index);
-	}
-	int iWaitIdx = m_waitList.findElement(pLandsideBehavior->GetPersonID());
-	if (iWaitIdx == INT_MAX)
-	{
-		m_waitList.addItem(pLandsideBehavior);
-	}
-}
-
 void LandsideQueue::RemoveWait( PaxLandsideBehavior* pLandsideBehavior )
 {
 	int index = m_waitList.findElement (pLandsideBehavior->GetPersonID());
@@ -359,253 +87,11 @@ void LandsideQueue::RemoveWait( PaxLandsideBehavior* pLandsideBehavior )
 	}
 }
 
-void LandsideQueue::StartQueueMove( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+int LandsideQueue::isTail( int index,LandsideQueueSystemProcess* pLandsideQueueSys)
 {
-	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	if (pLandsideBehavior)
-	{
-		if (StepItValid(pQueueProcess,pLandsideQueueSys))
-		{
-			ARCVector3 ptDest;
-			ptDest = GetNextStep(pQueueProcess,pLandsideQueueSys);
-			pLandsideBehavior->setDestination(ptDest);
-			pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
-			ElapsedTime eTime = time + pLandsideBehavior->moveTime() + ElapsedTime(0.1);
-			pQueueProcess->GenerateQueueEvent(eTime);
-
-			if (isTail (pLandsideBehavior))
-			{
-				UpdateApproach(eTime,pLandsideQueueSys);
-			}
-			else
-				// schedule event to have next person in queue advance
-			{
-				int idx = m_waitList.findElement(pLandsideBehavior->GetPersonID());
-				if (idx == INT_MAX)
-					return;
-				
-				PaxLandsideBehavior *pNextBehavior = m_waitList.getItem(idx+1);
-
-				if (!pNextBehavior)
-					return;
-				
-				LandsidePaxQueueProcess* pNextQueueProc = pLandsideQueueSys->FindPaxQueueProcess(pNextBehavior);
-				if (pNextQueueProc == NULL)
-					return;
-				
-				if (pNextQueueProc->GetStuck())
-				{
-					pNextQueueProc->SetStuck(false);
-					pNextQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_startMove);
-					pNextQueueProc->GenerateQueueEvent(time + ElapsedTime(0.1));
-				}
-			}
-		}
-		else
-		{
-			pQueueProcess->SetStuck(true);
-		}
-	
-	}
-}
-void LandsideQueue::AddToQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
-{
-	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	ASSERT(pLandsideBehavior);
-	//AddApproach(pLandsideBehavior);
-	LandsidePaxQueueProcess* pNextQueueProc = pLandsideQueueSys->GetNextBehavior(pQueueProcess->GetlandsideBehavior());
-	if (pNextQueueProc)
-	{
-		Person* pPerson = pQueueProcess->GetlandsideBehavior()->getPerson();
-		Person* pPrePerson = pNextQueueProc->GetlandsideBehavior()->getPerson();
-		pPerson->setSpeed(MIN(pPerson->getSpeed(),pPrePerson->getSpeed()));
-	}
-
-	if (pLandsideBehavior)
-	{
-		ARCVector3 ptDest;
-		ptDest = GetNextStep(pQueueProcess,pLandsideQueueSys);
-		pLandsideBehavior->setDestination(ptDest);
-		ElapsedTime eTime = time + pLandsideBehavior->moveTime();
-		pLandsideBehavior->WriteLogEntry(eTime);
-		//for adjust direction
-		int nCount = cornerCount();
-		ARCVector3 vector = corner(nCount - 2) - corner(nCount - 1);
-		vector.SetLength(1.0);
-		ARCVector3 newPtDest = ptDest + vector;
-		pLandsideBehavior->setDestination(newPtDest);
-
-		pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
-		pQueueProcess->GenerateQueueEvent(eTime + pLandsideBehavior->moveTime());
-	}
-}
-
-void LandsideQueue::WaitInQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
-{
-	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	// if next Person has already advanced, continue moving
-	if (pLandsideBehavior)
-	{
-		if (!isHead(pLandsideBehavior))
-		{
-			/*int nSegment = CalculateSegment(pQueueProcess,pLandsideQueueSys);
-			pQueueProcess->SetSegment(nSegment);*/
-			StartQueueMove(pQueueProcess,pLandsideQueueSys,time);
-		}
-		else if (pQueueProcess->GetSegment() == 1)
-		{
-			pLandsideBehavior->setDestination(corner(0));
-			pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_advanceQueue);
-			pQueueProcess->GenerateQueueEvent(time+pLandsideBehavior->moveTime());
-		}
-		else
-		{
-		//	pLandsideBehavior->setDestination(corner(0));
-			pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_movetoQueue);
-			pQueueProcess->GenerateQueueEvent(time/*+pLandsideBehavior->moveTime()*/);
-		}
-	}
-	
-}
-
-void LandsideQueue::MoveToQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
-{
- 	ARCVector3 pt; 
-	if (pQueueProcess->GetSegment() == QUEUE_OVERFLOW)
-	{
-		RemoveApproach(pQueueProcess->GetlandsideBehavior());
-		// update all approaching Persons
-		UpdateApproach(time,pLandsideQueueSys);
-		int nCorner = cornerCount();
-		pt = corner(nCorner - 1);
-		pQueueProcess->SetSegment(nCorner - 1);
-		LandsidePaxQueueProcess* pNextQueueProc = pLandsideQueueSys->GetNextBehavior(pQueueProcess->GetlandsideBehavior());
-		if (pNextQueueProc)
-		{
-			Person* pPerson = pQueueProcess->GetlandsideBehavior()->getPerson();
-			Person* pPrePerson = pNextQueueProc->GetlandsideBehavior()->getPerson();
-			pPerson->setSpeed(MIN(pPerson->getSpeed(),pPrePerson->getSpeed()));
-		}
-		pQueueProcess->SetDes(false);
-	}
- 	else if (pLandsideQueueSys->OnTailSegment(pQueueProcess))
- 	{
- 		pt = GetNextStep(pQueueProcess,pLandsideQueueSys);
- 		pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
-		pQueueProcess->SetDes(false);
- 	}
- 	else
- 	{
-		int nSegment = pQueueProcess->GetSegment() - 1;
-		pt = corner(nSegment);
-		pQueueProcess->SetDes(true);
-	//	pQueueProcess->SetSegment(nSegment);
- 	}
- 
- 	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
- 	if (pLandsideBehavior)
- 	{
- 		pLandsideBehavior->setDestination(pt);
- 		pQueueProcess->GenerateQueueEvent(time+pLandsideBehavior->moveTime());
- 	}
-}
-
-void LandsideQueue::AdvanceQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
-{
-	PaxLandsideBehavior* pLandsideBehavior = pQueueProcess->GetlandsideBehavior();
-	int idx = m_waitList.findElement(pLandsideBehavior->GetPersonID());
-	if (pLandsideBehavior&&!isHead(pLandsideBehavior))
-	 	StartQueueMove(pQueueProcess,pLandsideQueueSys,time);
-	if (isHead(pLandsideBehavior))
-	{
-		pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_leaveQueue);
-		pQueueProcess->GenerateQueueEvent(time/* + ElapsedTime(0.6)*/);
-		
-	}   
-}
-
-bool LandsideQueue::isTail( PaxLandsideBehavior* pLandsideBehavior )
-{
-	if (m_waitList.IsEmpty())
-		return true;
-
-	return m_waitList.back() == pLandsideBehavior ? true : false;
-}
-
-void LandsideQueue::UpdateApproach( const ElapsedTime& time,LandsideQueueSystemProcess* pLandsideQueueSys )
-{
-	//if (m_approachList.IsEmpty())
-	//	return;
-	//
-	//PaxLandsideBehavior* pLandsideBehavior = m_approachList.getItem(0);
-	//if (pLandsideBehavior == NULL)
-	//	return;
-
-	//LandsidePaxQueueProcess* pQueueProc = pLandsideQueueSys->FindPaxQueueProcess(pLandsideBehavior);
-	//if (pQueueProc == NULL)
-	//	return;
-
-	//if (pQueueProc->GetStuck())
-	//{
-	//	//if (pLandsideQueueSys->OnTailSegment(pQueueProc))
-	//	//{
-	//		pQueueProc->SetStuck(false);
-	//		pQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
-	//		pQueueProc->GenerateQueueEvent(time /*+ ElapsedTime(0.1)*/);
-	//	//}
-	//	//else if (pQueueProc->GetQueueState() == LandsidePaxQueueProcess::sp_waitinQueue)
-	//	//{
-	//	//	pQueueProc->SetStuck(false);
-	//	//	pQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_advanceQueue);
-	//	//	MoveToQueue (pQueueProc,pLandsideQueueSys, time);
-	//	//}
-	//}
-
-	ElapsedTime eTime = time;
- 	for (int i = 0; i < m_approachList.getCount(); i++)
- 	{
- 		PaxLandsideBehavior* pLandsideBehavior = m_approachList.getItem(i);
- 		if (pLandsideBehavior == NULL)
- 			continue;
- 		
- 		LandsidePaxQueueProcess* pQueueProc = pLandsideQueueSys->FindPaxQueueProcess(pLandsideBehavior);
- 		if (pQueueProc == NULL)
- 			continue;
- 		
- 		if (pQueueProc->GetStuck())
- 		{
- 		//	if (pLandsideQueueSys->OnTailSegment(pQueueProc))
- 			{
-				eTime = eTime + ElapsedTime(0.1);
-				pQueueProc->SetStuck(false);
- 				pQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
- 				pQueueProc->GenerateQueueEvent(eTime);
- 			}
-//  			else if (pQueueProc->GetQueueState() == LandsidePaxQueueProcess::sp_waitinQueue)
-//  			{
-//  				pQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_advanceQueue);
-//  				MoveToQueue (pQueueProc,pLandsideQueueSys, time);
-//  			}
- 		}
- 	}
-}
-
-void LandsideQueue::AddApproach( PaxLandsideBehavior* pLandsideBehavior )
-{
-	ASSERT(pLandsideBehavior);
-	m_approachList.addItem(pLandsideBehavior);
-}
-
-
-void LandsideQueue::AddWait( PaxLandsideBehavior* pLandsideBehavior )
-{
-	ASSERT(pLandsideBehavior);
-	m_waitList.addItem(pLandsideBehavior);
-}
-
-int LandsideQueue::FindWait(PaxLandsideBehavior* pLandsideBehavior)
-{
-	return m_waitList.findElement(pLandsideBehavior->GetPersonID());
+	PaxLandsideBehavior *tail = m_waitList.getTail();
+	LandsidePaxQueueProcess* pQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(tail);
+	return (pQueueProcess &&pQueueProcess->getCurrentIndex() == index);
 }
 
 int LandsideQueue::FindApproach(PaxLandsideBehavior* pLandsideBehavior)
@@ -613,13 +99,29 @@ int LandsideQueue::FindApproach(PaxLandsideBehavior* pLandsideBehavior)
 	return m_approachList.findElement(pLandsideBehavior->GetPersonID());
 }
 
-PaxLandsideBehavior* LandsideQueue::PeekWait( int idx )
+PaxLandsideBehavior* LandsideQueue::PeekWait( int idx,LandsideQueueSystemProcess* pLandsideQueueSys )
 {
-	if(idx >= 0 && idx < m_waitList.getCount())
-	{
-		return m_waitList.getItem(idx);
-	}
+	PaxLandsideBehavior *spLandsideBehavior = NULL;
+	int queueIndex = m_waitList.getCount()-1;
 
+	while (queueIndex >= 0)
+	{
+		spLandsideBehavior = m_waitList.getItem (queueIndex);
+		if (spLandsideBehavior == NULL)
+			return NULL;
+		
+		LandsidePaxQueueProcess* pLandsideQueueProc = pLandsideQueueSys->FindPaxQueueProcess(spLandsideBehavior);
+	
+		if (pLandsideQueueProc == NULL)
+			return NULL;
+
+		if (pLandsideQueueProc->getNextIndex() < idx)		
+			break;
+		else if (pLandsideQueueProc->getNextIndex() == idx)		
+			return spLandsideBehavior;
+
+		queueIndex--;
+	}
 	return NULL;
 }
 
@@ -633,10 +135,390 @@ PaxLandsideBehavior* LandsideQueue::PeekApproach(int idx)
 	return NULL;
 }
 
-LandsideQueueEvent::LandsideQueueEvent( LandsidePaxQueueProcess *pQueueProc, ElapsedTime eTime )
+int LandsideQueue::getNextIndex( int index,LandsideQueueSystemProcess* pLandsideQueueSys )
+{
+	if (index == QUEUE_APPROACHING)
+		return getTailIndex(pLandsideQueueSys);
+
+	while (index && !PeekWait(index-1,pLandsideQueueSys)) 
+		index--;
+
+	return index;
+}
+
+int LandsideQueue::getTailIndex( LandsideQueueSystemProcess* pLandsideQueueSys ) 
+{
+	PaxLandsideBehavior *tail = m_waitList.getTail();
+	LandsidePaxQueueProcess *pQueueProc = pLandsideQueueSys->FindPaxQueueProcess(tail);
+
+	return (pQueueProc)? (pQueueProc->getNextIndex() + 1): 0;
+}
+
+void LandsideQueue::addToQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
+	pQueueProcess->ArrivalQueue(false);
+	PaxLandsideBehavior* spLandsideBehavior = pQueueProcess->GetlandsideBehavior();
+	if (spLandsideBehavior)
+	{
+		m_approachList.addItem (spLandsideBehavior);
+		pQueueProcess->setNextIndex(QUEUE_APPROACHING);
+		pQueueProcess->updateIndex();
+		pQueueProcess->setNextIndex (getNextIndex (QUEUE_APPROACHING,pLandsideQueueSys));
+		pQueueProcess->setQueuePathSegmentIndex(QUEUE_OVERFLOW) ;
+
+		//// determine the next segment and the next wait location
+
+		if (onTailSegment (pQueueProcess,pLandsideQueueSys))
+		{
+			pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
+			spLandsideBehavior->setDestination(corner(QUEUE_LAST_SEGMENT));
+
+		}
+		else
+		{
+			pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_movetoQueue);
+			spLandsideBehavior->setDestination(corner(QUEUE_LAST_SEGMENT)) ;
+			// if the Person's state is waiting it was heading for the tail
+			// of the queue. Since it is no longer heading for the tail it
+			// must reset its destination and event
+		} 
+	}
+}
+
+void LandsideQueue::leaveQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	PaxLandsideBehavior *spLandsideBehavior =  m_waitList.removeHead();
+	if (!m_waitList.getTail())
+	{
+		updateApproaching (pLandsideQueueSys,time);
+		return;
+	}
+
+
+	// test for a following Person in the queue
+	// determine if there is a Person thinking they are at position 1
+
+	PaxLandsideBehavior *spNextBehavior = PeekWait(1,pLandsideQueueSys);
+	LandsidePaxQueueProcess* pNextQueueProc = pLandsideQueueSys->FindPaxQueueProcess(spNextBehavior);
+	if (pNextQueueProc == NULL)
+	{
+		return;
+	}
+
+	if (pNextQueueProc->getCurrentIndex() != 1)
+	{
+		return;
+	}
+
+	ARCVector3 locationPt = spNextBehavior->getPoint();
+	// write log entry in current position to start movement
+	pNextQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_startMove);
+	spNextBehavior->setDestination(locationPt);
+	spNextBehavior->WriteLogEntry(time, false);
+	relayAdvance (pNextQueueProc, pLandsideQueueSys,time);
+}
+
+void LandsideQueue::relayAdvance( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	PaxLandsideBehavior* spLandsideBehavior = pQueueProcess->GetlandsideBehavior();
+	if (spLandsideBehavior)
+	{
+		getQueuePosition (pQueueProcess,pLandsideQueueSys);
+		pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
+		pQueueProcess->GenerateQueueEvent(time + spLandsideBehavior->moveTime());
+		Person* aPerson = spLandsideBehavior->getPerson();
+
+		if (isTail (pQueueProcess->getCurrentIndex(),pLandsideQueueSys))
+			// reset destination of all approaching Persons
+			updateApproaching (pLandsideQueueSys,time);
+		else
+			// schedule event to have next person in queue advance
+			generateAdvanceEvent (pQueueProcess->getCurrentIndex() + 1, time + 1l,
+			pLandsideQueueSys,aPerson->getSpeed());
+
+	}
+}
+
+void LandsideQueue::continueAdvance( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	if (pQueueProcess&&pQueueProcess->getCurrentIndex() != QUEUE_HEAD && !PeekWait (pQueueProcess->getCurrentIndex()-1,pLandsideQueueSys))
+		relayAdvance (pQueueProcess, pLandsideQueueSys,time);
+}
+
+void LandsideQueue::approachQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	PaxLandsideBehavior* spLandsideBehavior = pQueueProcess->GetlandsideBehavior();
+	if (onTailSegment (pQueueProcess,pLandsideQueueSys) )
+	{
+		pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
+		pQueueProcess->setNextIndex(getNextIndex (pQueueProcess->getCurrentIndex(),pLandsideQueueSys));
+		spLandsideBehavior->setDestination(getLocation (pQueueProcess, pLandsideQueueSys));
+	}
+	else if (pQueueProcess->getQueuePathSegmentIndex() == QUEUE_OVERFLOW)
+		spLandsideBehavior->setDestination(corner (QUEUE_LAST_SEGMENT));
+	else // set destination to the next queue corner
+	{
+		spLandsideBehavior->setDestination(corner (pQueueProcess->getQueuePathSegmentIndex()-1));
+	}
+
+	pQueueProcess->GenerateQueueEvent(time+ spLandsideBehavior->moveTime());
+}
+
+void LandsideQueue::updateApproaching(LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	for (int i = 0; i < m_approachList.getCount(); i++)
+	{
+		PaxLandsideBehavior* spLandsideBehavior = PeekApproach(i);
+		LandsidePaxQueueProcess* pAppraochProcess = pLandsideQueueSys->FindPaxQueueProcess(spLandsideBehavior);
+		if (pAppraochProcess&&onTailSegment (pAppraochProcess,pLandsideQueueSys))
+		{
+			if (pAppraochProcess->HasArrivalQueue())
+			{
+				pAppraochProcess->SetQueueState(LandsidePaxQueueProcess::sp_waitinQueue);
+				setPersonCurrentPosition(spLandsideBehavior->getPerson(),time);//aPerson->setCurrentPosition(updateTime) ;
+
+				pAppraochProcess->setNextIndex (QUEUE_APPROACHING);
+				pAppraochProcess->updateIndex();
+				getQueuePosition (pAppraochProcess,pLandsideQueueSys);
+				ElapsedTime updateTime = time + spLandsideBehavior->moveTime() ;
+				pAppraochProcess->GenerateQueueEvent(updateTime);
+			}
+			else
+			{
+				pAppraochProcess->SetQueueState(LandsidePaxQueueProcess::sp_movetoQueue);
+				setPersonCurrentPosition(spLandsideBehavior->getPerson(),time);//aPerson->setCurrentPosition(updateTime) ;
+
+				pAppraochProcess->setNextIndex (QUEUE_APPROACHING);
+				pAppraochProcess->updateIndex();
+				getQueuePosition (pAppraochProcess,pLandsideQueueSys);
+				spLandsideBehavior->setDestination(corner(QUEUE_LAST_SEGMENT));
+				ElapsedTime updateTime = time + spLandsideBehavior->moveTime() ;
+				pAppraochProcess->GenerateQueueEvent(updateTime);
+			}
+		}
+
+		// if the Person's state is waiting it was heading for the tail
+		// of the queue. Since it is no longer heading for the tail it
+		// must reset its destination and event
+		else if (pAppraochProcess->GetQueueState() == LandsidePaxQueueProcess::sp_waitinQueue)
+		{
+			pAppraochProcess->SetQueueState(LandsidePaxQueueProcess::sp_movetoQueue);
+			setPersonCurrentPosition(spLandsideBehavior->getPerson(),time);//aPerson->setCurrentPosition (updateTime);
+			approachQueue (pAppraochProcess,pLandsideQueueSys, time);
+		}
+	}
+}
+
+int LandsideQueue::onTailSegment( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys )
+{
+	LandsidePaxQueueProcess *pTailProcess = pLandsideQueueSys->GetTailQueueProcess();
+	PaxLandsideBehavior* spLandsideBehavior = pQueueProcess->GetlandsideBehavior();
+
+	// if there are no Persons waiting, its based purely on segment
+	if (pTailProcess == NULL)
+		return (pQueueProcess->getQueuePathSegmentIndex() == 1 || (cornerCount() == 1 &&
+		pQueueProcess->getQueuePathSegmentIndex() == QUEUE_OVERFLOW));
+
+	PaxLandsideBehavior* spTailBehavior = pTailProcess->GetlandsideBehavior();
+	// if the queue is overflowing all Persons are on the tail segment
+	if (pTailProcess->getQueuePathSegmentIndex() == QUEUE_OVERFLOW)
+		return TRUE;
+
+	Person* aPerson = spLandsideBehavior->getPerson();
+	// if aPerson's segment is the same as the tail's, onTail == TRUE
+	if (pTailProcess->getQueuePathSegmentIndex() >= pQueueProcess->getQueuePathSegmentIndex())
+		return TRUE;
+
+	DistanceUnit inStep = aPerson->getInStep();
+
+	// if aPerson's segment is one greater than the tail's...
+	if (pTailProcess->getQueuePathSegmentIndex() + 1 == pQueueProcess->getQueuePathSegmentIndex() ||
+		(pTailProcess->getQueuePathSegmentIndex() == QUEUE_LAST_SEGMENT && pQueueProcess->getQueuePathSegmentIndex()
+		== QUEUE_OVERFLOW))
+
+		// and the tail's location plus aPerson's inStep would exceed
+		// the next corner location, onTail == TRUE
+	{
+		ARCVector3 pt;
+		pt = spTailBehavior->getPoint();
+		if (pt.DistanceTo(corner(pTailProcess->getQueuePathSegmentIndex())) <= inStep)
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+void LandsideQueue::arriveAtQueue( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	pQueueProcess->ArrivalQueue(true);
+	if (pQueueProcess->GetQueueState() == LandsidePaxQueueProcess::sp_movetoQueue)
+	{
+
+		if (pQueueProcess->getQueuePathSegmentIndex() == QUEUE_OVERFLOW)
+		{
+			pQueueProcess->setQueuePathSegmentIndex(QUEUE_LAST_SEGMENT);
+		}
+		else if (!onTailSegment (pQueueProcess,pLandsideQueueSys))
+			pQueueProcess->decQueuePathSegmentIndex();
+		approachQueue (pQueueProcess,pLandsideQueueSys, time);
+		return;
+	}
+	// place the Person in the list of waiting Persons
+	int index = FindApproach(pQueueProcess->GetlandsideBehavior());
+	if(index != INT_MAX)
+		m_approachList.removeItem (index);
+
+	m_waitList.addItem(pQueueProcess->GetlandsideBehavior());
+	// set position in queue
+	pQueueProcess->updateIndex();
+	// update all approaching Persons
+	updateApproaching (pLandsideQueueSys,time);
+	pQueueProcess->SetWaitTag(true);
+	// if next Person has already advanced, continue moving
+	continueAdvance (pQueueProcess, pLandsideQueueSys,time);
+}
+
+ARCVector3 calcMidPoint (const ARCVector3& ptStart, const ARCVector3& ptEnd,DistanceUnit speed,
+	const ElapsedTime& remainingTravelTime)
+{
+	ARCVector3 vector (ptStart, ptEnd);
+
+	if (!vector.Length())
+		return ptStart;
+	double distance = (remainingTravelTime.getPrecisely()*1.0/TimePrecision) * speed;
+	vector.SetLength(distance);
+	return (ptEnd - vector);
+}
+
+void LandsideQueue::setPersonCurrentPosition( Person *aPerson,const ElapsedTime& arriveTime )
+{
+	MobileElementMovementEvent dummy;
+	ElapsedTime destTime = dummy.removeMoveEvent (aPerson);
+	PaxLandsideBehavior* spLandsideBehavior = (PaxLandsideBehavior* )aPerson->getLandsideBehavior();
+
+	if (destTime >= ElapsedTime(0l))
+	{
+		ARCVector3 ptMid = calcMidPoint(spLandsideBehavior->getPoint(),spLandsideBehavior->getDest(),aPerson->getSpeed(),destTime - arriveTime);
+		spLandsideBehavior->setDestination (ptMid);
+	}
+	spLandsideBehavior->WriteLogEntry(arriveTime);
+}
+
+void LandsideQueue::getQueuePosition( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys )
+{
+	// determine next queue position
+	PaxLandsideBehavior* spLandsideBehavior = pQueueProcess->GetlandsideBehavior();
+	pQueueProcess->setNextIndex (getNextIndex (pQueueProcess->getCurrentIndex(),pLandsideQueueSys));
+
+	// determine the next segment and the next wait location
+	Person* aPerson = spLandsideBehavior->getPerson();
+	DistanceUnit inStep = aPerson->getInStep();
+	pQueueProcess->setQueuePathSegmentIndex (getSegment (pQueueProcess,pLandsideQueueSys));
+	spLandsideBehavior->setDestination(getLocation (pQueueProcess, pLandsideQueueSys));
+}
+
+int LandsideQueue::getSegment( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys ) 
+{
+	PaxLandsideBehavior* spLandsideBehavior = pQueueProcess->GetlandsideBehavior();
+	if (spLandsideBehavior == NULL)
+	{
+		return QUEUE_OVERFLOW;
+	}
+
+	if (pQueueProcess->getNextIndex() == QUEUE_HEAD)
+	{
+		int newSeg = m_qCorners.getCount();
+		return (newSeg == 1)? QUEUE_OVERFLOW: 1;
+	}
+
+	// always called after getNextIndex, therefore there must be a pax
+	// at nextIndex + 1
+	PaxLandsideBehavior *spNextBehavior = PeekWait (pQueueProcess->getNextIndex()-1,pLandsideQueueSys);
+	if (spNextBehavior == NULL)
+	{
+		return QUEUE_OVERFLOW;
+	}
+	LandsidePaxQueueProcess* pNexQueueProc = pLandsideQueueSys->FindPaxQueueProcess(spNextBehavior);
+
+
+	int segment = pNexQueueProc->getQueuePathSegmentIndex();
+
+	if (segment == QUEUE_OVERFLOW)
+		return QUEUE_OVERFLOW;
+
+	Person* aPerson = spLandsideBehavior->getPerson();
+	DistanceUnit inStep = aPerson->getInStep();
+	ARCVector3 destPt;
+	destPt = spNextBehavior->getDest();
+	if (destPt.DistanceTo(corner (segment)) > inStep)
+		return segment;
+
+	// the two remaining options occur when the people are not on the
+	// same segment of the queue
+	if (segment == QUEUE_LAST_SEGMENT)
+		return QUEUE_OVERFLOW;
+	else
+		return segment + 1;
+}
+
+void LandsideQueue::generateAdvanceEvent( int p_ndx, ElapsedTime p_time,LandsideQueueSystemProcess* pLandsideQueueSys,DistanceUnit p_maxSpeed )
+{
+	PaxLandsideBehavior *spNextBehavior = PeekWait(p_ndx,pLandsideQueueSys);
+	LandsidePaxQueueProcess* spNextQueueProc = pLandsideQueueSys->FindPaxQueueProcess(spNextBehavior);
+	if (!spNextQueueProc || spNextQueueProc->getCurrentIndex() != p_ndx)
+	{
+		return;
+	}
+
+	Person* aPerson = spNextBehavior->getPerson();
+	if (p_maxSpeed)
+	{
+		aPerson->setSpeed(MIN(p_maxSpeed,spNextQueueProc->GetNormalSpeed()));
+	}
+	
+	spNextQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_startMove);
+	spNextQueueProc->GenerateQueueEvent(p_time);
+}
+
+void LandsideQueue::arriveAtWaitPoint( LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time )
+{
+	if (pQueueProcess)
+	{
+		pQueueProcess->updateIndex();
+	}
+
+	// if next Person has already advanced, continue moving
+	continueAdvance (pQueueProcess,pLandsideQueueSys, time);
+}
+
+int LandsideQueue::hasWait( LandsideQueueSystemProcess* pLandsideQueueSys )
+{
+	if (!m_waitList.getCount())
+		return FALSE;
+
+	PaxLandsideBehavior *spLandsideBehavior = m_waitList.getHead();
+	LandsidePaxQueueProcess* pQueueProcess = pLandsideQueueSys->FindPaxQueueProcess(spLandsideBehavior);
+	return (pQueueProcess&&pQueueProcess->GetWaitTag() && (pQueueProcess->getCurrentIndex() == QUEUE_HEAD));
+}
+
+void LandsideQueue::releaseNext( ElapsedTime p_time, LandsideQueueSystemProcess* pLandsideQueueSys )
+{
+	 PaxLandsideBehavior *spLandsideBehavior = m_waitList.getHead();
+	 LandsidePaxQueueProcess* pQueueProcess =  pLandsideQueueSys->FindPaxQueueProcess(spLandsideBehavior);
+
+    if (pQueueProcess&&pQueueProcess->getCurrentIndex() == QUEUE_HEAD)
+    {		
+		pQueueProcess->SetQueueState(LandsidePaxQueueProcess::sp_leaveQueue);
+		pQueueProcess->GenerateQueueEvent(p_time + ElapsedTime(0.6));
+    }
+}
+
+
+LandsideQueueEvent::LandsideQueueEvent( LandsidePaxQueueProcess *pQueueProc )
 :m_pQueueProcess(pQueueProc)
 {
-	setTime(eTime);
+
 }
 
 LandsideQueueEvent::~LandsideQueueEvent( void )
@@ -646,7 +528,7 @@ LandsideQueueEvent::~LandsideQueueEvent( void )
 
 int LandsideQueueEvent::process( CARCportEngine* pEngine )
 {
-	if (m_pQueueProcess)
+	if (m_pQueueProcess && m_pLandsideQueueSys->ExsitPaxQueueProcess(m_pQueueProcess))
 	{
 		m_pQueueProcess->ProcessMove(time);
 	}
@@ -664,30 +546,22 @@ const char * LandsideQueueEvent::getTypeName( void ) const
 	return _T("QueueProcessEvent");
 }
 
-int LandsideQueueEvent::getEventType( void ) const
+void LandsideQueueEvent::SetLandsideQueueSystem( LandsideQueueSystemProcess* pLandsideQueueSys )
 {
-	return 1;
-}
-
-void LandsideQueueEvent::SetPerson( PaxLandsideBehavior* pPerson )
-{
-	m_pPerson = pPerson;
-}
-
-void LandsideQueueEvent::SetState( LandsidePaxQueueProcess::QueueState emState )
-{
-	m_emState = emState;
+	m_pLandsideQueueSys = pLandsideQueueSys;
 }
 
 
 LandsidePaxQueueProcess::LandsidePaxQueueProcess(PaxLandsideBehavior* pLandsideBehavior)
 :m_queueState(sp_movetoQueue)
 ,m_nSegment(QUEUE_OVERFLOW)
-,m_bStuck(false)
 ,m_pLandsideBehavior(pLandsideBehavior)
-,m_bDes(false)
 {
-
+	m_nCurrentIndex = 0;
+	m_nNextIndex = 0;
+	m_bHasWaitTag = false;
+	m_bArrivalAtQueue = false;
+	m_dSpeed = pLandsideBehavior->getPerson()->getSpeed();
 }
 
 LandsidePaxQueueProcess::~LandsidePaxQueueProcess()
@@ -697,111 +571,41 @@ LandsidePaxQueueProcess::~LandsidePaxQueueProcess()
 
 void LandsidePaxQueueProcess::WriteQueuePaxLog( const ElapsedTime& p_time )
 {
-	ARCVector3 ptLocation = m_pLandsideBehavior->getPoint();
-	ARCVector3 ptDest = m_pLandsideBehavior->getDest();
+	//ARCVector3 ptLocation = m_pLandsideBehavior->getPoint();
+	//ARCVector3 ptDest = m_pLandsideBehavior->getDest();
 
-	double dLength = ptLocation.DistanceTo(ptDest);
-	double dInStep = m_pLandsideBehavior->getPerson()->getInStep();
-	if (dLength < dInStep)
-	{
-		return;
-	}
+	//double dLength = ptLocation.DistanceTo(ptDest);
+	//double dInStep = m_pLandsideBehavior->getPerson()->getInStep();
+	//if (dLength < dInStep)
+	//{
+	//	return;
+	//}
 
 	m_pLandsideBehavior->WriteLogEntry(p_time);
 }
 
 void LandsidePaxQueueProcess::ProcessMove(ElapsedTime p_time )
 {
-	PLACE_METHOD_TRACK_STRING();
+	WriteQueuePaxLog(p_time);
 	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
 	ASSERT(pQueue);
 
-	CString strString;
-	
-	switch (m_queueState)
+	if (m_queueState == sp_leaveQueue)
 	{
-	case sp_movetoQueue:
-		{
-			if (m_bDes)
-			{
-				m_nSegment--;
-			}
-//			strString = _T("sp_movetoQueue");
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-		//	WriteQueuePaxLog(p_time);
-			pQueue->MoveToQueue(this,m_pLandsideQueueSys,p_time);
-		}
-		break;
-	case sp_addtoQueue:
-		{
-			strString = _T("sp_addtoQueue");
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-		//	WriteQueuePaxLog(p_time);
-			pQueue->AddToQueue(this,m_pLandsideQueueSys,p_time);
-		}
-		break;
-	case sp_waitinQueue:
-		{
-//			strString = _T("sp_waitinQueue");
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-		//	WriteQueuePaxLog(p_time);
-			pQueue->WaitInQueue(this,m_pLandsideQueueSys,p_time);
-		}
-		break;
-	case sp_advanceQueue:
-		{
-//			strString = _T("sp_advanceQueue");
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-		//	WriteQueuePaxLog(p_time);
-			pQueue->AdvanceQueue(this,m_pLandsideQueueSys,p_time); 
-		}
-		break;
-	case sp_leaveQueue:
-		{
-//			strString = _T("sp_leaveQueue");
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-		//	WriteQueuePaxLog(p_time);
-			SetStuck(true);
-			m_pLandsideQueueSys->LeaveQueueProcess(m_pLandsideBehavior,m_endState,p_time);
-		}
-		break;
-	case sp_startMove:
-		{
-//			strString = _T("sp_startMove");
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-		//	WriteQueuePaxLog(p_time);
-			pQueue->StartQueueMove(this,m_pLandsideQueueSys,p_time);
-		}
-		break;
-	case sp_WaitLeave://debug 
-		{
-			m_pLandsideBehavior->WriteLogEntry(p_time);
-			pQueue->AddWait(m_pLandsideBehavior);
-			if (pQueue->isHead(m_pLandsideBehavior))
-			{
-				SetQueueState(sp_leaveQueue);
-				GenerateQueueEvent(p_time);
-			}
-		}
-		break;
-	default:
-		break;
+		leaveQueue(p_time);
+		m_bHasWaitTag = false;
+		return;
 	}
+	// must first check for relayAdvance event
+	if (m_queueState == sp_startMove)
+		moveThroughQueue (p_time);
+	// m_nWaiting flag will be set to TRUE when pax arrives at queue tail
+	// allows distinction between arrive at tail and movement within queue
+	else if (!m_bHasWaitTag)
+		arriveAtQueue ( p_time );
+	else
+		notifyQueueAdvance ( p_time );
 	
-// 	if (m_pLandsideBehavior->GetPersonID() == 738)
-// 	{
-// 		CString strLogFile;
-// 		strLogFile.Format(_T("%sPaxState.log"), _T("D:\\landsidedebug\\"));
-// 		ofsstream echoFile (strLogFile.GetBuffer(0), stdios::app);
-// 		echoFile	
-// 			<< p_time.getPrecisely()<<", "
-// 			<<strString<<", "
-// 			<<p_time.PrintDateTime()
-// 			<<"\n";
-// 
-// 		echoFile.close();
-// 	}
-	//schedule next move event
 }
 
 void LandsidePaxQueueProcess::Initialize(int state,LandsideQueueSystemProcess* pQueueProcess)
@@ -816,46 +620,82 @@ PaxLandsideBehavior* LandsidePaxQueueProcess::GetlandsideBehavior()
 	return m_pLandsideBehavior;
 }
 
-int LandsidePaxQueueProcess::GetSegment() const
-{
-	return m_nSegment;
-}
-
 void LandsidePaxQueueProcess::StartMove( ElapsedTime p_time )
 {
+	WriteQueuePaxLog(p_time);
 	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
-	m_pLandsideBehavior->setDestination(m_pLandsideBehavior->getPoint());
-	pQueue->AddApproach(m_pLandsideBehavior);
-	if (m_pLandsideQueueSys->OnTailSegment(this))
-	{
-		m_queueState = sp_addtoQueue;
-	}
-	else
-	{
-		m_pLandsideBehavior->WriteLogEntry(p_time);
-		m_queueState = sp_movetoQueue;
-		m_pLandsideBehavior->setDestination(m_pLandsideQueueSys->GetTailPoint());
-		p_time += m_pLandsideBehavior->moveTime();
-	}
-	
-	GenerateQueueEvent(p_time);
+	pQueue->addToQueue(this,m_pLandsideQueueSys,p_time);
 
-	//PLACE_METHOD_TRACK_STRING();
-	//LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
-	//m_pLandsideBehavior->WriteLogEntry(p_time);
-	//m_queueState = sp_WaitLeave;
-	//m_pLandsideBehavior->setDestination(m_pLandsideQueueSys->GetTailPoint());
-	//p_time += m_pLandsideBehavior->moveTime();
-	//
-	//GenerateQueueEvent(p_time);
+	GenerateQueueEvent(p_time + m_pLandsideBehavior->moveTime());
+
 }
 
 void LandsidePaxQueueProcess::GenerateQueueEvent( const ElapsedTime& time )
 {
-	LandsideQueueEvent* pQueueEvnet = new LandsideQueueEvent(this,time);
-	pQueueEvnet->SetPerson(m_pLandsideBehavior);
-	pQueueEvnet->SetState(m_queueState);
+	LandsideQueueEvent* pQueueEvnet = new LandsideQueueEvent(this);
+	pQueueEvnet->removeMoveEvent (m_pLandsideBehavior->getPerson());
+	pQueueEvnet->init(m_pLandsideBehavior->getPerson(),time,false);
+	pQueueEvnet->SetLandsideQueueSystem(m_pLandsideQueueSys);
 	pQueueEvnet->addEvent();
+	m_pLandsideBehavior->getPerson()->SetPrevEventTime(time);
+}
+
+void LandsidePaxQueueProcess::moveThroughQueue( const ElapsedTime& time )
+{
+	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
+	if (pQueue)
+	{
+		pQueue->relayAdvance(this,m_pLandsideQueueSys,time);
+	}
+}
+
+void LandsidePaxQueueProcess::arriveAtQueue( const ElapsedTime& time )
+{
+	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
+	if (pQueue)
+	{
+		int prevState = m_queueState;
+		pQueue->arriveAtQueue (this,m_pLandsideQueueSys,time);
+		if (prevState == sp_waitinQueue)
+		{
+			processPerson ( time );
+		}
+	}
+}
+	
+
+void LandsidePaxQueueProcess::notifyQueueAdvance( const ElapsedTime& time )
+{
+	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
+	if (pQueue)
+	{
+		pQueue->arriveAtWaitPoint (this,m_pLandsideQueueSys, time);
+		processPerson (time );
+	}
+}
+
+void LandsidePaxQueueProcess::leaveQueue( const ElapsedTime& time )
+{
+	LandsideQueue* pQueue = m_pLandsideQueueSys->GetlandsideQueue();
+	if (pQueue)
+	{
+	//	pQueue->leaveQueue(this,m_pLandsideQueueSys,time);
+		m_pLandsideQueueSys->LeaveQueueProcess(m_pLandsideBehavior,m_endState,time);
+	}
+}
+
+void LandsidePaxQueueProcess::processPerson( const ElapsedTime& time )
+{
+	   if (m_nCurrentIndex == QUEUE_HEAD)
+	   {
+		   m_queueState = sp_leaveQueue;
+		   GenerateQueueEvent(time + ElapsedTime(0.6));
+	   }
+}
+
+void LandsidePaxQueueProcess::setNextIndex( int nIndex )
+{
+	m_nNextIndex = nIndex;
 }
 
 LandsideQueueSystemProcess::LandsideQueueSystemProcess(LandsidePaxSericeInSim* pPaxServiceInsim)
@@ -896,96 +736,19 @@ LandsidePaxQueueProcess* LandsideQueueSystemProcess::FindPaxQueueProcess( PaxLan
 	return NULL;
 }
 
-LandsidePaxQueueProcess* LandsideQueueSystemProcess::GetNextBehavior( PaxLandsideBehavior* pLandsideBehavior )
+
+bool LandsideQueueSystemProcess::ExsitPaxQueueProcess( LandsidePaxQueueProcess* pQueueProcess )
 {
-	int idx = m_pQueue->FindWait(pLandsideBehavior);
-	if (idx == INT_MAX)
+	for (size_t i = 0; i < m_vPaxQueueProc.size(); i++)
 	{
-		//check approach head
-		int appIdx = m_pQueue->FindApproach(pLandsideBehavior);
-		if (appIdx == 0)
-		{
-			PaxLandsideBehavior* pNextBehavior = m_pQueue->GetTailBehavior();
-			return FindPaxQueueProcess(pNextBehavior);
-		}
-		
-		PaxLandsideBehavior* pNextBehavior = m_pQueue->PeekApproach(appIdx - 1);
-		return FindPaxQueueProcess(pNextBehavior);
-	}
-	if (idx == 0)
-		return NULL;
-	
-	PaxLandsideBehavior* pNextBehavior = m_pQueue->PeekWait(idx - 1);
-	return FindPaxQueueProcess(pNextBehavior);
-}
-
-LandsidePaxQueueProcess* LandsideQueueSystemProcess::GetTailBehavior()
-{
-	PaxLandsideBehavior* pTailBehavior = m_pQueue->GetTailBehavior();
-	if (pTailBehavior == NULL)
-		return NULL;
-	
-	return FindPaxQueueProcess(pTailBehavior);
-}
-
-
-bool LandsideQueueSystemProcess::LastSegment( int nSegment ) const
-{
-	if (nSegment == 1)
-		return true;
-	
-	return false;
-}
-
-bool LandsideQueueSystemProcess::OnTailSegment( LandsidePaxQueueProcess* pPaxQueueProc )
-{
-	LandsidePaxQueueProcess* pNextQueueProc = GetNextBehavior(pPaxQueueProc->GetlandsideBehavior());
-
-	// if there are no Persons waiting, its based purely on segment
-	if (pNextQueueProc == NULL)
-	{
-		bool bTail = (pPaxQueueProc->GetSegment() == 1) || (m_pQueue->cornerCount() == 1 && pPaxQueueProc->GetSegment() == QUEUE_OVERFLOW)? true : false;
-		return bTail;
-	}
-	
-	if (pPaxQueueProc->GetSegment() == QUEUE_OVERFLOW && pNextQueueProc->GetSegment() == m_pQueue->cornerCount() - 1)
-		return true;
-	
-	if (pNextQueueProc->GetSegment() >= pPaxQueueProc->GetSegment())
-		return true;
-	
-	PaxLandsideBehavior* pNextBehavior = pNextQueueProc->GetlandsideBehavior();
-	ASSERT(pNextBehavior);
-
-	PaxLandsideBehavior* pPaxBehavior = pPaxQueueProc->GetlandsideBehavior();
-	ASSERT(pPaxBehavior);
-	Person* pPerson = pPaxBehavior->getPerson();
-	ASSERT(pPerson);
-	DistanceUnit inStep = pPerson->getInStep();
-	
-	if (pNextQueueProc->GetSegment() + 1 == pPaxQueueProc->GetSegment())
-	{
-// 		if (pNextQueueProc->GetSegment() == 1)
-// 			return false;
-		ARCVector3 locationPt = pNextBehavior->getDest();
-		if (locationPt.DistanceTo(m_pQueue->corner(pNextQueueProc->GetSegment())) <= 1.0 * inStep)
+		LandsidePaxQueueProcess* pQueueProc = m_vPaxQueueProc.at(i);
+		if (pQueueProc == pQueueProcess)
 		{
 			return true;
 		}
 	}
-	
 	return false;
 }
-
-ARCVector3 LandsideQueueSystemProcess::GetTailPoint() const
-{
-	int nCount = m_pQueue->cornerCount();
-	if(nCount > 0)
-		return m_pQueue->corner(nCount - 1);
-
-	return ARCVector3();
-}
-
 
 LandsideQueue* LandsideQueueSystemProcess::GetlandsideQueue() const
 {
@@ -1021,37 +784,6 @@ void LandsideQueueSystemProcess::Clear()
 	m_vPaxQueueProc.clear();
 }
 
-
-void LandsideQueueSystemProcess::InvokeWaitQueue( const ElapsedTime& time )
-{
-	PaxLandsideBehavior* pLandsideBehavior = m_pQueue->GetHeadBehavior();
-	if (pLandsideBehavior)
-	{
-		LandsidePaxQueueProcess* pPaxQueueProc = FindPaxQueueProcess(pLandsideBehavior);
-		if (pPaxQueueProc)
-		{
-			if(pPaxQueueProc->GetStuck())
-			{
-				pPaxQueueProc->SetStuck(false);
-				pPaxQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_startMove);
-				pPaxQueueProc->GenerateQueueEvent(time /*+ ElapsedTime(0.6)*/);
-			}
-		}
-	}
-
-	//PLACE_METHOD_TRACK_STRING();
-	//PaxLandsideBehavior* pLandsideBehavior = m_pQueue->GetHeadBehavior();
-	//if (pLandsideBehavior)
-	//{
-	//	LandsidePaxQueueProcess* pPaxQueueProc = FindPaxQueueProcess(pLandsideBehavior);
-	//	if (pPaxQueueProc)
-	//	{
-	//		pPaxQueueProc->SetQueueState(LandsidePaxQueueProcess::sp_leaveQueue);
-	//		pPaxQueueProc->GenerateQueueEvent(time);
-	//	}
-	//}
-}
-
 void LandsideQueueSystemProcess::LeaveQueue( const ElapsedTime& p_time )
 {
 	PaxLandsideBehavior* pLandsideBehavior = m_pQueue->GetHeadBehavior();
@@ -1060,26 +792,12 @@ void LandsideQueueSystemProcess::LeaveQueue( const ElapsedTime& p_time )
 		LandsidePaxQueueProcess* pPaxQueueProc = FindPaxQueueProcess(pLandsideBehavior);
 		if (pPaxQueueProc)
 		{
-			pPaxQueueProc->SetStuck(false);
-			m_pQueue->RemoveWait(pLandsideBehavior);
+		//	m_pQueue->RemoveWait(pLandsideBehavior);
+			m_pQueue->leaveQueue(pPaxQueueProc,this,p_time+ElapsedTime(0.6));
 			Release(pLandsideBehavior);
-			InvokeWaitQueue(p_time);
+		//	InvokeWaitQueue(p_time);
 		}
 	}
-
-	//PLACE_METHOD_TRACK_STRING();
-	//PaxLandsideBehavior* pLandsideBehavior = m_pQueue->GetHeadBehavior();
-	//if (pLandsideBehavior)
-	//{
-	//	LandsidePaxQueueProcess* pPaxQueueProc = FindPaxQueueProcess(pLandsideBehavior);
-	//	if (pPaxQueueProc)
-	//	{
-	//		pPaxQueueProc->SetStuck(false);
-	//		m_pQueue->RemoveWait(pLandsideBehavior);
-	//		Release(pLandsideBehavior);
-	//		InvokeWaitQueue(p_time);
-	//	}
-	//}
 }
 
 void LandsideQueueSystemProcess::FlushOnVehiclePaxLog( CARCportEngine* pEngine,const ElapsedTime& t )
@@ -1105,6 +823,18 @@ void LandsideQueueSystemProcess::FlushOnVehiclePaxLog( CARCportEngine* pEngine,c
 		}
 	}
 }
+
+void LandsideQueueSystemProcess::InvokeWaitQueue( const ElapsedTime& time )
+{
+	m_pQueue->releaseNext(time,this);
+}
+
+LandsidePaxQueueProcess* LandsideQueueSystemProcess::GetTailQueueProcess()
+{
+	PaxLandsideBehavior* spLandsideBehavior = m_pQueue->GetTailBehavior();
+	return FindPaxQueueProcess(spLandsideBehavior);
+}
+
 
 
 

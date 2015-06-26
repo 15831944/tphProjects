@@ -32,7 +32,7 @@ public:
         ProcessorID pID;
         pID.init();
         pID.SetStrDict(_pInTerm->inStrDict);
-        initialize(new CMobileElemConstraint(_pInTerm), defaultDist, pID, ElapsedTime(0L), ElapsedTime(WholeDay-60L));
+        initialize(new CMobileElemConstraint(_pInTerm), defaultDist, pID, ElapsedTime(0L), ElapsedTime(WholeDay-1L));
     }
 
     virtual void clear()

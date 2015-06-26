@@ -290,7 +290,7 @@ static void DrawPaxTags(CTermPlanDoc* pDoc, C3DView* pView, BOOL* bOn, double* d
 			if(CAnimationManager::GetPaxShow(pDoc,part_list,nTime,bOn,dAlt,geoData,animaPaxData,pesAIdx) )
 			{
 				const MobEventStruct& pesA = part_list[pesAIdx];
-				if(pPDPI->IsVisible() && pPTI->IsShowTags() ) {
+				if(pPDPI->IsVisible() && pPTI->IsShowTags() && !pDoc->m_bHideACTags ) {
 					CString sPaxTag;
 					CAnimationManager::BuildPaxTag(pDoc,pPTI->GetTagInfo(), pds, pesA, sPaxTag);
 					glColor3ubv(ARCColor3::BLACK);
@@ -1861,7 +1861,8 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 		}
 	}
 	else { //no animation
-		if(pDoc->m_bShowTracers) {
+		if(pDoc->m_bShowTracers) 
+		{
 			int nTrackCount = pDoc->m_tempTracerData.GetTrackCount();
 			if(nTrackCount > 0) 
 			{
@@ -1872,13 +1873,27 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 					int nHitCount = track.size();
 					if(nHitCount<2)
 						continue;
-
-					CPaxDispPropItem* pPDPI = pDoc->m_paxDispProps.GetDispPropItem(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
-					ARCColor3 pdpcol(pPDPI->GetColor());
-					int pdplt = (int) pPDPI->GetLineType();
-					glColor3ubv(pdpcol);
-					glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
-					glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
+					if(pDoc->GetCurrentMode() == EnvMode_Terminal)
+					{
+						CPaxDispPropItem* pPDPI = pDoc->m_paxDispProps.GetDispPropItem(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
+						ARCColor3 pdpcol(pPDPI->GetColor());
+						int pdplt = (int) pPDPI->GetLineType();
+						glColor3ubv(pdpcol);
+						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
+						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
+					}
+					else if(pDoc->GetCurrentMode() == EnvMode_AirSide)
+					{
+						CVehicleDispPropItem* pVDPI = pDoc->m_vehicleDispProps.GetVehicleDispProp(pDoc->m_vehicleDispProps.GetCurSelVehicle())
+							->GetVehicleDispProp(pDoc->m_tempTracerData.GetDispPropIdx(nTrackIdx));
+						ARCColor3 pdpcol(pVDPI->GetColor());
+						int pdplt = (int) pVDPI->GetLineType();
+						glColor3ubv(pdpcol);
+						glLineWidth(static_cast<GLfloat>((pdplt % 3) +1));
+						glLineStipple((pdplt % 3) +1, StipplePatterns[pdplt / 3]);
+					}
+					else
+						return;
 
 					glBegin(GL_LINE_STRIP);					
 					for(int nHit=0; nHit<nHitCount; nHit++)
@@ -1902,8 +1917,11 @@ static void RenderProcessors(CTermPlanDoc* pDoc, C3DView* pView, long nTime, dou
 				glDisable(GL_LINE_STIPPLE);
 			}
 
+		}
+		if(pDoc->m_bShowAirsideFlightTracers)
+		{
 			//airside
-			nTrackCount = pDoc->m_tempAirsideTracerData.GetTrackCount();
+			int nTrackCount = pDoc->m_tempAirsideTracerData.GetTrackCount();
 			if(nTrackCount > 0) {
 				glEnable(GL_LINE_STIPPLE);
 				for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) {

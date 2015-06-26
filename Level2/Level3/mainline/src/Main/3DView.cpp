@@ -3160,8 +3160,16 @@ BOOL C3DView::RenderScene(BOOL bRenderFloors)
 //			glPolygonOffset(-2.0,-2.0);
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
-			DrawFlight(dAirportAlt,FALSE, !pDoc->m_bHideACTags, mvmatrix,projmatrix,viewport );
-			DrawVehicle(dAirportAlt,FALSE, !pDoc->m_bHideACTags, mvmatrix,projmatrix,viewport);
+			if(pDoc->GetCurrentMode() == EnvMode_AirSide)
+			{
+				DrawFlight(dAirportAlt,FALSE, !pDoc->m_bHideAircraftTags, mvmatrix,projmatrix,viewport );
+				DrawVehicle(dAirportAlt,FALSE, !pDoc->m_bHideVehicleTags, mvmatrix,projmatrix,viewport);
+			}
+			else
+			{
+				DrawFlight(dAirportAlt,FALSE, !pDoc->m_bHideACTags, mvmatrix,projmatrix,viewport );
+				DrawVehicle(dAirportAlt,FALSE, !pDoc->m_bHideACTags, mvmatrix,projmatrix,viewport);
+			}
 			DrawStairs();
 			glDisable(GL_CULL_FACE);
 			glDisable(GL_POLYGON_OFFSET_FILL);
@@ -4064,9 +4072,11 @@ int C3DView::SelectScene(UINT nFlags, int x, int y, GLuint* pSelProc,CSize sizeS
 					}
 					glDisable(GL_LINE_STIPPLE);
 				}
-
+			}
+			if(pDoc->m_bShowAirsideFlightTracers)
+			{
 				//airside
-				nTrackCount = pDoc->m_tempAirsideTracerData.GetTrackCount();
+				int nTrackCount = pDoc->m_tempAirsideTracerData.GetTrackCount();
 				if(nTrackCount > 0) {
 					glEnable(GL_LINE_STIPPLE);
 					for(int nTrackIdx=0; nTrackIdx<nTrackCount; nTrackIdx++) {

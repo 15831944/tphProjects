@@ -1161,4 +1161,10 @@ double AirsideVehicleInSim::GetVehicleActualLength() const
 	return GetVehicleLength();
 }
 
+void AirsideVehicleInSim::SetServiceTime(ProbabilityDistribution* pDistribution ,ProbabilityDistribution* pSubDistribution)
+{
+	m_pServiceTimeDistribution = pDistribution;
+	m_pSubServiceTimeDistribution = pSubDistribution;
+}
+
 

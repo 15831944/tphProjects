@@ -36,7 +36,7 @@ bool AirsideFlightBaggageManager::LoadBagFromFlightAtStand( AirsideBaggageTrainI
 	int nFlightBagCount = m_vArrivalBag.size();
 
 	
-	ElapsedTime eBagServiceTime = pBaggageTrain->GetServiceTimePerBag();
+	ElapsedTime eBagServiceTime = pBaggageTrain->GetLoadTimePerBag();
 	ElapsedTime eBagTime = eEntryTime;
 
 	for (int nBag = 0; nBag < nLoadCount; ++ nBag)
@@ -142,4 +142,9 @@ void AirsideFlightBaggageManager::FlightArriveStand(bool bArrival, const Elapsed
 bool AirsideFlightBaggageManager::IsGenerateGaggage() const
 {
 	return m_bBaggageGenerated;
+}
+
+void AirsideFlightBaggageManager::setGenerateBaggageFlag( bool bGenerate )
+{
+	m_bBaggageGenerated = bGenerate;
 }

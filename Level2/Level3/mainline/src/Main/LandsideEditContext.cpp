@@ -588,7 +588,7 @@ void CLandsideEditContext::OnCtxNewLandsidePortal()
 			pNewPortal->m_path[i].setPoint((DistanceUnit)pNewPortal->points.at(i)[VX],(DistanceUnit)pNewPortal->points.at(i)[VY],(DistanceUnit)pNewPortal->floor);
 		}		
 		
-		getInput()->GetPortals().AddObject(pNewPortal);
+		//getInput()->GetPortals().AddObject(pNewPortal);
 
 		pAddCmd->EndOp();
 

@@ -74,6 +74,7 @@ public:
 	//		parameter: input parameter let knows how to fill list ctrl
 	//------------------------------------------------------------------------------------------
 	virtual void FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter );
+    virtual void MakeListColumn0Ascends(CXListCtrl& cxListCtrl);
 
 	//-----------------------------------------------------------------------------------------
 	//Summary:

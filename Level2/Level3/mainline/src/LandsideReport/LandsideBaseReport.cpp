@@ -150,6 +150,11 @@ void LandsideBaseReport::FillListContent( CXListCtrl& cxListCtrl )
 
 }
 
+void LandsideBaseReport::MakeListColumn0Ascends(CXListCtrl& cxListCtrl)
+{
+    if(m_pResult)
+        m_pResult->MakeListColumn0Ascends(cxListCtrl);
+}
 
 
 

@@ -307,6 +307,8 @@ public:
 	
 	BOOL m_bLayoutLocked;
 	BOOL m_bHideACTags;
+	BOOL m_bHideAircraftTags;
+	BOOL m_bHideVehicleTags;
 	BOOL m_bHideTrafficLight;
 	BOOL m_bHideARP;
 	
@@ -509,6 +511,7 @@ public:
 	
 	//////// Begin Tracer Data ///////
 	BOOL m_bShowTracers;
+	BOOL m_bShowAirsideFlightTracers;
 	////////Mathematic Data///////////
 	std::vector<CMathFlow> m_vFlow;
 	std::vector<CMathProcess> m_vProcess;
@@ -539,6 +542,8 @@ public:
 	CNewMenu* m_pMenuTracerParams;
 	CNewMenu m_menuTags;
 	CNewMenu m_menuTracersList;
+ 	CNewMenu m_menuAirsideVehicleTags;
+ 	CNewMenu m_menuAirsideVehicleTracersList;
 	// get the num of sim_result 
 	int  getSimResultCout( void );
 	
@@ -678,6 +683,12 @@ protected:
 	afx_msg void OnFileSaveas();
 	afx_msg void OnUpdateTracersOn(CCmdUI* pCmdUI);
 	afx_msg void OnTracersOn();
+	afx_msg void OnUpdateAirsideFlightTracersOn(CCmdUI* pCmdUI);
+	afx_msg void OnAirsideFlightTracersOn();
+	afx_msg void OnUpdateVehicleTagsOn(CCmdUI* pCmdUI);
+	afx_msg void OnVehicleTagsOn();
+	afx_msg void OnUpdateAircraftTagsOn(CCmdUI* pCmdUI);
+	afx_msg void OnAircraftTagsOn();
 	afx_msg void OnUpdateCtxMoveshapeZ(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCtxMoveshapeZ0(CCmdUI* pCmdUI);
 	//}}AFX_MSG

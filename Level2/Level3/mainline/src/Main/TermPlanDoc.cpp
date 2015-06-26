@@ -329,6 +329,12 @@ BEGIN_MESSAGE_MAP(CTermPlanDoc, CDocument)
 	ON_COMMAND(ID_FILE_SAVEAS, OnFileSaveas)
 	ON_UPDATE_COMMAND_UI(ID_TRACERS_ON, OnUpdateTracersOn)
 	ON_COMMAND(ID_TRACERS_ON, OnTracersOn)
+	ON_UPDATE_COMMAND_UI(ID_AIRSIDE_VEHICLE_TRACES, OnUpdateAirsideFlightTracersOn)
+	ON_COMMAND(ID_AIRSIDE_VEHICLE_TRACES, OnAirsideFlightTracersOn)
+	ON_UPDATE_COMMAND_UI(ID_VEHICLE_TAGS_ON, OnUpdateVehicleTagsOn)
+	ON_COMMAND(ID_VEHICLE_TAGS_ON,OnVehicleTagsOn)
+	ON_UPDATE_COMMAND_UI(ID_AIRCRAFT_TAGS_ON, OnUpdateAircraftTagsOn)
+	ON_COMMAND(ID_AIRCRAFT_TAGS_ON,OnAircraftTagsOn)
 	ON_UPDATE_COMMAND_UI(ID_CTX_MOVESHAPE_Z, OnUpdateCtxMoveshapeZ)
 	ON_COMMAND(ID_ANIMSTOP, OnAnimationStop)
 	ON_UPDATE_COMMAND_UI(ID_CTX_MOVESHAPE_Z_0, OnUpdateCtxMoveshapeZ0)
@@ -452,7 +458,7 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 	m_bActivityDensityDisplay	= FALSE;
 	m_bFlightInfoDisplay		= FALSE;
 	m_bShowTracers				= FALSE;
-
+	m_bShowAirsideFlightTracers = FALSE;
 	m_iScale = 10;
 	m_bIsOpenStencil = FALSE;
 
@@ -476,7 +482,9 @@ m_CallOutManger(&m_calloutDispSpecs,this)
 	m_animData.nAnimSpeed		= 100; //10x
 
 	m_bHideACTags				= FALSE;
-	
+	m_bHideAircraftTags			= FALSE;
+	m_bHideVehicleTags			= FALSE;
+
 	m_bHideTrafficLight			= TRUE;
 
 	m_bHideARP					= FALSE;
@@ -4176,88 +4184,151 @@ BOOL CTermPlanDoc::BuildTempAirsideTracerData()
 {
 	CAirsideSimLogs& airsideSimLogs = GetAirsideSimLogs();
 	AirsideFlightLog& airsideFlightLog = airsideSimLogs.m_airsideFlightLog;
-	int nCount = airsideFlightLog.getCount();
+	AirsideVehicleLog& airsideVechileLog = airsideSimLogs.m_airsideVehicleLog;
 	
 	int aptID = InputAirside::GetAirportID(GetProjectID());
 	ALTAirport altAirport;
 	altAirport.ReadAirport(aptID);
 	DistanceUnit dALt = altAirport.getElevation();
+// 	int barLong;
+// 	if(m_bShowTracers&&m_bShowAirsideVehicleTracers)
+// 		barLong = airsideFlightLog.getCount()+airsideVechileLog.getCount()+10;
+// 	else if(m_bShowTracers&&!m_bShowAirsideVehicleTracers)
+// 		barLong = airsideFlightLog.getCount()+10;
+// 	else if(!m_bShowTracers&&m_bShowAirsideVehicleTracers)
+// 		barLong = airsideVechileLog.getCount()+10;
+// 	else
+// 		return FALSE;
 
-	AirsideFlightLogEntry element;
-	element.SetEventLog(&(airsideSimLogs.m_airsideFlightEventLog));
+// 	CProgressBar bar( "Generating Airside Tracers...", 100, barLong , TRUE );
+// 	bar.SetPos(10);
 
-	CProgressBar bar( "Generating Airside Tracers...", 100, nCount+10, TRUE );
+	//airside flight
+	if(m_bShowAirsideFlightTracers)
+	{
+		CProgressBar bar( "Generating Airside Flight Tracers...", 100, airsideFlightLog.getCount()+10 , TRUE );
+		bar.SetPos(10);
 
-	m_tempAirsideTracerData.clear();
+		AirsideFlightLogEntry fElement;
+		fElement.SetEventLog(&(airsideSimLogs.m_airsideFlightEventLog));
+		m_tempAirsideTracerData.clear();
 
-	bar.SetPos(10);
+		std::vector<CTrackerVector3> ArrTarce, DepTrace;
+		for(long ii=0; ii<airsideFlightLog.getCount(); ii++) 
+		{//for each aircraft			
 
-	std::vector<CTrackerVector3> ArrTarce, DepTrace;
-	for(long ii=0; ii<nCount; ii++) 
-	{//for each aircraft			
+			int nArrDspIdx = m_vACDispPropIdx[ii].first;
+			int nDepDspIdx = m_vACDispPropIdx[ii].second;		
 
-		int nArrDspIdx = m_vACDispPropIdx[ii].first;
-		int nDepDspIdx = m_vACDispPropIdx[ii].second;		
-
-		CAircraftDispPropItem* pArrADPI = NULL;
-		CAircraftDispPropItem* pDepADPI = NULL;
+			CAircraftDispPropItem* pArrADPI = NULL;
+			CAircraftDispPropItem* pDepADPI = NULL;
 		
-		if (nArrDspIdx > -1)
-			pArrADPI = m_aircraftDispProps.GetDispPropItem(nArrDspIdx);
-		else
-			pArrADPI = m_aircraftDispProps.GetDefaultDispProp();
+			if (nArrDspIdx > -1)
+				pArrADPI = m_aircraftDispProps.GetDispPropItem(nArrDspIdx);
+			else
+				pArrADPI = m_aircraftDispProps.GetDefaultDispProp();
 
-		if (nDepDspIdx > -1)
-			pDepADPI = m_aircraftDispProps.GetDispPropItem(nDepDspIdx);
-		else
-			pDepADPI = m_aircraftDispProps.GetDefaultDispProp();
+			if (nDepDspIdx > -1)
+				pDepADPI = m_aircraftDispProps.GetDispPropItem(nDepDspIdx);
+			else
+				pDepADPI = m_aircraftDispProps.GetDefaultDispProp();
 
-		int nArrCount = 0, nDepCount = 0;
-		if (pArrADPI || pDepADPI)
-		{
-			airsideFlightLog.getItem(element, ii);
-
-			long nEventCount = element.getCount();
-			ArrTarce.clear();
-			DepTrace.clear();
-
-			for(long jj=1; jj<nEventCount-1; jj++)  //for each event of this pax
+			int nArrCount = 0, nDepCount = 0;
+			if (pArrADPI || pDepADPI)
 			{
-				AirsideFlightEventStruct afes = element.getEvent(jj);
-				if (afes.mode == OnTerminate)//OnTerminate should not add to tracer
-					continue;
+				airsideFlightLog.getItem(fElement, ii);
+
+				long nEventCount = fElement.getCount();
+				ArrTarce.clear();
+				DepTrace.clear();
+
+				for(long jj=1; jj<nEventCount-1; jj++)  //for each event of this pax
+				{
+					AirsideFlightEventStruct afes = fElement.getEvent(jj);
+					if (afes.mode == OnTerminate)//OnTerminate should not add to tracer
+						continue;
 				
-				if (afes.state == 'A')
-				{
-					CTrackerVector3 pos(afes.x, afes.y, afes.z - dALt);
-					ArrTarce.push_back(pos);
-					nArrCount++;
-				}
-				else
-				{
-					CTrackerVector3 pos(afes.x, afes.y, afes.z - dALt);
-					DepTrace.push_back(pos);
-					nDepCount++;
+					if (afes.state == 'A')
+					{
+						CTrackerVector3 pos(afes.x, afes.y, afes.z - dALt);
+						ArrTarce.push_back(pos);
+						nArrCount++;
+					}
+					else
+					{
+						CTrackerVector3 pos(afes.x, afes.y, afes.z - dALt);
+						DepTrace.push_back(pos);
+						nDepCount++;
+					}
 				}
 			}
-		}
 		
-		if(pArrADPI != NULL && (pArrADPI->IsLeaveTrail() && pArrADPI->IsVisible())) 
-		{					
-			int nTrackIdx = m_tempAirsideTracerData.AddTrack(nArrCount, nArrDspIdx, ii);
-			std::vector<CTrackerVector3>& track = m_tempAirsideTracerData.GetTrack(nTrackIdx);
-			track.assign(ArrTarce.begin(),ArrTarce.end());			
-		}
+			if(pArrADPI != NULL && (pArrADPI->IsLeaveTrail() && pArrADPI->IsVisible())) 
+			{					
+				int nTrackIdx = m_tempAirsideTracerData.AddTrack(nArrCount, nArrDspIdx, ii);
+				std::vector<CTrackerVector3>& track = m_tempAirsideTracerData.GetTrack(nTrackIdx);
+				track.assign(ArrTarce.begin(),ArrTarce.end());			
+			}
 
-		if(pDepADPI != NULL && (pDepADPI->IsLeaveTrail() && pDepADPI->IsVisible())) 
-		{					
-			int nTrackIdx = m_tempAirsideTracerData.AddTrack(nDepCount, nDepDspIdx, ii);
-			std::vector<CTrackerVector3>& track = m_tempAirsideTracerData.GetTrack(nTrackIdx);
-			track.assign(DepTrace.begin(),DepTrace.end());			
-		}
+			if(pDepADPI != NULL && (pDepADPI->IsLeaveTrail() && pDepADPI->IsVisible())) 
+			{					
+				int nTrackIdx = m_tempAirsideTracerData.AddTrack(nDepCount, nDepDspIdx, ii);
+				std::vector<CTrackerVector3>& track = m_tempAirsideTracerData.GetTrack(nTrackIdx);
+				track.assign(DepTrace.begin(),DepTrace.end());			
+			}
 
-		bar.StepIt();
+			bar.StepIt();
+		}
 	}
+
+	///////////////////////////////////////////////////
+ 	//airside vehicle
+	if(m_bShowTracers)
+	{
+		CProgressBar bar( "Generating Airside Vehicle Tracers...", 100, airsideVechileLog.getCount()+10 , TRUE );
+		bar.SetPos(10);
+
+		AirsideVehicleLogEntry vElement;
+		vElement.SetEventLog(&(airsideSimLogs.m_airsideVehicleEventLog));
+		m_tempTracerData.clear();
+
+		//m_tempAirsideTracerData.clear();
+		std::vector<CTrackerVector3> VTarce;
+		for(long ii=0; ii<airsideVechileLog.getCount(); ii++) 
+		{//for each Vehicle			
+			//int nVDspIdx = vElement.GetAirsideDesc().id;
+			int nVDspIdx = m_vAVehicleDispPropIdx.at(ii);
+			CVehicleDispPropItem* pVADPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(nVDspIdx);
+			int nVCount = 0;
+			if(pVADPI)
+			{
+				airsideVechileLog.getItem(vElement, ii);
+				long nEventCount = vElement.getCount();
+				VTarce.clear();	
+
+				for(long jj=1; jj<nEventCount-1; jj++)  //for each event of this pax
+				{
+					AirsideVehicleEventStruct afes = vElement.getEvent(jj);
+					if (afes.mode == OnTerminate)//OnTerminate should not add to tracer
+						continue;
+
+
+					CTrackerVector3 pos(afes.x, afes.y, afes.z/* - dALt*/);
+					VTarce.push_back(pos);
+					nVCount++;
+				}
+			}
+
+			if(pVADPI != NULL && (pVADPI->IsLeaveTrail() && pVADPI->IsVisible())) 
+			{					
+				int nTrackIdx = m_tempTracerData.AddTrack(nVCount, nVDspIdx, ii);
+				std::vector<CTrackerVector3>& track = m_tempTracerData.GetTrack(nTrackIdx);
+				track.assign(VTarce.begin(),VTarce.end());			
+			}
+			bar.StepIt();
+		}
+	}
+	
 	return TRUE;
 }
 
@@ -4463,7 +4534,31 @@ BOOL CTermPlanDoc::ReadACDescriptions(long* pnFIT, long* pnLOT)
 
 		m_vACShapeIdx.push_back( SHAPESMANAGER->GetACShapeIdxByACType(fds.acType) );
 	}
-	
+
+	*pnFIT = LONG_MAX;
+	*pnLOT = -1;
+	long nVehicleCount = GetAirsideSimLogs().m_airsideVehicleLog.getCount();
+	m_vehicleDispProps.SetProjID(this->GetProjectID());
+	m_vehicleDispProps.ReadData(this->GetProjectID());
+	m_vAVehicleDispPropIdx.clear();
+	m_vAVehicleShapeNameIdx.clear();
+	m_vAVehicleDispPropIdx.reserve(nVehicleCount);
+	m_vAVehicleShapeNameIdx.reserve(nVehicleCount);
+	for(int i = 0; i < nVehicleCount; i++)
+	{
+		AirsideVehicleLogEntry vle;
+		GetAirsideSimLogs().m_airsideVehicleLog.getItem(vle,i);
+		const AirsideVehicleDescStruct& vds = vle.GetAirsideDesc();
+		if(vds.startTime < *pnFIT)
+			*pnFIT = vds.startTime;
+		if(vds.endTime > *pnLOT)
+			*pnLOT = vds.endTime;
+
+		CVehicleDispPropItem *pVDPI = m_vehicleDispProps.FindBestMatch(vds.id);
+		m_vAVehicleDispPropIdx.push_back(pVDPI->GetID());
+		m_vAVehicleShapeNameIdx.push_back(pVDPI->GetVehicleType()->getName());
+	}
+
 	return TRUE;
 }
 
@@ -4878,6 +4973,7 @@ void CTermPlanDoc::OnAnimationStart()
 {
 	//take off traces
 	m_bShowTracers = TRUE;
+	m_bShowAirsideFlightTracers = TRUE;
 	OnTracersOn();
 	GetMainFrame()->GetMenu()->GetSubMenu(5)->CheckMenuItem(0,MF_UNCHECKED);
 
@@ -5006,6 +5102,7 @@ void CTermPlanDoc::OnAnimationPlayF()
 
 	//take off traces
 	m_bShowTracers = TRUE;
+	m_bShowAirsideFlightTracers = TRUE;
 	OnTracersOn();
 	GetMainFrame()->GetMenu()->GetSubMenu(5)->CheckMenuItem(0,MF_UNCHECKED);
 
@@ -6151,14 +6248,15 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 	if(m_bShowTracers) {
 		m_bShowTracers = FALSE;
 		
-		m_pPaxCountPerDispProp.clear();
-		m_pACCountPerDispProp.clear();
-		m_pVehicleCountPerDispProp.clear();
-
-		m_tempTracerData.clear();
-		m_tempAirsideTracerData.clear();
+// 		m_pPaxCountPerDispProp.clear();
+// 		m_pACCountPerDispProp.clear();
+// 		m_pVehicleCountPerDispProp.clear();
+// 
+ 		m_tempTracerData.clear();
+// 		m_tempAirsideTracerData.clear();
 	}
 	else {
+		m_bShowTracers = TRUE;
 		long nFirstInTime, nLastOutTime;
 		int iCurSimResult = GetTerminal().getCurrentSimResult();
 		if( iCurSimResult>=0 )	// have valid sim_result
@@ -6170,13 +6268,15 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 			nFirstInTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getBeginTime();
 			nLastOutTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getEndTime();
 			
-			BuildTempTracerData();
-			
-			if(GetCurrentMode() == EnvMode_AirSide)
+			if(GetCurrentMode() == EnvMode_Terminal)
+			{
+				BuildTempTracerData();
+			}
+			else if(GetCurrentMode() == EnvMode_AirSide)
 			{
 				BuildTempAirsideTracerData();
 			}
-			else if (GetCurrentMode()==EnvMode_LandSide)
+			else if(GetCurrentMode()==EnvMode_LandSide)
 			{
 				BuildTempVehicleTracerData();
 			}
@@ -6187,9 +6287,6 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 					BuildTempAirsideTracerData();
 				}
 			}
-
-				
-			m_bShowTracers = TRUE;
 		}
 		else
 		{
@@ -6198,6 +6295,87 @@ void CTermPlanDoc::OnTracersOn() //Toggles showing and hiding of tracers
 		}
 	}
 	UpdateAllViews(NULL,VM_UPDATETRACE);
+}
+
+void CTermPlanDoc::OnUpdateAirsideFlightTracersOn(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(m_bShowAirsideFlightTracers);
+}
+
+void CTermPlanDoc::OnAirsideFlightTracersOn()
+{
+	if(m_bShowAirsideFlightTracers) {
+		m_bShowAirsideFlightTracers = FALSE;
+
+// 		m_pPaxCountPerDispProp.clear();
+// 		m_pACCountPerDispProp.clear();
+// 		m_pVehicleCountPerDispProp.clear();
+// 
+// 		m_tempTracerData.clear();
+ 		m_tempAirsideTracerData.clear();
+	}
+	else {
+		m_bShowAirsideFlightTracers = TRUE;
+		long nFirstInTime, nLastOutTime;
+		int iCurSimResult = GetTerminal().getCurrentSimResult();
+		if( iCurSimResult>=0 )	// have valid sim_result
+		{
+			GetTerminal().GetSimReportManager()->SetCurrentSimResult( iCurSimResult );
+			GetAirsideSimLogs().GetSimReportManager()->SetCurrentSimResult(iCurSimResult);
+			ReadPAXDescriptions(&nFirstInTime, &nLastOutTime);
+			ReadACDescriptions(&nFirstInTime, &nLastOutTime);
+			nFirstInTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getBeginTime();
+			nLastOutTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getEndTime();
+
+			if(GetCurrentMode() == EnvMode_Terminal)
+			{
+				BuildTempTracerData();
+			}
+			else if(GetCurrentMode() == EnvMode_AirSide)
+			{
+				BuildTempAirsideTracerData();
+			}
+			else if(GetCurrentMode()==EnvMode_LandSide)
+			{
+				BuildTempVehicleTracerData();
+			}
+			else
+			{
+				if (GetTerminal().GetSimReportManager() && GetTerminal().GetSimReportManager()->IsAirsideSim())
+				{
+					BuildTempAirsideTracerData();
+				}
+			}
+		}
+		else
+		{
+			AfxMessageBox("No Valid SimResult!", MB_OK|MB_ICONERROR);
+			return;
+		}
+	}
+	UpdateAllViews(NULL,VM_UPDATETRACE);
+}
+
+void CTermPlanDoc::OnUpdateVehicleTagsOn(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(!m_bHideVehicleTags);
+}
+
+void CTermPlanDoc::OnVehicleTagsOn()
+{
+	m_bHideVehicleTags = !m_bHideVehicleTags;
+	UpdateAllViews(NULL,VM_RELOAD_VEHICLE_TAG_PROPERTY);
+}
+
+void CTermPlanDoc::OnUpdateAircraftTagsOn(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(!m_bHideAircraftTags);
+}
+
+void CTermPlanDoc::OnAircraftTagsOn()
+{
+	m_bHideAircraftTags = !m_bHideAircraftTags;
+	UpdateAllViews(NULL,VM_RELOAD_VEHICLE_TAG_PROPERTY);
 }
 
 void CTermPlanDoc::OnDistanceMeasure()
@@ -7020,45 +7198,47 @@ void CTermPlanDoc::PasteProc(int nPasteToFloorIndex,
 
 void CTermPlanDoc::OnTracerParamsOn(UINT nID)
 {
-	int idx = nID-ID_TRACERPARAMS_ON;
-	// TRACE("TRACERS ON for id:%d\n", idx);
-	ASSERT(idx >= 0);
 	CPaxDispPropItem* pPDPI = 0;
 	CAircraftDispPropItem *pADPI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDefaultDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDefaultDispProp();
-	}
-	else if(idx==1)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetOverLapDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetOverLapDispProp(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
-	}
+	CVehicleDispPropItem* pVDPI = 0;
 
 	if(GetCurrentMode() == EnvMode_Terminal)
 	{
+		int idx = nID - ID_TRACERPARAMS_ON;
+		if(idx == 0)
+			pPDPI = m_paxDispProps.GetDefaultDispProp();
+		else if(idx == 1)
+			pPDPI = m_paxDispProps.GetOverLapDispProp();
+		else
+			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
+
 		pPDPI->SetLeaveTrail(!pPDPI->IsLeaveTrail());
 		m_paxDispProps.saveDataSet(m_ProjInfo.path, false);
 	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
 	{
-		pADPI->SetLeaveTrail(!pADPI->IsLeaveTrail());
-		m_aircraftDispProps.saveDataSet(m_ProjInfo.path, false); 	
+		int idx = nID - ID_TRACERPARAMS_ON;
+		if(idx < m_aircraftDispProps.GetCount()+2)
+		{
+			if (idx == 0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if (idx == 1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
+
+			pADPI->SetLeaveTrail(!pADPI->IsLeaveTrail());
+			m_aircraftDispProps.saveDataSet(m_ProjInfo.path, false);
+		}
+		else
+		{
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(idx-m_aircraftDispProps.GetCount()-2);		
+			pVDPI->SetLeaveTrail(!pVDPI->IsLeaveTrail());
+			m_vehicleDispProps.SaveData();
+		}
 	}
 
-	if (m_bShowTracers)
+	if (m_bShowTracers||m_bShowAirsideFlightTracers)
 	{
 		// let's clear all first, code copied from CTermPlanDoc::OnTracersOn()
 		m_pPaxCountPerDispProp.clear();
@@ -7077,7 +7257,10 @@ void CTermPlanDoc::OnTracerParamsOn(UINT nID)
 			nFirstInTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getBeginTime();
 			nLastOutTime = GetTerminal().GetSimReportManager()->getSimItem( iCurSimResult )->getEndTime();
 	
-			BuildTempTracerData();
+			if(GetCurrentMode() == EnvMode_Terminal)
+			{
+				BuildTempTracerData();
+			}
 			if(GetCurrentMode() == EnvMode_AirSide)
 			{
 				BuildTempAirsideTracerData();
@@ -7100,41 +7283,26 @@ void CTermPlanDoc::OnTracerParamsOn(UINT nID)
 	{
 		return;
 	}
-
 	
 	UpdateAllViews(NULL);
 }
 
 void CTermPlanDoc::OnTracerParamsColor(UINT nID)
 {
-	int idx = nID-ID_TRACERPARAMS_COLOR;
-	// TRACE("TRACERS COLOR for id:%d\n", idx);
-	ASSERT(idx >= 0);
 	CPaxDispPropItem* pPDPI = 0;
 	CAircraftDispPropItem * pADPI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDefaultDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDefaultDispProp();
-	}
-	else if(idx==1)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetOverLapDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetOverLapDispProp(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
-	}
+	CVehicleDispPropItem* pVDPI = 0;
+
 	if(GetCurrentMode() == EnvMode_Terminal)
 	{
+		int idx = nID - ID_TRACERPARAMS_COLOR;
+		if(idx == 0)
+			pPDPI = m_paxDispProps.GetDefaultDispProp();
+		else if(idx == 1)
+			pPDPI = m_paxDispProps.GetOverLapDispProp();
+		else
+			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
+
 		CColorDialog colorDlg(pPDPI->GetColor(), CC_ANYCOLOR | CC_FULLOPEN, NULL);
 		if(colorDlg.DoModal() == IDOK) {
 			pPDPI->SetColor(colorDlg.GetColor());
@@ -7143,131 +7311,165 @@ void CTermPlanDoc::OnTracerParamsColor(UINT nID)
 	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
 	{
-		CColorDialog colorDlg(pADPI->GetColor(), CC_ANYCOLOR | CC_FULLOPEN, NULL);
-		if(colorDlg.DoModal() == IDOK) {
-			pADPI->SetColor(colorDlg.GetColor());
-			m_aircraftDispProps.saveDataSet(m_ProjInfo.path, false);
+		int idx = nID - ID_TRACERPARAMS_COLOR;
+		if(idx < m_aircraftDispProps.GetCount()+2)
+		{
+			if (idx == 0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if (idx == 1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
+
+			CColorDialog colorDlg(pADPI->GetColor(), CC_ANYCOLOR | CC_FULLOPEN, NULL);
+			if(colorDlg.DoModal() == IDOK) {
+				pADPI->SetColor(colorDlg.GetColor());
+				m_aircraftDispProps.saveDataSet(m_ProjInfo.path, false);
+			}
 		}
-	} 
-	
+		else
+		{
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(idx-m_aircraftDispProps.GetCount()-2);		
+			CColorDialog colorDlg(pVDPI->GetColor(), CC_ANYCOLOR | CC_FULLOPEN, NULL);
+			if(colorDlg.DoModal() == IDOK) {
+				pVDPI->SetColor(colorDlg.GetColor());
+				m_vehicleDispProps.SaveData();
+			}
+		}
+	}
+
 	UpdateAllViews(NULL);
 }
 
 void CTermPlanDoc::OnTracerParamsDensity(UINT nID)
 {
-	int idx = nID-ID_TRACERPARAMS_DENSITY;
-	// TRACE("TRACERS DENSITY for id:%d\n", idx);
-	ASSERT(idx >= 0);
 	CPaxDispPropItem* pPDPI = 0;
 	CAircraftDispPropItem* pADPI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDefaultDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDefaultDispProp();
-	}
-	else if(idx==1)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetOverLapDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetOverLapDispProp(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
-	}
+	CVehicleDispPropItem* pVDPI = 0;
+
 	if(GetCurrentMode() == EnvMode_Terminal)
 	{
+		int idx = nID - ID_TRACERPARAMS_DENSITY;
+		if(idx == 0)
+			pPDPI = m_paxDispProps.GetDefaultDispProp();
+		else if(idx == 1)
+			pPDPI = m_paxDispProps.GetOverLapDispProp();
+		else
+			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
+
 		CDlgTracerDensity dlg(pPDPI->GetDensity()*100.0);
 		if(dlg.DoModal() == IDOK) {
 			pPDPI->SetDensity(dlg.GetDensity()/100.0);
 			m_paxDispProps.saveDataSet(m_ProjInfo.path, false);
 		}
 	}
-	else if(GetCurrentMode() == EnvMode_AirSide)	
+	else if(GetCurrentMode() == EnvMode_AirSide)
 	{
-		CDlgTracerDensity dlg(pADPI->GetDensity()*100.0);
-		if(dlg.DoModal() == IDOK) {
-			pADPI->SetDensity(float(dlg.GetDensity()/100.0));
-			m_aircraftDispProps.saveDataSet(m_ProjInfo.path, false);
+		int idx = nID - ID_TRACERPARAMS_DENSITY;
+		if(idx < m_aircraftDispProps.GetCount()+2)
+		{
+			if (idx == 0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if (idx == 1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
+
+			CDlgTracerDensity dlg(pADPI->GetDensity()*100.0);
+			if(dlg.DoModal() == IDOK) {
+				pADPI->SetDensity(float(dlg.GetDensity()/100.0));
+				m_aircraftDispProps.saveDataSet(m_ProjInfo.path, false);
+			}
+		}
+		else
+		{
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(idx-m_aircraftDispProps.GetCount()-2);		
+			CDlgTracerDensity dlg(pVDPI->GetDensity()*100.0);
+			if(dlg.DoModal() == IDOK) {
+				pVDPI->SetDensity(float(dlg.GetDensity()/100.0));
+				m_vehicleDispProps.SaveData();
+			}
 		}
 	}
-	
+
 	UpdateAllViews(NULL);
 }
 
 
 void CTermPlanDoc::OnUpdateTracerParamsOn(CCmdUI* pCmdUI)
 {
-	int idx = pCmdUI->m_nID - ID_TRACERPARAMS_ON; 
-
 	CPaxDispPropItem* pPDPI = 0;
 	CAircraftDispPropItem* pADPI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDefaultDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDefaultDispProp();
-	}
-	else if(idx==1)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetOverLapDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetOverLapDispProp(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
-	}
+	CVehicleDispPropItem* pVDPI = 0;
 	if(GetCurrentMode() == EnvMode_Terminal)
+	{
+		int idx = pCmdUI->m_nID - ID_TRACERPARAMS_ON;
+		if(idx == 0)
+			pPDPI = m_paxDispProps.GetDefaultDispProp();
+		else if(idx == 1)
+			pPDPI = m_paxDispProps.GetOverLapDispProp();
+		else
+			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
 		pCmdUI->SetCheck(pPDPI->IsLeaveTrail());
+	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
-		pCmdUI->SetCheck(pADPI->IsLeaveTrail());
+	{
+		int idx = pCmdUI->m_nID - ID_TRACERPARAMS_ON;
+		if(idx < m_aircraftDispProps.GetCount()+2)
+		{
+			if (idx == 0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if (idx == 1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
+			pCmdUI->SetCheck(pADPI->IsLeaveTrail());
+		}
+		else
+		{
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(idx-m_aircraftDispProps.GetCount()-2);
+			pCmdUI->SetCheck(pVDPI->IsLeaveTrail());
+		}
+	}
 }
 
 void CTermPlanDoc::OnUpdateTracerParamsColor(CCmdUI* pCmdUI)
 {
-	int idx = pCmdUI->m_nID - ID_TRACERPARAMS_COLOR;
 	CPaxDispPropItem* pPDPI = 0;
 	CAircraftDispPropItem* pADPI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDefaultDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDefaultDispProp();
-	}
-	else if(idx==1)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetOverLapDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetOverLapDispProp(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
-	}
-
+	CVehicleDispPropItem* pVDPI = 0;
 	COLORREF col;
 	if(GetCurrentMode() == EnvMode_Terminal)
+	{
+		int idx = pCmdUI->m_nID - ID_TRACERPARAMS_COLOR;
+		if(idx == 0)
+			pPDPI = m_paxDispProps.GetDefaultDispProp();
+		else if(idx == 1)
+			pPDPI = m_paxDispProps.GetOverLapDispProp();
+		else
+			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
 		col = pPDPI->GetColor();
+	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
-		col = pADPI->GetColor();
-	
+	{
+		int idx = pCmdUI->m_nID - ID_TRACERPARAMS_COLOR;
+		if(idx < m_aircraftDispProps.GetCount()+2)
+		{
+			if (idx == 0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if (idx == 1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
+			col = pADPI->GetColor();
+		}
+		else
+		{
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(idx-m_aircraftDispProps.GetCount()-2);
+			col = pVDPI->GetColor();
+		}
+	}
+
 	CString s;
 	s.Format("Color (%d, %d, %d)...", GetRValue(col), GetGValue(col), GetBValue(col));
 	pCmdUI->SetText(s);
@@ -7275,116 +7477,133 @@ void CTermPlanDoc::OnUpdateTracerParamsColor(CCmdUI* pCmdUI)
 
 void CTermPlanDoc::OnUpdateTracerParamsDensity(CCmdUI* pCmdUI)
 {
-	int idx = pCmdUI->m_nID - ID_TRACERPARAMS_DENSITY;
 	CPaxDispPropItem* pPDPI = 0;
 	CAircraftDispPropItem* pADPI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDefaultDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDefaultDispProp();
-	}
-	else if(idx==1)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetOverLapDispProp();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetOverLapDispProp(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
-	}
+	CVehicleDispPropItem* pVDPI = 0;
 	CString s;
+	
 	if(GetCurrentMode() == EnvMode_Terminal)
+	{
+		int idx = pCmdUI->m_nID - ID_TRACERPARAMS_DENSITY;
+		if(idx == 0)
+			pPDPI = m_paxDispProps.GetDefaultDispProp();
+		else if(idx == 1)
+			pPDPI = m_paxDispProps.GetOverLapDispProp();
+		else
+			pPDPI = m_paxDispProps.GetDispPropItem(idx-2);
 		s.Format("Density (%.2f%%)...", pPDPI->GetDensity()*100.0);
+	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
-		s.Format("Density (%.2f%%)...", pADPI->GetDensity()*100.0);
+	{
+		int idx = pCmdUI->m_nID - ID_TRACERPARAMS_DENSITY;
+		if(idx < m_aircraftDispProps.GetCount()+2)
+		{
+			if (idx == 0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if (idx == 1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(idx-2);
+			s.Format("Density (%.2f%%)...", pADPI->GetDensity()*100.0);
+		}
+		else
+		{
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(idx-m_aircraftDispProps.GetCount()-2);
+			s.Format("Density (%.2f%%)...", pVDPI->GetDensity()*100.0);
+		}
+	}
 	pCmdUI->SetText(s);
 }
 
 
 void CTermPlanDoc::OnTagsParamsOn(UINT nID)
 {
-	int idx = nID-ID_TAGSPARAMS_ON;
-	// TRACE("Tags ON for id:%d\n", idx);
-	ASSERT(idx >= 0);
 	CPaxTagItem* pPTI = 0;
-	CAircraftTagItem * pATI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPTI = m_paxTags.GetDefaultPaxTags();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pATI = m_aircraftTags.GetDefaultTags();
-	}
-	else if(idx==1)	
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPTI = m_paxTags.GetOverLapPaxTags();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pATI = m_aircraftTags.GetOverLapTags(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPTI = m_paxTags.GetPaxTagItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pATI = m_aircraftTags.GetTagItem(idx-2);
-	}
+	CAircraftTagItem* pATI = 0;
+	CVehicleTagItem* pVTI = 0;
+	
 	if(GetCurrentMode() == EnvMode_Terminal)
 	{
+		int idx = nID - ID_TAGSPARAMS_ON;
+		if(idx == 0)
+			pPTI = m_paxTags.GetDefaultPaxTags();
+		else if(idx == 1)
+			pPTI = m_paxTags.GetOverLapPaxTags();
+		else
+			pPTI = m_paxTags.GetPaxTagItem(idx-2);
+
 		pPTI->SetShowTags(!pPTI->IsShowTags());
 		m_paxTags.saveDataSet(m_ProjInfo.path, false);
 	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
 	{
-		pATI->SetShowTags(!pATI->IsShowTags());
-		m_aircraftTags.saveDataSet(m_ProjInfo.path, false);
+		int idx = nID - ID_TAGSPARAMS_ON;
+		if(idx < m_aircraftTags.GetCount()+2)
+		{
+			if (idx == 0)
+				pATI = m_aircraftTags.GetDefaultTags();
+			else if (idx == 1)
+				pATI = m_aircraftTags.GetOverLapTags();
+			else
+				pATI = m_aircraftTags.GetTagItem(idx-2);
+
+			pATI->SetShowTags(!pATI->IsShowTags());
+			m_aircraftTags.saveDataSet(m_ProjInfo.path, false);
+		}
+		else
+		{
+			pVTI = m_vehicleTags.GetNode(m_vehicleTags.GetCurSelNodeIndex())->GetItem(idx-m_aircraftTags.GetCount()-2);
+			pVTI->m_bShowTags = !pVTI->m_bShowTags;
+			m_vehicleTags.SaveData();
+		}
 	}
+	UpdateAllViews(NULL);
 }
 
 void CTermPlanDoc::OnUpdateTagsParamsOn(CCmdUI* pCmdUI)
 {
-	int idx = pCmdUI->m_nID - ID_TAGSPARAMS_ON;
 	CPaxTagItem* pPTI = 0;
 	CAircraftTagItem * pATI = 0;
-	if(idx == 0)
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPTI = m_paxTags.GetDefaultPaxTags();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pATI = m_aircraftTags.GetDefaultTags();
-	}
-	else if(idx==1)	
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPTI = m_paxTags.GetOverLapPaxTags();
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pATI = m_aircraftTags.GetOverLapTags(); 
-	}
-	else 
-	{
-		if(GetCurrentMode() == EnvMode_Terminal)
-			pPTI = m_paxTags.GetPaxTagItem(idx-2);
-		else if(GetCurrentMode() == EnvMode_AirSide)
-			pATI = m_aircraftTags.GetTagItem(idx-2);
-	}
+	CVehicleTagItem* pVTI = 0;
+
 	if(GetCurrentMode() == EnvMode_Terminal)
+	{
+		int idx = pCmdUI->m_nID - ID_TAGSPARAMS_ON;
+		if(idx == 0)
+			pPTI = m_paxTags.GetDefaultPaxTags();
+		else if(idx == 1)
+			pPTI = m_paxTags.GetOverLapPaxTags();
+		else
+			pPTI = m_paxTags.GetPaxTagItem(idx-2);
+		
 		pCmdUI->SetCheck(pPTI->IsShowTags());
+	}
 	else if(GetCurrentMode() == EnvMode_AirSide)
-		pCmdUI->SetCheck(pATI->IsShowTags());
+	{
+		int idx = pCmdUI->m_nID - ID_TAGSPARAMS_ON;
+		if(idx < m_aircraftTags.GetCount()+2)
+		{
+			if (idx == 0)
+				pATI = m_aircraftTags.GetDefaultTags();
+			else if (idx == 1)
+				pATI = m_aircraftTags.GetOverLapTags();
+			else
+				pATI = m_aircraftTags.GetTagItem(idx-2);
+			
+			pCmdUI->SetCheck(pATI->IsShowTags());
+		}
+		else
+		{
+			pVTI = m_vehicleTags.GetNode(m_vehicleTags.GetCurSelNodeIndex())->GetItem(idx-m_aircraftTags.GetCount()-2);		
+			pCmdUI->SetCheck(pVTI->m_bShowTags);
+		}
+	}
 }
 
 void CTermPlanDoc::UpdateTrackersMenu()
 {
 	CMainFrame* pMainFrm = GetMainFrame();
-	
-	CString s;
+	CString sMenu;
 	//CNewMenu m;
 	
 	//m.LoadMenu(IDR_MENU_POPUP);
@@ -7393,8 +7612,8 @@ void CTermPlanDoc::UpdateTrackersMenu()
 	int nMenuCount=pMainMenu->GetMenuItemCount();
 	for(int k=0;k<nMenuCount;k++)
 	{
-		pMainMenu->GetMenuString(k, s, MF_BYPOSITION);
-		if(s=="Trackers")
+		pMainMenu->GetMenuString(k, sMenu, MF_BYPOSITION);
+		if(sMenu=="Trackers")
 		{
 			pTrackerMenu=DYNAMIC_DOWNCAST(CNewMenu,pMainMenu->GetSubMenu(k));
 			break;
@@ -7403,130 +7622,72 @@ void CTermPlanDoc::UpdateTrackersMenu()
 	if(pTrackerMenu==NULL)
 		return;
 	
-	/////////////////////////////
-	//TRACERS
 	nMenuCount=pTrackerMenu->GetMenuItemCount();
 	for(int k=0;k<nMenuCount;k++)
 	{
 		pTrackerMenu->DeleteMenu(0,MF_BYPOSITION);
 	}
 
-	m_menuTracersList.DestroyMenu();
-	m_menuTracersList.CreateMenu();
-	m_menuTracersList.AppendMenu(MF_STRING, ID_TRACERS_ON, "On");
-	m_menuTracersList.AppendMenu(MF_SEPARATOR);
-	
-	int nCount = 0;
-	if(GetCurrentMode() == EnvMode_Terminal)
-		nCount = m_paxDispProps.GetCount();
-	else if(GetCurrentMode() == EnvMode_AirSide)
-		nCount = m_aircraftDispProps.GetCount();
-
 	delete[] m_pMenuTracerParams;
-	m_pMenuTracerParams=new CNewMenu[nCount+2];
-	for(int i=0; i<nCount+2; i++) {
-		m_pMenuTracerParams[i].CreateMenu();
-		
-		CPaxDispPropItem* pPDPI = 0;
-		CAircraftDispPropItem* pADPI = 0;
-		if(i==0)
-		{
-			if(GetCurrentMode() == EnvMode_Terminal)
-				pPDPI = m_paxDispProps.GetDefaultDispProp();
-			else if(GetCurrentMode() == EnvMode_AirSide)
-				pADPI = m_aircraftDispProps.GetDefaultDispProp();
-		}
-		else if(i==1)
-		{
-			if(GetCurrentMode() == EnvMode_Terminal)
-				pPDPI = m_paxDispProps.GetOverLapDispProp();
-			else if(GetCurrentMode() == EnvMode_AirSide)
-				pADPI = m_aircraftDispProps.GetOverLapDispProp();
-		}
-		else
-		{
-			if(GetCurrentMode() == EnvMode_Terminal)
-				pPDPI = m_paxDispProps.GetDispPropItem(i-2);
-			else if(GetCurrentMode() == EnvMode_AirSide)
-				pADPI = m_aircraftDispProps.GetDispPropItem(i-2);
-		}
+	delete[] m_pMenuTagsParams;
 
-		if(GetCurrentMode() == EnvMode_Terminal)
+	if(GetCurrentMode() == EnvMode_Terminal)
+	{	
+		//TRACERS
+		m_menuTracersList.DestroyMenu();
+		m_menuTracersList.CreateMenu();
+		m_menuTracersList.AppendMenu(MF_STRING, ID_TRACERS_ON, "On");
+		m_menuTracersList.AppendMenu(MF_SEPARATOR);
+		int nPaxTraceCount = 0;
+		nPaxTraceCount = m_paxDispProps.GetCount();
+		m_pMenuTracerParams=new CNewMenu[nPaxTraceCount+2];
+		for (int i = 0; i < nPaxTraceCount+2;i++)
 		{
+			m_pMenuTracerParams[i].CreateMenu();
+			CPaxDispPropItem* pPDPI = 0;
+			if(i==0)
+				pPDPI = m_paxDispProps.GetDefaultDispProp();
+			else if(i==1)
+				pPDPI = m_paxDispProps.GetOverLapDispProp();
+			else
+				pPDPI = m_paxDispProps.GetDispPropItem(i-2);
+
 			if(pPDPI->IsLeaveTrail())
 				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TRACERPARAMS_ON+i, "On");
 			else
 				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_UNCHECKED, ID_TRACERPARAMS_ON+i, "On");
 
 			COLORREF col = pPDPI->GetColor();
-			CString s;
-			s.Format("Color (%d, %d, %d)...", GetRValue(col), GetGValue(col), GetBValue(col));
-			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_COLOR+i, s);
+			CString sPax;
+			sPax.Format("Color (%d, %d, %d)...", GetRValue(col), GetGValue(col), GetBValue(col));
+			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_COLOR+i, sPax);
 
-			s.Format("Density (%.2f%%)...", pPDPI->GetDensity()*100.0); 
-			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_DENSITY+i, s);
+			sPax.Format("Density (%.2f%%)...", pPDPI->GetDensity()*100.0); 
+			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_DENSITY+i, sPax);
 
 			m_menuTracersList.AppendMenu(MF_POPUP, (UINT) m_pMenuTracerParams[i].m_hMenu, pPDPI->GetPaxType()->GetName());
 		}
-		else if(GetCurrentMode() == EnvMode_AirSide)
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTracersList.m_hMenu, "Tracers");
+
+		//TAGS
+		m_menuTags.DestroyMenu();
+		m_menuTags.CreateMenu();
+		m_menuTags.AppendMenu(MF_STRING, ID_ANIMATION_HIDEACTAGS, "On");
+		m_menuTags.AppendMenu(MF_SEPARATOR);
+		int nPaxTagCount = 0;
+		nPaxTagCount = m_paxTags.GetCount();
+		m_pMenuTagsParams=new CNewMenu[nPaxTagCount+2];
+		for(int i=0; i<nPaxTagCount+2; i++) 
 		{
-			if(pADPI->IsLeaveTrail())
-				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TRACERPARAMS_ON+i, "On");
-			else
-				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_UNCHECKED, ID_TRACERPARAMS_ON+i, "On");
-
-			COLORREF col = pADPI->GetColor();
-			CString s;
-			s.Format("Color (%d, %d, %d)...", GetRValue(col), GetGValue(col), GetBValue(col));
-			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_COLOR+i, s);
-
-			s.Format("Density (%.2f%%)...", pADPI->GetDensity()*100.0); 
-			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_DENSITY+i, s);
-
-			m_menuTracersList.AppendMenu(MF_POPUP, (UINT) m_pMenuTracerParams[i].m_hMenu, pADPI->GetFlightType()->GetName());
-		}
-	}
-	///////////////////////////////////////////////////
-	//TAGS
-	
-	m_menuTags.DestroyMenu();
-	m_menuTags.CreateMenu();
-	m_menuTags.AppendMenu(MF_STRING, ID_TAGS_ON, "On");
-	m_menuTags.AppendMenu(MF_SEPARATOR);
-	if(GetCurrentMode() == EnvMode_Terminal)
-		nCount = m_paxTags.GetCount();
-	else if(GetCurrentMode() == EnvMode_AirSide)
-		nCount = m_aircraftTags.GetCount();
-	
-	delete[] m_pMenuTagsParams;
-	m_pMenuTagsParams=new CNewMenu[nCount+2];
-	for(int i=0; i<nCount+2; i++) {
-		m_pMenuTagsParams[i].CreateMenu();
-		CPaxTagItem* pPTI = 0;
-		CAircraftTagItem* pATI = 0;
-		if(i==0)
-		{
-			if(GetCurrentMode() == EnvMode_Terminal)
+			m_pMenuTagsParams[i].CreateMenu();
+			CPaxTagItem* pPTI = 0;
+			if(i==0)
 				pPTI = m_paxTags.GetDefaultPaxTags();
-			else if(GetCurrentMode() == EnvMode_AirSide)
-				pATI = m_aircraftTags.GetDefaultTags();
-		}
-		else if(i==1)
-		{
-			if(GetCurrentMode() == EnvMode_Terminal)
+			else if(i==1)
 				pPTI = m_paxTags.GetOverLapPaxTags();
-			else if(GetCurrentMode() == EnvMode_AirSide)
-				pATI = m_aircraftTags.GetOverLapTags(); 
-		}
-		else
-		{
-			if(GetCurrentMode() == EnvMode_Terminal)
+			else
 				pPTI = m_paxTags.GetPaxTagItem(i-2);
-			else if(GetCurrentMode() == EnvMode_AirSide)
-				pATI = m_aircraftTags.GetTagItem(i-2);
-		}
-		if(GetCurrentMode() == EnvMode_Terminal)
-		{
+
 			if(pPTI->IsShowTags())
 				m_pMenuTagsParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TAGSPARAMS_ON+i, "On");
 			else
@@ -7534,8 +7695,71 @@ void CTermPlanDoc::UpdateTrackersMenu()
 
 			m_menuTags.AppendMenu(MF_POPUP, (UINT) m_pMenuTagsParams[i].m_hMenu, pPTI->GetPaxType()->GetName());
 		}
-		else if(GetCurrentMode() == EnvMode_AirSide)
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTags.m_hMenu, "Tags");
+
+		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_MOVIE, "Movie...");
+		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_WALKTHROUGH, "Walkthrough...");
+	}
+	else if(GetCurrentMode() == EnvMode_AirSide)
+	{
+		int nAircraftTraceCount = 0, nVehicleTraceCount = 0;
+		nAircraftTraceCount = m_aircraftDispProps.GetCount();
+		nVehicleTraceCount = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetCount();
+		m_pMenuTracerParams = new CNewMenu[nAircraftTraceCount+2+nVehicleTraceCount];
+ 
+		int nAircraftTagCount = 0, nVehicleTagCount = 0;
+		nAircraftTagCount = m_aircraftTags.GetCount();
+		nVehicleTagCount = m_vehicleTags.GetNode(m_vehicleTags.GetCurSelNodeIndex())->GetItemCount();
+		m_pMenuTagsParams = new CNewMenu[nAircraftTagCount+2+nVehicleTagCount];
+
+		//Flight TRACES
+		m_menuTracersList.DestroyMenu();
+		m_menuTracersList.CreateMenu();
+		m_menuTracersList.AppendMenu(MF_STRING, ID_AIRSIDE_VEHICLE_TRACES, "On");
+		m_menuTracersList.AppendMenu(MF_SEPARATOR);
+  		for (int i = 0; i < nAircraftTraceCount+2; i++)
 		{
+			m_pMenuTracerParams[i].CreateMenu();
+			CAircraftDispPropItem* pADPI = 0;
+			if(i==0)
+				pADPI = m_aircraftDispProps.GetDefaultDispProp();
+			else if(i==1)
+				pADPI = m_aircraftDispProps.GetOverLapDispProp();
+			else
+				pADPI = m_aircraftDispProps.GetDispPropItem(i-2);
+			if(pADPI->IsLeaveTrail())
+				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TRACERPARAMS_ON+i, "On");
+			else
+				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_UNCHECKED, ID_TRACERPARAMS_ON+i, "On");
+
+			COLORREF col = pADPI->GetColor();
+			CString sFlight;
+			sFlight.Format("Color (%d, %d, %d)...", GetRValue(col), GetGValue(col), GetBValue(col));
+			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_COLOR+i, sFlight);
+
+			sFlight.Format("Density (%.2f%%)...", pADPI->GetDensity()*100.0); 
+			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_DENSITY+i, sFlight);
+
+			m_menuTracersList.AppendMenu(MF_POPUP, (UINT) m_pMenuTracerParams[i].m_hMenu, pADPI->GetFlightType()->GetName());
+		}
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTracersList.m_hMenu, "Flight Tracers");
+
+		//Flight TAGS
+		m_menuTags.DestroyMenu();
+		m_menuTags.CreateMenu();
+		m_menuTags.AppendMenu(MF_STRING, ID_AIRCRAFT_TAGS_ON, "On");
+		m_menuTags.AppendMenu(MF_SEPARATOR);
+		for (int i = 0; i < nAircraftTagCount+2;i++)
+		{
+			m_pMenuTagsParams[i].CreateMenu();
+			CAircraftTagItem* pATI = 0;
+			if(i==0)
+				pATI = m_aircraftTags.GetDefaultTags();
+			else if(i==1)
+				pATI = m_aircraftTags.GetOverLapTags(); 
+			else
+				pATI = m_aircraftTags.GetTagItem(i-2);
+
 			if(pATI->IsShowTags())
 				m_pMenuTagsParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TAGSPARAMS_ON+i, "On");
 			else
@@ -7543,15 +7767,84 @@ void CTermPlanDoc::UpdateTrackersMenu()
 
 			m_menuTags.AppendMenu(MF_POPUP, (UINT) m_pMenuTagsParams[i].m_hMenu, pATI->GetFlightType()->GetName());
 		}
-	}
-	
-	
-	pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTracersList.m_hMenu, "Tracers");
-	pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTags.m_hMenu, "Tags");
-	pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_MOVIE, "Movie...");
-	pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_WALKTHROUGH, "Walkthrough...");
-	if( GetCurrentMode() == EnvMode_AirSide )
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTags.m_hMenu, "Flight Tags");
+
+		//VEHICLE TRACES
+		m_menuAirsideVehicleTracersList.DestroyMenu();
+		m_menuAirsideVehicleTracersList.CreateMenu();
+		m_menuAirsideVehicleTracersList.AppendMenu(MF_STRING, ID_TRACERS_ON, "On");
+		m_menuAirsideVehicleTracersList.AppendMenu(MF_SEPARATOR);
+		for (int i = nAircraftTraceCount+2; i < nAircraftTraceCount+2+nVehicleTraceCount; i++)
+		{
+			m_pMenuTracerParams[i].CreateMenu();
+			CVehicleDispPropItem* pVDPI = 0;
+			pVDPI = m_vehicleDispProps.GetVehicleDispProp(m_vehicleDispProps.GetCurSelVehicle())->GetVehicleDispProp(i-nAircraftTraceCount-2);
+
+			if(pVDPI->IsLeaveTrail())
+				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TRACERPARAMS_ON+i, "On");
+			else
+				m_pMenuTracerParams[i].AppendMenu(MF_STRING | MF_UNCHECKED, ID_TRACERPARAMS_ON+i, "On");
+
+			COLORREF col = pVDPI->GetColor();
+			CString sVehicle;
+  			sVehicle.Format("Color (%d, %d, %d)...", GetRValue(col), GetGValue(col), GetBValue(col));
+  			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_COLOR+i, sVehicle);
+ 
+ 			sVehicle.Format("Density (%.2f%%)...", pVDPI->GetDensity()*100.0); 
+ 			m_pMenuTracerParams[i].AppendMenu(MF_STRING, ID_TRACERPARAMS_DENSITY+i, sVehicle);
+
+			sVehicle = pVDPI->GetVehicleType()->getName();
+			if(sVehicle.Compare("")==0)
+ 				sVehicle = "DEFAULT";
+			m_menuAirsideVehicleTracersList.AppendMenu(MF_POPUP, (UINT) m_pMenuTracerParams[i].m_hMenu, sVehicle);
+		}
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuAirsideVehicleTracersList.m_hMenu, "GSE Tracers");
+
+		//VEHICLE TAGS
+		m_menuAirsideVehicleTags.DestroyMenu();
+		m_menuAirsideVehicleTags.CreateMenu();
+		m_menuAirsideVehicleTags.AppendMenu(MF_STRING, ID_VEHICLE_TAGS_ON, "On");
+		m_menuAirsideVehicleTags.AppendMenu(MF_SEPARATOR);
+		for (int i = nAircraftTagCount+2; i < nAircraftTagCount+2+nVehicleTagCount; i++)
+		{
+			m_pMenuTagsParams[i].CreateMenu();
+			CVehicleTagItem* pVTI = 0;
+			pVTI = m_vehicleTags.GetNode(m_vehicleTags.GetCurSelNodeIndex())->GetItem(i-nAircraftTagCount-2);
+
+			if(pVTI->m_bShowTags)
+				m_pMenuTagsParams[i].AppendMenu(MF_STRING | MF_CHECKED, ID_TAGSPARAMS_ON+i, "On");
+			else
+				m_pMenuTagsParams[i].AppendMenu(MF_STRING | MF_UNCHECKED, ID_TAGSPARAMS_ON+i, "On");
+
+			CString sVehicle;
+			sVehicle = pVTI->m_vehicleItem.getName();
+			if(sVehicle.Compare("")==0)
+				sVehicle = "DEFAULT";
+			m_menuAirsideVehicleTags.AppendMenu(MF_POPUP, (UINT) m_pMenuTagsParams[i].m_hMenu, sVehicle);
+		}
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuAirsideVehicleTags.m_hMenu, "GSE Tags");
+		
+		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_MOVIE, "Movie...");
+		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_WALKTHROUGH, "Walkthrough...");
 		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_PANORAMA, "Panorama...");
+ 	}
+	else
+	{
+		m_menuTracersList.DestroyMenu();
+		m_menuTracersList.CreateMenu();
+		m_menuTracersList.AppendMenu(MF_STRING, ID_TRACERS_ON, "On");
+		m_pMenuTracerParams = new CNewMenu[2];
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTracersList.m_hMenu, "Tracers");
+
+		m_menuTags.DestroyMenu();
+		m_menuTags.CreateMenu();
+		m_menuTags.AppendMenu(MF_STRING, ID_ANIMATION_HIDEACTAGS, "On");
+		m_pMenuTagsParams = new CNewMenu[2];
+		pTrackerMenu->AppendMenu(MF_POPUP, (UINT) m_menuTags.m_hMenu, "Tags");
+
+		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_MOVIE, "Movie...");
+		pTrackerMenu->AppendMenu(MF_STRING, ID_TRACKERS_WALKTHROUGH, "Walkthrough...");
+	}
 }
 
 void CTermPlanDoc::OnUpdateRunDelta(CCmdUI* pCmdUI)
@@ -8380,6 +8673,22 @@ void CTermPlanDoc::OnHideProcTags()
 void CTermPlanDoc::OnHideACTags()
 {
 	m_bHideACTags=!m_bHideACTags;
+	CMainFrame* pMainFrame = (CMainFrame*)AfxGetMainWnd();
+	if (m_systemMode == EnvMode_Terminal)
+	{
+		pMainFrame->SendMessage(WM_COMMAND, ID_VIEW_CHANGEENVVIEW);
+		UpdateAllViews(NULL, UPDATETREE_TERMINAL);
+	}
+	if (m_systemMode == EnvMode_LandSide)
+	{
+		pMainFrame->SendMessage(WM_COMMAND, ID_VIEW_CHANGEENVVIEW);
+		UpdateAllViews(NULL, UPDATETREE_LANDSIDE);
+	}
+	if (m_systemMode == EnvMode_AirSide)
+	{
+		pMainFrame->SendMessage(WM_COMMAND, ID_VIEW_CHANGEENVVIEW);
+		UpdateAllViews(NULL, UPDATETREE_AIRSIDE);
+	}
 }
 
 void CTermPlanDoc::OnUpdateHideProcTags(CCmdUI* pCmdUI)
@@ -9435,7 +9744,13 @@ BOOL CTermPlanDoc::LoadAirsideLogs(long &nFirstInTime,long &nLastOutTime)
 	{
 		int iCurrentSimIdx = GetTerminal().getCurrentSimResult();
 		ASSERT( iCurrentSimIdx>=0 );
+		GetTerminal().GetSimReportManager()->SetCurrentSimResult( iCurrentSimIdx );
 		GetAirsideSimLogs().GetSimReportManager()->SetCurrentSimResult(iCurrentSimIdx);
+		ReadPAXDescriptions(&nFirstInTime, &nLastOutTime);
+		ReadACDescriptions(&nFirstInTime, &nLastOutTime);
+		nFirstInTime = GetTerminal().GetSimReportManager()->getSimItem( iCurrentSimIdx )->getBeginTime();
+		nLastOutTime = GetTerminal().GetSimReportManager()->getSimItem( iCurrentSimIdx )->getEndTime();
+		
 		try
 		{
 			GetOutputAirside()->PrepareAnimLogs(m_ProjInfo.path);
@@ -9516,9 +9831,9 @@ BOOL CTermPlanDoc::LoadAirsideLogs(long &nFirstInTime,long &nLastOutTime)
 	{
 		AirsideVehicleLogEntry vehileE;		
 		GetAirsideSimLogs().m_airsideVehicleLog.getItem(vehileE,i);
-		//CVehicleDispPropItem *displayItem = m_vehicleDispProps.FindBestMatch(vehileE.GetAirsideDesc().id);		
-		m_vAVehicleDispPropIdx.push_back(0);
-		m_vAVehicleShapeNameIdx.push_back("default");
+		CVehicleDispPropItem *displayItem = m_vehicleDispProps.FindBestMatch(vehileE.GetAirsideDesc().id);		
+		m_vAVehicleDispPropIdx.push_back(displayItem->GetID());
+		m_vAVehicleShapeNameIdx.push_back(displayItem->GetVehicleType()->getName());
 	}
 
 

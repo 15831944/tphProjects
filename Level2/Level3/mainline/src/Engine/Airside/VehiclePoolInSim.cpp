@@ -139,10 +139,8 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 					pVehicle->SetServiceFlight(pFlight, vStuffPercent);
 					pRequest->AddServiceVehicle(pVehicle);
 					pVehicle->SetServicePointCount(pRequest->GetServiceCount());
-					if (pRequest->GetServiceTime())
-						pVehicle->SetServiceTimeDistribution(pRequest->GetServiceTime());
-					return true;
-					
+					pVehicle->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
+					return true;					
 				}
 				else
 				{
@@ -174,9 +172,7 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 									pVehicle->SetServiceFlight(pFlight,vStuffPercent);
 									pRequest->AddServiceVehicle(pVehicle);
 									pVehicle->SetServicePointCount(pRequest->GetServiceCount());
-									if (pRequest->GetServiceTime())
-										pVehicle->SetServiceTimeDistribution(pRequest->GetServiceTime());
-
+									pVehicle->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 									return true;
 								}
 							}
@@ -186,8 +182,7 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 								pVehicle->SetServiceFlight(pFlight,vStuffPercent);
 								pVehicle->SetServicePointCount(pRequest->GetServiceCount());
 								pRequest->AddServiceVehicle(pVehicle);
-								if (pRequest->GetServiceTime())
-									pVehicle->SetServiceTimeDistribution(pRequest->GetServiceTime());
+								pVehicle->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 								return true;
 							}
 							break;
@@ -196,8 +191,7 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 								pVehicle->SetServiceFlight(pFlight,vStuffPercent);
 								pRequest->AddServiceVehicle(pVehicle);
 								pVehicle->SetServicePointCount(pRequest->GetServiceCount());
-								if (pRequest->GetServiceTime())
-									pVehicle->SetServiceTimeDistribution(pRequest->GetServiceTime());
+								pVehicle->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 								return true;
 							}
 
@@ -216,8 +210,7 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 							pVehicle->SetServiceFlight(pFlight, vStuffPercent);
 							pRequest->AddServiceVehicle(pVehicle);
 							pVehicle->SetServicePointCount(pRequest->GetServiceCount());
-							if (pRequest->GetServiceTime())
-								pVehicle->SetServiceTimeDistribution(pRequest->GetServiceTime());
+							pVehicle->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 							return true;
 						}
 						else
@@ -236,9 +229,7 @@ bool VehiclePoolInSim::HandleGeneralRequest(GeneralVehicleServiceRequest* pReque
 		m_vVehicleList[nServiceIdx]->SetServiceFlight(pFlight, vStuffPercent);
 		pRequest->AddServiceVehicle(m_vVehicleList[nServiceIdx]);
 		m_vVehicleList[nServiceIdx]->SetServicePointCount(pRequest->GetServiceCount());
-		if (pRequest->GetServiceTime())
-			m_vVehicleList[nServiceIdx]->SetServiceTimeDistribution(pRequest->GetServiceTime());
-
+		m_vVehicleList[nServiceIdx]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 		return true;
 	}
 
@@ -496,9 +487,8 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 					//LeavePool(pPaxBus);
 					pPaxBus->SetServiceFlight(pFlight, vStuffPercent,request.IsArrival());
 					m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-					if (request.GetServiceTime())
-						m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
-					
+					m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
+
 					request.AddServiceVehicle(pPaxBus);
 					if(request.GetLeftPaxCount() - nVehicleCapacity > 0)
 					{
@@ -543,8 +533,7 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 							{
 								pPaxBus->SetServiceFlight(pFlight,vStuffPercent,request.IsArrival());
 								m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-								if (request.GetServiceTime())
-									m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+								m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 								request.AddServiceVehicle(pPaxBus);
 								if(request.GetLeftPaxCount() - nVehicleCapacity > 0)
@@ -566,8 +555,7 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 						{
 							pPaxBus->SetServiceFlight(pFlight,vStuffPercent,request.IsArrival());
 							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-							if (request.GetServiceTime())
-								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+							m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 							request.AddServiceVehicle(pPaxBus);
 							if(request.GetLeftPaxCount() - nVehicleCapacity > 0)
@@ -588,8 +576,7 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 						{
 							pPaxBus->SetServiceFlight(pFlight,vStuffPercent,request.IsArrival());
 							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-							if (request.GetServiceTime())
-								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
+							m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 							
 							request.AddServiceVehicle(pPaxBus);
 							if(request.GetLeftPaxCount() - nVehicleCapacity > 0)
@@ -634,8 +621,7 @@ bool VehiclePoolInSim::HandlePaxBusServiceRequest(CPaxBusServiceRequest* pReques
 
 
 		m_vVehicleList[nServiceIdx]->SetServicePointCount(request.GetServiceCount());
-		if (request.GetServiceTime())
-			m_vVehicleList[nServiceIdx]->SetServiceTimeDistribution(request.GetServiceTime());
+		m_vVehicleList[nServiceIdx]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 		if(request.GetLeftPaxCount() - nVehicleCapacity > 0)
 		{
 			pPaxBus->SetLoadPaxCount(nVehicleCapacity);
@@ -872,10 +858,7 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 					//LeavePool(pBaggageTrain);
 					pBaggageTrain->SetServiceFlight(pFlight, vStuffPercent,request);
 					pVehicle->SetServicePointCount(request.GetServiceCount());
-					if (request.GetServiceTime())
-						pVehicle->SetServiceTimeDistribution(request.GetServiceTime());
-					if (request.GetSubServiceTime())
-						pVehicle->SetSubServiceTimeDistribution(request.GetSubServiceTime());
+					pVehicle->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 					request.AddServiceVehicle(pBaggageTrain);
 					if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -921,10 +904,7 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 							{
 								pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
 								m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-								if (request.GetServiceTime())
-									m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
-								if (request.GetSubServiceTime())
-									m_vVehicleList[i]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
+								m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 								request.AddServiceVehicle(pBaggageTrain);
 								if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -946,10 +926,7 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 						{
 							pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
 							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-							if (request.GetServiceTime())
-								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
-							if (request.GetSubServiceTime())
-								m_vVehicleList[i]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
+							m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 							request.AddServiceVehicle(pBaggageTrain);
 							if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -970,10 +947,7 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 						{
 							pBaggageTrain->SetServiceFlight(pFlight,vStuffPercent,request);
 							m_vVehicleList[i]->SetServicePointCount(request.GetServiceCount());
-							if (request.GetServiceTime())
-								m_vVehicleList[i]->SetServiceTimeDistribution(request.GetServiceTime());
-							if (request.GetSubServiceTime())
-								m_vVehicleList[i]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
+							m_vVehicleList[i]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 							request.AddServiceVehicle(pBaggageTrain);
 							if(request.GetBaggageLeft() - nVehicleCapacity > 0)
@@ -1018,10 +992,7 @@ bool VehiclePoolInSim::HandleBaggageTrainServiceRequest( BaggageTrainServiceRequ
 
 
 		m_vVehicleList[nServiceIdx]->SetServicePointCount(request.GetServiceCount());
-		if (request.GetServiceTime())
-			m_vVehicleList[nServiceIdx]->SetServiceTimeDistribution(request.GetServiceTime());
-		if (request.GetSubServiceTime())
-			m_vVehicleList[nServiceIdx]->SetSubServiceTimeDistribution(request.GetSubServiceTime());
+		m_vVehicleList[nServiceIdx]->SetServiceTime(pRequest->GetServiceTime(),pRequest->GetSubServiceTime());
 
 		if(request.GetBaggageLeft() - nVehicleCapacity > 0)
 		{

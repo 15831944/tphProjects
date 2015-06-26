@@ -97,9 +97,10 @@ public:
 
 
 	ProbabilityDistribution* GetServiceTimeDistribution()const{ return m_pServiceTimeDistribution;}
-	void SetServiceTimeDistribution(ProbabilityDistribution* pDistribution){ m_pServiceTimeDistribution = pDistribution;}
+	//void SetServiceTimeDistribution(ProbabilityDistribution* pDistribution){ m_pServiceTimeDistribution = pDistribution;}
 	ProbabilityDistribution* GetSubServiceTimeDistribution()const{ return m_pSubServiceTimeDistribution;}
-	void SetSubServiceTimeDistribution(ProbabilityDistribution* pDistribution){ m_pSubServiceTimeDistribution = pDistribution;}
+	//void SetSubServiceTimeDistribution(ProbabilityDistribution* pDistribution){ m_pSubServiceTimeDistribution = pDistribution;}
+	void SetServiceTime(ProbabilityDistribution* pDistribution ,ProbabilityDistribution* pSubDistribution);
 
 	bool IsAvailable() { return m_bAvailable; }
 	void SetAvailable(bool bAvailable);

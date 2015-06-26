@@ -192,7 +192,7 @@ void HeadingAirRouteSegInSim::CalculateClearanceItems(AirsideFlightInSim* pFligh
 		double dDistToNext = curPos.distance(nextPos);
 		if (m_HeadingType == Direct )
 		{
-
+			double dDistToSecond = nextPos.distance(m_pSecondIntersection->getInputPoint()->GetPosition());
 			double dRate = dDistToNext/(dDistToNext + nextPos.distance(m_pSecondIntersection->getInputPoint()->GetPosition()));
 
 			ClearanceItem newItem(this,lastItem.GetMode(),0);
@@ -275,16 +275,31 @@ CPoint2008 HeadingAirRouteSegInSim::GetVectorAvailablePosition(ElapsedTime tEnte
 		double dDistToFirst = projectPoint.distance(FirstPoint);
 
 		double dLength = 0;
-		if (projectPoint.distance(m_WPExtentPoint) < FirstPoint.distance(m_WPExtentPoint)) // projection point in the line segment
+	//	if (projectPoint.distance(m_WPExtentPoint) < FirstPoint.distance(m_WPExtentPoint)) // projection point in the line segment
 		{
-			double dValue = dDist - dDistToFirst;
-			dLength = ( dValue * dValue + dDistToSecond* dDistToSecond)/(2.0 * dValue);
+			//double dValue = dDist - dDistToFirst;
+			//dLength = ( dValue * dValue + dDistToSecond* dDistToSecond)/(2.0 * dValue);
+
+			//c*c = a*a + b*b - 2*a*b*cosa
+			double dDistS = FirstPoint.distance(SecondPoint);
+			double dDistA = dDist;
+			double dDistance = dDistA*dDistA - dDistS*dDistS;
+			double dCosA = dDistToFirst / dDistS;
+			double dDividend =  2*(dDistA - dDistS*dCosA);
+			if (dDividend  == 0.0)
+			{
+				dLength = dDistS;
+			}
+			else
+			{
+				dLength = dDistance / dDividend;
+			}
 		}
-		else
-		{
-			double dValue = dDist + dDistToFirst;
-			dLength = (dValue * dValue + dDistToSecond* dDistToSecond)/(2.0*dValue);
-		}
+// 		else
+// 		{
+// 			double dValue = dDist + dDistToFirst;
+// 			dLength = (dValue * dValue + dDistToSecond* dDistToSecond)/(2.0*dValue);
+// 		}
 
 		return routeline.getInlinePoint(dLength/routeline.GetLineLength());
 	}

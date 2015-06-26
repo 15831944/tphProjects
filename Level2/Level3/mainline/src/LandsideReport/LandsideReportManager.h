@@ -69,6 +69,11 @@ public:
 	//---------------------------------------------------------------------------------
 	void InitReportList(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
 	void SetReportListContent(CXListCtrl& cxListCtrl);
+	//---------------------------------------------------------------------------------
+    //Summary:
+    //   make sure data in column 0 is integer, and call this function to make it ascends.
+    //---------------------------------------------------------------------------------
+    void MakeReportListColumn0Assends(CXListCtrl& cxListCtrl);
 	//--------------------------------------------------------------------------------
 public:
 	//---------------------------------------------------------------------------------

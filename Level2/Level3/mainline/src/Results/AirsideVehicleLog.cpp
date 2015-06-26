@@ -39,7 +39,15 @@ ElapsedTime AirsideVehicleLog::getMaxTime (void)
 
 bool AirsideVehicleLog::GetItemByID( AirsideVehicleLogEntry& _entry , long _lID )
 {
-
+	int count = getCount();	
+	for (long i = 0; i < count; i++)
+	{
+		getItem (_entry, i);
+		if( _entry.GetAirsideDesc().id == _lID )
+		{
+			return true;
+		}			
+	}
 
 	return false;
 }

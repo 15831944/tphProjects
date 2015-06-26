@@ -1142,6 +1142,7 @@ void TerminalMobElementBehavior::processBridge( ElapsedTime p_time )
 
 void TerminalMobElementBehavior::setDestination( Point p)
 {
+    int nPersonID = m_pPerson->getID();
 	m_ptDestination = p;
 
 	m_pPerson->m_pGroupInfo->SetFollowerDestination( location, m_ptDestination, Person::m_pRotation );
@@ -5686,20 +5687,7 @@ bool TerminalMobElementBehavior::IsLateForDepFlight( ElapsedTime _eCurTime, long
 	bool bLate = false;
 	ElapsedTime actureDepTimeWithDelay = ElapsedTime(0L);
 	if(simEngineConfig()->isSimAirsideMode())
-    {
-        int nID = m_pPerson->getID();
-        long lCurTime = _eCurTime.getPrecisely();
-        long lFltRelDepTime = pFlight->GetRealDepTime().getPrecisely();
-        long lFltDepTime = pFlight->getDepTime().getPrecisely();
-        long lDepDelay = pFlight->getDepDelay().getPrecisely();
-        CString strProc = m_pProcessor->getIDName();
-        if(strProc.CompareNoCase(_T("DEPGATE-WALKOUT-SHENGEN-14")) == 0)
-        {
-            int i=0;
-            i=0;
-        }
-        CString strFlt;
-        pFlight->getFlightIDString(strFlt.GetBuffer(256));
+	{
 		if (pFlight->IsAirsideFlightDepartured())
 		{
 			if (pFlight->RetrieveAirsideDepartureTime())

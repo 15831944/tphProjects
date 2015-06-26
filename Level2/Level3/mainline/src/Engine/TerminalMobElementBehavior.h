@@ -627,7 +627,11 @@ public:
 	//for non passenger follower relative position
 	void SetRelativePosition(const Point& paxDirection,const Point& paxLocation);
 
-	virtual void setLocation( const Point& _ptLocation ){ location = _ptLocation;	}
+	virtual void setLocation( const Point& _ptLocation )
+    { 
+        int nPersonID = m_pPerson->getID();
+        location = _ptLocation;	
+    }
 
 	inline void SetWalkOnBridge(BOOL b){ m_IsWalkOnBridge = b; }
 	inline BOOL IsWalkOnBridge()const{ return m_IsWalkOnBridge; }

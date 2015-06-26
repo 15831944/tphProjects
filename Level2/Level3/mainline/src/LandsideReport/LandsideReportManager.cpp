@@ -152,6 +152,16 @@ void LandsideReportManager::SetReportListContent( CXListCtrl& cxListCtrl )
 	cxListCtrl.DeleteAllItems();
 	m_pReport->FillListContent(cxListCtrl);
 }
+
+void LandsideReportManager::MakeReportListColumn0Assends(CXListCtrl& cxListCtrl)
+{
+    if (NULL == m_pReport)
+    {
+        return;
+    }
+    m_pReport->MakeListColumn0Ascends(cxListCtrl);
+}
+
 //--------------------------------------------------------------------------------
 BOOL LandsideReportManager::ExportListCtrlToCvsFile(ArctermFile& _file,CXListCtrl& cxListCtrl)
 {

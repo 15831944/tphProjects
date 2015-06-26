@@ -22,6 +22,7 @@ public:
 	void FlightArriveStand(bool bArrival, const ElapsedTime& time);
 
 	bool IsGenerateGaggage()const;
+	void setGenerateBaggageFlag(bool bGenerate);
 protected:
 	AirsideFlightInSim *m_pFlight;
 

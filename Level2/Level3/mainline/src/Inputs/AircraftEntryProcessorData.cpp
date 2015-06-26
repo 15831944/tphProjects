@@ -32,11 +32,15 @@ void AircraftEntryProcsEntry::writeData(ArctermFile& p_file)
     p_file.writeTime(m_endTime);
 }
 
-bool AircraftEntryProcsEntry::operator<( const AircraftEntryProcsEntry& other ) const
+bool AircraftEntryProcsEntry::operator<(const AircraftEntryProcsEntry& other) const
 {
     CMobileElemConstraint* pThisConst = (CMobileElemConstraint*)constraint;
     CMobileElemConstraint* pOtherConst = (CMobileElemConstraint*)(other.constraint);
-    if(pThisConst->fits(*pOtherConst) && pOtherConst->fits(*pThisConst))
+    if(*pThisConst < *pOtherConst)
+    {
+        return true;
+    }
+    else if(*pThisConst == *pOtherConst)
     {
         if(m_procID < other.m_procID)
         {
@@ -65,20 +69,9 @@ bool AircraftEntryProcsEntry::operator<( const AircraftEntryProcsEntry& other ) 
             return false;
         }
     }
-    else if(pThisConst->fits(*pOtherConst))
-    {
-        return true;
-    }
-    else if(pOtherConst->fits(*pThisConst))
-    {
-        return false;
-    }
     else
     {
-        CString str1, str2;
-        pThisConst->screenPrint(str1);
-        pOtherConst->screenPrint(str2);
-        return str1<str2;
+        return false;
     }
 }
 
@@ -102,54 +95,7 @@ bool AircraftEntryProcsEntry::operator==( const AircraftEntryProcsEntry& other )
 
 bool AircraftEntryProcsEntry::sortEntry(const void* p1, const void* p2)
 {
-    AircraftEntryProcsEntry* pEntry1 = (AircraftEntryProcsEntry*)p1;
-    AircraftEntryProcsEntry* pEntry2 = (AircraftEntryProcsEntry*)p2;
-    CMobileElemConstraint* pMobConst1 = (CMobileElemConstraint*)pEntry1->getConstraint();
-    CMobileElemConstraint* pMobConst2 = (CMobileElemConstraint*)pEntry2->getConstraint();
-    if(pMobConst1->fits(*pMobConst2) && pMobConst2->fits(*pMobConst1))
-    {
-        if(pEntry1->m_procID == pEntry2->m_procID)
-        {
-            if(pEntry1->m_beginTime == pEntry2->m_beginTime)
-            {
-                if(pEntry1->m_endTime < pEntry2->m_endTime)
-                    return true;
-                else
-                    return false;
-            }
-            else if(pEntry1->m_beginTime < pEntry2->m_beginTime)
-            {
-                return true;
-            }
-            else 
-            {
-                return false;
-            }
-        }
-        else if(pEntry1->m_procID < pEntry2->m_procID)
-        {
-            return true;
-        }
-        else 
-        {
-            return false;
-        }
-    }
-    else if(pMobConst1->fits(*pMobConst2))
-    {
-        return true;
-    }
-    else if(pMobConst2->fits(*pMobConst1))
-    {
-        return false;
-    }
-    else
-    {
-        CString str1, str2;
-        pMobConst1->screenPrint(str1);
-        pMobConst2->screenPrint(str2);
-        return str1<str2;
-    }
+    return *((AircraftEntryProcsEntry*)p1) < *((AircraftEntryProcsEntry*)p2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -281,7 +227,7 @@ void ACEntryTimeDistDatabase::initFromMobElemConstDatabase(const CMobileElemCons
         ProcessorID pID;
         pID.init();
         pID.SetStrDict(_pInTerm->inStrDict);
-        pEntry->initialize(pMbConst, pProb, pID, ElapsedTime(0L), ElapsedTime(WholeDay-60L));
+        pEntry->initialize(pMbConst, pProb, pID, ElapsedTime(0L), ElapsedTime(WholeDay-1L));
         addEntry(pEntry);
     }
 }

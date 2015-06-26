@@ -254,6 +254,7 @@ bool InLaneParkingSpotsGroup::FindParkspotPath( LandsideLaneInSim* pFromlane, co
 
 				LandsideLaneEntry* pLastEntry = new LandsideLaneEntry();
 				pLastEntry->SetPosition(pLane,dFromPos);
+				pLastEntry->Offset(300);
 				pLastEntry->SetFromRes(pFromlane);
 				followPath.push_back(pLastEntry);
 			}

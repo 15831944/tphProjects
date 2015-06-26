@@ -80,6 +80,8 @@ bool FlightServiceReqirementInSim::GetFlightGeneralVehicleServicingRequirement(A
 					pRequest->SetServiceFlight(pFlight);
 					if (pRequirement->GetServiceTimeDistribution())
 						pRequest->SetServiceTime(ProbabilityDistribution::CopyProbDistribution(pRequirement->GetServiceTimeDistribution()));
+					if(pRequirement->GetSubServiceTimeDistribution())
+						pRequest->SetSubServiceTime(ProbabilityDistribution::CopyProbDistribution(pRequirement->GetSubServiceTimeDistribution()));
 
 					if (nSpareCount > 0)
 					{

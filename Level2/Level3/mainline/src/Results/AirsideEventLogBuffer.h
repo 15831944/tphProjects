@@ -58,7 +58,7 @@ protected:
 	void SmoothVehicleMotion(CAirsideEventLogBuffer<AirsideVehicleEventStruct>& vehicleLog);
 	void CalcVehiclePointOnLine(AirsideVehicleEventStruct& startPoint, AirsideVehicleEventStruct& endPoint, Point& middlePoint, long& midPointTime, float fDistance);
 	bool GenerateSmoothFlightPath(const CAirsideEventLogBuffer<AirsideFlightEventStruct>::VECTOREVENT& vSmoothEvent,CAirsideEventLogBuffer<AirsideFlightEventStruct>::VECTOREVENT& vResult)const;
-	double GetSmoothLength(double dSpeed, const CPoint2008& dir1,const CPoint2008& dir2)const;
+	bool GetSmoothLength(double dSpeed, const CPoint2008& dir1,const CPoint2008& dir2, double& dlen)const;
 
 	CAirsideSimLogs *m_pAirsideLog;
 

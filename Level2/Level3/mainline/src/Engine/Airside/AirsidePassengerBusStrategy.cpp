@@ -13,6 +13,7 @@
 #include "..\hold.h"
 #include "..\terminal.h"
 #include "VehicleRequestDispatcher.h"
+#include "..\AirsdieFlightBaggageManager.h"
 
 AirsidePassengerBusStrategy::AirsidePassengerBusStrategy(AirsideFlightInSim* pAirsideFlightInSim)
 :m_pAirsideFlightInSim(pAirsideFlightInSim)
@@ -78,8 +79,9 @@ void AirsideArrPassengerBusStrategy::PassengerBusArrive(const ElapsedTime& time,
 			paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,bGenerateBaggage,-1) ;
 			m_pAirsideFlightInSim->AddPaxCount((int)_paxlist.size());
 			pPaxBusContext->SetPaxListInFlight(_paxlist);
-		}
-	}
+			m_pAirsideFlightInSim->getBaggageManager()->setGenerateBaggageFlag(true);
+		} 
+	} 
 
 	pPaxBusContext->ProcessPassengerTakeonBus(time,pPaxBus);
 
@@ -137,6 +139,7 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 			int pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,bGenerateBaggage,-1) ;
 			m_pAirsideFlightInSim->AddPaxCount(pax_num);
 			pPaxBusContext->SetPaxListInFlight(_paxlist);
+			m_pAirsideFlightInSim->getBaggageManager()->setGenerateBaggageFlag(true);
 		}	
 
 		for (int i = 0 ; i < (int)_paxlist.size() ;i ++)
@@ -182,6 +185,7 @@ void AirsideArrPassengerBusStrategy::FlightArriveStand(const ElapsedTime& time,A
 			pax_num = paxgenerator.GenerateDelayMobileElement(pFlight->getFlightIndex(),eEntryTime,_paxlist,bGenerateBaggage,-1) ;
 			m_pAirsideFlightInSim->AddPaxCount(pax_num);
 			pPaxBusContext->SetPaxListInFlight(_paxlist);
+			m_pAirsideFlightInSim->getBaggageManager()->setGenerateBaggageFlag(true);
 		}
 	}
 
@@ -305,6 +309,11 @@ int AirsideDepPassengerBusStrategy::WakeupHoldPassenger( const ElapsedTime& time
 	ProcessorArray vHoldingAreas;
 	pTerminal->procList->getProcessorsOfType (HoldAreaProc, vHoldingAreas);
 	int iHoldAreaCount = vHoldingAreas.getCount();
+
+	struct HoldStageLess{
+		bool operator()(Processor* p1, Processor*p2){ return ((HoldingArea*)p1)->getStageID() < ((HoldingArea*)p2)->getStageID(); }
+	};
+	std::sort(vHoldingAreas.begin(),vHoldingAreas.end(),HoldStageLess() );
 
 	CMobileElemConstraint paxType(pTerminal);
 	int nReleaseCount = 0 ;

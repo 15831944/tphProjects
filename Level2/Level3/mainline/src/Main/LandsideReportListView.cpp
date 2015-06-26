@@ -278,24 +278,17 @@ void LandsideReportListView::OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult)
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	int nTestIndex = pNMListView->iSubItem;
 
-	if( nTestIndex >= 1 )
-	{   
-		m_wndListCtrl.SetRedraw(FALSE);
-		CWaitCursor	wCursor;
-		if(::GetKeyState( VK_CONTROL ) < 0 ) // Is <CTRL> Key Down
-			m_ctlHeaderCtrl.SortColumn( nTestIndex, MULTI_COLUMN_SORT );
-		else
-			m_ctlHeaderCtrl.SortColumn( nTestIndex, SINGLE_COLUMN_SORT );
-		m_ctlHeaderCtrl.SaveSortList();
+	m_wndListCtrl.SetRedraw(FALSE);
+	CWaitCursor	wCursor;
+	if(::GetKeyState( VK_CONTROL ) < 0 ) // Is <CTRL> Key Down
+		m_ctlHeaderCtrl.SortColumn( nTestIndex, MULTI_COLUMN_SORT );
+	else
+		m_ctlHeaderCtrl.SortColumn( nTestIndex, SINGLE_COLUMN_SORT );
+	m_ctlHeaderCtrl.SaveSortList();
 
-        for (int i = 0; i < m_wndListCtrl.GetItemCount(); i++)
-        {
-            CString strIndex;
-            strIndex.Format(_T("%d"),i+1);
-            m_wndListCtrl.SetItemText( i, 0, strIndex );
-        }
-		m_wndListCtrl.SetRedraw(TRUE);
-	}
+    CTermPlanDoc* pTermPlanDoc = (CTermPlanDoc* )GetDocument();
+    pTermPlanDoc->GetARCReportManager().GetLandsideReportManager()->MakeReportListColumn0Assends(m_wndListCtrl);
+	m_wndListCtrl.SetRedraw(TRUE);
 	*pResult = 0;
 }
 void LandsideReportListView::ResetAllContent()

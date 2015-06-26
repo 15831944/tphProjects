@@ -54,34 +54,35 @@ void PaxLandsideBehavior::WriteLogEntry(ElapsedTime time, bool _bBackup, bool bO
 {
 	//passenger write log
 	ARCVector3 pre_location = location;
+	writeLog(time);
 
-	location = m_ptDestination;
+	//location = m_ptDestination;
 
-	MobEventStruct track;
-	track.backup = _bBackup; 
+	//MobEventStruct track;
+	//track.backup = _bBackup; 
 
-	track.time = (long)time;
-	track.state = m_pPerson->getState();
+	//track.time = (long)time;
+	//track.state = m_pPerson->getState();
 
-	//resource index 
-	/*if(GetCurrentResource())
-	track.procNumber = GetCurrentResource()->GetResourceID();
-	else*/
-	track.procNumber = -1;
+	////resource index 
+	///*if(GetCurrentResource())
+	//track.procNumber = GetCurrentResource()->GetResourceID();
+	//else*/
+	//track.procNumber = -1;
 
-	track.bDynamicCreatedProc = false;
-	track.followowner	= false;
-	track.reason = -1;
-	track.m_IsRealZ = TRUE;
+	//track.bDynamicCreatedProc = false;
+	//track.followowner	= false;
+	//track.reason = -1;
+	//track.m_IsRealZ = TRUE;
 
-	track.speed = (float)m_pPerson->getSpeed();
+	//track.speed = (float)m_pPerson->getSpeed();
 
-	track.x = (float)location.n[VX];
-	track.y = (float)location.n[VY];
-	track.z = 0;
-	track.m_RealZ= (float)location.n[VZ];
+	//track.x = (float)location.n[VX];
+	//track.y = (float)location.n[VY];
+	//track.z = 0;
+	//track.m_RealZ= (float)location.n[VZ];
 
-	m_pPerson->getLogEntry().addEvent (track);
+	//m_pPerson->getLogEntry().addEvent (track);
 	//CMobDebugLog::LogEvent(m_pPerson->getID(),track);
 
 	MobElementsDiagnosis()->Diagnose( m_pPerson, time);

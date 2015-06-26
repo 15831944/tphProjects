@@ -33,7 +33,7 @@ CAirsidePaxBusInSim::CAirsidePaxBusInSim( int id,int nPrjID,CVehicleSpecificatio
 	m_bServiceArrival = false;
 	m_nPaxLoad = 0;
 	m_currentpaxNum= 0 ;
-	m_takeoff_sepeed.setPrecisely(10);
+	//m_takeoff_sepeed.setPrecisely(10);
 }
 
 CAirsidePaxBusInSim::~CAirsidePaxBusInSim(void)
@@ -406,7 +406,7 @@ void CAirsidePaxBusInSim::GeneratePaxTakeOffEvent(int _pax_state,ElapsedTime tim
 		}
 		p_behavior->setState(_pax_state) ;
 
-		_last_leaveTime = _last_leaveTime + m_takeoff_sepeed * long(i) ;
+		_last_leaveTime = _last_leaveTime + GetUnloadTimePerPerson();
 		m_pax[i]->generateEvent(_last_leaveTime, false);
 	}
 	m_pax.clear() ;
@@ -475,7 +475,7 @@ int CAirsidePaxBusInSim::ArriveAtStand(ElapsedTime time)
 	if(!getEngine()->IsTerminal())
 	{
 		SetMode(OnLeaveServicePoint) ;
-		ElapsedTime serviceTime =  GetServiceTimePerPerson() *  GetVehicleCapacity() ;		
+		ElapsedTime serviceTime =  GetLoadTimePerPerson() *  GetVehicleCapacity() ;		
 
 		CFlightServiceEvent * pNextEvent = new CFlightServiceEvent(this);
 		SetTime(time + serviceTime);
@@ -660,7 +660,25 @@ BOOL CAirsidePaxBusInSim::TryTakePaxLeave( const ElapsedTime&t )
 	return FALSE;
 }
 
-ElapsedTime CAirsidePaxBusInSim::GetServiceTimePerPerson() const
+ElapsedTime CAirsidePaxBusInSim::GetLoadTimePerPerson() const
 {
-	return ElapsedTime(GetServiceTimeDistribution()->getRandomValue());
+	if(GetServiceTimeDistribution())
+		return ElapsedTime(GetServiceTimeDistribution()->getRandomValue());
+	return ElapsedTime(10L);
+}
+
+bool CAirsidePaxBusInSim::GetTimeOfLastPerson(ElapsedTime& t) const
+{
+	if(m_currentpaxNum>0){
+		t = m_tLastPersonOnBus;
+		return true;
+	}
+	return false;
+}
+
+ElapsedTime CAirsidePaxBusInSim::GetUnloadTimePerPerson() const
+{
+	if(GetSubServiceTimeDistribution())
+		return ElapsedTime(GetSubServiceTimeDistribution()->getRandomValue());
+	return ElapsedTime(10L);
 }

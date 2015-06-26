@@ -321,6 +321,16 @@ void LSVehicleActivityResult::FillListContent( CXListCtrl& cxListCtrl, LandsideB
 	}
 }
 
+void LSVehicleActivityResult::MakeListColumn0Ascends(CXListCtrl& cxListCtrl)
+{
+    for (int i = 0; i < cxListCtrl.GetItemCount(); i++)
+    {
+        CString strIndex;
+        strIndex.Format(_T("%d"),i+1);
+        cxListCtrl.SetItemText(i, 0, strIndex);
+    }
+}
+
 BOOL LSVehicleActivityResult::ReadReportData( ArctermFile& _file )
 {
 

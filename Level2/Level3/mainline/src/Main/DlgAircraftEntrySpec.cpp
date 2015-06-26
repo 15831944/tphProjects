@@ -519,7 +519,7 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonAdd()
         pNewConst->SetInputTerminal(m_pInTerm);
         ProbabilityDistribution* pNewProb = ProbabilityDistribution::CopyProbDistribution(&u2_10);
         AircraftEntryProcsEntry* pNewEntry = new AircraftEntryProcsEntry();
-        pNewEntry->initialize(pNewConst, pNewProb, id, ElapsedTime(0L), ElapsedTime(WholeDay-60L));
+        pNewEntry->initialize(pNewConst, pNewProb, id, ElapsedTime(0L), ElapsedTime(WholeDay-1L));
         m_pACEntryData->getEntryTimeDB()->addEntry(pNewEntry);
         COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hItem);
         pCni->clrItem = SELECTED_COLOR;

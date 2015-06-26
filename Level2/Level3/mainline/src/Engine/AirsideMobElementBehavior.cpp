@@ -230,9 +230,23 @@ void AirsidePassengerBehavior::ProcessWhenTakeOnBus(ElapsedTime time)
 	setLocation(getDest()) ;
 	WriteLog(time);
 
+	CAirsidePaxBusInSim* pPaxBus = m_pPaxBus;
+	if(m_bArrivalPax)
+	{
+		pPaxBus = m_pPaxBus;
+	}
+	else
+	{
+		TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)m_pax->getBehavior(MobElementBehavior::TerminalBehavior);
+		if (spTerminalBehavior && spTerminalBehavior->GetAirsideBus())
+		{
+			pPaxBus = spTerminalBehavior->GetAirsideBus();
+		}
+	}
+
 	//wait at the entry pos to the time of last person on bus.
 	ElapsedTime lastPersonTime;
-	if(m_pPaxBus && m_pPaxBus->GetTimeOfLastPerson(lastPersonTime))
+	if(pPaxBus && pPaxBus->GetTimeOfLastPerson(lastPersonTime))
 	{
 		if(lastPersonTime>time)
 		{
@@ -243,29 +257,18 @@ void AirsidePassengerBehavior::ProcessWhenTakeOnBus(ElapsedTime time)
 
 	//get on bus
 	CPoint2008 posOnBus;
-	if(m_pPaxBus && GetBusPosition(posOnBus))
+	if(pPaxBus && GetBusPosition(posOnBus))
 	{
 		setLocation(posOnBus);
-		time += m_pPaxBus->GetServiceTimePerPerson();
+		time += pPaxBus->GetLoadTimePerPerson();
 		WriteLog(time);
 	}
 
 	m_IsOnBus = TRUE ;
-	if(m_bArrivalPax)
+	if(pPaxBus)
 	{
-		if (!m_pPaxBus)
-			return;
-		m_pPaxBus->TakeOnPasseneger(m_pax,time);
+		pPaxBus->TakeOnPasseneger(m_pax,time) ;
 	}
-	else
-	{
-		TerminalMobElementBehavior* spTerminalBehavior = (TerminalMobElementBehavior*)m_pax->getBehavior(MobElementBehavior::TerminalBehavior);
-		if (spTerminalBehavior && spTerminalBehavior->GetAirsideBus())
-		{
-			spTerminalBehavior->GetAirsideBus()->TakeOnPasseneger(m_pax,time) ;
-		}
-	}
-	
 	//add the person to the bus 
 	//do not realize
 }
@@ -348,7 +351,7 @@ void AirsidePassengerBehavior::ProcessWhenWalkOutGate(ElapsedTime time)
 	}
 
 	CPoint2008 point;
-	if(!GetBusPosition(point))
+	if(!GetBusEntryPosition(point))
 	{
 		setState(_DEATH) ;
 		GenetateEvent(time) ;
@@ -1008,8 +1011,8 @@ BOOL AirsidePassengerBehavior::GetBusEntryPosition(CPoint2008& point)
 	m_ZPosition = (float)(pCurPaxBus->GetVehicleLength()/2 - abs(_offSetInBus.getX()) ) / (float)(pCurPaxBus->GetVehicleLength()/2 + abs(_offSetInBus.getX()) ) ;
 	CPoint2008 _off;
 	
-	_off.setY(  pCurPaxBus->GetVehicleWidth()/2   + random(100) );
-	_off.setX(  pCurPaxBus->GetVehicleLength()/2 * 0.8 + random(100) -50 );
+	_off.setY(  -pCurPaxBus->GetVehicleWidth()/2   - random(100) );
+	_off.setX(  pCurPaxBus->GetVehicleLength()/2 * 0.5 + random(100) -50 );
 	_off.rotate( pCurPaxBus->getDirect(point2008) );
 
 	point = point2008 + _off;

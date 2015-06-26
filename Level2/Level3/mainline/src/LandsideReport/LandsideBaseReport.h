@@ -51,6 +51,7 @@ public:
 
 	virtual void InitListHead(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
 	virtual void FillListContent(CXListCtrl& cxListCtrl );
+    virtual void MakeListColumn0Ascends(CXListCtrl& cxListCtrl);
 
 	void Draw3DChart(CARC3DChart& chartWnd);
 

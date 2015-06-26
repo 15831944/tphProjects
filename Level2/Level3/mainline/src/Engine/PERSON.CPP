@@ -318,6 +318,7 @@ int Person::processTerminalModeMovement(ElapsedTime p_time,bool bNoLog)
 
 
    int nReturnValue = 1;
+    int lCurTime = p_time.getPrecisely();
 	switch (state)
     {
 
@@ -610,6 +611,7 @@ void Person::writeTerminalBeginLogEntry(ElapsedTime p_time)
 	PLACE_METHOD_TRACK_STRING();
 	int nState = state;
 	state = TerminalBegin;
+    int nPersonID = getID();
 	writeLogEntry(p_time,false);
 	state = nState;
 }

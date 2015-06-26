@@ -46,6 +46,8 @@ void LandsideBaseBehavior::writeLog( ElapsedTime time, bool _bBackup, bool bOffs
 				location = m_ptDestination  + latPoint;
 			else
 				location = m_ptDestination;
+
+			setDestination(location);
 		}
 
 		MobEventStruct track;

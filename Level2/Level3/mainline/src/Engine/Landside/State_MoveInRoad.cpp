@@ -613,9 +613,19 @@ void State_MoveInRoad::_addSeg( LandsideLaneNodeInSim* pNodePre ,LandsideLaneNod
 		pResource = pNodePre->getToRes();
 		if(LandsideLaneInSim* pLane = pResource->toLane()) // in lane
 		{		
-			subPath = pLane->GetSubPathDist(pNodePre->m_distInlane, pNodeNext->m_distInlane);
-			distFrom = pNodePre->m_distInlane;
-			pPath = &subPath;			
+			if(pNodePre->mpLane == pNodeNext->mpLane)
+			{
+				pLane = pNodePre->mpLane;
+				subPath = pLane->GetSubPathDist(pNodePre->m_distInlane, pNodeNext->m_distInlane);
+				distFrom = pNodePre->m_distInlane;
+				pPath = &subPath;			
+			}
+			else
+			{
+				subPath.push_back(pNodePre->m_pos);
+				subPath.push_back(pNodeNext->m_pos);				
+				pPath = &subPath;
+			}		
 		}		
 		else if(LandsideIntersectionInSim* pIntersect = pResource->toIntersection() ) //intersection node
 		{

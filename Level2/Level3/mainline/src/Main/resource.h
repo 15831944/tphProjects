@@ -1524,7 +1524,9 @@
 #define IDC_GATEASSIGNCTRL1             1122
 #define IDC_GATEASSIGNCTRL              1122
 #define IDC_LIST_REPRESULTLIST          1123
+#define ID_AIRSIDE_VEHICLE_TRACES       1123
 #define IDC_RADIO_RANDOMSEED            1124
+#define ID_AIRCRAFT_TAGS_ON             1124
 #define IDC_EDIT_RANDOMSEED             1130
 #define IDC_EDIT_MAXPAXCOUNT            1131
 #define IDC_BUTTON_FILE                 1134
@@ -3846,7 +3848,7 @@
 #define ID_PAXDISTBUTTON                33070
 #define ID_PAXDIST_EVENPERCENT_REMAIN   33071
 #define ID_TRACERS_ON                   33072
-#define ID_TAGS_ON                      33073
+#define ID_VEHICLE_TAGS_ON              33073
 #define ID_ANIMATION_RECSETTINGS        33074
 #define ID_PROJECT_COMMENT              33075
 #define ID_PROJECT_CONTROL              33076
@@ -5613,7 +5615,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        1121
+#define _APS_NEXT_RESOURCE_VALUE        1125
 #define _APS_NEXT_COMMAND_VALUE         35350
 #define _APS_NEXT_CONTROL_VALUE         2454
 #define _APS_NEXT_SYMED_VALUE           491

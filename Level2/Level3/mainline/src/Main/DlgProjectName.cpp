@@ -110,7 +110,7 @@ void CDlgProjectName::OnOK()
     if(nPos > -1)
     {
         CString strMsg;
-        strMsg.Format(_T("The project name should not contain the following characters:\n\n%s"), strTemp);
+        strMsg.Format(_T("Character %c is not allowed in project name."), m_strProjectName.GetAt(nPos));
         MessageBox(strMsg);
         m_editName.SetFocus();
         m_editName.SetSel(nPos, nPos+1);

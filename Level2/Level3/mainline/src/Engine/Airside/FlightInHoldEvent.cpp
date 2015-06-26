@@ -147,7 +147,10 @@ int FlightInHoldEvent::Process()
 	}
 
 	CPoint2008 WPpos = m_pHold->GetDistancePoint(0.0);
-	ElapsedTime dTime = ElapsedTime(pos.distance(WPpos)/m_pCFlight->GetSpeed());
+//	ElapsedTime dTime = ElapsedTime(pos.distance(WPpos)/m_pCFlight->GetSpeed());
+
+	double dMoveDist = totalLength - m_pCFlight->GetDistInResource();
+	ElapsedTime dTime = ElapsedTime(dMoveDist/m_pCFlight->GetSpeed());
 
 	if ((m_tHoldTime >0L && (time+dTime) >= m_tHoldTime))
 	{
@@ -181,30 +184,86 @@ int FlightInHoldEvent::Process()
 				ElapsedTime startTime = time;
 				ElapsedTime endTime = firstItem.GetTime();
 				ElapsedTime detaTime = endTime - startTime;
+				CString strStartTime = startTime.printTime();
+				CString strEndTime = endTime.printTime();
 				if (detaTime > 0l && firstItem.GetPosition() == newItem.GetPosition())
 				{
-					double stepLength = totalLength/8.0;
-					ElapsedTime nextTime = ElapsedTime(stepLength/m_pCFlight->GetSpeed());
-					startTime += nextTime;
-					CPoint2008 pt;
-					for (; startTime < endTime; startTime += nextTime)
+					double dHeight = 0.0;
+					if (firstItem.GetTime() == newItem.GetTime())
 					{
-						stepIt(startTime,pt);
+						double stepLength = totalLength/8.0;
+						ElapsedTime nextTime = ElapsedTime(stepLength/m_pCFlight->GetSpeed());
+						startTime += nextTime;
+						CPoint2008 pt;
+						for (; startTime < endTime; startTime += nextTime)
+						{
+							stepIt(startTime,pt);
+						}
+						stepIt(endTime,pt);
+						dHeight = pt.getZ();
 					}
-					stepIt(endTime,pt);
-					////step end item
-					//{
-					//	CPoint2008 WPpos = m_pHold->GetDistancePoint(0.0);
-					//	ClearanceItem newItem((AirsideResource*)m_pHold->GetWaypointInSim() ,OnWaitInHold, 0.0);
-					//	WPpos.setZ(pt.getZ());
-					//	newItem.SetPosition(WPpos);
-					//	newItem.SetTime(endTime);
-					//	newItem.SetSpeed(m_pCFlight->GetSpeed());
-					//	newItem.SetAltitude(pt.getZ());
-					//	m_pCFlight->PerformClearanceItem(newItem);
-					//}
+					else
+					{
+						double stepLength = totalLength/8.0;
+						ElapsedTime nextTime = ElapsedTime(stepLength/m_pCFlight->GetSpeed());
+						startTime += nextTime;
+						CPoint2008 pt;
+						ElapsedTime tPreTime;
+						ElapsedTime tNextTime;
+						for (; startTime < endTime; startTime += nextTime)
+						{
+							double dRouteDist = m_pCFlight->GetDistInResource();
+							CPoint2008 flightPos = m_pHold->GetDistancePoint(((int)dRouteDist)% ((int)totalLength));
+							ElapsedTime dMoveTime = ElapsedTime(flightPos.distance(WPpos)/m_pCFlight->GetSpeed());
+							ElapsedTime tSumTime = startTime + dMoveTime;
+							if (tSumTime >= endTime)
+							{
+								tNextTime = tSumTime - endTime;
+								break;
+							}
+							else
+							{
+								tPreTime = endTime - tSumTime;
+							}
+							stepIt(startTime,pt);
+						}
+						if (tPreTime.getPrecisely() || tNextTime.getPrecisely())
+						{
+							double dRate = tPreTime / (tPreTime + tNextTime);
+							ElapsedTime tMoveTime = nextTime * dRate;
+							stepIt(startTime + tMoveTime - nextTime,pt);
+						}
+						
+						//step end item
+						{
+							CPoint2008 WPpos = m_pHold->GetDistancePoint(0.0);
+							ClearanceItem newItem((AirsideResource*)m_pHold->GetWaypointInSim() ,OnWaitInHold, 0.0);
+							//WPpos.setZ(pt.getZ());
+							double dAlt =  m_pHold->getAvailableHeight(m_pCFlight);
+							if (dAlt != m_pCFlight->GetCurState().m_dAlt)
+							{
+								double dStep = m_pHold->getAvailableHeight(m_pCFlight) - m_pCFlight->GetCurState().m_dAlt;
+								double dStepHeight = (dist-m_pCFlight->GetDistInResource())*tan(ARCMath::DegreesToRadians(3.0));
+								if (dStep >0)
+									dAlt = m_pCFlight->GetCurState().m_dAlt + (dStepHeight<dStep?dStepHeight:dStep);
+								else 
+									dAlt = m_pCFlight->GetCurState().m_dAlt - (dStepHeight<-dStep?dStepHeight:-dStep);				
+							}
+
+							dHeight = dAlt;
+							WPpos.setZ(dAlt);
+							newItem.SetPosition(WPpos);
+							newItem.SetTime(endTime);
+							newItem.SetSpeed(m_pCFlight->GetSpeed());
+							//	newItem.SetAltitude(pt.getZ());
+							newItem.SetAltitude(dAlt);
+							m_pCFlight->PerformClearanceItem(newItem);
+						}
+					}
+
 					firstItem.SetPosition(WPpos);
-					firstItem.SetAltitude(pt.getZ());
+				//	firstItem.SetAltitude(pt.getZ());
+					firstItem.SetAltitude(dHeight);
 				}
 				else
 				{

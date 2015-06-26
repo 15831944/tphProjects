@@ -432,6 +432,7 @@ void VehicleRequestDispatcher::PaxBusServiceRequestDispatch()
 
 			request->SetServiceVehicleTypeID(nVehicleTypeID);
 			request->SetServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetServiceTimeDistribution()));
+			request->SetSubServiceTime(ProbabilityDistribution::CopyProbDistribution(vServiceRequirement[nType]->GetSubServiceTimeDistribution()));
 
 			m_pPoolsDeployment->GetServicePool(pFlight, nVehicleTypeID, vServicePoolList);
 			

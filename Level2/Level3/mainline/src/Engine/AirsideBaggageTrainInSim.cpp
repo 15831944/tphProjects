@@ -422,7 +422,7 @@ void AirsideBaggageTrainInSim::LoadBaggageFromPusher( ElapsedTime eTime )
 	paxCons.MergeFlightConstraint(&fltCons);
 
 	int nCapacity = pCurCartInSim->getCapacity();
-	ElapsedTime serviceTime = GetSubServiceTimePerBag();
+	ElapsedTime serviceTime = GetLoadTimePerBag();
 	pPusher->ReleaseBaggageToBaggageCart(this, paxCons, nCapacity, eTime);
 
 	//find bags belong to this flight
@@ -451,7 +451,7 @@ void AirsideBaggageTrainInSim::UnloadBaggageToLoader(ElapsedTime time)
 		return;
 	
 	ElapsedTime eFinishedTime = time;
-	ElapsedTime bagServiceTime = GetSubServiceTimePerBag();
+	ElapsedTime bagServiceTime = GetUnLoadTimePerBag();
 	pBagCart->ReleaseBaggage(m_pTermProc, m_pBagCartsSpotInSim, bagServiceTime, eFinishedTime);
 
 	//move to next cart
@@ -513,7 +513,7 @@ void AirsideBaggageTrainInSim::TransferTheBag( Person *pBag,const ElapsedTime& e
 	ASSERT(pBagCart);
 
 	ElapsedTime eArriveTime = eTime;
-	pBagBehavior->MoveToCartFromPusher(pBagCart, GetSubServiceTimePerBag(),eArriveTime);
+	pBagBehavior->MoveToCartFromPusher(pBagCart, GetLoadTimePerBag(),eArriveTime);
 
 	retTime = MAX(retTime,eArriveTime);
 	//CPoint2008  m_pBagCartsSpotInSim->GetServicePoint();
@@ -659,7 +659,7 @@ void AirsideBaggageTrainInSim::UnloadBaggageFromCart( ElapsedTime time )
 	if(!pBagCart)
 		return;
 
-	ElapsedTime eServiceTime = GetServiceTimePerBag();
+	ElapsedTime eServiceTime = GetUnLoadTimePerBag();
 	ElapsedTime eFinishedTime = time;	
 	pBagCart->ReleaseBaggageToFlight(ptCargoDoor, eServiceTime, eFinishedTime);
 
@@ -835,24 +835,24 @@ bool AirsideBaggageTrainInSim::CanServe(const CMobileElemConstraint& mobCons )
 	return false;
 }
 
-ElapsedTime AirsideBaggageTrainInSim::GetServiceTimePerBag() const
-{
-	if(m_pServiceTimeDistribution)
-	{
-		return ElapsedTime(m_pServiceTimeDistribution->getRandomValue()*60L/10);
-	}
-	return ElapsedTime(1L);
-}
-
-
-ElapsedTime AirsideBaggageTrainInSim::GetSubServiceTimePerBag() const
-{
-	if(m_pSubServiceTimeDistribution)
-	{
-		return ElapsedTime(m_pSubServiceTimeDistribution->getRandomValue()*60L/10);
-	}
-	return ElapsedTime(1L);
-}
+//ElapsedTime AirsideBaggageTrainInSim::GetServiceTimePerBag() const
+//{
+//	if(m_pServiceTimeDistribution)
+//	{
+//		return ElapsedTime(m_pServiceTimeDistribution->getRandomValue()*60L/10);
+//	}
+//	return ElapsedTime(1L);
+//}
+//
+//
+//ElapsedTime AirsideBaggageTrainInSim::GetSubServiceTimePerBag() const
+//{
+//	if(m_pSubServiceTimeDistribution)
+//	{
+//		return ElapsedTime(m_pSubServiceTimeDistribution->getRandomValue()*60L/10);
+//	}
+//	return ElapsedTime(1L);
+//}
 
 double AirsideBaggageTrainInSim::GetVehicleActualLength() const
 {
@@ -870,4 +870,22 @@ double AirsideBaggageTrainInSim::GetVehicleActualLength() const
 	}
 
 	return dTotalLength;
+}
+
+ElapsedTime AirsideBaggageTrainInSim::GetLoadTimePerBag() const
+{
+	if(m_pServiceTimeDistribution)
+	{
+		return ElapsedTime(m_pServiceTimeDistribution->getRandomValue()*60L/10);
+	}
+	return ElapsedTime(1L);
+}
+
+ElapsedTime AirsideBaggageTrainInSim::GetUnLoadTimePerBag() const
+{
+	if(m_pSubServiceTimeDistribution)
+	{
+		return ElapsedTime(m_pSubServiceTimeDistribution->getRandomValue()*60L/10);
+	}
+	return ElapsedTime(1L);
 }

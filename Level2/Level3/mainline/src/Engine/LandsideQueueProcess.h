@@ -4,6 +4,7 @@
 #include "Common/containr.h"
 #include "EVENT.H"
 #include "PaxLandsideBehavior.h"
+#include "MOVEVENT.H"
 
 class LandsideQueueProcess;
 class LandsidePaxQueueProcess;
@@ -12,6 +13,10 @@ class LandsideQueue;
 class LandsidePaxSericeInSim;
 
 #define QUEUE_OVERFLOW			0xff
+#define  QUEUE_APPROACHING		-1
+#define  QUEUE_HEAD						0
+#define  QUEUE_LAST_SEGMENT    (m_qCorners.getCount()-1)
+
 class QueueElementList : public UnsortedContainer<PaxLandsideBehavior>
 {
 public:
@@ -30,6 +35,22 @@ public:
 				return i;
 		}
 		return INT_MAX;
+	}
+
+	PaxLandsideBehavior *getHead (void) const
+	{
+		 return (getCount())? getItem (QUEUE_HEAD): NULL;
+	}
+    PaxLandsideBehavior *getTail (void) const
+	{
+		return (getCount())? getItem (getCount()-1): NULL;
+	}
+
+	PaxLandsideBehavior *removeHead (void)
+	{
+		PaxLandsideBehavior *obj = getItem (QUEUE_HEAD);
+		removeItem (QUEUE_HEAD);
+		return obj;
 	}
 };
 
@@ -58,35 +79,51 @@ class LandsideQueue : public LandsideQueueBase
 public:
 	
 	//Copy constructor : only its parent's copy constructor is invoked.
-	LandsideQueue (const CPath2008& path) : LandsideQueueBase(path) {};
-	virtual ~LandsideQueue () {};
+	LandsideQueue (const CPath2008& path) 
+		: LandsideQueueBase(path) 
+	{
+
+	}
+	virtual ~LandsideQueue () {}
 	
-	
+	int hasWait ( LandsideQueueSystemProcess* pLandsideQueueSys);
 	bool isHead(PaxLandsideBehavior* pLandsideBehavior);
-	bool isTail(PaxLandsideBehavior* pLandsideBehavior);
-	PaxLandsideBehavior* PeekWait(int idx);
+	 int isTail (int index,LandsideQueueSystemProcess* pLandsideQueueSys);
+	PaxLandsideBehavior* PeekWait(int idx,LandsideQueueSystemProcess* pLandsideQueueSys);
 	PaxLandsideBehavior* PeekApproach(int idx);
-	int FindWait(PaxLandsideBehavior* pLandsideBehavior);
 	int FindApproach(PaxLandsideBehavior* pLandsideBehavior);
+
+	int getNextIndex (int index,LandsideQueueSystemProcess* pLandsideQueueSys);
+	int getTailIndex (LandsideQueueSystemProcess* pLandsideQueueSys);
 
 	ARCVector3 GetNextStep(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys);
 	bool StepItValid(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys);
 
+	
+
 	PaxLandsideBehavior* GetLandsideBehavior(int idx)const;
 	PaxLandsideBehavior* GetHeadBehavior()const;
 	PaxLandsideBehavior* GetTailBehavior()const;
-	void RemoveApproach(PaxLandsideBehavior* pLandsideBehavior);
 	void RemoveWait(PaxLandsideBehavior* pLandsideBehavior);
-	void AddApproach(PaxLandsideBehavior* pLandsideBehavior);
-	void AddWait(PaxLandsideBehavior* pLandsideBehavior);
+	
 
-	void StartQueueMove(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
-	void WaitInQueue(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
-	void AddToQueue(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
-	void MoveToQueue(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
-	void AdvanceQueue(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
 
-	int CalculateSegment(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys);
+	//Do the same logic as terminal queue
+	void addToQueue (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void arriveAtQueue(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void arriveAtWaitPoint (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void leaveQueue (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void relayAdvance (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void continueAdvance (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void approachQueue (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	void updateApproaching(LandsideQueueSystemProcess* pLandsideQueueSys,const ElapsedTime& time);
+	ARCVector3 getLocation(LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys);
+	int onTailSegment (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys) ;
+	void getQueuePosition (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys);
+	void setPersonCurrentPosition( Person *aPerson,const ElapsedTime& arriveTime );
+	int getSegment (LandsidePaxQueueProcess* pQueueProcess,LandsideQueueSystemProcess* pLandsideQueueSys) ;
+	void generateAdvanceEvent (int p_ndx, ElapsedTime p_time,LandsideQueueSystemProcess* pLandsideQueueSys,DistanceUnit p_maxSpeed);
+	void releaseNext (ElapsedTime p_time,LandsideQueueSystemProcess* pLandsideQueueSys);
 private:
 	void UpdateApproach(const ElapsedTime& time,LandsideQueueSystemProcess* pLandsideQueueSys);
 private:
@@ -105,7 +142,6 @@ public:
 		sp_waitinQueue,
 		sp_advanceQueue,
 		sp_leaveQueue,
-		sp_WaitLeave,//debug
 	};
 	LandsidePaxQueueProcess(PaxLandsideBehavior* pLandsideBehavior);
 	~LandsidePaxQueueProcess();
@@ -116,27 +152,48 @@ public:
 
 	PaxLandsideBehavior* GetlandsideBehavior();
 
-	int GetSegment()const;
-	void SetSegment(int nSegment) {m_nSegment = nSegment;}
+	int getQueuePathSegmentIndex()const {return m_nSegment;}
+	void setQueuePathSegmentIndex(int nSegment) {m_nSegment = nSegment;}
+
+	void setCurrentIndex(int nIndex){m_nCurrentIndex = nIndex;}
+	int getCurrentIndex()const {return m_nCurrentIndex;}
+
+	void setNextIndex(int nIndex);
+	int getNextIndex()const {return m_nNextIndex;}
+
+	void updateIndex() {m_nCurrentIndex = m_nNextIndex;}
+
+	void ArrivalQueue(bool bArrival) {m_bArrivalAtQueue = bArrival;}
+	bool HasArrivalQueue()const {return m_bArrivalAtQueue;}
 
 	void GenerateQueueEvent(const ElapsedTime& time);
 
 	void SetQueueState(QueueState state) {m_queueState = state;}
 	QueueState GetQueueState()const {return m_queueState;}
 
-	void SetStuck(bool bStuck) {m_bStuck = bStuck;}
-	bool GetStuck()const {return m_bStuck;}
-
-	void SetDes(bool bDes) {m_bDes = bDes;}
-	bool GetDes()const {return m_bDes;}
-
 	void WriteQueuePaxLog(const ElapsedTime& p_time);
+
+
+	void SetWaitTag(bool bWaitTag){m_bHasWaitTag = bWaitTag;}
+	bool GetWaitTag()const {return m_bHasWaitTag;}
+	void decQueuePathSegmentIndex(){m_nSegment--;}
+
+	void moveThroughQueue(const ElapsedTime& time);
+	void arriveAtQueue (const ElapsedTime& time);
+	void notifyQueueAdvance(const ElapsedTime& time);
+	void leaveQueue (const ElapsedTime& time );
+	void processPerson (const ElapsedTime& time );
+
+	DistanceUnit GetNormalSpeed()const {return m_dSpeed;}
 private:
-	bool m_bDes;
 	int m_endState;
 	int m_nSegment;
+	int m_nCurrentIndex;
+	int m_nNextIndex;
+	DistanceUnit m_dSpeed;
 	QueueState m_queueState;
-	bool m_bStuck;
+	bool  m_bHasWaitTag;
+	bool  m_bArrivalAtQueue;
 	PaxLandsideBehavior* m_pLandsideBehavior;
 	LandsideQueueSystemProcess* m_pLandsideQueueSys;
 };
@@ -160,14 +217,9 @@ public:
 	void LeaveQueue(const ElapsedTime& p_time);
 
 	LandsidePaxQueueProcess* FindPaxQueueProcess(PaxLandsideBehavior* pLandsideBehavior);
-	LandsidePaxQueueProcess* GetTailBehavior();
-	LandsidePaxQueueProcess* GetNextBehavior(PaxLandsideBehavior* pLandsideBehavior);
+	bool ExsitPaxQueueProcess(LandsidePaxQueueProcess* pQueueProcess);
 
-	bool OnTailSegment(LandsidePaxQueueProcess* pPaxQueueProc);
-
-	bool LastSegment(int nSegment)const;
-
-	ARCVector3 GetTailPoint()const;
+	LandsidePaxQueueProcess* GetTailQueueProcess();
 
 	LandsideQueue* GetlandsideQueue()const;
 
@@ -182,10 +234,10 @@ private:
 	std::vector<LandsidePaxQueueProcess*> m_vPaxQueueProc;
 };
 
-class LandsideQueueEvent :public Event
+class LandsideQueueEvent :public MobileElementMovementEvent
 {
 public:
-	LandsideQueueEvent(LandsidePaxQueueProcess *pQueueProc, ElapsedTime eTime);
+	LandsideQueueEvent(LandsidePaxQueueProcess *pQueueProc);
 	~LandsideQueueEvent(void);
 
 
@@ -197,16 +249,12 @@ public:
 	//It returns event's name
 	virtual const char *getTypeName (void) const;
 
-	//It returns event type
-	virtual int getEventType (void) const;
 
-	void SetPerson(PaxLandsideBehavior* pPerson);
-	void SetState(LandsidePaxQueueProcess::QueueState emState);
+	void SetLandsideQueueSystem(LandsideQueueSystemProcess* pLandsideQueueSys);
 
 protected:
 	LandsidePaxQueueProcess *m_pQueueProcess;
-	PaxLandsideBehavior* m_pPerson;
-	LandsidePaxQueueProcess::QueueState m_emState;
+	LandsideQueueSystemProcess* m_pLandsideQueueSys;
 };
 
 class LandsideQueueWakeUpEvent : public Event

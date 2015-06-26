@@ -1028,7 +1028,7 @@ void CRender3DView::UpdateAnimationPax(CTermPlanDoc* pDoc, double* dAlt , BOOL* 
 					pPax3D->SetPosition( geoData.pos );
 
 
-					if( pPTI->IsShowTags() )
+					if( pPTI->IsShowTags() && !pDoc->m_bHideACTags )
 					{
 						CString sPaxTag;
 						CAnimationManager::BuildPaxTag(pDoc,pPTI->GetTagInfo(), pds, pesA, sPaxTag);
