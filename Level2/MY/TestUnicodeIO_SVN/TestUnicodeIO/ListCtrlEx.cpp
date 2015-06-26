@@ -34,7 +34,7 @@ CListCtrlEx::~CListCtrlEx()
 BEGIN_MESSAGE_MAP(CListCtrlEx, CListCtrl)
     ON_WM_HSCROLL()
     ON_WM_VSCROLL()
-    ON_WM_LBUTTONDOWN()
+    //ON_WM_LBUTTONDOWN()
     ON_NOTIFY_REFLECT_EX(LVN_ENDLABELEDIT, OnEndlabeledit)
     ON_WM_LBUTTONDBLCLK()
     ON_WM_RBUTTONDOWN()
@@ -231,7 +231,7 @@ BOOL CListCtrlEx::OnEndlabeledit(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CListCtrlEx::OnLButtonDown(UINT nFlags, CPoint point) 
 {
-    SetFocus();
+    //SetFocus();
     int index;
     if((index = HitTestEx(point, NULL)) != -1)
     {
@@ -540,11 +540,6 @@ void CListCtrlEx::SetCurSel(int nItem)
 }
 LRESULT CListCtrlEx::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
 {
-    if(message == 0x00000201)
-    {
-        int i=0;
-        i=8;
-    }
     if (message == WM_INPLACE_SPIN)
     {
         LPSPINTEXT pst = (LPSPINTEXT) lParam;

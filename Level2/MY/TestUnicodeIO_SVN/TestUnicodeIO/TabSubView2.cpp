@@ -122,12 +122,12 @@ void CTabSubView2::InertTempDataToList()
     int DefaultColumnWidth[] = { 140, 140, 140, 140 };
     int nColFormat[] = { LVCFMT_NOEDIT, LVCFMT_DROPDOWN, LVCFMT_DROPDOWN, LVCFMT_DROPDOWN };
 
-    /*LV_COLUMNEX*/LVCOLUMN lvc;
+    LV_COLUMNEX lvc;
     lvc.mask = LVCF_WIDTH | LVCF_TEXT;
 
     CStringList strList;
     strList.RemoveAll();
-    //lvc.csList = &strList;
+    lvc.csList = &strList;
 
     lvc.fmt = nColFormat[0];
     lvc.pszText = columnLabel[0].GetBuffer();
@@ -137,19 +137,19 @@ void CTabSubView2::InertTempDataToList()
     lvc.fmt = nColFormat[1];
     lvc.pszText = columnLabel[1].GetBuffer();
     lvc.cx = 140;
-    //lvc.csList = &strList;
+    lvc.csList = &strList;
     m_mainList.InsertColumn(1, &lvc);
 
     lvc.fmt = nColFormat[2];
     lvc.pszText = columnLabel[2].GetBuffer();
     lvc.cx = 140;
-    //lvc.csList = &strList;
+    lvc.csList = &strList;
     m_mainList.InsertColumn(2, &lvc);
 
     lvc.fmt = nColFormat[3];
     lvc.pszText = columnLabel[3].GetBuffer();
     lvc.cx = 140;
-    //lvc.csList = &strList;
+    lvc.csList = &strList;
     m_mainList.InsertColumn(3, &lvc);
 
 

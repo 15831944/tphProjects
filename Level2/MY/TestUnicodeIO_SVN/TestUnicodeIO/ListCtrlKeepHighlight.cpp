@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ListCtrlKeepHighlight.h"
 
-#define LIST_ITEM_HEIGHT 13
+#define LIST_ITEM_HEIGHT 26
 
 
 IMPLEMENT_DYNAMIC(CListCtrlKeepHighlight, CListCtrlEx)
@@ -114,6 +114,7 @@ void CListCtrlKeepHighlight::DrawSubItem(CDC *pDC, int nItem, int nSubItem, CRec
 
     CString strText = GetItemText(nItem, nSubItem);
     DrawRowBackground(pDC, rSubItem, bSelected, bFocus, nItem);
+    //UINT leftMidRight =  
     pDC->DrawText(strText, strText.GetLength(), &rSubItem, DT_SINGLELINE | DT_RIGHT | DT_VCENTER | DT_END_ELLIPSIS);
 }
 
