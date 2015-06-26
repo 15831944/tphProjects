@@ -1,0 +1,101 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcproj", "{841FBB96-D41E-402A-A82A-6A87D538E5A9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FF69501-ABF0-434F-880E-E87A6FD47C8D} = {4FF69501-ABF0-434F-880E-E87A6FD47C8D}
+		{8ADF9016-0814-45F2-90CB-0EA0964D47F4} = {8ADF9016-0814-45F2-90CB-0EA0964D47F4}
+		{FCC4362B-5D7D-4597-A17F-F5D51C09A37A} = {FCC4362B-5D7D-4597-A17F-F5D51C09A37A}
+		{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD} = {2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}
+		{3B85DDCD-8974-43CF-A85C-2B1F382226AA} = {3B85DDCD-8974-43CF-A85C-2B1F382226AA}
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3} = {DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "..\Common\Common.vcproj", "{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "RenderEngine\Renderer.vcproj", "{FCC4362B-5D7D-4597-A17F-F5D51C09A37A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FF69501-ABF0-434F-880E-E87A6FD47C8D} = {4FF69501-ABF0-434F-880E-E87A6FD47C8D}
+		{8ADF9016-0814-45F2-90CB-0EA0964D47F4} = {8ADF9016-0814-45F2-90CB-0EA0964D47F4}
+		{DCE39151-AB29-4F0A-85FA-D9BEF38B788F} = {DCE39151-AB29-4F0A-85FA-D9BEF38B788F}
+		{3B85DDCD-8974-43CF-A85C-2B1F382226AA} = {3B85DDCD-8974-43CF-A85C-2B1F382226AA}
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3} = {DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputOnboard", "..\InputOnBoard\InputOnBoard.vcproj", "{3B85DDCD-8974-43CF-A85C-2B1F382226AA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenDWGToolKit", "..\OpenDWGToolKit\OpenDWGToolKit.vcproj", "{4FF69501-ABF0-434F-880E-E87A6FD47C8D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3} = {DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Database", "..\Database\Database.vcproj", "{8ADF9016-0814-45F2-90CB-0EA0964D47F4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3} = {DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MFCExControl", "..\MFCExControl\MFCExControl.vcproj", "{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3} = {DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "inputs", "..\Inputs\Inputs.vcproj", "{209EA697-260E-482B-8B8A-26481CAAAC58}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3DTools", "3DTools\3DTools.vcproj", "{DCE39151-AB29-4F0A-85FA-D9BEF38B788F}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{841FBB96-D41E-402A-A82A-6A87D538E5A9}.Debug.ActiveCfg = Debug|Win32
+		{841FBB96-D41E-402A-A82A-6A87D538E5A9}.Debug.Build.0 = Debug|Win32
+		{841FBB96-D41E-402A-A82A-6A87D538E5A9}.Release.ActiveCfg = Release|Win32
+		{841FBB96-D41E-402A-A82A-6A87D538E5A9}.Release.Build.0 = Release|Win32
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}.Debug.ActiveCfg = Debug|Win32
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}.Debug.Build.0 = Debug|Win32
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}.Release.ActiveCfg = Release|Win32
+		{DCFED0D8-CAFD-4077-88F3-FED91C6CA0E3}.Release.Build.0 = Release|Win32
+		{FCC4362B-5D7D-4597-A17F-F5D51C09A37A}.Debug.ActiveCfg = Debug|Win32
+		{FCC4362B-5D7D-4597-A17F-F5D51C09A37A}.Debug.Build.0 = Debug|Win32
+		{FCC4362B-5D7D-4597-A17F-F5D51C09A37A}.Release.ActiveCfg = Release|Win32
+		{FCC4362B-5D7D-4597-A17F-F5D51C09A37A}.Release.Build.0 = Release|Win32
+		{3B85DDCD-8974-43CF-A85C-2B1F382226AA}.Debug.ActiveCfg = Debug|Win32
+		{3B85DDCD-8974-43CF-A85C-2B1F382226AA}.Debug.Build.0 = Debug|Win32
+		{3B85DDCD-8974-43CF-A85C-2B1F382226AA}.Release.ActiveCfg = Release|Win32
+		{3B85DDCD-8974-43CF-A85C-2B1F382226AA}.Release.Build.0 = Release|Win32
+		{4FF69501-ABF0-434F-880E-E87A6FD47C8D}.Debug.ActiveCfg = Debug|Win32
+		{4FF69501-ABF0-434F-880E-E87A6FD47C8D}.Debug.Build.0 = Debug|Win32
+		{4FF69501-ABF0-434F-880E-E87A6FD47C8D}.Release.ActiveCfg = Release|Win32
+		{4FF69501-ABF0-434F-880E-E87A6FD47C8D}.Release.Build.0 = Release|Win32
+		{8ADF9016-0814-45F2-90CB-0EA0964D47F4}.Debug.ActiveCfg = Debug|Win32
+		{8ADF9016-0814-45F2-90CB-0EA0964D47F4}.Debug.Build.0 = Debug|Win32
+		{8ADF9016-0814-45F2-90CB-0EA0964D47F4}.Release.ActiveCfg = Release|Win32
+		{8ADF9016-0814-45F2-90CB-0EA0964D47F4}.Release.Build.0 = Release|Win32
+		{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}.Debug.ActiveCfg = Debug|Win32
+		{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}.Debug.Build.0 = Debug|Win32
+		{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}.Release.ActiveCfg = Release|Win32
+		{2FC576CD-35FF-4234-BA13-6B2A2DD47DBD}.Release.Build.0 = Release|Win32
+		{209EA697-260E-482B-8B8A-26481CAAAC58}.Debug.ActiveCfg = Debug|Win32
+		{209EA697-260E-482B-8B8A-26481CAAAC58}.Debug.Build.0 = Debug|Win32
+		{209EA697-260E-482B-8B8A-26481CAAAC58}.Release.ActiveCfg = Release|Win32
+		{209EA697-260E-482B-8B8A-26481CAAAC58}.Release.Build.0 = Release|Win32
+		{DCE39151-AB29-4F0A-85FA-D9BEF38B788F}.Debug.ActiveCfg = Debug|Win32
+		{DCE39151-AB29-4F0A-85FA-D9BEF38B788F}.Debug.Build.0 = Debug|Win32
+		{DCE39151-AB29-4F0A-85FA-D9BEF38B788F}.Release.ActiveCfg = Release|Win32
+		{DCE39151-AB29-4F0A-85FA-D9BEF38B788F}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

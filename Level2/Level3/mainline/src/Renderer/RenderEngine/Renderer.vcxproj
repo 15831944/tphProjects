@@ -1,0 +1,481 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Template|Win32">
+      <Configuration>Template</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FCC4362B-5D7D-4597-A17F-F5D51C09A37A}</ProjectGuid>
+    <RootNamespace>RenderEngine</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseOfAtl>Dynamic</UseOfAtl>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PostBuildEventUseInBuild>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\;..\..\;..\Ogre\include\;..\Ogre\include\OGRE;..\Ogre\include\OGRE\RenderSystems\GL;..\..\..\..\ARCCommon\DirectX\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zziplib_d.lib;zlib_d.lib;freetype_d.lib;FreeImage_d.lib;RenderSystem_Direct3D9Static_D.lib;RenderSystem_GLStatic_d.lib;Plugin_CgProgramManagerStatic_d.lib;OgreMainStatic_d.lib;opengl32.lib;glu32.lib;cg.lib;dxguid.lib;d3d9.lib;d3dx9.lib;dxerr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\ogre\lib;..\Ogre\lib\Debug;..\Ogre\lib\Debug\opt;..\..\..\objd\;..\..\..\..\ARCCommon\DirectX\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/Zm500 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>..\..\;..\Ogre\include\;..\Ogre\include\OGRE;..\Ogre\include\OGRE\RenderSystems\GL;..\..\..\..\ARCCommon\DirectX\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zziplib.lib;zlib.lib;freetype.lib;FreeImage.lib;opengl32.lib;glu32.lib;cg.lib;d3d9.lib;d3dx9.lib;dxerr.lib;dxguid.lib;Plugin_CgProgramManagerStatic.lib;RenderSystem_Direct3D9Static.lib;RenderSystem_GLStatic.lib;OgreMainStatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\Ogre\lib;..\Ogre\lib\Release;..\Ogre\lib\Release\opt;..\..\..\objd\;..\..\..\..\ARCCommon\DirectX\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Manifest>
+      <EnableDPIAwareness>false</EnableDPIAwareness>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="3DAirsideNode.cpp" />
+    <ClCompile Include="3DBaseView.cpp" />
+    <ClCompile Include="3DCADMap.cpp" />
+    <ClCompile Include="3DFloorNode.cpp" />
+    <ClCompile Include="3DLandsideNode.cpp" />
+    <ClCompile Include="3DMovableObject.cpp" />
+    <ClCompile Include="3DNodeObject.cpp" />
+    <ClCompile Include="3DNodeObjectListener.cpp" />
+    <ClCompile Include="3DNodeWithTag.cpp" />
+    <ClCompile Include="3DProcessorNode.cpp" />
+    <ClCompile Include="3ds2mesh.cpp" />
+    <ClCompile Include="3DScene.cpp" />
+    <ClCompile Include="3DSceneNode.cpp" />
+    <ClCompile Include="3DSceneSnapShot.cpp" />
+    <ClCompile Include="3DTerminalNode.cpp" />
+    <ClCompile Include="3DUIOperationTarget.cpp" />
+    <ClCompile Include="AircraftLayout3DNode.cpp" />
+    <ClCompile Include="AircraftModel3DNode.cpp" />
+    <ClCompile Include="ARCRenderTargetListener.cpp" />
+    <ClCompile Include="AutoScaleNodeUpdater.cpp" />
+    <ClCompile Include="BoundBox3D.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ColoredTextAreaOverlayElement.cpp" />
+    <ClCompile Include="CommonShapes.cpp" />
+    <ClCompile Include="CoordinateDisplayScene.cpp" />
+    <ClCompile Include="Deck3DNode.cpp" />
+    <ClCompile Include="DlgRenderOptions.cpp" />
+    <ClCompile Include="FloorAlignMarker.cpp" />
+    <ClCompile Include="Grid3D.cpp" />
+    <ClCompile Include="GridSceneNode.cpp" />
+    <ClCompile Include="HardwareStencilBuffer.cpp" />
+    <ClCompile Include="IRender3DView.cpp" />
+    <ClCompile Include="LandIntersection3D.cpp" />
+    <ClCompile Include="LandsideArea3D.cpp" />
+    <ClCompile Include="LandsideBusStation3D.cpp" />
+    <ClCompile Include="LandsideControlDevice3D.cpp" />
+    <ClCompile Include="LandsideCrosswalk3D.cpp" />
+    <ClCompile Include="LandsideCurbside3D.cpp" />
+    <ClCompile Include="LandsideDecisionPoint3D.cpp" />
+    <ClCompile Include="LandsideExternalNode3D.cpp" />
+    <ClCompile Include="LandsideLinkStretchArea.cpp" />
+    <ClCompile Include="LandsideParkingLot3D.cpp" />
+    <ClCompile Include="LandsidePortal3D.cpp" />
+    <ClCompile Include="LandsideRoundAboout3D.cpp" />
+    <ClCompile Include="LandsideStretch3D.cpp" />
+    <ClCompile Include="LandsideStretchSegment3D.cpp" />
+    <ClCompile Include="LandsideTaxiPool3D.cpp" />
+    <ClCompile Include="LandsideTaxiQueue3D.cpp" />
+    <ClCompile Include="LandsideTrafficLight3D.cpp" />
+    <ClCompile Include="LandsideVehicle3D.cpp" />
+    <ClCompile Include="LandsideWalkway3D.cpp" />
+    <ClCompile Include="LayerManualObject.cpp" />
+    <ClCompile Include="LayoutObjcet3D.cpp" />
+    <ClCompile Include="Lines3D.cpp" />
+    <ClCompile Include="ManualObjectExt.cpp" />
+    <ClCompile Include="ManualObjectUtil.cpp" />
+    <ClCompile Include="ManualText.cpp" />
+    <ClCompile Include="MaterialManager.cpp" />
+    <ClCompile Include="MaterialUtil.cpp" />
+    <ClCompile Include="ModelSnapShot.cpp" />
+    <ClCompile Include="Mouse3DState.cpp" />
+    <ClCompile Include="NonPaxRelativePosDefScene.cpp" />
+    <ClCompile Include="OgreBillboardObject.cpp" />
+    <ClCompile Include="OgreUtil.cpp" />
+    <ClCompile Include="PathEdit3DNode.cpp" />
+    <ClCompile Include="PaxSimScene.cpp" />
+    <ClCompile Include="Render3DSceneOverlay.cpp" />
+    <ClCompile Include="RenderEngine.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderFillet.cpp" />
+    <ClCompile Include="RenderLandside3D.cpp" />
+    <ClCompile Include="RenderScene3DNode.cpp" />
+    <ClCompile Include="RenderSharpMode.cpp" />
+    <ClCompile Include="FloorSurfaceRender.cpp" />
+    <ClCompile Include="RotationSeries.cpp" />
+    <ClCompile Include="SceneNodeCoordinate.cpp" />
+    <ClCompile Include="SceneNodeQueryData.cpp" />
+    <ClCompile Include="SceneNodeSerializer.cpp" />
+    <ClCompile Include="SceneNodeToMesh.cpp" />
+    <ClCompile Include="SceneOverlayDisplay.cpp" />
+    <ClCompile Include="SceneState.cpp" />
+    <ClCompile Include="SceneUIOperations.cpp" />
+    <ClCompile Include="Shape3DMeshManager.cpp" />
+    <ClCompile Include="ShapeTransformer.cpp" />
+    <ClCompile Include="SharpModeBackground.cpp" />
+    <ClCompile Include="SharpModeBackgroundScene.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="AnimaFlight3D.cpp" />
+    <ClCompile Include="AnimaPax3D.cpp" />
+    <ClCompile Include="AnimaVehicle3D.cpp" />
+    <ClCompile Include="Render3DContext.cpp" />
+    <ClCompile Include="Render3DScene.cpp" />
+    <ClCompile Include="RenderAirsideStructure3D.cpp" />
+    <ClCompile Include="RenderAreaPortal3D.cpp" />
+    <ClCompile Include="RenderBillboard3D.cpp" />
+    <ClCompile Include="RenderCounter3D.cpp" />
+    <ClCompile Include="RenderEscalator3D.cpp" />
+    <ClCompile Include="RenderFloor3D.cpp" />
+    <ClCompile Include="RenderIntegratedStation3D.cpp" />
+    <ClCompile Include="RenderPipe3D.cpp" />
+    <ClCompile Include="RenderProcessor3D.cpp" />
+    <ClCompile Include="RenderStructure3D.cpp" />
+    <ClCompile Include="RenderSurface3D.cpp" />
+    <ClCompile Include="RenderWallShape3D.cpp" />
+    <ClCompile Include="SelectionManager.cpp" />
+    <ClCompile Include="ShapeBuilder.cpp" />
+    <ClCompile Include="Terminal3DCommands.cpp" />
+    <ClCompile Include="Terminal3DListBase.cpp" />
+    <ClCompile Include="Terminal3DObject.cpp" />
+    <ClCompile Include="Tesselator.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneInfo.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneInterface.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneLoader.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneLoaderImpl-0.2.0.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneResource.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneResourceManager.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneSerializer.cpp" />
+    <ClCompile Include="DotSceneSrc\dotSceneUtils.cpp" />
+    <ClCompile Include="BaseFloor3D.cpp" />
+    <ClCompile Include="3DObjectCommands.cpp" />
+    <ClCompile Include="3DObjModelEditContext.cpp" />
+    <ClCompile Include="3DObjModelEditScene.cpp" />
+    <ClCompile Include="AircraftElementNode.cpp" />
+    <ClCompile Include="AircraftLayoutScene.cpp" />
+    <ClCompile Include="Render3DSceneTags.cpp" />
+    <ClCompile Include="RenderBridge3D.cpp" />
+    <ClCompile Include="RenderControlPoint.cpp" />
+    <ClCompile Include="RenderConvey3D.cpp" />
+    <ClCompile Include="RenderDevice.cpp" />
+    <ClCompile Include="RenderElevator3D.cpp" />
+    <ClCompile Include="RenderFloorChangeProc3D.cpp" />
+    <ClCompile Include="RenderMovingSideWalk3D.cpp" />
+    <ClCompile Include="RenderStairProc3D.cpp" />
+    <ClCompile Include="SimpleMesh3D.cpp" />
+    <ClCompile Include="SimpleMeshEditScene.cpp" />
+    <ClCompile Include="SimpleModel3D.cpp" />
+    <ClCompile Include="RenderAirHold3D.cpp" />
+    <ClCompile Include="RenderAirport3D.cpp" />
+    <ClCompile Include="RenderAirRoute3D.cpp" />
+    <ClCompile Include="RenderAirSector3D.cpp" />
+    <ClCompile Include="RenderAirWayPoint3D.cpp" />
+    <ClCompile Include="RenderCircleStretch3D.cpp" />
+    <ClCompile Include="RenderDeicePad3D.cpp" />
+    <ClCompile Include="RenderFillet3D.cpp" />
+    <ClCompile Include="RenderHeliport3D.cpp" />
+    <ClCompile Include="RenderHoldPosition3D.cpp" />
+    <ClCompile Include="RenderInterStretch3D.cpp" />
+    <ClCompile Include="RenderMeetingPoint3D.cpp" />
+    <ClCompile Include="RenderPoolParking3D.cpp" />
+    <ClCompile Include="RenderRoadIntersection3D.cpp" />
+    <ClCompile Include="RenderRunway3D.cpp" />
+    <ClCompile Include="RenderStand3D.cpp" />
+    <ClCompile Include="RenderStartPosition3D.cpp" />
+    <ClCompile Include="RenderStopSign3D.cpp" />
+    <ClCompile Include="RenderStretch3D.cpp" />
+    <ClCompile Include="RenderTaxiInterruptLine3D.cpp" />
+    <ClCompile Include="RenderTaxiway3D.cpp" />
+    <ClCompile Include="RenderTollGate3D.cpp" />
+    <ClCompile Include="RenderTrafficLight3D.cpp" />
+    <ClCompile Include="RenderYieldSign3D.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3ds2mesh.h" />
+    <ClInclude Include="BaseFloor3D.h" />
+    <ClInclude Include="AnimaFlight3D.h" />
+    <ClInclude Include="AnimaPax3D.h" />
+    <ClInclude Include="AnimaVehicle3D.h" />
+    <ClInclude Include="LandsideArea3D.h" />
+    <ClInclude Include="LandsideControlDevice3D.h" />
+    <ClInclude Include="LandsideLinkStretchArea.h" />
+    <ClInclude Include="ManualObjectUtil.h" />
+    <ClInclude Include="Render3DContext.h" />
+    <ClInclude Include="Render3DScene.h" />
+    <ClInclude Include="RenderAirsideStructure3D.h" />
+    <ClInclude Include="RenderAreaPortal3D.h" />
+    <ClInclude Include="RenderBillboard3D.h" />
+    <ClInclude Include="RenderCounter3D.h" />
+    <ClInclude Include="RenderEngineAPI.h" />
+    <ClInclude Include="RenderEscalator3D.h" />
+    <ClInclude Include="RenderFloor3D.h" />
+    <ClInclude Include="RenderIntegratedStation3D.h" />
+    <ClInclude Include="RenderPipe3D.h" />
+    <ClInclude Include="RenderProcessor3D.h" />
+    <ClInclude Include="FloorSurfaceRender.h" />
+    <ClInclude Include="RenderStructure3D.h" />
+    <ClInclude Include="RenderSurface3D.h" />
+    <ClInclude Include="RenderWallShape3D.h" />
+    <ClInclude Include="Terminal3DCommands.h" />
+    <ClInclude Include="Terminal3DList.h" />
+    <ClInclude Include="Terminal3DListBase.h" />
+    <ClInclude Include="Terminal3DObject.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneInfo.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneInterface.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneInterfacePrerequisites.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneLoader.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneLoaderImpl-0.2.0.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneResource.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneResourceManager.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneSerializer.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneTinyxml.h" />
+    <ClInclude Include="DotSceneSrc\dotSceneUtils.h" />
+    <ClInclude Include="DotSceneSrc\IDotSceneLoaderImpl.h" />
+    <ClInclude Include="3DBaseView.h" />
+    <ClInclude Include="3DCADMap.h" />
+    <ClInclude Include="3DNodeObject.h" />
+    <ClInclude Include="3DNodeObjectListener.h" />
+    <ClInclude Include="3DNodeWithTag.h" />
+    <ClInclude Include="3DScene.h" />
+    <ClInclude Include="3DSceneSnapShot.h" />
+    <ClInclude Include="AfxHeader.h" />
+    <ClInclude Include="AircraftLayout3DNode.h" />
+    <ClInclude Include="AircraftModel3DNode.h" />
+    <ClInclude Include="Airside3DObjectWrapper.h" />
+    <ClInclude Include="AnimaMob3DList.h" />
+    <ClInclude Include="ARCRenderTargetListener.h" />
+    <ClInclude Include="AutoScaleNodeUpdater.h" />
+    <ClInclude Include="BoundBox3D.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ColoredTextAreaOverlayElement.h" />
+    <ClInclude Include="CommonShapes.h" />
+    <ClInclude Include="CoordinateDisplayScene.h" />
+    <ClInclude Include="CustomizedRenderQueue.h" />
+    <ClInclude Include="DlgRenderOptions.h" />
+    <ClInclude Include="FloorAlignMarker.h" />
+    <ClInclude Include="Grid3D.h" />
+    <ClInclude Include="HardwareStencilBuffer.h" />
+    <ClInclude Include="IRender3DView.h" />
+    <ClInclude Include="KeyNodeList.h" />
+    <ClInclude Include="LandIntersection3D.h" />
+    <ClInclude Include="LandsideBusStation3D.h" />
+    <ClInclude Include="LandsideCrosswalk3D.h" />
+    <ClInclude Include="LandsideCurbside3D.h" />
+    <ClInclude Include="LandsideExternalNode3D.h" />
+    <ClInclude Include="LandsideParkingLot3D.h" />
+    <ClInclude Include="LandsidePortal3D.h" />
+    <ClInclude Include="LandsideRoundAboout3D.h" />
+    <ClInclude Include="LandsideStretch3D.h" />
+    <ClInclude Include="LandsideStretchSegment3D.h" />
+    <ClInclude Include="LandsideTrafficLight3D.h" />
+    <ClInclude Include="LandsideVehicle3D.h" />
+    <ClInclude Include="LandsideWalkway3D.h" />
+    <ClInclude Include="LayerManualObject.h" />
+    <ClInclude Include="LayoutObjcet3D.h" />
+    <ClInclude Include="Lines3D.h" />
+    <ClInclude Include="ManualText.h" />
+    <ClInclude Include="MaterialDef.h" />
+    <ClInclude Include="MaterialUtil.h" />
+    <ClInclude Include="ModelSnapShot.h" />
+    <ClInclude Include="Mouse3DState.h" />
+    <ClInclude Include="NonPaxRelativePosDefScene.h" />
+    <ClInclude Include="OgreBillboardObject.h" />
+    <ClInclude Include="OgreConvert.h" />
+    <ClInclude Include="OgreUtil.h" />
+    <ClInclude Include="PathEdit3DNode.h" />
+    <ClInclude Include="PaxSimScene.h" />
+    <ClInclude Include="Render3DSceneTags.h" />
+    <ClInclude Include="RenderBridge3D.h" />
+    <ClInclude Include="RenderControlPoint.h" />
+    <ClInclude Include="RenderConvey3D.h" />
+    <ClInclude Include="RenderDevice.h" />
+    <ClInclude Include="RenderElevator3D.h" />
+    <ClInclude Include="RenderEngine.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderFloorChangeProc3D.h" />
+    <ClInclude Include="RenderLandside3D.h" />
+    <ClInclude Include="RenderMovingSideWalk3D.h" />
+    <ClInclude Include="RenderScene3DNode.h" />
+    <ClInclude Include="RenderSharpMode.h" />
+    <ClInclude Include="RenderStairProc3D.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="RotationSeries.h" />
+    <ClInclude Include="SceneNodeCoordinate.h" />
+    <ClInclude Include="SceneNodeQueryData.h" />
+    <ClInclude Include="SceneNodeSerializer.h" />
+    <ClInclude Include="SceneNodeToMesh.h" />
+    <ClInclude Include="SceneNodeType.h" />
+    <ClInclude Include="SceneOverlayDisplay.h" />
+    <ClInclude Include="SceneState.h" />
+    <ClInclude Include="SelectionManager.h" />
+    <ClInclude Include="Shape3DMeshManager.h" />
+    <ClInclude Include="ShapeBuilder.h" />
+    <ClInclude Include="ShapeTransformer.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Tesselator.h" />
+    <ClInclude Include="3DObjectCommands.h" />
+    <ClInclude Include="3DObjModelEditContext.h" />
+    <ClInclude Include="3DObjModelEditScene.h" />
+    <ClInclude Include="AircraftElementNode.h" />
+    <ClInclude Include="AircraftLayoutScene.h" />
+    <ClInclude Include="SimpleMesh3D.h" />
+    <ClInclude Include="SimpleMeshEditScene.h" />
+    <ClInclude Include="SimpleModel3D.h" />
+    <ClInclude Include="RenderAirHold3D.h" />
+    <ClInclude Include="RenderAirport3D.h" />
+    <ClInclude Include="RenderAirRoute3D.h" />
+    <ClInclude Include="RenderAirSector3D.h" />
+    <ClInclude Include="RenderAirWayPoint3D.h" />
+    <ClInclude Include="RenderCircleStretch3D.h" />
+    <ClInclude Include="RenderDeicePad3D.h" />
+    <ClInclude Include="RenderFillet3D.h" />
+    <ClInclude Include="RenderHeliport3D.h" />
+    <ClInclude Include="RenderHoldPosition3D.h" />
+    <ClInclude Include="RenderInterStretch3D.h" />
+    <ClInclude Include="RenderMeetingPoint3D.h" />
+    <ClInclude Include="RenderPoolParking3D.h" />
+    <ClInclude Include="RenderRoadIntersection3D.h" />
+    <ClInclude Include="RenderRunway3D.h" />
+    <ClInclude Include="RenderStand3D.h" />
+    <ClInclude Include="RenderStartPosition3D.h" />
+    <ClInclude Include="RenderStopSign3D.h" />
+    <ClInclude Include="RenderStretch3D.h" />
+    <ClInclude Include="RenderTaxiInterruptLine3D.h" />
+    <ClInclude Include="RenderTollGate3D.h" />
+    <ClInclude Include="RenderTrafficLight3D.h" />
+    <ClInclude Include="RenderYieldSign3D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Renderer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\7ziplib\7ziplib.vcxproj">
+      <Project>{65d56287-64b2-4b11-ac67-51f9dfddfcc7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CommonData\CommanData.vcxproj">
+      <Project>{76210374-cc15-4f65-8b78-370747ad8d1f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Common.vcxproj">
+      <Project>{dcfed0d8-cafd-4077-88f3-fed91c6ca0e3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Database\Database.vcxproj">
+      <Project>{8adf9016-0814-45f2-90cb-0ea0964d47f4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InputAirside\InputAirside.vcxproj">
+      <Project>{d4ad5177-b492-4479-85fa-1dbff02c6296}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InputOnboard\InputOnboard.vcxproj">
+      <Project>{3b85ddcd-8974-43cf-a85c-2b1f382226aa}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Landside\Landside.vcxproj">
+      <Project>{03f2d2fd-aa1b-4a12-b3d6-130d3e3d8845}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\OpenDWGToolKit\OpenDWGToolKit.vcxproj">
+      <Project>{4ff69501-abf0-434f-880e-e87a6fd47c8d}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\3DTools\3DTools.vcxproj">
+      <Project>{dce39151-ab29-4f0a-85fa-d9bef38b788f}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="Renderer.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

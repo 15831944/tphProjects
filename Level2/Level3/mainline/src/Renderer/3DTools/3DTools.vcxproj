@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DCE39151-AB29-4F0A-85FA-D9BEF38B788F}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)objd\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_D</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\Ogre\include\OGRE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;DTOOLS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zziplib_d.lib;zlib_d.lib;freetype_d.lib;FreeImage_d.lib;OgreMainStatic_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\ogre\lib;..\Ogre\lib\Debug;..\Ogre\lib\Debug\opt;..\..\..\objd\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Ogre\include\OGRE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;DTOOLS_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zziplib.lib;zlib.lib;freetype.lib;FreeImage.lib;OgreMainStatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)bin\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>..\Ogre\lib;..\Ogre\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="3DTools.h" />
+    <ClInclude Include="getopt.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsambm.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsaset.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsbbox.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsbgnd.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dscamm.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dscamr.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dserr.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsfile.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsftkst.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dshier.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsiobj.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dskey.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dslites.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsmatr.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsmatx.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsmobj.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsmset.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsobjm.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsomnm.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsprim.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsrange.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsrobj.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dssptm.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsstrlf.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dstype.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsutil.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsvers.h" />
+    <ClInclude Include="3dsftk3\SOURCE\3dsvprt.h" />
+    <ClInclude Include="3dsftk3\SOURCE\chunk3ds.h" />
+    <ClInclude Include="3dsftk3\SOURCE\chunkinf.h" />
+    <ClInclude Include="3dsftk3\SOURCE\dbase3ds.h" />
+    <ClInclude Include="3dsftk3\SOURCE\dumpchnk.h" />
+    <ClInclude Include="3dsftk3\SOURCE\dumpsrc.h" />
+    <ClInclude Include="3dsftk3\SOURCE\dumpstr.h" />
+    <ClInclude Include="3dsftk3\SOURCE\ftkhead.h" />
+    <ClInclude Include="3dsftk3\SOURCE\ftktail.h" />
+    <ClInclude Include="3dsftk3\SOURCE\kdata3ds.h" />
+    <ClInclude Include="3dsftk3\SOURCE\kfutils.h" />
+    <ClInclude Include="3dsftk3\SOURCE\mdata3ds.h" />
+    <ClInclude Include="3dsftk3\SOURCE\seekchil.h" />
+    <ClInclude Include="3dsftk3\SOURCE\smartall.h" />
+    <ClInclude Include="3dsftk3\SOURCE\strcmpi.h" />
+    <ClInclude Include="3dsftk3\SOURCE\swapbyte.h" />
+    <ClInclude Include="3dsftk3\SOURCE\xdata.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="3DTools.cpp" />
+    <ClCompile Include="getopt.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsambm.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsaset.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsbbox.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsbgnd.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dscamm.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dscamr.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dserr.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsfile.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dshier.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsiobj.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dskey.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dslites.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsmatr.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsmatx.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsmobj.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsmset.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsobjm.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsomnm.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsprim.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsrobj.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dssptm.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsstrlf.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsutil.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsvers.c" />
+    <ClCompile Include="3dsftk3\SOURCE\3dsvprt.c" />
+    <ClCompile Include="3dsftk3\SOURCE\assert.c" />
+    <ClCompile Include="3dsftk3\SOURCE\chunk3ds.c" />
+    <ClCompile Include="3dsftk3\SOURCE\dbase3ds.c" />
+    <ClCompile Include="3dsftk3\SOURCE\dumpchnk.c" />
+    <ClCompile Include="3dsftk3\SOURCE\dumpsrc.c" />
+    <ClCompile Include="3dsftk3\SOURCE\dumpstr.c" />
+    <ClCompile Include="3dsftk3\SOURCE\kdata3ds.c" />
+    <ClCompile Include="3dsftk3\SOURCE\kfutils.c" />
+    <ClCompile Include="3dsftk3\SOURCE\makeswap.c" />
+    <ClCompile Include="3dsftk3\SOURCE\mdata3ds.c" />
+    <ClCompile Include="3dsftk3\SOURCE\seekchil.c" />
+    <ClCompile Include="3dsftk3\SOURCE\smartall.c" />
+    <ClCompile Include="3dsftk3\SOURCE\strcmpi.c" />
+    <ClCompile Include="3dsftk3\SOURCE\strdup.c" />
+    <ClCompile Include="3dsftk3\SOURCE\swapbyte.c" />
+    <ClCompile Include="3dsftk3\SOURCE\xdata.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="3dsftk3\SOURCE\ftkfiles.inc" />
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
