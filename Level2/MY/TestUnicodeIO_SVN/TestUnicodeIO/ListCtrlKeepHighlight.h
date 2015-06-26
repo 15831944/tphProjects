@@ -10,10 +10,10 @@ public:
     DECLARE_MESSAGE_MAP()
 protected:
     virtual void PreSubclassWindow();
-    virtual void InvalidateItem(int nItem);
-    virtual void DrawSubItem(CDC *pDC, int nItem, int nSubItem, CRect &rSubItem, bool bSelected, bool bFocus);
-    virtual void DrawRowBackground(CDC *pDC, RECT rc, bool bSelected, bool bFocus,int nRow);
-    virtual void DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd);
+    void InvalidateItemRect(int nItem);
+    void DrawSubItem( LPNMLVCUSTOMDRAW lpnmcd );
+    void DrawSubItemBackground(CDC& dc, RECT rc, bool bSelected, bool bFocus);
+    void DrawRemainSpace(LPNMLVCUSTOMDRAW lpnmcd);
     afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult);
 private:
