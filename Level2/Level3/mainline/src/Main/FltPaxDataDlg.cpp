@@ -17,7 +17,7 @@
 #include "../InputAirside/InputAirside.h"
 #include ".\fltpaxdatadlg.h"
 #include "..\Inputs\BridgeConnectorPaxData.h"
-
+#include "DlgImportFltPaxData.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -70,9 +70,13 @@ BEGIN_MESSAGE_MAP(CFltPaxDataDlg, CDialog)
 	ON_COMMAND(ID_TOOLBARBUTTONEDIT, OnToolbarbuttonedit)
 	ON_WM_MOUSEMOVE()
 	ON_BN_CLICKED(IDC_DELAY_IMPORT, OnDelayImport)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT,OnExportData)
 	//}}AFX_MSG_MAP
 	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXT, 0, 0xFFFF, OnToolTipText)
 	ON_BN_CLICKED(IDC_CHECK_NEGLECTSCHEDDATA, OnBnClickedCheckNeglectscheddata)
+	ON_COMMAND(ID_FLTPAX_LOCALPROJECT,OnLocalProjectOperation)
+	ON_COMMAND(ID_FLTPAX_EXPORTEDPROJECT,OnExportedProjectOperation)
+	ON_COMMAND(ID_CSV_FILE,OnCSVFileOperation)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -183,6 +187,12 @@ BOOL CFltPaxDataDlg::OnInitDialog()
 		else
 			m_btnNeglectSchedData.SetCheck(BST_UNCHECKED);
 	}
+
+	//	Init Cool button
+	m_btnImport.SetOperation(0);
+	m_btnImport.SetWindowText(_T("Import"));
+	m_btnImport.SetOpenButton(FALSE);
+	m_btnImport.SetType(CCoolBtn::TY_FLTPAX);
 
 	AfxGetApp()->EndWaitCursor();
 
@@ -808,4 +818,165 @@ void CFltPaxDataDlg::OnGetMinMaxInfo( MINMAXINFO FAR* lpMMI )
 	lpMMI->ptMinTrackSize.y = 348;
 
 	CDialog::OnGetMinMaxInfo(lpMMI);
+}
+
+void CFltPaxDataDlg::OnClickMultiBtn()
+{
+	//int type = m_btnImport.GetOperation();
+	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
+	//dlg.SetOperation(type);
+	//if(dlg.DoModal() == IDOK)
+	//{
+	//	//reload data
+	//}
+}
+
+void CFltPaxDataDlg::OnExportData()
+{
+	//CFileDialog dlgFile( FALSE, ".rep",NULL ,OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY,"Export Files (*.CSV)|*.CSV||", NULL, 0, FALSE  );
+	//CString sExportFileName;
+	//if (dlgFile.DoModal() == IDOK)
+	//	sExportFileName = dlgFile.GetPathName();
+	//else
+	//	return;
+
+	//try
+	//{
+	//	switch( m_enumType )
+	//	{
+	//	case FLIGHT_DELAYS:
+	//		ExportFlightData(GetInputTerminal()->flightData->getDelays(),sExportFileName,"DELAY");
+	//		break;
+	//	case FLIGHT_LOAD_FACTORS:
+	//		ExportFlightData(GetInputTerminal()->flightData->getLoads(),sExportFileName,"LOAD");
+	//		break;
+	//	case FLIGHT_AC_CAPACITIES:
+	//		ExportFlightData(GetInputTerminal()->flightData->getCapacity(),sExportFileName,"CAPACITY");
+	//		break;
+	//	case PAX_GROUP_SIZE:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getGroups(),sExportFileName,"GROUP_SIZE");
+	//		break;
+	//	case PAX_LEAD_LAG:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getLeadLagTime(),sExportFileName,"LEAD_LAG_TIME");
+	//		break;
+	//	case PAX_IN_STEP:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getImpactInStep(),sExportFileName,"IN_STEP");
+	//		break;
+	//	case PAX_SIDE_STEP:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getSideStep(),sExportFileName,"SIDE_STEP");
+	//		break;
+	//	case PAX_SPEED:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getSpeed(),sExportFileName,"SPEED");
+	//		break;
+	//	case PAX_VISIT_TIME:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getVisitTime(),sExportFileName,"VISIT_TIME");
+	//		break;
+	//	case PAX_RESPONSE_TIME:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getResponseTime(),sExportFileName,"RESPONSE_TIME");
+	//		break;
+	//	case PAX_SPEED_IMPACT:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getImpactSpeed(),sExportFileName,"SPEED_IMPACT");
+	//		break;
+	//	case PAX_PUSH_PROPENSITY:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getPushPropensity(),sExportFileName,"PUSH_PROPENSITY");
+	//		break;
+	//	case VISITOR_STA_TRIGGER:
+	//		ExportPaxData(GetInputTerminal()->paxDataList->getVisitorSTATrigger(),sExportFileName,"VISITOR_STA_TRIGGER");
+	//		break;
+	//	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+	//		ExportBridgeData(GetInputTerminal()->bcPaxData,sExportFileName);
+	//		break;
+	//	}
+	//}
+	//catch( FileVersionTooNewError* _pError )
+	//{
+	//	char szBuf[128];
+	//	_pError->getMessage( szBuf );
+	//	MessageBox( szBuf, "Error", MB_OK|MB_ICONWARNING );
+	//	delete _pError;			
+	//}
+
+
+	//AfxGetApp()->EndWaitCursor();
+}
+
+void CFltPaxDataDlg::ExportFlightData( ConstraintDatabase* pFlightDatabase,const CString& strFileName,const CString& strFlightName )
+{
+	ArctermFile file;
+	file.openFile (strFileName, WRITE, 2.20f);
+
+	file.writeField ("Flight Data File");
+	file.writeLine();
+
+	file.writeField ("Data,Flight,Units,Distribution,Parameters");
+	file.writeLine();
+
+	pFlightDatabase->writeDatabase(file,strFlightName,GetInputTerminal());
+
+	file.endFile();
+}
+
+void CFltPaxDataDlg::ExportPaxData( CMobileElemConstraintDatabase* pPaxDatabasae,const CString& strFileName,const CString& strPaxName )
+{
+	ArctermFile file;
+	file.openFile (strFileName, WRITE, 2.20f);
+
+	file.writeField ("Miscellaneous Passenger Data");
+	file.writeLine();
+
+	file.writeField ("Variable,Pax Type,Units,Distribution,Parameters");
+	file.writeLine();
+
+	pPaxDatabasae->writeDatabase(file,strPaxName,GetInputTerminal());
+
+	file.endFile();
+}
+
+void CFltPaxDataDlg::ExportBridgeData( BridgeConnectorPaxData* pBridgeDatabase,const CString& strFileName )
+{
+	ArctermFile file;
+	file.openFile (strFileName, WRITE, 2.20f);
+
+	file.writeField ("Miscellaneous Passenger Data");
+	file.writeLine();
+
+	file.writeField ("Variable,Pax Type,Units,Distribution,Parameters");
+	file.writeLine();
+
+	pBridgeDatabase->writeData(file);
+
+	file.endFile();
+}
+
+void CFltPaxDataDlg::OnLocalProjectOperation()
+{
+	//int type = 0;
+	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
+	//dlg.SetOperation(type);
+	//if(dlg.DoModal() == IDOK)
+	//{
+	//	//reload data
+	//}
+}
+
+void CFltPaxDataDlg::OnExportedProjectOperation()
+{
+	//int type = 1;
+	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
+	//dlg.SetOperation(type);
+	//if(dlg.DoModal() == IDOK)
+	//{
+	//	//reload data
+	//}
+}
+
+void CFltPaxDataDlg::OnCSVFileOperation()
+{
+	//int type = 2;
+	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
+	//dlg.SetOperation(type);
+	//if(dlg.DoModal() == IDOK)
+	//{
+	//	//reload data
+	//}
 }

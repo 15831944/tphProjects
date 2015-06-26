@@ -15,6 +15,7 @@
 #include "DlgFlightDB.h"
 #include "DlgAircraftAlias.h"
 #include "CmpReportTreeView.h"
+#include "FltPaxDataDlg.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -401,6 +402,9 @@ void CCoolBtn::OnLButtonDown(UINT nFlags, CPoint point)
 		case TY_AIRCRAFTALIAS:
 			pMenu = menu.GetSubMenu(99);
 			break;
+		case TY_FLTPAX:
+			pMenu = menu.GetSubMenu(105);
+			break;
 		}
 		
 	}
@@ -476,6 +480,12 @@ void CCoolBtn::OnLButtonDown(UINT nFlags, CPoint point)
 			  {
 				  CCmpReportTreeView* pParent = (CCmpReportTreeView*)GetParent();
 				  pParent->OnClickMultiBtn();
+			  }
+			  break;
+		  case TY_FLTPAX:
+			  {
+					CFltPaxDataDlg* pParent = (CFltPaxDataDlg*)GetParent();
+					pParent->OnClickMultiBtn();
 			  }
 			  break;
 		  }

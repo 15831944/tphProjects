@@ -56,6 +56,7 @@ BEGIN_MESSAGE_MAP(CFlightScheduleAddNewDlg, CDialog)
 	ON_COMMAND(ID_TOOLBARBUTTONDEL, OnToolbarbuttondel)	
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_VALUE, OnItemchangedListValue)
 	//}}AFX_MSG_MAP
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -552,4 +553,70 @@ void CFlightScheduleAddNewDlg::OnItemchangedListValue(NMHDR* pNMHDR, LRESULT* pR
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	m_ToolBar.GetToolBarCtrl().EnableButton( ID_TOOLBARBUTTONDEL );
 	*pResult = 0;
+}
+
+
+void CFlightScheduleAddNewDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialog::OnSize(nType, cx, cy);
+
+	//return;
+
+	if(m_listProperty.GetSafeHwnd() == NULL)
+		return;
+
+	// TODO: Add your message handler code here
+	//the frame 
+	CRect rcWindow;
+	GetClientRect(&rcWindow);
+	
+	CWnd *pWndFrame = GetDlgItem(IDC_STATIC_MAINFRAME);
+	CRect rcFrameClient;
+	pWndFrame->GetWindowRect(&rcFrameClient);
+	ScreenToClient(rcFrameClient);
+	pWndFrame->MoveWindow(rcFrameClient.left, rcFrameClient.top,rcWindow.Width() - 20, rcWindow.Height() - 45);
+
+	//toolbar
+	CRect rcToolBar;
+	m_ToolBar.GetWindowRect(&rcToolBar);
+	ScreenToClient(&rcToolBar);
+	m_ToolBar.MoveWindow(rcToolBar.left, rcToolBar.top,rcWindow.Width() - 20,30);
+
+	//list
+	CRect rcList;
+	m_listProperty.GetWindowRect(&rcList);
+	ScreenToClient(&rcList);
+	m_listProperty.MoveWindow(rcList.left, rcList.top,rcWindow.Width() - 20, rcWindow.Height() - 45 - 40);
+
+	//check box
+	CRect rcAutoAssignChkBox;
+	m_checkAutoAssign.GetWindowRect(&rcAutoAssignChkBox);
+	ScreenToClient(&rcAutoAssignChkBox);
+	m_checkAutoAssign.MoveWindow(rcAutoAssignChkBox.left, rcWindow.bottom - 40, rcAutoAssignChkBox.Width(), rcAutoAssignChkBox.Height());
+
+	CRect rcReassignGates;
+	m_checkReAssign.GetWindowRect(&rcReassignGates);
+	ScreenToClient(&rcReassignGates);
+	m_checkReAssign.MoveWindow(rcReassignGates.left, rcWindow.bottom - 40, rcReassignGates.Width(), rcReassignGates.Height());
+
+
+	//Save
+	CRect rcSave;
+	m_btSave.GetWindowRect(&rcSave);
+	ScreenToClient(&rcSave);
+	m_btSave.MoveWindow(rcWindow.right - 280, rcWindow.bottom - 30, rcSave.Width(), rcSave.Height());
+
+	//IDOK
+	CRect rcOK;
+	GetDlgItem(IDOK)->GetWindowRect(&rcOK);
+	ScreenToClient(&rcOK);
+	GetDlgItem(IDOK)->MoveWindow(rcWindow.right - 190, rcWindow.bottom - 30, rcOK.Width(), rcOK.Height());
+	//ID Cancel
+	CRect rcCancel;
+	GetDlgItem(IDCANCEL)->GetWindowRect(&rcCancel);
+	ScreenToClient(&rcCancel);
+	GetDlgItem(IDCANCEL)->MoveWindow(rcWindow.right - 100, rcWindow.bottom - 30, rcCancel.Width(), rcCancel.Height());
+
+
+
 }

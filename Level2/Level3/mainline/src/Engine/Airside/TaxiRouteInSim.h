@@ -60,6 +60,7 @@ public:
 
 	bool NodeInRoute(IntersectionNodeInSim* pNode);
 	bool getNodeDistInRoute(IntersectionNodeInSim* pNode, DistanceUnit& dist);
+	bool getEstimateTimeToNode(AirsideFlightInSim* pFlight, IntersectionNodeInSim* pNode, ElapsedTime& estTime);
 	//
 	int  GetItemCount()const{ return m_vItems.size(); }
 	TaxiRouteItemInSim & ItemAt(int idx){ return m_vItems[idx]; }

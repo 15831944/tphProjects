@@ -3365,7 +3365,8 @@
 #define IDC_BROWSE_EXPORTED             2435
 #define IDC_BROWSE_CSVFILE              2436
 #define IDC_CHECK_APPEND                2437
-#define IDC_EDIT_TOTALPERCENT           2438
+#define IDC_COMBO_PROJECT               2438
+#define IDC_EDIT_TOTALPERCENT           2439
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5254,6 +5255,10 @@
 #define ID_MENU_ADDITM                  35342
 #define ID_MENU_EDITITEM                35343
 #define ID_MENU_DELETEITEM              35344
+#define ID_FLTPAX_LOCALPROJECT          35346
+#define ID_FLTPAX_EXPORTEDPROJECT       35347
+#define ID_Menu35348                    35348
+#define ID_CSV_FILE                     35349
 #define IDS_TVNN_ECONOMIC               57666
 #define IDS_TVNN_REALCOST               57667
 #define IDS_TVNN_REVENUE                57668
@@ -5513,8 +5518,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1118
-#define _APS_NEXT_COMMAND_VALUE         35346
-#define _APS_NEXT_CONTROL_VALUE         2439
+#define _APS_NEXT_COMMAND_VALUE         35350
+#define _APS_NEXT_CONTROL_VALUE         2440
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

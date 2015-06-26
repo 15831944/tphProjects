@@ -2003,6 +2003,7 @@ bool AirTrafficController::IsDelayPushback(AirsideFlightInSim* pFlight, Clearanc
 	int nMaxInBoundFlightCount = m_pPushBackClearance->GetMaxInboundFlightCount(pStand);
 	ALTObjectID InboundStandFamilyID = m_pPushBackClearance->GetInboundStandFamily(pStand);
 	int nMaxQueueLength =m_pPushBackClearance->GetMaxTakeoffQueueFlightCount(pFlight->GetAndAssignTakeoffRunway());
+	ElapsedTime dClearanceTime = m_pPushBackClearance->GetTimeClearanceOnTaxiway();
 
 	LogicRunwayInSim* pLogicRunway = pFlight->GetAndAssignTakeoffRunway();
 	TaxiwayResourceManager* pResManager = m_pResources->GetAirportResource()->getTaxiwayResource();
@@ -2129,12 +2130,10 @@ bool AirTrafficController::IsDelayPushback(AirsideFlightInSim* pFlight, Clearanc
 			//check dist clearance
 			if(TaxiRouteInSim* pRoute = _pflight->GetOutBoundRoute())
 			{
-				int nItem = pRoute->GetItemIndex(_pflight->GetResource());
-				DistanceUnit distInRoute;
-				if( pRoute->getNodeDistInRoute(pOutNode, distInRoute) && nItem>=0)
+				ElapsedTime estiTime;
+				if( pRoute->getEstimateTimeToNode(_pflight, pOutNode,estiTime) )
 				{
-					DistanceUnit sep = distInRoute -  pRoute->GetDistInRoute(nItem, _pflight->GetDistInResource());
-					if(sep>0 && sep < DistanceClearance)
+					if(estiTime - FltCurItem.GetTime() < dClearanceTime )
 					{						
 						pFlight->DependOnAgents(_pflight);
 						CString strReason;
@@ -3207,7 +3206,7 @@ ElapsedTime AirTrafficController::getAvaiableCrossRunwayTime( AirsideFlightInSim
 		OccupancyTable& ocyTable = pRunway->GetLogicRunway1()->GetOccupancyTable();
 		for(OccupancyTable::iterator i= ocyTable.begin();i!=ocyTable.end();i++)
 		{
-			if( ElapsedTime(0L)< i->GetExitTime() && i->GetExitTime()<tEnter)
+			if( i->GetExitTime()>tEnter)
 			{
 				if(i->GetOccupyType()== OnLanding)
 				{
@@ -3226,7 +3225,7 @@ ElapsedTime AirTrafficController::getAvaiableCrossRunwayTime( AirsideFlightInSim
 		OccupancyTable& ocyTable = pRunway->GetLogicRunway2()->GetOccupancyTable();
 		for(OccupancyTable::iterator i= ocyTable.begin();i!=ocyTable.end();i++)
 		{
-			if( ElapsedTime(0L)< i->GetExitTime() && i->GetExitTime()<tEnter)
+			if( i->GetExitTime()>tEnter )
 			{
 				if(i->GetOccupyType()== OnLanding)
 				{

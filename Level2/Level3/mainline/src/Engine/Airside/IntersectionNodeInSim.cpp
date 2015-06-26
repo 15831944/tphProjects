@@ -540,29 +540,29 @@ bool IntersectionNodeInSim::IsNoParking(AirsideFlightInSim* pFlight) const
 	if(!m_bNoParking)
 		return false;
 
-	int nActiveRunway = 0;
+	//int nActiveRunway = 0;
 	int nRunwayItem = 	m_nodeinput.GetRunwayIntersectItemList().size();
-	for(int i=0;i<nRunwayItem;i++)
+	/*for(int i=0;i<nRunwayItem;i++)
 	{
-		int nRunwayId  = m_nodeinput.GetRunwayIntersectItemList().at(i)->GetObjectID();
-		RunwayInSim* pRunway = pFlight->GetAirTrafficController()->GetAirsideResourceManager()->GetAirportResource()->getRunwayResource()->GetRunwayByID(nRunwayId);
-		if(pRunway)
-		{
-			if(!pFlight->GetAirTrafficController()->CanRunwayUseAsTaxiway(pFlight,pRunway))
-			{
-				nActiveRunway++;
-			}
-		}
-	}
-
-	if(nActiveRunway==0 && nRunwayItem>0)
-		return false;
-
-	if(nActiveRunway>0)
+	int nRunwayId  = m_nodeinput.GetRunwayIntersectItemList().at(i)->GetObjectID();
+	RunwayInSim* pRunway = pFlight->GetAirTrafficController()->GetAirsideResourceManager()->GetAirportResource()->getRunwayResource()->GetRunwayByID(nRunwayId);
+	if(pRunway)
 	{
-		if( m_vFilletTaxiways.size()<3 )
-			return false;
+	if(!pFlight->GetAirTrafficController()->CanRunwayUseAsTaxiway(pFlight,pRunway))
+	{
+	nActiveRunway++;
 	}
+	}
+	}*/
+
+	//if(nActiveRunway==0 && nRunwayItem>
+	//	return false;
+
+	/*if(nActiveRunway>0)
+	{
+	if( m_vFilletTaxiways.size()<3 )
+	return false;
+	}*/
 
 
 	int nValidIntersect = GetNodeInput().GetRunwayIntersectItemList().size() + GetNodeInput().GetTaxiwayIntersectItemList().size();

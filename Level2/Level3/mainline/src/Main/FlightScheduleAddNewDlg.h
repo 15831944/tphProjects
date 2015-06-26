@@ -72,6 +72,8 @@ private:
 	int m_iRowIdx;
 	int m_iColumnIdx;
 
+public:
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };
 
 //{{AFX_INSERT_LOCATION}}

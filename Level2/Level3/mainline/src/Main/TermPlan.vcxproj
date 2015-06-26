@@ -265,6 +265,7 @@
     <ClInclude Include="DlgCurbsideStrategy.h" />
     <ClInclude Include="DlgExportNames.h" />
     <ClInclude Include="DlgGateAdjacency.h" />
+    <ClInclude Include="DlgImportFltPaxData.h" />
     <ClInclude Include="DlgInitCondition.h" />
     <ClInclude Include="DlgLandsideEntryOffset.h" />
     <ClInclude Include="DlgLandsideLayoutOptions.h" />
@@ -1085,6 +1086,7 @@
     <ClCompile Include="DlgCurbsideStrategy.cpp" />
     <ClCompile Include="DlgExportNames.cpp" />
     <ClCompile Include="DlgGateAdjacency.cpp" />
+    <ClCompile Include="DlgImportFltPaxData.cpp" />
     <ClCompile Include="DlgInitCondition.cpp" />
     <ClCompile Include="DlgLandsideEntryOffset.cpp" />
     <ClCompile Include="DlgLandsideLayoutOptions.cpp" />

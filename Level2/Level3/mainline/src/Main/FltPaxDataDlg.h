@@ -11,7 +11,9 @@
 #include "..\inputs\con_db.h"
 #include "MoblieElemTips.h"
 #include "afxwin.h"
+#include "CoolBtn.h"
 
+class CMobileElemConstraintDatabase;
 /////////////////////////////////////////////////////////////////////////////
 // CFltPaxDataDlg dialog
 
@@ -37,6 +39,27 @@ enum FLTPAXDATATTYPE
   ENTRY_FLIGHT_TIME_DISTRIBUTION
 };
 
+static const char* sFltPaxString[] = 
+{
+	"DELAY",
+	"LOAD",
+	"CAPACITY",
+	"",
+	"",
+	"",
+	"GROUP_SIZE",
+	"LEAD_LAG_TIME",
+	"IN_STEP",
+	"SIDE_STEP",
+	"SPEED",
+	"",
+	"VISIT_TIME",
+	"RESPONSE_TIME",
+	"SPEED_IMPACT",
+	"PUSH_PROPENSITY",
+	"VISITOR_STA_TRIGGER"
+	"ENTRY_FLIGHT_TIME_DESTRIBUTION"
+};
 class CFltPaxDataDlg : public CDialog
 {
 // Construction
@@ -49,7 +72,7 @@ public:
 	CStatic	m_toolbarcontenter;
 	CButton	m_btnSave;
 	CConDBListCtrl	m_listctrlData;
-	CButton m_btnImport;
+	CCoolBtn m_btnImport;
 	CButton m_btnOk;
 	CButton m_btnCancel;
 	CStatic m_Framebarcontenter;
@@ -71,6 +94,7 @@ protected:
 	void InitTooltips();
 	//set styles & show the toolbar
 	void InitToolbar();
+	
 
 	CToolBar m_ToolBar;
 
@@ -113,12 +137,22 @@ protected:
 	afx_msg void OnToolbarbuttonedit();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnDelayImport();
+	afx_msg void OnExportData();
+	afx_msg void OnLocalProjectOperation();
+	afx_msg void OnExportedProjectOperation();
+	afx_msg void OnCSVFileOperation();
 	//}}AFX_MSG
 	afx_msg BOOL OnToolTipText(UINT, NMHDR* pNMHDR, LRESULT* pResult);
 	DECLARE_MESSAGE_MAP()
+
+private:
+	void ExportFlightData(ConstraintDatabase* pFlightDatabase,const CString& strFileName,const CString& strFlightName);
+	void ExportPaxData(CMobileElemConstraintDatabase* pPaxDatabasae,const CString& strFileName,const CString& strPaxName);
+	void ExportBridgeData(BridgeConnectorPaxData* pBridgeDatabase,const CString& strFileName);
 public:
 	CButton m_btnNeglectSchedData;
 	afx_msg void OnBnClickedCheckNeglectscheddata();
+	void OnClickMultiBtn();
 };
 
 //{{AFX_INSERT_LOCATION}}

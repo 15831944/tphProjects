@@ -2727,32 +2727,32 @@ HoldInTaxiRoute* TaxiRouteInSim::IsDistInNoParkingNodeRange( const DistanceUnit&
 			}
 		}
 	}	
-	AirsideFlightInSim* pFlight = m_vHoldList.m_pFlight;
-	AirTrafficController* pATC = pFlight->GetAirTrafficController();
-	//check dist in runway segment
-	for(size_t i=0;i<m_vItems.size();i++)
-	{
-		AirsideResource* atRes = GetItem(i).GetResource();
-		if( atRes->GetType() == AirsideResource::ResType_RunwayDirSeg)
-		{
-			RunwayDirectSegInSim* pSeg = (RunwayDirectSegInSim*)atRes;	
-			RunwayInSim* pRunway =  pSeg->GetRunwaySeg()->getRunway();
-			bool buseAsTaxiway = pATC->CanRunwayUseAsTaxiway(pFlight,pRunway);
+	//AirsideFlightInSim* pFlight = m_vHoldList.m_pFlight;
+	//AirTrafficController* pATC = pFlight->GetAirTrafficController();
+	////check dist in runway segment
+	//for(size_t i=0;i<m_vItems.size();i++)
+	//{
+	//	AirsideResource* atRes = GetItem(i).GetResource();
+	//	if( atRes->GetType() == AirsideResource::ResType_RunwayDirSeg)
+	//	{
+	//		RunwayDirectSegInSim* pSeg = (RunwayDirectSegInSim*)atRes;	
+	//		RunwayInSim* pRunway =  pSeg->GetRunwaySeg()->getRunway();
+	//		bool buseAsTaxiway = pATC->CanRunwayUseAsTaxiway(pFlight,pRunway);
 
-			if(!buseAsTaxiway)
-			{
-				HoldInTaxiRoute* entryHold = m_vHoldList.GetEntryHold(pSeg->GetEntryNode());
-				HoldInTaxiRoute* exitHold = m_vHoldList.GetExitHold(pSeg->GetExitNode());
-				if(entryHold&&exitHold)
-				{
-					if( entryHold->m_dDistInRoute < dist && dist < exitHold->m_dDistInRoute)
-					{
-						return entryHold;
-					}
-				}
-			}
-		}
-	}
+	//		if(!buseAsTaxiway)
+	//		{
+	//			HoldInTaxiRoute* entryHold = m_vHoldList.GetEntryHold(pSeg->GetEntryNode());
+	//			HoldInTaxiRoute* exitHold = m_vHoldList.GetExitHold(pSeg->GetExitNode());
+	//			if(entryHold&&exitHold)
+	//			{
+	//				if( entryHold->m_dDistInRoute < dist && dist < exitHold->m_dDistInRoute)
+	//				{
+	//					return entryHold;
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 	return NULL;
 }
 
@@ -2844,6 +2844,23 @@ bool TaxiRouteInSim::getNodeDistInRoute( IntersectionNodeInSim* pNode, DistanceU
 				dist = GetItemEndDist(i);
 				return true;
 			}
+		}
+	}
+	return false;
+}
+
+bool TaxiRouteInSim::getEstimateTimeToNode( AirsideFlightInSim* pFlight, IntersectionNodeInSim* pNode, ElapsedTime& estTime)
+{
+	int nItem = GetItemIndex(pFlight->GetResource());
+	DistanceUnit distInRoute;
+	if( getNodeDistInRoute(pNode, distInRoute) && nItem>=0)
+	{
+		DistanceUnit sep = distInRoute -  GetDistInRoute(nItem, pFlight->GetDistInResource());
+		if(sep>0)
+		{
+			ElapsedTime dSepTime = sep/m_dTaxiSpd;
+			estTime =  pFlight->GetTime() + dSepTime;
+			return true;
 		}
 	}
 	return false;
