@@ -924,8 +924,6 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
-            CDestributionParameterSpecificationDlg dlgTest;
-            dlgTest.DoModal();
 			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pSelItemData->m_data;
 
 			HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
@@ -963,10 +961,76 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 	case TREE_NODE_TRIGGER:
 		break;
 	case TREE_NODE_TRIGGER_ALL:
-	case TREE_NODE_TRIGGER_TIME:
-	case TREE_NODE_TRIGGER_PROP:
 		m_tree.DoEdit(hSelItem);
-		m_btnSave.EnableWindow(TRUE);
+        m_btnSave.EnableWindow(TRUE);
+        break;
+    case TREE_NODE_TRIGGER_TIME:
+        {
+            CDestributionParameterSpecificationDlg dlg(this);
+            if (dlg.DoModal() == IDOK)
+            {
+                CProbDistEntry* pPDEntry = dlg.GetSelProbEntry();
+                if(pPDEntry != NULL)
+                {
+                    ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
+                    ASSERT(pProbDist);
+
+                    HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+                    TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+                    ASSERT(pParentData->m_type == TREE_NODE_TRIGGER);
+                    BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pParentData->m_data;
+                    if(pTrigger->m_time)
+                        delete pTrigger->m_time;
+                    pTrigger->m_time = pProbDist;
+
+                    TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+                    ASSERT(pSelItemData->m_type == TREE_NODE_TRIGGER_TIME);
+                    pSelItemData->m_data = DWORD(pTrigger->m_time);
+
+                    CString strProp;
+                    strProp.Format("Time range before STD(seconds): %s", pTrigger->m_time->screenPrint());
+                    m_tree.SetItemText(hSelItem, strProp);
+
+                    m_btnSave.EnableWindow(TRUE);
+                }
+            }
+        }
+        break;
+    case TREE_NODE_TRIGGER_PROP:
+        {
+            CString str = m_tree.GetItemText(hSelItem);
+            if(str != "Proportion of Pax: Residual")
+            {
+                CDestributionParameterSpecificationDlg dlg(this);
+                if (dlg.DoModal() == IDOK)
+                {
+                    CProbDistEntry* pPDEntry = dlg.GetSelProbEntry();
+                    if(pPDEntry != NULL)
+                    {
+                        ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
+                        ASSERT(pProbDist);
+
+                        HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
+                        TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
+                        ASSERT(pParentData->m_type == TREE_NODE_TRIGGER);
+                        BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pParentData->m_data;
+                        if(pTrigger->m_prop)
+                            delete pTrigger->m_prop;
+                        pTrigger->m_prop = pProbDist;
+
+                        TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+                        ASSERT(pSelItemData->m_type == TREE_NODE_TRIGGER_PROP);
+                        pSelItemData->m_data = DWORD(pTrigger->m_prop);
+
+                        CString strProp;
+                        strProp.Format("Proportion of Pax: %s", pTrigger->m_prop->screenPrint());
+                        m_tree.SetItemText(hSelItem, strProp);
+
+                        m_btnSave.EnableWindow(TRUE);
+                    }
+                }
+            }
+        }
 		break;
 	default:
 		break;
@@ -985,169 +1049,6 @@ void CBoardingCallDlg::DisableAllToolBarButtons()
 
 LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
 {
-	CString strItemText;
-	CString oldItemText;
-	CString strValue;
-	int index;
-	if(message==UM_CEW_COMBOBOX_BEGIN)	
-	{
-		HTREEITEM hSelItem = (HTREEITEM)wParam;
-		CWnd* pWnd=m_tree.GetEditWnd(hSelItem);
-		CComboBox* pCB=(CComboBox*)pWnd;
-		pCB->ResetContent();
-		pCB->SetDroppedWidth(250);
-		TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-		ASSERT(pSelItemData);
-		switch(pSelItemData->m_type)
-		{
-		case TREE_NODE_TRIGGER_TIME:
-		case TREE_NODE_TRIGGER_PROP:
-			{
-				pCB->AddString( "NEW PROBABILITY DISTRIBUTION" );
-				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
-				int nCount = static_cast<int>(pProbDistMan->getCount());
-				for( int m=0; m<nCount; m++ )
-				{
-					CProbDistEntry* pPBEntry = pProbDistMan->getItem( m );
-					pCB->AddString( pPBEntry->m_csName );
-				}
-			}
-			break;
-		default:
-			break;
-		}
-	}
-	if(message==UM_CEW_COMBOBOX_SELCHANGE)
-	{
-		HTREEITEM hSelItem=(HTREEITEM)wParam;
-		CWnd* pWnd=m_tree.GetEditWnd(hSelItem);
-		CComboBox* pCB=(CComboBox*)pWnd;
-
-		int nIndexSeled=m_tree.GetCmbBoxCurSel(hSelItem);
-		TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
-		ASSERT(pSelItemData);
-		switch(pSelItemData->m_type)
-		{
-		case TREE_NODE_TRIGGER_TIME:
-			{
-				HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
-				ASSERT(pParentData->m_type == TREE_NODE_TRIGGER);
-				BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pParentData->m_data;
-
-				int nIndex = pCB->GetCurSel();
-				int LBTextLen = pCB->GetLBTextLen(nIndex);
-				CString strSel;
-				pCB->GetLBText(nIndex, strSel.GetBuffer(LBTextLen));
-				strSel.ReleaseBuffer();
-				ProbabilityDistribution* pProbDist = NULL;
-				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
-				if(strSel == "NEW PROBABILITY DISTRIBUTION")
-				{
-					CProbDistEntry* pPDEntry = NULL;
-					CDlgProbDist dlg( GetInputTerminal()->m_pAirportDB,true,this);
-					if (dlg.DoModal() == IDOK)
-					{
-						pPDEntry = dlg.GetSelectedPD();
-						if(pPDEntry != NULL)
-						{
-							ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
-							ASSERT(pProbDist);
-							pTrigger->m_time = pProbDist;
-							pSelItemData->m_data = DWORD(pTrigger->m_time);
-						}
-					}
-				}
-				else
-				{
-					CProbDistEntry* pPDEntry = NULL;
-					int nCount = pProbDistMan->getCount();
-					for( int i=0; i<nCount; i++ )
-					{
-						pPDEntry = pProbDistMan->getItem( i );
-						if( strcmp( pPDEntry->m_csName, strSel ) == 0 )
-							break;
-					}
-					ASSERT(i<nCount);
-					ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
-					ASSERT(pProbDist);
-					ProbabilityDistribution* pTT = pTrigger->m_time;
-					if(pTrigger->m_time) 
-						delete pTrigger->m_time;
-					pTrigger->m_time = pProbDist;
-					pSelItemData->m_data = DWORD(pTrigger->m_time);
-				}
-				CString strTime;
-				strTime.Format("Time range before STD(seconds): %s", pTrigger->m_time->screenPrint());
-				m_tree.SetItemText(hSelItem, strTime);
-			}
-			break;
-		case TREE_NODE_TRIGGER_PROP:
-			{
-				HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);
-				TreeNodeDataWithType* pParentData = (TreeNodeDataWithType*)m_tree.GetItemData(hPareItem);
-				ASSERT(pParentData->m_type == TREE_NODE_TRIGGER);
-				BoardingCallTrigger* pTrigger = (BoardingCallTrigger*)pParentData->m_data;
-
-				int nIndex = pCB->GetCurSel();
-				int LBTextLen = pCB->GetLBTextLen(nIndex);
-				CString strSel;
-				pCB->GetLBText(nIndex, strSel.GetBuffer(LBTextLen));
-				strSel.ReleaseBuffer();
-				ProbabilityDistribution* pProbDist = NULL;
-				CProbDistManager* pProbDistMan = GetInputTerminal()->m_pAirportDB->getProbDistMan();
-				if(strSel == "NEW PROBABILITY DISTRIBUTION")
-				{
-					CProbDistEntry* pPDEntry = NULL;
-					CDlgProbDist dlg( GetInputTerminal()->m_pAirportDB,true,this);
-					if (dlg.DoModal() == IDOK)
-					{
-						pPDEntry = dlg.GetSelectedPD();
-						if(pPDEntry != NULL)
-						{
-							ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
-							ASSERT(pProbDist);
-							pTrigger->m_prop = pProbDist;
-							pSelItemData->m_data = DWORD(pTrigger->m_prop);
-						}
-					}
-				}
-				else
-				{
-					CProbDistEntry* pPDEntry = NULL;
-					int nCount = pProbDistMan->getCount();
-					for( int i=0; i<nCount; i++ )
-					{
-						pPDEntry = pProbDistMan->getItem( i );
-						if( strcmp( pPDEntry->m_csName, strSel ) == 0 )
-							break;
-					}
-					ASSERT(i<nCount);
-					ProbabilityDistribution* pProbDist = ProbabilityDistribution::CopyProbDistribution(pPDEntry->m_pProbDist);
-					ASSERT(pProbDist);
-					ProbabilityDistribution* pTT = pTrigger->m_time;
-					if(pTrigger->m_prop) 
-						delete pTrigger->m_prop;
-					pTrigger->m_prop = pProbDist;
-					pSelItemData->m_data = DWORD(pTrigger->m_prop);
-				}
-				CString strTime;
-				strTime.Format("Proportion of Pax: %s", pTrigger->m_prop->screenPrint());
-				m_tree.SetItemText(hSelItem, strTime);
-			}
-			break;
-		default:
-			break;
-		}
-		m_btnSave.EnableWindow(TRUE);
-	}
-	if(message==UM_CEW_SHOWMENU_READY)
-	{
-		CMenu* pMenu=(CMenu*)lParam;
-		if(pMenu)
-		{
-		}
-	}
 	if(message == UM_CEW_EDITSPIN_BEGIN || message == UM_CEW_EDIT_BEGIN)
 	{
 		HTREEITEM hSelItem = (HTREEITEM)wParam;
@@ -1161,18 +1062,20 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 		default:
 			break;
 		}
-		oldItemText = m_tree.GetItemText(hSelItem);
-		index = oldItemText.ReverseFind(':') ;
-		strItemText = oldItemText.Right(oldItemText.GetLength() - index - 2);
+		CString oldItemText = m_tree.GetItemText(hSelItem);
+		int index = oldItemText.ReverseFind(':') ;
+		CString strItemText = oldItemText.Right(oldItemText.GetLength() - index - 2);
 		m_tree.GetEditWnd(hSelItem)->SetWindowText(strItemText);
 		((CEdit*)m_tree.GetEditWnd(hSelItem))->SetSel(0, -1, true); 
 	}
 	if(message == UM_CEW_EDITSPIN_END)
 	{
-		strValue=*((CString*)lParam);
+		CString strValue=*((CString*)lParam);
 		HTREEITEM hSelItem = (HTREEITEM)wParam;
 		TreeNodeDataWithType* pDataWithType = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
 		ASSERT(pDataWithType);
+
+        CString strItemText;
 		switch(pDataWithType->m_type)
 		{
 		case TREE_NODE_TRIGGER_ALL:
@@ -1199,6 +1102,23 @@ LRESULT CBoardingCallDlg::DefWindowProc(UINT message, WPARAM wParam, LPARAM lPar
 	{
 		m_tree.SetWidth(250);
 	}
+    if(message == WM_LBUTTONDBLCLK)
+    {
+        HTREEITEM hSelItem = m_tree.GetSelectedItem();
+        TreeNodeDataWithType* pSelItemData = (TreeNodeDataWithType*)m_tree.GetItemData(hSelItem);
+        ASSERT(pSelItemData);
+        switch(pSelItemData->m_type)
+        {
+        case TREE_NODE_TRIGGER_TIME:
+        case TREE_NODE_TRIGGER_PROP:
+            {
+                OnToolbarButtonEdit();
+            }
+            break;
+        default:
+            break;
+        }
+    }
 	return CDialog::DefWindowProc(message, wParam, lParam);
 }
 
