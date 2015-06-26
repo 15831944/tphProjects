@@ -4,6 +4,7 @@
 #include "AirsideRunwayOperationReportParam.h"
 #include "AirsideRunwayOperationsReport.h"
 #include "CARC3DChart.h"
+#include "AirsideRunwayOperationReportDetailResult.h"
 
 static const CString str[] = 
 {
@@ -38,233 +39,122 @@ void CAirsideAircraftMutiRunRunwayOperationResult::LoadMultipleRunReport(CParame
 {
     ClearData();
 
-// 	maRunwayLoadOperation mapLandingOperation;
-// 	maRunwayLoadOperation mapTakeoffOperation;
-// 	mapRunwayTimeOperation mapMovementInterval; 
-//     ArctermFile file;
-//     DelayResultPath::iterator iter = m_mapResultPath.begin();
-//     for (; iter != m_mapResultPath.end(); ++iter)
-//     {
-//         CString strResultPath = iter->second;
-//         CString strSimResult = iter->first;
-//         try
-//         {
-//             if (file.openFile(strResultPath.GetString(),READ))
-//             {
-//                 file.getLine(); // 'Column'
-//                 int iReportType = 0;
-//                 file.getInteger(iReportType);
-//                 file.getLine();
-//                 if (iReportType == ASReportType_Detail)
-//                 {
-// 					file.getLine();
-// 					int nOperationCount = 0;
-// 					file.getInteger(nOperationCount);
-// 					for (int i = 0; i < nOperationCount; i++)
-// 					{
-// 						file.skipField(1); 
-// 						long lTime = 0;
-// 						file.getInteger(lTime);
-// 						CString strRunway;
-// 						file.getField(strRunway.GetBuffer(1024),1024);
-// 						strRunway.ReleaseBuffer();
-// 						CString strOperation;
-// 						file.getField(strOperation.GetBuffer(1024),1024);
-// 						strOperation.ReleaseBuffer();
-// 						if (strOperation.CompareNoCase("Landing") == 0)
-// 						{
-// 							mapLandingOperation[strSimResult][strRunway].push_back(lTime);
-// 						}
-// 						else if (strOperation.CompareNoCase("Takeoff") == 0)
-// 						{
-// 							mapTakeoffOperation[strSimResult][strRunway].push_back(lTime);
-// 						}
-// 						file.getLine();
-// 					}
-// 
-// 					int nRunwwayCount = 0;
-// 					file.skipField(1);//skip runway count
-// 					file.getInteger(nRunwwayCount);
-// 					file.getLine();
-// 
-// 					for (int nRunway = 0; nRunway < nRunwwayCount; ++ nRunway)
-// 					{
-// 						file.skipField(2);
-// 						CString strMark;
-// 						file.getField(strMark.GetBuffer(1024),1024);
-// 						strMark.ReleaseBuffer();
-// 
-// 						file.getLine();
-// 						file.getLine();
-// 						file.getLine();
-// 						file.getLine();
-// 
-// 						int nLeadTrailCount = 0;
-// 						file.getInteger(nLeadTrailCount);
-// 						for (int nLeadtrail = 0; nLeadtrail < nLeadTrailCount; ++ nLeadtrail)
-// 						{
-// 							file.skipField(1);
-// 							CString strClassLeadName;
-// 							file.getField(strClassLeadName.GetBuffer(1024),1024);
-// 							file.skipField(1);
-// 							CString strClassTrailName;
-// 							file.getField(strClassTrailName.GetBuffer(1024),1024);
-// 							int nFlightCount = 0;
-// 							file.getInteger(nFlightCount);
-// 							CString strClassification;
-// 							strClassification.Format(_T("%s-%s"),strClassLeadName,strClassTrailName);
-// 
-// 							ClassificationValue landTrail;
-// 							landTrail.m_strLandTrail = strClassification;
-// 							landTrail.m_lFlightCount = nFlightCount;
-// 							m_mapLandTrailOperation[strSimResult][strMark].push_back(landTrail);
-// 
-// 							std::vector<ClassificationValue>::iterator findIter = std::find(m_mapLandTrailOperation[strSimResult]["All"].begin(),m_mapLandTrailOperation[strSimResult]["All"].end(),landTrail);
-// 							if (findIter != m_mapLandTrailOperation[strSimResult]["All"].end())
-// 							{
-// 								findIter->m_lFlightCount += landTrail.m_lFlightCount;
-// 							}
-// 							else
-// 							{
-// 								m_mapLandTrailOperation[strSimResult]["All"].push_back(landTrail);
-// 							}
-// 						}
-// 
-// 						file.getLine();
-// 						int nTimeValueCount = 0;
-// 						file.getInteger(nTimeValueCount);
-// 						for (int nTime = 0; nTime < nTimeValueCount; ++ nTime)
-// 						{
-// 							int nTimeValue = 0;
-// 							file.getInteger(nTimeValue);
-// 							int nLandingCount = 0;
-// 							file.getInteger(nLandingCount);
-// 							int nTakeOffCount = 0;
-// 							file.getInteger(nTakeOffCount);
-// 
-// 							//make runway mark and landing/takeoff format
-// 							CString strLandingMark;
-// 							strLandingMark.Format(_T("%s Landings"),strMark);
-// 							RunwayTimeValue landingTime;
-// 							landingTime.m_eTime = nTimeValue*100l;
-// 							landingTime.m_iOperation = nLandingCount;
-// 							CString strTakeoffMark;
-// 							strTakeoffMark.Format(_T("%s TakeOff"),strMark);
-// 							RunwayTimeValue takeoffTime;
-// 							takeoffTime.m_eTime = nTimeValue*100l;
-// 							takeoffTime.m_iOperation = nTakeOffCount;
-// 
-// 							mapMovementInterval[strSimResult][strLandingMark].push_back(landingTime);
-// 							mapMovementInterval[strSimResult][strTakeoffMark].push_back(takeoffTime);
-// 						}
-// 						file.getLine();
-// 					}
-//                 }
-//                 else if(iReportType == ASReportType_Summary)
-//                 {
-//                     file.getLine(); // skip the list titles
-//                     int nRunwwayCount = 0;
-//                     file.skipField(1);//skip runway count
-//                     file.getInteger(nRunwwayCount);
-//                     file.getLine();
-//                     for (int nRunway = 0; nRunway < nRunwwayCount; ++ nRunway)
-//                     {
-//                         CAirsideReportRunwayMark runWaymark;
-//                         //runway information
-//                         file.getInteger(runWaymark.m_nRunwayID);
-//                         file.getInteger((int&)runWaymark.m_enumRunwayMark);
-//                         file.getField(runWaymark.m_strMarkName.GetBuffer(1024),1024);
-//                         runWaymark.m_strMarkName.ReleaseBuffer();
-// 
-//                         //landing
-//                         {
-//                             SummaryRunwayOperationReportItem staSumItem;
-//                             staSumItem.m_runWaymark = runWaymark;
-//                             file.getInteger(staSumItem.m_minCount);
-//                             file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
-//                             staSumItem.m_strMinInterval.ReleaseBuffer();
-//                             file.getInteger(staSumItem.m_nAverageCount);
-//                             file.getInteger(staSumItem.m_maxCount);
-//                             file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
-//                             staSumItem.m_strMaxInterval.ReleaseBuffer();
-//                             file.getInteger(staSumItem.m_nQ1);
-//                             file.getInteger(staSumItem.m_nQ2);
-//                             file.getInteger(staSumItem.m_nQ3);
-//                             file.getInteger(staSumItem.m_nP1);
-//                             file.getInteger(staSumItem.m_nP5);
-//                             file.getInteger(staSumItem.m_nP10);
-//                             file.getInteger(staSumItem.m_nP90);
-//                             file.getInteger(staSumItem.m_nP95);
-//                             file.getInteger(staSumItem.m_nP99);
-//                             file.getInteger(staSumItem.m_nStdDev);
-//                             m_summaryDataLanding[strSimResult].push_back(staSumItem);
-//                         }
-// 
-//                         //take off 
-//                         {
-//                             SummaryRunwayOperationReportItem staSumItem;
-//                             staSumItem.m_runWaymark = runWaymark;
-//                             file.getInteger(staSumItem.m_minCount);
-//                             file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
-//                             staSumItem.m_strMinInterval.ReleaseBuffer();
-//                             file.getInteger(staSumItem.m_nAverageCount);
-//                             file.getInteger(staSumItem.m_maxCount);
-//                             file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
-//                             staSumItem.m_strMaxInterval.ReleaseBuffer();
-//                             file.getInteger(staSumItem.m_nQ1);
-//                             file.getInteger(staSumItem.m_nQ2);
-//                             file.getInteger(staSumItem.m_nQ3);
-//                             file.getInteger(staSumItem.m_nP1);
-//                             file.getInteger(staSumItem.m_nP5);
-//                             file.getInteger(staSumItem.m_nP10);
-//                             file.getInteger(staSumItem.m_nP90);
-//                             file.getInteger(staSumItem.m_nP95);
-//                             file.getInteger(staSumItem.m_nP99);
-//                             file.getInteger(staSumItem.m_nStdDev);
-//                             m_summaryDataTakeOff[strSimResult].push_back(staSumItem);
-//                         }
-// 
-//                         //movements
-//                         {
-//                             SummaryRunwayOperationReportItem staSumItem;
-//                             staSumItem.m_runWaymark = runWaymark;
-//                             file.getInteger(staSumItem.m_minCount);
-//                             file.getField(staSumItem.m_strMinInterval.GetBuffer(1024),1024);
-//                             staSumItem.m_strMinInterval.ReleaseBuffer();
-//                             file.getInteger(staSumItem.m_nAverageCount);
-//                             file.getInteger(staSumItem.m_maxCount);
-//                             file.getField(staSumItem.m_strMaxInterval.GetBuffer(1024),1024);
-//                             staSumItem.m_strMaxInterval.ReleaseBuffer();
-//                             file.getInteger(staSumItem.m_nQ1);
-//                             file.getInteger(staSumItem.m_nQ2);
-//                             file.getInteger(staSumItem.m_nQ3);
-//                             file.getInteger(staSumItem.m_nP1);
-//                             file.getInteger(staSumItem.m_nP5);
-//                             file.getInteger(staSumItem.m_nP10);
-//                             file.getInteger(staSumItem.m_nP90);
-//                             file.getInteger(staSumItem.m_nP95);
-//                             file.getInteger(staSumItem.m_nP99);
-//                             file.getInteger(staSumItem.m_nStdDev);
-//                             m_summaryDataMovement[strSimResult].push_back(staSumItem);
-//                         }
-//                         file.getLine();
-//                     }
-//                 }
-//                 file.closeIn();
-//             }
-//         }
-//         catch(...)
-//         {
-//             ClearData();
-//         }
-//     }
+	maRunwayLoadOperation mapLandingOperation;
+	maRunwayLoadOperation mapTakeoffOperation;
+	mapRunwayTimeOperation mapMovementInterval; 
+    ArctermFile file;
+	mapSimReport::iterator iter = m_mapSimReport.begin();
+	for (; iter != m_mapSimReport.end(); ++iter)
+    {
+        AirsideRunwayOperationsReport* pRunwayOpReport = (AirsideRunwayOperationsReport*)iter->second;
+        CString strSimResult = iter->first;
 
-// 	//generate runway operation multiple run landing 
-// 	BuildDetailMultipleRunwayOperation(m_mapLandingOperation,mapLandingOperation,pParameter);
-// 	//generate runway operation multiple run takeoff
-// 	BuildDetailMultipleRunwayOperation(m_mapTakeoffOperation,mapTakeoffOperation,pParameter);
-// 	//generate runway operation multiple run movement interval
-// 	BuildDetailMultipleRunwayTimeValue(m_mapMovementInterval,mapMovementInterval,pParameter);
+		CAirsideRunwayOperationReportBaseResult* pResult = pRunwayOpReport->GetRunwayOperationResult();
+		if (pParameter->getReportType() == ASReportType_Detail)
+		{
+			CAirsideRunwayOperationReportDetailResult* pDetailResult = (CAirsideRunwayOperationReportDetailResult*)pResult;
+			for (unsigned i = 0; i < pDetailResult->m_vFlightOperateValue.size(); i++)
+			{
+				CAirsideRunwayOperationReportDetailResult::FlightOperationData operationData = pDetailResult->m_vFlightOperateValue.at(i);
+				if (operationData.m_sOperation.CompareNoCase("Landing") == 0)
+				{
+					mapLandingOperation[strSimResult][operationData.m_sRunway].push_back(operationData.m_lTime);
+				}
+				else if (operationData.m_sOperation.CompareNoCase("Takeoff") == 0)
+				{
+					mapTakeoffOperation[strSimResult][operationData.m_sRunway].push_back(operationData.m_lTime);
+				}
+			}
+
+			for (unsigned nRunway = 0; nRunway < pDetailResult->m_vRunwayOperationDetail.size(); ++ nRunway)
+			{
+				CAirsideRunwayOperationReportDetailResult::RunwayOperationDetail* pRunwayData = pDetailResult->m_vRunwayOperationDetail.at(nRunway);
+
+				for (unsigned nLeadtrail = 0; nLeadtrail < pRunwayData->m_vWakeVortexDetailValue.size(); ++ nLeadtrail)
+				{
+					CAirsideRunwayOperationReportDetailResult::WakeVortexDetailValue wakeVotex = pRunwayData->m_vWakeVortexDetailValue.at(nLeadtrail);
+					CString strClassification;
+					strClassification.Format(_T("%s-%s"),wakeVotex.m_strClassLeadName,wakeVotex.m_strClassTrailName);
+
+					ClassificationValue landTrail;
+					landTrail.m_strLandTrail = strClassification;
+					landTrail.m_lFlightCount = wakeVotex.m_nFlightCount;
+					m_mapLandTrailOperation[strSimResult][pRunwayData->m_runWaymark.m_strMarkName].push_back(landTrail);
+
+					std::vector<ClassificationValue>::iterator findIter = std::find(m_mapLandTrailOperation[strSimResult]["All"].begin(),m_mapLandTrailOperation[strSimResult]["All"].end(),landTrail);
+					if (findIter != m_mapLandTrailOperation[strSimResult]["All"].end())
+					{
+						findIter->m_lFlightCount += landTrail.m_lFlightCount;
+					}
+					else
+					{
+						m_mapLandTrailOperation[strSimResult]["All"].push_back(landTrail);
+					}
+				}
+				
+				for (unsigned nTime = 0; nTime < pRunwayData->m_vRunwayTimeValue.size(); ++ nTime)
+				{
+					CAirsideRunwayOperationReportDetailResult::RunwayOperationTimeValue timeValue = pRunwayData->m_vRunwayTimeValue.at(nTime);
+					//make runway mark and landing/takeoff format
+					CString strLandingMark;
+					strLandingMark.Format(_T("%s Landings"),pRunwayData->m_runWaymark.m_strMarkName);
+					RunwayTimeValue landingTime;
+					landingTime.m_eTime = timeValue.m_eTime;
+					landingTime.m_iOperation = timeValue.m_nLandingCount;
+					CString strTakeoffMark;
+					strTakeoffMark.Format(_T("%s TakeOff"),pRunwayData->m_runWaymark.m_strMarkName);
+					RunwayTimeValue takeoffTime;
+					takeoffTime.m_eTime = timeValue.m_eTime;
+					takeoffTime.m_iOperation = timeValue.m_nTakeOffCount;
+
+					mapMovementInterval[strSimResult][strLandingMark].push_back(landingTime);
+					mapMovementInterval[strSimResult][strTakeoffMark].push_back(takeoffTime);
+				}
+			}
+		}
+		else
+		{
+			CAirsideRunwayOperationReportSummaryResult* pSummaryResult = (CAirsideRunwayOperationReportSummaryResult*)pResult;
+			for (unsigned i = 0; i < pSummaryResult->m_vOperationStatistic.size(); i++)
+			{
+				CAirsideRunwayOperationReportSummaryResult::RunwayOperationStatisticItem* pOpItem = pSummaryResult->m_vOperationStatistic.at(i);
+
+				//landing
+				{
+					CAirsideRunwayOperationReportSummaryResult::StatisticsSummaryItem landingItem = pOpItem->m_landingStastic;
+					 SummaryRunwayOperationReportItem staSumItem;
+					 staSumItem.m_runWaymark = pOpItem->m_runWaymark;
+					 InitSummaryRunwayOperationData(staSumItem,landingItem);
+					  m_summaryDataLanding[strSimResult].push_back(staSumItem);
+				}
+
+				//takeoff
+				{
+					CAirsideRunwayOperationReportSummaryResult::StatisticsSummaryItem takeoffItem = pOpItem->m_TakeOffStastic;
+					SummaryRunwayOperationReportItem staSumItem;
+					staSumItem.m_runWaymark = pOpItem->m_runWaymark;
+					InitSummaryRunwayOperationData(staSumItem,takeoffItem);
+					m_summaryDataTakeOff[strSimResult].push_back(staSumItem);
+
+				}
+				//movements
+				{
+					CAirsideRunwayOperationReportSummaryResult::StatisticsSummaryItem movementItem = pOpItem->m_MovementStastic;
+					SummaryRunwayOperationReportItem staSumItem;
+					staSumItem.m_runWaymark = pOpItem->m_runWaymark;
+					InitSummaryRunwayOperationData(staSumItem,movementItem);
+					m_summaryDataMovement[strSimResult].push_back(staSumItem);
+				}
+			}
+		}
+    }
+
+	//generate runway operation multiple run landing 
+	BuildDetailMultipleRunwayOperation(m_mapLandingOperation,mapLandingOperation,pParameter);
+	//generate runway operation multiple run takeoff
+	BuildDetailMultipleRunwayOperation(m_mapTakeoffOperation,mapTakeoffOperation,pParameter);
+	//generate runway operation multiple run movement interval
+	BuildDetailMultipleRunwayTimeValue(m_mapMovementInterval,mapMovementInterval,pParameter);
 }
 
 void CAirsideAircraftMutiRunRunwayOperationResult::InitListHead(CXListCtrl& cxListCtrl, CParameters* parameter, int iType, CSortableHeaderCtrl* piSHC)
@@ -1126,5 +1016,25 @@ void CAirsideAircraftMutiRunRunwayOperationResult::Generate3DChartLeadTrailData(
 		c2dGraphData.m_vr2DChartData.push_back(vData);
 	}
 	chartWnd.DrawChart(c2dGraphData);
+}
+
+void CAirsideAircraftMutiRunRunwayOperationResult::InitSummaryRunwayOperationData( SummaryRunwayOperationReportItem& staSumItem,const CAirsideRunwayOperationReportSummaryResult::StatisticsSummaryItem& dataItem )
+{
+	staSumItem.m_minCount = dataItem.m_minCount;
+	staSumItem.m_strMinInterval = dataItem.m_strMinInterval;
+	staSumItem.m_nAverageCount = dataItem.m_nAverageCount;
+	staSumItem.m_maxCount = dataItem.m_maxCount;
+	staSumItem.m_strMaxInterval = dataItem.m_strMaxInterval;
+
+	staSumItem.m_nQ1 = dataItem.m_nQ1;
+	staSumItem.m_nQ2 = dataItem.m_nQ2;
+	staSumItem.m_nQ3 = dataItem.m_nQ3;
+	staSumItem.m_nP1 = dataItem.m_nP1;
+	staSumItem.m_nP5 = dataItem.m_nP5;
+	staSumItem.m_nP10 = dataItem.m_nP10;
+	staSumItem.m_nP90 = dataItem.m_nP90;
+	staSumItem.m_nP95 = dataItem.m_nP95;
+	staSumItem.m_nP99 = dataItem.m_nP99;
+	staSumItem.m_nStdDev = dataItem.m_nStdDev;
 }
 

@@ -61,10 +61,7 @@ void CAirsideStandMultiRunOperatinResult::LoadMultipleRunReport( CParameters* pP
             standOperationData.m_sSchedName = pData->m_sSchedName;
             standOperationData.m_lSchedOccupancy = pData->m_lSchedOccupancy;
             standOperationData.m_sActualName = pData->m_sActualName;
-
-            // TODO
-            standOperationData.m_lOccupiedTime = pData->m_lDueTaxiwayOccupied;
-
+            standOperationData.m_lOccupiedTime = pData->m_lActualOccupancy;
             standOperationData.m_lDelayEnter = pData->m_lDelayEnter;
             standOperationData.m_lDelayLeaving = pData->m_lDelayLeaving;
             mapStandLoadData[strSimResult].push_back(standOperationData);

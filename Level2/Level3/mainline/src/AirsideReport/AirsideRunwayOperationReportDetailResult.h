@@ -189,15 +189,16 @@ public:
 	CAirsideRunwayOperationReportDetailResult(void);
 	~CAirsideRunwayOperationReportDetailResult(void);
 
+public:
+	std::vector<RunwayOperationDetail *> m_vRunwayOperationDetail;
+	//new data for generate result data
+	std::vector<FlightOperationData>	m_vFlightOperateValue;
 protected:
-    std::vector<RunwayOperationDetail *> m_vRunwayOperationDetail;
 	AirsideRunwayOperationLog m_airsideOperationLog;
 	AircraftClassificationManager m_airCraftClassicfication;
 	AirsideRunwayOperationReportParam *m_pParameter;
 	RunwayOperationDetail* GetRunwayDetail(CAirsideReportRunwayMark& runwayMark);
-
-	//new data for generate result data
-	std::vector<FlightOperationData>	m_vFlightOperateValue;
+	
 
 	void InitRunway(CParameters * parameter);
 

@@ -362,7 +362,7 @@ void CAirsideAircraftMultiRunTakeoffProcessResult::Generate3DChartData( MultiRun
 		eEndTime.setPrecisely(delayData.m_iEnd);
 
 		CString strTimeRange;
-		strTimeRange.Format(_T("%02d:%02d:%02d-%02d:%02d:%02d"), eStartTime.GetHour(), eStartTime.GetMinute(),eStartTime.GetSecond(), eEndTime.GetHour(), eEndTime.GetSecond(),eEndTime.GetSecond());
+		strTimeRange.Format(_T("%02d:%02d:%02d-%02d:%02d:%02d"), eStartTime.GetHour(), eStartTime.GetMinute(),eStartTime.GetSecond(), eEndTime.GetHour(), eEndTime.GetMinute(),eEndTime.GetSecond());
 		c2dGraphData.m_vrXTickTitle.push_back(strTimeRange);
 	}
 

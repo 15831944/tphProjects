@@ -73,11 +73,17 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParam
 				long iScheduleDelay = 0;
 				if (dataItem.bArrOrDeplDelay)
 				{
-					iScheduleDelay = max(dataItem.smtaTime - dataItem.planSt,0l);
+					if (dataItem.actEndTime >= 0)
+					{
+						iScheduleDelay = max(dataItem.smtaTime - dataItem.planSt,0l);
+					}
 				}
 				else
 				{
-					iScheduleDelay = max(dataItem.smtdTime - dataItem.planSt,0l);
+					if (dataItem.actStartTime >= 0)
+					{
+						iScheduleDelay = max(dataItem.smtdTime - dataItem.planSt,0l);
+					}
 				}
 				mapScheduleDelay[strSimResult].push_back(iScheduleDelay);
 
@@ -101,7 +107,7 @@ void CAirsideFlightMutiRunDelayResult::LoadMultipleRunReport(CParameters* pParam
 					mapSegmentDelay[strSimResult][CAirsideFlightDelayReport::FltDelaySegment_TakeOff].clear();
 				}
 
-				for (unsigned iNode = 0; iNode < dataItem.vNodeDelay.size(); iNode)
+				for (unsigned iNode = 0; iNode < dataItem.vNodeDelay.size(); iNode++)
 				{
 					FlightDelayData delaySegmentData;
 					delaySegmentData.m_iArrTime = dataItem.vNodeDelay.at(iNode).eActArriveTime;
@@ -1315,7 +1321,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummary3DChartTimeData(MultiRunSu
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
         CString strXTickTitle;
-        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
 
@@ -1394,7 +1400,7 @@ void CAirsideFlightMutiRunDelayResult::GenerateSummaryComponentSegmentTimeData(S
         CString strSimName = iter->first;
         int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
         CString strXTickTitle;
-        strXTickTitle.Format(_T("Run%d"), nCurSimResult);
+        strXTickTitle.Format(_T("Run%d"), nCurSimResult+1);
         c2dGraphData.m_vrXTickTitle.push_back(strXTickTitle);
 
         c2dGraphData.m_vr2DChartData[0].push_back((double)iter->second[iType].m_estMin/60.0f);

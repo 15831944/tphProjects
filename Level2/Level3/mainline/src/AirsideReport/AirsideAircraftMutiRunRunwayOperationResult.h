@@ -5,6 +5,7 @@
 #include "Parameters.h"
 #include "ChartDataDefine.h"
 #include "CARC3DChart.h"
+#include "AirsideRunwayOperationReportSummaryResult.h"
 
 class C2DChartData;
 
@@ -147,6 +148,7 @@ private:
 	void Generate3DChartCountData(mapRunwayDetailOperation mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter,int iType);
 	void Generate3DChartLeadTrailData(mapLandTrailOperation mapDetailData,CARC3DChart& chartWnd, CParameters *pParameter,int iType);
 
+	void InitSummaryRunwayOperationData(SummaryRunwayOperationReportItem& staSumItem,const CAirsideRunwayOperationReportSummaryResult::StatisticsSummaryItem& dataItem);
 private:
 	std::vector<CString> m_lstColumns;
     mapSummaryData m_summaryDataLanding;
