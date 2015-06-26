@@ -254,14 +254,18 @@ void CAirsideAircraftMultiRunTakeoffProcessResult::BuillDetailMutipleTakeoffProc
 	ElapsedTime estMaxDelayTime = ElapsedTime(long(lMaxDelayTime/100.0+0.5));
 	ElapsedTime estUserIntervalTime = ElapsedTime(iInterval);
 
-	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
-	if (0 < iInterval)
-	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval * 100);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval*100)) /100);
+    long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
+    if (0 < iInterval)
+    {
+        long lActMinDelayTime = lMinDelayTime - lMinDelayTime%(iInterval*100);
+        estMinDelayTime = ElapsedTime(lActMinDelayTime/100);
 
-		lDelayTimeSegmentCount++;
-	}
+        lDelayTimeSegmentCount = (lMaxDelayTime - lActMinDelayTime) / (iInterval * 100);
+        if((lMaxDelayTime - lActMinDelayTime)%(iInterval*100) != 0)
+            lDelayTimeSegmentCount += 1;
+        if(lDelayTimeSegmentCount == 0)
+            lDelayTimeSegmentCount = 1;
+    }
 	else
 	{
 		lDelayTimeSegmentCount= ClacTimeRange(estMaxDelayTime, estMinDelayTime, estUserIntervalTime);

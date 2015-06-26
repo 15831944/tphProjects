@@ -590,10 +590,14 @@ void CAirsideAircraftMutiRunRunwayOperationResult::BuildDetailMultipleRunwayOper
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < pParameter->getInterval())
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+        long lActMinDelayTime = (lMinDelayTime - lMinDelayTime%(iInterval)) /100;
+        estMinDelayTime = ElapsedTime(lActMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lActMinDelayTime) / (iInterval);
 
-		//		lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lActMinDelayTime) % (iInterval) != 0)
+            lDelayTimeSegmentCount += 1;
+        if(lDelayTimeSegmentCount == 0)
+            lDelayTimeSegmentCount = 1;
 	}
 	else
 	{
@@ -658,10 +662,14 @@ void CAirsideAircraftMutiRunRunwayOperationResult::BuildDetailMultipleRunwayTime
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < pParameter->getInterval())
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+        long lActMinDelayTime = (lMinDelayTime - lMinDelayTime%(iInterval)) /100;
+        estMinDelayTime = ElapsedTime(lActMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lActMinDelayTime) / (iInterval);
 
-		//		lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lActMinDelayTime) % (iInterval) != 0)
+            lDelayTimeSegmentCount += 1;
+        if(lDelayTimeSegmentCount == 0)
+            lDelayTimeSegmentCount = 1;
 	}
 	else
 	{

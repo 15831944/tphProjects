@@ -431,6 +431,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationOccupancy( CP
 	eMaxTime.setPrecisely(lMaxOccupancyTime);
 	nIntervalSize = eMaxTime.asSeconds() / pParameter->getInterval() ;
 
+    if(eMaxTime.asSeconds()%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -474,6 +477,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationIdel( CParame
 	eMinTime.setPrecisely(lMinOccupancyTime);
 	int nDuration = pParameter->getEndTime().asSeconds() - pParameter->getStartTime().asSeconds();
 	int nIntervalSize = (nDuration - eMinTime.asSeconds()) / (pParameter->getInterval()) ;
+
+    if((nDuration-eMinTime.asSeconds()) % pParameter->getInterval() != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
@@ -610,6 +616,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationDelay( CParam
 	eMaxTime.setPrecisely(lMaxDelayTime);
 	nIntervalSize = eMaxTime.asSeconds() / pParameter->getInterval();
 
+    if(eMaxTime.asSeconds()%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -671,6 +680,9 @@ void CAirsideStandMultiRunOperatinResult::BuildDetailStandOperationConflict( CPa
 
 	int nIntervalSize = 0;
 	nIntervalSize = nMaxConflicts / 5 ;
+
+    if(nMaxConflicts%5 != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;

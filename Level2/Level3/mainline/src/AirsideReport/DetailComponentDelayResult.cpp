@@ -41,11 +41,12 @@ void CDetailComponentDelayResult::GenerateResult(vector<CAirsideFlightDelayRepor
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < lUserIntervalTime)
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(lUserIntervalTime)));
+        estMinDelayTime = ElapsedTime(lMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime);
 
-	//	lDelayTimeSegmentCount++;
-	}
+        if((lMaxDelayTime - lMinDelayTime)%(lUserIntervalTime) != 0)
+            lDelayTimeSegmentCount += 1;
+    }
 	else
 	{
 		lDelayTimeSegmentCount= ClacTimeRange(estMaxDelayTime, estMinDelayTime, estUserIntervalTime);
@@ -56,6 +57,9 @@ void CDetailComponentDelayResult::GenerateResult(vector<CAirsideFlightDelayRepor
 	{
 		ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 		ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
+
+        if(estTempMaxDelayTime > estMaxDelayTime)
+            estTempMaxDelayTime = estMaxDelayTime;
 
 		CString strTimeRange = _T("");
 		//strTimeRange.Format(_T("%s-%s"), estTempMinDelayTime.printTime(), estTempMaxDelayTime.printTime());

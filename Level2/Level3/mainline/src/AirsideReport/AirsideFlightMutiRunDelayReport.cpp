@@ -207,16 +207,17 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 	if (lMinDelayTime > lMaxDelayTime)
 		return;
 
-	long iInterval = pParameter->getInterval();
-	ElapsedTime estUserIntervalTime = ElapsedTime(iInterval);
+	long lUserIntervalTime = pParameter->getInterval();
+	ElapsedTime estUserIntervalTime = ElapsedTime(lUserIntervalTime);
 
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < pParameter->getInterval())
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(iInterval)) /100);
+        estMinDelayTime = ElapsedTime(lMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime);
 
-//		lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lMinDelayTime)%(lUserIntervalTime) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -239,6 +240,9 @@ void CAirsideFlightMutiRunDelayResult::BuildDetailComponentSegmentData(DelayComp
 			{
 				ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 				ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
+
+                if(estTempMaxDelayTime > estMaxDelayTime)
+                    estTempMaxDelayTime = estMaxDelayTime;
 
 				MultipleRunReportData delayData;
 				delayData.m_iStart = estTempMinDelayTime.getPrecisely();
@@ -268,11 +272,11 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayCount( MultiRunDe
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
 	{
-        long lActualMin = lMinDelayTime - lMinDelayTime%(iInterval*100);
-        lDelayTimeSegmentCount = (lMaxDelayTime - lActualMin) / (iInterval * 100);
-        estMinDelayTime = ElapsedTime(lActualMin/100);
+        long lActMinDelayTime =lMinDelayTime - lMinDelayTime%(iInterval*100);
+        estMinDelayTime = ElapsedTime(lActMinDelayTime / 100);
 
-        if((lMaxDelayTime-lActualMin)%(iInterval*100) != 0)
+        lDelayTimeSegmentCount = (lMaxDelayTime-lActMinDelayTime) / (iInterval*100);
+        if((lMaxDelayTime-lActMinDelayTime)%(iInterval*100) != 0)
             lDelayTimeSegmentCount += 1;
 	}
 	else
@@ -315,13 +319,12 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDet
 
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < iInterval)
-	{
-        long actualMinTime = lMinDelayTime - lMinDelayTime%iInterval;
-		lDelayTimeSegmentCount = (lMaxDelayTime - actualMinTime) / (iInterval);
-		estMinDelayTime = ElapsedTime(actualMinTime);
+    {
+        estMinDelayTime = ElapsedTime(lMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (iInterval);
 
-        if((lMaxDelayTime - actualMinTime) % iInterval != 0)
-            lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lMinDelayTime) % (iInterval) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -335,6 +338,9 @@ void CAirsideFlightMutiRunDelayResult::BulidDetailMultiRunDelayTime( MultiRunDet
 		{
 			ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 			ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
+
+            if(estTempMaxDelayTime > estMaxDelayTime)
+                estTempMaxDelayTime = estMaxDelayTime;
 
 			MultipleRunReportData delayData;
 			delayData.m_iStart = estTempMinDelayTime.getPrecisely();

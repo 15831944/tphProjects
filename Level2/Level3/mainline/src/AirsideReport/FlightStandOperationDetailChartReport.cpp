@@ -71,6 +71,9 @@ void CDetailStandOccupancyUtilizationChartResult::GenerateResult(std::vector<CSt
 	long lMaxOccupancyTime  = max(lSchedStandTimeOccupany, lActualStandTimeOccupany);
 	nIntervalSize = lMaxOccupancyTime / pParameter->getInterval() ;
 
+    if(lMaxOccupancyTime%pParameter->getInterval() != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -430,6 +433,9 @@ void CDetailStandConflictChartResult::GenerateResult(std::vector<CStandOperation
 	int nMaxConflicts  =  max(lArrStandConflicts, lDepStandConflicts);
 	nIntervalSize = nMaxConflicts / 5 ;
 
+    if(nMaxConflicts%5 != 0)
+        nIntervalSize += 1;
+
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;
 
@@ -547,6 +553,9 @@ void CDetailStandDelayChartResult::GenerateResult(std::vector<CStandOperationRep
 
 	long lMaxDelay  =  max(lArrStandDelay, lDepStandDelay);
 	nIntervalSize = lMaxDelay / pParameter->getInterval() ;
+
+    if((lMaxDelay%pParameter->getInterval()) != 0)
+        nIntervalSize += 1;
 
 	if (nIntervalSize ==0)
 		nIntervalSize = 1;

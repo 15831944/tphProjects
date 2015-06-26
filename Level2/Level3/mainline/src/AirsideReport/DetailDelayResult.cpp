@@ -53,10 +53,11 @@ void CDetailDelayResult::GenerateResult(vector<CAirsideFlightDelayReport::FltTyp
 	long lDelayTimeSegmentCount = 0;             //the count of the delayTime segment
 	if (0 < lUserIntervalTime)
 	{
-		lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime);
-		estMinDelayTime = ElapsedTime((lMinDelayTime - lMinDelayTime%(lUserIntervalTime)));
+        estMinDelayTime = ElapsedTime(lMinDelayTime);
+        lDelayTimeSegmentCount = (lMaxDelayTime - lMinDelayTime) / (lUserIntervalTime);
 
-	//	lDelayTimeSegmentCount++;
+        if((lMaxDelayTime - lMinDelayTime) % (lUserIntervalTime) != 0)
+            lDelayTimeSegmentCount += 1;
 	}
 	else
 	{
@@ -75,6 +76,9 @@ void CDetailDelayResult::GenerateResult(vector<CAirsideFlightDelayReport::FltTyp
 		{
 			ElapsedTime estTempMinDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*i);
 			ElapsedTime estTempMaxDelayTime = estMinDelayTime + ElapsedTime(estUserIntervalTime.asSeconds()*(i + 1));
+
+            if(estTempMaxDelayTime > estMaxDelayTime)
+                estTempMaxDelayTime = estMaxDelayTime;
 
 			if (!bSetTimeRange)
 			{
