@@ -19,6 +19,8 @@ static char THIS_FILE[] = __FILE__;
 
 CPaxBulkEdit::CPaxBulkEdit(CWnd* pParent /*=NULL*/)
 	: CDialog(CPaxBulkEdit::IDD, pParent)
+    , m_oldCx(0)
+    , m_oldCy(0)
 {
 	//{{AFX_DATA_INIT(CPaxBulkEdit)
 	m_BeforeCheck = FALSE;
@@ -62,6 +64,8 @@ BEGIN_MESSAGE_MAP(CPaxBulkEdit, CDialog)
 	ON_NOTIFY(NM_KILLFOCUS, IDC_m_FrequencyTime, OnNMKillfocusmFrequencytime)
 	ON_NOTIFY(NM_KILLFOCUS, IDC_BeginRangeTime, OnNMKillfocusBeginrangetime)
 	ON_NOTIFY(NM_KILLFOCUS, IDC_EndRangeTime, OnNMKillfocusEndrangetime)
+    ON_WM_SIZE()
+    ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -69,6 +73,11 @@ END_MESSAGE_MAP()
 BOOL CPaxBulkEdit::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+    CRect rect;
+    GetClientRect(&rect);
+    m_oldCx = rect.Width();
+    m_oldCy = rect.Height();
 
 	int dayFreqStart = 1;
 	int dayFreqEnd = 1;
@@ -238,7 +247,7 @@ void CPaxBulkEdit::InitListCtrlHeader()
 	CRect rect;
 	m_wndListCtrl.GetClientRect(&rect);
 	char* columnLabel[] = {	"Train", "Prob Will Try(%)"};
-	int DefaultColumnWidth[] = {rect.Width()/5,rect.Width()/2};
+	int DefaultColumnWidth[] = {rect.Width()*20/100,rect.Width()*75/100};
 	int nColFormat[] = 
 	{	
 		LVCFMT_NOEDIT,
@@ -376,4 +385,108 @@ void CPaxBulkEdit::ShowTotalBulkPercentage()
     CString strEdit;
     strEdit.Format("%d", iPercent);
     GetDlgItem(IDC_EDIT_TOTALPERCENT)->SetWindowText(strEdit);
+}
+
+void CPaxBulkEdit::OnSize(UINT nType, int cx, int cy)
+{
+    CDialog::OnSize(nType, cx, cy);
+    CWnd* pCtrl = GetDlgItem(IDOK);
+    if(pCtrl == NULL)
+    {
+        if(nType != SIZE_MINIMIZED)
+        {
+            m_oldCx = cx;
+            m_oldCy = cy;
+        }
+        return;
+    }
+
+    LayoutControl(GetDlgItem(IDC_CAPACITY), TopRight, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_m_FrequencyTime), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_StartTime), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EndTime), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BeginRangeTime), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EndRangeTime), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC6), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC7), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC10), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC11), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC1), TopLeft,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC2), TopLeft,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC3), TopLeft,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC4), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC5), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_RADIO_before), TopLeft,  TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_SPIN1), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDOK), BottomRight,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDCANCEL), BottomRight,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC8), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EDIT_FREQ_STARTDAY), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_SPIN_FREQ_STARTDAY), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC9), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EDIT_FREQ_ENDDAY), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_SPIN_FREQ_ENDDAY), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_RADIO_after), TopRight,  TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_LIST_DATA), TopLeft,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EDIT_TOTALPERCENT), BottomRight,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC12), BottomLeft,  BottomLeft, cx, cy);
+
+    if(nType != SIZE_MINIMIZED)
+    {
+        m_oldCx = cx;
+        m_oldCy = cy;
+    }
+    InvalidateRect(NULL);
+}
+
+void CPaxBulkEdit::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
+{
+    CRect rcS;
+    pCtrl->GetWindowRect(&rcS);
+    ScreenToClient(&rcS);
+    int deltaX = cx - m_oldCx;
+    int deltaY = cy - m_oldCy;
+    if(refTopLeft == TopLeft && refBottomRight == TopLeft)
+    {
+        pCtrl->MoveWindow(&rcS);
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == TopRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width()+deltaX, rcS.Height());
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == BottomLeft)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width(), rcS.Height()+deltaY);
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width()+deltaX, rcS.Height()+deltaY);
+    }
+    else if(refTopLeft == TopRight && refBottomRight == TopRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), rcS.Height());
+    }
+    else if(refTopLeft == TopRight && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), cy+deltaY);
+    }
+    else if(refTopLeft == BottomLeft && refBottomRight == BottomLeft)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, rcS.Width(), rcS.Height());
+    }
+    else if(refTopLeft == BottomLeft && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, cx+deltaX, rcS.Height());
+    }
+    else if(refTopLeft == BottomRight && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top+deltaY, rcS.Width(), rcS.Height());
+    }
+}
+
+void CPaxBulkEdit::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+    lpMMI->ptMinTrackSize.x = 310;
+    lpMMI->ptMinTrackSize.y = 500;
+    CDialog::OnGetMinMaxInfo(lpMMI);
 }

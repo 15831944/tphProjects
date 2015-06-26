@@ -60,8 +60,15 @@ protected:
 	afx_msg void OnButtonsave();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+private:
+    int m_oldCx;
+    int m_oldCy;
+    typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
+    void LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy);
 };
 
 //{{AFX_INSERT_LOCATION}}

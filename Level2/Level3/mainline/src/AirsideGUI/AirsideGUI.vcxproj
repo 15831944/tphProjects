@@ -540,8 +540,10 @@
     <None Include="res\StaffCar.ico" />
     <None Include="res\Stairs.ico" />
     <None Include="res\STAND.bmp" />
+    <None Include="res\StandParking.bmp" />
     <None Include="res\stand_to.bmp" />
     <None Include="res\STANDBUFFER.BMP" />
+    <None Include="res\tempParking.bmp" />
     <None Include="res\test.ico" />
     <None Include="res\toolbar1.bmp" />
     <None Include="res\toolbar2.bmp" />

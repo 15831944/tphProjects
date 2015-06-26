@@ -2933,6 +2933,7 @@ void AirsideFlightInSim::InitLogEntry()
 	fltDesc.arrloadFactor = m_pflightInput->getLogEntry().arrloadFactor;
 	fltDesc.deploadFactor = m_pflightInput->getLogEntry().deploadFactor;
 	fltDesc.nCapacity = m_pflightInput->getLogEntry().capacity;
+	fltDesc.gateOccupancy = m_pflightInput->getLogEntry().gateOccupancy.getPrecisely();
 	strcpy(fltDesc.arrStandPlaned, m_pflightInput->getArrStand().GetIDString().Left(OBJIDLEN -1 ).GetBuffer());
 	strcpy(fltDesc.intStandPlaned, m_pflightInput->getIntermediateStand().GetIDString().Left(OBJIDLEN -1).GetBuffer());
 	strcpy(fltDesc.depStandPlaned, m_pflightInput->getDepStand().GetIDString().Left(OBJIDLEN -1).GetBuffer());

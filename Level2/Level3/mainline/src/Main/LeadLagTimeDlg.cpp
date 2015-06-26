@@ -170,6 +170,9 @@ BOOL CLeadLagTimeDlg::OnInitDialog()
 	SetWindowText("Lead Lag Time");
 	SetListCtrl();
 	ReloadData(NULL);
+
+	GetDlgItem(IDC_BUTTON_EXPORT)->ShowWindow(FALSE);
+	GetDlgItem(IDC_DELAY_IMPORT)->ShowWindow(FALSE);
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
 }

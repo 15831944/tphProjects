@@ -88,25 +88,6 @@ const PaxTypeDistribution& PaxTypeDistribution::operator =
     return *this;
 }
 
-bool PaxTypeDistribution::isEqual(const ProbabilityDistribution* pOther)
-{
-    if(pOther->getProbabilityType() != getProbabilityType())
-        return false;
-    PaxTypeDistribution* pPaxProb = (PaxTypeDistribution*)pOther;
-    int size = LEVELS * sizeof (int);
-    if(memcmp((char *)branches, (char *)(pPaxProb->branches), size) != 0)
-        return false;
-    if(levels != pPaxProb->levels)
-        return false;
-
-    for (int i = 0; i < levels; i++)
-    {
-        if(memcmp((char *)(values[i]), (char *)(pPaxProb->values[i]), totalBranches[i]*sizeof (float)) != 0)
-            return false;
-    }
-    return true;
-}
-
 // set the value stored at a specific location in the tree, as a percent
 void PaxTypeDistribution::setValue (const int *p_path, float p_value)
 {

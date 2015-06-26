@@ -3450,6 +3450,12 @@
 #define IDC_COMBO_CONSTANT              2442
 #define IDC_BTN_OPENDB                  2443
 #define IDC_EDIT_CONSTANTVALUE          2444
+#define IDC_STATIC7                     2445
+#define IDC_STATIC8                     2446
+#define IDC_STATIC9                     2447
+#define IDC_STATIC10                    2448
+#define IDC_STATIC11                    2449
+#define IDC_STATIC12                    2450
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5602,7 +5608,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1120
 #define _APS_NEXT_COMMAND_VALUE         35350
-#define _APS_NEXT_CONTROL_VALUE         2445
+#define _APS_NEXT_CONTROL_VALUE         2451
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

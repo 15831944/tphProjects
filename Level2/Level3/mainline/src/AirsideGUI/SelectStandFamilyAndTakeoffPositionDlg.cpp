@@ -577,12 +577,12 @@ void CSelectStandFamilyAndTakeoffPositionDlg::OnBnClickedOk()
 
 	if(!m_bAllRunwayExit)
 	{
-		//int nSelCount = m_TreeCtrlRunwayExit.GetSelectedCount();
+		int nSelCount = m_TreeCtrlRunwayExit.GetSelectedCount();
 
-		HTREEITEM hSelItem = m_TreeCtrlRunwayExit.GetSelectedItem();
+		HTREEITEM hSelItem = m_TreeCtrlRunwayExit.GetFirstSelectedItem();
 
 
-	//	for (int i = 0; i < nSelCount;++i) 
+		for (int i = 0; i < nSelCount;++i) 
 		{		
 
 			if (hSelItem != NULL )
@@ -590,8 +590,8 @@ void CSelectStandFamilyAndTakeoffPositionDlg::OnBnClickedOk()
 				RUNWAYEXITTYPE type = GetRunwayExitType(hSelItem);
 				if (type == RUNWAYEXIT_DEFAULT)
 				{
-					//hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
-					//continue;
+					hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
+					continue;
 				}
 
 				if (type == RUNWAYEXIT_LOGICRUNWAY)
@@ -637,7 +637,7 @@ void CSelectStandFamilyAndTakeoffPositionDlg::OnBnClickedOk()
 				}
 
 			}
-		//	hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
+			hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
 		}
 	}
 	else
@@ -645,11 +645,11 @@ void CSelectStandFamilyAndTakeoffPositionDlg::OnBnClickedOk()
 
 	if(!m_bAllStand)
 	{
-	//	int nSelCount = m_TreeCtrlStandFamily.GetSelectedCount();
+		int nSelCount = m_TreeCtrlStandFamily.GetSelectedCount();
 
-		HTREEITEM hSelItem = m_TreeCtrlStandFamily.GetSelectedItem();
+		HTREEITEM hSelItem = m_TreeCtrlStandFamily.GetFirstSelectedItem();
 
-	//	for (int i = 0; i < nSelCount;++i) 
+		for (int i = 0; i < nSelCount;++i) 
 		{		
 			if (hSelItem != NULL )
 			{	
@@ -675,7 +675,7 @@ void CSelectStandFamilyAndTakeoffPositionDlg::OnBnClickedOk()
 					m_strStandGroups += strName;
 				}
 			}
-		//	hSelItem = m_TreeCtrlStandFamily.GetNextSelectedItem(hSelItem);
+			hSelItem = m_TreeCtrlStandFamily.GetNextSelectedItem(hSelItem);
 		}
 	}
 	else

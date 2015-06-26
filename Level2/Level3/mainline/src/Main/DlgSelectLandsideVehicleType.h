@@ -8,13 +8,14 @@ class CDlgSelectLandsideVehicleType : public CDialog
 	DECLARE_DYNAMIC(CDlgSelectLandsideVehicleType)
 
 public:
-	CDlgSelectLandsideVehicleType(CWnd* pParent = NULL);   // standard constructor
+	CDlgSelectLandsideVehicleType(bool bEnableMultiSel = false, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgSelectLandsideVehicleType();
 
 // Dialog Data
 	enum { IDD = IDD_DIALOG_SELECTLANDSIDEVEHICLETYPE };
 public:
-	const CString& GetName()const{return m_strName;}
+    CString GetName();
+    const std::vector<CString>& GetNameList()const{return m_vSelVehicles;}
 protected:
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -26,7 +27,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	CString m_strName;
+	std::vector<CString> m_vSelVehicles;
 	LandsideVehicleBaseNode m_vehicleNodeList;
-	CTreeCtrl m_wndTreeCtrl;
+    bool m_bEnableMultiSel;
+    CTreeCtrl* m_pTree;
 };

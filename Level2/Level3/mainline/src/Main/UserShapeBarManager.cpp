@@ -276,7 +276,7 @@ BOOL CUserShapeBarManager::DeleteUserShapeBar(CUserShapeBar* pUserBar)
 void CUserShapeBarManager::DeleteAllUserShapeBar()
 {
     int nBarCount = (int)m_vUserBars.size();
-    for(int i=0; i<nBarCount; i++)
+    for(int i=nBarCount-1; i>=0; i--)
     {
         delete m_vUserBars.at(i);
         m_vUserBars.erase(m_vUserBars.begin() + i);

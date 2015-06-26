@@ -5664,7 +5664,13 @@ bool TerminalMobElementBehavior::IsLateForDepFlight( ElapsedTime _eCurTime, long
 	{
 		if (pFlight->IsAirsideFlightDepartured())
 		{
-			bLate = true;
+			if (pFlight->RetrieveAirsideDepartureTime())
+			{
+				actureDepTimeWithDelay = pFlight->GetRealDepTime()  - eDeltaTime;
+
+				if(_eCurTime >  actureDepTimeWithDelay)
+					bLate = true;
+			}
 		}
 	}
 	else

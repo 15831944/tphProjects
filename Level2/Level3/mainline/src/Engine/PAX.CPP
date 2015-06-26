@@ -492,6 +492,9 @@ void Passenger::testForLate (ElapsedTime curTime, long _lPaxID )
 	if(!flight->isDeparting())//arrival flight. donot need test.
 		return;
 
+	if (getEngine()->IsAirsideSel() && !flight->IsAirsideFlightDepartured())//flight doesn't leave won't delay
+		return;
+
 	if (getEngine()->IsAirsideSel() && !flight->RetrieveAirsideDepartureTime())
 		return;
 	
@@ -499,18 +502,10 @@ void Passenger::testForLate (ElapsedTime curTime, long _lPaxID )
 	//-------------------------------------------------------------------------
 	// late check with flight delay time.
 	bool bOnlyRunTerminal = getEngine()->IsTerminal() && !getEngine()->IsAirsideSel();
-	ElapsedTime actureDepTimeWithDelay; //= flight->GetRealDepTime();// not delay.
+	ElapsedTime actureDepTimeWithDelay = flight->GetRealDepTime();// not delay.
 	if(bOnlyRunTerminal && flight->getDepDelay() > ElapsedTime(0L))// late
 	{
 		actureDepTimeWithDelay = flight->getDepTime() + flight->getDepDelay();//delayed
-	}
-	else
-	{
-		if(flight->IsAirsideFlightDepartured())
-			actureDepTimeWithDelay = curTime - ElapsedTime(10L);
-		else
-			actureDepTimeWithDelay = curTime + ElapsedTime(10L);
-
 	}
 
 	//-----------------------------------------------------------------------

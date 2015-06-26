@@ -5,6 +5,7 @@
 #include "InputAirside/HoldShortLines.h"
 #include "..\MFCExControl\SplitterControl.h"
 #include <MFCExControl/XTResizeDialogEx.h>
+#include "MuliSelTreeCtrlEx.h"
 
 class ALTObject;
 enum RUNWAY_MARK;
@@ -78,9 +79,12 @@ protected:
 		TreeSelectList& deicepads, TreeSelectList& startpositions, TreeSelectList& taxiinterruptlines);
 	BOOL RecALTObject( BOOL bHasPrev, BOOL bAll, TreeSelectList &stands, std::vector<int>& recALTObj, ALTOBJECT_TYPE objType, LPCTSTR orgTypeTag );
 
+private:
+	void GetSelectedList(CMuliSeltTreeCtrlEx& treeCtrl,TreeSelectList& selList);
+
 protected:
-	CTreeCtrl m_treelRunwayExit;
-	CTreeCtrl m_treeOrg;
+	CMuliSeltTreeCtrlEx m_treelRunwayExit;
+	CMuliSeltTreeCtrlEx m_treeOrg;
 	CSplitterControl m_wndSplitterVer;
 
 

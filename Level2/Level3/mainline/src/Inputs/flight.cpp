@@ -1173,6 +1173,15 @@ FlightConstraint Flight::getType (char p_mode) const
     type.setFlightID ((p_mode == 'D')? getDepID(): getArrID());
 	type.setDay((p_mode == 'D')? getDepTime().GetDay(): getArrTime().GetDay());
 	type.setTime((p_mode == 'D')? getDepTime().getPrecisely(): getArrTime().getPrecisely());
+	if (isTurnaround())
+	{
+		type.setGateOccupancy(getDepTime() - getArrTime());
+	}
+	else
+	{
+		type.setGateOccupancy(getServiceTime());
+	}
+	
 	type.SetFltConstraintMode( (p_mode=='A') ? ENUM_FLTCNSTR_MODE_ARR : ENUM_FLTCNSTR_MODE_DEP );
 	type.setAirport ((p_mode == 'D')?getDestination(): getOrigin());
 	type.setStopoverAirport((p_mode == 'D')? m_depStopover: m_arrStopover);
@@ -1554,7 +1563,14 @@ FlightDescStruct Flight::getLogEntry ()
 		logEntry.gate = m_pDepFlightOp->GetDepStandIdx();
 		logEntry.nDepGate = m_nDepGateIdx;
 	}
-	logEntry.gateOccupancy = getServiceTime();
+	if (isTurnaround())
+	{
+		logEntry.gateOccupancy = getDepTime() - getArrTime();
+	}
+	else
+	{
+		logEntry.gateOccupancy = getServiceTime();
+	}
 	//Stand stand;
 	//stand.ReadObject( getStandID() );
 
@@ -1589,8 +1605,18 @@ bool Flight::isBelongToGroup( FlightGroup* pFlightGroup,bool bArrival)
 		etDayTime = getDepTime();
 		strDay.Format("%d", etDayTime.GetDay());
 	}
+
 	strFlightID.ReleaseBuffer(); 
-	return pFlightGroup->contain(strAirline, strFlightID,strDay,etDayTime);
+	ElapsedTime eGateOccupanceTime;
+	if (isTurnaround())
+	{
+		eGateOccupanceTime = getDepTime() - getArrTime();
+	}
+	else
+	{
+		eGateOccupanceTime = getServiceTime();
+	}
+	return pFlightGroup->contain(strAirline, strFlightID,strDay,etDayTime,eGateOccupanceTime);
 	//flight id
 }
 

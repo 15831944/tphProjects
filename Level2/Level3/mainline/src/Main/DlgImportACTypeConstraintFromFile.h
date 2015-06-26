@@ -38,7 +38,7 @@ protected:
 	bool IsValidateStandGroup(const ALTObjectID& objID );
 	void SetListCtrl();
 	void InitListCtrl();
-
+    bool IsACTypesStringValid(CString& errMsg, CString strACTypes);
 protected:
 	ACTypeStandConstraintImportListCtrl m_wndListCtrl;
     //CXTTipWindow			m_tipWindow;

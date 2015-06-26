@@ -877,7 +877,7 @@ void CMainFrame::OnView3DDefaultView() //opens or activates default 3d view (sin
 		ASSERT(FALSE);
 	}
 
-	UpdateMainframeMenu(pTPDoc->m_systemMode);
+//	UpdateMainframeMenu(pTPDoc->m_systemMode);
 }
 
 void CMainFrame::OnView2DDefaultView() //opens or activates default 3d view (single pane)
@@ -935,7 +935,7 @@ void CMainFrame::OnView2DDefaultView() //opens or activates default 3d view (sin
 		ASSERT(FALSE);
 	}
 
-	UpdateMainframeMenu(pTPDoc->m_systemMode );
+//	UpdateMainframeMenu(pTPDoc->m_systemMode );
 
 }
 
@@ -991,7 +991,7 @@ void CMainFrame::OnView3dterminalview() //opens or activates working 3d view
 
 
 
-	UpdateMainframeMenu(pTPDoc->m_systemMode );
+//	UpdateMainframeMenu(pTPDoc->m_systemMode );
 }
 
 void CMainFrame::AdjustMSV(CDocument* pTermDoc)
@@ -1246,7 +1246,7 @@ void CMainFrame::OnView2dterminalview() //opens 2D user view (working view)
 		ASSERT(FALSE);
 	}
 
-	UpdateMainframeMenu(pTPDoc->m_systemMode );
+//	UpdateMainframeMenu(pTPDoc->m_systemMode );
 
 }
 

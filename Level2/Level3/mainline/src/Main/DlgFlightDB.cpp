@@ -156,15 +156,17 @@ BOOL CDlgFlightDB::OnInitDialog()
 	m_wndListCtrl.SetExtendedStyle( dwStyle );
 	m_wndListCtrl.SubClassHeadCtrl();
 	m_wndListCtrl.GetClientRect(&listrect);
-	m_wndListCtrl.InsertColumn(0, "Airline", LVCFMT_LEFT, listrect.Width()/4);
-	m_wndListCtrl.InsertColumn(1, "ID", LVCFMT_LEFT, listrect.Width()/4);
-	m_wndListCtrl.InsertColumn(2, "Day",LVCFMT_LEFT, listrect.Width()/4);
-	m_wndListCtrl.InsertColumn(3, "Operation Time", LVCFMT_LEFT,listrect.Width()/4);
+	m_wndListCtrl.InsertColumn(0, "Airline", LVCFMT_LEFT, listrect.Width()/5);
+	m_wndListCtrl.InsertColumn(1, "ID", LVCFMT_LEFT, listrect.Width()/5);
+	m_wndListCtrl.InsertColumn(2, "Day",LVCFMT_LEFT, listrect.Width()/5);
+	m_wndListCtrl.InsertColumn(3, "Operation Time(hh:mm)", LVCFMT_LEFT,listrect.Width()/5);
+	m_wndListCtrl.InsertColumn(4, "Turnaround Time(hh:mm)", LVCFMT_LEFT,listrect.Width()/5);
 //	m_wndListCtrl.ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
 	m_wndListCtrl.SetDataType(0,CSortAndPrintListCtrl::ITEM_STRING);
 	m_wndListCtrl.SetDataType(1,CSortAndPrintListCtrl::ITEM_INT);
 	m_wndListCtrl.SetDataType(2,CSortAndPrintListCtrl::ITEM_INT);
 	m_wndListCtrl.SetDataType(3,CSortAndPrintListCtrl::ITEM_TIME);
+	m_wndListCtrl.SetDataType(4,CSortAndPrintListCtrl::ITEM_TIME);
 
 	PopulateGroupsList();
 	if (m_wndListBox.GetCount()>0)
@@ -519,7 +521,15 @@ void CDlgFlightDB::PopulateFlightList(int _nItem)
 			for (int i = 0; i < m_pTerm->flightSchedule->getCount();i++)
 			{
 				Flight* pFlight = m_pTerm->flightSchedule->getItem(i);
-
+				ElapsedTime eGateOccupanceTime;
+				if (pFlight->isTurnaround())
+				{
+					eGateOccupanceTime = pFlight->getDepTime() - pFlight->getArrTime();
+				}
+				else
+				{
+					eGateOccupanceTime = pFlight->getServiceTime();
+				}
 				if (pFlight->isArriving())
 				{
 					if (pFlight->isBelongToGroup(pGroup,true))
@@ -537,6 +547,9 @@ void CDlgFlightDB::PopulateFlightList(int _nItem)
 						strTime.Format(_T("%02d:%02d"),etDayTime.GetHour(),etDayTime.GetMinute());
 						m_wndListCtrl.SetItemText(nIndex,3,strTime);
 
+						CString strTurnaroundTime;
+						strTurnaroundTime.Format(_T("%02d:%02d"),eGateOccupanceTime.GetHour(),eGateOccupanceTime.GetMinute());
+						m_wndListCtrl.SetItemText(nIndex,4,strTurnaroundTime);
 						nIndex++;
 					}
 				}
@@ -556,6 +569,10 @@ void CDlgFlightDB::PopulateFlightList(int _nItem)
 
 						strTime.Format(_T("%02d:%02d"),etDayTime.GetHour(),etDayTime.GetMinute());
 						m_wndListCtrl.SetItemText(nIndex,3,strTime);
+
+						CString strTurnaroundTime;
+						strTurnaroundTime.Format(_T("%02d:%02d"),eGateOccupanceTime.GetHour(),eGateOccupanceTime.GetMinute());
+						m_wndListCtrl.SetItemText(nIndex,4,strTurnaroundTime);
 						nIndex++;
 					}
 				}

@@ -102,7 +102,7 @@ void LandsideReportTreeDefaultPerformer::OnToolBarAdd( HTREEITEM hTreeItem )
 
 	if(pNodeData->m_nodeType == VEHICLE_ITEM_ROOT)
 	{
-		CDlgSelectLandsideVehicleType dlg;
+		CDlgSelectLandsideVehicleType dlg(true); // multi select = 'true'
 		if(dlg.DoModal()== IDOK)
 		{
 			CString strName = dlg.GetName();

@@ -146,6 +146,7 @@
     <ClInclude Include="ARCTreeCtrlEx.h" />
     <ClInclude Include="ARCTreeCtrlExWithColor.h" />
     <ClInclude Include="ATCRWPairListCtrl.h" />
+    <ClInclude Include="AutoFillComboBox.h" />
     <ClInclude Include="BtnST.h" />
     <ClInclude Include="CARCTipComboBox.h" />
     <ClInclude Include="CARCTipEdit.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="ARCTreeCtrlEx.cpp" />
     <ClCompile Include="ARCTreeCtrlExWithColor.cpp" />
     <ClCompile Include="ATCRWPairListCtrl.cpp" />
+    <ClCompile Include="AutoFillComboBox.cpp" />
     <ClCompile Include="BtnST.cpp" />
     <ClCompile Include="CARCTipComboBox.cpp" />
     <ClCompile Include="CARCTipEdit.cpp" />

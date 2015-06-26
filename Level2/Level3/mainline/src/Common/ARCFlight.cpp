@@ -627,6 +627,14 @@ FlightDescStruct ARCFlight::getOpLogEntry( char mode )
 		logEntry.gate = m_pDepFlightOp->GetDepStandIdx();
 		logEntry.depDelay = m_depDelay;
 	}
+	if (isTurnaround())
+	{
+		logEntry.gateOccupancy = getDepTime() - getArrTime();
+	}
+	else
+	{
+		logEntry.gateOccupancy = getServiceTime();
+	}
 	return logEntry; 
 }
 

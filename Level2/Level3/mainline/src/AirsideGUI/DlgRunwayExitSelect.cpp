@@ -126,12 +126,12 @@ void CDlgRunwayExitSelect::OnOK()
 
 	if(!m_bAllRunwayExit)
 	{
-	//	int nSelCount = m_TreeCtrlRunwayExit.GetSelectedCount();
+		int nSelCount = m_TreeCtrlRunwayExit.GetSelectedCount();
 
-		HTREEITEM hSelItem = m_TreeCtrlRunwayExit.GetSelectedItem();
+		HTREEITEM hSelItem = m_TreeCtrlRunwayExit.GetFirstSelectedItem();
 
 
-	//	for (int i = 0; i < nSelCount;++i) 
+		for (int i = 0; i < nSelCount;++i) 
 		{		
 
 			if (hSelItem != NULL )
@@ -139,8 +139,8 @@ void CDlgRunwayExitSelect::OnOK()
 				RUNWAYEXITTYPE type = GetRunwayExitType(hSelItem);
 				if (type == RUNWAYEXIT_DEFAULT)
 				{
-					//hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
-					//continue;
+					hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
+					continue;
 				}
 
 				if (type == RUNWAYEXIT_LOGICRUNWAY)
@@ -186,7 +186,7 @@ void CDlgRunwayExitSelect::OnOK()
 				}
 
 			}
-//			hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
+			hSelItem = m_TreeCtrlRunwayExit.GetNextSelectedItem(hSelItem);
 		}
 	}
 	else

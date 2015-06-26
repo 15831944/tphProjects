@@ -319,7 +319,10 @@ int FlightConstraint::fits (const FlightConstraint& p_type, bool _bIgnoreStar /*
 			sprintf(szbuff,"%d",p_type.GetDay());
 			ElapsedTime eTime;
 			eTime.setPrecisely(p_type.GetTime());
-			if (!m_pFlightGroup->contain(p_type.airline.GetValue(),p_type.flightID.GetValue(),szbuff,eTime))
+
+			ElapsedTime eGateOccupancy;
+			eGateOccupancy.setPrecisely(p_type.GetGateOccupancy());
+			if (!m_pFlightGroup->contain(p_type.airline.GetValue(),p_type.flightID.GetValue(),szbuff,eTime,eGateOccupancy))
 			{
 				return 0;
 			}
@@ -428,8 +431,11 @@ int FlightConstraint::fits( const FlightDescStruct& _fltDesc ) const
 		DepTime.setPrecisely (_fltDesc.depTime);
 		DepDay.Format("%d", DepTime.GetDay());
 
+		ElapsedTime eGateOccupancy;
+		eGateOccupancy = _fltDesc.gateOccupancy;
+
 		if(!m_pFlightGroup->contain(_fltDesc.airline.GetValue(),(_fltDesc.arrID.HasValue()?_fltDesc.arrID.GetValue():_fltDesc.depID.GetValue()),(_fltDesc.arrTime>0?ArrDay:DepDay),
-			(_fltDesc.arrTime>0?arrTime:DepTime)))
+			(_fltDesc.arrTime>0?arrTime:DepTime),eGateOccupancy))
 		{
 			return 0;
 		}
@@ -629,6 +635,7 @@ const FlightConstraint &FlightConstraint::operator =
     flightID = p_const.flightID;
 	m_nDay = p_const.m_nDay;
 	m_eTime = p_const.m_eTime;
+	m_eGateOccupancy = p_const.m_eGateOccupancy;
     m_enumFltCnstrMode = p_const.m_enumFltCnstrMode;
     //strcpy (acType, p_const.acType);
 	acType = p_const.acType;
@@ -737,6 +744,7 @@ void FlightConstraint::initFlightType (const FlightDescStruct &p_struct, char p_
 	long lTime =  (p_mode == 'A')? p_struct.arrTime: p_struct.depTime;
 	m_eTime.setPrecisely(lTime);
 	m_nDay = m_eTime.GetDay();
+	m_eGateOccupancy = p_struct.gateOccupancy;
 	m_enumFltCnstrMode = (p_mode=='A') ? ENUM_FLTCNSTR_MODE_ARR : ENUM_FLTCNSTR_MODE_DEP;
 
 	m_airport = (p_mode == 'A')? p_struct.origin: p_struct.destination;
@@ -759,6 +767,7 @@ void FlightConstraint::initFlightType( const AirsideFlightDescStruct& p_struct, 
 	long lTime =  (p_mode == 'A')? p_struct.arrTime: p_struct.depTime;
 	m_eTime.setPrecisely(lTime);
 	m_nDay = m_eTime.GetDay();
+	m_eGateOccupancy.setPrecisely(p_struct.gateOccupancy);
 
 	m_enumFltCnstrMode = (p_mode=='A') ? ENUM_FLTCNSTR_MODE_ARR : ENUM_FLTCNSTR_MODE_DEP;
 

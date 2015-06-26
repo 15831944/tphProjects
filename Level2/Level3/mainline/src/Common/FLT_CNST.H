@@ -56,6 +56,7 @@ protected:
 	CFlightID flightID;
 	int		m_nDay;
 	ElapsedTime m_eTime;
+	ElapsedTime m_eGateOccupancy;
 	int m_nFlightIndex;
 
 	// airport
@@ -96,6 +97,7 @@ public:
 		flightID = _otherConst.flightID;
 		m_nDay = _otherConst.m_nDay;
 		m_eTime = _otherConst.m_eTime;
+		m_eGateOccupancy =_otherConst.m_eGateOccupancy;
 		m_enumFltCnstrMode = _otherConst.m_enumFltCnstrMode;
 		m_airport = _otherConst.m_airport;
 		m_stopoverAirport = _otherConst.m_stopoverAirport;
@@ -165,6 +167,7 @@ public:
 	void setFlightID(const CFlightID& id){flightID = id;}
 	void setDay(int nDay){m_nDay = nDay;}
 	void setTime(long lTime){m_eTime.setPrecisely(lTime);}
+	void  setGateOccupancy(long lTime){m_eGateOccupancy.setPrecisely(lTime);}
     void SetFltConstraintMode (FLTCNSTR_MODE _enumFltCnstrMode) { m_enumFltCnstrMode = _enumFltCnstrMode; }
     void setFullID (const char *p_str);
 	void setAirport (const char *p_str) { m_airport = p_str;/*strcpy (airport, p_str);*/ }
@@ -185,6 +188,7 @@ public:
 	const CFlightID& getFlightID (void) const { return flightID; }
 	int GetDay(void)const {return m_nDay;}
 	long GetTime(void)const {return m_eTime.getPrecisely();}
+	long GetGateOccupancy(void)const {return m_eGateOccupancy.getPrecisely();}
     FLTCNSTR_MODE GetFltConstraintMode (void) const { return m_enumFltCnstrMode; }
     void getFullID (char *p_str) const;
 	void getAirport (char *p_str) const;

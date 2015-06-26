@@ -2,6 +2,7 @@
 #include "afxcmn.h"
 #include "common/ALTObjectID.h"
 #include "InputAirside/RunwayExit.h"
+#include "MuliSelTreeCtrlEx.h"
 
 class ALTObject;
 enum RUNWAY_MARK;
@@ -68,8 +69,8 @@ public:
 	afx_msg void OnBnClickedOk();
 
 protected:
-	CTreeCtrl m_TreeCtrlRunwayExit;
-	CTreeCtrl m_TreeCtrlStandFamily;
+	CMuliSeltTreeCtrlEx m_TreeCtrlRunwayExit;
+	CMuliSeltTreeCtrlEx m_TreeCtrlStandFamily;
 
 	std::vector<int> m_vExitSelID;
 	std::vector<int> m_vStandSelID;

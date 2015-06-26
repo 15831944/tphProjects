@@ -30,7 +30,7 @@ void FlightGroup::CFlightGroupFilter::SetFilter(const CString& strFilter)
 }
 CString FlightGroup::CFlightGroupFilter::GetFilter()
 {
-	return m_strAirlineFilter + _T("-") + m_strADIDFilter + _T("-") + m_strDay + _T("-") + m_startTime + _T("-") + m_endTime;
+	return m_strAirlineFilter + _T("-") + m_strADIDFilter + _T("-") + m_strDay + _T("-") + m_startTime + _T("-") + m_endTime + _T("-") + m_minTurnaroundTime + _T("-") + m_maxTurnaroundTime;
 }
 
 bool FlightGroup::CFlightGroupFilter::operator ==(const CFlightGroupFilter& fliter)
@@ -39,7 +39,9 @@ bool FlightGroup::CFlightGroupFilter::operator ==(const CFlightGroupFilter& flit
 		m_strADIDFilter.CompareNoCase( fliter.m_strADIDFilter) == 0 && \
 		m_strDay.CompareNoCase( fliter.m_strDay) == 0 &&\
 		m_startTime == fliter.m_startTime && \
-		m_endTime == fliter.m_endTime);
+		m_endTime == fliter.m_endTime&& \
+		m_minTurnaroundTime == fliter.m_minTurnaroundTime&& \
+		m_maxTurnaroundTime == fliter.m_maxTurnaroundTime);
 }
 
 void FlightGroup::CFlightGroupFilter::ParserFilter(const CString&  strFormatFilter)
@@ -66,12 +68,37 @@ void FlightGroup::CFlightGroupFilter::ParserFilter(const CString&  strFormatFilt
 				if (nPos >= 0)
 				{
 					m_startTime = strFilter.Left(nPos);
-					m_endTime = strFilter.Right(strFilter.GetLength() - nPos - 1);
+					strFilter = strFilter.Right(strFilter.GetLength() - nPos - 1);
+					nPos = strFilter.Find(_T("-"));
+					if (nPos >= 0)
+					{
+						m_endTime = strFilter.Left(nPos);
+						strFilter = strFilter.Right(strFilter.GetLength() - nPos - 1);
+						nPos = strFilter.Find(_T("-"));
+						if (nPos >= 0)
+						{
+							m_minTurnaroundTime = strFilter.Left(nPos);
+							m_maxTurnaroundTime = strFilter.Right(strFilter.GetLength() - nPos - 1);
+						}
+						else
+						{
+							m_minTurnaroundTime = _T("*");
+							m_maxTurnaroundTime = _T("*");
+						}
+					}
+					else
+					{
+						m_endTime = strFilter;
+						m_minTurnaroundTime = _T("*");
+						m_maxTurnaroundTime = _T("*");
+					}
 				}
 				else
 				{
 					m_startTime = _T("*");
 					m_endTime = _T("*");
+					m_minTurnaroundTime = _T("*");
+					m_maxTurnaroundTime = _T("*");
 				}
 			}
 			else
@@ -79,6 +106,8 @@ void FlightGroup::CFlightGroupFilter::ParserFilter(const CString&  strFormatFilt
 				m_strDay = strFilter;
 				m_startTime = _T("*");
 				m_endTime = _T("*");
+				m_minTurnaroundTime = _T("*");
+				m_maxTurnaroundTime = _T("*");
 			}
 		}
 		else
@@ -87,6 +116,8 @@ void FlightGroup::CFlightGroupFilter::ParserFilter(const CString&  strFormatFilt
 			m_strDay = _T("*");
 			m_startTime = _T("*");
 			m_endTime = _T("*");
+			m_minTurnaroundTime = _T("*");
+			m_maxTurnaroundTime = _T("*");
 		}
 	}
 }
@@ -147,6 +178,57 @@ bool FlightGroup::CFlightGroupFilter::Filter( const char* pstrData ,char* pstrFi
 
 	return false;
 }
+bool FlightGroup::CFlightGroupFilter::timeWithInTurnaround( const ElapsedTime& tTime )
+{
+	ElapsedTime flightTime;
+	flightTime.SetHour(tTime.GetHour());
+	flightTime.SetMinute(tTime.GetMinute());
+
+	//start time is * and end time is *
+	if (m_minTurnaroundTime == _T("*") && m_maxTurnaroundTime == _T("*"))
+	{
+		return true;
+	}
+
+	//start time isn't * and end time is *
+	if (m_minTurnaroundTime != _T("*") && m_maxTurnaroundTime == _T("*"))
+	{
+		ElapsedTime tStartTime;
+		tStartTime.SetTime(m_minTurnaroundTime);
+
+		if (flightTime < tStartTime)
+			return false;
+	}
+
+	// start time is * and end time isn't *
+	if (m_minTurnaroundTime == _T("*") && m_maxTurnaroundTime != _T("*"))
+	{
+		ElapsedTime tEndTime;
+		tEndTime.SetTime(m_maxTurnaroundTime);
+
+		if (flightTime >= tEndTime)
+			return false;
+	}
+
+	//start time isn't * and end time isn't *
+	if (m_minTurnaroundTime != _T("*") && m_maxTurnaroundTime != _T("*"))
+	{
+		ElapsedTime tStartTime;
+		tStartTime.SetTime(m_minTurnaroundTime);
+
+		if (flightTime < tStartTime)
+			return false;
+
+		ElapsedTime tEndTime;
+		tEndTime.SetTime(m_maxTurnaroundTime);
+
+		if (flightTime >= tEndTime)
+			return false;
+	}
+
+
+	return true;
+}
 
 bool FlightGroup::CFlightGroupFilter::timeWithIn( const ElapsedTime& tTime )
 {
@@ -176,7 +258,7 @@ bool FlightGroup::CFlightGroupFilter::timeWithIn( const ElapsedTime& tTime )
 		ElapsedTime tEndTime;
 		tEndTime.SetTime(m_endTime);
 
-		if (flightTime > tEndTime)
+		if (flightTime >= tEndTime)
 			return false;
 	}
 
@@ -192,7 +274,7 @@ bool FlightGroup::CFlightGroupFilter::timeWithIn( const ElapsedTime& tTime )
 		ElapsedTime tEndTime;
 		tEndTime.SetTime(m_endTime);
 
-		if (flightTime > tEndTime)
+		if (flightTime >= tEndTime)
 			return false;
 	}
 
@@ -248,6 +330,26 @@ void FlightGroup::CFlightGroupFilter::SetDay( const CString& strDay )
 const CString& FlightGroup::CFlightGroupFilter::GetDay() const
 {
 	return m_strDay;
+}
+
+const CString& FlightGroup::CFlightGroupFilter::GetMinTurnaround() const
+{
+	return m_minTurnaroundTime;
+}
+
+void FlightGroup::CFlightGroupFilter::SetMinTurnaround( const CString& strMinTime )
+{
+	m_minTurnaroundTime = strMinTime;
+}
+
+const CString& FlightGroup::CFlightGroupFilter::GetMaxTurnaround() const
+{
+	return m_maxTurnaroundTime;
+}
+
+void FlightGroup::CFlightGroupFilter::SetMaxTurnaround( const CString& strMaxTime )
+{
+	m_maxTurnaroundTime = strMaxTime;
 }
 
 //bool FlightGroup::containFlt( Flight* pFlight, bool bArrival )
@@ -353,13 +455,13 @@ bool FlightGroup::contain( const char* pstrAirline ,const char* pstrFltID)
 	return false;
 }
 
-bool FlightGroup::contain( const char* pstrAirline ,const char* pstrFltID,const char* pstrFltDay,const ElapsedTime& tTime )
+bool FlightGroup::contain( const char* pstrAirline ,const char* pstrFltID,const char* pstrFltDay,const ElapsedTime& tTime,const ElapsedTime& tTurnaroundTime )
 {
 	for (size_t nFilter = 0; nFilter < m_vFilter.size();++nFilter )
 	{
 		if (m_vFilter[nFilter]->containFlt(pstrAirline,pstrFltID,pstrFltDay))
 		{
-			if (m_vFilter[nFilter]->timeWithIn(tTime))
+			if (m_vFilter[nFilter]->timeWithIn(tTime) && m_vFilter[nFilter]->timeWithInTurnaround(tTurnaroundTime))
 			{
 				return true;
 			}

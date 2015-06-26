@@ -34,10 +34,16 @@ public:
 		const CString& GetEndTime()const;
 		void SetEndTime(const CString& strEndTime);
 
+		const CString& GetMinTurnaround()const;
+		void SetMinTurnaround(const CString& strMinTime);
+
+		const CString& GetMaxTurnaround()const;
+		void SetMaxTurnaround(const CString& strMaxTime);
+
 		void SetFilter(const CString& strFilter);
 		CString GetFilter();
 
-
+		bool timeWithInTurnaround( const ElapsedTime& tTime );
 		bool timeWithIn(const ElapsedTime& tTime);
 		bool containFlt(const char* pstrAirline ,const char* pstrFltID,const char* pstrFltDay);//filter flight
 		bool containFlt(const char* pstrAirline ,const char* pstrFltID);
@@ -51,6 +57,8 @@ public:
 		CString m_strDay;//Arrival Day, Or Departure Day 
 		CString m_startTime;
 		CString m_endTime;
+		CString m_minTurnaroundTime;
+		CString m_maxTurnaroundTime;
 	};
 
 
@@ -72,7 +80,7 @@ public:
 	size_t GetFilterCount()const;
 	CFlightGroupFilter* GetFilterByIndex(size_t nIndex)const;
 
-	bool contain(const char* pstrAirline ,const char* pstrFltID,const char* pstrFltDay,const ElapsedTime& tTime);
+	bool contain(const char* pstrAirline ,const char* pstrFltID,const char* pstrFltDay,const ElapsedTime& tTime,const ElapsedTime& tTurnaroundTime);
 	bool contain(const char* pstrAirline ,const char* pstrFltID,const char* pstrFltDay);
 	bool contain(const char* pstrAirline ,const char* pstrFltID);
 	

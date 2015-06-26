@@ -189,7 +189,7 @@ BOOL CDestributionParameterSpecificationDlg::OnInitDialog()
     CDialog::OnInitDialog();
     SetAllSpinControlRange();
     DisableAllEditBox();
-    SetAllComboboxDropWidth();
+    //SetAllComboboxDropWidth();
 
     m_editBetaAlpha.SetPrecision(0);
     m_editBetaBeta.SetPrecision(0);
@@ -654,9 +654,11 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioEmpirical()
 {
     DisableAllEditBox();
     GetDlgItem(IDC_COMBO_EMPIRICAL)->EnableWindow(TRUE);
-
     CPROBDISTLIST vProb = m_pProbMan->getItemListByType(EMPIRICAL);
+    CString strSel;
+    m_comboEmpirical.GetWindowText(strSel);
     LoadComboBoxString(&m_comboEmpirical, vProb);
+    m_comboEmpirical.SelectString(0, strSel);
 }
 
 
@@ -666,7 +668,10 @@ void CDestributionParameterSpecificationDlg::OnBnClickedRadioHistogram()
     GetDlgItem(IDC_COMBO_HISTOGRAM)->EnableWindow(TRUE);
 
     CPROBDISTLIST vProb = m_pProbMan->getItemListByType(HISTOGRAM);
+    CString strSel;
+    m_comboHistogram.GetWindowText(strSel);
     LoadComboBoxString(&m_comboHistogram, vProb);
+    m_comboHistogram.SelectString(0, strSel);
 }
 
 void CDestributionParameterSpecificationDlg::LoadComboBoxString(CComboBox* pcb, const CPROBDISTLIST &vProb)
@@ -728,7 +733,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         pNewProb->resetValues(fConstValue);
 
         CString strMsg;
-        if(!AddOrEditPdDatabase(strMsg, strEntryName, pNewProb, CONSTANT))
+        if(!AddOrEditPdDatabase(strMsg, strEntryName, pNewProb))
         {
             MessageBox(strMsg);
             delete pNewProb;
@@ -777,7 +782,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, UNIFORM))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -845,7 +850,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
             return;
         }
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, BETA))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -901,7 +906,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
             return;
         }
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, TRIANGLE))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -956,7 +961,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
             return;
         }
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, ERLANG))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -1003,7 +1008,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, EXPONENTIAL))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -1058,7 +1063,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, GAMMA))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -1116,7 +1121,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, NORMAL))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -1171,7 +1176,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, WEIBULL))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -1220,7 +1225,7 @@ void CDestributionParameterSpecificationDlg::OnBnClickedOk()
         }
 
         CString errMsg;
-        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb, BERNOULLI))
+        if(!AddOrEditPdDatabase(errMsg, strEntryName, pNewProb))
         {
             MessageBox(errMsg);
             delete pNewProb;
@@ -2234,7 +2239,7 @@ CString CDestributionParameterSpecificationDlg::GetTempNormalDistributionName(CS
 {
     double fMean = atof(strMean);
     double fStd = atof(strStd);
-    double iTrun = atof(strTrunAt);
+    int iTrun = atoi(strTrunAt);
     CString strResult;
     strResult.Format(_T("Normal: [%.2f, %.2f, %d]"), fMean, fStd, iTrun);
     return strResult;
@@ -2530,24 +2535,38 @@ void CDestributionParameterSpecificationDlg::InitUIFromProbEntry(const CProbDist
 
 // return true if success
 bool CDestributionParameterSpecificationDlg::AddOrEditPdDatabase(CString& strMsg, CString strEntryName, 
-    ProbabilityDistribution* pNewProb, ProbTypes iType)
+    ProbabilityDistribution* pNewProb)
 {
     CProbDistEntry* pEntry = m_pProbMan->getItemByName(strEntryName);
     if(pEntry == NULL)
     {
         CProbDistEntry* pNewEntry = new CProbDistEntry(strEntryName, pNewProb);
         m_pProbMan->AddItem(pNewEntry);
+        m_pProbMan->saveDatabase(GetTermPlanDoc()->GetTerminal().m_pAirportDB);
         return true;
     }
     else
     {
-        if(pEntry->m_pProbDist->getProbabilityType() == iType)
+        if(pEntry->m_pProbDist->getProbabilityType() == pNewProb->getProbabilityType())
         {
-            if(pEntry->m_pProbDist)
+            if(pEntry->m_pProbDist == NULL)
+            {
+                pEntry->m_pProbDist = pNewProb;
+                m_pProbMan->saveDatabase(GetTermPlanDoc()->GetTerminal().m_pAirportDB);
+                return true;
+            }
+            else if(pEntry->m_pProbDist && !pEntry->m_pProbDist->isEqual(pNewProb))
+            {
                 delete pEntry->m_pProbDist;
-            pEntry->m_pProbDist = pNewProb;
-            m_pSelProbEntry = pEntry;
-            return true;
+                pEntry->m_pProbDist = pNewProb;
+                m_pProbMan->saveDatabase(GetTermPlanDoc()->GetTerminal().m_pAirportDB);
+                return true;
+            }
+            else // no change, do not update db.
+            {
+                delete pNewProb;
+                return true;
+            }
         }
         else
         {
@@ -2564,14 +2583,16 @@ void CDestributionParameterSpecificationDlg::TopInputString(CComboBox* pCb)
     CString strCombo;
     pCb->GetWindowText(strCombo);
     int nIndex = pCb->FindString(0, strCombo);
-    if(nIndex != CB_ERR)
+    if(nIndex != CB_ERR && 
+        ((CAutoFillComboBox*)pCb)->GetLastPressKey()!= VK_BACK && 
+        ((CAutoFillComboBox*)pCb)->GetLastPressKey()!= VK_DELETE)
     {
         CString strLBText;
         pCb->GetLBText(nIndex, strLBText);
         strLBText = strLBText.Right(strLBText.GetLength()-strCombo.GetLength());
         CString strNewCombo = strCombo + strLBText;
-//         pCb->SetWindowText(strNewCombo);
-//         pCb->SetEditSel(strCombo.GetLength(), strNewCombo.GetLength()+1);
+        pCb->SetWindowText(strNewCombo);
+        pCb->SetEditSel(strCombo.GetLength(), strNewCombo.GetLength()+1);
     }
 }
 

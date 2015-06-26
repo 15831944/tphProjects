@@ -109,7 +109,7 @@ void CDlgFlightCondition::OnBnClickedCancel()
  void CDlgFlightCondition::OnAddFilter()
  {
 	FlightGroup::CFlightGroupFilter* Item = new FlightGroup::CFlightGroupFilter;
-	Item->SetFilter(_T("*-*-*-*-*"));
+	Item->SetFilter(_T("*-*-*-*-*-*-*"));
 	int nbInsert = m_wndListCtrl.GetItemCount();
 	
 	m_wndListCtrl.InsertItem(nbInsert,_T("*"));
@@ -117,6 +117,8 @@ void CDlgFlightCondition::OnBnClickedCancel()
 	m_wndListCtrl.SetItemText(nbInsert,2,_T("*"));
 	m_wndListCtrl.SetItemText(nbInsert,3,_T("*"));
 	m_wndListCtrl.SetItemText(nbInsert,4,_T("*"));
+	m_wndListCtrl.SetItemText(nbInsert,5,_T("*"));
+	m_wndListCtrl.SetItemText(nbInsert,6,_T("*"));
 	
 	m_vFilter.push_back(Item);
 	m_wndListCtrl.SetFocus();
@@ -143,20 +145,22 @@ void CDlgFlightCondition::OnBnClickedCancel()
 	m_wndListCtrl.SetExtendedStyle( dwStyle );
 	CRect rect;
 	m_wndListCtrl.GetClientRect(&rect);
-	char* columnLabel[] = {	"Airline", "ID","Day","Start Time","End Time"};
-	int DefaultColumnWidth[] = {rect.Width()/5,rect.Width()/5,rect.Width()/5,rect.Width()/5,rect.Width()/5};
+	char* columnLabel[] = {	"Airline", "ID","Day","Start Time(hh:mm)","End Time(hh:mm)","Minimum Turnaround Time(hh:mm)","Maximum Turnaround Time(hh:mm)"};
+	int DefaultColumnWidth[] = {rect.Width()/10,rect.Width()/10,rect.Width()/10,rect.Width()*3/20,rect.Width()*3/20,rect.Width()/5,rect.Width()/5};
 	int nColFormat[] = 
 	{	
 		LVCFMT_EDIT,
 		LVCFMT_EDIT,
 		LVCFMT_EDIT,
 		LVCFMT_DROPDOWN,
+		LVCFMT_DROPDOWN,
+		LVCFMT_DROPDOWN,
 		LVCFMT_DROPDOWN
 	};
 	LV_COLUMNEX lvc;
 	lvc.csList = &m_stringList;
 	lvc.mask = LVCF_WIDTH | LVCF_TEXT ;
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 7; i++)
 	{
 		lvc.fmt = nColFormat[i];
 		lvc.pszText = columnLabel[i];
@@ -182,20 +186,27 @@ void CDlgFlightCondition::OnBnClickedCancel()
 		 CString strFilter = item->GetFilter();
 		 nPos = strFilter.Find('-');
 		 CString strAirline = strFilter.Left(nPos);
-
 		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
+
 		 nPos = strFilter.Find('-');
 		 CString strFlightID = strFilter.Left(nPos);
-
 		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
+
 		 nPos = strFilter.Find('-');
 		 CString strDay = strFilter.Left(nPos);
-
 		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
+
 		 nPos = strFilter.Find('-');
 		 CString strStartTime = strFilter.Left(nPos);
+		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
 
-		 CString strEndTime = strFilter.Right(strFilter.GetLength()-nPos-1);
+		  nPos = strFilter.Find("-");
+		 CString strEndTime = strFilter.Left(nPos);
+		 strFilter = strFilter.Right(strFilter.GetLength()-nPos-1);
+
+		 nPos = strFilter.Find("-");
+		 CString strMinTurnaroundTime = strFilter.Left(nPos);
+		 CString strMaxTurnaroundTime = strFilter.Right(strFilter.GetLength()-nPos-1);
 
 		 m_wndListCtrl.InsertItem(i,strAirline);
 		 m_wndListCtrl.SetItemText(i,1,strFlightID);
@@ -204,6 +215,9 @@ void CDlgFlightCondition::OnBnClickedCancel()
 		 m_wndListCtrl.SetItemText(i,3,strStartTime);
 		 //end time
 		 m_wndListCtrl.SetItemText(i,4,strEndTime);
+
+		 m_wndListCtrl.SetItemText(i,5,strMinTurnaroundTime);
+		 m_wndListCtrl.SetItemText(i,6,strMaxTurnaroundTime);
 		 m_wndListCtrl.SetItemData(i,(DWORD_PTR)item);
 	 }
 	 if (m_wndListCtrl.GetItemCount()>0)
@@ -324,6 +338,8 @@ void CDlgFlightCondition::OnBnClickedCancel()
 
 	CString strStartTime = pItem->GetStartTime();
 	CString strEndTime = pItem->GetEndTime();
+	CString strMinTurnaround = pItem->GetMinTurnaround();
+	CString strMaxTurnaround = pItem->GetMaxTurnaround();
 
 	ElapsedTime eTime;
 	CString strTime;
@@ -345,10 +361,28 @@ void CDlgFlightCondition::OnBnClickedCancel()
 		strTime = strEndTime;
 		eTime.SetTime(strTime);
 	}
+	else if (nSubItem == 5)
+	{
+		if (strMinTurnaround != "*")
+		{
+			eTime.SetTime(strMinTurnaround);
+		}
+		strTime = strMinTurnaround;
+		eTime.SetTime(strTime);
+	}
+	else if (nSubItem == 6)
+	{
+		if (strMaxTurnaround != "*")
+		{
+			eTime.SetTime(strMaxTurnaround);
+		}
+		strTime = strMaxTurnaround;
+		eTime.SetTime(strTime);
+	}
 	 
 	if (nComboxSel == 1)//pick time
 	{
-		CDlgTimePicker dlg(eTime,"Pick Time",this,false);
+		CDlgTimePicker dlg(eTime,"Pick Time(hh:mm)",this,false);
 		if(dlg.DoModal() == TRUE)
 		{
 			eTime = dlg.GetTime();
@@ -359,6 +393,14 @@ void CDlgFlightCondition::OnBnClickedCancel()
 			else if (nSubItem == 4)
 			{
 				pItem->SetEndTime(eTime.printTime(0));
+			}
+			else if (nSubItem == 5)
+			{
+				pItem->SetMinTurnaround(eTime.printTime(0));
+			}
+			else if (nSubItem == 6)
+			{
+				pItem->SetMaxTurnaround(eTime.printTime(0));
 			}
 			m_wndListCtrl.SetItemText(nItem,nSubItem,eTime.printTime(0));
 		}
@@ -376,6 +418,14 @@ void CDlgFlightCondition::OnBnClickedCancel()
 		else if (nSubItem == 4)
 		{
 			pItem->SetEndTime(_T("*"));
+		}
+		else if (nSubItem == 5)
+		{
+			pItem->SetMinTurnaround(_T("*"));
+		}
+		else if (nSubItem == 6)
+		{
+			pItem->SetMaxTurnaround(_T("*"));
 		}
 	}
 

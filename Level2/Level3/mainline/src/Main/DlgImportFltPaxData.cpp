@@ -101,6 +101,7 @@ void CDlgImportFltPaxData::OnCbnSelchangeComboProject()
 
 	LoadDataFromFile(strProjectPath,false);
 
+	((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(TRUE);
 	SetListCtrlContent();
 
 	ResetButtonStatus(TRUE);
@@ -141,6 +142,7 @@ void CDlgImportFltPaxData::OnUpdateExport()
 	CString strProjectPath;
 	strProjectPath.Format(_T("%s\\%s"),strPath,strFileName);
 	LoadDataFromFile(strProjectPath,false);
+	((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(TRUE);
 	SetListCtrlContent();
 
 	ResetButtonStatus(TRUE);
@@ -160,6 +162,7 @@ void CDlgImportFltPaxData::OnUpdateCSVFile()
 		strMsg.Format("The Importing File is not complying with required file format.  file:\r\n%s", strFilePath );
 		MessageBox( strMsg, "ERROR", MB_OK|MB_ICONERROR );
 	}
+	((CButton*)GetDlgItem(IDC_CHECK_ALL))->SetCheck(TRUE);
 	SetListCtrlContent();
 	ResetButtonStatus(TRUE);
 }
@@ -330,7 +333,7 @@ void CDlgImportFltPaxData::SetListCtrlContent()
 		if(iter != m_mapConstraintData.end())
 		{
 			m_wndListCtrl.SetItemText(nIdx,2,iter->second);
-			if (_strcmpi(iter->second,"Successed"))
+			if (_strcmpi(iter->second,"Successfully"))
 			{
 				m_wndListCtrl.SetCheck(i,FALSE);
 				bFailed = true;
@@ -657,6 +660,24 @@ void CDlgImportFltPaxData::OnCheckLocalProject()
 	GetDlgItem(IDC_BROWSE_CSVFILE)->EnableWindow(FALSE);
 
 	m_wndCombox.ShowDropDown();
+	CString strContent;
+	m_wndCombox.GetWindowText(strContent);
+	if (strContent.IsEmpty() == false)
+	{
+		PROJECTINFO pi;	
+		PROJMANAGER->GetProjectInfo(strContent, &pi, "");//get the project information
+
+		CString strFileName;
+		strFileName = GetFileName();
+		CString strProjectPath;
+		strProjectPath.Format(_T("%s\\INPUT\\%s"),pi.path,strFileName);
+
+		LoadDataFromFile(strProjectPath,false);
+
+		SetListCtrlContent();
+
+		ResetButtonStatus(TRUE);
+	}
 }
 
 void CDlgImportFltPaxData::OnCheckExportedProject()
@@ -755,7 +776,7 @@ void CDlgImportFltPaxData::ReadFlightConstrainDatabase( ArctermFile& p_file, con
 		aConst->WriteSyntaxStringWithVersion (strCompare);
 		if (_strcmpi(strConstraint,strCompare) == 0)
 		{
-			strResult = _T("Successed");
+			strResult = _T("Successfully");
 		}
 		else 
 		{
@@ -813,7 +834,7 @@ void CDlgImportFltPaxData::ReadFlightConstrainWithSchedDatabase( ArctermFile& p_
 		aConst->WriteSyntaxStringWithVersion (strCompare);
 		if (_strcmpi(strConstraint,strCompare) == 0)
 		{
-			strResult = _T("Successed");
+			strResult = _T("Successfully");
 		}
 		else 
 		{
@@ -872,7 +893,7 @@ void CDlgImportFltPaxData::ReadMobileElemConstrainDatabase( ArctermFile& p_file,
 		pConst->WriteSyntaxStringWithVersion (strCompare);
 		if (_strcmpi(strConstraint,strCompare) == 0)
 		{
-			strResult = _T("Successed");
+			strResult = _T("Successfully");
 		}
 		else 
 		{

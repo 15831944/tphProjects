@@ -158,6 +158,7 @@ void DlgImportACTypeConstraintFromFile::OnBnClickedButtonImport()
 	{
 		CString strStandID = m_wndListCtrl.GetItemText(i, 0);
 		CString strACTypes = m_wndListCtrl.GetItemText(i, 1);
+        strACTypes.Replace(',',';');
 		CString strFailInfo = "";
 
 		ALTObjectID GroupName(strStandID.GetString());
@@ -166,11 +167,19 @@ void DlgImportACTypeConstraintFromFile::OnBnClickedButtonImport()
 			ACTypeStandConstraint* pData = new ACTypeStandConstraint;
 			pData->SetStandGroupName(GroupName);
 			strACTypes += ";";		//Add comma at the end of string
-			pData->InitACTypesFromString(strACTypes);
-			m_pACTypeStandCons->AddItem(pData);
-			m_wndListCtrl.SetItemData(i, 2);
-			m_wndListCtrl.SetItemImage(i,2,IDI_ICON_SUCCESS);
-			nSuccess++;
+            if(!IsACTypesStringValid(strFailInfo, strACTypes))
+            {
+                m_wndListCtrl.SetItemData(i, 1);
+                m_wndListCtrl.SetItemImage(i, 2, IDI_ICON_FAIL);
+            }
+            else
+            {
+                pData->InitACTypesFromString(strACTypes);
+                m_pACTypeStandCons->AddItem(pData);
+                m_wndListCtrl.SetItemData(i, 2);
+                m_wndListCtrl.SetItemImage(i,2,IDI_ICON_SUCCESS);
+                nSuccess++;
+            }
 		}
 		else
 		{	
@@ -193,6 +202,31 @@ void DlgImportACTypeConstraintFromFile::OnBnClickedButtonImport()
 	GetDlgItem(IDC_EDIT_IMPORTRESULT)->SetWindowText(strResult);
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BUTTON_IMPORT)->EnableWindow(FALSE);
+}
+
+bool DlgImportACTypeConstraintFromFile::IsACTypesStringValid(CString& errMsg, CString strACTypes)
+{
+    int nIdx =0;
+    int nNext = 0;
+    int nLength = strACTypes.GetLength();
+    while(nIdx < nLength && nNext > -1)
+    {
+        nNext = strACTypes.Find(';',nIdx);
+        CString strAC = strACTypes.Mid(nIdx,nNext-nIdx);
+        if(strAC.IsEmpty())
+        {
+            nIdx++;
+            continue;
+        }
+        strAC.Trim();
+        if(strAC.GetLength() > AC_TYPE_LEN)
+        {
+            errMsg.Format(_T("AC Type's length can not exceed %d."), AC_TYPE_LEN);
+            return false;
+        }
+        nIdx = nNext+1;
+    }
+    return true;
 }
 
 void DlgImportACTypeConstraintFromFile::OnBnClickedOk()

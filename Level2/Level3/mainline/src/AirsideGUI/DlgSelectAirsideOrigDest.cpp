@@ -509,8 +509,9 @@ void CDlgSelectAirsideOrigDest::OnOK()
 	m_vTaxiInterruptSelID.clear();
 
 	TreeSelectList orgList;
-	//m_treeOrg.GetSelectedList(orgList);
-	orgList.AddTail(m_treeOrg.GetSelectedItem());
+//	m_treeOrg.GetSelectedList(orgList);
+	GetSelectedList(m_treeOrg,orgList);
+
 	TreeSelectList stands;
 	TreeSelectList deicepads;
 	TreeSelectList startpositions;
@@ -566,7 +567,8 @@ void CDlgSelectAirsideOrigDest::OnOK()
 	//
 	TreeSelectList dstList;
 	//m_treelRunwayExit.GetSelectedList(dstList);
-	dstList.AddTail(m_treelRunwayExit.GetSelectedItem());
+	GetSelectedList(m_treelRunwayExit,dstList);
+
 	m_bAllRunwayExit = FALSE;
 	POSITION pos = dstList.GetHeadPosition();
 	while (pos)
@@ -869,4 +871,11 @@ LRESULT CDlgSelectAirsideOrigDest::DefWindowProc(UINT message, WPARAM wParam, LP
 	}
 
 	return CXTResizeDialogEx::DefWindowProc(message, wParam, lParam);
+}
+
+void CDlgSelectAirsideOrigDest::GetSelectedList(CMuliSeltTreeCtrlEx& treeCtrl, TreeSelectList& selList )
+{
+	for ( HTREEITEM hItem = treeCtrl.GetRootItem(); hItem!=NULL; hItem = treeCtrl.GetNextVisibleItem( hItem ) )
+		if ( treeCtrl.GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED )
+			selList.AddTail(hItem);
 }

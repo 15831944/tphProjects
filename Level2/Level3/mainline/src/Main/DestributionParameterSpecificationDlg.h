@@ -3,6 +3,7 @@
 #include "Common\ProbDistManager.h"
 #include "TermPlanDoc.h"
 #include "..\MFCExControl\FloatEdit.h"
+#include "..\MFCExControl\AutoFillComboBox.h"
 
 class CDestributionParameterSpecificationDlg : public CDialog
 {
@@ -34,7 +35,7 @@ private:
     void SpinChangeEditboxValue(CEdit* pEdit, LPNMUPDOWN pNMUpDown);
     void InitUIFromProb(const ProbabilityDistribution* pNewProb);
     void InitUIFromProbEntry(const CProbDistEntry* pEntry);
-    bool AddOrEditPdDatabase(CString&  strMsg, CString strEntryName, ProbabilityDistribution* pNewProb, ProbTypes iType);
+    bool AddOrEditPdDatabase(CString&  strMsg, CString strEntryName, ProbabilityDistribution* pNewProb);
 
     CString GetTempConstDistributionName(CString strConstValue);
     CString GetTempUniformDistributionName(CString strMin, CString strMax);
@@ -49,18 +50,18 @@ private:
     CString GetTempEmpiricalDistributionName();
     CString GetTempHistogramDistributionName();
 protected:
-    CComboBox m_comboConst;
-    CComboBox m_comboUniform;
-    CComboBox m_comboBeta;
-    CComboBox m_comboTriangle;
-    CComboBox m_comboErlang;
-    CComboBox m_comboExponential;
-    CComboBox m_comboGamma;
-    CComboBox m_comboNormal;
-    CComboBox m_comboWeibull;
-    CComboBox m_comboBernoulli;
-    CComboBox m_comboEmpirical;
-    CComboBox m_comboHistogram;
+    CAutoFillComboBox m_comboConst;
+    CAutoFillComboBox m_comboUniform;
+    CAutoFillComboBox m_comboBeta;
+    CAutoFillComboBox m_comboTriangle;
+    CAutoFillComboBox m_comboErlang;
+    CAutoFillComboBox m_comboExponential;
+    CAutoFillComboBox m_comboGamma;
+    CAutoFillComboBox m_comboNormal;
+    CAutoFillComboBox m_comboWeibull;
+    CAutoFillComboBox m_comboBernoulli;
+    CAutoFillComboBox m_comboEmpirical;
+    CAutoFillComboBox m_comboHistogram;
 
     CFloatEdit m_editConstValue;
     CFloatEdit m_editUniformMin;

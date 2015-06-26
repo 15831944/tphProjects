@@ -63,8 +63,15 @@ protected:
 	afx_msg void OnNMKillfocusmFrequencytime(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMKillfocusBeginrangetime(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMKillfocusEndrangetime(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	//}}AFX_MSG
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
+private:
+    int m_oldCx;
+    int m_oldCy;
+    typedef enum {TopLeft, TopRight, BottomLeft, BottomRight} LayoutRef;
+    void LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy);
 public:
 	CEdit m_editFreqStartDay;
 	CEdit m_editFreqEndDay;

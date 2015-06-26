@@ -68,7 +68,7 @@ int CDlgTemporaryParkingList::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CXTResizeDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
 	if (!m_toolBarParking.CreateEx(this, TBSTYLE_FLAT,WS_CHILD|WS_VISIBLE|CBRS_ALIGN_TOP)
-		|| !m_toolBarParking.LoadToolBar(IDR_TOOLBAR_ASSIGNEDSTAND_ORDER))
+		|| !m_toolBarParking.LoadToolBar(IDR_TOOLBAR_TEMPPARKING))
 	{
 		return -1;
 	}

@@ -4,6 +4,7 @@
 #include "../InputAirside/RunwayExit.h"
 #include "../InputAirside/Runway.h"
 #include "../MFCExControl/XTResizeDialog.h"
+#include "MuliSelTreeCtrlEx.h"
 
 
 // CDlgRunwayExitSelect
@@ -47,7 +48,7 @@ protected:
 	virtual void OnOK();
 
 
-	CTreeCtrl m_TreeCtrlRunwayExit;
+	CMuliSeltTreeCtrlEx m_TreeCtrlRunwayExit;
 	int m_nProjID;
 	bool m_bAllRunwayExit;
 	CString m_strRunwayExits;

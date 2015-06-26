@@ -26,6 +26,9 @@ void CFloatEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     if(nChar=='.')
     {
+        if(m_nPrecision <= 0)
+            return;
+
         CString strEdit;
         GetWindowText(strEdit);
         int dotPos=strEdit.Find('.');

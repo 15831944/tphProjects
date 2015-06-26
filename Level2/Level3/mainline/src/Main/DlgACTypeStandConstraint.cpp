@@ -67,6 +67,7 @@ void DlgACTypeStandConstraint::OnBnClickedImportFromFile()
 			}
 			importConstraints.ClearConstraintPtrs();
 			OnInitTreeCtrl();
+            GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);
 		}
 	}
 }

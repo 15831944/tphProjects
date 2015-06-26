@@ -22,7 +22,9 @@ static char THIS_FILE[] = __FILE__;
 
 
 CPaxBulkListDlg::CPaxBulkListDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CPaxBulkListDlg::IDD, pParent)
+    : CDialog(CPaxBulkListDlg::IDD, pParent)
+    , m_oldCx(0)
+    , m_oldCy(0)
 {
 	//{{AFX_DATA_INIT(CPaxBulkListDlg)
 		// NOTE: the ClassWizard will add member initialization here
@@ -55,7 +57,9 @@ BEGIN_MESSAGE_MAP(CPaxBulkListDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTONSAVE, OnButtonsave)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_RBUTTONDOWN()
+    ON_WM_SIZE()
 	//}}AFX_MSG_MAP
+    ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -63,9 +67,11 @@ END_MESSAGE_MAP()
 
 BOOL CPaxBulkListDlg::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
-	
-	// TODO: Add extra initialization here
+    CDialog::OnInitDialog();
+    CRect rect;
+    GetClientRect(&rect);
+    m_oldCx = rect.Width();
+    m_oldCy = rect.Height();
 
 	CRect rc;
 	m_staticToolBar.GetWindowRect( &rc );
@@ -283,6 +289,7 @@ void CPaxBulkListDlg::OnProcessorDataAdd()
             
 			m_vBulkPercent.push_back(MakeString(editDlg.m_vBulkPercent));
 		    ReloadList();
+            GetDlgItem(IDC_BUTTONSAVE)->EnableWindow(TRUE);
 		}
 	}		
 }
@@ -398,16 +405,13 @@ void CPaxBulkListDlg::EditOneBulk()
 			m_PaxBulkListCtr.SetItemText(idx,6,strEndTime);
 			m_PaxBulkListCtr.SetItemText(idx,7,strRangeBegin);
 			m_PaxBulkListCtr.SetItemText(idx,8,strRangeEnd);
-			
+			GetDlgItem(IDC_BUTTONSAVE)->EnableWindow(TRUE);
 		}
     }
 }
 void CPaxBulkListDlg::OnDblclkList(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	// TODO: Add your control notification handler code here
-
 	EditOneBulk();
-	GetDlgItem(IDC_BUTTONSAVE)->EnableWindow(TRUE);									
 	*pResult = 0;
 }
 
@@ -620,4 +624,84 @@ std::vector<int> CPaxBulkListDlg::ParseString( const CString& strPercent )
 		vPercent.push_back(atoi(strRight));
 	}
 	return vPercent;
+}
+
+void CPaxBulkListDlg::OnSize(UINT nType, int cx, int cy)
+{
+    CDialog::OnSize(nType, cx, cy);
+    CWnd* pCtrl = GetDlgItem(IDOK);
+    if(pCtrl == NULL)
+    {
+        if(nType != SIZE_MINIMIZED)
+        {
+            m_oldCx = cx;
+            m_oldCy = cy;
+        }
+        return;
+    }
+
+    LayoutControl(&m_ToolBar, TopLeft,  TopRight, cx, cy);
+    LayoutControl(&m_PaxBulkListCtr, TopLeft,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC), TopLeft,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDOK), BottomRight,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDCANCEL), BottomRight,  BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BUTTONSAVE), BottomRight,  BottomRight, cx, cy);
+    if(nType != SIZE_MINIMIZED)
+    {
+        m_oldCx = cx;
+        m_oldCy = cy;
+    }
+    InvalidateRect(NULL);
+}
+
+void CPaxBulkListDlg::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
+{
+    CRect rcS;
+    pCtrl->GetWindowRect(&rcS);
+    ScreenToClient(&rcS);
+    int deltaX = cx - m_oldCx;
+    int deltaY = cy - m_oldCy;
+    if(refTopLeft == TopLeft && refBottomRight == TopLeft)
+    {
+        pCtrl->MoveWindow(&rcS);
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == TopRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width()+deltaX, rcS.Height());
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == BottomLeft)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width(), rcS.Height()+deltaY);
+    }
+    else if(refTopLeft == TopLeft && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top, rcS.Width()+deltaX, rcS.Height()+deltaY);
+    }
+    else if(refTopLeft == TopRight && refBottomRight == TopRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), rcS.Height());
+    }
+    else if(refTopLeft == TopRight && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top, rcS.Width(), cy+deltaY);
+    }
+    else if(refTopLeft == BottomLeft && refBottomRight == BottomLeft)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, rcS.Width(), rcS.Height());
+    }
+    else if(refTopLeft == BottomLeft && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left, rcS.top+deltaY, cx+deltaX, rcS.Height());
+    }
+    else if(refTopLeft == BottomRight && refBottomRight == BottomRight)
+    {
+        pCtrl->MoveWindow(rcS.left+deltaX, rcS.top+deltaY, rcS.Width(), rcS.Height());
+    }
+}
+
+void CPaxBulkListDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+    lpMMI->ptMinTrackSize.x = 360;
+    lpMMI->ptMinTrackSize.y = 220;
+    CDialog::OnGetMinMaxInfo(lpMMI);
 }
