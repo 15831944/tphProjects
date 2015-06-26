@@ -239,7 +239,7 @@ class GeneratorPicBinary_Here(object):
                     print "    " + nightPicPath
                     print "        >>>>>>>>  " + destFile
                 else:
-                    print "dest file exists: " + destFile
+                    print "    dest file exists: " + destFile
 
                 # ARROW PIC BUILD
                 if os.path.isfile(arrowFile) == False:
@@ -255,7 +255,7 @@ class GeneratorPicBinary_Here(object):
                     print "    " + picPathFile
                     print "        >>>>>>>>  " + arrowFile
                 else:
-                    print "dest file exists: " + destFile
+                    print "    file exists: " + destFile
                     
                     
     def makeGJunctionResultTable_17cy(self, dirFileDir, destFileDir):
@@ -383,7 +383,7 @@ class GeneratorPicBinary_Here(object):
                 print "    " + nightPicPath
                 print "        >>>>>>>>  " + destFile
             else:
-                print "dest file exists: " + destFile
+                print "    dest file exists: " + destFile
 
             # 处理arrow图片
             dest_arrow_names = []
