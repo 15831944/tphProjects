@@ -41,6 +41,8 @@ protected:
 	void InitFlightConflictSummaryReportFilter(AirsideFlightConflictPara *pParam );
 	void InitTaxiwayDelayReport();
 
+private:
+    void DeleteComboboxAllItemData(CComboBox& pComboBox);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
