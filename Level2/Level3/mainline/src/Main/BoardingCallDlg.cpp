@@ -13,6 +13,7 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
+#include "DestributionParameterSpecificationDlg.h"
 static char THIS_FILE[] = __FILE__;
 #endif // _DEBUG
 
@@ -923,6 +924,8 @@ void CBoardingCallDlg::OnToolbarButtonEdit()
 		break;
 	case TREE_NODE_PASSENGER_TYPE:
 		{
+            CDestributionParameterSpecificationDlg dlgTest;
+            dlgTest.DoModal();
 			BoardingCallPaxTypeEntry* pPaxTypeEntry = (BoardingCallPaxTypeEntry*)pSelItemData->m_data;
 
 			HTREEITEM hPareItem = m_tree.GetParentItem(hSelItem);

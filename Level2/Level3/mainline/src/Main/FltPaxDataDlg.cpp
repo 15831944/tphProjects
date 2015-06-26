@@ -822,82 +822,84 @@ void CFltPaxDataDlg::OnGetMinMaxInfo( MINMAXINFO FAR* lpMMI )
 
 void CFltPaxDataDlg::OnClickMultiBtn()
 {
-	//int type = m_btnImport.GetOperation();
-	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
-	//dlg.SetOperation(type);
-	//if(dlg.DoModal() == IDOK)
-	//{
-	//	//reload data
-	//}
+	int type = m_btnImport.GetOperation();
+	CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),GetConstraintDatabase(),this);
+	dlg.SetOperation(type);
+	if(dlg.DoModal() == IDOK)
+	{
+		//reload data
+		ReloadData( NULL );
+		m_btnSave.EnableWindow();
+	}
 }
 
 void CFltPaxDataDlg::OnExportData()
 {
-	//CFileDialog dlgFile( FALSE, ".rep",NULL ,OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY,"Export Files (*.CSV)|*.CSV||", NULL, 0, FALSE  );
-	//CString sExportFileName;
-	//if (dlgFile.DoModal() == IDOK)
-	//	sExportFileName = dlgFile.GetPathName();
-	//else
-	//	return;
+	CFileDialog dlgFile( FALSE, ".rep",NULL ,OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY,"Export Files (*.CSV)|*.CSV||", NULL, 0, FALSE  );
+	CString sExportFileName;
+	if (dlgFile.DoModal() == IDOK)
+		sExportFileName = dlgFile.GetPathName();
+	else
+		return;
 
-	//try
-	//{
-	//	switch( m_enumType )
-	//	{
-	//	case FLIGHT_DELAYS:
-	//		ExportFlightData(GetInputTerminal()->flightData->getDelays(),sExportFileName,"DELAY");
-	//		break;
-	//	case FLIGHT_LOAD_FACTORS:
-	//		ExportFlightData(GetInputTerminal()->flightData->getLoads(),sExportFileName,"LOAD");
-	//		break;
-	//	case FLIGHT_AC_CAPACITIES:
-	//		ExportFlightData(GetInputTerminal()->flightData->getCapacity(),sExportFileName,"CAPACITY");
-	//		break;
-	//	case PAX_GROUP_SIZE:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getGroups(),sExportFileName,"GROUP_SIZE");
-	//		break;
-	//	case PAX_LEAD_LAG:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getLeadLagTime(),sExportFileName,"LEAD_LAG_TIME");
-	//		break;
-	//	case PAX_IN_STEP:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getImpactInStep(),sExportFileName,"IN_STEP");
-	//		break;
-	//	case PAX_SIDE_STEP:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getSideStep(),sExportFileName,"SIDE_STEP");
-	//		break;
-	//	case PAX_SPEED:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getSpeed(),sExportFileName,"SPEED");
-	//		break;
-	//	case PAX_VISIT_TIME:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getVisitTime(),sExportFileName,"VISIT_TIME");
-	//		break;
-	//	case PAX_RESPONSE_TIME:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getResponseTime(),sExportFileName,"RESPONSE_TIME");
-	//		break;
-	//	case PAX_SPEED_IMPACT:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getImpactSpeed(),sExportFileName,"SPEED_IMPACT");
-	//		break;
-	//	case PAX_PUSH_PROPENSITY:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getPushPropensity(),sExportFileName,"PUSH_PROPENSITY");
-	//		break;
-	//	case VISITOR_STA_TRIGGER:
-	//		ExportPaxData(GetInputTerminal()->paxDataList->getVisitorSTATrigger(),sExportFileName,"VISITOR_STA_TRIGGER");
-	//		break;
-	//	case ENTRY_FLIGHT_TIME_DISTRIBUTION:
-	//		ExportBridgeData(GetInputTerminal()->bcPaxData,sExportFileName);
-	//		break;
-	//	}
-	//}
-	//catch( FileVersionTooNewError* _pError )
-	//{
-	//	char szBuf[128];
-	//	_pError->getMessage( szBuf );
-	//	MessageBox( szBuf, "Error", MB_OK|MB_ICONWARNING );
-	//	delete _pError;			
-	//}
+	try
+	{
+		switch( m_enumType )
+		{
+		case FLIGHT_DELAYS:
+			ExportFlightData(GetInputTerminal()->flightData->getDelays(),sExportFileName,"DELAY");
+			break;
+		case FLIGHT_LOAD_FACTORS:
+			ExportFlightData(GetInputTerminal()->flightData->getLoads(),sExportFileName,"LOAD");
+			break;
+		case FLIGHT_AC_CAPACITIES:
+			ExportFlightData(GetInputTerminal()->flightData->getCapacity(),sExportFileName,"CAPACITY");
+			break;
+		case PAX_GROUP_SIZE:
+			ExportPaxData(GetInputTerminal()->paxDataList->getGroups(),sExportFileName,"GROUP_SIZE");
+			break;
+		case PAX_LEAD_LAG:
+			ExportPaxData(GetInputTerminal()->paxDataList->getLeadLagTime(),sExportFileName,"LEAD_LAG_TIME");
+			break;
+		case PAX_IN_STEP:
+			ExportPaxData(GetInputTerminal()->paxDataList->getImpactInStep(),sExportFileName,"IN_STEP");
+			break;
+		case PAX_SIDE_STEP:
+			ExportPaxData(GetInputTerminal()->paxDataList->getSideStep(),sExportFileName,"SIDE_STEP");
+			break;
+		case PAX_SPEED:
+			ExportPaxData(GetInputTerminal()->paxDataList->getSpeed(),sExportFileName,"SPEED");
+			break;
+		case PAX_VISIT_TIME:
+			ExportPaxData(GetInputTerminal()->paxDataList->getVisitTime(),sExportFileName,"VISIT_TIME");
+			break;
+		case PAX_RESPONSE_TIME:
+			ExportPaxData(GetInputTerminal()->paxDataList->getResponseTime(),sExportFileName,"RESPONSE_TIME");
+			break;
+		case PAX_SPEED_IMPACT:
+			ExportPaxData(GetInputTerminal()->paxDataList->getImpactSpeed(),sExportFileName,"SPEED_IMPACT");
+			break;
+		case PAX_PUSH_PROPENSITY:
+			ExportPaxData(GetInputTerminal()->paxDataList->getPushPropensity(),sExportFileName,"PUSH_PROPENSITY");
+			break;
+		case VISITOR_STA_TRIGGER:
+			ExportPaxData(GetInputTerminal()->paxDataList->getVisitorSTATrigger(),sExportFileName,"VISITOR_STA_TRIGGER");
+			break;
+		case ENTRY_FLIGHT_TIME_DISTRIBUTION:
+			ExportBridgeData(GetInputTerminal()->bcPaxData,sExportFileName);
+			break;
+		}
+	}
+	catch( FileVersionTooNewError* _pError )
+	{
+		char szBuf[128];
+		_pError->getMessage( szBuf );
+		MessageBox( szBuf, "Error", MB_OK|MB_ICONWARNING );
+		delete _pError;			
+	}
 
 
-	//AfxGetApp()->EndWaitCursor();
+	AfxGetApp()->EndWaitCursor();
 }
 
 void CFltPaxDataDlg::ExportFlightData( ConstraintDatabase* pFlightDatabase,const CString& strFileName,const CString& strFlightName )
@@ -950,33 +952,39 @@ void CFltPaxDataDlg::ExportBridgeData( BridgeConnectorPaxData* pBridgeDatabase,c
 
 void CFltPaxDataDlg::OnLocalProjectOperation()
 {
-	//int type = 0;
-	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
-	//dlg.SetOperation(type);
-	//if(dlg.DoModal() == IDOK)
-	//{
-	//	//reload data
-	//}
+	int type = 0;
+	CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),GetConstraintDatabase(),this);
+	dlg.SetOperation(type);
+	if(dlg.DoModal() == IDOK)
+	{
+		//reload data
+		ReloadData( NULL );
+		m_btnSave.EnableWindow();
+	}
 }
 
 void CFltPaxDataDlg::OnExportedProjectOperation()
 {
-	//int type = 1;
-	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
-	//dlg.SetOperation(type);
-	//if(dlg.DoModal() == IDOK)
-	//{
-	//	//reload data
-	//}
+	int type = 1;
+	CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),GetConstraintDatabase(),this);
+	dlg.SetOperation(type);
+	if(dlg.DoModal() == IDOK)
+	{
+		//reload data
+		ReloadData( NULL );
+		m_btnSave.EnableWindow();
+	}
 }
 
 void CFltPaxDataDlg::OnCSVFileOperation()
 {
-	//int type = 2;
-	//CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),this);
-	//dlg.SetOperation(type);
-	//if(dlg.DoModal() == IDOK)
-	//{
-	//	//reload data
-	//}
+	int type = 2;
+	CDlgImportFltPaxData dlg(m_enumType,GetInputTerminal(),GetConstraintDatabase(),this);
+	dlg.SetOperation(type);
+	if(dlg.DoModal() == IDOK)
+	{
+		//reload data
+		ReloadData( NULL );
+		m_btnSave.EnableWindow();
+	}
 }

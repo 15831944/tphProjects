@@ -256,6 +256,7 @@
     <ClInclude Include="CmpReportListView.h" />
     <ClInclude Include="CmpReportTreeView.h" />
     <ClInclude Include="CurbsideFacilityDataPage.h" />
+    <ClInclude Include="DestributionParameterSpecificationDlg.h" />
     <ClInclude Include="DlgAddNewCmpReport.h" />
     <ClInclude Include="DlgAdjacencyConstraintSpec.h" />
     <ClInclude Include="DlgAirsideEnrouteQueueCapacity.h" />
@@ -1078,6 +1079,7 @@
     <ClCompile Include="CmpReportListView.cpp" />
     <ClCompile Include="CmpReportTreeView.cpp" />
     <ClCompile Include="CurbsideFacilityDataPage.cpp" />
+    <ClCompile Include="DestributionParameterSpecificationDlg.cpp" />
     <ClCompile Include="DlgAddNewCmpReport.cpp" />
     <ClCompile Include="DlgAdjacencyConstraintSpec.cpp" />
     <ClCompile Include="DlgAirsideEnrouteQueueCapacity.cpp" />

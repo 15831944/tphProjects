@@ -10,6 +10,7 @@
 #endif // _MSC_VER > 1000
 
 #include "ProbDistEntry.h"
+#include "ProbabilityDistribution.h"
 #include "..\common\DataSet.h"
 
 class CAirportDatabase;
@@ -33,6 +34,7 @@ public:
 	size_t getCount()const{ return m_vProbDist.size();	}
 	CProbDistEntry* getItem( int _nIdx )const{ return m_vProbDist[_nIdx];	}
 	CProbDistEntry* getItemByName(const CString& s)const;
+    CPROBDISTLIST getItemListByType(ProbTypes probType);
 	void AddItem( CProbDistEntry* _pPDEntry ){ m_vProbDist.push_back(_pPDEntry); }
 	virtual void clear();
 

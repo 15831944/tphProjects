@@ -318,4 +318,17 @@ CProbDistEntry* CProbDistManager::getItemByName( const CString& s ) const
 	return NULL;
 }
 
+CPROBDISTLIST CProbDistManager::getItemListByType(ProbTypes probType)
+{
+    CPROBDISTLIST vResult;
+    size_t nCount = m_vProbDist.size();
+    for(size_t i=0; i<nCount; i++)
+    {
+        ProbabilityDistribution* pProb = m_vProbDist[i]->m_pProbDist;
+        if(pProb->getProbabilityType() == probType)
+            vResult.push_back(m_vProbDist[i]);
+    }
+    return vResult;
+}
+
 
