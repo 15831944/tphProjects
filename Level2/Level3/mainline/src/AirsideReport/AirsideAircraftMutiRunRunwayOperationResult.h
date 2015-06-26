@@ -6,10 +6,6 @@
 #include "ChartDataDefine.h"
 #include "CARC3DChart.h"
 
-#include "AirsideReportNode.h"
-#include "MFCExControl\XListCtrl.h"
-#include "Parameters.h"
-
 class C2DChartData;
 
 struct RunwayTimeValue
@@ -47,17 +43,10 @@ public:
         return *this;
     }
 
-    RumwayMarkWithLandingTakeOff& operator=(const RumwayMarkWithLandingTakeOff& other)
+    CString GetMarkOperation()const
     {
-        m_mark = other.m_mark;
-        m_strLandingTakeoff = other.m_strLandingTakeoff;
-        return *this;
+        return m_mark.m_strMarkName + m_strLandingTakeoff;
     }
-	
-	CString GetMarkOperation()const
-	{
-		return m_mark.m_strMarkName + m_strLandingTakeoff;
-	}
 public:
     CAirsideReportRunwayMark m_mark;
     CString m_strLandingTakeoff;
@@ -85,17 +74,7 @@ public:
         m_nStdDev = 0;
     }
     ~SummaryRunwayOperationReportItem(){}
-	CString GetMarkOperation()const
-	{
-		return m_mark.m_strMarkName + m_strLandingTakeoff;
-	}
-public:
-    CAirsideReportRunwayMark m_mark;
-    CString m_strLandingTakeoff;
-};
->>>>>>> .r5324
 
-<<<<<<< .mine
 public:
     CAirsideReportRunwayMark m_runWaymark;
     //min
@@ -105,32 +84,7 @@ public:
     int m_nAverageCount;
     int m_maxCount;
     CString m_strMaxInterval;
-=======
-class SummaryRunwayOperationReportItem
-{
-public:
-    SummaryRunwayOperationReportItem()
-    {
-        m_minCount = 0;
-        m_strMinInterval = _T("");
-        m_nAverageCount = 0;
-        m_maxCount = 0;
-        m_strMaxInterval = _T("");
-        m_nQ1 = 0;
-        m_nQ2 = 0;
-        m_nQ3 = 0;
-        m_nP1 = 0;
-        m_nP5 = 0;
-        m_nP10 = 0;
-        m_nP90 = 0;
-        m_nP95 = 0;
-        m_nP99 = 0;
-        m_nStdDev = 0;
-    }
-    ~SummaryRunwayOperationReportItem(){}
->>>>>>> .r5324
 
-<<<<<<< .mine
     int m_nQ1;
     int m_nQ2;
     int m_nQ3;
@@ -142,63 +96,7 @@ public:
     int m_nP99;
     int m_nStdDev;
 };
-=======
-public:
-    CAirsideReportRunwayMark m_runWaymark;
-    //min
-    int m_minCount;
-    //the time range that the min operations take place
-    CString m_strMinInterval;
-    int m_nAverageCount;
-    int m_maxCount;
-    CString m_strMaxInterval;
->>>>>>> .r5324
 
-<<<<<<< .mine
-typedef std::vector<SummaryRunwayOperationReportItem> vectorSummaryRunwayOpRepItem;
-typedef std::map<CString, vectorSummaryRunwayOpRepItem> mapSummaryData;
-=======
-    int m_nQ1;
-    int m_nQ2;
-    int m_nQ3;
-    int m_nP1;
-    int m_nP5;
-    int m_nP10;
-    int m_nP90;
-    int m_nP95;
-    int m_nP99;
-    int m_nStdDev;
-};
->>>>>>> .r5324
-
-<<<<<<< .mine
-class CAirsideAircraftMutiRunRunwayOperationResult : public CAirsideMultipleRunResult
-{
-public:
-    CAirsideAircraftMutiRunRunwayOperationResult(void);
-    ~CAirsideAircraftMutiRunRunwayOperationResult(void);
-
-public:
-    virtual void LoadMultipleRunReport(CParameters* pParameter);
-    virtual void InitListHead(CXListCtrl& cxListCtrl,CParameters * parameter,  int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
-    virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
-    virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
-
-private:
-    std::vector<CString> m_lstColumns;
-
-    void DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
-    void GenerateSummary2DChartData(C2DChartData& c2dGraphData, const mapSummaryData& mapSumData, int iType = 0);
-    void SetSummaryMovement3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-    void SetSummaryLanding3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-    void SetSummaryTakeOff3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
-    void InitSummaryListHead(CXListCtrl& cxListCtrl, CParameters* pParam, CSortableHeaderCtrl* piSHC=NULL);
-    void FillSummaryListContent(CXListCtrl& cxListCtrl, const mapSummaryData& mapSum);
-    void ClearData();
-protected:
-    mapSummaryData m_summaryDataLanding;
-    mapSummaryData m_summaryDataTakeOff;
-    mapSummaryData m_summaryDataMovement;
 typedef std::vector<SummaryRunwayOperationReportItem> vectorSummaryRunwayOpRepItem;
 typedef std::map<CString, vectorSummaryRunwayOpRepItem> mapSummaryData;
 
@@ -222,6 +120,11 @@ private:
 
     void InitSummaryListHead(CXListCtrl& cxListCtrl, CParameters* pParam, CSortableHeaderCtrl* piSHC=NULL);
     void FillSummaryListContent(CXListCtrl& cxListCtrl, const mapSummaryData& mapSum);
+    void DrawSummary3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
+    void GenerateSummary2DChartData(C2DChartData& c2dGraphData, const mapSummaryData& mapSumData, int iType = 0);
+    void SetSummaryMovement3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummaryLanding3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
+    void SetSummaryTakeOff3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
 
 	void SetDetail3DChartString(C2DChartData& c2dGraphData,CParameters *pParameter);
 	void SetDetailLanding3DChartString(C2DChartData& c2dGraphData,CParameters *pParameter);

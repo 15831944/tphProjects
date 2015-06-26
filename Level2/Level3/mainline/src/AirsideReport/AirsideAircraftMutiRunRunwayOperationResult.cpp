@@ -3,9 +3,6 @@
 #include "Common\TERMFILE.H"
 #include "AirsideRunwayOperationReportParam.h"
 #include "AirsideRunwayOperationsReport.h"
-#include "Common\TERMFILE.H"
-#include "AirsideRunwayOperationReportParam.h"
-#include "AirsideRunwayOperationsReport.h"
 #include "CARC3DChart.h"
 
 static const CString str[] = 
@@ -415,7 +412,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::InitSummaryListHead(CXListCtr
     int nSubType = pRunWayOpParam->getSubType();
     switch(nSubType)
     {
-    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Operations:
+    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_TakeOff:
         for(int i=0; i<15; i++)
         {
             cxListCtrl.InsertColumn(nCurCol, str[i]+_T("(TO)"), LVCFMT_LEFT, 100);
@@ -437,7 +434,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::InitSummaryListHead(CXListCtr
             nCurCol++;
         }
         break;
-    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_TakeOff:
+    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Operations:
         for(int i=0; i<15; i++)
         {
             cxListCtrl.InsertColumn(nCurCol, str[i]+_T("(Movements)"), LVCFMT_LEFT, 100);
@@ -659,169 +656,6 @@ void CAirsideAircraftMutiRunRunwayOperationResult::SetSummaryTakeOff3DChartStrin
     strFooter.Format(_T("Runway Operational Statistic - Take Off %s "), pParameter->GetParameterString());
     c2dGraphData.m_strFooter = strFooter;
 }
-
-void CAirsideAircraftMutiRunRunwayOperationResult::InitSummaryListHead(CXListCtrl& cxListCtrl, CParameters* pParam, CSortableHeaderCtrl* piSHC)
-{
-    int nCurCol = 0;
-    DWORD headStyle = LVCFMT_CENTER;
-    headStyle &= ~HDF_OWNERDRAW;
-    cxListCtrl.InsertColumn(nCurCol,"",headStyle,20);
-    nCurCol++;
-
-    headStyle = LVCFMT_LEFT;
-    headStyle &= ~HDF_OWNERDRAW;
-    cxListCtrl.InsertColumn(nCurCol, _T("SimResult"), headStyle, 80);
-    if(piSHC)
-    {
-        piSHC->SetDataType(nCurCol, dtSTRING);
-    }
-    nCurCol++;
-
-    cxListCtrl.InsertColumn(nCurCol, _T("Runway"), headStyle, 80);
-    if(piSHC)
-    {
-        piSHC->SetDataType(nCurCol, dtSTRING);
-    }
-    nCurCol++;
-
-    AirsideRunwayOperationReportParam* pRunWayOpParam = (AirsideRunwayOperationReportParam*)pParam;
-    int nSubType = pRunWayOpParam->getSubType();
-    switch(nSubType)
-    {
-    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Operations:
-        for(int i=0; i<15; i++)
-        {
-            cxListCtrl.InsertColumn(nCurCol, str[i]+_T("(TO)"), LVCFMT_LEFT, 100);
-            if(piSHC)
-            {
-                piSHC->SetDataType(nCurCol,dtINT);
-            }
-            nCurCol++;
-        }
-        break;
-    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_Landing:
-        for(int i=0; i<15; i++)
-        {
-            cxListCtrl.InsertColumn(nCurCol, str[i]+_T("(Landing)"), LVCFMT_LEFT, 100);
-            if(piSHC)
-            {
-                piSHC->SetDataType(nCurCol,dtINT);
-            }
-            nCurCol++;
-        }
-        break;
-    case AirsideRunwayOperationsReport::ChartType_Summary_RunwayOperationalStatistic_TakeOff:
-        for(int i=0; i<15; i++)
-        {
-            cxListCtrl.InsertColumn(nCurCol, str[i]+_T("(Movements)"), LVCFMT_LEFT, 100);
-            if(piSHC)
-            {
-                piSHC->SetDataType(nCurCol,dtINT);
-            }
-            nCurCol++;
-        }
-        break;
-    default:
-        break;
-    }
-}
-
-void CAirsideAircraftMutiRunRunwayOperationResult::FillSummaryListContent(CXListCtrl& cxListCtrl, const mapSummaryData& mapSum)
-{
-    mapSummaryData::const_iterator itor = mapSum.begin();
-    int idx = 0;
-    for(; itor!=mapSum.end(); itor++)
-    {
-        const vectorSummaryRunwayOpRepItem& vStaSumItems = itor->second;
-        size_t nCount = vStaSumItems.size();
-        for(size_t i=0; i<nCount; i++)
-        {
-            CString strIndex;
-            strIndex.Format(_T("%d"),idx+1);
-            cxListCtrl.InsertItem(idx,strIndex);
-
-            CString strSimName = itor->first;
-            int nCurSimResult = atoi(strSimName.Mid(9,strSimName.GetLength()));
-            CString strRun = _T("");
-            strRun.Format(_T("Run%d"),nCurSimResult+1);
-
-            int nCurCol = 1;
-            cxListCtrl.SetItemText(idx, nCurCol, strRun);
-            cxListCtrl.SetItemData(idx, idx);
-            nCurCol++;
-
-            const SummaryRunwayOperationReportItem& sumItem = vStaSumItems.at(i);
-
-            CString strTemp;
-            strTemp.Format("%s", sumItem.m_runWaymark.m_strMarkName);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_minCount);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%s", sumItem.m_strMinInterval);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nAverageCount);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_maxCount);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%s", sumItem.m_strMaxInterval);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nQ1);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nQ2);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nQ3);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nP1);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nP5);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nP10);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nP90);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nP95);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nP99);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            strTemp.Format("%d", sumItem.m_nStdDev);
-            cxListCtrl.SetItemText(idx, nCurCol, strTemp);
-            nCurCol++;
-
-            idx++;
-        }
-    }
-}
-
 void CAirsideAircraftMutiRunRunwayOperationResult::BuildDetailMultipleRunwayOperation( mapRunwayDetailOperation& mapDetailData,maRunwayLoadOperation mapData,CParameters* pParameter )
 {
 	if (mapData.empty())
@@ -1244,4 +1078,3 @@ void CAirsideAircraftMutiRunRunwayOperationResult::Generate3DChartLeadTrailData(
 	chartWnd.DrawChart(c2dGraphData);
 }
 
->>>>>>> .r5324

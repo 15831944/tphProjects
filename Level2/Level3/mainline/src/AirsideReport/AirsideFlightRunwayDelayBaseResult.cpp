@@ -58,7 +58,7 @@ BOOL AirsideFlightRunwayDelayBaseResult::WriteReportData( ArctermFile& _file )
 
 	//columns
 	CString strColumns= _T("Runway, AC UId, AC, Flight Type, Operation, Position, Start Time(hh:mm:ss), Expected Op Time(secs), Real Op Time(secs), \
-						   Total delay(secs), Reason Count, Reason1, Delay1(secs), Reason2, Delay2(secs), Reason3, Delay3(secs)");
+Total delay(secs), Reason Count, Reason1, Delay1(secs), Reason2, Delay2(secs), Reason3, Delay3(secs)");
 	_file.writeField(strColumns);
 	_file.writeLine();
 

@@ -3401,7 +3401,8 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
             }
         }
         else if(GetReportType() == Airside_StandOperations ||
-                GetReportType() == Airside_TakeoffProcess)
+                GetReportType() == Airside_TakeoffProcess ||
+                GetReportType() == Airside_RunwayDelay)
         {
             if(GetTreePerformer())
                 GetTreePerformer()->DefWindowProc(message,wParam,lParam);

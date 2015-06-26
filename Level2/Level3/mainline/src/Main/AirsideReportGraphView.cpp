@@ -80,11 +80,6 @@ CAirsideReportGraphView::CAirsideReportGraphView()
 
 CAirsideReportGraphView::~CAirsideReportGraphView()
 {
-    reportType rpType = GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReportType();
-    if(rpType == Airside_RunwayOperaitons)
-    {
-        DeleteComboboxAllItemData(m_ComBoxSubType);
-    }
 }
 
 void CAirsideReportGraphView::DoDataExchange(CDataExchange* pDX)
@@ -615,7 +610,7 @@ void CAirsideReportGraphView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject
                 {
                     GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
                     m_ComBoxSubType.ShowWindow(TRUE);
-                    DeleteComboboxAllItemData(m_ComBoxSubType);
+                    DeleteComboboxItemDatas(m_ComBoxSubType);
                     m_ComBoxSubType.ResetContent();
                     int nIndex = m_ComBoxSubType.AddString("All");
                     RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
@@ -1637,7 +1632,7 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                 {
                     GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_SHOW);
                     m_ComBoxSubType.ShowWindow(TRUE);
-                    DeleteComboboxAllItemData(m_ComBoxSubType);
+                    DeleteComboboxItemDatas(m_ComBoxSubType);
                     m_ComBoxSubType.ResetContent();
 
 
@@ -1655,14 +1650,14 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                         for(; iter!=vRunway.end(); ++iter)
                         {
                             CString strCombo;
-                            strCombo.Format("%s - %s", iter->m_strMarkName, "Landings");
+                            strCombo.Format("%s %s", iter->m_strMarkName, "Landings");
                             int nIndex = m_ComBoxSubType.AddString(strCombo);
                             RumwayMarkWithLandingTakeOff* pRunwayMark = new RumwayMarkWithLandingTakeOff;
                             pRunwayMark->m_mark = *iter;
                             pRunwayMark->m_strLandingTakeoff = "Landings";
                             m_ComBoxSubType.SetItemData(nIndex, (DWORD)pRunwayMark);
 
-                            strCombo.Format("%s - %s", iter->m_strMarkName, "TakeOff");
+                            strCombo.Format("%s %s", iter->m_strMarkName, "TakeOff");
                             nIndex = m_ComBoxSubType.AddString(strCombo);
                             pRunwayMark = new RumwayMarkWithLandingTakeOff;
                             pRunwayMark->m_mark = *iter;
@@ -1689,9 +1684,13 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
                     bMultiple = true;
                 }
             }
-            CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
-            if (pResult)
-                pResult->Draw3DChart(m_MSChartCtrl, pParam);
+
+            if(!bMultiple)
+            {
+                CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
+                if (pResult)
+                    pResult->Draw3DChart(m_MSChartCtrl, pParam);
+            }
         }
         break;
 	case Airside_VehicleOperation:
@@ -2170,7 +2169,7 @@ void CAirsideReportGraphView::OnSelChangerChartSubTypes()
 	}
 }
 
-void CAirsideReportGraphView::DeleteComboboxAllItemData(CComboBox& pComboBox)
+void CAirsideReportGraphView::DeleteComboboxItemDatas(CComboBox& pComboBox)
 {
     int nItemCount =  pComboBox.GetCount();
     for(int i=0; i<nItemCount; i++)

@@ -42,7 +42,7 @@ protected:
 	void InitTaxiwayDelayReport();
 
 private:
-    void DeleteComboboxAllItemData(CComboBox& pComboBox);
+    void DeleteComboboxItemDatas(CComboBox& pComboBox);
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
