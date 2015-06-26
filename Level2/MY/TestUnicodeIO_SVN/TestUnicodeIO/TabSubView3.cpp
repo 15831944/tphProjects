@@ -119,12 +119,12 @@ void CTabSubView3::InertTempDataToTree()
     for(int i1=0; i1<5; i1++)
     {
         CString str1;
-        str1.Format(_T("level1_%d"), i1);
+        str1.Format(_T("level1: %d"), i1);
         HTREEITEM h1 = m_mainTree.InsertItem(str1, cni, FALSE);
         for(int i2=0; i2<5; i2++)
         {
             CString str2;
-            str2.Format(_T("level2_%d"), i2);
+            str2.Format(_T("level2: %d,%d"), i1, i2);
             HTREEITEM h2 = m_mainTree.InsertItem(str2, cni, FALSE, FALSE, h1);
         }
         m_mainTree.Expand(h1, TVE_EXPAND);

@@ -12,8 +12,7 @@ CCoolTreeKeepHighlight::~CCoolTreeKeepHighlight()
 }
 
 BEGIN_MESSAGE_MAP(CCoolTreeKeepHighlight, CCoolTree)
-    ON_NOTIFY_REFLECT_EX(NM_CUSTOMDRAW, OnNMCustomdraw)
-    ON_NOTIFY_REFLECT_EX(LVN_ITEMCHANGED, OnLvnItemchanged)
+    ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 END_MESSAGE_MAP()
 
 void CCoolTreeKeepHighlight::PreSubclassWindow()
@@ -21,7 +20,7 @@ void CCoolTreeKeepHighlight::PreSubclassWindow()
     CCoolTree::PreSubclassWindow();
 }
 
-BOOL CCoolTreeKeepHighlight::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+void CCoolTreeKeepHighlight::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMTVCUSTOMDRAW lpnmcd = (LPNMTVCUSTOMDRAW) pNMHDR;
     switch(lpnmcd ->nmcd.dwDrawStage)

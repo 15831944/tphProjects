@@ -22,9 +22,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WinMsg.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Source Files</Filter>
     </ClInclude>

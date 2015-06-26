@@ -11,9 +11,9 @@ public:
 
 protected:
     DECLARE_MESSAGE_MAP()
+    BOOL OnEraseBkgnd(CDC* pDC);
     virtual void PreSubclassWindow();
-    afx_msg BOOL OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
-    afx_msg BOOL OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
 

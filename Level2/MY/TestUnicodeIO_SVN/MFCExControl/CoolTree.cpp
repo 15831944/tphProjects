@@ -1103,7 +1103,7 @@ void CCoolTree::OnPaint()
         UINT selflag = TVIS_DROPHILITED | TVIS_SELECTED;
         COOLTREE_NODE_INFO* pCNI=GetItemNodeInfo(hItem);
         UINT itemState = GetItemState(hItem, selflag);
-        if (!(itemState & selflag) && pCNI)
+        if(pCNI && !(itemState & TVIS_SELECTED) && !(itemState & TVIS_DROPHILITED))
         {
             int nSavedDC = memDC.SaveDC();
             CFont font;
@@ -1281,7 +1281,6 @@ HTREEITEM CCoolTree::GetSelectedItem()
 BOOL CCoolTree::SelectItem(HTREEITEM hItem)
 {
     m_hEditedItem = hItem;
-
     return CTreeCtrl::SelectItem(m_hEditedItem);
 }
 

@@ -111,7 +111,6 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestUnicodeIO.h" />
     <ClInclude Include="TestUnicodeIODlg.h" />
-    <ClInclude Include="WinMsg.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
