@@ -46,8 +46,8 @@ public:
 	virtual void GenerateResult(CBGetLogFilePath pFunc,LandsideBaseParam* pParameter, InputLandside *pLandisde);
 	virtual void RefreshReport(LandsideBaseParam * parameter);
 
-	virtual void InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ );
-	virtual void FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter );
+	virtual void InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ );
+	virtual void FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter );
 
 	virtual LSGraphChartTypeList GetChartList() const;
 

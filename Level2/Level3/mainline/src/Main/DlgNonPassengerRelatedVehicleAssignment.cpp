@@ -721,6 +721,7 @@ void CDlgNonPassengerRelatedVehicleAssignment::OnAddObject()
 
 		CDlgSelectLandsideObject dlg(&m_pInLandside->getObjectList(),this);
 		dlg.AddObjType(ALT_LPARKINGLOT);
+		dlg.AddObjType(ALT_LCURBSIDE);
 		dlg.AddObjType(ALT_LEXT_NODE);
 		if( dlg.DoModal() == IDCANCEL )
 			return;
@@ -765,6 +766,7 @@ void CDlgNonPassengerRelatedVehicleAssignment::OnAddObject()
 
 		CDlgSelectLandsideObject dlg(&m_pInLandside->getObjectList(),this);
 		dlg.AddObjType(ALT_LPARKINGLOT);
+		dlg.AddObjType(ALT_LCURBSIDE);
 		dlg.AddObjType(ALT_LEXT_NODE);
 		if( dlg.DoModal() == IDCANCEL )
 			return;

@@ -48,8 +48,8 @@ public:
 	//Summary:
 	//		export list view data to csv file
 	//---------------------------------------------------------------------------------------------
-	BOOL ExportListCtrlToCvsFile(ArctermFile& _file,CListCtrl& cxListCtrl);
-	BOOL ExportListData(ArctermFile& _file,CListCtrl& cxListCtrl);
+	BOOL ExportListCtrlToCvsFile(ArctermFile& _file,CXListCtrl& cxListCtrl);
+	BOOL ExportListData(ArctermFile& _file,CXListCtrl& cxListCtrl);
 	//----------------------------------------------------------------------------------------------
 
 public:
@@ -67,8 +67,8 @@ public:
 	//Summary:
 	//		set list ctrl and fill
 	//---------------------------------------------------------------------------------
-	void InitReportList(CListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
-	void SetReportListContent(CListCtrl& cxListCtrl);
+	void InitReportList(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
+	void SetReportListContent(CXListCtrl& cxListCtrl);
 	//--------------------------------------------------------------------------------
 public:
 	//---------------------------------------------------------------------------------

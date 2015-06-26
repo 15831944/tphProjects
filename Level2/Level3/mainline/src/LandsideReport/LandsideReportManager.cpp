@@ -128,7 +128,7 @@ LandsideBaseReport * LandsideReportManager::GetReport()
 //Summary:
 //		set list ctrl and fill
 //---------------------------------------------------------------------------------
-void LandsideReportManager::InitReportList( CListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LandsideReportManager::InitReportList( CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	if (NULL == m_pReport)
 	{
@@ -143,7 +143,7 @@ void LandsideReportManager::InitReportList( CListCtrl& cxListCtrl, CSortableHead
 	m_pReport->InitListHead(cxListCtrl, piSHC);
 }
 
-void LandsideReportManager::SetReportListContent( CListCtrl& cxListCtrl )
+void LandsideReportManager::SetReportListContent( CXListCtrl& cxListCtrl )
 {
 	if (NULL == m_pReport)
 	{
@@ -153,10 +153,10 @@ void LandsideReportManager::SetReportListContent( CListCtrl& cxListCtrl )
 	m_pReport->FillListContent(cxListCtrl);
 }
 //--------------------------------------------------------------------------------
-BOOL LandsideReportManager::ExportListCtrlToCvsFile(ArctermFile& _file,CListCtrl& cxListCtrl)
+BOOL LandsideReportManager::ExportListCtrlToCvsFile(ArctermFile& _file,CXListCtrl& cxListCtrl)
 {
 	//export the lisctrl head 
-	int size = cxListCtrl.GetHeaderCtrl()->GetItemCount();;
+	int size = cxListCtrl.GetColumns() ;
 	LVCOLUMN column ;
 	column.mask = LVCF_TEXT ;
 	TCHAR th[1024] = {0};
@@ -170,12 +170,12 @@ BOOL LandsideReportManager::ExportListCtrlToCvsFile(ArctermFile& _file,CListCtrl
 	_file.writeLine() ;
 	return  ExportListData(_file,cxListCtrl) ;
 }
-BOOL LandsideReportManager::ExportListData(ArctermFile& _file,CListCtrl& cxListCtrl) 
+BOOL LandsideReportManager::ExportListData(ArctermFile& _file,CXListCtrl& cxListCtrl) 
 {
 	CString val ; 
 	for (int line = 0 ; line < cxListCtrl.GetItemCount() ;line++)
 	{
-		for (int colum = 0 ; colum < cxListCtrl.GetHeaderCtrl()->GetItemCount() ; colum++)
+		for (int colum = 0 ; colum < cxListCtrl.GetColumns() ; colum++)
 		{
 			val = cxListCtrl.GetItemText(line,colum) ;
 			_file.writeField(val) ;

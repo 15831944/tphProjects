@@ -80,7 +80,7 @@ void LSVehicleDelayDetailResult::RefreshReport( LandsideBaseParam * parameter )
 
 }
 
-void LSVehicleDelayDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSVehicleDelayDetailResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	ASSERT(piSHC != NULL);
 	if(piSHC == NULL)
@@ -148,7 +148,7 @@ void LSVehicleDelayDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideBa
 
 }
 
-void LSVehicleDelayDetailResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSVehicleDelayDetailResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	int nRowIndex = 0;
 	std::map<int, std::vector<DelayItem> >::iterator iter =  m_mapDelayResult.begin();

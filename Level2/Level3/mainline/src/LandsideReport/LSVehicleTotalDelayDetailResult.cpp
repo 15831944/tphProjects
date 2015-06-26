@@ -67,7 +67,7 @@ void LSVehicleTotalDelayDetailResult::RefreshReport( LandsideBaseParam * paramet
 
 }
 
-void LSVehicleTotalDelayDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSVehicleTotalDelayDetailResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	ASSERT(piSHC != NULL);
 	if(piSHC == NULL)
@@ -126,7 +126,7 @@ void LSVehicleTotalDelayDetailResult::InitListHead( CListCtrl& cxListCtrl, Lands
 
 }
 
-void LSVehicleTotalDelayDetailResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSVehicleTotalDelayDetailResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	int nRowIndex = 0;
 	int nDataCount = (int)(m_vResult.size());

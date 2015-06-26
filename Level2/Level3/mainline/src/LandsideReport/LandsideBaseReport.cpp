@@ -137,13 +137,13 @@ LSGraphChartTypeList LandsideBaseReport::GetChartList() const
 	return LSGraphChartTypeList();
 }
 
-void LandsideBaseReport::InitListHead( CListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LandsideBaseReport::InitListHead( CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	if(m_pResult)
 		m_pResult->InitListHead(cxListCtrl,m_pParemeter,piSHC);
 }
 
-void LandsideBaseReport::FillListContent( CListCtrl& cxListCtrl )
+void LandsideBaseReport::FillListContent( CXListCtrl& cxListCtrl )
 {
 	if(m_pResult)
 		m_pResult->FillListContent(cxListCtrl,m_pParemeter);

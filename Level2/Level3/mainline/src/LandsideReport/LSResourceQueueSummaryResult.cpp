@@ -137,7 +137,7 @@ void LSResourceQueueSummaryResult::RefreshReport( LandsideBaseParam * parameter 
 
 }
 
-void LSResourceQueueSummaryResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSResourceQueueSummaryResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	cxListCtrl.DeleteAllItems();
 
@@ -213,7 +213,7 @@ void LSResourceQueueSummaryResult::InitListHead( CListCtrl& cxListCtrl, Landside
 
 }
 
-void LSResourceQueueSummaryResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSResourceQueueSummaryResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {	
 	int nDataCount = (int)m_ResultData.size();
 	int nRowIndex = 0;

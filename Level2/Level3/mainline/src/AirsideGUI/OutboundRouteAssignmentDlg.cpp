@@ -390,6 +390,9 @@ void CBoundRouteAssignmentDlg::InitFlightTimeTree()
 	CString strFilghtType;
 	HTREEITEM hFltTypeTreeItem;
 
+    COOLTREENODEINFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
+
 	for (int i=0; i<nCount; i++)
 	{
 		CFlightTypeRouteAssignment* pItem =m_pBoundRouteAssignment->GetItem(i);
@@ -399,7 +402,7 @@ void CBoundRouteAssignmentDlg::InitFlightTimeTree()
 		pItem->GetFltType().screenPrint(szBuffer);
 
 		strFilghtType = szBuffer;
-		hFltTypeTreeItem = m_wndTreeFltTime.InsertItem(strFilghtType);
+		hFltTypeTreeItem = m_wndTreeFltTime.InsertItem(strFilghtType, cni, FALSE);
 		m_wndTreeFltTime.SetItemData(hFltTypeTreeItem, (DWORD_PTR)pItem);
 
 		CString strTimeRange = _T(""),strDay = _T("");		
@@ -419,7 +422,7 @@ void CBoundRouteAssignmentDlg::InitFlightTimeTree()
 			strDay.Format(_T("Day%d %02d:%02d:%02d"),lSecond/86400 + 1,(lSecond % 86400)/3600,(lSecond % 86400 % 3600)/60,lSecond % 86400 % 3600 % 60);
 			strTimeRange += strDay;
 
-			HTREEITEM hTimeRangeTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, hFltTypeTreeItem, TVI_LAST);
+			HTREEITEM hTimeRangeTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, cni, FALSE, FALSE,  hFltTypeTreeItem, TVI_LAST);
 			m_wndTreeFltTime.SetItemData(hTimeRangeTreeItem, (DWORD_PTR)pTimeItem);
 		}
 
@@ -1226,8 +1229,9 @@ void CBoundRouteAssignmentDlg::OnCmdNewFlightTime()
 
 	m_wndTreeFltTime.SetRedraw(FALSE);
 	fltType.screenPrint(szBuffer);
-
-	hItem = m_wndTreeFltTime.InsertItem(szBuffer);
+    COOLTREENODEINFO cni;
+    CCoolTree::InitNodeInfo(this, cni);
+	hItem = m_wndTreeFltTime.InsertItem(szBuffer, cni, FALSE);
 	fltType.WriteSyntaxStringWithVersion(szBuffer);
 
 	CFlightTypeRouteAssignment* pAssignment = new CFlightTypeRouteAssignment;
@@ -1336,7 +1340,9 @@ void CBoundRouteAssignmentDlg::OnAddTimeRange()
 		pItem->SetEndTime(estToTime);
 		pAssignment->AddNewItem(pItem);
 
-		HTREEITEM hChildTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, hSelItem, TVI_LAST);
+        COOLTREENODEINFO cni;
+        CCoolTree::InitNodeInfo(this, cni);
+		HTREEITEM hChildTreeItem = m_wndTreeFltTime.InsertItem(strTimeRange, cni, FALSE, FALSE, hSelItem, TVI_LAST);
 		m_wndTreeFltTime.SetItemData(hChildTreeItem, (DWORD_PTR)(pItem));
 		m_wndTreeFltTime.Expand(hSelItem, TVE_EXPAND);
 		GetDlgItem(IDC_BUTTON_SAVE)->EnableWindow(TRUE);

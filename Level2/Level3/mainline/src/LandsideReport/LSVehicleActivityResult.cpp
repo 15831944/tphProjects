@@ -200,7 +200,7 @@ void LSVehicleActivityResult::RefreshReport( LandsideBaseParam * parameter )
 
 }
 
-void LSVehicleActivityResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSVehicleActivityResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	ASSERT(piSHC != NULL);
 	if(piSHC == NULL)
@@ -257,7 +257,7 @@ void LSVehicleActivityResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseP
 
 }
 
-void LSVehicleActivityResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSVehicleActivityResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	int nVehicleCount = static_cast<int>(m_vActItem.size());
 

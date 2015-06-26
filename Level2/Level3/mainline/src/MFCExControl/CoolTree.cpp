@@ -1167,86 +1167,102 @@ void CCoolTree::OnPaint()
 	HTREEITEM hItem = GetFirstVisibleItem();
 	int n = GetVisibleCount()+1;
 	while( hItem && n--)
-	{
-		CRect rect;
-		
-		// Do not meddle with selected items or drop highlighted items
-		UINT selflag = TVIS_DROPHILITED | TVIS_SELECTED;
-		COOLTREE_NODE_INFO* pCNI=GetItemNodeInfo(hItem)	;
+    {
+        COOLTREE_NODE_INFO* pCNI=GetItemNodeInfo(hItem);
+        if(pCNI == NULL)
+        {
+            hItem = GetNextVisibleItem(hItem);
+            continue;
+        }
 
-		if ( !(GetItemState( hItem, selflag ) & selflag )&&pCNI)
-		{
-							
-			CFont *pFontDC;
-			CFont fontDC;//,fontBoldDC;
-			LOGFONT logfont;
-			
-			if( pCNI->lfontItem.lfFaceName[0] != '\0' ) 
-			{
-				logfont = pCNI->lfontItem;
-			}
-			else
-			{
-				// No font specified, so use window font
-				CFont *pFont = GetFont();
-				pFont->GetLogFont( &logfont );
-			}
-			
-			fontDC.CreateFontIndirect( &logfont );
-		//	logfont.lfWeight=FW_BOLD;
-		//	fontBoldDC.CreateFontIndirect( &logfont );
-			pFontDC = memDC.SelectObject( &fontDC);
+        CWnd *pWndFocus = GetFocus();
+        COLORREF textBackground = GetSysColor(COLOR_WINDOW);
+        UINT itemState = GetItemState(hItem, TVIS_DROPHILITED | TVIS_SELECTED);
+        if(pWndFocus == this || IsChild(pWndFocus)) // CoolTree windows is focused
+        {
+            if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
+            {
+                hItem = GetNextVisibleItem(hItem); // i won't draw selected items or drop highlighted items
+                continue;
+            }
+        }
+        else
+        {
+            if((itemState & TVIS_SELECTED) || (itemState & TVIS_DROPHILITED))
+            {
+                textBackground = RGB(210, 210, 210); // when lose focus set selected node's background gray
+            }
+        }
 
-			
-			memDC.SetTextColor( pCNI->clrItem);
-			
-			CString sItem = GetItemText( hItem );
-			
-			GetItemRect( hItem, &rect, TRUE );
-			memDC.SetBkColor( GetSysColor( COLOR_WINDOW ) );
-			if(    pCNI->net == NET_EDITSPIN_WITH_VALUE
-				|| pCNI->net==NET_EDIT_WITH_VALUE
-				|| pCNI->net == NET_DATETIMEPICKER
-				|| pCNI->net == NET_COMBOBOX
-				|| pCNI->net == NET_SHOW_DIALOGBOX
-				|| pCNI->net == NET_EDIT_INT
-				|| pCNI->net ==NET_EDIT_FLOAT
-				|| pCNI->net == NET_LABLE
-				|| pCNI->net == NET_STATIC
-				)
-			{
-				int nPosFind=sItem.Find(":",0);
-				CString strLeft,strRight;
-				if (-1!=nPosFind)
-				{
-					strLeft=sItem.Left(nPosFind+1);
-					strRight=sItem.Right(sItem.GetLength()-nPosFind-1);
-				} 
-				else
-				{
-					strLeft=sItem;
-				}
-				memDC.TextOut(rect.left+2,rect.top+1,strLeft);
-				int nWidth=memDC.GetTextExtent(strLeft).cx;
-			//	memDC.SelectObject(&fontBoldDC);
-				memDC.SetTextColor( RGB(0,0,255));
-				memDC.TextOut(rect.left+2+nWidth,rect.top+1,strRight);
-			}
-			else
-				memDC.TextOut(rect.left+2,rect.top+1,sItem);
+        CFont *pFontDC;
+        CFont fontDC;//,fontBoldDC;
+        LOGFONT logfont;
 
-			
+        if( pCNI->lfontItem.lfFaceName[0] != '\0' ) 
+        {
+            logfont = pCNI->lfontItem;
+        }
+        else
+        {
+            // No font specified, so use window font
+            CFont *pFont = GetFont();
+            pFont->GetLogFont( &logfont );
+        }
 
-				
-			memDC.SelectObject( pFontDC );
-		}
-		hItem = GetNextVisibleItem( hItem );
-	}
-	
-	
-	dc.BitBlt( rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height(), &memDC, 
-		rcClip.left, rcClip.top, SRCCOPY );
-	
+        fontDC.CreateFontIndirect( &logfont );
+        //	logfont.lfWeight=FW_BOLD;
+        //	fontBoldDC.CreateFontIndirect( &logfont );
+        pFontDC = memDC.SelectObject( &fontDC);
+
+
+        memDC.SetTextColor(pCNI->clrItem);
+
+        CString sItem = GetItemText( hItem );
+        CRect rect;
+        GetItemRect(hItem, &rect, TRUE);
+        memDC.SetBkColor(textBackground);
+        if(    pCNI->net == NET_EDITSPIN_WITH_VALUE
+            || pCNI->net == NET_EDIT_WITH_VALUE
+            || pCNI->net == NET_DATETIMEPICKER
+            || pCNI->net == NET_COMBOBOX
+            || pCNI->net == NET_SHOW_DIALOGBOX
+            || pCNI->net == NET_EDIT_INT
+            || pCNI->net == NET_EDIT_FLOAT
+            || pCNI->net == NET_LABLE
+            || pCNI->net == NET_STATIC
+            )
+        {
+            int nPosFind=sItem.Find(":",0);
+            CString strLeft,strRight;
+            if (-1!=nPosFind)
+            {
+                strLeft=sItem.Left(nPosFind+1);
+                strRight=sItem.Right(sItem.GetLength()-nPosFind-1);
+            } 
+            else
+            {
+                strLeft=sItem;
+            }
+            memDC.TextOut(rect.left+2,rect.top+1,strLeft);
+            int nWidth=memDC.GetTextExtent(strLeft).cx;
+            //	memDC.SelectObject(&fontBoldDC);
+            memDC.SetTextColor( RGB(0,0,255));
+            memDC.TextOut(rect.left+2+nWidth,rect.top+1,strRight);
+        }
+        else
+            memDC.TextOut(rect.left+2,rect.top+1,sItem);
+
+
+
+
+        memDC.SelectObject(pFontDC);
+        hItem = GetNextVisibleItem(hItem);
+    }
+
+
+    dc.BitBlt( rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height(), &memDC, 
+        rcClip.left, rcClip.top, SRCCOPY );
+
 }
 
 void CCoolTree::SetItemBold(HTREEITEM hItem,BOOL bBold,BOOL bRedraw)

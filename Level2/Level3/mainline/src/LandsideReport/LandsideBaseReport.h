@@ -49,8 +49,8 @@ public:
 	virtual void RefreshReport()= 0;
 
 
-	virtual void InitListHead(CListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
-	virtual void FillListContent(CListCtrl& cxListCtrl );
+	virtual void InitListHead(CXListCtrl& cxListCtrl, CSortableHeaderCtrl* piSHC = NULL);
+	virtual void FillListContent(CXListCtrl& cxListCtrl );
 
 	void Draw3DChart(CARC3DChart& chartWnd);
 

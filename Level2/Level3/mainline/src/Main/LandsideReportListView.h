@@ -34,7 +34,7 @@ protected:
 	LandsideBaseParam* GetReportParameter();
 
 protected:
-	CListCtrl m_wndListCtrl;
+	CXListCtrl m_wndListCtrl;
 	CSortableHeaderCtrl m_ctlHeaderCtrl;
 
 	CString m_sHeader;

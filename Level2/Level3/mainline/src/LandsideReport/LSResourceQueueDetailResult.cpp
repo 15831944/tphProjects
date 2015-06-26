@@ -105,7 +105,7 @@ void LSResourceQueueDetailResult::RefreshReport( LandsideBaseParam * parameter )
 
 }
 
-void LSResourceQueueDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSResourceQueueDetailResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	ASSERT(piSHC != NULL);
 	if(piSHC == NULL)
@@ -134,7 +134,7 @@ void LSResourceQueueDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideB
 	
 }
 
-void LSResourceQueueDetailResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSResourceQueueDetailResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	int nRowIndex = 0;
 	std:: vector<DetailItem>::iterator iter =  m_vResDetail.begin();

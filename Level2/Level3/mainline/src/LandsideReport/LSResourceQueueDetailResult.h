@@ -47,7 +47,7 @@ public:
 	//		parameter: user input that knows how to create list ctrl header
 	//		piSHC: make list ctrl sortable
 	//-----------------------------------------------------------------------------------------
-	virtual void InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ );
+	virtual void InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ );
 
 	//-----------------------------------------------------------------------------------------
 	//Summary:
@@ -56,7 +56,7 @@ public:
 	//		cxListCtrl: output parameter and target list ctrl to operate
 	//		parameter: input parameter let knows how to fill list ctrl
 	//------------------------------------------------------------------------------------------
-	virtual void FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter );
+	virtual void FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter );
 
 	virtual LSGraphChartTypeList GetChartList() const;
 	CString GetXtitle( ElapsedTime& eStartTime ) const;

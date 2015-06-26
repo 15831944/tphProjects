@@ -277,8 +277,10 @@ void LandsideReportListView::OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	int nTestIndex = pNMListView->iSubItem;
+
 	if( nTestIndex >= 1 )
-	{
+	{   
+		m_wndListCtrl.SetRedraw(FALSE);
 		CWaitCursor	wCursor;
 		if(::GetKeyState( VK_CONTROL ) < 0 ) // Is <CTRL> Key Down
 			m_ctlHeaderCtrl.SortColumn( nTestIndex, MULTI_COLUMN_SORT );
@@ -292,6 +294,7 @@ void LandsideReportListView::OnColumnclick(NMHDR* pNMHDR, LRESULT* pResult)
             strIndex.Format(_T("%d"),i+1);
             m_wndListCtrl.SetItemText( i, 0, strIndex );
         }
+		m_wndListCtrl.SetRedraw(TRUE);
 	}
 	*pResult = 0;
 }

@@ -168,7 +168,7 @@ void LSVehicleTotalDelaySummaryResult::RefreshReport( LandsideBaseParam * parame
 	
 }
 
-void LSVehicleTotalDelaySummaryResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSVehicleTotalDelaySummaryResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	cxListCtrl.DeleteAllItems();
 
@@ -242,7 +242,7 @@ void LSVehicleTotalDelaySummaryResult::InitListHead( CListCtrl& cxListCtrl, Land
 	piSHC->SetDataType(nCol,dtTIME);
 }
 
-void LSVehicleTotalDelaySummaryResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSVehicleTotalDelaySummaryResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	int nRowIndex = 0;
 	int nColIndex = 1;

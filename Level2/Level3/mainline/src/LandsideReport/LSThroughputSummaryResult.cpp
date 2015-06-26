@@ -132,7 +132,7 @@ void LSThroughputSummaryResult::RefreshReport( LandsideBaseParam * parameter )
 	
 }
 
-void LSThroughputSummaryResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSThroughputSummaryResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	ASSERT(piSHC != NULL);
 	if(piSHC == NULL)
@@ -166,7 +166,7 @@ void LSThroughputSummaryResult::InitListHead( CListCtrl& cxListCtrl, LandsideBas
 	piSHC->SetDataType(colIndex, dtINT );
 }
 
-void LSThroughputSummaryResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSThroughputSummaryResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	if (parameter == NULL)
 		return;

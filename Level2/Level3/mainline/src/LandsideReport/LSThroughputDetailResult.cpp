@@ -134,7 +134,7 @@ void LSThroughputDetailResult::RefreshReport( LandsideBaseParam * parameter )
 
 }
 
-void LSThroughputDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
+void LSThroughputDetailResult::InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ )
 {
 	ASSERT(piSHC != NULL);
 	if(piSHC == NULL)
@@ -161,7 +161,7 @@ void LSThroughputDetailResult::InitListHead( CListCtrl& cxListCtrl, LandsideBase
 
 }
 
-void LSThroughputDetailResult::FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter )
+void LSThroughputDetailResult::FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter )
 {
 	int nRowIndex = 0;
 	for (unsigned i = 0; i < m_vDetailResult.size(); i++)

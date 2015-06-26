@@ -32,7 +32,7 @@ public:
 	//		parameter: user input that knows how to create list ctrl header
 	//		piSHC: make list ctrl sortable
 	//-----------------------------------------------------------------------------------------
-	virtual void InitListHead( CListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ ) = 0;
+	virtual void InitListHead( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter, CSortableHeaderCtrl* piSHC /*= NULL*/ ) = 0;
 
 	//-----------------------------------------------------------------------------------------
 	//Summary:
@@ -41,7 +41,7 @@ public:
 	//		cxListCtrl: output parameter and target list ctrl to operate
 	//		parameter: input parameter let knows how to fill list ctrl
 	//------------------------------------------------------------------------------------------
-	virtual void FillListContent( CListCtrl& cxListCtrl, LandsideBaseParam * parameter ) = 0;
+	virtual void FillListContent( CXListCtrl& cxListCtrl, LandsideBaseParam * parameter ) = 0;
 
 	//-----------------------------------------------------------------------------------------
 	//Summary:

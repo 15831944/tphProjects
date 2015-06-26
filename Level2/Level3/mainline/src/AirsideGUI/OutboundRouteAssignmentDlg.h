@@ -1,8 +1,8 @@
 #pragma once
-#include "MFCExControl/ListCtrlEx.h"
 #include "..\MFCExControl\ARCTreeCtrl.h"
 #include "..\MFCExControl\SplitterControl.h"
 #include "NodeViewDbClickHandler.h"
+#include "MFCExControl\ListCtrlEx.h"
 
 class RunwayExit;
 class CBoundRouteAssignment;
@@ -143,7 +143,7 @@ protected:
 	CTimeRangeRouteAssignment       *m_pCurTimeAssignment;
 
 	CComboBox m_cmbRouteType;
-	CTreeCtrl m_wndTreeFltTime;
+	CARCTreeCtrl m_wndTreeFltTime;
 	PFuncSelectFlightType  m_pSelectFlightType;
 	CAirportDatabase* m_pAirportDB;
 	CString m_strTitle;
