@@ -71,11 +71,11 @@ void CAirsideAircraftMutiRunRunwayOperationResult::LoadMultipleRunReport(CParame
 						CString strOperation;
 						file.getField(strOperation.GetBuffer(1024),1024);
 						strOperation.ReleaseBuffer();
-						if (strOperation.Compare("Landing") == 0)
+						if (strOperation.CompareNoCase("Landing") == 0)
 						{
 							mapLandingOperation[strSimResult][strRunway].push_back(lTime);
 						}
-						else if (strOperation.Compare("Takeoff") == 0)
+						else if (strOperation.CompareNoCase("Takeoff") == 0)
 						{
 							mapTakeoffOperation[strSimResult][strRunway].push_back(lTime);
 						}
@@ -94,6 +94,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::LoadMultipleRunReport(CParame
 						file.getField(strMark.GetBuffer(1024),1024);
 						strMark.ReleaseBuffer();
 
+						file.getLine();
 						file.getLine();
 						file.getLine();
 						file.getLine();
@@ -117,6 +118,16 @@ void CAirsideAircraftMutiRunRunwayOperationResult::LoadMultipleRunReport(CParame
 							landTrail.m_strLandTrail = strClassification;
 							landTrail.m_lFlightCount = nFlightCount;
 							m_mapLandTrailOperation[strSimResult][strMark].push_back(landTrail);
+
+							std::vector<ClassificationValue>::iterator findIter = std::find(m_mapLandTrailOperation[strSimResult]["All"].begin(),m_mapLandTrailOperation[strSimResult]["All"].end(),landTrail);
+							if (findIter != m_mapLandTrailOperation[strSimResult]["All"].end())
+							{
+								findIter->m_lFlightCount += landTrail.m_lFlightCount;
+							}
+							else
+							{
+								m_mapLandTrailOperation[strSimResult]["All"].push_back(landTrail);
+							}
 						}
 
 						file.getLine();
@@ -133,14 +144,14 @@ void CAirsideAircraftMutiRunRunwayOperationResult::LoadMultipleRunReport(CParame
 
 							//make runway mark and landing/takeoff format
 							CString strLandingMark;
-							strLandingMark.Format(_T("%sLanding"),strMark);
+							strLandingMark.Format(_T("%s Landings"),strMark);
 							RunwayTimeValue landingTime;
-							landingTime.m_eTime = nTimeValue;
+							landingTime.m_eTime = nTimeValue*100l;
 							landingTime.m_iOperation = nLandingCount;
 							CString strTakeoffMark;
-							strTakeoffMark.Format(_T("%sTakeoff"),strMark);
+							strTakeoffMark.Format(_T("%s TakeOff"),strMark);
 							RunwayTimeValue takeoffTime;
-							takeoffTime.m_eTime = nTimeValue;
+							takeoffTime.m_eTime = nTimeValue*100l;
 							takeoffTime.m_iOperation = nTakeOffCount;
 
 							mapMovementInterval[strSimResult][strLandingMark].push_back(landingTime);
@@ -272,21 +283,34 @@ void CAirsideAircraftMutiRunRunwayOperationResult::InitListHead(CXListCtrl& cxLi
 		headStyle = LVCFMT_LEFT;
 		headStyle &= ~HDF_OWNERDRAW;
 		cxListCtrl.InsertColumn(1, _T("SimResult"), headStyle, 80);
+		
 
 		AirsideRunwayOperationReportParam* pOpPara = (AirsideRunwayOperationReportParam*)parameter;
 		switch (pOpPara->getSubType())
 		{
 		case AirsideRunwayOperationsReport::ChartType_Detail_LandingsByRunway:
-			InitDetailListHead(cxListCtrl,m_mapLandingOperation,piSHC);
+			{
+				cxListCtrl.InsertColumn(2, _T("Runway"), headStyle, 80);
+				InitDetailListHead(cxListCtrl,m_mapLandingOperation,piSHC);
+			}
 			break;
 		case AirsideRunwayOperationsReport::ChartType_Detail_TakeOffByRunway:
+		{
+			cxListCtrl.InsertColumn(2, _T("Runway"), headStyle, 80);
 			InitDetailListHead(cxListCtrl,m_mapTakeoffOperation,piSHC);
+		}
 			break;
 		case AirsideRunwayOperationsReport::ChartType_Detail_LeadTrailByRunway:
+		{
+			cxListCtrl.InsertColumn(2, _T("Runway"), headStyle, 80);
 			InitDetailClassificationHead(cxListCtrl,m_mapLandTrailOperation,piSHC);
+		}
 			break;
 		case AirsideRunwayOperationsReport::ChartType_Detail_MovementsPerRunway:
-			InitDetailListHead(cxListCtrl,m_mapMovementInterval,piSHC);
+			{
+				cxListCtrl.InsertColumn(2, _T("Runway & L/T/M"), headStyle, 80);
+				InitDetailListHead(cxListCtrl,m_mapMovementInterval,piSHC);
+			}
 			break;
 		default:
 			break;
@@ -313,7 +337,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::FillListContent( CXListCtrl& 
 			FillDetailListOperationContent(cxListCtrl,m_mapTakeoffOperation);
 			break;
 		case AirsideRunwayOperationsReport::ChartType_Detail_LeadTrailByRunway:
-			InitDetailClassificationHead(cxListCtrl,m_mapLandTrailOperation);
+			FillDetailListLandTrailContent(cxListCtrl,m_mapLandTrailOperation);
 			break;
 		case AirsideRunwayOperationsReport::ChartType_Detail_MovementsPerRunway:
 			FillDetailListOperationContent(cxListCtrl,m_mapMovementInterval);
@@ -706,6 +730,17 @@ void CAirsideAircraftMutiRunRunwayOperationResult::BuildDetailMultipleRunwayOper
 				long iCount = GetIntervalCount(delayData.m_iStart,delayData.m_iEnd,iter->second);
 				delayData.m_iData = iCount;
 				mapDetailData[opIter->first][iter->first].push_back(delayData);
+
+				//generate runway all data
+				long iSize = (long)mapDetailData[opIter->first]["All"].size();
+				if (iSize > i )//exsit this item
+				{
+					mapDetailData[opIter->first]["All"][i].m_iData += iCount;
+				}
+				else
+				{
+					mapDetailData[opIter->first]["All"].push_back(delayData);
+				}
 			}
 		}
 	}
@@ -762,6 +797,17 @@ void CAirsideAircraftMutiRunRunwayOperationResult::BuildDetailMultipleRunwayTime
 				long iCount = GetIntervalTimeValue(delayData.m_iStart,delayData.m_iEnd,iter->second);
 				delayData.m_iData = iCount;
 				mapDetailData[timeIter->first][iter->first].push_back(delayData);
+
+				//generate runway all data
+				long iSize = (long)mapDetailData[timeIter->first]["All"].size();
+				if (iSize > i )//exsit this item
+				{
+					mapDetailData[timeIter->first]["All"][i].m_iData += iCount;
+				}
+				else
+				{
+					mapDetailData[timeIter->first]["All"].push_back(delayData);
+				}
 			}
 		}
 	}
@@ -808,7 +854,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::InitDetailListHead( CXListCtr
 		DWORD dwStyle = LVCFMT_LEFT;
 		dwStyle &= ~HDF_OWNERDRAW;
 
-		cxListCtrl.InsertColumn(2+i, strRange, /*LVCFMT_LEFT*/dwStyle, 100);
+		cxListCtrl.InsertColumn(3+i, strRange, /*LVCFMT_LEFT*/dwStyle, 100);
 	}
 }
 
@@ -838,12 +884,12 @@ void CAirsideAircraftMutiRunRunwayOperationResult::FillDetailListLandTrailConten
 			{
 				ClassificationValue typeData = markIter->second.at(n);
 				CString strCount;
-				if(n <  iter->second.size())
+				if(n <  markIter->second.size())
 					strCount.Format(_T("%d"), typeData.m_lFlightCount);
 				else
 					strCount.Format(_T("%d"),0) ;
 
-				cxListCtrl.SetItemText(idx, n + 2, strCount);
+				cxListCtrl.SetItemText(idx, n + 3, strCount);
 			}
 			idx++;
 		}
@@ -870,7 +916,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::InitDetailClassificationHead(
 		DWORD dwStyle = LVCFMT_LEFT;
 		dwStyle &= ~HDF_OWNERDRAW;
 
-		cxListCtrl.InsertColumn(2+i, typeData.m_strLandTrail, /*LVCFMT_LEFT*/dwStyle, 100);
+		cxListCtrl.InsertColumn(3+i, typeData.m_strLandTrail, /*LVCFMT_LEFT*/dwStyle, 100);
 	}
 }
 
@@ -900,12 +946,12 @@ void CAirsideAircraftMutiRunRunwayOperationResult::FillDetailListOperationConten
 			{
 				MultipleRunReportData delayData = detaiIter->second.at(n);
 				CString strCount;
-				if(n <  iter->second.size())
+				if(n <  detaiIter->second.size())
 					strCount.Format(_T("%d"), delayData.m_iData);
 				else
 					strCount.Format(_T("%d"),0) ;
 
-				cxListCtrl.SetItemText(idx, n + 2, strCount);
+				cxListCtrl.SetItemText(idx, n + 3, strCount);
 			}
 			idx++;
 		}
@@ -1008,6 +1054,8 @@ void CAirsideAircraftMutiRunRunwayOperationResult::Generate3DChartCountData( map
 	RumwayMarkWithLandingTakeOff* pMark = (RumwayMarkWithLandingTakeOff*)iType;
 	mapRunwayDetailOperation::iterator iter = mapDetailData.begin();
 	CString strMarkOperation = pMark->GetMarkOperation();
+	strMarkOperation.TrimLeft();
+	strMarkOperation.TrimRight();
 	for (unsigned iTitle = 0; iTitle <(iter->second)[strMarkOperation].size(); iTitle++)
 	{
 		MultipleRunReportData delayData = iter->second[strMarkOperation].at(iTitle);
@@ -1017,7 +1065,7 @@ void CAirsideAircraftMutiRunRunwayOperationResult::Generate3DChartCountData( map
 		eEndTime.setPrecisely(delayData.m_iEnd);
 
 		CString strTimeRange;
-		strTimeRange.Format(_T("%02d:%02d:%02d-%02d:%02d:%02d"), eStartTime.GetHour(), eStartTime.GetMinute(),eStartTime.GetSecond(), eEndTime.GetHour(), eEndTime.GetSecond(),eEndTime.GetSecond());
+		strTimeRange.Format(_T("%s-%s"),eStartTime.printTime(),eEndTime.printTime());
 		c2dGraphData.m_vrXTickTitle.push_back(strTimeRange);
 	}
 
@@ -1053,6 +1101,8 @@ void CAirsideAircraftMutiRunRunwayOperationResult::Generate3DChartLeadTrailData(
 	mapLandTrailOperation::iterator iter = mapDetailData.begin();
 	
 	CString strMarkOperation = pMark->GetMarkOperation();
+	strMarkOperation.TrimLeft();
+	strMarkOperation.TrimRight();
 	for (unsigned iTitle = 0; iTitle <(iter->second)[strMarkOperation].size(); iTitle++)
 	{
 		ClassificationValue typeName = iter->second[strMarkOperation].at(iTitle);

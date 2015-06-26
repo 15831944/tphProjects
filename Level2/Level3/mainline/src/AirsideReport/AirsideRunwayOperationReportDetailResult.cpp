@@ -801,7 +801,7 @@ BOOL CAirsideRunwayOperationReportDetailResult::WriteReportData( ArctermFile& _f
 		{
 			RunwayOperationTimeValue& timeValue = pRunwayDetail->m_vRunwayTimeValue[nTime];
 
-			_file.writeInt(timeValue.m_eTime.GetSecond());
+			_file.writeInt(timeValue.m_eTime.asSeconds());
 			_file.writeInt(timeValue.m_nLandingCount);
 			_file.writeInt(timeValue.m_nTakeOffCount);
 		}

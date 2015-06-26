@@ -1617,8 +1617,6 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
         {
             AirsideRunwayOperationReportParam *pParam = reinterpret_cast<AirsideRunwayOperationReportParam *>(GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetParameters());
             pParam->setSubType(nSubType);
-            AirsideRunwayOperationsReport *pPreport = reinterpret_cast< AirsideRunwayOperationsReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
-            pPreport->RefreshReport(pParam);
 
             GetDlgItem(IDC_STATIC_SUBTYPE)->ShowWindow(SW_HIDE);
             GetDlgItem(IDC_STATIC_SUBTYPE)->SetWindowText(_T("Sub Type"));
@@ -1687,6 +1685,8 @@ void CAirsideReportGraphView::OnSelchangeChartSelectCombo()
 
             if(!bMultiple)
             {
+				AirsideRunwayOperationsReport *pPreport = reinterpret_cast< AirsideRunwayOperationsReport *> (GetDocument()->GetARCReportManager().GetAirsideReportManager()->GetReport());
+				pPreport->RefreshReport(pParam);
                 CAirsideReportBaseResult *pResult =  pPreport->GetReportResult();
                 if (pResult)
                     pResult->Draw3DChart(m_MSChartCtrl, pParam);

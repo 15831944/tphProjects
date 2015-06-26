@@ -16,6 +16,13 @@ struct RunwayTimeValue
 
 struct ClassificationValue
 {
+	bool operator == (const ClassificationValue& dataValue)const
+	{
+		if (m_strLandTrail.CompareNoCase(dataValue.m_strLandTrail) == 0)
+			return true;
+		
+		return false;
+	}
 	CString m_strLandTrail;
 	long m_lFlightCount;
 };
@@ -45,7 +52,7 @@ public:
 
     CString GetMarkOperation()const
     {
-        return m_mark.m_strMarkName + m_strLandingTakeoff;
+        return m_mark.m_strMarkName + CString(_T(" ")) + m_strLandingTakeoff;
     }
 public:
     CAirsideReportRunwayMark m_mark;
