@@ -159,7 +159,6 @@
     <ClInclude Include="CoolTreeEditSpin.h" />
     <ClInclude Include="EditHelper.h" />
     <ClInclude Include="EditListBox.h" />
-    <ClInclude Include="FloarEdit.h" />
     <ClInclude Include="FloatEdit.h" />
     <ClInclude Include="FloorMapCtrl.h" />
     <ClInclude Include="GridCtrl.h" />
@@ -196,7 +195,7 @@
     <ClInclude Include="TitleTip.h" />
     <ClInclude Include="ToolbarWithDropMenu.h" />
     <ClInclude Include="ToolTipDialog.h" />
-    <ClInclude Include="TreeCtrlKeepHighlight.h" />
+    <ClInclude Include="CoolTreeKeepHighlight.h" />
     <ClInclude Include="XListCtrl.h" />
     <ClInclude Include="XTPCommon.h" />
     <ClInclude Include="XTPMacros.h" />
@@ -228,7 +227,6 @@
     <ClCompile Include="CoolTreeEditSpin.cpp" />
     <ClCompile Include="EditHelper.cpp" />
     <ClCompile Include="EditListBox.cpp" />
-    <ClCompile Include="FloarEdit.cpp" />
     <ClCompile Include="FloatEdit.cpp" />
     <ClCompile Include="FloorMapCtrl.cpp" />
     <ClCompile Include="GridCtrl.cpp" />
@@ -266,7 +264,7 @@
     <ClCompile Include="TitleTip.cpp" />
     <ClCompile Include="ToolbarWithDropMenu.cpp" />
     <ClCompile Include="ToolTipDialog.cpp" />
-    <ClCompile Include="TreeCtrlKeepHighlight.cpp" />
+    <ClCompile Include="CoolTreeKeepHighlight.cpp" />
     <ClCompile Include="XListCtrl.cpp" />
     <ClCompile Include="XTPCommon.cpp" />
     <ClCompile Include="XTResize.cpp" />

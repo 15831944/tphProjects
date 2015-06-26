@@ -10,7 +10,7 @@ CListCtrlKeepHighlight::~CListCtrlKeepHighlight()
 {
 }
 
-BEGIN_MESSAGE_MAP(CListCtrlKeepHighlight, CListCtrl)
+BEGIN_MESSAGE_MAP(CListCtrlKeepHighlight, CListCtrlEx)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
     ON_NOTIFY_REFLECT_EX(LVN_ITEMCHANGED, OnLvnItemchanged)
 END_MESSAGE_MAP()
