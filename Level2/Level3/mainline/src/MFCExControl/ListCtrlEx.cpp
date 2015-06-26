@@ -863,7 +863,8 @@ int CListCtrlEx::GetLastDblClk(int& column)
 
 int CListCtrlEx::GetCurSel( void ) const
 {
-	return CurrentSelection;
+    POSITION pos = GetFirstSelectedItemPosition();
+	return (int)pos-1;
 }
 
 void CListCtrlEx::SetHHmmTimeFormat()

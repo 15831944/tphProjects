@@ -2053,7 +2053,7 @@ void CNodeView::OnLButtonDblClk(WPARAM wParam, LPARAM lParam)
 				dlg.DoModal();
 			}//end if compare	
 
-			s.LoadString(IDS_TVNN_PROCSERVTIME);
+			s.LoadString(IDS_TVNN_TERMINALSERVICETIME);
 			if(s.Compare(pNode->Name())==0)
 			{
 				CServiceTimeDlg dlg( this );

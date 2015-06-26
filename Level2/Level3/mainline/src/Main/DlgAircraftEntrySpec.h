@@ -22,7 +22,7 @@ protected:
 private:
     std::vector<int> m_vIncType; // included processor types
     std::vector<ProcessorID> m_vProcs;
-    AircraftEntryProcessorData* m_pBCPaxData;
+    AircraftEntryProcessorData* m_pACEntryData;
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);
     virtual LRESULT DefWindowProc(UINT message, WPARAM wParam, LPARAM lParam);

@@ -17,7 +17,10 @@ void AircraftEntryProcsEntry::readData(ArctermFile& p_file, InputTerminal* _pInT
     CMobileElemConstraint* pConst = new CMobileElemConstraint(_pInTerm);
     pConst->readConstraint (p_file);
     ProbabilityDistribution* pProb = GetTerminalRelateProbDistribution(p_file,_pInTerm);
-    initialize(pConst, pProb, pID);
+    ElapsedTime beginTime, endTime;
+    p_file.getTime(beginTime);
+    p_file.getTime(endTime);
+    initialize(pConst, pProb, pID, beginTime, endTime);
 }
 
 void AircraftEntryProcsEntry::writeData(ArctermFile& p_file)
@@ -25,6 +28,128 @@ void AircraftEntryProcsEntry::writeData(ArctermFile& p_file)
     m_procID.writeProcessorID(p_file);
     constraint->writeConstraint(p_file);
     value->writeDistribution(p_file);
+    p_file.writeTime(m_beginTime);
+    p_file.writeTime(m_endTime);
+}
+
+bool AircraftEntryProcsEntry::operator<( const AircraftEntryProcsEntry& other ) const
+{
+    CMobileElemConstraint* pThisConst = (CMobileElemConstraint*)constraint;
+    CMobileElemConstraint* pOtherConst = (CMobileElemConstraint*)(other.constraint);
+    if(pThisConst->fits(*pOtherConst) && pOtherConst->fits(*pThisConst))
+    {
+        if(m_procID < other.m_procID)
+        {
+            return true;
+        }
+        else if(m_procID == other.m_procID)
+        {
+            if(m_beginTime < other.m_beginTime)
+            {
+                return true;
+            }
+            else if(m_beginTime == other.m_beginTime)
+            {
+                if(m_endTime < other.m_endTime)
+                    return true;
+                else
+                    return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else if(pThisConst->fits(*pOtherConst))
+    {
+        return true;
+    }
+    else if(pOtherConst->fits(*pThisConst))
+    {
+        return false;
+    }
+    else
+    {
+        CString str1, str2;
+        pThisConst->screenPrint(str1);
+        pOtherConst->screenPrint(str2);
+        return str1<str2;
+    }
+}
+
+AircraftEntryProcsEntry& AircraftEntryProcsEntry::operator=( const AircraftEntryProcsEntry& other )
+{
+    clear();
+    ConstraintEntry::operator =(other);
+    m_procID = other.m_procID;
+    m_beginTime = other.m_beginTime;
+    m_endTime = other.m_endTime;
+    return *this;
+}
+
+bool AircraftEntryProcsEntry::operator==( const AircraftEntryProcsEntry& other ) const
+{
+    return (*constraint == *(other.constraint)) && 
+        (m_procID == other.m_procID) && 
+        (m_beginTime == other.m_beginTime) && 
+        (m_endTime == other.m_endTime);
+}
+
+bool AircraftEntryProcsEntry::sortEntry(const void* p1, const void* p2)
+{
+    AircraftEntryProcsEntry* pEntry1 = (AircraftEntryProcsEntry*)p1;
+    AircraftEntryProcsEntry* pEntry2 = (AircraftEntryProcsEntry*)p2;
+    CMobileElemConstraint* pMobConst1 = (CMobileElemConstraint*)pEntry1->getConstraint();
+    CMobileElemConstraint* pMobConst2 = (CMobileElemConstraint*)pEntry2->getConstraint();
+    if(pMobConst1->fits(*pMobConst2) && pMobConst2->fits(*pMobConst1))
+    {
+        if(pEntry1->m_procID == pEntry2->m_procID)
+        {
+            if(pEntry1->m_beginTime == pEntry2->m_beginTime)
+            {
+                if(pEntry1->m_endTime < pEntry2->m_endTime)
+                    return true;
+                else
+                    return false;
+            }
+            else if(pEntry1->m_beginTime < pEntry2->m_beginTime)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        else if(pEntry1->m_procID < pEntry2->m_procID)
+        {
+            return true;
+        }
+        else 
+        {
+            return false;
+        }
+    }
+    else if(pMobConst1->fits(*pMobConst2))
+    {
+        return true;
+    }
+    else if(pMobConst2->fits(*pMobConst1))
+    {
+        return false;
+    }
+    else
+    {
+        CString str1, str2;
+        pMobConst1->screenPrint(str1);
+        pMobConst2->screenPrint(str2);
+        return str1<str2;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -72,7 +197,7 @@ void ACEntryTimeDistDatabase::writeDatabase(ArctermFile& p_file)
 }
 
 const ProbabilityDistribution*  ACEntryTimeDistDatabase::FindProbDist(const ProcessorID& procID, 
-    const CMobileElemConstraint& paxType)
+    const CMobileElemConstraint& paxType, const ElapsedTime& curTime)
 {
     std::vector<AircraftEntryProcsEntry*> vResult;
     AircraftEntryProcsEntry* pTempEntry = NULL;
@@ -82,8 +207,10 @@ const ProbabilityDistribution*  ACEntryTimeDistDatabase::FindProbDist(const Proc
         AircraftEntryProcsEntry* pCurEntry = (AircraftEntryProcsEntry*)getItem(i);
         const ProcessorID& curProcID = pCurEntry->getProcID();
         const CMobileElemConstraint* pCurPaxType = (CMobileElemConstraint*)pCurEntry->getConstraint();
-
-        if(!curProcID.idFits(procID) || !pCurPaxType->fitex(paxType))
+        if(!curProcID.idFits(procID) || 
+            !pCurPaxType->fitex(paxType) || 
+            curTime<pCurEntry->GetBeginTime() ||
+            curTime>pCurEntry->GetEndTime())
         {
             continue;
         }
@@ -138,7 +265,7 @@ void ACEntryTimeDistDatabase::initFromMobElemConstDatabase(const CMobileElemCons
         ProcessorID pID;
         pID.init();
         pID.SetStrDict(_pInTerm->inStrDict);
-        pEntry->initialize(pMbConst, pProb, pID);
+        pEntry->initialize(pMbConst, pProb, pID, ElapsedTime(0L), ElapsedTime(WholeDay-60L));
         addEntry(pEntry);
     }
 }

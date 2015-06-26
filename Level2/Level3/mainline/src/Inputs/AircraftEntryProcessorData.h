@@ -10,15 +10,20 @@ class INPUTS_TRANSFER AircraftEntryProcsEntry : public ConstraintEntry
 {
 protected:
     ProcessorID m_procID;
+    ElapsedTime m_beginTime;
+    ElapsedTime m_endTime;
 public:
     AircraftEntryProcsEntry(){ m_procID.init(); }
     ~AircraftEntryProcsEntry(){ clear(); }
 
-    void initialize(CMobileElemConstraint* pConst, ProbabilityDistribution* pProb, const ProcessorID& id)
+    void initialize(CMobileElemConstraint* pConst, ProbabilityDistribution* pProb, const ProcessorID& id, 
+        const ElapsedTime& beginTime, const ElapsedTime& endTime)
     {
         clear();
         ConstraintEntry::initialize(pConst, pProb);
         m_procID = id;
+        m_beginTime = beginTime;
+        m_endTime = endTime;
     }
 
     void useDefaultValue(InputTerminal* _pInTerm)
@@ -27,13 +32,15 @@ public:
         ProcessorID pID;
         pID.init();
         pID.SetStrDict(_pInTerm->inStrDict);
-        initialize(new CMobileElemConstraint(_pInTerm), defaultDist, pID);
+        initialize(new CMobileElemConstraint(_pInTerm), defaultDist, pID, ElapsedTime(0L), ElapsedTime(WholeDay-60L));
     }
 
     virtual void clear()
     {
         ConstraintEntry::clear();
         m_procID.init();
+        m_beginTime = 0L;
+        m_endTime = 0L;
     }
 
     void readData(ArctermFile& p_file, InputTerminal* _pInTerm);
@@ -42,34 +49,15 @@ public:
     const ProcessorID& getProcID()const{ return m_procID;}
     ProcessorID obtainProcID()const{ return m_procID; }
     void setProcID(const ProcessorID& _id){ m_procID = _id; }
+    ElapsedTime GetBeginTime() { return m_beginTime; }
+    void SetBeginTime(const ElapsedTime& eTime) { m_beginTime = eTime; }
+    ElapsedTime GetEndTime() { return m_endTime; }
+    void SetEndTime(const ElapsedTime& eTime) { m_endTime = eTime; }
 
-    AircraftEntryProcsEntry& operator=(const AircraftEntryProcsEntry& _entry)
-    {
-        clear();
-        ConstraintEntry::operator =(_entry);
-        m_procID = _entry.m_procID;
-        return *this;
-    }
-
-    int operator==(const AircraftEntryProcsEntry& _entry)const
-    {
-        return *constraint == *(_entry.constraint) && m_procID == _entry.m_procID; 
-    }
-
-    int operator<(const AircraftEntryProcsEntry& _entry) const
-    {
-        return *constraint < *(_entry.constraint)
-            ||  !(*(_entry.constraint) < *constraint) && !(m_procID < _entry.m_procID);
-    }
-
-    static bool sortByPaxTypeString(const void* p1, const void* p2)
-    {
-        CString strPax1;
-        CString strPax2;
-        ((CMobileElemConstraint*)((AircraftEntryProcsEntry*)p1)->getConstraint())->screenPrint(strPax1);
-        ((CMobileElemConstraint*)((AircraftEntryProcsEntry*)p2)->getConstraint())->screenPrint(strPax2);
-        return strPax1 < strPax2;
-    }
+    AircraftEntryProcsEntry& operator=(const AircraftEntryProcsEntry& other);
+    bool operator==(const AircraftEntryProcsEntry& other)const;
+    bool operator<(const AircraftEntryProcsEntry& other) const;
+    static bool sortEntry(const void* p1, const void* p2);
 };
 
 class INPUTS_TRANSFER ACEntryTimeDistDatabase : public CMobileElemConstraintDatabase
@@ -86,7 +74,7 @@ public:
     bool DeleteEntry(AircraftEntryProcsEntry* pEntry);
     std::vector<AircraftEntryProcsEntry*> FindEntryByProcID(const ProcessorID& procID);
     int getEntryCountByProcID(const ProcessorID& procID);
-    const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const);
+    const ProbabilityDistribution* FindProbDist(const ProcessorID& procID, const CMobileElemConstraint& p_const, const ElapsedTime& curTime);
     void initFromMobElemConstDatabase(const CMobileElemConstraintDatabase& meDatabase, InputTerminal* _pInTerm);
 };
 

@@ -3460,6 +3460,8 @@
 #define IDC_STATIC12                    2450
 #define IDC_TREE_ENTRYPROC              2451
 #define IDC_STATIC_ENTRYPROC            2452
+#define IDC_STATIC_PAXLIST              2453
+#define IDC_STATIC_PASSENGER            2454
 #define IDC_CHECK_ARRTODEP              2546
 #define IDC_EDIT_CNST1                  2547
 #define IDC_BUTTON_CNST1                2548
@@ -5601,6 +5603,7 @@
 #define ID_ALTOBJECTNUMBER_DEFINENUMBER 61651
 #define IDS_TVNN_ACENTRYPROCS           61651
 #define ID_ALTOBJECTWIDTH_DEFINEWIDTH   61652
+#define IDS_TVNN_TERMINALSERVICETIME    61652
 #define ID_ALTOBJECTANGLE_DEFINEANGLE   61653
 #define ID_SELOBJET_GROUPBOX            65535
 #define ID_SELOBJECT_GROUPBOX           65535
@@ -5612,7 +5615,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        1121
 #define _APS_NEXT_COMMAND_VALUE         35350
-#define _APS_NEXT_CONTROL_VALUE         2453
+#define _APS_NEXT_CONTROL_VALUE         2454
 #define _APS_NEXT_SYMED_VALUE           491
 #endif
 #endif

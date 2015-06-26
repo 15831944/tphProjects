@@ -20,7 +20,7 @@ IMPLEMENT_DYNAMIC(CAircraftEntryProcessorDlg, CDialog)
     CAircraftEntryProcessorDlg::CAircraftEntryProcessorDlg(InputTerminal* _pInTerm, CWnd* pParent)
     : CDialog(CAircraftEntryProcessorDlg::IDD, pParent)
     , m_pInTerm(_pInTerm)
-    , m_pBCPaxData(NULL)
+    , m_pACEntryData(NULL)
     , m_oldCx(0)
     , m_oldCy(0)
     , m_bDragging(false)
@@ -78,14 +78,14 @@ BOOL CAircraftEntryProcessorDlg::OnInitDialog()
 
     GetDlgItem(IDC_BTN_SAVE)->EnableWindow(FALSE);
 
-    m_pBCPaxData = m_pInTerm->m_pACEntryData;
+    m_pACEntryData = m_pInTerm->m_pACEntryData;
     m_vIncType.push_back(BridgeConnectorProc);
     LoadProcTree();
 
     CRect rect;
     m_paxList.GetWindowRect(rect);
     ScreenToClient(rect);
-    m_toolbarPaxType.SetWindowPos(NULL,rect.left,rect.top-26,rect.Width(),26,NULL);
+    m_toolbarPaxType.SetWindowPos(NULL, rect.left+1, rect.top-26, rect.Width()-2, 26, NULL);
     DisableAllToolBarButtons();
 
     DWORD dwStyle = m_paxList.GetExtendedStyle();
@@ -112,7 +112,7 @@ void CAircraftEntryProcessorDlg::LoadProcTree()
     CString strAll = _T("ALL PROCESSORS");
     id.setID(strAll);
     m_vProcs.push_back(id);
-    ACEntryTimeDistDatabase* pEntryTimeDB = m_pBCPaxData->getEntryTimeDB();
+    ACEntryTimeDistDatabase* pEntryTimeDB = m_pACEntryData->getEntryTimeDB();
     std::vector<AircraftEntryProcsEntry*> vData = pEntryTimeDB->FindEntryByProcID(id);
     if(!vData.empty())
     {
@@ -276,6 +276,8 @@ void CAircraftEntryProcessorDlg::OnSize(UINT nType, int cx, int cy)
     LayoutControl(&m_paxList, TopLeft,  BottomRight, cx, cy);
     LayoutControl(&m_toolbarPaxType, TopLeft,  TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_STATIC_ENTRYPROC), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_PASSENGER), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_PAXLIST), TopLeft,  BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_SAVE), BottomRight,  BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDOK), BottomRight,  BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDCANCEL), BottomRight,  BottomRight, cx, cy);
@@ -360,7 +362,7 @@ void CAircraftEntryProcessorDlg::InitPaxTypeListHeader()
     lvc.mask = LVCF_WIDTH | LVCF_TEXT;
     // column 0
     lvc.fmt = LVCFMT_NOEDIT;
-    lvc.cx = 180;
+    lvc.cx = 160;
     lvc.pszText = _T("Passenger Type");
     m_paxList.InsertColumn(0, &lvc);
 
@@ -375,9 +377,21 @@ void CAircraftEntryProcessorDlg::InitPaxTypeListHeader()
         CProbDistEntry* pPBEntry = _g_GetActiveProbMan(m_pInTerm)->getItem(m);
         strList.AddTail(pPBEntry->m_csName);
     }
-    lvc.cx = 320;
+    lvc.cx = 200;
     lvc.pszText = _T("Probability Distribution(SECONDS)");
     m_paxList.InsertColumn(1, &lvc);
+
+    // column 2
+    lvc.fmt = LVCFMT_DATETIME;
+    lvc.cx = 80;
+    lvc.pszText = _T("Begin Time");
+    m_paxList.InsertColumn(2, &lvc);
+
+    // column 3
+    lvc.fmt = LVCFMT_DATETIME;
+    lvc.cx = 80;
+    lvc.pszText = _T("End Time");
+    m_paxList.InsertColumn(3, &lvc);
 }
 
 BOOL CAircraftEntryProcessorDlg::OnToolTipText(UINT id, NMHDR *pNMHDR, LRESULT *pResult)
@@ -481,60 +495,25 @@ void CAircraftEntryProcessorDlg::OnSelChangedPaxList(NMHDR *pNMHDR, LRESULT *pRe
 
 void CAircraftEntryProcessorDlg::OnToolbarButtonAdd()
 {
-    while(true)
+    CPassengerTypeDialog dlg(m_pParentWnd);
+    if(dlg.DoModal() == IDOK)
     {
-        CPassengerTypeDialog dlg(m_pParentWnd);
-        if(dlg.DoModal() == IDOK)
-        {
-            HTREEITEM hItem = m_procTree.GetSelectedItem();
-            int iItem = (int)m_procTree.GetItemData(hItem);
-            ProcessorID id = m_vProcs.at(iItem);
-            std::vector<AircraftEntryProcsEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
-            size_t nCount = vEntry.size();
-            bool bFound = false;
-            for(size_t i=0; i<nCount; i++)
-            {
-                CMobileElemConstraint* pConst = (CMobileElemConstraint*)vEntry[i]->getConstraint();
-                if(*pConst == dlg.GetMobileSelection())
-                {
-                    bFound = true;
-                    break;
-                }
-            }
-            if(bFound)
-            {
-                CString strMsg, strTemp;
-                dlg.GetMobileSelection().screenPrint(strTemp);
-                strMsg.Format(_T("Pax type \"%s\" already exists."), strTemp);
-                MessageBox(strMsg);
-                continue;
-            }
-            else
-            {
-                CMobileElemConstraint* pNewConst = new CMobileElemConstraint(dlg.GetMobileSelection());
-                pNewConst->SetInputTerminal(m_pInTerm);
-                ProbabilityDistribution* pNewProb = ProbabilityDistribution::CopyProbDistribution(&u2_10);
-
-
-                AircraftEntryProcsEntry* pNewEntry = new AircraftEntryProcsEntry();
-                pNewEntry->initialize(pNewConst, pNewProb, id);
-                m_pBCPaxData->getEntryTimeDB()->addEntry(pNewEntry);
-
-                COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hItem);
-                pCni->clrItem = SELECTED_COLOR;
-                pCni->lfontItem.lfWeight = 700;
-                CRect recItem;
-                m_procTree.GetItemRect(hItem, recItem, FALSE);
-                m_procTree.InvalidateRect(&recItem);
-                ReloadPaxTypeList(hItem);
-                GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
-                break;
-            }
-        }
-        else
-        {
-            break;
-        }
+        HTREEITEM hItem = m_procTree.GetSelectedItem();
+        ProcessorID id = m_vProcs.at((int)m_procTree.GetItemData(hItem));
+        CMobileElemConstraint* pNewConst = new CMobileElemConstraint(dlg.GetMobileSelection());
+        pNewConst->SetInputTerminal(m_pInTerm);
+        ProbabilityDistribution* pNewProb = ProbabilityDistribution::CopyProbDistribution(&u2_10);
+        AircraftEntryProcsEntry* pNewEntry = new AircraftEntryProcsEntry();
+        pNewEntry->initialize(pNewConst, pNewProb, id, ElapsedTime(0L), ElapsedTime(WholeDay-60L));
+        m_pACEntryData->getEntryTimeDB()->addEntry(pNewEntry);
+        COOLTREENODEINFO* pCni = m_procTree.GetItemNodeInfo(hItem);
+        pCni->clrItem = SELECTED_COLOR;
+        pCni->lfontItem.lfWeight = 700;
+        CRect recItem;
+        m_procTree.GetItemRect(hItem, recItem, FALSE);
+        m_procTree.InvalidateRect(&recItem);
+        ReloadPaxTypeList(hItem);
+        GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
     }
 }
 
@@ -543,20 +522,34 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonDel()
     POSITION pos = m_paxList.GetFirstSelectedItemPosition();
     ASSERT(pos > 0);
     AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData((int)(pos-1));
+    if(pEntry == NULL)
+        return;
+
     CMobileElemConstraint* pConst = (CMobileElemConstraint*)pEntry->getConstraint();
     CString strMsg, strTem;
     pConst->screenPrint(strTem);
     strMsg.Format(_T("Delete pax type \"%s\"?"), strTem);
-    if(MessageBox(strMsg, NULL, MB_YESNO) == IDYES)
+    //if(MessageBox(strMsg, NULL, MB_YESNO) == IDYES)
     {
-        m_pBCPaxData->getEntryTimeDB()->DeleteEntry(pEntry);
+        m_pACEntryData->getEntryTimeDB()->DeleteEntry(pEntry);
         m_paxList.DeleteItem((int)(pos-1));
+        int nItemCount = m_paxList.GetItemCount();
+        if(nItemCount >= (int)pos)
+        {
+            m_paxList.SetItemState((int)pos-1,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+            m_paxList.SetFocus();
+        }
+        else if(nItemCount > 0)
+        {
+            m_paxList.SetItemState(nItemCount-1,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+            m_paxList.SetFocus();
+        }
 
         HTREEITEM hSelItem = m_procTree.GetSelectedItem();
         ASSERT(hSelItem != NULL);
         int iProcID = (int)m_procTree.GetItemData(hSelItem);
         ProcessorID id = m_vProcs.at(iProcID);
-        if(m_pBCPaxData->getEntryTimeDB()->getEntryCountByProcID(id) == 0)
+        if(m_pACEntryData->getEntryTimeDB()->getEntryCountByProcID(id) == 0)
         {
             ProcessorID idDefault;
             idDefault.init();
@@ -564,8 +557,10 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonDel()
             {
                 AircraftEntryProcsEntry* pEntry = new AircraftEntryProcsEntry();
                 pEntry->useDefaultValue(m_pInTerm);
-                m_pBCPaxData->getEntryTimeDB()->addEntry(pEntry);
+                m_pACEntryData->getEntryTimeDB()->addEntry(pEntry);
                 ReloadPaxTypeList(hSelItem);
+                m_paxList.SetItemState(0,LVIS_SELECTED|LVIS_FOCUSED,LVIS_SELECTED|LVIS_FOCUSED);
+                m_paxList.SetFocus();
             }
             else
             {
@@ -584,7 +579,7 @@ void CAircraftEntryProcessorDlg::OnToolbarButtonDel()
 
 void CAircraftEntryProcessorDlg::OnSave()
 {
-    m_pBCPaxData->saveDataSet(GetProjPath(), false);
+    m_pACEntryData->saveDataSet(GetProjPath(), false);
     GetDlgItem(IDC_BTN_SAVE)->EnableWindow(FALSE);
 }
 
@@ -613,6 +608,11 @@ void CAircraftEntryProcessorDlg::OnMouseMove(UINT nFlags, CPoint point)
     }
     else
     {
+        CRect recPaxStatic, recPaxListStatic;
+        GetDlgItem(IDC_STATIC_PASSENGER)->GetWindowRect(&recPaxStatic);
+        GetDlgItem(IDC_STATIC_PAXLIST)->GetWindowRect(&recPaxListStatic);
+        ScreenToClient(recPaxStatic);
+        ScreenToClient(recPaxListStatic);
         HCURSOR hCur = LoadCursor(NULL , IDC_SIZEWE);
         ::SetCursor(hCur);
         recList.left = point.x+(recList.left-recTree.right)-3;
@@ -621,7 +621,9 @@ void CAircraftEntryProcessorDlg::OnMouseMove(UINT nFlags, CPoint point)
         {
             m_procTree.MoveWindow(recTree);
             m_paxList.MoveWindow(recList);
-            m_toolbarPaxType.MoveWindow(recList.left,recList.top-26,recList.Width(),26);
+            GetDlgItem(IDC_STATIC_PASSENGER)->MoveWindow(recList.left, recPaxStatic.top, recPaxStatic.Width(), recPaxStatic.Height());
+            GetDlgItem(IDC_STATIC_PAXLIST)->MoveWindow(recList.left, recPaxListStatic.top, recList.Width(), recPaxListStatic.Height());
+            m_toolbarPaxType.MoveWindow(recList.left+1, recList.top-26, recList.Width()-2, 26);
         }
     }
     CDialog::OnMouseMove(nFlags, point);
@@ -675,7 +677,7 @@ void CAircraftEntryProcessorDlg::OnCancel()
     if(GetDlgItem(IDC_BTN_SAVE)->IsWindowEnabled())
     {
         AfxGetApp()->BeginWaitCursor();
-        m_pBCPaxData->loadDataSet(GetProjPath());
+        m_pACEntryData->loadDataSet(GetProjPath());
         AfxGetApp()->EndWaitCursor();
     }
     CDialog::OnCancel();
@@ -686,18 +688,40 @@ void CAircraftEntryProcessorDlg::ReloadPaxTypeList(HTREEITEM hSelItem)
     m_paxList.DeleteAllItems();
     int iProcID = (int)m_procTree.GetItemData(hSelItem);
     ProcessorID id = m_vProcs.at(iProcID);
-    std::vector<AircraftEntryProcsEntry*> vEntry = m_pBCPaxData->getEntryTimeDB()->FindEntryByProcID(id);
-    std::sort(vEntry.begin(), vEntry.end(), AircraftEntryProcsEntry::sortByPaxTypeString);
+    std::vector<AircraftEntryProcsEntry*> vEntry = m_pACEntryData->getEntryTimeDB()->FindEntryByProcID(id);
+    HTREEITEM hParentItem = m_procTree.GetParentItem(hSelItem);
+
+    bool isOwnData = true;
+    while(vEntry.empty() && hParentItem!=NULL)
+    {
+        iProcID = (int)m_procTree.GetItemData(hParentItem);
+        id = m_vProcs.at(iProcID);
+        vEntry = m_pACEntryData->getEntryTimeDB()->FindEntryByProcID(id);
+        isOwnData = false;
+        hParentItem = m_procTree.GetParentItem(hParentItem);
+    }
+
+    std::sort(vEntry.begin(), vEntry.end(), AircraftEntryProcsEntry::sortEntry);
     size_t nCount = vEntry.size();
     for(size_t i=0; i<nCount; i++)
     {
         CString strItem;
-        CMobileElemConstraint* pConst = (CMobileElemConstraint*)vEntry[i]->getConstraint();
+        AircraftEntryProcsEntry* pEntry = vEntry[i];
+        CMobileElemConstraint* pConst = (CMobileElemConstraint*)pEntry->getConstraint();
         pConst->screenPrint(strItem);
         m_paxList.InsertItem(i, strItem);
-        m_paxList.SetItemData(i, (DWORD)vEntry[i]);
-        ProbabilityDistribution* pProb = vEntry[i]->getValue();
+        if(isOwnData)
+        {
+            m_paxList.SetItemData(i, (DWORD)pEntry);
+        }
+        ProbabilityDistribution* pProb = pEntry->getValue();
         m_paxList.SetItemText(i, 1, pProb->screenPrint());
+        pEntry->GetBeginTime().printTime(strItem.GetBuffer(32));
+        strItem.ReleaseBuffer();
+        m_paxList.SetItemText(i, 2, strItem);
+        pEntry->GetEndTime().printTime(strItem.GetBuffer(32));
+        strItem.ReleaseBuffer();
+        m_paxList.SetItemText(i, 3, strItem);
     }
 }
 
@@ -711,6 +735,11 @@ LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, L
         int iSubItem = pDispinfo->item.iSubItem;
         ASSERT(nCBSel>=0 && nCBSel<=(int)_g_GetActiveProbMan(m_pInTerm)->getCount());
         AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(iItem);
+        if(pEntry == NULL)
+        {
+            ReloadPaxTypeList(m_procTree.GetSelectedItem());
+            return CDialog::DefWindowProc(message, wParam, lParam);
+        }
         CProbDistEntry* pPBEntry = NULL;
         if(nCBSel == 0) // NEW PROBABILITY DISTRIBUTION
         {
@@ -746,6 +775,68 @@ LRESULT CAircraftEntryProcessorDlg::DefWindowProc(UINT message, WPARAM wParam, L
             pEntry->setValue(ProbabilityDistribution::CopyProbDistribution(pPBEntry->m_pProbDist));
             CString strItem = pEntry->getValue()->screenPrint();
             m_paxList.SetItemText(iItem, iSubItem, strItem);
+            GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+        }
+    }
+    else if(message == WM_INPLACE_DATETIME)
+    {
+        static LV_DISPINFO* pDispinfo = NULL;
+        int iFlag = (int)wParam;
+        if(iFlag == 1)
+        {
+            ASSERT(pDispinfo == NULL);
+            pDispinfo = (LV_DISPINFO*)lParam;
+        }
+        else if(iFlag == 2)
+        {
+            ASSERT(pDispinfo != NULL);
+            COleDateTime *pOleTime = (COleDateTime *)lParam;
+            int iItem = pDispinfo->item.iItem;
+            int iSubItem = pDispinfo->item.iSubItem;
+            pDispinfo = NULL;
+
+            ElapsedTime tempTime;
+            tempTime.set(*pOleTime);
+
+            AircraftEntryProcsEntry* pEntry = (AircraftEntryProcsEntry*)m_paxList.GetItemData(iItem);
+            if(iSubItem == 2) // edit begin time
+            {
+                if(tempTime > pEntry->GetEndTime())
+                {
+                    MessageBox("Begin Time can't be more than End Time", NULL,MB_OK|MB_ICONINFORMATION);
+                    pDispinfo = NULL;
+                    return CDialog::DefWindowProc(message, wParam, lParam);;
+                }
+                else
+                {
+                    pEntry->SetBeginTime(tempTime);
+                    ReloadPaxTypeList(m_procTree.GetSelectedItem());
+                    GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+                }
+            }
+            else if(iSubItem == 3) // edit end time
+            {
+                if(tempTime < pEntry->GetBeginTime())
+                {
+                    MessageBox("End Time can't be less than Begin Time", NULL,MB_OK|MB_ICONINFORMATION);
+                    pDispinfo = NULL;
+                    return CDialog::DefWindowProc(message, wParam, lParam);
+                }
+                else
+                {
+                    pEntry->SetEndTime(tempTime);
+                    ReloadPaxTypeList(m_procTree.GetSelectedItem());
+                    GetDlgItem(IDC_BTN_SAVE)->EnableWindow(TRUE);
+                }
+            }
+            else
+            {
+                ASSERT(0);
+            }
+        }
+        else
+        {
+            ASSERT(0);
         }
     }
     return CDialog::DefWindowProc(message, wParam, lParam);
