@@ -58,12 +58,7 @@ BOOL CAirsideBaseReport::ExportListCtrlToCvsFile(ArctermFile& _file,CXListCtrl& 
 	for (int i = 0 ;i < size ;i++)
 	{
 		cxListCtrl.GetColumn(i,&column) ;
-		CString strColText(column.pszText);
-		strColText.Trim();
-		if(strColText.GetLength() == 0)
-			strColText = _T("*");
-
-        _file.writeField(strColText) ;
+        _file.writeField(column.pszText) ;
 	}
 	m_ListCtrl = &cxListCtrl ;
 	_file.writeLine() ;

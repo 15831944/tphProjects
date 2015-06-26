@@ -265,22 +265,6 @@ void CAirsideRepControlView::OnSaveReport()
 	else
 		return ;
 	
-	//export multiple run file
-	std::vector<int> vReportRun;
-	if (m_pParameter->GetReportRuns(vReportRun) == true && m_pParameter->GetEnableMultiRun())
-	{
-		ArctermFile  _file ;
-		if(!_file.openFile(sZipFileName,WRITE) )
-		{
-			MessageBox(_T("Create File error"),_T("Error"),MB_OK) ;
-			return;
-		}
-		GetDocument()->GetARCReportManager().GetAirsideReportManager()->WriteMultipleRunReport(_file);
-		_file.endFile() ;
-		MessageBox(_T("Export Report Successfully"),NULL,MB_OK) ;
-		return ;
-	}
-
 	//get report type
 	CTermPlanDoc *pTermPlanDoc = GetDocument();	
 	ASSERT(pTermPlanDoc);
@@ -438,23 +422,6 @@ void CAirsideRepControlView::OnLoadReport()
 		return ;
 
 
-	//load multiple run report file 
-	std::vector<int> vReportRun;
-	if (m_pParameter->GetReportRuns(vReportRun) == true && m_pParameter->GetEnableMultiRun())
-	{
-		ArctermFile  _file ;
-		if(!_file.openFile(sZipFileName,READ) )
-		{
-			_file.endFile();
-			MessageBox(_T("Read File error"),_T("Error"),MB_OK) ;
-			return;
-		}
-		GetDocument()->GetARCReportManager().GetAirsideReportManager()->ReadMultipleRunReport(_file);
-		GetDocument()->UpdateAllViews(this,AIRSIDEREPORT_SHOWREPORT,NULL);
-		ResetAllContent() ;
-		return ;
-	}
-
 	CTermPlanDoc *pTermPlanDoc = GetDocument();	
 	ASSERT(pTermPlanDoc);
 	reportType rpType = pTermPlanDoc->GetARCReportManager().GetAirsideReportManager()->GetReportType();
@@ -487,7 +454,6 @@ void CAirsideRepControlView::OnLoadReport()
 	if(!GetDocument()->GetARCReportManager().GetAirsideReportManager()->ImportReportFromFile(_file,errormsg,nProjID))
 	{
 		MessageBox(errormsg,_T("Error"),MB_OK) ;
-		_file.endFile();
 		return  ;
 	}else
 	{
@@ -793,8 +759,8 @@ void CAirsideRepControlView::EnableControl()
 
 			//m_staticInterval.EnableWindow( FALSE );
 			//m_dtctrlInterval.EnableWindow(FALSE);
-			m_staticInterval.EnableWindow( FALSE );
-			m_dtctrlInterval.EnableWindow(FALSE);
+			m_staticInterval.EnableWindow( TRUE );
+			m_dtctrlInterval.EnableWindow(TRUE);
 			m_staticThreshold.EnableWindow(TRUE);
 			m_spinThreshold.EnableWindow(TRUE);
 			m_chkThreshold.EnableWindow(TRUE);
@@ -1048,30 +1014,6 @@ void CAirsideRepControlView::InitializeTree()
 
 			HTREEITEM hItemTo=m_treePaxType.InsertItem("To", cni, FALSE, FALSE, hItemFromTo);
 			m_treePaxType.SetItemData(hItemTo,(DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_ToRoot));
-
-            cni.nt = NT_CHECKBOX;
-            HTREEITEM hRunsRoot = m_treePaxType.InsertItem("Multi Runs", cni, m_pParameter->GetEnableMultiRun(), FALSE);
-            m_treePaxType.SetItemData(hRunsRoot, (DWORD_PTR)new repControlTreeNodeData(repControlTreeNodeType_MultiRunRoot));
-
-            std::vector<int> vMultiRun;
-            m_pParameter->GetReportRuns(vMultiRun);
-            CSimAndReportManager *pSimAndReportManager = ((CTermPlanDoc *)GetDocument())->GetTerminal().GetSimReportManager();
-            int nSimCount = pSimAndReportManager->getSubSimResultCout();
-            for (int nSim =0; nSim < nSimCount; ++nSim )
-            {
-                CString strSimName;
-                strSimName.Format(_T("RUN %d"),nSim+1);
-                HTREEITEM hSubSimItem = m_treePaxType.InsertItem(strSimName, cni, FALSE, FALSE, hRunsRoot);
-                repControlTreeNodeData* pNodeData = new repControlTreeNodeData(repControlTreeNodeType_Runs);
-                pNodeData->m_Data = (DWORD)nSim;
-                m_treePaxType.SetItemData(hSubSimItem, (DWORD)pNodeData);
-
-                if(std::find(vMultiRun.begin(),vMultiRun.end(), nSim) != vMultiRun.end())
-                {
-                    m_treePaxType.SetCheckStatus(hSubSimItem,TRUE);
-                }
-            }
-            m_treePaxType.Expand(hRunsRoot, TVE_EXPAND);
 		}
 		break;
 	case Airside_VehicleOperation:
@@ -3438,8 +3380,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
     else if(message == UM_CEW_STATUS_CHANGE)
     {
         if(GetReportType() == Airside_FlightDelay ||
-            GetReportType() == Airside_RunwayOperaitons ||
-            GetReportType() == Airside_AircraftOperational)
+            GetReportType() == Airside_RunwayOperaitons)
         {
             HTREEITEM hSelItem = (HTREEITEM)wParam;
             repControlTreeNodeData* pNodeData = (repControlTreeNodeData*)m_treePaxType.GetItemData(hSelItem);
@@ -3460,8 +3401,7 @@ LRESULT CAirsideRepControlView::DefWindowProc(UINT message, WPARAM wParam, LPARA
             }
         }
         else if(GetReportType() == Airside_StandOperations ||
-                GetReportType() == Airside_TakeoffProcess ||
-                GetReportType() == Airside_RunwayDelay)
+                GetReportType() == Airside_TakeoffProcess)
         {
             if(GetTreePerformer())
                 GetTreePerformer()->DefWindowProc(message,wParam,lParam);

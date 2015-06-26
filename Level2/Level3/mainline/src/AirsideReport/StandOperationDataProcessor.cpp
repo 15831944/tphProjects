@@ -143,22 +143,9 @@ void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOpe
 		if (i >0)
 			pPreLog = vStandOpLogs.at(i-1);
 
-		if (pData == NULL)//the time that the flight has no enter stand
+		if (pData == NULL)
 		{
-
-			//calculate the delay time if the destination stand is occupied
-			if (pLog->m_eOpType == AirsideFlightStandOperationLog::EndDelay && pLog->m_eDelayReason == AirsideFlightStandOperationLog::StandOccupied)
-			{
-				if (pPreLog && pPreLog->m_eOpType == AirsideFlightStandOperationLog::StandDelay && pPreLog->m_eDelayReason == AirsideFlightStandOperationLog::StandOccupied)
-					lStandOccupiedDelay = pLog->time - pPreLog->time;
-				else
-				{
-					ASSERT(0);		//error
-				}
-			}
-
-			//create new log, if has a stand operation
-			if (pLog->m_eOpType == AirsideFlightStandOperationLog::EnteringStand) // enter stand
+			if (pLog->m_eOpType == AirsideFlightStandOperationLog::EnteringStand)
 			{
 				pData = new CStandOperationReportData;
 				pData->m_sACType = fltdesc.sAcType.c_str();
@@ -206,6 +193,14 @@ void StandOperationDataProcessor::ProcessLogs( std::vector<AirsideFlightStandOpe
 
 				pData->m_lDelayEnter = lStandOccupiedDelay;
 				pData->m_lDueStandOccupied = lStandOccupiedDelay;
+			}
+
+			if (pLog->m_eOpType == AirsideFlightStandOperationLog::EndDelay && pLog->m_eDelayReason == AirsideFlightStandOperationLog::StandOccupied)
+			{
+				if (pPreLog && pPreLog->m_eOpType == AirsideFlightStandOperationLog::StandDelay && pPreLog->m_eDelayReason == AirsideFlightStandOperationLog::StandOccupied)
+					lStandOccupiedDelay = pLog->time - pPreLog->time;
+				else		
+					ASSERT(0);		//error
 			}
 		}
 		else

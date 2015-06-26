@@ -34,7 +34,6 @@ public:
 	void SetReportPath(const CString& strReportPath);
 	void SetTerminalAndProjectPath(Terminal* pTerminal,const CString& _csProjPath);
 
-    const CAirsideMultipleRunReport& GetMultiRunReport() { return m_multiRunReport; }
 protected:
 	CParameters* m_pParamters;	//report parameters 
 	CAirsideBaseReport* m_pAirsideReport;			//report result
@@ -50,6 +49,7 @@ protected:
 	Terminal*				m_pTerminal;
 	CString					m_csProjPath;
 	CAirsideMultipleRunReport m_multiRunReport;
+
 	CAirsideReportObjectIntersecNodeIDNameMap m_projObjectData;
 	//operation
 public:
@@ -95,9 +95,6 @@ public:
 	BOOL ImportParaFromFile(ArctermFile& _file);
 	BOOL ExportParaToFile(ArctermFile& _file);
 	BOOL GenerateCvsFileFormList(ArctermFile& _file,CXListCtrl& cxListCtrl,CString& ErrorMsg);
-
-	void WriteMultipleRunReport(ArctermFile& _file);
-	void ReadMultipleRunReport(ArctermFile& _file);
 public:
 	void SetGlobalUnit(CARCUnitManager* _UnitManger) ;
 };

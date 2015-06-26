@@ -62,9 +62,7 @@ public:
 
 
     virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
-	virtual BOOL WriteReportData( ArctermFile& _file );
-	virtual BOOL ReadReportData( ArctermFile& _file );
-	virtual CString GetReportFileName()const;
+
 
 private:
 	void BuildDetailStandOperationOccupancy(CParameters* pParameter,MapMultiRunStandOperationData standOperationData);
@@ -112,13 +110,6 @@ private:
 
 	int GetIntervalCount(long iStart, long iEnd, mapStandResult mapData,long iIgnore = 0)const;
 	void ClearData();
-
-	BOOL WriteDetailMap(MultiRunDetailMap mapDetailData, ArctermFile& _file );
-	BOOL ReadDetailMap(MultiRunDetailMap& mapDetailData,ArctermFile& _file);
-
-	BOOL WriteSummaryMap(MultiRunSummaryMap mapSummaryData,ArctermFile& _file);
-	BOOL ReadSummayMap(MultiRunSummaryMap& mapSummaryData,ArctermFile& _file);
-
 private:
 	MultiRunDetailMap m_standOccupMap;
 	MultiRunDetailMap m_standidlemap;

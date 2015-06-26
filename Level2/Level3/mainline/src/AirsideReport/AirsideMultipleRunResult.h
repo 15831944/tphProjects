@@ -7,8 +7,6 @@ class CARC3DChart;
 class CXListCtrl;
 class CParameters;
 class CSortableHeaderCtrl;
-class CAirsideBaseReport;
-class ArctermFile;
 
 struct MultipleRunReportData
 {
@@ -23,11 +21,11 @@ struct MultipleRunReportData
 	long m_iEnd;
 	long m_iData;
 };
-
+typedef std::map<CString,CString> DelayResultPath;
 typedef std::map<CString,std::vector<long>> mapLoadResult;
 typedef std::map<CString,std::vector<MultipleRunReportData>> MultiRunDetailMap;
 typedef std::map<CString, CSummaryData> MultiRunSummaryMap;
-typedef std::map<CString,CAirsideBaseReport*> mapSimReport;
+
 class AIRSIDEREPORT_API CAirsideMultipleRunResult
 {
 public:
@@ -39,13 +37,9 @@ public:
 	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter,int iType = 0) = 0;
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter,int iType = 0) = 0;
 
-	void AddSimReport(const CString& strSimResult, CAirsideBaseReport* pReport);
-	void ClearSimReport();
+	void AddSimResultPath(const CString& strSimResult, const CString& strSimPath);
+	void ClearResultPath();
 
-	virtual BOOL WriteReportData( ArctermFile& _file ) = 0;
-	virtual BOOL ReadReportData( ArctermFile& _file ) = 0;
-
-	virtual CString GetReportFileName()const = 0;
 protected:
 	long GetMapMinValue(mapLoadResult mapData);
 	long GetMapMaxValue(mapLoadResult mapData);
@@ -55,6 +49,6 @@ protected:
 	int GetIntervalCount(long iStart, long iEnd, std::vector<long> vData,long iIgnore = 0)const;
 	long ClacTimeRange(ElapsedTime& eMaxTime,ElapsedTime& eMinValue,ElapsedTime& eInterval);
 protected:
-	mapSimReport m_mapSimReport;
+	DelayResultPath m_mapResultPath;
 };
 

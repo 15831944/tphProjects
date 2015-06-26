@@ -66,8 +66,6 @@ CAirsideReportManager::CAirsideReportManager()
 	m_vMultipleRun.push_back(Airside_StandOperations);
 	m_vMultipleRun.push_back(Airside_TakeoffProcess);
     m_vMultipleRun.push_back(Airside_RunwayOperaitons);
-	m_vMultipleRun.push_back(Airside_AircraftOperational);
-    m_vMultipleRun.push_back(Airside_RunwayDelay);
 }
 
 CAirsideReportManager::~CAirsideReportManager()
@@ -759,15 +757,5 @@ bool CAirsideReportManager::AirsideMultipleRunReport( ) const
 		return true;
 	
 	return false;
-}
-
-void CAirsideReportManager::WriteMultipleRunReport( ArctermFile& _file )
-{
-	m_multiRunReport.WriteReportData(m_emReportType,_file);
-}
-
-void CAirsideReportManager::ReadMultipleRunReport( ArctermFile& _file )
-{
-	m_multiRunReport.ReadReportData(m_emReportType,_file);
 }
 

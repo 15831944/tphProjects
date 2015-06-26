@@ -49,8 +49,6 @@ public:
 	void LoadData(const CString& _csDescFileName,const CString& _csEventFileName);
 	void ClearData();
 
-    const std::vector<RunwayDelayItem*>& GetDataItemList() { return m_vDataItemList; }
-
 	std::vector<RunwayDelayItem*> m_vDataItemList;
 
 protected:

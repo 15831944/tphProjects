@@ -203,11 +203,11 @@ long CDetailFlightScheduleDelayResult::GetScheduleDelayTime(CAirsideFlightDelayR
 {
 	if (item.bArrOrDeplDelay)
 	{
-		return max(item.smtaTime - item.planSt,0l);
+		return max(item.actEndTime - item.planSt,0l);
 	}
 	else
 	{
-		return max(item.smtdTime - item.planSt,0l);
+		return max(item.actStartTime - item.planSt,0l);
 	}
 }
 

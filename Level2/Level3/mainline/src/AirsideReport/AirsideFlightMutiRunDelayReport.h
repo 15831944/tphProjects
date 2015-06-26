@@ -36,9 +36,6 @@ public:
 	virtual void InitListHead(CXListCtrl& cxListCtrl,CParameters * parameter,  int iType = 0,CSortableHeaderCtrl* piSHC=NULL);
 	virtual void FillListContent(CXListCtrl& cxListCtrl, CParameters * parameter, int iType = 0);
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter, int iType = 0);
-	virtual BOOL WriteReportData( ArctermFile& _file );
-	virtual BOOL ReadReportData( ArctermFile& _file );
-	virtual CString GetReportFileName()const;
 private:
 	void BuildDetailComponentSegmentData(DelayComponentAndSegmentMap& mapDetailData,mapDelayResultData& componentSegmentMapData,CParameters* pParameter);
 	void BulidDetailMultiRunDelayCount(MultiRunDetailMap& mapDetailData,mapLoadResult mapData,long iInterval,long iIgnore = 0);
@@ -93,21 +90,6 @@ private:
     void SetSummarySegmentDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter,int iType );
     void SetSummaryScheduleDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter);
     void SetSummaryComponentDelay3DChartString(C2DChartData& c2dGraphData, CParameters *pParameter,int iType );
-
-	BOOL WriteDetailReport(ArctermFile& _file);
-	BOOL LoadDetailReport(ArctermFile& _file);
-	BOOL WriteDetailMap(MultiRunDetailMap mapDetailData, ArctermFile& _file );
-	BOOL WriteDetailComponentAndSegmentMap(DelayComponentAndSegmentMap mapDetailData,ArctermFile& _file);
-	BOOL ReadDetailMap(MultiRunDetailMap& mapDetailData,ArctermFile& _file);
-	BOOL ReadDetailComponentAndSegmentMap(DelayComponentAndSegmentMap& mapDetailData,ArctermFile& _file);
-
-	BOOL WriteSummaryReport(ArctermFile& _file);
-	BOOL LoadSummaryReport(ArctermFile& _file);
-	BOOL WriteSummaryMap(MultiRunSummaryMap mapSummaryData,ArctermFile& _file);
-	BOOL WriteSummaryComponentAndSegmentMap(SummaryCompomentAndSegmentResultMap mapSummaryData,ArctermFile& _file);
-	BOOL ReadSummayMap(MultiRunSummaryMap& mapSummaryData,ArctermFile& _file);
-	BOOL ReadSummaryComponentAndSegment(SummaryCompomentAndSegmentResultMap& mapSummaryData,ArctermFile& _file);
-
 private:
 	MultiRunDetailMap m_totalDelayData;
 	MultiRunDetailMap m_airDelayData;

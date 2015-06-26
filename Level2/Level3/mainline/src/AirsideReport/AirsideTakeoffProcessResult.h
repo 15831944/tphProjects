@@ -24,11 +24,6 @@ public:
 	virtual BOOL ReadReportData(ArctermFile& _file) = 0;
 	virtual void Draw3DChart(CARC3DChart& chartWnd, CParameters *pParameter) = 0;
 
-	const TakeoffDetailDataList& GetResult()
-	{
-		return m_vResult;
-	}
-
 private:
 	//-----------------------------------------------------------------------------------
 	//Summary:

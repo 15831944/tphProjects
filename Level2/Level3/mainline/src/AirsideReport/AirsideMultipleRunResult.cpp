@@ -9,22 +9,17 @@ CAirsideMultipleRunResult::CAirsideMultipleRunResult(void)
 
 CAirsideMultipleRunResult::~CAirsideMultipleRunResult(void)
 {
-	ClearSimReport();
+	ClearResultPath();
 }
 
-void CAirsideMultipleRunResult::AddSimReport( const CString& strSimResult,  CAirsideBaseReport* pReport )
+void CAirsideMultipleRunResult::AddSimResultPath( const CString& strSimResult, const CString& strSimPath )
 {
-	m_mapSimReport[strSimResult] = pReport;
+	m_mapResultPath[strSimResult] = strSimPath;
 }
 
-void CAirsideMultipleRunResult::ClearSimReport()
+void CAirsideMultipleRunResult::ClearResultPath()
 {
-	mapSimReport::iterator iter = m_mapSimReport.begin();
-	for (; iter != m_mapSimReport.end(); ++iter)
-	{
-		delete iter->second;
-	}
-	m_mapSimReport.clear();
+	m_mapResultPath.clear();
 }
 
 long CAirsideMultipleRunResult::GetMapMinValue( mapLoadResult mapData )
