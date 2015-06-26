@@ -133,7 +133,7 @@ class GeneratorPicBinary_Sensis(object):
         del imageSplit[0]
         return '_'.join(imageSplit).replace(".jpg", ".dat")
  
-def main():   
+def main():
     arglen = len(sys.argv)
     if(arglen <= 2):
         pass
