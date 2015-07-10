@@ -178,9 +178,9 @@ class GeneratorPicBinary_Here(object):
         or os.path.isdir(srcSarDir) == False:
             return
         print "compose sar to arrow start."
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        shutil.copytree(srcEjvDir, destDir)
+        #if(os.path.exists(destDir) == True):
+        #    shutil.rmtree(destDir)
+        #shutil.copytree(srcEjvDir, destDir)
         # 从图片元数据中列出所有arrow图的文件全路径。
         arrowPicList = []
         for curDir,dirNames,fileNames in os.walk(destDir):
@@ -210,7 +210,7 @@ class GeneratorPicBinary_Here(object):
         # 遍历arrow图文件，尝试找到对应的sar.svg文件。
         # 判断条件：arrow图文件名和svg文件名中必定都包含了inlinkid，根据两者的inlinkid是否相等判断是否相关联。
         # oFStream = open("c:\\a.txt", "w") # 仅为了check结果。
-		oFStream = open(arrowWithSarFile, 'w') # 用以输出被合并了sar信息的arrow图。
+        oFStream = open(arrowWithSarFile, 'w') # 用以输出被合并了sar信息的arrow图。
         for oneArrowPic in arrowPicList:
             strInlinkInArrowPic = getInlinkIDFromArrowPicPath(oneArrowPic)
             for oneSvgFile in sarSvgList:
@@ -229,7 +229,8 @@ class GeneratorPicBinary_Here(object):
                                 os.system(cmd)
                                 print """composed\n\t%s\nto\n\t%s""" % (oneSarPng, oneArrowPic)
                                 # oFStream.write(oneSarName + '\n') # 仅为了check结果。
-								oFStream.write(os.path.splitext(oneArrowPic)[1]) # 输出被合并了sar信息的arrow图。
+                                picName = os.path.split(oneArrowPic)[1]
+                                oFStream.write(picName[:-6:]+'\n') # 输出被合并了sar信息的arrow图。
                                 
                                 break # 一个sar名字只可能找到一张图片，故找到后即可中断。
                     break # 一个arrow图只可能找到一个sar.svg文件，故找到后即可中断。
@@ -443,21 +444,21 @@ class GeneratorPicBinary_Here_Checker(object):
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
     test_checker = GeneratorPicBinary_Here_Checker()
-    test.composeSarToArrow(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout",
-                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
-                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
-                           r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar",
-                           r"C:\My\20150514_mea_2014Q4_pic\illust\arrow_with_sar.csv")
+#    test.composeSarToArrow(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout",
+#                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
+#                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
+#                           r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar",
+#                           r"C:\My\20150514_mea_2014Q4_pic\illust\all_sar_files_name.csv")
 #    test_checker.composeSarToArrow_check(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA")
     
-#    test.makeEjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar", 
-#                    r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar_dat")
-#    test.makeGjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout", 
-#                    r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout_dat")
-    test.make_sign_as_real_csv(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout", 
-                               r"C:\My\20150514_mea_2014Q4_pic\illust\all_jv.csv",
-                               r"C:\My\20150514_mea_2014Q4_pic\illust\pic\sign",
-                               r"C:\My\20150514_mea_2014Q4_pic\illust\sign_as_real.csv")
+    test.makeEjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar", 
+                    r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar_dat")
+    test.makeGjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout", 
+                    r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout_dat")
+#    test.make_sign_as_real_csv(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout", 
+#                               r"C:\My\20150514_mea_2014Q4_pic\illust\all_jv.csv",
+#                               r"C:\My\20150514_mea_2014Q4_pic\illust\pic\sign",
+#                               r"C:\My\20150514_mea_2014Q4_pic\illust\sign_as_real.csv")
     
     
 
