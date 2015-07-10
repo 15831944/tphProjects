@@ -57,7 +57,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                         , (case when d.gid is null then 0 else d.gid end) as pattern_no
                         , (case when e.gid is null then 0 else e.gid end) as arrow_no
                         , f.data
-                        , case when g.filename is not null then true else false end as is_exist_sar
+                        , is_exist_sar
                     FROM (
                         SELECT 
                             gid,
@@ -73,6 +73,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                             guideclass,
                             patternno,
                             arrowno,
+                            is_exist_sar,
                             "type"
                           FROM spotguide_tbl
                     ) as s
@@ -88,8 +89,6 @@ class rdb_guideinfo_spotguide(ItemBase):
                     on lower(arrowno) = lower(e.image_id)
                     LEFT JOIN temp_point_list as f
                     on lower(arrowno) = lower(f.image_id)
-                    LEFT JOIN mid_all_sar_files as g
-                    on lower(d.image_id) = 'jv_'||lower(substring(g.filename, 4, strpos(g.filename, '.png')-4))
                     where d.gid is not null
                     order by s.gid;
                   """

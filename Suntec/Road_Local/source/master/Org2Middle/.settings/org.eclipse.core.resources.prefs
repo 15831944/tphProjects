@@ -71,6 +71,7 @@ encoding//src/component/nostra/topo_nostra.py=UTF8
 encoding//src/component/ramp_roadtype.py=cp936
 encoding//src/component/rdf/dictionary_rdf.py=UTF8
 encoding//src/component/rdf/guideinfo_building_rdf.py=UTF-8
+encoding//src/component/rdf/guideinfo_signpost_rdf.py=utf8
 encoding//src/component/rdf/guideinfo_singpost_uc_rdf.py=UTF8
 encoding//src/component/rdf/guideinfo_spotguide_rdf.py=cp936
 encoding//src/component/rdf/guideinfo_towardname_rdf.py=cp936

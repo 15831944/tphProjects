@@ -25,19 +25,19 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
 
     def _Do(self):
 #         jcv_file_dir = common.common_func.GetPath('junctionview_dir')
-        jv_country = common.common_func.GetPath('jv_country')
+        jvCountryListStr = common.common_func.GetPath('jv_country')
 #         gjv_file_list = common.common_func.GetPath('gjv_files')
 #         all_jv_file_list = common.common_func.GetPath('all_jv_files')
-        junctionview_data = common.common_func.GetPath('junctionview_data')
+        jcvFileDir = common.common_func.GetPath('junctionview_data')
 #         jcv_file_dir = junctionview_data[:junctionview_data.find('Q114_APAC_2D_') - 1]
 #         print jcv_file_dir, jv_country
         if gjv_file_list:
             self.CreateTable2('rdfpl_gjv_lat_display_org')
-            self.insert_gjv_data(gjv_file_list, jv_country, junctionview_data)
+            self.insert_gjv_data(jcvFileDir, gjv_file_list, jvCountryListStr)
 
         if all_jv_file_list:
             self.CreateTable2('rdfpl_all_jv_lat_display_org')
-            self.insert_all_jv_data(all_jv_file_list, jv_country, junctionview_data)
+            self.insert_all_jv_data(jcvFileDir, all_jv_file_list, jvCountryListStr)
             
         all_sign_as_real_file_name = common.common_func.GetPath('all_sign_as_real_file_name')
         self.CreateTable2('mid_all_sar_files')
@@ -60,19 +60,19 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
         
         return 0
     
-    # ½âÎögjv.csv
-    def insert_gjv_data(self, gjv_file_list, jv_country, gjv_file_dir):
+    # è§£ægjv.csv
+    def insert_gjv_data(self, gjv_file_dir, gjv_file_list, jvCountryListStr):
         jcv_files = gjv_file_list.split(',')
         for jcv_file in jcv_files:
             jcv_path = os.path.join(gjv_file_dir, jcv_file)
             if os.path.isfile(jcv_path):
-                jv_countrys = tuple(jv_country.split(','))
+                jvCountryList = tuple(jvCountryListStr.split(','))
                 recordList = self.analyse_csv(jcv_path)
                 for record in recordList:
-                    #´ËÊı¾İËùÊô¹ú¼Ò²»ÔÚÎÒÃÇËùĞèÒªµÄ¹ú¼ÒÁĞ±íÀï£¬¶ªÆú
-                    if str(record['iso_country_code'].replace('"','')) not in jv_countrys:
+                    #æ­¤æ•°æ®æ‰€å±å›½å®¶ä¸åœ¨æˆ‘ä»¬æ‰€éœ€è¦çš„å›½å®¶åˆ—è¡¨é‡Œï¼Œä¸¢å¼ƒ
+                    if str(record['iso_country_code'].replace('"','')) not in jvCountryList:
                         continue
-                    # gjv¶ÔÓ¦µÄsvgÃû(filenameÁĞ£©Îª¿Õ£¬¶ªÆú
+                    # gjvå¯¹åº”çš„svgå(filenameåˆ—ï¼‰ä¸ºç©ºï¼Œä¸¢å¼ƒ
                     if (not record['filename']):
                         continue
                     
@@ -128,20 +128,21 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                     )
             self.pg.commit2()
 
-    #½âÎö ejv.csv
-    def insert_all_jv_data(self, jcv_file_list, jv_country, jcv_file_dir):
+    #è§£æ ejv.csv
+    def insert_all_jv_data(self, jcv_file_dir, jcv_file_list, jvCountryListStr):
         jcv_files = jcv_file_list.split(',')
         for jcv_file in jcv_files:
             jcv_path = os.path.join(jcv_file_dir, jcv_file)
             if os.path.isfile(jcv_path):
-                jv_countrys = tuple(jv_country.split(','))
+                jvCountryList = tuple(jvCountryListStr.split(','))
                 recordList = self.analyse_csv(jcv_path)
+                recordCount = len(recordList)
                 for record in recordList:
-                    # ´ËÊı¾İËùÊô¹ú¼Ò²»ÔÚÎÒÃÇËùĞèÒªµÄ¹ú¼ÒÁĞ±íÄÚ£¬¶ªÆú
-                    if str(record['iso_country_code'].replace('"','')) not in jv_countrys:
-                        continue
-                    # gjv¶ÔÓ¦µÄsvgÃû(filenameÁĞ£©ºÍejv¶ÔÓ¦µÄsvgÃû(jcv_filenameÁĞ)¶¼Îª¿Õ£¬¶ªÆú¡£
-                    # todo by tangpinghui: ¸ÃÊı¾İÊÇsarÏà¹Ø£¬ÊÇ·ñÓ¦¸Ã¶ªÆú?
+                    # æ­¤æ•°æ®æ‰€å±å›½å®¶ä¸åœ¨æˆ‘ä»¬æ‰€éœ€è¦çš„å›½å®¶åˆ—è¡¨å†…ï¼Œä¸¢å¼ƒ
+                    #if str(record['iso_country_code'].replace('"','')) not in jvCountryList:
+                        #continue
+                    # gjvå¯¹åº”çš„svgå(filenameåˆ—ï¼‰å’Œejvå¯¹åº”çš„svgå(jcv_filenameåˆ—)éƒ½ä¸ºç©ºï¼Œä¸¢å¼ƒã€‚
+                    # todo by tangpinghui: è¯¥æ•°æ®æ˜¯sarç›¸å…³ï¼Œæ˜¯å¦åº”è¯¥ä¸¢å¼ƒ?
                     if (not record['filename']) and (not record['ejv_filename']):
                         continue
                     self.pg.insert('rdfpl_all_jv_lat_display_org',
@@ -169,6 +170,7 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                     'latitude',
                                     'longitude',
                                     'ejv_filename',
+                                    'sar_filename',
                                     'dp1_dest_link',
                                     'jv_dest_link'
                                       ),
@@ -196,16 +198,17 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                         record['latitude'],
                                         record['longitude'],
                                         record['ejv_filename'],
+                                        record['sar_filename'],
                                         record['dp1_dest_link'] if record['dp1_dest_link'] else None,
                                         record['jv_dest_link'] if record['jv_dest_link'] else None
                                       )
                                       )
             self.pg.commit2()
 
-    # ½«csvÎÄ¼şµÄÁĞÃû×÷Îª¼ü£¬½«Ã¿ĞĞÄÚÈİ×÷ÎªÖµ¡£
-    # Ã¿ĞĞÊı¾İ½«×÷³ÉÒ»¸ö×Öµä£¬·µ»Ø×ÖµäµÄÁĞ±í
-    # srcCsvFile -> Òª½âÎöµÄcsvÎÄ¼şÂ·¾¶
-    # ³ö´íÊ±·µ¿ÕÁĞ±í
+    # å°†csvæ–‡ä»¶çš„åˆ—åä½œä¸ºé”®ï¼Œå°†æ¯è¡Œå†…å®¹ä½œä¸ºå€¼ã€‚
+    # æ¯è¡Œæ•°æ®å°†ä½œæˆä¸€ä¸ªå­—å…¸ï¼Œè¿”å›å­—å…¸çš„åˆ—è¡¨
+    # srcCsvFile -> è¦è§£æçš„csvæ–‡ä»¶è·¯å¾„
+    # å‡ºé”™æ—¶è¿”ç©ºåˆ—è¡¨
     def analyse_csv(self, srcCsvFile):
         if os.path.exists(srcCsvFile) == False:
             return []
@@ -214,15 +217,15 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
         listline = inFStream.readlines()
         inFStream.close()
         
-        #½âÎöcsv±íÍ·£¬ÓÃ×÷×ÖµäµÄ¼ü
+        #è§£æcsvè¡¨å¤´ï¼Œç”¨ä½œå­—å…¸çš„é”®
         csvHeader = listline[0].lower().split(",")
         csvDataList = []
         for line in listline[1:]:
             line = line.strip()
             if line:
-                #½âÎö³öÃ¿ĞĞÄÚÈİ
+                #è§£æå‡ºæ¯è¡Œå†…å®¹
                 listrow = line.split(",")
-                #ÒÔÁĞÃûÎª¼ü£¬¶ÔÓ¦ÁĞµÄÄÚÈİÎªÖµÉú³É¼üÖµ¶Ô
+                #ä»¥åˆ—åä¸ºé”®ï¼Œå¯¹åº”åˆ—çš„å†…å®¹ä¸ºå€¼ç”Ÿæˆé”®å€¼å¯¹
                 record = dict(map(lambda x,y:[x,y], csvHeader,listrow))
                 csvDataList.append(record)
         return csvDataList

@@ -21,14 +21,16 @@ class CCheckGuideinfoNodeid(CCheckCommonBase):
         
         sqlcmd='''
             select count(1) 
-            from rdb_guideinfo_building_structure a 
+            from [replace_table] a 
             join rdb_node b 
             on a.node_id=b.node_id 
             where array_upper(b.branches,1)=2
                '''
         table_name = self.caseinfo.getTableName()
+        if table_name == 'rdb_guideinfo_buildingstructure':
+            table_name= 'rdb_guideinfo_building_structure'
         # 替换表名
-#        sqlcmd = sqlcmd.replace('[replace_table]', table_name)
+        sqlcmd = sqlcmd.replace('[replace_table]', table_name)
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         
         return cnt == 0        

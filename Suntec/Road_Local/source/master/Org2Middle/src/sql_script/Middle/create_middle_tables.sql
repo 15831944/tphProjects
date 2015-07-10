@@ -204,6 +204,7 @@ CREATE TABLE spotguide_tbl
   guideclass smallint,
   patternno character varying(128),
   arrowno character varying(128),
+  is_exist_sar bool default False,
   type smallint
 );
 
@@ -270,25 +271,6 @@ CREATE TABLE caution_tbl
   voice_id integer DEFAULT 0,
   strTTS varchar(65535),
   image_id integer DEFAULT 0
-);
-
--- spotguide_tbl
-CREATE TABLE spotguide_tbl
-(
-  gid serial primary key,
-  id serial,
-  nodeid bigint,
-  inlinkid bigint,
-  outlinkid bigint,
-  passlid character varying(1024),
-  passlink_cnt smallint,
-  direction smallint,
-  guideattr smallint,
-  namekind smallint,
-  guideclass smallint,
-  patternno character varying(128),
-  arrowno character varying(128),
-  type smallint
 );
 
 -- natural_guidence_tbl

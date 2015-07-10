@@ -1381,6 +1381,7 @@ CREATE TABLE rdfpl_all_jv_lat_display_org
   latitude character varying(4000),
   longitude character varying(4000),
   ejv_filename character varying(800),
+  sar_filename character varying(800),
   dp1_dest_link bigint,
   jv_dest_link bigint
 );

@@ -4,4 +4,5 @@ mdb_path=\\iData\Private\Data_Authoring\SourceData\MMI\14Q4\mdb
 temp_sql_path=.\cache\temp_sql\
 POI_Code=..\docs\poi\category_mmi.txt
 brand_icon=..\docs\poi\brand_icon_list.txt
+all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\SA_rdf\ARG\14Q4\all_sar_files_name.csv
 #################################################################

@@ -44,9 +44,23 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         'Create Function'
         return 0
 
+    def _prepare_sar_info(self):
+        sqlcmd = '''
+                insert into mid_all_sar_files (filename)  
+                    ( 
+                         Select distinct patternno 
+                         from spotguide_tbl 
+                         where patternno like '%_signpost_%'
+                    )
+            '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        return
+
     def _Do(self):
         self._generate_temp_info_of_junction_links()
         self._generate_spotguide_tbl()
+        self._prepare_sar_info()
            
         #self.reduceResolution("C:\\My\\20150410_mmi_pic\\Pattern", "C:\\My\\20150410_mmi_pic\\Pattern_resized")     
         #self.composeBackground("C:\\My\\20150410_mmi_pic\\Pattern_resized", "C:\\My\\20150410_mmi_pic\\Pattern_background")
