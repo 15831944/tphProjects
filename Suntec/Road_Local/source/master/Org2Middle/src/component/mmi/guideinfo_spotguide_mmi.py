@@ -27,7 +27,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     def _DoCreateTable(self):
 
         comp_guideinfo_spotguide._DoCreateTable(self)
-        '''这个表的记录样式：oneinlink--->oneoutlink'''
+        # 这个表的记录样式：oneinlink--->oneoutlink
         if self.CreateTable2('temp_junction_tbl') == -1:
             return -1
         
@@ -222,7 +222,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             return None
 
     def _get_passlink_passlinkcnt(self, inlink, outlink):
-        '''求path 路径 和 pathlink count'''
+        # 求path 路径 和 pathlink count
         sqlcmd = '''
                 SELECT s_node, e_node, one_way_code
                 FROM link_tbl

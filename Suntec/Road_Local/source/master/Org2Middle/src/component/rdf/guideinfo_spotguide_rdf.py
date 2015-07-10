@@ -25,10 +25,6 @@ spotguide_tbl_insert_str = '''
 '''
 
 class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
-    '''
-    This class is used for uc spotguide
-    '''
-
     def __init__(self):
         comp_guideinfo_spotguide.__init__(self)
 
@@ -37,7 +33,6 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         return 0
 
     def _DoCreatIndex(self):
-
         return 0
 
     def _DoCreateFunction(self):
@@ -47,19 +42,19 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
 
     def _Do(self):
         jv_flag = common.common_func.GetPath('jv_flag')
-        # 从数据库表获取rdf spotguide信息
+        # 判断提供的junction view类型
         if jv_flag == 'by_table':
+            
             if common.common_func.GetPath('proj_country').lower() in ('hkg','mac'):                 
                 self._makeJV_CHN()
             else:
                 self._makeJV_Common()
-        # 从csv文件获取rdf spotguide信息
+            
         elif jv_flag == 'by_file':
             self.CreateTable2('temp_gjv_junctionview_info')
             self.CreateTable2('temp_ejv_junctionview_info')
-            # 根据gjv.csv表来制作junctionview数据
-            self._get_gjv_junctions_info_by_gjv_table()       
-            # 根据all_jv.csv表来制作junctionview数据
+            # 根据GJV表来制作junctionview数据
+            self._get_gjv_junctions_info_by_gjv_table()
             self._get_gjv_junctions_info_by_alljv_table()
             self._get_ejv_junctions_info_by_alljv_table()
             # 不能颠倒
@@ -72,6 +67,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         return 0
 
     def _makeJV_CHN(self):
+
             # create temp junction view table.
             self.CreateTable2('temp_guideinfo_spotguide_junction_view_chn')
 
@@ -102,9 +98,19 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             self.pg.commit2()
             
     def _makeJV_Common(self):
+        
+# 根据condition_type = 20来制作junctionview数据
+#             if self.__CheckImagePath() == False:
+#                 self.log.warning("Doesn't indicate the Image Path.")
+#                 return 0
             # create temp junction view spotguide info
             self.CreateTable2('temp_guideinfo_spotguide_junction_view_full')
-            
+
+            # insert junction view image
+            # imageid, image_data_blob
+            # self.InsertJunctionViewImage()
+#         -- this operation will be done in mid2rdb
+
             sqlcmd = """
             insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                 passlid,passlink_cnt,direction,
@@ -158,6 +164,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                     jpgfile.close()
                     self.pg.close2()
                     return -1
+                # pgcur_Create.execute(sqlcmd1,(FileName,psycopg2.Binary(alldata),))
                 jpgfile.close()
 
             self.pg.commit()
@@ -387,11 +394,12 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                                % (inlink, outlink))
                 continue
             
-            # gjv中不存在SAR
+            # GJV没有SAR
             is_exist_sar = False
             
             # 求引导属性
-#             attr_dir = self._get_direction_attr(ramp, bif, ca)
+            # attr_dir = self._get_direction_attr(ramp, bif, ca)
+
             # 保存到数据库
             self.pg.execute2(spotguide_tbl_insert_str, 
                              (nodeid, inlink, outlink,
@@ -409,6 +417,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         '''
         self.pg.execute2(sqlcmd)
         rows = self.pg.fetchall2()
+        allSarNameList = self._get_all_sar_pic_name_list()
         for row in rows:
             nodeid = row[0]
             inlink = row[1]
@@ -430,11 +439,17 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                                % (inlink, outlink))
                 continue
             
-            # 是否存在sar
-            is_exist_sar = self._query_if_exist_sar(org_filename, outlink)
+            # 求是否存在SAR
+            # sar图片名字应以SR_打头。
+            # 例如某sar图SR_BH_555171664.png
+            # 对应的pattern图名字应为JV_BH_555171664.jpg
+            # 根据pattern图名字可以求出它所对应的sar图名字。
+            sarName = org_filename.lower().replace('jv_', 'sr_')
+            is_exist_sar = sarName in allSarNameList
             
             # 求引导属性
-#             attr_dir = self._get_direction_attr(ramp, bif, ca)
+            # attr_dir = self._get_direction_attr(ramp, bif, ca)
+            
             # 保存到数据库
             self.pg.execute2(spotguide_tbl_insert_str,
                               (nodeid, inlink, outlink,
@@ -461,16 +476,24 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         else:
             self.log.error('Error Side. Side=%s' % side)
             return None
-    
-    # sar图片名字应以SR_打头。
-    # 例如某sar图SR_BH_555171664.png
-    # 该sar图片对应的pattern图名字应为JV_BH_555171664.jpg
-    # 根据pattern图名字可以求出它所对应的sar图名字。
-    def _query_if_exist_sar(self, patternPicName, sarPicNameList):
-        sarPicName = patternPicName.lower().replace('jv_', 'sr_')
         
-        return False
-
+    # 读入所有sar文件名，在确认is_exist_sar时使用。
+    # 使用了配置文件项：allSarFileNameCsvPath
+    # 取名时调用了lower()，返回的png名字列表均为小写。
+    def _get_all_sar_pic_name_list(self):
+        allSarCsv = common.common_func.GetPath('all_sign_as_real_file_name')
+        if os.path.isfile(allSarCsv) == False:
+            return []
+    
+        inFStream = open(allSarCsv)
+        listline = inFStream.readlines()
+        inFStream.close()
+        
+        allSarPicList = []
+        for line in listline:
+            allSarPicList.append(line.lower())
+        return allSarPicList
+        
 
 
 

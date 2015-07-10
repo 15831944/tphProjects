@@ -234,3 +234,237 @@ BEGIN
 	return flag;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION test_link_shape_turn_number(shape_point geometry)
+RETURNS integer
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    PI                double precision;
+    turn_number        integer;
+    point_count        integer;
+    point_index        integer;
+    angle_array        double precision[];
+    angle_diff        double precision;
+   
+    org_lon            double precision;
+    org_lat            double precision;
+    dst_lon            double precision;
+    dst_lat            double precision;
+    delta_lat        double precision;
+    delta_lon        double precision;
+BEGIN
+    --
+    PI          := 3.1415926535897932;
+   
+    --
+    point_count := ST_NPoints(shape_point);
+    if (point_count <= 2) then
+        RETURN 0;
+    end if;
+   
+    --
+    for point_index in 2..point_count loop
+        org_lon := ST_X(ST_PointN(shape_point, point_index-1));
+        org_lat := ST_Y(ST_PointN(shape_point, point_index-1));
+       
+        dst_lon := ST_X(ST_PointN(shape_point, point_index));
+        dst_lat := ST_Y(ST_PointN(shape_point, point_index));
+       
+        delta_lon := dst_lon - org_lon;
+        delta_lat := dst_lat - org_lat;   
+       
+        if delta_lon = 0 and delta_lat = 0 then
+            angle_array[point_index]  := 0.0;
+        else
+            angle_array[point_index] := (atan2(delta_lat, delta_lon) * 180.0 / PI);
+        end if;
+    end loop;
+   
+    --
+    turn_number    := 0;
+    for point_index in 3..point_count loop
+        angle_diff    := abs(angle_array[point_index] - angle_array[point_index-1]);
+        if angle_diff >= 175 and angle_diff <= 185 then
+            turn_number    := turn_number + 1;
+            raise INFO 'point = %', st_astext(ST_PointN(shape_point, point_index-1));
+        end if;
+    end loop;
+   
+    return turn_number;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION ni_cnv_link_type( kind varchar)
+  RETURNS smallint
+  LANGUAGE plpgsql VOLATILE
+  AS $$
+BEGIN
+
+	return case
+		when kind like '%00' or kind like '%00|%' then 0
+		when kind like '%03' or kind like '%03|%' then 3 
+		when kind like '%05' or kind like '%05|%'
+		    or kind like '%0b' or kind like '%0b|%' then 5 		
+		when kind like '%04' or kind like '%04|%' then 4 
+		when kind like '%12' or kind like '%12|%' then 8 
+		when kind like '%15' or kind like '%15|%' then 9 
+		when kind like '%06' or kind like '%06|%'
+			or kind like '%07' or kind like '%07|%' then 7 
+		when kind like '%0a' or kind like '%0a|%' then 6 
+		when kind like '%02' or kind like '%02|%' then 2  
+		else 1
+	end;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION ni_cnv_road_type( kind varchar, through varchar, unthrucrid varchar, 
+	vehcl_type varchar, ownership varchar )
+  RETURNS smallint
+  LANGUAGE plpgsql VOLATILE
+  AS $$
+BEGIN
+	return case
+		when kind like '0a%' or kind like '%|0a%' then 10
+		when ownership = '1' then 7
+		when kind like '0b%' or kind like '%|0b%' then 8		
+		when substr(vehcl_type, 1, 1) = '0' 
+			and substr(vehcl_type, 2, 1) = '0'
+			and substr(vehcl_type, 3, 1) = '0'
+			and substr(vehcl_type, 14, 1) = '0'
+			and (
+				substr(vehcl_type, 8, 1) = '1'
+				or substr(vehcl_type, 9, 1) = '1'
+				or substr(vehcl_type, 10, 1) = '1'
+			) then 12
+		when (through = '0' and unthrucrid = '')
+			or (kind like '08%' or kind like '%|08%') then 14
+		when substr(vehcl_type, 14, 1) = '1' then 13 
+		when kind like '00%' or kind like '%|00%' then 0 		
+		when kind like '01%' or kind like '%|01%' then 1 
+		when kind like '02%' or kind like '%|02%' then 2 
+		when kind like '03%' or kind like '%|03%' then 3 
+		when kind like '04%' or kind like '%|04%' then 4 
+		when kind like '06%' or kind like '%|06%' then 6 
+		when kind like '09%' or kind like '%|09%' then 9 
+		else 6
+	end;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION org_CheckRamp()
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	for rec in
+		select id, snodeid, enodeid, direction, ni_cnv_road_type(kind,through,unthrucrid,vehcl_type,ownership) as road_type, funcclass
+		from org_r
+		where ni_cnv_road_type(kind,through,unthrucrid,vehcl_type,ownership) in (0,1) and ni_cnv_link_type(kind) in (1,2,7)
+	loop
+		if rec.direction in ('1','2') then
+			perform org_check_ramp_atnode(rec.enodeid, rec.road_type, rec.funcclass, 1);
+			perform org_check_ramp_atnode(rec.snodeid, rec.road_type, rec.funcclass, 2);
+		end if;
+
+		if rec.direction in ('1','3') then
+			perform org_check_ramp_atnode(rec.snodeid, rec.road_type, rec.funcclass, 1);
+			perform org_check_ramp_atnode(rec.enodeid, rec.road_type, rec.funcclass, 2);
+		end if;
+	end loop;
+	RETURN 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION org_check_ramp_atnode(nHwyNode varchar, nRoadTypeA integer, nFunctionClassA varchar, dir integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec        			record;
+	rec2				record;
+	nRoadType			smallint;
+	nFunctionClass		smallint;
+	rstPath				varchar;
+	tmpPath				varchar;
+	
+	tmpPathArray		varchar[];
+	tmpLastNodeArray	varchar[];
+	tmpPathCount		integer;
+	tmpPathIndex		integer;
+	
+	nIndex				integer;
+	nCount				integer;
+	link_array 			bigint[];
+BEGIN	
+	--rstPathArray
+	tmpPathArray		:= ARRAY[null];
+	tmpLastNodeArray	:= ARRAY[nHwyNode];
+	tmpPathCount		:= 1;
+	tmpPathIndex		:= 1;
+	
+	-- search
+	WHILE tmpPathIndex <= tmpPathCount LOOP
+		
+		for rec in
+			select	(case when snodeid = tmpLastNodeArray[tmpPathIndex] then enodeid else snodeid end) as nextnode, 
+					id as nextlink, 
+					ni_cnv_link_type(kind) as link_type, ni_cnv_road_type(kind,through , unthrucrid , 
+	vehcl_type , ownership ) as road_type, funcclass as function_code
+			from org_r
+			where	(
+						(dir = 1)
+						and
+						(
+							(snodeid = tmpLastNodeArray[tmpPathIndex] and direction in ('1','2'))
+							or
+							(enodeid = tmpLastNodeArray[tmpPathIndex] and direction in ('1','3'))
+						)
+						and ni_cnv_road_type(kind,through,unthrucrid,vehcl_type,ownership) in (0, 1, 2, 3, 4, 5, 6)
+					)
+					or
+					(
+						(dir = 2)
+						and
+						(
+							(snodeid = tmpLastNodeArray[tmpPathIndex] and direction in ('1','3'))
+							or
+							(enodeid = tmpLastNodeArray[tmpPathIndex] and direction in ('1','2'))
+						)
+						and ni_cnv_road_type(kind,through,unthrucrid,vehcl_type,ownership) in (0, 1, 2, 3, 4, 5, 6)
+					)
+		loop
+			---raise INFO 'nextnode = %', rec.nextnode;
+			tmpPath		:= tmpPathArray[tmpPathIndex];
+			
+			-- find a complete path
+			if (cast(rec.nextlink as varchar) = ANY(regexp_split_to_array(tmpPath, E'\\|+'))) then
+				continue;
+				
+			elseif rec.link_type in (3,5)  then
+				--raise info 'main node:%',nHwyNode;
+				--raise info 'IC:link_id=%,function_code=%,link_type=%',cast(rec.nextlink as varchar),rec.function_code,rec.link_type;
+
+				if rec.road_type not in (0,1) then
+				
+					raise exception 'ramp of link (JCT/IC) error: link_id=%,road_type=%,function_code=%,link_type=%',cast(rec.nextlink as varchar),rec.road_type,rec.function_code,rec.link_type;
+				end if;
+				
+				tmpPathCount		:= tmpPathCount + 1;
+				tmpLastNodeArray	:= array_append(tmpLastNodeArray, cast(rec.nextnode as varchar));
+				if tmpPath is null then
+					tmpPathArray	:= array_append(tmpPathArray, cast(rec.nextlink as varchar));
+				else
+					tmpPathArray	:= array_append(tmpPathArray, cast(tmpPath||'|'||rec.nextlink as varchar));
+				end if;
+
+			end if;
+		end loop;
+		tmpPathIndex := tmpPathIndex + 1;
+	END LOOP;
+
+	return 1;
+END;
+$$;

@@ -24,6 +24,35 @@ class CCheckIDDuplication(platform.TestCase.CTestCase):
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
     
+class CCheckLinkCircle(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+            select count(*) from org_r 
+            where st_equals(st_startpoint(the_geom),st_endpoint(the_geom))
+                 '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0) 
+    
+class CCheckZLink(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateFunction_ByName('test_link_shape_turn_number')
+        sqlcmd='''
+            select count(*) from org_r
+            where test_link_shape_turn_number(the_geom)>0
+               '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0) 
+
+class CCheckRampClass(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateFunction_ByName('ni_cnv_link_type')
+        self.pg.CreateFunction_ByName('ni_cnv_road_type')
+        self.pg.CreateFunction_ByName('org_CheckRamp')
+        self.pg.CreateFunction_ByName('org_check_ramp_atnode')
+        if self.pg.callproc('org_CheckRamp') == -1:
+            return 0
+        return 1      
+        
 class CCheckFKYValid_jnctid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

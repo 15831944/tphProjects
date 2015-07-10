@@ -541,7 +541,7 @@ CREATE TABLE temp_admin_order0
   order0_code integer,
   name_id bigint,
   country_code character varying(10)
-);SELECT AddGeometryColumn('public', 'temp_admin_order0', 'the_geom', 4326, 'MULTIPOLYGON', 2, TRUE);
+);SELECT AddGeometryColumn('public', 'temp_admin_order0', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 
 CREATE TABLE temp_admin_order1
 (
@@ -549,7 +549,7 @@ CREATE TABLE temp_admin_order1
   order0_id integer,
   name_id bigint,
   country_code character varying(10)
-);SELECT AddGeometryColumn('public', 'temp_admin_order1', 'the_geom', 4326, 'MULTIPOLYGON', 2, TRUE);
+);SELECT AddGeometryColumn('public', 'temp_admin_order1', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 
 CREATE TABLE temp_admin_order2
 (
@@ -557,7 +557,7 @@ CREATE TABLE temp_admin_order2
   order1_id integer,
   name_id bigint,
   country_code character varying(10)
-);SELECT AddGeometryColumn('public', 'temp_admin_order2', 'the_geom', 4326, 'MULTIPOLYGON', 2, TRUE);
+);SELECT AddGeometryColumn('public', 'temp_admin_order2', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 
 CREATE TABLE temp_admin_order8
 (
@@ -565,7 +565,7 @@ CREATE TABLE temp_admin_order8
   order2_id integer,
   name_id bigint,
   country_code character varying(10)
-);SELECT AddGeometryColumn('public', 'temp_admin_order8', 'the_geom', 4326, 'MULTIPOLYGON', 2, TRUE);
+);SELECT AddGeometryColumn('public', 'temp_admin_order8', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 
 CREATE TABLE temp_adminid_newandold
 (

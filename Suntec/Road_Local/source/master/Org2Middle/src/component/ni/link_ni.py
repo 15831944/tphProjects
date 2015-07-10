@@ -32,6 +32,7 @@ class comp_link_ni(component.component_base.comp_base):
         self.CreateFunction2('ni_cnv_speed_source')
         self.CreateFunction2('ni_cnv_lane')
         self.CreateFunction2('ni_cnv_width')
+        self.CreateFunction2('mid_get_access')
         
     def _Do(self):
 
