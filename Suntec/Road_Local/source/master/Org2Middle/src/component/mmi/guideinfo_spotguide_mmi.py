@@ -8,7 +8,6 @@ import os
 import struct
 import shutil
 
-#from PIL import Image
 from component.default import link_graph
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
@@ -89,7 +88,6 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         self.pg.commit2()
         
         # 优化：建立临时表，查询link两端节点时使用，提高查询速度
-        # todo: 加索引到新表里去
         sqlcmd = '''
             drop table if exists temp_junction_links;
 			
@@ -206,7 +204,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     
     # 通过查询link与node的信息确定两条link是否相交
     # 如果相交，返回连接点，否则返回空
-    # "org_city_nw_gc_polyline"是一个巨大的表，查询速度很慢，此处设为默认查询表。
+    # "org_city_nw_gc_polyline"是一个巨大的表，查询速度很慢，此处查询优化表temp_junction_links。
     # 通过查询优化过后的小表可以提高速度。
     def _getnode_between_links(self, link1, link2):
         ''' get intersect node between link1 and link2'''
@@ -326,10 +324,12 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     # 有signpost的会生成一个新文件，命名如下：
     # JV_11.02.001.1.png， 与 JV_11.03.003.1.png 合并为 JV_11.02.001.1_JV_11.03.003.1.png
     # 箭头图和其他保持不变 
+    # 20150428：新添要求，birdview图片不合并signpost图，只有driverview图片合并signpost图。
+    # 20150428：目前mmi图片没有birdview与driverview的区别，
     def composeSignpost(self, srcDir, destDir):
         self.log.info('''start to compose road and signpost pictures''')
         if(os.path.isdir(srcDir) == False):
-            print "source directory not exist: " + srcDir
+            self.log.error('''source directory not exist: %s''' % srcDir)
             return
         if(os.path.exists(destDir) == True):
             shutil.rmtree(destDir)
@@ -487,10 +487,9 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                     srcFile = os.path.join(curDir, oneFile)
                     tempDestDir = curDir.replace(srcDir, destDir)
                     if(os.path.isdir(tempDestDir) == False):
-                        cmd = "md \"%s\"" % (tempDestDir)
-                        os.system(cmd)
+                        os.mkdir(tempDestDir)
                         self.log.info('''created directory: %s''' % tempDestDir)
-                    
+                    from PIL import Image # 需要安装PIL插件
                     image = Image.open(srcFile)
                     resizedImage = image.resize((image.size[0]*quality, image.size[1]*quality), Image.BILINEAR)
                     destFile = os.path.join(tempDestDir, oneFile)

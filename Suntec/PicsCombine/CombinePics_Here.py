@@ -2,6 +2,7 @@
 import os.path
 import struct
 import sys
+import shutil
 
 #==============================================================================
 # comp_picture
@@ -20,9 +21,9 @@ class GeneratorPicBinary_Here(object):
             print "source directory not found: " + srcDir
             print "process end."
             return
-        if os.path.isdir(destDir) == False:
-            os.mkdir(destDir)
-            print "created " + destDir
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        os.mkdir(destDir)
 
         dayPicList = []
         arrowFileList = []

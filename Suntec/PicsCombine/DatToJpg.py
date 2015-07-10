@@ -1,11 +1,6 @@
 #encoding=utf-8
-'''
-Created on 2012-11-26
-@author: liuxinxing
-'''
+
 import os
-import sys
-from PIL import Image
 
 def ConvertDatToImage1(srcDir, destDir):
     if(os.path.exists(srcDir) == False):
@@ -28,4 +23,5 @@ def ConvertDatToImage(datFile, destDir):
     # 处理arrow图片
     readStream = open(datFile, 'rb')
     read = readStream.read()
+    
     
