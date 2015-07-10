@@ -172,7 +172,8 @@ class GeneratorPicBinary_Here(object):
     # srcSarPicDir： sar图的根目录
     # srcSarSvgDir: sar对应的svg文件的根目录，需要解析这些svg文件来建立arrow图到sar图的对应关系。
     # destDir： 输出目录
-    def composeSarToArrow(self, srcEjvDir, srcSarDir, srcSarSvgDir, destDir):
+    # arrowWithSarFile: 这里记录了所有包含sar的arrow图名字，用以修改is_exist_sar标记位。
+    def composeSarToArrow(self, srcEjvDir, srcSarDir, srcSarSvgDir, destDir, arrowWithSarFile):
         if os.path.isdir(srcEjvDir) == False\
         or os.path.isdir(srcSarDir) == False:
             return
@@ -208,7 +209,8 @@ class GeneratorPicBinary_Here(object):
                     
         # 遍历arrow图文件，尝试找到对应的sar.svg文件。
         # 判断条件：arrow图文件名和svg文件名中必定都包含了inlinkid，根据两者的inlinkid是否相等判断是否相关联。
-        oFStream = open("c:\\a.txt", "w") # 仅为了check结果。
+        # oFStream = open("c:\\a.txt", "w") # 仅为了check结果。
+		oFStream = open(arrowWithSarFile, 'w') # 用以输出被合并了sar信息的arrow图。
         for oneArrowPic in arrowPicList:
             strInlinkInArrowPic = getInlinkIDFromArrowPicPath(oneArrowPic)
             for oneSvgFile in sarSvgList:
@@ -226,7 +228,8 @@ class GeneratorPicBinary_Here(object):
                                  (oneSarPng, oneArrowPic, oneArrowPic)
                                 os.system(cmd)
                                 print """composed\n\t%s\nto\n\t%s""" % (oneSarPng, oneArrowPic)
-                                oFStream.write(oneSarName + '\n') # 仅为了check结果。
+                                # oFStream.write(oneSarName + '\n') # 仅为了check结果。
+								oFStream.write(os.path.splitext(oneArrowPic)[1]) # 输出被合并了sar信息的arrow图。
                                 
                                 break # 一个sar名字只可能找到一张图片，故找到后即可中断。
                     break # 一个arrow图只可能找到一个sar.svg文件，故找到后即可中断。
@@ -354,22 +357,6 @@ class GeneratorPicBinary_Here(object):
             common_functions.ComposePicsToDat([dayArrowDict[dayArrowKey]], destDir, 0, dayArrowName)
         return
     
-    # 作用：生成all_sar_file_names.csv
-    # 做法：遍历SAR图的目录，列出所有SAR图片名字。
-    # srcDir：sar png图的根目录
-    # outputCSV：要输出的csv文件
-    def make_all_sar_file_names(self, srcDir, outputCSV='all_sar_files_name.csv'):
-        if os.path.isdir(srcDir) == False:
-            print "source directory not found: " + srcDir
-            return
-
-        oFStream = open(outputCSV, "w")
-        for curDir,dirNames,fileNames in os.walk(srcDir):
-            for oneFile in fileNames:
-                if oneFile[-4:] == '.png':
-                    oFStream.write(oneFile + '\n')
-        return
-    
     # 作用1：生成sign_as_real.csv
     # 作用2：生成signpost对应的dat
     # 做法：
@@ -456,18 +443,17 @@ class GeneratorPicBinary_Here_Checker(object):
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
     test_checker = GeneratorPicBinary_Here_Checker()
-#    test.composeSarToArrow(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout",
-#                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
-#                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
-#                           r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar")
+    test.composeSarToArrow(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout",
+                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
+                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
+                           r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar",
+                           r"C:\My\20150514_mea_2014Q4_pic\illust\arrow_with_sar.csv")
 #    test_checker.composeSarToArrow_check(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA")
     
 #    test.makeEjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar", 
 #                    r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar_dat")
 #    test.makeGjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout", 
 #                    r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout_dat")
-#    test.make_all_sar_file_names(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
-#                                 r"C:\My\20150514_mea_2014Q4_pic\illust\all_sar_files_name.csv")
     test.make_sign_as_real_csv(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout", 
                                r"C:\My\20150514_mea_2014Q4_pic\illust\all_jv.csv",
                                r"C:\My\20150514_mea_2014Q4_pic\illust\pic\sign",
