@@ -54,19 +54,15 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea end.', 'info')
     
     def __loadPic(self, path):
-        listsub = sorted(os.listdir(path))
-        for sub in listsub:
-            subpath = os.path.join(path, sub)
-            if os.path.isfile(subpath):
-                exttype = os.path.splitext(sub)[1].lower()
+        for curDir,dirNames,fileNames in os.walk(path):
+            for oneFile in fileNames:
+                exttype = os.path.splitext(oneFile)[1].lower()
                 if exttype in (".jpg", ".png", ".dat"):
-                    self.__insertPic(subpath, sub)
-            else:
-                self.__loadPic(subpath)
-    
-    def __insertPic(self, filepath, filename):
-        index = filename.rfind(".")
-        picname = filename[:index].lower().encode("utf-8")
+                    self.__insertPic(os.path.join(curDir, oneFile))
+                                     
+    def __insertPic(self, filepath):
+        filename = os.path.split(filepath)[1]
+        picname = os.path.splitext(filename)[0]
         objFile = open(filepath, 'rb')
         alldata = objFile.read()
         objFile.close()

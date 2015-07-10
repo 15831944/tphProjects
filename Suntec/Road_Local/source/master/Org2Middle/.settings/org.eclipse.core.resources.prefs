@@ -60,6 +60,7 @@ encoding//src/component/mmi/guideinfo_spotguide_mmi.py=cp936
 encoding//src/component/mmi/import_sidefile_mmi.py=UTF8
 encoding//src/component/multi_lang_name.py=UTF8
 encoding//src/component/ni/guideinfo_spotguide_ni.py=cp936
+encoding//src/component/ni/guideinfo_spotguide_ni_datacheck.py=cp936
 encoding//src/component/node_move.py=cp936
 encoding//src/component/nostra/dictionary_nostra.py=UTF8
 encoding//src/component/nostra/guideinfo_lane_nostra.py=cp936
