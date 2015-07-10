@@ -1,4 +1,4 @@
-# -*- coding: cp936 -*-
+#encoding=utf-8
 '''
 Created on 2015-5-6
 @author: tangpinghui
@@ -31,10 +31,9 @@ class comp_guideinfo_signpost_ni(comp_base):
                                                 %s, %s, %s, 
                                                 %s)
                                     '''
-        if 1:
-            # ¸ù¾İY:\ÎÄµµ\3Êı¾İ¸ñÊ½ÎÄµµ\3.5 ËÄÎ¬\NIMIF-G-14win_ÖĞÎÄ_¸½¼ş\NIMIF-G-14win-GreatChina(·½Ïò¿´°å).pdf
-            # ×÷³ÉµÄdemo°æ±¾
-            # ¾ßÌå»¹ĞèÒªµÈsignpostĞ­Òéµ½ÁËÒÔºó½øĞĞµ÷Õû
+        if 0:
+            # å››ç»´æä¾›çš„åè®®æ‰€åšçš„demoç‰ˆæœ¬ã€‚
+            # ç”±äºæ²¡æœ‰å…ƒæ•°æ®è¡¨ï¼Œå…·ä½“è¿˜éœ€è¦ç­‰signpoståè®®åˆ°äº†ä»¥åè¿›è¡Œè°ƒæ•´
             rows = self.get_batch_data('''
                                         SELECT nodeid, inlinkid, outlinkid, patternno, 
                                                arrowno, passlid, passlid2, folder
@@ -54,12 +53,12 @@ class comp_guideinfo_signpost_ni(comp_base):
                 if(passlid and passlid2):
                     totalPasslid = totalPasslid + '|' + passlid2
                     
-                # ¾­¹ı²éÖ¤£¬¸÷¸öfolderÏÂ¿ÉÄÜ´æÔÚÍ¬ÃûµÄpatternnoºÍarrownoÍ¼Æ¬¡£
-                # ÀıÈç20150508Ëù×öµÄËÄÎ¬ÖĞ¹úÊı¾İÖĞ´æÔÚÒÔÏÂÇé¿ö£º
-                # patternÍ¼ÀïÓĞ£ºbeijing\40210371.png ºÍ guangzhou\40210371.pngÁ½ÕÅÍ¬ÃûÍ¼Æ¬
-                # arrowÍ¼ÀïÓĞ£ºbeijing\224019.png ºÍ guangzhou\224019¡£pngÁ½ÕÅÍ¬ÃûÍ¼Æ¬
-                # Ä¿Ç°Çé¿ö£¨ÈâÑÛÅĞ¶Ï£©£ºÁ½¸öÍ¬ÃûpatternÍ¼ºÍarrowÍ¼ÊÇÏàÍ¬µÄ¡£
-                # ÎªÁËÔ¤·ÀËüÃÇÓĞ¿ÉÄÜ´æÔÚ²»Í¬£¬ÔÚ×ªÊı¾İÊ±°Ñfolder¼Ó³Éºó×º£¬ÖÆ×÷²åÍ¼Ê±±ØĞë×ñÑ­´Ë¹æÔò¡£
+                # ç»è¿‡æŸ¥è¯ï¼Œå„ä¸ªfolderä¸‹å¯èƒ½å­˜åœ¨åŒåçš„patternnoå’Œarrownoå›¾ç‰‡ã€‚
+                # ä¾‹å¦‚20150508æ‰€åšçš„å››ç»´ä¸­å›½æ•°æ®ä¸­å­˜åœ¨ä»¥ä¸‹æƒ…å†µï¼š
+                # patternå›¾é‡Œæœ‰ï¼šbeijing\40210371.png å’Œ guangzhou\40210371.pngä¸¤å¼ åŒåå›¾ç‰‡
+                # arrowå›¾é‡Œæœ‰ï¼šbeijing\224019.png å’Œ guangzhou\224019ã€‚pngä¸¤å¼ åŒåå›¾ç‰‡
+                # ç›®å‰æƒ…å†µï¼ˆè‚‰çœ¼åˆ¤æ–­ï¼‰ï¼šä¸¤ä¸ªåŒåpatternå›¾å’Œarrowå›¾æ˜¯ç›¸åŒçš„ã€‚
+                # ä¸ºäº†é¢„é˜²å®ƒä»¬æœ‰å¯èƒ½å­˜åœ¨ä¸åŒï¼Œåœ¨è½¬æ•°æ®æ—¶æŠŠfolderåŠ æˆåç¼€ï¼Œåˆ¶ä½œæ’å›¾æ—¶å¿…é¡»éµå¾ªæ­¤è§„åˆ™ã€‚
                 fixedPatternno = patternno + '_' + folder
                 fixedArrowno = arrowno + '_' + folder
                 
@@ -69,7 +68,7 @@ class comp_guideinfo_signpost_ni(comp_base):
                                  (nodeid, inlinkid, outlinkid,
                                   totalPasslid, totalPasslidCount, fixedPatternno, 
                                   fixedArrowno))
-        self.pg.commit2()
+            self.pg.commit2()
         self.log.info("ni generate signpost_tbl end.")
         return 0
     

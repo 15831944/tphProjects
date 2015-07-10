@@ -466,7 +466,7 @@ class CCheckRegionLinkIdValidate(CCheckRegionBase):
         for level in levels:
             #self.logger.info(level)
             max_link_id_in_tile = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
-            if (not max_link_id_in_tile) or (max_link_id_in_tile > 65535):
+            if (not max_link_id_in_tile) or (max_link_id_in_tile > 65535 * 2):
                 return False
         return True;
 

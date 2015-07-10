@@ -22,6 +22,12 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         if self.CreateTable2('caution_tbl') == -1:
             return -1
+        
+        if self.CreateTable2('temp_trfcsign_caution_tbl') == -1:
+            return -1
+        
+        if self.CreateTable2('temp_admin_caution_tbl') == -1:
+            return -1
 
         return 0
     
@@ -38,8 +44,8 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         if self._Deal_TrfcSign() == -1:
             return -1
         
-        if self._Deal_admin() == -1:
-            return -1
+        #if self._Deal_admin() == -1:
+            #return -1
         
         if self._Deal_update_caution_tbl() == -1:
             return -1
@@ -148,9 +154,6 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
     def _create_temp_trfcsign_caution_tbl(self):
         
         self.log.info('Now it is making temp_trfcsign_caution_tbl...')
-        if self.CreateTable2('temp_trfcsign_caution_tbl') == -1:
-            return -1
-        
         if self.CreateIndex2('org_trfcsign_type_idx') == -1:
             return -1
         
@@ -171,9 +174,9 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     e.the_geom as inlink_geom
                 from (
                     select 
-                    inlinkid::bigint, nodeid::bigint, type::integer,
-                    b.wav_id as voice_id, 
-                    c.pic_id as image_id
+                        inlinkid::bigint, nodeid::bigint, type::integer,
+                        b.wav_id as voice_id, 
+                        c.pic_id as image_id
                     from org_trfcsign a
                     left join temp_trfcsign_type_wavid b
                         on type::integer = b.trfcsign_type
@@ -423,9 +426,6 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
     def _create_temp_admin_caution_tbl(self):
         
         self.log.info('Now it is making temp_admin_caution_tbl...')
-        if self.CreateTable2('temp_admin_caution_tbl') == -1:
-            return -1
-        
         sqlcmd = """
                 insert into temp_admin_caution_tbl (
                     inlinkid, nodeid, outlinkid, data_kind, voice_id, strTTS, image_id,

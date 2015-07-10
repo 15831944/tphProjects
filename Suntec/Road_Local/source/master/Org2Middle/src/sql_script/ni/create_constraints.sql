@@ -3,19 +3,13 @@
 CREATE INDEX org_cond_mapid_condid_idx
   ON org_cond
   USING btree
-  (mapid, condid);
+  (cast(mapid as bigint), cast(condid as bigint));
 
 ----------------------------------------------------- 
 CREATE INDEX org_cnl_mapid_condid_idx
   ON org_cnl
   USING btree
-  (mapid, condid);
-
------------------------------------------------------ 
-CREATE INDEX org_c_condtype_idx
-  ON org_c
-  USING btree
-  (condtype);
+  (cast(mapid as bigint), cast(condid as bigint));
 
 -----------------------------------------------------   
 CREATE INDEX org_r_id_idx

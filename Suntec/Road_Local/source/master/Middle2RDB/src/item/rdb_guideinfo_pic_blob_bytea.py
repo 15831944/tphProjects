@@ -46,20 +46,19 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea ...', 'info')
         
         picroot = rdb_common.GetPath('illust')
-        if picroot:
-            self.__loadPic(picroot)
-        
-        self.pg.commit2()
+        if os.path.isdir(picroot):
+            for curDir,dirNames,fileNames in os.walk(picroot):
+                for oneFile in fileNames:
+                    exttype = os.path.splitext(oneFile)[1].lower()
+                    if exttype in (".jpg", ".png", ".dat"):
+                        self.__insertPic(os.path.join(curDir, oneFile))
+            self.pg.commit2()
+        else:
+            strLogInfo = '''illust "%s" is not a directory, skipped loading point list.''' % picroot
+            rdb_log.log(self.ItemName, strLogInfo , 'info')
         
         rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea end.', 'info')
     
-    def __loadPic(self, path):
-        for curDir,dirNames,fileNames in os.walk(path):
-            for oneFile in fileNames:
-                exttype = os.path.splitext(oneFile)[1].lower()
-                if exttype in (".jpg", ".png", ".dat"):
-                    self.__insertPic(os.path.join(curDir, oneFile))
-                                     
     def __insertPic(self, filepath):
         filename = os.path.split(filepath)[1]
         picname = os.path.splitext(filename)[0]
@@ -79,26 +78,20 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         rdb_log.log(self.ItemName, 'Inserting record to temp_point_list...', 'info')
         
         ptroot = rdb_common.GetPath('pointlist')
-        if ptroot:
-            self.__loadPt(ptroot)
-        
-        self.pg.commit2()
-        
+        if os.path.isdir(ptroot):
+            for curDir,dirNames,fileNames in os.walk(ptroot):
+                for oneFile in fileNames:
+                    exttype = os.path.splitext(oneFile)[1].lower()
+                    if exttype in (".txt"):
+                        self.__insertPt(os.path.join(curDir, oneFile))
+            self.pg.commit2()
+        else:
+            strLogInfo = '''pointlist "%s" is not a directory,  skipped loading point list.''' % ptroot
+            rdb_log.log(self.ItemName, strLogInfo , 'info')
         rdb_log.log(self.ItemName, 'insert record to temp_point_list end.', 'info')
     
-    def __loadPt(self, path):
-        listsub = os.listdir(path)
-        for sub in listsub:
-            subpath = os.path.join(path, sub)
-            if os.path.isfile(subpath):
-                exttype = os.path.splitext(sub)[1].lower()
-                if exttype in (".txt"):
-                    self.__insertPt(subpath, sub)
-            else:
-                self.__loadPt(subpath)
-    
-    def __insertPt(self, filepath, filename):
-        ptname = filename.split(".")[0].lower().encode("utf-8")
+    def __insertPt(self, filepath):
+        filename = os.path.split(filepath)[1]
         objFile = open(filepath, 'r') 
         listline = objFile.readlines()
         objFile.close()
@@ -112,6 +105,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                 res = res + struct.pack("h", x)
                 res = res + struct.pack("h", y)
 
+        ptname = os.path.splitext(filename)[0]
         if self.pg.insert('temp_point_list', ('image_id', 'data'), (ptname, psycopg2.Binary(res))) == -1:
             rdb_log.log(self.ItemName, 'fail to load pointlist %s.' % filepath, 'error')
             return -1

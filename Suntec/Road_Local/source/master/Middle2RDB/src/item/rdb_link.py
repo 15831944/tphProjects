@@ -52,14 +52,13 @@ class rdb_link(ItemBase):
         return 0
 
     def Do(self):
-        self.__make_temp_rdb_name()
         self.__make_rdb_name()
         self.__make_rdb_link()        
         self.__make_sequence()
         return 0 
     
-    def __make_temp_rdb_name(self):    
-        rdb_log.log('rdb_name', 'Start make temp_rdb_name.', 'info')
+    def __make_rdb_name(self):    
+        rdb_log.log('rdb_name', 'Start make rdb_name.', 'info')
         self.CreateTable2('temp_rdb_name')
         
         sqlcmd = """
@@ -69,17 +68,21 @@ class rdb_link(ItemBase):
                                 row_number() over(order by road_name ) as name_id,                        
                                 road_name 
                         from  link_tbl
+                        where road_name is not null
                         group by road_name
+                       -- union                        
+                        --select    link_id,
+                        --          0 as name_id,                        
+                           --       road_name 
+                        --from      link_tbl
+                       -- where road_name is null
+                        order by name_id
                        ) 
                  """                                    
         self.pg.execute2(sqlcmd)
         self.pg.commit2()        
         self.CreateIndex2('temp_rdb_name_link_id_idx')        
-        rdb_log.log('rdb_name', 'End make temp_rdb_name', 'info')
-        return 0
-        
-    def __make_rdb_name(self):             
-        rdb_log.log('rdb_name', 'Start make rdb_name.', 'info')
+                   
         self.CreateTable2('rdb_name')       
         sqlcmd = """
                     insert into rdb_name
@@ -109,7 +112,10 @@ class rdb_link(ItemBase):
                 highcost_flag, the_geom, the_geom_900913)
                 (
                  SELECT link_id, link_id_t, iso_country_code, display_class, s_node_id, start_node_id_t, end_node_id, end_node_id_t,
-                      road_type,one_way_code, function_class, link_length, road_name, road_name_id, road_number, lane_id,toll,
+                      road_type,one_way_code, function_class, link_length, road_name, 
+                      (case when road_name_id is null then 0 
+                      else road_name_id end) as road_name_id, 
+                      road_number, lane_id,toll,
                       regulation_flag, false, speed_regulation_flag, link_add_info_flag,
                       fazm, tazm, fnlink, FN.tile_id, tnlink, TN.tile_id, link_type,
                       extend_flag, fazm_path, tazm_path, shield_flag, bypass_flag, matching_flag, highcost_flag,

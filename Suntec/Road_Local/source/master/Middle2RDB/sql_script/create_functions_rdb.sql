@@ -1572,13 +1572,17 @@ BEGIN
 	END IF;
 	
 	IF structure IS NOT NULL and structure = 1 THEN
-		RETURN 2;
+		RETURN 8;
 	END IF;
 
 	IF structure IS NOT NULL and structure = 2 THEN
 		RETURN 4;
 	END IF;
-     
+
+	IF structure IS NOT NULL and structure = 3 THEN
+		RETURN 2;
+	END IF;
+    
 	RETURN 0;
 END;
 $$;

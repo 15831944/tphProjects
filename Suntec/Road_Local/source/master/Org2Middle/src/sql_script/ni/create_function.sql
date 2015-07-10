@@ -23,8 +23,8 @@ BEGIN
                     from org_cond a
                     left join org_cnl b
                         on 
-                            a.mapid = b.mapid and
-                            a.condid = b.condid
+                            a.mapid::bigint = b.mapid::bigint and
+                            a.condid::bigint = b.condid::bigint
                     where a.condtype::bigint = 2 and linkid <> ''
                     order by mapid, condid, seq_nm
                 ) as c
@@ -37,8 +37,8 @@ BEGIN
                     from org_cond a
                     left join org_cnl b
                         on 
-                            a.mapid = b.mapid and
-                            a.condid = b.condid
+                            a.mapid::bigint = b.mapid::bigint and
+                            a.condid::bigint = b.condid::bigint
                     where a.condtype::bigint = 2 and nodeid <> ''
                     order by mapid, condid, seq_nm
                 ) as c

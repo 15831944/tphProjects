@@ -26,7 +26,7 @@ class CCheckNameIdRec(platform.TestCase.CTestCase):
                from 
                (
                  select distinct name_id from rdb_name  
-                )          
+                ) as a         
                
                '''
         name_id_count = self.pg.getOnlyQueryResult(sqlcmd)

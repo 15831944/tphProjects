@@ -9,11 +9,11 @@ Created on 2015-5-5
 
 import platform.TestCase
 
-class CCheckOrg_Trfcsign_Struct(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_TableStruct(platform.TestCase.CTestCase):
     def _do(self):
         return self.pg.IsExistTable('org_trfcsign') and self.pg.IsExistTable('org_cr')
     
-class CCheckOrg_Trfcsign_Mapid(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_mapid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(*)
@@ -23,7 +23,17 @@ class CCheckOrg_Trfcsign_Mapid(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Trfcsign_Inlinkid(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_inlinkid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(gid)
+                    from org_trfcsign
+                    where inlinkid = ''
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckOrg_Trfcsign_mapid_inlinkid(platform.TestCase.CTestCase):
     def _do(self):
         self.pg.CreateIndex_ByName('org_trfcsign_mapid_inlinkid_idx')
         self.pg.CreateIndex_ByName('org_r_mapid_id_idx')
@@ -40,7 +50,20 @@ class CCheckOrg_Trfcsign_Inlinkid(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Trfcsign_Nodeid(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_nodeid(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateIndex_ByName('org_trfcsign_mapid_nodeid_idx')
+        self.pg.CreateIndex_ByName('org_n_mapid_id_idx')
+        
+        sqlcmd = """
+                    select count(gid)
+                    from org_trfcsign
+                    where nodeid = ''
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckOrg_Trfcsign_mapid_nodeid(platform.TestCase.CTestCase):
     def _do(self):
         self.pg.CreateIndex_ByName('org_trfcsign_mapid_nodeid_idx')
         self.pg.CreateIndex_ByName('org_n_mapid_id_idx')
@@ -57,7 +80,7 @@ class CCheckOrg_Trfcsign_Nodeid(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckOrg_Trfcsign_Type(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_type(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(type)
@@ -67,7 +90,7 @@ class CCheckOrg_Trfcsign_Type(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckOrg_Trfcsign_Validdist(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_validdist(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(validdist)
@@ -77,7 +100,7 @@ class CCheckOrg_Trfcsign_Validdist(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckOrg_Trfcsign_Predist(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_predist(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(predist)
@@ -87,7 +110,7 @@ class CCheckOrg_Trfcsign_Predist(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckOrg_Trfcsign_Crid(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_crid(platform.TestCase.CTestCase):
     def _do(self):
         self.pg.CreateIndex_ByName('org_trfcsign_crid_idx')
         self.pg.CreateIndex_ByName('org_cr_crid_idx')
@@ -102,7 +125,7 @@ class CCheckOrg_Trfcsign_Crid(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckOrg_Trfcsign_Inlinkid_Nodeid_Rel(platform.TestCase.CTestCase):
+class CCheckOrg_Trfcsign_inlinkid_nodeid_Rel(platform.TestCase.CTestCase):
     def _do(self):
         self.pg.CreateIndex_ByName('org_trfcsign_mapid_inlinkid_idx')
         self.pg.CreateIndex_ByName('org_r_mapid_id_idx')

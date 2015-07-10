@@ -10,183 +10,47 @@ Created on 2015-5-5
 import platform.TestCase
 import time
 
-class CCheckOrg_C_Struct(platform.TestCase.CTestCase):
-    def _do(self):
-        return self.pg.IsExistTable('org_c') and self.pg.IsExistTable('org_cr')
-
-class CCheckOrg_CondStruct(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_TableStruct(platform.TestCase.CTestCase):
     def _do(self):
         return self.pg.IsExistTable('org_cond') and self.pg.IsExistTable('org_cnl') and self.pg.IsExistTable('org_cr')
-    
-class CCheckOrg_C_Condtype(platform.TestCase.CTestCase):
+
+class CCheckOrg_Cond_condtype(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(*)
-                    from org_c
-                    where condtype::bigint = 2
+                    select count(gid)
+                    from org_cond 
+                    where 
+                        condtype::bigint = 2
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec <> 0)
 
-class CCheckOrg_Cond_Condtype(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_mapid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(*)
-                    from org_cond
-                    where condtype::bigint = 2
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec <> 0)
-
-class CCheckOrg_C_Mapid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
-                    from org_c 
-                    where 
-                        condtype::bigint = 2 and 
-                        mapid = ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_C_Condid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
-                    from org_c 
-                    where 
-                        condtype::bigint = 2 and 
-                        condid <> ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_C_Id(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.id)
-                    from org_c a
-                    left join org_n b
-                        on 
-                            a.mapid = b.mapid and
-                            a.id = b.mainnodeid
-                    where 
-                        condtype::bigint = 2 and 
-                        b.id is null
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_C_Inlinkid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.id)
-                    from org_c a
-                    left join org_r b
-                        on 
-                            a.mapid = b.mapid and
-                            a.inlinkid = b.id
-                    where 
-                        condtype::bigint = 2 and 
-                        b.id is null
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_C_Outlinkid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.id)
-                    from org_c a
-                    left join org_r b
-                        on 
-                            a.mapid = b.mapid and
-                            a.outlinkid = b.id
-                    where 
-                        condtype::bigint = 2 and 
-                        b.id is null
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-    
-class CCheckOrg_C_Crid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.crid)
-                    from org_c a
-                    left join org_cr b
-                        on a.crid = b.crid
-                    where 
-                        condtype::bigint = 2 and 
-                        a.crid <> '' and
-                        b.crid = ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-    
-class CCheckOrg_C_Passage(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
-                    from org_c 
-                    where 
-                        condtype::bigint = 2 and 
-                        passage <> ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-    
-class CCheckOrg_C_Slope(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
-                    from org_c 
-                    where 
-                        condtype::bigint = 2 and 
-                        slope <> ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-    
-class CCheckOrg_C_Sgnl_Loction(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
-                    from org_c 
-                    where 
-                        condtype::bigint = 2 and 
-                        sgnl_loction <> ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_Cond_Mapid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
+                    select count(gid)
                     from org_cond 
                     where 
-                        condtype::bigint = 2 and 
-                        mapid = ''
+                        condtype::bigint = 2 and mapid = ''
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cond_Condid(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_condid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(*)
+                    select count(gid)
                     from org_cond 
                     where 
-                        condtype::bigint = 2 and 
-                        condid = ''
+                        condtype::bigint = 2 and condid = ''
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cond_Crid(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_crid(platform.TestCase.CTestCase):
     def _do(self):
+        self.pg.CreateIndex_ByName('org_cond_crid_idx')
+        self.pg.CreateIndex_ByName('org_cr_crid_idx')
         sqlcmd = """
                     select count(b.crid)
                     from org_cond a
@@ -194,127 +58,267 @@ class CCheckOrg_Cond_Crid(platform.TestCase.CTestCase):
                         on a.crid = b.crid
                     where 
                         condtype::bigint = 2 and 
-                        a.crid <> '' and
-                        b.crid = ''
+                        a.crid != ''
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cond_Passage(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_passage(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(*)
+                    select count(gid)
                     from org_cond 
                     where 
                         condtype::bigint = 2 and 
-                        passage <> ''
+                        passage != '' 
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cond_Slope(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_slope(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(*)
+                    select count(gid)
                     from org_cond 
                     where 
                         condtype::bigint = 2 and 
-                        slope <> ''
+                        slope != '' 
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cond_Sgnl_Loction(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_sgnl_loction(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(*)
+                    select count(gid)
                     from org_cond 
                     where 
                         condtype::bigint = 2 and 
-                        sgnl_loction <> ''
+                        sgnl_loction != '' 
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cnl_Mapid(platform.TestCase.CTestCase):
+class CCheckOrg_Cond_mapid_condid(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateIndex_ByName('org_cond_mapid_condid_idx')
+        self.pg.CreateIndex_ByName('org_cnl_mapid_condid_idx')
+        sqlcmd = """
+                    select count(b.gid)
+                    from org_cond a
+                    left join org_cnl b
+                        on 
+                            a.mapid::bigint = b.mapid::bigint and
+                            a.condid::bigint = b.condid::bigint
+                    where 
+                        condtype::bigint = 2 and 
+                        b.gid IS NULL
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckOrg_Cnl_mapid_condid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(b.gid)
+                    from org_cond a
+                    left join org_cnl b
+                        on 
+                            a.mapid::bigint = b.mapid::bigint and
+                            a.condid::bigint = b.condid::bigint
+                    where 
+                        condtype::bigint = 2 and 
+                        (b.mapid = '' or
+                        b.condid = '')
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckOrg_Cnl_mapid_linkid(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateIndex_ByName('org_cnl_mapid_linkid_idx')
+        self.pg.CreateIndex_ByName('org_r_mapid_id_idx')
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select c.*
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        left join org_r c
+                            on
+                                b.mapid::bigint = c.mapid::bigint and
+                                b.linkid::bigint = c.id::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL and
+                            b.linkid != ''
+                    ) as d
+                    where gid IS NULL
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckOrg_Cnl_mapid_nodeid(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateIndex_ByName('org_cnl_mapid_nodeid_idx')
+        self.pg.CreateIndex_ByName('org_n_mapid_id_idx')
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select c.*
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        left join org_n c
+                            on
+                                b.mapid::bigint = c.mapid::bigint and
+                                b.nodeid::bigint = c.id::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL and
+                            b.nodeid != ''
+                    ) as d
+                    where gid IS NULL
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckOrg_Cnl_seq_nm(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(*)
-                    from org_cnl 
-                    where mapid = ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_Cnl_Condid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.condid)
-                    from org_cnl a
-                    left join org_cond b
-                        on 
-                            a.mapid = b.mapid and
-                            a.condid = b.condid 
-                    where b.condid = ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_Cnl_Linkid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.id)
-                    from org_cnl a
-                    left join org_r b
-                        on 
-                            a.mapid = b.mapid and
-                            a.linkid = b.id 
-                    where 
-                        a.linkid <> '' and 
-                        b.id = ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_Cnl_Nodeid(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(b.id)
-                    from org_cnl a
-                    left join org_n b
-                        on 
-                            a.mapid = b.mapid and
-                            a.nodeid = b.id 
-                    where 
-                        a.nodeid <> '' and 
-                        b.id = ''
-                 """
-        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
-        return (count_rec == 0)
-
-class CCheckOrg_Cnl_Seq_Nm(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                    select count(*)
-                    from org_cnl 
+                    from (
+                        select b.*
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL
+                    ) as c
                     where seq_nm = ''
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckOrg_Cnl_Angle(platform.TestCase.CTestCase):
+class CCheckOrg_Cnl_angle(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(*)
-                    from org_cnl 
+                    from (
+                        select b.*
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL
+                    ) as c
                     where 
-                        (seq_nm::bigint in (1, 2) and angle <> '') or
+                        (seq_nm::bigint in (1, 2) and angle != '') or
                         (seq_nm::bigint not in (1, 2) and angle = '')
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckForceGuideTableStruct(platform.TestCase.CTestCase):
+class CCheckOrg_Cnl_linkid_seq_nm(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select b.*
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL
+                    ) as c
+                    where 
+                        (seq_nm::bigint != 2 and linkid = '') or
+                        (seq_nm::bigint = 2 and linkid != '')
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckOrg_Cnl_nodeid_seq_nm(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select b.*
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL
+                    ) as c
+                    where
+                        seq_nm::bigint = 2 and nodeid = ''
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckOrg_Cnl_linkid_nodeid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select a.condid, c.* 
+                        from org_cond a
+                        left join org_cnl b
+                            on 
+                                a.mapid::bigint = b.mapid::bigint and
+                                a.condid::bigint = b.condid::bigint
+                        left join org_r c
+                            on
+                                b.mapid::bigint = c.mapid::bigint and
+                                b.linkid::bigint = c.id::bigint
+                        where 
+                            a.condtype::bigint = 2 and
+                            b.gid IS NOT NULL and 
+                            b.seq_nm::bigint = 1
+                    ) as d
+                    left join (
+                        select e.condid, g.*
+                        from org_cond e
+                        left join org_cnl f
+                            on
+                                e.mapid::bigint = f.mapid::bigint and
+                                e.condid::bigint = f.condid::bigint
+                        left join org_n g
+                            on 
+                                f.mapid::bigint = g.mapid::bigint and
+                                f.nodeid::bigint = g.id::bigint
+                        where 
+                            e.condtype::bigint = 2 and
+                            f.gid IS NOT NULL and
+                            f.seq_nm::bigint = 2 
+                    ) as h
+                        on 
+                            d.mapid::bigint = h.mapid::bigint and
+                            d.condid::bigint = h.condid::bigint
+                    where
+                        h.id not in (d.snodeid, d.enodeid)
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+    
+class CCheckForce_Guide_Tbl_TableStruct(platform.TestCase.CTestCase):
     def _do(self):
         return self.pg.IsExistTable('force_guide_tbl')
 

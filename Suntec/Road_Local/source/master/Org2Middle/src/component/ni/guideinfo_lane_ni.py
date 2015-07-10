@@ -54,6 +54,14 @@ class comp_guideinfo_lane_ni(component.component_base.comp_base):
         
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+        
+        sqlcmd= '''
+            delete from lane_Tbl where laneinfo=replace(laneinfo,'1','0')
+                '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
         return 0
 
 

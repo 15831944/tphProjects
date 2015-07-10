@@ -73,21 +73,23 @@ class comp_guideinfo_building_ni(component.component_base.comp_base):
         
         sqlcmd = """
                 insert into temp_poi_logmark
+                (
                 select a.poi_id, a.kind,tpc.u_code,a.display_x, a.display_y,a.the_geom
                 from org_poi as a
                 inner join temp_brand_icon as b
                 on a.chaincode = b.brandname
                 inner join temp_poi_category as tpc
                 on tpc.org_code=a.kind
-                order by poi_id::bigint
+
                 
-                --union
+                union
                 
-               -- select a.poi_id, a.kind,tpc.u_code,a.display_x, a.display_y,a.the_geom
-               -- from org_poi as a                
-                --inner join temp_poi_category as tpc
-                --on tpc.logmark = 'Y' and a.kind=tpc.org_code ;
-                                                
+               select a.poi_id, a.kind,tpc.u_code,a.display_x, a.display_y,a.the_geom
+               from org_poi as a                
+               inner join temp_poi_category as tpc
+               on tpc.logmark = 'Y' and a.kind=tpc.org_code 
+               --order by poi_id::bigint
+               );                                 
                 """
 
         self.pg.execute(sqlcmd)
@@ -129,54 +131,70 @@ class comp_guideinfo_building_ni(component.component_base.comp_base):
         if not component.default.multi_lang_name.MultiLangName.is_initialized():
             component.default.multi_lang_name.MultiLangName.initialize()
             
+
         sqlcmd = """
                 drop table if exists temp_poi_name_all_language;
                 create table temp_poi_name_all_language
                 as
-            (
-            select *
-                 from( 
+              (
                      select  a.poi_id,
                              b.name as poi_name,
-                             --b.language as language,
                              (case when b.language = '1'  then  'CHI'
                                    when b.language = '3'  then  'ENG' end) as language,
-                             b.language as name_id,  
-                             a.the_geom,
-                             c.name as phoneme
+                             b.language as name_id,
+                             (case when b.language = '1'  then  'office_name'
+                                   when b.language = '3'  then  'alter_name' end) as name_type,                             
+                             c.phontype as phoneme_lang,                                                          
+                             c.name as phoneme,
+                             a.the_geom
                     from temp_poi_logmark as a        
                     join org_pname as b
                     on b.featid = a.poi_id and b.nametype = '9' and b.seq_nm = '1'
-                    left join org_pname_phon as c
-                    on c.featid= a.poi_id and b.language = '1' and c.phontype='1' and c.seq_nm = '1'
+                    left join 
+                    (
+                    select featid,
+                        (case when array_length(phontype,1) = 1 then phontype[1]                              
+                             when array_length(phontype,1) = 2 then phontype[1]||'|'||phontype[2] end
+                        )as phontype,      
                         
-                    union
+                        (case when array_length(phontype,1) = 1 then name[1]
+                              when array_length(phontype,1) = 2 then name[1]||'|'||name[2] end
+                        )as "name"
+                    from(
+                        SELECT  featid, 
+                            array_agg(phontype) as phontype, 
+                            array_agg("name")as "name" 
+                         FROM  
+                            (
+                                select  featid, nametype, 
+                                        (case when phontype = '1' then 'PYM'
+                                             when phontype = '3' then 'PYN' end) as phontype, 
+                                        (case when "name" like '%|%'  then split_part(name,'|',1)
+                                        else "name" end) as "name", 
+                                        seq_nm
+                                from  org_pname_phon
+                                where seq_nm = '1' and phontype <> '2'
+                            ) as aa
+                        group by featid                               
+                      )as bb
  
-                    select  a.poi_id,
-                            c.name as poi_name,
-                            'CTN' as language,
-                            '2' as name_id,  
-                            a.the_geom,
-                            b.name as phoneme
-                    from temp_poi_logmark as a        
-                    join org_pname_phon as b
-                    on b.featid= a.poi_id and b.phontype='3' and b.seq_nm = '1' 
-                    join org_pname as c
-                    on c.featid = a.poi_id and c.nametype = '9' and c.language='1'and c.seq_nm = '1'                
-                    ) as k
-                   order by poi_id::bigint,name_id                
-                );     
+                    ) as c
+                    on c.featid= a.poi_id and b.language = '1'              
+            );     
                 """
-        self.pg.execute(sqlcmd)
+
+        self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
         
         sqlcmd = """
                 select  poi_id,
                     array_agg(name_id) as name_id_array,
+                    array_agg(name_type) as name_type_array,
                     array_agg(language) as language_code_array,
                     array_agg(poi_name) as name_array,
-                    array_agg(phoneme) as phonetic_string_array
+                    array_agg(phoneme_lang) as phonetic_language_array,
+                    array_agg(phoneme) as phoneme_array
                 from  temp_poi_name_all_language
                 group by poi_id
                 order by poi_id::bigint;
@@ -187,10 +205,12 @@ class comp_guideinfo_building_ni(component.component_base.comp_base):
         temp_file_obj = common.cache_file.open('poi_name')
         for asso_rec in asso_recs:
             poi_id = asso_rec[0]
-            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string(asso_rec[1], 
+            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[1], 
                                                                                                  asso_rec[2], 
                                                                                                  asso_rec[3], 
-                                                                                                 asso_rec[4])
+                                                                                                 asso_rec[4],
+                                                                                                 asso_rec[5], 
+                                                                                                 asso_rec[6])
             temp_file_obj.write('%d\t%s\n' % (int(poi_id), json_name))
         
         #

@@ -23,15 +23,7 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         return 0
     
     def _Do(self):
-        if self.CreateIndex2('org_cond_mapid_condid_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('org_cnl_mapid_condid_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('org_c_condtype_idx') == -1:
-            return -1
-        
+                
         self._make_mid_temp_force_guide_tbl()
         self._update_force_guide_tbl()
         
@@ -40,32 +32,18 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
     def _make_mid_temp_force_guide_tbl(self):
         
         self.log.info('Now it is making mid_temp_force_guide_tbl...')
+        if self.CreateIndex2('org_cond_mapid_condid_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('org_cnl_mapid_condid_idx') == -1:
+            return -1
+        
         if self.CreateTable2('mid_temp_force_guide_tbl') == -1:
             return -1
+        
         self.CreateFunction2('ni_update_mid_temp_force_guide_tbl')
         self.pg.callproc('ni_update_mid_temp_force_guide_tbl')
         self.pg.commit2()
-        
-        sqlcmd = """
-                insert into mid_temp_force_guide_tbl (
-                    nodeid, 
-                    inlinkid, 
-                    outlinkid, 
-                    passlink_cnt
-                )
-                select 
-                    id::bigint as nodeid, 
-                    inlinkid::bigint, 
-                    outlinkid::bigint, 
-                    0 as passlink_cnt
-                from (
-                    select *
-                    from org_c
-                    where condtype::bigint = 2
-                ) as c
-            """
-        
-        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making mid_temp_force_guide_tbl succeeded')
         return 0

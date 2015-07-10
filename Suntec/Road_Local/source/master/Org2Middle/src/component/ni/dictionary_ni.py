@@ -69,18 +69,15 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                 left join org_r_name b
                 on a.route_id = b.route_id
                 left join (
-                    select route_id,array_to_string(array_agg(pathname),'|') as phon
-                        ,array_to_string(array_agg(phontype),'|') as phon_language
+                    select route_id
+                        ,pathname as phon
+                        ,case when phontype = '1' then 'PYM'
+                            when phontype = '3' then 'PYT'
+                            else null
+                        end as phon_language 
                         ,'1'::text as phon_flag
-                    from (
-                        select route_id
-                            ,pathname
-                            ,case when phontype = '1' then 'PYM'
-                                when phontype = '3' then 'PYT'
-                                else null
-                            end as phontype 
-                        from org_r_phon where phontype in ('1','3')
-                    ) phon group by route_id
+                    from org_r_phon where phontype in ('1','3')
+                    order by phontype
                 ) c
                 on a.route_id = c.route_id and b.language = c.phon_flag
                 order by id,seq_nm,language,name_kind
@@ -139,18 +136,15 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                 left join org_r_name b
                 on a.route_id = b.route_id
                 left join (
-                    select route_id,array_to_string(array_agg(pathname),'|') as phon
-                        ,array_to_string(array_agg(phontype),'|') as phon_language
+                    select route_id
+                        ,pathname as phon
+                        ,case when phontype = '1' then 'PYM'
+                            when phontype = '3' then 'PYT'
+                            else null
+                        end as phon_language 
                         ,'1'::text as phon_flag
-                    from (
-                        select route_id
-                            ,pathname
-                            ,case when phontype = '1' then 'PYM'
-                                when phontype = '3' then 'PYT'
-                                else null
-                            end as phontype 
-                        from org_r_phon where phontype in ('1','3')
-                    ) phon group by route_id
+                    from org_r_phon where phontype in ('1','3')
+                    order by phontype
                 ) c
                 on a.route_id = c.route_id and b.language = c.phon_flag
                 where b.route_kind != '0'

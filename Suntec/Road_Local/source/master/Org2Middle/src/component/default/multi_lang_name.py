@@ -147,35 +147,33 @@ class MultiLangName(object):
     # It should be ordered by: 
     #    --> name_id,language_code,name_type,phonetic_language_code,phonetic_name
     # 
-    # If one name has two or more phonetic names, then these phonetic names shouled be joined by '|'.
+    # If one name has two or more phonetic names, then these phonetic names shouled be unfolded as following:
+    #    ---> {name1_lang1,name1_lang1,...} VS {phon_lang1,phon_lang2,...}
     #===============================================================================
+    
     def name_array_2_json_string_multi_phon(name_id_array, name_type_array, language_code_array, \
                     name_array, phonetic_lang_array, phonetic_string_array):
         objMultiLangName = MultiLangName()
         pre_name_id = None
-        for (name_id, name_type, language_code, name, phonetic_lang_list, phonetic_string_list) in zip(name_id_array, 
+        for (name_id, name_type, language_code, name, phonetic_lang, phonetic_string) in zip(name_id_array, 
                                                                    name_type_array,
                                                                    language_code_array, 
                                                                    name_array, 
                                                                    phonetic_lang_array,
                                                                    phonetic_string_array):
-#            print name_id, name_type, language_code, name, phonetic_lang_list, phonetic_string_list
+#            print name_id, name_type, language_code, name, phonetic_lang, phonetic_string
             if pre_name_id is None :
                 # offical name
                 objOneName = objMultiLangName
                 objOneName.setOfficalName(language_code, 
                                           name, 
                                           name_type)
-                if phonetic_string_list is not None and len(phonetic_string_list) > 0 :
-                    phonetic_lang_zip = phonetic_lang_list.split('|')
-                    phonetic_string_zip = phonetic_string_list.split('|')
-    
-                    for (phonetic_lang, phonetic_string) in zip(phonetic_lang_zip, phonetic_string_zip):
-                        objTTS = MultiLangName(phonetic_lang,
-                                               phonetic_string,
-                                               name_type,
-                                               TTS_TYPE_PHONEME)
-                        objOneName.add_tts(objTTS)
+                if phonetic_string is not None and len(phonetic_string) > 0 :
+                    objTTS = MultiLangName(phonetic_lang,
+                                           phonetic_string,
+                                           name_type,
+                                           TTS_TYPE_PHONEME)
+                    objOneName.add_tts(objTTS)
                         
             elif pre_name_id != name_id:
                 # alter name
@@ -184,16 +182,22 @@ class MultiLangName(object):
                                            name_type)
                 objMultiLangName.add_alter(objOneName)
                 
-                if phonetic_string_list is not None and len(phonetic_string_list) > 0:
-                    phonetic_lang_zip = phonetic_lang_list.split('|')
-                    phonetic_string_zip = phonetic_string_list.split('|')
-                                        
-                    for (phonetic_lang, phonetic_string) in zip(phonetic_lang_zip, phonetic_string_zip):
-                        objTTS = MultiLangName(phonetic_lang,
-                                               phonetic_string,
-                                               name_type,
-                                               TTS_TYPE_PHONEME)
-                        objOneName.add_tts(objTTS)
+                if phonetic_string is not None and len(phonetic_string) > 0:
+                    objTTS = MultiLangName(phonetic_lang,
+                                           phonetic_string,
+                                           name_type,
+                                           TTS_TYPE_PHONEME)
+                    objOneName.add_tts(objTTS)
+                    
+            elif pre_name_id == name_id and pre_lang == language_code:
+                # pass same name, add another tts.
+                if phonetic_string is not None and len(phonetic_string) > 0:
+                    objTTS = MultiLangName(phonetic_lang,
+                                           phonetic_string,
+                                           objOneName.get_name_type(),
+                                           TTS_TYPE_PHONEME)
+                    objOneName.add_tts(objTTS)
+                                                  
             else:
                 # trans name
                 objTransName = MultiLangName(language_code, 
@@ -201,18 +205,15 @@ class MultiLangName(object):
                                              objOneName.get_name_type())
                 objOneName.add_trans(objTransName)
                 
-                if phonetic_string_list is not None and len(phonetic_string_list) > 0:
-                    phonetic_lang_zip = phonetic_lang_list.split('|')
-                    phonetic_string_zip = phonetic_string_list.split('|')
-                                     
-                    for (phonetic_lang, phonetic_string) in zip(phonetic_lang_zip, phonetic_string_zip):
-                        objTTS = MultiLangName(phonetic_lang,
-                                               phonetic_string,
-                                               objOneName.get_name_type(),
-                                               TTS_TYPE_PHONEME)
-                        objTransName.add_tts(objTTS)
+                if phonetic_string is not None and len(phonetic_string) > 0:
+                    objTTS = MultiLangName(phonetic_lang,
+                                           phonetic_string,
+                                           objOneName.get_name_type(),
+                                           TTS_TYPE_PHONEME)
+                    objTransName.add_tts(objTTS)
             
             pre_name_id = name_id
+            pre_lang = language_code
  
         return objMultiLangName.json_format_dump()
     
