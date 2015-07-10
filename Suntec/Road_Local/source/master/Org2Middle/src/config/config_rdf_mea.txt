@@ -1,6 +1,5 @@
 #################################################################
 # proj_rdf
-junctionview_data=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4
 jv_flag=by_file
 gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\gjv.csv
 ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\all_jv.csv

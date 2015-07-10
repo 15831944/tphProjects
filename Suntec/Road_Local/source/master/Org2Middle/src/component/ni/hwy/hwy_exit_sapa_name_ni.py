@@ -1,25 +1,24 @@
 # -*- coding: UTF8 -*-
 '''
-Created on 2015��4��30��
+Created on 2015-4-30
 
 @author: PC_ZH
 '''
 from component.rdf.hwy.hwy_exit_poi_name_rdf import HwyPoiExitNameRDF
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
-from component.component_base import comp_base
 from common import cache_file
 
 LANG_CODE_DICT = {'1': 'CHI', '3': 'ENG'}
+
 
 class HwyExitSapaNameNi(HwyPoiExitNameRDF):
     ''' '''
     def __init__(self):
         ''' '''
-        HwyPoiExitNameRDF.__init__(self)
-        return
+        HwyPoiExitNameRDF.__init__(self, item_name='HwyExitSapaNameNi')
 
     def _DoCreateTable(self):
-        self.CreateTable2('mid_temp_hwy_exit_poi_name')
+        self.CreateTable2('mid_temp_hwy_exit_enter_poi_name_ni')
         return 0
 
     def _DoCreateIndex(self):
@@ -32,7 +31,6 @@ class HwyExitSapaNameNi(HwyPoiExitNameRDF):
         from component.default.dictionary import comp_dictionary
         dictionary = comp_dictionary()
         dictionary.set_language_code()
-
         self._make_exit_sapa_name()
         return 0
 
@@ -48,7 +46,7 @@ class HwyExitSapaNameNi(HwyPoiExitNameRDF):
 
             name_list = poi_name.split('|')
             lang_list = lang.split('|')
-            #以下！处理lang_code转换
+            # 以下！处理lang_code转换
             list_lan = list()
             for lan in lang_list:
                 list_lan.append(LANG_CODE_DICT[lan])
@@ -108,7 +106,6 @@ class HwyExitSapaNameNi(HwyPoiExitNameRDF):
         -- 8301: exit, 8302: enter, 8380: sa, 8381: PA
         WHERE org_poi.kind IN ('8301', '8302', '8380', '8381')
         ORDER BY node_id, poi_id
-
         '''
         return self.get_batch_data(sqlcmd)
 

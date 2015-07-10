@@ -17,12 +17,11 @@ DEFAULT_LANG_CODES = {'aus': 'ENG'}
 class HwySapaInfoTa(HwySapaInfoRDF):
     '''hwy sapa info'''
 
-    def __init__(self):
+    def __init__(self, ItemName='HwySapaInfoTa'):
         '''construct'''
-        HwySapaInfoRDF.__init__(self)
+        HwySapaInfoRDF.__init__(self, ItemName)
 
     def _DoCreateTalbe(self):
-        self.CreateIndex2('mid_temp_sapa_store_info')
         self.CreateIndex2('mid_temp_poi_link')
         self.CreateIndex2('mid_temp_hwy_sapa_name')
         self.CreateTable2('hwy_chain_name')
@@ -56,23 +55,32 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         return 0
 
     def _make_hwy_sapa_store_info(self):
-#         self.log.info('Make mid_temp_hwy_sapa_info')
-#         sqlcmd = '''
-#         INSERT INTO mid_temp_sapa_store_info(poi_id, child_poi_id, cat_id)
-#         (
-#             SELECT pr.belpoiid, pr.poiid, pr.poityp
-#             FROM org_pipr AS pr
-#         )
-#         '''
-#         self.pg.execute2(sqlcmd)
-#         self.pg.commit2()
-#         self.log.info('End make mid_temp_hwy_sapa_info')
         return 0
 
     def _group_poi_trans_name(self):
         return 0
 
     def _make_hwy_store_name(self):
+        slqcmd = """
+        INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
+                                   chain_id, chain_name, language_code)
+        (
+        SELECT distinct ucode, a.feattyp as cat, a.subcat,
+                        '' as store_chain_id, a.brandname, lancd
+          FROM (
+            SELECT distinct feattyp, subcat,
+                    brandname, lancd
+              FROM org_mnpoi_pi
+              WHERE brandname is not null and  brandname <> ''
+          ) AS a
+          LEFT JOIN temp_poi_logmark as b
+          ON a.feattyp = b.feattyp
+             and a.subcat = b.subcat
+             and a.brandname = b.brandname
+        );
+        """
+        self.pg.execute2(slqcmd)
+        self.pg.commit2()
         return 0
 
     def _make_hwy_sapa_name(self):

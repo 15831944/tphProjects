@@ -554,6 +554,9 @@ class HwyDataMngRDF(component.component_base.comp_base):
                     self._graph.add_node(e_node, data)
 
     def load_junction_name(self):
+        if not self.pg.IsExistTable('mid_temp_hwy_exit_name'):
+            self.log.error('No table mid_temp_hwy_exit_name')
+            return 0
         '''加载出口番号'''
         # 下面的SQL代码时临时
         sqlcmd = """

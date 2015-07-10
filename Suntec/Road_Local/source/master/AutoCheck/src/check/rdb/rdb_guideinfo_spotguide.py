@@ -161,6 +161,8 @@ class CCheckGuideSpotguidePasslinkCnt_special(platform.TestCase.CTestCase):
         """
         self.pg.execute(sqlcmd)
         row2 = self.pg.fetchone()
+        # 当rdb表里的数据与中间表的数据差距超过50条时，报错。
+        # 此情形对应的实际情况是未能找到illust图的条数超过： 50。
         if row1[0] < row2[0] - 50:
             return False
         return True

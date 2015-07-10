@@ -1,11 +1,11 @@
 #################################################################
 # proj_rdf
 jv_flag=by_file
-gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust_without_sar\gjv.csv
-ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust_without_sar\all_jv.csv
-strInterestCountryList=ARE,BHR,KWT,OMN,QAT,SAU
-sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust_without_sar\sign_as_real.csv
+gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust\gjv.csv
+ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust\all_jv.csv
+strInterestCountryList=SGP,THA,MYS,IDN,VNM,PHL
+sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\force_guide_patch\temp_patch_force_guide_tbl.csv
-all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\all_sar_files_name.csv
+all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust\all_sar_files_name.csv
 #################################################################

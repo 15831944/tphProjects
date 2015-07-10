@@ -202,3 +202,29 @@ CREATE INDEX temp_node_mapping_new_node_id_idx
   ON temp_node_mapping
   USING btree
   (new_node_id);
+
+-----------------------------------------------------
+CREATE INDEX org_poi_poi_id_idx
+  ON org_poi
+  USING btree
+  (poi_id);
+
+-----------------------------------------------------
+CREATE INDEX org_poi_linkid_idx
+  ON org_poi
+  USING btree
+  (linkid);
+
+-----------------------------------------------------
+CREATE INDEX org_poi_linkid_idx2
+  ON org_poi
+  USING btree
+  ((linkid::bigint));
+
+-----------------------------------------------------
+CREATE INDEX org_n_the_geom_idx
+  ON org_n
+  USING gist
+  (the_geom);
+ 
+

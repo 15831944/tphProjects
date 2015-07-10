@@ -165,6 +165,7 @@ CREATE TABLE signpost_tbl
   namekind smallint,
   guideclass smallint,
   sp_name character varying(1024),
+  is_pattern boolean default false,
   patternno character varying(128),
   arrowno character varying(128)
 );
@@ -368,6 +369,26 @@ CREATE TABLE temp_link_ramp_single_path
   new_fc smallint
 );
 
+CREATE TABLE temp_link_ramp_toohigh
+(
+  link_id bigint NOT NULL,
+  new_road_type smallint not null ,
+  new_fc smallint,
+  CONSTRAINT temp_link_ramp_toohigh_pkey PRIMARY KEY (link_id)
+);
+
+CREATE TABLE temp_link_ramp_toohigh_single_path
+(
+  link_id bigint NOT NULL,
+  new_road_type smallint not null ,
+  new_fc smallint
+);
+
+CREATE TABLE temp_update_ramp_link_node
+(
+	link_id bigint,
+	node_id bigint
+);
 
 create table temp_merge_node_keep
 as
@@ -2416,8 +2437,9 @@ CREATE TABLE mid_temp_sapa_store_info
 (
   poi_id             bigint not null,
   child_poi_id       bigint not null,
-  chain_id           bigint ,
+  chain_id           character varying(13),
   cat_id             bigint not null,
+  subcat             bigint,
   chain_name         character varying
 );
 
@@ -2437,18 +2459,23 @@ CREATE TABLE hwy_store
   road_code         INTEGER NOT NULL,
   road_seq          INTEGER NOT NULL,
   updown_c          INTEGER NOT NULL,
-  store_cat_id      INTEGER NOT NULL,
-  store_chain_id    INTEGER
+  store_cat_id      character varying(4) DEFAULT '' NOT NULL,  -- '': No category
+  sub_cat           character varying(8) DEFAULT '' NOT NULL,  -- '': No sub category
+  store_chain_id    character varying(13) DEFAULT '' NOT NULL, -- '': No chain id
+  chain_name        character varying(254) DEFAULT ''
 );
 
 ------------------------------------------------------------------------
 -- chain name or store name
 CREATE TABLE hwy_chain_name
 (
-  gid              serial not null primary key,
-  store_chain_id   bigint not null,
-  name             character varying(100),
-  language_code    character(3)
+  gid               serial not null primary key,
+  u_code            bigint,
+  cat_id            character varying(4) DEFAULT '' NOT NULL,   -- '': No category
+  sub_cat           character varying(8) DEFAULT '' NOT NULL,   -- '': No sub category
+  chain_id          character varying(13) DEFAULT '' NOT NULL,  -- '': No chain id
+  chain_name        character varying(254),
+  language_code     character(3)
 );
 
 ------------------------------------------------------------------------
@@ -2536,14 +2563,6 @@ as
 (
 	select * from stopsign_tbl
 );
-
-------------------------------------------------------------------------
-CREATE TABLE temp_node_z_tbl
-(
- guide_type bigint not null,
- the_geom_list geometry[],
- z_level_list smallint[]
-); 
 
 ------------------------------------------------------------------------
 CREATE TABLE temp_force_guide_patch_node_tbl

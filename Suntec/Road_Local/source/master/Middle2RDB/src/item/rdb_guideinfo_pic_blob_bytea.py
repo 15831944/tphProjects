@@ -40,6 +40,8 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         self.__load_illust_pic()
         self.__load_point_list()
         
+        # 建立临时表，按data字段进行去重。
+        self.prepareTempTableForDumpPics()
         return 0
     
     def __load_illust_pic(self):
@@ -110,6 +112,29 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
             rdb_log.log(self.ItemName, 'fail to load pointlist %s.' % filepath, 'error')
             return -1
         return 0
+    
+    # 图片去重操作
+    def prepareTempTableForDumpPics(self):
+        self.CreateTable2('temp_guideinfo_pic_blob_id_mapping')
+        sqlcmd = '''
+                insert into temp_guideinfo_pic_blob_id_mapping(gid, image_id)
+                select a[1], unnest(b)
+                from(
+                    select array_agg(gid) as a, array_agg(image_id) as b 
+                    from rdb_guideinfo_pic_blob_bytea 
+					group by data 
+					order by data
+                    ) as c;
+                    
+                drop index if exists temp_guideinfo_pic_blob_id_mapping_image_id_idx;
+                create index temp_guideinfo_pic_blob_id_mapping_image_id_idx
+                on temp_guideinfo_pic_blob_id_mapping
+                using btree
+                (image_id);
+                '''
+        self.pg.execute2(sqlcmd)
+        return
+
     
 class rdb_guideinfo_pic_binary(ItemBase):
     def __init__(self):

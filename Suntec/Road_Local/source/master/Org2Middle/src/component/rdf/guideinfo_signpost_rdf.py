@@ -51,9 +51,9 @@ class comp_guideinfo_signpost_rdf(comp_base):
     def _make_temp_sign_as_real_tbl(self):
         insert_sqlcmd = """
             insert into signpost_tbl(
-                nodeid,inlinkid,patternno,passlink_cnt
+                nodeid,inlinkid,patternno,passlink_cnt,is_pattern
                 )
-                VALUES (%s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s)
             """
         #姹傝妭鐐�
         sqlcmd = '''
@@ -78,15 +78,15 @@ class comp_guideinfo_signpost_rdf(comp_base):
                     self.log.error('Error record,can not get direction!!!')
                     continue
                 elif one_way_code == 2:
-                    self.pg.execute2(insert_sqlcmd, (row[3],inlinkid,filename,0))
+                    self.pg.execute2(insert_sqlcmd, (row[3],inlinkid,filename,0,True))
                 elif one_way_code == 3:
-                    self.pg.execute2(insert_sqlcmd, (row[2],inlinkid,filename,0))
+                    self.pg.execute2(insert_sqlcmd, (row[2],inlinkid,filename,0,True))
                 else:
                     pass
             elif flag == 'R':
-                self.pg.execute2(insert_sqlcmd, (row[2],inlinkid,filename,0))
+                self.pg.execute2(insert_sqlcmd, (row[2],inlinkid,filename,0,True))
             else:
-                self.pg.execute2(insert_sqlcmd, (row[3],inlinkid,filename,0))
+                self.pg.execute2(insert_sqlcmd, (row[3],inlinkid,filename,0,True))
         self.pg.commit2()
 
     def _makeSignpost_CHN(self):
@@ -97,7 +97,7 @@ class comp_guideinfo_signpost_rdf(comp_base):
             sqlcmd = """
             insert into signpost_tbl(nodeid, inlinkid, outlinkid,
                 passlid,passlink_cnt,direction,
-                guideattr,namekind,guideclass,patternno,arrowno,sp_name)
+                guideattr,namekind,guideclass,patternno,arrowno,sp_name,is_pattern)
             (
                 select all_nodes[1] as nodeid, all_links[1] as inlinkid,
                             all_links[all_link_cnt] as outlinkid,
@@ -109,7 +109,8 @@ class comp_guideinfo_signpost_rdf(comp_base):
                         0 as namekind,0 as guideclass,
                         pattern as patternno,
                         arrow as arrowno,
-                        null as sp_name 
+                        null as sp_name,
+                        true as is_pattern
                 from
                 (
                   select A.*, array_upper(all_links,1) as all_link_cnt

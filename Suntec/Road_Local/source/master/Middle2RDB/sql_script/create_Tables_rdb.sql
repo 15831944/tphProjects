@@ -87,12 +87,11 @@ CREATE TABLE rdb_guideinfo_pic_blob_bytea
   CONSTRAINT rdb_guideinfo_pic_blob_bytea_pkey PRIMARY KEY (gid)
 );
 
-CREATE TABLE temp_guideinfo_pic_blob_image_id_map
+CREATE TABLE temp_guideinfo_pic_blob_id_mapping
 (
-  gid serial NOT NULL,
-  ori_gid bigint,
+  gid bigint,
   image_id character varying,
-  CONSTRAINT temp_guideinfo_pic_blob_image_id_map_pkey PRIMARY KEY (gid)
+  CONSTRAINT temp_guideinfo_pic_blob_id_mapping_pkey PRIMARY KEY (image_id)
 );
 
 CREATE TABLE rdb_guideinfo_signpost
@@ -106,6 +105,7 @@ CREATE TABLE rdb_guideinfo_signpost
   out_link_id_t integer,
   sp_name character varying(1024),
   passlink_count smallint NOT NULL,
+  is_pattern boolean default false,
   pattern_id integer NOT NULL,
   arrow_id integer,
   CONSTRAINT rdb_guideinfo_signpost_pkey PRIMARY KEY (gid)
@@ -619,6 +619,7 @@ CREATE TABLE rdb_guideinfo_signpost_client
   out_link_id_t integer,
   sp_name character varying(1024),
   passlink_count smallint,
+  is_pattern boolean default false,
   pattern_id integer,
   arrow_id integer,
   CONSTRAINT rdb_guideinfo_signpost_client_pkey PRIMARY KEY (guideinfo_id)
@@ -1562,7 +1563,8 @@ CREATE TABLE rdb_link_with_all_attri_view
   hwy_flag               smallint NOT NULL DEFAULT 0,
   abs_link_id			 integer NOT NULL DEFAULT 0,
   s_sequence_link_id		 bigint NOT NULL DEFAULT -1,
-  e_sequence_link_id		 bigint NOT NULL DEFAULT -1
+  e_sequence_link_id		 bigint NOT NULL DEFAULT -1,
+  forecast_flag			 boolean
 );SELECT AddGeometryColumn('','rdb_link_with_all_attri_view','the_geom','4326','LINESTRING',2);
 
 ----------------------------------------------------------
@@ -2118,4 +2120,95 @@ CREATE TABLE rdb_guideinfo_safety_zone
   speedunit_code smallint,
   direction smallint,
   safety_type smallint
+);
+
+--- Forecast data.
+CREATE TABLE rdb_forecast_link
+(
+  link_id bigint,
+  dir smallint,
+  free_time smallint,
+  weekday_time smallint,
+  weekend_time smallint,
+  average_time smallint,
+  info_id integer,
+  type smallint
+);
+
+CREATE TABLE rdb_forecast_control
+(
+  info_id integer,
+  weather_type smallint,
+  day_type smallint,
+  start_day smallint,
+  end_day smallint,
+  time_id_weekday integer,  
+  time_id_weekend integer  
+);
+
+CREATE TABLE rdb_forecast_time
+(
+  time_id integer,
+  time_slot smallint,
+  time smallint
+);
+
+CREATE TABLE rdb_region_forecast_link_layer6
+(
+  link_id bigint,
+  dir smallint,
+  free_time smallint,
+  weekday_time smallint,
+  weekend_time smallint,
+  average_time smallint,
+  info_id integer,
+  type smallint
+);
+
+CREATE TABLE rdb_region_forecast_control_layer6
+(
+  info_id integer,
+  weather_type smallint,
+  day_type smallint,
+  start_day smallint,
+  end_day smallint,
+  time_id_weekday integer,  
+  time_id_weekend integer  
+);
+
+CREATE TABLE rdb_region_forecast_time_layer6
+(
+  time_id integer,
+  time_slot smallint,
+  time smallint
+);
+
+CREATE TABLE rdb_region_forecast_link_layer4
+(
+  link_id bigint,
+  dir smallint,
+  free_time smallint,
+  weekday_time smallint,
+  weekend_time smallint,
+  average_time smallint,
+  info_id integer,
+  type smallint
+);
+
+CREATE TABLE rdb_region_forecast_control_layer4
+(
+  info_id integer,
+  weather_type smallint,
+  day_type smallint,
+  start_day smallint,
+  end_day smallint,
+  time_id_weekday integer,  
+  time_id_weekend integer  
+);
+
+CREATE TABLE rdb_region_forecast_time_layer4
+(
+  time_id integer,
+  time_slot smallint,
+  time smallint
 );

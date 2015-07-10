@@ -96,40 +96,34 @@ class comp_node_ni(component.component_base.comp_base):
         
         sqlcmd = '''
                 insert into temp_node_z_level_tbl(node_id, z_level)
-                select (
-                    case
-                        when seq_nm = 0 then snodeid
-                        when seq_nm = link_pc - 1 then enodeid
-                    end
-                    ) as node_id, z as z_level
+                select 
+                    (case when seq_nm::bigint = 0 then snodeid else snodeid end)::bigint as node_id, 
+                    z::smallint as z_level
                 from (
-                    select seq_nm::smallint, z::smallint, snodeid::bigint, enodeid::bigint, ST_NumPoints(m.the_geom) as link_pc
+                    select e.*
                     from (
-                        select k.*
+                        select *
                         from (
-                            select gid_array
-                            from (
-                                select array_agg(gid) as gid_array, array_agg(id) as id_array
-                                from (
-                                    select *
-                                    from org_z_level
-                                    where linktype = '1'
-                                ) h
-                                group by level_id::bigint
-                                order by level_id::bigint
-                            ) i
+                            select array_agg(a.gid) as gid_array
+                            from org_z_level a
+                            left join org_r b
+                            on a.mapid = b.mapid and a.id = b.id
+                            where 
+                                (b.gid is not null) and 
+                                (linktype = '1') and 
+                                ((seq_nm::smallint = 0) or (seq_nm::smallint = (ST_NumPoints(b.the_geom) - 1)))
+                            group by level_id::bigint
+                            order by level_id::bigint
+                            ) c
                             where array_upper(gid_array, 1) > 1
-                        ) j
-                        left join org_z_level k
-                            on k.gid = ANY(gid_array)
-                    ) l
-                    left join org_r m
-                        on l.mapid = m.mapid and  l.id = m.id
-                    where m.gid is not null
-                ) n
-                where seq_nm = 0 or seq_nm = link_pc - 1
-        '''
-        
+                        ) d
+                        left join org_z_level e
+                        on e.gid = any(gid_array)
+                    ) f
+                    left join org_r g
+                    on f.mapid = g.mapid and f.id = g.id
+                where g.gid is not null
+                '''
         
         self.log.info('updating temp_node_z_level_tbl succeeded')
         return 0

@@ -62,7 +62,8 @@ class rdb_guideinfo_signpost_client(ItemBase):
           sp_name,
           passlink_count,
           pattern_id,
-          arrow_id) 
+          arrow_id,
+          is_pattern) 
         (
             select rdb_split_tileid(in_link_id),
                    in_link_id_t,
@@ -73,7 +74,8 @@ class rdb_guideinfo_signpost_client(ItemBase):
                    sp_name, 
                    passlink_count,  
                    pattern_id,  
-                   arrow_id
+                   arrow_id,
+                   is_pattern
             from rdb_guideinfo_signpost
             order by gid
         )

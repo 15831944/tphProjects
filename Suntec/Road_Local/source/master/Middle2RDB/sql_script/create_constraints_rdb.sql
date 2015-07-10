@@ -1568,3 +1568,20 @@ CREATE INDEX rdb_name_name_id_idx
   ON rdb_name
   USING btree
   (name_id);
+-------------------------------------------------------------
+CREATE INDEX rdb_forecast_link_link_id_idx1
+  ON rdb_forecast_link
+  USING btree
+  (link_id);
+CREATE INDEX rdb_forecast_control_info_id_idx1
+  ON rdb_forecast_control
+  USING btree
+  (info_id);
+CREATE INDEX rdb_forecast_time_time_id_idx1
+  ON rdb_forecast_time
+  USING btree
+  (time_id);
+CREATE INDEX rdb_forecast_time_time_slot_idx1
+  ON rdb_forecast_time
+  USING btree
+  (time_slot);  

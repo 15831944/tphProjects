@@ -42,11 +42,11 @@ class HwyFacilityRDF(component.component_base.comp_base):
     '''生成设施情报
     '''
 
-    def __init__(self, data_mng):
+    def __init__(self, data_mng, ItemName='HwyFacilityRDF'):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Highway_Facility')
+        component.component_base.comp_base.__init__(self, ItemName)
         self.hwy_data = data_mng
         self.G = None
         if self.hwy_data:
@@ -62,7 +62,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self._make_facil_name()  # 设施名称
         self._make_hwy_node()
         self._make_facil_same_info()  # 并设情报
-        self._make_hwy_store()  # 店铺 情报
+        self._make_hwy_store()  # 店铺情报
         self._make_hwy_service()  # 服务情报
 
     def _make_ic_path(self):
@@ -331,20 +331,25 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.CreateTable2('mid_temp_hwy_sapa_info')
         for data in self._get_rest_area_info():
             road_code, road_seq, poi_id, rest_area_type, name = data
-            if rest_area_type:
-                facil_cls = SAPA_TYPE_DICT.get(rest_area_type)
-                if not facil_cls:
-                    self.log.error('Unknown Rest Area type. poi_id=%s,'
-                                   'rest_area_type' % (poi_id, rest_area_type))
-                    continue
-            else:
-                facil_cls = HWY_IC_TYPE_PA
+            facil_cls = self._get_sapa_type(rest_area_type)
+            if not facil_cls:
+                self.log.error('Unknown Rest Area type. poi_id=%s,'
+                               'rest_area_type=%s' % (poi_id, rest_area_type))
+                continue
             self._store_sapa_info(road_code, road_seq,
                                   facil_cls, poi_id, name)
         self.pg.commit1()
         self._update_sapa_facilcls()
         self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_road_seq_idx')
         self.log.info('End Make SAPA Info.')
+
+    def _get_sapa_type(self, rest_area_type):
+        facil_cls = None
+        if rest_area_type:
+            facil_cls = SAPA_TYPE_DICT.get(rest_area_type)
+        else:
+            facil_cls = HWY_IC_TYPE_PA
+        return facil_cls
 
     def _deal_with_uturn(self):
         '''处理U-turn
@@ -689,7 +694,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
                               store_cat_id, store_chain_id)
         (
         SELECT distinct road_code, road_seq, 1 as updown_c,
-                        cat_id, b.chain_id
+                        '' as cat_id, b.chain_id
           FROM mid_temp_hwy_sapa_info as a
           LEFT JOIN mid_temp_sapa_store_info as b
           ON a.poi_id = b.poi_id

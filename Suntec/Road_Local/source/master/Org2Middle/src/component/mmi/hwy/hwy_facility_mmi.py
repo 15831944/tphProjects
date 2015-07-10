@@ -11,11 +11,11 @@ class HwyFacilityMmi(HwyFacilityRDF):
     '''生成设施情报(MMI)
     '''
 
-    def __init__(self, data_mng):
+    def __init__(self, data_mng, ItemName='HwyFacilityMmi'):
         '''
         Constructor
         '''
-        HwyFacilityRDF.__init__(self, data_mng)
+        HwyFacilityRDF.__init__(self, data_mng, ItemName)
 
     def _get_rest_area_info(self):
         '''取得服'''

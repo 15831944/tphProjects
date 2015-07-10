@@ -20,25 +20,25 @@ class HwyLinkMappingNi(HwyLinkMapping):
 
     def _make_link_id_mapping(self):
         '''原始link和middle link对应表'''
-#         sqlcmd = """
-#         INSERT INTO mid_link_mapping(org_link_id, link_id)
-#         (
-#         SELECT a.link_id as org_link_id,
-#               (case
-#                when merge.link_id is not null then merge.link_id
-#                when split.link_id is not null then split.link_id
-#                else a.link_id
-#               end) as mid_link_id
-#         FROM temp_rdf_nav_link as a
-#         left join temp_split_newlink as split
-#         on a.link_id = split.old_link_id
-#         left join temp_merge_link_mapping as merge
-#         on (split.link_id = merge.merge_link_id) or
-#            (a.link_id = merge.merge_link_id)
-#         );
-#         """
-#         self.pg.execute2(sqlcmd)
-#         self.pg.commit2()
+        sqlcmd = """
+        INSERT INTO mid_link_mapping(org_link_id, link_id)
+        (
+        SELECT a.id::bigint as org_link_id,
+              (case
+               when merge.link_id is not null then merge.link_id
+               when split.link_id is not null then split.link_id
+               else a.id::bigint
+              end) as mid_link_id
+        FROM org_r as a
+        left join temp_split_newlink as split
+        on a.id::bigint = split.old_link_id
+        left join temp_merge_link_mapping as merge
+        on (split.link_id = merge.merge_link_id) or
+           (a.id::bigint = merge.merge_link_id)
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         pass
 
     def _check_mid_link_id_mapping(self):

@@ -2644,14 +2644,15 @@ class rdb_traffic_region():
         --- if there's two consecutive links which share a same linkid, but have different fraction,
         --- set the prior's ctn_flag = 0.                
         update rdb_region_trf_org2rdb_layer%X set ctn_flag = 0 
-        from rdb_region_trf_org2rdb_layer%X b
+        from rdb_region_trf_org2rdb_layer%X b,rdb_region_link_layer%X_tbl c
         where rdb_region_trf_org2rdb_layer%X.area_code = b.area_code 
         and rdb_region_trf_org2rdb_layer%X.extra_flag = b.extra_flag 
         and rdb_region_trf_org2rdb_layer%X.infra_id = b.infra_id 
         and rdb_region_trf_org2rdb_layer%X.dir = b.dir 
         and rdb_region_trf_org2rdb_layer%X.group_id = b.group_id 
         and rdb_region_trf_org2rdb_layer%X.rdb_link_id = b.rdb_link_id 
-        and rdb_region_trf_org2rdb_layer%X.seq = b.seq - 1;
+        and rdb_region_trf_org2rdb_layer%X.seq = b.seq - 1
+        and rdb_region_trf_org2rdb_layer%X.rdb_link_id = c.link_id and not ST_IsRing(c.the_geom);
         
         --- drop unused column.
         alter table rdb_region_trf_org2rdb_layer%X drop column infra_len;

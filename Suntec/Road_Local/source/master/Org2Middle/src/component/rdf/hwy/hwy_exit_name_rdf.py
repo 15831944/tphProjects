@@ -14,11 +14,11 @@ class HwyExitNameRDF(comp_base):
     '''
     vce_language_code_map = None
 
-    def __init__(self):
+    def __init__(self, item_name='HwyExitNameRDF'):
         '''
         Constructor
         '''
-        comp_base.__init__(self, 'HwyExitName')
+        comp_base.__init__(self, item_name)
 
     def _DoCreateTable(self):
         # component.dictionary.comp_dictionary._DoCreateTable(self)

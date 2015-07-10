@@ -3,11 +3,10 @@
 #proj_name=rdf
 #proj_country=hkg
 #junctionview_data=\\172.26.179.195\share\SourceData\AP_rdf\HKGMAC\14Q1
-jv_flag=by_file
-gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\gjv.csv
-ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\all_jv.csv
-all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\all_sar_files_name.csv
-strInterestCountryList=ARE,BHR,KWT,OMN,QAT,SAU
+#jv_flag=by_file
+#gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\gjv.csv
+#ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\all_jv.csv
+#strInterestCountryList=ARE,BHR,KWT,OMN,QAT,SAU
 #sign_as_real_path=\\172.26.179.195\share\SourceData\MEA_rdf\MEA8\14Q3\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv

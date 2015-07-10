@@ -135,14 +135,22 @@ class CCheckPatternID(CCheckSignPost):
                       where a.patternno::integer <> b.pattern_id;
                     """
         else:            # 非日本版 
+            # 由于图片已经进行去重处理，故由gid已无法一一对应到图片。
+            # 只能根据图片是否相同来判断是否符合逻辑要求。
+            # 现判断逻辑：
+            # 根据signpost_tbl.patternno可以从pic_blob表中找到一张图片。
+            # 根据rdb_guideinfo_signpost.pattern_id可以从pic_blob表中找到一张图片。
+            # 这两张图片的内容必须完全相同，如存在不同，报错。
             sqlcmd = """
-                    SELECT count(a.gid)
+                    SELECT count(*)
                       FROM signpost_tbl as a
-                      LEFT JOIN rdb_guideinfo_signpost as b
+                      left join rdb_guideinfo_signpost as b
                       ON a.gid = b.gid
                       left join rdb_guideinfo_pic_blob_bytea as c
-                      on b.pattern_id = c.gid
-                      where lower(a.patternno) <> lower(c.image_id);
+                      on a.patternno = c.image_id
+                      left join rdb_guideinfo_pic_blob_bytea as d
+                      on b.pattern_id = d.gid
+                      where c.data <> d.data;
                 """
         self.pg.query(sqlcmd)
         row = self.pg.fetchone()
@@ -167,14 +175,48 @@ class CCheckArrowID(CCheckSignPost):
                       where a.arrowno::integer <> b.arrow_id;
                     """
         else:     # 非日本版 
+            # 由于图片已经进行去重处理，故由gid已无法一一对应到图片。
+            # 只能根据图片是否相同来判断是否符合逻辑要求。
+            # 现判断逻辑：
+            # 根据spotguide_tbl.arrowno可以从pic_blob表中找到一张图片。
+            # 根据rdb_guideinfo_spotguide.arrow_id可以从pic_blob表中找到一张图片。
+            # 这两张图片的内容必须完全相同，如存在不同，报错。
             sqlcmd = """
-                    SELECT count(a.gid)
+                    SELECT count(*)
                       FROM signpost_tbl as a
-                      LEFT JOIN rdb_guideinfo_signpost as b
+                      left join rdb_guideinfo_signpost as b
                       ON a.gid = b.gid
                       left join rdb_guideinfo_pic_blob_bytea as c
-                      on b.arrow_id = c.gid
-                      where lower(a.arrowno) <> lower(c.image_id);
+                      on a.arrowno = c.image_id
+                      left join rdb_guideinfo_pic_blob_bytea as d
+                      on b.arrow_id = d.gid
+                      where c.data <> d.data;
+                """
+        self.pg.query(sqlcmd)
+        row = self.pg.fetchone()
+        if row:
+            if row[0] != 0: 
+                return False
+            else:
+                return True
+        return False
+    
+class CCheckIsPattern(CCheckSignPost):
+    '''Arrow_id(日本版和中国版不同)。'''
+    def _do(self):
+        if self._isNone() == True: return True  # 没有记录
+        # 判断版本
+        if self._isJP() == True:# 日本版 
+            sqlcmd = """
+                    SELECT count(gid)
+                      FROM rdb_guideinfo_signpost
+                      where is_pattern is true;
+                    """
+        else:     # 非日本版 
+            sqlcmd = """
+                    SELECT count(gid)
+                      FROM rdb_guideinfo_signpost
+                      where is_pattern is false;
                 """
         self.pg.query(sqlcmd)
         row = self.pg.fetchone()

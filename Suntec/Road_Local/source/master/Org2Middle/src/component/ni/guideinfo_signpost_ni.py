@@ -32,10 +32,10 @@ class comp_guideinfo_signpost_ni(comp_base):
         signpost_tbl_insert_sqlcmd = '''
                                         insert into signpost_tbl(nodeid, inlinkid, outlinkid,
                                                                  passlid, passlink_cnt, patternno, 
-                                                                 arrowno)
+                                                                 arrowno, is_pattern)
                                         VALUES (%s, %s, %s,
                                                 %s, %s, %s, 
-                                                %s)
+                                                %s, %s)
                                     '''
         # 四维提供的协议所做的demo版本。
         # 由于没有元数据表，具体还需要等signpost协议到了以后进行调整
@@ -81,7 +81,7 @@ class comp_guideinfo_signpost_ni(comp_base):
             self.pg.execute2(signpost_tbl_insert_sqlcmd, 
                              (nodeid, inlinkid, outlinkid,
                               totalPasslid, totalPasslidCount, fixedPatternno, 
-                              fixedArrowno))
+                              fixedArrowno, True))
         self.pg.commit2()
         return
     

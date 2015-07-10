@@ -282,3 +282,13 @@ CREATE TABLE temp_node_z_level_tbl
  node_id bigint NOT NULL PRIMARY KEY,
  z_level smallint default 0
 ); 
+
+------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_exit_enter_poi_name_ni
+(
+   node_id         bigint not null primary key,
+   poi_id          bigint not null,
+   kind            character varying(8) not null,     -- Enter/Exit
+   name            character varying(1024) not null   --JSON
+);

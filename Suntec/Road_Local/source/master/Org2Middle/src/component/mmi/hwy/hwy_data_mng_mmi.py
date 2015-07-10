@@ -16,7 +16,7 @@ class HwyDataMngMMi(HwyDataMngRDF):
         '''
         Constructor
         '''
-        HwyDataMngRDF.__init__(self)
+        HwyDataMngRDF.__init__(self, ItemName='HwyDataMngMMi')
 
     @staticmethod
     def instance():

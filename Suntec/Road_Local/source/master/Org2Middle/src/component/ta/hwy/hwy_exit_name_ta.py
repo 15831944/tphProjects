@@ -15,11 +15,11 @@ IS_Motorway_Interchange = 2
 
 class HwyExitNameTa(HwyExitNameRDF):
     '''exit name tomtom'''
-    def __init__(self):
+    def __init__(self, item_name='HwyExitNameTa'):
         '''
         Constructor
         '''
-        HwyExitNameRDF.__init__(self)
+        HwyExitNameRDF.__init__(self, item_name)
 
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_exit_name_ta')

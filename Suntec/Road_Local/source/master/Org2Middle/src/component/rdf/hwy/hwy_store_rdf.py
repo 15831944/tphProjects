@@ -24,6 +24,7 @@ class HwyStoreRDF(HwyStore):
         self._make_store_info()
         self._make_store_picture()
         self._make_store_name()
+        self._check_store_kind()
 
     def _make_store_info(self):
         sqlcmd = """
@@ -37,7 +38,7 @@ class HwyStoreRDF(HwyStore):
                                        )
         (
         SELECT distinct ic_no, 0 as bis_time_flag, 0 as bis_time_num,
-               store_chain_id as store_kind, 0 as open_hour, 0 as open_min,
+               u_code as store_kind, 0 as open_hour, 0 as open_min,
                0 as close_hour, 0 as close_min, 0 as holiday,
                0 as goldenweek, 0 as newyear, 0 as yearend,
                0 as bonfestival,0 as sunday, 0 as saturday,
@@ -48,7 +49,12 @@ class HwyStoreRDF(HwyStore):
           ON a.road_code = b.road_code and
              a.road_seq = b.road_seq and
              a.updown_c = b.updown
-          WHERE store_chain_id IS NOT NULL
+          LEFT JOIN hwy_chain_name as c
+          ON a.store_cat_id = c.cat_id and
+             a.sub_cat = c.sub_cat and
+             a.store_chain_id = c.chain_id and
+             a.chain_name = c.chain_name
+          WHERE u_code IS NOT NULL
           ORDER BY ic_no, store_kind
         );
         """
@@ -56,6 +62,8 @@ class HwyStoreRDF(HwyStore):
         self.pg.commit2()
 
     def _make_store_picture(self):
+        # 17cy不做(store_kind就做为图片id)
+        return 0
         sqlcmd = """
         INSERT INTO highway_store_picture(store_kind, picture_name)
         (
@@ -73,13 +81,13 @@ class HwyStoreRDF(HwyStore):
         sqlcmd = """
         INSERT INTO highway_store_name(store_kind, name, language_code)
         (
-        SELECT a.store_kind, name, language_code
+        SELECT a.store_kind, chain_name, language_code
           FROM (
             SELECT DISTINCT store_kind
              FROM highway_store_info
           ) as a
           INNER JOIN hwy_chain_name as b
-          ON a.store_kind = b.store_chain_id
+          ON a.store_kind = b.u_code
           ORDER BY a.store_kind, b.gid
         );
         """
@@ -102,3 +110,41 @@ class HwyStoreRDF(HwyStore):
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+
+    def _check_store_kind(self):
+        sqlcmd = """
+        SELECT distinct a.store_chain_id, a.chain_name, chain_names
+          FROM hwy_store as a
+          LEFT JOIN (
+            SELECT u_code, cat_id, sub_cat,
+                   chain_id, array_agg(chain_name) as chain_names
+              FROM (
+                select u_code, cat_id, sub_cat, chain_id, chain_name
+                  from hwy_chain_name
+                  order by gid
+              ) AS a
+              group by u_code, cat_id, sub_cat, chain_id
+          ) as b
+          ON a.store_cat_id = b.cat_id and
+             a.sub_cat = b.sub_cat and
+             a.store_chain_id = b.chain_id and
+             ((a.chain_name <> '' and a.chain_name = any(chain_names))
+              or (a.chain_name = '' or a.chain_name is null))
+          WHERE u_code IS NULL
+          ORDER BY a.store_chain_id, a.chain_name
+        """
+        for row in self.pg.get_batch_data2(sqlcmd):
+            store_chain_id = row[0]
+            chain_name = row[1]
+            chain_names = row[2]
+            if chain_name:
+                self.log.warning('No store kind/u_code for store=%s'
+                                 % chain_name)
+            elif chain_names:
+                self.log.warning('No store kind/u_code for store=%s'
+                                 % chain_names[0])
+            elif store_chain_id:
+                self.log.warning('No store kind/u_code for chain=%s'
+                                 % chain_names[0])
+            else:
+                self.log.error('No store kind/u_code')

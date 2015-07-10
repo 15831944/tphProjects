@@ -18,7 +18,6 @@ class rdb_guideinfo_spotguide(ItemBase):
                           , ITEM_EXTEND_FLAG_IDX.get('SPOTGUIDE'))
         
     def Do(self):
-        self.prepareTempTableForDumpPics()
         self.CreateTable2('rdb_guideinfo_spotguidepoint')
         sqlcmd = """
                   INSERT INTO rdb_guideinfo_spotguidepoint
@@ -43,8 +42,8 @@ class rdb_guideinfo_spotguide(ItemBase):
                         , c.tile_id
                         , s."type"
                         , s.passlink_cnt
-                        , d.ori_gid
-                        , e.ori_gid
+                        , d.gid
+                        , e.gid
                         , f.data
                         , s.is_exist_sar
                     FROM 
@@ -55,9 +54,9 @@ class rdb_guideinfo_spotguide(ItemBase):
                     ON cast(s.nodeid as bigint) = b.old_node_id
                     LEFT JOIN rdb_tile_link as c
                     ON cast(s.outlinkid as bigint) = c.old_link_id
-                    LEFT JOIN temp_guideinfo_pic_blob_image_id_map as d
+                    LEFT JOIN temp_guideinfo_pic_blob_id_mapping as d
                     on lower(s.patternno) = lower(d.image_id)
-                    LEFT JOIN temp_guideinfo_pic_blob_image_id_map as e
+                    LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
                     on lower(s.arrowno) = lower(e.image_id)
                     LEFT JOIN temp_point_list as f
                     on lower(s.arrowno) = lower(f.image_id)
@@ -165,16 +164,3 @@ class rdb_guideinfo_spotguide(ItemBase):
             rdb_log.log(self.ItemName, 'There are ' + str(arrow_num) +' records(Arrow_id is 0 or NUll).', 'warning')
         return 0
     
-    # Í¼Æ¬È¥ÖØ²Ù×÷
-    def prepareTempTableForDumpPics(self):
-        self.CreateTable2('temp_guideinfo_pic_blob_image_id_map')
-        sqlcmd = '''
-                insert into temp_guideinfo_pic_blob_image_id_map(ori_gid, image_id)
-                select a[1], unnest(b)
-                from(
-                    select array_agg(gid) as a, array_agg(image_id) as b 
-                    from rdb_guideinfo_pic_blob_bytea group by data 
-                    ) as c;
-                '''
-        self.pg.execute2(sqlcmd)
-        return

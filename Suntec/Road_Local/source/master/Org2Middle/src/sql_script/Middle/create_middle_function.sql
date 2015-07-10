@@ -224,19 +224,199 @@ DECLARE
 	nIndex				integer;
 	nCount				integer;
 	link_array 			bigint[];
+	count                           integer;
+
 BEGIN	
 	--rstPathArray
 	tmpPathArray		:= ARRAY[null];
 	tmpLastNodeArray	:= ARRAY[nHwyNode];
 	tmpPathCount		:= 1;
 	tmpPathIndex		:= 1;
-
+	
 	-- search
 	WHILE tmpPathIndex <= tmpPathCount LOOP
+		
 		-- set road end flag, which means current link is road end point
 		bRoadEnd	:= True;
 		
 		--raise INFO 'tmpPathArray = %', cast(tmpPathArray as varchar);
+
+		for rec in
+			select	(case when s_node = tmpLastNodeArray[tmpPathIndex] then e_node else s_node end) as nextnode, 
+					link_id as nextlink, 
+					link_type, road_type, function_class
+			from link_tbl
+			where	(
+						(
+							(dir = 1)
+							and
+							(
+								(s_node = tmpLastNodeArray[tmpPathIndex] and one_way_code in (1,2))
+								or
+								(e_node = tmpLastNodeArray[tmpPathIndex] and one_way_code in (1,3))
+							)
+						)
+						or
+						(
+							(dir = 2)
+							and
+							(
+								(s_node = tmpLastNodeArray[tmpPathIndex] and one_way_code in (1,3))
+								or
+								(e_node = tmpLastNodeArray[tmpPathIndex] and one_way_code in (1,2))
+							)
+						)
+					)
+					and 
+					(
+						tmpPathArray[tmpPathIndex] is null 
+						or 
+						not (cast(link_id as varchar) = ANY(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\|+')))
+					)
+		loop
+			-- set road end flag, current link is road end point
+			bRoadEnd	:= False;
+			if rec.link_type in (0,3,5) then
+				insert into temp_update_ramp_link_node(link_id,node_id)
+				values (rec.nextlink,rec.nextnode);
+			end if;
+			--raise INFO 'nextnode = %', rec.nextnode;
+			tmpPath		:= tmpPathArray[tmpPathIndex];
+			
+			-- no proper connected link, here is a complete path
+			if rec.link_type not in (0,3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
+				if tmpPath is not null then
+					rstPath			:= tmpPath;
+
+					if rec.road_type < nRoadTypeA then
+						nRoadType	:= rec.road_type;
+						nFunctionClass	:= rec.function_class;
+					else
+						nRoadType	:= nRoadTypeA;
+						nFunctionClass	:= nFunctionClassA;
+					end if;
+
+					link_array	:= cast(regexp_split_to_array(rstPath, E'\\|+') as bigint[]);
+					nCount		:= array_upper(link_array, 1);
+					for nIndex in 1..nCount loop
+						insert into temp_link_ramp_single_path(link_id, new_road_type, new_fc) 
+							values(link_array[nIndex], nRoadType, nFunctionClass);
+					end loop;
+				end if;
+				continue;
+			
+			-- find an available link, record it as temp path and go on searching
+			else
+				tmpPathCount		:= tmpPathCount + 1;
+				tmpLastNodeArray	:= array_append(tmpLastNodeArray, cast(rec.nextnode as bigint));
+				if tmpPath is null then
+					tmpPathArray	:= array_append(tmpPathArray, cast(rec.nextlink as varchar));
+				else
+					tmpPathArray	:= array_append(tmpPathArray, cast(tmpPath||'|'||rec.nextlink as varchar));
+				end if;
+			end if;
+		end loop;
+
+		
+		-- road end point, here is a complete path
+		if bRoadEnd then
+			rstPath		:= tmpPathArray[tmpPathIndex];
+			if rstPath is not null then
+				link_array	:= cast(regexp_split_to_array(rstPath, E'\\|+') as bigint[]);
+				nCount		:= array_upper(link_array, 1);
+				for nIndex in 1..nCount loop
+					insert into temp_link_ramp_single_path(link_id, new_road_type, new_fc) 
+						values(link_array[nIndex], nRoadTypeA, nFunctionClassA);
+				end loop;
+			end if;
+		end if;
+		
+		tmpPathIndex := tmpPathIndex + 1;
+		tmpPath		:= tmpPathArray[tmpPathIndex];
+	END LOOP;
+
+	return 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_cnv_ramp_toohigh()
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	for rec in
+		select a.link_id, a.s_node, a.e_node, a.one_way_code, a.road_type, a.function_class 
+		from link_tbl a 
+		left join temp_update_ramp_link_node b on a.link_id = b.link_id
+	    left join temp_update_ramp_link_node c on a.one_way_code=2 and a.s_node=c.node_id or a.one_way_code=3 and a.e_node=c.node_id or (a.one_way_code=1 and
+		(a.s_node=c.node_id or a.e_node=c.node_id)) 
+        where a.link_type in (3,5) and a.road_type in (0,1) and a.one_way_code<>4
+        and b.link_id is null and c.node_id is null 
+		
+	loop
+		if rec.one_way_code in (1,2) then
+			perform mid_cnv_ramp_toohigh_search(rec.e_node, rec.link_id, rec.road_type, rec.function_class, 1);
+			perform mid_cnv_ramp_toohigh_search(rec.s_node, rec.link_id, rec.road_type, rec.function_class, 2);
+		end if;
+
+		if rec.one_way_code in (1,3) then
+			perform mid_cnv_ramp_toohigh_search(rec.s_node, rec.link_id, rec.road_type, rec.function_class, 1);
+			perform mid_cnv_ramp_toohigh_search(rec.e_node, rec.link_id, rec.road_type, rec.function_class, 2);
+		end if;
+	end loop;
+	
+    insert into temp_link_ramp_toohigh
+                (link_id, new_road_type, new_fc)
+    (
+        select link_id, min(new_road_type), max(new_fc)
+        from temp_link_ramp_toohigh_single_path
+        group by link_id
+        
+    );
+	
+	RETURN 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_cnv_ramp_toohigh_search(nodeid bigint, linkid bigint , roadtype integer, functionclass smallint, dir integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec        			record;
+	bRoadEnd			boolean;
+	nRoadType			smallint;
+	nFunctionClass		smallint;
+	rstPath				varchar;
+	tmpPath				varchar;
+	
+	tmpPathArray		varchar[];
+	tmpLastNodeArray	bigint[];
+	tmpPathCount		integer;
+	tmpPathIndex		integer;
+	
+	nIndex				integer;
+	nCount				integer;
+	link_array 			bigint[];
+	count                           integer;
+
+BEGIN	
+	--rstPathArray
+	tmpPathArray		:= ARRAY[null];
+	tmpLastNodeArray	:= ARRAY[nodeid];
+	tmpPathCount		:= 1;
+	tmpPathIndex		:= 1;
+	
+	-- search
+	WHILE tmpPathIndex <= tmpPathCount LOOP
+		
+		-- set road end flag, which means current link is road end point
+		bRoadEnd	:= True;
+		
+		--raise INFO 'tmpPathArray = %', cast(tmpPathArray as varchar);
+				
 		for rec in
 			select	(case when s_node = tmpLastNodeArray[tmpPathIndex] then e_node else s_node end) as nextnode, 
 					link_id as nextlink, 
@@ -273,29 +453,25 @@ BEGIN
 			-- set road end flag, current link is road end point
 			bRoadEnd	:= False;
 			
-			--raise INFO 'nextnode = %', rec.nextnode;
+			raise INFO 'nextnode = %,nextlink = %,link_type= %,road_type= %', rec.nextnode,rec.nextlink,rec.link_type,rec.road_type;
 			tmpPath		:= tmpPathArray[tmpPathIndex];
 			
 			-- no proper connected link, here is a complete path
-			if rec.link_type not in (3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
-				if tmpPath is not null then
-					rstPath			:= tmpPath;
-
-					if rec.road_type < nRoadTypeA then
+			if rec.link_type not in (3, 5) then
+					if rec.road_type > roadtype then
 						nRoadType	:= rec.road_type;
+					else
+						nRoadType	:= roadtype;
+					end if;
+					
+					if rec.function_class<functionclass then
 						nFunctionClass	:= rec.function_class;
 					else
-						nRoadType	:= nRoadTypeA;
-						nFunctionClass	:= nFunctionClassA;
+						nFunctionClass	:= functionclass;
 					end if;
-
-					link_array	:= cast(regexp_split_to_array(rstPath, E'\\|+') as bigint[]);
-					nCount		:= array_upper(link_array, 1);
-					for nIndex in 1..nCount loop
-						insert into temp_link_ramp_single_path(link_id, new_road_type, new_fc) 
-							values(link_array[nIndex], nRoadType, nFunctionClass);
-					end loop;
-				end if;
+					insert into temp_link_ramp_toohigh_single_path(link_id, new_road_type, new_fc) 
+						values(linkid, nRoadType, nFunctionClass);
+					
 				continue;
 			
 			-- find an available link, record it as temp path and go on searching
@@ -309,21 +485,10 @@ BEGIN
 				end if;
 			end if;
 		end loop;
-		
-		-- road end point, here is a complete path
-		if bRoadEnd then
-			rstPath		:= tmpPathArray[tmpPathIndex];
-			if rstPath is not null then
-				link_array	:= cast(regexp_split_to_array(rstPath, E'\\|+') as bigint[]);
-				nCount		:= array_upper(link_array, 1);
-				for nIndex in 1..nCount loop
-					insert into temp_link_ramp_single_path(link_id, new_road_type, new_fc) 
-						values(link_array[nIndex], nRoadTypeA, nFunctionClassA);
-				end loop;
-			end if;
-		end if;
+	
 		
 		tmpPathIndex := tmpPathIndex + 1;
+		tmpPath		:= tmpPathArray[tmpPathIndex];
 	END LOOP;
 
 	return 1;
@@ -2914,51 +3079,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_update_temp_node_z_tbl( )
-  RETURNS boolean 
-  LANGUAGE plpgsql 
-  AS $$
-DECLARE
-	rec record;
-	z_level_list smallint[];
-	the_geom_list geometry[];
-	geom_text_list_len bigint;
-	z_text_list_len bigint;
-	rec_index bigint;
-	
-BEGIN
-	for rec in (
-		select guide_type, string_to_array(geom_text, '|') as geom_text_list, string_to_array(z_text, '|') as z_text_list 
-		from temp_force_guide_patch_tbl
-	)
-	loop
-		the_geom_list := NULL;
-		z_level_list := NULL;
-
-		geom_text_list_len := array_upper(rec.geom_text_list, 1);
-		z_text_list_len := array_upper(rec.z_text_list, 1);
-
-		if geom_text_list_len != z_text_list_len then
-			continue;
-		end if;
-
-		rec_index := 1;
-		while rec_index <= geom_text_list_len loop
-			the_geom_list := array_append(the_geom_list, ST_GeomFromText(st_astext((rec.geom_text_list)[rec_index]), 4326));
-			z_level_list := array_append(z_level_list, (rec.z_text_list)[rec_index]::smallint);
-			rec_index := rec_index + 1;
-		end loop;
-
-		if the_geom_list is not null and z_level_list is not null then
-			insert into temp_node_z_tbl(guide_type, the_geom_list, z_level_list)
-			values(rec.guide_type, the_geom_list, z_level_list);
-		end if;
-	end loop;
-
-	return true;
-END;
-$$;
-
 CREATE OR REPLACE FUNCTION mid_update_temp_force_guide_patch_node_tbl( )
 	RETURNS boolean
 	LANGUAGE plpgsql volatile
@@ -2969,65 +3089,48 @@ DECLARE
 	geom_list_len bigint;
 	idx bigint;
 	deata double precision;
-	node_list bigint[];
-	geom_list geometry[];
-	node_list_len bigint;
-	idx2 bigint;
-	temp_len double precision;
-	temp_len2 double precision;
 	res_node_list bigint[];
+	temp_node bigint;
+	temp_geom geometry;
+	distance double precision;
 BEGIN
 	for rec in 
-		select *
-		from temp_node_z_tbl
+		select guide_type, (string_to_array(geom_text, '|'))::geometry[] as the_geom_list, (string_to_array(z_text, '|'))::smallint[] as z_level_list
+		from temp_force_guide_patch_tbl
 	loop
-		--raise info '%', rec;
 		geom_list_len := array_upper(rec.the_geom_list, 1);
 		z_level_list_len := array_upper(rec.z_level_list, 1);
 		idx := 1;
 		deata := 0.03;
 
 		if geom_list_len != z_level_list_len then
-			return false;
+			raise EXCEPTION '% the_geom list length error: not equal to % z_level list length', rec.the_geom_list, rec.z_level_list;
 		end if;
 		
 		while idx <= geom_list_len loop
-			--raise info '%', (rec.the_geom_list)[idx];
-			select array_agg(node_id), array_agg(the_geom) into node_list, geom_list
-			from (
-				select node_id, the_geom, 1 as id
-				from node_tbl
-				where z_level = (rec.z_level_list)[idx] and ST_Distance(the_geom, (rec.the_geom_list)[idx], true) <= deata
-			) as a
-			group by id;
-			
-			if node_list is null then
+			select node_id, the_geom, ST_Distance_Sphere(the_geom, (rec.the_geom_list)[idx]) as node_distance into temp_node, temp_geom, distance
+			from node_tbl
+			where z_level = (rec.z_level_list)[idx] and ST_DWithin(the_geom, (rec.the_geom_list)[idx], deata, True)
+			order by node_distance
+			limit 1;
+
+			if temp_node is null then
 				deata := deata + 0.2;
-				continue;
+				
+				if deata >= 10.0 then
+					raise EXCEPTION 'the_geom: %s z_level: %s can not bound to node', (rec.the_geom_list)[idx], (rec.z_level_list)[idx];
+				else
+					continue;
+				end if;
 			else
-				node_list_len := array_upper(node_list, 1);
-				idx2 := 1;
-				if node_list_len > 1 then
-					idx2 := node_list_len;
-					temp_len := ST_Distance(geom_list[node_list_len], (rec.the_geom_list)[idx], true);
-					node_list_len := node_list_len - 1;
-					while node_list_len >= 1 loop
-						temp_len2 = ST_Distance(geom_list[node_list_len], (rec.the_geom_list)[idx], true);
-						if temp_len2 < temp_len then 
-							idx2 := node_list_len;
-							temp_len := temp_len2;
-						end if;
-						node_list_len := node_list_len - 1;
-					end loop;
+				if idx = 1 then
+					res_node_list := Array[temp_node];
+				else
+					res_node_list := array_append(res_node_list, temp_node);
 				end if;
 
-				if idx = 1 then
-					res_node_list := Array[node_list[idx2]];
-				else
-					res_node_list := array_append(res_node_list, node_list[idx2]);
-				end if;
-				--raise info '%', res_node_list;
 				idx := idx + 1;
+				deata := 0.03;
 			end if;
 		end loop;
 		
@@ -3053,116 +3156,33 @@ DECLARE
 	temp_link_array bigint[];
 	res_link_array bigint[];
 	res_link_array_len bigint;
-	/*in_node_geom geometry;
-	out_node_geom geometry;
-	deata double precision;
-	buffer geometry;
-	in_link_list bigint[];
-	out_link_list bigint[];
-	in_link_list_len bigint;
-	out_link_list_len bigint;
-	in_link_loop bigint;
-	out_link_loop bigint;
-	innode bigint;
-	outnode bigint;
-	temp_linkrow_array varchar[];*/
 BEGIN	
 	for rec in 
 		select *
 		from temp_force_guide_patch_node_tbl
 	loop
-		--raise info '%', rec;
 		node_idx := 1;
 		node_list_len := array_upper(rec.node_id_list, 1);
 		if node_list_len < 2 then
-			continue;
+			raise EXCEPTION 'temp_force_guide_patch_node_tbl node_id_list % length error', rec.node_id_list;
 		end if;
 
 		while node_idx <= (node_list_len - 1) loop
-			in_node := rec.node_id_list[node_idx];
-			out_node := rec.node_id_list[node_idx + 1];
-			/*
-			raise info '%', in_node;
-			raise info '%', out_node;
-			raise info '%', string_to_array(mid_findpasslinkbybothnodes(in_node, out_node, 30), ',');
-			*/
+			in_node := (rec.node_id_list)[node_idx];
+			out_node := (rec.node_id_list)[node_idx + 1];
 			res_string := mid_findpasslinkbybothnodes(in_node, out_node, 30);
 			if res_string is null then
-				exit;
+				raise EXCEPTION 'in_node % out_node % can not calc path', in_node, out_node;
 			end if;
+			
 			temp_link_array := string_to_array(res_string, ',');
-
 			if node_idx = 1 then
-				res_link_array := temp_link_array;
+				res_link_array := Array[temp_link_array[array_upper(temp_link_array, 1)]];
 			else
 				res_link_array := array_cat(res_link_array, temp_link_array);
 			end if;
-			/*
-			select the_geom into in_node_geom
-			from node_tbl
-			where node_id = in_node;
-
-			select the_geom into out_node_geom
-			from node_tbl
-			where node_id = out_node;
-
-			deata := 0.00009;
-			buffer := ST_Buffer(ST_MakeLine(in_node_geom, out_node_geom), deata);
-			raise info '%', deata;
-			select array_agg(link_id) into in_link_list
-			from (
-				select link_id, 1 as id
-				from link_tbl
-				where
-					((in_node = s_node and one_way_code in (1, 2)) or
-					(in_node = e_node and one_way_code in (1, 3))) and
-					ST_Covers(buffer, the_geom) = true
-			) a
-			group by id;
-
-			if in_link_list is null then
-				deata := deata + 0.2;
-				continue;
-			end if;
-			raise info 'in_link_list: %', in_link_list;
-
-			select array_agg(link_id) into out_link_list
-			from (
-				select link_id, 1 as id
-				from link_tbl
-				where
-					((out_node = s_node and one_way_code in (1, 3)) or
-					(out_node = e_node and one_way_code in (1, 2))) and
-					ST_Covers(buffer, the_geom) = true
-			) a
-			group by id;
-
-			if out_link_list is null then
-				deata := deata + 0.2;
-				continue;
-			end if;
-			raise info 'out_link_list: %', out_link_list;
-
-			in_link_list_len = array_upper(in_link_list, 1);
-			out_link_list_len = array_upper(out_link_list, 1);
-			for in_link_loop in 1..in_link_list_len loop
-				select case when in_node = s_node then e_node else s_node end into innode
-				from link_tbl
-				where link_id = in_link_list[in_link_loop];
-				for out_link_loop in 1..out_link_list_len loop
-					select case when out_node = s_node then e_node else s_node end into outnode
-					from link_tbl
-					where link_id = out_link_list[out_link_loop];
-
-					temp_linkrow_array := mid_find_inner_path(in_link_list[in_link_loop], out_link_list[out_link_loop], innode, outnode);
-					raise info 'in_link: %', in_link_list[in_link_loop];
-					raise info 'out_link: %', out_link_list[out_link_loop];
-					raise info 'innode: %', innode;
-					raise info 'outnode: %', outnode;
-					raise info 'temp_linkrow_array: %', temp_linkrow_array;
-				end loop;
-			end loop;
-			*/
+			--raise info '%', temp_link_array;
+			--raise info '%', res_link_array;
 			node_idx := node_idx + 1;
 		end loop;
 		
@@ -3170,6 +3190,8 @@ BEGIN
 		if res_link_array_len >= 2 then
 			insert into temp_force_guide_patch_link_tbl(objectid, guide_type, link_id_list)
 			values(rec.id, rec.guide_type, res_link_array);
+		else
+			raise EXCEPTION 'node list % convert to link list % error', rec.node_id_list, res_link_array;
 		end if;
 	end loop;
 

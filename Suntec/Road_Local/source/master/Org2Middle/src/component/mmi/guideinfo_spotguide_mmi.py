@@ -110,6 +110,9 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         self.pg.commit2()
         return 0
 
+    # bCareAboutSignpost: 有的时候式样要求不考虑是否存在sar的情况，通过此参数设置。
+    # False：此时即使可以找到sar图片，也不进行合成，不处理sar。
+    # True：  此时才考虑是否存在sar图片并合并。
     def _generate_spotguide_tbl(self, bCareAboutSignpost=True):
         sqlcmd = '''
             SELECT inlinkid, outlinkid, array_agg(road_lyr), array_agg(sign_lyr), array_agg(arrow), array_agg("time")
@@ -132,23 +135,27 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             passlink = ''
             passlinkcnt = 0
             
+            isExistSar = False
             road_name = ''
             if bCareAboutSignpost and (None not in sign_lyrs):
                 
                 if(self._check_time_stamp_with_signpost(road_lyrs, sign_lyrs, arrows, times) == False):
                     continue
-                # 删去".1.png"字段, 下同
-                road_name = road_lyrs[0][:-6:1] + sp_splitter + sign_lyrs[0][:-6:1]
+                # 此处新的pattern名命名规范：
+                # 中间添加signpost分隔符"_signpost_"，后跟sar图片名字。
+                # 制作插图数据时存在sar的插图的命名必须遵循此规则。
+                road_name = os.path.splitext(road_lyrs)[0] + sp_splitter + os.path.splitext(sign_lyrs)[0]
+                isExistSar = True # 此时存在SAR，设置is_exist_sar字段为True。
             else:
                 if(self._check_time_stamp_no_signpost(road_lyrs, arrows, times) == False):
                     continue
-                road_name = road_lyrs[0][:-6:1] 
+                road_name = os.path.splitext(road_lyrs)[0]
             nodeid = self._getnode_between_links(inlink, outlink)
             if not nodeid:
                 # inlink与outlink不相连，查找中间link列表
                 passlink, passlinkcnt, nodeid = self._get_passlink_passlinkcnt(inlink, outlink)
             
-            arrow_name = arrows[0][:-6:1]
+            arrow_name = arrows[0][:-4:1]
             direction = 0
             if 'L' in arrow_name:
                 direction = 5
@@ -159,15 +166,14 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                             INSERT INTO spotguide_tbl(
                                 id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
                                 direction, guideattr, namekind, guideclass, patternno, arrowno,
-                                "type"
+                                "type", is_exist_sar
                                 )
                             VALUES (%s, %s, %s, %s, %s, %s,
                                     %s, %s, %s, %s, %s, %s,
-                                    %s);
-                            ''', (g_id, nodeid, inlink, outlink,
-                                         passlink, passlinkcnt,
-                                         direction, 0, 0, 0,
-                                         road_name, arrow_name, 1))
+                                    %s, %s);
+                            ''', (g_id, nodeid, inlink, outlink, passlink, passlinkcnt,
+                                  direction, 0, 0, 0, road_name, arrow_name, 
+                                  1, isExistSar))
             g_id = g_id + 1
             
         self.pg.commit2()

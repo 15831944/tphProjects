@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//src/base/rdb_ItemBase.py=cp936
+encoding//src/common/rdb_database.py=cp936
 encoding//src/item/hwy/rdb_hwy_sapa_info.py=UTF8
 encoding//src/item/rdb_guideinfo_building_structure.py=cp936
 encoding//src/item/rdb_guideinfo_pic_blob_bytea.py=cp936

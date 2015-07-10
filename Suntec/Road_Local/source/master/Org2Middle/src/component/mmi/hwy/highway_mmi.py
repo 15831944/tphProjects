@@ -22,11 +22,11 @@ class HighwayMMi(HighwayRDF):
     Highway Data for MMi
     '''
 
-    def __init__(self):
+    def __init__(self, ItemName='HighwayMMi'):
         '''
         Constructor
         '''
-        HighwayRDF.__init__(self)
+        HighwayRDF.__init__(self, ItemName)
 
     def initialize(self):
         self.link_id_mapping = HwyLinkMappingMMi()

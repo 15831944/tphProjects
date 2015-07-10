@@ -182,6 +182,7 @@ class rdb_guideinfo_signpost(ItemBase):
                        , arrow_id
                        , sp_name
                        , passlink_count
+                       , is_pattern
                   )
                   SELECT i.tile_link_id as inlinkid
                       , n.tile_node_id as nodeid
@@ -199,6 +200,7 @@ class rdb_guideinfo_signpost(ItemBase):
                       , (case
                          when sp.passlink_cnt is not null then sp.passlink_cnt
                          else 0 end) as passlink_count
+                      , sp.is_pattern
                   FROM  signpost_tbl as sp
                   LEFT OUTER JOIN rdb_tile_link as i
                   ON cast(sp.inlinkid as bigint) = i.old_link_id
@@ -206,11 +208,11 @@ class rdb_guideinfo_signpost(ItemBase):
                   ON cast(sp.nodeid as bigint) = n.old_node_id
                   LEFT OUTER JOIN rdb_tile_link as o
                   ON cast(sp.outlinkid as bigint) = o.old_link_id
-                  LEFT JOIN rdb_guideinfo_pic_blob_bytea as d
+                  LEFT JOIN temp_guideinfo_pic_blob_id_mapping as d
                   on lower(sp.patternno) = lower(d.image_id)
-                  LEFT JOIN rdb_guideinfo_pic_blob_bytea as e
+                  LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
                   on lower(sp.arrowno) = lower(e.image_id)
-                  order by sp.gid--, f.seq_nm;
+                  order by sp.gid--;
                   """
         rdb_log.log(self.ItemName, 'Now it is inserting data to rdb_guideinfo_signpost ...', 'info')
         if self.pg.execute2(sqlcmd) == -1:

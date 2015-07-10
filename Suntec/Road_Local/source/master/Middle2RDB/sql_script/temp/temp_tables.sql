@@ -1526,3 +1526,264 @@ CREATE TABLE temp_rdb_name
   name_id integer NOT NULL,
   name    character varying(8192)
 );
+
+create table temp_link_with_length 
+as
+(
+	select org_link_id,target_link_id as rdb_link_id
+		,case when s_fraction > e_fraction then e_fraction
+			else s_fraction
+		end as s_fraction
+		,case when s_fraction > e_fraction then s_fraction
+			else e_fraction
+		end as e_fraction
+		,flag
+		,ST_Length_Spheroid(mid_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as mid_meters
+	from temp_link_org_rdb
+);
+
+create table temp_forecast_link 
+as
+(
+	select network_id::bigint as link_id
+		,val_dir as dir
+		,round((meters / 1000 / spfreeflow) * 3600) as free_time
+		,round((meters / 1000 / spweekday) * 3600) as weekday_time
+		,round((meters / 1000 / spweekend) * 3600) as weekend_time
+		,round((meters / 1000 / spweek) * 3600) as average_time
+		,case when spfreeflow is not null then true
+			else false
+		end as profile_flag
+		,meters
+		,profile_1,profile_2,profile_3,profile_4,profile_5,profile_6,profile_7
+	from (
+		select a.*
+			,ST_Length_Spheroid(b.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as meters 
+		from org_hsnp a
+		left join org_nw b
+		on a.network_id = b.id
+	) c
+);
+
+create table temp_forecast_link_rdb_id 
+as
+(
+	select distinct rdb_link_id as link_id,dir
+	from (
+		 select link_id
+			,case when b.flag = 't' and a.dir = 2 then 3
+				when b.flag = 't' and a.dir = 3 then 2
+				else a.dir
+			end as dir
+			,b.rdb_link_id
+		 from temp_forecast_link a 
+		 left join temp_link_with_length b
+		 on a.link_id = b.org_link_id
+		 where profile_flag = 't' 
+	) c
+);
+
+create table temp_forecast_time_org 
+as
+(
+	select profile_id,time_slot::smallint
+		,sum(sp) as sp_sum
+		,case when time_slot != 0 then sum(sp)/3
+			else sum(sp)
+		end as sp
+		,case when time_slot != 0 then ((100.0 / (sum(sp)/3)) * 100)
+			else ((100.0 / sum(sp)) * 100)
+		end as time
+	from (
+		select profile_id,index,pre_index
+			,time_slot
+			,rel_sp_array[sp_index] as sp
+		from (
+			select profile_id,index,pre_index
+				,time_slot,rel_sp_array
+				,generate_series(pre_index,index) as sp_index
+			from (
+				select profile_id,index as index
+					,case when index >= 4 then index - 2
+						else 1
+					end as pre_index
+					,time_slot_array[index] as time_slot
+					,rel_sp_array
+				from (
+					select profile_id,generate_series(1,sum, 3) as index
+						,time_slot_array,rel_sp_array 
+					from (
+						select profile_id,array_agg(time_slot/60/5)as time_slot_array
+							,array_agg(rel_sp) as rel_sp_array
+							,count(*) as sum
+						from (
+							select * from org_hspr 
+							order by profile_id,time_slot
+						) a group by profile_id
+					) b
+				) c 
+			) d 
+		) e
+	) f group by profile_id,index,pre_index,time_slot
+	order by profile_id,time_slot
+);
+
+CREATE TABLE temp_forecast_link_with_slot 
+as
+(
+	select d.*
+	from (
+		select rdb_link_id as link_id,link_id as org_link_id,profile_flag
+			,profile_1,profile_2,profile_3,profile_4,profile_5,profile_6,profile_7
+			,case when flag = 't' and dir = 2 then 3
+				when flag = 't' and dir = 3 then 2
+				else dir
+			end as dir
+			,round((mid_meters/meters) * free_time) as free_time
+			,round((mid_meters/meters) * weekday_time) as weekday_time
+			,round((mid_meters/meters) * weekend_time) as weekend_time
+			,round((mid_meters/meters) * average_time) as average_time 
+			,s_fraction,e_fraction
+		from ( 
+			select a.*
+				,b.rdb_link_id,s_fraction,e_fraction,b.flag
+				,mid_meters
+			from temp_forecast_link a
+			left join temp_link_with_length b
+			on a.link_id = b.org_link_id
+		) c 
+	) d
+	left join temp_forecast_link_rdb_id e
+	on d.link_id = e.link_id and d.dir = e.dir
+	where e.link_id is not null
+);
+
+create table temp_forecast_time_slot 
+as
+(
+	select distinct time_slot from temp_forecast_time_org
+	order by time_slot
+);
+
+create table temp_forecast_link_with_slot_main 
+as
+(
+	select link_id,org_link_id,dir,profile_flag
+		,case when free_time is null and weekday_time <= weekend_time then weekday_time
+			when free_time is null and weekday_time >= weekend_time then weekend_time
+			else free_time
+		end as free_time
+		,weekday_time,weekend_time,average_time
+		,time_slot		
+		,case when time_1 is null then null
+			else (time_1 + time_7) / 2 
+		end as weekend
+		,case when time_2 is null then weekday_time
+			else (time_2 + time_3 + time_4 + time_5 + time_6) / 5 
+		end as weekday
+	from (
+		select link_id,org_link_id,dir,profile_flag
+			,free_time,weekday_time,weekend_time,average_time
+			,b.time_slot
+			,case when b1.profile_id is not null then (a.free_time * b1.time / 100)
+				else null
+			end as time_1
+			,case when b2.profile_id is not null then (a.free_time * b2.time / 100)
+				else null
+			end as time_2
+			,case when b3.profile_id is not null then (a.free_time * b3.time / 100)
+				else null
+			end as time_3
+			,case when b4.profile_id is not null then (a.free_time * b4.time / 100)
+				else null
+			end as time_4
+			,case when b5.profile_id is not null then (a.free_time * b5.time / 100)
+				else null
+			end as time_5
+			,case when b6.profile_id is not null then (a.free_time * b6.time / 100)
+				else null
+			end as time_6
+			,case when b7.profile_id is not null then (a.free_time * b7.time / 100)
+				else null
+			end as time_7
+		from temp_forecast_link_with_slot a
+		left join temp_forecast_time_slot b
+		on true = true		
+		left join temp_forecast_time_org b1 
+		on a.profile_1 = b1.profile_id and b.time_slot = b1.time_slot
+		left join temp_forecast_time_org b2
+		on a.profile_2 = b2.profile_id and b.time_slot = b2.time_slot
+		left join temp_forecast_time_org b3 
+		on a.profile_3 = b3.profile_id and b.time_slot = b3.time_slot
+		left join temp_forecast_time_org b4
+		on a.profile_4 = b4.profile_id and b.time_slot = b4.time_slot
+		left join temp_forecast_time_org b5
+		on a.profile_5 = b5.profile_id and b.time_slot = b5.time_slot
+		left join temp_forecast_time_org b6
+		on a.profile_6 = b6.profile_id and b.time_slot = b6.time_slot
+		left join temp_forecast_time_org b7 
+		on a.profile_7 = b7.profile_id and b.time_slot = b7.time_slot	
+	) c
+);
+
+create table temp_forecast_link_with_slot_merge 
+as	
+(
+	select link_id,dir,free_time,weekday_time,weekend_time,average_time
+		,array_agg(time_slot) as time_slot_array
+		,array_agg(weekend_per) as weekend_per_array
+		,array_agg(weekday_per) as weekday_per_array
+	from (
+		select link_id,dir,time_slot
+			,free_time,weekday_time,weekend_time,average_time
+			,case when round(weekend - free_time) >= 0 then round(weekend - free_time)
+				else null
+			end as weekend_per
+			,case when round(weekday - free_time) >= 0 then round(weekday - free_time)
+				else null
+			end as weekday_per
+		from (
+			select link_id,dir,time_slot
+				,sum(free_time) as free_time
+				,sum(weekday_time) as weekday_time
+				,sum(weekend_time) as weekend_time
+				,sum(average_time) as average_time
+				,sum(weekend) as weekend
+				,sum(weekday) as weekday
+			from temp_forecast_link_with_slot_main 
+			group by link_id,dir,time_slot
+		) e order by link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot
+	) f group by link_id,dir,free_time,weekday_time,weekend_time,average_time
+);
+
+create table temp_forecast_time_distinct 
+as
+(
+	select ROW_NUMBER() OVER(ORDER BY time_slot_array,time_array) as time_id
+		,time_slot_array,time_array
+	from (
+		select distinct time_slot_array,weekend_per_array as time_array
+		from temp_forecast_link_with_slot_merge where weekend_per_array[1] is not null
+		union
+		select distinct time_slot_array,weekday_per_array as time_array
+		from temp_forecast_link_with_slot_merge where weekday_per_array[1] is not null
+	) a
+);
+
+create table temp_forecast_control 
+as
+(
+	select 	ROW_NUMBER() OVER(ORDER BY time_slot_array,time_id_weekday,time_id_weekend) as info_id,*
+	from (
+		select distinct a.time_slot_array
+			,weekday_per_array
+			,weekend_per_array
+			,b.time_id as time_id_weekday
+			,c.time_id as time_id_weekend
+		from temp_forecast_link_with_slot_merge a
+		left join temp_forecast_time_distinct b
+		on a.time_slot_array = b.time_slot_array and a.weekday_per_array = b.time_array
+		left join temp_forecast_time_distinct c
+		on a.time_slot_array = c.time_slot_array and a.weekend_per_array = c.time_array
+	) d
+);

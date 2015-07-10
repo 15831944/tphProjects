@@ -89,11 +89,6 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
                 common.cache_file.close(temp_file_obj,True)
                 f_force_guide_patch.close()
             
-            self.CreateTable2('temp_node_z_tbl')
-            self.CreateFunction2('mid_update_temp_node_z_tbl')
-            self.pg.callproc('mid_update_temp_node_z_tbl')
-            self.pg.commit2()
-            
             self.log.info('importing force_guide_patch succeeded')
             return 0
         

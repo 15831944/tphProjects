@@ -23,69 +23,11 @@ class HwyFacilityTa(HwyFacilityRDF):
     '''生成设施情报
     '''
 
-    def __init__(self, data_mng):
+    def __init__(self, data_mng, ItemName='HwyFacilityTa'):
         '''
         Constructor
         '''
-        HwyFacilityRDF.__init__(self, data_mng)
-        self.org_facil_dict = {}  # (org_facil_id, facil_cls): road_seq
-
-#     def _make_ic_path(self):
-#         self.log.info('Start make IC Path.')
-#         self.pg.connect1()
-#         self.CreateTable2('mid_temp_hwy_ic_path')
-#         for road_code, route_path in self.hwy_data.get_road_code_path():
-#             next_seq = ROAD_SEQ_MARGIN
-#             end_pos = len(route_path)
-#             if is_cycle_path(route_path):
-#                 if not self.adjust_path_for_cycle(route_path):
-#                     self.log.error('No indicate start node for Cycle Route.'
-#                                    'road_code=%s' % road_code)
-#                     continue
-#                 else:
-#                     self._store_moved_path(road_code, route_path)
-#                 end_pos = len(route_path) - 1
-#             sapa_node_dict = {}  # SaPa出口:SaPa入口 or SaPa入口:SaPa出口
-#             facils_list = []
-#             # ## 取得设施情报
-#             for node_idx in range(0, end_pos):
-#                 node = route_path[node_idx]
-#                 all_facils = self.G.get_all_facil(node, road_code,
-#                                                   HWY_ROAD_CODE)
-#                 if not all_facils:
-#                     continue
-#                 if node in (90360200669534, 90360200681431):
-#                     pass
-#                 facils_list.append((node, all_facils))
-#                 for facilcls, inout_c, path in all_facils:
-#                     if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
-#                         node = path[0]
-#                         to_node = path[-1]
-#                         if node not in sapa_node_dict:
-#                             sapa_node_dict[node] = set([to_node])
-#                         else:
-#                             sapa_node_dict[node].add(to_node)
-#             # ## 设置设施序号
-#             sapa_seq_dict = {}  # Sapa node: road_seq
-#             for node, all_facils in facils_list:
-#                 if node in (90360200669534, 90360200681431):
-#                     pass
-#                 road_seq_dict, next_seq = self._get_road_seq(node,
-#                                                              all_facils,
-#                                                              next_seq,
-#                                                              sapa_node_dict,
-#                                                              sapa_seq_dict,
-#                                                              )
-#                 for facilcls, inout_c, path in all_facils:
-#                     # facil_name = self._get_facil_name(node, path)
-#                     road_seq = road_seq_dict.get((facilcls, inout_c))
-#                     if not road_seq:
-#                         self.log.error('No Road Seq.')
-#                         continue
-#                     self._store_facil_path(road_code, road_seq, facilcls,
-#                                            inout_c, path)
-#         self.pg.commit1()
-#         self.log.info('End make IC Path.')
+        HwyFacilityRDF.__init__(self, data_mng, ItemName)
 
     def _make_sapa_info(self):
         '''SAPA对应的Rest Area POI情报。'''
@@ -107,6 +49,40 @@ class HwyFacilityTa(HwyFacilityRDF):
         self._update_sapa_facilcls()
         self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_road_seq_idx')
         self.log.info('End Make SAPA Info.')
+
+    def _make_hwy_store(self):
+        '''店铺情报'''
+        self.log.info('Start Make Facility Stores.')
+        self.CreateTable2('hwy_store')
+        sqlcmd = """
+        INSERT INTO hwy_store(road_code, road_seq, updown_c,
+                              store_cat_id, sub_cat, store_chain_id,
+                              chain_name)
+        (
+        SELECT DISTINCT road_code, road_seq, 1 as updown_c,
+               feattyp as cat_id, subcat, '' as store_chain_id,
+               brandname
+          FROM (
+            SELECT road_code, road_seq, facilcls_c,
+                   regexp_split_to_table(link_lid, E'\\,+')::bigint as link_id
+              FROM mid_temp_hwy_ic_path as a
+              where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
+                    link_lid <> '' and link_lid is not null
+          ) as b
+          LEFT JOIN mid_temp_poi_link as c
+          ON b.link_id = c.link_id
+          LEFT JOIN org_mnpoi_pi as d
+          ON c.poi_id = d.id
+          LEFT JOIN mid_temp_hwy_sapa_name as e
+          ON c.poi_id = e.poi_id
+          WHERE feattyp not in (7358, 7395) --  7358: Truck Stop; 7395: Rest Area
+                and brandname <> '' and brandname is not null
+          ORDER BY road_code, road_seq
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        self.log.info('End Make Facility Stores.')
 
     def _make_hwy_service(self):
         '''服务情报'''
@@ -215,9 +191,11 @@ SERVICE_RESTAURANT_DICT = {(7315, 7315145): None,  # Restaurant
                            }
 # ショッピングコーナー/Shopping Corner
 SERVICE_SHOPPING_DICT = {(7373, 0): None,  # Shopping Center
+                         (7315, 7315036): None,  # Restaurant: Pizza
                          (9361, 9361018): None,  # Food & Drinks: Bakers
                          (9361, 9361025): None,  # Food & Drinks: Wine&Spirits
                          (9361, 9361024): None,  # Food & Drinks: Other
+                         (9361, 9361031): None,  # Furniture & Fittings
                          }
 # 郵便ポスト/post_box
 SERVICE_POSTBOX_DICT = {(7324, 7324003): None,  # Shop: Local
@@ -237,10 +215,14 @@ SERVICE_UNDEFINED_DICT = {(7304, 7304006): None,  # Apartment
                           (8099, 8099001): None,  # Geographic Feature
                           (8099, 8099016): None,  # Geographic: Bay
                           (8099, 8099020): None,  # Geographic: Cape
+                          (9352, 9352002): None,  # Company: Service
                           (9352, 9352011): None,  # Company: Manufacturing
+                          (9352, 9352022): None,  # Company: Tax Services
+                          (9352, 9352032): None,  # Company: Construction
                           (9362, 9362033): None,  # Picnic Area
                           (9362, 9362030): None,  # Natural Attraction
                           (9932, 9932004): None,  # Public Call Box
+                          (9373, 9373002): None,  # General Practitioner
                           (9376, 9376002): None,  # Café
                           (9932, 9932006): None,  # Road Rescue
                           (9942, 9942002): None,  # Bus Stop

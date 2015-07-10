@@ -105,7 +105,7 @@ class rdb_link_with_all_attri_view(ItemBase):
                    link_length_unit, geom_blob, pdm_flag,
                    common_main_link_attri, pass_side, admin_wide_regulation,
                    region_cost, reserve, width, s_sequence_link_id, e_sequence_link_id, abs_link_id
-                   , the_geom)
+                   ,forecast_flag, the_geom)
             (
             SELECT a.gid, a.link_id, a.link_id_t, a.display_class,
                    a.start_node_id, a.start_node_id_t, a.end_node_id,
@@ -138,6 +138,7 @@ class rdb_link_with_all_attri_view(ItemBase):
                 (case when e.link_id is null then -1 else e.s_link_id end) as s_sequence_link_id,
                 (case when e.link_id is null then -1 else e.e_link_id end) as e_sequence_link_id,
                 (case when f.abs_link_id is null then 0 else f.abs_link_id end) as abs_link_id,
+                (case when g.link_id is null then false else true end) as forecast_flag,
                 a.the_geom_4096
               FROM rdb_link a
               LEFT JOIN temp_rdb_link_regulation_exist_state b
@@ -152,6 +153,10 @@ class rdb_link_with_all_attri_view(ItemBase):
               ON a.link_id = e.link_id
               LEFT JOIN rdb_link_abs as f
               on a.link_id = f.link_id
+              LEFT JOIN (
+                select distinct link_id from rdb_forecast_link
+              ) g
+              on a.link_id = g.link_id
             );
         """
         self.pg.execute2(sqlcmd)

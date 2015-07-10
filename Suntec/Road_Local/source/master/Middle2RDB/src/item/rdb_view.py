@@ -76,12 +76,15 @@ class rdb_view(ItemBase):
                    case when b.light_cnt is not null then b.light_cnt else 0 end as light_cnt,
                    case when b.toll_cnt is not null then b.toll_cnt else 0 end as toll_cnt,
                    (case when c.link_id is null then -1 else c.s_link_id end) as s_sequence_link_id,
-                   (case when c.link_id is null then -1 else c.e_link_id end) as e_sequence_link_id
+                   (case when c.link_id is null then -1 else c.e_link_id end) as e_sequence_link_id,
+                   (case when d.link_id is null then false else true end) as forecast_flag
                 from rdb_region_link_layer6_tbl a
                 left join rdb_region_layer6_light_tollnode_tbl as b
                 on a.link_id = b.region_link_id
                 left join rdb_region_link_layer6_sequence as c
-                on a.link_id = c.link_id;
+                on a.link_id = c.link_id
+                left join rdb_region_forecast_link_layer6 d
+                on a.link_id = d.link_id;
                 
                 CREATE OR REPLACE VIEW rdb_region_link_layer4_tbl_view AS
                 select a.link_id, link_id_t, start_node_id, end_node_id, road_type, pdm_flag,one_way, 
@@ -91,12 +94,15 @@ class rdb_view(ItemBase):
                    case when b.light_cnt is not null then b.light_cnt else 0 end as light_cnt,
                    case when b.toll_cnt is not null then b.toll_cnt else 0 end as toll_cnt,
                    (case when c.link_id is null then -1 else c.s_link_id end) as s_sequence_link_id,
-                   (case when c.link_id is null then -1 else c.e_link_id end) as e_sequence_link_id  
+                   (case when c.link_id is null then -1 else c.e_link_id end) as e_sequence_link_id,
+                   (case when d.link_id is null then false else true end) as forecast_flag  
                 from rdb_region_link_layer4_tbl a
                 left join rdb_region_layer4_light_tollnode_tbl as b
                 on a.link_id = b.region_link_id
                 left join rdb_region_link_layer4_sequence as c
-                on a.link_id = c.link_id;
+                on a.link_id = c.link_id
+                left join rdb_region_forecast_link_layer6 d
+                on a.link_id = d.link_id;
                 """
         # sqlcmd = self.pg.ReplaceDictionary(sqlcmd)
         self.pg.execute2(sqlcmd)

@@ -40,7 +40,7 @@ class HwyPrepareNi(HwyPrepareRDF):
         LEFT JOIN org_n
         ON ST_DWithin(org_n.the_geom, org_poi.the_geom,
                       0.000002694945852358566745)
-        WHERE org_poi.kind = '8301'
+        WHERE org_poi.kind = '8301'  -- 8301: exit
         ORDER BY id
         )
         '''

@@ -14,11 +14,11 @@ class HwySapaInfoRDF(comp_base):
     '''SAPA Name
     '''
 
-    def __init__(self):
+    def __init__(self, ItemName='HwySapaInfoRDF'):
         '''
         Constructor
         '''
-        comp_base.__init__(self, 'HwySapaName')
+        comp_base.__init__(self, ItemName)
 
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_sapa_name')
@@ -140,7 +140,7 @@ class HwySapaInfoRDF(comp_base):
         self.pg.copy_from2(temp_file_obj, 'mid_temp_hwy_sapa_name')
         self.pg.commit2()
         # close file
-        #temp_file_obj.close()
+        # temp_file_obj.close()
         cache_file.close(temp_file_obj, True)
         self.CreateIndex2('temp_link_name_link_id_idx')
         self.log.info('End Make Link Name.')
@@ -252,10 +252,10 @@ class HwySapaInfoRDF(comp_base):
         self.log.info('Start Make sapa store info.')
         sqlcmd = '''
         INSERT INTO mid_temp_sapa_store_info(poi_id, child_poi_id,
-                                             chain_id, cat_id)
+                                             chain_id, cat_id, subcat)
         (
           SELECT distinct rest.poi_id, child_poi_id,
-                 chain_id, cat_id
+                 chain_id, cat_id, subcategory as subcat
            FROM rdf_poi_rest_area AS rest
            INNER JOIN rdf_poi_children AS child
             ON rest.poi_id = child.poi_id
@@ -263,8 +263,10 @@ class HwySapaInfoRDF(comp_base):
             ON child.child_poi_id = chains.poi_id
            LEFT JOIN rdf_poi
             ON child.child_poi_id = rdf_poi.poi_id
+           LEFT JOIN rdf_poi_subcategory as sub
+            ON child.child_poi_id = sub.poi_id
            ORDER BY rest.poi_id, child_poi_id, chain_id, cat_id
-        )
+        );
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
@@ -273,7 +275,7 @@ class HwySapaInfoRDF(comp_base):
     def _make_hwy_store_name(self):
         '''Store or Chain Name'''
         sqlcmd = """
-        INSERT INTO hwy_chain_name(store_chain_id, name, language_code)
+        INSERT INTO hwy_chain_name(chain_id, chain_name, language_code)
         (
         SELECT c.chain_id, name, language_code
           FROM rdf_chain_name AS c

@@ -124,7 +124,7 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                 SELECT a.id as link_id
                     ,a.route_id
                     ,a.name_kind
-                    ,case when a.name_kind = '1' and b.route_kind != '0' then 'route_num'
+                    ,case when a.name_kind = '1' and b.route_kind != '0' then 'shield'
                         when a.name_kind = '1' then 'office_name'
                         else 'alter_name'
                     end as name_type

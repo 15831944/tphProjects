@@ -12,13 +12,12 @@ from common import cache_file
 class HwyPoiExitNameRDF(HwyExitNameRDF):
     '''HWY Exit POI Name.
     '''
-    # vce_language_code_map = None
 
-    def __init__(self):
+    def __init__(self, item_name='HwyPoiExitNameRDF'):
         '''
         Constructor
         '''
-        HwyExitNameRDF.__init__(self)
+        HwyExitNameRDF.__init__(self, item_name)
 
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_exit_poi_name_trans_group')
