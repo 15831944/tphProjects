@@ -49,6 +49,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     def _Do(self):
         self._generate_temp_info_of_junction_links()
         self._generate_spotguide_tbl()
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
            
         #self.composeBackground("C:\\My\\20150410_mmi_pic\\Pattern_resized", "C:\\My\\20150410_mmi_pic\\Pattern_background")
         #self.composeSignpost("C:\\My\\20150410_mmi_pic\\Pattern_background", "C:\\My\\20150410_mmi_pic\\Pattern_signpost")

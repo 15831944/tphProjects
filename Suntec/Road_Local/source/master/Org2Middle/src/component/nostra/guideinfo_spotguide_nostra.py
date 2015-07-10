@@ -31,6 +31,7 @@ class comp_guideinfo_spotguide_nostra(comp_guideinfo_spotguide):
         self.add_junctionPicName()
         self.makeJunctionViewInfo()
         self.setDefualtValue()
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
         return 0
 
     def update_junctionview_handler(self):

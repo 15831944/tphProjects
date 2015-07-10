@@ -33,6 +33,8 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
         self.__make_temp_org_spjcty()
         self.__make_temp_spotguide_tbl()
         self.__make_spotguide_tbl()
+        component.default.guideinfo_spotguide.\
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
         
         return 0
     

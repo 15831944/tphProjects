@@ -27,7 +27,7 @@ class comp_guideinfo_spotguide(component.component_base.comp_base):
         return 0
     
     # 将加油站作成spotguide点填充到中间表spotguide_tbl表中
-    def _GenerateSpotguidePointForTollStation(self):
+    def _GenerateSpotguideTblForTollStation(self):
         # 从node_tbl搜刮出toll_flag=1的点。
         # 一些仕向地提供了toll station数据及元数据图片，这些数据在o2m的时候已被做到spotguide_tbl表中。
         # 为防止与这些toll station点重复，这里使用spotguide_tbl对搜出的toll_station列表进行了过滤。

@@ -108,7 +108,8 @@ class comp_guideinfo_spotguide_sensis(comp_guideinfo_spotguide):
         
         self.pg.execute(sqlcmd)
         self.pg.commit()
-                   
+        
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
         return 0
 
     def _extend_jv_records(self):

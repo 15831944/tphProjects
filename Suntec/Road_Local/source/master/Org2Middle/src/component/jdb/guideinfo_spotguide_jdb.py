@@ -22,6 +22,7 @@ class comp_guideinfo_spotguide_jdb(comp_guideinfo_spotguide):
     def _Do(self):
         self.__loadOrginalData()
         self.__convert2Middle()
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
         return 0
     
     def _DoCreateTable(self):

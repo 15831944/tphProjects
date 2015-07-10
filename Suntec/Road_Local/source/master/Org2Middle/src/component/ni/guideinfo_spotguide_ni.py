@@ -37,7 +37,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         self._CreateTempSpotguideLinkTbl()
         self._GenerateSpotguideTblFromBr()
         self._GenerateSpotguideTblFromDm()
-        self._GenerateSpotguideTblForTollStation()
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
         self.log.info("ni generate spotguide_tbl end.")
         return 0
 
@@ -176,15 +176,6 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         self.pg.commit2()
         return
 
-    # 将收费站作成一个spotguide点，并附上插图。
-    def _GenerateSpotguideTblForTollStation(self):
-        # 从node_tbl表可以找到每个收费站node
-        # 从link_tbl表可以根据每个收费站node的相连link
-        # 根据以上信息拼出spotguide点
-        inti = 1
-        inti += 1
-        return
-            
             
             
             
