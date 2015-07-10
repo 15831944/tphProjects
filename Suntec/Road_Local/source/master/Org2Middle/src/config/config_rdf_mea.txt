@@ -2,7 +2,7 @@
 # proj_rdf
 junctionview_data=\\172.26.179.195\share\SourceData\MEA_rdf\MEA8\14Q4
 jv_flag=by_file
-jv_country=ARE,BHR,KWT,OMN,QAT,SAU
+jv_country=KWT,SAU,ARE,BHR,QAT,OMN,MAR,ZAF,EGY,ISR
 sign_as_real_path=\\172.26.179.195\share\SourceData\MEA_rdf\MEA8\14Q4\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
