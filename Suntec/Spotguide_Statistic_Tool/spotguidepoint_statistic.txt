@@ -1,0 +1,115 @@
+-- 数据库预处理：
+-- 建立新的临时数据库，分别从新老数据库中将相关的表导入到新的临时数据库里。
+-- 需要导入的表有：
+--     org_all_sar_files
+--     rdb_guideinfo_pic_blob_bytea
+--     rdb_guideinfo_spotguidepoint
+--     rdb_node
+--     rdb_tile_node
+--     rdfpl_all_jv_lat_display_org
+--     rdfpl_gjv_lat_display_org
+--     spotguide_tbl
+
+-- 例：
+-- 从172.26.179.184/MEA8_RDF_2014Q4_0080_0007和 172.26.179.184/MEA8_RDF_2015Q1_0065_0012里分别将这些表导入到新数据库里，并分别做好命名。
+-- 执行下面的sql，然后根据生成的相关表找到为何新老rdb_guideinfo_spotguidepoint表存在差异。
+
+
+-- 建立两张临时表，字段包括了spotguidepoint的原始node_id, 原始node_id的坐标点lat, lon。
+-- 这两张表分别取自新老数据库
+drop table if exists temp_tbl14q4;
+create table temp_tbl14q4 as
+select distinct c.old_node_id, b.the_geom, 
+          st_x(b.the_geom) as x, st_y(b.the_geom) as y from
+rdb_guideinfo_spotguidepoint_14q4 as a
+left join rdb_node_14q4 as b
+on a.node_id=b.node_id and a.node_id_t=b.node_id_t
+left join rdb_tile_node_14q4 as c
+on a.node_id=c.tile_node_id and a.node_id_t=c.tile_id;
+
+drop table if exists temp_tbl15q1;
+create table temp_tbl15q1 as
+select distinct c.old_node_id, b.the_geom, 
+          st_x(b.the_geom) as x, st_y(b.the_geom) as y from
+rdb_guideinfo_spotguidepoint as a
+left join rdb_node as b
+on a.node_id=b.node_id and a.node_id_t=b.node_id_t
+left join rdb_tile_node as c
+on a.node_id=c.tile_node_id and a.node_id_t=c.tile_id;
+
+-- 建立新的表，记录老数据库对新数据库的差分。
+-- 判断条件是新老数据库中的点是否相等。
+-- 额外条件：当两个点的经纬度的差值不超过0.00001时，认为它们相等。
+drop table if exists temp_diff_14q4_to_15q1;
+create table temp_diff_14q4_to_15q1 as 
+select c.* from
+(
+select a.* from 
+temp_tbl14q4 as a
+left join temp_tbl15q1 as b
+on (a.x=b.x) and (a.y=b.y)
+where b.old_node_id is null
+) as c
+left join 
+(
+select d.* from 
+temp_tbl15q1 as d
+left join temp_tbl14q4 as e
+on (d.x=e.x) and (d.y=e.y)
+where e.old_node_id is null
+) as f
+on abs(c.x-f.x) < 0.00001 and abs(c.y-f.y) < 0.00001
+where f.x is null;
+
+-- 确保上面的diff表里的每条数据都能从14q4的原始数据表
+-- rdfpl_all_jv_lat_display_org_14q4中找到对应经纬度坐标的点。
+select count(*) from
+temp_diff_14q4_to_15q1 as a
+left join 
+rdfpl_all_jv_lat_display_org_14q4 as b
+on a.x=cast(b.lon as double precision) and a.y=cast(b.lat as double precision)
+where b.gid is null; -- 此处应该等于0
+
+-- 尝试从15q1的原始数据表rdfpl_all_jv_lat_display_org_15q1里找到diff表里的点。
+-- 如果找不到，则说明了15q1元数据中没有提供这些点。
+drop table if exists temp_15q1offered_but_not_generate_point_table;
+create table temp_15q1offered_but_not_generate_point_table as 
+select distinct a.*, b.dp_node_id, b.longitude, b.latitude from
+temp_diff_14q4_to_15q1 as a
+left join 
+rdfpl_all_jv_lat_display_org as b
+on a.x=cast(b.longitude as double precision) and a.y=cast(b.latitude as double precision)
+where b.dp_node_id is not null;
+
+-- 如果15q1提供了这些点，继续寻找为什么这些点没有做到spotguide数据里的原因。
+-- 首先尝试在spotguide_tbl中找到这些点。
+-- 如果在spotguide_tbl中也找不到这些点，则查为何spotguide_tbl中没有加入这些点。
+drop table if exists temp_spotguide_has_these_points;
+create table temp_spotguide_has_these_points as
+select distinct a.*, b.patternno, b.arrowno from 
+temp_15q1offered_but_not_generate_point_table as a
+left join spotguide_tbl as b
+on a.old_node_id=b.nodeid
+where b.nodeid is not null;
+
+drop table if exists temp_spotguide_has_not_these_points;
+create table temp_spotguide_has_not_these_points as
+select distinct a.*, b.patternno, b.arrowno from 
+temp_15q1offered_but_not_generate_point_table as a
+left join spotguide_tbl as b
+on a.old_node_id=b.nodeid
+where b.nodeid is null;
+
+-- 在15q1的spotguide_tbl里可以找到这些点，说明有可能是spotguide的图片元数据未提供。
+-- 继续在rdb_guideinfo_pic_blob_bytea里寻找这些点所对应的图片数据。
+-- 如果在rdb_guideinfo_pic_blob_bytea也找不到这些点，则查为何图片数据没有，是元数据未提供？还是图片制作错误？
+drop table if exists temp_pic_blob_cant_find_these;
+create table temp_pic_blob_cant_find_these as 
+select a.*, b.image_id as pattern_image_id, c.image_id as arrow_image_id from
+temp_spotguide_has_these_points as a
+left join rdb_guideinfo_pic_blob_bytea as b
+on a.patternno=b.image_id
+left join rdb_guideinfo_pic_blob_bytea as c
+on a.arrowno=c.image_id
+where c.gid is null;
+
