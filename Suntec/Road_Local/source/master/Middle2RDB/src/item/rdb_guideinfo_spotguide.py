@@ -7,6 +7,7 @@ Created on 2012-3-6
 from base.rdb_ItemBase import ItemBase, ITEM_EXTEND_FLAG_IDX
 from common import rdb_log
 
+tollStationImageName = 'toll_station_image' # 此图由机能组指定。
 class rdb_guideinfo_spotguide(ItemBase):
     def __init__(self):
         ItemBase.__init__(self, 'SpotGuidepoint'
@@ -93,11 +94,12 @@ class rdb_guideinfo_spotguide(ItemBase):
     
     # 将加油站作成spotguide点填充到中间表spotguide_tbl表中
     def _GenerateSpotguidePointForTollStation(self):
+        # 从node_tbl搜刮出toll_flag=1的点。
         # 一些仕向地提供了toll station数据及元数据图片，这些数据在o2m的时候已被做到spotguide_tbl表中。
-        # 为防止与这些toll station点重复，这里使用spotguide_tbl进行了过滤。
+        # 为防止与这些toll station点重复，这里使用spotguide_tbl对搜出的toll_station列表进行了过滤。
         sqlcmd = """
-                select a.node_id, array_agg(b.link_id) as blinkid, array_agg(b.one_way_code) as boneway, 
-                array_agg(c.link_id) as clinkid, array_agg(c.one_way_code) as coneway 
+                select a.node_id, array_agg(b.link_id) as slinkid, array_agg(b.one_way_code) as soneway, 
+                array_agg(c.link_id) as elinkid, array_agg(c.one_way_code) as eoneway
                 from
                 node_tbl as a
                 left join link_tbl as b
@@ -111,11 +113,9 @@ class rdb_guideinfo_spotguide(ItemBase):
                 group by a.node_id
           """
           
-        # arrowno字段默认为空，此做法将令作成rdb_guideinfo_spotguidepoint时
-        # 将跳过部分存在arrow图的仕向地中务必找到arrow图才作成诱导点的逻辑。
+        # arrowno字段留空，在作成rdb_guideinfo_spotguidepoint不考虑是否存在arrow图。
         # toll station 做成spotguide点时type定为12。
         # toll station 默认没有sar
-        # 'toll_station_image'为toll station的通用图。
         spotguide_tbl_insert_str = '''
                 insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                                           passlid, passlink_cnt, direction,
@@ -125,7 +125,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                   values(%d, %d, %d,
                          '', 0, 0,
                          0, 0, 0,
-                         'toll_station_image', 12,
+                         %s, 12,
                          false)
             '''
         self.pg.execute2(sqlcmd)
@@ -168,7 +168,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                 for oneOutLink in outLinkList:
                     if oneInLink != oneOutLink:
                         if self.pg.execute2(spotguide_tbl_insert_str%\
-                                            (node_id, oneInLink, oneOutLink)) == -1:
+                                            (node_id, oneInLink, oneOutLink, tollStationImageName)) == -1:
                             return -1
         
         self.pg.commit2()
