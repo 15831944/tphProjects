@@ -1,6 +1,6 @@
 #encoding=utf-8
 import os
-
+import psycopg2
 aDict = {
 1:"jv_sa_971907680_571711686",
 2:"jv_sa_857123662_719279474",
@@ -2199,6 +2199,14 @@ aDict = {
 2195:"gjv_r52rr21_lane2",
 2196:"gjv_r31lr32_lane1",
 }
+
+def queryDBForPicRelation():
+    conn = psycopg2.connect(''' host='172.26.179.190' dbname='C_NIMIF_Sample_TMP'
+                                     user='postgres' password='pset123456' ''')
+    pg = conn.cursor()
+    sqlcmd = '''
+                
+             '''
 
 def replacePic(binaryPath, datPath):
     newDict2 = {}
