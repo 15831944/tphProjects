@@ -1,8 +1,9 @@
-#encoding=utf-8
+# -*- coding: cp936 -*-
 
 import os
 import shutil
 import struct
+import imghdr
 
 def ConvertDatToImage_Dir(srcDir, destDir, bCopyOrgFile=True):
     if(os.path.exists(srcDir) == False):
@@ -35,24 +36,19 @@ def ConvertDatToImage(srcDatFile, destDir):
         buf9 = readBuf[4+9*iPic: 4+9*iPic+9]
         bPicInfo, iOffset, iSize = struct.unpack("<bii", buf9)
         
+        bufIPic = readBuf[iOffset: iOffset+iSize]    
         strExt = ".jpg"
-        # png图片一般以 0x89 0x50 0x4E 0x47开头。
-        if bufIPic[0] == 0x89 and bufIPic[1] == 0x50 and bufIPic[2] == 0x4E and bufIPic[3] == 0x47:
+        if(imghdr.test_png(bufIPic, None)):
             strExt = ".png"
         
-        # jpg图片一般以 0xFF 0xD8 0xFF 0xE0开头。
-        if bufIPic[0] == 0xFF and bufIPic[1] == 0xD8 and bufIPic[2] == 0xFF and bufIPic[3] == 0xE0:
-            strExt = ".jpg"
-        
         newJpgName = '''%s_%d%s''' % (os.path.splitext(os.path.split(srcDatFile)[1])[0], iPic, strExt)
-        destFile = os.path.join(destDir, newJpgName)
-        bufIPic = readBuf[iOffset: iOffset+iSize]     
+        destFile = os.path.join(destDir, newJpgName) 
         outFS = open(destFile, 'wb')
         outFS.write(bufIPic)
         outFS.close()
         
 if __name__ == '__main__':
-    dat = r'E:\Test\ni_pic\phase2\guangzhou\SignBoard\pattern'
-    pic = r'E:\Test\ni_pic\phase3\guangzhou\SignBoard\pattern'
+    dat = r'C:\My\20150528_here_autocheck_bug\temp'
+    pic = r'C:\My\20150528_here_autocheck_bug\temp_out'
     ConvertDatToImage_Dir(dat, pic)
     

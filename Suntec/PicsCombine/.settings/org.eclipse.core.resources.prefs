@@ -1,7 +1,7 @@
 eclipse.preferences.version=1
 encoding/FindHereSignpostPngsAndMakeDat.py=cp936
 encoding/Illust_Convert.py=cp936
-encoding/Illust_DatToJpg.py=utf-8
+encoding/Illust_DatToJpg.py=cp936
 encoding/Illust_MMI.py=cp936
 encoding/Illust_NI.py=cp936
 encoding/Illust_Rdf.py=utf-8

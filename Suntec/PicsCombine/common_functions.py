@@ -31,6 +31,8 @@ def analyse_csv(srcCsvFile):
 # .dat 文件格式定义：
 # |         |              |4bit语言4bit黑白标识|               |             |   |
 # |2B:0xFEFE|2B:image count|1B:image info    |4B:image offset|4B:image size|...|
+# datInfo：若此值不等于0（全天），1（白天），2（黑夜），3（傍晚）时，将会根据每张图片的路径解析出白天黑夜等。
+# 若解析结束后仍无法获得合理的值，将使用0（全天）。
 def ComposePicsToDat(imgList, destDir, datInfo=1, outputDatName=''): 
     if os.path.isdir(destDir) == False:
         os.mkdir(destDir)
@@ -47,9 +49,17 @@ def ComposePicsToDat(imgList, destDir, datInfo=1, outputDatName=''):
     resultBuffer = struct.pack("<HH", 0xFEFE, imageCount)
     imageLens = []
     for img in imgList:
-        imgLen = os.path.getsize(img)
         print img
-        resultBuffer += struct.pack("<bii", datInfo, 4+imageCount*9+sum(imageLens), imgLen)
+        imgLen = os.path.getsize(img)
+        xDatInfo = datInfo
+        if (xDatInfo not in [0, 1, 2, 3]):
+            if img.lower().find("day") != -1:
+                xDatInfo = 1
+            elif img.lower().find("night") != -1:
+                xDatInfo = 2
+            else:
+                xDatInfo = 0
+        resultBuffer += struct.pack("<bii", xDatInfo, 4+imageCount*9+sum(imageLens), imgLen)
         imageLens.append(imgLen)
         
     for img in imgList:
