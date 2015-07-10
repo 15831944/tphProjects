@@ -173,13 +173,13 @@ class CCaseInfo(object):
     
     def isProj(self, name):
 
-        if not self.get(u'项目'):
+        if not self.get(u'仕向地'):
             return True
         
-        if self.get(u'项目').find('-'+name) >= 0:
+        if self.get(u'仕向地').find('-'+name) >= 0:
             return False
         
-        if (self.get(u'项目').find('COMMON') >= 0 or self.get(u'项目').find(name) >= 0):
+        if (self.get(u'仕向地').find('COMMON') >= 0 or self.get(u'仕向地').find(name) >= 0):
             return True
             
         return False
@@ -210,13 +210,16 @@ class CCaseInfo(object):
         self.setValue(u'测试结果', rVal)
         
     def getMajorItem(self):
-        return self.get(u'大项')
+        return self.get(u'数据名')
     
     def getCheckContent(self):
         return self.get(u'check内容')
     
     def getCheckMethod(self):
         return self.get(u'Check方法')
+    
+    def getDataVersion(self):
+        return self.get(u'版本')
     
     def getTableName(self):
         return self.__table_name

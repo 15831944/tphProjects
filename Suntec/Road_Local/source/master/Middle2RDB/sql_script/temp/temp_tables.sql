@@ -722,7 +722,7 @@ create table temp_region_merge_links_oldid
 as
 (
 	select	link_id, region_tile_id, region_level, start_node_id, end_node_id, road_type, pdm_flag, path_extra_info, one_way, function_code, link_length, link_type,
-			road_name, toll, bypass_flag, highcost_flag, regulation_flag, fazm_path, tazm_path, struct_code, shortcut_code, etc_lane_flag, disobey_flag, 
+			road_name_id, road_name, toll, bypass_flag, highcost_flag, regulation_flag, fazm_path, tazm_path, struct_code, shortcut_code, etc_lane_flag, disobey_flag, 
 			ops_lane_number, ops_width, neg_lane_number, neg_width, pos_cond_speed, neg_cond_speed, the_geom, 
 			low_level_linkids, low_level_linkdirs, abs_linkids,
 			array_to_string(low_level_linkids, ',') as feature_string, 
@@ -733,7 +733,7 @@ as
 		       road_type, pdm_flag, 
 		       (case when d.path_extra_info is null then 0 else d.path_extra_info end) as path_extra_info, 
 		       a.one_way, function_code, link_length, a.link_type, 
-		       road_name, toll, bypass_flag, highcost_flag, regulation_flag, a.fazm_path, a.tazm_path, 
+		       road_name_id, road_name, toll, bypass_flag, highcost_flag, regulation_flag, a.fazm_path, a.tazm_path, 
 		       (case when d.struct_code is null then 0 else d.struct_code end) as struct_code, 
 		       (case when d.shortcut_code is null then 0 else d.shortcut_code end) as shortcut_code, 
 		       (case when d.etc_lane_flag is null then 0 else d.etc_lane_flag end) as etc_lane_flag, 
@@ -767,7 +767,7 @@ as
 		       road_type, pdm_flag, 
 		       (case when c.path_extra_info is null then 0 else c.path_extra_info end) as path_extra_info, 
 		       b.one_way, function_code, b.link_length, b.link_type, 
-		       road_name, toll, bypass_flag, highcost_flag, regulation_flag, b.fazm_path, b.tazm_path, 
+		       road_name_id, road_name, toll, bypass_flag, highcost_flag, regulation_flag, b.fazm_path, b.tazm_path, 
 		       b.struct_code, b.shortcut_code, b.etc_lane_flag, 
 		       b.disobey_flag, b.ops_lane_number, b.ops_width, b.neg_lane_number, b.neg_width, 
 		       b.pos_cond_speed, b.neg_cond_speed, b.the_geom, 
@@ -895,7 +895,7 @@ as
 (
 	select	b.link_id, a.region_tile_id, e.abs_link_id, e.abs_link_diff,
 			c.node_id as start_node_id, d.node_id as end_node_id, 
-			road_type, pdm_flag, path_extra_info, one_way, function_code, link_length, link_type, road_name, toll, 
+			road_type, pdm_flag, path_extra_info, one_way, function_code, link_length, link_type, road_name_id, road_name, toll, 
        		bypass_flag, highcost_flag, regulation_flag, fazm_path, tazm_path, struct_code, shortcut_code, etc_lane_flag, disobey_flag, 
        		ops_lane_number, ops_width, neg_lane_number, neg_width, pos_cond_speed, 
        		neg_cond_speed, the_geom, low_level_linkids, low_level_linkdirs
@@ -1522,4 +1522,11 @@ CREATE TABLE temp_guidence_node
 create table temp_link_deleted
 (
 	link_id	bigint
+);
+
+CREATE TABLE temp_rdb_name
+(
+  link_id bigint NOT NULL,
+  name_id integer NOT NULL,
+  name    character varying(8192)
 );

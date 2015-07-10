@@ -377,7 +377,7 @@ class comp_guideinfo_signpost_uc_mmi(comp_guideinfo_signpost_uc):
                  '''
         rows = self.GetRows(sqlcmd)
         if rows:
-            self.log.error('Contraints is error!')
+            self.log.warning('Contraints is error!')
             return -1
         return 0
         
@@ -400,7 +400,7 @@ class comp_guideinfo_signpost_uc_mmi(comp_guideinfo_signpost_uc):
                  '''
         rows = self.GetRows(sqlcmd)
         if rows:
-            self.log.error('CheckLogic is error!')
+            self.log.warning('CheckLogic is error!')
             return -1
         
         return 0

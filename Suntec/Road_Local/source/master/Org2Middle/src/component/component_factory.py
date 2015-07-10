@@ -880,14 +880,58 @@ class comp_factory_ni(comp_factory):
         if comp_name == 'Highway':
             from component.ni.hwy.highway_ni import HighwayNi
             return HighwayNi()
+              
+        if comp_name == 'Regulation':
+            from component.ni import regulation_ni
+            return regulation_ni.comp_regulation_ni()
+            pass
         
         if comp_name == 'Guideinfo_ForceGuide':
             from component.ni.guideinfo_forceguide_ni import comp_guideinfo_forceguide_ni
             return comp_guideinfo_forceguide_ni()
+        
+        if comp_name == 'Guideinfo_Caution':
+            from component.ni.guideinfo_caution_ni import comp_guideinfo_caution_ni
+            return comp_guideinfo_caution_ni()
+        
         if comp_name == 'Guideinfo_Lane':
             from component.ni.guideinfo_lane_ni import comp_guideinfo_lane_ni
-            return comp_guideinfo_lane_ni()            
+            return comp_guideinfo_lane_ni()  
+			
+        if comp_name == 'Guideinfo_signpost_uc':
+            from component.ni.Guideinfo_signpost_uc_ni import comp_Guideinfo_signpost_uc_ni
+            return comp_Guideinfo_signpost_uc_ni()
+        if comp_name == 'Admin':
+            from component.ni.admin_ni import comp_admin_ni
+            return comp_admin_ni()
+          
+        if comp_name == 'Node':
+            from component.ni.node_ni import comp_node_ni     
+            return comp_node_ni() 
+        
+        if comp_name == 'stopsign':
+            from component.ni.stopsign_ni import comp_stopsign_ni     
+            return comp_stopsign_ni() 
+        
         if comp_name == 'Link':
             from component.ni.link_ni import comp_link_ni
-            return comp_link_ni()          
-        return None
+            return comp_link_ni()
+        
+        if comp_name == 'Guideinfo_building':
+            from component.ni import guideinfo_building_ni
+            return guideinfo_building_ni.comp_guideinfo_building_ni()   
+
+        if comp_name == 'Dictionary':
+            from component.ni.dictionary_ni import comp_dictionary_ni
+            return comp_dictionary_ni() 
+        
+        if comp_name == 'spotguide_tbl':
+            from component.ni.guideinfo_spotguide_ni import comp_guideinfo_spotguide_ni
+            return comp_guideinfo_spotguide_ni()
+        
+        if comp_name == 'signpost_tbl':
+            from component.ni.guideinfo_signpost_ni import comp_guideinfo_signpost_ni
+            return comp_guideinfo_signpost_ni()
+        
+        return comp_factory.CreateOneComponent(self, comp_name)
+

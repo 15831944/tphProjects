@@ -1402,7 +1402,12 @@ CREATE TABLE new_force_guide_patch
   node2 bigint,
   node3 bigint,
   node4 bigint,
-  node5 bigint
+  node5 bigint,
+  node6 bigint,
+  node7 bigint,
+  node8 bigint,
+  node9 bigint,
+  node10 bigint
 );
 ------------------------------------------------
 CREATE TABLE temp_link_railwaycross

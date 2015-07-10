@@ -19,6 +19,7 @@ class rdb_region(ItemBase):
         proj_mapping = {
             ('jpn'):                rdb_region_ipc_japen(),
             ('jdb'):                rdb_region_ipc_japen(),
+            ('ni'):                 rdb_region_axf_china(),
             ('axf'):                rdb_region_axf_china(),
             ('ta','eu'):            rdb_region_ta_europe(),
             ('ta','vie'):           rdb_region_ta_vietnam(),
@@ -789,7 +790,7 @@ class rdb_region(ItemBase):
         as
         (
             select a.link_id, region_tile_id as link_id_t, start_node_id,end_node_id, road_type, pdm_flag, 
-            one_way, function_code, link_length, link_type, road_name, 
+            one_way, function_code, link_length, link_type, road_name_id, road_name, 
             toll, bypass_flag, highcost_flag,
             (case when b.regulation_exist_state is null then 0 else b.regulation_exist_state end) as regulation_exist_state, 
             fazm_path, tazm_path, 

@@ -26,25 +26,26 @@ class comp_guideinfo_lane_ni(component.component_base.comp_base):
         self.CreateFunction2('mid_make_arrowinfo7_from_link_ni')
         self.CreateFunction2('mid_make_arrowinfo_ni')
         self.CreateFunction2('mid_get_passlinkcount_ni')
+        self.CreateFunction2('mid_make_passlinkid')
         return 0
 
     def _Do(self):
         sqlcmd='''
             insert into lane_tbl
             (
-                  id,nodeid,inlinkid,outlinkid,lanenum,laneinfo,arrowinfo,lanenuml,lanenumr,passlink_cnt,passlid,buslaneinfo)
+                  id,inlinkid,nodeid,outlinkid,lanenum,laneinfo,arrowinfo,lanenuml,lanenumr,passlink_cnt,passlid,buslaneinfo)
             (
               SELECT   gid::integer as id
                    , inlinkid::bigint
                    , nodeid::bigint
                    , outlinkid::bigint
                    , lanenum::smallint
-                   , substr(laneinfo,1,lanenum::smallint) as lane_num
+                   , substr(laneinfo,1,lanenum::smallint) as laneinfo
                    , case when arrowinfo<>'7' then mid_make_arrowinfo_ni(arrowinfo) else mid_make_arrowinfo7_from_link_ni(inlinkid ,nodeid ,passlid ,outlinkid) end
                    , lanenuml::smallint
                    , lanenumr::smallint
-                   , mid_get_passlinkcount_ni(passlid,passlid2)
-                   , case when passlid2='' then passlid else passlid||'|'||passlid2 end
+                   , mid_get_passlinkcount_ni(mid_make_passlinkid(inlinkid,passlid,passlid2,outlinkid))
+                   , mid_make_passlinkid(inlinkid,passlid,passlid2,outlinkid)
                    , buslane
               FROM org_ln
               order by gid

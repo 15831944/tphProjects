@@ -1,0 +1,12 @@
+#################################################################
+# proj_ni
+mdb_path=\\iData\Private\Data_Authoring\SourceData\MMI\14Q4\mdb
+temp_sql_path=.\cache\temp_sql\
+POI_Code=..\docs\poi\poi_category_ni.txt
+brand_icon=..\docs\poi\brand_icon_list_ni.txt
+admin_pic=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_pic.txt
+admin_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_wav.txt
+trfcsign_type_pic=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type_pic.txt
+trfcsign_type_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type_wav.txt
+#pointlist=
+#################################################################

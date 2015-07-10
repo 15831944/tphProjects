@@ -1560,3 +1560,11 @@ CREATE INDEX rdb_link_add_info2_link_id_t_idx
   ON rdb_link_add_info2
   USING btree
   (link_id_t);
+CREATE INDEX rdb_name_name_idx
+  ON rdb_name
+  USING btree
+  (name);
+CREATE INDEX rdb_name_name_id_idx
+  ON rdb_name
+  USING btree
+  (name_id);

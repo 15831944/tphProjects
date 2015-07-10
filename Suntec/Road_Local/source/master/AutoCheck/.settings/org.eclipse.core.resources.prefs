@@ -1,4 +1,12 @@
 eclipse.preferences.version=1
+encoding//src/check/ni/force_guide.py=cp936
+encoding//src/check/ni/org_lane.py=utf-8
+encoding//src/check/ni/org_link.py=utf-8
+encoding//src/check/ni/org_node.py=utf-8
+encoding//src/check/ni/org_poi.py=UTF8
+encoding//src/check/ni/org_regulation.py=UTF8
+encoding//src/check/ni/org_signpost.py=utf-8
+encoding//src/check/ni/org_spotguide.py=utf-8
 encoding//src/check/rdb/rdb_common_check.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_crossname.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_safetyalert.py=UTF8

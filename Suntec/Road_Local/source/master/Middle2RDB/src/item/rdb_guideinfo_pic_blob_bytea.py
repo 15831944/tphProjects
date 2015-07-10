@@ -73,6 +73,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                          ) == -1:
             rdb_log.log(self.ItemName, 'fail to load spotguide pic %s.' % filepath, 'error')
             return -1
+        return 0
     
     def __load_point_list(self):
         rdb_log.log(self.ItemName, 'Inserting record to temp_point_list...', 'info')

@@ -1466,5 +1466,31 @@ class CCheckDiff_LinkSame(platform.TestCase.CTestCase):
                 """
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+class CCheckRdb_Link_road_name_id(platform.TestCase.CTestCase):
+    '''检查rdb_link中road_name_id字段是否有数据存在'''
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from
+                    (
+                        select distinct road_name_id from rdb_link
+                    )as a
+                    
+                """
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count > 1)   
 
+class CCheckRdb_Link_with_all_attri_view_road_name_id(platform.TestCase.CTestCase):
+    '''检查rdb_Link_with_all_attri_view表单中road_name_id字段是否有数据存在'''
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from
+                    (
+                        select distinct road_name_id from rdb_Link_with_all_attri_view
+                    )as a
+                    
+                """
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count > 1)      
 

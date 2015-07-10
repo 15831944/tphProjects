@@ -82,7 +82,8 @@ class comp_link_ni(component.component_base.comp_base):
                         ni_cnv_link_type ( kind ) as link_type, 
                         ni_cnv_road_type ( kind, through, unthrucrid, vehcl_type, ownership ) as road_type,
                         funcclass::smallint as function_class,
-                        case when const_st = '4' and undconcrid != '' then 0::smallint
+                        case when (const_st = '4' and undconcrid != '')
+                            or mid_get_access(vehcl_type) = 0 then 4::smallint
                             else direction::smallint 
                         end as one_way_code,
                         toll::smallint as toll, 

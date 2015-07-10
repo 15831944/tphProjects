@@ -27,6 +27,7 @@ class rdb_vics(ItemBase):
             ('nostra'):             rdb_traffic_nostra(),
             ('mmi'):                rdb_vics(),
             ('msm'):                rdb_vics(),
+            ('ni'):                 rdb_traffic_ni(),
         }
         return rdb_common.getItem(proj_mapping)
 
@@ -883,7 +884,7 @@ class rdb_traffic(ItemBase):
         # Create sequence for original traffic links
         self.CreateFunction2('mid_get_fraction')
         
-        self._createTmcLinkSeq()      
+        self._createTrfLinkSeq()      
         
         # Create org2rdb table for traffic links.               
         self._createTRFTbl()   
@@ -905,7 +906,7 @@ class rdb_traffic(ItemBase):
     def _createRegionTRF_level8(self):
         pass
 
-    def _createTmcLinkSeq(self):
+    def _createTrfLinkSeq(self):
         pass
                        
     def _createTRFTbl(self):    
@@ -1211,7 +1212,7 @@ class rdb_traffic(ItemBase):
                               
 class rdb_traffic_rdf(rdb_traffic):
                                          
-    def _createTmcLinkSeq(self):
+    def _createTrfLinkSeq(self):
         
         rdb_log.log(self.ItemName, 'creating sequence for tmc link -----start ', 'info')
         # Add nodes to original traffic links.
@@ -1597,7 +1598,7 @@ class rdb_traffic_rdf_bra(rdb_traffic_rdf):
         
 class rdb_traffic_nostra(rdb_traffic):
                           
-    def _createTmcLinkSeq(self):
+    def _createTrfLinkSeq(self):
         
         rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')
         
@@ -1902,7 +1903,7 @@ class rdb_traffic_nostra(rdb_traffic):
 
 class rdb_traffic_ta(rdb_traffic):
                                          
-    def _createTmcLinkSeq(self):
+    def _createTrfLinkSeq(self):
         
         rdb_log.log(self.ItemName, 'creating sequence for tmc link -----start ', 'info')
 
@@ -2102,6 +2103,145 @@ class rdb_traffic_ta(rdb_traffic):
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2() 
+
+class rdb_traffic_ni(rdb_traffic):
+                          
+    def _createTrfLinkSeq(self):
+        
+        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')       
+
+        # Add nodes to original traffic links.
+        sqlcmd = """
+            drop table if exists temp_rtic_link_temp cascade;
+            create table temp_rtic_link_temp as 
+            select a.meshcode, a.linkid, b.snodeid::bigint as s_node, b.enodeid::bigint as e_node
+                ,a.kind, a.linkdir, a.rticid, b.the_geom as the_geom
+            from (
+                SELECT mapid as meshcode, linkid
+                    , kind_u as kind, dir_u as linkdir, middle_u as rticid 
+                FROM org_rtic where flag_u <> '0'
+                union
+                SELECT mapid as meshcode, linkid
+                    , kind_d as kind, dir_d as linkdir, middle_d as rticid
+                FROM org_rtic where flag_d <> '0'
+            ) a
+            left join org_r b
+            on a.linkid = b.id;
+            
+            CREATE INDEX temp_rtic_link_temp_linkdir_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (linkdir);
+            CREATE INDEX temp_rtic_link_temp_linkid_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (linkid);
+            CREATE INDEX temp_rtic_link_temp_meshcode_kind_rticid_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (meshcode, kind, rticid);
+            CREATE INDEX temp_rtic_link_temp_s_node_e_node_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (s_node, e_node);                    
+        """
+        self.pg.execute2(sqlcmd)   
+        self.pg.commit2()
+        
+        self.CreateFunction2('rdb_make_trf_rtic_link_seq')
+        self.CreateFunction2('rdb_make_trf_rtic_link_seq_in_one_direction')        
+        self.pg.commit2()
+         
+        # Give sequence to traffic links by searching road.        
+        sqlcmd = """
+            drop table if exists temp_rtic_link;
+            CREATE TABLE temp_rtic_link
+            (
+              meshcode character varying NOT NULL,
+              kind character varying NOT NULL,
+              rticid character varying NOT NULL,
+              linkid character varying NOT NULL,
+              seq    integer,
+              linkdir character varying NOT NULL,
+              group_id smallint
+            );
+            
+            drop table if exists temp_rtic_link_walked;
+            CREATE TABLE temp_rtic_link_walked
+             (
+               meshcode character varying,
+               kind character varying,
+               rticid character varying,
+               linkid character varying
+             );
+            
+            CREATE INDEX temp_rtic_link_walked_complex_idx
+              ON temp_rtic_link_walked
+              USING btree
+              (meshcode, kind, rticid, linkid);
+            
+            analyze temp_rtic_link_temp;
+            select rdb_make_trf_rtic_link_seq();
+            
+              
+            delete from temp_rtic_link a using (
+                select distinct meshcode,kind,rticid from temp_rtic_link 
+                where group_id > 0
+                union
+                select distinct mapid as meshcode,kind_u as kind,middle_u as rticid 
+                from org_rtic where kind_d = kind_u and middle_d = middle_u
+            ) b
+            where a.meshcode = b.meshcode and a.kind = b.kind and a.rticid = b.rticid; 
+            
+            CREATE INDEX temp_rtic_link_linkid_1_idx
+              ON temp_rtic_link
+              USING btree
+              (cast(linkid as bigint));            
+            
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----end ', 'info') 
+                                   
+    def _createTRFTbl_prepare(self):
+        
+        # Create simple relationship between traffic and RDB link.       
+        sqlcmd = """
+        drop table if exists temp_trf_org2rdb_prepare;
+        create table temp_trf_org2rdb_prepare as 
+        select 1::smallint as type_flag, a.meshcode::integer as area_code
+            , a.rticid::integer as infra_id, a.kind::integer - 1 as extra_flag
+            , 0::smallint as dir
+            , b.target_link_id as rdb_link_id
+            , case  when b.flag = 't' and a.linkdir = '1' then 1
+                when b.flag = 't' and a.linkdir = '2' then 0
+                when b.flag = 'f' and a.linkdir = '1' then 0 
+                when b.flag = 'f' and a.linkdir = '2' then 1
+              end as link_dir
+            , 0::smallint as pos_type
+            , b.s_fraction as s_fraction, b.e_fraction as e_fraction
+            , a.seq as seq_org
+            ,case when g.gid is not null and a.linkdir = '2' then (g.sub_count - g.sub_index) 
+                  when g.gid is not null and a.linkdir = '1' then g.sub_index
+                  else 1 
+             end as sub_seq
+            , a.group_id
+            , b.target_geom
+            , b.flag
+        from temp_rtic_link a
+        left join temp_link_org_rdb b
+        on a.linkid::bigint = b.org_link_id
+        left join temp_split_newlink g
+        on b.mid_link_id = g.link_id;
+        
+        ANALYZE  temp_trf_org2rdb_prepare;                        
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()           
+                                  
+    def _createForTMCOnly(self):
+        pass
 
 class rdb_traffic_region():
     '''region traffic

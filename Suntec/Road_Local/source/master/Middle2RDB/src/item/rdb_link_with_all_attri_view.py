@@ -96,7 +96,7 @@ class rdb_link_with_all_attri_view(ItemBase):
             INSERT INTO rdb_link_with_all_attri_view (
                    gid, link_id, link_id_t, display_class, start_node_id,
                    start_node_id_t,end_node_id, end_node_id_t, road_type,
-                   one_way, function_code, link_length, road_name,
+                   one_way, function_code, link_length, road_name, road_name_id,
                    road_number, lane_id, toll, regulation_flag,
                    tilt_flag, speed_regulation_flag, link_add_info_flag,
                    fazm, tazm, fnlink, fnlink_t, tnlink, tnlink_t,
@@ -110,7 +110,7 @@ class rdb_link_with_all_attri_view(ItemBase):
             SELECT a.gid, a.link_id, a.link_id_t, a.display_class,
                    a.start_node_id, a.start_node_id_t, a.end_node_id,
                    a.end_node_id_t, a.road_type, a.one_way, a.function_code,
-                   a.link_length, a.road_name, a.road_number, a.lane_id,
+                   a.link_length, a.road_name, a.road_name_id, a.road_number, a.lane_id,
                    a.toll, a.regulation_flag, a.tilt_flag,
                    a.speed_regulation_flag, a.link_add_info_flag, a.fazm,
                    a.tazm, a.fnlink, a.fnlink_t, a.tnlink, a.tnlink_t,

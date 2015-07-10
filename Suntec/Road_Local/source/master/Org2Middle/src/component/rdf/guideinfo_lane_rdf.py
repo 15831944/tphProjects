@@ -48,11 +48,6 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
         if self.CreateIndex2('lane_tbl_outlinkid_idx') == -1:
             return -1
         
-        if self.CreateIndex2('rdf_link_ref_node_id_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('rdf_link_nonref_node_id_idx') == -1:
-            return -1
 
         return 0
     
@@ -78,7 +73,12 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
     def _Do(self):
         
         self.log.info(self.ItemName + ': begin of making lane ...')
+        if self.CreateIndex2('rdf_link_ref_node_id_idx') == -1:
+            return -1
         
+        if self.CreateIndex2('rdf_link_nonref_node_id_idx') == -1:
+            return -1
+
         if self.CreateIndex2('rdf_lane_nav_strand_lane_id_idx') == -1:
             return -1
         if self.CreateIndex2('rdf_access_allcolum_index') == -1:

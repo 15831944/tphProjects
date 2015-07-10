@@ -24,6 +24,7 @@ class rdb_link_org2rdb(ItemBase):
             ('nostra'):             rdb_link_org2rdb_nostra(),
             ('mmi'):                rdb_link_org2rdb_mmi(),
             ('msm'):                rdb_link_org2rdb_msm(),
+            ('ni'):                 rdb_link_org2rdb_ni(),
         }
         return rdb_common.getItem(proj_mapping)
 

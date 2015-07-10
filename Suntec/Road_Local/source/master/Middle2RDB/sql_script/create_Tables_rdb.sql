@@ -203,6 +203,7 @@ CREATE TABLE rdb_link
   gid serial not null,
   link_id bigint NOT NULL,
   link_id_t integer NOT NULL,
+  road_name_id  int,
   iso_country_code character(3),
   display_class smallint NOT NULL,
   start_node_id bigint NOT NULL,
@@ -238,6 +239,11 @@ CREATE TABLE rdb_link
   highcost_flag smallint NOT NULL DEFAULT 0,
   CONSTRAINT rdb_link_pkey PRIMARY KEY (gid)
 ); SELECT AddGeometryColumn('','rdb_link','the_geom','4326','LINESTRING',2);SELECT AddGeometryColumn('','rdb_link','the_geom_900913','3857','LINESTRING',2);
+CREATE TABLE rdb_name
+(
+  name_id integer NOT NULL,
+  name    character varying(8192)
+);
 
 CREATE TABLE rdb_link_abs
 (
@@ -1511,6 +1517,7 @@ CREATE TABLE rdb_link_with_all_attri_view
   function_code          smallint,
   link_length            integer,
   road_name              character varying(16384),
+  road_name_id            integer,
   road_number            character varying(2048),
   lane_id                integer,
   toll                   smallint,

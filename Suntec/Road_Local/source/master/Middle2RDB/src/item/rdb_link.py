@@ -52,18 +52,64 @@ class rdb_link(ItemBase):
         return 0
 
     def Do(self):
-
+        self.__make_temp_rdb_name()
+        self.__make_rdb_name()
+        self.__make_rdb_link()        
+        self.__make_sequence()
+        return 0 
+    
+    def __make_temp_rdb_name(self):    
+        rdb_log.log('rdb_name', 'Start make temp_rdb_name.', 'info')
+        self.CreateTable2('temp_rdb_name')
+        
+        sqlcmd = """
+                insert into temp_rdb_name
+                     (
+                        select   unnest(array_agg(link_id)) as link_id,
+                                row_number() over(order by road_name ) as name_id,                        
+                                road_name 
+                        from  link_tbl
+                        group by road_name
+                       ) 
+                 """                                    
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()        
+        self.CreateIndex2('temp_rdb_name_link_id_idx')        
+        rdb_log.log('rdb_name', 'End make temp_rdb_name', 'info')
+        return 0
+        
+    def __make_rdb_name(self):             
+        rdb_log.log('rdb_name', 'Start make rdb_name.', 'info')
+        self.CreateTable2('rdb_name')       
+        sqlcmd = """
+                    insert into rdb_name
+                    (
+                    select distinct name_id, name
+                    from temp_rdb_name
+                    order by name_id
+                    )
+                 """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        # create index
+#        self.CreateIndex2('temp_rdb_name_name_idx')
+        self.CreateIndex2('rdb_name_name_id_idx')
+        rdb_log.log('rdb_name', 'End make rdb_name', 'info')        
+        return 0
+    
+    def __make_rdb_link(self):
         sqlcmd = """
            INSERT INTO rdb_link(
                 link_id, link_id_t, iso_country_code, display_class, start_node_id, start_node_id_t, end_node_id, end_node_id_t,
-                road_type, one_way, function_code, link_length, road_name, road_number,
+                road_type, one_way, function_code, link_length, road_name, road_name_id, road_number,
                 lane_id, toll, regulation_flag, tilt_flag, speed_regulation_flag,
                 link_add_info_flag, fazm, tazm, fnlink, fnlink_t, tnlink, tnlink_t,
                 link_type, extend_flag, fazm_path, tazm_path, shield_flag, bypass_flag, matching_flag, 
                 highcost_flag, the_geom, the_geom_900913)
                 (
                  SELECT link_id, link_id_t, iso_country_code, display_class, s_node_id, start_node_id_t, end_node_id, end_node_id_t,
-                      road_type,one_way_code, function_class, link_length, road_name, road_number, lane_id,toll,
+                      road_type,one_way_code, function_class, link_length, road_name, road_name_id, road_number, lane_id,toll,
                       regulation_flag, false, speed_regulation_flag, link_add_info_flag,
                       fazm, tazm, fnlink, FN.tile_id, tnlink, TN.tile_id, link_type,
                       extend_flag, fazm_path, tazm_path, shield_flag, bypass_flag, matching_flag, highcost_flag,
@@ -71,6 +117,7 @@ class rdb_link(ItemBase):
                  from (
                      SELECT  tile_link_id as link_id                        -- link_id
                            , rdb_tile_link.tile_id as  link_id_t           -- link_id_t
+                           , road_name_id
                            , b.iso_country_code as iso_country_code        -- iso_country_code  
                            , display_class                                -- dipslay class
                            , s_node_id                                 -- start_node_id
@@ -103,7 +150,8 @@ class rdb_link(ItemBase):
                            , ST_LineMerge(the_geom) as the_geom
                            , st_transform(ST_LineMerge(the_geom),3857) as the_geom_900913
                       FROM (
-                             SELECT       link_id as old_link_id
+                             SELECT       link_tbl.link_id as old_link_id
+                                          , temp_rdb_name.name_id as road_name_id
                                           , iso_country_code
                                           , display_class
                                           , link_type
@@ -131,6 +179,8 @@ class rdb_link(ItemBase):
                                           , tazm
                                           , the_geom
                                      FROM link_tbl
+                                     left join temp_rdb_name
+                                     on temp_rdb_name.link_id = link_tbl.link_id
                                      -- Get all connected links of a start node
                                      LEFT JOIN (
                                              -- Get all connectend links of a node
@@ -183,11 +233,8 @@ class rdb_link(ItemBase):
         self.CreateIndex2('rdb_link_the_geom_idx')
         self.CreateIndex2('rdb_link_start_node_id_idx')
         self.CreateIndex2('rdb_link_end_node_id_idx')
-        self.CreateIndex2('rdb_link_link_id_t_idx')       
-        
-        self.__make_sequence()
-
-        return 0 
+        self.CreateIndex2('rdb_link_link_id_t_idx') 
+        return 0  
     
     def __make_sequence(self):
         
@@ -362,7 +409,7 @@ class rdb_link_simplify_axf_china(ItemBase):
                 INSERT INTO rdb_link(
                     link_id, link_id_t, iso_country_code, display_class, start_node_id, start_node_id_t, 
                     end_node_id, end_node_id_t, road_type, one_way, function_code, 
-                    link_length, road_name, road_number, lane_id, toll, regulation_flag, 
+                    link_length, road_name,  road_name_id, road_number, lane_id, toll, regulation_flag, 
                     tilt_flag, speed_regulation_flag, link_add_info_flag, fazm, tazm, 
                     fnlink, fnlink_t, tnlink, tnlink_t, link_type, extend_flag,  
                     bypass_flag, matching_flag, highcost_flag, fazm_path, tazm_path, 
@@ -370,7 +417,7 @@ class rdb_link_simplify_axf_china(ItemBase):
                 (
                 select  a.link_id, link_id_t, display_class, start_node_id, start_node_id_t, 
                         end_node_id, end_node_id_t, road_type, one_way, function_code, 
-                        link_length, road_name, road_number, lane_id, toll, regulation_flag, 
+                        link_length, road_name, road_name_id, road_number, lane_id, toll, regulation_flag, 
                         tilt_flag, speed_regulation_flag, link_add_info_flag, fazm, tazm, 
                         fnlink, fnlink_t, tnlink, tnlink_t, link_type, extend_flag,
                         bypass_flag, matching_flag, highcost_flag, fazm_path, tazm_path, 
@@ -737,7 +784,7 @@ class rdb_shape_optimize(ItemBase):
                 INSERT INTO rdb_link(
                     link_id, link_id_t, iso_country_code, display_class, start_node_id, start_node_id_t, 
                     end_node_id, end_node_id_t, road_type, one_way, function_code, 
-                    link_length, road_name, road_number, lane_id, toll, regulation_flag, 
+                    link_length, road_name, road_name_id, road_number, lane_id, toll, regulation_flag, 
                     tilt_flag, speed_regulation_flag, link_add_info_flag, fazm, tazm, 
                     fnlink, fnlink_t, tnlink, tnlink_t, link_type, extend_flag, 
                     bypass_flag, matching_flag, highcost_flag, fazm_path, tazm_path, shield_flag,
@@ -745,7 +792,7 @@ class rdb_shape_optimize(ItemBase):
                 (
                 select  a.link_id, a.link_id_t, a.iso_country_code, display_class, a.start_node_id, start_node_id_t, a.end_node_id, end_node_id_t,
                         road_type, one_way, function_code, 
-                        d.link_length, road_name, road_number, lane_id, toll, regulation_flag, 
+                        d.link_length, road_name, road_name_id, road_number, lane_id, toll, regulation_flag, 
                         tilt_flag, speed_regulation_flag, link_add_info_flag, fazm, tazm, 
                         fnlink, fnlink_t, tnlink, tnlink_t, link_type, extend_flag, 
                         bypass_flag, matching_flag, highcost_flag, fazm_path, tazm_path, shield_flag,
@@ -836,6 +883,7 @@ class rdb_link_wellshape_handle(ItemBase):
             ('nostra'):             rdb_link_wellshape_handle(),
             ('mmi'):                rdb_link_wellshape_handle(),
             ('msm'):                rdb_link_wellshape_handle(),
+            ('ni'):                 rdb_link_wellshape_handle(),
         }
         return rdb_common.getItem(proj_mapping)
     

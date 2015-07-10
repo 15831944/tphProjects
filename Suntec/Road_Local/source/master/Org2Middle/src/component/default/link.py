@@ -58,7 +58,7 @@ class comp_link(component.component_base.comp_base):
                 
                 ALTER TABLE rdb_link DROP CONSTRAINT if exists check_display_class;
                 ALTER TABLE rdb_link
-                  ADD CONSTRAINT check_display_class CHECK (display_class = ANY (ARRAY[10, 11, 12, 20, 21, 31, 32, 41, 42, 51, 52, 53, 54, 100, 101, 102, 103, 104, 0]));
+                  ADD CONSTRAINT check_display_class CHECK (display_class = ANY (ARRAY[10, 11, 12, 20, 21, 30, 31, 32, 41, 42, 51, 52, 53, 54, 100, 101, 102, 103, 104, 0]));
                 
                 ALTER TABLE rdb_link DROP CONSTRAINT if exists check_road_type;
                 ALTER TABLE rdb_link

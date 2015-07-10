@@ -1352,7 +1352,7 @@ BEGIN
 	(
 		select link_id,s_node,e_node,tile_id,common_main_link_attri,display_class
 		from temp_link_tbl 
-		where tile_id = target_tile_id and display_class not in(20,21)
+		where tile_id = target_tile_id and display_class not in(30,31)
 		order by tile_id,common_main_link_attri,link_id,display_class
 	)
 
@@ -1430,7 +1430,7 @@ BEGIN
 	(
 		select link_id,s_node,e_node,tile_id,common_main_link_attri,display_class
 		from temp_link_tbl 
-		where display_class in(20,21)
+		where display_class in(30,31)
 		order by tile_id,common_main_link_attri,link_id,display_class
 	)
 
@@ -2856,11 +2856,11 @@ BEGIN
 			and	not (rec.road_type is distinct from rec2.road_type)
 			and	not (rec.pdm_flag is distinct from rec2.pdm_flag)
 			and	not (rec.path_extra_info is distinct from rec2.path_extra_info)
---			and	(
---					not (rec.road_name is distinct from rec2.road_name)
---					or 
---					(rec.road_number is not null and not (rec.road_number is distinct from rec2.road_number))
---				)
+			and	(
+					not (rec.road_name is distinct from rec2.road_name)
+					or 
+					(rec.road_number is not null and not (rec.road_number is distinct from rec2.road_number))
+				)
 --			and	not (rec.extend_flag is distinct from rec2.extend_flag)
 --			and	not (rec.struct_code is distinct from rec2.struct_code)
 --			and	not (rec.etc_lane_flag is distinct from rec2.etc_lane_flag)
@@ -6712,5 +6712,265 @@ BEGIN
 	sub_len		:= ST_Length_Spheroid(sub_string,'SPHEROID("WGS_84", 6378137, 298.257223563)');
 	
 	return sub_len/sum_len;
+END;
+$$;
+
+----------------------------
+CREATE OR REPLACE FUNCTION rdb_make_trf_rtic_link_seq()
+  RETURNS integer 
+  LANGUAGE plpgsql VOLATILE
+AS $$ 
+DECLARE
+	rec				temp_rtic_link_temp;
+	rec2				record;
+	tmp_rec                         record;
+	pos_rec				record;
+	neg_rec				record;
+	start_node			bigint;
+	end_node			bigint;
+	link_array			character varying[];
+	linkdir_array			character varying[];
+	nCount				integer;
+	nIndex				integer;
+	pre_meshcode character varying;
+	pre_kind   character varying;
+	pre_rticid character varying;	
+	i int;
+	new_group_id int;
+BEGIN
+	i = 0;
+	new_group_id = 0;
+	for rec in select * from temp_rtic_link_temp 
+		order by meshcode,kind,rticid,linkid
+	LOOP
+		i = i + 1;
+		if i = 1 then
+			pre_meshcode = rec.meshcode;
+			pre_kind = rec.kind;
+			pre_rticid = rec.rticid;
+		end if;	
+		
+		select linkid from temp_rtic_link_walked where meshcode = rec.meshcode 
+			and kind = rec.kind and rticid = rec.rticid
+			and linkid = rec.linkid into tmp_rec;
+		
+		if found then
+			continue;
+		else 
+			insert into temp_rtic_link_walked ("meshcode","kind","rticid","linkid") values (rec.meshcode,rec.kind,rec.rticid,rec.linkid);
+		end if;	
+		
+		--- search in positive direction.
+		pos_rec			:= rdb_make_trf_rtic_link_seq_in_one_direction(rec, rec.e_node, 1);
+		end_node		:= pos_rec.reach_node;
+		
+		--- search in negative direction.
+		neg_rec			:= rdb_make_trf_rtic_link_seq_in_one_direction(rec, rec.s_node, 2);
+		start_node		:= neg_rec.reach_node;
+		
+		--- initialize link sequence.
+		link_array		:= ARRAY[rec.linkid];
+		linkdir_array		:= ARRAY[rec.linkdir];
+		
+		if rec.linkdir = '1' then 
+			nCount			:= array_upper(neg_rec.linkrow, 1);
+			if nCount is not null then
+				for nIndex in 1..nCount loop
+					link_array	:= array_prepend(neg_rec.linkrow[nIndex], link_array);
+					linkdir_array	:= array_prepend(neg_rec.linkdirrow[nIndex], linkdir_array);
+				end loop;
+			end if;
+			
+			nCount			:= array_upper(pos_rec.linkrow, 1);
+			if nCount is not null then
+				for nIndex in 1..nCount loop
+					link_array	:= array_append(link_array, pos_rec.linkrow[nIndex]);
+					linkdir_array	:= array_append(linkdir_array, pos_rec.linkdirrow[nIndex]);				
+				end loop;
+			end if;
+		else
+			nCount			:= array_upper(pos_rec.linkrow, 1);
+			if nCount is not null then
+				for nIndex in 1..nCount loop
+					link_array	:= array_prepend(pos_rec.linkrow[nIndex], link_array);
+					linkdir_array	:= array_prepend(pos_rec.linkdirrow[nIndex], linkdir_array);				
+				end loop;
+			end if;
+			
+			nCount			:= array_upper(neg_rec.linkrow, 1);
+			if nCount is not null then
+				for nIndex in 1..nCount loop
+					link_array	:= array_append(link_array, neg_rec.linkrow[nIndex]);
+					linkdir_array	:= array_append(linkdir_array, neg_rec.linkdirrow[nIndex]);				
+				end loop;
+			end if;
+		end if;
+
+		--- if current record is not the first, and current location code is same with previous one,
+		--- give it a new group id. cause they should be continous, but actually not.
+		--- if current record is the first or current location code is different with previous one,
+		--- give it a group id 0. cause it's a new start.
+		if i <> 1 and rec.meshcode = pre_meshcode and rec.kind = pre_kind 
+			and rec.rticid = pre_rticid
+		then
+			new_group_id = new_group_id + 1;
+		else 
+			new_group_id = 0;
+		end if;
+		
+-- 		raise info '   --link_array:%',link_array;
+		nCount			:= array_upper(link_array, 1);		
+		nIndex := 1;
+			
+		while nIndex  <= nCount loop				
+			insert into temp_rtic_link (linkid, seq, meshcode, kind, rticid, linkdir, group_id)
+				values (link_array[nIndex], nIndex, rec.meshcode, rec.kind, rec.rticid, linkdir_array[nIndex], new_group_id);
+			nIndex := nIndex + 1;	
+		end loop;
+		
+		pre_meshcode = rec.meshcode;
+		pre_kind = rec.kind;
+		pre_rticid = rec.rticid;
+		
+	END LOOP;
+
+	return 1;
+	
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION rdb_make_trf_rtic_link_seq_in_one_direction(
+		rec temp_rtic_link_temp, search_node bigint, search_dir integer, OUT linkrow character varying[], OUT linkdirrow character varying[], OUT reach_node bigint)
+	RETURNS record
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec2				record;
+	rec3				record;
+	reach_link                      character varying;
+BEGIN
+	-- init
+	reach_link	:= rec.linkid;
+	reach_node	:= search_node;
+	
+	-- search
+	while true loop
+		
+		-- search link
+		if rec.linkdir = '1' then
+			select * from (
+				select	a.*
+				from
+				(
+					(
+						select	linkid, e_node as nextnode, meshcode, 
+							kind, rticid, linkdir
+						from temp_rtic_link_temp
+						where 	(
+								(search_dir = 1 and linkdir = '1')
+								or 
+								(search_dir = 2 and linkdir = '2')
+							)
+							and 
+							(
+								(reach_node = s_node) 
+								and (linkid != reach_link)
+								and (meshcode = rec.meshcode)
+								and (kind = rec.kind)
+								and (rticid = rec.rticid)
+							)
+					)
+					union
+					(
+						select	linkid, s_node as nextnode, meshcode, 
+							kind, rticid, linkdir
+						from temp_rtic_link_temp
+						where 	(
+								(search_dir = 1 and linkdir = '2')
+								or 
+								(search_dir = 2 and linkdir = '1')
+							)
+							and 
+							(
+								(reach_node = e_node) 
+								and (linkid != reach_link)
+								and (meshcode = rec.meshcode)
+								and (kind = rec.kind)
+								and (rticid = rec.rticid)
+							)
+					)
+				)as a
+				left join temp_rtic_link_walked as b
+				on a.meshcode = b.meshcode 
+				and a.kind = b.kind and a.rticid = b.rticid
+				and a.linkid = b.linkid
+				where b.linkid is null
+			) a order by linkid limit 1
+			into rec2;
+		else
+			select * from (
+				select	a.*
+				from
+				(
+					(
+						select	linkid, e_node as nextnode, meshcode, 
+							kind, rticid, linkdir
+						from temp_rtic_link_temp
+						where 	(
+								(search_dir = 1 and linkdir = '2')
+								or 
+								(search_dir = 2 and linkdir = '1')
+							)
+							and 
+							(
+								(reach_node = s_node) 
+								and (linkid != reach_link)
+								and (meshcode = rec.meshcode)
+								and (kind = rec.kind)
+								and (rticid = rec.rticid)
+							)
+					)
+					union
+					(
+						select	linkid, s_node as nextnode, meshcode, 
+							kind, rticid, linkdir
+						from temp_rtic_link_temp
+						where 	(
+								(search_dir = 1 and linkdir = '1')
+								or 
+								(search_dir = 2 and linkdir = '2')
+							)
+							and 
+							(
+								(reach_node = e_node) 
+								and (linkid != reach_link)
+								and (meshcode = rec.meshcode)
+								and (kind = rec.kind)
+								and (rticid = rec.rticid)
+							)
+					)
+				)as a
+				left join temp_rtic_link_walked as b
+				on a.kind = b.kind 
+				and a.kind = b.kind and a.rticid = b.rticid
+				and a.linkid = b.linkid
+				where b.linkid is null
+			) a order by linkid limit 1
+			into rec2;
+		end if;
+		
+		if FOUND then
+			
+			insert into temp_rtic_link_walked ("meshcode","kind","rticid","linkid") values (rec2.meshcode,rec2.kind,rec2.rticid,rec2.linkid);			
+			-- walk this link
+			linkrow		:= array_append(linkrow, rec2.linkid);
+			linkdirrow	:= array_append(linkdirrow, rec2.linkdir);
+			reach_link	:= rec2.linkid;
+			reach_node	:= rec2.nextnode;
+		else
+			EXIT;
+		end if;
+	end loop;
 END;
 $$;

@@ -3,5 +3,5 @@
 mdb_path=\\iData\Private\Data_Authoring\SourceData\MMI\14Q4\mdb
 temp_sql_path=.\cache\temp_sql\
 POI_Code=..\docs\poi\category_mmi.txt
-brand_icon=..\docs\poi\brand_icon_list.txt
+brand_icon=..\docs\poi\brand_icon_list_mmi.txt
 #################################################################

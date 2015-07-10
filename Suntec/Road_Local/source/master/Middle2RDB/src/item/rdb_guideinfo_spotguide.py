@@ -58,25 +58,24 @@ class rdb_guideinfo_spotguide(ItemBase):
                         , (case when e.gid is null then 0 else e.gid end) as arrow_no
                         , f.data
                         , is_exist_sar
-                    FROM (
-                        SELECT 
-                            gid,
-                            id,
-                            nodeid,
-                            inlinkid,
-                            outlinkid,
-                            passlid,
-                            passlink_cnt,
-                            direction,
-                            guideattr,
-                            namekind,
-                            guideclass,
-                            patternno,
-                            arrowno,
-                            "type",
-                            is_exist_sar
-                          FROM spotguide_tbl
-                    ) as s
+                    FROM 
+                    (SELECT 
+                        gid,
+                        id,
+                        nodeid,
+                        inlinkid,
+                        outlinkid,
+                        passlid,
+                        passlink_cnt,
+                        direction,
+                        guideattr,
+                        namekind,
+                        guideclass,
+                        patternno,
+                        arrowno,
+                        "type",
+                        is_exist_sar
+                    FROM spotguide_tbl) as s
                     LEFT JOIN rdb_tile_link as a
                     ON cast(inlinkid as bigint) = a.old_link_id
                     LEFT JOIN rdb_tile_node as b

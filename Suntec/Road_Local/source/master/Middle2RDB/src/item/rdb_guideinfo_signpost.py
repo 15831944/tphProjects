@@ -10,7 +10,7 @@ from common import rdb_common
 
 
 class rdb_guideinfo_signpost(ItemBase):
-    '''���濴����
+    '''方面看板类
     '''
 
     def __init__(self):
@@ -224,7 +224,7 @@ class rdb_guideinfo_signpost(ItemBase):
         return 0
 
     def _DoContraints(self):
-        '������'
+        '添加外键'
         sqlcmd = """
                 --ALTER TABLE rdb_guideinfo_signpost DROP CONSTRAINT if exists rdb_guideinfo_signpost_arrow_id_fkey;
                 --ALTER TABLE rdb_guideinfo_signpost

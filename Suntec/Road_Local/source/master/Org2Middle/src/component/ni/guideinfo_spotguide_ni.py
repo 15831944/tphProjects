@@ -70,8 +70,8 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             
             # 经过查证，各个folder下可能存在同名的patternno和arrowno图片。
             # 例如20150508所做的四维中国数据中存在以下情况：
-            # pattern图里有：beijing\40210371.png 和 guangzhou\40210371.png两张同名图片
-            # arrow图里有：beijing\224019.png 和 guangzhou\224019。png两张同名图片
+            # pattern图有：beijing\pattern\40210371.png 和 guangzhou\pattern\40210371.png两张同名图片
+            # arrow图有：beijing\arrow\224019.png 和 guangzhou\arrow\224019。png两张同名图片
             # 目前情况（肉眼判断）：两个同名pattern图和arrow图是相同的。
             # 为了预防它们有可能存在不同，在转数据时把folder加成后缀，制作插图时必须遵循此规则。
             fixedPatternno = patternno + '_' + folder
@@ -107,21 +107,24 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             
             # 经过查证，各个folder下可能存在同名的patternno和arrowno图片。
             # 例如20150508所做的四维中国数据中存在以下情况：
-            # pattern图里有：beijing\40210371.png 和 guangzhou\40210371.png两张同名图片
-            # arrow图里有：beijing\224019.png 和 guangzhou\224019。png两张同名图片
+            # pattern图有：beijing\pattern\40210371.png 和 guangzhou\pattern\40210371.png两张同名图片
+            # arrow图有：beijing\arrow\224019.png 和 guangzhou\arrow\224019。png两张同名图片
             # 目前情况（肉眼判断）：两个同名pattern图和arrow图是相同的。
             # 为了预防它们有可能存在不同，在转数据时把folder加成后缀，制作插图时必须遵循此规则。
             fixedPatternno = patternno + '_' + folder
             fixedArrowno = arrowno + '_' + folder    
             
             # 中国的数据没有SAR
-            isExistSar = False 
+            isExistSar = False
+            
+            # 3D交叉点模式图，对应类型为7
+            jv_type = 7
             
             self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
                              (nodeid, inlinkid, outlinkid, 
                               passlid, passlidCount, 0,
                               0, 0, 0,
-                              fixedPatternno, fixedArrowno, 7, isExistSar)) # 3D交叉点模式图，对应类型为7
+                              fixedPatternno, fixedArrowno, jv_type, isExistSar))
         self.pg.commit2()
         return
 

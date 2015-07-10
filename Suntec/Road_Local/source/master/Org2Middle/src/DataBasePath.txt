@@ -1,13 +1,13 @@
 ﻿# config file of project
-db1=host='127.0.0.1' dbname='17cy_IND_MMI_CI_tph' user='postgres' password='pset123456'
-db2=host='127.0.0.1' dbname='17cy_IND_MMI_CI_tph' user='postgres' password='pset123456'
+db1=host='172.26.179.190' dbname='C_NIMIF_Sample_TMP' user='postgres' password='pset123456'
+db2=host='172.26.179.190' dbname='C_NIMIF_Sample_TMP' user='postgres' password='pset123456'
 language_table=..\docs\language.xls
 sql_script=.\sql_script\
 run_mode=debug
 
 # proj_name=axf/jdb/jpn/mmi/msm/nostra/rdf/ta/ni/...
 # proj_country=chn/jpn/ind/mys/tha/na/sgp/hkg/...
-proj_name=rdf
+proj_name=ni
 proj_country=mea
 park_flag=false
 safetyzone_flag=false

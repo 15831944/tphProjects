@@ -728,3 +728,12 @@ CREATE INDEX temp_asso_node_logmark_node_id_idx
 	on temp_asso_node_logmark
 	using btree
 	(node_id);
+	
+	CREATE INDEX temp_rdb_name_name_id_idx
+  ON temp_rdb_name
+  USING btree
+  (name_id);
+  CREATE INDEX temp_rdb_name_link_id_idx
+  ON temp_rdb_name
+  USING btree
+  (link_id);

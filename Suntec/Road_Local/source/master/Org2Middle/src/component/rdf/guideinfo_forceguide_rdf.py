@@ -173,7 +173,7 @@ class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_g
                         array_upper(link_array,1) as link_cnt, guide_type
                     from
                     (
-                        select gid, mid_make_link_list_by_nodes(array[node1,node2,node3,node4,node5]) as link_array,guide_type
+                        select gid, mid_make_link_list_by_nodes(array[node1,node2,node3,node4,node5,node6,node7,node8,node9,node10]) as link_array,guide_type
                         from new_force_guide_patch
                     ) as a
                 ) as b
@@ -185,7 +185,7 @@ class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_g
 
     def _split_link_handler(self, temp_tbl_name, org_tbl_name):
         sqlcmd = '''
-            SELECT objectid, guidetype,array[node1, node2, node3,  node4, node5]
+            SELECT objectid, guidetype,array[node1, node2, node3, node4, node5, node6, node7, node8, node9, node10]
             FROM {0} as a
             left join {1} as b
             on a.objectid = b.gid
@@ -307,7 +307,17 @@ def import_patch(forceguide_patch_full_path, pgcur2):
               node4_geom geometry,
               z4 smallint,
               node5_geom geometry,
-              z5 smallint
+              z5 smallint,
+              node6_geom geometry,
+              z6 smallint,
+              node7_geom geometry,
+              z7 smallint,
+              node8_geom geometry,
+              z8 smallint,
+              node9_geom geometry,
+              z9 smallint,
+              node10_geom geometry,
+              z10 smallint
             )
     ''')
     if os.path.exists(forceguide_patch_full_path):
@@ -318,7 +328,12 @@ def import_patch(forceguide_patch_full_path, pgcur2):
                        'node2_geom', 'z2',
                        'node3_geom', 'z3',
                        'node4_geom', 'z4',
-                       'node5_geom', 'z5'
+                       'node5_geom', 'z5',
+                       'node6_geom', 'z6',
+                       'node7_geom', 'z7',
+                       'node8_geom', 'z8',
+                       'node9_geom', 'z9',
+                       'node10_geom', 'z10'
                        ))
         f_force_guide_patch.close()
     return 0

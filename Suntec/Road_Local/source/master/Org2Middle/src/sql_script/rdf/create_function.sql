@@ -3677,13 +3677,13 @@ DECLARE
 BEGIN
 	for rec in
 		SELECT gid, guide_type, 
-                        array[node1_geom, node2_geom, node3_geom,node4_geom, node5_geom] as nodes,
-                        array[z1,z2,z3,z4,z5] as levels
+                        array[node1_geom, node2_geom, node3_geom, node4_geom, node5_geom, node6_geom, node7_geom, node8_geom, node9_geom, node10_geom] as nodes,
+                        array[z1,z2,z3,z4,z5,z6,z7,z8,z9,z10] as levels
                 FROM old_force_guide_patch
 	loop
                 i = 1;
                 deata = 0.03;
-                while i <= 5 and (rec.nodes)[i] is not null loop
+                while i <= 10 and (rec.nodes)[i] is not null loop
                         select array_agg(node_id),array_agg(the_geom)
                         into nodelist,goemlist
                         from(
@@ -3722,8 +3722,8 @@ BEGIN
                         res_nodelist = array_append(res_nodelist,null);
                         i = i + 1;
                 end loop;
-		INSERT INTO new_force_guide_patch(guide_type, node1, node2, node3, node4, node5)
-                VALUES (rec.guide_type, res_nodelist[1], res_nodelist[2], res_nodelist[3], res_nodelist[4], res_nodelist[5]);
+		INSERT INTO new_force_guide_patch(guide_type, node1, node2, node3, node4, node5, node6, node7, node8, node9, node10)
+                VALUES (rec.guide_type, res_nodelist[1], res_nodelist[2], res_nodelist[3], res_nodelist[4], res_nodelist[5], res_nodelist[6], res_nodelist[7], res_nodelist[8], res_nodelist[9], res_nodelist[10]);
 	end loop;
 	RETURN 1;
 END;

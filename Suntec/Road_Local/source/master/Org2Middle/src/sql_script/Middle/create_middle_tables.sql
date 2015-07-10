@@ -204,7 +204,8 @@ CREATE TABLE spotguide_tbl
   guideclass smallint,
   patternno character varying(128),
   arrowno character varying(128),
-  type smallint
+  type smallint,
+  is_exist_sar boolean default false
 );
 
 -- lane_tbl
@@ -288,7 +289,8 @@ CREATE TABLE spotguide_tbl
   guideclass smallint,
   patternno character varying(128),
   arrowno character varying(128),
-  type smallint
+  type smallint,
+  is_exist_sar boolean default false
 );
 
 -- natural_guidence_tbl
