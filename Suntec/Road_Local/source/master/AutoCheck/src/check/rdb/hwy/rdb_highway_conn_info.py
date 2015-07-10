@@ -57,6 +57,57 @@ class CCheckSameRoad(platform.TestCase.CTestCase):
 
 
 # =============================================================================
+# CCheckSimilarRoad -- ic_no和conn_ic_no的道路名称相似
+# ==============================================================================
+class CCheckSimilarRoad(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        SELECT c.name, d.name
+          FROM rdb_highway_conn_info as a
+          LEFT JOIN rdb_highway_ic_info as b
+          ON a.ic_no = b.ic_no
+          LEFT JOIN (
+              SELECT distinct road_no, name
+              FROM rdb_highway_road_info
+          ) AS c
+          ON b.road_no = c.road_no
+          LEFT JOIN (
+              SELECT distinct road_no, name
+              FROM rdb_highway_road_info
+          ) AS d
+          ON a.conn_road_no = d.road_no
+          where same_road_flag = 1 and c.name <> d.name;
+        """
+        for row in self.pg.get_batch_data(sqlcmd):
+            name1 = row[0]
+            name2 = row[1]
+            if not is_similar_name(name1, name2):
+                return False
+        return True
+
+
+def is_similar_name(name_str1, name_str2):
+    import json
+    if not name_str1 and not name_str2:
+        return True
+    if((name_str1 and not name_str2) or
+       (not name_str1 and name_str2)):
+        return False
+    name1 = json.loads(name_str1)
+    name2 = json.loads(name_str2)
+    name_list1 = []
+    name_list2 = []
+    for name_list in name1:
+        name_list1 += name_list
+    for name_list in name2:
+        name_list2 += name_list
+    for name in name_list1:
+        if name in name_list2:
+            return True
+    return False
+
+
+# =============================================================================
 # CCheckTileChange -- tile_id和conn_tile_id的道路名称相同
 # ==============================================================================
 class CCheckTileChange(platform.TestCase.CTestCase):
@@ -89,6 +140,14 @@ class CCheckUturn(platform.TestCase.CTestCase):
         row = self.pg.fetchone()
         if not row or row[0] != 0:
             return False
+        return True
+
+
+# =============================================================================
+# CCheckUturnFacility
+# ==============================================================================
+class CCheckUturnFacility(platform.TestCase.CTestCase):
+    def _do(self):
         # Uturn都是facility相同，上下行不同
         sqlcmd = """
         SELECT count(*)

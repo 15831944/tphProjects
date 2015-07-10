@@ -121,7 +121,7 @@ class comp_link_mmi(component.component_base.comp_base):
                         mmi_oneway(oneway, e.const_st, f.linkdir, p.linkdir_array)   as one_way_code,
                         CASE when tollrd in ('B','FT') or e.toll_rd = 1 then 1 else 0 end as toll, 
                         CASE when fow = 22 then 1 else 0 END             as elevated,
-                        CASE when fow in (24)     then 1
+                        CASE when fow in (24)     then 3
                              when fow = 25           then 2
                              else 0
                         END                                              as structure,

@@ -1,4 +1,4 @@
-# -*- coding: gbk -*-
+# -*- coding: UTF8 -*-
 '''
 Created on 2015-4-29
 

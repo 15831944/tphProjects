@@ -45,7 +45,7 @@ class HwyRouteRDF(component.component_base.comp_base):
     def __init__(self, data_mng,
                  min_distance=ROUTE_DISTANCE_2000M,
                  margin_dist=ROUTE_DISTANCE_1500M,
-                 ItemName='Highway_Route'):
+                 ItemName='HwyRouteRDF'):
         '''
         Constructor
         '''
@@ -73,6 +73,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         self._make_main_path()
         # 加载Ramp/JCT/SAPA link
         self.data_mng.load_hwy_ic_link()
+        self.data_mng.load_hwy_inout_link()
         # 处理侧道
         self._make_side_path()
         # 合并or删除较短的路径
@@ -82,8 +83,8 @@ class HwyRouteRDF(component.component_base.comp_base):
         self.data_mng.load_exit_poi_name()
         self.data_mng.load_exit_name()
         self.data_mng.load_tollgate()
-        self.data_mng.load_hwy_inout_link()
         self.data_mng.load_hwy_path_id()
+        self.data_mng.load_hwy_regulation()
         self._cut_path()
         # ## 生成road_code
         self._make_road_code()
@@ -1059,7 +1060,7 @@ class HwyRouteRDF(component.component_base.comp_base):
                         node_idx = types_list[rst_pos][0]
                         return node_idx
                     next_node = path[types_list[type_idx][0] + 1]
-                    if self.G.is_hwy_inout(node, next_node, True):
+                    if self.G.is_hwy_inout([next_node, node], True):
                         node_idx = types_list[rst_pos][0]
                         return node_idx
             if type_idx > 0 and self._is_tollgate(types):
@@ -1099,7 +1100,7 @@ class HwyRouteRDF(component.component_base.comp_base):
                         node_idx = types_list[type_idx][0]
                         return node_idx
                     prev_node = path[types_list[type_idx][0] - 1]
-                    if self.G.is_hwy_inout(prev_node, node, False):
+                    if self.G.is_hwy_inout([prev_node, node], False):
                         node_idx = types_list[type_idx][0]
                         return node_idx
             if self._is_tollgate(types):

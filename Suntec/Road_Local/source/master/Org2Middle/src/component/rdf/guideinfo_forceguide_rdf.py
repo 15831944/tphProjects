@@ -48,19 +48,19 @@ class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_g
 #         '''
 #         self.pg.execute2(insert_sql)
 #         self.pg.commit2()
-        '''导入patch'''
-        forceguide_patch_full_path = GetPath('forceguide_patch_full_path')
-        if forceguide_patch_full_path:
-            import_patch(forceguide_patch_full_path, self.pg.pgcur2)
-            self.pg.conn2.commit()
-            '''通过patch中给出的node坐标序列，以0.03米搜索周围的点，确定本版数据中的点序列'''
-            self._get_new_nodelist()
-            '''根据搜到的点来确定link序列'''
-            self._get_link_info()
-            '''通过link序列，得到inlink、outlink、passlink等'''
-            self._split_link_handler('temp_patch_force_guide_tbl', 'new_force_guide_patch')
-            self._make_forceguide_tbl()
-            
+        #'''导入patch'''
+        #forceguide_patch_full_path = GetPath('forceguide_patch_full_path')
+        #if forceguide_patch_full_path:
+        #    import_patch(forceguide_patch_full_path, self.pg.pgcur2)
+        #    self.pg.conn2.commit()
+        #    '''通过patch中给出的node坐标序列，以0.03米搜索周围的点，确定本版数据中的点序列'''
+        #    self._get_new_nodelist()
+        #    '''根据搜到的点来确定link序列'''
+        #    self._get_link_info()
+         #   '''通过link序列，得到inlink、outlink、passlink等'''
+         #   self._split_link_handler('temp_patch_force_guide_tbl', 'new_force_guide_patch')
+        #    self._make_forceguide_tbl()
+        self._deal_temp_patch_force_guide_tbl()  
         self._make_mid_temp_force_guide_tbl()
         self._update_force_guide_tbl()
         return 0

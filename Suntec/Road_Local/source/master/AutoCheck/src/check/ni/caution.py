@@ -43,8 +43,8 @@ class CCheckOrg_Trfcsign_mapid_inlinkid(platform.TestCase.CTestCase):
                     from org_trfcsign a
                     left join org_r b
                         on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.inlinkid::bigint = id::bigint
+                            a.mapid = b.mapid and
+                            a.inlinkid = id
                     where b.id is null
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
@@ -73,8 +73,8 @@ class CCheckOrg_Trfcsign_mapid_nodeid(platform.TestCase.CTestCase):
                     from org_trfcsign a
                     left join org_n b
                         on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.nodeid::bigint = id::bigint
+                            a.mapid = b.mapid and
+                            a.nodeid = id
                     where b.id is null
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
@@ -119,7 +119,7 @@ class CCheckOrg_Trfcsign_crid(platform.TestCase.CTestCase):
                     select count(b.crid)
                     from org_trfcsign a
                     left join org_cr b
-                        on a.crid::bigint = b.crid::bigint
+                        on a.crid = b.crid
                     where a.crid <> '' and b.crid is null
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
@@ -135,18 +135,18 @@ class CCheckOrg_Trfcsign_inlinkid_nodeid_Rel(platform.TestCase.CTestCase):
                     from org_trfcsign a
                     left join org_r b
                         on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.inlinkid::bigint = b.id::bigint
+                            a.mapid = b.mapid and
+                            a.inlinkid = b.id
                     where a.nodeid not in (b.snodeid, b.enodeid)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckCautionTableStruct(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_TableStruct(platform.TestCase.CTestCase):
     def _do(self):
         return self.pg.IsExistTable('caution_tbl')
 
-class CCheckCaution_Tbl_Id(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_id(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(gid)
@@ -156,55 +156,69 @@ class CCheckCaution_Tbl_Id(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckCaution_Tbl_Inlinkid(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_inlinkid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(a.inlinkid)
+                    select count(b.gid)
                     from caution_tbl as a
                     left join link_tbl as b
-                        on a.inlinkid = b.link_id
-                    where b.link_id is null
+                        on inlinkid = b.link_id
+                    where 
+                        (inlinkid is null) or
+                        (inlinkid is not null and b.gid is null)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckCaution_Tbl_Nodeid(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_nodeid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(a.nodeid)
+                    select count(b.gid)
                     from caution_tbl as a
                     left join node_tbl as b
-                        on a.nodeid = b.node_id
-                    where b.node_id is null
+                        on nodeid = b.node_id
+                    where 
+                        (nodeid is null) or
+                        (nodeid is not null and b.node_id is null)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckCaution_Tbl_Inlinkid_Nodeid_Rel(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_inlinkid_nodeid_Rel(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                select count(*)
+                select count(b.gid)
                 from caution_tbl as a
                 left join link_tbl as b
-                    on a.inlinkid = b.link_id
-                where a.nodeid not in (b.s_node, b.e_node)
+                    on inlinkid = b.link_id
+                where nodeid not in (b.s_node, b.e_node)
                 """
         nRecCount = self.pg.getOnlyQueryResult(sqlcmd)
         return (nRecCount == 0)
 
-class CCheckCaution_Tbl_Outlinkid(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_outlinkid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(a.outlinkid)
+                    select count(b.gid)
                     from caution_tbl as a
                     left join link_tbl as b
-                        on a.outlinkid = b.link_id
-                    where a.outlinkid is not null and b.link_id is null
+                        on outlinkid = b.link_id
+                    where outlinkid is not null and b.link_id is null
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckCaution_Tbl_PassLink_Cnt(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_outlinkid_passlid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(gid)
+                    from caution_tbl
+                    where outlinkid is null and passlid is not null
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckCaution_Tbl_passlink_cnt(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                 select count(*)
@@ -222,7 +236,7 @@ class CCheckCaution_Tbl_PassLink_Cnt(platform.TestCase.CTestCase):
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)
 
-class CCheckCaution_Tbl_Data_Kind(platform.TestCase.CTestCase):
+class CCheckCaution_Tbl_data_kind(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                 select count(id)

@@ -23,7 +23,6 @@ class comp_guideinfo_spotguide_msm(component.component_base.comp_base):
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')
         self.CreateIndex2('spotguide_tbl_node_id_idx')
-        self.CreateTable2('mid_all_sar_files')
 
     def _Do(self):
         self._create_temp_spotguide_info()

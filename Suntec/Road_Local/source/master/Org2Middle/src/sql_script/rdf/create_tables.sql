@@ -135,7 +135,7 @@ CREATE TABLE temp_condition_regulation_tbl
 (
   cond_id integer,
   access_id integer,
-  dt_id integer
+  dt_id bigint
 );
 
 --------------------------------------------------------------------------------------------------------
@@ -864,7 +864,7 @@ CREATE TABLE temp_wkt_building
 
 CREATE TABLE temp_wkt_location
 (
-  location_id integer NOT NULL PRIMARY KEY
+  location_id bigint NOT NULL PRIMARY KEY
 ); SELECT AddGeometryColumn('','temp_wkt_location','the_geom','4326','POINT',2);
 
 CREATE TABLE temp_wkt_face
@@ -1699,12 +1699,6 @@ CREATE TABLE mid_temp_hwy_sapa_name_group
   name_id          bigint NOT NULL,
   trans_types      character varying(1024),
   trans_names      character varying(1024)
-);
-
---------------------------------------------------------------------------------------------------------
-CREATE TABLE mid_all_sar_files
-(
-   filename varchar(256)
 );
 
 --------------------------------------------------------------------------------------------------------

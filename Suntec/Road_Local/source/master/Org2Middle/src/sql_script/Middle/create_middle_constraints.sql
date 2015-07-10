@@ -963,6 +963,11 @@ CREATE INDEX mid_temp_poi_link_poi_id_idx
   USING btree
   (poi_id);
 
+CREATE INDEX mid_temp_poi_link_link_id_idx
+  ON mid_temp_poi_link
+  USING btree
+  (link_id);
+
 ------------------------------------------------------------------------
 CREATE INDEX org_ig_elemid_idx
   ON org_ig
@@ -1013,3 +1018,9 @@ CREATE INDEX stopsign_tbl_link_id_idx
   ON stopsign_tbl
   USING btree
   (link_id);
+  
+ ------------------------------------------------------------------------    
+CREATE INDEX temp_force_guide_patch_link_tbl_objectid
+  ON temp_force_guide_patch_link_tbl
+  USING btree
+  (objectid);

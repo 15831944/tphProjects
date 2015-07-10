@@ -285,7 +285,7 @@ class comp_link_rdf(component.component_base.comp_base):
                    , to_ref_num_lanes    
                    , physical_num_lanes                       
                    , 0 as elevated                                   -- elevated
-                   , case a.bridge when 'Y' then 1 
+                   , case a.bridge when 'Y' then 3 
                           else 0 
                      end as structure                                -- structure
                    , case a.tunnel when 'Y' then 1 

@@ -4378,7 +4378,7 @@ BEGIN
 	return rtn_link_list;
 END;
 $$;
-
+/*
 CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes(startnode integer, endnode integer)
   RETURNS character varying
 LANGUAGE plpgsql volatile
@@ -4460,7 +4460,7 @@ BEGIN
         end if;
 END;
 $$;
-
+*/
 CREATE OR REPLACE FUNCTION mid_convert_forceguide()
     RETURNS smallint
     LANGUAGE plpgsql

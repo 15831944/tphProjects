@@ -143,9 +143,23 @@ class comp_node_rdf(component.component_base.comp_base):
             self.pg.commit2()
             
         self.log.info(self.ItemName + ': end of inserting node_tbl...')
-                  
+        
+        self._update_node_tbl()        
         return 0
     
+    def _update_node_tbl(self):
+        self.log.info('Now it is updating node_tbl...')
+        
+        sqlcmd = '''
+                 update node_tbl a set z_level = b.zlevel
+                 from temp_rdf_nav_node b
+                 where a.node_id = b.node_id
+               '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        self.log.info('updating node_tbl succeeded')
+        return 0
     
     def _MakeNodeLid(self):
         "合成node相连的所有link"

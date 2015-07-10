@@ -111,7 +111,7 @@ class comp_link_nostra(component.component_base.comp_base):
                , rdb_cnv_lanecount_downflow(oneway, rdlnlane)  -- lane_num_s2e
                , rdb_cnv_lanecount_upflow(oneway, rdlnlane)    -- lane_num_e2s
                , case fw when 1 then 1 else 0 end as elevated  -- elevated
-               , case when rdlnclass in (41,42,43,44,46) then 1 else 0 end as structure                             -- structure
+               , case when rdlnclass in (41,42,43,44,46) then 3 else 0 end as structure                             -- structure
                , case rdlnclass when 51 then 1 else 0 end   -- tunnel
                , 0 as rail_cross                            -- rail_cross
                , case when rdlnclass = 62 then 0 else 1 end as paved   -- paved

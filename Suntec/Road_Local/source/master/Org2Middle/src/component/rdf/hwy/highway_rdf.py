@@ -77,6 +77,9 @@ class HighwayRDF(Highway):
 
     def _Do(self):
         self.initialize()
+        from component.default.dictionary import comp_dictionary
+        dictionary = comp_dictionary()
+        dictionary.set_language_code()
         if self.link_id_mapping:
             self.link_id_mapping.Make()  # ORG Link_id ==> Middle Link_id
         if self.hwy_exit_poi:  # 来源POI
@@ -89,13 +92,16 @@ class HighwayRDF(Highway):
             self.data_mng.Make()
             # load Highway Main Link.
             self.data_mng.load_hwy_main_link()
+            # 加载元数据的设施号
+            self.data_mng.load_org_facil_id()
+        else:
+            self.log.error('Higway Data Manager is None.')
+            return 0
         # ## 高速路线
         self._make_hwy_route()
         if self.data_mng:
             # 加载高速road_code
             self.data_mng.load_hwy_road_code()
-            # 加载元数据的设施号
-            self.data_mng.load_org_facil_id()
         # 制作高速线路及设施(原始设施情报)
         self._make_hwy_facil()
         # ## 道路情报
@@ -140,6 +146,7 @@ class HighwayRDF(Highway):
             self.data_mng.load_junction_name()
             self.data_mng.load_tollgate()
             self.data_mng.load_hwy_inout_link()
+            self.data_mng.load_hwy_regulation()
             # ########################################
             self.hwy_facil.Make()
 

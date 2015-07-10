@@ -6,7 +6,6 @@ Created on 2015-3-3
 '''
 from component.jdb.hwy.hwy_mapping import HwyMapping
 from component.jdb.hwy.hwy_mapping import HwyLinkMapping
-from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.jdb.hwy.hwy_ic_info import convert_tile_id
 from component.jdb.hwy.hwy_def import UPDOWN_TYPE_UP
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_MAIN
@@ -16,6 +15,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_RAMP
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
+from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 HWY_INVALID_ROAD_NO = -1  # 无效道路番号
 HWY_INVALID_IC_NO = 0  # 无效ic_no
 HWY_ROAD_ATTR_NONE = 0
@@ -110,6 +110,7 @@ class HwyMappingRDF(HwyMapping):
             tile_id = convert_tile_id(tile_id_14)
             self.link_type = fb_info[7]
             self.link_id = link_id
+            one_way = fb_info[8]
             if not bwd_ic_nos and not fwd_ic_nos:
                 # self.log.error('1. No Backward/Forward IC for link=%s'
                 #                % link_id)
@@ -134,17 +135,28 @@ class HwyMappingRDF(HwyMapping):
                                % link_id)
                 continue
             link_maps = []
-            for bwd_ic, fwd_ic in zip(bwd_ics, fwd_ics):
-                # 前后设施都为空——通常是无料区间
-                if not bwd_ic and not fwd_ic:
-                    self.log.error('3. No Backward/Forward IC for link=%s'
-                                   % link_id)
-                    continue
-                link_map = HwyLinkMapping(road_kind, len(bwd_ics), road_no,
+            if one_way == ONE_WAY_BOTH:  # 双向通行
+                # if road_no > HWY_INVALID_ROAD_NO:
+                #    print 'Both:', link_id
+                # 双向通行，不能确认前后方向，所有前后方设施都填0
+                fwd_ic, bwd_ic = HWY_INVALID_IC_NO, HWY_INVALID_IC_NO
+                link_map = HwyLinkMapping(road_kind, 1, road_no,
                                           displayclass, link_id,
                                           fwd_ic, bwd_ic,
                                           'IC', tile_id)
                 link_maps.append(link_map)
+            else:
+                for bwd_ic, fwd_ic in zip(bwd_ics, fwd_ics):
+                    # 前后设施都为空——通常是无料区间
+                    if not bwd_ic and not fwd_ic:
+                        self.log.error('3. No Backward/Forward IC for link=%s'
+                                       % link_id)
+                        continue
+                    link_map = HwyLinkMapping(road_kind, len(bwd_ics), road_no,
+                                              displayclass, link_id,
+                                              fwd_ic, bwd_ic,
+                                              'IC', tile_id)
+                    link_maps.append(link_map)
             self._insert_mapping(link_maps)
         self.pg.commit1()
         self.log.info('End Make IC Link Mapping.')
@@ -501,7 +513,8 @@ class HwyMappingRDF(HwyMapping):
                fwd_node_ids,
                display_class,
                tile_id,
-               link_type
+               link_type,
+               one_way_code
           FROM (
             SELECT link_id,
                    array_agg(bwd_ic_no) as bwd_ic_nos,

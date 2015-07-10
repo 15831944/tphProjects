@@ -20,14 +20,9 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
     
     def _DoCreateTable(self):
         
-        if self.CreateTable2('caution_tbl') == -1:
-            return -1
-        
-        if self.CreateTable2('temp_trfcsign_caution_tbl') == -1:
-            return -1
-        
-        if self.CreateTable2('temp_admin_caution_tbl') == -1:
-            return -1
+        self.CreateTable2('caution_tbl')
+        self.CreateTable2('temp_trfcsign_caution_tbl')
+        self.CreateTable2('temp_admin_caution_tbl')
 
         return 0
     
@@ -41,54 +36,32 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
     
     def _Do(self):
         
-        if self._Deal_TrfcSign() == -1:
-            return -1
-        
-        #if self._Deal_admin() == -1:
-            #return -1
-        
-        if self._Deal_update_caution_tbl() == -1:
-            return -1
+        self._Deal_TrfcSign()
+        #self._Deal_admin()
+        self._Deal_update_caution_tbl()
         
         return 0
     
     def _Deal_TrfcSign(self):
         
-        if self._create_temp_trfcsign_type_wavid() == -1:
-            return -1
-        
-        if self._create_temp_trfcsign_type_picid() == -1:
-            return -1
-
-        if self._create_temp_trfcsign_caution_tbl() == -1:
-            return -1
+        self._create_temp_trfcsign_type_wavid()
+        self._create_temp_trfcsign_type_picid()
+        self._create_temp_trfcsign_caution_tbl()
         
         return 0
     
     def _Deal_admin(self):
         
-        if self._create_temp_admin_wavid() == -1:
-            return -1
-        
-        if self._create_temp_admin_picid() == -1:
-            return -1
-        
-        if self._create_temp_order8_boundary() == -1:
-            return -1
-        
-        if self._create_temp_inode() == -1:
-            return -1
-        
-        if self._create_temp_guideinfo_boundary() == -1:
-            return -1
-        
-        if self._create_temp_admin_caution_tbl() == -1:
-            return -1
+        self._create_temp_admin_wavid()
+        self._create_temp_admin_picid()
+        self._create_temp_order8_boundary()
+        self._create_temp_inode()
+        self._create_temp_guideinfo_boundary()
+        self._create_temp_admin_caution_tbl()
         
         return 0
     
     def _Deal_update_caution_tbl(self):
-        
         self.log.info('Now it is updating caution_tbl...')
         
         sqlcmd = """
@@ -107,55 +80,48 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind,
                     voice_id, strtts, image_id
                 from temp_admin_caution_tbl
+                order by inlinkid, nodeid, data_kind
             """
         
-        if self.pg.do_big_insert2(sqlcmd) == -1:
-            return -1
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('updating caution_tbl succeeded')
         return 0
     
-    def _create_temp_trfcsign_type_wavid(self):
-        
+    def _create_temp_trfcsign_type_wavid(self): 
         self.log.info('Now it is making temp_trfcsign_type_wavid...')
-        # create a relationship between traffic sign type and voice id 
-        if self.CreateTable2('temp_trfcsign_type_wavid') == -1:
-            return -1
         
-        pg = self.pg
-        pgcur = self.pg.pgcur2
+        # create a relationship between traffic sign type and voice id 
+        self.CreateTable2('temp_trfcsign_type_wavid')
+        
         trfcsign_type_wav_path = common.common_func.GetPath('trfcsign_type_wav')
         f = io.open(trfcsign_type_wav_path, 'r', 8192, 'utf8')
-        pgcur.copy_from(f, 'temp_trfcsign_type_wavid', ',', "", 8192, None)        
-        pg.commit2()
+        self.pg.copy_from2(f, 'temp_trfcsign_type_wavid', ',')       
+        self.pg.commit2()
         f.close()
         
         self.log.info('making temp_trfcsign_type_wavid succeeded')
         return 0
     
-    def _create_temp_trfcsign_type_picid(self):
-        
+    def _create_temp_trfcsign_type_picid(self): 
         self.log.info('Now it is making temp_trfcsign_type_picid...')
-        # create a relationship between traffic sign type and pic id 
-        if self.CreateTable2('temp_trfcsign_type_picid') == -1:
-            return -1
         
-        pg = self.pg
-        pgcur = self.pg.pgcur2
+        # create a relationship between traffic sign type and pic id 
+        self.CreateTable2('temp_trfcsign_type_picid')
+
         trfcsign_type_pic_path = common.common_func.GetPath('trfcsign_type_pic')
         f = io.open(trfcsign_type_pic_path, 'r', 8192, 'utf8')
-        pgcur.copy_from(f, 'temp_trfcsign_type_picid', ',', "", 8192, None)        
-        pg.commit2()
+        self.pg.copy_from2(f, 'temp_trfcsign_type_picid', ',')       
+        self.pg.commit2()
         f.close()
         
         self.log.info('making temp_trfcsign_type_picid succeeded')
         return 0
     
-    def _create_temp_trfcsign_caution_tbl(self):
-        
+    def _create_temp_trfcsign_caution_tbl(self):   
         self.log.info('Now it is making temp_trfcsign_caution_tbl...')
-        if self.CreateIndex2('org_trfcsign_type_idx') == -1:
-            return -1
+        
+        self.CreateIndex2('org_trfcsign_type_idx')
         
         sqlcmd = """
                 insert into temp_trfcsign_caution_tbl (
@@ -188,65 +154,49 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     on d.inlinkid = e.link_id
             """
         
-        if self.pg.do_big_insert2(sqlcmd) == -1:
-            return -1
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_trfcsign_caution_tbl succeeded')
         return 0
     
-    def _create_temp_admin_wavid(self):
-        
+    def _create_temp_admin_wavid(self):   
         self.log.info('Now it is making temp_admin_wavid...')
-        # create a relationship between admin code and voice id 
-        if self.CreateTable2('temp_admin_wavid') == -1:
-            return -1
         
-        pg = self.pg
-        pgcur = self.pg.pgcur2
+        # create a relationship between admin code and voice id 
+        self.CreateTable2('temp_admin_wavid')
+
         admin_wav_path = common.common_func.GetPath('admin_wav')
-        f = io.open(admin_wav_path, 'r', 8192, 'utf8')
-        pgcur.copy_from(f, 'temp_admin_wavid', ',', "", 8192, None)        
-        pg.commit2()
+        f = io.open(admin_wav_path, 'r', 8192, 'utf8') 
+        self.pg.copy_from2(f, 'temp_admin_wavid', ',')       
+        self.pg.commit2()
         f.close()
         
         self.log.info('making temp_admin_wavid succeeded')
         return 0
     
-    def _create_temp_admin_picid(self):
-        
+    def _create_temp_admin_picid(self): 
         self.log.info('Now it is making temp_admin_picid...')
-        # create a relationship between admin code and pic id
-        if self.CreateTable2('temp_admin_picid') == -1:
-            return -1
         
-        pg = self.pg
-        pgcur = self.pg.pgcur2
+        # create a relationship between admin code and pic id
+        self.CreateTable2('temp_admin_picid')
+
         admin_pic_path = common.common_func.GetPath('admin_pic')
         f = io.open(admin_pic_path, 'r', 8192, 'utf8')
-        pgcur.copy_from(f, 'temp_admin_picid', ',', "", 8192, None)        
-        pg.commit2()
+        self.pg.copy_from2(f, 'temp_admin_picid', ',')      
+        self.pg.commit2()
         f.close()
         
         self.log.info('making temp_admin_picid succeeded')
         return 0
     
     def _create_temp_order8_boundary(self):
-       
-        self.log.info('Now it is making temp_order8_boundary...')                 
-        if self.CreateIndex2('mid_admin_zone_ad_order_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('mid_admin_zone_order0_id_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('mid_admin_zone_order1_id_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('mid_admin_zone_order2_id_idx') == -1:
-            return -1
-        
-        if self.CreateTable2('temp_order8_boundary') == -1:
-            return -1
+        self.log.info('Now it is making temp_order8_boundary...')
+                         
+        self.CreateIndex2('mid_admin_zone_ad_order_idx')
+        self.CreateIndex2('mid_admin_zone_order0_id_idx')
+        self.CreateIndex2('mid_admin_zone_order1_id_idx')
+        self.CreateIndex2('mid_admin_zone_order2_id_idx')
+        self.CreateTable2('temp_order8_boundary')
         
         sqlcmd = """
                 insert into temp_order8_boundary (
@@ -281,23 +231,18 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                 where a.ad_order = 8
             """
         
-        if self.pg.do_big_insert2(sqlcmd) == -1:
-            return -1
+        self.pg.do_big_insert2(sqlcmd)
         
-        if self.CreateIndex2('temp_order8_boundary_order8_geom_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('temp_order8_boundary_ad_code_idx') == -1:
-            return -1
+        self.CreateIndex2('temp_order8_boundary_order8_geom_idx')
+        self.CreateIndex2('temp_order8_boundary_ad_code_idx')
         
         self.log.info('making temp_order8_boundary succeeded')
         return 0
     
     def _create_temp_inode(self):
-        
         self.log.info('Now it is making temp_inode...')
-        if self.CreateTable2('temp_inode') == -1:
-            return -1
+        
+        self.CreateTable2('temp_inode')
         
         sqlcmd = """
                 insert into temp_inode (
@@ -340,23 +285,18 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                 ) as h
             """
         
-        if self.pg.do_big_insert2(sqlcmd) == -1:
-            return -1
+        self.pg.do_big_insert2(sqlcmd)
         
-        if self.CreateIndex2('temp_inode_link_id_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('temp_inode_b_node_idx') == -1:
-            return -1
+        self.CreateIndex2('temp_inode_link_id_idx')
+        self.CreateIndex2('temp_inode_b_node_idx')
         
         self.log.info('making temp_inode succeeded')
         return 0
     
     def _create_temp_guideinfo_boundary(self):
-        
         self.log.info('Now it is making temp_guideinfo_boundary...')
-        if self.CreateTable2('temp_guideinfo_boundary') == -1:
-            return -1
+        
+        self.CreateTable2('temp_guideinfo_boundary')
         
         sqlcmd = """
                 insert into temp_guideinfo_boundary (
@@ -405,27 +345,19 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     on ST_Intersects(g.the_geom, h.the_geom) = TRUE
             """
         
-        if self.pg.do_big_insert2(sqlcmd) == -1:
-            return -1
+        self.pg.do_big_insert2(sqlcmd)
         
-        if self.CreateIndex2('temp_guideinfo_boundary_out_adcd_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('temp_guideinfo_boundary_inlinkid_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('temp_guideinfo_boundary_nodeid_idx') == -1:
-            return -1
-        
-        if self.CreateIndex2('temp_guideinfo_boundary_outlinkid_idx') == -1:
-            return -1
+        self.CreateIndex2('temp_guideinfo_boundary_out_adcd_idx')
+        self.CreateIndex2('temp_guideinfo_boundary_inlinkid_idx')
+        self.CreateIndex2('temp_guideinfo_boundary_nodeid_idx')
+        self.CreateIndex2('temp_guideinfo_boundary_outlinkid_idx')
         
         self.log.info('making temp_guideinfo_boundary succeeded')
         return 0
     
     def _create_temp_admin_caution_tbl(self):
-        
         self.log.info('Now it is making temp_admin_caution_tbl...')
+        
         sqlcmd = """
                 insert into temp_admin_caution_tbl (
                     inlinkid, nodeid, outlinkid, data_kind, voice_id, strTTS, image_id,
@@ -455,8 +387,7 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     on a.out_adcd = h.ad_code
             """
         
-        if self.pg.do_big_insert2(sqlcmd) == -1:
-            return -1
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_admin_caution_tbl succeeded')
         return 0

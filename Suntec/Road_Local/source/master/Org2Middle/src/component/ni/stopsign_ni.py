@@ -27,9 +27,12 @@ class comp_stopsign_ni(component.component_base.comp_base):
     
     def _Do(self):
         
+        self.CreateIndex2('org_r_id_idx')
+        self.CreateIndex2('org_n_id_idx')
         sqlcmd='''
                 insert into stopsign_tbl(link_id, node_id, pos_flag,the_geom)
-                select inlinkid::bigint,nodeid::bigint,
+                select inlinkid::bigint,
+                    (case when d.old_node_id is null then a.nodeid else d.new_node_id end)::bigint,
                     case when c.snodeid = a.nodeid then 2::smallint 
                         when c.enodeid = a.nodeid then 3::smallint 
                     else 0::smallint end as pos_flag
@@ -37,6 +40,7 @@ class comp_stopsign_ni(component.component_base.comp_base):
                 from org_trfcsign a 
                 join org_n b on a.nodeid = b.id 
                 join org_r c on a.inlinkid = c.id 
+                left join temp_node_mapping d on a.nodeid=d.old_node_id
                 where type='40'
                '''
         self.pg.execute2(sqlcmd)

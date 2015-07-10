@@ -14,7 +14,7 @@ BEGIN
         link_count := 0;
         node_count := 0;
 
-        FOR rec IN (
+        for rec in (
             select link_array, node_array
             from (
                 select mapid, condid, array_agg(linkid) as link_array
@@ -23,40 +23,43 @@ BEGIN
                     from org_cond a
                     left join org_cnl b
                         on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.condid::bigint = b.condid::bigint
+                            a.mapid = b.mapid and
+                            a.condid = b.condid
                     where a.condtype::bigint = 2 and linkid <> ''
-                    order by mapid, condid, seq_nm
+                    order by mapid, condid, seq_nm::bigint
                 ) as c
                 group by mapid, condid
             ) as d
             left join (
                 select mapid, condid, array_agg(nodeid) as node_array
                 from (
-                    select b.mapid, b.condid, seq_nm, nodeid
+                    select b.mapid, b.condid, seq_nm, case when new_node_id is null then nodeid else new_node_id end as nodeid
                     from org_cond a
                     left join org_cnl b
-                        on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.condid::bigint = b.condid::bigint
+                        on a.mapid = b.mapid and a.condid = b.condid
+                    left join temp_node_mapping c
+						on nodeid = old_node_id
                     where a.condtype::bigint = 2 and nodeid <> ''
-                    order by mapid, condid, seq_nm
+                    order by mapid, condid, seq_nm::bigint
                 ) as c
                 group by mapid, condid
             ) as e
             on d.mapid = e.mapid and d.condid = e.condid
         )
-        LOOP
+        loop
             link_count := array_upper(rec.link_array, 1);
             node_count := array_upper(rec.node_array, 1);
-
-            IF (link_count >= 2) AND (node_count >= 1 AND rec.node_array[1] IS NOT NULL) THEN
-                insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt)
-                values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, array_to_string(rec.link_array[2:link_count-1], '|'), link_count-2);
-            ELSE 
-                raise INFO 'rec = %', rec;
-            END IF;
-        END LOOP;
+			
+			if node_count = 1 and (rec.node_array)[1] is not null then
+				if link_count = 2 then
+					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt)
+					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, null, link_count-2);
+				elseif link_count > 2 then
+					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt)
+					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, array_to_string(rec.link_array[2:link_count-1], '|'), link_count-2);
+				end if;
+			end if;
+        end loop;
 
         return 0;
 END;
@@ -96,7 +99,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_make_arrowinfo7_from_link_ni(inlinkid varchar,nodeid varchar,passlid varchar,outlinkid varchar)
+CREATE OR REPLACE FUNCTION mid_make_arrowinfo7_from_link_ni(inlinkid varchar,nodeid varchar,passlid varchar,passlid2 varchar,outlinkid varchar)
   RETURNS smallint 
   LANGUAGE plpgsql
   AS $$ 
@@ -107,15 +110,19 @@ DECLARE
 	line_geom_arr geometry[];
 	line_merge    geometry;
 	num int;
+	i int;
 	p0 geometry;
 	p1 geometry;
 	angle_turn smallint;
 
 BEGIN
+	if passlid2<>'' then
+		passlid=passlid||'|'||passlid2;
+	end if;
 	select snodeid,enodeid,the_geom into rec from org_r where id = inlinkid;
 	if rec.snodeid = nodeid then
 		p1 := st_startpoint(rec.the_geom);
-		p0 := st_pointn(rec.the_geom,2);				
+		p0 := st_pointn(rec.the_geom,2);
 	else 
 		if rec.enodeid = nodeid then			
 			num := st_npoints(rec.the_geom);
@@ -127,22 +134,38 @@ BEGIN
 	if passlid='' or passlid is null then
 		line_arr=array[outlinkid];
 	else 
-		line_arr=regexp_split_to_array(passlid, E'\\|+');
+		line_arr=string_to_array(passlid, '|');
 		line_arr=array_append(line_arr,outlinkid);
 	end if;
 	
-	select array_agg(the_geom) into line_geom_arr from org_r where id = any(line_arr);
-
+	select array_agg(the_geom) into line_geom_arr from 
+	(
+		select the_geom from org_r join 
+		(
+			select a.line_arr[idx] as link_id,idx from
+			(
+				select line_arr,generate_series(1,array_upper(line_arr,1)) as idx
+			) a
+		) b on org_r.id=b.link_id
+		order by b.idx
+	) c;
+	
 	line_geom_arr=array_prepend(st_makeline(p0,p1),line_geom_arr);
 
-		
-	line_merge=st_linemerge(st_collect(line_geom_arr));
+	num=array_upper(line_geom_arr,1);
 	
+	line_merge=line_geom_arr[1];
+
+	for i in 2..num loop
+		line_merge=st_linemerge(st_collect(line_merge,line_geom_arr[i]));
+	end loop;
 	
 	angle_turn=mid_get_line_turn(line_merge);
+	
 	if not st_equals(st_startpoint(line_merge),p0) then
-		angle_turn=-angle_turn;
-	end if;
+            angle_turn=-angle_turn;
+        end if;
+
 	--raise info '%',st_astext(line_merge);
 	--return angle_turn;
 	if angle_turn<45 then
@@ -216,7 +239,8 @@ BEGIN
 			and substr(vehcl_type, 14, 1) = '0'
 			and substr(vehcl_type, 10, 1) = '1' then 20
 		when kind like '0b%' or kind like '%|0b%' then 3 
-		when kind like '00%' or kind like '%|00%' then 12 		
+		when kind like '%05' or kind like '%05|%' then 3 
+		when kind like '00%' or kind like '%|00%' then 12 
 		when kind like '01%' or kind like '%|01%' then 11 
 		when kind like '02%' or kind like '%|02%' then 9 
 		when kind like '03%' or kind like '%|03%' then 8 
@@ -240,11 +264,12 @@ BEGIN
 		when kind like '%00' or kind like '%00|%' then 0
 		when kind like '%03' or kind like '%03|%' then 3 
 		when kind like '%05' or kind like '%05|%'
-		     or kind like '%0b' or kind like '%0b|%' then 5 		
+		    or kind like '%0b' or kind like '%0b|%' then 5 		
 		when kind like '%04' or kind like '%04|%' then 4 
 		when kind like '%12' or kind like '%12|%' then 8 
 		when kind like '%15' or kind like '%15|%' then 9 
-		when kind like '%07' or kind like '%07|%' then 7 
+		when kind like '%06' or kind like '%06|%'
+			or kind like '%07' or kind like '%07|%' then 7 
 		when kind like '%0a' or kind like '%0a|%' then 6 
 		when kind like '%02' or kind like '%02|%' then 2  
 		else 1
@@ -272,15 +297,15 @@ BEGIN
 				or substr(vehcl_type, 9, 1) = '1'
 				or substr(vehcl_type, 10, 1) = '1'
 			) then 12
-		when through = '0' and unthrucrid = '' then 14
+		when (through = '0' and unthrucrid = '')
+			or (kind like '08%' or kind like '%|08%') then 14
 		when substr(vehcl_type, 14, 1) = '1' then 13 
 		when kind like '00%' or kind like '%|00%' then 0 		
 		when kind like '01%' or kind like '%|01%' then 1 
 		when kind like '02%' or kind like '%|02%' then 2 
 		when kind like '03%' or kind like '%|03%' then 3 
 		when kind like '04%' or kind like '%|04%' then 4 
-		when kind like '06%' or kind like '%|06%' 
-			or kind like '08%' or kind like '%|08%' then 6 
+		when kind like '06%' or kind like '%|06%' then 6 
 		when kind like '09%' or kind like '%|09%' then 9 
 		else 6
 	end;
@@ -398,26 +423,23 @@ DECLARE
 	linkid          varchar;
 	i               int;
 BEGIN
+	
 	if passlid2<>'' then
 		passlid=passlid||'|'||passlid2;
 	end if;
-	if substr(passlid,1,length(inlinkid))=inlinkid::text then
-		passlid=substr(passlid,length(inlinkid)+2)::varchar;
-	end if;
-	if substr(passlid,length(passlid)-length(outlinkid)+1)=outlinkid::text then
-		passlid=substr(passlid,1,length(passlid)-length(outlinkid)-1);
-	end if;
-	passlid_arr=regexp_split_to_array(passlid,E'\\|+');
+	passlid=inlinkid||'|'||passlid||'|'||outlinkid;
+	passlid_arr=string_to_array(passlid,'|');
 	num=array_upper(passlid_arr,1);
 	linkid=passlid_arr[1];
-	passlid_arr_new=array_append(passlid_arr_new,linkid);
-	for i in 2..num loop
+	passlid_arr_new=array[linkid];
+	for i in 1..num loop
 		if linkid<>passlid_arr[i] then
 			passlid_arr_new=array_append(passlid_arr_new,passlid_arr[i]);
 			linkid=passlid_arr[i];
 		end if;
 	end loop;
-	return array_to_string(passlid_arr_new,'|');
+	num=array_upper(passlid_arr_new,1);
+	return array_to_string(passlid_arr_new[2:num-1],'|');
 END;
 $$;
 
@@ -498,6 +520,9 @@ DECLARE
 	strChar			varchar;
 	strNumber		integer;
 	
+	subPeriodArray	varchar[];
+	subPeriodIndex	varchar;
+	subPeriod		varchar;
 	strTime			varchar;
 	strStartTime	varchar;
 	strEndTime		varchar;
@@ -520,7 +545,7 @@ BEGIN
 		start_day		:= 0;
 		end_year		:= 0;
 		end_month		:= 0;
-		end_day			:= 0;			
+		end_day			:= 0;
 		day_of_week		:= 0;
 		start_hour		:= 0;
 		start_minute	:= 0;
@@ -532,93 +557,92 @@ BEGIN
 		if rec.vperiod is null or rec.vperiod = '' then
 			-- all time
 		else
-			-- split time and week
-			if strpos(rec.vperiod, '*') > 0 then
-				strTime		= substr(rec.vperiod, 1, strpos(rec.vperiod, '*') - 1);
-				strWeek		= substr(rec.vperiod, strpos(rec.vperiod, '*') + 1);
-			else
-				strTime		= rec.vperiod;
-				strWeek		= null;
-			end if;
-			strStartTime	= substr(strTime, 
-									 strpos(strTime, '[') + 1, 
-									 strpos(strTime, ')(') - strpos(strTime, '['));
-			strEndTime		= substr(strTime, 
-									 strpos(strTime, ')(') + 1, 
-									 strpos(strTime, ']') - strpos(strTime, ')(') - 1);
-			--raise EXCEPTION 'strStartTime = %, strEndTime = %, strWeek = %', strStartTime, strEndTime, strWeek;
-			
-			-- start time
-			if strStartTime is not null then
-				nTargetPos	:= 2;
-				nTempPos	:= 3;
-				while nTempPos <= length(strStartTime) loop
-					strChar	:= substring(strStartTime, nTempPos, 1);
-					if not ((strChar >= '0') and (strChar <= '9')) then
-						if substring(strStartTime, nTargetPos, 1) = 'y' then
-							start_year		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strStartTime, nTargetPos, 1) = 'M' then
-							start_month		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strStartTime, nTargetPos, 1) = 'd' then
-							start_day		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strStartTime, nTargetPos, 1) = 'h' then
-							start_hour		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strStartTime, nTargetPos, 1) = 'm' then
-							start_minute	:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						else
-							raise EXCEPTION 'unhandled vperiod type1, vperiod = %', rec.vperiod;
+			-- split into subtime and deal with every subtime
+			subPeriodArray	= string_to_array(rec.vperiod, '*');
+			for subPeriodIndex in 1..array_upper(subPeriodArray,1) loop
+				subPeriod	= subPeriodArray[subPeriodIndex];
+				if strpos(subPeriod, ')(') = 0 then	-- week
+					strWeek	= subPeriod;
+					--raise EXCEPTION 'strWeek = %', strWeek;
+					
+					nTargetPos	:= 2;
+					nTempPos	:= 3;
+					while nTempPos <= length(strWeek) loop
+						strChar	:= substring(strWeek, nTempPos, 1);
+						if not ((strChar >= '1') and (strChar <= '7')) then
+							if substring(strWeek, nTargetPos, 1) = 't' then
+								strNumber		:= substring(strWeek, nTargetPos+1, nTempPos-nTargetPos-1);
+								day_of_week		:= day_of_week | (1 << (strNumber::integer - 1));
+							else
+								raise EXCEPTION 'unhandled vperiod type2, vperiod = %', rec.vperiod;
+							end if;
+							nTargetPos	:= nTempPos;
 						end if;
-						nTargetPos	:= nTempPos;
-					end if;
-					nTempPos	:= nTempPos + 1;
-		    	end loop;
-	    	end if;
-			
-			-- end time
-			if strEndTime is not null then
-				nTargetPos	:= 2;
-				nTempPos	:= 3;
-				while nTempPos <= length(strEndTime) loop
-					strChar	:= substring(strEndTime, nTempPos, 1);
-					if not ((strChar >= '0') and (strChar <= '9')) then
-						if substring(strEndTime, nTargetPos, 1) = 'y' then
-							end_year		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strEndTime, nTargetPos, 1) = 'M' then
-							end_month		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strEndTime, nTargetPos, 1) = 'd' then
-							end_day			:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						elseif substring(strEndTime, nTargetPos, 1) = 'h' then
-							end_hour		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-							end_minute		:= 0;
-						elseif substring(strEndTime, nTargetPos, 1) = 'm' then
-							end_minute		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
-						else
-							raise EXCEPTION 'unhandled vperiod type1, vperiod = %', rec.vperiod;
-						end if;
-						nTargetPos	:= nTempPos;
-					end if;
-					nTempPos	:= nTempPos + 1;
-		    	end loop;
-	    	end if;
-			
-			-- week
-			if strWeek is not null then
-				nTargetPos	:= 2;
-				nTempPos	:= 3;
-				while nTempPos <= length(strWeek) loop
-					strChar	:= substring(strWeek, nTempPos, 1);
-					if not ((strChar >= '1') and (strChar <= '7')) then
-						if substring(strWeek, nTargetPos, 1) = 't' then
-							strNumber		:= substring(strWeek, nTargetPos+1, nTempPos-nTargetPos-1);
-							day_of_week		:= day_of_week | (1 << (strNumber::integer - 1));
-						else
-							raise EXCEPTION 'unhandled vperiod type2, vperiod = %', rec.vperiod;
-						end if;
-						nTargetPos	:= nTempPos;
-					end if;
-					nTempPos	:= nTempPos + 1;
-		    	end loop;
-			end if;
+						nTempPos	:= nTempPos + 1;
+			    	end loop;
+			    else -- start time & end time
+					strStartTime	= substr(subPeriod, 
+											 strpos(subPeriod, '[') + 1, 
+											 strpos(subPeriod, ')(') - strpos(subPeriod, '['));
+					strEndTime		= substr(subPeriod, 
+											 strpos(subPeriod, ')(') + 1, 
+											 strpos(subPeriod, ']') - strpos(subPeriod, ')(') - 1);
+					--raise EXCEPTION 'strStartTime = %, strEndTime = %', strStartTime, strEndTime;
+					
+					-- start time
+					if strStartTime is not null then
+						nTargetPos	:= 2;
+						nTempPos	:= 3;
+						while nTempPos <= length(strStartTime) loop
+							strChar	:= substring(strStartTime, nTempPos, 1);
+							if not ((strChar >= '0') and (strChar <= '9')) then
+								if substring(strStartTime, nTargetPos, 1) = 'y' then
+									start_year		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strStartTime, nTargetPos, 1) = 'M' then
+									start_month		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strStartTime, nTargetPos, 1) = 'd' then
+									start_day		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strStartTime, nTargetPos, 1) = 'h' then
+									start_hour		:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strStartTime, nTargetPos, 1) = 'm' then
+									start_minute	:= cast(substring(strStartTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								else
+									raise EXCEPTION 'unhandled vperiod type1, vperiod = %', rec.vperiod;
+								end if;
+								nTargetPos	:= nTempPos;
+							end if;
+							nTempPos	:= nTempPos + 1;
+				    	end loop;
+			    	end if;
+					
+					-- end time
+					if strEndTime is not null then
+						nTargetPos	:= 2;
+						nTempPos	:= 3;
+						while nTempPos <= length(strEndTime) loop
+							strChar	:= substring(strEndTime, nTempPos, 1);
+							if not ((strChar >= '0') and (strChar <= '9')) then
+								if substring(strEndTime, nTargetPos, 1) = 'y' then
+									end_year		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strEndTime, nTargetPos, 1) = 'M' then
+									end_month		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strEndTime, nTargetPos, 1) = 'd' then
+									end_day			:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								elseif substring(strEndTime, nTargetPos, 1) = 'h' then
+									end_hour		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+									end_minute		:= 0;
+								elseif substring(strEndTime, nTargetPos, 1) = 'm' then
+									end_minute		:= cast(substring(strEndTime, nTargetPos+1, nTempPos-nTargetPos-1) as integer);
+								else
+									raise EXCEPTION 'unhandled vperiod type1, vperiod = %', rec.vperiod;
+								end if;
+								nTargetPos	:= nTempPos;
+							end if;
+							nTempPos	:= nTempPos + 1;
+				    	end loop;
+			    	end if;
+				end if;
+			end loop;
 		end if;
     	
     	-- set cond_id -1 if no car restriction
@@ -682,7 +706,7 @@ BEGIN
 	    end if;
 	end loop;
 
-    return 1;
+    return 0;
 END;
 $$;
 
@@ -856,8 +880,16 @@ BEGIN
 	    		(
 		    		select 	mapid, condid, 
 		    				(case when linkid = '' then null::bigint else linkid::bigint end) as linkid, 
-		    				(case when nodeid = '' then null::bigint else nodeid::bigint end) as nodeid
-		    		from org_cnl
+		    				(
+		    				case 
+		    				when a.nodeid = '' then null::bigint 
+		    				when b.new_node_id is not null then b.new_node_id::bigint
+		    				else a.nodeid::bigint 
+		    				end
+		    				)as nodeid
+		    		from org_cnl as a
+		    		left join temp_node_mapping as b
+		    		on a.nodeid = b.old_node_id
 		    		order by mapid, condid, seq_nm::integer
 	    		)as t
 	    		group by mapid, condid

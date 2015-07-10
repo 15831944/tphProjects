@@ -164,7 +164,7 @@ CREATE TABLE temp_condition_regulation_tbl
 CREATE TABLE temp_link_name
 (
   link_id bigint NOT NULL primary key,
-  name    character varying(4096)
+  name    character varying(8192)
 );
 
 -- link shield
@@ -207,3 +207,66 @@ CREATE TABLE temp_admin_name
 	admin_id character varying(10) PRIMARY KEY,
 	admin_name character varying(65536)
 );
+CREATE TABLE temp_admin_municipalities
+(
+	admin_id character varying(10) PRIMARY KEY
+);
+-----------------------------------------------------------------------------------------------------
+--signpost_uc
+CREATE TABLE temp_signpost_uc_path
+as
+(
+	select row_number() over(order by nodeid, inlinkid, outlinkid, passlid ) as path_id, 
+		nodeid, inlinkid, outlinkid, passlid, array_agg(id||'|'||type) as id_array
+	from
+	(
+		select id, nodeid, inlinkid, outlinkid, 
+			(case when passlid2 is null or length(passlid2) < 1 then passlid
+			else passlid ||'|'||passlid2 end) as passlid, 2 as type
+		from org_br
+		
+		union
+		
+		select id, nodeid, inlinkid, outlinkid, passlid, 3 as type
+		from org_ic
+		
+		union
+		
+		select id, nodeid, inlinkid, outlinkid, 
+		 (case when passlid2 is null or length(passlid2) < 1 then passlid
+			else passlid ||'|'||passlid2 end) as passlid, 4 as type
+		from org_dr
+	)temp
+	group by nodeid, inlinkid, outlinkid, passlid
+	order by nodeid, inlinkid, outlinkid, passlid 
+);
+
+CREATE TABLE temp_signpost_uc_path_id
+as
+(
+	select id_array[1] as fname_id, id_array[2] as fname_type, path_id
+	from
+	(
+		select path_id, string_to_array(unnest(id_array),'|') as id_array
+		from temp_signpost_uc_path
+	)temp
+);
+CREATE TABLE temp_signpost_uc_name
+(
+  sign_id            bigint NOT NULL PRIMARY KEY,
+  signpost_name      character varying(8192),
+  route_no1          character varying(1024),
+  route_no2          character varying(1024),
+  route_no3          character varying(1024),
+  route_no4          character varying(1024),
+  exit_no            character varying(1024)
+);
+
+CREATE TABLE temp_node_mapping
+as
+(
+	select id as old_node_id , adjoin_nid as new_node_id
+	from org_n where position('1f00' in kind)<>0
+	and id::bigint>adjoin_nid::bigint
+);
+

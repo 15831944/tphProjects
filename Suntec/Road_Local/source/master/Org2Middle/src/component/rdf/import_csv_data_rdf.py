@@ -7,11 +7,6 @@ Created on 2013-8-21
 import os
 import common.common_func
 import component.component_base
-import io
-
-gjv_file_list = 'gjv.csv'
-all_jv_file_list = 'all_jv.csv'
-
 
 class import_junctionview_data_rdf(component.component_base.comp_base):
     def __init__(self):
@@ -24,53 +19,26 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
         return
 
     def _Do(self):
-#         jcv_file_dir = common.common_func.GetPath('junctionview_dir')
-        strJvCountryList = common.common_func.GetPath('jv_country')
-#         gjv_file_list = common.common_func.GetPath('gjv_files')
-#         all_jv_file_list = common.common_func.GetPath('all_jv_files')
-        jcvFileDir = common.common_func.GetPath('junctionview_data')
-#         jcv_file_dir = junctionview_data[:junctionview_data.find('Q114_APAC_2D_') - 1]
-#         print jcv_file_dir, jv_country
-        if gjv_file_list:
-            self.CreateTable2('rdfpl_gjv_lat_display_org')
-            self.insert_gjv_data(jcvFileDir, gjv_file_list, strJvCountryList)
+        strGjvFileList = common.common_func.GetPath('gjvCsvPath')
+        strEjvFileList = common.common_func.GetPath('ejvCsvPath')
+        strInterestCountryList = common.common_func.GetPath('strInterestCountryList')
 
-        if all_jv_file_list:
-            self.CreateTable2('rdfpl_all_jv_lat_display_org')
-            self.insert_all_jv_data(jcvFileDir, all_jv_file_list, strJvCountryList)
-            
-        all_sign_as_real_file_name = common.common_func.GetPath('all_sign_as_real_file_name')
-        self.CreateTable2('mid_all_sar_files')
-        if all_sign_as_real_file_name <> '':
-            self.insert_all_sar_file_names(all_sign_as_real_file_name)
-    
+        self.CreateTable2('rdfpl_gjv_lat_display_org')
+        self.insert_gjv_data(strGjvFileList, strInterestCountryList)
+        self.CreateTable2('rdfpl_all_jv_lat_display_org')
+        self.insert_ejv_data(strEjvFileList, strInterestCountryList)
         return
     
-    def insert_all_sar_file_names(self, file_name):
-        pg = self.pg
-        pgcur = self.pg.pgcur2
-        
-        f_sar = io.open(file_name, 'r', 8192,'utf-8')
-        if f_sar is None:
-            return -1
-        
-        pgcur.copy_from(f_sar, 'mid_all_sar_files', '|', "", 8192)
-        pg.commit2()
-        f_sar.close()
-        
-        return 0
-    
     # 解析gjv.csv
-    def insert_gjv_data(self, gjv_file_dir, gjv_file_list, strJvCountryList):
-        jcv_files = gjv_file_list.split(',')
-        for jcv_file in jcv_files:
-            jcv_path = os.path.join(gjv_file_dir, jcv_file)
-            if os.path.isfile(jcv_path):
-                jvCountryList = tuple(strJvCountryList.split(','))
-                recordList = self.analyse_csv(jcv_path)
+    def insert_gjv_data(self, strGjvFileList, strInterestCountryList):
+        gjvFileList = strGjvFileList.split(',')
+        for gjvFile in gjvFileList:
+            if os.path.isfile(gjvFile):
+                insterestCountryList = tuple(strInterestCountryList.split(','))
+                recordList = self.analyse_csv(gjvFile)
                 for record in recordList:
                     #此数据所属国家不在我们所需要的国家列表里，丢弃
-                    if str(record['iso_country_code'].replace('"','')) not in jvCountryList:
+                    if str(record['iso_country_code'].replace('"','')) not in insterestCountryList:
                         continue
                     # gjv对应的svg名(filename列）为空，丢弃
                     if (not record['filename']):
@@ -131,17 +99,15 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
             self.pg.commit2()
 
     # 解析 ejv.csv
-    def insert_all_jv_data(self, jcv_file_dir, jcv_file_list, strJvCountryList):
-        jcv_files = jcv_file_list.split(',')
-        for jcv_file in jcv_files:
-            jcv_path = os.path.join(jcv_file_dir, jcv_file)
-            if os.path.isfile(jcv_path):
-                jvCountryList = tuple(strJvCountryList.split(','))
-                recordList = self.analyse_csv(jcv_path)
-                recordCount = len(recordList)
+    def insert_ejv_data(self, strEjvFileList, strInterestCountryList):
+        ejvFileList = strEjvFileList.split(',')
+        for ejvFile in ejvFileList:
+            if os.path.isfile(ejvFile):
+                interestCountryList = tuple(strInterestCountryList.split(','))
+                recordList = self.analyse_csv(ejvFile)
                 for record in recordList:
                     # 此数据所属国家不在我们所需要的国家列表内，丢弃
-                    if str(record['iso_country_code'].replace('"','')) not in jvCountryList:
+                    if str(record['iso_country_code'].replace('"','')) not in interestCountryList:
                         continue
                     # gjv对应的svg名(filename列）和ejv对应的svg名(jcv_filename列)都为空，丢弃。
                     # todo by tangpinghui: 该数据是sar相关，是否应该丢弃?
@@ -211,7 +177,7 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
 
     # 将csv文件的列名作为键，将每行内容作为值。
     # 每行数据将作成一个字典，返回字典的列表
-    # srcCsvFile -> 要解析的csv文件路径
+    # srcCsvFile -> 要解析的csv文件路径 
     # 出错时返空列表
     def analyse_csv(self, srcCsvFile):
         if os.path.exists(srcCsvFile) == False:

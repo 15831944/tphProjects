@@ -1048,6 +1048,8 @@ class rdb_traffic(ItemBase):
         self.CreateFunction2('rdb_get_json_string_for_traffic')
         self.CreateFunction2('rdb_get_json_string_for_trf_names')
 
+        self._createLanguages()
+        
         sqlcmd = """
             select count(*) from pg_tables 
             where tablename like 'gewi_%';                          
@@ -1055,10 +1057,7 @@ class rdb_traffic(ItemBase):
         self.pg.execute2(sqlcmd)
         row = self.pg.fetchone2()
         
-        if  row[0] > 0:
-            self.CreateTable2('temp_trf_names')
-            self.CreateTable2('temp_trf_languages')
-            self.CreateTable2('temp_locationtable')  
+        if  row[0] > 0: 
             self._createLocationTbl()         
         else:
             rdb_log.log(self.ItemName, '!!! No original location table, Please check original data !!!', 'exception')
@@ -1076,10 +1075,17 @@ class rdb_traffic(ItemBase):
         else:
             rdb_log.log(self.ItemName, '!!! No original event & supplementary table, Please check original data !!!', 'exception')                                        
 
+    def _createLanguages(self):
+        
+        self.CreateTable2('temp_trf_languages')
+        
     def _createLocationTbl(self):
 
         rdb_log.log(self.ItemName, 'creating location table ----- start', 'info')
-                           
+
+        self.CreateTable2('temp_trf_names')
+        self.CreateTable2('temp_locationtable')   
+                                 
         sqlcmd = """        
         drop table if exists rdb_trf_locationtable;
         CREATE TABLE rdb_trf_locationtable
@@ -1172,18 +1178,33 @@ class rdb_traffic(ItemBase):
         
         insert into rdb_trf_event(info_flag, direction, code, quantifier, reference_flag, 
                referent, urgency, update_class, "desc")
-        select  type as info_flag,
-                dir as direction,
-                eventcode as code,
-                null as quantifier,
-            ref as reference_flag,
-            null as referent,
-            urgency,
-            cast(updateclass as smallint) as update_class,
-            case when event_string is null then rdb_get_json_string_for_traffic('ENG', '')
-                else rdb_get_json_string_for_traffic('ENG', event_string)
-            end as "desc"
-        from temp_trf_event;                           
+        select info_flag,direction,code,quantifier,reference_flag
+            ,referent,urgency,update_class
+            ,rdb_get_json_string_for_trf_names(lang_cdoe_array,desc_array)
+        from (
+            select info_flag,direction,code,quantifier,reference_flag
+                ,referent,urgency,update_class
+                ,array_agg(event_string) as desc_array
+                ,array_agg(lang_code) as lang_cdoe_array
+            from (
+                select  type as info_flag,
+                    dir as direction,
+                    eventcode as code,
+                    null::smallint as quantifier,
+                    ref as reference_flag,
+                    null::smallint as referent,
+                    urgency,
+                    cast(updateclass as smallint) as update_class,
+                    event_string,n.lang_code
+                from temp_trf_event m
+                left join (
+                    select distinct unnest(language_array) as lang_code 
+                    from temp_trf_languages 
+                ) n
+                on m.lang_code = n.lang_code
+                order by code,lang_code
+                ) a group by info_flag,direction,code,quantifier,reference_flag,referent,urgency,update_class
+        ) b;                        
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()      
@@ -1199,11 +1220,25 @@ class rdb_traffic(ItemBase):
         );
         
         insert into rdb_trf_supplementary(code,referent,"desc")
-        select cast(suplcode as smallint) as code,null as referent,
-            case when suplstring is null then rdb_get_json_string_for_traffic('ENG', '')
-                else rdb_get_json_string_for_traffic('ENG', suplstring)
-            end as "desc"
-        from temp_trf_supplementary;                           
+        select code,referent
+            ,rdb_get_json_string_for_trf_names(lang_cdoe_array,desc_array)
+        from (
+            select code,referent
+                ,array_agg(suplstring) as desc_array
+                ,array_agg(lang_code) as lang_cdoe_array
+            from (
+                select  cast(suplcode as smallint) as code
+                    ,null::smallint as referent
+                    ,suplstring,n.lang_code
+                from temp_trf_supplementary m
+                left join (
+                    select distinct unnest(language_array) as lang_code 
+                    from temp_trf_languages 
+                ) n
+                on m.lang_code = n.lang_code
+                order by code,lang_code
+                ) a group by code,referent
+        ) b;                         
         """
         self.pg.execute2(sqlcmd)   
         self.pg.commit2()     
@@ -1546,6 +1581,42 @@ class rdb_traffic_rdf_mea(rdb_traffic_rdf):
         self.pg.execute2(sqlcmd) 
         self.pg.commit2() 
 
+    def _createLanguages(self):
+        # Language: English, Arabic         
+        sqlcmd = """        
+            drop table if exists temp_trf_languages;
+            create table temp_trf_languages 
+            as
+            (
+                select cid
+                    ,array_agg(lid) as lid_array_org
+                    ,array_agg(language) as language_array
+                from (
+                    select a.cid,a.lid
+                        ,case when b.l_full_name is not null then b.language_code_client
+                            else a.language
+                        end as language
+                    from (
+                        select m.cid,m.lid
+                            ,case when n.language is not null then n.language
+                                else m.language
+                            end as language
+                        from gewi_languages m
+                        left join (
+                            select distinct lid,language
+                            from gewi_languages 
+                            where lower(language) != 'default'
+                        ) n
+                        on m.lid = n.lid
+                    ) a
+                    left join rdb_language b
+                    on lower(a.language) = lower(b.l_full_name)
+                ) a group by cid
+            );                    
+        """
+        self.pg.execute2(sqlcmd) 
+        self.pg.commit2()
+
 class rdb_traffic_rdf_bra(rdb_traffic_rdf):
     
     def _createCountryCodeAndLang(self):
@@ -1595,7 +1666,45 @@ class rdb_traffic_rdf_bra(rdb_traffic_rdf):
         """
         self.pg.execute2(sqlcmd) 
         self.pg.commit2() 
-        
+
+    def _createLanguages(self):
+        # Language: Portuguese         
+        sqlcmd = """        
+            drop table if exists temp_trf_languages;
+            create table temp_trf_languages 
+            as
+            (
+                select cid
+                    ,array_agg(lid) as lid_array_org
+                    ,array_agg(language) as language_array
+                from (
+                    select a.cid,a.lid
+                        ,case when b.l_full_name is not null then b.language_code_client
+                            else a.language
+                        end as language
+                    from (
+                        select m.cid,m.lid
+                            ,case when n.language is not null then n.language
+                                else m.language
+                            end as language
+                        from gewi_languages m
+                        left join (
+                            select distinct lid
+                                ,case when lower(language) = 'default' then 'Brazil portuguese'
+                                    else language
+                                end as language
+                            from gewi_languages 
+                        ) n
+                        on m.lid = n.lid
+                    ) a
+                    left join rdb_language b
+                    on lower(a.language) = lower(b.l_full_name)
+                ) a group by cid
+            );                    
+        """
+        self.pg.execute2(sqlcmd) 
+        self.pg.commit2()
+                
 class rdb_traffic_nostra(rdb_traffic):
                           
     def _createTrfLinkSeq(self):
@@ -2104,11 +2213,48 @@ class rdb_traffic_ta(rdb_traffic):
         self.pg.execute2(sqlcmd)
         self.pg.commit2() 
 
+    def _createLanguages(self):
+        # Language: English          
+        sqlcmd = """        
+            drop table if exists temp_trf_languages;
+            create table temp_trf_languages 
+            as
+            (
+                select cid
+                    ,array_agg(lid) as lid_array_org
+                    ,array_agg(language) as language_array
+                from (
+                    select a.cid,a.lid
+                        ,case when b.l_full_name is not null then b.language_code_client
+                            else a.language
+                        end as language
+                    from (
+                        select m.cid,m.lid
+                            ,case when n.language is not null then n.language
+                                else m.language
+                            end as language
+                        from gewi_languages m
+                        left join (
+                            select distinct lid,language
+                            from gewi_languages 
+                            where lower(language) != 'default'
+                        ) n
+                        on m.lid = n.lid
+                        where m.lid = '1'
+                    ) a
+                    left join rdb_language b
+                    on lower(a.language) = lower(b.l_full_name)
+                ) a group by cid
+            );                    
+        """
+        self.pg.execute2(sqlcmd) 
+        self.pg.commit2()
+
 class rdb_traffic_ni(rdb_traffic):
                           
     def _createTrfLinkSeq(self):
         
-        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')       
+        rdb_log.log(self.ItemName, 'creating sequence for TMC link -----start ', 'info')       
 
         # Add nodes to original traffic links.
         sqlcmd = """
@@ -2202,7 +2348,7 @@ class rdb_traffic_ni(rdb_traffic):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
 
-        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----end ', 'info') 
+        rdb_log.log(self.ItemName, 'creating sequence for TMC link -----end ', 'info') 
                                    
     def _createTRFTbl_prepare(self):
         

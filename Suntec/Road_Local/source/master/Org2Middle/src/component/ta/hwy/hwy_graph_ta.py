@@ -169,7 +169,7 @@ class HwyGraphTa(HwyGraphRDF):
             return False
 
     def _bigger_inout_min_angle(self, angle):
-        if angle < ANGLE_90 or angle > ANGLE_270:
+        if angle < ANGLE_45 or angle > ANGLE_315:
             return False
         return True
 

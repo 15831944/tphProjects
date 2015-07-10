@@ -23,23 +23,19 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         return 0
     
     def _Do(self):
-                
+        
+        self._deal_temp_patch_force_guide_tbl()        
         self._make_mid_temp_force_guide_tbl()
         self._update_force_guide_tbl()
         
         return 0
     
     def _make_mid_temp_force_guide_tbl(self):
-        
         self.log.info('Now it is making mid_temp_force_guide_tbl...')
-        if self.CreateIndex2('org_cond_mapid_condid_idx') == -1:
-            return -1
         
-        if self.CreateIndex2('org_cnl_mapid_condid_idx') == -1:
-            return -1
-        
-        if self.CreateTable2('mid_temp_force_guide_tbl') == -1:
-            return -1
+        self.CreateIndex2('org_cond_mapid_condid_idx')
+        self.CreateIndex2('org_cnl_mapid_condid_idx')
+        self.CreateTable2('mid_temp_force_guide_tbl')
         
         self.CreateFunction2('ni_update_mid_temp_force_guide_tbl')
         self.pg.callproc('ni_update_mid_temp_force_guide_tbl')
@@ -49,11 +45,12 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         return 0
     
     def _update_force_guide_tbl(self):
+        self.log.info('Now it is updating force_guide_tbl...')
         
         sqlcmd = '''
-            drop sequence if exists temp_link_forceguide_seq;
-            create sequence temp_link_forceguide_seq;
-            select setval('temp_link_forceguide_seq', cast(max_id as bigint))
+            drop sequence if exists temp_force_guide_tbl_seq;
+            create sequence temp_force_guide_tbl_seq;
+            select setval('temp_force_guide_tbl_seq', cast(max_id as bigint))
             from
             (
                 select max(force_guide_id) as max_id
@@ -75,7 +72,7 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
                     position_type
                 )
                 select 
-                    nextval('temp_link_forceguide_seq') as force_guide_id,
+                    nextval('temp_force_guide_tbl_seq') as force_guide_id,
                     nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
                     0 as guide_type,
                     0 as position_type
@@ -89,11 +86,12 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
                             b.outlinkid = a.outlinkid and
                             not(b.passlid is distinct from a.passlid) and
                             b.passlink_cnt = a.passlink_cnt
-                    where b.gid IS NULL
+                    where b.gid is null
+                    order by a.nodeid, a.inlinkid, a.outlinkid
                 ) as c
             """
-        
-        self.log.info('Now it is updating force_guide_tbl...')
+            
         self.pg.do_big_insert2(sqlcmd)
+        
         self.log.info('updating force_guide_tbl succeeded') 
         return 0

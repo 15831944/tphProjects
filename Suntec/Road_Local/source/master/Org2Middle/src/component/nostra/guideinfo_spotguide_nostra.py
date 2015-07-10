@@ -25,7 +25,6 @@ class comp_guideinfo_spotguide_nostra(component.component_base.comp_base):
         self.CreateIndex2('spotguide_tbl_node_id_idx')
         self.CreateTable2('temp_org_junctionview')
         self.CreateTable2('temp_mid_junctionview_tbl')
-        self.CreateTable2('mid_all_sar_files')
 
     def _Do(self):
         self.update_junctionview_handler()

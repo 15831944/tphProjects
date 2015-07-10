@@ -108,8 +108,8 @@ class CCheckOrg_Cond_mapid_condid(platform.TestCase.CTestCase):
                     from org_cond a
                     left join org_cnl b
                         on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.condid::bigint = b.condid::bigint
+                            a.mapid = b.mapid and
+                            a.condid = b.condid
                     where 
                         condtype::bigint = 2 and 
                         b.gid IS NULL
@@ -124,8 +124,8 @@ class CCheckOrg_Cnl_mapid_condid(platform.TestCase.CTestCase):
                     from org_cond a
                     left join org_cnl b
                         on 
-                            a.mapid::bigint = b.mapid::bigint and
-                            a.condid::bigint = b.condid::bigint
+                            a.mapid = b.mapid and
+                            a.condid = b.condid
                     where 
                         condtype::bigint = 2 and 
                         (b.mapid = '' or
@@ -141,22 +141,22 @@ class CCheckOrg_Cnl_mapid_linkid(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(*)
                     from (
-                        select c.*
+                        select b.*
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
-                        left join org_r c
-                            on
-                                b.mapid::bigint = c.mapid::bigint and
-                                b.linkid::bigint = c.id::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL and
                             b.linkid != ''
-                    ) as d
-                    where gid IS NULL
+                    ) as c
+                    left join org_r d
+                        on
+                            c.mapid = d.mapid and
+                            c.linkid = d.id
+                    where d.gid IS NULL
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
@@ -168,22 +168,22 @@ class CCheckOrg_Cnl_mapid_nodeid(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(*)
                     from (
-                        select c.*
+                        select b.*
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
-                        left join org_n c
-                            on
-                                b.mapid::bigint = c.mapid::bigint and
-                                b.nodeid::bigint = c.id::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL and
                             b.nodeid != ''
-                    ) as d
-                    where gid IS NULL
+                    ) as c
+                    left join org_n d
+                        on
+                            c.mapid = d.mapid and
+                            c.nodeid = d.id
+                    where d.gid IS NULL
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
@@ -197,8 +197,8 @@ class CCheckOrg_Cnl_seq_nm(platform.TestCase.CTestCase):
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL
@@ -217,8 +217,8 @@ class CCheckOrg_Cnl_angle(platform.TestCase.CTestCase):
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL
@@ -239,8 +239,8 @@ class CCheckOrg_Cnl_linkid_seq_nm(platform.TestCase.CTestCase):
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL
@@ -261,8 +261,8 @@ class CCheckOrg_Cnl_nodeid_seq_nm(platform.TestCase.CTestCase):
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL
@@ -282,12 +282,12 @@ class CCheckOrg_Cnl_linkid_nodeid(platform.TestCase.CTestCase):
                         from org_cond a
                         left join org_cnl b
                             on 
-                                a.mapid::bigint = b.mapid::bigint and
-                                a.condid::bigint = b.condid::bigint
+                                a.mapid = b.mapid and
+                                a.condid = b.condid
                         left join org_r c
                             on
-                                b.mapid::bigint = c.mapid::bigint and
-                                b.linkid::bigint = c.id::bigint
+                                b.mapid = c.mapid and
+                                b.linkid = c.id
                         where 
                             a.condtype::bigint = 2 and
                             b.gid IS NOT NULL and 
@@ -298,22 +298,66 @@ class CCheckOrg_Cnl_linkid_nodeid(platform.TestCase.CTestCase):
                         from org_cond e
                         left join org_cnl f
                             on
-                                e.mapid::bigint = f.mapid::bigint and
-                                e.condid::bigint = f.condid::bigint
+                                e.mapid = f.mapid and
+                                e.condid = f.condid
                         left join org_n g
                             on 
-                                f.mapid::bigint = g.mapid::bigint and
-                                f.nodeid::bigint = g.id::bigint
+                                f.mapid = g.mapid and
+                                f.nodeid = g.id
                         where 
                             e.condtype::bigint = 2 and
                             f.gid IS NOT NULL and
                             f.seq_nm::bigint = 2 
                     ) as h
                         on 
-                            d.mapid::bigint = h.mapid::bigint and
-                            d.condid::bigint = h.condid::bigint
+                            d.mapid = h.mapid and
+                            d.condid = h.condid
                     where
                         h.id not in (d.snodeid, d.enodeid)
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckOrg_Cnl_nodeid_count(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select mapid, condid, array_agg(nodeid) as node_array
+                        from (
+                            select b.mapid, b.condid, seq_nm, nodeid
+                            from org_cond a
+                            left join org_cnl b
+                                on a.mapid = b.mapid and a.condid = b.condid
+                            where a.condtype::bigint = 2 and nodeid <> ''
+                            order by mapid, condid, seq_nm::bigint
+                        ) c
+                        group by mapid, condid
+                    ) d
+                    where array_upper(node_array, 1) <> 1
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckOrg_Cnl_linkid_count(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from (
+                        select mapid, condid, array_agg(linkid) as link_array
+                        from (
+                            select b.mapid, b.condid, seq_nm, linkid
+                            from org_cond a
+                            left join org_cnl b
+                                on 
+                                    a.mapid = b.mapid and
+                                    a.condid = b.condid
+                            where a.condtype::bigint = 2 and linkid <> ''
+                            order by mapid, condid, seq_nm::bigint
+                        ) as c
+                        group by mapid, condid
+                    ) d
+                    where array_upper(link_array, 1) < 2
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
@@ -322,7 +366,7 @@ class CCheckForce_Guide_Tbl_TableStruct(platform.TestCase.CTestCase):
     def _do(self):
         return self.pg.IsExistTable('force_guide_tbl')
 
-class CCheckForce_Guide_Tbl_Force_Guide_Id(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_force_guide_id(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                     select count(gid)
@@ -332,55 +376,62 @@ class CCheckForce_Guide_Tbl_Force_Guide_Id(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
-class CCheckForce_Guide_Tbl_Nodeid(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_nodeid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(a.nodeid)
+                    select count(b.gid)
                     from force_guide_tbl as a
                     left join node_tbl as b
-                        on a.nodeid = b.node_id
-                    where b.node_id is null
+                        on nodeid = b.node_id
+                    where 
+                        (nodeid is null) or
+                        (nodeid is not null and b.gid is null)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckForce_Guide_Tbl_Inlinkid(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_inlinkid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(a.inlinkid)
+                    select count(b.gid)
                     from force_guide_tbl as a
                     left join link_tbl as b
-                        on a.inlinkid = b.link_id
-                    where b.link_id is null
+                        on inlinkid = b.link_id
+                    where 
+                        (inlinkid is null) or
+                        (inlinkid is not null and b.gid is null)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckForce_Guide_Tbl_Inlinkid_Nodeid_Rel(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_inlinkid_nodeid_Rel(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                select count(*)
+                select count(b.gid)
                 from force_guide_tbl as a
                 left join link_tbl as b
-                    on a.inlinkid = b.link_id
-                where a.nodeid not in (b.s_node, b.e_node)
+                    on inlinkid = b.link_id
+                where 
+                    nodeid not in (b.s_node, b.e_node)
                 """
         nRecCount = self.pg.getOnlyQueryResult(sqlcmd)
         return (nRecCount == 0)
 
-class CCheckForce_Guide_Tbl_Outlinkid(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_outlinkid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                    select count(a.outlinkid)
+                    select count(b.gid)
                     from force_guide_tbl as a
                     left join link_tbl as b
-                        on a.outlinkid = b.link_id
-                    where b.link_id is null
+                        on outlinkid = b.link_id
+                    where 
+                        (outlinkid is null) or
+                        (outlinkid is not null and b.gid is null)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckForce_Guide_Tbl_PassLink_Cnt(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_passlink_cnt(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
                 select count(*)
@@ -391,17 +442,17 @@ class CCheckForce_Guide_Tbl_PassLink_Cnt(platform.TestCase.CTestCase):
                             else array_upper(string_to_array(passlid, '|'),1)
                             end
                            ) as lenth, passlink_cnt
-                    FROM force_guide_tbl
+                    from force_guide_tbl
                 )as a
                 where a.lenth <> passlink_cnt
                 """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)
     
-class CCheckForce_Guide_Tbl_Guide_Type(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_guide_type(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                select count(force_guide_id)
+                select count(gid)
                 from force_guide_tbl
                 where 
                     not (guide_type >= 0 and guide_type <= 13) and 
@@ -414,27 +465,27 @@ class CCheckForce_Guide_Tbl_Guide_Type(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckForce_Guide_Tbl_Position_Type(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_position_type(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                select count(force_guide_id)
+                select count(gid)
                 from force_guide_tbl
                 where not (position_type >= 0 and position_type <= 9)
                 """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
 
-class CCheckForce_Guide_Tbl_Inlinkid_Outlinkid_Equal(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_inlinkid_outlinkid_Equal(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-                select count(inlinkid)
+                select count(gid)
                 from force_guide_tbl
                 where inlinkid = outlinkid
                 """
         nRecCount = self.pg.getOnlyQueryResult(sqlcmd)
         return (nRecCount == 0)
 
-class CCheckForce_Guide_Tbl_Inlink_Outlink_Conn(platform.TestCase.CTestCase):
+class CCheckForce_Guide_Tbl_inlinkid_outlinkid_Conn(platform.TestCase.CTestCase):
     '''check guide 表单的node_id的有效性，inlink与outlink连通性'''
     
     def _do(self): 

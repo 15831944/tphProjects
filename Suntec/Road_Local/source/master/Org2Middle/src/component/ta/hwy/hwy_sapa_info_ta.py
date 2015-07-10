@@ -32,6 +32,8 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         return 0
 
     def _DoCreateIndex(self):
+        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
+        self.CreateIndex2('mid_temp_poi_link_link_id_idx')
         return 0
 
     def _make_hwy_poi_link(self):

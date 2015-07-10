@@ -28,7 +28,6 @@ class comp_guideinfo_spotguide_jpn(component.component_base.comp_base):
         return 0
     
     def _DoCreateTable(self):
-        self.CreateTable2('mid_all_sar_files')
         return 0
     
     def __loadOrginalData(self):

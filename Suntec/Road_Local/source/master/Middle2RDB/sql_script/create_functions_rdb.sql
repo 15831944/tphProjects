@@ -5245,8 +5245,10 @@ BEGIN
 		fetch curs into rec;
 	END LOOP;
 	--- the last record.
-	execute 'insert into ' || quote_ident(target_table) || '(type_flag,infra_id,dir,pos_type,area_code,extra_flag,s_fraction,e_fraction,seq,group_id,rdb_link_id,rdb_link_t,link_dir,length,geom_string) 
-	values('||pre_type_flag||','||pre_infra_id||','||pre_dir||','||pre_pos_type||','||pre_area_code||','||pre_extra_flag||','||pre_s_fraction||','||pre_e_fraction||','||seq||','||pre_group_id||','||pre_link_id||','||(pre_link_id >> 32)||','||pre_link_dir||','||pre_length||','||quote_literal(pre_geom_string)||')';
+	IF pre_infra_id is not null THEN
+		execute 'insert into ' || quote_ident(target_table) || '(type_flag,infra_id,dir,pos_type,area_code,extra_flag,s_fraction,e_fraction,seq,group_id,rdb_link_id,rdb_link_t,link_dir,length,geom_string) 
+		values('||pre_type_flag||','||pre_infra_id||','||pre_dir||','||pre_pos_type||','||pre_area_code||','||pre_extra_flag||','||pre_s_fraction||','||pre_e_fraction||','||seq||','||pre_group_id||','||pre_link_id||','||(pre_link_id >> 32)||','||pre_link_dir||','||pre_length||','||quote_literal(pre_geom_string)||')';
+	END IF;
 	
 	close curs;
 	return 1;	
@@ -5503,8 +5505,10 @@ BEGIN
 		fetch curs into rec;
 	END LOOP;
 	--- the last record.
-	execute 'insert into ' || quote_ident(target_table) || '(type_flag,infra_id,dir,pos_type,area_code,extra_flag,s_fraction,e_fraction,seq,group_id,rdb_link_id,rdb_link_t,link_dir,length,geom_string) 
-	values('||pre_type_flag||','||pre_infra_id||','||pre_dir||','||pre_pos_type||','||pre_area_code||','||pre_extra_flag||','||pre_s_fraction||','||pre_e_fraction||','||seq||','||new_group_id||','||pre_link_id||','||(pre_link_id >> 32)||','||pre_link_dir||','||pre_length||','||quote_literal(pre_geom_string)||')';
+	if pre_infra_id is not null then
+		execute 'insert into ' || quote_ident(target_table) || '(type_flag,infra_id,dir,pos_type,area_code,extra_flag,s_fraction,e_fraction,seq,group_id,rdb_link_id,rdb_link_t,link_dir,length,geom_string) 
+		values('||pre_type_flag||','||pre_infra_id||','||pre_dir||','||pre_pos_type||','||pre_area_code||','||pre_extra_flag||','||pre_s_fraction||','||pre_e_fraction||','||seq||','||new_group_id||','||pre_link_id||','||(pre_link_id >> 32)||','||pre_link_dir||','||pre_length||','||quote_literal(pre_geom_string)||')';
+	end if;
 	
 	close curs;
 	return 1;	

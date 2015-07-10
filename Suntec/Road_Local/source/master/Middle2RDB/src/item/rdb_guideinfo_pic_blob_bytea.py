@@ -82,7 +82,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
             for curDir,dirNames,fileNames in os.walk(ptroot):
                 for oneFile in fileNames:
                     exttype = os.path.splitext(oneFile)[1].lower()
-                    if exttype in (".txt"):
+                    if exttype == ".txt":
                         self.__insertPt(os.path.join(curDir, oneFile))
             self.pg.commit2()
         else:
@@ -100,8 +100,8 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
             line = line.strip()
             if line:
                 ox, oy = line.split(',')
-                x = int(float(ox) * 240.0 / 196.0 + 0.5)
-                y = int(float(oy) * 234.0 / 180.0 + 0.5)
+                x = int(ox)
+                y = int(oy)
                 res = res + struct.pack("h", x)
                 res = res + struct.pack("h", y)
 
@@ -109,6 +109,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         if self.pg.insert('temp_point_list', ('image_id', 'data'), (ptname, psycopg2.Binary(res))) == -1:
             rdb_log.log(self.ItemName, 'fail to load pointlist %s.' % filepath, 'error')
             return -1
+        return 0
     
 class rdb_guideinfo_pic_binary(ItemBase):
     def __init__(self):

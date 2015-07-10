@@ -75,7 +75,8 @@ CREATE TABLE node_tbl
  node_lid character varying(512),
  node_name character varying(1024),
  feature_string character varying,
- feature_key character varying(32)
+ feature_key character varying(32),
+ z_level smallint default 0
 ); SELECT AddGeometryColumn('','node_tbl','the_geom','4326','POINT',2);
 
 -- node_height_tbl
@@ -2185,6 +2186,36 @@ CREATE TABLE mid_temp_hwy_inout_link
 
 ------------------------------------------------------------------------
 --
+CREATE TABLE mid_temp_hwy_relation_link
+(
+  link_id bigint NOT NULL PRIMARY KEY,
+  s_node bigint,
+  e_node bigint,
+  one_way_code smallint,
+  link_type smallint,
+  road_type smallint,
+  display_class smallint,
+  toll smallint,
+  fazm integer,
+  tazm integer,
+  tile_id integer,
+  length double precision,
+  road_name character varying(16384),
+  road_number character varying(2048)
+);
+
+------------------------------------------------------------------------
+--
+create table mid_temp_hwy_relation_regulation
+(
+  regulation_id    integer not null,
+  cond_id          integer,
+  link_lid         bigint[] not null,
+  edges            text[]
+);
+
+------------------------------------------------------------------------
+--
 CREATE TABLE mid_temp_hwy_main_path
 (
   path_id     integer NOT NULL,
@@ -2258,7 +2289,8 @@ CREATE TABLE mid_temp_hwy_ic_path
    node_id        bigint not null,
    to_node_id     bigint not null,
    node_lid       character varying,
-   link_lid       character varying
+   link_lid       character varying,
+   path_type      character varying
 );
 
 ------------------------------------------------------------------------
@@ -2471,12 +2503,6 @@ CREATE TABLE mid_node_facil
 );
 
 ------------------------------------------------------------------------
-CREATE TABLE mid_all_sar_files
-(
-   filename varchar(256)
-);
-
-------------------------------------------------------------------------
 CREATE TABLE mid_temp_hwy_sapa_info
 (
  gid           serial not null primary key,
@@ -2509,3 +2535,27 @@ as
 (
 	select * from stopsign_tbl
 );
+
+------------------------------------------------------------------------
+CREATE TABLE temp_node_z_tbl
+(
+ guide_type      bigint not null,
+ the_geom_list   geometry[],
+ z_level_list    smallint[]
+); 
+
+------------------------------------------------------------------------
+CREATE TABLE temp_force_guide_patch_node_tbl
+(
+ id    		 serial not null primary key,
+ guide_type      bigint not null,
+ node_id_list    bigint[]
+); 
+
+------------------------------------------------------------------------
+CREATE TABLE temp_force_guide_patch_link_tbl
+(
+ objectid	 bigint not null,
+ guide_type      bigint not null,
+ link_id_list    bigint[]
+); 

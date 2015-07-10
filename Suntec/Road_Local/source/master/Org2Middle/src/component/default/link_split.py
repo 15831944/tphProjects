@@ -999,15 +999,15 @@ class comp_link_split(component.component_base.comp_base):
                     insert into node_tbl
                             (node_id, tile_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag,
                                 org_boundary_flag, tile_boundary_flag, mainnodeid, node_lid, node_name, 
-                                feature_string, feature_key, the_geom)
+                                feature_string, feature_key, z_level, the_geom)
                     (
                         select  node_id, rdb_geom2tileid_z(the_geom, 14) as tile_id, kind, light_flag, stopsign_flag, toll_flag, 
                                 bifurcation_flag, org_boundary_flag, tile_boundary_flag, 
-                                mainnodeid, node_lid, node_name, feature_string, feature_key, the_geom
+                                mainnodeid, node_lid, node_name, feature_string, feature_key, z_level, the_geom
                         from
                         (
                             select  a.node_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, org_boundary_flag, 
-                                    tile_boundary_flag, mainnodeid, node_lid, node_name, feature_string, feature_key, 
+                                    tile_boundary_flag, mainnodeid, node_lid, node_name, feature_string, feature_key, z_level,
                                     (case when b.node_id is not null then b.the_geom else a.the_geom end) as the_geom
                             from (select * from node_tbl_bak_splitting where gid >= %d and gid <= %d) as a
                             left join temp_split_move_node as b
@@ -1021,13 +1021,13 @@ class comp_link_split(component.component_base.comp_base):
         sqlcmd = """
                     insert into node_tbl
                                 (node_id, tile_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, org_boundary_flag, 
-                                tile_boundary_flag, mainnodeid, node_lid, node_name, feature_string, feature_key, the_geom)
+                                tile_boundary_flag, mainnodeid, node_lid, node_name, feature_string, feature_key, z_level, the_geom)
                     (
                         select  a.node_id, rdb_geom2tileid_z(the_geom, 14) as tile_id, null, 0, 0, 
                                 case when b.node_id is not null then 1
                                     else 0 end as toll_flag, 
                                 0 as bifurcation_flag,
-                                0, 1, 0, null, null, null as feature_string, null as feature_key, the_geom
+                                0, 1, 0, null, null, null as feature_string, null as feature_key, 0 as z_level, the_geom
                         from temp_split_newnode a
                         left join temp_tollgate b
                         on a.node_id = b.node_id

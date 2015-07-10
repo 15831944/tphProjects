@@ -126,7 +126,7 @@ CREATE TABLE temp_name_dictionary
 CREATE TABLE temp_point_list
 (
   gid serial NOT NULL,
-  image_id character varying(11),
+  image_id character varying(128),
   data bytea,
   CONSTRAINT temp_point_list_pkey PRIMARY KEY (gid)
 );
@@ -1353,13 +1353,9 @@ as
 				left join gewi_languages b
 				on a.cid = b.cid and a.lid = b.lid
 			) a
-			left join (
-				select cid
-					,array_agg(lid) as lid_array_org
-					,array_agg(language) as language_array
-				from gewi_languages group by cid
-			) b
+			left join temp_trf_languages b
 			on a.cid = b.cid 
+			order by cid,nid,lid,name,language_org
 		) c
 		left join gewi_nametranslations d
 		on c.cid = d.cid and c.nid = d.nid and c.lid_org = d.lid
@@ -1375,7 +1371,7 @@ as
 		,array_agg(language) as language_array
 	from (
 		select a.cid,a.lid
-			,case when b.l_full_name is not null then b.language_code
+			,case when b.l_full_name is not null then b.language_code_client
 				else a.language
 			end as language
 		from (

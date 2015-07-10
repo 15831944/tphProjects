@@ -304,18 +304,28 @@ class comp_guideinfo_signpost_uc_mmi(comp_guideinfo_signpost_uc):
                     sp_name, route_no1, route_no2,
                     route_no3, route_no4, exit_no)
         (
-                SELECT distinct e.sign_id, node_id, in_link_id,
-                       out_link_id, passlid, passlink_cnt,
-                       signpost_name, route_no1, route_no2,
-                       route_no3, route_no4, exit_no
-                  FROM mid_temp_signpost_element  as e
-                  LEFT JOIN mid_temp_signpost_passlink as p
-                  ON e.folder = p.folder and e.sign_id = p.sign_id
-                  left join link_tbl as b
-                  on p.in_link_id = b.link_id or 
-                     p.out_link_id = b.link_id
-                  where b.one_way_code <> 4 and b.link_id is not null                    
-                  order by  e.sign_id
+                select sign_id, node_id, in_link_id, out_link_id, passlid, passlink_cnt,
+                    signpost_name, route_no1, route_no2, route_no3, route_no4, exit_no
+                from
+                (
+                    SELECT  e.sign_id, node_id, in_link_id,
+                           out_link_id, passlid, passlink_cnt,
+                           signpost_name, route_no1, route_no2,
+                           route_no3, route_no4, exit_no, array_agg(c.link_id) as link_array
+                      FROM mid_temp_signpost_element  as e
+                      LEFT JOIN mid_temp_signpost_passlink as p
+                      ON e.folder = p.folder and e.sign_id = p.sign_id
+                      left join link_tbl as b
+                      on p.in_link_id = b.link_id or 
+                         p.out_link_id = b.link_id
+                      left join link_tbl as c
+                      on p.node_id in (c.s_node, c.e_node)
+                      where b.one_way_code <> 4 and b.link_id is not null
+                      group by e.sign_id, node_id, in_link_id, out_link_id, passlid, passlink_cnt, 
+                          signpost_name, route_no1, route_no2, route_no3, route_no4, exit_no                   
+                      order by  e.sign_id
+                  )temp
+                  where array_upper(link_array,1) > 2
         );
         """
         if self.pg.execute2(sqlcmd) == -1:

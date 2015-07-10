@@ -55,7 +55,7 @@ class CCheckStructCodeEffective(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(link_id)
                     from rdb_link_add_info
-                    where struct_code not in (0,1,2,3,4,5,6,7)
+                    where struct_code not in (0,1,2,3,4,5,6,7,8)
                  """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)

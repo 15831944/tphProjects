@@ -3,20 +3,23 @@
 CREATE INDEX org_cond_mapid_condid_idx
   ON org_cond
   USING btree
-  (cast(mapid as bigint), cast(condid as bigint));
+  (mapid, condid);
 
 ----------------------------------------------------- 
 CREATE INDEX org_cnl_mapid_condid_idx
   ON org_cnl
   USING btree
-  (cast(mapid as bigint), cast(condid as bigint));
+  (mapid, condid);
 
 -----------------------------------------------------   
 CREATE INDEX org_r_id_idx
   ON org_r
   USING btree
   (id);
-  
+CREATE INDEX org_n_id_idx
+  on org_n
+  USING btree
+  (id);
 CREATE INDEX org_r_id_2_idx
   ON org_r
   USING btree
@@ -169,5 +172,35 @@ CREATE INDEX temp_admin_name_admin_id_idx
   (admin_id);
 
 -----------------------------------------------------
+--signpost_uc
+CREATE INDEX temp_signpost_uc_name_sign_id_idx
+  ON temp_signpost_uc_name
+  USING btree
+  (sign_id);
+  
+CREATE INDEX temp_signpost_uc_path_path_id_idx
+  ON temp_signpost_uc_path
+  USING btree
+  (path_id);
+  
+CREATE INDEX temp_signpost_uc_path_id_path_id_idx
+  ON temp_signpost_uc_path
+  USING btree
+  (path_id);
+  
+CREATE INDEX temp_signpost_uc_path_id_fname_idx
+  ON temp_signpost_uc_path_id
+  USING btree
+  (fname_id,fname_type); 
+  
+CREATE INDEX temp_node_mapping_old_node_id_idx
+  ON temp_node_mapping
+  USING btree
+  (old_node_id);
+  
+CREATE INDEX temp_node_mapping_new_node_id_idx
+  ON temp_node_mapping
+  USING btree
+  (new_node_id);
   
   

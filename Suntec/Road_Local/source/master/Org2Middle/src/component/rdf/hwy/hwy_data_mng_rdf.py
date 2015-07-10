@@ -22,11 +22,13 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
 from component.rdf.hwy.hwy_graph_rdf import HWY_FACIL_CLASS
 from component.rdf.hwy.hwy_graph_rdf import HWY_DISP_CLASS
 from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
-from component.rdf.hwy.hwy_graph_rdf import HWY_1ST_ROAD_NAME
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 from component.rdf.hwy.hwy_graph_rdf import HWY_TILE_ID
+from component.rdf.hwy.hwy_graph_rdf import HWY_S_NODE
+from component.rdf.hwy.hwy_graph_rdf import HWY_E_NODE
 from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
+from component.rdf.hwy.hwy_graph_rdf import HWY_REGULATION
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
 from component.jdb.hwy.hwy_data_mng import HwyFacilInfo
 from component.jdb.hwy.hwy_def import HWY_INVALID_FACIL_ID
@@ -123,6 +125,10 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self._make_ic_links()
         # 和高速相连的普通道路。
         self._make_hwy_inout_links()
+        # 高速相关所有link
+        self._make_hwy_relation_link()
+        # 高速相关规制
+        self._make_hwy_relation_regulation()
         return 0
 
     def _make_main_links(self):
@@ -139,7 +145,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                fazm, tazm, tile_id, length,
                road_name, road_number, the_geom
           FROM link_tbl
-          WHERE road_type in (0, 1) and link_type in (1, 2, 4)
+          WHERE road_type in (0) and link_type in (1, 2, 4)
         );
         """
         self.pg.execute2(sqlcmd)
@@ -176,18 +182,19 @@ class HwyDataMngRDF(component.component_base.comp_base):
         INSERT INTO mid_temp_hwy_inout_link(
                      link_id, s_node, e_node, one_way_code,
                      link_type, road_type, display_class, toll,
-                     fazm, tazm, tile_id, road_name,
-                     road_number, the_geom)
+                     fazm, tazm, tile_id, length,
+                     road_name, road_number, the_geom)
         (
         SELECT distinct b.link_id, b.s_node, b.e_node, b.one_way_code,
                b.link_type, b.road_type, b.display_class, b.toll,
-               b.fazm, b.tazm, b.tile_id, b.road_name, b.road_number,
+               b.fazm, b.tazm, b.tile_id, b.length,
+               b.road_name, b.road_number,
                b.the_geom
           FROM mid_temp_hwy_ic_link as a
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 1, 8, 9) and
+          where b.road_type not in (0, 1, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
         );
         """
@@ -198,24 +205,149 @@ class HwyDataMngRDF(component.component_base.comp_base):
         INSERT INTO mid_temp_hwy_inout_link(
                      link_id, s_node, e_node, one_way_code,
                      link_type, road_type, display_class, toll,
-                     fazm, tazm, tile_id, road_name,
-                     road_number, the_geom)
+                     fazm, tazm, tile_id, length,
+                     road_name, road_number, the_geom)
         (
         SELECT distinct b.link_id, b.s_node, b.e_node, b.one_way_code,
                b.link_type, b.road_type, b.display_class, b.toll,
-               b.fazm, b.tazm, b.tile_id, b.road_name, b.road_number,
-               b.the_geom
+               b.fazm, b.tazm, b.tile_id, b.length,
+               b.road_name, b.road_number, b.the_geom
           FROM mid_temp_hwy_main_link as a
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 1, 8, 9) and
+          where b.road_type not in (0, 1, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
         )
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+        # Inner Link相交的link
+        self._make_hwy_inout_of_inner_link()
         self.CreateIndex2('mid_temp_hwy_inout_link_the_geom_idx')
+
+    def _make_hwy_inout_of_inner_link(self):
+        '''Inner Link相交的link.'''
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_inout_link(
+             link_id, s_node, e_node, one_way_code,
+             link_type, road_type, display_class, toll,
+             fazm, tazm, tile_id, length,
+             road_name, road_number, the_geom)
+        (
+        SELECT  b.link_id, b.s_node, b.e_node, b.one_way_code,
+                b.link_type, b.road_type, b.display_class, b.toll,
+                b.fazm, b.tazm, b.tile_id, b.length,
+                b.road_name, b.road_number, b.the_geom
+          FROM mid_temp_hwy_inout_link as a
+          INNER JOIN link_tbl as b
+          ON a.s_node = b.s_node or a.s_node = b.e_node or
+             a.e_node = b.s_node or a.e_node = b.e_node
+          LEFT JOIN mid_temp_hwy_inout_link as c
+          ON b.link_id = c.link_id
+          WHERE a.link_type in (4, 8, 9) and -- Inner Link/Left/Right
+                c.link_id is null and        -- Does not included
+                b.road_type not in (0, 1, 8, 9, 12) and
+                b.link_type not in (3, 5, 7)
+        );
+        """
+        while True:
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+            if not self._exist_not_include_link():
+                break
+
+    def _make_hwy_relation_link(self):
+        '''Highway相关所有link'''
+        self.CreateTable2('mid_temp_hwy_relation_link')
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_relation_link(
+               link_id, s_node, e_node, one_way_code,
+               link_type, road_type, display_class, toll,
+               fazm, tazm, tile_id, length,
+               road_name, road_number)
+        (
+        SELECT link_id, s_node, e_node, one_way_code,
+               link_type, road_type, display_class, toll,
+               fazm, tazm, tile_id, length,
+               road_name, road_number
+          FROM mid_temp_hwy_main_link
+
+        UNION
+        SELECT link_id, s_node, e_node, one_way_code,
+               link_type, road_type, display_class, toll,
+               fazm, tazm, tile_id, length,
+               road_name, road_number
+          FROM mid_temp_hwy_ic_link
+
+        UNION
+        SELECT link_id, s_node, e_node, one_way_code,
+               link_type, road_type, display_class, toll,
+               fazm, tazm, tile_id, length,
+               road_name, road_number
+          FROM mid_temp_hwy_inout_link
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _make_hwy_relation_regulation(self):
+        '''高速相关规制'''
+        self.CreateTable2('mid_temp_hwy_relation_regulation')
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_relation_regulation(
+                              regulation_id, cond_id, link_lid, edges)
+        (
+        SELECT regulation_id, cond_id, link_lid, edges
+          FROM (
+            SELECT regulation_id, cond_id,
+                   array_agg(link_id) as link_lid,
+                   array_agg(edge) as edges,
+                   array_agg(in_hwy_flag) as hwy_flags
+              FROM (
+                SELECT distinct a.regulation_id, c.link_id, seq_num, cond_id,
+                       '(' || s_node::character varying ||
+                       ',' || e_node::character varying || ')' as edge,
+                       (case
+                       when c.link_id is not null then True
+                       else False end) as in_hwy_flag
+                  FROM regulation_item_tbl as a
+                  inner join regulation_relation_tbl as b
+                  ON a.regulation_id = b.regulation_id
+                  LEFT JOIN mid_temp_hwy_relation_link AS c
+                  ON linkid = c.link_id
+                  where condtype = 1 and linkid is not null
+                  ORDER BY regulation_id, cond_id, seq_num
+              ) AS d
+              GROUP by regulation_id, cond_id
+          ) AS e
+          -- All link are in Highway(mid_temp_hwy_relation_link)
+          where True = all(hwy_flags)
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _exist_not_include_link(self):
+        sqlcmd = """
+        SELECT count(b.link_id)
+          FROM mid_temp_hwy_inout_link as a
+          INNER JOIN link_tbl as b
+          ON a.s_node = b.s_node or a.s_node = b.e_node or
+             a.e_node = b.s_node or a.e_node = b.e_node
+          LEFT JOIN mid_temp_hwy_inout_link as c
+          ON b.link_id = c.link_id
+          WHERE a.link_type in (4, 8, 9) and -- Inner Link/Left/Right
+                c.link_id is null and        -- Does not included
+                b.road_type not in (0, 1, 8, 9, 12) and
+                b.link_type not in (3, 5, 7)
+        """
+        self.pg.execute2(sqlcmd)
+        row = self.pg.fetchone2()
+        if row:
+            if row[0]:
+                return True
+        return False
 
     def load_hwy_main_link(self):
         '''load Highway Main Link.'''
@@ -263,8 +395,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
         sqlcmd = """
         SELECT DISTINCT link_id, s_node, e_node, one_way_code,
                link_type, road_type, display_class, toll,
-               fazm, tazm, tile_id, null as length,
-               road_name,  road_number
+               fazm, tazm, tile_id, length,
+               road_name, road_number
           FROM mid_temp_hwy_inout_link;
         """
         for link_info in self._get_link_attr(sqlcmd):
@@ -275,6 +407,70 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                  s_angle, e_angle,
                                  **link_attr
                                  )
+
+    def load_hwy_regulation(self):
+        '''规制'''
+        self.log.info('Load highway regulation info.')
+        sqlcmd = """
+        select edges
+          from mid_temp_hwy_relation_regulation
+          where cond_id is null;
+        """
+        for temp_edges in self.get_batch_data(sqlcmd):
+            node_list = []
+            edges = []
+            # ## 这个边是按Star Node到End Node排序==>转换成按规制方向排序
+            # 字符串转成整数
+            for edge in temp_edges[0]:
+                edges.append(eval(edge))
+            # 第一条link和第二条link的交点
+            inter_node = set(edges[0]).intersection(set(edges[1]))
+            if edges[0][0] in inter_node:
+                node_list += list(edges[0][::-1])
+            elif edges[0][1] in inter_node:
+                node_list += list(edges[0])
+            else:
+                self.log.error('Dose not Intersect. edge1=%s, edges2=%s'
+                               % (edges[0], edges[1]))
+                continue
+            # 其他link
+            for edge_cnt in range(1, len(edges)):
+                if edges[edge_cnt][0] == node_list[-1]:
+                    node_list.append(edges[edge_cnt][1])
+                elif edges[edge_cnt][1] == node_list[-1]:
+                    node_list.append(edges[edge_cnt][0])
+                else:
+                    self.log.error('Dose not Intersect. '
+                                   'edge1=(%s, %s), edges2=%s' %
+                                   (node_list[-2], node_list[-1],
+                                    edges[edge_cnt]))
+                    break
+            # ## 规制情报存到最后一条link
+            u, v = node_list[-2], node_list[-1]
+            data = self._graph.get_edge_data(u, v)
+            if data:
+                regulation_list = data.get(HWY_REGULATION)
+                if regulation_list:
+                    regulation_list.append(node_list)
+                else:
+                    data = {HWY_REGULATION: [node_list]}
+                    self._graph.add_edge(u, v, data)
+            else:
+                data = {HWY_REGULATION: [node_list]}
+                self._graph.add_edge(u, v, data)
+            # ## 规制情报存到第一条link(逆序)
+            u, v = node_list[0], node_list[1]
+            data = self._graph.get_edge_data(u, v)
+            if data:
+                regulation_list = data.get(HWY_REGULATION)
+                if regulation_list:
+                    regulation_list.append(node_list[::-1])
+                else:
+                    data = {HWY_REGULATION: [node_list[::-1]]}
+                    self._graph.add_edge(u, v, data)
+            else:
+                data = {HWY_REGULATION: [node_list[::-1]]}
+                self._graph.add_edge(u, v, data)
 
     def _get_link_attr(self, sqlcmd):
         for link_info in self.pg.get_batch_data2(sqlcmd, BATCH_SIZE):
@@ -703,10 +899,11 @@ class HwyDataMngRDF(component.component_base.comp_base):
     def get_ic_path_info(self, facil):
         path_infos = []
         sqlcmd = """
-        SELECT node_lid, link_lid
+        SELECT node_lid, link_lid, path_type
           FROM mid_temp_hwy_ic_path
           where road_code =%s and road_seq = %s
                 and node_id = %s and inout_c = %s
+                and facilcls_c <> 10     -- Not U-turn
           order by node_lid, link_lid
         """
         self.pg.execute2(sqlcmd, (facil.road_code, facil.road_point,
@@ -719,7 +916,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
                 node_lid = eval(row[0] + ',')
             if row[1]:
                 link_lid = eval(row[1] + ',')
-            path_infos.append((node_lid, link_lid))
+            path_type = row[2]
+            path_infos.append((node_lid, link_lid, path_type))
         return path_infos
 
     def is_same_facil(self, s_facil, t_facil):

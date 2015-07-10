@@ -8,11 +8,13 @@ import json
 import component.component_base
 from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
-from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
@@ -24,6 +26,16 @@ SAPA_TYPE_DICT = {1: HWY_IC_TYPE_SA,  # COMPLETE REST AREA
                   4: HWY_IC_TYPE_SA,  # MOTORWAY SERVICE AREA
                   5: None             # SCENIC OVERLOOK
                   }
+HWY_PATH_TYPE_IC = 'IC'
+HWY_PATH_TYPE_SAPA = 'SAPA'
+HWY_PATH_TYPE_JCT = 'JCT'
+HWY_PATH_TYPE_UTURN = 'UTURN'
+IC_PATH_TYPE_DICT = {HWY_IC_TYPE_IC: HWY_PATH_TYPE_IC,
+                     HWY_IC_TYPE_SA: HWY_PATH_TYPE_SAPA,
+                     HWY_IC_TYPE_PA: HWY_PATH_TYPE_SAPA,
+                     HWY_IC_TYPE_JCT: HWY_PATH_TYPE_JCT,
+                     HWY_IC_TYPE_UTURN: HWY_PATH_TYPE_UTURN
+                     }
 
 
 class HwyFacilityRDF(component.component_base.comp_base):
@@ -44,7 +56,9 @@ class HwyFacilityRDF(component.component_base.comp_base):
     def _Do(self):
         self._make_ic_path()
         self._make_sapa_info()
-        self._del_sapa_node()
+        self._deal_with_uturn()  # 处理U-Turn
+        # 148.11217,-35.00432
+        # self._del_sapa_node()
         self._make_facil_name()  # 设施名称
         self._make_hwy_node()
         self._make_facil_same_info()  # 并设情报
@@ -67,33 +81,12 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 else:
                     self._store_moved_path(road_code, route_path)
                 end_pos = len(route_path) - 1
-            sapa_node_dict = {}  # SaPa出口:SaPa入口 or SaPa入口:SaPa出口
-            facils_list = []
-            # ## 取得设施情报
-            for node_idx in range(0, end_pos):
-                node = route_path[node_idx]
-                all_facils = self.G.get_all_facil(node, road_code,
-                                                  HWY_ROAD_CODE)
-                if not all_facils:
-                    if node_idx == 0:  # 断头高速, 强行加个IC入口
-                        all_facils = []
-                        facilcls = HWY_IC_TYPE_IC
-                        inout = HWY_INOUT_TYPE_IN
-                        path = [node]
-                        all_facils.append((facilcls, inout, path))
-                    else:
-                        continue
-                facils_list.append((node, all_facils))
-                for facilcls, inout_c, path in all_facils:
-                    if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
-                        node = path[0]
-                        to_node = path[-1]
-                        if node not in sapa_node_dict:
-                            sapa_node_dict[node] = set([to_node])
-                        else:
-                            sapa_node_dict[node].add(to_node)
+            path = route_path[:end_pos]
+            # 取得线路上所有设施
+            facils_list, sapa_node_dict = self._get_facils_for_path(road_code,
+                                                                    path)
             # ## 设置设施序号
-            sapa_seq_dict = {}  # Sapa node: road_seq
+            sapa_seq_dict = {}  # SAPA node: road_seq
             for node, all_facils in facils_list:
                 road_seq_dict, next_seq = self._get_road_seq(node,
                                                              all_facils,
@@ -106,10 +99,47 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     if not road_seq:
                         self.log.error('No Road Seq.')
                         continue
+                    if not path:
+                        self.log.error('No Path. node=%s' % node)
+                        continue
+                    path_type = IC_PATH_TYPE_DICT.get(facilcls)
                     self._store_facil_path(road_code, road_seq, facilcls,
-                                           inout_c, path)
+                                           inout_c, path, path_type)
         self.pg.commit1()
         self.log.info('End make IC Path.')
+
+    def _get_facils_for_path(self, road_code, route_path):
+        '''取得线路上所有设施'''
+        sapa_node_dict = {}  # SaPa出口:SaPa入口 or SaPa入口:SaPa出口
+        facils_list = []
+        # ## 取得设施情报
+        for node_idx in range(0, len(route_path)):
+            node = route_path[node_idx]
+            all_facils = self.G.get_all_facil(node, road_code,
+                                              HWY_ROAD_CODE)
+            if not all_facils:
+                if node_idx == 0:  # 断头高速, 强行加个IC入口
+                    all_facils = []
+                    facilcls = HWY_IC_TYPE_IC
+                    inout = HWY_INOUT_TYPE_IN
+                    path = [node]
+                    all_facils.append((facilcls, inout, path))
+                else:
+                    continue
+            facils_list.append((node, all_facils))
+            for facilcls, inout_c, path in all_facils:
+                if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
+                    node = path[0]
+                    to_node = path[-1]
+                    if to_node in route_path:  # 同一线路
+                        if node not in sapa_node_dict:
+                            sapa_node_dict[node] = set([to_node])
+                        else:
+                            sapa_node_dict[node].add(to_node)
+                    else:
+                        # print to_node
+                        pass
+        return facils_list, sapa_node_dict
 
     def _get_road_seq(self, node, all_facils, road_seq,
                       sapa_node_dict, sapa_seq_dict):
@@ -120,7 +150,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         visited = []
         for facil_idx in range(0, len(sorted_facils)):
             facilcls, inout = sorted_facils[facil_idx]
-            if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
+            if(facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA) and
+               node in sapa_node_dict):
                 sapa_road_seq = self._get_sapa_road_seq(node,
                                                         facilcls,
                                                         sapa_node_dict,
@@ -171,6 +202,9 @@ class HwyFacilityRDF(component.component_base.comp_base):
             return sapa_seq_dict.get(node)
         visited.append(node)
         # 取关联SAPA Node的序号
+        if node not in sapa_node_dict:
+            self.log.warning('Not in sapa_node_dict. node=%s' % node)
+            return None
         to_nodes = list(sapa_node_dict.get(node))
         for to_node in to_nodes:
             if to_node in visited:
@@ -225,7 +259,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
           ON a.road_code = b.road_code and a.road_seq = b.road_seq
           LEFT JOIN node_tbl as c
           ON a.node_id = c.node_id
-          order by road_code, road_seq
+          WHERE facilcls_c <> 10 -- Not U-turn
+          ORDER BY road_code, road_seq
         );
         """
         self.pg.execute2(sqlcmd)
@@ -311,6 +346,45 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_road_seq_idx')
         self.log.info('End Make SAPA Info.')
 
+    def _deal_with_uturn(self):
+        '''处理U-turn
+        1. 有其他设施，且两边是配对的，那么U-turn情报做到其他设施里
+        2. 只有U-turn设施，U-turn做成JCT设施
+        3. 一边有其他设施，一边没有其他设施，U-turn做JCT
+        4. 两边都有其他设施，但是两边设施类型不一样，U-turn做成JCT
+        '''
+        self.log.info('Deal with U-Turn.')
+        for (u_roadcode, u_roadseq, u_inout,
+             path, f_facils, t_facils) in self._get_uturn_fb_sames():
+            # ## 取得起点并设和终点并设中设施种别相同的设施
+            f_same_facils = []
+            jct_facils = []
+            for f_facil in f_facils:
+                for t_facil in t_facils:
+                    if f_facil.facilcls == t_facil.facilcls:
+                        f_same_facils.append(f_facil)
+                if f_facil.facilcls == HWY_IC_TYPE_JCT:
+                    jct_facils.append(f_facil)
+            path_type = HWY_PATH_TYPE_UTURN
+            if f_same_facils:  # 有是配对的
+                for f in f_same_facils:
+                    self._store_facil_path(f.road_code, f.road_point,
+                                           f.facilcls, f.inout,
+                                           path, path_type)
+            else:  # U-turn做成JCT
+                if jct_facils:
+                    if len(jct_facils) > 1:
+                        self.log.warning('JCT facil > 1. node=%s' % path[0])
+                    jct = jct_facils[0]
+                    self._store_facil_path(jct.road_code, jct.road_point,
+                                           jct.facilcls, jct.inout,
+                                           path, path_type)
+                else:
+                    self._store_facil_path(u_roadcode, u_roadseq,
+                                           HWY_IC_TYPE_JCT, u_inout,
+                                           path, path_type)
+        self.pg.commit1()
+
     def _update_sapa_facilcls(self):
         # Update mid_temp_hwy_ic_path表的SAPA facicl_class code
         sqlcmd = """
@@ -389,6 +463,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             SELECT distinct road_code, road_seq,
                    facilcls_c, inout_c, node_id
               FROM mid_temp_hwy_ic_path
+              WHERE facilcls_c <> 10  -- Not U-turn
               ORDER BY road_code, road_seq,
                        facilcls_c, inout_c
           ) AS a
@@ -679,19 +754,91 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 shopping_corner, postbox, atm,
                 restaurant, toilet)
 
+    def _get_uturn_fb_sames(self):
+        '''取得Uturn的起点和终点的并设'''
+        sqlcmd = """
+        SELECT road_code, road_seq, inout_c,
+               uturn.node_id, to_node_id, node_lid,
+               f_road_codes, f_road_seqs, f_facilcls_cs,
+               t_road_codes, t_road_seqs, t_facilcls_cs, t_inout_c
+          FROM mid_temp_hwy_ic_path as uturn
+          LEFT JOIN (
+            SELECT array_agg(road_code) as f_road_codes,
+                   array_agg(road_seq) as f_road_seqs,
+                   array_agg(facilcls_c) as f_facilcls_cs,
+                   inout_c as f_inout_c,
+                   node_id
+              FROM (
+                SELECT DISTINCT road_code, road_seq, facilcls_c,
+                       inout_c, node_id
+                  FROM mid_temp_hwy_ic_path
+                  WHERE facilcls_c <> 10   -- Not U-turn
+              ) AS b
+              GROUP BY node_id, f_inout_c
+          ) as c
+          ON uturn.node_id = c.node_id and uturn.inout_c = c.f_inout_c
+          LEFT JOIN (
+            SELECT array_agg(road_code) as t_road_codes,
+                   array_agg(road_seq) as t_road_seqs,
+                   array_agg(facilcls_c) as t_facilcls_cs,
+                   inout_c as t_inout_c,
+                   node_id
+              FROM (
+                SELECT DISTINCT road_code, road_seq, facilcls_c,
+                       inout_c, node_id
+                  FROM mid_temp_hwy_ic_path
+                  WHERE facilcls_c <> 10  -- Not U-turn
+              ) AS b
+              GROUP BY node_id, inout_c
+          ) as d
+          ON uturn.to_node_id = d.node_id and
+             ((uturn.inout_c = 2 and d.t_inout_c = 1) or
+              (uturn.inout_c = 1 and d.t_inout_c = 2))
+          where uturn.facilcls_c = 10   -- U-turn
+          ORDER BY gid
+        """
+        updown = HWY_UPDOWN_TYPE_UP
+        facil_name = ''
+        for uturn in self.get_batch_data(sqlcmd):
+            u_roadcode, u_roadseq, u_inout = uturn[0:3]
+            u_node, u_to_node, node_lid = uturn[3:6]
+            f_roadcodes, f_roadseqs, f_facilclss = uturn[6:9]
+            t_roadcodes, t_roadseqs, t_facilclss = uturn[9:12]
+            t_inout = uturn[12]
+            f_facils = []
+            t_facils = []
+            # 终点的并设
+            if f_roadcodes and f_roadseqs and f_facilclss:
+                for roadcode, roadseq, facilcls in zip(f_roadcodes, f_roadseqs,
+                                                       f_facilclss):
+                    facil_info = HwyFacilInfo(roadcode, roadseq, facilcls,
+                                              updown, u_node, u_inout,
+                                              facil_name)
+                    f_facils.append(facil_info)
+            # 终点的并设
+            if t_roadcodes and t_roadseqs and t_facilclss:
+                for roadcode, roadseq, facilcls in zip(t_roadcodes, t_roadseqs,
+                                                       t_facilclss):
+                    facil_info = HwyFacilInfo(roadcode, roadseq, facilcls,
+                                              updown, u_to_node, t_inout,
+                                              facil_name)
+                    t_facils.append(facil_info)
+            path = [int(n) for n in node_lid.split(',')]
+            yield (u_roadcode, u_roadseq, u_inout, path, f_facils, t_facils)
+
 # ==============================================================================
 #
 # ==============================================================================
     def _store_facil_path(self, road_code, road_seq, facilcls_c,
-                          inout_c, path):
+                          inout_c, path, path_type):
         '''保存设施路径'''
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_path(road_code, road_seq, facilcls_c,
                                          inout_c, node_id, to_node_id,
-                                         node_lid, link_lid)
+                                         node_lid, link_lid, path_type)
            VALUES(%s, %s, %s,
                   %s, %s, %s,
-                  %s, %s)
+                  %s, %s, %s)
         """
         node_id = path[0]
         to_node_id = path[-1]
@@ -705,7 +852,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
         link_lid = ','.join([str(link) for link in link_list])
         params = (road_code, road_seq, facilcls_c,
                   inout_c, node_id, to_node_id,
-                  node_lid, link_lid)
+                  node_lid, link_lid, path_type)
         self.pg.execute1(sqlcmd, params)
 
     def _store_facil_name(self, road_code, road_seq, facil_name):

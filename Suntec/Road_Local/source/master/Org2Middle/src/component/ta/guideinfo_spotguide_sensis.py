@@ -37,7 +37,6 @@ class comp_guideinfo_spotguide_sensis(component.component_base.comp_base):
     def _DoCreateTable(self):
         self.CreateTable2('temp_extend_jv_tbl')
         self.CreateTable2('spotguide_tbl')
-        self.CreateTable2('mid_all_sar_files')
 
     def _DoCreateFunction(self):
         self.CreateFunction2('mid_findpasslinkbybothnodes_caution')

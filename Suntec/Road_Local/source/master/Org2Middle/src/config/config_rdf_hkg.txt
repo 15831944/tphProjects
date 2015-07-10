@@ -2,9 +2,11 @@
 # proj_rdf
 #proj_name=rdf
 #proj_country=hkg
-junctionview_data=C:\\My\\20150409_mea_pic\\illust_map
+junctionview_data=\\172.26.179.195\share\SourceData\AP_rdf\HKGMAC\14Q1
 jv_flag=by_file
-jv_country=KWT,SAU,ARE,BHR,QAT,OMN,MAR,ZAF,EGY,ISR
+#gjvCsvPath=
+#ejvCsvPath=
+strInterestCountryList=HKG
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
 #################################################################

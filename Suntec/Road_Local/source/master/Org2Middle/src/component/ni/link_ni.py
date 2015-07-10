@@ -76,8 +76,8 @@ class comp_link_ni(component.component_base.comp_base):
               (
                   select  
                         a.id::bigint as link_id,
-                        a.snodeid::bigint as s_node, 
-                        a.enodeid::bigint as e_node, 
+                        (case when b.new_node_id is null then a.snodeid else b.new_node_id end)::bigint as s_node, 
+                        (case when c.new_node_id is null then a.enodeid else c.new_node_id end)::bigint as e_node, 
                         ni_cnv_disp_class( kind, vehcl_type ) as display_class,
                         ni_cnv_link_type ( kind ) as link_type, 
                         ni_cnv_road_type ( kind, through, unthrucrid, vehcl_type, ownership ) as road_type,
@@ -118,6 +118,10 @@ class comp_link_ni(component.component_base.comp_base):
                   on a.id::bigint = n.link_id
                   left join temp_link_shield s
                   on a.id::bigint = s.link_id 
+                  left join temp_node_mapping b
+                  on a.snodeid=b.old_node_id
+                  left join temp_node_mapping c
+                  on a.enodeid=c.old_node_id
             ) as t;
             """
         

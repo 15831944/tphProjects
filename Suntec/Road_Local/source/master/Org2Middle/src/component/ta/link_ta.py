@@ -171,7 +171,7 @@ class comp_link_ta(component.component_base.comp_base):
                         speedcat as speed_class,
                         ST_Length_Spheroid(a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length, 
                         mid_cnv_function_class(net2class) as function_class,
-                        case when partstruc = 2 then 1 else 0 end as structure, 
+                        case when partstruc = 2 then 3 else 0 end as structure, 
                         case when partstruc = 1 then 1 else 0 end as tunnel, 
                         case when a.rdcond in (2, 3) then 0 else 1 end as paved,
                         mid_get_oneway_code( oneway, constatus, f.linkdir, p.linkdir_array ) as one_way_code,

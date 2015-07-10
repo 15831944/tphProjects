@@ -31,9 +31,6 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         if self.CreateTable2('temp_junction_tbl') == -1:
             return -1
         
-        if self.CreateTable2('mid_all_sar_files') == -1:
-            return -1
-        
         return 0
 
     def _DoCreatIndex(self):

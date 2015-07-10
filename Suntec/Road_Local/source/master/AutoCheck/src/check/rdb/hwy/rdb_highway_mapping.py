@@ -94,6 +94,37 @@ class CCheckICNo(platform.TestCase.CTestCase):
 
 
 # =============================================================================
+# CCheckICNo2 -- check forward_ic_no and backward_ic_no
+# ==============================================================================
+class CCheckICNo2(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        SELECT m.link_id,
+               array_agg(forward_ic_no) as fwd_ic_nos,
+               array_agg(backward_ic_no) as bwd_ic_nos,
+               one_way
+          FROM rdb_highway_mapping as m
+          LEFT JOIN rdb_link as l
+          ON m.link_id = l.link_id
+          group by m.link_id, one_way;
+        """
+        for row in self.pg.get_batch_data(sqlcmd):
+            fwd_ic_nos = set(row[1])
+            bwd_ic_nos = set(row[2])
+            one_way = row[3]
+            # 前后设施都是0(空)
+            if(fwd_ic_nos == set([0]) and
+               bwd_ic_nos == set([0]) and
+               one_way != 1):  # 非双向
+                return False
+            if(one_way == 1 and fwd_ic_nos != bwd_ic_nos):
+                return False
+            # 前后设施个数都超1，即多对多
+            if len(fwd_ic_nos) > 1 and len(bwd_ic_nos) > 1:
+                return False
+        return True
+
+# =============================================================================
 # CCheckRoadNo -- 一条link不能有两个Road No
 # ==============================================================================
 class CCheckRoadNo(platform.TestCase.CTestCase):

@@ -20,7 +20,6 @@ class comp_guideinfo_spotguide_axf(component.component_base.comp_base):
     
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')
-        self.CreateTable2('mid_all_sar_files')
         
     def _Do(self):
         self.__convert_spotguide_on_node()

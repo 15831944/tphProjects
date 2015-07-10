@@ -24,6 +24,8 @@ from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.jdb.hwy.hwy_ic_info import CONN_DIR_FORWARD
 from component.jdb.hwy.hwy_ic_info import CONN_DIR_REVERSE
 from component.jdb.hwy.hwy_ic_info import convert_tile_id
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_JCT
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_UTURN
 
 
 # ==============================================================================
@@ -236,12 +238,10 @@ class HwyICInfoRDF(HwyICInfo):
 
     def _set_conn_info(self):
         '''接続情報'''
-        if self.first_facil.facilcls != HWY_IC_TYPE_JCT:
-            return
-        path_type = 'JCT'
         # ## 出口
         facil = self.first_facil
-        for conn_facil, path in self._get_conn_path_info(HWY_INOUT_TYPE_OUT):
+        for conn_info in self._get_conn_path_info(facil.inout):
+            conn_facil, path, path_type = conn_info[0:3]
             if not conn_facil:
                 pass
             hwy_conn = HwyConnInfoRDF(self, self.tile_id,
@@ -252,12 +252,13 @@ class HwyICInfoRDF(HwyICInfo):
         # ## 入口
         if self.second_facil:
             facil = self.second_facil
-        for conn_facil, path in self._get_conn_path_info(HWY_INOUT_TYPE_IN):
-            hwy_conn = HwyConnInfoRDF(self, self.tile_id,
-                                      facil, conn_facil,
-                                      path, path_type)
-            hwy_conn.set_conn_info()
-            self._add_conn_info(hwy_conn)
+            for conn_info in self._get_conn_path_info(facil.inout):
+                conn_facil, path, path_type = conn_info[0:3]
+                hwy_conn = HwyConnInfoRDF(self, self.tile_id,
+                                          facil, conn_facil,
+                                          path, path_type)
+                hwy_conn.set_conn_info()
+                self._add_conn_info(hwy_conn)
         self.conn_count = len(self.conn_infos)
 
     def _get_conn_path_info(self, inout=HWY_INOUT_TYPE_OUT):
@@ -271,32 +272,41 @@ class HwyICInfoRDF(HwyICInfo):
             t_inout = HWY_INOUT_TYPE_OUT
         else:
             return
-        for node_lid, link_lid in path_infos:
+        for path_info in path_infos:
+            node_lid = path_info[0]
+            path_type = path_info[2]
             t_node = node_lid[-1]
-            if t_node in path_dict:
-                path_dict[t_node].append(node_lid)
+            if path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN):
+                if t_node in path_dict:
+                    path_dict[t_node].append(path_info)
+                else:
+                    path_dict[t_node] = [path_info]
+        for t_node, path_infos in path_dict.iteritems():
+            conn_facil = self._get_conn_facil(t_node, t_inout)
+            if conn_facil:
+                for path_info in path_infos:
+                    path = path_info[0]
+                    path_type = path_info[2]
+                    yield conn_facil, path, path_type
             else:
-                path_dict[t_node] = [node_lid]
-        for t_node, node_lid_list in path_dict.iteritems():
-            jct_facil = self._get_jct_facil(t_node, t_inout)
-            if jct_facil:
-                for path in node_lid_list:
-                    yield jct_facil, path
+                # 没有接续设施
+                print ('Error: No Conn_Facility. s_node=%s, t_node=%s'
+                       % (node_lid[0], node_lid[-1]))
 
-    def _get_jct_facil(self, node, inout):
-        facil_cls = HWY_IC_TYPE_JCT
+    def _get_conn_facil(self, node, inout):
+        facil_cls = self.first_facil.facilcls
         facils = self.data_mng.get_hwy_facils_by_nodeid(node,
                                                         t_facilcls=facil_cls)
-        jct_facils = []
+        conn_facils = []
         for facil in facils:
             if facil.inout == inout:
-                jct_facils.append(facil)
-        if jct_facils:
-            if len(jct_facils) > 1:
+                conn_facils.append(facil)
+        if conn_facils:
+            if len(conn_facils) > 1:
                 print 'Error: No JCT Facility. node=%s' % node
-            return jct_facils[0]
+            return conn_facils[0]
         else:
-            return None
+            return []
 
     def _set_toll_info(self):
         return
@@ -330,7 +340,8 @@ class HwyICInfoRDF(HwyICInfo):
     def _get_exit_path_point(self):
         exit_list = []
         node_link_list = []
-        for node_lid, link_lid in self.out_path_infos:
+        for path_info in self.out_path_infos:
+            node_lid, link_lid = path_info[0:2]
             if len(node_lid) < 2:
                 continue
             node = node_lid[1]
@@ -346,7 +357,8 @@ class HwyICInfoRDF(HwyICInfo):
     def _get_enter_path_point(self):
         enter_list = []
         node_link_list = []
-        for node_lid, link_lid in self.in_path_infos:
+        for path_info in self.in_path_infos:
+            node_lid, link_lid = path_info[0:2]
             if len(node_lid) < 2:
                 continue
             node = node_lid[1]
@@ -595,7 +607,7 @@ class HwyConnInfoRDF(HwyConnInfo):
             self.conn_direction = None
 
     def _set_uturn(self):
-        if self.path_type == 'UTURN':
+        if self.path_type == HWY_PATH_TYPE_UTURN:
             self.uturn_flag = HWY_TRUE
         else:
             self.uturn_flag = HWY_FALSE

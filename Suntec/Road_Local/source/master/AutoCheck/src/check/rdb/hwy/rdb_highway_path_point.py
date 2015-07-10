@@ -68,7 +68,8 @@ class CCheckLonLat(platform.TestCase.CTestCase):
           FROM rdb_highway_path_point as a
           LEFT JOIN rdb_node as b
           ON a.node_id = b.node_id
-          where lonlat <> test_check_geom_2_lonlat(b.the_geom)
+          where lon <> round(st_x(b.the_geom) * 3600 * 256)::INTEGER or
+                lat <> round(st_y(b.the_geom) * 3600 * 256)::INTEGER
         """
         self.pg.CreateFunction_ByName('test_check_geom_2_lonlat')
         self.pg.execute(sqlcmd)

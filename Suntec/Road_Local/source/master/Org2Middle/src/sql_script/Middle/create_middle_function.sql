@@ -2642,7 +2642,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes_caution(startnode bigint, endnode bigint, threshould_steps int default 10)
+--CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes_caution(startnode bigint, endnode bigint, threshould_steps int default 10)
+CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes(startnode bigint, endnode bigint, threshould_steps int default 10)
   RETURNS character varying
 LANGUAGE plpgsql volatile
 AS $$
@@ -2911,5 +2912,433 @@ BEGIN
 			return st_geomfromtext(result,4326);
 		end if;
 	end loop;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_update_temp_node_z_tbl( )
+  RETURNS boolean 
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	rec record;
+	z_level_list smallint[];
+	the_geom_list geometry[];
+	guide_type bigint;
+	
+BEGIN
+	for rec in (
+		select *
+		from old_force_guide_patch
+	)
+	loop
+		the_geom_list := NULL;
+		z_level_list := NULL;
+
+		if rec.guide_type is null then
+			return false;
+		end if;
+		guide_type := rec.guide_type;
+		
+		if rec.node1_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node1_geom);
+			z_level_list := array_append(z_level_list, rec.z1);
+		end if;
+
+		if rec.node2_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node2_geom);
+			z_level_list := array_append(z_level_list, rec.z2);
+		end if;
+
+		if rec.node3_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node3_geom);
+			z_level_list := array_append(z_level_list, rec.z3);
+		end if;
+
+		if rec.node4_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node4_geom);
+			z_level_list := array_append(z_level_list, rec.z4);
+		end if;
+
+		if rec.node5_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node5_geom);
+			z_level_list := array_append(z_level_list, rec.z5);
+		end if;
+
+		if rec.node6_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node6_geom);
+			z_level_list := array_append(z_level_list, rec.z6);
+		end if;
+
+		if rec.node7_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node7_geom);
+			z_level_list := array_append(z_level_list, rec.z7);
+		end if;
+
+		if rec.node8_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node8_geom);
+			z_level_list := array_append(z_level_list, rec.z8);
+		end if;
+
+		if rec.node9_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node9_geom);
+			z_level_list := array_append(z_level_list, rec.z9);
+		end if;
+
+		if rec.node10_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node10_geom);
+			z_level_list := array_append(z_level_list, rec.z10);
+		end if;
+
+		if rec.node11_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node11_geom);
+			z_level_list := array_append(z_level_list, rec.z11);
+		end if;
+
+		if rec.node12_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node12_geom);
+			z_level_list := array_append(z_level_list, rec.z12);
+		end if;
+
+		if rec.node13_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node13_geom);
+			z_level_list := array_append(z_level_list, rec.z13);
+		end if;
+
+		if rec.node14_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node14_geom);
+			z_level_list := array_append(z_level_list, rec.z14);
+		end if;
+
+		if rec.node15_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node15_geom);
+			z_level_list := array_append(z_level_list, rec.z15);
+		end if;
+
+		if rec.node16_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node16_geom);
+			z_level_list := array_append(z_level_list, rec.z16);
+		end if;
+
+		if rec.node17_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node17_geom);
+			z_level_list := array_append(z_level_list, rec.z17);
+		end if;
+
+		if rec.node18_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node18_geom);
+			z_level_list := array_append(z_level_list, rec.z18);
+		end if;
+
+		if rec.node19_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node19_geom);
+			z_level_list := array_append(z_level_list, rec.z19);
+		end if;
+
+		if rec.node20_geom is not null then
+			the_geom_list := array_append(the_geom_list, rec.node20_geom);
+			z_level_list := array_append(z_level_list, rec.z20);
+		end if;
+
+		if the_geom_list is not null and z_level_list is not null then
+			insert into temp_node_z_tbl(guide_type, the_geom_list, z_level_list)
+			values(guide_type, the_geom_list, z_level_list);
+		end if;
+	end loop;
+
+	return true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_update_temp_force_guide_patch_node_tbl( )
+	RETURNS boolean
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	z_level_list_len bigint;
+	geom_list_len bigint;
+	idx bigint;
+	deata double precision;
+	node_list bigint[];
+	geom_list geometry[];
+	node_list_len bigint;
+	idx2 bigint;
+	temp_len double precision;
+	temp_len2 double precision;
+	res_node_list bigint[];
+BEGIN
+	for rec in 
+		select *
+		from temp_node_z_tbl
+	loop
+		--raise info '%', rec;
+		geom_list_len := array_upper(rec.the_geom_list, 1);
+		z_level_list_len := array_upper(rec.z_level_list, 1);
+		idx := 1;
+		deata := 0.03;
+
+		if geom_list_len != z_level_list_len then
+			return false;
+		end if;
+		
+		while idx <= geom_list_len loop
+			--raise info '%', (rec.the_geom_list)[idx];
+			select array_agg(node_id), array_agg(the_geom) into node_list, geom_list
+			from (
+				select node_id, the_geom, 1 as id
+				from node_tbl
+				where z_level = (rec.z_level_list)[idx] and ST_Distance(the_geom, (rec.the_geom_list)[idx], true) <= deata
+			) as a
+			group by id;
+			
+			if node_list is null then
+				deata := deata + 0.2;
+				continue;
+			else
+				node_list_len := array_upper(node_list, 1);
+				idx2 := 1;
+				if node_list_len > 1 then
+					idx2 := node_list_len;
+					temp_len := ST_Distance(geom_list[node_list_len], (rec.the_geom_list)[idx], true);
+					node_list_len := node_list_len - 1;
+					while node_list_len >= 1 loop
+						temp_len2 = ST_Distance(geom_list[node_list_len], (rec.the_geom_list)[idx], true);
+						if temp_len2 < temp_len then 
+							idx2 := node_list_len;
+							temp_len := temp_len2;
+						end if;
+						node_list_len := node_list_len - 1;
+					end loop;
+				end if;
+
+				if idx = 1 then
+					res_node_list := Array[node_list[idx2]];
+				else
+					res_node_list := array_append(res_node_list, node_list[idx2]);
+				end if;
+				--raise info '%', res_node_list;
+				idx := idx + 1;
+			end if;
+		end loop;
+		
+		insert into temp_force_guide_patch_node_tbl(guide_type, node_id_list)
+		values(rec.guide_type, res_node_list);
+	end loop;
+
+	return true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_update_temp_force_guide_patch_link_tbl( )
+	RETURNS boolean
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	node_list_len bigint;
+	node_idx bigint;
+	in_node bigint;
+	out_node bigint;
+	res_string character varying;
+	temp_link_array bigint[];
+	res_link_array bigint[];
+	res_link_array_len bigint;
+	/*in_node_geom geometry;
+	out_node_geom geometry;
+	deata double precision;
+	buffer geometry;
+	in_link_list bigint[];
+	out_link_list bigint[];
+	in_link_list_len bigint;
+	out_link_list_len bigint;
+	in_link_loop bigint;
+	out_link_loop bigint;
+	innode bigint;
+	outnode bigint;
+	temp_linkrow_array varchar[];*/
+BEGIN	
+	for rec in 
+		select *
+		from temp_force_guide_patch_node_tbl
+	loop
+		--raise info '%', rec;
+		node_idx := 1;
+		node_list_len := array_upper(rec.node_id_list, 1);
+		if node_list_len < 2 then
+			continue;
+		end if;
+
+		while node_idx <= (node_list_len - 1) loop
+			in_node := rec.node_id_list[node_idx];
+			out_node := rec.node_id_list[node_idx + 1];
+			/*
+			raise info '%', in_node;
+			raise info '%', out_node;
+			raise info '%', string_to_array(mid_findpasslinkbybothnodes(in_node, out_node, 30), ',');
+			*/
+			res_string := mid_findpasslinkbybothnodes(in_node, out_node, 30);
+			if res_string is null then
+				exit;
+			end if;
+			temp_link_array := string_to_array(res_string, ',');
+
+			if node_idx = 1 then
+				res_link_array := temp_link_array;
+			else
+				res_link_array := array_cat(res_link_array, temp_link_array);
+			end if;
+			/*
+			select the_geom into in_node_geom
+			from node_tbl
+			where node_id = in_node;
+
+			select the_geom into out_node_geom
+			from node_tbl
+			where node_id = out_node;
+
+			deata := 0.00009;
+			buffer := ST_Buffer(ST_MakeLine(in_node_geom, out_node_geom), deata);
+			raise info '%', deata;
+			select array_agg(link_id) into in_link_list
+			from (
+				select link_id, 1 as id
+				from link_tbl
+				where
+					((in_node = s_node and one_way_code in (1, 2)) or
+					(in_node = e_node and one_way_code in (1, 3))) and
+					ST_Covers(buffer, the_geom) = true
+			) a
+			group by id;
+
+			if in_link_list is null then
+				deata := deata + 0.2;
+				continue;
+			end if;
+			raise info 'in_link_list: %', in_link_list;
+
+			select array_agg(link_id) into out_link_list
+			from (
+				select link_id, 1 as id
+				from link_tbl
+				where
+					((out_node = s_node and one_way_code in (1, 3)) or
+					(out_node = e_node and one_way_code in (1, 2))) and
+					ST_Covers(buffer, the_geom) = true
+			) a
+			group by id;
+
+			if out_link_list is null then
+				deata := deata + 0.2;
+				continue;
+			end if;
+			raise info 'out_link_list: %', out_link_list;
+
+			in_link_list_len = array_upper(in_link_list, 1);
+			out_link_list_len = array_upper(out_link_list, 1);
+			for in_link_loop in 1..in_link_list_len loop
+				select case when in_node = s_node then e_node else s_node end into innode
+				from link_tbl
+				where link_id = in_link_list[in_link_loop];
+				for out_link_loop in 1..out_link_list_len loop
+					select case when out_node = s_node then e_node else s_node end into outnode
+					from link_tbl
+					where link_id = out_link_list[out_link_loop];
+
+					temp_linkrow_array := mid_find_inner_path(in_link_list[in_link_loop], out_link_list[out_link_loop], innode, outnode);
+					raise info 'in_link: %', in_link_list[in_link_loop];
+					raise info 'out_link: %', out_link_list[out_link_loop];
+					raise info 'innode: %', innode;
+					raise info 'outnode: %', outnode;
+					raise info 'temp_linkrow_array: %', temp_linkrow_array;
+				end loop;
+			end loop;
+			*/
+			node_idx := node_idx + 1;
+		end loop;
+		
+		res_link_array_len := array_upper(res_link_array, 1);
+		if res_link_array_len >= 2 then
+			insert into temp_force_guide_patch_link_tbl(objectid, guide_type, link_id_list)
+			values(rec.id, rec.guide_type, res_link_array);
+		end if;
+	end loop;
+
+	return true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_get_connectnode_by_links( inlink bigint, outlink bigint )
+	RETURNS bigint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	start_node_id bigint;
+	end_node_id bigint;
+	temp_link_id bigint;
+	res_node_id bigint;
+BEGIN	
+	if inlink is null or outlink is null then
+		return -1;
+	end if;
+
+	select a.s_node, a.e_node, b.link_id into start_node_id, end_node_id, temp_link_id
+	from (
+		select link_id, s_node, e_node
+		from link_tbl
+		where link_id = inlink
+	) a
+	left join (
+		select link_id, s_node, e_node
+		from link_tbl
+		where link_id = outlink
+	) b
+	on a.s_node = b.s_node or a.s_node = b.e_node;
+
+	if temp_link_id is not null then
+		res_node_id := start_node_id;
+	else 
+		res_node_id := end_node_id;
+	end if;
+
+	return res_node_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_get_position_type_by_links( inlink bigint, outlink bigint )
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	linkType1 smallint;
+	roadType1 smallint;
+	linkType2 smallint;
+	roadType2 smallint;
+	res_position_type smallint;
+BEGIN	
+	if inlink is null or outlink is null then
+		return -1;
+	end if;
+
+	select link_type, road_type into linkType1, roadType1
+	from link_tbl
+	where link_id = inlink;
+
+	select link_type, road_type into linkType2, roadType2
+	from link_tbl
+	where link_id = outlink;
+	
+	if roadType1 in (0, 1) and linkType1 in (1, 2) and linkType2 = 5 then
+		res_position_type := 5; --gao su chu kou
+	elseif roadType1 not in (0, 1) and linkType2 = 5 and roadType2 in (0, 1) then
+		res_position_type := 4; --gao su ru kou
+	elseif roadType1 in (0, 1) and linkType1 in (1, 2) and roadType2 in (0, 1) and linkType2 = 3 then
+		res_position_type := 6; --gao su ben xian fen qi
+	elseif roadType1 in (0, 1) and linkType1 = 3 and roadType2 in (0, 1) and linkType2 in (1, 2) then
+		res_position_type := 7; --gao su ben xian he liu
+	else
+		res_position_type := 0;
+	end if;
+	
+	return res_position_type;
 END;
 $$;

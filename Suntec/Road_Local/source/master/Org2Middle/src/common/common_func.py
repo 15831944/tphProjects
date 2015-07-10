@@ -337,3 +337,31 @@ def JudgementCountry(country_name, proj_name = None):
 #            return False
 #    else :
 #        return False
+
+# 根据inlinkid， outlinkid和totalPasslid求出inlink后紧邻的node点
+# pg: 必须是comp_base对象里的pg，本项目中绝大多数模块都继承自comp_base
+# linktblName: 所查询的link表, 此表必须是link_tbl的子集。
+def _GetNodeAfterInlinkid(pg, inlinkid, outlinkid, totalPasslid='', linktblName="link_tbl"):
+    if totalPasslid == '':
+        return _GetNodeBetweenLinks(pg, inlinkid, outlinkid, linktblName)
+    else:
+        return _GetNodeBetweenLinks(pg, inlinkid, totalPasslid.split("|")[0], linktblName)
+
+# 通过查询link与node的信息确定两条link是否相交，默认使用link_tbl表
+# 如果相交，返回连接点，否则返回空
+# linktblName: 所查询的link表, 此表必须是link_tbl的子集。
+def _GetNodeBetweenLinks(pg, linkid1, linkid2, linktblName="link_tbl"):
+    node_sqlcmd = '''SELECT s_node, e_node FROM %s where link_id = %s;'''
+    pg.execute2(node_sqlcmd % (linktblName, linkid1))
+    inres_row = pg.fetchone2()
+    pg.execute2(node_sqlcmd % (linktblName, linkid2))
+    outres_row = pg.fetchone2()
+
+    if inres_row is None or outres_row is None:
+        return None
+    elif inres_row[0] in (outres_row[0], outres_row[1]):
+        return inres_row[0]
+    elif inres_row[1] in (outres_row[0], outres_row[1]):
+        return inres_row[1]
+    else:
+        return None

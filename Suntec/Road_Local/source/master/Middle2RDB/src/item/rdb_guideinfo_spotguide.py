@@ -46,49 +46,33 @@ class rdb_guideinfo_spotguide(ItemBase):
                            ,point_list
                            ,is_exist_sar
                           )
-                  SELECT   a.tile_link_id as in_link_id
-                        , a.tile_id as in_tile_id
-                        , b.tile_node_id as node_id
-                        , b.tile_id as node_tile_id
-                        , c.tile_link_id as out_link_id
-                        , c.tile_id as out_tile_id
-                        , s."type" as "type"
-                        , s.passlink_cnt as passlink_cnt
-                        , (case when d.gid is null then 0 else d.gid end) as pattern_no
-                        , (case when e.gid is null then 0 else e.gid end) as arrow_no
+                  SELECT  a.tile_link_id
+                        , a.tile_id
+                        , b.tile_node_id
+                        , b.tile_id
+                        , c.tile_link_id
+                        , c.tile_id
+                        , s."type"
+                        , s.passlink_cnt
+                        , d.gid
+                        , e.gid
                         , f.data
-                        , is_exist_sar
+                        , s.is_exist_sar
                     FROM 
-                    (SELECT 
-                        gid,
-                        id,
-                        nodeid,
-                        inlinkid,
-                        outlinkid,
-                        passlid,
-                        passlink_cnt,
-                        direction,
-                        guideattr,
-                        namekind,
-                        guideclass,
-                        patternno,
-                        arrowno,
-                        "type",
-                        is_exist_sar
-                    FROM spotguide_tbl) as s
+                    spotguide_tbl as s
                     LEFT JOIN rdb_tile_link as a
-                    ON cast(inlinkid as bigint) = a.old_link_id
+                    ON cast(s.inlinkid as bigint) = a.old_link_id
                     LEFT JOIN rdb_tile_node as b
-                    ON cast(nodeid as bigint) = b.old_node_id
+                    ON cast(s.nodeid as bigint) = b.old_node_id
                     LEFT JOIN rdb_tile_link as c
-                    ON cast(outlinkid as bigint) = c.old_link_id
+                    ON cast(s.outlinkid as bigint) = c.old_link_id
                     LEFT JOIN rdb_guideinfo_pic_blob_bytea as d
-                    on lower(patternno) = lower(d.image_id)
+                    on lower(s.patternno) = lower(d.image_id)
                     LEFT JOIN rdb_guideinfo_pic_blob_bytea as e
-                    on lower(arrowno) = lower(e.image_id)
+                    on lower(s.arrowno) = lower(e.image_id)
                     LEFT JOIN temp_point_list as f
-                    on lower(arrowno) = lower(f.image_id)
-                    where d.gid is not null
+                    on lower(s.arrowno) = lower(f.image_id)
+                    where d.gid is not null and e.gid is not null
                     order by s.gid;
                   """
         

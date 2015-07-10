@@ -199,13 +199,13 @@ class comp_link_merge(component.component_base.comp_base):
                     insert into node_tbl
                     (
                     node_id, tile_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, org_boundary_flag, tile_boundary_flag, 
-                    mainnodeid, node_lid, node_name, feature_string, feature_key, the_geom
+                    mainnodeid, node_lid, node_name, feature_string, feature_key, z_level, the_geom
                     )
                     (
                         select  a.node_id, a.tile_id, a.kind, a.light_flag, a.stopsign_flag, a.toll_flag, a.bifurcation_flag, 
                                 a.org_boundary_flag, a.tile_boundary_flag, a.mainnodeid, 
                                 (case when c.node_id is not null then c.node_lid else a.node_lid end) as node_lid, 
-                                a.node_name, a.feature_string, a.feature_key, a.the_geom
+                                a.node_name, a.feature_string, a.feature_key, a.z_level, a.the_geom
                         from (select * from node_tbl_bak_merge where gid >= %d and gid <= %d) as a
                         left join temp_merge_node_delete as b
                         on a.node_id = b.node_id

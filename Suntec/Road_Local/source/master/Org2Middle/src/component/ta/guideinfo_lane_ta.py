@@ -335,6 +335,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             dflane_array_temp = dflane_array
 
         return dflane_array_temp
+    
     def _get_lane_one(self, laneno, validity, oneway):
         
         laneinfo = ''
@@ -343,7 +344,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         if laneno == 1:
             laneinfo = '1' + laneinfo[1:len_num]
         else:          
-            laneinfo = laneinfo[0:laneno] + '1' + laneinfo[laneno:len_num]
+            laneinfo = laneinfo[0:laneno - 1] + '1' + laneinfo[laneno:len_num]
         
         laneinfo = laneinfo[0:]
         
@@ -427,7 +428,8 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     %s, %s, %s);
         '''
         sqlcmd = '''
-            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, array_agg(d.dflane) dflane_array, 
+            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, case when c.direction=256 then 2048 else c.direction end,
+                    array_agg(d.dflane) dflane_array, 
                 array_agg(d.vt) vt_array, array_agg(d.validity) as validity_array, b.lanes
             FROM temp_lane_link_node as a
             left join org_nw as b

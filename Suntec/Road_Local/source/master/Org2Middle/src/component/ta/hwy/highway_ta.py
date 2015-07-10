@@ -26,7 +26,7 @@ class HighwayTa(HighwayRDF):
         '''
         Constructor
         '''
-        HighwayRDF.__init__(self)
+        HighwayRDF.__init__(self, ItemName='HighwayTa')
 
     def initialize(self):
         self.link_id_mapping = HwyLinkMappingTa()

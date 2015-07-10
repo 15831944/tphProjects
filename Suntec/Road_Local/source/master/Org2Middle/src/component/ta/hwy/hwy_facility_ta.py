@@ -217,9 +217,11 @@ SERVICE_RESTAURANT_DICT = {(7315, 7315145): None,  # Restaurant
 SERVICE_SHOPPING_DICT = {(7373, 0): None,  # Shopping Center
                          (9361, 9361018): None,  # Food & Drinks: Bakers
                          (9361, 9361025): None,  # Food & Drinks: Wine&Spirits
+                         (9361, 9361024): None,  # Food & Drinks: Other
                          }
 # 郵便ポスト/post_box
-SERVICE_POSTBOX_DICT = {}
+SERVICE_POSTBOX_DICT = {(7324, 7324003): None,  # Shop: Local
+                        }
 # インフォメーション
 SERVICE_INFORMATION_DICT = {(7316, 0): None,  # Tourist Information Office
                             }
@@ -228,12 +230,18 @@ SERVICE_TOILET_DICT = {(9932, 9932005): None,  # Toilet
                        }
 # 未定义服务种别
 SERVICE_UNDEFINED_DICT = {(7304, 7304006): None,  # Apartment
+                          # Important Tourist(Unspecified)
+                          (7322, 7322004): None,  # Police Station(Order1 Area)
+                          (7376, 7376001): None,
+                          (7376, 7376003): None,  # Important Tourist(Monument)
                           (8099, 8099001): None,  # Geographic Feature
                           (8099, 8099016): None,  # Geographic: Bay
                           (8099, 8099020): None,  # Geographic: Cape
                           (9352, 9352011): None,  # Company: Manufacturing
                           (9362, 9362033): None,  # Picnic Area
+                          (9362, 9362030): None,  # Natural Attraction
                           (9932, 9932004): None,  # Public Call Box
+                          (9376, 9376002): None,  # Café
                           (9932, 9932006): None,  # Road Rescue
                           (9942, 9942002): None,  # Bus Stop
                           (9942, 9942005): None,  # Coach Stop

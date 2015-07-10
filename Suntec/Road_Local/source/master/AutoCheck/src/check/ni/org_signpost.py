@@ -1,7 +1,12 @@
 # coding:utf-8
 import platform.TestCase
 
-# 框架而已
-class CCheckSignpost(platform.TestCase.CTestCase):
+# 检查org_signboard表不为空
+class CCheckOrgSignpostCount(platform.TestCase.CTestCase):
     def _do(self):
-        return True
+        sqlcmd='''
+                select count(*) from org_signboard;
+               '''
+        return self.pg.getOnlyQueryResult(sqlcmd)>0
+    
+

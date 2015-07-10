@@ -193,6 +193,20 @@ class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
                  """
         self.pg.execute(sqlcmd)
         return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
+    
+class CCheckTileAdminGeomArea_CHINA(platform.TestCase.CTestCase):
+    '''
+    only check china's area for test
+    '''
+    def _do(self):
+        
+        idnArea = 9571717            
+        sqlcmd = """
+                 SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
+                 FROM rdb_tile_admin_zone WHERE ad_code <> -1;
+                 """
+        self.pg.execute(sqlcmd)
+        return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
             
 class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
     '''
