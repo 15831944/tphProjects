@@ -17,8 +17,8 @@
 
 -- 建立两张临时表，字段包括了spotguidepoint的原始node_id, 原始node_id的坐标点lat, lon。
 -- 这两张表分别取自新老数据库
-drop table if exists temp_tbl14q4;
-create table temp_tbl14q4 as
+drop table if exists temp_old_spotguide_lat_lon;
+create table temp_old_spotguide_lat_lon as
 select distinct c.old_node_id, b.the_geom, 
           st_x(b.the_geom) as x, st_y(b.the_geom) as y from
 rdb_guideinfo_spotguidepoint_14q4 as a
@@ -27,8 +27,8 @@ on a.node_id=b.node_id and a.node_id_t=b.node_id_t
 left join rdb_tile_node_14q4 as c
 on a.node_id=c.tile_node_id and a.node_id_t=c.tile_id;
 
-drop table if exists temp_tbl15q1;
-create table temp_tbl15q1 as
+drop table if exists temp_new_spotguide_lat_lon;
+create table temp_new_spotguide_lat_lon as
 select distinct c.old_node_id, b.the_geom, 
           st_x(b.the_geom) as x, st_y(b.the_geom) as y from
 rdb_guideinfo_spotguidepoint as a
@@ -45,16 +45,16 @@ create table temp_diff_14q4_to_15q1 as
 select c.* from
 (
 select a.* from 
-temp_tbl14q4 as a
-left join temp_tbl15q1 as b
+temp_old_spotguide_lat_lon as a
+left join temp_new_spotguide_lat_lon as b
 on (a.x=b.x) and (a.y=b.y)
 where b.old_node_id is null
 ) as c
 left join 
 (
 select d.* from 
-temp_tbl15q1 as d
-left join temp_tbl14q4 as e
+temp_new_spotguide_lat_lon as d
+left join temp_old_spotguide_lat_lon as e
 on (d.x=e.x) and (d.y=e.y)
 where e.old_node_id is null
 ) as f
@@ -70,10 +70,10 @@ rdfpl_all_jv_lat_display_org_14q4 as b
 on a.x=cast(b.lon as double precision) and a.y=cast(b.lat as double precision)
 where b.gid is null; -- 此处应该等于0
 
--- 尝试从15q1的原始数据表rdfpl_all_jv_lat_display_org_15q1里找到diff表里的点。
--- 如果找不到，则说明了15q1元数据中没有提供这些点。
-drop table if exists temp_15q1offered_but_not_generate_point_table;
-create table temp_15q1offered_but_not_generate_point_table as 
+-- 尝试从15q1的原始数据表rdfpl_all_jv_lat_display_org_15q1里找到上面diff表里的点。
+-- todo: 判断条件：经纬度小于0.00001
+drop table if exists temp_15q1_ori_data_has_these_nodes;
+create table temp_15q1_ori_data_has_these_nodes as 
 select distinct a.*, b.dp_node_id, b.longitude, b.latitude from
 temp_diff_14q4_to_15q1 as a
 left join 
@@ -81,35 +81,37 @@ rdfpl_all_jv_lat_display_org as b
 on a.x=cast(b.longitude as double precision) and a.y=cast(b.latitude as double precision)
 where b.dp_node_id is not null;
 
--- 如果15q1提供了这些点，继续寻找为什么这些点没有做到spotguide数据里的原因。
--- 首先尝试在spotguide_tbl中找到这些点。
--- 如果在spotguide_tbl中也找不到这些点，则查为何spotguide_tbl中没有加入这些点。
-drop table if exists temp_spotguide_has_these_points;
-create table temp_spotguide_has_these_points as
+-- 如果找不到，则说明了15q1元数据中没有提供这些点。
+drop table if exists temp_15q1_ori_data_has_no_these_nodes;
+create table temp_15q1_ori_data_has_no_these_nodes as 
+select distinct a.*, b.dp_node_id, b.longitude, b.latitude from
+temp_diff_14q4_to_15q1 as a
+left join 
+rdfpl_all_jv_lat_display_org as b
+on a.x=cast(b.longitude as double precision) and a.y=cast(b.latitude as double precision)
+where b.dp_node_id is null; -- 答案1：15q1的元数据没有提供。
+
+-- 分支1：
+-- spotguide_tbl里找15q1元数据提供的点。
+-- 如果找不到，说明15q1的spotguide_tbl里没做这些点
+drop table if exists temp_spotguide_tbl_15q1_has_no_these_points;
+create table temp_spotguide_tbl_15q1_has_no_these_points as
 select distinct a.*, b.patternno, b.arrowno from 
-temp_15q1offered_but_not_generate_point_table as a
+temp_15q1_ori_data_has_these_nodes as a
 left join spotguide_tbl as b
 on a.old_node_id=b.nodeid
-where b.nodeid is not null;
+where b.nodeid is null; -- 答案2：15q1的spotguide_tbl表里没做这些点。
 
-drop table if exists temp_spotguide_has_not_these_points;
-create table temp_spotguide_has_not_these_points as
-select distinct a.*, b.patternno, b.arrowno from 
-temp_15q1offered_but_not_generate_point_table as a
-left join spotguide_tbl as b
-on a.old_node_id=b.nodeid
-where b.nodeid is null;
-
--- 在15q1的spotguide_tbl里可以找到这些点，说明有可能是spotguide的图片元数据未提供。
--- 继续在rdb_guideinfo_pic_blob_bytea里寻找这些点所对应的图片数据。
--- 如果在rdb_guideinfo_pic_blob_bytea也找不到这些点，则查为何图片数据没有，是元数据未提供？还是图片制作错误？
-drop table if exists temp_pic_blob_cant_find_these;
-create table temp_pic_blob_cant_find_these as 
+-- 分支2：
+-- pic_blob表里找15q1元数据提供了的点。
+-- 如果找不到，说明15q1的pic_blob里没做这些点
+drop table if exists temp_pic_blob_15q1_has_no_these_points;
+create table temp_pic_blob_15q1_has_no_these_points as 
 select a.*, b.image_id as pattern_image_id, c.image_id as arrow_image_id from
-temp_spotguide_has_these_points as a
+temp_spotguide_tbl_15q1_has_these_points as a
 left join rdb_guideinfo_pic_blob_bytea as b
 on a.patternno=b.image_id
 left join rdb_guideinfo_pic_blob_bytea as c
 on a.arrowno=c.image_id
-where c.gid is null;
+where c.gid is null; -- 答案3：15q1的rdb_guideinfo_pic_blob_bytea表没做这些点。
 

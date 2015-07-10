@@ -1,0 +1,8 @@
+pushd %~dp0
+"C:\Program Files (x86)\PostgreSQL\9.3\bin\pg_dump.exe" --host 172.26.179.184 --port 5432 --username "postgres" --role "postgres" --no-password  --format custom --blobs --encoding UTF8 --verbose --file ".\15q1.backup" --table "public.org_all_sar_files" --table "public.rdb_guideinfo_pic_blob_bytea" --table "public.rdb_guideinfo_spotguidepoint" --table "public.rdb_node" --table "public.rdb_tile_node" --table "public.rdfpl_all_jv_lat_display_org" --table "public.rdfpl_gjv_lat_display_org" --table "public.spotguide_tbl" "MEA8_RDF_2015Q1_0065_0012"
+
+"C:\Program Files (x86)\PostgreSQL\9.3\bin\pg_dump.exe" --host 172.26.179.184 --port 5432 --username "postgres" --role "postgres" --no-password  --format custom --blobs --encoding UTF8 --verbose --file ".\14q4.backup" --table "public.org_all_sar_files" --table "public.rdb_guideinfo_pic_blob_bytea" --table "public.rdb_guideinfo_spotguidepoint" --table "public.rdb_node" --table "public.rdb_tile_node" --table "public.rdfpl_all_jv_lat_display_org" --table "public.rdfpl_gjv_lat_display_org" --table "public.spotguide_tbl" "MEA8_RDF_2014Q4_0080_0007"
+
+"C:\Program Files (x86)\PostgreSQL\9.3\bin\pg_restore.exe" --host localhost --port 5432 --username "postgres" --dbname "spotguide_statistic" --role "postgres" --no-password  --verbose ".\14q4.backup"
+
+"C:\Program Files (x86)\PostgreSQL\9.3\bin\pg_restore.exe" --host localhost --port 5432 --username "postgres" --dbname "spotguide_statistic" --role "postgres" --no-password  --verbose ".\15q1.backup"
