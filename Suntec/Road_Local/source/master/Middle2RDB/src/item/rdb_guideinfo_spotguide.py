@@ -20,7 +20,7 @@ class rdb_guideinfo_spotguide(ItemBase):
     def Do(self):
         self.CreateTable2('rdb_guideinfo_spotguidepoint')
         sqlcmd = """
-                  insert into rdb_guideinfo_spotguidepoint
+                  INSERT INTO rdb_guideinfo_spotguidepoint
                          (  in_link_id
                            ,in_link_id_t
                            ,node_id

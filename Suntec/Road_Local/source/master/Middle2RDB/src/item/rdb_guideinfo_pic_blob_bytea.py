@@ -43,21 +43,49 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         return 0
     
     def __load_illust_pic(self):
-        rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea ...', 'info')
+        rdb_log.log(self.ItemName, 'Load illust begin.', 'info')
+        picRoot = rdb_common.GetPath('illust')
+        if os.path.isdir(picRoot) == False:
+            strLogInfo = '''Load illust failed, %s is not a directory.''' % picRoot
+            rdb_log.log(self.ItemName, strLogInfo , 'error')
+            return
         
-        picroot = rdb_common.GetPath('illust')
-        if os.path.isdir(picroot):
-            for curDir,dirNames,fileNames in os.walk(picroot):
-                for oneFile in fileNames:
-                    exttype = os.path.splitext(oneFile)[1].lower()
-                    if exttype in (".jpg", ".png", ".dat"):
-                        self.__insertPic(os.path.join(curDir, oneFile))
-            self.pg.commit2()
-        else:
-            strLogInfo = '''illust "%s" is not a directory, skipped loading point list.''' % picroot
-            rdb_log.log(self.ItemName, strLogInfo , 'info')
+        # 收集所有dat文件路径
+        # datList是一个二维数组，数组每项是一个元组，每个元组有2项，
+        # 元组首项是dat路径，第二项是dat的文件大小
+        datList = [()]
+        for curDir,dirNames,fileNames in os.walk(picRoot):
+            for oneFile in fileNames:
+                if os.path.splitext(oneFile)[1].lower() == ".dat":
+                    oneFileFullPath = os.path.join(curDir, oneFile)
+                    oneFileLength = os.path.getsize(oneFileFullPath)
+                    datList.append((oneFileFullPath, oneFileLength))
         
-        rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea end.', 'info')
+        # 去重操作
+        # 1. 按文件大小将文件排序，提高分组速度
+        datList.sort(key=lambda dat : dat[1])
+        
+        # 2. 按文件内容是否相同将文件分组
+        groupedDat = [[]]
+        groupedDat.append([datList[0][0]])
+        for i in range(1, len(datList), 1):
+            if datList[i][1] != datList[i-1][1]:
+                groupedDat.append([datList[i]])
+            else:
+                # 倒序遍历已分组的dat
+                for j in range(len(groupedDat), 1, -1):
+                    # 若该组dat的首个dat的大小与
+                    if groupedDat[j][0][1] == datList[i][1]:
+                        groupedDat.append([datList[i]])
+                        break
+                    # 由于之前曾根据长度排序，故长度不等时可认为此dat与之前所有dat都不可能相同，
+                    # 直接跳出
+                    else:
+                        groupedDat.append([datList[i]])
+                        break
+        
+        
+        rdb_log.log(self.ItemName, 'Load illust end.', 'info')
     
     def __insertPic(self, filepath):
         filename = os.path.split(filepath)[1]
@@ -65,7 +93,6 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         objFile = open(filepath, 'rb')
         alldata = objFile.read()
         objFile.close()
-        
         if self.pg.insert('rdb_guideinfo_pic_blob_bytea', 
                          ('image_id', 'data'), 
                          (picname, psycopg2.Binary(alldata))
