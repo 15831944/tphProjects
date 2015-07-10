@@ -57,8 +57,8 @@ class rdb_guideinfo_spotguide(ItemBase):
                         , s.passlink_cnt
                         , d.gid
                         , case 
-                          when s.arrowno is null then 0    -- sensis
-                          else e.gid end    -- rdf
+                          when s.arrowno is null then 0    -- sensis, toll station
+                          else e.gid end    -- rdf etc.
                         , f.data
                         , s.is_exist_sar
                     FROM 
@@ -75,9 +75,9 @@ class rdb_guideinfo_spotguide(ItemBase):
                     on lower(s.arrowno) = lower(e.image_id)
                     LEFT JOIN temp_point_list as f
                     on lower(s.arrowno) = lower(f.image_id)
-                    where d.gid is not null and
-                          (s.arrowno is null            -- sensis
-                           or e.gid is not null)        -- rdf
+                    where d.gid is not null and    -- pattern illust must be found.
+                          (s.arrowno is null   -- sensis, toll station
+                           or e.gid is not null)   -- rdf etc.
                     order by s.gid;
                   """
         
@@ -93,6 +93,8 @@ class rdb_guideinfo_spotguide(ItemBase):
     
     # 将加油站作成spotguide点填充到中间表spotguide_tbl表中
     def _GenerateSpotguidePointForTollStation(self):
+        # 一些仕向地提供了toll station数据及元数据图片，这些数据在o2m的时候已被做到spotguide_tbl表中。
+        # 为防止与这些toll station点重复，这里使用spotguide_tbl进行了过滤。
         sqlcmd = """
                 select a.node_id, array_agg(b.link_id) as blinkid, array_agg(b.one_way_code) as boneway, 
                 array_agg(c.link_id) as clinkid, array_agg(c.one_way_code) as coneway 
@@ -102,19 +104,28 @@ class rdb_guideinfo_spotguide(ItemBase):
                 on a.node_id=b.s_node
                 left join link_tbl as c
                 on a.node_id=c.e_node
+                left join spotguide_tbl as d
+                on a.node_id=d.nodeid
                 where a.toll_flag=1
+                and d.nodeid is null
                 group by a.node_id
           """
+          
+        # arrowno字段默认为空，此做法将令作成rdb_guideinfo_spotguidepoint时
+        # 将跳过部分存在arrow图的仕向地中务必找到arrow图才作成诱导点的逻辑。
+        # toll station 做成spotguide点时type定为12。
+        # toll station 默认没有sar
+        # 'toll_station_image'为toll station的通用图。
         spotguide_tbl_insert_str = '''
                 insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                                           passlid, passlink_cnt, direction,
                                           guideattr, namekind, guideclass,
-                                          patternno, arrowno, type,
+                                          patternno, type,
                                           is_exist_sar)
                   values(%d, %d, %d,
                          '', 0, 0,
                          0, 0, 0,
-                         1, 0, 12,
+                         'toll_station_image', 12,
                          false)
             '''
         self.pg.execute2(sqlcmd)
@@ -128,6 +139,7 @@ class rdb_guideinfo_spotguide(ItemBase):
             
             inLinkList = []
             outLinkList = []
+            # 根据s_node列表和它对应的one_way_code找出该node的inlink列表和outlink列表。
             for x in zip(sNodeLinkList, sOneWayList):
                 if x[1] == 1:
                     inLinkList.append(x[0])
@@ -138,7 +150,8 @@ class rdb_guideinfo_spotguide(ItemBase):
                     inLinkList.append(x[0])
                 else:
                     continue
-
+                
+            # 根据e_node列表和它对应的one_way_code找出该node的inlink列表和outlink列表。
             for x in zip(eNodeLinkList, eOneWayList):
                 if x[1] == 1:
                     inLinkList.append(x[0])
@@ -149,7 +162,8 @@ class rdb_guideinfo_spotguide(ItemBase):
                     outLinkList.append(x[0])
                 else:
                     continue
-                
+            
+            # 根据求出的inlink列表和outlink列表作成inlink --> node --> outlink值对。 
             for oneInLink in inLinkList:
                 for oneOutLink in outLinkList:
                     if oneInLink != oneOutLink:
@@ -165,7 +179,7 @@ class rdb_guideinfo_spotguide(ItemBase):
         sqlcmd = """
                 ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists check_type;
                 ALTER TABLE rdb_guideinfo_spotguidepoint
-                  ADD CONSTRAINT check_type CHECK (type = ANY (ARRAY[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+                  ADD CONSTRAINT check_type CHECK (type = ANY (ARRAY[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]));
                 """
         if self.pg.execute2(sqlcmd) == -1:
             return -1
