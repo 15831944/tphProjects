@@ -37,17 +37,18 @@ class comp_node_zenrin(component.component_base.comp_base):
         
         sqlcmd='''
             insert into node_Tbl
-            (node_id,light_flag,stopsign_flag,toll_flag,bifurcation_flag,node_lid,z_level,the_geom)
+            (node_id,light_flag,stopsign_flag,toll_flag,bifurcation_flag,node_lid,z_level,the_geom,org_boundary_flag)
             select a.node_id,
                     case when b.meshcode is null then 0 else 1 end as light_flag,
                     0 as stopsign_flag,
                     case when c.meshcode is null then 0 else 1 end as toll_flag,
                     case when d.meshcode is null then 0 else 1 end as bifurcation_flag,
                     array_to_string(e.linkid_arr,'|') as node_lid,
-                    0 as z_level,a.the_geom 
+                    0 as z_level,a.the_geom_4326 ,
+                    case when crosskind=3 then 1 else 0 end as org_boundary_flag
             from
             (
-                select distinct a.meshcode,a.nodeno,b.node_id,a.the_geom
+                select distinct a.meshcode,a.nodeno,a.crosskind,b.node_id,a.the_geom_4326
                 from org_node a
                 join temp_node_mapping b
                 on a.meshcode=b.meshcode and a.nodeno=b.nodeno

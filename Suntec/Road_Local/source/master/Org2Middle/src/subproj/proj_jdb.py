@@ -69,7 +69,6 @@ class proj_jdb_module(subproj.proj_base.proj_base_module):
             
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Trans_DirGuide'))# 转换方面名称
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_TowardName'))

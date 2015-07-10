@@ -53,18 +53,25 @@ class comp_admin_zenrin(component.component_base.comp_base):
                 create table temp_admin_zone_list
                 as
                 (
-                    select  row_number() over (order by elcode, name1, name2) as gid,
-                            elcode, name1, name2,
-                            st_multi(st_union(the_geom)) as the_geom
+                    select  gid, elcode, name1, name2,
+                            case when name1 in ('金門縣','澎湖縣','連江縣') then mid_transtwd67totwd97_119(the_geom)
+                                 else mid_transtwd67totwd97_121(the_geom)
+                            end as the_geom
                     from
                     (
-                        select a.elcode, b.name1, b.name2, a.the_geom
-                        FROM org_p_area_administration as a
-                        left join org_attribute_name as b
-                        on a.meshcode = b.meshcode and a.attrnmno = b.attrnmno
-                        where a.elcode in ('550000', '570000', '560000', '580000')
+                        select  row_number() over (order by elcode, name1, name2) as gid,
+                                elcode, name1, name2,
+                                st_scale(st_multi(st_union(the_geom)), 1.0 / 3600000, 1.0 / 3600000) as the_geom
+                        from
+                        (
+                            select a.elcode, b.name1, b.name2, a.the_geom
+                            FROM org_p_area_administration as a
+                            left join org_attribute_name as b
+                            on a.meshcode = b.meshcode and a.attrnmno = b.attrnmno
+                            where a.elcode in ('550000', '570000', '560000', '580000')
+                        )as t
+                        group by elcode, name1, name2
                     )as t
-                    group by elcode, name1, name2
                     order by elcode, name1, name2
                 );
                 '''

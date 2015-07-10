@@ -64,7 +64,6 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
  
             # SpotGuide
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
  
             # 道路名称和番号
             #self.AddComponent(self.comp_factory.CreateOneComponent('Link_Name'))

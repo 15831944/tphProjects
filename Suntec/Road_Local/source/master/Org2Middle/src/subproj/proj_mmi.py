@@ -47,7 +47,6 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Safety_Zone'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SignPost_UC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('spotguide_tbl'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_TowardName'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SignPost'))

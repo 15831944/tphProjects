@@ -59,7 +59,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, 
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
-                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, the_geom
+                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, the_geom_4326
         from
         (
             select a.link_id,
@@ -72,7 +72,7 @@ class comp_link_zenrin(component.component_base.comp_base):
             zenrin_cnv_toll(elcode) as toll,
             case when f.meshcode is not null then zenrin_cnv_speed_class(f.speed)
                                  ELSE 8 END as speed_class,
-            ST_Length_Spheroid(a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length,
+            ST_Length_Spheroid(a.the_geom_4326,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length,
             case netlevel when 0 then 5
                           when 1 then 4
                           when 2 then 3
@@ -121,7 +121,7 @@ class comp_link_zenrin(component.component_base.comp_base):
             0 as extend_flag,
             0 as etc_only_flag,
             0 as urban,
-            st_geometryn(a.the_geom,1) as the_geom
+            st_geometryn(a.the_geom_4326,1) as the_geom_4326
             from (
                 select gid, meshcode, elcode, linkno, snodeno, enodeno, 
                             case when substr(elcode,3,1)='6' or substr(elcode,3,1)='7' or oneway=2 then 4
@@ -129,7 +129,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                                  when oneway=3 then 3
                                  when oneway=0 then 1
                                  end as one_way_code, 
-                            netlevel, attrnmno, the_geom,link_id
+                            netlevel, attrnmno, the_geom_4326,link_id
                 from (
                      select gid, meshcode, elcode, linkno, snodeno, enodeno, 
                             case when c.link_id is null then oneway 
@@ -138,7 +138,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                                  when oneway=2 and c.linkdir_array=array[3]::smallint[] then 3
                                  when oneway=2 and 2=ANY(c.linkdir_array) and 3=ANY(c.linkdir_array) then 0 end
                                  as oneway, 
-                            netlevel, attrnmno, the_geom,b.link_id
+                            netlevel, attrnmno, the_geom_4326,b.link_id
                     FROM org_road a
                     left join temp_link_mapping b 
                     using(meshcode,linkno) 

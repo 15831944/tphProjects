@@ -49,7 +49,6 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('GuideInfo_SignPost'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_TowardName'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('guideinfo_signpost_uc'))
 #            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_ForceGuide'))

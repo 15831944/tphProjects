@@ -188,7 +188,7 @@ class CCheckGuideSpotguideTollFlagMustBe_1_(platform.TestCase.CTestCase):
 class CCheckGuideSpotguidePointMustBeBifurcation(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd='''
-            select count(*) 
+            select count(1) 
             from rdb_guideinfo_spotguidepoint as a 
             join rdb_node as b 
             on a.node_id=b.node_id 

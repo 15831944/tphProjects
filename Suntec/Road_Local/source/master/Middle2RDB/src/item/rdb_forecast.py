@@ -329,7 +329,7 @@ class rdb_forecast_aus(ItemBase):
             """
         
         (self.min_link, self.max_link) = self.pg.getMinMaxValue('temp_forecast_link_with_slot', 'id')        
-        self.pg.multi_execute(sqlcmd, self.min_link, self.max_link, 3, 5000, self.log)
+        self.pg.multi_execute(sqlcmd, self.min_link, self.max_link, 3, 1000, self.log)
                 
         self.CreateTable2('temp_forecast_link_with_slot_merge_link_id_idx')        
         self.CreateTable2('temp_forecast_link_with_slot_merge_link_id_dir_idx')

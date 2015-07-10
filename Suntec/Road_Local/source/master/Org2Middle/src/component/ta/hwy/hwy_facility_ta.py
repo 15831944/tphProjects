@@ -152,24 +152,30 @@ class HwyFacilityTa(HwyFacilityRDF):
 
     def _get_store_info(self):
         sqlcmd = """
-        SELECT DISTINCT road_code, road_seq,
-                array_agg(feattyp), array_agg(subcat)
-          FROM (
-            SELECT road_code, road_seq, facilcls_c,
-                   regexp_split_to_table(link_lid, E'\\,+')::bigint as link_id
-              FROM mid_temp_hwy_ic_path as a
-              where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
-                    link_lid <> '' and link_lid is not null
-          ) as b
-          LEFT JOIN mid_temp_poi_link as c
-          ON b.link_id = c.link_id
-          LEFT JOIN org_mnpoi_pi as d
-          ON c.poi_id = d.id
-          LEFT JOIN mid_temp_hwy_sapa_name as e
-          ON c.poi_id = e.poi_id
-          WHERE feattyp not in (7358, 7395) -- 7358:Truck Stop; 7395:Rest Area
+        SELECT road_code, road_seq,
+               array_agg(feattyp), array_agg(subcat)
+         FROM (
+                SELECT DISTINCT road_code, road_seq,
+                        feattyp, subcat
+                  FROM (
+                    SELECT road_code, road_seq, facilcls_c,
+                           regexp_split_to_table(link_lid, E'\\,+'
+                                                )::bigint as link_id
+                      FROM mid_temp_hwy_ic_path as a
+                      where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
+                            link_lid <> '' and link_lid is not null
+                  ) as b
+                  LEFT JOIN mid_temp_poi_link as c
+                  ON b.link_id = c.link_id
+                  LEFT JOIN org_mnpoi_pi as d
+                  ON c.poi_id = d.id
+                  LEFT JOIN mid_temp_hwy_sapa_name as e
+                  ON c.poi_id = e.poi_id
+                  -- 7358:Truck Stop; 7395:Rest Area
+                  WHERE feattyp not in (7358, 7395)
+          ) AS f
           GROUP BY road_code, road_seq
-          ORDER BY road_code, road_seq
+          ORDER BY road_code, road_seq;
         """
         return self.get_batch_data(sqlcmd)
 
@@ -192,10 +198,12 @@ SERVICE_RESTAURANT_DICT = {(7315, 7315145): None,  # Restaurant
 # ショッピングコーナー/Shopping Corner
 SERVICE_SHOPPING_DICT = {(7373, 0): None,  # Shopping Center
                          (7315, 7315036): None,  # Restaurant: Pizza
+                         (9361, 9361006): None,  # Clothing & Accessories: General
                          (9361, 9361018): None,  # Food & Drinks: Bakers
                          (9361, 9361025): None,  # Food & Drinks: Wine&Spirits
                          (9361, 9361024): None,  # Food & Drinks: Other
                          (9361, 9361031): None,  # Furniture & Fittings
+                         (9361, 9361060): None,  # Delicatessen(熟食)
                          }
 # 郵便ポスト/post_box
 SERVICE_POSTBOX_DICT = {(7324, 7324003): None,  # Shop: Local
@@ -212,6 +220,7 @@ SERVICE_UNDEFINED_DICT = {(7304, 7304006): None,  # Apartment
                           (7322, 7322004): None,  # Police Station(Order1 Area)
                           (7376, 7376001): None,
                           (7376, 7376003): None,  # Important Tourist(Monument)
+                          (7380, 7380003): None,  # Railway Station(National)
                           (8099, 8099001): None,  # Geographic Feature
                           (8099, 8099016): None,  # Geographic: Bay
                           (8099, 8099020): None,  # Geographic: Cape

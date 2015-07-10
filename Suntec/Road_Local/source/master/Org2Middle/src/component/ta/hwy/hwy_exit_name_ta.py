@@ -46,7 +46,7 @@ class HwyExitNameTa(HwyExitNameRDF):
         on org_ig.elemid = node_tbl.node_id
         WHERE org_is.inttyp = 1 -- FREE WAY
           AND org_is.fwinttyp IN (1, 2)  -- MOTORWAY
-          AND org_ig.elemtyp = 4120 -- Road
+          AND org_ig.elemtyp = 4120 -- Junction
           AND org_is.name is not null;
         """
         temp_file_obj = cache_file.open('hwy_exit_name')

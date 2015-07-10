@@ -40,11 +40,10 @@ class proj_axf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Safety_Zone'))
             # SpotGuide
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_NaturalGuidence'))
             self.AddComponent(self.comp_factory.CreateOneComponent('hook_turn'))
-
+            
             # Regulation
             self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
             #park

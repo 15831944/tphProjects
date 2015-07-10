@@ -17,7 +17,7 @@ class CCheckLinkCircle(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = '''
             select count(*) from org_road
-            where st_equals(st_startpoint(the_geom),st_endpoint(the_geom))
+            where st_equals(st_startpoint(the_geom_4326),st_endpoint(the_geom_4326))
                  '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0) 
@@ -27,7 +27,7 @@ class CCheckZLink(platform.TestCase.CTestCase):
         self.pg.CreateFunction_ByName('test_link_shape_turn_number')
         sqlcmd='''
             select count(*) from org_road
-            where test_link_shape_turn_number(the_geom)>0
+            where test_link_shape_turn_number(the_geom_4326)>0
                '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0) 
@@ -54,7 +54,7 @@ class CCheckOverlay(platform.TestCase.CTestCase):
             inner join org_road b
             on a.meshcode=b.meshcode and ((a.snodeno  = b.enodeno and a.enodeno = b.snodeno)
             or (a.snodeno = b.snodeno and a.enodeno = b.enodeno))
-            and a.linkno <> b.linkno and st_equals(a.the_geom,b.the_geom);
+            and a.linkno <> b.linkno and st_equals(a.the_geom_4326,b.the_geom_4326);
                 """
         reg_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (reg_count == 0)
@@ -92,3 +92,97 @@ class CCheckNetlevel(platform.TestCase.CTestCase):
                 '''
         reg_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (reg_count == 0)
+    
+class CCheckProv_exp(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd='''
+            select 
+            (
+                select count(*) from org_prov_exp where substr(meshcode,1,1)<>'Z' or length(meshcode)<>7
+            )
+            +
+            (
+                select count(*)-count(distinct(meshcode,linkno)) from org_prov_exp
+            )
+            +
+            (
+                select count(*) from org_prov_exp a 
+                left join org_road b
+                on substr(a.meshcode,2)=b.meshcode and a.linkno=b.linkno
+                where b.meshcode is null
+            )
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)
+    
+class CCheckGeomType(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd='''
+            select count(*) from org_road where geometrytype(the_geom)<>'MULTILINESTRING'
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        if reg_count<>0 :
+            return False
+        sqlcmd='''
+            select count(*) from org_road where st_numgeometries(the_geom)<>1
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)
+    
+class CCheckTunnel(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        
+        sqlcmd='''
+                select 
+                (
+                    select count(*) from org_tunnelname a left join org_road b
+                     on a.meshcode = b.meshcode and a.roadno=b.linkno
+                     where a.tcode='1' and substr(b.elcode,5,1)<>'2' or b.meshcode is null
+                )
+                 +
+                (
+                    select count(*) from org_underpass a left join org_road b
+                     using(meshcode,linkno)
+                     where substr(b.elcode,5,1)<>'2' or b.meshcode is null 
+                )
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)
+    
+class CCheckRoadName(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        
+        sqlcmd='''
+                select
+                (
+                    select count(*)-count(distinct(meshcode,linkno)) from org_underpass
+                )
+                +
+                (
+                    select count(*)-count(distinct(meshcode,roadno)) from org_tunnelname
+                )
+                +
+                (
+                    select count(*)-count(distinct(meshcode,roadno)) from org_rname_bpmf
+                )
+                +
+                (
+                    select count(*)-count(distinct(meshcode,roadno)) from org_l5l6name
+                )
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)
+    
+class CCheckRoadNumber(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        
+        sqlcmd='''
+                select count(1) from org_prov_exp
+                where position ('Ê¡µÀ' in routeno)=0
+               '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)
+    

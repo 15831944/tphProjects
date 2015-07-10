@@ -94,3 +94,17 @@ class CCheckCrosskindNodeConnect(platform.TestCase.CTestCase):
                 '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+    
+class CCheckGeom(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        
+        sqlcmd='''
+            select count(*) from org_node a,org_node b
+            where a.meshcode=b.meshcode and a.nodeno=b.nodeno and not st_equals(a.the_geom_4326,b.the_geom_4326)
+                '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0)
+    
+
+        

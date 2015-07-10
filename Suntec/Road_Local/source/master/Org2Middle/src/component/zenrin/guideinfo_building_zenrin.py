@@ -38,7 +38,7 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
         sqlcmd = """
             insert into temp_poi_logmark
             (
-                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom
+                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom_4326 as the_geom
                 from org_poi as a
                 left join temp_poi_category as tpc
                 on tpc.org_code::bigint = a.sub_cat
@@ -47,7 +47,7 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
                
                union
                
-                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom
+                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom_4326 as the_geom
                 from org_poi as a
                 left join temp_poi_category as tpc
                 on tpc.org_code::bigint = a.sub_cat
@@ -55,7 +55,7 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
                
                union
                
-                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom
+                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom_4326 as the_geom
                 from org_poi as a
                 left join temp_poi_category as tpc
                 on tpc.org_code::bigint = a.sub_cat
