@@ -16,6 +16,7 @@ from item.hwy import rdb_hwy_toll
 from item.hwy import rdb_hwy_conn_info
 from item.hwy import rdb_hwy_node_add_info
 from item.hwy import rdb_hwy_fee
+from item.hwy import rdb_hwy_statis
 
 
 class rdb_highway(ItemBase):
@@ -37,7 +38,8 @@ class rdb_highway(ItemBase):
                               rdb_hwy_sapa_info.rdb_highway_sapa_info(),
                               rdb_hwy_store_info.rdb_highway_store_info(),
                               rdb_hwy_node_add_info.rdb_hwy_node_add_info(),
-                              rdb_hwy_fee.rdb_hwy_fee()
+                              rdb_hwy_fee.rdb_hwy_fee(),
+                              rdb_hwy_statis.rdb_highway_statis()
                               ]
 
     def Do(self):

@@ -87,6 +87,13 @@ CREATE TABLE rdb_guideinfo_pic_blob_bytea
   CONSTRAINT rdb_guideinfo_pic_blob_bytea_pkey PRIMARY KEY (gid)
 );
 
+CREATE TABLE temp_guideinfo_pic_blob_image_id_map
+(
+  ori_gid bigint,
+  image_id character varying
+  CONSTRAINT temp_guideinfo_pic_blob_image_id_map_pkey PRIMARY KEY (image_id)
+);
+
 CREATE TABLE rdb_guideinfo_signpost
 (
   gid serial NOT NULL,

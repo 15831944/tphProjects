@@ -6,10 +6,7 @@ Created on 2012-4-27
 '''
 import os
 import common
-import psycopg2
-from common.dirwalker import DirWalker
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
-from common.common_func import GetPath
 
 spotguide_tbl_insert_str = '''
         insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
@@ -98,19 +95,8 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             self.pg.commit2()
             
     def _makeJV_Common(self):
-        
-# 根据condition_type = 20来制作junctionview数据
-#             if self.__CheckImagePath() == False:
-#                 self.log.warning("Doesn't indicate the Image Path.")
-#                 return 0
             # create temp junction view spotguide info
             self.CreateTable2('temp_guideinfo_spotguide_junction_view_full')
-
-            # insert junction view image
-            # imageid, image_data_blob
-            # self.InsertJunctionViewImage()
-#         -- this operation will be done in mid2rdb
-
             sqlcmd = """
             insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                 passlid,passlink_cnt,direction,
@@ -138,43 +124,6 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             self.pg.execute2(sqlcmd)
             self.pg.commit2()
 
-    def InsertJunctionViewImage(self):
-        path = GetPath('illust')
-        if self.MakePictoBinary(path) == -1:
-            exit(1)
-        pass
-
-    def MakePictoBinary(self, fpath):
-        FilePath = fpath
-        self.pg.connect1()
-        try:
-            if self.pg.CreateTable1_ByName('rdb_guideinfo_pic_blob_bytea') == -1:
-                self.pg.close1()
-                return -1
-
-            for files in DirWalker(FilePath):
-                FileExt = os.path.splitext(files)
-                FileName = os.path.split(FileExt[0])[1].encode("utf-8")
-                jpgfile = open(files, 'rb')
-                alldata = jpgfile.read()
-                if self.pg.insert('rdb_guideinfo_pic_blob_bytea',
-                                  ('image_id', 'data'),
-                                  (FileName, psycopg2.Binary(alldata))
-                                  ) == -1:
-                    jpgfile.close()
-                    self.pg.close2()
-                    return -1
-                # pgcur_Create.execute(sqlcmd1,(FileName,psycopg2.Binary(alldata),))
-                jpgfile.close()
-
-            self.pg.commit()
-        except Exception, ex:
-            print '%s:%s' % (Exception, ex)
-            raise Exception, 'database operate wrong'
-        finally:
-            self.pg.close1()
-        return 0
-    
     def _get_gjv_junctions_info_by_gjv_table(self):
         sqlcmd = '''
             SELECT dp_node_id, originating_link_id, dest_link_id,
