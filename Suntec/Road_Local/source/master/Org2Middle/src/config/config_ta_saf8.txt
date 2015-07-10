@@ -1,0 +1,10 @@
+#################################################################
+# proj_ta
+proj_name=ta
+proj_country=saf8
+safetyzone_flag=false
+accident_flag=false
+safetyalert_flag=false
+ta_jv_sidefile=\\idata\Private\Data_Authoring\SourceData\AF\SAF8\Tomtom\illust
+ta_phoneme_sidefile=\\idata\Private\Data_Authoring\SourceData\AF\SAF8\Tomtom\phoneme
+#################################################################
