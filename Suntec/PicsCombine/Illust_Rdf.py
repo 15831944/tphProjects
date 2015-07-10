@@ -1,8 +1,99 @@
 #encoding=utf-8
 import os
+import sys
 import shutil
 import common_functions
 import xml.dom.minidom
+
+# 解析svg文件，获取传入的outlinkid所关联的所有sarPng的名字。 
+# 模拟svg工具生成sar图片时的命名规则，解析svg文件并生成sar图片名字后，返回名字列表。
+def parseSvgAndGetSarNameListByOutlinkid(sarSvgFile, outlinkid=-1):
+    sarPngList = []
+    doc = xml.dom.minidom.parse(sarSvgFile)
+    root = doc.documentElement
+    svgFileName = root.getAttribute('id')
+    
+    panelIDList = [] 
+    # 找出输入的outlink依赖到的所有panel的列表。
+    # 当outlink等于-1时，列出所有panel。
+    node_mr_routes =root.getElementsByTagName('mr:routes')[0]
+    inlinkid = node_mr_routes.getAttribute('sourceLinkPVId')
+    for subNode in node_mr_routes.childNodes:
+        if subNode.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
+            continue
+        if subNode.tagName == 'mr:route':
+            if outlinkid == -1 or outlinkid == subNode.getAttribute('destinationLinkPVId'):
+                SVGObjectList = subNode.getElementsByTagName('mr:SVGObject')
+                for oneSVGObject in SVGObjectList:
+                    panelIDList.append(oneSVGObject.getAttribute('refId'))
+    
+    # 建立panelID到png名字的map
+    map_PanelID2sarName = {}
+    for subNode in root.childNodes:
+        if subNode.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
+            continue
+        elif subNode.tagName == 'g':
+            for subNode2 in subNode.childNodes:
+                if subNode2.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
+                    continue
+                if subNode2.tagName == 'g':
+                    for subNode3 in subNode2.childNodes:
+                        if subNode3.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
+                            continue
+                        if subNode3.tagName == 'g':
+                            panelID = subNode3.getAttribute('id')
+                            strSignName = subNode2.getAttribute('id')
+                            map_PanelID2sarName[panelID] = strSignName
+
+    # 根据outlink依赖的panel列表以及panel列表与sar名的map表，找到相应的sar名。
+    # 把这些sar名模拟svg工具的拼接规则，输出png名字。
+    # 经调查，在使用svg工具解压sar相关的svg文件时：
+    # 如果选择“all signs in one file”，输出的sar图名字与svg名相同。
+    # 如果选择了“Each sign in separate file”，输出的sar图名字由svg名+'_'+sar名 拼接而成。
+    # 本次工作选择了“Each sign in separate file”模式，故使用 svg名+'_'+sar名。
+    for onePanel in panelIDList:
+        if map_PanelID2sarName.has_key(onePanel):
+            sarPngList.append(svgFileName + '_' + map_PanelID2sarName[onePanel])
+            
+    return sarPngList
+
+# Here中，由svg工具解析出来的箭头图的名字如下：
+# JV_BH_555171664_832635709_1.png
+# JV_BH_555171664_1051944061_2.png
+# JV_EG_808410386_N_808310985_2.png
+# JV_EG_812539621_R_809033463_2.png
+# 其中它的第3个字段是inlinkid。
+def getInlinkIDFromArrowPicPath(arrowPicPath):
+    str1 = os.path.split(arrowPicPath)[1]
+    str2 = os.path.splitext(str1)[0]
+    strSplit = str2.split('_')
+    if strSplit[3].lower() == 'n' or strSplit[3].lower() == 'r':
+        return strSplit[2] + '_' + strSplit[3]
+    else:
+        return strSplit[2]
+
+def getOutlinkIDFromArrowPicPath(arrowPicPath):
+    str1 = os.path.split(arrowPicPath)[1]
+    str2 = os.path.splitext(str1)[0]
+    strSplit = str2.split('_')
+    if strSplit[3].lower() == 'n' or strSplit[3].lower() == 'r':
+        return strSplit[4]
+    else:
+        return strSplit[3]
+   
+# Sar的Svg文件名字格式如下：
+# SR_BH_555171664.svg
+# SR_IL_834484798_N.svg
+# SR_IL_834897523_R.svg
+# 其中第2个字段是inlinkid。
+def getInlinkIDFromSarSvgFile(sarSvgFilePath):
+    str1 = os.path.split(sarSvgFilePath)[1]
+    str2 = os.path.splitext(str1)[0]
+    strSplit = str2.split('_')
+    if len(strSplit) == 4:
+        return strSplit[2] + '_' + strSplit[3]
+    else:
+        return strSplit[2]
 
 class GeneratorPicBinary_Here(object):
 
@@ -94,7 +185,7 @@ class GeneratorPicBinary_Here(object):
         #if(os.path.exists(destDir) == True):
         #    shutil.rmtree(destDir)
         #shutil.copytree(srcEjvDir, destDir)
-        # 从图片元数据中列出所有arrow图名字。
+        # 从图片元数据中列出所有arrow图的文件全路径。
         arrowPicList = []
         for curDir,dirNames,fileNames in os.walk(destDir):
             if curDir.lower().find("bird_view") != -1:
@@ -104,14 +195,14 @@ class GeneratorPicBinary_Here(object):
                 if oneFile[-4:] == ".png": # 箭头图是png图。
                     arrowPicList.append(os.path.join(curDir, oneFile.lower()))
                     
-        # 从图片元数据中列出所有sar文件名。
+        # 从图片元数据中列出所有sar图片的文件安全路径。
         sarPngList = []
         for curDir,dirNames,fileNames in os.walk(srcSarDir):
             for oneFile in fileNames:
                 if oneFile[-4:] == ".png":
                     sarPngList.append(os.path.join(curDir, oneFile))
         
-        # 从图片元数据中列出所有sar对应的svg文件名。
+        # 从图片元数据中列出所有sar对应的svg文件全路径。
         sarSvgList = []
         for curDir,dirNames,fileNames in os.walk(srcSarSvgDir):
             if curDir.find('4x3') == -1:
@@ -120,100 +211,29 @@ class GeneratorPicBinary_Here(object):
                 if oneFile[-4:] == ".svg":
                     sarSvgList.append(os.path.join(curDir, oneFile))
                     
-        # 遍历arrow图名字，尝试找到对应的sar.svg。
+        # 遍历arrow图文件，尝试找到对应的sar.svg文件。
+        # 判断条件：arrow图文件名和svg文件名中必定都包含了inlinkid，根据两者的inlinkid是否相等判断是否相关联。
+        oFStream = open("c:\\a.txt", "w") # 仅为了check结果。
         for oneArrowPic in arrowPicList:
             for oneSvgFile in sarSvgList:
-                if self.getInlinkIDFromArrowPicPath(oneArrowPic) == \
-                   self.getInlinkIDFromSarSvgFile(oneSvgFile): # 两者包含的inlinkid相等
-                    # 获得该arrow对应的所有sar名字。
-                    sarNameList = self.parseSvgAndGetSarNameList(oneSvgFile, \
-                                                                 self.getOutlinkIDFromArrowPicPath(oneArrowPic))
-                    # 再尝试从sarPngList中找到每个sar名字对应的sar图片，并把它们一一合并到当前arrow图里。
-                    for oneSarName in sarNameList: # 遍历arrow对应的sar图片名字列表。
+                if getInlinkIDFromArrowPicPath(oneArrowPic) == \
+                   getInlinkIDFromSarSvgFile(oneSvgFile): # 两者包含的inlinkid相等
+                    # 分析svg文件，获得该arrow对应的所有sar名字。
+                    sarNameList = parseSvgAndGetSarNameListByOutlinkid(oneSvgFile, \
+                                                                 getOutlinkIDFromArrowPicPath(oneArrowPic))
+                    # 再尝试从实际sar图片列表中找到每个sar名字对应的图片，并把它们一一合并到当前arrow图里。
+                    for oneSarName in sarNameList: # 遍历svg中获得的sar名字列表
                         for oneSarPng in sarPngList:
                             if os.path.split(oneSarPng)[1][:-4:] == oneSarName: # 根据sar名字找到了对应的sar图。
                                 cmd = "composite.exe -gravity north %s %s %s" %\
                                  (oneSarPng, oneArrowPic, oneArrowPic)
-                                os.system(cmd) # 合并，注意：将覆盖原来的arrow图。
-                                print """composed\n%s\nto\n%s""" % (oneSarPng, oneArrowPic)
+                                os.system(cmd)
+                                print """composed\n\t%s\nto\n\t%s""" % (oneSarPng, oneArrowPic)
+                                oFStream.write(oneSarName + '\n') # 仅为了check结果。
+                                
                                 break # 一个sar名字只可能找到一张图片，故找到后即可中断。
                     break # 一个arrow图只可能找到一个sar的svg文件，故找到后即可中断。
-            inti = 1
-            inti +=1
         return
-    
-    # 解析svg文件，获取传入的outlinkid所关联的所有sarPng的名字。 
-    # 模拟svg工具生成sar图片时的命名规则，解析svg文件并生成sar图片名字后，返回名字列表。
-    def parseSvgAndGetSarNameList(self, sarSvgFile, outlinkid):
-        sarPngList = []
-        doc = xml.dom.minidom.parse(sarSvgFile)
-        root = doc.documentElement
-        svgFileName = root.getAttribute('id')
-        
-        panelIDList = [] # 此outlink依赖到的所有panel的列表。
-        node_mr_routes =root.getElementsByTagName('mr:routes')[0]
-        inlinkid = node_mr_routes.getAttribute('sourceLinkPVId')
-        for subNode in node_mr_routes.childNodes:
-            if subNode.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
-                continue
-            if subNode.tagName == 'mr:route':
-                if outlinkid == subNode.getAttribute('destinationLinkPVId'):
-                    SVGObjectList = subNode.getElementsByTagName('mr:SVGObject')
-                    for oneSVGObject in SVGObjectList:
-                        panelIDList.append(oneSVGObject.getAttribute('refId'))
-        
-        # 建立panelID到png名字的map
-        map_PanelID2sarName = {}           
-        for subNode in root.childNodes:
-            if subNode.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
-                continue
-            elif subNode.tagName == 'g':
-                for subNode2 in subNode.childNodes:
-                    if subNode2.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
-                        continue
-                    if subNode2.tagName == 'g':
-                        for subNode3 in subNode2.childNodes:
-                            if subNode3.nodeType != xml.dom.minidom.Node.ELEMENT_NODE:
-                                continue
-                            if subNode3.tagName == 'g':
-                                panelID = subNode3.getAttribute('id')
-                                strSignName = subNode2.getAttribute('id')
-                                map_PanelID2sarName[panelID] = strSignName
-
-        # 根据outlink依赖的panel列表以及panel列表与sar名的map表，找到相应的sar名。
-        # 把这些sar名模拟svg工具的拼接规则，输出png名字。
-        # 经调查，在使用svg工具解压sar相关的svg文件时：
-        # 如果选择“all signs in one file”，输出的sar图名字与svg名相同。
-        # 如果选择了“Each sign in separate file”，输出的sar图名字由svg名+'_'+sar名 拼接而成。
-        # 本次工作选择了“Each sign in separate file”模式，故使用 svg名+'_'+sar名。
-        for onePanel in panelIDList:
-            if map_PanelID2sarName.has_key(onePanel):
-                sarPngList.append(svgFileName + '_' + map_PanelID2sarName[onePanel])
-                
-        return sarPngList
-    
-    # Here中，由svg工具解析出来的箭头图的名字如下：
-    # JV_BH_555171664_832635709_1.png
-    # JV_BH_555171664_1051944061_2.png
-    # 其中它的第3个字段是inlinkid。
-    def getInlinkIDFromArrowPicPath(self, arrowPicPath):
-        str1 = os.path.split(arrowPicPath)[1]
-        str2 = os.path.splitext(str1)[0]
-        return str2.split('_')[2] 
-    # 它的第4个字段是outlinkid。
-    def getOutlinkIDFromArrowPicPath(self, arrowPicPath):
-        str1 = os.path.split(arrowPicPath)[1]
-        str2 = os.path.splitext(str1)[0]
-        return str2.split('_')[3]
-       
-    # Sar的Svg文件名字格式如下：
-    # SR_BH_555171664.svg
-    # 其中第2个字段是inlinkid。
-    def getInlinkIDFromSarSvgFile(self, sarSvgFilePath):
-        str1 = os.path.split(sarSvgFilePath)[1]
-        str2 = os.path.splitext(str1)[0]
-        return str2.split('_')[2] 
-
     
     # srcDir：ejv图的根目录
     # destDir：输出目录
@@ -402,13 +422,52 @@ class GeneratorPicBinary_Here(object):
                                    '_'.join(os.path.splitext(signpost)[0].split('_')[2:])))
         oFStream.close()
         return
+
+class GeneratorPicBinary_Here_Checker(object):
+
+    def __init__(self):
+        return
     
+    def __del__(self):
+        return
+    
+    # 从给定的svg文件夹中的每个svg文件里分析出它会输出的所有sar图片的名字，做成列表1
+    # composedSarList应是在合并图片时返回的一个列表，记做列表2
+    # 理论上说，列表1应该与列表2相等。
+    def composeSarToArrow_check(self, srcSarSvgDir, outputResultTxt):
+        
+        svgFileList= []
+        # 从输入的svg文件夹列出所有svg。
+        for curDir, subDirs, fileNames in os.walk(srcSarSvgDir):
+            if curDir.find("4x3") == -1: # 只关注4x3的svg
+                continue
+            for oneFile in fileNames:
+                if oneFile[-4:] == ".svg":
+                    svgFileList.append(os.path.join(curDir, oneFile))
+        
+        # 从找到的所有svg中分析出它们所包含的所有sar图片的名字，合成一个列表。  
+        sarNameListFromSvg = []    
+        for oneSvg in svgFileList:
+            sarNameListFromSvg += parseSvgAndGetSarNameListByOutlinkid(oneSvg)
+        
+        oFStream = open("c:\\b.txt", "w")
+        for oneSarName in sarNameListFromSvg:
+            oFStream.write(oneSarName + '\n')
+        oFStream.close()
+        return
+
+
+
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
+    test_checker = GeneratorPicBinary_Here_Checker()
     test.composeSarToArrow(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout",
                            r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
                            r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
                            r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar")
+    test_checker.composeSarToArrow_check(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
+                                         "c:\\a.txt")
+    
 #    test.composeSarToPattern(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout",
 #                             r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
 #                             r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar")
@@ -422,6 +481,8 @@ if __name__ == '__main__':
 #                               r"C:\My\20150610_ase_14Q4_pic\illust\all_jv.csv",
 #                               r"C:\My\20150610_ase_14Q4_pic\illust\pic\sign",
 #                               r"C:\My\20150610_ase_14Q4_pic\illust\sign_as_real.csv")
+    
+    
 
 
 
