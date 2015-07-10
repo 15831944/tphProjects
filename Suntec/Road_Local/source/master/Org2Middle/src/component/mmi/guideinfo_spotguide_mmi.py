@@ -12,11 +12,6 @@ import shutil
 from component.default import link_graph
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-PIC_TYPE = {'Day':'1',
-            'Night':'2'
-            }
-
-
 class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     '''
     This class is used for uc spotguide
@@ -49,145 +44,156 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         return 0
 
     def _Do(self):
-        self._make_junction_link()
-        self._make_spotguide_tbl()
+        self._generate_temp_info_of_junction_links()
+        self._generate_spotguide_tbl()
         return 0
 
-    def _make_junction_link(self):
-        '''get oneinlink to oneoutlink,nodeid record'''
-        insert_sqlcmd = '''
-            INSERT INTO temp_junction_tbl(
-                inlinkid, outlinkid, nodeid, road_lyr, arrow, "time"
-                )
-            VALUES (%s, %s, %s, %s, %s, %s);
-
-
-        '''
+    def _generate_temp_info_of_junction_links(self):
         sqlcmd = '''
             SELECT  fm_edge,
                     array[to_edge1, to_edge2, to_edge3, to_edge4] as outlinks,
-                    case when sign_lyr is not null then substring(road_lyr,0,length(road_lyr)-5)
-                         || '_' || substring(sign_lyr,0,length(sign_lyr)-5)
-                    else substring(road_lyr,0,length(road_lyr)-5)
-                    end, 
+                    road_lyr,
+                    sign_lyr,
                     array[arrow1, arrow2, arrow3, arrow4] as arrows, 
                     "time"
             FROM org_jv_location
             order by fm_edge;
         '''
-        rows = self.get_batch_data(sqlcmd)
-
-        inti = 1
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
         for row in rows:
             inlink = row[0]
             outlinks = row[1]
             road_lyr = row[2]
-            arrows = row[3]
-            time = row[4]
+            sign_lyr = row[3]
+            arrows = row[4]
+            time = row[5]
             for outlink, arrow in zip(outlinks, arrows):
                 if outlink and arrow:
-                    '''get nodeid'''
-                    nodeid = self._getnode_between_links(inlink, outlink)
-                    self.pg.execute2(insert_sqlcmd, (inlink, outlink, nodeid, road_lyr, arrow, time))
-                    inti += 1
+                    self.pg.execute2('''
+                                    INSERT INTO temp_junction_tbl(
+                                        inlinkid, outlinkid, road_lyr, sign_lyr, arrow, "time"
+                                        )
+                                    VALUES (%s, %s, %s, %s, %s, %s);
+                                ''', 
+                                (inlink, outlink, road_lyr, sign_lyr, arrow, time))
                 elif not outlink and not arrow:
                     pass
                 else:
                     self.log.error("outlink can't match with arrow!!!")
-            
-            if inti > 100:
                 break;
         self.pg.commit2()
+        
+        # 优化：建立临时表，查询link两端节点时使用，提高查询速度
+        # todo: 加索引到新表里去
+        sqlcmd = '''
+            drop table if exists temp_nodes_of_junction_links;
+            select *
+            into temp_nodes_of_junction_links
+            from org_city_nw_gc_polyline
+            where id in 
+            (
+                select distinct (unnest(a)) as all_link
+                from
+                (
+                    select array[fm_edge, to_edge1, to_edge2, to_edge3, to_edge4] as a
+                    from org_jv_location
+                ) as m
+            )
+        ''' 
+        self.pg.execute(sqlcmd)
         return 0
 
-    def _make_spotguide_tbl(self):
-        insert_sqlcmd = '''
-            INSERT INTO spotguide_tbl(
-                id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                direction, guideattr, namekind, guideclass, patternno, arrowno,
-                "type"
-                )
-            VALUES (%s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s,
-                    %s);
-        '''
+    def _generate_spotguide_tbl(self):
         sqlcmd = '''
-            SELECT inlinkid, outlinkid,nodeid,
-                array_agg(sky_lyr), array_agg(arrow),
-                array_agg("time")
+            SELECT inlinkid, outlinkid, array_agg(road_lyr), array_agg(sign_lyr), array_agg(arrow), array_agg("time")
             FROM (
-                   SELECT distinct inlinkid, outlinkid, nodeid, road_lyr, arrow, "time"
+                   SELECT distinct inlinkid, outlinkid, road_lyr, sign_lyr, arrow, "time"
                    FROM temp_junction_tbl
                  ) as a
-            group by inlinkid, outlinkid,nodeid;
+            group by inlinkid, outlinkid;
         '''
-        rows = self.get_batch_data(sqlcmd)
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
         g_id = 1
         for row in rows:
             inlink = row[0]
             outlink = row[1]
-            nodeid = row[2]
-            road_lyrs = row[3]
+            road_lyrs = row[2]
+            sign_lyrs = row[3]
             arrows = row[4]
             times = row[5]
+            
             passlink = ''
             passlinkcnt = 0
-            if not nodeid:
-                '''get passlink passlinkcnt node'''
-                passlink, passlinkcnt, nodeid = \
-                    self._get_passlink_passlinkcnt(inlink, outlink)
-            '''check time match with pic'''
-            check_f = self._check_time_pic(road_lyrs, arrows, times)
-            if check_f:
-                road_name = road_lyrs[0]
-                arrow_name = (arrows[0])[:-6:1]
-                direction = 0
-                if 'L' in arrow_name:
-                    direction = 5
-                elif 'R' in arrow_name:
-                    direction = 2
-                self.pg.execute2(insert_sqlcmd, (g_id, nodeid, inlink, outlink,
-                                                 passlink, passlinkcnt,
-                                                 direction, 0, 0, 0,
-                                                 road_name, arrow_name, 1))
-                g_id = g_id + 1
+            
+            road_name = ''
+            if None in sign_lyrs:
+                if(self._check_2(road_lyrs, arrows, times) == False):
+                    continue
+                # 删去".1.png"字段, 下同
+                road_name = road_lyrs[0][:-6:1] 
             else:
-                self.log.error("time is not match with pic!!!")
+                if(self._check_3(road_lyrs, sign_lyrs, arrows, times) == False):
+                    continue
+                road_name = road_lyrs[0][:-6:1] + '_' + sign_lyrs[0][:-6:1]
+            nodeid = self._getnode_between_links(inlink, outlink)
+            if not nodeid:
+                # inlink与outlink不相连，查找中间link列表
+                passlink, passlinkcnt, nodeid = self._get_passlink_passlinkcnt(inlink, outlink)
+            
+            arrow_name = arrows[0][:-6:1]
+            direction = 0
+            if 'L' in arrow_name:
+                direction = 5
+            elif 'R' in arrow_name:
+                direction = 2
+
+            self.pg.execute2('''
+                            INSERT INTO spotguide_tbl(
+                                id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                                direction, guideattr, namekind, guideclass, patternno, arrowno,
+                                "type"
+                                )
+                            VALUES (%s, %s, %s, %s, %s, %s,
+                                    %s, %s, %s, %s, %s, %s,
+                                    %s);
+                            ''', (g_id, nodeid, inlink, outlink,
+                                         passlink, passlinkcnt,
+                                         direction, 0, 0, 0,
+                                         road_name, arrow_name, 1))
+            g_id = g_id + 1
         return 0
-
-    def _check_time_pic(self, sky_lyrs, arrows, times):
-        skys_len = len(sky_lyrs)
-        arrows_len = len(arrows)
-        times_len = len(times)
-        if skys_len != arrows_len or arrows_len != times_len:
-            return False
-        for i in range(skys_len):
-            t_sky_f = ((sky_lyrs[i]).split("."))[3]
-            t_arrow_f = ((arrows[i]).split("."))[3]
-            if t_sky_f != t_arrow_f or t_arrow_f != PIC_TYPE.get(times[i]):
-                return False
+    
+    def _check_3(self, road_lyrs, sign_lyrs, arrows, times):
         return True
-
-    def _getnode_between_links(self, link1, link2):
+    
+    def _check_2(self, road_lyrs, arrows, times):
+        return True
+    
+    # 通过查询link与node的信息确定两条link是否相交
+    # 如果相交，返回连接点，否则返回空
+    # "org_city_nw_gc_polyline"是一个巨大的表，查询速度很慢，此处设为默认查询表。
+    # 通过查询优化过后的小表可以提高速度。
+    def _getnode_between_links(self, linkId1, linkId2):
         ''' get intersect node between link1 and link2'''
-        node_sqlcmd = '''
+        sqlCmd = '''
             SELECT id, f_jnctid, t_jnctid
-            FROM org_city_nw_gc_polyline
+            FROM temp_nodes_of_junction_links
             where id = %s;
         '''
-        sql1 = (node_sqlcmd % (link1,))
-        self.pg.execute2(sql1)
+        
+        self.pg.execute2(sqlCmd % linkId1)
         inres_row = self.pg.fetchone2()
-        self.pg.execute2(node_sqlcmd, (link2,))
+        self.pg.execute2(sqlCmd % linkId1)
         outres_row = self.pg.fetchone2()
-        nodeid = 0
+
         if inres_row[1] in (outres_row[1], outres_row[2]):
-            nodeid = inres_row[1]
+            return inres_row[1]
         elif inres_row[2] in (outres_row[1], outres_row[2]):
-            nodeid = inres_row[2]
+            return inres_row[2]
         else:
             return None
-        return nodeid
 
     def _get_passlink_passlinkcnt(self, inlink, outlink):
         '''求path 路径 和 pathlink count'''
@@ -251,57 +257,20 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
 class comp_picture(object):
     ''' picture entity'''
     def __init__(self):
-        self.gid = 0
-        self.dayName = None
-        self.nightName = None
-        self.dayArrow = None
-        self.nightArrow = None
-        self.commonPatter = None
-        self.commonArrow = None
+        self.patternno = None
+        self.arrowno = None
 
-    def getGid(self):
-        return self.gid
+    def getPatternno(self):
+        return self.patternno
 
-    def setGid(self, gid):
-        self.gid = gid
+    def setPatternno(self, patternno):
+        self.patternno = patternno
 
-    def getDayName(self):
-        return self.dayName
+    def getArrowno(self):
+        return self.arrowno
 
-    def setDayName(self, dayName):
-        self.dayName = dayName
-
-    def getNightName(self):
-        return self.nightName
-
-    def setNightName(self, nightName):
-        self.nightName = nightName
-
-    def getNightArrow(self):
-        return self.nightArrow
-
-    def setNightArrow(self, nightArrow):
-        self.nightArrow = nightArrow
-
-    def getDayArrow(self):
-        return self.dayArrow
-
-    def setDayArrow(self, dayArrow):
-        self.dayArrow = dayArrow
-
-    def getCommonPatter(self):
-        return self.commonPatter
-
-    def setCommonPatter(self, commonPatter):
-        self.commonPatter = commonPatter
-
-    def getCommonArrow(self):
-        return self.commonArrow
-
-    def setCommonArrow(self, commonArrow):
-        self.commonArrow = commonArrow
-
-
+    def setArrowno(self, arrowno):
+        self.arrowno = arrowno
 #==============================================================================
 # comp_picture
 #==============================================================================
@@ -309,31 +278,86 @@ class GeneratorPicBinary(object):
 
     def __init__(self):
         self.conn = psycopg2.connect(''' host='172.26.179.184'
-                        dbname='17cy_IND_MMI_CI'
+                        dbname='IND_MMI_2014Q4_0081_0001'
                         user='postgres' password='pset123456' ''')
         self.pgcur2 = self.conn.cursor()
 
     def selectData(self):
+        self._make_junction_link()
+        self._make_spotguide_tbl()
         self.pgcur2.execute('''SELECT distinct patternno, arrowno FROM spotguide_tbl;''')
         rows = self.pgcur2.fetchall()
         pics = []
-        i = 1
         for row in rows:
-            patter = row[0]
-            arrow = row[1]
-            dayCode = PIC_TYPE.get('Day')
-            nightCode = PIC_TYPE.get('Night')
             pic = comp_picture()
-            pic.setGid(i)
-            pic.setDayName(patter + '.' + dayCode)
-            pic.setNightName(patter + '.' + nightCode)
-            pic.setDayArrow(arrow + '.' + dayCode)
-            pic.setNightArrow(arrow + '.' + nightCode)
-            pic.setCommonPatter(patter)
-            pic.setCommonArrow(arrow)
+            pic.setPatternno(row[0])
+            pic.setArrowno(row[1])
             pics.append(pic)
-            i = i + 1
         return pics
+
+    # 合并背景图
+    # 名字未发生任何改变
+    def compositeBackground(self, srcDir, destDir):
+        if(os.path.isdir(srcDir) == False):
+            print "source directory not exist: " + srcDir
+            return
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        shutil.copytree(srcDir, destDir)
+        
+        self.pgcur2.execute("SELECT distinct road_lyr, sky_lyr FROM org_jv_location")
+        rows = self.pgcur2.fetchall()
+        for row in rows:
+            road_ = row[0] # road图字段
+            sky_ = row[1] # 背景图字段            
+            roadPicPath = os.path.join(srcDir, road_)
+            if(os.path.isfile(roadPicPath) == False):
+                print "can't find road picture: " + road_
+                continue
+            
+            skyPicPath = os.path.join(srcDir, sky_)
+            if(os.path.isfile(skyPicPath) == False):
+                print "can't find background picture: " + sky_
+                continue
+            
+            # 合并背景图，以road图名字命名
+            outputPic = os.path.join(destDir, road_)
+            cmd = "composite.exe -gravity north %s %s %s" % (roadPicPath, skyPicPath, outputPic)
+            os.system(cmd)
+              
+    # 合并signpost图
+    # 有signpost的会生成一个新文件，命名如下：
+    # JV_11.02.001.1.png， 与 JV_11.03.003.1.png 合并为 JV_11.02.001_JV_11.03.003.png
+    # 箭头图和其他保持不变 
+    def compositeSignpost(self, srcDir, destDir):
+        if(os.path.isdir(srcDir) == False):
+            print "source directory not exist: " + srcDir
+            return
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        shutil.copytree(srcDir, destDir)
+
+        self.pgcur2.execute("SELECT distinct sign_lyr, road_lyr FROM org_jv_location WHERE sign_lyr is not null")
+        rows = self.pgcur2.fetchall()
+        for row in rows:
+            road_ = row[1] # road图字段
+            sign_ = row[0] # signpost图字段            
+            roadPicPath = os.path.join(srcDir, road_)
+            if(os.path.isfile(roadPicPath) == False):
+                print "can't find road picture: " + road_
+                continue
+                
+            signPicPath = os.path.join(srcDir, sign_)
+            if(os.path.isfile(signPicPath) == False):
+                print "can't find road picture: " + sign_
+                continue
+            
+            # 合并signpost图,以 road名+sign名 命名并输出到destDir
+            # 删掉road的".1.png"
+            outputPic = road_[:-4:1] + '_'+ sign_
+            outputPic = os.path.join(destDir, outputPic)
+            cmd = "composite.exe -gravity north %s %s %s" % (signPicPath, roadPicPath, outputPic)
+            os.system(cmd)
 
     def makeJunctionResultTable(self, srcDir, destDir):
         if os.path.isdir(srcDir) == False:
@@ -344,10 +368,30 @@ class GeneratorPicBinary(object):
         pictures = self.selectData()
         for pic in pictures:
             # day and night illust
-            destFile = os.path.join(destDir, pic.getCommonPatter() + '.dat')
+            destFile = os.path.join(destDir, pic.getPatternno() + '.dat')
             if  os.path.isfile(destFile) == False:
-                dayPicPath = os.path.join(srcDir, pic.getDayName() + ".jpg")
-                nightPicPath = os.path.join(srcDir, pic.getNightName() + ".jpg")
+                dayPicPath = ''
+                nightPicPath = ''
+                parttenno = pic.getPatternno()
+                if(len(parttenno) == 13): # 没有signpost
+                    dayPicPath = os.path.join(srcDir, parttenno + ".1.png")
+                    nightPicPath = os.path.join(srcDir, parttenno + ".2.png")
+                elif(len(parttenno) == 25):
+                    roadPart = parttenno[0:12]
+                    signPart = parttenno[13:]
+                    dayPicPath = os.path.join(srcDir, "%s.1_%s.1.png" % (roadPart, signPart))
+                    nightPicPath = os.path.join(srcDir, "%s.2_%s.2.png" % (roadPart, signPart))
+                else:
+                    print "error road name from spotguide_tbl, its length must be 11(without signpost) or 23(with signpost) " + parttenno
+                    continue
+                
+                if(os.path.isfile(dayPicPath) == False):
+                    print "cannot find day picture: " + dayPicPath
+                    continue
+                if(os.path.isfile(nightPicPath) == False):
+                    print "cannot find night picture: " + nightPicPath
+                    continue
+                
                 dayFis = open(dayPicPath, 'rb')
                 nightFis = open(nightPicPath, 'rb')
                 dayPicLen = os.path.getsize(dayPicPath)
@@ -365,14 +409,22 @@ class GeneratorPicBinary(object):
                 fos.close()
                 
             # ARROW PIC BUILD
-            arrowFile = os.path.join(destDir, pic.getCommonArrow() + '.dat')
+            arrowno = pic.getArrowno()
+            arrowFile = os.path.join(destDir, arrowno + '.dat')
             if os.path.isfile(arrowFile) == False:
-                d_arrow_path = os.path.join(srcDir, pic.getDayArrow() + '.png')
-                n_arrow_path = os.path.join(srcDir, pic.getNightArrow() + '.png')
-                dayArrowFis = open(d_arrow_path, 'rb')
-                nightArrowFis = open(n_arrow_path, 'rb')
-                dayArrowLen = os.path.getsize(d_arrow_path)
-                nightArrowLen = os.path.getsize(n_arrow_path)
+                dayArrowPath = os.path.join(srcDir, arrowno + '1.png')
+                nightArrowPath = os.path.join(srcDir, arrowno + '2.png')
+                if(os.path.isfile(dayArrowPath) == False):
+                    print "cannot find day arrow picture: " + dayArrowPath
+                    continue
+                if(os.path.isfile(dayPicPath) == False):
+                    print "cannot find night arrow picture: " + nightArrowPath
+                    continue
+                
+                dayArrowFis = open(dayArrowPath, 'rb')
+                nightArrowFis = open(nightArrowPath, 'rb')
+                dayArrowLen = os.path.getsize(dayArrowPath)
+                nightArrowLen = os.path.getsize(nightArrowPath)
                 a_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
                                            dayArrowLen, 2, 22 + dayArrowLen, \
                                            nightArrowLen)
@@ -387,5 +439,7 @@ class GeneratorPicBinary(object):
 
 if __name__ == '__main__':
     test = GeneratorPicBinary()
-    test.makeJunctionResultTable("C:\\psdlib\\Pattern", "C:\\illustsource\\mmipic")
+    test.compositeBackground("C:\\My\\20150410_mmi_pic\\Pattern", "C:\\My\\20150410_mmi_pic\\Pattern_background")
+    test.compositeSignpost("C:\\My\\20150410_mmi_pic\\Pattern_background", "C:\\My\\20150410_mmi_pic\\Pattern_signpost")
+    test.makeJunctionResultTable("C:\\My\\20150410_mmi_pic\\Pattern_signpost", "C:\\My\\20150410_mmi_pic\\illust_pic")
     pass

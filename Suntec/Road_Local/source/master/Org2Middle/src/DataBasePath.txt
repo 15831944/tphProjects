@@ -1,6 +1,6 @@
 ﻿# config file of project
-db1=host='172.26.179.184' dbname='17cy_IND_MMI_CI' user='postgres' password='pset123456'
-db2=host='172.26.179.184' dbname='17cy_IND_MMI_CI' user='postgres' password='pset123456'
+db1=host='172.26.179.184' dbname='IND_MMI_2014Q4_0081_0001' user='postgres' password='pset123456'
+db2=host='172.26.179.184' dbname='IND_MMI_2014Q4_0081_0001' user='postgres' password='pset123456'
 language_table=..\docs\language.xls
 sql_script=.\sql_script\
 run_mode=debug

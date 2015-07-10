@@ -242,8 +242,8 @@ CREATE TABLE temp_junction_tbl
   gid serial NOT NULL,
   inlinkid bigint,
   outlinkid bigint,
-  nodeid bigint,
   road_lyr character varying(30),
+  sign_lyr character varying(30),
   arrow character varying(30),
   "time" character varying(20)
 );
