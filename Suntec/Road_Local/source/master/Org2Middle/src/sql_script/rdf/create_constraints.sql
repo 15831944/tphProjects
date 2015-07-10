@@ -21,7 +21,17 @@ CREATE INDEX temp_rdf_nav_link_ref_node_id_idx
   ON temp_rdf_nav_link
   USING btree
   (ref_node_id);
-  
+
+CREATE INDEX rdf_link_ref_node_id_idx
+  ON rdf_link
+  USING btree
+  (ref_node_id);
+    
+CREATE INDEX rdf_link_nonref_node_id_idx
+  ON rdf_link
+  USING btree
+  (nonref_node_id);
+
 CREATE INDEX temp_rdf_nav_link_nonref_node_id_idx
   ON temp_rdf_nav_link
   USING btree

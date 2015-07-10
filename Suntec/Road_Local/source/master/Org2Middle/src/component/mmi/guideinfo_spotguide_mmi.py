@@ -503,5 +503,3 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
 
 
 
-
-

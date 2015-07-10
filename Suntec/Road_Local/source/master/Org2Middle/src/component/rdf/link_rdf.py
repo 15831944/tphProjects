@@ -92,7 +92,7 @@ class comp_link_rdf(component.component_base.comp_base):
                             on a.nav_strand_id = b.nav_strand_id
                             left join temp_rdf_nav_link c
                             on b.link_id = c.link_id
-                            where c.iso_country_code = 'SGP' and a.condition_type = 1 and a1.structure_type_electronic = 'Y'
+                            where c.iso_country_code in ('SGP','ARE') and a.condition_type = 1 and a1.structure_type_electronic = 'Y'
                         ) m group by node_id
                     ) n 
                 ) o group by link_id

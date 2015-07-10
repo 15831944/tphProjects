@@ -2566,7 +2566,7 @@ $$;
 --------------------------------------------------------------------------
 -- get left and right additional lane number
 --------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION mid_make_additional_lanenum(inlinkid integer, lanenum integer, direction character,nodeid bigint)
+CREATE OR REPLACE FUNCTION mid_make_additional_lanenum(inlinkid integer,nodeid bigint,direction character)
   RETURNS smallint[]
 LANGUAGE plpgsql volatile
 AS $$
@@ -2582,6 +2582,9 @@ DECLARE
 	lane_num_r            integer;
 	not_ref_node_id       bigint;
 	link_ref_dir          boolean;
+	lanenum               integer;
+	cnt                   integer;
+	rec                   record;
 BEGIN	
 
 	link_ref_dir = false;
@@ -2609,115 +2612,76 @@ BEGIN
 	into not_ref_node_id
 	from rdf_link 
 	where link_id = inlinkid;
-
+	
 	if not_ref_node_id = nodeid then
 		link_ref_dir = true;
 	end if;
-	---direction of lane is the same as reference direction of link
-	if link_ref_dir then
-		while lane_number_index <= lanes_array_length loop
-			if lane_form_end_array[lane_number_index] is not null then
-				if lanes_array_length <> 1 then
-					if lane_number_array[lane_number_index] < lanenum then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_l = lane_num_l - 1;
-						else
-							lane_num_l = lane_num_l + 1;
-						end if;
-					elseif lane_number_array[lane_number_index] > lanenum then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_r = lane_num_r - 1;
-						else
-							lane_num_r = lane_num_r + 1;
-						end if;
-					elseif lane_number_index = 1 then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_l = lane_num_l - 1;
-						else
-							lane_num_l = lane_num_l + 1;
-						end if;
-					elseif lane_number_index = lanes_array_length then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_r = lane_num_r - 1;
-						else
-							lane_num_r = lane_num_r + 1;
-						end if;
-					else 
-						
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_l = lane_num_l - 1;
-						else
-							lane_num_l = lane_num_l + 1;
-						end if;
-						
-					end if;
-				else
-					
-					if lane_form_end_array[lane_number_index] = 2 then
-						lane_num_l = lane_num_l - 1;
+
+	lanenum = lane_number_array[1] + round(lanes_array_length::numeric / 2::numeric, 0) - 1;
+	
+	while lane_number_index <= lanes_array_length loop
+		if lane_form_end_array[lane_number_index] is not null then
+			if lane_form_end_array[lane_number_index] in (2,3) then
+				
+				if lane_number_array[lane_number_index]>lanenum then
+					if link_ref_dir then
+						lane_num_r = lane_num_r - 1;
 					else
-						lane_num_l = lane_num_l + 1;
+						lane_num_l = lane_num_l - 1;
 					end if;
 					
-				end if;
-			end if;
-			lane_number_index = lane_number_index + 1;
-		end loop;
-	---direction of lane is not the same as reference direction of link
-	else
-		lane_number_index = lanes_array_length;
-		while lane_number_index >= 1 loop
-			if lane_form_end_array[lane_number_index] is not null then
-				if lanes_array_length <> 1 then
-					if lane_number_array[lane_number_index] > lanenum then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_l = lane_num_l - 1;
-						else
-							lane_num_l = lane_num_l + 1;
-						end if;
-					elseif lane_number_array[lane_number_index] < lanenum then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_r = lane_num_r - 1;
-						else
-							lane_num_r = lane_num_r + 1;
-						end if;
-					elseif lane_number_index = 1 then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_l = lane_num_l - 1;
-						else
-							lane_num_l = lane_num_l + 1;
-						end if;
-					elseif lane_number_index = lanes_array_length then
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_r = lane_num_r - 1;
-						else
-							lane_num_r = lane_num_r + 1;
-						end if;
-					else 
-							
-						if lane_form_end_array[lane_number_index] = 2 then
-							lane_num_l = lane_num_l - 1;
-						else
-							lane_num_l = lane_num_l + 1;
-						end if;
-							
-					end if;
 				else
-					if lane_form_end_array[lane_number_index] = 2 then
+					if link_ref_dir then
 						lane_num_l = lane_num_l - 1;
 					else
-						lane_num_l = lane_num_l + 1;
+						lane_num_r = lane_num_r - 1;
 					end if;
 				end if;
 			end if;
-			lane_number_index = lane_number_index - 1;
+		end if;
+		lane_number_index = lane_number_index + 1;
+	end loop;
+	
+	select count(1) into cnt 
+	from rdf_link where nodeid in (ref_node_id,nonref_node_id)
+	and link_id<>inlinkid;
+	
+	if cnt=1 then
+		for rec in 
+			select link_id,lane_number,lane_travel_direction,case when ref_node_id=nodeid then 1 else 0 end as direction,
+			(select round(avg(lane_number),0) from rdf_lane where link_id=a.link_id and lane_travel_direction=b.lane_travel_direction) as midlanenum
+			from rdf_link a left join rdf_lane b using(link_id) 
+			where nodeid in (ref_node_id,nonref_node_id) and
+			b.lane_forming_ending in (1,3) and
+			link_id<>inlinkid and
+			( (lane_travel_direction='F' and ref_node_id=nodeid) or 
+			(lane_travel_direction='T' and nonref_node_id=nodeid))
+		loop
+		
+		if rec.lane_number>=rec.midlanenum then
+			if rec.lane_travel_direction='T' then
+				lane_num_l = lane_num_l + 1;
+			else
+				lane_num_r = lane_num_r + 1;
+			end if;
+		else
+			if rec.lane_travel_direction='T' then
+				lane_num_r = lane_num_r + 1;
+			else
+				lane_num_l = lane_num_l + 1;
+			end if;
+		end if;
 		end loop;
 	end if;
+	
 	result[1] = lane_num_l;
 	result[2] = lane_num_r;
     return result;
 END;
 $$;
+
+
+
 --------------------------------------------------------------------------
 -- get every lane traveral information
 --------------------------------------------------------------------------
@@ -2740,7 +2704,6 @@ DECLARE
 	sm_aLaneinfo     character[];
 	ex_aLaneinfo     character[];
 	null_flag        boolean;
-	mid_lane_num     integer;
 	businfo_id_array integer[];
 	businfo_id_index integer;
 	businfo          integer[];
@@ -2748,7 +2711,6 @@ BEGIN
 	link_ref_dir = false;
 	dir_ctg_length = 0;
 	lanenum_index = 1;
-	mid_lane_num = 0;
 	businfo_id_index = 1;
 	existlan_index = 1;
 	
@@ -2865,14 +2827,8 @@ BEGIN
 		businfo_id_index = businfo_id_index + 1;
 	end loop;
 	
-	--get lane_number
-	if link_ref_dir then
-		mid_lane_num = lanenum_array[1] + round(dir_ctg_length::numeric / 2::numeric, 0) - 1;
-	else
-		mid_lane_num = lanenum_array[1] - round(dir_ctg_length::numeric / 2::numeric, 0) + 1;
-	end if;
 
-	--raise INFO 'mid_lane_num = %', mid_lane_num;
+
 	---raise INFO 'dir_ctg_length = %', dir_ctg_length;
 	
 	---init lane info
@@ -2894,8 +2850,8 @@ BEGIN
 				select node_id, inlink_id, outlink_id, passlid, passcount, physical_num_lanes,array_to_string(sm_aLaneinfo, ''), 
 					case when direction_category = 0 then null
 						else direction_category
-					end,(mid_make_additional_lanenum(param_inlinkid,mid_lane_num,lane_travel_dir,param_nodeid))[1],
-					(mid_make_additional_lanenum(param_inlinkid,mid_lane_num,lane_travel_dir,param_nodeid))[2],array_to_string(businfo, '')
+					end,(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[1],
+					(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[2],array_to_string(businfo, '')
 				from temp_lane_guide_distinct
 				where inlink_id = param_inlinkid and node_id = param_nodeid and lane_number = lanenum_array[lanenum_index]
 			);
@@ -2912,13 +2868,12 @@ BEGIN
 					case when dir_ctg_array[lanenum_index] = 0 then null
 						else dir_ctg_array[lanenum_index]
 					end, 
-					(mid_make_additional_lanenum(param_inlinkid,mid_lane_num,lane_travel_dir,param_nodeid))[1], 
-				        (mid_make_additional_lanenum(param_inlinkid,mid_lane_num,lane_travel_dir,param_nodeid))[2], array_to_string(businfo, '')
+					(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[1], 
+				        (mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[2], array_to_string(businfo, '')
 				);
-                        
-                        end if;
-                        ex_aLaneinfo[lanenum_index] = '0';
-                        lanenum_index = lanenum_index + 1;
+			end if;
+			ex_aLaneinfo[lanenum_index] = '0';
+			lanenum_index = lanenum_index + 1;
 		end if;
 		
 	end loop;

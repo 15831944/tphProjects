@@ -47,6 +47,12 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
         
         if self.CreateIndex2('lane_tbl_outlinkid_idx') == -1:
             return -1
+        
+        if self.CreateIndex2('rdf_link_ref_node_id_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('rdf_link_nonref_node_id_idx') == -1:
+            return -1
 
         return 0
     

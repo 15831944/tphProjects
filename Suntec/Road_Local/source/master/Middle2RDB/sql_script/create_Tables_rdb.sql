@@ -83,6 +83,7 @@ CREATE TABLE rdb_guideinfo_pic_blob_bytea
   gid serial NOT NULL,
   image_id character varying,
   data bytea,
+  point_list bytea,
   CONSTRAINT rdb_guideinfo_pic_blob_bytea_pkey PRIMARY KEY (gid)
 );
 

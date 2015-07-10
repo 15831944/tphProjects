@@ -109,6 +109,7 @@ class comp_guideinfo_spotguide_sensis(component.component_base.comp_base):
                         left join link_tbl as b
                         on a.in_link_id = b.link_id
                     ) as c
+                    where in_link_id <> out_link_id
                 );
             '''
         
