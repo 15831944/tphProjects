@@ -17,8 +17,8 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         component.default.guideinfo_forceguide.com_guideinfo_forceguide.__init__(self)
         
     def _DoCreateTable(self):
-        if self.CreateTable2('force_guide_tbl') == -1:
-            return -1
+        
+        self.CreateTable2('force_guide_tbl')
         
         return 0
     
@@ -31,6 +31,7 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         return 0
     
     def _make_mid_temp_force_guide_tbl(self):
+        
         self.log.info('Now it is making mid_temp_force_guide_tbl...')
         
         self.CreateIndex2('org_cond_mapid_condid_idx')
@@ -45,6 +46,7 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         return 0
     
     def _update_force_guide_tbl(self):
+        
         self.log.info('Now it is updating force_guide_tbl...')
         
         sqlcmd = '''
@@ -87,7 +89,6 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
                             not(b.passlid is distinct from a.passlid) and
                             b.passlink_cnt = a.passlink_cnt
                     where b.gid is null
-                    order by a.nodeid, a.inlinkid, a.outlinkid
                 ) as c
             """
             

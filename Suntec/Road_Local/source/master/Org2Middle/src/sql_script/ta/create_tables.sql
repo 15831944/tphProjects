@@ -1158,6 +1158,13 @@ create table temp_poi_category
   logmark character varying(1)
 );
 
+create table temp_category_priority
+(
+    u_code          character varying(1024)   not null,
+    category_priority    int   
+ 
+);
+
 CREATE TABLE temp_poi_logmark
 (
   id bigint NOT NULL,

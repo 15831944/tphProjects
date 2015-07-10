@@ -282,6 +282,14 @@ create table temp_brand_icon
     brandname    varchar(128) not null default ''
 );
 
+
+create table temp_category_priority
+(
+    u_code          character varying(1024)   not null,
+    category_priority    int   
+ 
+);
+
 CREATE TABLE temp_poi_logmark
 (
   poi_id double precision NOT NULL,

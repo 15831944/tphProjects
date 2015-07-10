@@ -713,6 +713,7 @@ CREATE TABLE mid_logmark
   gid serial primary key,
   poi_id bigint,
   type_code integer,
+  type_code_priority integer not null  default 0,
   building_name varchar,
   the_geom geometry
 );
@@ -2539,23 +2540,31 @@ as
 ------------------------------------------------------------------------
 CREATE TABLE temp_node_z_tbl
 (
- guide_type      bigint not null,
- the_geom_list   geometry[],
- z_level_list    smallint[]
+ guide_type bigint not null,
+ the_geom_list geometry[],
+ z_level_list smallint[]
 ); 
 
 ------------------------------------------------------------------------
 CREATE TABLE temp_force_guide_patch_node_tbl
 (
- id    		 serial not null primary key,
- guide_type      bigint not null,
- node_id_list    bigint[]
+ id serial not null primary key,
+ guide_type bigint not null,
+ node_id_list bigint[]
 ); 
 
 ------------------------------------------------------------------------
 CREATE TABLE temp_force_guide_patch_link_tbl
 (
- objectid	 bigint not null,
- guide_type      bigint not null,
- link_id_list    bigint[]
+ objectid bigint not null,
+ guide_type bigint not null,
+ link_id_list bigint[]
+); 
+
+------------------------------------------------------------------------
+CREATE TABLE temp_force_guide_patch_tbl
+(
+ guide_type bigint not null,
+ geom_text character varying(16384),
+ z_text character varying(16384)
 ); 

@@ -258,7 +258,7 @@ class comp_guideinfo_caution_jdb(component.component_base.comp_base):
         return
     
     def _do_safety_caution(self):
-        #self.CreateFunction2('mid_findpasslinkbybothnodes_caution')
+
 		self.CreateFunction2('mid_findpasslinkbybothnodes')
         
         # step one: get all inlinks which flow to the node 
@@ -311,7 +311,6 @@ class comp_guideinfo_caution_jdb(component.component_base.comp_base):
         as
         select 
 			in_node_id, out_node_id, 
-			--mid_findpasslinkbybothnodes_caution(in_node_id, out_node_id, 30) as all_path_links, 
 			mid_findpasslinkbybothnodes(in_node_id, out_node_id, 30) as all_path_links, 
 			safety_type
         from

@@ -3,7 +3,7 @@
 #proj_name=rdf
 #proj_country=hkg
 junctionview_data=\\172.26.179.195\share\SourceData\AP_rdf\HKGMAC\14Q1
-jv_flag=by_file
+jv_flag=by_table
 #gjvCsvPath=
 #ejvCsvPath=
 strInterestCountryList=HKG

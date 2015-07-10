@@ -10,15 +10,17 @@ import codecs
 import common.cache_file
 import component.component_base
 import component.default.multi_lang_name
+import component.default.guideinfo_building
 
-class comp_guideinfo_building_rdf(component.component_base.comp_base):
+class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guideinfo_building):
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Guideinfo_building')
-
+        component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
+        
     def _Do(self):
+        self._loadCategoryPriority()
         self._findLogmark()
         self._makePOIName()
         self._makePOILocation()
@@ -210,9 +212,11 @@ class comp_guideinfo_building_rdf(component.component_base.comp_base):
         self.CreateTable2('mid_logmark')
         
         sqlcmd = """
-                insert into mid_logmark(poi_id, type_code, building_name, the_geom)
+                insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.poi_id, 
                         d.per_code,
+                        (case when cc.category_priority is null  then dd.category_priority
+                              else cc.category_priority end),
                         b.poi_name,
                         e.the_geom
                 from temp_poi_logmark as a
@@ -224,6 +228,10 @@ class comp_guideinfo_building_rdf(component.component_base.comp_base):
                 on c.cat_id = d.org_code
                 left join temp_poi_location as e
                 on a.poi_id = e.poi_id
+                left join temp_category_priority as cc
+                on cc.u_code = d.per_code ::character
+                left join temp_category_priority as dd
+                on dd.u_code = 'other'
                 order by a.poi_id;
                 """
         self.pg.execute(sqlcmd)

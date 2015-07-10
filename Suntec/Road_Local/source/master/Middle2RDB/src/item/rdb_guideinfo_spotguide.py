@@ -1,24 +1,14 @@
 # -*- coding: cp936 -*-
 '''
 Created on 2012-3-6
-
 @author: sunyifeng
 '''
 
 from base.rdb_ItemBase import ItemBase, ITEM_EXTEND_FLAG_IDX
 from common import rdb_log
 
-
 class rdb_guideinfo_spotguide(ItemBase):
-    '''
-    classdocs
-    '''
-
-
     def __init__(self):
-        '''
-        Constructor
-        '''
         ItemBase.__init__(self, 'SpotGuidepoint'
                           , 'spotguide_tbl'
                           , 'gid'
@@ -28,9 +18,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                           , ITEM_EXTEND_FLAG_IDX.get('SPOTGUIDE'))
         
     def Do(self):
-        if self.CreateTable2('rdb_guideinfo_spotguidepoint') == -1:
-            return -1
-        
+        self.CreateTable2('rdb_guideinfo_spotguidepoint')
         sqlcmd = """
                   insert into rdb_guideinfo_spotguidepoint
                          (  in_link_id
@@ -105,7 +93,7 @@ class rdb_guideinfo_spotguide(ItemBase):
     def _DoContraints(self):
         '添加外键'
         # 检查Arrow图片ID
-        self._DoCheckArrowID()
+        self.checkArrowIdAndAddConstraint()
         
         sqlcmd = """
                 ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists rdb_guideinfo_spotguidepoint_in_link_id_fkey;           
@@ -138,7 +126,7 @@ class rdb_guideinfo_spotguide(ItemBase):
             self.pg.commit2()
             return 0
         
-    def _DoCheckArrowID(self):
+    def checkArrowIdAndAddConstraint(self):
         '检查Arrow图片ID.'
         rdb_log.log(self.ItemName, 'Check Arrow_ids of SpotGuide.', 'info') 
         sqlcmd = """

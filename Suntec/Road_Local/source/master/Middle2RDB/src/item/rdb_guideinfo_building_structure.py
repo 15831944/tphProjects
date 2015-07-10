@@ -43,6 +43,7 @@ class rdb_guideinfo_building_structure(ItemBase):
         select node_id,
         unnest((array_agg(poi_id))[1:5]) as poi_id,
         unnest((array_agg(type_code))[1:5]) as type_code,
+        unnest((array_agg(type_code_priority))[1:5]) as type_code_priority,
         unnest((array_agg(building_name))[1:5]) as building_name,
         unnest((array_agg(the_geom))[1:5]) as the_geom,
         unnest((array_agg(distance))[1:5]) as distance
@@ -51,7 +52,8 @@ class rdb_guideinfo_building_structure(ItemBase):
             SELECT 
                 node_id, 
                 ml.poi_id,
-                ml.type_code, 
+                ml.type_code,
+                ml.type_code_priority,  
                 ml.building_name, 
                 ml.the_geom, 
                 ST_Distance_Sphere(ml.the_geom, nt.the_geom) AS distance 
@@ -71,8 +73,8 @@ class rdb_guideinfo_building_structure(ItemBase):
         self.CreateTable2('rdb_guideinfo_building_structure')
         sqlcmd = """
             INSERT INTO rdb_guideinfo_building_structure
-            (node_id, node_id_t, type_code, centroid_lontitude, centroid_lantitude, building_name)
-            SELECT rtn.tile_node_id, rtn.tile_id, type_code, ST_X(the_geom)*921600, ST_Y(the_geom)*921600, building_name
+            (node_id, node_id_t, type_code, type_code_priority, centroid_lontitude, centroid_lantitude, building_name)
+            SELECT rtn.tile_node_id, rtn.tile_id, type_code, type_code_priority, ST_X(the_geom)*921600, ST_Y(the_geom)*921600, building_name
             FROM temp_asso_node_logmark AS t
             LEFT JOIN rdb_tile_node AS rtn
             ON t.node_id = rtn.old_node_id;

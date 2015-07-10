@@ -39,7 +39,7 @@ class comp_guideinfo_spotguide_sensis(component.component_base.comp_base):
         self.CreateTable2('spotguide_tbl')
 
     def _DoCreateFunction(self):
-        self.CreateFunction2('mid_findpasslinkbybothnodes_caution')
+        self.CreateFunction2('mid_findpasslinkbybothnodes')
         return 0
 
     def _Do(self):
@@ -102,7 +102,7 @@ class comp_guideinfo_spotguide_sensis(component.component_base.comp_base):
                         picture_name, null,type
                     from 
                     (
-                        select node_id, in_link_id, out_link_id, string_to_array(mid_findpasslinkbybothnodes_caution(node_id, search_node,30),',') as pass_links_array,
+                        select node_id, in_link_id, out_link_id, string_to_array(mid_findpasslinkbybothnodes(node_id, search_node,30),',') as pass_links_array,
                             picture_name, case when b.road_type in (0,1) then 2 else 5 end as type
                         from temp_prepare_jv_tbl as a
                         left join link_tbl as b

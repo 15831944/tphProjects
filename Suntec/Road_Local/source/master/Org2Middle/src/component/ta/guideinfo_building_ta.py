@@ -10,15 +10,17 @@ import codecs
 import common.cache_file
 import component.component_base
 import component.default.multi_lang_name
+import component.default.guideinfo_building
 
-class comp_guideinfo_building_ta(component.component_base.comp_base):
+class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guideinfo_building):
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Guideinfo_building')
-
+        component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
+        
     def _Do(self):
+        self._loadCategoryPriority()
         self._loadPOICategory()
         self._findLogmark()
         self._makePOIName()
@@ -251,14 +253,20 @@ class comp_guideinfo_building_ta(component.component_base.comp_base):
         self.CreateTable2('mid_logmark')
         
         sqlcmd = """
-                insert into mid_logmark(poi_id, type_code, building_name, the_geom)
+                insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.id, 
                         a.ucode,
+                        (case when c.category_priority is null then d.category_priority 
+                                else c.category_priority end),
                         b.poi_name,
                         a.the_geom
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
-                on a.id = b.poi_id;      
+                on a.id = b.poi_id
+                left join temp_category_priority as c
+                on c.u_code = a.ucode::character
+                left join temp_category_priority as d
+                on d.u_code = 'other';      
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()

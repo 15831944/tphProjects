@@ -112,7 +112,7 @@ class comp_node_rdf(component.component_base.comp_base):
         sqlcmd = """
                 insert into node_tbl (
                     node_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, mainnodeid, node_lid, 
-                    node_name, the_geom 
+                    node_name, z_level, the_geom 
                 )
                 select 
                     a.node_id, 
@@ -123,7 +123,8 @@ class comp_node_rdf(component.component_base.comp_base):
                     case when f.node_id is null then 0 else 1 end as bifurcation_flag, 
                     0 as mainnodeid, 
                     array_to_string(d.lid, '|') as node_lid, 
-                    null as node_name, 
+                    null as node_name,
+                    a.zlevel as z_level,
                     a.the_geom as the_geom
                 from temp_rdf_nav_node as a
                 left outer join temp_node_light as b on a.node_id = b.node_id
@@ -142,23 +143,7 @@ class comp_node_rdf(component.component_base.comp_base):
         else:
             self.pg.commit2()
             
-        self.log.info(self.ItemName + ': end of inserting node_tbl...')
-        
-        self._update_node_tbl()        
-        return 0
-    
-    def _update_node_tbl(self):
-        self.log.info('Now it is updating node_tbl...')
-        
-        sqlcmd = '''
-                 update node_tbl a set z_level = b.zlevel
-                 from temp_rdf_nav_node b
-                 where a.node_id = b.node_id
-               '''
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        self.log.info('updating node_tbl succeeded')
+        self.log.info(self.ItemName + ': end of inserting node_tbl...')      
         return 0
     
     def _MakeNodeLid(self):

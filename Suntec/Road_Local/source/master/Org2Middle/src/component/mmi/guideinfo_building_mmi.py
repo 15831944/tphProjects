@@ -12,58 +12,26 @@ import common.cache_file
 from common import cache_file
 import component.component_base
 import component.default.multi_lang_name
+import component.default.guideinfo_building
 
-class comp_guideinfo_building_mmi(component.component_base.comp_base):
+class comp_guideinfo_building_mmi(component.default.guideinfo_building.comp_guideinfo_building):
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Guideinfo_building')
+        component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
 
     def _Do(self):
 
         self._loadPOICategory()
         self._loadBrandIcon()
+        self._loadCategoryPriority()
         self._findLogmark()
         self._makePOIName()
         self._makeLogmark()
         return 0
 
-    
-    def _loadBrandIcon(self):                            
-        self.log.info('make temp_brand_icon...')
-        self.CreateTable2('temp_brand_icon')
-        brand_icon_file_path = common.config.CConfig.instance().getPara('brand_icon')
-        for line in open(brand_icon_file_path):
-                line = line.strip()
-                if line[0] == '#':
-                    continue
-                fields=[]
-                fields.append(line)                
-                sqlcmd = '''
-                          insert into temp_brand_icon values(%s);
-                         '''
-                self.pg.execute(sqlcmd, fields)
-        self.pg.commit()
-                                        
-        
-    def _loadPOICategory(self):
-        self.log.info('make temp_poi_category...')
-        self.CreateTable2('temp_poi_category')
-        
-        category_file_path = common.config.CConfig.instance().getPara('POI_Code')
-        for line in open(category_file_path):
-            line = line.strip()
-            if line[0] == '#':
-                continue
-            fields = line.split(';')
-            sqlcmd = '''
-                      insert into temp_poi_category values(%s,%s,%s,%s,%s,%s,%s,%s,%s);
-                     '''
-            self.pg.execute(sqlcmd, fields)
-        self.pg.commit()
-
-        
+       
     def _findLogmark(self):       
         # find poi with logmark
         self.log.info('make temp_poi_logmark...')
@@ -178,14 +146,21 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
         self.CreateTable2('mid_logmark')
         
         sqlcmd = """
-                insert into mid_logmark(poi_id, type_code, building_name, the_geom)
+                insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.poi_id, 
                         a.type_code,
+                        (case when c.category_priority is null then dd.category_priority
+                              else c.category_priority end),
                         b.poi_name,
                         ST_GeometryN(a.the_geom,1)
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
-                on a.poi_id = b.poi_id;      
+                 on a.poi_id = b.poi_id
+                left join temp_category_priority as c
+                on c.u_code = a.type_code::character
+                left join temp_category_priority as dd
+                on dd.u_code = 'other' ;
+                    
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()

@@ -23,7 +23,8 @@ class comp_guideinfo_signpost_rdf(comp_base):
     
     def _Do(self):
         sign_as_real_path = common.common_func.GetPath('sign_as_real_path')
-        if sign_as_real_path:
+        #if sign_as_real_path:
+        if 0:
             self._import_sign_as_real_data(sign_as_real_path)
             self._make_temp_sign_as_real_tbl()
             self.log.info('End convert SignPost from road_dir.')

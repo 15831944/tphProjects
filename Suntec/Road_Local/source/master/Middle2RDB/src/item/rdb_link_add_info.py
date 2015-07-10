@@ -122,6 +122,21 @@ class rdb_link_add_info(ItemBase):
                   ON A.tile_link_id = B.link_id             
                   ORDER BY tile_link_id
                 );
+                
+                INSERT INTO rdb_link_add_info(link_id, link_id_t, struct_code, 
+                    shortcut_code, parking_flag, etc_lane_flag, path_extra_info)
+                SELECT distinct a.link_id
+                                , a.link_id_t
+                                , 0 as struct_code
+                                , 0 as shortcut_code
+                                , 0 as parking_code
+                                , 0 as etc_lane_flag
+                                , (1::smallint << 15) as path_extra_info
+                FROM rdb_link_add_info2 a
+                left join rdb_link_add_info b
+                on a.link_id = b.link_id
+                where b.link_id is null
+                order by a.link_id;                
             """
             
         if self.pg.execute2(sqlcmd1) == -1:

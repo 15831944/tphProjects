@@ -8,5 +8,6 @@ brand_icon=..\docs\poi\brand_icon_list_ni.txt
 #admin_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_wav.txt
 trfcsign_type_pic=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type_pic.txt
 trfcsign_type_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type_wav.txt
-forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\NI\force_guide_patch\temp_patch_force_guide_tbl.csv
+#forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\NI\force_guide_patch\temp_patch_force_guide_tbl.csv
+category_priority=..\docs\poi\category_priority_ni.txt
 #################################################################

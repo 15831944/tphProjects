@@ -8,6 +8,7 @@ Created on 2012-11-9
 import component.component_base
 from common.common_func import GetPath
 import os
+import common.cache_file
 
 class com_guideinfo_forceguide(component.component_base.comp_base):
     '''强制诱导的Base Class
@@ -36,9 +37,12 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         return 0
     
     def _deal_temp_patch_force_guide_tbl(self):
+        
         self.log.info('Now it is dealing temp_patch_force_guide_tbl.csv...')
         
-        self.import_patch()
+        if self.import_patch() == -1:
+            return -1
+        
         self._update_temp_force_guide_patch_node_tbl()
         self._update_temp_force_guide_patch_link_tbl()
         self._make_force_guide_tbl()
@@ -46,91 +50,46 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         self.log.info('dealing temp_patch_force_guide_tbl.csv succeeded')
         return 0
     
-    def import_patch(self):   
-        self.log.info('Now it is importing force_guide_patch...')
+    def import_patch(self): 
         
         forceguide_patch_full_path = GetPath('forceguide_patch_full_path')
         if forceguide_patch_full_path:
-            self.pg.execute2('''
-                drop table if exists old_force_guide_patch;
-                CREATE TABLE old_force_guide_patch
-                (
-                  gid serial NOT NULL,
-                  guide_type smallint,
-                  node1_geom geometry,
-                  z1 smallint,
-                  node2_geom geometry,
-                  z2 smallint,
-                  node3_geom geometry,
-                  z3 smallint,
-                  node4_geom geometry,
-                  z4 smallint,
-                  node5_geom geometry,
-                  z5 smallint,
-                  node6_geom geometry,
-                  z6 smallint,
-                  node7_geom geometry,
-                  z7 smallint,
-                  node8_geom geometry,
-                  z8 smallint,
-                  node9_geom geometry,
-                  z9 smallint,
-                  node10_geom geometry,
-                  z10 smallint,
-                  node11_geom geometry,
-                  z11 smallint,
-                  node12_geom geometry,
-                  z12 smallint,
-                  node13_geom geometry,
-                  z13 smallint,
-                  node14_geom geometry,
-                  z14 smallint,
-                  node15_geom geometry,
-                  z15 smallint,
-                  node16_geom geometry,
-                  z16 smallint,
-                  node17_geom geometry,
-                  z17 smallint,
-                  node18_geom geometry,
-                  z18 smallint,
-                  node19_geom geometry,
-                  z19 smallint,
-                  node20_geom geometry,
-                  z20 smallint
-                )
-            ''')
-            
+            self.log.info('Now it is importing force_guide_patch...')
             if os.path.exists(forceguide_patch_full_path):
-                f_force_guide_patch = open(forceguide_patch_full_path, 'r')
-                self.pg.copy_from2(f_force_guide_patch, 'old_force_guide_patch', ',', "", 8192,
-                        ('guide_type',
-                         'node1_geom', 'z1',
-                         'node2_geom', 'z2',
-                         'node3_geom', 'z3',
-                         'node4_geom', 'z4',
-                         'node5_geom', 'z5',
-                         'node6_geom', 'z6',
-                         'node7_geom', 'z7',
-                         'node8_geom', 'z8',
-                         'node9_geom', 'z9',
-                         'node10_geom', 'z10',
-                         'node11_geom', 'z11',
-                         'node12_geom', 'z12',
-                         'node13_geom', 'z13',
-                         'node14_geom', 'z14',
-                         'node15_geom', 'z15',
-                         'node16_geom', 'z16',
-                         'node17_geom', 'z17',
-                         'node18_geom', 'z18',
-                         'node19_geom', 'z19',
-                         'node20_geom', 'z20'
-                       ))
+                self.CreateTable2('temp_force_guide_patch_tbl')
+                temp_file_obj = common.cache_file.open('temp_force_guide_patch_tbl')
+                f_force_guide_patch = open(forceguide_patch_full_path, 'r') 
+                for line in f_force_guide_patch.readlines():
+                    linelist = []
+                    linelist = line.split('\t')
+                    linelength = len(linelist)
+                    guidetype = int(linelist[0])
+                    temp_geom = ''
+                    temp_z = ''
+                    loop = 1
+                    while loop <= (linelength-2):
+                        if linelist[loop] != '':
+                            temp_geom += linelist[loop]
+                            temp_z += linelist[loop+1]
+                            temp_geom += '|'
+                            temp_z += '|'
+                        loop += 2
+                        
+                    if temp_geom[-1] == '|':
+                        temp_geom = temp_geom[0:-1]
+                        
+                    if temp_z[-1] == '|':
+                        temp_z = temp_z[0:-1]
+                    
+                    rec_string = '%d\t%s\t%s\n' % (guidetype, temp_geom, temp_z)
+                    temp_file_obj.write(rec_string)
+                temp_file_obj.seek(0)
+                self.pg.copy_from2(temp_file_obj, 'temp_force_guide_patch_tbl')
+                self.pg.commit2()
+                common.cache_file.close(temp_file_obj,True)
                 f_force_guide_patch.close()
             
-            self.pg.commit2()
-            
             self.CreateTable2('temp_node_z_tbl')
-            
             self.CreateFunction2('mid_update_temp_node_z_tbl')
             self.pg.callproc('mid_update_temp_node_z_tbl')
             self.pg.commit2()
@@ -141,6 +100,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         return -1
     
     def _update_temp_force_guide_patch_node_tbl(self):
+        
         self.log.info('Now it is updating temp_force_guide_patch_node_tbl...')
         
         self.CreateTable2('temp_force_guide_patch_node_tbl')
@@ -153,6 +113,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         return 0
     
     def _update_temp_force_guide_patch_link_tbl(self):
+        
         self.log.info('Now it is updating temp_force_guide_patch_link_tbl...')
         
         self.CreateTable2('temp_force_guide_patch_link_tbl')
@@ -168,6 +129,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         return 0
     
     def _make_force_guide_tbl(self):
+        
         self.log.info('Now it is making force_guide_tbl...')
         
         self.CreateFunction2('mid_get_connectnode_by_links')
@@ -215,7 +177,6 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
                         on a.id = b.objectid
                     where b.objectid is not null
                 ) c
-                order by nodeid, inlinkid, outlinkid, guide_type
             """
             
         self.pg.do_big_insert2(sqlcmd)

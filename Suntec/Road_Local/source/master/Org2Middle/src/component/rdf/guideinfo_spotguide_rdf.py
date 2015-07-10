@@ -445,7 +445,8 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             # 对应的pattern图名字应为JV_BH_555171664.jpg
             # 根据pattern图名字可以求出它所对应的sar图名字。
             sarName = org_filename.lower().replace('jv_', 'sr_')
-            is_exist_sar = sarName in allSarNameList
+            srPicName = sarName.replace('.svg', '.png')
+            is_exist_sar = srPicName in allSarNameList
             
             # 求引导属性
             # attr_dir = self._get_direction_attr(ramp, bif, ca)
@@ -478,7 +479,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             return None
         
     # 读入所有sar文件名，在确认is_exist_sar时使用。
-    # 使用了配置文件项：allSarFileNameCsvPath
+    # 使用了配置文件项：all_sign_as_real_file_name
     # 取名时调用了lower()，返回的png名字列表均为小写。
     def _get_all_sar_pic_name_list(self):
         allSarCsv = common.common_func.GetPath('all_sign_as_real_file_name')
@@ -491,7 +492,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         
         allSarPicList = []
         for line in listline:
-            allSarPicList.append(line.lower())
+            allSarPicList.append(line.lower().strip('\n') )
         return allSarPicList
         
 

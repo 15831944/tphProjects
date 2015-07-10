@@ -127,7 +127,6 @@ create table temp_poi_category
     ph_lang     varchar(128) ,
     ph_name     varchar(128) , 
     logmark    varchar(128) not null default '',
-    --level_category int,
     level_category  varchar,   
     remarks      varchar(128) 
 );
@@ -135,6 +134,13 @@ create table temp_poi_category
 create table temp_brand_icon
 (
     brandname    varchar(128) not null default ''
+);
+
+create table temp_category_priority
+(
+    u_code          character varying(1024)   not null,
+    category_priority    int   
+ 
 );
 
 CREATE TABLE temp_poi_logmark
@@ -270,3 +276,9 @@ as
 	and id::bigint>adjoin_nid::bigint
 );
 
+------------------------------------------------------------------------
+CREATE TABLE temp_node_z_level_tbl
+(
+ node_id bigint NOT NULL PRIMARY KEY,
+ z_level smallint default 0
+); 

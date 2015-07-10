@@ -1385,30 +1385,7 @@ CREATE TABLE rdfpl_all_jv_lat_display_org
   dp1_dest_link bigint,
   jv_dest_link bigint
 );
-CREATE TABLE temp_patch_force_guide_tbl
-(
-  objectid integer,
-  fromlinkid bigint,
-  tolinkid bigint,
-  midcount bigint,
-  midlinkid character varying(254),
-  guidetype integer
-);
-CREATE TABLE new_force_guide_patch
-(
-  gid serial NOT NULL,
-  guide_type smallint,
-  node1 bigint,
-  node2 bigint,
-  node3 bigint,
-  node4 bigint,
-  node5 bigint,
-  node6 bigint,
-  node7 bigint,
-  node8 bigint,
-  node9 bigint,
-  node10 bigint
-);
+
 ------------------------------------------------
 CREATE TABLE temp_link_railwaycross
 AS
@@ -1678,6 +1655,13 @@ create table temp_poi_name
 (
 	poi_id bigint,
 	poi_name varchar
+);
+
+create table temp_category_priority
+(
+    u_code          character varying(1024)   not null,
+    category_priority    int   
+ 
 );
 
 create table temp_poi_category

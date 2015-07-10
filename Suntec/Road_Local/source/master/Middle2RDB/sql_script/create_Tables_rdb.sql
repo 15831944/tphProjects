@@ -479,6 +479,7 @@ CREATE TABLE rdb_guideinfo_building_structure
   out_link_id bigint,
   out_link_id_t integer,
   type_code integer NOT NULL,
+  type_code_priority integer NOT NULL default 0,
   centroid_lontitude integer NOT NULL,
   centroid_lantitude integer NOT NULL,
   building_name character varying(1024)

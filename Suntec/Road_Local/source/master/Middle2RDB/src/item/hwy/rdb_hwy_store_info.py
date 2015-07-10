@@ -35,6 +35,7 @@ class rdb_highway_store_info(ItemBase):
             self._insert_store_info(store_info + (tile_index, ))
         self.pg.commit2()
         self._make_store_picture()
+        self._make_store_name()
         # 更新IC表店铺数
         self._update_store_num()
         return 0

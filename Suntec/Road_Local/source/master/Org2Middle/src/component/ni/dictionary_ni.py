@@ -439,12 +439,19 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
             exit_no = None
             route_no = None
             signpost_name = None
+            name_flag = list()
             for nametype_array, sign_name, seqnr, shield_type, out_type, lang_code, nameflag, phontype_type, phoneme_info in \
                 zip(nametype_arrays, sign_names, seqnrs, shield_types, out_types, lang_codes, nameflags, phontype_types, phoneme_infos):
                 sign_type = self._get_sign_type(nametype_array, shield_type)
                 if not sign_type:  # 空不收录
                     continue
-                
+                #判断是否出现过
+                list_temp = [sign_type, sign_name]
+                if name_flag.count(list_temp) > 0:
+                    continue
+                else:
+                    name_flag.append(list_temp)
+                    
                 name_type = self._get_name_type(nameflag, shield_type)
                 
                 if SIGN_POST_TYPE_SHIELD_NUM == sign_type:

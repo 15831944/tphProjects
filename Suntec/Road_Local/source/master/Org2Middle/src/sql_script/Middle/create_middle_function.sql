@@ -2642,7 +2642,6 @@ BEGIN
 END;
 $$;
 
---CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes_caution(startnode bigint, endnode bigint, threshould_steps int default 10)
 CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes(startnode bigint, endnode bigint, threshould_steps int default 10)
   RETURNS character varying
 LANGUAGE plpgsql volatile
@@ -2923,125 +2922,36 @@ DECLARE
 	rec record;
 	z_level_list smallint[];
 	the_geom_list geometry[];
-	guide_type bigint;
+	geom_text_list_len bigint;
+	z_text_list_len bigint;
+	rec_index bigint;
 	
 BEGIN
 	for rec in (
-		select *
-		from old_force_guide_patch
+		select guide_type, string_to_array(geom_text, '|') as geom_text_list, string_to_array(z_text, '|') as z_text_list 
+		from temp_force_guide_patch_tbl
 	)
 	loop
 		the_geom_list := NULL;
 		z_level_list := NULL;
 
-		if rec.guide_type is null then
-			return false;
-		end if;
-		guide_type := rec.guide_type;
-		
-		if rec.node1_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node1_geom);
-			z_level_list := array_append(z_level_list, rec.z1);
+		geom_text_list_len := array_upper(rec.geom_text_list, 1);
+		z_text_list_len := array_upper(rec.z_text_list, 1);
+
+		if geom_text_list_len != z_text_list_len then
+			continue;
 		end if;
 
-		if rec.node2_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node2_geom);
-			z_level_list := array_append(z_level_list, rec.z2);
-		end if;
-
-		if rec.node3_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node3_geom);
-			z_level_list := array_append(z_level_list, rec.z3);
-		end if;
-
-		if rec.node4_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node4_geom);
-			z_level_list := array_append(z_level_list, rec.z4);
-		end if;
-
-		if rec.node5_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node5_geom);
-			z_level_list := array_append(z_level_list, rec.z5);
-		end if;
-
-		if rec.node6_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node6_geom);
-			z_level_list := array_append(z_level_list, rec.z6);
-		end if;
-
-		if rec.node7_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node7_geom);
-			z_level_list := array_append(z_level_list, rec.z7);
-		end if;
-
-		if rec.node8_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node8_geom);
-			z_level_list := array_append(z_level_list, rec.z8);
-		end if;
-
-		if rec.node9_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node9_geom);
-			z_level_list := array_append(z_level_list, rec.z9);
-		end if;
-
-		if rec.node10_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node10_geom);
-			z_level_list := array_append(z_level_list, rec.z10);
-		end if;
-
-		if rec.node11_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node11_geom);
-			z_level_list := array_append(z_level_list, rec.z11);
-		end if;
-
-		if rec.node12_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node12_geom);
-			z_level_list := array_append(z_level_list, rec.z12);
-		end if;
-
-		if rec.node13_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node13_geom);
-			z_level_list := array_append(z_level_list, rec.z13);
-		end if;
-
-		if rec.node14_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node14_geom);
-			z_level_list := array_append(z_level_list, rec.z14);
-		end if;
-
-		if rec.node15_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node15_geom);
-			z_level_list := array_append(z_level_list, rec.z15);
-		end if;
-
-		if rec.node16_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node16_geom);
-			z_level_list := array_append(z_level_list, rec.z16);
-		end if;
-
-		if rec.node17_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node17_geom);
-			z_level_list := array_append(z_level_list, rec.z17);
-		end if;
-
-		if rec.node18_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node18_geom);
-			z_level_list := array_append(z_level_list, rec.z18);
-		end if;
-
-		if rec.node19_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node19_geom);
-			z_level_list := array_append(z_level_list, rec.z19);
-		end if;
-
-		if rec.node20_geom is not null then
-			the_geom_list := array_append(the_geom_list, rec.node20_geom);
-			z_level_list := array_append(z_level_list, rec.z20);
-		end if;
+		rec_index := 1;
+		while rec_index <= geom_text_list_len loop
+			the_geom_list := array_append(the_geom_list, ST_GeomFromText(st_astext((rec.geom_text_list)[rec_index]), 4326));
+			z_level_list := array_append(z_level_list, (rec.z_text_list)[rec_index]::smallint);
+			rec_index := rec_index + 1;
+		end loop;
 
 		if the_geom_list is not null and z_level_list is not null then
 			insert into temp_node_z_tbl(guide_type, the_geom_list, z_level_list)
-			values(guide_type, the_geom_list, z_level_list);
+			values(rec.guide_type, the_geom_list, z_level_list);
 		end if;
 	end loop;
 

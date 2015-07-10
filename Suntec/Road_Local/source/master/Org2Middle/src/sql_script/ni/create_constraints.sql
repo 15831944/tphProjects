@@ -202,5 +202,3 @@ CREATE INDEX temp_node_mapping_new_node_id_idx
   ON temp_node_mapping
   USING btree
   (new_node_id);
-  
-  
