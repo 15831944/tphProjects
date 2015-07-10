@@ -8,17 +8,16 @@ import os
 import struct
 import psycopg2
 import string
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-import component.component_base
 
-
-class comp_guideinfo_spotguide_msm(component.component_base.comp_base):
+class comp_guideinfo_spotguide_msm(comp_guideinfo_spotguide):
 
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'spotguide')
+        comp_guideinfo_spotguide.__init__(self)
 
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')

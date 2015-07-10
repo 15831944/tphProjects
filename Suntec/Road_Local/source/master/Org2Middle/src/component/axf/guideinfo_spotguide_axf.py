@@ -4,19 +4,17 @@ Created on 2012-3-26
 @author: sunyifeng
 '''
 
-import component.component_base
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-class comp_guideinfo_spotguide_axf(component.component_base.comp_base):
+class comp_guideinfo_spotguide_axf(comp_guideinfo_spotguide):
     '''
     classdocs
     '''
-
-
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'GuideInfo_SpotGuide')
+        comp_guideinfo_spotguide.__init__(self)
     
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')

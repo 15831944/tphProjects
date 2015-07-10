@@ -6,21 +6,18 @@ Created on 2012-3-26
 
 import os
 import shutil
-
-import component.component_base
 import common.common_func
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-class comp_guideinfo_spotguide_jdb(component.component_base.comp_base):
+class comp_guideinfo_spotguide_jdb(comp_guideinfo_spotguide):
     '''
     classdocs
     '''
-
-
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Guideinfo_SpotGuide')
+        comp_guideinfo_spotguide.__init__(self)
         
     def _Do(self):
         self.__loadOrginalData()

@@ -8,17 +8,16 @@ import os
 import struct
 import psycopg2
 import logging
-import component.component_base
-#from genshi.path import SELF
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
 
-class comp_guideinfo_spotguide_nostra(component.component_base.comp_base):
+class comp_guideinfo_spotguide_nostra(comp_guideinfo_spotguide):
 
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'spotguide')
+        comp_guideinfo_spotguide.__init__(self)
 
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')

@@ -5,13 +5,7 @@ Created on 2012-9-17
 @author: zhangliang
 '''
 
-import os
-import psycopg2
-import struct
-
-import component.component_base
-import common.common_func
-
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 jv_map = {0:'left',
           1:'straight',
           2:'right',
@@ -23,7 +17,7 @@ jv_map = {0:'left',
           8:'straight_right'
           }
 
-class comp_guideinfo_spotguide_sensis(component.component_base.comp_base):
+class comp_guideinfo_spotguide_sensis(comp_guideinfo_spotguide):
     '''
     deal with junction view
     '''
@@ -32,7 +26,7 @@ class comp_guideinfo_spotguide_sensis(component.component_base.comp_base):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'GuideInfo_SpotGuide')
+        comp_guideinfo_spotguide.__init__(self)
 
     def _DoCreateTable(self):
         self.CreateTable2('temp_extend_jv_tbl')

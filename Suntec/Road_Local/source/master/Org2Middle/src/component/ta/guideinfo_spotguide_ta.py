@@ -8,12 +8,10 @@ Created on 2012-9-17
 import os
 import psycopg2
 import struct
-
-import component.component_base
 import common.common_func
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-
-class comp_guideinfo_spotguide_ta(component.component_base.comp_base):
+class comp_guideinfo_spotguide_ta(comp_guideinfo_spotguide):
     '''
     deal with junction view
     '''
@@ -22,7 +20,7 @@ class comp_guideinfo_spotguide_ta(component.component_base.comp_base):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'GuideInfo_SpotGuide')
+        comp_guideinfo_spotguide.__init__(self)
 
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')
