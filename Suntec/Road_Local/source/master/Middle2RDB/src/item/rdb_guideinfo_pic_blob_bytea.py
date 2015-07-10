@@ -117,15 +117,31 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
     def prepareTempTableForDumpPics(self):
         self.CreateTable2('temp_guideinfo_pic_blob_id_mapping')
         sqlcmd = '''
+                delete from rdb_guideinfo_pic_blob_bytea as a
+                using
+                (
+                    select distinct a.gid
+                    from rdb_guideinfo_pic_blob_bytea as a
+                    inner join rdb_guideinfo_pic_blob_bytea as b
+                    on a.gid > b.gid and a.image_id = b.image_id and a.data = b.data
+                )as b
+                where a.gid = b.gid;
+                analyze rdb_guideinfo_pic_blob_bytea;
+                
                 insert into temp_guideinfo_pic_blob_id_mapping(gid, image_id)
-                select a[1], unnest(b)
-                from(
-                    select array_agg(gid) as a, array_agg(image_id) as b 
-                    from rdb_guideinfo_pic_blob_bytea 
-					group by data 
-					order by data
-                    ) as c;
-                    
+                select min_gid, unnest(image_id_array)
+                from
+                (
+                    select min(gid) as min_gid, array_agg(image_id) as image_id_array
+                    from
+                    (
+                        select *
+                        from rdb_guideinfo_pic_blob_bytea 
+                        order by data, gid
+                    )as t
+                    group by data 
+                ) as c;
+                
                 drop index if exists temp_guideinfo_pic_blob_id_mapping_image_id_idx;
                 create index temp_guideinfo_pic_blob_id_mapping_image_id_idx
                 on temp_guideinfo_pic_blob_id_mapping
@@ -133,8 +149,8 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                 (image_id);
                 '''
         self.pg.execute2(sqlcmd)
-        return
-
+        self.pg.commit2()
+        self.CreateIndex2('temp_guideinfo_pic_blob_id_mapping_image_id_idx')
     
 class rdb_guideinfo_pic_binary(ItemBase):
     def __init__(self):

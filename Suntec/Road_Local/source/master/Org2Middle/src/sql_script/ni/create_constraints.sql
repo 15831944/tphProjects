@@ -29,6 +29,16 @@ CREATE INDEX org_r_kind_idx
   ON org_r
   USING btree
   (kind);
+  
+CREATE INDEX org_r_snodeid_idx
+  ON org_r
+  USING btree
+  (snodeid);
+  
+CREATE INDEX org_r_enodeid_idx
+  ON org_r
+  USING btree
+  (enodeid);
 
 CREATE INDEX temp_link_name_link_id_idx
   ON temp_link_name
@@ -226,5 +236,70 @@ CREATE INDEX org_n_the_geom_idx
   ON org_n
   USING gist
   (the_geom);
+
+-----------------------------------------------------
+CREATE INDEX temp_node_z_level_tbl_node_id_idx
+  ON temp_node_z_level_tbl
+  USING btree
+  (node_id);
  
+CREATE INDEX org_r_lname_route_id_idx
+  ON org_r_lname
+  USING btree
+  (route_id);
+ 
+CREATE INDEX org_r_name_route_id_idx
+  ON org_r_name
+  USING btree
+  (route_id);
+ 
+CREATE INDEX org_r_phon_route_id_idx
+  ON org_r_phon
+  USING btree
+  (route_id);
+ 
+CREATE INDEX org_fname_featid_idx
+  ON org_fname
+  USING btree
+  (featid);
+ 
+CREATE INDEX org_fname_phon_featid_idx
+  ON org_fname_phon
+  USING btree
+  (featid);
+ 
+CREATE INDEX org_cr_vperiod_vehcl_type_idx
+  ON org_cr
+  USING btree
+  (vperiod, vehcl_type);
+ 
+CREATE INDEX temp_condition_regulation_tbl_vperiod_vehcl_type_idx
+  ON temp_condition_regulation_tbl
+  USING btree
+  (vperiod, vehcl_type);
+ 
+CREATE INDEX org_r_accesscrid_idx
+  ON org_r
+  USING btree
+  (accesscrid);
+ 
+CREATE INDEX org_r_onewaycrid_idx
+  ON org_r
+  USING btree
+  (onewaycrid);
+ 
+CREATE INDEX org_cond_crid_idx
+  ON org_cond
+  USING btree
+  (crid);
+ 
+CREATE INDEX org_cr_crid_idx
+  ON org_cr
+  USING btree
+  (crid);
+ 
+CREATE INDEX org_poi_the_geom_idx
+  ON org_poi
+  USING gist
+  (the_geom);
 

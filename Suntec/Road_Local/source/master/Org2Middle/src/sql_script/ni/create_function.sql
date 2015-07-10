@@ -17,34 +17,35 @@ BEGIN
         for rec in (
             select link_array, node_array
             from (
-                select mapid, condid, array_agg(linkid) as link_array
+                select folder, mapid, condid, array_agg(linkid) as link_array
                 from (
-                    select b.mapid, b.condid, seq_nm, linkid
+                    select b.folder, b.mapid, b.condid, seq_nm, linkid
                     from org_cond a
                     left join org_cnl b
                         on 
+                            a.folder = b.folder and
                             a.mapid = b.mapid and
                             a.condid = b.condid
                     where a.condtype::bigint = 2 and linkid <> ''
-                    order by mapid, condid, seq_nm::bigint
+                    order by folder, mapid, condid, seq_nm::bigint
                 ) as c
-                group by mapid, condid
+                group by folder, mapid, condid
             ) as d
             left join (
-                select mapid, condid, array_agg(nodeid) as node_array
+                select folder, mapid, condid, array_agg(nodeid) as node_array
                 from (
-                    select b.mapid, b.condid, seq_nm, case when new_node_id is null then nodeid else new_node_id end as nodeid
+                    select b.folder, b.mapid, b.condid, seq_nm, case when new_node_id is null then nodeid else new_node_id end as nodeid
                     from org_cond a
                     left join org_cnl b
-                        on a.mapid = b.mapid and a.condid = b.condid
+                        on a.folder = b.folder and a.mapid = b.mapid and a.condid = b.condid
                     left join temp_node_mapping c
 						on nodeid = old_node_id
                     where a.condtype::bigint = 2 and nodeid <> ''
-                    order by mapid, condid, seq_nm::bigint
+                    order by b.folder, mapid, condid, seq_nm::bigint
                 ) as c
-                group by mapid, condid
+                group by folder, mapid, condid
             ) as e
-            on d.mapid = e.mapid and d.condid = e.condid
+            on d.folder = e.folder and d.mapid = e.mapid and d.condid = e.condid
         )
         loop
             link_count := array_upper(rec.link_array, 1);
@@ -858,27 +859,27 @@ BEGIN
 	into cur_regulation_id;
 	
     FOR rec IN
-    	select	mapid, condid, link_array, node_array,
+    	select	folder, mapid, condid, link_array, node_array,
     			array_agg(cond_id) as array_condid,
     			array_agg(seasonal_flag) as array_seasonal
     	from
     	(
-			select 	a.mapid, a.condid, d.link_array, d.node_array, 
+			select 	a.folder, a.mapid, a.condid, d.link_array, d.node_array, 
 					(case when b.vp_approx = '1' then True else False end) as seasonal_flag,
 					c.cond_id
 			from org_cond as a
 	    	left join org_cr as b
-	    	on a.crid = b.crid
+	    	on a.crid = b.crid and a.folder = b.folder
 	    	left join temp_condition_regulation_tbl as c
 	    	on b.vperiod = c.vperiod and b.vehcl_type = c.vehcl_type
 	    	left join
 	    	(
-	    		select 	mapid, condid,
+	    		select 	folder, mapid, condid,
 	    				array_agg(linkid) as link_array,
 	    				array_agg(nodeid) as node_array
 	    		from
 	    		(
-		    		select 	mapid, condid, 
+		    		select 	folder, mapid, condid, 
 		    				(case when linkid = '' then null::bigint else linkid::bigint end) as linkid, 
 		    				(
 		    				case 
@@ -890,11 +891,11 @@ BEGIN
 		    		from org_cnl as a
 		    		left join temp_node_mapping as b
 		    		on a.nodeid = b.old_node_id
-		    		order by mapid, condid, seq_nm::integer
+		    		order by folder, mapid, condid, seq_nm::integer
 	    		)as t
-	    		group by mapid, condid
+	    		group by folder, mapid, condid
 	    	)as d
-	    	on a.mapid = d.mapid and a.condid = d.condid
+	    	on a.folder = d.folder and a.mapid = d.mapid and a.condid = d.condid
 	    	where 	a.condtype = '1'
 	    			and
 	    			--b.gid is not null 
@@ -902,10 +903,10 @@ BEGIN
 	    			c.cond_id is distinct from -1
 	    			and
 	    			d.mapid is not null
-	    	order by a.mapid, a.condid, d.link_array, d.node_array, c.cond_id
+	    	order by a.folder, a.mapid, a.condid, d.link_array, d.node_array, c.cond_id
     	)as t
-    	group by mapid, condid, link_array, node_array
-    	order by mapid, condid, link_array, node_array
+    	group by folder, mapid, condid, link_array, node_array
+    	order by folder, mapid, condid, link_array, node_array
     LOOP
 		-- current regulation id
     	cur_regulation_id := cur_regulation_id + 1;

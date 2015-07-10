@@ -27,13 +27,37 @@ class comp_node_ni(component.component_base.comp_base):
         return 0
     
     def _Do(self):
-        
+        self._makeAdjNodeMapping()
+        self._makeNodeZLevel()
+        self._makeNodeTable()
+        return 0
+    
+    def _makeAdjNodeMapping(self):
+        self.log.info('make adj node mapping...')
         self.CreateIndex2('org_n_id_idx')
+        
+        if self.pg.IsExistTable('org_adj'):
+            sqlcmd = """
+                    update org_n as a set adjoin_nid = b.nodeid2
+                    from org_adj as b
+                    where a.id = b.nodeid1;
+                    
+                    update org_n as a set adjoin_nid = b.nodeid1
+                    from org_adj as b
+                    where a.id = b.nodeid2;
+                    
+                    analyze org_n;
+                    """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+        
         self.CreateTable2('temp_node_mapping')
         self.CreateIndex2('temp_node_mapping_old_node_id_idx')
         self.CreateIndex2('temp_node_mapping_new_node_id_idx')
-        self._update_temp_node_z_level_tbl()
-        
+        return 0
+    
+    def _makeNodeTable(self):
+        self.log.info('make node_tbl...')
         sqlcmd='''
                 insert into node_Tbl
                 (node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,mainnodeid,node_lid,node_name,z_level,the_geom)
@@ -80,7 +104,7 @@ class comp_node_ni(component.component_base.comp_base):
                 left join org_n g
                 on f.old_node_id=g.id
                 left join temp_node_z_level_tbl o
-                    on a.id::bigint = o.node_id
+                    on a.id = o.node_id
                 where e.old_node_id is null
                '''
         self.pg.execute2(sqlcmd)
@@ -88,7 +112,7 @@ class comp_node_ni(component.component_base.comp_base):
         
         return 0
     
-    def _update_temp_node_z_level_tbl(self):
+    def _makeNodeZLevel(self):
         
         self.log.info('Now it is updating temp_node_z_level_tbl...')
         
@@ -97,7 +121,7 @@ class comp_node_ni(component.component_base.comp_base):
         sqlcmd = '''
                 insert into temp_node_z_level_tbl(node_id, z_level)
                 select 
-                    (case when seq_nm::bigint = 0 then snodeid else snodeid end)::bigint as node_id, 
+                    (case when seq_nm::bigint = 0 then snodeid else enodeid end) as node_id, 
                     z::smallint as z_level
                 from (
                     select e.*
@@ -124,6 +148,9 @@ class comp_node_ni(component.component_base.comp_base):
                     on f.mapid = g.mapid and f.id = g.id
                 where g.gid is not null
                 '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_node_z_level_tbl_node_id_idx')
         
         self.log.info('updating temp_node_z_level_tbl succeeded')
         return 0

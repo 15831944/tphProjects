@@ -8,5 +8,6 @@ encoding//src/item/rdb_guideinfo_safety_zone.py=cp936
 encoding//src/item/rdb_guideinfo_signpost.py=UTF-8
 encoding//src/item/rdb_guideinfo_spotguide.py=cp936
 encoding//src/item/rdb_link_org2rdb.py=cp936
+encoding//src/item/rdb_link_with_all_attri_view.py=UTF8
 encoding//src/item_client/rdb_guideinfo_signpost_client.py=cp936
 encoding//src/main.py=cp936

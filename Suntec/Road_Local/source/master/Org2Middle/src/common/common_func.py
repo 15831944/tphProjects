@@ -338,15 +338,6 @@ def JudgementCountry(country_name, proj_name = None):
 #    else :
 #        return False
 
-# 根据inlinkid， outlinkid和totalPasslid求出inlink后紧邻的node点
-# pg: 必须是comp_base对象里的pg，本项目中绝大多数模块都继承自comp_base
-# linktblName: 所查询的link表, 此表必须是link_tbl的子集。
-def _GetNodeAfterInlinkid(pg, inlinkid, outlinkid, totalPasslid='', linktblName="link_tbl"):
-    if totalPasslid == '':
-        return _GetNodeBetweenLinks(pg, inlinkid, outlinkid, linktblName)
-    else:
-        return _GetNodeBetweenLinks(pg, inlinkid, totalPasslid.split("|")[0], linktblName)
-
 # 通过查询link与node的信息确定两条link是否相交，默认使用link_tbl表
 # 如果相交，返回连接点，否则返回空
 # linktblName: 所查询的link表, 此表必须是link_tbl的子集。

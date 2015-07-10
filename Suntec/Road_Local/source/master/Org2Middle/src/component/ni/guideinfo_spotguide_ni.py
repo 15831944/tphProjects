@@ -37,6 +37,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         self._CreateTempSpotguideLinkTbl()
         self._GenerateSpotguideTblFromBr()
         self._GenerateSpotguideTblFromDm()
+        self._GenerateSpotguideTblForTollStation()
         self.log.info("ni generate spotguide_tbl end.")
         return 0
 
@@ -67,8 +68,6 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
                     or f.outlinkid is not null
                     or g.passlid is not null;
                     
-                    select * from temp_spotguide_link_ni;
-                    
                     drop index if exists temp_spotguide_link_ni_id_idx;
                     create index temp_spotguide_link_ni_id_idx
                     on temp_spotguide_link_ni
@@ -86,7 +85,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
                            guidattr, namekind, passlid, passlid2, "type", folder
                     FROM org_br
                     where patternno is not null and arrowno is not null and "type" <> '6'
-                    order by inlinkid::bigint
+                    order by gid
                 '''
         rows = self.get_batch_data(org_br_query_sqlcmd)
         for row in rows:     
@@ -101,7 +100,6 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             passlid = row[8]
             passlid2 = row[9]
             jv_type = row[10]
-            folder = row[11]
                         
             totalPasslid = passlid
             if(passlid and passlid2):
@@ -109,22 +107,18 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             totalPasslidCount = common_func.CountPassLink(totalPasslid)
             
             # 交叉路口时四维数据里给的nodeid是路口主点，RDB里要求的是紧邻inlink的第一个node点，故需自己求出nodeid
-            nodeid = common_func._GetNodeAfterInlinkid(self.pg, inlinkid, outlinkid, 
-                                                       totalPasslid, "temp_spotguide_link_ni")
+            nodeid = None
+            if totalPasslid == '':
+                nodeid = common_func._GetNodeBetweenLinks(self.pg, inlinkid, outlinkid, 
+                                                          "temp_spotguide_link_ni")
+            else:
+                nodeid = common_func._GetNodeBetweenLinks(self.pg, inlinkid, totalPasslid.split("|")[0], 
+                                                          "temp_spotguide_link_ni")
             if nodeid is None:
                 self.log.error('one org_br record can\'t find correct nodeid. inlinkid: %s, '\
                                'outlinkid: %s, passlid: %s' % (inlinkid, outlinkid, totalPasslid))
                 # 找不到合适的nodeid，丢弃此条数据
                 continue
-            
-            # 经过查证，各个folder下可能存在同名的patternno或arrowno图片。
-            # 例如20150508所做的四维中国数据中存在以下情况：
-            # pattern图有：beijing\pattern\40210371.png 和 guangzhou\pattern\40210371.png两张同名图片
-            # arrow图有：beijing\arrow\224019.png 和 guangzhou\arrow\224019。png两张同名图片
-            # 目前情况（肉眼判断）：两个同名pattern图和arrow图是相同的。
-            # 为了预防它们有可能存在不同，在转数据时把folder加成后缀，制作插图时必须遵循此规则。
-            fixedPatternno = patternno + '_' + folder
-            fixedArrowno = arrowno + '_' + folder
             
             # 中国的数据没有SAR
             isExistSar = False 
@@ -133,7 +127,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
                              (nodeid, inlinkid, outlinkid, 
                               totalPasslid, totalPasslidCount, direction,
                               guidattr, namekind, 0,
-                              fixedPatternno, fixedArrowno, jv_type, isExistSar))
+                              patternno, arrowno, jv_type, isExistSar))
         self.pg.commit2()
     
     # 将3D交叉点模式图号的点的信息插入spotguide_tbl    
@@ -142,7 +136,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
                                     SELECT nodeid, inlinkid, outlinkid, patternno, 
                                            arrowno, passlid, folder
                                     FROM org_dm
-                                    order by inlinkid::bigint
+                                    order by gid
                                     ''' )
         for row in rows:        
             #nodeid = row[0]
@@ -150,26 +144,21 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             outlinkid = row[2]
             patternno = row[3] 
             arrowno = row[4]
-            passlid = row[5]
-            folder = row[6]
+            totalPasslid = row[5]
                          
-            passlidCount = common_func.CountPassLink(passlid)
-            
-            # 经过查证，各个folder下可能存在同名的patternno和arrowno图片。
-            # 例如20150508所做的四维中国数据中存在以下情况：
-            # pattern图有：beijing\pattern\40210371.png 和 guangzhou\pattern\40210371.png两张同名图片
-            # arrow图有：beijing\arrow\224019.png 和 guangzhou\arrow\224019。png两张同名图片
-            # 目前情况（肉眼判断）：两个同名pattern图和arrow图是相同的。
-            # 为了预防它们有可能存在不同，在转数据时把folder加成后缀，制作插图时必须遵循此规则。
-            fixedPatternno = patternno + '_' + folder
-            fixedArrowno = arrowno + '_' + folder    
+            passlidCount = common_func.CountPassLink(totalPasslid)
             
             # 交叉路口时四维数据里给的nodeid是路口主点，RDB里要求的是紧邻inlink的第一个node点，故需自己求出nodeid
-            nodeid = common_func._GetNodeAfterInlinkid(self.pg, inlinkid, outlinkid, 
-                                                       passlid, "temp_spotguide_link_ni")
+            nodeid = None
+            if totalPasslid == '':
+                nodeid = common_func._GetNodeBetweenLinks(self.pg, inlinkid, outlinkid, 
+                                                          "temp_spotguide_link_ni")
+            else:
+                nodeid = common_func._GetNodeBetweenLinks(self.pg, inlinkid, totalPasslid.split("|")[0], 
+                                                          "temp_spotguide_link_ni")
             if nodeid is None:
                 self.log.error('one org_dm record can\'t find correct nodeid. inlinkid: %s, '\
-                               'outlinkid: %s, passlid: %s' % (inlinkid, outlinkid, passlid))
+                               'outlinkid: %s, passlid: %s' % (inlinkid, outlinkid, totalPasslid))
                 # 找不到合适的nodeid，丢弃此条数据
                 continue
             
@@ -181,13 +170,61 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             
             self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
                              (nodeid, inlinkid, outlinkid, 
-                              passlid, passlidCount, 0,
+                              totalPasslid, passlidCount, 0,
                               0, 0, 0,
-                              fixedPatternno, fixedArrowno, jv_type, isExistSar))
+                              patternno, arrowno, jv_type, isExistSar))
         self.pg.commit2()
         return
 
-
+    # 将收费站作成一个spotguide点，并附上插图。
+    def _GenerateSpotguideTblForTollStation(self):
+        # 从node_tbl表可以找到每个收费站node
+        # 从link_tbl表可以根据每个收费站node的相连link
+        # 根据以上信息拼出spotguide点
+        rows = self.get_batch_data( '''
+                                    select a.node_id, b.link_id as e_node_link, e_node_link 
+                                    from 
+                                    node_tbl as a
+                                    left join link_tbl as b
+                                    on a.node_id=b.s_node
+                                    left join link_tbl as c
+                                    on a.node_id=c.e_node
+                                    where a.toll_flag=1
+                                    ''' )
+        for row in rows:        
+            nodeid = row[0]
+            
+            # 交通收费站默认没有passlid
+            passlidCount = 0
+            
+            # 
+            inlinkid=-1
+            
+            # 
+            outlinkid=-1
+            
+            #
+            totalPasslid=''
+            
+            # 交通收费站没有SAR
+            isExistSar = False
+            
+            # 交通收费站对应的类型为12
+            jv_type = 12
+            
+            # 交通收费站的pattern图统一使用 
+            patternno = str(nodeid)
+            
+            # 交通收费站没有箭头图
+            arrowno = -1
+            
+            self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
+                             (nodeid, inlinkid, outlinkid, 
+                              totalPasslid, passlidCount, 0,
+                              0, 0, 0,
+                              patternno, arrowno, jv_type, isExistSar))
+        self.pg.commit2()
+        return
             
             
             

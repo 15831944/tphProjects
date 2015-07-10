@@ -5,17 +5,16 @@ import platform.TestCase
 class CCheckBrDataUnique(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = '''
-                select count(*) from 
-                (select count(*) from org_br group by patternno, arrowno, nodeid) as a
+                select count(*)
+                            from
+                            (
+                                select patternno, arrowno, nodeid, inlinkid, outlinkid
+                                from org_br 
+                                group by patternno, arrowno, nodeid, inlinkid, outlinkid
+                                having count(*) > 1
+                          )as t
                 '''
-        rec_count1 = self.pg.getOnlyQueryResult(sqlcmd)
-        
-        sqlcmd = '''select count(*) from org_br'''
-        rec_count2 = self.pg.getOnlyQueryResult(sqlcmd)
-
-        if(rec_count1 != rec_count2):
-            return False
-        return True
+        return self.pg.getOnlyQueryResult(sqlcmd) == 0
 
 # 确认org_br表不为空
 class CCheckBrCount(platform.TestCase.CTestCase):
@@ -39,14 +38,14 @@ class CCheckAllInlinkOutlinkPasslidConnected(platform.TestCase.CTestCase):
     # 确认每组inlinkid，outlinkid都相连
     def _do(self):
         
-        # 创建一张临时表为org_bl的子集，里面仅列出了所有与spotguide有关的link信息。
+        # 创建一张临时表为org_r的子集，里面仅列出了所有与spotguide有关的link信息。
         # 优化：建立临时表，查询link两端节点时使用，提高查询速度
         sqlcmd = '''
                 drop table if exists temp_spotguide_bl;
                 
                 select *
                 into temp_spotguide_bl
-                from org_bl
+                from org_r
                 where id in (select inlinkid from org_br as il)
                    or id in (select outlinkid from org_br as ol);
                 
@@ -107,10 +106,10 @@ class CCheckAllInlinkOutlinkPasslidConnected(platform.TestCase.CTestCase):
 
         return True
     
-    # 通过查询link与node的信息确定两条link是否相交，默认使用org_bl表
+    # 通过查询link与node的信息确定两条link是否相交，默认使用org_r表
     # 如果相交，返回连接点，否则返回空
     # 通过查询优化过后的小表可以提高速度。
-    def _GetNodeBetweenLinks(self, linkid1, linkid2, tempLinkTbl="org_bl"):
+    def _GetNodeBetweenLinks(self, linkid1, linkid2, tempLinkTbl="org_r"):
         node_sqlcmd = '''
                         SELECT snode_id, enode_id FROM %s WHERE id='%s';
                     '''
@@ -127,22 +126,29 @@ class CCheckAllInlinkOutlinkPasslidConnected(platform.TestCase.CTestCase):
             return inres_row[1]
         else:
             return None
-        
+
+# 确认org_br表里的每个node都是分歧点。
+class CCheckAllNodesInBrAreJunctionPoints(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+                    select 
+                 '''
+        return True #self.pg.getOnlyQueryResult(sqlcmd) == 0
+      
 # 确认根据nodeid，inlinkid，outlinkid可以唯一找到一条org_dm数据
 class CCheckDmDataUnique(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = '''
-                select count(*) from 
-                (select count(*) from org_dm group by patternno, arrowno, nodeid) as a
+                select count(*)
+                            from
+                            (
+                                select patternno, arrowno, nodeid, inlinkid, outlinkid
+                                from org_dm 
+                                group by patternno, arrowno, nodeid, inlinkid, outlinkid
+                                having count(*) > 1
+                          )as t
                 '''
-        rec_count1 = self.pg.getOnlyQueryResult(sqlcmd)
-        
-        sqlcmd = '''select count(*) from org_dm'''
-        rec_count2 = self.pg.getOnlyQueryResult(sqlcmd)
-
-        if(rec_count1 != rec_count2):
-            print False
-        return True
+        return self.pg.getOnlyQueryResult(sqlcmd) == 0
 
 class CCheckDmCount(platform.TestCase.CTestCase):
     def _do(self):

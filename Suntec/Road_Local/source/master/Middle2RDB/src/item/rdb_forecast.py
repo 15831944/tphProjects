@@ -12,7 +12,7 @@ class rdb_forecast(ItemBase):
     @staticmethod
     def instance():
         proj_mapping = {
-            ('ta','aus'):           rdb_forecast_aus(),
+            ('ta','aus'):           rdb_forecast(),
             ('jpn'):                rdb_forecast(),
             ('jdb'):                rdb_forecast(),
             ('axf'):                rdb_forecast(),

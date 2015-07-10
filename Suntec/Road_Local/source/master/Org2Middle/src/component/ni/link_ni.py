@@ -39,6 +39,8 @@ class comp_link_ni(component.component_base.comp_base):
         self.CreateIndex2('org_r_id_idx')
         self.CreateIndex2('org_r_id_2_idx')
         self.CreateIndex2('org_r_kind_idx')
+        self.CreateIndex2('org_r_snodeid_idx')
+        self.CreateIndex2('org_r_enodeid_idx')
         
         self.CreateIndex2('temp_link_name_link_id_idx')
         self.CreateIndex2('temp_link_shield_link_id_idx')

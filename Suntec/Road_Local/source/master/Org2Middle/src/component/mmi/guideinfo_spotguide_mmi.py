@@ -141,20 +141,22 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                 
                 if(self._check_time_stamp_with_signpost(road_lyrs, sign_lyrs, arrows, times) == False):
                     continue
-                # 已与插图数据制作约定：使用第0个pattern图名字和第0个sar图名字拼成dat名字。
-                # Illust_MMI.py: 126
-                road_name = os.path.splitext(road_lyrs)[0] + sp_splitter + os.path.splitext(sign_lyrs)[0]
+                # 此处新的pattern名命名规范：
+                # 中间添加signpost分隔符，后跟sar图片名字。
+                # 制作插图数据时存在sar的插图的命名必须遵循此规则。
+                # 删去".1.png"字段, 下同
+                road_name = road_lyrs[0][:-6:1] + sp_splitter + sign_lyrs[0][:-6:1]
                 isExistSar = True # 此时存在SAR，设置is_exist_sar字段为True。
             else:
                 if(self._check_time_stamp_no_signpost(road_lyrs, arrows, times) == False):
                     continue
-                road_name = os.path.splitext(road_lyrs)[0]
+                road_name = road_lyrs[0][:-6:1] 
             nodeid = self._getnode_between_links(inlink, outlink)
             if not nodeid:
                 # inlink与outlink不相连，查找中间link列表
                 passlink, passlinkcnt, nodeid = self._get_passlink_passlinkcnt(inlink, outlink)
             
-            arrow_name = arrows[0][:-4:1]
+            arrow_name = arrows[0][:-6:1]
             direction = 0
             if 'L' in arrow_name:
                 direction = 5

@@ -33,12 +33,16 @@ class comp_regulation_ni(component.component_base.comp_base):
         self.CreateFunction2('mid_convert_condition_regulation_tbl')
         self.pg.callproc('mid_convert_condition_regulation_tbl')
         self.pg.commit2()
+        self.CreateIndex2('temp_condition_regulation_tbl_vperiod_vehcl_type_idx')
         
         self.log.info('convert condition_regulation_tbl end.')
     
     def __convert_regulation_access(self):
         self.log.info('convert regulation of access...')
         
+        self.CreateIndex2('org_r_accesscrid_idx')
+        self.CreateIndex2('org_cr_crid_idx')
+        self.CreateIndex2('org_cr_vperiod_vehcl_type_idx')
         self.CreateFunction2('mid_convert_regulation_access')
         self.pg.callproc('mid_convert_regulation_access')
         self.pg.commit2()
@@ -48,6 +52,9 @@ class comp_regulation_ni(component.component_base.comp_base):
     def __convert_regulation_oneway(self):
         self.log.info('convert regulation of oneway...')
         
+        self.CreateIndex2('org_r_onewaycrid_idx')
+        self.CreateIndex2('org_cr_crid_idx')
+        self.CreateIndex2('org_cr_vperiod_vehcl_type_idx')
         self.CreateFunction2('mid_convert_regulation_oneway')
         self.pg.callproc('mid_convert_regulation_oneway')
         self.pg.commit2()
@@ -57,6 +64,9 @@ class comp_regulation_ni(component.component_base.comp_base):
     def __convert_regulation_linkrow(self):
         self.log.info('convert regulation of linkrow...')
         
+        self.CreateIndex2('org_cond_crid_idx')
+        self.CreateIndex2('org_cr_crid_idx')
+        self.CreateIndex2('org_cr_vperiod_vehcl_type_idx')
         self.CreateFunction2('mid_convert_regulation_linkrow')
         self.pg.callproc('mid_convert_regulation_linkrow')
         self.pg.commit2()

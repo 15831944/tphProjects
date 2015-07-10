@@ -28,6 +28,7 @@ class rdb_region(ItemBase):
             ('rdf','sgp'):          rdb_region_rdf_ap(),
             ('rdf','me8'):          rdb_region_rdf_ap(),
 			('rdf','mea'):          rdb_region_rdf_ap(),
+            ('rdf','ase'):          rdb_region_rdf_ap(),
             ('rdf','na'):           rdb_region_rdf_north_america(),
             ('rdf','bra'):          rdb_region_rdf_brazil(),
             ('rdf','arg'):          rdb_region_rdf_brazil(),

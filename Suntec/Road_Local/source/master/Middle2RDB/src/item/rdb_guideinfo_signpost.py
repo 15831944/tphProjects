@@ -212,7 +212,7 @@ class rdb_guideinfo_signpost(ItemBase):
                   on lower(sp.patternno) = lower(d.image_id)
                   LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
                   on lower(sp.arrowno) = lower(e.image_id)
-                  order by sp.gid--;
+                  order by sp.gid--, f.seq_nm;
                   """
         rdb_log.log(self.ItemName, 'Now it is inserting data to rdb_guideinfo_signpost ...', 'info')
         if self.pg.execute2(sqlcmd) == -1:

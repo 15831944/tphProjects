@@ -46,6 +46,11 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
     def _make_link_name(self):
         '''道路名称(包括显示用番号)'''
         self.log.info('Make Link Name.')
+        
+        self.CreateIndex2('org_r_lname_route_id_idx')
+        self.CreateIndex2('org_r_name_route_id_idx')
+        self.CreateIndex2('org_r_phon_route_id_idx')
+        
         sqlcmd = """
             select link_id
                 ,array_agg(route_id) as route_id_array
@@ -75,18 +80,19 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                     ,c.phon_language
                 FROM org_r_lname a
                 left join org_r_name b
-                on a.route_id = b.route_id
+                on a.route_id = b.route_id and a.folder = b.folder
                 left join (
                     select route_id
                         ,pathname as phon
                         ,case when phontype = '1' then 'PYM'
-                            when phontype = '3' then 'PYT'
-                            else null
-                        end as phon_language 
+                              when phontype = '3' then 'PYT'
+                              else null
+                         end as phon_language 
                         ,'1'::text as phon_flag
+                        , folder
                     from org_r_phon where phontype in ('1','3')
                 ) c
-                on a.route_id = c.route_id and b.language = c.phon_flag
+                on b.route_id = c.route_id and b.language = c.phon_flag and b.folder = c.folder
                 order by id,seq_nm,language,name_kind,phon_language
             ) m group by link_id;
         """
@@ -111,7 +117,12 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
 
     def _make_link_shield(self):
         # 盾牌及番号
-        self.log.info('Make Link Shield.')                            
+        self.log.info('Make Link Shield.')
+        
+        self.CreateIndex2('org_r_lname_route_id_idx')
+        self.CreateIndex2('org_r_name_route_id_idx')
+        self.CreateIndex2('org_r_phon_route_id_idx')
+        
         sqlcmd = """
             select link_id
                 ,array_agg(route_id) as route_id_array
@@ -141,18 +152,19 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                     ,c.phon_language
                 FROM org_r_lname a
                 left join org_r_name b
-                on a.route_id = b.route_id
+                on a.route_id = b.route_id and a.folder = b.folder
                 left join (
                     select route_id
                         ,pathname as phon
                         ,case when phontype = '1' then 'PYM'
-                            when phontype = '3' then 'PYT'
-                            else null
-                        end as phon_language 
+                              when phontype = '3' then 'PYT'
+                              else null
+                         end as phon_language 
                         ,'1'::text as phon_flag
+                        ,folder
                     from org_r_phon where phontype in ('1','3')
                 ) c
-                on a.route_id = c.route_id and b.language = c.phon_flag
+                on b.route_id = c.route_id and b.language = c.phon_flag and b.folder = c.folder
                 where b.route_kind != '0'
                 order by id,seq_nm,language,name_kind,phon_language
             ) m group by link_id;
@@ -225,6 +237,9 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
         
     def _make_admin_name(self):
         self.log.info('Begin get admin name')
+        
+        self.CreateIndex2('org_fname_featid_idx')
+        self.CreateIndex2('org_fname_phon_featid_idx')
         
         self.CreateTable2('temp_admin_name')
         sqlcmd = '''
@@ -374,11 +389,14 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
     def _make_signpost_uc_name(self):
         self.log.info('Begin get signpost_uc name')
         
+        self.CreateIndex2('org_fname_featid_idx')
+        self.CreateIndex2('org_fname_phon_featid_idx')
         self.CreateTable2('temp_signpost_uc_path')
         self.CreateIndex2('temp_signpost_uc_path_path_id_idx')
         self.CreateTable2('temp_signpost_uc_path_id')       
         self.CreateIndex2('temp_signpost_uc_path_id_fname_idx')
         self.CreateIndex2('temp_signpost_uc_path_id_path_id_idx')
+        
         self.CreateTable2('temp_signpost_uc_name')
         sqlcmd = '''
             select path_id, array_agg(featid) as featid_array, array_agg(nametype) as nametype_array, 

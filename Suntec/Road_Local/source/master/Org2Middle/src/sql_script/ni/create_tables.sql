@@ -279,7 +279,7 @@ as
 ------------------------------------------------------------------------
 CREATE TABLE temp_node_z_level_tbl
 (
- node_id bigint NOT NULL PRIMARY KEY,
+ node_id character varying NOT NULL PRIMARY KEY,
  z_level smallint default 0
 ); 
 

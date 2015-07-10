@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//src/check/ni/org_spotguide.py=utf-8
 encoding//src/check/rdb/rdb_common_check.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_crossname.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_safetyalert.py=UTF8
