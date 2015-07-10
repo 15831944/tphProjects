@@ -366,7 +366,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         '''
         self.pg.execute2(sqlcmd)
         rows = self.pg.fetchall2()
-        allSarNameList = self._get_all_sar_pic_name_list()
+        allSarArrowList = self._get_all_sar_arrow_name_list()
         for row in rows:
             nodeid = row[0]
             inlink = row[1]
@@ -388,14 +388,8 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                                % (inlink, outlink))
                 continue
             
-            # 求是否存在SAR
-            # sar图片名字应以SR_打头。
-            # 例如某sar图SR_BH_555171664.png
-            # 对应的pattern图名字应为JV_BH_555171664.jpg
-            # 根据pattern图名字可以求出它所对应的sar图名字。
-            sarName = org_filename.lower().replace('jv_', 'sr_')
-            srPicName = sarName.replace('.svg', '.png')
-            is_exist_sar = srPicName in allSarNameList
+            # 该箭头图包含sar信息。
+            is_exist_sar = arrow_name.lower() in allSarArrowList
             
             # 求引导属性
             # attr_dir = self._get_direction_attr(ramp, bif, ca)
@@ -427,10 +421,11 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             self.log.error('Error Side. Side=%s' % side)
             return None
         
-    # 读入所有sar文件名，在确认is_exist_sar时使用。
+    # 从指定的文件中读入所有包含了sar信息的arrow图名字，用以查询是否存在sar，并确定is_exist_sar字段。
+    # 该文件在制作图片时生成。
     # 使用了配置文件项：all_sign_as_real_file_name
     # 取名时调用了lower()，返回的png名字列表均为小写。
-    def _get_all_sar_pic_name_list(self):
+    def _get_all_sar_arrow_name_list(self):
         allSarCsv = common.common_func.GetPath('all_sign_as_real_file_name')
         if os.path.isfile(allSarCsv) == False:
             return []
@@ -442,7 +437,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         allSarPicList = []
         for line in listline:
             allSarPicList.append(line.lower().strip('\n') )
-        return allSarPicList
+        return list(set(allSarPicList))
         
 
 

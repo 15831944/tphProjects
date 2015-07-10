@@ -509,7 +509,7 @@ class CCheckAdjacentNode(platform.TestCase.CTestCase):
                                           ST_DWithin(b.the_geom, a.the_geom, 0.000007186444528518818301)
                                   where b.node_id is not null
                              ) as c 
-                            where distance < 0.3 
+                            where distance < 0.3 and distance != 0
                                 and not ((x(geom1)=0 and x(geom2)=0) or (x(geom1)=4096 and x(geom2)=4096))
                                 and not ((y(geom1)=0 and y(geom2)=0) or (y(geom1)=4096 and y(geom2)=4096))
                         ) a

@@ -2,7 +2,7 @@
 # proj_rdf
 jv_flag=by_file
 gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q4\illust\gjv.csv
-ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q41\illust\all_jv.csv
+ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q4\illust\all_jv.csv
 strInterestCountryList=SGP,THA,MYS,IDN,VNM,PHL
 sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q4\illust\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV

@@ -20,11 +20,11 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
         component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
         
     def _Do(self):
+        self._loadPOICategory()
         self._loadCategoryPriority()
         self._findLogmark()
         self._makePOIName()
         self._makePOILocation()
-        self._loadPOICategory()
         self._makeLogmark()
         return 0
     
@@ -38,7 +38,17 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
                 select distinct a.poi_id
                 from rdf_poi as a
                 inner join rdf_poi_chains as b
-                on a.poi_id = b.poi_id;
+                on a.poi_id = b.poi_id
+            
+                union
+                
+                select distinct a.poi_id
+                from rdf_poi as a
+                inner join temp_poi_category as tpc
+                on tpc.org_code=a.cat_id                
+                inner join temp_category_priority as p
+                on tpc.per_code = p.u_code::bigint and p.category_priority in (1,2,4);
+                
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()
@@ -215,8 +225,9 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
                 insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.poi_id, 
                         d.per_code,
-                        (case when cc.category_priority is null  then dd.category_priority
-                              else cc.category_priority end),
+                        --(case when cc.category_priority is null  then dd.category_priority
+                              --else cc.category_priority end),
+                        cc.category_priority,      
                         b.poi_name,
                         e.the_geom
                 from temp_poi_logmark as a
@@ -228,10 +239,9 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
                 on c.cat_id = d.org_code
                 left join temp_poi_location as e
                 on a.poi_id = e.poi_id
+                
                 left join temp_category_priority as cc
-                on cc.u_code = d.per_code ::character
-                left join temp_category_priority as dd
-                on dd.u_code = 'other'
+                on cc.u_code::bigint = d.per_code
                 order by a.poi_id;
                 """
         self.pg.execute(sqlcmd)

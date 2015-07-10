@@ -6,6 +6,7 @@ Created on 2011-12-22
 '''
 
 import platform.TestCase
+import json
 
 #LinkID唯一性
 class CCheckLinkIDUnique(platform.TestCase.CTestCase):
@@ -283,6 +284,23 @@ class CCheckRoadTypeValid_Nostra(platform.TestCase.CTestCase):
                     return True
             return False
 
+class CCheckRoadTypeValid_NI(platform.TestCase.CTestCase):
+    def _do(self):
+                    
+        sqlcmd = """
+
+               select count(a.road_type)
+                from
+                    (select unnest(ARRAY[0,1,2,3,4,6,7,8,9,10,14]) as road_type) as a
+                left join
+                    (select distinct road_type from rdb_link) as b
+                on a.road_type = b.road_type
+                where b.road_type is null;                    
+            """
+
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt != 0)
+        
 class CCheckRoadTypeValid_RDF(platform.TestCase.CTestCase):
     def _do(self):
                     
@@ -294,7 +312,6 @@ class CCheckRoadTypeValid_RDF(platform.TestCase.CTestCase):
                         (select distinct road_type from rdb_link) as b
                     on a.road_type = b.road_type
                     where b.road_type is null;
-                    
                 """
 
             self.pg.execute(sqlcmd)
@@ -303,7 +320,42 @@ class CCheckRoadTypeValid_RDF(platform.TestCase.CTestCase):
                 if row[0] == 0:
                     return True
             return False
-        
+
+class CCheckRoadTypeValid_HKG(platform.TestCase.CTestCase):
+    def _do(self):
+                    
+        sqlcmd = """
+               select count(a.road_type)
+                from
+                    (select unnest(ARRAY[0,2,3,4,6,8,10,12,14]) as road_type) as a
+                left join
+                    (select distinct road_type from rdb_link) as b
+                on a.road_type = b.road_type
+                where b.road_type is null;
+            """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)
+
+class CCheckRoadTypeValid_RDF(platform.TestCase.CTestCase):
+    def _do(self):
+                    
+            sqlcmd = """
+                   select count(a.road_type)
+                    from
+                        (select unnest(ARRAY[0,2,3,4,6,8,10,12,14]) as road_type) as a
+                    left join
+                        (select distinct road_type from rdb_link) as b
+                    on a.road_type = b.road_type
+                    where b.road_type is null;
+                """
+
+            self.pg.execute(sqlcmd)
+            row = self.pg.fetchone()
+            if row:
+                if row[0] == 0:
+                    return True
+            return False
+                        
 class CCheckRoadTypeValid_MMI(platform.TestCase.CTestCase):
     def _do(self):
                     
@@ -368,7 +420,7 @@ class CCheckOnewayValid(platform.TestCase.CTestCase):
                         on a.id = c.id
                     ) d 
                     where oneway1::float/all_cnt::float < 0.8 
-                    or oneway4::float/all_cnt::float > 0.03;
+                    or oneway4::float/all_cnt::float > 0.05;
                                      
                 """
 
@@ -1159,7 +1211,47 @@ class CCheckLinkTypeValid_MSM(platform.TestCase.CTestCase):
                 if row[0] == 0:
                     return True
             return False 
-                                        
+
+class CCheckLinkTypeValid_NI(platform.TestCase.CTestCase):
+    def _do(self):
+  
+            sqlcmd = """
+                   select count(a.link_type)
+                    from
+                        (select unnest(ARRAY[0,1,2,3,4,5,6,7,8,9]) as link_type) as a
+                    left join
+                        (select distinct link_type from rdb_link) as b
+                    on a.link_type = b.link_type
+                    where b.link_type is null;                    
+                """
+
+            self.pg.execute(sqlcmd)
+            row = self.pg.fetchone()
+            if row:
+                if row[0] == 0:
+                    return True
+            return False 
+
+class CCheckLinkTypeValid_ZENRIN(platform.TestCase.CTestCase):
+    def _do(self):
+  
+            sqlcmd = """
+                   select count(a.link_type)
+                    from
+                        (select unnest(ARRAY[0,1,2,3,4,5,6,7]) as link_type) as a
+                    left join
+                        (select distinct link_type from rdb_link) as b
+                    on a.link_type = b.link_type
+                    where b.link_type is null;                    
+                """
+
+            self.pg.execute(sqlcmd)
+            row = self.pg.fetchone()
+            if row:
+                if row[0] == 0:
+                    return True
+            return False 
+                                                
 class CCheckExtendFlag(platform.TestCase.CTestCase):
     def _do(self):
         
@@ -1502,7 +1594,7 @@ class CCheckLinkAttriView_Forecast(platform.TestCase.CTestCase):
             from
             (
                 select * from rdb_link_with_all_attri_view
-                where forecast_flag is true
+                where forecast_flag is false
             )as a
             left join rdb_forecast_link b
             on a.link_id = b.link_id
@@ -1518,8 +1610,296 @@ class CCheckLinkAttriView_Forecast(platform.TestCase.CTestCase):
             )as a
             left join rdb_forecast_link b
             on a.link_id = b.link_id
-            where b.link_id is not null            
+            where b.link_id is null           
         ) c;
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0) 
+    
+class CCheckLinkAttriView_SSequence_Key(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        select count(*) from (
+            select a.*
+            from
+            (
+                select * from rdb_link_with_all_attri_view
+                where s_sequence_link_id != -1
+            )as a
+            left join rdb_link b
+            on a.link_id = b.link_id
+            where b.link_id is null
+        ) c;
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)     
+    
+class CCheckLinkAttriView_SSequence_Valid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        select * from rdb_link_with_all_attri_view a
+        left join rdb_link_with_all_attri_view b
+        on a.s_sequence_link_id = b.link_id
+        where a.s_sequence_link_id != -1
+        and a.start_node_id not in (b.start_node_id,b.end_node_id)
+        and a.end_node_id not in (b.start_node_id,b.end_node_id);
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0) 
+    
+class CCheckLinkAttriView_ESequence_Key(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        select count(*) from (
+            select a.*
+            from
+            (
+                select * from rdb_link_with_all_attri_view
+                where e_sequence_link_id != -1
+            )as a
+            left join rdb_link b
+            on a.link_id = b.link_id
+            where b.link_id is null
+        ) c;
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0) 
+    
+class CCheckLinkAttriView_ESequence_Valid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        select * from rdb_link_with_all_attri_view a
+        left join rdb_link_with_all_attri_view b
+        on a.e_sequence_link_id = b.link_id
+        where a.e_sequence_link_id != -1
+        and a.start_node_id not in (b.start_node_id,b.end_node_id)
+        and a.end_node_id not in (b.start_node_id,b.end_node_id);
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)     
+        
+class CCheckMatchingFlag_Val(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*) from rdb_link 
+            where matching_flag not in (0,1);               
+            """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)                  
+
+class CCheckMatchingFlag_Null(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*) from rdb_link 
+            where matching_flag != 0;                   
+            """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)
+    
+class CCheckMatchingFlag_NotNull(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+               select count(a.matching_flag)
+                from
+                    (select unnest(ARRAY[0,1]) as matching_flag) as a
+                left join
+                    (select distinct matching_flag from rdb_link) as b
+                on a.matching_flag = b.matching_flag
+                where b.matching_flag is null;                   
+            """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)
+    
+class CCheckABSLink(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*)
+            from rdb_link_with_all_attri_view a
+            left join rdb_link_abs b
+            on a.abs_link_id = b.abs_link_id 
+            where a.abs_link_id != 0 and b.abs_link_id is null;                 
+            """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)    
+
+class CCheckRoadName_type(platform.TestCase.CTestCase):
+    def _do(self):
+        #type取值范围{'office_name','route_num','alter_name','bridge_name'}。
+        sqlcmd = """
+            select link_id, road_name
+            from rdb_link
+            where road_name is not null;                 
+            """
+        datas = self.pg.get_batch_data(sqlcmd) 
+
+        for data in datas:
+            link_id = data[0]
+            road_name = data[1]
+            
+            find_flag = 0
+            multi_name_info = json.loads(road_name)
+            for one_name_info in multi_name_info:
+                for name_dict in one_name_info:
+                    name_type = name_dict.get('type')
+                    tts_type = name_dict.get('tts_type')                    
+                    left_right = name_dict.get('left_right')
+
+                    if name_type == 'office_name' or name_type == 'route_num'\
+                        or name_type == 'alter_name' or name_type == 'bridge_name':
+                        find_flag = 1
+                    if tts_type == 'not_tts' or tts_type == 'text'\
+                        or tts_type == 'phoneme' or tts_type == 'phoneme_text':
+                        find_flag = 1
+                    if left_right == 'left_right' or left_right == 'left_name'\
+                        or left_right == 'right_name':
+                        find_flag = 1
+                                                
+            if find_flag == 0:
+                self.logger.info("RoadName: Wrong type/tts_type/left_right (id=%d)" % (link_id))
+                return 0
+        
+        return 1 
+           
+class CCheckRoadName_TTS(platform.TestCase.CTestCase):
+    def _do(self):
+        #tts必须与非tts同时存在.
+        sqlcmd = """
+            select link_id, road_name
+            from rdb_link
+            where road_name is not null;                 
+            """
+        datas = self.pg.get_batch_data(sqlcmd) 
+
+        for data in datas:
+            link_id = data[0]
+            road_name = data[1]
+            tts_type_array = []
+            multi_name_info = json.loads(road_name)
+            for one_name_info in multi_name_info:
+                for name_dict in one_name_info:
+                    tts_type = name_dict.get('tts_type')
+                    tts_type_array.append(tts_type)
+                    
+                try:
+                    if tts_type_array.index(u'phoneme') >= 0 or tts_type_array.index(u'phoneme_text') >= 0 \
+                        or tts_type_array.index(u'text') >= 0:
+                        # 'phoneme' or 'phoneme_text' was found.
+                        try :
+                            if tts_type_array.index(u'not_tts') >= 0:
+                                pass
+                        except:
+                            # 'not_tts' not found.
+                            self.logger.error("RoadName: Wrong TTS (only TTS, no name, id=%d)" % (link_id))
+                            return 0
+                except:
+                    return 1
+            
+        return 1    
+
+class CCheckRoadNumber_shield(platform.TestCase.CTestCase):
+    def _do(self):
+        # 道路番号必须有盾牌.
+        sqlcmd = """
+            select link_id, road_number
+            from rdb_link
+            where road_number is not null;                 
+            """
+        datas = self.pg.get_batch_data(sqlcmd) 
+
+        for data in datas:
+            link_id = data[0]
+            road_number = data[1]
+            tts_type_array = []
+            
+            road_number = road_number.replace('\t','\\t')
+            multi_name_info = json.loads(road_number)
+            for one_name_info in multi_name_info:
+                for name_dict in one_name_info:
+                    tts_type = name_dict.get('tts_type')
+                    type = name_dict.get('type')
+                    val = name_dict.get('val')
+                    
+                    if tts_type == 'not_tts' and type == 'shield':
+                        if not (val.find('\t') >= 0):
+                            self.logger.error("RoadNumber: Wrong shield (no tab, id=%d)" % (link_id))
+                            return 0
+           
+        return 1  
+
+class CCheckRoadNumber_type(platform.TestCase.CTestCase):
+    def _do(self):
+        # 类型必须是'shield'.
+        sqlcmd = """
+            select link_id, road_number
+            from rdb_link
+            where road_number is not null;                 
+            """
+        datas = self.pg.get_batch_data(sqlcmd) 
+
+        for data in datas:
+            link_id = data[0]
+            road_number = data[1]
+            tts_type_array = []
+            
+            road_number = road_number.replace('\t','\\t')
+            multi_name_info = json.loads(road_number)
+            for one_name_info in multi_name_info:
+                for name_dict in one_name_info:
+                    type = name_dict.get('type')
+                    tts_type = name_dict.get('tts_type')
+                    left_right = name_dict.get('left_right')
+                     
+                    if type == 'shield' :
+                        find_flag = 1
+                    if tts_type == 'not_tts' or tts_type == 'text'\
+                        or tts_type == 'phoneme' or tts_type == 'phoneme_text':
+                        find_flag = 1
+                    if left_right == 'left_right' or left_right == 'left_name'\
+                        or left_right == 'right_name':
+                        find_flag = 1
+                                                
+            if find_flag == 0:
+                self.logger.info("RoadNumber: Wrong type/tts_type/left_right (id=%d)" % (link_id))
+                return 0
+        
+        return 1 
+
+class CCheckRoadNumber_TTS(platform.TestCase.CTestCase):
+    def _do(self):
+        #tts必须与非tts同时存在.
+        sqlcmd = """
+            select link_id, road_number
+            from rdb_link
+            where road_number is not null;                 
+            """
+        datas = self.pg.get_batch_data(sqlcmd) 
+
+        for data in datas:
+            link_id = data[0]
+            road_number = data[1]
+
+            road_number = road_number.replace('\t','\\t')
+            tts_type_array = []
+            multi_name_info = json.loads(road_number)
+            for one_name_info in multi_name_info:
+                for name_dict in one_name_info:
+                    tts_type = name_dict.get('tts_type')
+                    tts_type_array.append(tts_type)
+                    
+                try:
+                    if tts_type_array.index(u'phoneme') >= 0 or tts_type_array.index(u'phoneme_text') >= 0 \
+                        or tts_type_array.index(u'text') >= 0:
+                        # 'phoneme' or 'phoneme_text' was found.
+                        try :
+                            if tts_type_array.index(u'not_tts') >= 0:
+                                pass
+                        except:
+                            # 'not_tts' not found.
+                            self.logger.error("RoadNumber: Wrong TTS (only TTS, no number, id=%d)" % (link_id))
+                            return 0
+                except:
+                    return 1
+            
+        return 1    
+    
+           

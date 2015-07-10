@@ -97,22 +97,19 @@ class rdb_guideinfo_spotguide(ItemBase):
         # 从node_tbl搜刮出toll_flag=1的点。
         # 一些仕向地提供了toll station数据及元数据图片，这些数据在o2m的时候已被做到spotguide_tbl表中。
         # 为防止与这些toll station点重复，这里使用spotguide_tbl对搜出的toll_station列表进行了过滤。
-        # 关于link_tbl中的one_way_code（以s_node->e_node为正向）：
-        # 1: 双向：双方向可以通行
-        # 2: 正向通行
-        # 3: 反向通行
         sqlcmd = """
-                select a.node_id, array_agg(b.link_id) as inlinklist, 
-                array_agg(c.link_id) as outlinklist, 
+                select a.node_id, array_agg(b.link_id) as slinkid, array_agg(b.one_way_code) as soneway, 
+                array_agg(c.link_id) as elinkid, array_agg(c.one_way_code) as eoneway
                 from
                 node_tbl as a
                 left join link_tbl as b
-                on (a.node_id = b.s_node and b.one_way_code in (1,3))
+                on a.node_id=b.s_node
                 left join link_tbl as c
-                on (a.node_id = c.e_node and c.one_way_code in (1,2))
+                on a.node_id=c.e_node
                 left join spotguide_tbl as d
-                on a.node_id=d.nodeid and d.type=12 and d.nodeid is null
+                on a.node_id=d.nodeid
                 where a.toll_flag=1
+                and d.nodeid is null
                 group by a.node_id
           """
           
@@ -135,8 +132,36 @@ class rdb_guideinfo_spotguide(ItemBase):
         rows = self.pg.fetchall2()
         for row in rows:
             node_id=row[0]
-            inLinkList = row[1] # 此node的inlink列表
-            outLinkList = row[2] # 此node的outlink列表
+            sNodeLinkList = row[1] # 以此node为s_node的link列表
+            sOneWayList = row[2] # 对应的one_way_code列表
+            eNodeLinkList = row[3] # 以此node为e_node的link列表
+            eOneWayList = row[4] # 对应的one_way_code列表
+            
+            inLinkList = []
+            outLinkList = []
+            # 根据s_node列表和它对应的one_way_code找出该node的inlink列表和outlink列表。
+            for x in zip(sNodeLinkList, sOneWayList):
+                if x[1] == 1: # 双向：双方向可以通行
+                    inLinkList.append(x[0])
+                    outLinkList.append(x[0])
+                elif x[1] == 2: # 正向通行
+                    outLinkList.append(x[0])
+                elif x[1] == 3: # 反向通行
+                    inLinkList.append(x[0])
+                else:
+                    continue
+                
+            # 根据e_node列表和它对应的one_way_code找出该node的inlink列表和outlink列表。
+            for x in zip(eNodeLinkList, eOneWayList):
+                if x[1] == 1:
+                    inLinkList.append(x[0])
+                    outLinkList.append(x[0])
+                elif x[1] == 2:
+                    inLinkList.append(x[0])
+                elif x[1] == 3:
+                    outLinkList.append(x[0])
+                else:
+                    continue
             
             # 根据求出的inlink列表和outlink列表作成inlink --> node --> outlink值对。 
             for oneInLink in inLinkList:
@@ -150,23 +175,12 @@ class rdb_guideinfo_spotguide(ItemBase):
         return 0
     
     def _DoCheckValues(self):
-        'check字段值'
-        sqlcmd = """
-                ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists check_type;
-                ALTER TABLE rdb_guideinfo_spotguidepoint
-                  ADD CONSTRAINT check_type CHECK (type = ANY (ARRAY[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]));
-                """
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
-            return 0
+        # 此处不再进行check，全部转移到autocheck的rdb_check模块中进行。
+        return 0
             
     def _DoContraints(self):
-        '添加外键'
-        # 检查Arrow图片ID
-        self.checkArrowIdAndAddConstraint()
-        
+        # 添加外键:
+        # 由于添加了toll station，arrow_id部分为零也属于合理情况，故不为arrow_id建立外键。
         sqlcmd = """
                 ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists rdb_guideinfo_spotguidepoint_in_link_id_fkey;           
                 ALTER TABLE rdb_guideinfo_spotguidepoint
@@ -197,42 +211,4 @@ class rdb_guideinfo_spotguide(ItemBase):
         else:
             self.pg.commit2()
             return 0
-        
-    def checkArrowIdAndAddConstraint(self):
-        '检查Arrow图片ID.'
-        rdb_log.log(self.ItemName, 'Check Arrow_ids of SpotGuide.', 'info') 
-        sqlcmd = """
-                select 
-                    (
-                    select count(gid)
-                     FROM rdb_guideinfo_spotguidepoint
-                    ),
-                    (SELECT count(gid)
-                      FROM rdb_guideinfo_spotguidepoint
-                      where arrow_id is null or arrow_id = 0
-                    );
-                """
-        self.pg.execute2(sqlcmd)
-        row = self.pg.fetchone2()
-        if row:
-            all_num   = row[0]
-            arrow_num = row[1]
-            # 所有的Arrow_id都为0
-            if all_num == arrow_num:
-                return 0
-            # 没有Arrow_id为0, 那就给Arrow_id创建外键
-            if arrow_num == 0:
-                sqlcmd = """
-                        ALTER TABLE rdb_guideinfo_spotguidepoint DROP CONSTRAINT if exists rdb_guideinfo_spotguidepoint_arrow_id_fkey;
-                        ALTER TABLE rdb_guideinfo_spotguidepoint
-                          ADD CONSTRAINT rdb_guideinfo_spotguidepoint_arrow_id_fkey FOREIGN KEY (arrow_id)
-                              REFERENCES rdb_guideinfo_pic_blob_bytea (gid) MATCH FULL
-                              ON UPDATE NO ACTION ON DELETE NO ACTION;
-                        """
-                self.pg.execute2(sqlcmd) 
-                self.pg.commit2()
-                return 0
-            # 有一部分Arrow_id为0, 输出Warning提示
-            rdb_log.log(self.ItemName, 'There are ' + str(arrow_num) +' records(Arrow_id is 0 or NUll).', 'warning')
-        return 0
-    
+

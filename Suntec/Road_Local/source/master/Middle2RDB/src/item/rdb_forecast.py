@@ -25,7 +25,8 @@ class rdb_forecast(ItemBase):
             ('nostra'):             rdb_forecast(),
             ('mmi'):                rdb_forecast(),
             ('msm'):                rdb_forecast(),
-            ('ni'):                 rdb_forecast(),            
+            ('ni'):                 rdb_forecast(),     
+            ('zenrin'):             rdb_forecast(),       
         }
         return rdb_common.getItem(proj_mapping)
 
@@ -795,6 +796,14 @@ class rdb_forecast_aus(ItemBase):
         self.CreateIndex2('rdb_forecast_link_link_id_t_idx')
         self.CreateIndex2('rdb_forecast_control_info_id_idx1')
         self.CreateIndex2('rdb_forecast_time_time_id_idx1')
-                    
+
+        sqlcmd = """
+        cluster rdb_forecast_link using rdb_forecast_link_link_id_t_idx;
+        analyze rdb_forecast_link;
+        cluster rdb_forecast_control using rdb_forecast_control_info_id_idx1;
+        analyze rdb_forecast_control;
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()                    
         
         

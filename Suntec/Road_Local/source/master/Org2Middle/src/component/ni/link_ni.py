@@ -56,7 +56,12 @@ class comp_link_ni(component.component_base.comp_base):
                 disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, the_geom
             )
               select 
-                    link_id, 'CHN' as iso_country_code, s_node, e_node, 
+                    link_id, 
+                    case when folder = 'aomen' then 'MAC'
+                        when folder = 'xianggang' then 'HKG'
+                        else 'CHN'
+                    end as iso_country_code, 
+                    s_node, e_node, 
                     display_class, link_type, road_type, toll, speed_class::smallint, 
                     length, function_class, 0 as lane_dir, 
                     ni_cnv_lane( one_way_code, lanenums2e, lanenume2s, true) as lane_num_s2e, 

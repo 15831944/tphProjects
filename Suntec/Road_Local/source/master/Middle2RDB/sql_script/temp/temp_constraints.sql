@@ -876,6 +876,10 @@ CREATE INDEX temp_forecast_time_distinct_time_slot_array_time_array_idx
   USING btree
   (time_slot_array, weekday_diff_array, weekend_diff_array);
 
+CREATE INDEX rdf_link_rtic_linkid_idx
+	on rdf_link_rtic
+	using btree
+	(linkid);
 CREATE INDEX org_rtic_linkid_idx
 	on org_rtic
 	using btree

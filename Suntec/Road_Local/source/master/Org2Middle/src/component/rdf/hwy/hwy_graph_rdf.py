@@ -1283,17 +1283,13 @@ class HwyGraphRDF(HwyGraph):
                 tollgate.add(node)
         return len(tollgate)
 
-    def all_path_2_hwy_main(self, u, v, code_field=HWY_ROAD_CODE,
+    def all_path_2_hwy_main(self, path, code_field=HWY_ROAD_CODE,
                             reverse=False, cutoff=MAX_CUT_OFF):
         '''通往高速本线的路径'''
         if cutoff < 1:
             return
-        if reverse:  # 逆
-            source = u
-            visited = [v, u]
-        else:  # 顺
-            source = v
-            visited = [u, v]
+        source = path[-1]
+        visited = path[:]
         if source not in self:
             return
         nodes = self._get_not_main_link(visited[-1], code_field, reverse, True)
@@ -1335,6 +1331,62 @@ class HwyGraphRDF(HwyGraph):
                     if nodes:
                         visited.append(child)
                         stack.append(iter(nodes))
+                elif len(visited) == cutoff:
+                    stack.pop()
+                    visited.pop()
+
+    def all_path_2_normal_road(self, path, code_field=HWY_ROAD_CODE,
+                               reverse=False, cutoff=MAX_CUT_OFF):
+        '''通往一般道的路径'''
+        if cutoff < 1:
+            return
+        source = path[-1]
+        visited = path[:]
+        if source not in self:
+            return
+        nodes = self._get_not_main_link(visited[-1], code_field, reverse, True)
+        if not nodes:
+            # 直接和高速本线相连
+            main_node = self.get_main_link(visited[-1], None, code_field,
+                                           False, reverse)
+            for node in main_node:
+                if self.check_regulation(visited + [node], reverse):
+                    yield visited + [node]
+            return
+        stack = [iter(nodes)]
+        while stack:
+            children = stack[-1]
+            child = next(children, None)
+            temp_path = visited + [child]
+            if child is None:
+                stack.pop()
+                visited.pop()
+            elif(len(visited) >= 2 and child == visited[-2]):  # 折返
+                # 即 不是断头路的最后一个点, 不能折返
+                continue
+            elif not self.check_regulation(temp_path, reverse):
+                continue
+            elif len(visited) <= cutoff:
+                if len(visited) < cutoff:
+                    # 和一般道交汇
+                    if self.is_hwy_inout(temp_path, reverse):
+                        yield temp_path
+                    # 取得非本线
+                    nodes = self._get_not_main_link(child, code_field,
+                                                    reverse, True)
+                    if nodes:
+                        visited.append(child)
+                        stack.append(iter(nodes))
+                    else:
+                        # 和一般道相连
+                        if reverse:  # 逆
+                            u = temp_path[-1]
+                            v = temp_path[-2]
+                        else:  # 顺
+                            u = temp_path[-2]
+                            v = temp_path[-1]
+                        if self.get_normal_link(u, v, reverse):
+                            yield temp_path
                 elif len(visited) == cutoff:
                     stack.pop()
                     visited.pop()

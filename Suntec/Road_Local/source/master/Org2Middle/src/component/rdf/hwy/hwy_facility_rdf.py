@@ -57,6 +57,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
 
     def _Do(self):
         self._make_ic_path()
+        self._filter_service_road()
+        # SAPA对应的Rest Area POI情报
         self._make_sapa_info()
         self._deal_with_uturn()  # 处理U-Turn
         # 148.11217,-35.00432
@@ -73,7 +75,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.log.info('Start make IC Path.')
         self.pg.connect1()
         self.CreateTable2('mid_temp_hwy_ic_path')
-        self.CreateTable2('mid_temp_hwy_service_road_path')
+        self.CreateTable2('mid_temp_hwy_service_road_path1')
         for road_code, route_path in self.hwy_data.get_road_code_path():
             self.org_facil_dict = {}  # 清空
             next_seq = ROAD_SEQ_MARGIN
@@ -875,6 +877,150 @@ class HwyFacilityRDF(component.component_base.comp_base):
             path = [int(n) for n in node_lid.split(',')]
             yield (u_roadcode, u_roadseq, u_inout, path, f_facils, t_facils)
 
+    def _filter_service_road(self):
+        '''筛选辅路、类辅路， 从辅路路径选出SAPA路径(路径两头都有SAPA设施)'''
+        self.CreateTable2('mid_temp_hwy_service_road_path2')
+        for sr_info in self._get_service_road():
+            road_code, inout = sr_info[0:2]
+            f_road_seqs, f_facilcls_cs = sr_info[2:4]
+            t_road_seqs, t_facilcls_cs = sr_info[4:6]
+            node_lid, link_lid = sr_info[6:8]
+            node_lid = eval(node_lid + ',')
+            link_lid = eval(link_lid + ',')
+            node_id = node_lid[0]
+            to_node_id = node_lid[-1]
+            comm_seqs = self._get_comm_road_seq(f_road_seqs, f_facilcls_cs,
+                                                t_road_seqs, t_facilcls_cs)
+            # 两头都有IC设施
+            if HWY_IC_TYPE_IC in comm_seqs:
+                # ## 辅路、类辅路其实只是出入口(辅路路径link是出入口路径link的合集子集)
+                link_set = set(link_lid)
+                # 取得起点，IC路径link集合
+                f_link_set = self._get_ic_path_link_set(road_code, node_id,
+                                                        inout, f_road_seqs,
+                                                        f_facilcls_cs)
+                if not f_link_set:
+                    self.log.error('No From Link Set. node=%,to_node=%s'
+                                   % (node_id, to_node_id))
+                # 取得终点，IC路径link集合
+                t_inout = HWY_INOUT_TYPE_IN
+                if inout == HWY_INOUT_TYPE_IN:
+                    t_inout = HWY_INOUT_TYPE_OUT
+                t_link_set = self._get_ic_path_link_set(road_code, to_node_id,
+                                                        t_inout, t_road_seqs,
+                                                        t_facilcls_cs)
+                if not t_link_set:
+                    self.log.error('No To Link Set. node=%,to_node=%s'
+                                   % (node_id, to_node_id))
+                # 辅路路径link是出入口路径link的合集子集
+                if link_set.issubset(f_link_set.union(t_link_set)):
+                    # print link_lid
+                    continue
+            # 如果两头有SAPA设施，那么该路径就是SAPA路径
+            if(HWY_IC_TYPE_SA in comm_seqs or HWY_IC_TYPE_PA in comm_seqs):
+                if HWY_IC_TYPE_SA in comm_seqs:
+                    f_seq_list, t_seq_list = comm_seqs[HWY_IC_TYPE_SA]
+                    facilcls_c = HWY_IC_TYPE_SA
+                else:
+                    f_seq_list, t_seq_list = comm_seqs[HWY_IC_TYPE_PA]
+                    facilcls_c = HWY_IC_TYPE_PA
+                if len(f_seq_list) != 1 and len(t_seq_list) != 1:
+                    self.log.error('SAPA road seq > 1. node=%s,to_node=%s'
+                                   % (node_id, to_node_id))
+                elif f_seq_list[0] != t_seq_list[0]:
+                    self.log.error('SAPA f_road_seq != t_road_seq.'
+                                   'node_id=%s, to_node_id=%s'
+                                   % (node_id, to_node_id))
+                else:
+                    path_type = IC_PATH_TYPE_DICT.get(facilcls_c)
+                    self._store_facil_path(road_code, f_seq_list[0],
+                                           facilcls_c, inout,
+                                           node_lid, path_type)
+                    continue
+            # Service
+            self._store_service_road_facil_path2(inout, node_lid, road_code)
+        pass
+
+    def _get_ic_path_link_set(self, roadcode, node, inout,
+                              road_seqs, facilcls_cs):
+        facil_name = ''
+        updown = HWY_UPDOWN_TYPE_UP
+        link_set = set()
+        for road_seq, facilcls in zip(road_seqs, facilcls_cs):
+            if facilcls != HWY_IC_TYPE_IC:
+                continue
+            facil = HwyFacilInfo(roadcode, road_seq, facilcls,
+                                 updown, node, inout, facil_name)
+            path_infos = self.hwy_data.get_ic_path_info(facil)
+            for path_info in path_infos:
+                path_type = path_info[2]
+                if path_type == HWY_PATH_TYPE_IC:
+                    link_lid = path_info[1]
+                    link_set = link_set.union(set(link_lid))
+        return link_set
+
+    def _get_comm_road_seq(self, f_road_seqs, f_facilcls_cs,
+                           t_road_seqs, t_facilcls_cs):
+        comm_seqs = {}
+        if not f_facilcls_cs or not t_facilcls_cs:
+            return comm_seqs
+        comm_facilcls_list = set(f_facilcls_cs).intersection(set(t_facilcls_cs)
+                                                             )
+        for comm_facilcls in comm_facilcls_list:
+            f_seq_list = []
+            for road_seq, facilcls in zip(f_road_seqs, f_facilcls_cs):
+                if comm_facilcls == facilcls:
+                    f_seq_list.append(road_seq)
+            t_seq_list = []
+            for road_seq, facilcls in zip(t_road_seqs, t_facilcls_cs):
+                if comm_facilcls == facilcls:
+                    t_seq_list.append(road_seq)
+            comm_seqs[comm_facilcls] = (f_seq_list, t_seq_list)
+        return comm_seqs
+
+    def _get_service_road(self):
+        sqlcmd = '''
+        SELECT a.road_code, a.inout_c,
+               f_road_seqs, f_facilcls_cs,
+               t_road_seqs, t_facilcls_cs,
+               a.node_lid, a.link_lid
+          FROM mid_temp_hwy_service_road_path1 as a
+          LEFT JOIN (
+            SELECT node_id, road_code, inout_c,
+                   array_agg(road_seq) as f_road_seqs,
+                   array_agg(facilcls_c) as f_facilcls_cs
+              FROM (
+                SELECT DISTINCT node_id, road_code, inout_c,
+                       road_seq, facilcls_c
+                  FROM mid_temp_hwy_ic_path
+                  ORDER BY  node_id, road_code, road_seq, facilcls_c
+              ) AS f
+              where facilcls_c not in (10) -- Not u-turn
+              group by node_id, road_code, inout_c
+          ) as b
+          ON a.node_id = b.node_id and
+             a.road_code = b.road_code and
+             a.inout_c = b.inout_c
+          left join (
+            SELECT node_id, road_code, inout_c,
+                   array_agg(road_seq) as t_road_seqs,
+                   array_agg(facilcls_c) as t_facilcls_cs
+              FROM (
+                SELECT DISTINCT node_id, road_code, inout_c,
+                       road_seq, facilcls_c
+                  FROM mid_temp_hwy_ic_path
+                  ORDER BY  node_id, road_code, road_seq, facilcls_c
+              ) AS t
+              where facilcls_c not in (10) -- Not u-turn
+              group by node_id, road_code, inout_c
+          ) as c
+          ON a.to_node_id = c.node_id and
+             a.road_code = c.road_code and
+             (a.inout_c = 1 and c.inout_c = 2 or
+              a.inout_c = 2 and c.inout_c = 1)
+        '''
+        return self.get_batch_data(sqlcmd)
+
 # ==============================================================================
 #
 # ==============================================================================
@@ -907,7 +1053,30 @@ class HwyFacilityRDF(component.component_base.comp_base):
     def _store_service_road_facil_path(self, inout_c, path, road_code):
         '''辅路、类辅路设施'''
         sqlcmd = """
-        INSERT INTO mid_temp_hwy_service_road_path(
+        INSERT INTO mid_temp_hwy_service_road_path1(
+                                              inout_c, node_id, to_node_id,
+                                              node_lid, link_lid, road_code)
+           VALUES(%s, %s, %s,
+                  %s, %s, %s)
+        """
+        node_id = path[0]
+        to_node_id = path[-1]
+        node_lid = ','.join([str(node) for node in path])
+        if inout_c == HWY_INOUT_TYPE_OUT:
+            link_list = self.G.get_linkids(path)
+        elif inout_c == HWY_INOUT_TYPE_IN:
+            link_list = self.G.get_linkids(path, reverse=True)
+        else:
+            link_list = []
+        link_lid = ','.join([str(link) for link in link_list])
+        params = (inout_c, node_id, to_node_id,
+                  node_lid, link_lid, road_code)
+        self.pg.execute1(sqlcmd, params)
+
+    def _store_service_road_facil_path2(self, inout_c, path, road_code):
+        '''辅路、类辅路设施'''
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_service_road_path2(
                                               inout_c, node_id, to_node_id,
                                               node_lid, link_lid, road_code)
            VALUES(%s, %s, %s,

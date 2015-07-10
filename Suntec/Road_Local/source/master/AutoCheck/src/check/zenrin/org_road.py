@@ -72,4 +72,23 @@ class CCheckCircle(platform.TestCase.CTestCase):
                 """
         reg_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (reg_count == 0)
+
+class CCheckOneway(platform.TestCase.CTestCase):
+    def _do(self):
+        
+        sqlcmd='''
+            select count(1) from org_road
+            where oneway not in (0,1,2)
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)
     
+class CCheckNetlevel(platform.TestCase.CTestCase):
+    def _do(self):
+        
+        sqlcmd='''
+            select count(1) from org_road
+            where netlevel not in (0,1,2,3,4,5)
+                '''
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)

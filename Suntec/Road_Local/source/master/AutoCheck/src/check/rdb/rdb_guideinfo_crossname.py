@@ -5,6 +5,8 @@ CrossName类
 @author: hongchenzai
 '''
 import platform.TestCase
+import json
+
 
 class CCheckNumber(platform.TestCase.CTestCase):
     '''检查[交叉点名称]的条目数。'''
@@ -55,4 +57,23 @@ class CCheckNameID(platform.TestCase.CTestCase):
                 return True
         else:
             return False
+        
+class CCheckCross_name(platform.TestCase.CTestCase):
+    '''  cross_name为json格式，并且名称不为空'''
+    def _do(self):
+        
+        sqlcmd = """
+                SELECT cross_name
+                FROM rdb_guideinfo_crossname
+                where cross_name is not null;
+                """
+              
+        for row in self.pg.get_batch_data(sqlcmd):
+            cross_name = row[0]
+            name_lists = json.loads(cross_name)
+            for name_list in name_lists:
+                for name in name_list:
+                    if not name.get('val'):
+                        return False
+        return True        
         

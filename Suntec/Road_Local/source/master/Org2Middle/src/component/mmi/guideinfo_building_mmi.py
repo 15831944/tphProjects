@@ -48,7 +48,16 @@ class comp_guideinfo_building_mmi(component.default.guideinfo_building.comp_guid
                 
                 union
                 
-                select a.uid,a.std_name,a.cat_code,tpc.per_code,a.lat,a.lon,a.the_geom
+                select a.uid as poi_id,a.std_name,a.cat_code,tpc.per_code,a.lat,a.lon,a.the_geom
+                from org_poi_point as a
+                inner join temp_poi_category as tpc
+                on tpc.org_code=a.cat_code                
+                inner join temp_category_priority as p
+                on tpc.per_code = p.u_code::bigint and p.category_priority in (1,2,4)
+                
+                union
+                
+                select a.uid as poi_id,a.std_name,a.cat_code,tpc.per_code,a.lat,a.lon,a.the_geom
                 from org_poi_point as a
                 inner join temp_poi_category as tpc
                 on tpc.logmark = 'Y' and a.cat_code=tpc.org_code ;
@@ -133,7 +142,6 @@ class comp_guideinfo_building_mmi(component.default.guideinfo_building.comp_guid
                                                                                                  asso_rec[4])
             temp_file_obj.write('%d\t%s\n' % (poi_id, json_name))
         
-        #
         temp_file_obj.seek(0)
         self.pg.copy_from2(temp_file_obj, 'temp_poi_name')
         self.pg.commit2()
@@ -149,17 +157,14 @@ class comp_guideinfo_building_mmi(component.default.guideinfo_building.comp_guid
                 insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.poi_id, 
                         a.type_code,
-                        (case when c.category_priority is null then dd.category_priority
-                              else c.category_priority end),
+                        c.category_priority,
                         b.poi_name,
                         ST_GeometryN(a.the_geom,1)
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
                  on a.poi_id = b.poi_id
                 left join temp_category_priority as c
-                on c.u_code = a.type_code::character
-                left join temp_category_priority as dd
-                on dd.u_code = 'other' ;
+                on c.u_code::bigint = a.type_code;
                     
                 """
         self.pg.execute(sqlcmd)

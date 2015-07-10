@@ -150,7 +150,23 @@ class CCheckTileAdminGeomValid(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
 
         return   self.pg.getcnt() == 0
-
+    
+class CCheckTileAdminGeomArea(platform.TestCase.CTestCase):
+    def _do(self):
+        pro_name = common.ConfigReader.CConfigReader.instance()
+        strArea = pro_name.getCountryName()
+        if strArea.lower() == 'twn':
+            twn_area = 36192 * 1000000        
+            sqlcmd = """
+                     SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
+                     FROM rdb_tile_admin_zone WHERE ad_code <> -1;
+                     """
+            sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+            diff_per = abs(sum_area - twn_area) / twn_area
+            return (diff_per <= 0.02)
+        
+        return True
+    
 class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
     '''
     only check idn's area for test

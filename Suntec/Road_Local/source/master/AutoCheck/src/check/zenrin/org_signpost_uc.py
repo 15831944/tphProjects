@@ -1,111 +1,50 @@
-# coding:utf-8
+# -*- coding: UTF8 -*-
+#!/usr/bin/python
+'''
+Created on 2015-6-29
+
+@author: wushengbing
+'''
 import platform.TestCase
 
-'''
-********************************************************************************
-以下检查针对表org_cross_name
-元数据协议：《汎用シェープ台湾版_仕様書.pdf》或《Specification_TaiwanShape.pdf》第2.1.16
-********************************************************************************
-'''
-# 确认org_cross_name表不为空。
-class CCheckTblOrgCrossNameNotNull(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
 
-# 确认org_cross_name.fromnodeno在node表中存在
-class CCheckOrgCrossNameFromNodeNoExists(platform.TestCase.CTestCase):
+class CCheckTable(platform.TestCase.CTestCase):
     def _do(self):
-        sqlcmd = '''
-                '''
-        return True
+        return self.pg.IsExistTable('org_dest_guide')
 
-# 确认org_cross_name.tonodeno在node表中存在
-class CCheckOrgCrossNameToNodeNoExists(platform.TestCase.CTestCase):
+   
+class CCheckTableCount(platform.TestCase.CTestCase):
     def _do(self):
-        sqlcmd = '''
-                '''
-        return True
+        sqlcmd='''
+                select count(1) from org_dest_guide
+               '''
+        return self.pg.getOnlyQueryResult(sqlcmd) > 0
+
     
-# 确认当org_cross_name.nextflg标记了有多条name或reading时，必定可以找到每条记录
-class CCheckOrgCrossName_Name_Reading(platform.TestCase.CTestCase):
+class CCheckTnodeInlink(platform.TestCase.CTestCase):
+    '''检查tnode 是否在 inlink上'''
     def _do(self):
         sqlcmd = '''
-                '''
-        return True
-
-'''
-********************************************************************************
-以下检查针对表org_dest_guide
-元数据协议：《汎用シェープ台湾版_仕様書.pdf》或《Specification_TaiwanShape.pdf》第2.1.17
-********************************************************************************
-'''
-# 确认org_dest_guide表不为空。
-class CCheckTblOrgDestGuideNotNull(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
-
-# 确认org_dest_guide.stotlinkno在link表中存在
-class CCheckOrgDestGuideSTotLinkNoExists(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
-
-# 确认org_dest_guide.ttoelinkno在link表中存在
-class CCheckOrgDestGuideTToeLinkNoExists(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
+            select count(*) 
+            from  org_dest_guide as a
+            join org_road as r
+            on r.meshcode = a.meshcode and r.linkno = a.stotlinkno 
+               and not (a.tnodeno = r.snodeno or a.tnodeno = r.enodeno)  
+         '''
+        return self.pg.getOnlyQueryResult(sqlcmd)==0
+ 
     
-# 确认org_dest_guide.snodeno在node表中存在
-class CCheckOrgDestGuideSNodeNoExists(platform.TestCase.CTestCase):
+class CCheckTnodeOutlink(platform.TestCase.CTestCase):
+    '''检查 tnode 是否在 outlink上'''
     def _do(self):
         sqlcmd = '''
-                '''
-        return True
-
-# 确认org_dest_guide.tnodeno在node表中存在
-class CCheckOrgDestGuideTNodeNoExists(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
-
-# 确认org_dest_guide.enodeno在node表中存在
-class CCheckOrgDestGuideENodeNoExists(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
-
-# 确认当org_dest_guide.nextflg标记了有多条name或reading时，必定可以找到每条记录
-class CCheckOrgDestGuide_Name_Reading(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
+            select count(*) 
+            from  org_dest_guide as a
+            join org_road as r
+            on r.meshcode = a.meshcode and r.linkno = a.ttoelinkno 
+               and not (a.tnodeno = r.snodeno or a.tnodeno = r.enodeno)  
+         '''
+        return self.pg.getOnlyQueryResult(sqlcmd)==0  
     
-# 台湾元数据提供了inlink和outlink，检查这两条link能够走通。
-class CCheckOrgDestGuide_InlinkOutlinkConnected(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                '''
-        return True
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+    

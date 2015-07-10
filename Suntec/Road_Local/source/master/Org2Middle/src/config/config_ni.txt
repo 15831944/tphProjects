@@ -1,6 +1,5 @@
 #################################################################
 # proj_ni
-mdb_path=\\iData\Private\Data_Authoring\SourceData\MMI\14Q4\mdb
 temp_sql_path=.\cache\temp_sql\
 POI_Code=..\docs\poi\poi_category_ni.txt
 brand_icon=..\docs\poi\brand_icon_list_ni.txt

@@ -2,6 +2,7 @@
 
 import platform.TestCase
 from check.rdb import rdb_common_check
+from string import *
 RIGHT_ARROW = [2, 4, 8, 2048, 4096]
 LEFT_ARROW = [16, 32, 64, 128, 8192]
 
@@ -282,7 +283,34 @@ class CCheckGuideStraightLaneSmallOther(platform.TestCase.CTestCase):
         """
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchone()
-        if  rows[0] == 0:
+        if rows[0] == 0:
             return False
         else:
             return True
+
+class CCheckExclusive(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd= '''
+            select in_link_id,node_id,lane_num,
+                    array_agg(exclusive) as ex_arr,
+                    array_agg(lane_info) as laneinfo_arr 
+            from 
+            (
+                select distinct in_link_id,node_id,lane_num,exclusive,lane_info,arrow_info 
+                from rdb_guideinfo_lane
+            ) a
+            group by in_link_id,node_id,lane_num
+                '''
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            lanenum=row[2]
+            ex_arr=row[3]
+            laneinfo_arr=map(lambda x:rjust(bin(x)[2:],lanenum,'0'),row[4])
+            if not set(filter(lambda x:ex_arr[x]==1,range(len(ex_arr))))==\
+                set(filter(lambda x:x<>-1,map(lambda x:-1 if x.count('1')!=1 else x.index('1'),\
+                                              map(lambda x:''.join(x),zip(*laneinfo_arr))))):
+                return False
+        return True
+                
+                

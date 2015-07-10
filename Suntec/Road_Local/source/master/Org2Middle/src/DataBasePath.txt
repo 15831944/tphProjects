@@ -1,6 +1,6 @@
 ﻿# config file of project
-db1=host='172.26.179.190' dbname='AUS_SENSID_201503_org' user='postgres' password='pset123456'
-db2=host='172.26.179.190' dbname='AUS_SENSID_201503_org' user='postgres' password='pset123456'
+db1=host='127.0.0.1' dbname='idn_copy' user='postgres' password='pset123456'
+db2=host='127.0.0.1' dbname='idn_copy' user='postgres' password='pset123456'
 language_table=..\docs\language.xls
 sql_script=.\sql_script\
 run_mode=debug

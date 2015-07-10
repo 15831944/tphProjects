@@ -12,7 +12,12 @@ from component.default import link_graph
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
 sp_splitter = '_signpost_'
-
+roadType2SpotguideTypeMap = {0:1, 1:1, 2:4,
+                             3:4, 4:4, 5:4,
+                             6:4, 7:4, 8:4,
+                             9:4, 10:4, 11:4,
+                             12:4, 13:4, 14:4,
+                             15:4}
 class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     '''
     This class is used for uc spotguide
@@ -114,23 +119,28 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     # False：此时即使可以找到sar图片，也不进行合成，不处理sar。
     # True：  此时才考虑是否存在sar图片并合并。
     def _generate_spotguide_tbl(self, bCareAboutSignpost=True):
+        # 此时每条记录对应的road_lyr数应为2，一张白天图一张黑夜图。
         sqlcmd = '''
-            SELECT inlinkid, outlinkid, array_agg(road_lyr), array_agg(sign_lyr), array_agg(arrow), array_agg("time")
+            SELECT a.inlinkid, b.road_type as inlink_roadtype, a.outlinkid, array_agg(road_lyr), 
+                   array_agg(sign_lyr), array_agg(arrow), array_agg("time")
             FROM (
                    SELECT distinct inlinkid, outlinkid, road_lyr, sign_lyr, arrow, "time"
                    FROM temp_junction_tbl
                  ) as a
-            group by inlinkid, outlinkid;
+            left join link_tbl as b
+            on a.inlinkid=b.link_id
+            group by a.inlinkid, b.road_type, a.outlinkid;
         '''
         rows = self.get_batch_data(sqlcmd)
         g_id = 1
         for row in rows:
             inlink = row[0]
-            outlink = row[1]
-            road_lyrs = row[2]
-            sign_lyrs = row[3]
-            arrows = row[4]
-            times = row[5]
+            inlinkRoadType = row[1]
+            outlink = row[2]
+            road_lyrs = row[3]
+            sign_lyrs = row[4]
+            arrows = row[5]
+            times = row[6]
             
             passlink = ''
             passlinkcnt = 0
@@ -162,7 +172,9 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                 direction = 5
             elif 'R' in arrow_name:
                 direction = 2
-
+            
+            spotguideType = roadType2SpotguideTypeMap[inlinkRoadType]
+            
             self.pg.execute2('''
                             INSERT INTO spotguide_tbl(
                                 id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
@@ -174,7 +186,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                                     %s, %s);
                             ''', (g_id, nodeid, inlink, outlink, passlink, passlinkcnt,
                                   direction, 0, 0, 0, road_name, arrow_name, 
-                                  1, isExistSar))
+                                  spotguideType, isExistSar))
             g_id = g_id + 1
             
         self.pg.commit2()

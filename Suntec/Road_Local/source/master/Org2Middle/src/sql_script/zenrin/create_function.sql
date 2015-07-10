@@ -216,6 +216,7 @@ BEGIN
 					b.sdate = c.sdate and 
 					b.edate = c.edate and 
 					b.cartype = c.cartype
+			where cond_id is not null
 			order by linkno, dir, cond_id
 		) a
 		group by linkno
@@ -234,10 +235,10 @@ BEGIN
 		while nIndex <= nCount loop
 			if rec.array_dir[nIndex] = 2 then
 				insert into regulation_relation_tbl(regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id)
-				values(cur_regulation_id, null::bigint, rec.linkno, null::bigint, 2::smallint, rec.array_condid[nIndex]);
+				values(cur_regulation_id, null::bigint, rec.linkno, null::bigint, 43::smallint, rec.array_condid[nIndex]);
 			elseif rec.array_dir[nIndex] = 3 then
 				insert into regulation_relation_tbl(regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id)
-				values(cur_regulation_id, null::bigint, rec.linkno, null::bigint, 3::smallint, rec.array_condid[nIndex]);
+				values(cur_regulation_id, null::bigint, rec.linkno, null::bigint, 42::smallint, rec.array_condid[nIndex]);
 			end if;
 
 			nIndex := nIndex + 1;
@@ -304,5 +305,245 @@ BEGIN
 	end loop;
 
 	return 0;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION zenrin_cnv_disp_class(elcode varchar)
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+	return case when substr(elcode,4,1)='8' or substr(elcode,1,1)='A' then 18 
+				else
+		                	case Substr(elcode,2,1) when 'C' then 18
+		                    when '8' then 14
+		                    when 'B' then 14
+		                    when 'A' then 3
+		                    when '1' then 12
+		                    when '2' then 11
+		                    when '3' then 9
+		                    when '4' then 8
+		                    when '5' then 7
+		                    when '6' then 6
+		                    when '7' then 5
+		                    else 4
+		                    end 
+                end;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_cnv_link_type(elcode varchar)
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+	return 
+		case when substr(elcode,1,1)='A' then 6
+			 else case Substr(elcode,4,1) when '7' then 0
+                    when '4' then 3
+                    when '3' then 5
+                    when '6' then 4
+                    when '8' then 4
+                    when '5' then 7
+                    when '9' then 6
+                    when '1' then 2
+                    when '2' then 1
+                    end
+             end;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_cnv_road_type(elcode varchar)
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+	return case when substr(elcode,1,1)='A' then 9  
+		   else case Substr(elcode,2,1) when '8' then 10
+                    when 'B' then 10
+                    when 'A' then 8
+                    when '1' then 0
+                    when '2' then 1
+                    when '3' then 3
+                    when '4' then 4
+                    when '5' then 4
+                    when '6' then 6
+                    when '7' then 6
+                    when 'C' then 9
+                    else 4
+                    end
+           end;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_cnv_toll(elcode varchar)
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+	return case Substr(elcode,6,1) when '0' then 0
+                    when '1' then 1
+                    when '3' then 1
+                    when '2' then 2
+                    when '4' then 2 end;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_cnv_speed_class(speed smallint)
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+	return case WHEN speed > 130 THEN 1
+                WHEN speed > 100 and speed <= 130 THEN 2
+                WHEN speed > 90 and speed <= 100 THEN 3
+                WHEN speed > 70 and speed <= 90 THEN 4
+                WHEN speed > 50 and speed <= 70 THEN 5
+                WHEN speed > 30 and speed <= 50 THEN 6
+                WHEN speed > 11 and speed <= 30 THEN 7
+                ELSE 8 END;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_cnv_width(elcode varchar)
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+BEGIN
+	return case substr(elcode,3,1) when '1' then 0
+                                    when '2' then 1
+                                    when '3' then 2
+                                    when '4' then 3
+                                    when '5' then 3
+                                    else 4 end;
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE FUNCTION zenrin_findpasslink(mesh varchar, tnodeno integer, ysnodeno integer, passno_array integer[])  
+
+  RETURNS varchar
+  LANGUAGE plpgsql
+  AS $$ 
+  DECLARE 
+      passnode_array integer[];
+      i integer;
+      meshcode1 varchar;
+      link integer;
+      snode integer;
+      enode integer;
+      linkid bigint;
+      passlink varchar; 
+BEGIN
+      passnode_array := array_append(passno_array,ysnodeno);
+      passnode_array := array_prepend(tnodeno,passnode_array);
+      passlink := '0';
+      for i in 1..(array_length(passnode_array,1) - 1) loop
+         snode := passnode_array[i];
+         if snode = 0 then
+            continue;
+         end if;
+         enode := passnode_array[i+1];
+         if enode = 0 then
+            enode := passnode_array[i+2];
+         end if;
+         
+         select linkno from org_road as a
+            where ( a.snodeno = snode and a.enodeno = enode
+                   or
+                    a.snodeno = enode and a.enodeno = snode
+                  )
+                  and meshcode = mesh
+         into  link;
+
+         select link_id from temp_link_mapping as t
+         where t.meshcode = mesh and t.linkno = link
+         into linkid;
+         if passlink = '0' then
+            passlink := linkid::varchar;
+         else
+            passlink := passlink ||'|'|| (linkid::varchar);
+         end if;
+      end loop;
+
+      return passlink;	
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION zenrin_findpasslink_count(passlink varchar)  
+
+  RETURNS integer
+  LANGUAGE plpgsql
+  AS $$ 
+  DECLARE 
+BEGIN
+      return array_length(regexp_split_to_array(passlink,E'\\|+'),1);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_get_meshcode(jct_number varchar)
+	RETURNS varchar
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	meshcode            varchar;
+	secondMeshCode      integer;
+BEGIN
+	if jct_number is null then
+		raise EXCEPTION 'jct_number is null';
+	end if;
+
+	secondMeshCode = substr(jct_number, 5, 2)::integer;
+
+	if secondMeshCode <= 8 and secondMeshCode >= 1 then 
+		secondMeshCode := secondMeshCode - 1;
+	elseif secondMeshCode <= 16 and secondMeshCode >= 9 then
+		secondMeshCode := secondMeshCode + 1;
+	elseif secondMeshCode <= 24 and secondMeshCode >= 17 then
+		secondMeshCode := secondMeshCode + 3;
+	elseif secondMeshCode <= 32 and secondMeshCode >= 25 then
+		secondMeshCode := secondMeshCode + 5;
+	elseif secondMeshCode <= 40 and secondMeshCode >= 33 then
+		secondMeshCode := secondMeshCode + 7;
+	elseif secondMeshCode <= 48 and secondMeshCode >= 41 then
+		secondMeshCode := secondMeshCode + 9;
+	elseif secondMeshCode <= 56 and secondMeshCode >= 49 then
+		secondMeshCode := secondMeshCode + 11;
+	elseif secondMeshCode <= 64 and secondMeshCode >= 57 then
+		secondMeshCode := secondMeshCode + 13;
+	else 
+		raise EXCEPTION 'jct_number(%s) is error', jct_number;
+	end if;
+
+	meshcode := substr(jct_number, 1, 4) || lpad(secondMeshCode::varchar, 2, '0');
+	
+	return meshcode;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_join(strings varchar[])  
+
+  RETURNS varchar
+  LANGUAGE plpgsql
+  AS $$ 
+  DECLARE
+      i integer;
+      s varchar;
+BEGIN
+	s := strings[1];
+	if array_length(strings,1) > 1 then
+		for i in 2..array_length(strings,1)
+		loop
+		   if strings[i] is not null then
+            s := s ||strings[i];
+	     end if;
+		end loop;
+	end if; 
+
+  return s;
 END;
 $$;

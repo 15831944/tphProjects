@@ -240,7 +240,7 @@ BEGIN
 			and substr(vehcl_type, 14, 1) = '0'
 			and substr(vehcl_type, 10, 1) = '1' then 20
 		when kind like '0b%' or kind like '%|0b%' then 3 
-		when kind like '%05' or kind like '%05|%' then 3 
+		when kind like '%05' or kind like '%05|%' then 16 
 		when kind like '00%' or kind like '%|00%' then 12 
 		when kind like '01%' or kind like '%|01%' then 11 
 		when kind like '02%' or kind like '%|02%' then 9 

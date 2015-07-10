@@ -157,7 +157,7 @@ class HwyGraphNi(HwyGraphRDF):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
                 continue
-            elif self.get_tollgate_num(temp_path) >= MAX_TOLLGATE_NUM:
+            elif self.get_tollgate_num(temp_path) > MAX_TOLLGATE_NUM:
                 continue
             elif len(visited) <= cutoff2:
                 # 取得link
@@ -196,7 +196,7 @@ class HwyGraphNi(HwyGraphRDF):
                 # 和一般道交汇
                 if self.is_hwy_inout(temp_path, reverse):
                     yield temp_path[1:], HWY_IC_TYPE_IC
-                    continue
+                    # continue
                 if len(visited) < cutoff2:
                     if self.is_virtual_jct(child, road_code,
                                            code_field, reverse):
@@ -210,6 +210,16 @@ class HwyGraphNi(HwyGraphRDF):
                         if self._is_both_dir_sapa(visited[-2], visited[-1],
                                                   reverse):
                             both_sapa_cnt += 1
+                    else:
+                        # 和一般道相连
+                        if reverse:  # 逆
+                            u = temp_path[-1]
+                            v = temp_path[-2]
+                        else:  # 顺
+                            u = temp_path[-2]
+                            v = temp_path[-1]
+                        if self.get_normal_link(u, v, reverse):
+                            yield temp_path[1:], HWY_IC_TYPE_IC
                 elif len(visited) == cutoff2:
                     if(len(visited) > 1 and
                        self._is_both_dir_sapa(visited[-2], visited[-1],
@@ -246,3 +256,21 @@ class HwyGraphNi(HwyGraphRDF):
             if in_node == out_node:
                 return True
         return False
+
+    def get_normal_link(self, u, v, reverse=False):
+        '''高速(Ramp)相连的一般道、。
+           reverse: False,顺车流；True,逆车流
+        '''
+        nodes = []
+        if reverse:  # 逆
+            edges_iter = self.in_edges_iter(u, True)
+        else:  # 顺
+            edges_iter = self.out_edges_iter(v, True)
+        for temp_u, temp_v, data in edges_iter:
+            road_type = data.get(HWY_ROAD_TYPE)
+            if road_type not in HWY_ROAD_TYPE_HWY:
+                if reverse:  # 逆
+                    nodes.append(temp_u)
+                else:  # 顺
+                    nodes.append(temp_v)
+        return nodes

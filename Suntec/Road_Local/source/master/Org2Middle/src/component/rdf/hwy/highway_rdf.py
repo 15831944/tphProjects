@@ -62,7 +62,9 @@ class HighwayRDF(Highway):
         self.data_mng = HwyDataMngRDF.instance()
         self.data_mng.initialize()
         country = getProjCountry().upper()
-        if country in ("HKG", "ASE", "SGP", "MYS", "THA"):  # 香港, 东南亚
+        if country in ("HKG", "ASE", "SGP", "MYS", "THA",  # 香港, 东南亚
+                       "BRA",  # 巴西
+                       ):
             self.hwy_route = HwyRouteRDF_HKG(self.data_mng)
         else:
             self.hwy_route = HwyRouteRDF(self.data_mng)

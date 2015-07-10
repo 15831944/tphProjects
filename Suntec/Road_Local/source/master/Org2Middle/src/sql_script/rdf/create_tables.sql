@@ -322,8 +322,7 @@ as
 					(
 						SELECT condition_id  
 						FROM rdf_condition_toll 
-						where structure_type_fixed_fee = 'N' 
-								and structure_type_obtain_ticket = 'N' 
+						where structure_type_obtain_ticket = 'N' 
 								and structure_type_pay_ticket = 'N' 
 								and structure_type_electronic = 'Y'
 					) 

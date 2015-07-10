@@ -57,3 +57,73 @@ BEGIN
     return turn_number;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION org_check_jct_number(jct_number varchar)
+	RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	index      integer;
+BEGIN
+	if jct_number is null then
+		raise EXCEPTION 'jct_number is null';
+	end if;
+
+	if char_length(jct_number) != 10 then
+		return -1;
+	end if;
+
+	if substr(jct_number, 7, 1) != '_' then
+		return -1;
+	end if;
+
+	for index in 1..10 loop
+		if (index != 7) and (substr(jct_number, index, 1) not in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) then
+			return -1;
+		end if;
+		index := index + 1;
+	end loop;
+	
+	return 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION org_get_meshcode(jct_number character varying(10))
+	RETURNS character varying(7)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	meshcode            character varying(7);
+	secondMeshCode      integer;
+BEGIN
+	if jct_number is null then
+		raise EXCEPTION 'jct_number is null';
+	end if;
+
+	secondMeshCode = substr(jct_number, 5, 2)::integer;
+
+	if secondMeshCode <= 8 and secondMeshCode >= 1 then 
+		secondMeshCode := secondMeshCode - 1;
+	elseif secondMeshCode <= 16 and secondMeshCode >= 9 then
+		secondMeshCode := secondMeshCode + 1;
+	elseif secondMeshCode <= 24 and secondMeshCode >= 17 then
+		secondMeshCode := secondMeshCode + 3;
+	elseif secondMeshCode <= 32 and secondMeshCode >= 25 then
+		secondMeshCode := secondMeshCode + 5;
+	elseif secondMeshCode <= 40 and secondMeshCode >= 33 then
+		secondMeshCode := secondMeshCode + 7;
+	elseif secondMeshCode <= 48 and secondMeshCode >= 41 then
+		secondMeshCode := secondMeshCode + 9;
+	elseif secondMeshCode <= 56 and secondMeshCode >= 49 then
+		secondMeshCode := secondMeshCode + 11;
+	elseif secondMeshCode <= 64 and secondMeshCode >= 57 then
+		secondMeshCode := secondMeshCode + 13;
+	else 
+		raise EXCEPTION 'jct_number(%s) is error', jct_number;
+	end if;
+
+	meshcode := substr(jct_number, 1, 4) || lpad(secondMeshCode::varchar, 2, '0');
+	
+	return meshcode;
+END;
+$$;

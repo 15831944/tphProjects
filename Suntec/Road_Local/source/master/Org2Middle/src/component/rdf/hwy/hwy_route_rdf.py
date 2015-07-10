@@ -857,11 +857,11 @@ class HwyRouteRDF(component.component_base.comp_base):
                 if next_idx == node_idx + 1 and self._is_tollgate(next_types):
                     return node_idx
             # 第一条link太长
-            link_len = self.G.get_length(node, path[node_idx+1])
-            if link_len > self.s_e_margin_dist:
-                return node_idx
-            else:
-                return node_idx + 1
+            if node_idx < len(path) - 1:
+                link_len = self.G.get_length(node, path[node_idx+1])
+                if link_len < self.s_e_margin_dist:
+                    return node_idx + 1
+            return node_idx
         else:
             return node_idx
 
@@ -875,11 +875,11 @@ class HwyRouteRDF(component.component_base.comp_base):
         out_nodes = self.G._get_not_main_link(node, HWY_PATH_ID)
         if len(out_nodes) <= 0:  # 无进退出Ramp
             # 第一条link太长
-            link_len = self.G.get_length(path[node_idx - 1], node)
-            if link_len > self.s_e_margin_dist:
-                return node_idx
-            else:
-                return node_idx - 1
+            if node_idx > 0:
+                link_len = self.G.get_length(path[node_idx - 1], node)
+                if link_len < self.s_e_margin_dist:
+                    return node_idx - 1
+            return node_idx
         else:
             return node_idx
 

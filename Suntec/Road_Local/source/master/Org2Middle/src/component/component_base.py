@@ -204,6 +204,75 @@ class comp_base(object):
             t.join()
 
         return 0
+    
+    #===============================================================================
+    # intput:
+    #    name_array_table, should be a table (or a view) which has columns as follows:
+    #        feature_id,
+    #        name_id_array,
+    #        name_type_array,
+    #        language_code_array,
+    #        name_array,
+    #        phonetic_language_array,
+    #        phoneme_array
+    #
+    #    json_name_table, output table name
+    #
+    # output:
+    #    name_array_table in the database, which has columns as follows:
+    #        id,
+    #        json_name
+    #===============================================================================
+    def name_array_table_2_json_name_table(self, name_array_table, json_name_table):
+        import component.default.multi_lang_name
+        import common.cache_file
+        if not component.default.multi_lang_name.MultiLangName.is_initialized():
+            component.default.multi_lang_name.MultiLangName.initialize()
+        
+        # initialize json name table
+        sqlcmd = """
+                drop table if exists %s;
+                create table %s
+                (
+                    id           bigint,
+                    json_name    varchar
+                );
+                """ % (json_name_table, json_name_table)
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        # get all json name
+        sqlcmd = """
+                select *
+                from (%s) as t;
+                """ % name_array_table
+        asso_recs = self.pg.get_batch_data2(sqlcmd)
+        
+        temp_file_obj = common.cache_file.open(json_name_table)
+        for asso_rec in asso_recs:
+            poi_id = asso_rec[0]
+            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[1], 
+                                                                                                            asso_rec[2], 
+                                                                                                            asso_rec[3], 
+                                                                                                            asso_rec[4],
+                                                                                                            asso_rec[5], 
+                                                                                                            asso_rec[6])
+            temp_file_obj.write('%d\t%s\n' % (int(poi_id), json_name))
+        
+        temp_file_obj.seek(0)
+        self.pg.copy_from2(temp_file_obj, json_name_table)
+        self.pg.commit2()
+        common.cache_file.close(temp_file_obj,True)
+        
+        # create index for json name table
+        sqlcmd = """
+                create index %s_id_idx
+                    on %s
+                    using btree
+                    (id);
+                """ % (json_name_table, json_name_table)
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
 
 #####################################################################################
 # œﬂ≥Ã¿‡

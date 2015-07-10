@@ -5,6 +5,8 @@ Created on 2015-3-17
 @author: wusheng
 '''
 import platform.TestCase
+import json
+
 
 class CCheckNodeID(platform.TestCase.CTestCase):
     '''node_id有效值检查'''
@@ -115,4 +117,23 @@ class CCheckTypecode(platform.TestCase.CTestCase):
         else:
             return True
         
+        
+class CCheckBuilding_name(platform.TestCase.CTestCase):
+    '''  building_name为json格式，并且名称和音素都不为空'''
+    def _do(self):
+        
+        sqlcmd = """
+                SELECT building_name
+                FROM rdb_guideinfo_building_structure
+                where building_name is not null;
+                """
+              
+        for row in self.pg.get_batch_data(sqlcmd):
+            building_name = row[0]
+            name_lists = json.loads(building_name)
+            for name_list in name_lists:
+                for name in name_list:
+                    if not name.get('val'):
+                        return False
+        return True     
         

@@ -20,41 +20,66 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
         
     def _Do(self):
-        self._loadCategoryPriority()
+        
+        self._loadBrandIcon()
         self._loadPOICategory()
+        self._loadCategoryPriority()
+        
         self._findLogmark()
         self._makePOIName()
         self._makeLogmark()
         return 0
+
+
     
     # find poi with logmark
     def _findLogmark(self):
         self.log.info('make temp_poi_logmark...')
         self.CreateTable2('temp_poi_logmark')
-        if self.CreateFunction2('cat_condition_judge') == -1:
-            return -1
-        
-        sqlcmd = """
-                insert into temp_poi_logmark
-                select omp.id, omp.feattyp, omp.subcat, omp.brandname, tpc.ucode, 
-                omp.the_geom, tpc.org_code, tpc.condition, 
-                cat_condition_judge(tpc.condition, omp.subcat, omp.brandname)
+#        if self.CreateFunction2('cat_condition_judge') == -1:
+#            return -1       
+
+        sqlcmd = """ 
+              insert into temp_poi_logmark
+              select omp.id, omp.feattyp, omp.subcat, omp.brandname, tpc.ucode, 
+                omp.the_geom, tpc.org_code
                 from org_mnpoi_pi omp
                 inner join temp_poi_category as tpc
-                on omp.feattyp = tpc.org_code and 
-                   cat_condition_judge(tpc.condition, omp.subcat, omp.brandname) and
-                   tpc.logmark <> ''
-                   
-                UNION
+                on omp.feattyp = tpc.org_code
+                join temp_brand_icon as b
+                on b.brandname = omp.brandname 
+
+              union
+
+              select omp.id, omp.feattyp, omp.subcat, omp.brandname, tpc.ucode, 
+                omp.the_geom, tpc.org_code
+                from org_mnpoi_pi omp
+                inner join temp_poi_category as tpc
+                on omp.feattyp = tpc.org_code
+                join temp_category_priority as p
+                on p.u_code::bigint = tpc.ucode and p.category_priority in (1,2,4)
                 
+   
+             union
+
                 select mp.id, mp.feattyp, mp.subcat, mp.buaname, tpc.ucode, 
-                mp.the_geom, tpc.org_code, tpc.condition, 
-                cat_condition_judge(tpc.condition, mp.subcat, mp.buaname)
+                mp.the_geom, tpc.org_code
                 from org_mn_pi mp
                 inner join temp_poi_category as tpc
-                on mp.feattyp = tpc.org_code and 
-                   cat_condition_judge(tpc.condition, mp.subcat, mp.buaname) and
-                   tpc.logmark <> ''                                  
+                on mp.feattyp = tpc.org_code
+                join temp_brand_icon as b
+                on b.brandname = mp.buaname 
+
+             union
+
+                select mp.id, mp.feattyp, mp.subcat, mp.buaname, tpc.ucode, 
+                mp.the_geom, tpc.org_code
+                from org_mn_pi mp
+                inner join temp_poi_category as tpc
+                on mp.feattyp = tpc.org_code
+                join temp_category_priority as p
+                on p.u_code::bigint = tpc.ucode and p.category_priority in (1,2,4)        
+                                     
                 """
 
         self.pg.execute(sqlcmd)
@@ -77,9 +102,9 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     select  pd.id, 
                             pd.ucode, 
                             pd.the_geom, 
-                            COALESCE(pt.lanphonset, '') as namelc, 
+                            COALESCE(pt.lanphonset, null) as namelc, 
                             pd.name, 
-                            COALESCE(pt.transcription,'') as transcription 
+                            COALESCE(pt.transcription,null) as transcription 
                     from
                     (
                         SELECT e.ucode, e.the_geom, e.id, f.ptid, f.name
@@ -129,9 +154,9 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     select  pd.id, 
                     pd.ucode, 
                     pd.the_geom, 
-                    COALESCE(pt.lanphonset, '') as namelc, 
+                    COALESCE(pt.lanphonset, null) as namelc, 
                     pd.name, 
-                    COALESCE(pt.transcription,'') as transcription 
+                    COALESCE(pt.transcription,null) as transcription 
                     from
                     (
                     SELECT e.ucode, e.the_geom, e.id, f.ptid, f.name
@@ -168,7 +193,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                    
                     UNION 
                     
-                    select a.id, a.ucode, a.the_geom, b.namelc, b.name, '' as transcription
+                    select a.id, a.ucode, a.the_geom, b.namelc, b.name, null as transcription
                     from temp_poi_logmark as a
                     left join org_mn_pinm as b
                     ON a.id = b.id 
@@ -176,7 +201,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     
                     UNION 
                     
-                    select a.id, a.ucode, a.the_geom, b.namelc, b.name, '' as transcription
+                    select a.id, a.ucode, a.the_geom, b.namelc, b.name, null as transcription
                     from temp_poi_logmark as a
                     left join org_mnpoi_pinm as b
                     ON a.id = b.id 
@@ -231,22 +256,6 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         common.cache_file.close(temp_file_obj,True)
         self.CreateIndex2('temp_poi_name_poi_id_idx')
         
-    def _loadPOICategory(self):
-        self.log.info('make temp_poi_category...')
-        self.CreateTable2('temp_poi_category')
-        
-        category_file_path = common.config.CConfig.instance().getPara('POI_Code')
-        for line in open(category_file_path):
-            line = line.strip()
-            if line[0] == '#':
-                continue
-            line = line.replace('"', '')
-            fields = line.split(';')
-            sqlcmd = '''
-                      insert into temp_poi_category values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
-                     '''
-            self.pg.execute(sqlcmd, fields)
-        self.pg.commit()
      
     def _makeLogmark(self):
         self.log.info('make mid_logmark...')
@@ -256,17 +265,14 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                 insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.id, 
                         a.ucode,
-                        (case when c.category_priority is null then d.category_priority 
-                                else c.category_priority end),
+                        c.category_priority,
                         b.poi_name,
                         a.the_geom
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
                 on a.id = b.poi_id
-                left join temp_category_priority as c
-                on c.u_code = a.ucode::character
-                left join temp_category_priority as d
-                on d.u_code = 'other';      
+                join temp_category_priority as c
+                on c.u_code::bigint = a.ucode    
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()

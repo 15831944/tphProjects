@@ -77,3 +77,20 @@ class CCheckCrossSymbolNode(platform.TestCase.CTestCase):
                 '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+
+class CCheckCrosskindNodeConnect(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        
+        sqlcmd='''
+                select count(1) from
+                (
+                    select distinct meshcode,nodeno from org_node
+                    where crosskind=3
+                ) a
+                full outer join org_node_connect b
+                on a.meshcode::int=b.meshcode_self and a.nodeno=b.nodeid_self
+                where a.meshcode is null or b.meshcode_self is null
+                '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0)

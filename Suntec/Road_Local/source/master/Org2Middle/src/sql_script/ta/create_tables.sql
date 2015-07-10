@@ -1139,7 +1139,7 @@ CREATE TABLE temp_scpoint_ext_link_order
 );
 --------------------------------------------------------------------------------------------
 
-create table temp_poi_category
+create table temp_poi_category1
 (
   org_code bigint NOT NULL,
   ucode integer NOT NULL,
@@ -1158,6 +1158,19 @@ create table temp_poi_category
   logmark character varying(1)
 );
 
+create table temp_poi_category
+(
+  ucode bigint NOT NULL,
+  gen1 integer NOT NULL,
+  gen2 integer NOT NULL,
+  gen3 integer NOT NULL,
+  "level" smallint NOT NULL,
+  "name" character varying(128) NOT NULL,
+  imp smallint NOT NULL,
+  org_code bigint NOT NULL
+ 
+);
+
 create table temp_category_priority
 (
     u_code          character varying(1024)   not null,
@@ -1173,9 +1186,9 @@ CREATE TABLE temp_poi_logmark
   brandname character varying(75),
   ucode integer NOT NULL,
   the_geom geometry, 
-  org_code smallint,
-  condition character varying(100),
-  result boolean
+  org_code smallint
+  --condition character varying(100),
+  --result boolean
 );
 
 create table temp_poi_name
@@ -1216,4 +1229,9 @@ as
 	left join org_nw d
 	on cast(b.shape_line_id as double precision) = d.id 
 	where a.cameratype in ('68')
+);
+
+create table temp_brand_icon
+(
+    brandname    varchar(128) not null default ''
 );

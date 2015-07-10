@@ -30,6 +30,9 @@ class HwyExitNameRDF(comp_base):
 
     def _DoCreateIndex(self):
         self.CreateIndex2('mid_temp_hwy_exit_name_link_id_idx')
+        self.CreateIndex2('mid_temp_hwy_exit_name_link_id_is_exit_name_idx')
+        self.CreateIndex2('mid_temp_hwy_exit_name_'
+                          'link_id_is_junction_name_idx')
 
     def _Do(self):
         # 创建语言种别的中间表
@@ -60,14 +63,14 @@ class HwyExitNameRDF(comp_base):
         multi_name_obj = None
         for nameinfo in self._get_exit_names():
             curr_link_id = nameinfo[0]
-            ref_node_id = nameinfo[1]
-            nonref_node_id = nameinfo[2]
-            curr_is_exit_name = nameinfo[3]
-            curr_is_junction_name = nameinfo[4]
-            lang_code = nameinfo[5]  # 官方语言种别
-            official_name = nameinfo[6]  # 官方语言种别道路名称
-            trans_langs = nameinfo[7]  # 翻译语言种别
-            trans_names = nameinfo[8]  # 翻译语言种别道路名称
+            ref_node_id = ''
+            nonref_node_id = ''
+            curr_is_exit_name = nameinfo[1]
+            curr_is_junction_name = nameinfo[2]
+            lang_code = nameinfo[3]  # 官方语言种别
+            official_name = nameinfo[4]  # 官方语言种别道路名称
+            trans_langs = nameinfo[5]  # 翻译语言种别
+            trans_names = nameinfo[6]  # 翻译语言种别道路名称
             if not curr_link_id:  # link id不存在
                 self.log.error("No Link ID.")
                 continue
@@ -170,10 +173,8 @@ class HwyExitNameRDF(comp_base):
         "道路名称(包括道路番号)字典"
         self.log.info('Start Make Exit Name.')
         sqlcmd = """
-        SELECT
+        SELECT distinct
               m.link_id,
-              link.ref_node_id,
-              link.nonref_node_id,
               road_link.is_exit_name,
               road_link.is_junction_name,
               road_name.language_code,
@@ -182,20 +183,21 @@ class HwyExitNameRDF(comp_base):
               trans_group.trans_names
         FROM  rdf_road_name AS road_name
         LEFT JOIN rdf_road_link AS road_link
-          ON road_name.road_name_id=road_link.road_name_id
+        ON road_name.road_name_id = road_link.road_name_id
         LEFT JOIN mid_temp_road_name_trans_group AS trans_group
-          ON trans_group.road_name_id=road_name.road_name_id
-        LEFT JOIN rdf_link AS link
-          ON link.link_id=road_link.link_id
-        LEFT JOIN rdf_nav_link as nav_link
-          ON nav_link.link_id=link.link_id
+        ON trans_group.road_name_id = road_name.road_name_id
+        --LEFT JOIN rdf_link AS link
+        --ON link.link_id = road_link.link_id
+        --LEFT JOIN rdf_nav_link as nav_link
+        --ON nav_link.link_id = link.link_id
         LEFT JOIN mid_link_mapping AS m
-          ON m.org_link_id = nav_link.link_id
-        WHERE road_link.is_exit_name='Y' or road_link.is_junction_name='Y'
-        ORDER BY  link.link_id,
+        ON m.org_link_id = road_link.link_id
+        WHERE (road_link.is_exit_name='Y' or road_link.is_junction_name='Y')
+        ORDER BY  m.link_id,
                   is_exit_name DESC,
                   is_junction_name DESC,
-                  road_link_id;
+                  road_name.language_code,
+                  road_name.street_name;
         """
         return self.get_batch_data(sqlcmd)
 
@@ -253,7 +255,7 @@ class HwyExitNameRDF(comp_base):
                                  is_exit_name, is_junction_name,
                                  json_name):
         if file_obj:
-            file_obj.write('%d\t%d\t%d\t%s\t%s\t%s\n' %
+            file_obj.write('%d\t%s\t%s\t%s\t%s\t%s\n' %
                            (link_id, ref_node_id,
                             nonref_node_id, is_exit_name,
                             is_junction_name, json_name)

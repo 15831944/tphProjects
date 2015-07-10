@@ -723,9 +723,9 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                           "HKG": {1: 4151},  # Hong Kong
                           "JPN": {},
                           "KOR": {},  # KOREAN
-                          "LAO": {1: 4151, 2: 4151,
-                                  3: 4151, 4: 4151,
-                                  5: 4151, 6: 4151},  # Laos
+                          "LAO": {1: 4181, 2: 4181,
+                                  3: 4181, 4: 4181,
+                                  5: 4181, 6: 4181},  # Laos
                           "MAC": {},  # Macau
                           "MMR": {},  # Burma (Myanmar)
                           "MNG": {},  # Mongolia
@@ -867,6 +867,10 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
             return True
         if language_code == 'ENG' and phonetic_language_code == 'UKE':
             return True
+        #for sgp
+        if language_code == 'CAT' and phonetic_language_code == 'SPA':
+            return True
+        
         return False
 
     def set_language_code_map(self):

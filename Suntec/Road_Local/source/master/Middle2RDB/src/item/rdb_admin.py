@@ -375,12 +375,8 @@ class rdb_admin(ItemBase):
             iSimplifyPara           float;
         BEGIN
             iSimplifyPara := 0.00009;
-            while true loop
-                iSimplifyPara := iSimplifyPara - 0.000017;
-                if iSimplifyPara < 0 then
-                    exit;
-                end if;
-
+            while true loop                
+                -- check if exists unvalid geometry case, which needs to resimplify
                 drop table if exists temp_simplifying_admin_zone_simple_bug;
                 create temp table temp_simplifying_admin_zone_simple_bug
                 as
@@ -433,14 +429,23 @@ class rdb_admin(ItemBase):
                 if not FOUND then
                     exit;
                 end if;
-
+                
+                -- resimplify
+                if iSimplifyPara < 0 then
+                    exit;
+                end if;
+                
+                iSimplifyPara := iSimplifyPara - 0.000017;
                 drop table if exists temp_simplifying_admin_zone_edge_simple_bug;
                 create temp table temp_simplifying_admin_zone_edge_simple_bug
                 as
                 (
                     select distinct
                            b.gid, b.a_polygon_gid, b.b_polygon_gid,
-                           ST_SimplifyPreserveTopology(b.i_geom, iSimplifyPara * b.simplify_scale) as i_simple_geom
+                           case 
+                           when iSimplifyPara < 0 then b.i_geom
+                           else ST_SimplifyPreserveTopology(b.i_geom, iSimplifyPara * b.simplify_scale)
+                           end as i_simple_geom
                     from
                     (
                         select distinct polygon_gid 

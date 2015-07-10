@@ -73,7 +73,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
             line = line.strip()               
             if line[0] == '#':
                 continue
-            fields = line.split(';')              
+            fields = line.split(';')            
             sqlcmd = '''
                       insert into temp_category_priority values(%s,%s);
                      '''

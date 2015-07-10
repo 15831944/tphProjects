@@ -645,7 +645,7 @@ class HwyMappingRDF(HwyMapping):
                a.road_code, link_lid,
                bwd_ic_nos, bwd_facilclss,
                fwd_ic_nos, fwd_facilclss
-          FROM mid_temp_hwy_service_road_path as a
+          FROM mid_temp_hwy_service_road_path2 as a
           LEFT JOIN (
             SELECT node_id, road_code,
                    array_agg(ic_no) as bwd_ic_nos,
@@ -732,7 +732,9 @@ class HwyMappingRDF(HwyMapping):
                                   fwd_ic_no, link_id, path_type))
 
     def _make_not_hwy_model_links(self):
-        '''非高速Model的link.'''
+        '''非高速Model的link(由于物理、规制原因不能和高速本线通行).'''
+        self.CreateTable2('mid_temp_not_hwy_model_link')
+        self.pg.connect1()
         sqlcmd = """
         SELECT a.link_id, s_node, e_node,one_way_code
           FROM link_tbl as a
@@ -743,36 +745,58 @@ class HwyMappingRDF(HwyMapping):
                 not (link_type = 1 and one_way_code = 1)
           ORDER BY a.link_id;
         """
+        # 两头都能到高速本线，或者一头到高速本线，另一头到一般道
         for link_id, u, v, one_way in self.get_batch_data(sqlcmd):
             if one_way in (ONE_WAY_POSITIVE, ONE_WAY_BOTH):
-                pathes = list(self.G.all_path_2_hwy_main(u, v,
+                pathes = list(self.G.all_path_2_hwy_main([u, v],
                                                          HWY_ROAD_CODE,
                                                          reverse=False))
-                if pathes:  # 能通往高速本线(即高速本线相连)
-                    self.log.error('(Hwy Mapping)Does not include link=%s.'
-                                   % link_id)
-                    continue
-                pathes = list(self.G.all_path_2_hwy_main(u, v,
-                                                         HWY_ROAD_CODE,
-                                                         reverse=True))
-                if pathes:  # 能通往高速本线(即高速本线相连)
+                pathes2 = []
+                for path in pathes:
+                    path = path[::-1]
+                    pathes2 = list(self.G.all_path_2_hwy_main(path,
+                                                              HWY_ROAD_CODE,
+                                                              reverse=True))
+                    if pathes2:  # 另一头也能通往高速
+                        break
+                    # 另一个头通往一般道
+                    pathes2 = list(self.G.all_path_2_normal_road(path,
+                                                                 HWY_ROAD_CODE,
+                                                                 reverse=True))
+                    if pathes2:
+                        break
+                if pathes2:
                     self.log.error('(Hwy Mapping)Does not include link=%s.'
                                    % link_id)
                     continue
             if one_way in (ONE_WAY_RERVERSE, ONE_WAY_BOTH):
-                pathes = list(self.G.all_path_2_hwy_main(v, u,
+                pathes = list(self.G.all_path_2_hwy_main([v, u],
                                                          HWY_ROAD_CODE,
                                                          reverse=False))
-                if pathes:  # 能通往高速本线(即高速本线相连)
-                    self.log.error('(Hwy Mapping)Does not include link=%s.'
-                                   % link_id)
-                    continue
-                pathes = list(self.G.all_path_2_hwy_main(v, u,
-                                                         HWY_ROAD_CODE,
-                                                         reverse=True))
-                if pathes:  # 能通往高速本线(即高速本线相连)
+                pathes2 = []
+                for path in pathes:
+                    path = path[::-1]
+                    pathes2 = list(self.G.all_path_2_hwy_main(path,
+                                                              HWY_ROAD_CODE,
+                                                              reverse=True))
+                    if pathes2:  # 另一头也能通往高速
+                        break
+                    # 另一个头通往一般道
+                    pathes2 = list(self.G.all_path_2_normal_road(path,
+                                                                 HWY_ROAD_CODE,
+                                                                 reverse=True))
+                    if pathes2:
+                        break
+                if pathes2:
                     self.log.error('(Hwy Mapping)Does not include link=%s.'
                                    % link_id)
                     continue
             # 保存非高速本线link
-            pass
+            self._store_not_hwy_model_link(link_id)
+        self.pg.commit1()
+
+    def _store_not_hwy_model_link(self, link_id):
+        sqlcmd = """
+        INSERT INTO mid_temp_not_hwy_model_link(link_id) VALUES(%s);
+        """
+        self.pg.execute1(sqlcmd, (link_id,))

@@ -890,6 +890,7 @@ class rdb_link_wellshape_handle(ItemBase):
             ('mmi'):                rdb_link_wellshape_handle(),
             ('msm'):                rdb_link_wellshape_handle(),
             ('ni'):                 rdb_link_wellshape_handle(),
+            ('zenrin'):             rdb_link_wellshape_handle(),
         }
         return rdb_common.getItem(proj_mapping)
     

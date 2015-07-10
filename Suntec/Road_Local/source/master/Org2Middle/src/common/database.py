@@ -255,7 +255,7 @@ class pg_client(object):
         self.close2()
     
     def analyze(self, table_name):
-        sqlcmd = 'analyze %s;' % table_name
+        sqlcmd = 'analyze "%s";' % table_name
         self.pgcur2.execute(sqlcmd)
         self.conn2.commit()
 

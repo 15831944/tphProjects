@@ -35,6 +35,7 @@ class rdb_region(ItemBase):
             ('nostra'):             rdb_region_nostra_thailand(),
             ('mmi'):                rdb_region_mmi_india(),
             ('msm'):                rdb_region_malsing_mys(),
+            ('zenrin','twn'):       rdb_region_rdf_ap(),
         }
         return rdb_common.getItem(proj_mapping)
     

@@ -929,6 +929,18 @@ CREATE INDEX mid_temp_hwy_exit_name_link_id_idx
   (link_id);
 
 ------------------------------------------------------------------------
+CREATE UNIQUE INDEX mid_temp_hwy_exit_name_link_id_is_exit_name_idx
+  ON mid_temp_hwy_exit_name
+  USING btree
+  (link_id, is_exit_name);
+
+------------------------------------------------------------------------
+CREATE UNIQUE INDEX mid_temp_hwy_exit_name_link_id_is_junction_name_idx
+  ON mid_temp_hwy_exit_name
+  USING btree
+  (link_id, is_junction_name);
+
+------------------------------------------------------------------------
 CREATE INDEX mid_temp_hwy_facil_name_road_code_road_seq_idx
   ON mid_temp_hwy_facil_name
   USING btree

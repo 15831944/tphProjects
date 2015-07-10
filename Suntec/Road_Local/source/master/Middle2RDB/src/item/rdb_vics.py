@@ -21,13 +21,15 @@ class rdb_vics(ItemBase):
             ('rdf'):                rdb_vics(),
             ('rdf','sgp'):          rdb_traffic_rdf_ap(),
             ('rdf','uc'):           rdb_traffic_rdf_uc(),
-            ('rdf','me8'):          rdb_traffic_rdf_mea(),
-			('rdf','mea'):          rdb_traffic_rdf_mea(),
-            ('rdf','bra'):          rdb_traffic_rdf_bra(),            
+            ('rdf','me8'):          rdb_vics(),
+			('rdf','mea'):          rdb_vics(),
+            ('rdf','bra'):          rdb_vics(), 
+            ('rdf','ase'):          rdb_traffic_rdf_ase(),                       
             ('nostra'):             rdb_traffic_nostra(),
             ('mmi'):                rdb_vics(),
             ('msm'):                rdb_vics(),
             ('ni'):                 rdb_traffic_ni(),
+            ('zenrin'):             rdb_traffic_zenrin(),            
         }
         return rdb_common.getItem(proj_mapping)
 
@@ -1180,12 +1182,12 @@ class rdb_traffic(ItemBase):
                referent, urgency, update_class, "desc")
         select info_flag,direction,code,quantifier,reference_flag
             ,referent,urgency,update_class
-            ,rdb_get_json_string_for_trf_names(lang_cdoe_array,desc_array)
+            ,rdb_get_json_string_for_trf_names(lang_code_array,desc_array)
         from (
             select info_flag,direction,code,quantifier,reference_flag
                 ,referent,urgency,update_class
                 ,array_agg(event_string) as desc_array
-                ,array_agg(lang_code) as lang_cdoe_array
+                ,array_agg(lang_code) as lang_code_array
             from (
                 select  type as info_flag,
                     dir as direction,
@@ -1202,6 +1204,7 @@ class rdb_traffic(ItemBase):
                     from temp_trf_languages 
                 ) n
                 on m.lang_code = n.lang_code
+                where n.lang_code is not null
                 order by code,lang_code
                 ) a group by info_flag,direction,code,quantifier,reference_flag,referent,urgency,update_class
         ) b;                        
@@ -1236,6 +1239,7 @@ class rdb_traffic(ItemBase):
                     from temp_trf_languages 
                 ) n
                 on m.lang_code = n.lang_code
+                where n.lang_code is not null                
                 order by code,lang_code
                 ) a group by code,referent
         ) b;                         
@@ -1704,7 +1708,156 @@ class rdb_traffic_rdf_bra(rdb_traffic_rdf):
         """
         self.pg.execute2(sqlcmd) 
         self.pg.commit2()
-                
+
+class rdb_traffic_rdf_ase(rdb_traffic):
+                          
+    def _createTrfLinkSeq(self):
+        
+        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')       
+
+        # Add nodes to original traffic links.  
+        self.CreateIndex2('rdf_link_rtic_linkid_idx')
+        sqlcmd = """
+            drop table if exists temp_rtic_link_temp cascade;
+            create table temp_rtic_link_temp as 
+            select a.meshcode, a.linkid, b.ref_node_id as s_node
+                ,b.nonref_node_id as e_node
+                ,a.kind, a.linkdir, a.rticid
+                ,b.the_geom as the_geom
+            from (
+                SELECT mapid as meshcode, linkid
+                    , kind_u as kind, dir_u as linkdir, middle_u as rticid 
+                FROM rdf_link_rtic where flag_u <> '0'
+                union
+                SELECT mapid as meshcode, linkid
+                    , kind_d as kind, dir_d as linkdir, middle_d as rticid
+                FROM rdf_link_rtic where flag_d <> '0'
+            ) a
+            left join temp_rdf_nav_link b
+            on (a.linkid)::bigint = b.link_id;
+            
+            CREATE INDEX temp_rtic_link_temp_linkdir_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (linkdir);
+            CREATE INDEX temp_rtic_link_temp_linkid_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (linkid);
+            CREATE INDEX temp_rtic_link_temp_meshcode_kind_rticid_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (meshcode, kind, rticid);
+            CREATE INDEX temp_rtic_link_temp_s_node_e_node_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (s_node, e_node);                    
+            CREATE INDEX temp_rtic_link_temp_s_node_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (s_node);
+            CREATE INDEX temp_rtic_link_temp_e_node_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (e_node);
+        """
+        self.pg.execute2(sqlcmd)   
+        self.pg.commit2()
+        
+        self.CreateFunction2('rdb_make_trf_rtic_link_seq')
+        self.CreateFunction2('rdb_make_trf_rtic_link_seq_in_one_direction')        
+        self.pg.commit2()
+         
+        # Give sequence to traffic links by searching road.        
+        sqlcmd = """
+            drop table if exists temp_rtic_link;
+            CREATE TABLE temp_rtic_link
+            (
+              meshcode character varying NOT NULL,
+              kind character varying NOT NULL,
+              rticid character varying NOT NULL,
+              linkid character varying NOT NULL,
+              seq    integer,
+              linkdir character varying NOT NULL,
+              group_id smallint
+            );
+            
+            drop table if exists temp_rtic_link_walked;
+            CREATE TABLE temp_rtic_link_walked
+             (
+               meshcode character varying,
+               kind character varying,
+               rticid character varying,
+               linkid character varying
+             );
+            
+            CREATE INDEX temp_rtic_link_walked_complex_idx
+              ON temp_rtic_link_walked
+              USING btree
+              (meshcode, kind, rticid, linkid);
+            
+            analyze temp_rtic_link_temp;
+            select rdb_make_trf_rtic_link_seq();
+            
+            delete from temp_rtic_link a using (
+                select distinct meshcode,kind,rticid from temp_rtic_link 
+                where group_id > 0
+                union
+                select distinct mapid as meshcode,kind_u as kind,middle_u as rticid 
+                from rdf_link_rtic where kind_d = kind_u and middle_d = middle_u
+            ) b
+            where a.meshcode = b.meshcode and a.kind = b.kind and a.rticid = b.rticid; 
+            
+            CREATE INDEX temp_rtic_link_linkid_1_idx
+              ON temp_rtic_link
+              USING btree
+              (cast(linkid as bigint));            
+            
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----end ', 'info') 
+                                   
+    def _createTRFTbl_prepare(self):
+        
+        # Create simple relationship between traffic and RDB link.       
+        sqlcmd = """
+        drop table if exists temp_trf_org2rdb_prepare;
+        create table temp_trf_org2rdb_prepare as 
+        select 1::smallint as type_flag, a.meshcode::integer as area_code
+            , a.rticid::integer as infra_id, a.kind::integer - 1 as extra_flag
+            , 0::smallint as dir
+            , b.target_link_id as rdb_link_id
+            , case  when b.flag = 't' and a.linkdir = '1' then 1
+                when b.flag = 't' and a.linkdir = '2' then 0
+                when b.flag = 'f' and a.linkdir = '1' then 0 
+                when b.flag = 'f' and a.linkdir = '2' then 1
+              end as link_dir
+            , 0::smallint as pos_type
+            , b.s_fraction as s_fraction, b.e_fraction as e_fraction
+            , a.seq as seq_org
+            ,case when g.gid is not null and a.linkdir = '2' then (g.sub_count - g.sub_index) 
+                  when g.gid is not null and a.linkdir = '1' then g.sub_index
+                  else 1 
+             end as sub_seq
+            , a.group_id
+            , b.target_geom
+            , b.flag
+        from temp_rtic_link a
+        left join temp_link_org_rdb b
+        on a.linkid::bigint = b.org_link_id
+        left join temp_split_newlink g
+        on b.mid_link_id = g.link_id;
+        
+        ANALYZE  temp_trf_org2rdb_prepare;                        
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()           
+
+    def _createForTMCOnly(self):
+        pass
+                    
 class rdb_traffic_nostra(rdb_traffic):
                           
     def _createTrfLinkSeq(self):
@@ -2254,7 +2407,7 @@ class rdb_traffic_ni(rdb_traffic):
                           
     def _createTrfLinkSeq(self):
         
-        rdb_log.log(self.ItemName, 'creating sequence for TMC link -----start ', 'info')       
+        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')       
 
         # Add nodes to original traffic links.  
         self.CreateIndex2('org_rtic_linkid_idx')
@@ -2357,7 +2510,7 @@ class rdb_traffic_ni(rdb_traffic):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
 
-        rdb_log.log(self.ItemName, 'creating sequence for TMC link -----end ', 'info') 
+        rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----end ', 'info') 
                                    
     def _createTRFTbl_prepare(self):
         
@@ -2398,6 +2551,279 @@ class rdb_traffic_ni(rdb_traffic):
     def _createForTMCOnly(self):
         pass
 
+class rdb_traffic_zenrin(rdb_traffic):
+                                         
+    def _createTrfLinkSeq(self):
+        
+        rdb_log.log(self.ItemName, 'creating sequence for tmc link -----start ', 'info')
+        
+        sqlcmd = """
+            drop index if exists org_rdstmc_meshcode_roadno_idx;
+            CREATE INDEX org_rdstmc_meshcode_roadno_idx
+              ON org_rdstmc
+              USING btree
+              (meshcode, roadno);
+        
+            drop index if exists org_rdstmc_meshcode_snodeno_idx;
+            CREATE INDEX org_rdstmc_meshcode_snodeno_idx
+              ON org_rdstmc
+              USING btree
+              (meshcode, snodeno);
+           
+            drop index if exists org_rdstmc_meshcode_enodeno_idx;
+            CREATE INDEX org_rdstmc_meshcode_enodeno_idx
+              ON org_rdstmc
+              USING btree
+              (meshcode, enodeno);                               
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = """
+            drop table if exists temp_rdf_link_tmc_node cascade;
+            create table temp_rdf_link_tmc_node as 
+            select a1.link_id as link_id
+                ,'D'::char(1) as ebu_country_code
+                ,9 as location_table_nr
+                ,a.loc_dire as tmc_path_direction        
+                ,a.loc_code as location_code
+                ,(case when a.link_dire = '+' then 'F' else 'T' end)::char(1) as road_direction
+                ,case when a.loc_dire in ('+','-') then 1 else 0 end as type         
+                ,case when a.loc_dire in ('+','P') then 0 else 1 end as dir
+                ,b.node_id as ref_node_id
+                ,c.node_id as nonref_node_id
+            from org_rdstmc a
+            left join temp_link_mapping a1
+            on a.meshcode = a1.meshcode and a.roadno = a1.linkno
+            left join temp_node_mapping b
+            on a.meshcode = b.meshcode and a.snodeno = b.nodeno
+            left join temp_node_mapping c
+            on a.meshcode = c.meshcode and a.enodeno = c.nodeno;
+            
+            analyze temp_rdf_link_tmc_node;
+            
+            CREATE INDEX temp_rdf_link_tmc_node_dir_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (dir);
+            CREATE INDEX temp_rdf_link_tmc_node_ebu_country_code_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (ebu_country_code);
+            CREATE INDEX temp_rdf_link_tmc_node_link_id_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (link_id);
+            CREATE INDEX temp_rdf_link_tmc_node_ref_node_id_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (ref_node_id);
+            CREATE INDEX temp_rdf_link_tmc_node_nonref_node_id_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (nonref_node_id);
+            CREATE INDEX temp_rdf_link_tmc_node_location_code_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (location_code);
+            CREATE INDEX temp_rdf_link_tmc_node_location_table_nr_idx
+              ON temp_rdf_link_tmc_node
+              USING btree
+              (location_table_nr);                    
+            analyze temp_rdf_link_tmc_node;
+        """
+        self.pg.execute2(sqlcmd)   
+        self.pg.commit2()
+        
+        self.CreateFunction2('rdb_make_trf_link_seq')
+        self.CreateFunction2('rdb_make_trf_link_seq_in_one_direction')        
+        self.pg.commit2()
+         
+        # Give sequence to traffic links by searching road.        
+        sqlcmd = """
+        drop table if exists temp_rdf_link_tmc_seq;
+        CREATE TABLE temp_rdf_link_tmc_seq
+        (
+          link_id bigint NOT NULL,
+          seq integer,
+          ebu_country_code character(1) NOT NULL,
+          location_table_nr integer NOT NULL,
+          location_code bigint NOT NULL,
+          dir smallint,
+          type smallint,
+          road_direction character varying,
+          group_id smallint
+        );
+        
+        drop table if exists temp_rdf_link_tmc_walked;
+        CREATE TABLE temp_rdf_link_tmc_walked
+         (
+           ebu_country_code character(1),
+           location_table_nr integer,
+           location_code bigint, 
+           dir smallint,
+           type smallint,
+           link_id bigint
+         );
+        CREATE INDEX temp_rdf_link_tmc_walked_ebu_country_code_location_table_nr_idx
+          ON temp_rdf_link_tmc_walked
+          USING btree
+          (ebu_country_code, location_table_nr, location_code, dir, type, link_id);
+
+        select rdb_make_trf_link_seq(); 
+        
+        analyze temp_rdf_link_tmc_seq;
+        
+        drop table if exists temp_rdf_link_tmc_seq_link_id_idx;
+        CREATE INDEX temp_rdf_link_tmc_seq_link_id_idx
+          ON temp_rdf_link_tmc_seq
+          USING btree
+          (link_id);
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                
+        rdb_log.log(self.ItemName, 'creating sequence for tmc link -----end ', 'info') 
+               
+    def _createTRFTbl_prepare(self):
+                
+        # Create simple relationship between traffic and RDB link.       
+        sqlcmd = """
+        drop table if exists temp_trf_org2rdb_prepare;
+        create table temp_trf_org2rdb_prepare as 
+        select 0 as type_flag
+            ,rdb_cnv_country_code_common('F1', ebu_country_code) as area_code
+            ,a.location_code as infra_id
+            ,a.location_table_nr as extra_flag
+            ,a.dir
+            ,e.target_link_id as rdb_link_id
+            ,case when e.flag = 't' and a.road_direction = 'T' then 0
+                  when e.flag = 't' and a.road_direction = 'F' then 1
+                  when e.flag = 'f' and a.road_direction = 'T' then 1
+                  when e.flag = 'f' and a.road_direction = 'F' then 0
+                  else 0
+             end as link_dir  --- e.flag: wether order of link's shapepoints was reversed when link_merge.  
+            ,a.type as pos_type
+            ,e.s_fraction,e.e_fraction
+            ,a.seq as seq_org
+            ,case when g.gid is not null and a.road_direction = 'T' then (g.sub_count - g.sub_index) 
+                  when g.gid is not null and a.road_direction = 'F' then g.sub_index
+                  else 1 
+            end as sub_seq  --- get sequence of small links when an original link was split(link_split). 
+                            --- if link direction is 'T' then the order should be reversed. 
+            ,a.group_id as group_id
+            ,e.target_geom    
+            ,e.flag as flag
+        from temp_rdf_link_tmc_seq a 
+        left join temp_link_org_rdb e
+        on a.link_id = e.org_link_id
+        left join temp_split_newlink g
+        on e.mid_link_id = g.link_id; 
+        
+        ANALYZE  temp_trf_org2rdb_prepare;                        
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()             
+
+    def _createLanguages(self):
+        # Language: Traditional chinese.          
+        sqlcmd = """        
+            drop table if exists temp_trf_languages;
+            create table temp_trf_languages 
+            as
+            (
+                select cid
+                    ,array_agg(lid) as lid_array_org
+                    ,array_agg(language) as language_array
+                from (
+                    select 1::int as cid
+                    ,1::int as lid
+                    ,'CHT'::character varying as language
+                ) a group by cid
+            );   
+        """
+        self.pg.execute2(sqlcmd) 
+        self.pg.commit2()
+
+    def _createLocationTbl(self):
+
+        rdb_log.log(self.ItemName, 'creating location table ----- start', 'info')
+                                 
+        sqlcmd = """        
+        drop table if exists rdb_trf_locationtable;
+        CREATE TABLE rdb_trf_locationtable
+        (
+          gid serial,
+          country_code integer,
+          table_no integer,
+          location_code integer,
+          type smallint,
+          subtype smallint,
+          location_type smallint,
+          first_name character varying,
+          second_name character varying,
+          road_number character varying,
+          road_name character varying,
+          area_ref integer,
+          line_ref integer,
+          neg_offset integer,
+          pos_offset integer,
+          urban smallint,
+          veran smallint,
+          tern smallint,
+          intersection_code integer,
+          in_pos smallint,
+          out_pos smallint,
+          in_neg smallint,
+          out_neg smallint,
+          cur_pos smallint,
+          cur_neg smallint,
+          exit_no character varying,
+          div_pos character varying,
+          div_neg character varying
+        );
+                       
+        insert into rdb_trf_locationtable(country_code, table_no, location_code, "type", subtype, 
+               location_type, first_name, second_name, road_number, road_name, 
+               area_ref, line_ref, neg_offset, pos_offset, urban, veran, tern, 
+               intersection_code, in_pos, out_pos, in_neg, out_neg, cur_pos, 
+               cur_neg, exit_no, div_pos, div_neg)
+        select rdb_cnv_country_code_common('F1', 'D') as country_code
+            ,table_no::integer, location_code::integer
+            ,(substring(sub_type, 2, position('.' in sub_type) - 2))::smallint as type
+            ,(substring(sub_type, position('.' in sub_type) + 1,char_length(sub_type)))::smallint as subtype
+            ,case when substring(sub_type,1,1) = 'P' then 1
+                when substring(sub_type,1,1) = 'L' then 2
+                when substring(sub_type,1,1) = 'A' then 3
+                else 0
+             end as location_type    
+            ,case when cfirst_name is not null then rdb_get_json_string_for_trf_names(b.language_array, array[cfirst_name]) 
+                    else rdb_get_json_string_for_trf_names(b.language_array, null::varchar[]) 
+             end as first_name
+            ,case when csecond_name is not null then rdb_get_json_string_for_trf_names(b.language_array, array[csecond_name]) 
+                    else rdb_get_json_string_for_trf_names(b.language_array, null::varchar[]) 
+             end as second_name
+            ,rdb_get_json_string_for_trf_names(b.language_array, null::varchar[]) as road_number
+            ,case when croad_name is not null then rdb_get_json_string_for_trf_names(b.language_array, array[croad_name]) 
+                    else rdb_get_json_string_for_trf_names(b.language_array, null::varchar[]) 
+             end as road_name
+            ,(ltrim(area_reference,'0'))::integer as area_ref
+            ,(ltrim(linear_reference,'0'))::integer as line_ref
+            ,(ltrim(negative_offset,'0'))::integer as neg_offset
+            ,(ltrim(positive_offset,'0'))::integer as pos_offset
+            ,0 as urban, 0 as veran, 0 as tern
+            ,(string_to_array(intersection_refs,', '))[1]::integer as intersection_code
+            ,0 as in_pos, 0 as out_pos, 0 as in_neg, 0 as out_neg
+            ,0 as cur_pos, 0 as cur_neg, null as exit_no, null as div_pos, null as div_neg
+        from gewi_locationtable a
+        left join temp_trf_languages b
+        on true = true;                
+        """
+        self.pg.execute2(sqlcmd) 
+        self.pg.commit2()
+        
+        rdb_log.log(self.ItemName, 'creating location table ----- end', 'info')
+                    
 class rdb_traffic_region():
     '''region traffic
     '''
@@ -2431,7 +2857,7 @@ class rdb_traffic_region():
         """
         sqlcmd = sqlcmd_X.replace('%X',X)
         if rdb_common.getProjName().lower() == 'rdf' and \
-            rdb_common.getProjCountry().lower() == 'bra' and int(X) == 6:
+            rdb_common.getProjCountry().lower() in ('bra','ase') and int(X) == 6:
             rdb_log.log('REGION Traffic', 'not create rdb_region_layer%s_link_mapping_link_id_14_idx'%X, 'warning')
         else:
             self.pg.execute2(sqlcmd)

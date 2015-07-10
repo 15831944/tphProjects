@@ -4504,3 +4504,303 @@ BEGIN
         return 0;
 END;
 $$;
+
+-----------------------------------------------------------------------------------------------
+-- deal with bug: no sapa link in sapa   --main function
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mid_hwy_premote_sapa_link()
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	for rec in 
+		select  a.link_id , a.one_way_code,
+		        case
+				  when a.s_node = b.s_node or a.s_node = b.e_node then a.s_node
+				  else a.e_node
+				end as node
+		from (select  link_id, s_node, e_node, one_way_code
+				from link_tbl
+				where link_type = 7
+			 )as a
+		left join (
+			 select link_id, road_type, link_type,s_node, e_node, one_way_code
+			 from link_tbl
+			 where road_type <>0 and link_type not in (3,5,7)
+			 )as b
+		on
+		(
+			(a.one_way_code in (1, 2) and
+				(
+					( a.s_node = b.e_node and b.one_way_code in (1, 2))
+					or
+					( a.s_node = b.s_node and b.one_way_code in (1, 3))
+					or
+					( a.e_node = b.s_node and b.one_way_code in (1, 2))
+					or
+					( a.e_node = b.e_node and b.one_way_code in (1, 3))
+				)
+			)
+			or
+			( a.one_way_code in (1, 3) and
+				(
+					( a.s_node = b.e_node and b.one_way_code in (1, 3))
+					or
+					( a.s_node = b.s_node and b.one_way_code in (1, 2))
+					or
+					( a.e_node = b.s_node and b.one_way_code in (1, 3))
+					or
+					( a.e_node = b.e_node and b.one_way_code in (1, 2))
+				)
+			)
+		)
+		where b.link_id is not null
+	loop 
+		perform premote_link_type_sapa(rec.link_id, rec.node, 1);
+		perform premote_link_type_sapa(rec.link_id, rec.node, 2);
+	end loop;
+	return 1;
+END;
+$$;
+-----------------------------------------------------------------------------------------------
+-- premote_link_type_sapa
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION premote_link_type_sapa(link_id bigint, node bigint, dir integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	isolated_path varchar[];
+BEGIN
+    for rec in 
+	    select link
+		from (
+		     select distinct regexp_split_to_table(
+			        array_to_string(
+						get_isolated_sapa_path(link_id::bigint, node::bigint, dir::integer),'|'),E'\\|+'
+									)AS link
+			 )AS isolated_link
+		where isolated_link.link <> ''
+    loop
+		if check_connected_main_path(cast(rec.link as bigint)) = 1 then
+			perform premote_link(cast(rec.link as bigint));
+		else
+			continue;
+		end if;
+    end loop;
+    return 1;
+END;
+$$;
+-----------------------------------------------------------------------------------------------
+--get_isolated_sapa_path
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION get_isolated_sapa_path(link bigint,node bigint, dir integer)
+	RETURNS character varying[]
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	temp_path varchar;
+	temp_path_array varchar[];
+	visited_node_array bigint[];
+
+	path_index integer;
+	path_index_count integer;
+
+BEGIN
+	path_index := 1;
+	path_index_count := 1;
+	visited_node_array := ARRAY[node];
+	temp_path_array := ARRAY[null];
+
+
+	--search
+	WHILE path_index <= path_index_count LOOP
+		temp_path := temp_path_array[path_index];--search from current path
+		for rec in
+			select
+				case 
+				  when s_node =visited_node_array[path_index]  then e_node
+				  else s_node
+				end as next_node,
+			        link_id as next_link ,
+			        road_type, link_type, one_way_code, s_node, e_node
+			from link_tbl
+			where road_type <> 0 and link_type not in (3,5,7)
+			and 
+			 (
+				(
+					(dir = 1) and
+					(
+						(s_node = visited_node_array[path_index] and one_way_code in (1,2))
+						or
+						(e_node = visited_node_array[path_index] and one_way_code in (1,3))	
+					)
+				)
+				or
+				(
+					(dir = 2) and
+					(
+						(s_node = visited_node_array[path_index] and one_way_code in (1,3))
+						or
+						(e_node = visited_node_array[path_index] and one_way_code in (1,2))
+					)
+				)
+			 )
+			 and
+			 (
+				temp_path_array[path_index] is null
+			        or
+				not (cast(link_id as varchar) = ANY(regexp_split_to_array(temp_path_array[path_index], E'\\|+')))
+			 )
+		loop
+			
+
+			temp_path := temp_path_array[path_index];
+
+			visited_node_array := array_append(visited_node_array, cast(rec.next_node as bigint));
+				
+			if temp_path is not null then
+				temp_path_array :=  array_append(temp_path_array, cast(temp_path||'|'||rec.next_link as varchar));
+			else 
+				temp_path_array :=  array_append(temp_path_array, cast(rec.next_link as varchar));
+			end if;
+
+			if array_upper(regexp_split_to_array(temp_path, E'\\|+'), 1) > 8 then	
+				return ARRAY[null];
+			end if;
+				
+			path_index_count := path_index_count +1;
+
+
+		end loop;
+			
+		path_index := path_index + 1 ;
+		temp_path  := temp_path_array[path_index];
+
+	END LOOP;
+	return temp_path_array ;
+END;
+$$;
+-----------------------------------------------------------------------------------------------
+--check_connected_main_path
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION check_connected_main_path(link bigint)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	for rec in
+		select link_id, s_node, e_node, link_type, road_type, one_way_code
+		from link_tbl
+		where link_id = link
+	loop
+		if rec.one_way_code in (1,2) then
+			if is_connected_main_path(rec.e_node, 1) = 1 or is_connected_main_path(rec.s_node, 2) = 1 then
+				return 1;
+			end if;
+		end if;
+
+		if rec.one_way_code in (1,3) then
+		    if is_connected_main_path(rec.s_node, 1) = 1 or is_connected_main_path(rec.e_node, 2) = 1 then
+				return 1;
+			end if;
+		end if;
+	end loop;
+	return 0;
+END;
+$$;
+-----------------------------------------------------------------------------------------------
+--premote_link
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION premote_link(link bigint)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	insert into temp_zh values(link);
+	return 1;
+END;
+$$;
+-----------------------------------------------------------------------------------------------
+--is_connected_main_path
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION is_connected_main_path(node bigint, dir integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	temp_path varchar;
+	visited_node_array bigint[];
+	temp_path_array varchar[];
+	path_index_count integer;
+	path_index integer;
+BEGIN
+	visited_node_array := ARRAY[node];
+	temp_path_array := ARRAY[null];
+	path_index := 1;
+	path_index_count := 1;
+	
+	WHILE path_index <= path_index_count LOOP
+		for rec in
+			select 
+			  case 
+			    when s_node = visited_node_array[path_index] then e_node
+			    else s_node
+			  end as next_node,
+			  link_id as next_link, link_type, road_type
+			from link_tbl
+			where 
+			(
+				(
+					(dir = 1) and
+					(
+						(s_node = visited_node_array[path_index] and one_way_code in (1, 2))
+						or
+						(e_node = visited_node_array[path_index] and one_way_code in (1, 3))
+					)
+				)
+				or
+				(
+					(dir = 2)and
+					(
+						(e_node = visited_node_array[path_index] and one_way_code in (1, 2))
+						or
+						(s_node = visited_node_array[path_index] and one_way_code in (1, 3))
+					)
+				)
+			)
+			and
+			(
+				temp_path_array[path_index] is null
+				or
+				not (cast(link_id as varchar) = ANY(regexp_split_to_array(temp_path_array[path_index], E'\\|+')))
+			)
+		loop
+			if rec.road_type = 0 and rec.link_type in (1, 2)then
+				return 1;
+			else
+				path_index_count := path_index_count + 1;
+				visited_node_array := array_append(visited_node_array, cast(rec.next_node as bigint));
+				if temp_path is null then
+					temp_path_array := array_append(temp_path_array, cast(rec.next_link as varchar));
+				else
+					temp_path_array := array_append(temp_path_array, cast(temp_path||'|'||rec.next_link as varchar));
+				end if;
+			end if;
+		end loop;
+		
+		path_index := path_index + 1;
+		temp_path := temp_path_array[path_index];
+	END LOOP;
+	return 0;
+END;
+$$;

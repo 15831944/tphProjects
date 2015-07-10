@@ -707,6 +707,7 @@ CREATE TABLE mid_admin_zone
   order1_id integer,
   order2_id integer,
   order8_id integer,
+  ad_name_single character varying(65536),
   ad_name character varying(65536),
   time_zone smallint,
   summer_time_id smallint
@@ -1882,6 +1883,13 @@ CREATE TABLE highway_fee_same_facility
   to_facility_id      integer not null
 );
 
+------------------------------------------------------------------------
+-- Link, which's road_type is hwy, but are not included in hwy model.
+CREATE TABLE mid_temp_not_hwy_model_link
+(
+   link_id   bigint not null primary key
+);
+
 ------------------------------------------------------------------------------
 ----park link\node\ploygon
 CREATE TABLE park_link_tbl
@@ -2312,7 +2320,20 @@ CREATE TABLE mid_temp_hwy_ic_path
 
 ------------------------------------------------------------------------
 --
-CREATE TABLE mid_temp_hwy_service_road_path
+CREATE TABLE mid_temp_hwy_service_road_path1
+(
+   gid             serial not null primary key,
+   inout_c         integer not null,
+   node_id         bigint not null,
+   to_node_id      bigint not null,
+   node_lid        character varying not null,
+   link_lid        character varying not null,
+   road_code       integer not null
+);
+
+------------------------------------------------------------------------
+--
+CREATE TABLE mid_temp_hwy_service_road_path2
 (
    gid             serial not null primary key,
    inout_c         integer not null,
@@ -2416,8 +2437,8 @@ CREATE TABLE mid_temp_hwy_facil_name
 CREATE TABLE mid_temp_hwy_exit_name
 (
   link_id            bigint not null,
-  ref_node_id        bigint not null,
-  nonref_node_id     bigint not null,
+  ref_node_id        bigint,
+  nonref_node_id     bigint,
   is_exit_name       character(1),
   is_junction_name   character(1),
   name               character varying(4096)

@@ -68,12 +68,10 @@ class rdb_link_add_info(ItemBase):
                 (
                   SELECT distinct A.tile_link_id
                         , A.tile_id
-                        , case when B.link_id is null then A.struct_code
-                            else 0 end as struct_code
+                        , A.struct_code as struct_code
                         , 0 as shortcut_code
                         , 0 as parking_code
-                        , case when B.link_id is null then A.etc_lane_flag
-                            else 0 end as etc_lane_flag
+                        , A.etc_lane_flag as etc_lane_flag
                         , case when B.link_id is null then path_extra_info 
                             else (path_extra_info | (1::smallint << 15))
                           end as path_extra_info

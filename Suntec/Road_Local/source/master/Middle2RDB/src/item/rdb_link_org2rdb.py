@@ -26,6 +26,7 @@ class rdb_link_org2rdb(ItemBase):
             ('mmi'):                rdb_link_org2rdb_mmi(),
             ('msm'):                rdb_link_org2rdb_msm(),
             ('ni'):                 rdb_link_org2rdb_ni(),
+            ('zenrin'):             rdb_link_org2rdb_zenrin(),
         }
         return rdb_common.getItem(proj_mapping)
 
@@ -1165,4 +1166,51 @@ class rdb_link_org2rdb_ni(rdb_link_org2rdb):
         self.pg.execute2(sqlcmd)        
         self.pg.commit2()        
 
+class rdb_link_org2rdb_zenrin(rdb_link_org2rdb):
+ 
+    def _createOrg2RdbTbl_prepare(self):
         
+        # Create ID relation table for original link and RDB link.        
+        sqlcmd = """
+            drop table if exists temp_link_org2rdb;
+            create table temp_link_org2rdb
+            as
+            (
+                SELECT a1.link_id as org_link_id,a.the_geom as org_geom
+                   ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
+                   ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
+                   ,e.tile_link_id as target_link_id
+                   ,g.the_geom as target_geom
+                FROM org_road as a
+                left join temp_link_mapping a1
+                on a.meshcode = a1.meshcode and a.linkno = a1.linkno
+                left join temp_split_newlink as c
+                on a1.link_id = c.old_link_id
+                left join link_tbl_bak_merge f
+                on c.link_id = f.link_id or a1.link_id = f.link_id
+                left join temp_merge_link_mapping as d
+                on (c.link_id = d.merge_link_id) or (a1.link_id = d.merge_link_id)
+                left join rdb_tile_link as e
+                on (d.link_id = e.old_link_id) or (c.link_id = e.old_link_id) or (a1.link_id = e.old_link_id)
+                left join rdb_link g
+                on e.tile_link_id = g.link_id
+            );
+            
+            CREATE INDEX temp_link_org2rdb_mid_link_id_idx
+              ON temp_link_org2rdb
+              USING btree
+              (mid_link_id);
+            
+            CREATE INDEX temp_link_org2rdb_org_link_id_idx
+              ON temp_link_org2rdb
+              USING btree
+              (org_link_id);
+                        
+            CREATE INDEX temp_link_org2rdb_target_link_id_idx
+              ON temp_link_org2rdb
+              USING btree
+              (target_link_id);                            
+        """
+        self.pg.execute2(sqlcmd)        
+        self.pg.commit2()        
+       

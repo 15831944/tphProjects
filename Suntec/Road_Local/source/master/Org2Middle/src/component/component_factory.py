@@ -45,6 +45,10 @@ class comp_factory(object):
         if comp_name == 'MainNode':
             from component.default import mainnode
             return mainnode.comp_mainnode()
+        
+        if comp_name == 'Highway_Prepare':
+            from component.default import highway
+            return highway.comp_hwy_prepare()
 
         if comp_name == 'Highway':
             from component.default import highway
@@ -77,6 +81,10 @@ class comp_factory(object):
         if comp_name == 'Guideinfo_TowardName':
             from component.default import guideinfo_towardname
             return guideinfo_towardname.comp_guideinfo_towardname()
+        
+        if comp_name == 'Guideinfo_SpotGuide':
+            from component.default import guideinfo_spotguide
+            return guideinfo_spotguide.comp_guideinfo_spotguide()
         
         if comp_name == 'Guideinfo_SignPost':
             from component.default import guideinfo_signpost
@@ -953,10 +961,43 @@ class comp_factory_zenrin(comp_factory):
         '''
 
     def CreateOneComponent(self, comp_name):
+        if comp_name == 'Admin':
+            from component.zenrin import admin_zenrin
+            return admin_zenrin.comp_admin_zenrin()
         if comp_name == 'Regulation':
             from component.zenrin import regulation_zenrin
             return regulation_zenrin.comp_regulation_zenrin()
-        if comp_name == 'Spotguide':
-            from component.zenrin import guideinfo_spotguide_zenrin
-            return guideinfo_spotguide_zenrin.comp_guideinfo_spotguide_mmi()
+        if comp_name == 'Dictionary':
+            from component.zenrin import dictionary_zenrin
+            return dictionary_zenrin.comp_dictionary_zenrin()
+        if comp_name == 'Link':
+            from component.zenrin import link_zenrin
+            return link_zenrin.comp_link_zenrin()
+        if comp_name == 'Node':
+            from component.zenrin import node_zenrin
+            return node_zenrin.comp_node_zenrin()
+        if comp_name == 'Mapping':
+            from component.zenrin import mapping
+            return mapping.comp_mapping_zenrin()
         
+        if comp_name == 'Guideinfo_Lane':
+            from component.zenrin import guideinfo_lane_zenrin
+            return guideinfo_lane_zenrin.comp_guideinfo_lane_zenrin()
+        
+        if comp_name == 'Guideinfo_SpotGuide':
+            from component.zenrin import guideinfo_spotguide_zenrin
+            return guideinfo_spotguide_zenrin.comp_guideinfo_spotguide_zenrin()
+        
+        if comp_name == 'guideinfo_signpost_uc':
+            from component.zenrin import guideinfo_signpost_uc_zenrin
+            return guideinfo_signpost_uc_zenrin.comp_guideinfo_signpost_uc_zenrin()
+        
+        if comp_name == 'CrossName':
+            from component.zenrin import guideinfo_crossname_zenrin
+            return guideinfo_crossname_zenrin.comp_guideinfo_crossname_zenrin()
+        
+        if comp_name == 'Guideinfo_building':
+            from component.zenrin import guideinfo_building_zenrin
+            return guideinfo_building_zenrin.comp_guideinfo_building_zenrin()
+        
+        return comp_factory.CreateOneComponent(self, comp_name)
