@@ -2606,6 +2606,7 @@ CREATE TABLE temp_force_guide_patch_link_tbl
 ------------------------------------------------------------------------
 CREATE TABLE temp_force_guide_patch_tbl
 (
+ gid serial not null primary key,
  guide_type bigint not null,
  geom_text character varying(16384),
  z_text character varying(16384)

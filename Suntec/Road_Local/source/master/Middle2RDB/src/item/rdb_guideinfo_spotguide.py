@@ -97,19 +97,22 @@ class rdb_guideinfo_spotguide(ItemBase):
         # 从node_tbl搜刮出toll_flag=1的点。
         # 一些仕向地提供了toll station数据及元数据图片，这些数据在o2m的时候已被做到spotguide_tbl表中。
         # 为防止与这些toll station点重复，这里使用spotguide_tbl对搜出的toll_station列表进行了过滤。
+        # 关于link_tbl中的one_way_code（以s_node->e_node为正向）：
+        # 1: 双向：双方向可以通行
+        # 2: 正向通行
+        # 3: 反向通行
         sqlcmd = """
-                select a.node_id, array_agg(b.link_id) as slinkid, array_agg(b.one_way_code) as soneway, 
-                array_agg(c.link_id) as elinkid, array_agg(c.one_way_code) as eoneway
+                select a.node_id, array_agg(b.link_id) as inlinklist, 
+                array_agg(c.link_id) as outlinklist, 
                 from
                 node_tbl as a
                 left join link_tbl as b
-                on a.node_id=b.s_node
+                on (a.node_id = b.s_node and b.one_way_code in (1,3))
                 left join link_tbl as c
-                on a.node_id=c.e_node
+                on (a.node_id = c.e_node and c.one_way_code in (1,2))
                 left join spotguide_tbl as d
-                on a.node_id=d.nodeid
+                on a.node_id=d.nodeid and d.type=12 and d.nodeid is null
                 where a.toll_flag=1
-                and d.nodeid is null
                 group by a.node_id
           """
           
@@ -125,43 +128,15 @@ class rdb_guideinfo_spotguide(ItemBase):
                   values(%d, %d, %d,
                          '', 0, 0,
                          0, 0, 0,
-                         %s, 12,
+                         '%s', 12,
                          false)
             '''
         self.pg.execute2(sqlcmd)
         rows = self.pg.fetchall2()
         for row in rows:
             node_id=row[0]
-            sNodeLinkList = row[1] # 以此node为s_node的link列表
-            sOneWayList = row[2] # 对应的one_way_code列表
-            eNodeLinkList = row[3] # 以此node为e_node的link列表
-            eOneWayList = row[4] # 对应的one_way_code列表
-            
-            inLinkList = []
-            outLinkList = []
-            # 根据s_node列表和它对应的one_way_code找出该node的inlink列表和outlink列表。
-            for x in zip(sNodeLinkList, sOneWayList):
-                if x[1] == 1:
-                    inLinkList.append(x[0])
-                    outLinkList.append(x[0])
-                elif x[1] == 2:
-                    outLinkList.append(x[0])
-                elif x[1] == 3:
-                    inLinkList.append(x[0])
-                else:
-                    continue
-                
-            # 根据e_node列表和它对应的one_way_code找出该node的inlink列表和outlink列表。
-            for x in zip(eNodeLinkList, eOneWayList):
-                if x[1] == 1:
-                    inLinkList.append(x[0])
-                    outLinkList.append(x[0])
-                elif x[1] == 2:
-                    inLinkList.append(x[0])
-                elif x[1] == 3:
-                    outLinkList.append(x[0])
-                else:
-                    continue
+            inLinkList = row[1] # 此node的inlink列表
+            outLinkList = row[2] # 此node的outlink列表
             
             # 根据求出的inlink列表和outlink列表作成inlink --> node --> outlink值对。 
             for oneInLink in inLinkList:

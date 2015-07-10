@@ -280,7 +280,7 @@ BEGIN
 			tmpPath		:= tmpPathArray[tmpPathIndex];
 			
 			-- no proper connected link, here is a complete path
-			if rec.link_type not in (0,3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
+			if rec.link_type not in (3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
 				if tmpPath is not null then
 					rstPath			:= tmpPath;
 

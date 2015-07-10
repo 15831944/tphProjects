@@ -362,3 +362,12 @@ class CCheckSafetyAlertSpeedUnit(platform.TestCase.CTestCase):
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
     
+class CCheckTableCount(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        
+        sqlcmd = '''
+            select count(1) from rdb_guideinfo_safetyalert
+                '''
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec > 0)

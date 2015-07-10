@@ -12,7 +12,7 @@ class rdb_forecast(ItemBase):
     @staticmethod
     def instance():
         proj_mapping = {
-            ('ta','aus'):           rdb_forecast(),
+            ('ta','aus'):           rdb_forecast_aus(),
             ('jpn'):                rdb_forecast(),
             ('jdb'):                rdb_forecast(),
             ('axf'):                rdb_forecast(),
@@ -208,6 +208,13 @@ class rdb_forecast_aus(ItemBase):
         self.CreateTable2('temp_forecast_link_with_slot_main')
         sqlcmd = """
             analyze temp_forecast_link_with_slot;
+            analyze temp_forecast_time_org;
+            analyze temp_forecast_time_slot;
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()            
+                               
+        sqlcmd = """
             insert into temp_forecast_link_with_slot_main(link_id, org_link_id, dir, profile_flag, free_time, weekday_time, 
                weekend_time, average_time, s_fraction, e_fraction, time_slot, weekend, weekday)
             select link_id,org_link_id,dir,profile_flag
@@ -327,6 +334,8 @@ class rdb_forecast_aus(ItemBase):
             ) b 
             where not (weekday_sum <= 900 and weekend_sum <= 900);       
 
+            analyze temp_forecast_link_with_slot_more_than_15min;
+            
             CREATE INDEX temp_forecast_link_with_slot_more_than_15min_link_id_dir_idx
               ON temp_forecast_link_with_slot_more_than_15min
               USING btree
@@ -406,7 +415,8 @@ class rdb_forecast_aus(ItemBase):
           
         self.CreateFunction2('rdb_cal_link_forecast_time')
         sqlcmd = """
-            select rdb_cal_link_forecast_time('temp_forecast_link_with_slot_main_merge','temp_forecast_link_with_slot_merge');       
+            select rdb_cal_link_forecast_time('temp_forecast_link_with_slot_main_merge','temp_forecast_link_with_slot_merge'); 
+            analyze temp_forecast_link_with_slot_merge;      
             """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()                               
@@ -519,6 +529,8 @@ class rdb_forecast_aus(ItemBase):
         rdb_log.log(self.ItemName, 'creating region data with slots %s----- start'%X, 'info')        
         # Region links with periodic data: time slots were unfolded.
         sqlcmd = """
+            analyze rdb_forecast_link;
+            
             drop table if exists temp_forecast_link_with_slot_main_layer%X;
             create table temp_forecast_link_with_slot_main_layer%X as
             select m.* from (
@@ -683,6 +695,8 @@ class rdb_forecast_aus(ItemBase):
                     order by link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot
                 ) b group by link_id,dir,free_time,weekday_time,weekend_time,average_time
             );
+            
+            analyze temp_forecast_link_with_slot_main_merge_layer%X;
         """
         sqlcmd = sqlcmd.replace('%X',X)
         self.pg.execute2(sqlcmd)
@@ -693,6 +707,8 @@ class rdb_forecast_aus(ItemBase):
         sqlcmd = """
             select rdb_cal_link_forecast_time('temp_forecast_link_with_slot_main_merge_layer%X','temp_forecast_link_with_slot_merge_layer%X');       
 
+            analyze temp_forecast_link_with_slot_merge_layer%X;
+            
             CREATE INDEX temp_forecast_link_with_slot_merge_layer%X_time_slot_array_weekday_diff_array_idx1
               ON temp_forecast_link_with_slot_merge_layer%X
               USING btree
@@ -776,6 +792,7 @@ class rdb_forecast_aus(ItemBase):
     def Do_CreatIndex(self):
         
         self.CreateIndex2('rdb_forecast_link_link_id_idx1')
+        self.CreateIndex2('rdb_forecast_link_link_id_t_idx')
         self.CreateIndex2('rdb_forecast_control_info_id_idx1')
         self.CreateIndex2('rdb_forecast_time_time_id_idx1')
                     

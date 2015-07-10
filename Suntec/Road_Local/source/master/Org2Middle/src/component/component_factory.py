@@ -943,3 +943,20 @@ class comp_factory_ni(comp_factory):
         
         return comp_factory.CreateOneComponent(self, comp_name)
 
+
+# ==============================================================================
+# comp_factory_zenrin(zenrin twn)
+# ==============================================================================
+class comp_factory_zenrin(comp_factory):
+    def __init__(self):
+        '''TWN
+        '''
+
+    def CreateOneComponent(self, comp_name):
+        if comp_name == 'Regulation':
+            from component.zenrin import regulation_zenrin
+            return regulation_zenrin.comp_regulation_zenrin()
+        if comp_name == 'Spotguide':
+            from component.zenrin import guideinfo_spotguide_zenrin
+            return guideinfo_spotguide_zenrin.comp_guideinfo_spotguide_mmi()
+        

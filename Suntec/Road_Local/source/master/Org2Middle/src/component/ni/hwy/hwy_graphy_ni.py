@@ -157,7 +157,7 @@ class HwyGraphNi(HwyGraphRDF):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
                 continue
-            elif self._get_tollgate_num(temp_path) >= MAX_TOLLGATE_NUM:
+            elif self.get_tollgate_num(temp_path) >= MAX_TOLLGATE_NUM:
                 continue
             elif len(visited) <= cutoff2:
                 # 取得link

@@ -4,12 +4,16 @@ Created on 2015-3-3
 
 @author: hcz
 '''
+from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
+from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
+from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
 from component.jdb.hwy.hwy_mapping import HwyMapping
 from component.jdb.hwy.hwy_mapping import HwyLinkMapping
 from component.jdb.hwy.hwy_ic_info import convert_tile_id
 from component.jdb.hwy.hwy_def import UPDOWN_TYPE_UP
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_MAIN
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_SR
+from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_SR_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_SR_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_NONE
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
@@ -17,7 +21,6 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_RAMP
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
-from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 HWY_INVALID_ROAD_NO = -1  # 无效道路番号
 HWY_INVALID_IC_NO = 0  # 无效ic_no
@@ -46,6 +49,7 @@ class HwyMappingRDF(HwyMapping):
         self.CreateIndex2('highway_mapping_backward_ic_no_idx')
         self.CreateIndex2('highway_mapping_link_id_forward_ic_no_'
                           'backward_ic_no_idx')
+        self._make_not_hwy_model_links()
         self._check_link()
         return
 
@@ -575,6 +579,8 @@ class HwyMappingRDF(HwyMapping):
                             continue
                         if bwd_facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
                             path_type = HWY_PATH_TYPE_SR_SAPA
+                        if bwd_facilcls in (HWY_IC_TYPE_JCT, ):
+                            path_type = HWY_PATH_TYPE_SR_JCT
                         else:
                             path_type = HWY_PATH_TYPE_SR
                         # 保存前后设施
@@ -724,3 +730,49 @@ class HwyMappingRDF(HwyMapping):
         """
         self.pg.execute1(sqlcmd, (bwd_node_id, bwd_ic_no, fwd_node_id,
                                   fwd_ic_no, link_id, path_type))
+
+    def _make_not_hwy_model_links(self):
+        '''非高速Model的link.'''
+        sqlcmd = """
+        SELECT a.link_id, s_node, e_node,one_way_code
+          FROM link_tbl as a
+          LEFT JOIN highway_mapping as b
+          ON a.link_id = b.link_id
+          where road_type = 0 and b.link_id is null and
+                link_type <> 0 and -- not roundabout link
+                not (link_type = 1 and one_way_code = 1)
+          ORDER BY a.link_id;
+        """
+        for link_id, u, v, one_way in self.get_batch_data(sqlcmd):
+            if one_way in (ONE_WAY_POSITIVE, ONE_WAY_BOTH):
+                pathes = list(self.G.all_path_2_hwy_main(u, v,
+                                                         HWY_ROAD_CODE,
+                                                         reverse=False))
+                if pathes:  # 能通往高速本线(即高速本线相连)
+                    self.log.error('(Hwy Mapping)Does not include link=%s.'
+                                   % link_id)
+                    continue
+                pathes = list(self.G.all_path_2_hwy_main(u, v,
+                                                         HWY_ROAD_CODE,
+                                                         reverse=True))
+                if pathes:  # 能通往高速本线(即高速本线相连)
+                    self.log.error('(Hwy Mapping)Does not include link=%s.'
+                                   % link_id)
+                    continue
+            if one_way in (ONE_WAY_RERVERSE, ONE_WAY_BOTH):
+                pathes = list(self.G.all_path_2_hwy_main(v, u,
+                                                         HWY_ROAD_CODE,
+                                                         reverse=False))
+                if pathes:  # 能通往高速本线(即高速本线相连)
+                    self.log.error('(Hwy Mapping)Does not include link=%s.'
+                                   % link_id)
+                    continue
+                pathes = list(self.G.all_path_2_hwy_main(v, u,
+                                                         HWY_ROAD_CODE,
+                                                         reverse=True))
+                if pathes:  # 能通往高速本线(即高速本线相连)
+                    self.log.error('(Hwy Mapping)Does not include link=%s.'
+                                   % link_id)
+                    continue
+            # 保存非高速本线link
+            pass

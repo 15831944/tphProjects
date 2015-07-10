@@ -71,7 +71,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         self.pg.execute(sqlcmd)
         self.pg.commit2()       
        
-        ##查找收费站的inlink、node
+        ##鏌ユ壘鏀惰垂绔欑殑inlink銆乶ode
         sqlcmd = '''
                 insert into temp_poi_inlink(poi_id, inlink, node)
                 (

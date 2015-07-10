@@ -5,7 +5,7 @@ Created on 2015-3-16
 @author: hcz
 '''
 import component.component_base
-from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_SR
+from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_SR_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_TYPE_SR_SAPA
 
 
@@ -107,10 +107,10 @@ class HwyAdjustLinkType(component.component_base.comp_base):
           FROM mid_temp_hwy_ic_link_mapping AS a
           LEFT JOIN link_tbl as b
           ON a.link_id = b.link_id
-          WHERE path_type in ('SrvRoad', 'SrvRoad_SAPA')
+          WHERE path_type in (%s, %s)
         );
         """
-        self.pg.execute2(sqlcmd)
+        self.pg.execute2(sqlcmd, (HWY_PATH_TYPE_SR_JCT, HWY_PATH_TYPE_SR_SAPA))
         self.pg.commit2()
 
     def _update_sapa_link_type(self):
@@ -169,5 +169,5 @@ class HwyAdjustLinkType(component.component_base.comp_base):
                 and path_type = %s
                 and link_tbl.link_type = 5;
         """
-        self.pg.execute2(sqlcmd, (HWY_PATH_TYPE_SR,))
+        self.pg.execute2(sqlcmd, (HWY_PATH_TYPE_SR_JCT,))
         self.pg.commit2()

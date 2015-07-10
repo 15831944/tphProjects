@@ -53,6 +53,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
     def import_patch(self): 
         
         forceguide_patch_full_path = GetPath('forceguide_patch_full_path')
+        recIdx = 0
         if forceguide_patch_full_path:
             self.log.info('Now it is importing force_guide_patch...')
             if os.path.exists(forceguide_patch_full_path):
@@ -64,6 +65,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
                     linelist = line.split('\t')
                     linelength = len(linelist)
                     guidetype = int(linelist[0])
+                    recIdx = recIdx + 1
                     temp_geom = ''
                     temp_z = ''
                     loop = 1
@@ -81,8 +83,9 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
                     if temp_z[-1] == '|':
                         temp_z = temp_z[0:-1]
                     
-                    rec_string = '%d\t%s\t%s\n' % (guidetype, temp_geom, temp_z)
+                    rec_string = '%d\t%d\t%s\t%s\n' % (recIdx, guidetype, temp_geom, temp_z)
                     temp_file_obj.write(rec_string)
+                    temp_file_obj.flush()
                 temp_file_obj.seek(0)
                 self.pg.copy_from2(temp_file_obj, 'temp_force_guide_patch_tbl')
                 self.pg.commit2()

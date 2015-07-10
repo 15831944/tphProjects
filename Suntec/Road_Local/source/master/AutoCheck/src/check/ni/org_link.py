@@ -42,16 +42,6 @@ class CCheckZLink(platform.TestCase.CTestCase):
                '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0) 
-
-class CCheckRampClass(platform.TestCase.CTestCase):
-    def _do(self):
-        self.pg.CreateFunction_ByName('ni_cnv_link_type')
-        self.pg.CreateFunction_ByName('ni_cnv_road_type')
-        self.pg.CreateFunction_ByName('org_CheckRamp')
-        self.pg.CreateFunction_ByName('org_check_ramp_atnode')
-        if self.pg.callproc('org_CheckRamp') == -1:
-            return 0
-        return 1      
         
 class CCheckFKYValid_jnctid(platform.TestCase.CTestCase):
     def _do(self):

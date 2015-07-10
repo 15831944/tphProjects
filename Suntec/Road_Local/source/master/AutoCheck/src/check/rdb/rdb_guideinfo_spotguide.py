@@ -179,9 +179,20 @@ class CCheckGuideSpotguideExtendFlag(platform.TestCase.CTestCase):
         checkobject = rdb_common_check.\
         CCheckNodeExtendFlag(self.pg, 'rdb_guideinfo_spotguidepoint', 4)
         return checkobject.do()
-    
 
-
+# 检查由toll station做成的spotguide点在node_tbl中记录的toll_flag必须等于1.
+class CCheckGuideSpotguideTollFlagMustBe_1_(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*) from
+            rdb_guideinfo_spotguidepoint as a
+            left join rdb_tile_node as b
+            on a.node_id=b.tile_node_id and a.node_id_t=b.tile_id
+            left join node_tbl as c
+            on b.old_node_id=c.node_id
+            where a.type=12 and c.toll_flag!=1;
+        """
+        return 0 == self.pg.getOnlyQueryResult(sqlcmd)
 
 
 

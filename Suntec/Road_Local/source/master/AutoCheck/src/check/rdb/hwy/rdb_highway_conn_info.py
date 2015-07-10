@@ -5,6 +5,7 @@ Created on 2014-12-16
 @author: hcz
 '''
 import platform.TestCase
+import json
 
 
 # =============================================================================
@@ -120,7 +121,9 @@ class CCheckSimilarRoad(platform.TestCase.CTestCase):
             similar_flg = False
             if not is_similar_name(name1, name2):
                 for name1 in ic_roadnames:
+                    name1 = name1.replace('\\\\', '\\')
                     for name2 in conn_ic_roadnames:
+                        name2 = name2.replace('\\\\', '\\')
                         if is_similar_name(name1, name2):
                             similar_flg = True
                             break
@@ -133,7 +136,6 @@ class CCheckSimilarRoad(platform.TestCase.CTestCase):
 
 
 def is_similar_name(name_str1, name_str2):
-    import json
     if not name_str1 and not name_str2:
         return True
     if((name_str1 and not name_str2) or

@@ -178,3 +178,21 @@ class CCheckRecordNumber(platform.TestCase.CTestCase):
         mid_count = self.pg.getOnlyQueryResult("select count(*) from force_guide_tbl")
         rdb_count = self.pg.getOnlyQueryResult("select count(*) from rdb_guideinfo_forceguide")
         return (mid_count == rdb_count)
+
+class CCheckNostraRecNum(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(a.guideinfo_id)
+                    from rdb_guideinfo_forceguide
+                """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec > 0)
+
+class CCheckTarRecNum2ConfigRecNum(platform.TestCase.CTestCase):
+    def _do(self):
+        config_count = 0
+        if self.pg.IsExistTable('temp_force_guide_patch_tbl'):
+            config_count = self.pg.getOnlyQueryResult("select count(*) from temp_force_guide_patch_tbl")
+            
+        rdb_count = self.pg.getOnlyQueryResult("select count(*) from rdb_guideinfo_forceguide")
+        return (rdb_count >= config_count)

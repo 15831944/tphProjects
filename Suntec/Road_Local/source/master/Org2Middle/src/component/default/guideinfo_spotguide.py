@@ -16,7 +16,7 @@ class comp_guideinfo_spotguide(component.component_base.comp_base):
         Constructor
         '''
         component.component_base.comp_base.__init__(self, 'spotguide_tbl')
-        
+        # 这个表在某某模块被修改过
     def _DoCreateTable(self):
         self.CreateTable2('spotguide_tbl')
         return 0

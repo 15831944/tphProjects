@@ -83,7 +83,7 @@ def main():
 #                rdb_language.rdb_language(),
 #                rdb_guideinfo_cross_name.rdb_guideinfo_cross_name(),
 #                rdb_guideinfo_lane.rdb_guideinfo_lane(),
-#                rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea(),
+                rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea(),
 #                rdb_guideinfo_signpost.rdb_guideinfo_signpost(),
                 rdb_guideinfo_spotguide.rdb_guideinfo_spotguide(),
 #                rdb_guideinfo_natural_guidence.rdb_guideinfo_natural_guidence(),
@@ -161,7 +161,7 @@ def main():
 
     # Check
     for component in comp_list:
-        component.Check()
+        #component.Check()
         pass
     
     rdb_log.log('Middle2RDB', 'Convert Middle data to RDB format data succeeded. Please the check data.', 'info')

@@ -1573,6 +1573,10 @@ CREATE INDEX rdb_forecast_link_link_id_idx1
   ON rdb_forecast_link
   USING btree
   (link_id);
+CREATE INDEX rdb_forecast_link_link_id_t_idx
+  ON rdb_forecast_link
+  USING btree
+  (link_id_t);  
 CREATE INDEX rdb_forecast_control_info_id_idx1
   ON rdb_forecast_control
   USING btree

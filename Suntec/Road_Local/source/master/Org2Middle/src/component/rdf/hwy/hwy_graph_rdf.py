@@ -683,7 +683,7 @@ class HwyGraphRDF(HwyGraph):
         '''出口/分歧设施'''
         pass
 
-    def is_hwy_inout(self, path, reverse=False):
+    def is_hwy_inout(self, path, reverse=False, code_field=HWY_ROAD_CODE):
         '''高速(Ramp)和一般道、高速双向路的交汇点。
            reverse: False,顺车流；True,逆车流
         '''
@@ -714,13 +714,17 @@ class HwyGraphRDF(HwyGraph):
                not self.is_normal_inner_link(data)):
                 return True
             if self.is_normal_inner_link(data):
-                inner_num += 1
+                # 非一进一出
+                if(len(path) > 2 and
+                   not self._one_in_one_out(path[-1], code_field)):
+                    return True
             if(road_type in HWY_ROAD_TYPE_HWY and  # 高速
                link_type not in (HWY_LINK_TYPE_INNER,
                                  HWY_LINK_TYPE_RTURN,
                                  HWY_LINK_TYPE_LTURN,
                                  HWY_LINK_TYPE_SAPA,
-                                 HWY_LINK_TYPE_RAMP) and
+                                 HWY_LINK_TYPE_RAMP,
+                                 HWY_LINK_TYPE_JCT) and
                self.has_edge(temp_v, temp_u)):  # 双向道路
                 return True
         if inner_num >= 2:
@@ -948,8 +952,9 @@ class HwyGraphRDF(HwyGraph):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
                 continue
-            elif self._get_tollgate_num(temp_path) >= MAX_TOLLGATE_NUM:
-                continue
+            # JCT之间有两个收费站(100.68357,13.64434)
+            # elif self.get_tollgate_num(temp_path) >= MAX_TOLLGATE_NUM:
+            #    continue
             elif len(visited) <= cutoff2:
                 # 取得link
                 if reverse:  # 逆
@@ -984,13 +989,17 @@ class HwyGraphRDF(HwyGraph):
                         exist_sapa_facil = True
                 elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                             code_field, reverse):
-                    if self._is_sapa_path(temp_path, road_code,
-                                          code_field, reverse):
-                        yield temp_path[1:], HWY_IC_TYPE_PA
-                        exist_sapa_facil = True
+                    if self.get_tollgate_num(temp_path) < MAX_TOLLGATE_NUM:
+                        if self._is_sapa_path(temp_path, road_code,
+                                              code_field, reverse):
+                            yield temp_path[1:], HWY_IC_TYPE_PA
+                            exist_sapa_facil = True
+                        else:
+                            # 辅路、类辅路设施
+                            yield temp_path[1:], HWY_IC_TYPE_SERVICE_ROAD
                     else:
-                        # 辅路、类辅路设施
-                        yield temp_path[1:], HWY_IC_TYPE_SERVICE_ROAD
+                        pass
+                        # print 'Tollgate Number > 1. path=%s' % temp_path
                 # 和一般道交汇
                 if self.is_hwy_inout(temp_path, reverse):
                     yield temp_path[1:], HWY_IC_TYPE_IC
@@ -1110,7 +1119,8 @@ class HwyGraphRDF(HwyGraph):
                                  HWY_LINK_TYPE_RTURN,
                                  HWY_LINK_TYPE_LTURN,
                                  HWY_LINK_TYPE_SAPA,
-                                 HWY_LINK_TYPE_RAMP
+                                 HWY_LINK_TYPE_RAMP,
+                                 HWY_LINK_TYPE_JCT
                                  )):
                 continue
             road_type = data.get(HWY_ROAD_TYPE)
@@ -1123,7 +1133,8 @@ class HwyGraphRDF(HwyGraph):
                 if(link_type in (HWY_LINK_TYPE_JCT,
                                  HWY_LINK_TYPE_RAMP,
                                  HWY_LINK_TYPE_SAPA) or
-                   self.is_normal_inner_link(data)):
+                   (self.is_normal_inner_link(data) and not ignore_inner)
+                   ):
                     if reverse:  # 逆
                         nodes.append(u)
                     else:  # 顺
@@ -1265,12 +1276,69 @@ class HwyGraphRDF(HwyGraph):
                 return True
         return False
 
-    def _get_tollgate_num(self, path):
+    def get_tollgate_num(self, path):
         tollgate = set()
         for node in path[1:-1]:
             if self.is_tollgate(node):
                 tollgate.add(node)
         return len(tollgate)
+
+    def all_path_2_hwy_main(self, u, v, code_field=HWY_ROAD_CODE,
+                            reverse=False, cutoff=MAX_CUT_OFF):
+        '''通往高速本线的路径'''
+        if cutoff < 1:
+            return
+        if reverse:  # 逆
+            source = u
+            visited = [v, u]
+        else:  # 顺
+            source = v
+            visited = [u, v]
+        if source not in self:
+            return
+        nodes = self._get_not_main_link(visited[-1], code_field, reverse, True)
+        if not nodes:
+            # 直接和高速本线相连
+            main_node = self.get_main_link(visited[-1], None, code_field,
+                                           False, reverse)
+            for node in main_node:
+                if self.check_regulation(visited + [node], reverse):
+                    yield visited + [node]
+            return
+        stack = [iter(nodes)]
+        while stack:
+            children = stack[-1]
+            child = next(children, None)
+            temp_path = visited + [child]
+            if child is None:
+                stack.pop()
+                visited.pop()
+            elif(len(visited) >= 2 and child == visited[-2]):  # 折返
+                # 即 不是断头路的最后一个点, 不能折返
+                continue
+            # elif temp_path.count(child) > MAX_COUNT:
+            #    continue
+            elif not self.check_regulation(temp_path, reverse):
+                continue
+            # elif child == visited[1]:
+            #    continue
+            elif len(visited) <= cutoff:
+                if len(visited) < cutoff:
+                    main_node = self.get_main_link(child, None, code_field,
+                                                   False, reverse)
+                    for node in main_node:
+                        if self.check_regulation(temp_path + [node], reverse):
+                            yield temp_path + [node]
+                    # 取得非本线
+                    nodes = self._get_not_main_link(child, code_field,
+                                                    reverse, True)
+                    if nodes:
+                        visited.append(child)
+                        stack.append(iter(nodes))
+                elif len(visited) == cutoff:
+                    stack.pop()
+                    visited.pop()
+
 
 # ==============================================================================
 #
