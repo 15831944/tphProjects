@@ -80,7 +80,7 @@ def getOutlinkIDFromArrowPicPath(arrowPicPath):
 # SR_BH_555171664.svg
 # SR_IL_834484798_N.svg
 # SR_IL_834897523_R.svg
-# 其中第2个字段是inlinkid。
+# 其中第3个字段是inlinkid。
 def getInlinkIDFromSarSvgFile(sarSvgFilePath):
     str1 = os.path.split(sarSvgFilePath)[1]
     str2 = os.path.splitext(str1)[0]
@@ -227,6 +227,7 @@ class GeneratorPicBinary_Here(object):
                                 os.system(cmd)
                                 print """composed\n\t%s\nto\n\t%s""" % (oneSarPng, oneArrowPic)
                                 oFStream.write(oneSarName + '\n') # 仅为了check结果。
+                                
                                 break # 一个sar名字只可能找到一张图片，故找到后即可中断。
                     break # 一个arrow图只可能找到一个sar.svg文件，故找到后即可中断。
         return
