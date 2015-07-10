@@ -24,7 +24,8 @@ def ComposePicsToDat(imgList, destDir, datInfo=1, outputDatName=''):
     destFile = ''
     if(outputDatName == ''):
         # imgList里的所有图片理论上名字应该相同，所以可以使用第一张名字来命名dat文档。
-        destFile = os.path.join(destDir, os.path.splitext(imgList[0])[0] + '.dat')
+        imgName = os.path.split(imgList[0])[1]
+        destFile = os.path.join(destDir, os.path.splitext(imgName)[0] + '.dat')
     else:
         # 一些特殊情况之下，需要给dat文档进行特殊命名，例如添加后缀等等等等，特殊命名由outputDatName提供。
         destFile = os.path.join(destDir, outputDatName + '.dat')
@@ -48,7 +49,7 @@ def ComposePicsToDat(imgList, destDir, datInfo=1, outputDatName=''):
     outFS.close()
     print "    >>>>>>>>  " + destFile
 
-class GenerateIllustData(object):
+class IllustDataGenerator(object):
     def __init__(self):
         self.conn = psycopg2.connect(''' host='172.26.179.190' dbname='C_NIMIF_Sample_TMP'
                                          user='postgres' password='pset123456' ''')
@@ -66,7 +67,7 @@ class GenerateIllustData(object):
         totalPngInDisk = []
         for curDir,dirNames,fileNames in os.walk(srcDir):
             for oneFile in fileNames:
-                if(os.path.splitext(oneFile)[1].lower() == 'png'):
+                if(os.path.splitext(oneFile)[1].lower() == '.png'):
                     totalPngInDisk.append(os.path.join(curDir, oneFile))
         
         self.pgcur2.execute('''select patternno, arrowno, "type", folder from org_br''')
@@ -80,7 +81,7 @@ class GenerateIllustData(object):
             bPatternIsFound = False
             patternPngList = []
             arrowPngList = []
-            # 根据各种城市名称，分歧点type，分歧点名字等条件从.png列表里确定满足所有条件的pattern图片和arrow图片。
+            # 根据各种城市名称，分歧点type，分歧点名字 ，patternno，arrowno等条件从.png列表里确定满足所有条件的pattern图片和arrow图片。
             for onePng in totalPngInDisk:
                 # 不是本城市，直接pass
                 if(onePng.find(folder) == -1):
@@ -101,7 +102,6 @@ class GenerateIllustData(object):
             
             # 当pattern图片和arrow图片都能同时找到时，才做dat   
             if bPatternIsFound and bArrowIsFound:
-                # 
                 ComposePicsToDat(patternPngList, destDir, 1, patternno+'_'+folder)
                 ComposePicsToDat(arrowPngList, destDir, 1, arrowno+'_'+folder)
                 
@@ -110,10 +110,63 @@ class GenerateIllustData(object):
             if(bArrowIsFound == False):
                 print '''arrow picture cannot found: %s\%s\%s''' % (folder,typeAndNameDict[jv_type],arrowno)
 
-
+    def makeSignboardIllust(self, srcDir, destDir):
+        if os.path.isdir(srcDir) == False:
+            print "input directory not exist! " + srcDir
+            return
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        os.mkdir(destDir)
+        
+        # 遍历元数据文件夹，列出四维提供的所有和signboard有关系的。png图片
+        totalPngInDisk = []
+        for curDir,dirNames,fileNames in os.walk(srcDir):
+            if curDir.lower().find("signboard") != -1:
+                for oneFile in fileNames:
+                    if(os.path.splitext(oneFile)[1].lower() == '.png'):
+                        totalPngInDisk.append(os.path.join(curDir, oneFile))
+        
+        self.pgcur2.execute('''select patternno, arrowno, folder from org_signboard''')
+        rows = self.pgcur2.fetchall()
+        for row in rows:
+            patternno = row[0]
+            arrowno = row[1]
+            folder = row[2]
+            
+            bPatternIsFound = False
+            patternPngList = []
+            arrowPngList = []
+            # 根据各种城市名称，分歧点type，分歧点名字 ，patternno，arrowno等条件从.png列表里确定满足所有条件的pattern图片和arrow图片。
+            for onePng in totalPngInDisk:
+                # 不是本城市，直接pass
+                if(onePng.find(folder) == -1):
+                    continue
+                
+                if(onePng.find('pattern') != -1 and onePng.find(patternno) != -1):
+                    #终于找到 pattern图片了
+                    bPatternIsFound = True
+                    patternPngList.append(onePng)
+                    
+                if(onePng.find('arrow') != -1 and onePng.find(arrowno) != -1):
+                    #终于找到 arrow图片了
+                    bArrowIsFound = True
+                    arrowPngList.append(onePng)
+            
+            # 当pattern图片和arrow图片都能同时找到时，才做dat   
+            if bPatternIsFound and bArrowIsFound:
+                ComposePicsToDat(patternPngList, destDir, 1, patternno+'_'+folder)
+                ComposePicsToDat(arrowPngList, destDir, 1, arrowno+'_'+folder)
+                
+            if(bPatternIsFound == False):
+                print '''pattern picture cannot found: %s\%s\%s''' % (folder, patternno)
+            if(bArrowIsFound == False):
+                print '''arrow picture cannot found: %s\%s\%s''' % (folder, arrowno)
 
                   
             
 if __name__ == '__main__':
-    print 'hello world!'
-    return
+    datMaker = IllustDataGenerator()
+    datMaker.makeJunctionViewIllust("C:\\My\\20150504-0511_ni_spotguide\\17CY Sample data_2\\data\\GraphAndVoice",
+                                    "C:\\My\\20150504-0511_ni_spotguide\\road_dat_output")
+    datMaker.makeSignboardIllust("C:\\My\\20150504-0511_ni_spotguide\\17CY Sample data_2\\data\\GraphAndVoice",
+                                 "C:\\My\\20150504-0511_ni_spotguide\\signboard_dat_output")

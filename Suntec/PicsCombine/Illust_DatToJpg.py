@@ -43,4 +43,5 @@ def ConvertDatToImage(srcDatFile, destDir):
         outFS.close()
         
 if __name__ == '__main__':
-    ConvertDatToImage_Dir(r"\\idata\Private\Data_Authoring\SourceData\malsing\tmp", r"C:\Users\hexin\Desktop\output4")
+    #ConvertDatToImage_Dir(r"\\idata\Private\Data_Authoring\SourceData\malsing\tmp", r"C:\Users\hexin\Desktop\output4")
+    ConvertDatToImage_Dir(r"C:\My\20150504-0511_ni_spotguide\signboard_dat_output", r"C:\My\20150504-0511_ni_spotguide\signboard_dat_output2")

@@ -5,3 +5,5 @@ encoding/Illust_Here.py=utf-8
 encoding/Illust_MMI.py=cp936
 encoding/Illust_NI.py=cp936
 encoding/Illust_Sensis.py=utf-8
+encoding/datacheck_org_spotguide_ni.py=cp936
+encoding/generate_ni_demo_signboard_table.py=cp936
