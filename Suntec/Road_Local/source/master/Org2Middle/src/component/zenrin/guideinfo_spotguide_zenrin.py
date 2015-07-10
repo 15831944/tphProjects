@@ -39,6 +39,7 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
     def __make_temp_org_spjcty(self):
         self.log.info('make temp_org_spjcty...')
         
+        # 创建表单temp_org_spjcty 作成：
         # 原始表单org_spjcty中id唯一化
         # 步骤1：根据jct_number获取meshcode，将字符串化的id整形化
         # 步骤2：根据mapping表获取唯一化id
@@ -91,6 +92,7 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
     def __make_temp_spotguide_tbl(self):
         self.log.info('make temp_spotguide_tbl...')
         
+        # 创建表单temp_spotguide_tbl 作成：
         # 引导路径link化
         # 原始数据提供的引导路径由node（最多4个点）组成，需要转换成对应的link列
         # 根据原始数据check，原始数据提供node列中相邻两点同属一条link

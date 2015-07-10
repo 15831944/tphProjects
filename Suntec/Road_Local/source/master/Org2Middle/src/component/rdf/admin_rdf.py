@@ -25,7 +25,7 @@ class comp_admin_rdf(component.component_base.comp_base):
     def _Do(self):
         self.__do_country_city()
         self.__do_admin_zone()
-        self.__update_admin_for_hkgAndtwn()
+#        self.__update_admin_for_hkgAndtwn()
         self.__do_admin_time()
         return 0
 
@@ -171,6 +171,9 @@ class comp_admin_rdf(component.component_base.comp_base):
         self.CreateIndex2('mid_admin_zone_order1_id_idx')
         self.CreateIndex2('mid_admin_zone_order2_id_idx')
         self.CreateIndex2('mid_admin_zone_order8_id_idx')
+        
+        self.__add_HKGMAC_admin()
+            
         
         #special area: in SGP, order9 is set to order8
         if self.pg.IsExistTable('sgp_builtup_region'):
@@ -435,3 +438,93 @@ class comp_admin_rdf(component.component_base.comp_base):
                  
         self.log.info('end alter mid_admin_zone for hkg and twn.')
         return 0
+    
+    def __add_HKGMAC_admin(self):
+        self.log.info('start get HKG_MAC order08')
+        #判断是否含有香港澳门
+        sqlcmd = """
+                select distinct iso_country_code, country_id
+                from rdf_admin_hierarchy;
+                """
+        country_list = list([row[0],row[1]] for row in self.get_batch_data(sqlcmd))
+        for country in country_list:
+            if country[0] == 'HKG' or country[0] == 'MAC' :
+                #原有的8级做成1级
+                sqlcmd = """
+                        DROP TABLE if exists temp_order01_hkgmac;
+                        CREATE TABLE temp_order01_hkgmac
+                        as
+                        (
+                          select ad_code, ad_order, order0_id, order1_id, order2_id, 
+                               order8_id, ad_name, the_geom
+                          from mid_admin_zone
+                          where ad_order = 8 and order0_id = %s
+                        );
+                                                
+                        delete from mid_admin_zone
+                        where ad_order in (1,8) and order0_id = %s;
+                        
+                        insert into mid_admin_zone(ad_code, ad_order, order0_id,
+                                            order1_id, order2_id, order8_id,
+                                            ad_name, the_geom)
+                        select ad_code, 1 as ad_order, order0_id, order8_id as order1_id, 
+                            null as order2_id, null as order8_id, ad_name, the_geom
+                        from temp_order01_hkgmac;
+                        """
+                        
+                self.pg.execute2(sqlcmd, (country[1], country[1]))
+                self.pg.commit2()
+                
+                #创建形点信息,创建link关联表单
+                sqlcmd = """
+                        DROP TABLE if exists temp_admin_builtup;
+                        CREATE TABLE temp_admin_builtup
+                        as
+                        (
+                            SELECT distinct c.face_id, c.the_geom
+                            FROM rdf_carto as a
+                            left join rdf_carto_face as b
+                            on a.carto_id = b.carto_id
+                            left join temp_wkt_face as c
+                            on b.face_id = c.face_id
+                            where feature_type = 908003 -- Cartographic Settlement Boundary
+                        );
+                        
+                        DROP TABLE if exists temp_link_admin;
+                        CREATE TABLE temp_link_admin
+                        as
+                        (
+                            SELECT left_admin_place_id as admin_id, (array_agg(the_geom))[1] as the_geom
+                            FROM temp_rdf_nav_link
+                            where left_admin_place_id = right_admin_place_id and iso_country_code = %s
+                            group by left_admin_place_id
+                        );
+                        """
+                self.pg.execute2(sqlcmd, (country[0],))
+                self.pg.commit2()
+                
+                #
+                sqlcmd = """
+                        insert into mid_admin_zone(ad_code, ad_order, order0_id,
+                                            order1_id, order2_id, order8_id,
+                                            ad_name, the_geom)
+                        select a.admin_id, 8 as ad_order, d.country_id, d.order8_id as order1_id, null,
+                            a.admin_id, c.feature_name AS ad_name, st_multi(a.the_geom)
+                        from 
+                        (
+                            select b.admin_id, a.the_geom
+                            from temp_admin_builtup as a
+                            left join temp_link_admin as b
+                            on ST_Contains(a.the_geom, b.the_geom)
+                            where b.admin_id is not null
+                        )a
+                        left join mid_temp_feature_name as c
+                        on a.admin_id = c.feature_id
+                        left join rdf_admin_hierarchy as d
+                        on a.admin_id = d.admin_place_id
+                        where d.iso_country_code = %s and d.admin_place_id is not null;
+                        """
+                self.pg.execute2(sqlcmd,(country[0],))
+                self.pg.commit2()
+                        
+    

@@ -35,7 +35,7 @@ class rdb_region(ItemBase):
             ('nostra'):             rdb_region_nostra_thailand(),
             ('mmi'):                rdb_region_mmi_india(),
             ('msm'):                rdb_region_malsing_mys(),
-            ('zenrin','twn'):       rdb_region_rdf_ap(),
+            ('zenrin','twn'):       rdb_region_taiwan(),
         }
         return rdb_common.getItem(proj_mapping)
     
@@ -1382,8 +1382,8 @@ class rdb_region_rdf_ap(rdb_region):
                 """ % str(zlevel)
         self.pg.execute(sqlcmd)
     
-    def _makeOriginalRegionOnLevel6(self):
-        rdb_region._makeOriginalRegionOnLevel6(self, 2, [1,2,3])
+    def _makeOriginalRegionOnLevel6(self, zlevel=2, fc_array=[1,2,3]):
+        rdb_region._makeOriginalRegionOnLevel6(self, zlevel, fc_array)
     
     def _resetLinkFunctionClass(self):
         """
@@ -1409,6 +1409,13 @@ class rdb_region_rdf_ap(rdb_region):
 #        self.pg.commit2()
 #        
 #        rdb_log.log('Region', 'Reset link function class end.', 'info')
+
+class rdb_region_taiwan(rdb_region_rdf_ap):
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region_rdf_ap._makeOriginalRegionOnLevel4(self, 8, [1,2,3,4])
+    
+    def _makeOriginalRegionOnLevel6(self):
+        rdb_region_rdf_ap._makeOriginalRegionOnLevel6(self, 2, [1,2])
 
 class rdb_region_rdf_north_america(rdb_region):
     def _makeOriginalRegionOnLevel4(self):

@@ -50,11 +50,12 @@ class proj_msm_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_NaturalGuidence'))
-			
+
             #Ramp RoadType
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             # Link_overlay_or_circle

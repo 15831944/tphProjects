@@ -240,6 +240,35 @@ class CCheckPosSpeedRationality2_Nostra(platform.TestCase.CTestCase):
                     self.logger.warning('***Positive Speed Record is None.***')
                     return True
             return False
+        
+class CCheckPosSpeedRationality2_Zenrin(platform.TestCase.CTestCase):  
+    def _do(self):
+
+            sqlcmd = """
+                select val1,val2,val3 from (                
+                    select  1 as id, count(*) as val1  from rdb_cond_speed where pos_cond_speed = 0 
+                ) as tbl1
+                inner join 
+                ( 
+                    select 1 as id, count(*) as val2 from  rdb_cond_speed where pos_cond_speed between 30 and 60 
+                ) as tbl2
+                on tbl1.id=tbl2.id 
+                inner join
+                ( 
+                    select 1 as id, count(*) as val3 from  rdb_cond_speed where pos_cond_speed between 100 and 160 
+                ) as tbl3
+                on tbl1.id=tbl3.id         
+                """
+
+            self.pg.execute(sqlcmd)
+            row = self.pg.fetchone()
+            if row:
+                if row[1] <> 0 and row[2] <> 0:
+                    return True
+                if row[0] == 0 and row[1] == 0 and row[2] == 0:
+                    self.logger.warning('***Positive Speed Record is None.***')
+                    return True
+            return False
                 
 class CCheckNegSpeedValid(platform.TestCase.CTestCase):  
     def _do(self):
@@ -406,6 +435,35 @@ class CCheckNegSpeedRationality2_Nostra(platform.TestCase.CTestCase):
             row = self.pg.fetchone()
             if row:
                 if row[1] <> 0 and row[2] <> 0:
+                    return True
+                if row[0] == 0 and row[1] == 0 and row[2] == 0:
+                    self.logger.warning('***Negative Speed Record is None.***')
+                    return True
+            return False
+        
+class CCheckNegSpeedRationality2_Zenrin(platform.TestCase.CTestCase):  
+    def _do(self):
+
+            sqlcmd = """
+                select val1,val2,val3 from (                
+                    select  1 as id, count(*) as val1  from rdb_cond_speed where pos_cond_speed = 0 
+                ) as tbl1
+                inner join 
+                ( 
+                    select 1 as id, count(*) as val2 from  rdb_cond_speed where pos_cond_speed between 30 and 60 
+                ) as tbl2
+                on tbl1.id=tbl2.id 
+                inner join
+                ( 
+                    select 1 as id, count(*) as val3 from  rdb_cond_speed where pos_cond_speed between 100 and 160 
+                ) as tbl3
+                on tbl1.id=tbl3.id         
+                """
+
+            self.pg.execute(sqlcmd)
+            row = self.pg.fetchone()
+            if row:
+                if row[0] <> 0 and row[1] <> 0:
                     return True
                 if row[0] == 0 and row[1] == 0 and row[2] == 0:
                     self.logger.warning('***Negative Speed Record is None.***')

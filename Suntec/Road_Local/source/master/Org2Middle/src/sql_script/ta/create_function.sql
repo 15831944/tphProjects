@@ -4408,3 +4408,26 @@ BEGIN
 	return FALSE;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION temp_lane_info_merge(laneinfo_list varchar[], lane_cnt int)
+  returns varchar
+  language plpgsql
+as $$
+declare
+	lane_info_cnt int;
+	i int;
+	rtn_merge_laneinfo bit varying(16);
+BEGIN
+	rtn_merge_laneinfo := laneinfo_list[1]::bit(16);
+	
+        lane_info_cnt := array_upper(laneinfo_list, 1);
+
+	if lane_info_cnt >= 2 then
+		for i in 2..lane_info_cnt loop
+			rtn_merge_laneinfo := rtn_merge_laneinfo | laneinfo_list[i]::bit(16);
+		end loop;
+	end if;
+
+        return substring(rtn_merge_laneinfo::varchar, 1, lane_cnt);
+end;
+$$;

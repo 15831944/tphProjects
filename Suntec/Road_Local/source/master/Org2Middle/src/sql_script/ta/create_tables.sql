@@ -1235,3 +1235,22 @@ create table temp_brand_icon
 (
     brandname    varchar(128) not null default ''
 );
+
+
+CREATE TABLE temp_lane_tbl
+(
+  gid serial primary key,
+  id integer,
+  nodeid bigint,
+  inlinkid bigint,
+  outlinkid bigint,
+  passlid character varying(1024),
+  passlink_cnt smallint,
+  lanenum smallint,
+  laneinfo character varying(17),
+  arrowinfo smallint,
+  lanenuml smallint,
+  lanenumr smallint,
+  buslaneinfo character varying(17),
+  exclusive smallint default 0
+);

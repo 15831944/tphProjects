@@ -465,6 +465,8 @@ as
 	select n.condition_id,n.condition_type,n.nav_strand_id,n.access_id
 		,n.pattern_array[1] as pattern
 		,n.arrow_array[1] as arrow
+		,n.file_type_pattern[1] as pattern_file_type
+		,n.file_type_arrow[1] as arrow_file_type
 		,l.all_links
 		,l.all_nodes		
 	from 
@@ -472,10 +474,12 @@ as
 		select condition_id,condition_type,nav_strand_id,access_id
 			,array_agg(file_name_pattern) as pattern_array
 			,array_agg(file_name_arrow) as arrow_array
+			,array_agg(file_type_pattern) as file_type_pattern
+			,array_agg(file_type_arrow) as file_type_arrow
 		from (
 			select distinct a.condition_id, a.condition_type, a.nav_strand_id, a.access_id
 				,b.file_id as file_id_pattern, c.file_type as file_type_pattern,c.file_name as file_name_pattern
-				,d.file_id as file_id_arrow, e.file_type as file_id_arrow,e.file_name as file_name_arrow
+				,d.file_id as file_id_arrow, e.file_type as file_type_arrow,e.file_name as file_name_arrow
 			from 
 			(
 				select condition_id, condition_type, nav_strand_id, access_id

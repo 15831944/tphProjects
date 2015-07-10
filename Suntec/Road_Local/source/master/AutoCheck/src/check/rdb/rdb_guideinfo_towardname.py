@@ -6,7 +6,7 @@ Created on 2012-12-10
 '''
 
 import rdb_common_check
-
+import json
 
 class CCheckPassLinkCount_TN(rdb_common_check.CCheckPassLinkCount):
     '''检查TowardName的PassLink

@@ -68,7 +68,9 @@ CREATE TABLE temp_node_mapping
 as
 (
 	select a.meshcode,a.nodeno,
-	case when b.nodeid_adj is not null then b.meshcode_adj::bigint*10000000+b.nodeid_adj else a.node_id end as node_id
+			case when b.nodeid_adj is not null 
+				then b.meshcode_adj::bigint*10000000+b.nodeid_adj 
+				else a.node_id end as node_id
 	from 
 	(
 		select distinct meshcode,nodeno,meshcode::bigint*10000000+nodeno as node_id 

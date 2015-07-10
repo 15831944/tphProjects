@@ -86,6 +86,11 @@ class comp_factory(object):
             from component.default import guideinfo_spotguide
             return guideinfo_spotguide.comp_guideinfo_spotguide()
         
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
+        
         if comp_name == 'Guideinfo_SignPost':
             from component.default import guideinfo_signpost
             return guideinfo_signpost.comp_guideinfo_signpost()
@@ -217,6 +222,11 @@ class comp_factory_jpn(comp_factory):
             from component.jpn import guideinfo_spotguide_jpn
             return guideinfo_spotguide_jpn.comp_guideinfo_spotguide_jpn()
 
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
+        
         if comp_name == 'Guideinfo_Etc':
             from component.jpn import guideinfo_etc_jpn
             return guideinfo_etc_jpn.comp_guideinfo_etc_jpn()
@@ -312,6 +322,10 @@ class comp_factory_rdf(comp_factory):
             from component.rdf import guideinfo_spotguide_rdf
             return guideinfo_spotguide_rdf.comp_guideinfo_spotguide_rdf()
             pass
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
         if comp_name == 'Link_Name':
             from component.rdf import linkname_rdf
             return linkname_rdf.comp_linkname_rdf()
@@ -405,6 +419,10 @@ class comp_factory_axf(comp_factory):
         if comp_name == 'Guideinfo_SpotGuide':
             from component.axf import guideinfo_spotguide_axf
             return guideinfo_spotguide_axf.comp_guideinfo_spotguide_axf()
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
         if comp_name == 'Link_Name':
             from component.axf import linkname_axf
             return linkname_axf.comp_linkname_axf()
@@ -486,6 +504,10 @@ class comp_factory_ta(comp_factory):
                 from component.ta import guideinfo_spotguide_ta
                 return guideinfo_spotguide_ta.comp_guideinfo_spotguide_ta()
                 pass
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
         if comp_name == 'Link_Name':
             from component.ta import linkname_ta
             return linkname_ta.comp_linkname_ta()
@@ -607,6 +629,11 @@ class comp_factory_jdb(comp_factory):
             return guideinfo_spotguide_jdb.comp_guideinfo_spotguide_jdb()
             pass
         
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
+        
         if comp_name == 'park':
             from component.jdb import park_jdb
             return park_jdb.comp_park_jdb()
@@ -709,6 +736,10 @@ class comp_factory_nostra(comp_factory):
             from component.nostra import guideinfo_spotguide_nostra
             return guideinfo_spotguide_nostra.comp_guideinfo_spotguide_nostra()
             pass
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
         if comp_name == 'Guideinfo_SignPost_UC':
             from component.nostra import guideinfo_signpost_uc_nostra
             return guideinfo_signpost_uc_nostra.comp_guideinfo_signpost_uc_nostra()
@@ -787,6 +818,9 @@ class comp_factory_mmi(comp_factory):
         if comp_name == 'spotguide_tbl':
             from component.mmi import guideinfo_spotguide_mmi
             return guideinfo_spotguide_mmi.comp_guideinfo_spotguide_mmi()
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
         if comp_name == 'Guideinfo_Lane':
             from component.mmi import guideinfo_lane_mmi
             return guideinfo_lane_mmi.comp_guideinfo_lane_mmi()
@@ -869,6 +903,11 @@ class comp_factory_msm(comp_factory):
             return guideinfo_spotguide_msm.comp_guideinfo_spotguide_msm()
             pass
         
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
+        
         if comp_name == 'Guideinfo_ForceGuide':
             from component.msm import guideinfo_forceguide_msm
             return guideinfo_forceguide_msm.comp_guideinfo_forceguide_msm()
@@ -937,9 +976,14 @@ class comp_factory_ni(comp_factory):
             from component.ni.dictionary_ni import comp_dictionary_ni
             return comp_dictionary_ni() 
         
-        if comp_name == 'spotguide_tbl':
+        if comp_name == 'Guideinfo_SpotGuide':
             from component.ni.guideinfo_spotguide_ni import comp_guideinfo_spotguide_ni
             return comp_guideinfo_spotguide_ni()
+        
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
+            pass
         
         if comp_name == 'signpost_tbl':
             from component.ni.guideinfo_signpost_ni import comp_guideinfo_signpost_ni
@@ -987,6 +1031,10 @@ class comp_factory_zenrin(comp_factory):
         if comp_name == 'Guideinfo_SpotGuide':
             from component.zenrin import guideinfo_spotguide_zenrin
             return guideinfo_spotguide_zenrin.comp_guideinfo_spotguide_zenrin()
+        
+        if comp_name == 'Guideinfo_SpotGuide_Tollstation':
+            from component.default import guideinfo_spotguide_tollstation
+            return guideinfo_spotguide_tollstation.comp_guideinfo_spotguide_tollstation()
         
         if comp_name == 'guideinfo_signpost_uc':
             from component.zenrin import guideinfo_signpost_uc_zenrin

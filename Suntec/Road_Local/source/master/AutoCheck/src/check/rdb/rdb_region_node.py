@@ -254,3 +254,27 @@ class CCheckRegionNodeIdValidate(CCheckRegionNodeBase):
             if (not max_node_id_in_tile) or (level != '6' and max_node_id_in_tile > 65535):
                 return False
         return True;
+
+class CCheckRegionNodeBoundaryFlag(CCheckRegionNodeBase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from rdb_region_node_layer[X]_tbl as a
+                    left join 
+                    (
+                        select distinct node_id
+                        from rdb_region_node_layer[X]_tbl as a
+                        inner join rdb_region_link_layer[X]_tbl as b
+                        on a.node_id in (b.start_node_id, b.end_node_id) and a.node_id_t != b.link_id_t
+                    )as b
+                    on a.node_id = b.node_id
+                    where (a.node_boundary_flag is true and b.node_id is null)
+                       or (a.node_boundary_flag is false and b.node_id is not null);
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;

@@ -10,7 +10,12 @@ BEGIN
 	if char_length(day) != 9 then
 		raise EXCEPTION 'day = %', day;
 	end if;
-
+	
+	if day = '011111110' then
+		-- if day from Mon to Sun always effect, then set 0
+		return day_of_week;
+	end if;
+	
 	if substr(day, 1, 1) = '0' then
 		-- not Everyday
 		-- Mon
@@ -53,6 +58,17 @@ BEGIN
 			day_of_week := day_of_week | (1 << 7);
 			day_of_week := day_of_week | (1 << 9);
 		end if;
+		
+		if day = '000000001' then
+			-- only Holiday, Mon/Tue/Wed/Thu/Fri/Sat/Sun must set 1
+			day_of_week := day_of_week | (1 << 1); -- Mon
+			day_of_week := day_of_week | (1 << 2); -- Tue
+			day_of_week := day_of_week | (1 << 3); -- Wed
+			day_of_week := day_of_week | (1 << 4); -- Thu
+			day_of_week := day_of_week | (1 << 5); -- Fri
+			day_of_week := day_of_week | (1 << 6); -- Sat
+			day_of_week := day_of_week | 1; -- Sun
+		end if;
 	end if;
 	
 	return day_of_week;
@@ -93,6 +109,7 @@ BEGIN
 			select distinct day, shour, ehour, sdate, edate, cartype
 			from "org_not-in"
 		) a
+		order by day, shour, ehour, sdate, edate, cartype
 	loop
 		-- set default value
 		start_year	  := 0;
@@ -314,21 +331,21 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_disp_class(elcode varchar)
     LANGUAGE plpgsql
 AS $$
 BEGIN
-	return case when substr(elcode,4,1)='8' or substr(elcode,1,1)='A' then 18 
-				else
-		                	case Substr(elcode,2,1) when 'C' then 18
-		                    when '8' then 14
-		                    when 'B' then 14
-		                    when 'A' then 3
-		                    when '1' then 12
-		                    when '2' then 11
-		                    when '3' then 9
-		                    when '4' then 8
-		                    when '5' then 7
-		                    when '6' then 6
-		                    when '7' then 5
-		                    else 4
-		                    end 
+	return case when substr(elcode,4,1)='8' then 20
+				when substr(elcode,1,1)='A' then 18 
+				when substr(elcode,2,1)='C' then 18
+                when substr(elcode,2,1)='8' then 14
+                when substr(elcode,2,1)='B' then 14
+                when substr(elcode,2,1)='A' then 3
+                when substr(elcode,4,1)='3' then 16
+                when substr(elcode,3,1)='7' then 15
+                when substr(elcode,2,1)='1' then 12
+                when substr(elcode,2,1)='2' then 11
+                when substr(elcode,2,1)='3' then 9
+                when substr(elcode,2,1)='4' then 8
+                when substr(elcode,2,1)='5' then 7
+                when substr(elcode,2,1)='6' then 6
+                when substr(elcode,2,1)='7' then 5
                 end;
 END;
 $$;
@@ -339,17 +356,16 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_link_type(elcode varchar)
 AS $$
 BEGIN
 	return 
-		case when substr(elcode,1,1)='A' then 6
-			 else case Substr(elcode,4,1) when '7' then 0
-                    when '4' then 3
-                    when '3' then 5
-                    when '6' then 4
-                    when '8' then 4
-                    when '5' then 7
-                    when '9' then 6
-                    when '1' then 2
-                    when '2' then 1
-                    end
+		case when substr(elcode,4,1)='7' then 0
+			 when substr(elcode,4,1)='2' then 1
+			 when substr(elcode,1,1)='A' then 1
+			 when substr(elcode,4,1)='1' then 2
+             when substr(elcode,4,1)='4' then 3
+             when substr(elcode,4,1)='6' then 4
+             when substr(elcode,4,1)='8' then 4
+             when substr(elcode,4,1)='3' then 5
+             when substr(elcode,4,1)='9' then 6
+             when substr(elcode,4,1)='5' then 7
              end;
 END;
 $$;
@@ -360,20 +376,18 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_road_type(elcode varchar)
 AS $$
 BEGIN
 	return case when substr(elcode,1,1)='A' then 9  
-		   else case Substr(elcode,2,1) when '8' then 10
-                    when 'B' then 10
-                    when 'A' then 8
-                    when '1' then 0
-                    when '2' then 1
-                    when '3' then 3
-                    when '4' then 4
-                    when '5' then 4
-                    when '6' then 6
-                    when '7' then 6
-                    when 'C' then 9
-                    else 4
-                    end
-           end;
+		        when substr(elcode,2,1)='1' then 0
+                when substr(elcode,2,1)='2' then 1
+                when substr(elcode,2,1)='3' then 2
+                when substr(elcode,2,1)='4' then 3
+                when substr(elcode,2,1)='5' then 4
+                when substr(elcode,2,1)='6' then 6
+                when substr(elcode,2,1)='A' then 8
+                when substr(elcode,2,1)='C' then 9
+                when substr(elcode,2,1)='8' then 10
+                when substr(elcode,2,1)='B' then 10
+                when substr(elcode,2,1)='7' then 14
+           		end;
 END;
 $$;
 
@@ -382,11 +396,12 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_toll(elcode varchar)
     LANGUAGE plpgsql
 AS $$
 BEGIN
-	return case Substr(elcode,6,1) when '0' then 0
-                    when '1' then 1
-                    when '3' then 1
-                    when '2' then 2
-                    when '4' then 2 end;
+	return case when substr(elcode,1,1)='A' then 2
+                when substr(elcode,6,1)='2' then 2
+                when substr(elcode,6,1)='4' then 2 
+				when substr(elcode,6,1)='1' then 1 
+                when substr(elcode,6,1)='3' then 1
+    			end;
 END;
 $$;
 
@@ -411,12 +426,12 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_width(elcode varchar)
     LANGUAGE plpgsql
 AS $$
 BEGIN
-	return case substr(elcode,3,1) when '1' then 0
-                                    when '2' then 1
-                                    when '3' then 2
-                                    when '4' then 3
-                                    when '5' then 3
-                                    else 4 end;
+	return case when substr(elcode,3,1)='1' then 0
+                when substr(elcode,3,1)='2' then 1
+                when substr(elcode,3,1)='3' then 2
+                when substr(elcode,3,1)='4' then 3
+                when substr(elcode,3,1)='5' then 3
+                else 4 end;
 END;
 $$;
 
@@ -545,5 +560,177 @@ BEGIN
 	end if; 
 
   return s;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_make_lanenum_lr(data smallint[])  
+  RETURNS smallint[]
+  LANGUAGE plpgsql
+  AS $$ 
+  DECLARE
+      i integer;
+      lanenum_l smallint;
+      lanenum_r smallint;
+BEGIN
+	lanenum_l = 0;
+	lanenum_r = 0;
+	
+	i := 1;
+	while i <=  array_length(data,1) 
+	loop
+	    if data[i] = 1 then
+          lanenum_l := lanenum_l + 1;
+	    else
+          exit;
+	    end if;
+	    i := i + 1;
+	end loop;
+
+	i := array_length(data,1);
+	if i <> 1 then
+      while i > 0
+      loop
+          if data[i] = 1 then
+             lanenum_r := lanenum_r + 1;
+          else
+             exit;
+          end if;
+          i := i - 1;
+      end loop;
+	end if;
+		
+  return array[lanenum_l,lanenum_r];
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_find_tnode(mesh varchar,fromnode integer,tonode integer)  
+  RETURNS integer[]
+  LANGUAGE plpgsql
+  AS $$ 
+  DECLARE
+      rec integer;
+      fnode integer;
+      tnode integer;
+      node1 integer;
+      node2 integer;
+BEGIN
+	fnode := fromnode;
+	tnode := tonode;
+	while True loop
+		select count(*) from
+		(
+			select * from org_road as a
+			where a.meshcode = mesh
+				and (a.snodeno = tnode or a.enodeno = tnode)
+		) as c
+		into rec;
+		if rec > 2 then
+       exit;
+		end if;
+		select snodeno,enodeno from org_road as r
+		where r.meshcode = mesh 
+			and 
+			(  r.snodeno = tnode and r.enodeno <> fnode 
+			or 
+			   r.enodeno = tnode and r.snodeno <> fnode
+			)
+			into node1,node2;		
+		if node1 = tnode then 
+       fnode := node1;
+       tnode := node2;
+		else
+       fnode := node2;
+       tnode := node1;
+		end if;
+	end loop;
+	return array[fnode,tnode];	
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97(geom geometry)
+  RETURNS geometry AS
+  LANGUAGE plpgsql
+  AS $$ 
+DECLARE
+    wkt text;
+    substr1 text;
+    substr2 text;
+    strtmp text;
+    result text;
+    lon numeric;
+    lat numeric;
+    result_arr text[];
+    point_tmp geometry;
+    
+BEGIN
+    select st_astext(geom) into wkt;
+    --raise info '%',wkt;
+    strtmp = wkt;
+    result_arr=array[''];
+    while True loop
+        
+        select substring(str,1,pos-1),str1,substring(str,pos+len),str
+        into substr1,substr2,strtmp
+        from
+        (
+            select position(arr[1] in str) as pos,length(arr[1]) as len,str,arr[1] as str1 from
+            (
+                select regexp_matches(strtmp,E'[0-9\.]+ [0-9\.]+') as arr,strtmp as str
+            ) a
+        )a;
+        lon = substring(substr2,1,position(' ' in substr2)-1)::numeric;
+        lat = substring(substr2,position(' ' in substr2)+1)::numeric;
+        point_tmp=mid_transtwd67totwd97_point(st_point(lon,lat));
+        substr2=st_x(point_tmp)::text||' '||st_y(point_tmp)::text;
+        result_arr=array_append(result_arr,substr1);
+        result_arr=array_append(result_arr,substr2);
+        if not strtmp ~ E'[0-9\.]+ [0-9\.]+' then
+            result_arr=array_append(result_arr,strtmp);
+            result=array_to_string(result_arr,'');
+            return st_geomfromtext(result);
+        end if;
+    end loop;
+END;
+$$;
+  
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_point(geom geometry)
+  RETURNS geometry AS
+  LANGUAGE plpgsql
+  AS $$ 
+DECLARE
+    E67 numeric;
+    N67 numeric;
+    E97 numeric;
+    N97 numeric;
+    A   numeric;
+    B   numeric;
+    
+BEGIN
+    A= 0.00001549;
+    B= 0.000006521;
+    E67=st_x(geom);
+    N67=st_y(geom);
+    E97 = E67 + 807.8 + A * E67 + B * N67;
+    N97 = N67 - 248.6 + A * N67 + B * E67;
+    return st_point(E97,N97);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_119(geom geometry)
+  RETURNS geometry AS
+  LANGUAGE plpgsql
+  AS $$ 
+BEGIN
+    return st_setsrid(st_transform(st_setsrid(mid_transtwd67totwd97(st_transform(st_setsrid(geom,3821),3827)),3825),3824),4326);
+END;
+$$;
+  
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_121(geom geometry)
+  RETURNS geometry AS
+  LANGUAGE plpgsql
+  AS $$ 
+BEGIN
+    return st_setsrid(st_transform(st_setsrid(mid_transtwd67totwd97(st_transform(st_setsrid(geom,3821),3828)),3826),3824),4326);
 END;
 $$;

@@ -8,9 +8,10 @@ Created on 2012-9-4
 import os
 import component.component_base
 
-DLANE_DIR_P = 2
-DLANE_DIR_N = 3
-DLANE_DIR_B = 1
+
+DLANE_OPEN_IN_BOTH = 1
+DLANE_CLOSE_IN_POSITIVE = 2
+DLANE_CLOSE_IN_NEGATIVE = 3
 ALL_CAR = 0
 PASSENGER_CAR = 11
 
@@ -27,6 +28,8 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'Guideinfo_Lane')
 
     def _DoCreateTable(self):
+        if self.CreateTable2('temp_lane_tbl') == -1:
+            return -1
         if self.CreateTable2('lane_tbl') == -1:
             return -1
         if self.CreateTable2('temp_lane_link_info') == -1:
@@ -48,6 +51,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         return 0
 
     def _DoCreateFunction(self):
+        self.CreateFunction2('temp_lane_info_merge')
         return 0
 
     def _Do(self):
@@ -65,6 +69,36 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         self._make_node_laneno()
         # 制作lane_tbl
         self._make_lane_tbl()
+        
+        self._merge_same_arrow()
+        
+        return 0
+    
+    def _merge_same_arrow(self):
+        sqlcmd = '''
+            insert into lane_tbl(
+                id, nodeid, inlinkid, outlinkid,
+                passlid, passlink_cnt,
+                lanenum, laneinfo, arrowinfo,
+                lanenuml, lanenumr, buslaneinfo
+            )
+            (
+                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
+                from
+                (
+                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                    from temp_lane_tbl
+                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                ) as a
+            )
+        '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
         return 0
 
     # 求得inlink、outlink、passlink
@@ -81,7 +115,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     select id, array_agg(seqnr), array_agg(trpelid) as links,
                             count(*) as length, array_agg(oneway) as oneway_array
                     from(
-                            SELECT a.gid, a.id, a.seqnr, a.trpelid, a.trpeltyp, b.oneway
+                            SELECT a.w, a.id, a.seqnr, a.trpelid, a.trpeltyp, b.oneway
                             FROM org_lp as a
                             left join org_nw as b
                             on a.trpelid = b.id
@@ -177,9 +211,9 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                         laneinfo_str = laneinfo_str + '1'
                     else:
                         laneinfo_str = laneinfo_str + '0'
-            if direc == DLANE_DIR_N:
+            if direc == DLANE_CLOSE_IN_NEGATIVE:
                 laneinfo_str = laneinfo_str[::-1]
-            if direc == DLANE_DIR_B:
+            if direc == DLANE_OPEN_IN_BOTH:
                 self.log.error('dflane = 1 data is not normal!!!')
                 return laneinfo_str
         else:
@@ -222,9 +256,9 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     else:
                         laneinfo = laneinfo + '0'
                     start = start + 1
-            if dflane == DLANE_DIR_P:
+            if dflane == DLANE_CLOSE_IN_POSITIVE:
                 laneinfo = laneinfo[::-1]
-            if dflane == DLANE_DIR_B:
+            if dflane == DLANE_OPEN_IN_BOTH:
                 self.log.error('dflane = 1 data is not normal!!!')
                 return laneinfo
 
@@ -251,10 +285,10 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         laneinfo = ''
         # 车线同向---正向
         if oneway == 'FT':
-            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_DIR_N, laneno)
+            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_CLOSE_IN_NEGATIVE, laneno)
         # 反向
         elif oneway == 'TF':
-            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_DIR_P, laneno)
+            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_CLOSE_IN_POSITIVE, laneno)
         # 双向
         elif oneway is None:
             laneinfo = self._get_both_dirs_laneinfo(inlink, laneno)
@@ -309,7 +343,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                                 businfo = businfo + '1'
                             else:
                                 businfo = businfo + '0'
-                if lists[0][0] == DLANE_DIR_N:
+                if lists[0][0] == DLANE_CLOSE_IN_NEGATIVE:
                         businfo = businfo[::-1]
         else:
             return businfo
@@ -379,44 +413,168 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                 else:
                     laneinfo = laneinfo + '0'
                 start = start + 1
-        if dflane == DLANE_DIR_P:
+        if dflane == DLANE_CLOSE_IN_POSITIVE:
             laneinfo = laneinfo[::-1]
 
         return laneinfo
+    
+    def __set_laneinfo_with_specify_pos(self, lane_info_str, pos, setting_char):
+        if pos == 0:
+            lane_info_str = setting_char + lane_info_str[1:] # setting_char optional value :'1', '0'
+        else:
+            lane_info_str = lane_info_str[0:pos-1] + setting_char + lane_info_str[pos:]
+            
+        return lane_info_str
+    
+    def _set_all_car_condition_laneinfo(self, laneinfo, linkdir, dflane, validity_array, laneno, lane_cnt):
+    #    laneinfo = '0' * lane_cnt # initial laneinfo
+        rtn_laneinfo = laneinfo
         
-    def _Get_lane_info(self, laneno, oneway, dflane_array, vt_array, validity_array, nw_lanes):        
+        if laneno > len(validity_array):
+            print "there is error"
+        
+        if validity_array[laneno-1] == '0': # this lane is not controlled.
+            return rtn_laneinfo
+        
+        if linkdir == 'FT' and dflane == DLANE_CLOSE_IN_NEGATIVE:
+            rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '1')
+        elif linkdir == 'TF' and dflane == DLANE_CLOSE_IN_POSITIVE:
+            rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '1')
+        else:
+            pass
+        
+        return rtn_laneinfo
+    
+    def _cancel_passenger_car_condition_laneinfo(self, laneinfo, linkdir, dflane, validity_array, laneno, lane_cnt):
+        rtn_laneinfo = laneinfo
+        
+        if validity_array[laneno-1] == '0': # this lane is not controlled.
+            return rtn_laneinfo
+        
+        if linkdir == 'FT' and dflane == DLANE_CLOSE_IN_POSITIVE:
+            rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '0')
+        elif linkdir == 'TF' and dflane == DLANE_CLOSE_IN_NEGATIVE:
+            rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '0')
+        else:
+            pass
+        
+        return rtn_laneinfo
+    
+    def __get_access_lane_no(self, validity_array, check_value):
+        validate_lane_no_list = list()
+        
+        cnt = len(validity_array)
+        for i in range(1, cnt+1):
+            if validity_array[i] == check_value:
+                validate_lane_no_list.append(i)
+        
+        return validate_lane_no_list      
+    
+    def __get_current_drive_dir_lane(self, bidirection_validate_dir, dflane, validity_array):
+        # for this usage scenarios, we suppose that lanes could be run
+        # in same direction must be continue one by one, and don't permit
+        # to separate
+        lane_cnt = 0
+        rtn_validate_access_lane_list = None
+            
+        if bidirection_validate_dir == 'FT' and dflane in (1,3): # postive could be run
+            lane_cnt = validity_array.count('1')
+            rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '1')
+        elif bidirection_validate_dir == 'FT' and dflane in (2):
+            lane_cnt = validity_array.count('0')
+            rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '0')
+        elif bidirection_validate_dir == 'TF' and dflane in (1,2): # negative could be run
+            lane_cnt = validity_array.count('1')
+            rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '1')
+        elif bidirection_validate_dir == 'TF' and dflane in (3):
+            lane_cnt = validity_array.count('0')
+            rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '0')
+        else:
+            lane_cnt = 0
+            rtn_validate_access_lane_list = None
+            
+        return lane_cnt, rtn_validate_access_lane_list
+        
+    def _Get_lane_info(self, laneno, oneway, dflane_array, vt_array, validity_array, nw_lanes,inlink, bidirection_validate_dir):        
         # 特定车线上的方向
         laneinfo = ''
         
-        dflane_array = self._get_dflane(oneway, dflane_array)
-        # 车线同向---正向 or 反向
-        if oneway == 'FT' or oneway == 'TF':
+        if oneway == 'FT' or oneway == 'TF': # single direction
             if not dflane_array:
-                return laneinfo
-            
-            if vt_array.count(0) == 1:
-                laneinfo = self._get_lane_one(laneno, validity_array[vt_array.index(0)], oneway)
-            elif vt_array.count(0) == 0 and vt_array.count(11) == 1:
-                laneinfo = self._get_lane_one(laneno, validity_array[vt_array.index(11)], oneway)
-        # 双向
-        else:
-            if not dflane_array:
-                if nw_lanes == 1:
-                    return '1'
+                self.log.error('laneno:%s lane of inlink=%s has no dflane_array and validity_array info!!!!',
+                                 laneno, inlink)
+            else:
+                # judgment all car condition
+                if vt_array.count(0) <> 0:
+                    all_car_pos = vt_array.index(0) 
+                    if all_car_pos <> -1:
+                        lane_cnt = len(validity_array[all_car_pos])
+                        laneinfo = '0' * lane_cnt # initial laneinfo
+                        
+                        mid_laneinfo = self._set_all_car_condition_laneinfo(laneinfo, oneway, dflane_array[all_car_pos], 
+                                                                            validity_array[all_car_pos], laneno, lane_cnt)
                 
-            if vt_array.count(0) == 1:
-                laneinfo = self._get_both_laneinfo(laneno, dflane_array[vt_array.index(0)], validity_array[vt_array.index(0)], oneway)
-            elif vt_array.count(0) == 0 and vt_array.count(11) == 1:
-                laneinfo = self._get_both_laneinfo(laneno, dflane_array[vt_array.index(11)], validity_array[vt_array.index(11)], oneway)  
-
-        return laneinfo 
+                # judgment passenger car condition
+                if vt_array.count(11) <> 0:
+                    passenger_car_pos = vt_array.index(11)  
+                    if passenger_car_pos <> -1:
+                        lane_cnt = len(validity_array[passenger_car_pos])
+                        
+                        final_laneinfo = self._cancel_passenger_car_condition_laneinfo(mid_laneinfo, oneway, dflane_array[passenger_car_pos], 
+                                                        validity_array[passenger_car_pos], laneno, lane_cnt)
+                else :
+                    final_laneinfo = mid_laneinfo
+                    
+                if oneway == 'FT':
+                    final_laneinfo = final_laneinfo[::-1]
+                    
+        else: # two direction 
+            if not dflane_array:
+                self.log.error('laneno:%s lane of inlink=%s has no dflane_array and validity_array info!!!!',
+                                 laneno, inlink)
+            else:
+                # step one: judgment current drive direction
+                if vt_array.count(0) <> 0:
+                    all_car_pos = vt_array.index(0) 
+                    if all_car_pos <> -1:
+                        lane_cnt = len(validity_array[all_car_pos])
+                        laneinfo = '0' * lane_cnt # initial laneinfo
+                        
+                        mid_laneinfo = self._set_all_car_condition_laneinfo(laneinfo, bidirection_validate_dir, dflane_array[all_car_pos], 
+                                                                            validity_array[all_car_pos], laneno, lane_cnt)
+                    
+                        rtn_validate_lane_cnt, rtn_validate_access_lane_list = self.__get_current_drive_dir_lane(bidirection_validate_dir, 
+                                                                                                    dflane_array[all_car_pos], validity_array[all_car_pos])  
+                        
+                        if rtn_validate_lane_cnt <> len(rtn_validate_access_lane_list):
+                            self.log.error('inlink=%s in %s direction has separate access lane info!!!!',inlink, bidirection_validate_dir)
+                    
+                # judgment passenger car condition
+                if vt_array.count(11) <> 0:
+                    passenger_car_pos = vt_array.index(11)  
+                    if passenger_car_pos <> -1:
+                        lane_cnt = len(validity_array[passenger_car_pos])
+                        
+                        final_laneinfo = self._cancel_passenger_car_condition_laneinfo(mid_laneinfo, bidirection_validate_dir, dflane_array[passenger_car_pos], 
+                                                        validity_array[passenger_car_pos], laneno, lane_cnt)
+                else:
+                    final_laneinfo = mid_laneinfo
+                
+                # cut laneinfo in car driving direction
+                final_laneinfo = final_laneinfo[rtn_validate_access_lane_list[1]:
+                                                rtn_validate_access_lane_list[rtn_validate_lane_cnt]]
+                 
+                if bidirection_validate_dir == 'FT':
+                    final_laneinfo = final_laneinfo[::-1]
+                    
+        return final_laneinfo
     
     def _make_lane_tbl(self):
         '''打开日志文件'''
         file_path = os.path.join('..', 'docs', 'lane_log.txt')
         f = open(file_path, "w")
         insert_sql = '''
-            INSERT INTO lane_tbl(
+            INSERT INTO temp_lane_tbl(
                 id, nodeid, inlinkid, outlinkid,
                 passlid, passlink_cnt,
                 lanenum, laneinfo, arrowinfo,
@@ -430,7 +588,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         sqlcmd = '''
             SELECT inlink, outlink, passlink, nodeid, laneno, oneway, case when c.direction=256 then 2048 else c.direction end,
                     array_agg(d.dflane) dflane_array, 
-                array_agg(d.vt) vt_array, array_agg(d.validity) as validity_array, b.lanes
+                array_agg(d.vt) vt_array, array_agg(substring(d.validity, 2)) as validity_array, b.lanes,b.f_jnctid, b.t_jnctid
             FROM temp_lane_link_node as a
             left join org_nw as b
             on a.inlink = b.id
@@ -439,7 +597,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             left join org_lf as d
             on a.inlink = d.id and d.vt in (0, 11)
             where c.id is not null
-            group by inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, b.lanes
+            group by inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, b.lanes,b.f_jnctid, b.t_jnctid
         '''
         rows = self.get_batch_data(sqlcmd)
         i = 1
@@ -458,12 +616,25 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             vt_array = row[8]
             validity_array = row[9]
             nw_lanes = row[10]
+            start_nodeid = row[11]
+            end_nodeid = row[12]
             
             if oneway == 'N' :
                 continue
-
+            
+            if oneway == '': #bidirection, so we should get validate lane cnt by drive way
+                if nodeid == start_nodeid:
+                    bidirection_validate_dir = 'TF'
+                else:
+                    bidirection_validate_dir = 'FT'
+            else:
+                bidirection_validate_dir = oneway
+                
 #            laneinfo = self._make_lane_info(inlink, laneno, oneway)
-            laneinfo = self._Get_lane_info(laneno, oneway, dflane_array, vt_array, validity_array, nw_lanes)
+            laneinfo = self._Get_lane_info(laneno, oneway, dflane_array, vt_array, 
+                                           validity_array, nw_lanes, inlink, bidirection_validate_dir)
+            
+            # function without bus lane 
             businfo = ''
             lane_len = len(laneinfo)
             if laneinfo != '':

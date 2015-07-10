@@ -52,6 +52,7 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('park'))
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))
             self.AddComponent(self.comp_factory.CreateOneComponent('spotguide_tbl'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('signpost_tbl'))
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             

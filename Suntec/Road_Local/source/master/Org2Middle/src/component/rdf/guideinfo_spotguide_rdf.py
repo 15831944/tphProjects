@@ -73,22 +73,36 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                 passlid,passlink_cnt,direction,
                 guideattr,namekind,guideclass,patternno,arrowno,type)
             (
-                select all_nodes[1] as nodeid, all_links[1] as inlinkid,
-                            all_links[all_link_cnt] as outlinkid,
-                        case when all_link_cnt = 2 then null
-                        else array_to_string(all_links[2:all_link_cnt-1], '|')
-                        end as passlinks,
-                        all_link_cnt - 2 as pass_cnt,
-                        0 as direction,0 as guideattr,
-                        0 as namekind,0 as guideclass,
-                        pattern as patternno,
-                        arrow as arrowno,
-                        1 as type 
+                select nodeid,inlinkid,outlinkid,passlinks,pass_cnt,
+                direction,guideattr,namekind,guideclass,
+                patternno,arrowno,
+                case when pattern_file_type = 3 and road_type in (0,1) then 1 
+                    when pattern_file_type = 3 and road_type not in (0,1) then 4
+                    when pattern_file_type = 13 and road_type in (0,1) then 2
+                    when pattern_file_type = 13 and road_type not in (0,1) then 5
+                    else null end as type 
                 from
                 (
-                  select A.*, array_upper(all_links,1) as all_link_cnt
-                  from temp_guideinfo_spotguide_junction_view_chn as A
-                ) as B
+                    select all_nodes[1] as nodeid, all_links[1] as inlinkid,
+                                all_links[all_link_cnt] as outlinkid,
+                            case when all_link_cnt = 2 then null
+                            else array_to_string(all_links[2:all_link_cnt-1], '|')
+                            end as passlinks,
+                            all_link_cnt - 2 as pass_cnt,
+                            0 as direction,0 as guideattr,
+                            0 as namekind,0 as guideclass,
+                            pattern as patternno,
+                            arrow as arrowno,
+                            pattern_file_type,
+                            arrow_file_type
+                    from
+                    (
+                      select A.*, array_upper(all_links,1) as all_link_cnt
+                      from temp_guideinfo_spotguide_junction_view_chn as A
+                    ) as B
+                ) as M
+                left join link_tbl as C
+                on M.inlinkid = C.link_id
             );
             """
             self.pg.execute2(sqlcmd)

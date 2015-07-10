@@ -836,7 +836,7 @@ CREATE INDEX temp_forecast_link_with_slot_profile_7_idx1
 CREATE INDEX temp_forecast_link_with_slot_tile_id_idx1
   ON temp_forecast_link_with_slot
   USING btree
-  ((link_id >> 32));
+  (tile_id);
   
 CREATE INDEX temp_forecast_time_slot_time_slot_idx1
   ON temp_forecast_time_slot

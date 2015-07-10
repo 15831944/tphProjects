@@ -59,6 +59,7 @@ class proj_jpn_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Tile'))
             # 有插图的node点的名称存在插图数据里，所以先把插图数据库导入数据库,再做字典
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Etc'))
             # 字典
             self.AddComponent(self.comp_factory.CreateOneComponent('Dictionary'))

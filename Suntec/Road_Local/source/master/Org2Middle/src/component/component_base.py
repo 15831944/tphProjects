@@ -310,8 +310,8 @@ class child_thread(threading.Thread):
             mutex.release()
 
             if self.pg.execute2(self._sqlcmd, (from_id, to_id)) == -1:
-				self.pg.close2()
-				return -1
+                self.pg.close2()
+                return -1
 
             self.pg.commit2()
 

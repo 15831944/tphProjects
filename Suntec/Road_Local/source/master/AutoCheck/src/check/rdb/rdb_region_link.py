@@ -545,3 +545,447 @@ class CCheckRegionAbsLinkIdValidate(CCheckRegionBase):
                 return False
         return True;
 
+class CCheckRegionLinkRoadName(CCheckRegionBase):
+    '''Start Node'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_road_name,
+                            b.link_id,
+                            b.road_name
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.road_name as region_road_name, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_road_name is distinct from road_name
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkLength(CCheckRegionBase):
+    '''Start Node'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  region_link_id, region_link_length,
+                            sum(link_length) as link_length
+                    from
+                    (
+                        select  a.region_link_id,
+                                a.region_link_length,
+                                b.link_id,
+                                b.link_length
+                        from
+                        (
+                            select  a.link_id as region_link_id,
+                                    (a.link_length_modify * 4 ^ a.link_length_unit) as region_link_length, 
+                                    unnest(b.link_id_14) as link_id
+                            from rdb_region_link_layer[X]_tbl as a
+                            left join rdb_region_layer[X]_link_mapping as b
+                            on a.link_id = b.region_link_id
+                        )as a
+                        left join rdb_link as b
+                        on a.link_id = b.link_id
+                    )as t
+                    group by region_link_id, region_link_length
+                )as t
+                where abs(region_link_length - link_length) * 1.0 / link_length > 0.05
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkToll(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_toll,
+                            b.link_id,
+                            b.toll
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.toll as region_toll, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_toll is distinct from toll
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkToll(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_toll,
+                            b.link_id,
+                            b.toll
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.toll as region_toll, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_toll is distinct from toll
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkPDMFlag(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_pdm_flag,
+                            b.link_id,
+                            b.pdm_flag
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.pdm_flag::boolean as region_pdm_flag, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link_with_all_attri_view as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_pdm_flag is distinct from pdm_flag
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkBypassFlag(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_bypass_flag,
+                            b.link_id,
+                            b.bypass_flag
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.bypass_flag as region_bypass_flag, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_bypass_flag is distinct from bypass_flag
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkHighcostFlag(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_highcost_flag,
+                            b.link_id,
+                            b.highcost_flag
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.highcost_flag as region_highcost_flag, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_highcost_flag is distinct from highcost_flag
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkForecastFlag(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_forecast_flag,
+                            b.link_id,
+                            b.forecast_flag
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                a.forecast_flag as region_forecast_flag, 
+                                unnest(b.link_id_14) as link_id
+                        from rdb_region_link_layer[X]_tbl_view as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                    )as a
+                    left join rdb_link_with_all_attri_view as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_forecast_flag is distinct from forecast_flag
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkSequenceLink(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_s_sequence_link_ids,
+                            a.region_e_sequence_link_ids,
+                            a.s_link,
+                            case
+                                when ls.start_node_id = a.s_node then ls.s_sequence_link_id
+                                else ls.e_sequence_link_id
+                                end 
+                                as s_sequence_link_id,
+                            case
+                                when le.start_node_id = a.e_node then le.s_sequence_link_id
+                                else le.e_sequence_link_id
+                                end 
+                                as e_sequence_link_id
+                    from
+                    (
+                        select  a.link_id as region_link_id,
+                                ss.link_id_14 as region_s_sequence_link_ids, 
+                                se.link_id_14 as region_e_sequence_link_ids, 
+                                b.link_id_14[1] as s_link,
+                                ns.node_id_14 as s_node,
+                                b.link_id_14[array_upper(b.link_id_14, 1)] as e_link,
+                                ne.node_id_14 as e_node
+                        from rdb_region_link_layer[X]_tbl_view as a
+                        left join rdb_region_layer[X]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                        left join rdb_region_layer[X]_node_mapping as ns
+                        on a.start_node_id = ns.region_node_id
+                        left join rdb_region_layer[X]_node_mapping as ne
+                        on a.end_node_id = ne.region_node_id
+                        left join rdb_region_layer[X]_link_mapping as ss
+                        on a.s_sequence_link_id = ss.region_link_id
+                        left join rdb_region_layer[X]_link_mapping as se
+                        on a.e_sequence_link_id = se.region_link_id
+                    )as a
+                    left join rdb_link_with_all_attri_view as ls
+                    on a.s_link = ls.link_id
+                    left join rdb_link_with_all_attri_view as le
+                    on a.e_link = le.link_id
+                )as t
+                where  not (s_sequence_link_id = ANY(region_s_sequence_link_ids))
+                       or
+                       not (e_sequence_link_id = ANY(region_e_sequence_link_ids))
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkAbsLinkID(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  a.region_link_id,
+                            a.region_abs_link_id,
+                            b.link_id,
+                            b.abs_link_id
+                    from
+                    (
+                        select  region_link_id,
+                                link_id_14[nIndex+1] as link_id,
+                                case 
+                                    when abs_link_dir then abs_link_id + nIndex
+                                    else abs_link_id + (abs_link_diff - nIndex)
+                                end as region_abs_link_id
+                        from
+                        (
+                            select  a.link_id as region_link_id,
+                                    a.abs_link_id, 
+                                    a.abs_link_diff,
+                                    generate_series(0, a.abs_link_diff) as nIndex,
+                                    a.abs_link_dir,
+                                    b.link_id_14
+                            from rdb_region_link_layer[X]_tbl_view as a
+                            left join rdb_region_layer[X]_link_mapping as b
+                            on a.link_id = b.region_link_id
+                        )as t
+                    )as a
+                    left join rdb_link_with_all_attri_view as b
+                    on a.link_id = b.link_id
+                )as t
+                where region_abs_link_id is distinct from abs_link_id
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+
+class CCheckRegionLinkPassable(CCheckRegionBase):
+    '''Toll'''
+    def _do(self):
+        self.pg.CreateFunction_ByName('rdb_check_region_linkrow_passable')
+        sqlcmd = """
+                select  count(*)
+                from
+                (
+                    select  region_link_id,
+                            region_one_way,
+                            region_s_node,
+                            region_e_node,
+                            array_agg(link_id) as link_array,
+                            array_agg(link_dir) as link_dir_array,
+                            array_agg(one_way) as one_way_array,
+                            array_agg(s_node) as s_node_array,
+                            array_agg(e_node) as e_node_array
+                    from
+                    (
+                        select  a.region_link_id,
+                                a.region_one_way,
+                                a.region_s_node,
+                                a.region_e_node,
+                                a.nIndex,
+                                b.link_id,
+                                a.link_dir_14[a.nIndex] as link_dir,
+                                b.one_way,
+                                b.start_node_id as s_node,
+                                b.end_node_id as e_node
+                        from
+                        (
+                            select  a.link_id as region_link_id,
+                                    a.one_way as region_one_way,
+                                    ns.node_id_14 as region_s_node,
+                                    ne.node_id_14 as region_e_node,
+                                    b.link_id_14,
+                                    b.link_dir_14,
+                                    generate_series(1, array_upper(b.link_id_14, 1)) as nIndex
+                            from rdb_region_link_layer[X]_tbl as a
+                            left join rdb_region_layer[X]_link_mapping as b
+                            on a.link_id = b.region_link_id
+                            left join rdb_region_layer[X]_node_mapping as ns
+                            on a.start_node_id = ns.region_node_id
+                            left join rdb_region_layer[X]_node_mapping as ne
+                            on a.end_node_id = ne.region_node_id
+                        )as a
+                        left join rdb_link as b
+                        on a.link_id_14[nIndex] = b.link_id
+                        order by a.region_link_id, a.region_one_way, a.region_s_node, a.region_e_node, a.nIndex
+                    )as t
+                    group by region_link_id, region_one_way, region_s_node, region_e_node
+                )as t
+                where not rdb_check_region_linkrow_passable(region_link_id,
+                                                            region_one_way,
+                                                            region_s_node,
+                                                            region_e_node,
+                                                            link_array,
+                                                            link_dir_array,
+                                                            one_way_array,
+                                                            s_node_array,
+                                                            e_node_array)
+                """
+        levels = self._GetLevels()
+        for level in levels:
+            #self.logger.info(level)
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd.replace('[X]', level))
+            if (rec_count > 0):
+                return False
+        return True;
+

@@ -54,12 +54,12 @@ CREATE INDEX org_speed_meshcode_roadno_idx
   USING btree
   (meshcode,roadno);  
   
-CREATE INDEX temp_link_mapping_idx
+CREATE INDEX temp_link_mapping_meshcode_linkno_idx
   ON temp_link_mapping
   USING btree
   (meshcode,linkno);
   
-CREATE INDEX temp_node_mapping_idx
+CREATE INDEX temp_node_mapping_meshcode_nodeno_idx
   ON temp_node_mapping
   USING btree
   (meshcode,nodeno);

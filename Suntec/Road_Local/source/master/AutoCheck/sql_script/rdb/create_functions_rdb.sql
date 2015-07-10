@@ -1410,3 +1410,77 @@ BEGIN
 	return sub_len/sum_len;
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION rdb_check_region_linkrow_passable(region_link_id bigint,
+								                             region_one_way smallint,
+								                             region_s_node bigint,
+								                             region_e_node bigint,
+								                             link_array bigint[],
+								                             link_dir_array boolean[],
+								                             one_way_array smallint[],
+								                             s_node_array bigint[],
+								                             e_node_array bigint[])
+	RETURNS boolean
+	LANGUAGE plpgsql
+	AS $$ 
+DECLARE
+	rec				record;
+	nIndex			integer;
+	nCount			integer;
+	
+	nNextNode		bigint;
+BEGIN
+	-- check linkrow continuable
+	nCount	:= array_upper(link_array, 1);
+	nIndex	:= 1;
+	
+	nNextNode	= region_s_node;
+	while nIndex <= nCount loop
+		if s_node_array[nIndex] = nNextNode then
+			if 	(
+					link_dir_array[nIndex] is True
+				)
+				and
+				(
+					(region_one_way = 1 and one_way_array[nIndex] = 1)
+					or
+					(region_one_way = 2 and one_way_array[nIndex] = 2)
+					or
+					(region_one_way = 3 and one_way_array[nIndex] = 3)
+				)
+			then
+				nNextNode	= e_node_array[nIndex];
+			else
+				--raise EXCEPTION 'region linkrow error1: region_link_id = %', region_link_id;
+				return False;
+			end if;
+		elseif e_node_array[nIndex] = nNextNode then
+			if 	(
+					link_dir_array[nIndex] is False
+				)
+				and
+				(
+					(region_one_way = 1 and one_way_array[nIndex] = 1)
+					or
+					(region_one_way = 2 and one_way_array[nIndex] = 3)
+					or
+					(region_one_way = 3 and one_way_array[nIndex] = 2)
+				)
+			then
+				nNextNode	= s_node_array[nIndex];
+			else
+				--raise EXCEPTION 'region linkrow error2: region_link_id = %', region_link_id;
+				return False;
+			end if;
+		else
+			--raise EXCEPTION 'region linkrow error3: region_link_id = %', region_link_id;
+			return False;
+		end if;
+		
+		nIndex	:= nIndex + 1;
+	end loop;
+
+	return True;
+END;
+$$;

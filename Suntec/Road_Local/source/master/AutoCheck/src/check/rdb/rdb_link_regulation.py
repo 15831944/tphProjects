@@ -6,6 +6,7 @@ Created on 2011-12-22
 '''
 
 import platform.TestCase
+import common.ConfigReader
 
 class CCheckTableStruct(platform.TestCase.CTestCase):
     def _do(self):
@@ -51,6 +52,21 @@ class CCheckConditionMatching(platform.TestCase.CTestCase):
 #        if count_rec > 0:
 #            return False
         
+        return True
+
+class CCheckFirstLinkID(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(a.last_link_id)
+                    from rdb_link_regulation as a
+                    left join rdb_link as b
+                    on a.first_link_id = b.link_id
+                    where b.link_id is null
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        if count_rec > 0:
+            return False
+                
         return True
 
 class CCheckLastLinkID(platform.TestCase.CTestCase):
@@ -131,4 +147,62 @@ class CCheckIsSeasonal(platform.TestCase.CTestCase):
                 """
         count_all = self.pg.getOnlyQueryResult(sqlcmd)
         
-        return (count_seasonal > 0) and (count_seasonal < count_all)
+        area = common.ConfigReader.CConfigReader.instance().getCountryName()
+        #if area.upper() in ('NA', 'ARG', 'CHN'):
+        if area.upper() in ('NA', 'ARG'):
+            return (count_seasonal > 0) and (count_seasonal < count_all)
+        else:
+            return (count_seasonal == 0)
+
+class CCheckRegulationType(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(*)
+                    from rdb_link_regulation
+                    where regulation_type not in (0,1,2)
+                 """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckBoundryRegulationExist(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                select count(regulation_id)
+                from rdb_link_regulation
+                where regulation_type = 2
+                """
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        area = common.ConfigReader.CConfigReader.instance().getCountryName()
+        #if area.upper() in ('NA', 'ARG', 'CHN'):
+        if area.upper() in ('NA', 'MEA', 'ME8', 'AUS', 'ASE', 'SAF', 'SAF8'):
+            return (rec_count > 0)
+        else:
+            return (rec_count == 0)
+
+class CCheckBoundryRegulationISO(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                select count(*)
+                from
+                (
+                    select record_no, link_num, count(*) as iso_num
+                    from
+                    (
+                        select distinct a.record_no, a.link_num, b.iso_country_code
+                        from
+                        (
+                            select  record_no, link_num, 
+                                    unnest(string_to_array(key_string, ','))::bigint as link_id
+                            from rdb_link_regulation
+                            where regulation_type = 2
+                        )as a
+                        left join rdb_link as b
+                        on a.link_id = b.link_id
+                    )as t
+                    group by record_no, link_num
+                    having count(*) < link_num
+                )as t2
+                """
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0)

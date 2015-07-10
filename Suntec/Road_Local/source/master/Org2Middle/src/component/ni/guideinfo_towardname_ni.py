@@ -54,7 +54,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     left join node_tbl as c
                     on c.toll_flag = 1 and c.node_id in (b.s_node,b.e_node)
                     where b.link_type in (1,2) and b.road_type in (0,1)
-                          and a.kind in ('8400')                      
+                          and a.kind in ('8401')                      
                 )               
                '''
         
@@ -87,7 +87,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                          --and  b.link_type in (1,2) 
                          and b.road_type in (0,1)
                        )
-                    where a.kind = '8400'
+                    where a.kind = '8401'
                 )
                 '''
         self.pg.execute(sqlcmd)
@@ -204,7 +204,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                               (case when c.kind = '8301' then 1
                                     when c.kind = '8380' then 4
                                     when c.kind = '8381' then 5 
-                                    when c.kind = '8400' then 7 end ) as guideattr,
+                                    when c.kind = '8401' then 7 end ) as guideattr,
                               2 as namekind,
                               b.toward_name as toward_name           
                     from  temp_poi_inlink as a

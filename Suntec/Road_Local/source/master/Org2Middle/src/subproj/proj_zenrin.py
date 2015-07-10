@@ -41,6 +41,7 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('stopsign'))

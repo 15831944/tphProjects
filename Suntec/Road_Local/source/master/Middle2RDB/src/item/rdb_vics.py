@@ -751,8 +751,36 @@ class rdb_vics_axf(ItemBase):
                 else:
                     rdb_log.log(self.ItemName, 'check rdb_vics_org2rdb_axf  --- end.', 'info')                     
 
-
 class rdb_traffic_area(ItemBase):
+    @staticmethod
+    def instance():
+        proj_mapping = {
+            ('jpn'):                rdb_traffic_area(),
+            ('jdb'):                rdb_traffic_area(),
+            ('axf'):                rdb_traffic_area(),
+            ('ta'):                 rdb_traffic_area_notnull(),
+            ('rdf'):                rdb_traffic_area_null(),
+            ('rdf','sgp'):          rdb_traffic_area_notnull(),
+            ('rdf','uc'):           rdb_traffic_area_notnull(),
+            ('rdf','me8'):          rdb_traffic_area_null(),
+            ('rdf','mea'):          rdb_traffic_area_null(),
+            ('rdf','bra'):          rdb_traffic_area_null(), 
+            ('rdf','ase'):          rdb_traffic_area_null(),                       
+            ('nostra'):             rdb_traffic_area_null(),
+            ('mmi'):                rdb_traffic_area_null(),
+            ('msm'):                rdb_traffic_area_null(),
+            ('ni'):                 rdb_traffic_area_null(),
+            ('zenrin'):             rdb_traffic_area_notnull(),            
+        }
+        return rdb_common.getItem(proj_mapping)
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        ItemBase.__init__(self, 'AreaNo_Dummy')
+        
+class rdb_traffic_area_notnull(ItemBase):
     '''Traffic AreaNo
     '''
 
@@ -765,100 +793,105 @@ class rdb_traffic_area(ItemBase):
     def Do(self):    
         
         rdb_log.log(self.ItemName, 'creating area no table ----- start', 'info')    
-        sqlcmd = """
-            select count(*) from pg_tables 
-            where tablename = 'rdb_trf_area';                          
-            """
-        self.pg.execute2(sqlcmd)
-        row = self.pg.fetchone2()
         
-        if  row[0] == 1:
-            self._createTileAreaNoTbl()          
-        else:
-            self._createTileAreaNoTbl_Null()
-            rdb_log.log(self.ItemName, '!!! No original table rdb_trf_area, null table will be created !!!', 'warning')
-        
-        self.CreateIndex2('rdb_trf_tile_area_no_tile_id_idx') 
-        rdb_log.log(self.ItemName, 'creating area no table ----- end', 'info')
-                        
-    def _createTileAreaNoTbl(self):
-            
-        sqlcmd = """  
-        drop table if exists rdb_trf_tile_area_no;
-        create table rdb_trf_tile_area_no as
-        select s.tile_id
-            ,case when t.tile_id is not null then t.area_no::smallint
-                else 0::smallint
-            end as area_no
-        from (
-            select distinct link_id_t as tile_id from rdb_link
-        ) s
-        left join (
-            select tile_id,area_no_array[1] as area_no
+        try:
+            sqlcmd = """  
+            drop table if exists rdb_trf_tile_area_no;
+            create table rdb_trf_tile_area_no as
+            select s.tile_id
+                ,case when t.tile_id is not null then t.area_no::smallint
+                    else 0::smallint
+                end as area_no
             from (
-                select tile_id,array_agg(area_no) as area_no_array
+                select distinct link_id_t as tile_id from rdb_link
+            ) s
+            left join (
+                select tile_id,area_no_array[1] as area_no
                 from (
-                    select tile_id,area_no,count(*) as count_link 
+                    select tile_id,array_agg(area_no) as area_no_array
                     from (
-                        select m.link_id,m.link_geom,m.tile_id,m.tile_geom
-                            ,case when n.area_no is not null then n.area_no
-                                else 0 end as area_no
+                        select tile_id,area_no,count(*) as count_link 
                         from (
-                            select a.link_id,a.the_geom as link_geom
-                                ,a.link_id_t as tile_id,c.the_geom as tile_geom
-                            from rdb_link a
-                            left join rdb_trf_org2rdb b
-                            on a.link_id = b.rdb_link_id
-                            left join temp_split_tile c
-                            on a.link_id_t = c.tile_id
-                            where b.rdb_link_id is not null        
-                        ) m 
-                        left join rdb_trf_area n
-                        on st_intersects(m.link_geom,n.geom)
-                    ) p group by tile_id,area_no
-                    order by tile_id,count(*) desc
-                ) q group by tile_id
-            ) o 
-        ) t
-        on s.tile_id = t.tile_id
-        order by s.tile_id; 
-                     
-        delete from rdb_trf_org2rdb 
-        where gid in (
-            select a.gid from rdb_trf_org2rdb a
-            left join rdb_trf_area b
-            on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
-            where b.ltn is null
-        );
-                
-        delete from rdb_region_trf_org2rdb_layer4 
-        where gid in (
-            select a.gid from rdb_region_trf_org2rdb_layer4 a
-            left join rdb_trf_area b
-            on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
-            where b.ltn is null
-        );
-
-        delete from rdb_region_trf_org2rdb_layer6 
-        where gid in (
-            select a.gid from rdb_region_trf_org2rdb_layer6 a
-            left join rdb_trf_area b
-            on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
-            where b.ltn is null
-        );
-
-        delete from rdb_trf_locationtable 
-        where gid in (
-            select a.gid from rdb_trf_locationtable a
-            left join rdb_trf_area b
-            on (a.country_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.table_no = b.ltn)
-            where b.ltn is null
-        );                                                                           
-            """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()          
+                            select m.link_id,m.link_geom,m.tile_id,m.tile_geom
+                                ,case when n.area_no is not null then n.area_no
+                                    else 0 end as area_no
+                            from (
+                                select a.link_id,a.the_geom as link_geom
+                                    ,a.link_id_t as tile_id,c.the_geom as tile_geom
+                                from rdb_link a
+                                left join rdb_trf_org2rdb b
+                                on a.link_id = b.rdb_link_id
+                                left join temp_split_tile c
+                                on a.link_id_t = c.tile_id
+                                where b.rdb_link_id is not null        
+                            ) m 
+                            left join rdb_trf_area n
+                            on st_intersects(m.link_geom,n.geom)
+                        ) p group by tile_id,area_no
+                        order by tile_id,count(*) desc
+                    ) q group by tile_id
+                ) o 
+            ) t
+            on s.tile_id = t.tile_id
+            order by s.tile_id; 
+                         
+            delete from rdb_trf_org2rdb 
+            where gid in (
+                select a.gid from rdb_trf_org2rdb a
+                left join rdb_trf_area b
+                on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
+                where b.ltn is null
+            );
+                    
+            delete from rdb_region_trf_org2rdb_layer4 
+            where gid in (
+                select a.gid from rdb_region_trf_org2rdb_layer4 a
+                left join rdb_trf_area b
+                on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
+                where b.ltn is null
+            );
     
-    def _createTileAreaNoTbl_Null(self):
+            delete from rdb_region_trf_org2rdb_layer6 
+            where gid in (
+                select a.gid from rdb_region_trf_org2rdb_layer6 a
+                left join rdb_trf_area b
+                on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
+                where b.ltn is null
+            );
+    
+            delete from rdb_trf_locationtable 
+            where gid in (
+                select a.gid from rdb_trf_locationtable a
+                left join rdb_trf_area b
+                on (a.country_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.table_no = b.ltn)
+                where b.ltn is null
+            );                                                                           
+                """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()          
+
+            self.CreateIndex2('rdb_trf_tile_area_no_tile_id_idx') 
+            
+        except:
+            
+            rdb_log.error(self.ItemName, 'Error in creating area no table !!!', 'error')
+            
+        rdb_log.log(self.ItemName, 'creating area no table ----- end', 'info')           
+
+class rdb_traffic_area_null(ItemBase):
+    '''Traffic AreaNo
+    '''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        ItemBase.__init__(self, 'Traffic AreaNo')
+        
+    def Do(self):    
+        
+        rdb_log.log(self.ItemName, 'creating null area no table ----- start', 'info')    
+
         sqlcmd = """  
         drop table if exists rdb_trf_tile_area_no;
         CREATE TABLE rdb_trf_tile_area_no
@@ -870,7 +903,8 @@ class rdb_traffic_area(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()                   
 
-            
+        rdb_log.log(self.ItemName, 'creating null area no table ----- end', 'info')
+                    
 class rdb_traffic(ItemBase): 
     '''traffic
     '''

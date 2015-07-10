@@ -76,7 +76,8 @@ class CCheckLinkSequence(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = '''
             select safetyzone_id,array_agg(case direction when 2 then start_node_id else end_node_id end),
-                    array_agg(case direction when 3 then start_node_id else end_node_id end)
+                    array_agg(case direction when 3 then start_node_id else end_node_id end),
+                    array_agg(a.gid) as gid_arr
             from rdb_guideinfo_safety_zone a 
             join rdb_link b using(link_id)
             where safety_type<>3
@@ -87,18 +88,25 @@ class CCheckLinkSequence(platform.TestCase.CTestCase):
         for result in results:
             start_node_arr=result[1]
             end_node_arr=result[2]
+            gid_arr=result[3]
             num=len(start_node_arr)
             if len(set(start_node_arr))<>len(start_node_arr) or len(set(end_node_arr))<>len(end_node_arr) \
                 or len(set(start_node_arr)-set(end_node_arr))<>1:
                 return False
             node_id=list(set(start_node_arr)-set(end_node_arr))[0]
             idx=start_node_arr.index(node_id)
+            gid=gid_arr[idx]
             for i in range(num-1):
                 node_id_next=end_node_arr[idx]
-                if node_id_next not in start_node_arr:
+                if start_node_arr.count(node_id_next)<>1:
                     return False
                 idx=start_node_arr.index(node_id_next)
+                if gid_arr[idx]<>gid+1:
+                    return False
+                else:
+                    gid+=1
                 node_id=node_id_next
+                
         return True
 
 class CCheckDrivingDirection(platform.TestCase.CTestCase):
@@ -108,9 +116,9 @@ class CCheckDrivingDirection(platform.TestCase.CTestCase):
                 select count(*) from rdb_guideinfo_safety_zone a
                 join rdb_link b
                 using(link_id)
-                where a.direction=1 and b.one_way<>1
+                where (a.direction=1 and b.one_way<>1
                     or a.direction=2 and b.one_way<>1 and b.one_way<>2
-                    or a.direction=3 and b.one_way<>1 and b.one_way<>3
+                    or a.direction=3 and b.one_way<>1 and b.one_way<>3) and a.safety_type<>3
                 '''
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)

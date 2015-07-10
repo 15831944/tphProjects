@@ -5,6 +5,7 @@ Created on 2015年5月11日
 @author: PC_ZH
 '''
 import platform.TestCase
+import json
 
 
 class CCheckSapa(platform.TestCase.CTestCase):
@@ -183,3 +184,58 @@ class CCheckIcPath(platform.TestCase.CTestCase):
             self.pg.log.error('regulation path in ic path')
             return False
         return True
+
+
+#-----------------------------------------------------#
+#
+#
+#-----------------------------------------------------#
+class CCheckICName(platform.TestCase.CTestCase):
+    '''当同个设施有多个名称时，判断里面的名称有无重复(语种+val都相同)'''
+    def _do(self):
+        ''' '''
+        sqlcmd = '''
+        SELECT ic_no, name
+        FROM rdb_highway_ic_info
+        ORDER BY  ic_no
+        '''
+        for row in self.pg.get_batch_data(sqlcmd):
+            ic_no = row[0]
+            multi_name = row[1]
+            if not multi_name:
+                continue
+            if self._is_name_repeat(multi_name):
+                self.pg.log.error('name repeat in ic_no=%s:' % ic_no)
+                return False
+        return True
+
+    def _is_name_repeat(self, multi_name):
+        multi_name_list = self._get_json_name(multi_name)
+        if not multi_name_list:
+            self.pg.log.error('no ic name ')
+            return True
+        name_list = list()
+        for multi_names in multi_name_list:
+            for name_dict in multi_names:
+                name_list.append((name_dict.get('lang'),
+                                  name_dict.get('val'))
+                                )
+        name_set = set(name_list)
+        if len(name_list) != len(name_set):
+            return True
+        return False
+
+    def _get_json_name(self, json_name):
+        ''' '''
+        get_multi_name_list = list()
+        if not json_name:
+            return get_multi_name_list
+        for multi_names in json.loads(json_name):
+            get_names_list = list()
+            for name_dict in multi_names:
+                if(name_dict.get("tts_type") == "not_tts" and
+                           name_dict.get("type") != "route_num"):
+                    get_names_list.append(name_dict)
+            get_multi_name_list.append(get_names_list)
+
+        return get_multi_name_list

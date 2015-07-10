@@ -2860,11 +2860,13 @@ BEGIN
 			and	not (rec.road_type is distinct from rec2.road_type)
 			and	not (rec.pdm_flag is distinct from rec2.pdm_flag)
 			and	not (rec.path_extra_info is distinct from rec2.path_extra_info)
-			and	(
-					not (rec.road_name is distinct from rec2.road_name)
-					or 
-					(rec.road_number is not null and not (rec.road_number is distinct from rec2.road_number))
-				)
+			and not (rec.road_name is distinct from rec2.road_name)
+			and not (rec.road_number is distinct from rec2.road_number)
+--			and	(
+--					not (rec.road_name is distinct from rec2.road_name)
+--					or 
+--					(rec.road_number is not null and not (rec.road_number is distinct from rec2.road_number))
+--				)
 --			and	not (rec.extend_flag is distinct from rec2.extend_flag)
 --			and	not (rec.struct_code is distinct from rec2.struct_code)
 --			and	not (rec.etc_lane_flag is distinct from rec2.etc_lane_flag)

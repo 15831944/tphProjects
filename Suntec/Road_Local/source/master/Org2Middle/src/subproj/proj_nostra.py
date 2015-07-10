@@ -71,6 +71,7 @@ class proj_nostra_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('hook_turn'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide_Tollstation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SignPost_UC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_TowardName'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SignPost'))
@@ -78,7 +79,7 @@ class proj_nostra_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_NaturalGuidence'))
-			
+
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
 

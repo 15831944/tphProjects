@@ -399,23 +399,38 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
     def _make_link_name(self):
         "道路名称(包括道路番号)字典"
         self.log.info('Make Link Name.')
+        
+        default_language = common.common_func.GetPath('default_language')
+        
         sqlcmd = """
-        SELECT gid, name.link_id, language_code, street_name,
-               trans_types, trans_names,
-               route_type, is_name_on_roadsign,
-               name.road_name_id,
-               iso_country_code,
-               phonetic_strings,
-               phonetic_language_codes
-          FROM mid_temp_road_name as name
-          LEFT JOIN mid_temp_road_name_trans_group as trans
-          ON name.road_name_id = trans.road_name_id
-          LEFT JOIN temp_rdf_nav_link
-          ON name.link_id = temp_rdf_nav_link.link_id
-          LEFT JOIN mid_temp_road_phonetic as tts
-          ON name.road_name_id = tts.road_name_id
-          order by link_id, gid;
-        """
+            select gid, link_id, language_code, street_name,
+                           trans_types, trans_names,
+                           route_type, is_name_on_roadsign,
+                           road_name_id,
+                           iso_country_code,
+                           phonetic_strings,
+                           phonetic_language_codes
+            from 
+            (
+                SELECT gid, name.link_id, language_code, street_name,
+                           trans_types, trans_names,
+                           route_type, is_name_on_roadsign,
+                           name.road_name_id,
+                           iso_country_code,
+                           phonetic_strings,
+                           phonetic_language_codes, 
+                           case when language_code = '%s' THEN 1 ELSE 2 END language_order
+                      FROM mid_temp_road_name as name
+                      LEFT JOIN mid_temp_road_name_trans_group as trans
+                      ON name.road_name_id = trans.road_name_id
+                      LEFT JOIN temp_rdf_nav_link
+                      ON name.link_id = temp_rdf_nav_link.link_id
+                      LEFT JOIN mid_temp_road_phonetic as tts
+                      ON name.road_name_id = tts.road_name_id
+            ) as m
+            order by link_id, language_order, gid
+        """ %(default_language.upper())
+        
         temp_file_obj = cache_file.open('link_name')  # 创建临时文件
         names = self.get_batch_data(sqlcmd)
         prev_link_id = None

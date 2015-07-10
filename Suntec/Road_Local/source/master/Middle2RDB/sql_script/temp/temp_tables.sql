@@ -1586,70 +1586,83 @@ as
 create table temp_forecast_time_org 
 as
 (
-	select profile_id,time_slot::smallint
-		,sum(sp) as sp_sum
-		,sum(sp)/3 as sp
-		,((100.0 / (sum(sp)/3)) * 100) as time
-	from (
-		select profile_id,index,nxt_index,sp_index
-			,time_slot
-			,rel_sp_array[sp_index] as sp
-		from (
-			select profile_id,(index + 1) as index,(nxt_index + 1) as nxt_index
-				,time_slot,rel_sp_array
-				,generate_series(index + 1,nxt_index + 1) as sp_index
-			from (
-				select profile_id,index as index
-					,index + 2 as nxt_index
-					,time_slot_array[index + 1] as time_slot
-					,rel_sp_array
-				from (
-					select profile_id,generate_series(0,sum, 3) as index
-						,time_slot_array,rel_sp_array 
-					from (
-						select profile_id,array_agg(time_slot/60/5)as time_slot_array
-							,array_agg(rel_sp) as rel_sp_array
-							,count(*) as sum
-						from (
-							select * from org_hspr 
-							order by profile_id,time_slot
-						) a group by profile_id
-					) b
-				) c 
-			) d where time_slot <= 288
-		) e
-	) f group by profile_id,time_slot
+	select profile_id,(time_slot/60/5) as time_slot
+		,1/(rel_sp/100) * 100  as time
+	from org_hspr 
 	order by profile_id,time_slot
 );
 
 CREATE TABLE temp_forecast_link_with_slot 
 as
 (
-	select d.*
+	select id
+		,link_id
+		,(unnest(org_link_id_array) >> 32) as tile_id
+		,unnest(org_link_id_array) as org_link_id
+		,unnest(profile_flag_array) as profile_flag
+		,unnest(profile_1_array) as profile_1
+		,unnest(profile_2_array) as profile_2
+		,unnest(profile_3_array) as profile_3
+		,unnest(profile_4_array) as profile_4
+		,unnest(profile_5_array) as profile_5
+		,unnest(profile_6_array) as profile_6
+		,unnest(profile_7_array) as profile_7
+		,unnest(dir_array) as dir
+		,unnest(free_time_array) as free_time
+		,unnest(weekday_time_array) as weekday_time
+		,unnest(weekend_time_array) as weekend_time
+		,unnest(average_time_array) as average_time
+		,unnest(s_fraction_array) as s_fraction
+		,unnest(e_fraction_array) as e_fraction
 	from (
-		select rdb_link_id as link_id,link_id as org_link_id,profile_flag
-			,profile_1,profile_2,profile_3,profile_4,profile_5,profile_6,profile_7
-			,case when flag = 't' and dir = 0 then 1
-				when flag = 't' and dir = 1 then 0
-				else dir
-			end as dir
-			,round((mid_meters/meters) * free_time) as free_time
-			,round((mid_meters/meters) * weekday_time) as weekday_time
-			,round((mid_meters/meters) * weekend_time) as weekend_time
-			,round((mid_meters/meters) * average_time) as average_time 
-			,s_fraction,e_fraction
-		from ( 
-			select a.*
-				,b.rdb_link_id,s_fraction,e_fraction,b.flag
-				,mid_meters
-			from temp_forecast_link_org a
-			left join temp_link_with_length b
-			on a.link_id = b.org_link_id
-		) c 
-	) d
-	left join temp_forecast_link_rdb_id e
-	on d.link_id = e.link_id and d.dir = e.dir
-	where e.link_id is not null
+		select row_number() over(order by link_id) as id
+			,link_id
+			,array_agg(org_link_id) as org_link_id_array
+			,array_agg(profile_flag) as profile_flag_array
+			,array_agg(profile_1) as profile_1_array
+			,array_agg(profile_2) as profile_2_array
+			,array_agg(profile_3) as profile_3_array
+			,array_agg(profile_4) as profile_4_array
+			,array_agg(profile_5) as profile_5_array
+			,array_agg(profile_6) as profile_6_array
+			,array_agg(profile_7) as profile_7_array
+			,array_agg(dir) as dir_array
+			,array_agg(free_time) as free_time_array
+			,array_agg(weekday_time) as weekday_time_array
+			,array_agg(weekend_time) as weekend_time_array
+			,array_agg(average_time) as average_time_array
+			,array_agg(s_fraction) as s_fraction_array
+			,array_agg(e_fraction) as e_fraction_array
+		from (
+			select d.*
+			from (
+				select rdb_link_id as link_id
+					,link_id as org_link_id,profile_flag
+					,profile_1,profile_2,profile_3,profile_4,profile_5,profile_6,profile_7
+					,case when flag = 't' and dir = 0 then 1
+						when flag = 't' and dir = 1 then 0
+						else dir
+					end as dir
+					,round((mid_meters/meters) * free_time) as free_time
+					,round((mid_meters/meters) * weekday_time) as weekday_time
+					,round((mid_meters/meters) * weekend_time) as weekend_time
+					,round((mid_meters/meters) * average_time) as average_time 
+					,s_fraction,e_fraction
+				from ( 
+					select a.*
+						,b.rdb_link_id,s_fraction,e_fraction,b.flag
+						,mid_meters
+					from temp_forecast_link_org a
+					left join temp_link_with_length b
+					on a.link_id = b.org_link_id
+				) c 
+			) d
+			left join temp_forecast_link_rdb_id e
+			on d.link_id = e.link_id and d.dir = e.dir
+			where e.link_id is not null
+		) e
+		group by link_id
+	) f
 );
 
 create table temp_forecast_time_slot 
@@ -1662,6 +1675,7 @@ as
 CREATE TABLE temp_forecast_link_with_slot_main
 (
   link_id bigint,
+  tile_id integer,
   org_link_id bigint,
   dir smallint,
   profile_flag boolean,
