@@ -42,11 +42,11 @@ def main():
         quality = 0.5
         for i in range(1, arglen):
             arg = sys.argv[i]
-            if(arg == "/srcdir"):
+            if(arg.lower() == "/srcdir"):
                 srcDir = str(sys.argv[i+1])
-            elif(arg == "/destdir"):
+            elif(arg.lower() == "/destdir"):
                 destDir = str(sys.argv[i+1])
-            elif(arg == "/quality"):
+            elif(arg.lower() == "/quality"):
                 destDir = str(sys.argv[i+1])
             else:
                 pass
