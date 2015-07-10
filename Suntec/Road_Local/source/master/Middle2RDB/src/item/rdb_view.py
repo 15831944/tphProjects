@@ -83,7 +83,9 @@ class rdb_view(ItemBase):
                 on a.link_id = b.region_link_id
                 left join rdb_region_link_layer6_sequence as c
                 on a.link_id = c.link_id
-                left join rdb_region_forecast_link_layer6 d
+                left join (
+                    select distinct link_id from rdb_forecast_link
+                ) d
                 on a.link_id = d.link_id;
                 
                 CREATE OR REPLACE VIEW rdb_region_link_layer4_tbl_view AS
@@ -101,7 +103,9 @@ class rdb_view(ItemBase):
                 on a.link_id = b.region_link_id
                 left join rdb_region_link_layer4_sequence as c
                 on a.link_id = c.link_id
-                left join rdb_region_forecast_link_layer6 d
+                left join (
+                    select distinct link_id from rdb_forecast_link
+                ) d
                 on a.link_id = d.link_id;
                 """
         # sqlcmd = self.pg.ReplaceDictionary(sqlcmd)

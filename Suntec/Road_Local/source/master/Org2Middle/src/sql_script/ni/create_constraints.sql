@@ -219,6 +219,16 @@ CREATE INDEX org_poi_poi_id_idx
   USING btree
   (poi_id);
 
+CREATE INDEX org_poi_chaincode_idx
+  ON org_poi
+  USING btree
+  (chaincode);
+
+CREATE INDEX org_poi_kind_idx
+  ON org_poi
+  USING btree
+  (kind);
+
 -----------------------------------------------------
 CREATE INDEX org_poi_linkid_idx
   ON org_poi
@@ -236,6 +246,20 @@ CREATE INDEX org_n_the_geom_idx
   ON org_n
   USING gist
   (the_geom);
+
+  
+  
+CREATE INDEX temp_poi_find_poi_id_idx
+ON temp_poi_find
+USING btree
+((poi_id::bigint));
+
+
+CREATE INDEX temp_poi_inlink_poi_id_idx
+ON temp_poi_inlink
+USING btree
+(poi_id); 
+
 
 -----------------------------------------------------
 CREATE INDEX temp_node_z_level_tbl_node_id_idx
@@ -303,3 +327,8 @@ CREATE INDEX org_poi_the_geom_idx
   USING gist
   (the_geom);
 
+
+CREATE INDEX temp_towardname_name_poi_id_idx
+ON temp_towardname_name
+USING btree
+(poi_id); 

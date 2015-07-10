@@ -403,4 +403,14 @@ class CCheckStopSignFlag(platform.TestCase.CTestCase):
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)    
-                 
+
+class CCheckAddInfo2Valid(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*) from rdb_link_add_info2 a
+            left join rdb_link_add_info2 b
+            on a.link_id = b.link_id
+            where b.link_id is null;
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)                      

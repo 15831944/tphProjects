@@ -91,9 +91,19 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                         ,'1'::text as phon_flag
                         , folder
                     from org_r_phon where phontype in ('1','3')
+                    union
+                    select route_id
+                        ,pathname as phon
+                        ,case when phontype = '1' then 'PYM'
+                            when phontype = '3' then 'PYT'
+                            else null
+                        end as phon_language 
+                        ,'2'::text as phon_flag
+						,folder
+                    from org_r_phon where phontype in ('1','3')
                 ) c
                 on b.route_id = c.route_id and b.language = c.phon_flag and b.folder = c.folder
-                order by id,seq_nm,language,name_kind,phon_language
+                order by id,name_kind,seq_nm,language,phon_language
             ) m group by link_id;
         """
         
@@ -163,10 +173,20 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                         ,'1'::text as phon_flag
                         ,folder
                     from org_r_phon where phontype in ('1','3')
+                    union
+                    select route_id
+                        ,pathname as phon
+                        ,case when phontype = '1' then 'PYM'
+                            when phontype = '3' then 'PYT'
+                            else null
+                        end as phon_language 
+                        ,'2'::text as phon_flag
+						,folder
+                    from org_r_phon where phontype in ('1','3') 
                 ) c
                 on b.route_id = c.route_id and b.language = c.phon_flag and b.folder = c.folder
                 where b.route_kind != '0'
-                order by id,seq_nm,language,name_kind,phon_language
+                order by id,name_kind,seq_nm,language,phon_language
             ) m group by link_id;
         """
         

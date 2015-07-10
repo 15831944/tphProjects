@@ -65,13 +65,13 @@ class CCheckMultiLinkAddInfo(platform.TestCase.CTestCase):
                     on a.link_id = (b.link_id & ((cast(1 as bigint) << 32) - 1)) and a.link_id_t = b.link_id_t
                     where not
                           (
-                          (((a.multi_link_add_info >> 0) & ((1<<3)-1)) = b.struct_code)
+                          (((a.multi_link_add_info >> 0) & ((1<<4)-1)) = b.struct_code)
                           and
-                          (((a.multi_link_add_info >> 3) & ((1<<2)-1)) = b.shortcut_code)
+                          (((a.multi_link_add_info >> 4) & ((1<<2)-1)) = b.shortcut_code)
                           and
-                          (((a.multi_link_add_info >> 5) & ((1<<2)-1)) = b.parking_flag)
+                          (((a.multi_link_add_info >> 6) & ((1<<2)-1)) = b.parking_flag)
                           and
-                          (((a.multi_link_add_info >> 7) & ((1<<2)-1)) = b.etc_lane_flag)
+                          (((a.multi_link_add_info >> 8) & ((1<<2)-1)) = b.etc_lane_flag)
                           )
                  """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)

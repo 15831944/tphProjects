@@ -34,6 +34,10 @@ class comp_factory(object):
             from component.default import node_move
             return node_move.comp_node_move()
         
+        if comp_name == 'GuidePoint_Adjust':
+            from component.default import guideinfo_point_adjust
+            return guideinfo_point_adjust.comp_guideinfo_point_adjust()
+        
         if comp_name == 'Link_overlay_or_circle':
             from component.default import link_overlay_or_circle
             return link_overlay_or_circle.comp_link_dupli_or_circle()
@@ -897,7 +901,7 @@ class comp_factory_ni(comp_factory):
         if comp_name == 'Guideinfo_Lane':
             from component.ni.guideinfo_lane_ni import comp_guideinfo_lane_ni
             return comp_guideinfo_lane_ni()  
-			
+
         if comp_name == 'Guideinfo_signpost_uc':
             from component.ni.Guideinfo_signpost_uc_ni import comp_Guideinfo_signpost_uc_ni
             return comp_Guideinfo_signpost_uc_ni()
@@ -932,6 +936,10 @@ class comp_factory_ni(comp_factory):
         if comp_name == 'signpost_tbl':
             from component.ni.guideinfo_signpost_ni import comp_guideinfo_signpost_ni
             return comp_guideinfo_signpost_ni()
+        
+        if comp_name == 'Guideinfo_TowardName':         
+            from component.ni import guideinfo_towardname_ni
+            return guideinfo_towardname_ni.comp_guideinfo_towardname_ni()
         
         return comp_factory.CreateOneComponent(self, comp_name)
 

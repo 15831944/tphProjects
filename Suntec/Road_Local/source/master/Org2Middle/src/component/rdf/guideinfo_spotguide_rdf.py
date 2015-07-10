@@ -180,7 +180,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         '''
         sqlcmd = '''
             SELECT dp_node_id, originating_link_id, out_link_id,
-                    CASE WHEN road_type in (0,1) THEN 1 ELSE 4 END AS jv_type,
+                    CASE WHEN b.road_type in (0,1) THEN 1 ELSE 4 END AS jv_type,
                    filename, side,
                    mid_findpasslinkbybothlinks(
                             originating_link_id,
@@ -242,7 +242,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         self.log.info('make ejv spotguide illust info')
         sqlcmd = '''
             select distinct dp_node_id,originating_link_id,out_link_id,
-                CASE WHEN road_type in (0,1) THEN 1 ELSE 4 END as jv_type,
+                CASE WHEN d.road_type in (0,1) THEN 1 ELSE 4 END as jv_type,
                 c.filename,
                 c.side,ejv_filename,dp1_dest_link,
                 mid_findpasslinkbybothlinks(

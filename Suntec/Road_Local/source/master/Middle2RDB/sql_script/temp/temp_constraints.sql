@@ -757,12 +757,12 @@ CREATE INDEX org_hspr_time_slot_idx
   USING btree
   (time_slot);  
 
-CREATE INDEX temp_forecast_link_link_id_idx
-  ON temp_forecast_link
+CREATE INDEX temp_forecast_link_org_link_id_idx
+  ON temp_forecast_link_org
   USING btree
   (link_id);
-CREATE INDEX temp_forecast_link_profile_flag_idx
-  ON temp_forecast_link
+CREATE INDEX temp_forecast_link_org_profile_flag_idx
+  ON temp_forecast_link_org
   USING btree
   (profile_flag);
   
@@ -770,10 +770,6 @@ CREATE INDEX temp_link_with_length_org_link_id_idx
   ON temp_link_with_length
   USING btree
   (org_link_id);
-CREATE INDEX temp_link_with_length_rdb_link_id_idx
-  ON temp_link_with_length
-  USING btree
-  (rdb_link_id);
 CREATE INDEX temp_link_with_length_s_fraction_idx
   ON temp_link_with_length
   USING btree
@@ -792,7 +788,7 @@ CREATE INDEX temp_forecast_link_rdb_id_dir_idx
   USING btree
   (dir);  
   
-CREATE INDEX temp_forecast_time_org_forecast_id_idx1
+CREATE INDEX temp_forecast_time_org_profile_id_idx1
   ON temp_forecast_time_org
   USING btree
   (profile_id);
@@ -800,7 +796,11 @@ CREATE INDEX temp_forecast_time_org_time_slot_idx1
   ON temp_forecast_time_org
   USING btree
   (time_slot);
-
+CREATE INDEX temp_forecast_time_org_profile_id_time_slot_idx1
+  ON temp_forecast_time_org
+  USING btree
+  (profile_id,time_slot);
+  
 CREATE INDEX temp_forecast_link_with_slot_link_id_dir_idx1
   ON temp_forecast_link_with_slot
   USING btree
@@ -833,23 +833,46 @@ CREATE INDEX temp_forecast_link_with_slot_profile_7_idx1
   ON temp_forecast_link_with_slot
   USING btree
   (profile_7);
+CREATE INDEX temp_forecast_link_with_slot_tile_id_idx1
+  ON temp_forecast_link_with_slot
+  USING btree
+  ((link_id >> 32));
   
 CREATE INDEX temp_forecast_time_slot_time_slot_idx1
   ON temp_forecast_time_slot
   USING btree
   (time_slot);
   
-CREATE INDEX temp_forecast_link_with_slot_main_link_id_dir_time_slot_idx1
+CREATE INDEX temp_forecast_link_with_slot_main_link_id_dir_time_slot_seq_idx1
   ON temp_forecast_link_with_slot_main
   USING btree
-  (link_id,dir,time_slot);
+  (link_id,dir,time_slot,seq);
+CREATE INDEX temp_forecast_link_with_slot_main_tile_id_idx1
+  ON temp_forecast_link_with_slot_main
+  USING btree
+  ((link_id >> 32));
   
 CREATE INDEX temp_forecast_link_with_slot_merge_link_id_dir_idx
   ON temp_forecast_link_with_slot_merge
   USING btree
   (link_id, dir);
+
+CREATE INDEX temp_forecast_link_with_slot_merge_link_id_idx
+  ON temp_forecast_link_with_slot_merge
+  USING btree
+  (link_id);
   
-CREATE INDEX temp_forecast_control_link_id_dir_idx
+CREATE INDEX temp_forecast_time_distinct_time_slot_array_time_array_idx
+  ON temp_forecast_time_distinct
+  USING btree
+  (time_slot_array, time_array);
+
+  CREATE INDEX temp_forecast_control_time_slot_array_weekday_diff_array_wee_idx
   ON temp_forecast_control
   USING btree
-  (link_id, dir);
+  (time_slot_array, weekday_diff_array, weekend_diff_array);
+
+CREATE INDEX org_rtic_linkid_idx
+	on org_rtic
+	using btree
+	(linkid);

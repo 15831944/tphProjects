@@ -38,11 +38,11 @@ class comp_node_ni(component.component_base.comp_base):
         
         if self.pg.IsExistTable('org_adj'):
             sqlcmd = """
-                    update org_n as a set adjoin_nid = b.nodeid2
+                    update org_n as a set adjoin_nid = b.nodeid2, kind = kind || '|1f00'
                     from org_adj as b
                     where a.id = b.nodeid1;
                     
-                    update org_n as a set adjoin_nid = b.nodeid1
+                    update org_n as a set adjoin_nid = b.nodeid1, kind = kind || '|1f00'
                     from org_adj as b
                     where a.id = b.nodeid2;
                     

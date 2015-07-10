@@ -235,7 +235,7 @@ CREATE TABLE towardname_tbl
   id bigint,
   nodeid bigint not null,
   inlinkid bigint not null,
-  outlinkid bigint not null,
+  outlinkid bigint,
   passlid character varying(1024),
   passlink_cnt smallint,
   direction smallint,

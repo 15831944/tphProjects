@@ -1024,3 +1024,19 @@ CREATE INDEX temp_force_guide_patch_link_tbl_objectid
   ON temp_force_guide_patch_link_tbl
   USING btree
   (objectid);
+  
+  
+CREATE INDEX towardname_tbl_nodeid_idx
+  ON towardname_tbl
+  USING btree
+  (nodeid);
+
+CREATE INDEX temp_poi_category_org_code_idx
+  ON temp_poi_category
+  USING btree
+  (org_code);
+
+CREATE INDEX temp_brand_icon_brandname_idx
+  ON temp_brand_icon
+  USING btree
+  (brandname);

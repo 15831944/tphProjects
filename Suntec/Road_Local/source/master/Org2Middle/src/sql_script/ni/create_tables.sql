@@ -109,26 +109,28 @@ CREATE TABLE temp_guideinfo_boundary
 
 create table temp_poi_category
 (
-    u_code   bigint       not null,
-    gen_0       int          not null,
-    gen_1       int          not null,
-    gen_2       int          not null,
-    level      smallint     not null,
-    region      int         not null,
-    is_brand   varchar(6)       not null,
-    imp        smallint     not null,
-    org_code   varchar(6)       not null,
-    name_type  varchar(6)       not null,
-    lang        varchar(6) ,
-    name        varchar(128) ,
-    tr_lang     varchar(128) ,
-    tr_name     varchar(128) ,
-    ph_type     varchar(128) ,
-    ph_lang     varchar(128) ,
-    ph_name     varchar(128) , 
-    logmark    varchar(128) not null default '',
-    level_category  varchar,   
-    remarks      varchar(128) 
+	u_code bigint,
+	gen_0 integer,
+	gen_1 integer,
+	gen_2 integer,
+	level smallint,
+	genre_is_brand bpchar,
+	importance smallint,
+	org_code character(28),
+	nametype character(2),
+	name_lang character(3),
+	name character varying(128),
+	tr_lang character(3),
+	tr_name character varying(128),
+	chain_lang bpchar,
+	chain_name character varying,
+	chain_trlang bpchar,
+	chain_trname character varying,
+	chaincode bpchar,
+	ph_type character varying(5),
+	ph_lang character(3),
+	ph_name character varying(128),
+	logmark varchar(128) not null default ''
 );
 
 create table temp_brand_icon
@@ -291,4 +293,18 @@ CREATE TABLE mid_temp_hwy_exit_enter_poi_name_ni
    poi_id          bigint not null,
    kind            character varying(8) not null,     -- Enter/Exit
    name            character varying(1024) not null   --JSON
+);
+
+
+CREATE TABLE temp_poi_inlink
+(
+poi_id  bigint,
+inlink  bigint,
+node    bigint
+);
+
+create table temp_towardname_name
+(
+	poi_id bigint,
+	toward_name varchar
 );

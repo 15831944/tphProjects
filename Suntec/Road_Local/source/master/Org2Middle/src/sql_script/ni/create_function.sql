@@ -1015,3 +1015,198 @@ BEGIN
     RETURN retval;  
   END;  
   $$;  
+  
+  
+  
+ 
+CREATE OR REPLACE FUNCTION ni_mid_search_poi_inlink111(poi_id varchar, link varchar)
+			   RETURNS smallint
+                LANGUAGE plpgsql
+            AS $$
+            DECLARE        
+                temp_link bigint;
+                snode  bigint;
+                enode  bigint;
+                temp_node bigint;
+                direction integer;
+                link_type1 integer;
+                road_type1 integer;               
+                link_searched bigint[];
+                rec record;
+                links bigint[];
+                i integer;
+                slink bigint;
+BEGIN
+			links := array_append(links,link::bigint);
+			link_searched := array_append(link_searched,link::bigint);
+			i := 1;
+			while i <= array_length(links,1) 
+			loop
+				slink := links[i];		
+				select link_type, road_type, link_id, s_node, e_node, one_way_code
+				from link_tbl as a
+				where a.link_id = slink  into  link_type1, road_type1, temp_link, snode, enode, direction;
+			
+				if direction = 3 then
+					temp_node = snode;
+					snode = enode;
+					enode = temp_node;
+				end if;
+				
+				if link_type1 in (1,2) and road_type1 in (0,1) then
+					insert into temp_poi_inlink(poi_id, inlink, node) 
+						values(poi_id::bigint,temp_link,enode);
+
+				else	
+             if direction = 1 then
+             
+                for rec in 
+                    select  link_id
+                    from link_tbl as a
+                    where (
+                            (a.e_node = snode  and a.one_way_code in(1,2)) 
+                            or 
+                            (a.s_node = snode  and a.one_way_code in (1,3))
+                          ) 
+                          and 
+                          road_type in (0,1)	
+                          
+                          or (
+                            (a.e_node = enode  and a.one_way_code in(1,2)) 
+                            or 
+                            (a.s_node = enode  and a.one_way_code in (1,3))
+                          ) 
+                          and 
+                          road_type in (0,1)	
+                loop
+                  if rec.link_id is not null then
+                    if rec.link_id = any(link_searched) then
+                        continue;
+                    else
+                      link_searched := array_append(link_searched,rec.link_id);
+                      if not rec.link_id = any(links) then
+                        links := array_append(links,rec.link_id);
+                      end if;
+                    end if;
+                  end if;
+                end loop;
+                                
+             else
+             
+                for rec in 
+                    select  link_id
+                    from link_tbl as a
+                    where (
+                            (a.e_node = snode  and a.one_way_code in(1,2))
+                           or 
+                            (a.s_node = snode  and a.one_way_code in (1,3))
+                          ) 
+                        and 
+                        road_type in (0,1)		
+                loop
+                  if rec.link_id is not null then
+                    if rec.link_id = any(link_searched) then
+                        continue;
+                    else
+                      link_searched := array_append(link_searched,rec.link_id);
+                      if not rec.link_id = any(links) then
+                        links := array_append(links,rec.link_id);
+                      end if;
+                    end if;
+                  end if;
+                end loop;
+                
+            end if;
+					
+				end if;
+				
+				i := i + 1;
+				
+			end loop;
+			return 0;
+		END;
+		$$;
+		
+
+CREATE OR REPLACE FUNCTION ni_mid_search_poi_inlink(poi_id varchar, link varchar)
+	RETURNS smallint
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE        
+		temp_link bigint;
+		snode  bigint;
+		enode  bigint;
+		temp_node bigint;
+		direction integer;
+		link_type1 integer;
+		road_type1 integer;               
+		link_searched bigint[];
+		rec record;
+		links bigint[];
+		i integer;
+		slink bigint;
+BEGIN
+    links := array_append(links,link::bigint);
+    i := 1;
+    while i <= array_length(links,1) 
+    loop
+        slink := links[i];		
+        select link_type, road_type, link_id, s_node, e_node, one_way_code
+        from link_tbl as a
+        where a.link_id = slink  into  link_type1, road_type1, temp_link, snode, enode, direction;
+        if direction = 4 then
+           exit;
+        end if;
+        if direction = 3 then
+          temp_node = snode;
+          snode = enode;
+          enode = temp_node;
+        end if;
+
+        if link_type1 in (1,2) and road_type1 in (0,1) then
+          insert into temp_poi_inlink(poi_id, inlink, node) 
+            values(poi_id::bigint,temp_link,enode);		
+        else	
+                 
+            for rec in 
+                select  link_id
+                from link_tbl as a
+                where (	  ( (a.e_node in (snode,enode) and a.one_way_code in(1,2))
+                            or
+                               (a.s_node in (snode,enode) and a.one_way_code in(1,3))
+                             )
+                            and 
+                            direction = 1
+
+                        or
+                            (
+                              (a.e_node = snode  and a.one_way_code in(1,2))
+                             or 
+                              (a.s_node = snode  and a.one_way_code in (1,3))
+                            )
+                            and
+                            direction <> 1 
+                      )
+                      and 
+                      road_type in (0,1)
+	
+          loop
+              if rec.link_id is not null then
+                  if rec.link_id = any(links) then
+                    continue;
+                  else
+                    links := array_append(links,rec.link_id);
+                  end if;
+              end if;
+          end loop;
+	
+		end if;
+				
+		i := i + 1;
+				
+	end loop;
+	return 0;
+END;
+$$;
+		
+		

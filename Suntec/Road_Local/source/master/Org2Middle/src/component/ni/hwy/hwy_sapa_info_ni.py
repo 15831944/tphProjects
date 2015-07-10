@@ -106,11 +106,11 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
                                    chain_id, chain_name, language_code)
         (
         SELECT distinct u_code, a.kind, 0 as subcat,
-               chaincode, chaincode as chain_name, 'ENG' as language_code
+               a.chaincode, a.chaincode as chain_name, 'ENG' as language_code
           FROM org_poi as a
           LEFT JOIN temp_poi_category as b
-          ON a.kind = b.org_code
-          where chaincode <> ''
+          ON a.kind = b.org_code and a.chaincode = b.chaincode
+          where a.chaincode <> ''
           ORDER BY kind
         );
         """

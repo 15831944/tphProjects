@@ -31,17 +31,19 @@ class HwyPrepareNi(HwyPrepareRDF):
 
     def _make_all_hwy_Node(self):
         '''高速特征点(高速出入口点和高速设施所在点) '''
+        self.CreateIndex2('org_n_the_geom_idx')
+        self.CreateIndex2('org_poi_the_geom_idx')
         self.CreateTable2('mid_all_highway_node')
         sqlcmd = '''
         INSERT INTO mid_all_highway_node(node_id)
         (
-        SELECT id::bigint AS node_id
+        SELECT distinct id::bigint AS node_id
         FROM org_poi
         LEFT JOIN org_n
         ON ST_DWithin(org_n.the_geom, org_poi.the_geom,
                       0.000002694945852358566745)
         WHERE org_poi.kind = '8301'  -- 8301: exit
-        ORDER BY id
+        ORDER BY id::bigint
         )
         '''
         self.pg.execute2(sqlcmd)

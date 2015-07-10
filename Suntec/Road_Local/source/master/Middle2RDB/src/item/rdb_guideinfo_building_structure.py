@@ -41,12 +41,12 @@ class rdb_guideinfo_building_structure(ItemBase):
         drop table if exists temp_asso_node_logmark; 
         CREATE TABLE temp_asso_node_logmark AS 
         select node_id,
-        unnest((array_agg(poi_id))[1:5]) as poi_id,
-        unnest((array_agg(type_code))[1:5]) as type_code,
-        unnest((array_agg(type_code_priority))[1:5]) as type_code_priority,
-        unnest((array_agg(building_name))[1:5]) as building_name,
-        unnest((array_agg(the_geom))[1:5]) as the_geom,
-        unnest((array_agg(distance))[1:5]) as distance
+        unnest((array_agg(poi_id))[1:6]) as poi_id,
+        unnest((array_agg(type_code))[1:6]) as type_code,
+        unnest((array_agg(type_code_priority))[1:6]) as type_code_priority,
+        unnest((array_agg(building_name))[1:6]) as building_name,
+        unnest((array_agg(the_geom))[1:6]) as the_geom,
+        unnest((array_agg(distance))[1:6]) as distance
         from
         ( 
             SELECT 

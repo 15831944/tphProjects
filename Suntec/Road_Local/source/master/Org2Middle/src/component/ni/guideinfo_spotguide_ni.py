@@ -181,49 +181,8 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         # 从node_tbl表可以找到每个收费站node
         # 从link_tbl表可以根据每个收费站node的相连link
         # 根据以上信息拼出spotguide点
-        rows = self.get_batch_data( '''
-                                    select a.node_id, b.link_id as e_node_link, e_node_link 
-                                    from 
-                                    node_tbl as a
-                                    left join link_tbl as b
-                                    on a.node_id=b.s_node
-                                    left join link_tbl as c
-                                    on a.node_id=c.e_node
-                                    where a.toll_flag=1
-                                    ''' )
-        for row in rows:        
-            nodeid = row[0]
-            
-            # 交通收费站默认没有passlid
-            passlidCount = 0
-            
-            # 
-            inlinkid=-1
-            
-            # 
-            outlinkid=-1
-            
-            #
-            totalPasslid=''
-            
-            # 交通收费站没有SAR
-            isExistSar = False
-            
-            # 交通收费站对应的类型为12
-            jv_type = 12
-            
-            # 交通收费站的pattern图统一使用 
-            patternno = str(nodeid)
-            
-            # 交通收费站没有箭头图
-            arrowno = -1
-            
-            self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
-                             (nodeid, inlinkid, outlinkid, 
-                              totalPasslid, passlidCount, 0,
-                              0, 0, 0,
-                              patternno, arrowno, jv_type, isExistSar))
-        self.pg.commit2()
+        inti = 1
+        inti += 1
         return
             
             

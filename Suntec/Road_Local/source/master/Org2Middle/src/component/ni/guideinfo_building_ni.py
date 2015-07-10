@@ -37,6 +37,10 @@ class comp_guideinfo_building_ni(component.default.guideinfo_building.comp_guide
         self.log.info('make temp_poi_logmark...')
         self.CreateTable2('temp_poi_logmark')
         
+        self.CreateIndex2('org_poi_chaincode_idx')
+        self.CreateIndex2('org_poi_kind_idx')
+        self.CreateIndex2('temp_poi_category_org_code_idx')
+        self.CreateIndex2('temp_brand_icon_brandname_idx')
         sqlcmd = """
                 insert into temp_poi_logmark
                 (
@@ -45,7 +49,7 @@ class comp_guideinfo_building_ni(component.default.guideinfo_building.comp_guide
                 inner join temp_brand_icon as b
                 on a.chaincode = b.brandname
                 inner join temp_poi_category as tpc
-                on tpc.org_code=a.kind
+                on tpc.org_code=a.kind and tpc.chaincode=a.chaincode
 
                 
                 union
@@ -53,7 +57,7 @@ class comp_guideinfo_building_ni(component.default.guideinfo_building.comp_guide
                select a.poi_id, a.kind,tpc.u_code,a.display_x, a.display_y,a.the_geom
                from org_poi as a                
                inner join temp_poi_category as tpc
-               on tpc.logmark = 'Y' and a.kind=tpc.org_code 
+               on tpc.logmark = 'Y' and a.kind=tpc.org_code and a.chaincode=tpc.chaincode
                );                                 
                 """
 
@@ -79,10 +83,11 @@ class comp_guideinfo_building_ni(component.default.guideinfo_building.comp_guide
                      select  a.poi_id,
                              b.name as poi_name,
                              (case when b.language = '1'  then  'CHI'
-                                   when b.language = '3'  then  'ENG' end) as language,
+                                   when b.language = '2'  then  'CHT'                                                               
+                                   when b.language = '3'  then  'ENG' 
+                                   when b.language = '4'  then  'POR' end ) as language,
                              b.language as name_id,
-                             (case when b.language = '1'  then  'office_name'
-                                   when b.language = '3'  then  'office_name' end) as name_type,                             
+                            'office_name'::varchar  as name_type,                             
                              c.phontype as phoneme_lang,                                                          
                              c.name as phoneme,
                              a.the_geom
@@ -101,7 +106,7 @@ class comp_guideinfo_building_ni(component.default.guideinfo_building.comp_guide
                         where seq_nm = '1' and phontype <> '2'                                                              
  
                     ) as c
-                    on c.featid= a.poi_id and b.language = '1'            
+                    on c.featid= a.poi_id and b.language in ('1','2')            
             );     
                 """
 

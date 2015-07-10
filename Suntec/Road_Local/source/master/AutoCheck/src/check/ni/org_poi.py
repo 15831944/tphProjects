@@ -65,11 +65,11 @@ class CCheckPoiName(platform.TestCase.CTestCase):
         return (rec_count == 0)    
     
 class CCheckPoiLanguage(platform.TestCase.CTestCase):
-    '''POI language是否只有ENG 和 CHI'''
+    '''POI language是否只有 CHI、CHT、ENG、POR'''
     def _do(self):
         sqlcmd = '''
                select count(*) from org_pname
-               where not (language = '1' or language = '3')           
+               where language not in  ('1','2','3','4')           
                '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)      
 

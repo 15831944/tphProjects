@@ -165,8 +165,10 @@ CREATE TABLE rdb_guideinfo_towardname
   in_link_id_t integer NOT NULL,
   node_id bigint NOT NULL,
   node_id_t integer NOT NULL,
-  out_link_id bigint NOT NULL,
-  out_link_id_t integer NOT NULL,
+  --out_link_id bigint NOT NULL,
+  out_link_id bigint ,
+  --out_link_id_t integer NOT NULL,
+  out_link_id_t integer ,
   toward_name character varying(1024),
   name_attr smallint NOT NULL,
   name_kind smallint NOT NULL,
@@ -199,8 +201,10 @@ CREATE TABLE rdb_guideinfo_towardname_client
   in_link_id_t integer NOT NULL,
   node_id integer NOT NULL,
   node_id_t integer NOT NULL,
-  out_link_id integer NOT NULL,
-  out_link_id_t integer NOT NULL,
+ -- out_link_id integer NOT NULL,
+ -- out_link_id_t integer NOT NULL,
+  out_link_id integer ,
+  out_link_id_t integer ,
   toward_name character varying(1024),
   multi_towardname_attr smallint NOT NULL,
   CONSTRAINT rdb_guideinfo_towardname_client_pkey PRIMARY KEY (gid)
@@ -2126,87 +2130,28 @@ CREATE TABLE rdb_guideinfo_safety_zone
 CREATE TABLE rdb_forecast_link
 (
   link_id bigint,
+  link_id_t integer,
   dir smallint,
   free_time smallint,
   weekday_time smallint,
   weekend_time smallint,
   average_time smallint,
-  info_id integer,
+  info_id integer default 0,
   type smallint
 );
 
 CREATE TABLE rdb_forecast_control
 (
   info_id integer,
-  weather_type smallint,
-  day_type smallint,
-  start_day smallint,
-  end_day smallint,
+  weather_type smallint default 0,
+  day_type smallint default 0,
+  start_day smallint default 0,
+  end_day smallint default 0,
   time_id_weekday integer,  
   time_id_weekend integer  
 );
 
 CREATE TABLE rdb_forecast_time
-(
-  time_id integer,
-  time_slot smallint,
-  time smallint
-);
-
-CREATE TABLE rdb_region_forecast_link_layer6
-(
-  link_id bigint,
-  dir smallint,
-  free_time smallint,
-  weekday_time smallint,
-  weekend_time smallint,
-  average_time smallint,
-  info_id integer,
-  type smallint
-);
-
-CREATE TABLE rdb_region_forecast_control_layer6
-(
-  info_id integer,
-  weather_type smallint,
-  day_type smallint,
-  start_day smallint,
-  end_day smallint,
-  time_id_weekday integer,  
-  time_id_weekend integer  
-);
-
-CREATE TABLE rdb_region_forecast_time_layer6
-(
-  time_id integer,
-  time_slot smallint,
-  time smallint
-);
-
-CREATE TABLE rdb_region_forecast_link_layer4
-(
-  link_id bigint,
-  dir smallint,
-  free_time smallint,
-  weekday_time smallint,
-  weekend_time smallint,
-  average_time smallint,
-  info_id integer,
-  type smallint
-);
-
-CREATE TABLE rdb_region_forecast_control_layer4
-(
-  info_id integer,
-  weather_type smallint,
-  day_type smallint,
-  start_day smallint,
-  end_day smallint,
-  time_id_weekday integer,  
-  time_id_weekend integer  
-);
-
-CREATE TABLE rdb_region_forecast_time_layer4
 (
   time_id integer,
   time_slot smallint,

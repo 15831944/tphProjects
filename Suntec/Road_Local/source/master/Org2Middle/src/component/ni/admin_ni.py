@@ -209,7 +209,7 @@ class comp_admin_ni(component.component_base.comp_base):
                     union
                     
                     select order1_id::integer, 1, order0_id::integer, order1_id::integer, 
-                        null::integer, null::integer, b.admin_name, 200, -1, the_geom
+                        null::integer, null::integer, b.admin_name, 200, 0, the_geom
                     from temp_admin_order1 as a
                     left join temp_admin_name as b
                     on a.order1_id = b.admin_id
@@ -217,7 +217,7 @@ class comp_admin_ni(component.component_base.comp_base):
                     union
                     
                     select order2_id::integer, 2, order0_id::integer, a.order1_id::integer, 
-                        order2_id::integer, null::integer, b.admin_name,200, -1, a.the_geom
+                        order2_id::integer, null::integer, b.admin_name,200, 0, a.the_geom
                     from temp_admin_order2 as a
                     left join temp_admin_name as b
                     on a.order2_id = b.admin_id
@@ -231,7 +231,7 @@ class comp_admin_ni(component.component_base.comp_base):
                     
                     select order8_id::integer, 8, d.order0_id::integer, c.order1_id::integer, 
                         (case when e.admin_id is null then c.order2_id else null end)::integer, 
-                        order8_id::integer, b.admin_name, 200, -1, a.the_geom
+                        order8_id::integer, b.admin_name, 200, 0, a.the_geom
                     from temp_admin_order8 as a
                     left join temp_admin_name as b
                     on a.order8_id = b.admin_id

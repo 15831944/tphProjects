@@ -38,6 +38,7 @@ from item import rdb_link_shield
 from item import rdb_admin
 from item import rdb_guideinfo_forceguide
 from item import rdb_vics
+from item import rdb_forecast
 from item import rdb_language
 from item import rdb_link_with_all_attri_view
 from item import rdb_node_with_all_attri_view
@@ -82,8 +83,8 @@ def main():
 #                rdb_language.rdb_language(),
 #                rdb_guideinfo_cross_name.rdb_guideinfo_cross_name(),
 #                rdb_guideinfo_lane.rdb_guideinfo_lane(),
-                rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea(),
-                rdb_guideinfo_signpost.rdb_guideinfo_signpost(),
+#                rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea(),
+#                rdb_guideinfo_signpost.rdb_guideinfo_signpost(),
                 rdb_guideinfo_spotguide.rdb_guideinfo_spotguide(),
 #                rdb_guideinfo_natural_guidence.rdb_guideinfo_natural_guidence(),
 #                rdb_guideinfo_towardname.rdb_guideinfo_towardname(),

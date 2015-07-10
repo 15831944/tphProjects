@@ -3274,3 +3274,80 @@ BEGIN
 	return res_position_type;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION mid_adjust_guidence_node(old_node_id bigint, old_link_array bigint[], guide_table_name varchar,
+													out new_nodeid bigint, out new_inlinkid bigint,out new_passlid varchar)
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	nCount				integer;
+	nIndex				integer;
+	search_link_id		bigint;
+	search_link_type	smallint;
+	search_s_node		bigint;
+	search_e_node		bigint;
+	search_node			bigint;
+	search_node_branch	integer;
+	search_gid			integer;
+BEGIN
+	nCount			= array_upper(old_link_array, 1);
+	search_node		= old_node_id;
+	nIndex			= 2;
+	while nIndex <= nCount loop
+		-- if guideninfo exists on this node, stay at old position and exit 
+		if nIndex > 2 then
+			execute
+			'
+			select gid
+			from '|| guide_table_name || '
+			where nodeid = ' || search_node || '
+			limit 1
+			'
+			into search_gid;
+			
+			if search_gid is not null then
+				nIndex = 2;
+				exit;
+			end if;
+		end if;
+		
+		-- if node branch, exit
+		select array_upper(string_to_array(node_lid, '|'), 1)
+		from node_tbl
+		where node_id = search_node
+		into search_node_branch;
+		
+		if search_node_branch > 2 then
+			exit;
+		end if;
+		
+		-- if inner link, exit
+		select link_id, link_type, s_node, e_node
+		from link_tbl
+		where link_id = old_link_array[nIndex]
+		into search_link_id, search_link_type, search_s_node, search_e_node;
+		
+		if search_link_type = 4 then
+			exit;
+		end if;
+		
+		-- search next
+		nIndex	= nIndex + 1;
+		if search_s_node = search_node then
+			search_node	= search_e_node;
+		else
+			search_node = search_s_node;
+		end if;
+	end loop;
+	
+	if nIndex in (2, nCount+1) then
+		new_nodeid		= old_node_id;
+		new_inlinkid	= old_link_array[1];
+		new_passlid		= array_to_string(old_link_array[2:nCount-1], '|');
+	else
+		new_nodeid		= search_node;
+		new_inlinkid	= old_link_array[nIndex-1];
+		new_passlid		= array_to_string(old_link_array[nIndex:nCount-1], '|');
+	end if;
+END;
+$$;

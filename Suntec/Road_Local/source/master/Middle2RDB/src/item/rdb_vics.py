@@ -2256,7 +2256,8 @@ class rdb_traffic_ni(rdb_traffic):
         
         rdb_log.log(self.ItemName, 'creating sequence for TMC link -----start ', 'info')       
 
-        # Add nodes to original traffic links.
+        # Add nodes to original traffic links.  
+        self.CreateIndex2('org_rtic_linkid_idx')
         sqlcmd = """
             drop table if exists temp_rtic_link_temp cascade;
             create table temp_rtic_link_temp as 
@@ -2290,6 +2291,14 @@ class rdb_traffic_ni(rdb_traffic):
               ON temp_rtic_link_temp
               USING btree
               (s_node, e_node);                    
+            CREATE INDEX temp_rtic_link_temp_s_node_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (s_node);
+            CREATE INDEX temp_rtic_link_temp_e_node_idx
+              ON temp_rtic_link_temp
+              USING btree
+              (e_node);
         """
         self.pg.execute2(sqlcmd)   
         self.pg.commit2()

@@ -151,6 +151,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('temp_guideinfo_pic_blob_id_mapping_image_id_idx')
+
     
 class rdb_guideinfo_pic_binary(ItemBase):
     def __init__(self):

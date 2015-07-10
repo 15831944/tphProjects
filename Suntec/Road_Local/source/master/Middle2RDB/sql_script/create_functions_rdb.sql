@@ -1174,19 +1174,19 @@ BEGIN
     IF shortcut_code IS NOT NULL THEN
         --IF parking_flag > 3 THEN
         --END IF;
-        multi_link_add_info := multi_link_add_info | (shortcut_code << 3);
+        multi_link_add_info := multi_link_add_info | (shortcut_code << 4);
     END IF;
 
     IF parking_flag IS NOT NULL THEN
         --IF parking_flag > 3 THEN
         --END IF;
-        multi_link_add_info := multi_link_add_info | (parking_flag << 5);
+        multi_link_add_info := multi_link_add_info | (parking_flag << 6);
     END IF;
 
     IF etc_lane_flag IS NOT NULL THEN
         --IF parking_flag > 1 THEN
         --END IF;
-        multi_link_add_info := multi_link_add_info | (etc_lane_flag << 7);
+        multi_link_add_info := multi_link_add_info | (etc_lane_flag << 8);
     END IF;
 
     return multi_link_add_info;
@@ -6960,7 +6960,7 @@ BEGIN
 					)
 				)as a
 				left join temp_rtic_link_walked as b
-				on a.kind = b.kind 
+				on a.meshcode = b.meshcode 
 				and a.kind = b.kind and a.rticid = b.rticid
 				and a.linkid = b.linkid
 				where b.linkid is null
