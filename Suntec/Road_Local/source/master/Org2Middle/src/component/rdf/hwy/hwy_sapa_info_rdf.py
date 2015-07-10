@@ -24,6 +24,7 @@ class HwySapaInfoRDF(comp_base):
         self.CreateTable2('mid_temp_hwy_sapa_name')
         self.CreateTable2('mid_temp_sapa_link')
         self.CreateTable2('mid_temp_sapa_store_info')
+        self.CreateTable2('hwy_chain_name')
         return 0
 
     def _DoCreateFunction(self):
@@ -45,6 +46,7 @@ class HwySapaInfoRDF(comp_base):
         self._make_hwy_sapa_name()
         self._make_hwy_sapa_link()
         self._make_hwy_sapa_store_info()
+        self._make_hwy_store_name()
         return 0
 
     def _group_poi_trans_name(self):
@@ -266,3 +268,20 @@ class HwySapaInfoRDF(comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         return
+
+    def _make_hwy_store_name(self):
+        '''Store or Chain Name'''
+        sqlcmd = """
+        INSERT INTO hwy_chain_name(store_chain_id, name, language_code)
+        (
+        SELECT c.chain_id, name, language_code
+          FROM rdf_chain_name AS c
+          ORDER BY c.chain_id,
+                   language_code = 'ENG' DESC, -- English first
+                   language_code = 'CHI' DESC, -- Chinese second
+                   language_code = 'CHT' DESC,
+                   language_code
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()

@@ -23,7 +23,8 @@ class comp_natural_guidence(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'NaturalGuidence')
     
     def _DoCreateTable(self):
-
+ 
+        self.CreateTable2('guidence_condition_tbl')
         return 0
     
     def _Do(self):

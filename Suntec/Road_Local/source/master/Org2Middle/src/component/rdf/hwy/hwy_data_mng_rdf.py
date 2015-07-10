@@ -23,6 +23,8 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_FACIL_CLASS
 from component.rdf.hwy.hwy_graph_rdf import HWY_DISP_CLASS
 from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
 from component.rdf.hwy.hwy_graph_rdf import HWY_1ST_ROAD_NAME
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 from component.rdf.hwy.hwy_graph_rdf import HWY_TILE_ID
 from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
@@ -39,7 +41,8 @@ def get_road_name(json_name):
         for name_dict in names:
             if(name_dict.get("tts_type") == "not_tts" and
                name_dict.get("type") != "route_num"):
-                road_names.append(name_dict.get("val"))
+                road_names.append(name_dict)
+                break  # 翻译不要
     return road_names
 
 
@@ -64,7 +67,8 @@ def get_road_number(json_number):
     for numbers in json.loads(json_number.replace('\t', '\\t')):
         for num_dict in numbers:
             if num_dict.get("tts_type") == "not_tts":
-                road_numbers.append(num_dict.get("val"))
+                road_numbers.append(num_dict)
+                break  # 翻译不要
     return road_numbers
 
 
@@ -289,9 +293,9 @@ class HwyDataMngRDF(component.component_base.comp_base):
             # link_attr["tazm"] = link_info[9]
             link_attr[HWY_TILE_ID] = link_info[10]
             link_attr[HWY_LINK_LENGTH] = link_info[11]
-            link_attr["names"] = get_road_name(link_info[12])
-            link_attr[HWY_1ST_ROAD_NAME] = get_first_road_name(link_info[12])
-            link_attr["numbers"] = get_road_number(link_info[13])
+            link_attr[HWY_ROAD_NAMES] = get_road_name(link_info[12])
+            # link_attr[HWY_1ST_ROAD_NAME] = get_first_road_name(link_info[12])
+            link_attr[HWY_ROAD_NUMS] = get_road_number(link_info[13])
             yield link_id, s_node, e_node, one_way, s_angle, e_angle, link_attr
 
     def load_hwy_path(self):

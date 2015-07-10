@@ -14,7 +14,25 @@ class CCheckCommonBase(platform.TestCase.CTestCase):
         if table_name[len(table_name)-len('client'):] == 'client':
             return True
         return False
+
+class CCheckGuideinfoNodeid(CCheckCommonBase):
     
+    def _do(self):
+        
+        sqlcmd='''
+            select count(1) 
+            from rdb_guideinfo_building_structure a 
+            join rdb_node b 
+            on a.node_id=b.node_id 
+            where array_upper(b.branches,1)=2
+               '''
+        table_name = self.caseinfo.getTableName()
+        # 替换表名
+#        sqlcmd = sqlcmd.replace('[replace_table]', table_name)
+        cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        return cnt == 0        
+        
 class CCheckLinkIDFKey(CCheckCommonBase):
     '''in_link_id/out_link_id的外键。'''
     def _do(self):

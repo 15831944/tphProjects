@@ -374,5 +374,33 @@ class CCheckSafetyAlertFlag(platform.TestCase.CTestCase):
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0) 
     
-    
+class CCheckStopSignFlag(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*) from (
+                select *,((path_extra_info >> 6) & 3) as pos_flag
+                from rdb_link_add_info
+                where ((path_extra_info >> 6) & 3) != 0  
+            ) a
+            left join rdb_tile_link c
+            on a.link_id = c.tile_link_id
+            left join (
+                 select link_id
+                    ,case when 2 = any(pos_flag_array) and 3 = any(pos_flag_array) then 1
+                    else pos_flag_array[1]
+                    end as pos_type
+                from (
+                    select link_id,array_agg(pos_flag) as pos_flag_array 
+                    from (
+                        select distinct link_id,pos_flag
+                        from stopsign_tbl
+                    ) a
+                    group by link_id 
+                ) b
+            ) b
+            on c.old_link_id = b.link_id
+            where b.link_id is null or a.pos_flag != b.pos_type;
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)    
                  

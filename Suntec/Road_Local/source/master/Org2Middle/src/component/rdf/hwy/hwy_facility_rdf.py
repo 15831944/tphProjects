@@ -614,11 +614,11 @@ class HwyFacilityRDF(component.component_base.comp_base):
                               store_cat_id, store_chain_id)
         (
         SELECT distinct road_code, road_seq, 1 as updown_c,
-                        cat_id, chain_id
+                        cat_id, b.chain_id
           FROM mid_temp_hwy_sapa_info as a
           LEFT JOIN mid_temp_sapa_store_info as b
           ON a.poi_id = b.poi_id
-          WHERE chain_id is not null
+          WHERE b.chain_id is not null
           ORDER BY road_code, road_seq, chain_id
         );
         """

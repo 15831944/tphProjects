@@ -20,7 +20,7 @@ class rdb_highway_road_info(ItemBase):
     def Do(self):
         # 当前不做特别处理，只是简单的
         self.CreateTable2('rdb_highway_road_info')
-        if self.pg.IsExistTable('highway_road_info') != True:
+        if not self.pg.IsExistTable('highway_road_info'):
             return 0
         tile_index = 0  # tile内的序号
         prev_tile = None
@@ -44,11 +44,11 @@ class rdb_highway_road_info(ItemBase):
                     road_no, iddn_road_kind, road_kind,
                     road_attr, loop, "new",
                     un_open, start_ic_no, ic_count,
-                    "name", up_down, tile_id,
-                    tile_index)
+                    "name", up_down, road_number,
+                    tile_id, tile_index)
             values(%s, %s, %s, %s, %s, %s,
                    %s, %s, %s, %s, %s, %s,
-                   %s)
+                   %s, %s)
         """
         self.pg.execute2(sqlcmd, road_info)
 
@@ -57,7 +57,8 @@ class rdb_highway_road_info(ItemBase):
         SELECT a.road_no, iddn_road_kind, road_kind,
                road_attr, loop, "new",
                un_open, start_ic_no, ic_count,
-               "name", c.up_down, a.tile_id
+               "name", c.up_down, road_number,
+               a.tile_id
           from (
                 -- Get Start IC No
                 SELECT tile_id, road_no, up_down,

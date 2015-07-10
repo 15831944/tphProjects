@@ -38,9 +38,6 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
                 line = line.strip()
                 if line[0] == '#':
                     continue
-                line = line.replace("'", '')
-                line = line.strip()
-                line = line.strip(",")
                 fields=[]
                 fields.append(line)                
                 sqlcmd = '''
@@ -59,7 +56,6 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
             line = line.strip()
             if line[0] == '#':
                 continue
-            line = line.replace('"', '')
             fields = line.split(';')
             sqlcmd = '''
                       insert into temp_poi_category values(%s,%s,%s,%s,%s,%s,%s,%s,%s);
@@ -75,7 +71,7 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
         
         sqlcmd = """
                 insert into temp_poi_logmark
-                select a.uid,a.std_name,a.cat_code,tpc.per_code,a.lat,a.lon,a.the_geom
+                select a.uid as poi_id,a.std_name,a.cat_code,tpc.per_code,a.lat,a.lon,a.the_geom
                 from org_poi_point as a
                 inner join temp_brand_icon as b
                 on a.std_name = b.brandname
@@ -87,7 +83,7 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
                 select a.uid,a.std_name,a.cat_code,tpc.per_code,a.lat,a.lon,a.the_geom
                 from org_poi_point as a
                 inner join temp_poi_category as tpc
-                on tpc.logmark = 'Y' and a.std_name=tpc.org_code;
+                on tpc.logmark = 'Y' and a.cat_code=tpc.org_code ;
                                                 
                 """
 
@@ -111,7 +107,7 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
                 as
                 (
                   
-                 select  a.uid,
+                 select  a.poi_id,
                          a.std_name,
                          'ENG' as language_code,
                          1 as name_id,  
@@ -119,26 +115,29 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
                          b.name_nuance
                     from temp_poi_logmark as a        
                     left join org_phoneme as b
-                    on b."table"='POI' and a.uid=b.id
+                    on b."table"='POI' and a.poi_id=b.id
                     
                     union
                     
-                    select  a.uid,
+                    select  a.poi_id,
                             b.name_regional,
-                        --b.regional_lang_type as language_code,
                            (case when b.regional_lang_type = 'Hindi' then 'HIN'  
                                  when b.regional_lang_type = 'Malayalam' then 'MAL' 
                                  when b.regional_lang_type = 'Punjabi' then 'PAN'  
                                  when b.regional_lang_type = 'Tamil' then 'TAM' end) as language_code ,
-                            2 as name_id, 
+                            
+                            (case when b.regional_lang_type = 'Hindi' then 2  
+                                  when b.regional_lang_type = 'Malayalam' then 3 
+                                  when b.regional_lang_type = 'Punjabi' then 4  
+                                  when b.regional_lang_type = 'Tamil' then 5 end) as name_id,                           
                             a.the_geom,
-                            c.name_nuance
+                            null
                     from temp_poi_logmark as a        
                     inner join org_regional_data as b
-                    on b."table"='POI' and a.uid = b.id 
-                    left join org_phoneme as c
-                    on c.id =b.id 
-                    order by uid,name_id                    
+                    on b."table"='POI' and a.poi_id = b.id 
+                    --left join org_phoneme as c
+                    --on c.id =b.id 
+                    order by poi_id,name_id,language_code                    
                     );     
                 """
         self.pg.execute(sqlcmd)
@@ -146,13 +145,13 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
         
         
         sqlcmd = """
-                select  uid,
+                select  poi_id,
                     array_agg(name_id) as name_id_array,
                     array_agg(language_code) as language_code_array,
                     array_agg(std_name) as name_array,
                     array_agg(name_nuance) as phonetic_string_array
                 from  temp_poi_name_all_language
-                group by uid;
+                group by poi_id;
                 """         
                
         asso_recs = self.pg.get_batch_data2(sqlcmd)
@@ -180,13 +179,13 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
         
         sqlcmd = """
                 insert into mid_logmark(poi_id, type_code, building_name, the_geom)
-                select  a.uid, 
+                select  a.poi_id, 
                         a.type_code,
                         b.poi_name,
                         ST_GeometryN(a.the_geom,1)
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
-                on a.uid = b.poi_id;      
+                on a.poi_id = b.poi_id;      
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()

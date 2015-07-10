@@ -20,11 +20,12 @@ class rdb_highway_store_info(ItemBase):
     def Do(self):
         self.CreateTable2('rdb_highway_store_info')
         self.CreateTable2('rdb_highway_store_picture')
+        self.CreateTable2('rdb_highway_store_name')
         if not self.pg.IsExistTable('highway_store_info'):
             return 0
         tile_index = 0  # tile内的序号
         prev_tile = None
-        for store_info in self._get_point_info():
+        for store_info in self._get_store_info():
             tile_id = store_info[-1]
             if prev_tile != tile_id:
                 tile_index = 0
@@ -54,6 +55,20 @@ class rdb_highway_store_info(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
 
+    def _make_store_name(self):
+        if not self.pg.IsExistTable('highway_store_name'):
+            return 0
+        sqlcmd = """
+        INSERT INTO rdb_highway_store_name(store_kind, name, language_code)
+        (
+        SELECT store_kind, name, language_code
+          FROM highway_store_name
+          ORDER BY store_kind, gid
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
     def _insert_store_info(self, ic_store_info):
         sqlcmd = """
         INSERT INTO rdb_highway_store_info(
@@ -62,24 +77,24 @@ class rdb_highway_store_info(ItemBase):
                     holiday, goldenweek, newyear, yearend,
                     bonfestival, sunday, saturday, friday,
                     thursday, wednesday, tuesday, monday,
-                    seq_nm, tile_id, tile_index)
+                    seq_nm, store_name, tile_id, tile_index)
             VALUES (%s, %s, %s, %s,
                     %s, %s, %s, %s,
                     %s, %s, %s, %s,
                     %s, %s, %s, %s,
                     %s, %s, %s, %s,
-                    %s, %s, %s);
+                    %s, %s, %s, %s);
         """
         self.pg.execute2(sqlcmd, ic_store_info)
 
-    def _get_point_info(self):
+    def _get_store_info(self):
         sqlcmd = """
         SELECT store.ic_no, bis_time_flag, bis_time_num, store_kind,
                open_hour, open_min, close_hour, close_min,
                holiday, goldenweek, newyear, yearend,
                bonfestival, sunday, saturday, friday,
                thursday, wednesday, tuesday, monday,
-               seq_nm, tile_id
+               seq_nm, store_name, tile_id
           FROM highway_store_info as store
           LEFT JOIN highway_ic_info as ic
           ON store.ic_no = ic.ic_no

@@ -4,9 +4,11 @@ Created on 2015-1-7
 
 @author: hcz
 '''
+import json
 import component.component_base
 from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
-from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
+from component.default.multi_lang_name import NAME_TYPE_OFFICIAL
+from component.default.multi_lang_name import NAME_TYPE_SHIELD
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SIDE
 from component.rdf.hwy.hwy_def_rdf import LAST_SEQ_NUM
 from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_1000M
@@ -31,6 +33,9 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_NONE
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 
 
 class HwyRouteRDF(component.component_base.comp_base):
@@ -133,26 +138,24 @@ class HwyRouteRDF(component.component_base.comp_base):
             #    seq_nm = LAST_SEQ_NUM  # 9999: 最后一条link/node
             self._insert_path_link((path_id, node_id, link_id, seq_nm))
         # 路径情报
-        length, path_name, path_number = self._get_path_attr(G, path)
-        road_name, road_number = None, None
-        if path_name:
-            road_name = HWY_NAME_SPLIT.join(path_name)
-        if path_number:
-            road_number = HWY_NAME_SPLIT.join(path_number)
+        path_attr = self._get_path_attr(G, path)
+        length, path_name, path_number, sort_name, sort_num = path_attr
         fazm, tazm = self._get_path_angle(G, path)
-        self._insert_path_info((path_id, length, road_name, road_number,
+        self._insert_path_info((path_id, length,
+                                path_name, path_number,
+                                sort_name, sort_num,
                                 fazm, tazm))
 
     def _get_path_attr(self, G, path):
         '''取得属性(长度、番号、名称)'''
         path_length = 0
-        path_name = []
-        path_number = []
+        path_name = {}
+        path_number = {}
         for u, v in zip(path[0:-1], path[1:]):
             data = G[u][v]
-            link_length = data.get("length")
-            numbers = data.get('numbers')
-            names = data.get('names')
+            link_length = data.get(HWY_LINK_LENGTH)
+            numbers = data.get(HWY_ROAD_NUMS)
+            names = data.get(HWY_ROAD_NAMES)
             self._add_path_name(path_name, names)
             self._add_path_name(path_number, numbers)
             if link_length:
@@ -160,14 +163,73 @@ class HwyRouteRDF(component.component_base.comp_base):
             else:
                 self.log.error('No Length. edge=(%s, %s)' % (u, v))
                 return None
-        return path_length, path_name, path_number
+        rst_names = self._get_max_count_names(path_name)
+        rst_nums = self._get_max_count_nums(path_number)
+        if rst_names:
+            json_name = json.dumps([rst_names], ensure_ascii=False,
+                                   encoding='utf8', sort_keys=True)
+        else:
+            json_name = None
+        if rst_nums:
+            json_num = json.dumps([rst_nums], ensure_ascii=False,
+                                  encoding='utf8', sort_keys=True)
+        else:
+            json_num = None
+        sort_name = self._get_sort_name(rst_names)
+        sort_num = self._get_sort_name(rst_nums)
+        return path_length, json_name, json_num, sort_name, sort_num
 
-    def _add_path_name(self, path_name, names):
+    def _add_path_name(self, path_name_dict, names):
         if not names:
             return
-        for name in names:
-            if name not in path_name:
-                path_name.append(name)
+        for name_dict in names:
+            name_type = name_dict.get("type")
+            if name_type in (NAME_TYPE_OFFICIAL, NAME_TYPE_SHIELD):
+                key = json.dumps(name_dict, ensure_ascii=False,
+                                 encoding='utf8', sort_keys=True)
+                if key in path_name_dict:
+                    path_name_dict[key] += 1
+                else:
+                    path_name_dict[key] = 1
+
+    def _get_max_count_names(self, path_name_dict):
+        if not path_name_dict:
+            return []
+        names = []
+        max_cnt = 0
+        name_items = path_name_dict.items()
+        # 按名称出现次数排序
+        name_items.sort(cmp=lambda x, y: cmp(x[-1], y[-1]), reverse=True)
+        for name, cnt in name_items:
+            if cnt >= max_cnt:
+                name_dict = json.loads(name, encoding='utf8')
+                names.append(name_dict)
+                max_cnt = cnt
+            else:
+                break
+        # 按名称语种
+        names.sort(cmp=lambda x, y: cmp(x.get('lang'), y.get('lang')),
+                   reverse=True)
+        return names
+
+    def _get_max_count_nums(self, path_num_dict):
+        nums = self._get_max_count_names(path_num_dict)
+        for num in nums:
+            # 去掉shield
+            num['val'] = num.get('val').split('\t')[-1]
+        return nums
+
+    def _get_sort_name(self, path_name):
+        '''取得排序用名称'''
+        names = []
+        for name_dict in path_name:
+            name = name_dict.get('val')
+            if name not in names:
+                names.append(name)
+        if names:
+            return HWY_NAME_SPLIT.join(names)
+        else:
+            return None
 
     def _get_path_angle(self, G, path):
         '''fazm: 第一条link的起始角度(车流方向)
@@ -1134,11 +1196,13 @@ class HwyRouteRDF(component.component_base.comp_base):
         '''road_code按番号、名称排序'''
         self.CreateTable2('road_code_info')
         sqlcmd = """
-        INSERT INTO road_code_info(road_name, road_number, path_id)
+        INSERT INTO road_code_info(road_name, road_number, path_id,
+                                   sort_name, sort_number)
         (
-        SELECT road_name, road_number, path_id
+        SELECT road_name, road_number, path_id,
+               sort_name, sort_number
           FROM mid_temp_hwy_main_cut_path_attr
-          ORDER BY road_number, road_name, path_id
+          order by length(sort_number), sort_number, sort_name, path_id
         );
         """
         self.pg.execute2(sqlcmd)
@@ -1208,9 +1272,9 @@ class HwyRouteRDF(component.component_base.comp_base):
         sqlcmd = """
         INSERT INTO mid_temp_hwy_main_path_attr(
                  path_id, length, road_name, road_number,
-                 fazm, tazm)
+                 sort_name, sort_number, fazm, tazm)
           VALUES (%s, %s, %s, %s,
-                  %s, %s);
+                  %s, %s, %s, %s);
         """
         self.pg.execute2(sqlcmd, params)
 
@@ -1238,14 +1302,15 @@ class HwyRouteRDF(component.component_base.comp_base):
     def _store_cut_path(self, G, path_id, path, start_idx, end_idx):
         sqlcmd = """
         INSERT INTO mid_temp_hwy_main_cut_path_attr(
-                    path_id, length, road_name,
-                    road_number, start_idx, end_idx)
-         VALUES(%s, %s, %s, %s, %s, %s);
+                    path_id, length, road_name, road_number,
+                    sort_name, sort_number, start_idx, end_idx)
+         VALUES(%s, %s, %s, %s,
+                %s, %s, %s, %s);
         """
         path_attr = self._get_path_attr(G, path[start_idx:end_idx+1])
-        length, path_name, path_number = path_attr
-        self.pg.execute2(sqlcmd, (path_id, length, path_name,
-                                  path_number, start_idx, end_idx))
+        length, path_name, path_number, sort_name, sort_num = path_attr
+        self.pg.execute2(sqlcmd, (path_id, length, path_name, path_number,
+                                  sort_name, sort_num, start_idx, end_idx))
 
     def _temp_update_geom(self):
         sqlcmd = """

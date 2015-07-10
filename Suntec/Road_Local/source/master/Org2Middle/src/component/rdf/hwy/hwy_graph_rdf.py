@@ -64,6 +64,8 @@ HWY_DISP_CLASS = "display_class"
 HWY_TILE_ID = "tile_id"
 HWY_1ST_ROAD_NAME = 'first_road_name'
 HWY_ORG_FACIL_ID = 'org_facil_id'
+HWY_ROAD_NUMS = "numbers"
+HWY_ROAD_NAMES = "names"
 
 
 # ==============================================================================
@@ -485,10 +487,11 @@ class HwyGraphRDF(HwyGraph):
         '''HOV道路'''
         hov = r'\WHOV\W'  # HOV
         p = re.compile(hov, re.I)  # 忽略大小写
-        names = data.get("names")
+        names = data.get(HWY_ROAD_NAMES)
         for name in names:
+            s = name.get('val')
             # 名称有 HOV
-            temp = p.findall(name)
+            temp = p.findall(s)
             if temp:
                 return True
         return False
@@ -504,17 +507,22 @@ class HwyGraphRDF(HwyGraph):
             return False
         if not num1 and not num2:
             return True
-        if num1 is None or num2 is None:
-            return
-        if set(num1) & set(num2):
+        if self._get_intersection(num1, num2):
             return True
         return False
 
     def _is_similer_name(self, name1, name2):
         if (name1 and not name2) or (not name1 and name2):
             return False
-        if set(name1) & set(name2):
+        if self._get_intersection(name1, name2):
             return True
+        return False
+
+    def _get_intersection(self, name1, name2):
+        '''名称求交集'''
+        for n in name1:
+            if n in name2:
+                return True
         return False
 
     def get_angle(self, in_edge, out_edge, reverse=False):

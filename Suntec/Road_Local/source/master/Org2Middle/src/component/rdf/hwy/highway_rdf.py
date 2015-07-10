@@ -388,14 +388,16 @@ class HighwayRDF(Highway):
         INSERT INTO highway_road_info(
                     road_no, iddn_road_kind, road_kind,
                     road_attr, loop, "new",
-                    un_open, name, up_down)
+                    un_open, name, up_down,
+                    road_number)
             VALUES (%s, %s, %s,
                     %s, %s, %s,
-                    %s, %s, %s);
+                    %s, %s, %s,
+                    %s);
         """
         data = self.__get_road_info()
         for info in data:
-            road_no, road_kind, path = info[0:3]
+            road_no, road_kind, path, road_name, road_number = info[0:5]
             updown, road_attr = HWY_UPDOWN_TYPE_UP, HWY_UPDOWN_TYPE_UP  # 上行
             iddn_road_kind = 0  # 高速
             if is_cycle_path(path):
@@ -403,16 +405,16 @@ class HighwayRDF(Highway):
             else:
                 loop = HWY_FALSE
             new, un_open = HWY_FALSE, HWY_FALSE
-            name = None
             self.pg.execute1(sqlcmd, (road_no, iddn_road_kind, road_kind,
                                       road_attr, loop, new,
-                                      un_open, name, updown))
+                                      un_open, road_name, updown,
+                                      road_number))
         self.pg.commit1()
         self.log.info('Start End Road Info.')
 
     def __get_road_info(self):
         sqlcmd = """
-        SELECT road_no, road_type, path
+        SELECT road_no, road_type, path, road_name, road_number
           FROM  mid_hwy_road_no AS a
           LEFT JOIN (
             SELECT road_code, ARRAY_AGG(node_id) AS path
@@ -424,6 +426,8 @@ class HighwayRDF(Highway):
              GROUP BY road_code
           ) AS b
           ON a.road_code = b.road_code
+          LEFT JOIN road_code_info as c
+          ON a.road_code = c.road_code
         """
         return self.get_batch_data(sqlcmd)
 

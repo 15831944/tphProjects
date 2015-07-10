@@ -571,3 +571,74 @@ class CCheckDiff_NodeSame(platform.TestCase.CTestCase):
                 """
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+
+class CCheckNaturalGuidance(platform.TestCase.CTestCase):
+    def _do(self):
+
+        sqlcmd = """
+                select count(*) from (
+                    select * from (
+                        select * from (
+                            SELECT a.node_id node1, a.extend_flag,b.node_id node2 
+                            FROM rdb_node a
+                            left join (
+                                select distinct node_id from rdb_guideinfo_natural_guidence
+                            )  b
+                            on a.node_id = b.node_id
+                        )as result 
+                        where node2 is not null
+                    ) as result 
+                    where ((extend_flag >> 17) & 1) <> 1
+                 ) as d;
+                """
+        return 0 == self.pg.getOnlyQueryResult(sqlcmd)
+    
+class CCheckHookTurn(platform.TestCase.CTestCase):
+    def _do(self):
+
+        sqlcmd = """
+                select count(*) from (
+                    select * from (
+                        select * from (
+                            SELECT a.node_id node1, a.extend_flag,b.node_id node2 
+                            FROM rdb_node a
+                            left join (
+                                select distinct node_id from rdb_guideinfo_hook_turn
+                            )  b
+                            on a.node_id = b.node_id
+                        )as result 
+                        where node2 is not null
+                    ) as result 
+                    where ((extend_flag >> 18) & 1) <> 1
+                 ) as d;
+                """
+        return 0 == self.pg.getOnlyQueryResult(sqlcmd)
+    
+class CCheckBifurcation(platform.TestCase.CTestCase):
+    def _do(self):
+
+        sqlcmd = """
+            select count(*) from rdb_node where ((extend_flag >> 19) & 1) != 0
+                """
+        return 0 != self.pg.getOnlyQueryResult(sqlcmd)    
+    
+class CCheckStopSign(platform.TestCase.CTestCase):
+    def _do(self):
+
+        sqlcmd = """
+            select count(*) from (
+                select *
+                from rdb_node
+                where ((extend_flag >> 16) & 1) != 0  
+            ) a
+            left join rdb_tile_node c
+            on a.node_id = c.tile_node_id
+            left join (
+                select distinct node_id
+                from stopsign_tbl
+            ) b
+            on c.old_node_id = b.node_id
+            where b.node_id is null;
+                """
+        return 0 == self.pg.getOnlyQueryResult(sqlcmd)        
+    

@@ -4,13 +4,13 @@ Created on 2012-4-27
 
 @author: zhangliang
 '''
+import component
 import os
 import common
 import psycopg2
 from common.dirwalker import DirWalker
 import struct
 import logging
-import shutil
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 from common.common_func import GetPath
 
@@ -549,20 +549,11 @@ class comp_picture(object):
 class GeneratorPicBinary(object):
 
     def __init__(self):
-        self.conn = psycopg2.connect('''host='172.26.179.184'
-                        dbname='tmap_MEA8_RDF_CI'
+        self.conn = psycopg2.connect('''host='172.26.179.195'
+                        dbname='SGP_RDF_2014Q1_20140617'
                         user='postgres' password='pset123456' ''')
         self.pgcur2 = self.conn.cursor()
-        curDir = "C:\\My\\20150409_mea_pic\\"
-        self.gjvLogger = open(curDir + "gjv.csv", "w")
-        self.ejvLogger = open(curDir + "ejv.csv", "w")
-        self.birdLogger = open(curDir + "bird.csv", "w")
-        
-    def __del__(self):
-        self.gjvLogger.close()
-        self.ejvLogger.close()
-        self.birdLogger.close()
-        
+
     def select_gjv_Data(self):
         self.pgcur2.execute('''SELECT distinct dp_node_id, filename, side
                                FROM rdfpl_gjv_lat_display_org;''')
@@ -610,9 +601,6 @@ class GeneratorPicBinary(object):
             group by ejv_filename;''')
         '''and originating_link_id in (816431040,116164590)'''
         rows = self.pgcur2.fetchall()
-        rowCount = len(rows)
-        rowCount += 1
-        rowCount -= 1
         for row in rows:
             pic = comp_picture()
             pic.setGid(i)
@@ -674,10 +662,7 @@ class GeneratorPicBinary(object):
             i = i + 1
         return pics
 
-    def makeGJunctionResultTable(self, srcDir, destDir):
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        os.mkdir(destDir)
+    def makeGJunctionResultTable(self, dirFileDir, destFileDir):
         pictures = self.select_gjv_Data()
         for pic in pictures:
             pic_name_strs = (pic.getDayName()).split('/')
@@ -688,7 +673,7 @@ class GeneratorPicBinary(object):
             arrow_file_name = ''
             side = pic.getArrow()
             if pic_type == 'SDPS':
-                picDirPath = srcDir + "\\" + "SDPS"
+                picDirPath = dirFileDir + "\\" + "SDPS"
                 if side == 'R':
                     arrow_file_name = picname_bin + '_lane1'
                 elif side == 'L':
@@ -696,7 +681,7 @@ class GeneratorPicBinary(object):
                 else:
                     logging.error('SDPS side wrong!')
             elif pic_type == 'MDPS':
-                picDirPath = srcDir + "\\" + "MDPS"
+                picDirPath = dirFileDir + "\\" + "MDPS"
                 if side == 'M':
                     arrow_file_name = picname_bin + '_lane1'
                 elif side == 'R':
@@ -708,22 +693,13 @@ class GeneratorPicBinary(object):
             else:
                 logging.error('pic_type wrong!')
 
-            if (picname_bin.lower() == "gjv_l12"):
-                inti = 1
-                inti += 1
-            destFile = destDir + "\\" + picname_bin.lower() + ".dat"
-            arrowFile = destDir + "\\" + arrow_file_name.lower() + ".dat"
+            destFile = destFileDir + "\\" + picname_bin.lower() + ".dat"
+            arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
             if os.path.isdir(picDirPath):
                 # day and nigth illust
                 if  os.path.isfile(destFile) == False:
                     dayPicPath = os.path.join(picDirPath, "DAY", picname_bin + ".jpg")
-                    if(os.path.isfile(dayPicPath) == False):
-                        self.gjvLogger.write("error,gjv,day picture not exist," + picname_bin + ".jpg\n") 
-                        continue
                     nightPicPath = os.path.join(picDirPath, "NIGHT", picname_bin + ".jpg")
-                    if(os.path.isfile(nightPicPath) == False):
-                        self.gjvLogger.write("error,gjv,day picture not exist," + picname_bin + ".jpg\n") 
-                        continue
                     dayFis = open(dayPicPath, 'rb')
                     nightFis = open(nightPicPath, 'rb')
                     fos = open(destFile, 'wb')
@@ -738,13 +714,9 @@ class GeneratorPicBinary(object):
                     nightFis.close()
                     fos.write(resultBuffer)
                     fos.close()
-                    self.gjvLogger.write("success,gjv," + picname_bin + ".jpg\n") 
                     # ARROW PIC BUILD
                 if os.path.isfile(arrowFile) == False:
                     picPathFile = picDirPath + "\\DAY\\" + arrow_file_name + ".png"
-                    if(os.path.isfile(dayPicPath) == False):
-                        self.gjvLogger.write("error,gjv,arrow picture not exist," + arrow_file_name + ".png\n") 
-                        continue
                     arrowFis = open(picPathFile, 'rb')
                     fos = open(arrowFile, 'wb')
                     arrowPicLen = os.path.getsize(picPathFile)
@@ -753,46 +725,104 @@ class GeneratorPicBinary(object):
                     arrowFis.close()
                     fos.write(resultBuffer)
                     fos.close()
-                    self.gjvLogger.write("success,gjv arrow," + arrow_file_name + ".png\n")
-                                          
+                    
+                    
+    def makeGJunctionResultTable_17cy(self, dirFileDir, destFileDir):
+        pictures = self.select_gjv_Data()
+        for pic in pictures:
+            pic_name_strs = (pic.getDayName()).split('/')
+            pic_type = pic_name_strs[0]
+
+            picname_bin = os.path.splitext(pic_name_strs[2])[0]
+            picDirPath = ''
+            arrow_file_name = ''
+            side = pic.getArrow()
+            if pic_type == 'SDPS':
+                picDirPath = dirFileDir + "\\" + "SDPS"
+                if side == 'R':
+                    arrow_file_name = picname_bin + '_lane1'
+                elif side == 'L':
+                    arrow_file_name = picname_bin + '_lane2'
+                else:
+                    logging.error('SDPS side wrong!')
+            elif pic_type == 'MDPS':
+                picDirPath = dirFileDir + "\\" + "MDPS"
+                if side == 'M':
+                    arrow_file_name = picname_bin + '_lane1'
+                elif side == 'R':
+                    arrow_file_name = picname_bin + '_lane2'
+                elif side == 'L':
+                    arrow_file_name = picname_bin + '_lane3'
+                else:
+                    logging.error('MDPS side wrong!!')
+            else:
+                logging.error('pic_type wrong!')
+
+            destFile = destFileDir + "\\" + picname_bin.lower() + ".dat"
+            arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
+            if os.path.isdir(picDirPath):
+                # day and nigth illust
+                if  os.path.isfile(destFile) == False:
+                    dayPicPath = os.path.join(picDirPath, "DAY", picname_bin + ".jpg")
+                    nightPicPath = os.path.join(picDirPath, "NIGHT", picname_bin + ".jpg")
+                    dayFis = open(dayPicPath, 'rb')
+                    nightFis = open(nightPicPath, 'rb')
+                    fos = open(destFile, 'wb')
+                    dayPicLen = os.path.getsize(dayPicPath)
+                    nightPicLen = os.path.getsize(nightPicPath)
+                    headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
+                                               dayPicLen, 2, 22 + dayPicLen, \
+                                               nightPicLen)
+                    resultBuffer = headerBuffer + dayFis.read() \
+                                            + nightFis.read()
+                    dayFis.close()
+                    nightFis.close()
+                    fos.write(resultBuffer)
+                    fos.close()
+                    # ARROW PIC BUILD
+                if os.path.isfile(arrowFile) == False:
+                    picPathFile = picDirPath + "\\DAY\\" + arrow_file_name + ".png"
+                    arrowFis = open(picPathFile, 'rb')
+                    fos = open(arrowFile, 'wb')
+                    arrowPicLen = os.path.getsize(picPathFile)
+                    headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                    resultBuffer = headerBuffer + arrowFis.read()
+                    arrowFis.close()
+                    fos.write(resultBuffer)
+                    fos.close()   
+                                 
     # 首先处理driver pic
     # 如果driver pic中背景图或者箭头图原图不存在，那么用bird pic对应
-    def makeEJunctionResultTable(self, srcDir, destDir, flag):
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        os.mkdir(destDir)
-        
+    def makeEJunctionResultTable(self, dirFileDir, destFileDir, flag):
         pictures = None
         if flag == 'condition':
             pictures = self.select_ejv_condition_Data()
         else:
             pictures = self.select_ejv_Data()
-            picCount = len(pictures)
-            picCount += 1
-        arrowdir = os.path.join(srcDir, "DAY")
+        arrowdir = os.path.join(dirFileDir, "DAY")
         pics_unfinished = []
         for pic in pictures:
             exist_flag = 1
             pic_name_strs = pic.getDayName()
             back_picname = os.path.splitext(pic_name_strs)[0]
-            destFile = destDir + "\\" + back_picname.lower() + ".dat"
+            destFile = destFileDir + "\\" + back_picname.lower() + ".dat"
 
-            if os.path.isdir(srcDir):
+            if os.path.isdir(dirFileDir):
                 dayPicPath = ''
                 nightPicPath = ''
                 # day and nigth illust
                 if  os.path.isfile(destFile) == False:
-                    dayPicPath = os.path.join(srcDir, "DAY", back_picname + ".jpg")
-                    nightPicPath = os.path.join(srcDir, "NIGHT", back_picname + ".jpg")
-                    if os.path.exists(dayPicPath) == False:
-                        self.ejvLogger.write("warn,ejv,day picture not exist," + back_picname + ".jpg\n") 
-                        pics_unfinished.append(pic)
-                        exist_flag = 0
-                        continue
-                    if os.path.exists(nightPicPath) == False:
-                        self.ejvLogger.write("warn,ejv,night picture not exist," + back_picname + ".jpg\n") 
-                        pics_unfinished.append(pic)
-                        exist_flag = 0
+	                dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
+	                nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
+	                if os.path.exists(dayPicPath) == False:
+	                    print 'day picture not exist!!! ' + dayPicPath 
+	                    pics_unfinished.append(pic)
+	                    exist_flag = 0
+	                    continue
+	                if os.path.exists(nightPicPath) == False:
+	                    print 'night picture not exist!!! ' + nightPicPath 
+	                    pics_unfinished.append(pic)
+	                    exist_flag = 0
 
 
                     # ARROW PIC BUILD
@@ -800,17 +830,17 @@ class GeneratorPicBinary(object):
                 source_arrow_names = []
                 for arrow in pic.getArrows():
                     arrow_file_name = back_picname + '_' + str(arrow)
-                    arrowFile = destDir + "\\" + arrow_file_name.lower() + ".dat"
+                    arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
                     if os.path.isfile(arrowFile) == False:
                         dest_arrow_names.append(arrowFile)
                         picPathFile = ''
                         for source_arrow in os.listdir(arrowdir):
                             if source_arrow.find(arrow_file_name) >= 0:
-                                picPathFile = srcDir + "\\DAY\\" + source_arrow
+                                picPathFile = dirFileDir + "\\DAY\\" + source_arrow
                                 source_arrow_names.append(picPathFile)
 
                         if not os.path.exists(picPathFile):
-                            self.ejvLogger.write("warn,ejv arrow,arrow picture not exist," + source_arrow + "\n")
+                            print "arrow picture not exist!!! " + picPathFile 
                             pics_unfinished.append(pic)
                             exist_flag = 0
                             break
@@ -829,7 +859,6 @@ class GeneratorPicBinary(object):
                     nightFis.close()
                     b_fos.write(b_resultBuffer)
                     b_fos.close()
-                    self.ejvLogger.write("success,ejv," + back_picname + ".jpg\n") 
 
                     for dest_arrow_name, source_arrow_name in zip(dest_arrow_names,source_arrow_names):
                         arrowFis = open(source_arrow_name, 'rb')
@@ -840,52 +869,46 @@ class GeneratorPicBinary(object):
                         arrowFis.close()
                         a_fos.write(a_resultBuffer)
                         a_fos.close()
-                        self.ejvLogger.write("success,ejv arrow," + source_arrow_name + "\n") 
         return pics_unfinished
 
-    def makeBIRDJunctionResultTable(self, srcDir, destDir, pics):
-        self.birdLogger.write("info,total count should be %d\n" % len(pics))
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        os.mkdir(destDir)
-            
-        arrowdir = os.path.join(srcDir, "DAY")
+    def makeBIRDJunctionResultTable(self, dirFileDir, destFileDir, pics):
+        arrowdir = os.path.join(dirFileDir, "DAY")
         for pic in pics:
             pic_name_strs = pic.getDayName()
             back_picname = os.path.splitext(pic_name_strs)[0]
-            destFile = destDir + "\\" + back_picname.lower() + ".dat"
+            destFile = destFileDir + "\\" + back_picname.lower() + ".dat"
             exist_flag = 1
-            if os.path.isdir(srcDir):
+            if os.path.isdir(dirFileDir):
                 dayPicPath = ''
                 nightPicPath = ''
                 # day and nigth illust
                 if  os.path.isfile(destFile) == False:
-                    dayPicPath = os.path.join(srcDir, "DAY", back_picname + ".jpg")
-                    nightPicPath = os.path.join(srcDir, "NIGHT", back_picname + ".jpg")
+                    dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
+                    nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
                     if os.path.exists(dayPicPath) == False:
-                        self.birdLogger.write("error,bird day picture not exist," + back_picname + ".jpg\n")
+                        print 'bird day picture not exist!!! ' + dayPicPath
                         exist_flag = 0
                         continue
-                    if os.path.exists(nightPicPath) == False:
-                        self.birdLogger.write("error,bird night picture not exist," + back_picname + ".jpg\n")
-                        exist_flag = 0
-                        continue
+	                if os.path.exists(nightPicPath) == False:
+	                    print 'bird night picture not exist!!! ' + nightPicPath
+	                    exist_flag = 0
+	                    continue
                     # ARROW PIC BUILD
                 dest_arrow_names = []
                 source_arrow_names = []
                 for arrow in pic.getArrows():
                     arrow_file_name = back_picname + '_' + str(arrow)
-                    arrowFile = destDir + "\\" + arrow_file_name.lower() + ".dat"
+                    arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
                     if os.path.isfile(arrowFile) == False:
                         dest_arrow_names.append(arrowFile)
                         picPathFile = ''
                         for source_arrow in os.listdir(arrowdir):
                             if source_arrow.find(arrow_file_name) >= 0:
-                                picPathFile = srcDir + "\\DAY\\" + source_arrow
+                                picPathFile = dirFileDir + "\\DAY\\" + source_arrow
                                 source_arrow_names.append(picPathFile)
 
                         if not os.path.exists(picPathFile):
-                            self.birdLogger.write("error,bird arrow not exist," + source_arrow + "\n") 
+                            print 'bird arrow not exist!!! ' + picPathFile 
                             exist_flag = 0
                             break
                 if exist_flag > 0:
@@ -903,7 +926,6 @@ class GeneratorPicBinary(object):
                     nightFis.close()
                     b_fos.write(b_resultBuffer)
                     b_fos.close()
-                    self.birdLogger.write("success,ejv bird," + back_picname + ".jpg\n") 
 
                     for dest_arrow_name, source_arrow_name in zip(dest_arrow_names, source_arrow_names):
                         arrowFis = open(source_arrow_name, 'rb')
@@ -914,12 +936,14 @@ class GeneratorPicBinary(object):
                         arrowFis.close()
                         a_fos.write(a_resultBuffer)
                         a_fos.close()
-                        self.birdLogger.write("success,ejv bird arrow," + source_arrow + "\n") 
+                else:
+                    print pic.getDayName()
         return 0
 
 if __name__ == '__main__':
     test = GeneratorPicBinary()
-    test.makeGJunctionResultTable("C:\\My\\20150409_mea_pic\\2DGJ_2015Q1_MEA_OUTPUT_resized\\2DGJ_2015Q1_MEA\\MEA", "C:\\My\\20150409_mea_pic\\2DGJ_2015Q1_MEA_OUTPUT_DAT")
-    pics = test.makeEJunctionResultTable("C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_resized\\2DJ_2015Q1_ASIA\\DRIVER_VIEW\\LANDSCAPE\\ASPECT_RATIO_4x3", "C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_DAT", '')
-    test.makeBIRDJunctionResultTable("C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_resized\\2DJ_2015Q1_ASIA\\BIRD_VIEW\\LANDSCAPE\\ASPECT_RATIO_4x3", "C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_DAT_bird", pics)
+    test.makeGJunctionResultTable("E:\\orgdata\\EJV14Q1\\APC_jpg\\GJV\\APC", "E:\\orgdata\\EJV14Q1\\SGP_MSL")
+    pics = test.makeEJunctionResultTable("E:\\orgdata\\EJV14Q1\\ejv_driver_jpg_sgp_msl", "E:\\orgdata\\EJV14Q1\\SGP_MSL", '')
+    print len(pics)
+    test.makeBIRDJunctionResultTable('E:\\orgdata\\EJV14Q1\\ejv_bird_jpg_sgp_msl', "E:\\orgdata\\EJV14Q1\\SGP_MSL", pics)
     pass

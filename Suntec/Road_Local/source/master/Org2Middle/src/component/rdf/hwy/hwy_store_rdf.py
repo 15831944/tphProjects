@@ -20,8 +20,10 @@ class HwyStoreRDF(HwyStore):
     def _Do(self):
         self.CreateTable2('highway_store_info')
         self.CreateTable2('highway_store_picture')
+        self.CreateTable2('highway_store_name')
         self._make_store_info()
         self._make_store_picture()
+        self._make_store_name()
 
     def _make_store_info(self):
         sqlcmd = """
@@ -31,7 +33,8 @@ class HwyStoreRDF(HwyStore):
                                        goldenweek, newyear, yearend,
                                        bonfestival, sunday, saturday,
                                        friday, thursday, wednesday,
-                                       tuesday, monday, seq_nm)
+                                       tuesday, monday, seq_nm
+                                       )
         (
         SELECT distinct ic_no, 0 as bis_time_flag, 0 as bis_time_num,
                store_chain_id as store_kind, 0 as open_hour, 0 as open_min,
@@ -62,6 +65,40 @@ class HwyStoreRDF(HwyStore):
           WHERE store_cat_id IS NOT NULL
           ORDER BY store_cat_id
         );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _make_store_name(self):
+        sqlcmd = """
+        INSERT INTO highway_store_name(store_kind, name, language_code)
+        (
+        SELECT a.store_kind, name, language_code
+          FROM (
+            SELECT DISTINCT store_kind
+             FROM highway_store_info
+          ) as a
+          INNER JOIN hwy_chain_name as b
+          ON a.store_kind = b.store_chain_id
+          ORDER BY a.store_kind, b.gid
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # ## UPDATE STORE NAME
+        sqlcmd = """
+        UPDATE highway_store_info SET store_name = b.store_name
+           FROM (
+            SELECT store_kind,
+                   array_to_string(array_agg(name), ',') as store_name
+              FROM (
+                SELECT store_kind, name
+                  FROM highway_store_name
+                  ORDER BY store_kind, gid
+              ) as a
+              GROUP BY store_kind
+           ) AS b
+           where highway_store_info.store_kind = b.store_kind
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

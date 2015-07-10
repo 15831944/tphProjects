@@ -1611,7 +1611,8 @@ create table highway_road_info
   new             smallint not null,
   un_open         smallint not null,
   name            character varying(4096),
-  up_down         integer not null
+  up_down         integer not null,
+  road_number     character varying  -- Just for Service DB
 );
 
 ------------------------------------------------------------------------
@@ -1704,7 +1705,8 @@ create table highway_store_info
   Wednesday       smallint not null,
   Tuesday         smallint not null,
   Monday          smallint not null,
-  seq_nm          smallint not null
+  seq_nm          smallint not null,
+  store_name      character varying
 );
 
 ------------------------------------------------------------------------
@@ -1712,6 +1714,15 @@ CREATE TABLE highway_store_picture
 (
   store_kind      integer NOT NULL primary key,
   picture_name    character varying(60) NOT NULL
+);
+
+------------------------------------------------------------------------
+CREATE TABLE highway_store_name
+(
+  gid              serial not null primary key,
+  store_kind       integer not null,
+  name             character varying(100),
+  language_code    character(3)
 );
 
 -----------------------------------------------------------------------------
@@ -2187,6 +2198,8 @@ CREATE TABLE mid_temp_hwy_main_path_attr
   length         double precision NOT NULL,
   road_name      character varying,
   road_number    character varying,
+  sort_name      character varying,
+  sort_number    character varying,
   fazm           integer,
   tazm           integer,
   side_path_flg  integer NOT NULL DEFAULT 0,
@@ -2201,6 +2214,8 @@ CREATE TABLE mid_temp_hwy_main_cut_path_attr
   length         double precision NOT NULL,
   road_name      character varying,
   road_number    character varying,
+  sort_name      character varying,
+  sort_number    character varying,
   start_idx      integer NOT NULL,
   end_idx        integer NOT NULL
 );
@@ -2212,7 +2227,9 @@ CREATE TABLE road_code_info
   road_code     serial NOT NULL primary key,
   road_name     character varying,
   road_number   character varying,
-  path_id       integer
+  path_id       integer,
+  sort_name     character varying,
+  sort_number   character varying
 );
 
 ------------------------------------------------------------------------
@@ -2364,7 +2381,8 @@ CREATE TABLE mid_temp_sapa_store_info
   poi_id             bigint not null,
   child_poi_id       bigint not null,
   chain_id           bigint ,
-  cat_id             bigint not null
+  cat_id             bigint not null,
+  chain_name         character varying
 );
 
 ------------------------------------------------------------------------
@@ -2385,6 +2403,16 @@ CREATE TABLE hwy_store
   updown_c          INTEGER NOT NULL,
   store_cat_id      INTEGER NOT NULL,
   store_chain_id    INTEGER
+);
+
+------------------------------------------------------------------------
+-- chain name or store name
+CREATE TABLE hwy_chain_name
+(
+  gid              serial not null primary key,
+  store_chain_id   bigint not null,
+  name             character varying(100),
+  language_code    character(3)
 );
 
 ------------------------------------------------------------------------

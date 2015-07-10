@@ -489,7 +489,7 @@ BEGIN
 			WHEN frc in (0,1)  THEN 11
 	    	WHEN frc = 2  THEN 7
 	    	WHEN frc = 3  THEN 6
-	    	WHEN frc in 4  THEN 5
+	    	WHEN frc = 4  THEN 5
 	    	ELSE 4
 	    END; 
 END;
@@ -944,5 +944,585 @@ BEGIN
     
     END LOOP;
     return 1;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- calculate can pass link count
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_get_canPassLink_count( linkid bigint, nodeid bigint ) 
+  RETURNS  bigint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rowCnt bigint;
+BEGIN
+        rowCnt := 0;
+	IF (linkid IS NULL) or (nodeid IS NULL) then
+	    return 0;
+	END IF;
+
+        select count(*) into rowCnt
+        from (
+            select link_id
+            from link_tbl
+            where (nodeid = s_node and one_way_code in (1, 2)
+                  or nodeid = e_node and one_way_code in (1, 3)) --out from node
+                  and (link_id <> linkid) --out link do not in link
+        ) as d;
+
+    return rowCnt;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- when select link_type=4 from temp_natural_guidance_tbl once update execute
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_one_sub_update_temp_natural_guidance_tbl( in_gid int, in_link bigint, in_node bigint, in_linkArray bigint[], in_flag boolean ) 
+  RETURNS  boolean
+  LANGUAGE plpgsql
+AS $$
+BEGIN
+	IF (in_gid IS NULL) or (in_link IS NULL) or (in_node IS NULL) or (in_linkArray IS NULL) or (in_flag IS NULL) then
+		return false;
+	END IF;
+
+        IF true = in_flag then
+            insert into temp_natural_guidance_tbl (
+                in_link_id, 
+                in_s_node, 
+                in_e_node, 
+                in_link_type,
+                in_one_way_code,
+                in_node_id,
+                out_node_id,
+                out_link_id,
+                out_s_node,
+                out_e_node,
+                out_link_type,
+                out_one_way_code,
+                poi_nme,
+                poi_prop,
+                link_array,
+                node_array,
+                the_geom
+                ) 
+            select 
+                a.link_id as in_link_id,
+                a.s_node as in_s_node,
+                a.e_node as in_e_node,
+                a.link_type as in_link_type,
+                a.one_way_code as in_one_way_code,
+                in_node as in_node_id,
+                b.out_node_id,
+                b.out_link_id,
+                b.out_s_node,
+                b.out_e_node,
+                b.out_link_type,
+                b.out_one_way_code,
+                b.poi_nme,
+                b.poi_prop,
+                array_prepend(in_link, b.link_array) as link_array,
+                array_prepend(in_node, b.node_array) as node_array,
+                b.the_geom
+            from (
+                select *
+                from link_tbl
+                where link_id = ANY(in_linkArray)
+            ) as a,
+            (
+                select *
+                from temp_natural_guidance_tbl
+                where gid = in_gid and
+                      NOT (in_node = ANY(node_array))
+            ) as b;
+        ELSE
+            insert into temp_natural_guidance_tbl (
+                in_link_id, 
+                in_s_node, 
+                in_e_node, 
+                in_link_type,
+                in_one_way_code,
+                in_node_id,
+                out_node_id,
+                out_link_id,
+                out_s_node,
+                out_e_node,
+                out_link_type,
+                out_one_way_code,
+                poi_nme,
+                poi_prop,
+                link_array,
+                node_array,
+                the_geom
+                ) 
+            select
+                b.in_link_id,
+                b.in_s_node,
+                b.in_e_node,
+                b.in_link_type,
+                b.in_one_way_code,
+                b.in_node_id,
+                in_node as out_node_id,
+                a.link_id as out_link_id,
+                a.s_node as out_s_node,
+                a.e_node as out_e_node,
+                a.link_type as out_link_type,
+                a.one_way_code as out_one_way_code,
+                b.poi_nme,
+                b.poi_prop,
+                array_append(b.link_array, in_link) as link_array,
+                array_append(b.node_array, in_node) as node_array,
+                b.the_geom
+            from (
+                select *
+                from link_tbl
+                where link_id = ANY(in_linkArray)
+            ) as a, 
+            (
+                select *
+                from temp_natural_guidance_tbl
+                where gid = in_gid and
+                      NOT (in_node = ANY(node_array))
+            ) as b;
+        END IF;
+
+        delete from temp_natural_guidance_tbl where gid = in_gid;
+        --delete from temp_natural_guidance_tbl where in_link_id = out_link_id;
+        
+    return true;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- calculate can pass link list
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_get_canPassLink_list( in_link_id bigint, nodeid bigint, out_link_id bigint ) 
+  RETURNS  bigint[]
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+        rec_idx bigint;
+        link_array bigint[];
+BEGIN
+        link_array = NULL;
+        rec_idx := 1;
+	IF nodeid IS NULL then
+	    return link_array;
+	END IF;
+        
+        IF in_link_id IS NOT NULL THEN
+            FOR rec in (
+            select *
+            from (
+                    select *
+                    from link_tbl
+                    where
+                        (nodeid = s_node and one_way_code in (1, 3) or
+                         nodeid = e_node and one_way_code in (1, 2)) and 
+                        (link_id <> in_link_id)
+                ) as d
+            )  
+            LOOP
+                link_array[rec_idx] := rec.link_id;
+                rec_idx := rec_idx + 1;
+            END LOOP;
+        ELSEIF out_link_id IS NOT NULL THEN
+            FOR rec in (
+            select *
+            from (
+                    select *
+                    from link_tbl
+                    where 
+                        (nodeid = s_node and one_way_code in (1, 2) or
+                         nodeid = e_node and one_way_code in (1, 3)) and
+                        (link_id <> out_link_id)
+                ) as d
+            )  
+            LOOP
+                link_array[rec_idx] := rec.link_id;
+                rec_idx := rec_idx + 1;
+            END LOOP;
+        END IF;
+
+    return link_array;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- when select link_type=4 from temp_natural_guidance_tbl once update interface
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_one_update_temp_natural_guidance_tbl( in_flag boolean ) 
+  RETURNS  boolean
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+BEGIN 
+        IF in_flag IS NULL then
+		return false;
+	END IF;
+	
+        FOR rec in (
+            select *
+            from temp_natural_guidance_tbl
+            where in_link_type = 4 or
+                  out_link_type = 4
+        )  
+        LOOP
+            
+            IF 4 = rec.in_link_type AND true = in_flag THEN
+                IF rec.in_node_id = rec.in_s_node THEN
+                    perform mmi_one_sub_update_temp_natural_guidance_tbl(rec.gid, rec.in_link_id, rec.in_e_node, mmi_get_canPassLink_list(rec.in_link_id, rec.in_e_node, NULL), in_flag);
+                ELSEIF rec.in_node_id = rec.in_e_node THEN
+                    perform mmi_one_sub_update_temp_natural_guidance_tbl(rec.gid, rec.in_link_id, rec.in_s_node, mmi_get_canPassLink_list(rec.in_link_id, rec.in_s_node, NULL), in_flag);
+                END IF;
+            END IF;
+
+            IF 4 = rec.out_link_type AND false = in_flag THEN
+                IF rec.out_node_id = rec.out_s_node THEN
+                    perform mmi_one_sub_update_temp_natural_guidance_tbl(rec.gid, rec.out_link_id, rec.out_e_node, mmi_get_canPassLink_list(NULL, rec.out_e_node, rec.out_link_id), in_flag);
+                ELSEIF rec.out_node_id = rec.out_e_node THEN
+                    perform mmi_one_sub_update_temp_natural_guidance_tbl(rec.gid, rec.out_link_id, rec.out_s_node, mmi_get_canPassLink_list(NULL, rec.out_s_node, rec.out_link_id), in_flag);
+                END IF;
+            END IF;
+            
+        END LOOP;
+
+    return true;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- Get link count from temp_natural_guidance_tbl where link_type=4
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_get_inner_link_count(  in_flag boolean ) 
+  RETURNS  bigint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rowCount bigint;
+BEGIN 
+        rowCount := 0;
+        IF in_flag IS NULL THEN
+            return rowCount;
+        END IF;
+
+        IF true = in_flag THEN
+            select count(*) into rowCount
+            from temp_natural_guidance_tbl
+            where in_link_type = 4;
+        ELSEIF false = in_flag THEN
+            select count(*) into rowCount
+            from temp_natural_guidance_tbl
+            where out_link_type = 4;
+
+            --raise INFO 'rowCount = %', rowCount;
+        END IF;
+
+    return rowCount;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- when select link_type=4 from temp_natural_guidance_tbl once update interface
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_update_temp_natural_guidance_tbl( ) 
+  RETURNS  boolean
+  LANGUAGE plpgsql
+AS $$
+BEGIN 
+        --Initialization temp_natural_guidance_tbl
+        delete from temp_natural_guidance_tbl;
+        insert into temp_natural_guidance_tbl (
+            in_link_id, 
+            in_s_node, 
+            in_e_node, 
+            in_link_type,
+            in_one_way_code,
+            in_node_id,
+            out_node_id,
+            out_link_id,
+            out_s_node,
+            out_e_node,
+            out_link_type,
+            out_one_way_code,
+            poi_nme,
+            poi_prop,
+            node_array,
+            the_geom
+            )
+        select 
+            a.in_link_id,
+            a.in_s_node,
+            a.in_e_node,
+            a.in_link_type,
+            a.in_one_way_code,
+            a.node_id as in_node_id,
+            a.node_id as out_node_id,
+            a.out_link_id,
+            a.out_s_node,
+            a.out_e_node,
+            a.out_link_type,
+            a.out_one_way_code,
+            a.poi_nme,
+            a.poi_prop,
+            array_append(a.node_array, a.node_id) as node_array,
+            a.the_geom
+        from 
+            temp_natural_guidance_in_out_link_rel a;
+
+        --in link calc route
+        WHILE mmi_get_inner_link_count(true) > 0 LOOP
+            PERFORM mmi_one_update_temp_natural_guidance_tbl(true);
+        END LOOP;
+
+        --out link calc route
+        WHILE mmi_get_inner_link_count(false) > 0 LOOP
+            PERFORM mmi_one_update_temp_natural_guidance_tbl(false);
+        END LOOP;
+
+    return true;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- delete array element
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_array_delete( array_rec bigint[], id bigint ) 
+  RETURNS  bigint[]
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        recIdx bigint;
+        array_rec_t bigint[];
+        rec_count bigint;
+        rec_count_idx bigint;
+BEGIN
+        array_rec_t = NULL;
+        recIdx := 1;
+        
+	IF (array_rec IS NULL) or (id IS NULL) then
+		return array_rec_t;
+	END IF;
+
+	rec_count := array_upper(array_rec, 1);
+        FOR rec_count_idx in 1..rec_count
+        LOOP
+            IF array_rec[rec_count_idx] <> id THEN
+                array_rec_t[recIdx] := array_rec[rec_count_idx];
+                recIdx := recIdx + 1;
+            END IF;
+        END LOOP;
+        
+    return array_rec_t;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- Gets the node list by node id
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_get_inner_node_by_node_id( nodeid bigint ) 
+  RETURNS  bigint[]
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+        recIdx bigint;
+        node_array bigint[];
+        node_idx bigint;
+        node_array_t bigint[];
+        node_idx_t bigint;
+BEGIN
+        recIdx := 1;
+        node_array := NULL;
+        node_idx := 1;
+        node_array_t := NULL;
+        node_idx_t := 1;
+	IF nodeid IS NULL then
+	    return node_array;
+	END IF;
+	
+        node_array[node_idx] := nodeid;
+        node_idx := node_idx + 1;
+        node_array_t[node_idx_t] := nodeid;
+        node_idx_t := node_idx_t + 1;
+        WHILE node_array_t IS NOT NULL LOOP
+            
+            FOR rec in (
+                select *
+                from link_tbl
+                where 
+                    node_array_t[1] in (s_node, e_node) and 
+                    link_type = 4
+            )
+            LOOP
+                IF NOT (rec.s_node = ANY(node_array)) THEN
+                    node_array_t[node_idx_t] := rec.s_node;
+                    node_idx_t := node_idx_t + 1;
+                    
+                    node_array[node_idx] := rec.s_node;
+                    node_idx := node_idx + 1;
+                END IF;
+
+                IF NOT (rec.e_node = ANY(node_array)) THEN
+                    node_array_t[node_idx_t] := rec.e_node;
+                    node_idx_t := node_idx_t + 1;
+                    
+                    node_array[node_idx] := rec.e_node;
+                    node_idx := node_idx + 1;
+                END IF;
+
+                
+            END LOOP;
+
+            node_array_t := mmi_array_delete( node_array_t, node_array_t[1] );
+            node_idx_t := node_idx_t - 1;
+        END LOOP;
+
+    return node_array;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- Get preposition_code
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_get_preposition_code( in_gid bigint ) 
+  RETURNS  smallint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+        preposition_code smallint;
+        rec_count bigint;
+BEGIN
+        preposition_code := 3; --default value(at)
+        rec_count := 0;
+	
+	IF in_gid IS NULL THEN
+	    return preposition_code;
+	END IF;
+
+	select a.in_link_id, a.the_geom as poi_geom, b.the_geom as node_geom into rec
+	from temp_natural_guidance_tbl a
+	inner join node_tbl b
+	    on a.in_node_id = b.node_id
+	where a.gid = in_gid;
+
+	IF rec IS NOT NULL THEN
+	    IF ST_Distance_Sphere(rec.poi_geom, rec.node_geom) < 10.0 THEN
+	        --poi point and guide point within 10m
+	        preposition_code := 3; --at
+	    ELSE
+	        --poi point and guide point between 10m and 50m
+               select count(*) into rec_count
+               from temp_natural_guidance_poi_link_tbl
+               where poi_lid = rec.in_link_id;
+
+               IF rec_count <> 0 THEN
+                   preposition_code = 1; --after
+               ELSE
+                   preposition_code = 5; --before
+               END IF;
+	    END IF;
+	END IF;
+        
+    return preposition_code;
+END;
+$$;
+
+-------------------------------------------------------------------------------------------------------------
+-- Get feat_position
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mmi_get_feat_position( in_gid int ) 
+  RETURNS  smallint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+        link_array bigint[];
+        link_idx bigint;
+        rec_loop_idx bigint;
+        node_id bigint;
+        link_rec record;
+        route_array geometry[];
+        route_array_idx bigint;
+        route_geometry geometry;
+        poi_guide_geometry geometry;
+        poi_guide_rec record;
+        feat_position smallint;
+BEGIN
+        feat_position := 0;
+        select * into rec
+        from temp_natural_guidance_tbl
+        where gid = in_gid;
+
+        --raise INFO 'rec = %', rec;
+
+        IF rec.gid IS NOT NULL THEN
+            link_idx := 1;
+            link_array[link_idx] := rec.in_link_id;
+            link_idx := link_idx + 1;
+
+            IF rec.link_array IS NOT NULL THEN
+                FOR rec_loop_idx in 1..array_upper(rec.link_array, 1) LOOP
+                    link_array[link_idx] := rec.link_array[rec_loop_idx];
+                    link_idx := link_idx + 1;
+                END LOOP;
+            END IF;
+
+            link_array[link_idx] := rec.out_link_id;
+            link_idx := link_idx + 1;
+
+            IF rec.in_node_id = rec.in_s_node THEN
+                node_id := rec.in_e_node;
+            ELSE
+                node_id := rec.in_s_node;
+            END IF;
+
+            route_array_idx := 1;
+            FOR rec_loop_idx in 1..array_upper(link_array, 1) LOOP
+                select * into link_rec
+                from link_tbl
+                where link_id = link_array[rec_loop_idx];
+
+                IF link_rec.link_id IS NOT NULL THEN
+                    IF node_id = link_rec.s_node THEN
+                        route_array[route_array_idx] := link_rec.the_geom;
+                        node_id = link_rec.e_node;
+                    ELSEIF node_id = link_rec.e_node THEN
+                        route_array[route_array_idx] := ST_Reverse(link_rec.the_geom);
+                        node_id = link_rec.s_node;
+                    END IF;
+                    route_array_idx := route_array_idx + 1;
+                ELSE
+                    return 0;
+                END IF;
+            END LOOP;
+            
+            route_geometry := ST_LineMerge(ST_Collect(route_array));
+
+            select a.the_geom as poi_geom, b.the_geom as node_geom into poi_guide_rec
+            from temp_natural_guidance_tbl a
+            inner join node_tbl b
+                on a.in_node_id = b.node_id
+            where a.gid = in_gid;
+
+            IF poi_guide_rec IS NOT NULL THEN
+                poi_guide_geometry := ST_MakeLine(poi_guide_rec.node_geom, poi_guide_rec.poi_geom);
+            END IF;
+        END IF;
+        
+        IF route_geometry IS NOT NULL and
+           poi_guide_geometry IS NOT NULL THEN
+           feat_position := ST_LineCrossingDirection(route_geometry, poi_guide_geometry);
+        END IF;
+
+        RETURN CASE
+            WHEN feat_position < 0 THEN 1 --left
+            WHEN feat_position > 0 THEN 2 --right
+            ELSE 3 --middle
+        END;
 END;
 $$;

@@ -25,25 +25,13 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         self.CreateIndex2('mid_temp_sapa_store_info')
         self.CreateIndex2('mid_temp_sapa_link')
         self.CreateIndex2('mid_temp_hwy_sapa_name')
+        self.CreateTable2('hwy_chain_name')
         return 0
 
     def _DoCreateFunction(self):
-
         return 0
 
     def _DoCreateIndex(self):
-
-        return 0
-
-    def _Do(self):
-        from component.default.dictionary import comp_dictionary
-        dictionary = comp_dictionary()
-        dictionary.set_language_code()
-
-        # 道路名称
-        self._make_hwy_sapa_name()
-        self._make_hwy_sapa_link()
-        self._make_hwy_sapa_store_info()
         return 0
 
     def _make_hwy_sapa_link(self):
@@ -77,6 +65,12 @@ class HwySapaInfoTa(HwySapaInfoRDF):
 #         self.pg.execute2(sqlcmd)
 #         self.pg.commit2()
 #         self.log.info('End make mid_temp_hwy_sapa_info')
+        return 0
+
+    def _group_poi_trans_name(self):
+        return 0
+
+    def _make_hwy_store_name(self):
         return 0
 
     def _make_hwy_sapa_name(self):

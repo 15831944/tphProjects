@@ -26,7 +26,7 @@ class rdb_guideinfo_building_structure(ItemBase):
       
         
     def _makeGuidenceNode(self):
-        rdb_log.log('Middle2RDB', 'start to make guidence_node.', 'info')
+        rdb_log.log('Building_Structure', 'start to make guidence_node.', 'info')
         self.CreateTable2('temp_guidence_node')
         self.CreateFunction2('rdb_find_divided_node')
         self.pg.callproc('rdb_find_divided_node')
@@ -35,7 +35,7 @@ class rdb_guideinfo_building_structure(ItemBase):
         
     
     def _associateNodeLogmark(self):
-        rdb_log.log('Middle2RDB', 'create temp_asso_node_logmark table.', 'info')
+        rdb_log.log('Building_Structure', 'create temp_asso_node_logmark table.', 'info')
         #self.CreateTable2('temp_asso_node_logmark')
         sqlcmd = """
         drop table if exists temp_asso_node_logmark; 
@@ -67,6 +67,7 @@ class rdb_guideinfo_building_structure(ItemBase):
         self.CreateIndex2('temp_asso_node_logmark_node_id_idx') 
     
     def _makeBuildingStructure(self):
+        rdb_log.log('Building_Structure', 'create rdb_guideinfo_building_structure table.', 'info')
         self.CreateTable2('rdb_guideinfo_building_structure')
         sqlcmd = """
             INSERT INTO rdb_guideinfo_building_structure

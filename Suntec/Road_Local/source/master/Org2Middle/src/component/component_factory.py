@@ -789,6 +789,9 @@ class comp_factory_mmi(comp_factory):
             from component.mmi import guideinfo_building_mmi
             return guideinfo_building_mmi.comp_guideinfo_building_mmi()
             pass
+        if comp_name == 'Guideinfo_NaturalGuidence':
+            from component.mmi import guideinfo_natural_guidence_mmi
+            return guideinfo_natural_guidence_mmi.comp_natural_guidence()
         return comp_factory.CreateOneComponent(self, comp_name)
 
 

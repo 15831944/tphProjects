@@ -1,4 +1,3 @@
-﻿锘�
 CREATE TABLE rdb_cond_speed
 (
   gid serial NOT NULL PRIMARY KEY, 
@@ -1702,7 +1701,8 @@ create table rdb_highway_road_info
   name            character varying(1024),
   up_down         smallint not null,
   tile_id         integer not null,
-  tile_index      smallint not null
+  tile_index      smallint not null,
+  road_number     character varying  -- Just for Service DB
 );
 
 ------------------------------------------------------------------------
@@ -1795,7 +1795,8 @@ CREATE TABLE rdb_highway_store_info
   Monday          smallint not null,
   seq_nm          smallint not null,
   tile_id         integer not null,
-  tile_index      smallint not null
+  tile_index      smallint not null,
+  store_name      character varying
 );
 
 -----------------------------------------------------------------------------
@@ -1803,6 +1804,15 @@ CREATE TABLE rdb_highway_store_picture
 (
   store_kind      integer NOT NULL primary key,
   picture_name    character varying(60) NOT NULL
+);
+
+-----------------------------------------------------------------------------
+CREATE TABLE rdb_highway_store_name
+(
+  gid              serial not null primary key,
+  store_kind       integer not null,
+  name             character varying(100),
+  language_code    character(3)
 );
 
 -----------------------------------------------------------------------------

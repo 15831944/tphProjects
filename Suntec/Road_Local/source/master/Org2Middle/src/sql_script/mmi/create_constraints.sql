@@ -119,4 +119,59 @@ CREATE INDEX temp_poi_name_poi_id_idx
 CREATE INDEX temp_poi_logmark_poi_id_idx
   ON temp_poi_logmark
   USING btree
-  (uid);
+  (poi_id);
+  
+   
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_poi_link_tbl_poi_lid_idx
+  ON temp_natural_guidance_poi_link_tbl
+  USING btree
+  (poi_lid);
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_poi_link_tbl_the_geom_idx
+  ON temp_natural_guidance_poi_link_tbl
+  USING gist
+  (the_geom); 
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_poi_link_node_tbl_poi_lid_idx
+  ON temp_natural_guidance_poi_link_node_tbl
+  USING btree
+  (poi_lid);
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_poi_link_node_tbl_node_id_idx
+  ON temp_natural_guidance_poi_link_node_tbl
+  USING btree
+  (node_id);
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_node_tbl_node_id_idx
+  ON temp_natural_guidance_node_tbl
+  USING btree
+  (node_id);
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_in_out_link_rel_in_link_id_idx
+  ON temp_natural_guidance_in_out_link_rel
+  USING btree
+  (in_link_id);
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_in_out_link_rel_out_link_id_idx
+  ON temp_natural_guidance_in_out_link_rel
+  USING btree
+  (out_link_id);
+
+-----------------------------------------------------   
+CREATE INDEX temp_natural_guidance_tbl_geom_idx
+  ON temp_natural_guidance_tbl
+  USING gist
+  (the_geom);
+
+-----------------------------------------------------   
+CREATE INDEX mid_temp_natural_guidence_name_gid_idx
+  ON mid_temp_natural_guidence_name
+  USING btree
+  (gid);

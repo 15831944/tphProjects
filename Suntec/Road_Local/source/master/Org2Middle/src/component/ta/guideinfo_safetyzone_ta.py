@@ -289,11 +289,20 @@ class comp_guideinfo_safety_zone_ta(comp_base):
                 (        
                     select a.linkid,min(b.speed) from safety_zone_tbl a
                     inner join org_sr b on b.id::bigint=a.linkid
-                    where a.speedlimit=0 and a.safety_type=2 and b.verified=1 and b.speedtyp='1'
+                    where a.speedlimit=0 and a.safety_type=2 and b.verified=1 and b.speedtyp='1' 
+                    and (a.direction=b.valdir or b.valdir=1)
                     group by a.linkid
                 ) b
                 where a.linkid=b.linkid and a.safety_type=2
                 '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd='''
+                delete from safety_zone_tbl
+                where speedlimit=0 and safety_type=1
+               '''
         
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
