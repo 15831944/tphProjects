@@ -56,9 +56,9 @@ class GeneratorPicBinary_Sensis(object):
             tempFS.close()
            
         outFS = open(destFile, 'wb')
-        print "    >>>>>>>>  " + destFile
         outFS.write(resultBuffer)
         outFS.close()
+        print "    >>>>>>>>  " + destFile
            
         # 1. compare left part
         # 2. compare right part

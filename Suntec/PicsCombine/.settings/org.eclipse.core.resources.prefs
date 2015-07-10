@@ -1,6 +1,6 @@
 eclipse.preferences.version=1
-encoding/CombinePics_Convert.py=cp936
-encoding/CombinePics_Here.py=utf-8
-encoding/CombinePics_MMI.py=cp936
-encoding/CombinePics_Sensis.py=utf-8
-encoding/DatToJpg.py=utf-8
+encoding/Illust_Convert.py=cp936
+encoding/Illust_DatToJpg.py=utf-8
+encoding/Illust_Here.py=utf-8
+encoding/Illust_MMI.py=cp936
+encoding/Illust_Sensis.py=utf-8
