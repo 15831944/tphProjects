@@ -2120,7 +2120,13 @@ class rdb_traffic_region():
         CREATE INDEX rdb_region_layer%X_link_mapping_link_dir_14_idx
           ON rdb_region_layer%X_link_mapping
           USING btree
-          (link_dir_14);
+          (link_dir_14);                        
+        """
+        sqlcmd = sqlcmd_X.replace('%X',X)
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd_X = """
         DROP INDEX IF EXISTS rdb_region_layer%X_link_mapping_link_id_14_idx;
         CREATE INDEX rdb_region_layer%X_link_mapping_link_id_14_idx
           ON rdb_region_layer%X_link_mapping
@@ -2128,8 +2134,12 @@ class rdb_traffic_region():
           (link_id_14);                         
         """
         sqlcmd = sqlcmd_X.replace('%X',X)
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
+        if rdb_common.getProjName().lower() == 'rdf' and \
+            rdb_common.getProjCountry().lower() == 'bra' and int(X) == 6:
+            rdb_log.log('REGION Traffic', 'not create rdb_region_layer%s_link_mapping_link_id_14_idx'%X, 'warning')
+        else:
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
 
         # create table for ID & geometry relationship between region link and layer14 link.
         sqlcmd = """

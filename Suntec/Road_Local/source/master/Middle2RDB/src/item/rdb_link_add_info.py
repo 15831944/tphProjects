@@ -39,12 +39,16 @@ class rdb_link_add_info(ItemBase):
                     SELECT distinct n.tile_link_id, n.tile_id, link_add_info2
                     FROM ( 
                           select a.link_id, rdb_cnv_link_add_info2(
-                                 erp, rodizio, b.linkid is not null, 0::smallint
+                                 erp, rodizio, b.linkid is not null, 0::smallint, c.link_id is not null
                              ) AS link_add_info2
                           from link_tbl a
                           left join safety_zone_tbl b
                           on a.link_id = b.linkid
-                          where erp != 0 or rodizio != 0 or b.linkid is not null
+                          left join safety_alert_tbl c
+                          on a.link_id = c.link_id
+                          where erp != 0 or rodizio != 0 
+                          or b.linkid is not null
+                          or c.link_id is not null
                     ) m
                    LEFT JOIN rdb_tile_link n
                    ON  n.old_link_id = m.link_id
@@ -89,8 +93,6 @@ class rdb_link_add_info(ItemBase):
                          select * from spotguide_tbl where type in (9,10)
                      ) as b
                      on a.link_id = b.inlinkid
-                     left join safety_zone_tbl c
-                     on a.link_id = c.linkid  
                      left join  rdb_tile_link d
                      on a.link_id = d.old_link_id 
                      left join (
@@ -112,8 +114,8 @@ class rdb_link_add_info(ItemBase):
                             or rail_cross <> 0
                             or (etc_only_flag <> 0 or b.gid is not null)
                             or paved = 0 or uturn = 1
-                            or ipd != 0 or urban != 0 or erp != 0 or rodizio != 0
-                            or c.linkid is not null)
+                            or ipd != 0 or urban != 0
+                            or display_class in (19,20))
                             or e.link_id is not null
                   ) AS A
                   LEFT JOIN rdb_link_add_info2 B
@@ -209,10 +211,29 @@ class rdb_link_add_info(ItemBase):
                   FROM link_tbl as a
                   left join (select * from spotguide_tbl where type in (9,10)) as b
                   on a.link_id = b.inlinkid
+                  left join (
+                        select distinct linkid from safety_zone_tbl 
+                  ) c
+                  on a.link_id = c.linkid
+                  left join (
+                        select distinct link_id from safety_alert_tbl 
+                  ) d
+                  on a.link_id = d.link_id
+                  left join (
+                        select distinct link_id from stopsign_tbl 
+                  ) e
+                  on a.link_id = e.link_id
                   where elevated <> 0 or tunnel <> 0 or structure <> 0 or rail_cross <> 0 or (etc_only_flag <> 0 or b.gid is not null)
                   or paved = 0 or uturn = 1 or ipd != 0 or urban != 0 or erp != 0 or rodizio != 0
+                  or display_class in (19,20)
+                  or c.linkid is not null or d.link_id is not null or e.link_id is not null
                 ) as src_num,
-                (SELECT count(link_id) FROM rdb_link_add_info
+                (SELECT count(link_id) FROM 
+                    (
+                        select link_id from rdb_link_add_info
+                        union
+                        select link_id from rdb_link_add_info2
+                    ) add_info
                 ) as desc_num;
             """
         
@@ -222,10 +243,10 @@ class rdb_link_add_info(ItemBase):
             src_num  = row[0]
             desc_num = row[1]
             if src_num != desc_num:
-                rdb_log.log(self.ItemName, 'Number of [elevated/tunnel/structure/rail_cross/etc_only_flag/paved/uturn/ipd/urban/erp/rodizio]: ' + str(src_num) + ','\
+                rdb_log.log(self.ItemName, 'Number of add info attributes: ' + str(src_num) + ','\
                                            'But Number of rdb_link_add_info: ' + str(desc_num) + '.', 'warning')
             else:
-                rdb_log.log(self.ItemName, 'Number of [elevated/tunnel/structure/rail_cross/etc_only_flag/paved/uturn/ipd/urban/erp/rodizio] and rdb_link_add_info: ' + str(src_num) + '.', 'info')
+                rdb_log.log(self.ItemName, 'Number of add info attributes and rdb_link_add_info: ' + str(src_num) + '.', 'info')
         else:
-            rdb_log.log(self.ItemName, "Can't find Number of [elevated/tunnel/structure/rail_cross/etc_only_flag/paved/uturn/ipd/urban/erp/rodizio]  or  rdb_link_add_info .", 'warning')
+            rdb_log.log(self.ItemName, "Can't find Number of add info attributes  or  rdb_link_add_info .", 'warning')
         return 0

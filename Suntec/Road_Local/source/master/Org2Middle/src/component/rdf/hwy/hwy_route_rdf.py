@@ -9,10 +9,10 @@ from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
 from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SIDE
 from component.rdf.hwy.hwy_def_rdf import LAST_SEQ_NUM
-from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_10KM
-from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_15KM
-from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_20KM
-from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_25KM
+from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_1000M
+from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_1500M
+from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_2000M
+from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_2500M
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_def_rdf import HWY_NAME_SPLIT
@@ -37,17 +37,18 @@ class HwyRouteRDF(component.component_base.comp_base):
     '''Path of main link
     '''
 
-    def __init__(self, data_mng):
+    def __init__(self, data_mng, ItemName='Highway_Route'):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Highway_Route')
+        component.component_base.comp_base.__init__(self, ItemName)
         self.data_mng = data_mng
         if self.data_mng:
             self.G = self.data_mng.get_graph()
         else:
             self.G = None
-        self.min_distance = ROUTE_DISTANCE_20KM
+        self.min_distance = ROUTE_DISTANCE_2000M
+        self.s_e_margin_dist = ROUTE_DISTANCE_1500M
 
     def _Do(self):
         if not self.data_mng:
@@ -265,6 +266,9 @@ class HwyRouteRDF(component.component_base.comp_base):
                 side_dict[(path_id, other_path_id)] = (path_id,
                                                        delete_flag)
                 path_node_list.append(path)
+                # 有一头的端点相同
+                if path[0] == other_path[0] or path[-1] == other_path[-1]:
+                    main_path[other_path_id] = other_path
                 continue
             # ## 首尾重叠
             curr_num = self._get_hwy_node_num(path)
@@ -323,7 +327,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         new_path_list = []
         old_path_ids = []
         new_path_id = self.data_mng.get_max_path_id() + 1
-        for path_info in self.data_mng.get_path_distance(ROUTE_DISTANCE_25KM):
+        for path_info in self.data_mng.get_path_distance(ROUTE_DISTANCE_2500M):
             path = path_info[2]
             u, v = path[0], path[-1]
             if not path_G.has_edge(u, v):  # 路径已经被合并
@@ -353,6 +357,11 @@ class HwyRouteRDF(component.component_base.comp_base):
             conn_type = path_G.get_path_conn_type((u, v))
             if(conn_type == HWY_PATH_CONN_TYPE_NONE or
                conn_type == HWY_PATH_CONN_TYPE_SE):
+                node_list = path_G.get_node_list(u, v)
+                # 存在Highway Exit POI
+                has_exit_poi = self.has_hwy_exit_poi(node_list)
+                if has_exit_poi:
+                    break
                 if length <= self.min_distance:
                     old_path_ids.append(path_id)
                     new_path = None
@@ -370,10 +379,19 @@ class HwyRouteRDF(component.component_base.comp_base):
                     break
                 else:
                     p, u, data = in_pathes[0]
-                    angle = path_G.get_angle((p, u), (u, v))
-                    if not self.G.bigger_hwy_main_min_angle(angle):
+                    max_u, max_v = self._get_max_len_path(p, u)
+                    if (u, v) != (max_u, max_v):
                         old_path_ids.append(path_id)
-                        new_path = None
+                        max_len = path_G.get_length(max_u, max_v)
+                        if max_len > ROUTE_DISTANCE_2500M:
+                            merge_path_id = path_G.get_path_id(p, max_u)
+                            old_path_ids.append(merge_path_id)
+                            merge_path_id = path_G.get_path_id(max_u, max_v)
+                            old_path_ids.append(merge_path_id)
+                            new_u, new_v = path_G.merge_edges([p,
+                                                               max_u, max_v],
+                                                              new_path_id)
+                            new_path = (new_u, new_v)
                         break
                     else:
                         in_path_id = data.get('path_id')
@@ -390,10 +408,20 @@ class HwyRouteRDF(component.component_base.comp_base):
                     break
                 else:
                     v, child, data = out_pathes[0]
-                    angle = path_G.get_angle((u, v), (v, child))
-                    if not self.G.bigger_hwy_main_min_angle(angle):
+                    max_u, max_v = self._get_max_len_path(v, child,
+                                                          reverse=True)
+                    if (u, v) != (max_u, max_v):
                         old_path_ids.append(path_id)
-                        new_path = None
+                        max_len = path_G.get_length(max_u, max_v)
+                        if max_len > ROUTE_DISTANCE_2500M:
+                            merge_path_id = path_G.get_path_id(max_u, max_v)
+                            old_path_ids.append(merge_path_id)
+                            merge_path_id = path_G.get_path_id(max_v, child)
+                            old_path_ids.append(merge_path_id)
+                            new_u, new_v = path_G.merge_edges([max_u, max_v,
+                                                               child],
+                                                              new_path_id)
+                            new_path = (new_u, new_v)
                         break
                     else:
                         out_path_id = data.get('path_id')
@@ -434,7 +462,7 @@ class HwyRouteRDF(component.component_base.comp_base):
     def _get_route_start(self, path_id, path):
         '''裁剪头'''
         types_list = self.get_start_facil_types_list(path_id, path,
-                                                     ROUTE_DISTANCE_15KM)
+                                                     self.s_e_margin_dist)
         # 断头
         if self._is_no_head(path, types_list):
             self.log.warning('No Head Highway. path_id=%s' % path_id)
@@ -443,7 +471,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         last_jct_out_idx = -1
         first_jct_in_idx = -1
         for node_idx, length, facil_types in types_list:
-            if length <= ROUTE_DISTANCE_10KM:
+            if length <= ROUTE_DISTANCE_1000M:
                 if self._is_jct_out(facil_types):
                     last_jct_out_idx = node_idx
                 if first_jct_in_idx < 0 and self._is_jct_in(facil_types):
@@ -463,22 +491,23 @@ class HwyRouteRDF(component.component_base.comp_base):
             next_ic_in = self._get_next_ic_in(path_id, path, last_ic_out_idx)
             if next_ic_in >= 0:
                 ic_len = self._get_path_length(path[:next_ic_in])
-                if ic_len > ROUTE_DISTANCE_15KM:
+                if ic_len > self.s_e_margin_dist:
                     self.log.warning('Next IC IN too far. path_id=%s,'
                                      'length=%s, next_ic_in=%s' %
                                      (path_id, ic_len, path[next_ic_in]))
                 else:
                     return next_ic_in
             else:
-                self.log.warning('No Next IC IN. path_id=%s' %
-                                 (path_id))
+                if type(self) != HwyRouteRDF_HKG:
+                    self.log.warning('No Next IC IN. path_id=%s' %
+                                     (path_id))
         # 合并连续的多个入口
         node_idx = self._merge_facil_in(path, path_id, types_list)
         if node_idx < 0:
             # 取link_type变化点
             node_idx = self._get_start_link_type_change(path, path_id,
                                                         types_list,
-                                                        ROUTE_DISTANCE_15KM)
+                                                        self.s_e_margin_dist)
             if node_idx < 0:
                 # 取得第二个点
                 node_idx = self._get_start_second_node(path, path_id,
@@ -488,7 +517,7 @@ class HwyRouteRDF(component.component_base.comp_base):
     def _get_route_end(self, path_id, path):
         '''裁剪尾'''
         types_list = self.get_end_facil_types_list(path_id, path,
-                                                   ROUTE_DISTANCE_15KM)
+                                                   self.s_e_margin_dist)
         # 断尾
         if self._is_no_tail(path, types_list):
             # 取最后一个出口
@@ -498,7 +527,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         last_jct_in_idx = -1
         first_jct_out_idx = -1
         for node_idx, length, facil_types in types_list:
-            if length <= ROUTE_DISTANCE_10KM:
+            if length <= ROUTE_DISTANCE_1000M:
                 if self._is_jct_in(facil_types):
                     last_jct_in_idx = node_idx
                 if first_jct_out_idx < 0 and self._is_jct_out(facil_types):
@@ -518,21 +547,22 @@ class HwyRouteRDF(component.component_base.comp_base):
             prev_ic_in = self._get_prev_ic_out(path_id, path, last_ic_in_idx)
             if prev_ic_in >= 0:
                 ic_len = self._get_path_length(path[prev_ic_in:])
-                if ic_len > ROUTE_DISTANCE_15KM:
+                if ic_len > self.s_e_margin_dist:
                     self.log.warning('Prev IC Out too far. path_id=%s, '
                                      'length=%s, next_ic_in=%s' %
                                      (path_id, ic_len, path[prev_ic_in]))
                 else:
                     return prev_ic_in
             else:
-                self.log.warning('No Prev IC Out. path_id=%s' % (path_id))
+                if type(self) != HwyRouteRDF_HKG:
+                    self.log.warning('No Prev IC Out. path_id=%s' % (path_id))
         # 合并连续的多个入口
         node_idx = self._merge_facil_out(path, path_id, types_list)
         if node_idx < 0:
             # 取link_type变化点
             node_idx = self._get_end_link_type_change(path, path_id,
                                                       types_list,
-                                                      ROUTE_DISTANCE_15KM)
+                                                      self.s_e_margin_dist)
             if node_idx < 0:
                 # 取得倒第二个点
                 node_idx = self._get_end_second_node(path, path_id, types_list)
@@ -607,7 +637,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         node_idx = len(path) - 1
         length = 0.0
         types_list = []
-        while node_idx >= 0 and length <= ROUTE_DISTANCE_15KM:
+        while node_idx >= 0 and length <= self.s_e_margin_dist:
                 node = path[node_idx]
                 if node_idx < len(path) - 1:
                     length += self.G.get_length(path[node_idx],
@@ -648,7 +678,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         else:
             jct_length = self._get_path_length(path[last_jct_out_idx:
                                                     next_jct_idx+1])
-            if jct_length > ROUTE_DISTANCE_25KM:  # 距离大于1.5Km
+            if jct_length > ROUTE_DISTANCE_2500M:  # 距离大于2.5Km
                 self.log.warning('Next JCT too far. path_id=%s, length=%s,'
                                  'jct_out=%s, jct_in=%s' %
                                  (path_id, jct_length,
@@ -677,7 +707,7 @@ class HwyRouteRDF(component.component_base.comp_base):
             else:
                 jct_length = self._get_path_length(path[prev_jct_idx:
                                                         last_jct_in_idx+1])
-                if jct_length > ROUTE_DISTANCE_25KM:  # 距离大于1.5Km
+                if jct_length > ROUTE_DISTANCE_2500M:  # 距离大于2.5Km
                     self.log.warning('Prev JCT too far. path_id=%s, length=%s,'
                                      'jct_out=%s, jct_in=%s' %
                                      (path_id, jct_length,
@@ -792,7 +822,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         link_type1 = self.G[u][v].get(HWY_LINK_TYPE)
         length = self.G.get_length(u, v)
         node_idx = len(path) - 2
-        while node_idx > second_node_idx and length <= ROUTE_DISTANCE_15KM:
+        while node_idx > second_node_idx and length <= self.s_e_margin_dist:
             u, v = path[node_idx - 1], path[node_idx]
             data = self.G[u][v]
             link_type2 = data.get(HWY_LINK_TYPE)
@@ -1037,7 +1067,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         link_type1 = self.G[u][v].get(HWY_LINK_TYPE)
         length = self.G.get_length(u, v)
         node_idx = len(path) - 2
-        while node_idx > second_node_idx and length <= ROUTE_DISTANCE_15KM:
+        while node_idx > second_node_idx and length <= self.s_e_margin_dist:
             u, v = path[node_idx - 1], path[node_idx]
             data = self.G[u][v]
             link_type2 = data.get(HWY_LINK_TYPE)
@@ -1231,3 +1261,245 @@ class HwyRouteRDF(component.component_base.comp_base):
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+
+    def has_hwy_exit_poi(self, path):
+        '''判断该高速线路是否存在【Highway Exit POI】'''
+        for node in path[1:]:  # 第一个点不考虑
+            if self.G.get_org_facil_id(node):
+                return True
+        return False
+
+    def _get_max_len_path(self, u, v, reverse=False):
+        path_G = self.data_mng.get_path_graph()
+        max_u, max_v = None, None
+        max_length = 0
+        if not reverse:  # 正
+            out_pathes = path_G.out_edges(v)
+            for v, c in out_pathes:
+                length = path_G.get_length(u, v)
+                angle = path_G.get_angle((u, v), (v, c))
+                if(length > max_length and
+                   self.G.bigger_hwy_main_min_angle(angle)):
+                    max_u, max_v = v, c
+                    max_length = length
+        else:  # 逆
+            in_pathes = path_G.in_edges(u)
+            for p, u in in_pathes:
+                length = path_G.get_length(p, u)
+                angle = path_G.get_angle((p, u), (u, v))
+                if(length > max_length and
+                   self.G.bigger_hwy_main_min_angle(angle)):
+                    max_u, max_v = p, u
+                    max_length = length
+        return max_u, max_v
+
+
+# ==============================================================================
+# HwyRouteRDF_HKG
+# ==============================================================================
+class HwyRouteRDF_HKG(HwyRouteRDF):
+    def __init__(self, data_mng):
+        '''
+        '''
+        HwyRouteRDF.__init__(self, data_mng, ItemName='Highway_Route_HKG')
+        self.s_e_margin_dist = ROUTE_DISTANCE_2500M
+
+    def _get_start_jct_in(self, path_id, path,
+                          last_jct_out_idx, first_jct_in_idx):
+        '''起点是JCT IN，且不在其他高速上。'''
+        if first_jct_in_idx == 0:  # 第一个设施是JCT入口
+            other_main_link = self.G.get_main_link(path[0], path_id,
+                                                   HWY_PATH_ID,
+                                                   same_code=False,
+                                                   reverse=True)
+            if other_main_link:  # 起点在其他高速上
+                if(len(other_main_link) > 1 or  # 多条进入本线
+                   self._exist_in_ic_link(path, first_jct_in_idx)):
+                    return first_jct_in_idx
+                else:
+                    return -1
+            else:
+                return first_jct_in_idx
+        return -1
+
+    def _get_next_ic_in(self, path_id, path, out_idx, f_jct_in_idx=-1):
+        return -1
+
+    def _merge_facil_in(self, path, path_id, types_list):
+        ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
+            2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
+        '''
+        node_idx = -1
+        types = types_list[0][2]
+        other_main_link = self.G.get_main_link(path[0], path_id,
+                                               HWY_PATH_ID,
+                                               same_code=False)
+        normal_link = self.G.get_normal_link(path[0], path[1], reverse=True)
+        if not other_main_link:
+            facil_num = 0
+            if self._is_jct_in(types):
+                facil_num += 1
+            if self._is_ic_in(types):
+                facil_num += 1
+            if self._is_sapa_in(types):
+                facil_num += 1
+            if self._is_tollgate(types):
+                facil_num += 1
+            if facil_num > 1:  # 入口设施大于1
+                return 0
+            if not normal_link:  # 本线和一般道, 不直接相连
+                if self._exist_in_ic_link(path):  # 有进入的IC link(Ramp/JCT)
+                    return 0
+            else:  # 直接和一般道相连
+                # 有进入的IC link(Ramp/JCT)
+                if self._exist_in_ic_link(path):
+                    self.log.warning('Exist in IC link. node=%s' % path[0])
+                    return 0
+        else:  # 有其他线路本线
+            return -1
+        # 取得下个入口
+        for type_idx in range(1, len(types_list)):
+            types = types_list[type_idx][2]
+            # 入口
+            if(self._is_jct_in(types) or
+               self._is_ic_in(types) or
+               self._is_sapa_in(types)):
+                node_idx = types_list[type_idx][0]
+                break
+            if self._is_tollgate(types):
+                node_idx = types_list[type_idx][0]
+                if node_idx > 1:   # 收费站前一个点
+                    node_idx -= 1
+                break
+        # 取得后方 Highway Exit POI
+        exit_poi_idx = self.get_exit_poi_idx(path, node_idx,  reverse=True)
+        if exit_poi_idx > 0:
+            if exit_poi_idx == 1:
+                self.log.warning('HWY POI Exit is at Position 1 of HWY Road.'
+                                 'node=%s' % path[exit_poi_idx])
+            else:
+                return exit_poi_idx - 1  # 线路的起点在出口POI的前个点(车流方向的后面)
+        return node_idx
+
+    def _get_end_jct_out(self, path_id, path,
+                         last_jct_in_idx, first_jct_out_idx):
+        '''终点设施是JCT OUT，且不在其他高速上。'''
+        if first_jct_out_idx == len(path) - 1:  # 最后一个设施是JCT出口
+            other_main_link = self.G.get_main_link(path[-1], path_id,
+                                                   HWY_PATH_ID,
+                                                   same_code=False,
+                                                   reverse=False)
+            if other_main_link:  # 起点在其他高速上
+                if(len(other_main_link) > 1 or  # 多条退出本线
+                   self._exist_out_ic_link(path, first_jct_out_idx)):
+                    return first_jct_out_idx
+                else:
+                    return -1
+            else:
+                return first_jct_out_idx
+        return -1
+
+    def _get_prev_ic_out(self, path_id, path, out_idx, f_jct_in_idx=-1):
+        return -1
+
+    def _merge_facil_out(self, path, path_id, types_list):
+        ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
+            2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
+        '''
+        node_idx = -1
+        types = types_list[0][2]
+        other_main_link = self.G.get_main_link(path[-1], path_id,
+                                               HWY_PATH_ID,
+                                               same_code=False)
+        if not other_main_link:  # 无其他线路本线
+            facil_num = 0
+            if self._is_jct_out(types):
+                facil_num += 1
+            if self._is_ic_out(types):
+                facil_num += 1
+            if self._is_sapa_out(types):
+                facil_num += 1
+            if self._is_tollgate(types):
+                facil_num += 1
+            if facil_num > 1:  # 入口设施大于1
+                return 0
+            normal_link = self.G.get_normal_link(path[-2], path[-1])
+            if not normal_link:  # 本线和一般道, 不直接相连
+                # 有进入的IC link(Ramp/JCT)
+                if self._exist_out_ic_link(path, len(path) - 1):
+                    return len(path) - 1
+            else:  # 直接和一般道相连
+                # 有退出的IC link(Ramp/JCT)
+                if self._exist_out_ic_link(path, len(path) - 1):
+                    self.log.warning('Exist Out IC link. node=%s' % path[-1])
+                    return len(path) - 1
+        else:  # 有取得本线
+            return -1
+        # 取得下个出口
+        for type_idx in range(1, len(types_list)):
+            types = types_list[type_idx][2]
+            # 出口
+            if(self._is_jct_out(types) or
+               self._is_ic_out(types) or
+               self._is_sapa_out(types)):
+                node_idx = types_list[type_idx][0]
+                break
+            if self._is_tollgate(types):
+                node_idx = types_list[type_idx][0]
+                # 收费站有出口名称
+                if self.G.get_exit_poi_name(path[node_idx]):
+                    pass
+                else:
+                    if node_idx < len(path) - 2:  # 收费站前一个点
+                        node_idx += 1
+                break
+        # 取得前方 Highway Exit POI
+        exit_poi_idx = self.get_exit_poi_idx(path, node_idx)
+        if exit_poi_idx >= 0:
+            return exit_poi_idx
+        return node_idx
+
+    def _exist_in_ic_link(self, path, node_idx=0):
+        '''进入的Ramp/JCT link.'''
+        node = path[node_idx]
+        out_edge = (node, path[node_idx + 1])
+        in_nodes = self.G._get_not_main_link(node, HWY_PATH_ID, reverse=True)
+        for in_node in in_nodes:
+            in_edge = (in_node, node)
+            angle = self.G.get_angle(in_edge, out_edge)
+            if self.G.bigger_hwy_main_min_angle(angle):
+                return True
+            else:
+                self.log.warning('IC Link angle too small. node=%s.' % node)
+        return False
+
+    def _exist_out_ic_link(self, path, node_idx=None):
+        '''退出的Ramp/JCT link.'''
+        node = path[node_idx]
+        in_edge = (path[node_idx - 1], node)
+        out_nodes = self.G._get_not_main_link(node, HWY_PATH_ID)
+        for out_node in out_nodes:
+            out_edge = (node, out_node)
+            angle = self.G.get_angle(in_edge, out_edge)
+            if self.G.bigger_hwy_main_min_angle(angle):
+                return True
+            else:
+                self.log.warning('IC Link angle too small. node=%s.' % node)
+        return False
+
+    def get_exit_poi_idx(self, path, e_idx, reverse=False):
+        '''取得前方 Highway Exit POI.'''
+        if e_idx >= 0:
+            if not reverse:  # 前方(车流)
+                node_idx = len(path) - 1
+                while node_idx > e_idx:
+                    if self.G.get_exit_poi_name(path[node_idx]):
+                        return node_idx
+                    node_idx -= 1
+            else:  # 后方(车流)
+                node_idx = 1
+                while node_idx < e_idx:
+                    if self.G.get_exit_poi_name(path[node_idx]):
+                        return node_idx
+                    node_idx += 1
+        return None

@@ -112,7 +112,7 @@ class comp_link_mmi(component.component_base.comp_base):
                         a.id         as link_id, 
                         a.f_jnctid   as s_node, 
                         a.t_jnctid   as e_node, 
-                        mmi_disp_class( ft, frc, fow, ftr_cry )                    as display_class,
+                        mmi_disp_class( ft, freeway, frc, fow, ftr_cry )                    as display_class,
                         mmi_link_type ( pj, mult_digi, fow)                        as link_type, 
                         mmi_road_type (ft, privaterd, frc, fow, freeway, ftr_cry, routable )  as road_type,
                         mmi_function_class( frc, freeway, ftr_cry)                 as function_class,

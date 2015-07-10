@@ -273,7 +273,7 @@ class CCheck4WDFlag(platform.TestCase.CTestCase):
             on a.link_id = c.tile_link_id
             left join link_tbl b
             on c.old_link_id = b.link_id
-            where b.link_id is not null and b.display_class = 19;
+            where b.link_id is not null and b.display_class != 19;
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)

@@ -89,22 +89,7 @@ class comp_node_rdf(component.component_base.comp_base):
             self.pg.commit2()    
                     
         if self.CreateIndex2('temp_node_toll_node_id_idx') == -1:
-            return -1
-        
-        # stop sign
-        self.CreateTable2('temp_node_stopsign')
-        sqlcmd = """
-            insert into temp_node_stopsign(node_id)
-            select distinct c.node_id 
-            from rdf_condition as a
-            inner join rdf_condition_driver_alert as b
-                on a.condition_id = b.condition_id and a.condition_type = 17 and b.traffic_sign_type=20
-            inner join rdf_nav_strand as c
-                on a.nav_strand_id = c.nav_strand_id and c.node_id is not null
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.CreateIndex2('temp_node_stopsign_node_id_idx')        
+            return -1       
 
         # bifurcation
         self.CreateTable2('temp_node_bifurcation')
@@ -144,7 +129,9 @@ class comp_node_rdf(component.component_base.comp_base):
                 left outer join temp_node_light as b on a.node_id = b.node_id
                 left outer join temp_node_toll as c on a.node_id = c.node_id
                 left outer join temp_node_lid as d on a.node_id = d.node_id
-                left outer join temp_node_stopsign as e on a.node_id = e.node_id
+                left outer join (
+                    select distinct node_id from stopsign_tbl 
+                ) as e on a.node_id = e.node_id
                 left outer join temp_node_bifurcation as f on a.node_id = f.node_id
                 ;
                 """

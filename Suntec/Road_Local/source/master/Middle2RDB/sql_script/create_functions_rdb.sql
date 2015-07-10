@@ -1621,7 +1621,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION rdb_cnv_link_add_info2(
-	erp smallint, rodizio smallint, safety_zone boolean, hook_turn smallint) 
+	erp smallint, rodizio smallint, safety_zone boolean, hook_turn smallint, safety_alert boolean) 
   RETURNS smallint 
   LANGUAGE plpgsql VOLATILE
   AS $$ 
@@ -1644,6 +1644,10 @@ BEGIN
 
 	IF hook_turn != 0 THEN
 		rtnValue = rtnValue | (1 << 4);
+	END IF;
+
+	IF safety_alert = 't' THEN
+		rtnValue = rtnValue | (1 << 5);
 	END IF;
 	
 	RETURN rtnValue;

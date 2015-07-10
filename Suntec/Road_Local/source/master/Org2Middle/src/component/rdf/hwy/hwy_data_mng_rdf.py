@@ -72,13 +72,13 @@ class HwyDataMngRDF(component.component_base.comp_base):
     '''
     Highway Data Manager(RDF)
     '''
-    __instance = None
+    _instance = None
 
     @staticmethod
     def instance():
-        if HwyDataMngRDF.__instance is None:
-            HwyDataMngRDF.__instance = HwyDataMngRDF()
-        return HwyDataMngRDF.__instance
+        if HwyDataMngRDF._instance is None:
+            HwyDataMngRDF._instance = HwyDataMngRDF()
+        return HwyDataMngRDF._instance
 
     def __init__(self, ItemName='HwyDataMngRDF'):
         '''
@@ -224,7 +224,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                road_name, road_number
           FROM mid_temp_hwy_main_link
         """
-        for link_info in self.__get_link_attr(sqlcmd):
+        for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
              s_angle, e_angle, link_attr) = link_info
             self._graph.add_link(s_node, e_node,
@@ -244,7 +244,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                road_name, road_number
           FROM mid_temp_hwy_ic_link;
         """
-        for link_info in self.__get_link_attr(sqlcmd):
+        for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
              s_angle, e_angle, link_attr) = link_info
             self._graph.add_link(s_node, e_node,
@@ -263,7 +263,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                road_name,  road_number
           FROM mid_temp_hwy_inout_link;
         """
-        for link_info in self.__get_link_attr(sqlcmd):
+        for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
              s_angle, e_angle, link_attr) = link_info
             self._graph.add_link(s_node, e_node,
@@ -272,7 +272,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                  **link_attr
                                  )
 
-    def __get_link_attr(self, sqlcmd):
+    def _get_link_attr(self, sqlcmd):
         for link_info in self.pg.get_batch_data2(sqlcmd, BATCH_SIZE):
             link_id = link_info[0]
             s_node = link_info[1]

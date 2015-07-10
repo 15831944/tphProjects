@@ -237,6 +237,12 @@ def GetPath(name):
         
     return path.replace('\n', '')
 
+def getProjName():
+    return GetPath('proj_name')
+
+def getProjCountry():
+    return GetPath('proj_country')
+
 def getItem(proj_mapping):
     import common.config
     proj_name = common.config.CConfig.instance().getPara('proj_name').lower()

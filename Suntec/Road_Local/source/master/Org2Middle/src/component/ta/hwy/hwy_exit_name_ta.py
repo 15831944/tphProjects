@@ -101,7 +101,7 @@ class HwyExitNameTa(HwyExitNameRDF):
             return None, None
         return exit_type, junction_type
 
-    def _make_link_facil(self):
+    def _make_node_facil(self):
         self.log.info('make mid_node_facil')
         self.CreateTable2('mid_node_facil')
         sqlcmd = '''

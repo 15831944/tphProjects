@@ -178,9 +178,9 @@ class HwyGraphRDF(HwyGraph):
                 yield [u] + visited + [u]
                 stack.pop()
                 visited.pop()
-            elif self._is_conn_hwy_both_link(child):  # 到达双向通行高速
-                stack.pop()
-                visited.pop()
+#             elif self._is_conn_hwy_both_link(child):  # 到达双向通行高速
+#                 stack.pop()
+#                 visited.pop()
             elif (self._outlink_is_hov(child) and
                   self._inlink_exist_hov(child)):
                 stack.pop()
@@ -233,9 +233,9 @@ class HwyGraphRDF(HwyGraph):
                 yield [v] + visited + [v]
                 stack.pop()
                 visited.pop()
-            elif self._is_conn_hwy_both_link(parent):  # 到达双向通行高速
-                stack.pop()
-                visited.pop()
+#             elif self._is_conn_hwy_both_link(parent):  # 到达双向通行高速
+#                 stack.pop()
+#                 visited.pop()
             elif (self._outlink_exist_hov(parent) and
                   self._inlink_is_hov(parent)):
                 stack.pop()
@@ -312,7 +312,8 @@ class HwyGraphRDF(HwyGraph):
         out_main_link = []
         for node, child, child_data in self.out_edges_iter(node, True):
             if(not self.is_hwy_main_link(child_data) and
-               not self.is_hwy_inner_link(child_data)):
+               not self.is_hwy_inner_link(child_data) and
+               not self.has_edge(child, node)):  # 双向通行
                 continue
             degree = self._get_similar_degree(data, child_data)
             out_main_link.insert(degree, (child, child_data, degree))
@@ -337,7 +338,8 @@ class HwyGraphRDF(HwyGraph):
         in_main_link = []
         for parent, node, parent_data in self.in_edges_iter(node, True):
             if(not self.is_hwy_main_link(parent_data) and
-               not self.is_hwy_inner_link(parent_data)):
+               not self.is_hwy_inner_link(parent_data) and
+               not self.has_edge(node, parent)):  # 双向通行:
                 continue
             degree = self._get_similar_degree(data, parent_data)
             in_main_link.append((parent, parent_data, degree))

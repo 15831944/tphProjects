@@ -7,17 +7,17 @@ Created on 2012-4-27
 import os
 import psycopg2
 import struct
+import shutil
 
-import component.default.guideinfo_spotguide
-from component.default import link_graph as lg
+from component.default import link_graph
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
 PIC_TYPE = {'Day':'1',
             'Night':'2'
             }
 
 
-class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
-                                   .comp_guideinfo_spotguide):
+class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     '''
     This class is used for uc spotguide
     '''
@@ -26,12 +26,11 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
         '''
         Constructor
         '''
-        component.default.guideinfo_spotguide.comp_guideinfo_spotguide.__init__(self)
+        comp_guideinfo_spotguide.__init__(self)
 
     def _DoCreateTable(self):
 
-        component.default.guideinfo_spotguide \
-                .comp_guideinfo_spotguide._DoCreateTable(self)
+        comp_guideinfo_spotguide._DoCreateTable(self)
         '''这个表的记录样式：oneinlink--->oneoutlink'''
         if self.CreateTable2('temp_junction_tbl') == -1:
             return -1
@@ -58,37 +57,46 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
         '''get oneinlink to oneoutlink,nodeid record'''
         insert_sqlcmd = '''
             INSERT INTO temp_junction_tbl(
-                inlinkid, outlinkid, nodeid, sky_lyr, arrow, "time"
+                inlinkid, outlinkid, nodeid, road_lyr, arrow, "time"
                 )
             VALUES (%s, %s, %s, %s, %s, %s);
 
 
         '''
         sqlcmd = '''
-            SELECT fm_edge,
-                array[to_edge1, to_edge2, to_edge3, to_edge4] as outlinks,
-                road_lyr,
-               array[arrow1, arrow2, arrow3, arrow4] as arrows, "time"
+            SELECT  fm_edge,
+                    array[to_edge1, to_edge2, to_edge3, to_edge4] as outlinks,
+                    case when sign_lyr is not null then substring(road_lyr,0,length(road_lyr)-5)
+                         || '_' || substring(sign_lyr,0,length(sign_lyr)-5)
+                    else substring(road_lyr,0,length(road_lyr)-5)
+                    end, 
+                    array[arrow1, arrow2, arrow3, arrow4] as arrows, 
+                    "time"
             FROM org_jv_location
             order by fm_edge;
         '''
         rows = self.get_batch_data(sqlcmd)
+
+        inti = 1
         for row in rows:
             inlink = row[0]
             outlinks = row[1]
-            sky_lyr = row[2]
+            road_lyr = row[2]
             arrows = row[3]
             time = row[4]
             for outlink, arrow in zip(outlinks, arrows):
                 if outlink and arrow:
                     '''get nodeid'''
                     nodeid = self._getnode_between_links(inlink, outlink)
-                    self.pg.execute2(insert_sqlcmd, (inlink, outlink, nodeid,
-                                              sky_lyr, arrow, time))
+                    self.pg.execute2(insert_sqlcmd, (inlink, outlink, nodeid, road_lyr, arrow, time))
+                    inti += 1
                 elif not outlink and not arrow:
                     pass
                 else:
                     self.log.error("outlink can't match with arrow!!!")
+            
+            if inti > 100:
+                break;
         self.pg.commit2()
         return 0
 
@@ -108,8 +116,7 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
                 array_agg(sky_lyr), array_agg(arrow),
                 array_agg("time")
             FROM (
-                   SELECT distinct inlinkid, outlinkid,nodeid,
-                        sky_lyr, arrow, "time"
+                   SELECT distinct inlinkid, outlinkid, nodeid, road_lyr, arrow, "time"
                    FROM temp_junction_tbl
                  ) as a
             group by inlinkid, outlinkid,nodeid;
@@ -120,7 +127,7 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
             inlink = row[0]
             outlink = row[1]
             nodeid = row[2]
-            sky_lyrs = row[3]
+            road_lyrs = row[3]
             arrows = row[4]
             times = row[5]
             passlink = ''
@@ -130,9 +137,9 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
                 passlink, passlinkcnt, nodeid = \
                     self._get_passlink_passlinkcnt(inlink, outlink)
             '''check time match with pic'''
-            check_f = self._check_time_pic(sky_lyrs, arrows, times)
+            check_f = self._check_time_pic(road_lyrs, arrows, times)
             if check_f:
-                sky_name = (sky_lyrs[0])[:-6:1]
+                road_name = road_lyrs[0]
                 arrow_name = (arrows[0])[:-6:1]
                 direction = 0
                 if 'L' in arrow_name:
@@ -142,7 +149,7 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
                 self.pg.execute2(insert_sqlcmd, (g_id, nodeid, inlink, outlink,
                                                  passlink, passlinkcnt,
                                                  direction, 0, 0, 0,
-                                                 sky_name, arrow_name, 1))
+                                                 road_name, arrow_name, 1))
                 g_id = g_id + 1
             else:
                 self.log.error("time is not match with pic!!!")
@@ -168,7 +175,8 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
             FROM org_city_nw_gc_polyline
             where id = %s;
         '''
-        self.pg.execute2(node_sqlcmd, (link1,))
+        sql1 = (node_sqlcmd % (link1,))
+        self.pg.execute2(sql1)
         inres_row = self.pg.fetchone2()
         self.pg.execute2(node_sqlcmd, (link2,))
         outres_row = self.pg.fetchone2()
@@ -198,8 +206,8 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
         out_snode = out_row[0]
         out_enode = out_row[1]
         out_oneway = out_row[2]
-        if in_oneway == lg.ONE_WAY_PROHIBITION \
-                    or out_oneway == lg.ONE_WAY_PROHIBITION:
+        if in_oneway == link_graph.ONE_WAY_PROHIBITION \
+                    or out_oneway == link_graph.ONE_WAY_PROHIBITION:
             return None
 
         init_box = '''
@@ -207,10 +215,10 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
                                             %s::bigint, %s)
                         );
         '''
-        self.pg.execute2(init_box, (inlink, outlink, lg.UNITS_TO_EXPAND))
+        self.pg.execute2(init_box, (inlink, outlink, link_graph.UNITS_TO_EXPAND))
         expand_box = (self.pg.fetchone2())[0]
-        graph_obj = lg.LinkGraph()
-        paths = lg.all_shortest_paths_in_expand_box(graph_obj,
+        graph_obj = link_graph.LinkGraph()
+        paths = link_graph.all_shortest_paths_in_expand_box(graph_obj,
                                                     expand_box,
                                                     (in_snode, in_enode),
                                                     (out_snode, out_enode),
@@ -234,7 +242,7 @@ class comp_guideinfo_spotguide_mmi(component.default.guideinfo_spotguide \
             pass_link_cnt = len(pass_link)
             pass_link = '|'.join(pass_link)
         else:
-            self.log.error('not normal stuation！！！.')
+            self.log.error('not normal stuation!!!.')
         return pass_link, pass_link_cnt, node_id
 
 #==============================================================================
@@ -300,14 +308,13 @@ class comp_picture(object):
 class GeneratorPicBinary(object):
 
     def __init__(self):
-        self.conn = psycopg2.connect(''' host='172.26.179.195'
-                        dbname='AP_MMI_201402_0061_0002'
+        self.conn = psycopg2.connect(''' host='172.26.179.184'
+                        dbname='17cy_IND_MMI_CI'
                         user='postgres' password='pset123456' ''')
         self.pgcur2 = self.conn.cursor()
 
     def selectData(self):
-        self.pgcur2.execute('''SELECT distinct patternno, arrowno
-                                FROM spotguide_tbl;''')
+        self.pgcur2.execute('''SELECT distinct patternno, arrowno FROM spotguide_tbl;''')
         rows = self.pgcur2.fetchall()
         pics = []
         i = 1
@@ -328,48 +335,55 @@ class GeneratorPicBinary(object):
             i = i + 1
         return pics
 
-    def makeJunctionResultTable(self, dirFileDir, destFileDir):
+    def makeJunctionResultTable(self, srcDir, destDir):
+        if os.path.isdir(srcDir) == False:
+            return
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        os.mkdir(destDir)
         pictures = self.selectData()
         for pic in pictures:
-            destFile = os.path.join(destFileDir, pic.getCommonPatter() + '.dat')
-            arrowFile = os.path.join(destFileDir, pic.getCommonArrow() + '.dat')
-            if os.path.isdir(dirFileDir):
-                # day and nigth illust
-                if  os.path.isfile(destFile) == False:
-                    dayPicPath = os.path.join(dirFileDir, pic.getDayName() + ".jpg")
-                    nightPicPath = os.path.join(dirFileDir, pic.getNightName() + ".jpg")
-                    dayFis = open(dayPicPath, 'rb')
-                    nightFis = open(nightPicPath, 'rb')
-                    fos = open(destFile, 'wb')
-                    dayPicLen = os.path.getsize(dayPicPath)
-                    nightPicLen = os.path.getsize(nightPicPath)
-                    headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 1, 22, \
-                                               dayPicLen, 2, 22 + dayPicLen, \
-                                               nightPicLen)
-                    resultBuffer = headerBuffer + dayFis.read() \
-                                            + nightFis.read()
-                    dayFis.close()
-                    nightFis.close()
-                    fos.write(resultBuffer)
-                    fos.close()
-                    # ARROW PIC BUILD
-                if os.path.isfile(arrowFile) == False:
-                    d_arrow_path = os.path.join(dirFileDir, pic.getDayArrow() + '.png')
-                    n_arrow_path = os.path.join(dirFileDir, pic.getNightArrow() + '.png')
-                    dayArrowFis = open(d_arrow_path, 'rb')
-                    nightArrowFis = open(n_arrow_path, 'rb')
-                    a_fos = open(arrowFile, 'wb')
-                    dayArrowLen = os.path.getsize(d_arrow_path)
-                    nightArrowLen = os.path.getsize(n_arrow_path)
-                    a_headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 1, 22, \
-                                               dayArrowLen, 2, 22 + dayArrowLen, \
-                                               nightArrowLen)
-                    a_resultBuffer = a_headerBuffer + dayArrowFis.read() \
-                                            + nightArrowFis.read()
-                    dayArrowFis.close()
-                    nightArrowFis.close()
-                    a_fos.write(a_resultBuffer)
-                    a_fos.close()
+            # day and night illust
+            destFile = os.path.join(destDir, pic.getCommonPatter() + '.dat')
+            if  os.path.isfile(destFile) == False:
+                dayPicPath = os.path.join(srcDir, pic.getDayName() + ".jpg")
+                nightPicPath = os.path.join(srcDir, pic.getNightName() + ".jpg")
+                dayFis = open(dayPicPath, 'rb')
+                nightFis = open(nightPicPath, 'rb')
+                dayPicLen = os.path.getsize(dayPicPath)
+                nightPicLen = os.path.getsize(nightPicPath)
+                headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
+                                           dayPicLen, 2, 22 + dayPicLen, \
+                                           nightPicLen)
+                resultBuffer = headerBuffer + dayFis.read() \
+                                        + nightFis.read()
+                dayFis.close()
+                nightFis.close()
+                
+                fos = open(destFile, 'wb')
+                fos.write(resultBuffer)
+                fos.close()
+                
+            # ARROW PIC BUILD
+            arrowFile = os.path.join(destDir, pic.getCommonArrow() + '.dat')
+            if os.path.isfile(arrowFile) == False:
+                d_arrow_path = os.path.join(srcDir, pic.getDayArrow() + '.png')
+                n_arrow_path = os.path.join(srcDir, pic.getNightArrow() + '.png')
+                dayArrowFis = open(d_arrow_path, 'rb')
+                nightArrowFis = open(n_arrow_path, 'rb')
+                dayArrowLen = os.path.getsize(d_arrow_path)
+                nightArrowLen = os.path.getsize(n_arrow_path)
+                a_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
+                                           dayArrowLen, 2, 22 + dayArrowLen, \
+                                           nightArrowLen)
+                a_resultBuffer = a_headerBuffer + dayArrowFis.read() \
+                                        + nightArrowFis.read()
+                dayArrowFis.close()
+                nightArrowFis.close()
+                
+                a_fos = open(arrowFile, 'wb')
+                a_fos.write(a_resultBuffer)
+                a_fos.close()
 
 if __name__ == '__main__':
     test = GeneratorPicBinary()

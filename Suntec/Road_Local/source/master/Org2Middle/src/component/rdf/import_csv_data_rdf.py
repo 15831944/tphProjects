@@ -215,6 +215,7 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
         inFStream.close()
         
         #解析csv表头，用作字典的键
+        listline[0] = listline[0].lower()
         csvHeader = listline[0].split(",")
         csvDataList = []
         for line in listline[1:]:

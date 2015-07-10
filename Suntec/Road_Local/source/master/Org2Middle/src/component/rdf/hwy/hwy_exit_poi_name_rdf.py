@@ -37,8 +37,8 @@ class HwyPoiExitNameRDF(HwyExitNameRDF):
         from component.default.dictionary import comp_dictionary
         dictionary = comp_dictionary()
         dictionary.set_language_code()
-
         self._make_hwy_poi_name_group()
+        self._make_node_facil()
         self._make_hwy_exit_poi_name()
         return 0
 
@@ -72,26 +72,26 @@ class HwyPoiExitNameRDF(HwyExitNameRDF):
         '''
         self.log.info('start make mid_temp_hwy_exit_poi_name')
         sqlcmd = '''
-             SELECT distinct node_id, poi.poi_id,
-                    rdf_poi_name.language_code,
-                    rdf_poi_name.name,
-                    trans_group.trans_type,
-                    trans_group.name
-             FROM mid_temp_hwy_exit_poi as poi
-             LEFT JOIN rdf_poi_names
-             ON poi.poi_id = rdf_poi_names.poi_id
-             LEFT JOIN rdf_poi_name
-             ON rdf_poi_names.name_id = rdf_poi_name.name_id
-             LEFT JOIN mid_temp_hwy_exit_poi_name_trans_group AS trans_group
-             ON rdf_poi_names.name_id = trans_group.name_id
-             LEFT JOIN rdf_poi_address
-             ON poi.poi_id = rdf_poi_address.poi_id
-             LEFT JOIN wkt_location
-             ON rdf_poi_address.location_id = wkt_location.location_id
-             LEFT JOIN node_tbl
-             ON  ST_DWithin(node_tbl.the_geom, poi.the_geom,
-                            0.000002694945852358566745)
-             ORDER BY node_id, poi.poi_id, language_code
+        SELECT distinct node_id, poi.poi_id,
+                rdf_poi_name.language_code,
+                rdf_poi_name.name,
+                trans_group.trans_type,
+                trans_group.name
+         FROM mid_temp_hwy_exit_poi as poi
+         LEFT JOIN rdf_poi_names
+         ON poi.poi_id = rdf_poi_names.poi_id
+         LEFT JOIN rdf_poi_name
+         ON rdf_poi_names.name_id = rdf_poi_name.name_id
+         LEFT JOIN mid_temp_hwy_exit_poi_name_trans_group AS trans_group
+         ON rdf_poi_names.name_id = trans_group.name_id
+         LEFT JOIN rdf_poi_address
+         ON poi.poi_id = rdf_poi_address.poi_id
+         LEFT JOIN wkt_location
+         ON rdf_poi_address.location_id = wkt_location.location_id
+         LEFT JOIN node_tbl
+         ON  ST_DWithin(node_tbl.the_geom, poi.the_geom,
+                        0.000002694945852358566745)
+         ORDER BY node_id, poi.poi_id, language_code
         '''
         temp_file_obj = cache_file.open('hwy_exit_poi_name')
         names = self.get_batch_data(sqlcmd)

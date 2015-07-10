@@ -22,9 +22,11 @@ class rdb_guideinfo_building_structure(ItemBase):
         self._makeGuidenceNode()
         self._associateNodeLogmark()
         self._makeBuildingStructure()
+
       
         
     def _makeGuidenceNode(self):
+        rdb_log.log('Middle2RDB', 'start to make guidence_node.', 'info')
         self.CreateTable2('temp_guidence_node')
         self.CreateFunction2('rdb_find_divided_node')
         self.pg.callproc('rdb_find_divided_node')
@@ -33,7 +35,7 @@ class rdb_guideinfo_building_structure(ItemBase):
         
     
     def _associateNodeLogmark(self):
-#        
+        rdb_log.log('Middle2RDB', 'create temp_asso_node_logmark table.', 'info')
         #self.CreateTable2('temp_asso_node_logmark')
         sqlcmd = """
         drop table if exists temp_asso_node_logmark; 

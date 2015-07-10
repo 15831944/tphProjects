@@ -450,9 +450,9 @@ BEGIN
 			WHEN fow in (14,15) THEN 8
 			WHEN privaterd = 1 THEN 7
 	    	WHEN routable = '0' THEN 7
-	    	WHEN frc = 0 or freeway = 1 or ftr_cry in('NGQ','CGQ') THEN 0
+	    	WHEN frc = 0 and freeway = 1 THEN 0
 	    	---WHEN fow = 27 THEN 5
-	    	WHEN frc = 1 or ftr_cry in('NHY','CTN') THEN 2
+	    	WHEN frc in (0,1) or ftr_cry in('NHY','CTN','NGQ','CGQ') THEN 2
 	    	WHEN frc = 2 or ftr_cry in('SHY','RDA') THEN 3
 	    	WHEN frc = 3 or ftr_cry in('RDB','DHY') THEN 4
 	    	ELSE 6
@@ -477,7 +477,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mmi_disp_class( ft smallint, frc smallint, fow smallint,  ftr_cry character varying ) 
+CREATE OR REPLACE FUNCTION mmi_disp_class( ft smallint, freeway smallint, frc smallint, fow smallint,  ftr_cry character varying ) 
   RETURNS  smallint
   LANGUAGE plpgsql
 AS $$
@@ -485,12 +485,11 @@ BEGIN
 	    RETURN CASE
 	        WHEN ft in (1,2)  THEN 14
 	        WHEN fow in (14,15) THEN 3
-			WHEN frc = 0 or ftr_cry in('NGQ','CGQ')  THEN 12
-			WHEN frc = 1  THEN 9
-	    	WHEN frc = 2  THEN 8
-	    	WHEN frc = 3  THEN 7
-	    	WHEN frc = 4  THEN 6
-	    	WHEN frc = 5  THEN 5
+			WHEN frc = 0 and freeway = 1 THEN 12
+			WHEN frc in (0,1)  THEN 11
+	    	WHEN frc = 2  THEN 7
+	    	WHEN frc = 3  THEN 6
+	    	WHEN frc in 4  THEN 5
 	    	ELSE 4
 	    END; 
 END;

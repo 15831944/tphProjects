@@ -183,7 +183,7 @@ class comp_guideinfo_building_mmi(component.component_base.comp_base):
                 select  a.uid, 
                         a.type_code,
                         b.poi_name,
-                        a.the_geom
+                        ST_GeometryN(a.the_geom,1)
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
                 on a.uid = b.poi_id;      

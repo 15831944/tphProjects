@@ -4,7 +4,7 @@ Created on 2015-3-18
 
 @author: hcz
 '''
-from component.rdf.hwy.highway import HighwayRDF
+from component.rdf.hwy.highway_rdf import HighwayRDF
 from component.ta.hwy.hwy_link_mapping_ta import HwyLinkMappingTa
 from component.ta.hwy.hwy_data_mng_ta import HwyDataMngTa
 from component.ta.hwy.hwy_route_ta import HwyRouteTa

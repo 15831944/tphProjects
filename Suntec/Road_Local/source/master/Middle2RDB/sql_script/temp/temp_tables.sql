@@ -554,8 +554,8 @@ as
 	on b.link_id = c.link_id
 	left join (
 		select m.link_id
-			,case when n.link_id is null then m.path_extra_info
-				else (n.link_add_info2 << 3) | m.path_extra_info
+			,case when n.link_id is null then (m.path_extra_info & 7)
+				else ((n.link_add_info2 & 7) << 3) | (m.path_extra_info & 7)
 			 end as path_extra_info
 		from rdb_link_add_info as m
 		left join rdb_link_add_info2 as n
@@ -747,8 +747,8 @@ as
 		on a.link_id = b.link_id
 		left join (
 			select m.link_id, m.struct_code, m.shortcut_code, m.etc_lane_flag
-				,case when n.link_id is null then m.path_extra_info
-					else (n.link_add_info2 << 3) | m.path_extra_info
+				,case when n.link_id is null then (m.path_extra_info & 7)
+					else ((n.link_add_info2 & 7) << 3) | (m.path_extra_info & 7)
 				 end as path_extra_info
 			from rdb_link_add_info as m
 			left join rdb_link_add_info2 as n
@@ -779,8 +779,8 @@ as
 		on a.link_id = b.proxy_link_id
 		left join (
 			select m.link_id, m.struct_code, m.shortcut_code, m.etc_lane_flag
-				,case when n.link_id is null then m.path_extra_info
-					else (n.link_add_info2 << 3) | m.path_extra_info
+				,case when n.link_id is null then (m.path_extra_info & 7)
+					else ((n.link_add_info2 & 7) << 3) | (m.path_extra_info & 7)
 				 end as path_extra_info
 			from rdb_link_add_info as m
 			left join rdb_link_add_info2 as n

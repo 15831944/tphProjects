@@ -15,7 +15,6 @@ class HwyDataMngTa(HwyDataMngRDF):
     '''
     Highway Data Manager(TomTom)
     '''
-    __instance = None
 
     def __init__(self, ItemName='HwyDataMngTa'):
         '''
@@ -25,9 +24,9 @@ class HwyDataMngTa(HwyDataMngRDF):
 
     @staticmethod
     def instance():
-        if HwyDataMngTa.__instance is None:
-            HwyDataMngTa.__instance = HwyDataMngTa()
-        return HwyDataMngTa.__instance
+        if HwyDataMngRDF._instance is None:
+            HwyDataMngRDF._instance = HwyDataMngTa()
+        return HwyDataMngRDF._instance
 
     def initialize(self):
         self._graph = HwyGraphTa()  # 高速link图

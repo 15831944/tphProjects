@@ -243,7 +243,7 @@ CREATE TABLE temp_junction_tbl
   inlinkid bigint,
   outlinkid bigint,
   nodeid bigint,
-  sky_lyr character varying(30),
+  road_lyr character varying(30),
   arrow character varying(30),
   "time" character varying(20)
 );

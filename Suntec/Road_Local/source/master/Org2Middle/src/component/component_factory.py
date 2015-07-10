@@ -344,7 +344,7 @@ class comp_factory_rdf(comp_factory):
             from component.rdf import shield_rdf
             return shield_rdf.comp_shield_rdf()
         if comp_name == 'Highway':
-            from component.rdf.hwy.highway import HighwayRDF
+            from component.rdf.hwy.highway_rdf import HighwayRDF
             return HighwayRDF()
         if comp_name == 'Highway_Prepare':
             from component.rdf.hwy.hwy_prepare_rdf import HwyPrepareRDF

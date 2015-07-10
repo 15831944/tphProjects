@@ -40,11 +40,14 @@ class HwyExitNameRDF(comp_base):
         dictionary.set_language_code()
         # 道路名称
         self._make_hwy_exit_name()
-        self._make_link_facil()
+        self._make_node_facil()  # 点和设施的关系表
         return 0
 
-    def _make_link_facil(self):
-        return 0
+    def _make_node_facil(self):
+        '''点和设施的关系表.'''
+        self.CreateTable2('mid_node_facil')
+        # 本把Highway Exit POI的ID,看成是元设施ID,
+        # 但是多语言用是的不同的POI, 所以不好处理。
 
     def _make_hwy_exit_name(self):
         temp_file_obj = cache_file.open('link_name')  # 创建临时文件
