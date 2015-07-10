@@ -33,55 +33,54 @@ class rdb_guideinfo_spotguide(ItemBase):
         # 此时必须找到spotguide_tbl.arrowno对应的图片才做spotguide点。
         # arrow_id设置为pic_blob表中对应的图片gid。
         sqlcmd = """
-          INSERT INTO rdb_guideinfo_spotguidepoint
-                 (  in_link_id
-                   ,in_link_id_t
-                   ,node_id
-                   ,node_id_t
-                   ,out_link_id
-                   ,out_link_id_t
-                   ,"type"
-                   ,passlink_count
-                   ,pattern_id
-                   ,arrow_id
-                   ,point_list
-                   ,is_exist_sar
-                  )
-          SELECT  a.tile_link_id
-                , a.tile_id
-                , b.tile_node_id
-                , b.tile_id
-                , c.tile_link_id
-                , c.tile_id
-                , s."type"
-                , s.passlink_cnt
-                , d.gid
-                , case 
-                  when s.arrowno is null then 0
-                  else e.gid end
-                , f.data
-                , s.is_exist_sar
-            FROM 
-            spotguide_tbl as s
-            LEFT JOIN rdb_tile_link as a
-            ON cast(s.inlinkid as bigint) = a.old_link_id
-            LEFT JOIN rdb_tile_node as b
-            ON cast(s.nodeid as bigint) = b.old_node_id
-            LEFT JOIN rdb_tile_link as c
-            ON cast(s.outlinkid as bigint) = c.old_link_id
-            LEFT JOIN temp_guideinfo_pic_blob_id_mapping as d
-            on lower(s.patternno) = lower(d.image_id)
-            LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
-            on lower(s.arrowno) = lower(e.image_id)
-            LEFT JOIN temp_point_list as f
-            on lower(s.arrowno) = lower(f.image_id)
-            where d.gid is not null and 
-            (case
-             when s.arrowno is null then true
-             else e.gid is not null
-             end)
-            order by s.gid;
-          """
+                  INSERT INTO rdb_guideinfo_spotguidepoint
+                         (  in_link_id
+                           ,in_link_id_t
+                           ,node_id
+                           ,node_id_t
+                           ,out_link_id
+                           ,out_link_id_t
+                           ,"type"
+                           ,passlink_count
+                           ,pattern_id
+                           ,arrow_id
+                           ,point_list
+                           ,is_exist_sar
+                          )
+                  SELECT  a.tile_link_id
+                        , a.tile_id
+                        , b.tile_node_id
+                        , b.tile_id
+                        , c.tile_link_id
+                        , c.tile_id
+                        , s."type"
+                        , s.passlink_cnt
+                        , d.gid
+                        , case 
+                          when s.arrowno is null then 0    -- sensis
+                          else e.gid end    -- rdf
+                        , f.data
+                        , s.is_exist_sar
+                    FROM 
+                    spotguide_tbl as s
+                    LEFT JOIN rdb_tile_link as a
+                    ON cast(s.inlinkid as bigint) = a.old_link_id
+                    LEFT JOIN rdb_tile_node as b
+                    ON cast(s.nodeid as bigint) = b.old_node_id
+                    LEFT JOIN rdb_tile_link as c
+                    ON cast(s.outlinkid as bigint) = c.old_link_id
+                    LEFT JOIN temp_guideinfo_pic_blob_id_mapping as d
+                    on lower(s.patternno) = lower(d.image_id)
+                    LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
+                    on lower(s.arrowno) = lower(e.image_id)
+                    LEFT JOIN temp_point_list as f
+                    on lower(s.arrowno) = lower(f.image_id)
+                    where d.gid is not null and
+                          (s.arrowno is null            -- sensis
+                           or e.gid is not null)        -- rdf
+                    order by s.gid;
+                  """
+        
         if self.pg.execute2(sqlcmd) == -1:
             rdb_log.log(self.ItemName, 'query the spot guide data failed.', 'error')
             return -1

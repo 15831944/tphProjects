@@ -14,7 +14,9 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_TOLL
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
@@ -64,11 +66,14 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self._make_facil_same_info()  # 并设情报
         self._make_hwy_store()  # 店铺情报
         self._make_hwy_service()  # 服务情报
+        self.CreateIndex2('mid_temp_hwy_ic_path_road_code_'
+                          'road_seq_node_id_inout_c_fac_idx')
 
     def _make_ic_path(self):
         self.log.info('Start make IC Path.')
         self.pg.connect1()
         self.CreateTable2('mid_temp_hwy_ic_path')
+        self.CreateTable2('mid_temp_hwy_service_road_path')
         for road_code, route_path in self.hwy_data.get_road_code_path():
             self.org_facil_dict = {}  # 清空
             next_seq = ROAD_SEQ_MARGIN
@@ -83,8 +88,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 end_pos = len(route_path) - 1
             path = route_path[:end_pos]
             # 取得线路上所有设施
-            facils_list, sapa_node_dict = self._get_facils_for_path(road_code,
-                                                                    path)
+            all_facils = self._get_facils_for_path(road_code, path)
+            facils_list, sapa_node_dict, service_road_list = all_facils
             # ## 设置设施序号
             sapa_seq_dict = {}  # SAPA node: road_seq
             for node, all_facils in facils_list:
@@ -105,6 +110,10 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     path_type = IC_PATH_TYPE_DICT.get(facilcls)
                     self._store_facil_path(road_code, road_seq, facilcls,
                                            inout_c, path, path_type)
+            # 辅路、类辅路设施
+            for sr_facil_info in service_road_list:
+                inout_c, path = sr_facil_info[1], sr_facil_info[2]
+                self._store_service_road_facil_path(inout_c, path, road_code)
         self.pg.commit1()
         self.log.info('End make IC Path.')
 
@@ -112,9 +121,11 @@ class HwyFacilityRDF(component.component_base.comp_base):
         '''取得线路上所有设施'''
         sapa_node_dict = {}  # SaPa出口:SaPa入口 or SaPa入口:SaPa出口
         facils_list = []
+        service_road_list = []
         # ## 取得设施情报
         for node_idx in range(0, len(route_path)):
             node = route_path[node_idx]
+            # print road_code, node
             all_facils = self.G.get_all_facil(node, road_code,
                                               HWY_ROAD_CODE)
             if not all_facils:
@@ -126,20 +137,36 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     all_facils.append((facilcls, inout, path))
                 else:
                     continue
-            facils_list.append((node, all_facils))
-            for facilcls, inout_c, path in all_facils:
-                if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
-                    node = path[0]
-                    to_node = path[-1]
-                    if to_node in route_path:  # 同一线路
-                        if node not in sapa_node_dict:
-                            sapa_node_dict[node] = set([to_node])
+            temp_facils = []
+            for facil_info in all_facils:
+                facilcls, path = facil_info[0], facil_info[2]
+                # 辅路、类辅路/U-Turn，不要折返(掉头)
+                if facilcls in (HWY_IC_TYPE_SERVICE_ROAD,
+                                HWY_IC_TYPE_UTURN,
+                                HWY_IC_TYPE_JCT):
+                    # 某一条link折返(掉头)
+                    if self.check_turn_back(path):
+                        if facilcls in (HWY_IC_TYPE_SERVICE_ROAD,
+                                        HWY_IC_TYPE_JCT):
+                            print facilcls, path
+                        continue
+                if facilcls == HWY_IC_TYPE_SERVICE_ROAD:  # 辅路、类辅路设施
+                    service_road_list.append(facil_info)
+                else:
+                    temp_facils.append(facil_info)
+                    if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
+                        node = path[0]
+                        to_node = path[-1]
+                        if to_node in route_path:  # 同一线路
+                            if node not in sapa_node_dict:
+                                sapa_node_dict[node] = set([to_node])
+                            else:
+                                sapa_node_dict[node].add(to_node)
                         else:
-                            sapa_node_dict[node].add(to_node)
-                    else:
-                        # print to_node
-                        pass
-        return facils_list, sapa_node_dict
+                            # print to_node
+                            pass
+            facils_list.append((node, temp_facils))
+        return facils_list, sapa_node_dict, service_road_list
 
     def _get_road_seq(self, node, all_facils, road_seq,
                       sapa_node_dict, sapa_seq_dict):
@@ -359,8 +386,13 @@ class HwyFacilityRDF(component.component_base.comp_base):
         4. 两边都有其他设施，但是两边设施类型不一样，U-turn做成JCT
         '''
         self.log.info('Deal with U-Turn.')
+        self.pg.connect1()
         for (u_roadcode, u_roadseq, u_inout,
              path, f_facils, t_facils) in self._get_uturn_fb_sames():
+#             # 某一条link折返(掉头)
+#             if self.check_turn_back(path):
+#                 print 'turn_back:', path
+#                 continue
             # ## 取得起点并设和终点并设中设施种别相同的设施
             f_same_facils = []
             jct_facils = []
@@ -389,6 +421,13 @@ class HwyFacilityRDF(component.component_base.comp_base):
                                            HWY_IC_TYPE_JCT, u_inout,
                                            path, path_type)
         self.pg.commit1()
+
+    def check_turn_back(self, path):
+        '''某一条link折返(掉头)'''
+        for node, third_node in zip(path[0:-2], path[2:]):
+            if node == third_node:
+                return True
+        return False
 
     def _update_sapa_facilcls(self):
         # Update mid_temp_hwy_ic_path表的SAPA facicl_class code
@@ -481,6 +520,10 @@ class HwyFacilityRDF(component.component_base.comp_base):
             # SAPA
             if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
                 facil_name = self._get_sapa_facil_name(road_code, road_seq)
+                if facil_name:
+                    self._store_facil_name(road_code, road_seq, facil_name)
+            elif facilcls in (HWY_IC_TYPE_TOLL,):
+                facil_name = self.G.get_node_name(node_id_list[0])
                 if facil_name:
                     self._store_facil_name(road_code, road_seq, facil_name)
             else:  # JCT/IC
@@ -694,11 +737,11 @@ class HwyFacilityRDF(component.component_base.comp_base):
                               store_cat_id, store_chain_id)
         (
         SELECT distinct road_code, road_seq, 1 as updown_c,
-                        '' as cat_id, b.chain_id
+                        cat_id, b.chain_id
           FROM mid_temp_hwy_sapa_info as a
           LEFT JOIN mid_temp_sapa_store_info as b
           ON a.poi_id = b.poi_id
-          WHERE b.chain_id is not null
+          WHERE b.chain_id is not null and b.chain_id <> ''
           ORDER BY road_code, road_seq, chain_id
         );
         """
@@ -737,6 +780,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
         shopping_corner, postbox, atm = HWY_FALSE, HWY_FALSE, HWY_FALSE
         restaurant, toilet = HWY_FALSE, HWY_FALSE
         for cat_id in cat_id_list:
+            cat_id = int(cat_id)
             if cat_id in SERVICE_GAS_DICT:
                 gas_station = HWY_TRUE
             elif cat_id in SERVICE_INFORMATION_DICT:
@@ -860,6 +904,29 @@ class HwyFacilityRDF(component.component_base.comp_base):
                   node_lid, link_lid, path_type)
         self.pg.execute1(sqlcmd, params)
 
+    def _store_service_road_facil_path(self, inout_c, path, road_code):
+        '''辅路、类辅路设施'''
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_service_road_path(
+                                              inout_c, node_id, to_node_id,
+                                              node_lid, link_lid, road_code)
+           VALUES(%s, %s, %s,
+                  %s, %s, %s)
+        """
+        node_id = path[0]
+        to_node_id = path[-1]
+        node_lid = ','.join([str(node) for node in path])
+        if inout_c == HWY_INOUT_TYPE_OUT:
+            link_list = self.G.get_linkids(path)
+        elif inout_c == HWY_INOUT_TYPE_IN:
+            link_list = self.G.get_linkids(path, reverse=True)
+        else:
+            link_list = []
+        link_lid = ','.join([str(link) for link in link_list])
+        params = (inout_c, node_id, to_node_id,
+                  node_lid, link_lid, road_code)
+        self.pg.execute1(sqlcmd, params)
+
     def _store_facil_name(self, road_code, road_seq, facil_name):
         '''保存设施名称'''
         sqlcmd = """
@@ -930,6 +997,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
 # ==============================================================================
 # キャッシュコーナー/ATM
 SERVICE_ATM_DICT = {3578: None,  # ATM
+                    6000: None,  # Bank
                     }
 # ガソリンスタンド/Gas station
 SERVICE_GAS_DICT = {5540: None,  # Gas station
@@ -950,6 +1018,8 @@ SERVICE_POSTBOX_DICT = {}
 # インフォメーション
 SERVICE_INFORMATION_DICT = {}
 # 未定义服务种别
-SERVICE_UNDEFINED_DICT = {7538: None,  # Auto Service & Maintenance
+SERVICE_UNDEFINED_DICT = {5000: None,  # Business Facility
+                          7538: None,  # Auto Service & Maintenance
                           9992: None,  # Place of Worship
+                          9537: None,  # Clothing Store
                           }

@@ -31,7 +31,7 @@ from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_REGULATION
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
 from component.jdb.hwy.hwy_data_mng import HwyFacilInfo
-from component.jdb.hwy.hwy_def import HWY_INVALID_FACIL_ID
+from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
 NODE_TOLL_FLAG = 1  # 收费站
 
 
@@ -194,7 +194,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 1, 8, 9, 12) and
+          where b.road_type not in (0, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
         );
         """
@@ -216,7 +216,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 1, 8, 9, 12) and
+          where b.road_type not in (0, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
         )
         """
@@ -247,7 +247,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
           ON b.link_id = c.link_id
           WHERE a.link_type in (4, 8, 9) and -- Inner Link/Left/Right
                 c.link_id is null and        -- Does not included
-                b.road_type not in (0, 1, 8, 9, 12) and
+                b.road_type not in (0, 8, 9, 12) and
                 b.link_type not in (3, 5, 7)
         );
         """
@@ -447,30 +447,32 @@ class HwyDataMngRDF(component.component_base.comp_base):
                     break
             # ## 规制情报存到最后一条link
             u, v = node_list[-2], node_list[-1]
-            data = self._graph.get_edge_data(u, v)
-            if data:
-                regulation_list = data.get(HWY_REGULATION)
-                if regulation_list:
-                    regulation_list.append(node_list)
+            if self._graph.has_edge(u, v):
+                data = self._graph.get_edge_data(u, v)
+                if data:
+                    regulation_list = data.get(HWY_REGULATION)
+                    if regulation_list:
+                        regulation_list.append(node_list)
+                    else:
+                        data = {HWY_REGULATION: [node_list]}
+                        self._graph.add_edge(u, v, data)
                 else:
                     data = {HWY_REGULATION: [node_list]}
                     self._graph.add_edge(u, v, data)
-            else:
-                data = {HWY_REGULATION: [node_list]}
-                self._graph.add_edge(u, v, data)
             # ## 规制情报存到第一条link(逆序)
             u, v = node_list[0], node_list[1]
-            data = self._graph.get_edge_data(u, v)
-            if data:
-                regulation_list = data.get(HWY_REGULATION)
-                if regulation_list:
-                    regulation_list.append(node_list[::-1])
+            if self._graph.has_edge(u, v):
+                data = self._graph.get_edge_data(u, v)
+                if data:
+                    regulation_list = data.get(HWY_REGULATION)
+                    if regulation_list:
+                        regulation_list.append(node_list[::-1])
+                    else:
+                        data = {HWY_REGULATION: [node_list[::-1]]}
+                        self._graph.add_edge(u, v, data)
                 else:
                     data = {HWY_REGULATION: [node_list[::-1]]}
                     self._graph.add_edge(u, v, data)
-            else:
-                data = {HWY_REGULATION: [node_list[::-1]]}
-                self._graph.add_edge(u, v, data)
 
     def _get_link_attr(self, sqlcmd):
         for link_info in self.pg.get_batch_data2(sqlcmd, BATCH_SIZE):
@@ -754,7 +756,6 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                  (652209549, 652209497),
                                  (866099728, 866094774),  # 阿根廷
                                  (866107699, 866108659),
-                                 # (起点, 终点)
                                  ]
         return CYCLE_ROUTE_START_END
 
@@ -1022,7 +1023,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
               WHERE facility_id = %s
               ORDER BY node_id
             """
-            self.pg.execute2(sqlcmd, (HWY_INVALID_FACIL_ID, ))
+            self.pg.execute2(sqlcmd, (HWY_INVALID_FACIL_ID_17CY, ))
             for row in self.pg.fetchall2():
                 node_id = row[0]
                 self.__boundary_node_dict[node_id] = None
@@ -1083,6 +1084,23 @@ class HwyDataMngRDF(component.component_base.comp_base):
         row = self.pg.fetchone2()
         if row:
             return row[0]
+        return None
+
+    def get_main_link_fb_facil(self, link_id, reverse=False):
+        '''本线link的前后设施'''
+        sqlcmd = """
+        SELECT forward_ic_no, backward_ic_no
+          FROM highway_mapping
+          where link_id = %s;
+        """
+        self.pg.execute2(sqlcmd, (link_id,))
+        row = self.pg.fetchone2()
+        if row:
+            forward_ic_no, backward_ic_no = row[0:2]
+            if reverse:  # 后方
+                return backward_ic_no
+            else:
+                return forward_ic_no
         return None
 
 # 加洲

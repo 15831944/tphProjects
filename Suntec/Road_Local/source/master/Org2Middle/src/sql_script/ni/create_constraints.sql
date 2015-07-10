@@ -332,3 +332,19 @@ CREATE INDEX temp_towardname_name_poi_id_idx
 ON temp_towardname_name
 USING btree
 (poi_id); 
+
+-----------------------------------------------------
+CREATE INDEX mid_temp_hwy_exit_enter_poi_name_ni_node_id_idx
+  ON mid_temp_hwy_exit_enter_poi_name_ni
+  USING btree
+  (node_id);
+-----------------------------------------------------
+CREATE INDEX org_poi_relation_poi_id1_idx
+  ON org_poi_relation
+  USING btree
+  (poi_id1);
+-----------------------------------------------------
+CREATE INDEX org_poi_relation_poi_id2_idx
+  ON org_poi_relation
+  USING btree
+  (poi_id2);

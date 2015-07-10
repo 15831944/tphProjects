@@ -7,7 +7,7 @@ Created on 2015-5-26
 from component.rdf.hwy.hwy_exit_poi_name_rdf import HwyPoiExitNameRDF
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
 from common import cache_file
-LANG_CODE_DICT = {'1': 'CHI', '3': 'ENG'}
+LANG_CODE_DICT = {'1': 'CHI', '2': 'CHT', '3': 'ENG'}
 POI_TYPE_DICT = {'8301': 'Exit', '8302': 'enter'}
 
 
@@ -63,6 +63,7 @@ class HwyExitEnterNameNi(HwyPoiExitNameRDF):
                            'mid_temp_hwy_exit_enter_poi_name_ni')
         self.pg.commit2()
         cache_file.close(temp_file_obj, True)
+        self.CreateIndex2('mid_temp_hwy_exit_enter_poi_name_ni_node_id_idx')
         self.log.info('end make exit sapa name...')
         return 0
 

@@ -48,7 +48,7 @@ class comp_admin_ni(component.component_base.comp_base):
                 (
                     select a.admincode, cityadcode, 'CHN', st_multi(st_union(the_geom)) as the_geoms
                     from org_admin as a
-                    left join org_d as b
+                    left join org_bp as b
                     on a.admincode = b.admincode and b.kind = '0137'
                     group by a.admincode, cityadcode
                     order by a.admincode, cityadcode               
@@ -72,7 +72,7 @@ class comp_admin_ni(component.component_base.comp_base):
                 (
                     select cityadcode, proadcode, 'CHN', st_multi(st_union(the_geom)) as the_geoms
                     from org_admin as a
-                    left join org_d as b
+                    left join org_bp as b
                     on a.admincode = b.admincode and b.kind = '0137'
                     group by cityadcode, proadcode
                     order by cityadcode, proadcode
@@ -98,7 +98,7 @@ class comp_admin_ni(component.component_base.comp_base):
                 (
                     select proadcode, '100000', 'CHN', st_multi(st_union(the_geom)) as the_geoms
                     from org_admin as a
-                    left join org_d as b
+                    left join org_bp as b
                     on a.admincode = b.admincode and b.kind = '0137'
                     group by proadcode
                     order by proadcode
@@ -122,7 +122,7 @@ class comp_admin_ni(component.component_base.comp_base):
                 (
                     select '100000', '100000', 'CHN', st_multi(st_union(the_geom)) as the_geoms
                     from org_admin as a
-                    inner join org_d as b
+                    inner join org_bp as b
                     on a.admincode = b.admincode and b.kind = '0137'
                     group by kind
                     order by kind                    

@@ -578,8 +578,8 @@ class Highway(component.component_base.comp_base):
         # ## 料金所
         tolls = self.get_tolls(facil_infos)
         if tolls:
-            self.log.error('Tollgate in Start. node=%s'
-                            % facil_infos[0].node_id)
+            self.log.warning('Tollgate in Start. node=%s'
+                             % facil_infos[0].node_id)
         if cycle_flag:  # 环线
             # 按设施种别排序
             return self._sort_facils(facil_infos)
@@ -610,8 +610,8 @@ class Highway(component.component_base.comp_base):
         # ## 料金所
         tolls = self.get_tolls(facil_infos)
         if tolls:
-            self.log.error('Tollgate in End. node=%s'
-                           % facil_infos[0].node_id)
+            self.log.warning('Tollgate in End. node=%s'
+                             % facil_infos[0].node_id)
         if cycle_flag:  # 环线
             # 按设施种别排序
             return self._sort_facils(facil_infos)

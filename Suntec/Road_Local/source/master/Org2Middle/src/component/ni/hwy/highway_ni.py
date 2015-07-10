@@ -29,7 +29,8 @@ class HighwayNi(HighwayRDF):
 
     def initialize(self):
         self.link_id_mapping = HwyLinkMappingNi()
-        self.hwy_exit = HwyExitEnterNameNi()
+        self.hwy_exit_poi = HwyExitEnterNameNi()
+        self.hwy_exit = None
         self.sapa_info = HwySaPaInfoNi()
         self.data_mng = HwyDataMngNi.instance()
         if self.data_mng:

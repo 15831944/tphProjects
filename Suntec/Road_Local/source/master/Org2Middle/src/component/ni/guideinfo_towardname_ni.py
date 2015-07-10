@@ -48,6 +48,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                                 
                '''
         
+        
         self.pg.execute(sqlcmd)
         self.pg.commit2()       
         self.CreateIndex2('temp_poi_find_poi_id_idx')        
@@ -167,9 +168,9 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     select    distinct 
                               a.node as nodeid, 
                               a.inlink as inlinkid,
-                              (case when c.kind = '8301' then 5
-                                    when c.kind = '8380' then 2
-                                    when c.kind = '8381' then 3 end ) as guideattr,
+                              (case when c.kind = '8301' then 1
+                                    when c.kind = '8380' then 4
+                                    when c.kind = '8381' then 5 end ) as guideattr,
                               2 as namekind,
                               b.toward_name as toward_name           
                     from  temp_poi_inlink as a

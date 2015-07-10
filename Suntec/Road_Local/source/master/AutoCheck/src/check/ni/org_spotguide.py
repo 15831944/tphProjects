@@ -126,15 +126,7 @@ class CCheckAllInlinkOutlinkPasslidConnected(platform.TestCase.CTestCase):
             return inres_row[1]
         else:
             return None
-
-# 确认org_br表里的每个node都是分歧点。
-class CCheckAllNodesInBrAreJunctionPoints(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = '''
-                    select 
-                 '''
-        return True #self.pg.getOnlyQueryResult(sqlcmd) == 0
-      
+        
 # 确认根据nodeid，inlinkid，outlinkid可以唯一找到一条org_dm数据
 class CCheckDmDataUnique(platform.TestCase.CTestCase):
     def _do(self):

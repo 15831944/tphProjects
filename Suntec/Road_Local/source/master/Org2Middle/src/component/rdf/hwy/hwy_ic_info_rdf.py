@@ -4,7 +4,7 @@ Created on 2015-3-3
 
 @author: hcz
 '''
-from component.jdb.hwy.hwy_def import HWY_INVALID_FACIL_ID
+from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
@@ -85,8 +85,8 @@ class HwyICInfoRDF(HwyICInfo):
 
     def get_path_info(self):
         '''获取路径情报。'''
-        if(self.facility_id == HWY_INVALID_FACIL_ID  # Tile边界
-           or self.facil_list[0].facilcls == HWY_IC_TYPE_TOLL):  # 收费站
+        if(self.facility_id == HWY_INVALID_FACIL_ID_17CY or  # Tile边界
+           self.facil_list[0].facilcls == HWY_IC_TYPE_TOLL):  # 收费站
             return
         for facil in self.facil_list:
             if facil.inout == HWY_INOUT_TYPE_OUT:
@@ -97,7 +97,7 @@ class HwyICInfoRDF(HwyICInfo):
                 print 'No Path. node=%s' % facil.node_id
 
     def _set_ic_type(self):
-        if self.facility_id == HWY_INVALID_FACIL_ID:
+        if self.facility_id == HWY_INVALID_FACIL_ID_17CY:
             self.boundary = HWY_TRUE
         if self.facil_list[0].facilcls == HWY_IC_TYPE_SA:
             self.sa = HWY_TRUE
@@ -120,8 +120,8 @@ class HwyICInfoRDF(HwyICInfo):
             next_ic_no += 1
             next_facil = self._get_facil(next_ic_no)
         if(next_facil and
-           (self.data_mng.is_same_facil(self.facil_list[0], next_facil)
-            or self._is_identical_facil(self.facil_list[0], next_facil))
+           (self.data_mng.is_same_facil(self.facil_list[0], next_facil) or
+            self._is_identical_facil(self.facil_list[0], next_facil))
            ):
             self.forward_flag = HWY_TRUE
         else:
@@ -135,20 +135,26 @@ class HwyICInfoRDF(HwyICInfo):
             prev_ic_no -= 1
             prev_facil = self._get_facil(prev_ic_no)
         if(prev_facil and
-           (self.data_mng.is_same_facil(self.facil_list[0], prev_facil)
-            or self._is_identical_facil(self.facil_list[0], prev_facil))
+           (self.data_mng.is_same_facil(self.facil_list[0], prev_facil) or
+            self._is_identical_facil(self.facil_list[0], prev_facil))
            ):
             self.reverse_flag = HWY_TRUE
         else:
             self.reverse_flag = HWY_FALSE
+
+    def _check_boundary(self, facil):
+        if facil:
+            if facil.facility_id == HWY_INVALID_FACIL_ID_17CY:
+                return True
+        return False
 
     def _get_facil(self, ic_no):
         ic_no, facility_id, facil_list = self.data_mng.get_ic(ic_no)
         if not ic_no:
             return None
         facil = facil_list[0]
-        if(facil.road_code == self.facil_list[0].road_code
-           and facil.updown == self.facil_list[0].updown):
+        if(facil.road_code == self.facil_list[0].road_code and
+           facil.updown == self.facil_list[0].updown):
             return facil
         return None
 
@@ -648,7 +654,7 @@ class HwyConnInfoRDF(HwyConnInfo):
         # 接续点是处在tile边界
         if self.data_mng.is_boundary_node(conn_node_id):
             # 出口时，边界点在后(边界点ic_no较小)，所以用点脱出link的Tile
-            if self.first_facil.inout == HWY_INOUT_TYPE_OUT:
+            if self.t_facil.inout == HWY_INOUT_TYPE_OUT:
                 # Get out tile id
                 conn_tile_id = self.ic_info._get_out_tile_id(conn_node_id,
                                                              conn_road_code)

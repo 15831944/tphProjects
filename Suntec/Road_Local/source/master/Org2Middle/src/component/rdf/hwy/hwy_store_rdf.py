@@ -144,7 +144,7 @@ class HwyStoreRDF(HwyStore):
                 self.log.warning('No store kind/u_code for store=%s'
                                  % chain_names[0])
             elif store_chain_id:
-                self.log.warning('No store kind/u_code for chain=%s'
-                                 % chain_names[0])
+                self.log.warning('No store kind/u_code for chain_id=%s'
+                                 % store_chain_id)
             else:
                 self.log.error('No store kind/u_code')

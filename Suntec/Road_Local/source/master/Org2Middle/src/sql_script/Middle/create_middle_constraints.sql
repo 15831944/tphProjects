@@ -709,11 +709,6 @@ CREATE INDEX regulation_item_tbl_bak_mainnode_regulation_id_idx
   USING btree
   (regulation_id);
   
-CREATE UNIQUE INDEX highway_mapping_link_id_idx
-  ON highway_mapping
-  USING btree
-  (link_id);
-
 ----------------------------------------------------
 -- language
 CREATE UNIQUE INDEX language_tbl_language_code_idx
@@ -763,6 +758,12 @@ CREATE INDEX highway_mapping_backward_ic_no_idx
   ON highway_mapping
   USING btree
   (backward_ic_no);
+
+----------------------------------------------------
+CREATE INDEX highway_mapping_link_id_idx
+  ON highway_mapping
+  USING btree
+  (link_id);
 
 ----------------------------------------------------
 CREATE INDEX highway_ic_info_ic_no_idx
@@ -1025,7 +1026,7 @@ CREATE INDEX temp_force_guide_patch_link_tbl_objectid
   USING btree
   (objectid);
   
-  
+------------------------------------------------------------------------ 
 CREATE INDEX towardname_tbl_nodeid_idx
   ON towardname_tbl
   USING btree
@@ -1040,3 +1041,27 @@ CREATE INDEX temp_brand_icon_brandname_idx
   ON temp_brand_icon
   USING btree
   (brandname);
+
+------------------------------------------------------------------------ 
+CREATE INDEX mid_temp_hwy_ic_path_road_code_road_seq_node_id_inout_c_fac_idx
+  ON mid_temp_hwy_ic_path
+  USING btree
+  (road_code, road_seq, node_id, inout_c, facilcls_c);
+
+------------------------------------------------------------------------ 
+CREATE INDEX mid_hwy_ic_no_node_id_idx
+  ON mid_hwy_ic_no
+  USING btree
+  (node_id);
+
+------------------------------------------------------------------------ 
+CREATE INDEX mid_hwy_ic_no_node_id_road_code_idx
+  ON mid_hwy_ic_no
+  USING btree
+  (node_id, road_code);
+
+------------------------------------------------------------------------
+CREATE INDEX mid_hwy_ic_no_node_id_road_code_road_seq_updown_idx
+  ON mid_hwy_ic_no
+  USING btree
+  (node_id, road_code, road_seq, updown);

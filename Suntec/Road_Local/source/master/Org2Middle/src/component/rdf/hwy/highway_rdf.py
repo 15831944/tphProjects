@@ -7,11 +7,11 @@ Created on 2015-1-7
 from component.jdb.hwy.hwy_ic_info import convert_tile_id
 from component.jdb.hwy.highway import Highway
 from component.jdb.hwy.hwy_data_mng import HwyFacilInfo
-from component.jdb.hwy.hwy_def import HWY_INVALID_FACIL_ID
 from component.jdb.hwy.hwy_def import IC_TYPE_INVALID
 from component.jdb.hwy.hwy_def import INOUT_TYPE_NONE
 from component.jdb.hwy.hwy_def import INOUT_TYPE_OUT
 from component.jdb.hwy.hwy_def import INOUT_TYPE_IN
+from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
 from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
@@ -61,7 +61,8 @@ class HighwayRDF(Highway):
     def initialize(self):
         self.data_mng = HwyDataMngRDF.instance()
         self.data_mng.initialize()
-        if getProjCountry().upper() == "HKG":  # 香港
+        country = getProjCountry().upper()
+        if country in ("HKG", "ASE", "SGP", "MYS", "THA"):  # 香港, 东南亚
             self.hwy_route = HwyRouteRDF_HKG(self.data_mng)
         else:
             self.hwy_route = HwyRouteRDF(self.data_mng)
@@ -195,9 +196,10 @@ class HighwayRDF(Highway):
                 ic_no += 1
                 curr_idx = next_idx
         self.pg.commit1()
-#         self.CreateIndex2('mid_hwy_ic_no_road_code_road_point_idx')
-#         self.CreateIndex2('mid_hwy_ic_no_node_id_road_code'
-#                           '_road_point_updown_idx')
+        self.CreateIndex2('mid_hwy_ic_no_node_id_idx')
+        self.CreateIndex2('mid_hwy_ic_no_node_id_road_code_idx')
+        self.CreateIndex2('mid_hwy_ic_no_node_id_road_code'
+                          '_road_seq_updown_idx')
         self.log.info('End Make IC NO.')
         return True
 
@@ -229,7 +231,7 @@ class HighwayRDF(Highway):
                 ml_object = MultiLangNameRDF('ENG', HWY_TILE_BOUNDARY_NAME)
                 bd_name = ml_object.json_format_dump()
                 boundary_facil_info = HwyFacilInfo(road_code,
-                                                   HWY_INVALID_FACIL_ID,
+                                                   HWY_INVALID_FACIL_ID_17CY,
                                                    IC_TYPE_INVALID,
                                                    updown,
                                                    node_id,
@@ -337,7 +339,8 @@ class HighwayRDF(Highway):
         UPDATE mid_hwy_ic_no set facility_id = %s
           WHERE road_seq = %s;
         """
-        self.pg.execute2(sqlcmd, (HWY_INVALID_FACIL_ID, HWY_INVALID_FACIL_ID))
+        self.pg.execute2(sqlcmd, (HWY_INVALID_FACIL_ID_17CY,
+                                  HWY_INVALID_FACIL_ID_17CY))
         self.pg.commit2()
 
         # 更新ic_no表的设施id
@@ -448,7 +451,7 @@ class HighwayRDF(Highway):
         self.CreateTable2('highway_toll_info')
         # self.CreateTable2('mid_hwy_node_add_info')
         for ic_no, facility_id, facil_list in self.data_mng.get_ic_list():
-            if facility_id != HWY_INVALID_FACIL_ID:  # 非边界点
+            if facility_id != HWY_INVALID_FACIL_ID_17CY:  # 非边界点
                 ic_info = HwyICInfoRDF(ic_no, facility_id,
                                        facil_list, self.data_mng)
                 ic_info.set_ic_info()  # 设置料金情报

@@ -1672,7 +1672,7 @@ CREATE TABLE rdb_highway_ic_info
   gid              serial not null primary key,
   ic_no            integer not null,
   up_down          smallint not null,
-  facility_id      smallint not null,
+  facility_id      integer not null,
   between_distance smallint not null,
   inside_distance  smallint not null,
   enter            smallint not null,

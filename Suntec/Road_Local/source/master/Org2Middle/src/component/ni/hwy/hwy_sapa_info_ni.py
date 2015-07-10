@@ -23,6 +23,7 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_poi_link')
         self.CreateTable2('mid_temp_hwy_sapa_name')
+        self.CreateTable2('mid_temp_sapa_store_info')
         return 0
 
     def _DoCreateIndex(self):
@@ -31,13 +32,20 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
 
     def _Do(self):
         # POI关联link
+        # 11年
+#         self._make_poi_link_11()
+#         self._make_hwy_sapa_store_info_11()
+#         self._make_hwy_sapa_name_11()
+#         self._make_hwy_store_name_11()
+        # 14年
         self._make_poi_link()
+        self._make_hwy_sapa_store_info()
         self._make_hwy_sapa_name()
         self._make_hwy_store_name()
         return 0
 
     def _make_poi_link(self):
-        '''所有Poi的linkid
+        '''SAPA Poi所在linkid
         '''
         self.log.info('Start Make SAPA link.')
         self.CreateIndex2('org_poi_linkid_idx')
@@ -49,6 +57,7 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
           FROM org_poi AS p
           LEFT JOIN mid_link_mapping as m
           ON p.linkid::bigint = m.org_link_id
+          where p.kind IN ('8380', '8381')
         );
         '''
         self.pg.execute2(sqlcmd)
@@ -105,13 +114,13 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
         INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
                                    chain_id, chain_name, language_code)
         (
-        SELECT distinct u_code, a.kind, 0 as subcat,
-               a.chaincode, a.chaincode as chain_name, 'ENG' as language_code
+        SELECT distinct u_code, a.kind, '' as subcat,
+               a.chaincode, chain_name, 'CHI' as language_code
           FROM org_poi as a
           LEFT JOIN temp_poi_category as b
-          ON a.kind = b.org_code and a.chaincode = b.chaincode
+          ON a.chaincode = b.chaincode AND a.kind = b.org_code
           where a.chaincode <> ''
-          ORDER BY kind
+          ORDER BY chaincode
         );
         """
         self.pg.execute2(sqlcmd)
@@ -122,3 +131,104 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
         if file_obj:
             file_obj.write('%s\t%s\n' % (poi_id, json_name))
         return 0
+
+    def _make_hwy_sapa_store_info(self):
+        '''SAPA的店铺'''
+        self.log.info('Start Make sapa store info.')
+        self.CreateIndex2('org_poi_relation_poi_id1_idx')
+        self.CreateIndex2('org_poi_relation_poi_id2_idx')
+        sqlcmd = '''
+        INSERT INTO mid_temp_sapa_store_info(poi_id, child_poi_id,
+                                             chain_id, cat_id)
+        (
+        SELECT a.poi_id::bigint, c.poi_id::bigint as child_poi_id,
+               c.chaincode as chain_id, c.kind as cat_id
+          FROM org_poi as a
+          INNER JOIN org_poi_relation as b
+          ON a.poi_id = b.poi_id1
+          LEFT JOIN org_poi as C
+          ON b.poi_id2 = c.poi_id
+          where a.kind IN ('8380', '8381')
+          ORDER BY a.poi_id
+        );
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        return 0
+
+    def _make_poi_link_11(self):
+        '''SAPA POI所在linkid(11年数据)
+        '''
+        self.log.info('Start Make SAPA link.')
+        sqlcmd = """
+        -----------------------------------------------------
+        DROP INDEX if exists org_p_linkid_idx;
+        CREATE INDEX org_p_linkid_idx
+          ON org_p
+          USING btree
+          (linkid);
+        -----------------------------------------------------
+        DROP INDEX if exists org_p_linkid_idx2;
+        CREATE INDEX org_p_linkid_idx2
+          ON org_p
+          USING btree
+          ((linkid::bigint));
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        sqlcmd = '''
+        INSERT INTO mid_temp_poi_link(poi_id, link_id)
+        (
+        SELECT distinct poi_id::bigint, m.link_id
+          FROM org_p AS p
+          LEFT JOIN mid_link_mapping as m
+          ON p.linkid::bigint = m.org_link_id
+          where p.kind IN ('8380', '8381')
+        );
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        return 0
+
+    def _make_hwy_sapa_store_info_11(self):
+        '''SAPA的店铺'''
+        self.log.info('Start Make sapa store info.')
+        sqlcmd = """
+        DROP INDEX if exists org_p_poi_id_idx;
+        CREATE INDEX org_p_poi_id_idx
+          ON org_p
+          USING btree
+          (poi_id);
+
+        DROP INDEX if exists org_p_pa_poi_id_idx;
+        CREATE INDEX org_p_pa_poi_id_idx
+          ON org_p
+          USING btree
+          (pa_poi_id);
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+        sqlcmd = '''
+        INSERT INTO mid_temp_sapa_store_info(poi_id, child_poi_id,
+                                             chain_id, cat_id)
+        (
+        SELECT a.poi_id::bigint,  b.poi_id::bigint as child_poi_id,
+               b.chaincode as chain_id, b.kind as cat_id
+          FROM org_p as a
+          INNER JOIN org_p as b
+          ON a.poi_id = b.pa_poi_id
+          where a.kind IN ('8380', '8381')
+          ORDER BY a.poi_id
+        );
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        return 0
+
+    def _make_hwy_sapa_name_11(self):
+        return 0
+
+    def _make_hwy_store_name_11(self):
+        '''Store or Chain Name'''
+        self.CreateTable2('hwy_chain_name')

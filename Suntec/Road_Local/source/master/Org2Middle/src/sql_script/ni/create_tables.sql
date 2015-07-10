@@ -25,6 +25,13 @@ CREATE TABLE temp_trfcsign_type_picid
 ); 
 
 --------------------------------------------------------------------------------------------------------
+CREATE TABLE temp_trfcsign_type_data_kind
+(
+  trfcsign_type integer primary key,
+  data_kind integer NOT NULL
+); 
+
+--------------------------------------------------------------------------------------------------------
 CREATE TABLE temp_admin_wavid
 (
   ad_cd integer primary key,
@@ -289,7 +296,7 @@ CREATE TABLE temp_node_z_level_tbl
 --------------------------------------------------------------------------------------------------------
 CREATE TABLE mid_temp_hwy_exit_enter_poi_name_ni
 (
-   node_id         bigint not null primary key,
+   node_id         bigint not null,
    poi_id          bigint not null,
    kind            character varying(8) not null,     -- Enter/Exit
    name            character varying(1024) not null   --JSON

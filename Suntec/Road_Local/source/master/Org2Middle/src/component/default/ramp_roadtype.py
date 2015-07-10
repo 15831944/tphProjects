@@ -28,8 +28,6 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             return -1
         if self.CreateTable2('temp_link_ramp_toohigh_single_path') == -1:
             return -1
-        if self.CreateTable2('temp_update_ramp_link_node') == -1:
-            return -1
         return 0
     
     def _DoCreateFunction(self):

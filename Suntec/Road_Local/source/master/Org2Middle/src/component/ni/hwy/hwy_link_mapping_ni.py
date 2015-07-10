@@ -60,15 +60,14 @@ class HwyLinkMappingNi(HwyLinkMapping):
         return False
 
     def _check_org_link_id_mapping(self):
-        return True
         sqlcmd = """
-        SELECT COUNT(*)
+         SELECT COUNT(*)
           FROM (
-            SELECT m.org_link_id, l.link_id
-              FROM  temp_rdf_nav_link as l, mid_link_mapping as m
-              where l.link_id = m.org_link_id
+            SELECT m.org_link_id, l.id::bigint
+              FROM  org_r as l, mid_link_mapping as m
+              where l.id::bigint = m.org_link_id
           ) as a
-          where org_link_id is NUll or link_id is NUll;
+          where org_link_id is NUll or id is NUll;
         """
         self.pg.execute2(sqlcmd)
         row = self.pg.fetchone2()

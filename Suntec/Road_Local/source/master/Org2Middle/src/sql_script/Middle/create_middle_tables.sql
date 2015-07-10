@@ -384,12 +384,6 @@ CREATE TABLE temp_link_ramp_toohigh_single_path
   new_fc smallint
 );
 
-CREATE TABLE temp_update_ramp_link_node
-(
-	link_id bigint,
-	node_id bigint
-);
-
 create table temp_merge_node_keep
 as
 (
@@ -1590,7 +1584,7 @@ CREATE TABLE highway_ic_info
   gid              serial not null,
   ic_no            integer not null,
   up_down          smallint not null,
-  facility_id      smallint not null,
+  facility_id      integer not null,
   between_distance float not null,
   inside_distance  float not null,
   enter            smallint not null,
@@ -1644,7 +1638,7 @@ create table highway_road_info
 CREATE TABLE highway_conn_info
 (
   gid                 serial not null primary key, 
-  ic_no               smallint not null,
+  ic_no               integer not null,
   road_attr           smallint not null,
   conn_direction      smallint not null,
   same_road_flag      smallint not null,
@@ -1655,7 +1649,7 @@ CREATE TABLE highway_conn_info
   vics_flag           smallint not null,
   toll_flag           smallint not null,
   conn_road_no        smallint not null,
-  conn_ic_no          smallint not null,
+  conn_ic_no          integer not null,
   conn_link_length    float not null,
   conn_tile_id        integer not null,
   --toll_index          smallint not null,    
@@ -1775,8 +1769,8 @@ create table highway_mapping
   road_no        smallint,
   display_class  smallint,
   link_id        bigint not null,
-  forward_ic_no  smallint,
-  backward_ic_no smallint,
+  forward_ic_no  integer,
+  backward_ic_no integer,
   path_type      character varying(10),
   tile_id        integer not null
 );
@@ -2317,6 +2311,19 @@ CREATE TABLE mid_temp_hwy_ic_path
 
 ------------------------------------------------------------------------
 --
+CREATE TABLE mid_temp_hwy_service_road_path
+(
+   gid             serial not null primary key,
+   inout_c         integer not null,
+   node_id         bigint not null,
+   to_node_id      bigint not null,
+   node_lid        character varying not null,
+   link_lid        character varying not null,
+   road_code       integer not null
+);
+
+------------------------------------------------------------------------
+--
 CREATE TABLE hwy_same_info
 (
   gid            serial NOT NULL PRIMARY KEY,
@@ -2389,7 +2396,7 @@ CREATE TABLE mid_temp_hwy_ic_link_mapping
   fwd_ic_no         integer,
   fwd_facility_id   integer,
   link_id           bigint not null,
-  path_type         character varying(8),
+  path_type         character varying(12),
   toll_flag         smallint  -- 1: toll, 0: No Toll
 );
 
@@ -2435,10 +2442,10 @@ CREATE TABLE mid_temp_poi_link
 --
 CREATE TABLE mid_temp_sapa_store_info
 (
-  poi_id             bigint not null,
+  poi_id             bigint not null,   -- SAPA poi id
   child_poi_id       bigint not null,
   chain_id           character varying(13),
-  cat_id             bigint not null,
+  cat_id             character varying(4) not null,
   subcat             bigint,
   chain_name         character varying
 );
@@ -2511,7 +2518,7 @@ CREATE TABLE hook_turn_tbl
 CREATE TABLE mid_temp_sapa_path_link(
   link_id      bigint not null primary key,
   link_type    smallint not null,
-  toll_flag    smallint    -- 1: Hwy, 0: No toll section
+  toll_flag    smallint DEFAULT 1   -- 1: Hwy, 0: No toll section
 );
 
 ------------------------------------------------------------------------
@@ -2519,7 +2526,22 @@ CREATE TABLE mid_temp_sapa_path_link(
 CREATE TABLE mid_temp_jct_path_link(
   link_id      bigint not null primary key,
   link_type    smallint not null,
-  toll_flag    smallint    -- 1: Hwy, 0: No toll section
+  toll_flag    smallint DEFAULT 1   -- 1: Hwy, 0: No toll section
+);
+
+------------------------------------------------------------------------
+-- All links of IC UTurn Pathes
+CREATE TABLE mid_temp_ic_turn_path_link(
+  link_id      bigint not null primary key,
+  link_type    smallint not null,
+  toll_flag    smallint  DEFAULT 1  -- 1: Hwy, 0: No toll section
+);
+
+------------------------------------------------------------------------
+-- All links of sevice road Pathes
+CREATE TABLE mid_temp_sevice_road_path_link(
+  link_id      bigint not null primary key,
+  link_type    smallint not null
 );
 
 ------------------------------------------------------------------------

@@ -37,6 +37,32 @@ class CCheckNameID(platform.TestCase.CTestCase):
                 return True
         else:
             return False
+
+
+class CCheckUnique(platform.TestCase.CTestCase): 
+    '''检查结果是否有重复''' 
     
+    def _do(self):    
+        sqlcmd = '''
+                select count(*)
+                from
+                (
+                    select in_link_id,node_id,toward_name
+                    from rdb_guideinfo_towardname as a
+                    group by in_link_id, node_id, toward_name having count(*)>1
+                ) as b
+                         
+                '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)          
+
+        return (rec_count == 0 ) 
+    
+
+    
+    
+    
+    
+    
+
 
         

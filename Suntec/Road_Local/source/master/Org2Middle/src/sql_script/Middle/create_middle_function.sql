@@ -276,10 +276,6 @@ BEGIN
 		loop
 			-- set road end flag, current link is road end point
 			bRoadEnd	:= False;
-			if rec.link_type in (0,3,5) then
-				insert into temp_update_ramp_link_node(link_id,node_id)
-				values (rec.nextlink,rec.nextnode);
-			end if;
 			--raise INFO 'nextnode = %', rec.nextnode;
 			tmpPath		:= tmpPathArray[tmpPathIndex];
 			
@@ -349,11 +345,9 @@ BEGIN
 	for rec in
 		select a.link_id, a.s_node, a.e_node, a.one_way_code, a.road_type, a.function_class 
 		from link_tbl a 
-		left join temp_update_ramp_link_node b on a.link_id = b.link_id
-	    left join temp_update_ramp_link_node c on a.one_way_code=2 and a.s_node=c.node_id or a.one_way_code=3 and a.e_node=c.node_id or (a.one_way_code=1 and
-		(a.s_node=c.node_id or a.e_node=c.node_id)) 
+		left join temp_link_ramp b on a.link_id = b.link_id
         where a.link_type in (3,5) and a.road_type in (0,1) and a.one_way_code<>4
-        and b.link_id is null and c.node_id is null 
+        and b.link_id is null 
 		
 	loop
 		if rec.one_way_code in (1,2) then
@@ -373,7 +367,6 @@ BEGIN
         select link_id, min(new_road_type), max(new_fc)
         from temp_link_ramp_toohigh_single_path
         group by link_id
-        
     );
 	
 	RETURN 1;

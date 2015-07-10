@@ -29,6 +29,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_def_rdf import ANGLE_10
 from component.rdf.hwy.hwy_def_rdf import ANGLE_30
 from component.rdf.hwy.hwy_def_rdf import ANGLE_60
@@ -51,7 +52,6 @@ HWY_PATH_ID = "path_id"
 HWY_LINK_TYPE = "link_type"
 HWY_ROAD_TYPE = "road_type"
 HWY_LINK_LENGTH = "length"
-HWY_ROAD_CODE = "road_code"
 HWY_FACIL_CLASS = "facil_cls"  # 设施类型/种别
 HWY_DISP_CLASS = "display_class"
 HWY_TILE_ID = "tile_id"
@@ -118,6 +118,9 @@ class HwyGraphRDF(HwyGraph):
         if not self.has_edge(u, v):
             return None
         return self[u][v].get(field)
+
+    def get_node_name(self, node):
+        return self[node].get(HWY_NODE_NAME)
 
     def get_main_path_by_similar(self, u, v):
         '''取得本线道路片段路径从开关、分歧、合流到结尾，分歧、合流之间的段路径。(本线)'''
@@ -544,10 +547,11 @@ class HwyGraphRDF(HwyGraph):
             in_angle = self.get_zm_angle(in_edge, in_u)
             out_angle = self.get_zm_angle(out_edge, out_v)
         if in_angle is None:
-            raise nx.NetworkXError('No angle. edge=%s' % in_edge)
+            raise nx.NetworkXError('No angle. edge=(%s, %s)' % in_edge)
             return None
         if out_angle is None:
-            raise nx.NetworkXError('No angle. edge=%s' % out_edge)
+            raise nx.NetworkXError('No angle. edge=(%s, %s)'
+                                   % out_edge)
         angle = abs(out_angle - in_angle) % ANGLE_360
         return angle
 
@@ -611,9 +615,9 @@ class HwyGraphRDF(HwyGraph):
                                        same_code=True, reverse=False)
         if out_nodes and len(out_nodes) == 1:
             out_node = out_nodes[0]
-            for path, facilcls in self.__all_facil_path2(node, out_node,
-                                                         road_code, code_field,
-                                                         reverse=True):
+            for path, facilcls in self._all_facil_path(node, out_node,
+                                                       road_code, code_field,
+                                                       reverse=True):
                 types.add((facilcls, HWY_INOUT_TYPE_IN))
         if len(out_nodes) > 1:
             raise nx.NetworkXError('Multi Out Main Links. node=%s ' % node)
@@ -622,20 +626,20 @@ class HwyGraphRDF(HwyGraph):
                                       same_code=True, reverse=True)
         if in_nodes and len(in_nodes) == 1:
             in_node = in_nodes[0]
-            for path, facilcls in self.__all_facil_path2(in_node, node,
-                                                         road_code, code_field,
-                                                         reverse=False):
+            for path, facilcls in self._all_facil_path(in_node, node,
+                                                       road_code, code_field,
+                                                       reverse=False):
                 types.add((facilcls, HWY_INOUT_TYPE_OUT))
         if len(in_nodes) > 1:
             raise nx.NetworkXError('Multi In Main Links. node=%s ' % node)
         return types
         # ########################
-        for path, facilcls in self.__all_facil_path(node, road_code,
-                                                    code_field, reverse=True):
+        for path, facilcls in self._all_facil_path(node, road_code,
+                                                   code_field, reverse=True):
             types.add((facilcls, HWY_INOUT_TYPE_IN))
         # 出口/分歧
-        for path, facilcls in self.__all_facil_path(node, road_code,
-                                                    code_field, reverse=False):
+        for path, facilcls in self._all_facil_path(node, road_code,
+                                                   code_field, reverse=False):
             types.add((facilcls, HWY_INOUT_TYPE_OUT))
         return types
 
@@ -654,9 +658,9 @@ class HwyGraphRDF(HwyGraph):
                                        same_code=True, reverse=False)
         if out_nodes and len(out_nodes) == 1:
             out_node = out_nodes[0]
-            for path, facilcls in self.__all_facil_path2(node, out_node,
-                                                         road_code, code_field,
-                                                         reverse=True):
+            for path, facilcls in self._all_facil_path(node, out_node,
+                                                       road_code, code_field,
+                                                       reverse=True):
                 if facilcls != HWY_IC_TYPE_VIRTUAl_JCT:
                     all_facils.append((facilcls, HWY_INOUT_TYPE_IN, path))
         if len(out_nodes) > 1:
@@ -666,9 +670,9 @@ class HwyGraphRDF(HwyGraph):
                                       same_code=True, reverse=True)
         if in_nodes and len(in_nodes) == 1:
             in_node = in_nodes[0]
-            for path, facilcls in self.__all_facil_path2(in_node, node,
-                                                         road_code, code_field,
-                                                         reverse=False):
+            for path, facilcls in self._all_facil_path(in_node, node,
+                                                       road_code, code_field,
+                                                       reverse=False):
                 if facilcls != HWY_IC_TYPE_VIRTUAl_JCT:
                     all_facils.append((facilcls, HWY_INOUT_TYPE_OUT, path))
         if len(in_nodes) > 1:
@@ -714,7 +718,8 @@ class HwyGraphRDF(HwyGraph):
             if(road_type in HWY_ROAD_TYPE_HWY and  # 高速
                link_type not in (HWY_LINK_TYPE_INNER,
                                  HWY_LINK_TYPE_RTURN,
-                                 HWY_LINK_TYPE_LTURN) and
+                                 HWY_LINK_TYPE_LTURN,
+                                 HWY_LINK_TYPE_SAPA) and
                self.has_edge(temp_v, temp_u)):  # 双向道路
                 return True
         if inner_num >= 2:
@@ -881,10 +886,11 @@ class HwyGraphRDF(HwyGraph):
                 return False
         return True
 
-    def __all_facil_path2(self, u, v, road_code,
-                          code_field=HWY_ROAD_CODE,
-                          reverse=False, cutoff=MAX_CUT_OFF):
+    def _all_facil_path(self, u, v, road_code,
+                        code_field=HWY_ROAD_CODE,
+                        reverse=False, cutoff=MAX_CUT_OFF):
         ''''''
+        MAX_COUNT = 2
         sapa_link = False
         exist_sapa_facil = False
         both_sapa_cnt = 0
@@ -898,14 +904,12 @@ class HwyGraphRDF(HwyGraph):
             visited = [u, v]
         if source not in self:
             return
-        # if source in (20360201933504,):
-        #     print road_code
+        # if source == 235629139:
+        #    pass
         if self.is_hwy_inout(visited, reverse):  # 本线直接和一般道直接相连
             yield visited[1:], HWY_IC_TYPE_IC
         if self.is_jct(visited, road_code, code_field, reverse):  # 本线和本线直接相连
             yield visited[1:], HWY_IC_TYPE_JCT
-        # visited = [source]
-        # stack = [iter(self[source])]
         nodes = self._get_not_main_link(visited[-1], code_field, reverse)
         if not nodes:  # 没有分歧/合流
             return
@@ -927,7 +931,11 @@ class HwyGraphRDF(HwyGraph):
                     both_sapa_cnt -= 1
                 stack.pop()
                 visited.pop()
-            elif len(visited) >= 2 and child == visited[-2]:  # 折返
+            elif(len(visited) >= 2 and child == visited[-2] and  # 折返
+                 not self._is_cuted_road_end(visited[-1])):  # 不是断头路的最后一个点
+                # 即 不是断头路的最后一个点, 不能折返
+                continue
+            elif temp_path.count(child) > MAX_COUNT:
                 continue
             elif not self.check_regulation(temp_path, reverse):
                 continue
@@ -944,12 +952,18 @@ class HwyGraphRDF(HwyGraph):
                     out_edge = (child, visited[-1])
                 else:  # 顺
                     out_edge = (visited[-1], child)
+                out_data = self[out_edge[0]][out_edge[1]]
                 # 本线和SAPA link直接相连
                 if(len(visited) == 2 and
                    self.is_sapa_link(out_edge[0], out_edge[1])):
                     # not self.has_edge(out_edge[1], out_edge[0])):
                     sapa_link = True
-                if self.is_jct(temp_path, road_code, code_field, reverse):
+                if(len(visited) > 2 and
+                   self.is_normal_inner_link(out_data) and  # 一般道Inner Link
+                   not self._one_in_one_out(visited[-1], code_field)):
+                    # 即, 当前是Inner link，起点有多条相连link(一进一出)
+                    continue
+                elif self.is_jct(temp_path, road_code, code_field, reverse):
                     for uturn_info in self.get_uturns(temp_path, road_code,
                                                       code_field, reverse):
                         uturn_flg = uturn_info[-1]
@@ -968,11 +982,11 @@ class HwyGraphRDF(HwyGraph):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                     else:
-                        continue
+                        # 辅路、类辅路设施
+                        yield temp_path[1:], HWY_IC_TYPE_SERVICE_ROAD
                 # 和一般道交汇
                 if self.is_hwy_inout(temp_path, reverse):
                     yield temp_path[1:], HWY_IC_TYPE_IC
-                    out_data = self[out_edge[0]][out_edge[1]]
                     ignore_inner = True
                     # 一般道Inner Link
                     if self.is_normal_inner_link(out_data):
@@ -1018,7 +1032,7 @@ class HwyGraphRDF(HwyGraph):
     def _all_sapa_path(self, u, v, road_code,
                        code_field=HWY_ROAD_CODE,
                        reverse=False, cutoff=MAX_CUT_OFF/2):
-        # 从SAPA点找到另外一个SAPA点(__all_facil_path2找不到路的情况下，才使用)
+        # 从SAPA点找到另外一个SAPA点(_all_facil_path2找不到路的情况下，才使用)
         if cutoff < 1:
             return
         if reverse:  # 逆
@@ -1088,7 +1102,9 @@ class HwyGraphRDF(HwyGraph):
                link_type not in (HWY_LINK_TYPE_INNER,
                                  HWY_LINK_TYPE_RTURN,
                                  HWY_LINK_TYPE_LTURN,
-                                 HWY_LINK_TYPE_SAPA)):
+                                 HWY_LINK_TYPE_SAPA,
+                                 HWY_LINK_TYPE_RAMP
+                                 )):
                 continue
             road_type = data.get(HWY_ROAD_TYPE)
             if road_type in HWY_ROAD_TYPE_HWY:
@@ -1107,7 +1123,7 @@ class HwyGraphRDF(HwyGraph):
                         nodes.append(v)
         return nodes
 
-    def get_main_link(self, node, road_code, code_field,
+    def get_main_link(self, node, road_code, code_field=HWY_ROAD_CODE,
                       same_code=False, reverse=False):
         '''本线高速link'''
         nodes = []
@@ -1153,9 +1169,9 @@ class HwyGraphRDF(HwyGraph):
         for temp_u, temp_v, data in edges_iter:
             out_edge = temp_u, temp_v
             # 夹角小于90度
-            angle = self.get_angle(in_edge, out_edge, reverse)
-            if not self._bigger_inout_min_angle(angle):
-                continue
+#             angle = self.get_angle(in_edge, out_edge, reverse)
+#             if not self._bigger_inout_min_angle(angle):
+#                 continue
             # 注：这里没有考虑角度
             if self.has_edge(temp_v, temp_u):  # 双向道路
                 if reverse:  # 逆
@@ -1212,6 +1228,35 @@ class HwyGraphRDF(HwyGraph):
                 if match_flag:
                     return False  # 路被规制
         return True
+
+    def _is_cuted_road_end(self, node):
+        '''断头路的最后一个点'''
+        in_deges = self.in_edges(node, False)
+        out_edges = self.out_edges(node, False)
+        if len(in_deges) + len(out_edges) <= 1:
+            return True
+        if len(in_deges) == 1 and len(out_edges) == 1:
+            in_node = in_deges[0][0]
+            out_node = out_edges[0][1]
+            if in_node == out_node:
+                return True
+        return False
+
+    def _one_in_one_out(self, node, code_field=HWY_ROAD_CODE):
+        '''点只有两条(不抱包括高速本线)相连link(一进一出)'''
+        out_nodes = []
+        in_nodes = []
+        for node, v, data in self.out_edges_iter(node, True):
+            if not data.get(code_field):  # 本线
+                out_nodes.append(v)
+        for u, node, data in self.in_edges_iter(node, True):
+            if not data.get(code_field):  # 本线
+                in_nodes.append(u)
+        if(len(out_nodes) in (1, 2) and
+           len(in_nodes) in (1, 2)):
+            if len(set(out_nodes + in_nodes)) == 2:
+                return True
+        return False
 
 
 # ==============================================================================

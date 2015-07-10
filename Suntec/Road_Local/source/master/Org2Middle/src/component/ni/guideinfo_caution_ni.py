@@ -10,6 +10,7 @@ Created on 2015-5-4
 import io
 import common.common_func
 import component.default.guideinfo_caution
+import os
 
 class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guideinfo_caution):
     def __init__(self):
@@ -46,6 +47,7 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         self._create_temp_trfcsign_type_wavid()
         self._create_temp_trfcsign_type_picid()
+        self._create_temp_trfcsign_type_data_kind()
         self._create_temp_trfcsign_caution_tbl()
         
         return 0
@@ -95,10 +97,12 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         self.CreateTable2('temp_trfcsign_type_wavid')
         
         trfcsign_type_wav_path = common.common_func.GetPath('trfcsign_type_wav')
-        f = io.open(trfcsign_type_wav_path, 'r', 8192, 'utf8')
-        self.pg.copy_from2(f, 'temp_trfcsign_type_wavid', ',')       
-        self.pg.commit2()
-        f.close()
+        if trfcsign_type_wav_path:
+            if os.path.exists(trfcsign_type_wav_path):
+                f = io.open(trfcsign_type_wav_path, 'r', 8192, 'utf8')
+                self.pg.copy_from2(f, 'temp_trfcsign_type_wavid', ',')
+                self.pg.commit2()
+                f.close()
         
         self.log.info('making temp_trfcsign_type_wavid succeeded')
         return 0
@@ -110,12 +114,31 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         self.CreateTable2('temp_trfcsign_type_picid')
 
         trfcsign_type_pic_path = common.common_func.GetPath('trfcsign_type_pic')
-        f = io.open(trfcsign_type_pic_path, 'r', 8192, 'utf8')
-        self.pg.copy_from2(f, 'temp_trfcsign_type_picid', ',')       
-        self.pg.commit2()
-        f.close()
+        if trfcsign_type_pic_path:
+            if os.path.exists(trfcsign_type_pic_path):
+                f = io.open(trfcsign_type_pic_path, 'r', 8192, 'utf8')
+                self.pg.copy_from2(f, 'temp_trfcsign_type_picid', ',')       
+                self.pg.commit2()
+                f.close()
         
         self.log.info('making temp_trfcsign_type_picid succeeded')
+        return 0
+    
+    def _create_temp_trfcsign_type_data_kind(self): 
+        self.log.info('Now it is making temp_trfcsign_type_data_kind...')
+        
+        # create a relationship between traffic sign type and pic id 
+        self.CreateTable2('temp_trfcsign_type_data_kind')
+
+        trfcsign_type2data_kind_path = common.common_func.GetPath('trfcsign_type2data_kind')
+        if trfcsign_type2data_kind_path:
+            if os.path.exists(trfcsign_type2data_kind_path):
+                f = io.open(trfcsign_type2data_kind_path, 'r', 8192, 'utf8')
+                self.pg.copy_from2(f, 'temp_trfcsign_type_data_kind', ',')       
+                self.pg.commit2()
+                f.close()
+        
+        self.log.info('making temp_trfcsign_type_data_kind succeeded')
         return 0
     
     def _create_temp_trfcsign_caution_tbl(self):   
@@ -135,12 +158,12 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                 )
                 select 
                     inlinkid, nodeid, type, 
-                    5 as data_kind,
+                    data_kind,
                     voice_id, image_id, 
                     e.the_geom as inlink_geom
                 from (
                     select 
-                        inlinkid::bigint, nodeid::bigint, type::integer,
+                        inlinkid::bigint, nodeid::bigint, type::integer, f.data_kind,
                         b.wav_id as voice_id, 
                         c.pic_id as image_id
                     from org_trfcsign a
@@ -148,6 +171,8 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                         on type::integer = b.trfcsign_type
                     left join temp_trfcsign_type_picid c
                         on type::integer = c.trfcsign_type
+                    left join temp_trfcsign_type_data_kind f
+                        on type::integer = f.trfcsign_type
                     order by type, inlinkid, nodeid
                 ) as d
                 left join link_tbl e

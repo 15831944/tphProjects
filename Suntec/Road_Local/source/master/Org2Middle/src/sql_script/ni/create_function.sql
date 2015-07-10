@@ -262,15 +262,15 @@ CREATE OR REPLACE FUNCTION ni_cnv_link_type( kind varchar)
 BEGIN
 
 	return case
-		when kind like '%00' or kind like '%00|%' then 0
+		when kind like '%00' or kind like '%00|%' then 0	
 		when kind like '%03' or kind like '%03|%' then 3 
+		when kind like '%06' or kind like '%06|%'
+			or kind like '%07' or kind like '%07|%' then 7			
 		when kind like '%05' or kind like '%05|%'
 		    or kind like '%0b' or kind like '%0b|%' then 5 		
 		when kind like '%04' or kind like '%04|%' then 4 
 		when kind like '%12' or kind like '%12|%' then 8 
-		when kind like '%15' or kind like '%15|%' then 9 
-		when kind like '%06' or kind like '%06|%'
-			or kind like '%07' or kind like '%07|%' then 7 
+		when kind like '%15' or kind like '%15|%' then 9  
 		when kind like '%0a' or kind like '%0a|%' then 6 
 		when kind like '%02' or kind like '%02|%' then 2  
 		else 1
@@ -1145,9 +1145,11 @@ CREATE OR REPLACE FUNCTION ni_mid_search_poi_inlink(poi_id varchar, link varchar
 		links bigint[];
 		i integer;
 		slink bigint;
+		flag  smallint;
 BEGIN
     links := array_append(links,link::bigint);
     i := 1;
+    flag := 0;
     while i <= array_length(links,1) 
     loop
         slink := links[i];		
@@ -1165,7 +1167,8 @@ BEGIN
 
         if link_type1 in (1,2) and road_type1 in (0,1) then
           insert into temp_poi_inlink(poi_id, inlink, node) 
-            values(poi_id::bigint,temp_link,enode);		
+            values(poi_id::bigint,temp_link,enode);	
+            flag := flag + 1;	
         else	
                  
             for rec in 
@@ -1205,7 +1208,11 @@ BEGIN
 		i := i + 1;
 				
 	end loop;
-	return 0;
+  if flag = 0 then
+  raise warning 'not find inlink, poi_id = %', poi_id;
+  end if;
+  --return 0;
+	return flag;
 END;
 $$;
 		

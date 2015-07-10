@@ -73,8 +73,12 @@ class comp_link_ni(component.component_base.comp_base):
                     null as pass_code, null as pass_code_condition, 
                     road_name, road_number, 0 as name_type, 
                     ownership, 1 as car_only, null as slope_code, null as slope_angle, 
-                    disobey_flag, up_down_distinguish, null as access, 0 as extend_flag, 
-                    0 as etc_only_flag, urban, the_geom
+                    disobey_flag, up_down_distinguish, null as access, 
+                    case when folder in ('aomen', 'xianggang') then 1
+                        else 0 
+                    end as extend_flag, 
+                    0 as etc_only_flag, 
+                    urban, the_geom
               from 
               (
                   select  
@@ -115,6 +119,7 @@ class comp_link_ni(component.component_base.comp_base):
                         ST_Length_Spheroid( 
                             a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)' 
                         ) as length,
+                        folder,
                         ST_LineMerge( a.the_geom ) as the_geom
                   from org_r a
                   left join temp_link_name n

@@ -274,7 +274,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         path_length = 0
         for u, v in zip(path[0:-1], path[1:]):
             data = self.G[u][v]
-            link_length = data.get("length")
+            link_length = data.get(HWY_LINK_LENGTH)
             if link_length:
                 path_length += link_length
             else:
@@ -284,15 +284,13 @@ class HwyRouteRDF(component.component_base.comp_base):
 
     def _make_side_path(self):
         '''计算辅路'''
-        # side_path = {}
-        # recal_path = {}  # 需重新拼接的线路
         side_path, main_path, path_node_list = self._get_side_path()
         # 更新图内侧道的link_type
         self._update_link_type(path_node_list, HWY_LINK_TYPE_SIDE)
         # 保存辅路信息
         self._update_path(side_path, side_path_flg=HWY_TRUE)
         # ## 和侧道并行的主路，要重新拼接
-        self.data_mng.load_hwy_path()
+        self.data_mng.load_hwy_path()  # 加载高速线路图
         path_G = self.data_mng.get_path_graph()  # 路径的图
         new_path_id = self.data_mng.get_max_path_id() + 1
         old_path_ids = []
@@ -365,23 +363,37 @@ class HwyRouteRDF(component.component_base.comp_base):
             # ## 首尾重叠
             curr_num = self._get_hwy_node_num(path)
             other_num = self._get_hwy_node_num(other_path)
+            del_path1 = True
             if curr_num > other_num:
+                del_path1 = True
+            elif curr_num < other_num:
+                del_path1 = False
+            else:
+                length1 = self._get_path_length(path)
+                length2 = self._get_path_length(other_path)
+                if length1 > length2:
+                    del_path1 = True
+                elif length1 < length2:
+                    del_path1 = False
+                else:
+                    self.log.error('Same length. path_id=%s, other_path_id=%s'
+                                   % (path_id, other_path_id))
+                self.log.warning('Same Hwy Node Number. path_id=%s, '
+                                 'other_path_id=%s' % (path_id, other_path_id))
+            if del_path1:
                 if self._is_short_path(path):
                     delete_flag = HWY_TRUE
                 side_dict[(path_id, other_path_id)] = (path_id,
                                                        delete_flag)
                 main_path[other_path_id] = other_path
                 path_node_list.append(path)
-            elif curr_num < other_num:
+            else:
                 if self._is_short_path(other_path):
                     delete_flag = HWY_TRUE
                 side_dict[(path_id, other_path_id)] = (other_path_id,
                                                        delete_flag)
                 main_path[path_id] = path
                 path_node_list.append(other_path)
-            else:
-                self.log.error('Same Hwy Node Number. path_id=%s, '
-                               'other_path_id=%s' % (path_id, other_path_id))
         side_path = [(path_id, delete_flag)
                      for (path_id, delete_flag) in side_dict.itervalues()]
         return side_path, main_path, path_node_list
@@ -838,8 +850,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         node = path[node_idx]
         in_nodes = self.G._get_not_main_link(node, HWY_PATH_ID, reverse=True)
         if len(in_nodes) <= 0:  # 无进入Ramp
-            # 下个点是不是收费站
-            node = path[node_idx + 1]
+            # ## 下个点是不是收费站
             if len(types_list) > 1:
                 next_types = types_list[1][2]
                 next_idx = types_list[1][0]
@@ -1390,9 +1401,9 @@ class HwyRouteRDF(component.component_base.comp_base):
         return max_u, max_v
 
 
-# ==============================================================================
+# =============================================================================
 # HwyRouteRDF_HKG
-# ==============================================================================
+# =============================================================================
 class HwyRouteRDF_HKG(HwyRouteRDF):
     def __init__(self, data_mng,
                  min_distance=ROUTE_DISTANCE_2000M,
@@ -1429,8 +1440,6 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
             2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
         '''
-        if path_id in (6,):
-            pass
         node_jct_flg = False
         node_idx = -1
         types = types_list[0][2]
@@ -1604,12 +1613,15 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         out_edge = (node, path[node_idx + 1])
         in_nodes = self.G._get_not_main_link(node, HWY_PATH_ID, reverse=True)
         for in_node in in_nodes:
-            in_edge = (in_node, node)
-            angle = self.G.get_angle(in_edge, out_edge)
-            if self.G.bigger_hwy_main_min_angle(angle):
+            data = self.G[in_node][node]
+            if self.G.is_normal_inner_link(data):
+                continue
+            temp_path = [out_edge[1], out_edge[0], in_node]
+            if self.G.check_regulation(temp_path, reverse=True):
                 return True
             else:
-                self.log.warning('IC Link angle too small. node=%s.' % node)
+                self.log.warning('regulation. node=%s.' % node)
+                pass
         return False
 
     def _exist_out_ic_link(self, path, node_idx=None):
@@ -1618,12 +1630,15 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         in_edge = (path[node_idx - 1], node)
         out_nodes = self.G._get_not_main_link(node, HWY_PATH_ID)
         for out_node in out_nodes:
-            out_edge = (node, out_node)
-            angle = self.G.get_angle(in_edge, out_edge)
-            if self.G.bigger_hwy_main_min_angle(angle):
+            data = self.G[node][out_node]
+            if self.G.is_normal_inner_link(data):
+                continue
+            temp_path = list(in_edge) + [out_node]
+            if self.G.check_regulation(temp_path, reverse=False):
                 return True
             else:
-                self.log.warning('IC Link angle too small. node=%s.' % node)
+                # self.log.warning('regulation. node=%s.' % node)
+                pass
         return False
 
     def get_exit_poi_idx(self, path, e_idx, reverse=False):
