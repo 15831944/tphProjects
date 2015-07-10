@@ -1333,8 +1333,8 @@ CREATE TABLE rdfpl_gjv_lat_display_org
   origin_bearing character varying(10),
   dest_bearing character varying(10),
   dp2_node_id bigint,
-  lat character varying(4000),
-  lon character varying(4000)
+  latitude character varying(4000),
+  longitude character varying(4000)
 );
 
 --------------------------------------------------------------------------------------------------------
@@ -1378,8 +1378,8 @@ CREATE TABLE rdfpl_all_jv_lat_display_org
   origin_bearing character varying(10),
   dest_bearing character varying(10),
   dp2_node_id bigint,
-  lat character varying(4000),
-  lon character varying(4000),
+  latitude character varying(4000),
+  longitude character varying(4000),
   ejv_filename character varying(800),
   dp1_dest_link bigint,
   jv_dest_link bigint
