@@ -34,6 +34,7 @@ CREATE TABLE rdb_guideinfo_lane
   lane_num_l smallint NOT NULL,
   lane_num_r smallint NOT NULL,
   passlink_count smallint NOT NULL,
+  exclusive smallint default 0,
   CONSTRAINT rdb_guideinfo_lane_pkey PRIMARY KEY (guideinfo_id)
 );
 

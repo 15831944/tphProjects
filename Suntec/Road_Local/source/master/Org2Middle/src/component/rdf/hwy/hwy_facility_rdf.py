@@ -1022,4 +1022,5 @@ SERVICE_UNDEFINED_DICT = {5000: None,  # Business Facility
                           7538: None,  # Auto Service & Maintenance
                           9992: None,  # Place of Worship
                           9537: None,  # Clothing Store
+                          9987: None,  # Consumer Electronics Store
                           }

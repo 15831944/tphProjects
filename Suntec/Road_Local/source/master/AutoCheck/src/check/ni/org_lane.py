@@ -144,3 +144,12 @@ class CCheckInlinkPasslinkOutlink(platform.TestCase.CTestCase):
             return False
         return True
 
+class CCheckInlinkNodeidLanenum(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd='''
+                select count(*) from
+                (
+                    select nodeid,inlinkid from lane_tbl group by nodeid,inlinkid having count(distinct(lanenum))>1
+                ) a
+                '''
+        return self.pg.getOnlyQueryResult(sqlcmd)==0

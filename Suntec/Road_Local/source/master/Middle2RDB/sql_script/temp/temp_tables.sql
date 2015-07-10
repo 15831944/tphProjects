@@ -1588,29 +1588,23 @@ as
 (
 	select profile_id,time_slot::smallint
 		,sum(sp) as sp_sum
-		,case when time_slot != 0 then sum(sp)/3
-			else sum(sp)
-		end as sp
-		,case when time_slot != 0 then ((100.0 / (sum(sp)/3)) * 100)
-			else ((100.0 / sum(sp)) * 100)
-		end as time
+		,sum(sp)/3 as sp
+		,((100.0 / (sum(sp)/3)) * 100) as time
 	from (
-		select profile_id,index,pre_index
+		select profile_id,index,nxt_index,sp_index
 			,time_slot
 			,rel_sp_array[sp_index] as sp
 		from (
-			select profile_id,index,pre_index
+			select profile_id,(index + 1) as index,(nxt_index + 1) as nxt_index
 				,time_slot,rel_sp_array
-				,generate_series(pre_index,index) as sp_index
+				,generate_series(index + 1,nxt_index + 1) as sp_index
 			from (
 				select profile_id,index as index
-					,case when index >= 4 then index - 2
-						else 1
-					end as pre_index
-					,time_slot_array[index] as time_slot
+					,index + 2 as nxt_index
+					,time_slot_array[index + 1] as time_slot
 					,rel_sp_array
 				from (
-					select profile_id,generate_series(1,sum, 3) as index
+					select profile_id,generate_series(0,sum, 3) as index
 						,time_slot_array,rel_sp_array 
 					from (
 						select profile_id,array_agg(time_slot/60/5)as time_slot_array
@@ -1622,9 +1616,9 @@ as
 						) a group by profile_id
 					) b
 				) c 
-			) d 
+			) d where time_slot <= 288
 		) e
-	) f group by profile_id,index,pre_index,time_slot
+	) f group by profile_id,time_slot
 	order by profile_id,time_slot
 );
 
@@ -1675,11 +1669,12 @@ CREATE TABLE temp_forecast_link_with_slot_main
   weekday_time smallint,
   weekend_time smallint,
   average_time smallint,
-  seq smallint,
+  s_fraction double precision,
+  e_fraction double precision,
   time_slot smallint,
   weekend smallint,
   weekday smallint
-);  
+); 
 
 CREATE TABLE temp_forecast_link_with_slot_main_merge
 (

@@ -206,18 +206,20 @@ class rdb_forecast_aus(ItemBase):
 
         # Links with periodic data: time slots were unfolded.
         self.CreateTable2('temp_forecast_link_with_slot_main')
-        sqlcmd = """                        
+        sqlcmd = """
+            analyze temp_forecast_link_with_slot;
             insert into temp_forecast_link_with_slot_main(link_id, org_link_id, dir, profile_flag, free_time, weekday_time, 
-               weekend_time, average_time, seq, time_slot, weekend, weekday)
+               weekend_time, average_time, s_fraction, e_fraction, time_slot, weekend, weekday)
             select link_id,org_link_id,dir,profile_flag
                 ,case when free_time is null and weekday_time <= weekend_time then weekday_time
                     when free_time is null and weekday_time >= weekend_time then weekend_time
                     else free_time
                 end as free_time
                 ,weekday_time,weekend_time,average_time
-                ,s_fraction as seq
+                ,s_fraction
+                ,e_fraction
                 ,time_slot
-                ,case when time_1 is null then null
+                ,case when time_1 is null or time_7 is null then weekend_time
                     else round((time_1 + time_7) / 2)
                 end as weekend
                 ,case when time_2 is null then weekday_time
@@ -225,7 +227,7 @@ class rdb_forecast_aus(ItemBase):
                 end as weekday
             from (
                 select link_id,org_link_id,dir,profile_flag
-                    ,free_time,weekday_time,weekend_time,average_time,s_fraction
+                    ,free_time,weekday_time,weekend_time,average_time,s_fraction,e_fraction
                     ,b.time_slot
                     ,case when b1.profile_id is not null then (a.free_time * b1.time / 100)
                         else null
@@ -266,7 +268,7 @@ class rdb_forecast_aus(ItemBase):
                 left join temp_forecast_time_org b7 
                 on a.profile_7 = b7.profile_id and b.time_slot = b7.time_slot
                 where  (link_id >> 32) >= %s and (link_id >> 32) <= %s   
-            ) c;      
+            ) c;     
             """
       
         (min_tile, max_tile) = self.pg.getMinMaxValue('temp_forecast_link_with_slot', '(link_id >> 32)')
@@ -276,10 +278,96 @@ class rdb_forecast_aus(ItemBase):
             self.pg.execute2(sqlcmd, (min_tile, cur_tile))
             min_tile = cur_tile + 1           
         self.pg.commit2()
-        
-        self.CreateIndex2('temp_forecast_link_with_slot_main_link_id_dir_time_slot_seq_idx1')
+
+        sqlcmd = """
+            analyze temp_forecast_link_with_slot_main;    
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                
+        self.CreateIndex2('temp_forecast_link_with_slot_main_link_id_dir_time_slot_s_fraction_idx1')
         self.CreateIndex2('temp_forecast_link_with_slot_main_tile_id_idx1')
+
+        sqlcmd = """
+            drop table if exists temp_forecast_link_with_slot_merge;
+            CREATE TABLE temp_forecast_link_with_slot_merge
+            (
+              link_id bigint,
+              dir smallint,
+              free_time smallint,
+              weekday_time smallint,
+              weekend_time smallint,
+              average_time smallint,
+              time_slot_array smallint[],
+              weekday_diff_array smallint[],
+              weekend_diff_array smallint[]
+            ); 
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         
+        # Time is less than 15min.
+        sqlcmd = """          
+            drop table if exists temp_forecast_link_with_slot_more_than_15min;
+            create table temp_forecast_link_with_slot_more_than_15min as
+            select distinct link_id,dir from (
+                select link_id,dir
+                    ,sum(free_time)
+                    ,sum(weekday_time)
+                    ,sum(weekend_time)
+                    ,sum(average_time)
+                    ,time_slot
+                    ,sum(weekday) as weekday_sum
+                    ,sum(weekend) as weekend_sum
+                from (
+                    select * from temp_forecast_link_with_slot_main
+                    order by link_id,dir,time_slot,s_fraction
+                ) a
+                group by link_id,dir,time_slot
+            ) b 
+            where not (weekday_sum <= 900 and weekend_sum <= 900);       
+
+            CREATE INDEX temp_forecast_link_with_slot_more_than_15min_link_id_dir_idx
+              ON temp_forecast_link_with_slot_more_than_15min
+              USING btree
+              (link_id, dir);
+        
+            insert into temp_forecast_link_with_slot_merge(
+                link_id, dir, free_time, weekday_time, weekend_time, average_time
+                , time_slot_array, weekday_diff_array, weekend_diff_array)
+            select link_id,dir
+                ,free_time
+                ,weekday_time
+                ,weekend_time
+                ,average_time
+                ,array_agg(time_slot) as time_slot_array 
+                ,array_agg(weekday_sum - free_time) as weekday_diff_array
+                ,array_agg(weekend_sum - free_time) as weekend_diff_array
+            from (
+                select link_id,dir
+                    ,sum(free_time) as free_time
+                    ,sum(weekday_time) as weekday_time
+                    ,sum(weekend_time) as weekend_time
+                    ,sum(average_time) as average_time
+                    ,time_slot
+                    ,sum(weekday) as weekday_sum
+                    ,sum(weekend) as weekend_sum
+                from (
+                    select a.* from temp_forecast_link_with_slot_main a
+                    left join temp_forecast_link_with_slot_more_than_15min b
+                    on a.link_id = b.link_id and a.dir = b.dir
+                    where b.link_id is null 
+                    order by a.link_id,a.dir,a.time_slot,a.s_fraction
+                ) a
+                group by link_id,dir,time_slot
+                order by link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot
+            ) b
+            group by link_id,dir,free_time,weekday_time,weekend_time,average_time;      
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()        
+        
+        # Time is more than 15min.      
         self.CreateTable2('temp_forecast_link_with_slot_main_merge')
         sqlcmd = """                        
             insert into temp_forecast_link_with_slot_main_merge(link_id, dir, free_time, weekday_time, weekend_time, average_time, 
@@ -300,41 +388,24 @@ class rdb_forecast_aus(ItemBase):
                     ,array_to_string(array_agg(weekday),'|') as weekday_list
                     ,array_to_string(array_agg(weekend),'|') as weekend_list
                 from (
-                    select * from temp_forecast_link_with_slot_main 
-                    where  (link_id >> 32) >= %s and (link_id >> 32) <= %s 
-                    order by link_id,dir,time_slot,seq
+                    select a.*,a.s_fraction as seq 
+                    from temp_forecast_link_with_slot_main a
+                    left join temp_forecast_link_with_slot_more_than_15min b
+                    on a.link_id = b.link_id and a.dir = b.dir
+                    where b.link_id is not null 
+                    order by a.link_id,a.dir,a.time_slot,a.s_fraction
                 ) a
                 group by link_id,dir,time_slot
                 order by link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot
             ) b group by link_id,dir,free_time,weekday_time,weekend_time,average_time;
-            """
-      
-        (min_tile, max_tile) = self.pg.getMinMaxValue('temp_forecast_link_with_slot_main', '(link_id >> 32)')
-        
-        while min_tile <= max_tile:
-#            print min_tile, min_tile + 80000           
-            cur_tile = min_tile + 80000            
-            self.pg.execute2(sqlcmd, (min_tile, cur_tile))
-            min_tile = cur_tile + 1           
-        self.pg.commit2()
-    
-        # Links with periodic data: fractions are merged.     
+            
+            analyze temp_forecast_link_with_slot_main_merge;
+            """      
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2() 
+          
         self.CreateFunction2('rdb_cal_link_forecast_time')
         sqlcmd = """
-            drop table if exists temp_forecast_link_with_slot_merge;
-            CREATE TABLE temp_forecast_link_with_slot_merge
-            (
-              link_id bigint,
-              dir smallint,
-              free_time smallint,
-              weekday_time smallint,
-              weekend_time smallint,
-              average_time smallint,
-              time_slot_array smallint[],
-              weekday_diff_array smallint[],
-              weekend_diff_array smallint[]
-            );
-            
             select rdb_cal_link_forecast_time('temp_forecast_link_with_slot_main_merge','temp_forecast_link_with_slot_merge');       
             """
         self.pg.execute2(sqlcmd)
@@ -361,10 +432,12 @@ class rdb_forecast_aus(ItemBase):
                 from rdb_region_layer%X_link_mapping
             ) a;
             
+            analyze temp_link_mapping_layer%X;
+            
             CREATE INDEX temp_link_mapping_layer%X_link_id_14_idx1
               ON temp_link_mapping_layer%X
               USING btree
-              (link_id_14);                     
+              (link_id_14);
         """
         sqlcmd = sqlcmd.replace('%X',X)
         self.pg.execute2(sqlcmd)
@@ -473,7 +546,17 @@ class rdb_forecast_aus(ItemBase):
                         ,unnest(time_slot_array) as time_slot
                         ,(unnest(weekday_diff_array) + free_time) as weekday
                         ,(unnest(weekend_diff_array) + free_time) as weekend
-                    from temp_forecast_link_with_slot_merge                
+                    from temp_forecast_link_with_slot_merge
+                    union all
+                    select p.link_id,dir
+                        ,p.free_time,p.weekday_time,p.weekend_time,p.average_time
+                        ,q.time_slot
+                        ,p.weekday_time as weekday
+                        ,p.weekend_time as weekend
+                    from rdb_forecast_link p
+                    left join temp_forecast_time_slot q
+                    on true = true
+                    where p.link_id < 0 and p.type in (11,12)
                 ) b
                 on a.link_id_14 = b.link_id
                 where b.link_id is not null
@@ -481,6 +564,8 @@ class rdb_forecast_aus(ItemBase):
             left join temp_forecast_link_id_layer%X n
             on m.link_id = n.region_link_id and m.dir = n.dir
             where n.region_link_id is not null;
+            
+            analyze temp_forecast_link_with_slot_main_layer%X;
             
             CREATE INDEX temp_forecast_link_with_slot_main_layer%X_link_id_dir_time_slot_seq_idx1
               ON temp_forecast_link_with_slot_main_layer%X
@@ -490,7 +575,82 @@ class rdb_forecast_aus(ItemBase):
         sqlcmd = sqlcmd.replace('%X',X)
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-                                   
+
+        sqlcmd = """
+            drop table if exists temp_forecast_link_with_slot_merge_layer%X;
+            CREATE TABLE temp_forecast_link_with_slot_merge_layer%X
+            (
+              link_id bigint,
+              dir smallint,
+              free_time smallint,
+              weekday_time smallint,
+              weekend_time smallint,
+              average_time smallint,
+              time_slot_array smallint[],
+              weekday_diff_array smallint[],
+              weekend_diff_array smallint[]
+            );
+            
+            drop table if exists temp_forecast_link_with_slot_more_than_15min_layer%X;
+            create table temp_forecast_link_with_slot_more_than_15min_layer%X as
+            select distinct link_id,dir from (
+                select link_id,dir
+                    ,sum(free_time)
+                    ,sum(weekday_time)
+                    ,sum(weekend_time)
+                    ,sum(average_time)
+                    ,time_slot
+                    ,sum(weekday) as weekday_sum
+                    ,sum(weekend) as weekend_sum
+                from (
+                    select * from temp_forecast_link_with_slot_main_layer%X 
+                    order by link_id,dir,time_slot,seq
+                ) a
+                group by link_id,dir,time_slot
+            ) b 
+            where not (weekday_sum <= 900 and weekend_sum <= 900);            
+
+            CREATE INDEX temp_forecast_link_with_slot_more_than_15min_layer%X_link_id_dir_idx
+              ON temp_forecast_link_with_slot_more_than_15min_layer%X
+              USING btree
+              (link_id, dir);
+
+            insert into temp_forecast_link_with_slot_merge_layer%X(
+                link_id, dir, free_time, weekday_time, weekend_time, average_time
+                , time_slot_array, weekday_diff_array, weekend_diff_array)
+            select link_id,dir
+                ,free_time
+                ,weekday_time
+                ,weekend_time
+                ,average_time
+                ,array_agg(time_slot) as time_slot_array 
+                ,array_agg(weekday_sum - free_time) as weekday_diff_array
+                ,array_agg(weekend_sum - free_time) as weekend_diff_array
+            from (
+                select link_id,dir
+                    ,sum(free_time) as free_time
+                    ,sum(weekday_time) as weekday_time
+                    ,sum(weekend_time) as weekend_time
+                    ,sum(average_time) as average_time
+                    ,time_slot
+                    ,sum(weekday) as weekday_sum
+                    ,sum(weekend) as weekend_sum
+                from (
+                    select a.* from temp_forecast_link_with_slot_main_layer%X a
+                    left join temp_forecast_link_with_slot_more_than_15min_layer%X b
+                    on a.link_id = b.link_id and a.dir = b.dir
+                    where b.link_id is null 
+                    order by a.link_id,a.dir,a.time_slot,a.seq
+                ) a
+                group by link_id,dir,time_slot
+                order by link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot
+            ) b
+            group by link_id,dir,free_time,weekday_time,weekend_time,average_time;                                          
+        """
+        sqlcmd = sqlcmd.replace('%X',X)
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                                  
         sqlcmd = """
             drop table if exists temp_forecast_link_with_slot_main_merge_layer%X;
             create table temp_forecast_link_with_slot_main_merge_layer%X 
@@ -512,8 +672,12 @@ class rdb_forecast_aus(ItemBase):
                         ,array_to_string(array_agg(weekday),'|') as weekday_list
                         ,array_to_string(array_agg(weekend),'|') as weekend_list
                     from (
-                        select * from temp_forecast_link_with_slot_main_layer%X 
-                        order by link_id,dir,time_slot,seq
+                        select a.*
+                        from temp_forecast_link_with_slot_main_layer%X a
+                        left join temp_forecast_link_with_slot_more_than_15min_layer%X b
+                        on a.link_id = b.link_id and a.dir = b.dir
+                        where b.link_id is not null 
+                        order by a.link_id,a.dir,a.time_slot,a.seq
                     ) a
                     group by link_id,dir,time_slot
                     order by link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot
@@ -527,20 +691,6 @@ class rdb_forecast_aus(ItemBase):
         # Region links with periodic data: fractions are merged.
         self.CreateFunction2('rdb_cal_link_forecast_time')
         sqlcmd = """
-            drop table if exists temp_forecast_link_with_slot_merge_layer%X;
-            CREATE TABLE temp_forecast_link_with_slot_merge_layer%X
-            (
-              link_id bigint,
-              dir smallint,
-              free_time smallint,
-              weekday_time smallint,
-              weekend_time smallint,
-              average_time smallint,
-              time_slot_array smallint[],
-              weekday_diff_array smallint[],
-              weekend_diff_array smallint[]
-            );
-            
             select rdb_cal_link_forecast_time('temp_forecast_link_with_slot_main_merge_layer%X','temp_forecast_link_with_slot_merge_layer%X');       
 
             CREATE INDEX temp_forecast_link_with_slot_merge_layer%X_time_slot_array_weekday_diff_array_idx1
@@ -572,6 +722,8 @@ class rdb_forecast_aus(ItemBase):
               
         # Insert into time slot table.        
         sqlcmd = """
+            analyze temp_forecast_time_distinct;
+            
             insert into rdb_forecast_time(time_id,time_slot,time)
             select time_id
                 ,unnest(time_slot_array) as time_slot
@@ -583,6 +735,8 @@ class rdb_forecast_aus(ItemBase):
 
         # Insert into control table.
         sqlcmd = """
+            analyze temp_forecast_control;
+            
             insert into rdb_forecast_control(
                 info_id,time_id_weekday,time_id_weekend)
             select info_id
@@ -603,15 +757,15 @@ class rdb_forecast_aus(ItemBase):
                 ,b.info_id
                 ,type
             from (
-                select *,13 as type from temp_forecast_link_with_slot_merge
-                union all
-                select *,43 as type from temp_forecast_link_with_slot_merge_layer4
-                union all
-                select *,63 as type from temp_forecast_link_with_slot_merge_layer6
+                    select *,13 as type from temp_forecast_link_with_slot_merge
+                    union all
+                    select *,43 as type from temp_forecast_link_with_slot_merge_layer4
+                    union all
+                    select *,63 as type from temp_forecast_link_with_slot_merge_layer6
             ) a
             left join temp_forecast_control b
             on a.time_slot_array = b.time_slot_array and a.weekday_diff_array = b.weekday_diff_array
-            and a.weekend_diff_array is not distinct from b.weekend_diff_array;
+            and a.weekend_diff_array = b.weekend_diff_array;
             """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

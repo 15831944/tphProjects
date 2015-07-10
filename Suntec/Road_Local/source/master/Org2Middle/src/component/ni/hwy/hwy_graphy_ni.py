@@ -234,13 +234,6 @@ class HwyGraphNi(HwyGraphRDF):
                 print ('Exist SAPA Link, but no SAPA Facility. u=%s,v=%s'
                        % (u, v))
 
-    def _get_tollgate_num(self, path):
-        tollgate = set()
-        for node in path[1:-1]:
-            if self.is_tollgate(node):
-                tollgate.add(node)
-        return len(tollgate)
-
     def _is_cuted_road_end(self, node):
         '''断头路的最后一个点'''
         in_deges = self.in_edges(node, False)

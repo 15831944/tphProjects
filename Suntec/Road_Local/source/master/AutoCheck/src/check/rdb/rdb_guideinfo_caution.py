@@ -145,7 +145,7 @@ class CCheckRdb_Guideinfo_Caution_data_kind(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(guideinfo_id)
                     from rdb_guideinfo_caution
-                    where data_kind not in (0, 1, 2, 3, 4, 5)
+                    where data_kind >= 0  and data_kind <= 50
                 """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)

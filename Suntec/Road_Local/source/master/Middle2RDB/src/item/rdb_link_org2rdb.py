@@ -20,6 +20,7 @@ class rdb_link_org2rdb(ItemBase):
             ('jdb'):                rdb_link_org2rdb_jdb(),
             ('axf'):                rdb_link_org2rdb_axf(),
             ('ta'):                 rdb_link_org2rdb_tomtom(),
+            ('rdf', 'ase'):         rdb_link_org2rdb_rdf_ase(),            
             ('rdf'):                rdb_link_org2rdb_rdf(),
             ('nostra'):             rdb_link_org2rdb_nostra(),
             ('mmi'):                rdb_link_org2rdb_mmi(),
@@ -67,6 +68,7 @@ class rdb_link_org2rdb(ItemBase):
                 create table temp_link_org_rdb
                 (
                   org_link_id bigint,
+                  org_geom geometry,
                   mid_link_id bigint,
                   mid_geom geometry,
                   s_fraction double precision,
@@ -82,8 +84,9 @@ class rdb_link_org2rdb(ItemBase):
         self.log.info('do temp_link_org_rdb one2one...')
         sqlcmd = """
                 insert into temp_link_org_rdb
-                            (org_link_id, mid_link_id, mid_geom, s_fraction, e_fraction, target_link_id, target_geom, flag)
+                            (org_link_id, org_geom, mid_link_id, mid_geom, s_fraction, e_fraction, target_link_id, target_geom, flag)
                 select  a.org_link_id, 
+                        a.org_geom,
                         a.mid_link_id, 
                         a.mid_geom, 
                         round(0::numeric,9) as s_fraction, 
@@ -169,8 +172,9 @@ class rdb_link_org2rdb(ItemBase):
         
         sqlcmd = """
                 insert into temp_link_org_rdb
-                            (org_link_id, mid_link_id, mid_geom, s_fraction, e_fraction, target_link_id, target_geom, flag)
+                            (org_link_id, org_geom, mid_link_id, mid_geom, s_fraction, e_fraction, target_link_id, target_geom, flag)
                 select  a.org_link_id, 
+                        a.org_geom,
                         a.mid_link_id, 
                         a.mid_geom, 
                         (
@@ -325,6 +329,7 @@ class rdb_link_org2rdb_axf(rdb_link_org2rdb):
             as
             (
                 SELECT ( (a.meshid::bigint << 32) | a.road ) as org_link_id
+                   ,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else a.new_road end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -372,6 +377,7 @@ class rdb_link_org2rdb_axf(rdb_link_org2rdb):
             create table temp_link_org_rdb as
             select ((org_link_id << 32) >> 32) as org_link_id
                 ,(org_link_id >> 32) as org_mesh_id
+                ,org_geom
                 ,mid_link_id,mid_geom,s_fraction,e_fraction
                 ,cast(vics_get_shapepoints(target_link_id,target_geom,s_fraction) as smallint) as s_point
                 ,cast(vics_get_shapepoints(target_link_id,target_geom,e_fraction) as smallint) as e_point
@@ -489,6 +495,7 @@ class rdb_link_org2rdb_jdb(rdb_link_org2rdb):
                 select a.org_link_id,a.mid_link_id,a.mid_geom,a.target_link_id,b.the_geom as target_geom 
                 from (
                     SELECT    a.objectid as org_link_id, 
+                        a.the_geom as org_geom,
                         case when c.link_id is not null then c.link_id 
                              else b.tile_link_id 
                         end as mid_link_id,
@@ -541,7 +548,7 @@ class rdb_link_org2rdb_jdb(rdb_link_org2rdb):
             
             drop table if exists temp_link_org_rdb;
             create table temp_link_org_rdb as
-            select a.org_link_id,a.mid_link_id,a.mid_geom,a.s_fraction,a.e_fraction
+            select a.org_link_id,a.mid_link_id,a.org_geom,a.mid_geom,a.s_fraction,a.e_fraction
                 ,b.from_node_id as s_node, b.to_node_id as e_node
                 ,cast(vics_get_shapepoints(target_link_id,target_geom,s_fraction) as smallint) as s_point
                 ,cast(vics_get_shapepoints(target_link_id,target_geom,e_fraction) as smallint) as e_point
@@ -570,7 +577,7 @@ class rdb_link_org2rdb_rdf(rdb_link_org2rdb):
             create table temp_link_org2rdb
             as
             (
-                SELECT a.link_id as org_link_id
+                SELECT a.link_id as org_link_id,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -607,7 +614,142 @@ class rdb_link_org2rdb_rdf(rdb_link_org2rdb):
         self.pg.execute2(sqlcmd)        
         self.pg.commit2()        
 
+class rdb_link_org2rdb_rdf_ase(rdb_link_org2rdb):
+ 
+    def _createOrg2RdbTbl_prepare(self):
+        
+        # Create ID relation table for original link and RDB link.        
+        sqlcmd = """
+            drop table if exists temp_link_org2rdb;
+            create table temp_link_org2rdb
+            as
+            (
+                SELECT a.link_id as org_link_id,a.the_geom as org_geom
+                   ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
+                   ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
+                   ,e.tile_link_id as target_link_id
+                   ,g.the_geom as target_geom
+                FROM temp_rdf_nav_link as a
+                left join temp_split_newlink as c
+                on a.link_id = c.old_link_id
+                left join link_tbl_bak_merge f
+                on c.link_id = f.link_id or a.link_id = f.link_id
+                left join temp_merge_link_mapping as d
+                on (c.link_id = d.merge_link_id) or (a.link_id = d.merge_link_id)
+                left join rdb_tile_link as e
+                on (d.link_id = e.old_link_id) or (c.link_id = e.old_link_id) or (a.link_id = e.old_link_id)
+                left join rdb_link g
+                on e.tile_link_id = g.link_id
+            );   
+            
+            
+            CREATE INDEX temp_link_org2rdb_mid_link_id_idx
+              ON temp_link_org2rdb
+              USING btree
+              (mid_link_id);
+            
+            CREATE INDEX temp_link_org2rdb_org_link_id_idx
+              ON temp_link_org2rdb
+              USING btree
+              (org_link_id);
+                        
+            CREATE INDEX temp_link_org2rdb_target_link_id_idx
+              ON temp_link_org2rdb
+              USING btree
+              (target_link_id);                            
+        """
+        self.pg.execute2(sqlcmd)        
+        self.pg.commit2()        
 
+    def _createOrg2RdbTbl_special(self):
+
+        sqlcmd = """
+            drop table if exists temp_link_rdb_org_temp;
+            create table temp_link_rdb_org_temp as 
+            select a.*,
+                case when b.link_id is not null then b.sub_index
+                    else 1
+                end as index,
+                case when b.sub_count is null then 1
+                    else b.sub_count 
+                end as sum_count,
+                ST_Length_Spheroid(mid_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as mid_len,
+                ST_Length_Spheroid(org_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')  as org_len
+            from temp_link_org_rdb a
+            left join temp_split_newlink b
+            on a.mid_link_id = b.link_id and a.org_link_id = b.old_link_id
+            order by target_link_id,index;                                                
+        """
+        self.pg.execute2(sqlcmd)        
+        self.pg.commit2()   
+                
+        sqlcmd = """
+            drop table if exists temp_link_rdb_org;
+            create table temp_link_rdb_org as
+            select     org_link_id,
+                org_geom,
+                mid_link_id,
+                mid_geom,
+                s_fraction,
+                e_fraction,
+                target_link_id,
+                target_geom
+            from (
+                select d.*,
+                    case when index = 1 then 0
+                        when add_len is null then 0 
+                        else round((add_len/org_len)::numeric,9)::double precision
+                    end as s_fraction
+                    ,case when index = sum_count then 1
+                        when add_len is null then round((mid_len/org_len)::numeric,9)::double precision
+                        else round(((mid_len + add_len)/org_len)::numeric,9)::double precision
+                    end as e_fraction
+                from (
+                    select org_link_id,org_geom,mid_link_id,mid_geom,target_link_id,target_geom,
+                        index,sum_count,mid_len,org_len,sum(add_len) as add_len
+                    from (
+                        select a.*,b.mid_len as add_len 
+                        from temp_link_rdb_org_temp a
+                        left join  temp_link_rdb_org_temp b
+                        on a.org_link_id = b.org_link_id and a.index > b.index 
+                    ) c 
+                    group by org_link_id,org_geom,mid_link_id,mid_geom,target_link_id
+                    ,target_geom,index,sum_count,mid_len,org_len
+                ) d order by org_link_id,index 
+            ) a;
+    
+            CREATE INDEX temp_link_rdb_org_link_id_idx
+              ON temp_link_rdb_org
+              USING btree
+              (org_link_id);
+            CREATE INDEX temp_link_rdb_mid_link_id_idx
+              ON temp_link_rdb_org
+              USING btree
+              (mid_link_id);
+            CREATE INDEX temp_link_rdb_target_link_id_idx
+              ON temp_link_rdb_org
+              USING btree
+              (target_link_id);                                                          
+        """
+        self.pg.execute2(sqlcmd)        
+        self.pg.commit2() 
+                        
+        sqlcmd = """
+            drop table if exists temp_link_org_rdb_org_temp;
+            create table temp_link_org_rdb_org_temp as
+            select a.org_link_id,b.org_geom
+                ,b.s_fraction as org_s_fraction,b.e_fraction as org_e_fraction
+                ,a.mid_link_id,a.mid_geom
+                ,a.s_fraction as rdb_s_fraction,a.e_fraction as rdb_e_fraction
+                ,a.target_link_id,a.target_geom,a.flag 
+            from temp_link_org_rdb a
+            left join temp_link_rdb_org b
+            on a.org_link_id = b.org_link_id and a.mid_link_id = b.mid_link_id 
+            and a.target_link_id = b.target_link_id;                                                        
+        """
+        self.pg.execute2(sqlcmd)        
+        self.pg.commit2() 
+         
 class rdb_link_org2rdb_nostra(rdb_link_org2rdb):
                                 
     def _createOrg2RdbTbl_prepare(self):
@@ -623,7 +765,7 @@ class rdb_link_org2rdb_nostra(rdb_link_org2rdb):
             create table temp_link_org2rdb
             as
             (
-                SELECT cast(a.routeid as bigint) as org_link_id
+                SELECT cast(a.routeid as bigint) as org_link_id,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -787,7 +929,7 @@ class rdb_link_org2rdb_mmi(rdb_link_org2rdb):
             create table temp_link_org2rdb
             as
             (
-                SELECT cast(a.id as bigint) as org_link_id
+                SELECT cast(a.id as bigint) as org_link_id,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -846,7 +988,7 @@ class rdb_link_org2rdb_tomtom(rdb_link_org2rdb):
             create table temp_link_org2rdb
             as
             (
-                SELECT cast(a.id as bigint) as org_link_id
+                SELECT cast(a.id as bigint) as org_link_id,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -933,7 +1075,7 @@ class rdb_link_org2rdb_msm(rdb_link_org2rdb):
             create table temp_link_org2rdb
             as
             (
-                SELECT a.new_link_id as org_link_id
+                SELECT a.new_link_id as org_link_id,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -987,7 +1129,7 @@ class rdb_link_org2rdb_ni(rdb_link_org2rdb):
             create table temp_link_org2rdb
             as
             (
-                SELECT (a.id::bigint) as org_link_id
+                SELECT (a.id::bigint) as org_link_id,a.the_geom as org_geom
                    ,case when c.link_id is not null then c.link_id else f.link_id end as mid_link_id
                    ,case when c.link_id is not null then c.the_geom else f.the_geom end as mid_geom
                    ,e.tile_link_id as target_link_id
@@ -1022,5 +1164,5 @@ class rdb_link_org2rdb_ni(rdb_link_org2rdb):
         """
         self.pg.execute2(sqlcmd)        
         self.pg.commit2()        
-        
+
         

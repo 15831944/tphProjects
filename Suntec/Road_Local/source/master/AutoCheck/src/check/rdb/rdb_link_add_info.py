@@ -115,7 +115,21 @@ class CCheckStructCodeComplete_MSM(platform.TestCase.CTestCase):
                  """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)
-        
+
+class CCheckStructCodeComplete_NI(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                    select count(a.struct_code)
+                    from
+                    (select unnest(ARRAY[1,2,4,5,8]) as struct_code) as a
+                    left join
+                    (select distinct struct_code from rdb_link_add_info) as b
+                    on a.struct_code = b.struct_code
+                    where b.struct_code is null
+                 """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)
+            
 class CCheckStructCodeComplete_RDF(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
@@ -326,14 +340,24 @@ class CCheckRodizioFlag(platform.TestCase.CTestCase):
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0) 
-    
+
+class CCheckRodizioFlag_NOTNULL(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select count(*)
+            from rdb_link_add_info2
+            where (link_add_info2 & 1) = 1  
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt != 0) 
+        
 class CCheckERPFlag(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
             select count(*) from (
                         select *
                         from rdb_link_add_info2
-                        where ((link_add_info2 >> 1) & 3) = 1  
+                        where ((link_add_info2 >> 1) & 3) != 0 
             ) a
             left join rdb_tile_link c
             on a.link_id = c.tile_link_id
@@ -344,6 +368,16 @@ class CCheckERPFlag(platform.TestCase.CTestCase):
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0) 
 
+class CCheckERPFlag_NOTNULL(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select COUNT(*)
+            from rdb_link_add_info2
+            where ((link_add_info2 >> 1) & 3) != 0
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt != 0) 
+    
 class CCheckSafetyZoneFlag(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

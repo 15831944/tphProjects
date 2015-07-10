@@ -30,6 +30,11 @@ class comp_guideinfo_lane_ni(component.component_base.comp_base):
         return 0
 
     def _Do(self):
+        self._createtable()
+        self._makeexclusiveflag()
+    
+    def _createtable(self):
+        
         sqlcmd='''
             insert into lane_tbl
             (
@@ -60,4 +65,15 @@ class comp_guideinfo_lane_ni(component.component_base.comp_base):
         
         return 0
 
-
+    def _makeexclusiveflag(self):
+        
+        self.pg.CreateTable2_ByName('temp_lane_exclusive')
+        self.pg.CreateIndex2_ByName('temp_lane_exclusive_gid_idx')
+        sqlcmd='''
+                update lane_tbl a
+                set exclusive=b.exclusive
+                from temp_lane_exclusive b
+                where a.gid=b.gid
+                '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()

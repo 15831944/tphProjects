@@ -1494,3 +1494,32 @@ class CCheckRdb_Link_with_all_attri_view_road_name_id(platform.TestCase.CTestCas
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count > 1)      
 
+class CCheckLinkAttriView_Forecast(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+        select count(*) from (
+            select a.*
+            from
+            (
+                select * from rdb_link_with_all_attri_view
+                where forecast_flag is true
+            )as a
+            left join rdb_forecast_link b
+            on a.link_id = b.link_id
+            where b.link_id is not null
+            
+            union
+
+            select a.*
+            from
+            (
+                select * from rdb_link_with_all_attri_view
+                where forecast_flag is true
+            )as a
+            left join rdb_forecast_link b
+            on a.link_id = b.link_id
+            where b.link_id is not null            
+        ) c;
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0) 

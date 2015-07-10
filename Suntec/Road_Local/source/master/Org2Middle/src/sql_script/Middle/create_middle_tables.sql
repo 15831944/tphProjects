@@ -225,7 +225,8 @@ CREATE TABLE lane_tbl
   arrowinfo smallint,
   lanenuml smallint,
   lanenumr smallint,
-  buslaneinfo character varying(17)
+  buslaneinfo character varying(17),
+  exclusive smallint default 0
 );
 
 -- towardname_tbl

@@ -843,10 +843,10 @@ CREATE INDEX temp_forecast_time_slot_time_slot_idx1
   USING btree
   (time_slot);
   
-CREATE INDEX temp_forecast_link_with_slot_main_link_id_dir_time_slot_seq_idx1
+CREATE INDEX temp_forecast_link_with_slot_main_link_id_dir_time_slot_s_fraction_idx1
   ON temp_forecast_link_with_slot_main
   USING btree
-  (link_id,dir,time_slot,seq);
+  (link_id,dir,time_slot,s_fraction);
 CREATE INDEX temp_forecast_link_with_slot_main_tile_id_idx1
   ON temp_forecast_link_with_slot_main
   USING btree
@@ -861,6 +861,10 @@ CREATE INDEX temp_forecast_link_with_slot_merge_link_id_idx
   ON temp_forecast_link_with_slot_merge
   USING btree
   (link_id);
+CREATE INDEX temp_forecast_link_with_slot_merge_info_idx
+  ON temp_forecast_link_with_slot_merge
+  USING btree
+  (time_slot_array, weekday_diff_array, weekend_diff_array);
   
 CREATE INDEX temp_forecast_time_distinct_time_slot_array_time_array_idx
   ON temp_forecast_time_distinct

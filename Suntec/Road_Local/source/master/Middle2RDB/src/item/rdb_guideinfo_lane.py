@@ -72,6 +72,7 @@ class rdb_guideinfo_lane(ItemBase):
                                   , lane_num_l
                                   , lane_num_r
                                   , passlink_count
+                                  , exclusive
                                   )
                   SELECT ln.gid
                        , a.tile_link_id as inlinkid
@@ -89,6 +90,7 @@ class rdb_guideinfo_lane(ItemBase):
                        , ln.lanenuml
                        , ln.lanenumr
                        , rdb_getpasslinkcnt(ln.passlid, null)
+                       , ln.exclusive
                   FROM 
                   (select * from lane_tbl order by id) as ln
                   LEFT JOIN rdb_tile_link as a

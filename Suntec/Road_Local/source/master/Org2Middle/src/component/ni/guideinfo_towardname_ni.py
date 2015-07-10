@@ -42,12 +42,21 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                 create table temp_poi_find
                 as
                 (
-                    select poi_id, kind, linkid, the_geom from org_poi 
-                    where kind in ('8301','8380','8381')                
-                )
-                                
+                    select poi_id, kind, linkid, null as node_id,the_geom from org_poi 
+                    where kind in ('8301','8380','8381')
+                    
+                union
+                    
+                    SELECT poi_id, a.kind, linkid, c.node_id,a.the_geom
+                    FROM org_poi as a
+                    left join link_tbl as b 
+                    on b.link_id = a.linkid::bigint
+                    left join node_tbl as c
+                    on c.toll_flag = 1 and c.node_id in (b.s_node,b.e_node)
+                    where b.link_type in (1,2) and b.road_type in (0,1)
+                          and a.kind in ('8400')                      
+                )               
                '''
-        
         
         self.pg.execute(sqlcmd)
         self.pg.commit2()       
@@ -56,11 +65,35 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
   
         sqlcmd = '''
                 select ni_mid_search_poi_inlink(a.poi_id,a.linkid) from temp_poi_find as a
+                where a.kind in ('8301','8380','8381') 
                '''
         
         self.pg.execute(sqlcmd)
         self.pg.commit2()       
-        self.CreateIndex2('temp_poi_inlink_poi_id_idx')
+       
+        ##查找收费站的inlink、node
+        sqlcmd = '''
+                insert into temp_poi_inlink(poi_id, inlink, node)
+                (
+                    select a.poi_id::bigint,
+                            b.link_id,
+                            a.node_id
+                    from temp_poi_find as a
+                    join link_tbl as b
+                    on ( (a.node_id = b.e_node and b.one_way_code = 2
+                         or
+                         a.node_id = b.s_node and b.one_way_code = 3
+                         )
+                         --and  b.link_type in (1,2) 
+                         and b.road_type in (0,1)
+                       )
+                    where a.kind = '8400'
+                )
+                '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()       
+        self.CreateIndex2('temp_poi_inlink_poi_id_idx')          
+   
    
         
     def _make_towardname_name(self):
@@ -102,7 +135,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                         where seq_nm = '1' and phontype <> '2'                                                              
  
                     ) as c
-                    on c.featid= a.poi_id and b.language in ('1','2')            
+                    on c.featid= a.poi_id and b.language in ('1','2')                              
             );     
                 '''       
         self.pg.execute2(sqlcmd)
@@ -170,7 +203,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                               a.inlink as inlinkid,
                               (case when c.kind = '8301' then 1
                                     when c.kind = '8380' then 4
-                                    when c.kind = '8381' then 5 end ) as guideattr,
+                                    when c.kind = '8381' then 5 
+                                    when c.kind = '8400' then 7 end ) as guideattr,
                               2 as namekind,
                               b.toward_name as toward_name           
                     from  temp_poi_inlink as a

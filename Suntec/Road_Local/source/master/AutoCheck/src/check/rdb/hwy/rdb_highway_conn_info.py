@@ -62,7 +62,9 @@ class CCheckSameRoad(platform.TestCase.CTestCase):
 class CCheckSimilarRoad(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """
-        SELECT c.name, d.name
+        SELECT a.ic_no, a.conn_ic_no,
+               c.name, d.name,
+               ic_link_name.road_names, conn_ic_link_name.road_names
           FROM rdb_highway_conn_info as a
           LEFT JOIN rdb_highway_ic_info as b
           ON a.ic_no = b.ic_no
@@ -76,12 +78,56 @@ class CCheckSimilarRoad(platform.TestCase.CTestCase):
               FROM rdb_highway_road_info
           ) AS d
           ON a.conn_road_no = d.road_no
-          where same_road_flag = 1 and c.name <> d.name;
+          LEFT JOIN ( -- GET IC Link Name
+            SELECT ic_no, array_agg(road_name) as road_names
+              FROM (
+                SELECT ic_no, new_flag,
+                       unopen_flag, p.link_id, road_name
+                  FROM rdb_highway_path_point as p
+                  LEFT JOIN rdb_link as l
+                  ON p.link_id = l.link_id
+                  where center_flag = 1 or main_flag = 1
+                  -- display point first
+                  ORDER BY ic_no, center_flag DESC, main_flag DESC
+              ) AS a
+              GROUP BY ic_no
+              ) as ic_link_name
+              ON a.ic_no = ic_link_name.ic_no
+              LEFT JOIN ( -- GET IC Link Name
+            SELECT ic_no, array_agg(road_name) as road_names
+              FROM (
+                SELECT ic_no, new_flag,
+                       unopen_flag, p.link_id, road_name
+                  FROM rdb_highway_path_point as p
+                  LEFT JOIN rdb_link as l
+                  ON p.link_id = l.link_id
+                  where center_flag = 1 or main_flag = 1
+                  -- display point first
+                  ORDER BY ic_no, center_flag DESC, main_flag DESC
+              ) AS a
+              GROUP BY ic_no
+          ) as conn_ic_link_name
+          ON a.conn_ic_no = conn_ic_link_name.ic_no
+          where same_road_flag = 1 and
+                c.name <> d.name and
+                ic_link_name.road_names <> conn_ic_link_name.road_names
         """
         for row in self.pg.get_batch_data(sqlcmd):
-            name1 = row[0]
-            name2 = row[1]
+            name1 = row[2]
+            name2 = row[3]
+            ic_roadnames = row[4]
+            conn_ic_roadnames = row[5]
+            similar_flg = False
             if not is_similar_name(name1, name2):
+                for name1 in ic_roadnames:
+                    for name2 in conn_ic_roadnames:
+                        if is_similar_name(name1, name2):
+                            similar_flg = True
+                            break
+            else:
+                similar_flg = True
+            if not similar_flg:
+                print row[0], row[1]
                 return False
         return True
 

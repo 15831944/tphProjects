@@ -719,7 +719,8 @@ class HwyGraphRDF(HwyGraph):
                link_type not in (HWY_LINK_TYPE_INNER,
                                  HWY_LINK_TYPE_RTURN,
                                  HWY_LINK_TYPE_LTURN,
-                                 HWY_LINK_TYPE_SAPA) and
+                                 HWY_LINK_TYPE_SAPA,
+                                 HWY_LINK_TYPE_RAMP) and
                self.has_edge(temp_v, temp_u)):  # 双向道路
                 return True
         if inner_num >= 2:
@@ -891,6 +892,7 @@ class HwyGraphRDF(HwyGraph):
                         reverse=False, cutoff=MAX_CUT_OFF):
         ''''''
         MAX_COUNT = 2
+        MAX_TOLLGATE_NUM = 2
         sapa_link = False
         exist_sapa_facil = False
         both_sapa_cnt = 0
@@ -946,6 +948,8 @@ class HwyGraphRDF(HwyGraph):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
                 continue
+            elif self._get_tollgate_num(temp_path) >= MAX_TOLLGATE_NUM:
+                continue
             elif len(visited) <= cutoff2:
                 # 取得link
                 if reverse:  # 逆
@@ -961,7 +965,10 @@ class HwyGraphRDF(HwyGraph):
                 if(len(visited) > 2 and
                    self.is_normal_inner_link(out_data) and  # 一般道Inner Link
                    not self._one_in_one_out(visited[-1], code_field)):
-                    # 即, 当前是Inner link，起点有多条相连link(一进一出)
+                    # 即, 当前是Inner link，起点有多条相连link(非一进一出)
+                    if not self.is_hwy_inout(temp_path[1:-1], reverse):
+                        # 前个点已经是出入口，不再收录(重复)
+                        yield temp_path[1:-1], HWY_IC_TYPE_IC
                     continue
                 elif self.is_jct(temp_path, road_code, code_field, reverse):
                     for uturn_info in self.get_uturns(temp_path, road_code,
@@ -1258,6 +1265,12 @@ class HwyGraphRDF(HwyGraph):
                 return True
         return False
 
+    def _get_tollgate_num(self, path):
+        tollgate = set()
+        for node in path[1:-1]:
+            if self.is_tollgate(node):
+                tollgate.add(node)
+        return len(tollgate)
 
 # ==============================================================================
 #

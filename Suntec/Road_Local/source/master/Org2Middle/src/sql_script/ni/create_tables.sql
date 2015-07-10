@@ -315,3 +315,20 @@ create table temp_towardname_name
 	poi_id bigint,
 	toward_name varchar
 );
+
+create table temp_lane_exclusive
+as
+(
+	select gid,case when length(replace(laneinfo_all,'0',''))=length(replace(laneinfo_part,'0','')) then 0
+		else 1 end as exclusive from
+	(
+		select *,lpad((laneinfo_all::bigint-laneinfo::bigint)::text,lanenum,'0') as laneinfo_part from 
+		(
+			select nodeid,inlinkid,lanenum,lpad(sum(laneinfo::bigint)::text,lanenum,'0') as laneinfo_all from (
+				select distinct nodeid,inlinkid,arrowinfo,laneinfo,lanenum from lane_tbl
+			) a group by nodeid,inlinkid,lanenum
+		)  a
+		join lane_tbl b
+		using(nodeid,inlinkid,lanenum)
+	) a
+);

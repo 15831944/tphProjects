@@ -348,3 +348,8 @@ CREATE INDEX org_poi_relation_poi_id2_idx
   ON org_poi_relation
   USING btree
   (poi_id2);
+  
+CREATE INDEX temp_lane_exclusive_gid_idx
+  on temp_lane_exclusive
+  USING btree
+  (gid);
