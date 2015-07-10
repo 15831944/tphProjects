@@ -812,17 +812,17 @@ class GeneratorPicBinary(object):
                 nightPicPath = ''
                 # day and nigth illust
                 if  os.path.isfile(destFile) == False:
-	                dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
-	                nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
-	                if os.path.exists(dayPicPath) == False:
-	                    print 'day picture not exist!!! ' + dayPicPath 
-	                    pics_unfinished.append(pic)
-	                    exist_flag = 0
-	                    continue
-	                if os.path.exists(nightPicPath) == False:
-	                    print 'night picture not exist!!! ' + nightPicPath 
-	                    pics_unfinished.append(pic)
-	                    exist_flag = 0
+                    dayPicPath = os.path.join(dirFileDir, "DAY", back_picname + ".jpg")
+                    nightPicPath = os.path.join(dirFileDir, "NIGHT", back_picname + ".jpg")
+                    if os.path.exists(dayPicPath) == False:
+                        print 'day picture not exist!!! ' + dayPicPath 
+                        pics_unfinished.append(pic)
+                        exist_flag = 0
+                        continue
+                    if os.path.exists(nightPicPath) == False:
+                        print 'night picture not exist!!! ' + nightPicPath 
+                        pics_unfinished.append(pic)
+                        exist_flag = 0
 
 
                     # ARROW PIC BUILD
@@ -889,10 +889,10 @@ class GeneratorPicBinary(object):
                         print 'bird day picture not exist!!! ' + dayPicPath
                         exist_flag = 0
                         continue
-	                if os.path.exists(nightPicPath) == False:
-	                    print 'bird night picture not exist!!! ' + nightPicPath
-	                    exist_flag = 0
-	                    continue
+                    if os.path.exists(nightPicPath) == False:
+                        print 'bird night picture not exist!!! ' + nightPicPath
+                        exist_flag = 0
+                        continue
                     # ARROW PIC BUILD
                 dest_arrow_names = []
                 source_arrow_names = []
