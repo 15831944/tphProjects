@@ -35,7 +35,7 @@ class HwyDataMngMMi(HwyDataMngRDF):
                road_name, road_number
           FROM mid_temp_hwy_main_link
         """
-        sqlcmd += New_Delhi_BOX
+        # sqlcmd += New_Delhi_BOX
         for link_info in self._get_link_attr(sqlcmd):
             (link_id, s_node, e_node, one_way,
              s_angle, e_angle, link_attr) = link_info
@@ -47,8 +47,18 @@ class HwyDataMngMMi(HwyDataMngRDF):
         self.log.info('End Loading Highway Main Link.')
 
     def load_exit_name(self):
+        # 印度没有出口名称
         pass
 
+    def load_exit_poi_name(self):
+        # 印度没有Exit POI
+        pass
+
+    def load_org_facil_id(self):
+        pass
+
+    def load_junction_name(self):
+        pass
 # 新德里
 New_Delhi_BOX = """ WHERE the_geom && ST_SetSRID(ST_MakeBox2D(ST_Point(75.492,30.223),
                                                                ST_Point(79.0364,26.7549)),

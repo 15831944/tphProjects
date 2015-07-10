@@ -43,11 +43,11 @@ class Highway(component.component_base.comp_base):
     classdocs
     '''
 
-    def __init__(self):
+    def __init__(self, ItemName='Highway'):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Highway')
+        component.component_base.comp_base.__init__(self, ItemName)
 
     def _Do(self):
         hwy_data = HwyDataMng.instance()
@@ -578,7 +578,8 @@ class Highway(component.component_base.comp_base):
         # ## 料金所
         tolls = self.get_tolls(facil_infos)
         if tolls:
-            self.log.error('有收费站在起始设施。')
+            self.log.error('Tollgate in Start. node=%s'
+                            % facil_infos[0].node_id)
         if cycle_flag:  # 环线
             # 按设施种别排序
             return self._sort_facils(facil_infos)
@@ -609,7 +610,8 @@ class Highway(component.component_base.comp_base):
         # ## 料金所
         tolls = self.get_tolls(facil_infos)
         if tolls:
-            self.log.error('有收费站在结尾设施。')
+            self.log.error('Tollgate in End. node=%s'
+                           % facil_infos[0].node_id)
         if cycle_flag:  # 环线
             # 按设施种别排序
             return self._sort_facils(facil_infos)

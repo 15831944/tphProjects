@@ -73,8 +73,8 @@ class rdb_guideinfo_spotguide(ItemBase):
                             guideclass,
                             patternno,
                             arrowno,
-                            is_exist_sar,
-                            "type"
+                            "type",
+                            is_exist_sar
                           FROM spotguide_tbl
                     ) as s
                     LEFT JOIN rdb_tile_link as a

@@ -931,14 +931,14 @@ CREATE TABLE rdb_admin_country
   country_id integer PRIMARY KEY,
   iso_country_code character(3),
   country_name character varying(100)
-);SELECT AddGeometryColumn('public', 'rdb_admin_country', 'the_geom', 4326, 'MULTIPOLYGON', 2);
+); SELECT AddGeometryColumn('public','rdb_admin_country','the_geom','4326','MULTIPOLYGON',2);
 
 CREATE TABLE rdb_admin_order1
 (
   order1_id integer PRIMARY KEY,
   country_id integer,
   order1_name character varying(100)
-);SELECT AddGeometryColumn('public', 'rdb_admin_order1', 'the_geom', 4326, 'MULTIPOLYGON', 2);
+); SELECT AddGeometryColumn('public','rdb_admin_order1','the_geom','4326','MULTIPOLYGON',2);
 
 ----------------------------------------------------------------------------------------------------------
 -- temp 900913
@@ -1750,3 +1750,14 @@ as
 	on c.link_id = d.link_id
 	where c.node_id is null
 );
+
+--------------------------------------------------------------------------------------------------------
+CREATE TABLE mid_temp_force_guide_tbl
+(
+  gid serial primary key,
+  nodeid bigint,
+  inlinkid bigint,
+  outlinkid bigint,
+  passlid character varying(1024),
+  passlink_cnt smallint
+); SELECT AddGeometryColumn('','mid_temp_force_guide_tbl','node_geom','4326','POINT',2); SELECT AddGeometryColumn('','mid_temp_force_guide_tbl','inlink_geom','4326','LINESTRING',2); SELECT AddGeometryColumn('','mid_temp_force_guide_tbl','outlink_geom','4326','LINESTRING',2);

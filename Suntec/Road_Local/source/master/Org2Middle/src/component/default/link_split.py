@@ -1079,7 +1079,7 @@ class comp_link_split(component.component_base.comp_base):
                     on temp_1.old_link_id = temp_2.park_link_id
                 )as c
                 on a.link_id = c.link_id
-                where display_class in(20,21);
+                where display_class in(30,31);
                 '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

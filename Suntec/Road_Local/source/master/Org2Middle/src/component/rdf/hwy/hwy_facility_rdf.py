@@ -335,7 +335,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
               where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
                     link_lid <> '' and link_lid is not null
           ) as b
-          LEFT JOIN mid_temp_sapa_link as c
+          LEFT JOIN mid_temp_poi_link as c
           ON b.link_id = c.link_id
           LEFT JOIN mid_temp_hwy_sapa_name as d
           ON c.poi_id = d.poi_id

@@ -97,6 +97,17 @@ class CCheckFeatName(platform.TestCase.CTestCase):
         nRecCount = self.pg.getOnlyQueryResult(sqlcmd)
         return (nRecCount == 0)
 
+class CCheckFeatName2(platform.TestCase.CTestCase):
+    'use mmi data to get rdb data'
+    def _do(self):
+        sqlcmd = """
+                select count(*)
+                from rdb_guideinfo_natural_guidence
+                where feat_name is null
+                """
+        nRecCount = self.pg.getOnlyQueryResult(sqlcmd)
+        return (nRecCount == 0)
+
 class CCheckPreposition(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

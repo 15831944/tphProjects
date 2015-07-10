@@ -1056,6 +1056,7 @@ class rdb_traffic(ItemBase):
         
         if  row[0] > 0:
             self.CreateTable2('temp_trf_names')
+            self.CreateTable2('temp_trf_languages')
             self.CreateTable2('temp_locationtable')  
             self._createLocationTbl()         
         else:

@@ -333,7 +333,7 @@ class comp_link_merge(component.component_base.comp_base):
                 left join 
                 park_link_tbl_bak_merge as b
                 on a.link_id = b.park_link_id
-                where display_class in(20,21);
+                where display_class in(30,31);
                 '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

@@ -34,6 +34,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
+from component.rdf.hwy.hwy_def_rdf import ANGLE_10
 from component.rdf.hwy.hwy_def_rdf import ANGLE_45
 from component.rdf.hwy.hwy_def_rdf import ANGLE_60
 from component.rdf.hwy.hwy_def_rdf import ANGLE_80
@@ -355,12 +356,12 @@ class HwyGraphRDF(HwyGraph):
         number2 = data2.get('numbers')
         name1 = data1.get('names')
         name2 = data2.get('names')
-        if not number1 or not number2 and not name1 and not name2:
+        if not number1 and not number2 and not name1 and not name2:
             degree |= SIMILAR_DEGREE_NO_NUM_NAME
         else:
             if self._is_similer_number(number1, number2):
                 degree |= SIMILAR_DEGREE_NUM
-            if self._is_similer_number(name1, name2):
+            if self._is_similer_name(name1, name2):
                 degree |= SIMILAR_DEGREE_NAME
         if degree > SIMILAR_DEGREE_NONE:
             link_type1 = data1.get(HWY_LINK_TYPE)
@@ -506,13 +507,15 @@ class HwyGraphRDF(HwyGraph):
         if (num1 and not num2) or (not num1 and num2):
             return False
         if not num1 and not num2:
-            return True
+            return False
         if self._get_intersection(num1, num2):
             return True
         return False
 
     def _is_similer_name(self, name1, name2):
         if (name1 and not name2) or (not name1 and name2):
+            return False
+        if not name1 and not name2:
             return False
         if self._get_intersection(name1, name2):
             return True
@@ -710,6 +713,11 @@ class HwyGraphRDF(HwyGraph):
         if angle < ANGLE_60 or angle > ANGLE_300:
             return False
         return True
+
+    def is_straight(self, angle):
+        if angle < ANGLE_10 or angle > ANGLE_360 - ANGLE_10:
+            return True
+        return False
 
     def is_jct(self, node, road_code, code_field=HWY_ROAD_CODE, reverse=False):
         '''JCT分歧、合流'''
@@ -978,19 +986,24 @@ class HwyGraphRDF(HwyGraph):
             if not temp_road_code:  # 非本线
                 continue
             # 线路号要相同
-            if same_code:
+            if road_code and same_code:
                 if temp_road_code == road_code:
                     if reverse:  # 逆
                         nodes.append(u)
                     else:  # 顺
                         nodes.append(v)
             # 线路号不同
-            else:
+            elif road_code and not same_code:
                 if temp_road_code != road_code:
                     if reverse:  # 逆
                         nodes.append(u)
                     else:  # 顺
                         nodes.append(v)
+            else:   # 所有本线
+                if reverse:  # 逆
+                    nodes.append(u)
+                else:  # 顺
+                    nodes.append(v)
         return nodes
 
     def get_normal_link(self, u, v, reverse=False):

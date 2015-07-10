@@ -958,8 +958,8 @@ CREATE INDEX mid_temp_hwy_sapa_name_poi_id_idx
   (name_id);
 
 ------------------------------------------------------------------------
-CREATE INDEX mid_temp_sapa_link_poi_id_idx
-  ON mid_temp_sapa_link
+CREATE INDEX mid_temp_poi_link_poi_id_idx
+  ON mid_temp_poi_link
   USING btree
   (poi_id);
 

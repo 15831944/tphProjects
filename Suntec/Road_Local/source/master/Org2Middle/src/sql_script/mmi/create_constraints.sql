@@ -106,8 +106,8 @@ CREATE INDEX org_regional_data_table_idx
 
 
 -----------------------------------------------------  
-CREATE INDEX mid_temp_sapa_link_poi_id_idx
-  ON mid_temp_sapa_link
+CREATE INDEX mid_temp_poi_link_poi_id_idx
+  ON mid_temp_poi_link
   USING btree
   (poi_id);
 

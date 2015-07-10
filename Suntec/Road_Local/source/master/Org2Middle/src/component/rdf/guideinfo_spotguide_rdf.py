@@ -4,14 +4,13 @@ Created on 2012-4-27
 
 @author: zhangliang
 '''
+import component
 import os
 import common
 import psycopg2
 from common.dirwalker import DirWalker
 import struct
 import logging
-import shutil
-
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 from common.common_func import GetPath
 
@@ -115,7 +114,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             sqlcmd = """
             insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                         passlid,passlink_cnt,direction,
-                    guideattr,namekind,guideclass,patternno,arrowno,is_exist_sar,type)
+                    guideattr,namekind,guideclass,patternno,arrowno,type)
             (
                 select all_nodes[1] as nodeid, all_links[1] as inlinkid,
                             all_links[all_link_cnt] as outlinkid,
@@ -408,30 +407,32 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
             # 求引导属性
 #             attr_dir = self._get_direction_attr(ramp, bif, ca)
             # 保存到数据库
-            # gjv没有sign as real图，is_exist_sar字段置为false
             insert_sqlcmd = '''
                     insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                                               passlid, passlink_cnt, direction,
                                               guideattr, namekind, guideclass,
-                                              patternno, arrowno, type, 
-                                              is_exist_sar)
+                                              patternno, arrowno,
+                                              type)
                       values(%s, %s, %s,
                              %s, %s, %s,
                              %s, %s, %s,
-                             %s, %s, %s,
-                             False)
+                             %s, %s,
+                             %s)
             '''
             self.pg.execute2(insert_sqlcmd, (nodeid, inlink, outlink,
                                              passlink, pathcnt, 0,
                                              0, 0, 0,
-                                             illust_backg_name, arrow_name, jv_type)
+                                             illust_backg_name, arrow_name,
+                                             jv_type
+                                             )
                              )
         self.pg.commit2()
 
     def make_ejv_spotguide_data(self):
         sqlcmd = '''
             SELECT distinct nodeid, inlink, outlink,
-                   jv_type, filename, side, pathlink
+                  jv_type, filename, side,
+                pathlink
             FROM temp_ejv_junctionview_info;
         '''
         self.pg.execute2(sqlcmd)
@@ -463,18 +464,19 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
                     insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                                               passlid, passlink_cnt, direction,
                                               guideattr, namekind, guideclass,
-                                              patternno, arrowno, type, 
-                                              is_exist_sar)
+                                              patternno, arrowno,
+                                              type)
                       values(%s, %s, %s,
                              %s, %s, %s,
                              %s, %s, %s,
-                             %s, %s, %s,
-                             False)
+                             %s, %s,
+                             %s)
             '''
             self.pg.execute2(insert_sqlcmd, (nodeid, inlink, outlink,
                                              passlink, pathcnt, 0,
                                              0, 0, 0,
-                                             illust_backg_name, arrow_name, jv_type
+                                             illust_backg_name, arrow_name,
+                                             jv_type
                                              )
                              )
         self.pg.commit2()
@@ -547,8 +549,8 @@ class comp_picture(object):
 class GeneratorPicBinary(object):
 
     def __init__(self):
-        self.conn = psycopg2.connect('''host='172.26.179.184'
-                        dbname='MEA8_RDF_2015Q1_0065_0010'
+        self.conn = psycopg2.connect('''host='172.26.179.195'
+                        dbname='SGP_RDF_2014Q1_20140617'
                         user='postgres' password='pset123456' ''')
         self.pgcur2 = self.conn.cursor()
 
@@ -723,7 +725,72 @@ class GeneratorPicBinary(object):
                     arrowFis.close()
                     fos.write(resultBuffer)
                     fos.close()
-                                                   
+                    
+                    
+    def makeGJunctionResultTable_17cy(self, dirFileDir, destFileDir):
+        pictures = self.select_gjv_Data()
+        for pic in pictures:
+            pic_name_strs = (pic.getDayName()).split('/')
+            pic_type = pic_name_strs[0]
+
+            picname_bin = os.path.splitext(pic_name_strs[2])[0]
+            picDirPath = ''
+            arrow_file_name = ''
+            side = pic.getArrow()
+            if pic_type == 'SDPS':
+                picDirPath = dirFileDir + "\\" + "SDPS"
+                if side == 'R':
+                    arrow_file_name = picname_bin + '_lane1'
+                elif side == 'L':
+                    arrow_file_name = picname_bin + '_lane2'
+                else:
+                    logging.error('SDPS side wrong!')
+            elif pic_type == 'MDPS':
+                picDirPath = dirFileDir + "\\" + "MDPS"
+                if side == 'M':
+                    arrow_file_name = picname_bin + '_lane1'
+                elif side == 'R':
+                    arrow_file_name = picname_bin + '_lane2'
+                elif side == 'L':
+                    arrow_file_name = picname_bin + '_lane3'
+                else:
+                    logging.error('MDPS side wrong!!')
+            else:
+                logging.error('pic_type wrong!')
+
+            destFile = destFileDir + "\\" + picname_bin.lower() + ".dat"
+            arrowFile = destFileDir + "\\" + arrow_file_name.lower() + ".dat"
+            if os.path.isdir(picDirPath):
+                # day and nigth illust
+                if  os.path.isfile(destFile) == False:
+                    dayPicPath = os.path.join(picDirPath, "DAY", picname_bin + ".jpg")
+                    nightPicPath = os.path.join(picDirPath, "NIGHT", picname_bin + ".jpg")
+                    dayFis = open(dayPicPath, 'rb')
+                    nightFis = open(nightPicPath, 'rb')
+                    fos = open(destFile, 'wb')
+                    dayPicLen = os.path.getsize(dayPicPath)
+                    nightPicLen = os.path.getsize(nightPicPath)
+                    headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
+                                               dayPicLen, 2, 22 + dayPicLen, \
+                                               nightPicLen)
+                    resultBuffer = headerBuffer + dayFis.read() \
+                                            + nightFis.read()
+                    dayFis.close()
+                    nightFis.close()
+                    fos.write(resultBuffer)
+                    fos.close()
+                    # ARROW PIC BUILD
+                if os.path.isfile(arrowFile) == False:
+                    picPathFile = picDirPath + "\\DAY\\" + arrow_file_name + ".png"
+                    arrowFis = open(picPathFile, 'rb')
+                    fos = open(arrowFile, 'wb')
+                    arrowPicLen = os.path.getsize(picPathFile)
+                    headerBuffer = struct.pack("<HHbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                    resultBuffer = headerBuffer + arrowFis.read()
+                    arrowFis.close()
+                    fos.write(resultBuffer)
+                    fos.close()   
+                                 
     # 首先处理driver pic
     # 如果driver pic中背景图或者箭头图原图不存在，那么用bird pic对应
     def makeEJunctionResultTable(self, dirFileDir, destFileDir, flag):
@@ -872,101 +939,11 @@ class GeneratorPicBinary(object):
                 else:
                     print pic.getDayName()
         return 0
-    
-    # 合并RDF的SAR
-    # srcRoadDir: road图片的路径
-    # srcSarDir: Sar图片的路径
-    # destDir: 输出路径
-    # destDir文件夹与srcRoadDir文件夹结构和包含的文件名保持完全一致，区别仅是destDir中合并了sar信息。
-    def composeSignpost(self, srcRoadDir, srcSarDir, destDir):
-        if(os.path.isdir(srcRoadDir) == False):
-            print ('''source directory not exist: %s''' % srcRoadDir)
-            return
-        if(os.path.isdir(srcSarDir) == False):
-            print ('''SAR source directory not exist: %s''' % srcSarDir)
-            return
-        
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        shutil.copytree(srcRoadDir, destDir)
-        
-        oFStream = open(os.path.join(destDir, "roadPic.csv"), "w") # 仅为了输出log
-        roadPics = []
-        # 遍历road图文件夹，列出所有road图文件，仅考虑driverview的情况
-        for curDir, dirNames, fileNames in os.walk(destDir): # destDir此时和srcRoadDir完全相同
-            if(curDir.lower().find("driver_view") >= 0): # 仅考虑driverview的情况
-                for oneFile in fileNames:
-                    if oneFile[-4:] == ".jpg": # 使用SVG Toolbox 1.1导出时选择.jpg模式导出road图
-                        roadPics.append(os.path.join(curDir, oneFile))
-                        oFStream.write(oneFile + '\n')
-        oFStream.close()
-        
-        oFStream = open(os.path.join(destDir, "sarPic.csv"), "w") # 仅为了输出log
-        sarPics = []
-        # 遍历sar图文件夹，列出所有sar文件
-        for curDir, dirNames, fileNames in os.walk(srcSarDir):
-            for oneFile in fileNames:
-                if oneFile[-4:] == ".png": # 使用SVG Toolbox 1.1导出时sar图时默认是.png格式
-                    sarPics.append(os.path.join(curDir, oneFile))
-                    oFStream.write(oneFile + '\n')
-        oFStream.close()
-                    
-        # road图片名字的一般样式：JV_BH_555171664.jpg
-        # sar 图片名字的一般样式：SR_BH_555171664.png
-        # 关键字段 _BH_555171664相同，该road找到对应的sar图片，将其合并
-        # 没有找到sar图片的road，不做任何处理
-        oFStream = open(os.path.join(destDir, "roadAndSarPic.csv"), "w") # 仅为了输出log
-        for roadPic in roadPics:
-            roadPicName = os.path.split(roadPic)[1]
-            strOutput = roadPicName + ','
-            for sarPic in sarPics:
-                sarPicName = os.path.split(sarPic)[1]
-                if os.path.splitext(roadPicName)[0][3:] == os.path.splitext(sarPicName)[0][3:]:
-                    cmd = "composite.exe -gravity north %s %s %s" % (sarPic, roadPic, roadPic)
-                    os.system(cmd)
-                    strOutput = strOutput + sarPicName
-                    break;
-            oFStream.write(strOutput + '\n')
-        oFStream.close()
-
-    
-    #降制.jpg和.png，遍历srcDir文件夹
-    #将会生成一个名为destDir的文件夹，其子目录结构与srcDir的完全相同
-    def ConvertImage(self, srcDir, destDir, quality=0.5):
-        if(os.path.exists(srcDir) == False):
-            print "source directory does not exist: " + srcDir
-            return
-        from PIL import Image 
-        for curDir,dirNames,fileNames in os.walk(srcDir):
-            for oneFile in fileNames:
-                if oneFile[-4:] == ".jpg" or oneFile[-4:] == ".png":    
-                    srcFile = os.path.join(curDir, oneFile)
-                    tempDestDir = curDir.replace(srcDir, destDir)
-                    if(os.path.isdir(tempDestDir) == False):
-                        cmd = "md \"%s\"" % (tempDestDir)
-                        os.system(cmd)
-                        print "created " + tempDestDir
-
-                    image = Image.open(srcFile)
-                    resizedImage = image.resize((image.size[0]*quality, image.size[1]*quality), Image.BILINEAR)
-                    destFile = os.path.join(tempDestDir, oneFile)
-                    resizedImage.save(destFile)
-                    print "    " + srcFile
-                    print "        >>>>>>>>  " + destFile
-        return
 
 if __name__ == '__main__':
     test = GeneratorPicBinary()
-    #test.composeSignpost("C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT",
-    #                     "C:\\My\\20150409_mea_pic\\2DS_2015Q1_MEA_OUTPUT",
-    #                     "C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_withsar_onlydriverview")
-    #test.makeGJunctionResultTable("E:\\orgdata\\EJV14Q1\\APC_jpg\\GJV\\APC", "E:\\orgdata\\EJV14Q1\\SGP_MSL")
-    pics = test.makeEJunctionResultTable("C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_withsar_onlydriverview_resized\\2DJ_2015Q1_ASIA\\DRIVER_VIEW\\LANDSCAPE\\ASPECT_RATIO_4x3", 
-                                         "C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_DAT_withsar", 
-                                         '')
+    test.makeGJunctionResultTable("E:\\orgdata\\EJV14Q1\\APC_jpg\\GJV\\APC", "E:\\orgdata\\EJV14Q1\\SGP_MSL")
+    pics = test.makeEJunctionResultTable("E:\\orgdata\\EJV14Q1\\ejv_driver_jpg_sgp_msl", "E:\\orgdata\\EJV14Q1\\SGP_MSL", '')
     print len(pics)
-    test.makeBIRDJunctionResultTable("C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_withsar_onlydriverview_resized\\2DJ_2015Q1_ASIA\\BIRD_VIEW\\LANDSCAPE\\ASPECT_RATIO_4x3",
-                                     "C:\\My\\20150409_mea_pic\\2DJ_2015Q1_MEA_OUTPUT_DAT_bird_withsar", 
-                                     pics)
-
+    test.makeBIRDJunctionResultTable('E:\\orgdata\\EJV14Q1\\ejv_bird_jpg_sgp_msl', "E:\\orgdata\\EJV14Q1\\SGP_MSL", pics)
     pass

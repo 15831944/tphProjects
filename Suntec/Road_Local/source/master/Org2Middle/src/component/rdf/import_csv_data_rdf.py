@@ -25,7 +25,7 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
 
     def _Do(self):
 #         jcv_file_dir = common.common_func.GetPath('junctionview_dir')
-        jvCountryListStr = common.common_func.GetPath('jv_country')
+        strJvCountryList = common.common_func.GetPath('jv_country')
 #         gjv_file_list = common.common_func.GetPath('gjv_files')
 #         all_jv_file_list = common.common_func.GetPath('all_jv_files')
         jcvFileDir = common.common_func.GetPath('junctionview_data')
@@ -33,11 +33,11 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
 #         print jcv_file_dir, jv_country
         if gjv_file_list:
             self.CreateTable2('rdfpl_gjv_lat_display_org')
-            self.insert_gjv_data(jcvFileDir, gjv_file_list, jvCountryListStr)
+            self.insert_gjv_data(jcvFileDir, gjv_file_list, strJvCountryList)
 
         if all_jv_file_list:
             self.CreateTable2('rdfpl_all_jv_lat_display_org')
-            self.insert_all_jv_data(jcvFileDir, all_jv_file_list, jvCountryListStr)
+            self.insert_all_jv_data(jcvFileDir, all_jv_file_list, strJvCountryList)
             
         all_sign_as_real_file_name = common.common_func.GetPath('all_sign_as_real_file_name')
         self.CreateTable2('mid_all_sar_files')
@@ -61,12 +61,12 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
         return 0
     
     # 解析gjv.csv
-    def insert_gjv_data(self, gjv_file_dir, gjv_file_list, jvCountryListStr):
+    def insert_gjv_data(self, gjv_file_dir, gjv_file_list, strJvCountryList):
         jcv_files = gjv_file_list.split(',')
         for jcv_file in jcv_files:
             jcv_path = os.path.join(gjv_file_dir, jcv_file)
             if os.path.isfile(jcv_path):
-                jvCountryList = tuple(jvCountryListStr.split(','))
+                jvCountryList = tuple(strJvCountryList.split(','))
                 recordList = self.analyse_csv(jcv_path)
                 for record in recordList:
                     #此数据所属国家不在我们所需要的国家列表里，丢弃
@@ -108,7 +108,9 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                         record['ramp'].replace('"',''),
                                         record['bif'].replace('"',''),
                                         record['ca'].replace('"',''),
-                                        record['filename'],
+                                        None if not record['filename'] else
+                                        'MDPS/ASPECT RATIO 16x9/GJV_' + record['filename'].replace('"','') if record['dp2_node_id'] 
+                                        else 'SDPS/ASPECT RATIO 16x9/GJV_' + record['filename'].replace('"',''),
                                         record['side'].replace('"',''),
                                         record['sign_dest'] if record['sign_dest'] else None,
                                         record['jv_origin'] if record['jv_origin'] else None,
@@ -128,19 +130,19 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                     )
             self.pg.commit2()
 
-    #解析 ejv.csv
-    def insert_all_jv_data(self, jcv_file_dir, jcv_file_list, jvCountryListStr):
+    # 解析 ejv.csv
+    def insert_all_jv_data(self, jcv_file_dir, jcv_file_list, strJvCountryList):
         jcv_files = jcv_file_list.split(',')
         for jcv_file in jcv_files:
             jcv_path = os.path.join(jcv_file_dir, jcv_file)
             if os.path.isfile(jcv_path):
-                jvCountryList = tuple(jvCountryListStr.split(','))
+                jvCountryList = tuple(strJvCountryList.split(','))
                 recordList = self.analyse_csv(jcv_path)
                 recordCount = len(recordList)
                 for record in recordList:
                     # 此数据所属国家不在我们所需要的国家列表内，丢弃
-                    #if str(record['iso_country_code'].replace('"','')) not in jvCountryList:
-                        #continue
+                    if str(record['iso_country_code'].replace('"','')) not in jvCountryList:
+                        continue
                     # gjv对应的svg名(filename列）和ejv对应的svg名(jcv_filename列)都为空，丢弃。
                     # todo by tangpinghui: 该数据是sar相关，是否应该丢弃?
                     if (not record['filename']) and (not record['ejv_filename']):
@@ -181,7 +183,9 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                         record['ramp'].replace('"',''),
                                         record['bif'].replace('"',''),
                                         record['ca'].replace('"',''),
-                                        record['filename'],
+                                        None if not record['filename'] else
+                                        'MDPS/ASPECT RATIO 16x9/GJV_' + record['filename'].replace('"','') if record['dp2_node_id'] 
+                                        else 'SDPS/ASPECT RATIO 16x9/GJV_' + record['filename'].replace('"',''),
                                         record['side'].replace('"',''),
                                         record['sign_dest'] if record['sign_dest'] else None,
                                         record['jv_origin'] if record['jv_origin'] else None,
@@ -197,8 +201,8 @@ class import_junctionview_data_rdf(component.component_base.comp_base):
                                         record['dp2_node_id'] if record['dp2_node_id'] else None,
                                         record['latitude'],
                                         record['longitude'],
-                                        record['ejv_filename'],
-                                        record['sar_filename'],
+                                        record['ejv_filename'] if record['ejv_filename'] else None,
+                                        record['sar_filename'] if record['sar_filename'] else None,
                                         record['dp1_dest_link'] if record['dp1_dest_link'] else None,
                                         record['jv_dest_link'] if record['jv_dest_link'] else None
                                       )

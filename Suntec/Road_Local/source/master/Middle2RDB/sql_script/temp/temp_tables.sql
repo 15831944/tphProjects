@@ -554,8 +554,8 @@ as
 	on b.link_id = c.link_id
 	left join (
 		select m.link_id
-			,case when n.link_id is null then (m.path_extra_info & 7)
-				else ((n.link_add_info2 & 7) << 3) | (m.path_extra_info & 7)
+			,case when n.link_id is null then (((path_extra_info >> 4) & 1) << 6) | (path_extra_info & 7)
+				else (((link_add_info2 >> 6) & 1) << 7) | (((path_extra_info >> 4) & 1) << 6) | ((link_add_info2 & 7) << 3) | (path_extra_info & 7)
 			 end as path_extra_info
 		from rdb_link_add_info as m
 		left join rdb_link_add_info2 as n
@@ -747,8 +747,8 @@ as
 		on a.link_id = b.link_id
 		left join (
 			select m.link_id, m.struct_code, m.shortcut_code, m.etc_lane_flag
-				,case when n.link_id is null then (m.path_extra_info & 7)
-					else ((n.link_add_info2 & 7) << 3) | (m.path_extra_info & 7)
+				,case when n.link_id is null then (((path_extra_info >> 4) & 1) << 6) | (path_extra_info & 7)
+					else (((link_add_info2 >> 6) & 1) << 7) | (((path_extra_info >> 4) & 1) << 6) | ((link_add_info2 & 7) << 3) | (path_extra_info & 7)
 				 end as path_extra_info
 			from rdb_link_add_info as m
 			left join rdb_link_add_info2 as n
@@ -779,8 +779,8 @@ as
 		on a.link_id = b.proxy_link_id
 		left join (
 			select m.link_id, m.struct_code, m.shortcut_code, m.etc_lane_flag
-				,case when n.link_id is null then (m.path_extra_info & 7)
-					else ((n.link_add_info2 & 7) << 3) | (m.path_extra_info & 7)
+				,case when n.link_id is null then (((path_extra_info >> 4) & 1) << 6) | (path_extra_info & 7)
+					else (((link_add_info2 >> 6) & 1) << 7) | (((path_extra_info >> 4) & 1) << 6) | ((link_add_info2 & 7) << 3) | (path_extra_info & 7)
 				 end as path_extra_info
 			from rdb_link_add_info as m
 			left join rdb_link_add_info2 as n
@@ -1367,6 +1367,35 @@ as
 	) e group by cid,nid
 );
 
+create table temp_trf_languages 
+as
+(
+	select cid
+		,array_agg(lid) as lid_array_org
+		,array_agg(language) as language_array
+	from (
+		select a.cid,a.lid
+			,case when b.l_full_name is not null then b.language_code
+				else a.language
+			end as language
+		from (
+			select m.cid,m.lid
+				,case when n.language is not null then n.language
+					else m.language
+				end as language
+			from gewi_languages m
+			left join (
+				select distinct lid,language
+				from gewi_languages 
+				where lower(language) != 'default'
+			) n
+			on m.lid = n.lid
+		) a
+		left join rdb_language b
+		on lower(a.language) = lower(b.l_full_name)
+	) a group by cid
+);
+
 CREATE TABLE temp_locationtable 
 AS
 (
@@ -1374,10 +1403,10 @@ AS
 	select b.ecc, b.ccd as cc, b.cname as country
 		,a.tabcd::integer as table_no, a.lcd::integer as location_code
 		,a.class::character varying as location_type, a.tcd::smallint as type, a.stcd::smallint as subtype
-		,n1.name_array as road_name, n4.lid_array as road_lang
-		,n2.name_array as first_name, n4.lid_array as first_lang
-		,n3.name_array as second_name, n4.lid_array as second_lang
-		,c.roadnumber as road_number, n4.lid_array as roadnumber_lang 
+		,n1.name_array as road_name, n4.language_array as road_lang
+		,n2.name_array as first_name, n4.language_array as first_lang
+		,n3.name_array as second_name, n4.language_array as second_lang
+		,c.roadnumber as road_number, n4.language_array as roadnumber_lang 
 		,a.pol_lcd::integer as area_ref, a.roa_lcd::integer as line_ref
 		,case when d.neg_off_lcd is null then 0
 			  else d.neg_off_lcd::integer 
@@ -1406,10 +1435,7 @@ AS
 	on a.cid = n2.cid and a.n1id = n2.nid
 	left join temp_trf_names n3
 	on a.cid = n3.cid and a.n2id = n3.nid
-	left join (
-		select cid ,array_agg(lid) as lid_array
-		from gewi_languages group by cid
-	) n4
+	left join temp_trf_languages n4
 	on a.cid = n4.cid	
 
 	union
@@ -1417,10 +1443,10 @@ AS
 	select b.ecc, b.ccd as cc, b.cname as country
 		,a.tabcd::integer as table_no, a.lcd::integer as location_code
 		,a.class::character varying as location_type, a.tcd::smallint as type, a.stcd::smallint as subtype
-		,n1.name_array as road_name, n4.lid_array as road_lang
-		,n2.name_array as first_name, n4.lid_array as first_lang
-		,n3.name_array as second_name, n4.lid_array as second_lang
-		,a.roadnumber as road_number, n4.lid_array as roadnumber_lang
+		,n1.name_array as road_name, n4.language_array as road_lang
+		,n2.name_array as first_name, n4.language_array as first_lang
+		,n3.name_array as second_name, n4.language_array as second_lang
+		,a.roadnumber as road_number, n4.language_array as roadnumber_lang
 		,a.pol_lcd::integer as area_ref, null::integer as line_ref
 		,null::integer as neg_offset
 		,null::integer as pos_offset
@@ -1438,10 +1464,7 @@ AS
 	on a.cid = n2.cid and a.n1id = n2.nid
 	left join temp_trf_names n3
 	on a.cid = n3.cid and a.n2id = n3.nid
-	left join (
-		select cid ,array_agg(lid) as lid_array
-		from gewi_languages group by cid
-	) n4
+	left join temp_trf_languages n4
 	on a.cid = n4.cid
 	
 	union
@@ -1449,10 +1472,10 @@ AS
 	select b.ecc, b.ccd as cc, b.cname as country
 		,a.tabcd::integer as table_no, a.lcd::integer as location_code
 		,a.class::character varying as location_type, a.tcd::smallint as type, a.stcd::smallint as subtype
-		,n.name_array as road_name, n4.lid_array as road_lang
-		,null::character varying[] as first_name, n4.lid_array as first_lang
-		,null::character varying[] as second_name, n4.lid_array as second_lang
-		,null::character varying as road_number, n4.lid_array as roadnumber_lang
+		,n.name_array as road_name, n4.language_array as road_lang
+		,null::character varying[] as first_name, n4.language_array as first_lang
+		,null::character varying[] as second_name, n4.language_array as second_lang
+		,null::character varying as road_number, n4.language_array as roadnumber_lang
 		,null::integer as area_ref, null::integer as line_ref
 		,null::integer as neg_offset
 		,null::integer as pos_offset
@@ -1466,11 +1489,8 @@ AS
 	on a.cid = b.cid
 	left join temp_trf_names n
 	on a.cid = n.cid and a.nid = n.nid
-	left join (
-		select cid ,array_agg(lid) as lid_array
-		from gewi_languages group by cid
-	) n4
-	on a.cid = n4.cid	
+	left join temp_trf_languages n4
+	on a.cid = n4.cid where n4.cid is null	
 	order by table_no,location_code
 );
 

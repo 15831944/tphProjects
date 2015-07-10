@@ -23,7 +23,7 @@ class HwySapaInfoTa(HwySapaInfoRDF):
 
     def _DoCreateTalbe(self):
         self.CreateIndex2('mid_temp_sapa_store_info')
-        self.CreateIndex2('mid_temp_sapa_link')
+        self.CreateIndex2('mid_temp_poi_link')
         self.CreateIndex2('mid_temp_hwy_sapa_name')
         self.CreateTable2('hwy_chain_name')
         return 0
@@ -34,11 +34,11 @@ class HwySapaInfoTa(HwySapaInfoRDF):
     def _DoCreateIndex(self):
         return 0
 
-    def _make_hwy_sapa_link(self):
-        self.log.info('Make mid_temp_sapa_link')
+    def _make_hwy_poi_link(self):
+        self.log.info('Make mid_temp_poi_link')
         self.CreateIndex2('org_mnpoi_pi_cltrpelid_idx')
         sqlcmd = '''
-        INSERT INTO mid_temp_sapa_link(poi_id, link_id)
+        INSERT INTO mid_temp_poi_link(poi_id, link_id)
         (
           SELECT id, link_id
           FROM org_mnpoi_pi AS poi
@@ -50,7 +50,7 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-        self.log.info('End mid_temp_sapa_link')
+        self.log.info('End mid_temp_poi_link')
         return 0
 
     def _make_hwy_sapa_store_info(self):

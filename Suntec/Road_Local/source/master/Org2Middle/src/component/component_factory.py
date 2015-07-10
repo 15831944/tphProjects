@@ -863,3 +863,31 @@ class comp_factory_msm(comp_factory):
             pass
         
         return comp_factory.CreateOneComponent(self, comp_name)
+
+
+# ==============================================================================
+# comp_factory_ni(China NavInfo)
+# ==============================================================================
+class comp_factory_ni(comp_factory):
+    def __init__(self):
+        '''China NavInfo
+        '''
+
+    def CreateOneComponent(self, comp_name):
+        if comp_name == 'Highway_Prepare':
+            from component.ni.hwy.hwy_prepare_ni import HwyPrepareNi
+            return HwyPrepareNi()  # Create a empty table: mid_all_highway_node
+        if comp_name == 'Highway':
+            from component.ni.hwy.highway_ni import HighwayNi
+            return HighwayNi()
+        
+        if comp_name == 'Guideinfo_ForceGuide':
+            from component.ni.guideinfo_forceguide_ni import comp_guideinfo_forceguide_ni
+            return comp_guideinfo_forceguide_ni()
+        if comp_name == 'Guideinfo_Lane':
+            from component.ni.guideinfo_lane_ni import comp_guideinfo_lane_ni
+            return comp_guideinfo_lane_ni()            
+        if comp_name == 'Link':
+            from component.ni.link_ni import comp_link_ni
+            return comp_link_ni()          
+        return None

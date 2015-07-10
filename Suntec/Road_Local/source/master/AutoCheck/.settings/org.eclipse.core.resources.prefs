@@ -1,10 +1,8 @@
 eclipse.preferences.version=1
-encoding//src/check/mmi/org_signpost_uc.py=UTF8
 encoding//src/check/rdb/rdb_common_check.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_crossname.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_safetyalert.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_signpost.py=UTF8
-encoding//src/check/rdb/rdb_guideinfo_spotguide.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_towardname.py=UTF8
 encoding//src/check/rdb/rdb_guideinfo_towardname_client.py=UTF8
 encoding//src/check/rdb/rdb_link.py=UTF8

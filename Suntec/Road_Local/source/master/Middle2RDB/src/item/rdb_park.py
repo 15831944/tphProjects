@@ -74,7 +74,7 @@ class rdb_park(ItemBase):
                 (
                     select link_id,link_id_t,start_node_id,end_node_id,one_way,tilt_flag,the_geom,the_geom_4096
                     from rdb_link
-                    where display_class in (20,21)
+                    where display_class in (30,31)
                     order by link_id
                 )as a
                 left join

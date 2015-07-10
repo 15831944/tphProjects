@@ -44,25 +44,10 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         'Create Function'
         return 0
 
-    def _prepare_sar_info(self):
-        sqlcmd = '''
-                insert into mid_all_sar_files (filename)  
-                    ( 
-                         Select distinct patternno 
-                         from spotguide_tbl 
-                         where patternno like '%_signpost_%'
-                    )
-            '''
-        self.pg.execute(sqlcmd)
-        self.pg.commit2()
-        return
-
     def _Do(self):
         self._generate_temp_info_of_junction_links()
         self._generate_spotguide_tbl()
-        self._prepare_sar_info()
            
-        #self.reduceResolution("C:\\My\\20150410_mmi_pic\\Pattern", "C:\\My\\20150410_mmi_pic\\Pattern_resized")     
         #self.composeBackground("C:\\My\\20150410_mmi_pic\\Pattern_resized", "C:\\My\\20150410_mmi_pic\\Pattern_background")
         #self.composeSignpost("C:\\My\\20150410_mmi_pic\\Pattern_background", "C:\\My\\20150410_mmi_pic\\Pattern_signpost")
         #self.makeJunctionResultTable("C:\\My\\20150410_mmi_pic\\Pattern_signpost", "C:\\My\\20150410_mmi_pic\\illust_pic")
@@ -482,35 +467,6 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         self.log.info('''generating .dat file ended. total: %d, succeed: %d, failed: %d''' % 
                       (totalCount, succeedCount, failedCount))
 
-    #遍历srcDir文件夹，将它下面的所有.jpg和.png进行降制
-    #将会生成一个名为destDir的文件夹，其子目录结构与srcDir的完全相同
-    def reduceResolution(self, srcDir, destDir, quality=0.5):
-        self.log.info('''start to reduce original pictures resolution''')
-        if(os.path.exists(srcDir) == False):
-            self.log.error('''can't find the source directory: %s''' % srcDir)
-            return
-        
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        os.mkdir(destDir)
-        
-        resizedCount = 0 
-        for curDir, dirNames, fileNames in os.walk(srcDir):
-            for oneFile in fileNames:
-                if oneFile[-4:] == ".jpg" or oneFile[-4:] == ".png":    
-                    srcFile = os.path.join(curDir, oneFile)
-                    tempDestDir = curDir.replace(srcDir, destDir)
-                    if(os.path.isdir(tempDestDir) == False):
-                        os.mkdir(tempDestDir)
-                        self.log.info('''created directory: %s''' % tempDestDir)
-                    from PIL import Image # 需要安装PIL插件
-                    image = Image.open(srcFile)
-                    resizedImage = image.resize((image.size[0]*quality, image.size[1]*quality), Image.BILINEAR)
-                    destFile = os.path.join(tempDestDir, oneFile)
-                    resizedImage.save(destFile)
-                    resizedCount += 1
-        self.log.info('''reducing original pictures resolution ended. %d images modified.''' % resizedCount)
-        return
 
 
 

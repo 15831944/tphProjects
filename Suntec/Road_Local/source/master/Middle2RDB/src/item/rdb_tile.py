@@ -280,7 +280,7 @@ class rdb_tile(ItemBase):
                         (
                             select gid, link_id, tile_id
                             from temp_link_tbl_newid
-                            where display_class not in(20,21)
+                            where display_class not in(30,31)
                             order by tile_id, gid
                         )as a
                         group by tile_id
@@ -322,7 +322,7 @@ class rdb_tile(ItemBase):
                         (
                             select gid, link_id, tile_id
                             from temp_link_tbl_newid
-                            where display_class in(20,21)
+                            where display_class in(30,31)
                             order by tile_id, gid
                         )as a
                         group by tile_id

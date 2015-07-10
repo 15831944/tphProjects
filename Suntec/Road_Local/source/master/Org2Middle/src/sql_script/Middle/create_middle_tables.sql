@@ -204,7 +204,6 @@ CREATE TABLE spotguide_tbl
   guideclass smallint,
   patternno character varying(128),
   arrowno character varying(128),
-  is_exist_sar bool default False,
   type smallint
 );
 
@@ -271,6 +270,25 @@ CREATE TABLE caution_tbl
   voice_id integer DEFAULT 0,
   strTTS varchar(65535),
   image_id integer DEFAULT 0
+);
+
+-- spotguide_tbl
+CREATE TABLE spotguide_tbl
+(
+  gid serial primary key,
+  id serial,
+  nodeid bigint,
+  inlinkid bigint,
+  outlinkid bigint,
+  passlid character varying(1024),
+  passlink_cnt smallint,
+  direction smallint,
+  guideattr smallint,
+  namekind smallint,
+  guideclass smallint,
+  patternno character varying(128),
+  arrowno character varying(128),
+  type smallint
 );
 
 -- natural_guidence_tbl
@@ -1948,7 +1966,8 @@ s_dis int,
 e_dis int,
 speed smallint,
 speed_unit smallint
-);select addgeometrycolumn('safety_alert_tbl','the_geom',4326,'POINT',2);
+); SELECT AddGeometryColumn('','safety_alert_tbl','the_geom','4326','POINT',2);
+
 CREATE TABLE grad
 (
   objectid integer NOT NULL,
@@ -2350,7 +2369,7 @@ CREATE TABLE mid_temp_hwy_sapa_name
 
 ------------------------------------------------------------------------
 --
-CREATE TABLE mid_temp_sapa_link
+CREATE TABLE mid_temp_poi_link
 (
   poi_id             bigint not null,
   link_id            bigint not null
@@ -2464,6 +2483,14 @@ CREATE TABLE mid_temp_hwy_sapa_info
  facilcls_c    integer not null,
  poi_id        bigint,
  sapa_name     CHARACTER VARYING(4096)
+);
+
+--------------------------------------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_exit_poi_name
+(
+   node_id         bigint not null primary key,
+   poi_id          bigint not null,
+   name            character varying(1024)   --JSON
 );
 
 ------------------------------------------------------------------------

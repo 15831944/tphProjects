@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//src/base/rdb_ItemBase.py=cp936
+encoding//src/common/rdb_common.py=cp936
 encoding//src/item/rdb_guideinfo_building_structure.py=cp936
 encoding//src/item/rdb_guideinfo_pic_blob_bytea.py=cp936
 encoding//src/item/rdb_guideinfo_safety_zone.py=cp936

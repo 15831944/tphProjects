@@ -172,6 +172,13 @@ class comp_base(object):
                     break
                 row_data = row
                 yield row_data
+    
+    def GetRows(self,sqlcmd):
+        if sqlcmd:
+            self.pg.execute2(sqlcmd)
+            return self.pg.fetchall2()
+        else:
+            self.log.error('sqlcmd is error! %s;',sqlcmd)
 
     def _call_child_thread(self, _min_id, _max_id, sqlcmd, thread_num=4, record_num=1500000):
         global max_id, next_id, mutex

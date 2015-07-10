@@ -23,15 +23,16 @@ class HwySapaInfoMMI(comp_base):
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_poi_regional_name_group')
         self.CreateTable2('mid_temp_sapa_store_info')
-        self.CreateTable2('mid_temp_sapa_link')
+        self.CreateTable2('mid_temp_poi_link')
         self.CreateTable2('mid_temp_hwy_sapa_name')
+        self.CreateTable2('hwy_chain_name')
         return 0
 
     def _DoCreateIndex(self):
         self.CreateIndex2('org_regional_data_id_idx')
         self.CreateIndex2('org_regional_data_table_idx')
         self.CreateIndex2('org_poi_point_uid_bigint_idx')
-        self.CreateIndex2('mid_temp_sapa_link_poi_id_idx')
+        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
         return 0
 
     def _Do(self):
@@ -40,9 +41,10 @@ class HwySapaInfoMMI(comp_base):
         dictionary.set_language_code()
 
         self._group_poi_trans_name()
+        # POI 关联 Link
+        self._make_hwy_poi_link()
         # 道路名称
         self._make_hwy_sapa_name()
-        self._make_hwy_sapa_link()
         self._make_hwy_sapa_store_info()
         return 0
 
@@ -76,10 +78,11 @@ class HwySapaInfoMMI(comp_base):
         self.log.info('end make mid_temp_hwy_sapa_name_group')
         return 0
 
-    def _make_hwy_sapa_link(self):
-        self.log.info('start make mid_temp_sapa_link')
+    def _make_hwy_poi_link(self):
+        '''POI 关联 Link.'''
+        self.log.info('start make mid_temp_poi_link')
         sqlcmd = '''
-        INSERT INTO mid_temp_sapa_link(poi_id, link_id)
+        INSERT INTO mid_temp_poi_link(poi_id, link_id)
         (
         SELECT distinct uid, m.link_id
           FROM org_poi_point
@@ -90,7 +93,7 @@ class HwySapaInfoMMI(comp_base):
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-        self.log.info('end make mid_temp_sapa_link')
+        self.log.info('end make mid_temp_poi_link')
         return 0
 
     def _make_hwy_sapa_store_info(self):
@@ -116,7 +119,7 @@ class HwySapaInfoMMI(comp_base):
         ORDER BY uid
         """
         temp_file_obj = cache_file.open('link_name')  # 创建临时文件
-        #self.CreateTable2('temp_link_name')
+        # self.CreateTable2('temp_link_name')
         names = self.get_batch_data(sqlcmd)
         for name_info in names:
             poi_id = name_info[0]
@@ -190,7 +193,7 @@ class HwySapaInfoMMI(comp_base):
         self.pg.copy_from2(temp_file_obj, 'mid_temp_hwy_sapa_name')
         self.pg.commit2()
         # close file
-        #temp_file_obj.close()
+        # temp_file_obj.close()
         cache_file.close(temp_file_obj, True)
         self.log.info('end make mid_temp_hwy_sapa_name')
         return 0
@@ -213,7 +216,7 @@ class HwySapaInfoMMI(comp_base):
             if info_list:
                 if reg_name_info in info_list:
                     self.log.warning('Region Name repeat for name:%s'
-                                    % name_eng)
+                                     % name_eng)
                 else:
                     info_list.append(reg_name_info)
             else:
@@ -270,8 +273,8 @@ class HwySapaInfoMMI(comp_base):
     def _set_regional_name_fuzzy(self, ml_name, reg_name_dict, key):
         '''模糊搜索'''
         for reg_key, name_info_list in reg_name_dict.iteritems():
-            if (reg_key[0] == key[0]   # 名称种别相同
-                and key[1].find(reg_key[1]) == 0):
+            if(reg_key[0] == key[0]   # 名称种别相同
+               and key[1].find(reg_key[1]) == 0):
                 if name_info_list:
                     for lang_code, reg_name in name_info_list:
                         trans = MultiLangName(lang_code,

@@ -22,7 +22,7 @@ class HwySapaInfoRDF(comp_base):
 
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_sapa_name')
-        self.CreateTable2('mid_temp_sapa_link')
+        self.CreateTable2('mid_temp_poi_link')
         self.CreateTable2('mid_temp_sapa_store_info')
         self.CreateTable2('hwy_chain_name')
         return 0
@@ -32,7 +32,7 @@ class HwySapaInfoRDF(comp_base):
 
     def _DoCreateIndex(self):
         self.CreateIndex2('mid_temp_sapa_store_info_poi_id_idx')
-        self.CreateIndex2('mid_temp_sapa_link_poi_id_idx')
+        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
         self.CreateIndex2('mid_temp_hwy_sapa_name_poi_id_idx')
         return 0
 
@@ -42,9 +42,10 @@ class HwySapaInfoRDF(comp_base):
         dictionary.set_language_code()
         #
         self._group_poi_trans_name()
+        # POI关联link
+        self._make_hwy_poi_link()
         # 道路名称
         self._make_hwy_sapa_name()
-        self._make_hwy_sapa_link()
         self._make_hwy_sapa_store_info()
         self._make_hwy_store_name()
         return 0
@@ -224,12 +225,12 @@ class HwySapaInfoRDF(comp_base):
             file_obj.write('%d\t%s\n' % (poi_id, json_name))
         return 0
 
-    def _make_hwy_sapa_link(self):
+    def _make_hwy_poi_link(self):
         '''
         '''
         self.log.info('Start Make SAPA link.')
         sqlcmd = '''
-        INSERT INTO mid_temp_sapa_link(poi_id, link_id)
+        INSERT INTO mid_temp_poi_link(poi_id, link_id)
         (
         SELECT distinct rest.poi_id, m.link_id
           FROM rdf_poi_rest_area AS rest

@@ -88,7 +88,7 @@ class comp_park_jdb(component.component_base.comp_base):
         #display_class
         sqlcmd = '''
             update link_tbl as a
-                set display_class = 21
+                set display_class = 31
             where link_id in (
                 select park_link_id
                 from park_link_tbl
@@ -103,7 +103,7 @@ class comp_park_jdb(component.component_base.comp_base):
         #display_class    
         sqlcmd = '''
             update link_tbl as a
-                set display_class = 20
+                set display_class = 30
             where link_id in (
                 select park_link_id
                 from park_link_tbl
@@ -248,7 +248,7 @@ class comp_park_jdb(component.component_base.comp_base):
                 link_tbl as b
                 on a.park_link_id = b.link_id  and a.park_link_oneway = b.one_way_code  
                     and a.park_s_node_id = b.s_node and a.park_e_node_id = b.e_node
-                    and (b.display_class = 20 or b.display_class = 21)
+                    and (b.display_class = 30 or b.display_class = 31)
                 where b.link_id is null;
                 '''
         rows = self.__GetRows(sqlcmd)

@@ -41,11 +41,11 @@ class HighwayRDF(Highway):
     classdocs
     '''
 
-    def __init__(self):
+    def __init__(self, ItemName='HighwayRDF'):
         '''
         Constructor
         '''
-        Highway.__init__(self)
+        Highway.__init__(self, ItemName)
         self.hwy_route = None
         self.data_mng = None
         self.hwy_facil = None

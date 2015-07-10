@@ -213,8 +213,8 @@ class comp_picture(object):
 class GeneratorPicBinary(object):
 
     def __init__(self):
-        self.conn = psycopg2.connect(''' host='172.26.179.195'
-                        dbname='AP_Malsing_2014_ci'
+        self.conn = psycopg2.connect(''' host='172.26.179.184'
+                        dbname='AP_Malsing_2014Q4_0065_0114'
                         user='postgres' password='pset123456' ''')
         self.pgcur2 = self.conn.cursor()
 
@@ -247,16 +247,26 @@ class GeneratorPicBinary(object):
             arrowFile = os.path.join(destFileDir, pic.getCommonArrow() + '.dat')
             if os.path.isdir(dirFileDir):
                 if  os.path.isfile(destFile) == False:
-                    picPath = os.path.join(dirFileDir, pic.getCommonPatter() + ".jpg")
-                    if not os.path.exists(picPath):
+                    
+                    dayPicPath = os.path.join(dirFileDir, pic.getCommonPatter() + ".jpg")
+                    nightPicPath = os.path.join(dirFileDir, pic.getCommonPatter() + ".jpg")
+                    if not os.path.exists(dayPicPath):
                         continue
-                    fis = open(picPath, 'rb')
+                    dayfis = open(dayPicPath, 'rb')
+                    nightfis = open(nightPicPath, 'rb')
                     fos = open(destFile, 'wb')
-                    picLen = os.path.getsize(picPath)
-                    headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, picLen)
-                    resultBuffer = headerBuffer + fis.read()
-                    fis.close()
-                    fos.write(resultBuffer)
+                    dayPicLen = os.path.getsize(dayPicPath)
+                    nightPicLen = os.path.getsize(nightPicPath)
+#                    headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, dayPicLen)
+#                    resultBuffer = headerBuffer + fis.read()
+                    b_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
+                                               dayPicLen, 2, 22 + dayPicLen, \
+                                               nightPicLen)
+                    b_resultBuffer = b_headerBuffer + dayfis.read() \
+                                            + nightfis.read()               
+                    dayfis.close()
+                    nightfis.close()
+                    fos.write(b_resultBuffer)
                     fos.close()
                     # ARROW PIC BUILD
                 if os.path.isfile(arrowFile) == False:
@@ -281,7 +291,7 @@ class GeneratorPicBinary(object):
         return no_arrow_backgroud_pic
 if __name__ == '__main__':
     test = GeneratorPicBinary()
-    delete_backpic = test.makeJunctionResultTable("E:\\orgdata\\malsing\\JCV_file", "E:\\orgdata\\malsing\\mals_dat")
+    delete_backpic = test.makeJunctionResultTable("D:\\Data\\MSM2014Q4_PIC\\ORG", "D:\Data\MSM2014Q4_PIC\OUTPUT2")
     for picname in delete_backpic:
         print picname
         if os.path.exists(picname):

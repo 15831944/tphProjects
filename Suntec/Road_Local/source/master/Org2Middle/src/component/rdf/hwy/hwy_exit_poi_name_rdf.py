@@ -76,7 +76,7 @@ class HwyPoiExitNameRDF(HwyExitNameRDF):
                 rdf_poi_name.language_code,
                 rdf_poi_name.name,
                 trans_group.trans_type,
-                trans_group.name
+                trans_group.trans_name
          FROM mid_temp_hwy_exit_poi as poi
          LEFT JOIN rdf_poi_names
          ON poi.poi_id = rdf_poi_names.poi_id

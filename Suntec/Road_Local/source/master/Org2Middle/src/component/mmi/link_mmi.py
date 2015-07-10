@@ -55,7 +55,7 @@ class comp_link_mmi(component.component_base.comp_base):
        
         sqlcmd = """
                 insert into link_tbl (
-                    link_id, s_node, e_node, display_class, link_type, road_type, 
+                    link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, 
                     toll, speed_class, length, function_class,
                     lane_dir, lane_num_s2e, lane_num_e2s, 
                     elevated, 
@@ -80,7 +80,9 @@ class comp_link_mmi(component.component_base.comp_base):
                     the_geom
                     ) 
                 select 
-                        link_id, s_node, e_node, display_class, link_type, road_type, 
+                        link_id, 
+                        'IND' as iso_country_code,
+                        s_node, e_node, display_class, link_type, road_type, 
                         toll, speed_class, length, function_class,
                         0 as lane_dir, 0 as lane_num_s2e, 0 as lane_num_e2s,  
                         elevated, 

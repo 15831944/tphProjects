@@ -2770,3 +2770,146 @@ BEGIN
 	return sub_len/sum_len;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION mid_transformlat(x numeric,y numeric)
+  RETURNS numeric
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	ret numeric;
+BEGIN
+	ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * sqrt(abs(x));
+	ret = ret+(20.0 * sin(6.0 * x * pi()) + 20.0 *sin(2.0 * x * pi())) * 2.0 / 3.0;
+	ret = ret+(20.0 * sin(y * pi()) + 40.0 * sin(y / 3.0 * pi())) * 2.0 / 3.0;
+	ret = ret+(160.0 * sin(y / 12.0 * pi()) + 320 * sin(y * pi() / 30.0)) * 2.0 / 3.0;
+	return ret;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_transformlon(x numeric,y numeric)
+  RETURNS numeric
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	ret numeric;
+BEGIN
+	ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * sqrt(abs(x));
+	ret = ret+ (20.0 * sin(6.0 * x * pi()) + 20.0 * sin(2.0 * x * pi())) * 2.0 / 3.0;
+	ret = ret+ (20.0 * sin(x * pi()) + 40.0 * sin(x / 3.0 * pi())) * 2.0 / 3.0;
+	ret = ret+ (150.0 * sin(x / 12.0 * pi()) + 300.0 * sin(x / 30.0 * pi())) * 2.0 / 3.0;
+	return ret;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_transWGS2GCJ_point(geom geometry)
+  RETURNS geometry
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	dlat numeric;
+	dlon numeric;
+	radlat numeric;
+	magic numeric;
+	sqrtmagic numeric;
+	elat numeric;
+	elon numeric;
+	ee numeric;
+	a numeric;
+	lon numeric;
+	lat numeric;
+BEGIN
+	ee = 0.00669342162296594323;
+	a = 6378245.0;
+	lon=st_x(geom);
+	lat=st_y(geom);
+	dlat = mid_transformlat(lon-105.0,lat-35.0);
+	dlon = mid_transformlon(lon-105.0,lat-35.0);
+	radlat = lat/180.0*pi();
+	magic = sin(radlat);
+	magic = 1 - ee * magic * magic;
+	sqrtmagic = sqrt(magic);
+	dlat = (dlat * 180.0) / ((a * (1-ee))/ (magic*sqrtmagic)*pi());
+	dlon = (dlon * 180.0) / (a / sqrtmagic * cos(radlat) * pi());
+	elat = lat + dlat;
+	elon = lon + dlon;
+	return st_point(elon,elat);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_transGCJ2WGS_point(geom geometry)
+  RETURNS geometry
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	wlat numeric;
+	wlon numeric;
+	dlat numeric;
+	dlon numeric;	
+	clat numeric;
+	clon numeric;
+	lon  numeric;
+	lat  numeric;
+BEGIN
+	lon=st_x(geom);
+	lat=st_y(geom);
+	wlon =lon;
+	wlat =lat;
+	while True loop
+		clon=st_x(mid_transWGS2GCJ_point(st_point(wlon,wlat)));
+		clat=st_y(mid_transWGS2GCJ_point(st_point(wlon,wlat)));
+		dlat=lat-clat;
+		dlon=lon-clon;
+		if (abs(dlat)<1e-7 and abs(dlon)<1e-7) then
+		    return st_point(wlon,wlat);
+		end if;
+		wlat=wlat+dlat;
+		wlon=wlon+dlon;
+	end loop;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_transgcj2wgs(geom geometry)
+  RETURNS geometry 
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	wkt text;
+	substr1 text;
+	substr2 text;
+	strtmp text;
+	result text;
+	lon numeric;
+	lat numeric;
+	result_arr text[];
+	point_tmp geometry;
+	
+BEGIN
+	select st_astext(geom) into wkt;
+	--raise info '%',wkt;
+	strtmp = wkt;
+	result_arr=array[''];
+	while True loop
+		
+		select substring(str,1,pos-1),str1,substring(str,pos+len),str
+		into substr1,substr2,strtmp
+		from
+		(
+			select position(arr[1] in str) as pos,length(arr[1]) as len,str,arr[1] as str1 from
+			(
+				select regexp_matches(strtmp,E'[0-9\.]+ [0-9\.]+') as arr,strtmp as str
+			) a
+		)a;
+		lon = substring(substr2,1,position(' ' in substr2)-1)::numeric;
+		lat = substring(substr2,position(' ' in substr2)+1)::numeric;
+		point_tmp=mid_transgcj2wgs_point(st_point(lon,lat));
+		substr2=st_x(point_tmp)::text||' '||st_y(point_tmp)::text;
+		result_arr=array_append(result_arr,substr1);
+		result_arr=array_append(result_arr,substr2);
+		if not strtmp ~ E'[0-9\.]+ [0-9\.]+' then
+			result_arr=array_append(result_arr,strtmp);
+			result=array_to_string(result_arr,'');
+			return st_geomfromtext(result,4326);
+		end if;
+	end loop;
+END;
+$$;

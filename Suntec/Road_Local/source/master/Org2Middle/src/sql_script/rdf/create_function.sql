@@ -4653,3 +4653,60 @@ BEGIN
 	end loop;
 END;
 $$;
+
+-------------------------------------------------------------------------------------------------------------
+-- update mid_temp_force_guide_tbl
+-------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION rdf_update_mid_temp_force_guide_tbl(  ) 
+  RETURNS  smallint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+        link_count bigint;
+        node_count bigint;
+BEGIN
+        link_count := 0;
+        node_count := 0;
+
+        FOR rec IN (
+            select condition_id, array_agg(link_id) as link_array, array_agg(node_id) as node_array
+            from (
+                select condition_id, seq_num, link_id, node_id
+                from rdf_condition a
+                inner join rdf_nav_strand b
+                    on a.nav_strand_id = b.nav_strand_id
+                where condition_type = 14
+                order by condition_id, seq_num
+            ) as c
+            group by condition_id
+        )
+        LOOP
+            link_count := array_upper(rec.link_array, 1);
+            node_count := array_upper(rec.node_array, 1);
+
+            IF (link_count >= 2) AND (node_count >= 1 AND rec.node_array[1] IS NOT NULL) THEN
+                insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, node_geom, inlink_geom, outlink_geom)
+                select 
+                    rec.node_array[1] as nodeid,
+                    rec.link_array[1] as inlinkid,
+                    rec.link_array[link_count] as outlinkid,
+                    array_to_string(rec.link_array[2:link_count-1], '|') as passlid,
+                    link_count-2 as passlink_cnt,
+                    a.the_geom as node_geom,
+                    b.the_geom as inlink_geom,
+                    c.the_geom as outlink_geom
+                from 
+                    node_tbl a, link_tbl b, link_tbl c
+                where 
+                    a.node_id = rec.node_array[1] and
+                    b.link_id = rec.link_array[1] and
+                    c.link_id = rec.link_array[link_count];
+            ELSE 
+                raise INFO 'rec = %', rec;
+            END IF;
+        END LOOP;
+
+        return 0;
+END;
+$$;

@@ -84,7 +84,7 @@ class rdb_node(ItemBase):
                                           FROM rdb_tile_link as tl
                                           LEFT JOIN link_tbl as temp_l
                                           ON tl.old_link_id = temp_l.link_id 
-                                          where temp_l.link_id is not null and temp_l.display_class not in(20,21)                           
+                                          where temp_l.link_id is not null and temp_l.display_class not in(30,31)                           
                                         ) as tl_l
                                        WHERE tn.old_node_id = tl_l.s_node or tn.old_node_id = tl_l.e_node
                                   ) as tn_2
@@ -210,7 +210,7 @@ class rdb_node(ItemBase):
                                           FROM rdb_tile_link as tl
                                           JOIN link_tbl as temp_l
                                           ON tl.old_link_id = temp_l.link_id 
-                                          where temp_l.link_id is not null and  temp_l.display_class in (20,21)                                
+                                          where temp_l.link_id is not null and  temp_l.display_class in (30,31)                                
                                         ) as tl_l
                                        WHERE tn.old_node_id = tl_l.s_node or tn.old_node_id = tl_l.e_node
                                   ) as tn_2

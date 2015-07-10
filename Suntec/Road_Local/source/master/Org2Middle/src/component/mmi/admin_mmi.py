@@ -269,14 +269,6 @@ class comp_admin_mmi(component.component_base.comp_base):
                 self.pg.commit2()    
         
         return 0
-        
-    
-    def __GetRows(self,sqlcmd):
-        if sqlcmd:
-            self.pg.execute2(sqlcmd)
-            return self.pg.fetchall2()
-        else:
-            self.log.error('sqlcmd is null;')
             
     def _DoCheckValues(self):
         self.log.info('begin Check_admin_Values..')
@@ -285,7 +277,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  from mid_admin_zone
                  where ad_order not in(0,1,8)
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if rows:
             self.log.error('ad_order is not in(0,1,8)')
             return -1
@@ -299,7 +291,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  from mid_admin_zone
                  where ad_order = 0
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if not rows:
             self.log.error('mid_admin_zone ad_order = %d  number is %d',0,0)
             return -1              
@@ -308,7 +300,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  from mid_admin_zone
                  where ad_order = 1
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if not rows:
             self.log.error('mid_admin_zone ad_order = %d  number is %d',1,0)
             return -1 
@@ -317,7 +309,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  from mid_admin_zone
                  where ad_order = 8
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if not rows:
             self.log.error('mid_admin_zone ad_order = %d  number is %d',8,0)
             return -1 
@@ -348,7 +340,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  ) as c
                  where c.order1 is null;
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if rows:
             self.log.error('ad_code%d is not found parent_id ',8)
             return -1
@@ -374,7 +366,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  ) as c
                  where c.order0 is null;
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if rows:
             self.log.error('ad_code%d is not found parent_id ',1)
             return -1
@@ -401,7 +393,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  ) as temp_all
                  where ST_Equals(order8_geom,order1_geom) = false;
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if rows:
             self.log.error('order%d geom is not Equals order%d geom',8,1)
             return -1
@@ -428,7 +420,7 @@ class comp_admin_mmi(component.component_base.comp_base):
                  ) as temp_all
                  where ST_Equals(order0_geom,order1_geom) = false;
                  '''
-        rows = self.__GetRows(sqlcmd)
+        rows = self.GetRows(sqlcmd)
         if rows:
             self.log.error('order%d geom is not Equals order%d geom',1,0)
             return -1

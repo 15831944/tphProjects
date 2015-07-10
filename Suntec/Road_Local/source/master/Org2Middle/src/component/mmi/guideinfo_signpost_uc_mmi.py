@@ -304,14 +304,18 @@ class comp_guideinfo_signpost_uc_mmi(comp_guideinfo_signpost_uc):
                     sp_name, route_no1, route_no2,
                     route_no3, route_no4, exit_no)
         (
-                SELECT e.sign_id, node_id, in_link_id,
+                SELECT distinct e.sign_id, node_id, in_link_id,
                        out_link_id, passlid, passlink_cnt,
                        signpost_name, route_no1, route_no2,
                        route_no3, route_no4, exit_no
                   FROM mid_temp_signpost_element  as e
                   LEFT JOIN mid_temp_signpost_passlink as p
                   ON e.folder = p.folder and e.sign_id = p.sign_id
-                  order by e.folder, e.sign_id
+                  left join link_tbl as b
+                  on p.in_link_id = b.link_id or 
+                     p.out_link_id = b.link_id
+                  where b.one_way_code <> 4 and b.link_id is not null                    
+                  order by  e.sign_id
         );
         """
         if self.pg.execute2(sqlcmd) == -1:
@@ -326,6 +330,80 @@ class comp_guideinfo_signpost_uc_mmi(comp_guideinfo_signpost_uc):
             return 'shield'
         if SIGN_POST_TYPE_NAME == sign_type:
             return 'office_name'
+                    
+    def _DoCheckValues(self):        
+        self.log.info('begin Check signpost_uc Values..')
+        sqlcmd = '''
+                 select id
+                 from signpost_uc_tbl
+                 where sp_name is null and route_no1 is null and route_no2 is null
+                    and route_no3 is null and  route_no4 is null and exit_no is null;
+                 '''
+        rows = self.GetRows(sqlcmd)
+        if rows:
+            self.log.error('all name is null!')
+            return -1
+                
+        return 0
+    
+    def _DoCheckNumber(self):
+        return 0
+    
+    def _DoContraints(self):
+        self.log.info('begin Check signpost_uc Contraints..')
+        sqlcmd = '''
+                 select id
+                 from signpost_uc_tbl as a
+                 left join link_tbl as b
+                 on a.inlinkid = b.link_id and a.nodeid in (b.s_node, b.e_node) and b.one_way_code <> 4
+                 left join link_tbl as c
+                 on a.outlinkid = c.link_id and c.one_way_code <> 4
+                 left join node_tbl as d
+                 on a.nodeid = d.node_id
+                 where b.link_id is null or c.link_id is null or d.node_id is null
+                 
+                 union
+                 
+                 select id
+                 from
+                 (
+                     select id,unnest(string_to_array(passlid,'|')::bigint[]) as pass_link
+                     from signpost_uc_tbl
+                     where passlid is not null
+                 )as a
+                 left join link_tbl as b
+                 on a.pass_link = b.link_id and b.one_way_code <> 4
+                 where b.link_id is null;
+                 '''
+        rows = self.GetRows(sqlcmd)
+        if rows:
+            self.log.error('Contraints is error!')
+            return -1
+        return 0
+        
+    def _DoCheckLogic(self):       
+        self.log.info('begin Check signpost_uc Logic..')
+        sqlcmd = '''
+                 select id
+                 from signpost_uc_tbl
+                 where inlinkid = outlinkid
+                 
+                 union
+                 
+                 select id 
+                 from signpost_uc_tbl as a
+                 left join link_tbl as b
+                 on a.inlinkid = b.link_id and 
+                    ((a.nodeid = b.s_node and b.one_way_code in (1,3)) or 
+                    (a.nodeid = b.e_node and b.one_way_code in (1,2)))
+                 where b.link_id is null;                 
+                 '''
+        rows = self.GetRows(sqlcmd)
+        if rows:
+            self.log.error('CheckLogic is error!')
+            return -1
+        
+        return 0
 
 #######################################################################
 # ## SignPostElement

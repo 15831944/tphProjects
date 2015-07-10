@@ -12,11 +12,11 @@ class HwyPrepareRDF(comp_base):
     Hwy Prepare
     '''
 
-    def __init__(self):
+    def __init__(self, itemname='HwyPrepareRDF'):
         '''
         Constructor
         '''
-        comp_base.__init__(self, 'HwyPrepare')
+        comp_base.__init__(self, itemname)
 
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_exit_poi')

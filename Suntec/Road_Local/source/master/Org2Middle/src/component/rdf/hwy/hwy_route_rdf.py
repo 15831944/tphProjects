@@ -42,7 +42,10 @@ class HwyRouteRDF(component.component_base.comp_base):
     '''Path of main link
     '''
 
-    def __init__(self, data_mng, ItemName='Highway_Route'):
+    def __init__(self, data_mng,
+                 min_distance=ROUTE_DISTANCE_2000M,
+                 margin_dist=ROUTE_DISTANCE_1500M,
+                 ItemName='Highway_Route'):
         '''
         Constructor
         '''
@@ -52,8 +55,8 @@ class HwyRouteRDF(component.component_base.comp_base):
             self.G = self.data_mng.get_graph()
         else:
             self.G = None
-        self.min_distance = ROUTE_DISTANCE_2000M
-        self.s_e_margin_dist = ROUTE_DISTANCE_1500M
+        self.min_distance = min_distance
+        self.s_e_margin_dist = margin_dist
 
     def _Do(self):
         if not self.data_mng:
@@ -101,12 +104,16 @@ class HwyRouteRDF(component.component_base.comp_base):
                 continue
             if self.G.is_hov(u, v, data):  # HOV道路
                 continue
+            if self.G.is_hwy_inner_link(data):
+                continue
             if self.G.is_referenceed(data):  # 被使用过的link
                 continue
             path = self.G.get_main_path_by_similar(u, v)
             if not path:
                 self.log.error('No Main Path. u=%s, v=%s' % (u, v))
             else:
+                # 删除头尾的Inner link
+                path = self._del_inner_link(self.G, path)
                 self.set_ref(self.G, path)
                 # store path
                 self._store_path(self.G, path_id, path)
@@ -116,6 +123,28 @@ class HwyRouteRDF(component.component_base.comp_base):
         self.CreateIndex2('mid_temp_hwy_main_path_path_id_idx')
         # self.CreateIndex2('mid_temp_hwy_main_path_link_id_idx')
         self.log.info('End Make Highway Main Link Path.')
+
+    def _del_inner_link(self, G, path):
+        '''删除头尾的Inner Link.'''
+        # ## 删除开头的Inner Link
+        start_idx = 0
+        while start_idx < len(path) - 1:
+            u = path[start_idx]
+            v = path[start_idx + 1]
+            data = self.G[u][v]
+            if not G.is_hwy_inner_link(data):
+                break
+            start_idx += 1
+        # ## 删除结尾的Inner Link
+        end_idx = len(path) - 1
+        while end_idx > start_idx + 1:
+            u = path[end_idx - 1]
+            v = path[end_idx]
+            data = self.G[u][v]
+            if not G.is_hwy_inner_link(data):
+                break
+            end_idx -= 1
+        return path[start_idx:end_idx+1]
 
     def set_ref(self, G, path):
         for u, v in zip(path[0:-1], path[1:]):
@@ -437,7 +466,8 @@ class HwyRouteRDF(component.component_base.comp_base):
                 # 注：这里缺少判断多条相交，以后要补上
                 in_pathes = path_G.in_edges(u, data=True)
                 if len(in_pathes) > 1:
-                    self.log.warning('In path > 1. path_id=%s' % path_id)
+                    self.log.warning('In path > 1. path_id=%s, node=%s'
+                                     % (path_id, u))
                     break
                 else:
                     p, u, data = in_pathes[0]
@@ -1363,11 +1393,15 @@ class HwyRouteRDF(component.component_base.comp_base):
 # HwyRouteRDF_HKG
 # ==============================================================================
 class HwyRouteRDF_HKG(HwyRouteRDF):
-    def __init__(self, data_mng):
+    def __init__(self, data_mng,
+                 min_distance=ROUTE_DISTANCE_2000M,
+                 margin_dist=ROUTE_DISTANCE_2500M,
+                 ItemName='Highway_Route_HKG'):
         '''
         '''
-        HwyRouteRDF.__init__(self, data_mng, ItemName='Highway_Route_HKG')
-        self.s_e_margin_dist = ROUTE_DISTANCE_2500M
+        HwyRouteRDF.__init__(self, data_mng, min_distance,
+                             margin_dist, ItemName)
+        self.s_e_margin_dist = margin_dist
 
     def _get_start_jct_in(self, path_id, path,
                           last_jct_out_idx, first_jct_in_idx):
@@ -1394,11 +1428,14 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
             2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
         '''
+        if path_id in (6,):
+            pass
+        node_jct_flg = False
         node_idx = -1
         types = types_list[0][2]
         other_main_link = self.G.get_main_link(path[0], path_id,
                                                HWY_PATH_ID,
-                                               same_code=False)
+                                               reverse=True)
         normal_link = self.G.get_normal_link(path[0], path[1], reverse=True)
         if not other_main_link:
             facil_num = 0
@@ -1421,10 +1458,26 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                     self.log.warning('Exist in IC link. node=%s' % path[0])
                     return 0
         else:  # 有其他线路本线
-            return -1
+            # return -1
+            facil_num = 0
+            if self._is_ic_in(types):
+                facil_num += 1
+            if self._is_sapa_in(types):
+                facil_num += 1
+            if facil_num > 0:
+                return 0
+            node_jct_flg = self._is_main_node_jct(path[0])
+            if node_jct_flg:
+                return 0
+
         # 取得下个入口
         for type_idx in range(1, len(types_list)):
             types = types_list[type_idx][2]
+            if(self._is_jct_out(types) or
+               self._is_ic_out(types) or
+               self._is_sapa_out(types)):
+                if types_list[type_idx][0] > 1:
+                    break
             # 入口
             if(self._is_jct_in(types) or
                self._is_ic_in(types) or
@@ -1433,7 +1486,7 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                 break
             if self._is_tollgate(types):
                 node_idx = types_list[type_idx][0]
-                if node_idx > 1:   # 收费站前一个点
+                if node_idx >= 1:   # 收费站前一个点
                     node_idx -= 1
                 break
         # 取得后方 Highway Exit POI
@@ -1471,6 +1524,9 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
             2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
         '''
+        if path_id in (6,):
+            pass
+        node_jct_flg = False
         node_idx = -1
         types = types_list[0][2]
         other_main_link = self.G.get_main_link(path[-1], path_id,
@@ -1487,7 +1543,7 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
             if self._is_tollgate(types):
                 facil_num += 1
             if facil_num > 1:  # 入口设施大于1
-                return 0
+                return len(path) - 1
             normal_link = self.G.get_normal_link(path[-2], path[-1])
             if not normal_link:  # 本线和一般道, 不直接相连
                 # 有进入的IC link(Ramp/JCT)
@@ -1499,10 +1555,27 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                     self.log.warning('Exist Out IC link. node=%s' % path[-1])
                     return len(path) - 1
         else:  # 有取得本线
-            return -1
-        # 取得下个出口
+            # return -1
+            facil_num = 0
+            if self._is_ic_out(types):
+                facil_num += 1
+            if self._is_sapa_out(types):
+                facil_num += 1
+            if self._is_tollgate(types):  # 收费站和JCT出口一起
+                facil_num += 1
+            if facil_num > 0:
+                return len(path) - 1
+            node_jct_flg = self._is_main_node_jct(path[-1])
+            if node_jct_flg:
+                return len(path) - 1
+        # 取得前个出口
         for type_idx in range(1, len(types_list)):
             types = types_list[type_idx][2]
+            if(self._is_jct_in(types) or
+               self._is_ic_in(types) or
+               self._is_sapa_in(types)):
+                if other_main_link:  # JCT
+                    break
             # 出口
             if(self._is_jct_out(types) or
                self._is_ic_out(types) or
@@ -1515,7 +1588,7 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                 if self.G.get_exit_poi_name(path[node_idx]):
                     pass
                 else:
-                    if node_idx < len(path) - 2:  # 收费站前一个点
+                    if node_idx <= len(path) - 2:  # 收费站前一个点
                         node_idx += 1
                 break
         # 取得前方 Highway Exit POI
@@ -1568,3 +1641,34 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                         return node_idx
                     node_idx += 1
         return None
+
+    def _is_main_node_jct(self, node):
+        '''本线点JCT(一条线路的头和另一条线路的尾相连)'''
+        in_main_nodes = self.G.get_main_link(node, None,
+                                             HWY_PATH_ID,
+                                             same_code=False,
+                                             reverse=True
+                                             )
+        out_main_nodes = self.G.get_main_link(node, None,
+                                              HWY_PATH_ID,
+                                              same_code=False,
+                                              )
+        # 一进一出
+        if len(in_main_nodes) == 1 and len(out_main_nodes) == 1:
+            if self._is_one_in_one_out(node):
+                return True
+            # 直线(180度)
+            in_edge = (in_main_nodes[0], node)
+            out_edge = (node, out_main_nodes[0])
+            angle = self.G.get_angle(in_edge, out_edge)
+            if self.G.is_straight(angle):
+                self.log.info('straight. node=%s' % node)
+                return True
+        return False
+
+    def _is_one_in_one_out(self, node):
+        in_edges = self.G.in_edges(node)
+        out_edges = self.G.out_edges(node)
+        if len(in_edges) == 1 and len(out_edges) == 1:
+            return True
+        return False
