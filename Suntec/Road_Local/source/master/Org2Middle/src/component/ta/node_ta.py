@@ -59,13 +59,13 @@ class comp_node_ta(component.component_base.comp_base):
         
         # Create traffic light.
         self._MakeTrafficLight() 
-        
+                
         # 合成node相连的所有link
         self._MakeNodeLid() 
             
         sqlcmd = """
                 insert into node_tbl (
-                    node_id, kind, light_flag, toll_flag, bifurcation_flag, mainnodeid, node_lid, node_name, the_geom )
+                    node_id, kind, light_flag, toll_flag, stopsign_flag, bifurcation_flag, mainnodeid, node_lid, node_name, the_geom )
                 select 
                     a.id, 
                     mid_cnv_node_kind(jncttyp) as kind,
@@ -73,6 +73,9 @@ class comp_node_ta(component.component_base.comp_base):
                         else 0
                     end as light_flag,
                     null as toll_flag,
+                    case when ss.node_id is not null then 1
+                        else 0
+                    end as stopsign_flag,                    
                     case when a.jncttyp = 2 then 1
                         else 0
                     end as bifurcation_flag,
@@ -84,7 +87,12 @@ class comp_node_ta(component.component_base.comp_base):
                 left outer join temp_node_lid as b
                 on a.id = b.node_id
                 left join temp_node_trafficlight c
-                on a.id = c.node_id;
+                on a.id = c.node_id
+                left join (
+                    select distinct node_id from stopsign_tbl
+                ) as ss
+                on a.id = ss.node_id
+                ;
         """
         
         self.log.info(self.ItemName + ': Now it is inserting node_tbl...')
@@ -155,7 +163,7 @@ class comp_node_ta(component.component_base.comp_base):
         """
         
         self.pg.execute2(sqlcmd)        
-        
+
 #####################################################################################                 
 # node的子线程类
 #####################################################################################                 
