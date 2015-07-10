@@ -104,7 +104,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         self.pg.execute(sqlcmd)
         return 0
 
-    def _generate_spotguide_tbl(self):
+    def _generate_spotguide_tbl(self, bCareAboutSignpost):
         sqlcmd = '''
             SELECT inlinkid, outlinkid, array_agg(road_lyr), array_agg(sign_lyr), array_agg(arrow), array_agg("time")
             FROM (
@@ -128,15 +128,16 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             passlinkcnt = 0
             
             road_name = ''
-            if None in sign_lyrs:
+            if bCareAboutSignpost and (None in sign_lyrs):
+                
+                if(self._check_3(road_lyrs, sign_lyrs, arrows, times) == False):
+                    continue
+                road_name = road_lyrs[0][:-6:1] + '_' + sign_lyrs[0][:-6:1]
+            else:
                 if(self._check_2(road_lyrs, arrows, times) == False):
                     continue
                 # 删去".1.png"字段, 下同
                 road_name = road_lyrs[0][:-6:1] 
-            else:
-                if(self._check_3(road_lyrs, sign_lyrs, arrows, times) == False):
-                    continue
-                road_name = road_lyrs[0][:-6:1] + '_' + sign_lyrs[0][:-6:1]
             nodeid = self._getnode_between_links(inlink, outlink)
             if not nodeid:
                 # inlink与outlink不相连，查找中间link列表
