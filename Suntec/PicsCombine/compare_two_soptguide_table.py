@@ -38,7 +38,7 @@ def queryOrgSpotguidePoint(pg):
 
 if __name__ == '__main__':
     dbIP = '''172.26.179.184'''
-    dbName = '''MEA8_RDF_2014Q4_0080_0007_test'''
+    dbName = '''MEA8_RDF_2014Q4_0080_0007'''
     userName = '''postgres'''
     password = '''pset123456'''
     conn1 = psycopg2.connect(''' host='%s' dbname='%s' user='%s' password='%s' ''' %(dbIP, dbName, userName, password))
@@ -84,53 +84,35 @@ if __name__ == '__main__':
         nodeidList.append(one14Q4[4])
     sqlcmd = ""
         
-    # 能找到的部分，继续通过
-    
-    # 15Q1中存在而14Q4中没有的：
-    oFStream = open("c:\\my\\20150611_spotguidepoint_statistic\\2.csv", "w")
-    for one15Q1 in rdb_dif_15Q1_to_14Q4:
-        oFStream.write(str(one15Q1[4]) + "\n")
-    oFStream.close()
-        
 
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

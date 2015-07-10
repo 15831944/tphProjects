@@ -11,6 +11,7 @@ class GeneratorPicBinary_Here(object):
     def __del__(self):
         return
     
+    # 此函数已废弃：根据要求，sar图已不再合并到背景图，而是合并到相对应的箭头图。
     # 过程：
     # 1.将pattern图拷贝到dest，此步骤保持了原pattern图的目录结构。
     # 2.将sar图合并到dest中，此做法不改变元数据。
@@ -64,6 +65,111 @@ class GeneratorPicBinary_Here(object):
                 
         print "compose sar to pattern end."
         return
+    
+    # 作用：
+    # 把svg工具导出的sar图合并到arrow图中，此工作仅针对于ejv相关的图片处理。
+    # 业务定义：
+    # 同一条outlink对应的arrow图和sar图合并成一张图片，作为arrow图提供给机能组。
+    # 问题难点：
+    # 1. svg工具导出arrow图时，同一条outlink对应的所有箭头都已经合并输出到一张arrow图里，并以inlink+outlink命名。
+    # 2. svg工具导出sar图时，同一条outlink对应的所有sar无法合并输出到一张sar图里，只能把它们分别导出到独立的sar图，
+    #    并以inlink+sar_name命名。
+    # 3. 此时要根据outlink将一张箭头图和它对应的所有sar图（可能没有，也可能有一张或多张）对应，只能通过解析svg信息，建立
+    #    起outlink到sar_name的对应关系，再分别找到各个独立的sar图，将它们与箭头图都合并到一起，最后作成一张由outlink
+    #    确定的由箭头+sar组成的图片。
+    #
+    # 过程：
+    # 1.将ejv图拷贝到dest，此步骤保持了原ejv图的目录结构。
+    # 2.将sar图合并到拷贝后的ejv图中，此做法不会改变原始数据，方便日后调查bug。
+    # srcEjvDir: ejv图的根目录
+    # srcSarPicDir： sar图的根目录
+    # srcSarSvgDir: sar对应的svg文件的根目录，需要用到这些svg文件来建立arrow图到sar图的对应关系。
+    # destDir： 输出目录
+    def composeSarToArrow(self, srcEjvDir, srcSarDir, srcSarSvgDir, destDir):
+        if os.path.isdir(srcEjvDir) == False\
+        or os.path.isdir(srcSarDir) == False:
+            return
+        print "compose sar to arrow start."
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        shutil.copytree(srcEjvDir, destDir)
+        # 从图片元数据中列出所有arrow图名字。
+        arrowPicList = []
+        for curDir,dirNames,fileNames in os.walk(destDir):
+            if curDir.lower().find("bird_view") != -1:
+                # bird view中不合sar数据。
+                continue
+            for oneFile in fileNames:
+                if oneFile[-4:] == ".png": # 箭头图是png图。
+                    arrowPicList.append(os.path.join(curDir, oneFile.lower()))
+                    
+        # 从图片元数据中列出所有sar文件名。
+        sarPngList = []
+        for curDir,dirNames,fileNames in os.walk(srcSarDir):
+            for oneFile in fileNames:
+                if oneFile[-4:] == ".png":
+                    sarPngList.append(os.path.join(curDir, oneFile))
+        
+        # 从图片元数据中列出所有sar对应的svg文件名。
+        sarSvgList = []
+        for curDir,dirNames,fileNames in os.walk(srcSarSvgDir):
+            for oneFile in fileNames:
+                if oneFile[-4:] == ".svg":
+                    sarSvgList.append(os.path.join(curDir, oneFile))
+                    
+        # 遍历arrow图名字，尝试找到对应的sar.svg。
+        for oneArrowPic in arrowPicList:
+            for oneSvgFile in sarSvgList:
+                if self.getInlinkIDFromArrowPicPath(oneArrowPic) == \
+                   self.getInlinkIDFromSarSvgFile(oneSvgFile): # 两者包含的inlinkid相等
+                    # 获得该arrow对应的所有sar名字。
+                    sarNameList = self.parseAndGetSarNameList(self.getOutlinkIDFromArrowPicPath(oneArrowPic))
+                    # 再尝试从sarPngList中找到每个sar名字对应的sar图片，并把它们一一合并到当前arrow图里。
+                    for oneSarName in sarNameList: # 遍历arrow对应的sar图片名字列表。
+                        for oneSarPng in sarPngList:
+                            if os.path.split(oneSarPng)[1] == oneSarName: # 根据sar名字找到了对应的sar图。
+                                cmd = "composite.exe -gravity north %s %s %s" %\
+                                 (oneSarPng, oneArrowPic, oneArrowPic)
+                                os.system(cmd) # 合并，注意：将覆盖原来的arrow图。
+                                print """composed %s \nto\n %s""" % (oneSarPng, oneArrowPic)
+                            break # 一个sar名字只可能找到一张图片，故找到后即可中断。
+                    break # 一个arrow图只可能找到一个sar的svg文件，故找到后即可中断。
+        return
+    
+    # 解析svg文件，获取传入的outlinkid所关联的所有sarPng的名字。 
+    # 模拟svg工具生成sar图片时的命名规则，解析svg文件并生成sar图片名字后，返回。
+    def parseSvgAndGetSarNameList(self, sarSvgFile, outlinkid):
+        sarPngList = []
+        from xml.dom.minidom import parse
+        import xml.dom.minidom
+        DOMTree = xml.dom.minidom.parse(sarSvgFile)
+        
+        
+
+        return sarPngList
+    
+    # Here中，由svg工具解析出来的箭头图的名字如下：
+    # JV_BH_555171664_832635709_1.png
+    # JV_BH_555171664_1051944061_2.png
+    # 其中它的第3个字段是inlinkid。
+    def getInlinkIDFromArrowPicPath(self, arrowPicPath):
+        str1 = os.path.split(arrowPicPath)[1]
+        str2 = os.path.splitext(str1)[0]
+        return str2.split('_')[2] 
+    # 它的第4个字段是outlinkid。
+    def getOutlinkIDFromArrowPicPath(self, arrowPicPath):
+        str1 = os.path.split(arrowPicPath)[1]
+        str2 = os.path.splitext(str1)[0]
+        return str2.split('_')[3]
+       
+    # Sar的Svg文件名字格式如下：
+    # SR_BH_555171664.svg
+    # 其中第2个字段是inlinkid。
+    def getInlinkIDFromSarSvgFile(self, sarSvgFilePath):
+        str1 = os.path.split(sarSvgFilePath)[1]
+        str2 = os.path.splitext(str1)[0]
+        return str2.split('_')[2] 
+
     
     # srcDir：ejv图的根目录
     # destDir：输出目录
@@ -255,20 +361,20 @@ class GeneratorPicBinary_Here(object):
     
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
-    test.composeSarToPattern(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout",
-                             r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
-                             r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar")
-    test.makeEjvDat(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar", 
-                    r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar_dat")
-    test.makeGjvDat(r"C:\My\20150610_ase_14Q4_pic\2DGJ_ASE_14Q4_svgout", 
-                    r"C:\My\20150610_ase_14Q4_pic\2DGJ_ASE_14Q4_svgout_dat")
-    test.make_all_sar_file_names(r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
-                                 r"C:\My\20150610_ase_14Q4_pic\illust\all_sar_files_name.csv")
-    test.make_sign_as_real_csv(r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout", 
-                               r"C:\My\20150610_ase_14Q4_pic\illust\all_jv.csv",
-                               r"C:\My\20150610_ase_14Q4_pic\illust\pic\sign",
-                               r"C:\My\20150610_ase_14Q4_pic\illust\sign_as_real.csv")
-
+#    test.composeSarToPattern(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout",
+#                             r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
+#                             r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar")
+#    test.makeEjvDat(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar", 
+#                    r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar_dat")
+#    test.makeGjvDat(r"C:\My\20150610_ase_14Q4_pic\2DGJ_ASE_14Q4_svgout", 
+#                    r"C:\My\20150610_ase_14Q4_pic\2DGJ_ASE_14Q4_svgout_dat")
+#    test.make_all_sar_file_names(r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
+#                                 r"C:\My\20150610_ase_14Q4_pic\illust\all_sar_files_name.csv")
+#    test.make_sign_as_real_csv(r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout", 
+#                               r"C:\My\20150610_ase_14Q4_pic\illust\all_jv.csv",
+#                               r"C:\My\20150610_ase_14Q4_pic\illust\pic\sign",
+#                               r"C:\My\20150610_ase_14Q4_pic\illust\sign_as_real.csv")
+    test.parseSvgAndGetSarNameList(r"", 0)
 
 
 
