@@ -26,7 +26,7 @@ class IllustDataGenerator(object):
             shutil.rmtree(destDir)
         os.mkdir(destDir)
         
-        # 遍历元数据文件夹，列出四维提供的所有。png图片
+        # 遍历元数据文件夹，列出四维提供的所有.png图片
         totalPngInDisk = []
         for curDir,dirNames,fileNames in os.walk(srcDir):
             for oneFile in fileNames:

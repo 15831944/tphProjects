@@ -20,7 +20,7 @@ def ConvertDatToImage_Dir(srcDir, destDir, bCopyOrgFile=True):
             print "created " + tempDestDir
             
         for oneFile in fileNames:
-            if os.path.splitext(oneFile)[1] == ".dat":
+            if os.path.splitext(oneFile)[1] == ".dat" or os.path.splitext(oneFile)[1] == "":
                 ConvertDatToImage(os.path.join(curDir, oneFile), tempDestDir)
                 if bCopyOrgFile:
                     shutil.copyfile(os.path.join(curDir, oneFile), os.path.join(tempDestDir, oneFile))
@@ -48,7 +48,7 @@ def ConvertDatToImage(srcDatFile, destDir):
         outFS.close()
         
 if __name__ == '__main__':
-    dat = r'C:\My\20150528_here_autocheck_bug\temp'
-    pic = r'C:\My\20150528_here_autocheck_bug\temp_out'
+    dat = r"\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\15Q1\illust\binary\2DIllust"
+    pic = r"C:\My\20150610__ase15Q1_pic_check\dat_to_jpg"
     ConvertDatToImage_Dir(dat, pic)
     

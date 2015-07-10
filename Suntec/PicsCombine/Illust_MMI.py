@@ -4,11 +4,13 @@ import psycopg2
 import shutil
 import common_functions
 
+sp_splitter = '_signpost_'
+my_temp_splitter = '_xasdfaseeqweradf_'
+
 # MMI印度元数据情况如下：
 # 1.元数据提供了2张背景图（一张白天一张黑夜），90张pattern图，和1500+张sar图。
 # 2.元数据提供了一张数据表org_jv_location，里面记录了由哪张pattern图（load_lyr字段）
 #   和哪张sar图（sign_lyr字段）可以合并成某个特定路口的放大图。
-
 class GeneratorPicBinary(object):
 
     def __init__(self):
@@ -73,7 +75,7 @@ class GeneratorPicBinary(object):
                 continue
             
             # 将signpost图合并到road图（即pattern图）中。
-            outputPic = road_lyr[-4] + '_xxxx_' + sign_lyr
+            outputPic = road_lyr[:-4:] + my_temp_splitter + sign_lyr
             outputPic = os.path.join(destDir, outputPic)
             cmd = "composite.exe -gravity north %s %s %s" % (signPicPath, roadPicPath, outputPic)
             os.system(cmd)
@@ -100,26 +102,28 @@ class GeneratorPicBinary(object):
         for row in rows:
             print "-----------------------------------------------------------------------------------------"
             # day and night illust
-            road_lyr_list = row[5] # road列表
-            sign_lyr_list = row[6] # sign列表
-            roadAndSignList = zip(road_lyr_list, sign_lyr_list)
+            road_lyr_list = row[5] # road_lyr列表，正常情况下，此列表中不应有空值。
+            sign_lyr_list = row[6] # sign_lyr列表，此列表可能有None值，对应情况是此点没有sar图。
             
             patternPngPathList = []
-            for oneRoadAndSign in roadAndSignList:
-                if oneRoadAndSign[0] is None:
+            assert len(road_lyr_list) == len(sign_lyr_list)
+            for i in range (0, len(road_lyr_list)):
+                if road_lyr_list[i] is None: # road图名字为空，出错，pass。
                     continue
                 
                 patternPngWithSign = ''
-                if oneRoadAndSign[1] is None:
-                    patternPngWithSign = oneRoadAndSign[0]
+                if sign_lyr_list[i] is None:
+                    patternPngWithSign = road_lyr_list[i]
                 else:
-                    patternPngWithSign = oneRoadAndSign[0][-4:] + '_' + oneRoadAndSign[1]
+                    patternPngWithSign = road_lyr_list[i][:-4:] + '_' + sign_lyr_list[i]
+                    
                 patternPngPath = os.path.join(srcDir, patternPngWithSign)
                 if os.path.isfile(patternPngPath):
                     patternPngPathList.append(patternPngPath)
             
-            # 求出dat的名字
-            destDatName = road_lyr_list[0][:-6:] + '_signpost_' + road_lyr_list[1][:-6:]
+            # 已与数据表数据制作时约定：使用第0个pattern图名字和第0个sar图名字拼成dat名字。
+            # guideinfo_spotguide_mmi.py: 144
+            destDatName = road_lyr_list[0][:-4:] + sp_splitter + sign_lyr_list[1][:-4:]
             common_functions.ComposePicsToDat(patternPngPathList, destDir, 0, destDatName)
     
      
@@ -143,7 +147,7 @@ class GeneratorPicBinary(object):
             arrowPngPath = os.path.join(srcDir, arrowPngName)
             if os.path.isfile(arrowPngPath) == False:
                 continue
-            common_functions.ComposePicsToDat([arrowPngPath], destDir, 0, arrowPngName[-4:])
+            common_functions.ComposePicsToDat([arrowPngPath], destDir, 0, arrowPngName[:-4:])
         return
 
 if __name__ == '__main__':
@@ -152,8 +156,8 @@ if __name__ == '__main__':
 #                             r"C:\My\20150410_mmi_pic\Pattern_withbackground")
 #    test.compositeSignpost(r"C:\My\20150410_mmi_pic\Pattern_withbackground", 
 #                           r"C:\My\20150410_mmi_pic\Pattern_withsar")
-    test.makePatternDat(r"C:\My\20150410_mmi_pic\Pattern_withsar", 
-                        r"C:\My\20150410_mmi_pic\illust\pattern")
+#    test.makePatternDat(r"C:\My\20150410_mmi_pic\Pattern_withsar", 
+#                        r"C:\My\20150410_mmi_pic\illust\pattern")
     test.makeArrowDat(r"C:\My\20150410_mmi_pic\Pattern_withsar", 
                       r"C:\My\20150410_mmi_pic\illust\arrow")
     pass

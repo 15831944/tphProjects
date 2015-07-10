@@ -61,7 +61,6 @@ class GeneratorPicBinary_Here(object):
                     print sarPng
                     print ejvPatternPic
                     print "    ==>" + destPic
-                    break
                 
         print "compose sar to pattern end."
         return
@@ -256,19 +255,19 @@ class GeneratorPicBinary_Here(object):
     
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
-    test.composeSarToPattern(r"C:\My\20150527_0601_ASE_15Q1_pic\2DJ_ASE_15Q1_svgout",
-                             r"C:\My\20150527_0601_ASE_15Q1_pic\2DS_ASE_15Q1_svgout",
-                             r"C:\My\20150527_0601_ASE_15Q1_pic\2DJ_ASE_15Q1_svgout_withsar")
-    test.makeEjvDat(r"C:\My\20150527_0601_ASE_15Q1_pic\2DJ_ASE_15Q1_svgout_withsar", 
-                    r"C:\My\20150527_0601_ASE_15Q1_pic\2DJ_ASE_15Q1_svgout_withsar_dat")
-    test.makeGjvDat(r"C:\My\20150527_0601_ASE_15Q1_pic\2DGJ_ASE_15Q1_svgout", 
-                    r"C:\My\20150527_0601_ASE_15Q1_pic\2DGJ_ASE_15Q1_svgout_dat")
-    test.make_all_sar_file_names(r"C:\My\20150527_0601_ASE_15Q1_pic\2DS_ASE_15Q1_svgout",
-                                 r"C:\My\20150527_0601_ASE_15Q1_pic\illust_withsar\all_sar_files_name.csv")
-    test.make_sign_as_real_csv(r"C:\My\20150527_0601_ASE_15Q1_pic\2DS_ASE_15Q1_svgout", 
-                               r"C:\My\20150527_0601_ASE_15Q1_pic\illust_withsar\all_jv.csv",
-                               r"C:\My\20150527_0601_ASE_15Q1_pic\illust_withsar\pic\sign",
-                               r"C:\My\20150527_0601_ASE_15Q1_pic\illust_withsar\sign_as_real.csv")
+    test.composeSarToPattern(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout",
+                             r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
+                             r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar")
+    test.makeEjvDat(r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar", 
+                    r"C:\My\20150610_ase_14Q4_pic\2DJ_ASE_14Q4_svgout_withsar_dat")
+    test.makeGjvDat(r"C:\My\20150610_ase_14Q4_pic\2DGJ_ASE_14Q4_svgout", 
+                    r"C:\My\20150610_ase_14Q4_pic\2DGJ_ASE_14Q4_svgout_dat")
+    test.make_all_sar_file_names(r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout",
+                                 r"C:\My\20150610_ase_14Q4_pic\illust\all_sar_files_name.csv")
+    test.make_sign_as_real_csv(r"C:\My\20150610_ase_14Q4_pic\2DS_ASE_14Q4_svgout", 
+                               r"C:\My\20150610_ase_14Q4_pic\illust\all_jv.csv",
+                               r"C:\My\20150610_ase_14Q4_pic\illust\pic\sign",
+                               r"C:\My\20150610_ase_14Q4_pic\illust\sign_as_real.csv")
 
 
 
