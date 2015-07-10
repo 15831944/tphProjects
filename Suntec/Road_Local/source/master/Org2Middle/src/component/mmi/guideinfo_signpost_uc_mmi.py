@@ -206,6 +206,35 @@ class comp_guideinfo_signpost_uc_mmi(comp_guideinfo_signpost_uc):
             # ## 几个连续的空白，变成一个空格
             rst_name = re.sub(r'\s+', ' ', rst_name)
             return rst_name
+        '''删除距离
+           'Police Museum 20 Mtr' ==> 'Police Museum'
+           'Jew Cementery 200 Mtr' ==> 'Jew Cementery'
+        '''
+        ##距离为Mtr
+        dist_list = re.findall(r'\s+\d*\.?\d+\s*[M\m][T|t][R|r]*\.?\s+',
+                               rst_name)
+        if dist_list:
+            if len(dist_list) > 1:
+                self.log.warning('Distance String More Than 1. name = %s'
+                                 % name)
+            dist_str = dist_list[0]
+            if dist_str == rst_name:  # 整个名称都是距离
+                return ''
+            rst_name = rst_name.replace(dist_str, ' ')
+            rst_name = rst_name.strip()
+            # ## 几个连续的空白，变成一个空格
+            rst_name = re.sub(r'\s+', ' ', rst_name)
+            return rst_name
+        
+        dist_list = re.findall(r'\d*\.?\d+\s*[M\m][T|t][R|r]*\.?\s+', rst_name)
+        if dist_list:
+            self.log.warning('Prefix Char is not blank. name = %s' % name)
+            dist_str = dist_list[0]
+            rst_name = rst_name.replace(dist_str, ' ')
+            rst_name = rst_name.strip()
+            # ## 几个连续的空白，变成一个空格
+            rst_name = re.sub(r'\s+', ' ', rst_name)
+            return rst_name
         return name  # 没有距离
 
     def _make_path_link(self):

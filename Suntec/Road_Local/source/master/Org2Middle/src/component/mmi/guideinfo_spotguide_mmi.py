@@ -5,12 +5,34 @@ Created on 2012-4-27
 @author: zhangliang
 '''
 import os
-import psycopg2
 import struct
 import shutil
 
 from component.default import link_graph
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
+
+sp_splitter = '_signpost_'
+
+#==============================================================================
+# comp_picture
+#==============================================================================
+class comp_picture(object):
+    ''' picture entity'''
+    def __init__(self):
+        self.patternno = None
+        self.arrowno = None
+
+    def getPatternno(self):
+        return self.patternno
+
+    def setPatternno(self, patternno):
+        self.patternno = patternno
+
+    def getArrowno(self):
+        return self.arrowno
+
+    def setArrowno(self, arrowno):
+        self.arrowno = arrowno
 
 class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     '''
@@ -46,7 +68,10 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     def _Do(self):
         self._generate_temp_info_of_junction_links()
         self._generate_spotguide_tbl()
-        return 0
+                
+        #self.compositeBackground("C:\\My\\20150410_mmi_pic\\Pattern", "C:\\My\\20150410_mmi_pic\\Pattern_background")
+        #self.compositeSignpost("C:\\My\\20150410_mmi_pic\\Pattern_background", "C:\\My\\20150410_mmi_pic\\Pattern_signpost")
+        #self.makeJunctionResultTable("C:\\My\\20150410_mmi_pic\\Pattern_signpost", "C:\\My\\20150410_mmi_pic\\illust_pic")
 
     def _generate_temp_info_of_junction_links(self):
         sqlcmd = '''
@@ -59,8 +84,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             FROM org_jv_location
             order by fm_edge;
         '''
-        self.pg.execute(sqlcmd)
-        rows = self.pg.fetchall()
+        rows = self.get_batch_data(sqlcmd)
         for row in rows:
             inlink = row[0]
             outlinks = row[1]
@@ -81,30 +105,36 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                     pass
                 else:
                     self.log.error("outlink can't match with arrow!!!")
-                break;
         self.pg.commit2()
         
         # 优化：建立临时表，查询link两端节点时使用，提高查询速度
         # todo: 加索引到新表里去
         sqlcmd = '''
-            drop table if exists temp_nodes_of_junction_links;
+            drop table if exists temp_junction_links;
+			
             select *
-            into temp_nodes_of_junction_links
+            into temp_junction_links
             from org_city_nw_gc_polyline
             where id in 
             (
-                select distinct (unnest(a)) as all_link
+                select distinct (unnest(all_junction_links)) as all_link
                 from
                 (
-                    select array[fm_edge, to_edge1, to_edge2, to_edge3, to_edge4] as a
+                    select array[fm_edge, to_edge1, to_edge2, to_edge3, to_edge4] as all_junction_links
                     from org_jv_location
                 ) as m
-            )
+            );
+			
+			create index org_jv_location_id_idx
+			on org_jv_location
+			using btree
+			(id);
         ''' 
-        self.pg.execute(sqlcmd)
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         return 0
 
-    def _generate_spotguide_tbl(self, bCareAboutSignpost):
+    def _generate_spotguide_tbl(self, bCareAboutSignpost=True):
         sqlcmd = '''
             SELECT inlinkid, outlinkid, array_agg(road_lyr), array_agg(sign_lyr), array_agg(arrow), array_agg("time")
             FROM (
@@ -113,8 +143,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                  ) as a
             group by inlinkid, outlinkid;
         '''
-        self.pg.execute(sqlcmd)
-        rows = self.pg.fetchall()
+        rows = self.get_batch_data(sqlcmd)
         g_id = 1
         for row in rows:
             inlink = row[0]
@@ -128,15 +157,15 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             passlinkcnt = 0
             
             road_name = ''
-            if bCareAboutSignpost and (None in sign_lyrs):
+            if bCareAboutSignpost and (None not in sign_lyrs):
                 
                 if(self._check_3(road_lyrs, sign_lyrs, arrows, times) == False):
                     continue
-                road_name = road_lyrs[0][:-6:1] + '_' + sign_lyrs[0][:-6:1]
+                # 删去".1.png"字段, 下同
+                road_name = road_lyrs[0][:-6:1] + sp_splitter + sign_lyrs[0][:-6:1]
             else:
                 if(self._check_2(road_lyrs, arrows, times) == False):
                     continue
-                # 删去".1.png"字段, 下同
                 road_name = road_lyrs[0][:-6:1] 
             nodeid = self._getnode_between_links(inlink, outlink)
             if not nodeid:
@@ -164,6 +193,8 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                                          direction, 0, 0, 0,
                                          road_name, arrow_name, 1))
             g_id = g_id + 1
+            
+        self.pg.commit2()
         return 0
     
     def _check_3(self, road_lyrs, sign_lyrs, arrows, times):
@@ -176,17 +207,16 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     # 如果相交，返回连接点，否则返回空
     # "org_city_nw_gc_polyline"是一个巨大的表，查询速度很慢，此处设为默认查询表。
     # 通过查询优化过后的小表可以提高速度。
-    def _getnode_between_links(self, linkId1, linkId2):
+    def _getnode_between_links(self, link1, link2):
         ''' get intersect node between link1 and link2'''
-        sqlCmd = '''
+        node_sqlcmd = '''
             SELECT id, f_jnctid, t_jnctid
-            FROM temp_nodes_of_junction_links
+            FROM temp_junction_links
             where id = %s;
         '''
-        
-        self.pg.execute2(sqlCmd % linkId1)
+        self.pg.execute2(node_sqlcmd, (link1,))
         inres_row = self.pg.fetchone2()
-        self.pg.execute2(sqlCmd % linkId1)
+        self.pg.execute2(node_sqlcmd, (link2,))
         outres_row = self.pg.fetchone2()
 
         if inres_row[1] in (outres_row[1], outres_row[2]):
@@ -252,42 +282,8 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             self.log.error('not normal stuation!!!.')
         return pass_link, pass_link_cnt, node_id
 
-#==============================================================================
-# comp_picture
-#==============================================================================
-class comp_picture(object):
-    ''' picture entity'''
-    def __init__(self):
-        self.patternno = None
-        self.arrowno = None
-
-    def getPatternno(self):
-        return self.patternno
-
-    def setPatternno(self, patternno):
-        self.patternno = patternno
-
-    def getArrowno(self):
-        return self.arrowno
-
-    def setArrowno(self, arrowno):
-        self.arrowno = arrowno
-#==============================================================================
-# comp_picture
-#==============================================================================
-class GeneratorPicBinary(object):
-
-    def __init__(self):
-        self.conn = psycopg2.connect(''' host='172.26.179.184'
-                        dbname='IND_MMI_2014Q4_0081_0001'
-                        user='postgres' password='pset123456' ''')
-        self.pgcur2 = self.conn.cursor()
-
     def selectData(self):
-        self._make_junction_link()
-        self._make_spotguide_tbl()
-        self.pgcur2.execute('''SELECT distinct patternno, arrowno FROM spotguide_tbl;''')
-        rows = self.pgcur2.fetchall()
+        rows = self.get_batch_data('''SELECT distinct patternno, arrowno FROM spotguide_tbl;''')
         pics = []
         for row in rows:
             pic = comp_picture()
@@ -300,20 +296,19 @@ class GeneratorPicBinary(object):
     # 名字未发生任何改变
     def compositeBackground(self, srcDir, destDir):
         if(os.path.isdir(srcDir) == False):
-            print "source directory not exist: " + srcDir
+            self.log.warning( 'source directory not exist: %s' % srcDir)
             return
         if(os.path.exists(destDir) == True):
             shutil.rmtree(destDir)
         shutil.copytree(srcDir, destDir)
         
-        self.pgcur2.execute("SELECT distinct road_lyr, sky_lyr FROM org_jv_location")
-        rows = self.pgcur2.fetchall()
+        rows = self.get_batch_data("SELECT distinct road_lyr, sky_lyr FROM org_jv_location")
         for row in rows:
             road_ = row[0] # road图字段
             sky_ = row[1] # 背景图字段            
             roadPicPath = os.path.join(srcDir, road_)
             if(os.path.isfile(roadPicPath) == False):
-                print "can't find road picture: " + road_
+                self.log.warning( '''can't find road picture: %s'''  % road_)
                 continue
             
             skyPicPath = os.path.join(srcDir, sky_)
@@ -338,8 +333,7 @@ class GeneratorPicBinary(object):
             shutil.rmtree(destDir)
         shutil.copytree(srcDir, destDir)
 
-        self.pgcur2.execute("SELECT distinct sign_lyr, road_lyr FROM org_jv_location WHERE sign_lyr is not null")
-        rows = self.pgcur2.fetchall()
+        rows = self.get_batch_data("SELECT distinct sign_lyr, road_lyr FROM org_jv_location WHERE sign_lyr is not null")
         for row in rows:
             road_ = row[1] # road图字段
             sign_ = row[0] # signpost图字段            
@@ -355,7 +349,7 @@ class GeneratorPicBinary(object):
             
             # 合并signpost图,以 road名+sign名 命名并输出到destDir
             # 删掉road的".1.png"
-            outputPic = road_[:-4:1] + '_'+ sign_
+            outputPic = road_[:-4:1] + sp_splitter + sign_
             outputPic = os.path.join(destDir, outputPic)
             cmd = "composite.exe -gravity north %s %s %s" % (signPicPath, roadPicPath, outputPic)
             os.system(cmd)
@@ -374,14 +368,15 @@ class GeneratorPicBinary(object):
                 dayPicPath = ''
                 nightPicPath = ''
                 parttenno = pic.getPatternno()
-                if(len(parttenno) == 13): # 没有signpost
+                parttennoSplit = parttenno.split(sp_splitter)
+                if(len(parttennoSplit) == 1): # 没有signpost
                     dayPicPath = os.path.join(srcDir, parttenno + ".1.png")
                     nightPicPath = os.path.join(srcDir, parttenno + ".2.png")
-                elif(len(parttenno) == 25):
-                    roadPart = parttenno[0:12]
-                    signPart = parttenno[13:]
-                    dayPicPath = os.path.join(srcDir, "%s.1_%s.1.png" % (roadPart, signPart))
-                    nightPicPath = os.path.join(srcDir, "%s.2_%s.2.png" % (roadPart, signPart))
+                elif(len(parttennoSplit) >= 1):
+                    roadPart = parttennoSplit[0]
+                    signPart = parttennoSplit[1]
+                    dayPicPath = os.path.join(srcDir, "%s.1%s%s.1.png" % (roadPart, sp_splitter, signPart))
+                    nightPicPath = os.path.join(srcDir, "%s.2%s%s.2.png" % (roadPart, sp_splitter, signPart))
                 else:
                     print "error road name from spotguide_tbl, its length must be 11(without signpost) or 23(with signpost) " + parttenno
                     continue
@@ -413,8 +408,8 @@ class GeneratorPicBinary(object):
             arrowno = pic.getArrowno()
             arrowFile = os.path.join(destDir, arrowno + '.dat')
             if os.path.isfile(arrowFile) == False:
-                dayArrowPath = os.path.join(srcDir, arrowno + '1.png')
-                nightArrowPath = os.path.join(srcDir, arrowno + '2.png')
+                dayArrowPath = os.path.join(srcDir, arrowno + '.1.png')
+                nightArrowPath = os.path.join(srcDir, arrowno + '.2.png')
                 if(os.path.isfile(dayArrowPath) == False):
                     print "cannot find day arrow picture: " + dayArrowPath
                     continue
@@ -438,9 +433,3 @@ class GeneratorPicBinary(object):
                 a_fos.write(a_resultBuffer)
                 a_fos.close()
 
-if __name__ == '__main__':
-    test = GeneratorPicBinary()
-    test.compositeBackground("C:\\My\\20150410_mmi_pic\\Pattern", "C:\\My\\20150410_mmi_pic\\Pattern_background")
-    test.compositeSignpost("C:\\My\\20150410_mmi_pic\\Pattern_background", "C:\\My\\20150410_mmi_pic\\Pattern_signpost")
-    test.makeJunctionResultTable("C:\\My\\20150410_mmi_pic\\Pattern_signpost", "C:\\My\\20150410_mmi_pic\\illust_pic")
-    pass
