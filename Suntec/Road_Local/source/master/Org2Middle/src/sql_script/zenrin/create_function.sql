@@ -649,7 +649,7 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION mid_transtwd67totwd97(geom geometry)
-  RETURNS geometry AS
+  RETURNS geometry
   LANGUAGE plpgsql
   AS $$ 
 DECLARE
@@ -695,7 +695,7 @@ END;
 $$;
   
 CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_point(geom geometry)
-  RETURNS geometry AS
+  RETURNS geometry
   LANGUAGE plpgsql
   AS $$ 
 DECLARE
@@ -718,7 +718,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_119(geom geometry)
-  RETURNS geometry AS
+  RETURNS geometry
   LANGUAGE plpgsql
   AS $$ 
 BEGIN
@@ -727,7 +727,7 @@ END;
 $$;
   
 CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_121(geom geometry)
-  RETURNS geometry AS
+  RETURNS geometry
   LANGUAGE plpgsql
   AS $$ 
 BEGIN

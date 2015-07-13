@@ -874,7 +874,7 @@ class rdb_traffic_area_notnull(ItemBase):
             
         except:
             
-            rdb_log.error(self.ItemName, 'Error in creating area no table !!!', 'error')
+            rdb_log.log(self.ItemName, 'Error in creating area no table !!!', 'error')
             
         rdb_log.log(self.ItemName, 'creating area no table ----- end', 'info')           
 

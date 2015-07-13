@@ -54,7 +54,7 @@ class comp_guideinfo_crossname_zenrin(component.component_base.comp_base):
                             tonodeno, 
                             array_agg(nextflg) as flg_array,
                             array_agg(name) as name_array, 
-                            array_agg(reading) as reading_array
+                            array_agg(reading_pym) as reading_array
                     FROM 
                     (
                         select * from org_cross_name
@@ -109,7 +109,7 @@ class comp_guideinfo_crossname_zenrin(component.component_base.comp_base):
                         'CHT'::varchar as language,
                         1 as name_id,
                         'office_name'::varchar as name_type,
-                        'TWN'::varchar as phoneme_lang,
+                        'PYM'::varchar as phoneme_lang,
                         a.reading as phoneme
                 from temp_crossname as a  
              ) as b

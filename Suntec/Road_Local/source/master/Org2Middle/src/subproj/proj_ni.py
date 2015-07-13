@@ -34,6 +34,7 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             # Link
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
             
@@ -60,7 +61,6 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('GuidePoint_Adjust'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
             #self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))

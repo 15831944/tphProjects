@@ -23,9 +23,10 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
     def ConstructComponent(self):
         """
         You can add new component depend on your requirements
-        """
+        """    
         if self.comp_factory:
             #
+            self.AddComponent(self.comp_factory.CreateOneComponent('PreProcess'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Mapping'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Dictionary'))
             
@@ -34,6 +35,7 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
 
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('guideinfo_signpost_uc'))
@@ -59,7 +61,6 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
             
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('GuidePoint_Adjust'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
             #self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))

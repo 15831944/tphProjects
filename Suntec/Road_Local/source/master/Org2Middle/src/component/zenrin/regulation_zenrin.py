@@ -100,6 +100,7 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         self.CreateIndex2('org_not_in_meshcode_snodeno_idx')
         self.CreateIndex2('org_not_in_meshcode_tnodeno_idx')
         self.CreateIndex2('org_not_in_meshcode_enodeno_idx')
+        self.CreateIndex2('org_road_meshcode_linkno_idx')
         
         # 创建表单temp_org_not_in 作成：
         # 去除原始表单中进入link、脱出link是No Entry
@@ -119,19 +120,14 @@ class comp_regulation_zenrin(component.component_base.comp_base):
                 from (
                     select g.*
                     from "org_not-in" g
-                    left join (
-                        select gid, meshcode, linkno
-                        from org_road
-                        where substr(elcode, 3, 1) = '6'
-                    ) h
+                    left join org_road h
                         on g.meshcode = h.meshcode and g.fromlinkno = h.linkno
-                    left join (
-                        select gid, meshcode, linkno
-                        from org_road
-                        where substr(elcode, 3, 1) = '6'
-                    ) i
+                    left join org_road i
                         on g.meshcode = i.meshcode and g.tolinkno = i.linkno
-                    where h.gid is null and i.gid is null
+                    where h.gid is not null and 
+                        i.gid is not null and 
+                        substr(h.elcode, 3, 1) != '6' and 
+                        substr(i.elcode, 3, 1) != '6'
                 ) a
                 left join temp_link_mapping b
                     on a.meshcode = b.meshcode and a.fromlinkno = b.linkno

@@ -44,7 +44,7 @@ class comp_guideinfo_signpost_uc_zenrin(comp_base):
                  SELECT  row_number() over(order by meshcode, stotlinkno, ttoelinkno, tnodeno,enodeno ) as id,
                          meshcode, stotlinkno, ttoelinkno, tnodeno, enodeno,
                          array_agg(name) as name_array, 
-                         array_agg(reading) as reading_array
+                         array_agg(reading_pym) as reading_array
                  FROM 
                  (
                     select * from org_dest_guide
@@ -92,7 +92,7 @@ class comp_guideinfo_signpost_uc_zenrin(comp_base):
                         'CHT'::varchar as language,
                         1 as name_id,
                         'office_name'::varchar as name_type,
-                        'TWN'::varchar as phoneme_lang,
+                        'PYM'::varchar as phoneme_lang,
                         a.reading as phoneme
                 from temp_signpost as a  
              ) as b

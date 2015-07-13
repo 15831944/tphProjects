@@ -39,6 +39,8 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            # Ramp RoadType
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             # Node Height
             self.AddComponent(self.comp_factory.CreateOneComponent('Node_Height'))            
             #park
@@ -64,8 +66,6 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution_highaccident'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
-            # Ramp RoadType
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge

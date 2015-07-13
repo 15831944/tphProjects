@@ -38,6 +38,7 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
             # Link
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             #park
             self.AddComponent(self.comp_factory.CreateOneComponent('park'))
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))
@@ -58,7 +59,6 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
             # Highway_Prepare
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
             #
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
             self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))

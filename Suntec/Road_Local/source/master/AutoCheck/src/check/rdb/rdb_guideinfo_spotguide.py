@@ -197,38 +197,32 @@ class CCheckGuideSpotguidePointMustBeBifurcation(platform.TestCase.CTestCase):
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return cnt == 0     
 
-#
-class CCheckGuideSpotguidePointList(platform.TestCase.CTestCase):
+# 类型和高速相关的时候，其inlink必须是高速
+# spotguide高速相关type: 1,2,3,6,8,11
+# 高速路road_type: 0,1
+class CCheckGuideSpotguideInlinkRoadType_Highway(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd='''
-            
+                select count(*) from 
+                rdb_guideinfo_spotguidepoint as a
+                left join rdb_link as b
+                on a.in_link_id=b.link_id and a.in_link_id_t=b.link_id_t
+                where a.type in (1,2,3,6,8,11) and b.road_type not in (0,1);
                '''
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return cnt == 0  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+# 类型是普通路口的时候，其inlink必须是非高速
+# 12: 收费站不进行check。
+class CCheckGuideSpotguideInlinkRoadType_NotHighway(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd='''
+                select count(*) from 
+                rdb_guideinfo_spotguidepoint as a
+                left join rdb_link as b
+                on a.in_link_id=b.link_id and a.in_link_id_t=b.link_id_t
+                where a.type in (4,5,7,9,10) and b.road_type in (0,1);
+               '''
+        cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return cnt == 0 
 

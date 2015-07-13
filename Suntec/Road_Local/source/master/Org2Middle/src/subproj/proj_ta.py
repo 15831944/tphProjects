@@ -36,6 +36,10 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('park'))
             # Link
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
+            # Node
+            self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            # Ramp
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
 
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
@@ -56,11 +60,8 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Admin'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))
-            # Node
-            self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             # Highway Prepare
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
  
             # SpotGuide
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))

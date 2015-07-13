@@ -92,8 +92,8 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
                                 'CHT'::varchar as language,
                                 1 as name_id,
                                 'office_name'::varchar as name_type,
-                                'TWN'::varchar as phoneme_lang,
-                                a.offi_name_py as phoneme,
+                                'PYM'::varchar as phoneme_lang,
+                                a.offi_name_py_pym as phoneme,
                                 a.the_geom
                         from org_poi as a   
                         order by poi_id                                               

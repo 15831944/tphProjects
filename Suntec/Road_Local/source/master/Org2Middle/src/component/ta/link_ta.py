@@ -58,6 +58,7 @@ class comp_link_ta(component.component_base.comp_base):
         self.CreateIndex2('sr_id_idx')
         self.CreateIndex2('ta_id_idx')
         self.CreateIndex2('ta_areid_idx')
+        self.CreateIndex2('ta_aretyp_idx')        
         self.CreateIndex2('ae_id_idx')
         
         self.CreateIndex2('temp_link_pos_cond_speed_id_idx')
@@ -111,6 +112,7 @@ class comp_link_ta(component.component_base.comp_base):
                     extend_flag, 
                     etc_only_flag,
                     ipd, 
+                    urban,
                     the_geom
                     ) 
                     select 
@@ -156,6 +158,7 @@ class comp_link_ta(component.component_base.comp_base):
                         extend_flag, 
                         etc_only_flag, 
                         ipd,
+                        urban,
                         the_geom
                     from 
                     (
@@ -181,6 +184,7 @@ class comp_link_ta(component.component_base.comp_base):
                         case when e.attvalue = '1' then 1 else 0 end       as extend_flag, 
                         case when tollrd in (21, 22, 23) then 1 else 0 end as etc_only_flag,
                         case when a.PROCSTAT in (2,8,9) then 1 else 0 end as ipd,
+                        case when x.id is not null then 1 else 0 end as urban,
                         roughrd    as car_only,
                         n.name     as road_name,                           -- road_name
                         s.shield   as road_number,                         -- road_number
@@ -216,6 +220,11 @@ class comp_link_ta(component.component_base.comp_base):
                             on a.id = s.link_id 
                         left join temp_mid_iso_country_code as t
                             on a.id::bigint / 10000000000 % 1000 = t.iso_country_num
+                        left join (
+                            select distinct id from org_ta
+                            where aretyp = 3110
+                        ) as x
+                            on a.id = x.id                            
                       where a.frc != -1 
                     ) as t;
             """

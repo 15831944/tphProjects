@@ -31,7 +31,7 @@ class rdb_region(ItemBase):
             ('rdf','ase'):          rdb_region_rdf_ap(),
             ('rdf','na'):           rdb_region_rdf_north_america(),
             ('rdf','bra'):          rdb_region_rdf_brazil(),
-            ('rdf','arg'):          rdb_region_rdf_brazil(),
+            ('rdf','arg'):          rdb_region_rdf_argentina(),
             ('nostra'):             rdb_region_nostra_thailand(),
             ('mmi'):                rdb_region_mmi_india(),
             ('msm'):                rdb_region_malsing_mys(),
@@ -1582,6 +1582,13 @@ class rdb_region_rdf_brazil(rdb_region):
     
     def _makeOriginalRegionOnLevel6(self):
         rdb_region._makeOriginalRegionOnLevel6(self, 4, [1])
+
+class rdb_region_rdf_argentina(rdb_region):
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region._makeOriginalRegionOnLevel4(self, 6, [1,2,3,4])
+    
+    def _makeOriginalRegionOnLevel6(self):
+        rdb_region._makeOriginalRegionOnLevel6(self, 2, [1])
 
 class rdb_region_nostra_thailand(rdb_region):
     def _makeOriginalRegionOnLevel4(self):

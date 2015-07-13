@@ -37,6 +37,11 @@ CREATE INDEX ta_id_idx
   ON org_ta
   USING btree
   (id);
+
+CREATE INDEX ta_aretyp_idx
+  ON org_ta
+  USING btree
+  (aretyp);
   
 CREATE INDEX ae_id_idx
   ON org_ae

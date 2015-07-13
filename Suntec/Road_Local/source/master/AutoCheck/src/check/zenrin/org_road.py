@@ -181,7 +181,7 @@ class CCheckRoadNumber(platform.TestCase.CTestCase):
         
         sqlcmd='''
                 select count(1) from org_prov_exp
-                where position ('Ê¡µÀ' in routeno)=0
+                where position ('çœé“' in routeno)=0
                '''
         reg_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (reg_count == 0)

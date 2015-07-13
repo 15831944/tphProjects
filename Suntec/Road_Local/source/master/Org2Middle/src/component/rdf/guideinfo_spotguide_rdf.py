@@ -142,7 +142,7 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
     def _get_gjv_junctions_info_by_gjv_table(self):
         sqlcmd = '''
             SELECT dp_node_id, originating_link_id, dest_link_id,
-                    CASE WHEN road_type in (0,1) THEN 1 ELSE 4 END AS jv_type,
+                    CASE WHEN b.road_type in (0,1) THEN 1 ELSE 4 END AS jv_type,
                    filename, side,
                    mid_findpasslinkbybothlinks(
                             originating_link_id,

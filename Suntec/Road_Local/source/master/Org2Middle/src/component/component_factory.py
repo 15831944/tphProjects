@@ -960,7 +960,11 @@ class comp_factory_zenrin(comp_factory):
         '''TWN
         '''
 
-    def CreateOneComponent(self, comp_name):
+    def CreateOneComponent(self, comp_name):       
+        if comp_name == 'PreProcess':
+            from component.zenrin import preprocess
+            return preprocess.comp_proprocess_zenrin()
+            pass
         if comp_name == 'Admin':
             from component.zenrin import admin_zenrin
             return admin_zenrin.comp_admin_zenrin()

@@ -17,7 +17,19 @@ class CCheckTimeSlot(platform.TestCase.CTestCase):
     def _do(self):
         
         sqlcmd = """
-            select count(*) from rdb_forecast_time where mod(time_slot,3) != 0;
+            select count(*) from (
+                select time_id,array_agg(time_slot) as time_slot_array
+                from (
+                    select * from rdb_forecast_time
+                    order by time_id,time_slot
+                ) a
+                group by time_id
+            ) b 
+            where time_slot_array != (
+                select array_agg(seq::smallint) from (
+                    select generate_series(0,287) as seq
+                ) c
+            );
             """
         
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)

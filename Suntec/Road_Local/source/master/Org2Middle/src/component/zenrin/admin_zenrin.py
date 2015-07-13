@@ -54,7 +54,7 @@ class comp_admin_zenrin(component.component_base.comp_base):
                 as
                 (
                     select  gid, elcode, name1, name2,
-                            case when name1 in ('金門縣','澎湖縣','連江縣') then mid_transtwd67totwd97_119(the_geom)
+                            case when name1 in ('金門縣','連江縣') then mid_transtwd67totwd97_119(the_geom)
                                  else mid_transtwd67totwd97_121(the_geom)
                             end as the_geom
                     from

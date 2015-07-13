@@ -149,3 +149,25 @@ CREATE INDEX temp_poi_name_poi_id_idx
   ON temp_poi_name
   USING btree
   (poi_id);
+  
+CREATE INDEX temp_lane_passlink_meshcode_tnodeno_snodeno_enodeno_ysnodeno_yenodeno_idx
+ ON temp_lane_passlink
+ USING btree
+ (meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno);
+ 
+CREATE INDEX temp_lane_lane_arrow_info_meshcode_tnodeno_snodeno_enodeno_idx
+ ON temp_lane_lane_arrow_info
+ USING btree
+ (meshcode, tnodeno, snodeno, enodeno);
+ 
+CREATE INDEX temp_lane_lane_arrow_info_meshcode_tnodeno_snodeno_enodeno_ysnodeno_yenodeno_idx
+ ON temp_lane_lane_arrow_info
+ USING btree
+ (meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno);
+ 
+ CREATE INDEX temp_lane_numlr_meshcode_tnodeno_snodeno_enodeno_idx
+ ON temp_lane_numlr
+ USING btree
+ (meshcode, tnodeno, snodeno, enodeno);
+ 
+ 

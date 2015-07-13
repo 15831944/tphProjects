@@ -33,108 +33,151 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
         self.CreateFunction2('zenrin_findpasslink_count')
         self.CreateFunction2('zenrin_make_lanenum_lr')
         self.CreateTable2('temp_lane_tbl')
-        sqlcmd = ''' 
-            insert into temp_lane_tbl(nodeid,inlinkid,outlinkid,passlid,passlink_cnt,
-                                    lanenum,laneinfo,arrowinfo,lanenuml,lanenumr)
-            (
-            select  tnd.node_id,tlk1.link_id, tlk2.link_id, p.passlink,
-                    (case when p.passlink_cnt is null then 0
-                          else p.passlink_cnt end ) as passlink_cnt,
-                   aa.tlane_count as lanenum, 
-                   substring(aa.laneinfo,17-aa.tlane_count,aa.tlane_count) as laneinfo,
-                   aa.arrowinfo, aa.lanenuml, aa.lanenumr  
-                from
-                (        
-                    select  a.meshcode,a.tnodeno,a.snodeno,a.enodeno,a.ysnodeno,a.yenodeno,
-                        (array_agg(lanesu))[1] lane_count,
-                        (array_agg(tlanesu))[1] tlane_count,
-                        array_agg(laneno) as laneno_array,
-                        array_agg(flanecd) as add_array,
-                        (cast( sum(1<< (tlanesu - laneno)) as bit(16)))::varchar as laneinfo ,  
-                        (array_agg((case when cast(ypaint as integer) = 0 then 1
-                               when cast(ypaint as integer) > 0 and cast(ypaint as integer) < 90 then 2
-                               when cast(ypaint as integer) = 90 then 4
-                               when cast(ypaint as integer) > 90 and cast(ypaint as integer) < 180 then 8
-                               when cast(ypaint as integer) = 180 then 2048
-                               when cast(ypaint as integer) = -180 then 16
-                               when cast(ypaint as integer) > -180 and cast(ypaint as integer) < -90 then 32
-                               when cast(ypaint as integer) = -90 then 64
-                               when cast(ypaint as integer) > -90 and cast(ypaint as integer) < 0 then 128
-                               else 0 end ))
-                            
-                         )[1] as arrowinfo,
-                        (array_agg(b.lane_numl))[1] as lanenuml,
-                        (array_agg(b.lane_numr))[1] as lanenumr             
-                    from org_lane as a
-                    left join
-                    (
-                        select  meshcode, tnodeno, snodeno, enodeno,
-                                (zenrin_make_lanenum_lr(addinfo))[1] as lane_numl,
-                                (zenrin_make_lanenum_lr(addinfo))[2] as lane_numr
-                        from
-                        (
-                            select meshcode, tnodeno, snodeno, enodeno,array_agg(flanecd) as addinfo
-                            from 
-                            (
-                                select distinct meshcode,tnodeno,snodeno , enodeno,laneno,flanecd
-                                from org_lane
-                                order by meshcode,tnodeno,snodeno , enodeno,laneno
-                            ) as a1
-                            group by meshcode, tnodeno, snodeno, enodeno
-                        ) as b1
-
-                    ) as b 
-                    using(meshcode,tnodeno,snodeno,enodeno)
-                    group by a.meshcode,a.tnodeno,a.snodeno,a.enodeno,a.ysnodeno,a.yenodeno
-                    
-                ) as aa
-                
-                left join org_road as c
-                   on ( aa.snodeno =c.snodeno and aa.enodeno = c.enodeno
-                       or aa.enodeno =c.snodeno and aa.snodeno = c.enodeno
-                       )
-                       and aa.meshcode = c.meshcode
-                left join temp_link_mapping as tlk1
-                on tlk1.meshcode = c.meshcode and tlk1.linkno = c.linkno
-                       
-                left join org_road as d
-                   on ( aa.ysnodeno = d.snodeno and aa.yenodeno = d.enodeno
-                        or aa.yenodeno =d.snodeno and aa.ysnodeno = d.enodeno
-                       )
-                       and aa.meshcode = d.meshcode
-                       
-                left join temp_link_mapping as tlk2
-                on tlk2.meshcode = d.meshcode and tlk2.linkno = d.linkno
-
-                left join temp_node_mapping as tnd
-                on tnd.meshcode = aa.meshcode and tnd.nodeno = aa.tnodeno     
-      
-                left join
+        
+        ##左右附加车线
+        self.log.info('make temp_lane_numlr...')
+        sqlcmd = '''
+                drop table if exists temp_lane_numlr;
+                create table temp_lane_numlr
+                as
                 (
-                  select  bb.*,zenrin_findpasslink(bb.meshcode, bb.tnodeno,bb.ysnodeno,bb.passageno_array) as passlink,
-                    zenrin_findpasslink_count(zenrin_findpasslink(bb.meshcode, bb.tnodeno,bb.ysnodeno,bb.passageno_array)) as passlink_cnt
+                    select  meshcode, tnodeno, snodeno, enodeno,
+                            (zenrin_make_lanenum_lr(addinfo))[1] as lane_numl,
+                            (zenrin_make_lanenum_lr(addinfo))[2] as lane_numr
+                    from
+                    (
+                        select meshcode, tnodeno, snodeno, enodeno,array_agg(flanecd) as addinfo
+                        from 
+                        (
+                            select distinct meshcode,tnodeno,snodeno , enodeno,laneno,flanecd
+                            from org_lane
+                            order by meshcode,tnodeno,snodeno , enodeno,laneno
+                        ) as a1
+                        group by meshcode, tnodeno, snodeno, enodeno
+                    ) as b1
+                     
+                    order by meshcode, tnodeno, snodeno, enodeno,lane_numl,lane_numr
+                );
+        
+            '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_lane_numlr_meshcode_tnodeno_snodeno_enodeno_idx')
+        
+        
+        ##计算passlink
+        self.log.info('make temp_lane_passlink...')
+        sqlcmd = '''
+            drop table if exists temp_lane_passlink;
+            create table temp_lane_passlink
+            as
+            (
+                select meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno,passlink,
+                       zenrin_findpasslink_count(passlink) as passlink_cnt
+                from 
+                (
+                    select  bb.*,
+                            zenrin_findpasslink(bb.meshcode, bb.tnodeno,bb.ysnodeno,bb.passageno_array) as passlink
                     from 
                     (
-                           SELECT meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno, 
-                            array_agg(passageno) as passageno_array
-                           FROM
-                            (
+                        SELECT meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno, 
+                               array_agg(passageno) as passageno_array
+                        FROM
+                        (
                             select * from  org_lane_node
                             order by gid
-                            ) as a
-                           group by  meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno
+                        ) as a
+                        group by  meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno
+                        
                     ) as bb 
-                ) as p
-              on aa.meshcode=p.meshcode and aa.tnodeno=p.tnodeno and  aa.snodeno= p.snodeno 
-              and aa.enodeno=p.enodeno and aa.ysnodeno=p.ysnodeno and aa.yenodeno= p.yenodeno
-          
-          order by tnd.node_id, tlk1.link_id, tlk2.link_id, p.passlink, aa.tlane_count,
-                   aa.laneinfo, aa.arrowinfo, aa.lanenuml, aa.lanenumr
-                              
-        )
-    
-    '''    
+                    
+                ) as cc 
+                
+                order by meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno,passlink,passlink_cnt
+            ); 
+        
+            '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_lane_passlink_meshcode_tnodeno_snodeno_enodeno_ysnodeno_yenodeno_idx')
+        
+        
+        ##作成车线信息和箭头信息
+        self.log.info('make temp_lane_lane_arrow_info...')
+        sqlcmd = '''
+            drop table if exists temp_lane_lane_arrow_info;
+            create table temp_lane_lane_arrow_info
+            as
+            (
+                select  a.meshcode,a.tnodeno,a.snodeno,a.enodeno,a.ysnodeno,a.yenodeno,
+                        (cast( sum(1<< (tlanesu - laneno)) as bit(16)))::varchar as laneinfo,
+                        (case   when cast(ypaint as integer) = 0 then 1
+                                when cast(ypaint as integer) > 0 and cast(ypaint as integer) < 90 then 2
+                                when cast(ypaint as integer) = 90 then 4
+                                when cast(ypaint as integer) > 90 and cast(ypaint as integer) < 180 then 8
+                                when cast(ypaint as integer) = 180 then 2048
+                                when cast(ypaint as integer) = -180 then 16
+                                when cast(ypaint as integer) > -180 and cast(ypaint as integer) < -90 then 32
+                                when cast(ypaint as integer) = -90 then 64
+                                when cast(ypaint as integer) > -90 and cast(ypaint as integer) < 0 then 128
+                                else 0 end ) as arrowinfo,
+                        (array_agg(tlanesu))[1] as tlane_count 
+                from org_lane as a
+                group by a.meshcode,a.tnodeno,a.snodeno,a.enodeno,a.ysnodeno,a.yenodeno,a.ypaint
+                order by a.meshcode,a.tnodeno,a.snodeno,a.enodeno,a.ysnodeno,a.yenodeno,a.ypaint
+            );
             
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_lane_lane_arrow_info_meshcode_tnodeno_snodeno_enodeno_idx')
+        self.CreateIndex2('temp_lane_lane_arrow_info_meshcode_tnodeno_snodeno_enodeno_ysnodeno_yenodeno_idx')      
+        
+        
+        sqlcmd = ''' 
+            insert into temp_lane_tbl(nodeid,inlinkid,outlinkid,passlid,passlink_cnt,
+                                        lanenum,laneinfo,arrowinfo,lanenuml,lanenumr)
+            (
+            select  tnd.node_id,tlk1.link_id, tlk2.link_id, b.passlink,
+                    (case when b.passlink_cnt is null then 0
+                          else b.passlink_cnt end ) as passlink_cnt,
+                   a.tlane_count as lanenum, 
+                   substring(a.laneinfo,17-a.tlane_count,a.tlane_count) as laneinfo,
+                   a.arrowinfo, c.lane_numl, c.lane_numr
+            
+            from  temp_lane_lane_arrow_info as a
+            left join temp_lane_passlink as b
+            using(meshcode,tnodeno,snodeno,enodeno,ysnodeno,yenodeno)
+            
+            left join temp_lane_numlr as c
+            using(meshcode,tnodeno,snodeno,enodeno)
+            
+            left join org_road as d
+                   on ( a.snodeno =d.snodeno and a.enodeno = d.enodeno
+                       or 
+                       a.enodeno =d.snodeno and a.snodeno = d.enodeno
+                       )
+                       and a.meshcode = d.meshcode
+            left join temp_link_mapping as tlk1
+            on tlk1.meshcode = d.meshcode and tlk1.linkno = d.linkno
+                   
+            left join org_road as e
+               on ( a.ysnodeno = e.snodeno and a.yenodeno = e.enodeno
+                    or 
+                    a.yenodeno =e.snodeno and a.ysnodeno = e.enodeno
+                   )
+                   and a.meshcode = e.meshcode
+            left join temp_link_mapping as tlk2
+            on tlk2.meshcode = e.meshcode and tlk2.linkno = e.linkno
+            
+            left join temp_node_mapping as tnd
+            on tnd.meshcode = a.meshcode and tnd.nodeno = a.tnodeno    
+    
+            order by tnd.node_id, tlk1.link_id, tlk2.link_id, b.passlink, a.tlane_count,
+                     a.laneinfo, a.arrowinfo, c.lane_numl, c.lane_numr
+        );
+        '''
+          
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         
@@ -158,6 +201,9 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
                 on tlk1.meshcode = a.meshcode and tlk1.linkno = a.inlinkid
                 left join temp_link_mapping as tlk2
                 on tlk2.meshcode = a.meshcode and tlk2.linkno = a.outlinkid
+                
+                order by tnd.node_id, tlk1.link_id, tlk2.link_id, a.passlid, a.passlink_cnt, 
+                       a.lanenum, a.laneinfo, a.arrowinfo, a.lanenuml, a.lanenumr
             
             )
         
@@ -224,34 +270,30 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
             eroadno_1 = result[4][0]
             eroadno_2 = result[4][1]
             if eroadno_1 == eroadno_2:
-                print 'error'
+#                print 'error'
                 continue
             if result[5][0]<>result[5][1]:
-                print 'tnodeno error!'
+#                print 'tnodeno error!'
                 continue
             tnodeno=result[5][0]
             slaneinf_l=slaneinf.find('1')+1
             slaneinf_r=slaneinf.rfind('1')+1
             elaneinf_all=rjust(str(int(elaneinf_1)+int(elaneinf_2)),16,'0')
             
-            if elaneinf_all.strip('0').find('0')<>-1:
-                continue
+#            if elaneinf_all.strip('0').find('0')<>-1:
+#                continue
             
             elaneinf_l = 17 - len(elaneinf_all.lstrip('0'))
             elaneinf_r = len(elaneinf_all.rstrip('0'))
             lanenum = elaneinf_r - elaneinf_l+1
-            lanenum_l = slaneinf_l - elaneinf_l
-            lanenum_r = elaneinf_r - slaneinf_r
             
-            if lanenum_l<0 or lanenum_r<0:
-                continue
-                       
+            lanenum_l = 0
+            lanenum_r = 0
+                      
             slaneinfo_1 = elaneinf_1[elaneinf_l-1:elaneinf_r]
             slaneinfo_2 = elaneinf_2[elaneinf_l-1:elaneinf_r]
             
-#            slaneinfo = slaneinf[elaneinf_l-1:elaneinf_r]
-#            slaneinfo_1 = rjust(slaneinfo_1,16,'0')
-#            slaneinfo_2 = rjust(slaneinfo_2,16,'0') 
+
             arrow = 0
                        
             self.pg.execute(sqlcmd_insert%(tnodeno,meshcode,sroadno,eroadno_1,lanenum,slaneinfo_1,arrow,lanenum_l,lanenum_r))
@@ -293,13 +335,8 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
             else:
                 lanenum = slaneinf_r - slaneinf_l + 1
             
-#            laneinf_all = rjust(str(int(elaneinf)+int(slaneinf)),16,'0')
-#            laneinf_l = 17 - len(laneinf_all.lstrip('0'))
-#            laneinf_r = len(laneinf_all.rstrip('0'))
-            
             slaneinfo = slaneinf[slaneinf_l-1:slaneinf_r]
-#            elaneinfo = elaneinf[laneinf_l-1:laneinf_r]
-        
+
           
             lanenum_l = 0
             lanenum_r = 0 

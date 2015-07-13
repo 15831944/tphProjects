@@ -607,6 +607,26 @@ class pg_client(object):
                 return True
 
         return False
+
+    def IsExistColumn(self, table_name, column_name):
+        sqlstr = '''
+                    SELECT a.relname, b.attname
+                    FROM pg_statio_user_tables as a
+                    left join pg_attribute as b
+                    on      a.relid = b.attrelid
+                        and b.attnum > 0 
+                        and b.attname not like '%pg.dropped%'
+                    where a.relname = '[table]' and b.attname = '[column]'
+                    order by b.attrelid, b.attnum
+                    ;
+                 '''
+        sqlstr = sqlstr.replace('[table]', table_name)
+        sqlstr = sqlstr.replace('[column]', column_name)
+        self.execute2(sqlstr)
+        if self.pgcur2.rowcount == 1 :  # 表存在已经存在
+            return True
+        else:
+            return False
     
     def getMinMaxValue(self, table_name, column_name):
         sqlcmd = "SELECT min(%s), max(%s) FROM %s;" % (column_name, column_name, table_name)
