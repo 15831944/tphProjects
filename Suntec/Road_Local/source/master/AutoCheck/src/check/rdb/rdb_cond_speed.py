@@ -275,7 +275,7 @@ class CCheckNegSpeedValid(platform.TestCase.CTestCase):
         
         sqlcmd = """
                 select * from rdb_cond_speed 
-                where neg_cond_speed <0 or pos_cond_speed >160
+                where neg_cond_speed <0 or neg_cond_speed >160
                 """
         
         if self.pg.execute(sqlcmd) == -1:
@@ -291,7 +291,7 @@ class CCheckNegSpeedValid_RDF(platform.TestCase.CTestCase):
         
         sqlcmd = """
                 select * from rdb_cond_speed 
-                where neg_cond_speed < -1 or pos_cond_speed >160
+                where neg_cond_speed < -1 or neg_cond_speed >160
                 """
         
         if self.pg.execute(sqlcmd) == -1:
@@ -388,16 +388,16 @@ class CCheckNegSpeedRationality2_MMI(platform.TestCase.CTestCase):
 
             sqlcmd = """
                 select val1,val2,val3 from (                
-                    select  1 as id, count(*) as val1  from rdb_cond_speed where pos_cond_speed = 0 
+                    select  1 as id, count(*) as val1  from rdb_cond_speed where neg_cond_speed = 0 
                 ) as tbl1
                 inner join 
                 ( 
-                    select 1 as id, count(*) as val2 from  rdb_cond_speed where pos_cond_speed between 30 and 60 
+                    select 1 as id, count(*) as val2 from  rdb_cond_speed where neg_cond_speed between 30 and 60 
                 ) as tbl2
                 on tbl1.id=tbl2.id 
                 inner join
                 ( 
-                    select 1 as id, count(*) as val3 from  rdb_cond_speed where pos_cond_speed between 100 and 160 
+                    select 1 as id, count(*) as val3 from  rdb_cond_speed where neg_cond_speed between 100 and 160 
                 ) as tbl3
                 on tbl1.id=tbl3.id         
                 """
@@ -417,16 +417,16 @@ class CCheckNegSpeedRationality2_Nostra(platform.TestCase.CTestCase):
 
             sqlcmd = """
                 select val1,val2,val3 from (                
-                    select  1 as id, count(*) as val1  from rdb_cond_speed where pos_cond_speed = 0 
+                    select  1 as id, count(*) as val1  from rdb_cond_speed where neg_cond_speed = 0 
                 ) as tbl1
                 inner join 
                 ( 
-                    select 1 as id, count(*) as val2 from  rdb_cond_speed where pos_cond_speed between 30 and 60 
+                    select 1 as id, count(*) as val2 from  rdb_cond_speed where neg_cond_speed between 30 and 60 
                 ) as tbl2
                 on tbl1.id=tbl2.id 
                 inner join
                 ( 
-                    select 1 as id, count(*) as val3 from  rdb_cond_speed where pos_cond_speed between 100 and 160 
+                    select 1 as id, count(*) as val3 from  rdb_cond_speed where neg_cond_speed between 100 and 160 
                 ) as tbl3
                 on tbl1.id=tbl3.id         
                 """
@@ -446,16 +446,16 @@ class CCheckNegSpeedRationality2_Zenrin(platform.TestCase.CTestCase):
 
             sqlcmd = """
                 select val1,val2,val3 from (                
-                    select  1 as id, count(*) as val1  from rdb_cond_speed where pos_cond_speed = 0 
+                    select  1 as id, count(*) as val1  from rdb_cond_speed where neg_cond_speed = 0 
                 ) as tbl1
                 inner join 
                 ( 
-                    select 1 as id, count(*) as val2 from  rdb_cond_speed where pos_cond_speed between 30 and 60 
+                    select 1 as id, count(*) as val2 from  rdb_cond_speed where neg_cond_speed between 30 and 60 
                 ) as tbl2
                 on tbl1.id=tbl2.id 
                 inner join
                 ( 
-                    select 1 as id, count(*) as val3 from  rdb_cond_speed where pos_cond_speed between 100 and 160 
+                    select 1 as id, count(*) as val3 from  rdb_cond_speed where neg_cond_speed between 100 and 160 
                 ) as tbl3
                 on tbl1.id=tbl3.id         
                 """

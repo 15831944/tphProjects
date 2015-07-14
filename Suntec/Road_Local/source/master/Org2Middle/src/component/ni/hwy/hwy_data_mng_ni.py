@@ -73,7 +73,7 @@ class HwyDataMngNi(HwyDataMngRDF):
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 8, 9, 12)
+          where b.road_type not in (0, 8, 9, 12, 14)
         );
         """
         self.pg.execute2(sqlcmd)
@@ -94,7 +94,7 @@ class HwyDataMngNi(HwyDataMngRDF):
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 8, 9, 12)
+          where b.road_type not in (0, 8, 9, 12, 14)
         );
         """
         self.pg.execute2(sqlcmd)
@@ -103,6 +103,7 @@ class HwyDataMngNi(HwyDataMngRDF):
 
     def load_exit_poi_name(self):
         '''加载HWY exit POI Name.'''
+        self.log.warning('Start Loading Exist POI Name.')
         if not self.pg.IsExistTable('mid_temp_hwy_exit_enter_poi_name_ni'):
             self.log.warning('No Table mid_temp_hwy_exit_enter_poi_name_ni.')
             return
@@ -129,6 +130,7 @@ class HwyDataMngNi(HwyDataMngRDF):
             data = {HWY_EXIT_POI_NAME: str_name}
             if node_id in self._graph:
                 self._graph.add_node(node_id, data)
+        self.log.warning('End Loading Exist POI Name.')
 
     def load_exit_name(self):
         '''加载出口番号'''
@@ -139,6 +141,7 @@ class HwyDataMngNi(HwyDataMngRDF):
 
     def load_org_facil_id(self):
         '''加载元设施id'''
+        self.log.info('Start Loading ORG Facility ID.')
         sqlcmd = """
         SELECT node_id, poi_id
           FROM mid_temp_hwy_exit_enter_poi_name_ni
@@ -148,6 +151,7 @@ class HwyDataMngNi(HwyDataMngRDF):
             data = {HWY_ORG_FACIL_ID: facil_id}
             if node in self._graph:
                 self._graph.add_node(node, data)
+        self.log.info('End Loading ORG Facility ID.')
 
     def _make_hwy_inout_of_inner_link(self):
         return 0

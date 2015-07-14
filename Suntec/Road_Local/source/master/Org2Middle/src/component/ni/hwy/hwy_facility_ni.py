@@ -9,6 +9,11 @@ from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
+from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
+from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 SAPA_TYPE_DICT = {'8380': HWY_IC_TYPE_SA,  # 高速停车区
                   '8381': HWY_IC_TYPE_PA   # 高速停车区
                   }
@@ -33,7 +38,7 @@ class HwyFacilityNi(HwyFacilityRDF):
         return facil_cls
 
     def _get_rest_area_info(self):
-        '''取得服'''
+        '''取得服务情报'''
         sqlcmd = """
         SELECT DISTINCT road_code, road_seq, c.poi_id,
                         kind, name
@@ -50,9 +55,141 @@ class HwyFacilityNi(HwyFacilityRDF):
           ON c.poi_id = d.poi_id
           LEFT JOIN org_poi as e  -- org_p: 11year, org_poi: 14year
           ON c.poi_id = e.poi_id::bigint
-          ORDER BY road_code, road_seq
+          ORDER BY road_code, road_seq;
         """
         return self.get_batch_data(sqlcmd)
+
+    def get_paths_2_inout(self, facilcls, path, inout):
+        '''第一个和一般道连接的点之后，还有Ramp(中国使用)'''
+        return [path]
+        if facilcls != HWY_IC_TYPE_IC:
+            return []
+        if inout == HWY_INOUT_TYPE_IN:  # 入口
+            reverse = True
+        else:
+            reverse = False
+        pathes = list(self.G.all_path_2_inout(path, reverse=reverse))
+        if pathes:
+            return pathes
+        return [path]
+
+    def _filter_JCT_UTurn(self):
+        '''过滤假JCT/UTurn:下了高速又转弯回来的径路'''
+        self.log.info('Start Filtering JCT/UTurn Path.')
+        self.pg.connect1()
+        self.pg.connect2()
+        self.CreateTable2('mid_temp_hwy_jct_uturn_del')
+        del_pathes = []
+        for jct_uturn in self._get_jct_uturn():
+            gid, path_type = jct_uturn[0:2]
+            road_code, inout_c = jct_uturn[2:4]
+            node_lid = map(int, jct_uturn[4].split(','))
+            if jct_uturn[5]:
+                link_lid = map(int, jct_uturn[5].split(','))
+            else:
+                self.log.warning('No link_lid. node_id=%s.' % node_lid[0])
+                continue
+            # print gid
+            f_node_lids = [map(int, n_lid.split(','))
+                           for n_lid in jct_uturn[6]]
+            f_link_lids = []
+            for l_lid in jct_uturn[7]:
+                if l_lid:
+                    f_link_lids.append(map(int, l_lid.split(',')))
+                else:
+                    f_link_lids.append([])
+                    self.log.warning('No link_lid. node_id=%s.' % node_lid[0])
+            t_node_lids = [map(int, n_lid.split(','))
+                           for n_lid in jct_uturn[8]]
+            t_link_lids = []
+            for l_lid in jct_uturn[9]:
+                if l_lid:
+                    t_link_lids.append(map(int, l_lid.split(',')))
+                else:
+                    t_link_lids.append([])
+                    self.log.warning('No link_lid. node_id=%s.' % node_lid[0])
+            # 求出入口路径的重叠点
+            overlay_nodes = self._get_overlay_node(f_node_lids, t_node_lids)
+            if not overlay_nodes:  # 没有重叠的点
+                # 存留路径
+                continue
+            node_set = set(node_lid)
+            if not node_set.intersection(overlay_nodes):  # 重叠点不在JCT/UTurn路径里
+                # 存留路径
+                continue
+            join_nodes = self._get_join_nodes(overlay_nodes,
+                                              f_node_lids,
+                                              inout_c)
+            if node_set.intersection(join_nodes):
+                del_pathes.append(gid)
+            else:
+                if overlay_nodes:
+                    print path_type, link_lid
+        # 删除错误的JCT/UTurn
+        self._store_del_jct_uturn(del_pathes)
+        self.log.info('End Filtering JCT/UTurn Path.')
+
+    def _get_join_nodes(self, overlay_nodes, f_node_lids, f_inout):
+        '''出入口路径的汇合点，像 Y/X字路的汇合点。'''
+        join_nodes = set()
+        if len(overlay_nodes) <= 1:
+            join_nodes = set(overlay_nodes)
+            return join_nodes
+        for f_node_lid in f_node_lids:
+            # 取当前路径的重叠点
+            curr_overlay_nodes = overlay_nodes.intersection(f_node_lid)
+            # 路径里没有重叠点
+            if not curr_overlay_nodes:
+                continue
+            has_overlay = False
+            node_idx = len(f_node_lid) - 1
+            # ## 取最尾部那段重叠路径的第一个点
+            while node_idx > 0:
+                v = f_node_lid[node_idx]
+                u = f_node_lid[node_idx - 1]
+                if v in curr_overlay_nodes:
+                    join_nodes.add(v)
+                    has_overlay = True
+                else:
+                    if has_overlay:  # 重叠点必须连续
+                        break
+                if f_inout == HWY_INOUT_TYPE_OUT:
+                    data = self.G[u][v]
+                else:
+                    data = self.G[v][u]
+                # SAPA link
+                link_type = data.get(HWY_LINK_TYPE)
+                if link_type == HWY_LINK_TYPE_SAPA:
+                    break
+                # Roundabout
+                node_idx -= 1
+        return join_nodes
+
+    def _get_overlay_node(self, f_node_lids, t_node_lids):
+        '''重叠点'''
+        f_set = set()
+        t_set = set()
+        for node_lid in f_node_lids:
+            # 取收费站之前的点
+            s_idx = self._get_toll_index(node_lid)
+            if s_idx < 1:
+                s_idx = 1
+            f_set = f_set.union(node_lid[s_idx:])
+        for node_lid in t_node_lids:
+            # 取收费站之前的点
+            s_idx = self._get_toll_index(node_lid)
+            if s_idx < 1:
+                s_idx = 1
+            t_set = t_set.union(node_lid[s_idx:])
+        return f_set.intersection(t_set)
+
+    def _get_toll_index(self, path):
+        node_idx = len(path) - 1
+        while node_idx >= 0:
+            if self.G.is_tollgate(path[node_idx]):
+                return node_idx
+            node_idx -= 1
+        return node_idx
 
     def _get_service_types(self, cat_id_list):
         gas_station, information, rest_area = HWY_FALSE, HWY_FALSE, HWY_FALSE
@@ -80,6 +217,90 @@ class HwyFacilityNi(HwyFacilityRDF):
         return (gas_station, information, rest_area,
                 shopping_corner, postbox, atm,
                 restaurant, toilet)
+
+    def _get_jct_uturn(self):
+        sqlcmd = """
+        SELECT gid, path_type,
+               a.road_code, a.inout_c,
+               a.node_lid, a.link_lid,
+               f_node_lids, f_link_lids,
+               t_node_lids, t_link_lids
+          FROM (
+            -- get JCT/UTurn
+            SELECT gid, road_code, road_seq, facilcls_c,
+                   inout_c, node_id, to_node_id,
+                   node_lid, link_lid, path_type
+              from mid_temp_hwy_ic_path
+              where path_type in ('JCT', 'UTURN') -- 'JCT', 'UTURN'
+          ) as a
+          INNER JOIN (
+            SELECT node_id, road_code, inout_c,
+                   array_agg(node_lid) as f_node_lids,
+                   array_agg(link_lid) as f_link_lids
+              FROM (
+                SELECT DISTINCT node_id, road_code, inout_c,
+                       node_lid, link_lid
+                  FROM mid_temp_hwy_ic_path
+                  where facilcls_c in (5 ) and path_type <> 'UTURN'
+                  ORDER BY  node_id, road_code
+              ) AS f
+              group by node_id, road_code, inout_c
+          ) as b
+          ON a.node_id = b.node_id and
+             a.road_code = b.road_code and
+             a.inout_c = b.inout_c
+          INNER JOIN (
+            SELECT node_id, road_code, inout_c,
+                   array_agg(node_lid) as t_node_lids,
+                   array_agg(link_lid) as t_link_lids
+              FROM (
+                SELECT DISTINCT node_id, road_code, inout_c,
+                       node_lid, link_lid
+                  FROM mid_temp_hwy_ic_path
+                  where facilcls_c in (5) and path_type <> 'UTURN'
+                  ORDER BY  node_id, road_code
+              ) AS t
+              group by node_id, road_code, inout_c
+          ) as c
+          ON a.to_node_id = c.node_id and
+             --a.road_code = c.road_code and
+             (a.inout_c = 1 and c.inout_c = 2 or
+              a.inout_c = 2 and c.inout_c = 1)
+          ORDER BY gid;
+        """
+        return self.get_batch_data(sqlcmd, batch_size=1024)
+
+    def _store_del_jct_uturn(self, del_pathes):
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_jct_uturn_del(gid)
+           VALUES(%s);
+        """
+        for gid in del_pathes:
+            self.pg.execute2(sqlcmd, (gid,))
+        self.pg.commit2()
+        # ## 备份路径情报
+        sqlcmd = """
+        UPDATE mid_temp_hwy_jct_uturn_del AS a
+           SET road_code=b.road_code, road_seq = b.road_seq,
+               facilcls_c = b.facilcls_c, inout_c = b.inout_c,
+               node_id = b.node_id, to_node_id = b.to_node_id,
+               node_lid = b.node_lid, link_lid = b.link_lid,
+               path_type = b.path_type
+          FROM mid_temp_hwy_ic_path as b
+          where a.gid = b.gid;
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        # ## 路径从mid_temp_hwy_ic_path表中删去
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_ic_path
+          WHERE gid in (
+          SELECT gid
+            FROM mid_temp_hwy_jct_uturn_del
+          )
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
 
 SERVICE_GAS_DICT = {'4080': 1,  # 加油站
                     '4081': 1,  # 中国石油

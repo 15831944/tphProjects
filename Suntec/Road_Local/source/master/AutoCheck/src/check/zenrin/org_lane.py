@@ -134,5 +134,81 @@ class CCheckTnodeInOutlink2(platform.TestCase.CTestCase):
          and not (aa.tnodeno = r.snodeno or aa.tnodeno = r.enodeno)      
      '''  
         return self.pg.getOnlyQueryResult(sqlcmd)==0
+
+
+class CCheckTlanesu(platform.TestCase.CTestCase):
+    '''检查tlanesu 是否不小于lanesu'''
+    def _do(self):
+        sqlcmd = '''
+            select count(*) from org_lane
+            where tlanesu < lanesu 
+            ''' 
+        return self.pg.getOnlyQueryResult(sqlcmd)==0  
+ 
     
+class CCheckPassageno(platform.TestCase.CTestCase):
+    '''检查inlink、outlink一定时，提供的passageno是否连续'''
+    def _do(self):
+        sqlcmd = '''
+            CREATE OR REPLACE FUNCTION zenrin_check_passageno(mesh varchar, passageno integer[])
+                RETURNS boolean
+                LANGUAGE plpgsql
+            AS $$
+                DECLARE
+                    i integer;
+                    snode integer;
+                    enode integer;
+                    count integer;
+            BEGIN
+                    i := 1;
+                    while i < array_length(passageno,1) loop
+                        snode = passageno[i];
+                        enode = passageno[i+1];
+                        select count(*) 
+                        from 
+                        (
+                            select linkno from org_road as a
+                            where ( a.snodeno = snode and a.enodeno = enode
+                                   or
+                                    a.snodeno = enode and a.enodeno = snode
+                                  )
+                                  and a.meshcode = mesh
+                        ) as b
+                        into count;
+                        if count = 0 then
+                            return False;
+                        end if;
+                        i := i + 1;
+                    end loop;
+            
+                    return True;
+            END;
+            $$;
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit()
+        
+        sqlcmd = '''
+            select count(*) 
+            from 
+            (
+                select zenrin_check_passageno(meshcode,passageno_array) as sss
+                from
+                (
+                    SELECT meshcode,array_agg(passageno) as passageno_array
+                    FROM
+                    (
+                        select * from  org_lane_node
+                        order by gid
+                    ) as a
+                    where passageno <> 0
+                    group by  meshcode, tnodeno, snodeno, enodeno, ysnodeno, yenodeno
+                ) aa
+            ) bb
+            where sss = 'f'::boolean
+        '''
+        return self.pg.getOnlyQueryResult(sqlcmd) == 0 
+        
+
+
     

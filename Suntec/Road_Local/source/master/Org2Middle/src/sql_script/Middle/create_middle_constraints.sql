@@ -1055,6 +1055,12 @@ CREATE INDEX temp_brand_icon_brandname_idx
   (brandname);
 
 ------------------------------------------------------------------------ 
+CREATE INDEX mid_temp_hwy_ic_path_path_type_idx
+  ON mid_temp_hwy_ic_path
+  USING btree
+  (path_type);
+
+------------------------------------------------------------------------ 
 CREATE INDEX mid_temp_hwy_ic_path_road_code_road_seq_node_id_inout_c_fac_idx
   ON mid_temp_hwy_ic_path
   USING btree

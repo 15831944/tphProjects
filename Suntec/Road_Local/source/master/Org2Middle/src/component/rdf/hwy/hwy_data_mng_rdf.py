@@ -372,6 +372,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
 
     def load_hwy_ic_link(self):
         '''load Highway Main Link.'''
+        self.log.info('Start Loading Highway IC(Ramp/JCT/SAPA) Link.')
         self.pg.connect2()
         sqlcmd = """
         SELECT link_id, s_node, e_node, one_way_code,
@@ -388,9 +389,11 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                  s_angle, e_angle,
                                  **link_attr
                                  )
+        self.log.info('End Loading Highway IC(Ramp/JCT/SAPA) Link.')
 
     def load_hwy_inout_link(self):
         '''load Highway Main Link.'''
+        self.log.info('Start Loading Highway In/Out Link.')
         self.pg.connect2()
         sqlcmd = """
         SELECT DISTINCT link_id, s_node, e_node, one_way_code,
@@ -407,6 +410,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                                  s_angle, e_angle,
                                  **link_attr
                                  )
+        self.log.info('End Loading Highway In/Out Link.')
 
     def load_hwy_regulation(self):
         '''规制'''
@@ -627,6 +631,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
                 self._graph.add_edge(u, v, data)
 
     def load_hwy_road_code(self):
+        self.log.info('Start Loading HYY Road Code.')
         self.pg.connect2()
         if not self.pg.IsExistTable('hwy_link_road_code_info'):
             self.log.error('No table hwy_link_road_code_info.')
@@ -644,9 +649,11 @@ class HwyDataMngRDF(component.component_base.comp_base):
             for u, v in zip(path[0:-1], path[1:]):
                 data = {HWY_ROAD_CODE: road_code}
                 self._graph.add_edge(u, v, data)
+        self.log.info('End Loading HYY Road Code.')
 
     def load_hwy_node_facilcls(self):
         '''加载设施种别'''
+        self.log.info('Start Loading HWY Node.')
         self.pg.connect2()
         if not self.pg.IsExistTable('hwy_node'):
             self.log.error('No Table hwy_node.')
@@ -660,6 +667,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         for node, facilcls_list in self.get_batch_data(sqlcmd):
             attr_dict = {HWY_FACIL_CLASS: facilcls_list}
             self._graph.add_node(node, attr_dict)
+        self.log.info('End Loading HWY Node.')
 
     def get_side_path(self):
         sqlcmd = """
@@ -825,6 +833,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
     def __load_road_start_end_node(self):
         if self.__road_start_end_node:
             return
+        self.log.info('Start Loading Road Start/End Node.')
         sqlcmd = """
         SELECT road_code, array_agg(node_id) as node_lid
           FROM (
@@ -841,6 +850,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
             end_node = node_lid[-1]
             key = road_code
             self.__road_start_end_node[key] = (start_node, end_node)
+        self.log.info('End Loading Road Start/End Node.')
 
     def is_road_end_node(self, road_code, updown, node_id):
         '''道路的起始点'''

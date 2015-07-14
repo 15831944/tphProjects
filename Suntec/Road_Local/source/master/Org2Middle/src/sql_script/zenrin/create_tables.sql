@@ -207,3 +207,11 @@ create table temp_poi_name
 	poi_id bigint,
 	poi_name varchar
 );
+
+------------------------------------------------------------------------
+CREATE TABLE temp_prepare_node
+(
+	path_id   integer,
+	ic_no     bigint,
+	node_id   bigint
+);

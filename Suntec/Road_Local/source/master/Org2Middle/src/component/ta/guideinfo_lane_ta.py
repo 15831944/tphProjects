@@ -1,37 +1,52 @@
 # -*- coding: UTF8 -*-
 '''
 Created on 2012-9-4
+
 @author: zym
 '''
+
 import os
 import component.component_base
 
-
-DLANE_OPEN_IN_BOTH = 1
-DLANE_CLOSE_IN_POSITIVE = 2
-DLANE_CLOSE_IN_NEGATIVE = 3
+DLANE_DIR_P = 2
+DLANE_DIR_N = 3
+DLANE_DIR_B = 1
 ALL_CAR = 0
 PASSENGER_CAR = 11
 
+
 class comp_guideinfo_lane_ta(component.component_base.comp_base):
+    '''
+    This class deals with guide lane information
+    '''
+
     def __init__(self):
+        '''
+        Constructor
+        '''
         component.component_base.comp_base.__init__(self, 'Guideinfo_Lane')
 
     def _DoCreateTable(self):
-        self.CreateTable2('temp_lane_tbl')
-        self.CreateTable2('lane_tbl')
-        self.CreateTable2('temp_lane_link_info')
-        self.CreateTable2('temp_lane_link_node')
+        if self.CreateTable2('temp_lane_tbl') == -1:
+            return -1
+        if self.CreateTable2('lane_tbl') == -1:
+            return -1
+        if self.CreateTable2('temp_lane_link_info') == -1:
+            return -1
+        if self.CreateTable2('temp_lane_link_node') == -1:
+            return -1
         return 0
 
     def _DoCreateIndex(self):
-        self.CreateIndex2('org_ld_id_validity_idx')
-        self.CreateIndex2('org_lf_id_validity_idx')
-        self.CreateIndex2('org_lp_id_idx')
-        self.CreateIndex2('org_ln_id_idx')
-        self.CreateIndex2('org_ld_id_idx')
-        self.CreateIndex2('org_lf_id_idx')
-        self.CreateIndex2('nw_id_idx') 
+        'create index.'
+#        if self.CreateIndex2('temp_lane_link_info_id_idx') == -1:
+#            return -1
+#        if self.CreateIndex2('org_ln_id_idx') == -1:
+#            return -1
+#        if self.CreateIndex2('org_ld_id_validity_idx') == -1:
+#            return -1
+#        if self.CreateIndex2('org_lf_id_validity_idx') == -1:
+#            return -1
         return 0
 
     def _DoCreateFunction(self):
@@ -39,12 +54,52 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         return 0
 
     def _Do(self):
+        self.CreateIndex2('org_ld_id_validity_idx')
+        self.CreateIndex2('org_lf_id_validity_idx')
+        self.CreateIndex2('org_lp_id_idx')
+        self.CreateIndex2('org_ln_id_idx')
+        self.CreateIndex2('org_ld_id_idx')
+        self.CreateIndex2('org_lf_id_idx')
+        self.CreateIndex2('nw_id_idx') 
+        
+        # 制作inlink、outlink、passlink
         self._make_link_info()
+        # 制作node\laneno
         self._make_node_laneno()
+        # 制作lane_tbl
         self._make_lane_tbl()
+        
         self._merge_same_arrow()
+        
         return 0
     
+    def _merge_same_arrow(self):
+        sqlcmd = '''
+            insert into lane_tbl(
+                id, nodeid, inlinkid, outlinkid,
+                passlid, passlink_cnt,
+                lanenum, laneinfo, arrowinfo,
+                lanenuml, lanenumr, buslaneinfo
+            )
+            (
+                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
+                from
+                (
+                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                    from temp_lane_tbl
+                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                ) as a
+            )
+        '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        return 0
+
     # 求得inlink、outlink、passlink
     def _make_link_info(self):
         
@@ -102,109 +157,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         
         self.CreateIndex2('temp_lane_link_node_id_idx')
         return 0
-    
-    def _make_lane_tbl(self):
-        insert_sql = '''
-            INSERT INTO temp_lane_tbl(
-                id, nodeid, inlinkid, outlinkid,
-                passlid, passlink_cnt,
-                lanenum, laneinfo, arrowinfo,
-                lanenuml, lanenumr, buslaneinfo
-                )
-            VALUES (%s, %s, %s, %s,
-                    %s, %s,
-                    %s, %s, %s,
-                    %s, %s, %s);
-        '''
-        sqlcmd = '''
-            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, case when c.direction=256 then 2048 else c.direction end,
-                    array_agg(d.dflane) dflane_array, 
-                array_agg(d.vt) vt_array, array_agg(substring(d.validity, 2)) as validity_array, b.lanes,b.f_jnctid, b.t_jnctid
-            FROM temp_lane_link_node as a
-            left join org_nw as b
-            on a.inlink = b.id
-            left join org_ld as c
-            on a.inlink = c.id and substr(c.validity, a.laneno::integer + 1, 1) = '1'
-            left join org_lf as d
-            on a.inlink = d.id and d.vt in (0, 11)
-            where c.id is not null
-            group by inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, b.lanes,b.f_jnctid, b.t_jnctid
-        '''
-        rows = self.get_batch_data(sqlcmd)
-        i = 1
-        for row in rows:
-            inlink = row[0]
-            outlink = row[1]
-            passlink = row[2]
-            passlinkcnt = 0
-            if passlink:
-                passlinkcnt = len(passlink.split('|'))
-            nodeid = row[3]
-            laneno = row[4]
-            oneway = row[5]
-            direction = row[6]
-            dflane_array = row[7]
-            vt_array = row[8]
-            validity_array = row[9]
-            nw_lanes = row[10]
-            start_nodeid = row[11]
-            end_nodeid = row[12]
-            
-            if oneway == 'N' :
-                continue
-            
-            if oneway == '': #bidirection, so we should get validate lane cnt by drive way
-                if nodeid == start_nodeid:
-                    bidirection_validate_dir = 'TF'
-                else:
-                    bidirection_validate_dir = 'FT'
-            else:
-                bidirection_validate_dir = oneway
-                
-#            laneinfo = self._make_lane_info(inlink, laneno, oneway)
-            laneinfo = self._Get_lane_info(laneno, oneway, dflane_array, vt_array, 
-                                           validity_array, nw_lanes, inlink, bidirection_validate_dir)
-            
-            # function without bus lane 
-            businfo = ''
-            lane_len = len(laneinfo)
-            if laneinfo != '':
-                businfo = '0' * lane_len
-                self.pg.execute2(insert_sql,
-                                 (i, nodeid, inlink, outlink,
-                                  passlink, passlinkcnt,
-                                  lane_len, laneinfo, direction,
-                                  0, 0, businfo))
 
-            i = i + 1
-        self.pg.commit2()
-        return 0
-    
-    def _merge_same_arrow(self):
-        sqlcmd = '''
-            insert into lane_tbl(
-                id, nodeid, inlinkid, outlinkid,
-                passlid, passlink_cnt,
-                lanenum, laneinfo, arrowinfo,
-                lanenuml, lanenumr, buslaneinfo
-            )
-            (
-                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
-                from
-                (
-                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
-                    from temp_lane_tbl
-                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
-                ) as a
-            )
-        '''
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        return 0
-    
     def _make_arrow_direction(self, inlink, laneno, f):
         
         # 求车线的箭头方向
@@ -257,9 +210,9 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                         laneinfo_str = laneinfo_str + '1'
                     else:
                         laneinfo_str = laneinfo_str + '0'
-            if direc == DLANE_CLOSE_IN_NEGATIVE:
+            if direc == DLANE_DIR_N:
                 laneinfo_str = laneinfo_str[::-1]
-            if direc == DLANE_OPEN_IN_BOTH:
+            if direc == DLANE_DIR_B:
                 self.log.error('dflane = 1 data is not normal!!!')
                 return laneinfo_str
         else:
@@ -302,9 +255,9 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     else:
                         laneinfo = laneinfo + '0'
                     start = start + 1
-            if dflane == DLANE_CLOSE_IN_POSITIVE:
+            if dflane == DLANE_DIR_P:
                 laneinfo = laneinfo[::-1]
-            if dflane == DLANE_OPEN_IN_BOTH:
+            if dflane == DLANE_DIR_B:
                 self.log.error('dflane = 1 data is not normal!!!')
                 return laneinfo
 
@@ -331,10 +284,10 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         laneinfo = ''
         # 车线同向---正向
         if oneway == 'FT':
-            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_CLOSE_IN_NEGATIVE, laneno)
+            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_DIR_N, laneno)
         # 反向
         elif oneway == 'TF':
-            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_CLOSE_IN_POSITIVE, laneno)
+            laneinfo = self._get_one_dir_laneinfo(inlink, DLANE_DIR_P, laneno)
         # 双向
         elif oneway is None:
             laneinfo = self._get_both_dirs_laneinfo(inlink, laneno)
@@ -389,7 +342,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                                 businfo = businfo + '1'
                             else:
                                 businfo = businfo + '0'
-                if lists[0][0] == DLANE_CLOSE_IN_NEGATIVE:
+                if lists[0][0] == DLANE_DIR_N:
                         businfo = businfo[::-1]
         else:
             return businfo
@@ -459,7 +412,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                 else:
                     laneinfo = laneinfo + '0'
                 start = start + 1
-        if dflane == DLANE_CLOSE_IN_POSITIVE:
+        if dflane == DLANE_DIR_P:
             laneinfo = laneinfo[::-1]
 
         return laneinfo
@@ -482,9 +435,9 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         if validity_array[laneno-1] == '0': # this lane is not controlled.
             return rtn_laneinfo
         
-        if linkdir == 'FT' and dflane == DLANE_CLOSE_IN_NEGATIVE:
+        if linkdir == 'FT' and dflane == DLANE_DIR_N:
             rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '1')
-        elif linkdir == 'TF' and dflane == DLANE_CLOSE_IN_POSITIVE:
+        elif linkdir == 'TF' and dflane == DLANE_DIR_P:
             rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '1')
         else:
             pass
@@ -497,9 +450,9 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         if validity_array[laneno-1] == '0': # this lane is not controlled.
             return rtn_laneinfo
         
-        if linkdir == 'FT' and dflane == DLANE_CLOSE_IN_POSITIVE:
+        if linkdir == 'FT' and dflane == DLANE_DIR_P:
             rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '0')
-        elif linkdir == 'TF' and dflane == DLANE_CLOSE_IN_NEGATIVE:
+        elif linkdir == 'TF' and dflane == DLANE_DIR_N:
             rtn_laneinfo = self.__set_laneinfo_with_specify_pos(laneinfo, laneno, '0')
         else:
             pass
@@ -615,3 +568,84 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     
         return final_laneinfo
     
+    def _make_lane_tbl(self):
+        '''打开日志文件'''
+        file_path = os.path.join('..', 'docs', 'lane_log.txt')
+        f = open(file_path, "w")
+        insert_sql = '''
+            INSERT INTO temp_lane_tbl(
+                id, nodeid, inlinkid, outlinkid,
+                passlid, passlink_cnt,
+                lanenum, laneinfo, arrowinfo,
+                lanenuml, lanenumr, buslaneinfo
+                )
+            VALUES (%s, %s, %s, %s,
+                    %s, %s,
+                    %s, %s, %s,
+                    %s, %s, %s);
+        '''
+        sqlcmd = '''
+            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, case when c.direction=256 then 2048 else c.direction end,
+                    array_agg(d.dflane) dflane_array, 
+                array_agg(d.vt) vt_array, array_agg(substring(d.validity, 2)) as validity_array, b.lanes,b.f_jnctid, b.t_jnctid
+            FROM temp_lane_link_node as a
+            left join org_nw as b
+            on a.inlink = b.id
+            left join org_ld as c
+            on a.inlink = c.id and substr(c.validity, a.laneno::integer + 1, 1) = '1'
+            left join org_lf as d
+            on a.inlink = d.id and d.vt in (0, 11)
+            where c.id is not null
+            group by inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, b.lanes,b.f_jnctid, b.t_jnctid
+        '''
+        rows = self.get_batch_data(sqlcmd)
+        i = 1
+        for row in rows:
+            inlink = row[0]
+            outlink = row[1]
+            passlink = row[2]
+            passlinkcnt = 0
+            if passlink:
+                passlinkcnt = len(passlink.split('|'))
+            nodeid = row[3]
+            laneno = row[4]
+            oneway = row[5]
+            direction = row[6]
+            dflane_array = row[7]
+            vt_array = row[8]
+            validity_array = row[9]
+            nw_lanes = row[10]
+            start_nodeid = row[11]
+            end_nodeid = row[12]
+            
+            if oneway == 'N' :
+                continue
+            
+            if oneway == '': #bidirection, so we should get validate lane cnt by drive way
+                if nodeid == start_nodeid:
+                    bidirection_validate_dir = 'TF'
+                else:
+                    bidirection_validate_dir = 'FT'
+            else:
+                bidirection_validate_dir = oneway
+                
+#            laneinfo = self._make_lane_info(inlink, laneno, oneway)
+            laneinfo = self._Get_lane_info(laneno, oneway, dflane_array, vt_array, 
+                                           validity_array, nw_lanes, inlink, bidirection_validate_dir)
+            
+            # function without bus lane 
+            businfo = ''
+            lane_len = len(laneinfo)
+            if laneinfo != '':
+                businfo = '0' * lane_len
+                self.pg.execute2(insert_sql,
+                                 (i, nodeid, inlink, outlink,
+                                  passlink, passlinkcnt,
+                                  lane_len, laneinfo, direction,
+                                  0, 0, businfo
+                                              ))
+
+            i = i + 1
+        f.close()
+        self.pg.commit2()
+        return 0

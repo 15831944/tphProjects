@@ -357,9 +357,9 @@ class HwyGraphRDF(HwyGraph):
         if not number1 and not number2 and not name1 and not name2:
             degree |= SIMILAR_DEGREE_NO_NUM_NAME
         else:
-            if self._is_similer_number(number1, number2):
+            if self._is_similar_number(number1, number2):
                 degree |= SIMILAR_DEGREE_NUM
-            if self._is_similer_name(name1, name2):
+            if self.is_similar_name(name1, name2):
                 degree |= SIMILAR_DEGREE_NAME
         if degree > SIMILAR_DEGREE_NONE:
             link_type1 = data1.get(HWY_LINK_TYPE)
@@ -511,7 +511,7 @@ class HwyGraphRDF(HwyGraph):
             return True
         return False
 
-    def _is_similer_number(self, num1, num2):
+    def _is_similar_number(self, num1, num2):
         if (num1 and not num2) or (not num1 and num2):
             return False
         if not num1 and not num2:
@@ -520,7 +520,7 @@ class HwyGraphRDF(HwyGraph):
             return True
         return False
 
-    def _is_similer_name(self, name1, name2):
+    def is_similar_name(self, name1, name2):
         if (name1 and not name2) or (not name1 and name2):
             return False
         if not name1 and not name2:
@@ -737,9 +737,17 @@ class HwyGraphRDF(HwyGraph):
         return True
 
     def bigger_hwy_main_min_angle(self, angle):
-        if angle < ANGLE_60 or angle > ANGLE_300:
+        if angle < ANGLE_60 or angle > (ANGLE_360 - ANGLE_60):
             return False
         return True
+
+    def check_angle(self, angle, margin_angle=0):
+        '''判定角度范围'''
+        if not margin_angle:
+            return False
+        if angle < margin_angle or angle > ANGLE_360 - margin_angle:
+            return True
+        return False
 
     def is_straight(self, angle):
         if angle < ANGLE_10 or angle > ANGLE_360 - ANGLE_10:
@@ -823,6 +831,12 @@ class HwyGraphRDF(HwyGraph):
             angle = self.get_angle(in_edge, out_edge, reverse)
             if self.is_uturn_angle(angle):
                 return True
+        name1 = data1.get('names')
+        name2 = data2.get('names')
+        # 名称相同， 角度比较大的
+        if name1 and name1 == name2:
+            pass
+            # print 'Not UTurn:', in_edge, out_edge, self.get_angle(in_edge, out_edge, reverse)
         return False
 
     def is_uturn_angle(self, angle):
@@ -915,7 +929,13 @@ class HwyGraphRDF(HwyGraph):
         if self.is_hwy_inout(visited, reverse):  # 本线直接和一般道直接相连
             yield visited[1:], HWY_IC_TYPE_IC
         if self.is_jct(visited, road_code, code_field, reverse):  # 本线和本线直接相连
-            yield visited[1:], HWY_IC_TYPE_JCT
+            for uturn_info in self.get_uturns(visited, road_code,
+                                              code_field, reverse):
+                uturn_flg = uturn_info[-1]
+                if uturn_flg:
+                    yield visited[1:], HWY_IC_TYPE_UTURN
+                else:
+                    yield visited[1:], HWY_IC_TYPE_JCT
         nodes = self._get_not_main_link(visited[-1], code_field, reverse)
         if not nodes:  # 没有分歧/合流
             return
@@ -1284,8 +1304,9 @@ class HwyGraphRDF(HwyGraph):
         return len(tollgate)
 
     def all_path_2_hwy_main(self, path, code_field=HWY_ROAD_CODE,
-                            reverse=False, cutoff=MAX_CUT_OFF):
+                            reverse=False, cutoff=25):
         '''通往高速本线的路径'''
+        MAX_COUNT = 2
         if cutoff < 1:
             return
         source = path[-1]
@@ -1312,8 +1333,8 @@ class HwyGraphRDF(HwyGraph):
             elif(len(visited) >= 2 and child == visited[-2]):  # 折返
                 # 即 不是断头路的最后一个点, 不能折返
                 continue
-            # elif temp_path.count(child) > MAX_COUNT:
-            #    continue
+            elif temp_path.count(child) + 1 > MAX_COUNT:
+                continue
             elif not self.check_regulation(temp_path, reverse):
                 continue
             # elif child == visited[1]:
@@ -1335,8 +1356,8 @@ class HwyGraphRDF(HwyGraph):
                     stack.pop()
                     visited.pop()
 
-    def all_path_2_normal_road(self, path, code_field=HWY_ROAD_CODE,
-                               reverse=False, cutoff=MAX_CUT_OFF):
+    def all_path_2_inout(self, path, code_field=HWY_ROAD_CODE,
+                         reverse=False, cutoff=25):
         '''通往一般道的路径'''
         if cutoff < 1:
             return
@@ -1366,11 +1387,14 @@ class HwyGraphRDF(HwyGraph):
                 continue
             elif not self.check_regulation(temp_path, reverse):
                 continue
+            elif self.is_jct(temp_path, None, code_field, reverse):  # 到本线
+                continue
             elif len(visited) <= cutoff:
                 if len(visited) < cutoff:
                     # 和一般道交汇
                     if self.is_hwy_inout(temp_path, reverse):
                         yield temp_path
+                        continue
                     # 取得非本线
                     nodes = self._get_not_main_link(child, code_field,
                                                     reverse, True)

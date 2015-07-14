@@ -36,6 +36,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
+from component.rdf.hwy.hwy_def_rdf import ANGLE_135
 
 
 class HwyRouteRDF(component.component_base.comp_base):
@@ -1151,6 +1152,8 @@ class HwyRouteRDF(component.component_base.comp_base):
         while(node_idx < second_node_idx and
               length <= margin_dist):
             u, v = path[node_idx], path[node_idx + 1]
+            if self.G.is_tollgate(u):
+                return -1
             data = self.G[u][v]
             link_type2 = data.get(HWY_LINK_TYPE)
             if link_type1 != link_type2:
@@ -1176,6 +1179,8 @@ class HwyRouteRDF(component.component_base.comp_base):
         node_idx = len(path) - 2
         while node_idx > second_node_idx and length <= self.s_e_margin_dist:
             u, v = path[node_idx - 1], path[node_idx]
+            if self.G.is_tollgate(v):
+                return -1
             data = self.G[u][v]
             link_type2 = data.get(HWY_LINK_TYPE)
             if link_type1 != link_type2:
@@ -1443,8 +1448,8 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
             2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
         '''
-        node_jct_flg = False
         node_idx = -1
+        updown_conn_direct_flg = False
         types = types_list[0][2]
         other_main_link = self.G.get_main_link(path[0], path_id,
                                                HWY_PATH_ID,
@@ -1471,18 +1476,33 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                     self.log.warning('Exist in IC link. node=%s' % path[0])
                     return 0
         else:  # 有其他线路本线
-            # return -1
-            facil_num = 0
-            if self._is_ic_in(types):
-                facil_num += 1
-            if self._is_sapa_in(types):
-                facil_num += 1
-            if facil_num > 0:
-                return 0
-            node_jct_flg = self._is_main_node_jct(path[0])
-            if node_jct_flg:
-                return 0
-
+            # 上下行直接相连
+            if self._updown_line_conn_direct(path, other_main_link,
+                                             reverse=True):
+                updown_conn_direct_flg = True
+            else:
+                facil_num = 0
+                if self._is_ic_in(types):
+                    facil_num += 1
+                if self._is_sapa_in(types):
+                    facil_num += 1
+                if facil_num > 0:
+                    return 0
+                # 本线点JCT
+                if self._is_main_node_jct(path[0]):
+                    next_jct = self._get_next_jct_node_idx(types_list, 1,
+                                                           HWY_INOUT_TYPE_IN)
+                    if next_jct > 0:
+                        return next_jct
+                    else:
+                        next_in_idx = self._get_next_node_idx(types_list, 1,
+                                                              HWY_INOUT_TYPE_IN
+                                                              )
+                        # 该设施点存是在进入的Ramp/SAPA/JCT Link
+                        if(next_in_idx > 0 and
+                           self._exist_in_ic_link(path, next_in_idx)):
+                            return next_in_idx
+                    return 0
         # 取得下个入口
         for type_idx in range(1, len(types_list)):
             types = types_list[type_idx][2]
@@ -1499,8 +1519,10 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                 break
             if self._is_tollgate(types):
                 node_idx = types_list[type_idx][0]
-                if node_idx >= 1:   # 收费站前一个点
-                    node_idx -= 1
+                if node_idx <= 1:
+                    node_idx = 0
+                else:
+                    node_idx = -1
                 break
         # 取得后方 Highway Exit POI
         exit_poi_idx = self.get_exit_poi_idx(path, node_idx,  reverse=True)
@@ -1510,6 +1532,8 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                                  'node=%s' % path[exit_poi_idx])
             else:
                 return exit_poi_idx - 1  # 线路的起点在出口POI的前个点(车流方向的后面)
+        if node_idx < 0 and updown_conn_direct_flg:
+            node_idx = 1
         return node_idx
 
     def _get_end_jct_out(self, path_id, path,
@@ -1537,9 +1561,7 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         ''' 1. 如果入口是本线直接和一般道相连， 出口退到1.5公里内的第二个入口
             2. JCT点和另一条本线相连， 出口退到1.5公里内的第二个入口
         '''
-        if path_id in (6,):
-            pass
-        node_jct_flg = False
+        updown_conn_direct_flg = False
         node_idx = -1
         types = types_list[0][2]
         other_main_link = self.G.get_main_link(path[-1], path_id,
@@ -1568,19 +1590,35 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                     self.log.warning('Exist Out IC link. node=%s' % path[-1])
                     return len(path) - 1
         else:  # 有取得本线
-            # return -1
-            facil_num = 0
-            if self._is_ic_out(types):
-                facil_num += 1
-            if self._is_sapa_out(types):
-                facil_num += 1
-            if self._is_tollgate(types):  # 收费站和JCT出口一起
-                facil_num += 1
-            if facil_num > 0:
-                return len(path) - 1
-            node_jct_flg = self._is_main_node_jct(path[-1])
-            if node_jct_flg:
-                return len(path) - 1
+            # 上下行直接相连
+            if self._updown_line_conn_direct(path, other_main_link):
+                updown_conn_direct_flg = True
+            else:
+                facil_num = 0
+                if self._is_ic_out(types):
+                    facil_num += 1
+                if self._is_sapa_out(types):
+                    facil_num += 1
+                if self._is_tollgate(types):  # 收费站和JCT出口一起
+                    facil_num += 1
+                if facil_num > 0:
+                    return len(path) - 1
+                # 本线点JCT
+                inout = HWY_INOUT_TYPE_OUT
+                if self._is_main_node_jct(path[-1]):
+                    next_jct = self._get_next_jct_node_idx(types_list, 1,
+                                                           inout)
+                    if next_jct > 0:
+                        return next_jct
+                    else:
+                        next_out_idx = self._get_next_node_idx(types_list, 1,
+                                                               inout
+                                                               )
+                        # 该设施点存在脱出的Ramp/SAPA/JCT Link
+                        if(next_out_idx > 0 and
+                           self._exist_out_ic_link(path, next_out_idx)):
+                            return next_out_idx
+                    return len(path) - 1
         # 取得前个出口
         for type_idx in range(1, len(types_list)):
             types = types_list[type_idx][2]
@@ -1601,14 +1639,65 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
                 if self.G.get_exit_poi_name(path[node_idx]):
                     pass
                 else:
-                    if node_idx <= len(path) - 2:  # 收费站前一个点
-                        node_idx += 1
+                    # 收费站在倒数第一个，第二个
+                    if node_idx >= len(path) - 2:
+                        node_idx = len(path) - 1
+                    else:
+                        node_idx = -1
                 break
         # 取得前方 Highway Exit POI
         exit_poi_idx = self.get_exit_poi_idx(path, node_idx)
         if exit_poi_idx >= 0:
             return exit_poi_idx
+        if node_idx < 0 and updown_conn_direct_flg:
+            node_idx = len(path) - 2
         return node_idx
+
+    def _get_next_jct_node_idx(self, types_list, next_type_idx=1,
+                               jct_inout=HWY_INOUT_TYPE_IN):
+        '''取下个JCT
+           @jct_inout=HWY_INOUT_TYPE_IN: JCT 入口
+           @jct_inout=HWY_INOUT_TYPE_OUT: JCT 出口
+        '''
+        if next_type_idx < len(types_list):
+            types = types_list[next_type_idx][2]
+            if jct_inout == HWY_INOUT_TYPE_IN:
+                if self._is_jct_in(types):
+                    node_idx = types_list[next_type_idx][0]
+                    return node_idx
+            elif jct_inout == HWY_INOUT_TYPE_OUT:
+                if self._is_jct_out(types):
+                    node_idx = types_list[next_type_idx][0]
+                    return node_idx
+            else:
+                self.log.error('Error JCT INOUT_C')
+        # 下个设施不是JCT
+        return -1
+
+    def _get_next_node_idx(self, types_list, next_type_idx=1,
+                           inout=HWY_INOUT_TYPE_IN):
+        '''取得下个对应的设施
+           @inout=HWY_INOUT_TYPE_IN: 取入口设施
+           @inout=HWY_INOUT_TYPE_OUT: 取出口设施
+        '''
+        if next_type_idx < len(types_list):
+            types = types_list[next_type_idx][2]
+            if inout == HWY_INOUT_TYPE_IN:
+                if(self._is_jct_in(types) or
+                   self._is_ic_in(types) or
+                   self._is_sapa_in(types)):
+                    node_idx = types_list[next_type_idx][0]
+                    return node_idx
+            elif inout == HWY_INOUT_TYPE_OUT:
+                if(self._is_jct_out(types) or
+                   self._is_ic_out(types) or
+                   self._is_sapa_out(types)):
+                    node_idx = types_list[next_type_idx][0]
+                    return node_idx
+            else:
+                self.log.error('Error JCT INOUT_C')
+        # 下个设施不是想要的入口/出口
+        return -1
 
     def _exist_in_ic_link(self, path, node_idx=0):
         '''进入的Ramp/JCT link.'''
@@ -1689,5 +1778,46 @@ class HwyRouteRDF_HKG(HwyRouteRDF):
         in_edges = self.G.in_edges(node)
         out_edges = self.G.out_edges(node)
         if len(in_edges) == 1 and len(out_edges) == 1:
+            return True
+        return False
+
+    def _updown_line_conn_direct(self, path, other_main_link, reverse=False):
+        '''上下行本线，直接相连.
+           @path: 本线路径
+        '''
+        if len(other_main_link) != 1:
+            return False
+        # 本线和当前本线不可能通行
+        if reverse:  # 逆/头
+            temp_path = path[::-1] + other_main_link
+        else:
+            temp_path = path + other_main_link
+        if not self.G.check_regulation(temp_path, reverse):
+            return True
+        # 两条本线的夹角小于60度
+        if reverse:  # 逆/头
+            in_edge = (other_main_link[0], path[0])
+            out_edge = (path[0], path[1])
+        else:  # 顺/尾
+            in_edge = (path[-2], path[-1])
+            out_edge = (path[-1], other_main_link[0])
+        angle = self.G.get_angle(in_edge, out_edge)
+        if not self.G.bigger_hwy_main_min_angle(angle):
+            return True
+        # 两条本线link的名称相似
+        if self._is_similar_name(in_edge, out_edge):
+            # 夹角小于135度
+            if self.G.check_angle(angle, ANGLE_135):
+                self.log.warning('Name is similar. '
+                                 'in_edge=%s, out_edge=%s, angle=%s'
+                                 % (in_edge, out_edge, angle * 360.0 / 65535))
+        return False
+
+    def _is_similar_name(self, in_edge, out_edge):
+        data1 = self.G[in_edge[0]][in_edge[1]]
+        data2 = self.G[out_edge[0]][out_edge[1]]
+        name1 = data1.get('names')
+        name2 = data2.get('names')
+        if self.G.is_similar_name(name1, name2):
             return True
         return False

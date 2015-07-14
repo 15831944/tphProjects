@@ -18,6 +18,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
+from component.jdb.hwy.hwy_graph import MIN_CUT_OFF_CHN
 
 
 # =============================================================================
@@ -129,12 +130,16 @@ class HwyGraphNi(HwyGraphRDF):
             if both_sapa_cnt > 0:
                 # 双向的SAPA link，一条当两条权值算
                 cutoff2 = cutoff - both_sapa_cnt
+                if cutoff2 < MIN_CUT_OFF_CHN:
+                    cutoff2 = MIN_CUT_OFF_CHN
             else:
                 cutoff2 = cutoff
+            curr_inout_flag = False
             ignore_inner = False
             children = stack[-1]
             child = next(children, None)
             temp_path = visited + [child]
+            node_cnt = temp_path.count(child)
             if child is None:
                 if(len(visited) > 1 and
                    self._is_both_dir_sapa(visited[-2], visited[-1],
@@ -146,7 +151,11 @@ class HwyGraphNi(HwyGraphRDF):
                  not self._is_cuted_road_end(visited[-1])):  # 不是断头路的最后一个点
                 # 即不是断头路的最后一个点, 不能折返
                 continue
-            elif temp_path.count(child) > MAX_COUNT:
+            elif node_cnt > MAX_COUNT:
+                continue
+            elif(node_cnt > 1 and
+                 self._is_link_repeat(temp_path[:-2], u, v) and
+                 set._has_other_path(u, v, reverse)):
                 continue
             elif not self.check_regulation(temp_path, reverse):
                 continue
@@ -196,7 +205,7 @@ class HwyGraphNi(HwyGraphRDF):
                 # 和一般道交汇
                 if self.is_hwy_inout(temp_path, reverse):
                     yield temp_path[1:], HWY_IC_TYPE_IC
-                    # continue
+                    curr_inout_flag = True
                 if len(visited) < cutoff2:
                     if self.is_virtual_jct(child, road_code,
                                            code_field, reverse):
@@ -211,15 +220,16 @@ class HwyGraphNi(HwyGraphRDF):
                                                   reverse):
                             both_sapa_cnt += 1
                     else:
-                        # 和一般道相连
-                        if reverse:  # 逆
-                            u = temp_path[-1]
-                            v = temp_path[-2]
-                        else:  # 顺
-                            u = temp_path[-2]
-                            v = temp_path[-1]
-                        if self.get_normal_link(u, v, reverse):
-                            yield temp_path[1:], HWY_IC_TYPE_IC
+                        if not curr_inout_flag:  # 当前点已经是出入口，不再判断
+                            # 和一般道相连
+                            if reverse:  # 逆
+                                u = temp_path[-1]
+                                v = temp_path[-2]
+                            else:  # 顺
+                                u = temp_path[-2]
+                                v = temp_path[-1]
+                            if self.get_normal_link(u, v, reverse):
+                                yield temp_path[1:], HWY_IC_TYPE_IC
                 elif len(visited) == cutoff2:
                     if(len(visited) > 1 and
                        self._is_both_dir_sapa(visited[-2], visited[-1],
@@ -246,6 +256,8 @@ class HwyGraphNi(HwyGraphRDF):
 
     def _is_cuted_road_end(self, node):
         '''断头路的最后一个点'''
+        if node == 6357461:
+            pass
         in_deges = self.in_edges(node, False)
         out_edges = self.out_edges(node, False)
         if len(in_deges) + len(out_edges) <= 1:
@@ -274,3 +286,28 @@ class HwyGraphNi(HwyGraphRDF):
                 else:  # 顺
                     nodes.append(temp_v)
         return nodes
+
+    def _is_link_repeat(self, path, u, v):
+        '''双向link,重复往返探索'''
+        # 双向
+        if not self.has_edge(u, v) or not self.has_edge(v, u):
+            return False
+        # 正逆都探过一次
+        for edge in zip(path[0:-1], path[1:]):
+            if edge == (v, u):
+                return True
+
+    def _has_other_path(self, u, v, reverse=False):
+        '''同一条边的两点存在其他路径'''
+        orther_path_flg = False
+        if reverse:
+            u, v = v, u
+        if not self.has_edge(u, v):
+            return orther_path_flg
+        data = self[u][v]
+        self.remove_edge(u, v)
+        import networkx as nx
+        if nx.has_path(self, u, v):
+            orther_path_flg = True
+        self.add_edge(u, v, data)
+        return orther_path_flg

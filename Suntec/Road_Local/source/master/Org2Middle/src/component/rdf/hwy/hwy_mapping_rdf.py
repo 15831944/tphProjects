@@ -4,6 +4,7 @@ Created on 2015-3-3
 
 @author: hcz
 '''
+from component.jdb.hwy.hwy_graph import MIN_CUT_OFF
 from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
 from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
@@ -745,49 +746,67 @@ class HwyMappingRDF(HwyMapping):
                 not (link_type = 1 and one_way_code = 1)
           ORDER BY a.link_id;
         """
+        cutoff = MIN_CUT_OFF
         # 两头都能到高速本线，或者一头到高速本线，另一头到一般道
         for link_id, u, v, one_way in self.get_batch_data(sqlcmd):
+            # print link_id
             if one_way in (ONE_WAY_POSITIVE, ONE_WAY_BOTH):
                 pathes = list(self.G.all_path_2_hwy_main([u, v],
                                                          HWY_ROAD_CODE,
-                                                         reverse=False))
-                pathes2 = []
+                                                         reverse=False,
+                                                         cutoff=cutoff))
+                temp_path = []
                 for path in pathes:
                     path = path[::-1]
-                    pathes2 = list(self.G.all_path_2_hwy_main(path,
-                                                              HWY_ROAD_CODE,
-                                                              reverse=True))
-                    if pathes2:  # 另一头也能通往高速
+                    # ## 另一头也能通往高速
+                    for temp_path in self.G.all_path_2_hwy_main(path,
+                                                                HWY_ROAD_CODE,
+                                                                reverse=True,
+                                                                cutoff=cutoff):
+                        if temp_path:
+                            break
+                    if temp_path:
                         break
-                    # 另一个头通往一般道
-                    pathes2 = list(self.G.all_path_2_normal_road(path,
-                                                                 HWY_ROAD_CODE,
-                                                                 reverse=True))
-                    if pathes2:
+                    # ## 或另一个头通往一般道
+                    for temp_path in self.G.all_path_2_inout(path,
+                                                             HWY_ROAD_CODE,
+                                                             reverse=True,
+                                                             cutoff=cutoff):
+                        if temp_path:
+                            break
+                    if temp_path:
                         break
-                if pathes2:
+                if temp_path:
                     self.log.error('(Hwy Mapping)Does not include link=%s.'
                                    % link_id)
                     continue
             if one_way in (ONE_WAY_RERVERSE, ONE_WAY_BOTH):
                 pathes = list(self.G.all_path_2_hwy_main([v, u],
                                                          HWY_ROAD_CODE,
-                                                         reverse=False))
-                pathes2 = []
+                                                         reverse=False,
+                                                         cutoff=cutoff))
+                temp_path = []
                 for path in pathes:
                     path = path[::-1]
-                    pathes2 = list(self.G.all_path_2_hwy_main(path,
-                                                              HWY_ROAD_CODE,
-                                                              reverse=True))
-                    if pathes2:  # 另一头也能通往高速
+                    # ## 另一头也能通往高速
+                    for temp_path in self.G.all_path_2_hwy_main(path,
+                                                                HWY_ROAD_CODE,
+                                                                reverse=True,
+                                                                cutoff=cutoff):
+                        if temp_path:
+                            break
+                    if temp_path:
                         break
                     # 另一个头通往一般道
-                    pathes2 = list(self.G.all_path_2_normal_road(path,
-                                                                 HWY_ROAD_CODE,
-                                                                 reverse=True))
-                    if pathes2:
+                    for temp_path in self.G.all_path_2_inout(path,
+                                                             HWY_ROAD_CODE,
+                                                             reverse=True,
+                                                             cutoff=cutoff):
+                        if temp_path:
+                            break
+                    if temp_path:
                         break
-                if pathes2:
+                if temp_path:
                     self.log.error('(Hwy Mapping)Does not include link=%s.'
                                    % link_id)
                     continue

@@ -568,17 +568,20 @@ class Highway(component.component_base.comp_base):
         # ## 出口
         ic_outs = self.get_ic_out(facil_infos)
         if ic_outs:
-            self.log.error('IC出口在起始设施。')
+            self.log.error('IC Out In the Start of Road.node=%s'
+                           % facil_infos[0].node_id)
         jct_outs = self.get_jct_out(facil_infos)
         if jct_outs:
-            self.log.error('JCT出口在起始设施。')
+            self.log.error('JCT OUT In the Start of Road. node=%s'
+                           % facil_infos[0].node_id)
         sapa_outs = self.get_sapa_out(facil_infos)
         if sapa_outs:
-            self.log.error('SAPA出口在起始设施。')
+            self.log.error('SAPA Out In the Start of Road. node=%s'
+                           % facil_infos[0].node_id)
         # ## 料金所
         tolls = self.get_tolls(facil_infos)
         if tolls:
-            self.log.warning('Tollgate in Start. node=%s'
+            self.log.warning('Toll in Start of Road. node=%s'
                              % facil_infos[0].node_id)
         if cycle_flag:  # 环线
             # 按设施种别排序
@@ -600,13 +603,16 @@ class Highway(component.component_base.comp_base):
         # ## 入口
         ic_ins = self.get_ic_in(facil_infos)
         if ic_ins:
-            self.log.error('IC入口有收费站在结尾设施。')
+            self.log.error('IC In at the End of Road。node=%s'
+                           % facil_infos[0].node_id)
         jct_ins = self.get_jct_in(facil_infos)
         if jct_ins:
-            self.log.error('JCT入口有收费站在结尾设施。')
+            self.log.error('JCT In at the End of Road. node=%s'
+                           % facil_infos[0].node_id)
         sapa_ins = self.get_sapa_in(facil_infos)
         if sapa_ins:
-            self.log.error('SAPA入口站在结尾设施。')
+            self.log.error('SAPA In at the End of Road. node=%s'
+                           % facil_infos[0].node_id)
         # ## 料金所
         tolls = self.get_tolls(facil_infos)
         if tolls:

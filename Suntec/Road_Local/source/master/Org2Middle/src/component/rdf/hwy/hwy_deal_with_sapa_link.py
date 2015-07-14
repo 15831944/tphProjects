@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 '''
-Created on 2015��6��12��
+Created on 2015-6-12
 
 @author: PC_ZH
 '''

@@ -2244,6 +2244,7 @@ create table mid_temp_hwy_relation_regulation
 CREATE TABLE mid_temp_hwy_main_path
 (
   path_id     integer NOT NULL,
+  updown      integer DEFAULT 1,
   node_id     bigint NOT NULL,
   link_id     bigint,
   seq_nm      integer NOT NULL
@@ -2297,6 +2298,7 @@ CREATE TABLE hwy_link_road_code_info
 (
   gid           serial NOT NULL primary key,
   road_code     integer NOT NULL,
+  updown        integer DEFAULT 1,
   node_id       bigint NOT NULL,
   link_id       bigint,
   seq_nm        integer NOT NULL
@@ -2311,11 +2313,44 @@ CREATE TABLE mid_temp_hwy_ic_path
    road_seq       integer not null,
    facilcls_c     integer not null,
    inout_c        integer not null,
+   updown_c       integer NOT NULL DEFAULT 1,
    node_id        bigint not null,
    to_node_id     bigint not null,
    node_lid       character varying,
    link_lid       character varying,
    path_type      character varying
+);
+
+------------------------------------------------------------------------
+--
+CREATE TABLE mid_temp_hwy_jct_uturn_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
+);
+
+------------------------------------------------------------------------
+--
+CREATE TABLE mid_temp_hwy_sapa_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
 );
 
 ------------------------------------------------------------------------
@@ -2328,7 +2363,8 @@ CREATE TABLE mid_temp_hwy_service_road_path1
    to_node_id      bigint not null,
    node_lid        character varying not null,
    link_lid        character varying not null,
-   road_code       integer not null
+   road_code       integer not null,
+   updown_c        integer NOT NULL DEFAULT 1
 );
 
 ------------------------------------------------------------------------
@@ -2341,7 +2377,8 @@ CREATE TABLE mid_temp_hwy_service_road_path2
    to_node_id      bigint not null,
    node_lid        character varying not null,
    link_lid        character varying not null,
-   road_code       integer not null
+   road_code       integer not null,
+   updown_c        integer NOT NULL DEFAULT 1
 );
 
 ------------------------------------------------------------------------
@@ -2632,3 +2669,4 @@ CREATE TABLE temp_force_guide_patch_tbl
  geom_text character varying(16384),
  z_text character varying(16384)
 ); 
+
