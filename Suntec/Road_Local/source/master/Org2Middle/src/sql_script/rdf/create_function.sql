@@ -2359,11 +2359,12 @@ BEGIN
 					link_index = link_index + 1;	
 				end loop;
 			end if;
-		elseif seq_num_array_length = 1 then
+		elseif seq_num_array_length = 1 then 
+			-- original data provided a lane strand with only one lane.
 			inlinkid = link_array[1];
 			outlinkid = inlinkid;
 			nodeid = nodeid_array[1];
-			passlink_cnt = -1;
+			passlink_cnt = 0;
 			laneid = lane_id_array[1];
 			conditionid = conditionid_array[1];
 			passlinkids = null;
@@ -2539,28 +2540,21 @@ BEGIN
 END;
 $$;
 --------------------------------------------------------------------------
--- get lane number
+-- get the number of lanes in the specified direction of the link
 --------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION mid_get_lanenum(inlinkid integer, lanenum integer)
+CREATE OR REPLACE FUNCTION mid_get_lane_count_by_travel_dir(linkid integer, direction character)
   RETURNS smallint
 LANGUAGE plpgsql volatile
 AS $$
 DECLARE
-	lanes    integer;
-	
-BEGIN	lanes = 0;
+	lanecount    smallint;
+BEGIN	
+	lanecount := 0;
 	select count(*)
-	into lanes
+	into lanecount
 	from rdf_lane
-	where link_id = inlinkid 
-		and lane_travel_direction in 
-				(select lane_travel_direction
-				from rdf_lane
-				where link_id = inlinkid and lane_number = lanenum);
-	
-	
-    
-    return lanes;
+	where link_id = linkid and lane_travel_direction = direction;
+    return lanecount;
 END;
 $$;
 --------------------------------------------------------------------------

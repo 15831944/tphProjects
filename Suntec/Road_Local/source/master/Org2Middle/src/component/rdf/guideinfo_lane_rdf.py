@@ -8,41 +8,91 @@ Created on 2013-7
 import component.component_base
 
 class comp_guideinfo_lane_rdf(component.component_base.comp_base):
+    '''
+    classdocs
+    '''
+    
     def __init__(self):
+        '''
+        Constructor
+        '''
         component.component_base.comp_base.__init__(self, 'Guideinfo_Lane')
         
     def _DoCreateTable(self):
-        self.CreateTable2('temp_lane_guide_nav_strand')
-        self.CreateTable2('temp_lane_guide_nav')
-        self.CreateTable2('temp_lane_guide')
-        self.CreateTable2('temp_lane_tbl')
-        self.CreateTable2('temp_lane_guide_distinct')
-        self.CreateTable2('lane_tbl')
+        if self.CreateTable2('temp_lane_guide_nav_strand') == -1:
+            return -1
+        
+        if self.CreateTable2('temp_lane_guide_nav') == -1:
+            return -1
+        
+        if self.CreateTable2('temp_lane_guide') == -1:
+            return -1
+        if self.CreateTable2('temp_lane_tbl') == -1:
+            return -1
+        if self.CreateTable2('temp_lane_guide_distinct') == -1:
+            return -1
+        
+        if self.CreateTable2('lane_tbl') == -1:
+            return -1
+        
         return 0
     
     def _DoCreateIndex(self):
-        self.CreateIndex2('lane_tbl_node_id_idx')
-        self.CreateIndex2('lane_tbl_inlinkid_idx')
-        self.CreateIndex2('lane_tbl_outlinkid_idx')
+        'create index.'
+        
+        if self.CreateIndex2('lane_tbl_node_id_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('lane_tbl_inlinkid_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('lane_tbl_outlinkid_idx') == -1:
+            return -1
+        
+
         return 0
     
     def _DoCreateFunction(self):
-        self.CreateFunction2('mid_get_lanenum')
-        self.CreateFunction2('mid_make_temp_lane_guide_nav')
-        self.CreateFunction2('mid_make_additional_lanenum')
-        self.CreateFunction2('mid_make_guidelane_info')
-        self.CreateFunction2('mid_make_lane_tbl')
+        
+#        if self.CreateFunction2('mid_get_arrowinfo') == -1:
+#            return -1
+        if self.CreateFunction2('mid_get_lane_count_by_travel_dir') == -1:
+            return -1
+        if self.CreateFunction2('mid_make_temp_lane_guide_nav') == -1:
+            return -1
+        
+        if self.CreateFunction2('mid_make_additional_lanenum') == -1:
+            return -1
+        if self.CreateFunction2('mid_make_guidelane_info') == -1:
+            return -1
+        
+        if self.CreateFunction2('mid_make_lane_tbl') == -1:
+            return -1
+
         return 0
     
     def _Do(self):
+        
         self.log.info(self.ItemName + ': begin of making lane ...')
-        self.CreateIndex2('rdf_link_ref_node_id_idx')
-        self.CreateIndex2('rdf_link_nonref_node_id_idx')
-        self.CreateIndex2('rdf_lane_nav_strand_lane_id_idx')
-        self.CreateIndex2('rdf_access_allcolum_index')
-        self.CreateIndex2('rdf_lane_nav_strand_condition_id_idx')
-        self.CreateIndex2('rdf_lane_lane_id_idx')
-        self.CreateIndex2('rdf_lane_link_id_and_lane_travel_direction_index')
+        if self.CreateIndex2('rdf_link_ref_node_id_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('rdf_link_nonref_node_id_idx') == -1:
+            return -1
+
+        if self.CreateIndex2('rdf_lane_nav_strand_lane_id_idx') == -1:
+            return -1
+        if self.CreateIndex2('rdf_access_allcolum_index') == -1:
+            return -1
+        
+        if self.CreateIndex2('rdf_lane_nav_strand_condition_id_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('rdf_lane_lane_id_idx') == -1:
+            return -1
+        
+        if self.CreateIndex2('rdf_lane_link_id_and_lane_travel_direction_index') == -1:
+            return -1
         
         # step1: 野割temp_lane_guide_nav_strand燕。
         self._makeLaneTravsNavStrand()
@@ -59,14 +109,14 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
         # step3: 野割temp_lane_guide燕。
         self._makeLaneTravsData()
         
-        # step4: 
+        # step4: 野割temp_lane_guide_distinct燕。
         self._deleteRepLaneTravs()
         self.CreateIndex2('temp_lane_guide_distinct_inlink_id_and_nodeid_index')
         
-        # 4
+        # step5: 野割temp_lane_tbl燕。
         self._make_temp_lane_tbl()
         
-        # 5
+        # step6: 野割lane_tbl燕。
         sqlcmd = """
                 select mid_make_lane_tbl();
                 """
@@ -109,12 +159,15 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
                 direction_category, lane_forming_ending, physical_num_lanes, 
                 bus_access_id
             )
-            SELECT lane_nav_strand_id, condition_id, a.lane_id, node_id, inlink_id, outlink_id, passcount, passlid, 
+            SELECT lane_nav_strand_id, condition_id, a.lane_id, node_id, 
+                   inlink_id, outlink_id, passcount, passlid, 
                    b.lane_number, b.lane_type, b.lane_travel_direction,
                    case when b.direction_category is not null then b.direction_category else 0 end ,
                    b.lane_forming_ending,
-                   mid_get_lanenum(inlink_id, b.lane_number), d.bus_access_id
-              FROM temp_lane_guide_nav as a 
+                   mid_get_lane_count_by_travel_dir(a.inlink_id, b.lane_travel_drection), 
+                   d.bus_access_id
+              FROM 
+              temp_lane_guide_nav as a 
               left join rdf_lane as b 
               on a.lane_id = b.lane_id
               left join (
@@ -135,6 +188,7 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
         self.pg.commit2()
         return 0
     
+    # 
     def _deleteRepLaneTravs(self):
         
         sqlcmd = """
