@@ -341,7 +341,7 @@ class pg_client(object):
             self.conn2.rollback()
             self.log.error('Created index ' + index_name + ' failed :' + sqlcmd)
             raise
-
+    
     def delete_index2(self, index_name):
         """É¾³ýË÷Òý"""
         sqlcmd = """select * from pg_indexes
@@ -411,6 +411,15 @@ class pg_client(object):
             return -1
 
         return self.CreateTalbe1(sqlcmd, table_name)
+    
+    def CreateIndex1_ByTableAndField(self, table_name,field_name,indextype):
+        
+        sqlcmd='create index '+table_name+'_'+'_'.join(field_name)+'''_idx
+                on '''+table_name+'''
+                using '''+indextype+'('+','.join(field_name)+''')
+                '''
+        index_name=table_name+'_'+'_'.join(field_name)+'_idx'
+        return self.create_index1(sqlcmd, index_name)
 
     def CreateIndex1_ByName(self, index_name):
         if self.connected1 != True:
@@ -529,7 +538,16 @@ class pg_client(object):
         except:
             self.log.error('Create view ' + table_name + 'failed :' + sqlcmd)
             raise
-
+    
+    def CreateIndex2_ByTableAndField(self, table_name,field_name,indextype):
+        
+        sqlcmd='create index '+table_name+'_'+'_'.join(field_name)+'''_idx
+                on '''+table_name+'''
+                using '''+indextype+'('+','.join(field_name)+''')
+                '''
+        index_name=table_name+'_'+'_'.join(field_name)+'_idx'
+        return self.create_index2(sqlcmd, index_name)
+    
     def CreateIndex2_ByName(self, index_name):
         sqlcmd = self.SqlScriprt.GetSqlScript(index_name)
         if sqlcmd == None:

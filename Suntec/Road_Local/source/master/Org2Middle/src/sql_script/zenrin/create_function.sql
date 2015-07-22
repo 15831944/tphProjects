@@ -375,19 +375,16 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_road_type(elcode varchar)
     LANGUAGE plpgsql
 AS $$
 BEGIN
-	return case when substr(elcode,6,1) in ('1','2') then 14
-				when substr(elcode,1,1)='A' then 9  
+	return case when substr(elcode,2,1)='A' then 8
+				when substr(elcode,6,1) in ('1','2') or substr(elcode,2,1)='7' then 14
+				when substr(elcode,1,1)='A' or substr(elcode,2,1)='C' then 9  
 		        when substr(elcode,2,1)='1' then 0
                 when substr(elcode,2,1)='2' then 1
                 when substr(elcode,2,1)='3' then 2
                 when substr(elcode,2,1)='4' then 3
                 when substr(elcode,2,1)='5' then 4
                 when substr(elcode,2,1)='6' then 6
-                when substr(elcode,2,1)='A' then 8
-                when substr(elcode,2,1)='C' then 9
-                when substr(elcode,2,1)='8' then 10
-                when substr(elcode,2,1)='B' then 10
-                when substr(elcode,2,1)='7' then 14
+                when substr(elcode,2,1)='8' or substr(elcode,2,1)='B' then 10
            		end;
 END;
 $$;

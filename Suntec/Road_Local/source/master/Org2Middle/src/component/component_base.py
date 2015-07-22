@@ -126,13 +126,18 @@ class comp_base(object):
             return -1
 
         return 0
-
+    
     def CreateIndex1(self, index_name):
         if self.pg.CreateIndex1_ByName(index_name) == -1:
             self.log.error('Create index ' + index_name + ' failed.')
             return -1
         return 0
-
+    
+    def CreateIndex1_ByTableAndField(self,table_name, field_name, indextype):
+        if self.pg.CreateIndex1_ByTableAndField(table_name, field_name, indextype) == -1:
+            return -1
+        return 0
+    
     def CreateTable2(self, table_name):
         if self.pg.CreateTable2_ByName(table_name) == -1:
             self.log.error('Create table ' + table_name + ' failed.')
@@ -159,7 +164,12 @@ class comp_base(object):
             self.log.error('Create index ' + index_name + ' failed.')
             return -1
         return 0
-
+    
+    def CreateIndex2_ByTableAndField(self,table_name, field_name, indextype):
+        if self.pg.CreateIndex2_ByTableAndField(table_name, field_name, indextype) == -1:
+            return -1
+        return 0
+    
     def item_exit(self, param):
         common.common_func.proj_exit(param)
         return 0

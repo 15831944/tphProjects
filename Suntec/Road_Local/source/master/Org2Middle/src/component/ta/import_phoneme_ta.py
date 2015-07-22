@@ -86,7 +86,11 @@ class comp_import_phoneme_ta(component.component_base.comp_base):
             files = self._search_files(suffix_name)
             for phoneme_file in files:
                 fp = open(phoneme_file, 'r')
-                # print phoneme_file
+                #print phoneme_file
+                tmp_file=open('tmp_file.txt','w')
+                tmp_file.write(fp.read().replace('\\','\\\\'))
+                tmp_file.close()
+                fp = open ('tmp_file.txt','r')
                 self.pg.copy_from2(fp, table, sep)
                 self.pg.commit2()
                 fp.close()

@@ -25,7 +25,11 @@ class comp_hook_turn_ta(component.component_base.comp_base):
         return 0
     #alter table    
     def _Do(self):
-        
+        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
+                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
+                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+            self.log.warning('table is not exist!!!')
+            return 0
         self.__get_link_array()
         self.__order_link_array()
         self.__insert_into_hook_turn()

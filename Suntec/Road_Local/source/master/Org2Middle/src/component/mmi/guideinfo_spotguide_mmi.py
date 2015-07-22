@@ -10,9 +10,14 @@ import shutil
 
 from component.default import link_graph
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
-from component.default.guideinfo_spotguide import roadType2SpotguideTypeMap
 
 sp_splitter = '_signpost_'
+roadType2SpotguideTypeMap = {0:1, 1:1, 2:4,
+                             3:4, 4:4, 5:4,
+                             6:4, 7:4, 8:4,
+                             9:4, 10:4, 11:4,
+                             12:4, 13:4, 14:4,
+                             15:4}
 class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     '''
     This class is used for uc spotguide

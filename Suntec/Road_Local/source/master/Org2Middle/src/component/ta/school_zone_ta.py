@@ -27,7 +27,11 @@ class comp_school_zone_ta(component.component_base.comp_base):
         return 0
     #alter table    
     def _Do(self):
-        
+        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
+                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
+                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+            self.log.warning('table is not exist!!!')
+            return 0
         self.__get_speedlimit()
         self.__get_speedlimit_type()
         self.__get_guide_info_id()

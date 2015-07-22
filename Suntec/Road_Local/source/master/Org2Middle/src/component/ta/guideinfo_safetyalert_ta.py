@@ -20,16 +20,7 @@ class comp_guideinfo_safety_alert_ta(comp_base):
         comp_base.__init__(self, 'Guideinfo_Safety_Alert')
         
     def _DoCreateTable(self):
-        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
-                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
-                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
-            self.log.warning('table is not exist!!!')
-            return 0
         
-        if self.CreateTable2('mid_temp_safetyalert') == -1:
-            return -1
-        if self.CreateTable2('mid_temp_safetyalert_link') == -1:
-            return -1
         if self.CreateTable2('safety_alert_tbl') == -1:
             return -1
         return 0
@@ -46,6 +37,11 @@ class comp_guideinfo_safety_alert_ta(comp_base):
         return 0
 
     def _Do(self):
+        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
+                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
+                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+            self.log.warning('table is not exist!!!')
+            return 0
         safetyalert_flag = common.common_func.GetPath('safetyalert_flag')
         if safetyalert_flag == 'true':
             self._organize_org_data()
@@ -53,7 +49,10 @@ class comp_guideinfo_safety_alert_ta(comp_base):
     
     def _organize_org_data(self):
         #print '-----------'
-
+        if self.CreateTable2('mid_temp_safetyalert') == -1:
+            return -1
+        if self.CreateTable2('mid_temp_safetyalert_link') == -1:
+            return -1
         #对应average speed camera的start_link和end_link
         sqlcmd = '''
             alter table mid_temp_safetyalert drop column if exists start_link;

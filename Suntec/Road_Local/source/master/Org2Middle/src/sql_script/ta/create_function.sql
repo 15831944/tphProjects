@@ -2095,10 +2095,8 @@ BEGIN
         return 6;  
     ELSEIF frc = 5 THEN 
         return 5;		
-    ELSEIF frc = 6 THEN 
+    ELSEIF frc in (6,7) THEN 
         return 4;
-    ELSEIF frc = 7 THEN
-    	return 21;
     END IF;
     
     return 3;   -- Other

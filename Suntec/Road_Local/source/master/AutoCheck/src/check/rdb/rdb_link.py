@@ -130,7 +130,7 @@ class CCheckDisplayclassValid(platform.TestCase.CTestCase):
         sqlcmd = """
                 ALTER TABLE rdb_link DROP CONSTRAINT if exists check_display_class;
                 ALTER TABLE rdb_link
-                ADD CONSTRAINT check_display_class CHECK (display_class = ANY (ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,0,30,31]));
+                ADD CONSTRAINT check_display_class CHECK (display_class = ANY (ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,0,30,31]));
      
                  """
 

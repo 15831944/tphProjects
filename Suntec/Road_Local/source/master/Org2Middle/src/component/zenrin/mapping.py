@@ -14,8 +14,8 @@ class comp_mapping_zenrin(component.component_base.comp_base):
     def _DoCreateIndex(self):
         
         'create index.'
-        self.CreateIndex2('temp_link_mapping_meshcode_linkno_idx')
-        self.CreateIndex2('temp_node_mapping_meshcode_nodeno_idx')
+        self.CreateIndex2_ByTableAndField('temp_link_mapping',['meshcode','linkno'],'btree')
+        self.CreateIndex2_ByTableAndField('temp_node_mapping',['meshcode','nodeno'],'btree')
         
     def _DoCreateTable(self):
         self.log.info('Make Mapping table.')

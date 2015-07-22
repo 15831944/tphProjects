@@ -20,15 +20,7 @@ class comp_guideinfo_safety_zone_ta(comp_base):
         comp_base.__init__(self, 'Guideinfo_Safety_Zone')
         
     def _DoCreateTable(self):
-        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
-                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
-                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
-            self.log.warning('table is not exist!!!')
-            return 0
-        if self.CreateTable2('mid_temp_safetyzone') == -1:
-            return -1
-        if self.CreateTable2('mid_temp_safetyzone_link') == -1:
-            return -1
+
         if self.CreateTable2('safety_zone_tbl') == -1:
             return -1
         return 0
@@ -43,14 +35,22 @@ class comp_guideinfo_safety_zone_ta(comp_base):
         return 0
 
     def _Do(self):
+        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
+                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
+                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+            self.log.warning('table is not exist!!!')
+            return 0
         safetyalert_flag = common.common_func.GetPath('safetyzone_flag')
         if safetyalert_flag == 'true':
             self._organize_org_data()
-        return
+        return 
     
     def _organize_org_data(self):
         #print '-----------'
-        
+        if self.CreateTable2('mid_temp_safetyzone') == -1:
+            return -1
+        if self.CreateTable2('mid_temp_safetyzone_link') == -1:
+            return -1
         #补全safety zone区域断开的link
         sqlcmd = '''
               insert into mid_temp_safetyzone_link(featid,cameratype,shape_line_id,geom)

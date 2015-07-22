@@ -5,7 +5,6 @@ Created on 2015-5-6
 '''
 from common import common_func
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
-from component.default.guideinfo_spotguide import roadType2SpotguideTypeMap
 
 spotguide_tbl_insert_sqlcmd = '''
             insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
@@ -81,29 +80,26 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
 
     # 分歧点模式图、路口放大图的点的信息
     def _GenerateSpotguideTblFromBr(self):
-        # 四维数据给的nodeid是路口主点，不使用，nodeid自行求出。
-        # spotguide的类型需要考虑inlink的road_type，因此不使用四维数据给jv_type。
         org_br_query_sqlcmd = '''
-                    SELECT a.inlinkid, a.outlinkid, a.direction, a.patternno, a.arrowno, 
-                           a.guidattr, a.namekind, a.passlid, a.passlid2, b.road_type
-                    FROM org_br as a
-                    LEFT JOIN link_tbl as b
-                    ON a.inlinkid=b.link_id
-                    WHERE patternno is not null and arrowno is not null and "type" <> '6'
-                    ORDER BY gid
+                    SELECT nodeid, inlinkid, outlinkid, direction, patternno, arrowno, 
+                           guidattr, namekind, passlid, passlid2, "type", folder
+                    FROM org_br
+                    where patternno is not null and arrowno is not null and "type" <> '6'
+                    order by gid
                 '''
         rows = self.get_batch_data(org_br_query_sqlcmd)
-        for row in rows:
-            inlinkid = row[0]
-            outlinkid = row[1]
-            direction = row[2]
-            patternno = row[3]
-            arrowno = row[4]
-            guidattr = row[5]
-            namekind = row[6]
-            passlid = row[7]
-            passlid2 = row[8]
-            inlinkRoadType = row[9]
+        for row in rows:     
+            #nodeid = row[0]
+            inlinkid = row[1]
+            outlinkid = row[2]
+            direction = row[3]
+            patternno = row[4]
+            arrowno = row[5]
+            guidattr = row[6]
+            namekind = row[7]
+            passlid = row[8]
+            passlid2 = row[9]
+            jv_type = row[10]
                         
             totalPasslid = passlid
             if(passlid and passlid2):
@@ -127,14 +123,11 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
             # 中国的数据没有SAR
             isExistSar = False 
             
-            # 根据inlink的road_type确定spotguide类型。
-            spotguideType = roadType2SpotguideTypeMap[inlinkRoadType]
-            
             self.pg.execute2(spotguide_tbl_insert_sqlcmd, 
                              (nodeid, inlinkid, outlinkid, 
                               totalPasslid, totalPasslidCount, direction,
                               guidattr, namekind, 0,
-                              patternno, arrowno, spotguideType, isExistSar))
+                              patternno, arrowno, jv_type, isExistSar))
         self.pg.commit2()
     
     # 将3D交叉点模式图号的点的信息插入spotguide_tbl    
