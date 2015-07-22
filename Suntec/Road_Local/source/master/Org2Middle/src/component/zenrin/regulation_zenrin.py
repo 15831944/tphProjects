@@ -32,9 +32,9 @@ class comp_regulation_zenrin(component.component_base.comp_base):
     def __convert_condition_table(self):
         self.log.info('convert condition_regulation_tbl...')
         
-        # ´´½¨±íµ¥temp_condition_regulation_tbl ±£´æÔ­Ê¼Êı¾İÌá¹©Ê±¼ä/³µÁ¾Óë¹æÖÆidµÄ¶ÔÕÕ¹ØÏµ
-        # ´´½¨±íµ¥condition_regulation_tbl ±£´æ¹æÖÆĞÅÏ¢£¨¹æÖÆidÎ¨Ò»ĞÔ±êÊ¶£©£¬°üÀ¨¹æÖÆÊ±¼ä¡¢¹æÖÆ³µÁ¾ÀàĞÍ
-        # ±íµ¥condition_regulation_tbl²»±£´æÈ«ÌìÈ«³µ¹æÖÆĞÅÏ¢
+        # åˆ›å»ºè¡¨å•temp_condition_regulation_tbl ä¿å­˜åŸå§‹æ•°æ®æä¾›æ—¶é—´/è½¦è¾†ä¸è§„åˆ¶idçš„å¯¹ç…§å…³ç³»
+        # åˆ›å»ºè¡¨å•condition_regulation_tbl ä¿å­˜è§„åˆ¶ä¿¡æ¯ï¼ˆè§„åˆ¶idå”¯ä¸€æ€§æ ‡è¯†ï¼‰ï¼ŒåŒ…æ‹¬è§„åˆ¶æ—¶é—´ã€è§„åˆ¶è½¦è¾†ç±»å‹
+        # è¡¨å•condition_regulation_tblä¸ä¿å­˜å…¨å¤©å…¨è½¦è§„åˆ¶ä¿¡æ¯
         self.CreateTable2('temp_condition_regulation_tbl')
         self.CreateTable2('condition_regulation_tbl')
         
@@ -52,9 +52,9 @@ class comp_regulation_zenrin(component.component_base.comp_base):
 
         self.CreateIndex2('org_one_way_meshcode_linkno_idx')
         
-        # ´´½¨±íµ¥temp_org_one_way ×÷³É£º
-        # 1¡¢Ô­Ê¼±íµ¥Éæ¼°idÎ¨Ò»»¯
-        # 2¡¢Ô­Ê¼±íµ¥oneway·½ÏòÊ¹ÓÃsnode¡¢enodeÎ»ÖÃ¹ØÏµ±íÊ¾£¬½øĞĞÊı×Ö»¯
+        # åˆ›å»ºè¡¨å•temp_org_one_way ä½œæˆï¼š
+        # 1ã€åŸå§‹è¡¨å•æ¶‰åŠidå”¯ä¸€åŒ–
+        # 2ã€åŸå§‹è¡¨å•onewayæ–¹å‘ä½¿ç”¨snodeã€enodeä½ç½®å…³ç³»è¡¨ç¤ºï¼Œè¿›è¡Œæ•°å­—åŒ–
         self.CreateTable2('temp_org_one_way')
         sqlcmd = """
                 insert into temp_org_one_way (
@@ -81,11 +81,11 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         
         self.CreateIndex2('temp_org_one_way_day_shour_ehour_sdate_edate_cartype_idx')
         
-        # ¸üĞÂ±íµ¥regulation_item_tbl£¨¹æÖÆÉæ¼°µãÏßĞÅÏ¢£¬¹æÖÆid±êÊ¶£©
-        # regulation_relation_tbl£¨µÀÂ·¹æÖÆÇé±¨£¬¹æÖÆidÎ¨Ò»ĞÔ±êÊ¶£©
-        # oneway=1ÕıÏòÍ¨ĞĞÓë·´·½ÏòÈ«ÌìÈ«³µ½ûÖ¹Í¨ĞĞ¹æÖÆÏàÍ¬£¬ÈßÓà£¬ÅÅ³ıÈ«ÌìÈ«³µ¹æÖÆ
-        # Ò»·½Í¨ĞĞ·½Ïò---Õı·½Ïò ½»Í¨¹æÖÆÀàĞÍÉè¶¨43£¨ÄæĞĞ½ûÖ¹£©
-        # Ò»·½Í¨ĞĞ·½Ïò---·´·½Ïò ½»Í¨¹æÖÆÀàĞÍÉè¶¨42£¨Ë³ĞĞ½ûÖ¹£©
+        # æ›´æ–°è¡¨å•regulation_item_tblï¼ˆè§„åˆ¶æ¶‰åŠç‚¹çº¿ä¿¡æ¯ï¼Œè§„åˆ¶idæ ‡è¯†ï¼‰
+        # regulation_relation_tblï¼ˆé“è·¯è§„åˆ¶æƒ…æŠ¥ï¼Œè§„åˆ¶idå”¯ä¸€æ€§æ ‡è¯†ï¼‰
+        # oneway=1æ­£å‘é€šè¡Œä¸åæ–¹å‘å…¨å¤©å…¨è½¦ç¦æ­¢é€šè¡Œè§„åˆ¶ç›¸åŒï¼Œå†—ä½™ï¼Œæ’é™¤å…¨å¤©å…¨è½¦è§„åˆ¶
+        # ä¸€æ–¹é€šè¡Œæ–¹å‘---æ­£æ–¹å‘ äº¤é€šè§„åˆ¶ç±»å‹è®¾å®š43ï¼ˆé€†è¡Œç¦æ­¢ï¼‰
+        # ä¸€æ–¹é€šè¡Œæ–¹å‘---åæ–¹å‘ äº¤é€šè§„åˆ¶ç±»å‹è®¾å®š42ï¼ˆé¡ºè¡Œç¦æ­¢ï¼‰
         self.CreateFunction2('mid_convert_regulation_oneway')
         self.pg.callproc('mid_convert_regulation_oneway')
         self.pg.commit2()
@@ -102,9 +102,9 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         self.CreateIndex2('org_not_in_meshcode_enodeno_idx')
         self.CreateIndex2('org_road_meshcode_linkno_idx')
         
-        # ´´½¨±íµ¥temp_org_not_in ×÷³É£º
-        # È¥³ıÔ­Ê¼±íµ¥ÖĞ½øÈëlink¡¢ÍÑ³ölinkÊÇNo Entry
-        # Ô­Ê¼±íµ¥idÎ¨Ò»»¯
+        # åˆ›å»ºè¡¨å•temp_org_not_in ä½œæˆï¼š
+        # å»é™¤åŸå§‹è¡¨å•ä¸­è¿›å…¥linkã€è„±å‡ºlinkæ˜¯No Entry
+        # åŸå§‹è¡¨å•idå”¯ä¸€åŒ–
         self.CreateTable2('temp_org_not_in')
         sqlcmd = """
                 insert into temp_org_not_in (
@@ -144,9 +144,9 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         
         self.CreateIndex2('temp_org_not_in_day_shour_ehour_sdate_edate_cartype_idx')
         
-        # ¸üĞÂ±íµ¥regulation_item_tbl£¨¹æÖÆÉæ¼°µãÏßĞÅÏ¢£¬¹æÖÆid±êÊ¶£©
-        # regulation_relation_tbl£¨µÀÂ·¹æÖÆÇé±¨£¬¹æÖÆidÎ¨Ò»ĞÔ±êÊ¶£©
-        # ½»Í¨¹æÖÆÀàĞÍÉè¶¨1£¨½ûÖ¹½øÈë£©
+        # æ›´æ–°è¡¨å•regulation_item_tblï¼ˆè§„åˆ¶æ¶‰åŠç‚¹çº¿ä¿¡æ¯ï¼Œè§„åˆ¶idæ ‡è¯†ï¼‰
+        # regulation_relation_tblï¼ˆé“è·¯è§„åˆ¶æƒ…æŠ¥ï¼Œè§„åˆ¶idå”¯ä¸€æ€§æ ‡è¯†ï¼‰
+        # äº¤é€šè§„åˆ¶ç±»å‹è®¾å®š1ï¼ˆç¦æ­¢è¿›å…¥ï¼‰
         self.CreateFunction2('mid_convert_regulation_linkrow')
         self.pg.callproc('mid_convert_regulation_linkrow')
         self.pg.commit2()
@@ -156,10 +156,10 @@ class comp_regulation_zenrin(component.component_base.comp_base):
     def __make_linklist_for_linkdir(self):
         self.log.info('Begin make linklist for linkdir...')
         
-        # ´´½¨temp_link_regulation_permit_traffic ×÷³É£º
-        # ¶ÔÓÚÒ»·½Í¨ĞĞ£¬ÒòÔ­Ê¼µÀÂ·±íµ¥¼ÇÂ¼µÄonewayÓëÔ­Ê¼oneway±íµ¥´æÔÚ¹ØÁª
-        # ĞèÒª°ÑµÀÂ·¹æÖÆÇé±¨ÖĞÒ»·½Í¨ĞĞ ·ÇÈ«ÌìÈ«³µÏŞÖÆµÄ½»Í¨Á÷²¹³äµ½µÀÂ·¶ÔÓ¦µÄ½»Í¨Á÷ÖĞ
-        # ±íµ¥ÖĞÒ»·½Í¨ĞĞ ·ÇÈ«ÌìÈ«³µÏŞÖÆĞÅÏ¢¹ØÁªlink¼ÇÂ¼µ½¸Ã±í
+        # åˆ›å»ºtemp_link_regulation_permit_traffic ä½œæˆï¼š
+        # å¯¹äºä¸€æ–¹é€šè¡Œï¼Œå› åŸå§‹é“è·¯è¡¨å•è®°å½•çš„onewayä¸åŸå§‹onewayè¡¨å•å­˜åœ¨å…³è”
+        # éœ€è¦æŠŠé“è·¯è§„åˆ¶æƒ…æŠ¥ä¸­ä¸€æ–¹é€šè¡Œ éå…¨å¤©å…¨è½¦é™åˆ¶çš„äº¤é€šæµè¡¥å……åˆ°é“è·¯å¯¹åº”çš„äº¤é€šæµä¸­
+        # è¡¨å•ä¸­ä¸€æ–¹é€šè¡Œ éå…¨å¤©å…¨è½¦é™åˆ¶ä¿¡æ¯å…³è”linkè®°å½•åˆ°è¯¥è¡¨
         self.CreateTable2('temp_link_regulation_permit_traffic')
         
         self.log.info('End make linklist for linkdir.')

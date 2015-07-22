@@ -220,7 +220,7 @@ DECLARE
 	tmpLastNodeArray	bigint[];
 	tmpPathCount		integer;
 	tmpPathIndex		integer;
-	
+		
 	nIndex				integer;
 	nCount				integer;
 	link_array 			bigint[];
@@ -278,9 +278,10 @@ BEGIN
 			bRoadEnd	:= False;
 			--raise INFO 'nextnode = %', rec.nextnode;
 			tmpPath		:= tmpPathArray[tmpPathIndex];
-			
+		
 			-- no proper connected link, here is a complete path
-			if rec.link_type not in (3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
+			if (rec.link_type=0 and not rec.nextlink in (select link_id from temp_roundabout_for_searchramp)) 
+				or rec.link_type not in (3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
 				if tmpPath is not null then
 					rstPath			:= tmpPath;
 
@@ -291,13 +292,19 @@ BEGIN
 						nRoadType	:= nRoadTypeA;
 						nFunctionClass	:= nFunctionClassA;
 					end if;
-
+				
 					link_array	:= cast(regexp_split_to_array(rstPath, E'\\|+') as bigint[]);
 					nCount		:= array_upper(link_array, 1);
 					for nIndex in 1..nCount loop
 						insert into temp_link_ramp_single_path(link_id, new_road_type, new_fc) 
 							values(link_array[nIndex], nRoadType, nFunctionClass);
 					end loop;
+					if rec.link_type=0 then
+						insert into temp_roundabout_road_type(roundabout_id,new_road_type)
+						select roundabout_id,nRoadType 
+						from temp_roundabout_for_searchramp
+						where link_id=rec.nextlink;
+					end if;
 				end if;
 				continue;
 			
@@ -3344,3 +3351,90 @@ BEGIN
 	end if;
 END;
 $$;
+
+
+
+CREATE OR REPLACE FUNCTION mid_find_roundabout()
+ RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	bool boolean;
+	rec record;
+	road_type smallint;
+	roundabout_id integer;
+	cnt   int;
+BEGIN
+	roundabout_id=0;
+	while True loop
+		select * into rec from temp_roundabout;
+		if not found then
+			exit;
+		end if;
+		select count(1) into cnt from temp_roundabout;
+		raise info '%',cnt;
+		execute 'delete from temp_single_roundabout where 1=1';
+		execute '
+		insert into temp_single_roundabout(link_id,s_node,e_node,the_geom)
+		select link_id,s_node,e_node,the_geom
+		from temp_roundabout 
+		where link_id='||(rec.link_id)::text;
+		execute 'delete from temp_roundabout a using temp_single_roundabout b where a.link_id=b.link_id';
+		while True loop
+			select b.* into rec from temp_single_roundabout a
+			join link_tbl b
+			on a.s_node=b.s_node or a.s_node=b.e_node or a.e_node=b.s_node or a.e_node=b.e_node
+			left join temp_single_roundabout c
+			on b.link_id=c.link_id
+			where b.link_type=0 and c.link_id is null;
+			if not found then
+				exit;
+			end if;
+			execute '
+			insert into temp_single_roundabout(link_id,s_node,e_node,the_geom)
+			select a.link_id,a.s_node,a.e_node,a.the_geom
+			from link_tbl a
+			join temp_single_roundabout b
+			on a.s_node=b.s_node or a.s_node=b.e_node or a.e_node=b.s_node or a.e_node=b.e_node
+			left join temp_single_roundabout c
+			on a.link_id=c.link_id
+			where a.link_type=0 and c.link_id is null;';	
+			execute 'delete from temp_roundabout a using temp_single_roundabout b where a.link_id=b.link_id';
+		end loop;
+		select (
+			select count(1) from temp_single_roundabout
+			)=
+			(select count(distinct(node_id)) 
+				from 
+				(
+					select s_node as node_id from temp_single_roundabout 
+					union 
+					select e_node as node_id from temp_single_roundabout
+				) 
+				a
+			)
+		into bool;
+		if not bool then
+			continue;
+		end if;
+		roundabout_id=roundabout_id+1;
+		insert into temp_roundabout_for_searchramp(roundabout_id,link_id,s_node,e_node,the_geom)
+		select roundabout_id,link_id,s_node,e_node,the_geom
+		from temp_single_roundabout;
+		execute '
+			delete from temp_roundabout_for_searchramp a
+			using
+			(
+				select distinct roundabout_id
+				from temp_roundabout_for_searchramp a
+				join link_tbl b
+				on a.s_node=b.s_node or a.s_node=b.e_node or a.e_node=b.s_node or a.e_node=b.e_node
+				where b.link_type<>0 and b.road_type not in (0,1) and b.link_type not in (3,5)
+			) b
+			where a.roundabout_id=b.roundabout_id;
+			';
+	end loop;
+	return 0;
+END;
+$$;
+

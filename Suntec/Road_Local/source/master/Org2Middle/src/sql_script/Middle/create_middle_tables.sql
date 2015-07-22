@@ -1885,7 +1885,7 @@ CREATE TABLE highway_fee_same_facility
 
 ------------------------------------------------------------------------
 -- Link, which's road_type is hwy, but are not included in hwy model.
-CREATE TABLE mid_temp_not_hwy_model_link
+CREATE TABLE highway_not_hwy_model_link
 (
    link_id   bigint not null primary key
 );
@@ -2670,3 +2670,39 @@ CREATE TABLE temp_force_guide_patch_tbl
  z_text character varying(16384)
 ); 
 
+CREATE TABLE temp_org_category_priority
+(
+  org_code  character varying(6),
+  priority  integer
+);      
+
+
+create table temp_single_roundabout
+( 
+	link_id bigint,
+	s_node bigint,
+	e_node bigint
+);select addgeometrycolumn('temp_single_roundabout','the_geom',4326,'LINESTRING',2);
+
+create table temp_roundabout
+as
+(
+	select distinct a.* from link_tbl a
+	join link_tbl b
+	on a.s_node=b.s_node or a.s_node=b.e_node or a.e_node=b.s_node or a.e_node=b.e_node
+	where a.link_type=0 and ((b.road_type in (0,1) and b.link_type in (1,2,7)) or b.link_type in (3,5))
+);
+
+create table temp_roundabout_for_searchramp
+(
+	roundabout_id 	integer,
+	link_id       	bigint,
+	s_node        	bigint,
+	e_node        	bigint
+);select addgeometrycolumn('temp_roundabout_for_searchramp','the_geom',4326,'LINESTRING',2);
+
+create table temp_roundabout_road_type
+(
+	roundabout_id   integer,
+	new_road_type   smallint
+);         

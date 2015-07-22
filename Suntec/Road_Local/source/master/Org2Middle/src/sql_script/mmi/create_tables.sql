@@ -274,7 +274,7 @@ create table temp_poi_category
     name       varchar(128) not null,
     imp        smallint     not null,
     org_code   varchar(6)       not null,
-    logmark    varchar(128) not null default ''
+    logmark    varchar(128)  default ''
 );
 
 create table temp_brand_icon

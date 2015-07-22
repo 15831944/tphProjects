@@ -34,7 +34,7 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
         self.CreateFunction2('zenrin_make_lanenum_lr')
         self.CreateTable2('temp_lane_tbl')
         
-        ##×óÓÒ¸½¼Ó³µÏß
+        ##å·¦å³é™„åŠ è½¦çº¿
         self.log.info('make temp_lane_numlr...')
         sqlcmd = '''
                 drop table if exists temp_lane_numlr;
@@ -65,7 +65,7 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
         self.CreateIndex2('temp_lane_numlr_meshcode_tnodeno_snodeno_enodeno_idx')
         
         
-        ##¼ÆËãpasslink
+        ##è®¡ç®—passlink
         self.log.info('make temp_lane_passlink...')
         sqlcmd = '''
             drop table if exists temp_lane_passlink;
@@ -102,7 +102,7 @@ class comp_guideinfo_lane_zenrin(component.component_base.comp_base):
         self.CreateIndex2('temp_lane_passlink_meshcode_tnodeno_snodeno_enodeno_ysnodeno_yenodeno_idx')
         
         
-        ##×÷³É³µÏßĞÅÏ¢ºÍ¼ıÍ·ĞÅÏ¢
+        ##ä½œæˆè½¦çº¿ä¿¡æ¯å’Œç®­å¤´ä¿¡æ¯
         self.log.info('make temp_lane_lane_arrow_info...')
         sqlcmd = '''
             drop table if exists temp_lane_lane_arrow_info;

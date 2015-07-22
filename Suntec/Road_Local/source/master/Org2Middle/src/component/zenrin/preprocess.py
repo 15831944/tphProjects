@@ -17,14 +17,38 @@ class comp_proprocess_zenrin(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'PreProcess') 
             
     def _Do(self):
-        # common functions
-        self.CreateFunction2('mid_transtwd67totwd97_119')
-        self.CreateFunction2('mid_transtwd67totwd97_121')
-        
-        #
+        self.__prepare_for_convert_coord()
         self.__fix_phoneme()
         
         return 0
+    
+    def __prepare_for_convert_coord(self):
+        self.CreateFunction2('mid_transtwd67totwd97_bentu')
+        self.CreateFunction2('mid_transtwd67totwd97_jinmen')
+        self.CreateFunction2('mid_transtwd67totwd97_lianjiang')
+        sqlcmd='''
+                delete from spatial_ref_sys where srid = 999902;
+                insert into spatial_ref_sys
+                values (999902, 'EPSG', 999902,
+                        'GEOGCS["TWD67",DATUM["Taiwan_Datum_1967",SPHEROID["GRS 1967 Modified",6378160,298.25,AUTHORITY["EPSG","7050"]],AUTHORITY["EPSG","1025"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","3821"]]',
+                        '+proj=longlat +ellps=aust_SA +towgs84=-294.142671,-78.211380,-244.115627,16.919001,-25.619608,5.519133,3.903426 +no_defs');
+             
+            
+                delete from spatial_ref_sys where srid = 999901;
+                insert into spatial_ref_sys
+                values (999901, 'EPSG', 999901,
+                        'GEOGCS["TWD67",DATUM["Taiwan_Datum_1967",SPHEROID["GRS 1967 Modified",6378160,298.25,AUTHORITY["EPSG","7050"]],AUTHORITY["EPSG","1025"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","3821"]]',
+                        '+proj=longlat +ellps=aust_SA +towgs84=-195.579304,-79.470107,-99.160512,13.400337,-29.403993,7.830643,1.407280 +no_defs');
+             
+            
+                delete from spatial_ref_sys where srid = 999900;
+                insert into spatial_ref_sys
+                values (999900, 'EPSG', 999900,
+                        'GEOGCS["TWD67",DATUM["Taiwan_Datum_1967",SPHEROID["GRS 1967 Modified",6378160,298.25,AUTHORITY["EPSG","7050"]],AUTHORITY["EPSG","1025"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","3821"]]',
+                        '+proj=longlat +ellps=aust_SA +towgs84=-145.216113,-183.012890,-161.517550,2.114225,-8.671589,17.827958,21.788069 +no_defs');            
+                '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         
     def __fix_phoneme(self):
         self.log.info('fix phoneme...')
@@ -124,7 +148,7 @@ class comp_proprocess_zenrin(component.component_base.comp_base):
             gid = ph[0]
             language = ph[1]
             phoneme = ph[2]
-            phoneme_pym = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(language, phoneme)
+            phoneme_pym = common.ntsamp_to_lhplus.ntsamapa2lhplus(language, phoneme)
             phoneme_pym = phoneme_pym.replace('\\', '\\\\')
             temp_file_obj.write('%s\t%s\n' % (str(gid), phoneme_pym))
         

@@ -10,4 +10,5 @@ strInterestCountryList=HKG
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
 default_language=CHT
+POI_Code=..\docs\poi\category_icon_hkgmac.txt
 #################################################################

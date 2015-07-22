@@ -170,4 +170,9 @@ CREATE INDEX temp_lane_lane_arrow_info_meshcode_tnodeno_snodeno_enodeno_ysnodeno
  USING btree
  (meshcode, tnodeno, snodeno, enodeno);
  
- 
+-------------------------------------------------------------------------------
+--
+CREATE UNIQUE INDEX mid_hwy_org_facility_node_path_id_facility_id_node_id_idx
+  ON mid_hwy_org_facility_node
+  USING btree
+  (path_id, facility_id, node_id);

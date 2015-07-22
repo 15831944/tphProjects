@@ -1,4 +1,4 @@
-CREATE TABLE check_hwy_sapa_link
+CREATE TABLE temp_hwy_check_link
 (
   link_id           bigint,
   link_type         smallint,

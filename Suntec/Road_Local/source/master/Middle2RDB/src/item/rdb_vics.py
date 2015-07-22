@@ -2437,6 +2437,11 @@ class rdb_traffic_ta(rdb_traffic):
         self.pg.execute2(sqlcmd) 
         self.pg.commit2()
 
+    def _createRegionTRF_level8(self):  
+
+        proc_region = rdb_traffic_region(self, rdb_log)
+        proc_region._createRegionXTRFTbl('8')
+        
 class rdb_traffic_ni(rdb_traffic):
                           
     def _createTrfLinkSeq(self):

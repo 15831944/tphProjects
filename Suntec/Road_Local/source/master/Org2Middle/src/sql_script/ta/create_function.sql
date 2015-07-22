@@ -1395,6 +1395,11 @@ BEGIN
 				end_hour		:= start_hour + end_hour;
 				end_minute		:= start_minute + end_minute;
 			    
+				-- day_of_week = 127 means that from mon to sun have regulation, then day_of_week set 0
+				if day_of_week = 127 then
+					day_of_week := 0;
+				end if;
+				
 				-- insert result
 		    	cur_cond_id := cur_cond_id + 1;
 		    	perform mid_insert_condtion_record(	cur_cond_id, 
@@ -2081,17 +2086,19 @@ BEGIN
     ELSEIF  freeway = 1 or fow = 1 THEN   -- Free Way
 		return 12;
     ELSEIF frc in (0, 1) THEN   -- HighWay
-        return 9;   --2; 
+        return 9; 
     ELSEIF frc = 2 THEN   
-        return 8;   --2; 
+        return 8; 
     ELSEIF frc = 3 THEN 
     	return 7;
-    ELSEIF frc in (4,5) THEN 
-        return 6;   --3; 
+    ELSEIF frc = 4 THEN 
+        return 6;  
+    ELSEIF frc = 5 THEN 
+        return 5;		
     ELSEIF frc = 6 THEN 
-        return 5;   --4; 
+        return 4;
     ELSEIF frc = 7 THEN
-    	return 4;
+    	return 21;
     END IF;
     
     return 3;   -- Other
@@ -3597,16 +3604,14 @@ BEGIN
 					elseif substring(strDateTime, nTargetPos, 1) = 'f' then
 						nStartWeek		:= cast(substring(strDateTime, nTargetPos+1, 1) as integer);
 						nStartWeekDay	:= cast(substring(strDateTime, nTargetPos+2, 1) as integer);
-	    				start_weekday 	= ((1::smallint) << 8);
-	    				start_weekday 	= start_weekday | ((1::smallint) << (nStartWeek+8));
-	    				start_weekday 	= start_weekday | ((1::smallint) << (nStartWeekDay-1));
+	    				start_weekday 	= ((1::smallint) << (nStartWeekDay-1));
+	    				start_weekday 	= start_weekday | ((1::smallint) << (nStartWeek+6));
 					elseif substring(strDateTime, nTargetPos, 1) = 'l' then
 						nStartWeek		:= cast(substring(strDateTime, nTargetPos+1, 1) as integer);
 						nStartWeekDay	:= cast(substring(strDateTime, nTargetPos+2, 1) as integer);
 						if nStartWeek = 1 then
-		    				start_weekday 	= ((1::smallint) << 8);
-		    				start_weekday 	= start_weekday | ((1::smallint) << 14);
-		    				start_weekday 	= start_weekday | ((1::smallint) << (nStartWeekDay-1));
+		    				start_weekday 	= ((1::smallint) << (nStartWeekDay-1));
+		    				start_weekday 	= start_weekday | ((1::smallint) << 12);
 		    			else
 							raise EXCEPTION 'unhandled timedom type3, timedom = %', rec.timedom;
 		    			end if;
@@ -3630,16 +3635,14 @@ BEGIN
 					elseif substring(strDateTime, nTargetPos, 1) = 'f' then
 						nEndWeek		:= cast(substring(strDateTime, nTargetPos+1, 1) as integer);
 						nEndWeekDay		:= cast(substring(strDateTime, nTargetPos+2, 1) as integer);
-	    				end_weekday 	= ((1::smallint) << 8);
-	    				end_weekday 	= end_weekday | ((1::smallint) << (nEndWeek+8));
-	    				end_weekday 	= end_weekday | ((1::smallint) << (nEndWeekDay-1));
+	    				end_weekday 	= ((1::smallint) << (nEndWeekDay-1));
+	    				end_weekday 	= end_weekday | ((1::smallint) << (nEndWeek+6));
 					elseif substring(strDateTime, nTargetPos, 1) = 'l' then
 						nEndWeek		:= cast(substring(strDateTime, nTargetPos+1, 1) as integer);
 						nEndWeekDay		:= cast(substring(strDateTime, nTargetPos+2, 1) as integer);
 						if nEndWeek = 1 then
-		    				end_weekday 	= ((1::smallint) << 8);
-		    				end_weekday 	= end_weekday | ((1::smallint) << 14);
-		    				end_weekday 	= end_weekday | ((1::smallint) << (nEndWeekDay-1));
+		    				end_weekday 	= ((1::smallint) << (nEndWeekDay-1));
+		    				end_weekday 	= end_weekday | ((1::smallint) << 12);
 		    			else
 							raise EXCEPTION 'unhandled timedom type3, timedom = %', rec.timedom;
 		    			end if;

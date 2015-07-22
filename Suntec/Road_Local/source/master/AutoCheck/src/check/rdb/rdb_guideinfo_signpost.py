@@ -265,21 +265,5 @@ class CCheckPassLinkCount_SP(rdb_common_check.CCheckPassLinkCount):
     def __init__(self, suite, caseinfo):
         rdb_common_check.CCheckPassLinkCount.__init__(self, suite, caseinfo, 'signpost_tbl', 'passlink_cnt')
         pass
-
-import json
-# sp_name字段是一个json字符串，检查它的有效性。
-class CCheckSpNameIsValidJsonStr(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd = """
-                SELECT sp_name
-                FROM rdb_guideinfo_signpost
-                where sp_name is not null;
-                """
-        for row in self.pg.get_batch_data(sqlcmd):
-            toward_name = row[0]
-            name_lists = json.loads(toward_name)
-            for name_list in name_lists:
-                for name in name_list:
-                    if not name.get('val'):
-                        return False
-        return True     
+    
+    

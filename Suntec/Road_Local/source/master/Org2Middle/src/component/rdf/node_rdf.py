@@ -31,6 +31,8 @@ class comp_node_rdf(component.component_base.comp_base):
         if self.CreateTable2('temp_node_lid') == -1:
             return -1
         
+        self.CreateTable2('temp_node_bifurcation') 
+               
         return 0
     
     def _DoCreateIndex(self):
@@ -74,25 +76,37 @@ class comp_node_rdf(component.component_base.comp_base):
 
         if self.CreateIndex2('temp_node_light_node_id_idx') == -1:
             return -1
-                 
-        sqlcmd = """
-            insert into temp_node_toll(node_id)
-                    select distinct node_id from rdf_nav_strand as t1
-                        inner join rdf_condition as t2 
-                        on t1.nav_strand_id = t2.nav_strand_id
-                        where t2.condition_type = 1 and t1.node_id is not null
-        """
         
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
+        if self.isCountry('hkg'): 
+            sqlcmd = """
+                insert into temp_node_toll(node_id)
+                select distinct node_id from rdf_condition as t1
+                    left join RDF_LANE_NAV_STRAND as t2 
+                    on t1.condition_id = t2.condition_id
+                    left join RDF_LANE t3
+                    on t2.lane_id = t3.lane_id
+                    where t1.condition_type = 1 
+                    and node_id is not null;
+            """
+            
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()        
+        else:                
+            sqlcmd = """
+                insert into temp_node_toll(node_id)
+                select distinct node_id from rdf_nav_strand as t1
+                    inner join rdf_condition as t2 
+                    on t1.nav_strand_id = t2.nav_strand_id
+                    where t2.condition_type = 1 and t1.node_id is not null;
+            """
+            
+            self.pg.execute2(sqlcmd)
             self.pg.commit2()    
                     
         if self.CreateIndex2('temp_node_toll_node_id_idx') == -1:
             return -1       
 
         # bifurcation
-        self.CreateTable2('temp_node_bifurcation')
         sqlcmd = """
             insert into temp_node_bifurcation(node_id)
             select distinct b.node_id 

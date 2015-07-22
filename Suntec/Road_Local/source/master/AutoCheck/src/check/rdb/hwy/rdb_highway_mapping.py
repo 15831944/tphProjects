@@ -197,3 +197,30 @@ class CCheckHwyLink(platform.TestCase.CTestCase):
         if row and row[0] <= 2:  # 有两根误判断
             return True
         return False
+
+
+# =============================================================================
+# CCheckHwyLink_17cy -- check所有的高速link都做到 Highway mapping表
+# ==============================================================================
+class CCheckHwyLink_17cy(platform.TestCase.CTestCase):
+    def _do(self):
+        self.pg.CreateFunction_ByName('test_exist_branch_in_hwy_mapping')
+        sqlcmd = """
+        SELECT count(*)   -- a.link_id, link_type, one_way
+          FROM (
+            SELECT link_id, start_node_id, end_node_id, one_way,
+                   link_type
+              FROM rdb_link
+              where road_type in (0)
+          ) as a
+          LEFT JOIN rdb_highway_mapping AS  b
+          ON a.link_id = b.link_id
+          LEFT JOIN rdb_highway_not_hwy_model_link as c
+          ON a.link_id = c.link_id
+          where b.link_id is null and c.link_id is null;
+        """
+        self.pg.execute(sqlcmd)
+        row = self.pg.fetchone()
+        if row and row[0] == 0:
+            return True
+        return False

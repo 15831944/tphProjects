@@ -12,16 +12,17 @@ class CCheckSapa(platform.TestCase.CTestCase):
     '''高速上的SAPA Link都在表mid_temp_hwy_ic_path里，且设施种别是SAPA'''
     def _do(self):
         ''' '''
-        self.pg.CreateTable_ByName('check_hwy_sapa_link')
+        return True
+        self.pg.CreateTable_ByName('temp_hwy_check_link')
         self.pg.CreateFunction_ByName('check_is_hwy_sapa_link')
         self.pg.CreateFunction_ByName('check_sapa_link')
         sqlcmd = '''
-        SELECT check_hwy_sapa_link();
+        SELECT check_sapa_link();
         '''
         self.pg.execute(sqlcmd)
         sqlcmd = '''
         SELECT c.link_id AS check_link_id , a.link_id AS ic_link_id
-        FROM check_hwy_sapa_link as c
+        FROM temp_hwy_check_link as c
         LEFT JOIN
         (
         SELECT  link_id
@@ -42,7 +43,7 @@ class CCheckSapa(platform.TestCase.CTestCase):
             link_id = row[0]
             ic_link = row[1]
             if not ic_link:
-                self.pg.log.error('no link_id %d' % link_id)
+                self.pg.log.error('CCheckSapa:no link_id %d' % link_id)
                 flag = False
         if not flag:
             return False
@@ -69,11 +70,12 @@ class CCheckSapaPath(platform.TestCase.CTestCase):
                 FROM mid_temp_hwy_ic_path
                 WHERE facilcls_c IN (1, 2)
                 )AS a
-            GROUP BY gid,road_code, link_id
-            ORDER BY road_code)AS link
+            GROUP BY gid, road_code, link_id
+            ORDER BY road_code
+            )AS link
         LEFT JOIN
-            (SELECT *
-             FROM mid_temp_hwy_ic_link
+            (SELECT link_id
+             FROM link_tbl
              WHERE link_type = 7
              )AS ic_link
         ON link.link_id::bigint = ic_link.link_id::bigint
@@ -85,9 +87,11 @@ class CCheckSapaPath(platform.TestCase.CTestCase):
             link_id_org = row[2]
             link_id_check = row[3]
             if not link_id_org:
-                self.log.info('no link id %d' % link_id_org)
+                self.pg.log.info('CCheckSapaPath:no link id %s' % link_id_org)
             if link_id_check == "":
-                self.log.error('no sapa link, link_id %d' % link_id_org)
+                self.pg.log.error('CCheckSapaPath:no sapa link, link_id %s'
+                                   % link_id_org)
+                flag = False
                 continue
         if not flag:
             return False
@@ -117,7 +121,7 @@ class CCheckJctPath(platform.TestCase.CTestCase):
           )AS link
         LEFT JOIN link_tbl AS ic_link
         ON link.link_id::bigint = ic_link.link_id::bigint
-        WHERE ic_link.road_type <> 0 AND link_type <> 7
+        WHERE ic_link.road_type <> 0 AND link_type not in (4, 7, 8)
         ORDER BY  road_code
         '''
         flag = True
@@ -125,7 +129,7 @@ class CCheckJctPath(platform.TestCase.CTestCase):
             link_id = row[1]
             road_type = row[2]
             if road_type != 0:
-                self.log.error('not hwy link_id %d' % link_id)
+                self.pg.log.error('CCheckJctPath:not hwy link_id %s' % link_id)
                 continue
         if not flag:
             return False
@@ -137,7 +141,7 @@ class CCheckJctPath(platform.TestCase.CTestCase):
 #
 #-----------------------------------------------------#
 class CCheckIcPath(platform.TestCase.CTestCase):
-    ''' '''
+    '''检查表中不符合规制路径 '''
     def _do(self):
         ''' '''
         sqlcmd = '''
@@ -181,6 +185,79 @@ class CCheckIcPath(platform.TestCase.CTestCase):
         self.pg.execute(sqlcmd)
         row = self.pg.fetchone()
         if row:
-            self.pg.log.error('regulation path in ic path')
+            self.pg.log.error('CCheckIcPath:regulation path in ic path')
             return False
         return True
+
+#===============================================================================
+# CCheckFacilityNode
+#检查所有收录node（非起始点）均为分歧点
+#即判断流出node的link数大于等于2
+#===============================================================================
+# class CCheckFacilityNode(platform.TestCase.CTestCase):
+#     '''检查所有收录node均为分歧点'''
+#     def _do(self):
+#         sqlcmd = '''
+#         select path_id, node_id,
+#                array_agg(outlink_path)as outlink_path_list, array_agg(outlink_id) as outlink_id_list,
+#                array_agg(inlink_path )as inlink_path_list, array_agg(inlink_id)as inlink_id_list
+#          from (
+#          select c.path_id, c.node_id,
+#                case
+#                  when d.path_id is null then 0
+#                  else d.path_id 
+#                end as outlink_path,
+#                d.link_id as outlink_id,
+#                case
+#                  when e.path_id is null then 0
+#                  else e.path_id 
+#                end  as inlink_path,
+#                e.link_id as inlink_id
+#         from mid_hwy_org_facility_node as c
+#         left join
+#         (
+#             select b.road_code as path_id, a.link_id, s_node, e_node
+#             from (
+#              select *
+#              from link_tbl
+#              where road_type =0
+#             )as a
+#             left join  hwy_link_road_code_info as b
+#             on a.link_id = b.link_id
+#         )as d
+#         on c.node_id = d.s_node
+#         left join
+#         (
+#             select b.road_code as path_id, a.link_id, s_node, e_node
+#             from (
+#              select *
+#              from link_tbl
+#              where road_type =0
+#             )as a
+#             left join  hwy_link_road_code_info as b
+#             on a.link_id = b.link_id
+#         )as e
+#         on c.node_id = e.e_node
+#         order by path_id, node_id
+#         )as f
+#         group by  path_id, node_id
+#         order by path_id, node_id
+#         '''
+#         for row in self.pg.get_batch_data(sqlcmd):
+#             node_path = row[0]
+#             node_id = row[1]
+#             outlink_path = row[2]
+#             outlink_id = row[3]
+#             inlink_path = row[4]
+#             inlink_id = row[5]
+# 
+#             for path in outlink_path:
+#                 if path != node_path:
+#                     break
+# 
+#             for path in inlink_path:
+#                 if path != node_path:
+#                     break
+#             self.log.error('node id :%s' % node_id)
+#             return False
+#         return True

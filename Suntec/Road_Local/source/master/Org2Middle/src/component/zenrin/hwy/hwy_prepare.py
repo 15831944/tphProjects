@@ -26,17 +26,30 @@ class HwyPrepareZenrin(comp_base):
         return 0
 
     def _Do(self):
-        self._make_prepare_node()
-#         self._make_all_hwy_node()
+        # 提取原数据设施点
+        self._make_org_facility_node()
+        self._make_all_hwy_node()
         return 0
 
     def _make_all_hwy_node(self):
+        self.CreateTable2('mid_all_highway_node')
+        sqlcmd = """
+        INSERT INTO mid_all_highway_node(node_id)
+        (
+        SELECT distinct node_id
+          FROM mid_hwy_org_facility_node
+          order by node_id
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         return 0
 
-    def _make_prepare_node(self):
+    def _make_org_facility_node(self):
+        '''提取原数据设施点'''
         # 高速特征点(高速出入口点和高速设施所在点也即不能被合并的点)
-        self.log.info('start make prepare node')
-        self.CreateTable2('temp_prepare_node')
+        self.log.info('start make ORG Facility node')
+        self.CreateTable2('mid_hwy_org_facility_node')
         sqlcmd = '''
         SELECT pathid, dirflag,
                array_agg(seq)AS seq_array,
@@ -58,7 +71,7 @@ class HwyPrepareZenrin(comp_base):
                 left join temp_node_mapping as n2   -- End Node
                 on r.meshcode = n2.meshcode and r.enodeno = n2.nodeno
                 GROUP BY pathid, seq, dirflag, s_node, e_node
-        ORDER BY pathid, dirflag, seq
+                ORDER BY pathid, dirflag, seq
         )AS g
         GROUP BY pathid, dirflag
         ORDER BY pathid, dirflag;
@@ -67,7 +80,7 @@ class HwyPrepareZenrin(comp_base):
             if not rec:
                 self.log.error('no path')
             path_id = rec[0]
-#             dirflag = rec[1]
+            # dirflag = rec[1]
             seq_array = rec[2]
             pre_point_array = rec[3]
             next_point_array = rec[4]
@@ -84,7 +97,6 @@ class HwyPrepareZenrin(comp_base):
                 curr_e_node = path_info_array[index][4]
 
                 if index != (len(path_info_array) - 1):
-#                     next_point_no_prec = path_info_array[index + 1][1]
                     next_point_no_next = path_info_array[index + 1][2]
                     next_s_node = path_info_array[index + 1][3]
                     next_e_node = path_info_array[index + 1][4]
@@ -97,8 +109,8 @@ class HwyPrepareZenrin(comp_base):
                                                          next_s_node,
                                                          next_e_node)
                     if start_node_no:
-                        self._store_prepare_node(path_id, curr_point_no_prec,
-                                                 start_node_no)
+                        self._store_org_facicility(path_id, curr_point_no_prec,
+                                                   start_node_no)
                     else:
                         self.log.error('no start node')
                         continue
@@ -110,25 +122,26 @@ class HwyPrepareZenrin(comp_base):
                                                      curr_s_node,
                                                      curr_e_node)
 
-                    self._store_prepare_node(path_id, curr_point_no_next,
-                                             end_node_no)
+                    self._store_org_facicility(path_id, curr_point_no_next,
+                                               end_node_no)
                     continue
-                if next_point_no_next != curr_point_no_next:
+                if set(next_point_no_next) != set(curr_point_no_next):
                     node_no = self._get_inserction_node(curr_s_node,
                                                         curr_e_node,
                                                         next_s_node,
                                                         next_e_node)
                     if node_no:
-                        self._store_prepare_node(path_id, curr_point_no_next,
-                                                 node_no)
+                        self._store_org_facicility(path_id, curr_point_no_next,
+                                                   node_no)
         self.pg.commit2()
+        self.CreateIndex2('mid_hwy_org_facility_node_'
+                          'path_id_facility_id_node_id_idx')
         self.log.info('end make prepare node')
 
-    def _store_prepare_node(self, path_id, ic_no, node_id):
-        self.log.info('store prepare node')
+    def _store_org_facicility(self, path_id, ic_no, node_id):
         sqlcmd = '''
-        INSERT INTO temp_prepare_node(path_id, ic_no, node_id)
-        VALUES(%s, %s, %s);
+        INSERT INTO mid_hwy_org_facility_node(path_id, facility_id, node_id)
+            VALUES(%s, %s, %s);
         '''
         ic_no_array = set(ic_no.split('|'))
         for ic_id in ic_no_array:

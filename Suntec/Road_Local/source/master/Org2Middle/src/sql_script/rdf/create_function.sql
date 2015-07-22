@@ -2710,7 +2710,6 @@ DECLARE
 BEGIN   
 	link_ref_dir = false;
 	dir_ctg_length = 0;
-	lanenum_index = 1;
 	businfo_id_index = 1;
 	existlan_index = 1;
 	
@@ -2721,7 +2720,7 @@ BEGIN
 	into not_ref_node_id
 	from rdf_link 
 	where link_id = param_inlinkid;
-	--lane direction is or isn't same with direction or link(FROM TO)
+	--lane direction is or isn't same with direction of link(FROM TO)
 	if not_ref_node_id = param_nodeid then
 		link_ref_dir = true;
 	end if;
@@ -2797,9 +2796,6 @@ BEGIN
 			order by lane_number desc
 		) as a; 
 	end if;
-
-	--raise INFO 'existlan_array = %', existlan_array;
-	--raise INFO 'lanenum_array = %', lanenum_array;
 	
 	---lanes
 	dir_ctg_length = array_upper(dir_ctg_array, 1);
@@ -2807,15 +2803,6 @@ BEGIN
 	if dir_ctg_length is null or dir_ctg_length < 1 then
 		return 0;
 	end if;
-
-	---[0000000],not data
-	--while j <= dir_ctg_length loop
-		--if dir_ctg_array[j] is not null then
-		--	null_flag = false;
-		--	exit;
-		--end if;
-		--j = j + 1;
-	--end loop;
 	
 	------get businfo
 	while businfo_id_index <= dir_ctg_length loop
@@ -2827,21 +2814,14 @@ BEGIN
 		businfo_id_index = businfo_id_index + 1;
 	end loop;
 	
-
-
-	---raise INFO 'dir_ctg_length = %', dir_ctg_length;
-	
-	---init lane info
-	---ex_aLaneinfo not
-	
 	for i in 1..physical_lane_num loop
 		sm_aLaneinfo := array_append(sm_aLaneinfo, '0');
 		ex_aLaneinfo := array_append(ex_aLaneinfo, '0');
 	end loop;
-
 	
 	--insert data
 	--while lanenum_index <= dir_ctg_length and null_flag = false loop
+	lanenum_index := 1;
 	while lanenum_index <= dir_ctg_length  loop
 		if lanenum_array[lanenum_index] = existlan_array[existlan_index]then
 			sm_aLaneinfo[lanenum_index] = '1';
@@ -2859,19 +2839,18 @@ BEGIN
 			sm_aLaneinfo[lanenum_index] = '0';
 			existlan_index = existlan_index + 1;
 			lanenum_index = lanenum_index + 1;
-		else	
-			if dir_ctg_array[lanenum_index] is not null then
-				ex_aLaneinfo[lanenum_index] = '1';
-				insert into temp_lane_tbl(nodeid,inlinkid, outlinkid,passlid,passlink_cnt,lanenum,laneinfo,arrowinfo,lanenuml,lanenumr,buslaneinfo)
-				(
-				select param_nodeid,param_inlinkid, NULL, NULL, 0, physical_lane_num, array_to_string(ex_aLaneinfo, ''), 
-					case when dir_ctg_array[lanenum_index] = 0 then null
-						else dir_ctg_array[lanenum_index]
-					end, 
-					(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[1], 
-				        (mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[2], array_to_string(businfo, '')
+		else
+			ex_aLaneinfo[lanenum_index] = '1';
+			insert into temp_lane_tbl(nodeid,inlinkid, outlinkid,passlid,passlink_cnt,lanenum,laneinfo,arrowinfo,lanenuml,lanenumr,buslaneinfo)
+			(
+			select param_nodeid,param_inlinkid, NULL, NULL, 0, physical_lane_num, array_to_string(ex_aLaneinfo, ''), 
+				case when dir_ctg_array[lanenum_index] = 0 then null
+					else dir_ctg_array[lanenum_index]
+				end, 
+				(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[1], 
+			        (mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[2], array_to_string(businfo, '')
 				);
-			end if;
+				
 			ex_aLaneinfo[lanenum_index] = '0';
 			lanenum_index = lanenum_index + 1;
 		end if;
@@ -3217,6 +3196,7 @@ BEGIN
 					when nonref_node_id = tmpLastNodeArray[tmpPathIndex] then ref_node_id
 				end) as nextnode
 				,controlled_access
+				,ramp
 				,poi_access 
 			from (
 				select	link_id  
@@ -3227,7 +3207,8 @@ BEGIN
 					      when travel_direction = 'T' then 3
 					      else 4
 					end as one_way
-					,controlled_access 
+					,controlled_access
+					,ramp 
 					,poi_access
 				from temp_rdf_nav_link 
 			) a 
@@ -3261,7 +3242,7 @@ BEGIN
 			
 			tmpPath		:= tmpPathArray[tmpPathIndex];
 -- 			raise INFO 'tmpPath = %', tmpPath;
-			if rec.controlled_access = 'Y' then
+			if rec.controlled_access = 'Y' or rec.ramp = 'Y' then
 --   				raise info ' ||| highway:current link:%,ca:%,pa:%',rec.nextlink,rec.controlled_access,rec.poi_access;
 				flag := true;
 				return flag;
@@ -3294,8 +3275,8 @@ BEGIN
 	return flag;
 END;
 $$;
-
-
+		
+					
 		
 					
 CREATE OR REPLACE FUNCTION mid_find_sa_link()
@@ -3344,7 +3325,12 @@ BEGIN
 --  				raise info ' *** highway_flag_neg_dir2:%',highway_flag_neg_dir2;
 			end if;
 			
-			if (rec.one_way = 1 and (highway_flag_pos_dir1 is true and highway_flag_neg_dir1 is true) and ((highway_flag_pos_dir2 is true and highway_flag_neg_dir2 is true)))
+			if (rec.one_way = 1 and (
+				(highway_flag_pos_dir1 is true or highway_flag_neg_dir1 is true) 
+				and 
+				(highway_flag_pos_dir2 is true or highway_flag_neg_dir2 is true)
+				)
+			   )
 				or (rec.one_way = 2 and (highway_flag_pos_dir1 is true and highway_flag_neg_dir1 is true))
 				or (rec.one_way = 3 and (highway_flag_pos_dir2 is true and highway_flag_neg_dir2 is true))
 			then 
@@ -3891,7 +3877,6 @@ BEGIN
 	    		start_date = rec.dst_start_month * 100 + rec.dst_start_day;
 	    	else
 	    		start_date = rec.dst_start_month * 100;
-	    		start_weekday = start_weekday | ((1::smallint) << 8);
 	    		start_weekday = start_weekday | ((1::smallint) << (rec.dst_start_day - 34));
 	    	end if;
 	    	
@@ -3899,7 +3884,6 @@ BEGIN
 	    		end_date = rec.dst_end_month * 100 + rec.dst_end_day;
 	    	else
 	    		end_date = rec.dst_end_month * 100;
-	    		end_weekday = end_weekday | ((1::smallint) << 8);
 	    		end_weekday = end_weekday | ((1::smallint) << (rec.dst_end_day - 34));
 	    	end if;
 	    	

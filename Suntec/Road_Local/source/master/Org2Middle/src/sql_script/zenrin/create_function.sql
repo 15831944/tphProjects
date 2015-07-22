@@ -375,7 +375,8 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_road_type(elcode varchar)
     LANGUAGE plpgsql
 AS $$
 BEGIN
-	return case when substr(elcode,1,1)='A' then 9  
+	return case when substr(elcode,6,1) in ('1','2') then 14
+				when substr(elcode,1,1)='A' then 9  
 		        when substr(elcode,2,1)='1' then 0
                 when substr(elcode,2,1)='2' then 1
                 when substr(elcode,2,1)='3' then 2
@@ -717,20 +718,31 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_119(geom geometry)
+  
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_bentu(geom geometry)
   RETURNS geometry
   LANGUAGE plpgsql
   AS $$ 
 BEGIN
-    return st_setsrid(st_transform(st_setsrid(mid_transtwd67totwd97(st_transform(st_setsrid(geom,3821),3827)),3825),3824),4326);
+    return st_transform(st_setsrid(geom,999900),4326);
 END;
 $$;
-  
-CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_121(geom geometry)
+
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_jinmen(geom geometry)
   RETURNS geometry
   LANGUAGE plpgsql
   AS $$ 
 BEGIN
-    return st_setsrid(st_transform(st_setsrid(mid_transtwd67totwd97(st_transform(st_setsrid(geom,3821),3828)),3826),3824),4326);
+    return st_transform(st_setsrid(geom,999902),4326);
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_lianjiang(geom geometry)
+  RETURNS geometry
+  LANGUAGE plpgsql
+  AS $$ 
+BEGIN
+    return st_transform(st_setsrid(geom,999901),4326);
 END;
 $$;

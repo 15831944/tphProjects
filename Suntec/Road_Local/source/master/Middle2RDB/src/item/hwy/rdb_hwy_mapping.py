@@ -54,4 +54,21 @@ class rdb_hwy_mapping(ItemBase):
         self.CreateIndex2('rdb_highway_mapping_the_geom_idx')
         self.CreateIndex2('rdb_highway_mapping_link_id_'
                           'forward_ic_no_backward_ic_no_idx')
+        # road_type=0，但不被包含在Highway Model的link.
+        self._make_not_hwy_model_link()
         return 0
+
+    def _make_not_hwy_model_link(self):
+        '''road_type=0，但不被包含在Highway Model的link.'''
+        self.CreateTable2('rdb_highway_not_hwy_model_link')
+        sqlcmd = """
+        INSERT INTO rdb_highway_not_hwy_model_link(link_id)
+        (
+        SELECT b.tile_link_id
+          FROM highway_not_hwy_model_link AS a
+          LEFT JOIN rdb_tile_link as b
+          ON a.link_id = b.old_link_id
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()

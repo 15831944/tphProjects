@@ -169,8 +169,9 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
         INSERT INTO mid_temp_link_lang_code(
                         id, l_laxonlc, r_laxonlc, l_order00, r_order00)
         (
-        SELECT distinct id, l_laxonlc, r_laxonlc, l_order00, r_order00
-          FROM org_gc
+        SELECT distinct id, (case when l_order00 = 'MOZ' then 'POR' else l_laxonlc end) as l_laxonlc, 
+            (case when r_order00 = 'MOZ' then 'POR' else r_laxonlc end), l_order00, r_order00
+          FROM org_gc         
           order by id
         );
         """

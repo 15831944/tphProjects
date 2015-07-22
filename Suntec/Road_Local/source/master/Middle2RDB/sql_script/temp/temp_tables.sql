@@ -382,6 +382,13 @@ create table temp_region_walked_link
 	island_id bigint
 );
 
+create table temp_region_links_to_search
+as
+(
+	select link_id, start_node_id, end_node_id, one_way
+	from temp_region_links
+);
+
 create table temp_region_links_sa_ramp
 (
 	link_id	bigint
@@ -1726,7 +1733,13 @@ as
 		from temp_forecast_link_with_slot_merge_layer6 where weekend_diff_array[1] is not null
 		union
 		select distinct time_slot_array,weekday_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer6 where weekday_diff_array[1] is not null		
+		from temp_forecast_link_with_slot_merge_layer6 where weekday_diff_array[1] is not null	
+		union
+		select distinct time_slot_array,weekend_diff_array as time_array
+		from temp_forecast_link_with_slot_merge_layer8 where weekend_diff_array[1] is not null
+		union
+		select distinct time_slot_array,weekday_diff_array as time_array
+		from temp_forecast_link_with_slot_merge_layer8 where weekday_diff_array[1] is not null		
 	) a
 );
 
@@ -1752,7 +1765,10 @@ as
 			from temp_forecast_link_with_slot_merge_layer4
 			union
 			select time_slot_array,weekday_diff_array,weekend_diff_array
-			from temp_forecast_link_with_slot_merge_layer6			
+			from temp_forecast_link_with_slot_merge_layer6	
+			union
+			select time_slot_array,weekday_diff_array,weekend_diff_array
+			from temp_forecast_link_with_slot_merge_layer8			
 		) a
 		left join temp_forecast_time_distinct b
 		on a.time_slot_array = b.time_slot_array and a.weekday_diff_array = b.time_array

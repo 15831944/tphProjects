@@ -7,6 +7,7 @@ Created on 2014-6-3
 import component.component_base
 import common.ntsamp_to_lhplus
 from common import cache_file
+from common.phoneme_change import *
 
 class comp_rawdata_rdf(component.component_base.comp_base):
     '''
@@ -47,25 +48,42 @@ class comp_rawdata_rdf(component.component_base.comp_base):
         if file_obj:
             file_obj.write('%s\t%s\t%s\t%s\n' % (phonetic_strid, phonetic_string,phonetic_code,strmethod))
         return 0
+    
+    def __get_parameters(self, country, language):
+        if country == 'HONGKONG' and language == 'UKE':
+            return "NTSAMPA", "LHPLAS"
+        elif country == 'HONGKONG' and language == 'PYM':
+            return "PYM", "PinYinTone"
+        elif country == 'HONGKONG' and language == 'PYT':
+            return "PYT", "PinYinTone"
+        elif country == 'TAIWAN' and language == 'TWN':
+            return "BPMF", "PinYinTone"
+        elif country == 'SOURTHEASTASIA' and language == 'UKE':
+            return "NTSAMPA", "LHPLAS" 
+        else:
+            return None, None
         
     def __fix_phoneme(self):
         self.log.info('revise the vce_phonetic_text table ...')
         if not self.pg.IsExistTable('vce_phonetic_text_org'):
             sql = '''
                   alter table vce_phonetic_text RENAME TO  vce_phonetic_text_org;
-                  CREATE TABLE vce_phonetic_text
-                  (
-                      phonetic_id              bigint NOT NULL,
-                      phonetic_string          character varying(250) NOT NULL,
-                      phonetic_language_code   character(3) NOT NULL,
-                      transcription_method     character(1) NOT NULL,
-                      CONSTRAINT pk_vce_phonetic PRIMARY KEY (phonetic_id)
-                  );
                   '''
             self.pg.execute2(sql)
             self.pg.commit2()
         
-        self.pg.execute2('delete from vce_phonetic_text')
+        sql = '''
+              drop table if exists vce_phonetic_text;
+              CREATE TABLE vce_phonetic_text
+              (
+                  phonetic_id              bigint NOT NULL,
+                  phonetic_string          character varying(512) NOT NULL,
+                  phonetic_language_code   character(3) NOT NULL,
+                  transcription_method     character(1) NOT NULL,
+                  CONSTRAINT pk_vce_phonetic PRIMARY KEY (phonetic_id)
+              );
+              '''
+        self.pg.execute2(sql)
         self.pg.commit2()
         
         # 
@@ -76,7 +94,17 @@ class comp_rawdata_rdf(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         row = self.pg.fetchone2()
         vce_count  = row[0]
-
+        
+        # get current country
+        current_country = common.common_func.GetPath('proj_country').lower()
+        if current_country == 'hkg':
+            country = 'HONGKONG'
+        elif current_country == 'twn':
+            country = 'TAIWAN'
+        elif current_country == 'ase':
+            country = 'SOURTHEASTASIA'
+        else:
+            country = 'OTHERS'
             
         sql = r'''
               select phonetic_id, phonetic_string, phonetic_language_code, transcription_method 
@@ -87,7 +115,17 @@ class comp_rawdata_rdf(component.component_base.comp_base):
             phlist = self.get_batch_data(sql)
             for ph in phlist:
                 fields = list(ph) 
-                fields[1] = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(ph[2], ph[1])
+#                fields[1] = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(ph[2], ph[1])
+                parm1, parm2 = self.__get_parameters(country, ph[2])
+                if parm1 is not None and parm2 is not None:
+                    func = get_translator(country, ph[2], parm1, parm2)
+                    fields[1] = func.change(ph[1])
+                    
+                    if ph[2] == 'PYM' or ph[2] == 'PYT':
+                        funccheck = get_checker(country, ph[2], parm1, parm2)
+                        if not funccheck.check(fields[1]):
+                            self.log.info('origin data :%s ,language: %s, transformed data:%s transform error!' % (ph[1],ph[2], fields[1]))
+                    
                 fields[1] = fields[1].replace('\\', '\\\\')
                 self.__store_name_to_temp_file(temp_file_obj, fields[0], fields[1], fields[2], fields[3])
             
@@ -105,7 +143,11 @@ class comp_rawdata_rdf(component.component_base.comp_base):
                   '''
             for ph in phlist:
                 fields = list(ph)
-                fields[1] = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(ph[2], ph[1])
+#                fields[1] = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(ph[2], ph[1])
+                parm1, parm2 = self.__get_parameters(country, ph[2])
+                if parm1 is not None and parm2 is not None:
+                    func = get_translator(country, ph[2], parm1, parm2)
+                    fields[1] = func.change(ph[1])
                 
                 self.pg.execute2( sql2, fields )
             self.pg.commit2()

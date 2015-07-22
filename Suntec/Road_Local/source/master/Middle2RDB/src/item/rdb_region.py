@@ -23,7 +23,7 @@ class rdb_region(ItemBase):
             ('axf'):                rdb_region_axf_china(),
             ('ta','eu'):            rdb_region_ta_europe(),
             ('ta','vie'):           rdb_region_ta_vietnam(),
-            ('ta','aus'):           rdb_region_ta_vietnam(),
+            ('ta','aus'):           rdb_region_ta_aus(),
             ('rdf','hkg'):          rdb_region_rdf_ap(),
             ('rdf','sgp'):          rdb_region_rdf_ap(),
             ('rdf','me8'):          rdb_region_rdf_ap(),
@@ -225,6 +225,10 @@ class rdb_region(ItemBase):
     def _deleteIsolatedLink(self):
         rdb_log.log('Region', 'Delete isolated link from original region links...', 'info')
         
+        self.CreateTable2('temp_region_links_to_search')
+        self.CreateIndex2('temp_region_links_to_search_link_id_idx')
+        self.CreateIndex2('temp_region_links_to_search_start_node_id_idx')
+        self.CreateIndex2('temp_region_links_to_search_end_node_id_idx')
         self.CreateTable2('temp_region_walked_link')
         self.CreateIndex2('temp_region_walked_link_link_id_idx')
         
@@ -1417,12 +1421,12 @@ class rdb_region_taiwan(rdb_region_rdf_ap):
     def _makeOriginalRegionOnLevel6(self):
         rdb_region_rdf_ap._makeOriginalRegionOnLevel6(self, 2, [1,2])
 
-class rdb_region_rdf_north_america(rdb_region):
-    def _makeOriginalRegionOnLevel4(self):
-        rdb_region._makeOriginalRegionOnLevel4(self, 10, [1,2,3])
+class rdb_region_three_layers(rdb_region):
+    def _makeOriginalRegionOnLevel4(self, zlevel=10, fc_array=[1,2,3]):
+        rdb_region._makeOriginalRegionOnLevel4(self, zlevel, fc_array)
     
-    def _makeOriginalRegionOnLevel6(self):
-        rdb_region._makeOriginalRegionOnLevel6(self, 6, [1,2])
+    def _makeOriginalRegionOnLevel6(self, zlevel=6, fc_array=[1,2]):
+        rdb_region._makeOriginalRegionOnLevel6(self, zlevel, fc_array)
     
     def _makeOriginalRegionOnLevel8(self, zlevel=2, fc_array=[1]):
         rdb_log.log('Region', 'Make original region level8...', 'info')
@@ -1576,19 +1580,108 @@ class rdb_region_rdf_north_america(rdb_region):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
 
+class rdb_region_rdf_north_america(rdb_region_three_layers):
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel4(self, 10, [1,2,3])
+    
+    def _makeOriginalRegionOnLevel6(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel6(self, 6, [1,2])
+    
+    def _makeOriginalRegionOnLevel8(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel8(self, 2, [1])
+
+class rdb_region_rdf_argentina(rdb_region_three_layers):
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4,5])
+        self._deleteSomeUrbanRoad()
+    
+    def _deleteSomeUrbanRoad(self):
+        self.log.info('delete some urban road...')
+        sqlcmd = """
+                delete from temp_region_orglink_level4 as a
+                using 
+                (
+                    select link_id
+                    from rdb_link_add_info
+                    where (path_extra_info & (1::smallint << 3) != 0) --urban road
+                )as b
+                where (function_code = 5) and (a.link_id = b.link_id);
+                analyze temp_region_orglink_level4;
+                """
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = """
+                delete from temp_region_orgnode_level4 as a
+                using 
+                (
+                    select a.node_id
+                    from temp_region_orgnode_level4 as a
+                    left join temp_region_orglink_level4 as b
+                    on a.node_id in (b.start_node_id, b.end_node_id)
+                    where b.link_id is null
+                )as b
+                where a.node_id = b.node_id;
+                analyze temp_region_orgnode_level4;
+                """
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+    
+    def _makeOriginalRegionOnLevel6(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel6(self, 6, [1,2,3,4])
+    
+    def _makeOriginalRegionOnLevel8(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel8(self, 2, [1])
+
+class rdb_region_ta_aus(rdb_region_three_layers):
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4])
+        self._deleteSomeUrbanRoad()
+    
+    def _deleteSomeUrbanRoad(self):
+        self.log.info('delete some urban road...')
+        sqlcmd = """
+                delete from temp_region_orglink_level4 as a
+                using 
+                (
+                    select link_id
+                    from rdb_link_add_info
+                    where (path_extra_info & (1::smallint << 3) != 0) --urban road
+                )as b
+                where (function_code = 4) and (a.link_id = b.link_id);
+                analyze temp_region_orglink_level4;
+                """
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = """
+                delete from temp_region_orgnode_level4 as a
+                using 
+                (
+                    select a.node_id
+                    from temp_region_orgnode_level4 as a
+                    left join temp_region_orglink_level4 as b
+                    on a.node_id in (b.start_node_id, b.end_node_id)
+                    where b.link_id is null
+                )as b
+                where a.node_id = b.node_id;
+                analyze temp_region_orgnode_level4;
+                """
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+    
+    def _makeOriginalRegionOnLevel6(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel6(self, 6, [1,2,3])
+    
+    def _makeOriginalRegionOnLevel8(self):
+        rdb_region_three_layers._makeOriginalRegionOnLevel8(self, 2, [1])
+
 class rdb_region_rdf_brazil(rdb_region):
     def _makeOriginalRegionOnLevel4(self):
         rdb_region._makeOriginalRegionOnLevel4(self, 8, [1,2,3])
     
     def _makeOriginalRegionOnLevel6(self):
         rdb_region._makeOriginalRegionOnLevel6(self, 4, [1])
-
-class rdb_region_rdf_argentina(rdb_region):
-    def _makeOriginalRegionOnLevel4(self):
-        rdb_region._makeOriginalRegionOnLevel4(self, 6, [1,2,3,4])
-    
-    def _makeOriginalRegionOnLevel6(self):
-        rdb_region._makeOriginalRegionOnLevel6(self, 2, [1])
 
 class rdb_region_nostra_thailand(rdb_region):
     def _makeOriginalRegionOnLevel4(self):

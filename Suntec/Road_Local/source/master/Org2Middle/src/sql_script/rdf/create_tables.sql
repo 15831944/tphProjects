@@ -1662,12 +1662,12 @@ create table temp_poi_name
 
 create table temp_category_priority
 (
-    u_code          character varying(1024)   not null,
+    per_code          character varying(1024)   not null,
     category_priority    int   
  
 );
 
-create table temp_poi_category
+create table temp_poi_category1
 (
     per_code   bigint       not null,
     gen1       int          not null,
@@ -1680,6 +1680,28 @@ create table temp_poi_category
     tr_name    varchar(128) not null default ''
 );
 
+
+create table temp_poi_category
+(
+    per_code   bigint       not null,
+    is_brand   varchar,
+    gen1       int          not null,
+    gen2       int          not null,
+    gen3       int          not null,
+    level      smallint     not null,
+    name       varchar(128) not null,
+    genre_type varchar,
+    org_code   bigint,
+    sub        integer,
+    chain      bigint,
+    cuisine    integer,
+    building   integer,    
+    three       bigint,
+    lang        varchar,
+    filename    varchar
+);
+
+--genre_id,is_brand,g0,g1,g2,level,name,genre_type,cat_id,sub,chain,cuisine,building,three,lang,filename
 --------------------------------------------------------------------------------------------------------
 CREATE TABLE mid_temp_hwy_sapa_name_group
 (

@@ -6,6 +6,7 @@ Created on 2012-8-17
 @alter: zhengchao
 '''
 import component.component_base
+import common.common_func
 
 class comp_ramp_roadtype(component.component_base.comp_base):
     '''
@@ -16,7 +17,9 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Ramp_RoadType')        
+        component.component_base.comp_base.__init__(self, 'Ramp_RoadType')
+        self.proj_name = common.common_func.GetProjName()  
+        self.proj_country = common.common_func.getProjCountry()
         
     def _DoCreateTable(self):
         
@@ -27,6 +30,14 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         if self.CreateTable2('temp_link_ramp_toohigh') == -1:
             return -1
         if self.CreateTable2('temp_link_ramp_toohigh_single_path') == -1:
+            return -1
+        if self.CreateTable2('temp_single_roundabout') == -1:
+            return -1
+        if self.CreateTable2('temp_roundabout') == -1:
+            return -1
+        if self.CreateTable2('temp_roundabout_for_searchramp') == -1:
+            return -1
+        if self.CreateTable2('temp_roundabout_road_type') == -1:
             return -1
         return 0
     
@@ -40,6 +51,8 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             return -1
         if self.CreateFunction2('mid_cnv_ramp_toohigh_search') == -1:
             return -1
+        if self.CreateFunction2('mid_find_roundabout') == -1:
+            return -1
         return 0
         
     def _DoCreateIndex(self): 
@@ -47,6 +60,10 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         return 0
     
     def _Do(self):
+        
+        # 找到允许ramp算路通过的环岛
+        
+        self._findproperroundabout()
         # 调整Ramp的road_type和FC
         self._ConvertRampRoadTypeFC()
         # 更新link_tbl中Ramp的RoadType和FC
@@ -55,8 +72,27 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         #self._UpdateRampRoadDisplayClass()#20140619式样修改：根据显示美观要求，ramp的display_class不做修改
         self._ConvertRampRoadTypeFC_Toohigh()
         self._UpdateRampRoadTypeFC_Toohigh()
+        
+        self._UpdateRoundaboutRoadType()
         return 0
     
+    def _findproperroundabout(self):
+        '找到这种环岛：即只连接高速本线或者sapalink或者匝道的环岛'
+        
+        if not (self.proj_name.lower()=='rdf' and self.proj_country.lower()=='hkg'):
+            return 0
+        
+        self.log.info('Finding proper roundabout.')
+        sqlcmd = """
+                SELECT mid_find_roundabout();
+            """
+        
+        if self.pg.execute2(sqlcmd) == -1:
+            return -1
+        else:
+            self.pg.commit2()
+        return 0
+        
     def _ConvertRampRoadTypeFC(self):
         "调整Ramp的road_type和FC，和相连的高等级道路一致。"
         sqlcmd = """
@@ -134,3 +170,28 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         else:
             self.pg.commit2()
         return 0
+    
+    def _UpdateRoundaboutRoadType(self):
+        '提升Roundabout的road_type'
+        
+        self.log.info('Updating Road type of Roundabout for link_tbl.')
+        sqlcmd = """
+                update link_tbl a
+                set road_type=b.new_road_type
+                from
+                (
+                    select b.link_id,a.new_road_type
+                    from 
+                    (
+                        select roundabout_id,min(new_road_type) as new_road_type 
+                        from temp_roundabout_road_type
+                        group by roundabout_id
+                    ) a
+                    join temp_roundabout_for_searchramp b
+                    on a.roundabout_id=b.roundabout_id
+                ) b
+                where a.link_id=b.link_id
+            """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        

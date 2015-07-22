@@ -20,6 +20,8 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
+        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
+        return
         if self.comp_factory != None:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('rawdata'))    #revise the rawdata about phoneme

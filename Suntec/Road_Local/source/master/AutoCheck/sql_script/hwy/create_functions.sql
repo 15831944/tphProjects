@@ -97,7 +97,7 @@ BEGIN
 		if rec.one_way_code in (1,2) then
 			if check_is_hwy_sapa_link(rec.e_node, 1) = 1 or
 			   check_is_hwy_sapa_link(rec.s_node, 2) = 1 then
-				insert into check_hwy_sapa_link(link_id, link_type, road_type)
+				insert into temp_hwy_check_link(link_id, link_type, road_type)
 				values(rec.link_id, rec.link_type, rec.road_type);
 				continue;
 			end if;
@@ -107,7 +107,7 @@ BEGIN
 		if rec.one_way_code in (1,3) then
 			if  check_is_hwy_sapa_link(rec.s_node, 1) = 1 or 
 			    check_is_hwy_sapa_link(rec.e_node, 2) = 1 then
-				insert into check_hwy_sapa_link(link_id, link_type, road_type)
+				insert into temp_hwy_check_link(link_id, link_type, road_type)
 				values(rec.link_id, rec.link_type, rec.road_type);
 				continue;
 			end if;

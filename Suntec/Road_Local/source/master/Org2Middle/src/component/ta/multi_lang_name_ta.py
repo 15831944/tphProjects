@@ -54,7 +54,15 @@ class MultiLangNameTa(MultiLangName):
     def get_lang_code_by_id(n_id):
         d = {704: 'VIE',
              36: 'ENG',
-             554: 'ENG'
+             554: 'ENG',
+             508: 'POR',
+             894: 'ENG',
+             426: 'ENG',
+             516: 'ENG',
+             72: 'ENG',
+             710: 'ENG',
+             716: 'ENG',
+             748: 'ENG'
              }
         if n_id:
             return d.get((int(n_id) / (10 ** 10))%1000)

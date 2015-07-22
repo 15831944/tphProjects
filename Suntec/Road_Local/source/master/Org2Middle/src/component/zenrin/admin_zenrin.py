@@ -49,31 +49,32 @@ class comp_admin_zenrin(component.component_base.comp_base):
         #
         self.log.info('making admin geom...')
         sqlcmd = '''
-                drop table if exists temp_admin_zone_list;
-                create table temp_admin_zone_list
-                as
-                (
-                    select  gid, elcode, name1, name2,
-                            case when name1 in ('金門縣','連江縣') then mid_transtwd67totwd97_119(the_geom)
-                                 else mid_transtwd67totwd97_121(the_geom)
-                            end as the_geom
-                    from
-                    (
-                        select  row_number() over (order by elcode, name1, name2) as gid,
-                                elcode, name1, name2,
-                                st_scale(st_multi(st_union(the_geom)), 1.0 / 3600000, 1.0 / 3600000) as the_geom
-                        from
-                        (
-                            select a.elcode, b.name1, b.name2, a.the_geom
-                            FROM org_p_area_administration as a
-                            left join org_attribute_name as b
-                            on a.meshcode = b.meshcode and a.attrnmno = b.attrnmno
-                            where a.elcode in ('550000', '570000', '560000', '580000')
-                        )as t
-                        group by elcode, name1, name2
-                    )as t
-                    order by elcode, name1, name2
-                );
+               drop table if exists temp_admin_zone_list;
+               create table temp_admin_zone_list
+               as
+               (
+                   select  gid, elcode, name1, name2,
+                           case when name1 = '金門縣' then mid_transtwd67totwd97_jinmen(the_geom)
+                                when name1 = '連江縣' then mid_transtwd67totwd97_lianjiang(the_geom)
+                                else mid_transtwd67totwd97_bentu(the_geom)
+                           end as the_geom
+                   from
+                   (
+                       select  row_number() over (order by elcode, name1, name2) as gid,
+                               elcode, name1, name2,
+                               st_scale(st_multi(st_union(the_geom)), 1.0 / 3600000, 1.0 / 3600000) as the_geom
+                       from
+                       (
+                           select a.elcode, b.name1, b.name2, a.the_geom
+                           FROM org_p_area_administration as a
+                           left join org_attribute_name as b
+                           on a.meshcode = b.meshcode and a.attrnmno = b.attrnmno
+                           where a.elcode in ('550000', '570000', '560000', '580000')
+                       )as t
+                       group by elcode, name1, name2
+                   )as t
+                   order by elcode, name1, name2
+               );
                 '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

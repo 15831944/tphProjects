@@ -695,3 +695,13 @@ CREATE INDEX temp_highaccid_links_link_id_s_node_e_node_idx
   ON temp_highaccid_links
   USING btree
   (link_id, s_node, e_node);
+  
+CREATE INDEX temp_rdf_poi_cat_id_chain_sub_cuisine_building_idx
+  ON temp_rdf_poi
+  USING btree
+  (cat_id,chain,sub,cuisine,building);
+
+CREATE INDEX temp_rdf_poi_poi_id_idx
+  ON temp_rdf_poi
+  USING btree
+  (poi_id);

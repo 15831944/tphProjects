@@ -1113,6 +1113,31 @@ class HwyDataMngRDF(component.component_base.comp_base):
                 return forward_ic_no
         return None
 
+    def get_path_id(self, road_code):
+        sqlcmd = """
+        select path_id
+          from road_code_info
+          where road_code = %s;
+        """
+        self.pg.execute1(sqlcmd, (road_code,))
+        row = self.pg.fetchone()
+        return row[0]
+
+    def get_path_by_pathid(self, path_id, updown):
+        sqlcmd = """
+        SELECT array_agg(node_id) as path
+          FROM (
+            SELECT path_id, node_id, seq_nm
+              FROM mid_temp_hwy_main_path
+              WHERE path_id = %s and updown = %s
+              ORDER BY seq_nm
+          ) AS a
+          group by path_id;
+        """
+        self.pg.execute1(sqlcmd, (path_id, updown))
+        row = self.pg.fetchone()
+        return row[0]
+
 # 加洲
 California_BOX = """ WHERE the_geom && ST_SetSRID(ST_MakeBox2D(ST_Point(-119.040,34.586),
                                                                        ST_Point(-117.029,33.026)),

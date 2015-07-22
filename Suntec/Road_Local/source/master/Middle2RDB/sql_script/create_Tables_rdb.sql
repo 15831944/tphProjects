@@ -495,7 +495,7 @@ CREATE TABLE rdb_guideinfo_building_structure
   type_code_priority integer NOT NULL default 0,
   centroid_lontitude integer NOT NULL,
   centroid_lantitude integer NOT NULL,
-  building_name character varying(1024)
+  building_name character varying(2048)
 );
 
 CREATE TABLE rdb_guideinfo_caution
@@ -676,7 +676,7 @@ CREATE TABLE rdb_guideinfo_building_structure_client
   type_code integer NOT NULL,
   centroid_lontitude integer NOT NULL,
   centroid_lantitude integer NOT NULL,
-  building_name character varying(1024)
+  building_name character varying(2048)
 );
 
 CREATE TABLE rdb_guideinfo_caution_client
@@ -1874,6 +1874,13 @@ create table rdb_highway_mapping
   path_type        character varying(10) not null,
   tile_id          integer not null
 );SELECT AddGeometryColumn('','rdb_highway_mapping','the_geom','4326','LINESTRING',2);
+
+------------------------------------------------------------------------
+-- Link, which's road_type is 0, but are not included in hwy model.
+CREATE TABLE rdb_highway_not_hwy_model_link
+(
+   link_id   bigint not null primary key
+);
 
 ------------------------------------------------------------------------
 -- highway illust info

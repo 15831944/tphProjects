@@ -450,6 +450,21 @@ CREATE INDEX temp_region_nodes_node_id_idx
 	using btree
 	(node_id);
 
+CREATE INDEX temp_region_links_to_search_link_id_idx
+	on temp_region_links_to_search
+	using btree
+	(link_id);
+
+CREATE INDEX temp_region_links_to_search_start_node_id_idx
+	on temp_region_links_to_search
+	using btree
+	(start_node_id);
+
+CREATE INDEX temp_region_links_to_search_end_node_id_idx
+	on temp_region_links_to_search
+	using btree
+	(end_node_id);
+
 CREATE INDEX temp_region_merge_node_keep_node_id_idx
 	on temp_region_merge_node_keep
 	using btree

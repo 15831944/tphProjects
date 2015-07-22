@@ -209,9 +209,9 @@ create table temp_poi_name
 );
 
 ------------------------------------------------------------------------
-CREATE TABLE temp_prepare_node
+CREATE TABLE mid_hwy_org_facility_node
 (
-	path_id   integer,
-	ic_no     bigint,
-	node_id   bigint
+  path_id        integer NOT NULL,
+  facility_id    bigint NOT NULL,
+  node_id        bigint NOT NULL
 );

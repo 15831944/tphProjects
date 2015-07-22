@@ -943,7 +943,7 @@ CREATE TABLE mid_vm_pt
 -------------------------------------------------------------------------------------------
 CREATE TABLE mid_temp_link_lang_code
 (
-   id          bigint not null,
+   id          bigint not null primary key,
    l_laxonlc   character varying(3),
    r_laxonlc   character varying(3),
    l_order00   character varying(3),

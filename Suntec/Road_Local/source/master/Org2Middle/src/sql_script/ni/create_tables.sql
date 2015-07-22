@@ -137,7 +137,7 @@ create table temp_poi_category
 	ph_type character varying(5),
 	ph_lang character(3),
 	ph_name character varying(128),
-	logmark varchar(128) not null default ''
+	logmark varchar(128)  default ''
 );
 
 create table temp_brand_icon

@@ -81,6 +81,7 @@ class comp_natural_guidence(component.component_base.comp_base):
                     select  a.t_fp_id as fp_id,
                             xc.language_code,
                             xc.name as feat_name,
+                            xe.phonetic_language_code,
                             xe.phonetic_string as feat_phonetic_string,
                             zc.preposition as prep_name,
                             ze.phonetic_string as prep_phonetic_string,
@@ -116,6 +117,7 @@ class comp_natural_guidence(component.component_base.comp_base):
                     select  a.t_fp_id as fp_id,
                             xc.language_code,
                             xc.name as feat_name,
+                            xe.phonetic_language_code,
                             xe.phonetic_string as feat_phonetic_string,
                             zc.preposition as prep_name,
                             ze.phonetic_string as prep_phonetic_string,
@@ -153,13 +155,15 @@ class comp_natural_guidence(component.component_base.comp_base):
         sqlcmd = """
                 select  fp_id,
                         array_agg(name_id) as name_id_array,
+                        array_agg('office_name'::varchar) as name_type_array,
                         array_agg(language_code) as language_code_array,
                         array_agg(name) as name_array,
+                        array_agg(phonetic_language_code) as phonetic_language_code_array,
                         array_agg(phonetic_string) as phonetic_string_array
                 from
                 (
                     -- connect prep_phonetic_string and feat_phonetic_string
-                    select  fp_id, language_code, 
+                    select  fp_id, language_code, phonetic_language_code,
                             0 as name_id,
                             (
                             case 
@@ -176,7 +180,7 @@ class comp_natural_guidence(component.component_base.comp_base):
                     from
                     (
                         -- choose the best phonetic_string
-                        select  fp_id, language_code, 
+                        select  fp_id, language_code, phonetic_language_code, 
                                 0 as name_id,
                                 (array_agg(is_prep_feat))[1] as is_prep_feat,
                                 (array_agg(feat_name))[1] as feat_name,
@@ -187,13 +191,13 @@ class comp_natural_guidence(component.component_base.comp_base):
                         (
                             select *
                             from temp_natural_guidence_name_all_language
-                            order by fp_id, language_code, preferred desc, 
+                            order by fp_id, language_code, phonetic_language_code, preferred desc, 
                                      feat_preferred desc, feat_transcription_method desc, 
                                      prep_preferred desc, prep_transcription_method desc
                         )as t2
-                        group by fp_id, language_code
+                        group by fp_id, language_code, phonetic_language_code
                     )as t3
-                    order by fp_id, name_id, language_code
+                    order by fp_id, name_id, language_code, phonetic_language_code
                 )as t4
                 group by fp_id
                 ;
@@ -203,10 +207,12 @@ class comp_natural_guidence(component.component_base.comp_base):
         temp_file_obj = common.cache_file.open('natural_guidence_name')
         for asso_rec in asso_recs:
             fp_id = asso_rec[0]
-            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string(asso_rec[1], 
-                                                                                         asso_rec[2], 
-                                                                                         asso_rec[3], 
-                                                                                         asso_rec[4])
+            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[1], 
+                                                                                                            asso_rec[2], 
+                                                                                                            asso_rec[3], 
+                                                                                                            asso_rec[4], 
+                                                                                                            asso_rec[5], 
+                                                                                                            asso_rec[6])
             temp_file_obj.write('%d\t%s\n' % (fp_id, json_name))
         
         #

@@ -92,6 +92,7 @@ class rdb_hwy_ic_info(ItemBase):
         self.CreateIndex2('rdb_highway_ic_info_up_down_facility_id_idx')
         # 生成设施番号到IC_NO的Mapping
         self._make_highway_ic_mapping()
+        self._create_ic_info_view()
         return 0
 
     def _get_point_info(self):
@@ -126,3 +127,41 @@ class rdb_hwy_ic_info(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('rdb_highway_ic_mapping_up_down_facility_id_idx')
+
+    def _create_ic_info_view(self):
+        sqlcmd = '''
+        CREATE OR REPLACE VIEW ic_info_view
+        AS
+        (
+            select ic_no ,up_down,facility_id,'JCT' as ic_type
+            from rdb_highway_ic_info
+            where jct = 1
+            union
+            select ic_no ,up_down,facility_id,'PA' as ic_type
+            from rdb_highway_ic_info
+            where pa = 1
+            union
+            select ic_no ,up_down,facility_id,'SA' as ic_type
+            from rdb_highway_ic_info
+            where sa = 1
+            union
+            select ic_no ,up_down,facility_id,'Tollgate' as ic_type
+            from rdb_highway_ic_info
+            where tollgate = 1
+            union
+            select ic_no ,up_down,facility_id,'IC' as ic_type
+            from rdb_highway_ic_info
+            where ic = 1
+            union
+            select ic_no ,up_down,facility_id,'IC Enter' as ic_type
+            from rdb_highway_ic_info
+            where enter = 1
+            union
+            select ic_no, up_down, facility_id, 'IC Exit' as ic_type
+            from rdb_highway_ic_info
+            where exit = 1
+            order by ic_type
+        )
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()

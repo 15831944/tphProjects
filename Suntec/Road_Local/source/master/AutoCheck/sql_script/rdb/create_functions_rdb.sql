@@ -1298,14 +1298,20 @@ BEGIN
 		
 		-- check start_weekday
 		if rec.start_weekday > 0 then
-			if (rec.start_weekday & 127) not in (1,2,4,8,16,32,64) then
+			if 	(rec.start_weekday & 127) not in (1,2,4,8,16,32,64) 
+				or
+				(rec.start_weekday >> 7) not in (1,2,4,8,16,32) 
+			then
 				raise EXCEPTION 'summer time error: start_weekday format is uncorrect, summer_time_id = %', rec.summer_time_id;
 			end if;
 		end if;
 		
 		-- check end_weekday
 		if rec.end_weekday > 0 then
-			if (rec.end_weekday & 127) not in (1,2,4,8,16,32,64) then
+			if 	(rec.end_weekday & 127) not in (1,2,4,8,16,32,64)
+				or
+				(rec.end_weekday >> 7) not in (1,2,4,8,16,32)
+			then
 				raise EXCEPTION 'summer time error: end_weekday format is uncorrect, summer_time_id = %', rec.summer_time_id;
 			end if;
 		end if;

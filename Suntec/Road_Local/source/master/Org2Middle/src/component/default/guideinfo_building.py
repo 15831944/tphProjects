@@ -8,6 +8,8 @@ import io
 import os
 import component.component_base
 import common.config
+import xlrd
+
 
 class comp_guideinfo_building(component.component_base.comp_base):
     def __init__(self):
@@ -44,27 +46,35 @@ class comp_guideinfo_building(component.component_base.comp_base):
                          '''
                 self.pg.execute(sqlcmd, fields)
         self.pg.commit()
-                                      
-        
+
     def _loadPOICategory(self):
         self.log.info('make temp_poi_category...')
         self.CreateTable2('temp_poi_category')
         
         category_file_path = common.config.CConfig.instance().getPara('POI_Code')
+#        print 'category_file_path====',category_file_path
         for line in open(category_file_path):
             line = line.strip()
             if line[0] == '#':
                 continue
+
             fields = line.split(';')
+            
             lens = len(fields)
+            
+            for i in range(lens):
+                if fields[i] in ('','null') :
+                    fields[i]= None
+            
             string = '%s,'*(lens-1)+'%s'
             sqlcmd = '''
                       insert into temp_poi_category values(%s);
                      '''  % string
+
             self.pg.execute(sqlcmd, fields)
-        self.pg.commit()
+        self.pg.commit()                                      
         
-    
+  
     def _loadCategoryPriority(self):
         self.log.info('make temp_category_priority...')
         self.CreateTable2('temp_category_priority')
@@ -80,10 +90,55 @@ class comp_guideinfo_building(component.component_base.comp_base):
             self.pg.execute(sqlcmd, fields)
         self.pg.commit()  
  
- 
- 
- 
- 
+  
+
+    def _loadCategoryPriority1(self):
+        self.log.info('make temp_category_priority...')
+        self.CreateTable2('temp_org_category_priority')
+        category_priority_file_path = common.config.CConfig.instance().getPara('category_priority')
+        
+        data = xlrd.open_workbook(category_priority_file_path)
+        table = data.sheets()[0]  
+        nrows = table.nrows
+        for i in range(nrows ):   
+            line=table.row_values(i)
+            if 'org_code' in line:
+                continue 
+            try:
+                line=[int(line[0]),int(line[1])]
+            except:
+                pass
+            line=[str(line[0]),int(line[1])] 
+            
+            sqlcmd= """
+                        insert into temp_org_category_priority values(%s,%s)              
+                    """
+            self.pg.execute(sqlcmd,line)
+        self.pg.commit()    
+                 
+        
+        sqlcmd="""
+                drop table if exists temp_category_priority;
+                create table temp_category_priority
+                as
+                (
+                    select per_code,category_priority
+                    from
+                    (                
+                       select  per_code, 
+                               (case when b.priority is null then '11'
+                                    else b.priority end
+                               ) as category_priority
+                       from  temp_poi_category as a
+                       left join temp_org_category_priority as b
+                       on a.org_code::varchar = b.org_code::varchar
+                       --order by  b.priority::integer, a.per_code      
+                    ) as kk
+                    order by category_priority::integer, per_code 
+                )
+               """  
+        self.pg.execute(sqlcmd)
+        self.pg.commit()
  
  
     

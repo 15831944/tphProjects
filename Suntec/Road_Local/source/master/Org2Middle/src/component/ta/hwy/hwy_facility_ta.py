@@ -92,6 +92,9 @@ class HwyFacilityTa(HwyFacilityRDF):
             road_code, road_seq = data[0:2]
             feattyp_list, subcat_list = data[2:4]
             service_types = self._get_service_types(feattyp_list, subcat_list)
+            # 服务标志都为HWY_FALSE时，不收录
+            if set(service_types) == set([HWY_FALSE]):
+                continue
             updown = HWY_UPDOWN_TYPE_UP
             self._store_service_info(road_code, road_seq,
                                      updown, service_types)

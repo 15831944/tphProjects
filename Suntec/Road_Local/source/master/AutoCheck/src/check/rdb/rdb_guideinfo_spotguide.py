@@ -145,7 +145,8 @@ class CCheckGuideSpotguidePasslinkCnt_special(platform.TestCase.CTestCase):
 
         sqlcmd = """
             SELECT count(*)
-            FROM spotguide_tbl;
+            FROM spotguide_tbl
+            where patternno <> 'toll_station_image';
         """
         self.pg.execute(sqlcmd)
         row2 = self.pg.fetchone()
@@ -197,7 +198,7 @@ class CCheckGuideSpotguidePointMustBeBifurcation(platform.TestCase.CTestCase):
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return cnt == 0     
 
-# 类型和高速相关的时候，其inlink必须是高速
+# spotguide类型和高速相关的时候，其inlink或outlink必须有一条是高速道路
 # spotguide高速相关type: 1,2,3,6,8,11
 # 高速路road_type: 0,1
 class CCheckGuideSpotguideInlinkRoadType_Highway(platform.TestCase.CTestCase):
@@ -207,12 +208,16 @@ class CCheckGuideSpotguideInlinkRoadType_Highway(platform.TestCase.CTestCase):
                 rdb_guideinfo_spotguidepoint as a
                 left join rdb_link as b
                 on a.in_link_id=b.link_id and a.in_link_id_t=b.link_id_t
-                where a.type in (1,2,3,6,8,11) and b.road_type not in (0,1);
+                left join rdb_link as c
+                on a.out_link_id=b.link_id and a.out_link_id_t=b.link_id_t
+                where (a.type in(1,2,3,6,8,11) 
+                       and b.road_type not in(0,1)
+                       and c.road_type not in(0,1));
                '''
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return cnt == 0  
     
-# 类型是普通路口的时候，其inlink必须是非高速
+# spotguide类型是普通路口的时候，其inlink必须是非高速
 # 12: 收费站不进行check。
 class CCheckGuideSpotguideInlinkRoadType_NotHighway(platform.TestCase.CTestCase):
     def _do(self):

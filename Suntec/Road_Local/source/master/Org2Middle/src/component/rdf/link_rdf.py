@@ -116,7 +116,7 @@ class comp_link_rdf(component.component_base.comp_base):
         # create temp table for buslane. 
         self.CreateTable2('temp_link_buslane')
         
-        if self.isCountry('ap'):
+        if self.isCountry('ase'):
             self.pg.execute2("""
                 insert into temp_link_buslane(link_id)
                 SELECT distinct a.link_id

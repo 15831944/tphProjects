@@ -3133,10 +3133,7 @@ BEGIN
 	While True LOOP
 		-- find a node as the start point of a new island
 		select start_node_id
-		from temp_region_links as a
-		left join temp_region_walked_link as b
-		on a.link_id = b.link_id
-		where b.link_id is null
+		from temp_region_links_to_search
 		limit 1
 		into nCurNodeID;
 		
@@ -3190,6 +3187,7 @@ BEGIN
 	                listNode[nIndex]:= nNextNode;
 	
 	                INSERT INTO temp_region_walked_link(link_id, island_id) VALUES (nNextLink, island_id);
+	                delete from temp_region_links_to_search where link_id = nNextLink;
 	            end if;
 	            close curs2;
 	

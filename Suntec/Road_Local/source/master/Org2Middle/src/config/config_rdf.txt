@@ -11,5 +11,5 @@
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
 POI_Code=..\docs\poi\category_rdf.txt
-category_priority=..\docs\poi\category_priority_here.txt
+category_priority=..\docs\poi\category_priority_rdf.xls
 #################################################################

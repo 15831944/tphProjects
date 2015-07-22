@@ -22,6 +22,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_RAMP
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 HWY_INVALID_ROAD_NO = -1  # 无效道路番号
 HWY_INVALID_IC_NO = 0  # 无效ic_no
@@ -733,23 +734,27 @@ class HwyMappingRDF(HwyMapping):
                                   fwd_ic_no, link_id, path_type))
 
     def _make_not_hwy_model_links(self):
-        '''非高速Model的link(由于物理、规制原因不能和高速本线通行).'''
-        self.CreateTable2('mid_temp_not_hwy_model_link')
+        '''非高速Model的link(由于物理、规制原因不能和高速本线通行的road_type=0的link).'''
+        self.CreateTable2('highway_not_hwy_model_link')
         self.pg.connect1()
         sqlcmd = """
-        SELECT a.link_id, s_node, e_node,one_way_code
+        SELECT a.link_id, s_node, e_node, one_way_code,
+               link_type
           FROM link_tbl as a
           LEFT JOIN highway_mapping as b
           ON a.link_id = b.link_id
           where road_type = 0 and b.link_id is null and
-                link_type <> 0 and -- not roundabout link
-                not (link_type = 1 and one_way_code = 1)
+                link_type <> 0   --  not roundabout link
+                -- not (link_type in (1, 2) and one_way_code = 1)
           ORDER BY a.link_id;
         """
         cutoff = MIN_CUT_OFF
         # 两头都能到高速本线，或者一头到高速本线，另一头到一般道
-        for link_id, u, v, one_way in self.get_batch_data(sqlcmd):
-            # print link_id
+        for link_id, u, v, one_way, link_type in self.get_batch_data(sqlcmd):
+            # 本线、双向通行
+            if link_type in HWY_LINK_TYPE_MAIN and one_way == ONE_WAY_BOTH:
+                self._store_not_hwy_model_link(link_id)
+                continue
             if one_way in (ONE_WAY_POSITIVE, ONE_WAY_BOTH):
                 pathes = list(self.G.all_path_2_hwy_main([u, v],
                                                          HWY_ROAD_CODE,
@@ -816,6 +821,6 @@ class HwyMappingRDF(HwyMapping):
 
     def _store_not_hwy_model_link(self, link_id):
         sqlcmd = """
-        INSERT INTO mid_temp_not_hwy_model_link(link_id) VALUES(%s);
+        INSERT INTO highway_not_hwy_model_link(link_id) VALUES(%s);
         """
         self.pg.execute1(sqlcmd, (link_id,))

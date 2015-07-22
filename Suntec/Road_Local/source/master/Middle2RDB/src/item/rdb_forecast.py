@@ -67,6 +67,8 @@ class rdb_forecast_aus(ItemBase):
 
         self._createForecast_region('4')
         self._createForecast_region('6')
+        if self.pg.IsExistTable('rdb_region_link_layer8_tbl'):
+            self._createForecast_region('8')
 
         self._insertRDBTables()
 
@@ -1111,6 +1113,8 @@ class rdb_forecast_aus(ItemBase):
                     select *,43 as type from temp_forecast_link_with_slot_merge_layer4
                     union all
                     select *,63 as type from temp_forecast_link_with_slot_merge_layer6
+                    union all
+                    select *,83 as type from temp_forecast_link_with_slot_merge_layer8                    
             ) a
             left join temp_forecast_control b
             on a.time_slot_array = b.time_slot_array and a.weekday_diff_array = b.weekday_diff_array

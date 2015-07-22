@@ -175,7 +175,7 @@ class CCheckBoundryRegulationExist(platform.TestCase.CTestCase):
         
         area = common.ConfigReader.CConfigReader.instance().getCountryName()
         #if area.upper() in ('NA', 'ARG', 'CHN'):
-        if area.upper() in ('NA', 'MEA', 'ME8', 'AUS', 'ASE', 'SAF', 'SAF8'):
+        if area.upper() in ('NA', 'MEA', 'ME8', 'ASE', 'SAF', 'SAF8'):
             return (rec_count > 0)
         else:
             return (rec_count == 0)

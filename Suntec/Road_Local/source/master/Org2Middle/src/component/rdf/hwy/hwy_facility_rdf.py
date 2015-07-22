@@ -811,6 +811,9 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.pg.connect1()
         for road_code, road_seq, cat_id_list in self.get_batch_data(sqlcmd):
             service_types = self._get_service_types(cat_id_list)
+            # 服务标志都为HWY_FALSE时，不收录
+            if set(service_types) == set([HWY_FALSE]):
+                continue
             updown = HWY_UPDOWN_TYPE_UP
             self._store_service_info(road_code, road_seq,
                                      updown, service_types)
@@ -994,37 +997,51 @@ class HwyFacilityRDF(component.component_base.comp_base):
         del_sapa_list = []
         for info in self._get_filter_sapa():
             array_gid, road_code, node_id = info[0:3]
-            to_node_id, node_lids, link_lids = info[3:6]
+            to_node_id = info[3]
+            # node_lids, link_lids = info[4:6]
             inout_c, path_type, updown = info[6:9]
-            # 取得起点到SAPA link的最小距离和终点到SAPA link的最小距离
-            #s_min_dist, e_min_dist = self._get_min_dist_2_sapa_link(node_lids,
-            #                                                         inout_c)
             # 同侧有配对SAPA HWY Node
-            if self._march_sapa_node(node_id, road_code, updown):
+            if self._match_sapa_node(node_id, road_code, updown, inout_c):
                 continue  # 保留SAPA设施
             else:
                 # 出口，路的终点
                 if(inout_c == HWY_INOUT_TYPE_OUT and
                    self.hwy_data.is_road_end_node(road_code, updown,
                                                   node_id)):
-                    if path_type == HWY_PATH_TYPE_JCT:
-                        self.log.warning('SAPA in the end of road. node=%s,'
-                                         'to_node=%s' % (node_id, to_node_id))
-                    continue  # 保留SAPA设施
+                    if path_type == HWY_PATH_TYPE_UTURN:
+                        continue  # 保留SAPA设施
                 # 入口，路的起点
                 elif(inout_c == HWY_INOUT_TYPE_IN and
                      self.hwy_data.is_road_start_node(road_code, updown,
                                                       node_id)):
+                    if path_type == HWY_PATH_TYPE_UTURN:
+                        continue  # 保留SAPA设施
+                # ## to_node_id同侧是否有配对SAPA HWY Node
+                t_sapa_flag = False
+                t_inout_c = HWY_INOUT_TYPE_OUT
+                if inout_c == HWY_INOUT_TYPE_OUT:
+                    t_inout_c = HWY_INOUT_TYPE_IN
+                for t_roadinfo in self._get_roadcode_by_node(to_node_id,
+                                                             t_inout_c):
+                    t_roadcode, t_updwon = t_roadinfo[0:2]
+                    if self._match_sapa_node(to_node_id, t_roadcode,
+                                             t_updwon, t_inout_c):
+                        t_sapa_flag = True
+                        break
+                # to_node_id同侧有配对SAPA HWY Node
+                if t_sapa_flag:
+                    del_sapa_list += array_gid
+                else:
+                    # 两边都没有 配对SAPA HWY Node
                     if path_type == HWY_PATH_TYPE_JCT:
-                        self.log.warning('SAPA in the start of road. node=%s,'
-                                         'to_node=%s' % (node_id, to_node_id))
-                    continue  # 保留SAPA设施
-                del_sapa_list += array_gid
+                        self.log.info('No SAPA HWY Node in Both Side.'
+                                      'node=%s,to_node=%s' %
+                                      (node_id, to_node_id))
         self._store_del_sapa(del_sapa_list)
         self.log.info('End Filter SAPA.')
 
-    def _march_sapa_node(self, node_id, road_code, updown):
-        '''判断有无同侧的配对SAPA HWY Node.'''
+    def _match_sapa_node(self, node_id, road_code, updown, inout):
+        '''有无同侧(相同的road_code)的配对SAPA HWY Node.'''
         sqlcmd = """
         SELECT DISTINCT a.to_node_id
                --,a.road_code, b.road_seq, a.node_id
@@ -1047,7 +1064,64 @@ class HwyFacilityRDF(component.component_base.comp_base):
         row = self.pg.fetchone()
         if row and row[0]:
             return True
+        # 本线直接相连(road_code不同)的配对SAPA HWY Node
+        conn_flg = self._match_sapa_node_path_conn(node_id, road_code,
+                                                   updown, inout)
+        return conn_flg
+
+    def _match_sapa_node_path_conn(self, node_id, road_code, updown, inout):
+        '''本线直接相连(road_code不同)的配对SAPA HWY Node'''
+        # 取得配对SAPA HWY Node(road_code不同--不同线路)
+        sqlcmd = """
+        SELECT DISTINCT b.road_code, b.updown_c
+          FROM (
+            SELECT road_code, road_seq,
+                   node_id, to_node_id, updown_c
+              FROM mid_temp_hwy_ic_path
+              where node_id = %s and
+                    road_code = %s and
+                    updown_c = %s and
+                    path_type = 'SAPA' and
+                    facilcls_c in (1, 2)
+          ) AS a
+          INNER JOIN mid_temp_hwy_ic_path AS b
+          ON a.to_node_id = b.node_id and
+             a.road_code <> b.road_code;
+        """
+        path_id = self.hwy_data.get_path_id(road_code)
+        path = self.hwy_data.get_path_by_pathid(path_id, updown)
+        self.pg.execute1(sqlcmd, (node_id, road_code, updown))
+        for row in self.pg.fetchall():
+            t_road_code, t_updwon = row[0:2]
+            t_path_id = self.hwy_data.get_path_id(t_road_code)
+            t_path = self.hwy_data.get_path_by_pathid(t_path_id, t_updwon)
+            # 本线是头尾相连
+            # 注：这里只能使用path_id对应的路径，不能使用road_code对应的路径，
+            # 因为后者的路径被截短了
+            if inout == HWY_INOUT_TYPE_OUT:
+                # 注：当前上下行直接相连
+                if path[-1] == t_path[0]:
+                    return True
+            elif inout == HWY_INOUT_TYPE_IN:
+                if path[0] == t_path[-1]:
+                    return True
+            else:
+                self.log.error('Error inout_c.')
+                return False
         return False
+
+    def _get_roadcode_by_node(self, node_id, inout_c):
+        sqlcmd = """
+        SELECT distinct road_code, updown_c
+          FROM mid_temp_hwy_ic_path
+          where node_id = %s and inout_c = %s and
+                facilcls_c in (1, 2)
+          ORDER BY road_code, updown_c
+        """
+        self.pg.execute1(sqlcmd, (node_id, inout_c))
+        for row in self.pg.fetchall():
+            road_code, updown_c = row[0:2]
+            yield road_code, updown_c
 
     def _get_min_dist_2_sapa_link(self, node_lids, inout_c):
         min_dist1, min_dist2 = -1, -1

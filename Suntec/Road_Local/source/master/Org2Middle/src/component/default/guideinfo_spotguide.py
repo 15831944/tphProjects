@@ -8,14 +8,14 @@ Created on 2012-6-3
 import component.component_base
 
 tollStationImageName = 'toll_station_image' # 此图由机能组指定。
+roadType2SpotguideTypeMap = {0:1, 1:1, 2:4,
+                             3:4, 4:4, 5:4,
+                             6:4, 7:4, 8:4,
+                             9:4, 10:4, 11:4,
+                             12:4, 13:4, 14:4,
+                             15:4}
 class comp_guideinfo_spotguide(component.component_base.comp_base):
-    '''illust
-    '''
-
     def __init__(self):
-        '''
-        Constructor
-        '''
         component.component_base.comp_base.__init__(self, 'spotguide_tbl')
         
     def _DoCreateTable(self):
