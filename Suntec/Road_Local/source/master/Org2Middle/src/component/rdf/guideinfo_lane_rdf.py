@@ -177,7 +177,7 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
         
         self.pg.commit2()
         return 0
-    
+
     # 
     def _deleteRepLaneTravs(self):
         
@@ -195,13 +195,12 @@ class comp_guideinfo_lane_rdf(component.component_base.comp_base):
         
         self.pg.commit2()
         return 0
-    
+
+    #
     def _make_temp_lane_tbl(self):
         
         sqlcmd = """
-            SELECT mid_make_guidelane_info(inlink_id, node_id, lane_travel_direction) 
-            FROM temp_lane_guide_distinct
-            GROUP BY inlink_id, node_id, lane_travel_direction;
+            SELECT mid_make_guidelane_info()
         """
         if self.pg.execute2(sqlcmd) == -1:
             return -1
