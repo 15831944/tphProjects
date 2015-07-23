@@ -2838,57 +2838,32 @@ $$
 DECLARE
 	rec              record;
 	ID               integer;
-	lstr_array       text[];
-	lstr_array_len   integer;
-	lane_num         integer;
-	lstr_index       integer;
-	char_index       integer;
-	laneinfo_result  character[];
-	temp_char        character;
-	lane_index       integer;
-	laneinfo_str     text;
+	laneinfo_len	 integer;
+	laneinfo_bit_var bit varying;
+	i				 integer;
 BEGIN   
-	ID = 1;
-	lstr_array_len = 1;
-	temp_char = '0';
-	
+	ID := 1;	
 	FOR rec IN
-		select array_agg(laneinfo) as laneinfo_list, lanenum, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, arrowinfo, lanenuml, lanenumr, buslaneinfo
+		select array_agg(laneinfo) as laneinfo_list, lanenum, nodeid, inlinkid, outlinkid, 
+		       passlid, passlink_cnt, arrowinfo, lanenuml, lanenumr, buslaneinfo
 		from temp_lane_tbl 
-		group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo 
+		group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, lanenum, 
+		         arrowinfo, lanenuml, lanenumr, buslaneinfo 
 	loop
-		lstr_array = rec.laneinfo_list;
-		lane_num = rec.lanenum;
-		lstr_array_len = array_upper(lstr_array,1);
-		lane_index = 1;
-		char_index = 1;
-		laneinfo_result = null;
-		while lane_index <= lane_num loop
-			laneinfo_result[lane_index] = '0';
-			lane_index = lane_index + 1;
-		end loop;
-		---raise INFO 'laneinfo_result = %', laneinfo_result;
-		if lstr_array_len > 1 then
-			while char_index <= lane_num loop
-				lstr_index = 1;
-				while lstr_index <= lstr_array_len loop
-					temp_char = substr(lstr_array[lstr_index], char_index, 1)::character;
-					if temp_char = '1' then
-						laneinfo_result[char_index] = '1'
-						exit;
-					end if;
-					lstr_index = lstr_index + 1;
-				end loop;
-				char_index = char_index + 1;
+		i := 1;
+		laneinfo_bit_var := rec.laneinfo_list[1]::bit varying;
+		laneinfo_len := array_upper(rec.laneinfo_list,1);
+		if laneinfo_len > 1 then
+			for i in 2..laneinfo_len loop
+				laneinfo_bit_var := laneinfo_bit_var | rec.laneinfo_list[i]::bit varying; 
 			end loop;
-			laneinfo_str = array_to_string(laneinfo_result,'');
-		else
-			laneinfo_str = lstr_array[1];
 		end if;
 		
-		insert into lane_tbl(id,nodeid,inlinkid, outlinkid,passlid, passlink_cnt,lanenum, laneinfo,arrowinfo, lanenuml,lanenumr,buslaneinfo)
-			values(ID, rec.nodeid, rec.inlinkid, rec.outlinkid, rec.passlid, rec.passlink_cnt, rec.lanenum, laneinfo_str, rec.arrowinfo, rec.lanenuml, rec.lanenumr, rec.buslaneinfo);
-		ID  = ID  + 1;
+		insert into lane_tbl(id,nodeid,inlinkid, outlinkid,passlid, passlink_cnt,lanenum, 
+							 laneinfo,arrowinfo, lanenuml,lanenumr,buslaneinfo)
+		values(ID, rec.nodeid, rec.inlinkid, rec.outlinkid, rec.passlid, rec.passlink_cnt, rec.lanenum, 
+		       laneinfo_bit_var::varchar, rec.arrowinfo, rec.lanenuml, rec.lanenumr, rec.buslaneinfo);
+		ID := ID  + 1;
 	END LOOP;
     return 0;
 END;
