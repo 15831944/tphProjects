@@ -249,8 +249,10 @@ def getItem(proj_mapping):
     proj_country = common.config.CConfig.instance().getPara('proj_country').lower()
     if proj_mapping.has_key((proj_name, proj_country)):
         return proj_mapping[(proj_name, proj_country)]
-    else:
+    elif proj_mapping.has_key(proj_name):
         return proj_mapping[proj_name]
+    else:
+        return proj_mapping['default']
 
 def readlines(path):
     lines = []

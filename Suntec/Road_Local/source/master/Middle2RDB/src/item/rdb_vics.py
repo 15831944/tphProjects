@@ -1749,55 +1749,200 @@ class rdb_traffic_rdf_ase(rdb_traffic):
         
         rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')       
 
-        # Add nodes to original traffic links.  
-        self.CreateIndex2('rdf_link_rtic_linkid_idx')
+        # Create indexs for original tables.  
+        self.CreateIndex2('rdf_link_rtic_nvid_1_idx')
+        self.CreateIndex2('rdf_link_rtic_mapid_idx')
+        
+        # Create meshbox.
+        self.CreateTable2('temp_rtic_mesh_box')
+        
+        # Split link by meshbox.
         sqlcmd = """
-            drop table if exists temp_rtic_link_temp cascade;
-            create table temp_rtic_link_temp as 
-            select a.meshcode, a.linkid, b.ref_node_id as s_node
-                ,b.nonref_node_id as e_node
-                ,a.kind, a.linkdir, a.rticid
-                ,b.the_geom as the_geom
+            drop table if exists temp_rtic_link_split;
+            create table temp_rtic_link_split as
+            select nvid,mapid,link_geom,mesh_geom
+                ,geom_index
+                ,st_geometryn(the_geom, geom_index) as the_geom
             from (
-                SELECT mapid as meshcode, linkid
-                    , kind_u as kind, dir_u as linkdir, middle_u as rticid 
-                FROM rdf_link_rtic where flag_u <> '0'
-                union
-                SELECT mapid as meshcode, linkid
-                    , kind_d as kind, dir_d as linkdir, middle_d as rticid
-                FROM rdf_link_rtic where flag_d <> '0'
-            ) a
-            left join temp_rdf_nav_link b
-            on (a.linkid)::bigint = b.link_id;
+                select nvid,mapid,link_geom,mesh_geom,the_geom
+                    ,generate_series(1,geom_count) as geom_index
+                from (
+                    select nvid,mapid,link_geom,mesh_geom
+                        ,st_multi(the_geom) as the_geom
+                        ,st_numgeometries(st_multi(the_geom)) as geom_count
+                    from (
+                        select a.*,b.the_geom as link_geom,c.the_geom as mesh_geom
+                            ,case
+                                when st_contains(c.the_geom, b.the_geom) then b.the_geom
+                                else st_intersection(b.the_geom, c.the_geom)
+                            end as the_geom
+                        from (
+                            select distinct nvid,mapid
+                            from rdf_link_rtic
+                        ) a
+                        left join temp_rdf_nav_link b
+                        on a.nvid::bigint = b.link_id
+                        left join temp_rtic_mesh_box c
+                        on a.mapid = c.mesh_id
+                        where b.link_id is not null and st_intersects(b.the_geom,c.the_geom)
+                    ) d
+                ) e
+            ) f;
             
-            CREATE INDEX temp_rtic_link_temp_linkdir_idx
-              ON temp_rtic_link_temp
+            CREATE INDEX temp_rtic_link_split_mapid_nvid_geom_index_idx
+              ON temp_rtic_link_split
               USING btree
-              (linkdir);
-            CREATE INDEX temp_rtic_link_temp_linkid_idx
-              ON temp_rtic_link_temp
-              USING btree
-              (linkid);
-            CREATE INDEX temp_rtic_link_temp_meshcode_kind_rticid_idx
-              ON temp_rtic_link_temp
-              USING btree
-              (meshcode, kind, rticid);
-            CREATE INDEX temp_rtic_link_temp_s_node_e_node_idx
-              ON temp_rtic_link_temp
-              USING btree
-              (s_node, e_node);                    
-            CREATE INDEX temp_rtic_link_temp_s_node_idx
-              ON temp_rtic_link_temp
-              USING btree
-              (s_node);
-            CREATE INDEX temp_rtic_link_temp_e_node_idx
-              ON temp_rtic_link_temp
-              USING btree
-              (e_node);
+              (mapid,nvid,geom_index);            
         """
         self.pg.execute2(sqlcmd)   
         self.pg.commit2()
-        
+
+        # Get percent of splitted links.
+        sqlcmd = """
+            drop table if exists temp_rtic_link_split_order;
+            create table temp_rtic_link_split_order as
+            select a.nvid,a.mapid,b.linkid
+                ,case when st_equals(link_geom,the_geom) then 0
+                    else mid_get_fraction(link_geom, ST_StartPoint(the_geom)) 
+                end as s_fraction
+                    ,case when st_equals(link_geom,the_geom) then 1
+                    else mid_get_fraction(link_geom, ST_EndPoint(the_geom)) 
+                end as e_fraction
+                    ,a.geom_index,a.the_geom
+            from temp_rtic_link_split a
+            left join (
+                select nvid,mapid
+                    ,unnest(linkid_array) as linkid
+                    ,generate_series(1,count) as index
+                from (
+                    select nvid,mapid
+                        ,array_agg(linkid) as linkid_array
+                        ,array_upper(array_agg(linkid),1) as count
+                    from (
+                        select nvid,mapid,linkid
+                        from rdf_link_rtic
+                        order by nvid,mapid,linkid
+                    ) m
+                    group by nvid,mapid
+                ) n 
+            ) b
+            on a.mapid = b.mapid and a.nvid = b.nvid and a.geom_index = b.index;
+            
+            CREATE INDEX temp_rtic_link_split_order_nvid_idx
+            ON temp_rtic_link_split_order
+            USING btree
+            (nvid);
+            CREATE INDEX temp_rtic_link_split_order_nvid_1_idx
+            ON temp_rtic_link_split_order
+            USING btree
+            (cast(nvid as bigint));
+        """
+        self.pg.execute2(sqlcmd)   
+        self.pg.commit2()
+
+        # Give new node id to rtic link.
+        sqlcmd = """
+            drop sequence if exists temp_rtic_new_node_id_seq;
+            create sequence temp_rtic_new_node_id_seq;
+            select setval('temp_rtic_new_node_id_seq', cast(max_id as bigint) + 1000000)
+            from
+            (
+                select max(node_id) as max_id
+                from temp_rdf_nav_node
+            )as a;
+            
+            drop table if exists temp_rtic_link_split_addnode;
+            create table temp_rtic_link_split_addnode as 
+            select nvid,fraction,nextval('temp_rtic_new_node_id_seq') as node_id 
+            from (
+                select nvid,s_fraction as fraction from temp_rtic_link_split_order
+                union
+                select nvid,e_fraction as fraction from temp_rtic_link_split_order
+            ) a 
+            where fraction <> 0 and fraction <> 1;
+            
+            CREATE INDEX temp_rtic_link_split_addnode_nvid_idx
+            ON temp_rtic_link_split_addnode
+            USING btree
+            (nvid);
+            
+            drop table if exists temp_rtic_link_split_new;
+            create table temp_rtic_link_split_new as
+            select distinct nvid,s_node,e_node,linkid,s_fraction,e_fraction
+            from (
+                select a.nvid
+                    ,case when a.s_fraction = 0 then b.ref_node_id
+                        when a.s_fraction <> 0 and a.s_fraction = c.fraction then c.node_id
+                        else null
+                     end as s_node
+                    ,case when a.e_fraction = 1 then b.nonref_node_id
+                        when a.e_fraction <> 1 and a.e_fraction = d.fraction then d.node_id
+                        else null
+                     end as e_node
+                    ,a.linkid,a.s_fraction,a.e_fraction
+                from temp_rtic_link_split_order a
+                left join temp_rdf_nav_link b
+                on a.nvid::bigint = b.link_id
+                left join temp_rtic_link_split_addnode c
+                on a.nvid = c.nvid
+                left join temp_rtic_link_split_addnode d
+                on a.nvid = d.nvid                
+            ) d where s_node is not null and e_node is not null;
+            
+            analyze temp_rtic_link_split_new;
+            
+            CREATE INDEX temp_rtic_link_split_new_nvid_linkid_idx
+            ON temp_rtic_link_split_new
+            USING btree
+            (nvid,linkid);
+        """
+        self.pg.execute2(sqlcmd)   
+        self.pg.commit2()
+
+        # Get relationship of network road and small rtic links.
+        sqlcmd = """
+            drop table if exists temp_rtic_link_temp cascade;
+            create table temp_rtic_link_temp as 
+            select a.meshcode,a.nvid as source_id,a.linkid,b.s_node,b.e_node,a.kind
+                ,a.rticid,a.linkdir
+                ,b.s_fraction,b.e_fraction
+            from (
+                SELECT mapid as meshcode, linkid, nvid
+                    , kind_u as kind, dir_u as linkdir, middle_u as rticid
+                FROM rdf_link_rtic where flag_u <> '0'
+                union
+                SELECT mapid as meshcode, linkid, nvid
+                    , kind_d as kind, dir_d as linkdir, middle_d as rticid
+                FROM rdf_link_rtic where flag_d <> '0'
+            ) a
+            left join temp_rtic_link_split_new b
+            on a.nvid = b.nvid and a.linkid = b.linkid
+            where b.nvid is not null;
+                     
+            CREATE INDEX temp_rtic_link_temp_linkdir_idx
+            ON temp_rtic_link_temp
+            USING btree
+            (linkdir);
+            CREATE INDEX temp_rtic_link_temp_linkid_idx
+            ON temp_rtic_link_temp
+            USING btree
+            (linkid);
+            CREATE INDEX temp_rtic_link_temp_meshcode_kind_rticid_idx
+            ON temp_rtic_link_temp
+            USING btree
+            (meshcode, kind, rticid);
+            CREATE INDEX temp_rtic_link_temp_s_node_e_node_idx
+            ON temp_rtic_link_temp
+            USING btree
+            (s_node, e_node);
+            CREATE INDEX temp_rtic_link_temp_source_id_idx
+            ON temp_rtic_link_temp
+            USING btree
+            (source_id);   
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                                
         self.CreateFunction2('rdb_make_trf_rtic_link_seq')
         self.CreateFunction2('rdb_make_trf_rtic_link_seq_in_one_direction')        
         self.pg.commit2()
@@ -2459,10 +2604,12 @@ class rdb_traffic_ni(rdb_traffic):
                 SELECT mapid as meshcode, linkid
                     , kind_u as kind, dir_u as linkdir, middle_u as rticid 
                 FROM org_rtic where flag_u <> '0'
+                and folder not in ('aomen', 'xianggang')
                 union
                 SELECT mapid as meshcode, linkid
                     , kind_d as kind, dir_d as linkdir, middle_d as rticid
                 FROM org_rtic where flag_d <> '0'
+                and folder not in ('aomen', 'xianggang')
             ) a
             left join org_r b
             on a.linkid = b.id;

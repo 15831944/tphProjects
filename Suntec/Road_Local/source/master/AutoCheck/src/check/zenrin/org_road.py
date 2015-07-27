@@ -8,7 +8,7 @@ class CCheckIDDuplication(platform.TestCase.CTestCase):
                     select count(1) from
                     (
                         select meshcode,linkno from org_road group by meshcode,linkno having count(1)>1
-                    )
+                    ) a
                 """
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)

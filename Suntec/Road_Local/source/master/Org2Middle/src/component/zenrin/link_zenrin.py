@@ -148,7 +148,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                 ) a
             left join org_underpass b using(meshcode,linkno)
             left join org_tunnelname c on a.meshcode=c.meshcode and a.linkno=c.roadno
-            left join org_divider d on a.meshcode=d.meshcode and a.linkno=d.linkno
+            left join org_divider d on a.meshcode=d.meshcode and a.linkno=d.linkno and d.divflg='1' -- and d.divtype='0' : physical divider ???
             left join org_lanenum e on a.meshcode=e.meshcode and a.linkno=e.roadno
             left join org_speed f on a.meshcode=f.meshcode and a.linkno=f.roadno
             join temp_node_mapping h on a.meshcode=h.meshcode and a.snodeno=h.nodeno

@@ -929,9 +929,10 @@ class comp_factory_ni(comp_factory):
             from component.ni.link_ni import comp_link_ni
             return comp_link_ni()
         
-        if comp_name == 'Guideinfo_building':
-            from component.ni import guideinfo_building_ni
-            return guideinfo_building_ni.comp_guideinfo_building_ni()   
+        #17CY中国仕向地不做成扩大图Logmark和NaturalGuidence机能
+        #if comp_name == 'Guideinfo_building':
+        #    from component.ni import guideinfo_building_ni
+        #    return guideinfo_building_ni.comp_guideinfo_building_ni()   
 
         if comp_name == 'Dictionary':
             from component.ni.dictionary_ni import comp_dictionary_ni

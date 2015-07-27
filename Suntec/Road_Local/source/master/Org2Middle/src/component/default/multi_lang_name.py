@@ -5,6 +5,8 @@ Created on 2014-1-7
 @author: hongchenzai
 '''
 import json
+import common.log
+
 SHIELD_SPLIT_CHR = '\t'
 # 音素种别
 TTS_TYPE_NOT_TTS = 'not_tts'  # 非TTS, 普通的文本
@@ -324,19 +326,23 @@ class MultiLangName(object):
             for name_dict in one_multi_name:
                 side_type = name_dict.get('left_right')
                 if side_type not in MultiLangName._left_right_dict:
-                    print 'Error left_right.'
+                    errorInfo = 'Error left_right.'
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                     return json_name
                 tts_type = name_dict.get('tts_type')
                 if tts_type not in MultiLangName._tts_type_dict:
-                    print 'Error TTS type.'
+                    errorInfo = 'Error TTS type.'
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                     return json_name
                 name_type = name_dict.get('type')
                 if name_type not in MultiLangName._name_type_dict:
-                    print 'Error Name type.'
+                    errorInfo = 'Error Name type.'
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                     return json_name
                 lang_code = name_dict.get('lang')
                 if lang_code not in MultiLangName._language_code_dict:
-                    print 'Error: %s' % lang_code
+                    errorInfo = 'Error: %s' % lang_code
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                     return json_name
         json_name = json.dumps(ml_name_dict_list, ensure_ascii=False,
                                encoding='utf8', sort_keys=True)
@@ -386,18 +392,22 @@ class MultiLangName(object):
 
     def _name_to_dict(self):
         if self._left_right not in MultiLangName._left_right_dict:
-            print 'Error left_right.'
+            errorInfo = 'Error left_right.'
+            common.log.common_log.instance().logger('MultiLang').error(errorInfo)
             return None
         if self._tts_type not in MultiLangName._tts_type_dict:
-            print 'Error TTS type.'
+            errorInfo = 'Error TTS type.'
+            common.log.common_log.instance().logger('MultiLang').error(errorInfo)
             return None
         if self._name_type not in MultiLangName._name_type_dict:
-            print 'Error Name type.'
+            errorInfo = 'Error Name type.'
+            common.log.common_log.instance().logger('MultiLang').error(errorInfo)
             return None
 
         # if not self._lang_code in MultLangName._language_code_dict:
         if not self._check_lang_code(self._lang_code):
-            print 'Error: %s' % self._lang_code
+            errorInfo = 'Error: %s' % self._lang_code
+            common.log.common_log.instance().logger('MultiLang').error(errorInfo)
             return None
         else:
             self._set_language_flag(self._lang_code)

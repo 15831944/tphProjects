@@ -53,7 +53,7 @@ class CCheckAdminArea(platform.TestCase.CTestCase):
     def _do(self):
         twn_area = 36192 * 1000000
         sqlcmd = """
-                select sum(st_area(the_geom, false))
+                select sum(st_area(the_geom_4326, false))
                 FROM org_p_area_administration
                 where elcode in ('560000', '580000')
                 """

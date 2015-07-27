@@ -1187,8 +1187,28 @@ CREATE TABLE temp_poi_logmark
   ucode integer NOT NULL,
   the_geom geometry, 
   org_code smallint
-  --condition character varying(100),
-  --result boolean
+);
+
+CREATE TABLE temp_poi_logmark1
+(
+  id bigint NOT NULL,
+  feattyp smallint,
+  subcat integer,
+  brandname character varying(75),
+  ucode integer NOT NULL,
+  the_geom geometry, 
+  org_code smallint
+);
+
+CREATE TABLE temp_poi_logmark2
+(
+  id bigint NOT NULL,
+  feattyp smallint,
+  subcat integer,
+  brandname character varying(75),
+  ucode integer NOT NULL,
+  the_geom geometry, 
+  org_code smallint
 );
 
 create table temp_poi_name
@@ -1253,4 +1273,57 @@ CREATE TABLE temp_lane_tbl
   lanenumr smallint,
   buslaneinfo character varying(17),
   exclusive smallint default 0
+);
+
+CREATE TABLE org_poi_ne
+(
+  namedsetid integer NOT NULL,
+  namesectid integer NOT NULL,
+  namelayerid integer NOT NULL,
+  nameitemid integer NOT NULL,
+  langcode character(3),
+  "name" character varying(100),
+  normname character varying(254),
+  ptid integer
+
+);
+
+CREATE TABLE org_poi_nefa
+(
+  nameitemid integer,
+  featdsetid integer,
+  featsectid integer,
+  featlayerid integer,
+  featitemid integer,
+  featcat integer,
+  featclass integer,
+  sideofline integer,
+  attitemid integer,
+  attseqnr integer,
+  langcode character(3),
+  nametype character(2),
+  namesubtype integer
+);
+
+CREATE TABLE org_poi_pt
+(
+  ptid integer NOT NULL,
+  pt_label integer NOT NULL,
+  alphabet integer,
+  transcription character varying(254),
+  lanphonset character(3),
+  preference integer,
+  lanpron character(3)
+);
+
+CREATE TABLE org_poi_foa
+(
+  featdsetid integer NOT NULL,
+  featsectid integer NOT NULL,
+  featlayerid integer NOT NULL,
+  featitemid integer NOT NULL,
+  featcat integer NOT NULL,
+  featclass integer NOT NULL,
+  shapeid bigint
+
 );

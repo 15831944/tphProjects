@@ -45,36 +45,42 @@ class comp_guideinfo_lane_mmi(component.component_base.comp_base):
                     nodeid, lanenuml, lanenumr, buslaneinfo)
                 values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
                 '''
-        sqlcmd = '''
-            select f.nodeid, f.inlink, f.outlink, f.laneno,
+        sqlcmd = '''           
+        select f.nodeid, f.inlink, f.outlink, f.laneno_arr,
                 f.direction, f.oneway_lane, f.seqnrs,
                 ST_ASEWKT(mid_get_expand_box(f.inlink::bigint,
-                                            f.outlink::bigint, %s)
+                            f.outlink::bigint, %s)
                         ),
                 g.s_node, g.e_node, g.one_way_code
             from
             (
-              select e.nodeid, e.inlink, e.outlink, e.laneno,
-                    e.direction, e.oneway_lane, array_agg(seqnr) as seqnrs
-              from
-                (
-                    select distinct c.*,d.seqnr
-                    from
+              select nodeid,inlink,outlink,direction,oneway_lane,seqnrs,array_agg(laneno) as laneno_arr from
+              (    
+                  select e.nodeid, e.inlink, e.outlink, e.laneno,
+                        e.direction, e.oneway_lane, array_agg(seqnr) as seqnrs
+                  from
                     (
-                        SELECT distinct junction as nodeid,
-                            from_edge as inlink,to_edge as outlink,
-                            fr_seqnr as laneno,b.dr_cat as direction,
-                            side as oneway_lane
-                        FROM org_lane_connectivity as a
-                        join org_lane as b
-                        on a.from_edge = b.edge_id and a.fr_seqnr = b.seqnr
-                    ) as c
-                    left join org_lane as d
-                    on c.inlink = d.edge_id and c.oneway_lane = d.side
-                    order by c.inlink,c.outlink,d.seqnr desc
-                ) as e
-                group by e.nodeid, e.inlink, e.outlink, e.laneno,
-                        e.direction, e.oneway_lane
+                        select distinct c.*,d.seqnr
+                        from
+                        (
+                            SELECT distinct junction as nodeid,
+                                from_edge as inlink,to_edge as outlink,
+                                fr_seqnr as laneno,b.dr_cat as direction,
+                                side as oneway_lane
+                            FROM org_lane_connectivity as a
+                            join org_lane as b
+                            on a.from_edge = b.edge_id and a.fr_seqnr = b.seqnr
+                        ) as c
+                        left join org_lane as d
+                        on c.inlink = d.edge_id and c.oneway_lane = d.side
+                        order by c.inlink,c.outlink,d.seqnr desc
+                    ) as e
+                    group by e.nodeid, e.inlink, e.outlink, e.laneno,
+                            e.direction, e.oneway_lane
+                           order by e.nodeid, e.inlink, e.outlink, 
+                            e.direction, e.oneway_lane,e.laneno desc
+                ) a
+                group by nodeid,inlink,outlink,direction,oneway_lane,seqnrs
             )as f
             left join link_tbl as g
             on f.outlink = g.link_id;
@@ -86,12 +92,12 @@ class comp_guideinfo_lane_mmi(component.component_base.comp_base):
             nodeid = row[0]
             inlink = row[1]
             outlink = row[2]
-            laneno = row[3]
+            laneno_arr = row[3]
             direction = row[4]
             oneway = row[5]
             lanes = row[6]
             '''check lane if series'''
-            check_flag = self._check_lanes(laneno, lanes)
+            check_flag = self._check_lanes(laneno_arr, lanes)
 
             lanenum = len(lanes)
             laneinfo = ''
@@ -99,7 +105,8 @@ class comp_guideinfo_lane_mmi(component.component_base.comp_base):
             '''get laneinfo'''
             if check_flag:
                 init_lanes = ['0'] * lanenum
-                init_lanes[lanes.index(laneno)] = '1'
+                for laneno in laneno_arr:
+                    init_lanes[lanes.index(laneno)] = '1'
                 laneinfo = ''.join(init_lanes)
             else:
                 continue
@@ -175,9 +182,10 @@ class comp_guideinfo_lane_mmi(component.component_base.comp_base):
         self.pg.commit2()
         return 0
 
-    def _check_lanes(self, laneno, lanes):
-        if laneno not in lanes:
-            return False
+    def _check_lanes(self, laneno_arr, lanes):
+        for laneno in laneno_arr:
+            if laneno not in lanes:
+                return False
         length = len(lanes)
         if (lanes[0] - lanes[length - 1] + 1) != length:
             return False

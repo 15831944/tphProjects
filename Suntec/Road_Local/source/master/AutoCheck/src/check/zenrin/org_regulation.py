@@ -142,15 +142,15 @@ class CCheckorg_road_oneway3(platform.TestCase.CTestCase):
                 from (
                     select meshcode, linkno, snodeno, enodeno, oneway
                     from org_road
+                    where oneway = 2
                 ) a
                 left join "org_one-way" b
                     on a.meshcode = b.meshcode and a.linkno = b.linkno
                 where a.snodeno = b.snodeno and a.enodeno = b.enodeno
                 """
         rec_count2 = self.pg.getOnlyQueryResult(sqlcmd)
-        
-        rec_count = rec_count1 & rec_count2
-        return (rec_count == 0)
+
+        return (rec_count1 == rec_count2)
 
 class CCheckorg_one_way_day(platform.TestCase.CTestCase):
     def _do(self):

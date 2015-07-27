@@ -5,6 +5,8 @@ Created on 2014-11-26
 @author: hcz
 '''
 import re
+import common.log
+
 STATE_IDX = 0
 NUMBER_IDX = 1
 MODIFIERS_IDX = 2
@@ -133,10 +135,12 @@ class RouteNumParser(object):
                             self.add_number(num_modifier_dir[1],
                                             DIRECTION_SPLIT_CHAR)
                     else:
-                        print 'Error num_modifier_dir > 2, %s' % self.route_num
+                        errorInfo = 'Error num_modifier_dir > 2, %s' % self.route_num
+                        common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                         self._parse_error()
                 else:
-                    print 'Error num_modifier_dir > 3, %s' % self.route_num
+                    errorInfo = 'Error num_modifier_dir > 3, %s' % self.route_num
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                     self._parse_error()
             # 最后元素不是第二个，即两个'-'及以上
             # 如: "NE-93E-LINK","TX-256-LOOP-TRUCK E","US-1-9-TRUCK"
@@ -166,9 +170,11 @@ class RouteNumParser(object):
                         else:
                             self.add_number(num_modifier_dir[1], split_char)
                     else:
-                        print 'Error num_modifier_dir > 3, %s' % self.route_num
+                        errorInfo = 'Error num_modifier_dir > 3, %s' % self.route_num
+                        common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                 else:
-                    print 'Error num_modifier_dir > 3, %s' % self.route_num
+                    errorInfo = 'Error num_modifier_dir > 3, %s' % self.route_num
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
         elif len(params) < NUMBER_IDX + 1:
             # 用空格切割
             params = self.route_num.split(NUM_SPLIT_CHAR_BLANK)
@@ -185,7 +191,8 @@ class RouteNumParser(object):
                     self.number = params[-1]
                 return
             elif param_num > MAX_PARAM_IDX + 1:  # 超过了四个元素
-                print 'Error length of route_num > 4. %s' % self.route_num
+                errorInfo = 'Error length of route_num > 4. %s' % self.route_num
+                common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                 self._parse_error()
                 return
             self.prefix = params[STATE_IDX]  # 州/路的等级：'I-'
@@ -198,7 +205,8 @@ class RouteNumParser(object):
                     self.modifier = params[MODIFIERS_IDX]
             elif param_num == MAX_PARAM_IDX + 1:  # 四个元素
                 if params[-1] not in ROAD_DIRECTION:  # 最后一个元素不是方向
-                    print 'Error DIR. %s' % self.route_num
+                    errorInfo = 'Error DIR. %s' % self.route_num
+                    common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                     self._parse_error()
                     return
                 else:
@@ -302,7 +310,8 @@ class RouteNumParserNA(RouteNumParser):
         '''只有番号，没有其他(前后缀，方向)'''
         params = REPLACE_NUMBER.get(route_num)
         if not params or len(params) < NUMBER_IDX + 1:  # 少于两个元素
-            print 'Error number of params < 2. %s' % self.route_num
+            errorInfo = 'Error number of params < 2. %s' % self.route_num
+            common.log.common_log.instance().logger('MultiLang').error(errorInfo)
             self._parse_error()
         else:
             self.prefix = params[STATE_IDX]  # 州/路的等级：'CR-'

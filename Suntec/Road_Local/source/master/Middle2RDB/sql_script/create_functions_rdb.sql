@@ -3332,11 +3332,11 @@ BEGIN
 		exp_index		:= 1;
 		while exp_index <= exp_count loop
 			for rec2 in
-				select end_node_id as nextnode, link_id, (link_id || '+' || 1) as link_dir, link_type, link_length
+				select end_node_id as nextnode, link_id, (link_id || '+' || 0) as link_dir, link_type, link_length
 				from temp_region_links
 				where (exp_curnode_array[exp_index] = start_node_id) and one_way in (1,2)
 				union
-				select start_node_id as nextnode, link_id, (link_id || '+' || 2) as link_dir, link_type, link_length
+				select start_node_id as nextnode, link_id, (link_id || '+' || 0) as link_dir, link_type, link_length
 				from temp_region_links
 				where (exp_curnode_array[exp_index] = end_node_id) and one_way in (1,3)
 			loop
@@ -3418,11 +3418,11 @@ BEGIN
 				select *
 				from
 				(
-					select end_node_id as nextnode, link_id, (link_id || '+' || 1) as link_dir, link_type, link_length
+					select end_node_id as nextnode, link_id, (link_id || '+' || 0) as link_dir, link_type, link_length
 					from temp_region_links
 					where (exp_curnode_array[exp_index] = start_node_id) and one_way in (1,2)
 					union
-					select start_node_id as nextnode, link_id, (link_id || '+' || 2) as link_dir, link_type, link_length
+					select start_node_id as nextnode, link_id, (link_id || '+' || 0) as link_dir, link_type, link_length
 					from temp_region_links
 					where (exp_curnode_array[exp_index] = end_node_id) and one_way in (1,3)
 				)as t

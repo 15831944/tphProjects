@@ -7,6 +7,7 @@ Created on 2014-12-30
 import copy
 import networkx as nx
 import re
+import common
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
 from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
@@ -77,6 +78,7 @@ class HwyGraphRDF(HwyGraph):
         Constructor
         '''
         HwyGraph.__init__(self, data, **attr)
+        self.log = common.log.common_log.instance().logger('HwyGraph')
 
     def set_ref(self, u, v):
         self.add_edge(u, v, reference=True)
@@ -137,7 +139,7 @@ class HwyGraphRDF(HwyGraph):
             else:
                 print '' % (u, v, pathes)
         if len(pathes) > 1:
-            print 'More Path. u=%s, v=%s' % (u, v)
+            self.log.error('More Path. u=%s, v=%s' % (u, v))
             for path in pathes:
                 print path
             # return []
@@ -152,7 +154,7 @@ class HwyGraphRDF(HwyGraph):
                 else:
                     reverse_pathes.append(path)
         if len(reverse_pathes) > 1:
-            print 'More Reverse Path. u=%s, v=%s' % (u, v)
+            self.log.error('More Reverse Path. u=%s, v=%s' % (u, v))
             for path in reverse_pathes:
                 print path
             # return []
@@ -1060,8 +1062,8 @@ class HwyGraphRDF(HwyGraph):
                     exist_sapa_facil = True
                     yield path, HWY_IC_TYPE_PA
             if not exist_sapa_facil:
-                print ('Exist SAPA Link, but no SAPA Facility. u=%s,v=%s'
-                       % (u, v))
+                self.log.warning('Exist SAPA Link, but no SAPA Facility.'
+                                  'u=%s,v=%s' % (u, v))
                 # raise nx.NetworkXError('Exist SAPA Link, but no SAPA Facility.'
                 #                         'u=%s,v=%s' % (u, v))
 

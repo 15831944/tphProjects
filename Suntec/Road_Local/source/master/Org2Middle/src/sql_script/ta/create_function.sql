@@ -3218,17 +3218,33 @@ BEGIN
 	);
 
   ---order1
-	INSERT INTO temp_adminid_newandold(ID_old,new_id, level)
-	select ID_old, mid_admin_SetNewID(ID_old, (row_number() over(order by ID_old))::integer,1),1
-	from
-	(
-		select id::bigint as ID_old
-		from org_a1
-		where order00 = country_code_temp  
-		group by ID_old
-		order by ID_old
-	)temp;
+  if country_code_temp = 'LSO' or country_code_temp = 'SWZ' then
+  	INSERT INTO temp_adminid_newandold(ID_old,new_id, level)
+		select ID_old, mid_admin_SetNewID(ID_old, (row_number() over(order by ID_old))::integer,1),1
+		from
+		(
+			select id::bigint as ID_old
+			from org_a7
+			where order00 = country_code_temp  
+			group by ID_old
+			order by ID_old
+		)temp;
+  
+  else
+   
+		INSERT INTO temp_adminid_newandold(ID_old,new_id, level)
+		select ID_old, mid_admin_SetNewID(ID_old, (row_number() over(order by ID_old))::integer,1),1
+		from
+		(
+			select id::bigint as ID_old
+			from org_a1
+			where order00 = country_code_temp  
+			group by ID_old
+			order by ID_old
+		)temp;
+	end if;
   ---order2
+  if country_code_temp <> 'LSO' and country_code_temp <> 'SWZ' then 
 	INSERT INTO temp_adminid_newandold(ID_old, new_id, level)
 	select ID_old, mid_admin_SetNewID(ID_old, (row_number() over(order by ID_old))::integer,3),3
 	from
@@ -3239,8 +3255,9 @@ BEGIN
 		group by ID_old
 		order by ID_old
 	)temp;
+	end if;
   ---order8
-  if country_code_temp= 'AUS' or country_code_temp = 'NZL' then
+  if country_code_temp <> 'VNM' then
 	  INSERT INTO temp_adminid_newandold(ID_old, new_id, level)
 		select ID_old, mid_admin_SetNewID(ID_old, (row_number() over(order by ID_old))::integer,4),4
 		from
@@ -3292,12 +3309,32 @@ BEGIN
 	);
     
   ---order1
-	INSERT INTO temp_admin_order1(order1_id, order0_id, name_id, country_code,the_geom)
-  SELECT  order1_id, 
-          order0_id, 
-          name_id,
-          country_code, 
-          st_union(the_geom) as the_geom
+  if country_code_temp = 'LSO' or country_code_temp = 'SWZ' then
+  	INSERT INTO temp_admin_order1(order1_id, order0_id, name_id, country_code,the_geom)
+  	SELECT  order1_id, 
+          	order0_id, 
+          	name_id,
+          	country_code, 
+          	st_union(the_geom) as the_geom
+    FROM
+    (
+        select  mid_admin_GetNewID(cast(id as bigint),1) as order1_id,
+                mid_Get_VN_UpOrder(order00,0) as order0_id, 
+                (case when name is null then null else id end) as name_id,
+                order00 as country_code, 
+                the_geom
+        from org_a7
+        where order00 = country_code_temp 
+    )as a
+    group by order1_id, order0_id, name_id,country_code
+    order by order1_id, order0_id, name_id,country_code;  
+  else
+  	INSERT INTO temp_admin_order1(order1_id, order0_id, name_id, country_code,the_geom)
+  	SELECT  order1_id, 
+          	order0_id, 
+          	name_id,
+          	country_code, 
+          	st_union(the_geom) as the_geom
     FROM
     (
         select  mid_admin_GetNewID(cast(id as bigint),1) as order1_id,
@@ -3310,6 +3347,7 @@ BEGIN
     )as a
     group by order1_id, order0_id, name_id,country_code
     order by order1_id, order0_id, name_id,country_code;
+	end if;
     
   ---order8
   if country_code_temp = 'VNM' then
@@ -3332,7 +3370,28 @@ BEGIN
 	    group by order8_id, order2_id, name_id,country_code
 	    order by order8_id, order2_id, name_id,country_code;
 	    
-	elsif country_code_temp = 'AUS' or country_code_temp = 'NZL' then
+	elseif country_code_temp = 'LSO' or country_code_temp = 'SWZ' then
+	
+		INSERT INTO temp_admin_order8(order8_id, order2_id, name_id, country_code,the_geom)
+	  SELECT  order8_id, 
+	          order2_id, 
+	          name_id,
+	          country_code,
+	          st_union(the_geom) as the_geom
+	    FROM
+	    (
+	        select  mid_admin_GetNewID(cast(id as bigint),4) as order8_id,
+	                mid_Get_VN_UpOrder(order07,1) as order2_id, 
+	                (case when name is null then null else id end) as name_id,
+	                order00 as country_code, 
+	                the_geom
+	        from org_a8 
+	        where order00 = country_code_temp
+	    )as a
+	    group by order8_id, order2_id, name_id,country_code
+	    order by order8_id, order2_id, name_id,country_code;
+	    
+	else 
 	
 		INSERT INTO temp_admin_order2(order2_id, order1_id, name_id, country_code,the_geom)
 	  SELECT  order2_id, 
@@ -3413,7 +3472,7 @@ BEGIN
             where country_code = country_code_temp
             order by ad_code;
             
-  if country_code_temp = 'VNM' then
+  if country_code_temp = 'VNM' or country_code_temp = 'LSO' or country_code_temp = 'SWZ' then
 	---order08
 	insert into mid_admin_zone(ad_code, ad_order, order0_id, order1_id, order2_id, order8_id, ad_name, the_geom)
             select  a.order8_id as ad_code,
@@ -3431,7 +3490,7 @@ BEGIN
             where a.order2_id = b.order1_id and country_code = country_code_temp
             order by ad_code; 
             
-	elsif  country_code_temp = 'AUS' or country_code_temp = 'NZL' then 
+	else
 	---order02
 		insert into mid_admin_zone(ad_code, ad_order, order0_id, order1_id, order2_id, order8_id, ad_name, the_geom)
 		      select  a.order2_id as ad_code,
@@ -3513,10 +3572,10 @@ BEGIN
 	countrycount := array_upper(Countryarray,1);
 	
 	for countryidx in 1..countrycount loop
-		if Countryarray[countryidx] in ('VNM', 'AUS', 'NZL') then
+		--if Countryarray[countryidx] in ('VNM', 'AUS', 'NZL') then
 			perform mid_into_ID_NewOLd(Countryarray[countryidx]);
 			perform mid_alter_VN_arder0_8(Countryarray[countryidx]);
-		end if;
+		--end if;
 	end loop;
 	return 0;
 END;

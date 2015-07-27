@@ -27,7 +27,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
         return 0
     
     def _Do(self):
-        
+        self._loadPOICategory()
         return 0
     
     def _loadBrandIcon(self):                            
@@ -48,31 +48,30 @@ class comp_guideinfo_building(component.component_base.comp_base):
         self.pg.commit()
 
     def _loadPOICategory(self):
-        self.log.info('make temp_poi_category...')
-        self.CreateTable2('temp_poi_category')
-        
         category_file_path = common.config.CConfig.instance().getPara('POI_Code')
-#        print 'category_file_path====',category_file_path
-        for line in open(category_file_path):
-            line = line.strip()
-            if line[0] == '#':
-                continue
-
-            fields = line.split(';')
-            
-            lens = len(fields)
-            
-            for i in range(lens):
-                if fields[i] in ('','null') :
-                    fields[i]= None
-            
-            string = '%s,'*(lens-1)+'%s'
-            sqlcmd = '''
-                      insert into temp_poi_category values(%s);
-                     '''  % string
-
-            self.pg.execute(sqlcmd, fields)
-        self.pg.commit()                                      
+        if category_file_path:
+            self.log.info('make temp_poi_category...')
+            self.CreateTable2('temp_poi_category')
+            for line in open(category_file_path):
+                line = line.strip()
+                if line[0] == '#':
+                    continue
+    
+                fields = line.split(';')
+                
+                lens = len(fields)
+                
+                for i in range(lens):
+                    if fields[i] in ('','null') :
+                        fields[i]= None
+                
+                string = '%s,'*(lens-1)+'%s'
+                sqlcmd = '''
+                          insert into temp_poi_category values(%s);
+                         '''  % string
+    
+                self.pg.execute(sqlcmd, fields)
+            self.pg.commit()                                      
         
   
     def _loadCategoryPriority(self):

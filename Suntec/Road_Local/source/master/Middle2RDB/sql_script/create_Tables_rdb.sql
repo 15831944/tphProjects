@@ -1674,7 +1674,7 @@ CREATE TABLE rdb_highway_ic_info
   ic_no            integer not null,
   up_down          smallint not null,
   facility_id      integer not null,
-  between_distance smallint not null,
+  between_distance integer not null,
   inside_distance  smallint not null,
   enter            smallint not null,
   exit             smallint not null,
@@ -1720,7 +1720,7 @@ create table rdb_highway_road_info
   loop            smallint not null,
   new             smallint not null,
   un_open         smallint not null,
-  start_ic_no     smallint not null,
+  start_ic_no     integer not null,
   ic_count        smallint not null,
   name            character varying(1024),
   up_down         smallint not null,
@@ -1733,7 +1733,7 @@ create table rdb_highway_road_info
 CREATE TABLE rdb_highway_conn_info
 (
   gid                 serial not null primary key, 
-  ic_no               smallint not null,
+  ic_no               integer not null,
   road_attr           smallint not null,
   conn_direction      smallint not null,
   same_road_flag      smallint not null,
@@ -1744,7 +1744,7 @@ CREATE TABLE rdb_highway_conn_info
   vics_flag           smallint not null,
   toll_flag           smallint not null,
   conn_road_no        smallint not null,
-  conn_ic_no          smallint not null,
+  conn_ic_no          integer not null,
   conn_link_length    smallint not null,
   conn_tile_id        integer not null,
   toll_index          smallint not null,    
@@ -1765,7 +1765,7 @@ CREATE TABLE rdb_highway_toll_info
   toll_class       smallint not null,
   class_name       character varying(5),
   up_down          SMALLINT not null,
-  facility_id	   SMALLINT not null,
+  facility_id	   INTEGER not null,
   tollgate_count   smallint not null,
   etc_antenna      smallint not null,
   enter            smallint not null,
@@ -1868,9 +1868,9 @@ create table rdb_highway_mapping
   display_class    smallint not null,
   link_id          bigint not null,
   forward_tile_id  integer,
-  forward_ic_no    smallint not null,
+  forward_ic_no    integer not null,
   backward_tile_id integer,
-  backward_ic_no   smallint not null,
+  backward_ic_no   integer not null,
   path_type        character varying(10) not null,
   tile_id          integer not null
 );SELECT AddGeometryColumn('','rdb_highway_mapping','the_geom','4326','LINESTRING',2);
@@ -1928,7 +1928,7 @@ CREATE TABLE rdb_highway_ic_mapping
 (
   gid           serial not null primary key,
   up_down       smallint NOT NULL,
-  facility_id   smallint NOT NULL,
+  facility_id   integer NOT NULL,
   ic_no         integer NOT NULL,
   tile_id       integer NOT NULL,
   ic_index      smallint NOT NULL
@@ -1946,7 +1946,7 @@ CREATE TABLE rdb_highway_node_add_info
   ---------------------------------------------
   facility_num     SMALLINT not null,
   up_down          SMALLINT not null,
-  facility_id      SMALLINT not null,
+  facility_id      integer not null,
   seq_num          SMALLINT not null,
   etc_antenna      SMALLINT not null,
   enter            SMALLINT not null,

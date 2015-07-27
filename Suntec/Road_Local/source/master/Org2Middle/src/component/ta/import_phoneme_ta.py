@@ -6,6 +6,8 @@ Created on 2014-1-28
 '''
 import component.component_base
 from common.dirwalker import DirWalker
+import os
+
 SEP_CHAR = '|'
 SEP_CHAR_TAB = '\t'
 
@@ -94,6 +96,7 @@ class comp_import_phoneme_ta(component.component_base.comp_base):
                 self.pg.copy_from2(fp, table, sep)
                 self.pg.commit2()
                 fp.close()
+                os.remove('tmp_file.txt')
             self.log.info('Import phoneme: %s' % table)
             
             sqlcmd = """ANALYZE %s;"""%table

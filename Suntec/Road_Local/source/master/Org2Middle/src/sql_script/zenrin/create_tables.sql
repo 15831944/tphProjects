@@ -131,32 +131,6 @@ CREATE TABLE temp_hwlane_tbl
   lanenumr smallint
 );
 
-CREATE TABLE temp_org_spjcty
-(
-  gid serial primary key,
-  atten_intersetion_no bigint,
-  from_intersetion_no bigint,
-  mng_no_bkg character varying(64),
-  to_int_no11 bigint,
-  to_int_no12 bigint,
-  mng_no_arrow1 character varying(64),
-  to_int_no21 bigint,
-  to_int_no22 bigint,
-  mng_no_arrow2 character varying(64)
-);
-
-CREATE TABLE temp_spotguide_tbl
-(
-  gid serial primary key,
-  firstLink bigint,
-  node bigint,
-  secondLink bigint,
-  thirdLink bigint,
-  patternno character varying(128),
-  arrowno character varying(128)
-);
-
-
 CREATE TABLE temp_sp_name
 (
  id bigint,

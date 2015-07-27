@@ -12,21 +12,8 @@ class rdb_forecast(ItemBase):
     @staticmethod
     def instance():
         proj_mapping = {
+            ('default'):            rdb_forecast(),
             ('ta','aus'):           rdb_forecast_aus(),
-            ('jpn'):                rdb_forecast(),
-            ('jdb'):                rdb_forecast(),
-            ('axf'):                rdb_forecast(),
-            ('rdf'):                rdb_forecast(),
-            ('rdf','sgp'):          rdb_forecast(),
-            ('rdf','uc'):           rdb_forecast(),
-            ('rdf','me8'):          rdb_forecast(),
-            ('rdf','mea'):          rdb_forecast(),
-            ('rdf','bra'):          rdb_forecast(),            
-            ('nostra'):             rdb_forecast(),
-            ('mmi'):                rdb_forecast(),
-            ('msm'):                rdb_forecast(),
-            ('ni'):                 rdb_forecast(),     
-            ('zenrin'):             rdb_forecast(),       
         }
         return rdb_common.getItem(proj_mapping)
 

@@ -88,8 +88,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION org_get_meshcode(jct_number character varying(10))
-	RETURNS character varying(7)
+CREATE OR REPLACE FUNCTION org_get_meshcode(jct_number varchar)
+	RETURNS varchar
     LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -125,5 +125,51 @@ BEGIN
 	meshcode := substr(jct_number, 1, 4) || lpad(secondMeshCode::varchar, 2, '0');
 	
 	return meshcode;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION org_check_seq()
+	RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	linknum smallint;
+BEGIN
+	for rec in
+		select seq, link1, link2, link3, link4, link5, link6
+		from org_eci_jctv
+	loop
+		linknum := 0;
+		if rec.link1 is not null then 
+			linknum := linknum + 1;
+		end if;
+		
+		if rec.link2 is not null then 
+			linknum := linknum + 1;
+		end if;
+		
+		if rec.link3 is not null then 
+			linknum := linknum + 1;
+		end if;
+		
+		if rec.link4 is not null then 
+			linknum := linknum + 1;
+		end if;
+		
+		if rec.link5 is not null then 
+			linknum := linknum + 1;
+		end if;
+		
+		if rec.link6 is not null then 
+			linknum := linknum + 1;
+		end if;
+		
+		if rec.seq != linknum then
+			return -1;
+		end if;
+	end loop;
+	
+	return 0;
 END;
 $$;

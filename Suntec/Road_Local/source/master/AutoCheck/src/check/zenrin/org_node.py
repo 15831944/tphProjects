@@ -28,13 +28,12 @@ class CCheckOverlay(platform.TestCase.CTestCase):
     
 class CCheckNodeid_adj(platform.TestCase.CTestCase):
     def _do(self):
-        #确定a,b为形点相同的图框点时：为一对一的关系，不存在多个图框点重复
         sqlcmd = '''
                 select count(1) 
                 from org_node_connect a join 
                 org_node_connect b 
-                on a.meshcode_adj=b.meshcode_self and a.nodeif_adj=b.nodeid_self
-                where not (a.meshcode_self=b.meshcode_adj and a.nodeid_self=b.nodeif_adj)
+                on a.meshcode_adj=b.meshcode_self and a.nodeid_adj=b.nodeid_self
+                where not (a.meshcode_self=b.meshcode_adj and a.nodeid_self=b.nodeid_adj)
                  '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)

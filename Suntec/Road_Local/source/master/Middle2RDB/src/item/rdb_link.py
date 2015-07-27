@@ -554,7 +554,7 @@ class rdb_shape_optimize(ItemBase):
             set the_geom_900913 = B.the_geom_900913
             from
             (
-                select link_id, rdb_auto_simplify_geom(the_geom_900913) as the_geom_900913
+                select link_id, rdb_auto_simplify_geom_900913(the_geom_900913) as the_geom_900913
                 from temp_optimize_rdb_link_simplify_900913 
                 where st_npoints(the_geom_900913) > 1023
             ) as B

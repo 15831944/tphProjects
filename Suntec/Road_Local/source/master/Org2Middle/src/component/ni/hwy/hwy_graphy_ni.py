@@ -4,10 +4,12 @@ Created on 2015-6-1
 
 @author: hcz
 '''
+import networkx as nx
 from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN1
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN2
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
@@ -19,6 +21,8 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
 from component.jdb.hwy.hwy_graph import MIN_CUT_OFF_CHN
+from component.rdf.hwy.hwy_def_rdf import ANGLE_35
+from component.rdf.hwy.hwy_def_rdf import ANGLE_360
 
 
 # =============================================================================
@@ -59,12 +63,13 @@ class HwyGraphNi(HwyGraphRDF):
             if not self.check_regulation(temp_path, reverse):
                 continue
             road_type = data.get(HWY_ROAD_TYPE)
-            # 非高速
-            if road_type not in HWY_ROAD_TYPE_HWY:
+            link_type = data.get(HWY_LINK_TYPE)
+            # 非高速，非SAPA
+            if(road_type not in HWY_ROAD_TYPE_HWY and
+               link_type != HWY_LINK_TYPE_SAPA):
                 return True
             else:  # HWY
                 if self.has_edge(temp_v, temp_u):  # 双向道路
-                    link_type = data.get(HWY_LINK_TYPE)
                     # Main Link
                     if link_type in (HWY_LINK_TYPE_MAIN1, HWY_LINK_TYPE_MAIN2):
                         return True
@@ -82,7 +87,9 @@ class HwyGraphNi(HwyGraphRDF):
             if data.get(code_field):  # 本线
                 continue
             road_type = data.get(HWY_ROAD_TYPE)
-            if road_type in HWY_ROAD_TYPE_HWY:
+            link_type = data.get(HWY_LINK_TYPE)
+            if(road_type in HWY_ROAD_TYPE_HWY or  # 高速
+               link_type == HWY_LINK_TYPE_SAPA):  # SAPA Link
                 if reverse:  # 逆
                     nodes.append(u)
                 else:  # 顺
@@ -251,13 +258,11 @@ class HwyGraphNi(HwyGraphRDF):
                     exist_sapa_facil = True
                     yield path, HWY_IC_TYPE_PA
             if not exist_sapa_facil:
-                print ('Exist SAPA Link, but no SAPA Facility. u=%s,v=%s'
-                       % (u, v))
+                self.log.warning('Exist SAPA Link, but no SAPA Facility.'
+                                 ' u=%s,v=%s' % (u, v))
 
     def _is_cuted_road_end(self, node):
         '''断头路的最后一个点'''
-        if node == 6357461:
-            pass
         in_deges = self.in_edges(node, False)
         out_edges = self.out_edges(node, False)
         if len(in_deges) + len(out_edges) <= 1:
@@ -306,8 +311,13 @@ class HwyGraphNi(HwyGraphRDF):
             return orther_path_flg
         data = self[u][v]
         self.remove_edge(u, v)
-        import networkx as nx
         if nx.has_path(self, u, v):
             orther_path_flg = True
         self.add_edge(u, v, data)
         return orther_path_flg
+
+    def is_uturn_angle(self, angle):
+        # 小于30度/大于330度
+        if angle < ANGLE_35 or angle > ANGLE_360 - ANGLE_35:
+            return True
+        return False

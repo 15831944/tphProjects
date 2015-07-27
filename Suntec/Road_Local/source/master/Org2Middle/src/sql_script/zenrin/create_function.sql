@@ -53,22 +53,23 @@ BEGIN
 			day_of_week := day_of_week | 1;
 		end if;
 
+		-- zenrin twn do not consider holiday regulation
 		-- Holiday
-		if substr(day, 9, 1) = '1' then
-			day_of_week := day_of_week | (1 << 7);
-			day_of_week := day_of_week | (1 << 9);
-		end if;
+		--if substr(day, 9, 1) = '1' then
+			--day_of_week := day_of_week | (1 << 7);
+			--day_of_week := day_of_week | (1 << 9);
+		--end if;
 		
-		if day = '000000001' then
+		--if day = '000000001' then
 			-- only Holiday, Mon/Tue/Wed/Thu/Fri/Sat/Sun must set 1
-			day_of_week := day_of_week | (1 << 1); -- Mon
-			day_of_week := day_of_week | (1 << 2); -- Tue
-			day_of_week := day_of_week | (1 << 3); -- Wed
-			day_of_week := day_of_week | (1 << 4); -- Thu
-			day_of_week := day_of_week | (1 << 5); -- Fri
-			day_of_week := day_of_week | (1 << 6); -- Sat
-			day_of_week := day_of_week | 1; -- Sun
-		end if;
+			--day_of_week := day_of_week | (1 << 1); -- Mon
+			--day_of_week := day_of_week | (1 << 2); -- Tue
+			--day_of_week := day_of_week | (1 << 3); -- Wed
+			--day_of_week := day_of_week | (1 << 4); -- Thu
+			--day_of_week := day_of_week | (1 << 5); -- Fri
+			--day_of_week := day_of_week | (1 << 6); -- Sat
+			--day_of_week := day_of_week | 1; -- Sun
+		--end if;
 	end if;
 	
 	return day_of_week;
@@ -105,9 +106,13 @@ BEGIN
 		from (
 			select distinct day, shour, ehour, sdate, edate, cartype
 			from "org_one-way"
+			where day != '000000001'
+			
 			union
+			
 			select distinct day, shour, ehour, sdate, edate, cartype
 			from "org_not-in"
+			where day != '000000001'
 		) a
 		order by day, shour, ehour, sdate, edate, cartype
 	loop
@@ -331,7 +336,7 @@ CREATE OR REPLACE FUNCTION zenrin_cnv_disp_class(elcode varchar)
     LANGUAGE plpgsql
 AS $$
 BEGIN
-	return case when substr(elcode,4,1)='8' then 20
+	return case when substr(elcode,4,1)='8' then 4
 				when substr(elcode,1,1)='A' then 18 
 				when substr(elcode,2,1)='C' then 18
                 when substr(elcode,2,1)='8' then 14

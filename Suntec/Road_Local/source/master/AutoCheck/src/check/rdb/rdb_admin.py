@@ -169,47 +169,55 @@ class CCheckTileAdminGeomArea(platform.TestCase.CTestCase):
     
 class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
     '''
-    only check idn's area for test
+    only check ZAF's area for test
     '''
     def _do(self):
-        idnArea = 0
-        
-        pro_name = common.ConfigReader.CConfigReader.instance()
-        strpro_name = pro_name.getCountryName()
-        
-        if strpro_name.lower() == 'vnm':           
-            idnArea = 330631
-            sqlcmd = """
-                     SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
-                     FROM rdb_tile_admin_zone WHERE cast(ad_code/100000 as integer) IN
-                     (
-                      SELECT cast (cast(id/10000000000 as integer)%1000 as integer) FROM org_a0
-                      WHERE order00 = 'VNM' group by id);
-                     """
-            self.pg.execute(sqlcmd)
-            return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
-        sqlcmd = """
+            
+        sqlcmd = '''
                 select distinct order00
                 from org_a0
-                where name is not null and name <> 'Outer World'
-                """
+                where name is not null;
+                '''
         rows = self.pg.get_batch_data(sqlcmd)
-        idnArea = 0
-        for row in rows:
-            if row[0].lower() == 'aus':
-                idnArea += 7703874
-            elif row[0].lower() == 'nzl':
-                idnArea += 267499
+        
+        for row in rows:    
+            TA_adminname = row[0]
+            if TA_adminname == 'MOZ':
+                idnArea = 799400            
+            elif TA_adminname == 'NAM':
+                idnArea = 824269
+            elif TA_adminname == 'LSO':
+                idnArea = 30344
+            elif TA_adminname == 'ZWE':
+                idnArea = 390000.0587
+            elif TA_adminname == 'SWZ':
+                idnArea = 17363
+            elif TA_adminname == 'BWA':
+                idnArea = 581730
+            elif TA_adminname == 'ZAF':
+                idnArea = 1221037        
+            elif TA_adminname == 'ZMB':
+                idnArea = 750000            
             else:
                 return False
+                                
+                
+            sqlcmd = """
+                     SELECT st_area(st_collect(the_geom),false)
+                     FROM rdb_tile_admin_zone WHERE ad_code IN
+                     (
+                      SELECT admin_place_id FROM rdf_admin_hierarchy
+                      where iso_country_code = '[replace_name]');
+                     """
             
-        sqlcmd = """
-                 SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
-                 FROM rdb_tile_admin_zone WHERE ad_code <> -1;
-                 """
-        self.pg.execute(sqlcmd)
-        return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
-    
+            sqlcmd = sqlcmd.replace('[replace_name]', TA_adminname)
+            self.pg.execute(sqlcmd)
+            
+            if abs(self.pg.fetchone()[0] / 1000000 - idnArea) > 10000:
+                return False
+        
+        return  True
+   
 class CCheckTileAdminGeomArea_CHINA(platform.TestCase.CTestCase):
     '''
     only check china's area for test
@@ -239,21 +247,27 @@ class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
         for row in rows:    
             rdf_adminname = row[0]
             if rdf_adminname == 'SGP':
-                idnArea = 682
+                idnArea = 718.3            
+            elif rdf_adminname == 'THA':
+                idnArea = 513120
             elif rdf_adminname == 'IDN':
                 idnArea = 1904569
+            elif rdf_adminname == 'BRN':
+                idnArea = 5765
+            elif rdf_adminname == 'MYS':
+                idnArea = 330257
+            elif rdf_adminname == 'PHL':
+                idnArea = 299700
+            elif rdf_adminname == 'VNM':
+                idnArea = 329556        
             elif rdf_adminname == 'USA':
                 idnArea = 9932990
-            elif rdf_adminname == 'MYS':
-                idnArea = 331902
             elif rdf_adminname == 'HKG':
                 idnArea = 1261
             elif rdf_adminname == 'MAC':
                 idnArea = 29
             elif rdf_adminname == 'TWN':
                 idnArea = 36664
-            elif rdf_adminname == 'VNM':
-                idnArea = 330750
             elif rdf_adminname == 'BHR':
                 idnArea = 775
             elif rdf_adminname == 'OMN':
@@ -283,11 +297,10 @@ class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
             elif rdf_adminname == 'BRA':
                 idnArea = 8547404
             elif rdf_adminname == 'ARG':
-                idnArea = 2793791
+                idnArea = 2793791               
             else:
                 return False
-                                
-                
+                                             
             sqlcmd = """
                      SELECT st_area(st_collect(the_geom),false)
                      FROM rdb_tile_admin_zone WHERE ad_code IN
@@ -379,4 +392,106 @@ class CCheckAdminSummerTime(platform.TestCase.CTestCase):
         except:
             self.logger.exception('fail to check...')
             return False
+        
+class CCheckAdminOrder(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+                 select count(*)
+                 from
+                 (
+                     select or8.*
+                     from rdb_admin_zone as or8
+                     left join rdb_admin_zone as or0
+                     on or8.order0_id = or0.ad_code and or0.ad_order = 0
+                     left join rdb_admin_zone as or1
+                     on or8.order1_id = or1.ad_code and or1.ad_order = 1
+                     left join rdb_admin_zone as or2
+                     on or8.order2_id = or2.ad_code and or2.ad_order = 2
+                     where or8.ad_order = 8 and (or0.ad_code is null or or1.ad_code is null or 
+                     case when  or2.ad_code is null then false else or2.ad_code is null end)
+                     
+                     union
+                     
+                     select or2.*
+                     from rdb_admin_zone as or2
+                     left join rdb_admin_zone as or0
+                     on or2.order0_id = or0.ad_code and or0.ad_order = 0
+                     left join rdb_admin_zone as or1
+                     on or2.order1_id = or1.ad_code and or1.ad_order = 1
+                     where or2.ad_order = 2 and (or0.ad_code is null or or1.ad_code is null)
+                     
+                     union
+                     
+                     select or1.*
+                     from rdb_admin_zone as or1
+                     left join rdb_admin_zone as or0
+                     on or1.order0_id = or0.ad_code and or0.ad_order = 0
+                     where or1.ad_order = 1 and (or0.ad_code is null)
+                 )as tbl
+                                    
+                 '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return   (rec_count == 0)   
+    
+    
+class CCheckAdOrder_relation(platform.TestCase.CTestCase):
+    def _do(self):
+        check_order2_exist_sql = '''
+                                 select count(*) from rdb_admin_zone
+                                 where ad_order = 2
+                                    
+                                 '''
+        check_order2_exist__count = self.pg.getOnlyQueryResult(check_order2_exist_sql)
+        
+        ng_cnt = 0
 
+        if check_order2_exist__count > 0:
+            sqlcmd ='''
+                    select count(*)
+                    from rdb_admin_zone as or8
+                    left join rdb_admin_zone as or2
+                    on or8.order2_id = or2.ad_code and or2.ad_order = 2
+                    where or8.ad_order = 8 and (or8.order1_id <> or2.order1_id or or8.order0_id <> or2.order0_id)
+                     '''
+            ng_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+            
+            sqlcmd ='''
+                    select count(*)
+                    from rdb_admin_zone as or2
+                    left join rdb_admin_zone as or1
+                    on or2.order1_id = or1.ad_code and or1.ad_order = 1
+                    where or2.ad_order = 2 and or2.order0_id <> or1.order0_id
+                    '''
+            ng_cnt = ng_cnt+self.pg.getOnlyQueryResult(sqlcmd)
+             
+        else:
+            sql_cmd ='''
+                     select count(*)
+                     from rdb_admin_zone as or8
+                     left join rdb_admin_zone as or1
+                     on or8.order1_id = or1.ad_code and or1.ad_order = 1
+                     where or8.ad_order = 8 and or1.order0_id <> or8.order0_id
+                     '''
+            ng_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        return (ng_cnt == 0)
+    
+class CCheckAdCode_Eaqual_OrderId(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+                 select count(*) from 
+                 (
+                     select ad_code, 
+                     case ad_order
+                     when 0 then order0_id
+                     when 1 then order1_id
+                     when 2 then order2_id
+                     when 8 then order8_id
+                     end as order_id 
+                     from rdb_admin_zone                 
+                 ) as tbl
+                 where ad_code <> order_id         
+                 '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        return  (rec_count == 0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         

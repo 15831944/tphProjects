@@ -45,7 +45,9 @@ class HwySapaInfoTa(HwySapaInfoRDF):
           FROM org_mnpoi_pi AS poi
           LEFT JOIN mid_link_mapping AS m
           ON poi.cltrpelid = m.org_link_id
-          WHERE poi.feattyp not in (7230, 9920)
+          WHERE poi.feattyp not in (7230, 9920) and
+                -- 8099002: Mountain Peak
+                not (subcat = 8099002 and poi.cltrpelid is null)
           ORDER BY poi.id
         )
         '''
@@ -88,7 +90,8 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         sqlcmd = '''
         SELECT id, name, lancd
         FROM org_mnpoi_pi
-        WHERE feattyp in (7358, 7395) AND name is not null
+        -- 7358:Truck Stop, 7395: Rest Area, 7369: Open Parking Area
+        WHERE feattyp in (7358, 7395, 7369) AND name is not null
         '''
         temp_file_obj = cache_file.open('hwy_sapa_name')
         contry_name = getProjCountry()

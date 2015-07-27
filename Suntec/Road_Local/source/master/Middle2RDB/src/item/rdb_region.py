@@ -17,10 +17,12 @@ class rdb_region(ItemBase):
     @staticmethod
     def instance():
         proj_mapping = {
+            ('default'):            rdb_region(),
             ('jpn'):                rdb_region_ipc_japen(),
             ('jdb'):                rdb_region_ipc_japen(),
             ('ni'):                 rdb_region_axf_china(),
             ('axf'):                rdb_region_axf_china(),
+            ('ta'):                 rdb_region_ta_vietnam(),
             ('ta','eu'):            rdb_region_ta_europe(),
             ('ta','vie'):           rdb_region_ta_vietnam(),
             ('ta','aus'):           rdb_region_ta_aus(),
@@ -956,23 +958,80 @@ class rdb_region(ItemBase):
         self.pg.commit2()
         
         rdb_log.log('Region','Make region with light and tollnode end', 'info')
+        
+    def _makeregion_sequence_sql(self, str_level):
+        sqlcmd = """
+                drop table if exists temp_rdb_region_layer[level]_link_mapping_seq;
+                create table temp_rdb_region_layer[level]_link_mapping_seq
+                as
+                (
+                    select unnest(link_id_14) as link_id, region_link_id
+                    from rdb_region_layer[level]_link_mapping
+                );
+                
+                CREATE INDEX temp_rdb_region_layer[level]_link_mapping_seq_link_id_idx
+                  ON temp_rdb_region_layer[level]_link_mapping_seq
+                  USING btree
+                  (link_id);
+                 
+                insert into rdb_region_link_layer[level]_sequence
+                select a.link_id, 0,
+                    (case when b.region_link_id is null then -1 else b.region_link_id end), 
+                    (case when c.region_link_id is null then -1 else c.region_link_id end)
+                from
+                (
+                    select a.link_id, 
+                        (case when s_l.start_node_id = a.s_node then s_seq.s_link_id else s_seq.e_link_id end) as s_sequence,
+                        (case when e_l.start_node_id = a.e_node then e_seq.s_link_id else e_seq.e_link_id end) as e_sequence
+                    from
+                    (
+                        select a.link_id, b.link_id_14[1] as s_link, b.link_id_14[array_upper(b.link_id_14,1)] as e_link, 
+                            s_node.node_id_14 as s_node, e_node.node_id_14 as e_node
+                        from rdb_region_link_layer[level]_tbl as a
+                        left join rdb_region_layer[level]_link_mapping as b
+                        on a.link_id = b.region_link_id
+                        left join rdb_region_layer[level]_node_mapping as s_node
+                        on a.start_node_id = s_node.region_node_id
+                        left join rdb_region_layer[level]_node_mapping as e_node
+                        on a.end_node_id = e_node.region_node_id
+                    )a
+                    left join rdb_link as s_l
+                    on a.s_link = s_l.link_id
+                    left join rdb_link as e_l
+                    on a.e_link = e_l.link_id
+                    left join rdb_link_sequence as s_seq
+                    on a.s_link = s_seq.link_id
+                    left join rdb_link_sequence as e_seq
+                    on a.e_link = e_seq.link_id
+                )a
+                left join temp_rdb_region_layer[level]_link_mapping_seq as b
+                on a.s_sequence = b.link_id
+                left join temp_rdb_region_layer[level]_link_mapping_seq as c
+                on a.e_sequence = c.link_id;
+                """
+        return sqlcmd.replace('[level]', str_level)
     
     def _makeRegionLevel4linksequence(self):
         rdb_log.log('Region', 'Make original region link_sequence...', 'info')
 
         if not self.pg.IsExistTable('rdb_region_link_layer4_tbl'):
             return 0
-                
-        pg_sequence = rdb_link_sequence.rdb_linksequence_info(self,'rdb_region_link_layer4_tbl',
-                                                              'rdb_region_node_layer4_tbl',
-                                                              'temp_region_link_layer4_sequence_dir',
-                                                              'rdb_region_link_layer4_sequence',
-                                                              'rdb_region_link_regulation_layer4_tbl')
-        if pg_sequence._CreateTable() == -1:
-            return -1
         
-        if pg_sequence._Get_road_sequence() == -1:
-            return -1
+        self.CreateTable2('rdb_region_link_layer4_sequence')
+        self.pg.execute2(self._makeregion_sequence_sql('4'))
+        self.pg.commit2()
+        self.CreateIndex2('rdb_region_link_layer4_sequence_link_id_idx')
+                
+#        pg_sequence = rdb_link_sequence.rdb_linksequence_info(self,'rdb_region_link_layer4_tbl',
+#                                                              'rdb_region_node_layer4_tbl',
+#                                                              'temp_region_link_layer4_sequence_dir',
+#                                                              'rdb_region_link_layer4_sequence',
+#                                                              'rdb_region_link_regulation_layer4_tbl')
+#        if pg_sequence._CreateTable() == -1:
+#            return -1
+#        
+#        if pg_sequence._Get_road_sequence() == -1:
+#            return -1
 
         return 0 
     
@@ -981,17 +1040,22 @@ class rdb_region(ItemBase):
 
         if not self.pg.IsExistTable('rdb_region_link_layer6_tbl'):
             return 0
+        
+        self.CreateTable2('rdb_region_link_layer6_sequence')
+        self.pg.execute2(self._makeregion_sequence_sql('6'))
+        self.pg.commit2()
+        self.CreateIndex2('rdb_region_link_layer6_sequence_link_id_idx')
                 
-        pg_sequence = rdb_link_sequence.rdb_linksequence_info(self,'rdb_region_link_layer6_tbl',
-                                                              'rdb_region_node_layer6_tbl',
-                                                              'temp_region_link_layer6_sequence_dir',
-                                                              'rdb_region_link_layer6_sequence',
-                                                              'rdb_region_link_regulation_layer6_tbl')
-        if pg_sequence._CreateTable() == -1:
-            return -1  
-           
-        if pg_sequence._Get_road_sequence() == -1:
-            return -1
+#        pg_sequence = rdb_link_sequence.rdb_linksequence_info(self,'rdb_region_link_layer6_tbl',
+#                                                              'rdb_region_node_layer6_tbl',
+#                                                              'temp_region_link_layer6_sequence_dir',
+#                                                              'rdb_region_link_layer6_sequence',
+#                                                              'rdb_region_link_regulation_layer6_tbl')
+#        if pg_sequence._CreateTable() == -1:
+#            return -1  
+#           
+#        if pg_sequence._Get_road_sequence() == -1:
+#            return -1
 
         return 0
     
@@ -1001,16 +1065,21 @@ class rdb_region(ItemBase):
         if not self.pg.IsExistTable('rdb_region_link_layer8_tbl'):
             return 0
         
-        pg_sequence = rdb_link_sequence.rdb_linksequence_info(self,'rdb_region_link_layer8_tbl',
-                                                              'rdb_region_node_layer8_tbl',
-                                                              'temp_region_link_layer8_sequence_dir',
-                                                              'rdb_region_link_layer8_sequence',
-                                                              'rdb_region_link_regulation_layer8_tbl')
-        if pg_sequence._CreateTable() == -1:
-            return -1
-          
-        if pg_sequence._Get_road_sequence() == -1:
-            return -1
+        self.CreateTable2('rdb_region_link_layer8_sequence')
+        self.pg.execute2(self._makeregion_sequence_sql('8'))
+        self.pg.commit2()
+        self.CreateIndex2('rdb_region_link_layer8_sequence_link_id_idx')
+        
+#        pg_sequence = rdb_link_sequence.rdb_linksequence_info(self,'rdb_region_link_layer8_tbl',
+#                                                              'rdb_region_node_layer8_tbl',
+#                                                              'temp_region_link_layer8_sequence_dir',
+#                                                              'rdb_region_link_layer8_sequence',
+#                                                              'rdb_region_link_regulation_layer8_tbl')
+#        if pg_sequence._CreateTable() == -1:
+#            return -1
+#          
+#        if pg_sequence._Get_road_sequence() == -1:
+#            return -1
 
         return 0 
     
@@ -1635,7 +1704,7 @@ class rdb_region_rdf_argentina(rdb_region_three_layers):
 
 class rdb_region_ta_aus(rdb_region_three_layers):
     def _makeOriginalRegionOnLevel4(self):
-        rdb_region_three_layers._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4])
+        rdb_region_three_layers._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4,5])
         self._deleteSomeUrbanRoad()
     
     def _deleteSomeUrbanRoad(self):
@@ -1648,7 +1717,11 @@ class rdb_region_ta_aus(rdb_region_three_layers):
                     from rdb_link_add_info
                     where (path_extra_info & (1::smallint << 3) != 0) --urban road
                 )as b
-                where (function_code = 4) and (a.link_id = b.link_id);
+                where  (function_code in (4,5)) and (a.link_id = b.link_id);
+                
+                delete from temp_region_orglink_level4
+                where (function_code in (4,5)) and (link_type = 7);
+                
                 analyze temp_region_orglink_level4;
                 """
         self.pg.execute(sqlcmd)

@@ -1336,6 +1336,20 @@ CREATE TABLE temp_rdb_slope
   slope_value	integer NOT NULL
 );SELECT AddGeometryColumn('','temp_rdb_slope','slope_shape','4326','LINESTRING',2);
 
+
+------------------------------For Traffic
+create table temp_rtic_mesh_box 
+as
+(
+	select mesh_id
+		,st_geometryfromtext(geom_string,4326) as the_geom
+	from (
+		select mesh_id
+			,'POLYGON((' || tl_x || ' ' || tl_y || ',' || br_x || ' ' || tl_y || ',' || br_x || ' ' || br_y || ',' || tl_x || ' ' || br_y || ',' || tl_x || ' ' || tl_y || '))' as geom_string
+		from rdf_rtic_mesh
+	) a
+);
+
 create table temp_trf_names 
 as
 (

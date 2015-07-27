@@ -4,6 +4,9 @@ Created on 2014-1-7
 
 @author: hongchenzai
 '''
+
+import common.log
+
 SPLIT_CHR = '|'
 SHIELD_SPLIT_CHR = '\t'
 from component.default.multi_lang_name import MultiLangName
@@ -132,7 +135,8 @@ class MultiLangShieldRDF(MultiLangNameRDF):
             route_num = trans_numbers[name_cnt]
             lang_code = lang_codes[name_cnt]
             if not route_num:
-                print 'Error: route_num is null'
+                errorInfo = 'Error: route_num is null'
+                common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                 continue
             if rn_parser:
                 # 原文是左对齐语言，翻译非左对齐语言
@@ -146,7 +150,8 @@ class MultiLangShieldRDF(MultiLangNameRDF):
                 number = route_num
                 suffix = ''
             if not number:
-                print 'Error: Number is null'
+                errorInfo = 'Error: Number is null'
+                common.log.common_log.instance().logger('MultiLang').error(errorInfo)
                 exit(1)
             trans_shield = MultiLangShieldRDF(self.shield_id,
                                               number,

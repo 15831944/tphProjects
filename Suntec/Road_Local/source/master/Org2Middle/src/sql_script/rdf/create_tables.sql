@@ -178,6 +178,7 @@ CREATE TABLE temp_lane_guide
   lane_travel_direction character(1),
   direction_category integer,
   lane_forming_ending integer,
+  physical_num_lanes integer,
   bus_access_id integer
 );
 
@@ -191,6 +192,7 @@ CREATE TABLE temp_lane_guide_distinct
   lane_number integer,
   lane_travel_direction character(1),
   direction_category integer,
+  physical_num_lanes integer,
   bus_access_id integer
 );
 
@@ -220,6 +222,7 @@ CREATE TABLE temp_lane
   lane_number integer,
   lane_travel_direction character(1),
   direction_category integer,
+  physical_num_lanes integer,
   lanenuml integer, 
   lanenumr integer,
   bus_access_id integer

@@ -185,12 +185,17 @@ class comp_hook_turn_ta(component.component_base.comp_base):
                 """
         row_num_tbl = (self.__GetRows(sqlcmd))[0][0]
         
-        sqlcmd = """             
-                select count(*)
-                from scpoint_ext
-                where cameratype = '43';
-                """
-        row_num_org = (self.__GetRows(sqlcmd))[0][0]
+        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
+                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
+                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+            row_num_org = 0
+        else:       
+            sqlcmd = """             
+                    select count(*)
+                    from scpoint_ext
+                    where cameratype = '43';
+                    """
+            row_num_org = (self.__GetRows(sqlcmd))[0][0]
         
         if row_num_tbl <> row_num_org:
             self.log.error('org_data num is %d, table_data num is %d',row_num_org, row_num_tbl)

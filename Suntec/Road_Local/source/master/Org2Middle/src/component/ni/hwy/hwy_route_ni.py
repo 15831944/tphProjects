@@ -17,10 +17,8 @@ class HwyRouteNi(HwyRouteRDF_HKG):
                  min_distance=ROUTE_DISTANCE_2000M,
                  margin_dist=ROUTE_DISTANCE_2500M,
                  ItemName='HwyRouteNi'):
-        '''
-        '''
         HwyRouteRDF_HKG.__init__(self, data_mng, min_distance,
-                             margin_dist, ItemName)
+                                 margin_dist, ItemName)
 
     def _merge_short_path(self, u, v, new_path_id):
         path_G = self.data_mng.get_path_graph()  # 路径的图

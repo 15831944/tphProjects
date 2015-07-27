@@ -37,12 +37,14 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         self._CreateTempSpotguideLinkTbl()
         self._GenerateSpotguideTblFromBr()
         self._GenerateSpotguideTblFromDm()
+        self._GenerateSpotguideTblFromTollPattern()
         comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
         self.log.info("ni generate spotguide_tbl end.")
         return 0
 
     # 优化：建立临时表，查询link两端节点时使用，提高查询速度
     def _CreateTempSpotguideLinkTbl(self):
+        self.log.info("generate temp_spotguide_link_ni...")
         sqlcmd = '''
                     drop table if exists temp_spotguide_link_ni;
                     
@@ -80,6 +82,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
 
     # 分歧点模式图、路口放大图的点的信息
     def _GenerateSpotguideTblFromBr(self):
+        self.log.info("generate spotguide from br...")
         org_br_query_sqlcmd = '''
                     SELECT nodeid, inlinkid, outlinkid, direction, patternno, arrowno, 
                            guidattr, namekind, passlid, passlid2, "type", folder
@@ -132,6 +135,7 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
     
     # 将3D交叉点模式图号的点的信息插入spotguide_tbl    
     def _GenerateSpotguideTblFromDm(self):        
+        self.log.info("generate spotguide from dm...")
         rows = self.get_batch_data( '''
                                     SELECT nodeid, inlinkid, outlinkid, patternno, 
                                            arrowno, passlid, folder
@@ -176,45 +180,37 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         self.pg.commit2()
         return
 
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
+    def _GenerateSpotguideTblFromTollPattern(self):
+        if self.pg.IsExistTable('org_toll_pattern'):
+            self.log.info("generate spotguide from toll pattern...")
+            sqlcmd = """
+                    insert into spotguide_tbl(
+                                              nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                                              direction, guideattr, namekind, guideclass,
+                                              patternno, arrowno, type, is_exist_sar
+                                              )
+                    select  (
+                            case 
+                                when c.new_node_id is null then a.id::bigint
+                                else c.new_node_id::bigint 
+                            end
+                            ) as ndoeid,
+                            a.inlinkid::bigint,
+                            a.outlinkid::bigint,
+                            null as passlid,
+                            0 as passlink_cnt,
+                            0, 0, 0, 0,
+                            b.patternno,
+                            b.arrowno,
+                            12 as type,
+                            false as is_exist_sar
+                    from org_c as a
+                    inner join org_toll_pattern as b
+                    on a.condid = b.condid
+                    left join temp_node_mapping as c
+                    on a.id = c.old_node_id
+                    where a.condtype = '3'
+                    """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
         

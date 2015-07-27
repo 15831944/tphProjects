@@ -318,7 +318,5 @@ class HwyGraphTa(HwyGraphRDF):
                     exist_sapa_facil = True
                     yield path, HWY_IC_TYPE_PA
             if not exist_sapa_facil:
-                print ('Exist SAPA Link, but no SAPA Facility. u=%s,v=%s'
-                       % (u, v))
-                # raise nx.NetworkXError('Exist SAPA Link, but no SAPA Facility.'
-                #                         'u=%s,v=%s' % (u, v))
+                self.log.warning('Exist SAPA Link, but no SAPA Facility.'
+                                 'u=%s,v=%s' % (u, v))

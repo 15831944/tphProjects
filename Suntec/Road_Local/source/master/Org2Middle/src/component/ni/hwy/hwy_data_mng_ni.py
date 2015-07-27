@@ -73,7 +73,7 @@ class HwyDataMngNi(HwyDataMngRDF):
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 8, 9, 12, 14)
+          where b.road_type not in (0, 8, 9, 12)
         );
         """
         self.pg.execute2(sqlcmd)
@@ -94,7 +94,7 @@ class HwyDataMngNi(HwyDataMngRDF):
           INNER JOIN link_tbl as b
           ON a.s_node = b.s_node or a.s_node = b.e_node or
              a.e_node = b.s_node or a.e_node = b.e_node
-          where b.road_type not in (0, 8, 9, 12, 14)
+          where b.road_type not in (0, 8, 9, 12)
         );
         """
         self.pg.execute2(sqlcmd)

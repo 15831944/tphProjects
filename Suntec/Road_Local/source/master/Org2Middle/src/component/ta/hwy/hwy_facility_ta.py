@@ -174,8 +174,8 @@ class HwyFacilityTa(HwyFacilityRDF):
                   ON c.poi_id = d.id
                   LEFT JOIN mid_temp_hwy_sapa_name as e
                   ON c.poi_id = e.poi_id
-                  -- 7358:Truck Stop; 7395:Rest Area
-                  WHERE feattyp not in (7358, 7395)
+                  -- 7358:Truck Stop; 7395:Rest Area; 7369: Open Parking Area
+                  WHERE feattyp not in (7358, 7395, 7369)
           ) AS f
           GROUP BY road_code, road_seq
           ORDER BY road_code, road_seq;
@@ -196,16 +196,27 @@ SERVICE_GAS_DICT = {(7311, 0): None,  # Gas station
 SERVICE_REST_AREA_DICT = {(7314, 7314006): None  # Hotel/Motel
                           }
 # レストラン/Restaurant
-SERVICE_RESTAURANT_DICT = {(7315, 7315145): None,  # Restaurant
+SERVICE_RESTAURANT_DICT = {(9376, 9376002): None,  # Café
+                           (9376, 9376006): None,  # Coffee Shop
+                           (7315, 7315001): None,  # Restaurant
+                           (7315, 7315015): None,  # Restaurant: Fast Food
+                           (7315, 7315036): None,  # Restaurant: Pizza
+                           (7315, 7315045): None,  # Steak House
+                           (7315, 7315072): None,  # Brazilian
+                           (7315, 7315145): None,  # Restaurant: Take away
+                           (7315, 7315149): None,  # Yogurt/Juice Bar
                            }
 # ショッピングコーナー/Shopping Corner
 SERVICE_SHOPPING_DICT = {(7373, 0): None,  # Shopping Center
-                         (7315, 7315036): None,  # Restaurant: Pizza
+                         (9361, 9361001): None,  # Shop
                          (9361, 9361006): None,  # Clothing & Accessories: General
+                         (9361, 9361009): None,  # Convenience Stores
                          (9361, 9361018): None,  # Food & Drinks: Bakers
-                         (9361, 9361025): None,  # Food & Drinks: Wine&Spirits
+                         (9361, 9361019): None,  # Food & Drinks: Butchers
                          (9361, 9361024): None,  # Food & Drinks: Other
+                         (9361, 9361025): None,  # Food & Drinks: Wine&Spirits
                          (9361, 9361031): None,  # Furniture & Fittings
+                         (9361, 9361049): None,  # Antique/Art
                          (9361, 9361060): None,  # Delicatessen(熟食)
                          }
 # 郵便ポスト/post_box
@@ -218,15 +229,20 @@ SERVICE_INFORMATION_DICT = {(7316, 0): None,  # Tourist Information Office
 SERVICE_TOILET_DICT = {(9932, 9932005): None,  # Toilet
                        }
 # 未定义服务种别
-SERVICE_UNDEFINED_DICT = {(7304, 7304006): None,  # Apartment
+SERVICE_UNDEFINED_DICT = {(7301, 7301002): None,  # Traffic Control Department
+                          (7304, 7304006): None,  # Apartment
                           # Important Tourist(Unspecified)
                           (7322, 7322004): None,  # Police Station(Order1 Area)
+                          (7332, 7332005): None,  # Supermarkets & Hypermarkets
                           (7376, 7376001): None,
                           (7376, 7376003): None,  # Important Tourist(Monument)
                           (7380, 7380003): None,  # Railway Station(National)
+                          (7383, 7383005): None,  # Airfield
                           (8099, 8099001): None,  # Geographic Feature
                           (8099, 8099016): None,  # Geographic: Bay
                           (8099, 8099020): None,  # Geographic: Cape
+                          (8099, 8099027): None,  # Geographic: Locale
+                          (9155, 9155002): None,  # Car Wash
                           (9352, 9352002): None,  # Company: Service
                           (9352, 9352011): None,  # Company: Manufacturing
                           (9352, 9352022): None,  # Company: Tax Services
@@ -235,7 +251,6 @@ SERVICE_UNDEFINED_DICT = {(7304, 7304006): None,  # Apartment
                           (9362, 9362030): None,  # Natural Attraction
                           (9932, 9932004): None,  # Public Call Box
                           (9373, 9373002): None,  # General Practitioner
-                          (9376, 9376002): None,  # Café
                           (9932, 9932006): None,  # Road Rescue
                           (9942, 9942002): None,  # Bus Stop
                           (9942, 9942005): None,  # Coach Stop
