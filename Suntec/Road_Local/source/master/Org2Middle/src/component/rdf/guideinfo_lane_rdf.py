@@ -204,8 +204,8 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                                 INSERT INTO lane_tbl(
                                 id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, lanenum, 
                                 laneinfo, arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive)
-                                VALUES (%d, %d, %d, %d, '%s', %d, %d, 
-                                        '%s', %d, %d, %d, '%s', %d);
+                                VALUES (%s, %s, %s, %s, '%s', %s, %s, 
+                                        '%s', %s, %s, %s, '%s', %s);
                               '''
         sqlcmd = '''
                 select e.link_id_list, e.node_id, e.inlink_lane_dir,  
@@ -248,16 +248,18 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                 left join temp_lane_list_in_link_dir as f
                 on e.link_id_list[1]=f.link_id
                 left join mid_lanenum_lr as g
-                on e.link_id_list[1]=g.link_id and e.node_id=g.node_id;
+                on e.link_id_list[1]=g.link_id and e.node_id=g.node_id
+                order by e.link_id_list, e.node_id, e.inlink_lane_category;
                 '''
         if self.pg.execute2(sqlcmd) == -1:
             return -1
         rows = self.pg.fetchall2()
+        theID = 1
         for row in rows:
             link_id_list = row[0]
             node_id = row[1]
             inlink_lane_dir = row[2]
-            inlink_lane_category = row[3] if row[3] else 0
+            inlink_lane_category = row[3]
             inlink_lane_num_list = row[4]
             total_lane_list_on_dir = row[5]
             is_bus_lane_list = row[6]
@@ -281,7 +283,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
             outlink_id = link_id_list[-1]
             
             # rdb协议中关于箭头属性的定义与here协议中一致，所以可直接使用inlink_lane_category字段。
-            arrowinfo = inlink_lane_category
+            arrowinfo = inlink_lane_category if inlink_lane_category else 'NULL'
             
             laneinfo = ''
             if inlink_lane_dir == 'F':
@@ -297,7 +299,8 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                     else:
                         laneinfo = '0' + laneinfo
             else:
-                #
+                # rdf协议中写有'B'与'N'，目前所有仕向地中未发现这两种情况，故此处暂时丢弃此条数据。
+                self.log.warn("""there is a lane with travel direction 'B' or 'N'.""")
                 continue
             
             businfoStr = ''
@@ -314,15 +317,14 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                     else:
                         businfoStr = '0' + businfoStr
             else:
-                #
+                # rdf协议中写有'B'与'N'，目前所有仕向地中未发现这两种情况，故此处暂时丢弃此条数据。
+                self.log.warn("""there is a lane with travel direction 'B' or 'N'.""")
                 continue
-            
-                
-            sqlcmd = lane_tbl_insert_str % (1, node_id, inlink_id, outlink_id, passlidStr, passlink_cnt, 
-                                            len(total_lane_list_on_dir), laneinfo, arrowinfo, lanenum_l, 
-                                            lanenum_r, businfoStr, 0)
-            
-            self.pg.execute2(sqlcmd)
+            theID += 1
+            self.pg.execute2(lane_tbl_insert_str %  
+                             (theID, node_id, inlink_id, outlink_id, passlidStr, 
+                              passlink_cnt, len(total_lane_list_on_dir), laneinfo, 
+                              arrowinfo, lanenum_l, lanenum_r, businfoStr, 0))
         
         self.pg.commit2()
         return 0
