@@ -2290,6 +2290,98 @@ BEGIN
 	return NULL;
 END;
 $$;
+
+--------------------------------------------------------------------------
+-- make a part of guide lane data
+--------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mid_make_temp_lane_guide_nav()
+  RETURNS bigint
+  LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	strand_id_array         integer[];
+	temp_lane_nav_strand_id integer;
+	strand_id_array_length  integer;
+	strand_id_index         integer;
+	link_array              bigint[];
+	link_index              integer;
+	seq_num_array           bigint[];
+	lane_id_array           bigint[];
+	conditionid_array       integer[];
+	nodeid_array            bigint[];
+	inlinkid                bigint;
+	nodeid                  bigint;
+	outlinkid               bigint;
+	passlink_cnt            integer;
+	passlinkids             character varying(512);
+	laneid                  bigint;
+	conditionid             integer;
+	seq_num_array_length    integer;
+BEGIN
+	SELECT array_agg(distinct lane_nav_strand_id)
+	into strand_id_array
+	FROM temp_lane_guide_nav_strand;
+	
+	strand_id_array_length = array_upper(strand_id_array, 1);
+	
+	if strand_id_array_length < 1 then
+		return 0;
+	end if;
+	strand_id_index = 1;
+	while strand_id_index <= strand_id_array_length loop
+		passlinkids = null;
+		SELECT array_agg(seq_num), array_agg(condition_id), array_agg(lane_id), array_agg(node_id), array_agg(link_id)
+		into seq_num_array, conditionid_array, lane_id_array, nodeid_array, link_array
+		FROM (
+			select * 
+			from temp_lane_guide_nav_strand
+			where lane_nav_strand_id = strand_id_array[strand_id_index]
+			order by seq_num
+			) as a;
+		
+		seq_num_array_length = array_upper(seq_num_array, 1);
+		
+		if seq_num_array_length > 1 then
+			inlinkid = link_array[1];
+			outlinkid = link_array[seq_num_array_length];
+			nodeid = nodeid_array[1];
+			passlink_cnt = seq_num_array_length - 2;
+			laneid = lane_id_array[1];
+			conditionid = conditionid_array[1];
+			if passlink_cnt = 0 then
+				passlinkids = null;
+			else
+				link_index = 2;
+				passlinkids = cast(link_array[link_index] as character varying);
+				link_index = link_index + 1;
+				while link_index <= seq_num_array_length - 1 loop
+					passlinkids := passlinkids || '|' || cast(link_array[link_index] as character varying);
+					link_index = link_index + 1;	
+				end loop;
+			end if;
+		elseif seq_num_array_length = 1 then
+			inlinkid = link_array[1];
+			outlinkid = inlinkid;
+			nodeid = nodeid_array[1];
+			passlink_cnt = -1;
+			laneid = lane_id_array[1];
+			conditionid = conditionid_array[1];
+			passlinkids = null;
+		else
+			raise INFO '';
+			EXIT;
+		end if;
+
+		INSERT INTO temp_lane_guide_nav(
+			lane_nav_strand_id, condition_id, lane_id, node_id, inlink_id, 
+			outlink_id, passcount, passlid)
+		    	VALUES (strand_id_array[strand_id_index], conditionid, laneid, nodeid, inlinkid, 
+		            outlinkid, passlink_cnt, passlinkids);
+		strand_id_index	= strand_id_index + 1;
+	end loop;
+	return 1;
+end;
+$$;
 --------------------------------------------------------------------------
 -- make additional lane number
 --------------------------------------------------------------------------
@@ -2444,6 +2536,350 @@ BEGIN
 	
     
     return 1;
+END;
+$$;
+--------------------------------------------------------------------------
+-- get lane number
+--------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mid_get_lanenum(inlinkid integer, lanenum integer)
+  RETURNS smallint
+LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	lanes    integer;
+	
+BEGIN	lanes = 0;
+	select count(*)
+	into lanes
+	from rdf_lane
+	where link_id = inlinkid 
+		and lane_travel_direction in 
+				(select lane_travel_direction
+				from rdf_lane
+				where link_id = inlinkid and lane_number = lanenum);
+	
+	
+    
+    return lanes;
+END;
+$$;
+--------------------------------------------------------------------------
+-- get left and right additional lane number
+--------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mid_make_additional_lanenum(inlinkid integer,nodeid bigint,direction character)
+  RETURNS smallint[]
+LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	result                integer[];
+	lanes_array_length    integer;
+	linkid_array_index    integer;
+	lane_number_array     integer[];
+	lane_number_index     integer;
+	lane_tra_dir_length   integer;
+	lane_form_end_array   integer[]; 
+	lane_num_l            integer;
+	lane_num_r            integer;
+	not_ref_node_id       bigint;
+	link_ref_dir          boolean;
+	lanenum               integer;
+	cnt                   integer;
+	rec                   record;
+BEGIN	
+
+	link_ref_dir = false;
+	lane_num_l = 0;
+	lane_num_r = 0;
+	result = ARRAY[0,0];
+	lane_number_index = 1;
+	--get Data under given linkid and direction (the same dir lane data)
+	SELECT array_agg(lane_forming_ending),array_agg(lane_number)
+	into  lane_form_end_array, lane_number_array
+	from(
+		select * 
+		FROM rdf_lane
+		where link_id = inlinkid and lane_travel_direction = direction
+		order by lane_number
+	) as a;
+
+	lanes_array_length = array_upper(lane_number_array, 1);
+	
+	if lanes_array_length < 1 then
+		return 0;
+	end if;
+	
+	select nonref_node_id
+	into not_ref_node_id
+	from rdf_link 
+	where link_id = inlinkid;
+	
+	if not_ref_node_id = nodeid then
+		link_ref_dir = true;
+	end if;
+
+	lanenum = lane_number_array[1] + round(lanes_array_length::numeric / 2::numeric, 0) - 1;
+	
+	while lane_number_index <= lanes_array_length loop
+		if lane_form_end_array[lane_number_index] is not null then
+			if lane_form_end_array[lane_number_index] in (2,3) then
+				
+				if lane_number_array[lane_number_index]>lanenum then
+					if link_ref_dir then
+						lane_num_r = lane_num_r - 1;
+					else
+						lane_num_l = lane_num_l - 1;
+					end if;
+					
+				else
+					if link_ref_dir then
+						lane_num_l = lane_num_l - 1;
+					else
+						lane_num_r = lane_num_r - 1;
+					end if;
+				end if;
+			end if;
+		end if;
+		lane_number_index = lane_number_index + 1;
+	end loop;
+	
+	select count(1) into cnt 
+	from rdf_link where nodeid in (ref_node_id,nonref_node_id)
+	and link_id<>inlinkid;
+	
+	if cnt=1 then
+		for rec in 
+			select link_id,lane_number,lane_travel_direction,case when ref_node_id=nodeid then 1 else 0 end as direction,
+			(select round(avg(lane_number),0) from rdf_lane where link_id=a.link_id and lane_travel_direction=b.lane_travel_direction) as midlanenum
+			from rdf_link a left join rdf_lane b using(link_id) 
+			where nodeid in (ref_node_id,nonref_node_id) and
+			b.lane_forming_ending in (1,3) and
+			link_id<>inlinkid and
+			( (lane_travel_direction='F' and ref_node_id=nodeid) or 
+			(lane_travel_direction='T' and nonref_node_id=nodeid))
+		loop
+		
+		if rec.lane_number>=rec.midlanenum then
+			if rec.lane_travel_direction='T' then
+				lane_num_l = lane_num_l + 1;
+			else
+				lane_num_r = lane_num_r + 1;
+			end if;
+		else
+			if rec.lane_travel_direction='T' then
+				lane_num_r = lane_num_r + 1;
+			else
+				lane_num_l = lane_num_l + 1;
+			end if;
+		end if;
+		end loop;
+	end if;
+	
+	result[1] = lane_num_l;
+	result[2] = lane_num_r;
+    return result;
+END;
+$$;
+
+
+
+--------------------------------------------------------------------------
+-- get every lane traveral information
+--------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION mid_make_guidelane_info(param_inlinkid integer,param_nodeid bigint, physical_lane_num integer,lane_travel_dir character)
+  RETURNS integer LANGUAGE plpgsql
+  AS
+$$ 
+DECLARE
+	
+	not_ref_node_id  bigint;
+	link_ref_dir     boolean;
+	lanenum_array    integer[];
+	existlan_array   integer[];
+	dir_ctg_array    integer[];
+	dir_ctg_length   integer;
+	existlan_index   integer;
+	lanenum_index    integer;
+	i                integer;
+	j                integer;
+	sm_aLaneinfo     character[];
+	ex_aLaneinfo     character[];
+	null_flag        boolean;
+	businfo_id_array integer[];
+	businfo_id_index integer;
+	businfo          integer[];
+BEGIN   
+	link_ref_dir = false;
+	dir_ctg_length = 0;
+	lanenum_index = 1;
+	businfo_id_index = 1;
+	existlan_index = 1;
+	
+	j=1;
+	--null_flag = true;
+	
+	select nonref_node_id
+	into not_ref_node_id
+	from rdf_link 
+	where link_id = param_inlinkid;
+	--lane direction is or isn't same with direction or link(FROM TO)
+	if not_ref_node_id = param_nodeid then
+		link_ref_dir = true;
+	end if;
+	
+	if link_ref_dir then
+		--get lane_travel_direction and direction_category\lane_no
+		select array_agg(direction_category),array_agg(lane_number),array_agg(c.businfo_id)
+		into dir_ctg_array,lanenum_array,businfo_id_array
+		from(
+			select a.direction_category,a.lane_number,  
+			(
+			case 
+				when b.bus_access_id is NULL then -1 
+				else b.bus_access_id 
+			end
+			) as businfo_id
+			from rdf_lane as a
+			left join (
+				    select access_id as bus_access_id 
+				    from rdf_access 
+				    where automobiles= 'N' and buses= 'Y' 
+				    and taxis= 'N' and carpools= 'N' 
+				    and pedestrians= 'N' and trucks= 'N' 
+				    and deliveries= 'N' and emergency_vehicles= 'N' 
+				    and through_traffic= 'N' and motorcycles= 'N'
+				) as b 
+				on a.access_id = b.bus_access_id
+			where a.link_id = param_inlinkid and a.lane_travel_direction = lane_travel_dir
+			order by lane_number 
+		) as c;	
+
+		SELECT array_agg(lane_number)
+		into existlan_array
+		from(
+			select distinct lane_number
+			FROM temp_lane_guide_distinct 
+			where inlink_id = param_inlinkid and node_id = param_nodeid
+			order by lane_number
+		) as a; 
+		
+	else
+		select array_agg(direction_category),array_agg(lane_number),array_agg(c.businfo_id)
+		into dir_ctg_array,lanenum_array,businfo_id_array
+		from(
+			select a.direction_category,a.lane_number, 
+			(
+			case 
+				when b.bus_access_id is NULL then -1 
+				else b.bus_access_id 
+			end
+			) as businfo_id
+			from rdf_lane as a
+			left join (
+				    select access_id as bus_access_id 
+				    from rdf_access 
+				    where automobiles= 'N' and buses= 'Y' 
+				    and taxis= 'N' and carpools= 'N' 
+				    and pedestrians= 'N' and trucks= 'N' 
+				    and deliveries= 'N' and emergency_vehicles= 'N' 
+				    and through_traffic= 'N' and motorcycles= 'N'
+				) as b 
+				on a.access_id = b.bus_access_id
+			where a.link_id = param_inlinkid and a.lane_travel_direction = lane_travel_dir
+			order by lane_number desc
+		) as c;	
+
+		SELECT array_agg(lane_number)
+		into existlan_array
+		from(
+			select distinct lane_number
+			FROM temp_lane_guide_distinct 
+			where inlink_id = param_inlinkid and node_id = param_nodeid
+			order by lane_number desc
+		) as a; 
+	end if;
+
+	--raise INFO 'existlan_array = %', existlan_array;
+	--raise INFO 'lanenum_array = %', lanenum_array;
+	
+	---lanes
+	dir_ctg_length = array_upper(dir_ctg_array, 1);
+	
+	if dir_ctg_length is null or dir_ctg_length < 1 then
+		return 0;
+	end if;
+
+	---[0000000],not data
+	--while j <= dir_ctg_length loop
+		--if dir_ctg_array[j] is not null then
+		--	null_flag = false;
+		--	exit;
+		--end if;
+		--j = j + 1;
+	--end loop;
+	
+	------get businfo
+	while businfo_id_index <= dir_ctg_length loop
+		if businfo_id_array[businfo_id_index] = -1 then
+			businfo = array_append(businfo, 0);
+		else
+			businfo = array_append(businfo, 1);
+		end if;
+		businfo_id_index = businfo_id_index + 1;
+	end loop;
+	
+
+
+	---raise INFO 'dir_ctg_length = %', dir_ctg_length;
+	
+	---init lane info
+	---ex_aLaneinfo not
+	
+	for i in 1..physical_lane_num loop
+		sm_aLaneinfo := array_append(sm_aLaneinfo, '0');
+		ex_aLaneinfo := array_append(ex_aLaneinfo, '0');
+	end loop;
+
+	
+	--insert data
+	--while lanenum_index <= dir_ctg_length and null_flag = false loop
+	while lanenum_index <= dir_ctg_length  loop
+		if lanenum_array[lanenum_index] = existlan_array[existlan_index]then
+			sm_aLaneinfo[lanenum_index] = '1';
+			insert into temp_lane_tbl(nodeid,inlinkid, outlinkid,passlid,passlink_cnt,lanenum,laneinfo,arrowinfo,lanenuml,lanenumr,buslaneinfo)
+			(
+				select node_id, inlink_id, outlink_id, passlid, passcount, physical_num_lanes,array_to_string(sm_aLaneinfo, ''), 
+					case when direction_category = 0 then null
+						else direction_category
+					end,(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[1],
+					(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[2],array_to_string(businfo, '')
+				from temp_lane_guide_distinct
+				where inlink_id = param_inlinkid and node_id = param_nodeid and lane_number = lanenum_array[lanenum_index]
+			);
+			
+			sm_aLaneinfo[lanenum_index] = '0';
+			existlan_index = existlan_index + 1;
+			lanenum_index = lanenum_index + 1;
+		else	
+			if dir_ctg_array[lanenum_index] is not null then
+				ex_aLaneinfo[lanenum_index] = '1';
+				insert into temp_lane_tbl(nodeid,inlinkid, outlinkid,passlid,passlink_cnt,lanenum,laneinfo,arrowinfo,lanenuml,lanenumr,buslaneinfo)
+				(
+				select param_nodeid,param_inlinkid, NULL, NULL, 0, physical_lane_num, array_to_string(ex_aLaneinfo, ''), 
+					case when dir_ctg_array[lanenum_index] = 0 then null
+						else dir_ctg_array[lanenum_index]
+					end, 
+					(mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[1], 
+				        (mid_make_additional_lanenum(param_inlinkid,param_nodeid,lane_travel_dir))[2], array_to_string(businfo, '')
+				);
+			end if;
+			ex_aLaneinfo[lanenum_index] = '0';
+			lanenum_index = lanenum_index + 1;
+		end if;
+		
+	end loop;
+	
+	--raise INFO 'strSubTime-ccccccc';
+    return 0;
 END;
 $$;
 
@@ -4536,7 +4972,7 @@ begin
 		end loop;
 	end loop;
 	
-	--ÒòÎª¸øµÄÊÇinlinkÁ¬½ÓµÄÏÂÒ»Ìõlink£¬ËùÒÔÐèÒªÑ°ÕÒÔö¼Ó³µÏßµÄinlink£¬
+	--å› ä¸ºç»™çš„æ˜¯inlinkè¿žæŽ¥çš„ä¸‹ä¸€æ¡linkï¼Œæ‰€ä»¥éœ€è¦å¯»æ‰¾å¢žåŠ è½¦çº¿çš„inlinkï¼Œ
 
 	select count(1) into cnt from temp_lanenum_change where forming_ending=1;
 	

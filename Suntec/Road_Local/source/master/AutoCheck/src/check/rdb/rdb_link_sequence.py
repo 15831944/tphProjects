@@ -85,6 +85,32 @@ def base_sequence_type(link_table, sequence_table):
                 """
     return (sqlcmd.replace('[link_tbl]', link_table)).replace('[link_sequence_tbl]', sequence_table)
 
+def region_sequence_type(link_table, sequence_table):
+    
+    sqlcmd = """
+                select count(*) 
+                from (
+                        select a.link_id  
+                        from [link_sequence_tbl] as a
+                        left join [link_mapping] as b
+                        on a.link_id = b.region_link_id
+                        left join [link_mapping] as c
+                        on a.s_link_id = c.region_link_id
+                        where a.s_link_id <> -1 and (b.region_link_id is null or  c.region_link_id is null)
+                        
+                        union
+                        
+                        select a.link_id  
+                        from [link_sequence_tbl] as a
+                        left join [link_mapping] as b
+                        on a.link_id = b.region_link_id
+                        left join [link_mapping] as c
+                        on a.e_link_id = c.region_link_id
+                        where a.e_link_id <> -1 and (b.region_link_id is null or  c.region_link_id is null)
+                    ) as temp1;
+                """
+    return (sqlcmd.replace('[link_mapping]', link_table)).replace('[link_sequence_tbl]', sequence_table)
+
 def base_sequence_oneway(link_table, sequence_table):
     
     sqlcmd = """
@@ -188,7 +214,7 @@ class CCheckLink_layer4_sequence_type(platform.TestCase.CTestCase):
     def _do(self):
     
             self.pg.execute(compare_link_type())        
-            self.pg.execute(base_sequence_type(r'rdb_region_link_layer4_tbl', r'rdb_region_link_layer4_sequence'))
+            self.pg.execute(region_sequence_type(r'rdb_region_layer4_link_mapping', r'rdb_region_link_layer4_sequence'))
             row = self.pg.fetchone()
             if row:
                 if row[0] == 0:
@@ -220,7 +246,7 @@ class CCheckLink_layer6_sequence_type(platform.TestCase.CTestCase):
     def _do(self):
          
             self.pg.execute(compare_link_type())        
-            self.pg.execute(base_sequence_type(r'rdb_region_link_layer6_tbl', r'rdb_region_link_layer6_sequence'))
+            self.pg.execute(region_sequence_type(r'rdb_region_layer6_link_mapping', r'rdb_region_link_layer6_sequence'))
             row = self.pg.fetchone()
             if row:
                 if row[0] == 0:
