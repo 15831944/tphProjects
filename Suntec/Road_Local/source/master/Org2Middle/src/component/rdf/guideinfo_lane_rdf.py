@@ -198,7 +198,9 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
         self.pg.commit2()
         return 0
     
-    # 主处理函数，从rdf_lane_nav_strand等表中获取相关信息，转化后存入到lane_tbl中。
+    # 主处理函数，
+    # 由rdf_lane_nav_strand连接前面生成的mid_make_lanenum_lr和temp_lane_count_in_link_dir等表，
+    # 获取相关信息并转化后存入到lane_tbl中。
     def _GenerateLaneTbl(self):
         lane_tbl_insert_str = '''
                                 INSERT INTO lane_tbl(
@@ -286,33 +288,28 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
             arrowinfo = inlink_lane_category if inlink_lane_category else 'NULL'
             
             laneinfo = ''
+            businfoStr = ''
             if inlink_lane_dir == 'F':
-                for oneLane in total_lane_list_on_dir:
+                for oneLane, is_bus_lane  in zip(total_lane_list_on_dir, is_bus_lane_list):
                     if oneLane in inlink_lane_num_list:
                         laneinfo = laneinfo + '1'
                     else:
                         laneinfo = laneinfo + '0'
+                        
+                    if is_bus_lane == 1:
+                        businfoStr = businfoStr + '1'
+                    else:
+                        businfoStr = businfoStr + '0'
+                        
             elif inlink_lane_dir == 'T':
-                for oneLane in total_lane_list_on_dir:
+                for oneLane, is_bus_lane  in zip(total_lane_list_on_dir, is_bus_lane_list):
                     if oneLane in inlink_lane_num_list:
                         laneinfo = '1' + laneinfo
                     else:
                         laneinfo = '0' + laneinfo
-            else:
-                # rdf协议中写有'B'与'N'，目前所有仕向地中未发现这两种情况，故此处暂时丢弃此条数据。
-                self.log.warn("""there is a lane with travel direction 'B' or 'N'.""")
-                continue
-            
-            businfoStr = ''
-            if inlink_lane_dir == 'F':
-                for i in range(0, len(total_lane_list_on_dir)):
-                    if is_bus_lane_list[i] == 1:
-                        businfoStr = businfoStr + '1'
-                    else:
-                        businfoStr = businfoStr + '0'
-            elif inlink_lane_dir == 'T':
-                for i in range(0, len(total_lane_list_on_dir)):
-                    if is_bus_lane_list[i] == 1:
+                        
+                    
+                    if is_bus_lane == 1:
                         businfoStr = '1' + businfoStr 
                     else:
                         businfoStr = '0' + businfoStr
@@ -320,6 +317,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                 # rdf协议中写有'B'与'N'，目前所有仕向地中未发现这两种情况，故此处暂时丢弃此条数据。
                 self.log.warn("""there is a lane with travel direction 'B' or 'N'.""")
                 continue
+            
             theID += 1
             self.pg.execute2(lane_tbl_insert_str %  
                              (theID, node_id, inlink_id, outlink_id, passlidStr, 
