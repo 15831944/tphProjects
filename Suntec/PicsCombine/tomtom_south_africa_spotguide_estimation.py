@@ -18,7 +18,7 @@ class IllustDataGenerator(object):
                 '''
         self.pg.execute(sqlcmd)
         # inlink的最大lane数动态确定
-        maximum_lane_count = self.pg.fetchone()
+        maximum_lane_count = self.pg.fetchone()[0]
         
         sqlcmd = '''
             select inlinkid, lat_lon, inlink_lane_count, tolink_list, from_list, to_list,
@@ -50,20 +50,21 @@ class IllustDataGenerator(object):
             line.append(inlink_lane_count) # 流入link的lane数
             laneDict = {}
             for i in range(1, maximum_lane_count+1):
-                laneDict[i] = []          
-            for i in range(0, len(tolink_list)): # tolink_list, from_list, to_list的长度必定相等。
-                laneDict[int(from_list[i])].append('''%d/%s''' % (tolink_list[i], to_list[i]))
+                laneDict[i] = []
+            # tolink_list, from_list, to_list的长度必定相等。   
+            for oneFrom, oneTolink, oneTo in zip(from_list, tolink_list, to_list):
+                laneDict[int(oneFrom)].append('''%d/%s''' % (oneTolink, oneTo))
             
             tolinkDict = {}
-            for i in range(0, len(outlink_list)):
-                if outlink_lanecount_list[i] is not None:
-                    tolinkDict[outlink_list[i]] = outlink_lanecount_list[i]
-                else:
-                    outlink_lanecount_list[i] = 0
-                    for oneTo in to_list:
-                        if(int(oneTo) > outlink_lanecount_list[i]):
-                            outlink_lanecount_list[i] = int(oneTo)
-                    tolinkDict[outlink_list[i]] = outlink_lanecount_list[i]
+            for oneOutlink, oneOutLaneCount  in zip(outlink_list, outlink_lanecount_list):
+                maxLaneCount = oneOutLaneCount
+                if maxLaneCount is None: # 从org_ld表中无法获取outlink的lane数
+                    maxLaneCount = -1 
+                    for oneTolink, oneTo in zip(tolink_list, to_list): # 进一步从fromto中分析此link的最大lane数。
+                        if oneOutlink == oneTolink:
+                            if(int(oneTo) > maxLaneCount):
+                                maxLaneCount = int(oneTo)
+                tolinkDict[oneOutlink] = maxLaneCount
                 
             line = []
             line.append('''%d''' % inlinkid)

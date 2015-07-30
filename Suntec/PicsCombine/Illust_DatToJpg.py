@@ -48,7 +48,7 @@ def ConvertDatToImage(srcDatFile, destDir):
         outFS.close()
         
 if __name__ == '__main__':
-    dat = r"\\idata\Private\Data_Authoring\SourceData\AP_rdf\HKGMAC\2014Q4\illust"
-    pic = r"C:\My\HKGMAC_out"
+    dat = r"C:\Users\hexin\Desktop\20150730_aus_pic_day_night\320x240_dat"
+    pic = r"C:\Users\hexin\Desktop\20150730_aus_pic_day_night\320x240_dat_output"
     ConvertDatToImage_Dir(dat, pic)
     

@@ -1,13 +1,20 @@
 #encoding=utf-8
 import os.path
 import struct
-import sys
+import shutil
 
 class GeneratorPicBinary_Sensis(object):
     def __init__(self):
         return
     
     def combine_images(self, srcDir, destDir):
+        if os.path.isdir(srcDir) == False:
+            print """can not find src dir: %s""" % srcDir
+            return
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        os.mkdir(destDir)
+        
         for curDir,dirNames,fileNames in os.walk(srcDir):
             fileNames.sort(self.image_name_comparation)
             imgList = []
@@ -66,9 +73,12 @@ class GeneratorPicBinary_Sensis(object):
     def image_name_comparation(self, image1, image2):
         image1Split = image1.split('_')
         image2Split = image2.split('_')
-    
-        leftPart1 = '_'.join([image1Split[0], image1Split[1], image1Split[2]])
-        leftPart2 = '_'.join([image2Split[0], image2Split[1], image2Split[2]])
+        try:
+            leftPart1 = '_'.join([image1Split[0], image1Split[1], image1Split[2]])
+            leftPart2 = '_'.join([image2Split[0], image2Split[1], image2Split[2]])
+        except: 
+            print image1Split, image2Split
+            return 
         if leftPart1 < leftPart2:
             return -1
         elif leftPart1 == leftPart2:
@@ -117,11 +127,11 @@ class GeneratorPicBinary_Sensis(object):
     def get_image_information(self, image):
         imageSplit = image.split('_')
         if imageSplit[3] == 'day':
-            return 1 << 4 | 1
+            return 1
         elif imageSplit[3] == 'night':
-            return 1 << 4 | 2
+            return 2
         else:
-            return 1 << 4
+            return 0
         
         # 图片名字样例： mngdf_act_01_day_320x240_left.jpg
         # 由以上图片取的.dat文档名：mngdf_act_01_left.dat
@@ -135,23 +145,41 @@ class GeneratorPicBinary_Sensis(object):
         del imageSplit[3]
         del imageSplit[0]
         return '_'.join(imageSplit).replace(".jpg", ".dat")
- 
-def main():
-    arglen = len(sys.argv)
-    if(arglen <= 2):
-        pass
-    else:
-        srcdir = ""
-        destdir = ""
-        for i in range(1, arglen):
-            arg = sys.argv[i]
-            if(arg == "/srcdir"):
-                srcdir = str(sys.argv[i+1])
-            elif(arg == "/destdir"):
-                destdir = str(sys.argv[i+1])
-    test = GeneratorPicBinary_Sensis()
-    test.combine_images(srcdir, destdir)
-
 
 if __name__ == '__main__':
-    main()
+    test = GeneratorPicBinary_Sensis()
+    test.combine_images(r"C:\Users\hexin\Desktop\20150730_aus_pic_day_night\320x240", 
+                        r"C:\Users\hexin\Desktop\20150730_aus_pic_day_night\320x240_dat")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
