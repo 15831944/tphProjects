@@ -11,7 +11,11 @@ from component.ta.multi_lang_name_ta import MultiLangNameTa
 from common import cache_file
 from component.default.multi_lang_name import NAME_TYPE_OFFICIAL
 from common.common_func import getProjCountry
-DEFAULT_LANG_CODES = {'aus': 'ENG'}
+DEFAULT_LANG_CODES = {'aus': 'ENG',  # 澳洲
+                      'saf': 'ENG',  # 南非
+                      'saf5': 'ENG',  # 南非5国
+                      'saf8': 'ENG',  # 南非8国
+                      }
 
 
 class HwySapaInfoTa(HwySapaInfoRDF):

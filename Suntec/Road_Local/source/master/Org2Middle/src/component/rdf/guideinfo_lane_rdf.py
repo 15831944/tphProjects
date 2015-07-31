@@ -24,8 +24,8 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
     
     def _Do(self):
         self.log.info(self.ItemName + ': begin of making lane ...')
-        self._GenerateLanenumLrTbl()
-        self._GenerateLaneListOnDir()
+        self._MakeMidLanenumLrTbl()
+        self._FindLaneListOnLinkDir()
         self._GenerateLaneTbl()
         self.log.info(self.ItemName + ': end of making lane ...')         
         return 0
@@ -124,7 +124,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
 
 
     # 创建包含了left,right车线信息的临时表mid_lanenum_lr
-    def _GenerateLanenumLrTbl(self):
+    def _MakeMidLanenumLrTbl(self):
         self.pg.execute2("select mid_make_lanenum_lr();")
         self.pg.commit2()
         return 0
@@ -132,7 +132,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
     # rdf_lane连rdf_link
     # 求出每条link的F和T方向的车线列表和bus lane信息。
     # 生成一张临时表temp_lane_count_in_link_dir存储这些车线信息。
-    def _GenerateLaneListOnDir(self):
+    def _FindLaneListOnLinkDir(self):
         sqlcmd = '''
                 drop table if exists temp_lane_list_in_link_dir;
                 select case when t1.link_id is not null then t1.link_id else t2.link_id end as link_id,
@@ -145,11 +145,11 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                 (
                     select link_id, array_agg(lane_number) as T_lane_num_list,
                            array_agg(
-                                       case when automobiles= 'N' and buses= 'Y' 
-                                       and taxis= 'N' and carpools= 'N' 
-                                       and pedestrians= 'N' and trucks= 'N' 
-                                       and deliveries= 'N' and emergency_vehicles= 'N' 
-                                       and through_traffic= 'N' and motorcycles= 'N'
+                                       case when b.automobiles= 'N' and b.buses= 'Y' 
+                                       and b.taxis= 'N' and b.carpools= 'N' 
+                                       and b.pedestrians= 'N' and b.trucks= 'N' 
+                                       and b.deliveries= 'N' and b.emergency_vehicles= 'N' 
+                                       and b.through_traffic= 'N' and b.motorcycles= 'N'
                                        then 1
                                        else 0
                                        end
@@ -169,11 +169,11 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                 (
                     select link_id, array_agg(lane_number) as F_lane_num_list, 
                            array_agg(
-                                       case when automobiles= 'N' and buses= 'Y' 
-                                       and taxis= 'N' and carpools= 'N' 
-                                       and pedestrians= 'N' and trucks= 'N' 
-                                       and deliveries= 'N' and emergency_vehicles= 'N' 
-                                       and through_traffic= 'N' and motorcycles= 'N'
+                                       case when b.automobiles= 'N' and b.buses= 'Y' 
+                                       and b.taxis= 'N' and b.carpools= 'N' 
+                                       and b.pedestrians= 'N' and b.trucks= 'N' 
+                                       and b.deliveries= 'N' and b.emergency_vehicles= 'N' 
+                                       and b.through_traffic= 'N' and b.motorcycles= 'N'
                                        then 1
                                        else 0
                                        end

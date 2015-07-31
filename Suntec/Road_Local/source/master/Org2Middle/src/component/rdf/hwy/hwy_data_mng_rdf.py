@@ -17,6 +17,7 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_NODE_NAME
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
+from component.rdf.hwy.hwy_graph_rdf import HWY_UPDOWN_CODE
 from component.rdf.hwy.hwy_graph_rdf import HWY_PATH_ID
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
 from component.rdf.hwy.hwy_graph_rdf import HWY_FACIL_CLASS
@@ -637,17 +638,18 @@ class HwyDataMngRDF(component.component_base.comp_base):
             self.log.error('No table hwy_link_road_code_info.')
             return
         sqlcmd = """
-        SELECT road_code, array_agg(node_id) as path
+        SELECT road_code, updown, array_agg(node_id) as path
           FROM (
-            SELECT road_code, node_id
+            SELECT road_code, updown, node_id
               FROM hwy_link_road_code_info
-              ORDER BY road_code, seq_nm
+              ORDER BY road_code, updown, seq_nm
           ) as a
-          GROUP BY road_code;
+          GROUP BY road_code, updown;
         """
-        for road_code, path in self.get_batch_data(sqlcmd):
+        for road_code, updown, path in self.get_batch_data(sqlcmd):
             for u, v in zip(path[0:-1], path[1:]):
-                data = {HWY_ROAD_CODE: road_code}
+                data = {HWY_ROAD_CODE: road_code,
+                        HWY_UPDOWN_CODE: updown}
                 self._graph.add_edge(u, v, data)
         self.log.info('End Loading HYY Road Code.')
 
@@ -737,14 +739,14 @@ class HwyDataMngRDF(component.component_base.comp_base):
 
     def get_road_code_path(self):
         sqlcmd = """
-        SELECT road_code, array_agg(node_id) as path
+        SELECT road_code, updown, array_agg(node_id) as path
           FROM (
-            SELECT road_code, node_id
+            SELECT road_code, updown, node_id
               FROM hwy_link_road_code_info
-              ORDER BY road_code, seq_nm
+              ORDER BY road_code, updown, seq_nm
           ) as a
-          GROUP BY road_code
-          ORDER BY road_code;
+          GROUP BY road_code, updown
+          ORDER BY road_code, updown;
         """
         return self.get_batch_data(sqlcmd)
 
@@ -798,7 +800,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         return facils
 
     def get_main_path(self, road_code, updown):
-        key = road_code
+        key = (road_code, updown)
         if not self.__main_path_dict:
             self.__load_main_path()
         if self.__main_path_dict:
@@ -824,7 +826,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         if not node_id:
             return False
         self.__load_road_start_end_node()
-        key = road_code
+        key = (road_code, updown)
         s_e_nodes = self.__road_start_end_node.get(key)
         if s_e_nodes and node_id == s_e_nodes[0]:
             return True
@@ -835,20 +837,20 @@ class HwyDataMngRDF(component.component_base.comp_base):
             return
         self.log.info('Start Loading Road Start/End Node.')
         sqlcmd = """
-        SELECT road_code, array_agg(node_id) as node_lid
+        SELECT road_code, updown, array_agg(node_id) as node_lid
           FROM (
-            SELECT road_code, node_id
+            SELECT road_code, updown, node_id
               FROM hwy_link_road_code_info
-              ORDER BY road_code, seq_nm
+              ORDER BY road_code, updown, seq_nm
           ) AS a
-          GROUP BY road_code
+          GROUP BY road_code, updown
         """
         self.pg.execute2(sqlcmd)
         for row in self.pg.fetchall2():
-            road_code, node_lid = row[0:2]
+            road_code, updown, node_lid = row[0:3]
             start_node = node_lid[0]
             end_node = node_lid[-1]
-            key = road_code
+            key = (road_code, updown)
             self.__road_start_end_node[key] = (start_node, end_node)
         self.log.info('End Loading Road Start/End Node.')
 
@@ -857,7 +859,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         if not node_id:
             return False
         self.__load_road_start_end_node()
-        key = road_code
+        key = (road_code, updown)
         s_e_nodes = self.__road_start_end_node.get(key)
         if s_e_nodes and node_id == s_e_nodes[-1]:
             return True
@@ -865,20 +867,21 @@ class HwyDataMngRDF(component.component_base.comp_base):
 
     def __load_main_path(self):
         sqlcmd = """
-        SELECT road_code, array_agg(node_id)
+        SELECT road_code, updown, array_agg(node_id)
           FROM (
-            SELECT road_code, node_id
+            SELECT road_code, updown, node_id
               FROM hwy_link_road_code_info
-              ORDER BY road_code, seq_nm
+              ORDER BY road_code, updown, seq_nm
           ) AS a
-          GROUP BY road_code;
+          GROUP BY road_code, updown;
         """
         self.pg.execute2(sqlcmd)
         data = self.pg.fetchall2()
         for main_path in data:
             road_code = main_path[0]
-            path = main_path[1]
-            key = road_code
+            updown = main_path[1]
+            path = main_path[2]
+            key = (road_code, updown)
             self.__main_path_dict[key] = path
 
     def get_road_no(self, road_code):

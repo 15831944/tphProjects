@@ -44,14 +44,14 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
     def __make_temp_org_spjcty(self):
         self.log.info('make temp_org_spjcty...')
         
-        if True == self.pg.IsExistTable('org_spjcty') and \
-            True == self.pg.IsExistTable('temp_node_mapping'):
-            # 创建表单temp_org_spjcty 作成：
-            # 原始表单org_spjcty中id唯一化
-            # 步骤1：根据jct_number获取meshcode，将字符串化的id整形化
-            # 步骤2：根据mapping表获取唯一化id
-            self.CreateFunction2('zenrin_get_meshcode')
-            sqlcmd = """
+        # 创建表单temp_org_spjcty 作成：
+        # 原始表单org_spjcty中id唯一化
+        # 步骤1：根据jct_number获取meshcode，将字符串化的id整形化
+        # 步骤2：根据mapping表获取唯一化id
+        
+        self.CreateFunction2('zenrin_get_meshcode')
+        
+        sqlcmd = """
                     drop table if exists temp_org_spjcty;
                     CREATE TABLE temp_org_spjcty
                     as (
@@ -90,22 +90,22 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
                         left join temp_node_mapping g
                             on a.meshcode = g.meshcode and to_int_no22 = g.nodeno
                     );
+                    
+                    analyze temp_org_spjcty;
                 """
-            self.pg.do_big_insert2(sqlcmd)
-        else:
-            self.log.warning('table org_spjcty or temp_node_mapping do not exist!!!')
+                
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('make temp_org_spjcty end.')
     
     def __make_temp_org_eci_jctv(self):
         self.log.info('make temp_org_eci_jctv...')
-    
-        if True == self.pg.IsExistTable('org_eci_jctv') and \
-            True == self.pg.IsExistTable('temp_link_mapping'):
-            # 创建表单temp_org_eci_jctv 作成：
-            # 原始表单org_eci_jctv中link id唯一化
-            # 步骤1：根据mapping表获取唯一化id
-            sqlcmd = """
+        
+        # 创建表单temp_org_eci_jctv 作成：
+        # 原始表单org_eci_jctv中link id唯一化
+        # 步骤1：根据mapping表获取唯一化id
+            
+        sqlcmd = """
                     drop table if exists temp_org_eci_jctv;
                     CREATE TABLE temp_org_eci_jctv 
                     as (
@@ -126,28 +126,28 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
                         left join temp_link_mapping g
                             on a.mesh6 = g.meshcode::integer and a.link6 = g.linkno
                     );
+                    
+                    analyze temp_org_eci_jctv;
                 """
-            self.pg.do_big_insert2(sqlcmd)
-        else:
-            self.log.warning('table org_eci_jctv or temp_link_mapping do not exist!!!')
+                
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('make temp_org_eci_jctv end.')
     
     def __make_temp_spotguide_tbl1(self):
         self.log.info('make temp_spotguide_tbl1...')
-
-        if True == self.pg.IsExistTable('temp_org_spjcty') and \
-            True == self.pg.IsExistTable('link_tbl'):
-            # 使用JCT 创建表单temp_spotguide_tbl1 作成：
-            # 引导路径link化
-            # 原始数据提供的引导路径由node（最多4个点）组成，需要转换成对应的link列
-            # 根据原始数据check，原始数据提供node列中相邻两点同属一条link
-            # from_intersetion_no与atten_intersetion_no确定firstLink（进入link）
-            # atten_intersetion_no作成引导点
-            # atten_intersetion_no与to_int_no11（to_int_no21）确定secondLink（经过link或者脱出link）
-            # to_int_no11（to_int_no12）与to_int_no12（to_int_no22）确定thirdLink（脱出link）
-            # 根据原始数据check，to_int_no12/to_int_no22为空，所得thirdLink为空，故脱出link为secondLink
-            sqlcmd = """
+        
+        # 使用JCT 创建表单temp_spotguide_tbl1 作成：
+        # 引导路径link化
+        # 原始数据提供的引导路径由node（最多4个点）组成，需要转换成对应的link列
+        # 根据原始数据check，原始数据提供node列中相邻两点同属一条link
+        # from_intersetion_no与atten_intersetion_no确定firstLink（进入link）
+        # atten_intersetion_no作成引导点
+        # atten_intersetion_no与to_int_no11（to_int_no21）确定secondLink（经过link或者脱出link）
+        # to_int_no11（to_int_no12）与to_int_no12（to_int_no22）确定thirdLink（脱出link）
+        # 根据原始数据check，to_int_no12/to_int_no22为空，所得thirdLink为空，故脱出link为secondLink
+            
+        sqlcmd = """
                     drop table if exists temp_spotguide_tbl1;
                     CREATE TABLE temp_spotguide_tbl1
                     as (
@@ -181,26 +181,26 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
                         left join link_tbl d2
                             on to_int_no21 = d2.s_node and to_int_no22 = d2.e_node
                     );
+                    
+                    analyze temp_spotguide_tbl1;
                 """
-            self.pg.do_big_insert2(sqlcmd)
-        else:
-            self.log.warning('table temp_org_spjcty or link_tbl do not exist!!!')
+                
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('make temp_spotguide_tbl1 end.')
     
     def __make_temp_spotguide_tbl2(self):
         self.log.info('make temp_spotguide_tbl2...')
         
-        if True == self.pg.IsExistTable('temp_org_eci_jctv') and \
-            True == self.pg.IsExistTable('link_tbl'):
-            # 使用Real JCT创建表单temp_spotguide_tbl2 作成：
-            # 默认数据状况：link1/link2不为空，其他link可能为空；seq取值范围(2, 3, 4, 5, 6);link1~6依次相连   原始数据check保证
-            # link1作为进入link
-            # link1与link2共通node作为分歧点
-            # link2~6最后一个有效link(不为空，记为linkX)作为脱出link
-            # seq-2作为经过link个数
-            # link1到linkX之间的link序列作为经过link
-            sqlcmd = """
+        # 使用Real JCT创建表单temp_spotguide_tbl2 作成：
+        # 默认数据状况：link1/link2不为空，其他link可能为空；seq取值范围(2, 3, 4, 5, 6);link1~6依次相连   原始数据check保证
+        # link1作为进入link
+        # link1与link2共通node作为分歧点
+        # link2~6最后一个有效link(不为空，记为linkX)作为脱出link
+        # seq-2作为经过link个数
+        # link1到linkX之间的link序列作为经过link
+            
+        sqlcmd = """
                     drop table if exists temp_spotguide_tbl2;
                     CREATE TABLE temp_spotguide_tbl2 
                     as (
@@ -230,10 +230,11 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
                         left join link_tbl c
                             on a.seclink = c.link_id
                     );
+                    
+                    analyze temp_spotguide_tbl2;
                 """
-            self.pg.do_big_insert2(sqlcmd)
-        else:
-            self.log.warning('table temp_org_eci_jctv or link_tbl do not exist!!!')
+                
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('make temp_spotguide_tbl2 end.')
     
@@ -241,10 +242,10 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
         self.log.info('make spotguide_tbl...')
         
         # 更新中间表spotguide_tbl
-        if True == self.pg.IsExistTable('temp_spotguide_tbl1'): 
-            # thirdLink为空，secondLink为最终脱出link，无经过link
-            # 根据原始数据check，原始数据提供的spotguide不全是JCT分歧点，占比小于2%，故暂定所有spotguide全是JCT分歧点，type设定8
-            sqlcmd = """
+        
+        # thirdLink为空，secondLink为最终脱出link，无经过link
+        # 根据原始数据check，原始数据提供的spotguide不全是JCT分歧点，占比小于2%，故暂定所有spotguide全是JCT分歧点，type设定8
+        sqlcmd = """
                     insert into spotguide_tbl (
                         nodeid, inlinkid, outlinkid, passlid, 
                         passlink_cnt, direction, guideattr, namekind, guideclass,
@@ -266,12 +267,11 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
                     from temp_spotguide_tbl1
                 """
                 
-            self.pg.do_big_insert2(sqlcmd)
+        self.pg.do_big_insert2(sqlcmd)
         
-        if True == self.pg.IsExistTable('temp_spotguide_tbl2'): 
-            # Real JCT不需要arrowno
-            # 根据APL反馈，其使用时不区分实景图类别，统一设定type=2(高速出口实景图)
-            sqlcmd = """
+        # Real JCT不需要arrowno
+        # 根据APL反馈，其使用时不区分实景图类别，统一设定type=2(高速出口实景图)
+        sqlcmd = """
                     insert into spotguide_tbl (
                         nodeid, inlinkid, outlinkid, passlid, 
                         passlink_cnt, direction, guideattr, namekind, guideclass,
@@ -285,6 +285,6 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
                     from temp_spotguide_tbl2
                 """
                 
-            self.pg.do_big_insert2(sqlcmd)
+        self.pg.do_big_insert2(sqlcmd)  
         
         self.log.info('make spotguide_tbl end.')

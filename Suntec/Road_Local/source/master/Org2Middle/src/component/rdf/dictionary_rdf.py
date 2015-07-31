@@ -319,7 +319,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                    is_junction_name,
                    is_vanity_name,
                    is_scenic_name,
-                   road_link_id
+                   road_link_id,
+                   language_code
         );
         """
         self.pg.execute2(sqlcmd)
@@ -359,7 +360,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
           order by link_id,
                    route_type,
                    length(rdf_road_name.street_name),
-                   street_name
+                   street_name,
+                   language_code
         );
         """
         self.pg.execute2(sqlcmd)

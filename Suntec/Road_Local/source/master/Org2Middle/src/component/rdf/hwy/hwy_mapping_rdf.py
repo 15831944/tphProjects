@@ -59,7 +59,7 @@ class HwyMappingRDF(HwyMapping):
         '''本线link的Mapping'''
         self.log.info('Start Making Main Link Mapping.')
         self.pg.connect1()
-        for road_code, path in self.data_mng.get_road_code_path():
+        for road_code, updown, path in self.data_mng.get_road_code_path():
             bwd_ic_nos = []  # 后方(车流方向)
             fwd_ic_nos = []  # 前方(车流方向)
             bwd_ic_no = None
@@ -72,7 +72,7 @@ class HwyMappingRDF(HwyMapping):
                 road_no = self.data_mng.get_road_no(road_code)
                 tile_id_14 = self.G.get_tile_id(u, v)
                 tile_id = convert_tile_id(tile_id_14)  # 14层tile转成高层tile
-                road_kind = UPDOWN_TYPE_UP  # 上行
+                road_kind = updown
                 if(self.G.is_hwy_node(u) or
                    self.data_mng.is_boundary_node(u)):
                     # 取得后方设施

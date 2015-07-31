@@ -27,9 +27,7 @@ class comp_school_zone_ta(component.component_base.comp_base):
         return 0
     #alter table    
     def _Do(self):
-        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
-                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
-                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+        if not self.pg.IsExistTable("org_school_zones") :
             self.log.warning('table is not exist!!!')
             return 0
         self.__get_speedlimit()
@@ -188,9 +186,7 @@ class comp_school_zone_ta(component.component_base.comp_base):
                 """
         row_num_tbl = (self.__GetRows(sqlcmd))[0][0]
         
-        if not (self.pg.IsExistTable("scpoint") and self.pg.IsExistTable("scpoint_ext") and
-                self.pg.IsExistTable("scpoint_ll") and self.pg.IsExistTable("scpoint_ext_ll") and
-                self.pg.IsExistTable("scpoint_status") and self.pg.IsExistTable("scpoint_ext_status")):
+        if not self.pg.IsExistTable("org_school_zones") :
             row_num_org = 0
         else:
             sqlcmd = """             

@@ -52,10 +52,17 @@ class rdb_forecast_aus(ItemBase):
 
         self._createForecast_14()
 
-        self._createForecast_region('4')
-        self._createForecast_region('6')
-        if self.pg.IsExistTable('rdb_region_link_layer8_tbl'):
-            self._createForecast_region('8')
+        sqlcmd = """
+            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
+            from pg_tables 
+            where tablename like 'rdb_region_link_layer%_tbl'
+            order by tablename;
+        """
+        self.pg.execute2(sqlcmd)
+        self.layer_list = self.pg.fetchall2()
+
+        for layer_no in self.layer_list:
+            self._createForecast_region(layer_no[0])
 
         self._insertRDBTables()
 
@@ -134,7 +141,8 @@ class rdb_forecast_aus(ItemBase):
                 from temp_forecast_link_org a
                 left join temp_link_with_length b
                 on a.link_id = b.org_link_id
-                where a.profile_flag = 'f'
+                where b.org_link_id is not null
+                and a.profile_flag = 'f'
                 and (b.s_fraction = 0 and b.e_fraction = 1) 
             ) c;
                           
@@ -171,7 +179,8 @@ class rdb_forecast_aus(ItemBase):
                         from temp_forecast_link_org a
                         left join temp_link_with_length b
                         on a.link_id = b.org_link_id
-                        where profile_flag = 'f' 
+                        where b.org_link_id is not null
+                        and profile_flag = 'f' 
                         and not (b.s_fraction = 0 and b.e_fraction = 1) 
                     ) c
                 ) d
@@ -1050,13 +1059,104 @@ class rdb_forecast_aus(ItemBase):
     def _insertRDBTables(self): 
 
         rdb_log.log(self.ItemName, 'inserting into RDB tables ----- start', 'info') 
-        # Give a unique ID to time slots.
-        self.CreateTable2('temp_forecast_time_distinct')
-        self.CreateIndex2('temp_forecast_time_distinct_time_slot_array_time_array_idx')
+
+        # Get layer number of region link.
+        sqlcmd = """
+            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
+            from pg_tables 
+            where tablename like 'rdb_region_link_layer%_tbl'
+            order by tablename;
+        """
+        self.pg.execute2(sqlcmd)
+        self.layer_list = self.pg.fetchall2()
+                
+        # Give a unique ID to time slots & control table.
+        sqlcmd_time = """
+            drop table if exists temp_forecast_time_distinct;
+            create table temp_forecast_time_distinct 
+            as
+            (
+                select ROW_NUMBER() OVER(ORDER BY time_slot_array,time_array) as time_id
+                    ,time_slot_array,time_array
+                from (
+                    select distinct time_slot_array,weekend_diff_array as time_array
+                    from temp_forecast_link_with_slot_merge where weekend_diff_array[1] is not null
+                    union
+                    select distinct time_slot_array,weekday_diff_array as time_array
+                    from temp_forecast_link_with_slot_merge where weekday_diff_array[1] is not null      
+            """
+            
+        sqlcmd_control = """
+            drop table if exists temp_forecast_control;
+            create table temp_forecast_control 
+            as
+            (
+                select     ROW_NUMBER() OVER(ORDER BY time_slot_array,time_id_weekday,time_id_weekend) as info_id,*
+                from (
+                    select distinct a.time_slot_array
+                        ,weekday_diff_array
+                        ,weekend_diff_array
+                        ,case when b.time_id is null then 0
+                            else b.time_id
+                        end as time_id_weekday
+                        ,case when c.time_id is null then 0
+                            else c.time_id
+                        end as time_id_weekend
+                    from (
+                        select time_slot_array,weekday_diff_array,weekend_diff_array
+                        from temp_forecast_link_with_slot_merge    
+            """            
+
+        for layer_no in self.layer_list:
+            
+            sqlcmd_time = sqlcmd_time + \
+            """
+                    union
+                    select distinct time_slot_array,weekend_diff_array as time_array
+                    from temp_forecast_link_with_slot_merge_layer""" + layer_no[0] + \
+                    """ where weekend_diff_array[1] is not null
+                    union
+                    select distinct time_slot_array,weekday_diff_array as time_array
+                    from temp_forecast_link_with_slot_merge_layer""" + layer_no[0] + \
+                    """ where weekday_diff_array[1] is not null            
+            """
+
+            sqlcmd_control = sqlcmd_control + \
+            """
+                        union
+                        select time_slot_array,weekday_diff_array,weekend_diff_array
+                        from temp_forecast_link_with_slot_merge_layer""" + layer_no[0]
+            
+        sqlcmd_time = sqlcmd_time + \
+        """
+                ) a
+            );
+            
+            CREATE INDEX temp_forecast_time_distinct_time_slot_array_time_array_idx
+              ON temp_forecast_time_distinct
+              USING btree
+              (time_slot_array, time_array);            
+        """
+        sqlcmd_control = sqlcmd_control + \
+        """
+                    ) a
+                    left join temp_forecast_time_distinct b
+                    on a.time_slot_array = b.time_slot_array and a.weekday_diff_array = b.time_array
+                    left join temp_forecast_time_distinct c
+                    on a.time_slot_array = c.time_slot_array and a.weekend_diff_array = c.time_array
+                ) d
+            );  
+            
+            CREATE INDEX temp_forecast_control_time_slot_array_weekday_diff_array_wee_idx
+              ON temp_forecast_control
+              USING btree
+              (time_slot_array, weekday_diff_array, weekend_diff_array);                  
+        """
         
-        # Give a unique ID to control table.
-        self.CreateTable2('temp_forecast_control')    
-        self.CreateIndex2('temp_forecast_control_time_slot_array_weekday_diff_array_wee_idx')
+        self.pg.execute2(sqlcmd_time)
+        self.pg.commit2() 
+        self.pg.execute2(sqlcmd_control)
+        self.pg.commit2()         
               
         # Insert into time slot table.        
         sqlcmd = """
@@ -1096,17 +1196,22 @@ class rdb_forecast_aus(ItemBase):
                 ,type
             from (
                     select *,13 as type from temp_forecast_link_with_slot_merge
+            """
+
+        for layer_no in self.layer_list:            
+            sqlcmd = sqlcmd + \
+            """
                     union all
-                    select *,43 as type from temp_forecast_link_with_slot_merge_layer4
-                    union all
-                    select *,63 as type from temp_forecast_link_with_slot_merge_layer6
-                    union all
-                    select *,83 as type from temp_forecast_link_with_slot_merge_layer8                    
+                    select *,""" + layer_no[0] + \
+            """3 as type from temp_forecast_link_with_slot_merge_layer""" + layer_no[0]
+        
+        sqlcmd = sqlcmd + \
+        """
             ) a
             left join temp_forecast_control b
             on a.time_slot_array = b.time_slot_array and a.weekday_diff_array = b.weekday_diff_array
-            and a.weekend_diff_array = b.weekend_diff_array;
-            """
+            and a.weekend_diff_array = b.weekend_diff_array;        
+        """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
 
@@ -1119,7 +1224,7 @@ class rdb_forecast_aus(ItemBase):
         self.CreateIndex2('rdb_forecast_link_link_id_t_idx')
         self.CreateIndex2('rdb_forecast_control_info_id_idx1')
         self.CreateIndex2('rdb_forecast_time_time_id_idx1')
-
+        self.CreateIndex2('rdb_forecast_time_time_slot_idx1')
         sqlcmd = """
         cluster rdb_forecast_link using rdb_forecast_link_link_id_t_idx;
         analyze rdb_forecast_link;

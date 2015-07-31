@@ -309,52 +309,6 @@ create table temp_poi_name
 );
 
 -----------------------------------------------------------------
-CREATE TABLE temp_natural_guidance_poi_link_tbl
-(
- gid serial primary key,
- poi_lid bigint NOT NULL,
- poi_nme character varying(100),
- poi_prop character varying(100)
-); SELECT AddGeometryColumn('','temp_natural_guidance_poi_link_tbl','the_geom','4326','POINT',2);
-
------------------------------------------------------------------
-CREATE TABLE temp_natural_guidance_poi_link_node_tbl
-(
- poi_lid bigint NOT NULL,
- node_id bigint NOT NULL,
- poi_nme character varying(100),
- poi_prop character varying(100)
-); SELECT AddGeometryColumn('','temp_natural_guidance_poi_link_node_tbl','the_geom','4326','POINT',2);
-
------------------------------------------------------------------
-CREATE TABLE temp_natural_guidance_node_tbl
-(
- node_id bigint NOT NULL,
- poi_nme character varying(100),
- poi_prop character varying(100)
-); SELECT AddGeometryColumn('','temp_natural_guidance_node_tbl','poi_the_geom','4326','POINT',2); SELECT AddGeometryColumn('','temp_natural_guidance_node_tbl','node_the_geom','4326','POINT',2);
-
------------------------------------------------------------------
-CREATE TABLE temp_natural_guidance_in_out_link_rel
-(
- in_link_id bigint NOT NULL,
- in_s_node bigint NOT NULL,
- in_e_node bigint NOT NULL,
- in_link_type smallint NOT NULL DEFAULT (-1),
- in_one_way_code smallint,
- node_id bigint NOT NULL,
- out_link_id bigint NOT NULL,
- out_s_node bigint NOT NULL,
- out_e_node bigint NOT NULL,
- out_link_type smallint NOT NULL DEFAULT (-1),
- out_one_way_code smallint,
- link_array bigint[],
- node_array bigint[],
- poi_nme character varying(100),
- poi_prop character varying(100)
-); SELECT AddGeometryColumn('','temp_natural_guidance_in_out_link_rel','the_geom','4326','POINT',2);
-
------------------------------------------------------------------
 CREATE TABLE temp_natural_guidance_tbl
 (
  gid serial primary key,
@@ -375,21 +329,6 @@ CREATE TABLE temp_natural_guidance_tbl
  link_array bigint[],
  node_array bigint[]
 ); SELECT AddGeometryColumn('','temp_natural_guidance_tbl','the_geom','4326','POINT',2);
-
------------------------------------------------------------------
-CREATE TABLE mid_temp_natural_guidance_tbl
-(
- gid serial primary key,
- in_link_id bigint NOT NULL,
- in_node_id bigint NOT NULL,
- out_link_id bigint NOT NULL,
- pass_link_array bigint[],
- pass_link_count smallint,
- feat_position smallint,
- preposition_code smallint,
- poi_nme character varying(100),
- poi_prop character varying(100)
-); SELECT AddGeometryColumn('','mid_temp_natural_guidance_tbl','the_geom','4326','POINT',2);
 
 -----------------------------------------------------------------
 CREATE TABLE mid_temp_natural_guidence_name

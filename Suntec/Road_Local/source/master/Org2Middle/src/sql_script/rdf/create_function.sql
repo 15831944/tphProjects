@@ -4824,11 +4824,12 @@ declare
 	tmprec record;
 	lane_num_t int;
 	lane_num_f int;
-	lane_num_tt int;
+	lane_num_b int;
 	lane_num int;
 	total int;
 	node_id_t bigint;
 	lanenum_left int;
+	form_end int;
 	lanenum_right int;
 	lane_add_num int;
 	link_id_list bigint[];
@@ -4857,16 +4858,6 @@ begin
 			lane_number int,
 			forming_ending smallint
 	          );
-		  drop table if exists temp_lanenum_change;
-		  create table temp_lanenum_change
-		  (
-			link_id bigint,
-			node_id bigint,
-			forming_ending smallint,
-			total_lane_number int,
-			lanenum_l smallint,
-			lanenum_r smallint
-		  );
 
 		  drop table if exists mid_lanenum_lr;
 		  create table mid_lanenum_lr
@@ -4878,7 +4869,7 @@ begin
 		  );
 	          ';
 	for rec in 
-	select * from rdf_lane where lane_forming_ending is not null --lane_forming_ending in (2,3)
+	select * from rdf_lane where lane_forming_ending in (1,2) --lane_forming_ending in (2,3)
 	loop
 		select count(*) into lane_num_t from rdf_lane where link_id=rec.link_id
 						and lane_travel_direction='T';
@@ -4892,175 +4883,106 @@ begin
 			lane_num_f=0;
 		end if;
 
-		select count(*) into lane_num_tt from rdf_lane where link_id=rec.link_id;
-		
-		if rec.lane_travel_direction='T' then
-			lane_num=lane_num_t+1-rec.lane_number;
-			total=lane_num_t;
+		select count(*) into lane_num_b from rdf_lane where link_id=rec.link_id
+						and lane_travel_direction='B';
+		if lane_num_b is null then
+			lane_num_b=0;
 		end if;
-		if rec.lane_travel_direction='F' then
-			lane_num=rec.lane_number+lane_num_f-lane_num_tt;
-			total=lane_num_f;
-		end if;
-		
-		select case when rec.lane_travel_direction ='T' then ref_node_id else nonref_node_id end 
-		into node_id_t
-		from rdf_link
-		where link_id=rec.link_id;
 
-		if rec.lane_forming_ending<>3 then
+		if rec.lane_travel_direction in ('T','F') then
+		
+			if rec.lane_travel_direction='T' then
+				lane_num=lane_num_t+lane_num_b+1-rec.lane_number;
+				total=lane_num_t+lane_num_b;
+			else
+				lane_num=rec.lane_number-lane_num_t;
+				total=lane_num_f+lane_num_b;
+			end if;
+
+			--raise info '%,%,%,%',rec.link_id,lane_num_t,lane_num_b,lane_num_f;
+			
+			select case when rec.lane_travel_direction ='T' then ref_node_id else nonref_node_id end 
+			into node_id_t
+			from rdf_link
+			where link_id=rec.link_id;
+
 			insert into temp_lanenum_lr
 			values(rec.link_id,node_id_t,total,lane_num,rec.lane_forming_ending);
-		else
-			insert into temp_lanenum_lr
-			values(rec.link_id,node_id_t,total,lane_num,1);
+		else ---rec.lane_travel_direction='B'
+			lane_num=lane_num_t+lane_num_b+1-rec.lane_number;
+			total=lane_num_t+lane_num_b;
+
+			select ref_node_id  
+			into node_id_t
+			from rdf_link
+			where link_id=rec.link_id;
 
 			insert into temp_lanenum_lr
-			values(rec.link_id,node_id_t,total,lane_num,2);
-		end if;
-	end loop;
+			values(rec.link_id,node_id_t,total,lane_num,rec.lane_forming_ending);
 
-	for i in 1..2 loop
-		for rec2 in
-		
-			select link_id,node_id,total_lane_number,array_agg(lane_number) as lane_number_arr,array_agg(forming_ending) as forming_ending_Arr 
-			from 
-			(
-				select * from temp_lanenum_lr
-				where forming_ending=i
-				order by link_id,node_id,total_lane_number,lane_number
-			) a
-			group by link_id,node_id,total_lane_number
-		loop
-			lanenum_left=0;
-			lanenum_right=0;
-			lane_add_num=array_upper(rec2.lane_number_arr,1);
-			if lane_add_num=rec2.total_lane_number then
-				raise info 'lane_add_num=total_lane_number,link_id=%',rec2.link_id;
-				continue;
-			end if;
-			if rec2.lane_number_arr[1]<>1 and rec2.lane_number_arr[lane_add_num]<>rec2.total_lane_number then
-				raise info  'mid lane !!!! %,%',rec2.lane_number_arr[lane_add_num],rec2.total_lane_number;
-				continue;
-			end if;
-			if rec2.lane_number_arr[1]=1 then
-				idx=1;
-				while true loop
-					idx=idx+1;
-					if idx>lane_add_num or rec2.lane_number_arr[idx]<>rec2.lane_number_arr[idx-1]+1 or rec2.forming_ending_arr[idx]<>rec2.forming_ending_arr[idx-1] then
-						exit;
-					end if;
-				end loop;
-				lanenum_left=case when i = 1 then idx-1 else 1-idx end;
-			end if;
-			if rec2.lane_number_arr[lane_add_num]=rec2.total_lane_number then
-				idx=lane_add_num;
-				while true loop
-					idx=idx-1;
-					if idx<1 or rec2.lane_number_arr[idx]<>rec2.lane_number_arr[idx+1]-1 or rec2.forming_ending_arr[idx]<>rec2.forming_ending_arr[idx+1] then
-						exit;
-					end if;
-				end loop;
-				lanenum_right=case when i = 1 then lane_add_num-idx else idx-lane_add_num end;
-			end if;
-			if lane_add_num<>abs(lanenum_left)+abs(lanenum_right) then
-				raise info 'error:  mid lane----%,%,%,%',lane_Add_num,lanenum_left,lanenum_right,rec2.lane_number_arr;
-				continue;
-			end if;
-			insert into temp_lanenum_change--total_lane_number
-			values(rec2.link_id,rec2.node_id,i,rec2.total_lane_number,lanenum_left,lanenum_right);
-		end loop;
-	end loop;
-	
-	--因为给的是inlink连接的下一条link，所以需要寻找增加车线的inlink，
-
-	select count(1) into cnt from temp_lanenum_change where forming_ending=1;
-	
-	for rec in
-	select * from temp_lanenum_change
-	where forming_ending=1
-	loop	
-		
-		select case when ref_node_id=rec.node_id then nonref_node_id else ref_node_id end into node_id_1 
-		from rdf_link
-		where link_id=rec.link_id;
-
-		select st_geomfromtext(node) into node_1 from wkt_node where node_id=node_id_1;
-		
-		select case when nonref_node_id = rec.node_id then st_pointn(st_geomfromtext(b.link),2) else st_pointn(st_reverse(st_geomfromtext(b.link)),2) end as node_2
-		into node_2 from rdf_link a
-		join wkt_link b
-		on a.link_id=b.link_id
-		where a.link_id=rec.link_id;
-
-		link_id_list=array[]::bigint[];
-		angle_list=array[]::smallint[];
-		
-		for tmprec in
-			select a.*,case when ref_node_id=node_id_1 then st_pointn(st_geomfromtext(b.link),2)
-					else st_pointn(st_reverse(st_geomfromtext(b.link)),2) 
-					end as node_0
-			from rdf_link a
-			join wkt_link b
-			on a.link_id=b.link_id
-			where node_id_1 in (ref_node_id,nonref_node_id) and a.link_id<>rec.link_id
-		loop
-			
-			node_0=tmprec.node_0;
-
-			angle_turn=((st_azimuth(node_2,node_1)-st_azimuth(node_1,node_0))/pi()*180)::int;
-			if angle_turn<-180 then
-				angle_turn=angle_turn+360;
-			end if;
-			if angle_turn>180 then
-				angle_turn=angle_turn-360;
-			end if;
-
-			if abs(angle_turn)<80 then
-				link_id_list=array_append(link_id_list,tmprec.link_id);
-				angle_list=array_append(angle_list,angle_turn);
-			end if;
-			
-		end loop;
-		if array_upper(link_id_list,1) is null then
-			raise info 'no link,%',rec.link_id;
-		end if;
-		if array_upper(link_id_list,1)=1 then
-			in_link_id=link_id_list[1];
-		else
-			if array_upper(link_id_list,1)>1 then
+			lane_num=rec.lane_number-lane_num_t-lane_num_b;
+				total=lane_num_f+lane_num_b;
 				
-				angle_m1=90;
-				for i in 1..array_upper(angle_list,1) loop
-					if abs(angle_list[i])<angle_m1 then
-						angle_m1=abs(angle_list[i]);
-						in_link_id=link_id_list[i];
-					end if;
-				end loop;
-				angle_m2=90;
-				for i in 1..array_upper(angle_list,1) loop
-					if abs(angle_list[i])<angle_m2 and abs(angle_list[i])>angle_m1 then
-						angle_m2=abs(angle_list[i]);
-					end if;
-				end loop;
-				if (angle_m1=0 or angle_m2/angle_m1>5) and angle_m2>15 then
-					raise info 'inlinkid=%,angle_m1=%,angle_m2=%',in_link_id,angle_m1,angle_m2;
-				else 
-					in_link_id=null;
-				end if;
-			else
-				in_link_id=null;
-			end if;
-		end if;
+			select nonref_node_id  
+			into node_id_t
+			from rdf_link
+			where link_id=rec.link_id;
 
-		if in_link_id is not null then
-			insert into mid_lanenum_lr
-			values(in_link_id,node_id_1,rec.lanenum_l,rec.lanenum_r);
+			insert into temp_lanenum_lr
+			values(rec.link_id,node_id_t,total,lane_num,rec.lane_forming_ending);
 		end if;
 	end loop;
 
-	insert into mid_lanenum_lr
-	select link_id,node_id,lanenum_l,lanenum_r from temp_lanenum_change where forming_ending=2;
+	for rec2 in
+	
+		select link_id,node_id,total_lane_number,array_agg(lane_number) as lane_number_arr,array_agg(forming_ending) as forming_ending_Arr 
+		from 
+		(
+			select * from temp_lanenum_lr
+			order by link_id,node_id,total_lane_number,lane_number
+		) a
+		group by link_id,node_id,total_lane_number
+	loop
+		lanenum_left=0;
+		lanenum_right=0;
+		lane_add_num=array_upper(rec2.lane_number_arr,1);
+		if lane_add_num=rec2.total_lane_number then
+			raise info 'lane_add_num=total_lane_number,link_id=%',rec2.link_id;
+			continue;
+		end if;
+
+		
+		if rec2.lane_number_arr[1]=1 then
+			idx=1;
+			form_end=rec2.forming_ending_arr[1];
+			while true loop
+				idx=idx+1;
+				if idx>lane_add_num or rec2.lane_number_arr[idx]<>rec2.lane_number_arr[idx-1]+1 or rec2.forming_ending_arr[idx]<>rec2.forming_ending_arr[idx-1] then
+					exit;
+				end if;
+			end loop;
+			lanenum_left=case when form_end = 1 then idx-1 else 1-idx end;
+		end if;
+		if rec2.lane_number_arr[lane_add_num]=rec2.total_lane_number then
+			idx=lane_add_num;
+			form_end=rec2.forming_ending_arr[lane_add_num];
+			while true loop
+				idx=idx-1;
+				if idx<1 or rec2.lane_number_arr[idx]<>rec2.lane_number_arr[idx+1]-1 or rec2.forming_ending_arr[idx]<>rec2.forming_ending_arr[idx+1] then
+					exit;
+				end if;
+			end loop;
+			lanenum_right=case when form_end = 1 then lane_add_num-idx else idx-lane_add_num end;
+		end if;
+		
+		if lane_add_num<>abs(lanenum_left)+abs(lanenum_right) then
+			raise info 'error:  mid lane----. link_id=%',rec2.link_id;
+			continue;
+		end if;
+		
+		insert into mid_lanenum_lr--total_lane_number
+		values(rec2.link_id,rec2.node_id,lanenum_left,lanenum_right);
+	end loop;
 
 	return 0;
 end;

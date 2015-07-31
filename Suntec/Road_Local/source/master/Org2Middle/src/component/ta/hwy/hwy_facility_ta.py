@@ -34,7 +34,7 @@ class HwyFacilityTa(HwyFacilityRDF):
         self.log.info('Start Make SAPA Info.')
         self.CreateTable2('mid_temp_hwy_sapa_info')
         for data in self._get_rest_area_info():
-            road_code, road_seq, poi_id, feattyp, name = data
+            road_code, road_seq, poi_id, feattyp, name, updown = data
             if feattyp:
                 facil_cls = SAPA_TYPE_DICT.get(feattyp)
                 if not facil_cls:
@@ -44,7 +44,8 @@ class HwyFacilityTa(HwyFacilityRDF):
             else:
                 facil_cls = HWY_IC_TYPE_PA
             self._store_sapa_info(road_code, road_seq,
-                                  facil_cls, poi_id, name)
+                                  facil_cls, poi_id, name,
+                                  updown)
         self.pg.commit1()
         self._update_sapa_facilcls()
         self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_road_seq_idx')
@@ -134,9 +135,9 @@ class HwyFacilityTa(HwyFacilityRDF):
         '''取得服'''
         sqlcmd = """
         SELECT DISTINCT road_code, road_seq,
-               c.poi_id, feattyp, e.name
+               c.poi_id, feattyp, e.name, updown_c
           FROM (
-            SELECT road_code, road_seq, facilcls_c,
+            SELECT road_code, road_seq, facilcls_c, updown_c,
                    regexp_split_to_table(link_lid, E'\\,+')::bigint as link_id
               FROM mid_temp_hwy_ic_path as a
               where facilcls_c in (1, 2) and   -- 1: sa, 2: pa

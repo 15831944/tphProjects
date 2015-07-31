@@ -1189,7 +1189,7 @@ CREATE TABLE temp_poi_logmark
   org_code smallint
 );
 
-CREATE TABLE temp_poi_logmark1
+CREATE TABLE temp_mnpoi_logmark
 (
   id bigint NOT NULL,
   feattyp smallint,
@@ -1200,7 +1200,7 @@ CREATE TABLE temp_poi_logmark1
   org_code smallint
 );
 
-CREATE TABLE temp_poi_logmark2
+CREATE TABLE temp_mn_logmark
 (
   id bigint NOT NULL,
   feattyp smallint,

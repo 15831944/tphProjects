@@ -1585,3 +1585,7 @@ CREATE INDEX rdb_forecast_time_time_id_idx1
   ON rdb_forecast_time
   USING btree
   (time_id);
+CREATE INDEX rdb_forecast_time_time_slot_idx1
+  ON rdb_forecast_time
+  USING btree
+  (time_slot);

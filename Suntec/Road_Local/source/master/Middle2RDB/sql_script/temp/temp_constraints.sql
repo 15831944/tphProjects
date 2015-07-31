@@ -881,16 +881,6 @@ CREATE INDEX temp_forecast_link_with_slot_merge_info_idx
   USING btree
   (time_slot_array, weekday_diff_array, weekend_diff_array);
   
-CREATE INDEX temp_forecast_time_distinct_time_slot_array_time_array_idx
-  ON temp_forecast_time_distinct
-  USING btree
-  (time_slot_array, time_array);
-
-  CREATE INDEX temp_forecast_control_time_slot_array_weekday_diff_array_wee_idx
-  ON temp_forecast_control
-  USING btree
-  (time_slot_array, weekday_diff_array, weekend_diff_array);
-
 CREATE INDEX rdf_link_rtic_nvid_1_idx
   ON rdf_link_rtic
   USING btree

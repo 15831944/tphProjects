@@ -1901,5 +1901,46 @@ class CCheckRoadNumber_TTS(platform.TestCase.CTestCase):
                     return 1
             
         return 1    
-    
+
+class CCheckNameUnique(platform.TestCase.CTestCase):
+    def _do(self): 
+        '''检查road_name和road_name_id是否一一对应'''
+        sqlcmd1 = '''
+            drop table if exists temp_road_name_check;
+            create table temp_road_name_check
+            (
+                name_id integer,
+                road_name varchar
+            )
+        ''' 
+        self.pg.execute(sqlcmd1)
+        self.pg.commit()
+        
+        sqlcmd = '''
+            select distinct road_name_id, road_name 
+            from rdb_link as a
+            where road_name is not null;
+        '''
+
+        results = self.pg.get_batch_data(sqlcmd)
+        for result in results:
+            road_name_id = result[0]
+            road_name = result[1]
+            json_name = json.loads(road_name)
+            sort = sorted(json_name,key=lambda e:e[0])
+            self.pg.insert('temp_road_name_check',['name_id','road_name'],[road_name_id,str(sort)])
+        self.pg.commit() 
+        
+        sqlcmd = '''
+        select count(*)
+        from
+        (
+            select count(*) from temp_road_name_check
+            group by road_name having count(*) > 1
+        ) as a
+        ''' 
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0) 
            
+           
+           
+             

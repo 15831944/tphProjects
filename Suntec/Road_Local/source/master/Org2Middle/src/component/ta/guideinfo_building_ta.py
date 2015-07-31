@@ -36,9 +36,9 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
     def _findLogmark(self):
         self.log.info('make temp_poi_logmark...')
         
-        self.CreateTable2('temp_poi_logmark1')
+        self.CreateTable2('temp_mnpoi_logmark')
         sqlcmd = """ 
-              insert into temp_poi_logmark1
+              insert into temp_mnpoi_logmark
               select omp.id, omp.feattyp, omp.subcat, omp.brandname, tpc.ucode, 
                 omp.the_geom, tpc.org_code
                 from org_mnpoi_pi omp
@@ -59,11 +59,11 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         """
         self.pg.execute(sqlcmd)
         self.pg.commit2()
-        self.CreateIndex2('temp_poi_logmark1_id_idx')
+        self.CreateIndex2('temp_mnpoi_logmark_id_idx')
          
-        self.CreateTable2('temp_poi_logmark2')                
+        self.CreateTable2('temp_mn_logmark')                
         sqlcmd = """ 
-                insert into temp_poi_logmark2                
+                insert into temp_mn_logmark                
                 select mp.id, mp.feattyp, mp.subcat, mp.buaname, tpc.ucode, 
                 mp.the_geom, tpc.org_code
                 from org_mn_pi mp
@@ -85,19 +85,19 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()
-        self.CreateIndex2('temp_poi_logmark2_id_idx')
+        self.CreateIndex2('temp_mn_logmark_id_idx')
         
         
         self.CreateTable2('temp_poi_logmark')
         sqlcmd = '''
             insert into temp_poi_logmark
             select id, feattyp, subcat, brandname, ucode, the_geom, org_code 
-            from temp_poi_logmark1
+            from temp_mnpoi_logmark
             
             union
             
             select id, feattyp, subcat, brandname, ucode, the_geom, org_code  
-            from temp_poi_logmark2
+            from temp_mn_logmark
                        
             '''
         self.pg.execute(sqlcmd)
@@ -141,7 +141,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                                 select  b.featdsetid, b.featsectid, b.featlayerid, 
                                         b.featitemid, b.featcat, b.featclass,  
                                         a.id
-                                from temp_poi_logmark2 as a
+                                from temp_mn_logmark as a
                                 left join org_vm_foa as b
                                 ON a.id = b.shapeid
                                     
@@ -184,7 +184,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                                 select  b.featdsetid, b.featsectid, b.featlayerid, 
                                         b.featitemid, b.featcat, b.featclass,  
                                         a.ucode, a.the_geom, a.id
-                                from temp_poi_logmark1 as a
+                                from temp_mnpoi_logmark as a
                                 left join org_poi_foa as b
                                 ON a.id = b.shapeid            
                             ) AS c
@@ -214,7 +214,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                             b.name, 
                             null as phonetic_language_code, 
                             null as phonetic_string 
-                    from temp_poi_logmark2 as a
+                    from temp_mn_logmark as a
                     left join org_mn_pinm as b
                     ON a.id = b.id
                     --where b.nametyp = 'ON' 
@@ -227,7 +227,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                             b.name, 
                             null as phonetic_language_code, 
                             null as phonetic_string 
-                    from temp_poi_logmark1 as a
+                    from temp_mnpoi_logmark as a
                     left join org_mnpoi_pinm as b
                     ON a.id = b.id 
                     --where b.nametyp = 'ON'

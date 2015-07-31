@@ -17,8 +17,7 @@ class rdb_vics(ItemBase):
             ('jpn'):                rdb_vics_jpn(),
             ('jdb'):                rdb_vics_jpn(),
             ('axf'):                rdb_vics_axf(),
-            ('ta'):                 rdb_traffic_ta(),
-            ('rdf'):                rdb_vics(),
+            ('ta','aus'):           rdb_traffic_ta(),
             ('rdf','sgp'):          rdb_traffic_rdf_ap(),
             ('rdf','uc'):           rdb_traffic_rdf_uc(),
             ('rdf','me8'):          rdb_vics(),
@@ -26,10 +25,9 @@ class rdb_vics(ItemBase):
             ('rdf','bra'):          rdb_vics(), 
             ('rdf','ase'):          rdb_traffic_rdf_ase(),                       
             ('nostra'):             rdb_traffic_nostra(),
-            ('mmi'):                rdb_vics(),
-            ('msm'):                rdb_vics(),
             ('ni'):                 rdb_traffic_ni(),
-            ('zenrin'):             rdb_traffic_zenrin(),            
+            ('zenrin'):             rdb_traffic_zenrin(), 
+            ('default'):            rdb_vics(),                      
         }
         return rdb_common.getItem(proj_mapping)
 
@@ -336,7 +334,7 @@ class rdb_vics_jpn(ItemBase):
 #        self.CreateTable2('temp_vics_link_walked')
 #        self.CreateIndex2('temp_vics_link_walked_classes_idx') 
 #        self.pg.callproc('rdb_make_vics_link_seq')
-
+        
         # get the result table.
         self.CreateTable2('rdb_ipc_vics_org2rdb_jpn_bak')  
         self.CreateIndex2('rdb_ipc_vics_org2rdb_jpn_bak_attr_idx')      
@@ -543,7 +541,7 @@ class rdb_vics_jpn(ItemBase):
 #                else:
 #                    rdb_log.log(self.ItemName, 'check rdb_ipc_vics_org2rdb_jpn  --- end.', 'info') 
 
-
+            
 class rdb_vics_axf(ItemBase):
     '''axf vics
     '''
@@ -755,10 +753,8 @@ class rdb_traffic_area(ItemBase):
     @staticmethod
     def instance():
         proj_mapping = {
-            ('jpn'):                rdb_traffic_area(),
-            ('jdb'):                rdb_traffic_area(),
-            ('axf'):                rdb_traffic_area(),
-            ('ta'):                 rdb_traffic_area_notnull(),
+            ('default'):            rdb_traffic_area(),
+            ('ta','aus'):           rdb_traffic_area_notnull(),
             ('rdf'):                rdb_traffic_area_null(),
             ('rdf','sgp'):          rdb_traffic_area_notnull(),
             ('rdf','uc'):           rdb_traffic_area_notnull(),
@@ -833,39 +829,7 @@ class rdb_traffic_area_notnull(ItemBase):
                 ) o 
             ) t
             on s.tile_id = t.tile_id
-            order by s.tile_id; 
-                         
-            delete from rdb_trf_org2rdb 
-            where gid in (
-                select a.gid from rdb_trf_org2rdb a
-                left join rdb_trf_area b
-                on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
-                where b.ltn is null
-            );
-                    
-            delete from rdb_region_trf_org2rdb_layer4 
-            where gid in (
-                select a.gid from rdb_region_trf_org2rdb_layer4 a
-                left join rdb_trf_area b
-                on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
-                where b.ltn is null
-            );
-    
-            delete from rdb_region_trf_org2rdb_layer6 
-            where gid in (
-                select a.gid from rdb_region_trf_org2rdb_layer6 a
-                left join rdb_trf_area b
-                on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
-                where b.ltn is null
-            );
-    
-            delete from rdb_trf_locationtable 
-            where gid in (
-                select a.gid from rdb_trf_locationtable a
-                left join rdb_trf_area b
-                on (a.country_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.table_no = b.ltn)
-                where b.ltn is null
-            );                                                                           
+            order by s.tile_id;                                                     
                 """
             self.pg.execute2(sqlcmd)
             self.pg.commit2()          
@@ -934,13 +898,18 @@ class rdb_traffic(ItemBase):
     def _createRegionTRF(self):
         
         proc_region = rdb_traffic_region(self, rdb_log)
-        proc_region._createRegionXTRFTbl('4')
-        proc_region._createRegionXTRFTbl('6')
         
-        self._createRegionTRF_level8()
+        sqlcmd = """
+            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
+            from pg_tables 
+            where tablename like 'rdb_region_link_layer%_tbl'
+            order by tablename;
+        """
+        self.pg.execute2(sqlcmd)
+        layer_list = self.pg.fetchall2()
 
-    def _createRegionTRF_level8(self):
-        pass
+        for layer_no in layer_list:
+            proc_region._createRegionXTRFTbl(layer_no[0])   
 
     def _createTrfLinkSeq(self):
         pass
@@ -1043,7 +1012,7 @@ class rdb_traffic(ItemBase):
 
         --- merge fractions of links with the same location code, same dir, same group, same linkid, same linkdir.
         select rdb_make_trf_merge_links('temp_trf_org2rdb_fraction','rdb_trf_org2rdb'); 
-        
+                    
         --- set infra link length.
         update rdb_trf_org2rdb set infra_len = round(b.sum,0) from(
             select type_flag, area_code, extra_flag, infra_id, dir,
@@ -1079,7 +1048,20 @@ class rdb_traffic(ItemBase):
         """
         self.pg.execute2(sqlcmd) 
         self.pg.commit2()
-                               
+
+        if self.pg.IsExistTable('rdb_trf_area'):
+            sqlcmd = """
+                --- delete records not in rdb_trf_area.                 
+                delete from rdb_trf_org2rdb 
+                where gid in (
+                    select a.gid from rdb_trf_org2rdb a
+                    left join rdb_trf_area b
+                    on (a.area_code = rdb_cnv_country_code_common(b.ecc,b.cc) and a.extra_flag = b.ltn)
+                    where b.ltn is null
+                );                          
+                """
+            self.pg.execute2(sqlcmd)  
+                                            
     def _createForTMCOnly(self):
         self.CreateFunction2('rdb_get_json_string_for_traffic')
         self.CreateFunction2('rdb_get_json_string_for_trf_names')
@@ -1161,8 +1143,8 @@ class rdb_traffic(ItemBase):
                area_ref, line_ref, neg_offset, pos_offset, urban, veran, tern, 
                intersection_code, in_pos, out_pos, in_neg, out_neg, cur_pos, 
                cur_neg, exit_no, div_pos, div_neg)
-        select rdb_cnv_country_code_common(ecc, cc) as country_code
-            ,table_no, location_code
+        select rdb_cnv_country_code_common(a.ecc, a.cc) as country_code
+            ,a.table_no, a.location_code
             ,type, subtype
             ,case when location_type = 'P' then 1
                 when location_type = 'L' then 2
@@ -1185,8 +1167,10 @@ class rdb_traffic(ItemBase):
             ,urban, veran, tern, intersection_code
             ,in_pos, out_pos, in_neg, out_neg
             ,cur_pos, cur_neg, exit_no, div_pos, div_neg
-        from temp_locationtable;
-                         
+        from temp_locationtable a
+        left join rdb_trf_area b
+        on a.ecc = b.ecc and a.cc = b.cc and a.table_no = b.ltn
+        where b.ltn is not null;              
         """
         self.pg.execute2(sqlcmd) 
         self.pg.commit2()
@@ -1556,11 +1540,6 @@ class rdb_traffic_rdf_uc(rdb_traffic_rdf):
         """
         self.pg.execute2(sqlcmd) 
         self.pg.commit2() 
-
-    def _createRegionTRF_level8(self):  
-
-        proc_region = rdb_traffic_region(self, rdb_log)
-        proc_region._createRegionXTRFTbl('8')
 
 class rdb_traffic_rdf_mea(rdb_traffic_rdf):
     
@@ -1943,8 +1922,8 @@ class rdb_traffic_rdf_ase(rdb_traffic):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
                                 
-        self.CreateFunction2('rdb_make_trf_rtic_link_seq')
-        self.CreateFunction2('rdb_make_trf_rtic_link_seq_in_one_direction')        
+        self.CreateFunction2('rdb_make_trf_rtic_link_seq_thai')
+        self.CreateFunction2('rdb_make_trf_rtic_link_seq_thai_in_one_direction')        
         self.pg.commit2()
          
         # Give sequence to traffic links by searching road.        
@@ -1955,10 +1934,13 @@ class rdb_traffic_rdf_ase(rdb_traffic):
               meshcode character varying NOT NULL,
               kind character varying NOT NULL,
               rticid character varying NOT NULL,
+              source_id character varying NOT NULL,
               linkid character varying NOT NULL,
               seq    integer,
               linkdir character varying NOT NULL,
-              group_id smallint
+              group_id smallint,
+              s_fraction double precision,
+              e_fraction double precision
             );
             
             drop table if exists temp_rtic_link_walked;
@@ -1967,16 +1949,22 @@ class rdb_traffic_rdf_ase(rdb_traffic):
                meshcode character varying,
                kind character varying,
                rticid character varying,
+               source_id character varying,
                linkid character varying
              );
             
             CREATE INDEX temp_rtic_link_walked_complex_idx
               ON temp_rtic_link_walked
               USING btree
-              (meshcode, kind, rticid, linkid);
+              (meshcode, kind, rticid, source_id, linkid);
             
             analyze temp_rtic_link_temp;
-            select rdb_make_trf_rtic_link_seq();
+            select rdb_make_trf_rtic_link_seq_thai();
+            
+            CREATE INDEX temp_rtic_link_source_id_1_idx
+              ON temp_rtic_link
+              USING btree
+              (cast(source_id as double precision));  
             
             delete from temp_rtic_link a using (
                 select distinct meshcode,kind,rticid from temp_rtic_link 
@@ -2000,6 +1988,46 @@ class rdb_traffic_rdf_ase(rdb_traffic):
                                    
     def _createTRFTbl_prepare(self):
         
+        # Create percents of rtic link on rdb link, by rtic/org  ->  org/rdb. 
+        sqlcmd = """
+            drop table if exists temp_link_org_rdb_org;
+            create table temp_link_org_rdb_org as
+            select distinct org_link_id,linkid,mid_link_id,target_link_id,target_geom,s_fraction,e_fraction,flag
+            from (
+                select distinct org_link_id,linkid,rtic_s_fraction,rtic_e_fraction
+                    ,org_geom,org_s_fraction,org_e_fraction
+                    ,mid_link_id,mid_geom,rdb_s_fraction,rdb_e_fraction
+                    ,target_link_id,target_geom,rtic2org_s_fraction,rtic2org_e_fraction,flag
+                    ,rdb_s_fraction + 
+                        ((rtic2org_s_fraction - org_s_fraction) / (org_e_fraction - org_s_fraction)) 
+                        * (rdb_e_fraction - rdb_s_fraction) as s_fraction
+                    ,rdb_s_fraction + 
+                        ((rtic2org_e_fraction - org_s_fraction) / (org_e_fraction - org_s_fraction)) 
+                        * (rdb_e_fraction - rdb_s_fraction) as e_fraction        
+                from (
+                    select b.org_link_id,a.linkid,a.s_fraction as rtic_s_fraction,a.e_fraction as rtic_e_fraction
+                        ,b.org_geom,b.org_s_fraction,b.org_e_fraction
+                        ,b.mid_link_id,b.mid_geom
+                        ,b.rdb_s_fraction,b.rdb_e_fraction
+                        ,b.target_link_id,b.target_geom,b.flag
+                        ,case when a.s_fraction >= b.org_s_fraction and a.s_fraction < b.org_e_fraction then a.s_fraction
+                            when a.s_fraction > b.org_e_fraction or a.e_fraction < b.org_s_fraction then null
+                            else b.org_s_fraction
+                         end as rtic2org_s_fraction
+                        ,case when a.e_fraction <= b.org_e_fraction and a.e_fraction > b.org_s_fraction then a.e_fraction
+                            when a.s_fraction > b.org_e_fraction or a.e_fraction < b.org_s_fraction then null
+                            else b.org_e_fraction
+                         end as rtic2org_e_fraction
+                    from temp_rtic_link_split_order a
+                    left join temp_link_org_rdb_org_temp b
+                    on cast(a.nvid as bigint) = b.org_link_id
+                    where a.e_fraction > b.org_s_fraction or b.org_e_fraction > a.s_fraction
+                ) c where rtic2org_s_fraction is not null and rtic2org_e_fraction is not null
+            ) d;                         
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
         # Create simple relationship between traffic and RDB link.       
         sqlcmd = """
         drop table if exists temp_trf_org2rdb_prepare;
@@ -2016,7 +2044,7 @@ class rdb_traffic_rdf_ase(rdb_traffic):
             , 0::smallint as pos_type
             , b.s_fraction as s_fraction, b.e_fraction as e_fraction
             , a.seq as seq_org
-            ,case when g.gid is not null and a.linkdir = '2' then (g.sub_count - g.sub_index) 
+            , case when g.gid is not null and a.linkdir = '2' then (g.sub_count - g.sub_index) 
                   when g.gid is not null and a.linkdir = '1' then g.sub_index
                   else 1 
              end as sub_seq
@@ -2024,15 +2052,15 @@ class rdb_traffic_rdf_ase(rdb_traffic):
             , b.target_geom
             , b.flag
         from temp_rtic_link a
-        left join temp_link_org_rdb b
-        on a.linkid::bigint = b.org_link_id
+        left join temp_link_org_rdb_org b
+        on cast(a.source_id as double precision) = b.org_link_id and a.linkid = b.linkid
         left join temp_split_newlink g
         on b.mid_link_id = g.link_id;
         
-        ANALYZE  temp_trf_org2rdb_prepare;                        
+        ANALYZE  temp_trf_org2rdb_prepare;                     
         """
         self.pg.execute2(sqlcmd)
-        self.pg.commit2()           
+        self.pg.commit2()                  
 
     def _createForTMCOnly(self):
         pass
@@ -2581,11 +2609,6 @@ class rdb_traffic_ta(rdb_traffic):
         """
         self.pg.execute2(sqlcmd) 
         self.pg.commit2()
-
-    def _createRegionTRF_level8(self):  
-
-        proc_region = rdb_traffic_region(self, rdb_log)
-        proc_region._createRegionXTRFTbl('8')
         
 class rdb_traffic_ni(rdb_traffic):
                           

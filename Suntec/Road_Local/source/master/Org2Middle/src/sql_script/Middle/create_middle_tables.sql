@@ -2298,7 +2298,7 @@ CREATE TABLE hwy_link_road_code_info
 (
   gid           serial NOT NULL primary key,
   road_code     integer NOT NULL,
-  updown        integer DEFAULT 1,
+  updown        integer NOT NULL DEFAULT 1,
   node_id       bigint NOT NULL,
   link_id       bigint,
   seq_nm        integer NOT NULL
@@ -2313,7 +2313,7 @@ CREATE TABLE mid_temp_hwy_ic_path
    road_seq       integer not null,
    facilcls_c     integer not null,
    inout_c        integer not null,
-   updown_c       integer NOT NULL DEFAULT 1,
+   updown_c       integer NOT NULL,
    node_id        bigint not null,
    to_node_id     bigint not null,
    node_lid       character varying,
@@ -2364,7 +2364,7 @@ CREATE TABLE mid_temp_hwy_service_road_path1
    node_lid        character varying not null,
    link_lid        character varying not null,
    road_code       integer not null,
-   updown_c        integer NOT NULL DEFAULT 1
+   updown_c        integer NOT NULL
 );
 
 ------------------------------------------------------------------------
@@ -2378,7 +2378,7 @@ CREATE TABLE mid_temp_hwy_service_road_path2
    node_lid        character varying not null,
    link_lid        character varying not null,
    road_code       integer not null,
-   updown_c        integer NOT NULL DEFAULT 1
+   updown_c        integer NOT NULL
 );
 
 ------------------------------------------------------------------------
@@ -2618,6 +2618,7 @@ CREATE TABLE mid_temp_hwy_sapa_info
  road_code     integer not null,
  road_seq      integer not null,
  facilcls_c    integer not null,
+ updown_c      integer not null,
  poi_id        bigint,
  sapa_name     CHARACTER VARYING(4096)
 );

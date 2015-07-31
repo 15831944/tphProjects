@@ -1560,7 +1560,10 @@ as
 		end as e_fraction
 		,flag
 		,ST_Length_Spheroid(mid_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as mid_meters
-	from temp_link_org_rdb
+	from temp_link_org_rdb a
+	left join temp_dupli_link b
+	on a.org_link_id = b.aid
+	where b.aid is null
 );
 
 create table temp_forecast_link_org 
@@ -1600,7 +1603,8 @@ as
 		 from temp_forecast_link_org a 
 		 left join temp_link_with_length b
 		 on a.link_id = b.org_link_id
-		 where profile_flag = 't' 
+		 where b.org_link_id is not null
+		 and profile_flag = 't' 
 	) c
 );
 
@@ -1676,6 +1680,7 @@ as
 					from temp_forecast_link_org a
 					left join temp_link_with_length b
 					on a.link_id = b.org_link_id
+					where b.org_link_id is not null
 				) c 
 			) d
 			left join temp_forecast_link_rdb_id e
@@ -1723,70 +1728,4 @@ CREATE TABLE temp_forecast_link_with_slot_main_merge
   seq_list_array text[],
   weekday_list_array text[],
   weekend_list_array text[]
-);
-
-create table temp_forecast_time_distinct 
-as
-(
-	select ROW_NUMBER() OVER(ORDER BY time_slot_array,time_array) as time_id
-		,time_slot_array,time_array
-	from (
-		select distinct time_slot_array,weekend_diff_array as time_array
-		from temp_forecast_link_with_slot_merge where weekend_diff_array[1] is not null
-		union
-		select distinct time_slot_array,weekday_diff_array as time_array
-		from temp_forecast_link_with_slot_merge where weekday_diff_array[1] is not null
-		union
-		select distinct time_slot_array,weekend_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer4 where weekend_diff_array[1] is not null
-		union
-		select distinct time_slot_array,weekday_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer4 where weekday_diff_array[1] is not null
-		union
-		select distinct time_slot_array,weekend_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer6 where weekend_diff_array[1] is not null
-		union
-		select distinct time_slot_array,weekday_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer6 where weekday_diff_array[1] is not null	
-		union
-		select distinct time_slot_array,weekend_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer8 where weekend_diff_array[1] is not null
-		union
-		select distinct time_slot_array,weekday_diff_array as time_array
-		from temp_forecast_link_with_slot_merge_layer8 where weekday_diff_array[1] is not null		
-	) a
-);
-
-create table temp_forecast_control 
-as
-(
-	select 	ROW_NUMBER() OVER(ORDER BY time_slot_array,time_id_weekday,time_id_weekend) as info_id,*
-	from (
-		select distinct a.time_slot_array
-			,weekday_diff_array
-			,weekend_diff_array
-			,case when b.time_id is null then 0
-				else b.time_id
-			end as time_id_weekday
-			,case when c.time_id is null then 0
-				else c.time_id
-			end as time_id_weekend
-		from (
-			select time_slot_array,weekday_diff_array,weekend_diff_array
-			from temp_forecast_link_with_slot_merge
-			union
-			select time_slot_array,weekday_diff_array,weekend_diff_array
-			from temp_forecast_link_with_slot_merge_layer4
-			union
-			select time_slot_array,weekday_diff_array,weekend_diff_array
-			from temp_forecast_link_with_slot_merge_layer6	
-			union
-			select time_slot_array,weekday_diff_array,weekend_diff_array
-			from temp_forecast_link_with_slot_merge_layer8			
-		) a
-		left join temp_forecast_time_distinct b
-		on a.time_slot_array = b.time_slot_array and a.weekday_diff_array = b.time_array
-		left join temp_forecast_time_distinct c
-		on a.time_slot_array = c.time_slot_array and a.weekend_diff_array = c.time_array
-	) d
 );

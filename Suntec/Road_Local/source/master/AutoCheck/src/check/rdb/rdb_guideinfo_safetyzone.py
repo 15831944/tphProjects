@@ -133,3 +133,32 @@ class CCheckTableCount(platform.TestCase.CTestCase):
                 '''
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec > 0)
+    
+class CCheckSchool_zone_safetyzone_id(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        sqlcmd = '''
+                select count(*)
+                from
+                (
+                    select a.link_id, a.safetyzone_id,a.speedlimit,
+                           s_school.safetyzone_id as s_id, s_school.speedlimit as s_speed,
+                           e_school.safetyzone_id as e_id, e_school.speedlimit as e_speed
+                    from rdb_guideinfo_safety_zone as a
+                    left join rdb_link as b
+                    on a.link_id = b.link_id
+                    left join rdb_link as s_link
+                    on b.start_node_id in (s_link.start_node_id, s_link.end_node_id)
+                    left join rdb_guideinfo_safety_zone as s_school
+                    on s_link.link_id = s_school.link_id and s_school.safety_type = 3
+                    left join rdb_link as e_link
+                    on b.end_node_id in (e_link.start_node_id, e_link.end_node_id)
+                    left join rdb_guideinfo_safety_zone as e_school
+                    on e_link.link_id = e_school.link_id and e_school.safety_type = 3                
+                    where a.safety_type = 3
+                )temp
+                where (s_id is not null and safetyzone_id <> s_id and speedlimit = s_speed) or 
+                      (e_id is not null and safetyzone_id <> e_id and speedlimit = e_speed);
+                '''
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)

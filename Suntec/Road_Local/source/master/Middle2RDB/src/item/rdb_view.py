@@ -20,11 +20,112 @@ class rdb_view(ItemBase):
         ItemBase.__init__(self, 'View')
 
     def Do(self):
-        self._createViewForBinaryData()
+        
+        if rdb_common.getProjName().lower() == 'ta' \
+            and rdb_common.getProjCountry().lower() in ('aus'):
+            self._createTableForBinaryData()
+        else:
+            self._createViewForBinaryData()
+            
         self._createViewForCheckLogic()
 
         return 0
 
+    def _createTableForBinaryData(self):
+        
+        sqlcmd = """
+            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
+            from pg_tables 
+            where tablename like 'rdb_region_link_layer%_tbl'
+            order by tablename;
+        """
+        self.pg.execute2(sqlcmd)
+        layer_list = self.pg.fetchall2()
+
+        sqlcmd_tile_list = """
+            ----------------------------------------------------------------------
+            -- rdb_tile_list
+            ----------------------------------------------------------------------
+            DROP TABLE IF EXISTS rdb_tile_list;
+            CREATE TABLE rdb_tile_list AS
+            select tile_id, (tile_id >> 14) & 16383 as x, tile_id & 16383 as y, (tile_id >> 28) & 15 as z
+            from
+            (
+                select distinct tile_id
+                from
+                (
+                    select distinct link_id_t as tile_id
+                    from rdb_link
+                    union
+                    select distinct node_id_t as tile_id
+                    from rdb_node
+                    union
+                    select distinct tile_id
+                    from rdb_tile_admin_zone      
+        """
+        
+        for layer_no in layer_list:
+            sqlcmd = """ 
+                ----------------------------------------------------------------------
+                -- rdb region link with light and toll view
+                ----------------------------------------------------------------------
+                DROP TABLE IF EXISTS rdb_region_link_layer%X_tbl_view;
+                CREATE TABLE rdb_region_link_layer%X_tbl_view AS 
+                select a.link_id, link_id_t, start_node_id, end_node_id, road_type, pdm_flag,one_way, 
+                   function_code, link_length, link_type, road_name, toll, bypass_flag, highcost_flag,
+                   regulation_exist_state, fazm_path, tazm_path, link_add_info_flag, speed_regulation_flag, 
+                   lane_id, link_length_modify, link_length_unit, abs_link_id, abs_link_diff, abs_link_dir, the_geom, 
+                   case when b.light_cnt is not null then b.light_cnt else 0 end as light_cnt,
+                   case when b.toll_cnt is not null then b.toll_cnt else 0 end as toll_cnt,
+                   (case when c.link_id is null then -1 else c.s_link_id end) as s_sequence_link_id,
+                   (case when c.link_id is null then -1 else c.e_link_id end) as e_sequence_link_id,
+                   (case when d.link_id is null then false else true end) as forecast_flag
+                from rdb_region_link_layer%X_tbl a
+                left join rdb_region_layer%X_light_tollnode_tbl as b
+                on a.link_id = b.region_link_id
+                left join rdb_region_link_layer%X_sequence as c
+                on a.link_id = c.link_id
+                left join (
+                    select distinct link_id from rdb_forecast_link
+                ) d
+                on a.link_id = d.link_id;
+                
+                CREATE INDEX rdb_region_link_layer%X_tbl_view_link_id_idx
+                  ON rdb_region_link_layer%X_tbl_view
+                  USING btree
+                  (link_id);
+                CREATE INDEX rdb_region_link_layer%X_tbl_view_link_id_t_idx
+                  ON rdb_region_link_layer%X_tbl_view
+                  USING btree
+                  (link_id_t);                              
+            """
+            sqlcmd = sqlcmd.replace('%X', layer_no[0])
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()            
+            
+            sqlcmd_tile_list = sqlcmd_tile_list + \
+                """ union
+                    select distinct link_id_t as tile_id
+                    from rdb_region_link_layer""" + layer_no[0] + \
+                """_tbl
+                    union
+                    select distinct node_id_t as tile_id
+                    from rdb_region_node_layer""" + layer_no[0] + \
+                """_tbl
+                """
+        
+        sqlcmd_tile_list = sqlcmd_tile_list + \
+        """)as t
+        )as t;
+        
+        CREATE INDEX rdb_tile_list_tile_id_idx
+          ON rdb_tile_list
+          USING btree
+          (tile_id);
+        """         
+        self.pg.execute2(sqlcmd_tile_list)
+        self.pg.commit2()        
+                
     def _createViewForBinaryData(self):
         if self.pg.IsExistTable('rdb_region_link_layer8_tbl'):
             self._createViewForBinaryData_Layer8()
@@ -65,7 +166,7 @@ class rdb_view(ItemBase):
                     )as t
                 )as t;
 
-----------------------------------------------------------------------
+                ----------------------------------------------------------------------
                 -- rdb region link with light and toll view
                 ----------------------------------------------------------------------
                 CREATE OR REPLACE VIEW rdb_region_link_layer6_tbl_view AS 

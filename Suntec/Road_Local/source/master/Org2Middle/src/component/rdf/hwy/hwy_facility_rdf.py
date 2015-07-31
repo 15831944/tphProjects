@@ -82,7 +82,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.CreateTable2('mid_temp_hwy_ic_path')
         self.CreateTable2('mid_temp_hwy_service_road_path1')
         temp_file_obj = common.cache_file.open('mid_temp_hwy_ic_path')
-        for road_code, route_path in self.hwy_data.get_road_code_path():
+        for route in self.hwy_data.get_road_code_path():
+            road_code, updown, route_path = route
             self.org_facil_dict = {}  # 清空
             next_seq = ROAD_SEQ_MARGIN
             end_pos = len(route_path)
@@ -118,13 +119,14 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     path_type = IC_PATH_TYPE_DICT.get(facilcls)
                     self._store_facil_path_2_file(road_code, road_seq,
                                                   facilcls, inout_c,
-                                                  path, path_type,
-                                                  temp_file_obj)
+                                                  updown, path,
+                                                  path_type, temp_file_obj)
             # 辅路、类辅路设施
             for sr_facil_info in service_road_list:
                 inout_c, path = sr_facil_info[1], sr_facil_info[2]
                 # 保存到辅路到数库
-                self._store_service_road_facil_path(inout_c, path, road_code)
+                self._store_service_road_facil_path(inout_c, path,
+                                                    road_code, updown)
         # ## 辅路提交到数据库
         self.pg.commit1()
         # ## 保存设施路径到数据库
@@ -132,9 +134,9 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.pg.copy_from2(temp_file_obj,
                            'mid_temp_hwy_ic_path',
                            columns=('road_code', 'road_seq', 'facilcls_c',
-                                    'inout_c', 'node_id', 'to_node_id',
-                                    'node_lid', 'link_lid', 'path_type'
-                                    ),
+                                    'inout_c', 'updown_c', 'node_id',
+                                    'to_node_id', 'node_lid', 'link_lid',
+                                    'path_type'),
                            )
         self.pg.commit2()
         common.cache_file.close(temp_file_obj, True)
@@ -398,14 +400,15 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.log.info('Start Make SAPA Info.')
         self.CreateTable2('mid_temp_hwy_sapa_info')
         for data in self._get_rest_area_info():
-            road_code, road_seq, poi_id, rest_area_type, name = data
+            road_code, road_seq, poi_id, rest_area_type, name, updown = data
             facil_cls = self._get_sapa_type(rest_area_type)
             if not facil_cls:
                 self.log.error('Unknown Rest Area type. poi_id=%s,'
                                'rest_area_type=%s' % (poi_id, rest_area_type))
                 continue
             self._store_sapa_info(road_code, road_seq,
-                                  facil_cls, poi_id, name)
+                                  facil_cls, poi_id, name,
+                                  updown)
         self.pg.commit1()
         self._update_sapa_facilcls()
         self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_road_seq_idx')
@@ -429,11 +432,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.log.info('Deal with U-Turn.')
         self.pg.connect1()
         for (u_roadcode, u_roadseq, u_inout,
-             path, f_facils, t_facils) in self._get_uturn_fb_sames():
-#             # 某一条link折返(掉头)
-#             if self.check_turn_back(path):
-#                 print 'turn_back:', path
-#                 continue
+             path, f_facils, t_facils,
+             updown) in self._get_uturn_fb_sames():
             # ## 取得起点并设和终点并设中设施种别相同的设施
             f_same_facils = []
             jct_facils = []
@@ -448,7 +448,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 for f in f_same_facils:
                     self._store_facil_path(f.road_code, f.road_point,
                                            f.facilcls, f.inout,
-                                           path, path_type)
+                                           path, path_type,
+                                           updown)
             else:  # U-turn做成JCT
                 if jct_facils:
                     if len(jct_facils) > 1:
@@ -456,11 +457,13 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     jct = jct_facils[0]
                     self._store_facil_path(jct.road_code, jct.road_point,
                                            jct.facilcls, jct.inout,
-                                           path, path_type)
+                                           path, path_type,
+                                           updown)
                 else:
                     self._store_facil_path(u_roadcode, u_roadseq,
                                            HWY_IC_TYPE_JCT, u_inout,
-                                           path, path_type)
+                                           path, path_type,
+                                           updown)
         self.pg.commit1()
 
     def check_turn_back(self, path):
@@ -486,9 +489,9 @@ class HwyFacilityRDF(component.component_base.comp_base):
         '''取得服'''
         sqlcmd = """
         SELECT DISTINCT road_code, road_seq, c.poi_id,
-                        rest_area_type, name
+                        rest_area_type, name, updown_c
           FROM (
-            SELECT road_code, road_seq, facilcls_c,
+            SELECT road_code, road_seq, facilcls_c, updown_c,
                    regexp_split_to_table(link_lid, E'\\,+')::bigint as link_id
               FROM mid_temp_hwy_ic_path as a
               where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
@@ -703,16 +706,25 @@ class HwyFacilityRDF(component.component_base.comp_base):
 
     def _get_org_same_facil(self, facil_list, facil_idx, curr_facil):
         '''元数据番号相同(POI_ID、IS_ID)的并设'''
+        MAX_INTERVAL_IDX = 10
         org_same_facils = []
         org_facil_id = self.G.get_org_facil_id(curr_facil.node_id)
         if not org_facil_id:
             return []
         facil_idx += 1
-        for facil_idx in range(facil_idx, len(facil_list)):
-            next_facil = facil_list[facil_idx]
+        for temp_facil_idx in range(facil_idx + 1, len(facil_list)):
+            next_facil = facil_list[temp_facil_idx]
             next_node_id = next_facil.node_id
             next_org_facil_id = self.G.get_org_facil_id(next_node_id)
             if org_facil_id == next_org_facil_id:
+                interval_idx = temp_facil_idx - facil_idx
+                if interval_idx > 3:
+                    node_id = curr_facil.node_id
+                    t_node_id = facil_list[temp_facil_idx].node_id
+                    self.log.warning('Interval index = %s, node=%s, t_node=%s'
+                                     % (interval_idx, node_id, t_node_id))
+                if interval_idx > MAX_INTERVAL_IDX:  # 27.96229,-26.26458
+                    break
                 org_same_facils.append(next_facil)
         return org_same_facils
 
@@ -854,7 +866,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         SELECT road_code, road_seq, inout_c,
                uturn.node_id, to_node_id, node_lid,
                f_road_codes, f_road_seqs, f_facilcls_cs,
-               t_road_codes, t_road_seqs, t_facilcls_cs, t_inout_c
+               t_road_codes, t_road_seqs, t_facilcls_cs,
+               t_inout_c, updown_c
           FROM mid_temp_hwy_ic_path as uturn
           LEFT JOIN (
             SELECT array_agg(road_code) as f_road_codes,
@@ -899,6 +912,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             f_roadcodes, f_roadseqs, f_facilclss = uturn[6:9]
             t_roadcodes, t_roadseqs, t_facilclss = uturn[9:12]
             t_inout = uturn[12]
+            updown = uturn[13]
             f_facils = []
             t_facils = []
             # 终点的并设
@@ -918,7 +932,9 @@ class HwyFacilityRDF(component.component_base.comp_base):
                                               facil_name)
                     t_facils.append(facil_info)
             path = [int(n) for n in node_lid.split(',')]
-            yield (u_roadcode, u_roadseq, u_inout, path, f_facils, t_facils)
+            yield (u_roadcode, u_roadseq, u_inout,
+                   path, f_facils, t_facils,
+                   updown)
 
     def _filter_JCT_UTurn(self):
         '''过滤假JCT/UTurn:下了高速又转弯回来的径路'''
@@ -933,6 +949,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             f_road_seqs, f_facilcls_cs = sr_info[2:4]
             t_road_seqs, t_facilcls_cs = sr_info[4:6]
             node_lid, link_lid = sr_info[6:8]
+            updown = sr_info[8]
             node_lid = eval(node_lid + ',')
             link_lid = eval(link_lid + ',')
             node_id = node_lid[0]
@@ -983,10 +1000,12 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     path_type = IC_PATH_TYPE_DICT.get(facilcls_c)
                     self._store_facil_path(road_code, f_seq_list[0],
                                            facilcls_c, inout,
-                                           node_lid, path_type)
+                                           node_lid, path_type,
+                                           updown)
                     continue
             # Service
-            self._store_service_road_facil_path2(inout, node_lid, road_code)
+            self._store_service_road_facil_path2(inout, node_lid,
+                                                 road_code, updown)
         pass
 
     def _filter_sapa(self):
@@ -1230,39 +1249,42 @@ class HwyFacilityRDF(component.component_base.comp_base):
         SELECT a.road_code, a.inout_c,
                f_road_seqs, f_facilcls_cs,
                t_road_seqs, t_facilcls_cs,
-               a.node_lid, a.link_lid
+               a.node_lid, a.link_lid,
+               a.updown_c
           FROM mid_temp_hwy_service_road_path1 as a
           LEFT JOIN (
-            SELECT node_id, road_code, inout_c,
+            SELECT node_id, road_code, inout_c, updown_c,
                    array_agg(road_seq) as f_road_seqs,
                    array_agg(facilcls_c) as f_facilcls_cs
               FROM (
                 SELECT DISTINCT node_id, road_code, inout_c,
-                       road_seq, facilcls_c
+                       road_seq, facilcls_c, updown_c
                   FROM mid_temp_hwy_ic_path
                   ORDER BY  node_id, road_code, road_seq, facilcls_c
               ) AS f
               where facilcls_c not in (10) -- Not u-turn
-              group by node_id, road_code, inout_c
+              group by node_id, road_code, updown_c, inout_c
           ) as b
           ON a.node_id = b.node_id and
              a.road_code = b.road_code and
+             a.updown_c = b.updown_c and
              a.inout_c = b.inout_c
           left join (
-            SELECT node_id, road_code, inout_c,
+            SELECT node_id, road_code, inout_c, updown_c,
                    array_agg(road_seq) as t_road_seqs,
                    array_agg(facilcls_c) as t_facilcls_cs
               FROM (
                 SELECT DISTINCT node_id, road_code, inout_c,
-                       road_seq, facilcls_c
+                       road_seq, facilcls_c, updown_c
                   FROM mid_temp_hwy_ic_path
                   ORDER BY  node_id, road_code, road_seq, facilcls_c
               ) AS t
               where facilcls_c not in (10) -- Not u-turn
-              group by node_id, road_code, inout_c
+              group by node_id, road_code, updown_c, inout_c
           ) as c
           ON a.to_node_id = c.node_id and
              a.road_code = c.road_code and
+             a.updown_c = c.updown_c and
              (a.inout_c = 1 and c.inout_c = 2 or
               a.inout_c = 2 and c.inout_c = 1)
         '''
@@ -1272,15 +1294,18 @@ class HwyFacilityRDF(component.component_base.comp_base):
 #
 # ==============================================================================
     def _store_facil_path(self, road_code, road_seq, facilcls_c,
-                          inout_c, path, path_type):
+                          inout_c, path, path_type,
+                          updwon_c):
         '''保存设施路径'''
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_path(road_code, road_seq, facilcls_c,
                                          inout_c, node_id, to_node_id,
-                                         node_lid, link_lid, path_type)
+                                         node_lid, link_lid, path_type,
+                                         updown_c)
            VALUES(%s, %s, %s,
                   %s, %s, %s,
-                  %s, %s, %s)
+                  %s, %s, %s,
+                  %s)
         """
         node_id = path[0]
         to_node_id = path[-1]
@@ -1294,11 +1319,13 @@ class HwyFacilityRDF(component.component_base.comp_base):
         link_lid = ','.join([str(link) for link in link_list])
         params = (road_code, road_seq, facilcls_c,
                   inout_c, node_id, to_node_id,
-                  node_lid, link_lid, path_type)
+                  node_lid, link_lid, path_type,
+                  updwon_c)
         self.pg.execute1(sqlcmd, params)
 
     def _store_facil_path_2_file(self, road_code, road_seq, facilcls_c,
-                                 inout_c, path, path_type, file_obj):
+                                 inout_c, updown_c, path,
+                                 path_type, file_obj):
         '''保存设施路径到文件'''
         node_id = path[0]
         to_node_id = path[-1]
@@ -1313,20 +1340,24 @@ class HwyFacilityRDF(component.component_base.comp_base):
         if not link_lid:
             link_lid = ''
         params = (road_code, road_seq, facilcls_c,
-                  inout_c, node_id, to_node_id,
-                  node_lid, link_lid, path_type)
+                  inout_c, updown_c, node_id,
+                  to_node_id, node_lid, link_lid,
+                  path_type)
         file_obj.write('%d\t%d\t%d\t'
                        '%d\t%d\t%d\t'
-                       '%s\t%s\t%s\n' % params)
+                       '%d\t%s\t%s\t'
+                       '%s\n' % params)
 
-    def _store_service_road_facil_path(self, inout_c, path, road_code):
+    def _store_service_road_facil_path(self, inout_c, path, road_code, updown_c):
         '''辅路、类辅路设施'''
         sqlcmd = """
         INSERT INTO mid_temp_hwy_service_road_path1(
                                               inout_c, node_id, to_node_id,
-                                              node_lid, link_lid, road_code)
+                                              node_lid, link_lid, road_code,
+                                              updown_c)
            VALUES(%s, %s, %s,
-                  %s, %s, %s)
+                  %s, %s, %s,
+                  %s)
         """
         node_id = path[0]
         to_node_id = path[-1]
@@ -1339,17 +1370,20 @@ class HwyFacilityRDF(component.component_base.comp_base):
             link_list = []
         link_lid = ','.join([str(link) for link in link_list])
         params = (inout_c, node_id, to_node_id,
-                  node_lid, link_lid, road_code)
+                  node_lid, link_lid, road_code,
+                  updown_c)
         self.pg.execute1(sqlcmd, params)
 
-    def _store_service_road_facil_path2(self, inout_c, path, road_code):
+    def _store_service_road_facil_path2(self, inout_c, path, road_code, updown_c):
         '''辅路、类辅路设施'''
         sqlcmd = """
         INSERT INTO mid_temp_hwy_service_road_path2(
                                               inout_c, node_id, to_node_id,
-                                              node_lid, link_lid, road_code)
+                                              node_lid, link_lid, road_code,
+                                              updown_c)
            VALUES(%s, %s, %s,
-                  %s, %s, %s)
+                  %s, %s, %s,
+                  %s)
         """
         node_id = path[0]
         to_node_id = path[-1]
@@ -1362,7 +1396,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
             link_list = []
         link_lid = ','.join([str(link) for link in link_list])
         params = (inout_c, node_id, to_node_id,
-                  node_lid, link_lid, road_code)
+                  node_lid, link_lid, road_code,
+                  updown_c)
         self.pg.execute1(sqlcmd, params)
 
     def _store_facil_name(self, road_code, road_seq, facil_name):
@@ -1386,15 +1421,16 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.pg.execute1(sqlcmd, (road_code, road_seq, json_name))
 
     def _store_sapa_info(self, road_code, road_seq,
-                         facil_cls, poi_id, name):
+                         facil_cls, poi_id, name,
+                         updown):
         sqlcmd = """
         INSERT INTO mid_temp_hwy_sapa_info(road_code, road_seq, facilcls_c,
-                                           poi_id, sapa_name)
+                                           poi_id, sapa_name, updown_c)
           VALUES(%s, %s, %s,
-                 %s, %s);
+                 %s, %s, %s);
         """
         self.pg.execute1(sqlcmd, (road_code, road_seq, facil_cls,
-                                  poi_id, name))
+                                  poi_id, name, updown))
 
     def _store_service_info(self, road_code, road_seq,
                             updown, service_types):
@@ -1423,7 +1459,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         p_node_id = p_facil.node_id
         p_road_seq = p_facil.road_point
         for facil in same_facils:
-            if facil == p_facil:
+            if(facil.road_code == p_facil.road_code and
+               facil.road_point == p_facil.road_point):
                 continue
             params = (facil.road_code, facil.road_point, facil.updown,
                       facil.inout, facil.node_id, p_node_id,

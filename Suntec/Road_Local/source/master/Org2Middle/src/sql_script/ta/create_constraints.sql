@@ -344,13 +344,13 @@ CREATE INDEX temp_poi_logmark_id_idx
 	USING btree
 	(id);
 	
-CREATE INDEX temp_poi_logmark1_id_idx
-	ON temp_poi_logmark1
+CREATE INDEX temp_mnpoi_logmark_id_idx
+	ON temp_mnpoi_logmark
 	USING btree
 	(id);
 
-CREATE INDEX temp_poi_logmark2_id_idx
-	ON temp_poi_logmark2
+CREATE INDEX temp_mn_logmark_id_idx
+	ON temp_mn_logmark
 	USING btree
 	(id);
 	

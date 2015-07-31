@@ -2,7 +2,6 @@
 Created on 2013-01-16
 @author: xuwenbo
 '''
-
 import platform.TestCase
 import common.database
 import common.ConfigReader
@@ -45,6 +44,8 @@ class CCheckAdminCodeCount(platform.TestCase.CTestCase):
 #                elif rdf_adminname == 'HKG':
 #                    rdbTileAdminCount = rdbTileAdminCount + 1
                 if rdf_adminname == 'VNM':
+                    rdbTileAdminCount = rdbTileAdminCount + 1
+                elif rdf_adminname == 'PHL':
                     rdbTileAdminCount = rdbTileAdminCount + 1
                 elif rdf_adminname == 'ARG':
                     rdbTileAdminCount = rdbTileAdminCount + 2       
@@ -176,7 +177,7 @@ class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
         sqlcmd = '''
                 select distinct order00
                 from org_a0
-                where name is not null;
+                where name is not null and name <> 'Outer World';
                 '''
         rows = self.pg.get_batch_data(sqlcmd)
         
@@ -197,17 +198,29 @@ class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
             elif TA_adminname == 'ZAF':
                 idnArea = 1221037        
             elif TA_adminname == 'ZMB':
-                idnArea = 750000            
+                idnArea = 750000
+            elif TA_adminname == 'VNM':
+                idnArea = 330631
+            elif TA_adminname == 'AUS':
+                idnArea = 7703874
+            elif TA_adminname == 'NZL':
+                idnArea = 267499                                      
             else:
                 return False
                                 
                 
             sqlcmd = """
-                     SELECT st_area(st_collect(the_geom),false)
-                     FROM rdb_tile_admin_zone WHERE ad_code IN
-                     (
-                      SELECT admin_place_id FROM rdf_admin_hierarchy
-                      where iso_country_code = '[replace_name]');
+                    select st_area(st_collect(the_geom),false)
+                    from
+                    (
+                        select distinct ((id/10000000000)::integer)%1000*100000 + 1 as code
+                        from org_a0
+                        where order00 = '[replace_name]'
+                    )a
+                    left join rdb_admin_zone as b
+                    on a.code = b.order0_id and b.ad_order = 8
+                    left join rdb_tile_admin_zone as c
+                    on b.ad_code = c.ad_code;                    
                      """
             
             sqlcmd = sqlcmd.replace('[replace_name]', TA_adminname)
@@ -395,86 +408,196 @@ class CCheckAdminSummerTime(platform.TestCase.CTestCase):
         
 class CCheckAdminOrder(platform.TestCase.CTestCase):
     def _do(self):
-        sqlcmd = '''
-                 select count(*)
-                 from
-                 (
+        pro_name = common.ConfigReader.CConfigReader.instance()
+        strArea = pro_name.getCountryName()
+        rec_count = 0
+        if strArea.lower() == 'twn':
+            sqlcmd = '''
+                    select count(*)
+                    from
+                    (
                      select or8.*
                      from rdb_admin_zone as or8
-                     left join rdb_admin_zone as or0
-                     on or8.order0_id = or0.ad_code and or0.ad_order = 0
                      left join rdb_admin_zone as or1
-                     on or8.order1_id = or1.ad_code and or1.ad_order = 1
-                     left join rdb_admin_zone as or2
-                     on or8.order2_id = or2.ad_code and or2.ad_order = 2
-                     where or8.ad_order = 8 and (or0.ad_code is null or or1.ad_code is null or 
-                     case when  or2.ad_code is null then false else or2.ad_code is null end)
-                     
-                     union
-                     
-                     select or2.*
-                     from rdb_admin_zone as or2
-                     left join rdb_admin_zone as or0
-                     on or2.order0_id = or0.ad_code and or0.ad_order = 0
-                     left join rdb_admin_zone as or1
-                     on or2.order1_id = or1.ad_code and or1.ad_order = 1
-                     where or2.ad_order = 2 and (or0.ad_code is null or or1.ad_code is null)
-                     
-                     union
-                     
-                     select or1.*
-                     from rdb_admin_zone as or1
-                     left join rdb_admin_zone as or0
-                     on or1.order0_id = or0.ad_code and or0.ad_order = 0
-                     where or1.ad_order = 1 and (or0.ad_code is null)
-                 )as tbl
-                                    
-                 '''
-        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
-        return   (rec_count == 0)   
+                     on or8.order1_id = or1.ad_code and or1.ad_order = 1   
+                     where or8.ad_order = 8 and  or1.ad_code is null 
+                    )as tbl
+                    '''
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+            return   (rec_count == 0) 
+        
+        else:        
+            exception_order0_id_sqlcmd ='''
+                select count(*) from rdb_admin_zone
+                where order0_id not in
+                (
+                select ad_code 
+                from rdb_admin_zone
+                where ad_order = 0
+                )  
+                '''  
+            rec_count = self.pg.getOnlyQueryResult(exception_order0_id_sqlcmd) 
+            
+            if  rec_count>0:
+                return False   
+                           
+            sqlcmd = '''
+                     select ad_code 
+                     from rdb_admin_zone
+                     where ad_order = 0
+                     '''
+            rows = self.pg.get_batch_data(sqlcmd)
+            
+            for row in rows:    
+                countrycode = row[0]
+                           
+                check_order2_exist_sqlcmd = '''
+                         select count(*) from rdb_admin_zone
+                         where ad_order = 2 and order0_id = %d 
+                         '''%countrycode
+
+                self.pg.execute(check_order2_exist_sqlcmd)
+                check_order2_exist__count = self.pg.getOnlyQueryResult(check_order2_exist_sqlcmd)
+                
+                if check_order2_exist__count > 0:
     
-    
+                    sqlcmd = '''
+                             select count(*)
+                             from
+                             (
+                                 select or8.* from 
+                                 rdb_admin_zone as or8
+                                 left join rdb_admin_zone as or0
+                                 on or8.order0_id = or0.ad_code and or0.ad_order = 0
+                                 left join rdb_admin_zone as or1
+                                 on or8.order1_id = or1.ad_code and or1.ad_order = 1
+                                 left join rdb_admin_zone as or2
+                                 on or8.order2_id = or2.ad_code and or2.ad_order = 2
+                                 where or8.order0_id = %d 
+                                       and  
+                                       or8.ad_order = 8 
+                                       and 
+                                       (
+                                           or0.ad_code is null 
+                                           or 
+                                           or1.ad_code is null 
+                                           or 
+                                           (or8.order2_id is not null and or2.ad_code is null)
+                                         )
+                                 union
+                                 
+                                 select or2.* from 
+                                 rdb_admin_zone as or2
+                                 left join rdb_admin_zone as or0
+                                 on or2.order0_id = or0.ad_code and or0.ad_order = 0
+                                 left join rdb_admin_zone as or1
+                                 on or2.order1_id = or1.ad_code and or1.ad_order = 1
+                                 where or2.order0_id = %d and or2.ad_order = 2 and (or0.ad_code is null or or1.ad_code is null)
+                                 
+                                 union
+                                 
+                                 select or1.* from 
+                                 rdb_admin_zone as or1
+                                 left join rdb_admin_zone as or0
+                                 on or1.order0_id = or0.ad_code and or0.ad_order = 0
+                                 where or1.order0_id = %d and or1.ad_order = 1 and or0.ad_code is null
+                             )as tbl
+                                                
+                             ''' %(countrycode,countrycode,countrycode)
+                else:
+                    sqlcmd = '''
+                             select count(*)
+                             from
+                             (
+                                 select or8.* from 
+                                 rdb_admin_zone as or8
+                                 left join rdb_admin_zone as or0
+                                 on or8.order0_id = or0.ad_code and or0.ad_order = 0
+                                 left join rdb_admin_zone as or1
+                                 on or8.order1_id = or1.ad_code and or1.ad_order = 1
+                                 where or8.order0_id = %d and or8.ad_order = 8 and (or0.ad_code is null or or1.ad_code is null) 
+                                                           
+                                 union
+                                 
+                                 select or1.* from 
+                                 rdb_admin_zone as or1
+                                 left join rdb_admin_zone as or0
+                                 on or1.order0_id = or0.ad_code and or0.ad_order = 0
+                                 where or1.order0_id = %d and or1.ad_order = 1 and (or0.ad_code is null)
+                             )as tbl
+                                                
+                             ''' %(countrycode,countrycode)
+                             
+                rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+                
+                if rec_count >0:
+                    return False
+                         
+            return  True      
 class CCheckAdOrder_relation(platform.TestCase.CTestCase):
     def _do(self):
-        check_order2_exist_sql = '''
-                                 select count(*) from rdb_admin_zone
-                                 where ad_order = 2
-                                    
-                                 '''
-        check_order2_exist__count = self.pg.getOnlyQueryResult(check_order2_exist_sql)
         
-        ng_cnt = 0
-
-        if check_order2_exist__count > 0:
-            sqlcmd ='''
-                    select count(*)
-                    from rdb_admin_zone as or8
-                    left join rdb_admin_zone as or2
-                    on or8.order2_id = or2.ad_code and or2.ad_order = 2
-                    where or8.ad_order = 8 and (or8.order1_id <> or2.order1_id or or8.order0_id <> or2.order0_id)
-                     '''
-            ng_cnt = self.pg.getOnlyQueryResult(sqlcmd)
-            
-            sqlcmd ='''
-                    select count(*)
-                    from rdb_admin_zone as or2
-                    left join rdb_admin_zone as or1
-                    on or2.order1_id = or1.ad_code and or1.ad_order = 1
-                    where or2.ad_order = 2 and or2.order0_id <> or1.order0_id
-                    '''
-            ng_cnt = ng_cnt+self.pg.getOnlyQueryResult(sqlcmd)
-             
+        pro_name = common.ConfigReader.CConfigReader.instance()
+        strArea = pro_name.getCountryName()
+        rec_count = 0
+        if strArea.lower() == 'twn':
+            return True
         else:
-            sql_cmd ='''
-                     select count(*)
-                     from rdb_admin_zone as or8
-                     left join rdb_admin_zone as or1
-                     on or8.order1_id = or1.ad_code and or1.ad_order = 1
-                     where or8.ad_order = 8 and or1.order0_id <> or8.order0_id
+            sqlcmd = '''
+                     select ad_code 
+                     from rdb_admin_zone
+                     where ad_order = 0
                      '''
-            ng_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+                     
+            rows = self.pg.get_batch_data(sqlcmd)
         
-        return (ng_cnt == 0)
+            for row in rows:    
+                countrycode = row[0]
+                           
+                check_order2_exist_sql = '''
+                         select count(*) from rdb_admin_zone
+                         where ad_order = 2 and order0_id = %d
+                         '''%countrycode
+                
+                check_order2_exist__count = self.pg.getOnlyQueryResult(check_order2_exist_sql)
+                
+                ng_cnt = 0
+        
+                if check_order2_exist__count > 0:
+                    sqlcmd ='''
+                            select count(*)
+                            from rdb_admin_zone as or8
+                            left join rdb_admin_zone as or2
+                            on or8.order2_id = or2.ad_code and or2.ad_order = 2
+                            where or8.order0_id = %d and or8.ad_order = 8 and (or8.order1_id <> or2.order1_id or or8.order0_id <> or2.order0_id)
+                             '''%countrycode
+                             
+                    ng_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+                    
+                    sqlcmd ='''
+                            select count(*)
+                            from rdb_admin_zone as or2
+                            left join rdb_admin_zone as or1
+                            on or2.order1_id = or1.ad_code and or1.ad_order = 1
+                            where or2.order0_id = %d and or2.ad_order = 2 and or2.order0_id <> or1.order0_id
+                            '''%countrycode
+                            
+                    ng_cnt = ng_cnt+self.pg.getOnlyQueryResult(sqlcmd)
+                     
+                else:
+                    sqlcmd ='''
+                             select count(*)
+                             from rdb_admin_zone as or8
+                             left join rdb_admin_zone as or1
+                             on or8.order1_id = or1.ad_code and or1.ad_order = 1
+                             where or8.order0_id = %d and or8.ad_order = 8 and or1.order0_id <> or8.order0_id
+                             '''%countrycode
+                    ng_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+                    
+                if ng_cnt > 0 :
+                    return False
+                
+        return True
     
 class CCheckAdCode_Eaqual_OrderId(platform.TestCase.CTestCase):
     def _do(self):
@@ -490,7 +613,7 @@ class CCheckAdCode_Eaqual_OrderId(platform.TestCase.CTestCase):
                      end as order_id 
                      from rdb_admin_zone                 
                  ) as tbl
-                 where ad_code <> order_id         
+                 where ad_code <> order_id or order_id is null        
                  '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         

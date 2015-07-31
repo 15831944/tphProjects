@@ -262,10 +262,18 @@ class CCheckRegionNodeBoundaryFlag(CCheckRegionNodeBase):
                     from rdb_region_node_layer[X]_tbl as a
                     left join 
                     (
-                        select distinct node_id
-                        from rdb_region_node_layer[X]_tbl as a
-                        inner join rdb_region_link_layer[X]_tbl as b
-                        on a.link_num > 1 and a.node_id in (b.start_node_id, b.end_node_id) and a.node_id_t != b.link_id_t
+                        select node_id
+                        from
+                        (
+                            select distinct a.node_id, b.link_id_t
+                            from rdb_region_node_layer[X]_tbl as a
+                            inner join rdb_region_link_layer[X]_tbl as b
+                            on      a.link_num > 1 
+                                and a.node_id in (b.start_node_id, b.end_node_id) 
+                                --and a.node_id_t != b.link_id_t
+                        )as t
+                        group by node_id
+                        having count(*) > 1
                     )as b
                     on a.node_id = b.node_id
                     where (a.node_boundary_flag is true and b.node_id is null)

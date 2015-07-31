@@ -231,3 +231,61 @@ class CCheckGuideSpotguideInlinkRoadType_NotHighway(platform.TestCase.CTestCase)
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return cnt == 0 
 
+# 要读懂此case请先理解插图数据的dat作成协议。
+# 若某个仕向地有白天黑夜图，则在制作dat时，需要将黑夜白天的信息正确填入dat头中，以便机能组能正确地
+# 识别这张图片是黑夜/白天图。
+# dat作成协议为dat中的每个图片各分配了4个bit来标记其白天黑夜信息。
+# 当图片不需要区分白天黑夜时，填入0(0000).
+# 当图片是白天图时，填入1(0001).
+# 当图片是黑夜图时，填入2(0010).
+# 当图片是傍晚图时，填入3(0011).
+# 以下仕向地有白天黑夜图：
+# Here： 中东，东南亚，巴西，阿根廷
+# MMi： 印度
+# Sensis：澳大利亚
+class CCheckGuideSpotguideIllustDayNightFlag(platform.TestCase.CTestCase):
+    def _parseDayNightFlag(self, readBuf):
+        import struct
+        buf6 = readBuf[0:4]
+        hFEFE, nPicCount = struct.unpack("<HH", buf6)
+        
+        dayNightFlagList = []
+        for iPic in range(0, nPicCount):
+            buf9 = readBuf[4+9*iPic: 4+9*iPic+9]
+            bPicInfo, iOffset, iSize = struct.unpack("<bii", buf9)
+            dayNightFlagList.append((bPicInfo<<4)>>4)
+        return dayNightFlagList
+    # 找出所有rdb_guideinfo_spotguidepoint表中pattern_id对应的二进制文件，检查它们的白天黑夜bit位。
+    def _do(self):
+        sqlcmd='''
+                select b.data from 
+                rdb_guideinfo_spotguidepoint as a
+                left join rdb_guideinfo_pic_blob_bytea as b
+                on a.pattern_id=b.gid
+                limit 10;
+               '''
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            dayNightFlagList = self._parseDayNightFlag(row[0])
+            for oneDayNightFlat in dayNightFlagList:
+                if oneDayNightFlat == 0: # pattern_id对应的图片中存在某张图片没有标识白天黑夜。
+                    return False
+        return True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

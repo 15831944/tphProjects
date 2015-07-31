@@ -164,8 +164,8 @@ class HighwayRDF(Highway):
         data = self.data_mng.get_road_code_path()
         for hwy in data:
             road_code = hwy[0]
-            updown = HWY_UPDOWN_TYPE_UP
-            node_list = hwy[1]
+            updown = hwy[1]
+            node_list = hwy[2]
             cycle_flag = is_cycle_path(node_list)
             if cycle_flag:
                 node_list.pop()
@@ -204,19 +204,6 @@ class HighwayRDF(Highway):
                           '_road_seq_updown_idx')
         self.log.info('End Make IC NO.')
         return True
-
-    def _get_all_route_nodes(self):
-        '''取得线路上的所有点'''
-        sqlcmd = """
-        SELECT road_code, array_agg(node_id) as node_lid
-          FROM (
-            select road_code, node_id
-              from hwy_link_road_code_info
-              order by road_code, gid
-          ) AS a
-          group by road_code;
-        """
-        return self.pg.get_batch_data2(sqlcmd)
 
     def _get_ic_list(self, road_code, updown, node_list, cycle_flag):
         G = self.data_mng.get_graph()
@@ -409,8 +396,8 @@ class HighwayRDF(Highway):
         """
         data = self.__get_road_info()
         for info in data:
-            road_no, road_kind, path, road_name, road_number = info[0:5]
-            updown, road_attr = HWY_UPDOWN_TYPE_UP, HWY_UPDOWN_TYPE_UP  # 上行
+            road_no, updown, road_kind, path, road_name, road_num = info[0:6]
+            road_attr = updown
             iddn_road_kind = 0  # 高速
             if is_cycle_path(path):
                 loop = HWY_TRUE
@@ -420,26 +407,28 @@ class HighwayRDF(Highway):
             self.pg.execute1(sqlcmd, (road_no, iddn_road_kind, road_kind,
                                       road_attr, loop, new,
                                       un_open, road_name, updown,
-                                      road_number))
+                                      road_num))
         self.pg.commit1()
         self.log.info('Start End Road Info.')
 
     def __get_road_info(self):
         sqlcmd = """
-        SELECT road_no, road_type, path, road_name, road_number
+        SELECT road_no, updown, road_type,
+               path, road_name, road_number
           FROM  mid_hwy_road_no AS a
           LEFT JOIN (
-            SELECT road_code, ARRAY_AGG(node_id) AS path
+            SELECT road_code, updown, ARRAY_AGG(node_id) AS path
               FROM (
-                SELECT road_code, node_id, seq_nm
+                SELECT road_code, updown, node_id, seq_nm
                   FROM hwy_link_road_code_info
-                  ORDER BY road_code, seq_nm
+                  ORDER BY road_code, updown, seq_nm
              ) AS A
-             GROUP BY road_code
+             GROUP BY road_code, updown
           ) AS b
           ON a.road_code = b.road_code
           LEFT JOIN road_code_info as c
           ON a.road_code = c.road_code
+          ORDER BY road_no, updown
         """
         return self.get_batch_data(sqlcmd)
 
