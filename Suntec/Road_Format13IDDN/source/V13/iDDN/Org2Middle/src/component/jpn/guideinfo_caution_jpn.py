@@ -15,31 +15,11 @@ class comp_guideinfo_caution_jpn(base.component_base.comp_base):
         base.component_base.comp_base.__init__(self, 'Guideinfo Caution') 
         
     def _DoCreateTable(self):
-        
         self.CreateTable2('caution_tbl')
-        
-        self.CreateTable2('temp_admin_province_boundary')
-        sqlcmd = 'Alter table temp_admin_province_boundary drop CONSTRAINT enforce_geotype_the_geom;'
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        self.CreateTable2('temp_highway_link')
-        
-        self.CreateTable2('temp_link_intersection_points')
-        sqlcmd = 'Alter table temp_link_intersection_points drop CONSTRAINT enforce_geotype_the_geom;'
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        self.CreateTable2('temp_bnode')
-        self.CreateTable2('temp_guideinfo_boundary')
-        self.CreateTable2('temp_admin_wavid')
-        
         return 0
     
     def _DoCreateFunction(self):
-        
         self.CreateFunction2('mid_get_inout_link')
-        
         return 0
     
     def _Do(self):
@@ -63,8 +43,9 @@ class comp_guideinfo_caution_jpn(base.component_base.comp_base):
         f.close()
         
         sqlcmd = """
-            insert into temp_admin_province_boundary(ad_cd, the_geom)
+            drop table if exists temp_admin_province_boundary;
             select ad_cd, ST_Boundary(the_geom) as the_geom
+            into temp_admin_province_boundary
             from rdb_admin_province;
         """
         
@@ -72,8 +53,9 @@ class comp_guideinfo_caution_jpn(base.component_base.comp_base):
         self.pg.commit2()
         
         sqlcmd = """
-            insert into temp_highway_link(link_id, the_geom)
+            drop table if exists temp_highway_link;
             select link_id, the_geom
+            into temp_highway_link
             from link_tbl
             where road_type in (0,1) and link_type = 2;
         """   
@@ -86,9 +68,9 @@ class comp_guideinfo_caution_jpn(base.component_base.comp_base):
 
 
         sqlcmd = """
-            insert into temp_link_intersection_points(link_id, the_intersec_points_geom)
-            select distinct a.link_id, a.s_node, a.e_node, a.one_way_code,
-                   ST_Intersection(a.the_geom, b.the_geom) as the_intersec_points_geom
+            drop table if exists temp_link_with_interest_node;
+            select distinct a.link_id, xxxxx() as interest_node, b.ad_cd
+            into temp_link_with_interest_node
             from temp_highway_link as a
             inner join temp_admin_province_boundary as b
             on ST_Intersects(a.the_geom, b.the_geom) = TRUE
@@ -102,9 +84,9 @@ class comp_guideinfo_caution_jpn(base.component_base.comp_base):
             select t1.link_id, t1.bnode, t2.link_id, t1.the_geom
             from 
             (
-                select m.link_id, m.the_geom as m_the_geom, n.the_geom as n_the_geom
+                select m.link_id as link_id1, 
                 from 
-                temp_link_intersection_points as m
+                temp_link_with_interest_node as m
                 inner join link_tbl as n
                 on m.link_id = n.link_id
             ) as t1
