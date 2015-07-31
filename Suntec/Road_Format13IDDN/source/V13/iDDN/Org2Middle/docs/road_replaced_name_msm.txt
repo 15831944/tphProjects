@@ -1,0 +1,34 @@
+org_name	replace_name	reference		
+ver 3.55		
+03/10/2013 3:13:16 PM		
+"Current Track: 04 AUG 2013 15:11"		
+"Current Track: 06 Sep 2009 08:33"		
+{PExit to Jalan Pekan Putatan Ke Pejabat Daerah		
+{IE33|Damansara Ulu Kelang Hwy (DUKE)		
+{PExit to Jalan Putatan		
+\\	Lorong 1	GoogleMap
+Damai Raya 2, J\\	Damai Raya 2, J	
+Simpang 913 Kampong Parit Lama\\	Simpang 913 Kampong Parit Lama	
+09	Jalan Nilam 5	GoogleMap
+193|Behrang-Tanjung Malim	{O193|Behrang-Tanjung Malim	GoogleMap
+193|Behrang Ulu-Tanjung Malim	{O193|Behrang Ulu-Tanjung Malim	GoogleMap
+193|Tanjung Malim-Behrang Ulu	{O193|Tanjung Malim-Behrang Ulu	GoogleMap
+3|Jalan Kuantan - Kuala Terengganu	{O3|Jalan Kuantan - Kuala Terengganu	GoogleMap
+Persiaran {OR3 Jubli Emas (Arau Rd) (E)	{OR3|Persiaran Jubli Emas	GoogleMap
+Persiaran {OR3 Jubli Emas (Arau Rd) (W)	{OR3|Persiaran Jubli Emas	GoogleMap
+Persiaran {O110 Putra	{O110|Persiaran Putra	GoogleMap
+{O1 KL - Seremban	{O1|Jalan Semenyih	GoogleMap
+{ME21 LEKAS HWY	{ME21|Kajang-Seremban Hwy	GoogleMap
+{OB123 Jalan Sempadan|Jalan Sempadan	{OB123|Jalan Sempadan	GoogleMap
+{OB127 Jalan Utama	{OB127|Jalan Utama	GoogleMap
+{OB127 Jalan Tanjung	{OB127|Jalan Tanjung	GoogleMap
+{OB3 Jalan Kebun|KEBUN, J	{OB3|Jalan Kebun	GoogleMap
+{OB3 Kota Raja|Jalan Kota Raja	{OB3|Jalan Kota Raja	GoogleMap
+{OB124 Jalan Serdang Belah	{OB124|Jalan Serdang Belah	GoogleMap
+{OB127 Jalan Melur	{OB127|Jalan Melur	GoogleMap
+{O1 KL-Ipoh	{O1	GoogleMap
+{OBGORR|Batu Gajah Outer Ring Road	{OA108|Jalan Bemban	
+{OQ130B|Jalan Laksamana Cheng Ho	{OQ130|Jalan Laksamana Cheng Ho	GoogleMap Just has name[Jalan Laksamana Cheng Ho]
+{OQ130A|Jalan Laksamana Cheng Ho	{OQ130|Jalan Laksamana Cheng Ho	GoogleMap Just has name[Jalan Laksamana Cheng Ho]
+{OQ130a|Jalan Laksamana Cheng Ho	{OQ130|Jalan Laksamana Cheng Ho	GoogleMap Just has name[Jalan Laksamana Cheng Ho]
+{OQ130b|Jalan Laksamana Cheng Ho	{OQ130|Jalan Laksamana Cheng Ho	GoogleMap Just has name[Jalan Laksamana Cheng Ho]

@@ -1,0 +1,87 @@
+# config file of project
+db1=host='172.26.179.201' dbname='J_13ver_ci_141020' user='postgres' password='pset123456'
+db2=host='172.26.179.201' dbname='J_13ver_ci_141020' user='postgres' password='pset123456'
+language_table=..\docs\language.xls
+sql_script=.\sql_script\
+run_mode=debug
+park_flag=false
+
+#################################################################
+# proj_rdf
+#proj_name=proj_rdf
+#junctionview_data=..\docs\Q413_APAC_2D_Generalized_Junctions_2D_Generalized_Signs_LAT.csv
+#jv_flag=gjv
+#jv_country=SGP
+#csv_path=..\..\..\..\SourceData\rdf\CSV
+forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
+#################################################################
+
+#################################################################
+# proj_chn
+#proj_name=proj_chn
+#################################################################
+
+#################################################################
+# JPN iPC RDB DATA
+proj_name=proj_jdb
+#illust=..\..\SourceData\JP\2012A\pictures
+admin_wav=..\..\..\..\SourceData\JP\admin_wav.txt
+#highway=..\..\..\..\SourceData\JP\2013Spring\highway
+#sf_highway=..\..\..\..\SourceData\JP\2013Spring\kensaku
+forceguide_patch_open=true
+forceguide_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_append_patch.csv
+forceguide_update=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_update_patch.csv
+forceguide_friendly_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_friendly_append_patch.csv
+store_code_mapping=..\docs\store_code_mapping.xls
+org_caution_dir=D:\yudo_jiko.txt
+#################################################################
+
+#################################################################
+# proj_jpn
+#proj_name=proj_jpn
+#illust=..\..\SourceData\JP\2012A\pictures
+#highway=..\..\..\..\SourceData\JP\2012A\highway
+#sf_highway=..\..\..\..\SourceData\JP\2012A\kensaku
+#toll=..\..\..\..\SourceData\JP\toll
+#admin_wav=..\..\..\..\SourceData\JP\admin_wav.txt
+#connectway=..\..\..\..\SourceData\JP\2013Spring\connectway
+#forceguide_patch_open=true
+#forceguide_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_append_patch.csv
+#forceguide_update=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_update_patch.csv
+#forceguide_friendly_append=..\..\..\..\SourceData\JP\forceguide_patch\forceguide_friendly_append_patch.csv
+#################################################################
+
+#################################################################
+# proj_axf
+#proj_name=proj_axf
+#boundary_patch=..\docs\node_adjacent.csv
+#################################################################
+
+#################################################################
+# proj_ta
+#proj_name=proj_ta
+#ta_jv_sidefile=C:\workspace\SourceData\AP_Tomtom\ta_jv_sidefile
+#ta_phoneme_sidefile=\\172.26.179.195\share\ORG_DATA\tomtom_data\sea2013_12\txt\mnvmlhp\
+#################################################################
+
+#################################################################
+# proj_thailand
+#proj_name=proj_nostra
+#illust_name_mapping=C:\����\��Ŀ\WebGis\proj\SourceData\nostra\201307\illustname\signNameSort.txt
+forceguide_patch_full_path=C:\shp\forceguidepatch\nostra\temp_patch_force_guide_tbl.csv
+update_jv_dir=D:\upate_junctionview.csv
+#################################################################
+
+#################################################################
+# proj_india
+#proj_name=proj_mmi
+#mdb_path=\\172.26.179.195\share\ORG_DATA\MMI\201402\Premium_Layer\Premium_Layer\
+#temp_sql_path=.\temp_sql\
+#################################################################
+
+#################################################################
+# proj_Malsing
+#proj_name=proj_msm
+replaced_name=..\docs\road_replaced_name_msm.txt
+#################################################################
+
