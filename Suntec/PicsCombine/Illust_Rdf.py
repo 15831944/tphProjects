@@ -178,9 +178,9 @@ class GeneratorPicBinary_Here(object):
         or os.path.isdir(srcSarDir) == False:
             return
         print "compose sar to arrow start."
-        #if(os.path.exists(destDir) == True):
-        #    shutil.rmtree(destDir)
-        #shutil.copytree(srcEjvDir, destDir)
+        if(os.path.exists(destDir) == True):
+            shutil.rmtree(destDir)
+        shutil.copytree(srcEjvDir, destDir)
         # 从图片元数据中列出所有arrow图的文件全路径。
         arrowPicList = []
         for curDir,dirNames,fileNames in os.walk(destDir):
@@ -444,17 +444,17 @@ class GeneratorPicBinary_Here_Checker(object):
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
     test_checker = GeneratorPicBinary_Here_Checker()
-#    test.composeSarToArrow(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout",
-#                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout",
-#                           r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA",
-#                           r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar",
-#                           r"C:\My\20150514_mea_2014Q4_pic\illust\all_sar_files_name.csv")
+    test.composeSarToArrow(r"C:\My\20150528_bra_arg_pic\ARG\2DJ_ARGENTINA_14Q4_svgout",
+                           r"C:\My\20150528_bra_arg_pic\ARG\2DS_ARGENTINA_14Q4_svgout",
+                           r"C:\My\20150528_bra_arg_pic\ARG\2DS_ARGENTINA_14Q4",
+                           r"C:\My\20150528_bra_arg_pic\ARG\2DJ_ARGENTINA_14Q4_svgout_withsar",
+                           r"C:\My\20150528_bra_arg_pic\ARG\illust\all_sar_files_name.csv")
 #    test_checker.composeSarToArrow_check(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA")
     
-    test.makeEjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar", 
-                    r"C:\My\20150514_mea_2014Q4_pic\2DJ_2014Q4_MEA_svgout_withsar_dat")
-    test.makeGjvDat(r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout", 
-                    r"C:\My\20150514_mea_2014Q4_pic\2DGJ_2014Q4_MEA_svgout_dat")
+#    test.makeEjvDat(r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DJ_ARGENTINA_14Q4_svgout_with_sar", 
+#                    r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DJ_ARGENTINA_14Q4_svgout_with_sar_dat")
+#    test.makeGjvDat(r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DGJ_ARGENTINA_14Q4_svgout", 
+#                    r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DGJ_ARGENTINA_14Q4_svgout_dat")
 #    test.make_sign_as_real_csv(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout", 
 #                               r"C:\My\20150514_mea_2014Q4_pic\illust\all_jv.csv",
 #                               r"C:\My\20150514_mea_2014Q4_pic\illust\pic\sign",
