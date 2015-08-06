@@ -1,4 +1,4 @@
-# -*- coding: cp936 -*-
+# -*- coding: UTF8 -*-
 '''
 Created on 2015-5-4
 
@@ -34,6 +34,7 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         
         self.log.info('Now it is making mid_temp_force_guide_tbl...')
         
+        # 作成表单mid_temp_force_guide_tbl记录原始数据提供的force guide信息
         self.CreateIndex2('org_cond_mapid_condid_idx')
         self.CreateIndex2('org_cnl_mapid_condid_idx')
         self.CreateTable2('mid_temp_force_guide_tbl')
@@ -49,6 +50,8 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         
         self.log.info('Now it is updating force_guide_tbl...')
         
+        # 更新表单force_guide_tbl
+        # 表单force_guide_tbl可能已存储配置文件提供的force guide数据，因此force guide id要从当前表单最大的id开始计数
         sqlcmd = '''
             drop sequence if exists temp_force_guide_tbl_seq;
             create sequence temp_force_guide_tbl_seq;
@@ -64,20 +67,12 @@ class comp_guideinfo_forceguide_ni(component.default.guideinfo_forceguide.com_gu
         
         sqlcmd = """
                 insert into force_guide_tbl (
-                    force_guide_id,
-                    nodeid, 
-                    inlinkid,
-                    outlinkid,
-                    passlid,
-                    passlink_cnt,
-                    guide_type,
-                    position_type
+                    force_guide_id, nodeid, inlinkid, outlinkid,
+                    passlid, passlink_cnt, guide_type, position_type
                 )
-                select 
-                    nextval('temp_force_guide_tbl_seq') as force_guide_id,
+                select nextval('temp_force_guide_tbl_seq') as force_guide_id,
                     nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                    0 as guide_type,
-                    0 as position_type
+                    0 as guide_type, 0 as position_type
                 from (
                     select distinct a.nodeid, a.inlinkid, a.outlinkid, a.passlid, a.passlink_cnt
                     from mid_temp_force_guide_tbl a 

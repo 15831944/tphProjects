@@ -1197,6 +1197,18 @@ class HwyGraphRDF(HwyGraph):
                     nodes.append(v)
         return nodes
 
+    def get_to_main_link_of_path(self, path, road_code,
+                                 code_field=HWY_ROAD_CODE, reverse=False):
+        main_nodes = []
+        last_node = path[-1]
+        nodes = self.get_main_link(last_node, road_code, code_field,
+                                   False, reverse)
+        for node in nodes:
+            temp_path = path + [node]
+            if self.check_regulation(temp_path, reverse):
+                main_nodes.append(node)
+        return main_nodes
+
     def get_normal_link(self, u, v, reverse=False):
         '''高速(Ramp)相连的一般道、。
            reverse: False,顺车流；True,逆车流

@@ -80,54 +80,6 @@ CREATE INDEX mid_admin_zone_order2_id_idx
   USING btree
   (order2_id);
 
------------------------------------------------------ 
-CREATE INDEX temp_order8_boundary_order8_geom_idx
-  ON temp_order8_boundary
-  USING gist
-  (order8_geom);
-
------------------------------------------------------ 
-CREATE INDEX temp_order8_boundary_ad_code_idx
-  ON temp_order8_boundary
-  USING btree
-  (ad_code);
-  
------------------------------------------------------ 
-CREATE INDEX temp_inode_b_node_idx
-  ON temp_inode
-  USING btree
-  (b_node);
-
------------------------------------------------------ 
-CREATE INDEX temp_inode_link_id_idx
-  ON temp_inode
-  USING btree
-  (link_id);
-
------------------------------------------------------ 
-CREATE INDEX temp_guideinfo_boundary_out_adcd_idx
-  ON temp_guideinfo_boundary
-  USING btree
-  (out_adcd);
-
------------------------------------------------------ 
-CREATE INDEX temp_guideinfo_boundary_inlinkid_idx
-  ON temp_guideinfo_boundary
-  USING btree
-  (inlinkid);
-
------------------------------------------------------ 
-CREATE INDEX temp_guideinfo_boundary_nodeid_idx
-  ON temp_guideinfo_boundary
-  USING btree
-  (nodeid);
-
------------------------------------------------------ 
-CREATE INDEX temp_guideinfo_boundary_outlinkid_idx
-  ON temp_guideinfo_boundary
-  USING btree
-  (outlinkid);
-
   CREATE INDEX temp_poi_logmark_poi_id_idx
   ON temp_poi_logmark
   USING btree
@@ -328,8 +280,8 @@ CREATE INDEX org_poi_the_geom_idx
   (the_geom);
 
 
-CREATE INDEX temp_towardname_name_poi_id_idx
-ON temp_towardname_name
+CREATE INDEX temp_towardname_name_poi_poi_id_idx
+ON temp_towardname_name_poi
 USING btree
 (poi_id); 
 
@@ -353,3 +305,18 @@ CREATE INDEX temp_lane_exclusive_gid_idx
   on temp_lane_exclusive
   USING btree
   (gid);
+  
+CREATE INDEX temp_towardname_poi_tbl_nodeid_idx
+  on temp_towardname_poi_tbl
+  using btree
+  (nodeid);
+  
+CREATE INDEX temp_not_roundabout_path_id_path_id_idx
+  on temp_not_roundabout_path_id
+  using btree
+  (path_id);
+  
+CREATE INDEX temp_signpost_uc_sign_id_idx
+  on temp_signpost_uc
+  using btree
+  (sign_id);

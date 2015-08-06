@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 '''
 Created on 2014-11-15
 @author: liuxinxing

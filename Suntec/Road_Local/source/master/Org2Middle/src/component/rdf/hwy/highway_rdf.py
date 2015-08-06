@@ -13,6 +13,7 @@ from component.jdb.hwy.hwy_def import INOUT_TYPE_OUT
 from component.jdb.hwy.hwy_def import INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
 from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
+from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_DOWN
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_def_rdf import HWY_TILE_BOUNDARY_NAME
@@ -397,6 +398,7 @@ class HighwayRDF(Highway):
         data = self.__get_road_info()
         for info in data:
             road_no, updown, road_kind, path, road_name, road_num = info[0:6]
+            updown = self.convert_updown(updown)
             road_attr = updown
             iddn_road_kind = 0  # 高速
             if is_cycle_path(path):
@@ -410,6 +412,15 @@ class HighwayRDF(Highway):
                                       road_num))
         self.pg.commit1()
         self.log.info('Start End Road Info.')
+
+    def convert_updown(self, updown):
+        # 0…下り、1…上り、2…RESERVED、3…上下線共有
+        if updown == HWY_UPDOWN_TYPE_UP:
+            return 1
+        elif updown == HWY_UPDOWN_TYPE_DOWN:
+            return 0
+        else:
+            return None
 
     def __get_road_info(self):
         sqlcmd = """

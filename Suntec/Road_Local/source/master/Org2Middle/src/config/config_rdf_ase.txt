@@ -8,4 +8,5 @@ sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q4\illu
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q4\forceguide_patch\temp_patch_force_guide_tbl.csv
 all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\AP_rdf\ASE\14Q4\illust\all_sar_files_name.csv
+accident_flag=true
 #################################################################

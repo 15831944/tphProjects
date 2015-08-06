@@ -41,9 +41,9 @@ class HwyFacilityNi(HwyFacilityRDF):
         '''取得服务情报'''
         sqlcmd = """
         SELECT DISTINCT road_code, road_seq, c.poi_id,
-                        kind, name
+                        kind, name, updown_c
           FROM (
-            SELECT road_code, road_seq, facilcls_c,
+            SELECT road_code, road_seq, facilcls_c, updown_c,
                    regexp_split_to_table(link_lid, E'\\,+')::bigint as link_id
               FROM mid_temp_hwy_ic_path as a
               where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
@@ -210,6 +210,8 @@ class HwyFacilityNi(HwyFacilityRDF):
                 atm = HWY_TRUE
             elif cat_id in SERVICE_RESTAURANT_DICT:
                 restaurant = HWY_TRUE
+            elif cat_id in SERVICE_TOILET_DICT:
+                toilet = HWY_TRUE
             elif cat_id in SERVICE_UNDEFINED_DICT:
                 continue
             else:
@@ -351,6 +353,10 @@ SERVICE_RESTAURANT_DICT = {'1080': 1,  # 快餐
                            '1602': 1,  # 咖啡店代表
                            '1680': 1,  # 冷饮店
                            }
+# Toilet
+SERVICE_TOILET_DICT = {'7880': 1,  # 公共厕所
+                       }
+
 SERVICE_UNDEFINED_DICT = {'2000': 1,  # 其他零售店
                           '2701': 1,  # 文化用品店
                           '2780': 1,  # 古玩字画店
@@ -378,7 +384,6 @@ SERVICE_UNDEFINED_DICT = {'2000': 1,  # 其他零售店
                           '7400': 1,  # 会议中心、展览中心
                           '7500': 1,  # 防疫站
                           '7700': 1,  # 福利院、敬老院
-                          '7880': 1,  # 公共厕所
                           '8083': 1,  # 车站    长途客运站
                           '8102': 1,  # 机场: 机场城市候机楼
                           '8200': 1,  # 票务中心｜定票处代表

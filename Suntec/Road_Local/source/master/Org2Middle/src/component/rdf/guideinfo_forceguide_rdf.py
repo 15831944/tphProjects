@@ -1,8 +1,8 @@
-# -*- coding: cp936 -*-
+# -*- coding: UTF8 -*-
 '''
-Created on 2012-3-27
+Created on 2015-4-27
 
-@author:
+@author: liushengqiang
 '''
 import os
 import component
@@ -10,7 +10,6 @@ import psycopg2
 
 import component.default.guideinfo_forceguide
 from common.common_func import GetPath
-'''原数据来了之后我就会生成patch'''
 
 
 class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_guideinfo_forceguide):
@@ -45,8 +44,7 @@ class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_g
         'use rdf_condition and rdf_nav_strand to make mid_temp_force_guide_tbl when rdf_condition.condition_type = 14(through route)'
         self.log.info('Now it is making mid_temp_force_guide_tbl...')
         
-        if self.CreateTable2('mid_temp_force_guide_tbl') == -1:
-            return -1
+        self.CreateTable2('mid_temp_force_guide_tbl')
         self.CreateFunction2('rdf_update_mid_temp_force_guide_tbl')
         self.pg.callproc('rdf_update_mid_temp_force_guide_tbl')
         self.pg.commit2()
@@ -72,20 +70,12 @@ class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_g
         
         sqlcmd = """
                 insert into force_guide_tbl (
-                    force_guide_id,
-                    nodeid, 
-                    inlinkid,
-                    outlinkid,
-                    passlid,
-                    passlink_cnt,
-                    guide_type,
-                    position_type
+                    force_guide_id, nodeid, inlinkid, outlinkid, passlid,
+                    passlink_cnt, guide_type, position_type
                 )
-                select 
-                    nextval('temp_link_forceguide_seq') as force_guide_id,
+                select nextval('temp_link_forceguide_seq') as force_guide_id,
                     nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                    0 as guide_type,
-                    0 as position_type
+                    0 as guide_type, 0 as position_type
                 from (
                     select distinct a.nodeid, a.inlinkid, a.outlinkid, a.passlid, a.passlink_cnt
                     from mid_temp_force_guide_tbl a 

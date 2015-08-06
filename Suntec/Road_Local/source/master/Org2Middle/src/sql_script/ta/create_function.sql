@@ -3595,9 +3595,9 @@ BEGIN
 	countrycount := array_upper(Countryarray,1);
 	
 	for countryidx in 1..countrycount loop
-		if Countryarray[countryidx] in ('VNM', 'AUS', 'NZL') then
+		--if Countryarray[countryidx] in ('VNM', 'AUS', 'NZL') then
 			perform mid_insert_mid_admin_zone_VN(Countryarray[countryidx]);
-		end if;
+		--end if;
 	end loop;
 		return 0;
 END;

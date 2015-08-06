@@ -114,13 +114,20 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
         INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
                                    chain_id, chain_name, language_code)
         (
-        SELECT distinct u_code, a.kind, '' as subcat,
-               a.chaincode, chain_name, 'CHI' as language_code
+        SELECT genre_id as u_code, a.kind, '' as subcat,
+               a.chaincode, '' as chain_name, 'CHI' as language_code
           FROM org_poi as a
           LEFT JOIN temp_poi_category as b
-          ON a.chaincode = b.chaincode AND a.kind = b.org_code
-          where a.chaincode <> ''
-          ORDER BY chaincode
+          ON a.chaincode = b.chaincode and a.kind = b.org_code1
+          where a.chaincode <> '' and genre_id is not null
+
+        union
+         SELECT distinct genre_id as u_code, a.kind, '' as subcat,
+               a.chaincode, '' as chain_name, 'CHI' as language_code
+          FROM org_poi as a
+          LEFT JOIN temp_poi_category as b
+          ON a.chaincode = b.chaincode and a.kind = b.org_code2
+          where a.chaincode <> '' and genre_id is not null
         );
         """
         self.pg.execute2(sqlcmd)

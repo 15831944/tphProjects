@@ -1,4 +1,4 @@
-# -*- coding: cp936 -*-
+# -*- coding: UTF8 -*-
 '''
 Created on 2012-3-27
 
@@ -15,6 +15,14 @@ class comp_regulation_rdf(component.component_base.comp_base):
         
     def _Do(self):
         self.__convert_condition_table()
+        
+        # 作成表单regulation_relation_tbl记录道路规制情报（进入link、脱出link、交通规制类型等）\
+        # 若规制是单条link规制，则表单regulation_relation_tbl中脱出link为空 \
+        # 若规制是多条link规制，则表单regulation_relation_tbl中脱出link为规制最终脱出link，对应的经过link会记录在表单regulation_item_tbl
+        
+        # 作成表单regulation_item_tbl记录道路规制元素表（即道路规制涉及的点、线元素） \
+        # 若规制是单条link规制时，当前规制id仅对应一条link, node为空，seq_num=1
+        # 若规制是多条link规制时，当前规制id对应多条link，node不为空，link顺序通过seq_num保证
         
         self.CreateTable2('regulation_relation_tbl')
         self.CreateTable2('regulation_item_tbl')
@@ -35,7 +43,13 @@ class comp_regulation_rdf(component.component_base.comp_base):
         return 0
     
     def __convert_condition_table(self):
+        
         self.log.info('Begin convert condition_regulation_tbl...')
+        
+        # 作成表单temp_condition_regulation_tbl记录道路规制id与道路数据的对照关系
+        # 表单temp_condition_regulation_tbl使用方法：道路首先根据对照关系找到对应的道路规制id，再根据id在表单condition_regulation_tbl查询\
+        # 道路规制条件情报(规制id为-1代表没有规制；为空代表全时规制；>0代表规制有时间、车辆类型限制)
+        # 作成表单condition_regulation_tbl记录道路规制的条件情报（包括时间、车辆类型限制）
         
         self.CreateTable2('temp_condition_regulation_tbl')
         self.CreateTable2('condition_regulation_tbl')
@@ -49,6 +63,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert condition_regulation_tbl.')
         
     def __convert_regulation_oneway_link(self):
+        
         self.log.info('Begin convert regulation for oneway link...')
         
         self.CreateFunction2('mid_convert_regulation_oneway_link')

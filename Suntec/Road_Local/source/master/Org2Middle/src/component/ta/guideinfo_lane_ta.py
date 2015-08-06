@@ -73,56 +73,32 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         
         return 0
     
-    def _merge_same_arrow(self):
-        sqlcmd = '''
-            insert into lane_tbl(
-                id, nodeid, inlinkid, outlinkid,
-                passlid, passlink_cnt,
-                lanenum, laneinfo, arrowinfo,
-                lanenuml, lanenumr, buslaneinfo
-            )
-            (
-                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
-                from
-                (
-                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
-                    from temp_lane_tbl
-                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
-                ) as a
-            )
-        '''
-        
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        return 0
+
 
     # 求得inlink、outlink、passlink
     def _make_link_info(self):
         
         sqlcmd = '''
-        insert into temp_lane_link_info(
+         insert into temp_lane_link_info(
             id, inlink, outlink, passlink
         )
         (
             select id,links[1] as inlink,links[length] as outlink,
-                array_to_string (links[2:length-1],'|') as passlink
+                   array_to_string (links[2:length-1],'|') as passlink
             from(
                     select id, array_agg(seqnr), array_agg(trpelid) as links,
-                            count(*) as length, array_agg(oneway) as oneway_array
+                           count(*) as length, array_agg(oneway) as oneway_array
                     from(
-                            SELECT a.gid, a.id, a.seqnr, a.trpelid, a.trpeltyp, b.oneway
-                            FROM org_lp as a
-                            left join org_nw as b
-                            on a.trpelid = b.id
-                            order by id,seqnr
-                      ) as a
+                         SELECT a.gid, a.id, a.seqnr, a.trpelid, a.trpeltyp, 
+                                case when b.oneway is null then '' else b.oneway end
+                         FROM org_lp as a
+                         left join org_nw as b
+                         on a.trpelid = b.id
+                         order by id,seqnr
+                    ) as a
                     group by id
             ) as b
-            where length > 1 and not ('N' = any(oneway_array))
+            --where length > 1 and not ('N' = any(oneway_array))
         );
         '''
         self.pg.execute2(sqlcmd)
@@ -463,7 +439,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         validate_lane_no_list = list()
         
         cnt = len(validity_array)
-        for i in range(1, cnt+1):
+        for i in range(0, cnt):
             if validity_array[i] == check_value:
                 validate_lane_no_list.append(i)
         
@@ -476,16 +452,16 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         lane_cnt = 0
         rtn_validate_access_lane_list = None
             
-        if bidirection_validate_dir == 'FT' and dflane in (1,3): # postive could be run
+        if bidirection_validate_dir == 'FT' and (dflane == 1 or dflane == 3): # postive could be run
             lane_cnt = validity_array.count('1')
             rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '1')
-        elif bidirection_validate_dir == 'FT' and dflane in (2):
+        elif bidirection_validate_dir == 'FT' and dflane == 2:
             lane_cnt = validity_array.count('0')
             rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '0')
-        elif bidirection_validate_dir == 'TF' and dflane in (1,2): # negative could be run
+        elif bidirection_validate_dir == 'TF' and (dflane == 1 or dflane == 2): # negative could be run
             lane_cnt = validity_array.count('1')
             rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '1')
-        elif bidirection_validate_dir == 'TF' and dflane in (3):
+        elif bidirection_validate_dir == 'TF' and dflane == 3:
             lane_cnt = validity_array.count('0')
             rtn_validate_access_lane_list = self.__get_access_lane_no(validity_array, '0')
         else:
@@ -493,13 +469,26 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             rtn_validate_access_lane_list = None
             
         return lane_cnt, rtn_validate_access_lane_list
+    
+    
+    def __get_all_car_pos(self, dflane_array, validity_array, vt_array, bidirection_validate_dir):
+        index = 0
+        
+        cnt = len(dflane_array)
+        for i in range(0, cnt):
+            if ((bidirection_validate_dir == 'FT' and dflane_array[i] == 3) or
+                (bidirection_validate_dir == 'TF' and dflane_array[i] == 2)) and (vt_array[i] == 0):
+                return i
+            
+        return -1
         
     def _Get_lane_info(self, laneno, oneway, dflane_array, vt_array, validity_array, nw_lanes,inlink, bidirection_validate_dir):        
         # 特定车线上的方向
         laneinfo = ''
+        mid_laneinfo = None
         
         if oneway == 'FT' or oneway == 'TF': # single direction
-            if not dflane_array:
+            if len(dflane_array) == 1 and dflane_array[0] == 'NULL':
                 self.log.error('laneno:%s lane of inlink=%s has no dflane_array and validity_array info!!!!',
                                  laneno, inlink)
             else:
@@ -528,13 +517,17 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     final_laneinfo = final_laneinfo[::-1]
                     
         else: # two direction 
-            if not dflane_array:
+            if len(dflane_array) == 1 and dflane_array[0] == None:
                 self.log.error('laneno:%s lane of inlink=%s has no dflane_array and validity_array info!!!!',
                                  laneno, inlink)
             else:
                 # step one: judgment current drive direction
                 if vt_array.count(0) <> 0:
-                    all_car_pos = vt_array.index(0) 
+#                    all_car_pos = vt_array.index(0) 
+                    all_car_pos = self.__get_all_car_pos(dflane_array, validity_array, vt_array, bidirection_validate_dir)
+                    if all_car_pos ==-1:
+                        pass
+                    
                     if all_car_pos <> -1:
                         lane_cnt = len(validity_array[all_car_pos])
                         laneinfo = '0' * lane_cnt # initial laneinfo
@@ -560,8 +553,8 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     final_laneinfo = mid_laneinfo
                 
                 # cut laneinfo in car driving direction
-                final_laneinfo = final_laneinfo[rtn_validate_access_lane_list[1]:
-                                                rtn_validate_access_lane_list[rtn_validate_lane_cnt]]
+                final_laneinfo = final_laneinfo[rtn_validate_access_lane_list[0]:
+                                                rtn_validate_access_lane_list[rtn_validate_lane_cnt-1]+1]
                  
                 if bidirection_validate_dir == 'FT':
                     final_laneinfo = final_laneinfo[::-1]
@@ -585,10 +578,13 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     %s, %s, %s);
         '''
         sqlcmd = '''
-            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, case when c.direction=256 then 2048 else c.direction end,
-                    array_agg(d.dflane) dflane_array, 
-                array_agg(d.vt) vt_array, array_agg(substring(d.validity, 2)) as validity_array, b.lanes,b.f_jnctid, b.t_jnctid
-            FROM temp_lane_link_node as a
+            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, 
+                   case when c.direction=256 then 2048 else c.direction end,
+           	       array_agg(d.dflane) dflane_array, array_agg(d.vt) vt_array, 
+           	       array_agg(substring(d.validity, 2)) as validity_array, 
+           	       b.lanes,b.f_jnctid, b.t_jnctid
+            FROM 
+            temp_lane_link_node as a
             left join org_nw as b
             on a.inlink = b.id
             left join org_ld as c
@@ -596,7 +592,8 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             left join org_lf as d
             on a.inlink = d.id and d.vt in (0, 11)
             where c.id is not null
-            group by inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, b.lanes,b.f_jnctid, b.t_jnctid
+            group by inlink, outlink, passlink, nodeid, laneno, oneway, 
+                     c.direction, b.lanes,b.f_jnctid, b.t_jnctid
         '''
         rows = self.get_batch_data(sqlcmd)
         i = 1
@@ -621,13 +618,16 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             if oneway == 'N' :
                 continue
             
-            if oneway == '': #bidirection, so we should get validate lane cnt by drive way
+            if oneway == None: #bidirection, so we should get validate lane cnt by drive way
                 if nodeid == start_nodeid:
                     bidirection_validate_dir = 'TF'
                 else:
                     bidirection_validate_dir = 'FT'
             else:
                 bidirection_validate_dir = oneway
+                
+            if len(dflane_array) == 1 and dflane_array[0] == None:
+                continue
                 
 #            laneinfo = self._make_lane_info(inlink, laneno, oneway)
             laneinfo = self._Get_lane_info(laneno, oneway, dflane_array, vt_array, 
@@ -649,3 +649,31 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         f.close()
         self.pg.commit2()
         return 0
+
+    def _merge_same_arrow(self):
+        sqlcmd = '''
+            insert into lane_tbl(
+                id, nodeid, inlinkid, outlinkid,
+                passlid, passlink_cnt,
+                lanenum, laneinfo, arrowinfo,
+                lanenuml, lanenumr, buslaneinfo
+            )
+            (
+                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
+                from
+                (
+                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                    from temp_lane_tbl
+                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                ) as a
+            )
+        '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        return 0    
+

@@ -74,46 +74,6 @@ CREATE TABLE temp_admin_caution_tbl
   image_id integer DEFAULT 0
 ); SELECT AddGeometryColumn('','temp_admin_caution_tbl','node_geom','4326','POINT',2); SELECT AddGeometryColumn('','temp_admin_caution_tbl','inlink_geom','4326','LINESTRING',2); SELECT AddGeometryColumn('','temp_admin_caution_tbl','outlink_geom','4326','LINESTRING',2);
 
------------------------------------------------------------------
-CREATE TABLE temp_order8_boundary
-(
-  ad_code integer,
-  order8_id integer,
-  
-  order8_name character varying(65536),
-  order2_id integer,
-  order2_name character varying(65536),
-  order1_id integer,
-  
-  order1_name character varying(65536),
-  order0_id integer,
-  order0_name character varying(65536)
-); SELECT AddGeometryColumn('','temp_order8_boundary','order8_geom','4326','MULTILINESTRING',2); 
-
------------------------------------------------------------------
-CREATE TABLE temp_inode
-(
-  link_id bigint primary key,
-  s_node bigint,
-  e_node bigint,
-  one_way_code smallint,
-  link_type smallint NOT NULL DEFAULT (-1),
-  b_node bigint,
-  slocate double precision,
-  elocate double precision
-); SELECT AddGeometryColumn('','temp_inode','the_geom','4326','POINT',2);
-
------------------------------------------------------------------
-CREATE TABLE temp_guideinfo_boundary
-(
-  inlinkid bigint,
-  nodeid bigint,
-  outlinkid bigint,
-  innode bigint,
-  outnode bigint,
-  out_adcd integer
-);
-
 create table temp_poi_category
 (
 	u_code bigint,
@@ -310,7 +270,7 @@ inlink  bigint,
 node    bigint
 );
 
-create table temp_towardname_name
+create table temp_towardname_name_poi
 (
 	poi_id bigint,
 	toward_name varchar
@@ -332,3 +292,20 @@ as
 		using(nodeid,inlinkid,lanenum)
 	) a
 );
+
+CREATE TABLE temp_towardname_tbl
+(
+  gid serial,
+  nodeid bigint not null,
+  inlinkid bigint not null,
+  outlinkid bigint,
+  passlid varchar,
+  passlink_cnt smallint,
+  direction smallint,
+  guideattr smallint,
+  namekind smallint,
+  namekind2 smallint,
+  toward_name varchar not null,
+  type smallint
+);
+

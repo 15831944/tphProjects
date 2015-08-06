@@ -40,6 +40,11 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         
         self.log.info('Now it is dealing temp_patch_force_guide_tbl.csv...')
         
+        # 根据配置文件信息制作force guide数据
+        # force guide配置信息以node形式给出，配置文件数据组织形式：
+        # 1、各数据以\t分割
+        # 2、第一个字段force guide种别
+        # 3、后面每2个字段一组 第一个记录node经纬度（geometry），第二个对应node对应的z level
         if self.import_patch() == -1:
             return -1
         
@@ -52,6 +57,9 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
     
     def import_patch(self): 
         
+        # 作成表单temp_force_guide_patch_tbl记录force guide配置信息，作成：
+        # 1、抽取force guide type
+        # 2、将node经纬度、node z level分别收录到一起，以‘|’分割
         forceguide_patch_full_path = GetPath('forceguide_patch_full_path')
         recIdx = 0
         if forceguide_patch_full_path:
@@ -94,13 +102,17 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
             
             self.log.info('importing force_guide_patch succeeded')
             return 0
-        
+
         return -1
     
     def _update_temp_force_guide_patch_node_tbl(self):
         
         self.log.info('Now it is updating temp_force_guide_patch_node_tbl...')
         
+        # 作成表单temp_force_guide_patch_node_tbl记录force guide关联的node信息。作成：
+        # 将表单temp_force_guide_patch_tbl中提供的node经纬度信息转换为对应的node id
+        # 1、从node_tbl中收录指定经纬度方圆10米内所有node
+        # 2、选取距离最近且在指定z level的node
         self.CreateTable2('temp_force_guide_patch_node_tbl')
         
         self.CreateFunction2('mid_update_temp_force_guide_patch_node_tbl')
@@ -114,6 +126,9 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         
         self.log.info('Now it is updating temp_force_guide_patch_link_tbl...')
         
+        # 作成表单temp_force_guide_patch_link_tbl记录force guide关联的link信息，作成：
+        # 1、从temp_force_guide_patch_node_tbl中取一条记录中任意相邻两点算路，得到一段路径
+        # 2、将一条记录的所有node算路所获路径连在一起，即为当前force guide对应的link
         self.CreateTable2('temp_force_guide_patch_link_tbl')
         
         self.CreateFunction2('mid_findpasslinkbybothnodes')
@@ -130,6 +145,8 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         
         self.log.info('Now it is making force_guide_tbl...')
         
+        # 更新表单force_guide_tbl
+        # 根据force guide关联的link信息（表单temp_force_guide_patch_link_tbl）计算引导点、位置信息等
         self.CreateFunction2('mid_get_connectnode_by_links')
         self.CreateFunction2('mid_get_position_type_by_links')
         
@@ -148,28 +165,18 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         
         sqlcmd = """
                 insert into force_guide_tbl (
-                    force_guide_id,
-                    nodeid, 
-                    inlinkid,
-                    outlinkid,
-                    passlid,
-                    passlink_cnt,
-                    guide_type,
-                    position_type
+                    force_guide_id, nodeid, inlinkid, outlinkid,
+                    passlid, passlink_cnt, guide_type, position_type
                 )
-                select
-                    nextval('temp_force_guide_tbl_seq') as force_guide_id,
+                select nextval('temp_force_guide_tbl_seq') as force_guide_id,
                     mid_get_connectnode_by_links(inlinkid, secondlink) as nodeid,
                     inlinkid, outlinkid, passlid, passlink_cnt, guide_type,
                     mid_get_position_type_by_links(inlinkid, outlinkid) as position_type
                 from (
-                    select 
-                        link_id_list[1] as inlinkid, 
-                        link_id_list[2] as secondlink,
+                    select link_id_list[1] as inlinkid, link_id_list[2] as secondlink,
                         link_id_list[array_upper(link_id_list, 1)] as outlinkid, 
                         case when array_upper(link_id_list, 1) - 2 = 0 then null else array_to_string(link_id_list[2:array_upper(link_id_list, 1)-1], '|') end as passlid,
-                        array_upper(link_id_list, 1) - 2 as passlink_cnt,
-                        a.guide_type
+                        array_upper(link_id_list, 1) - 2 as passlink_cnt, a.guide_type
                     from temp_force_guide_patch_node_tbl a
                     left join temp_force_guide_patch_link_tbl b
                         on a.id = b.objectid

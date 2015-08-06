@@ -20,16 +20,11 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
     def _DoCreateTable(self):
         
-        self.CreateTable2('caution_tbl')
-        self.CreateTable2('mid_admin_image_code')       
+        self.CreateTable2('caution_tbl')       
 #        self.CreateTable2('temp_link_in_adminline')
-        self.CreateTable2('temp_caution_tbl_link')
 #        self.CreateTable2('temp_admin_line')
 #        self.CreateTable2('temp_link_caution')
-        self.CreateTable2('temp_caution_tbl_order0')
-        self.CreateTable2('temp_caution_tbl_order1')
-
-        
+ 
         return 0
     
     def _DoCreateFunction(self):
@@ -50,6 +45,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
     def _Do(self):
         
         #jude country UC
+        # 疑问：县境案内基于什么规则仅在如下区域作成：美国。加拿大、波多黎各、处女群岛（美国）、墨西哥
         sqlcmd = '''
                 SELECT count(*)
                 FROM rdf_country
@@ -73,36 +69,66 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         return 0
     
     def __Get_link_in_adminline(self):
+        
         self.log.info('start get link in adminline!')
         
-        #link_all
+        # 作成表单temp_rdf_nav_link_admin记录link与省级行政界的对照关系（link两边的行政界可能不同）
+        
         sqlcmd = '''
                 drop table if exists temp_rdf_nav_link_admin;
                 create table temp_rdf_nav_link_admin
                 as
                 (
-                    select a.link_id, b.one_way_code, ref_node_id, nonref_node_id, c.order1_id as left_admin, d.order1_id as right_admin
+                    select a.link_id, b.one_way_code, ref_node_id, nonref_node_id, \
+                        c.order1_id as left_admin, d.order1_id as right_admin
                     from temp_rdf_nav_link as a
                     left join link_tbl as b
-                    on a.link_id = b.link_id
+                        on a.link_id = b.link_id
                     left join rdf_admin_hierarchy as c
-                    on a.left_admin_place_id = c.admin_place_id
+                        on a.left_admin_place_id = c.admin_place_id
                     left join rdf_admin_hierarchy as d
-                    on a.right_admin_place_id = d.admin_place_id
+                        on a.right_admin_place_id = d.admin_place_id
                 )
-            '''
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
+                
+                drop index if exists temp_rdf_nav_link_admin_left_admin_idx;
+                create index temp_rdf_nav_link_admin_left_admin_idx
+                    on temp_rdf_nav_link_admin
+                    using btree
+                    (left_admin);
+                
+                drop index if exists temp_rdf_nav_link_admin_right_admin_idx;
+                create index temp_rdf_nav_link_admin_right_admin_idx
+                    on temp_rdf_nav_link_admin
+                    using btree
+                    (right_admin);
+                
+                drop index if exists temp_rdf_nav_link_admin_link_id_idx;
+                create index temp_rdf_nav_link_admin_link_id_idx
+                    on temp_rdf_nav_link_admin
+                    using btree
+                    (link_id);
+                
+                drop index if exists temp_rdf_nav_link_admin_ref_node_id_idx;
+                create index temp_rdf_nav_link_admin_ref_node_id_idx
+                    on temp_rdf_nav_link_admin
+                    using btree
+                    (ref_node_id);
+                
+                drop index if exists temp_rdf_nav_link_admin_nonref_node_id_idx;
+                create index temp_rdf_nav_link_admin_nonref_node_id_idx
+                    on temp_rdf_nav_link_admin
+                    using btree
+                    (nonref_node_id);
 
-        self.CreateIndex2('temp_rdf_nav_link_admin_left_admin_idx')
-        self.CreateIndex2('temp_rdf_nav_link_admin_right_admin_idx')
-        self.CreateIndex2('temp_rdf_nav_link_admin_link_id_idx')
-        self.CreateIndex2('temp_rdf_nav_link_admin_ref_node_id_idx')
-        self.CreateIndex2('temp_rdf_nav_link_admin_nonref_node_id_idx')
+                analyze temp_rdf_nav_link_admin;
+            '''
         
-        #node
+        self.pg.do_big_insert2(sqlcmd)
+        
+        # 作成表单temp_rdf_nav_node_admin记录跨界（省级行政界）node信息，作成：
+        # 1、若link本身跨界，则link始终端对应node都得收录
+        # 2、若node同时关联多条link，但link分属不同省级行政区，亦收录
+        
         sqlcmd = '''
                 drop table if exists temp_rdf_nav_node_admin;
                 create table temp_rdf_nav_node_admin
@@ -114,7 +140,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
                         select a.node_id, array_agg(distinct b.left_admin) as admin_array
                         from temp_rdf_nav_node as a
                         left join temp_rdf_nav_link_admin as b
-                        on a.node_id = b.ref_node_id or a.node_id = b.nonref_node_id
+                            on a.node_id = b.ref_node_id or a.node_id = b.nonref_node_id
                         where left_admin = right_admin
                         group by a.node_id
                     )temp
@@ -126,13 +152,14 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
                     from temp_rdf_nav_link_admin
                     where left_admin <> right_admin
                 );
+                
+                analyze temp_rdf_nav_node_admin;
             '''
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
         
-        #link    
+        self.pg.do_big_insert2(sqlcmd)
+        
+        # 作成表单temp_rdf_nav_link_admin_need记录跨界（省级行政界）link信息
+            
         sqlcmd = '''
                 drop table if exists temp_rdf_nav_link_admin_need;
                 create table temp_rdf_nav_link_admin_need
@@ -143,24 +170,34 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
                     join temp_rdf_nav_node_admin as b
                     on b.node_id = a.ref_node_id or b.node_id = a.nonref_node_id
                 );
+                
+                drop index if exists temp_rdf_nav_link_admin_need_link_id_idx;
+                create index temp_rdf_nav_link_admin_need_link_id_idx
+                    on temp_rdf_nav_link_admin_need
+                    using btree
+                    (link_id);
+                    
+                analyze temp_rdf_nav_link_admin_need;
             '''
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
         
-        self.CreateIndex2('temp_rdf_nav_link_admin_need_link_id_idx')
+        self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('end get link in adminline!')
         
     def __Get_temp_caution(self):
+        
         self.log.info('start get temp_caution!')
+        
+        # 作成表单temp_caution_tbl_link记录跨界link的路径信息（进入link、跨界node、脱出link、脱出序列），作成：
+        # 1、在表单temp_rdf_nav_link_admin_need中找到可以作为进入link的边界（省级行政界）【进入link不可与行政界重合】
+        # 2、通过进入link、跨界node计算可能的脱出路线，即可得到跨界link的路径信息
         
         self.CreateFunction2('mid_get_outlink_for_admin')
         sqlcmd = '''
-                insert into temp_caution_tbl_link(inlinkid, nodeid, outlinkid, passlid)
-                (
-                    select distinct inlinkid, nodeid, link_array[array_upper(link_array,1)] as outlinkid,
+                drop table if exists temp_caution_tbl_link;
+                create table temp_caution_tbl_link
+                as (
+                    select distinct inlinkid, nodeid, link_array[array_upper(link_array,1)] as outlinkid, 
                         link_array[1:array_upper(link_array,1)-1] as passlid
                     from
                     (
@@ -178,12 +215,11 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
                         where link_lid is not null
                     )temp1
                 );
+                
+                analyze temp_caution_tbl_link;
             '''
         
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
+        self.pg.do_big_insert2(sqlcmd)
             
         self.log.info('end get temp_caution!')
     
@@ -294,30 +330,34 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         return 0
     
     def __Get_caution_link_order0(self):
+        
         self.log.info('start get order0 caution link!')
         
-
+        # 作成表单temp_caution_tbl_order0记录县境案内信息（跨越国家边界）
         sqlcmd = '''
-            insert into temp_caution_tbl_order0(inlinkid, nodeid, outlinkid, passlid,passlink_cnt,data_kind,first_code,end_code)
-            (
-                select inlinkid, nodeid, outlinkid, passlid,passlink_cnt,data_kind,b.order0_id,c.order0_id
+            drop table if exists temp_caution_tbl_order0;
+            create table temp_caution_tbl_order0
+            as (
+                select inlinkid, nodeid, outlinkid, passlid,
+                    passlink_cnt,data_kind,b.order0_id,c.order0_id
                 from temp_caution_tbl_order1 as a
                 left join mid_admin_zone as b
-                on a.first_code = b.ad_code
+                    on a.first_code = b.ad_code
                 left join mid_admin_zone as c
-                on a.end_code = c.ad_code
-                where b.order0_id <> c.order0_id                           
+                    on a.end_code = c.ad_code
+                where b.order0_id <> c.order0_id  
             );
+            
+            analyze temp_caution_tbl_order0;
             '''
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
+        
+        self.pg.do_big_insert2(sqlcmd)
             
         self.log.info('end get order0 caution link!')
         return 0
     
     def __insert_into_temp_caution_order1(self):
+        
         self.log.info('start insert into temp_caution tbl!')
         
 #        sqlcmd = '''
@@ -358,80 +398,93 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
 #            );
 #            '''
         
+        # 作成表单temp_caution_tbl_order1记录县境案内信息（跨越省级边界）
+        
         sqlcmd = '''
-                insert into temp_caution_tbl_order1(inlinkid, nodeid, outlinkid, passlid,passlink_cnt,data_kind,first_code,end_code)
-                (
-                    select inlinkid, nodeid, outlinkid, passlid, (case when passlid is null then 0 else array_upper(passlid,1) end) as passlink_cnt 
-                            , 4 as data_kind, b.left_admin as first_code, c.left_admin as end_code
+                drop table if exists temp_caution_tbl_order1;
+                create table temp_caution_tbl_order1
+                as (
+                    select inlinkid, nodeid, outlinkid, passlid::varchar as passlid, 
+                        (case when passlid is null then 0 else array_upper(passlid,1) end)::smallint as passlink_cnt, 
+                        4::smallint as data_kind, b.left_admin as first_code, c.left_admin as end_code
                     from temp_caution_tbl_link as a
                     left join temp_rdf_nav_link_admin_need as b
-                    on a.inlinkid = b.link_id and (b.left_admin = b.right_admin)
+                        on a.inlinkid = b.link_id and (b.left_admin = b.right_admin)
                     left join temp_rdf_nav_link_admin_need as c
-                    on a.outlinkid = c.link_id and (c.left_admin = c.right_admin)
+                        on a.outlinkid = c.link_id and (c.left_admin = c.right_admin)
                     where b.link_id is not null and c.link_id is not null
                 );
+                
+                analyze temp_caution_tbl_order1;
             '''
             
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
+        self.pg.do_big_insert2(sqlcmd)
             
         self.log.info('end insert into temp_caution tbl!')
+        
         return 0
     
     def __Get_mid_admin_image_code(self):
+        
         self.log.info('start insert into mid_admin_image_code!')
         
+        # 作成表单mid_admin_image_code记录县境案内对应的图片信息（暂时没有用到）
+        
         sqlcmd = '''
-            insert into mid_admin_image_code(incode, outcode)
-            (
-                select first_code, end_code
+            drop table if exists mid_admin_image_code;
+            create table mid_admin_image_code
+            as (
+                select first_code::bigint as incode, end_code::bigint as outcode, null::bigint as image_id
                 from temp_caution_tbl_order0
                 
                 union
                 
-                select first_code, end_code
-                from temp_caution_tbl_order1                                      
+                select first_code::bigint as incode, end_code::bigint as outcode, null::bigint as image_id
+                from temp_caution_tbl_order1 
             );
-            '''    
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
+            
+            analyze mid_admin_image_code;
+            '''
+        
+        self.pg.do_big_insert2(sqlcmd)
             
         self.log.info('end insert into mid_admin_image_code!')
+        
         return 0
     
     def __insert_into_caution_tbl(self):
+        
         self.log.info('start insert into caution tbl!')
+        
+        # 更新表单caution_tbl
+        # 将县境案内（跨国、跨省案内）更新到表单caution_tbl
         
         sqlcmd = '''
             insert into caution_tbl(inlinkid, nodeid, outlinkid, passlid,passlink_cnt,data_kind,strtts)
             (
                 select inlinkid, nodeid, outlinkid, passlid,passlink_cnt,data_kind,b.ad_name
-                from temp_caution_tbl_order0 as a
-                left join mid_admin_zone as b
-                on a.end_code = b.ad_code
+                from temp_caution_tbl_order0 a
+                left join mid_admin_zone b
+                    on a.end_code = b.ad_code
                 
                 union
                 
                 select a.inlinkid, a.nodeid, a.outlinkid, a.passlid,a.passlink_cnt,a.data_kind,c.ad_name
-                from temp_caution_tbl_order1 as a
-                left join temp_caution_tbl_order0 as b
-                on a.inlinkid = b.inlinkid and a.nodeid = b.nodeid 
-                    and a.outlinkid = b.outlinkid and a.passlid = b.passlid
-                left join mid_admin_zone as c
-                on a.end_code = c.ad_code
+                from temp_caution_tbl_order1 a
+                left join temp_caution_tbl_order0 b
+                    on 
+                        a.inlinkid = b.inlinkid and a.nodeid = b.nodeid and 
+                        a.outlinkid = b.outlinkid and a.passlid = b.passlid
+                left join mid_admin_zone c
+                    on a.end_code = c.ad_code
                 where b.inlinkid is null                                        
             );
-            '''    
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
+            '''  
+          
+        self.pg.do_big_insert2(sqlcmd)
             
         self.log.info('end insert into caution tbl!')
+        
         return 0
     
     def __GetRows(self,sqlcmd):

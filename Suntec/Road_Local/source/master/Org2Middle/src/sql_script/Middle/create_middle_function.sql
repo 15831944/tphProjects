@@ -225,6 +225,7 @@ DECLARE
 	nCount				integer;
 	link_array 			bigint[];
 	count                           integer;
+	tmp_link_type       integer;
 
 BEGIN	
 	--rstPathArray
@@ -280,8 +281,18 @@ BEGIN
 			tmpPath		:= tmpPathArray[tmpPathIndex];
 		
 			-- no proper connected link, here is a complete path
-			if (rec.link_type=0 and not rec.nextlink in (select link_id from temp_roundabout_for_searchramp)) 
-				or rec.link_type not in (3, 5) or rec.road_type not in (0, 1, 2, 3, 4, 5, 6, 14) then
+			if not (
+				        (rec.road_type in (0, 1, 2, 3, 4, 5, 6, 14)) 
+				            and
+				        (
+				            rec.link_type in (3,5) or
+				            (
+				                rec.link_type=0 and    
+				                    rec.nextlink in (select link_id from temp_roundabout_for_searchramp)
+				            )
+				                    
+				        )
+				    )  then
 				if tmpPath is not null then
 					rstPath			:= tmpPath;
 
@@ -296,15 +307,19 @@ BEGIN
 					link_array	:= cast(regexp_split_to_array(rstPath, E'\\|+') as bigint[]);
 					nCount		:= array_upper(link_array, 1);
 					for nIndex in 1..nCount loop
+						select link_type into tmp_link_type from link_tbl where link_id=link_array[nIndex];
+						if tmp_link_type<>0 then 
 						insert into temp_link_ramp_single_path(link_id, new_road_type, new_fc) 
 							values(link_array[nIndex], nRoadType, nFunctionClass);
+						else 
+							insert into temp_roundabout_road_type(roundabout_id,new_road_type)
+							select roundabout_id,nRoadType 
+							from temp_roundabout_for_searchramp
+							where link_id=link_array[nIndex];
+						end if;
+						
 					end loop;
-					if rec.link_type=0 then
-						insert into temp_roundabout_road_type(roundabout_id,new_road_type)
-						select roundabout_id,nRoadType 
-						from temp_roundabout_for_searchramp
-						where link_id=rec.nextlink;
-					end if;
+
 				end if;
 				continue;
 			

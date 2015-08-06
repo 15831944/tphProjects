@@ -50,10 +50,10 @@ class comp_natural_guidence(component.component_base.comp_base):
     def _update_temp_natural_guidance_poi_link_tbl(self):
         
         self.log.info('Now it is creating to temp_natural_guidance_poi_link_tbl...')
-        # ´´½¨±íµ¥temp_natural_guidance_poi_link_tbl¼ÇÂ¼poiÓëlinkµÄ¹ØÁª¹ØÏµ£¬×÷³É£º
-        # org_natural_guidance¸ø³öÃ¿¸öpoiµÄ¾­Î³¶È£¬Ãû³Æ£¬ÊôĞÔ
-        # 1¡¢½«poi¾­Î³¶È×ª»»Îªgeometry
-        # 2¡¢»ñÈ¡poi·½Ô²Ò»Ã×ÄÚµÄlink
+        # åˆ›å»ºè¡¨å•temp_natural_guidance_poi_link_tblè®°å½•poiä¸linkçš„å…³è”å…³ç³»ï¼Œä½œæˆï¼š
+        # org_natural_guidanceç»™å‡ºæ¯ä¸ªpoiçš„ç»çº¬åº¦ï¼Œåç§°ï¼Œå±æ€§
+        # 1ã€å°†poiç»çº¬åº¦è½¬æ¢ä¸ºgeometry
+        # 2ã€è·å–poiæ–¹åœ†ä¸€ç±³å†…çš„link
         
         sqlcmd = """ 
                     drop table if exists temp_natural_guidance_poi_link_tbl;
@@ -96,9 +96,9 @@ class comp_natural_guidence(component.component_base.comp_base):
     def _update_temp_natural_guidance_poi_link_node_tbl(self):
         
         self.log.info('Now it is creating to temp_natural_guidance_poi_link_node_tbl...')
-        # ´´½¨±íµ¥temp_natural_guidance_poi_link_node_tbl±£´æpoiÓënodeµÄ¹ØÁª¹ØÏµ£¬×÷³É£º
-        # 1¡¢»ñÈ¡±íµ¥temp_natural_guidance_poi_link_tblÖĞlinkÁ½¶ËµÄnode
-        # 2¡¢»ñÈ¡Óëpoi¾àÀëÔÚ30Ã×ÄÚµÄnode
+        # åˆ›å»ºè¡¨å•temp_natural_guidance_poi_link_node_tblä¿å­˜poiä¸nodeçš„å…³è”å…³ç³»ï¼Œä½œæˆï¼š
+        # 1ã€è·å–è¡¨å•temp_natural_guidance_poi_link_tblä¸­linkä¸¤ç«¯çš„node
+        # 2ã€è·å–ä¸poiè·ç¦»åœ¨30ç±³å†…çš„node
         sqlcmd = """
                     drop table if exists temp_natural_guidance_poi_link_node_tbl;
                     CREATE TABLE temp_natural_guidance_poi_link_node_tbl 
@@ -151,11 +151,11 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('Now it is creating to temp_natural_guidance_node_tbl...')
         
-        # ´´½¨±íµ¥temp_natural_guidance_node_tbl£¬¼ÇÂ¼poiÓënodeµÄ¹ØÁª¹ØÏµ£¨node°üº¬¸´ÔÓÂ·¿ÚµÄËùÓĞnode£©,×÷³É£º
-        # 1¡¢»ñÈ¡¸´ÔÓÂ·¿ÚµÄËùÓĞnode
-        #   1.1¡¢»ñÈ¡±íµ¥temp_natural_guidance_poi_link_node_tblÖĞnode£¬ÅĞ¶¨ÊÇ·ñÊÇ¸´ÔÓÂ·¿ÚÖĞµÄnode£¬·ñ£¬È¡ÏÂÒ»node£»ÊÇ£¬Ìøµ½1.2
-        #   1.2 »ñÈ¡¸´ÔÓÂ·¿ÚÖĞÆäËünodeµã
-        # 2¡¢»ñÈ¡Óëpoi¾àÀëÔÚ50Ã×ÄÚµÄnode£¨À©´ó·¶Î§£¬Ö÷ÒªÊÇÎªÊÕÂ¼¸´ÔÓÂ·¿ÚÆäËünode£©
+        # åˆ›å»ºè¡¨å•temp_natural_guidance_node_tblï¼Œè®°å½•poiä¸nodeçš„å…³è”å…³ç³»ï¼ˆnodeåŒ…å«å¤æ‚è·¯å£çš„æ‰€æœ‰nodeï¼‰,ä½œæˆï¼š
+        # 1ã€è·å–å¤æ‚è·¯å£çš„æ‰€æœ‰node
+        #   1.1ã€è·å–è¡¨å•temp_natural_guidance_poi_link_node_tblä¸­nodeï¼Œåˆ¤å®šæ˜¯å¦æ˜¯å¤æ‚è·¯å£ä¸­çš„nodeï¼Œå¦ï¼Œå–ä¸‹ä¸€nodeï¼›æ˜¯ï¼Œè·³åˆ°1.2
+        #   1.2 è·å–å¤æ‚è·¯å£ä¸­å…¶å®ƒnodeç‚¹
+        # 2ã€è·å–ä¸poiè·ç¦»åœ¨50ç±³å†…çš„nodeï¼ˆæ‰©å¤§èŒƒå›´ï¼Œä¸»è¦æ˜¯ä¸ºæ”¶å½•å¤æ‚è·¯å£å…¶å®ƒnodeï¼‰
         self.CreateFunction2('mmi_array_delete')
         self.CreateFunction2('mmi_get_inner_node_by_node_id')
             
@@ -193,11 +193,11 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('Now it is creating to temp_natural_guidance_in_out_link_rel...')
         
-        # ´´½¨±íµ¥temp_natural_guidance_in_out_link_rel¼ÇÂ¼poiÓë½øÈëlink¡¢ÍÑ³ölinkµÄ¹ØÁª¹ØÏµ£¬×÷³É£º
-        # 1¡¢»ñÈ¡±íµ¥temp_natural_guidance_node_tblÖĞnode£¬»ñÈ¡node¹ØÁªµÄ½øÈëlink¡¢ÍÑ³ölink
-        # 2¡¢ÅÅ³ı½øÈëlinkÊÇ½»²æµãÄÚµÄÇéĞÎ
-        # 3¡¢ÅÅ³ı½øÈëlinkµÈÓÚÍÑ³ölinkµÄÇéĞÎ
-        # 4¡¢ÅÅ³ıÒıµ¼µã²»ÊÇ·ÖÆçµãµÄÇéĞÎ£¬Ìõ¼şmmi_get_canPassLink_count(in_link_id, node_id) > 1
+        # åˆ›å»ºè¡¨å•temp_natural_guidance_in_out_link_relè®°å½•poiä¸è¿›å…¥linkã€è„±å‡ºlinkçš„å…³è”å…³ç³»ï¼Œä½œæˆï¼š
+        # 1ã€è·å–è¡¨å•temp_natural_guidance_node_tblä¸­nodeï¼Œè·å–nodeå…³è”çš„è¿›å…¥linkã€è„±å‡ºlink
+        # 2ã€æ’é™¤è¿›å…¥linkæ˜¯äº¤å‰ç‚¹å†…çš„æƒ…å½¢
+        # 3ã€æ’é™¤è¿›å…¥linkç­‰äºè„±å‡ºlinkçš„æƒ…å½¢
+        # 4ã€æ’é™¤å¼•å¯¼ç‚¹ä¸æ˜¯åˆ†æ­§ç‚¹çš„æƒ…å½¢ï¼Œæ¡ä»¶mmi_get_canPassLink_count(in_link_id, node_id) > 1
         self.CreateFunction2('mmi_get_canPassLink_count')
         sqlcmd = """
                     drop table if exists temp_natural_guidance_in_out_link_rel;
@@ -251,17 +251,17 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('Now it is creating to temp_natural_guidance_tbl...')
         
-        # ´´½¨±íµ¥temp_natural_guidance_tbl¼ÇÂ¼natural guidenceÏà¹ØĞÅÏ¢£¬×÷³É£º
-        # ±íµ¥temp_natural_guidance_in_out_link_relÒÑÅÅ³ı½øÈëlinkÊÇ½»²æµãÄÚlinkµÄÇéĞÎ£¬µ«Î´ÅÅ³ıÍÑ³ölinkÊÇ½»²æµãÄÚlinkµÄÇéĞÎ
-        # ±íµ¥temp_natural_guidance_tblÖ÷Òª¸üĞÂÆ«Ïò¼ÆËãpoi¹ØÁªÂ·¾¶
+        # åˆ›å»ºè¡¨å•temp_natural_guidance_tblè®°å½•natural guidenceç›¸å…³ä¿¡æ¯ï¼Œä½œæˆï¼š
+        # è¡¨å•temp_natural_guidance_in_out_link_relå·²æ’é™¤è¿›å…¥linkæ˜¯äº¤å‰ç‚¹å†…linkçš„æƒ…å½¢ï¼Œä½†æœªæ’é™¤è„±å‡ºlinkæ˜¯äº¤å‰ç‚¹å†…linkçš„æƒ…å½¢
+        # è¡¨å•temp_natural_guidance_tblä¸»è¦æ›´æ–°åå‘è®¡ç®—poiå…³è”è·¯å¾„
         self.CreateTable2('temp_natural_guidance_tbl')
         
-        # 1¡¢Ê¹ÓÃ±íµ¥temp_natural_guidance_in_out_link_rel³õÊ¼»¯±íµ¥temp_natural_guidance_tbl
-        # 2¡¢´Ó±íµ¥temp_natural_guidance_tblÖĞ»ñÈ¡ÍÑ³ölinkÊÇ½»²æµãÄÚlinkµÄ¼ÇÂ¼
-        # 3¡¢¸ù¾İ²½Öè2»ñÈ¡Ò»ÌõlinkÒÀÍ¨ĞĞ·½ÏòÕıÏòÌ½Ë÷£¬Ö±µ½ÍÑ³ölink²»Îª½»²æµãÄÚlink£¬Ì½Ë÷ÖÕÖ¹£¬ËùµÃÂ·¾¶¼´Îªpoi¹ØÁªµÄÂ·¾¶£»
-        #   ÒÀ´ÎÈ¡Î´´¦ÀíµÄlink£¬ÖØ¸´ÉÏÊö²½Öè
-        # 4¡¢¸ù¾İ²½Öè2»ñÈ¡Ò»ÌõlinkÒÀÍ¨ĞĞ·½Ïò·´ÏòÌ½Ë÷£¬Ö±µ½ÍÑ³ölink²»Îª½»²æµãÄÚlink£¬Ì½Ë÷ÖÕÖ¹£¬ËùµÃÂ·¾¶¼´Îªpoi¹ØÁªµÄÂ·¾¶£»
-        #   ÒÀ´ÎÈ¡Î´´¦ÀíµÄlink£¬ÖØ¸´ÉÏÊö²½Öè
+        # 1ã€ä½¿ç”¨è¡¨å•temp_natural_guidance_in_out_link_relåˆå§‹åŒ–è¡¨å•temp_natural_guidance_tbl
+        # 2ã€ä»è¡¨å•temp_natural_guidance_tblä¸­è·å–è„±å‡ºlinkæ˜¯äº¤å‰ç‚¹å†…linkçš„è®°å½•
+        # 3ã€æ ¹æ®æ­¥éª¤2è·å–ä¸€æ¡linkä¾é€šè¡Œæ–¹å‘æ­£å‘æ¢ç´¢ï¼Œç›´åˆ°è„±å‡ºlinkä¸ä¸ºäº¤å‰ç‚¹å†…linkï¼Œæ¢ç´¢ç»ˆæ­¢ï¼Œæ‰€å¾—è·¯å¾„å³ä¸ºpoiå…³è”çš„è·¯å¾„ï¼›
+        #   ä¾æ¬¡å–æœªå¤„ç†çš„linkï¼Œé‡å¤ä¸Šè¿°æ­¥éª¤
+        # 4ã€æ ¹æ®æ­¥éª¤2è·å–ä¸€æ¡linkä¾é€šè¡Œæ–¹å‘åå‘æ¢ç´¢ï¼Œç›´åˆ°è„±å‡ºlinkä¸ä¸ºäº¤å‰ç‚¹å†…linkï¼Œæ¢ç´¢ç»ˆæ­¢ï¼Œæ‰€å¾—è·¯å¾„å³ä¸ºpoiå…³è”çš„è·¯å¾„ï¼›
+        #   ä¾æ¬¡å–æœªå¤„ç†çš„linkï¼Œé‡å¤ä¸Šè¿°æ­¥éª¤
         self.CreateFunction2('mmi_update_temp_natural_guidance_tbl')
         self.CreateFunction2('mmi_get_inner_link_count')
         self.CreateFunction2('mmi_one_update_temp_natural_guidance_tbl')
@@ -280,9 +280,9 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('Now it is creating to mid_temp_natural_guidance_tbl...')
         
-        # ´´½¨±íµ¥temp_natural_guidance_tbl¼ÇÂ¼natural guidenceÏà¹ØĞÅÏ¢£¬×÷³É£º
-        # ¸Ã±íµ¥½Ï±íµ¥temp_natural_guidance_tblĞÅÏ¢¸üÍêÉÆ
-        # ¼ÆËã¾­¹ılink¸öÊı¡¢½é´ÊÖÖ±ğ¡¢²Î¿¼ÎïÎ»ÖÃµÈĞÅÏ¢
+        # åˆ›å»ºè¡¨å•temp_natural_guidance_tblè®°å½•natural guidenceç›¸å…³ä¿¡æ¯ï¼Œä½œæˆï¼š
+        # è¯¥è¡¨å•è¾ƒè¡¨å•temp_natural_guidance_tblä¿¡æ¯æ›´å®Œå–„
+        # è®¡ç®—ç»è¿‡linkä¸ªæ•°ã€ä»‹è¯ç§åˆ«ã€å‚è€ƒç‰©ä½ç½®ç­‰ä¿¡æ¯
         
         self.CreateFunction2('mmi_get_preposition_code')
         self.CreateFunction2('mmi_get_feat_position')
@@ -314,8 +314,8 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('Now it is creating to mid_temp_natural_guidence_name...')
         
-        # ´´½¨±íµ¥mid_temp_natural_guidence_name¼ÇÂ¼poiÃû³ÆĞÅÏ¢£¬×÷³É£º
-        # ¸ù¾İ±íµ¥mid_temp_natural_guidance_tbl¼ÇÖĞ½é´ÊÖÖ±ğ×éºÏpoiÃû³Æ×÷³Énatural guidenceÒıµ¼Ãû³Æ
+        # åˆ›å»ºè¡¨å•mid_temp_natural_guidence_nameè®°å½•poiåç§°ä¿¡æ¯ï¼Œä½œæˆï¼š
+        # æ ¹æ®è¡¨å•mid_temp_natural_guidance_tblè®°ä¸­ä»‹è¯ç§åˆ«ç»„åˆpoiåç§°ä½œæˆnatural guidenceå¼•å¯¼åç§°
         
         self.CreateTable2('mid_temp_natural_guidence_name') 
         if not component.default.multi_lang_name.MultiLangName.is_initialized():

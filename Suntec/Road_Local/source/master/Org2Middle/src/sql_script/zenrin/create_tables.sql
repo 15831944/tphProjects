@@ -153,6 +153,7 @@ create table temp_poi_name
 CREATE TABLE mid_hwy_org_facility_node
 (
   path_id        integer NOT NULL,
+  dirflag        integer not null,
   facility_id    bigint NOT NULL,
   node_id        bigint NOT NULL
 );

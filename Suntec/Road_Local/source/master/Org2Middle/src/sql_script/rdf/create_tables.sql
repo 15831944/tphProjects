@@ -1478,41 +1478,7 @@ CREATE TABLE temp_link_caution
 	e_node bigint not null,
 	one_way_code smallint
 );SELECT AddGeometryColumn('','temp_link_caution','the_geom','4326','LINESTRING',2);
-CREATE TABLE temp_caution_tbl_link
-(
-  inlinkid bigint,
-  nodeid bigint,
-  outlinkid bigint,
-  passlid bigint[]
-);
-CREATE TABLE mid_admin_image_code
-(
-  incode bigint,
-  outcode bigint,
-  image_id bigint
-);
-CREATE TABLE temp_caution_tbl_order0
-(
-  inlinkid bigint,
-  nodeid bigint,
-  outlinkid bigint,
-  passlid character varying(1024),
-  passlink_cnt smallint default 0,
-  data_kind smallint,
-  first_code integer,
-  end_code integer
-);
-CREATE TABLE temp_caution_tbl_order1
-(
-  inlinkid bigint,
-  nodeid bigint,
-  outlinkid bigint,
-  passlid character varying(1024),
-  passlink_cnt smallint default 0,
-  data_kind smallint,
-  first_code integer,
-  end_code integer
-);
+
 CREATE TABLE temp_node_in_admin
 as
 (

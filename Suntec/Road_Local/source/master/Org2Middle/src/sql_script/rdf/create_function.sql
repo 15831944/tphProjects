@@ -4468,7 +4468,7 @@ BEGIN
         link_count := 0;
         node_count := 0;
 
-        FOR rec IN (
+        for rec in (
             select condition_id, array_agg(link_id) as link_array, array_agg(node_id) as node_array
             from (
                 select condition_id, seq_num, link_id, node_id
@@ -4480,18 +4480,19 @@ BEGIN
             ) as c
             group by condition_id
         )
-        LOOP
+        loop
             link_count := array_upper(rec.link_array, 1);
             node_count := array_upper(rec.node_array, 1);
 
-            IF (link_count >= 2) AND (node_count >= 1 AND rec.node_array[1] IS NOT NULL) THEN
+	    -- forceguide at least 2 link and 1 node, and first node in node_array must be not null
+            if (link_count >= 2) and (node_count >= 1 and rec.node_array[1] is not null) then
                 insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, node_geom, inlink_geom, outlink_geom)
                 select 
                     rec.node_array[1] as nodeid,
                     rec.link_array[1] as inlinkid,
                     rec.link_array[link_count] as outlinkid,
-                    case when link_count-2 = 0 then null else array_to_string(rec.link_array[2:link_count-1], '|') end as passlid,
-                    link_count-2 as passlink_cnt,
+                    (case when link_count-2 = 0 then null else array_to_string(rec.link_array[2:link_count-1], '|') end)::varchar as passlid,
+                    (link_count-2)::smallint as passlink_cnt,
                     a.the_geom as node_geom,
                     b.the_geom as inlink_geom,
                     c.the_geom as outlink_geom
@@ -4501,10 +4502,10 @@ BEGIN
                     a.node_id = rec.node_array[1] and
                     b.link_id = rec.link_array[1] and
                     c.link_id = rec.link_array[link_count];
-            ELSE 
+            else 
                 raise INFO 'rec = %', rec;
-            END IF;
-        END LOOP;
+            end if;
+        end loop;
 
         return 0;
 END;

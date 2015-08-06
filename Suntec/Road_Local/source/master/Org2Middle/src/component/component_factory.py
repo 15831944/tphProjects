@@ -1004,7 +1004,13 @@ class comp_factory_zenrin(comp_factory):
         if comp_name == 'Guideinfo_building':
             from component.zenrin import guideinfo_building_zenrin
             return guideinfo_building_zenrin.comp_guideinfo_building_zenrin()
+
         if comp_name == 'Highway_Prepare':
             from component.zenrin.hwy.hwy_prepare import HwyPrepareZenrin
             return HwyPrepareZenrin()
+
+        if comp_name == 'Highway':
+            from component.zenrin.hwy.highway import HighwayZenrin
+            return HighwayZenrin()
+
         return comp_factory.CreateOneComponent(self, comp_name)

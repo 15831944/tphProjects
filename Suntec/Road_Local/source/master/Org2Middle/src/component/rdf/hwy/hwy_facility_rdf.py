@@ -963,7 +963,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 # 取得起点，IC路径link集合
                 f_link_set = self._get_ic_path_link_set(road_code, node_id,
                                                         inout, f_road_seqs,
-                                                        f_facilcls_cs)
+                                                        f_facilcls_cs, updown)
                 if not f_link_set:
                     self.log.error('No From Link Set. node=%,to_node=%s'
                                    % (node_id, to_node_id))
@@ -973,7 +973,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
                     t_inout = HWY_INOUT_TYPE_OUT
                 t_link_set = self._get_ic_path_link_set(road_code, to_node_id,
                                                         t_inout, t_road_seqs,
-                                                        t_facilcls_cs)
+                                                        t_facilcls_cs, updown)
                 if not t_link_set:
                     self.log.error('No To Link Set. node=%,to_node=%s'
                                    % (node_id, to_node_id))
@@ -1208,9 +1208,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         return self.get_batch_data(sqlcmd)
 
     def _get_ic_path_link_set(self, roadcode, node, inout,
-                              road_seqs, facilcls_cs):
+                              road_seqs, facilcls_cs, updown):
         facil_name = ''
-        updown = HWY_UPDOWN_TYPE_UP
         link_set = set()
         for road_seq, facilcls in zip(road_seqs, facilcls_cs):
             if facilcls != HWY_IC_TYPE_IC:

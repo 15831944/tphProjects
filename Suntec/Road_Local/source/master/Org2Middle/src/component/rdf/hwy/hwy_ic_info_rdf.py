@@ -4,6 +4,7 @@ Created on 2015-3-3
 
 @author: hcz
 '''
+import common
 from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
@@ -42,6 +43,7 @@ class HwyICInfoRDF(HwyICInfo):
         '''
         HwyICInfo.__init__(self, ic_no, facility_id, facil_list)
         self.data_mng = data_mng
+        self.log = common.log.common_log.instance().logger('HwyICInfoRDF')
 
     def _set_distance(self):
         G = self.data_mng.get_graph()
@@ -56,8 +58,8 @@ class HwyICInfoRDF(HwyICInfo):
             e_idx = main_path.index(e_node, (s_idx + 1))
             inside_path = main_path[s_idx:(e_idx + 1)]
             if not inside_path:
-                print ('Error: no inside path.s_node=%s, e_node=%s'
-                       % (s_node, e_node))
+                self.log.error('Error: no inside path.s_node=%s, e_node=%s'
+                               % (s_node, e_node))
             self.inside_distance = G.get_length_for_path(inside_path)
             main_node = e_node
         else:
@@ -77,8 +79,8 @@ class HwyICInfoRDF(HwyICInfo):
                 e_idx = main_path.index(next_node_id)
                 between_path = main_path[s_idx:(e_idx + 1)]
                 if not between_path:
-                    print 'Error: no between path.s_node=%s, e_node=%s' \
-                          % (main_node, next_node_id)
+                    self.log.error('No between path.s_node=%s, e_node=%s'
+                                   % (main_node, next_node_id))
                 self.between_distance = G.get_length_for_path(between_path)
         else:
             self.between_distance = 0
@@ -94,7 +96,7 @@ class HwyICInfoRDF(HwyICInfo):
             elif facil.inout == HWY_INOUT_TYPE_IN:
                 self.in_path_infos += self.data_mng.get_ic_path_info(facil)
             else:
-                print 'No Path. node=%s' % facil.node_id
+                self.log.error('No Path. node=%s' % facil.node_id)
 
     def _set_ic_type(self):
         if self.facility_id == HWY_INVALID_FACIL_ID_17CY:
@@ -180,11 +182,11 @@ class HwyICInfoRDF(HwyICInfo):
             if self.first_facil.inout == HWY_INOUT_TYPE_OUT:
                 # get out tile id
                 tile_id = self._get_out_tile_id(node_id, road_code)
-                print ('out tile: %s, node=%s' % (tile_id, node_id))
+                self.log.info('out tile: %s, node=%s' % (tile_id, node_id))
             else:  # 入口/收费站时，边界点在前(边界点ic_no较大)，所以点的进入link的Tile
                 # Get in tile id
                 tile_id = self._get_in_tile_id(node_id, road_code)
-                print ('in tile: %s, node=%s' % (tile_id, node_id))
+                self.log.info('in tile: %s, node=%s' % (tile_id, node_id))
         else:
             updown = self.first_facil.updown
             # 起末点处，不做Tile边界点，即使该处在边界上
@@ -206,9 +208,10 @@ class HwyICInfoRDF(HwyICInfo):
             if len(in_tiles) == 1:
                 return in_tiles[0]
             else:
-                print 'Error: Number of InTile > 1, nodeid=%s' % node_id
+                self.log.info('Error: Number of InTile > 1, nodeid=%s'
+                              % node_id)
         else:
-            print 'Error: No InLink, nodeid=%s' % node_id
+            self.log.info('Error: No InLink, nodeid=%s' % node_id)
         return None
 
     def _get_out_tile_id(self, node_id, road_code):
@@ -220,9 +223,10 @@ class HwyICInfoRDF(HwyICInfo):
             if len(out_tiles) == 1:
                 return out_tiles[0]
             else:
-                print 'Error: Number of OutTile > 1, nodeid=%s' % node_id
+                self.log.info('Error: Number of OutTile > 1, nodeid=%s'
+                              % node_id)
         else:
-            print 'Error: No OutLink, nodeid=%s' % node_id
+            self.log.info('Error: No OutLink, nodeid=%s' % node_id)
         return None
 
     def _set_path_point_info(self):
@@ -296,8 +300,8 @@ class HwyICInfoRDF(HwyICInfo):
                     yield conn_facil, path, path_type
             else:
                 # 没有接续设施
-                print ('Error: No Conn_Facility. s_node=%s, t_node=%s'
-                       % (node_lid[0], node_lid[-1]))
+                self.log.error('No Conn_Facility. s_node=%s, t_node=%s'
+                              % (node_lid[0], node_lid[-1]))
 
     def _get_conn_facil(self, node, inout):
         facil_cls = self.first_facil.facilcls
@@ -309,7 +313,7 @@ class HwyICInfoRDF(HwyICInfo):
                 conn_facils.append(facil)
         if conn_facils:
             if len(conn_facils) > 1:
-                print 'Error: No JCT Facility. node=%s' % node
+                self.log.error('No JCT Facility. node=%s' % node)
             return conn_facils[0]
         else:
             return []
@@ -346,9 +350,14 @@ class HwyICInfoRDF(HwyICInfo):
     def _get_exit_path_point(self):
         exit_list = []
         node_link_list = []
+        inout = HWY_INOUT_TYPE_OUT
         for path_info in self.out_path_infos:
             node_lid, link_lid = path_info[0:2]
-            if len(node_lid) < 2:
+            if len(node_lid) < 2:  # 本线与本线直接相连、本线和一般道直接相连
+                for (node, link) in self._get_2_main_link_of_jct(node_lid,
+                                                                 inout):
+                    if (node, link) not in node_link_list:
+                        node_link_list.append((node, link))
                 continue
             node = node_lid[1]
             link = link_lid[0]
@@ -363,9 +372,14 @@ class HwyICInfoRDF(HwyICInfo):
     def _get_enter_path_point(self):
         enter_list = []
         node_link_list = []
+        inout = HWY_INOUT_TYPE_IN
         for path_info in self.in_path_infos:
             node_lid, link_lid = path_info[0:2]
-            if len(node_lid) < 2:
+            if len(node_lid) < 2:  # 本线与本线直接相连、本线和一般道直接相连
+                for (node, link) in self._get_2_main_link_of_jct(node_lid,
+                                                                 inout):
+                    if (node, link) not in node_link_list:
+                        node_link_list.append((node, link))
                 continue
             node = node_lid[1]
             link = link_lid[0]
@@ -376,6 +390,44 @@ class HwyICInfoRDF(HwyICInfo):
             point.enter_flag = HWY_TRUE
             enter_list.append(point)
         return enter_list
+
+    def _get_2_main_link_of_jct(self, node_lid, inout):
+        G = self.data_mng.get_graph()
+        if self.facil_list[0].facilcls != HWY_IC_TYPE_JCT:
+            return
+        road_code = self.first_facil.road_code
+        if inout == HWY_INOUT_TYPE_OUT:
+            reverse = False
+            node_id = self.first_facil.node_id
+            # 设施点所在本线link(进入)
+            nodes = G.get_main_link(node_id, road_code,
+                                    same_code=True, reverse=True)
+        else:
+            reverse = True
+            if self.second_facil:
+                node_id = self.second_facil.node_id
+            else:
+                node_id = self.first_facil.node_id
+            # 设施点所在本线link(退出)
+            nodes = G.get_main_link(node_id, road_code,
+                                    same_code=True, reverse=False)
+        if not nodes:
+            self.log.error('No main_link. node=%s' % node_id)
+            return
+        if len(nodes) > 1:
+            self.log.error('More than 1 main_link. node=%s' % node_id)
+            return
+        f_main_node = nodes[0]
+        # 求接续本线
+        path = [f_main_node] + list(node_lid)
+        t_main_nodes = G.get_to_main_link_of_path(path, road_code,
+                                                  reverse=reverse)
+        for t_node in t_main_nodes:
+            if reverse:  # 逆
+                link_id = G.get_linkid(t_node, node_lid[-1])
+            else:  # 顺
+                link_id = G.get_linkid(node_lid[-1], t_node)
+            yield t_node, link_id
 
     def _get_main_path_point(self):
         '''本线点：退出设施的本线link'''

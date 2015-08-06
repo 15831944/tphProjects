@@ -1,7 +1,6 @@
 # -*- coding: UTF8 -*-
-#!/usr/bin/python
 '''
-Created on 2015-5-27
+Created on 2015-7-31
 
 @author: wushengbing
 '''
@@ -24,13 +23,208 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         
     def _Do(self):
         
-        self._make_poi_inlink()
-        self._make_towardname_name()
-        self._make_towardname()
+        self._make_poi_towardname()
+        self._make_signpost_uc_towardname()
+        self._make_towardname_tbl()
+     
+
+
+    def _make_towardname_tbl(self):
         
-        return 0
+        self.log.info('make towardname_tbl...')
+        self.CreateTable2('towardname_tbl')
+        
+        sqlcmd = '''
+            insert into towardname_tbl(id,nodeid,inlinkid,outlinkid,passlid,passlink_cnt,direction,
+                                            guideattr,namekind,toward_name)
+            select  gid, 
+                    nodeid, 
+                    inlinkid, 
+                    outlinkid, 
+                    passlid, 
+                    passlink_cnt, 
+                    direction, 
+                    guideattr, 
+                    namekind, 
+                    toward_name
+            from temp_towardname_tbl
+            order by gid,nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, 
+                                            guideattr, namekind, toward_name
+            '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('towardname_tbl_node_id_idx')
+        
+        
+    def _make_signpost_uc_towardname(self):
+        
+        self.log.info('make signpost_uc_towardname...')
+        self._find_not_roundabout_path_id()
+        self._make_temp_signpost_uc()
+        self._make_temp_towardname_signpost_uc()
+        
     
-    
+
+    def _find_not_roundabout_path_id(self):
+        
+        sqlcmd = '''
+            drop table if exists temp_not_roundabout_path_id;
+            create table temp_not_roundabout_path_id
+            as
+            (
+                SELECT path_id
+                FROM temp_signpost_uc_path as a
+                join 
+                (
+                    select k.*  
+                    from 
+                    (
+                        SELECT id, nodeid, inlinkid, outlinkid, b.name
+                        FROM org_ic as a
+                        join org_fname as b
+                        on a.id = b.featid and nametype = '3' and b.signnumflg = '0'
+                        
+                        union 
+                        
+                        SELECT id, nodeid, inlinkid, outlinkid, b.name
+                        FROM org_dr as a
+                        join org_fname as b
+                        on a.id = b.featid and nametype = '4' and b.signnumflg = '0'
+                    
+                    ) as k
+                    where k.name not like '%环岛'
+                ) as d
+                using(nodeid,inlinkid,outlinkid)
+                order by path_id, nodeid, inlinkid, outlinkid, passlid, id_array
+            )
+        '''
+     
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()       
+        self.CreateIndex2('temp_not_roundabout_path_id_path_id_idx')
+ 
+ 
+    def _make_temp_signpost_uc(self):
+        sqlcmd = '''
+        drop table if exists temp_signpost_uc;
+        create table temp_signpost_uc
+        as 
+        (
+            select sign_id, 
+                   (case when a.s_node in (b.s_node, b.e_node) then a.s_node
+                         when a.e_node in (b.s_node, b.e_node) then a.e_node
+                         else -1::bigint end) as nodeid,
+                    inlinkid, outlinkid, passlid, passlink_cnt, signpost_name, route_no1,
+                    route_no2, route_no3, route_no4, exit_no
+            from
+            (
+                SELECT a.sign_id, inlinkid::bigint, outlinkid::bigint, 
+                       (case when passlid is null or length(passlid) < 1 then null 
+                             else passlid end) as passlid, 
+                       (case when passlid is null or length(passlid) < 1 then 0
+                             else array_upper(string_to_array(passlid,'|'), 1) end ) as passlink_cnt,
+                       (case when passlid is null or length(passlid) < 1 then outlinkid 
+                             else (string_to_array(passlid,'|'))[1] end)::bigint as second_link,
+                       signpost_name, route_no1, route_no2,route_no3, route_no4, exit_no
+                FROM temp_signpost_uc_name AS a
+                LEFT JOIN temp_signpost_uc_path as b
+                ON a.sign_id = b.path_id
+            )temp
+            left join link_tbl as a
+            on temp.inlinkid = a.link_id
+            left join link_tbl as b
+            on temp.second_link = b.link_id
+            order by sign_id
+        )       
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()       
+        self.CreateIndex2('temp_signpost_uc_sign_id_idx')
+        
+
+    def _make_temp_towardname_signpost_uc(self):
+        
+        self.log.info('make temp_towardname_signpost_uc...')
+        sqlcmd = '''
+            insert into temp_towardname_tbl( nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, 
+                                            guideattr, namekind, toward_name ) 
+            (               
+                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                       0 as direction,
+                       0 as guideattr,
+                       3 as namekind,
+                       route_no1
+                from temp_signpost_uc
+                where route_no1 is not null
+                
+                union
+                
+                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                       0 as direction,
+                       0 as guideattr,
+                       3 as namekind,
+                       route_no2
+                from temp_signpost_uc
+                where route_no2 is not null
+                
+                union
+                
+                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                       0 as direction,
+                       0 as guideattr,
+                       3 as namekind,                
+                       route_no3
+                from temp_signpost_uc
+                where route_no3 is not null
+                
+                union
+                
+                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                       0 as direction,
+                       0 as guideattr,
+                       3 as namekind,
+                       route_no4
+                from temp_signpost_uc            
+                where route_no4 is not null
+                
+                union
+                
+                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                       0 as direction,
+                       0 as guideattr,
+                       1 as namekind,                
+                       exit_no
+                from temp_signpost_uc
+                where exit_no is not null 
+                
+                union
+                
+                select a.nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                       0 as direction,
+                       0 as guideattr,
+                       0 as namekind,                
+                       signpost_name
+                from temp_signpost_uc as a
+                join temp_not_roundabout_path_id as b
+                on a.sign_id = b.path_id
+                
+                order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind
+            )
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+
+        
+        
+        
+
+    def _make_poi_towardname(self):
+        
+        self._make_poi_inlink()
+        self._make_towardname_name_poi()
+        self._make_temp_towardname_poi()
+        
+        
     def _make_poi_inlink(self):
         
         self.log.info('make temp_poi_inlink...')
@@ -71,7 +265,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         self.pg.execute(sqlcmd)
         self.pg.commit2()       
        
-        ##查找收费站的inlink、node
+
         sqlcmd = '''
                 insert into temp_poi_inlink(poi_id, inlink, node)
                 (
@@ -84,7 +278,6 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                          or
                          a.node_id = b.s_node and b.one_way_code = 3
                          )
-                         --and  b.link_type in (1,2) 
                          and b.road_type in (0,1)
                        )
                     where a.kind = '8401'
@@ -96,17 +289,17 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
    
    
         
-    def _make_towardname_name(self):
+    def _make_towardname_name_poi(self):
         
-        self.log.info('make temp_towardname_name...')
-        self.CreateTable2('temp_towardname_name')
+        self.log.info('make temp_towardname_name_poi...')
+        self.CreateTable2('temp_towardname_name_poi')
         
         if not component.default.multi_lang_name.MultiLangName.is_initialized():
             component.default.multi_lang_name.MultiLangName.initialize()
                           
         sqlcmd = '''
-                drop table if exists temp_towardname_name_all_language;
-                create table temp_towardname_name_all_language
+                drop table if exists temp_towardname_name_all_language_poi;
+                create table temp_towardname_name_all_language_poi
                 as
               (
                      select  a.poi_id,
@@ -151,7 +344,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     array_agg(phoneme) as phoneme_array
                 from 
                     (
-                        select * from temp_towardname_name_all_language
+                        select * from temp_towardname_name_all_language_poi
                         order by poi_id::bigint, name_id::bigint, phoneme_lang                                   
                     ) as a
                 group by poi_id
@@ -159,7 +352,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                 '''                  
         asso_recs = self.pg.get_batch_data2(sqlcmd)
         
-        temp_file_obj = common.cache_file.open('towardname_name')
+        temp_file_obj = common.cache_file.open('towardname_name_poi')
         for asso_rec in asso_recs:
             poi_id = asso_rec[0]
             json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[1], 
@@ -171,25 +364,24 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
             temp_file_obj.write('%d\t%s\n' % (int(poi_id), json_name))
         
         temp_file_obj.seek(0)
-        self.pg.copy_from2(temp_file_obj, 'temp_towardname_name')
+        self.pg.copy_from2(temp_file_obj, 'temp_towardname_name_poi')
         self.pg.commit2()
         common.cache_file.close(temp_file_obj,True)
-        self.CreateIndex2('temp_towardname_name_poi_id_idx') 
+        self.CreateIndex2('temp_towardname_name_poi_poi_id_idx') 
  
         
-    def _make_towardname(self):
+    def _make_temp_towardname_poi(self):
  
  
-        self.log.info('make towardname_tbl...')
-        self.CreateTable2('towardname_tbl')
+        self.log.info('make temp_towardname_poi_tbl...')
+        self.CreateTable2('temp_towardname_tbl')
         
         sqlcmd = '''
-                insert into towardname_tbl( id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr, namekind, toward_name )                
+                insert into temp_towardname_tbl( nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr, namekind, toward_name )                
                 (
-                select    row_number() over(order by nodeid,inlinkid,namekind,guideattr,toward_name ) as id,                                            
-                          d.nodeid,
+                select    d.nodeid,
                           d.inlinkid,
-                          null as outlinkid,
+                          null::bigint as outlinkid,
                           '' as passlid,
                           0 as passlink_cnt,
                           0 as direction, 
@@ -208,17 +400,16 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                               2 as namekind,
                               b.toward_name as toward_name           
                     from  temp_poi_inlink as a
-                    left join temp_towardname_name as b
+                    left join temp_towardname_name_poi as b
                     on a.poi_id = b.poi_id
                     left join temp_poi_find as c
                     on c.poi_id::bigint = a.poi_id
                 ) as d
+                order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind, toward_name
                 )
                 '''
         self.pg.execute(sqlcmd)
         self.pg.commit2()
-        self.CreateIndex2('towardname_tbl_nodeid_idx') 
- 
- 
+
  
  

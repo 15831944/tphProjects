@@ -243,7 +243,8 @@ CREATE TABLE towardname_tbl
   guideattr smallint,
   namekind smallint,
   namekind2 smallint,
-  toward_name character varying(1024) not null,
+  --toward_name character varying(1024) not null,
+  toward_name varchar not null,
   type smallint
 );
 
@@ -2416,6 +2417,7 @@ CREATE TABLE mid_hwy_facility_id
 (
   facility_id     serial not null primary key,
   road_code       integer not null,
+  updown_c        integer not null default 1,
   road_seq        integer not null
 );
 
@@ -2465,6 +2467,7 @@ CREATE TABLE mid_temp_hwy_facil_name
 (
   gid          serial not null primary key,
   road_code    INTEGER NOT NULL,
+  updown_c     INTEGER NOT NULL default 1,
   road_seq     INTEGER NOT NULL, 
   facil_name   CHARACTER VARYING(4096)
 );

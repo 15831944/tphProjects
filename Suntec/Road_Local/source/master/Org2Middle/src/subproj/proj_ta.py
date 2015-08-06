@@ -22,6 +22,9 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
+        
+        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
+        return   
         if self.comp_factory != None:
             # jv files
             self.AddComponent(self.comp_factory.CreateOneComponent('sidefiles'))

@@ -24,9 +24,9 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
     
     def _Do(self):
         self.log.info(self.ItemName + ': begin of making lane ...')
-        self._MakeMidLanenumLrTbl()
-        self._FindLaneListOnLinkDir()
-        self._GenerateLaneTbl()
+        self._makeMidLanenumLrTbl()
+        self._findLaneListOnLinkDir()
+        self._generateLaneTbl()
         self.log.info(self.ItemName + ': end of making lane ...')         
         return 0
     
@@ -124,7 +124,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
 
 
     # 创建包含了left,right车线信息的临时表mid_lanenum_lr
-    def _MakeMidLanenumLrTbl(self):
+    def _makeMidLanenumLrTbl(self):
         self.pg.execute2("select mid_make_lanenum_lr();")
         self.pg.commit2()
         return 0
@@ -132,7 +132,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
     # rdf_lane连rdf_link
     # 求出每条link的F和T方向的车线列表和bus lane信息。
     # 生成一张临时表temp_lane_count_in_link_dir存储这些车线信息。
-    def _FindLaneListOnLinkDir(self):
+    def _findLaneListOnLinkDir(self):
         sqlcmd = '''
                 drop table if exists temp_lane_list_in_link_dir;
                 select case when t1.link_id is not null then t1.link_id else t2.link_id end as link_id,
@@ -201,7 +201,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
     # 主处理函数，
     # 由rdf_lane_nav_strand连接前面生成的mid_make_lanenum_lr和temp_lane_count_in_link_dir等表，
     # 获取相关信息并转化后存入到lane_tbl中。
-    def _GenerateLaneTbl(self):
+    def _generateLaneTbl(self):
         lane_tbl_insert_str = '''
                                 INSERT INTO lane_tbl(
                                 id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, lanenum, 

@@ -43,11 +43,11 @@ class rdb_guideinfo_caution(ItemBase):
                 SELECT a.gid, b.tile_link_id, b.tile_id, c.tile_node_id, c.tile_id, d.tile_link_id, 
                         d.tile_id, a.passlink_cnt, a.data_kind, a.voice_id, a.strTTS, a.image_id
                     FROM caution_tbl as a
-                    inner join rdb_tile_link as b
+                    left join rdb_tile_link as b
                     on a.inlinkid = b.old_link_id
-                    inner join rdb_tile_node as c
+                    left join rdb_tile_node as c
                     on a.nodeid = c.old_node_id
-                    inner join rdb_tile_link as d
+                    left join rdb_tile_link as d
                     on a.outlinkid = d.old_link_id
                     order by a.gid
         """

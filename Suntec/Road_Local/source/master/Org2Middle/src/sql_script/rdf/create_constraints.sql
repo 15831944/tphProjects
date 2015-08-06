@@ -614,36 +614,6 @@ CREATE INDEX temp_meta_preposition_code_preposition_code_string_idx
 	USING btree
 	(preposition_code_string);
 	
------------------------------------------------------------------------------
-create index temp_rdf_nav_link_admin_left_admin_idx
-on temp_rdf_nav_link_admin
-using btree
-(left_admin);
-
-create index temp_rdf_nav_link_admin_right_admin_idx
-on temp_rdf_nav_link_admin
-using btree
-(right_admin);
-
-create index temp_rdf_nav_link_admin_link_id_idx
-on temp_rdf_nav_link_admin
-using btree
-(link_id);
-
-create index temp_rdf_nav_link_admin_ref_node_id_idx
-on temp_rdf_nav_link_admin
-using btree
-(ref_node_id);
-
-create index temp_rdf_nav_link_admin_nonref_node_id_idx
-on temp_rdf_nav_link_admin
-using btree
-(nonref_node_id);
-
-create index temp_rdf_nav_link_admin_need_link_id_idx
-on temp_rdf_nav_link_admin_need
-using btree
-(link_id);
 --------------------------------------------------------------
 CREATE INDEX adas_link_geometry_link_id_idx
   ON adas_link_geometry

@@ -121,7 +121,7 @@ class HwyFacilityTa(HwyFacilityRDF):
             elif (feattyp, subcat) in SERVICE_RESTAURANT_DICT:
                 restaurant = HWY_TRUE
             elif (feattyp, subcat) in SERVICE_TOILET_DICT:
-                restaurant = HWY_TRUE
+                toilet = HWY_FALSE  # 一般地不做 toilet
             elif (feattyp, subcat) in SERVICE_UNDEFINED_DICT:
                 continue
             else:

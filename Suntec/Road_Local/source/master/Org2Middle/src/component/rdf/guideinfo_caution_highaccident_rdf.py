@@ -31,22 +31,24 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
         return 0
     
     def _Do(self):
-        safetyzone_flag = common.common_func.GetPath('safetyzone_flag')
+
         accident_flag = common.common_func.GetPath('accident_flag')
 
-        if accident_flag == 'true':            
+        if accident_flag == 'true':  
+            # 危险案内          
             insert_sqlcmd = '''
                 INSERT INTO caution_tbl(
-                inlinkid, nodeid, data_kind)
+                    inlinkid, nodeid, data_kind
+                )
                 VALUES (%s, %s, %s);
             '''           
             self._driver_alert_data(insert_sqlcmd)        
             self._high_accident_point_data(insert_sqlcmd)
-                    
-        if safetyzone_flag == 'true':
+
+            # 事故多发区，因数据保存在safety zone中，故不可将此处safety zone作成移动到guideinfo_safety zone中
             insert_sqlcmd = '''
                 INSERT INTO safety_zone_tbl(
-                safetyzone_id, linkid, direction, safety_type
+                    safetyzone_id, linkid, direction, safety_type
                 )
                 VALUES (%s, %s, %s, %s);
             ''' 
@@ -56,6 +58,12 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
         return
     
     def _driver_alert_data(self,insert_sqlcmd):
+        
+        # gen_warning_sign_type---General Warning Sign Type = 4 – Accident Hazard is published only if \
+        # the accident hazard sign exists as supplemental sign in reality
+        # gen_warning_sign_type对应condition_type=17(traffic sign), it is applied to one link as origin \
+        # and one connected node as the destination. 故关联link/node数都是1且不为空
+        
         sqlcmd = '''
             SELECT nav_strand_id,array_agg(link_id),array_agg(seq_num),array_agg(node_id)
             from(
@@ -64,13 +72,13 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
                     select *
                     from rdf_condition
                     where condition_id in (
-                    SELECT condition_id
-                    FROM rdf_condition_driver_alert
-                    where gen_warning_sign_type = 4
+                        SELECT condition_id
+                        FROM rdf_condition_driver_alert
+                        where gen_warning_sign_type = 4
                     )
                 ) as b
                 left join rdf_nav_strand as c
-                on b.nav_strand_id = c.nav_strand_id
+                    on b.nav_strand_id = c.nav_strand_id
                 order by c.nav_strand_id,c.seq_num
             ) as a
             group by nav_strand_id;
@@ -80,18 +88,27 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
         for row in rows:
             linkids = row[1]
             nodeids = row[3]
-            if len(linkids) > 1:
+            if ((len(linkids) != 1) or (len(linkids) == 1 and linkids[0] is None)) or \
+                ((len(nodeids) != 1) or (len(nodeids) == 1 and nodeids[0] is None)):
                 self.log.error('org data(driver alert) is disconsistent with logic')
                 continue
             self.pg.execute2(insert_sqlcmd, (linkids[0], nodeids[0],2))
+            
         self.pg.commit2()
+        
         return
 
     def _high_accident_point_data(self,insert_sqlcmd):
-
+        
+        # Blackspot(condition_type=38) identifies intersections, points or stretches along a \
+        # road with an unusual high number of accidents.
+        # A Blackspot condition can be a Link – Node or a Link only condition. we only consider Link – Node \
+        # (Involves one link as origin and one connected Node as the destination) below \
+        # a link only condition 被作成事故多发区（safety zone）
+        
         sqlcmd = '''
-            SELECT nav_strand_id,array_agg(link_id)
-                ,array_agg(seq_num),array_agg(direction),array_agg(node_id)
+            SELECT nav_strand_id,array_agg(link_id),
+                array_agg(seq_num),array_agg(direction),array_agg(node_id)
             from(
                 select c.nav_strand_id,c.link_id,c.seq_num,a.direction,c.node_id
                 FROM (
@@ -100,29 +117,35 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
                     where condition_type=38
                 ) as b
                 left join rdf_condition_blackspot as a
-                on b.condition_id = a.condition_id
+                    on b.condition_id = a.condition_id
                 left join rdf_nav_strand as c
-                on b.nav_strand_id = c.nav_strand_id
+                    on b.nav_strand_id = c.nav_strand_id
                 where c.node_id is not null
                 order by c.nav_strand_id,c.seq_num
             ) as m
             group by nav_strand_id;
         '''
         self.pg.execute2(sqlcmd)
+        
+        # Link - Node: link/node数为1且不为空
         rows = self.pg.fetchall2()
         for row in rows:
             links = row[1]
             seq_nums = row[2]
             directions = row[3]
             node_ids = row[4]
-            if len(links) >1 or seq_nums[0] <> 0:
+            #if len(links) >1 or seq_nums[0] <> 0:
+            if (len(links) != 1 or (len(links)==1 and links[0] is None)) or \
+                (len(node_ids) != 1 or (len(node_ids) == 1 and node_ids[0] is None)):
                 self.log.error('org data is disconsistent with logic')
                 continue
             # Link-----Node
             link = links[0]
             node = node_ids[0]
             self.pg.execute2(insert_sqlcmd, (link, node, 2))
+            
         self.pg.commit2()
+        
         return
         
     def _high_accident_zone_data(self,insert_sqlcmd):

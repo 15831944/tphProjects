@@ -42,14 +42,14 @@ class comp_guideinfo_spotguide(component.component_base.comp_base):
                 on a.node_id=c.e_node
                 left join spotguide_tbl as d
                 on a.node_id=d.nodeid
-                where a.toll_flag=1
+                where a.toll_flag=1 and d.type<>12
                 and d.nodeid is null
                 group by a.node_id
           """
           
-        # arrowno字段留空，在作成rdb_guideinfo_spotguidepoint不考虑是否存在arrow图。
-        # toll station 做成spotguide点时type定为12。
-        # toll station 默认没有sar
+        # 作成加油站spotguide点时不考虑是否存在arrow图，arrowno字段留空。
+        # 作成加油站spotguide点时type定为12。
+        # 作成加油站spotguide点时默认没有sar
         spotguide_tbl_insert_str = '''
                 insert into spotguide_tbl(nodeid, inlinkid, outlinkid,
                                           passlid, passlink_cnt, direction,
