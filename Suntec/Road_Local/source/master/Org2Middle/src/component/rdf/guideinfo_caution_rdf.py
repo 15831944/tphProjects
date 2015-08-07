@@ -45,7 +45,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
     def _Do(self):
         
         #jude country UC
-        # 疑问：县境案内基于什么规则仅在如下区域作成：美国。加拿大、波多黎各、处女群岛（美国）、墨西哥
+        # 疑问：县境案内仅在如下区域（北美）作成：美国。加拿大、波多黎各、处女群岛（美国）、墨西哥
         sqlcmd = '''
                 SELECT count(*)
                 FROM rdf_country

@@ -750,6 +750,23 @@ class rdb_pg(object):
                 row_data = row
                 yield row_data
 
+    def GetRegionLayers(self):   
+        # Get layer number. 
+        sqlcmd = """
+            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
+            from pg_tables 
+            where tablename like 'rdb_region_link_layer%_tbl'
+            order by tablename;
+        """
+        self.execute2(sqlcmd)
+        rows = self.fetchall2()
+        
+        layer_list = []
+        for row in rows:
+            layer_list.append(row[0])
+  
+        return layer_list
+
 class CMultiPgExecute:
     def __init__(self, sqlcmd, min_gid, max_gid, thread_number, block_number, logger):
         self.sqlcmd = sqlcmd

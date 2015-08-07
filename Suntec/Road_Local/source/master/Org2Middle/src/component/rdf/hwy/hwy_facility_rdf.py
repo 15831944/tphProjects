@@ -808,25 +808,25 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.log.info('Start Make Facility Service.')
         self.CreateTable2('hwy_service')
         sqlcmd = """
-        SELECT road_code, road_seq, ARRAY_AGG(cat_id)
+        SELECT road_code, road_seq, updown_c, ARRAY_AGG(cat_id)
           FROM (
-            SELECT distinct road_code, road_seq, cat_id
+            SELECT distinct road_code, road_seq, updown_c, cat_id
               FROM mid_temp_hwy_sapa_info as a
               LEFT JOIN mid_temp_sapa_store_info as b
               ON a.poi_id = b.poi_id
               WHERE cat_id is not null
-              ORDER BY road_code, road_seq, cat_id
+              ORDER BY road_code, road_seq, updown_c, cat_id
           ) AS c
-          GROUP BY road_code, road_seq
-          ORDER BY road_code, road_seq
+          GROUP BY road_code, road_seq, updown_c
+          ORDER BY road_code, road_seq, updown_c
         """
         self.pg.connect1()
-        for road_code, road_seq, cat_id_list in self.get_batch_data(sqlcmd):
+        for service_info in self.get_batch_data(sqlcmd):
+            road_code, road_seq, updown, cat_id_list = service_info
             service_types = self._get_service_types(cat_id_list)
             # 服务标志都为HWY_FALSE时，不收录
             if set(service_types) == set([HWY_FALSE]):
                 continue
-            updown = HWY_UPDOWN_TYPE_UP
             self._store_service_info(road_code, road_seq,
                                      updown, service_types)
         self.pg.commit1()

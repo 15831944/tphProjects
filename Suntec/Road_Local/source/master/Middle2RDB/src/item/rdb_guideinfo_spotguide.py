@@ -73,7 +73,7 @@ class rdb_guideinfo_spotguide(ItemBase):
                     LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
                     on lower(s.arrowno) = lower(e.image_id)
                     LEFT JOIN temp_point_list as f
-                    on lower(s.arrowno) = lower(f.image_id)
+                    on lower(s.arrowno) = lower(f.image_id) -- point list file name should be same with arrow name.
                     where d.gid is not null and    -- pattern illust must be found.
                           (s.arrowno is null   -- sensis, toll station
                            or e.gid is not null)   -- rdf etc.

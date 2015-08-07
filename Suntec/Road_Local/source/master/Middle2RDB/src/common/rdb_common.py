@@ -8,6 +8,7 @@ import rdb_log
 from xlrd import open_workbook
 import types
 import rdb_mail
+import common.config
 
 class Stratify(object):
     ''' 处理文字分导层的类
@@ -219,23 +220,7 @@ class Stratify(object):
         return kind_code_list
 
 def GetPath(name):
-    path        = ''
-    file_object = open('DataBasePath.txt', 'r')
-
-    try:
-        lines = file_object.readlines()
-        for line in lines:
-            if line.find(name + '=') == 0:
-                path = line[len(name + '='):]
-                break
-    except:
-        file_object.close()
-        rdb_log.log('DataBase', "Doesn't exist file DataBasePath.txt")
-        exit(1)
-    finally:
-        file_object.close()
-        
-    return path.replace('\n', '')
+    return common.config.CConfig.instance().getPara(name)
 
 def getProjName():
     return GetPath('proj_name')

@@ -5,9 +5,9 @@ POI_Code=..\docs\poi\poi_category_ni.txt
 brand_icon=..\docs\poi\brand_icon_list_ni.txt
 #admin_pic=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_pic.txt
 #admin_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_wav.txt
-trfcsign_type_pic=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type_pic.txt
-trfcsign_type_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type_wav.txt
-trfcsign_type2data_kind=\\idata\Private\Data_Authoring\SourceData\NI\caution\trfcsign_type2data_kind.txt
+trfcsign_type_pic=..\docs\caution\trfcsign_type_pic.txt
+trfcsign_type_wav=..\docs\caution\trfcsign_type_wav.txt
+trfcsign_type2data_kind=..\docs\caution\trfcsign_type2data_kind.txt
 #forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\NI\force_guide_patch\temp_patch_force_guide_tbl.csv
 category_priority=..\docs\poi\category_priority_ni.txt
 #################################################################

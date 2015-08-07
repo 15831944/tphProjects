@@ -66,6 +66,22 @@ class comp_regulation_rdf(component.component_base.comp_base):
         
         self.log.info('Begin convert regulation for oneway link...')
         
+        # 更新表单regulation_relation_tbl/regulation_item_tbl---单条link一方通行规制（rdf_condition.condition_type=5）
+        # Direction of Travel (CONDITION_TYPE = 5) condition indicates if vehicles can travel in a direction other than \
+        # the general link or lane travel direction. The Direction of Travel condition describes the \
+        # direction of travel on a link or lane for specific time periods and for specific vehicles.
+        # 交通规制类型作成：
+        #  travel_direction bearing    regulation
+        #       F（正向）                         1（正向）                 不作成规制
+        #       F（正向）                         2（反向）                 作成两条规制：（1）对应车型和时间条件下，该Link正方向不可通行 （2）对应车型和时间条件下，该Link反方向才可通行
+        #       F（正向）                         3（双向）                 作成规制：（1）对应车型和时间条件下，该Link反方向才可通行
+        #       T（反向）                         1（正向）                 作成两条规制：（1）对应车型和时间条件下，该Link正方向才可通行 （2）对应车型和时间条件下，该Link反方向不可通行
+        #       T（反向）                         2（反向）                 不作成规制
+        #       T（反向）                         3（双向）                作成规制：（1）对应车型和时间条件下，该Link正方向才可通行
+        #       B（双向）                         1（正向）                 作成规制：（1）对应车型和时间条件下，该Link反方向不可通行
+        #       B（双向）                         2（反向）                 作成规制：（1）对应车型和时间条件下，该Link正方向不可通行
+        #       B（双向）                         3（双向）                  不作成规制
+        
         self.CreateFunction2('mid_convert_regulation_oneway_link')
         
         self.pg.callproc('mid_convert_regulation_oneway_link')
@@ -74,7 +90,12 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for oneway link.')
         
     def __convert_regulation_through_link(self):
+        
         self.log.info('Begin convert regulation for through link...')
+        
+        # 更新表单regulation_relation_tbl/regulation_item_tbl---单条link双向禁止规制（rdf_condition.condition_type=8）
+        # Access Restriction (CONDITION_TYPE = 8) conditions identify situations where specified types of \
+        # vehicles are prohibited from travelling on the road at specific times.
         
         self.CreateFunction2('mid_convert_regulation_through_link')
         
@@ -84,7 +105,11 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for through link.')
         
     def __convert_regulation_access_link(self):
+        
         self.log.info('Begin convert regulation for access link...')
+        
+        # 更新表单regulation_relation_tbl/regulation_item_tbl---单条link双向禁止规制（针对在当前link不能通行的车辆类型）
+        # 根据RDF_NAV_LINK.ACCESS_ID（记录当前link可通行的车辆类型）找到当前link不可通行车辆类型，作成针对上述车辆的link双向禁止规制
         
         self.CreateFunction2('mid_convert_regulation_access_link')
         
@@ -94,7 +119,15 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for access link.')
     
     def __convert_regulation_linkrow(self):
+        
         self.log.info('Begin convert regulation for linkrow...')
+        
+        # 更新表单regulation_relation_tbl/regulation_item_tbl---多条link之间禁止通行规制
+        # 作成数据来源：
+        # 1、Restricted Driving Manoeuvre (RDM) (CONDITION_TYPE = 7) describes a manoeuvre from one link \
+        #   to another that is prohibited.
+        # 2、RDF_CONDITION_DIVIDER：a turn restriction from the originating link (FROM_LINK_ID) to the \
+        #   restricted link (TO_LINK_ID). 无规制条件信息，默认全年全天全时规制
         
         self.CreateFunction2('mid_convert_regulation_linkrow')
         
@@ -104,11 +137,17 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for linkrow.')
     
     def __convert_regulation_nation_boundary(self):
+        
         self.log.info('Begin convert regulation for national boundary...')
+        
+        # 作成表单temp_node_nation_boundary记录在国家边界上的node信息
         
         self.CreateTable2('temp_node_nation_boundary')
         self.CreateIndex2('temp_node_nation_boundary_node_id_idx')
         self.pg.commit2()
+        
+        # 更新表单regulation_relation_tbl/regulation_item_tbl---跨国规制
+        # 两条Link所属国别（iso_country_code）不同，且按照交通流可通行
         
         self.CreateFunction2('mid_convert_regulation_nation_boundary')
         self.pg.callproc('mid_convert_regulation_nation_boundary')
@@ -117,7 +156,14 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for national boundary.')
     
     def __convert_regulation_pdm(self):
+        
         self.log.info('Begin convert regulation for pdm...')
+        
+        # 更新表单regulation_relation_tbl/regulation_item_tbl---U-Turn允许通行
+        # Permitted Driving Manoeuvre conditions (PDM) (CONDITION_TYPE = 39) indicate if a U-turn is allowed \
+        # in areas where administrative wide U- turn restrictions exist.
+        
+        # 因path算路时不会出现在一条link上的u turn情形，所以仅mainnode u-turn, and one link u-turn is thrown away
         
         self.CreateFunction2('mid_convert_regulation_pdm')
         
@@ -127,6 +173,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for pdm.')
     
     def __convert_regulation_awr(self):
+        
         self.log.info('Begin convert regulation for awr...')
         
         # find links related to admin-wide-regulation
@@ -137,6 +184,8 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.CreateIndex2('rdf_admin_hierarchy_order2_id_idx')
         self.CreateIndex2('rdf_admin_hierarchy_order8_id_idx')
         self.CreateIndex2('rdf_admin_hierarchy_builtup_id_idx')
+        
+        # 作成表单temp_regulation_admin记录存在U-turns are restricted throughout the entire administrative area的admin place
         
         self.CreateTable2('temp_regulation_admin')
         self.CreateIndex2('temp_regulation_admin_admin_place_id_idx')
@@ -212,15 +261,24 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End make linklist for admin wide regulation.')
     
     def __make_linklist_for_linkdir(self):
+        
         self.log.info('Begin make linklist for linkdir...')
+        
+        # 因无条件单条Link禁止通行规制需修改Link交通流为双向禁止，作成表单temp_link_regulation_forbid_traffic
         
         self.CreateTable2('temp_link_regulation_forbid_traffic')
         self.CreateIndex2('temp_link_regulation_forbid_traffic_link_id_idx')
         self.pg.commit2()
         
+        # 因单条Link一方通行规制中的Link方向需补充至Link交通流，作成表单temp_link_regulation_permit_traffic
+        
         self.CreateTable2('temp_link_regulation_permit_traffic')
         self.CreateIndex2('temp_link_regulation_permit_traffic_link_id_idx')
         self.pg.commit2()
+        
+        # 因作成跨国规制需要用到link的通行方向，作成表单temp_rdf_nav_link_traffic记录link的基本信息、通行方向
+        # 此处所得一方通行与表单link_tbl_bak_splitting（link分割前数据）中一方通行存在差异，因此处作成时未考虑在建道路的情况（本应作成双向禁止）
+        # 此处可能作成双向/正向/反向可通行，但对于规制数据作成本着宁滥勿缺的原则，故把在建道路的规制也做进去
         
         self.CreateTable2('temp_rdf_nav_link_traffic')
         self.CreateIndex2('temp_rdf_nav_link_traffic_link_id_idx')

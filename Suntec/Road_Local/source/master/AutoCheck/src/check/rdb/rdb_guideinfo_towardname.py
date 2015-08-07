@@ -128,10 +128,36 @@ class CCheckToward_name(platform.TestCase.CTestCase):
                     if not name.get('val'):
                         return False
         return True  
- 
+    
+class CCheckName_attr2_ni(platform.TestCase.CTestCase):
+    '''检查  ni 数据   ，name_kind为 非地点名称时，name_attr 是否为 普通方面'''
+    
+    def _do(self):
+        sqlcmd = '''
+            select count(*) from 
+            (
+                select * from rdb_guideinfo_towardname
+                where name_kind <> 2
+            ) as a
+            where a.name_attr <> 0          
+        '''
+        
+        return self.pg.getOnlyQueryResult(sqlcmd) == 0 
 
-
-
+class CCheckName_kind2_ni(platform.TestCase.CTestCase):
+    '''检查  ni 数据   ，name_attr=普通方面时，name_kind是否为 路线情报、出口编号、方面名称'''
+    
+    def _do(self):
+        sqlcmd = '''
+            select count(*) from 
+            (
+                select * from rdb_guideinfo_towardname
+                where name_attr = 0
+            ) as a
+            where a.name_kind not in (0,1,3)            
+        '''
+        
+        return self.pg.getOnlyQueryResult(sqlcmd) == 0
     
     
     

@@ -3143,10 +3143,10 @@ BEGIN
 		order_id = rce.order_id_temp;
 		exit;
 		end loop;
-	elsif leval = 3 then
+	elsif leval = 3 or leval = 5 then
 		for rce in
 		(
-			select mid_admin_GetNewID(cast(id as bigint),3) as order_id_temp  from org_a7 where order07 = order_code group by id
+			select mid_admin_GetNewID(cast(id as bigint),leval%4) as order_id_temp  from org_a7 where order07 = order_code group by id
 		)
 		loop
 		order_id = rce.order_id_temp;
@@ -3381,7 +3381,7 @@ BEGIN
 	    FROM
 	    (
 	        select  mid_admin_GetNewID(cast(id as bigint),4) as order8_id,
-	                mid_Get_VN_UpOrder(order07,1) as order2_id, 
+	                mid_Get_VN_UpOrder(order07,5) as order2_id, 
 	                (case when name is null then null else id end) as name_id,
 	                order00 as country_code, 
 	                the_geom

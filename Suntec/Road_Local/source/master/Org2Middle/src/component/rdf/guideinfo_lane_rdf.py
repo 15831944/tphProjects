@@ -145,11 +145,11 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                 (
                     select link_id, array_agg(lane_number) as T_lane_num_list,
                            array_agg(
-                                       case when b.automobiles= 'N' and b.buses= 'Y' 
-                                       and b.taxis= 'N' and b.carpools= 'N' 
-                                       and b.pedestrians= 'N' and b.trucks= 'N' 
-                                       and b.deliveries= 'N' and b.emergency_vehicles= 'N' 
-                                       and b.through_traffic= 'N' and b.motorcycles= 'N'
+                                       case when automobiles= 'N' and buses= 'Y' 
+                                       and taxis= 'N' and carpools= 'N' 
+                                       and pedestrians= 'N' and trucks= 'N' 
+                                       and deliveries= 'N' and emergency_vehicles= 'N' 
+                                       and through_traffic= 'N' and motorcycles= 'N'
                                        then 1
                                        else 0
                                        end
@@ -162,18 +162,18 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                         on a.access_id=b.access_id
                         order by link_id, lane_number
                     ) as t
-                    where lane_travel_direction='T'
+                    where lane_travel_direction='T' or lane_travel_direction='B'
                     group by link_id
                 ) as t1
                 full join
                 (
                     select link_id, array_agg(lane_number) as F_lane_num_list, 
                            array_agg(
-                                       case when b.automobiles= 'N' and b.buses= 'Y' 
-                                       and b.taxis= 'N' and b.carpools= 'N' 
-                                       and b.pedestrians= 'N' and b.trucks= 'N' 
-                                       and b.deliveries= 'N' and b.emergency_vehicles= 'N' 
-                                       and b.through_traffic= 'N' and b.motorcycles= 'N'
+                                       case when automobiles= 'N' and buses= 'Y' 
+                                       and taxis= 'N' and carpools= 'N' 
+                                       and pedestrians= 'N' and trucks= 'N' 
+                                       and deliveries= 'N' and emergency_vehicles= 'N' 
+                                       and through_traffic= 'N' and motorcycles= 'N'
                                        then 1
                                        else 0
                                        end
@@ -186,7 +186,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                         on a.access_id=b.access_id
                         order by link_id, lane_number
                     ) as t
-                    where lane_travel_direction='F'
+                    where lane_travel_direction='F' or lane_travel_direction='B'
                     group by link_id
                 ) as t2
                 on t1.link_id=t2.link_id;
@@ -210,30 +210,30 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                                         '%s', %s, %s, %s, '%s', %s);
                               '''
         sqlcmd = '''
-                select e.link_id_list, e.node_id, e.inlink_lane_dir,  
+                select e.link_id_list, e.node_id, 
+                       case when e.node_id=f.ref_node_id then 'T'
+                            else 'F' end as inlink_lane_dir,  
                        e.inlink_lane_category, e.inlink_lane_num_list,
-                       case when e.inlink_lane_dir='T' then f.T_lane_num_list 
-                            else f.F_lane_num_list end as total_lane_list_on_dir,
-                       case when e.inlink_lane_dir='T' then f.T_is_bus_lane_list
-                            else f.F_is_bus_lane_list end as is_bus_lane_list,
-                       g.lanenum_l, g.lanenum_r
+                       case when e.node_id=f.ref_node_id then g.T_lane_num_list 
+                            else g.F_lane_num_list end as total_lane_list_on_dir,
+                       case when e.node_id=f.ref_node_id then g.T_is_bus_lane_list 
+                            else g.F_is_bus_lane_list end as is_bus_lane_list,
+                       h.lanenum_l, h.lanenum_r
                 from
                 (
-                    select link_id_list, node_id, inlink_lane_dir, inlink_lane_category, 
+                    select link_id_list, node_id, inlink_lane_category, 
                            array_agg(inlink_lane_num) as inlink_lane_num_list
                     from
                     (
                         
                         select array_agg(link_id) as link_id_list, 
-                               (array_agg(node_id))[1] as node_id,  
-                               (array_agg(lane_travel_direction))[1] as inlink_lane_dir, 
+                               (array_agg(node_id))[1] as node_id,
                                (array_agg(direction_category))[1] as inlink_lane_category,  
                                (array_agg(lane_number))[1] as inlink_lane_num
                         from
                         (
                             select a.lane_nav_strand_id, a.seq_num, a.lane_id, a.node_id, 
-                                   b.lane_travel_direction, b.direction_category, 
-                                   b.link_id, b.lane_number
+                                   b.direction_category, b.link_id, b.lane_number
                             from 
                             rdf_lane_nav_strand as a
                             left join rdf_lane as b 
@@ -245,12 +245,14 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                         ) as t1
                         group by lane_nav_strand_id
                     ) as t2
-                    group by link_id_list, node_id, inlink_lane_category, inlink_lane_dir
+                    group by link_id_list, node_id, inlink_lane_category
                 ) as e
-                left join temp_lane_list_in_link_dir as f
+                left join rdf_link as f
                 on e.link_id_list[1]=f.link_id
-                left join mid_lanenum_lr as g
-                on e.link_id_list[1]=g.link_id and e.node_id=g.node_id
+                left join temp_lane_list_in_link_dir as g
+                on e.link_id_list[1]=g.link_id
+                left join mid_lanenum_lr as h
+                on e.link_id_list[1]=h.link_id and e.node_id=h.node_id
                 order by e.link_id_list, e.node_id, e.inlink_lane_category;
                 '''
         if self.pg.execute2(sqlcmd) == -1:
@@ -268,9 +270,9 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
             lanenum_l = row[7] if row[7] else 0 
             lanenum_r = row[8] if row[8] else 0
             
-            # 此诱导链中只有一条lane信息，丢弃并报warning。
             passlidStr = ''
             if len(link_id_list) < 2:
+                # 此诱导链中只有一条lane信息，丢弃并报warning。
                 self.log.warn("""there is a lane strand has only one lane.""")
                 continue
             elif len(link_id_list) == 2:
@@ -300,8 +302,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                         businfoStr = businfoStr + '1'
                     else:
                         businfoStr = businfoStr + '0'
-                        
-            elif inlink_lane_dir == 'T':
+            else:
                 for oneLane, is_bus_lane  in zip(total_lane_list_on_dir, is_bus_lane_list):
                     if oneLane in inlink_lane_num_list:
                         laneinfo = '1' + laneinfo
@@ -313,11 +314,7 @@ class comp_guideinfo_lane_rdf(comp_guideinfo_lane):
                         businfoStr = '1' + businfoStr 
                     else:
                         businfoStr = '0' + businfoStr
-            else:
-                # rdf协议中写有'B'与'N'，目前所有仕向地中未发现这两种情况，故此处暂时丢弃此条数据。
-                self.log.warn("""there is a lane with travel direction 'B' or 'N'.""")
-                continue
-            
+                        
             theID += 1
             self.pg.execute2(lane_tbl_insert_str %  
                              (theID, node_id, inlink_id, outlink_id, passlidStr, 

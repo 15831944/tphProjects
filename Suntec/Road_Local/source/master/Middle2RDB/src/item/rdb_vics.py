@@ -899,17 +899,10 @@ class rdb_traffic(ItemBase):
         
         proc_region = rdb_traffic_region(self, rdb_log)
         
-        sqlcmd = """
-            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
-            from pg_tables 
-            where tablename like 'rdb_region_link_layer%_tbl'
-            order by tablename;
-        """
-        self.pg.execute2(sqlcmd)
-        layer_list = self.pg.fetchall2()
+        layer_list = self.pg.GetRegionLayers()
 
         for layer_no in layer_list:
-            proc_region._createRegionXTRFTbl(layer_no[0])   
+            proc_region._createRegionXTRFTbl(layer_no)   
 
     def _createTrfLinkSeq(self):
         pass

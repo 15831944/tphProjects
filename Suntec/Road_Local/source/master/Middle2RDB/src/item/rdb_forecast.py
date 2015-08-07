@@ -52,17 +52,10 @@ class rdb_forecast_aus(ItemBase):
 
         self._createForecast_14()
 
-        sqlcmd = """
-            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
-            from pg_tables 
-            where tablename like 'rdb_region_link_layer%_tbl'
-            order by tablename;
-        """
-        self.pg.execute2(sqlcmd)
-        self.layer_list = self.pg.fetchall2()
+        layer_list = self.pg.GetRegionLayers()
 
         for layer_no in self.layer_list:
-            self._createForecast_region(layer_no[0])
+            self._createForecast_region(layer_no)
 
         self._insertRDBTables()
 
@@ -1061,14 +1054,7 @@ class rdb_forecast_aus(ItemBase):
         rdb_log.log(self.ItemName, 'inserting into RDB tables ----- start', 'info') 
 
         # Get layer number of region link.
-        sqlcmd = """
-            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer') 
-            from pg_tables 
-            where tablename like 'rdb_region_link_layer%_tbl'
-            order by tablename;
-        """
-        self.pg.execute2(sqlcmd)
-        self.layer_list = self.pg.fetchall2()
+        self.layer_list = self.pg.GetRegionLayers()
                 
         # Give a unique ID to time slots & control table.
         sqlcmd_time = """
@@ -1113,11 +1099,11 @@ class rdb_forecast_aus(ItemBase):
             """
                     union
                     select distinct time_slot_array,weekend_diff_array as time_array
-                    from temp_forecast_link_with_slot_merge_layer""" + layer_no[0] + \
+                    from temp_forecast_link_with_slot_merge_layer""" + layer_no + \
                     """ where weekend_diff_array[1] is not null
                     union
                     select distinct time_slot_array,weekday_diff_array as time_array
-                    from temp_forecast_link_with_slot_merge_layer""" + layer_no[0] + \
+                    from temp_forecast_link_with_slot_merge_layer""" + layer_no + \
                     """ where weekday_diff_array[1] is not null            
             """
 
@@ -1125,7 +1111,7 @@ class rdb_forecast_aus(ItemBase):
             """
                         union
                         select time_slot_array,weekday_diff_array,weekend_diff_array
-                        from temp_forecast_link_with_slot_merge_layer""" + layer_no[0]
+                        from temp_forecast_link_with_slot_merge_layer""" + layer_no
             
         sqlcmd_time = sqlcmd_time + \
         """
@@ -1202,8 +1188,8 @@ class rdb_forecast_aus(ItemBase):
             sqlcmd = sqlcmd + \
             """
                     union all
-                    select *,""" + layer_no[0] + \
-            """3 as type from temp_forecast_link_with_slot_merge_layer""" + layer_no[0]
+                    select *,""" + layer_no + \
+            """3 as type from temp_forecast_link_with_slot_merge_layer""" + layer_no
         
         sqlcmd = sqlcmd + \
         """

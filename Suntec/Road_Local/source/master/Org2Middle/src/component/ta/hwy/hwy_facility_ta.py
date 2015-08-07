@@ -90,15 +90,14 @@ class HwyFacilityTa(HwyFacilityRDF):
         self.CreateTable2('hwy_service')
         self.pg.connect1()
         for data in self._get_store_info():
-            road_code, road_seq = data[0:2]
-            feattyp_list, subcat_list = data[2:4]
+            road_code, road_seq, updwon = data[0:3]
+            feattyp_list, subcat_list = data[3:5]
             service_types = self._get_service_types(feattyp_list, subcat_list)
             # 服务标志都为HWY_FALSE时，不收录
             if set(service_types) == set([HWY_FALSE]):
                 continue
-            updown = HWY_UPDOWN_TYPE_UP
             self._store_service_info(road_code, road_seq,
-                                     updown, service_types)
+                                     updwon, service_types)
         self.pg.commit1()
 
     def _get_service_types(self, feattyp_list, subcat_list):
@@ -156,13 +155,13 @@ class HwyFacilityTa(HwyFacilityRDF):
 
     def _get_store_info(self):
         sqlcmd = """
-        SELECT road_code, road_seq,
+        SELECT road_code, road_seq, updown_c,
                array_agg(feattyp), array_agg(subcat)
          FROM (
-                SELECT DISTINCT road_code, road_seq,
+                SELECT DISTINCT road_code, road_seq, updown_c,
                         feattyp, subcat
                   FROM (
-                    SELECT road_code, road_seq, facilcls_c,
+                    SELECT road_code, road_seq, updown_c, facilcls_c,
                            regexp_split_to_table(link_lid, E'\\,+'
                                                 )::bigint as link_id
                       FROM mid_temp_hwy_ic_path as a
@@ -178,8 +177,8 @@ class HwyFacilityTa(HwyFacilityRDF):
                   -- 7358:Truck Stop; 7395:Rest Area; 7369: Open Parking Area
                   WHERE feattyp not in (7358, 7395, 7369)
           ) AS f
-          GROUP BY road_code, road_seq
-          ORDER BY road_code, road_seq;
+          GROUP BY road_code, road_seq, updown_c
+          ORDER BY road_code, road_seq, updown_c;
         """
         return self.get_batch_data(sqlcmd)
 

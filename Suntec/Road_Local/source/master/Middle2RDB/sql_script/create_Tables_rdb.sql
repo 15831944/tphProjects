@@ -170,7 +170,7 @@ CREATE TABLE rdb_guideinfo_towardname
   out_link_id bigint ,
   --out_link_id_t integer NOT NULL,
   out_link_id_t integer ,
-  toward_name character varying(1024),
+  toward_name varchar,
   name_attr smallint NOT NULL,
   name_kind smallint NOT NULL,
   passlink_count smallint NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE rdb_guideinfo_towardname_client
  -- out_link_id_t integer NOT NULL,
   out_link_id integer ,
   out_link_id_t integer ,
-  toward_name character varying(1024),
+  toward_name varchar,
   multi_towardname_attr smallint NOT NULL,
   CONSTRAINT rdb_guideinfo_towardname_client_pkey PRIMARY KEY (gid)
 );

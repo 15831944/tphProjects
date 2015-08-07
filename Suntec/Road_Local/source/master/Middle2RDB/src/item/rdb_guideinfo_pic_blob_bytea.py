@@ -284,8 +284,12 @@ class rdb_guideinfo_pic_binary(ItemBase):
     
     def _CreatBinaryPath(self):
         '创建存放二进制数据图片的目录'
-        picroot = rdb_common.GetPath('illust')
-        self.binary_picroot = os.path.join(picroot, 'binary')
+        picroot = rdb_common.GetPath('illust_binary')
+        if picroot:
+            self.binary_picroot = picroot
+        else:
+            picroot = rdb_common.GetPath('illust')
+            self.binary_picroot = os.path.join(picroot, 'binary')
         
         try:
             if os.path.exists(self.binary_picroot):

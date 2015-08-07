@@ -19,8 +19,8 @@ strend = "\x1b\\toi=orth\\"
 
 
 #define variable that check after change phoneme
-after_check_head = re.compile("^\x1b\\\\toi=pyt\\\\")
-after_check_tail = re.compile("\x1b\\\\toi=orth\\\\$")
+after_check_head = re.compile("\x1b\\\\toi=pyt\\\\")
+after_check_tail = re.compile("\x1b\\\\toi=orth\\\\")
 after_check_eng = re.compile("\x1b\\\\toi=orth\\\\[A-Za-z]+\x1b\\\\toi=pyt\\\\")
 after_check_pinyin_madarin = re.compile("[A-Za-z]+[1-5]")
 after_check_pinyin_cantonese = re.compile("[A-Za-z]+[1-6]")
@@ -50,18 +50,21 @@ def pym_pyt_2_pinyintone_check(language, pinyin_phoneme):
     len_of_phoneme = len(pinyin_phoneme)
     if len_of_phoneme == 0:
         return False
-        
+
     list_continous = after_check_continous.findall(pinyin_phoneme)
     if list_continous:
-        return False
-
-    result = re.sub(after_check_head, "", pinyin_phoneme)
-    result = re.sub(after_check_tail, "", result)
-    result = re.sub(after_check_eng, "", result)
+        print "not null"
+        return "False"+pinyin_phoneme
+    result = re.sub(after_check_eng, "", pinyin_phoneme)
+    result = re.sub(after_check_head, "", result)
+    result = re.sub(after_check_tail, "", result)    
     result = re.sub(after_check_pinyin, "", result)
     result = re.sub(" ", "", result)
 
-    return len(result) == 0
+    if len(result) == 0:
+        return "True"
+    else:
+        return "False"+pinyin_phoneme
 
 def pinyin2pyt(pinyin_phoneme):
     #len_of_phoneme = len(pinyin_phoneme)
@@ -79,18 +82,41 @@ def pinyin2pyt(pinyin_phoneme):
     # add the start / end mark
     result = strbegin + result + strend
 
+
     return result
 
 def readpytfile(filename):
     len_of_filename = len(filename)
     if len_of_filename == 0:
         raise ValueError("filename is EMPTY")
-    file = open(filename)
-    line = file.readline()
+    f = open(filename)
+    line = f.readline()
+    line = line.strip('\n')
+
+    rd =  file('./test_pyt_result.txt','a+')
     while line:
-        return line
-        #print pinyin2pytcheck(line)
-        #line = file.readline()
+        rd.write(pinyin2pyt(line))
+        rd.write('\n')
+        line = f.readline()
+        line = line.strip('\n')
+    rd.close()
+
+def readresultfile(filename):
+    len_of_filename = len(filename)
+    if len_of_filename == 0:
+        raise ValueError("filename is EMPTY")
+    f = open(filename)
+    line = f.readline()
+    line = line.strip('\n')
+    rd =  file('./test_pyt_check.txt','a+')
+    lang = "PYT"
+    while line:
+        #return line
+        rd.write(pym_pyt_2_pinyintone_check(lang, line))
+        rd.write('\n')
+        line = f.readline()
+        line = line.strip('\n')
+    rd.close()
 
 class pinyinchange :
     def __init__(self, language):
@@ -110,5 +136,13 @@ class pinyincheck :
     def read(self, filename):
         return readpytfile(filename)
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
+    #readpytfile("./test_pym.txt")
+    #readresultfile("./test_pym_result.txt")
+    #readpytfile("./test_pyt.txt")
+    readresultfile("./test_pyt_result.txt")
+    #readresultfile("./test_pym.txt")
+    #readresultfile("./pym_result.txt")
+    #readresultfile("./pyt_result.txt")
+    #pinyin2pyt("zung1 gwok3 ngan4 hong4 * hoeng1 gong2 *lok6 fu3 fan1 hong4")
     #print ntsamapa2lhplus("Transatlantic * Reinsurance * Company")

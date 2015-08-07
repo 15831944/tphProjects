@@ -5,8 +5,9 @@ Created on 2014-6-3
 @author: zhangpeng
 '''
 import component.component_base
-import common.phoneme_change
+import common.ntsamp_to_lhplus
 from common import cache_file
+from common.phoneme_change import *
 
 class comp_rawdata_rdf(component.component_base.comp_base):
     '''
@@ -57,7 +58,7 @@ class comp_rawdata_rdf(component.component_base.comp_base):
             return "PYT", "PinYinTone"
         elif country == 'TAIWAN' and language == 'TWN':
             return "BPMF", "PinYinTone"
-        elif country == 'SOURTHEASTASIA' and language == 'UKE':
+        elif country == 'SOURTHEASTASIA' and language == 'THA':
             return "NTSAMPA", "LHPLAS" 
         else:
             return None, None
@@ -117,11 +118,11 @@ class comp_rawdata_rdf(component.component_base.comp_base):
 #                fields[1] = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(ph[2], ph[1])
                 parm1, parm2 = self.__get_parameters(country, ph[2])
                 if parm1 is not None and parm2 is not None:
-                    func = common.phoneme_change.get_translator(country, ph[2], parm1, parm2)
+                    func = get_translator(country, ph[2], parm1, parm2)
                     fields[1] = func.change(ph[1])
                     
                     if ph[2] == 'PYM' or ph[2] == 'PYT':
-                        funccheck = common.phoneme_change.get_checker(country, ph[2], parm1, parm2)
+                        funccheck = get_checker(country, ph[2], parm1, parm2)
                         if not funccheck.check(fields[1]):
                             self.log.info('origin data :%s ,language: %s, transformed data:%s transform error!' % (ph[1],ph[2], fields[1]))
                     
@@ -145,7 +146,7 @@ class comp_rawdata_rdf(component.component_base.comp_base):
 #                fields[1] = common.ntsamp_to_lhplus.nt_sampa_2_lh_plus(ph[2], ph[1])
                 parm1, parm2 = self.__get_parameters(country, ph[2])
                 if parm1 is not None and parm2 is not None:
-                    func = common.phoneme_change.get_translator(country, ph[2], parm1, parm2)
+                    func = get_translator(country, ph[2], parm1, parm2)
                     fields[1] = func.change(ph[1])
                 
                 self.pg.execute2( sql2, fields )

@@ -35,7 +35,7 @@ class HwyServiceInfoRDF(HwyServiceInfo):
                0 public_telephone, 0 vending_machine, 0 handicapped_telephone,
                0 handicapped_toilet, information, 0 snack_corner,
                0 nursing_room, gas_station, 0 launderette,
-               0 coin_shower, 0 toilet, rest_area,
+               0 coin_shower, toilet, rest_area,
                shopping_corner, 0 fax_service, postbox,
                0 hwy_infor_terminal, atm, 0 hwy_hot_springs,
                0 nap_rest_area, restaurant

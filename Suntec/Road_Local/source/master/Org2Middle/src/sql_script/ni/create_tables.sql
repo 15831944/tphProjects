@@ -76,28 +76,16 @@ CREATE TABLE temp_admin_caution_tbl
 
 create table temp_poi_category
 (
-	u_code bigint,
-	gen_0 integer,
-	gen_1 integer,
-	gen_2 integer,
-	level smallint,
-	genre_is_brand bpchar,
-	importance smallint,
-	org_code character(28),
-	nametype character(2),
-	name_lang character(3),
-	name character varying(128),
-	tr_lang character(3),
-	tr_name character varying(128),
-	chain_lang bpchar,
-	chain_name character varying,
-	chain_trlang bpchar,
-	chain_trname character varying,
-	chaincode bpchar,
-	ph_type character varying(5),
-	ph_lang character(3),
-	ph_name character varying(128),
-	logmark varchar(128)  default ''
+  gen_0 integer NOT NULL,
+  gen_1 integer NOT NULL,
+  gen_2 integer NOT NULL,
+  level smallint NOT NULL,
+  genre_is_brand character(1),
+  importance smallint,
+  org_code1 character varying(28),
+  org_code2 character varying(28),
+  chaincode character varying(28),
+  genre_id integer NOT NULL
 );
 
 create table temp_brand_icon

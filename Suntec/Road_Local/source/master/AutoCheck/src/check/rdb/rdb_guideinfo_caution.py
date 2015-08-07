@@ -189,7 +189,7 @@ class CCheckRdb_Guideinfo_Caution_strtts_ni(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(*)
                     from rdb_guideinfo_caution
-                    where strtts is null
+                    where strtts is not null
                 """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)

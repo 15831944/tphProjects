@@ -73,7 +73,32 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         
         return 0
     
-
+    def _merge_same_arrow(self):
+        sqlcmd = '''
+            insert into lane_tbl(
+                id, nodeid, inlinkid, outlinkid,
+                passlid, passlink_cnt,
+                lanenum, laneinfo, arrowinfo,
+                lanenuml, lanenumr, buslaneinfo
+            )
+            (
+                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
+                from
+                (
+                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                    from temp_lane_tbl
+                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
+                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
+                ) as a
+            )
+        '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        return 0
 
     # 求得inlink、outlink、passlink
     def _make_link_info(self):
@@ -84,18 +109,17 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         )
         (
             select id,links[1] as inlink,links[length] as outlink,
-                   array_to_string (links[2:length-1],'|') as passlink
+                array_to_string (links[2:length-1],'|') as passlink
             from(
                     select id, array_agg(seqnr), array_agg(trpelid) as links,
-                           count(*) as length, array_agg(oneway) as oneway_array
+                            count(*) as length, array_agg(oneway) as oneway_array
                     from(
-                         SELECT a.gid, a.id, a.seqnr, a.trpelid, a.trpeltyp, 
-                                case when b.oneway is null then '' else b.oneway end
-                         FROM org_lp as a
-                         left join org_nw as b
-                         on a.trpelid = b.id
-                         order by id,seqnr
-                    ) as a
+                            SELECT a.gid, a.id, a.seqnr, a.trpelid, a.trpeltyp, case when b.oneway is null then '' else b.oneway end
+                            FROM org_lp as a
+                            left join org_nw as b
+                            on a.trpelid = b.id
+                            order by id,seqnr
+                      ) as a
                     group by id
             ) as b
             --where length > 1 and not ('N' = any(oneway_array))
@@ -578,13 +602,10 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
                     %s, %s, %s);
         '''
         sqlcmd = '''
-            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, 
-                   case when c.direction=256 then 2048 else c.direction end,
-           	       array_agg(d.dflane) dflane_array, array_agg(d.vt) vt_array, 
-           	       array_agg(substring(d.validity, 2)) as validity_array, 
-           	       b.lanes,b.f_jnctid, b.t_jnctid
-            FROM 
-            temp_lane_link_node as a
+            SELECT inlink, outlink, passlink, nodeid, laneno, oneway, case when c.direction=256 then 2048 else c.direction end,
+           	array_agg(d.dflane) dflane_array, 
+            array_agg(d.vt) vt_array, array_agg(substring(d.validity, 2)) as validity_array, b.lanes,b.f_jnctid, b.t_jnctid
+            FROM temp_lane_link_node as a
             left join org_nw as b
             on a.inlink = b.id
             left join org_ld as c
@@ -592,8 +613,7 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
             left join org_lf as d
             on a.inlink = d.id and d.vt in (0, 11)
             where c.id is not null
-            group by inlink, outlink, passlink, nodeid, laneno, oneway, 
-                     c.direction, b.lanes,b.f_jnctid, b.t_jnctid
+            group by inlink, outlink, passlink, nodeid, laneno, oneway, c.direction, b.lanes,b.f_jnctid, b.t_jnctid
         '''
         rows = self.get_batch_data(sqlcmd)
         i = 1
@@ -649,31 +669,3 @@ class comp_guideinfo_lane_ta(component.component_base.comp_base):
         f.close()
         self.pg.commit2()
         return 0
-
-    def _merge_same_arrow(self):
-        sqlcmd = '''
-            insert into lane_tbl(
-                id, nodeid, inlinkid, outlinkid,
-                passlid, passlink_cnt,
-                lanenum, laneinfo, arrowinfo,
-                lanenuml, lanenumr, buslaneinfo
-            )
-            (
-                select min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-           lanenum, temp_lane_info_merge(laneinfo_list, lanenum), arrowinfo, lanenuml, lanenumr, buslaneinfo
-                from
-                (
-                    select min(id) as min_id, nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                           lanenum, array_agg(laneinfo) as laneinfo_list, arrowinfo, lanenuml, lanenumr, buslaneinfo
-                    from temp_lane_tbl
-                    group by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                           lanenum, arrowinfo, lanenuml, lanenumr, buslaneinfo
-                ) as a
-            )
-        '''
-        
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        return 0    
-

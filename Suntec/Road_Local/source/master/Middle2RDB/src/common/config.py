@@ -5,13 +5,15 @@ Created on 2015-1-22
 @author: liuxinxing
 '''
 
+import os
+
 class CConfig(object):
     __instance = None
     @staticmethod
     def instance():
         if CConfig.__instance is None:
             CConfig.__instance = CConfig()
-            CConfig.__instance.load('DataBasePath.txt')
+            CConfig.__instance.init()
         return CConfig.__instance
     
     def __init__(self):
@@ -20,6 +22,23 @@ class CConfig(object):
         '''
         self.lines = []
         self.paras = {}
+    
+    def init(self):
+        #
+        self.load('DataBasePath.txt')
+        config_path = self.getPara('config')
+        
+        #
+        protocol = self.GetProjName()
+        protocol_config_file = os.path.join(config_path, 'config_%s.txt' % protocol)
+        if os.path.exists(protocol_config_file):
+            self.load(protocol_config_file)
+        
+        #
+        area = self.getProjCountry()
+        area_config_file = os.path.join(config_path, 'config_%s_%s.txt' % (protocol, area))
+        if os.path.exists(area_config_file):
+            self.load(area_config_file)
     
     def load(self, strConfigPath='config.ini'):
         self.lines = self.readlines(strConfigPath)
@@ -39,7 +58,7 @@ class CConfig(object):
         else:
             return ''
 
-    def getProjName(self):
+    def GetProjName(self):
         return self.getPara('proj_name')
 
     def getProjCountry(self):

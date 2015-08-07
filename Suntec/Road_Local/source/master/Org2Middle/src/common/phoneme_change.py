@@ -19,9 +19,10 @@ _translate_table = {
     ("HONGKONG",        "PYT",  "PYT",     "PinYinTone" ) : (pinyin_to_pyt.pinyinchange("PYT"),         pinyin_to_pyt.pinyincheck("PYT")),
     ("TAIWAN",          "TWN",  "BPMF",    "PinYinTone" ) : (ntsamp_to_lhplus.ntssampachange("TWN"),    None),
     ("SOURTHEASTASIA",  "UKE",  "NTSAMPA", "LHPLAS"     ) : (ntsamp_to_lhplus.ntssampachange("UKE"),    None),
+    ("SOURTHEASTASIA",  "THA",  "NTSAMPA", "LHPLAS"     ) : (ntsamp_to_lhplus.ntssampachange("THA"),    None),
 
-    #  TODO: 东南亚待补充；中东，南美，印度，南非待确认！
     #  TODO: 只有PYT和PYM提供了转换后的数据Check功能。其他待补充！
+    #  TODO: 印度，南非, 中东, 南美不需要转换
 }
 
 def get_translator(area, language, from_format, to_format) :
@@ -34,8 +35,8 @@ if __name__ == "__main__":
     func = get_translator("HONGKONG", "UKE", "NTSAMPA", "LHPLAS")
     print func.change("s a")
 
-    func = get_translator("SOURTHEASTASIA", "UKE", "NTSAMPA", "LHPLAS")
-    print func.change("s a")
+    func = get_translator("SOURTHEASTASIA", "THA", "NTSAMPA", "LHPLAS")
+    print func.change("M:a?_4 a r?_4 _1?|?_5| _5|?_5| ")
 
     func = get_translator("HONGKONG", "PYM", "PYM", "PinYinTone")
     print func.change("long2 er4 ji2 wu3 hao4 huo4 gui4 ma3 tou2 (test)")
@@ -44,4 +45,4 @@ if __name__ == "__main__":
     print func.change("ㄍㄨㄥˉ ㄉㄠˋ ㄨˇ ㄌㄨˋ ㄧˉ ㄉㄨㄢˋ")
 
     funccheck = get_checker("HONGKONG", "PYM", "PYM", "PinYinTone")
-    print funccheck.check(funccheck.read("./pyt.txt"))
+    print funccheck.check("meng1")
