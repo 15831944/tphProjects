@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>57d6b647-e572-41ae-9975-62052d33897a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>RmTranslater.py</StartupFile>
+    <StartupFile>RmImporter.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,10 +22,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CommonTranslater.py">
+    <Compile Include="CommonImporter.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="RmTranslater.py" />
+    <Compile Include="RmAnalyst.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RmImporter.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
