@@ -39,7 +39,7 @@ class rdb_link_add_info(ItemBase):
                     SELECT distinct n.tile_link_id, n.tile_id, link_add_info2
                     FROM ( 
                           select a.link_id, rdb_cnv_link_add_info2(
-                                 erp, rodizio, b.linkid is not null, 0::smallint, c.link_id is not null
+                                 erp, rodizio, soi, b.linkid is not null, 0::smallint, c.link_id is not null
                              ) AS link_add_info2
                           from link_tbl a
                           left join safety_zone_tbl b
@@ -47,6 +47,7 @@ class rdb_link_add_info(ItemBase):
                           left join safety_alert_tbl c
                           on a.link_id = c.link_id
                           where erp != 0 or rodizio != 0 
+                          or soi != 0
                           or b.linkid is not null
                           or c.link_id is not null
                     ) m
@@ -237,7 +238,7 @@ class rdb_link_add_info(ItemBase):
                   ) e
                   on a.link_id = e.link_id
                   where elevated <> 0 or tunnel <> 0 or structure <> 0 or rail_cross <> 0 or (etc_only_flag <> 0 or b.gid is not null)
-                  or paved = 0 or uturn = 1 or ipd != 0 or urban != 0 or erp != 0 or rodizio != 0
+                  or paved = 0 or uturn = 1 or ipd != 0 or urban != 0 or erp != 0 or rodizio != 0 or soi != 0
                   or display_class in (19,20)
                   or c.linkid is not null or d.link_id is not null or e.link_id is not null
                 ) as src_num,

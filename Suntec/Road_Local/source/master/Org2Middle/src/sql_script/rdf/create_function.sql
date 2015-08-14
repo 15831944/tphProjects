@@ -990,23 +990,20 @@ BEGIN
 	into cur_regulation_id;
 	
     FOR rec IN
-    	select	a.linkid, a.is_seasonal, a.array_linkdir, a.array_condid, b.travel_direction
-    	from
-    	(
-	    	select linkid, is_seasonal, array_agg(linkdir) as array_linkdir, array_agg(cond_id) as array_condid
-	    	from
-	    	(
-	    		select distinct linkid, linkdir, cond_id, is_seasonal
+    	select	a.linkid, a.array_linkdir, a.array_condid, b.travel_direction
+    	from (
+	    	select linkid, array_agg(linkdir) as array_linkdir, array_agg(cond_id) as array_condid
+	    	from (
+	    		select distinct linkid, linkdir, cond_id
 	    		from (
-				select	cond_id, link_id as linkid, bearing as linkdir, is_seasonal
+				select	cond_id, link_id as linkid, bearing as linkdir
 				from (
 					-- regulation with condition
-					select condition_id, cond_id, link_id, is_seasonal
+					select condition_id, cond_id, link_id
 					from (
-						select a.condition_id, a.access_id, a.dt_id, b.link_id, a.is_seasonal
+						select a.condition_id, a.access_id, a.dt_id, b.link_id
 						from (
-							select x.condition_id, nav_strand_id, access_id, dt_id,
-								(case when z.seasonal_closure = 'Y' then true else false end) as is_seasonal
+							select x.condition_id, nav_strand_id, access_id, dt_id
 							from (select * from rdf_condition where condition_type = 5) as x
 							left join rdf_condition_dt as y
 								on x.condition_id = y.condition_id
@@ -1023,9 +1020,9 @@ BEGIN
 				left join rdf_condition_direction_travel as ct
 					on cc.condition_id = ct.condition_id
 			)as c
-			order by linkid, linkdir, cond_id, is_seasonal
+			order by linkid, linkdir, cond_id
 	    	)as t
-	    	group by linkid, is_seasonal
+	    	group by linkid
     	)as a
     	left join temp_rdf_nav_link as b
 		on a.linkid = b.link_id
@@ -1050,40 +1047,40 @@ BEGIN
 					--pass
 				elseif rec.array_linkdir[nIndex] = 2 then
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 42, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 42, rec.array_condid[nIndex]);
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 3, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 3, rec.array_condid[nIndex]);
 				else--if rec.array_linkdir[nIndex] = 3 then
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 3, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 3, rec.array_condid[nIndex]);
 				end if;
 			elseif rec.travel_direction = 'T' then
 				if rec.array_linkdir[nIndex] = 1 then
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 43, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 43, rec.array_condid[nIndex]);
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 2, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 2, rec.array_condid[nIndex]);
 				elseif rec.array_linkdir[nIndex] = 2 then
 					--pass
 				else--if rec.array_linkdir[nIndex] = 3 then
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 2, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 2, rec.array_condid[nIndex]);
 				end if;
 			else--if rec.travel_direction = 'B' then
 				if rec.array_linkdir[nIndex] = 1 then
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 43, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 43, rec.array_condid[nIndex]);
 				elseif rec.array_linkdir[nIndex] = 2 then
 		    		insert into regulation_relation_tbl
-		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "is_seasonal", "cond_id")
-		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 42, rec.is_seasonal, rec.array_condid[nIndex]);
+		    					("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+		    			VALUES 	(cur_regulation_id, null, rec.linkid, null, 42, rec.array_condid[nIndex]);
 				else--if rec.array_linkdir[nIndex] = 3 then
 					--pass
 				end if;

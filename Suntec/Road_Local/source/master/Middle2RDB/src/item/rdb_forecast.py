@@ -52,7 +52,7 @@ class rdb_forecast_aus(ItemBase):
 
         self._createForecast_14()
 
-        layer_list = self.pg.GetRegionLayers()
+        self.layer_list = self.pg.GetRegionLayers()
 
         for layer_no in self.layer_list:
             self._createForecast_region(layer_no)

@@ -228,7 +228,8 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                                    (nametyp & 8) desc,   -- Brunnel Name
                                    (nametyp & 32) desc,  -- Locality Name
                                    (nametyp & 64) desc,  -- Postal Street Name
-                                   gid
+                                   namelc,
+                                   fullname
                    ) AS A
                    GROUP BY id
           ) AS link_name
@@ -322,12 +323,14 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                        array_agg(shieldnum) as shieldnums,
                        array_agg(routenum) as routenums
                   FROM (
-                        SELECT id, rtetyp as shiledid,  shieldnum,
-                               routenum, rteprior
-                          FROM org_rn
+                        SELECT id, a.rtetyp as shiledid,  a.shieldnum,
+                               a.routenum, a.rteprior
+                          FROM org_rn a
+                          join org_gc b
+                          using(id)
                           where shieldnum is not null
-                          ORDER BY id, rteprior, length(shieldnum),
-                                   shieldnum, shiledid, gid
+                          ORDER BY id, a.rteprior, length(a.shieldnum),
+                                   a.shieldnum, b.namelc, shiledid, a.gid
                    ) AS A
                    GROUP BY id
            ) AS num

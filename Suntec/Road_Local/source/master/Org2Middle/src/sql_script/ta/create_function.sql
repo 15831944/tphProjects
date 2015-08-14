@@ -484,10 +484,10 @@ BEGIN
 	(
 		select n.id, n.dir_pos, n.timedom,n.vt_array,
 		(
-			case when oneway = 'FT' then 2
-			 when oneway = 'TF' then 3
-			 when oneway = 'N' then 0
-			 else 1
+			case when oneway = 'FT' then 2 -- Open in Positive Direction
+			 when oneway = 'TF' then 3 -- Open in Negative Direction
+			 when oneway = 'N' then 0 -- Closed in Both Directions
+			 else 1 -- Open in Both Directions
 			end
 		)as link_oneway
 		from
@@ -525,10 +525,10 @@ BEGIN
 	(
 		select n.id, n.dir_pos, n.timedom,n.vt_array,
 		(
-			case when oneway = 'FT' then 2
-			 when oneway = 'TF' then 3
-			 when oneway = 'N' then 0
-			 else 1
+			case when oneway = 'FT' then 2 -- Open in Positive Direction
+			 when oneway = 'TF' then 3 -- Open in Negative Direction
+			 when oneway = 'N' then 0 -- Closed in Both Directions
+			 else 1 -- Open in Both Directions
 			end
 		)as link_oneway
 		from
@@ -633,6 +633,7 @@ BEGIN
 	  from temp_regulation_permit GROUP BY id,link_oneway
 	)
 	loop
+		-- dir_pos---regulation dir(1: both line directions / 2: positive line direction / 3: negative line direction)
 		if 1 = any(rec.iDir_Pos) or (2 = any(rec.iDir_Pos) and 3 = any(rec.iDir_Pos)) then
 			if rec.link_oneway in (0,2,3) then
 				insert into temp_link_regulation_forbid_permit("linkid","condtype","cond_forbid_peumit")
@@ -671,6 +672,7 @@ BEGIN
 	  from temp_regulation_forbid GROUP BY id,link_oneway
 	)
 	loop
+		-- dir_pos---regulation dir(1: both line directions / 2: positive line direction / 3: negative line direction)
 		if 1 = any(rec.iDir_Pos) or (2 = any(rec.iDir_Pos) and 3 = any(rec.iDir_Pos)) then
 			if rec.link_oneway in (1,2,3) then
 				insert into temp_link_regulation_forbid_permit("linkid","condtype","cond_forbid_peumit")
@@ -3115,7 +3117,7 @@ $$;
 -------------------------------------------------------------------------------------------------------------
 -- admin
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION mid_Get_VN_UpOrder(order_code character varying ,leval integer)
+CREATE OR REPLACE FUNCTION mid_Get_VN_UpOrder(country_code_temp character varying, order_code character varying ,leval integer)
 	RETURNS integer
     LANGUAGE plpgsql
 AS $$
@@ -3128,7 +3130,10 @@ BEGIN
 	if leval = 0 then
 		for rce in
 		(
-			select mid_admin_GetNewID(cast(id as bigint),0) as order_id_temp  from org_a0 where order00 = order_code group by id
+			select mid_admin_GetNewID(cast(id as bigint),0) as order_id_temp  
+			from org_a0 
+			where order00 = order_code and order00 = country_code_temp
+			group by id
 		)
 		loop
 		order_id = rce.order_id_temp;
@@ -3137,7 +3142,10 @@ BEGIN
 	elsif leval = 1 then
 		for rce in
 		(
-			select mid_admin_GetNewID(cast(id as bigint),1) as order_id_temp  from org_a1 where order01 = order_code group by id
+			select mid_admin_GetNewID(cast(id as bigint),1) as order_id_temp  
+			from org_a1 
+			where order01 = order_code and order00 = country_code_temp 
+			group by id
 		)
 		loop
 		order_id = rce.order_id_temp;
@@ -3146,7 +3154,10 @@ BEGIN
 	elsif leval = 3 or leval = 5 then
 		for rce in
 		(
-			select mid_admin_GetNewID(cast(id as bigint),leval%4) as order_id_temp  from org_a7 where order07 = order_code group by id
+			select mid_admin_GetNewID(cast(id as bigint),leval%4) as order_id_temp  
+			from org_a7 
+			where order07 = order_code and order00 = country_code_temp 
+			group by id
 		)
 		loop
 		order_id = rce.order_id_temp;
@@ -3319,7 +3330,7 @@ BEGIN
     FROM
     (
         select  mid_admin_GetNewID(cast(id as bigint),1) as order1_id,
-                mid_Get_VN_UpOrder(order00,0) as order0_id, 
+                mid_Get_VN_UpOrder(country_code_temp,order00,0) as order0_id, 
                 (case when name is null then null else id end) as name_id,
                 order00 as country_code, 
                 the_geom
@@ -3338,7 +3349,7 @@ BEGIN
     FROM
     (
         select  mid_admin_GetNewID(cast(id as bigint),1) as order1_id,
-                mid_Get_VN_UpOrder(order00,0) as order0_id, 
+                mid_Get_VN_UpOrder(country_code_temp,order00,0) as order0_id, 
                 (case when name is null then null else id end) as name_id,
                 order00 as country_code, 
                 the_geom
@@ -3360,7 +3371,7 @@ BEGIN
 	    FROM
 	    (
 	        select  mid_admin_GetNewID(cast(id as bigint),3) as order8_id,
-	                mid_Get_VN_UpOrder(order01,1) as order2_id, 
+	                mid_Get_VN_UpOrder(country_code_temp,order01,1) as order2_id, 
 	                (case when name is null then null else id end) as name_id,
 	                order00 as country_code, 
 	                the_geom
@@ -3381,7 +3392,7 @@ BEGIN
 	    FROM
 	    (
 	        select  mid_admin_GetNewID(cast(id as bigint),4) as order8_id,
-	                mid_Get_VN_UpOrder(order07,5) as order2_id, 
+	                mid_Get_VN_UpOrder(country_code_temp,order07,5) as order2_id, 
 	                (case when name is null then null else id end) as name_id,
 	                order00 as country_code, 
 	                the_geom
@@ -3402,7 +3413,7 @@ BEGIN
 	    FROM
 	    (
 	        select  mid_admin_GetNewID(cast(id as bigint),3) as order2_id,
-	                mid_Get_VN_UpOrder(order01,1) as order1_id, 
+	                mid_Get_VN_UpOrder(country_code_temp,order01,1) as order1_id, 
 	                (case when name is null then null else id end) as name_id,
 	                order00 as country_code, 
 	                the_geom
@@ -3421,7 +3432,7 @@ BEGIN
 	    FROM
 	    (
 	        select  mid_admin_GetNewID(cast(id as bigint),4) as order8_id,
-	                mid_Get_VN_UpOrder(order07,3) as order2_id, 
+	                mid_Get_VN_UpOrder(country_code_temp,order07,3) as order2_id, 
 	                (case when name is null then null else id end) as name_id,
 	                order00 as country_code, 
 	                the_geom

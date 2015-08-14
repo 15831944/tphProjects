@@ -71,7 +71,7 @@ class rdb_region(ItemBase):
         self._createTempRegion("temp_region_orglink_level4", "temp_region_orgnode_level4")
         self._deleteSALink()
         self._deleteIsolatedLink()
-        self._mergeRegionLink()
+        self._mergeRegionLink(4)
         self._makeTargetRegionDataLevel4()
     
     def _makeRegionLevel6(self):
@@ -81,7 +81,7 @@ class rdb_region(ItemBase):
         self._deleteUTurnLink()
         self._deleteIsolatedIC()
         self._deleteIsolatedLink()
-        self._mergeRegionLink()
+        self._mergeRegionLink(6)
         self._makeTargetRegionDataLevel6()
     
     def _makeRegionLevel8(self):
@@ -405,11 +405,11 @@ class rdb_region(ItemBase):
         
         rdb_log.log('Region', 'Delete uturn link from original region links end.', 'info')
     
-    def _mergeRegionLink(self):
+    def _mergeRegionLink(self, layer):
         # input table:    "temp_region_links", "temp_region_nodes"
         # output table:   "temp_region_merge_links", "temp_region_merge_nodes", "temp_region_merge_regulation"
         self._prepareSuspectLinkNode()
-        self._searchLinkrow()
+        self._searchLinkrow(layer)
         self._mergeLinkrow()
         self._dispatchNewID()
     
@@ -471,7 +471,7 @@ class rdb_region(ItemBase):
         
         rdb_log.log('Region', 'Prepare suspect of merging link and node end.', 'info')
     
-    def _searchLinkrow(self):
+    def _searchLinkrow(self, layer):
         rdb_log.log('Region', 'Search linkrow for merging link...', 'info')
         
         self.CreateTable2('temp_region_merge_link_walked')
@@ -488,7 +488,7 @@ class rdb_region(ItemBase):
         self.pg.commit2()
         
         self.CreateFunction2('rdb_split_region_linkrow')
-        self.pg.callproc('rdb_split_region_linkrow')
+        self.pg.execute2('select rdb_split_region_linkrow(%s)' % str(layer))
         self.pg.commit2()
 
         rdb_log.log('Region', 'Search linkrow for merging link end.', 'info')
@@ -1554,7 +1554,7 @@ class rdb_region_three_layers(rdb_region):
         self._deleteUTurnLink()
         self._deleteIsolatedIC()
         self._deleteIsolatedLink()
-        self._mergeRegionLink()
+        self._mergeRegionLink(8)
         self._makeTargetRegionDataLevel8()
     
     def _makeTargetRegionDataLevel8(self):

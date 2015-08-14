@@ -6,7 +6,7 @@ Created on 2015-6-29
 '''
 from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF
 from component.jdb.hwy.hwy_graph import HwyGraph
-
+from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
 
 class HwyRouteZenrin(HwyRouteRDF):
     ''' '''
@@ -102,17 +102,31 @@ class HwyRouteZenrin(HwyRouteRDF):
         self.log.info('start make road code info')
         self.CreateTable2('road_code_info')
         sqlcmd = '''
-        INSERT INTO road_code_info(path_id, road_name)
-        (
-         SELECT distinct pathid, pathname
-           FROM org_highwaypath
-           ORDER BY pathid
-        );
+        SELECT distinct pathid, pathname
+          FROM org_highwaypath
+          ORDER BY pathid
         '''
-        self.pg.execute2(sqlcmd)
+        for row in self.get_batch_data(sqlcmd):
+            path_id = row[0]
+            path_name = row[1]
+            multi_name = None
+            json_name = None
+            if path_name:
+                multi_name = MultiLangNameRDF('CHT', path_name)
+                json_name = multi_name.json_format_dump()
+            if not json_name:
+                json_name = None
+            self._insert_road_info((path_id, json_name))
         self.pg.commit2()
         self.log.info('end make road code info')
         return 0
+
+    def _insert_road_info(self, parm):
+        sqlcmd = '''
+        INSERT INTO road_code_info(path_id, road_name)
+        VALUES(%s, %s);
+        '''
+        self.pg.execute2(sqlcmd, parm)
 
     def _make_link_road_code_info(self):
         '''make hwy_link_road_code_info '''

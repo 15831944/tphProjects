@@ -228,9 +228,12 @@ CREATE TABLE temp_signpost_uc_name
 CREATE TABLE temp_node_mapping
 as
 (
-	select id as old_node_id , adjoin_nid as new_node_id
-	from org_n where position('1f00' in kind)<>0
-	and id::bigint>adjoin_nid::bigint
+	select a.id as old_node_id , a.adjoin_nid as new_node_id
+	from org_n a 
+	join org_n b
+	on a.adjoin_nid=b.id
+	where position('1f00' in a.kind)<>0
+	and a.id::bigint>a.adjoin_nid::bigint
 );
 
 ------------------------------------------------------------------------
@@ -297,3 +300,9 @@ CREATE TABLE temp_towardname_tbl
   type smallint
 );
 
+CREATE TABLE temp_sp_name
+(
+id bigint,
+namekind integer,
+towardname varchar
+);

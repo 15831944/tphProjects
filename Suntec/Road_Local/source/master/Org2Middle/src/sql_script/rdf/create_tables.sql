@@ -405,6 +405,11 @@ create table temp_link_rodizio
 	link_id bigint
 );
 
+create table temp_link_soi
+(
+	link_id bigint
+);
+
 create table temp_link_erp 
 (
 	link_id bigint,
@@ -958,7 +963,7 @@ CREATE TABLE temp_wkt_building_900913
 
 CREATE TABLE temp_wkt_location_900913
 (
-  location_id integer NOT NULL PRIMARY KEY
+  location_id bigint NOT NULL PRIMARY KEY
 ); SELECT AddGeometryColumn('','temp_wkt_location_900913','the_geom','900913','POINT',2);
 
 CREATE TABLE temp_wkt_face_900913

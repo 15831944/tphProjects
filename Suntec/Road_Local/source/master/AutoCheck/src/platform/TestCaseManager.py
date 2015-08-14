@@ -10,6 +10,9 @@ import threading
 import common.Logger
 import platform.TestSuite
 import platform.CaseReadWriter
+import common.ConfigReader
+import os
+import json
 
 class CTestCaseManager:
     __instance = None
@@ -27,6 +30,7 @@ class CTestCaseManager:
         self.strProjName = common.ConfigReader.CConfigReader.instance().getProjName()
         self.strCountryName = common.ConfigReader.CConfigReader.instance().getCountryName()
         self.objCaseReadWriter = platform.CaseReadWriter.CCaseReadWriter(strCheckListPath)
+        self.sheet_name = list()
     
     def do(self):
         try:
@@ -34,6 +38,7 @@ class CTestCaseManager:
             #self.__doAllCase()
             self.__doAllCase_parallel()
             self.__saveReport()
+            self.__saveReportForJson()
             return self.__isAllCaseOK()
         except:
             self.logger.exception("error happened...")
@@ -92,6 +97,50 @@ class CTestCaseManager:
                 else:
                     time.sleep(1.0)
         self.logger.info("Executing caselist end.")
+    def __saveReportForJson(self):
+        
+        sheet_id_dict = self.objCaseReadWriter.getsheet_name_dict()
+        base_path = common.ConfigReader.CConfigReader.instance().getPara('json_path')
+        file_path = os.path.join(base_path, common.ConfigReader.CConfigReader.instance().getDBName())
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        for suitename in self.suitelist:
+            
+            nOK_list = list()
+            nFAIL_list = list()
+            nBLOCK_list = list()
+            nocheck_list = list()
+                  
+            objSuite = self.suitecontent[suitename]
+            caselist = objSuite.getCaseList()
+            for objCase in caselist:
+                if objCase.isOK():
+                    nOK_list.append(objCase.getCaseID_unique())
+                elif objCase.isFAIL():
+                    nFAIL_list.append(objCase.getCaseID_unique())
+                else:
+                    nBLOCK_list.append(objCase.getCaseID_unique())
+            
+            nocheck_list = objSuite.getNoRuncase()
+            
+            caseid = sheet_id_dict[suitename]                
+            file_temp = open(os.path.join(file_path, caseid),"w")
+            
+            case_list_dict = dict()
+            case_list_dict["OK"] = nOK_list
+            case_list_dict["NG"] = nFAIL_list
+            case_list_dict["WARN"] = nBLOCK_list
+            case_list_dict["NOCHECK"] = nocheck_list
+            
+            caseid_dict = dict()
+            caseid_dict[caseid] = case_list_dict
+            
+            rst_json = json.dumps(caseid_dict,ensure_ascii = False,indent = 4)
+            file_temp.write(rst_json + '\n')
+                
+            file_temp.close()
+        
+        return 0
         
     def __saveReport(self):
         allsuiteinfo = []

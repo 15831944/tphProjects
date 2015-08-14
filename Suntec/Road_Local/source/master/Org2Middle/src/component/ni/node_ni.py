@@ -54,6 +54,7 @@ class comp_node_ni(component.component_base.comp_base):
         self.CreateTable2('temp_node_mapping')
         self.CreateIndex2('temp_node_mapping_old_node_id_idx')
         self.CreateIndex2('temp_node_mapping_new_node_id_idx')
+               
         return 0
     
     def _makeNodeTable(self):

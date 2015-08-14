@@ -320,3 +320,19 @@ CREATE INDEX temp_signpost_uc_sign_id_idx
   on temp_signpost_uc
   using btree
   (sign_id);
+
+CREATE INDEX temp_signpost_info_id_idx
+  on temp_signpost_info
+  using btree
+  (id);
+  
+CREATE INDEX temp_not_roundabout_id_id_name_idx
+  on temp_not_roundabout_id
+  using btree
+  (id,name);
+  
+CREATE INDEX temp_sp_name_id_idx
+  on temp_sp_name
+  using btree
+  (id);
+  

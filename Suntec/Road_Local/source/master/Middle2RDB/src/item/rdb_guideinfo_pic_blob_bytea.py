@@ -79,39 +79,33 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
     def __load_point_list(self):
         rdb_log.log(self.ItemName, 'Inserting record to temp_point_list...', 'info')
         
-        ptroot = rdb_common.GetPath('pointlist')
-        if os.path.isdir(ptroot):
-            for curDir,dirNames,fileNames in os.walk(ptroot):
-                for oneFile in fileNames:
-                    exttype = os.path.splitext(oneFile)[1].lower()
-                    if exttype == ".txt":
-                        self.__insertPt(os.path.join(curDir, oneFile))
-            self.pg.commit2()
-        else:
-            strLogInfo = '''pointlist "%s" is not a directory,  skipped loading point list.''' % ptroot
+        pointListPath = rdb_common.GetPath('pointlist')
+        if os.path.isdir(pointListPath) == False:
+            strLogInfo = '''pointlist "%s" is not a directory, skipped loading point list.''' % pointListPath
             rdb_log.log(self.ItemName, strLogInfo , 'info')
+            return
+            
+        for curDir, dirNames, fileNames in os.walk(pointListPath):
+            for oneFile in fileNames:
+                if oneFile[-8:].lower() == ".png.txt": # pointlist文件命名严格遵守以".png.txt"结尾。
+                    filePath = os.path.join(curDir, oneFile)
+                    with open(filePath, 'r') as iFStream: 
+                        line = iFStream.readline().strip()
+                        if not line:
+                            rdb_log.log(self.ItemName, '''load point from file %s failed.'''% filePath, 'error')
+                            continue
+                        if line:
+                            lineSplit = line.split('\t')
+                            res = struct.pack("hhh", 300, 30, len(lineSplit)-1)
+                            ptName = lineSplit[0][:-4] # pointlist名字即为arrow图名字。
+                            for i in range(1, len(lineSplit)):
+                                res = res + struct.pack("h", int(lineSplit[i]))
+                            if self.pg.insert('temp_point_list', 
+                                              ('image_id', 'data'), 
+                                              (ptName, psycopg2.Binary(res))) == -1:
+                                rdb_log.log(self.ItemName, '''load point from file %s failed.'''% filePath, 'error')
+        self.pg.commit2()
         rdb_log.log(self.ItemName, 'insert record to temp_point_list end.', 'info')
-    
-    def __insertPt(self, filepath):
-        filename = os.path.split(filepath)[1]
-        objFile = open(filepath, 'r') 
-        listline = objFile.readlines()
-        objFile.close()
-        res = ''
-        for line in listline:
-            line = line.strip()
-            if line:
-                ox, oy = line.split(',')
-                x = int(ox)
-                y = int(oy)
-                res = res + struct.pack("h", x)
-                res = res + struct.pack("h", y)
-
-        ptname = os.path.splitext(filename)[0]
-        if self.pg.insert('temp_point_list', ('image_id', 'data'), (ptname, psycopg2.Binary(res))) == -1:
-            rdb_log.log(self.ItemName, 'fail to load pointlist %s.' % filepath, 'error')
-            return -1
-        return 0
     
     # 图片去重操作
     def prepareTempTableForDumpPics(self):

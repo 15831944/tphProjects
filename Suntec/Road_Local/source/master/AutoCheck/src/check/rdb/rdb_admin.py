@@ -79,6 +79,8 @@ class CCheckAdminNameValid_ta (platform.TestCase.CTestCase):
         
         if strpro_name.lower() == 'vnm':
             return num == 42
+        elif strpro_name.lower() == 'saf8':
+            return num == 662
         else:
             return num == 0
   

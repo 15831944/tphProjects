@@ -27,10 +27,12 @@ class comp_guideinfo_lane_ni(component.component_base.comp_base):
         self.CreateFunction2('mid_make_arrowinfo_ni')
         self.CreateFunction2('mid_get_passlinkcount_ni')
         self.CreateFunction2('mid_make_passlinkid')
+        self.CreateFunction2('reverse_str')
         return 0
 
     def _Do(self):
         self._createtable()
+        self._reverselaneinfo()
         self._makeexclusiveflag()
     
     def _createtable(self):
@@ -60,11 +62,23 @@ class comp_guideinfo_lane_ni(component.component_base.comp_base):
             )
             '''
         
+        
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
         return 0
-
+    
+    def _reverselaneinfo(self):
+        
+        sqlcmd='''
+            update lane_tbl a
+            set laneinfo=reverse_str(a.laneinfo)
+            from link_tbl b
+            where a.inlinkid=b.link_id and b.extend_flag=1
+                '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
     def _makeexclusiveflag(self):
         
         self.pg.CreateTable2_ByName('temp_lane_exclusive')

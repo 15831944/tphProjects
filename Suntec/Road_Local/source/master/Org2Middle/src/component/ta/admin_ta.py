@@ -54,21 +54,21 @@ class comp_admin_ta(component.component_base.comp_base):
         self.CreateIndex2('temp_adminid_newandold_id_old_idx')
         
         #for saf
-        sqlcmd = """
-                update temp_admin_order2 as a
-                set order1_id = b.order1_id
-                from
-                (
-                    select a.order2_id, b.order1_id
-                    from temp_admin_order2 as a
-                    left join temp_admin_order1 as b
-                    on ST_Contains(b.the_geom, a.the_geom)
-                    where a.order1_id = 0
-                )as b
-                where a.order1_id = 0;
-                """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
+#        sqlcmd = """
+#                update temp_admin_order2 as a
+#                set order1_id = b.order1_id
+#                from
+#                (
+#                    select a.order2_id, b.order1_id
+#                    from temp_admin_order2 as a
+#                    left join temp_admin_order1 as b
+#                    on ST_Contains(b.the_geom, a.the_geom)
+#                    where a.order1_id = 0
+#                )as b
+#                where a.order1_id = 0;
+#                """
+#        self.pg.execute2(sqlcmd)
+#        self.pg.commit2()
         
         self.log.info('End make admin table 0_8.')  
     

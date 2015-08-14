@@ -289,7 +289,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
         # 4) is_junction_name,
         # 5) is_vanity_name,
         # 6) is_scenic_name,
-        # 7) road_link_id
+        # 7) language_code
+        # 8) street_name
         sqlcmd = """
         INSERT INTO mid_temp_road_name(
                     link_id, road_link_id, road_name_id,
@@ -319,8 +320,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                    is_junction_name,
                    is_vanity_name,
                    is_scenic_name,
-                   road_link_id,
-                   language_code
+                   language_code,
+                   street_name
         );
         """
         self.pg.execute2(sqlcmd)
@@ -360,8 +361,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
           order by link_id,
                    route_type,
                    length(rdf_road_name.street_name),
-                   street_name,
-                   language_code
+                   language_code,
+                   street_name
         );
         """
         self.pg.execute2(sqlcmd)

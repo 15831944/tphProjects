@@ -11,4 +11,6 @@ strInterestCountryList=HKG
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
 default_language=CHT
 POI_Code=..\docs\poi\category_icon_hkgmac.txt
+illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\HKGMAC\Here\2014Q4\illust
+#pointlist=..\..\SourceData\axf\pictures
 #################################################################

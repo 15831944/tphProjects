@@ -198,4 +198,284 @@ class CCheckRegionAddInfoPathExtraFlag(CCheckRegionAddInfoBase):
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)      
-    
+ 
+class CCheckRegionUnpaved(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_unpaved_flag, array_agg(unpaved_flag) as unpaved_flag_array
+                  from (
+                    SELECT region_link_id, region_unpaved_flag::smallint,
+                           link_id_14[seq_num], (path_extra_info & 1) as unpaved_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               (path_extra_info & 1) as region_unpaved_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                      ) as a
+                      left join rdb_link_add_info
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_unpaved_flag
+                ) as c
+                where not (region_unpaved_flag = any(unpaved_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst;
+     
+class CCheckRegionUTurn(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_uturn_flag, array_agg(uturn_flag) as uturn_flag_array
+                  from (
+                    SELECT region_link_id, region_uturn_flag::smallint,
+                           link_id_14[seq_num], ((path_extra_info >> 1) & 1) as uturn_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               ((path_extra_info >> 1) & 1) as region_uturn_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                      ) as a
+                      left join rdb_link_add_info
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_uturn_flag
+                ) as c
+                where not (region_uturn_flag = any(uturn_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst; 
+ 
+class CCheckRegionIPD(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_ipd_flag, array_agg(ipd_flag) as ipd_flag_array
+                  from (
+                    SELECT region_link_id, region_ipd_flag::smallint,
+                           link_id_14[seq_num], ((path_extra_info >> 2 ) & 1) as ipd_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               ((path_extra_info >> 2) & 1) as region_ipd_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                      ) as a
+                      left join rdb_link_add_info
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_ipd_flag
+                ) as c
+                where not (region_ipd_flag = any(ipd_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst; 
+ 
+class CCheckRegionRodizio(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_rodizio_flag, array_agg(rodizio_flag) as rodizio_flag_array
+                  from (
+                    SELECT region_link_id, region_rodizio_flag::smallint,
+                           link_id_14[seq_num], (link_add_info2 & 1) as rodizio_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               ((path_extra_info >> 3) & 1) as region_rodizio_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                      ) as a
+                      left join rdb_link_add_info2
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_rodizio_flag
+                ) as c
+                where not (region_rodizio_flag = any(rodizio_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst; 
+ 
+class CCheckRegionElectronic(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_electronic_flag, array_agg(electronic_flag) as electronic_flag_array
+                  from (
+                    SELECT region_link_id, region_electronic_flag::smallint,
+                           link_id_14[seq_num], ((link_add_info2 >> 1) & 3) as electronic_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               ((path_extra_info >> 4) & 3) as region_electronic_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                          where ((path_extra_info >> 4) & 3) != 0
+                      ) as a
+                      left join rdb_link_add_info2
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_electronic_flag
+                ) as c
+                where not (region_electronic_flag = any(electronic_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst; 
+ 
+class CCheckRegion4WD(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_4wd_flag, array_agg(four_wd_flag) as four_wd_flag_array
+                  from (
+                    SELECT region_link_id, region_4wd_flag::smallint,
+                           link_id_14[seq_num], ((link_add_info2 >> 4) & 1) as four_wd_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               ((path_extra_info >> 6) & 1) as region_4wd_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                      ) as a
+                      left join rdb_link_add_info2
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_4wd_flag
+                ) as c
+                where not (region_4wd_flag = any(four_wd_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst; 
+ 
+class CCheckRegionSOI(CCheckRegionAddInfoBase):
+    def _do(self):
+                
+        sqlcmd = """
+                select count(region_link_id)
+                from (
+                select region_link_id, region_soi_flag, array_agg(soi_flag) as soi_flag_array
+                  from (
+                    SELECT region_link_id, region_soi_flag::smallint,
+                           link_id_14[seq_num], ((link_add_info2 >> 6) & 1) as soi_flag
+                      from (
+                        SELECT link_id as region_link_id, 
+                               ((path_extra_info >> 7) & 1) as region_soi_flag,
+                               link_id_14, 
+                               generate_series(1, array_upper(link_id_14, 1)) as seq_num
+                          FROM rdb_region_link_add_info_layer[X]_tbl
+                          left join rdb_region_layer[X]_link_mapping
+                          on link_id = region_link_id
+                      ) as a
+                      left join rdb_link_add_info2
+                      on link_id_14[seq_num] = link_id
+                      where link_id is not null
+                  ) as b
+                  group by region_link_id, region_soi_flag
+                ) as c
+                where not (region_soi_flag = any(soi_flag_array))
+            """
+        levels = self._GetLevels()
+        rst    = True
+        for level in levels:
+            self.logger.info(level)
+            self.pg.query(sqlcmd.replace('[X]', level)) 
+            row = self.pg.fetchone()
+            if row[0] != 0:
+                self.logger.error("rdb_region_link_add_info_layer[X]_tbl:ERROR.".replace('[X]', level))
+                rst = False;
+            else:
+                pass
+        return rst;    

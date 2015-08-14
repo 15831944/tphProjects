@@ -913,7 +913,7 @@ class comp_link_split(component.component_base.comp_base):
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                         access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                        erp, rodizio, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
                     )
                     (
                         select  a.link_id, a.iso_country_code, c.tile_id, a.s_node, a.e_node, link_type, road_type, toll, speed_class, a.length, 
@@ -922,7 +922,7 @@ class comp_link_split(component.component_base.comp_base):
                                 one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                                 name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                                 access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                                erp, rodizio, display_class,
+                                erp, rodizio, soi, display_class,
                                 mid_cal_zm(a.the_geom, 1) as fazm,
                                 mid_cal_zm(a.the_geom, -1) as tazm,
                                 feature_string, feature_key, 
@@ -958,7 +958,7 @@ class comp_link_split(component.component_base.comp_base):
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                         access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                        erp, rodizio, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
                     )
                     (
                         select  b.link_id, a.iso_country_code, b.tile_id, b.s_node, b.e_node, link_type, road_type, toll, speed_class, 
@@ -967,7 +967,7 @@ class comp_link_split(component.component_base.comp_base):
                                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, width_s2e, width_e2s,
                                 one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                                 name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
-                                access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, display_class,
+                                access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi, display_class,
                                 (case when b.sub_index = 1 then mid_cal_zm(a.the_geom, 1) else mid_cal_zm(b.the_geom, 1) end) as fazm,
                                 (case when b.sub_index = b.sub_count then mid_cal_zm(a.the_geom, -1) else mid_cal_zm(b.the_geom, -1) end) as tazm,
                                 null as feature_string, null as feature_key, 
@@ -980,7 +980,17 @@ class comp_link_split(component.component_base.comp_base):
                 """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-        
+ 
+        # Update link with electronic tollgate flag (column of 'erp').
+        sqlcmd = """ 
+                    update link_tbl a
+                    set erp = 1
+                    from temp_tollgate_electronic b
+                    where a.link_id = b.new_link_id;
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                
         self.CreateIndex2('link_tbl_link_id_idx')
         self.CreateIndex2('link_tbl_s_node_idx')
         self.CreateIndex2('link_tbl_e_node_idx')
@@ -1182,10 +1192,13 @@ class comp_link_split(component.component_base.comp_base):
         self.log.info('splitting links by tollgates begin...')
         
         self.CreateTable2('temp_tollgate')
+        self.CreateTable2('temp_tollgate_electronic')
+        
         proj_name = common.common_func.GetPath('proj_name')
         if proj_name.lower() == 'ta':
             self.__splitLinkByTollGateDetail()
-        
+            self.__getLinkETCTollGate()
+            
         self.log.info('splitting links by tollgates end.')
                     
     def __splitLinkByTollGateDetail(self):
@@ -1328,7 +1341,39 @@ class comp_link_split(component.component_base.comp_base):
                 """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()        
+    
+    def __getLinkETCTollGate(self):
         
+        # Get all electronic tollgate.
+        sqlcmd = '''
+            insert into temp_tollgate_electronic(old_link_id, s_node, e_node, sum, index, tile_id, new_link_id, one_way_code, etc_only_flag, erp_flag)
+            select * from (
+                SELECT a.*,b.one_way_code,b.etc_only_flag
+                        ,case when b.one_way_code = 2 and index < sum then 3
+                            when b.one_way_code = 3 and index > 1 then 2
+                            when b.one_way_code = 1 and index = 1 then 3
+                            when b.one_way_code = 1 and index = sum then 2
+                            when b.one_way_code = 1 and index not in (1,sum) then 1
+                            else null
+                        end as erp_flag
+                  FROM (
+                        select old_link_id,s_node,e_node,sum,index,tile_id,new_link_id
+                        from temp_tollgate_split_link
+                        union
+                        select old_link_id,s_node,e_node,sub_count as sum,sub_index as index
+                            ,tile_id,link_id as new_link_id
+                        from temp_tollgate_not_split
+                  ) a
+                  left join link_tbl_bak_splitting b
+                  on a.old_link_id = b.link_id
+                  where b.etc_only_flag = 1
+            ) c 
+            where erp_flag is not null
+            order by old_link_id,index;
+                '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()        
+            
     def __updateSafetyAlert(self):
         self.log.info('updating Safety Alert begin...')
         

@@ -47,9 +47,9 @@ class CCheckUnique(platform.TestCase.CTestCase):
                 select count(*)
                 from
                 (
-                    select in_link_id,node_id,toward_name
+                    select in_link_id,node_id,out_link_id,toward_name
                     from rdb_guideinfo_towardname as a
-                    group by in_link_id, node_id, toward_name having count(*)>1
+                    group by in_link_id, node_id,out_link_id, toward_name having count(*)>1
                 ) as b
                          
                 '''

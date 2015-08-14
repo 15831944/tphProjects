@@ -533,7 +533,7 @@ BEGIN
 		select	link_id, tile_id, s_node, e_node, one_way_code, road_name, road_number, 
 				link_type, road_type, toll, length, function_class, display_class,
 				elevated, structure, tunnel, rail_cross, paved, uturn, disobey_flag, etc_only_flag, 
-				extend_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, 
+				extend_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi,
 				lane_num_s2e, lane_num_e2s, width_s2e, width_e2s, 
 				speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s,
 				park_link_connect_type,park_floor,park_link_lean,park_link_toll,park_region_id
@@ -612,7 +612,7 @@ BEGIN
 						one_way_code, 
 						road_name, road_number, link_type, road_type, toll, length, function_class, display_class,
 						elevated, structure, tunnel, rail_cross, paved, uturn, disobey_flag, etc_only_flag, 
-						bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, extend_flag, 
+						bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi, extend_flag, 
 						lane_num_s2e, lane_num_e2s, 
 						width_s2e, width_e2s, 
 						speed_limit_s2e, speed_limit_e2s, 
@@ -635,7 +635,7 @@ BEGIN
 						(case when one_way_code = 2 then 3 when one_way_code = 3 then 2 else one_way_code end) as one_way_code, 
 						road_name, road_number, link_type, road_type, toll, length, function_class, display_class,
 						elevated, structure, tunnel, rail_cross, paved, uturn, disobey_flag, etc_only_flag, 
-						bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, extend_flag, 
+						bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi, extend_flag, 
 						lane_num_e2s as lane_num_s2e, lane_num_s2e as lane_num_e2s, 
 						width_e2s as width_s2e, width_s2e as width_e2s, 
 						speed_limit_e2s as speed_limit_s2e, speed_limit_s2e as speed_limit_e2s, 
@@ -688,7 +688,8 @@ BEGIN
 					and	not (rec.highcost_flag is distinct from rec2.highcost_flag)
 					and	not (rec.ipd is distinct from rec2.ipd)
 					and	not (rec.erp is distinct from rec2.erp)
-					and	not (rec.rodizio is distinct from rec2.rodizio)					
+					and	not (rec.rodizio is distinct from rec2.rodizio)	
+					and	not (rec.soi is distinct from rec2.soi)									
 					and	not (rec.extend_flag is distinct from rec2.extend_flag)
 					and	not (rec.lane_num_s2e is distinct from rec2.lane_num_s2e)
 					and	not (rec.lane_num_e2s is distinct from rec2.lane_num_e2s)
@@ -1864,17 +1865,16 @@ DECLARE
 BEGIN
 	nSubIndex	:= sub_index - 1;
 	while nSubIndex > 0 loop
+		if x_must is null and sub_tx_array[nSubIndex] != sub_tx_array[sub_index] then
+			x_must			:= st_x(st_endpoint(sub_geom_array[nSubIndex]));
+		end if;
+		if y_must is null and sub_ty_array[nSubIndex] != sub_ty_array[sub_index] then
+			y_must			:= st_y(st_endpoint(sub_geom_array[nSubIndex]));
+		end if;
+			
 		if not delete_flag_array[nSubIndex] then
 			x_proxy				:= st_x(st_endpoint(sub_geom_array[nSubIndex]));
 			y_proxy				:= st_y(st_endpoint(sub_geom_array[nSubIndex]));
-			
-			if sub_tx_array[nSubIndex] != sub_tx_array[sub_index] then
-				x_must			:= st_x(st_endpoint(sub_geom_array[nSubIndex]));
-			end if;
-			if sub_ty_array[nSubIndex] != sub_ty_array[sub_index] then
-				y_must			:= st_y(st_endpoint(sub_geom_array[nSubIndex]));
-			end if;
-			
 			exit;
 		end if;
 		nSubIndex	:= nSubIndex - 1;
@@ -1882,17 +1882,16 @@ BEGIN
 	
 	nSubIndex	:= sub_index + 1;
 	while nSubIndex <= sub_count loop
+		if x_must is null and sub_tx_array[nSubIndex] != sub_tx_array[sub_index] then
+			x_must			:= st_x(st_startpoint(sub_geom_array[nSubIndex]));
+		end if;
+		if y_must is null and sub_ty_array[nSubIndex] != sub_ty_array[sub_index] then
+			y_must			:= st_y(st_startpoint(sub_geom_array[nSubIndex]));
+		end if;
+			
 		if not delete_flag_array[nSubIndex] then
 			x_proxy				:= st_x(st_startpoint(sub_geom_array[nSubIndex]));
 			y_proxy				:= st_y(st_startpoint(sub_geom_array[nSubIndex]));
-			
-			if sub_tx_array[nSubIndex] != sub_tx_array[sub_index] then
-				x_must			:= st_x(st_startpoint(sub_geom_array[nSubIndex]));
-			end if;
-			if sub_ty_array[nSubIndex] != sub_ty_array[sub_index] then
-				y_must			:= st_y(st_startpoint(sub_geom_array[nSubIndex]));
-			end if;
-			
 			exit;
 		end if;
 		nSubIndex	:= nSubIndex + 1;

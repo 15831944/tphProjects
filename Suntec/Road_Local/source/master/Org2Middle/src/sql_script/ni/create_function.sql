@@ -240,7 +240,7 @@ BEGIN
 			and substr(vehcl_type, 14, 1) = '0'
 			and substr(vehcl_type, 10, 1) = '1' then 20
 		when kind like '0b%' or kind like '%|0b%' then 3 
-		when kind like '%05' or kind like '%05|%' then 16 
+		---when kind like '%05' or kind like '%05|%' then 16 
 		when kind like '00%' or kind like '%|00%' then 12 
 		when kind like '01%' or kind like '%|01%' then 11 
 		when kind like '02%' or kind like '%|02%' then 9 
@@ -1274,3 +1274,20 @@ return flag ;
 END;
 $$;		
 		
+create or replace function reverse_str(str varchar)
+  RETURNS varchar 
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	length int;
+	new_str varchar;
+	i int;
+BEGIN
+	new_str='';
+	length = length(str);
+	for i in 1..length loop
+		new_str=new_str||substr(str,length+1-i,1);
+	end loop;
+	return new_str;
+END;
+$$;

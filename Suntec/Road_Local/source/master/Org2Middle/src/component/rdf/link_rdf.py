@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 '''
 Created on 2012-3-23
 
@@ -112,11 +113,13 @@ class comp_link_rdf(component.component_base.comp_base):
             on b.link_id = c.link_id
             where a.condition_type = 34 and c.iso_country_code = 'BRA'                       
         """)
-
-        # create temp table for buslane. 
+    
+        # create temp table for buslane & SOI. 
         self.CreateTable2('temp_link_buslane')
-        
+        self.CreateTable2('temp_link_soi')
+                
         if self.isCountry('ase'):
+            # Buslane for singapore.
             self.pg.execute2("""
                 insert into temp_link_buslane(link_id)
                 SELECT distinct a.link_id
@@ -126,6 +129,18 @@ class comp_link_rdf(component.component_base.comp_base):
                 where b.automobiles = 'N' and b.buses = 'Y' and b.taxis = 'N' and b.carpools = 'N'
                 and b.trucks = 'N' and b.deliveries = 'N';                        
             """)
+            
+            # SOI for thailand.
+            self.pg.execute2("""
+                insert into temp_link_soi(link_id)
+                SELECT distinct a.link_id
+                FROM rdf_road_link a
+                left join rdf_road_name b
+                on a.road_name_id = b.road_name_id
+                left join rdf_road_name_trans c
+                on a.road_name_id = c.road_name_id
+                where b.street_type = 'ซอย' or lower(c.street_type) = 'soi'                       
+            """)            
             
         return 0
 
@@ -176,6 +191,7 @@ class comp_link_rdf(component.component_base.comp_base):
         self.CreateIndex2('temp_link_erp_link_id_idx')                                          
         self.CreateIndex2('temp_link_rodizio_link_id_idx')
         self.CreateIndex2('temp_link_buslane_link_id_idx')
+        self.CreateIndex2('temp_link_soi_link_id_idx')
                         
         self.CreateTable2('temp_link_category6_roundabout')
         self.__Add_roundabout()
@@ -190,7 +206,7 @@ class comp_link_rdf(component.component_base.comp_base):
             pass_code, pass_code_condition, road_name, road_number, name_type,
             ownership, car_only, slope_code, slope_angle, disobey_flag, 
             up_down_distinguish, access, extend_flag, etc_only_flag, ipd, urban,
-            erp, rodizio, the_geom
+            erp, rodizio, soi, the_geom
         ) 
         SELECT    link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, toll, 
                   speed_class, length, function_class, lane_dir
@@ -226,7 +242,7 @@ class comp_link_rdf(component.component_base.comp_base):
                 , one_way_code, one_way_condition, pass_code, pass_code_condition, 
                   road_name, road_number, name_type, ownership, car_only, slope_code, 
                   slope_angle, disobey_flag, up_down_distinguish, access, extend_flag, 
-                  etc_only_flag, ipd, urban, erp, rodizio, the_geom                                 
+                  etc_only_flag, ipd, urban, erp, rodizio, soi, the_geom                                 
         from (                
                 select   a.link_id as link_id                          -- link_id
                    , a.iso_country_code as iso_country_code            --iso_country_code
@@ -379,7 +395,10 @@ class comp_link_rdf(component.component_base.comp_base):
                      end as erp                                       --erp 
                    , case when rodizio.link_id is not null then 1
                           else 0
-                     end as rodizio                                   --rodizio                                                                
+                     end as rodizio                                   --rodizio 
+                   , case when soi.link_id is not null then 1
+                          else 0
+                     end as soi                                       --soi                                                                                 
                    , a.the_geom as the_geom                           --the_geom
                 from temp_rdf_nav_link as a 
                 left join rdf_country b
@@ -436,7 +455,9 @@ class comp_link_rdf(component.component_base.comp_base):
                 left join temp_link_rodizio as rodizio
                     on a.link_id = rodizio.link_id
                 left join temp_link_buslane as bus
-                    on a.link_id = bus.link_id                    
+                    on a.link_id = bus.link_id
+                left join temp_link_soi as soi
+                    on a.link_id = soi.link_id                                         
         ) a;
         """
         

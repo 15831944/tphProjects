@@ -59,87 +59,258 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
     def _make_signpost_uc_towardname(self):
         
         self.log.info('make signpost_uc_towardname...')
-        self._find_not_roundabout_path_id()
-        self._make_temp_signpost_uc()
+        self._make_temp_signpost_info()
+        self._find_not_roundabout_id()
+        self._make_temp_sp_name()
         self._make_temp_towardname_signpost_uc()
-        
     
-
-    def _find_not_roundabout_path_id(self):
+    
+        
+    def _make_temp_signpost_info(self):
         
         sqlcmd = '''
-            drop table if exists temp_not_roundabout_path_id;
-            create table temp_not_roundabout_path_id
+            drop table if exists temp_signpost_info;
+            create table temp_signpost_info
             as
             (
-                SELECT path_id
-                FROM temp_signpost_uc_path as a
-                join 
+                select distinct b.*,
+                       (case when c.s_node in (d.s_node, d.e_node) then c.s_node
+                             when c.e_node in (d.s_node, d.e_node) then c.e_node
+                             else -1::bigint end) as tnodeid
+                from
                 (
-                    select k.*  
-                    from 
-                    (
-                        SELECT id, nodeid, inlinkid, outlinkid, b.name
-                        FROM org_ic as a
-                        join org_fname as b
-                        on a.id = b.featid and nametype = '3' and b.signnumflg = '0'
-                        
-                        union 
-                        
-                        SELECT id, nodeid, inlinkid, outlinkid, b.name
-                        FROM org_dr as a
-                        join org_fname as b
-                        on a.id = b.featid and nametype = '4' and b.signnumflg = '0'
+                    SELECT a.id::bigint, a.nodeid, inlinkid::bigint, outlinkid::bigint, passlid,type,
                     
-                    ) as k
-                    where k.name not like '%环岛'
+                           (case when passlid is null or length(passlid) < 1 then 0
+                                 else array_upper(string_to_array(passlid,'|'), 1) end ) as passlink_cnt,
+                                 
+                           (case when passlid is null or length(passlid) < 1 then outlinkid 
+                                 else (string_to_array(passlid,'|'))[1] end)::bigint as second_link         
+                    FROM
+                    (
+                        select id, nodeid, inlinkid, outlinkid, 
+                               (case when passlid2 is null or length(passlid2) < 1 then passlid
+                                     else passlid ||'|'||passlid2 end) as passlid, 2 as type
+                        from org_br
+                        
+                        union
+                        
+                        select id, nodeid, inlinkid, outlinkid, passlid, 3 as type
+                        from org_ic
+                        
+                        union
+                        
+                        select id, nodeid, inlinkid, outlinkid, 
+                               (case when passlid2 is null or length(passlid2) < 1 then passlid
+                                     else passlid ||'|'||passlid2 end) as passlid, 4 as type
+                        from org_dr
+                    ) as a
+                ) b
+                left join link_tbl as c
+                on b.inlinkid = c.link_id
+                left join link_tbl as d
+                on b.second_link = d.link_id
+                order by id    
+            )
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()       
+        self.CreateIndex2('temp_signpost_info_id_idx')
+        
+       
+        
+    def _find_not_roundabout_id(self):
+        
+        sqlcmd = '''
+            drop table if exists temp_not_roundabout_id;
+            create table temp_not_roundabout_id
+            as
+            (  
+                select distinct sign_id as id, name 
+                from
+                (
+                    SELECT a.id as sign_id, nodeid, inlinkid, outlinkid, passlid, "type", passlink_cnt, 
+                            second_link, tnodeid, r.id, rn.pathname, l.link_type, c.name
+                    FROM temp_signpost_info as a
+                    left join org_r as r
+                    on a.tnodeid::varchar in (r.snodeid,r.enodeid)
+                    left join org_r_lname as rl
+                    on rl.id = r.id
+                    left join org_r_name as rn
+                    on rn.route_id = rl.route_id
+                    left join link_tbl as l
+                    on l.link_id = r.id::bigint
+                    left join
+                    (
+                        select * from
+                        (
+                            SELECT  a.id, b.name
+                            FROM org_ic as a
+                            join org_fname as b
+                            on a.id = b.featid and nametype = '3' and b.signnumflg = '0'
+                            
+                            union 
+                            
+                            SELECT  a.id, b.name
+                            FROM org_dr as a
+                            join org_fname as b
+                            on a.id = b.featid and nametype = '4' and b.signnumflg = '0'
+                        ) cc
+                        order by cc.id
+                    ) as c
+                    on c.id::bigint = a.id
+                    
                 ) as d
-                using(nodeid,inlinkid,outlinkid)
-                order by path_id, nodeid, inlinkid, outlinkid, passlid, id_array
+                where link_type in (0,10,11) and pathname = name  and type in (3,4)
+                order by sign_id
             )
         '''
      
         self.pg.execute2(sqlcmd)
         self.pg.commit2()       
-        self.CreateIndex2('temp_not_roundabout_path_id_path_id_idx')
+        self.CreateIndex2('temp_not_roundabout_id_id_name_idx')
  
- 
-    def _make_temp_signpost_uc(self):
+    def _make_temp_sp_name(self):
+#        self.log.info('make temp_poi_name...')
+        self.CreateTable2('temp_sp_name')
+        self.CreateFunction2('mid_cnv_shield_ni')
+        self.CreateFunction2('mid_convertstring')
         sqlcmd = '''
-        drop table if exists temp_signpost_uc;
-        create table temp_signpost_uc
-        as 
-        (
-            select sign_id, 
-                   (case when a.s_node in (b.s_node, b.e_node) then a.s_node
-                         when a.e_node in (b.s_node, b.e_node) then a.e_node
-                         else -1::bigint end) as nodeid,
-                    inlinkid, outlinkid, passlid, passlink_cnt, signpost_name, route_no1,
-                    route_no2, route_no3, route_no4, exit_no
-            from
+            drop table if exists temp_sp_name_all_language;
+            create table temp_sp_name_all_language
+            as
             (
-                SELECT a.sign_id, inlinkid::bigint, outlinkid::bigint, 
-                       (case when passlid is null or length(passlid) < 1 then null 
-                             else passlid end) as passlid, 
-                       (case when passlid is null or length(passlid) < 1 then 0
-                             else array_upper(string_to_array(passlid,'|'), 1) end ) as passlink_cnt,
-                       (case when passlid is null or length(passlid) < 1 then outlinkid 
-                             else (string_to_array(passlid,'|'))[1] end)::bigint as second_link,
-                       signpost_name, route_no1, route_no2,route_no3, route_no4, exit_no
-                FROM temp_signpost_uc_name AS a
-                LEFT JOIN temp_signpost_uc_path as b
-                ON a.sign_id = b.path_id
-            )temp
-            left join link_tbl as a
-            on temp.inlinkid = a.link_id
-            left join link_tbl as b
-            on temp.second_link = b.link_id
-            order by sign_id
-        )       
+                select id, name_kind,nameflag,seq_nm, 
+                        (case when c.language = '1'  then  'CHI'
+                              when c.language = '2'  then  'CHT'                                                               
+                              when c.language = '3'  then  'ENG' 
+                              when c.language = '4'  then  'POR' end ) as language,
+                        mid_convertstring(name,1) as name,
+                        (case when phontype = '1' then 'PYM'
+                              when phontype = '3' then 'PYT' end) as phontype, 
+                        phoneme 
+                from
+                (
+                    SELECT  a.id, 1 as name_kind,b.language,b.nameflag,c.seq_nm, b.name as name, c.name as phoneme, c.phontype
+                    FROM org_br as a
+                    join org_fname as b
+                    on a.id = b.featid and nametype = '2'
+                    left join org_fname_phon as c
+                    on c.featid = b.featid and c.nametype = b.nametype 
+                        and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                        and c.phontype in ('1', '3')
+                    
+                    union
+                    
+                    select  id, name_kind, language,nameflag, seq_nm,
+                            (case when name like '%方向' then split_part(name,'方向',1)
+                                  when name like '%方向）' then split_part(name,'方向）',1) || '）'
+                                  else name end ) as name,
+                            ( case when (name like '%方向' or name like '%方向）' ) then null
+                                else phoneme end ) as phoneme,
+                            phontype
+                    from
+                    (
+                        select kk.* , rd.id as roundabout from
+                        (
+                            SELECT  a.id, 0 as name_kind,b.language,b.nameflag, c.seq_nm,b.name as name, c.name as phoneme, c.phontype
+                            FROM org_ic as a
+                            join org_fname as b
+                            on a.id = b.featid and nametype = '3' and b.signnumflg = '0'
+                            left join org_fname_phon as c
+                            on c.featid = b.featid and c.nametype = b.nametype 
+                            and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                            and c.phontype in ('1', '3')
+                            
+                            union 
+                            
+                            SELECT  a.id, 0 as name_kind,b.language,b.nameflag,c.seq_nm, b.name as name, c.name as phoneme, c.phontype
+                            FROM org_dr as a
+                            join org_fname as b
+                            on a.id = b.featid and nametype = '4' and b.signnumflg = '0'
+                            left join org_fname_phon as c
+                            on c.featid = b.featid and c.nametype = b.nametype 
+                            and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                            and c.phontype in ('1', '3')
+                        ) kk
+                        left join  temp_not_roundabout_id as rd
+                        on rd.id = kk.id::bigint and rd.name = kk.name
+                    ) as temp
+                    where roundabout is null                    
+                         
+                    union
+                       
+                    SELECT   a.id, 3 as name_kind, b.language, b.nameflag, b.seq_nm, mid_cnv_shield_ni(b.signnumflg, b.name) as name, 
+                             --null as phoneme, null as phontype
+                    c.name as phoneme, c.phontype
+                    FROM org_ic as a
+                    join org_fname as b
+                    on a.id = b.featid and nametype = '3' and b.signnumflg <> '0'
+                    left join org_fname_phon as c
+                    on c.featid = b.featid and c.nametype = b.nametype 
+                    and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                    and c.phontype in ('1', '3')
+                    
+                    union 
+                    
+                    SELECT  a.id,3 as name_kind,b.language,b.nameflag,b.seq_nm, mid_cnv_shield_ni(b.signnumflg, b.name) as name,  
+                           -- null as phoneme, null as phontype
+                    c.name as phoneme, c.phontype
+                    FROM org_dr as a
+                    join org_fname as b
+                    on a.id = b.featid and nametype = '4' and b.signnumflg <> '0'
+                    left join org_fname_phon as c
+                    on c.featid = b.featid and c.nametype = b.nametype 
+                    and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                    and c.phontype in ('1', '3')
+                ) as c
+                order by id::bigint, name_kind,language,nameflag,seq_nm,name,phontype,phoneme
+            )
         '''
-        self.pg.execute(sqlcmd)
+        self.pg.execute2(sqlcmd)
         self.pg.commit2()       
-        self.CreateIndex2('temp_signpost_uc_sign_id_idx')
+#        self.CreateIndex2('temp_sp_exit_name_all_language_id_idx')
+        
+        
+        if not component.default.multi_lang_name.MultiLangName.is_initialized():
+            component.default.multi_lang_name.MultiLangName.initialize()
+        
+        sqlcmd = """
+                select  id,
+                        name_kind,
+                        array_agg(1) as name_id_array,
+                        array_agg((case when a.name_kind = 3 then 'shield'::varchar 
+                                        else 'office_name'::varchar end )) as name_type_array,
+                        array_agg(language) as language_code_array,
+                        array_agg(name) as name_array,
+                        array_agg(phontype) as phonetic_language_array,
+                        array_agg(phoneme) as phoneme_array
+                from temp_sp_name_all_language as a
+                group by id,name_kind,seq_nm
+                order by id::bigint,name_kind,seq_nm
+                """         
+               
+        asso_recs = self.pg.get_batch_data2(sqlcmd)
+        
+        temp_file_obj = common.cache_file.open('sp_name')
+        for asso_rec in asso_recs:
+            sign_id = asso_rec[0]
+            name_kind = asso_rec[1]
+            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[2], 
+                                                                                                            asso_rec[3], 
+                                                                                                            asso_rec[4],
+                                                                                                            asso_rec[5], 
+                                                                                                            asso_rec[6],
+                                                                                                            asso_rec[7] )
+            temp_file_obj.write('%d\t%d\t%s\n' % (int(sign_id),int(name_kind), json_name))
+        
+        temp_file_obj.seek(0)
+        self.pg.copy_from2(temp_file_obj, 'temp_sp_name')
+        self.pg.commit2()
+        common.cache_file.close(temp_file_obj,True)
+        self.CreateIndex2('temp_sp_name_id_idx')   
+    
+
         
 
     def _make_temp_towardname_signpost_uc(self):
@@ -148,67 +319,13 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         sqlcmd = '''
             insert into temp_towardname_tbl( nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, 
                                             guideattr, namekind, toward_name ) 
-            (               
-                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                       0 as direction,
-                       0 as guideattr,
-                       3 as namekind,
-                       route_no1
-                from temp_signpost_uc
-                where route_no1 is not null
-                
-                union
-                
-                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                       0 as direction,
-                       0 as guideattr,
-                       3 as namekind,
-                       route_no2
-                from temp_signpost_uc
-                where route_no2 is not null
-                
-                union
-                
-                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                       0 as direction,
-                       0 as guideattr,
-                       3 as namekind,                
-                       route_no3
-                from temp_signpost_uc
-                where route_no3 is not null
-                
-                union
-                
-                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                       0 as direction,
-                       0 as guideattr,
-                       3 as namekind,
-                       route_no4
-                from temp_signpost_uc            
-                where route_no4 is not null
-                
-                union
-                
-                select nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
-                       0 as direction,
-                       0 as guideattr,
-                       1 as namekind,                
-                       exit_no
-                from temp_signpost_uc
-                where exit_no is not null 
-                
-                union
-                
-                select a.nodeid, inlinkid, outlinkid, passlid, passlink_cnt, 
-                       0 as direction,
-                       0 as guideattr,
-                       0 as namekind,                
-                       signpost_name
-                from temp_signpost_uc as a
-                join temp_not_roundabout_path_id as b
-                on a.sign_id = b.path_id
-                
-                order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind
+            ( 
+            select  b.tnodeid, b.inlinkid, b.outlinkid, b.passlid,b.passlink_cnt,0 as direction,
+                    0 as guideattr, a.namekind, a.towardname
+            from temp_sp_name as a
+            left join temp_signpost_info as b
+            on a.id = b.id
+            order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind
             )
         '''
         self.pg.execute(sqlcmd)
@@ -293,6 +410,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         
         self.log.info('make temp_towardname_name_poi...')
         self.CreateTable2('temp_towardname_name_poi')
+        self.CreateFunction2('mid_convertstring')
         
         if not component.default.multi_lang_name.MultiLangName.is_initialized():
             component.default.multi_lang_name.MultiLangName.initialize()
@@ -303,7 +421,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                 as
               (
                      select  a.poi_id,
-                             b.name as poi_name,
+                             mid_convertstring(b.name,1) as poi_name,
                              (case when b.language = '1'  then  'CHI'
                                    when b.language = '2'  then  'CHT'
                                    when b.language = '3'  then  'ENG'
