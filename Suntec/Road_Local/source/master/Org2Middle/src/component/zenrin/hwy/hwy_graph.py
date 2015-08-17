@@ -18,6 +18,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
+from component.rdf.hwy.hwy_graph_rdf import HWY_UPDOWN_CODE
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
 from component.jdb.hwy.hwy_graph import MIN_CUT_OFF_CHN
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NONE
@@ -219,16 +220,3 @@ class HwyGraphZenrin(HwyGraphNi):
             return True
         else:
             return False
-#         similar_degree = self._get_similar_degree(data1, data2)
-#         if similar_degree > SIMILAR_DEGREE_NONE:
-#             angle = self.get_angle(in_edge, out_edge, reverse)
-#             if self.is_uturn_angle(angle):
-#                 return True
-#         name1 = data1.get('names')
-#         name2 = data2.get('names')
-#         # 名称相同， 角度比较大的
-#         if name1 and name1 == name2:
-#             pass
-#             # print 'Not UTurn:', 
-#             #in_edge, out_edge, self.get_angle(in_edge, out_edge, reverse)
-#         return False

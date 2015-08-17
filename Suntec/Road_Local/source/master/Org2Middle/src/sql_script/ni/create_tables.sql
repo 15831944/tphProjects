@@ -261,7 +261,7 @@ inlink  bigint,
 node    bigint
 );
 
-create table temp_towardname_name_poi
+create table temp_highway_building_json_name
 (
 	poi_id bigint,
 	toward_name varchar
@@ -300,7 +300,7 @@ CREATE TABLE temp_towardname_tbl
   type smallint
 );
 
-CREATE TABLE temp_sp_name
+CREATE TABLE temp_sp_json_name
 (
 id bigint,
 namekind integer,

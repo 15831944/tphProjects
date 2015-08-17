@@ -7,14 +7,13 @@ Created on 2015-6-29
 from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
 from component.zenrin.hwy.hwy_graph import HwyGraphZenrin
-from component.zenrin.hwy.hwy_graph  import HWY_UPDOWN
+from component.rdf.hwy.hwy_graph_rdf  import HWY_UPDOWN_CODE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
-from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
+from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_INFO
 
 
 class HwyDataMngZenrin(HwyDataMngRDF):
     ''' '''
-
     _instance = None
 
     @staticmethod
@@ -50,7 +49,7 @@ class HwyDataMngZenrin(HwyDataMngRDF):
         for road_code, updown, path in self.get_batch_data(sqlcmd):
             for u, v in zip(path[0:-1], path[1:]):
                 data = {HWY_ROAD_CODE: road_code,
-                        HWY_UPDOWN: updown}
+                        HWY_UPDOWN_CODE: updown}
                 self._graph.add_edge(u, v, data)
 
     def load_exit_name(self):
@@ -103,17 +102,21 @@ class HwyDataMngZenrin(HwyDataMngRDF):
 
     def load_org_facil_id(self):
         '''加载元设施id'''
-        return 0
         if not self.pg.IsExistTable('mid_hwy_org_facility_node'):
             self.log.warning('No table mid_hwy_org_facility_node.')
             return 0
         sqlcmd = """
-        SELECT node_id, array_agg(facility_id)as facility_lid
-        FROM mid_hwy_org_facility_node
-        GROUP BY node_id
+        SELECT node_id,
+               array_agg(path_id) as path_lid,
+               array_agg(facility_id)as facility_lid ,
+               array_agg(pnttype) as pnttype_lid
+        FROM mid_hwy_org_facility_node as a
+        LEFT JOIN org_highwaypoint as b
+        on a.facility_id = b.pntid
+        group by node_id
         """
         for facil_info in self.get_batch_data(sqlcmd):
-            node, facil_lid = facil_info
-            data = {HWY_ORG_FACIL_ID:  facil_lid}
+            node, path_lid, facil_lid, pnttype_lid = facil_info
+            data = {HWY_ORG_FACIL_INFO: (path_lid, facil_lid, pnttype_lid)}
             if node in self._graph:
                 self._graph.add_node(node, data)

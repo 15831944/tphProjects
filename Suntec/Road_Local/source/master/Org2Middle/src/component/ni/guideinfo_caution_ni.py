@@ -39,6 +39,9 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         self._Deal_TrfcSign()
         #self._Deal_admin()
+        
+        self._GetOrgCautionLink()
+        self._GetOutLinkSeq()
         self._Deal_update_caution_tbl()
         
         return 0
@@ -69,6 +72,32 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         return 0
     
+    def _GetOrgCautionLink(self):
+        
+        self.log.info('Now it is creating temp_org_caution_link_tbl...')
+        
+        # 因原始数据提供的caution路径信息中脱出link可能为空，需要抽取全部caution的路径信息，对其中的脱出link为空的进行路径扩展
+        # 作成表单temp_org_caution_link_tbl记录原始的caution路径信息
+        
+        sqlcmd = """
+                drop table if exists temp_org_caution_link_tbl;
+                CREATE TABLE temp_org_caution_link_tbl 
+                as (
+                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt
+                    from temp_trfcsign_caution_tbl
+                    
+                    union 
+                    
+                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt
+                    from temp_admin_caution_tbl
+                    order by inlinkid, nodeid
+                );
+            """
+        
+        self.pg.do_big_insert2(sqlcmd)
+        
+        self.log.info('creating temp_org_caution_link_tbl succeeded')
+    
     def _Deal_update_caution_tbl(self):
         self.log.info('Now it is updating caution_tbl...')
         
@@ -79,16 +108,23 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind,
                     voice_id, strtts, image_id
                 )
-                select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
-                    voice_id, strtts, image_id
-                from temp_trfcsign_caution_tbl
-                
-                union
-                
-                select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
-                    voice_id, strtts, image_id
-                from temp_admin_caution_tbl
-                order by inlinkid, nodeid, data_kind
+                select a.inlinkid, a.nodeid, b.outlink as outlinkid, b.passlid as passlid,
+                    b.passlink_cnt as passlink_cnt, data_kind, voice_id, strtts, image_id
+                from (
+                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
+                        voice_id, strtts, image_id
+                    from temp_trfcsign_caution_tbl
+                    
+                    union
+                    
+                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
+                        voice_id, strtts, image_id
+                    from temp_admin_caution_tbl
+                ) a
+                left join temp_caution_link_tbl b
+                    on a.inlinkid = b.inlink and a.nodeid = b.node
+                where b.inlink is not null --avoid link terminal
+                order by a.inlinkid, a.nodeid, b.outlink, b.passlink_cnt, data_kind
             """
         
         self.pg.do_big_insert2(sqlcmd)

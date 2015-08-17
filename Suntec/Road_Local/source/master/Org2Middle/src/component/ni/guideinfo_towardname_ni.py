@@ -23,8 +23,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         
     def _Do(self):
         
-        self._make_poi_towardname()
-        self._make_signpost_uc_towardname()
+        self._make_highway_building_name()
+        self._make_signpost_uc_name()
         self._make_towardname_tbl()
      
 
@@ -56,21 +56,21 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         self.CreateIndex2('towardname_tbl_node_id_idx')
         
         
-    def _make_signpost_uc_towardname(self):
+    def _make_signpost_uc_name(self):
         
-        self.log.info('make signpost_uc_towardname...')
-        self._make_temp_signpost_info()
-        self._find_not_roundabout_id()
-        self._make_temp_sp_name()
+        self.log.info('make signpost_uc_name...')
+        self._make_temp_signpost_uc_path_info()
+        self._find_roundabout_id()
+        self._make_temp_sp_json_name()
         self._make_temp_towardname_signpost_uc()
     
     
         
-    def _make_temp_signpost_info(self):
+    def _make_temp_signpost_uc_path_info(self):
         
         sqlcmd = '''
-            drop table if exists temp_signpost_info;
-            create table temp_signpost_info
+            drop table if exists temp_signpost_uc_path_info;
+            create table temp_signpost_uc_path_info
             as
             (
                 select distinct b.*,
@@ -115,15 +115,15 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()       
-        self.CreateIndex2('temp_signpost_info_id_idx')
+        self.CreateIndex2('temp_signpost_uc_path_info_id_idx')
         
        
         
-    def _find_not_roundabout_id(self):
+    def _find_roundabout_id(self):
         
         sqlcmd = '''
-            drop table if exists temp_not_roundabout_id;
-            create table temp_not_roundabout_id
+            drop table if exists temp_roundabout_id;
+            create table temp_roundabout_id
             as
             (  
                 select distinct sign_id as id, name 
@@ -131,7 +131,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                 (
                     SELECT a.id as sign_id, nodeid, inlinkid, outlinkid, passlid, "type", passlink_cnt, 
                             second_link, tnodeid, r.id, rn.pathname, l.link_type, c.name
-                    FROM temp_signpost_info as a
+                    FROM temp_signpost_uc_path_info as a
                     left join org_r as r
                     on a.tnodeid::varchar in (r.snodeid,r.enodeid)
                     left join org_r_lname as rl
@@ -168,16 +168,16 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
      
         self.pg.execute2(sqlcmd)
         self.pg.commit2()       
-        self.CreateIndex2('temp_not_roundabout_id_id_name_idx')
+        self.CreateIndex2('temp_roundabout_id_id_name_idx')
  
-    def _make_temp_sp_name(self):
+    def _make_temp_sp_json_name(self):
 #        self.log.info('make temp_poi_name...')
-        self.CreateTable2('temp_sp_name')
+        self.CreateTable2('temp_sp_json_name')
         self.CreateFunction2('mid_cnv_shield_ni')
         self.CreateFunction2('mid_convertstring')
         sqlcmd = '''
-            drop table if exists temp_sp_name_all_language;
-            create table temp_sp_name_all_language
+            drop table if exists temp_sp_json_name_all_language;
+            create table temp_sp_json_name_all_language
             as
             (
                 select id, name_kind,nameflag,seq_nm, 
@@ -233,7 +233,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                             and c.seq_nm = b.seq_nm and b.language in ('1','2')
                             and c.phontype in ('1', '3')
                         ) kk
-                        left join  temp_not_roundabout_id as rd
+                        left join  temp_roundabout_id as rd
                         on rd.id = kk.id::bigint and rd.name = kk.name
                     ) as temp
                     where roundabout is null                    
@@ -285,14 +285,14 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                         array_agg(name) as name_array,
                         array_agg(phontype) as phonetic_language_array,
                         array_agg(phoneme) as phoneme_array
-                from temp_sp_name_all_language as a
+                from temp_sp_json_name_all_language as a
                 group by id,name_kind,seq_nm
                 order by id::bigint,name_kind,seq_nm
                 """         
                
         asso_recs = self.pg.get_batch_data2(sqlcmd)
         
-        temp_file_obj = common.cache_file.open('sp_name')
+        temp_file_obj = common.cache_file.open('sp_json_name')
         for asso_rec in asso_recs:
             sign_id = asso_rec[0]
             name_kind = asso_rec[1]
@@ -305,10 +305,10 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
             temp_file_obj.write('%d\t%d\t%s\n' % (int(sign_id),int(name_kind), json_name))
         
         temp_file_obj.seek(0)
-        self.pg.copy_from2(temp_file_obj, 'temp_sp_name')
+        self.pg.copy_from2(temp_file_obj, 'temp_sp_json_name')
         self.pg.commit2()
         common.cache_file.close(temp_file_obj,True)
-        self.CreateIndex2('temp_sp_name_id_idx')   
+        self.CreateIndex2('temp_sp_json_name_id_idx')   
     
 
         
@@ -322,8 +322,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
             ( 
             select  b.tnodeid, b.inlinkid, b.outlinkid, b.passlid,b.passlink_cnt,0 as direction,
                     0 as guideattr, a.namekind, a.towardname
-            from temp_sp_name as a
-            left join temp_signpost_info as b
+            from temp_sp_json_name as a
+            left join temp_signpost_uc_path_info as b
             on a.id = b.id
             order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind
             )
@@ -335,11 +335,11 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         
         
 
-    def _make_poi_towardname(self):
+    def _make_highway_building_name(self):
         
         self._make_poi_inlink()
-        self._make_towardname_name_poi()
-        self._make_temp_towardname_poi()
+        self._make_highway_building_json_name()
+        self._make_temp_towardname_highway_building()
         
         
     def _make_poi_inlink(self):
@@ -406,18 +406,18 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
    
    
         
-    def _make_towardname_name_poi(self):
+    def _make_highway_building_json_name(self):
         
-        self.log.info('make temp_towardname_name_poi...')
-        self.CreateTable2('temp_towardname_name_poi')
+        self.log.info('make highway_building_json_name...')
+        self.CreateTable2('temp_highway_building_json_name')
         self.CreateFunction2('mid_convertstring')
         
         if not component.default.multi_lang_name.MultiLangName.is_initialized():
             component.default.multi_lang_name.MultiLangName.initialize()
                           
         sqlcmd = '''
-                drop table if exists temp_towardname_name_all_language_poi;
-                create table temp_towardname_name_all_language_poi
+                drop table if exists temp_highway_building_name_all_language;
+                create table temp_highway_building_name_all_language
                 as
               (
                      select  a.poi_id,
@@ -462,7 +462,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     array_agg(phoneme) as phoneme_array
                 from 
                     (
-                        select * from temp_towardname_name_all_language_poi
+                        select * from temp_highway_building_name_all_language
                         order by poi_id::bigint, name_id::bigint, phoneme_lang                                   
                     ) as a
                 group by poi_id
@@ -470,7 +470,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                 '''                  
         asso_recs = self.pg.get_batch_data2(sqlcmd)
         
-        temp_file_obj = common.cache_file.open('towardname_name_poi')
+        temp_file_obj = common.cache_file.open('highway_building_name')
         for asso_rec in asso_recs:
             poi_id = asso_rec[0]
             json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[1], 
@@ -482,13 +482,13 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
             temp_file_obj.write('%d\t%s\n' % (int(poi_id), json_name))
         
         temp_file_obj.seek(0)
-        self.pg.copy_from2(temp_file_obj, 'temp_towardname_name_poi')
+        self.pg.copy_from2(temp_file_obj, 'temp_highway_building_json_name')
         self.pg.commit2()
         common.cache_file.close(temp_file_obj,True)
-        self.CreateIndex2('temp_towardname_name_poi_poi_id_idx') 
+        self.CreateIndex2('temp_highway_building_json_name_poi_id_idx') 
  
         
-    def _make_temp_towardname_poi(self):
+    def _make_temp_towardname_highway_building(self):
  
  
         self.log.info('make temp_towardname_poi_tbl...')
@@ -518,7 +518,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                               2 as namekind,
                               b.toward_name as toward_name           
                     from  temp_poi_inlink as a
-                    left join temp_towardname_name_poi as b
+                    left join temp_highway_building_json_name as b
                     on a.poi_id = b.poi_id
                     left join temp_poi_find as c
                     on c.poi_id::bigint = a.poi_id

@@ -3452,3 +3452,53 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION mid_get_inner_link_count() 
+  RETURNS  bigint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rowCount bigint;
+BEGIN 
+        rowCount := 0;
+
+        select count(*) into rowCount
+        from temp_caution_extend_link_tbl
+        where outlink_type = 4;
+
+    return rowCount;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_out_link_extend() 
+  RETURNS  bigint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        rec record;
+BEGIN 
+        while mid_get_inner_link_count() > 0 loop
+		for rec in
+			select *
+			from temp_caution_extend_link_tbl
+			where outlink_type = 4
+		loop
+			--raise info 'rec = %', rec;
+			insert into temp_caution_extend_link_tbl(inlinkid, nodeid, outlink, outlink_type, routelinklist, routenodelist, nxt_node)
+			select rec.inlinkid as inlinkid, rec.nodeid as nodeid, link_id as outlink, link_type as outlink_type,
+				array_append(rec.routelinklist, link_id) as routelinklist, 
+				array_append(rec.routenodelist, rec.nxt_node) as routenodelist,
+				(case when rec.nxt_node = s_node then e_node else s_node end) as nxt_node
+			from link_tbl
+			where ((rec.nxt_node = s_node and one_way_code in (1, 2)) or 
+				(rec.nxt_node = e_node and one_way_code in (1, 3))) and
+				not (rec.nxt_node = any(rec.routenodelist)) and
+				not (link_id = any(rec.routelinklist));
+
+			delete from temp_caution_extend_link_tbl where id = rec.id;
+			--exit;
+		end loop;
+        end loop;
+
+    return 0;
+END;
+$$;

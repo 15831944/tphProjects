@@ -159,7 +159,19 @@ class CCheckName_kind2_ni(platform.TestCase.CTestCase):
         
         return self.pg.getOnlyQueryResult(sqlcmd) == 0
     
+class CCheckGuideinfoNodeid_ni(platform.TestCase.CTestCase):
     
+    def _do(self):
+        
+        sqlcmd='''
+            select count(1) 
+            from rdb_guideinfo_towardname a 
+            join rdb_node b 
+            on a.node_id=b.node_id 
+            where array_upper(b.branches,1)=2 and not (a.name_attr = 1 and a.name_kind = 2)
+               '''
+        
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0 )          
     
     
     

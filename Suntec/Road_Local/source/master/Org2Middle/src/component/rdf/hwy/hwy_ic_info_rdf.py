@@ -250,7 +250,8 @@ class HwyICInfoRDF(HwyICInfo):
         '''接続情報'''
         # ## 出口
         facil = self.first_facil
-        for conn_info in self._get_conn_path_info(facil.inout):
+        node = facil.node_id
+        for conn_info in self._get_conn_path_info(node, facil.inout):
             conn_facil, path, path_type = conn_info[0:3]
             if not conn_facil:
                 pass
@@ -262,7 +263,8 @@ class HwyICInfoRDF(HwyICInfo):
         # ## 入口
         if self.second_facil:
             facil = self.second_facil
-            for conn_info in self._get_conn_path_info(facil.inout):
+            node = facil.node_id
+            for conn_info in self._get_conn_path_info(node, facil.inout):
                 conn_facil, path, path_type = conn_info[0:3]
                 hwy_conn = HwyConnInfoRDF(self, self.tile_id,
                                           facil, conn_facil,
@@ -271,7 +273,7 @@ class HwyICInfoRDF(HwyICInfo):
                 self._add_conn_info(hwy_conn)
         self.conn_count = len(self.conn_infos)
 
-    def _get_conn_path_info(self, inout=HWY_INOUT_TYPE_OUT):
+    def _get_conn_path_info(self, node, inout=HWY_INOUT_TYPE_OUT):
         path_dict = {}
         path_infos = []
         if inout == HWY_INOUT_TYPE_OUT and self.out_path_infos:
@@ -292,7 +294,7 @@ class HwyICInfoRDF(HwyICInfo):
                 else:
                     path_dict[t_node] = [path_info]
         for t_node, path_infos in path_dict.iteritems():
-            conn_facil = self._get_conn_facil(t_node, t_inout)
+            conn_facil = self._get_conn_facil(node, t_node, t_inout)
             if conn_facil:
                 for path_info in path_infos:
                     path = path_info[0]
@@ -303,20 +305,35 @@ class HwyICInfoRDF(HwyICInfo):
                 self.log.error('No Conn_Facility. s_node=%s, t_node=%s'
                               % (node_lid[0], node_lid[-1]))
 
-    def _get_conn_facil(self, node, inout):
+    def _get_conn_facil(self, s_node, t_node, inout):
         facil_cls = self.first_facil.facilcls
-        facils = self.data_mng.get_hwy_facils_by_nodeid(node,
+        facils = self.data_mng.get_hwy_facils_by_nodeid(t_node,
                                                         t_facilcls=facil_cls)
         conn_facils = []
         for facil in facils:
             if facil.inout == inout:
                 conn_facils.append(facil)
         if conn_facils:
-            if len(conn_facils) > 1:
-                self.log.error('No JCT Facility. node=%s' % node)
+            if len(set(conn_facils)) > 1:
+                r_conn_facils = self._get_conn_facil_reserve(s_node,
+                                                             conn_facils)
+                if len(set(r_conn_facils)) > 1:
+                    self.log.error('No JCT Facility. node=%s' % t_node)
+                else:
+                    return r_conn_facils[0]
             return conn_facils[0]
         else:
             return []
+
+    def _get_conn_facil_reserve(self, s_node, conn_facils):
+        rst_conn_facils = []
+        for facil in conn_facils:
+            pathes = self.data_mng.get_ic_path_info(facil)
+            for path_info in pathes:
+                path = path_info[0]
+                if s_node == path[-1]:
+                    rst_conn_facils.append(facil)
+        return rst_conn_facils
 
     def _set_toll_info(self):
         return
