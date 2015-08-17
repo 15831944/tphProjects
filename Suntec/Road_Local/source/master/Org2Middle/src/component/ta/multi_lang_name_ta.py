@@ -37,6 +37,12 @@ class MultiLangNameTa(MultiLangName):
                       left_lang_code=None,
                       right_lang_code=None
                       ):
+        if left_lang_code == 'UND':
+            left_lang_code = None
+            
+        if right_lang_code == 'UND':
+            right_lang_code = None
+            
         self.l_lang_code = left_lang_code
         self.r_lang_code = right_lang_code
         if self.l_lang_code and self.r_lang_code:

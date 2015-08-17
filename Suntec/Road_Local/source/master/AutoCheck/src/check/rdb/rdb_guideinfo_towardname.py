@@ -121,11 +121,11 @@ class CCheckToward_name(platform.TestCase.CTestCase):
               
         for row in self.pg.get_batch_data(sqlcmd):
             toward_name = row[0]
-            name_lists = json.loads(toward_name)
+            toward_name = toward_name.replace('\t','')
+            name_lists = json.loads(toward_name,'UTF-8')
             for name_list in name_lists:
                 for name in name_list:
-#                    if name.get('tts_type') == 'not_tts' and (not name.get('val')):
-                    if not name.get('val'):
+                    if name.get('val') == None or name.get('val') == '':
                         return False
         return True  
     

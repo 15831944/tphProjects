@@ -282,6 +282,14 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                 continue
             multi_name = MultiLangNameTa(link_id)
             multi_name.set_lang_code(l_lang_code, r_lang_code)
+            if multi_name.l_lang_code != multi_name.r_lang_code :
+                len_lang = len(lang_codes)
+                for i in range(len_lang):
+                    if (not lang_codes[i] or lang_codes[i]  == 'UND') and \
+                        (not sols[i] or sols[i] == 0) :
+                        self.log.warning('id=%d, namelc is None or UND, l_lang and r_lang not same! ')
+                        
+
             multi_name.set_multi_name(names,
                                       lang_codes,
                                       nametypes,

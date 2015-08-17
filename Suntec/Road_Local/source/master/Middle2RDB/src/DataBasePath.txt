@@ -1,6 +1,6 @@
 # config file of project
-db1=host='172.26.179.184' dbname='post13_NI_CHINA_CI' user='postgres' password='pset123456'
-db2=host='172.26.179.184' dbname='post13_NI_CHINA_CI' user='postgres' password='pset123456'
+db1=host='172.26.179.184' dbname='post13_NI_Sample_CI' user='postgres' password='pset123456'
+db2=host='172.26.179.184' dbname='post13_NI_Sample_CI' user='postgres' password='pset123456'
 kindcode=..\docs\kindcode_axf.xls
 sql_script=..\sql_script
 slope_data_support=false
