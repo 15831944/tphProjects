@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeatureHistoryAnalyst", "FeatureHistoryAnalyst\FeatureHistoryAnalyst.csproj", "{A4E54747-A4DC-45BB-A501-0CED8FB3793A}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "OrgDataTranslate", "OrgDataTranslate\OrgDataTranslate.pyproj", "{57D6B647-E572-41AE-9975-62052D33897A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A4E54747-A4DC-45BB-A501-0CED8FB3793A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4E54747-A4DC-45BB-A501-0CED8FB3793A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4E54747-A4DC-45BB-A501-0CED8FB3793A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4E54747-A4DC-45BB-A501-0CED8FB3793A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57D6B647-E572-41AE-9975-62052D33897A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57D6B647-E572-41AE-9975-62052D33897A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
