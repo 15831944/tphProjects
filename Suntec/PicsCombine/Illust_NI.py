@@ -1,22 +1,12 @@
 # -*- coding: cp936 -*-
 import os
 import shutil
-import psycopg2
+import struct
 import common_functions
-
-# 在四维提供的元数据里，每种分歧图所对应的文件夹名字
-typeAndNameDict = {'1':"2D(有背景)",
-                   '2':"HEG",
-                   '3':"HEG",
-                   '4':"CRPG(有背景)",
-                   '5':"CRCG",
-                   '7':"3D(有背景)"}
 
 class IllustDataGenerator(object):
     def __init__(self):
-        self.conn = psycopg2.connect(''' host='172.26.179.190' dbname='C_NIMIF_Sample_TMP'
-                                         user='postgres' password='pset123456' ''')
-        self.pgcur2 = self.conn.cursor()
+        return
          
     def makeJunctionViewIllust(self, srcDir, destDir):
         if os.path.isdir(srcDir) == False:
@@ -33,103 +23,87 @@ class IllustDataGenerator(object):
                 if(os.path.splitext(oneFile)[1].lower() == '.png'):
                     totalPngInDisk.append(os.path.join(curDir, oneFile))
         
-        self.pgcur2.execute('''select patternno, arrowno, "type", folder from org_br''')
-        rows = self.pgcur2.fetchall()
-        for row in rows:
-            patternno = row[0]
-            arrowno = row[1]
-            jv_type = row[2]
-            folder = row[3]
-            
-            bPatternIsFound = False
-            patternPngList = []
-            arrowPngList = []
-            # 根据各种城市名称，分歧点type，分歧点名字 ，patternno，arrowno等条件从.png列表里确定满足所有条件的pattern图片和arrow图片。
-            for onePng in totalPngInDisk:
-                # 不是本城市，直接pass
-                if(onePng.find(folder) == -1):
-                    continue
-                # 不是本type，直接pass
-                if(onePng.find(typeAndNameDict[jv_type]) == -1):
-                    continue
-                
-                if(onePng.find('pattern') != -1 and onePng.find(patternno) != -1):
-                    #终于找到 pattern图片了
-                    bPatternIsFound = True
-                    patternPngList.append(onePng)
-                    
-                if(onePng.find('arrow') != -1 and onePng.find(arrowno) != -1):
-                    #终于找到 arrow图片了
-                    bArrowIsFound = True
-                    arrowPngList.append(onePng)
-            
-            # 当pattern图片和arrow图片都能同时找到时，才做dat   
-            if bPatternIsFound and bArrowIsFound:
-                common_functions.ComposePicsToDat(patternPngList, destDir, 1, patternno+'_'+folder)
-                common_functions.ComposePicsToDat(arrowPngList, destDir, 1, arrowno+'_'+folder)
-                
-            if(bPatternIsFound == False):
-                print '''pattern picture cannot found: %s\%s\%s''' % (folder,typeAndNameDict[jv_type],patternno)
-            if(bArrowIsFound == False):
-                print '''arrow picture cannot found: %s\%s\%s''' % (folder,typeAndNameDict[jv_type],arrowno)
+        for onePng in totalPngInDisk:
+            oneFile = common_functions.datSegmentInfo()
+            oneFile.datInfo = common_functions.DAY_AND_NIGHT_COMMON # 中国仕向地的图片不区分白天黑夜
+            oneFile.imgPath = onePng
+            common_functions.ComposePicsToDat([oneFile], destDir, os.path.splitext(os.path.split(onePng)[1])[0])
 
-    def makeSignboardIllust(self, srcDir, destDir):
-        if os.path.isdir(srcDir) == False:
-            print "input directory not exist! " + srcDir
+    # pointlist相关
+    def pointListDatSpec(self, arrowPicPath, ptListPath, destDir):
+        if os.path.isdir(arrowPicPath) == False:
+            print "can not find directory: %s." % arrowPicPath
+            return
+        if os.path.isdir(ptListPath) == False:
+            print "can not find directory: %s." % ptListPath
             return
         if(os.path.exists(destDir) == True):
             shutil.rmtree(destDir)
         os.mkdir(destDir)
         
-        # 遍历元数据文件夹，列出四维提供的所有和signboard有关系的。png图片
-        totalPngInDisk = []
-        for curDir,dirNames,fileNames in os.walk(srcDir):
-            if curDir.lower().find("signboard") != -1:
+        arrowPicList = []
+        for curDir, subDirs, fileNames in os.walk(arrowPicPath):
+            if curDir.lower().find("arrow") != -1:
                 for oneFile in fileNames:
-                    if(os.path.splitext(oneFile)[1].lower() == '.png'):
-                        totalPngInDisk.append(os.path.join(curDir, oneFile))
-        
-        self.pgcur2.execute('''select patternno, arrowno, folder from org_signboard''')
-        rows = self.pgcur2.fetchall()
-        for row in rows:
-            patternno = row[0]
-            arrowno = row[1]
-            folder = row[2]
-            
-            bPatternIsFound = False
-            patternPngList = []
-            arrowPngList = []
-            # 根据各种城市名称，分歧点type，分歧点名字 ，patternno，arrowno等条件从.png列表里确定满足所有条件的pattern图片和arrow图片。
-            for onePng in totalPngInDisk:
-                # 不是本城市，直接pass
-                if(onePng.find(folder) == -1):
-                    continue
-                
-                if(onePng.find('pattern') != -1 and onePng.find(patternno) != -1):
-                    #终于找到 pattern图片了
-                    bPatternIsFound = True
-                    patternPngList.append(onePng)
+                    arrowPicList.append(os.path.join(curDir, oneFile))
                     
-                if(onePng.find('arrow') != -1 and onePng.find(arrowno) != -1):
-                    #终于找到 arrow图片了
-                    bArrowIsFound = True
-                    arrowPngList.append(onePng)
-            
-            # 当pattern图片和arrow图片都能同时找到时，才做dat   
-            if bPatternIsFound and bArrowIsFound:
-                common_functions.ComposePicsToDat(patternPngList, destDir, 1, patternno+'_'+folder)
-                common_functions.ComposePicsToDat(arrowPngList, destDir, 1, arrowno+'_'+folder)
-                
-            if(bPatternIsFound == False):
-                print '''pattern picture cannot found: %s\%s\%s''' % (folder, patternno)
-            if(bArrowIsFound == False):
-                print '''arrow picture cannot found: %s\%s\%s''' % (folder, arrowno)
-
-                  
+        ptListFileList = []
+        for curDir, subDirs, fileNames in os.walk(ptListPath):
+            if curDir.lower().find("pointlist") != -1:
+                for oneFile in fileNames:
+                    ptListFileList.append(os.path.join(curDir, oneFile))
+        
+        for oneArrow in arrowPicList:
+            for onePtListFile in ptListFileList:
+                name1 = os.path.split(oneArrow)[1][:-4]
+                name2 = os.path.split(onePtListFile)[1][:-8]
+                if name1 == name2: # 此箭头图找到一份属于它的pointlist。
+                    resultBuffer = ''
+                    with open(onePtListFile, 'r') as ptListIFStream: 
+                        line = ptListIFStream.readline().strip()
+                        if not line: # 读取pointlist失败，跳过。
+                            break
+                        lineSplit = line.split('\t')
+                        ptListRes = struct.pack("hh", 300, (len(lineSplit)-1)/2)
+                        for i in range(1, len(lineSplit)):
+                            ptListRes = ptListRes + struct.pack("h", int(lineSplit[i]))
+                           
+                    arrowPicLen = os.path.getsize(oneArrow)
+                    ptListLen = len(ptListRes)           
+                    resultBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, common_functions.DAY_AND_NIGHT_COMMON, 22, \
+                                               arrowPicLen, common_functions.ARROW_WITH_POINT_LIST, 22 + arrowPicLen, \
+                                               ptListLen)
+                    with open(oneArrow, 'rb') as arrowIFStream:
+                        resultBuffer = resultBuffer + arrowIFStream.read() + ptListRes
+                    
+                    with open(os.path.join(destDir, name1+'.dat'), 'wb') as oFStream:
+                        oFStream.write(resultBuffer)
+                    break # 此箭头图已找到一份属于它的pointlist，结束循环。
+        return         
             
 if __name__ == '__main__':
     datMaker = IllustDataGenerator()
-    datMaker.makeJunctionViewIllust("C:\\My\\20150504-0511_ni_spotguide\\17CY Sample data_2\\data\\GraphAndVoice",
-                                    "C:\\My\\20150504-0511_ni_spotguide\\road_dat_output")
-    datMaker.makeSignboardIllust("C:\\My\\20150504-0511_ni_spotguide\\17CY Sample data_2\\data\\GraphAndVoice",
-                                 "C:\\My\\20150504-0511_ni_spotguide\\signboard_dat_output")
+    datMaker.makeJunctionViewIllust(r"C:\Users\hexin\Desktop\20150812_ni_14Winter_pic\000.2Mainland\Mainland\3D",
+                                    r"C:\Users\hexin\Desktop\20150812_ni_14Winter_pic\000.2Mainland\Mainland\3D_dat")
+#    datMaker.pointListDatSpec(r"C:\Users\hexin\Desktop\20150812_ni_14Winter_pic\000.2Mainland_out\Mainland\3D\arrow",
+#                              r"C:\Users\hexin\Desktop\20150812_ni_14Winter_pic\000.2Mainland_out\Mainland\3D\pointlist",
+#                              r"C:\my\20150820_pointlist_dat")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

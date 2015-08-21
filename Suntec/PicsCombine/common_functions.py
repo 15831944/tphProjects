@@ -2,6 +2,49 @@
 import os
 import struct
 
+DAY_AND_NIGHT_COMMON = 0
+DAY_PATTERN = 1
+NIGHT_PATTERN = 2
+EVENING_PATTERN = 3
+ARROW_WITH_POINT_LIST = 64
+
+# dat具体格式请查看RDB_Format_NewForNavInfo_size_reduce.xls，“图片buffer数据结构”表
+# 此类描述了将压制入dat的图片/二进制数据的详细信息。
+class datSegmentInfo(object):
+    def __init__(self):
+        self.datInfo = DAY_AND_NIGHT_COMMON # 此文件的信息
+        self.imgPath = '' # 要压缩的数据
+        return
+
+# 将fileList合并成一个.dat文件并输出至destDir
+# *注意*fileList中的每个元素都必须是一个datSegmentInfo对象。
+def ComposePicsToDat(fileList, destDir, outputDatName): 
+    if os.path.isdir(destDir) == False:
+        os.mkdir(destDir)
+    
+    imageCount = len(fileList)
+    resultBuffer = struct.pack("<HH", 0xFEFE, imageCount)
+    
+    # 制作dat头信息。
+    fileLenList = []
+    for oneFile in fileList:
+        imgLen = os.path.getsize(oneFile.imgPath)
+        resultBuffer += struct.pack("<bii", oneFile.datInfo, 4+imageCount*9+sum(fileLenList), imgLen)
+        fileLenList.append(imgLen)
+    
+    # 将每个文件读入dat的数据存放块。 
+    for oneFile in fileList:
+        with open(oneFile.imgPath, 'rb') as iFStream:
+            resultBuffer += iFStream.read()
+            print oneFile.imgPath + '\n'
+
+    destFile = os.path.join(destDir, outputDatName + '.dat')
+    with open(destFile, 'wb') as oFStream:
+        oFStream.write(resultBuffer)
+    print "    ==> " + destFile
+    return
+    
+
 # 将csv文件的列名作为键，将每行内容作为值。
 # 每行数据将作成一个字典，返回字典的列表
 # srcCsvFile -> 要解析的csv文件路径 
@@ -26,51 +69,3 @@ def analyse_csv(srcCsvFile):
             record = dict(map(lambda x,y:[x,y], csvHeader,listrow))
             csvDataList.append(record)
     return csvDataList
-
-# imgList合并成一个.dat文件并输出至destDir
-# .dat 文件格式定义：
-# |         |              |4bit语言4bit黑白标识|               |             |   |
-# |2B:0xFEFE|2B:image count|1B:image info    |4B:image offset|4B:image size|...|
-# datInfo：若此值不等于0（全天），1（白天），2（黑夜），3（傍晚）时，将会根据每张图片的路径解析出白天黑夜等。
-# 若解析结束后仍无法获得合理的值，将使用0（全天）。
-def ComposePicsToDat(imgList, destDir, datInfo=1, outputDatName=''): 
-    if os.path.isdir(destDir) == False:
-        os.mkdir(destDir)
-    destFile = ''
-    if(outputDatName == ''):
-        # imgList里的所有图片理论上名字应该相同，所以可以使用第一张名字来命名dat文档。
-        imgName = os.path.split(imgList[0])[1]
-        destFile = os.path.join(destDir, os.path.splitext(imgName)[0] + '.dat')
-    else:
-        # 一些特殊情况之下，需要给dat文档进行特殊命名，例如添加后缀等等等等，特殊命名由outputDatName提供。
-        destFile = os.path.join(destDir, outputDatName + '.dat')
-    
-    imageCount = len(imgList)
-    resultBuffer = struct.pack("<HH", 0xFEFE, imageCount)
-    imageLens = []
-    for img in imgList:
-        print img
-        imgLen = os.path.getsize(img)
-        xDatInfo = datInfo
-        if (xDatInfo not in [0, 1, 2, 3]):
-            if img.lower().find("day") != -1:
-                xDatInfo = 1
-            elif img.lower().find("night") != -1:
-                xDatInfo = 2
-            else:
-                xDatInfo = 0
-        resultBuffer += struct.pack("<bii", xDatInfo, 4+imageCount*9+sum(imageLens), imgLen)
-        imageLens.append(imgLen)
-        
-    for img in imgList:
-        tempFS = open(img, 'rb')
-        resultBuffer += tempFS.read()
-        tempFS.close()
-       
-    outFS = open(destFile, 'wb')
-    outFS.write(resultBuffer)
-    outFS.close()
-    print "    ==> " + destFile
-    return
-    
-    

@@ -290,21 +290,31 @@ class GeneratorPicBinary_Here(object):
                                 nightPatternDict[oneFile] = os.path.join(curDir, oneFile).lower()
         
         # 合并pattern图
-        for dayPatternKey in dayPatternDict:
-            if dayPatternKey in nightPatternDict:
-                imageList = []
-                imageList.append(dayPatternDict[dayPatternKey])
-                imageList.append(nightPatternDict[dayPatternKey])
+        for dayPatternKey in dayPatternDict: # 对于白天图列表中的每张图片
+            if dayPatternKey in nightPatternDict: # 如果能从黑夜图列表中将其找到，将它们制作成dat。
+                fileList = []
+                oneFile = common_functions.datSegmentInfo()
+                oneFile.datInfo = common_functions.DAY_PATTERN # 这是一张白天图
+                oneFile.imgPath = dayPatternDict[dayPatternKey]
+                fileList.append(oneFile)
+                
+                oneFile = common_functions.datSegmentInfo()
+                oneFile.datInfo = common_functions.NIGHT_PATTERN # 这是一张黑夜图
+                oneFile.imgPath = nightPatternDict[dayPatternKey]
+                fileList.append(oneFile)
                 dayPatternName = os.path.splitext(os.path.split(dayPatternDict[dayPatternKey])[1])[0]
-                # dat命名式样：直接使用白天图名字命名dat
-                common_functions.ComposePicsToDat(imageList, destDir, -1, dayPatternName)
+                common_functions.ComposePicsToDat(fileList, destDir, dayPatternName) # 将这两张图合并成dat，并以白天图名字命名
                 
         # 合并arrow图
         for dayArrowKey in dayArrowDict:
+            oneFile = common_functions.datSegmentInfo()
+            oneFile.datInfo = common_functions.DAY_AND_NIGHT_COMMON # 这是一张不区分白天黑夜的箭头图
+            oneFile.imgPath = dayArrowDict[dayArrowKey]
+            
             dayArrowName = os.path.splitext(os.path.split(dayArrowDict[dayArrowKey])[1])[0]
             # dat命名式样：与spotguide_tbl表对应，删除后缀“_1”，“_2”等
             datName = dayArrowName[:-2]
-            common_functions.ComposePicsToDat([dayArrowDict[dayArrowKey]], destDir, 0, datName)
+            common_functions.ComposePicsToDat([oneFile], destDir, datName)
         return
 
     # srcDir：gjv图的根目录
@@ -344,18 +354,27 @@ class GeneratorPicBinary_Here(object):
         # 合并pattern图
         for dayPatternKey in dayPatternDict:
             if dayPatternKey in nightPatternDict:
-                imageList = []
-                imageList.append(dayPatternDict[dayPatternKey])
-                imageList.append(nightPatternDict[dayPatternKey])
+                fileList = []
+                oneFile = common_functions.datSegmentInfo()
+                oneFile.datInfo = common_functions.DAY_PATTERN # 这是一张白天图
+                oneFile.imgPath = dayPatternDict[dayPatternKey]
+                fileList.append(oneFile)
+                
+                oneFile = common_functions.datSegmentInfo()
+                oneFile.datInfo = common_functions.NIGHT_PATTERN # 这是一张黑夜图
+                oneFile.imgPath = nightPatternDict[dayPatternKey]
+                fileList.append(oneFile)
                 dayPatternName = os.path.splitext(os.path.split(dayPatternDict[dayPatternKey])[1])[0]
-                # dat命名式样：直接使用白天pattern图名字命名dat
-                common_functions.ComposePicsToDat(imageList, destDir, -1, dayPatternName)
+                common_functions.ComposePicsToDat(fileList, destDir, dayPatternName) # 将这两张图合并成dat，并以白天图名字命名
                 
         # 合并arrow图
         for dayArrowKey in dayArrowDict:
+            oneFile = common_functions.datSegmentInfo()
+            oneFile.datInfo = common_functions.DAY_AND_NIGHT_COMMON # 这是一张不区分白天黑夜的箭头图
+            oneFile.imgPath = dayArrowDict[dayArrowKey]
             dayArrowName = os.path.splitext(os.path.split(dayArrowDict[dayArrowKey])[1])[0]
             # dat命名式样：直接使用白天arrow图名字命名dat
-            common_functions.ComposePicsToDat([dayArrowDict[dayArrowKey]], destDir, 0, dayArrowName)
+            common_functions.ComposePicsToDat([oneFile], destDir, dayArrowName)
         return
     
     # 作用1：生成sign_as_real.csv
@@ -401,7 +420,10 @@ class GeneratorPicBinary_Here(object):
         for signpost in signpostList:
             for sarPng in sarPngList:
                 if sarPng.lower().find(os.path.splitext(signpost)[0].lower()) != -1:
-                    common_functions.ComposePicsToDat([sarPng], destDir)
+                    oneFile = common_functions.datSegmentInfo()
+                    oneFile.datInfo = common_functions.DAY_AND_NIGHT_COMMON # 这是一张不区分白天黑夜的signpost图
+                    oneFile.imgPath = sarPng
+                    common_functions.ComposePicsToDat([oneFile], destDir, )
         oFStream.close()
         return
 
@@ -444,21 +466,21 @@ class GeneratorPicBinary_Here_Checker(object):
 if __name__ == '__main__':
     test = GeneratorPicBinary_Here()
     test_checker = GeneratorPicBinary_Here_Checker()
-    test.composeSarToArrow(r"C:\My\20150528_bra_arg_pic\ARG\2DJ_ARGENTINA_14Q4_svgout",
-                           r"C:\My\20150528_bra_arg_pic\ARG\2DS_ARGENTINA_14Q4_svgout",
-                           r"C:\My\20150528_bra_arg_pic\ARG\2DS_ARGENTINA_14Q4",
-                           r"C:\My\20150528_bra_arg_pic\ARG\2DJ_ARGENTINA_14Q4_svgout_withsar",
-                           r"C:\My\20150528_bra_arg_pic\ARG\illust\all_sar_files_name.csv")
+#    test.composeSarToArrow(r"C:\My\20150528_bra_14Q4_pic\2DJ_BRAZIL_14Q4_svgout",
+#                           r"C:\My\20150528_bra_14Q4_pic\2DS_BRAZIL_14Q4_svgout",
+#                           r"C:\My\20150528_bra_14Q4_pic\2DS_BRAZIL_14Q4",
+#                           r"C:\My\20150528_bra_14Q4_pic\2DJ_BRAZIL_14Q4_svgout_withsar",
+#                           r"C:\My\20150528_bra_14Q4_pic\illust\all_sar_files_name.csv")
 #    test_checker.composeSarToArrow_check(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA")
     
-#    test.makeEjvDat(r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DJ_ARGENTINA_14Q4_svgout_with_sar", 
-#                    r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DJ_ARGENTINA_14Q4_svgout_with_sar_dat")
-#    test.makeGjvDat(r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DGJ_ARGENTINA_14Q4_svgout", 
-#                    r"C:\My\20150528_here_autocheck_bug\ARG_20150730_fix_dn_bug\2DGJ_ARGENTINA_14Q4_svgout_dat")
-#    test.make_sign_as_real_csv(r"C:\My\20150514_mea_2014Q4_pic\2DS_2014Q4_MEA_svgout", 
-#                               r"C:\My\20150514_mea_2014Q4_pic\illust\all_jv.csv",
-#                               r"C:\My\20150514_mea_2014Q4_pic\illust\pic\sign",
-#                               r"C:\My\20150514_mea_2014Q4_pic\illust\sign_as_real.csv")
+    test.makeEjvDat(r"C:\My\20150528_bra_14Q4_pic_2\2DJ_BRAZIL_14Q4_svgout_withsar", 
+                    r"C:\My\20150528_bra_14Q4_pic_2\2DJ_BRAZIL_14Q4_svgout_withsar_dat")
+    test.makeGjvDat(r"C:\My\20150528_bra_14Q4_pic_2\2DGJ_BRAZIL_14Q4_svgout", 
+                    r"C:\My\20150528_bra_14Q4_pic_2\2DGJ_BRAZIL_14Q4_svgout_dat")
+    test.make_sign_as_real_csv(r"C:\My\20150528_bra_14Q4_pic_2\2DS_BRAZIL_14Q4_svgout", 
+                               r"C:\My\20150528_bra_14Q4_pic_2\illust\all_jv.csv",
+                               r"C:\My\20150528_bra_14Q4_pic_2\illust\pic\sign",
+                               r"C:\My\20150528_bra_14Q4_pic_2\illust\sign_as_real.csv")
     
     
 
