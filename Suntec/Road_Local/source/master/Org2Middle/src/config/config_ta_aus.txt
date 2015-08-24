@@ -2,6 +2,7 @@
 # proj_ta
 proj_name=ta
 proj_country=aus
+text_filter={'TA_AUS':"DEFAULT:[ENG,ENA,AUE]"}
 park_flag=true
 safetyzone_flag=true
 accident_flag=true
@@ -9,5 +10,6 @@ safetyalert_flag=true
 ta_jv_sidefile=\\idata\Private\Data_Authoring\SourceData\1_Australia\Sensis\201503\aus_jv_link_org
 ta_phoneme_sidefile=\\idata\Private\Data_Authoring\SourceData\1_Australia\Sensis\201503\txt\mnvmlhp
 illust=\\idata\Private\Data_Authoring\SourceData\1_Australia\Sensis\201503\illust
+POI_Code=..\docs\poi\category_ta_aus.txt
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

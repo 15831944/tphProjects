@@ -8,7 +8,6 @@ import os
 import codecs
 
 import common.cache_file
-import component.component_base
 import component.default.multi_lang_name
 import component.default.guideinfo_building
 
@@ -21,16 +20,93 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         
     def _Do(self):
         
-        self._loadBrandIcon()
+        #self._loadBrandIcon()
         self._loadPOICategory()
-        self._loadCategoryPriority()
-        
+        self._make_poi_category_mapping()
+        self._loadCategoryPriority1() 
         self._findLogmark()
         self._makePOIName()
         self._makeLogmark()
         return 0
 
 
+    def _make_poi_category_mapping(self):
+        self.log.info('make temp_poi_category_mapping ...')
+        
+        sqlcmd = '''
+            drop table if exists temp_poi_category_mapping;
+            
+            create table temp_poi_category_mapping
+            as
+            (
+        
+               with cat1 as 
+                (
+                    select  distinct org_code, sub_category, genre_type, brand_name, per_code,filename
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category <> 0 and brand_name <> '0'
+                ),
+                cat2 as 
+                (
+                    select distinct org_code, sub_category, genre_type, brand_name, per_code,filename
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category != 0 and brand_name = '0'
+                ),
+                cat3 as 
+                (
+                    select distinct org_code, sub_category, genre_type, brand_name, per_code,filename
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category = 0 and brand_name != '0'
+                ),
+                cat4 as 
+                (
+                    select distinct org_code, sub_category, genre_type, brand_name, per_code,filename
+                    from temp_poi_category
+                    where (genre_type <> '0' or genre_type is null) and sub_category = 0 and brand_name = '0'
+                ),
+                temp_poi_all as
+                (
+                    select id, feattyp, subcat,buaname as brandname from org_mn_pi
+                    union 
+                    select id, feattyp, subcat,brandname from org_mnpoi_pi 
+                )
+                
+                select org_id1, org_id2, per_code,filename
+                from (
+                    select org_id1, org_id2, per_code, filename,row_number() over ( partition by org_id1, org_id2 order by pref ) as seq
+                    from (
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 1 as pref
+                        from temp_poi_all as p
+                        join cat1
+                        on  p.feattyp = cat1.org_code and p.subcat = cat1.sub_category and p.brandname = cat1.brand_name 
+            
+                        union 
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 2 as pref
+                        from temp_poi_all as p
+                        join cat2
+                        on  p.feattyp = cat2.org_code and p.subcat = cat2.sub_category
+            
+                        union 
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 3 as pref
+                        from temp_poi_all as p
+                        join cat3
+                        on  p.feattyp = cat3.org_code and p.brandname = cat3.brand_name
+            
+                        union 
+                        select p.id as org_id1, feattyp as org_id2, per_code,filename, 4 as pref
+                        from temp_poi_all as p
+                        join cat4
+                        on  p.feattyp = cat4.org_code
+                    ) as b 
+                ) as t
+                where seq = 1
+            )
+
+         '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_poi_category_mapping_org_id1_org_id2_idx')
+        
     
     # find poi with logmark
     def _findLogmark(self):
@@ -38,24 +114,25 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         
         self.CreateTable2('temp_mnpoi_logmark')
         sqlcmd = """ 
-              insert into temp_mnpoi_logmark
-              select omp.id, omp.feattyp, omp.subcat, omp.brandname, tpc.ucode, 
-                omp.the_geom, tpc.org_code
-                from org_mnpoi_pi omp
-                inner join temp_poi_category as tpc
-                on omp.feattyp = tpc.org_code
-                join temp_brand_icon as b
-                on b.brandname = omp.brandname 
+            insert into temp_mnpoi_logmark
+            select omp.id, omp.feattyp, b.per_code, p.category_priority, omp.the_geom
+            from org_mnpoi_pi omp
+            join temp_poi_category_mapping as b
+            on omp.id = b.org_id1 and omp.feattyp = b.org_id2
+            join temp_category_priority as p
+            on p.per_code = b.per_code
+            where b.filename is not null
 
-              union
-
-              select omp.id, omp.feattyp, omp.subcat, omp.brandname, tpc.ucode, 
-                omp.the_geom, tpc.org_code
-                from org_mnpoi_pi omp
-                inner join temp_poi_category as tpc
-                on omp.feattyp = tpc.org_code
-                join temp_category_priority as p
-                on p.u_code::bigint = tpc.ucode and p.category_priority in (1,2,4)
+            union
+            
+            select omp.id, omp.feattyp, b.per_code, p.category_priority, omp.the_geom
+            from org_mnpoi_pi omp
+            join temp_poi_category_mapping as b
+            on omp.id = b.org_id1 and omp.feattyp = b.org_id2
+            join temp_category_priority as p
+            on p.per_code = b.per_code and p.category_priority in (1,2,4)
+            
+    
         """
         self.pg.execute(sqlcmd)
         self.pg.commit2()
@@ -64,23 +141,22 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         self.CreateTable2('temp_mn_logmark')                
         sqlcmd = """ 
                 insert into temp_mn_logmark                
-                select mp.id, mp.feattyp, mp.subcat, mp.buaname, tpc.ucode, 
-                mp.the_geom, tpc.org_code
-                from org_mn_pi mp
-                inner join temp_poi_category as tpc
-                on mp.feattyp = tpc.org_code
-                join temp_brand_icon as b
-                on b.brandname = mp.buaname 
-
-             union
-
-                select mp.id, mp.feattyp, mp.subcat, mp.buaname, tpc.ucode, 
-                mp.the_geom, tpc.org_code
-                from org_mn_pi mp
-                inner join temp_poi_category as tpc
-                on mp.feattyp = tpc.org_code
+                select mp.id, mp.feattyp, b.per_code, p.category_priority, mp.the_geom
+                from org_mnpoi_pi mp
+                join temp_poi_category_mapping as b
+                on mp.id = b.org_id1 and mp.feattyp = b.org_id2
                 join temp_category_priority as p
-                on p.u_code::bigint = tpc.ucode and p.category_priority in (1,2,4)        
+                on p.per_code = b.per_code
+                where b.filename is not null
+    
+                union
+                
+                select mp.id, mp.feattyp, b.per_code, p.category_priority, mp.the_geom
+                from org_mnpoi_pi mp
+                join temp_poi_category_mapping as b
+                on mp.id = b.org_id1 and mp.feattyp = b.org_id2
+                join temp_category_priority as p
+                on p.per_code = b.per_code and p.category_priority in (1,2,4)     
                                      
                 """
         self.pg.execute(sqlcmd)
@@ -91,12 +167,12 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         self.CreateTable2('temp_poi_logmark')
         sqlcmd = '''
             insert into temp_poi_logmark
-            select id, feattyp, subcat, brandname, ucode, the_geom, org_code 
+            select id, feattyp, per_code, category_priority, the_geom
             from temp_mnpoi_logmark
             
             union
             
-            select id, feattyp, subcat, brandname, ucode, the_geom, org_code  
+            select id, feattyp, per_code, category_priority, the_geom
             from temp_mn_logmark
                        
             '''
@@ -174,16 +250,16 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                             COALESCE(pt.transcription,null) as phonetic_string                     
                     from
                     (
-                        SELECT e.ucode, e.the_geom, e.id, f.ptid, f.langcode, f.name
+                        SELECT  e.id, f.ptid, f.langcode, f.name
                         FROM
                         (
                             SELECT  d.nameitemid, c.featdsetid, c.featsectid, 
-                                    c.featlayerid, c.ucode, c.the_geom, c.id
+                                    c.featlayerid,  c.id
                             FROM                  
                             (
                                 select  b.featdsetid, b.featsectid, b.featlayerid, 
                                         b.featitemid, b.featcat, b.featclass,  
-                                        a.ucode, a.the_geom, a.id
+                                        a.id
                                 from temp_mnpoi_logmark as a
                                 left join org_poi_foa as b
                                 ON a.id = b.shapeid            
@@ -288,15 +364,14 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         sqlcmd = """
                 insert into mid_logmark(poi_id, type_code, type_code_priority, building_name, the_geom)
                 select  a.id, 
-                        a.ucode,
-                        c.category_priority,
+                        a.per_code,
+                        a.category_priority,
                         b.poi_name,
                         a.the_geom
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
                 on a.id = b.poi_id
-                join temp_category_priority as c
-                on c.u_code::bigint = a.ucode    
+          
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()

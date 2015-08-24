@@ -9,6 +9,10 @@ from component.ni.hwy.hwy_graphy_ni import HwyGraphNi
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY1
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_JCT
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_RAMP
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN1
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN2
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
@@ -138,7 +142,10 @@ class HwyGraphZenrin(HwyGraphNi):
                 # 和一般道交汇
                 if self.is_hwy_inout(temp_path, reverse):
                     yield temp_path[1:], HWY_IC_TYPE_IC
-                    continue
+                    if self.is_city_hwy_ic(temp_path, reverse):
+                        pass
+                    else:
+                        continue
                     curr_inout_flag = True
                 if len(visited) < cutoff2:
                     if self.is_virtual_jct(child, road_code,
@@ -188,6 +195,32 @@ class HwyGraphZenrin(HwyGraphNi):
             if not exist_sapa_facil:
                 print ('Exist SAPA Link, but no SAPA Facility. u=%s,v=%s'
                        % (u, v))
+
+    def is_city_hwy_ic(self, path, reverse=False):
+        '''高速和城市高速的jct、ramp、sapa相连 '''
+        if reverse:  # 逆
+            edges_iter = self.in_edges_iter(path[-1], True)
+            # in_edge = (path[-1], path[-2])
+        else:  # 顺
+            edges_iter = self.out_edges_iter(path[-1], True)
+            # in_edge = (path[-2], path[-1])
+        for temp_u, temp_v, data in edges_iter:
+            if reverse:  # 逆
+                temp_path = path + [temp_u]
+            else:  # 顺
+                temp_path = path + [temp_v]
+            # 规制
+            if not self.check_regulation(temp_path, reverse):
+                continue
+            road_type = data.get(HWY_ROAD_TYPE)
+            link_type = data.get(HWY_LINK_TYPE)
+            #与城市高速的JCT/RAMP/SAPA相连
+            if(road_type == HWY_ROAD_TYPE_HWY1 and
+               link_type in (HWY_LINK_TYPE_JCT,
+                             HWY_LINK_TYPE_RAMP,
+                             HWY_LINK_TYPE_SAPA)):
+                return True
+        return False
 
     def get_uturns(self, path, road_code,
                    code_field=HWY_ROAD_CODE, reverse=False):

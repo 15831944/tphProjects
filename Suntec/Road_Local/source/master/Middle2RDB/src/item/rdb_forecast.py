@@ -218,10 +218,10 @@ class rdb_forecast_aus(ItemBase):
             (
               link_id bigint,
               dir smallint,
-              free_time smallint,
-              weekday_time smallint,
-              weekend_time smallint,
-              average_time smallint,
+              free_time int,
+              weekday_time int,
+              weekend_time int,
+              average_time int,
               time_slot_array smallint[],
               weekday_diff_array smallint[],
               weekend_diff_array smallint[]
@@ -439,10 +439,10 @@ class rdb_forecast_aus(ItemBase):
             (
               link_id bigint,
               dir smallint,
-              free_time smallint,
-              weekday_time smallint,
-              weekend_time smallint,
-              average_time smallint,
+              free_time int,
+              weekday_time int,
+              weekend_time int,
+              average_time int,
               time_slot_array smallint[],
               weekday_diff_array smallint[],
               weekend_diff_array smallint[]
@@ -699,10 +699,10 @@ class rdb_forecast_aus(ItemBase):
             (
               link_id bigint,
               dir smallint,
-              free_time smallint,
-              weekday_time smallint,
-              weekend_time smallint,
-              average_time smallint,
+              free_time int,
+              weekday_time int,
+              weekend_time int,
+              average_time int,
               time_slot_array smallint[],
               weekday_diff_array smallint[],
               weekend_diff_array smallint[]
@@ -918,10 +918,10 @@ class rdb_forecast_aus(ItemBase):
             (
               link_id bigint,
               dir smallint,
-              free_time smallint,
-              weekday_time smallint,
-              weekend_time smallint,
-              average_time smallint,
+              free_time int,
+              weekday_time int,
+              weekend_time int,
+              average_time int,
               time_slot_array smallint[],
               weekday_diff_array smallint[],
               weekend_diff_array smallint[]

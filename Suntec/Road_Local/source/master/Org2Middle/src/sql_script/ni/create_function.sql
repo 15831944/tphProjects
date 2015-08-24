@@ -938,7 +938,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_cnv_shield_ni(route_kind character varying, name character varying)
+CREATE OR REPLACE FUNCTION mid_cnv_shield_ni(folder character varying, route_kind character varying, name character varying)
   RETURNS character varying 
   LANGUAGE plpgsql
   AS $$ 
@@ -946,7 +946,8 @@ CREATE OR REPLACE FUNCTION mid_cnv_shield_ni(route_kind character varying, name 
 	shield character varying;
 BEGIN
 	
- 	IF route_kind = '1' then shield := '5100';
+ 	IF route_kind = '1' and lower(folder) = 'xianggang' then shield := '4151';
+	ELSIF route_kind = '1' then shield := '5100';
 	ELSIF route_kind = '2' then shield := '5101';
 	ELSIF route_kind = '3' then shield := '5102'; 		
 	ELSIF route_kind = '4' then shield := '5103'; 
@@ -1316,9 +1317,9 @@ BEGIN
 			select array[b.link_id, c.link_id] as linkid_array, array[a.node_id] as nodeid_array
 			from temp_node_nation_boundary as a
 			inner join link_tbl as b
-				on ((a.node_id = b.s_node) and b.one_way in (1,3)) or ((a.node_id = b.e_node) and b.one_way in (1,2))
+				on ((a.node_id = b.s_node) and b.one_way_code in (1,3)) or ((a.node_id = b.e_node) and b.one_way_code in (1,2))
 			inner join link_tbl as c 
-				on ((a.node_id = c.ref_node_id) and c.one_way in (1,2)) or ((a.node_id = c.nonref_node_id) and c.one_way in (1,3))
+				on ((a.node_id = c.s_node) and c.one_way_code in (1,2)) or ((a.node_id = c.e_node) and c.one_way_code in (1,3))
 			where b.iso_country_code != c.iso_country_code
 		) as t
 		order by linkid_array, nodeid_array asc

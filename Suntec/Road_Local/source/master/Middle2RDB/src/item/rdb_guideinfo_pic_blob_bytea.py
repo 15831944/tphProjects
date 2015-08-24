@@ -7,7 +7,6 @@ Created on 2012-4-6
 
 import os
 import psycopg2
-import struct
 import shutil
 
 from base.rdb_ItemBase import ItemBase
@@ -26,20 +25,16 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         
     def Do_CreateTable(self):
         self.CreateTable2('rdb_guideinfo_pic_blob_bytea')
-        self.CreateTable2('temp_point_list')
         
         return 0
     
     def Do_CreatIndex(self):
         self.CreateIndex2('rdb_guideinfo_pic_blob_bytea_image_id_idx')
-        self.CreateIndex2('temp_point_list_image_id_idx')
         
         return 0
     
     def Do(self):
         self.__load_illust_pic()
-        self.__load_point_list()
-        
         # 建立临时表，按data字段进行去重。
         self.prepareTempTableForDumpPics()
         return 0
@@ -56,7 +51,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                         self.__insertPic(os.path.join(curDir, oneFile))
             self.pg.commit2()
         else:
-            strLogInfo = '''illust "%s" is not a directory, skipped loading point list.''' % picroot
+            strLogInfo = '''illust "%s" is not a directory, skipped loading illust.''' % picroot
             rdb_log.log(self.ItemName, strLogInfo , 'info')
         
         rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea end.', 'info')
@@ -76,41 +71,6 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
             return -1
         return 0
     
-    def __load_point_list(self):
-        rdb_log.log(self.ItemName, 'Inserting record to temp_point_list...', 'info')
-        
-        pointListPath = rdb_common.GetPath('pointlist')
-        if os.path.isdir(pointListPath) == False:
-            strLogInfo = '''pointlist "%s" is not a directory, skipped loading point list.''' % pointListPath
-            rdb_log.log(self.ItemName, strLogInfo , 'info')
-            return
-        
-        sqlcmd = """
-                    update rdb_guideinfo_pic_blob_bytea 
-                    set point_list=%s 
-                    where image_id=%s;
-                 """
-        for curDir, dirNames, fileNames in os.walk(pointListPath):
-            for oneFile in fileNames:
-                if oneFile[-8:].lower() == ".png.txt": # pointlist文件命名严格遵守以".png.txt"结尾。
-                    filePath = os.path.join(curDir, oneFile)
-                    with open(filePath, 'r') as iFStream: 
-                        line = iFStream.readline().strip()
-                        if not line:
-                            rdb_log.log(self.ItemName, '''load point from file %s failed.'''% filePath, 'error')
-                            continue
-                        if line:
-                            lineSplit = line.split('\t')
-                            res = struct.pack("hhh", 300, 30, len(lineSplit)-1)
-                            ptName = lineSplit[0][:-4] # pointlist名字即为arrow图名字。
-                            for i in range(1, len(lineSplit)):
-                                res = res + struct.pack("h", int(lineSplit[i]))
-                                
-                            if self.pg.execute(sqlcmd, (psycopg2.Binary(res), ptName)) == -1:
-                                rdb_log.log(self.ItemName, '''load point from file %s failed.'''% filePath, 'error')
-        self.pg.commit2()
-        rdb_log.log(self.ItemName, 'insert record to temp_point_list end.', 'info')
-    
     # 图片去重操作
     def prepareTempTableForDumpPics(self):
         self.CreateTable2('temp_guideinfo_pic_blob_id_mapping')
@@ -121,8 +81,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                     select distinct a.gid
                     from rdb_guideinfo_pic_blob_bytea as a
                     inner join rdb_guideinfo_pic_blob_bytea as b
-                    on a.gid > b.gid and a.image_id = b.image_id and 
-                       a.data = b.data and a.point_list = b.point_list
+                    on a.gid > b.gid and a.image_id = b.image_id and a.data = b.data
                 )as b
                 where a.gid = b.gid;
                 analyze rdb_guideinfo_pic_blob_bytea;
@@ -136,9 +95,9 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                     (
                         select *
                         from rdb_guideinfo_pic_blob_bytea 
-                        order by data, point_list, gid
+                        order by data, gid
                     )as t
-                    group by data, point_list
+                    group by data 
                 ) as c;
                 
                 drop index if exists temp_guideinfo_pic_blob_id_mapping_image_id_idx;

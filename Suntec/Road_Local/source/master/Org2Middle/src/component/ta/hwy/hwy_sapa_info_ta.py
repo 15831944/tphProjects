@@ -71,18 +71,17 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
                                    chain_id, chain_name, language_code)
         (
-        SELECT distinct ucode, a.feattyp as cat, a.subcat,
+        SELECT distinct per_code, a.feattyp as cat, a.subcat,
                         '' as store_chain_id, a.brandname, lancd
           FROM (
-            SELECT distinct feattyp, subcat,
+            SELECT distinct id, feattyp, subcat,
                     brandname, lancd
               FROM org_mnpoi_pi
               WHERE brandname is not null and  brandname <> ''
           ) AS a
-          LEFT JOIN temp_poi_logmark as b
-          ON a.feattyp = b.feattyp
-             and a.subcat = b.subcat
-             and a.brandname = b.brandname
+          LEFT JOIN temp_poi_category_mapping as b
+          ON a.id = b.org_id1
+          WHERE per_code IS NOT NULL
         );
         """
         self.pg.execute2(slqcmd)

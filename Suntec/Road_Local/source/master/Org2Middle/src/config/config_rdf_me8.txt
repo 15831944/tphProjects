@@ -1,6 +1,7 @@
 #################################################################
 # proj_rdf
 jv_flag=by_file
+text_filter={'RDF_ME8':"LBN:[FRE,ARA,ENG,GFA,UKE]||DEFAULT:[ARA,ENG,GFA,UKE]"}
 gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_Asia\MEA8\Here\14Q4\illust\gjv.csv
 ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_Asia\MEA8\Here\14Q4\illust\all_jv.csv
 strInterestCountryList=ARE,BHR,KWT,OMN,QAT,SAU
@@ -8,7 +9,7 @@ sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\MEA8\Here\14Q
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\MEA8\Here\14Q4\force_guide_patch\temp_patch_force_guide_tbl.csv
 all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\1_Asia\MEA8\Here\14Q4\illust\all_sar_files_name.csv
-POI_Code=..\docs\poi\category_icon_me8.txt
+POI_Code=..\docs\poi\category_rdf_me8.txt
 illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\MEA8\Here\14Q4\illust\pic
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

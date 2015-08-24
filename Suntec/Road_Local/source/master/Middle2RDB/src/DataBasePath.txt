@@ -1,6 +1,6 @@
 # config file of project
-db1=host='172.26.179.184' dbname='post13_NI_Sample_CI' user='postgres' password='pset123456'
-db2=host='172.26.179.184' dbname='post13_NI_Sample_CI' user='postgres' password='pset123456'
+db1=host='172.26.179.190' dbname='17cy_ARG_RDF_2014Q4_CI' user='postgres' password='pset123456'
+db2=host='172.26.179.190' dbname='17cy_ARG_RDF_2014Q4_CI' user='postgres' password='pset123456'
 kindcode=..\docs\kindcode_axf.xls
 sql_script=..\sql_script
 slope_data_support=false
@@ -11,9 +11,9 @@ resore_paras=C:\progra~2\PostgreSQL\9.0\bin\pg_restore.exe --ignore-version --ho
 # if set this option, content of file(/cache/get_id_fund.bat) must be set too.
 #get_id_fund_batch=D:\workspace\WebGis\proj\Source_Branch\incremental_updating\Middle2RDB\src\cache\get_id_fund.bat
 
-illust=D:\workspace\WebGis\proj\SourceData\nostra\201307\illust
-#pointlist=..\..\SourceData\axf\pictures
-proj_name=ni
-proj_country=chn
+proj_name=rdf
+proj_country=arg
 version=1
 illust_binary=
+
+support_same_language_one_record=True

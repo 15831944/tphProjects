@@ -1,7 +1,8 @@
 #################################################################
 # proj_ni
 temp_sql_path=.\cache\temp_sql\
-POI_Code=..\docs\poi\poi_category_ni.txt
+text_filter={'NI_CHN':"HKG:[CHT,ENG,PYT,PYM]||MAC:[CHT,POR,ENG,PYT,PYM]||DEFAULT:[CHI,ENG,PYT,PYM]"}
+POI_Code=..\docs\poi\category_ni_chn.txt
 brand_icon=..\docs\poi\brand_icon_list_ni.txt
 #admin_pic=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_pic.txt
 #admin_wav=\\idata\Private\Data_Authoring\SourceData\NI\caution\admin_wav.txt
@@ -11,6 +12,6 @@ trfcsign_type2data_kind=..\docs\caution\trfcsign_type2data_kind.txt
 #forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\NI\force_guide_patch\temp_patch_force_guide_tbl.csv
 category_priority=..\docs\poi\category_priority_ni.txt
 
-illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\CHN\NI\14Winter\Sample\illust
-pointlist=\\idata\Private\Data_Authoring\SourceData\1_Asia\CHN\NI\14Winter\Sample\illust\pointlist
+illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\CHN\NI\14Winter\China\illust
+pointlist=\\idata\Private\Data_Authoring\SourceData\1_Asia\CHN\NI\14Winter\China\illust\pointlist
 #################################################################

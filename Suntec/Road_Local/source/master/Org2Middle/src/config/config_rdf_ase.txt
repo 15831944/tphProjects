@@ -1,9 +1,10 @@
 #################################################################
 # proj_rdf
 jv_flag=by_file
+text_filter={'RDF_ASE':"THA:[THA,THE]||SGP:[ENG,SEN]||MYS:[MAY]||IDN:[IND]||BRN:[MAY]||PHL:[ENG]||VNM:[VIE,VIX,ENG]||DEFAULT:[ENG]"}
 gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\gjv.csv
 ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\all_jv.csv
-strInterestCountryList=SGP,THA,MYS,IDN,VNM,PHL
+strInterestCountryList=SGP,THA,MYS,IDN,VNM,PHL,BRN
 sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\forceguide_patch\temp_patch_force_guide_tbl.csv

@@ -1,6 +1,7 @@
 #################################################################
 # proj_india
 mdb_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\IND\MMI\14Q4\mdb
+text_filter={'MMI_IND':"DEFAULT:[ENG]"}
 temp_sql_path=.\cache\temp_sql\
 POI_Code=..\docs\poi\category_mmi.txt
 brand_icon=..\docs\poi\brand_icon_list_mmi.txt

@@ -95,6 +95,7 @@ class search_road():
                 select * from link_tbl 
                 where link_id = %d and %s
                 '''
+        #print sqlcmd%(link_id,self.errc)
         self.pg.execute(sqlcmd%(link_id,self.errc))
         results=self.pg.fetchall2()
         if len(results)==1:
@@ -135,6 +136,8 @@ class search_road():
                 path['endflag']=1
             if self.is_end_path(path['path'][-1]):
                 path['endflag']=2
+            if self.is_error_path(path['path'][-1]):
+                path['endflag']=3
             for result in results[1:]:
                 newpath=copy.deepcopy(tmp_path)
                 newpath['path'].append(result[0])

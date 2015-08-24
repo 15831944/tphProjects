@@ -18,9 +18,13 @@ class comp_factory(object):
 
     def CreateOneComponent(self, comp_name):
         
-        if comp_name == 'Ramp':
+        if comp_name == 'Ramp_RoadTypeFC':
             from component.default import ramp_roadtype
             return ramp_roadtype.comp_ramp_roadtype()
+        
+        if comp_name == 'Ramp_DisplayClass':
+            from component.default import ramp_dispclass
+            return ramp_dispclass.comp_ramp_dispclass()
 
         if comp_name == 'Link_Split':
             from component.default import link_split
@@ -909,10 +913,10 @@ class comp_factory_ni(comp_factory):
         if comp_name == 'Guideinfo_Lane':
             from component.ni.guideinfo_lane_ni import comp_guideinfo_lane_ni
             return comp_guideinfo_lane_ni()  
-
-        if comp_name == 'Guideinfo_signpost_uc':
-            from component.ni.Guideinfo_signpost_uc_ni import comp_Guideinfo_signpost_uc_ni
-            return comp_Guideinfo_signpost_uc_ni()
+#17CY中国仕向地signpost_uc数据转移至towardname中
+#        if comp_name == 'guideinfo_signpost_uc':
+#            from component.ni.Guideinfo_signpost_uc_ni import comp_Guideinfo_signpost_uc_ni
+#            return comp_Guideinfo_signpost_uc_ni()
         if comp_name == 'Admin':
             from component.ni.admin_ni import comp_admin_ni
             return comp_admin_ni()

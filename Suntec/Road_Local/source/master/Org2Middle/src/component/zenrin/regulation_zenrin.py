@@ -27,6 +27,9 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         self.__convert_regulation_linkrow()
         self.__make_linklist_for_linkdir()
         
+        self.__convert_regulation_roundabout()
+        self.__update_regualtion_roundabout()
+        
         return 0
     
     def __convert_condition_table(self):
@@ -174,7 +177,101 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         self.CreateTable2('temp_link_regulation_permit_traffic')
         
         self.log.info('End make linklist for linkdir.')
+
+    def __convert_regulation_roundabout(self):
         
+        self.log.info('Begin make right turn linklist for double roundabout...')
+        
+        #=======================================================================
+        # 《双重环岛处理》
+        # 处理原则：使用<Link序列优先通行>规制
+        # 处理方法：慢车道右转至快车道/慢车道，只能走双重环岛外圈,不能走内圈
+        #    PS：其他情况下（直行/左转）均走双重环岛内圈，此处不作成
+        #=======================================================================
+        
+        self.CreateIndex2('org_road_elcode_idx')
+        
+        # Merge roundabout links.
+        self.CreateTable2('temp_roundabout_circle')
+        # double circle roundabout geometry.
+        self.CreateTable2('temp_roundabout_doublecircle')
+        # double-circle roundabout links.
+        self.CreateTable2('temp_roundabout_doublecircle_links')
+        
+        self.CreateIndex2('org_fastlane_info_meshcode_linkno_idx')
+        
+        # In links.
+        self.CreateTable2('temp_roundabout_doublecircle_inlink')        
+        # Out links.
+        self.CreateTable2('temp_roundabout_doublecircle_outlink')
+        # Connect links between in-link and out-link.
+        self.CreateTable2('temp_roundabout_doublecircle_connect_links')        
+        
+        # Get angles between in-link and out-link.
+        self.CreateFunction2('zenrin_cal_doubleroundabout_angle')
+        # Get paths between in-link and out-link.
+        self.CreateFunction2('zenrin_cal_doubleroundabout_path')
+        # Get position of out-link.
+        self.CreateFunction2('cal_point_line_side')
+
+        # Create regulation_id sequence for paths.
+        sqlcmd = '''
+            drop sequence if exists temp_regulation_id_seq;
+            create sequence temp_regulation_id_seq;
+            select setval('temp_regulation_id_seq', cast(max_id as int))
+            from
+            (
+                select max(regulation_id) as max_id
+                from regulation_relation_tbl
+            )as a;
+               '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                
+        # Get paths.
+        self.CreateTable2('temp_roundabout_doublecircle_paths')
+                
+        self.log.info('End make right turn linklist for double roundabout.')
+
+    def __update_regualtion_roundabout(self):
+        
+        self.log.info('Begin update regulation table for double roundabout...')
+        
+        # Insert into regulation_relation_tbl.
+        sqlcmd = '''
+            insert into regulation_relation_tbl(regulation_id, nodeid, inlinkid, outlinkid, condtype)
+            select id,in_node,in_link,out_link,12
+            from temp_roundabout_doublecircle_paths;
+               '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        # Insert into regulation_item_tbl.
+        sqlcmd = '''
+            insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+            select * from (
+                select id,null as link_id,in_node as node_id,2 as seq
+                from temp_roundabout_doublecircle_paths
+                union
+                select id,link_id::bigint,null as node_id
+                    ,case when seq = 1 then seq
+                        else seq + 1
+                    end as seq
+                from (
+                    select id,unnest(path) as link_id,generate_series(1,num) as seq
+                    from (
+                        select id,string_to_array(path,'|') as path,array_upper(string_to_array(path,'|'),1) as num
+                        from temp_roundabout_doublecircle_paths
+                    ) a
+                ) b
+            ) c
+            order by id,seq
+               '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+                
+        self.log.info('End update regulation table for double roundabout.')
+                        
     def _DoCheckLogic(self):
         self.log.info('Check regulation...')
         

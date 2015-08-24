@@ -240,7 +240,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                          
                     union
                        
-                    SELECT   a.id, 3 as name_kind, b.language, b.nameflag, b.seq_nm, mid_cnv_shield_ni(b.signnumflg, b.name) as name, 
+                    SELECT   a.id, 3 as name_kind, b.language, b.nameflag, b.seq_nm, mid_cnv_shield_ni(a.folder,b.signnumflg, b.name) as name, 
                              --null as phoneme, null as phontype
                     c.name as phoneme, c.phontype
                     FROM org_ic as a
@@ -253,7 +253,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     
                     union 
                     
-                    SELECT  a.id,3 as name_kind,b.language,b.nameflag,b.seq_nm, mid_cnv_shield_ni(b.signnumflg, b.name) as name,  
+                    SELECT  a.id,3 as name_kind,b.language,b.nameflag,b.seq_nm, mid_cnv_shield_ni(a.folder,b.signnumflg, b.name) as name,  
                            -- null as phoneme, null as phontype
                     c.name as phoneme, c.phontype
                     FROM org_dr as a

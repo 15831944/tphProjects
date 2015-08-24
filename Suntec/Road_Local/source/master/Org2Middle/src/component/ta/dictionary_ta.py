@@ -521,7 +521,7 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                           where "name" is not null
                           GROUP BY id, nametyp, namelc, "name", feattyp
                   ) as b
-                  order by id, nametyp, min_gid
+                  order by id, nametyp DESC, min_gid
           ) AS an
           GROUP BY id;
         """

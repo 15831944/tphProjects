@@ -63,7 +63,7 @@ class comp_link_zenrin(component.component_base.comp_base):
         from
         (
             select a.link_id,
-            'CHN' as iso_country_code,
+            'TWN' as iso_country_code,
             h.node_id as s_node,
             i.node_id as e_node,
             zenrin_cnv_disp_class(elcode) as display_class,
@@ -124,7 +124,7 @@ class comp_link_zenrin(component.component_base.comp_base):
             st_geometryn(a.the_geom_4326,1) as the_geom_4326
             from (
                 select gid, meshcode, elcode, linkno, snodeno, enodeno, 
-                            case when substr(elcode,3,1)='6' or substr(elcode,3,1)='7' or oneway=2 then 4
+                            case when substr(elcode,3,1)='6' or substr(elcode,3,1)='7' or substr(elcode,2,1)='C' or substr(elcode,1,1)='A' or oneway=2 then 4
                                  when oneway=1 then 2
                                  when oneway=3 then 3
                                  when oneway=0 then 1

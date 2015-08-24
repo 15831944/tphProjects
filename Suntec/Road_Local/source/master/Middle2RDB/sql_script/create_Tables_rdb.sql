@@ -2140,10 +2140,10 @@ CREATE TABLE rdb_forecast_link
   link_id bigint,
   link_id_t integer,
   dir smallint,
-  free_time smallint,
-  weekday_time smallint,
-  weekend_time smallint,
-  average_time smallint,
+  free_time int,
+  weekday_time int,
+  weekend_time int,
+  average_time int,
   info_id integer default 0,
   type smallint
 );

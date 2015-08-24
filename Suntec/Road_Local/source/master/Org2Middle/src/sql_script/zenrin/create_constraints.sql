@@ -19,6 +19,11 @@ CREATE INDEX org_road_meshcode_linkno_idx
   USING btree
   (meshcode,linkno);
 
+CREATE INDEX org_road_elcode_idx
+  ON org_road
+  USING btree
+  (elcode);
+  
 CREATE INDEX org_underpass_meshcode_linkno_idx
   ON org_underpass
   USING btree
@@ -166,3 +171,14 @@ CREATE UNIQUE INDEX mid_hwy_org_facility_node_path_id_facility_id_node_id_idx
   ON mid_hwy_org_facility_node
   USING btree
   (path_id, facility_id, node_id);
+  
+CREATE INDEX temp_poi_category_mapping_org_id1_idx
+  ON temp_poi_category_mapping
+  USING btree
+  (org_id1);
+
+CREATE INDEX org_fastlane_info_meshcode_linkno_idx
+  ON org_fastlane_info
+  USING btree
+  (meshcode, linkno);  
+  

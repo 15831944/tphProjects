@@ -1860,42 +1860,56 @@ CREATE OR REPLACE FUNCTION rdb_get_proxy_xy_advice(
   LANGUAGE plpgsql
 AS $$
 DECLARE
-	nSubCount			integer;
-	nSubIndex			integer;
+	nSubIndexForward			integer;
+	nSubIndexBackward			integer;
 BEGIN
-	nSubIndex	:= sub_index - 1;
-	while nSubIndex > 0 loop
-		if x_must is null and sub_tx_array[nSubIndex] != sub_tx_array[sub_index] then
-			x_must			:= st_x(st_endpoint(sub_geom_array[nSubIndex]));
+	-- search backward
+	-- if tile of the backward sublinks is different, proxy point must be on the tile border.
+	nSubIndexBackward	:= sub_index - 1;
+	while nSubIndexBackward > 0 loop
+		if x_must is null and sub_tx_array[nSubIndexBackward] != sub_tx_array[sub_index] then
+			x_must			:= st_x(st_endpoint(sub_geom_array[nSubIndexBackward]));
 		end if;
-		if y_must is null and sub_ty_array[nSubIndex] != sub_ty_array[sub_index] then
-			y_must			:= st_y(st_endpoint(sub_geom_array[nSubIndex]));
+		if y_must is null and sub_ty_array[nSubIndexBackward] != sub_ty_array[sub_index] then
+			y_must			:= st_y(st_endpoint(sub_geom_array[nSubIndexBackward]));
 		end if;
 			
-		if not delete_flag_array[nSubIndex] then
-			x_proxy				:= st_x(st_endpoint(sub_geom_array[nSubIndex]));
-			y_proxy				:= st_y(st_endpoint(sub_geom_array[nSubIndex]));
+		if not delete_flag_array[nSubIndexBackward] then
+			x_proxy				:= st_x(st_endpoint(sub_geom_array[nSubIndexBackward]));
+			y_proxy				:= st_y(st_endpoint(sub_geom_array[nSubIndexBackward]));
 			exit;
 		end if;
-		nSubIndex	:= nSubIndex - 1;
+		nSubIndexBackward	:= nSubIndexBackward - 1;
 	end loop;
 	
-	nSubIndex	:= sub_index + 1;
-	while nSubIndex <= sub_count loop
-		if x_must is null and sub_tx_array[nSubIndex] != sub_tx_array[sub_index] then
-			x_must			:= st_x(st_startpoint(sub_geom_array[nSubIndex]));
+	-- search forward
+	-- if tile of the forward sublinks is different, proxy point must be on the tile border.
+	nSubIndexForward	:= sub_index + 1;
+	while nSubIndexForward <= sub_count loop
+		if x_must is null and sub_tx_array[nSubIndexForward] != sub_tx_array[sub_index] then
+			x_must			:= st_x(st_startpoint(sub_geom_array[nSubIndexForward]));
 		end if;
-		if y_must is null and sub_ty_array[nSubIndex] != sub_ty_array[sub_index] then
-			y_must			:= st_y(st_startpoint(sub_geom_array[nSubIndex]));
+		if y_must is null and sub_ty_array[nSubIndexForward] != sub_ty_array[sub_index] then
+			y_must			:= st_y(st_startpoint(sub_geom_array[nSubIndexForward]));
 		end if;
 			
-		if not delete_flag_array[nSubIndex] then
-			x_proxy				:= st_x(st_startpoint(sub_geom_array[nSubIndex]));
-			y_proxy				:= st_y(st_startpoint(sub_geom_array[nSubIndex]));
+		if not delete_flag_array[nSubIndexForward] then
+			x_proxy				:= st_x(st_startpoint(sub_geom_array[nSubIndexForward]));
+			y_proxy				:= st_y(st_startpoint(sub_geom_array[nSubIndexForward]));
 			exit;
 		end if;
-		nSubIndex	:= nSubIndex + 1;
+		nSubIndexForward	:= nSubIndexForward + 1;
 	end loop;
+	
+	-- proxy point is prefered to set as the node point of link.
+	if nSubIndexBackward = 0 then
+		x_proxy				:= st_x(st_startpoint(sub_geom_array[1]));
+		y_proxy				:= st_y(st_startpoint(sub_geom_array[1]));
+	end if;
+	if nSubIndexForward > sub_count then
+		x_proxy				:= st_x(st_endpoint(sub_geom_array[sub_count]));
+		y_proxy				:= st_y(st_endpoint(sub_geom_array[sub_count]));
+	end if;
 END;
 $$;
 
@@ -2913,17 +2927,17 @@ LANGUAGE plpgsql volatile
 AS $$
 DECLARE
 BEGIN
-	return case safety_type when '1' then array['81','¤³¤ÎÏÈ¥«©`¥Ö¤¬¾A¤­¤Þ¤¹¡£¤´×¢Òâ¤¯¤À¤µ¤¤']
-		 when '4' then array['82','¤³¤³¤«¤é¤ª¤è¤½1kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when '5' then array['83','¤³¤³¤«¤é¤ª¤è¤½2kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when '6' then array['84','¤³¤³¤«¤é¤ª¤è¤½3kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when '7' then array['85','¤³¤³¤«¤é¤ª¤è¤½4kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when '8' then array['86','¤³¤³¤«¤é¤ª¤è¤½5kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when '9' then array['87','¤³¤³¤«¤é¤ª¤è¤½6kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when 'A' then array['88','¤³¤³¤«¤é¤ª¤è¤½7kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when 'B' then array['89','¤³¤³¤«¤é¤ª¤è¤½8kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when 'C' then array['90','¤³¤³¤«¤é¤ª¤è¤½9kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
-		 when 'D' then array['91','¤³¤³¤«¤é¤ª¤è¤½10kmÏÈ¤Þ¤Ç¤Ï¡¢³ä·Öß\Üž¤Ë×¢Òâ¤·¤Æ¤¯¤À¤µ¤¤']
+	return case safety_type when '1' then array['81','ï¿½ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½`ï¿½Ö¤ï¿½ï¿½Aï¿½ï¿½ï¿½Þ¤ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½â¤¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when '4' then array['82','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½1kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when '5' then array['83','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½2kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when '6' then array['84','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½3kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when '7' then array['85','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½4kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when '8' then array['86','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½5kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when '9' then array['87','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½6kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when 'A' then array['88','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½7kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when 'B' then array['89','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½8kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when 'C' then array['90','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½9kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
+		 when 'D' then array['91','ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¤ªï¿½è¤½10kmï¿½È¤Þ¤Ç¤Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½\Üžï¿½ï¿½×¢ï¿½â¤·ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½']
 		END;	
 END;
 $$;
@@ -3483,16 +3497,16 @@ BEGIN
 			where outlink_type = 4
 		loop
 			--raise info 'rec = %', rec;
-			insert into temp_caution_extend_link_tbl(inlinkid, nodeid, outlink, outlink_type, routelinklist, routenodelist, nxt_node)
-			select rec.inlinkid as inlinkid, rec.nodeid as nodeid, link_id as outlink, link_type as outlink_type,
-				array_append(rec.routelinklist, link_id) as routelinklist, 
-				array_append(rec.routenodelist, rec.nxt_node) as routenodelist,
+			insert into temp_caution_extend_link_tbl(inlinkid, nodeid, outlinkid, outlink_type, routelnklst, routenodelst, nxt_node)
+			select rec.inlinkid, rec.nodeid, link_id as outlinkid, link_type as outlink_type,
+				array_append(rec.routelnklst, link_id) as routelnklst, 
+				array_append(rec.routenodelst, rec.nxt_node) as routenodelst,
 				(case when rec.nxt_node = s_node then e_node else s_node end) as nxt_node
 			from link_tbl
 			where ((rec.nxt_node = s_node and one_way_code in (1, 2)) or 
 				(rec.nxt_node = e_node and one_way_code in (1, 3))) and
-				not (rec.nxt_node = any(rec.routenodelist)) and
-				not (link_id = any(rec.routelinklist));
+				not (rec.nxt_node = any(rec.routenodelst)) and
+				not (link_id = any(rec.routelnklst));
 
 			delete from temp_caution_extend_link_tbl where id = rec.id;
 			--exit;
@@ -3500,5 +3514,89 @@ BEGIN
         end loop;
 
     return 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_get_pass_node(node bigint, passlink_cnt smallint, passlid varchar) 
+  RETURNS  bigint[]
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        passLnkLop smallint;
+        nxt_node bigint;
+        snode bigint;
+        enode bigint;
+        node_array bigint[];
+		passLnkLst bigint[];
+BEGIN 
+	nxt_node := node;
+	node_array := array[nxt_node];
+	
+	if 0 = passlink_cnt then
+		return node_array;
+	else 
+		passLnkLst := string_to_array(passlid, '|');
+	end if;
+	
+	for passLnkLop in 1..passlink_cnt loop
+		select s_node, e_node into snode, enode
+		from link_tbl
+		where link_id = passLnkLst[passLnkLop];
+
+		if snode = nxt_node then
+			nxt_node := enode;
+		else
+			nxt_node := snode;
+		end if;
+		
+		node_array := array_append(node_array, nxt_node);
+	end loop;
+
+    return node_array;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_get_nxt_node(node bigint, outlink bigint, passlink_cnt smallint, passlid varchar) 
+  RETURNS  bigint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+        passLnkLop smallint;
+        nxt_node bigint;
+        snode bigint;
+        enode bigint;
+		passLnkLst bigint[];
+BEGIN 
+	nxt_node := node;
+	
+	if 0 != passlink_cnt then
+		passLnkLst := string_to_array(passlid, '|');
+	end if;
+	
+	-- pass link 
+	for passLnkLop in 1..passlink_cnt loop
+		select s_node, e_node into snode, enode
+		from link_tbl
+		where link_id = passLnkLst[passLnkLop];
+
+		if snode = nxt_node then
+			nxt_node := enode;
+		else
+			nxt_node := snode;
+		end if;
+	end loop;
+	
+	select s_node, e_node into snode, enode
+	from link_tbl
+	where link_id = outlink;
+	
+	-- out link
+	if snode = nxt_node then
+		nxt_node := enode;
+	else 
+		nxt_node := snode;
+	end if;
+
+    return nxt_node;
 END;
 $$;

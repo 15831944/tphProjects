@@ -2723,4 +2723,22 @@ create table temp_roundabout_road_type
 (
 	roundabout_id   integer,
 	new_road_type   smallint
-);         
+);     
+
+CREATE TABLE rdb_admin_order0_iso_country_mapping
+(
+  order0_id integer PRIMARY KEY,
+  iso_country_code character varying(10)
+);
+
+create table temp_ramp_update_dispclass
+(
+    link_id bigint,
+    display_class smallint
+);
+
+create table link_tbl_bak_dispclass
+as
+(
+	select * from link_tbl
+);

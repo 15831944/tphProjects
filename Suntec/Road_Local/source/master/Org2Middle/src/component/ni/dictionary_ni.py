@@ -150,7 +150,7 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                         else 'alter_name'
                     end as name_type
                     ,a.seq_nm
-                    ,mid_cnv_shield_ni(b.route_kind, mid_convertstring(b.pathname,1)) as name
+                    ,mid_cnv_shield_ni(b.folder, b.route_kind, mid_convertstring(b.pathname,1)) as name
                     ,b.language
                     ,case when b.language = '1' then 'CHI'
                         when b.language = '2' then 'CHT'

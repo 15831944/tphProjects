@@ -23,6 +23,7 @@ class comp_admin_ni(component.component_base.comp_base):
     def _DoCreateTable(self):
         self.CreateTable2('mid_admin_zone')
         self.CreateTable2('mid_admin_summer_time')
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
     
     def _Do(self):
         

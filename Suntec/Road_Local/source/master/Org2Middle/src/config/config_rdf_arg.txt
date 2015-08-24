@@ -2,6 +2,7 @@
 # proj_rdf
 proj_name=rdf
 proj_country=arg
+text_filter={'RDF_ARG':"DEFAULT:[SPA,ARS,ENG]"}
 jv_flag=by_file
 gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\ARG\HERE\14Q4\illust\gjv.csv
 ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\ARG\HERE\14Q4\illust\all_jv.csv

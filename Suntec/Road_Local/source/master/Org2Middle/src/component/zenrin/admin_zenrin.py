@@ -20,6 +20,11 @@ class comp_admin_zenrin(component.component_base.comp_base):
         '''
         component.component_base.comp_base.__init__(self, 'Admin')
         
+    def _DoCreateTable(self):
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
+
+        return 0
+
     def _Do(self):
         self.__do_admin_zone()
         self.__do_admin_time()

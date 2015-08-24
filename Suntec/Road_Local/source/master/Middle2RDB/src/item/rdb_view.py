@@ -68,7 +68,7 @@ class rdb_view(ItemBase):
                 DROP %S IF EXISTS rdb_region_link_layer%X_tbl_view;
                 CREATE %S rdb_region_link_layer%X_tbl_view AS 
                 select a.link_id, link_id_t, start_node_id, end_node_id, road_type, pdm_flag,one_way, 
-                   function_code, link_length, link_type, road_name, toll, bypass_flag, highcost_flag,
+                   function_code, link_length, link_type, road_name, road_name_id, toll, bypass_flag, highcost_flag,
                    regulation_exist_state, fazm_path, tazm_path, link_add_info_flag, speed_regulation_flag, 
                    lane_id, link_length_modify, link_length_unit, abs_link_id, abs_link_diff, abs_link_dir, the_geom, 
                    case when b.light_cnt is not null then b.light_cnt else 0 end as light_cnt,

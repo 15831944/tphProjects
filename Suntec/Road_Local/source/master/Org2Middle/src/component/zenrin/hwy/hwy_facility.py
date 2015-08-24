@@ -11,16 +11,14 @@ import common
 # from common import cache_file
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
 from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
+from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_INFO
-from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
-from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_TOLL
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
-from component.jdb.hwy.hwy_data_mng import HwyFacilInfo
 SEQ_IC_TYPE_IC = 1
 SEQ_IC_TYPE_JCT = 2
 SEQ_IC_TYPE_SAPA = 3
@@ -38,6 +36,7 @@ IC_PATH_TYPE_DICT = {HWY_IC_TYPE_IC: HWY_PATH_TYPE_IC,
                      HWY_IC_TYPE_TOLL: '',
                      }
 ZN_FACILITY_NONE = 9999
+
 
 class HwyFacilityZenrin(HwyFacilityRDF):
     '''生成设施情报 '''
@@ -57,44 +56,10 @@ class HwyFacilityZenrin(HwyFacilityRDF):
 
     def _make_sapa_info(self):
         #zenrin 源数据已经提供了pntname 不需要单独做sapa_name
-        self.log.info('Start make sapa info')
-        self.CreateTable1('mid_temp_hwy_sapa_info')
-        sqlcmd = '''
-        INSERT INTO mid_temp_hwy_sapa_info(road_code, updown_c,
-                                           road_seq, poi_id,
-                                           facilcls_c, sapa_name)
-        (
-           SELECT distinct road_code, updown_c,
-                  road_seq, pntid, facilcls_c, c.pntname
-            FROM
-            (
-               select distinct a.road_code, a.road_seq, a.updown_c,
-                      a.facilcls_c, a.node_id , a.inout_c, b.facility_id
-               from(
-                   select *
-                   from  mid_temp_hwy_ic_path
-                   where facilcls_c in (1,2) and
-                         link_lid is not null
-                ) as a
-               left join mid_hwy_org_facility_node as b
-               on a.road_code = b.path_id and a.node_id = b.node_id
-               order by a.road_code, a.road_seq, a.updown_c
-            ) as facility
-            RIGHT JOIN
-            (
-                select *
-                from org_highwaypoint
-                where  pnttype = 3
-            )as c
-            ON facility.road_code= c.pathid and
-               facility.facility_id = c.pntid
-            WHERE facility.road_code is not  null
-            ORDER BY road_code, updown_c
-        )
-        '''
-        self.pg.execute1(sqlcmd)
-        self.pg.commit1()
+        self.log.info('Start Make SAPA Info.')
+        self._update_sapa_facilcls()
         self.log.info('End make sapa info')
+        return 0
 
     def _make_ic_path(self):
         self.log.info('Start make IC Path.')
@@ -117,7 +82,7 @@ class HwyFacilityZenrin(HwyFacilityRDF):
             # 取得线路上所有设施
             all_facils = self._get_facils_for_path(road_code, path)
             facils_list, sapa_node_dict, service_road_list = all_facils
-            #  设置设施序号
+            # 设置设施序号
             path_road_seq_list = list()  # [{},...,{}]
             for node_index in range(0, len(facils_list)):
                 node, all_facils = facils_list[node_index]
@@ -127,9 +92,6 @@ class HwyFacilityZenrin(HwyFacilityRDF):
                                                                  node)
                 # facils_info_list:
                 # ((road_seq, facilcls, inoutc, ic_path),(),())
-                print node
-                if node == 3620050008856:
-                    pass
                 facils_info_list = self._get_facils_info(road_code,
                                                          all_facils,
                                                          temp_road_seq_dict,
@@ -194,6 +156,26 @@ class HwyFacilityZenrin(HwyFacilityRDF):
                           'road_seq_node_id_inout_c_fac_idx')
         self.log.info('End make IC Path.')
 
+    def _update_sapa_facilcls(self):
+        sqlcmd = '''
+        update mid_temp_hwy_ic_path as a set facilcls_c = 1
+           from (
+                select distinct pathid, dirflag, pointid
+                from org_sa
+                where not (gasstation = 0 and
+                      restaurant = 0 and
+                      atm = 0 and shop = 0 and
+                      souvenir = 0 and motel = 0 and
+                      children = 0 and info = 0 and
+                      other = 0)
+            )as b
+            where a.road_code = b.pathid and
+                  a.updown_c = b.dirflag and
+                  a.road_seq = b.pointid
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
     def _get_facils_sorted(self, road_code, all_facils, road_seq_dict,
                            path_road_seq_list, node_index):
         '''将源数据中facility_id按IC/JCT分割'''
@@ -232,16 +214,11 @@ class HwyFacilityZenrin(HwyFacilityRDF):
                     elif (not ic_count) and jct_count:
                         #原始facility_id有多个 且JCT路径有多条 需要保存多个值
                         if jct_count > 1:
-#                             for count in range(0, jct_count):
-#                                 if org_ic_jct_count < (count + 1):
-#                                     facility_list_jct.append(org_ic_jct[0])
-#                                 else:
-#                                     facility_list_jct.append(org_ic_jct[count])
                             if org_ic_jct_count >= jct_count:
                                 for count in range(0, jct_count):
                                     facility_list_jct.append(org_ic_jct[count])
                             else:
-                                #  self.log.error('cannot match jct')
+                                # self.log.error('cannot match jct')
                                 facility_list_jct.append(org_ic_jct[0])
                         elif jct_count == 1:
                             facility_list_jct.append(org_ic_jct[0])
@@ -420,7 +397,8 @@ class HwyFacilityZenrin(HwyFacilityRDF):
                 pass
         return ic_count, jct_count, sapa_count
 
-    def _get_prev_org_road_seq(self, road_code, path_road_seq_list, index, facilcls):
+    def _get_prev_org_road_seq(self, road_code, path_road_seq_list,
+                               index, facilcls):
         ''' '''
         if index == 0:
             return []
@@ -467,24 +445,6 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         facility_id_dict[ZN_IC_TYPE_SAPA] = sapa_list
         return facility_id_dict
 
-    def _get_ic_path_link_set(self, roadcode, node, inout,
-                              road_seqs, facilcls_cs, updown):
-        facil_name = ''
-#       updown = HWY_UPDOWN_TYPE_UP
-        link_set = set()
-        for road_seq, facilcls in zip(road_seqs, facilcls_cs):
-            if facilcls != HWY_IC_TYPE_IC:
-                continue
-            facil = HwyFacilInfo(roadcode, road_seq, facilcls,
-                                 updown, node, inout, facil_name)
-            path_infos = self.hwy_data.get_ic_path_info(facil)
-            for path_info in path_infos:
-                path_type = path_info[2]
-                if path_type == HWY_PATH_TYPE_IC:
-                    link_lid = path_info[1]
-                    link_set = link_set.union(set(link_lid))
-        return link_set
-
     def _make_facil_name(self):
         '''制作设施出口名称'''
         self.log.info('Start Make Facil Name.')
@@ -494,13 +454,7 @@ class HwyFacilityZenrin(HwyFacilityRDF):
             SELECT distinct a.road_code, a.updown_c, a.road_seq, pntname
             FROM
             (
-             select distinct road_code, updown_c, road_seq, node_id, inout_c,
-                   case
-                     when  path_type = 'IC' then 2
-                     when  path_type = 'JCT' then 2
-                     when  path_type = 'SAPA' then 3
-                     else  -1
-                   end as pnttype
+             select distinct road_code, updown_c, road_seq, node_id, inout_c
              from mid_temp_hwy_ic_path
             ) as a
             LEFT JOIN org_highwaypoint as b
@@ -528,107 +482,6 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         self.log.info('End Make Facility Name.')
         return 0
 
-    def _make_facil_name1(self):
-        '''制作设施出口名称'''
-        self.log.info('Start Make Facil Name.')
-        self.pg.connect1()
-        self.CreateTable2('mid_temp_hwy_facil_name')
-        sqlcmd = """
-         select road_code, updown_c, road_seq, inout_c,
-                node_id, pnttype, array_agg(pntname) as facil_name
-         from
-         (
-            SELECT distinct a.road_code, a.updown_c, a.road_seq,
-                   a.inout_c, a.node_id , a.pnttype, facility_id, pntname
-            FROM
-            (
-             select distinct road_code, updown_c, road_seq, node_id, inout_c,
-                   case
-                     when  path_type = 'IC' then 2
-                     when  path_type = 'JCT' then 2
-                     when  path_type = 'SAPA' then 3
-                     else  -1
-                   end as pnttype
-             from mid_temp_hwy_ic_path
-            ) as a
-            LEFT JOIN
-            (
-              select road_code, dirflag, node_id,
-                    facility_id, pnttype ,pntname
-              from mid_hwy_org_facility_node as node
-              left join road_code_info as info
-              on node.path_id = info.path_id
-              LEFT JOIN org_highwaypoint as c
-              ON node.path_id = c.pathid and
-                 node.facility_id = c.pntid and
-                 ((dirflag = 2 and c.positivefl = 1)or
-                  (dirflag = 1 and c.negativefl = 1))
-            ) as b
-            ON a.road_code = b.road_code and
-               a.node_id = b.node_id and
-               a.updown_c = b.dirflag and
-               a.pnttype = b.pnttype
-            ORDER BY road_code, updown_c, road_seq,
-                     node_id, facility_id, pnttype
-           )as facility
-           group by road_code, updown_c, road_seq, inout_c, node_id, pnttype
-           order by road_code, updown_c, road_seq, inout_c
-        """
-        for row in self.pg.get_batch_data2(sqlcmd):
-            (road_code, updown_c, road_seq, inout_c,
-             node_id, pnttype, facil_names) = row
-            if set(facil_names) == set([None]):
-                if(pnttype == ZN_IC_TYPE_SAPA and
-                   inout_c == HWY_INOUT_TYPE_IN):  # SAPA in
-                    if self._exist_sapa_out(road_code,
-                                               updown_c,
-                                               road_seq):
-                        continue
-                    else:
-                        self.log.error('only enter in SAPA')
-                elif(pnttype == ZN_IC_TYPE_IC_JCT and
-                     inout_c == HWY_INOUT_TYPE_IN):
-                    pass
-                else:
-                    facil_names = self._get_facil_name(road_code,
-                                                       updown_c,
-                                                       pnttype,
-                                                       node_id)
-            multi_name = None
-            json_name = None
-            for name in facil_names:
-                if name:
-                    temp_multi_name = MultiLangNameRDF('CHT', name)
-                    if multi_name:
-                        multi_name.add_alter(temp_multi_name)
-                    else:
-                        multi_name = temp_multi_name
-            if multi_name:
-                if facil_names.count(None) > 0:
-                    self.log.error('NULL Name in the facil_names. node=%s'
-                                   % node_id)
-                json_name = multi_name.json_format_dump()
-            if not json_name:
-                json_name = None
-            self._insert_facil_name(road_code, updown_c, road_seq, json_name)
-        self.pg.execute1(sqlcmd)
-        self.pg.commit1()
-#         self.CreateIndex2('mid_temp_hwy_facil_name_road_code_road_seq_idx')
-        self.log.info('End Make Facility Name.')
-
-    def _exist_sapa_out(self, road_code, updown_c, road_seq):
-        sqlcmd = '''
-        select *
-        from mid_temp_hwy_ic_path
-        where road_code = %s and updown_c = %s and
-              inout_c = 2 and facilcls_c in(1, 2) and road_seq = %s
-        '''
-        self.pg.execute1(sqlcmd, (road_code, updown_c, road_seq))
-        row = self.pg.fetchone()
-        if row:
-            return True
-        return False
-
     def _insert_facil_name(self, road_code, updown_c,
                            road_seq, facil_name):
         ''' '''
@@ -639,89 +492,6 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         '''
         self.pg.execute1(sqlcmd, (road_code, updown_c, road_seq, facil_name))
         return 0
-
-    def _make_hwy_node(self):
-        self.log.info('Start Make Highway Node')
-        self.CreateTable2('hwy_node')
-        sqlcmd = """
-        CREATE UNIQUE INDEX hwy_node_road_code_road_seq_node_id_idx
-          ON hwy_node
-          USING btree
-          (road_code, updown_c, road_seq, inout_c, node_id);
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        sqlcmd = """
-        SELECT distinct a.road_code , a.updown_c ,a.road_seq ,
-               a.facilcls_c, a.inout_c, 0 tollcls_c,
-               a.node_id, b.facil_name, c.the_geom
-        FROM mid_temp_hwy_ic_path as a
-        LEFT JOIN
-        (
-            select distinct road_code, updown_c,
-                   road_seq,facil_name
-            from mid_temp_hwy_facil_name
-            where facil_name is not null
-        ) as b
-        ON  a.road_code = b.road_code and
-            a.road_seq = b.road_seq and
-            a.updown_c = b.updown_c
-        LEFT JOIN node_tbl as c
-        ON a.node_id = c.node_id
-        order by a.road_code, a.updown_c, a.road_seq
-        """
-        self.pg.connect1()
-        for row in self.pg.get_batch_data2(sqlcmd):
-            (road_code, updown_c, road_seq, facilcls_c,
-             inout_c, tollcls_c, node_id, facil_name, the_geom) = row
-            param = (road_code, updown_c, road_seq,
-                     facilcls_c, inout_c, tollcls_c,
-                     node_id, facil_name, the_geom)
-
-            self._insert_hwy_node(param)
-        self.pg.commit1()
-#         self.CreateIndex2('hwy_node_the_geom_idx')
-#         self.CreateIndex2('hwy_node_road_code_road_seq'
-#                           '_facilcls_c_inout_c_node_id_idx')
-        self.log.info('End Make Highway Node')
-
-    def _insert_hwy_node(self, param):
-        sqlcmd = '''
-        INSERT INTO hwy_node(road_code, updown_c, road_seq,
-                             facilcls_c, inout_c, tollcls_c,
-                            node_id, facil_name, the_geom)
-        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        '''
-        self.pg.execute1(sqlcmd, param)
-        return 0
-
-    def _get_facil_name(self, road_code, updown, pnttype, node_id):
-        ''' '''
-        self.log.info('get facil name')
-        sqlcmd = '''
-        SELECT a.road_code, a.updown, a.node_id, a.seq_nm, c.pntname
-        FROM hwy_link_road_code_info as a
-        left join mid_hwy_org_facility_node as b
-        on a.road_code = b.path_id and a.node_id = b.node_id
-        left join org_highwaypoint as c
-        on b.path_id = c.pathid and b.facility_id = c.pntid and
-           ((b.dirflag = 1 and c.negativefl = 1)or
-            (b.dirflag = 2 and c.positivefl = 1))
-        where road_code = %s and updown = %s and pnttype = %s and
-              seq_nm < (
-                  SELECT seq_nm
-                  FROM hwy_link_road_code_info
-                  where road_code = %s and updown = %s and node_id = %s
-                  )
-        order by a.road_code, a.updown, a.seq_nm desc, a.node_id
-        '''
-        self.pg.execute1(sqlcmd, (road_code, updown, pnttype,
-                                  road_code, updown, node_id))
-        for row in self.pg.fetchall():
-            (road_code, updown, node_id, seq_nm, pntname) = row
-            if pntname:
-                return [pntname]
-        return [None]
 
     def _filter_JCT_UTurn(self):
         '''过滤假JCT/UTurn:下了高速又转弯回来的径路'''
@@ -749,53 +519,20 @@ class HwyFacilityZenrin(HwyFacilityRDF):
             order by c.road_code, b.dirflag, b.node_id
         '''
         self.pg.connect1()
+        postbox, toilet = HWY_FALSE, HWY_FALSE
         for (road_code, updown_c, road_seq,
-             info, gasstation, restaurant, atm,
-             shop, motel) in self.get_batch_data(sqlcmd):
-            gas_station = gasstation
-            information = info
-            rest_area = motel
-            shopping_coner = shop
-            postbox = 0
-            ATM = atm
-            Restaurant = restaurant
-            toilet = 0
-            parm = (gas_station, information, rest_area, shopping_coner,
+             information, gas_station, rest_area, ATM,
+             shopping_coner, Restaurant) in self.get_batch_data(sqlcmd):
+            param = (gas_station, information, rest_area, shopping_coner,
                     postbox, ATM, Restaurant, toilet)
+            if set(param) == set([HWY_FALSE]):
+                continue
             self._store_service_info(road_code, road_seq,
-                                     updown_c, parm)
+                                     updown_c, param)
         self.pg.commit1()
         self.log.info('End Make Facility Service.')
-
-    def _store_facil_path(self, road_code, road_seq, facilcls_c,
-                          inout_c, path, path_type, updown_c=1):
-        '''保存设施路径'''
-        sqlcmd = """
-        INSERT INTO mid_temp_hwy_ic_path(road_code, road_seq, updown_c,
-                                         facilcls_c, inout_c, node_id,
-                                         to_node_id, node_lid, link_lid,
-                                          path_type)
-           VALUES(%s, %s, %s,
-                  %s, %s, %s,
-                  %s, %s, %s, %s)
-        """
-        node_id = path[0]
-        to_node_id = path[-1]
-        node_lid = ','.join([str(node) for node in path])
-        if inout_c == HWY_INOUT_TYPE_OUT:
-            link_list = self.G.get_linkids(path)
-        elif inout_c == HWY_INOUT_TYPE_IN:
-            link_list = self.G.get_linkids(path, reverse=True)
-        else:
-            link_list = []
-        link_lid = ','.join([str(link) for link in link_list])
-        params = (road_code, road_seq, updown_c, facilcls_c,
-                  inout_c, node_id, to_node_id, node_lid,
-                  link_lid, path_type)
-        self.pg.execute1(sqlcmd, params)
 
     def _is_one_node(self, path):
         if len(path) == 1:
             return True
-        else:
-            return False
+        return False

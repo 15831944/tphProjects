@@ -17,7 +17,7 @@ class comp_Guideinfo_signpost_uc_ni(component.component_base.comp_base):
         '''
         Constructor 
         '''
-        component.component_base.comp_base.__init__(self, 'Guideinfo_signpost_uc')
+        component.component_base.comp_base.__init__(self, 'guideinfo_signpost_uc')
     
     def _Do(self):
 

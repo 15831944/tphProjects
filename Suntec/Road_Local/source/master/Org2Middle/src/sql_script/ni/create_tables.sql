@@ -82,10 +82,12 @@ create table temp_poi_category
   level smallint NOT NULL,
   genre_is_brand character(1),
   importance smallint,
+  genre_type varchar,
   org_code1 character varying(28),
   org_code2 character varying(28),
   chaincode character varying(28),
-  genre_id integer NOT NULL
+  genre_id integer NOT NULL,
+  name  varchar
 );
 
 create table temp_brand_icon

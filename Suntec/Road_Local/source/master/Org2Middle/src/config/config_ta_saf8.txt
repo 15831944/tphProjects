@@ -2,11 +2,13 @@
 # proj_ta
 proj_name=ta
 proj_country=saf8
+text_filter={'TA_SAF8':"MOZ:[POR,ENG,UKE]||DEFAULT:[ENG,UKE]"}
 safetyzone_flag=false
 accident_flag=false
 safetyalert_flag=false
 ta_jv_sidefile=\\idata\Private\Data_Authoring\SourceData\1_Africa\SAF8\Tomtom\illust
 ta_phoneme_sidefile=\\idata\Private\Data_Authoring\SourceData\1_Africa\SAF8\Tomtom\phoneme
 illust=\\idata\Private\Data_Authoring\SourceData\1_Africa\SAF8\Tomtom\illust
+POI_Code=..\docs\poi\category_ta_saf8.txt
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

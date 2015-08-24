@@ -321,7 +321,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
                              facilcls_c, inout_c, tollcls_c,
                              node_id, facil_name, the_geom)
         (
-        SELECT distinct a.road_code, a.road_seq, 1 as updown_c,
+        SELECT distinct a.road_code, a.road_seq, a.updown_c,
                facilcls_c, inout_c, 0 as tollcls_c, -- None
                a.node_id, b.facil_name, the_geom
           FROM mid_temp_hwy_ic_path as a
@@ -1006,7 +1006,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             # Service
             self._store_service_road_facil_path2(inout, node_lid,
                                                  road_code, updown)
-        pass
+        self.pg.commit1()
 
     def _filter_sapa(self):
         '''过滤SAPA: '''

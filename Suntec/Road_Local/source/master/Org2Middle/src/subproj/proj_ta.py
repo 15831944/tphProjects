@@ -39,7 +39,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             # Ramp
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
 
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))

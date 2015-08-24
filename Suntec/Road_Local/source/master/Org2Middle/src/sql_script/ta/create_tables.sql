@@ -1138,7 +1138,7 @@ CREATE TABLE temp_scpoint_ext_link_order
    link_num				smallint
 );
 --------------------------------------------------------------------------------------------
-
+--genre_id;genre_is_brand;gen_0;gen_1;gen_2;genre_level;name;genre_type;org_code;sub_category;brand_name;lang
 create table temp_poi_category1
 (
   org_code bigint NOT NULL,
@@ -1156,59 +1156,58 @@ create table temp_poi_category1
   condition character varying(250),
   "name" character varying(128) NOT NULL,
   logmark character varying(1)
-);
+ );
 
 create table temp_poi_category
 (
-  ucode bigint NOT NULL,
-  gen1 integer NOT NULL,
-  gen2 integer NOT NULL,
-  gen3 integer NOT NULL,
-  "level" smallint NOT NULL,
-  "name" character varying(128) NOT NULL,
-  imp smallint NOT NULL,
-  org_code bigint NOT NULL
- 
+  per_code   bigint       not null,
+  is_brand   varchar,
+  gen1       int          not null,
+  gen2       int          not null,
+  gen3       int          not null,
+  level      smallint     not null,
+  name       varchar(128) not null,
+  genre_type varchar,
+  org_code   bigint,
+  sub_category        integer,
+  brand_name varchar,
+  lang       varchar,
+  filename varchar
 );
 
 create table temp_category_priority
 (
-    u_code          character varying(1024)   not null,
+    per_code          character varying(1024)   not null,
     category_priority    int   
  
 );
 
 CREATE TABLE temp_poi_logmark
 (
-  id bigint NOT NULL,
-  feattyp smallint,
-  subcat integer,
-  brandname character varying(75),
-  ucode integer NOT NULL,
-  the_geom geometry, 
-  org_code smallint
+  id                bigint NOT NULL,
+  feattyp           smallint,
+  per_code          bigint,
+  category_priority integer,
+  the_geom          geometry 
 );
 
 CREATE TABLE temp_mnpoi_logmark
 (
-  id bigint NOT NULL,
-  feattyp smallint,
-  subcat integer,
-  brandname character varying(75),
-  ucode integer NOT NULL,
-  the_geom geometry, 
-  org_code smallint
+  id                bigint NOT NULL,
+  feattyp           smallint,
+  per_code          bigint,
+  category_priority integer,
+  the_geom          geometry 
 );
 
 CREATE TABLE temp_mn_logmark
 (
-  id bigint NOT NULL,
-  feattyp smallint,
-  subcat integer,
-  brandname character varying(75),
-  ucode integer NOT NULL,
-  the_geom geometry, 
-  org_code smallint
+  id                bigint NOT NULL,
+  feattyp           smallint,
+  per_code          bigint,
+  category_priority integer,
+  the_geom          geometry 
+
 );
 
 create table temp_poi_name

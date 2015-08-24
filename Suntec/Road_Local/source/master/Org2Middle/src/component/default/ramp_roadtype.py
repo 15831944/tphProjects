@@ -21,8 +21,7 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'Ramp_RoadType')
         self.proj_name = common.common_func.GetProjName()  
         self.proj_country = common.common_func.getProjCountry()
-        
-        
+                
     def _DoCreateTable(self):
         
         if self.CreateTable2('temp_link_ramp_single_path') == -1:
@@ -71,13 +70,12 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         # 更新link_tbl中Ramp的RoadType和FC
         self._UpdateRampRoadTypeFC()
         # 更新link_tbl中Ramp的Display Class
-        self._UpdateRampRoadDisplayClass()#20140619式样修改：根据显示美观要求，ramp的display_class不做修改
-        #self._ConvertRampRoadTypeFC_Toohigh()
+        #self._UpdateRampRoadDisplayClass()#20140619式样修改：根据显示美观要求，ramp的display_class不做修改
+        self._ConvertRampRoadTypeFC_Toohigh()
         self._UpdateRampRoadTypeFC_Toohigh()
         
         self._UpdateRoundaboutRoadType()
-        
-        self._UpdateRampDisplayClass()
+       
         return 0
     
     def _findproperroundabout(self):
@@ -198,46 +196,3 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-    
-    def _UpdateRampDisplayClass(self):
-        
-        self.log.info('Updating Disp Class of Ramp')
-        
-        self.search_road=common.search_road.search_road(link_id=None,dir=0,onewayflg=True,thrucondition=' link_type=5',errorcondition=' road_type in (0,1)',pg=self.pg)
-        sqlcmd= '''
-                select link_id
-                from link_tbl
-                where road_type in (0,1) and link_type in (1,2) and one_way_code <> 0
-                '''
-        sqlcmd_update='''
-                update link_tbl
-                set display_class=%d
-                where link_id=%d
-                        '''
-        self.pg.execute(sqlcmd)
-        link_id_list=self.pg.fetchall2()
-        #print link_id_list
-        for (link_id,) in link_id_list:
-            self.search_road.start_link_id=link_id
-            self.search_road.init_path()
-            self.search_road.search()
-            results=self.search_road.return_paths()
-            if not results or (len(results)==1 and len(results[0]['path'])<3):
-                continue
-            #print not results
-            sqlcmd=''' select display_class from link_tbl where link_id=%d'''
-            display_class_list=[]
-            all_link_list=set([])
-            for result in results:
-                
-                if result['endflag']<>3:
-                    #print result
-                    self.pg.execute(sqlcmd%(result['path'][-1]))
-                    display_class_list.append(self.pg.fetchall2()[0][0])
-                    all_link_list=all_link_list|set(result['path'][1:-1])
-            #print display_class_list
-            new_display_class=max(display_class_list)
-            for link_id in all_link_list:
-                #print link_id
-                self.pg.execute(sqlcmd_update% (new_display_class,link_id))
-        self.pg.commit()

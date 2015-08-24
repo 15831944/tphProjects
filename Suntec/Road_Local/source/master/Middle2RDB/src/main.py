@@ -49,6 +49,7 @@ from item.hwy import rdb_hwy
 from item import rdb_slope
 from item import rdb_guideinfo_hook_turn
 from item import rdb_version
+from item import rdb_name
 
 from item_client import rdb_link_client
 from item_client import rdb_node_client
@@ -81,7 +82,8 @@ def main():
     try:
         rdb_log.log('Middle2RDB', 'Now it is converting Middle data to RDB format data. It will take 4 hour.', 'info')
         comp_list = [
-					rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea()
+					rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea(),
+                    rdb_guideinfo_spotguide.rdb_guideinfo_spotguide()
 					]
         comp_lis1 = [
                     rdb_tile.rdb_tile(),
@@ -157,7 +159,8 @@ def main():
                     rdb_node_with_all_attri_view.rdb_node_with_all_attri_view(),
                     rdb_hwy.rdb_highway(),
                     rdb_version.rdb_version(),
-    				rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_binary()
+    				rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_binary(),
+                    rdb_name.rdb_name_language_order()
                     ]
     
         # 当本前继续往下做其他component

@@ -4,12 +4,13 @@ Created on 2013-7
 
 @author: zym
 '''
-from component import component_base
+
+import component.default.guideinfo_caution
 import common
 
 
 
-class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
+class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_caution.comp_guideinfo_caution):
     '''
     classdocs
     '''
@@ -18,7 +19,7 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
         '''
         Constructor
         '''
-        component_base.comp_base.__init__(self, 'Guideinfo_Caution_highaccident')
+        component.component_base.comp_base.__init__(self, 'Guideinfo_Caution_highaccident')
         
     def _DoCreateTable(self):
         return 0
@@ -41,9 +42,11 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
                     inlinkid, nodeid, data_kind
                 )
                 VALUES (%s, %s, %s);
-            '''           
+            '''
+                 
             self._driver_alert_data(insert_sqlcmd)        
             self._high_accident_point_data(insert_sqlcmd)
+            self._GetOutLinkSeq()
 
             # 事故多发区，因数据保存在safety zone中，故不可将此处safety zone作成移动到guideinfo_safety zone中
             insert_sqlcmd = '''
@@ -58,6 +61,8 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
         return
     
     def _driver_alert_data(self,insert_sqlcmd):
+        
+        self.log.info('Now it is updating temp_org_caution_link_tbl by driver alert data...')
         
         # gen_warning_sign_type---General Warning Sign Type = 4 – Accident Hazard is published only if \
         # the accident hazard sign exists as supplemental sign in reality
@@ -92,13 +97,16 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
                 ((len(nodeids) != 1) or (len(nodeids) == 1 and nodeids[0] is None)):
                 self.log.error('org data(driver alert) is disconsistent with logic')
                 continue
-            self.pg.execute2(insert_sqlcmd, (linkids[0], nodeids[0],2))
+            self.pg.execute2(insert_sqlcmd, (linkids[0], nodeids[0], 2))
             
         self.pg.commit2()
         
+        self.log.info('updating temp_org_caution_link_tbl by driver alert data succeeded')
         return
 
     def _high_accident_point_data(self,insert_sqlcmd):
+        
+        self.log.info('Now it is updating temp_org_caution_link_tbl by high accident point data...')
         
         # Blackspot(condition_type=38) identifies intersections, points or stretches along a \
         # road with an unusual high number of accidents.
@@ -146,10 +154,13 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
             
         self.pg.commit2()
         
+        self.log.info('updating temp_org_caution_link_tbl by high accident point data succeeded')
         return
         
     def _high_accident_zone_data(self,insert_sqlcmd):
-
+        
+        self.log.info('Now it is updating safety_zone_tbl by high accident zone data...')
+        
         # Create SafetyZone ID.
         self.CreateTable2('temp_highaccid_links')
         self.CreateIndex2('temp_highaccid_links_link_id_s_node_e_node_idx')
@@ -198,6 +209,8 @@ class comp_guideinfo_caution_highaccident_rdf(component_base.comp_base):
             self.pg.execute2(insert_sqlcmd, (safetyzone_id,link,direction,2))
             
         self.pg.commit2()
+        
+        self.log.info('updating safety_zone_tbl by high accident zone data end.')
         return
     
     

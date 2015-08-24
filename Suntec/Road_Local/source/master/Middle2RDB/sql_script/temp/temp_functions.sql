@@ -909,10 +909,10 @@ DECLARE
 		
 	link_id 		bigint;
 	dir 			smallint;
-	free_time		smallint;
-	weekday_time 		smallint;
-	weekend_time 		smallint;	
-	average_time		smallint;
+	free_time		int;
+	weekday_time 		int;
+	weekend_time 		int;	
+	average_time		int;
 	
 	cur_time_slot		smallint;
 	cur_seq_list		character varying;
@@ -923,12 +923,12 @@ DECLARE
 	weekday_array		character varying[];
 	weekend_array		character varying[];
 
-	next_weekday		smallint;
-	next_weekend		smallint;
-	weekday_dst		smallint;
-	weekend_dst		smallint;
-	weekday_dst_array	smallint[];
-	weekend_dst_array	smallint[];
+	next_weekday		int;
+	next_weekend		int;
+	weekday_dst		int;
+	weekend_dst		int;
+	weekday_dst_array	int[];
+	weekend_dst_array	int[];
 
 BEGIN
 	i := 1;

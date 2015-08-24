@@ -146,9 +146,9 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
                     select  a.poi_id,
                             b.name_id,
                             c.transliteration_type as language_code,
-                            (case when c.short_name is null then c.name else c.short_name end) as name,
+                            (case when c.short_name is null then c.name else c.short_name end) as name, 
                             e.phonetic_language_code,
-                            e.phonetic_string,
+                            null as phonetic_string,
                             d.preferred,
                             e.transcription_method
                     from temp_poi_logmark as a
@@ -156,6 +156,7 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
                     on a.poi_id = b.poi_id and b.is_exonym = 'N'
                     left join rdf_poi_name_trans as c
                     on b.name_id = c.name_id
+                    
                     left join rdf_poi_address as x
                     on a.poi_id = x.poi_id and c.transliteration_type = x.language_code
                     left join vce_poi_name as d
@@ -166,12 +167,14 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
                     on x.iso_country_code = f.iso_country_code and e.phonetic_language_code = f.phonetic_language_code
                     where   (c.name is not null or c.short_name is not null)
                             and
-                            (f.language_code is null or c.transliteration_type = f.language_code)
+                            (f.language_code is null or c.transliteration_type = f.language_code)                    
+    
                 );
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         
+                                  
         sqlcmd = """
                 select  poi_id,
                         array_agg(name_id) as name_id_array,
