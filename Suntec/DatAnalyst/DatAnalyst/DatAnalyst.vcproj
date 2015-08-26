@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DatParser.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DialogMultiDatProcess.cpp"
 				>
 			</File>
@@ -237,6 +241,10 @@
 			</File>
 			<File
 				RelativePath=".\DatAnalystDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DatParser.h"
 				>
 			</File>
 			<File

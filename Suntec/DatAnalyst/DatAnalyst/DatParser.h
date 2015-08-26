@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <vector>
 /*
 dat 格式文档请查看dat相关协议。
@@ -28,43 +29,41 @@ typedef enum
 class DatBinInfo
 {
 public:
-    DatBinInfo(char* p)
+    DatBinInfo(unsigned char* p)
     {
         char cInfo = p[0];
-        binType = (cInfo >> 6) & 3;
-        langInfo = (cInfo >> 2) & 15;
-        dayNightInfo = (cInfo >> 0) & 3;
-
-        char offsetBuf[5] = {0};
-        memcpy(offsetBuf, p+1, 4);
-        dataOffset = atoi(offsetBuf);
-        char lenBuf[5] = {0};
-        memcpy(offsetBuf, p+5, 4);
-        dataLength = atoi(lenBuf);
+        m_binType = (DatBinType)((cInfo >> 6) & 3);
+        m_langInfo = (DatLangInfo)((cInfo >> 2) & 15);
+        m_dayNightInfo = (DatDayNightInfo)((cInfo >> 0) & 3);
+        memcpy(&m_dataOffset, p+1, 4);
+        memcpy(&m_dataLength, p+5, 4);
     }
     ~DatBinInfo(){}
 public:
-    DatBinType binType;
-    DatLangInfo langInfo;
-    DatDayNightInfo dayNightInfo;
-    int dataOffset;
-    int dataLength;
+    DatBinType m_binType;
+    DatLangInfo m_langInfo;
+    DatDayNightInfo m_dayNightInfo;
+    int m_dataOffset;
+    int m_dataLength;
 };
 
 class DatParser
 {
 public:
-    DatParser(){ Clear(); }
-    ~DatParser(){}
+    DatParser();
+    ~DatParser(){ Clear(); }
 public:
     void Init(int& iErr, CString strDatPath);
-    CString m_strDatPath;
+    CString GetPicInfoByIndex(int& iErr, int iIdx);
+    size_t GetPicCount(){ return m_vecDatInfoList.size(); };
+
 private:
     void Clear();
 
 private:
     char* m_pBuff;
     short m_nPicCount;
+    CString m_strDatPath;
     std::vector<DatBinInfo> m_vecDatInfoList;
 };
 

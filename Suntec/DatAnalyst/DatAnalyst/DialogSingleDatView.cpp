@@ -17,6 +17,8 @@ CDialogSingleDatView::~CDialogSingleDatView()
 void CDialogSingleDatView::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_BTN_PREV, m_btnPrev);
+    DDX_Control(pDX, IDC_BTN_NEXT, m_btnNext);
 }
 
 
@@ -107,7 +109,7 @@ void CDialogSingleDatView::OnBnClickedBtnGetpath()
         return;
     m_image.Destroy();
     //将外部图像文件装载到CImage对象中
-    hResult = m_image.Load(dlg.GetFileName());
+    HRESULT hResult = m_image.Load(dlg.GetFileName());
     if(FAILED(hResult))
     {
         MessageBox(_T("调用图像文件失败！"));
@@ -132,32 +134,56 @@ void CDialogSingleDatView::OnPaint()
 
 void CDialogSingleDatView::OnBnClickedBtnPrev()
 {
+    int iErr = 0;
+    IncreaseCurShowPic(-1);
+    CString curPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
+    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(curPicInfo);
 }
 
 void CDialogSingleDatView::OnBnClickedBtnNext()
 {
+    int iErr = 0;
+    IncreaseCurShowPic(1);
+    CString curPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
+    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(curPicInfo);
 }
 
 void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
 {
     UINT count;
-    CString filePath;
+    CString strDatFilePath;
     count = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, 0);
     if(count > 0)
     {
-        DragQueryFile(hDropInfo, 0, filePath.GetBuffer(256), 256);
-        m_image.Destroy();
-        //将外部图像文件装载到CImage对象中
-        HRESULT hResult = m_image.Load(filePath);
-        if(FAILED(hResult))
-        {
-            MessageBox(_T("调用图像文件失败！"));
-            return;
-        }
-        CWnd* pTheWnd = AfxGetMainWnd();
-        pTheWnd->SetWindowPos(NULL, 0, 0, m_image.GetWidth() + 33, m_image.GetHeight()+150, SWP_NOMOVE);
-        Invalidate();
+        DragQueryFile(hDropInfo, 0, strDatFilePath.GetBuffer(256), 256);
+        int iErr = 0;
+        m_datParser.Init(iErr, strDatFilePath);
+        m_curShowPic =0;
+        m_btnPrev.EnableWindow(FALSE);
+        m_btnNext.EnableWindow(TRUE);
+        CString curPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
+        GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(curPicInfo);
     }
     DragFinish(hDropInfo);
     CDialog::OnDropFiles(hDropInfo);
+}
+
+void CDialogSingleDatView::IncreaseCurShowPic(short iIdx)
+{
+    m_curShowPic += iIdx;
+    if(m_curShowPic <= 0)
+    {
+        m_btnPrev.EnableWindow(FALSE);
+        m_btnNext.EnableWindow(TRUE);
+    }
+    else if(m_curShowPic >= m_datParser.GetPicCount()-1)
+    {
+        m_btnPrev.EnableWindow(TRUE);
+        m_btnNext.EnableWindow(FALSE);
+    }
+    else
+    {
+        m_btnPrev.EnableWindow(TRUE);
+        m_btnNext.EnableWindow(TRUE);
+    }
 }
