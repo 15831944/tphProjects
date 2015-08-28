@@ -7,7 +7,7 @@
 
 IMPLEMENT_DYNAMIC(CDialogSingleDatView, CDialog)
 
-CDialogSingleDatView::CDialogSingleDatView(CWnd* pParent /*=NULL*/)
+CDialogSingleDatView::CDialogSingleDatView(CWnd* pParent)
 : CDialog(CDialogSingleDatView::IDD, pParent)
 {
 
@@ -129,14 +129,14 @@ void CDialogSingleDatView::OnBnClickedBtnGetpath()
     if(GetBinaryDataType(strDropFileName) == ImageType_Jpg ||
        GetBinaryDataType(strDropFileName) == ImageType_Png)
     {
-        LoadNormalImage(strDropFileName);
+        LoadNormalImageFromDisk(strDropFileName);
     }
     else if(GetBinaryDataType(strDropFileName) == ImageType_Dat)
     {
         int iErr = 0;
         m_datParser.Init(iErr, strDropFileName);
         SetCurShowPic(0);
-        ShowOnePicInDatByIndex(m_curShowPic);
+        ShowOneBinaryDataInDatByIndex(m_curShowPic);
     }
     return;
 }
@@ -156,13 +156,13 @@ void CDialogSingleDatView::OnPaint()
 void CDialogSingleDatView::OnBnClickedBtnPrev()
 {
     SetCurShowPic(m_curShowPic - 1);
-    ShowOnePicInDatByIndex(m_curShowPic);
+    ShowOneBinaryDataInDatByIndex(m_curShowPic);
 }
 
 void CDialogSingleDatView::OnBnClickedBtnNext()
 {
     SetCurShowPic(m_curShowPic + 1);
-    ShowOnePicInDatByIndex(m_curShowPic);
+    ShowOneBinaryDataInDatByIndex(m_curShowPic);
 }
 
 void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
@@ -176,14 +176,14 @@ void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
         ImageType imgType = GetBinaryDataType(strDropFileName);
         if(imgType == ImageType_Jpg || imgType == ImageType_Png)
         {
-            LoadNormalImage(strDropFileName);
+            LoadNormalImageFromDisk(strDropFileName);
         }
         else if(imgType == ImageType_Dat)
         {
             int iErr = 0;
             m_datParser.Init(iErr, strDropFileName);
             SetCurShowPic(0);
-            ShowOnePicInDatByIndex(m_curShowPic);
+            ShowOneBinaryDataInDatByIndex(m_curShowPic);
         }
     }
     DragFinish(hDropInfo);
@@ -207,23 +207,32 @@ void CDialogSingleDatView::SetCurShowPic(short iIdx)
 }
 
 // show one picture parsed from dat.
-void CDialogSingleDatView::ShowOnePicInDatByIndex(short iIdx)
+void CDialogSingleDatView::ShowOneBinaryDataInDatByIndex(short iIdx)
 {
     int iErr = 0;
     char* pTemp = NULL;
-    m_datParser.GetPicDataByIndex(iErr, iIdx, &pTemp);
-    m_image.Destroy();
-    LoadNormalImageFromMem(iErr, (void*)pTemp, m_datParser.GetPicDataByIndex(iErr, iIdx));
-    if(iErr == DAT_SUCCESS)
+    m_datParser.GetPicBufferByIndex(iErr, iIdx, &pTemp);
+    DatBinType binType = m_datParser.GetPicTypeByIndex(iErr, iIdx);
+    if(binType == DatBinType_Pattern || binType == DatBinType_Arrow)
     {
-        CWnd* pTheWnd = AfxGetMainWnd();
-        int winWidth = m_image.GetWidth();
-        int winHeight = m_image.GetHeight();
-        pTheWnd->SetWindowPos(NULL, 0, 0, winWidth + 33, winHeight+168, SWP_NOMOVE);
-        Invalidate();
+        m_image.Destroy();
+        LoadNormalImageFromMem(iErr, (void*)pTemp, m_datParser.GetPicLengthByIndex(iErr, iIdx));
+        if(iErr == DAT_SUCCESS)
+        {
+            CWnd* pTheWnd = AfxGetMainWnd();
+            int winWidth = m_image.GetWidth();
+            int winHeight = m_image.GetHeight();
+            pTheWnd->SetWindowPos(NULL, 0, 0, winWidth + 33, winHeight+168, SWP_NOMOVE);
+            Invalidate();
+        }
+        delete pTemp;
+        pTemp = NULL;
     }
-    delete pTemp;
-    pTemp = NULL;
+    else if(binType == DatBinType_Pointlist)
+    {
+        m_image.Destroy();
+    }
+
 
     CString strCurPicInfo = m_datParser.GetPicInfoByIndex(iErr, iIdx);
     GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(strCurPicInfo);
@@ -247,14 +256,13 @@ CString CDialogSingleDatView::GetPictureInfo()
     return strPictureInfo;
 }
 
-void CDialogSingleDatView::LoadNormalImage(CString strDropFileName)
+void CDialogSingleDatView::LoadNormalImageFromDisk(CString strFilePath)
 {
     m_image.Destroy();
-    //将外部图像文件装载到CImage对象中
-    HRESULT hResult = m_image.Load(strDropFileName);
+    HRESULT hResult = m_image.Load(strFilePath);
     if(FAILED(hResult))
     {
-        MessageBox(_T("调用图像文件失败！"));
+        MessageBox(_T("load image from disk failed!"));
         return;
     }
     CWnd* pTheWnd = AfxGetMainWnd();

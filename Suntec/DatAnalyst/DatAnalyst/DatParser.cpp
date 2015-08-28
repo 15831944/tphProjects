@@ -12,6 +12,71 @@ const int xxxxx5 = 1012423; // 输入的下标志超出合法范围。
 const int xxxxx6 = 1232124;
 const int xxxxx7 = 112213; // 二进制流的类型既不是jpg也不是png，报错。
 
+/************************************************************************/
+DatBinInfo::DatBinInfo( unsigned char* p )
+{
+    char cInfo = p[0];
+    m_binType = (DatBinType)((cInfo >> 6) & 3);
+    m_langInfo = (DatLangInfo)((cInfo >> 2) & 15);
+    m_dayNightInfo = (DatDayNightInfo)((cInfo >> 0) & 3);
+    memcpy(&m_dataOffset, p+1, 4);
+    memcpy(&m_dataLength, p+5, 4);
+}
+
+DatBinInfo::~DatBinInfo(){}
+
+CString DatBinInfo::GetPicInfoString()
+{
+    CString strPicType;
+    if(m_binType == DatBinType_Arrow || m_binType == DatBinType_Pattern)
+    {
+        strPicType = _T("A pattern/arrow picture");
+    }
+    else if(m_binType == DatBinType_Pointlist)
+    {
+        strPicType = _T("A pointlist binary data");
+    }
+    else
+    {
+        strPicType = _T("Unknown binary data");
+    }
+
+    CString strLanguage;
+    if(m_langInfo == DatLangInfo_Common)
+    {
+        strLanguage = _T("Common");
+    }
+
+    CString strDayNight;
+    if(m_dayNightInfo == DatDayNightInfo_Common)
+    {
+        strDayNight = _T("Day&Night Common");
+    }
+    else if(m_dayNightInfo == DatDayNightInfo_Day)
+    {
+        strDayNight = _T("Day");
+    }
+    else if(m_dayNightInfo == DatDayNightInfo_Night)
+    {
+        strDayNight = _T("Night");
+    }
+    else if(m_dayNightInfo == DatDayNightInfo_Evening)
+    {
+        strDayNight = _T("Evening");
+    }
+    else
+    {
+        strDayNight = _T("");
+    }
+
+    CString strDatInfo;
+    strDatInfo.Format("%s, %s, %s,  %d bytes", 
+        strPicType, strLanguage, strDayNight, m_dataLength);
+    return strDatInfo;
+}
+
+/************************************************************************/
+
 DatParser::DatParser()
 {
     m_nPicCount = -1;
@@ -101,55 +166,15 @@ CString DatParser::GetPicInfoByIndex(int& iErr, int iIdx)
         return _T("");
     }
 
-    CString strPicType;
-    if(m_vecDatInfoList[iIdx].m_binType == DatBinType_Arrow ||
-        m_vecDatInfoList[iIdx].m_binType == DatBinType_Pattern)
-    {
-        strPicType = _T("A pattern/arrow picture");
-    }
-    else if(m_vecDatInfoList[iIdx].m_binType == DatBinType_Pointlist)
-    {
-        strPicType = _T("A pointlist binary data");
-        CString strDatInfo;
-        strDatInfo.Format("%d/%d, %s", strPicType);
-        return strDatInfo;
-    }
-    else
-    {
-        strPicType = _T("Unknown binary data");
-    }
-
-    CString strDayNight;
-    if(m_vecDatInfoList[iIdx].m_dayNightInfo == DatDayNightInfo_Common)
-    {
-        strDayNight = _T("Day&Night Common");
-    }
-    else if(m_vecDatInfoList[iIdx].m_dayNightInfo == DatDayNightInfo_Day)
-    {
-        strDayNight = _T("Day");
-    }
-    else if(m_vecDatInfoList[iIdx].m_dayNightInfo == DatDayNightInfo_Night)
-    {
-        strDayNight = _T("Night");
-    }
-    else if(m_vecDatInfoList[iIdx].m_dayNightInfo == DatDayNightInfo_Evening)
-    {
-        strDayNight = _T("Evening");
-    }
-    else
-    {
-        strDayNight = _T("");
-    }
-
     CString strDatInfo;
-    strDatInfo.Format("%d/%d, %s, %s, length: %d", 
-        iIdx+1, m_vecDatInfoList.size(), strPicType, strDayNight,
-        m_vecDatInfoList[iIdx].m_dataLength);
+    strDatInfo.Format("%d/%d, %s", 
+        iIdx+1, m_vecDatInfoList.size(), 
+        m_vecDatInfoList[iIdx].GetPicInfoString());
     return strDatInfo;
 }
 
 // pResult: I will return a 'new' buffer by pResult, you must delete it by yourself.
-void DatParser::GetPicDataByIndex(int& iErr, int iIdx, char** pResult)
+void DatParser::GetPicBufferByIndex(int& iErr, int iIdx, char** pResult)
 {
     if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
     {
@@ -160,15 +185,13 @@ void DatParser::GetPicDataByIndex(int& iErr, int iIdx, char** pResult)
 
     DatBinInfo theDat = m_vecDatInfoList[iIdx];
     *pResult = new char[theDat.m_dataLength];
-    int x = _msize(m_pBuff);
-    char ccc = m_pBuff[x+50];
     memcpy(*pResult, m_pBuff+theDat.m_dataOffset, theDat.m_dataLength-10);
     iErr = 0;
     return;
 }
 
 // get the image length by index
-long DatParser::GetPicDataByIndex(int& iErr, int iIdx)
+long DatParser::GetPicLengthByIndex(int& iErr, int iIdx)
 {
     if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
     {
@@ -177,6 +200,17 @@ long DatParser::GetPicDataByIndex(int& iErr, int iIdx)
     }
 
     return m_vecDatInfoList[iIdx].m_dataLength;
+}
+
+// get binary segment data type by index
+DatBinType DatParser::GetPicTypeByIndex(int& iErr, int iIdx)
+{
+    if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
+    {
+        iErr = xxxxx5;
+        return DatBinType_Invalid;
+    }
+    return m_vecDatInfoList[iIdx].m_binType;
 }
 
 // get dat file name that without file ext.

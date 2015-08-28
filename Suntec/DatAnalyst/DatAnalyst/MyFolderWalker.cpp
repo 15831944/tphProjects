@@ -37,7 +37,7 @@ void CMyFolderWalker::DeleteAll(int& iErr, CString dirName)
         {
             foundFileName=tempFind.GetFileName();
             CString tempFileName=dirName+_T("\\")+foundFileName;
-            DeleteFile(tempFileName); // É¾³ýÎÄ¼þ
+            DeleteFile(tempFileName);
         }
     }
     tempFind.Close();

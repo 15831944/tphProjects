@@ -7,6 +7,7 @@
 
 typedef enum 
 {
+    DatBinType_Invalid = -1,
     DatBinType_Pattern = 0,
     DatBinType_Arrow = 0,
     DatBinType_Pointlist,
@@ -29,16 +30,10 @@ typedef enum
 class DatBinInfo
 {
 public:
-    DatBinInfo(unsigned char* p)
-    {
-        char cInfo = p[0];
-        m_binType = (DatBinType)((cInfo >> 6) & 3);
-        m_langInfo = (DatLangInfo)((cInfo >> 2) & 15);
-        m_dayNightInfo = (DatDayNightInfo)((cInfo >> 0) & 3);
-        memcpy(&m_dataOffset, p+1, 4);
-        memcpy(&m_dataLength, p+5, 4);
-    }
-    ~DatBinInfo(){}
+    DatBinInfo(unsigned char* p);
+    ~DatBinInfo();
+public:
+    CString GetPicInfoString();
 public:
     DatBinType m_binType;
     DatLangInfo m_langInfo;
@@ -56,8 +51,9 @@ public:
     void Init(int& iErr, CString strDatPath);
     CString GetPicInfoByIndex(int& iErr, int iIdx);
     size_t GetPicCount(){ return m_vecDatInfoList.size(); };
-    void GetPicDataByIndex(int& iErr, int iIdx, char** pResult);
-    long GetPicDataByIndex(int& iErr, int iIdx);
+    void GetPicBufferByIndex(int& iErr, int iIdx, char** pResult);
+    long GetPicLengthByIndex(int& iErr, int iIdx);
+    DatBinType GetPicTypeByIndex(int& iErr, int iIdx);
     void DatToJpgs(int& iErr, CString strOutputDir);
     CString GetDatFileName();
 

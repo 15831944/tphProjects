@@ -202,6 +202,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DialogArrowPointlist.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DialogMultiDatProcess.cpp"
 				>
 			</File>
@@ -253,6 +257,10 @@
 			</File>
 			<File
 				RelativePath=".\DatParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DialogArrowPointlist.h"
 				>
 			</File>
 			<File
