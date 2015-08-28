@@ -2,7 +2,7 @@
 #include <map>
 #include <vector>
 /*
-dat 格式文档请查看dat相关协议。
+    dat 格式文档请查看dat相关协议。
 */
 
 typedef enum 
@@ -56,10 +56,13 @@ public:
     void Init(int& iErr, CString strDatPath);
     CString GetPicInfoByIndex(int& iErr, int iIdx);
     size_t GetPicCount(){ return m_vecDatInfoList.size(); };
+    void GetPicDataByIndex(int& iErr, int iIdx, char** pResult);
+    long GetPicDataByIndex(int& iErr, int iIdx);
+    void DatToJpgs(int& iErr, CString strOutputDir);
+    CString GetDatFileName();
 
 private:
     void Clear();
-
 private:
     char* m_pBuff;
     short m_nPicCount;

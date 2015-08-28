@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "DatAnalyst.h"
 #include "DialogSingleDatView.h"
+#include "MyImageType.h"
+
+#define DAT_SUCCESS 0
 
 IMPLEMENT_DYNAMIC(CDialogSingleDatView, CDialog)
 
@@ -25,11 +28,22 @@ void CDialogSingleDatView::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CDialogSingleDatView, CDialog)
     ON_WM_SIZE()
     ON_WM_PAINT()
+    ON_WM_DROPFILES()
     ON_BN_CLICKED(IDC_BTN_PREV, &CDialogSingleDatView::OnBnClickedBtnPrev)
     ON_BN_CLICKED(IDC_BTN_NEXT, &CDialogSingleDatView::OnBnClickedBtnNext)
     ON_BN_CLICKED(IDC_BTN_GETPATH, &CDialogSingleDatView::OnBnClickedBtnGetpath)
-    ON_WM_DROPFILES()
+    ON_BN_CLICKED(IDC_BTN_PREVDAT, &CDialogSingleDatView::OnBnClickedBtnPrevdat)
+    ON_BN_CLICKED(IDC_BTN_NEXTDAT, &CDialogSingleDatView::OnBnClickedBtnNextdat)
 END_MESSAGE_MAP()
+
+BOOL CDialogSingleDatView::OnInitDialog()
+{
+    CDialog::OnInitDialog();
+    this->SetCurShowPic(0);
+    GetDlgItem(IDC_BTN_PREVDAT)->ShowWindow(FALSE);
+    GetDlgItem(IDC_BTN_NEXTDAT)->ShowWindow(FALSE);
+    return TRUE;
+}
 
 void CDialogSingleDatView::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
 {
@@ -92,7 +106,10 @@ void CDialogSingleDatView::OnSize(UINT nType, int cx, int cy)
     LayoutControl(GetDlgItem(IDC_BTN_GETPATH), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_PREV), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_NEXT), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BTN_PREVDAT), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_BTN_NEXTDAT), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_STATIC_PICINFO), TopLeft, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_PICINFO_DETAIL), BottomLeft, BottomRight, cx, cy);
 
     if(nType != SIZE_MINIMIZED)
     {
@@ -104,20 +121,24 @@ void CDialogSingleDatView::OnSize(UINT nType, int cx, int cy)
 
 void CDialogSingleDatView::OnBnClickedBtnGetpath()
 {
-    CFileDialog  dlg(TRUE,NULL,NULL,OFN_FILEMUSTEXIST, _T(".dat"));
+    TCHAR szFilters[]= _T("Dat Files (*.dat)|*.dat|Jpg Files (*.jpg)|*.jpg|Png Files (*.png)|*.png||");
+    CFileDialog dlg(TRUE,NULL,NULL,OFN_FILEMUSTEXIST, szFilters);
     if(IDOK!=dlg.DoModal())
         return;
-    m_image.Destroy();
-    //将外部图像文件装载到CImage对象中
-    HRESULT hResult = m_image.Load(dlg.GetFileName());
-    if(FAILED(hResult))
+    CString strDropFileName = dlg.GetPathName();
+    if(GetBinaryDataType(strDropFileName) == ImageType_Jpg ||
+       GetBinaryDataType(strDropFileName) == ImageType_Png)
     {
-        MessageBox(_T("调用图像文件失败！"));
-        return;
+        LoadNormalImage(strDropFileName);
     }
-    CWnd* pTheWnd = AfxGetMainWnd();
-    pTheWnd->SetWindowPos(NULL, 0, 0, m_image.GetWidth() + 33, m_image.GetHeight()+150, SWP_NOMOVE);
-    Invalidate();
+    else if(GetBinaryDataType(strDropFileName) == ImageType_Dat)
+    {
+        int iErr = 0;
+        m_datParser.Init(iErr, strDropFileName);
+        SetCurShowPic(0);
+        ShowOnePicInDatByIndex(m_curShowPic);
+    }
+    return;
 }
 
 void CDialogSingleDatView::OnPaint()
@@ -134,56 +155,132 @@ void CDialogSingleDatView::OnPaint()
 
 void CDialogSingleDatView::OnBnClickedBtnPrev()
 {
-    int iErr = 0;
-    IncreaseCurShowPic(-1);
-    CString curPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
-    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(curPicInfo);
+    SetCurShowPic(m_curShowPic - 1);
+    ShowOnePicInDatByIndex(m_curShowPic);
 }
 
 void CDialogSingleDatView::OnBnClickedBtnNext()
 {
-    int iErr = 0;
-    IncreaseCurShowPic(1);
-    CString curPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
-    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(curPicInfo);
+    SetCurShowPic(m_curShowPic + 1);
+    ShowOnePicInDatByIndex(m_curShowPic);
 }
 
 void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
 {
     UINT count;
-    CString strDatFilePath;
+    CString strDropFileName;
     count = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, 0);
     if(count > 0)
     {
-        DragQueryFile(hDropInfo, 0, strDatFilePath.GetBuffer(256), 256);
-        int iErr = 0;
-        m_datParser.Init(iErr, strDatFilePath);
-        m_curShowPic =0;
-        m_btnPrev.EnableWindow(FALSE);
-        m_btnNext.EnableWindow(TRUE);
-        CString curPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
-        GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(curPicInfo);
+        DragQueryFile(hDropInfo, 0, strDropFileName.GetBuffer(256), 256);
+        ImageType imgType = GetBinaryDataType(strDropFileName);
+        if(imgType == ImageType_Jpg || imgType == ImageType_Png)
+        {
+            LoadNormalImage(strDropFileName);
+        }
+        else if(imgType == ImageType_Dat)
+        {
+            int iErr = 0;
+            m_datParser.Init(iErr, strDropFileName);
+            SetCurShowPic(0);
+            ShowOnePicInDatByIndex(m_curShowPic);
+        }
     }
     DragFinish(hDropInfo);
     CDialog::OnDropFiles(hDropInfo);
 }
 
-void CDialogSingleDatView::IncreaseCurShowPic(short iIdx)
+void CDialogSingleDatView::SetCurShowPic(short iIdx)
 {
-    m_curShowPic += iIdx;
-    if(m_curShowPic <= 0)
-    {
-        m_btnPrev.EnableWindow(FALSE);
-        m_btnNext.EnableWindow(TRUE);
-    }
-    else if(m_curShowPic >= m_datParser.GetPicCount()-1)
+    m_curShowPic = iIdx;
+    m_btnPrev.EnableWindow(FALSE);
+    m_btnNext.EnableWindow(FALSE);
+    if(m_curShowPic > 0)
     {
         m_btnPrev.EnableWindow(TRUE);
-        m_btnNext.EnableWindow(FALSE);
     }
-    else
+
+    if(m_curShowPic < ((int)m_datParser.GetPicCount())-1)
     {
-        m_btnPrev.EnableWindow(TRUE);
         m_btnNext.EnableWindow(TRUE);
     }
+}
+
+// show one picture parsed from dat.
+void CDialogSingleDatView::ShowOnePicInDatByIndex(short iIdx)
+{
+    int iErr = 0;
+    char* pTemp = NULL;
+    m_datParser.GetPicDataByIndex(iErr, iIdx, &pTemp);
+    m_image.Destroy();
+    LoadNormalImageFromMem(iErr, (void*)pTemp, m_datParser.GetPicDataByIndex(iErr, iIdx));
+    if(iErr == DAT_SUCCESS)
+    {
+        CWnd* pTheWnd = AfxGetMainWnd();
+        int winWidth = m_image.GetWidth();
+        int winHeight = m_image.GetHeight();
+        pTheWnd->SetWindowPos(NULL, 0, 0, winWidth + 33, winHeight+168, SWP_NOMOVE);
+        Invalidate();
+    }
+    delete pTemp;
+    pTemp = NULL;
+
+    CString strCurPicInfo = m_datParser.GetPicInfoByIndex(iErr, iIdx);
+    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(strCurPicInfo);
+    CString strJpgInfo = this->GetPictureInfo();
+    GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
+}
+
+
+void CDialogSingleDatView::OnBnClickedBtnPrevdat()
+{
+}
+
+void CDialogSingleDatView::OnBnClickedBtnNextdat()
+{
+}
+
+CString CDialogSingleDatView::GetPictureInfo()
+{
+    CString strPictureInfo;
+    strPictureInfo.Format(_T("size: %dx%d"), m_image.GetWidth(), m_image.GetHeight());
+    return strPictureInfo;
+}
+
+void CDialogSingleDatView::LoadNormalImage(CString strDropFileName)
+{
+    m_image.Destroy();
+    //将外部图像文件装载到CImage对象中
+    HRESULT hResult = m_image.Load(strDropFileName);
+    if(FAILED(hResult))
+    {
+        MessageBox(_T("调用图像文件失败！"));
+        return;
+    }
+    CWnd* pTheWnd = AfxGetMainWnd();
+    pTheWnd->SetWindowPos(NULL, 0, 0, m_image.GetWidth() + 33, m_image.GetHeight()+150, SWP_NOMOVE);
+    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
+    CString strJpgInfo = this->GetPictureInfo();
+    GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
+    Invalidate();
+}
+
+// load image into m_image by memory buffer.
+void CDialogSingleDatView::LoadNormalImageFromMem(int& iErr, void* pMemData, long len)
+{
+    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, len);
+    void* pData = GlobalLock(hGlobal);
+    memcpy(pData, pMemData, len);
+    GlobalUnlock(hGlobal);
+    IStream* pStream = NULL;
+    if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
+    {
+        if(SUCCEEDED(m_image.Load(pStream)))
+        {
+            iErr = DAT_SUCCESS;
+            return;
+        }
+        pStream -> Release();
+    }
+    GlobalFree(hGlobal);
 }

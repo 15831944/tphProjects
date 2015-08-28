@@ -210,6 +210,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyFileDialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MyFolderWalker.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -253,6 +261,18 @@
 			</File>
 			<File
 				RelativePath=".\DialogSingleDatView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MyFileDialog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MyFolderWalker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MyImageType.h"
 				>
 			</File>
 			<File

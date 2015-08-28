@@ -176,7 +176,7 @@ void CDatAnalystDlg::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef 
 
 void CDatAnalystDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-    lpMMI->ptMinTrackSize.x = 400;   //x宽度
-    lpMMI->ptMinTrackSize.y = 300;   //y高度
+    lpMMI->ptMinTrackSize.x = 400;   //最小x宽度
+    lpMMI->ptMinTrackSize.y = 300;   //最小y高度
     CDialog::OnGetMinMaxInfo(lpMMI);
 }

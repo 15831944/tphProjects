@@ -1,24 +1,28 @@
 #include "StdAfx.h"
 #include "DatParser.h"
 #include <fstream>
+#include <malloc.h>
+#include "MyImageType.h"
 
 const int xxxxx1 = 10121; // 路径找不到
 const int xxxxx2 = 10121; // 文件的长度小于等于0
 const int xxxxx3 = 1012133; // 无法打开文件
 const int xxxxx4 = 101233; // 读取的文件不是一个dat文件。
-const int xxxxxx5 = 1012423; // 输入的下标志超出合法范围。
+const int xxxxx5 = 1012423; // 输入的下标志超出合法范围。
+const int xxxxx6 = 1232124;
+const int xxxxx7 = 112213; // 二进制流的类型既不是jpg也不是png，报错。
 
 DatParser::DatParser()
 {
     m_nPicCount = -1;
-    m_vecDatInfoList.empty();
+    m_vecDatInfoList.clear();
     m_pBuff = NULL;
 }
 
 void DatParser::Clear()
 {
     m_nPicCount = -1;
-    m_vecDatInfoList.empty();
+    m_vecDatInfoList.clear();
     if(m_pBuff)
     {
         delete m_pBuff;
@@ -54,7 +58,7 @@ void DatParser::Init(int& iErr, CString strDatPath)
         return;
     }
 
-
+    m_strDatPath = strDatPath;
     //开辟相应的缓冲区
     m_pBuff = new char[size.QuadPart + 1];
     memset(m_pBuff, 0, size.QuadPart + 1);
@@ -93,7 +97,7 @@ CString DatParser::GetPicInfoByIndex(int& iErr, int iIdx)
 {
     if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
     {
-        iErr = xxxxxx5;
+        iErr = xxxxx5;
         return _T("");
     }
 
@@ -142,5 +146,92 @@ CString DatParser::GetPicInfoByIndex(int& iErr, int iIdx)
         iIdx+1, m_vecDatInfoList.size(), strPicType, strDayNight,
         m_vecDatInfoList[iIdx].m_dataLength);
     return strDatInfo;
+}
+
+// pResult: I will return a 'new' buffer by pResult, you must delete it by yourself.
+void DatParser::GetPicDataByIndex(int& iErr, int iIdx, char** pResult)
+{
+    if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
+    {
+        iErr = xxxxx6;
+        pResult = NULL;
+        return;
+    }
+
+    DatBinInfo theDat = m_vecDatInfoList[iIdx];
+    *pResult = new char[theDat.m_dataLength];
+    int x = _msize(m_pBuff);
+    char ccc = m_pBuff[x+50];
+    memcpy(*pResult, m_pBuff+theDat.m_dataOffset, theDat.m_dataLength-10);
+    iErr = 0;
+    return;
+}
+
+// get the image length by index
+long DatParser::GetPicDataByIndex(int& iErr, int iIdx)
+{
+    if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
+    {
+        iErr = xxxxx5;
+        return -1;
+    }
+
+    return m_vecDatInfoList[iIdx].m_dataLength;
+}
+
+// get dat file name that without file ext.
+CString DatParser::GetDatFileName()
+{
+    CString str1 = m_strDatPath.Right(m_strDatPath.GetLength()-1-m_strDatPath.ReverseFind('\\'));
+    str1 = str1.Left(str1.Find(_T(".dat")));
+    return str1;
+}
+
+void DatParser::DatToJpgs(int& iErr, CString strOutputDir)
+{
+    // output dat
+    CString strOutDat = strOutputDir + "\\" + GetDatFileName() + ".dat";
+    std::ofstream oFStream(strOutDat, std::ios::out|std::ios::binary|std::ios::trunc);
+    if (!oFStream.is_open())
+    {
+        iErr = xxxxx3;
+        return;
+    }
+    int sizex = _msize(m_pBuff);
+    oFStream.write(m_pBuff, _msize(m_pBuff));
+    oFStream.close();
+
+    for(int i=0; i<m_nPicCount; i++)
+    {
+        DatBinInfo binInfo = m_vecDatInfoList[i];
+        char* pTempBuf = new char[binInfo.m_dataLength];
+        memcpy(pTempBuf, m_pBuff+binInfo.m_dataOffset, binInfo.m_dataLength);
+
+        CString strOutJpg;
+        ImageType imgType = GetBinaryDataTypeByBuffer((unsigned char*)pTempBuf);
+        if(imgType == ImageType_Jpg)
+        {
+            strOutJpg.Format(_T("%s\\%s_%d.jpg"), strOutputDir, GetDatFileName(), i);
+        }
+        else if(imgType == ImageType_Png)
+        {
+            strOutJpg.Format(_T("%s\\%s_%d.png"), strOutputDir, GetDatFileName(), i);
+        }
+        else
+        {
+            iErr = xxxxx7;
+            return;
+        }
+        std::ofstream oFStream(strOutJpg, std::ios::out|std::ios::binary|std::ios::trunc);
+        if (!oFStream.is_open())
+        {
+            iErr = xxxxx3;
+            return;
+        }
+        int sizex = _msize(pTempBuf);
+        oFStream.write(pTempBuf, _msize(pTempBuf));
+        oFStream.close();
+        delete pTempBuf;
+    }
 }
 
