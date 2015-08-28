@@ -34,10 +34,6 @@ END_MESSAGE_MAP()
 
 LRESULT CALLBACK WindowProcNew(HWND hwnd,UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static int i=0;
-    CString strTrace;
-    strTrace.Format(_T("message: %08d\n"), HIWORD(wParam));
-    TRACE(strTrace);
     if (message ==  WM_COMMAND)
     {
         if(HIWORD(wParam) == BN_CLICKED)
@@ -46,9 +42,6 @@ LRESULT CALLBACK WindowProcNew(HWND hwnd,UINT message, WPARAM wParam, LPARAM lPa
             {
                 if (CMyFileDialog* pDlg = (CMyFileDialog*)CWnd::FromHandle(hwnd))
                 {
-                    TCHAR strPath[MAX_PATH];
-                    GetCurrentDirectory(MAX_PATH, strPath);
-                    pDlg->m_strFolderPath = strPath;
                     pDlg->EndDialog(IDOK);
                     return NULL;
                 }
@@ -60,17 +53,17 @@ LRESULT CALLBACK WindowProcNew(HWND hwnd,UINT message, WPARAM wParam, LPARAM lPa
 
 void CMyFileDialog::OnInitDone()
 {
-    CWnd* pFD = GetParent();
-    m_wndProc = (WNDPROC)SetWindowLong(m_hWnd, GWL_WNDPROC, (long)WindowProcNew);
+    CWnd* pParentWnd = GetParent();
+    m_wndProc = (WNDPROC)SetWindowLong(pParentWnd->m_hWnd, GWL_WNDPROC, (long)WindowProcNew);
 }
 
 void CMyFileDialog::OnFolderChange()
 {
     SetControlText(edt1, GetFolderPath());
+    m_strFolderPath = GetFolderPath();
 }
 
 BOOL CMyFileDialog::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
-    CFileDialog::OnNotify(wParam, lParam, pResult);
-    return TRUE;
+    return CFileDialog::OnNotify(wParam, lParam, pResult);
 }

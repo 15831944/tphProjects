@@ -10,7 +10,6 @@ IMPLEMENT_DYNAMIC(CDialogMultiDatProcess, CDialog)
 CDialogMultiDatProcess::CDialogMultiDatProcess(CWnd* pParent /*=NULL*/)
 : CDialog(CDialogMultiDatProcess::IDD, pParent)
 {
-
 }
 
 CDialogMultiDatProcess::~CDialogMultiDatProcess()
@@ -78,7 +77,7 @@ void CDialogMultiDatProcess::OnBnClickedBtnGetinputpath()
     CMyFileDialog dlg(TRUE,NULL,NULL,OFN_FILEMUSTEXIST, szFilters);
     if(IDOK!=dlg.DoModal())
         return;
-    CString strPath = dlg.GetFolderPath();
+    CString strPath = dlg.m_strFolderPath;
     GetDlgItem(IDC_EDIT_INPUTPATH)->SetWindowText(strPath);
 }
 
