@@ -54,6 +54,7 @@ public:
     void GetPicBufferByIndex(int& iErr, int iIdx, char** pResult);
     long GetPicLengthByIndex(int& iErr, int iIdx);
     DatBinType GetPicTypeByIndex(int& iErr, int iIdx);
+    std::vector<short> GetPointCoordinateListByIndex(int& iErr, int iIdx);
     void DatToJpgs(int& iErr, CString strOutputDir);
     CString GetDatFileName();
 

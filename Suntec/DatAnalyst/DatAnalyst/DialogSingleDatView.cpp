@@ -4,7 +4,29 @@
 #include "MyImageType.h"
 
 #define DAT_SUCCESS 0
-
+/************************************************************************/
+static void PixelsChangedToGray(CImage *pImage)
+{
+    int nWidth=pImage->GetWidth();
+    int nHeight=pImage->GetHeight();
+    int nBytesPerPixel= pImage->GetBPP()/8;
+    for(int i=0; i<nHeight; i++)
+    {
+        BYTE* pPixelLine = (BYTE*)pImage->GetPixelAddress(0,i);
+        int nByte=0;
+        for(int j=0;j<nWidth;j++)
+        {
+            BYTE cNewPixelValue=(BYTE)(0.11*pPixelLine[nByte]
+            +0.59*pPixelLine[nByte+1]
+            +0.30*pPixelLine[nByte+2]);
+            pPixelLine[nByte+0] = cNewPixelValue;
+            pPixelLine[nByte+1] = cNewPixelValue;
+            pPixelLine[nByte+2] = cNewPixelValue;
+            nByte+=nBytesPerPixel;
+        }
+    }
+}
+/************************************************************************/
 IMPLEMENT_DYNAMIC(CDialogSingleDatView, CDialog)
 
 CDialogSingleDatView::CDialogSingleDatView(CWnd* pParent)
@@ -230,7 +252,40 @@ void CDialogSingleDatView::ShowOneBinaryDataInDatByIndex(short iIdx)
     }
     else if(binType == DatBinType_Pointlist)
     {
-        m_image.Destroy();
+        PixelsChangedToGray(&m_image);
+        std::vector<short> vecCoor = m_datParser.GetPointCoordinateListByIndex(iErr, iIdx);
+        for(size_t i=0; i<vecCoor.size(); i+=2)
+        {
+            short oneX = vecCoor[i];
+            short oneY = vecCoor[i+1];
+            int nBytesPerPixel= m_image.GetBPP()/8;
+            BYTE* pPixel = (BYTE*)m_image.GetPixelAddress(oneX, oneY);
+            pPixel[0] = 0;
+            pPixel[1] = 0;
+            pPixel[2] = 255;
+            pPixel[3] = 255;
+            pPixel = (BYTE*)m_image.GetPixelAddress(oneX+1, oneY);
+            pPixel[0] = 0;
+            pPixel[1] = 0;
+            pPixel[2] = 255;
+            pPixel[3] = 255;
+            pPixel = (BYTE*)m_image.GetPixelAddress(oneX, oneY+1);
+            pPixel[0] = 0;
+            pPixel[1] = 0;
+            pPixel[2] = 255;
+            pPixel[3] = 255;
+            pPixel = (BYTE*)m_image.GetPixelAddress(oneX-1, oneY);
+            pPixel[0] = 0;
+            pPixel[1] = 0;
+            pPixel[2] = 255;
+            pPixel[3] = 255;
+            pPixel = (BYTE*)m_image.GetPixelAddress(oneX, oneY-1);
+            pPixel[0] = 0;
+            pPixel[1] = 0;
+            pPixel[2] = 255;
+            pPixel[3] = 255;
+        }
+        Invalidate();
     }
 
 

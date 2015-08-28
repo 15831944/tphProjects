@@ -13,7 +13,7 @@ const int xxxxx6 = 1232124;
 const int xxxxx7 = 112213; // 二进制流的类型既不是jpg也不是png，报错。
 
 /************************************************************************/
-DatBinInfo::DatBinInfo( unsigned char* p )
+DatBinInfo::DatBinInfo(unsigned char* p)
 {
     char cInfo = p[0];
     m_binType = (DatBinType)((cInfo >> 6) & 3);
@@ -50,7 +50,7 @@ CString DatBinInfo::GetPicInfoString()
     CString strDayNight;
     if(m_dayNightInfo == DatDayNightInfo_Common)
     {
-        strDayNight = _T("Day&Night Common");
+        strDayNight = _T("Day/Night Common");
     }
     else if(m_dayNightInfo == DatDayNightInfo_Day)
     {
@@ -185,7 +185,7 @@ void DatParser::GetPicBufferByIndex(int& iErr, int iIdx, char** pResult)
 
     DatBinInfo theDat = m_vecDatInfoList[iIdx];
     *pResult = new char[theDat.m_dataLength];
-    memcpy(*pResult, m_pBuff+theDat.m_dataOffset, theDat.m_dataLength-10);
+    memcpy(*pResult, m_pBuff+theDat.m_dataOffset, theDat.m_dataLength);
     iErr = 0;
     return;
 }
@@ -211,6 +211,32 @@ DatBinType DatParser::GetPicTypeByIndex(int& iErr, int iIdx)
         return DatBinType_Invalid;
     }
     return m_vecDatInfoList[iIdx].m_binType;
+}
+
+std::vector<short> DatParser::GetPointCoordinateListByIndex(int& iErr, int iIdx)
+{
+    std::vector<short> vecResult;
+    if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
+    {
+        iErr = xxxxx5;
+        return vecResult;
+    }
+
+    DatBinInfo& theDat = m_vecDatInfoList[iIdx];
+    char* pTemp = new char[theDat.m_dataLength];
+    memcpy(pTemp, m_pBuff+theDat.m_dataOffset, theDat.m_dataLength);
+
+    // 0-1 byte is point list total length.
+    // 2-3 byte is count of point.
+    // so we start at 4.
+    for(int i=4; i<theDat.m_dataLength; i+=2)
+    {
+        short oneCoordinate = -1;
+        memcpy(&oneCoordinate, pTemp+i, 2);
+        vecResult.push_back(oneCoordinate);
+    }
+    iErr = 0;
+    return vecResult;
 }
 
 // get dat file name that without file ext.
