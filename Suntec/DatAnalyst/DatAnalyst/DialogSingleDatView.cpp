@@ -47,6 +47,29 @@ BOOL CDialogSingleDatView::OnInitDialog()
     return TRUE;
 }
 
+void CDialogSingleDatView::OnPaint()
+{
+    CPaintDC dc(this);
+    CRect destRect;
+    GetDlgItem(IDC_PICTURE)->GetWindowRect(&destRect);
+    ScreenToClient(&destRect);
+    if(m_pGdiplusBitmap != NULL)
+    {
+        Gdiplus::Graphics graphDst(dc.m_hDC);
+        graphDst.SetInterpolationMode(Gdiplus::InterpolationModeDefault);
+        graphDst.DrawImage(m_pGdiplusBitmap,
+            Gdiplus::RectF( destRect.left,
+                            destRect.top,
+                            destRect.Width(),
+                            destRect.Height()),
+            0,
+            0,
+            m_pGdiplusBitmap->GetWidth(),
+            m_pGdiplusBitmap->GetHeight(),
+            Gdiplus::UnitPoint);
+    }
+}
+
 void CDialogSingleDatView::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
 {
     CRect rcS;
@@ -132,55 +155,33 @@ void CDialogSingleDatView::OnBnClickedBtnGetpath()
     if(GetBinaryDataType(strDropFileName) == ImageType_Jpg ||
        GetBinaryDataType(strDropFileName) == ImageType_Png)
     {
-        LoadNormalImageFromDisk(strDropFileName);
+        m_pGdiplusBitmap = Gdiplus::Bitmap::FromFile(strDropFileName.AllocSysString());
+        GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
+        GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
+        CString strJpgInfo = this->GetPictureInfo();
+        GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
+        Invalidate();
     }
     else if(GetBinaryDataType(strDropFileName) == ImageType_Dat)
     {
         int iErr = 0;
         m_datParser.Init(iErr, strDropFileName);
         SetCurShowPic(0);
-        ShowOneBinaryDataInDatByIndex(m_curShowPic);
+        LoadBmpFromDatDataByIndex(m_curShowPic);
     }
     return;
-}
-
-void CDialogSingleDatView::OnPaint()
-{
-    CPaintDC dc(this);
-    CRect destRect;
-    GetDlgItem(IDC_PICTURE)->GetWindowRect(&destRect);
-    ScreenToClient(&destRect);
-    if(!m_image.IsNull())
-    {
-        Gdiplus::Bitmap bmpSrc(m_image.GetWidth(),
-            m_image.GetHeight(),
-            m_image.GetPitch(),
-            PixelFormat32bppARGB,
-            static_cast<BYTE*>(m_image.GetBits()));
-        Gdiplus::Graphics graphDst(dc.m_hDC);
-        graphDst.SetInterpolationMode(Gdiplus::InterpolationModeDefault);
-        graphDst.DrawImage(&bmpSrc,
-            Gdiplus::RectF(destRect.left,
-            destRect.top, 
-            destRect.Width(),
-            destRect.Height()),
-            0, 0,
-            m_image.GetWidth(),
-            m_image.GetHeight(),
-            Gdiplus::UnitPixel);
-    }
 }
 
 void CDialogSingleDatView::OnBnClickedBtnPrev()
 {
     SetCurShowPic(m_curShowPic - 1);
-    ShowOneBinaryDataInDatByIndex(m_curShowPic);
+    LoadBmpFromDatDataByIndex(m_curShowPic);
 }
 
 void CDialogSingleDatView::OnBnClickedBtnNext()
 {
     SetCurShowPic(m_curShowPic + 1);
-    ShowOneBinaryDataInDatByIndex(m_curShowPic);
+    LoadBmpFromDatDataByIndex(m_curShowPic);
 }
 
 void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
@@ -194,15 +195,36 @@ void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
         ImageType imgType = GetBinaryDataType(strDropFileName);
         if(imgType == ImageType_Jpg || imgType == ImageType_Png)
         {
-            LoadNormalImageFromDisk(strDropFileName);
+            CStringW str2 = CT2CW(strDropFileName);
+            if(m_pGdiplusBitmap)
+            {
+                delete m_pGdiplusBitmap;
+                m_pGdiplusBitmap = NULL;
+            }
+            m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
+            Gdiplus::Status curStatus = m_pGdiplusBitmap->GetLastStatus();
+            if(m_pGdiplusBitmap->GetLastStatus() != Gdiplus::Status::Ok)
+            {
+                CString strMsg;
+                strMsg.Format(_T("Loading image failed: %s."), strDropFileName);
+                MessageBox(strMsg);
+                return;
+            }
+            GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
+            GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
         }
         else if(imgType == ImageType_Dat)
         {
             int iErr = 0;
             m_datParser.Init(iErr, strDropFileName);
             SetCurShowPic(0);
-            ShowOneBinaryDataInDatByIndex(m_curShowPic);
+            LoadBmpFromDatDataByIndex(m_curShowPic);
+            CString strCurPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
+            GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(strCurPicInfo);
         }
+        CString strJpgSize = this->GetPictureInfo();
+        GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
+        Invalidate();
     }
     DragFinish(hDropInfo);
     CDialog::OnDropFiles(hDropInfo);
@@ -225,7 +247,7 @@ void CDialogSingleDatView::SetCurShowPic(short iIdx)
 }
 
 // show one picture parsed from dat.
-void CDialogSingleDatView::ShowOneBinaryDataInDatByIndex(short iIdx)
+void CDialogSingleDatView::LoadBmpFromDatDataByIndex(short iIdx)
 {
     int iErr = 0;
     char* pTemp = NULL;
@@ -233,11 +255,9 @@ void CDialogSingleDatView::ShowOneBinaryDataInDatByIndex(short iIdx)
     DatBinType binType = m_datParser.GetPicTypeByIndex(iErr, iIdx);
     if(binType == DatBinType_Pattern || binType == DatBinType_Arrow)
     {
-        m_image.Destroy();
-        LoadNormalImageFromMem(iErr, (void*)pTemp, m_datParser.GetPicLengthByIndex(iErr, iIdx));
+        LoadBmpFromMemory(iErr, (void*)pTemp, m_datParser.GetPicLengthByIndex(iErr, iIdx));
         if(iErr == DAT_SUCCESS)
         {
-            ResizeWindowToFitImage();
             GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
             Invalidate();
         }
@@ -246,47 +266,19 @@ void CDialogSingleDatView::ShowOneBinaryDataInDatByIndex(short iIdx)
     }
     else if(binType == DatBinType_Pointlist)
     {
-        PixelsChangedToGray(&m_image);
         std::vector<short> vecCoor = m_datParser.GetPointCoordinateListByIndex(iErr, iIdx);
         for(size_t i=0; i<vecCoor.size(); i+=2)
         {
             short oneX = vecCoor[i];
             short oneY = vecCoor[i+1];
-            int nBytesPerPixel= m_image.GetBPP()/8;
-            BYTE* pPixel = (BYTE*)m_image.GetPixelAddress(oneX, oneY);
-            pPixel[0] = 0;
-            pPixel[1] = 0;
-            pPixel[2] = 255;
-            pPixel[3] = 255;
-            pPixel = (BYTE*)m_image.GetPixelAddress(oneX+1, oneY);
-            pPixel[0] = 0;
-            pPixel[1] = 0;
-            pPixel[2] = 255;
-            pPixel[3] = 255;
-            pPixel = (BYTE*)m_image.GetPixelAddress(oneX, oneY+1);
-            pPixel[0] = 0;
-            pPixel[1] = 0;
-            pPixel[2] = 255;
-            pPixel[3] = 255;
-            pPixel = (BYTE*)m_image.GetPixelAddress(oneX-1, oneY);
-            pPixel[0] = 0;
-            pPixel[1] = 0;
-            pPixel[2] = 255;
-            pPixel[3] = 255;
-            pPixel = (BYTE*)m_image.GetPixelAddress(oneX, oneY-1);
-            pPixel[0] = 0;
-            pPixel[1] = 0;
-            pPixel[2] = 255;
-            pPixel[3] = 255;
+            m_pGdiplusBitmap->SetPixel(oneX, oneY, Gdiplus::Color::Red);
+            m_pGdiplusBitmap->SetPixel(oneX+1, oneY, Gdiplus::Color::Red);
+            m_pGdiplusBitmap->SetPixel(oneX, oneY+1, Gdiplus::Color::Red);
+            m_pGdiplusBitmap->SetPixel(oneX-1, oneY, Gdiplus::Color::Red);
+            m_pGdiplusBitmap->SetPixel(oneX, oneY-1, Gdiplus::Color::Red);
         }
         Invalidate();
     }
-
-
-    CString strCurPicInfo = m_datParser.GetPicInfoByIndex(iErr, iIdx);
-    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(strCurPicInfo);
-    CString strJpgInfo = this->GetPictureInfo();
-    GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
 }
 
 
@@ -301,48 +293,31 @@ void CDialogSingleDatView::OnBnClickedBtnNextdat()
 CString CDialogSingleDatView::GetPictureInfo()
 {
     CString strPictureInfo;
-    strPictureInfo.Format(_T("size: %dx%d"), m_image.GetWidth(), m_image.GetHeight());
+    strPictureInfo.Format(_T("size: %dx%d"),
+        m_pGdiplusBitmap->GetWidth(),
+        m_pGdiplusBitmap->GetHeight());
     return strPictureInfo;
 }
 
-void CDialogSingleDatView::LoadNormalImageFromDisk(CString strFilePath)
-{
-    m_image.Destroy();
-    HRESULT hResult = m_image.Load(strFilePath);
-    if(FAILED(hResult))
-    {
-        MessageBox(_T("load image from disk failed!"));
-        return;
-    }
-
-    ResizeWindowToFitImage();
-    GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
-    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
-    CString strJpgInfo = this->GetPictureInfo();
-    GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
-    Invalidate();
-}
-
-// load image into m_image by memory buffer.
-void CDialogSingleDatView::LoadNormalImageFromMem(int& iErr, void* pMemData, long len)
+// load image into m_image from memory buffer.
+void CDialogSingleDatView::LoadBmpFromMemory(int& iErr, void* pMemData, long len)
 {
     HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, len);
     void* pData = GlobalLock(hGlobal);
     memcpy(pData, pMemData, len);
     GlobalUnlock(hGlobal);
     IStream* pStream = NULL;
-    if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) == S_OK)
+    if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) != S_OK)
     {
-        if(SUCCEEDED(m_image.Load(pStream)))
-        {
-            iErr = DAT_SUCCESS;
-            return;
-        }
-        pStream -> Release();
+        return;
     }
+
+    m_pGdiplusBitmap = Gdiplus::Bitmap::FromStream(pStream);
+    pStream -> Release();
     GlobalFree(hGlobal);
 }
 
+// reset window size to fit the new image.
 void CDialogSingleDatView::ResizeWindowToFitImage()
 {
     CWnd* pTheWnd = AfxGetMainWnd();
@@ -351,8 +326,8 @@ void CDialogSingleDatView::ResizeWindowToFitImage()
     GetDlgItem(IDC_PICTURE)->GetWindowRect(&picRect);
     int deltaWidth = winRect.Width() - picRect.Width();
     int deltaHeight = winRect.Height() - picRect.Height();
-    int x1 = m_image.GetWidth() + deltaWidth;
-    int x2 = m_image.GetHeight() + deltaHeight;
+    int x1 = m_pGdiplusBitmap->GetWidth() + deltaWidth;
+    int x2 = m_pGdiplusBitmap->GetHeight() + deltaHeight;
     pTheWnd->SetWindowPos(NULL, 0, 0, x1, x2, SWP_NOMOVE);
     return;
 }

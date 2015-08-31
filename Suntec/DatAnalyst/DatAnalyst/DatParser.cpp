@@ -287,7 +287,8 @@ CString DatParser::GetDatFileName()
 void DatParser::DatToJpgs(int& iErr, CString strOutputDir)
 {
     // output dat
-    CString strOutDat = strOutputDir + "\\" + GetDatFileName() + ".dat";
+    CString strOutDat;
+    strOutDat.Format(_T("%s\\%s.dat"), strOutputDir, GetDatFileName());
     std::ofstream oFStream(strOutDat, std::ios::out|std::ios::binary|std::ios::trunc);
     if (!oFStream.is_open())
     {
