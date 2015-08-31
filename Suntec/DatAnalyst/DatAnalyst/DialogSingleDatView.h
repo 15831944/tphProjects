@@ -12,7 +12,7 @@ public:
     enum { IDD = IDD_SINGLEDATVIEW };
 
 public:
-    CImage m_image;
+    Gdiplus::Bitmap* m_pGdiplusBitmap;
     CButton m_btnPrev;
     CButton m_btnNext;
     short m_curShowPic;

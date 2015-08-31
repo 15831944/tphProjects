@@ -5,34 +5,12 @@
 
 #define DAT_SUCCESS 0
 /************************************************************************/
-static void PixelsChangedToGray(CImage *pImage)
-{
-    int nWidth=pImage->GetWidth();
-    int nHeight=pImage->GetHeight();
-    int nBytesPerPixel= pImage->GetBPP()/8;
-    for(int i=0; i<nHeight; i++)
-    {
-        BYTE* pPixelLine = (BYTE*)pImage->GetPixelAddress(0,i);
-        int nByte=0;
-        for(int j=0;j<nWidth;j++)
-        {
-            BYTE cNewPixelValue=(BYTE)(0.11*pPixelLine[nByte]
-            +0.59*pPixelLine[nByte+1]
-            +0.30*pPixelLine[nByte+2]);
-            pPixelLine[nByte+0] = cNewPixelValue;
-            pPixelLine[nByte+1] = cNewPixelValue;
-            pPixelLine[nByte+2] = cNewPixelValue;
-            nByte+=nBytesPerPixel;
-        }
-    }
-}
-/************************************************************************/
 IMPLEMENT_DYNAMIC(CDialogSingleDatView, CDialog)
 
 CDialogSingleDatView::CDialogSingleDatView(CWnd* pParent)
 : CDialog(CDialogSingleDatView::IDD, pParent)
+, m_pGdiplusBitmap(NULL)
 {
-
 }
 
 CDialogSingleDatView::~CDialogSingleDatView()
