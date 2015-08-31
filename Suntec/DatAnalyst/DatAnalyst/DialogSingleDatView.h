@@ -30,11 +30,13 @@ protected:
     afx_msg void LoadNormalImageFromDisk( CString strDropFileName );
     afx_msg void OnBnClickedBtnPrevdat();
     afx_msg void OnBnClickedBtnNextdat();
+    afx_msg void OnBnClickedBtnResetsize();
 private:
     virtual BOOL OnInitDialog();
     void SetCurShowPic(short iIdx);
     void ShowOneBinaryDataInDatByIndex(short iIdx);
     void LoadNormalImageFromMem(int& iErr, void* pMemData, long len);
+    void ResizeWindowToFitImage(); // reset main window size to fit the image.
     CString GetPictureInfo(); // get the jpg/png information from m_datParser.
 private:
     /* the resize adjustment manager. */

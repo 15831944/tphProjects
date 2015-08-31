@@ -57,6 +57,7 @@ public:
     std::vector<short> GetPointCoordinateListByIndex(int& iErr, int iIdx);
     void DatToJpgs(int& iErr, CString strOutputDir);
     CString GetDatFileName();
+    CString GetPointListStringByIndex(int& iErr, int iIdx);
 
 private:
     void Clear();

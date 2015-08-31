@@ -56,6 +56,7 @@ BEGIN_MESSAGE_MAP(CDialogSingleDatView, CDialog)
     ON_BN_CLICKED(IDC_BTN_GETPATH, &CDialogSingleDatView::OnBnClickedBtnGetpath)
     ON_BN_CLICKED(IDC_BTN_PREVDAT, &CDialogSingleDatView::OnBnClickedBtnPrevdat)
     ON_BN_CLICKED(IDC_BTN_NEXTDAT, &CDialogSingleDatView::OnBnClickedBtnNextdat)
+    ON_BN_CLICKED(IDC_BTN_RESETSIZE, &CDialogSingleDatView::OnBnClickedBtnResetsize)
 END_MESSAGE_MAP()
 
 BOOL CDialogSingleDatView::OnInitDialog()
@@ -64,6 +65,7 @@ BOOL CDialogSingleDatView::OnInitDialog()
     this->SetCurShowPic(0);
     GetDlgItem(IDC_BTN_PREVDAT)->ShowWindow(FALSE);
     GetDlgItem(IDC_BTN_NEXTDAT)->ShowWindow(FALSE);
+    GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(FALSE);
     return TRUE;
 }
 
@@ -130,8 +132,9 @@ void CDialogSingleDatView::OnSize(UINT nType, int cx, int cy)
     LayoutControl(GetDlgItem(IDC_BTN_NEXT), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_PREVDAT), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_NEXTDAT), TopLeft, TopLeft, cx, cy);
-    LayoutControl(GetDlgItem(IDC_STATIC_PICINFO), TopLeft, TopRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_PICINFO), TopRight, BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_STATIC_PICINFO_DETAIL), BottomLeft, BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_PICTURE), TopLeft, BottomRight, cx, cy);
 
     if(nType != SIZE_MINIMIZED)
     {
@@ -166,12 +169,27 @@ void CDialogSingleDatView::OnBnClickedBtnGetpath()
 void CDialogSingleDatView::OnPaint()
 {
     CPaintDC dc(this);
-    CRect recx;
-    GetDlgItem(IDC_STATIC_PICINFO)->GetWindowRect(&recx);
-    ScreenToClient(&recx); 
+    CRect destRect;
+    GetDlgItem(IDC_PICTURE)->GetWindowRect(&destRect);
+    ScreenToClient(&destRect);
     if(!m_image.IsNull())
     {
-        m_image.Draw(dc.m_hDC, recx.left, recx.bottom);
+        Gdiplus::Bitmap bmpSrc(m_image.GetWidth(),
+            m_image.GetHeight(),
+            m_image.GetPitch(),
+            PixelFormat32bppARGB,
+            static_cast<BYTE*>(m_image.GetBits()));
+        Gdiplus::Graphics graphDst(dc.m_hDC);
+        graphDst.SetInterpolationMode(Gdiplus::InterpolationModeDefault);
+        graphDst.DrawImage(&bmpSrc,
+            Gdiplus::RectF(destRect.left,
+            destRect.top, 
+            destRect.Width(),
+            destRect.Height()),
+            0, 0,
+            m_image.GetWidth(),
+            m_image.GetHeight(),
+            Gdiplus::UnitPixel);
     }
 }
 
@@ -241,10 +259,8 @@ void CDialogSingleDatView::ShowOneBinaryDataInDatByIndex(short iIdx)
         LoadNormalImageFromMem(iErr, (void*)pTemp, m_datParser.GetPicLengthByIndex(iErr, iIdx));
         if(iErr == DAT_SUCCESS)
         {
-            CWnd* pTheWnd = AfxGetMainWnd();
-            int winWidth = m_image.GetWidth();
-            int winHeight = m_image.GetHeight();
-            pTheWnd->SetWindowPos(NULL, 0, 0, winWidth + 33, winHeight+168, SWP_NOMOVE);
+            ResizeWindowToFitImage();
+            GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
             Invalidate();
         }
         delete pTemp;
@@ -320,8 +336,9 @@ void CDialogSingleDatView::LoadNormalImageFromDisk(CString strFilePath)
         MessageBox(_T("load image from disk failed!"));
         return;
     }
-    CWnd* pTheWnd = AfxGetMainWnd();
-    pTheWnd->SetWindowPos(NULL, 0, 0, m_image.GetWidth() + 33, m_image.GetHeight()+150, SWP_NOMOVE);
+
+    ResizeWindowToFitImage();
+    GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
     GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
     CString strJpgInfo = this->GetPictureInfo();
     GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
@@ -346,4 +363,23 @@ void CDialogSingleDatView::LoadNormalImageFromMem(int& iErr, void* pMemData, lon
         pStream -> Release();
     }
     GlobalFree(hGlobal);
+}
+
+void CDialogSingleDatView::ResizeWindowToFitImage()
+{
+    CWnd* pTheWnd = AfxGetMainWnd();
+    CRect winRect, picRect;
+    pTheWnd->GetWindowRect(&winRect);
+    GetDlgItem(IDC_PICTURE)->GetWindowRect(&picRect);
+    int deltaWidth = winRect.Width() - picRect.Width();
+    int deltaHeight = winRect.Height() - picRect.Height();
+    int x1 = m_image.GetWidth() + deltaWidth;
+    int x2 = m_image.GetHeight() + deltaHeight;
+    pTheWnd->SetWindowPos(NULL, 0, 0, x1, x2, SWP_NOMOVE);
+    return;
+}
+
+void CDialogSingleDatView::OnBnClickedBtnResetsize()
+{
+    ResizeWindowToFitImage();
 }

@@ -11,6 +11,7 @@ const int xxxxx4 = 101233; // 读取的文件不是一个dat文件。
 const int xxxxx5 = 1012423; // 输入的下标志超出合法范围。
 const int xxxxx6 = 1232124;
 const int xxxxx7 = 112213; // 二进制流的类型既不是jpg也不是png，报错。
+const int xxxxx9 = 1123454; // 二进制流不是一个point list数据，报错。
 
 /************************************************************************/
 DatBinInfo::DatBinInfo(unsigned char* p)
@@ -34,7 +35,7 @@ CString DatBinInfo::GetPicInfoString()
     }
     else if(m_binType == DatBinType_Pointlist)
     {
-        strPicType = _T("A pointlist binary data");
+        strPicType = _T("A pointlist data");
     }
     else
     {
@@ -70,7 +71,7 @@ CString DatBinInfo::GetPicInfoString()
     }
 
     CString strDatInfo;
-    strDatInfo.Format("%s, %s, %s,  %d bytes", 
+    strDatInfo.Format("%s,\n%s,\n%s,\n%d bytes\n", 
         strPicType, strLanguage, strDayNight, m_dataLength);
     return strDatInfo;
 }
@@ -167,9 +168,15 @@ CString DatParser::GetPicInfoByIndex(int& iErr, int iIdx)
     }
 
     CString strDatInfo;
-    strDatInfo.Format("%d/%d, %s", 
+    strDatInfo.Format("%d/%d,\n%s", 
         iIdx+1, m_vecDatInfoList.size(), 
         m_vecDatInfoList[iIdx].GetPicInfoString());
+
+    if(m_vecDatInfoList[iIdx].m_binType == DatBinType_Pointlist)
+    {
+        strDatInfo += _T("\npointlist:\n");
+        strDatInfo += GetPointListStringByIndex(iErr, iIdx);
+    }
     return strDatInfo;
 }
 
@@ -200,6 +207,36 @@ long DatParser::GetPicLengthByIndex(int& iErr, int iIdx)
     }
 
     return m_vecDatInfoList[iIdx].m_dataLength;
+}
+
+// get point list string from data, for showing information of image.
+CString DatParser::GetPointListStringByIndex(int& iErr, int iIdx)
+{
+    if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
+    {
+        iErr = xxxxx5;
+        return _T("");
+    }
+
+    int dataLen = m_vecDatInfoList[iIdx].m_dataLength;
+    if(dataLen>128) // point list data should not be longer than 128.
+    {
+        iErr = xxxxx9;
+        return _T("");
+    }
+
+    CString strRes, strTemp;
+    char* pTemp = new char[dataLen];
+    memcpy(pTemp, m_pBuff+m_vecDatInfoList[iIdx].m_dataOffset, dataLen);
+    std::vector<short> vecCoor = GetPointCoordinateListByIndex(iErr, iIdx);
+    for(size_t i=0; i<vecCoor.size(); i+=2)
+    {
+        short oneX = vecCoor[i];
+        short oneY = vecCoor[i+1];
+        strTemp.Format(_T("%d, %d\n"), oneX, oneY);
+        strRes += strTemp;
+    }
+    return strRes;
 }
 
 // get binary segment data type by index
