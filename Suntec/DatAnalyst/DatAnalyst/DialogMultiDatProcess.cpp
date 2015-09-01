@@ -38,8 +38,9 @@ void CDialogMultiDatProcess::OnBnClickedGo()
     if(!myFileWalker.IsDir(strInput))
     {
         CString strMsg;
-        strMsg.Format(_T("can not find directory: %s."), strInput);
+        strMsg.Format(_T("can not find directory: \"%s\"."), strInput);
         MessageBox(strMsg);
+        return;
     }
 
     if(!myFileWalker.IsDir(strOutput))

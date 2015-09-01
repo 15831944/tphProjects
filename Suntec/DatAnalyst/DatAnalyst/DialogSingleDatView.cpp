@@ -2,6 +2,7 @@
 #include "DatAnalyst.h"
 #include "DialogSingleDatView.h"
 #include "MyImageType.h"
+#include "MyFolderWalker.h"
 
 #define DAT_SUCCESS 0
 /************************************************************************/
@@ -41,8 +42,6 @@ BOOL CDialogSingleDatView::OnInitDialog()
 {
     CDialog::OnInitDialog();
     this->SetCurShowPic(0);
-    GetDlgItem(IDC_BTN_PREVDAT)->ShowWindow(FALSE);
-    GetDlgItem(IDC_BTN_NEXTDAT)->ShowWindow(FALSE);
     GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(FALSE);
     return TRUE;
 }

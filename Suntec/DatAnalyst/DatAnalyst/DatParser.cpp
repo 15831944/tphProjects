@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "DatParser.h"
 #include <malloc.h>
 #include "MyImageType.h"
@@ -44,7 +44,7 @@ CString DatBinInfo::GetPicInfoString()
     CString strLanguage;
     if(m_langInfo == DatLangInfo_Common)
     {
-        strLanguage = _T("Common");
+        strLanguage = _T("Common language");
     }
 
     CString strDayNight;
@@ -97,8 +97,8 @@ void DatParser::Clear()
 
 void DatParser::Init(int& iErr, CString strDatPath)
 {
-    this->Clear();
-
+    Clear();
+    m_strDatPath = strDatPath;
     // get file size 
     HANDLE hFile = CreateFile(strDatPath, GENERIC_READ, 
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 
@@ -116,7 +116,6 @@ void DatParser::Init(int& iErr, CString strDatPath)
         return;
     }
 
-    m_strDatPath = strDatPath;
     // new buffer
     m_pBuff = new char[size.QuadPart + 1];
     memset(m_pBuff, 0, size.QuadPart + 1);

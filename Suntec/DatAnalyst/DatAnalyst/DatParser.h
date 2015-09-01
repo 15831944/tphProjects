@@ -58,13 +58,15 @@ public:
     void DatToJpgs(int& iErr, CString strOutputDir);
     CString GetDatFileName();
     CString GetPointListStringByIndex(int& iErr, int iIdx);
+    CString GetDatFullPath() { return m_strDatPath; }
+    void SetDatPath(const CString& val) { m_strDatPath = val; }
 
 private:
     void Clear();
 private:
-    char* m_pBuff;
-    short m_nPicCount;
     CString m_strDatPath;
+    short m_nPicCount;
     std::vector<DatBinInfo> m_vecDatInfoList;
+    char* m_pBuff;
 };
 

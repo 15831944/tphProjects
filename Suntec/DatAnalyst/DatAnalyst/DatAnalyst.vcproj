@@ -202,15 +202,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DialogArrowPointlist.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\DialogMultiDatProcess.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\DialogSingleDatView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DialogViewMultiPics.cpp"
 				>
 			</File>
 			<File
@@ -260,15 +260,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DialogArrowPointlist.h"
-				>
-			</File>
-			<File
 				RelativePath=".\DialogMultiDatProcess.h"
 				>
 			</File>
 			<File
 				RelativePath=".\DialogSingleDatView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DialogViewMultiPics.h"
 				>
 			</File>
 			<File
