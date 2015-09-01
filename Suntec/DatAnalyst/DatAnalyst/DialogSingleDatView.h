@@ -37,6 +37,7 @@ private:
     void LoadBmpFromMemory(int& iErr, void* pMemData, long len);
     void ResizeWindowToFitImage(); // reset main window size to fit the image.
     CString GetPictureInfo(); // get the jpg/png information from m_datParser.
+    void UpdateInfoOfCurrentShowingDat();
 private:
     /* the resize adjustment manager. */
     int m_oldCx;

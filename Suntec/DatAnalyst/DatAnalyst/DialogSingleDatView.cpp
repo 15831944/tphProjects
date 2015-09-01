@@ -155,7 +155,8 @@ void CDialogSingleDatView::OnBnClickedBtnGetpath()
     if(GetBinaryDataType(strDropFileName) == ImageType_Jpg ||
        GetBinaryDataType(strDropFileName) == ImageType_Png)
     {
-        m_pGdiplusBitmap = Gdiplus::Bitmap::FromFile(strDropFileName.AllocSysString());
+        CStringW str2 = CT2CW(strDropFileName);
+        m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
         GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
         GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
         CString strJpgInfo = this->GetPictureInfo();
@@ -176,12 +177,14 @@ void CDialogSingleDatView::OnBnClickedBtnPrev()
 {
     SetCurShowPic(m_curShowPic - 1);
     LoadBmpFromDatDataByIndex(m_curShowPic);
+    UpdateInfoOfCurrentShowingDat();
 }
 
 void CDialogSingleDatView::OnBnClickedBtnNext()
 {
     SetCurShowPic(m_curShowPic + 1);
     LoadBmpFromDatDataByIndex(m_curShowPic);
+    UpdateInfoOfCurrentShowingDat();
 }
 
 void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
@@ -196,11 +199,6 @@ void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
         if(imgType == ImageType_Jpg || imgType == ImageType_Png)
         {
             CStringW str2 = CT2CW(strDropFileName);
-            if(m_pGdiplusBitmap)
-            {
-                delete m_pGdiplusBitmap;
-                m_pGdiplusBitmap = NULL;
-            }
             m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
             Gdiplus::Status curStatus = m_pGdiplusBitmap->GetLastStatus();
             if(m_pGdiplusBitmap->GetLastStatus() != Gdiplus::Status::Ok)
@@ -212,6 +210,9 @@ void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
             }
             GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
             GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
+            CString strJpgSize = this->GetPictureInfo();
+            GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
+            Invalidate();
         }
         else if(imgType == ImageType_Dat)
         {
@@ -219,12 +220,8 @@ void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
             m_datParser.Init(iErr, strDropFileName);
             SetCurShowPic(0);
             LoadBmpFromDatDataByIndex(m_curShowPic);
-            CString strCurPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
-            GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(strCurPicInfo);
+            UpdateInfoOfCurrentShowingDat();
         }
-        CString strJpgSize = this->GetPictureInfo();
-        GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
-        Invalidate();
     }
     DragFinish(hDropInfo);
     CDialog::OnDropFiles(hDropInfo);
@@ -302,32 +299,17 @@ CString CDialogSingleDatView::GetPictureInfo()
 // load image into m_image from memory buffer.
 void CDialogSingleDatView::LoadBmpFromMemory(int& iErr, void* pMemData, long len)
 {
-    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, len);
-    void* pData = GlobalLock(hGlobal);
+    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, len);
+    char *pData = reinterpret_cast<char*>(GlobalLock(hGlobal));
     memcpy(pData, pMemData, len);
     GlobalUnlock(hGlobal);
-    IStream* pStream = NULL;
+    IStream *pStream = NULL;
     if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) != S_OK)
     {
-        MessageBox(_T("create stream for gdi+ failed."));
         return;
-    }
-
-    if(m_pGdiplusBitmap)
-    {
-        delete m_pGdiplusBitmap;
-        m_pGdiplusBitmap = NULL;
     }
     m_pGdiplusBitmap = new Gdiplus::Bitmap(pStream);
-    Gdiplus::Status curStatus = m_pGdiplusBitmap->GetLastStatus();
-    if(curStatus != Gdiplus::Status::Ok)
-    {
-        CString strMsg  = _T("hehehe.");
-        MessageBox(strMsg);
-        return;
-    }
-    pStream -> Release();
-    GlobalFree(hGlobal);
+    pStream->Release();
 }
 
 // reset window size to fit the new image.
@@ -348,4 +330,14 @@ void CDialogSingleDatView::ResizeWindowToFitImage()
 void CDialogSingleDatView::OnBnClickedBtnResetsize()
 {
     ResizeWindowToFitImage();
+}
+
+void CDialogSingleDatView::UpdateInfoOfCurrentShowingDat()
+{
+    int iErr = 0;
+    CString strCurPicInfo = m_datParser.GetPicInfoByIndex(iErr, m_curShowPic);
+    GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(strCurPicInfo);
+    CString strJpgSize = this->GetPictureInfo();
+    GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
+    Invalidate();
 }

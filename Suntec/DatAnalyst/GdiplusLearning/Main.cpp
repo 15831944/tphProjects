@@ -69,7 +69,7 @@ void ReadFileAndConvertToIStream(HWND hwnd, std::string szFileName, Bitmap** ppB
         return;
     }
 
-    *ppBmp = Bitmap::FromStream(pStream);
+    *ppBmp = new Bitmap(pStream);
     pStream->Release();
 }
 

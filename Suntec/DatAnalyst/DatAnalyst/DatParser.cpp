@@ -30,11 +30,11 @@ CString DatBinInfo::GetPicInfoString()
     CString strPicType;
     if(m_binType == DatBinType_Arrow || m_binType == DatBinType_Pattern)
     {
-        strPicType = _T("A pattern/arrow picture");
+        strPicType = _T("pattern/arrow picture");
     }
     else if(m_binType == DatBinType_Pointlist)
     {
-        strPicType = _T("A pointlist data");
+        strPicType = _T("pointlist data");
     }
     else
     {
@@ -99,7 +99,7 @@ void DatParser::Init(int& iErr, CString strDatPath)
 {
     this->Clear();
 
-    //获得文件的大小
+    // get file size 
     HANDLE hFile = CreateFile(strDatPath, GENERIC_READ, 
     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 
     FILE_ATTRIBUTE_NORMAL, NULL);
@@ -117,7 +117,7 @@ void DatParser::Init(int& iErr, CString strDatPath)
     }
 
     m_strDatPath = strDatPath;
-    //开辟相应的缓冲区
+    // new buffer
     m_pBuff = new char[size.QuadPart + 1];
     memset(m_pBuff, 0, size.QuadPart + 1);
     if (m_pBuff != NULL)
@@ -130,6 +130,7 @@ void DatParser::Init(int& iErr, CString strDatPath)
     unsigned char c1 = m_pBuff[0] ;
     unsigned char c2 = m_pBuff[1];
     
+    // this is not a ".dat" file, return
     if(c1 != 0xfe || c2 != 0xfe)
     {
         iErr = xxxxx4;
@@ -159,7 +160,7 @@ CString DatParser::GetPicInfoByIndex(int& iErr, int iIdx)
     }
 
     CString strDatInfo;
-    strDatInfo.Format("%d/%d,\n%s", 
+    strDatInfo.Format("A dat file.\n%d/%d,\n%s", 
         iIdx+1, m_vecDatInfoList.size(), 
         m_vecDatInfoList[iIdx].GetPicInfoString());
 
@@ -225,7 +226,7 @@ CString DatParser::GetPointListStringByIndex(int& iErr, int iIdx)
         short oneX = vecCoor[i];
         short oneY = vecCoor[i+1];
         strTemp.Format(_T("%d, %d\n"), oneX, oneY);
-        strRes += strTemp;
+        strRes = strTemp+strRes;
     }
     return strRes;
 }
