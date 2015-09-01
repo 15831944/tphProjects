@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <gdiplus.h>
+#include <string>
 
 #pragma comment(lib,"gdiplus")
 
@@ -10,23 +11,76 @@ void set_window_size(HWND hWnd,int width,int height)
 {
     RECT rcWindow,rcClient;
     int border_width,border_height;
-
     GetWindowRect(hWnd,&rcWindow);
     GetClientRect(hWnd,&rcClient);
-
     border_width = (rcWindow.right-rcWindow.left) - (rcClient.right-rcClient.left);
     border_height = (rcWindow.bottom-rcWindow.top) - (rcClient.bottom-rcClient.top);
-
     SetWindowPos(hWnd,0,0,0,border_width+width,border_height+height,SWP_NOMOVE|SWP_NOZORDER);
 }
 
-void draw_image(HWND hWnd,wchar_t* file)
+void ReadFileAndConvertToIStream(HWND hwnd, std::string szFileName, Bitmap** ppBmp)
+{
+    TCHAR achErrInfo[512] = {0};
+    // 将文件读到流内存中
+    HANDLE hFile = ::CreateFile(szFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, 
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if(hFile == INVALID_HANDLE_VALUE)
+    {
+        MessageBox(hwnd, (std::string("failed to open file: ") + szFileName).c_str(), NULL, MB_OK);
+        return;
+    }
+
+    DWORD dwSize;
+    dwSize = ::GetFileSize(hFile, NULL);
+    char* pTemp = new char[dwSize];
+    try
+    {
+        DWORD dwReadBytes = 0;
+        ::ReadFile(hFile, pTemp, dwSize, &dwReadBytes, NULL);
+    }
+    catch(...)
+    {
+        MessageBox(hwnd, "Load (file): An exception occured while reading the file %s\n", NULL, MB_OK);
+        return;
+    }
+
+    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, dwSize);
+    if (!hGlobal)
+    {
+        MessageBox(hwnd, "Load (file): Error allocating memory\n", NULL, MB_OK);
+        return;
+    };
+
+    char *pData = reinterpret_cast<char*>(GlobalLock(hGlobal));
+    if (!pData)
+    {
+        MessageBox(hwnd, "Load (file): Error locking memory\n", NULL, MB_OK);
+        return;
+    };
+
+    memcpy(pData, pTemp, dwSize);
+
+    GlobalUnlock(hGlobal);
+    ::CloseHandle(hFile);
+
+    IStream *pStream = NULL;
+    if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) != S_OK)
+    {
+        return;
+    }
+
+    *ppBmp = Bitmap::FromStream(pStream);
+    pStream->Release();
+}
+
+void draw_image(HWND hWnd,std::string file)
 {
     HDC hdc;
     int width,height;
 
     //加载图像
-    Bitmap* image = new Bitmap(file);
+    Bitmap* image = NULL;
+    ReadFileAndConvertToIStream(hWnd, file, &image);
     if(image->GetLastStatus() != Status::Ok)
     {
         MessageBox(hWnd, "hehehe", NULL, MB_OK);
@@ -39,15 +93,12 @@ void draw_image(HWND hWnd,wchar_t* file)
 
     //更新窗口大小
     set_window_size(hWnd,width,height);
-
     hdc = GetDC(hWnd);
 
     //绘图
     Graphics graphics(hdc);
-    graphics.DrawImage(image, 0,0,width,height);
-
+    graphics.DrawImage(image, 0, 0, width, height);
     ReleaseDC(hWnd,hdc);
-
     return;
 }
 
@@ -57,9 +108,9 @@ LRESULT CALLBACK WndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
     {
     case WM_DROPFILES://拖动图片文件时进行图像显示
         {
-            wchar_t file[MAX_PATH];
-            DragQueryFileW((HDROP)wParam,0,file,sizeof(file)/sizeof(*file));
-            draw_image(hWnd,file);
+            char file[MAX_PATH];
+            DragQueryFile((HDROP)wParam,0,file,sizeof(file)/sizeof(*file));
+            draw_image(hWnd, std::string(file));
             DragFinish((HDROP)wParam);
             return 0;
         }

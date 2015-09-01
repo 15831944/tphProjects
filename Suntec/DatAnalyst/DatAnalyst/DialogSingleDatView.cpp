@@ -66,7 +66,7 @@ void CDialogSingleDatView::OnPaint()
             0,
             m_pGdiplusBitmap->GetWidth(),
             m_pGdiplusBitmap->GetHeight(),
-            Gdiplus::UnitPoint);
+            Gdiplus::UnitPixel);
     }
 }
 
@@ -309,10 +309,23 @@ void CDialogSingleDatView::LoadBmpFromMemory(int& iErr, void* pMemData, long len
     IStream* pStream = NULL;
     if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) != S_OK)
     {
+        MessageBox(_T("create stream for gdi+ failed."));
         return;
     }
 
-    m_pGdiplusBitmap = Gdiplus::Bitmap::FromStream(pStream);
+    if(m_pGdiplusBitmap)
+    {
+        delete m_pGdiplusBitmap;
+        m_pGdiplusBitmap = NULL;
+    }
+    m_pGdiplusBitmap = new Gdiplus::Bitmap(pStream);
+    Gdiplus::Status curStatus = m_pGdiplusBitmap->GetLastStatus();
+    if(curStatus != Gdiplus::Status::Ok)
+    {
+        CString strMsg  = _T("hehehe.");
+        MessageBox(strMsg);
+        return;
+    }
     pStream -> Release();
     GlobalFree(hGlobal);
 }
