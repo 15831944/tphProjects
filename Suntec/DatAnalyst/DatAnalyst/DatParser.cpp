@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "DatParser.h"
-#include <fstream>
 #include <malloc.h>
 #include "MyImageType.h"
 
@@ -117,23 +116,15 @@ void DatParser::Init(int& iErr, CString strDatPath)
         return;
     }
 
-    std::ifstream inFile(strDatPath, std::ios::in|std::ios::binary);
-    if (!inFile.is_open())
-    {
-        iErr = xxxxx3;
-        return;
-    }
-
     m_strDatPath = strDatPath;
     //开辟相应的缓冲区
     m_pBuff = new char[size.QuadPart + 1];
     memset(m_pBuff, 0, size.QuadPart + 1);
     if (m_pBuff != NULL)
     {
-        inFile.read(m_pBuff, size.QuadPart);
+        DWORD dwReadBytes = 0;
+        ::ReadFile(hFile, m_pBuff, size.QuadPart, &dwReadBytes, NULL);
     }
-    inFile.clear();
-    inFile.close();
 
     m_pBuff[0];
     unsigned char c1 = m_pBuff[0] ;
