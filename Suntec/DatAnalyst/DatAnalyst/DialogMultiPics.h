@@ -11,6 +11,7 @@ public:
     virtual ~CDialogMultiPics();
     enum { IDD = IDD_MULTIPICTURES };
 public:
+    afx_msg void OnPaint();
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnDropFiles(HDROP hDropInfo);
     afx_msg void OnBnClickedBtnReset();
@@ -24,6 +25,7 @@ protected:
 private:
     void ShowAllPictures();
     void ResizeWindowToFitImage();
+    CString GetPictureNameListString();
 
 private:
     std::vector<CString> m_vecCurFilePaths;

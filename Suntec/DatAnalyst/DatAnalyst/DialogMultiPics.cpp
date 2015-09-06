@@ -7,6 +7,7 @@ IMPLEMENT_DYNAMIC(CDialogMultiPics, CDialog)
 CDialogMultiPics::CDialogMultiPics(CWnd* pParent)
 : CDialog(CDialogMultiPics::IDD, pParent)
 {
+    m_pGdiplusBitmap = NULL;
     m_picLoadedIdx = 0;
 }
 
@@ -21,9 +22,10 @@ void CDialogMultiPics::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CDialogMultiPics, CDialog)
-    ON_BN_CLICKED(IDC_BTN_RESET, &CDialogMultiPics::OnBnClickedBtnReset)
     ON_WM_SIZE()
+    ON_WM_PAINT()
     ON_WM_DROPFILES()
+    ON_BN_CLICKED(IDC_BTN_RESET, &CDialogMultiPics::OnBnClickedBtnReset)
     ON_BN_CLICKED(IDC_BTN_FITSIZE_MULPIC, &CDialogMultiPics::OnBnClickedBtnFitsizeMulpic)
 END_MESSAGE_MAP()
 
@@ -53,6 +55,7 @@ void CDialogMultiPics::OnSize(UINT nType, int cx, int cy)
     LayoutControl(GetDlgItem(IDC_EDIT_CURFILEPATH_MULPIC), TopLeft, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_PICTURE_MULPIC), TopLeft, BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_STATIC_PICINFO_MULPIC), BottomLeft, BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_PICINFO_DETAIL_MULTIPIC), TopRight, BottomRight, cx, cy);
 
     if(nType != SIZE_MINIMIZED)
     {
@@ -60,6 +63,29 @@ void CDialogMultiPics::OnSize(UINT nType, int cx, int cy)
         m_oldCy = cy;
     }
     InvalidateRect(NULL);
+}
+
+void CDialogMultiPics::OnPaint()
+{
+    CPaintDC dc(this);
+    CRect destRect;
+    GetDlgItem(IDC_PICTURE_MULPIC)->GetWindowRect(&destRect);
+    ScreenToClient(&destRect);
+    if(m_pGdiplusBitmap != NULL)
+    {
+        Gdiplus::Graphics graphDst(dc.m_hDC);
+        graphDst.SetInterpolationMode(Gdiplus::InterpolationModeDefault);
+        graphDst.DrawImage(m_pGdiplusBitmap,
+            Gdiplus::RectF( destRect.left,
+            destRect.top,
+            destRect.Width(),
+            destRect.Height()),
+            0,
+            0,
+            m_pGdiplusBitmap->GetWidth(),
+            m_pGdiplusBitmap->GetHeight(),
+            Gdiplus::UnitPixel);
+    }
 }
 
 void CDialogMultiPics::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)
@@ -116,17 +142,19 @@ void CDialogMultiPics::OnDropFiles(HDROP hDropInfo)
         CString strDropFile;
         DragQueryFile(hDropInfo, i, strDropFile.GetBuffer(256), 256);
         m_vecCurFilePaths.push_back(strDropFile);
-        return;
     }
     DragFinish(hDropInfo);
     ShowAllPictures();
+    GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(TRUE);
+    CString strImgNames = GetPictureNameListString();
+    GetDlgItem(IDC_STATIC_PICINFO_DETAIL_MULTIPIC)->SetWindowText(strImgNames);
     CDialog::OnDropFiles(hDropInfo);
+    return;
 }
 
 void CDialogMultiPics::OnBnClickedBtnReset()
 {
     m_picLoadedIdx = 0;
-    //m_pGdiplusBitmap->
 }
 
 void CDialogMultiPics::OnBnClickedBtnFitsizeMulpic()
@@ -144,8 +172,19 @@ void CDialogMultiPics::ShowAllPictures()
 
     for(; m_picLoadedIdx<(int)m_vecCurFilePaths.size(); m_picLoadedIdx++)
     {
-        
+        CStringW str2 = CT2CW(m_vecCurFilePaths[m_picLoadedIdx]);
+        if(m_pGdiplusBitmap)
+        {
+            Gdiplus::Bitmap* pNew = new Gdiplus::Bitmap(str2.GetBuffer());
+            Gdiplus::Graphics* pNewG = Gdiplus::Graphics::FromImage(m_pGdiplusBitmap);
+            pNewG->DrawImage(pNew, 0, 0, pNew->GetWidth(), pNew->GetHeight());
+        }
+        else
+        {
+            m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
+        }
     }
+    Invalidate();
 }
 
 // reset window size to fit the new image.
@@ -154,12 +193,28 @@ void CDialogMultiPics::ResizeWindowToFitImage()
     CWnd* pTheWnd = AfxGetMainWnd();
     CRect winRect, picRect;
     pTheWnd->GetWindowRect(&winRect);
-    GetDlgItem(IDC_PICTURE)->GetWindowRect(&picRect);
+    GetDlgItem(IDC_PICTURE_MULPIC)->GetWindowRect(&picRect);
     int deltaWidth = winRect.Width() - picRect.Width();
     int deltaHeight = winRect.Height() - picRect.Height();
     int x1 = m_pGdiplusBitmap->GetWidth() + deltaWidth;
     int x2 = m_pGdiplusBitmap->GetHeight() + deltaHeight;
     pTheWnd->SetWindowPos(NULL, 0, 0, x1, x2, SWP_NOMOVE);
     return;
+}
+
+CString CDialogMultiPics::GetPictureNameListString()
+{
+    CString strResult;
+    for(size_t i=0; i<m_vecCurFilePaths.size(); i++)
+    {
+        CString strCurFilePath = m_vecCurFilePaths[i];
+        strCurFilePath.ReleaseBuffer();
+        CString strName = strCurFilePath.Right(strCurFilePath.GetLength()-1-strCurFilePath.ReverseFind('\\'));
+        strName = strName.Left(strName.ReverseFind('.'));
+        CString strTemp;
+        strTemp.Format(_T("%d: %s\n"), i+1, strName);
+        strResult += strTemp;
+    }
+    return strResult;
 }
 

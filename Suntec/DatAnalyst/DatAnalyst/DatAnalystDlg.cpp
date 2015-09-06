@@ -45,9 +45,10 @@ BOOL CDatAnalystDlg::OnInitDialog()
     m_tab.InsertItem(0, _T("图片叠加"));
     m_tab.InsertItem(0, _T("单个查看"));
     m_tab.InsertItem(0, _T("批量解析"));
-    m_tab.SetCurSel(1);
+    m_tab.SetCurSel(2);
     m_mulDatProcDlg.ShowWindow(FALSE);
-    m_singleDatViewDlg.ShowWindow(TRUE);
+    m_singleDatViewDlg.ShowWindow(FALSE);
+    m_multiPicsDlg.ShowWindow(TRUE);
     LayoutTabViews();
     return TRUE;
 }
