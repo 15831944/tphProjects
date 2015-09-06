@@ -206,11 +206,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DialogSingleDatView.cpp"
+				RelativePath=".\DialogMultiPics.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DialogViewMultiPics.cpp"
+				RelativePath=".\DialogSingleDatView.cpp"
 				>
 			</File>
 			<File
@@ -264,11 +264,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DialogSingleDatView.h"
+				RelativePath=".\DialogMultiPics.h"
 				>
 			</File>
 			<File
-				RelativePath=".\DialogViewMultiPics.h"
+				RelativePath=".\DialogSingleDatView.h"
 				>
 			</File>
 			<File

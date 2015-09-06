@@ -53,7 +53,7 @@ void CDialogMultiDatProcess::OnBnClickedGo()
     std::vector<CString> datFileList;
     for(size_t i=0; i<myFileWalker.m_vFileItemList.size(); i++)
     {
-        CMyFileItem& myFileItem = myFileWalker.m_vFileItemList[i];
+        CMyFolderItem& myFileItem = myFileWalker.m_vFileItemList[i];
         for(size_t j=0; j<myFileItem.m_fileNames.size(); j++)
         {
             if(myFileItem.m_fileNames[j].Find(_T(".dat")) != -1)

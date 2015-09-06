@@ -30,6 +30,7 @@ END_MESSAGE_MAP()
 int CDatAnalystDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     CDialog::OnCreate(lpCreateStruct);
+    m_multiPicsDlg.Create(IDD_MULTIPICTURES, GetDlgItem(IDC_TAB1));
     m_mulDatProcDlg.Create(IDD_MULTIDATPROCESS,GetDlgItem(IDC_TAB1));
     m_singleDatViewDlg.Create(IDD_SINGLEDATVIEW,GetDlgItem(IDC_TAB1));
     return 0;
@@ -41,6 +42,7 @@ BOOL CDatAnalystDlg::OnInitDialog()
     SetIcon(m_hIcon, TRUE);
     SetIcon(m_hIcon, FALSE);
 
+    m_tab.InsertItem(0, _T("图片叠加"));
     m_tab.InsertItem(0, _T("单个查看"));
     m_tab.InsertItem(0, _T("批量解析"));
     m_tab.SetCurSel(1);
@@ -77,18 +79,23 @@ HCURSOR CDatAnalystDlg::OnQueryDragIcon()
 
 void CDatAnalystDlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 {
+    m_mulDatProcDlg.ShowWindow(FALSE);
+    m_singleDatViewDlg.ShowWindow(FALSE);
+    m_multiPicsDlg.ShowWindow(FALSE);
     int CurSel = m_tab.GetCurSel();
     switch(CurSel)
     {
        case 0:
            m_mulDatProcDlg.ShowWindow(TRUE);
-           m_singleDatViewDlg.ShowWindow(FALSE);
            break;
        case 1:
-           m_mulDatProcDlg.ShowWindow(FALSE);
            m_singleDatViewDlg.ShowWindow(TRUE);
            break;
+       case 2:
+           m_multiPicsDlg.ShowWindow(TRUE);
+           break;
        default:
+           break;
            ;
     }
     *pResult = 0;
@@ -127,6 +134,7 @@ void CDatAnalystDlg::LayoutTabViews()
     rTabClient.right -= 5;
     m_mulDatProcDlg.MoveWindow(&rTabClient);
     m_singleDatViewDlg.MoveWindow(&rTabClient);
+    m_multiPicsDlg.MoveWindow(&rTabClient);
 }
 
 void CDatAnalystDlg::LayoutControl(CWnd* pCtrl, LayoutRef refTopLeft, LayoutRef refBottomRight, int cx, int cy)

@@ -1,11 +1,17 @@
 #pragma once
 #include <vector>
-class CMyFileItem
+class CMyFolderItem
 {
 public:
-    CMyFileItem();
-    ~CMyFileItem(){}
+    CMyFolderItem();
+    ~CMyFolderItem(){}
     void ListDir(CString strDir);
+    void ListAllSiblingFilesWithSameExt(CString strFullFilePath);
+    BOOL HasLastSiblingFile(const CString& strCurFile);
+    CString GetLastSiblingFile(const CString& strCurFile);
+    BOOL HasNextSiblingFile(const CString& strCurFile);
+    CString GetNextSiblingFile(const CString& strCurFile);
+    void Clear();
 public:
     CString m_strCurDir;
     std::vector<CString> m_subDirs;
@@ -21,8 +27,8 @@ public:
     BOOL IsDir(CString strPath);
     BOOL IsFile(CString strPath);
     void CreateDirTree(int& iErr, CString strPath);
-    void DeleteAll(int& iErr, CString dirName); // 删除目录中全部文件
+    void DeleteAll(int& iErr, CString dirName); // delete all sub directories and file in dirName.
 
 public:
-    std::vector<CMyFileItem> m_vFileItemList;
+    std::vector<CMyFolderItem> m_vFileItemList;
 };

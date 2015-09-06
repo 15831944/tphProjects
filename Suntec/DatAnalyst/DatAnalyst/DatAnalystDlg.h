@@ -2,6 +2,7 @@
 #include "afxcmn.h"
 #include "DialogMultiDatProcess.h"
 #include "DialogSingleDatView.h"
+#include "DialogMultiPics.h"
 
 class CDatAnalystDlg : public CDialog
 {
@@ -19,8 +20,9 @@ protected:
     DECLARE_MESSAGE_MAP()
 private:
     CTabCtrl m_tab;
-    CDialogMultiDatProcess m_mulDatProcDlg;
+    CDialogMultiPics m_multiPicsDlg;
     CDialogSingleDatView m_singleDatViewDlg;
+    CDialogMultiDatProcess m_mulDatProcDlg;
 
     void LayoutTabViews();
     afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);

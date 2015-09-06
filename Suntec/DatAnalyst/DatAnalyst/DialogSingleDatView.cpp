@@ -43,6 +43,8 @@ BOOL CDialogSingleDatView::OnInitDialog()
     CDialog::OnInitDialog();
     this->SetCurShowPic(0);
     GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(FALSE);
+    GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(FALSE);
+    GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(FALSE);
     return TRUE;
 }
 
@@ -135,6 +137,7 @@ void CDialogSingleDatView::OnSize(UINT nType, int cx, int cy)
     LayoutControl(GetDlgItem(IDC_STATIC_PICINFO), TopRight, BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_STATIC_PICINFO_DETAIL), BottomLeft, BottomRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_PICTURE), TopLeft, BottomRight, cx, cy);
+    LayoutControl(GetDlgItem(IDC_EDIT_CURFILEPATH), TopLeft, TopRight, cx, cy);
 
     if(nType != SIZE_MINIMIZED)
     {
@@ -150,24 +153,21 @@ void CDialogSingleDatView::OnBnClickedBtnGetpath()
     CFileDialog dlg(TRUE,NULL,NULL,OFN_FILEMUSTEXIST, szFilters);
     if(IDOK!=dlg.DoModal())
         return;
-    CString strDropFileName = dlg.GetPathName();
-    if(GetBinaryDataType(strDropFileName) == ImageType_Jpg ||
-       GetBinaryDataType(strDropFileName) == ImageType_Png)
+    m_curShowFilePath = dlg.GetPathName();
+    ShowFile(m_curShowFilePath);
+
+    CMyFolderItem fileItem;
+    fileItem.ListAllSiblingFilesWithSameExt(m_curShowFilePath);
+    GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(FALSE);
+    GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(FALSE);
+    if(fileItem.HasLastSiblingFile(m_curShowFilePath) == TRUE)
     {
-        CStringW str2 = CT2CW(strDropFileName);
-        m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
-        GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
-        GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
-        CString strJpgInfo = this->GetPictureInfo();
-        GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgInfo);
-        Invalidate();
+        GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(TRUE);
     }
-    else if(GetBinaryDataType(strDropFileName) == ImageType_Dat)
+
+    if(fileItem.HasNextSiblingFile(m_curShowFilePath) == TRUE)
     {
-        int iErr = 0;
-        m_datParser.Init(iErr, strDropFileName);
-        SetCurShowPic(0);
-        LoadBmpFromDatDataByIndex(m_curShowPic);
+        GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(TRUE);
     }
     return;
 }
@@ -189,38 +189,25 @@ void CDialogSingleDatView::OnBnClickedBtnNext()
 void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
 {
     UINT count;
-    CString strDropFileName;
     count = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, 0);
     if(count > 0)
     {
-        DragQueryFile(hDropInfo, 0, strDropFileName.GetBuffer(256), 256);
-        ImageType imgType = GetBinaryDataType(strDropFileName);
-        if(imgType == ImageType_Jpg || imgType == ImageType_Png)
+        DragQueryFile(hDropInfo, 0, m_curShowFilePath.GetBuffer(256), 256);
+        ShowFile(m_curShowFilePath);
+        CMyFolderItem fileItem;
+        fileItem.ListAllSiblingFilesWithSameExt(m_curShowFilePath);
+        GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(FALSE);
+        GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(FALSE);
+        if(fileItem.HasLastSiblingFile(m_curShowFilePath) == TRUE)
         {
-            CStringW str2 = CT2CW(strDropFileName);
-            m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
-            Gdiplus::Status curStatus = m_pGdiplusBitmap->GetLastStatus();
-            if(m_pGdiplusBitmap->GetLastStatus() != Gdiplus::Status::Ok)
-            {
-                CString strMsg;
-                strMsg.Format(_T("Loading image failed: %s."), strDropFileName);
-                MessageBox(strMsg);
-                return;
-            }
-            GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
-            GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
-            CString strJpgSize = this->GetPictureInfo();
-            GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
-            Invalidate();
+            GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(TRUE);
         }
-        else if(imgType == ImageType_Dat)
+
+        if(fileItem.HasNextSiblingFile(m_curShowFilePath) == TRUE)
         {
-            int iErr = 0;
-            m_datParser.Init(iErr, strDropFileName);
-            SetCurShowPic(0);
-            LoadBmpFromDatDataByIndex(m_curShowPic);
-            UpdateInfoOfCurrentShowingDat();
+            GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(TRUE);
         }
+        return;
     }
     DragFinish(hDropInfo);
     CDialog::OnDropFiles(hDropInfo);
@@ -280,10 +267,51 @@ void CDialogSingleDatView::LoadBmpFromDatDataByIndex(short iIdx)
 
 void CDialogSingleDatView::OnBnClickedBtnPrevdat()
 {
+    CMyFolderItem fileItem;
+    fileItem.ListAllSiblingFilesWithSameExt(m_curShowFilePath);
+    if(fileItem.HasLastSiblingFile(m_curShowFilePath) == FALSE)
+    {
+        return;
+    }
+    m_curShowFilePath = fileItem.GetLastSiblingFile(m_curShowFilePath);
+    ShowFile(m_curShowFilePath);
+
+
+    GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(FALSE);
+    GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(FALSE);
+    if(fileItem.HasLastSiblingFile(m_curShowFilePath) == TRUE)
+    {
+        GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(TRUE);
+    }
+
+    if(fileItem.HasNextSiblingFile(m_curShowFilePath) == TRUE)
+    {
+        GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(TRUE);
+    }
 }
 
 void CDialogSingleDatView::OnBnClickedBtnNextdat()
 {
+    CMyFolderItem fileItem;
+    fileItem.ListAllSiblingFilesWithSameExt(m_curShowFilePath);
+    if(fileItem.HasNextSiblingFile(m_curShowFilePath) == FALSE)
+    {
+        return;
+    }
+    m_curShowFilePath = fileItem.GetNextSiblingFile(m_curShowFilePath);
+
+    ShowFile(m_curShowFilePath);
+    GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(FALSE);
+    GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(FALSE);
+    if(fileItem.HasLastSiblingFile(m_curShowFilePath) == TRUE)
+    {
+        GetDlgItem(IDC_BTN_PREVDAT)->EnableWindow(TRUE);
+    }
+
+    if(fileItem.HasNextSiblingFile(m_curShowFilePath) == TRUE)
+    {
+        GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(TRUE);
+    }
 }
 
 CString CDialogSingleDatView::GetPictureInfo()
@@ -339,4 +367,36 @@ void CDialogSingleDatView::UpdateInfoOfCurrentShowingDat()
     CString strJpgSize = this->GetPictureInfo();
     GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
     Invalidate();
+}
+
+void CDialogSingleDatView::ShowFile(const CString& curShowFilePath)
+{
+    GetDlgItem(IDC_EDIT_CURFILEPATH)->SetWindowText(curShowFilePath);
+    ImageType imgType = GetBinaryDataType(curShowFilePath);
+    if(imgType == ImageType_Jpg || imgType == ImageType_Png)
+    {
+        CStringW str2 = CT2CW(curShowFilePath);
+        m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
+        Gdiplus::Status curStatus = m_pGdiplusBitmap->GetLastStatus();
+        if(m_pGdiplusBitmap->GetLastStatus() != Gdiplus::Status::Ok)
+        {
+            CString strMsg;
+            strMsg.Format(_T("Loading image failed: %s."), curShowFilePath);
+            MessageBox(strMsg);
+            return;
+        }
+        GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
+        GetDlgItem(IDC_STATIC_PICINFO)->SetWindowText(_T("a normal picture."));
+        CString strJpgSize = this->GetPictureInfo();
+        GetDlgItem(IDC_STATIC_PICINFO_DETAIL)->SetWindowText(strJpgSize);
+        Invalidate();
+    }
+    else if(imgType == ImageType_Dat)
+    {
+        int iErr = 0;
+        m_datParser.Init(iErr, curShowFilePath);
+        SetCurShowPic(0);
+        LoadBmpFromDatDataByIndex(m_curShowPic);
+        UpdateInfoOfCurrentShowingDat();
+    }
 }
