@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DatAnalyst.h"
 #include "DialogMultiPics.h"
+#include "MyImageType.h"
 
 IMPLEMENT_DYNAMIC(CDialogMultiPics, CDialog)
 
@@ -33,7 +34,6 @@ BOOL CDialogMultiPics::OnInitDialog()
 {
     CDialog::OnInitDialog();
     GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(FALSE);
-    GetDlgItem(IDC_BTN_RESET)->EnableWindow(FALSE);
     return TRUE;
 }
 
@@ -141,11 +141,15 @@ void CDialogMultiPics::OnDropFiles(HDROP hDropInfo)
     {
         CString strDropFile;
         DragQueryFile(hDropInfo, i, strDropFile.GetBuffer(256), 256);
-        m_vecCurFilePaths.push_back(strDropFile);
+        if(GetBinaryDataType(strDropFile) == ImageType_Jpg || 
+           GetBinaryDataType(strDropFile) == ImageType_Png)
+        {
+            m_vecCurFilePaths.push_back(strDropFile);
+            GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(TRUE);
+        }
     }
     DragFinish(hDropInfo);
     ShowAllPictures();
-    GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(TRUE);
     CString strImgNames = GetPictureNameListString();
     GetDlgItem(IDC_STATIC_PICINFO_DETAIL_MULTIPIC)->SetWindowText(strImgNames);
     CDialog::OnDropFiles(hDropInfo);
@@ -155,6 +159,11 @@ void CDialogMultiPics::OnDropFiles(HDROP hDropInfo)
 void CDialogMultiPics::OnBnClickedBtnReset()
 {
     m_picLoadedIdx = 0;
+    m_vecCurFilePaths.clear();
+    m_pGdiplusBitmap = NULL;
+    GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(FALSE);
+    GetDlgItem(IDC_STATIC_PICINFO_DETAIL_MULTIPIC)->SetWindowText(_T(""));
+    Invalidate();
 }
 
 void CDialogMultiPics::OnBnClickedBtnFitsizeMulpic()
