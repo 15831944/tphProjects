@@ -3,8 +3,9 @@
 #include "DialogSingleDatView.h"
 #include "MyImageType.h"
 #include "MyFolderWalker.h"
+#include "MyGdiPlus.h"
+#include "MyError.h"
 
-#define DAT_SUCCESS 0
 /************************************************************************/
 IMPLEMENT_DYNAMIC(CDialogSingleDatView, CDialog)
 
@@ -238,14 +239,18 @@ void CDialogSingleDatView::LoadBmpFromDatDataByIndex(short iIdx)
     DatBinType binType = m_datParser.GetPicTypeByIndex(iErr, iIdx);
     if(binType == DatBinType_Pattern || binType == DatBinType_Arrow)
     {
-        LoadBmpFromMemory(iErr, (void*)pTemp, m_datParser.GetPicLengthByIndex(iErr, iIdx));
-        if(iErr == DAT_SUCCESS)
+        int memLen = m_datParser.GetPicLengthByIndex(iErr, iIdx);
+        MyGdiPlus::LoadBitmapFromMemory(iErr, pTemp, memLen, &m_pGdiplusBitmap);
+        if(iErr != DAT_SUCCESS)
         {
-            GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
-            Invalidate();
+            MessageBox(_T("load bitmap from memory failed."));
+            delete pTemp;
+            pTemp = NULL;
+            return;
         }
-        delete pTemp;
-        pTemp = NULL;
+
+        GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
+        Invalidate();
     }
     else if(binType == DatBinType_Pointlist)
     {
@@ -262,6 +267,9 @@ void CDialogSingleDatView::LoadBmpFromDatDataByIndex(short iIdx)
         }
         Invalidate();
     }
+    delete pTemp;
+    pTemp = NULL;
+    return;
 }
 
 
@@ -321,22 +329,6 @@ CString CDialogSingleDatView::GetPictureInfo()
         m_pGdiplusBitmap->GetWidth(),
         m_pGdiplusBitmap->GetHeight());
     return strPictureInfo;
-}
-
-// load image into m_image from memory buffer.
-void CDialogSingleDatView::LoadBmpFromMemory(int& iErr, void* pMemData, long len)
-{
-    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_NODISCARD, len);
-    char *pData = reinterpret_cast<char*>(GlobalLock(hGlobal));
-    memcpy(pData, pMemData, len);
-    GlobalUnlock(hGlobal);
-    IStream *pStream = NULL;
-    if(CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) != S_OK)
-    {
-        return;
-    }
-    m_pGdiplusBitmap = new Gdiplus::Bitmap(pStream);
-    pStream->Release();
 }
 
 // reset window size to fit the new image.

@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "MyFolderWalker.h"
 
-const int xxxxx8 = 192844; // 非法的路径名称，无法创建。
-
 CMyFolderWalker::CMyFolderWalker()
 {
 }
@@ -23,7 +21,7 @@ void CMyFolderWalker::ListDir(CString strDir)
     return;
 }
 
-// delete all file in folder 'dirName'.
+// delete all sub directories and file in dirName.
 void CMyFolderWalker::DeleteAll(int& iErr, CString dirName)
 {
     CFileFind tempFind;

@@ -27,7 +27,7 @@ public:
     BOOL IsDir(CString strPath);
     BOOL IsFile(CString strPath);
     void CreateDirTree(int& iErr, CString strPath);
-    void DeleteAll(int& iErr, CString dirName); // delete all sub directories and file in dirName.
+    void DeleteAll(int& iErr, CString dirName);
 
 public:
     std::vector<CMyFolderItem> m_vFileItemList;

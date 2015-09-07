@@ -2,15 +2,7 @@
 #include "DatParser.h"
 #include <malloc.h>
 #include "MyImageType.h"
-
-const int xxxxx1 = 10121; // 路径找不到
-const int xxxxx2 = 10121; // 文件的长度小于等于0
-const int xxxxx3 = 1012133; // 无法打开文件
-const int xxxxx4 = 101233; // 读取的文件不是一个dat文件。
-const int xxxxx5 = 1012423; // 输入的下标志超出合法范围。
-const int xxxxx6 = 1232124;
-const int xxxxx7 = 112213; // 二进制流的类型既不是jpg也不是png，报错。
-const int xxxxx9 = 1123454; // 二进制流不是一个point list数据，报错。
+#include "MyError.h"
 
 /************************************************************************/
 DatBinInfo::DatBinInfo(unsigned char* p)
@@ -176,7 +168,7 @@ void DatParser::GetPicBufferByIndex(int& iErr, int iIdx, char** pResult)
 {
     if(iIdx<0 || iIdx>=m_vecDatInfoList.size())
     {
-        iErr = xxxxx6;
+        iErr = xxxxx5;
         pResult = NULL;
         return;
     }

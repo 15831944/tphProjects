@@ -2,6 +2,8 @@
 #include "DatAnalyst.h"
 #include "DialogMultiPics.h"
 #include "MyImageType.h"
+#include "MyGdiPlus.h"
+#include "MyError.h"
 
 IMPLEMENT_DYNAMIC(CDialogMultiPics, CDialog)
 
@@ -179,18 +181,24 @@ void CDialogMultiPics::ShowAllPictures()
         return;
     }
 
+    int iErr = DAT_SUCCESS;
     for(; m_picLoadedIdx<(int)m_vecCurFilePaths.size(); m_picLoadedIdx++)
     {
-        CStringW str2 = CT2CW(m_vecCurFilePaths[m_picLoadedIdx]);
         if(m_pGdiplusBitmap)
         {
-            Gdiplus::Bitmap* pNew = new Gdiplus::Bitmap(str2.GetBuffer());
+            Gdiplus::Bitmap* pNewBmp = NULL;
+            MyGdiPlus::LoadBitmapFromFile(iErr, std::string(m_vecCurFilePaths[m_picLoadedIdx]), &pNewBmp);
+            if(iErr != DAT_SUCCESS)
+            {
+                MessageBox(_T("hehehe, some error, you'd better find what's wrong."));
+                return;
+            }
             Gdiplus::Graphics* pNewG = Gdiplus::Graphics::FromImage(m_pGdiplusBitmap);
-            pNewG->DrawImage(pNew, 0, 0, pNew->GetWidth(), pNew->GetHeight());
+            pNewG->DrawImage(pNewBmp, 0, 0, pNewBmp->GetWidth(), pNewBmp->GetHeight());
         }
         else
         {
-            m_pGdiplusBitmap = new Gdiplus::Bitmap(str2.GetBuffer());
+            MyGdiPlus::LoadBitmapFromFile(iErr, std::string(m_vecCurFilePaths[m_picLoadedIdx]), &m_pGdiplusBitmap);
         }
     }
     Invalidate();

@@ -222,6 +222,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyGdiPlus.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -272,11 +276,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyError.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MyFileDialog.h"
 				>
 			</File>
 			<File
 				RelativePath=".\MyFolderWalker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MyGdiPlus.h"
 				>
 			</File>
 			<File
