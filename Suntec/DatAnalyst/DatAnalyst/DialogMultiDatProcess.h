@@ -10,6 +10,7 @@ public:
     enum { IDD = IDD_MULTIDATPROCESS };
 
 protected:
+    virtual BOOL OnInitDialog();
     virtual void DoDataExchange(CDataExchange* pDX);
     DECLARE_MESSAGE_MAP()
 public:

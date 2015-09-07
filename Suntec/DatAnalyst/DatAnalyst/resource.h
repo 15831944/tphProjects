@@ -19,9 +19,9 @@
 #define IDC_STATIC_PICINFO_DETAIL       1016
 #define IDC_EDIT_OUTPUTPATH             1016
 #define IDC_BTN_PREVDAT                 1017
-#define IDC_STATIC1                     1017
+#define IDC_STATIC_INPUTPATH            1017
 #define IDC_BTN_NEXTDAT                 1018
-#define IDC_STATIC2                     1018
+#define IDC_STATIC_OUTPUTPATH           1018
 #define IDC_PICTURE                     1019
 #define IDC_BTN_RESETSIZE               1020
 #define IDC_EDIT_CURFILEPATH            1021
@@ -32,6 +32,7 @@
 #define IDC_BTN_FITSIZE_MULPIC          1026
 #define IDC_STATIC_PICINFO_MULTIPIC     1027
 #define IDC_STATIC_PICINFO_DETAIL_MULTIPIC 1027
+#define IDC_PROGRESS_MULTIDAT           1028
 
 // Next default values for new objects
 // 
@@ -39,7 +40,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1029
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -267,19 +267,30 @@ std::vector<short> DatParser::GetPointCoordinateListByIndex(int& iErr, int iIdx)
     return vecResult;
 }
 
-// get dat file name that without file ext.
 CString DatParser::GetDatFileName()
 {
-    CString str1 = m_strDatPath.Right(m_strDatPath.GetLength()-1-m_strDatPath.ReverseFind('\\'));
-    str1 = str1.Left(str1.Find(_T(".dat")));
-    return str1;
+    return m_strDatPath.Right(m_strDatPath.GetLength()-1-m_strDatPath.ReverseFind('\\'));
+}
+// get dat file name that without file ext.
+CString DatParser::GetDatFileNameWithoutExt()
+{
+    CString strDatName = GetDatFileName();
+    int nPos = strDatName.ReverseFind('.');
+    if(nPos != -1)
+    {
+        return strDatName.Left(nPos);
+    }
+    else
+    {
+        return strDatName;
+    }
 }
 
 void DatParser::DatToJpgs(int& iErr, CString strOutputDir)
 {
     // output dat
     CString strOutDat;
-    strOutDat.Format(_T("%s\\%s.dat"), strOutputDir, GetDatFileName());
+    strOutDat.Format(_T("%s\\%s"), strOutputDir, GetDatFileName());
     std::ofstream oFStream(strOutDat, std::ios::out|std::ios::binary|std::ios::trunc);
     if (!oFStream.is_open())
     {
@@ -300,11 +311,11 @@ void DatParser::DatToJpgs(int& iErr, CString strOutputDir)
         ImageType imgType = GetBinaryDataTypeByBuffer((unsigned char*)pTempBuf);
         if(imgType == ImageType_Jpg)
         {
-            strOutJpg.Format(_T("%s\\%s_%d.jpg"), strOutputDir, GetDatFileName(), i);
+            strOutJpg.Format(_T("%s\\%s_%d.jpg"), strOutputDir, GetDatFileNameWithoutExt(), i);
         }
         else if(imgType == ImageType_Png)
         {
-            strOutJpg.Format(_T("%s\\%s_%d.png"), strOutputDir, GetDatFileName(), i);
+            strOutJpg.Format(_T("%s\\%s_%d.png"), strOutputDir, GetDatFileNameWithoutExt(), i);
         }
         else
         {

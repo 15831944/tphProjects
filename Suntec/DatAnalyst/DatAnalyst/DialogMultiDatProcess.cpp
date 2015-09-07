@@ -4,6 +4,7 @@
 #include "MyFolderWalker.h"
 #include "DatParser.h"
 #include "MyFileDialog.h"
+#include "MyImageType.h"
 
 IMPLEMENT_DYNAMIC(CDialogMultiDatProcess, CDialog)
 
@@ -28,6 +29,13 @@ BEGIN_MESSAGE_MAP(CDialogMultiDatProcess, CDialog)
     ON_BN_CLICKED(IDC_BTN_GETOUTPUTPATH, &CDialogMultiDatProcess::OnBnClickedBtnGetoutputpath)
     ON_WM_SIZE()
 END_MESSAGE_MAP()
+
+BOOL CDialogMultiDatProcess::OnInitDialog()
+{
+    CDialog::OnInitDialog();
+    GetDlgItem(IDC_PROGRESS_MULTIDAT)->ShowWindow(FALSE);
+    return TRUE;
+}
 
 void CDialogMultiDatProcess::OnBnClickedGo()
 {
@@ -56,15 +64,16 @@ void CDialogMultiDatProcess::OnBnClickedGo()
         CMyFolderItem& myFileItem = myFileWalker.m_vFileItemList[i];
         for(size_t j=0; j<myFileItem.m_fileNames.size(); j++)
         {
-            if(myFileItem.m_fileNames[j].Find(_T(".dat")) != -1)
+            CString strFilePath = myFileItem.m_strCurDir + "\\" + myFileItem.m_fileNames[j];
+            if(GetBinaryDataType(strFilePath) == ImageType_Dat)
             {
-                datFileList.push_back(myFileItem.m_strCurDir + "\\" + myFileItem.m_fileNames[j]);
+                datFileList.push_back(strFilePath);
             }
         }
     }
 
-    DatParser datParser;
     int iErr = 0;
+    DatParser datParser;
     for(size_t i=0; i<datFileList.size(); i++)
     {
         datParser.Init(iErr, datFileList[i]);
@@ -166,13 +175,14 @@ void CDialogMultiDatProcess::OnSize(UINT nType, int cx, int cy)
         return;
     }
 
-    LayoutControl(GetDlgItem(IDC_STATIC1), TopLeft, TopLeft, cx, cy);
-    LayoutControl(GetDlgItem(IDC_STATIC2), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_INPUTPATH), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_STATIC_OUTPUTPATH), TopLeft, TopLeft, cx, cy);
     LayoutControl(GetDlgItem(IDC_EDIT_INPUTPATH), TopLeft, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_EDIT_OUTPUTPATH), TopLeft, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_GETINPUTPATH), TopRight, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_GETOUTPUTPATH), TopRight, TopRight, cx, cy);
     LayoutControl(GetDlgItem(IDC_BTN_GO), TopLeft, TopLeft, cx, cy);
+    LayoutControl(GetDlgItem(IDC_PROGRESS_MULTIDAT), TopLeft, TopRight, cx, cy);
 
     if(nType != SIZE_MINIMIZED)
     {

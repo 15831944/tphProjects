@@ -102,13 +102,14 @@ IDD_MULTIDATPROCESS DIALOGEX 0, 0, 214, 93
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Go",IDC_BTN_GO,11,51,50,14
+    PUSHBUTTON      "Go",IDC_BTN_GO,5,62,50,14
     EDITTEXT        IDC_EDIT_INPUTPATH,36,9,147,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BTN_GETINPUTPATH,188,9,17,14
     EDITTEXT        IDC_EDIT_OUTPUTPATH,36,32,147,14,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BTN_GETOUTPUTPATH,188,32,17,14
-    LTEXT           "Input",IDC_STATIC1,10,12,18,8
-    LTEXT           "Output",IDC_STATIC2,7,34,24,8
+    LTEXT           "Input",IDC_STATIC_INPUTPATH,5,12,18,8
+    LTEXT           "Output",IDC_STATIC_OUTPUTPATH,5,34,24,8
+    CONTROL         "",IDC_PROGRESS_MULTIDAT,"msctls_progress32",WS_BORDER,5,50,114,7
 END
 
 IDD_MULTIPICTURES DIALOGEX 0, 0, 256, 147
@@ -147,13 +148,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "CompanyName", "pset"
+            VALUE "FileDescription", "Dat File Analyst."
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "DatAnalyst.exe"
-            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "LegalCopyright", "tph.  All rights reserved."
             VALUE "OriginalFilename", "DatAnalyst.exe"
-            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductName", "dat file analyst"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END
