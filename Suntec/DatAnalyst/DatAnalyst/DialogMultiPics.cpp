@@ -4,6 +4,7 @@
 #include "MyImageType.h"
 #include "MyGdiPlus.h"
 #include "MyError.h"
+#include "DatParser.h"
 
 IMPLEMENT_DYNAMIC(CDialogMultiPics, CDialog)
 
@@ -11,7 +12,6 @@ CDialogMultiPics::CDialogMultiPics(CWnd* pParent)
 : CDialog(CDialogMultiPics::IDD, pParent)
 {
     m_pGdiplusBitmap = NULL;
-    m_picLoadedIdx = 0;
 }
 
 CDialogMultiPics::~CDialogMultiPics()
@@ -143,8 +143,10 @@ void CDialogMultiPics::OnDropFiles(HDROP hDropInfo)
     {
         CString strDropFile;
         DragQueryFile(hDropInfo, i, strDropFile.GetBuffer(256), 256);
-        if(GetBinaryDataType(strDropFile) == ImageType_Jpg || 
-           GetBinaryDataType(strDropFile) == ImageType_Png)
+        ImageType imgType = GetBinaryDataType(strDropFile);
+        if(imgType == ImageType_Jpg || 
+            imgType == ImageType_Png ||
+            imgType == ImageType_Dat)
         {
             m_vecCurFilePaths.push_back(strDropFile);
             GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(TRUE);
@@ -160,7 +162,6 @@ void CDialogMultiPics::OnDropFiles(HDROP hDropInfo)
 
 void CDialogMultiPics::OnBnClickedBtnReset()
 {
-    m_picLoadedIdx = 0;
     m_vecCurFilePaths.clear();
     m_pGdiplusBitmap = NULL;
     GetDlgItem(IDC_BTN_FITSIZE_MULPIC)->EnableWindow(FALSE);
@@ -176,18 +177,57 @@ void CDialogMultiPics::OnBnClickedBtnFitsizeMulpic()
 // load new pictures set in 'm_vecCurFilePaths' and show them.
 void CDialogMultiPics::ShowAllPictures()
 {
-    if(m_picLoadedIdx>(int)m_vecCurFilePaths.size())
+    if(m_vecCurFilePaths.empty())
     {
         return;
     }
 
     int iErr = DAT_SUCCESS;
-    for(; m_picLoadedIdx<(int)m_vecCurFilePaths.size(); m_picLoadedIdx++)
+    ImageType imgType = ImageType_Invalid;
+    imgType = GetBinaryDataType(m_vecCurFilePaths[0]);
+    // draw the 1st file's content.
+    if(imgType == ImageType_Jpg || imgType == ImageType_Png)
     {
-        if(m_pGdiplusBitmap)
+        MyGdiPlus::LoadBitmapFromFile(iErr, std::string(m_vecCurFilePaths[0]), &m_pGdiplusBitmap);
+    }
+    else if(imgType == ImageType_Dat)
+    {
+        DatParser datParser;
+        datParser.Init(iErr, m_vecCurFilePaths[0]);
+        char* pTemp = NULL;
+        datParser.GetPicBufferByIndex(iErr, 0, &pTemp);
+        MyGdiPlus::LoadBitmapFromMemory(iErr, pTemp, datParser.GetPicLengthByIndex(iErr, 0), &m_pGdiplusBitmap);
+        delete pTemp;
+        pTemp = NULL;
+        if(datParser.HasPointlist() == true)
+        {
+            int iIdx = datParser.GetPointlistIndex();
+            std::vector<short> vecCoor = datParser.GetPointCoordinateListByIndex(iErr, iIdx);
+            for(size_t i=0; i<vecCoor.size(); i+=2)
+            {
+                short oneX = vecCoor[i];
+                short oneY = vecCoor[i+1];
+                m_pGdiplusBitmap->SetPixel(oneX, oneY, Gdiplus::Color::Red);
+                m_pGdiplusBitmap->SetPixel(oneX+1, oneY, Gdiplus::Color::Red);
+                m_pGdiplusBitmap->SetPixel(oneX, oneY+1, Gdiplus::Color::Red);
+                m_pGdiplusBitmap->SetPixel(oneX-1, oneY, Gdiplus::Color::Red);
+                m_pGdiplusBitmap->SetPixel(oneX, oneY-1, Gdiplus::Color::Red);
+            }
+        }
+    }
+    else
+    {
+        return;
+    }
+
+    // then append the left files' content.
+    for(int i=1; i<(int)m_vecCurFilePaths.size(); i++)
+    {
+        imgType = GetBinaryDataType(m_vecCurFilePaths[i]);
+        if(imgType == ImageType_Jpg || imgType == ImageType_Png)
         {
             Gdiplus::Bitmap* pNewBmp = NULL;
-            MyGdiPlus::LoadBitmapFromFile(iErr, std::string(m_vecCurFilePaths[m_picLoadedIdx]), &pNewBmp);
+            MyGdiPlus::LoadBitmapFromFile(iErr, std::string(m_vecCurFilePaths[i]), &pNewBmp);
             if(iErr != DAT_SUCCESS)
             {
                 MessageBox(_T("hehehe, some error, you'd better find what's wrong."));
@@ -196,9 +236,43 @@ void CDialogMultiPics::ShowAllPictures()
             Gdiplus::Graphics* pNewG = Gdiplus::Graphics::FromImage(m_pGdiplusBitmap);
             pNewG->DrawImage(pNewBmp, 0, 0, pNewBmp->GetWidth(), pNewBmp->GetHeight());
         }
+        else if(imgType == ImageType_Dat)
+        {
+            DatParser datParser;
+            datParser.Init(iErr, m_vecCurFilePaths[i]);
+            char* pTemp = NULL;
+            datParser.GetPicBufferByIndex(iErr, 0, &pTemp);
+            Gdiplus::Bitmap* pNewBmp = NULL;
+            MyGdiPlus::LoadBitmapFromMemory(iErr, pTemp, datParser.GetPicLengthByIndex(iErr, 0), &pNewBmp);
+            delete pTemp;
+            pTemp = NULL;
+            if(iErr != DAT_SUCCESS)
+            {
+                MessageBox(_T("hehehe, some error, you'd better find what's wrong."));
+                return;
+            }
+            Gdiplus::Graphics* pNewG = Gdiplus::Graphics::FromImage(m_pGdiplusBitmap);
+            pNewG->DrawImage(pNewBmp, 0, 0, pNewBmp->GetWidth(), pNewBmp->GetHeight());
+
+            if(datParser.HasPointlist() == true)
+            {
+                int iIdx = datParser.GetPointlistIndex();
+                std::vector<short> vecCoor = datParser.GetPointCoordinateListByIndex(iErr, iIdx);
+                for(size_t i=0; i<vecCoor.size(); i+=2)
+                {
+                    short oneX = vecCoor[i];
+                    short oneY = vecCoor[i+1];
+                    m_pGdiplusBitmap->SetPixel(oneX, oneY, Gdiplus::Color::Red);
+                    m_pGdiplusBitmap->SetPixel(oneX+1, oneY, Gdiplus::Color::Red);
+                    m_pGdiplusBitmap->SetPixel(oneX, oneY+1, Gdiplus::Color::Red);
+                    m_pGdiplusBitmap->SetPixel(oneX-1, oneY, Gdiplus::Color::Red);
+                    m_pGdiplusBitmap->SetPixel(oneX, oneY-1, Gdiplus::Color::Red);
+                }
+            }
+        }
         else
         {
-            MyGdiPlus::LoadBitmapFromFile(iErr, std::string(m_vecCurFilePaths[m_picLoadedIdx]), &m_pGdiplusBitmap);
+            // do nothing.
         }
     }
     Invalidate();
@@ -227,7 +301,6 @@ CString CDialogMultiPics::GetPictureNameListString()
         CString strCurFilePath = m_vecCurFilePaths[i];
         strCurFilePath.ReleaseBuffer();
         CString strName = strCurFilePath.Right(strCurFilePath.GetLength()-1-strCurFilePath.ReverseFind('\\'));
-        strName = strName.Left(strName.ReverseFind('.'));
         CString strTemp;
         strTemp.Format(_T("%d: %s\n"), i+1, strName);
         strResult += strTemp;

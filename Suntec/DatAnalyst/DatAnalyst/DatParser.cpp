@@ -327,3 +327,27 @@ void DatParser::DatToJpgs(int& iErr, CString strOutputDir)
     }
 }
 
+bool DatParser::HasPointlist()
+{
+    for(size_t i=0; i<m_vecDatInfoList.size(); i++)
+    {
+        if(m_vecDatInfoList[i].m_binType == DatBinType_Pointlist)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+int DatParser::GetPointlistIndex()
+{
+    for(size_t i=0; i<m_vecDatInfoList.size(); i++)
+    {
+        if(m_vecDatInfoList[i].m_binType == DatBinType_Pointlist)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+

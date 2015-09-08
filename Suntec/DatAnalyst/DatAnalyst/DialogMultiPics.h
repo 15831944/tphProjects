@@ -29,7 +29,6 @@ private:
 
 private:
     std::vector<CString> m_vecCurFilePaths;
-    short m_picLoadedIdx;
     Gdiplus::Bitmap* m_pGdiplusBitmap;
 private:
     /* the resize adjustment manager. */

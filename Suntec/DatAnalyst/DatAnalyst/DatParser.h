@@ -61,6 +61,8 @@ public:
     CString GetPointListStringByIndex(int& iErr, int iIdx);
     CString GetDatFullPath() { return m_strDatPath; }
     void SetDatPath(const CString& val) { m_strDatPath = val; }
+    bool HasPointlist();
+    int GetPointlistIndex();
 
 private:
     void Clear();
