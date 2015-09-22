@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/NearestFeature" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
