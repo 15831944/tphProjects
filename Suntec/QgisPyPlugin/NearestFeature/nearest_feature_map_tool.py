@@ -24,6 +24,7 @@ from qgis.gui import QgsMapTool
 from qgis.core import QgsMapLayer, QgsMapToPixel, QgsFeature, QgsFeatureRequest, QgsGeometry
 from PyQt4.QtGui import QCursor, QPixmap, QMessageBox
 from PyQt4.QtCore import Qt, QCoreApplication
+import time
 
 class NearestFeatureMapTool(QgsMapTool):
     
@@ -62,51 +63,47 @@ class NearestFeatureMapTool(QgsMapTool):
                 Keep track of the oneLayer id and id of the closest feature
             Select the id of the closes feature 
         """
+        time1 = time.time()
         
-        layerData = []
-        for oneLayer in self.canvas.layers():
-            if oneLayer.type() != QgsMapLayer.VectorLayer:
-                # Ignore this oneLayer as it's not a vector
-                continue
-            
-            if oneLayer.featureCount() == 0:
-                # There are no features - skip
-                continue
-            
-            oneLayer.removeSelection()
-            
-            # Determine the location of the click in real-world coords
-            layerPoint = self.toLayerCoordinates(oneLayer, mouseEvent.pos())
-            shortestDistance = float("inf")
-            featureIdInLayer = -1
-            
-            # Loop through all features in the oneLayer
-            mouseClickGeom = QgsGeometry.fromPoint(layerPoint)
-            for oneFeature in oneLayer.getFeatures():
-                dist = oneFeature.geometry().distance(mouseClickGeom)
-                if dist < shortestDistance:
-                    shortestDistance = dist
-                    featureIdInLayer = oneFeature.id()
-            
-            info = (oneLayer, featureIdInLayer, shortestDistance)
-            layerData.append(info)
-                
-        if len(layerData) <= 0:
-            # Looks like no vector layers were found - do nothing
+        theLayer = self.canvas.currentLayer()
+        if theLayer.type() != QgsMapLayer.VectorLayer:
             return
+        if theLayer.featureCount() == 0:
+            return
+                
+        theLayer.removeSelection()
         
-        # Sort the oneLayer information by shortest distance
-        layerData.sort(key=lambda element: element[2])
+        # Determine the location of the click in real-world coords
+        layerPoint = self.toLayerCoordinates(theLayer, mouseEvent.pos())
+        shortestDistance = float("inf")
+        
+        # Loop through all features in the oneLayer
+        mouseClickGeom = QgsGeometry.fromPoint(layerPoint)
+        theFeature = None
+        for oneFeature in theLayer.getFeatures():
+            dist = oneFeature.geometry().distance(mouseClickGeom)
+            if dist < shortestDistance:
+                shortestDistance = dist
+                theFeature = oneFeature
+            if shortestDistance < 0.001:
+                break
+        
+        time2 = time.time()
         
         # Select the closest feature
-        theLayer, featureIdInLayer, shortestDistance = layerData[0]
-        theLayer.select(featureIdInLayer)
-        theLayer.select()
+        theLayer.select(theFeature.id())
+        time3 = time.time()
         
+        fieldList = theFeature.fields()
+        attrList = theFeature.attributes()
+        strFields = ''
+        for oneField, oneQVariant in zip(fieldList, attrList):
+            strFields += "%s: %s\n" % (oneField.name(), str(oneQVariant))
+        QMessageBox.information(self.canvas, "Feature Fields", strFields)
         
-        QMessageBox.information(self.canvas, 
-                                QCoreApplication.translate('HelloWorld', "HelloWorld"), 
-                                QCoreApplication.translate('HelloWorld', "HelloWorld"))
+        strFmt = "feature id: %d\ntime1: %s\ntime2: %s, delta: %s\ntime3: %s, delta: %s." 
+        strTime = strFmt%(theFeature.id(), time1, time2, time2-time1, time3, time3-time2)
+        QMessageBox.information(self.canvas, "Time Statistic", strTime)
         
 
 
