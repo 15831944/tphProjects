@@ -29,10 +29,6 @@ from nearest_feature_dialog import NearestFeatureDialog
 from nearest_feature_map_tool import NearestFeatureMapTool
 import os.path
 
-from qgis.core import QgsVectorLayer, QgsField, QgsMapLayerRegistry
-from PyQt4.QtCore import QVariant
-from PyQt4.QtGui import QMessageBox
-
 class NearestFeature:
     """QGIS Plugin Implementation."""
 
@@ -71,7 +67,6 @@ class NearestFeature:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'NearestFeature')
         self.toolbar.setObjectName(u'NearestFeature')
-        
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -193,6 +188,46 @@ class NearestFeature:
 
 
     def run(self):
-        QMessageBox.information(self.iface.mapCanvas(), "run", "run run")
-        # Simply activate our tool
-        self.iface.mapCanvas().setMapTool(self.nearestFeatureMapTool)
+        self.dlg.show()
+        result = self.dlg.exec_()
+        if result:
+            # activate our tool
+            self.iface.mapCanvas().setMapTool(self.nearestFeatureMapTool)
+            pass
+        else:
+            pass
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

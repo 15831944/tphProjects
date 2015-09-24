@@ -1,32 +1,85 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>NearestFeatureDialogBase</class>
- <widget class="QDialog" name="NearestFeatureDialogBase" >
-  <property name="geometry" >
+ <widget class="QDialog" name="NearestFeatureDialogBase">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>432</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Nearest Feature</string>
   </property>
-  <widget class="QDialogButtonBox" name="button_box" >
-   <property name="geometry" >
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>240</y>
-     <width>341</width>
-     <height>32</height>
+     <x>10</x>
+     <y>9</y>
+     <width>381</width>
+     <height>381</height>
     </rect>
    </property>
-   <property name="orientation" >
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLineEdit" name="lineEditIp"/>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lineEditDbName"/>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lineEditUser"/>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lineEditPassword"/>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelSqlCmd">
+      <property name="text">
+       <string>Input Your Sql Cmd:</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="textEditSqlCmd"/>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lineEditLayerName"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QSplitter" name="splitter">
+   <property name="geometry">
+    <rect>
+     <x>55</x>
+     <y>400</y>
+     <width>331</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="orientation">
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons" >
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
+   <widget class="QPushButton" name="pushButtonGenerateLayer">
+    <property name="text">
+     <string>Generate Layer</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButtonTestConnect">
+    <property name="text">
+     <string>Test Connect</string>
+    </property>
+   </widget>
+   <widget class="QDialogButtonBox" name="button_box">
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="standardButtons">
+     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
@@ -37,13 +90,13 @@
    <receiver>NearestFeatureDialogBase</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="source_label" >
-     <x>248</x>
-     <y>254</y>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
     </hint>
-    <hint type="destination_label" >
-     <x>157</x>
-     <y>274</y>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>
@@ -53,13 +106,13 @@
    <receiver>NearestFeatureDialogBase</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="source_label" >
-     <x>316</x>
-     <y>260</y>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
     </hint>
-    <hint type="destination_label" >
-     <x>286</x>
-     <y>274</y>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>
