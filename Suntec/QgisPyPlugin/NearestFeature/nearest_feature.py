@@ -29,6 +29,8 @@ from nearest_feature_dialog import NearestFeatureDialog
 from nearest_feature_map_tool import NearestFeatureMapTool
 import os.path
 
+from myDbManager import myDbManager
+
 class NearestFeature:
     """QGIS Plugin Implementation."""
 
@@ -59,7 +61,8 @@ class NearestFeature:
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dlg = NearestFeatureDialog()
+        self.dbManager = myDbManager()
+        self.dlg = NearestFeatureDialog(self.dbManager)
 
         # Declare instance attributes
         self.actions = []
@@ -163,7 +166,8 @@ class NearestFeature:
         icon_path = ':/plugins/NearestFeature/icon.png'
         
         # Create a new NearestFeatureMapTool and keep reference
-        self.nearestFeatureMapTool = NearestFeatureMapTool(self.iface.mapCanvas())
+        self.nearestFeatureMapTool = NearestFeatureMapTool(self.iface.mapCanvas(), 
+                                                           self.dbManager)
         
         action = self.add_action(
                     icon_path,

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>432</height>
+    <height>631</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,42 +19,121 @@
      <x>10</x>
      <y>9</y>
      <width>381</width>
-     <height>381</height>
+     <height>581</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLineEdit" name="lineEditIp"/>
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,4,0,1">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Host:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditHost"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Port:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditPort"/>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEditDbName"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>DB Name: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditDbName"/>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEditUser"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>User:    </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditUser"/>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEditPassword"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Password:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditPassword"/>
+      </item>
+     </layout>
     </item>
     <item>
-     <widget class="QLabel" name="labelSqlCmd">
+     <widget class="QLabel" name="label_6">
       <property name="text">
-       <string>Input Your Sql Cmd:</string>
+       <string>Sql Command:</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QTextEdit" name="textEditSqlCmd"/>
+     <widget class="QTextEdit" name="textEditSqlCommand"/>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEditLayerName"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>New Layer Name:  </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditNewLayerName"/>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Data Column Name:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditImageColumn"/>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
   <widget class="QSplitter" name="splitter">
    <property name="geometry">
     <rect>
-     <x>55</x>
-     <y>400</y>
+     <x>60</x>
+     <y>600</y>
      <width>331</width>
      <height>23</height>
     </rect>

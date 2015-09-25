@@ -3,15 +3,16 @@ from qgis.gui import QgsMapTool
 from qgis.core import QgsMapLayer, QgsMapToPixel, QgsFeature, QgsFeatureRequest, QgsGeometry
 from PyQt4.QtGui import QCursor, QPixmap, QMessageBox
 from PyQt4.QtCore import Qt, QCoreApplication
-
+from myDbManager import myDbManager
 
 class NearestFeatureMapTool(QgsMapTool):
     
-    def __init__(self, canvas):
+    def __init__(self, canvas, dbManager):
         
         super(QgsMapTool, self).__init__(canvas)
         self.canvas = canvas
         self.cursor = QCursor(Qt.ArrowCursor)
+        self.dbManager = dbManager
         
     def activate(self):
         self.canvas.setCursor(self.cursor)
@@ -64,8 +65,6 @@ class NearestFeatureMapTool(QgsMapTool):
             if dist < shortestDistance:
                 shortestDistance = dist
                 theFeature = oneFeature
-            if shortestDistance < 0.001:
-                break
         
         # Select the closest feature
         theLayer.select(theFeature.id())
@@ -76,6 +75,22 @@ class NearestFeatureMapTool(QgsMapTool):
         for oneField, oneQVariant in zip(fieldList, attrList):
             strFields += "%s: %s\n" % (oneField.name(), str(oneQVariant))
         QMessageBox.information(self.canvas, "Feature Fields", strFields)
+
+        errMsg = ['']
+        imageData = self.dbManager.getPictureBinaryData(fieldList, attrList, errMsg)
+        if errMsg[0] != '':
+            QMessageBox.information(self.canvas, "error", errMsg[0])
+            return
+
+        from show_image_dialog import ShowImageDialog
+        dlg = ShowImageDialog(imageData)
+        dlg.show()
+        result = dlg.exec_()
+        if result:
+            pass
+        else:
+            pass
+        return
         
 
 
