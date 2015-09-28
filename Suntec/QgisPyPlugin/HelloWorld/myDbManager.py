@@ -105,13 +105,12 @@ class MyDbManager(object):
 
             sqlcmd = \
 """SET bytea_output TO escape;
-select pattern_data 
+select pattern_data, arrow_data
 from %s
 where %s true
 """ % (uri.table(), strFilter)
             pg.execute(sqlcmd)
-            theData = pg.fetchone()
-            return theData[0]
+            return pg.fetchone()
         except Exception, ex:
             errMsg[0] = ex.message
             return None

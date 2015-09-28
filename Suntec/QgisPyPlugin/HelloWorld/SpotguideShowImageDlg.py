@@ -7,8 +7,8 @@ from MyDbManager import MyDbManager
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'SpotguideShowImageDlg_design.ui'))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                               'SpotguideShowImageDlg_design.ui'))
 
 class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, theLayer, selectedFeatureList, parent=None):
@@ -39,11 +39,15 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         if errMsg[0] != '':
             QMessageBox.information(self, "warnning", errMsg[0])
             return
-        datPaser = MyDatParser()
-        datPaser.initFromMemory(errMsg, binData)
-        pixmap = QPixmap()
-        pixmap.loadFromData(datPaser.getPicBufferByIndex(errMsg, 0))
         scene = QGraphicsScene()
+        datPaser = MyDatParser()
+        datPaser.initFromMemory(errMsg, binData[0]) # pattern picture
+        pixmap = QPixmap()
+        pixmap.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
+        scene.addItem(QGraphicsPixmapItem(pixmap))
+        datPaser.initFromMemory(errMsg, binData[1]) # arrow picture
+        pixmap = QPixmap()
+        pixmap.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
         scene.addItem(QGraphicsPixmapItem(pixmap))
         self.graphicsViewShowImage.setScene(scene)
 

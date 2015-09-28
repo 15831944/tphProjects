@@ -59,7 +59,7 @@ class SpotguideMapTool(QgsMapTool):
         selectedFeatureList = []
         for oneFeature in theLayer.getFeatures():
             dist = oneFeature.geometry().distance(mouseClickGeom)
-            if dist < 0.0002:
+            if dist < 0.00005:
                 selectedFeatureList.append(oneFeature)
 
         if selectedFeatureList == []:
@@ -72,7 +72,6 @@ class SpotguideMapTool(QgsMapTool):
         theLayer.select(featureIdList)
 
         dlg = SpotguideShowImageDlg(theLayer, selectedFeatureList)
-        dlg.show()
         result = dlg.exec_()
         if result:
             pass

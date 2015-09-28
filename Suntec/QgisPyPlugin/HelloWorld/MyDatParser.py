@@ -128,7 +128,7 @@ class MyDatParser(object):
     def getPicCount(self):
         return len(self.m_vecDatInfoList)
 
-    def getPicBufferByIndex(self, errMsg, iIdx):
+    def getPatternPicByComboIdx(self, errMsg, iIdx):
         if (iIdx<0 or iIdx>=len(self.m_vecDatInfoList)):
             errMsg[0] = """Input index excceed list length. Input: %d, list length: %d""" %\
                 (iIdx, len(self.m_vecDatInfoList))
