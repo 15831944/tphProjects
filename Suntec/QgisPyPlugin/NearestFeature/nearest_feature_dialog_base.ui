@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>631</height>
+    <height>242</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>10</x>
      <y>9</y>
      <width>381</width>
-     <height>581</height>
+     <height>181</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -90,14 +90,18 @@
      </layout>
     </item>
     <item>
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>Sql Command:</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QTextEdit" name="textEditSqlCommand"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,5">
+      <item>
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Feature: </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxSelectFeature"/>
+      </item>
+     </layout>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -119,7 +123,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>600</y>
+     <y>210</y>
      <width>331</width>
      <height>23</height>
     </rect>

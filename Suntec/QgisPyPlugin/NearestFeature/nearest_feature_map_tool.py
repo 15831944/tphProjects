@@ -3,7 +3,6 @@ from qgis.gui import QgsMapTool
 from qgis.core import QgsMapLayer, QgsMapToPixel, QgsFeature, QgsFeatureRequest, QgsGeometry
 from PyQt4.QtGui import QCursor, QPixmap, QMessageBox
 from PyQt4.QtCore import Qt, QCoreApplication
-from myDbManager import myDbManager
 
 
 class NearestFeatureMapTool(QgsMapTool):
@@ -32,17 +31,15 @@ class NearestFeatureMapTool(QgsMapTool):
         # Convert this point (QgsPoint) to a QgsGeometry
         return QgsGeometry.fromPoint(layerPoint)
 
+    #Each time the mouse is clicked on the map canvas, perform 
+    #the following tasks:
+    #    Loop through all visible vector layers and for each:
+    #        Ensure no features are selected
+    #        Determine the distance of the closes feature in the oneLayer to the mouse click
+    #        Keep track of the oneLayer id and id of the closest feature
+    #    Select the id of the closes feature
+    def canvasReleaseEvent(self, mouseEvent): 
 
-    def canvasReleaseEvent(self, mouseEvent):
-        """ 
-        Each time the mouse is clicked on the map canvas, perform 
-        the following tasks:
-            Loop through all visible vector layers and for each:
-                Ensure no features are selected
-                Determine the distance of the closes feature in the oneLayer to the mouse click
-                Keep track of the oneLayer id and id of the closest feature
-            Select the id of the closes feature 
-        """
         theLayer = self.canvas.currentLayer()
         if theLayer is None:
             return
@@ -58,29 +55,23 @@ class NearestFeatureMapTool(QgsMapTool):
         
         # Loop through all features in the oneLayer
         mouseClickGeom = QgsGeometry.fromPoint(layerPoint)
-        theFeature = None
+        selectedFeatureList = []
         for oneFeature in theLayer.getFeatures():
             dist = oneFeature.geometry().distance(mouseClickGeom)
             if dist < 0.0002:
-                theFeature = oneFeature
-                break
+                selectedFeatureList.append(oneFeature)
 
-        if theFeature is None:
+        if selectedFeatureList == []:
             return
         
         # Select the feature
-        theLayer.select(theFeature.id())
-        strFeatureInfo = self.getFeatureInfoString(theFeature)
-
-        errMsg = ['']
-        dbManager = myDbManager()
-        imageData = dbManager.getPictureBinaryData(errMsg, theLayer, theFeature)
-        if errMsg[0] != '':
-            QMessageBox.information(self.canvas, "warnning", errMsg[0])
-            return
+        featureIdList = []
+        for oneFeature in selectedFeatureList:
+            featureIdList.append(oneFeature.id())
+        theLayer.select(featureIdList)
 
         from show_image_dialog import ShowImageDialog
-        dlg = ShowImageDialog(imageData, strFeatureInfo)
+        dlg = ShowImageDialog(theLayer, selectedFeatureList)
         dlg.show()
         result = dlg.exec_()
         if result:
@@ -89,14 +80,6 @@ class NearestFeatureMapTool(QgsMapTool):
             pass
         return
 
-    def getFeatureInfoString(self, theFeature):
-        fieldList = theFeature.fields()
-        attrList = theFeature.attributes()
-        strFeatureInfo = "field count: %d\n" % len(fieldList)
-        for oneField, oneAttr in zip(fieldList, attrList):
-            strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
-        return strFeatureInfo
-        
 
 
 
