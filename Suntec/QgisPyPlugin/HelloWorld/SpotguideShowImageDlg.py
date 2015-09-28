@@ -17,28 +17,40 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.mTheLayer = theLayer
         self.mFeatureList = selectedFeatureList
         for oneFeature in self.mFeatureList:
-            self.comboBoxSelectLink.addItem(oneFeature.name())
+            fieldList = oneFeature.fields()
+            attrList = oneFeature.attributes()
+            for oneField, oneAttr in zip(fieldList, attrList):
+                if(oneField.name() == 'out_link_id'):
+                    self.comboBoxSelectLink.addItem(str(oneAttr))
 
-    def xxxx(self):
+        if self.comboBoxSelectLink.count() <= 0:
+            return
+        self.selectFeatureByComboIdx(0)
+
+        self.connect(self.comboBoxSelectLink, 
+                     QtCore.SIGNAL('activated(QString)'), 
+                     self.comboBoxSelectLinkChanged)
+
+    def selectFeatureByComboIdx(self, comboIdx):
         errMsg = ['']
         dbManager = MyDbManager()
-        for oneFeature in self.featureList:
-            self.mDatBinaryDataList.append(dbManager.getPictureBinaryData(errMsg, theLayer, oneFeature))
-            if errMsg[0] != '':
-                QMessageBox.information(self.canvas, "warnning", errMsg[0])
+        theFeature = self.mFeatureList[comboIdx]
+        binData = dbManager.getPictureBinaryData(errMsg, self.mTheLayer, theFeature)
+        if errMsg[0] != '':
+            QMessageBox.information(self, "warnning", errMsg[0])
             return
-
-        strFeatureInfo = self.getFeatureInfoString(self.featureList[0])
-        self.textEditFeatureInfo.setText(strFeatureInfo)
-        mDatPaser = MyDatParser()
-        mDatPaser.initFromMemory(errMsg, self.mDatBinaryData[0])
+        datPaser = MyDatParser()
+        datPaser.initFromMemory(errMsg, binData)
         pixmap = QPixmap()
-        pixmap.loadFromData(self.mDatPaser.getPicBufferByIndex(errMsg, 0))
+        pixmap.loadFromData(datPaser.getPicBufferByIndex(errMsg, 0))
         scene = QGraphicsScene()
         scene.addItem(QGraphicsPixmapItem(pixmap))
         self.graphicsViewShowImage.setScene(scene)
-        return
 
+        strFeatureInfo = self.getFeatureInfoString(theFeature)
+        self.textEditFeatureInfo.setText(strFeatureInfo)
+
+        return
     
     def getFeatureInfoString(self, theFeature):
         fieldList = theFeature.fields()
@@ -47,7 +59,11 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         for oneField, oneAttr in zip(fieldList, attrList):
             strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
-       
+    
+    def comboBoxSelectLinkChanged(self, txt):
+        inti = self.comboBoxSelectLink.currentIndex()
+        self.selectFeatureByComboIdx(inti)
+        return
     
 
 

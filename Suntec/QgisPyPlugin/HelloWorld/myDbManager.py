@@ -105,7 +105,7 @@ class MyDbManager(object):
 
             sqlcmd = \
 """SET bytea_output TO escape;
-select data 
+select pattern_data 
 from %s
 where %s true
 """ % (uri.table(), strFilter)

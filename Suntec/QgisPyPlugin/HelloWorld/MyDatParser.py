@@ -3,23 +3,23 @@ from os.path import getsize
 import struct
 import MyGetBinType
 
-#######--dat file type######--#
+###########dat file type###########
 DatBinType_Invalid = -1
 DatBinType_Pattern = 0
 DatBinType_Arrow = 0
 DatBinType_Pointlist = 1
-############################--#
+###################################
 
-#######--dat language type######--#
+#########dat language type#########
 DatLangInfo_Common = 0
 ###################################
 
-#######--dat dat&night type######--#
+#########dat dat&night type########
 DatDayNightInfo_Common = 0
 DatDayNightInfo_Day = 1
 DatDayNightInfo_Night = 2
 DatDayNightInfo_Evening = 3
-##################################-#
+###################################
 
 class DatBinInfo(object):
 
