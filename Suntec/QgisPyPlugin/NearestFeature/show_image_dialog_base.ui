@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>305</height>
+    <width>602</width>
+    <height>507</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="QSplitter" name="splitter">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>270</y>
-     <width>331</width>
-     <height>23</height>
+     <x>430</x>
+     <y>470</y>
+     <width>161</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="orientation">
@@ -39,9 +39,22 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>391</width>
-     <height>251</height>
+     <width>411</width>
+     <height>491</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEditFeatureInfo">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>10</y>
+     <width>161</width>
+     <height>441</height>
+    </rect>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

@@ -61,8 +61,7 @@ class NearestFeature:
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dbManager = myDbManager()
-        self.dlg = NearestFeatureDialog(self.dbManager)
+        self.dlg = NearestFeatureDialog()
 
         # Declare instance attributes
         self.actions = []
@@ -162,13 +161,7 @@ class NearestFeature:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
-        icon_path = ':/plugins/NearestFeature/icon.png'
-        
-        # Create a new NearestFeatureMapTool and keep reference
-        self.nearestFeatureMapTool = NearestFeatureMapTool(self.iface.mapCanvas(), 
-                                                           self.dbManager)
-        
+        icon_path = ':/plugins/NearestFeature/icon.png'       
         action = self.add_action(
                     icon_path,
                     text=self.tr(u'Select nearest feature.'),
@@ -176,8 +169,16 @@ class NearestFeature:
                     parent=self.iface.mainWindow())
         
         action.setCheckable(True)
+        # Create a new NearestFeatureMapTool and keep reference
+        self.nearestFeatureMapTool = NearestFeatureMapTool(self.iface.mapCanvas())
         self.nearestFeatureMapTool.setAction(action)
-        
+
+        actionGenerateLayer = self.add_action(
+                    icon_path, 
+                    text=self.tr(u'Generate a special layer.'),
+                    callback = self.generateLayer,
+                    parent = self.iface.mainWindow())
+        actionGenerateLayer.setCheckable(True)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -189,17 +190,18 @@ class NearestFeature:
         
         # Unset the map tool in case it's set
         self.iface.mapCanvas().unsetMapTool(self.nearestFeatureMapTool)
-
+        return
 
     def run(self):
+        # activate our tool
+        self.iface.mapCanvas().setMapTool(self.nearestFeatureMapTool)
+        return
+
+    def generateLayer(self):
         self.dlg.show()
         result = self.dlg.exec_()
-        if result:
-            # activate our tool
-            self.iface.mapCanvas().setMapTool(self.nearestFeatureMapTool)
-            pass
-        else:
-            pass
+        return
+
     
 
 

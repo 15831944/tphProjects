@@ -8,37 +8,37 @@ import types
 
 class myDbManager(object):
     def __init__(self):
-        self.host = None
-        self.port = None
-        self.dbname = None
-        self.user = None
-        self.password = None
-        self.userSqlcmd = None
-        self.newLayerName = None
-        self.imageColumn = None
         return
 
     # make sure errMsg is a 'string array' which has at least one element.
-    def generateNewLayer(self, errMsg):
-        if self.newLayerName is None or \
-           self.host is None or \
-           self.port is None or \
-           self.dbname is None or \
-           self.user is None or \
-           self.password is None or \
-           self.userSqlcmd is None:
+    def generateNewLayer(self, errMsg, host, port, dbname, 
+                         user, password, userSqlcmd, newLayerName):
+        if host is None or \
+           port is None or \
+           dbname is None or \
+           user is None or \
+           password is None or \
+           userSqlcmd is None or \
+           newLayerName is None:
+            errMsg[0] = """Input arguments not correct.\n"""+\
+                        """host: %s\n"""+\
+                        """port: %s\n"""+\
+                        """dbname: %s\n"""+\
+                        """user: %s\n"""+\
+                        """password: %s\n"""+\
+                        """userSqlcmd: %s\n"""+\
+                        """newLayerName: %s\n""" % \
+                        (host, port, dbname, user, 
+                         password, userSqlcmd, newLayerName)
             return
-        sqlcmd = \
-"""
-drop table if exists %s;
-create table %s
-as 
-(%s);
-"""
-        sqlcmd = sqlcmd % (self.newLayerName, self.newLayerName, self.userSqlcmd)
+        sqlcmd = """drop table if exists %s;\n"""+\
+                 """create table %s \n"""+\
+                 """as \n"""+\
+                 """(%s);"""
+        sqlcmd = sqlcmd % (newLayerName, newLayerName, userSqlcmd)
         try:
             conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
-                (self.host, self.dbname, self.user, self.password))
+                (host, dbname, user, password))
             pg = conn.cursor()
             pg.execute(sqlcmd)
             conn.commit()
@@ -46,17 +46,18 @@ as
             errMsg[0] = ex
             return
 
-        self.removeAllLayersWithSpecName(self.newLayerName, errMsg)
+        self.removeAllLayersWithSpecName(newLayerName, errMsg)
         if errMsg[0] != '':
             return
         uri = QgsDataSourceURI()        
-        uri.setConnection(self.host, self.port, self.dbname, self.user, self.password)        
-        uri.setDataSource("public", self.newLayerName, "the_geom", "")
-        layer = QgsVectorLayer(uri.uri(), self.newLayerName, "postgres")
-        layer.name = self.newLayerName
+        uri.setConnection(host, port, dbname, user, password)        
+        uri.setDataSource("public", newLayerName, "the_geom", "")
+        layer = QgsVectorLayer(uri.uri(), newLayerName, "postgres")
+        layer.name = newLayerName
         if not layer.isValid():
-            errMsg[0] = """Create new layer failed. host: %s, dbName: %s, user: %s, password: %s""" % \
-                (self.host, self.port, self.dbname, self.user, self.password)
+            errMsg[0] = """Create new layer failed. """+\
+                        """host: %s, dbName: %s, user: %s, password: %s""" % \
+                (host, port, dbname, user, password)
             return 
         # Add layer to the registry
         QgsMapLayerRegistry.instance().addMapLayer(layer)
@@ -66,37 +67,46 @@ as
     def removeAllLayersWithSpecName(self, specLayerName, errMsg):
         layerList = QgsMapLayerRegistry.instance().mapLayersByName(specLayerName)
         for oneLayer in layerList:
-            layerId = oneLayer.id()
-            layerList2 = QgsMapLayerRegistry.instance().removeMapLayer(layerId)
+            QgsMapLayerRegistry.instance().removeMapLayer(oneLayer.id())
         return
 
-    def getPictureBinaryData(self, fieldList, attrList, errMsg):
-        if len(fieldList) != len(attrList):
-            errMsg[0] = '''fieldList's length is not equal to attrList's. '''
-            return None
-        strFilter = ''''''
-        for oneField, oneAttr in zip(fieldList, attrList):
-            if type(oneAttr) is types.StringType:
-                strFilter += ''' %s='%s' and ''' % (oneField.name(), oneAttr)
-            elif type(oneAttr) is types.IntType or\
-                 type(oneAttr) is types.LongType or\
-                 type(oneAttr) is types.FloatType:
-                strFilter += ''' %s=%s and ''' % (oneField.name(), oneAttr)
-            else:
-                continue
-        sqlcmd = \
+    def getPictureBinaryData(self, errMsg, layer, theFeature):
+        try:
+            uri = QgsDataSourceURI(layer.source())
+            conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
+                (uri.host(), uri.database(), uri.username(), uri.password()))
+            pg = conn.cursor()
+            strFilter = ''''''
+            fieldList = theFeature.fields()
+            attrList = theFeature.attributes()
+            for oneField, oneAttr in zip(fieldList, attrList):
+                if oneAttr is None:
+                    continue
+                if type(oneAttr) is types.StringType:
+                    strFilter += ''' %s='%s' and ''' % (oneField.name(), oneAttr)
+                if type(oneAttr) is types.IntType or\
+                   type(oneAttr) is types.LongType or\
+                   type(oneAttr) is types.FloatType:
+                    strFilter += ''' %s=%s and ''' % (oneField.name(), oneAttr)
+                else:
+                    continue
+
+            if self.isTableExistsColumn_data() == False:
+                errMsg[0] = """The table %s does not has a 'data' column.""" % uri.table()
+                return
+
+            sqlcmd = \
 """SET bytea_output TO escape;
-select %s 
+select data 
 from %s
 where %s true
-""" % (self.imageColumn, self.newLayerName, strFilter)
-        try:
-            conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
-                (self.host, self.dbname, self.user, self.password))
-            pg = conn.cursor()
+""" % (uri.table(), strFilter)
             pg.execute(sqlcmd)
             theData = pg.fetchone()
             return theData[0]
         except Exception, ex:
-            errMsg[0] = ex
+            errMsg[0] = ex.message
             return None
+
+    def isTableExistsColumn_data(self):
+        return True

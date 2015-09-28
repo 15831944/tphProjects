@@ -5,14 +5,14 @@ from PyQt4.QtGui import QCursor, QPixmap, QMessageBox
 from PyQt4.QtCore import Qt, QCoreApplication
 from myDbManager import myDbManager
 
+
 class NearestFeatureMapTool(QgsMapTool):
     
-    def __init__(self, canvas, dbManager):
+    def __init__(self, canvas):
         
         super(QgsMapTool, self).__init__(canvas)
         self.canvas = canvas
         self.cursor = QCursor(Qt.ArrowCursor)
-        self.dbManager = dbManager
         
     def activate(self):
         self.canvas.setCursor(self.cursor)
@@ -55,35 +55,32 @@ class NearestFeatureMapTool(QgsMapTool):
         
         # Determine the location of the click in real-world coords
         layerPoint = self.toLayerCoordinates(theLayer, mouseEvent.pos())
-        shortestDistance = float("inf")
         
         # Loop through all features in the oneLayer
         mouseClickGeom = QgsGeometry.fromPoint(layerPoint)
         theFeature = None
         for oneFeature in theLayer.getFeatures():
             dist = oneFeature.geometry().distance(mouseClickGeom)
-            if dist < shortestDistance:
-                shortestDistance = dist
+            if dist < 0.0002:
                 theFeature = oneFeature
+                break
+
+        if theFeature is None:
+            return
         
-        # Select the closest feature
+        # Select the feature
         theLayer.select(theFeature.id())
-        
-        fieldList = theFeature.fields()
-        attrList = theFeature.attributes()
-        strFields = "field count: %d\n" % len(fieldList)
-        for oneField, oneQVariant in zip(fieldList, attrList):
-            strFields += "%s: %s\n" % (oneField.name(), str(oneQVariant))
-        QMessageBox.information(self.canvas, "Feature Fields", strFields)
+        strFeatureInfo = self.getFeatureInfoString(theFeature)
 
         errMsg = ['']
-        imageData = self.dbManager.getPictureBinaryData(fieldList, attrList, errMsg)
+        dbManager = myDbManager()
+        imageData = dbManager.getPictureBinaryData(errMsg, theLayer, theFeature)
         if errMsg[0] != '':
-            QMessageBox.information(self.canvas, "error", errMsg[0])
+            QMessageBox.information(self.canvas, "warnning", errMsg[0])
             return
 
         from show_image_dialog import ShowImageDialog
-        dlg = ShowImageDialog(imageData)
+        dlg = ShowImageDialog(imageData, strFeatureInfo)
         dlg.show()
         result = dlg.exec_()
         if result:
@@ -91,6 +88,14 @@ class NearestFeatureMapTool(QgsMapTool):
         else:
             pass
         return
+
+    def getFeatureInfoString(self, theFeature):
+        fieldList = theFeature.fields()
+        attrList = theFeature.attributes()
+        strFeatureInfo = "field count: %d\n" % len(fieldList)
+        for oneField, oneAttr in zip(fieldList, attrList):
+            strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
+        return strFeatureInfo
         
 
 

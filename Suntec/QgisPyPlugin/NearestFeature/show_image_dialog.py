@@ -11,7 +11,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class ShowImageDialog(QtGui.QDialog, FORM_CLASS):
-    def __init__(self, datBinaryData, parent=None):
+    def __init__(self, datBinaryData, strFeatureInfo, parent=None):
         super(ShowImageDialog, self).__init__(parent)
         self.setupUi(self)
         self.mDatBinaryData = datBinaryData
@@ -23,4 +23,5 @@ class ShowImageDialog(QtGui.QDialog, FORM_CLASS):
         scene = QGraphicsScene()
         scene.addItem(QGraphicsPixmapItem(pixmap))
         self.graphicsViewShowImage.setScene(scene)
+        self.textEditFeatureInfo.setText(strFeatureInfo)
 

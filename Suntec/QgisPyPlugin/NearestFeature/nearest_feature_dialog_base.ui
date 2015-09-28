@@ -113,20 +113,6 @@
       </item>
      </layout>
     </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_7">
-      <item>
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Data Column Name:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="lineEditImageColumn"/>
-      </item>
-     </layout>
-    </item>
    </layout>
   </widget>
   <widget class="QSplitter" name="splitter">

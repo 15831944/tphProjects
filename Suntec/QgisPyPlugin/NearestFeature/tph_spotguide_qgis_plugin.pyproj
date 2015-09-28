@@ -25,15 +25,24 @@
   <ItemGroup>
     <Content Include="icon.png" />
     <Content Include="metadata.txt" />
+    <Content Include="show_image_dialog_base.ui" />
+    <Content Include="nearest_feature_dialog_base.ui" />
     <Content Include="README.html" />
     <Content Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="datParser.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="getBinaryDataType.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="myDbManager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="help\source\conf.py" />
     <Compile Include="nearest_feature.py" />
+    <Compile Include="show_image_dialog.py" />
     <Compile Include="nearest_feature_dialog.py" />
     <Compile Include="nearest_feature_map_tool.py" />
     <Compile Include="plugin_upload.py" />
