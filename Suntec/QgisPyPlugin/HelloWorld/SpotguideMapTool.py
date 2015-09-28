@@ -3,9 +3,10 @@ from qgis.gui import QgsMapTool
 from qgis.core import QgsMapLayer, QgsMapToPixel, QgsFeature, QgsFeatureRequest, QgsGeometry
 from PyQt4.QtGui import QCursor, QPixmap, QMessageBox
 from PyQt4.QtCore import Qt, QCoreApplication
+from SpotguideShowImageDlg import SpotguideShowImageDlg
 
 
-class NearestFeatureMapTool(QgsMapTool):
+class SpotguideMapTool(QgsMapTool):
     
     def __init__(self, canvas):
         
@@ -70,8 +71,7 @@ class NearestFeatureMapTool(QgsMapTool):
             featureIdList.append(oneFeature.id())
         theLayer.select(featureIdList)
 
-        from show_image_dialog import ShowImageDialog
-        dlg = ShowImageDialog(theLayer, selectedFeatureList)
+        dlg = SpotguideShowImageDlg(theLayer, selectedFeatureList)
         dlg.show()
         result = dlg.exec_()
         if result:

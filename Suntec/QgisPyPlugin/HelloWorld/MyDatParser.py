@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from os.path import getsize
 import struct
-import getBinaryDataType
+import MyGetBinType
 
 #######--dat file type######--#
 DatBinType_Invalid = -1
@@ -67,7 +67,7 @@ class DatBinInfo(object):
 ##################################################################################################
 ##################################################################################################
 ##################################################################################################
-class DatParser(object):
+class MyDatParser(object):
 
     def __init__(self):
         self.m_strDatPath = None
@@ -180,7 +180,7 @@ class DatParser(object):
             pTempBuf = self.m_pBuff[binInfo.m_dataOffset, binInfo.m_dataOffset+binInfo.m_dataLength]
 
             strOutJpg = ''
-            imgType = getBinaryDataType.GetBinaryDataTypeByBuffer(pTempBuf)
+            imgType = MyGetBinType.GetBinaryDataTypeByBuffer(pTempBuf)
             if (imgType == ImageType_Jpg):
                 strOutJpg = """%s\\%s_%d.jpg"""%(strOutputDir, self.getDatFileNameWithoutExt(), i)
             elif(imgType == ImageType_Png):

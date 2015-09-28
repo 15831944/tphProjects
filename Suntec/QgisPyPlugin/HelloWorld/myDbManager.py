@@ -12,7 +12,7 @@ FeatureTypeList = \
     """lane"""
 ]
 
-class myDbManager(object):
+class MyDbManager(object):
     def __init__(self):
         return
 

@@ -48,13 +48,23 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>10</y>
+     <y>40</y>
      <width>161</width>
-     <height>441</height>
+     <height>411</height>
     </rect>
    </property>
    <property name="readOnly">
     <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBoxSelectLink">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>10</y>
+     <width>161</width>
+     <height>22</height>
+    </rect>
    </property>
   </widget>
  </widget>

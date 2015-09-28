@@ -6,7 +6,7 @@
     <ProjectGuid>{ea134a26-9760-49d7-9d4f-cee3af23bbc9}</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>nearest_feature.py</StartupFile>
+    <StartupFile>RdbViewer.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -14,7 +14,7 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
-    <Name>tph_spotguide_qgis_plugin</Name>
+    <Name>RdbViewerProj</Name>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -25,26 +25,26 @@
   <ItemGroup>
     <Content Include="icon.png" />
     <Content Include="metadata.txt" />
-    <Content Include="show_image_dialog_base.ui" />
-    <Content Include="nearest_feature_dialog_base.ui" />
+    <Content Include="SpotguideShowImageDlg_design.ui" />
+    <Content Include="GenerateNewLayerDlg_design.ui" />
     <Content Include="README.html" />
     <Content Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="datParser.py">
+    <Compile Include="MyDatParser.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="getBinaryDataType.py">
+    <Compile Include="MyGetBinType.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="myDbManager.py">
+    <Compile Include="MyDbManager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="help\source\conf.py" />
-    <Compile Include="nearest_feature.py" />
-    <Compile Include="show_image_dialog.py" />
-    <Compile Include="nearest_feature_dialog.py" />
-    <Compile Include="nearest_feature_map_tool.py" />
+    <Compile Include="RdbViewer.py" />
+    <Compile Include="SpotguideShowImageDlg.py" />
+    <Compile Include="GenerateNewLayerDlg.py" />
+    <Compile Include="SpotguideMapTool.py" />
     <Compile Include="plugin_upload.py" />
     <Compile Include="resources_rc.py" />
     <Compile Include="test\qgis_interface.py" />

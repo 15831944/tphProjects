@@ -1,15 +1,15 @@
 ﻿import os
 import psycopg2
-from myDbManager import myDbManager, FeatureTypeList
+from MyDbManager import MyDbManager, FeatureTypeList
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'nearest_feature_dialog_base.ui'))
+    os.path.dirname(__file__), 'GenerateNewLayerDlg_design.ui'))
 
-class NearestFeatureDialog(QtGui.QDialog, FORM_CLASS):
+class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
-        super(NearestFeatureDialog, self).__init__(parent)
+        super(GenerateNewLayerDlg, self).__init__(parent)
         self.setupUi(self)
         self.lineEditHost.setText("""192.168.10.14""")
         self.lineEditPort.setText("""5432""")
@@ -32,12 +32,12 @@ class NearestFeatureDialog(QtGui.QDialog, FORM_CLASS):
         dbname = self.lineEditDbName.text()
         user = self.lineEditUser.text()
         password = self.lineEditPassword.text()
-        featureTypeText = self.comboBoxSelectFeature.currentText()
+        featureType = self.comboBoxSelectFeature.currentText()
         newLayerName = self.lineEditNewLayerName.text()
         errMsg = ['']
-        dbManager = myDbManager()
+        dbManager = MyDbManager()
         dbManager.generateNewLayer(errMsg, host, port, dbname, user, password, 
-                                   newLayerName, featureTypeText)
+                                   newLayerName, featureType)
         return
     
 
