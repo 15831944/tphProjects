@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.gui import QgsMapTool
+from qgis.gui import QgsMapTool, QgsMapToolIdentify
 from qgis.core import QgsMapLayer, QgsMapToPixel, QgsFeature, QgsFeatureRequest, QgsGeometry
 from PyQt4.QtGui import QCursor, QPixmap, QMessageBox
 from PyQt4.QtCore import Qt, QCoreApplication
@@ -48,30 +48,22 @@ class SpotguideMapTool(QgsMapTool):
             return
         if theLayer.featureCount() == 0:
             return
-                
+          
         theLayer.removeSelection()
         
-        # Determine the location of the click in real-world coords
-        layerPoint = self.toLayerCoordinates(theLayer, mouseEvent.pos())
-        
-        # Loop through all features in the oneLayer
-        mouseClickGeom = QgsGeometry.fromPoint(layerPoint)
-        selectedFeatureList = []
-        for oneFeature in theLayer.getFeatures():
-            dist = oneFeature.geometry().distance(mouseClickGeom)
-            if dist < 0.00005:
-                selectedFeatureList.append(oneFeature)
-
-        if selectedFeatureList == []:
-            return
-        
+        qgsMapTollIndentify = QgsMapToolIdentify(self.canvas)
+        resultList = qgsMapTollIndentify.identify(mouseEvent.x(), mouseEvent.y(), -1)
+        if resultList == []:
+            return       
         # Select the feature
+        featureList = []
         featureIdList = []
-        for oneFeature in selectedFeatureList:
-            featureIdList.append(oneFeature.id())
+        for oneResult in resultList:
+            featureList.append(oneResult.mFeature)
+            featureIdList.append(oneResult.mFeature.id())
         theLayer.select(featureIdList)
 
-        dlg = SpotguideShowImageDlg(theLayer, selectedFeatureList)
+        dlg = SpotguideShowImageDlg(theLayer, featureList)
         result = dlg.exec_()
         if result:
             pass

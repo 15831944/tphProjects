@@ -38,6 +38,8 @@ class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
         dbManager = MyDbManager()
         dbManager.generateNewLayer(errMsg, host, port, dbname, user, password, 
                                    newLayerName, featureType)
+        if errMsg[0] != '':
+            QMessageBox.information(self, "error", errMsg[0])
         return
     
 

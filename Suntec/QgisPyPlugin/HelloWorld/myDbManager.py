@@ -16,7 +16,6 @@ class MyDbManager(object):
     def __init__(self):
         return
 
-
     # 
     def generateNewLayer(self, errMsg, host, port, dbname, 
                          user, password, newLayerName, featureType):
@@ -34,7 +33,7 @@ class MyDbManager(object):
                         """user: %s\n"""+\
                         """password: %s\n"""+\
                         """newLayerName: %s\n"""+\
-                        """featureType: %s\n""" % \
+                        """feature: %s\n""" % \
                         (host, port, dbname, user, 
                          password, newLayerName, featureType)
             return

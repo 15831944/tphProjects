@@ -27,8 +27,6 @@
     <Content Include="metadata.txt" />
     <Content Include="SpotguideShowImageDlg_design.ui" />
     <Content Include="GenerateNewLayerDlg_design.ui" />
-    <Content Include="README.html" />
-    <Content Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MyDatParser.py">
@@ -40,27 +38,12 @@
     <Compile Include="MyDbManager.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="help\source\conf.py" />
     <Compile Include="RdbViewer.py" />
     <Compile Include="SpotguideShowImageDlg.py" />
     <Compile Include="GenerateNewLayerDlg.py" />
     <Compile Include="SpotguideMapTool.py" />
-    <Compile Include="plugin_upload.py" />
     <Compile Include="resources_rc.py" />
-    <Compile Include="test\qgis_interface.py" />
-    <Compile Include="test\test_init.py" />
-    <Compile Include="test\test_nearest_feature_dialog.py" />
-    <Compile Include="test\test_qgis_environment.py" />
-    <Compile Include="test\test_resources.py" />
-    <Compile Include="test\test_translations.py" />
-    <Compile Include="test\utilities.py" />
-    <Compile Include="test\__init__.py" />
     <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="help\" />
-    <Folder Include="help\source" />
-    <Folder Include="test" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
