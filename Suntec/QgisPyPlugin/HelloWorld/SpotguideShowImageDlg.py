@@ -6,6 +6,7 @@ from MyDbManager import MyDbManager
 
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem
+from PyQt4.QtCore import QRectF
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'SpotguideShowImageDlg_design.ui'))
@@ -26,6 +27,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         if self.comboBoxSelectLink.count() <= 0:
             return
         self.selectFeatureByComboIdx(0)
+        self.comboBoxSelectLink.setFocus()
 
         self.connect(self.comboBoxSelectLink, 
                      QtCore.SIGNAL('activated(QString)'), 
@@ -39,16 +41,24 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         if errMsg[0] != '':
             QMessageBox.information(self, "warnning", errMsg[0])
             return
+        
         scene = QGraphicsScene()
-        datPaser = MyDatParser()
-        datPaser.initFromMemory(errMsg, binData[0]) # pattern picture
-        pixmap = QPixmap()
-        pixmap.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
-        scene.addItem(QGraphicsPixmapItem(pixmap))
-        datPaser.initFromMemory(errMsg, binData[1]) # arrow picture
-        pixmap = QPixmap()
-        pixmap.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
-        scene.addItem(QGraphicsPixmapItem(pixmap))
+        pattern_data = binData[0]
+        if pattern_data is not None:
+            datPaser = MyDatParser()
+            datPaser.initFromMemory(errMsg, pattern_data) # pattern picture
+            pixmap1 = QPixmap()
+            pixmap1.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
+            scene.addItem(QGraphicsPixmapItem(pixmap1))
+
+        arrow_data = binData[1]
+        if arrow_data is not None:
+            datPaser = MyDatParser()
+            datPaser.initFromMemory(errMsg, arrow_data) # arrow picture
+            pixmap2 = QPixmap()
+            pixmap2.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
+            scene.addItem(QGraphicsPixmapItem(pixmap2))
+
         self.graphicsViewShowImage.setScene(scene)
 
         strFeatureInfo = self.getFeatureInfoString(theFeature)

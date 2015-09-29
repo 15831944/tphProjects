@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>602</width>
+    <width>667</width>
     <height>507</height>
    </rect>
   </property>
@@ -16,7 +16,7 @@
   <widget class="QSplitter" name="splitter">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>470</x>
      <y>470</y>
      <width>161</width>
      <height>31</height>
@@ -49,7 +49,7 @@
     <rect>
      <x>430</x>
      <y>40</y>
-     <width>161</width>
+     <width>221</width>
      <height>411</height>
     </rect>
    </property>
@@ -62,7 +62,7 @@
     <rect>
      <x>430</x>
      <y>10</y>
-     <width>161</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>

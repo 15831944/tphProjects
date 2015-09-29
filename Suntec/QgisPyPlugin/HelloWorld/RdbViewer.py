@@ -57,7 +57,6 @@ class RdbViewer:
         return
 
     def generateLayer(self):
-        self.dlg.show()
         result = self.dlg.exec_()
         return
 

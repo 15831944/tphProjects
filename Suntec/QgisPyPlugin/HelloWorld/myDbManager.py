@@ -50,10 +50,10 @@ class MyDbManager(object):
             pg.execute(sqlcmd)
             conn.commit()
         except Exception, ex:
-            errMsg[0] = ex
+            errMsg[0] = ex.message
             return
 
-        self.removeAllLayersWithSpecName(newLayerName, errMsg)
+        self.removeAllLayersWithSpecName(errMsg, newLayerName)
         if errMsg[0] != '':
             return
         uri = QgsDataSourceURI()        
@@ -71,7 +71,7 @@ class MyDbManager(object):
         return
     
     # make sure errMsg is a 'string array' which has at least one element.
-    def removeAllLayersWithSpecName(self, specLayerName, errMsg):
+    def removeAllLayersWithSpecName(self, errMsg, specLayerName):
         layerList = QgsMapLayerRegistry.instance().mapLayersByName(specLayerName)
         for oneLayer in layerList:
             QgsMapLayerRegistry.instance().removeMapLayer(oneLayer.id())
