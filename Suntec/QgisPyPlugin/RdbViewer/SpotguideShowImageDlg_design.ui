@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NearestFeatureDialogBase</class>
- <widget class="QDialog" name="NearestFeatureDialogBase">
+ <class>SpotguideShowImageDlgDesign</class>
+ <widget class="QDialog" name="SpotguideShowImageDlgDesign">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Nearest Feature</string>
+   <string>Spotguide Image</string>
   </property>
   <widget class="QSplitter" name="splitter">
    <property name="geometry">
@@ -73,7 +73,7 @@
   <connection>
    <sender>button_box</sender>
    <signal>accepted()</signal>
-   <receiver>NearestFeatureDialogBase</receiver>
+   <receiver>SpotguideShowImageDlgDesign</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -89,7 +89,7 @@
   <connection>
    <sender>button_box</sender>
    <signal>rejected()</signal>
-   <receiver>NearestFeatureDialogBase</receiver>
+   <receiver>SpotguideShowImageDlgDesign</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

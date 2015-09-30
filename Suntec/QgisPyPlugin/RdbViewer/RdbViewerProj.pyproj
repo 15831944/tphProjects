@@ -23,7 +23,6 @@
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="icon.png" />
     <Content Include="metadata.txt" />
     <Content Include="SpotguideShowImageDlg_design.ui" />
     <Content Include="GenerateNewLayerDlg_design.ui" />

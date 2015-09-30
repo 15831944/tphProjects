@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="/icons">
+     <file>GenearteNewLayer.png</file>
+  </qresource>
+  <qresource prefix="/icons">
+     <file>SpotguideShowImage.png</file>
+  </qresource>
+</RCC>

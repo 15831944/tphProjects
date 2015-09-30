@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
-import resources_rc
+import resources
 from GenerateNewLayerDlg import GenerateNewLayerDlg
 from SpotguideMapTool import SpotguideMapTool
 import os.path
@@ -16,20 +16,20 @@ class RdbViewer:
         self.toolbar.setObjectName(u'RdbViewerToolbar')
 
     def initGui(self):
-        icon_path = ':/plugins/NearestFeature/icon.png' 
+        icon_path = ':/icons/GenearteNewLayer.png' 
         actionGenerateLayer = QAction(QIcon(icon_path), u"Generate Layer", None)
         actionGenerateLayer.triggered.connect(self.generateLayer)
         actionGenerateLayer.setStatusTip(None)
         actionGenerateLayer.setWhatsThis(None)
+        self.toolbar.addAction(actionGenerateLayer)
         self.iface.addPluginToMenu(self.menu, actionGenerateLayer)
         actionGenerateLayer.setEnabled(True)
-        actionGenerateLayer.setCheckable(True)
         self.actions.append(actionGenerateLayer)
 
 
-        icon_path = ':/plugins/NearestFeature/icon.png' 
+        icon_path = ':/icons/SpotguideShowImage.png' 
         actionShowSpotguide = QAction(QIcon(icon_path), u"Show Spotguide", None)
-        actionShowSpotguide.triggered.connect(self.run)
+        actionShowSpotguide.triggered.connect(self.showSpotguide)
         actionShowSpotguide.setStatusTip(None)
         actionShowSpotguide.setWhatsThis(None)
         self.toolbar.addAction(actionShowSpotguide)
@@ -51,8 +51,8 @@ class RdbViewer:
         self.iface.mapCanvas().unsetMapTool(self.spotguideMapTool)
         return
 
-    def run(self):
-        # activate our tool
+    def showSpotguide(self):
+        # activate our spotguide tool
         self.iface.mapCanvas().setMapTool(self.spotguideMapTool)
         return
 
