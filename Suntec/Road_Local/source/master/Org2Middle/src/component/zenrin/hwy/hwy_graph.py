@@ -9,6 +9,10 @@ from component.ni.hwy.hwy_graphy_ni import HwyGraphNi
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY1
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_JCT
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_RAMP
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN1
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN2
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
@@ -18,6 +22,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
+from component.rdf.hwy.hwy_graph_rdf import HWY_UPDOWN_CODE
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
 from component.jdb.hwy.hwy_graph import MIN_CUT_OFF_CHN
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NONE
@@ -137,7 +142,10 @@ class HwyGraphZenrin(HwyGraphNi):
                 # 和一般道交汇
                 if self.is_hwy_inout(temp_path, reverse):
                     yield temp_path[1:], HWY_IC_TYPE_IC
-                    continue
+                    if self.is_city_hwy_ic(temp_path, reverse):
+                        pass
+                    else:
+                        continue
                     curr_inout_flag = True
                 if len(visited) < cutoff2:
                     if self.is_virtual_jct(child, road_code,
@@ -188,6 +196,32 @@ class HwyGraphZenrin(HwyGraphNi):
                 print ('Exist SAPA Link, but no SAPA Facility. u=%s,v=%s'
                        % (u, v))
 
+    def is_city_hwy_ic(self, path, reverse=False):
+        '''高速和城市高速的jct、ramp、sapa相连 '''
+        if reverse:  # 逆
+            edges_iter = self.in_edges_iter(path[-1], True)
+            # in_edge = (path[-1], path[-2])
+        else:  # 顺
+            edges_iter = self.out_edges_iter(path[-1], True)
+            # in_edge = (path[-2], path[-1])
+        for temp_u, temp_v, data in edges_iter:
+            if reverse:  # 逆
+                temp_path = path + [temp_u]
+            else:  # 顺
+                temp_path = path + [temp_v]
+            # 规制
+            if not self.check_regulation(temp_path, reverse):
+                continue
+            road_type = data.get(HWY_ROAD_TYPE)
+            link_type = data.get(HWY_LINK_TYPE)
+            #与城市高速的JCT/RAMP/SAPA相连
+            if(road_type == HWY_ROAD_TYPE_HWY1 and
+               link_type in (HWY_LINK_TYPE_JCT,
+                             HWY_LINK_TYPE_RAMP,
+                             HWY_LINK_TYPE_SAPA)):
+                return True
+        return False
+
     def get_uturns(self, path, road_code,
                    code_field=HWY_ROAD_CODE, reverse=False):
         if reverse:
@@ -219,16 +253,3 @@ class HwyGraphZenrin(HwyGraphNi):
             return True
         else:
             return False
-#         similar_degree = self._get_similar_degree(data1, data2)
-#         if similar_degree > SIMILAR_DEGREE_NONE:
-#             angle = self.get_angle(in_edge, out_edge, reverse)
-#             if self.is_uturn_angle(angle):
-#                 return True
-#         name1 = data1.get('names')
-#         name2 = data2.get('names')
-#         # 名称相同， 角度比较大的
-#         if name1 and name1 == name2:
-#             pass
-#             # print 'Not UTurn:', 
-#             #in_edge, out_edge, self.get_angle(in_edge, out_edge, reverse)
-#         return False

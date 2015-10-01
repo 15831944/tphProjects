@@ -240,7 +240,7 @@ BEGIN
 			and substr(vehcl_type, 14, 1) = '0'
 			and substr(vehcl_type, 10, 1) = '1' then 20
 		when kind like '0b%' or kind like '%|0b%' then 3 
-		when kind like '%05' or kind like '%05|%' then 16 
+		---when kind like '%05' or kind like '%05|%' then 16 
 		when kind like '00%' or kind like '%|00%' then 12 
 		when kind like '01%' or kind like '%|01%' then 11 
 		when kind like '02%' or kind like '%|02%' then 9 
@@ -288,7 +288,8 @@ BEGIN
 	return case
 		when kind like '0a%' or kind like '%|0a%' then 10
 		when ownership = '1' then 7
-		when kind like '0b%' or kind like '%|0b%' then 8		
+		when kind like '0b%' or kind like '%|0b%' then 8
+		when kind like '09%' or kind like '%|09%' then 9 		
 		when substr(vehcl_type, 1, 1) = '0' 
 			and substr(vehcl_type, 2, 1) = '0'
 			and substr(vehcl_type, 3, 1) = '0'
@@ -307,7 +308,6 @@ BEGIN
 		when kind like '03%' or kind like '%|03%' then 3 
 		when kind like '04%' or kind like '%|04%' then 4 
 		when kind like '06%' or kind like '%|06%' then 6 
-		when kind like '09%' or kind like '%|09%' then 9 
 		else 6
 	end;
 
@@ -938,7 +938,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_cnv_shield_ni(route_kind character varying, name character varying)
+CREATE OR REPLACE FUNCTION mid_cnv_shield_ni(folder character varying, route_kind character varying, name character varying)
   RETURNS character varying 
   LANGUAGE plpgsql
   AS $$ 
@@ -946,7 +946,8 @@ CREATE OR REPLACE FUNCTION mid_cnv_shield_ni(route_kind character varying, name 
 	shield character varying;
 BEGIN
 	
- 	IF route_kind = '1' then shield := '5100';
+ 	IF route_kind = '1' and lower(folder) = 'xianggang' then shield := '4151';
+	ELSIF route_kind = '1' then shield := '5100';
 	ELSIF route_kind = '2' then shield := '5101';
 	ELSIF route_kind = '3' then shield := '5102'; 		
 	ELSIF route_kind = '4' then shield := '5103'; 
@@ -995,6 +996,9 @@ BEGIN
             SELECT asciival-65248 INTO asciival;  
           END IF;  
         END;  
+        
+        RETURN $1;
+        
       ELSE  
         BEGIN  
           --DBC case to  SBC case 
@@ -1274,3 +1278,76 @@ return flag ;
 END;
 $$;		
 		
+create or replace function reverse_str(str varchar)
+  RETURNS varchar 
+  LANGUAGE plpgsql 
+  AS $$
+DECLARE
+	length int;
+	new_str varchar;
+	i int;
+BEGIN
+	new_str='';
+	length = length(str);
+	for i in 1..length loop
+		new_str=new_str||substr(str,length+1-i,1);
+	end loop;
+	return new_str;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_convert_regulation_nation_boundary()
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	cur_regulation_id integer;
+	nCount integer;
+	nIndex integer;
+BEGIN
+	-- regulation_id
+	select (case when max(regulation_id) is null then 0 else max(regulation_id) end)
+	from regulation_relation_tbl
+	into cur_regulation_id;
+
+	for rec in
+    		select linkid_array, nodeid_array, null::integer as cond_id
+    		from (
+			select array[b.link_id, c.link_id] as linkid_array, array[a.node_id] as nodeid_array
+			from temp_node_nation_boundary as a
+			inner join link_tbl as b
+				on ((a.node_id = b.s_node) and b.one_way_code in (1,3)) or ((a.node_id = b.e_node) and b.one_way_code in (1,2))
+			inner join link_tbl as c 
+				on ((a.node_id = c.s_node) and c.one_way_code in (1,2)) or ((a.node_id = c.e_node) and c.one_way_code in (1,3))
+			where b.iso_country_code != c.iso_country_code
+		) as t
+		order by linkid_array, nodeid_array asc
+	loop
+		-- current regulation id
+		cur_regulation_id := cur_regulation_id + 1;
+		
+		-- insert into regulation_item_tbl
+		nCount := array_upper(rec.linkid_array, 1);
+		nIndex := 1;
+		while nIndex <= nCount loop
+			if nIndex = 1 then
+				insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+					values(cur_regulation_id, rec.linkid_array[nIndex], null::bigint, nIndex::smallint);
+				insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+					values(cur_regulation_id, null::bigint, rec.nodeid_array[nIndex], (nIndex+1)::smallint);
+			else
+				insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+					values(cur_regulation_id, rec.linkid_array[nIndex], null::bigint, (nIndex+1)::smallint);
+			end if;
+			
+			nIndex := nIndex + 1;
+		end loop;
+		
+	   	-- insert into regulation_relation_tbl
+		insert into regulation_relation_tbl(regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id)
+			values(cur_regulation_id, rec.nodeid_array[1], rec.linkid_array[1], rec.linkid_array[array_upper(rec.linkid_array,1)], 11::smallint, rec.cond_id);
+	end loop;
+    return 1;
+END;
+$$;

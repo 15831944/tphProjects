@@ -29,14 +29,32 @@ class comp_natural_guidence(component.component_base.comp_base):
         return 0
 
     def __prepare(self):
+        
         self.log.info('Prepare...')
+        
+        # 作成表单natural_guidence_tbl记录NaturalGuidence基本信息（路径信息、参考物信息等）
+        
         self.CreateTable2('natural_guidence_tbl')
+        
+        # 作成表单guidence_condition_tbl记录NaturalGuidence条件信息（主要指参考物可见的时间信息）
+        
         self.CreateTable2('guidence_condition_tbl')
+        
+        # 作成表单temp_natural_guidence记录从原始表单抽取的NaturalGuidence信息 \
+        # （包括建物名称、重要度。可见性以及建物关联link信息（进入link、引导点、脱出link）等信息）
+        
         self.CreateTable2('temp_natural_guidence')
         self.CreateIndex2('temp_natural_guidence_asso_id_idx')
+        
+        self.log.info('Prepare end')
     
     def __delete_dummy_guidence(self):
+        
         self.log.info('deleting dummy guidence...')
+        
+        # 一条道理存在多个建物，根据建物的重要度筛选出最重要的建物，其他次要的都删除
+        # 暂时该功能封闭，即一条道路上不区分建物重要度，全部收录
+        
         sqlcmd = """
             delete from temp_natural_guidence as a
             using
@@ -59,8 +77,10 @@ class comp_natural_guidence(component.component_base.comp_base):
             where a.gid = b.gid
             ;
         """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
+        
+        self.pg.do_big_insert2(sqlcmd)
+        
+        self.log.info('deleting dummy guidence end')
     
     def __do_guidence_names(self):
         self.log.info('making natural guidence names...')
@@ -479,8 +499,7 @@ class comp_natural_guidence(component.component_base.comp_base):
     
     def __do_guidence_conditions(self):
         self.log.info('making guidence conditions...')
-        
-        self.CreateTable2('guidence_condition_tbl')
+
         self.CreateTable2('temp_guidence_datetime_mapping')
         self.CreateFunction2('mid_convert_guidence_condition')
         self.pg.callproc('mid_convert_guidence_condition')

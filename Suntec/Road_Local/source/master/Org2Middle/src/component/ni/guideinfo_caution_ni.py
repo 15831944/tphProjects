@@ -39,7 +39,9 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         self._Deal_TrfcSign()
         #self._Deal_admin()
+
         self._Deal_update_caution_tbl()
+        self._GetOutLinkSeq()
         
         return 0
     
@@ -70,6 +72,7 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         return 0
     
     def _Deal_update_caution_tbl(self):
+        
         self.log.info('Now it is updating caution_tbl...')
         
         # 更新表单 caution_tbl
@@ -79,16 +82,21 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                     inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind,
                     voice_id, strtts, image_id
                 )
-                select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
-                    voice_id, strtts, image_id
-                from temp_trfcsign_caution_tbl
+                select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, 
+                    data_kind, voice_id, strtts, image_id
+                from (
+                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
+                        voice_id, strtts, image_id
+                    from temp_trfcsign_caution_tbl
+                    
+                    union
+                    
+                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
+                        voice_id, strtts, image_id
+                    from temp_admin_caution_tbl
+                ) a
                 
-                union
-                
-                select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
-                    voice_id, strtts, image_id
-                from temp_admin_caution_tbl
-                order by inlinkid, nodeid, data_kind
+                order by inlinkid, nodeid, outlinkid
             """
         
         self.pg.do_big_insert2(sqlcmd)

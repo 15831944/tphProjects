@@ -1,7 +1,8 @@
 #################################################################
 # proj_ni
-illust=\\idata\Private\Data_Authoring\SourceData\Zenrin\14Q4\illust
-POI_Code=..\docs\poi\category_zenrin.txt
+illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\TWN\Zenrin\14Q4\illust
+POI_Code=..\docs\poi\category_zenrin_twn.txt
 brand_icon=..\docs\poi\brand_icon_list_zenrin.txt
-category_priority=..\docs\poi\category_priority_zenrin.txt
+category_priority=..\docs\poi\category_priority_zenrin.xls
+#pointlist=..\..\SourceData\axf\pictures
 #################################################################

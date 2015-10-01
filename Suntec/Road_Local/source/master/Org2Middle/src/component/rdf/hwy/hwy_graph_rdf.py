@@ -59,6 +59,7 @@ HWY_DISP_CLASS = "display_class"
 HWY_TILE_ID = "tile_id"
 HWY_1ST_ROAD_NAME = 'first_road_name'
 HWY_ORG_FACIL_ID = 'org_facil_id'
+HWY_ORG_FACIL_INFO = 'org_facil_info'
 HWY_ROAD_NUMS = "numbers"
 HWY_ROAD_NAMES = "names"
 HWY_S_NODE = "start_node"
@@ -108,6 +109,12 @@ class HwyGraphRDF(HwyGraph):
                           **attr)
         else:
             pass
+
+    def _get_road_code(self, u, v):
+        return self[u][v][HWY_ROAD_CODE]
+
+    def _get_road_updown(self, u, v):
+        return self[u][v][HWY_UPDOWN_CODE]
 
     def get_ref(self, u, v):
         return self[u][v]["reference"]

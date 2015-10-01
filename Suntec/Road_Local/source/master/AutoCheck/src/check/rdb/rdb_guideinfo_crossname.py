@@ -76,4 +76,63 @@ class CCheckCross_name(platform.TestCase.CTestCase):
                     if not name.get('val'):
                         return False
         return True        
+
+class CCheckNode_idTile(platform.TestCase.CTestCase):
+    def _do(self):
         
+        sqlcmd = """
+            select count(*)
+            from
+            (
+               select node_id 
+               from rdb_guideinfo_crossname 
+               where (node_id >> 32) <> node_id_t
+            ) a
+            ;
+                """  
+
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0 )     
+
+
+class CCheckIn_link_idTile(platform.TestCase.CTestCase):
+    def _do(self):
+        
+        sqlcmd = """
+            select count(*)
+            from
+            (
+                select in_link_id
+                from
+                (
+                   select in_link_id,in_link_id_t 
+                   from rdb_guideinfo_crossname
+                   where in_link_id is not null 
+                ) b
+                where (b.in_link_id >> 32) <> b.in_link_id_t
+            ) a
+            ;
+                """  
+
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0 )  
+
+    
+class CCheckOut_link_idTile(platform.TestCase.CTestCase):
+    def _do(self):
+        
+        sqlcmd = """
+            select count(*)
+            from
+            (
+                select out_link_id
+                from
+                (
+                   select out_link_id,out_link_id_t 
+                   from rdb_guideinfo_crossname
+                   where out_link_id is not null 
+                ) b
+                where (b.out_link_id >> 32) <> b.out_link_id_t
+            ) a
+            ;
+                """  
+
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0 )  

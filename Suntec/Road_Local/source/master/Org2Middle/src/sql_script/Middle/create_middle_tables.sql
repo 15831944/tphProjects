@@ -52,6 +52,7 @@ CREATE TABLE link_tbl
   urban smallint default 0,
   erp smallint default 0,
   rodizio smallint default 0,
+  soi smallint default 0,
   fazm integer,
   tazm integer,
   feature_string character varying,
@@ -530,7 +531,7 @@ as
 			b.link_id, b.tile_id, s_node, e_node, one_way_code, road_name, road_number, 
 			link_type, road_type, toll, length, function_class, b.display_class, 
 			elevated, structure, tunnel, rail_cross, paved, uturn, disobey_flag, etc_only_flag, extend_flag,
-			bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, lane_num_s2e, lane_num_e2s, width_s2e, width_e2s, speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s,
+			bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi, lane_num_s2e, lane_num_e2s, width_s2e, width_e2s, speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s,
 			park_link_connect_type,park_floor,park_link_lean,park_link_toll,park_region_id
 	from temp_merge_node_suspect as a
 	left join link_tbl as b
@@ -2150,6 +2151,19 @@ CREATE TABLE temp_tollgate
   node_id bigint
 );
 
+CREATE TABLE temp_tollgate_electronic
+(
+  old_link_id bigint,
+  s_node bigint,
+  e_node bigint,
+  sum integer,
+  index integer,
+  tile_id integer,
+  new_link_id bigint,
+  one_way_code smallint,
+  etc_only_flag smallint,
+  erp_flag integer
+);
 ------------------------------------------------------------------------
 --
 CREATE TABLE mid_temp_hwy_main_link
@@ -2709,4 +2723,22 @@ create table temp_roundabout_road_type
 (
 	roundabout_id   integer,
 	new_road_type   smallint
-);         
+);     
+
+CREATE TABLE rdb_admin_order0_iso_country_mapping
+(
+  order0_id integer PRIMARY KEY,
+  iso_country_code character varying(10)
+);
+
+create table temp_ramp_update_dispclass
+(
+    link_id bigint,
+    display_class smallint
+);
+
+create table link_tbl_bak_dispclass
+as
+(
+	select * from link_tbl
+);

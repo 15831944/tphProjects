@@ -548,6 +548,38 @@ class CCheckAdjacentNode(platform.TestCase.CTestCase):
                     return True
             return False 
 
+class CCheckAdjacentNodeCoor(platform.TestCase.CTestCase):
+    def _do(self):
+                
+            sqlcmd = """
+                select count(*)
+                from
+                (
+                    select  a.*,
+                            b.link_id,
+                            b.link_id_t,
+                            (b.link_id_t >> 14) & 16383 as tx2,
+                            b.link_id_t & 16383 as ty2
+                    from
+                    (
+                        select  node_id, 
+                                st_x(the_geom), st_y(the_geom),
+                                node_id_t,
+                                (node_id_t >> 14) & 16383 as tx,
+                                node_id_t & 16383 as ty,
+                                get_byte(geom_blob, 0) + get_byte(geom_blob, 1) * 256 as x, 
+                                get_byte(geom_blob, 2) + get_byte(geom_blob, 3) * 256 as y
+                        from rdb_node_with_all_attri_view
+                        where extend_flag & (1 << 12) != 0
+                    )as a
+                    left join rdb_link as b
+                    on a.node_id in (b.start_node_id, b.end_node_id) and a.node_id_t != b.link_id_t
+                )as t
+                where (x not in (0,4096) and tx != tx2) or (y not in (0,4096) and ty != ty2)
+                """
+            rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+            return (rec_count == 0) 
+
  
 class CCheckDiff_NodeID(platform.TestCase.CTestCase):
     def _do(self):

@@ -16,6 +16,7 @@ class CTestSuite:
         self.projName = self.objCaseManager.getProj()
         self.countryName = self.objCaseManager.getCountry()
         self.cases = {}
+        self.no_run_cases = []
         self.logger = common.Logger.CLogger.instance().logger("Suite %s"%self.strSuiteName)
     
     def init(self):
@@ -39,6 +40,9 @@ class CTestSuite:
                     self.cases[caseid] = objCase
                 except:
                     self.logger.exception("invalid autocheck caseinfo, (id=%d, logic=%s)" % (caseid, check_logic_class))
+            else:
+                if caseinfo.getCaseID_unique():                  
+                    self.no_run_cases.append(int(caseinfo.getCaseID_unique()))
     
     def getActiveCase(self):
         for caseID in self.cases.keys():
@@ -55,6 +59,9 @@ class CTestSuite:
     
     def getCaseList(self):
         return self.cases.values()
+    
+    def getNoRuncase(self):
+        return self.no_run_cases
     
     def getCaseListReport(self):
         for caseID in self.cases.keys():

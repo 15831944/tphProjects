@@ -30,14 +30,18 @@ class HwyLinkMappingZenrin(comp_base):
         sqlcmd = '''
         INSERT INTO mid_link_mapping(org_link_id, link_id)
         (
-            SELECT a.link_id , d.link_id
-            FROM temp_link_mapping AS a
-            LEFT JOIN temp_link_org2rdb AS b
-            ON a.link_id = b.org_link_id
-            LEFT JOIN rdb_tile_link AS c
-            ON b.target_link_id = c.tile_link_id
-            LEFT JOIN link_tbl AS d
-            ON c.old_link_id = d.link_id
+          SELECT a.link_id AS org_link_id,
+              (CASE
+               when merge.link_id is not null then merge.link_id
+               when split.link_id is not null then split.link_id
+               else a.link_id
+              END) AS mid_link_id
+          FROM temp_link_mapping AS a
+          LEFT JOIN temp_split_newlink AS split
+          ON a.link_id = split.old_link_id
+          LEFT JOIN temp_merge_link_mapping AS merge
+          ON (split.link_id = merge.merge_link_id) or
+             (a.link_id = merge.merge_link_id)
         )
         '''
         self.pg.execute2(sqlcmd)

@@ -2,13 +2,16 @@
 # proj_rdf
 proj_name=rdf
 proj_country=bra
+text_filter={'RDF_BRA':"BRA:[POR,BRA,ENG,NAS]||DEFAULT:[SPA,ENG,NAS,BRA]"}
 jv_flag=by_file
-gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\SA_rdf\BRA\14Q4\illust\gjv.csv
-ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\SA_rdf\BRA\14Q4\illust\all_jv.csv
+gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\BRA\HERE\14Q4\illust\gjv.csv
+ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\BRA\HERE\14Q4\illust\all_jv.csv
 strInterestCountryList=BRA
-sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\SA_rdf\BRA\14Q4\illust\sign_as_real.csv
+sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\BRA\HERE\14Q4\illust\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV
 #forceguide_patch_full_path=D:\job\forceguide_patch\shp\forceguidepatch\IDN\temp_patch_force_guide_tbl.csv
-POI_Code=..\docs\poi\category_icon_bra.txt
-all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\SA_rdf\BRA\14Q4\illust\all_sar_files_name.csv
+POI_Code=..\docs\poi\category_rdf_bra.txt
+all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\BRA\HERE\14Q4\illust\all_sar_files_name.csv
+illust=\\idata\Private\Data_Authoring\SourceData\1_SouthAmerica\BRA\HERE\14Q4\illust\pic
+#pointlist=..\..\SourceData\axf\pictures
 #################################################################

@@ -1625,7 +1625,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION rdb_cnv_link_add_info2(
-	erp smallint, rodizio smallint, safety_zone boolean, hook_turn smallint, safety_alert boolean) 
+	erp smallint, rodizio smallint, soi smallint, safety_zone boolean, hook_turn smallint, safety_alert boolean) 
   RETURNS smallint 
   LANGUAGE plpgsql VOLATILE
   AS $$ 
@@ -1653,7 +1653,11 @@ BEGIN
 	IF safety_alert = 't' THEN
 		rtnValue = rtnValue | (1 << 5);
 	END IF;
-	
+
+	IF soi = 1 THEN
+		rtnValue = rtnValue | (1 << 6);
+	END IF;
+		
 	RETURN rtnValue;
 END;
 $$;
@@ -2894,7 +2898,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION rdb_split_region_linkrow()
+CREATE OR REPLACE FUNCTION rdb_split_region_linkrow(layer integer)
   RETURNS smallint 
   LANGUAGE plpgsql
   AS $$ 
@@ -2902,6 +2906,8 @@ DECLARE
 	rec						record;
 	nIndex					integer;
 	
+	nMaxLinkCount			integer;
+	nMaxLength				integer;
 	nLength					integer;
 	proxy_linkid			bigint;
 	proxy_oneway			smallint;
@@ -2919,7 +2925,19 @@ BEGIN
 	as 
 	select * from temp_region_merge_linkrow;
 	
-	-- split linkrow which is longer than 50km
+	-- max length, and max sublink count of one region link
+	if layer = 4 then
+		nMaxLinkCount	= 25;
+		nMaxLength		= 50000;
+	elseif layer = 6 then
+		nMaxLinkCount	= 25 * 8;
+		nMaxLength		= 50000 * 4;
+	else--if layer = 8 then
+		nMaxLinkCount	= 25 * 8 * 4;
+		nMaxLength		= 50000 * 4 * 4;
+	end if;
+	
+	-- split linkrow which has too many sublinks
 	for rec in
 		select 	link_id, sub_count, 
 				array_agg(sub_link) as link_array, 
@@ -2938,6 +2956,7 @@ BEGIN
 				(
 					select link_id, link_num as sub_count, link_array, linkdir_array, generate_series(1,link_num) as sub_index
 					from temp_region_merge_linkrow
+					where link_num > nMaxLinkCount
 				)as tl
 			)as a
 			left join rdb_link as b
@@ -2945,11 +2964,12 @@ BEGIN
 			where a.sub_count > 1 and b.road_type != 10
 			order by a.link_id, a.sub_count, a.sub_index
 		)as t
-		group by link_id, sub_count having sum(link_length) > 50000
+		group by link_id, sub_count 
+		having sum(link_length) > nMaxLength
 	loop
 		-- delete old record
 		delete from temp_region_merge_linkrow where link_id = rec.link_id;
-	
+		
 		-- split linkrow
 		nIndex	:= 1;
 		while nIndex <= rec.sub_count loop
@@ -2966,7 +2986,10 @@ BEGIN
 			
 			nIndex := nIndex + 1;
 			while True loop
-				if (nIndex > rec.sub_count) or (nLength + rec.length_array[nIndex] > 50000) then
+				if 	(nIndex > rec.sub_count) 
+					or 
+					((linkrow_link_num >= nMaxLinkCount) and (nLength + rec.length_array[nIndex] > nMaxLength)) 
+				then
 					insert into temp_region_merge_linkrow 
 								("link_id", "start_node_id", "end_node_id", "one_way", "link_num", "link_array", "linkdir_array")
 						values 	(proxy_linkid, linkrow_snode, linkrow_enode, proxy_oneway, linkrow_link_num, linkrow_link_array, linkrow_dir_array);

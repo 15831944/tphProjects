@@ -226,7 +226,7 @@ class CCheckGuideSpotguideInlinkRoadType_NotHighway(platform.TestCase.CTestCase)
                 rdb_guideinfo_spotguidepoint as a
                 left join rdb_link as b
                 on a.in_link_id=b.link_id and a.in_link_id_t=b.link_id_t
-                where a.type in (4,5,7,9,10) and b.road_type in (0,1);
+                where a.type in (4,5,7,9,10) and b.road_type in (0,1) and b.link_type<>5;
                '''
         cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return cnt == 0 
@@ -234,11 +234,11 @@ class CCheckGuideSpotguideInlinkRoadType_NotHighway(platform.TestCase.CTestCase)
 # 要读懂此case请先理解插图数据的dat作成协议。
 # 若某个仕向地有白天黑夜图，则在制作dat时，需要将黑夜白天的信息正确填入dat头中，以便机能组能正确地
 # 识别这张图片是黑夜/白天图。
-# dat作成协议为dat中的每个图片各分配了4个bit来标记其白天黑夜信息。
-# 当图片不需要区分白天黑夜时，填入0(0000).
-# 当图片是白天图时，填入1(0001).
-# 当图片是黑夜图时，填入2(0010).
-# 当图片是傍晚图时，填入3(0011).
+# dat作成协议为dat中的每个图片各分配了2个bit来标记其白天黑夜信息。
+# 当图片不需要区分白天黑夜时，填入0(00).
+# 当图片是白天图时，填入1(01).
+# 当图片是黑夜图时，填入2(10).
+# 当图片是傍晚图时，填入3(11).
 # 以下仕向地有白天黑夜图：
 # Here： 中东，东南亚，巴西，阿根廷
 # MMi： 印度
@@ -253,7 +253,7 @@ class CCheckGuideSpotguideIllustDayNightFlag(platform.TestCase.CTestCase):
         for iPic in range(0, nPicCount):
             buf9 = readBuf[4+9*iPic: 4+9*iPic+9]
             bPicInfo, iOffset, iSize = struct.unpack("<bii", buf9)
-            dayNightFlagList.append((bPicInfo<<4)>>4)
+            dayNightFlagList.append(bPicInfo & 3)
         return dayNightFlagList
     # 找出所有rdb_guideinfo_spotguidepoint表中pattern_id对应的二进制文件，检查它们的白天黑夜bit位。
     def _do(self):

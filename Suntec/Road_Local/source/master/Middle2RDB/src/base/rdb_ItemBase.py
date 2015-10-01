@@ -72,7 +72,6 @@ class ItemBase(object):
             bDoResult = self._DoCheckNumber()
             bDoResult = self._DoContraints()
             bDoResult = self._DoCheckLogic()
-            bDoResult = self._DoCheckInlinkOutLink()
             bDoResult = self._DoCheckNodeExtendFlg()
             self.pg.close2()
             self.EndCheck()
@@ -174,23 +173,6 @@ class ItemBase(object):
                 rdb_log.log(self.ItemName, "Node Extend_Flag has not been set for " + self.dest_tbl + '.', 'warning')
             else:
                 rdb_log.log(self.ItemName, "Check Node Extend_Flag for " + self.dest_tbl + '.', 'info')
-        return 0
-    
-    def _DoCheckInlinkOutLink(self):
-        '检查in_link_id和out_link_id是否相同。'
-        if self.LinkCheckFlg == False or self.dest_tbl == None or self.dest_col == '':
-            return 0
-        rdb_log.log(self.ItemName, 'Check InLinkId and OutLinkId for ' + self.dest_tbl +'...', 'info')        
-        sqlcmd = """
-                ALTER TABLE rdb_guideinfo_table DROP CONSTRAINT if exists check_inlinkid_outlinkid; 
-                ALTER TABLE rdb_guideinfo_table
-                  ADD CONSTRAINT check_inlinkid_outlinkid CHECK (in_link_id <> out_link_id);
-                """
-        sqlcmd = sqlcmd.replace('rdb_guideinfo_table', self.dest_tbl)
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
         return 0
     
     def CreateTable1(self, table_name):

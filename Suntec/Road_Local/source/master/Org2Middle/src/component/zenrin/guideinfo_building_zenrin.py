@@ -20,16 +20,60 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
       
 
     def _Do(self):
-        self._loadBrandIcon()
+#        self._loadBrandIcon()
         self._loadPOICategory()
-        self._loadCategoryPriority()
+        self._loadCategoryPriority1()
+        self._make_poi_category_mapping()
         self._findLogmark()
         self._makePOIName()
         self._makeLogmark()
         return 0
 
-                   
-           
+    def _make_poi_category_mapping(self):
+        self.log.info('make temp_poi_category_mapping ...')
+        sqlcmd = '''
+            drop table if exists temp_poi_category_mapping;
+            create table temp_poi_category_mapping
+            as
+            (
+                with cat as 
+                (
+                    select distinct org_code, series, per_code,filename
+                    from temp_poi_category
+                    where genre_type not in ('0','1') or genre_type is null
+                )
+                    
+                select p.poi_id as org_id1, 1000 as org_id2, cat.per_code, cat.filename
+                from org_poi as p
+                join cat
+                on p.sub_cat = cat.org_code and p.series = cat.series
+            
+                union 
+            
+                select poi_id, 1000 as org_id2, cat.per_code, cat.filename
+                from 
+                (
+                    select poi_id, sub_cat
+                    from
+                    (
+                        select p.poi_id, sub_cat, row_number() over(partition by p.poi_id) as seq
+                        from org_poi as p
+                        left join cat
+                        on p.sub_cat = cat.org_code 
+                        and  p.series = cat.series
+                        where per_code is null
+                    ) as z 
+                    where seq = 1
+                ) as a
+                join cat
+                on a.sub_cat = cat.org_code and  cat.series is null 
+            )    
+        
+            '''                   
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('temp_poi_category_mapping_org_id1_idx')
+          
     def _findLogmark(self):       
 
         self.log.info('make temp_poi_logmark...')
@@ -38,30 +82,25 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
         sqlcmd = """
             insert into temp_poi_logmark
             (
-                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom_4326 as the_geom
-                from org_poi as a
-                left join temp_poi_category as tpc
-                on tpc.org_code::bigint = a.sub_cat
-                inner join temp_brand_icon as b
-                on a.sub_cat = b.brandname::bigint
-               
-               union
-               
-                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom_4326 as the_geom
-                from org_poi as a
-                left join temp_poi_category as tpc
-                on tpc.org_code::bigint = a.sub_cat
-                where a.sub_cat = 315200 and a.series in ('好樂迪ＫＴＶ','錢櫃ＰＡＲＴＹ　ＷＯＲＬＤ')
-               
-               union
-               
-                select a.poi_id, a.sub_cat,tpc.u_code,a.the_geom_4326 as the_geom
-                from org_poi as a
-                left join temp_poi_category as tpc
-                on tpc.org_code::bigint = a.sub_cat
-                inner join temp_category_priority as c
-                on c.u_code = tpc.u_code and c.category_priority in (1,2,4)
                 
+                select a.poi_id, tpc.per_code, b.category_priority, a.the_geom_4326 as the_geom
+                from org_poi as a
+                join temp_poi_category_mapping as tpc
+                on tpc.org_id1 = a.poi_id
+                left join temp_category_priority as b
+                on b.per_code = tpc.per_code
+                where tpc.filename is not null 
+                
+                union
+               
+                select a.poi_id, tpc.per_code, b.category_priority, a.the_geom_4326 as the_geom
+                from org_poi as a
+                join temp_poi_category_mapping as tpc
+                on tpc.org_id1 = a.poi_id
+                left join temp_category_priority as b
+                on b.per_code = tpc.per_code
+                where b.category_priority in (1,2,4)
+                        
             );                                 
                 """
 
@@ -128,15 +167,14 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
         sqlcmd = """
                 insert into mid_logmark(poi_id, type_code,type_code_priority, building_name, the_geom)
                 select  a.poi_id, 
-                        a.u_code,
-                        c.category_priority,
+                        a.per_code,
+                        a.category_priority,
                         b.poi_name,
                         a.the_geom
                 from temp_poi_logmark as a
                 left join temp_poi_name as b
                 on a.poi_id = b.poi_id
-                left join temp_category_priority as c
-                on c.u_code = a.u_code
+    
                 order by a.poi_id;      
                 """
         self.pg.execute(sqlcmd)

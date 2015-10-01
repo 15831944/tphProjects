@@ -438,6 +438,16 @@ class CCheckStopSignFlag(platform.TestCase.CTestCase):
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)    
 
+class CCheckSOIFlag_NOTNULL(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select COUNT(*)
+            from rdb_link_add_info2
+            where ((link_add_info2 >> 6) & 1) != 0
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt != 0) 
+    
 class CCheckAddInfo2Valid(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

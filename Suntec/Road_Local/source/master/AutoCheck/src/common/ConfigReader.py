@@ -38,6 +38,9 @@ class CConfigReader(object):
     def getCountryName(self):
         return self.getPara('country_name')
     
+    def getDBName(self):
+        return self.getDBInfo()[1]
+    
     def getDBInfo(self):
         '''取得数据的名称和地址。'''
         db = self.getPara('db')

@@ -15,6 +15,10 @@ class CTestCase(threading.Thread):
         self.objSuite = suite
         self.caseinfo = caseinfo
         self.nCaseID = int(caseinfo.getCaseID())
+        try:
+            self.nCaseID_unique = int(caseinfo.getCaseID_unique())
+        except:
+            self.nCaseID_unique = self.nCaseID
         self.dependlist = caseinfo.getDependCaseIDList()
         if self.dependlist:
             self.dependlist = [int(caseid) for caseid in str(self.dependlist).split(";")]
@@ -69,6 +73,9 @@ class CTestCase(threading.Thread):
     
     def getCaseID(self):
         return self.nCaseID
+    
+    def getCaseID_unique(self):
+        return self.nCaseID_unique
     
     def getResult(self):
         self.caseinfo.setCheckResult(self.state)

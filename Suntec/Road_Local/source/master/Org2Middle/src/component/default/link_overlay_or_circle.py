@@ -256,7 +256,7 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number,
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish,
                         access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                        erp, rodizio, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                        erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
                     )
                     (
                         select  link_id, iso_country_code, tile_id, s_node, e_node, link_type, road_type, toll, speed_class, length, function_class,
@@ -269,7 +269,7 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                                         else a.road_number end as road_number,
                                     name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish,
                                     access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                                    erp, rodizio, display_class, fazm, tazm, feature_string, feature_key, the_geom
+                                    erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
                         from (
                             select  a.*, b.aid, name.name, shield.shield
                             from link_tbl_bak_dupli_dealing as a
@@ -717,7 +717,7 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                         speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, width_s2e, width_e2s,
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number,
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish,
-                        access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, 
+                        access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi,
                         display_class, fazm, tazm, the_geom
                     )
                     (
@@ -726,7 +726,7 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, width_s2e, width_e2s,
                                 one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number,
                                 name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish,
-                                access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, 
+                                access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi,
                                 display_class, mid_cal_zm(b.the_geom, 1) as fazm, mid_cal_zm(b.the_geom, -1) as tazm,
                                 b.the_geom as the_geom
                         from link_tbl as a

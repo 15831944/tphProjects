@@ -588,6 +588,11 @@ CREATE INDEX temp_link_buslane_link_id_idx
   ON temp_link_buslane
   USING btree
   (link_id);
+
+CREATE INDEX temp_link_soi_link_id_idx
+  ON temp_link_soi
+  USING btree
+  (link_id);
   
 CREATE INDEX temp_link_category6_roundabout_link_id_idx
   ON temp_link_category6_roundabout

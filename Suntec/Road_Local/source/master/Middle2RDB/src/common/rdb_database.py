@@ -266,6 +266,15 @@ class rdb_pg(object):
             print '%s:%s' % (Exception, ex)
             raise
         
+    def copy_from2(self, file_object, table, sep='\t', null="", size=8192, columns=None):
+        try:
+            self.pgcur2.copy_from(file_object, table, sep, null, size, columns)
+            return 0
+            
+        except Exception,ex:
+            print '%s:%s' % (Exception, ex)
+            raise
+
     def create_index1(self, sqlcmd, index_name):
         """´´½¨Ë÷Òý"""
         # check the index

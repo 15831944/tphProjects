@@ -82,10 +82,12 @@ create table temp_poi_category
   level smallint NOT NULL,
   genre_is_brand character(1),
   importance smallint,
+  genre_type varchar,
   org_code1 character varying(28),
   org_code2 character varying(28),
   chaincode character varying(28),
-  genre_id integer NOT NULL
+  genre_id integer NOT NULL,
+  name  varchar
 );
 
 create table temp_brand_icon
@@ -228,9 +230,12 @@ CREATE TABLE temp_signpost_uc_name
 CREATE TABLE temp_node_mapping
 as
 (
-	select id as old_node_id , adjoin_nid as new_node_id
-	from org_n where position('1f00' in kind)<>0
-	and id::bigint>adjoin_nid::bigint
+	select a.id as old_node_id , a.adjoin_nid as new_node_id
+	from org_n a 
+	join org_n b
+	on a.adjoin_nid=b.id
+	where position('1f00' in a.kind)<>0
+	and a.id::bigint>a.adjoin_nid::bigint
 );
 
 ------------------------------------------------------------------------
@@ -258,7 +263,7 @@ inlink  bigint,
 node    bigint
 );
 
-create table temp_towardname_name_poi
+create table temp_highway_building_json_name
 (
 	poi_id bigint,
 	toward_name varchar
@@ -297,3 +302,9 @@ CREATE TABLE temp_towardname_tbl
   type smallint
 );
 
+CREATE TABLE temp_sp_json_name
+(
+id bigint,
+namekind integer,
+towardname varchar
+);

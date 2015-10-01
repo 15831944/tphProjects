@@ -131,7 +131,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
                        from  temp_poi_category as a
                        left join temp_org_category_priority as b
                        on a.org_code::varchar = b.org_code::varchar
-                       --order by  b.priority::integer, a.per_code      
+                         
                     ) as kk
                     order by category_priority::integer, per_code 
                 )

@@ -20,11 +20,17 @@ class comp_admin_ta(component.component_base.comp_base):
         '''
         component.component_base.comp_base.__init__(self, 'Admin')
     
+    def _DoCreateTable(self):
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
+
+        return 0
+
     def _Do(self):
         self.__makeAdminOrder0_8()
         self.__makeAdminZone()
         self.__UpdatAdminName()
         self.__makeAdminTimeZone()
+        self.__do_admin_order0_iso_country_mapping()
         return 0
     
     def __makeAdminOrder0_8(self):
@@ -54,21 +60,21 @@ class comp_admin_ta(component.component_base.comp_base):
         self.CreateIndex2('temp_adminid_newandold_id_old_idx')
         
         #for saf
-        sqlcmd = """
-                update temp_admin_order2 as a
-                set order1_id = b.order1_id
-                from
-                (
-                    select a.order2_id, b.order1_id
-                    from temp_admin_order2 as a
-                    left join temp_admin_order1 as b
-                    on ST_Contains(b.the_geom, a.the_geom)
-                    where a.order1_id = 0
-                )as b
-                where a.order1_id = 0;
-                """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
+#        sqlcmd = """
+#                update temp_admin_order2 as a
+#                set order1_id = b.order1_id
+#                from
+#                (
+#                    select a.order2_id, b.order1_id
+#                    from temp_admin_order2 as a
+#                    left join temp_admin_order1 as b
+#                    on ST_Contains(b.the_geom, a.the_geom)
+#                    where a.order1_id = 0
+#                )as b
+#                where a.order1_id = 0;
+#                """
+#        self.pg.execute2(sqlcmd)
+#        self.pg.commit2()
         
         self.log.info('End make admin table 0_8.')  
     
@@ -192,3 +198,22 @@ class comp_admin_ta(component.component_base.comp_base):
         
         self.log.info('making admin time zone end.')
         
+    def __do_admin_order0_iso_country_mapping(self):
+        self.log.info('start to make order0 and iso_country mapping')
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
+        
+        sqlcmd = """
+                INSERT INTO rdb_admin_order0_iso_country_mapping(order0_id, iso_country_code)
+                (
+                    SELECT distinct cast(substring(cast(id as varchar),2,3) as int) * 10000 + 1, order00
+                    FROM org_a0
+                    WHERE order00 not like '$%'
+                );
+                """
+        if self.pg.execute2(sqlcmd) == -1:
+            return -1
+        else:
+            self.pg.commit2()
+
+        self.log.info('end to make order0 and iso_country mapping')
+        return 0

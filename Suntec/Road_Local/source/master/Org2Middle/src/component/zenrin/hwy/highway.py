@@ -13,7 +13,6 @@ from component.zenrin.hwy.hwy_data_mng import HwyDataMngZenrin
 from component.zenrin.hwy.hwy_route import HwyRouteZenrin
 from component.zenrin.hwy.hwy_link_mapping import HwyLinkMappingZenrin
 from component.zenrin.hwy.hwy_facility import HwyFacilityZenrin
-from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
 
 
 class HighwayZenrin(HighwayRDF):
@@ -38,37 +37,3 @@ class HighwayZenrin(HighwayRDF):
         self.service_info = HwyServiceInfoRDF()
         self.store = None
         self.adjust_link = HwyAdjustLinkType()
-
-    def _make_facility_id(self):
-        '''生成1到N的设施番号，边界点没有设施号'''
-        self.CreateTable2('mid_hwy_facility_id')
-        sqlcmd = """
-        INSERT INTO mid_hwy_facility_id(road_code, updown_c, road_seq)
-        (
-        SELECT distinct road_code, updown_c, road_seq
-          from hwy_node
-          order by road_code, updown_c, road_seq
-        );
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.CreateIndex2('mid_hwy_facility_id_road_code_road_seq_idx')
-
-        # 更新边界点的设施id, 边界点的设施id设成[无效设施id]
-        sqlcmd = """
-        UPDATE mid_hwy_ic_no set facility_id = %s
-          WHERE road_seq = %s;
-        """
-        self.pg.execute2(sqlcmd, (HWY_INVALID_FACIL_ID_17CY,
-                                  HWY_INVALID_FACIL_ID_17CY))
-        self.pg.commit2()
-
-        # 更新ic_no表的设施id
-        sqlcmd = """
-        UPDATE mid_hwy_ic_no as ic set facility_id = facil.facility_id
-          FROM mid_hwy_facility_id as facil
-          WHERE ic.road_code = facil.road_code
-                and ic.road_seq = facil.road_seq;
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()

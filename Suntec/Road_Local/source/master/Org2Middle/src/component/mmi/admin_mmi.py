@@ -38,6 +38,8 @@ class comp_admin_mmi(component.component_base.comp_base):
         self.CreateTable2('mid_admin_zone')
         self.CreateTable2('mid_admin_summer_time')
         
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
+        
         return 0
 
     def _DoCreateFunction(self):

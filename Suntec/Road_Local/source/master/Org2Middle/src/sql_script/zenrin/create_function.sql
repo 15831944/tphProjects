@@ -339,11 +339,11 @@ BEGIN
 	return case when substr(elcode,4,1)='8' then 4
 				when substr(elcode,1,1)='A' then 18 
 				when substr(elcode,2,1)='C' then 18
+				when substr(elcode,3,1)='7' then 18
                 when substr(elcode,2,1)='8' then 14
                 when substr(elcode,2,1)='B' then 14
                 when substr(elcode,2,1)='A' then 3
                 when substr(elcode,4,1)='3' then 16
-                when substr(elcode,3,1)='7' then 15
                 when substr(elcode,2,1)='1' then 12
                 when substr(elcode,2,1)='2' then 11
                 when substr(elcode,2,1)='3' then 9
@@ -382,7 +382,7 @@ AS $$
 BEGIN
 	return case when substr(elcode,2,1)='A' then 8
 				when substr(elcode,6,1) in ('1','2') or substr(elcode,2,1)='7' then 14
-				when substr(elcode,1,1)='A' or substr(elcode,2,1)='C' then 9  
+				when substr(elcode,1,1)='A' or substr(elcode,2,1)='C' or substr(elcode,3,1)='7' then 9  
 		        when substr(elcode,2,1)='1' then 0
                 when substr(elcode,2,1)='2' then 1
                 when substr(elcode,2,1)='3' then 2
@@ -746,5 +746,163 @@ CREATE OR REPLACE FUNCTION mid_transtwd67totwd97_lianjiang(geom geometry)
   AS $$ 
 BEGIN
     return st_transform(st_setsrid(geom,999901),4326);
+END;
+$$;
+
+---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION zenrin_cal_doubleroundabout_angle(
+	in_geom geometry, in_dir integer, out_geom geometry, out_dir integer) RETURNS float
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+	in_angle int;
+	out_angle int;
+	
+	in_angle_f float;
+	out_angle_f float;
+	angle float;
+BEGIN 
+	in_angle := mid_cal_zm(in_geom,in_dir);
+	out_angle := mid_cal_zm(out_geom,out_dir);
+	
+	in_angle := in_angle + 32768;
+	in_angle_f := in_angle * 360.0 / 65535.0;
+
+   	out_angle := out_angle + 32768;
+   	out_angle_f := out_angle * 360.0 / 65535.0;
+
+	angle := in_angle_f - out_angle_f + 180;
+	if angle >= 360 then
+		angle := angle - 360;
+	elseif angle < 0 then
+		angle := angle + 360;
+	end if;
+
+	return angle;
+    
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION zenrin_cal_doubleroundabout_path(nfromlink bigint, startnode bigint, ntolink bigint,  endnode bigint)
+RETURNS varchar[]
+LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rstPathCount		integer;
+	rstPath				varchar;
+	rstPathArray		varchar[];
+	
+	tmpPathArray		varchar[];
+	tmpPathAttrArray	varchar[];
+	tmpLastNodeArray	bigint[];
+	tmpLastLinkArray	bigint[];
+	tmpPathCount		integer;
+	tmpPathIndex		integer;
+	rec        			record;
+	nStartNode          bigint;
+	nScondNode          bigint;
+	rec_out				record;
+BEGIN
+	--rstPath
+	rstPathCount		:= 0;
+	tmpPathArray		:= ARRAY[cast(nFromLink as varchar)];
+	tmpPathAttrArray	:= ARRAY[cast(0 as varchar)];
+	tmpPathCount		:= 1;
+	tmpPathIndex		:= 1;
+	nStartNode         	:= startNode;
+	nScondNode          := endNode;
+
+	tmpLastNodeArray	:= ARRAY[nStartNode];
+	tmpLastLinkArray	:= ARRAY[nFromLink];
+		
+	WHILE tmpPathIndex <= tmpPathCount LOOP
+-- 		raise INFO 'tmpPathIndex:%,tmpPathArray = %', tmpPathIndex,tmpPathArray[tmpPathIndex];
+		-----stop if out link is found.
+		if array_upper(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\|+'),1) < 10 then
+			
+			if tmpLastLinkArray[tmpPathIndex] = nToLink then
+				rstPathCount	:= rstPathCount + 1;
+				rstPath			:= cast(tmpPathArray[tmpPathIndex] as varchar);
+				
+				if rstPathCount = 1 then
+						rstPathArray		:= ARRAY[rstPath];
+				else
+-- 					raise info 'tmpPathAttrArray[tmpPathIndex]:%',tmpPathAttrArray[tmpPathIndex];
+					if not ('1' = ANY(string_to_array(tmpPathAttrArray[tmpPathIndex],'|'))) then
+						rstPathArray		:= array_append(rstPathArray, rstPath);
+					end if;
+				end if;
+				
+				tmpPathIndex := tmpPathIndex + 1;
+				
+				continue;
+			else
+				for rec in 
+					select link_id as nextlink,inout_flag
+						,(case  when s_node = tmpLastNodeArray[tmpPathIndex] then e_node 
+							when e_node = tmpLastNodeArray[tmpPathIndex] then s_node
+						end) as nextnode
+					from  temp_roundabout_doublecircle_connect_links 
+					where (
+						(		
+							((tmpLastNodeArray[tmpPathIndex] = s_node and oneway = 1) 
+							or	
+							((tmpLastNodeArray[tmpPathIndex] = s_node or tmpLastNodeArray[tmpPathIndex] = e_node) and oneway in (0,2)))   
+						)
+						and 
+						not (
+							cast(link_id as varchar) = ANY(tmpPathArray)
+						)
+						and (inout_flag = 2 or link_id in (nfromlink,ntolink))
+					)
+				loop
+					
+					if not (rec.nextlink in (nFromLink, tmpLastLinkArray[tmpPathIndex]))
+						and not ((rec.nextlink)::varchar = ANY(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\|+'))) 
+					then
+-- 						raise info ' find:%,%',rec.nextlink,rec.inout_flag;
+						tmpPathCount		:= tmpPathCount + 1;
+						tmpPathArray		:= array_append(tmpPathArray, cast(tmpPathArray[tmpPathIndex]||'|'||rec.nextlink as varchar));
+						tmpPathAttrArray	:= array_append(tmpPathAttrArray, cast(tmpPathAttrArray[tmpPathIndex]||'|'||rec.inout_flag as varchar));
+						tmpLastNodeArray	:= array_append(tmpLastNodeArray, cast(rec.nextnode as bigint));
+						tmpLastLinkArray	:= array_append(tmpLastLinkArray, cast(rec.nextlink as bigint));
+					end if;
+					
+				end loop;
+			end if;
+		end if;
+		tmpPathIndex := tmpPathIndex + 1;
+	END LOOP;
+
+	return rstPathArray;
+END;
+$$;
+
+--- p2 in which side of p0-p1.
+CREATE OR REPLACE FUNCTION cal_point_line_side(p0 geometry, p1 geometry, p2 geometry) 
+RETURNS integer
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    x2x0    float;
+    y2y0    float;
+    x1x0    float;
+    y1y0    float;
+    m    float;
+BEGIN 
+    x2x0    := st_x(p2) - st_x(p0);
+    y2y0    := st_y(p2) - st_y(p0);
+    x1x0    := st_x(p1) - st_x(p0);
+    y1y0    := st_y(p1) - st_y(p0);
+ 
+    m    := (x2x0 * y1y0 - x1x0 * y2y0);
+    
+    if m > 0 then
+        return 1;    -- right
+    elsif m < 0 then
+        return 2;    -- left
+    else
+        return 0;    -- three point is a line
+    end if;
 END;
 $$;

@@ -62,7 +62,9 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
         self._group_road_trans_name()
         # 对名称(包括番号)进行排序
         self._sort_road_name()
-        # 道路名称音素(包括番号)
+        # 处理名称特殊情况：street_type为空错误，和相同名字多次存储的错误
+        #self._fix_mid_name()
+        # 道路名称音素(包括番号)       
         self._make_road_phonetic()
         # 道路名称
         self._make_link_name()
@@ -150,7 +152,15 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
           ON fn.name_id = trans.name_id
           LEFT JOIN mid_temp_feature_phontetic as tts
           ON tts.name_id = fns.name_id
-          ORDER BY feature_id, is_exonym, name_type, fns.name_id;
+          ORDER BY feature_id, 
+                   is_exonym,
+                   (case when name_type = 'B' then 1
+                         when name_type = 'A' then 2
+                         when name_type = 'K' then 3
+                         when name_type = 'S' then 4
+                         when name_type = 'E' then 5
+                         else 6 end), 
+                   fns.name_id;
         """
         features = self.get_batch_data(sqlcmd)
         curr_feature_id = None
@@ -289,7 +299,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
         # 4) is_junction_name,
         # 5) is_vanity_name,
         # 6) is_scenic_name,
-        # 7) road_link_id
+        # 7) language_code
+        # 8) street_name
         sqlcmd = """
         INSERT INTO mid_temp_road_name(
                     link_id, road_link_id, road_name_id,
@@ -319,8 +330,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                    is_junction_name,
                    is_vanity_name,
                    is_scenic_name,
-                   road_link_id,
-                   language_code
+                   language_code,
+                   street_name
         );
         """
         self.pg.execute2(sqlcmd)
@@ -360,14 +371,55 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
           order by link_id,
                    route_type,
                    length(rdf_road_name.street_name),
-                   street_name,
-                   language_code
+                   language_code,
+                   street_name
         );
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         return 0
-
+    
+    def _fix_mid_name(self):
+        
+        sqlcmd='''
+                select link_id,array_agg(street_type),array_agg(street_name),array_agg(gid)
+                (
+                    select * 
+                    from mid_temp_road_name_bak 
+                    order by gid;
+                ) group by link_id,language_code
+                '''
+        self.pg.execute2(sqlcmd)
+        results=self.pg.fetchall2()
+        sqlcmd_update='''
+                update mid_temp_road_name
+                set street_type=%s
+                where gid=%d
+                        '''
+        sqlcmd_del='''
+                delete from mid_temp_road_name
+                where gid=%d
+                    '''
+        for result in results:
+            link_id=result[0]
+            street_types=result[1]
+            street_names=result[2]
+            street_types=set(street_types)
+            gid_array=result[3]
+            
+            #补全为空，出错的street_type
+            for street_type in street_types:
+                for idx in range(len(street_names)):
+                    if street_type in street_names[idx]:
+                        self.pg.execute2(sqlcmd_update % (street_type,gid_array[idx]) )
+                        
+            #删除重复的name
+            for idx in range(len(street_names)):
+                if street_names[idx] in street_names[:idx]:
+                    self.pg.execute2(sqlcmd_del%(gid_array[idx]))
+            
+        self.pg.commit2()
+        
     def _make_road_phonetic(self):
         '''道路名称的音素。'''
         self.CreateTable2('mid_temp_road_phonetic')

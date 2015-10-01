@@ -271,7 +271,8 @@ class comp_dictionary_mmi(component.default.dictionary.comp_dictionary):
             # ## Alter Name
             if alt_names:
                 # Multiple names with ";" separation
-                for alt_name in alt_names.split(';'):
+                alt_names=sorted(alt_names.split(';'))
+                for alt_name in alt_names:
                     ml_alt = self._get_multi_name(lang_code,
                                                   alt_name,
                                                   NAME_TYPE_ALTER,

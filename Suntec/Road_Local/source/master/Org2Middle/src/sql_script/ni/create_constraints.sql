@@ -280,8 +280,8 @@ CREATE INDEX org_poi_the_geom_idx
   (the_geom);
 
 
-CREATE INDEX temp_towardname_name_poi_poi_id_idx
-ON temp_towardname_name_poi
+CREATE INDEX temp_highway_building_json_name_poi_id_idx
+ON temp_highway_building_json_name
 USING btree
 (poi_id); 
 
@@ -320,3 +320,19 @@ CREATE INDEX temp_signpost_uc_sign_id_idx
   on temp_signpost_uc
   using btree
   (sign_id);
+
+CREATE INDEX temp_signpost_uc_path_info_id_idx
+  on temp_signpost_uc_path_info
+  using btree
+  (id);
+  
+CREATE INDEX temp_roundabout_id_id_name_idx
+  on temp_roundabout_id
+  using btree
+  (id,name);
+  
+CREATE INDEX temp_sp_json_name_id_idx
+  on temp_sp_json_name
+  using btree
+  (id);
+  

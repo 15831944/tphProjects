@@ -123,14 +123,6 @@ CREATE TABLE temp_name_dictionary
   old_name_id integer not null
 );
 
-CREATE TABLE temp_point_list
-(
-  gid serial NOT NULL,
-  image_id character varying(128),
-  data bytea,
-  CONSTRAINT temp_point_list_pkey PRIMARY KEY (gid)
-);
-
 CREATE TABLE temp_link_name_and_number
 (
   gid serial NOT NULL,
@@ -1705,27 +1697,40 @@ CREATE TABLE temp_forecast_link_with_slot_main
   org_link_id bigint,
   dir smallint,
   profile_flag boolean,
-  free_time smallint,
-  weekday_time smallint,
-  weekend_time smallint,
-  average_time smallint,
+  free_time int,
+  weekday_time int,
+  weekend_time int,
+  average_time int,
   s_fraction double precision,
   e_fraction double precision,
   time_slot smallint,
-  weekend smallint,
-  weekday smallint
+  weekend int,
+  weekday int
 ); 
 
 CREATE TABLE temp_forecast_link_with_slot_main_merge
 (
   link_id bigint,
   dir integer,
-  free_time smallint,
-  weekday_time smallint,
-  weekend_time smallint,
-  average_time smallint,
+  free_time int,
+  weekday_time int,
+  weekend_time int,
+  average_time int,
   time_slot_array smallint[],
   seq_list_array text[],
   weekday_list_array text[],
   weekend_list_array text[]
+);
+
+CREATE TABLE temp_node_iso_country_code
+AS
+(
+	select node_id, b.iso_country_code, b.link_id
+	from 
+	(
+		select node_id, branches[1] as link_id
+		from rdb_node
+	) as a
+	left join rdb_link as b
+	on a.link_id = b.link_id
 );

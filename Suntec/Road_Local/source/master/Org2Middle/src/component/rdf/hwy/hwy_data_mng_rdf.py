@@ -7,6 +7,8 @@ Created on 2014-12-30
 import component.component_base
 import json
 from common.database import BATCH_SIZE
+from component.jdb.hwy.hwy_def import HWY_TILE_LAYER
+from component.jdb.hwy.hwy_def import TILE_LAYER_14
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
 from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
 from component.rdf.hwy.hwy_graph_rdf import HWY_EXIT_POI_NAME
@@ -1023,7 +1025,8 @@ class HwyDataMngRDF(component.component_base.comp_base):
     def is_boundary_node(self, node_id):
         self.__load_boundary_node()
         if not self.__boundary_node_dict:
-            self.log.error('No Tile Node.')
+            if self._exist_boundary():
+                self.log.error('No Tile Node.')
         if node_id in self.__boundary_node_dict:
             return True
         return False
@@ -1040,6 +1043,34 @@ class HwyDataMngRDF(component.component_base.comp_base):
             for row in self.pg.fetchall2():
                 node_id = row[0]
                 self.__boundary_node_dict[node_id] = None
+
+    def _exist_boundary(self):
+        '''判定所有线路没有跨tile.'''
+        sqlcmd = """
+        SELECT count(*)
+          FROM (
+            SELECT road_code, updown
+              from (
+                SELECT distinct road_code, updown,
+                       ((tile_id >> %s) >> %s) & %s as x,
+                       (tile_id >> %s) & %s as y
+                  FROM hwy_link_road_code_info as a
+                  LEFT JOIN link_tbl as b
+                  ON a.link_id = b.link_id
+                  where a.link_id is not null
+            ) as c
+            GROUP BY road_code, updown
+            having count(*) > 1
+         ) AS d;
+        """
+        SHIFT = TILE_LAYER_14 - HWY_TILE_LAYER
+        MASK = (1 << HWY_TILE_LAYER) - 1
+        self.pg.execute2(sqlcmd, (TILE_LAYER_14, SHIFT, MASK,
+                                  SHIFT, MASK))
+        row = self.pg.fetchone2()
+        if row and row[0] == 0:
+            return False
+        return True
 
     def get_ic_list(self):
         if not self.__ic_list:

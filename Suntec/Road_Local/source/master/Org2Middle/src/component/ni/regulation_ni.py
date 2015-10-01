@@ -21,6 +21,7 @@ class comp_regulation_ni(component.component_base.comp_base):
         self.__convert_regulation_access()
         self.__convert_regulation_oneway()
         self.__convert_regulation_linkrow()
+        self.__convert_regulation_country_boundry()
         return 0
     
     def __convert_condition_table(self):
@@ -72,6 +73,51 @@ class comp_regulation_ni(component.component_base.comp_base):
         self.pg.commit2()
         
         self.log.info('convert regulation of linkrow end.')
+    
+    def __convert_regulation_country_boundry(self):
+        self.log.info('convert regulation of country boundry...')
+        
+        # 创建表单temp_node_nation_boundary记录国家/地区边界上的node信息
+        # 四维中国仕向地港澳之间不需要作成跨国规制
+        
+        sqlcmd = """
+                drop table if exists temp_node_nation_boundary;
+                CREATE TABLE temp_node_nation_boundary 
+                as (
+                    select node_id
+                    from (
+                        select node_id, array_agg(iso_country_code) as iso_country_code_array
+                        from (
+                            select distinct a.node_id, b.iso_country_code
+                            from node_tbl a
+                            left join link_tbl b
+                                on a.node_id in (b.s_node, b.e_node)
+                        ) c
+                        group by node_id
+                    ) d
+                    where array_upper(iso_country_code_array, 1) > 1 and 
+                        'CHN' = any(iso_country_code_array)
+                );
+                
+                DROP INDEX IF EXISTS temp_node_nation_boundary_node_id_idx;
+                CREATE INDEX temp_node_nation_boundary_node_id_idx
+                  ON temp_node_nation_boundary
+                  USING btree
+                  (node_id);
+                  
+                analyze temp_node_nation_boundary;
+            """
+               
+        self.pg.do_big_insert2(sqlcmd)
+        
+        # 以国家/地区边界上的node作为规制点，进入node的link作为规制进入link，从node脱出的link作为脱出link
+        # 跨国规制对link种别无限定
+        
+        self.CreateFunction2('mid_convert_regulation_nation_boundary')
+        self.pg.callproc('mid_convert_regulation_nation_boundary')
+        self.pg.commit2()
+        
+        self.log.info('convert regulation of country boundry end.')
     
     def _DoCheckLogic(self):
         self.log.info('Check regulation...')

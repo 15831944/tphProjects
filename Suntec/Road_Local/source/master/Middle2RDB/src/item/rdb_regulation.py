@@ -60,7 +60,7 @@ class rdb_regulation(ItemBase):
                                          regulation_id as old_regulation_id, 
                                          condtype
                                  from regulation_relation_tbl
-                                 where condtype in (1,2,3,4,42,43,10,11)
+                                 where condtype in (1,2,3,4,42,43,10,11,12)
                                  group by regulation_id, condtype
                              )as a
                              left join
@@ -114,7 +114,7 @@ class rdb_regulation(ItemBase):
                                              (
                                                  select regulation_id, condtype
                                                  from regulation_relation_tbl
-                                                 where condtype in (1,10,11)
+                                                 where condtype in (1,10,11,12)
                                                  group by regulation_id, condtype
                                              )as x
                                              left join regulation_item_tbl as y
@@ -172,6 +172,7 @@ class rdb_regulation(ItemBase):
                                 when r.condtype in (1,4,42,43) then 0 
                                 when r.condtype in (2,3,10) then 1
                                 when r.condtype = 11 then 2 
+                                when r.condtype = 12 then 3
                                 end
                                 ) as regulation_type,
                                 s.is_seasonal, 

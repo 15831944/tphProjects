@@ -22,9 +22,10 @@ class CCaseReadWriter(object):
         '''
         self.__suiteInfoList = []          # 一张表对应一个CSuiteInfo实例
         self.__path          = self.__generateResultFile(model_path)        # excel的文件路径及名称
+        self.__caseid_list = common.ConfigReader.CConfigReader.instance().getPara('caseid')
+        self.__sheet_dict = {}
     
     def __generateResultFile(self, sourceFile):
-        import os
         import time
         if os.path.isfile(sourceFile):
             (host, dbname) = common.ConfigReader.CConfigReader.instance().getDBInfo()
@@ -97,28 +98,67 @@ class CCaseReadWriter(object):
         # 一个sheet, 写一次
         objExcel.writeCaseInfoList(SummarySuiteInfo.getSuiteName(), CCell_list)
         return
+       
+    def getsheet_caseid_list(self):
+        
+        return self.__caseid_list
+            
+    def getsheet_name_dict(self):
+       
+        if len(self.__sheet_dict) == 0:
+            
+            self._loadSummaryCaseInfo()
+        
+        return self.__sheet_dict
     
-    def _loadCaseInfo(self):
-        '''从excel表载入用例信息。'''
-                
+    def _loadSummaryCaseInfo(self):
+        '''单独载入summary'''
         objExcel = CExcel2(self.__path)
         # 取得所有sheet
         for sheet_name in objExcel.sheet_names():
-            ojbCaseInfoList = []
-            case_info_list  = objExcel.getCaseInfoes(sheet_name)
-            if case_info_list != None:
-                # 用例的字典key
-                case_key = case_info_list[0]
-            for case_info in case_info_list[1:]:
-                info_dict = {}
-                for i in range(len(case_key)):
-                    key = case_key[i]                 # 种别是CCell
-                    info_dict[key] = case_info[i]     # 种别是CCell 
+            if sheet_name.lower() == 'summary' :
                 
-                ojbCaseInfoList.append(CCaseInfo(sheet_name, info_dict))
-            
-            self.__suiteInfoList.append(CSuiteInfo(sheet_name, ojbCaseInfoList))
-        return 0        
+                case_info_list  = objExcel.getCaseInfoes(sheet_name)
+                if case_info_list != None:
+                    # 用例的字典key
+                    case_key = case_info_list[0]
+                    for i in range(len(case_key)):
+                        if case_key[i].getValue() == u'用例ID':
+                            case_id = i
+                        elif case_key[i].getValue() == u'表名':
+                            sheet_id = i
+                            
+                for case_info in case_info_list[1:]:
+                    
+                    key = case_info[case_id]                 # 种别是CCell
+                    if str(key.getValue()) in self.__caseid_list or len(self.__caseid_list) == 0:
+                        self.__sheet_dict[case_info[sheet_id].getValue()] = str(key.getValue())
+        return 0 
+    
+    def _loadCaseInfo(self):
+        '''从excel表载入用例信息。'''
+       
+        self.getsheet_name_dict()
+               
+        objExcel = CExcel2(self.__path)
+        # 取得所有sheet
+        for sheet_name in objExcel.sheet_names():
+            if (sheet_name in self.__sheet_dict.keys()) or sheet_name.lower() == 'summary':
+                ojbCaseInfoList = []
+                case_info_list  = objExcel.getCaseInfoes(sheet_name)
+                if case_info_list != None:
+                    # 用例的字典key
+                    case_key = case_info_list[0]
+                for case_info in case_info_list[1:]:
+                    info_dict = {}
+                    for i in range(len(case_key)):
+                        key = case_key[i]                 # 种别是CCell
+                        info_dict[key] = case_info[i]     # 种别是CCell 
+                    
+                    ojbCaseInfoList.append(CCaseInfo(sheet_name, info_dict))
+                
+                self.__suiteInfoList.append(CSuiteInfo(sheet_name, ojbCaseInfoList))
+        return 0     
     
 ###############################################################################
 ## CSuiteInfo类
@@ -161,6 +201,12 @@ class CCaseInfo(object):
     
     def setCaseID(self, caseID):
         self.setValue(u'用例ID', caseID)
+        
+    def getCaseID_unique(self):
+        return self.get(u'用例ID_unique')
+    
+    def setCaseID_unique(self, caseID):
+        self.setValue(u'用例ID_unique', caseID)
         
     def getDependCaseIDList(self):
         return self.get(u'依赖用例ID')

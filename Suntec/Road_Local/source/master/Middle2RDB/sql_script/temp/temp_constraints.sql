@@ -3,12 +3,6 @@ CREATE UNIQUE INDEX temp_name_dictionary_old_name_id_idx
   USING btree
   (old_name_id);
 
--- tmp_point_list
-CREATE UNIQUE INDEX temp_point_list_image_id_idx
-  ON temp_point_list
-  USING btree
-  (image_id);
-
 CREATE UNIQUE INDEX temp_guideinfo_pic_blob_id_mapping_image_id_idx
   ON temp_guideinfo_pic_blob_id_mapping
   USING btree

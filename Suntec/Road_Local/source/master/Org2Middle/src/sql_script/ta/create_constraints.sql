@@ -363,3 +363,8 @@ CREATE INDEX temp_mid_iso_country_code_idx
 	ON temp_mid_iso_country_code
 	USING btree
 	(iso_country_num);
+	
+CREATE INDEX	temp_poi_category_mapping_org_id1_org_id2_idx
+  ON temp_poi_category_mapping
+  USING btree
+  (org_id1,org_id2);

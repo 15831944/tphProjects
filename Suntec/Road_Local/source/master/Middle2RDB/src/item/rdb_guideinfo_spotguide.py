@@ -43,7 +43,6 @@ class rdb_guideinfo_spotguide(ItemBase):
                            ,passlink_count
                            ,pattern_id
                            ,arrow_id
-                           ,point_list
                            ,is_exist_sar
                           )
                   SELECT  a.tile_link_id
@@ -58,7 +57,6 @@ class rdb_guideinfo_spotguide(ItemBase):
                         , case 
                           when s.arrowno is null then 0    -- sensis, toll station
                           else e.gid end    -- rdf etc.
-                        , f.data
                         , s.is_exist_sar
                     FROM 
                     spotguide_tbl as s
@@ -72,8 +70,6 @@ class rdb_guideinfo_spotguide(ItemBase):
                     on lower(s.patternno) = lower(d.image_id)
                     LEFT JOIN temp_guideinfo_pic_blob_id_mapping as e
                     on lower(s.arrowno) = lower(e.image_id)
-                    LEFT JOIN temp_point_list as f
-                    on lower(s.arrowno) = lower(f.image_id) -- point list file name should be same with arrow name.
                     where d.gid is not null and    -- pattern illust must be found.
                           (s.arrowno is null   -- sensis, toll station
                            or e.gid is not null)   -- rdf etc.

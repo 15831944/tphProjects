@@ -148,8 +148,8 @@ class CCheckIsSeasonal(platform.TestCase.CTestCase):
         count_all = self.pg.getOnlyQueryResult(sqlcmd)
         
         area = common.ConfigReader.CConfigReader.instance().getCountryName()
-        #if area.upper() in ('NA', 'ARG', 'CHN'):
-        if area.upper() in ('NA', 'ARG'):
+        if area.upper() in ('NA', 'ARG', 'CHN'):
+        #if area.upper() in ('NA', 'ARG'):
             return (count_seasonal > 0) and (count_seasonal < count_all)
         else:
             return (count_seasonal == 0)
@@ -175,7 +175,7 @@ class CCheckBoundryRegulationExist(platform.TestCase.CTestCase):
         
         area = common.ConfigReader.CConfigReader.instance().getCountryName()
         #if area.upper() in ('NA', 'ARG', 'CHN'):
-        if area.upper() in ('NA', 'MEA', 'ME8', 'ASE', 'SAF', 'SAF8'):
+        if area.upper() in ('NA', 'MEA', 'ME8', 'ASE', 'SAF', 'SAF8', 'CHN'):
             return (rec_count > 0)
         else:
             return (rec_count == 0)

@@ -37,12 +37,15 @@ class Zenrinname():
         return False
 
     def _convertstring(self,name,dir):#IF (asciival > 65280) AND (asciival < 65375) THEN  
+        
+        return name
         if dir==1:
             return ''.join(map(lambda x:chr(32) if ord(x)==12288 else x \
                                if ord(x)<=65280 or ord(x)>=65375 else chr(ord(x)-65248),unicode(name)))
         else:
             return ''.join(map(lambda x:unichr(12288) if ord(x)==32 else unichr(ord(x)+65248) \
                                if ord(x)<127 else x,name)) 
+        
 
     def _make_shield_num(self,name,level=None):
         

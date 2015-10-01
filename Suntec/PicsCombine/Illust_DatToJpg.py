@@ -37,9 +37,11 @@ def ConvertDatToImage(srcDatFile, destDir):
         bPicInfo, iOffset, iSize = struct.unpack("<bii", buf9)
         
         bufIPic = readBuf[iOffset: iOffset+iSize]    
-        strExt = ".jpg"
+        strExt = ""
         if(imghdr.test_png(bufIPic, None)):
             strExt = ".png"
+        elif(imghdr.test_jpeg(bufIPic, None)):
+            strExt = ".jpg"
         
         newJpgName = '''%s_%d%s''' % (os.path.splitext(os.path.split(srcDatFile)[1])[0], iPic, strExt)
         destFile = os.path.join(destDir, newJpgName) 
@@ -48,7 +50,7 @@ def ConvertDatToImage(srcDatFile, destDir):
         outFS.close()
         
 if __name__ == '__main__':
-    dat = r"C:\Users\hexin\Desktop\20150730_aus_pic_day_night\320x240_dat"
-    pic = r"C:\Users\hexin\Desktop\20150730_aus_pic_day_night\320x240_dat_output"
+    dat = r"C:\My\20150820_pointlist_dat"
+    pic = r"C:\My\20150820_pointlist_dat_to_jpg"
     ConvertDatToImage_Dir(dat, pic)
     

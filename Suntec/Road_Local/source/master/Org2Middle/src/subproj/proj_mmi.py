@@ -24,6 +24,10 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
+        
+        self.AddComponent(self.comp_factory.CreateOneComponent('spotguide_tbl'))
+        return
+
         if self.comp_factory != None:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('sidefiles'))
@@ -38,7 +42,7 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
             # Link
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             #park
             self.AddComponent(self.comp_factory.CreateOneComponent('park'))
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))

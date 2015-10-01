@@ -7,7 +7,6 @@ Created on 2012-4-6
 
 import os
 import psycopg2
-import struct
 import shutil
 
 from base.rdb_ItemBase import ItemBase
@@ -26,20 +25,16 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
         
     def Do_CreateTable(self):
         self.CreateTable2('rdb_guideinfo_pic_blob_bytea')
-        self.CreateTable2('temp_point_list')
         
         return 0
     
     def Do_CreatIndex(self):
         self.CreateIndex2('rdb_guideinfo_pic_blob_bytea_image_id_idx')
-        self.CreateIndex2('temp_point_list_image_id_idx')
         
         return 0
     
     def Do(self):
         self.__load_illust_pic()
-        self.__load_point_list()
-        
         # 建立临时表，按data字段进行去重。
         self.prepareTempTableForDumpPics()
         return 0
@@ -56,7 +51,7 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                         self.__insertPic(os.path.join(curDir, oneFile))
             self.pg.commit2()
         else:
-            strLogInfo = '''illust "%s" is not a directory, skipped loading point list.''' % picroot
+            strLogInfo = '''illust "%s" is not a directory, skipped loading illust.''' % picroot
             rdb_log.log(self.ItemName, strLogInfo , 'info')
         
         rdb_log.log(self.ItemName, 'insert data to rdb_guideinfo_pic_blob_bytea end.', 'info')
@@ -73,43 +68,6 @@ class rdb_guideinfo_pic_blob_bytea(ItemBase):
                          (picname, psycopg2.Binary(alldata))
                          ) == -1:
             rdb_log.log(self.ItemName, 'fail to load spotguide pic %s.' % filepath, 'error')
-            return -1
-        return 0
-    
-    def __load_point_list(self):
-        rdb_log.log(self.ItemName, 'Inserting record to temp_point_list...', 'info')
-        
-        ptroot = rdb_common.GetPath('pointlist')
-        if os.path.isdir(ptroot):
-            for curDir,dirNames,fileNames in os.walk(ptroot):
-                for oneFile in fileNames:
-                    exttype = os.path.splitext(oneFile)[1].lower()
-                    if exttype == ".txt":
-                        self.__insertPt(os.path.join(curDir, oneFile))
-            self.pg.commit2()
-        else:
-            strLogInfo = '''pointlist "%s" is not a directory,  skipped loading point list.''' % ptroot
-            rdb_log.log(self.ItemName, strLogInfo , 'info')
-        rdb_log.log(self.ItemName, 'insert record to temp_point_list end.', 'info')
-    
-    def __insertPt(self, filepath):
-        filename = os.path.split(filepath)[1]
-        objFile = open(filepath, 'r') 
-        listline = objFile.readlines()
-        objFile.close()
-        res = ''
-        for line in listline:
-            line = line.strip()
-            if line:
-                ox, oy = line.split(',')
-                x = int(ox)
-                y = int(oy)
-                res = res + struct.pack("h", x)
-                res = res + struct.pack("h", y)
-
-        ptname = os.path.splitext(filename)[0]
-        if self.pg.insert('temp_point_list', ('image_id', 'data'), (ptname, psycopg2.Binary(res))) == -1:
-            rdb_log.log(self.ItemName, 'fail to load pointlist %s.' % filepath, 'error')
             return -1
         return 0
     

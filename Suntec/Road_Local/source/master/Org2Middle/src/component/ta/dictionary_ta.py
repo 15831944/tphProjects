@@ -228,7 +228,8 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                                    (nametyp & 8) desc,   -- Brunnel Name
                                    (nametyp & 32) desc,  -- Locality Name
                                    (nametyp & 64) desc,  -- Postal Street Name
-                                   gid
+                                   namelc,
+                                   fullname
                    ) AS A
                    GROUP BY id
           ) AS link_name
@@ -281,6 +282,14 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                 continue
             multi_name = MultiLangNameTa(link_id)
             multi_name.set_lang_code(l_lang_code, r_lang_code)
+            if multi_name.l_lang_code != multi_name.r_lang_code :
+                len_lang = len(lang_codes)
+                for i in range(len_lang):
+                    if (not lang_codes[i] or lang_codes[i]  == 'UND') and \
+                        (not sols[i] or sols[i] == 0) :
+                        self.log.warning('id=%d, namelc is None or UND, l_lang and r_lang not same! ')
+                        
+
             multi_name.set_multi_name(names,
                                       lang_codes,
                                       nametypes,
@@ -315,19 +324,22 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
         self.CreateTable2('temp_link_route_num')
 
         sqlcmd = """
-        SELECT num.id, shieldids, shieldnums, routenums,
+          SELECT num.id, shieldids, shieldnums, routenums,
                l_laxonlc, r_laxonlc
           FROM (
                 SELECT id, array_agg(shiledid) as shieldids,
                        array_agg(shieldnum) as shieldnums,
                        array_agg(routenum) as routenums
                   FROM (
-                        SELECT id, rtetyp as shiledid,  shieldnum,
-                               routenum, rteprior
-                          FROM org_rn
+                        SELECT distinct id, a.rteprior, length(a.shieldnum),a.routenum,
+                                   a.shieldnum, b.namelc,a.rtetyp as shiledid, a.gid
+                          FROM org_rn a
+                          join org_gc b
+                          using(id)
                           where shieldnum is not null
-                          ORDER BY id, rteprior, length(shieldnum),
-                                   shieldnum, shiledid, gid
+                          ORDER BY id, a.rteprior, length(a.shieldnum),
+                                   a.shieldnum, b.namelc, shiledid, a.gid
+                         
                    ) AS A
                    GROUP BY id
            ) AS num
@@ -509,7 +521,7 @@ class comp_dictionary_ta(component.default.dictionary.comp_dictionary):
                           where "name" is not null
                           GROUP BY id, nametyp, namelc, "name", feattyp
                   ) as b
-                  order by id, nametyp, min_gid
+                  order by id, nametyp DESC, min_gid
           ) AS an
           GROUP BY id;
         """

@@ -189,6 +189,28 @@ class CCheckIcPath(platform.TestCase.CTestCase):
             return False
         return True
 
+#=========================================================================
+# CCheckIcNodeSapa
+#若一个点有多个sapa设施，其设施类别是否一致
+#=========================================================================
+class CCheckIcNodeSapa(platform.TestCase.CTestCase):
+    ''' '''
+    def _do(self):
+        sqlcmd = '''
+        select road_code, updown_c, node_id ,
+               array_agg(facilcls_c) as facil_c
+        from mid_temp_hwy_ic_path
+        where facilcls_c in (1,2)
+        group by road_code, updown_c, node_id
+        '''
+        for row in self.pg.get_batch_data(sqlcmd):
+            road_code = row[0]
+            updown = row[1]
+            node_id = row[2]
+            facil_c_array = row[3]
+            if len(set(facil_c_array)) > 1:
+                return False
+        return True
 #===============================================================================
 # CCheckFacilityNode
 #检查所有收录node（非起始点）均为分歧点

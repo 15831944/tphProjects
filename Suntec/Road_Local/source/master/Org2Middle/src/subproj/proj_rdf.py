@@ -42,7 +42,7 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             # Ramp RoadType
-            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             # Node Height
             self.AddComponent(self.comp_factory.CreateOneComponent('Node_Height'))            
             #park

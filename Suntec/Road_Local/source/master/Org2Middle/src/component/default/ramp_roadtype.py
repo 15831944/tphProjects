@@ -7,6 +7,7 @@ Created on 2012-8-17
 '''
 import component.component_base
 import common.common_func
+import common.search_road
 
 class comp_ramp_roadtype(component.component_base.comp_base):
     '''
@@ -20,7 +21,7 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'Ramp_RoadType')
         self.proj_name = common.common_func.GetProjName()  
         self.proj_country = common.common_func.getProjCountry()
-        
+                
     def _DoCreateTable(self):
         
         if self.CreateTable2('temp_link_ramp_single_path') == -1:
@@ -74,6 +75,7 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         self._UpdateRampRoadTypeFC_Toohigh()
         
         self._UpdateRoundaboutRoadType()
+       
         return 0
     
     def _findproperroundabout(self):
@@ -111,7 +113,7 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         self.log.info('Updating RoadType and FC of Ramp for link_tbl.')
         sqlcmd = """
                 UPDATE link_tbl as a
-                   SET road_type = (case when b.new_road_type in (0,1) then b.new_road_type else a.road_type end), 
+                   SET road_type = (case when b.new_road_type in (0,1) and b.new_road_type<a.road_type then b.new_road_type else a.road_type end), 
                        function_class = (case when b.new_fc < a.function_class then b.new_fc else a.function_class end)
                    FROM temp_link_ramp as b
                  WHERE a.link_id = b.link_id;
@@ -140,7 +142,7 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         self.log.info('Updating RoadType and FC of Ramp for link_tbl.')
         sqlcmd = """
                 UPDATE link_tbl as a
-                   SET road_type = (case when b.new_road_type not in (0,1) then b.new_road_type else a.road_type end)--, 
+                   SET road_type = (case when b.new_road_type not in (0,1) and b.new_road_type>a.road_type then b.new_road_type else a.road_type end)--, 
                       -- function_class = (case when b.new_fc > a.function_class then b.new_fc else a.function_class end)
                    FROM temp_link_ramp_toohigh as b
                  WHERE a.link_id = b.link_id;
@@ -194,4 +196,3 @@ class comp_ramp_roadtype(component.component_base.comp_base):
             """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-        

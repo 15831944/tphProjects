@@ -47,9 +47,9 @@ class CCheckUnique(platform.TestCase.CTestCase):
                 select count(*)
                 from
                 (
-                    select in_link_id,node_id,toward_name
+                    select in_link_id,node_id,out_link_id,toward_name
                     from rdb_guideinfo_towardname as a
-                    group by in_link_id, node_id, toward_name having count(*)>1
+                    group by in_link_id, node_id,out_link_id, toward_name having count(*)>1
                 ) as b
                          
                 '''
@@ -121,11 +121,11 @@ class CCheckToward_name(platform.TestCase.CTestCase):
               
         for row in self.pg.get_batch_data(sqlcmd):
             toward_name = row[0]
-            name_lists = json.loads(toward_name)
+            toward_name = toward_name.replace('\t','')
+            name_lists = json.loads(toward_name,'UTF-8')
             for name_list in name_lists:
                 for name in name_list:
-#                    if name.get('tts_type') == 'not_tts' and (not name.get('val')):
-                    if not name.get('val'):
+                    if name.get('val') == None or name.get('val') == '':
                         return False
         return True  
     
@@ -159,7 +159,19 @@ class CCheckName_kind2_ni(platform.TestCase.CTestCase):
         
         return self.pg.getOnlyQueryResult(sqlcmd) == 0
     
+class CCheckGuideinfoNodeid_ni(platform.TestCase.CTestCase):
     
+    def _do(self):
+        
+        sqlcmd='''
+            select count(1) 
+            from rdb_guideinfo_towardname a 
+            join rdb_node b 
+            on a.node_id=b.node_id 
+            where array_upper(b.branches,1)=2 and not (a.name_attr = 1 and a.name_kind = 2)
+               '''
+        
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0 )          
     
     
     

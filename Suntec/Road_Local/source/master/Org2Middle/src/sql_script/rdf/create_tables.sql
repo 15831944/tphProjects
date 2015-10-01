@@ -139,103 +139,6 @@ CREATE TABLE temp_condition_regulation_tbl
 );
 
 --------------------------------------------------------------------------------------------------------
--- Lane
-
-CREATE TABLE temp_lane_guide_nav_strand
-(
-  lane_nav_strand_id integer NOT NULL,
-  seq_num integer NOT NULL,
-  condition_id integer NOT NULL,
-  lane_id bigint NOT NULL,
-  node_id integer,
-  link_id integer
-);
-
-CREATE TABLE temp_lane_guide_nav
-(
-  lane_nav_strand_id integer,
-  condition_id integer,
-  lane_id bigint,
-  node_id integer,
-  inlink_id integer,
-  outlink_id integer,
-  passcount integer,
-  passlid character varying(512)
-);
-
-CREATE TABLE temp_lane_guide
-(
-  lane_nav_strand_id integer,
-  condition_id integer,
-  lane_id bigint,
-  node_id integer,
-  inlink_id integer,
-  outlink_id integer,
-  passcount integer,
-  passlid character varying(512),
-  lane_number integer,
-  lane_type bigint,
-  lane_travel_direction character(1),
-  direction_category integer,
-  lane_forming_ending integer,
-  physical_num_lanes integer,
-  bus_access_id integer
-);
-
-CREATE TABLE temp_lane_guide_distinct
-(
-  inlink_id integer,
-  node_id integer,
-  outlink_id integer,
-  passcount integer,
-  passlid character varying(512),
-  lane_number integer,
-  lane_travel_direction character(1),
-  direction_category integer,
-  physical_num_lanes integer,
-  bus_access_id integer
-);
-
-CREATE TABLE temp_lane_tbl
-(
-  nodeid bigint,
-  inlinkid bigint,
-  outlinkid bigint,
-  passlid character varying(1024),
-  passlink_cnt smallint,
-  lanenum smallint,
-  laneinfo character varying(17),
-  arrowinfo smallint,
-  lanenuml smallint,
-  lanenumr smallint,
-  buslaneinfo character varying(17)
-);
-
-
-CREATE TABLE temp_lane
-(
-  inlink_id integer,
-  node_id integer,
-  outlink_id integer,
-  passcount integer,
-  passlid character varying(512),
-  lane_number integer,
-  lane_travel_direction character(1),
-  direction_category integer,
-  physical_num_lanes integer,
-  lanenuml integer, 
-  lanenumr integer,
-  bus_access_id integer
-);
-
-CREATE TABLE temp_additional_lanenum_lr
-(
-  link_id integer,
-  direction character varying(1),
-  lanenuml integer,
-  lanenumr integer
-);
-
 -- link
 create table temp_link_through_traffic 
 as 
@@ -401,6 +304,11 @@ as
 );
 
 create table temp_link_rodizio 
+(
+	link_id bigint
+);
+
+create table temp_link_soi
 (
 	link_id bigint
 );
@@ -958,7 +866,7 @@ CREATE TABLE temp_wkt_building_900913
 
 CREATE TABLE temp_wkt_location_900913
 (
-  location_id integer NOT NULL PRIMARY KEY
+  location_id bigint NOT NULL PRIMARY KEY
 ); SELECT AddGeometryColumn('','temp_wkt_location_900913','the_geom','900913','POINT',2);
 
 CREATE TABLE temp_wkt_face_900913

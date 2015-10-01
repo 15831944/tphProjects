@@ -19,6 +19,7 @@ class comp_admin_rdf(component.component_base.comp_base):
     def _DoCreateTable(self):
         self.CreateTable2('rdb_admin_country')
         self.CreateTable2('rdb_admin_order1')
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
 
         return 0
 
@@ -27,6 +28,7 @@ class comp_admin_rdf(component.component_base.comp_base):
         self.__do_admin_zone()
 #        self.__update_admin_for_hkgAndtwn()
         self.__do_admin_time()
+        self.__do_admin_order0_iso_country_mapping()
         return 0
 
     def __do_country_city(self):
@@ -364,6 +366,24 @@ class comp_admin_rdf(component.component_base.comp_base):
         
         self.log.info('making admin time OK.')
     
+    def __do_admin_order0_iso_country_mapping(self):
+        self.log.info('start to make order0 and iso_country mapping')
+        
+        sqlcmd = """
+                INSERT INTO rdb_admin_order0_iso_country_mapping(order0_id, iso_country_code)
+                (
+                    SELECT admin_place_id, iso_country_code
+                    FROM rdf_admin_hierarchy
+                    WHERE admin_order = 0
+                );
+                """
+        if self.pg.execute2(sqlcmd) == -1:
+            return -1
+        else:
+            self.pg.commit2()
+
+        self.log.info('end to make order0 and iso_country mapping')
+        return 0
     def __update_admin_for_hkgAndtwn(self):
         self.log.info('start alter mid_admin_zone for hkg and twn.')
            
