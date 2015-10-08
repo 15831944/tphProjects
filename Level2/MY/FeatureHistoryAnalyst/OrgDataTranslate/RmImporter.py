@@ -4,7 +4,7 @@ import os
 import os.path
 import shutil
 import psycopg2
-from CommonTranslater import CommonTranslater
+from CommonImporter import CommonImporter
 
 # 菜粕合约处理类。
 # 交易品种：菜籽粕
@@ -25,7 +25,7 @@ from CommonTranslater import CommonTranslater
 # 交割方式：实物交割
 # 交易代码：RM
 # 上市日期：2012年12月28日
-class RmTranslater(CommonTranslater):
+class RmImporter(CommonImporter):
     def __init__(self, connectStr):
         CommonTranslater.__init__(self, connectStr)
         return
@@ -46,13 +46,17 @@ class RmTranslater(CommonTranslater):
         # 遍历原始数据文件夹。
         for curDir, subDirs, fileNames in os.walk(srcDir):
             for curFile in fileNames:
-                if curFile[-4:] != '.csv': # 只处理csv文件
+                # 只处理csv文件
+                if curFile[-4:] != '.csv':
                     continue
-                if curFile.lower().find('rm') == -1: # 只处理rm合约。
+                # 只处理rm合约。
+                if curFile.lower().find('rm01') == -1 and\
+                   curFile.lower().find('rm05') == -1 and\
+                   curFile.lower().find('rm07') == -1 and\
+                   curFile.lower().find('rm09') == -1 and\
+                   curFile.lower().find('rm11') == -1: 
                     continue
-                if curFile.lower().find('mi_') != -1: # 不处理rmmi文件，此文件记录的是主连合约。
-                    continue
-                curContract = self.getExactContract(curFile.lower()[:-4:])
+                curContract = curFile.lower()[0:4]
                 curFilePath = os.path.join(curDir, curFile).lower()
                 if theDict.has_key(curContract) == False:
                     theDict[curContract] = [curFilePath]
@@ -62,6 +66,7 @@ class RmTranslater(CommonTranslater):
         for curContract, tickCsvList in theDict.items():
             outputCsvFile = os.path.join(destDir, curContract) + '.csv'
             with open(outputCsvFile, 'w+') as oFStream:
+                tickCsvList.sort()
                 for oneTickCsv in tickCsvList:
                     with open(oneTickCsv, 'r') as iFStream:
                         lines = iFStream.readlines()[1:]
@@ -69,36 +74,12 @@ class RmTranslater(CommonTranslater):
                             line = lines[-1]
                             if lines[-1] != "\n":
                                 break
-                            del lines[-1]
+                            else:
+                                del lines[-1]
                         oFStream.writelines(lines)
 
-    # 获取精确的合约，如菜粕1509，菜粕1601，包含了年份信息。
-    # 原始数据没有提供合约年份只提供合约月份，需自己根据数据的日期计算精确合约年份月份。
-    # 例如: RM07_20150731.csv
-    # 其中RM07是合约名，只能获得月份，无法获得年份；20150731是数据采集日期。
-    # 期货交易中规定，散户无法进入交割月份，此处的采集规则是，若采集月份>=合约月份，合约年份为采集年份+1。
-    # 以RM05为例：
-    # 13年5月的前10个交易日数据：RM05_20130502，RM05_20130503，RM05_20130507，RM05_20130513，RM05_20130515
-    # 应属于rm1305合约，但是在本采集过程中会被采集到rm1405合约中。
-    # 这种计算方法虽然产生了一定的误差，但由于这10个交易日的数据不影响散户，故可接受。
-    def getExactContract(self, dataCsvName):
-        strSplit = dataCsvName.split('_')
-        if len(strSplit) != 2:
-            print """There is one csv file with wrong name format: %s""" % dataCsvName
-
-        curYear = int(strSplit[1][2:4])
-        curMonth = int(strSplit[1][4:6])
-        curDay = int(strSplit[1][6:])
-        contractName = strSplit[0][:-2:]
-        contractMonth = int(strSplit[0][-2:])
-
-        if curMonth >= contractMonth:
-            return """%s%02d%02d""" % (contractName, curYear+1, contractMonth)
-        else:
-            return """%s%02d%02d""" % (contractName, curYear, contractMonth)
-
 if __name__ == "__main__":
-    test = RmTranslater("host=127.0.0.1 dbname=zz user=postgres password=pset123456")
+    test = RmImporter("host=127.0.0.1 dbname=zz user=postgres password=pset123456")
     test.orgCsv2MiddleCsv(r"""E:\features\tick""",
                           r"""E:\features\rm_output""")
 

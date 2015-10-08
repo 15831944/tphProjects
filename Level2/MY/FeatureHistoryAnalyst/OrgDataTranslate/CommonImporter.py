@@ -5,7 +5,7 @@ import os.path
 import shutil
 import psycopg2
 
-class CommonTranslater(object):
+class CommonImporter(object):
     def __init__(self, connectStr):
         if connectStr == '' or connectStr == None:
             print """Connect string error: %s """ % connectStr
@@ -72,7 +72,8 @@ class CommonTranslater(object):
                     line = lines[-1]
                     if lines[-1] != "\n":
                         break
-                    del lines[-1]
+                    else:
+                        del lines[-1]
                 oFStream.writelines(lines)
         sqlCmd = copySqlCmd % (contractName, tempCsvFilePath)
         self.pg.execute(sqlCmd)
@@ -118,7 +119,7 @@ class CommonTranslater(object):
         self.conn.commit()
         return
 if __name__ == "__main__":
-    test = CommonTranslater("host=127.0.0.1 dbname=zz user=postgres password=pset123456")
+    test = CommonImporter("host=127.0.0.1 dbname=zz user=postgres password=pset123456")
     test.middleCsvToDB(r"""E:\features\tick""")
 
 
