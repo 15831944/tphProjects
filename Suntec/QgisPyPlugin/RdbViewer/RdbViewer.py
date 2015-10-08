@@ -4,7 +4,7 @@ from PyQt4.QtGui import QAction, QIcon
 import resources
 from GenerateNewLayerDlg import GenerateNewLayerDlg
 from SpotguideMapTool import SpotguideMapTool
-import os.path
+from LaneMapTool import LaneMapTool
 
 class RdbViewer:
     def __init__(self, iface):
@@ -37,9 +37,21 @@ class RdbViewer:
         actionShowSpotguide.setEnabled(True)
         actionShowSpotguide.setCheckable(True)
         self.actions.append(actionShowSpotguide)
-
         self.spotguideMapTool = SpotguideMapTool(self.iface.mapCanvas())
         self.spotguideMapTool.setAction(actionShowSpotguide)
+
+        icon_path = ':/icons/LaneShowImage.png' 
+        actionShowLane = QAction(QIcon(icon_path), u"Show Lane", None)
+        actionShowLane.triggered.connect(self.showLane)
+        actionShowLane.setStatusTip(None)
+        actionShowLane.setWhatsThis(None)
+        self.toolbar.addAction(actionShowLane)
+        self.iface.addPluginToMenu(self.menu, actionShowLane)
+        actionShowLane.setEnabled(True)
+        actionShowLane.setCheckable(True)
+        self.actions.append(actionShowLane)
+        self.laneMapTool = LaneMapTool(self.iface.mapCanvas())
+        self.laneMapTool.setAction(actionShowLane)
         return
 
     def unload(self):
@@ -49,6 +61,11 @@ class RdbViewer:
         
         # Unset the map tool in case it's set
         self.iface.mapCanvas().unsetMapTool(self.spotguideMapTool)
+        self.iface.mapCanvas().unsetMapTool(self.laneMapTool)
+        return
+    
+    def generateLayer(self):
+        result = self.dlg.exec_()
         return
 
     def showSpotguide(self):
@@ -56,8 +73,9 @@ class RdbViewer:
         self.iface.mapCanvas().setMapTool(self.spotguideMapTool)
         return
 
-    def generateLayer(self):
-        result = self.dlg.exec_()
+    def showLane(self):
+        # activate our lane tool
+        self.iface.mapCanvas().setMapTool(self.laneMapTool)
         return
 
     

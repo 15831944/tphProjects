@@ -3,13 +3,10 @@ from qgis.gui import QgsMapTool, QgsMapToolIdentify
 from qgis.core import QgsMapLayer, QgsFeature
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QCursor, QMessageBox
-from SpotguideShowImageDlg import SpotguideShowImageDlg
+from LaneShowImageDlg import LaneShowImageDlg
 
-
-class SpotguideMapTool(QgsMapTool):
-    
+class LaneMapTool(QgsMapTool):
     def __init__(self, canvas):
-        
         super(QgsMapTool, self).__init__(canvas)
         self.canvas = canvas
         self.cursor = QCursor(Qt.ArrowCursor)
@@ -17,28 +14,7 @@ class SpotguideMapTool(QgsMapTool):
     def activate(self):
         self.canvas.setCursor(self.cursor)
     
-    def screenToLayerCoords(self, screenPos, layer):
-        transform = self.canvas.getCoordinateTransform()
-        canvasPoint = QgsMapToPixel.toMapCoordinates(transform, screenPos.x(), screenPos.y())
-        # Transform if required
-        layerEPSG = layer.crs().authid()
-        projectEPSG = self.canvas.mapRenderer().destinationCrs().authid()
-        if layerEPSG != projectEPSG:
-            renderer = self.canvas.mapRenderer()
-            layerPoint = renderer.mapToLayerCoordinates(layer, canvasPoint)
-        else:
-            layerPoint = canvasPoint
-        
-        # Convert this point (QgsPoint) to a QgsGeometry
-        return QgsGeometry.fromPoint(layerPoint)
-
-    #Each time the mouse is clicked on the map canvas, perform 
-    #the following tasks:
-    #    Loop through all visible vector layers and for each:
-    #        Ensure no features are selected
-    #        Determine the distance of the closes feature in the oneLayer to the mouse click
-    #        Keep track of the oneLayer id and id of the closest feature
-    #    Select the id of the closes feature
+    # Select the nearest node, then show its information.
     def canvasReleaseEvent(self, mouseEvent): 
 
         theLayer = self.canvas.currentLayer()
@@ -50,7 +26,6 @@ class SpotguideMapTool(QgsMapTool):
             return
           
         theLayer.removeSelection()
-        
         qgsMapTollIndentify = QgsMapToolIdentify(self.canvas)
         resultList = qgsMapTollIndentify.identify(mouseEvent.x(), mouseEvent.y(), -1)
         if resultList == []:
@@ -63,7 +38,7 @@ class SpotguideMapTool(QgsMapTool):
             featureIdList.append(oneResult.mFeature.id())
         theLayer.select(featureIdList)
 
-        dlg = SpotguideShowImageDlg(theLayer, featureList)
+        dlg = LaneShowImageDlg(theLayer, featureList)
         result = dlg.exec_()
         if result:
             pass

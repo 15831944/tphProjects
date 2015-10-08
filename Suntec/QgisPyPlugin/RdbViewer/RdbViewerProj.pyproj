@@ -24,24 +24,28 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="metadata.txt" />
-    <Content Include="SpotguideShowImageDlg_design.ui" />
-    <Content Include="GenerateNewLayerDlg_design.ui" />
+    <Content Include="LaneShowImageDlgDesign.ui" />
+    <Content Include="SpotguideShowImageDlgDesign.ui" />
+    <Content Include="GenerateNewLayerDlgDesign.ui" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LaneMapTool.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LaneShowImageDlg.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MyDatParser.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MyGetBinType.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MyDbManager.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="RdbViewer.py" />
+    <Compile Include="resources.py" />
     <Compile Include="SpotguideShowImageDlg.py" />
     <Compile Include="GenerateNewLayerDlg.py" />
     <Compile Include="SpotguideMapTool.py" />
-    <Compile Include="resources_rc.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />

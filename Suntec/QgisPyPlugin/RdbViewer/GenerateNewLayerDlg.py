@@ -1,11 +1,16 @@
 ﻿import os
 import psycopg2
-from MyDbManager import MyDbManager, FeatureTypeList
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox
 
+FeatureTypeList = \
+[
+    """spotguide""",
+    """lane"""
+]
+
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'GenerateNewLayerDlg_design.ui'))
+    os.path.dirname(__file__), 'GenerateNewLayerDlgDesign.ui'))
 
 class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
@@ -34,14 +39,57 @@ class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
         password = self.lineEditPassword.text()
         featureType = self.comboBoxSelectFeature.currentText()
         newLayerName = self.lineEditNewLayerName.text()
-        errMsg = ['']
-        dbManager = MyDbManager()
-        dbManager.generateNewLayer(errMsg, host, port, dbname, user, password, 
-                                   newLayerName, featureType)
-        if errMsg[0] != '':
+        if host is None or \
+           port is None or \
+           dbname is None or \
+           user is None or \
+           password is None or \
+           newLayerName is None or \
+           featureType is None:
+            errMsg = """Input arguments not correct.\n"""+\
+                        """host: %s\n"""+\
+                        """port: %s\n"""+\
+                        """dbname: %s\n"""+\
+                        """user: %s\n"""+\
+                        """password: %s\n"""+\
+                        """newLayerName: %s\n"""+\
+                        """feature: %s\n""" % \
+                        (host, port, dbname, user, 
+                         password, newLayerName, featureType)
             QMessageBox.information(self, "error", errMsg[0])
+            return
+        sqlcmd = """drop table if exists %s;\n"""+\
+                 """create table %s \n"""+\
+                 """as \n"""+\
+                 """(%s);"""
+        userSqlcmd = self.getuserSqlcmd(featureType)
+        sqlcmd = sqlcmd % (newLayerName, newLayerName, userSqlcmd)
+        try:
+            conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
+                (host, dbname, user, password))
+            pg = conn.cursor()
+            pg.execute(sqlcmd)
+            conn.commit()
+        except Exception, ex:
+            errMsg[0] = ex.message
+            return
+
+        self.removeAllLayersWithSpecName(errMsg, newLayerName)
+        if errMsg[0] != '':
+            return
+        uri = QgsDataSourceURI()        
+        uri.setConnection(host, port, dbname, user, password)        
+        uri.setDataSource("public", newLayerName, "the_geom", "")
+        layer = QgsVectorLayer(uri.uri(), newLayerName, "postgres")
+        layer.name = newLayerName
+        if not layer.isValid():
+            errMsg[0] = """Create new layer failed. """+\
+                        """host: %s, dbName: %s, user: %s, password: %s""" % \
+                (host, port, dbname, user, password)
+            return 
+        # Add layer to the registry
+        QgsMapLayerRegistry.instance().addMapLayer(layer)
         return
-    
 
     def testConnect(self):
         inti = 0
@@ -50,3 +98,29 @@ class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
 
     def comboBoxSelectFeatureChanged(self, txt):
         return
+           
+    def getuserSqlcmd(self, featureType):
+        if featureType == """spotguide""":
+            return \
+"""select a.*, b.data as pattern_data, c.data as arrow_data, d.the_geom as the_geom
+from 
+rdb_guideinfo_spotguidepoint as a
+left join rdb_guideinfo_pic_blob_bytea as b
+on a.pattern_id=b.gid
+left join rdb_guideinfo_pic_blob_bytea as c
+on a.arrow_id=c.gid
+left join rdb_node as d
+on a.node_id=d.node_id"""
+        elif  featureType == """lane""":
+            return \
+"""select a.*, b.the_geom
+from
+rdb_guideinfo_lane as a
+left join rdb_node as b
+on a.node_id=b.node_id
+"""
+        else:
+            return ''
+
+
+

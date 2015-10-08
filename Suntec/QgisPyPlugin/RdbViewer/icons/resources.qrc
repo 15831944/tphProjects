@@ -5,4 +5,7 @@
   <qresource prefix="/icons">
      <file>SpotguideShowImage.png</file>
   </qresource>
+  <qresource prefix="/icons">
+     <file>LaneShowImage.png</file>
+  </qresource>
 </RCC>
