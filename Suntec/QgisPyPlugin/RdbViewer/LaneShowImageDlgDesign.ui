@@ -57,17 +57,17 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="labelLaneInfo">
+  <widget class="QTextEdit" name="textEditLaneInfo">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>90</y>
-     <width>54</width>
-     <height>12</height>
+     <x>50</x>
+     <y>80</y>
+     <width>231</width>
+     <height>71</height>
     </rect>
    </property>
-   <property name="text">
-    <string>1111111</string>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

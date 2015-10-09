@@ -14,7 +14,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, theLayer, selectedFeatureList, parent=None):
         if(len(selectedFeatureList) == 0):
-            QMessageBox.information(self, "warning", """No feature selected.""")
+            QMessageBox.information(self, "Show Lane", """error:\nNo feature selected.""")
             return
         super(LaneShowImageDlg, self).__init__(parent)
         self.setupUi(self)
@@ -58,6 +58,9 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
                 (uri.host(), uri.database(), uri.username(), uri.password()))
             pg = conn.cursor()
+
+            # all these lane's keys must be found
+            # if anyone is not found, a 'KeyError' exception will be thrown.
             in_link_id = theFeature.attribute('in_link_id')
             node_id = theFeature.attribute('node_id')
             out_link_id = theFeature.attribute('out_link_id')
@@ -65,25 +68,35 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             lane_num = theFeature.attribute('lane_num')
             lane_info = theFeature.attribute('lane_info')
             arrow_info = theFeature.attribute('arrow_info')
-            
+
             # get all lanes 
-            strFilter = '''in_link_id=%s and node_id=%s''' % (in_link_id, node_id)
+            strFilter = '''in_link_id=%s and node_id=%s and passlink_count=%s''' %\
+                        (in_link_id, node_id, passlink_count)
             sqlcmd = """select lane_num, lane_info, arrow_info
                         from %s
                         where %s""" % (uri.table(), strFilter)
             pg.execute(sqlcmd)
             rows = pg.fetchall()
+            if len(rows) <= 0:
+                errMsg = '''get no lane record.'''
+                QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
+                return
+            lane_count = rows[0][0]
             for row in rows:
-                lane_num = row[0]
+                if row[0] != lane_count:
+                    errMsg = '''some lane_count not the same.'''
+                    QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
+                    return
                 lane_info = row[1]
                 arrow_info = row[2]
+                self.textEditLaneInfo.setText("""%s\n%s\n%s"""%(lane_num, lane_info, arrow_info))
             return 
         except KeyError, kErr:
             errMsg = '''Selected feature is not a rdb lane feature.'''
-            QMessageBox.information(self, "error", errMsg)
+            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
             return
         except Exception, ex:
-            QMessageBox.information(self, "error", ex.message)
+            QMessageBox.information(self, "Show Lane", """error:\n%s"""%ex.message)
             return
         return
     

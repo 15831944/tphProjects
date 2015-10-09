@@ -6,6 +6,7 @@ from MyDatParser import MyDatParser
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem
 from PyQt4.QtCore import QRectF
+from qgis.core import QgsDataSourceURI
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'SpotguideShowImageDlgDesign.ui'))
@@ -13,7 +14,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, theLayer, selectedFeatureList, parent=None):
         if(len(selectedFeatureList) == 0):
-            QMessageBox.information(self, "warning", """No feature selected.""")
+            QMessageBox.information(self, "Show Spotguide", """No feature selected.""")
             return
         super(SpotguideShowImageDlg, self).__init__(parent)
         self.setupUi(self)
@@ -48,24 +49,22 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.textEditFeatureInfo.setText(strFeatureInfo)
         
         errMsg = ['']
-        binData = self.getSpotguidePictures(errMsg, self.mTheLayer, theFeature)
+        pattern_dat, arrow_dat = self.getSpotguidePictures(errMsg, self.mTheLayer, theFeature)
         if errMsg[0] != '':
-            QMessageBox.information(self, "error", errMsg[0])
+            QMessageBox.information(self, "Show Spotguide", errMsg[0])
             return
         
         scene = QGraphicsScene()
-        pattern_data = binData[0]
-        if pattern_data is not None:
+        if pattern_dat is not None:
             datPaser = MyDatParser()
-            datPaser.initFromMemory(errMsg, pattern_data) # pattern picture
+            datPaser.initFromMemory(errMsg, pattern_dat) # pattern picture
             pixmap1 = QPixmap()
             pixmap1.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
             scene.addItem(QGraphicsPixmapItem(pixmap1))
 
-        arrow_data = binData[1]
-        if arrow_data is not None:
+        if arrow_dat is not None:
             datPaser = MyDatParser()
-            datPaser.initFromMemory(errMsg, arrow_data) # arrow picture
+            datPaser.initFromMemory(errMsg, arrow_dat) # arrow picture
             pixmap2 = QPixmap()
             pixmap2.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
             scene.addItem(QGraphicsPixmapItem(pixmap2))
@@ -93,67 +92,41 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             QgsMapLayerRegistry.instance().removeMapLayer(oneLayer.id())
         return
 
+    # result[0] is pattern dat
+    # result[1] is arrow dat
     def getSpotguidePictures(self, errMsg, layer, theFeature):
         try:
             uri = QgsDataSourceURI(layer.source())
             conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
                 (uri.host(), uri.database(), uri.username(), uri.password()))
             pg = conn.cursor()
-            strFilter = ''''''
-            fieldList = theFeature.fields()
-            attrList = theFeature.attributes()
-            bInlinkFound = False
-            bNodeFound = False
-            bOutlinkFound = False
-            bPasslinkCountFound = False
-            bPatternFound = False
-            bArrowFound = False
-            for oneField, oneAttr in zip(fieldList, attrList):
-                if oneAttr is None:
-                    continue
-                if oneField.name() == 'in_link_id':
-                    strFilter += ''' in_link_id=%s and ''' % oneAttr
-                    bInlinkFound = True
 
-                if oneField.name() == 'node_id':
-                    strFilter += ''' node_id=%s and ''' % oneAttr
-                    bNodeFound = True
-                    
-                if oneField.name() == 'out_link_id':
-                    strFilter += ''' out_link_id=%s and ''' % oneAttr
-                    bOutlinkFound = True
+            # all these lane's keys must be found
+            # if anyone is not found, a 'KeyError' exception will be thrown.
+            in_link_id = theFeature.attribute('in_link_id')
+            node_id = theFeature.attribute('node_id')
+            out_link_id = theFeature.attribute('out_link_id')
+            passlink_count = theFeature.attribute('passlink_count')
+            pattern_id = theFeature.attribute('pattern_id')
+            arrow_id = theFeature.attribute('arrow_id')
 
-                if oneField.name() == 'passlink_count':
-                    strFilter += ''' passlink_count=%s and ''' % oneAttr
-                    bPasslinkCountFound = True
-
-                if oneField.name() == 'pattern_data':
-                    strFilter += ''' pattern_data=%s and ''' % oneAttr
-                    bPatternFound = True
-
-                if oneField.name() == 'arrow_data':
-                    strFilter += ''' arrow_data=%s''' % oneAttr
-                    bArrowFound = True
-
-
-            if bInlinkFound == False or\
-               bNodeFound == False or\
-               bOutlinkFound == False or\
-               bPasslinkCountFound == False or\
-               bPatternFound == False or\
-               bArrowFound == False:
-                errMsg[0] = """Selected feature is not a rdb lane feature."""
-                return
-
+            # spotguide record filter.
+            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s and passlink_count=%s''' % \
+                        (in_link_id, node_id, out_link_id, passlink_count)
 
             sqlcmd = \
 """SET bytea_output TO escape;
-select pattern_data, arrow_data
+select pattern_dat, arrow_dat
 from %s
-where %s true
+where %s
 """ % (uri.table(), strFilter)
             pg.execute(sqlcmd)
-            return pg.fetchone()
+            row = pg.fetchone()
+            return row[0], row[1]
+        except KeyError, kErr:
+            errMsg = '''Selected feature is not a rdb lane feature.'''
+            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg)
+            return
         except Exception, ex:
             errMsg[0] = ex.message
             return None

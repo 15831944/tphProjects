@@ -11,37 +11,28 @@ class SpotguideMapTool(QgsMapTool):
     def __init__(self, canvas):
         
         super(QgsMapTool, self).__init__(canvas)
-        self.canvas = canvas
-        self.cursor = QCursor(Qt.ArrowCursor)
+        self.mCanvas = canvas
+        self.mCursor = QCursor(Qt.ArrowCursor)
+        self.mDragging = False
         
     def activate(self):
-        self.canvas.setCursor(self.cursor)
-    
-    def screenToLayerCoords(self, screenPos, layer):
-        transform = self.canvas.getCoordinateTransform()
-        canvasPoint = QgsMapToPixel.toMapCoordinates(transform, screenPos.x(), screenPos.y())
-        # Transform if required
-        layerEPSG = layer.crs().authid()
-        projectEPSG = self.canvas.mapRenderer().destinationCrs().authid()
-        if layerEPSG != projectEPSG:
-            renderer = self.canvas.mapRenderer()
-            layerPoint = renderer.mapToLayerCoordinates(layer, canvasPoint)
-        else:
-            layerPoint = canvasPoint
-        
-        # Convert this point (QgsPoint) to a QgsGeometry
-        return QgsGeometry.fromPoint(layerPoint)
+        self.mCanvas.setCursor(self.mCursor)
 
-    #Each time the mouse is clicked on the map canvas, perform 
-    #the following tasks:
-    #    Loop through all visible vector layers and for each:
-    #        Ensure no features are selected
-    #        Determine the distance of the closes feature in the oneLayer to the mouse click
-    #        Keep track of the oneLayer id and id of the closest feature
-    #    Select the id of the closes feature
+    def canvasMoveEvent(self, mouseEvent):
+        theLayer = self.mCanvas.currentLayer()
+        if theLayer is None:
+            return
+        if theLayer.type() != QgsMapLayer.VectorLayer:
+            return
+        if theLayer.featureCount() == 0:
+            return
+        if mouseEvent.buttons() & Qt.LeftButton:
+            self.mDragging = True
+            self.mCanvas.panAction(mouseEvent);
+        return
+
     def canvasReleaseEvent(self, mouseEvent): 
-
-        theLayer = self.canvas.currentLayer()
+        theLayer = self.mCanvas.currentLayer()
         if theLayer is None:
             return
         if theLayer.type() != QgsMapLayer.VectorLayer:
@@ -49,28 +40,32 @@ class SpotguideMapTool(QgsMapTool):
         if theLayer.featureCount() == 0:
             return
           
-        theLayer.removeSelection()
-        
-        qgsMapTollIndentify = QgsMapToolIdentify(self.canvas)
+        qgsMapTollIndentify = QgsMapToolIdentify(self.mCanvas)
         resultList = qgsMapTollIndentify.identify(mouseEvent.x(), mouseEvent.y(), -1)
-        if resultList == []:
-            return       
-        # Select the feature
-        featureList = []
-        featureIdList = []
-        for oneResult in resultList:
-            featureList.append(oneResult.mFeature)
-            featureIdList.append(oneResult.mFeature.id())
-        theLayer.select(featureIdList)
-
-        dlg = SpotguideShowImageDlg(theLayer, featureList)
-        result = dlg.exec_()
-        if result:
-            pass
-        else:
-            pass
-        return
-
+        if resultList == []: # no feature selected, pan the canvas
+            if self.mDragging == True:
+                self.mCanvas.panActionEnd(mouseEvent.pos())
+                self.mDragging = False
+            else: # add pan to mouse cursor
+                # transform the mouse pos to map coordinates
+                center = self.mCanvas.getCoordinateTransform().toMapPoint(mouseEvent.x(), mouseEvent.y())
+                self.mCanvas.setCenter(center)
+                self.mCanvas.refresh()
+        else: # select the features
+            theLayer.removeSelection()
+            featureList = []
+            featureIdList = []
+            for oneResult in resultList:
+                featureList.append(oneResult.mFeature)
+                featureIdList.append(oneResult.mFeature.id())
+            theLayer.select(featureIdList)
+            dlg = SpotguideShowImageDlg(theLayer, featureList)
+            result = dlg.exec_()
+            if result:
+                pass
+            else:
+                pass
+            return
 
 
 
