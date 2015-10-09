@@ -11,6 +11,8 @@ from qgis.core import QgsDataSourceURI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'LaneShowImageDlgDesign.ui'))
 
+arrowBasePath = r"""C:\Users\hexin\.qgis2\python\plugins\RdbViewer\arrows"""
+
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, theLayer, selectedFeatureList, parent=None):
         if(len(selectedFeatureList) == 0):
@@ -20,6 +22,44 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.setupUi(self)
         self.mTheLayer = theLayer
         self.mFeatureList = selectedFeatureList
+        # 
+        self.labelsMap = {
+            2**0 : self.label_0,
+            2**1 : self.label_1,
+            2**2 : self.label_2,
+            2**3 : self.label_3,
+            2**4 : self.label_4,
+            2**5 : self.label_5,
+            2**6 : self.label_6,
+            2**7 : self.label_7,
+            2**8 : self.label_8,
+            2**9 : self.label_9,
+            2**10 : self.label_10,
+            2**11 : self.label_11,
+            2**12 : self.label_12,
+            2**13 : self.label_13,
+            2**14 : self.label_14,
+            2**15 : self.label_15
+            }
+
+        # 
+        self.arrowImagesMap = {
+            2**0 : os.path.join(arrowBasePath, "1.png"),
+            2**1 : os.path.join(arrowBasePath, "2.png"),
+            2**2 : os.path.join(arrowBasePath, "4.png"),
+            2**3 : os.path.join(arrowBasePath, "8.png"),
+            2**4 : os.path.join(arrowBasePath, "16.png"),
+            2**5 : os.path.join(arrowBasePath, "32.png"),
+            2**6 : os.path.join(arrowBasePath, "64.png"),
+            2**7 : os.path.join(arrowBasePath, "128.png"),
+            2**8 : os.path.join(arrowBasePath, "256.png"),
+            2**9 : os.path.join(arrowBasePath, "512.png"),
+            2**10 : os.path.join(arrowBasePath, "1024.png"),
+            2**11 : os.path.join(arrowBasePath, "2048.png"),
+            2**12 : os.path.join(arrowBasePath, "4096.png"),
+            2**13 : os.path.join(arrowBasePath, "8192.png")            
+            }
+
         for oneFeature in self.mFeatureList:
             fieldList = oneFeature.fields()
             attrList = oneFeature.attributes()
@@ -90,7 +130,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                     errMsg = """some lane_count not the same."""
                     QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
                     return
-
+                self.drawLaneHighlight(totalLaneCount, 65535, 1)
             return 
         except KeyError, kErr:
             errMsg = """Selected feature is not a rdb lane feature."""
@@ -109,49 +149,17 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
-    def drawLane(self, whichLane, arrowInfo, bHighlight):
-        if arrowInfo & 1:
-            pass
+    def drawLaneHighlight(self, totalLaneCount, whichLane, arrowInfo):
+        pixmapList = []
+        for oneKey, oneValue in self.arrowImagesMap.items():
+            if arrowInfo & oneKey:
+                pixmapList.append(QPixmap(oneValue))
 
-        if arrowInfo & 2:
-            pass
-
-        if arrowInfo & 4:
-            pass
-
-        if arrowInfo & 8:
-            pass
-
-        if arrowInfo & 16:
-            pass
-
-        if arrowInfo & 32:
-            pass
-
-        if arrowInfo & 64:
-            pass
-
-        if arrowInfo & 128:
-            pass
-
-        if arrowInfo & 256:
-            pass
-
-        if arrowInfo & 512:
-            pass
-
-        if arrowInfo & 1024:
-            pass
-
-        if arrowInfo & 2048:
-            pass
-
-        if arrowInfo & 4096:
-            pass
-
-        if arrowInfo & 8192:
-            pass
-
-        if whichLane & 1:
-            pass
+        if len(pixmapList) <= 0:
+            errMsg = "pixmapList=0, can find arrow picture."
+            QMessageBox.information(self, "Show Lane", """error:\n%s""" % errMsg)
+            return
+        for oneKey, oneValue in self.labelsMap.items():
+            if whichLane & oneKey:
+                oneValue.setPixmap(pixmapList[0])
         return
