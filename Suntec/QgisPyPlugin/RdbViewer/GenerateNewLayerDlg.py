@@ -69,7 +69,7 @@ drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, b.data as pattern_data, c.data as arrow_data, d.the_geom as the_geom
+    select a.*, b.data as pattern_dat, c.data as arrow_dat, d.the_geom as the_geom
     from 
     rdb_guideinfo_spotguidepoint as a
     left join rdb_guideinfo_pic_blob_bytea as b

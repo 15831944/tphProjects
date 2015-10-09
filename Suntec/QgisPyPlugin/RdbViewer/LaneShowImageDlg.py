@@ -30,6 +30,8 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         # no feature has a 'out_link_id'
         # then show the first feature's information only.
         if self.comboBoxSelectLink.count() <= 0:
+            errMsg = """Selected feature is not a rdb lane feature."""
+            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
             self.comboBoxSelectLink.setEnabled(False)
             theFeature = self.mFeatureList[0]
             strFeatureInfo = self.getFeatureInfoString(theFeature)
@@ -55,7 +57,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         
         try:
             uri = QgsDataSourceURI(self.mTheLayer.source())
-            conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
+            conn = psycopg2.connect("""host='%s' dbname='%s' user='%s' password='%s'""" %\
                 (uri.host(), uri.database(), uri.username(), uri.password()))
             pg = conn.cursor()
 
@@ -69,9 +71,10 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             lane_info = theFeature.attribute('lane_info')
             arrow_info = theFeature.attribute('arrow_info')
 
-            # get all lanes 
-            strFilter = '''in_link_id=%s and node_id=%s and passlink_count=%s''' %\
-                        (in_link_id, node_id, passlink_count)
+            # get guide info lanes 
+            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s
+                           and passlink_count=%s''' %\
+                        (in_link_id, node_id, out_link_id, passlink_count)
             sqlcmd = """select lane_num, lane_info, arrow_info
                         from %s
                         where %s""" % (uri.table(), strFilter)
@@ -81,18 +84,16 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 errMsg = '''get no lane record.'''
                 QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
                 return
-            lane_count = rows[0][0]
+            totalLaneCount = rows[0][0] # lane count of inlink.
             for row in rows:
-                if row[0] != lane_count:
-                    errMsg = '''some lane_count not the same.'''
+                if row[0] != totalLaneCount:
+                    errMsg = """some lane_count not the same."""
                     QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
                     return
-                lane_info = row[1]
-                arrow_info = row[2]
-                self.textEditLaneInfo.setText("""%s\n%s\n%s"""%(lane_num, lane_info, arrow_info))
+
             return 
         except KeyError, kErr:
-            errMsg = '''Selected feature is not a rdb lane feature.'''
+            errMsg = """Selected feature is not a rdb lane feature."""
             QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
             return
         except Exception, ex:
@@ -107,3 +108,50 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         for oneField, oneAttr in zip(fieldList, attrList):
             strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
+
+    def drawLane(self, whichLane, arrowInfo, bHighlight):
+        if arrowInfo & 1:
+            pass
+
+        if arrowInfo & 2:
+            pass
+
+        if arrowInfo & 4:
+            pass
+
+        if arrowInfo & 8:
+            pass
+
+        if arrowInfo & 16:
+            pass
+
+        if arrowInfo & 32:
+            pass
+
+        if arrowInfo & 64:
+            pass
+
+        if arrowInfo & 128:
+            pass
+
+        if arrowInfo & 256:
+            pass
+
+        if arrowInfo & 512:
+            pass
+
+        if arrowInfo & 1024:
+            pass
+
+        if arrowInfo & 2048:
+            pass
+
+        if arrowInfo & 4096:
+            pass
+
+        if arrowInfo & 8192:
+            pass
+
+        if whichLane & 1:
+            pass
+        return

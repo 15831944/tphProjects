@@ -30,6 +30,8 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         # no feature has a 'out_link_id'
         # then show the first feature's information only.
         if self.comboBoxSelectLink.count() <= 0:
+            errMsg = '''Selected feature is not a rdb spotguide feature.'''
+            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg)
             self.comboBoxSelectLink.setEnabled(False)
             theFeature = self.mFeatureList[0]
             strFeatureInfo = self.getFeatureInfoString(theFeature)
@@ -111,8 +113,9 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             arrow_id = theFeature.attribute('arrow_id')
 
             # spotguide record filter.
-            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s and passlink_count=%s''' % \
-                        (in_link_id, node_id, out_link_id, passlink_count)
+            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s and 
+                           passlink_count=%s and pattern_id=%s and arrow_id=%s''' % \
+                        (in_link_id, node_id, out_link_id, passlink_count, pattern_id, arrow_id)
 
             sqlcmd = \
 """SET bytea_output TO escape;
@@ -124,11 +127,10 @@ where %s
             row = pg.fetchone()
             return row[0], row[1]
         except KeyError, kErr:
-            errMsg = '''Selected feature is not a rdb lane feature.'''
-            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg)
-            return
+            errMsg[0] = """Selected feature is not a rdb spotguide feature."""
+            return None, None
         except Exception, ex:
             errMsg[0] = ex.message
-            return None
+            return None, None
 
 
