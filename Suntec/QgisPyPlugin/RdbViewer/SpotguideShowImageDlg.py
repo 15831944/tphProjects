@@ -4,7 +4,7 @@ import psycopg2
 from MyDatParser import MyDatParser
 
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem
+from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
 from qgis.core import QgsDataSourceURI
 
@@ -58,19 +58,39 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         
         scene = QGraphicsScene()
         if pattern_dat is not None:
-            datPaser = MyDatParser()
-            datPaser.initFromMemory(errMsg, pattern_dat) # pattern picture
+            datParser = MyDatParser()
+            datParser.initFromMemory(errMsg, pattern_dat) # pattern picture
             pixmap1 = QPixmap()
-            pixmap1.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
+            pixmap1.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
             scene.addItem(QGraphicsPixmapItem(pixmap1))
 
         if arrow_dat is not None:
-            datPaser = MyDatParser()
-            datPaser.initFromMemory(errMsg, arrow_dat) # arrow picture
+            datParser = MyDatParser()
+            datParser.initFromMemory(errMsg, arrow_dat) # arrow picture
             pixmap2 = QPixmap()
-            pixmap2.loadFromData(datPaser.getPatternPicByComboIdx(errMsg, 0))
-            scene.addItem(QGraphicsPixmapItem(pixmap2))
+            pixmap2.loadFromData(datParser.getDatContentByIndex(errMsg, 0))
 
+            if datParser.hasPointlist():
+                vecCoors = datParser.getPointListCoordinatesByIndex(errMsg, datParser.getPointlistIndex())
+                with QPainter(pixmap2) as thePainter:
+                    for oneXYPair in vecCoors:
+                        thePainter.setPen(QPen(QColor(255, 0, 0)))
+                        thePainter.drawPoint(oneXYPair[0], oneXYPair[1])
+                        thePainter.drawPoint(oneXYPair[0]-1, oneXYPair[1])
+                        thePainter.drawPoint(oneXYPair[0]+1, oneXYPair[1])
+                        thePainter.drawPoint(oneXYPair[0], oneXYPair[1]-1)
+                        thePainter.drawPoint(oneXYPair[0], oneXYPair[1]+1)
+
+                errMsg = ['']
+                strPointList = datParser.getPointListStringByIndex(errMsg, datParser.getPointlistIndex())
+                # todo: error handling
+                strTemp = self.textEditFeatureInfo.toPlainText()
+                strTemp += """\n\npointlist:\n"""
+                strTemp += strPointList
+                self.textEditFeatureInfo.setText(strTemp)
+
+            
+            scene.addItem(QGraphicsPixmapItem(pixmap2))
         self.graphicsViewShowImage.setScene(scene)
         return
     
