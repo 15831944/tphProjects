@@ -72,6 +72,10 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
             if datParser.hasPointlist():
                 vecCoors = datParser.getPointListCoordinatesByIndex(errMsg, datParser.getPointlistIndex())
+                if errMsg[0] != '':
+                    QMessageBox.information(self, "Show Spotguide", errMsg[0])
+                    return
+
                 with QPainter(pixmap2) as thePainter:
                     for oneXYPair in vecCoors:
                         thePainter.setPen(QPen(QColor(255, 0, 0)))
@@ -81,9 +85,11 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
                         thePainter.drawPoint(oneXYPair[0], oneXYPair[1]-1)
                         thePainter.drawPoint(oneXYPair[0], oneXYPair[1]+1)
 
-                errMsg = ['']
                 strPointList = datParser.getPointListStringByIndex(errMsg, datParser.getPointlistIndex())
-                # todo: error handling
+                if errMsg[0] != '':
+                    QMessageBox.information(self, "Show Spotguide", errMsg[0])
+                    return
+
                 strTemp = self.textEditFeatureInfo.toPlainText()
                 strTemp += """\n\npointlist:\n"""
                 strTemp += strPointList

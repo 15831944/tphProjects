@@ -4,7 +4,7 @@ import psycopg2
 from MyDatParser import MyDatParser
 
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem
+from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap
 from PyQt4.QtCore import QRectF
 from qgis.core import QgsDataSourceURI
 
@@ -229,7 +229,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             if whichLane & 2**(totalLaneCount-oneKey-1):
                 scene = QGraphicsScene()
                 for onePixmap in pixmapList:
-                    scene.addItem(QGraphicsPixmapItem(onePixmap))
+                    scene.addPixmap(onePixmap)
                 oneGraphicView.setScene(scene)
         return
 
