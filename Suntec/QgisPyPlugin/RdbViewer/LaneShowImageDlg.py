@@ -24,16 +24,16 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         self.mFeatureList = selectedFeatureList
         # 
         self.graphicViewsMap = {
-            0 : self.graphicView_0,
-            1 : self.graphicView_1,
-            2 : self.graphicView_2,
-            3 : self.graphicView_3,
-            4 : self.graphicView_4,
-            5 : self.graphicView_5,
-            6 : self.graphicView_6,
-            7 : self.graphicView_7,
-            8 : self.graphicView_8,
-            9 : self.graphicView_9,
+            0 : self.graphicView_00,
+            1 : self.graphicView_01,
+            2 : self.graphicView_02,
+            3 : self.graphicView_03,
+            4 : self.graphicView_04,
+            5 : self.graphicView_05,
+            6 : self.graphicView_06,
+            7 : self.graphicView_07,
+            8 : self.graphicView_08,
+            9 : self.graphicView_09,
             10 : self.graphicView_10,
             11 : self.graphicView_11,
             12 : self.graphicView_12,
@@ -129,8 +129,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             arrow_info = theFeature.attribute('arrow_info')
 
             # draw all lanes in this link
-            strFilter = '''in_link_id=%s and node_id=%s and passlink_count=%s''' %\
-                        (in_link_id, node_id, passlink_count)
+            strFilter = '''in_link_id=%s and node_id=%s''' % (in_link_id, node_id)
             sqlcmd = """select lane_num, lane_info, arrow_info
                         from %s
                         where %s""" % (uri.table(), strFilter)
@@ -158,9 +157,8 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 self.drawLaneGray(lane_num, lane_info, arrow_info)          
 
             # draw highlighted guide lanes 
-            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s
-                           and passlink_count=%s''' %\
-                        (in_link_id, node_id, out_link_id, passlink_count)
+            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s''' %\
+                        (in_link_id, node_id, out_link_id)
             sqlcmd = """select lane_num, lane_info, arrow_info
                         from %s
                         where %s""" % (uri.table(), strFilter)

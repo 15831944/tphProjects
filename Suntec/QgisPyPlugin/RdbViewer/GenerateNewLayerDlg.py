@@ -129,7 +129,11 @@ as
             QgsMapLayerRegistry.instance().removeMapLayer(oneLayer.id())
         return
     def comboBoxSelectFeatureChanged(self):
-        # do nothing
+        featureType = self.comboBoxSelectFeature.currentText()
+        if featureType == """spotguide""":
+            self.lineEditNewLayerName.setText("""temp_spotguide_nodes""")
+        elif featureType == """lane""":
+            self.lineEditNewLayerName.setText("""temp_lane_nodes""")
         return
 
     def testConnect(self):
