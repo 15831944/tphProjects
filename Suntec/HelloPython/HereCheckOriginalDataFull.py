@@ -1,9 +1,11 @@
 # -*- coding: cp936 -*-
 import os
-import shutil
 import psycopg2
 
-# 这些表属于系统表，不关注。
+# 20150910制作新马2015Q3数据时，需要统计此版本数据是否完整。
+# 通过统计2014Q4，2015Q1两版本原始数据表的个数，以及表中数据条目数，检查它们的差距是否太大得出粗略的估算。
+
+# 数据库表中这些表属于系统基本表，可以将它们排除在外。
 excludedTableList = \
 ["addr",
  "addrfeat",
@@ -39,34 +41,42 @@ excludedTableList = \
  "zip_lookup_all",
  "zip_lookup_base",
  "zip_state",
- "zip_state_loc"]
+ "zip_state_loc",
+ "org_name_vs-a",
+ "org_name_vs-b",
+ "org_name_vs-c",
+ "org_name_vs-d",
+ "org_name_vs-e",
+ "org_name_vs-f",
+ "org_not-in",
+ "org_one-way"]
 
-# 将某个数据库中的每个表的所有列导出到多个csv文件中，以方便使用visio导入并查看数据库表结构视图。
+# 将某个数据库中所有的表和每张表的条目数都列入一个txt中。
+# 当统计多个数据库时，可以相互进行比较。
 class PsqlTablesExporter(object):
     def __init__(self, dbIP, dbName, userName, password):
         self.conn = psycopg2.connect(''' host='%s' dbname='%s' user='%s' password='%s' ''' % \
                                      (dbIP, dbName, userName, password))
         self.pg = self.conn.cursor()
          
-    def exportTablesToDir(self, exportDir):
-        if os.path.isdir(exportDir) == True:
-            shutil.rmtree(exportDir)
-        os.makedirs(exportDir)
+    def updateOutlinkErrorRecords(self, exportTxt):
         tableList = self.listAllTables()
+        strResultList = []
         for oneTable in tableList:
             sqlcmd = """
-                        select column_name, data_type 
-                        from information_schema.columns
-                        where table_schema='public' and table_name='%s'; 
+                        select count(*) from %s; 
                      """
             
-            with open(os.path.join(exportDir, oneTable+'.csv'), "w") as oFStream:
-                self.pg.execute(sqlcmd % oneTable)
-                rows = self.pg.fetchall()
-                columnList = []
-                for row in rows:
-                    columnList.append(' : '.join(row))
-                oFStream.write(','.join(columnList))
+            self.pg.execute(sqlcmd % oneTable)
+            row = self.pg.fetchone()
+            recordCount = row[0]
+            strOutput = """%s: %d\n""" % (oneTable, recordCount)
+            strResultList.append(strOutput)
+            
+        strResultList.sort()
+        with open(exportTxt, "w") as oFStream:
+            for oneStr in strResultList:
+                oFStream.write(oneStr)
         return
     
     # 此函数查询某数据库中的所有表，可以在此函数中添加表的过滤条件。
@@ -83,27 +93,24 @@ class PsqlTablesExporter(object):
             tableName = row[0]
             # 这里是过滤条件。
             if tableName not in excludedTableList:
-                #if tableName.find("rdb_") == 0:
                 tableList.append(row[0])
         return tableList
          
 if __name__ == '__main__':
-    dbIP = '''192.168.10.20'''
-    dbNameList = ['AP_NOSTRA_201530_ORG']
+    dbIP = '''192.168.10.19'''
+    dbNameList = ['SGP_MYS_RDF_2015Q3_0065_0019']
     userName = '''postgres'''
     password = '''pset123456'''
+    outputDir = r"""C:\Users\hexin\Desktop\20151012\sgp_mys_for_hyp"""
+    if os.path.isdir(outputDir) == False:
+        os.makedirs(outputDir)
     for dbName in dbNameList:
         try:
             datMaker = PsqlTablesExporter(dbIP, dbName, userName, password)
-            datMaker.exportTablesToDir(r"""C:\My\text_db_src""")
+            datMaker.updateOutlinkErrorRecords(os.path.join(outputDir, dbIP+'-'+dbName+'.txt'))
         except Exception, ex:
             print '''%s/%s.\nmsg:\t%s\n''' % (dbIP, dbName, ex)
-    
-    # 导出了所有表的列名到csv文件后：
-    # 1.创建一个基于数据库的visio文件
-    # 2.使用反向工程
-    # 3.建立一个基于microsoft text driver的数据源，并将前面导出的所有csv文件拷贝到该数据源的文件夹中。
-    # 4.使用上面建立的数据源，即可导入所有csv到visio中，即可看到所有表结构。    
+
     
     
     
