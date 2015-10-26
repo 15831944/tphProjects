@@ -712,25 +712,37 @@ class rdb_forecast_aus(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+        self.CreateFunction2('rdb_cal_forecast_time')
+        
         sqlcmd = """                    
             insert into temp_forecast_link_with_slot_merge_layer%X(
                 link_id, dir, free_time, weekday_time, weekend_time, average_time
                 , time_slot_array, weekday_diff_array, weekend_diff_array)
             select link_id,dir
-                ,free_time
-                ,weekday_time
-                ,weekend_time
-                ,average_time
-                ,array_agg(time_slot) as time_slot_array 
-                ,array_agg(weekday_sum - free_time) as weekday_diff_array
-                ,array_agg(weekend_sum - free_time) as weekend_diff_array
+                    ,free_time,weekday_time,weekend_time,average_time
+                    ,array_agg(time_slot) as time_slot_array    
+--                 ,array_agg(seq_list) as seq_list_array
+--                 ,array_agg(weekday_list) as weekday_list_array
+--                 ,array_agg(weekend_list) as weekend_list_array
+                   ,case when weekday_time > 300 or weekend_time > 300 then
+                            rdb_cal_forecast_time(free_time::int,array_agg(weekday_list))
+                        else 
+                            array_agg(weekday_sum - free_time)
+                    end as weekday_diff_array                
+                   ,case when weekday_time > 300 or weekend_time > 300 then
+                            rdb_cal_forecast_time(free_time::int,array_agg(weekend_list))
+                        else 
+                            array_agg(weekend_sum - free_time)
+                    end as weekend_diff_array  
             from (
-                select link_id,dir
+                select link_id,dir,time_slot
                     ,sum(free_time) as free_time
                     ,sum(weekday_time) as weekday_time
                     ,sum(weekend_time) as weekend_time
                     ,sum(average_time) as average_time
-                    ,time_slot
+                    ,array_to_string(array_agg(seq),'|') as seq_list
+                    ,array_to_string(array_agg(weekday),'|') as weekday_list
+                    ,array_to_string(array_agg(weekend),'|') as weekend_list
                     ,sum(weekday) as weekday_sum
                     ,sum(weekend) as weekend_sum
                 from (
@@ -802,7 +814,7 @@ class rdb_forecast_aus(ItemBase):
                             from  (
                                 select *,0 as dir
                                 from temp_link_mapping_layer%X
-                                union
+                                union all
                                 select *,1 as dir
                                 from temp_link_mapping_layer%X  
                             ) a

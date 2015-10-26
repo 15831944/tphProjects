@@ -62,8 +62,7 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
         self._group_road_trans_name()
         # 对名称(包括番号)进行排序
         self._sort_road_name()
-        # 处理名称特殊情况：street_type为空错误，和相同名字多次存储的错误
-        #self._fix_mid_name()
+        
         # 道路名称音素(包括番号)       
         self._make_road_phonetic()
         # 道路名称
@@ -110,7 +109,12 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                   FROM vce_feature_name
                   left join vce_phonetic_text as phonetic
                   ON vce_feature_name.phonetic_id = phonetic.phonetic_id
-                  order by name_id, preferred desc,
+                  order by name_id,
+                           (case when phonetic_language_code = 'NAS' then 0
+                                 when phonetic_language_code = 'GCS' then 1
+                                 else 2 end),
+                           phonetic_language_code,
+                           preferred desc,
                            transcription_method desc,
                            phonetic_id
           ) as a
@@ -178,6 +182,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
             phonetic_strings = feature[7]
             phonetic_lang_codes = feature[8]
             
+            if iso_country_code == 'PRY' and lang_code == 'GRN' :
+                continue
             if not curr_feature_id:
                 self.log.error('No feature_id.')
                 continue
@@ -336,7 +342,10 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-
+        
+        # 处理名称特殊情况：street_type为空错误，和相同名字多次存储的错误
+        self._fix_mid_name()
+        
         # ## 再对番号进行排序
         self._sort_road_number()
         self.CreateIndex2('mid_temp_road_name_link_id_idx')
@@ -382,42 +391,43 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
     def _fix_mid_name(self):
         
         sqlcmd='''
-                select link_id,array_agg(street_type),array_agg(street_name),array_agg(gid)
-                (
-                    select * 
-                    from mid_temp_road_name_bak 
-                    order by gid;
-                ) group by link_id,language_code
+                update mid_temp_road_name a
+                set street_type=b.street_type
+                from mid_temp_road_name b
+                where a.link_id=b.link_id and a.language_code=b.language_code and a.street_type is null and b.street_type is not null
+                    and position(b.street_type in a.street_name)<>0
                 '''
         self.pg.execute2(sqlcmd)
-        results=self.pg.fetchall2()
-        sqlcmd_update='''
-                update mid_temp_road_name
-                set street_type=%s
-                where gid=%d
-                        '''
-        sqlcmd_del='''
-                delete from mid_temp_road_name
-                where gid=%d
-                    '''
-        for result in results:
-            link_id=result[0]
-            street_types=result[1]
-            street_names=result[2]
-            street_types=set(street_types)
-            gid_array=result[3]
-            
-            #补全为空，出错的street_type
-            for street_type in street_types:
-                for idx in range(len(street_names)):
-                    if street_type in street_names[idx]:
-                        self.pg.execute2(sqlcmd_update % (street_type,gid_array[idx]) )
-                        
-            #删除重复的name
-            for idx in range(len(street_names)):
-                if street_names[idx] in street_names[:idx]:
-                    self.pg.execute2(sqlcmd_del%(gid_array[idx]))
-            
+
+        sqlcmd='''
+                delete from mid_temp_road_name  a
+                using mid_temp_road_name b
+                where a.link_id=b.link_id and a.language_code=b.language_code and a.street_name=b.street_name and a.gid>b.gid
+                '''
+        self.pg.execute2(sqlcmd)            
+        self.pg.commit2()
+        
+        self.CreateTable2('mid_temp_road_name_1')
+        sqlcmd='''
+                insert into mid_temp_road_name_1(link_id, road_link_id, road_name_id, left_address_range_id, 
+                                                 right_address_range_id, address_type, is_exit_name, 
+                                                 explicatable, is_junction_name, is_name_on_roadsign, 
+                                                 is_postal_name, is_stale_name, is_vanity_name, is_scenic_name, 
+                                                 route_type, street_type, language_code, street_name)
+                (
+                    select  link_id, road_link_id, road_name_id, left_address_range_id, 
+                            right_address_range_id, address_type, is_exit_name, 
+                            explicatable, is_junction_name, is_name_on_roadsign, 
+                            is_postal_name, is_stale_name, is_vanity_name, is_scenic_name, 
+                            route_type, street_type, language_code, street_name
+                    from mid_temp_road_name
+                    order by gid
+                );
+                
+                drop table mid_temp_road_name;
+                alter table mid_temp_road_name_1 rename to mid_temp_road_name;
+                '''
+        self.pg.execute2(sqlcmd)       
         self.pg.commit2()
         
     def _make_road_phonetic(self):
@@ -439,6 +449,9 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                   left join vce_phonetic_text
                   ON vce_road_name.phonetic_id = vce_phonetic_text.phonetic_id
                   order by road_name_id,
+                          (case when phonetic_language_code = 'NAS' then 0
+                                when phonetic_language_code = 'GCS' then 1
+                                else 2 end),
                            phonetic_language_code,
                            preferred desc,
                            transcription_method desc,
@@ -843,6 +856,10 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                           # ## 南美
                           "BRA": {1: 3001, 2: 3002},  # 巴西
                           "ARG": {1: 3011, 2: 3012},  # Argentina
+                          "CRI": {1: 3021, 2: 3022},  #Costa Rica
+                          "PAN": {},   #Panama
+                          "URY": {1: 3041, 2: 3042, 3: 3043}, #Uruguay
+                          "PRY": {1: 3051}, #Paraguay
                           }
         if iso_country_code == "THA":  # 泰国
             if(route_num and
@@ -867,7 +884,8 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                 if shield_id:
                     return str(shield_id)
                 else:
-                    self.log.error('Error route_type = %d' % route_type)
+                    if iso_country_code != 'BRA':
+                        self.log.error('Error route_type = %d, iso_country_code = %s' % (route_type, iso_country_code))
         elif country_shield_dict is None:
             self.log.error('Unexpected iso_country_code = %s'
                            % iso_country_code)
@@ -889,18 +907,35 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
                                                 phonetic_strings,
                                                 phonetic_lang_codes
                                                 )
-        if phonetic_list:
-            # [(phonetic_str, phonetic_lang_code)]
-#             if len(phonetic_list) > 1:
-#                 self.log.warning("phonetic_list>1, road_name_id=%d"
-#                                   % road_name_id)
-            phonetic_str = phonetic_list[0][0]
-            phonetic_lang_code = phonetic_list[0][1]
-            tts_obj = MultiLangNameRDF(phonetic_lang_code,
-                                       phonetic_str,
-                                       name_type,
-                                       'phoneme')
-            return tts_obj
+        tts_obj = None
+        language_code_list = []
+        for phonetic_temp in phonetic_list:
+            if phonetic_temp[1] not in language_code_list:
+                language_code_list.append(phonetic_temp[1])
+                phonetic_str = phonetic_temp[0]
+                phonetic_lang_code = phonetic_temp[1]
+                tts_temp = MultiLangNameRDF(phonetic_lang_code,
+                                            phonetic_str,
+                                            name_type,
+                                            'phoneme')
+                if tts_obj:
+                    tts_obj.add_tts(tts_temp)
+                else:
+                    tts_obj = tts_temp
+        return tts_obj
+            
+#        if phonetic_list:
+#            # [(phonetic_str, phonetic_lang_code)]
+##             if len(phonetic_list) > 1:
+##                 self.log.warning("phonetic_list>1, road_name_id=%d"
+##                                   % road_name_id)
+#            phonetic_str = phonetic_list[0][0]
+#            phonetic_lang_code = phonetic_list[0][1]
+#            tts_obj = MultiLangNameRDF(phonetic_lang_code,
+#                                       phonetic_str,
+#                                       name_type,
+#                                       'phoneme')
+#            return tts_obj
         return None
 
     def get_phonetic_texts(self,
@@ -938,6 +973,9 @@ class comp_dictionary_rdf(component.default.dictionary.comp_dictionary):
             return True
         #for sgp
         if language_code == 'CAT' and phonetic_language_code == 'SPA':
+            return True
+        
+        if iso_country_code == 'PRY' and language_code == 'SPA':
             return True
         
         return False

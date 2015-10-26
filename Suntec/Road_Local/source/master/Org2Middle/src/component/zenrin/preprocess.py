@@ -61,6 +61,8 @@ class comp_proprocess_zenrin(component.component_base.comp_base):
                                ('org_tunnelname', 'tnamey'),
                                ('org_underpass', 'bpmf'),
                                ('org_poi', 'offi_name_py'),
+                               ('org_poi', 'addr1_py'),
+                               ('org_poi', 'addr2_py'),
                                ('org_poi_ext', 'offi_name_py'),
                                ('org_cross_name', 'reading'),
                                ('org_dest_guide', 'reading'),

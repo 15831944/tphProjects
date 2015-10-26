@@ -77,8 +77,8 @@ class comp_regulation_ni(component.component_base.comp_base):
     def __convert_regulation_country_boundry(self):
         self.log.info('convert regulation of country boundry...')
         
-        # ´´½¨±íµ¥temp_node_nation_boundary¼ÇÂ¼¹ú¼Ò/µØÇø±ß½çÉÏµÄnodeĞÅÏ¢
-        # ËÄÎ¬ÖĞ¹úÊËÏòµØ¸Û°ÄÖ®¼ä²»ĞèÒª×÷³É¿ç¹ú¹æÖÆ
+        # åˆ›å»ºè¡¨å•temp_node_nation_boundaryè®°å½•å›½å®¶/åœ°åŒºè¾¹ç•Œä¸Šçš„nodeä¿¡æ¯
+        # å››ç»´ä¸­å›½ä»•å‘åœ°æ¸¯æ¾³ä¹‹é—´ä¸éœ€è¦ä½œæˆè·¨å›½è§„åˆ¶
         
         sqlcmd = """
                 drop table if exists temp_node_nation_boundary;
@@ -110,8 +110,8 @@ class comp_regulation_ni(component.component_base.comp_base):
                
         self.pg.do_big_insert2(sqlcmd)
         
-        # ÒÔ¹ú¼Ò/µØÇø±ß½çÉÏµÄnode×÷Îª¹æÖÆµã£¬½øÈënodeµÄlink×÷Îª¹æÖÆ½øÈëlink£¬´ÓnodeÍÑ³öµÄlink×÷ÎªÍÑ³ölink
-        # ¿ç¹ú¹æÖÆ¶ÔlinkÖÖ±ğÎŞÏŞ¶¨
+        # ä»¥å›½å®¶/åœ°åŒºè¾¹ç•Œä¸Šçš„nodeä½œä¸ºè§„åˆ¶ç‚¹ï¼Œè¿›å…¥nodeçš„linkä½œä¸ºè§„åˆ¶è¿›å…¥linkï¼Œä»nodeè„±å‡ºçš„linkä½œä¸ºè„±å‡ºlink
+        # è·¨å›½è§„åˆ¶å¯¹linkç§åˆ«æ— é™å®š
         
         self.CreateFunction2('mid_convert_regulation_nation_boundary')
         self.pg.callproc('mid_convert_regulation_nation_boundary')

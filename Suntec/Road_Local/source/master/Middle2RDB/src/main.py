@@ -82,10 +82,6 @@ def main():
     try:
         rdb_log.log('Middle2RDB', 'Now it is converting Middle data to RDB format data. It will take 4 hour.', 'info')
         comp_list = [
-					rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_blob_bytea(),
-                    rdb_guideinfo_spotguide.rdb_guideinfo_spotguide()
-					]
-        comp_lis1 = [
                     rdb_tile.rdb_tile(),
                     rdb_language.rdb_language(),
                     rdb_guideinfo_cross_name.rdb_guideinfo_cross_name(),
@@ -130,29 +126,29 @@ def main():
                     rdb_park.rdb_park(),
                     rdb_slope.rdb_slope(),
                     
-                    # client data and view
-                    rdb_cond_speed_client.rdb_cond_speed_client(),
-                    rdb_link_add_info_client.rdb_link_add_info_client(),
-                    rdb_linklane_info_client.rdb_linklane_info_client(),
-                    rdb_regulation_client.rdb_regulation_client(),
-    
-                    rdb_guideinfo_cross_name_client.rdb_guideinfo_cross_name_client(),
-                    rdb_guideinfo_lane_client.rdb_guideinfo_lane_client(),
-                    rdb_guideinfo_signpost_client.rdb_guideinfo_signpost_client(),
-                    rdb_guideinfo_spotguide_client.rdb_guideinfo_spotguide_client(),
-                    rdb_guideinfo_natural_guidence_client.rdb_guideinfo_natural_guidence_client(),
-                    rdb_guideinfo_towardname_client.rdb_guideinfo_towardname_client(),
-                    rdb_highway_facility_data_client.rdb_highway_facility_data_client(),
-                    rdb_guideinfo_building_structure_client.rdb_guideinfo_building_structure_client(),
-                    rdb_guideinfo_caution_client.rdb_guideinfo_caution_client(),
-                    rdb_guideinfo_road_structure_client.rdb_guideinfo_road_structure_client(),
-                    rdb_guideinfo_signpost_uc_client.rdb_guideinfo_signpost_uc_client(),
-                    rdb_guideinfo_forceguide_client.rdb_guideinfo_forceguide_client(),
-                    rdb_guideinfo_hook_turn_client.rdb_guideinfo_hook_turn_client(),
-    
-                    rdb_node_client.rdb_node_client(),
-                    rdb_link_client.rdb_link_client(),
-                    rdb_admin_client.rdb_admin_client(),
+#                    # client data and view
+#                    rdb_cond_speed_client.rdb_cond_speed_client(),
+#                    rdb_link_add_info_client.rdb_link_add_info_client(),
+#                    rdb_linklane_info_client.rdb_linklane_info_client(),
+#                    rdb_regulation_client.rdb_regulation_client(),
+#    
+#                    rdb_guideinfo_cross_name_client.rdb_guideinfo_cross_name_client(),
+#                    rdb_guideinfo_lane_client.rdb_guideinfo_lane_client(),
+#                    rdb_guideinfo_signpost_client.rdb_guideinfo_signpost_client(),
+#                    rdb_guideinfo_spotguide_client.rdb_guideinfo_spotguide_client(),
+#                    rdb_guideinfo_natural_guidence_client.rdb_guideinfo_natural_guidence_client(),
+#                    rdb_guideinfo_towardname_client.rdb_guideinfo_towardname_client(),
+#                    rdb_highway_facility_data_client.rdb_highway_facility_data_client(),
+#                    rdb_guideinfo_building_structure_client.rdb_guideinfo_building_structure_client(),
+#                    rdb_guideinfo_caution_client.rdb_guideinfo_caution_client(),
+#                    rdb_guideinfo_road_structure_client.rdb_guideinfo_road_structure_client(),
+#                    rdb_guideinfo_signpost_uc_client.rdb_guideinfo_signpost_uc_client(),
+#                    rdb_guideinfo_forceguide_client.rdb_guideinfo_forceguide_client(),
+#                    rdb_guideinfo_hook_turn_client.rdb_guideinfo_hook_turn_client(),
+#    
+#                    rdb_node_client.rdb_node_client(),
+#                    rdb_link_client.rdb_link_client(),
+#                    rdb_admin_client.rdb_admin_client(),
     
                     rdb_view.rdb_view(),
                     rdb_link_with_all_attri_view.rdb_link_with_all_attri_view(),

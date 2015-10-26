@@ -92,7 +92,7 @@ class comp_guideinfo_signpost_uc_zenrin(comp_base):
                         'CHT'::varchar as language,
                         1 as name_id,
                         'office_name'::varchar as name_type,
-                        'PYM'::varchar as phoneme_lang,
+                        'BPM'::varchar as phoneme_lang,
                         a.reading as phoneme
                 from temp_signpost as a  
              ) as b

@@ -32,16 +32,16 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('Prepare...')
         
-        # ×÷³É±íµ¥natural_guidence_tbl¼ÇÂ¼NaturalGuidence»ù±¾ĞÅÏ¢£¨Â·¾¶ĞÅÏ¢¡¢²Î¿¼ÎïĞÅÏ¢µÈ£©
+        # ä½œæˆè¡¨å•natural_guidence_tblè®°å½•NaturalGuidenceåŸºæœ¬ä¿¡æ¯ï¼ˆè·¯å¾„ä¿¡æ¯ã€å‚è€ƒç‰©ä¿¡æ¯ç­‰ï¼‰
         
         self.CreateTable2('natural_guidence_tbl')
         
-        # ×÷³É±íµ¥guidence_condition_tbl¼ÇÂ¼NaturalGuidenceÌõ¼şĞÅÏ¢£¨Ö÷ÒªÖ¸²Î¿¼Îï¿É¼ûµÄÊ±¼äĞÅÏ¢£©
+        # ä½œæˆè¡¨å•guidence_condition_tblè®°å½•NaturalGuidenceæ¡ä»¶ä¿¡æ¯ï¼ˆä¸»è¦æŒ‡å‚è€ƒç‰©å¯è§çš„æ—¶é—´ä¿¡æ¯ï¼‰
         
         self.CreateTable2('guidence_condition_tbl')
         
-        # ×÷³É±íµ¥temp_natural_guidence¼ÇÂ¼´ÓÔ­Ê¼±íµ¥³éÈ¡µÄNaturalGuidenceĞÅÏ¢ \
-        # £¨°üÀ¨½¨ÎïÃû³Æ¡¢ÖØÒª¶È¡£¿É¼ûĞÔÒÔ¼°½¨Îï¹ØÁªlinkĞÅÏ¢£¨½øÈëlink¡¢Òıµ¼µã¡¢ÍÑ³ölink£©µÈĞÅÏ¢£©
+        # ä½œæˆè¡¨å•temp_natural_guidenceè®°å½•ä»åŸå§‹è¡¨å•æŠ½å–çš„NaturalGuidenceä¿¡æ¯ \
+        # ï¼ˆåŒ…æ‹¬å»ºç‰©åç§°ã€é‡è¦åº¦ã€‚å¯è§æ€§ä»¥åŠå»ºç‰©å…³è”linkä¿¡æ¯ï¼ˆè¿›å…¥linkã€å¼•å¯¼ç‚¹ã€è„±å‡ºlinkï¼‰ç­‰ä¿¡æ¯ï¼‰
         
         self.CreateTable2('temp_natural_guidence')
         self.CreateIndex2('temp_natural_guidence_asso_id_idx')
@@ -52,8 +52,8 @@ class comp_natural_guidence(component.component_base.comp_base):
         
         self.log.info('deleting dummy guidence...')
         
-        # Ò»ÌõµÀÀí´æÔÚ¶à¸ö½¨Îï£¬¸ù¾İ½¨ÎïµÄÖØÒª¶ÈÉ¸Ñ¡³ö×îÖØÒªµÄ½¨Îï£¬ÆäËû´ÎÒªµÄ¶¼É¾³ı
-        # ÔİÊ±¸Ã¹¦ÄÜ·â±Õ£¬¼´Ò»ÌõµÀÂ·ÉÏ²»Çø·Ö½¨ÎïÖØÒª¶È£¬È«²¿ÊÕÂ¼
+        # ä¸€æ¡é“ç†å­˜åœ¨å¤šä¸ªå»ºç‰©ï¼Œæ ¹æ®å»ºç‰©çš„é‡è¦åº¦ç­›é€‰å‡ºæœ€é‡è¦çš„å»ºç‰©ï¼Œå…¶ä»–æ¬¡è¦çš„éƒ½åˆ é™¤
+        # æš‚æ—¶è¯¥åŠŸèƒ½å°é—­ï¼Œå³ä¸€æ¡é“è·¯ä¸Šä¸åŒºåˆ†å»ºç‰©é‡è¦åº¦ï¼Œå…¨éƒ¨æ”¶å½•
         
         sqlcmd = """
             delete from temp_natural_guidence as a

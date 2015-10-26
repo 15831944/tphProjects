@@ -5,27 +5,30 @@ Created on 2014-10-9
 @author: zhaojie
 '''
 
+
+
 import io
 import os
+import component.default.guideinfo_caution
 
-import component.component_base
 
-class comp_guideinfo_caution_rdf(component.component_base.comp_base):
+
+class comp_guideinfo_caution_rdf(component.default.guideinfo_caution.comp_guideinfo_caution):
     
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Guideinfo Caution') 
+        component.default.guideinfo_caution.comp_guideinfo_caution.__init__(self) 
         
-    def _DoCreateTable(self):
-        
-        self.CreateTable2('caution_tbl')       
-#        self.CreateTable2('temp_link_in_adminline')
-#        self.CreateTable2('temp_admin_line')
-#        self.CreateTable2('temp_link_caution')
- 
-        return 0
+#    def _DoCreateTable(self):
+#        
+#        self.CreateTable2('caution_tbl')       
+##        self.CreateTable2('temp_link_in_adminline')
+##        self.CreateTable2('temp_admin_line')
+##        self.CreateTable2('temp_link_caution')
+# 
+#        return 0
     
     def _DoCreateFunction(self):
         self.CreateFunction2('mid_get_connected_node')
@@ -33,19 +36,11 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         self.CreateFunction2('mid_get_caution_in_link')
         self.CreateFunction2('mid_get_caution_out_link')
         return 0
-    
-    def _DoCreateIndex(self):
-        'create index.'
-        
-        self.CreateIndex2('caution_tbl_inlinkid_idx')    
-        self.CreateIndex2('caution_tbl_nodeid_idx')
-        self.CreateIndex2('caution_tbl_outlinkid_idx')
-        return 0
       
-    def _Do(self):
+    def _make_caution_from_origin(self):
         
         #jude country UC
-        # ÒÉÎÊ£ºÏØ¾³°¸ÄÚ½öÔÚÈçÏÂÇøÓò£¨±±ÃÀ£©×÷³É£ºÃÀ¹ú¡£¼ÓÄÃ´ó¡¢²¨¶àÀè¸÷¡¢´¦Å®Èºµº£¨ÃÀ¹ú£©¡¢Ä«Î÷¸ç
+        # å¿å¢ƒæ¡ˆå†…ä»…åœ¨å¦‚ä¸‹åŒºåŸŸï¼ˆåŒ—ç¾ï¼‰ä½œæˆï¼šç¾å›½ã€‚åŠ æ‹¿å¤§ã€æ³¢å¤šé»å„ã€å¤„å¥³ç¾¤å²›ï¼ˆç¾å›½ï¼‰ã€å¢¨è¥¿å“¥
         sqlcmd = '''
                 SELECT count(*)
                 FROM rdf_country
@@ -72,7 +67,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.log.info('start get link in adminline!')
         
-        # ×÷³É±íµ¥temp_rdf_nav_link_admin¼ÇÂ¼linkÓëÊ¡¼¶ĞĞÕş½çµÄ¶ÔÕÕ¹ØÏµ£¨linkÁ½±ßµÄĞĞÕş½ç¿ÉÄÜ²»Í¬£©
+        # ä½œæˆè¡¨å•temp_rdf_nav_link_adminè®°å½•linkä¸çœçº§è¡Œæ”¿ç•Œçš„å¯¹ç…§å…³ç³»ï¼ˆlinkä¸¤è¾¹çš„è¡Œæ”¿ç•Œå¯èƒ½ä¸åŒï¼‰
         
         sqlcmd = '''
                 drop table if exists temp_rdf_nav_link_admin;
@@ -125,9 +120,9 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.pg.do_big_insert2(sqlcmd)
         
-        # ×÷³É±íµ¥temp_rdf_nav_node_admin¼ÇÂ¼¿ç½ç£¨Ê¡¼¶ĞĞÕş½ç£©nodeĞÅÏ¢£¬×÷³É£º
-        # 1¡¢Èôlink±¾Éí¿ç½ç£¬ÔòlinkÊ¼ÖÕ¶Ë¶ÔÓ¦node¶¼µÃÊÕÂ¼
-        # 2¡¢ÈônodeÍ¬Ê±¹ØÁª¶àÌõlink£¬µ«link·ÖÊô²»Í¬Ê¡¼¶ĞĞÕşÇø£¬ÒàÊÕÂ¼
+        # ä½œæˆè¡¨å•temp_rdf_nav_node_adminè®°å½•è·¨ç•Œï¼ˆçœçº§è¡Œæ”¿ç•Œï¼‰nodeä¿¡æ¯ï¼Œä½œæˆï¼š
+        # 1ã€è‹¥linkæœ¬èº«è·¨ç•Œï¼Œåˆ™linkå§‹ç»ˆç«¯å¯¹åº”nodeéƒ½å¾—æ”¶å½•
+        # 2ã€è‹¥nodeåŒæ—¶å…³è”å¤šæ¡linkï¼Œä½†linkåˆ†å±ä¸åŒçœçº§è¡Œæ”¿åŒºï¼Œäº¦æ”¶å½•
         
         sqlcmd = '''
                 drop table if exists temp_rdf_nav_node_admin;
@@ -158,7 +153,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.pg.do_big_insert2(sqlcmd)
         
-        # ×÷³É±íµ¥temp_rdf_nav_link_admin_need¼ÇÂ¼¿ç½ç£¨Ê¡¼¶ĞĞÕş½ç£©linkĞÅÏ¢
+        # ä½œæˆè¡¨å•temp_rdf_nav_link_admin_needè®°å½•è·¨ç•Œï¼ˆçœçº§è¡Œæ”¿ç•Œï¼‰linkä¿¡æ¯
             
         sqlcmd = '''
                 drop table if exists temp_rdf_nav_link_admin_need;
@@ -188,9 +183,9 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.log.info('start get temp_caution!')
         
-        # ×÷³É±íµ¥temp_caution_tbl_link¼ÇÂ¼¿ç½çlinkµÄÂ·¾¶ĞÅÏ¢£¨½øÈëlink¡¢¿ç½çnode¡¢ÍÑ³ölink¡¢ÍÑ³öĞòÁĞ£©£¬×÷³É£º
-        # 1¡¢ÔÚ±íµ¥temp_rdf_nav_link_admin_needÖĞÕÒµ½¿ÉÒÔ×÷Îª½øÈëlinkµÄ±ß½ç£¨Ê¡¼¶ĞĞÕş½ç£©¡¾½øÈëlink²»¿ÉÓëĞĞÕş½çÖØºÏ¡¿
-        # 2¡¢Í¨¹ı½øÈëlink¡¢¿ç½çnode¼ÆËã¿ÉÄÜµÄÍÑ³öÂ·Ïß£¬¼´¿ÉµÃµ½¿ç½çlinkµÄÂ·¾¶ĞÅÏ¢
+        # ä½œæˆè¡¨å•temp_caution_tbl_linkè®°å½•è·¨ç•Œlinkçš„è·¯å¾„ä¿¡æ¯ï¼ˆè¿›å…¥linkã€è·¨ç•Œnodeã€è„±å‡ºlinkã€è„±å‡ºåºåˆ—ï¼‰ï¼Œä½œæˆï¼š
+        # 1ã€åœ¨è¡¨å•temp_rdf_nav_link_admin_needä¸­æ‰¾åˆ°å¯ä»¥ä½œä¸ºè¿›å…¥linkçš„è¾¹ç•Œï¼ˆçœçº§è¡Œæ”¿ç•Œï¼‰ã€è¿›å…¥linkä¸å¯ä¸è¡Œæ”¿ç•Œé‡åˆã€‘
+        # 2ã€é€šè¿‡è¿›å…¥linkã€è·¨ç•Œnodeè®¡ç®—å¯èƒ½çš„è„±å‡ºè·¯çº¿ï¼Œå³å¯å¾—åˆ°è·¨ç•Œlinkçš„è·¯å¾„ä¿¡æ¯
         
         self.CreateFunction2('mid_get_outlink_for_admin')
         sqlcmd = '''
@@ -333,7 +328,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.log.info('start get order0 caution link!')
         
-        # ×÷³É±íµ¥temp_caution_tbl_order0¼ÇÂ¼ÏØ¾³°¸ÄÚĞÅÏ¢£¨¿çÔ½¹ú¼Ò±ß½ç£©
+        # ä½œæˆè¡¨å•temp_caution_tbl_order0è®°å½•å¿å¢ƒæ¡ˆå†…ä¿¡æ¯ï¼ˆè·¨è¶Šå›½å®¶è¾¹ç•Œï¼‰
         sqlcmd = '''
             drop table if exists temp_caution_tbl_order0;
             create table temp_caution_tbl_order0
@@ -398,7 +393,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
 #            );
 #            '''
         
-        # ×÷³É±íµ¥temp_caution_tbl_order1¼ÇÂ¼ÏØ¾³°¸ÄÚĞÅÏ¢£¨¿çÔ½Ê¡¼¶±ß½ç£©
+        # ä½œæˆè¡¨å•temp_caution_tbl_order1è®°å½•å¿å¢ƒæ¡ˆå†…ä¿¡æ¯ï¼ˆè·¨è¶Šçœçº§è¾¹ç•Œï¼‰
         
         sqlcmd = '''
                 drop table if exists temp_caution_tbl_order1;
@@ -428,7 +423,7 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.log.info('start insert into mid_admin_image_code!')
         
-        # ×÷³É±íµ¥mid_admin_image_code¼ÇÂ¼ÏØ¾³°¸ÄÚ¶ÔÓ¦µÄÍ¼Æ¬ĞÅÏ¢£¨ÔİÊ±Ã»ÓĞÓÃµ½£©
+        # ä½œæˆè¡¨å•mid_admin_image_codeè®°å½•å¿å¢ƒæ¡ˆå†…å¯¹åº”çš„å›¾ç‰‡ä¿¡æ¯ï¼ˆæš‚æ—¶æ²¡æœ‰ç”¨åˆ°ï¼‰
         
         sqlcmd = '''
             drop table if exists mid_admin_image_code;
@@ -456,8 +451,8 @@ class comp_guideinfo_caution_rdf(component.component_base.comp_base):
         
         self.log.info('start insert into caution tbl!')
         
-        # ¸üĞÂ±íµ¥caution_tbl
-        # ½«ÏØ¾³°¸ÄÚ£¨¿ç¹ú¡¢¿çÊ¡°¸ÄÚ£©¸üĞÂµ½±íµ¥caution_tbl
+        # æ›´æ–°è¡¨å•caution_tbl
+        # å°†å¿å¢ƒæ¡ˆå†…ï¼ˆè·¨å›½ã€è·¨çœæ¡ˆå†…ï¼‰æ›´æ–°åˆ°è¡¨å•caution_tbl
         
         sqlcmd = '''
             insert into caution_tbl(inlinkid, nodeid, outlinkid, passlid,passlink_cnt,data_kind,strtts)

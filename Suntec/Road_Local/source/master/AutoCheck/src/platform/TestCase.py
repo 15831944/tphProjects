@@ -77,6 +77,12 @@ class CTestCase(threading.Thread):
     def getCaseID_unique(self):
         return self.nCaseID_unique
     
+    def getcheck_code(self):
+        return self.caseinfo.getCheckCode()
+    
+    def get_combin_keys(self):
+        return self.caseinfo.get_combin_keys()
+    
     def getResult(self):
         self.caseinfo.setCheckResult(self.state)
         return self.caseinfo

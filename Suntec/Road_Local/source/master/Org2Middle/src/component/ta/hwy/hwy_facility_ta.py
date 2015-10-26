@@ -4,18 +4,40 @@ Created on 2015-3-18
 
 @author: hcz
 '''
-from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
-from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
+from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
-from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
+# from component.rdf.hwy.hwy_def_rdf import HWY_UPDOWN_TYPE_UP
+from component.rdf.hwy.hwy_def_rdf import HWY_ROAD_TYPE_HWY
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
+from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_TOLL
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_INNER
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
+from component.default.multi_lang_name import NAME_TYPE_OFFICIAL
+from component.default.multi_lang_name import MultiLangName
+from component.ta.multi_lang_name_ta import MultiLangNameTa
+from component.ta.hwy.hwy_data_mng_ta import SP_TYPE
+from component.ta.hwy.hwy_data_mng_ta import SP_TEXT
+from component.ta.hwy.hwy_data_mng_ta import SP_LANG_CODE
+from component.ta.hwy.hwy_data_mng_ta import SP_EXIT_NUMBER
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_UTURN
+from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
+from component.ta.hwy.hwy_poi_category_ta import HwyPoiCategoryTa
+MAX_SP_NAME_NUM = 4  # 方面名称的最大数
 ROAD_SEQ_MARGIN = 10
 SAPA_TYPE_DICT = {7358: HWY_IC_TYPE_PA,  # Truck Stop
                   7395: HWY_IC_TYPE_SA,  # Rest Area
                   # feattyp: SAPA TYPE
+                  }
+lang_code_dict = {'UND': 'ENG',
+                  'ENG': 'ENG',
                   }
 
 
@@ -28,6 +50,7 @@ class HwyFacilityTa(HwyFacilityRDF):
         Constructor
         '''
         HwyFacilityRDF.__init__(self, data_mng, ItemName)
+        self.poi_cate = HwyPoiCategoryTa()
 
     def _make_sapa_info(self):
         '''SAPA对应的Rest Area POI情报。'''
@@ -76,7 +99,7 @@ class HwyFacilityTa(HwyFacilityRDF):
           ON c.poi_id = d.id
           LEFT JOIN mid_temp_hwy_sapa_name as e
           ON c.poi_id = e.poi_id
-          WHERE feattyp not in (7358, 7395) --  7358: Truck Stop; 7395: Rest Area
+          WHERE feattyp not in (7358, 7395) -- 7358:Truck Stop; 7395: Rest Area
                 and brandname <> '' and brandname is not null
           ORDER BY road_code, road_seq
         );
@@ -89,10 +112,15 @@ class HwyFacilityTa(HwyFacilityRDF):
         '''服务情报'''
         self.CreateTable2('hwy_service')
         self.pg.connect1()
+        (self.restaurant_dict, self.gas_station_dict,
+         self.rest_area_dict, self.shopping_corner_dict,
+         self.post_box_dict, self.info_dict,
+         self.toilet_dict, self.atm_dict,
+         self.undefined_dict) = self.poi_cate.get_all_service_dict()
+#         self.undefined_dict.update(TA_SERVICE_UNSPECIFED_DICT)
         for data in self._get_store_info():
-            road_code, road_seq, updwon = data[0:3]
-            feattyp_list, subcat_list = data[3:5]
-            service_types = self._get_service_types(feattyp_list, subcat_list)
+            road_code, road_seq, updwon, category_id_list = data[0:4]
+            service_types = self._get_service_types(category_id_list)
             # 服务标志都为HWY_FALSE时，不收录
             if set(service_types) == set([HWY_FALSE]):
                 continue
@@ -100,32 +128,32 @@ class HwyFacilityTa(HwyFacilityRDF):
                                      updwon, service_types)
         self.pg.commit1()
 
-    def _get_service_types(self, feattyp_list, subcat_list):
+    def _get_service_types(self, category_id_list):
         gas_station, information, rest_area = HWY_FALSE, HWY_FALSE, HWY_FALSE
         shopping_corner, postbox, atm = HWY_FALSE, HWY_FALSE, HWY_FALSE
         restaurant, toilet = HWY_FALSE, HWY_FALSE
-        for feattyp, subcat in zip(feattyp_list, subcat_list):
-            if (feattyp, subcat) in SERVICE_GAS_DICT:
+        for category_id in category_id_list:
+            if category_id in self.gas_station_dict:
                 gas_station = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_INFORMATION_DICT:
+            elif category_id in self.info_dict:
                 information = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_REST_AREA_DICT:
+            elif category_id in self.rest_area_dict:
                 rest_area = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_SHOPPING_DICT:
+            elif category_id in self.shopping_corner_dict:
                 shopping_corner = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_POSTBOX_DICT:
+            elif category_id in self.post_box_dict:
                 postbox = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_ATM_DICT:
+            elif category_id in self.atm_dict:
                 atm = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_RESTAURANT_DICT:
+            elif category_id in self.restaurant_dict:
                 restaurant = HWY_TRUE
-            elif (feattyp, subcat) in SERVICE_TOILET_DICT:
+            elif category_id in self.toilet_dict:
                 toilet = HWY_FALSE  # 一般地不做 toilet
-            elif (feattyp, subcat) in SERVICE_UNDEFINED_DICT:
+            elif category_id in self.undefined_dict:
                 continue
             else:
-                self.log.error('Unknown Category ID. feattyp=%s, cat_id=%s'
-                               % (feattyp, subcat))
+                self.log.warning('Unknown Category ID. category_id=%s'
+                                 % category_id)
         return (gas_station, information, rest_area,
                 shopping_corner, postbox, atm,
                 restaurant, toilet)
@@ -156,10 +184,11 @@ class HwyFacilityTa(HwyFacilityRDF):
     def _get_store_info(self):
         sqlcmd = """
         SELECT road_code, road_seq, updown_c,
-               array_agg(feattyp), array_agg(subcat)
+               --array_agg(feattyp), array_agg(subcat),
+               array_agg(category_id)
          FROM (
                 SELECT DISTINCT road_code, road_seq, updown_c,
-                        feattyp, subcat
+                        feattyp, subcat, f.per_code as category_id
                   FROM (
                     SELECT road_code, road_seq, updown_c, facilcls_c,
                            regexp_split_to_table(link_lid, E'\\,+'
@@ -174,6 +203,8 @@ class HwyFacilityTa(HwyFacilityRDF):
                   ON c.poi_id = d.id
                   LEFT JOIN mid_temp_hwy_sapa_name as e
                   ON c.poi_id = e.poi_id
+                  LEFT JOIN temp_poi_category_mapping as f
+                  ON c.poi_id = f.org_id1
                   -- 7358:Truck Stop; 7395:Rest Area; 7369: Open Parking Area
                   WHERE feattyp not in (7358, 7395, 7369)
           ) AS f
@@ -182,6 +213,304 @@ class HwyFacilityTa(HwyFacilityRDF):
         """
         return self.get_batch_data(sqlcmd)
 
+    def _make_facil_name(self):
+        '''制作设施名称'''
+        self.log.info('Start Make Facil Name.')
+        self.pg.connect1()
+        self.CreateTable2('mid_temp_hwy_facil_name')
+        sqlcmd = """
+        SELECT road_code, road_seq, facilcls_c, node_id,
+               inout_c, array_agg(node_lid), array_agg(path_type)
+          FROM (
+            SELECT distinct road_code, road_seq, facilcls_c,
+                   inout_c, node_id, node_lid, path_type
+              FROM mid_temp_hwy_ic_path
+              WHERE facilcls_c <> 10  -- Not U-turn
+              ORDER BY road_code, road_seq, node_id,
+                       facilcls_c, inout_c
+          ) AS a
+          group by road_code, road_seq, facilcls_c, node_id, inout_c
+          order by road_code, road_seq;
+        """
+        for data in self.pg.get_batch_data2(sqlcmd):
+            road_code, road_seq, facilcls, node_id, inout, pathes = data[:-1]
+            temp_pathes = [map(int, path.split(',')) for path in pathes]
+            pathe_types = data[-1]
+            facil_name = None
+            # SAPA
+            if facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA):
+                facil_name = self._get_sapa_facil_name(road_code, road_seq)
+                if facil_name:
+                    self._store_facil_name(road_code, road_seq, facil_name)
+            elif facilcls in (HWY_IC_TYPE_TOLL,):
+                facil_name = self.G.get_node_name(node_id)
+                if facil_name:
+                    self._store_facil_name(road_code, road_seq, facil_name)
+            elif facilcls == HWY_IC_TYPE_IC:  # IC
+                pathes = []
+                # 过滤掉UTUTN路径
+                for path, pathe_type in zip(temp_pathes, pathe_types):
+                    if pathe_type != HWY_PATH_TYPE_UTURN:
+                        pathes.append(path)
+                facil_name = self._get_ic_name(road_code, facilcls,
+                                               inout, node_id, pathes)
+                if facil_name:
+                    self._store_facil_name(road_code, road_seq, facil_name)
+            else:  # JCT
+                continue
+        self.pg.commit1()
+        self.CreateIndex2('mid_temp_hwy_facil_name_road_code_road_seq_idx')
+        self.log.info('End Make Facility Name.')
+
+    def _get_ic_name(self, road_code, facilcls, inout, node_id, pathes):
+        if facilcls != HWY_IC_TYPE_IC or inout != HWY_INOUT_TYPE_OUT:
+            return None
+        # 出口/分歧
+        in_nodes = self.G.get_main_link(node_id, road_code,
+                                        code_field=HWY_ROAD_CODE,
+                                        same_code=True, reverse=True)
+        if not in_nodes:
+            self.log.error('No In_node. node_id=%s' % node_id)
+            return None
+        if len(in_nodes) > 1:
+            self.log.error('In_node > 1. node_id=%s' % node_id)
+            return None
+        in_node = in_nodes[0]
+        # 路径添加上一般道(原来路径只探到最后一条Ramp)
+        pathes = self._get_next_street_path(in_node, pathes)
+        json_name = self._get_signpost_info(in_node, node_id, pathes)
+        if json_name:
+            return json_name
+        json_name = self._get_next_street_names(pathes)
+        return json_name
+
+    def _get_signpost_info(self, in_node, node_id, pathes):
+        sp_infos = self.hwy_data.get_sp_infos(in_node, node_id)
+        if not sp_infos:
+            return None
+        temp_sp_name_list = []
+        exit_sp_name_list = []  # 出口、分歧
+        main_sp_name_list = []  # 本线
+        # 路的末端，去掉本线路径，留下出口、分叉路径
+        for node_lid, sp_name_list in sp_infos:
+            for path in pathes:
+                if self._march_path(node_lid, path):
+                    # 退出link非本线
+                    out_link = (node_lid[1], node_lid[2])
+                    data = self.G[out_link[0]][out_link[1]]
+                    link_type = data.get(HWY_LINK_TYPE)
+                    # road_type = data.get(HWY_ROAD_TYPE)
+                    if(link_type in HWY_LINK_TYPE_MAIN):
+                        main_sp_name_list.append(sp_name_list)
+                    else:
+                        exit_sp_name_list.append(sp_name_list)
+                    break
+        if exit_sp_name_list:
+            temp_sp_name_list = exit_sp_name_list
+        else:
+            temp_sp_name_list = main_sp_name_list
+        if len(temp_sp_name_list) > 1:
+            self.log.warning('sp_name_list > 1. node=%s' % node_id)
+        # ## 取得出口
+        exit_nums = []
+        for sp_name_list in temp_sp_name_list:
+            for sp_name in sp_name_list:
+                if sp_name.get(SP_TYPE) == SP_EXIT_NUMBER:
+                    exit_nums.append(sp_name)
+        if exit_nums:
+            # 出口番号，转成JSON
+            json = self._cvt_signpost_name_2_json(exit_nums)
+            if not json:
+                self.log.error('JSON is none of Exit Number. node=%s'
+                               % node_id)
+            return json
+        # ## 道路番号、道路名称转成JSON
+        json = self._get_sp_json_name(node_id, temp_sp_name_list)
+        return json
+
+    def _get_sp_json_name(self, node_id, sp_name_list):
+        temp_sp_name_list2 = []
+        for sp_name_list in sp_name_list:
+            temp_sp_name_list2 += sp_name_list
+        if temp_sp_name_list2:
+            json = self._cvt_signpost_name_2_json(temp_sp_name_list2)
+            if not json:
+                self.log.error('JSON is none of SP Name. node=%s' % node_id)
+            return json
+        return None
+
+    def _get_next_street_names(self, pathes):
+        # 取种道路种别最高的道路的名称(道路番号，放在名称前面)
+        main_normal_links = {}  # 最后一条link，即一般道
+        main_first_links = {}
+        exit_normal_links = {}
+        exit_first_links = {}
+        for path in pathes:
+            fst_link = (path[1], path[2])  # 第一条脱出link
+            fst_data = self.G[fst_link[0]][fst_link[1]]
+            link_type = fst_data.get(HWY_LINK_TYPE)
+            fst_road_type = fst_data.get(HWY_ROAD_TYPE)
+            u, v = path[-2], path[-1]
+            data = self.G[u][v]
+            if((link_type in HWY_LINK_TYPE_MAIN or
+               link_type == HWY_LINK_TYPE_INNER) and
+               fst_road_type in HWY_ROAD_TYPE_HWY):
+                if (u, v) not in main_normal_links:
+                    if fst_road_type in HWY_ROAD_TYPE_HWY:
+                        road_type = data.get(HWY_ROAD_TYPE)
+                        road_names = data.get(HWY_ROAD_NAMES)
+                        if HWY_ROAD_NAMES:
+                            main_normal_links[u, v] = (road_type, road_names)
+                if fst_link not in main_first_links:
+                    road_names = fst_data.get(HWY_ROAD_NAMES)
+                    if HWY_ROAD_NAMES:
+                        main_first_links[fst_link] = (fst_road_type,
+                                                      road_names)
+            else:
+                if (u, v) not in exit_normal_links:
+                    road_type = data.get(HWY_ROAD_TYPE)
+                    road_names = data.get(HWY_ROAD_NAMES)
+                    if road_names:
+                        exit_normal_links[u, v] = (road_type, road_names)
+                if fst_link not in exit_first_links:
+                    road_names = fst_data.get(HWY_ROAD_NAMES)
+                    if HWY_ROAD_NAMES:
+                        exit_first_links[fst_link] = (fst_road_type,
+                                                      road_names)
+        if exit_normal_links:  # 出口一般道名称
+            normal_links = exit_normal_links
+        elif exit_first_links:  # 出口一般道没有名称时，出口方向的第一条名称
+            normal_links = exit_first_links
+        elif main_normal_links:  # 本线出口一般道名称
+            normal_links = main_normal_links
+        else:  # # 本线出口第一条link名称
+            normal_links = main_first_links
+        json_name = self._get_link_names(normal_links)
+        if json_name:
+            return json_name
+        if not json_name:
+            exit_ramp = False
+            for path in pathes:
+                fst_link = (path[1], path[2])  # 第一条脱出link
+                fst_data = self.G[fst_link[0]][fst_link[1]]
+                link_type = fst_data.get(HWY_LINK_TYPE)
+                if(link_type not in HWY_LINK_TYPE_MAIN and
+                   link_type != HWY_LINK_TYPE_INNER):
+                    exit_ramp = True
+                    break
+            if exit_ramp:
+                self.log.warning('No Next Street Name. node=%s' % path[1])
+        return None
+
+    def _get_link_names(self, normal_link_names):
+        '''道路番号 + 道路名称'''
+        # 按道路种别排序
+        sorted_values = sorted(normal_link_names.values(),
+                               cmp=lambda x, y: cmp(x[0], y[0]))
+        # 求road_type等级最高的道路名称
+        prev_road_type = 16
+        rst_route_nums = []
+        rst_road_names = []
+        for (road_type, road_names) in sorted_values:
+            if(road_type > prev_road_type and
+               (rst_route_nums or rst_road_names)):
+                break
+            prev_road_type = road_type
+            temp_road_name = None
+            if road_names:
+                for name_dict in road_names:
+                    if name_dict.get("type") == "route_num":  # 道路番号
+                        if name_dict not in rst_route_nums:
+                            rst_route_nums.append(name_dict)
+                    else:
+                        if not temp_road_name:  # 只取第一个官名
+                            temp_road_name = name_dict
+            if temp_road_name and temp_road_name not in rst_road_names:
+                rst_road_names.append(temp_road_name)
+        # 道路番号 + 道路名称
+        num_names = rst_route_nums + rst_road_names
+        if num_names:
+            json = MultiLangName.json_format_dump2([num_names])
+            return json
+        return None
+
+    def _get_next_street_path(self, in_node, pathes):
+        # 求得和路径相连的一般道(原设施路径不到达一般道)
+        next_street_pathes = []
+        for path in pathes:
+            path = [in_node] + path
+            temp_pathes = list(self.G.get_next_street_path(path))
+            if not temp_pathes:
+                next_street_pathes.append(path)
+                data = self.G[path[-2]][path[-1]]
+                link_type = data.get(HWY_LINK_TYPE)
+                if link_type != HWY_LINK_TYPE_SAPA:
+                    self.log.warning('No Normal Road. path=%s' % path)
+            else:
+                for temp_path in temp_pathes:
+                    next_street_pathes.append(temp_path)
+        return next_street_pathes
+
+    def _cvt_signpost_name_2_json(self, sp_name_list):
+        multi_name = None
+        num = 0
+        added_sp_names = {}
+        for sp_name in sp_name_list:
+            str_name = sp_name.get(SP_TEXT)
+            lang_code = sp_name.get(SP_LANG_CODE)
+            lang_code = lang_code_dict.get(lang_code)
+            key = (str_name, lang_code)
+            if not multi_name:
+                multi_name = MultiLangNameTa(lang_code=lang_code,
+                                             str_name=str_name,
+                                             name_type=NAME_TYPE_OFFICIAL)
+            else:
+                if key in added_sp_names:  # 名称已经收录
+                    continue
+                other_name = MultiLangNameTa(lang_code=lang_code,
+                                             str_name=str_name,
+                                             name_type=NAME_TYPE_OFFICIAL)
+                multi_name.add_alter(other_name)
+            added_sp_names[key] = None
+            num += 1
+            if num > MAX_SP_NAME_NUM:
+                break
+        if multi_name:
+            return multi_name.json_format_dump()
+        return None
+
+    def _march_path(self, node_lid, path):
+        if len(path) < len(node_lid):
+            return False
+        # 本线与一般道直接相连的出口路径没有处理
+        for node_cnt in range(0, len(node_lid)):
+            if node_lid[node_cnt] != path[node_cnt]:
+                return False
+        return True
+
+
+# ==============================================================================
+# HwyFacilityTaSaf
+# ==============================================================================
+class HwyFacilityTaSaf(HwyFacilityTa):
+    '''生成设施情报(南非)
+    '''
+
+    def __init__(self, data_mng, ItemName='HwyFacilityTaSaf'):
+        '''
+        Constructor
+        '''
+        HwyFacilityTa.__init__(self, data_mng, ItemName)
+
+    def _get_sp_json_name(self, node_id, sp_name_list):
+        # 南非不用SignPost Name.
+        # 即没有SignPost Exit No时，IC设施名称为空。
+        return None
+
+    def _get_next_street_names(self, pathes):
+        # 南非不用next street name.
+        # 即没有SignPost情报时，IC设施名称为空。
+        return None
 
 # ==============================================================================
 # 服务情报对应表
@@ -229,29 +558,40 @@ SERVICE_INFORMATION_DICT = {(7316, 0): None,  # Tourist Information Office
 SERVICE_TOILET_DICT = {(9932, 9932005): None,  # Toilet
                        }
 # 未定义服务种别
-SERVICE_UNDEFINED_DICT = {(7301, 7301002): None,  # Traffic Control Department
-                          (7304, 7304006): None,  # Apartment
-                          # Important Tourist(Unspecified)
-                          (7322, 7322004): None,  # Police Station(Order1 Area)
-                          (7332, 7332005): None,  # Supermarkets & Hypermarkets
-                          (7376, 7376001): None,
-                          (7376, 7376003): None,  # Important Tourist(Monument)
-                          (7380, 7380003): None,  # Railway Station(National)
-                          (7383, 7383005): None,  # Airfield
-                          (8099, 8099001): None,  # Geographic Feature
-                          (8099, 8099016): None,  # Geographic: Bay
-                          (8099, 8099020): None,  # Geographic: Cape
-                          (8099, 8099027): None,  # Geographic: Locale
-                          (9155, 9155002): None,  # Car Wash
-                          (9352, 9352002): None,  # Company: Service
-                          (9352, 9352011): None,  # Company: Manufacturing
-                          (9352, 9352022): None,  # Company: Tax Services
-                          (9352, 9352032): None,  # Company: Construction
-                          (9362, 9362033): None,  # Picnic Area
-                          (9362, 9362030): None,  # Natural Attraction
-                          (9932, 9932004): None,  # Public Call Box
-                          (9373, 9373002): None,  # General Practitioner
-                          (9932, 9932006): None,  # Road Rescue
-                          (9942, 9942002): None,  # Bus Stop
-                          (9942, 9942005): None,  # Coach Stop
-                          }
+TA_SERVICE_UNSPECIFED_DICT = {
+                              (7301, 7301002): None,  # Traffic Control Department
+                              (7315, 7315072): None,  # Brazilian
+                              (7315, 7315149): None,  # Yogurt/Juice Bar
+                              (7332, 7332005): None,  # Supermarkets & Hypermarkets
+                              (7383, 7383005): None,  # Airfield
+                              (9155, 9155002): None,  # Car Wash
+                              (9376, 9376006): None,  # Coffee Shop
+                              }
+
+
+# SERVICE_UNDEFINED_DICT = {(7301, 7301002): None,  # Traffic Control Department
+#                           (7304, 7304006): None,  # Apartment
+#                           # Important Tourist(Unspecified)
+#                           (7322, 7322004): None,  # Police Station(Order1 Area)
+#                           (7332, 7332005): None,  # Supermarkets & Hypermarkets
+#                           (7376, 7376001): None,
+#                           (7376, 7376003): None,  # Important Tourist(Monument)
+#                           (7380, 7380003): None,  # Railway Station(National)
+#                           (7383, 7383005): None,  # Airfield
+#                           (8099, 8099001): None,  # Geographic Feature
+#                           (8099, 8099016): None,  # Geographic: Bay
+#                           (8099, 8099020): None,  # Geographic: Cape
+#                           (8099, 8099027): None,  # Geographic: Locale
+#                           (9155, 9155002): None,  # Car Wash
+#                           (9352, 9352002): None,  # Company: Service
+#                           (9352, 9352011): None,  # Company: Manufacturing
+#                           (9352, 9352022): None,  # Company: Tax Services
+#                           (9352, 9352032): None,  # Company: Construction
+#                           (9362, 9362033): None,  # Picnic Area
+#                           (9362, 9362030): None,  # Natural Attraction
+#                           (9932, 9932004): None,  # Public Call Box
+#                           (9373, 9373002): None,  # General Practitioner
+#                           (9932, 9932006): None,  # Road Rescue
+#                           (9942, 9942002): None,  # Bus Stop
+#                           (9942, 9942005): None,  # Coach Stop
+#                           }

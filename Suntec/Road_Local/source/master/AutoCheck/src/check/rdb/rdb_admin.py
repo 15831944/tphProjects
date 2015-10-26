@@ -48,8 +48,10 @@ class CCheckAdminCodeCount(platform.TestCase.CTestCase):
                 elif rdf_adminname == 'PHL':
                     rdbTileAdminCount = rdbTileAdminCount + 1
                 elif rdf_adminname == 'ARG':
-                    rdbTileAdminCount = rdbTileAdminCount + 2       
-
+                    rdbTileAdminCount = rdbTileAdminCount + 2
+                elif rdf_adminname == 'PAN':
+                    rdbTileAdminCount = rdbTileAdminCount + 1
+ 
         return rdbAdminCount == rdbTileAdminCount
 
 
@@ -255,7 +257,7 @@ class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
         idnArea = 1904569
         sqlcmd = '''
                 select distinct iso_country_code
-                from rdf_admin_hierarchy;
+                from rdf_country;
                 '''
         rows = self.pg.get_batch_data(sqlcmd)
         
@@ -312,7 +314,16 @@ class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
             elif rdf_adminname == 'BRA':
                 idnArea = 8547404
             elif rdf_adminname == 'ARG':
-                idnArea = 2793791               
+                idnArea = 2793791  
+            elif rdf_adminname == 'URY':
+                idnArea = 193509                
+            elif rdf_adminname == 'PRY':
+                idnArea = 406800 
+            elif rdf_adminname == 'CRI':
+                idnArea = 51100
+            elif rdf_adminname == 'PAN':
+                idnArea = 75517 
+                         
             else:
                 return False
                                              
@@ -619,4 +630,15 @@ class CCheckAdCode_Eaqual_OrderId(platform.TestCase.CTestCase):
                  '''
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         
-        return  (rec_count == 0)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+        return  (rec_count == 0)
+    
+class CCheckAdmin_order8_time_zone(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = '''
+                SELECT count(*)
+                FROM rdb_admin_zone
+                where ad_order = 8 and time_zone = -1;
+                 '''
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        return  (rec_count == 0)

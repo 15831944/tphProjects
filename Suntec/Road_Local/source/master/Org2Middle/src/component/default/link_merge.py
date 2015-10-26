@@ -153,16 +153,33 @@ class comp_link_merge(component.component_base.comp_base):
                     erp, rodizio, soi, display_class, fazm, tazm, feature_string, feature_key, the_geom
                     )
                     (
-                        select  b.link_id, a.iso_country_code, tile_id, b.s_node, b.e_node, link_type, road_type, toll, speed_class, b.length, function_class,
+                        select  b.link_id, a.iso_country_code, a.tile_id, b.s_node, b.e_node, link_type, road_type, toll, speed_class, b.length, function_class,
                                 lane_dir, lane_num_s2e, lane_num_e2s, elevated, structure, tunnel, rail_cross, paved, uturn, 
                                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, width_s2e, width_e2s,
                                 b.one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number, 
                                 name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish, 
                                 access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, 
-                                erp, rodizio, soi, display_class, b.fazm, b.tazm, null, null, b.the_geom
+                                erp, rodizio, soi, display_class, b.fazm, b.tazm, 
+                                (
+                                case 
+                                when c.feature_string <= d.feature_string then array_to_string(ARRAY[c.feature_string, d.feature_string], ',')
+                                else array_to_string(ARRAY[d.feature_string, c.feature_string], ',')
+                                end
+                                ) as feature_string, 
+                                (
+                                case 
+                                when c.feature_string <= d.feature_string then md5(array_to_string(ARRAY[c.feature_string, d.feature_string], ','))
+                                else md5(array_to_string(ARRAY[d.feature_string, c.feature_string], ','))
+                                end
+                                ) as feature_key, 
+                                b.the_geom
                         from temp_merge_newlink as b
-                        left join link_tbl_bak_merge as a
+                        inner join link_tbl_bak_merge as a
                         on a.link_id = b.link_id
+                        inner join node_tbl as c
+                        on b.s_node = c.node_id
+                        inner join node_tbl as d
+                        on b.e_node = d.node_id
                     );
                 """
         self.pg.execute2(sqlcmd)
@@ -309,6 +326,32 @@ class comp_link_merge(component.component_base.comp_base):
             self.pg.execute2(the_sql_cmd)
             self.pg.commit2()
         
+        # update guide table index
+        sqlcmd = """
+                DROP INDEX IF EXISTS [the_guide_tbl]_inlinkid_idx;
+                CREATE INDEX [the_guide_tbl]_inlinkid_idx
+                    ON [the_guide_tbl]
+                    USING btree
+                    (inlinkid);
+                
+                DROP INDEX IF EXISTS [the_guide_tbl]_nodeid_idx;
+                CREATE INDEX [the_guide_tbl]_nodeid_idx
+                    ON [the_guide_tbl]
+                    USING btree
+                    (nodeid);
+                    
+                DROP INDEX IF EXISTS [the_guide_tbl]_outlinkid_idx;
+                CREATE INDEX [the_guide_tbl]_outlinkid_idx
+                    ON [the_guide_tbl]
+                    USING btree
+                    (outlinkid);
+            """
+        for the_guide_table in guide_table_list:
+            self.log.info('updating %s index...' % the_guide_table)
+            the_sql_cmd = sqlcmd.replace('[the_guide_tbl]', the_guide_table)
+            self.pg.execute2(the_sql_cmd)
+            self.pg.commit2()
+            
         self.log.info('Update guide information end ...')
         
         self.log.info('Update related tables end.')

@@ -970,7 +970,7 @@ class comp_link_split(component.component_base.comp_base):
                                 access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi, display_class,
                                 (case when b.sub_index = 1 then mid_cal_zm(a.the_geom, 1) else mid_cal_zm(b.the_geom, 1) end) as fazm,
                                 (case when b.sub_index = b.sub_count then mid_cal_zm(a.the_geom, -1) else mid_cal_zm(b.the_geom, -1) end) as tazm,
-                                null as feature_string, null as feature_key, 
+                                a.feature_string, a.feature_key, 
                                 b.the_geom
                         from link_tbl_bak_splitting as a
                         inner join temp_split_newlink as b
@@ -1033,14 +1033,16 @@ class comp_link_split(component.component_base.comp_base):
                                 (node_id, tile_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, org_boundary_flag, 
                                 tile_boundary_flag, mainnodeid, node_lid, node_name, feature_string, feature_key, z_level, the_geom)
                     (
-                        select  a.node_id, rdb_geom2tileid_z(the_geom, 14) as tile_id, null, 0, 0, 
+                        select  a.node_id, rdb_geom2tileid_z(a.the_geom, 14) as tile_id, null, 0, 0, 
                                 case when b.node_id is not null then 1
                                     else 0 end as toll_flag, 
                                 0 as bifurcation_flag,
-                                0, 1, 0, null, null, null as feature_string, null as feature_key, 0 as z_level, the_geom
+                                0, 1, 0, null, null, c.feature_string, c.feature_key, 0 as z_level, a.the_geom
                         from temp_split_newnode a
                         left join temp_tollgate b
                         on a.node_id = b.node_id
+                        left join link_tbl as c
+                        on a.node_id = c.e_node
                     );
                 """
         self.pg.execute2(sqlcmd)
@@ -1195,9 +1197,15 @@ class comp_link_split(component.component_base.comp_base):
         self.CreateTable2('temp_tollgate_electronic')
         
         proj_name = common.common_func.GetPath('proj_name')
+        proj_country = common.common_func.GetPath('proj_country')
+        
+        # For TomTom tollgate.
         if proj_name.lower() == 'ta':
             self.__splitLinkByTollGateDetail()
-            self.__getLinkETCTollGate()
+            
+            # For TomTom(South Afria) electronic tollgate.
+            if proj_country.lower() == 'saf8':
+                self.__getLinkETCTollGate()
             
         self.log.info('splitting links by tollgates end.')
                     

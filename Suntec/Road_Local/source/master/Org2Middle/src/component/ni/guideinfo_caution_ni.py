@@ -8,9 +8,11 @@ Created on 2015-5-4
 
 
 import io
+import os
 import common.common_func
 import component.default.guideinfo_caution
-import os
+
+
 
 class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guideinfo_caution):
     def __init__(self):
@@ -19,38 +21,29 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         '''
         component.default.guideinfo_caution.comp_guideinfo_caution.__init__(self)
     
-    def _DoCreateTable(self):
+    def _make_caution_from_origin(self):
         
-        self.CreateTable2('caution_tbl')
+        # 从NI协议中抽取caution信息 
+        
         self.CreateTable2('temp_trfcsign_caution_tbl')
         self.CreateTable2('temp_admin_caution_tbl')
-
-        return 0
-    
-    def _DoCreateFunction(self):
+        
+        self._make_caution_from_trfcsign()
+        
+        # 与机能组确认，县境案内不提供专有数据，机能组根据行政界自己判定县境案内触发情况，以下代码屏蔽
+        #self._make_caution_from_admin()
+        
+        self._update_caution_tbl()
         
         return 0
     
-    def _DoCreateIndex(self):
-        
-        return 0
-    
-    def _Do(self):
-        
-        self._Deal_TrfcSign()
-        #self._Deal_admin()
-
-        self._Deal_update_caution_tbl()
-        self._GetOutLinkSeq()
-        
-        return 0
-    
-    def _Deal_TrfcSign(self):
+    def _make_caution_from_trfcsign(self):
         
         # 作成表单temp_trfcsign_caution_tbl记录中国专有注意点案内，作成：
         # 1、从配置文件中获取中国专有注意点类型与音声、图片的对照关系
         # 2、从配置文件中获取中国专有注意点类型与caution种别的对照关系
         # 3、通过1/2所获数据、原始数据作成中国专有注意点案内
+        
         self._create_temp_trfcsign_type_wavid()
         self._create_temp_trfcsign_type_picid()
         self._create_temp_trfcsign_type_data_kind()
@@ -58,10 +51,11 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         return 0
     
-    def _Deal_admin(self):
+    def _make_caution_from_admin(self):
         
         # 县境案内（取消）
         # 与机能组确认，该机能保留，但不需要dataformat提供数据，机能组应用时根据行政界范围制作对应的县境案内
+        
         self._create_temp_admin_wavid()
         self._create_temp_admin_picid()
         self._create_temp_order8_boundary()
@@ -71,45 +65,49 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         
         return 0
     
-    def _Deal_update_caution_tbl(self):
+    def _update_caution_tbl(self):
         
         self.log.info('Now it is updating caution_tbl...')
         
         # 更新表单 caution_tbl
         # 插入中国专有注意点案内、县境案内
+        
         sqlcmd = """
-                insert into caution_tbl (
+                INSERT INTO caution_tbl (
                     inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind,
                     voice_id, strtts, image_id
                 )
-                select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, 
+                SELECT inlinkid, nodeid, outlinkid, passlid, passlink_cnt, 
                     data_kind, voice_id, strtts, image_id
-                from (
-                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
+                FROM (
+                    SELECT inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
                         voice_id, strtts, image_id
-                    from temp_trfcsign_caution_tbl
+                    FROM temp_trfcsign_caution_tbl
                     
-                    union
+                    UNION
                     
-                    select inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
+                    SELECT inlinkid, nodeid, outlinkid, passlid, passlink_cnt, data_kind, 
                         voice_id, strtts, image_id
-                    from temp_admin_caution_tbl
+                    FROM temp_admin_caution_tbl
                 ) a
                 
-                order by inlinkid, nodeid, outlinkid
+                ORDER BY inlinkid, nodeid, data_kind
             """
         
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('updating caution_tbl succeeded')
+        
         return 0
     
     def _create_temp_trfcsign_type_wavid(self): 
+        
         self.log.info('Now it is making temp_trfcsign_type_wavid...')
         
         # 作成表单temp_trfcsign_type_wavid记录中国专有注意点类型与音声的对照关系
         # 每一种中国专有注意点案内对应一种提示语音，需要制作对照关系。该关系通过配置文件提供
-        # create a relationship between traffic sign type and voice id  
+        # create a relationship between traffic sign type and voice id 
+         
         self.CreateTable2('temp_trfcsign_type_wavid')
         
         trfcsign_type_wav_path = common.common_func.GetPath('trfcsign_type_wav')
@@ -121,14 +119,17 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                 f.close()
         
         self.log.info('making temp_trfcsign_type_wavid succeeded')
+        
         return 0
     
     def _create_temp_trfcsign_type_picid(self): 
+        
         self.log.info('Now it is making temp_trfcsign_type_picid...')
         
         # 作成表单temp_trfcsign_type_picid记录中国专有注意点类型与图片的对照关系
         # 每一种中国专有注意点案内对应一种显示牌，需要制作对照关系。该关系通过配置文件提供
         # create a relationship between traffic sign type and pic id  
+        
         self.CreateTable2('temp_trfcsign_type_picid')
 
         trfcsign_type_pic_path = common.common_func.GetPath('trfcsign_type_pic')
@@ -140,13 +141,16 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                 f.close()
         
         self.log.info('making temp_trfcsign_type_picid succeeded')
+        
         return 0
     
     def _create_temp_trfcsign_type_data_kind(self): 
+        
         self.log.info('Now it is making temp_trfcsign_type_data_kind...')
         
         # 作成表单temp_trfcsign_type_data_kind记录中国专有注意点种别与caution种别的对照关系
         # create a relationship between traffic sign type and data kind
+        
         self.CreateTable2('temp_trfcsign_type_data_kind')
 
         trfcsign_type2data_kind_path = common.common_func.GetPath('trfcsign_type2data_kind')
@@ -158,6 +162,7 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                 f.close()
         
         self.log.info('making temp_trfcsign_type_data_kind succeeded')
+        
         return 0
     
     def _create_temp_trfcsign_caution_tbl(self):  
@@ -167,37 +172,46 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         # 更新表单temp_trfcsign_caution_tbl记录专有注意点案内，作成
         # 1、从原始数据表单org_trfcsign获取注意点案内关联的link信息、node信息
         # 2、根据注意点种别与音声、图片、caution种别的对照关系更新相关字段
+        # 注意点：
+        # 以下data_kind机能需求外，不作成
+        # 1(カーブ), 3(合流分岐), 4(県境), 8(反向弯路（右）), 15(窄桥), 27(村庄), 29(路面不平), 31(有人看守铁路道口), 
+        # 36(注意危险), 40(连续下坡), 41(文字性警示标牌（现场为文字提示，且无法归类到国标危险信息标牌中）), 
+        # 46(减速让行), 47(隧道开灯), 48(潮汐车道), 49(路面高凸), 50(路面低洼)
+        
         self.CreateIndex2('org_trfcsign_type_idx')
         
         sqlcmd = """
-                insert into temp_trfcsign_caution_tbl (
+                INSERT INTO temp_trfcsign_caution_tbl (
                     inlinkid, nodeid, type, data_kind,
                     voice_id, image_id, inlink_geom
                 )
-                select inlinkid, nodeid, type, data_kind,
+                SELECT inlinkid, nodeid, type, data_kind,
                     voice_id, image_id, e.the_geom as inlink_geom
-                from (
-                    select inlinkid::bigint, nodeid::bigint, type::integer, f.data_kind,
+                FROM (
+                    SELECT inlinkid::bigint, nodeid::bigint, type::integer, f.data_kind,
                         b.wav_id as voice_id, c.pic_id as image_id
-                    from org_trfcsign a
-                    left join temp_trfcsign_type_wavid b
-                        on type::integer = b.trfcsign_type
-                    left join temp_trfcsign_type_picid c
-                        on type::integer = c.trfcsign_type
-                    left join temp_trfcsign_type_data_kind f
-                        on type::integer = f.trfcsign_type
-                    order by type, inlinkid, nodeid
-                ) as d
-                left join link_tbl e
-                    on d.inlinkid = e.link_id
+                    FROM org_trfcsign a
+                    LEFT JOIN temp_trfcsign_type_wavid b
+                        ON type::integer = b.trfcsign_type
+                    LEFT JOIN temp_trfcsign_type_picid c
+                        ON type::integer = c.trfcsign_type
+                    LEFT JOIN temp_trfcsign_type_data_kind f
+                        ON type::integer = f.trfcsign_type
+                    WHERE f.data_kind NOT IN (1, 3, 4, 8, 15, 27, 29, 31, 36, 40, 41, 46, 47, 48, 49, 50)
+                    ORDER BY type, inlinkid, nodeid
+                ) d
+                LEFT JOIN link_tbl e
+                    ON d.inlinkid = e.link_id
             """
         
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_trfcsign_caution_tbl succeeded')
+        
         return 0
     
     def _create_temp_admin_wavid(self):   
+        
         self.log.info('Now it is making temp_admin_wavid...')
         
         # create a relationship between admin code and voice id 
@@ -210,9 +224,11 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         f.close()
         
         self.log.info('making temp_admin_wavid succeeded')
+        
         return 0
     
     def _create_temp_admin_picid(self): 
+        
         self.log.info('Now it is making temp_admin_picid...')
         
         # create a relationship between admin code and pic id
@@ -225,9 +241,11 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         f.close()
         
         self.log.info('making temp_admin_picid succeeded')
+        
         return 0
     
     def _create_temp_order8_boundary(self):
+        
         self.log.info('Now it is making temp_order8_boundary...')
                          
         self.CreateIndex2('mid_admin_zone_ad_order_idx')
@@ -272,9 +290,11 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_order8_boundary succeeded')
+        
         return 0
     
     def _create_temp_inode(self):
+        
         self.log.info('Now it is making temp_inode...')
         
         sqlcmd = """
@@ -330,9 +350,11 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_inode succeeded')
+        
         return 0
     
     def _create_temp_guideinfo_boundary(self):
+        
         self.log.info('Now it is making temp_guideinfo_boundary...')
         
         sqlcmd = """
@@ -412,9 +434,11 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_guideinfo_boundary succeeded')
+        
         return 0
     
     def _create_temp_admin_caution_tbl(self):
+        
         self.log.info('Now it is making temp_admin_caution_tbl...')
         
         sqlcmd = """
@@ -449,4 +473,5 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making temp_admin_caution_tbl succeeded')
+        
         return 0

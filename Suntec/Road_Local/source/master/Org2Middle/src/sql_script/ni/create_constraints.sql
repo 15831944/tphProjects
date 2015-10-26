@@ -336,3 +336,7 @@ CREATE INDEX temp_sp_json_name_id_idx
   using btree
   (id);
   
+CREATE INDEX  temp_general_sp_name_id_idx
+  on  temp_general_sp_name
+  using btree
+  ((id::bigint));

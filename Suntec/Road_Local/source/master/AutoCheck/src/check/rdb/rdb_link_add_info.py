@@ -240,6 +240,7 @@ class CCheckPavedFlag(platform.TestCase.CTestCase):
                  """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)
+
     
 class CCheckUturnFlag(platform.TestCase.CTestCase):
     def _do(self):
@@ -457,4 +458,54 @@ class CCheckAddInfo2Valid(platform.TestCase.CTestCase):
             where b.link_id is null;
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
-        return (rec_cnt == 0)                      
+        return (rec_cnt == 0)
+    
+class CCheckPaved(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select (
+                        select count(*)
+                        from rdb_link_add_info
+                        where (path_extra_info & 1) = 0 
+            )::float/
+            (
+                select count(1) from rdb_link_add_info
+            ) 
+            
+                 """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt > 0.8)
+    
+class CCheckPavedTA(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select (
+                        select count(*)
+                        from rdb_link_add_info
+                        where (path_extra_info & 1) = 0 
+            )::float/
+            (
+                select count(1) from rdb_link_add_info
+            ) 
+            
+                 """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt > 0.7)
+    
+class CCheckPavedTASAF(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            select (
+                        select count(*)
+                        from rdb_link_add_info
+                        where (path_extra_info & 1) = 0 
+            )::float/
+            (
+                select count(1) from rdb_link_add_info
+            ) 
+            
+                 """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt > 0.25)
+
+                      

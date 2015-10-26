@@ -133,6 +133,11 @@ class comp_factory(object):
         if comp_name == 'stopsign':
             from component.default import stopsign
             return stopsign.comp_stopsign()
+        
+        if comp_name == 'Update_sapa_link':
+            from component.default import update_sapa_link
+            return update_sapa_link.comp_update_sapa_link()
+            
         return None
 
 ########################################################################
@@ -370,6 +375,10 @@ class comp_factory_rdf(comp_factory):
             return stopsign_rdf.comp_stopsign_rdf()
             pass
         
+        if comp_name == 'Name_filter_and_sort':
+            from component.default import rdb_name
+            return rdb_name.rdb_name_language_order()
+        
         return comp_factory.CreateOneComponent(self, comp_name)
 
 
@@ -523,7 +532,11 @@ class comp_factory_ta(comp_factory):
         if comp_name == 'stopsign':
             from component.ta import stopsign_ta
             return stopsign_ta.comp_stopsign_ta()
-            pass
+        
+        if comp_name == 'Name_filter_and_sort':
+            from component.default import rdb_name
+            return rdb_name.rdb_name_language_order()
+        
         return comp_factory.CreateOneComponent(self, comp_name)
 
 
@@ -807,7 +820,12 @@ class comp_factory_mmi(comp_factory):
             pass
         if comp_name == 'Guideinfo_NaturalGuidence':
             from component.mmi import guideinfo_natural_guidence_mmi
-            return guideinfo_natural_guidence_mmi.comp_natural_guidence()
+            return guideinfo_natural_guidence_mmi.comp_natural_guidence()\
+                
+        if comp_name == 'Name_filter_and_sort':
+            from component.default import rdb_name
+            return rdb_name.rdb_name_language_order()
+        
         return comp_factory.CreateOneComponent(self, comp_name)
 
 
@@ -934,9 +952,9 @@ class comp_factory_ni(comp_factory):
             return comp_link_ni()
         
         #17CY中国仕向地不做成扩大图Logmark和NaturalGuidence机能
-        #if comp_name == 'Guideinfo_building':
-        #    from component.ni import guideinfo_building_ni
-        #    return guideinfo_building_ni.comp_guideinfo_building_ni()   
+#        if comp_name == 'Guideinfo_building':
+#            from component.ni import guideinfo_building_ni
+#            return guideinfo_building_ni.comp_guideinfo_building_ni()   
 
         if comp_name == 'Dictionary':
             from component.ni.dictionary_ni import comp_dictionary_ni
@@ -953,6 +971,10 @@ class comp_factory_ni(comp_factory):
         if comp_name == 'Guideinfo_TowardName':         
             from component.ni import guideinfo_towardname_ni
             return guideinfo_towardname_ni.comp_guideinfo_towardname_ni()
+        
+        if comp_name == 'Name_filter_and_sort':
+            from component.default import rdb_name
+            return rdb_name.rdb_name_language_order()
         
         return comp_factory.CreateOneComponent(self, comp_name)
 
@@ -1016,5 +1038,9 @@ class comp_factory_zenrin(comp_factory):
         if comp_name == 'Highway':
             from component.zenrin.hwy.highway import HighwayZenrin
             return HighwayZenrin()
+        
+        if comp_name == 'Name_filter_and_sort':
+            from component.default import rdb_name
+            return rdb_name.rdb_name_language_order()
 
         return comp_factory.CreateOneComponent(self, comp_name)

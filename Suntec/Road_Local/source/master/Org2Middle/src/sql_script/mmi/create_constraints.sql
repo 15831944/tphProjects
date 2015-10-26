@@ -132,3 +132,8 @@ CREATE INDEX mid_temp_natural_guidence_name_gid_idx
   ON mid_temp_natural_guidence_name
   USING btree
   (gid);
+  
+CREATE INDEX temp_poi_category_mapping_poi_id_idx
+  ON temp_poi_category_mapping
+  USING btree
+  (poi_id);

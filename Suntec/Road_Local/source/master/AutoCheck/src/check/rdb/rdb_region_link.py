@@ -989,3 +989,23 @@ class CCheckRegionLinkPassable(CCheckRegionBase):
                 return False
         return True;
 
+class CCheckRegionLinkCircle(CCheckRegionBase):
+    '''检查link是否自身构成环'''
+    def _do(self):
+        sqlcmd = """
+                SELECT count(link_id)
+                  FROM rdb_region_link_layer[X]_tbl
+                  where start_node_id = end_node_id;
+        """
+        levels = self._GetLevels()
+        for level in levels:
+            sqlcmd = sqlcmd.replace('[X]', level)
+            
+            rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+            
+            if rec_cnt != 0:
+                return False
+            else:
+                pass
+            
+        return True;

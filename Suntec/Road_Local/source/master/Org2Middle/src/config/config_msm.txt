@@ -3,4 +3,5 @@
 #proj_name=msm
 #proj_country=hkg
 replaced_name=..\docs\road_replaced_name_msm.txt
+forceguide_patch_full_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\MYS\MALSING\2014Q4\forceguide_patch\temp_patch_force_guide_tbl.csv
 #################################################################

@@ -18,6 +18,7 @@ class rdb_vics(ItemBase):
             ('jdb'):                rdb_vics_jpn(),
             ('axf'):                rdb_vics_axf(),
             ('ta','aus'):           rdb_traffic_ta(),
+            ('ta','saf8'):          rdb_traffic_ta(),
             ('rdf','sgp'):          rdb_traffic_rdf_ap(),
             ('rdf','uc'):           rdb_traffic_rdf_uc(),
             ('rdf','me8'):          rdb_vics(),
@@ -753,8 +754,9 @@ class rdb_traffic_area(ItemBase):
     @staticmethod
     def instance():
         proj_mapping = {
-            ('default'):            rdb_traffic_area(),
+            ('default'):            rdb_traffic_area_null(),
             ('ta','aus'):           rdb_traffic_area_notnull(),
+            ('ta','saf8'):          rdb_traffic_area_notnull(),
             ('rdf'):                rdb_traffic_area_null(),
             ('rdf','sgp'):          rdb_traffic_area_notnull(),
             ('rdf','uc'):           rdb_traffic_area_notnull(),
@@ -1069,6 +1071,7 @@ class rdb_traffic(ItemBase):
         row = self.pg.fetchone2()
         
         if  row[0] > 0: 
+            self._checkLocationTblVer()
             self._createLocationTbl()         
         else:
             rdb_log.log(self.ItemName, '!!! No original location table, Please check original data !!!', 'exception')
@@ -1089,7 +1092,29 @@ class rdb_traffic(ItemBase):
     def _createLanguages(self):
         
         self.CreateTable2('temp_trf_languages')
-        
+   
+    def _checkLocationTblVer(self):
+
+        if rdb_common.getProjName().lower() == 'ta':
+            
+            sqlcmd = """
+                select count(*) from (
+                    select distinct substr(tmclstver,1,1) as ver from org_tl 
+                ) a
+                left join (    
+                    select distinct version as ver from gewi_locationdatasets
+                ) b
+                on a.ver = b.ver                         
+                """
+            self.pg.execute2(sqlcmd)
+            row = self.pg.fetchone2()
+            
+            if row[0] == 0: 
+                rdb_log.log(self.ItemName, '!!! Version of locationtable is wrong, Please check original data !!!', 'exception')
+                return -1
+            else:
+                return 1
+                  
     def _createLocationTbl(self):
 
         rdb_log.log(self.ItemName, 'creating location table ----- start', 'info')
@@ -1214,7 +1239,7 @@ class rdb_traffic(ItemBase):
                     select distinct unnest(language_array) as lang_code 
                     from temp_trf_languages 
                 ) n
-                on m.lang_code = n.lang_code
+                on lower(m.lang_code) = lower(n.lang_code)
                 where n.lang_code is not null
                 order by code,lang_code
                 ) a group by info_flag,direction,code,quantifier,reference_flag,referent,urgency,update_class
@@ -1249,7 +1274,7 @@ class rdb_traffic(ItemBase):
                     select distinct unnest(language_array) as lang_code 
                     from temp_trf_languages 
                 ) n
-                on m.lang_code = n.lang_code
+                on lower(m.lang_code) = lower(n.lang_code)
                 where n.lang_code is not null                
                 order by code,lang_code
                 ) a group by code,referent
@@ -1600,7 +1625,7 @@ class rdb_traffic_rdf_mea(rdb_traffic_rdf):
             (
                 select cid
                     ,array_agg(lid) as lid_array_org
-                    ,array_agg(language) as language_array
+                    ,array_agg(upper(language)) as language_array
                 from (
                     select a.cid,a.lid
                         ,case when b.l_full_name is not null then b.language_code_client
@@ -1686,7 +1711,7 @@ class rdb_traffic_rdf_bra(rdb_traffic_rdf):
             (
                 select cid
                     ,array_agg(lid) as lid_array_org
-                    ,array_agg(language) as language_array
+                    ,array_agg(upper(language)) as language_array
                 from (
                     select a.cid,a.lid
                         ,case when b.l_full_name is not null then b.language_code_client
@@ -2575,7 +2600,7 @@ class rdb_traffic_ta(rdb_traffic):
             (
                 select cid
                     ,array_agg(lid) as lid_array_org
-                    ,array_agg(language) as language_array
+                    ,array_agg(upper(language)) as language_array
                 from (
                     select a.cid,a.lid
                         ,case when b.l_full_name is not null then b.language_code_client

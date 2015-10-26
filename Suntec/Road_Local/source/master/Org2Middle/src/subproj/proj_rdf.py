@@ -20,8 +20,6 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
         """
         You can add new component depend on your requirements
         """
-        self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
-        return
         if self.comp_factory != None:
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('rawdata'))    #revise the rawdata about phoneme
@@ -41,6 +39,7 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             # Ramp RoadType
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             # Node Height
@@ -68,6 +67,8 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Caution_highaccident'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
+            
+            self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge

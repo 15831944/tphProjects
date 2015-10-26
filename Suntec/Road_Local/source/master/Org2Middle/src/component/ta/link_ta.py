@@ -5,6 +5,7 @@ Created on 2012-9-3
 '''
 
 import component.component_base
+import common
 
 class comp_link_ta(component.component_base.comp_base):
     '''
@@ -64,6 +65,9 @@ class comp_link_ta(component.component_base.comp_base):
         self.CreateIndex2('temp_link_pos_cond_speed_id_idx')
         self.CreateIndex2('temp_link_neg_cond_speed_id_idx')
         self.CreateIndex2('temp_mid_iso_country_code_idx')
+
+        if common.common_func.getProjCountry().lower() == 'aus':
+            self._createFuncForSensis()
         
         sqlcmd = """
                 insert into temp_mid_iso_country_code (
@@ -113,7 +117,9 @@ class comp_link_ta(component.component_base.comp_base):
                     etc_only_flag,
                     ipd, 
                     urban,
-                    the_geom
+                    the_geom,
+                    feature_string, 
+                    feature_key
                     ) 
                     select 
                         link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, 
@@ -168,7 +174,7 @@ class comp_link_ta(component.component_base.comp_base):
                         a.f_jnctid as s_node, 
                         a.t_jnctid as e_node, 
                         mid_cnv_disp_class(a.freeway, a.frc,a.feattyp, a.fow, a.roughrd) as display_class,
-                        mid_cnv_link_type(a.fow, a.ramp, a.pj, a.sliprd) as link_type, 
+                        mid_cnv_link_type(a.fow, a.ramp, a.pj, a.sliprd, a.frc) as link_type, 
                         mid_cnv_road_type(freeway, frc, ft, fow, privaterd, backrd, procstat, carriage, nthrutraf, sliprd, stubble) as road_type, 
                         case when tollrd is not null then 1 else 2 end as toll,
                         speedcat as speed_class,
@@ -199,6 +205,8 @@ class comp_link_ta(component.component_base.comp_base):
                         speedcat,
                         lanes,
                         ST_LineMerge(the_geom) as the_geom
+                        , a.id::varchar as feature_string
+                        , md5(a.id::varchar) as feature_key
                       from org_nw as a
                         left join temp_link_regulation_permit_traffic as p
                             on a.id = p.link_id
@@ -236,6 +244,64 @@ class comp_link_ta(component.component_base.comp_base):
             
         return 0
         
-        
-        
+    def _createFuncForSensis(self):
+
+        sqlcmd = """
+            CREATE OR REPLACE FUNCTION mid_cnv_road_type(
+                freeway smallint,
+                frc smallint,
+                ft smallint,
+                fow smallint,
+                privaterd smallint,
+                backrd smallint,
+                procstat smallint,
+                carriage character varying,
+                nthrutraf smallint,
+                sliprd smallint,
+                stubble smallint
+            )
+            RETURNS smallint
+            LANGUAGE plpgsql
+            AS
+            $$
+            
+            BEGIN
+            
+                IF ft = 1 THEN 
+                    return 10;
+                ELSEIF ft = 2 THEN
+                    return 11;
+                ELSEIF procstat in (8,9) or stubble = 1 or backrd in (1, 2, 3, 4) THEN
+                    return 9;
+                ELSEIF fow in (14, 15, 18, 19) THEN
+                    return 8;
+                ELSEIF nthrutraf = 1 THEN
+                    return 14;
+                ELSEIF fow = 20 THEN
+                    return 12;
+                ELSEIF carriage = '1' THEN
+                    return 13;
+                ELSEIF privaterd != 0 THEN
+                    return 7;
+                ELSEIF fow = 1 THEN
+                    return 0;
+                ELSEIF frc in (0, 1, 2) THEN
+                    return 2;
+                ELSEIF frc = 3 THEN 
+                    return 3;
+                ELSEIF frc in (4, 5) THEN
+                    return 4;
+                ---ELSEIF sliprd = 1 THEN
+                ---    return 5;         -- when the frc is higher, we don't set it to frontage road
+                ELSEIF frc in (6,7) THEN
+                    return 6;
+                ELSE
+                    return 6;
+                END if;
+            END;
+            $$;
+
+        """
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()        
         

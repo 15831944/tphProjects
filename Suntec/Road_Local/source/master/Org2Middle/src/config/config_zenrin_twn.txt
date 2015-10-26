@@ -1,8 +1,10 @@
 #################################################################
 # proj_ni
-illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\TWN\Zenrin\14Q4\illust
+illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\TWN\Zenrin\14Q4\illust
+text_filter={'ZENRIN_TWN':"DEFAULT:[CHT,BPM]"}
 POI_Code=..\docs\poi\category_zenrin_twn.txt
 brand_icon=..\docs\poi\brand_icon_list_zenrin.txt
 category_priority=..\docs\poi\category_priority_zenrin.xls
+hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_twn.xls
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

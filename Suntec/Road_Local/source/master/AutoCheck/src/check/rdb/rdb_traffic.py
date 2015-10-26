@@ -5,6 +5,7 @@ Created on 2014-07-31
 '''
 
 import platform.TestCase
+import json
 
 class CCheckTrf14(platform.TestCase.CTestCase):
 
@@ -102,7 +103,53 @@ class CCheckLocationTable(platform.TestCase.CTestCase):
         else:
             rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
             return (rec_cnt != 0)
+
+class CCheckLocationTable_name(platform.TestCase.CTestCase):
+    def _do(self):
         
+        if self.pg.IsExistTable('rdb_trf_locationtable'):
+            sqlcmd = """
+                select road_name,first_name
+                from rdb_trf_locationtable
+                where location_type = 1;                 
+                """
+            datas = self.pg.get_batch_data(sqlcmd) 
+    
+            count_road = 0
+            count_first = 0
+            
+            for data in datas:
+                road_name = data[0]
+                first_name = data[1]
+    
+                multi_name_info_road = json.loads(road_name)
+                for one_name_info_road in multi_name_info_road:
+    
+                    val_road = one_name_info_road.get('val')
+                    
+                    if val_road is None or val_road == '':
+                            count_road = count_road + 1
+    #                        self.logger.error("roadname: null")
+    #                        return 0
+    
+                multi_name_info_first = json.loads(first_name)
+                for one_name_info_first in multi_name_info_first:
+    
+                    val_first = one_name_info_first.get('val')
+                    
+                    if val_first is None or val_first == '':
+                            count_first = count_first + 1
+    #                        self.logger.error("firstname: null")
+    #                        return 0
+     
+            if count_road > 100 or count_first > 100:
+                self.logger.error("too much: roadname is null or firstname is null. roadname is null:%d, firstname is null:%d" % (count_road,count_first))
+                return 0
+            
+            return 1
+        
+        return 1  
+    
 class CCheckTrfLocationCode(platform.TestCase.CTestCase):
 
     def _do(self):

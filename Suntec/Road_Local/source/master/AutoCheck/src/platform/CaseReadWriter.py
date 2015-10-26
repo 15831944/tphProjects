@@ -129,10 +129,12 @@ class CCaseReadWriter(object):
                             sheet_id = i
                             
                 for case_info in case_info_list[1:]:
-                    
-                    key = case_info[case_id]                 # 种别是CCell
-                    if str(key.getValue()) in self.__caseid_list or len(self.__caseid_list) == 0:
-                        self.__sheet_dict[case_info[sheet_id].getValue()] = str(key.getValue())
+                    try:
+                        key = (case_info[case_id]).getValue()                 # 种别是CCell
+                    except:
+                        key = ''
+                    if str(key) in self.__caseid_list or len(self.__caseid_list) == 0:
+                        self.__sheet_dict[case_info[sheet_id].getValue()] = str(key)
         return 0 
     
     def _loadCaseInfo(self):
@@ -242,7 +244,10 @@ class CCaseInfo(object):
             return True
             
         return False
-        
+    
+    def get_combin_keys(self):
+        return str(self.getMajorItem()) + '::' + str(self.get(u'仕向地')) + '::'  + str(self.get(u'Check代码'))
+                
     def getCheckCode(self):
         return self.get(u'Check代码')
     
@@ -589,6 +594,7 @@ class CExcel2(object):
 
         for row_index in range(1, self.objExcel.getRowCount(sheet_name)+1):
             case_info = []
+            
             for col_index in range(1, self.objExcel.getColumnCount(sheet_name)+1):
                 cellvalue = self.objExcel.getCellValue(sheet_name, row_index, col_index)
                 if type(cellvalue) == type(1.0):
@@ -606,8 +612,6 @@ class CExcel2(object):
             self.objExcel.setCellValue(sheet_name, row, col, value)
         
         self.objExcel.save()
-
-
 
 class CExcel_All_OS:
     def __init__(self, filepath):

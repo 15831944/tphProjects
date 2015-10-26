@@ -1131,7 +1131,7 @@ CREATE INDEX id_fund_node_tile_id_idx
   USING btree
   (tile_id);
 
-CREATE UNIQUE INDEX id_fund_node_feature_key_tile_id_idx
+CREATE INDEX id_fund_node_feature_key_tile_id_idx
   ON id_fund_node
   USING btree
   (feature_key, tile_id);
@@ -1152,7 +1152,7 @@ CREATE INDEX id_fund_link_tile_id_idx
   USING btree
   (tile_id);
 
-CREATE UNIQUE INDEX id_fund_link_feature_key_tile_id_idx
+CREATE INDEX id_fund_link_feature_key_tile_id_idx
   ON id_fund_link
   USING btree
   (feature_key, tile_id);

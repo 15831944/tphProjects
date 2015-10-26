@@ -286,6 +286,7 @@ class comp_dictionary_ni(component.default.dictionary.comp_dictionary):
                         on name.featid = name_py.featid and name.seq_nm = name_py.seq_nm
                         and name.nametype = '14' and name.language in ('1','2') and name_py.phontype in ('1', '3')
                         where name.nametype = '14'
+                        group by name.featid, name.seq_nm, name.language, name_py.phontype, name.name, name.py, name.nameflag, name_py.name
                         order by name.featid, name.seq_nm, name.language, name_py.phontype
                     )temp
                     group by featid, language, name, seq_nm, nameflag

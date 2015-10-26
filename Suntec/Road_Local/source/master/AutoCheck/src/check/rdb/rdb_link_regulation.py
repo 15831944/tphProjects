@@ -159,7 +159,7 @@ class CCheckRegulationType(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(*)
                     from rdb_link_regulation
-                    where regulation_type not in (0,1,2)
+                    where regulation_type not in (0,1,2,3)
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)
@@ -173,10 +173,21 @@ class CCheckBoundryRegulationExist(platform.TestCase.CTestCase):
                 """
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         
+        sqlcmd = """
+                SELECT count(*)
+                FROM (
+                    SELECT DISTINCT iso_country_code
+                    FROM rdb_link
+                ) a
+                """
+        country_count = self.pg.getOnlyQueryResult(sqlcmd)
+        
         area = common.ConfigReader.CConfigReader.instance().getCountryName()
         #if area.upper() in ('NA', 'ARG', 'CHN'):
         if area.upper() in ('NA', 'MEA', 'ME8', 'ASE', 'SAF', 'SAF8', 'CHN'):
             return (rec_count > 0)
+        elif (area.upper() in ('BRA')) and (country_count > 1):
+            return  (rec_count > 0)
         else:
             return (rec_count == 0)
 

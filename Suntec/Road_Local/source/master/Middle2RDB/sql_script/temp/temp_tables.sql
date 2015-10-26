@@ -554,7 +554,7 @@ as
 	left join (
 		select m.link_id
 			,case when n.link_id is null then (((path_extra_info >> 4) & 1) << 6) | (path_extra_info & 7)
-				else (((link_add_info2 >> 6) & 1) << 7) | (((path_extra_info >> 4) & 1) << 6) | ((link_add_info2 & 7) << 3) | (path_extra_info & 7)
+				else (((path_extra_info >> 4) & 1) << 6) | (path_extra_info & 7) | (((link_add_info2 >> 6) & 1) << 7) | ((link_add_info2 & 7) << 3)
 			 end as path_extra_info
 		from rdb_link_add_info as m
 		left join rdb_link_add_info2 as n
@@ -1381,7 +1381,7 @@ as
 (
 	select cid
 		,array_agg(lid) as lid_array_org
-		,array_agg(language) as language_array
+		,array_agg(upper(language)) as language_array
 	from (
 		select a.cid,a.lid
 			,case when b.l_full_name is not null then b.language_code_client
@@ -1537,7 +1537,7 @@ CREATE TABLE temp_rdb_name
 (
   link_id bigint NOT NULL,
   name_id integer NOT NULL,
-  name    character varying(8192)
+  name    character varying(16384)
 );
 
 create table temp_link_with_length 
@@ -1734,3 +1734,17 @@ AS
 	left join rdb_link as b
 	on a.link_id = b.link_id
 );
+
+CREATE TABLE temp_hierarchy_important_links
+(
+	meshid	bigint,
+	link_id	bigint
+);
+
+CREATE TABLE temp_hierarchy_trunk_links
+(
+	meshid	bigint,
+	link_id	bigint
+);
+
+

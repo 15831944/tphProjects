@@ -1,25 +1,25 @@
 #####brand icon
-Audi
-Bajaj
-Barista
-Baskin Robbins
-Bercos
-Bikanervala
-Cafe Coffee Day
-Costa Coffee
-ICICI Bank
-Jaguar
-KFC
-Maruti Suzuki
-McDonalds
-Nirulas
-Pind Balluchi
-Pizza Hut
-Sagar Ratna
-Slice Of Italy
-Smokin Joes
-Subway
-TGI Fridays
-Thumbs
-US Pizza
-Yo China
+Audi.png
+Bajaj.png
+Barista.png
+Baskin Robbins.png
+Bercos.png
+Bikanervala.png
+Cafe Coffee Day.png
+Costa Coffee.png
+ICICI Bank.PNG
+Jaguar.png
+KFC.png
+Maruti Suzuki.PNG
+McDonalds.png
+Nirulas.PNG
+Pind Balluchi.png
+Pizza Hut.png
+Sagar Ratna.png
+Slice Of Italy.png
+Smokin Joes.png
+Subway.png
+TGI Fridays.png
+Thumbs.db
+US Pizza.png
+Yo China.png

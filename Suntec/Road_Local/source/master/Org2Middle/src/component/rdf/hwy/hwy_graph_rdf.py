@@ -25,6 +25,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_INNER
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_RTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_LTURN
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
@@ -197,7 +198,7 @@ class HwyGraphRDF(HwyGraph):
                 stack.pop()
                 visited.pop()
             elif self._outlink_is_both(child):
-                yield visited
+                yield visited + [child]
                 stack.pop()
                 visited.pop()
             else:
@@ -249,6 +250,10 @@ class HwyGraphRDF(HwyGraph):
 #                 visited.pop()
             elif (self._outlink_exist_hov(parent) and
                   self._inlink_is_hov(parent)):
+                stack.pop()
+                visited.pop()
+            elif self._inlink_is_both(parent):
+                yield visited + [parent]
                 stack.pop()
                 visited.pop()
             else:
@@ -482,12 +487,12 @@ class HwyGraphRDF(HwyGraph):
             return both_flag
         return False
 
-    def _inlink_is_both(self, u, v):
+    def _inlink_is_both(self, node):
         '''连接高速双向link.'''
         both_flag = True
         exist_both = False
         for parent, node, parent_data in self.in_edges_iter(node, True):
-            if self._is_hwy_main_link(parent_data):
+            if self.is_hwy_main_link(parent_data):
                 if self.has_edge(node, parent):
                     exist_both = True
                 else:
@@ -628,6 +633,14 @@ class HwyGraphRDF(HwyGraph):
             for path, facilcls in self._all_facil_path(node, out_node,
                                                        road_code, code_field,
                                                        reverse=True):
+                if(facilcls in (HWY_IC_TYPE_JCT,
+                                HWY_IC_TYPE_UTURN,
+                                HWY_IC_TYPE_SERVICE_ROAD
+                                ) and
+                   (self.all_is_inner_link(path, reverse=True) or
+                    self.exit_nwy_inner_link(path, reverse=True))
+                   ):
+                    continue
                 types.add((facilcls, HWY_INOUT_TYPE_IN))
         if len(out_nodes) > 1:
             raise nx.NetworkXError('Multi Out Main Links. node=%s ' % node)
@@ -639,18 +652,17 @@ class HwyGraphRDF(HwyGraph):
             for path, facilcls in self._all_facil_path(in_node, node,
                                                        road_code, code_field,
                                                        reverse=False):
+                if(facilcls in (HWY_IC_TYPE_JCT,
+                                HWY_IC_TYPE_UTURN,
+                                HWY_IC_TYPE_SERVICE_ROAD
+                                ) and
+                   (self.all_is_inner_link(path, reverse=False) or
+                    self.exit_nwy_inner_link(path, reverse=False))
+                   ):
+                    continue
                 types.add((facilcls, HWY_INOUT_TYPE_OUT))
         if len(in_nodes) > 1:
             raise nx.NetworkXError('Multi In Main Links. node=%s ' % node)
-        return types
-        # ########################
-        for path, facilcls in self._all_facil_path(node, road_code,
-                                                   code_field, reverse=True):
-            types.add((facilcls, HWY_INOUT_TYPE_IN))
-        # 出口/分歧
-        for path, facilcls in self._all_facil_path(node, road_code,
-                                                   code_field, reverse=False):
-            types.add((facilcls, HWY_INOUT_TYPE_OUT))
         return types
 
     def get_all_facil(self, node, road_code, code_field=HWY_ROAD_CODE):
@@ -724,9 +736,19 @@ class HwyGraphRDF(HwyGraph):
                not self.is_normal_inner_link(data)):
                 return True
             if self.is_normal_inner_link(data):
+                # 折返
+                if reverse:
+                    if temp_u == path[-2]:
+                        continue
+                else:
+                    if temp_v == path[-2]:
+                        continue
                 # 非一进一出
                 if(len(path) > 2 and
-                   not self._one_in_one_out(path[-1], code_field)):
+                   not self._one_in_one_out(path[-1], code_field) and
+                   not self.get_main_link(path[-1], None, code_field,
+                                          reverse=reverse)  # 该点不在本线上
+                   ):
                     return True
             if(road_type in HWY_ROAD_TYPE_HWY and  # 高速
                link_type not in (HWY_LINK_TYPE_INNER,
@@ -1216,7 +1238,7 @@ class HwyGraphRDF(HwyGraph):
                 main_nodes.append(node)
         return main_nodes
 
-    def get_normal_link(self, u, v, reverse=False):
+    def get_normal_link(self, u, v, reverse=False, ignore_inner=False):
         '''高速(Ramp)相连的一般道、。
            reverse: False,顺车流；True,逆车流
         '''
@@ -1225,13 +1247,9 @@ class HwyGraphRDF(HwyGraph):
             edges_iter = self.in_edges_iter(u, True)
         else:  # 顺
             edges_iter = self.out_edges_iter(v, True)
-        in_edge = (u, v)
+        # in_edge = (u, v)
         for temp_u, temp_v, data in edges_iter:
-            out_edge = temp_u, temp_v
-            # 夹角小于90度
-#             angle = self.get_angle(in_edge, out_edge, reverse)
-#             if not self._bigger_inout_min_angle(angle):
-#                 continue
+            # out_edge = temp_u, temp_v
             # 注：这里没有考虑角度
             if self.has_edge(temp_v, temp_u):  # 双向道路
                 if reverse:  # 逆
@@ -1242,11 +1260,13 @@ class HwyGraphRDF(HwyGraph):
             link_type = data.get(HWY_LINK_TYPE)
             road_type = data.get(HWY_ROAD_TYPE)
             if(link_type != HWY_LINK_TYPE_SAPA and
-               road_type not in HWY_ROAD_TYPE_HWY):
-                if reverse:  # 逆
-                    nodes.append(temp_u)
-                else:  # 顺
-                    nodes.append(temp_v)
+               road_type not in HWY_ROAD_TYPE_HWY and
+               not (ignore_inner and self.is_normal_inner_link(data))  # 非inner
+               ):
+                    if reverse:  # 逆
+                        nodes.append(temp_u)
+                    else:  # 顺
+                        nodes.append(temp_v)
         return nodes
 
     def is_hwy_node(self, nodeid):
@@ -1437,10 +1457,169 @@ class HwyGraphRDF(HwyGraph):
                     stack.pop()
                     visited.pop()
 
+    def get_next_street_path(self, path, reverse=False):
+        u, v = path[-2], path[-1]
+        visited = path[:]
+        ignore_inner = True
+        # 取得一般道
+        normal_nodes = self.get_normal_link(u, v, reverse, ignore_inner)
+        if normal_nodes:
+            for node in normal_nodes:
+                temp_path = visited + [node]
+                if self.check_regulation(temp_path):
+                    yield temp_path
+        # 取得inner link
+        nodes = self._get_normal_inner_link(u, v, reverse)
+        if not nodes:
+            return
+        stack = [iter(nodes)]
+        while stack:
+            children = stack[-1]
+            child = next(children, None)
+            if child is None:
+                stack.pop()
+                visited.pop()
+                continue
+            # if child == visited[-2]:  # 折返
+            #    continue
+            if child in visited:
+                continue
+            temp_path = visited + [child]
+            if not self.check_regulation(temp_path):
+                continue
+            # 取得一般道
+            normal_nodes = self.get_normal_link(visited[-1], child,
+                                                reverse, ignore_inner)
+            if normal_nodes:
+                for node in normal_nodes:
+                    if self.check_regulation(temp_path):
+                        yield temp_path + [node]
+            # 取得inner link
+            nodes = self._get_normal_inner_link(visited[-1], child,
+                                                reverse)
+            if nodes:
+                visited.append(child)
+                stack.append(iter(nodes))
 
-# ==============================================================================
+    def _get_normal_inner_link(self, u, v, reverse):
+        '''高速(Ramp)相连的一般道、。
+           reverse: False,顺车流；True,逆车流
+        '''
+        nodes = []
+        if reverse:  # 逆
+            edges_iter = self.in_edges_iter(u, True)
+        else:  # 顺
+            edges_iter = self.out_edges_iter(v, True)
+        for temp_u, temp_v, data in edges_iter:
+            if self.is_normal_inner_link(data):
+                if reverse:  # 逆
+                    nodes.append(temp_u)
+                else:  # 顺
+                    nodes.append(temp_v)
+        return nodes
+
+    def exist_ic_link(self, path, reverse=False):
+        '''Ramp/JCT/SAPA Link'''
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+            link_list = (zip(path[:-1], path[1:]))[::-1]
+        else:
+            link_list = zip(path[:-1], path[1:])
+        has_sapa_link = False
+        for u, v in link_list:
+            data = self[u][v]
+            link_type = data.get(HWY_LINK_TYPE)
+            if link_type == HWY_LINK_TYPE_SAPA:
+                has_sapa_link = True
+                continue
+            if self.has_edge(v, u):  # 双向
+                if has_sapa_link:
+                    # 先经过SAPA link，再到到双向 link (Ramp link)
+                    pass
+                else:
+                    continue
+            if link_type in (HWY_LINK_TYPE_RAMP,
+                             HWY_LINK_TYPE_JCT,
+                             ):
+                return True
+        return False
+
+    def exist_ramp_link(self, path, reverse=False):
+        '''Ramp/JCT/SAPA Link'''
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+        for u, v in zip(path[:-1], path[1:]):
+            data = self[u][v]
+            link_type = data.get(HWY_LINK_TYPE)
+            if link_type in (HWY_LINK_TYPE_RAMP,):
+                return True
+        return False
+
+    def exist_hwy_main_link(self, path, reverse=False):
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+        for u, v in zip(path[:-1], path[1:]):
+            data = self[u][v]
+            road_type = data.get(HWY_ROAD_TYPE)
+            link_type = data.get(HWY_LINK_TYPE)
+            if(road_type in HWY_ROAD_TYPE_HWY and
+               link_type in HWY_LINK_TYPE_MAIN):
+                return True
+        return False
+
+    def first_is_inner_link(self, path, reverse=False):
+        '''第一条link是一般道 Inner link.'''
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+        u, v = path[0], path[1]
+        data = self[u][v]
+        if self.is_normal_inner_link(data):
+            return True
+        return False
+
+    def all_is_inner_link(self, path, reverse=False):
+        '''所有link都是 Inner link.'''
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+        for u, v in zip(path[:-1], path[1:]):
+            data = self[u][v]
+            lint_type = data.get(HWY_LINK_TYPE)
+            if lint_type not in (HWY_LINK_TYPE_INNER,
+                                 HWY_LINK_TYPE_RTURN,
+                                 HWY_LINK_TYPE_LTURN):
+                return False
+            road_type = data.get(HWY_ROAD_TYPE)
+            if(road_type in HWY_ROAD_TYPE_HWY and
+               not self.has_edge(v, u)):  # 单向
+                return False
+        return True
+
+    def exit_nwy_inner_link(self, path, reverse=False):
+        '''有一般道inner link'''
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+        for u, v in zip(path[:-1], path[1:]):
+            data = self[u][v]
+            if self.is_normal_inner_link(data):
+                return True
+        return False
+
+
+# =============================================================================
 #
-# ==============================================================================
+# =============================================================================
 def is_cycle_path(path):
     '''线路是环型的'''
     if len(path) > 2 and path[0] == path[-1]:

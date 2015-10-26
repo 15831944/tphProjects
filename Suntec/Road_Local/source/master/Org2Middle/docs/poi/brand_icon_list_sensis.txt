@@ -37,7 +37,6 @@ Coles
 Coles Express
 Comfort
 Commonwealth Bank of Australia
-Commonwealth Bank of Australia
 Country Comfort
 Dan Murphy's
 Darrell Lea
@@ -49,11 +48,9 @@ Econo Lodge
 Family Parks
 Freedom Fuels
 Golden Chain
-Golden Chain
 Goodyear Autocare
 Goodyear Auto Service Centre
 Grand Mercure
-Gull
 Gull
 Harvey Norman
 Heritage Bank
@@ -98,8 +95,7 @@ Quay West
 rediATM  
 SA Caravan Parks Assoc. 
 Saab  
-Secure Parking 
-Select  
+Secure Parking   
 Sensis
 Shell  
 Select
@@ -107,7 +103,6 @@ Sofitel
 St George 
 Suncorp
 Sundowner
-Telstra
 Telstra
 The Sebel
 Thomas Dux

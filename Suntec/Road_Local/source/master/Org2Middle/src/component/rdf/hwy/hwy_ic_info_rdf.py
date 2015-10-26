@@ -303,7 +303,7 @@ class HwyICInfoRDF(HwyICInfo):
             else:
                 # 没有接续设施
                 self.log.error('No Conn_Facility. s_node=%s, t_node=%s'
-                              % (node_lid[0], node_lid[-1]))
+                               % (node_lid[0], node_lid[-1]))
 
     def _get_conn_facil(self, s_node, t_node, inout):
         facil_cls = self.first_facil.facilcls

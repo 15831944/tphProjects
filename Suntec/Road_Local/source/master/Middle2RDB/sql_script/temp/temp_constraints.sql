@@ -888,3 +888,34 @@ CREATE INDEX org_rtic_linkid_idx
 	on org_rtic
 	using btree
 	(linkid);
+
+CREATE INDEX temp_hierarchy_mesh_links_link_id_idx
+	on temp_hierarchy_mesh_links
+	using btree
+	(link_id);
+  
+CREATE INDEX temp_hierarchy_mesh_links_meshid_idx
+	on temp_hierarchy_mesh_links
+	using btree
+	(meshid);
+  
+CREATE INDEX temp_hierarchy_mesh_links_start_node_id_idx
+	on temp_hierarchy_mesh_links
+	using btree
+	(start_node_id);
+  
+CREATE INDEX temp_hierarchy_mesh_links_end_node_id_idx
+	on temp_hierarchy_mesh_links
+	using btree
+	(end_node_id);
+  
+CREATE INDEX temp_hierarchy_important_links_link_id_idx
+	on temp_hierarchy_important_links
+	using btree
+	(link_id);
+  
+CREATE INDEX temp_hierarchy_trunk_links_link_id_idx
+	on temp_hierarchy_trunk_links
+	using btree
+	(link_id);
+	

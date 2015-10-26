@@ -13,6 +13,7 @@ import platform.CaseReadWriter
 import common.ConfigReader
 import os
 import json
+from TAP.tap_processor import *
 
 class CTestCaseManager:
     __instance = None
@@ -98,49 +99,49 @@ class CTestCaseManager:
                     time.sleep(1.0)
         self.logger.info("Executing caselist end.")
     def __saveReportForJson(self):
-        
-        sheet_id_dict = self.objCaseReadWriter.getsheet_name_dict()
+
         base_path = common.ConfigReader.CConfigReader.instance().getPara('json_path')
+        if not os.path.exists(base_path):
+            os.makedirs(base_path)
         file_path = os.path.join(base_path, common.ConfigReader.CConfigReader.instance().getDBName())
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
+        list_route = list()
+        list_highway = list()
+        list_guide = list()
+
         for suitename in self.suitelist:
-            
-            nOK_list = list()
-            nFAIL_list = list()
-            nBLOCK_list = list()
-            nocheck_list = list()
-                  
-            objSuite = self.suitecontent[suitename]
+            list_temp = list()
+            objSuite = self.suitecontent[suitename]               
             caselist = objSuite.getCaseList()
             for objCase in caselist:
                 if objCase.isOK():
-                    nOK_list.append(objCase.getCaseID_unique())
-                elif objCase.isFAIL():
-                    nFAIL_list.append(objCase.getCaseID_unique())
+                    list_temp.append([TAP_OK,suitename + '::' + objCase.get_combin_keys()])
                 else:
-                    nBLOCK_list.append(objCase.getCaseID_unique())
+                    list_temp.append([TAP_NG,suitename + '::' + objCase.get_combin_keys()])
             
-            nocheck_list = objSuite.getNoRuncase()
+            list_temp = objSuite.getNoRuncase()
             
-            caseid = sheet_id_dict[suitename]                
-            file_temp = open(os.path.join(file_path, caseid),"w")
-            
-            case_list_dict = dict()
-            case_list_dict["OK"] = nOK_list
-            case_list_dict["NG"] = nFAIL_list
-            case_list_dict["WARN"] = nBLOCK_list
-            case_list_dict["NOCHECK"] = nocheck_list
-            
-            caseid_dict = dict()
-            caseid_dict[caseid] = case_list_dict
-            
-            rst_json = json.dumps(caseid_dict,ensure_ascii = False,indent = 4)
-            file_temp.write(rst_json + '\n')
-                
-            file_temp.close()
+            if suitename.find("rdb_guide") == 0 :
+                list_guide.extend(list_temp)               
+            elif suitename.find("rdb_highway") == 0 :
+                list_highway.extend(list_temp)               
+            else:
+                list_route.extend(list_temp)
+        #write file
         
-        return 0
+        pg_ptocessor = TAP_Processor()
+        pg_ptocessor.addResultList(list_route)
+        pg_ptocessor.dump2file(file_path + "_route.tap")
+        pg_ptocessor.clear()
+        
+        pg_ptocessor.addResultList(list_guide)
+        pg_ptocessor.dump2file(file_path + "_guide.tap")
+        pg_ptocessor.clear()
+        
+        pg_ptocessor.addResultList(list_highway)
+        pg_ptocessor.dump2file(file_path + "_highway.tap")
+        pg_ptocessor.clear()
+              
+        return 0      
         
     def __saveReport(self):
         allsuiteinfo = []

@@ -48,6 +48,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
         self.pg.commit()
 
     def _loadPOICategory(self):
+        self.log.info('make temp_poi_category...')
         category_file_path = common.config.CConfig.instance().getPara('POI_Code')
         if category_file_path:
             self.log.info('make temp_poi_category...')
@@ -75,23 +76,6 @@ class comp_guideinfo_building(component.component_base.comp_base):
         
   
     def _loadCategoryPriority(self):
-        self.log.info('make temp_category_priority...')
-        self.CreateTable2('temp_category_priority')
-        category_priority_file_path = common.config.CConfig.instance().getPara('category_priority')
-        for line in open(category_priority_file_path):            
-            line = line.strip()               
-            if line[0] == '#':
-                continue
-            fields = line.split(';')            
-            sqlcmd = '''
-                      insert into temp_category_priority values(%s,%s);
-                     '''
-            self.pg.execute(sqlcmd, fields)
-        self.pg.commit()  
- 
-  
-
-    def _loadCategoryPriority1(self):
         self.log.info('make temp_category_priority...')
         self.CreateTable2('temp_org_category_priority')
         category_priority_file_path = common.config.CConfig.instance().getPara('category_priority')

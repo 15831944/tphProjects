@@ -2,14 +2,16 @@
 # proj_rdf
 jv_flag=by_file
 text_filter={'RDF_ASE':"THA:[THA,THE]||SGP:[ENG,SEN]||MYS:[MAY]||IDN:[IND]||BRN:[MAY]||PHL:[ENG]||VNM:[VIE,VIX,ENG]||DEFAULT:[ENG]"}
-gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\gjv.csv
-ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\all_jv.csv
+gjvCsvPath=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\Here\14Q4\illust\gjv.csv
+ejvCsvPath=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\Here\14Q4\illust\all_jv.csv
 strInterestCountryList=SGP,THA,MYS,IDN,VNM,PHL,BRN
-sign_as_real_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\sign_as_real.csv
+sign_as_real_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\Here\14Q4\illust\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV
-forceguide_patch_full_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\forceguide_patch\temp_patch_force_guide_tbl.csv
-all_sign_as_real_file_name=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\all_sar_files_name.csv
+forceguide_patch_full_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\Here\14Q4\forceguide_patch\temp_patch_force_guide_tbl.csv
+all_sign_as_real_file_name=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\Here\14Q4\illust\all_sar_files_name.csv
 accident_flag=true
-illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\ASE\Here\14Q4\illust\pic
+illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\ASE\Here\14Q4\illust\pic
 #pointlist=
+POI_Code=..\docs\poi\category_rdf_sea.txt
+hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_ase.xls
 #################################################################

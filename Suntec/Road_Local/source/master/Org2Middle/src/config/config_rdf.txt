@@ -4,8 +4,8 @@
 #proj_country=hkg
 #junctionview_data=\\172.26.179.195\share\SourceData\AP_rdf\HKGMAC\14Q1
 #jv_flag=by_file
-#gjvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\gjv.csv
-#ejvCsvPath=\\idata\Private\Data_Authoring\SourceData\MEA_rdf\MEA8\14Q4\illust\all_jv.csv
+#gjvCsvPath=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\MEA8\HERE\14Q4\illust\gjv.csv
+#ejvCsvPath=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\MEA8\HERE\14Q4\illust\all_jv.csv
 #strInterestCountryList=ARE,BHR,KWT,OMN,QAT,SAU
 #sign_as_real_path=\\172.26.179.195\share\SourceData\MEA_rdf\MEA8\14Q3\sign_as_real.csv
 #csv_path=..\..\..\..\SourceData\rdf\CSV

@@ -894,145 +894,118 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION rdb_cal_link_forecast_time(temp_table character varying,target_table character varying)
-  RETURNS integer 
+CREATE OR REPLACE FUNCTION rdb_cal_forecast_time(free_time integer, time_list_array text[])
+  RETURNS integer[]
   LANGUAGE plpgsql VOLATILE
 AS $$ 
 DECLARE
-	rec		record;
 	i		integer;
 	j		integer;
 	len		integer;
-	curs 		refcursor;	
-	slot_seq_weekday	integer;
-	slot_seq_weekend	integer;
-		
-	link_id 		bigint;
-	dir 			smallint;
-	free_time		int;
-	weekday_time 		int;
-	weekend_time 		int;	
-	average_time		int;
+	num		integer;
 	
-	cur_time_slot		smallint;
-	cur_seq_list		character varying;
-	cur_weekday_list	character varying;	
-	cur_weekend_list	character varying;
-	next_weekday_list	character varying;	
-	next_weekend_list	character varying;	
-	weekday_array		character varying[];
-	weekend_array		character varying[];
+	cur_time_list		character varying;	
+	next_time_list		character varying;		
+	time_array		character varying[];
 
-	next_weekday		int;
-	next_weekend		int;
-	weekday_dst		int;
-	weekend_dst		int;
-	weekday_dst_array	int[];
-	weekend_dst_array	int[];
+	slot_seq		int;
+	next_time		int;
+	time_dst		int;
+	time_dst_array		int[];
 
 BEGIN
 	i := 1;
 
-	open curs for execute 
-	'select * from ' || quote_ident(temp_table);
+	--- loop.for different parts of the same link, combine time in the same time slot, when its time exceeds 5min, fetch the next time slot's time.
+	time_dst_array := '{}';
 	
-	fetch curs into rec;
-	
-	while rec.link_id is not null 
-	LOOP	
-		--- loop.for different parts of the same link, combine time in the same time slot, when its time exceeds 15min, fetch the next time slot's time.
-		link_id := rec.link_id;
-		dir := rec.dir;
-		free_time := rec.free_time;
-		weekday_time := rec.weekday_time;
-		weekend_time := rec.weekend_time;
-		average_time := rec.average_time;
--- 		raise info 'link_id:%,dir:%,free_time:%,weekday_time:%,weekend_time:%,average_time:%',link_id,dir,free_time,weekday_time,weekend_time,average_time;
-		weekday_dst_array := '{}';
-		weekend_dst_array := '{}';
+	len := array_upper(time_list_array,1);
+	for i in 1..len loop
+		cur_time_list := time_list_array[i];
 		
-		len := array_upper(rec.time_slot_array,1);
-		for i in 1..len loop
-			cur_time_slot := rec.time_slot_array[i];
-			cur_seq_list :=  rec.seq_list_array[i];
-			cur_weekday_list := rec.weekday_list_array[i];
-			cur_weekend_list := rec.weekend_list_array[i];
+		time_array := string_to_array(cur_time_list,'|');
 
-			weekday_array := string_to_array(cur_weekday_list,'|');
-			weekend_array := string_to_array(cur_weekend_list,'|');
+		time_dst := 0;
 
-			weekday_dst := 0;
-			weekend_dst := 0;
--- 			raise info '-----time_slot:%',i;
-			for j in 1..array_upper(weekday_array,1) loop	
--- 				raise info '-----seq:%',j;
+		num := array_upper(time_array,1);
+		for j in 1..num loop	
+-- 			raise info '-----seq:%',j;
 
-				--- weekday time.
-				slot_seq_weekday := weekday_dst / 900;
--- 				raise info '	pre_weekdaytime:%, cur_weekdaytime:%,slot_seq_weekday:%',weekday,cast(weekday_array[j] as int),slot_seq_weekday;
-				next_weekday_list := rec.weekday_list_array[i + slot_seq_weekday];
-				if slot_seq_weekday > 0 and (string_to_array(next_weekday_list,'|'))[j] is not null then
-					next_weekday := (string_to_array(next_weekday_list,'|'))[j]::smallint;
--- 					raise info '		add next slot weekdaytime:%',(string_to_array(next_weekday_list,'|'))[j]::int;	
-				else
-					if weekday_array[j] is not null then
-						next_weekday := weekday_array[j]::smallint;
-					else 
-						weekday_dst := weekday_time;
-					end if;
--- 					raise info '		add cur slot weekdaytime:%',weekday_array[j]::smallint;
+			slot_seq := time_dst / 300;
+-- 				raise info '	cur_time:%,slot_seq:%',cast(time_array[j] as int),slot_seq;
+			next_time_list := time_list_array[i + slot_seq];
+			if slot_seq > 0 and (string_to_array(next_time_list,'|'))[j] is not null then
+				next_time := (string_to_array(next_time_list,'|'))[j]::int;
+-- 					raise info '		add next slot time:%',(string_to_array(next_time_list,'|'))[j]::int;	
+			else
+				if time_array[j] is not null then
+					next_time := time_array[j]::int;
+				else 
+					time_dst := free_time;
 				end if;
-
-				weekday_dst := weekday_dst + next_weekday;
--- 				raise info '	next_weekdaytime:%',weekday;
-
-				--- weekend time.
-				slot_seq_weekend := weekend_dst / 900;
--- 				raise info '	pre_weekendtime:%, cur_weekendtime:%,slot_seq_weekend:%',weekend,cast(weekend_array[j] as int),slot_seq_weekend;
-				next_weekend_list := rec.weekend_list_array[i + slot_seq_weekend];
-				if slot_seq_weekend > 0 and (string_to_array(next_weekend_list,'|'))[j] is not null then
-					next_weekend := (string_to_array(next_weekend_list,'|'))[j]::smallint;
--- 					raise info '		add next slot weekendtime:%',(string_to_array(next_weekend_list,'|'))[j]::int;
-				else
-					if weekend_array[j] is not null then
-						next_weekend := weekend_array[j]::smallint;
-					else 
-						next_weekend := 0;
-					end if;				
--- 					raise info '		add cur slot weekendtime:%',weekend_array[j]::smallint;
-				end if;
-
-				weekend_dst := weekend_dst + next_weekend;
--- 				raise info '	next_weekendtime:%',weekend;
-				
-				j := j + 1;
-	
-			end loop;
-
-			--- get weekday&weekend array for current time_slot
-			if round(weekend_dst - free_time) >= 0 then 
-				weekend_dst_array := array_append(weekend_dst_array,round(weekend_dst - free_time)::smallint);
-			else 
-				weekend_dst_array := array[NULL];
+-- 					raise info '		add cur slot time:%',time_array[j]::int;
 			end if;
-			
-			weekday_dst_array := array_append(weekday_dst_array,round(weekday_dst - free_time)::smallint);
-			
-			i := i + 1;
+
+			time_dst := time_dst + next_time;
+
+			j := j + 1;
+
 		end loop;
 
-		if weekend_dst_array[1] is null then
-			execute 'insert into ' || quote_ident(target_table) || '(link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot_array,weekday_diff_array) 	
-			values('||link_id||','||dir||','||free_time||','||weekday_time||','||weekend_time||','||average_time||','||quote_literal(rec.time_slot_array)||','||quote_literal(weekday_dst_array)||')';
-		else
-			execute 'insert into ' || quote_ident(target_table) || '(link_id,dir,free_time,weekday_time,weekend_time,average_time,time_slot_array,weekday_diff_array,weekend_diff_array) 	
-			values('||link_id||','||dir||','||free_time||','||weekday_time||','||weekend_time||','||average_time||','||quote_literal(rec.time_slot_array)||','||quote_literal(weekday_dst_array)||','||quote_literal(weekend_dst_array)||')';
+		--- get time array for current time_slot
+		if round(time_dst - free_time) >= 0 then 
+			time_dst_array := array_append(time_dst_array,round(time_dst - free_time)::int);
+		else 
+			time_dst_array := array[NULL];
 		end if;
 		
-		fetch curs into rec;
-	END LOOP;
+		i := i + 1;
+	end loop;
 
-	close curs;
-	return 1;	
+
+	return time_dst_array;	
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rdb_locate_to_tile(	point_geom geometry, z integer,
+												out tx integer, out ty integer)
+  LANGUAGE plpgsql
+AS $$ 
+DECLARE
+	 PI double precision;
+     x double precision;
+     y double precision;
+     lon double precision;
+     lat double precision;
+BEGIN
+	PI := 3.1415926535897931;
+	
+	lon = ST_X(point_geom);
+	lat = ST_Y(point_geom);
+	
+	x = lon / 360. + 0.5;
+	y = ln(tan(PI / 4. + radians(lat) / 2.));
+	y = 0.5 - y / 2. / PI;
+
+	tx = cast(floor(x * (1<<z)) as integer);
+	ty = cast(floor(y * (1<<z)) as integer);
+END;
+$$;
+
+create or replace function rdb_get_meshid_by_zlevel(tx_16 int, ty_16 int, z_level int, tile_offset int)
+	returns bigint
+	LANGUAGE plpgsql
+AS $$ 
+DECLARE
+	target_tile_x int;
+	target_tile_y int;
+	target_tile_id bigint;
+BEGIN
+	target_tile_x := (tx_16 + tile_offset) >> (16 - z_level);
+	target_tile_y := (ty_16 + tile_offset) >> (16 - z_level);
+	
+	target_tile_id := (z_level::bigint << 32) | (target_tile_x << 16) | target_tile_y;
+	
+	return target_tile_id;
 END;
 $$;

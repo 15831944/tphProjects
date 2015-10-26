@@ -128,24 +128,24 @@ class comp_dictionary_zenrin(component.default.dictionary.comp_dictionary):
                 #不能continue
             if asso_rec[10]:
                 if name._isroutenum(asso_rec[10]):
-                    name._add_name('route_num','CHT',asso_rec[10],'PYM',asso_rec[11])
+                    name._add_name('route_num','CHT',asso_rec[10],'BPM',asso_rec[11])
                 else:
-                    name._add_name('office_name','CHT',asso_rec[10],'PYM',asso_rec[11])
+                    name._add_name('office_name','CHT',asso_rec[10],'BPM',asso_rec[11])
             if asso_rec[12]:
                 if name._isroutenum(asso_rec[12]):
-                    name._add_name('route_num','CHT',asso_rec[12],'PYM',asso_rec[13])
+                    name._add_name('route_num','CHT',asso_rec[12],'BPM',asso_rec[13])
                 else:
-                    name._add_name('office_name','CHT',asso_rec[12],'PYM',asso_rec[13])
+                    name._add_name('office_name','CHT',asso_rec[12],'BPM',asso_rec[13])
             if asso_rec[7]:
                 name._add_name('office_name','CHT', asso_rec[7], None , None)
                 name._add_name('route_num','CHT', asso_rec[8], None, None)
             if asso_rec[2]:
                 if asso_rec[2]==2:
-                    name._add_name('bridge_name', 'CHT', asso_rec[3], 'PYM', asso_rec[4])
+                    name._add_name('bridge_name', 'CHT', asso_rec[3], 'BPM', asso_rec[4])
                 else:
-                    name._add_name('office_name', 'CHT', asso_rec[3], 'PYM', asso_rec[4])
+                    name._add_name('office_name', 'CHT', asso_rec[3], 'BPM', asso_rec[4])
             if asso_rec[5]:
-                name._add_name('office_name','CHT', asso_rec[5], 'PYM', asso_rec[6])
+                name._add_name('office_name','CHT', asso_rec[5], 'BPM', asso_rec[6])
             if name.name_id_array:
                 #print asso_rec
                 #print self.name_id_array,self.name_type_array,self.language_code_array,self.name_array,self.phonetic_lang_array,self.phonetic_string_array
@@ -192,10 +192,10 @@ class comp_dictionary_zenrin(component.default.dictionary.comp_dictionary):
                         self.log.warning('more than 1 route num ! meshcode=%s and linkno=%d' % (asso_rec[0],asso_rec[1]))
                         continue
                     shield_num=shield._make_shield_num(asso_rec[3])
-                    shield._add_name('shield', 'CHT', shield_num, 'PYM', asso_rec[4])
+                    shield._add_name('shield', 'CHT', shield_num, 'BPM', asso_rec[4])
                 if shield._isroutenum(asso_rec[5]):
                     shield_num=shield._make_shield_num(asso_rec[5])
-                    shield._add_name('shield', 'CHT', shield_num, 'PYM', asso_rec[6])
+                    shield._add_name('shield', 'CHT', shield_num, 'BPM', asso_rec[6])
             if shield.name_id_array:
                 json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(shield.name_id_array, 
                                                                                                  shield.name_type_array, 

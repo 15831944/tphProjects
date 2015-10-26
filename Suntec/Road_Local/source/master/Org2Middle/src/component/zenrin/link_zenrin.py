@@ -88,7 +88,7 @@ class comp_link_zenrin(component.component_base.comp_base):
                  when Substr(elcode,5,1)='3' then 3 else 0 end as structure,
             case when Substr(elcode,5,1)='2' and not (b.meshcode is not null and c.meshcode is null) then 1 else 0 end as tunnel,
             0 as rail_cross,
-            0 as paved,
+            1 as paved,
             0 as uturn,
             case when one_way_code in (1,2) and f.meshcode is not null then f.speed 
                 else 0 end as speed_limit_s2e,

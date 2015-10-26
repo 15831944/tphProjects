@@ -1083,3 +1083,13 @@ CREATE INDEX mid_hwy_ic_no_node_id_road_code_road_seq_updown_idx
   ON mid_hwy_ic_no
   USING btree
   (node_id, road_code, road_seq, updown);
+  
+CREATE INDEX temp_highway_sapa_link_s_node_idx
+  on temp_highway_sapa_link
+  using btree
+  (s_node);
+
+CREATE INDEX temp_highway_sapa_link_e_node_idx
+  on temp_highway_sapa_link
+  using btree
+  (e_node);

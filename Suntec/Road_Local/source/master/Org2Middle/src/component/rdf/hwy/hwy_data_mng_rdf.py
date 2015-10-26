@@ -44,8 +44,7 @@ def get_road_name(json_name):
         return road_names
     for names in json.loads(json_name):
         for name_dict in names:
-            if(name_dict.get("tts_type") == "not_tts" and
-               name_dict.get("type") != "route_num"):
+            if name_dict.get("tts_type") == "not_tts":
                 road_names.append(name_dict)
                 break  # 翻译不要
     return road_names
@@ -1171,6 +1170,9 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.pg.execute1(sqlcmd, (path_id, updown))
         row = self.pg.fetchone()
         return row[0]
+
+    def load_signpost(self):
+        return
 
 # 加洲
 California_BOX = """ WHERE the_geom && ST_SetSRID(ST_MakeBox2D(ST_Point(-119.040,34.586),

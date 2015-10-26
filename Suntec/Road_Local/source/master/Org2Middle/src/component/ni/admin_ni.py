@@ -33,6 +33,7 @@ class comp_admin_ni(component.component_base.comp_base):
         self.__get_order0()
         self._get_Municipalities()
         self.__insert_into_admin()
+        self.__do_admin_order0_iso_country_mapping()
         
         return 0
     
@@ -256,6 +257,27 @@ class comp_admin_ni(component.component_base.comp_base):
         self.CreateIndex2('mid_admin_zone_order8_id_idx')
         self.CreateIndex2('mid_admin_zone_the_geom_idx')
  
+        return 0
+    
+    def __do_admin_order0_iso_country_mapping(self):
+        self.log.info('start to make order0 and iso_country mapping')
+        
+        sqlcmd = """
+                INSERT INTO rdb_admin_order0_iso_country_mapping(order0_id, iso_country_code)
+                (
+                    SELECT distinct order1_id, case when order1_id = 810000 then 'HKG'
+                                                when order1_id = 820000 then 'MAC'
+                                                ELSE 'CHN' end as iso_country_code
+                    FROM mid_admin_zone
+                    WHERE ad_order = 1
+                );
+                """
+        if self.pg.execute2(sqlcmd) == -1:
+            return -1
+        else:
+            self.pg.commit2()
+
+        self.log.info('end to make order0 and iso_country mapping')
         return 0
      
         

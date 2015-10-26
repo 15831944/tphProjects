@@ -24,6 +24,7 @@ from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF
 from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF_HKG
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
+from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFMea
 from component.rdf.hwy.hwy_mapping_rdf import HwyMappingRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyICInfoRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryOutInfoRDF
@@ -71,7 +72,10 @@ class HighwayRDF(Highway):
             self.hwy_route = HwyRouteRDF_HKG(self.data_mng)
         else:
             self.hwy_route = HwyRouteRDF(self.data_mng)
-        self.hwy_facil = HwyFacilityRDF(self.data_mng)
+        if country in ("MEA", "MEA8"):
+            self.hwy_facil = HwyFacilityRDFMea(self.data_mng)
+        else:
+            self.hwy_facil = HwyFacilityRDF(self.data_mng)
         self.hwy_mapping = HwyMappingRDF(self)
         self.hwy_exit_poi = HwyPoiExitNameRDF()
         self.hwy_exit = HwyExitNameRDF()
@@ -153,6 +157,7 @@ class HighwayRDF(Highway):
             self.data_mng.load_tollgate()
             self.data_mng.load_hwy_inout_link()
             self.data_mng.load_hwy_regulation()
+            self.data_mng.load_signpost()
             # ########################################
             self.hwy_facil.Make()
 

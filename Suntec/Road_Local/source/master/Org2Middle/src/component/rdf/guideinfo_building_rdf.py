@@ -13,6 +13,7 @@ import component.default.multi_lang_name
 import component.default.guideinfo_building
 
 import common.config
+import common.common_func
 
 class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guideinfo_building):
     def __init__(self):
@@ -24,7 +25,7 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
     def _Do(self):
               
         self._loadPOICategory()
-        self._loadCategoryPriority1()
+        self._loadCategoryPriority()
         self._makeTempPoi()
         self._findLogmark()
         self._makePOIName()
@@ -62,15 +63,47 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
             join temp_category_priority as p
             on p.per_code = tpc.per_code and p.category_priority in (1,2,4)
         
-        
-        
             '''
+        
+        sqlcmd = self.create_sqlcmd(sqlcmd)
+
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         
         self.CreateIndex2('temp_poi_logmark_poi_id_idx')
     
-    
+    def create_sqlcmd(self,sqlcmd):
+        
+        proj_name = common.common_func.GetProjName()
+        proj_country = common.common_func.getProjCountry()
+            
+        sqlcmd_poi_icon = '''
+            union
+            select distinct a.poi_id
+            from temp_rdf_poi as a
+            join 
+            (
+                select distinct poi_id 
+                from rdf_poi_chains 
+            ) ch
+            on a.poi_id = ch.poi_id
+            join temp_poi_category as tpc 
+            on tpc.org_code = a.cat_id and tpc.chain = a.chain 
+            and tpc.sub = a.sub and tpc.cuisine = a.cuisine and tpc.building = a.building
+            left join rdf_file_feature as b
+            on a.poi_id = b.feature_id
+            join rdf_file as c
+            on c.file_id = b.file_id
+            where c.file_type > 18 and  c.file_type < 24 and b.owner = 'P'
+      
+            
+        '''
+        
+        if proj_name.lower() == 'rdf' and  proj_country.lower() in ['mea','me8','arg','bra']:
+            return sqlcmd
+        else:
+            return sqlcmd + sqlcmd_poi_icon
+            
     def _makeTempPoi(self):
         
         sqlcmd = '''

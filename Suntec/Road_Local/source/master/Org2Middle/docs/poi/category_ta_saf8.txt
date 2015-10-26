@@ -1,4 +1,4 @@
-#per_code;is_brand;gen1;gen2;gen3;level;name;genre_type;org_code;sub;brand_name;lang;filename
+#per_code;is_brand;gen1;gen2;gen3;level;name;genre_type;org_code;sub_category;brand_name;lang;filename
 1;N;1;0;0;0;Restaurant;;7315;0;0;ENG;
 2;N;1;1;0;1;All Restaurant;0;0;0;0;ENG;
 3;N;1;2;0;1;Bistro;;7315;7315007;0;ENG;
@@ -16,7 +16,7 @@
 15;Y;1;4;10;2;London Pie Co.;;7315;7315015;London Pie Co.;ENG;
 16;Y;1;4;11;2;McDonald's;;7315;7315015;McDonald's;ENG;
 17;Y;1;4;12;2;Mochachos Chicken Villages;;7315;7315015;Mochachos Chicken Villages;ENG;
-18;Y;1;4;13;2;Nando's;;7315;7315015;Nando's;ENG;
+18;Y;1;4;13;2;Nando's;;7315;7315015;Nando's;ENG;Nando's
 19;Y;1;4;14;2;Pie City;;7315;7315015;Pie City;ENG;
 20;Y;1;4;15;2;Scooters Pizza;;7315;7315015;Scooters Pizza;ENG;
 21;Y;1;4;16;2;Something Fishy;;7315;7315015;Something Fishy;ENG;
@@ -44,21 +44,21 @@
 43;N;2;7;0;1;Parking Garage;;7313;0;0;ENG;
 44;N;2;8;0;1;Petrol Station;;0;0;0;ENG;
 45;N;2;8;1;2;All Petrol Station;0;0;0;0;ENG;
-46;Y;2;8;2;2;BP;;7311;0;BP;ENG;
-47;Y;2;8;3;2;Caltex;;7311;0;Caltex;ENG;
+46;Y;2;8;2;2;BP;;7311;0;BP;ENG;BP
+47;Y;2;8;3;2;Caltex;;7311;0;Caltex;ENG;Caltex
 48;Y;2;8;4;2;Engen;;7311;0;Engen;ENG;
 49;Y;2;8;5;2;Exel;;7311;0;Exel;ENG;
 50;Y;2;8;6;2;Galp;;7311;0;Galp;ENG;
 51;Y;2;8;7;2;Petromoc;;7311;0;Petromoc;ENG;
 52;Y;2;8;8;2;Puma;;7311;0;Puma;ENG;
 53;Y;2;8;9;2;Sasol;;7311;0;Sasol;ENG;
-54;Y;2;8;10;2;Shell;;7311;0;Shell;ENG;
+54;Y;2;8;10;2;Shell;;7311;0;Shell;ENG;Shell
 55;Y;2;8;11;2;Total;;7311;0;Total;ENG;
 56;Y;2;8;12;2;Zenex;;7311;0;Zenex;ENG;
 57;N;2;8;13;2;Unspecified;;7311;0;0;ENG;
 58;N;2;9;0;1;Rent-a-Car Facility;;0;0;0;ENG;
 59;N;2;9;1;2;All Rent-a-Car Facility;0;0;0;0;ENG;
-60;Y;2;9;2;2;Avis;;7312;0;Avis;ENG;
+60;Y;2;9;2;2;Avis;;7312;0;Avis;ENG;Avis
 61;Y;2;9;3;2;Budget;;7312;0;Budget;ENG;
 62;Y;2;9;4;2;Europcar;;7312;0;Europcar;ENG;
 63;Y;2;9;5;2;Hertz;;7312;0;Hertz;ENG;

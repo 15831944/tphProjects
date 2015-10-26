@@ -449,7 +449,7 @@ BEGIN
 	        WHEN ft = 2 THEN 11
 			WHEN fow in (14,15) THEN 8
 			WHEN privaterd = 1 THEN 7
-	    	WHEN routable = '0' THEN 7
+	    	WHEN routable = '0' THEN 14
 	    	WHEN frc = 0 and freeway = 1 THEN 0
 	    	---WHEN fow = 27 THEN 5
 	    	WHEN frc in (0,1) or ftr_cry in('NHY','CTN','NGQ','CGQ') THEN 2

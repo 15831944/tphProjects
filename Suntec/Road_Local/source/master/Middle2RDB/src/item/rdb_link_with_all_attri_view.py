@@ -92,6 +92,20 @@ class rdb_link_with_all_attri_view(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
 
+        self.CreateFunction2('rdb_merge_common_link_attribute')
+        
+        self.CreateFunction2('rdb_smallint_2_octal_bytea')
+        self.CreateFunction2('rdb_integer_2_octal_bytea')
+        self.CreateFunction2('rdb_makeshape2bytea')
+        self.CreateFunction2('rdb_split_tileid')
+        self.CreateFunction2('lonlat2pixel_tile')
+        self.CreateFunction2('lonlat2pixel')
+        self.CreateFunction2('tile_bbox')
+        self.CreateFunction2('world2lonlat')
+        self.CreateFunction2('lonlat2world')
+        self.CreateFunction2('pixel2world')       
+        self.CreateFunction2('rdb_makeshape2pixelbytea')
+        
         sqlcmd = """
             INSERT INTO rdb_link_with_all_attri_view (
                    gid, link_id, link_id_t, display_class, start_node_id,
@@ -121,32 +135,37 @@ class rdb_link_with_all_attri_view(ItemBase):
                    END) AS regulation_exist_state,
                    (rdb_calc_length_by_unit(a.link_length))[2] AS link_length_modify,
                    (rdb_calc_length_by_unit(a.link_length))[1] AS link_length_unit,
-                   c.geom_blob,
+                   rdb_makeshape2pixelbytea(14::smallint, (a.link_id_t >> 14) & 16383, (a.link_id_t & 16383), a.the_geom ) as geom_blob,
                    (CASE
-                  WHEN ((a.extend_flag >> 1) & 1::smallint) = 1 THEN true
-                  ELSE false
-                END) AS pdm_flag, c.common_main_link_attri,
+                      WHEN ((a.extend_flag >> 1) & 1::smallint) = 1 THEN true
+                      ELSE false
+                    END) AS pdm_flag, 
+                    rdb_merge_common_link_attribute(
+                                            a.extend_flag,
+                                            a.toll,
+                                            a.function_code,
+                                            a.road_type, 
+                                            a.display_class
+                                            ),
                     a.extend_flag::integer & 1 AS pass_side,
                     (a.extend_flag >> 1)::integer & 1 AS admin_wide_regulation,
                     (a.extend_flag >> 2)::integer & 7 AS region_cost,
-                (a.extend_flag >> 5)::integer & 2047 AS reserve,
-                case when a.one_way in (0,1) then (4 - d.ops_width)
-                     when a.one_way = 2 then (4 - d.ops_width)
-                     when a.one_way = 3 then (4 - d.neg_width)
-                     else 0
-                end as width,
-                (case when e.link_id is null then -1 else e.s_link_id end) as s_sequence_link_id,
-                (case when e.link_id is null then -1 else e.e_link_id end) as e_sequence_link_id,
-                (case when f.abs_link_id is null then 0 else f.abs_link_id end) as abs_link_id,
-                (case when g.link_id is null then false else true end) as forecast_flag,
-                a.the_geom_4096
+                    (a.extend_flag >> 5)::integer & 2047 AS reserve,
+                    case when a.one_way in (0,1) then (4 - d.ops_width)
+                         when a.one_way = 2 then (4 - d.ops_width)
+                         when a.one_way = 3 then (4 - d.neg_width)
+                         else 0
+                    end as width,
+                    (case when e.link_id is null then -1 else e.s_link_id end) as s_sequence_link_id,
+                    (case when e.link_id is null then -1 else e.e_link_id end) as e_sequence_link_id,
+                    (case when f.abs_link_id is null then 0 else f.abs_link_id end) as abs_link_id,
+                    (case when g.link_id is null then false else true end) as forecast_flag,
+                    a.the_geom_4096
               FROM rdb_link a
               LEFT JOIN temp_rdb_link_regulation_exist_state b
               ON a.link_id = b.link_id
               LEFT JOIN temp_rdb_link_bigint_2_int_mapping m
               ON a.link_id_t = m.link_id_t AND a.link_id = m.link_id
-              LEFT JOIN rdb_link_client c
-              ON m.link_id_t = c.link_id_t AND m.link_id_32 = c.link_id
               LEFT JOIN rdb_linklane_info d
               ON a.lane_id = d.lane_id
               LEFT JOIN rdb_link_sequence e

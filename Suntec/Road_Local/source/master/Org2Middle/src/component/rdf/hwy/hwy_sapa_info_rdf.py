@@ -275,15 +275,28 @@ class HwySapaInfoRDF(comp_base):
     def _make_hwy_store_name(self):
         '''Store or Chain Name'''
         sqlcmd = """
-        INSERT INTO hwy_chain_name(chain_id, chain_name, language_code)
+        INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
+                                   chain_id, chain_name, language_code)
         (
-        SELECT c.chain_id, name, language_code
-          FROM rdf_chain_name AS c
-          ORDER BY c.chain_id,
-                   language_code = 'ENG' DESC, -- English first
-                   language_code = 'CHI' DESC, -- Chinese second
-                   language_code = 'CHT' DESC,
-                   language_code
+        SELECT per_code, cat_id, subcat,
+               chain_id, chain_name, language_code
+        FROM (
+            SELECT distinct per_code, a.cat_id,
+                   (case when subcat is null then ''
+                else subcat::character varying end) as subcat,
+                   b.chain_id, b.name as chain_name, language_code
+              FROM mid_temp_sapa_store_info as a
+              LEFT JOIN rdf_chain_name as b
+              ON a.chain_id::bigint = b.chain_id
+              INNER JOIN temp_poi_category as cat
+              ON b.chain_id = cat.chain and
+                 a.cat_id::bigint = cat.org_code
+        ) AS c
+        ORDER BY chain_id,
+                 language_code = 'ENG' DESC, -- English first
+                 language_code = 'CHI' DESC, -- Chinese second
+                 language_code = 'CHT' DESC,
+                 language_code
         );
         """
         self.pg.execute2(sqlcmd)

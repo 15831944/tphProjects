@@ -21,6 +21,8 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_RAMP
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_JCT
 
 
 class HwyGraphTa(HwyGraphRDF):
@@ -320,3 +322,21 @@ class HwyGraphTa(HwyGraphRDF):
             if not exist_sapa_facil:
                 self.log.warning('Exist SAPA Link, but no SAPA Facility.'
                                  'u=%s,v=%s' % (u, v))
+
+    def exist_ic_link(self, path, reverse=False):
+        '''Ramp/JCT/SAPA Link'''
+        if len(path) < 2:
+            return False
+        if reverse:
+            path = path[::-1]
+        for u, v in zip(path[:-1], path[1:]):
+            if self.has_edge(v, u):  # 双向
+                continue
+            data = self[u][v]
+            link_type = data.get(HWY_LINK_TYPE)
+            if link_type in (HWY_LINK_TYPE_RAMP,
+                             HWY_LINK_TYPE_JCT,
+                             # HWY_LINK_TYPE_SAPA,
+                             ):
+                return True
+        return False

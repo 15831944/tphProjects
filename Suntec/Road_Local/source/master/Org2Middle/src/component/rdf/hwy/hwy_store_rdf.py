@@ -52,8 +52,13 @@ class HwyStoreRDF(HwyStore):
           LEFT JOIN hwy_chain_name as c
           ON a.store_cat_id = c.cat_id and
              a.sub_cat = c.sub_cat and
-             a.store_chain_id = c.chain_id and
-             a.chain_name = c.chain_name
+             ((a.store_chain_id = c.chain_id and
+              (a.chain_name = c.chain_name or
+               a.chain_name = '' or
+               a.chain_name is NULL)) or
+              (a.chain_name = c.chain_name and
+               a.chain_name <> '' and
+               a.store_chain_id is NULL))
           WHERE u_code IS NOT NULL
           ORDER BY ic_no, store_kind
         );

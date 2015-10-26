@@ -7,6 +7,7 @@ Created on 2012-11-29
 
 import common.Logger
 import platform.TestCase
+from TAP.tap_processor import *
 
 class CTestSuite:
     def __init__(self, casemanager, suiteinfo):
@@ -41,8 +42,8 @@ class CTestSuite:
                 except:
                     self.logger.exception("invalid autocheck caseinfo, (id=%d, logic=%s)" % (caseid, check_logic_class))
             else:
-                if caseinfo.getCaseID_unique():                  
-                    self.no_run_cases.append(int(caseinfo.getCaseID_unique()))
+                if caseinfo.getCheckCode():                  
+                    self.no_run_cases.append([TAP_SKIP, self.strSuiteName + '::' + caseinfo.get_combin_keys()])
     
     def getActiveCase(self):
         for caseID in self.cases.keys():

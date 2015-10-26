@@ -7,6 +7,7 @@ Created on 2015-5-27
 from component.rdf.hwy.hwy_def_rdf import HWY_TRUE
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
+from component.ni.hwy.hwy_poi_category_ni import HwyPoiCategoryNi
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
@@ -14,6 +15,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
+
 SAPA_TYPE_DICT = {'8380': HWY_IC_TYPE_SA,  # 高速停车区
                   '8381': HWY_IC_TYPE_PA   # 高速停车区
                   }
@@ -28,6 +30,7 @@ class HwyFacilityNi(HwyFacilityRDF):
         Constructor
         '''
         HwyFacilityRDF.__init__(self, data_mng, ItemName)
+        self.poi_cate = HwyPoiCategoryNi()
 
     def _get_sapa_type(self, sapa_kind):
         facil_cls = None
@@ -196,23 +199,23 @@ class HwyFacilityNi(HwyFacilityRDF):
         shopping_corner, postbox, atm = HWY_FALSE, HWY_FALSE, HWY_FALSE
         restaurant, toilet = HWY_FALSE, HWY_FALSE
         for cat_id in cat_id_list:
-            if cat_id in SERVICE_GAS_DICT:
+            if cat_id in self.gas_station_dict:
                 gas_station = HWY_TRUE
-            elif cat_id in SERVICE_INFORMATION_DICT:
+            elif cat_id in self.info_dict:
                 information = HWY_TRUE
-            elif cat_id in SERVICE_REST_AREA_DICT:
+            elif cat_id in self.rest_area_dict:
                 rest_area = HWY_TRUE
-            elif cat_id in SERVICE_SHOPPING_DICT:
+            elif cat_id in self.shopping_corner_dict:
                 shopping_corner = HWY_TRUE
-            elif cat_id in SERVICE_POSTBOX_DICT:
+            elif cat_id in self.post_box_dict:
                 postbox = HWY_TRUE
-            elif cat_id in SERVICE_ATM_DICT:
+            elif cat_id in self.atm_dict:
                 atm = HWY_TRUE
-            elif cat_id in SERVICE_RESTAURANT_DICT:
+            elif cat_id in self.restaurant_dict:
                 restaurant = HWY_TRUE
-            elif cat_id in SERVICE_TOILET_DICT:
+            elif cat_id in self.toilet_dict:
                 toilet = HWY_TRUE
-            elif cat_id in SERVICE_UNDEFINED_DICT:
+            elif cat_id in self.undefined_dict:
                 continue
             else:
                 self.log.error('Unknown Category ID. cat_id=%s' % cat_id)

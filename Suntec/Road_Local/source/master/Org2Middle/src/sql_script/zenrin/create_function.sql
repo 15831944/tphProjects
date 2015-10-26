@@ -343,7 +343,6 @@ BEGIN
                 when substr(elcode,2,1)='8' then 14
                 when substr(elcode,2,1)='B' then 14
                 when substr(elcode,2,1)='A' then 3
-                when substr(elcode,4,1)='3' then 16
                 when substr(elcode,2,1)='1' then 12
                 when substr(elcode,2,1)='2' then 11
                 when substr(elcode,2,1)='3' then 9
@@ -760,7 +759,6 @@ DECLARE
 	
 	in_angle_f float;
 	out_angle_f float;
-	angle float;
 BEGIN 
 	in_angle := mid_cal_zm(in_geom,in_dir);
 	out_angle := mid_cal_zm(out_geom,out_dir);
@@ -771,14 +769,7 @@ BEGIN
    	out_angle := out_angle + 32768;
    	out_angle_f := out_angle * 360.0 / 65535.0;
 
-	angle := in_angle_f - out_angle_f + 180;
-	if angle >= 360 then
-		angle := angle - 360;
-	elseif angle < 0 then
-		angle := angle + 360;
-	end if;
-
-	return angle;
+	return out_angle_f - in_angle_f;
     
 END;
 $$;
@@ -875,34 +866,5 @@ BEGIN
 	END LOOP;
 
 	return rstPathArray;
-END;
-$$;
-
---- p2 in which side of p0-p1.
-CREATE OR REPLACE FUNCTION cal_point_line_side(p0 geometry, p1 geometry, p2 geometry) 
-RETURNS integer
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    x2x0    float;
-    y2y0    float;
-    x1x0    float;
-    y1y0    float;
-    m    float;
-BEGIN 
-    x2x0    := st_x(p2) - st_x(p0);
-    y2y0    := st_y(p2) - st_y(p0);
-    x1x0    := st_x(p1) - st_x(p0);
-    y1y0    := st_y(p1) - st_y(p0);
- 
-    m    := (x2x0 * y1y0 - x1x0 * y2y0);
-    
-    if m > 0 then
-        return 1;    -- right
-    elsif m < 0 then
-        return 2;    -- left
-    else
-        return 0;    -- three point is a line
-    end if;
 END;
 $$;

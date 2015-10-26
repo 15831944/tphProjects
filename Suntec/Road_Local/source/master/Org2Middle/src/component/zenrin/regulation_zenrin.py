@@ -192,6 +192,7 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         self.CreateIndex2('org_road_elcode_idx')
         
         # Merge roundabout links.
+        self.CreateTable2('temp_roundabout_all')
         self.CreateTable2('temp_roundabout_circle')
         # double circle roundabout geometry.
         self.CreateTable2('temp_roundabout_doublecircle')
@@ -207,12 +208,12 @@ class comp_regulation_zenrin(component.component_base.comp_base):
         # Connect links between in-link and out-link.
         self.CreateTable2('temp_roundabout_doublecircle_connect_links')        
         
+        # Get start/end angles of in-link/out-link.
+        self.CreateFunction2('mid_cal_zm')
         # Get angles between in-link and out-link.
         self.CreateFunction2('zenrin_cal_doubleroundabout_angle')
         # Get paths between in-link and out-link.
         self.CreateFunction2('zenrin_cal_doubleroundabout_path')
-        # Get position of out-link.
-        self.CreateFunction2('cal_point_line_side')
 
         # Create regulation_id sequence for paths.
         sqlcmd = '''

@@ -20,7 +20,7 @@ class rdb_region(ItemBase):
             ('default'):            rdb_region(),
             ('jpn'):                rdb_region_ipc_japen(),
             ('jdb'):                rdb_region_ipc_japen(),
-            ('ni'):                 rdb_region_axf_china(),
+            ('ni'):                 rdb_region_ni_china(),
             ('axf'):                rdb_region_axf_china(),
             ('ta'):                 rdb_region_ta_vietnam(),
             ('ta','eu'):            rdb_region_ta_europe(),
@@ -49,6 +49,7 @@ class rdb_region(ItemBase):
         
     def Do(self):
         self._reset()
+        self._hierarchy()
         self._makeRegionLevel8()
         self._makeRegionLevel6()
         self._makeRegionLevel4()
@@ -58,6 +59,9 @@ class rdb_region(ItemBase):
         self.CreateTable2('rdb_link_abs')
         self.CreateTable2('temp_region_node_upgrade')
         self._resetLinkFunctionClass()
+    
+    def _hierarchy(self):
+        pass
         
     def _resetLinkFunctionClass(self):
         """
@@ -86,6 +90,112 @@ class rdb_region(ItemBase):
     
     def _makeRegionLevel8(self):
         pass
+    
+    def _makeOriginalRegionOnLevelX(self, 
+                                    layer=4, level=10, 
+                                    rdb_link='rdb_link', attr_filter={'function_code':[1,2,3]},
+                                    additional_links='temp_hierarchy_links_layerx'):
+        self.log.info('Make original region level%s...' % str(layer))
+        
+        #
+        rdb_link_filter = 'True'
+        if attr_filter:
+            filter_list = []
+            for (key,value) in attr_filter.items():
+                filter_list.append('%s = ANY(ARRAY%s)' % (str(key), str(value)))
+            rdb_link_filter = 'and '.join(filter_list)
+        
+        union_additional_links = ''
+        if additional_links:
+            union_additional_links = """
+                                    union
+                                    select link_id
+                                    from [additional_links]
+                                    """
+            union_additional_links = union_additional_links.replace('[additional_links]', additional_links)
+        
+        #
+        self.CreateFunction2('get_new_tile_id_by_zlevel')
+        sqlcmd = """
+                    drop table if exists temp_region_orglink_level[X];
+                    create table temp_region_orglink_level[X]
+                    as
+                    (
+                        select  b.*, 
+                                get_new_tile_id_by_zlevel(link_id_t,[level]) as region_tile_id, [X] as region_level
+                        from 
+                        (
+                            select link_id
+                            from [rdb_link]
+                            where [rdb_link_filter]
+                            [union_additional_links]
+                        )as a
+                        left join rdb_link as b
+                        on a.link_id = b.link_id
+                        where one_way != 0 and road_type not in (7,8,9,14)
+                    );
+                    
+                    CREATE INDEX temp_region_orglink_level[X]_link_id_idx
+                        on temp_region_orglink_level[X]
+                        using btree
+                        (link_id);
+                    
+                    CREATE INDEX temp_region_orglink_level[X]_start_node_id_idx
+                        on temp_region_orglink_level[X]
+                        using btree
+                        (start_node_id);
+                    
+                    CREATE INDEX temp_region_orglink_level[X]_end_node_id_idx
+                        on temp_region_orglink_level[X]
+                        using btree
+                        (end_node_id);
+                    
+                    analyze temp_region_orglink_level[X];
+                """
+        sqlcmd = sqlcmd.replace('[rdb_link]', str(rdb_link))
+        sqlcmd = sqlcmd.replace('[rdb_link_filter]', str(rdb_link_filter))
+        sqlcmd = sqlcmd.replace('[union_additional_links]', str(union_additional_links))
+        sqlcmd = sqlcmd.replace('[level]', str(level))
+        sqlcmd = sqlcmd.replace('[X]', str(layer))
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
+        #
+        sqlcmd = """
+                    drop table if exists temp_region_orgnode_level[X];
+                    create table temp_region_orgnode_level[X]
+                    as
+                    (
+                        select c.*, get_new_tile_id_by_zlevel(node_id_t,[level]) as region_tile_id
+                        from
+                        (
+                            select distinct node_id
+                            from
+                            (
+                                select start_node_id as node_id
+                                from temp_region_orglink_level[X]
+                                union
+                                select end_node_id as node_id
+                                from temp_region_orglink_level[X]
+                            )as a
+                        )as b
+                        left join rdb_node as c
+                        on b.node_id = c.node_id
+                    );
+                    
+                    CREATE INDEX temp_region_orgnode_level[X]_node_id_idx
+                        on temp_region_orgnode_level[X]
+                        using btree
+                        (node_id);
+                    
+                    analyze temp_region_orgnode_level[X];
+                """
+        sqlcmd = sqlcmd.replace('[level]', str(level))
+        sqlcmd = sqlcmd.replace('[X]', str(layer))
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
+        self.log.info('Make original region level%s end.' % str(layer))
     
     def _makeOriginalRegionOnLevel4(self, zlevel=10, fc_array=[1,2,3]):
         rdb_log.log('Region', 'Make original region level4...', 'info')
@@ -271,7 +381,7 @@ class rdb_region(ItemBase):
         
         rdb_log.log('Region', 'Delete isolated link from original region links end.', 'info')
     
-    def _deleteSALink(self):
+    def _deleteSALink_backup(self):
         # drop sa link in region, except sa_ramp(sa link connnects ramp and highway)
         rdb_log.log('Region', 'Delete sa link from original region links...', 'info')
         
@@ -360,6 +470,93 @@ class rdb_region(ItemBase):
         self.pg.commit2()
         
         rdb_log.log('Region', 'Delete sa link from original region links end.', 'info')
+    
+    def _deleteSALink(self):
+        # drop sa link in region, except sa_ramp(sa link connnects ramp and highway)
+        self.log.info('Delete sa link from original region links...')
+        
+        # find import sapa links
+        import_sapa_links = set()
+        sqlcmd = """
+                -- for all entry point of sapa area
+                select distinct a.node_id
+                from
+                (
+                    select start_node_id as node_id
+                    from temp_region_links
+                    where link_type = 7 and one_way in (1,2)
+                    union
+                    select end_node_id as node_id
+                    from temp_region_links
+                    where link_type = 7 and one_way in (1,3)
+                )as a
+                inner join temp_region_links as b
+                on     b.link_type in (1,2,3,5)
+                    and 
+                    (
+                    (a.node_id = b.start_node_id and b.one_way in (1,3))
+                    or 
+                    (a.node_id = b.end_node_id and b.one_way in (1,2))
+                    )
+                """
+        sapa_node_list = self.pg.get_batch_data2(sqlcmd)
+        for sapa_node_rec in sapa_node_list:
+            root_node = sapa_node_rec[0]
+            import rdb_region_algorithm
+            graph = rdb_region_algorithm.CGraph_PG()
+            graph.prepareData()
+            all_paths = graph.searchMinSpanningTree(root_node, 
+                                                   is_legal_path=graph._is_legal_path_of_sapa,
+                                                   is_leaf=graph._is_leaf_of_sapa,
+                                                   log=self.log)
+            for paths in all_paths:
+                for path in paths:
+                    import_sapa_links.update(path)
+            graph.clearData()
+        
+        self.CreateTable2('temp_region_links_sa_ramp')
+        import common.cache_file
+        temp_file = common.cache_file.open('temp_region_links_sa_ramp')
+        for linkid in import_sapa_links:
+            temp_file.write('%s\n' % str(linkid))
+        temp_file.seek(0)
+        self.pg.copy_from2(temp_file, 'temp_region_links_sa_ramp')
+        self.pg.commit2()
+        common.cache_file.close(temp_file,True)
+        self.CreateIndex2('temp_region_links_sa_ramp_link_id_idx')
+        
+        # delete ordinary sa link
+        sqlcmd = """
+                delete from temp_region_links as a
+                using 
+                (
+                    select a.link_id
+                    from temp_region_links as a
+                    left join temp_region_links_sa_ramp as b
+                    on a.link_id = b.link_id
+                    where (a.link_type = 7) and b.link_id is null
+                )as b
+                where a.link_id = b.link_id and a.region_level >= a.max_level;
+                analyze temp_region_links;
+                """
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = """
+                    delete from temp_region_nodes as a
+                    using 
+                    (   
+                        select a.node_id
+                        from temp_region_nodes as a
+                        left join temp_region_links as b
+                        on a.node_id in (b.start_node_id, b.end_node_id)
+                        where b.link_id is null
+                    ) as b
+                    where a.node_id = b.node_id;
+                    analyze temp_region_nodes;
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
     
     def _deleteUTurnLink(self):
         # drop u-turn link in region level6
@@ -1283,7 +1480,10 @@ class rdb_region_axf_china(rdb_region):
         
         rdb_log.log('Region', 'Make original region level6 end.', 'info')
 
-
+class rdb_region_ni_china(rdb_region_axf_china):
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4])
+    
 class rdb_region_ta_europe(rdb_region):
     def _makeOriginalRegionOnLevel4(self):
         rdb_region._makeOriginalRegionOnLevel4(self, 10, [1,2,3])
@@ -1703,48 +1903,46 @@ class rdb_region_rdf_argentina(rdb_region_three_layers):
         rdb_region_three_layers._makeOriginalRegionOnLevel8(self, 2, [1])
 
 class rdb_region_ta_aus(rdb_region_three_layers):
-    def _makeOriginalRegionOnLevel4(self):
-        rdb_region_three_layers._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4,5])
-        self._deleteSomeUrbanRoad()
-    
-    def _deleteSomeUrbanRoad(self):
-        self.log.info('delete some urban road...')
-        sqlcmd = """
-                delete from temp_region_orglink_level4 as a
-                using 
-                (
-                    select link_id
-                    from rdb_link_add_info
-                    where (path_extra_info & (1::smallint << 3) != 0) --urban road
-                )as b
-                where  (function_code in (4,5)) and (a.link_id = b.link_id);
-                
-                delete from temp_region_orglink_level4
-                where (function_code in (4,5)) and (link_type = 7);
-                
-                analyze temp_region_orglink_level4;
-                """
-        self.pg.execute(sqlcmd)
-        self.pg.commit2()
+    def _hierarchy(self):
+        import rdb_region_algorithm
+        objHierarchy = rdb_region_algorithm.CHierarchy()
         
-        sqlcmd = """
-                delete from temp_region_orgnode_level4 as a
-                using 
-                (
-                    select a.node_id
-                    from temp_region_orgnode_level4 as a
-                    left join temp_region_orglink_level4 as b
-                    on a.node_id in (b.start_node_id, b.end_node_id)
-                    where b.link_id is null
-                )as b
-                where a.node_id = b.node_id;
-                analyze temp_region_orgnode_level4;
-                """
-        self.pg.execute(sqlcmd)
-        self.pg.commit2()
+        objHierarchy.make(org_link_table='rdb_link', 
+                          org_link_filter='one_way != 0 and road_type not in (7,8,9,14)',
+                          target_link_table='temp_hierarchy_links_layer3', 
+                          base_level=12,
+                          mesh_road_limit=600)
+        
+        objHierarchy.make(org_link_table='temp_hierarchy_links_layer3', 
+                          org_link_filter='one_way != 0 and road_type not in (7,8,9,14)',
+                          target_link_table='temp_hierarchy_links_layer4', 
+                          base_level=12,
+                          mesh_road_limit=600,
+                          tile_offset=0,
+                          boundary_node_filter=True)
+        
+        objHierarchy.make(org_link_table='rdb_link', 
+                          org_link_filter='function_code in (1,2,3)',
+                          target_link_table='temp_hierarchy_links_layer6', 
+                          base_level=10,
+                          mesh_road_limit=600)
+    
+    def _makeOriginalRegionOnLevel4(self):
+        rdb_region._makeOriginalRegionOnLevelX(self, 
+                                               layer=4, 
+                                               level=10, 
+                                               rdb_link='rdb_link', 
+                                               attr_filter={'function_code':[1,2,3]},
+                                               additional_links='temp_hierarchy_links_layer4')
     
     def _makeOriginalRegionOnLevel6(self):
-        rdb_region_three_layers._makeOriginalRegionOnLevel6(self, 6, [1,2,3])
+        #rdb_region_three_layers._makeOriginalRegionOnLevel6(self, 6, [1,2,3])
+        rdb_region._makeOriginalRegionOnLevelX(self, 
+                                               layer=6, 
+                                               level=6, 
+                                               rdb_link='rdb_link', 
+                                               attr_filter={'function_code':[1,2]},
+                                               additional_links='temp_hierarchy_links_layer6')
     
     def _makeOriginalRegionOnLevel8(self):
         rdb_region_three_layers._makeOriginalRegionOnLevel8(self, 2, [1])

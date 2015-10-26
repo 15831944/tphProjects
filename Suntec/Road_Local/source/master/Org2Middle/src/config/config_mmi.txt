@@ -1,11 +1,13 @@
 #################################################################
 # proj_india
-mdb_path=\\idata\Private\Data_Authoring\SourceData\1_Asia\IND\MMI\14Q4\mdb
+mdb_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\IND\MMI\15Q2\mdb
+care_about_sar=true
 text_filter={'MMI_IND':"DEFAULT:[ENG]"}
 temp_sql_path=.\cache\temp_sql\
-POI_Code=..\docs\poi\category_mmi.txt
+POI_Code=..\docs\poi\category_mmi_ind.txt
 brand_icon=..\docs\poi\brand_icon_list_mmi.txt
-category_priority=..\docs\poi\category_priority_mmi.txt
-illust=\\idata\Private\Data_Authoring\SourceData\1_Asia\IND\MMI\14Q4\illust\pic
+category_priority=..\docs\poi\category_priority_mmi.xls
+illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\IND\MMI\15Q2\illust
+hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_ind.xls
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

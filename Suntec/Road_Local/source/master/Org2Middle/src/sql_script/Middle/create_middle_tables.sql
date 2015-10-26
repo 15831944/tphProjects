@@ -20,9 +20,9 @@ CREATE TABLE link_tbl
   elevated smallint,
   structure smallint,
   tunnel smallint,
-  rail_cross smallint,
-  paved smallint,
-  uturn smallint,
+  rail_cross smallint default 0,
+  paved smallint default 1,
+  uturn smallint default 0,
   speed_limit_s2e double precision,
   speed_limit_e2s double precision,
   speed_source_s2e smallint,
@@ -369,7 +369,8 @@ CREATE TABLE temp_link_ramp_single_path
 (
   link_id bigint NOT NULL,
   new_road_type smallint not null ,
-  new_fc smallint
+  new_fc smallint,
+  new_link_type smallint
 );
 
 CREATE TABLE temp_link_ramp_toohigh
@@ -2354,6 +2355,22 @@ CREATE TABLE mid_temp_hwy_jct_uturn_del
 
 ------------------------------------------------------------------------
 --
+CREATE TABLE mid_temp_hwy_ic_del
+(
+  gid             integer NOT NULL primary key,
+  road_code       integer,
+  road_seq        integer,
+  facilcls_c      integer,
+  inout_c         integer,
+  node_id         bigint,
+  to_node_id      bigint,
+  node_lid        character varying,
+  link_lid        character varying,
+  path_type       character varying
+);
+
+------------------------------------------------------------------------
+--
 CREATE TABLE mid_temp_hwy_sapa_del
 (
   gid             integer NOT NULL primary key,
@@ -2741,4 +2758,26 @@ create table link_tbl_bak_dispclass
 as
 (
 	select * from link_tbl
+);
+
+create table hwy_service_category_mapping
+(
+   service        character varying(1024),
+   genre          character varying(1024),
+   service_name   character varying(1024),
+   category_id    bigint
+);
+
+create table temp_jct_link_paths
+(
+snode bigint,
+path  bigint[],
+elink bigint
+);
+
+
+create table temp_jct_change_to_ic
+(
+links bigint[],
+link_type  smallint
 );

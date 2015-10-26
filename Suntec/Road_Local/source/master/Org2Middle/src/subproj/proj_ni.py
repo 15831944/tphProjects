@@ -34,6 +34,8 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             # Link
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
+            # update sapa link
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_DisplayClass'))
             
@@ -62,6 +64,7 @@ class proj_ni_module(subproj.proj_base.proj_base_module):
             
             #
             self.AddComponent(self.comp_factory.CreateOneComponent('GuidePoint_Adjust'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
             #self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))

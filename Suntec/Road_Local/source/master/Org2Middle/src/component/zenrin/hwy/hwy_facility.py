@@ -7,8 +7,6 @@ Created on 2015-7-13
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
 # import json
 import common
-# import component.component_base
-# from common import cache_file
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
 from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
 from component.rdf.hwy.hwy_def_rdf import HWY_FALSE

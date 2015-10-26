@@ -191,6 +191,9 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.CreateIndex2('temp_regulation_admin_admin_place_id_idx')
         self.pg.commit2()
         
+        # 创建表单temp_regulation_admin_link记录存在Admin Wide Regulation的行政区域内的所有link信息
+        # 创建表单temp_regulation_admin_node记录存在Admin Wide Regulation的行政区域内的所有link关联的Node信息
+        
         self.CreateIndex2('temp_rdf_nav_link_left_admin_place_id_idx')
         self.CreateIndex2('temp_rdf_nav_link_right_admin_place_id_idx')
         self.CreateFunction2('rdb_get_link_angle')
@@ -203,6 +206,14 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.pg.commit2()
         
         # find mainnode related to admin-wide-regulation
+        # 一个复杂路口（典型的“井”字路口）或者一个简单路口（必须包含inner link，典型的“工”字路口）作成一个main node \
+        # main node是一个逻辑上的概念，代表一个路口。实际应用为描述复杂路口，如“井”字路口，本身就是一个main node，为容易 \ 
+        # 描述其交通流，将其拆分为多条inner link组成的路口信息。因此在数据中，main node本身是不存在的，取而代之的是路口内的 \
+        # sub link and sub node
+        # 创建表单temp_awr_mainnode_sublink记录一个main node内的sub link（可以有多条）信息
+        # 创建表单temp_awr_mainnode_subnode记录一个main node内的sub node（可以有多个）信息
+        # 创建表单temp_awr_mainnode记录main node与其关联的sub node的对照关系
+        
         self.log.info('find mainnode related to admin-wide-regulation...')
         self.CreateTable2('temp_awr_mainnode_sublink')
         self.CreateTable2('temp_awr_mainnode_subnode')
@@ -216,6 +227,22 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.pg.commit2()
         
         # find regulation
+        # 创建表单temp_awr_mainnode_uturn记录进入main node以及从main node脱出的link信息
+        # 创建表单temp_awr_node_uturn记录存在Admin Wide Regulation的行政区域内的node信息以及进入该node \
+        # 从该node脱出的link信息（link均是双线化 and 非inner link and 进入link与脱出link存在夹角）
+        # 上述两表作成原则如下：
+        # 由于PATH算法问题需数据特别支持，特作临时对应：以上PDM允许通行规制和pdm_flag仍然作成；另外，对于有ADM规制的行政区域，区域内所有的无条件UTURN禁止，作成通行禁止规制数据。
+        # UTURN禁止Link列的作成方法：
+        # 对于复合路口：
+        # （1）    进入路口的Link和退出路口的Link都是双向化道路，道路名称相同，且夹角小于85度；
+        # （2）    进入路口的Link和退出路口的Link道路都是双向化道路，都没有道路名称，且夹角小于60度；
+        # （3）    进入路口的Link和退出路口的Link道路是同一条单向化的Link，且能在复合路口内完成inner link掉头算路
+        # 对于普通路口：
+        # （1）    进入路口的Link和退出路口的Link都是双向化道路，道路名称相同，且夹角小于85度；
+        # （2）    进入路口的Link和退出路口的Link道路都是双向化道路，都没有道路名称，且夹角小于60度
+        
+        # 创建表单temp_awr_pdm_linkrow记录Permitted Driving Manoeuvre (CONDITION_TYPE = 39)对应的规制信息（包含规制id、link序列）
+        
         self.CreateFunction2('rdb_get_angle_diff')
         self.CreateTable2('temp_awr_mainnode_uturn')
         self.CreateIndex2('temp_awr_mainnode_uturn_mainnode_id_idx')
@@ -233,6 +260,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End convert regulation for awr.')
     
     def __make_linklist_for_awr(self):
+        
         self.log.info('Begin make linklist for admin wide regulation...')
         
         self.CreateIndex2('rdf_admin_hierarchy_admin_place_id_idx')
@@ -251,6 +279,9 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.CreateTable2('temp_regulation_admin_link')
         self.CreateIndex2('temp_regulation_admin_link_link_id_idx')
         self.pg.commit2()
+        
+        # 创建表单temp_link_regulation_pdm_flag记录存在Admin Wide Regulation的link
+        # 后续该信息会补充到link_tbl的字段extend_flag中
         
         self.CreateIndex2('regulation_relation_tbl_inlinkid_idx')
         self.CreateIndex2('regulation_relation_tbl_outlinkid_idx')
@@ -289,6 +320,7 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.log.info('End make linklist for linkdir.')
         
     def __delete_dummy_regulation(self):
+        
         self.log.info('Begin deleting dummy regulation...')
         
         # backup
@@ -307,6 +339,8 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.pg.commit2()
         
         # update regulation_relation_tbl
+        # 当进入link是双向禁止的，再做同一条件下的进入禁止信息就显得多余，需要删除
+        
         sqlcmd = """
                 delete from regulation_relation_tbl as x
                 using
@@ -327,6 +361,9 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.pg.commit2()
         
         # update regulation_relation_tbl
+        # 当规制类别是顺行通行、逆行通行、双向禁止、U-Turn允许通行时，若对应的条件为空，即全时规制，应删除
+        # 因上述信息可以通过link的交通流方向即可判定，无需增加规制信息
+        
         sqlcmd = """
                 delete from regulation_relation_tbl
                 where condtype in (2,3,4,10) and cond_id is null;
@@ -335,6 +372,8 @@ class comp_regulation_rdf(component.component_base.comp_base):
         self.pg.commit2()
         
         # update regulation_item_tbl
+        # 删除道路规制信息与道路规制要素信息不匹配的情形
+        
         sqlcmd = """
                 delete from regulation_item_tbl as x
                 using

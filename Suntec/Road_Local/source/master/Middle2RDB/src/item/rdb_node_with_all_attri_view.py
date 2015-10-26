@@ -51,6 +51,8 @@ class rdb_node_with_all_attri_view(ItemBase):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+        self.CreateFunction2('rdb_makenode2pixelbytea')
+        self.CreateFunction2('rdb_cvt_branch_to_json_format')
         sqlcmd = """
             INSERT INTO rdb_node_with_all_attri_view(gid, node_id, node_id_t,
                             extend_flag, height, link_num, branches, upgrade_node_id,
@@ -59,12 +61,12 @@ class rdb_node_with_all_attri_view(ItemBase):
             SELECT a.gid, a.node_id, a.node_id_t, a.extend_flag, 
                    d.height, a.link_num, a.branches,
                    c.region_node_id AS upgrade_node_id,
-                   NULL::integer AS upgrade_node_id_t, b.geom_blob, a.the_geom
+                   NULL::integer AS upgrade_node_id_t, 
+                   rdb_makenode2pixelbytea(14::smallint, ((a.node_id_t >> 14) & 16383), (a.node_id_t & 16383), a.the_geom_4096), 
+                   a.the_geom
                FROM rdb_node a
                LEFT JOIN temp_rdb_node_bigint_2_int_mapping m
                ON a.node_id_t = m.node_id_t AND a.node_id = m.node_id
-               LEFT JOIN rdb_node_client b
-               ON m.node_id_t = b.node_id_t AND m.node_id_32 = b.node_id
                LEFT JOIN rdb_region_layer4_node_mapping c
                ON a.node_id = c.node_id_14
                LEFT JOIN rdb_node_height d

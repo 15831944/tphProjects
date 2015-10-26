@@ -617,7 +617,32 @@ CREATE INDEX temp_natural_guidence_asso_id_idx
 CREATE INDEX temp_meta_preposition_code_preposition_code_string_idx
 	ON temp_meta_preposition_code
 	USING btree
-	(preposition_code_string);
+	(preposition_code_string);	
+
+CREATE INDEX temp_order1_virtual_country_id_idx
+  ON temp_order1_virtual
+  USING btree
+  (country_id);
+  	
+CREATE INDEX temp_order1_null_admin_place_id_idx
+  ON temp_order1_null
+  USING btree
+  (admin_place_id);
+  
+CREATE INDEX temp_order1_null_admin_order_idx
+  ON temp_order1_null
+  USING btree
+  (admin_order);
+  
+CREATE INDEX temp_order1_null_order1_id_idx
+  ON temp_order1_null
+  USING btree
+  (order1_id);
+  
+CREATE INDEX temp_order1_null_order8_id_idx
+  ON temp_order1_null
+  USING btree
+  (order8_id);
 	
 --------------------------------------------------------------
 CREATE INDEX adas_link_geometry_link_id_idx

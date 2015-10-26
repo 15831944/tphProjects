@@ -49,11 +49,11 @@ class comp_regulation_ta(component.component_base.comp_base):
         self.log.info('country condition regulation start..')
         
         #country condition
-        # ×÷³É±íµ¥temp_country_link¼ÇÂ¼Óë¹ú¼Ò±ß½çÏà½»µÄlinkĞÅÏ¢¡££¨×÷³É£º¸ù¾İlinkÁ½¶ËµÄ½»²æµãÖÖ±ğ 4: Country Border Crossing£©
-        # ×÷³É±íµ¥temp_country_node¼ÇÂ¼¹ú¼Ò±ß½çÉÏµÄnodeµã¡££¨×÷³É£»¸ù¾İ½»²æµãÖÖ±ğ4: Country Border Crossing£©
-        # ¿ç¹ú¹æÖÆ×÷³É£º
-        # 1¡¢´Ótemp_country_nodeÈ¡Ò»Node£¬ÔÚ±íµ¥temp_country_linkÖĞ¸ù¾İ½»Í¨Á÷·½Ïò²éÑ¯¶ÔÓ¦µÄ½øÈëlink£¨½øÈëÖ¸¶¨Node£©¡¢ÍÑ³ölink£¨´ÓÖ¸¶¨NdoeÍÑ³ö£©
-        # 2¡¢ÉÏÊöËùµÃ½øÈëlink¡¢Node¡¢ÍÑ³ölink¿ÉÒÔ¹¹³ÉÒ»Ìõ¿ç¹ú¹æÖÆlinkĞòÁĞ
+        # ä½œæˆè¡¨å•temp_country_linkè®°å½•ä¸å›½å®¶è¾¹ç•Œç›¸äº¤çš„linkä¿¡æ¯ã€‚ï¼ˆä½œæˆï¼šæ ¹æ®linkä¸¤ç«¯çš„äº¤å‰ç‚¹ç§åˆ« 4: Country Border Crossingï¼‰
+        # ä½œæˆè¡¨å•temp_country_nodeè®°å½•å›½å®¶è¾¹ç•Œä¸Šçš„nodeç‚¹ã€‚ï¼ˆä½œæˆï¼›æ ¹æ®äº¤å‰ç‚¹ç§åˆ«4: Country Border Crossingï¼‰
+        # è·¨å›½è§„åˆ¶ä½œæˆï¼š
+        # 1ã€ä»temp_country_nodeå–ä¸€Nodeï¼Œåœ¨è¡¨å•temp_country_linkä¸­æ ¹æ®äº¤é€šæµæ–¹å‘æŸ¥è¯¢å¯¹åº”çš„è¿›å…¥linkï¼ˆè¿›å…¥æŒ‡å®šNodeï¼‰ã€è„±å‡ºlinkï¼ˆä»æŒ‡å®šNdoeè„±å‡ºï¼‰
+        # 2ã€ä¸Šè¿°æ‰€å¾—è¿›å…¥linkã€Nodeã€è„±å‡ºlinkå¯ä»¥æ„æˆä¸€æ¡è·¨å›½è§„åˆ¶linkåºåˆ—
         
         self.CreateTable2('temp_country_link')
         self.CreateTable2('temp_country_node')
@@ -73,8 +73,8 @@ class comp_regulation_ta(component.component_base.comp_base):
         self.CreateIndex2('nw_id_idx')
         self.CreateIndex2('rs_id_idx')
         
-        # ×÷³É±íµ¥temp_rs_df_todo¼ÇÂ¼Direction of Traffic Flow¹æÖÆĞÅÏ¢£¨°üÀ¨½»Í¨Á÷·½Ïò¡¢Ê±¼ä/³µÁ¾ÏŞÖÆ£©
-        # Ê±¼äÏŞÖÆ²»Îª¿Õ  && ³µÁ¾ÏŞÖÆ£¨-1£¬ 0£¬ 11£©
+        # ä½œæˆè¡¨å•temp_rs_df_todoè®°å½•Direction of Traffic Flowè§„åˆ¶ä¿¡æ¯ï¼ˆåŒ…æ‹¬äº¤é€šæµæ–¹å‘ã€æ—¶é—´/è½¦è¾†é™åˆ¶ï¼‰
+        # æ—¶é—´é™åˆ¶ä¸ä¸ºç©º  && è½¦è¾†é™åˆ¶ï¼ˆ-1ï¼Œ 0ï¼Œ 11ï¼‰
         
         self.CreateTable2('temp_rs_df_todo')
         self.CreateFunction2('mid_org_into_temp_rs_df_todo')
@@ -82,8 +82,8 @@ class comp_regulation_ta(component.component_base.comp_base):
         self.pg.commit2()
         
         #mul link
-        # ×÷³É±íµ¥mid_org_into_temp_rs_linkrow_todo¼ÇÂ¼feattyp in (2101, 2103)linkÁĞµÄ¹æÖÆĞÅÏ¢£¨°üÀ¨¹æÖÆ·½Ïò¡¢Ê±¼ä/³µÁ¾ÏŞÖÆ£©
-        # ³µÁ¾ÏŞÖÆ£¨-1£¬ 0£¬ 11£©
+        # ä½œæˆè¡¨å•mid_org_into_temp_rs_linkrow_todoè®°å½•feattyp in (2101, 2103)linkåˆ—çš„è§„åˆ¶ä¿¡æ¯ï¼ˆåŒ…æ‹¬è§„åˆ¶æ–¹å‘ã€æ—¶é—´/è½¦è¾†é™åˆ¶ï¼‰
+        # è½¦è¾†é™åˆ¶ï¼ˆ-1ï¼Œ 0ï¼Œ 11ï¼‰
         # 2101: Calculated/Derived Prohibited Maneuver / 2103: Prohibited Maneuver
         
         self.CreateTable2('temp_rs_linkrow_todo')
@@ -102,29 +102,29 @@ class comp_regulation_ta(component.component_base.comp_base):
         self.CreateTable2('temp_regulation_permit')
         self.CreateTable2('temp_link_regulation_forbid_permit')
         
-        # ×÷³É±íµ¥temp_regulation_forbid¼ÇÂ¼Ò»·½ÔÊĞíÍ¨ĞĞĞÅÏ¢£¨°üÀ¨linkid¡¢½»Í¨Á÷·½Ïò¡¢Ò»·½Í¨ĞĞ¹æÖÆ·½Ïò/Ê±¼ä/³µÁ¾ÀàĞÍ£©£¬×÷³É£º
-        # ÊÕÂ¼ÈçÏÂĞÅÏ¢£ºÕë¶Ô·ÇÖ¸¶¨³µÁ¾£¨³µÁ¾ÀàĞÍvt in (-1, 0, 11)£©ÀàĞÍ»ò·Ç24Ğ¡Ê±£¨timedom²»Îª¿Õ£©²»ÔÊĞíÍ¨ĞĞ
+        # ä½œæˆè¡¨å•temp_regulation_forbidè®°å½•ä¸€æ–¹å…è®¸é€šè¡Œä¿¡æ¯ï¼ˆåŒ…æ‹¬linkidã€äº¤é€šæµæ–¹å‘ã€ä¸€æ–¹é€šè¡Œè§„åˆ¶æ–¹å‘/æ—¶é—´/è½¦è¾†ç±»å‹ï¼‰ï¼Œä½œæˆï¼š
+        # æ”¶å½•å¦‚ä¸‹ä¿¡æ¯ï¼šé’ˆå¯¹éæŒ‡å®šè½¦è¾†ï¼ˆè½¦è¾†ç±»å‹vt in (-1, 0, 11)ï¼‰ç±»å‹æˆ–é24å°æ—¶ï¼ˆtimedomä¸ä¸ºç©ºï¼‰ä¸å…è®¸é€šè¡Œ
         
         self.CreateFunction2('mid_org_into_temp_regulation_permit')
         self.pg.callproc('mid_org_into_temp_regulation_permit')
         self.pg.commit2()
         
-        # ¸üĞÂ±íµ¥temp_link_regulation_forbid_permit---¸üĞÂÒ»·½ÔÊĞíÍ¨ĞĞ£¨Ë³ĞĞÍ¨ĞĞ/ÄæĞĞÍ¨ĞĞ£©ĞÅÏ¢£¬×÷³É£º
-        # Ê¹ÓÃtemp_regulation_permit½»Í¨Á÷·½Ïò¡¢Ò»·½Í¨ĞĞ¹æÖÆ·½ÏòÅĞ¶¨Ò»·½ÔÊĞíÍ¨ĞĞ¹æÖÆÖÖ±ğ£¨Ë³ĞĞÍ¨ĞĞ/ÄæĞĞÍ¨ĞĞ£©
+        # æ›´æ–°è¡¨å•temp_link_regulation_forbid_permit---æ›´æ–°ä¸€æ–¹å…è®¸é€šè¡Œï¼ˆé¡ºè¡Œé€šè¡Œ/é€†è¡Œé€šè¡Œï¼‰ä¿¡æ¯ï¼Œä½œæˆï¼š
+        # ä½¿ç”¨temp_regulation_permitäº¤é€šæµæ–¹å‘ã€ä¸€æ–¹é€šè¡Œè§„åˆ¶æ–¹å‘åˆ¤å®šä¸€æ–¹å…è®¸é€šè¡Œè§„åˆ¶ç§åˆ«ï¼ˆé¡ºè¡Œé€šè¡Œ/é€†è¡Œé€šè¡Œï¼‰
         
         self.CreateFunction2('mid_permit_into_regulation')
         self.pg.callproc('mid_permit_into_regulation')
         self.pg.commit2()
         
-        # ×÷³É±íµ¥temp_regulation_forbid¼ÇÂ¼Ò»·½½ûÖ¹Í¨ĞĞĞÅÏ¢£¨°üÀ¨linkid¡¢½»Í¨Á÷·½Ïò¡¢Ò»·½Í¨ĞĞ¹æÖÆ·½Ïò/Ê±¼ä/³µÁ¾ÀàĞÍ£©£¬×÷³É£º
-        # ÊÕÂ¼ÈçÏÂĞÅÏ¢£ºÕë¶ÔÖ¸¶¨³µÁ¾£¨³µÁ¾ÀàĞÍvt in (-1, 0, 11)£©24Ğ¡Ê±£¨timedomÎª¿Õ£©²»ÔÊĞíÍ¨ĞĞ
+        # ä½œæˆè¡¨å•temp_regulation_forbidè®°å½•ä¸€æ–¹ç¦æ­¢é€šè¡Œä¿¡æ¯ï¼ˆåŒ…æ‹¬linkidã€äº¤é€šæµæ–¹å‘ã€ä¸€æ–¹é€šè¡Œè§„åˆ¶æ–¹å‘/æ—¶é—´/è½¦è¾†ç±»å‹ï¼‰ï¼Œä½œæˆï¼š
+        # æ”¶å½•å¦‚ä¸‹ä¿¡æ¯ï¼šé’ˆå¯¹æŒ‡å®šè½¦è¾†ï¼ˆè½¦è¾†ç±»å‹vt in (-1, 0, 11)ï¼‰24å°æ—¶ï¼ˆtimedomä¸ºç©ºï¼‰ä¸å…è®¸é€šè¡Œ
         
         self.CreateFunction2('mid_org_into_temp_regulation_forbid')       
         self.pg.callproc('mid_org_into_temp_regulation_forbid')
         self.pg.commit2()
         
-        # ¸üĞÂ±íµ¥temp_link_regulation_forbid_permit---¸üĞÂÒ»·½Í¨ĞĞ½ûÖ¹£¨Ë«Ïò½ûÖ¹/Ë³ĞĞ½ûÖ¹/ÄæĞĞ½ûÖ¹£©ĞÅÏ¢£¬×÷³É£º
-        # Ê¹ÓÃtemp_regulation_forbid½»Í¨Á÷·½Ïò¡¢Ò»·½Í¨ĞĞ¹æÖÆ·½ÏòÅĞ¶¨Ò»·½½ûÖ¹Í¨ĞĞ¹æÖÆÖÖ±ğ£¨Ë«Ïò½ûÖ¹/Ë³ĞĞ½ûÖ¹/ÄæĞĞ½ûÖ¹£©
+        # æ›´æ–°è¡¨å•temp_link_regulation_forbid_permit---æ›´æ–°ä¸€æ–¹é€šè¡Œç¦æ­¢ï¼ˆåŒå‘ç¦æ­¢/é¡ºè¡Œç¦æ­¢/é€†è¡Œç¦æ­¢ï¼‰ä¿¡æ¯ï¼Œä½œæˆï¼š
+        # ä½¿ç”¨temp_regulation_forbidäº¤é€šæµæ–¹å‘ã€ä¸€æ–¹é€šè¡Œè§„åˆ¶æ–¹å‘åˆ¤å®šä¸€æ–¹ç¦æ­¢é€šè¡Œè§„åˆ¶ç§åˆ«ï¼ˆåŒå‘ç¦æ­¢/é¡ºè¡Œç¦æ­¢/é€†è¡Œç¦æ­¢ï¼‰
         
         self.CreateFunction2('mid_forbid_into_regulation')
         self.pg.callproc('mid_forbid_into_regulation')
@@ -136,10 +136,10 @@ class comp_regulation_ta(component.component_base.comp_base):
         
         self.log.info('Begin convert condition_regulation_tbl...')
         
-        # ×÷³É±íµ¥temp_condition_regulation_tbl¼ÇÂ¼µÀÂ·¹æÖÆidÓëµÀÂ·Êı¾İµÄ¶ÔÕÕ¹ØÏµ
-        # ±íµ¥temp_condition_regulation_tblÊ¹ÓÃ·½·¨£ºµÀÂ·Ê×ÏÈ¸ù¾İ¶ÔÕÕ¹ØÏµÕÒµ½¶ÔÓ¦µÄµÀÂ·¹æÖÆid£¬ÔÙ¸ù¾İidÔÚ±íµ¥condition_regulation_tbl²éÑ¯\
-        # µÀÂ·¹æÖÆÌõ¼şÇé±¨(¹æÖÆidÎª-1´ú±íÃ»ÓĞ¹æÖÆ£»Îª¿Õ´ú±íÈ«Ê±¹æÖÆ£»>0´ú±í¹æÖÆÓĞÊ±¼ä¡¢³µÁ¾ÀàĞÍÏŞÖÆ)
-        # ×÷³É±íµ¥condition_regulation_tbl¼ÇÂ¼µÀÂ·¹æÖÆµÄÌõ¼şÇé±¨£¨°üÀ¨Ê±¼ä¡¢³µÁ¾ÀàĞÍÏŞÖÆ£©
+        # ä½œæˆè¡¨å•temp_condition_regulation_tblè®°å½•é“è·¯è§„åˆ¶idä¸é“è·¯æ•°æ®çš„å¯¹ç…§å…³ç³»
+        # è¡¨å•temp_condition_regulation_tblä½¿ç”¨æ–¹æ³•ï¼šé“è·¯é¦–å…ˆæ ¹æ®å¯¹ç…§å…³ç³»æ‰¾åˆ°å¯¹åº”çš„é“è·¯è§„åˆ¶idï¼Œå†æ ¹æ®idåœ¨è¡¨å•condition_regulation_tblæŸ¥è¯¢\
+        # é“è·¯è§„åˆ¶æ¡ä»¶æƒ…æŠ¥(è§„åˆ¶idä¸º-1ä»£è¡¨æ²¡æœ‰è§„åˆ¶ï¼›ä¸ºç©ºä»£è¡¨å…¨æ—¶è§„åˆ¶ï¼›>0ä»£è¡¨è§„åˆ¶æœ‰æ—¶é—´ã€è½¦è¾†ç±»å‹é™åˆ¶)
+        # ä½œæˆè¡¨å•condition_regulation_tblè®°å½•é“è·¯è§„åˆ¶çš„æ¡ä»¶æƒ…æŠ¥ï¼ˆåŒ…æ‹¬æ—¶é—´ã€è½¦è¾†ç±»å‹é™åˆ¶ï¼‰
 
         self.CreateFunction2('mid_convert_condition_regulation_tbl')       
         self.pg.callproc('mid_convert_condition_regulation_tbl')
@@ -152,8 +152,8 @@ class comp_regulation_ta(component.component_base.comp_base):
         
         self.log.info('Begin convert regulation for oneway link...')
         
-        # ¸üĞÂ±íµ¥regulation_relation_tbl/regulation_item_tbl---µ¥Ìõlink½ûÖ¹Í¨ĞĞ¹æÖÆ£¬×÷³É£º
-        # ´Ó±íµ¥temp_rs_df_todo³éÈ¡µ¥Ìõlink½ûÖ¹Í¨ĞĞ¹æÖÆĞÅÏ¢
+        # æ›´æ–°è¡¨å•regulation_relation_tbl/regulation_item_tbl---å•æ¡linkç¦æ­¢é€šè¡Œè§„åˆ¶ï¼Œä½œæˆï¼š
+        # ä»è¡¨å•temp_rs_df_todoæŠ½å–å•æ¡linkç¦æ­¢é€šè¡Œè§„åˆ¶ä¿¡æ¯
         
         self.CreateFunction2('mid_convert_regulation_oneway_link')
         self.pg.callproc('mid_convert_regulation_oneway_link')
@@ -166,9 +166,9 @@ class comp_regulation_ta(component.component_base.comp_base):
         
         self.log.info('Begin convert regulation for linkrow...')
         
-        # ¸üĞÂ±íµ¥regulation_relation_tbl/regulation_item_tbl---linkÁĞ½ûÖ¹Í¨ĞĞ¹æÖÆ£¬×÷³É£º
-        # 1¡¢´Ó±íµ¥temp_rs_linkrow_todo³éÈ¡linkÁĞ½ûÖ¹Í¨ĞĞµÄ¹æÖÆĞÅÏ¢
-        # 2¡¢´Ó±íµ¥org_mp³éÈ¡½ûÖ¹Í¨ĞĞµÄlinkĞòÁĞ
+        # æ›´æ–°è¡¨å•regulation_relation_tbl/regulation_item_tbl---linkåˆ—ç¦æ­¢é€šè¡Œè§„åˆ¶ï¼Œä½œæˆï¼š
+        # 1ã€ä»è¡¨å•temp_rs_linkrow_todoæŠ½å–linkåˆ—ç¦æ­¢é€šè¡Œçš„è§„åˆ¶ä¿¡æ¯
+        # 2ã€ä»è¡¨å•org_mpæŠ½å–ç¦æ­¢é€šè¡Œçš„linkåºåˆ—
                 
         self.CreateFunction2('mid_convert_regulation_linkrow')       
         self.pg.callproc('mid_convert_regulation_linkrow')     
@@ -181,9 +181,9 @@ class comp_regulation_ta(component.component_base.comp_base):
         self.log.info('alter link traffic begin...')
         
         #create temp table for link's traffic flow
-        # ×÷³É±íµ¥temp_link_regulation_forbid_traffic¼ÇÂ¼link½ûÖ¹Í¨ĞĞµÄ·½Ïò
-        # ×÷³É±íµ¥temp_link_regulation_permit_traffic¼ÇÂ¼linkÔÊĞíÍ¨ĞĞµÄ·½Ïò
-        # ÔÚÖÆ×÷linkÒ»·½Í¨ĞĞÊ±»á¿¼ÂÇÉÏÊöÁ½±í
+        # ä½œæˆè¡¨å•temp_link_regulation_forbid_trafficè®°å½•linkç¦æ­¢é€šè¡Œçš„æ–¹å‘
+        # ä½œæˆè¡¨å•temp_link_regulation_permit_trafficè®°å½•linkå…è®¸é€šè¡Œçš„æ–¹å‘
+        # åœ¨åˆ¶ä½œlinkä¸€æ–¹é€šè¡Œæ—¶ä¼šè€ƒè™‘ä¸Šè¿°ä¸¤è¡¨
         self.CreateTable2('temp_link_regulation_forbid_traffic')
         self.CreateTable2('temp_link_regulation_permit_traffic')
         self.pg.commit2()
@@ -194,12 +194,12 @@ class comp_regulation_ta(component.component_base.comp_base):
         
         self.log.info('delete linkrow regulation from link begin...')
         
-        # ¸üĞÂ±íµ¥regulation_item_tbl / regulation_relation_tbl---É¾³ıÍÑ³ölink·½Ïò²»°üº¬½»Í¨Á÷·½ÏòµÄÇéĞÎ
-        # Àı£º´ÓÒ»ÌõlinkµÄÖÕ¶ËÍÑ³ö£¬µ«¸ÃlinkË«Ïò½ûÖ¹»òÕß·´ÏòÍ¨ĞĞ£¬ÔòÈÏÎª¸ÃÌõ¼ÇÂ¼ÈßÓà£¬ĞèÒªÉ¾³ı
-        # ×÷³É£º
-        # ¶Ô±íµ¥regulation_item_tblÖĞlinkÁĞµÄÇéĞÎ½øĞĞ´¦Àí£¬ÅĞ¶Ïµ±Ç°linkµ½ºóÒ»linkµÄÍÑ³ö·½ÏòÊÇ·ñ°üº¬½»Í¨Á÷·½Ïò£¬Èô²»°üº¬£¬É¾³ı
-        # ÏÖÔÚ£º
-        # ÔİÊ±½öÅĞ¶ÏÁË×îÖÕÍÑ³ölinkµÄ·½ÏòÓë½»Í¨Á÷·½ÏòµÄ¹ØÏµ£¬Î´¿¼ÂÇÆäËûÇéĞÎ£¬ÒÀÈ»´æÔÚÈßÓà£¬ºóĞø¸Ä½ø
+        # æ›´æ–°è¡¨å•regulation_item_tbl / regulation_relation_tbl---åˆ é™¤è„±å‡ºlinkæ–¹å‘ä¸åŒ…å«äº¤é€šæµæ–¹å‘çš„æƒ…å½¢
+        # ä¾‹ï¼šä»ä¸€æ¡linkçš„ç»ˆç«¯è„±å‡ºï¼Œä½†è¯¥linkåŒå‘ç¦æ­¢æˆ–è€…åå‘é€šè¡Œï¼Œåˆ™è®¤ä¸ºè¯¥æ¡è®°å½•å†—ä½™ï¼Œéœ€è¦åˆ é™¤
+        # ä½œæˆï¼š
+        # å¯¹è¡¨å•regulation_item_tblä¸­linkåˆ—çš„æƒ…å½¢è¿›è¡Œå¤„ç†ï¼Œåˆ¤æ–­å½“å‰linkåˆ°åä¸€linkçš„è„±å‡ºæ–¹å‘æ˜¯å¦åŒ…å«äº¤é€šæµæ–¹å‘ï¼Œè‹¥ä¸åŒ…å«ï¼Œåˆ é™¤
+        # ç°åœ¨ï¼š
+        # æš‚æ—¶ä»…åˆ¤æ–­äº†æœ€ç»ˆè„±å‡ºlinkçš„æ–¹å‘ä¸äº¤é€šæµæ–¹å‘çš„å…³ç³»ï¼Œæœªè€ƒè™‘å…¶ä»–æƒ…å½¢ï¼Œä¾ç„¶å­˜åœ¨å†—ä½™ï¼Œåç»­æ”¹è¿›
         self.CreateFunction2('mid_delete_linkrow_from_link')
         self.pg.callproc('mid_delete_linkrow_from_link')
         self.pg.commit2()

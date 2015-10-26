@@ -479,12 +479,16 @@ class rdb_pg(object):
             rdb_log.log('DataBase', 'Create table ' + table_name + 'failed :' + sqlcmd, 'info')
             raise
     
+    CreateTable2 = CreateTable2_ByName
+    
     def CreateIndex2_ByName(self, index_name):
         sqlcmd = self.SqlScriprt.GetSqlScript(index_name)
         if sqlcmd == None:
             rdb_log.log('DataBase', "Doesn't exist SQL script for index " +  index_name, 'error')
             raise
         return self.create_index2(sqlcmd, index_name)
+    
+    CreateIndex2 = CreateIndex2_ByName
     
     def CreateFunction2_ByName(self, function_name):
         if self.connected2 != True:
@@ -508,6 +512,8 @@ class rdb_pg(object):
         self.conn2.commit()
         #rdb_log.log('DataBase', "Create function " +  function_name + " Succeeded.", 'info')
         return 0
+    
+    CreateFunction2 = CreateFunction2_ByName
     
     def __getDropFunctionSqlcmd(self, create_cmd):
         sqlcmd = create_cmd.lower()
@@ -547,6 +553,11 @@ class rdb_pg(object):
                 return True
            
         return False
+    
+    def getOnlyQueryResult(self, sqlcmd):
+        self.execute2(sqlcmd)
+        row = self.fetchone2()
+        return row[0]
     
     def getMinMaxValue(self, table_name, column_name):
         sqlcmd = "SELECT min(%s), max(%s) FROM %s;" % (column_name, column_name, table_name)

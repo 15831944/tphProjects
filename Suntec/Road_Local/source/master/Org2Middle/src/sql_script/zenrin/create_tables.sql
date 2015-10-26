@@ -119,9 +119,9 @@ create table temp_poi_category
 (
 	per_code          bigint,
 	genre_is_brand    varchar,
-	genre_0           integer,
-	genre_1           integer,
-	genre_2           integer,
+	gen1           integer,
+	gen2           integer,
+	gen3           integer,
 	genre_level       smallint,
 	name              varchar,
 	genre_type        varchar,
@@ -163,28 +163,32 @@ CREATE TABLE mid_hwy_org_facility_node
 );
 
 ------------------------------------------------------------------------
+create table temp_roundabout_all
+as
+(
+	select geom,st_numgeometries(geom) as sum
+	from (
+		select meshcode_array,linkno_array,ST_linemerge(st_union(geom_array)) as geom
+		from (
+			select array_agg(the_geom_4326) as geom_array
+				,array_agg(meshcode) as meshcode_array
+				,array_agg(linkno) as linkno_array
+			from (
+				select * from org_road 
+				where substr(elcode,4,1) = '7'
+			) o
+		) a
+	) b
+);
+
 create table temp_roundabout_circle 
 as
 (
 	select idx,st_geometryn(geom,idx) as geom
 	from (
 		select generate_series(1,sum) as idx,geom
-		from (
-			select geom,st_numgeometries(geom) as sum
-			from (
-				select meshcode_array,linkno_array,ST_linemerge(st_union(geom_array)) as geom
-				from (
-					select array_agg(the_geom_4326) as geom_array
-						,array_agg(meshcode) as meshcode_array
-						,array_agg(linkno) as linkno_array
-					from (
-						select * from org_road 
-						where substr(elcode,4,1) = '7'
-					) o
-				) a
-			) b
-		) c
-	) d
+		from temp_roundabout_all a
+	) b
 );
 
 create table temp_roundabout_doublecircle 
@@ -316,33 +320,36 @@ as
 create table temp_roundabout_doublecircle_paths 
 as
 (
-	select nextval('temp_regulation_id_seq') as id,in_link,in_node,out_link,unnest(paths) as path
+	select nextval('temp_regulation_id_seq') as id,* 
 	from (
-		select *
-			,zenrin_cal_doubleroundabout_path(in_link,in_node,out_link,out_node) as paths
-			,cal_point_line_side(p0,p1,p2) as turn_side
+		select in_link,in_node,out_link,unnest(paths) as path
 		from (
-			select a.link_id as in_link,a.node_id as in_node,a.s_node as in_s_node,a.e_node as in_e_node,a.oneway as in_oneway,a.fastlane_flag as in_faselane_flag
-				,b.link_id as out_link,b.node_id as out_node,b.s_node as out_s_node,b.e_node as out_e_node,b.oneway as out_oneway,b.fastlane_flag as out_faselane_flag
-				,zenrin_cal_doubleroundabout_angle(a.the_geom,(case when a.node_id = a.s_node then 1 else -1 end),b.the_geom,(case when b.node_id = b.s_node then 1 else -1 end)) as turn_angle
-				,case when a.node_id = a.s_node then st_pointn(a.the_geom,2)
-					else st_pointn(a.the_geom,st_npoints(a.the_geom) - 1)
-				end as p0
-				,case when a.node_id = a.s_node then st_startpoint(a.the_geom)
-					else st_endpoint(a.the_geom)
-				end as p1
-				,case when b.node_id = b.s_node then st_startpoint(b.the_geom)
-					else st_endpoint(b.the_geom)
-				end as p2
-			from temp_roundabout_doublecircle_inlink a
-			left join temp_roundabout_doublecircle_outlink b
-			on not a.link_id = b.link_id
-			and a.roundabout_idx = b.roundabout_idx
-			where a.fastlane_flag = 0 and a.oneway = 1
-			order by a.link_id
-		) c 
-		where turn_angle > 65 and turn_angle < 125
-		and cal_point_line_side(p0,p1,p2) = 1
-	) d
-	order by in_link,out_link
+			select *
+				,zenrin_cal_doubleroundabout_path(in_link,in_node,out_link,out_node) as paths
+			from (
+				select a.link_id as in_link,a.node_id as in_node,a.s_node as in_s_node,a.e_node as in_e_node,a.oneway as in_oneway,a.fastlane_flag as in_faselane_flag
+					,b.link_id as out_link,b.node_id as out_node,b.s_node as out_s_node,b.e_node as out_e_node,b.oneway as out_oneway,b.fastlane_flag as out_faselane_flag
+					,zenrin_cal_doubleroundabout_angle(a.the_geom,(case when a.node_id = a.s_node then 1 else -1 end),b.the_geom,(case when b.node_id = b.s_node then 1 else -1 end)) as turn_angle
+					,case when a.node_id = a.s_node then st_pointn(a.the_geom,2)
+						else st_pointn(a.the_geom,st_npoints(a.the_geom) - 1)
+					end as p0
+					,case when a.node_id = a.s_node then st_startpoint(a.the_geom)
+						else st_endpoint(a.the_geom)
+					end as p1
+					,case when b.node_id = b.s_node then st_startpoint(b.the_geom)
+						else st_endpoint(b.the_geom)
+					end as p2
+				from temp_roundabout_doublecircle_inlink a
+				left join temp_roundabout_doublecircle_outlink b
+				on not a.link_id = b.link_id
+				and a.roundabout_idx = b.roundabout_idx
+				where a.fastlane_flag = 0 and a.oneway = 1
+				order by a.link_id
+			) c 
+			where (turn_angle > 65 and turn_angle < 125)
+			or (turn_angle > -295 and turn_angle < -235)
+		) d
+	) e
+	where array_upper(string_to_array(path,'|'),1) > 2
+	order by id
 );

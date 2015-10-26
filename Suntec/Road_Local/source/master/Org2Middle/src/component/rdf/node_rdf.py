@@ -126,7 +126,7 @@ class comp_node_rdf(component.component_base.comp_base):
         sqlcmd = """
                 insert into node_tbl (
                     node_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, mainnodeid, node_lid, 
-                    node_name, z_level, the_geom 
+                    node_name, z_level, the_geom, feature_string, feature_key
                 )
                 select 
                     a.node_id, 
@@ -139,7 +139,9 @@ class comp_node_rdf(component.component_base.comp_base):
                     array_to_string(d.lid, '|') as node_lid, 
                     null as node_name,
                     a.zlevel as z_level,
-                    a.the_geom as the_geom
+                    a.the_geom as the_geom,
+                    a.node_id::varchar as feature_string,
+                    md5(a.node_id::varchar) as feature_key
                 from temp_rdf_nav_node as a
                 left outer join temp_node_light as b on a.node_id = b.node_id
                 left outer join temp_node_toll as c on a.node_id = c.node_id

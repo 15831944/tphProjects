@@ -109,7 +109,7 @@ class comp_guideinfo_crossname_zenrin(component.component_base.comp_base):
                         'CHT'::varchar as language,
                         1 as name_id,
                         'office_name'::varchar as name_type,
-                        'PYM'::varchar as phoneme_lang,
+                        'BPM'::varchar as phoneme_lang,
                         a.reading as phoneme
                 from temp_crossname as a  
              ) as b

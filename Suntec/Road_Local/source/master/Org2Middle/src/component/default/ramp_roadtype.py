@@ -67,6 +67,9 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         self._findproperroundabout()
         # 调整Ramp的road_type和FC
         self._ConvertRampRoadTypeFC()
+        
+        self.__Update_ic_jct_linktype()
+        
         # 更新link_tbl中Ramp的RoadType和FC
         self._UpdateRampRoadTypeFC()
         # 更新link_tbl中Ramp的Display Class
@@ -78,6 +81,85 @@ class comp_ramp_roadtype(component.component_base.comp_base):
        
         return 0
     
+    
+    def __Update_ic_jct_linktype(self):
+        self.log.info('Updating link_type of ic/jct links...')
+        sqlcmd = '''
+            update link_tbl as a
+            set link_type = e.link_type_new
+            from 
+            (
+                select link_id,link_type_new
+                from
+                (
+                    select b.link_id, min(new_link_type) as link_type_new ,c.link_type
+                    from temp_link_ramp_single_path as b
+                    join link_tbl as c
+                    on c.link_id = b.link_id
+                    group by b.link_id,c.link_type
+                ) as d
+                where d.link_type not in (0,7) and d.link_type <> d.link_type_new
+            ) as e
+            where a.link_id = e.link_id
+            
+         '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        self.__change_jct_link_to_ic()
+        
+        
+        
+    def __change_jct_link_to_ic(self):
+        
+        self.log.info('change jct link to ic link...')
+        self.CreateFunction2('mid_highway_connect')
+        self.CreateFunction2('mid_jct_linktype_modify')
+        self.CreateTable2('temp_jct_change_to_ic')
+        sqlcmd = '''
+                select mid_jct_linktype_modify(a.snode,a.path, a.s_node, a.e_node)
+                from 
+                (    
+                    select a.* , b.s_node, b.e_node
+                    from temp_jct_link_paths as a
+                    left join link_tbl as b
+                    on a.elink = b.link_id
+                    
+                ) as a
+           
+                '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = '''
+            update link_tbl as a
+            set link_type = e.new_link_type
+            from
+            (
+                select c.link_id, c.new_link_type, d.link_type
+                from
+                (
+                    select b.link_id, min(b.link_type) as new_link_type
+                    from 
+                    (
+                        select unnest(a.links) as link_id, a.link_type
+                        from temp_jct_change_to_ic as a
+                    ) as b
+                    group by b.link_id
+                ) as c    
+                join link_tbl as d
+                on d.link_id = c.link_id
+                where c.new_link_type <> d.link_type
+            ) as e
+            where a.link_id = e.link_id
+        '''
+        
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2() 
+        
+        
+    
+         
+        
     def _findproperroundabout(self):
         '找到这种环岛：即只连接高速本线或者sapalink或者匝道的环岛'
         
@@ -96,6 +178,7 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         return 0
         
     def _ConvertRampRoadTypeFC(self):
+        self.CreateTable2('temp_jct_link_paths')
         "调整Ramp的road_type和FC，和相连的高等级道路一致。"
         sqlcmd = """
                 SELECT mid_cnv_ramp();

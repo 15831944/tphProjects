@@ -97,19 +97,32 @@ class comp_admin_zenrin(component.component_base.comp_base):
                         array_agg(phoneme) as phoneme_array
                 from
                 (
-                    select  gid,
-                            gid as name_id,
-                            'office_name'::varchar as name_type,
-                            'CHT'::varchar as language_code,
-                            (
-                            case
-                            when elcode in ('550000', '570000') then name1
-                            else name2
-                            end
-                            )as name,
-                            null::varchar as phonetic_language,
-                            null::varchar as phoneme
-                    from temp_admin_zone_list
+                    select  a.*,
+                            'BPM'::varchar as phonetic_language,
+                            b.admin_pym as phoneme
+                    from
+                    (
+                        select  gid,
+                                gid as name_id,
+                                'office_name'::varchar as name_type,
+                                'CHT'::varchar as language_code,
+                                (
+                                case
+                                when elcode in ('550000', '570000') then name1
+                                else name2
+                                end
+                                )as name
+                        from temp_admin_zone_list
+                    )as a
+                    left join
+                    (
+                        select addr1 as admin_name, addr1_py_pym as admin_pym
+                        from org_poi
+                        union
+                        select addr2 as admin_name, addr2_py_pym as admin_pym
+                        from org_poi
+                    )as b
+                    on a.name = b.admin_name
                 )as t
                 group by gid
                 '''

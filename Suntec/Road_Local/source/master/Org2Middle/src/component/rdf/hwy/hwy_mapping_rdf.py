@@ -782,8 +782,13 @@ class HwyMappingRDF(HwyMapping):
                     if temp_path:
                         break
                 if temp_path:
-                    self.log.error('(Hwy Mapping)Does not include link=%s.'
-                                   % link_id)
+                    if self.G.has_edge(v, u):
+                        self.log.warning('(Hwy Mapping)Does not include '
+                                         'link=%s.' % link_id)
+                        self._store_not_hwy_model_link(link_id)
+                    else:
+                        self.log.error('(Hwy Mapping)Does not include link=%s.'
+                                       % link_id)
                     continue
             if one_way in (ONE_WAY_RERVERSE, ONE_WAY_BOTH):
                 pathes = list(self.G.all_path_2_hwy_main([v, u],
@@ -812,8 +817,13 @@ class HwyMappingRDF(HwyMapping):
                     if temp_path:
                         break
                 if temp_path:
-                    self.log.error('(Hwy Mapping)Does not include link=%s.'
-                                   % link_id)
+                    if self.G.has_edge(v, u):
+                        self.log.warning('(Hwy Mapping)Does not include '
+                                         'link=%s.' % link_id)
+                        self._store_not_hwy_model_link(link_id)
+                    else:
+                        self.log.error('(HwyMapping)Does not include link=%s.'
+                                       % link_id)
                     continue
             # 保存非高速本线link
             self._store_not_hwy_model_link(link_id)

@@ -266,15 +266,18 @@ CREATE TABLE mid_temp_sapa_store_info
 
 create table temp_poi_category
 (
-    per_code   bigint       not null,
-    gen1       int          not null,
-    gen2       int          not null,
-    gen3       int          not null,
-    level      smallint     not null,
-    name       varchar(128) not null,
-    imp        smallint     not null,
-    org_code   varchar(6)       not null,
-    logmark    varchar(128)  default ''
+    per_code        bigint       not null,
+    genre_is_brand  varchar,
+    gen1            int             not null,
+    gen2            int             not null,
+    gen3            int             not null,
+    level           smallint        not null,
+    name            varchar(128)    not null,
+    genre_type      varchar,
+    org_code        varchar(6),
+    brand_name      varchar,
+    lang            varchar,
+    filename        varchar
 );
 
 create table temp_brand_icon
@@ -282,22 +285,12 @@ create table temp_brand_icon
     brandname    varchar(128) not null default ''
 );
 
-
-create table temp_category_priority
-(
-    u_code          character varying(1024)   not null,
-    category_priority    int   
- 
-);
-
 CREATE TABLE temp_poi_logmark
 (
   poi_id double precision NOT NULL,
-  std_name character varying(100),
-  cat_code character varying(6),
+  std_name varchar,
   type_code integer,
-  lat numeric,
-  lon numeric,
+  type_code_priority integer,
   the_geom geometry 
 
 );

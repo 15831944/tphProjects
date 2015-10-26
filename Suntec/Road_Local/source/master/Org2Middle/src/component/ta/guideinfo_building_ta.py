@@ -20,10 +20,10 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         
     def _Do(self):
         
-        #self._loadBrandIcon()
+        self._loadBrandIcon()
         self._loadPOICategory()
         self._make_poi_category_mapping()
-        self._loadCategoryPriority1() 
+        self._loadCategoryPriority() 
         self._findLogmark()
         self._makePOIName()
         self._makeLogmark()
@@ -132,7 +132,35 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
             join temp_category_priority as p
             on p.per_code = b.per_code and p.category_priority in (1,2,4)
             
-    
+            union
+            --brand icon
+            select bd.id, bd.feattyp, b.per_code, p.category_priority, bd.the_geom
+            from
+            (
+                select a.id,a.feattyp, a.the_geom, a.name,a.brandname 
+                from org_mnpoi_pi as a
+                join temp_brand_icon as b
+                on a.brandname = b.brandname
+                
+                union
+                
+                select c.id,c.feattyp, c.the_geom, c.name,c.brandname
+                from 
+                (
+                    select a.id,a.feattyp, a.the_geom, a.name,a.brandname
+                    from org_mnpoi_pi as a
+                    left join temp_brand_icon as b
+                    on a.brandname = b.brandname
+                    where b.brandname is null
+                ) as c
+                join temp_brand_icon as d
+                on c.name = d.brandname
+            ) bd
+            join temp_poi_category_mapping as b
+            on bd.id = b.org_id1 and bd.feattyp = b.org_id2
+            join temp_category_priority as p
+            on p.per_code = b.per_code
+            
         """
         self.pg.execute(sqlcmd)
         self.pg.commit2()
@@ -142,7 +170,7 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         sqlcmd = """ 
                 insert into temp_mn_logmark                
                 select mp.id, mp.feattyp, b.per_code, p.category_priority, mp.the_geom
-                from org_mnpoi_pi mp
+                from org_mn_pi mp
                 join temp_poi_category_mapping as b
                 on mp.id = b.org_id1 and mp.feattyp = b.org_id2
                 join temp_category_priority as p
@@ -152,12 +180,42 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                 union
                 
                 select mp.id, mp.feattyp, b.per_code, p.category_priority, mp.the_geom
-                from org_mnpoi_pi mp
+                from org_mn_pi mp
                 join temp_poi_category_mapping as b
                 on mp.id = b.org_id1 and mp.feattyp = b.org_id2
                 join temp_category_priority as p
                 on p.per_code = b.per_code and p.category_priority in (1,2,4)     
-                                     
+                
+                union
+                
+                --brand icon
+                select bd.id, bd.feattyp, b.per_code, p.category_priority, bd.the_geom
+                from
+                (
+                    select a.id,a.feattyp, a.the_geom, a.name,a.buaname 
+                    from org_mn_pi as a
+                    join temp_brand_icon as b
+                    on a.buaname = b.brandname
+                    
+                    union
+                    
+                    select c.id,c.feattyp, c.the_geom, c.name,c.buaname
+                    from 
+                    (
+                        select a.id,a.feattyp, a.the_geom, a.name,a.buaname
+                        from org_mn_pi as a
+                        left join temp_brand_icon as b
+                        on a.buaname = b.brandname
+                        where b.brandname is null
+                    ) as c
+                    join temp_brand_icon as d
+                    on c.name = d.brandname
+                ) bd
+                join temp_poi_category_mapping as b
+                on bd.id = b.org_id1 and bd.feattyp = b.org_id2
+                join temp_category_priority as p
+                on p.per_code = b.per_code 
+                                    
                 """
         self.pg.execute(sqlcmd)
         self.pg.commit2()

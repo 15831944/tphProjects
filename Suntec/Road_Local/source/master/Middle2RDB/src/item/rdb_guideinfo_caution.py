@@ -37,20 +37,21 @@ class rdb_guideinfo_caution(ItemBase):
     def Do(self):
         
         sqlcmd = """
-            INSERT INTO rdb_guideinfo_caution(
-                        guideinfo_id, in_link_id, in_link_id_t, node_id, node_id_t, out_link_id, 
-                        out_link_id_t, passlink_count, data_kind, voice_id, strTTS, image_id)
-                SELECT a.gid, b.tile_link_id, b.tile_id, c.tile_node_id, c.tile_id, d.tile_link_id, 
-                        d.tile_id, a.passlink_cnt, a.data_kind, a.voice_id, a.strTTS, a.image_id
-                    FROM caution_tbl as a
-                    left join rdb_tile_link as b
-                    on a.inlinkid = b.old_link_id
-                    left join rdb_tile_node as c
-                    on a.nodeid = c.old_node_id
-                    left join rdb_tile_link as d
-                    on a.outlinkid = d.old_link_id
-                    order by a.gid
-        """
+                INSERT INTO rdb_guideinfo_caution(
+                    in_link_id, in_link_id_t, node_id, node_id_t, 
+                    out_link_id, out_link_id_t, passlink_count, data_kind, 
+                    voice_id, strTTS, image_id
+                    )
+                SELECT b.tile_link_id, b.tile_id, c.tile_node_id, c.tile_id, d.tile_link_id, d.tile_id, a.passlink_cnt, a.data_kind, a.voice_id, a.strTTS, a.image_id
+                FROM caution_tbl as a
+                LEFT JOIN rdb_tile_link as b
+                    ON a.inlinkid = b.old_link_id
+                LEFT JOIN rdb_tile_node as c
+                    ON a.nodeid = c.old_node_id
+                LEFT JOIN rdb_tile_link as d
+                    ON a.outlinkid = d.old_link_id
+                ORDER BY b.tile_link_id, c.tile_node_id, a.passlink_cnt, a.data_kind
+            """
         
         rdb_log.log(self.ItemName, 'Start making rdb_guideinfo_caution', 'info') 
         

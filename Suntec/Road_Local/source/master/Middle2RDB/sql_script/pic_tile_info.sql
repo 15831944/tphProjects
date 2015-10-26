@@ -16,6 +16,10 @@ insert into rdb_pic_tile_info(pic_id, tile_z, tile_x, tile_y, type)
 			select pattern_id as pic_id, node_id_t as pic_tile_id, type from rdb_guideinfo_spotguidepoint
 			union
 			select arrow_id as pic_id, node_id_t as pic_tile_id, type from rdb_guideinfo_spotguidepoint
+			union
+			select pattern_id as pic_id, node_id_t as pic_tile_id, 999 from rdb_guideinfo_signpost
+			union
+			select arrow_id as pic_id, node_id_t as pic_tile_id, 999 from rdb_guideinfo_signpost
 		) as a
 	) as b
 	where b.pic_id <> 0

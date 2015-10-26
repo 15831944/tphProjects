@@ -1848,7 +1848,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION mid_cnv_link_type( 
-fow smallint, ramp smallint, pj smallint, sliprd smallint
+fow smallint, ramp smallint, pj smallint, sliprd smallint, frc smallint
 )
   RETURNS smallint 
   LANGUAGE plpgsql
@@ -1866,7 +1866,7 @@ BEGIN
     	return 7;
     ELSEIF fow = 4 THEN
     	return 0;
-    ELSEIF (fow = 10 or ramp != 0) THEN
+    ELSEIF (fow = 10 or (ramp != 0 and frc < 3)) THEN
     	return 5;
     ELSEIF fow = 11 THEN
     	return 6;

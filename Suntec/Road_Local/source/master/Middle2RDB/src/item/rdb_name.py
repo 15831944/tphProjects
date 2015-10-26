@@ -22,9 +22,9 @@ class rdb_name_language_order(ItemBase):
         '''
         ItemBase.__init__(self, 'Name')
         text_filter_condition = rdb_common.GetPath('text_filter')
-        temp_proj_name = rdb_common.GetPath('proj_name')
-        temp_proj_country = rdb_common.GetPath('proj_country')
-        temp_key = (temp_proj_name + "_" + temp_proj_country).upper()
+        self.temp_proj_name = rdb_common.GetPath('proj_name')
+        self.temp_proj_country = rdb_common.GetPath('proj_country')
+        temp_key = (self.temp_proj_name + "_" + self.temp_proj_country).upper()
         
         temp_dict = eval(text_filter_condition)
         if temp_dict is not None:
@@ -66,10 +66,10 @@ class rdb_name_language_order(ItemBase):
     def Do(self):
         alter_list = [
                       ('rdb_admin_zone', 'ad_name'),
-                      ('rdb_link', 'road_name'),
-                      ('rdb_link', 'road_number'),
-                      ('rdb_link_with_all_attri_view', 'road_name'),
-                      ('rdb_link_with_all_attri_view', 'road_number'),
+#                      ('rdb_link', 'road_name'),
+#                      ('rdb_link', 'road_number'),
+#                      ('rdb_link_with_all_attri_view', 'road_name'),
+#                      ('rdb_link_with_all_attri_view', 'road_number'),
                       ('rdb_guideinfo_building_structure', 'building_name'),
                       #('rdb_guideinfo_crossname', 'cross_name'),
                       #('rdb_guideinfo_road_structure', 'structure_name'),
@@ -81,11 +81,13 @@ class rdb_name_language_order(ItemBase):
                       ('rdb_guideinfo_signpost_uc', 'route_no4'),
                       ('rdb_guideinfo_signpost_uc', 'exit_no'),
                       ('rdb_guideinfo_towardname', 'toward_name'),
-                      ('rdb_region_link_layer4_tbl', 'road_name'),
-                      ('rdb_region_link_layer6_tbl', 'road_name'),
+#                      ('rdb_region_link_layer4_tbl', 'road_name'),
+#                      ('rdb_region_link_layer6_tbl', 'road_name'),
+#                      ('rdb_region_link_layer8_tbl', 'road_name'),
                       ]
         for table_name, field_name in alter_list:
-            self.__alterTableField(table_name, field_name)
+            if self.pg.IsExistTable(table_name):
+                self.__alterTableField(table_name, field_name)
     
     def __alterTableField(self, table_name, field_name):
         self.log.info('alter language order for %s of %s...' % (field_name, table_name))
@@ -152,16 +154,38 @@ class rdb_name_language_order(ItemBase):
             self.pg.execute2(sqlcmd)
             self.pg.commit2()
             return
+        elif table_name == 'rdb_region_link_layer8_tbl':
+            sqlcmd = """
+                        update rdb_region_link_layer8_tbl as a set %s = b.%s
+                        from 
+                        (
+                            select a.link_id, c.%s
+                            from rdb_region_link_layer8_tbl as a
+                            left join rdb_region_layer8_link_mapping as b
+                            on a.link_id = b.region_link_id
+                            left join rdb_link as c
+                            on b.link_id_14[1] = c.link_id
+                        ) as b
+                        where a.link_id = b.link_id;
+                      """ % (field_name, field_name, field_name)
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
+            return
         elif table_name == 'rdb_admin_zone':
+            if self.temp_proj_name.upper() == 'NI':
+                mapping_order = 1
+            else:
+                mapping_order = 0
+                
             sqlcmd = """
                         select  gid, 
                                 b.iso_country_code, 
                                 %s
                         from %s as a
                         left join rdb_admin_order0_iso_country_mapping as b
-                        on a.order0_id = b.order0_id
-                        where %s is not null
-                      """ % (field_name, table_name, field_name)
+                        on a.order%s_id = b.order0_id
+                        where %s is not null and %s <> ''
+                      """ % (field_name, table_name, mapping_order, field_name, field_name)
         elif table_name.startswith('rdb_guideinfo'):
             if not self.__check_gid_column_exist(table_name):
                 sqlcmd = """
@@ -189,7 +213,8 @@ class rdb_name_language_order(ItemBase):
         temp_file_obj = common.cache_file.open(update_table_name)
         rec_list = self.pg.get_batch_data2(sqlcmd)
         
-        if table_name == 'rdb_guideinfo_signpost_uc' or table_name == 'rdb_guideinfo_towardname':
+        if table_name == 'rdb_guideinfo_signpost_uc' or table_name == 'rdb_guideinfo_towardname' \
+            or (table_name == 'rdb_link' and field_name == 'road_number'):
             self.__is_table_needs_one_record = False
 
         for rec in rec_list:
@@ -261,7 +286,7 @@ class rdb_name_language_order(ItemBase):
                 self.log.error('can not find the priority language array')
         #
         temp_name = []
-        if field_name in ('road_number', 'route_no1', 'route_no2', 'route_no3', 'route_no4'):
+        if field_name in ('road_number', 'route_no1', 'route_no2', 'route_no3', 'route_no4', 'toward_name'):
             old_name_string = old_name_string.replace('\t', '\\t')
             #old_name_string = old_name_string.replace('"', '\\"')
         old_name = json.loads(old_name_string, encoding='utf8')

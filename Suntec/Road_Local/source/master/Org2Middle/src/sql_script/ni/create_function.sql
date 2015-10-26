@@ -265,7 +265,8 @@ BEGIN
 		when kind like '%00' or kind like '%00|%' then 0	
 		when kind like '%03' or kind like '%03|%' then 3 
 		when kind like '%06' or kind like '%06|%'
-			or kind like '%07' or kind like '%07|%' then 7			
+			or kind like '%07' or kind like '%07|%' 
+			or kind like '%000e%' then 7			
 		when kind like '%05' or kind like '%05|%'
 		    or kind like '%0b' or kind like '%0b|%' then 5 		
 		when kind like '%04' or kind like '%04|%' then 4 
@@ -1349,5 +1350,25 @@ BEGIN
 			values(cur_regulation_id, rec.nodeid_array[1], rec.linkid_array[1], rec.linkid_array[array_upper(rec.linkid_array,1)], 11::smallint, rec.cond_id);
 	end loop;
     return 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION ni_temp_split_string(str1 varchar, str2 varchar)
+	RETURNS varchar
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	str1_low   varchar;
+	str2_low   varchar;
+	pos        integer;
+	substr     varchar;
+BEGIN
+	str1_low := lower(str1);
+	str2_low := lower(str2);
+	pos      := position(str2_low in str1_low) - 1;
+  substr   := substring(str1 from 1 for pos);
+    
+	
+	return substr;
 END;
 $$;

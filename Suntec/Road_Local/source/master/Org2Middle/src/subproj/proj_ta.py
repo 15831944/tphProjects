@@ -38,6 +38,8 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            # update sapa link
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             # Ramp
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
 
@@ -76,6 +78,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
  
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))

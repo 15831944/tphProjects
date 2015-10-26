@@ -5,8 +5,11 @@ Created on 2013-7
 @author: zym
 '''
 
-import component.default.guideinfo_caution
+
+
 import common
+import component.component_base
+import component.default.guideinfo_caution
 
 
 
@@ -20,18 +23,13 @@ class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_cautio
         Constructor
         '''
         component.component_base.comp_base.__init__(self, 'Guideinfo_Caution_highaccident')
-        
+    
     def _DoCreateTable(self):
+        '创建表.'  
+        
         return 0
     
-    def _DoCreateIndex(self):
-        'create index.'
-        return 0
-    
-    def _DoCreateFunction(self):
-        return 0
-    
-    def _Do(self):
+    def _make_caution_from_origin(self):
 
         accident_flag = common.common_func.GetPath('accident_flag')
 
@@ -46,7 +44,6 @@ class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_cautio
                  
             self._driver_alert_data(insert_sqlcmd)        
             self._high_accident_point_data(insert_sqlcmd)
-            self._GetOutLinkSeq()
 
             # 事故多发区，因数据保存在safety zone中，故不可将此处safety zone作成移动到guideinfo_safety zone中
             insert_sqlcmd = '''
@@ -58,7 +55,7 @@ class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_cautio
             
             self._high_accident_zone_data(insert_sqlcmd)
                         
-        return
+        return 0
     
     def _driver_alert_data(self,insert_sqlcmd):
         
@@ -102,7 +99,8 @@ class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_cautio
         self.pg.commit2()
         
         self.log.info('updating temp_org_caution_link_tbl by driver alert data succeeded')
-        return
+        
+        return 0
 
     def _high_accident_point_data(self,insert_sqlcmd):
         
@@ -155,7 +153,8 @@ class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_cautio
         self.pg.commit2()
         
         self.log.info('updating temp_org_caution_link_tbl by high accident point data succeeded')
-        return
+        
+        return 0
         
     def _high_accident_zone_data(self,insert_sqlcmd):
         
@@ -211,7 +210,8 @@ class comp_guideinfo_caution_highaccident_rdf(component.default.guideinfo_cautio
         self.pg.commit2()
         
         self.log.info('updating safety_zone_tbl by high accident zone data end.')
-        return
+        
+        return 0
     
     
     

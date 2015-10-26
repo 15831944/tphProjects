@@ -76,9 +76,9 @@ CREATE TABLE temp_admin_caution_tbl
 
 create table temp_poi_category
 (
-  gen_0 integer NOT NULL,
-  gen_1 integer NOT NULL,
-  gen_2 integer NOT NULL,
+  gen1 integer NOT NULL,
+  gen2 integer NOT NULL,
+  gen3 integer NOT NULL,
   level smallint NOT NULL,
   genre_is_brand character(1),
   importance smallint,
@@ -86,7 +86,7 @@ create table temp_poi_category
   org_code1 character varying(28),
   org_code2 character varying(28),
   chaincode character varying(28),
-  genre_id integer NOT NULL,
+  per_code integer NOT NULL,
   name  varchar
 );
 
@@ -252,7 +252,7 @@ CREATE TABLE mid_temp_hwy_exit_enter_poi_name_ni
    node_id         bigint not null,
    poi_id          bigint not null,
    kind            character varying(8) not null,     -- Enter/Exit
-   name            character varying(1024) not null   --JSON
+   name            character varying(4096) not null   --JSON
 );
 
 
@@ -306,5 +306,6 @@ CREATE TABLE temp_sp_json_name
 (
 id bigint,
 namekind integer,
+guideattr integer,
 towardname varchar
 );

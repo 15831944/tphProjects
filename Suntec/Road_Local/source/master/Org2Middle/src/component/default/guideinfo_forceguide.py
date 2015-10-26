@@ -63,8 +63,8 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         forceguide_patch_full_path = GetPath('forceguide_patch_full_path')
         recIdx = 0
         if forceguide_patch_full_path:
-            self.log.info('Now it is importing force_guide_patch...')
             if os.path.exists(forceguide_patch_full_path):
+                self.log.info('Now it is importing force_guide_patch...')
                 self.CreateTable2('temp_force_guide_patch_tbl')
                 temp_file_obj = common.cache_file.open('temp_force_guide_patch_tbl')
                 f_force_guide_patch = open(forceguide_patch_full_path, 'r') 
@@ -99,9 +99,12 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
                 self.pg.commit2()
                 common.cache_file.close(temp_file_obj,True)
                 f_force_guide_patch.close()
-            
-            self.log.info('importing force_guide_patch succeeded')
-            return 0
+                
+                if -1 == self._check_org_mid_num(forceguide_patch_full_path):
+                    return -1
+                
+                self.log.info('importing force_guide_patch succeeded')
+                return 0
 
         return -1
     
@@ -187,4 +190,23 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('making force_guide_tbl succeeded')
+        return 0
+    
+    def _check_org_mid_num(self, filename):
+        self.log.info('Now it is checking temp_force_guide_patch_tbl...')
+        
+        # 验证导入数据个数的正确性
+        sqlcmd = """
+                SELECT count(*)
+                from temp_force_guide_patch_tbl
+            """
+            
+        self.pg.execute2(sqlcmd)
+        row = self.pg.fetchone2()
+        
+        if row[0] != len(open(filename, 'r').readlines()):
+            self.log.error("num of org_file is not match with num of id_tbl!!!")
+            return -1
+        
+        self.log.info('checking temp_force_guide_patch_tbl succeeded')
         return 0

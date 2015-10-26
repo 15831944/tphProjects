@@ -8,6 +8,9 @@ Created on 2015-7-31
 import component.default.multi_lang_name
 import common.cache_file
 import component.component_base
+import json
+import copy
+
 
 class comp_guideinfo_towardname_ni(component.component_base.comp_base):
     '''
@@ -175,12 +178,50 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         self.CreateTable2('temp_sp_json_name')
         self.CreateFunction2('mid_cnv_shield_ni')
         self.CreateFunction2('mid_convertstring')
+        
+        
+        sqlcmd = '''
+            drop table if exists temp_general_sp_name;
+            create table temp_general_sp_name
+            as
+            (
+                SELECT  a.id, 0 as name_kind,b.language,b.nameflag, c.seq_nm, b.signnametp, b.name as name, c.name as phoneme, c.phontype
+                FROM org_ic as a
+                join org_fname as b
+                on a.id = b.featid and nametype = '3' and b.signnumflg = '0'
+                left join org_fname_phon as c
+                on c.featid = b.featid and c.nametype = b.nametype 
+                and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                and c.phontype in ('1', '3')
+                
+                union 
+                
+                SELECT  a.id, 0 as name_kind,b.language,b.nameflag,c.seq_nm, b.signnametp, b.name as name, c.name as phoneme, c.phontype
+                FROM org_dr as a
+                join org_fname as b
+                on a.id = b.featid and nametype = '4' and b.signnumflg = '0'
+                left join org_fname_phon as c
+                on c.featid = b.featid and c.nametype = b.nametype 
+                and c.seq_nm = b.seq_nm and b.language in ('1','2')
+                and c.phontype in ('1', '3')
+            )
+            
+          '''
+          
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()       
+        self.CreateIndex2('temp_general_sp_name_id_idx')
+        
+        
+        
+        
+        
         sqlcmd = '''
             drop table if exists temp_sp_json_name_all_language;
             create table temp_sp_json_name_all_language
             as
             (
-                select id, name_kind,nameflag,seq_nm, 
+                select id, guideattr, name_kind, nameflag, seq_nm, 
                         (case when c.language = '1'  then  'CHI'
                               when c.language = '2'  then  'CHT'                                                               
                               when c.language = '3'  then  'ENG' 
@@ -191,7 +232,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                         phoneme 
                 from
                 (
-                    SELECT  a.id, 1 as name_kind,b.language,b.nameflag,c.seq_nm, b.name as name, c.name as phoneme, c.phontype
+                    SELECT  a.id, 0 as guideattr, 1 as name_kind,b.language,b.nameflag,c.seq_nm, b.name as name, c.name as phoneme, c.phontype
                     FROM org_br as a
                     join org_fname as b
                     on a.id = b.featid and nametype = '2'
@@ -202,7 +243,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     
                     union
                     
-                    select  id, name_kind, language,nameflag, seq_nm,
+                    select  id, guideattr, name_kind, language,nameflag, seq_nm,
                             (case when name like '%方向' then split_part(name,'方向',1)
                                   when name like '%方向）' then split_part(name,'方向）',1) || '）'
                                   else name end ) as name,
@@ -211,36 +252,30 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                             phontype
                     from
                     (
-                        select kk.* , rd.id as roundabout from
+                        select kk.* , rd.id as roundabout 
+                        from
                         (
-                            SELECT  a.id, 0 as name_kind,b.language,b.nameflag, c.seq_nm,b.name as name, c.name as phoneme, c.phontype
-                            FROM org_ic as a
-                            join org_fname as b
-                            on a.id = b.featid and nametype = '3' and b.signnumflg = '0'
-                            left join org_fname_phon as c
-                            on c.featid = b.featid and c.nametype = b.nametype 
-                            and c.seq_nm = b.seq_nm and b.language in ('1','2')
-                            and c.phontype in ('1', '3')
+                         
+                            select  a.*, 
+                            (case when (( c.road_type in (0,1) or c.toll = 1 ) and a.signnametp = '2' 
+                                        and ( name like '%立交%' or name like '%停车带%' ) ) then 1
+                                else  0 end ) as guideattr
+                            from temp_general_sp_name as a
+                            join temp_signpost_uc_path_info as b
+                            on a.id::bigint = b.id
+                            left join link_tbl as c
+                            on c.link_id = b.inlinkid
                             
-                            union 
-                            
-                            SELECT  a.id, 0 as name_kind,b.language,b.nameflag,c.seq_nm, b.name as name, c.name as phoneme, c.phontype
-                            FROM org_dr as a
-                            join org_fname as b
-                            on a.id = b.featid and nametype = '4' and b.signnumflg = '0'
-                            left join org_fname_phon as c
-                            on c.featid = b.featid and c.nametype = b.nametype 
-                            and c.seq_nm = b.seq_nm and b.language in ('1','2')
-                            and c.phontype in ('1', '3')
                         ) kk
                         left join  temp_roundabout_id as rd
                         on rd.id = kk.id::bigint and rd.name = kk.name
+                            
                     ) as temp
                     where roundabout is null                    
                          
                     union
                        
-                    SELECT   a.id, 3 as name_kind, b.language, b.nameflag, b.seq_nm, mid_cnv_shield_ni(a.folder,b.signnumflg, b.name) as name, 
+                    SELECT   a.id, 0 as guideattr, 3 as name_kind, b.language, b.nameflag, b.seq_nm, mid_cnv_shield_ni(a.folder,b.signnumflg, b.name) as name, 
                              --null as phoneme, null as phontype
                     c.name as phoneme, c.phontype
                     FROM org_ic as a
@@ -253,7 +288,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     
                     union 
                     
-                    SELECT  a.id,3 as name_kind,b.language,b.nameflag,b.seq_nm, mid_cnv_shield_ni(a.folder,b.signnumflg, b.name) as name,  
+                    SELECT  a.id, 0 as guideattr, 3 as name_kind,b.language,b.nameflag,b.seq_nm, mid_cnv_shield_ni(a.folder,b.signnumflg, b.name) as name,  
                            -- null as phoneme, null as phontype
                     c.name as phoneme, c.phontype
                     FROM org_dr as a
@@ -264,7 +299,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     and c.seq_nm = b.seq_nm and b.language in ('1','2')
                     and c.phontype in ('1', '3')
                 ) as c
-                order by id::bigint, name_kind,language,nameflag,seq_nm,name,phontype,phoneme
+                order by id::bigint, name_kind, guideattr, language, nameflag, seq_nm, name, phontype, phoneme
             )
         '''
         self.pg.execute2(sqlcmd)
@@ -278,6 +313,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         sqlcmd = """
                 select  id,
                         name_kind,
+                        guideattr,
                         array_agg(1) as name_id_array,
                         array_agg((case when a.name_kind = 3 then 'shield'::varchar 
                                         else 'office_name'::varchar end )) as name_type_array,
@@ -286,8 +322,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                         array_agg(phontype) as phonetic_language_array,
                         array_agg(phoneme) as phoneme_array
                 from temp_sp_json_name_all_language as a
-                group by id,name_kind,seq_nm
-                order by id::bigint,name_kind,seq_nm
+                group by id, name_kind, guideattr, seq_nm
+                order by id::bigint, name_kind, seq_nm
                 """         
                
         asso_recs = self.pg.get_batch_data2(sqlcmd)
@@ -296,13 +332,14 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         for asso_rec in asso_recs:
             sign_id = asso_rec[0]
             name_kind = asso_rec[1]
-            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[2], 
-                                                                                                            asso_rec[3], 
+            guideattr = asso_rec[2]
+            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(asso_rec[3], 
                                                                                                             asso_rec[4],
                                                                                                             asso_rec[5], 
                                                                                                             asso_rec[6],
-                                                                                                            asso_rec[7] )
-            temp_file_obj.write('%d\t%d\t%s\n' % (int(sign_id),int(name_kind), json_name))
+                                                                                                            asso_rec[7], 
+                                                                                                            asso_rec[8])
+            temp_file_obj.write('%d\t%d\t%d\t%s\n' % (int(sign_id),int(name_kind),int(guideattr),json_name))
         
         temp_file_obj.seek(0)
         self.pg.copy_from2(temp_file_obj, 'temp_sp_json_name')
@@ -321,7 +358,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                                             guideattr, namekind, toward_name ) 
             ( 
             select  b.tnodeid, b.inlinkid, b.outlinkid, b.passlid,b.passlink_cnt,0 as direction,
-                    0 as guideattr, a.namekind, a.towardname
+                    a.guideattr, a.namekind, a.towardname
             from temp_sp_json_name as a
             left join temp_signpost_uc_path_info as b
             on a.id = b.id
@@ -411,6 +448,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         self.log.info('make highway_building_json_name...')
         self.CreateTable2('temp_highway_building_json_name')
         self.CreateFunction2('mid_convertstring')
+        self.CreateFunction2('ni_temp_split_string')
         
         if not component.default.multi_lang_name.MultiLangName.is_initialized():
             component.default.multi_lang_name.MultiLangName.initialize()
@@ -422,6 +460,20 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
               (
                      select  a.poi_id,
                              mid_convertstring(b.name,1) as poi_name,
+
+                            mid_convertstring(
+                            (case when b.name like '%出口' then split_part(b.name, '出口',1)
+                                  --when b.name like '%Exit' then split_part(b.name, 'Exit',1)
+                                  when lower(b.name) like '%exit' then ni_temp_split_string(b.name, 'Exit')
+                                  --when b.name like '%服务区' then split_part(b.name, '服务区',1)
+                                  --when b.name like '%服務區' then split_part(b.name, '服務區',1)
+                                  --when b.name like '%Service Area' then split_part(b.name, 'Service Area',1)
+                                  --when b.name like '%停车区' then split_part(b.name, '停车区',1)
+                                  --when b.name like '%停車區' then split_part(b.name, '停車區',1)
+                                  --when b.name like '%Rest Area' then split_part(b.name, 'Rest Area',1)
+                                  --when b.name like '%Parking Area' then split_part(b.name, 'Parking Area',1)
+                                  else b.name end ), 1) as poi_name2,
+                            
                              (case when b.language = '1'  then  'CHI'
                                    when b.language = '2'  then  'CHT'
                                    when b.language = '3'  then  'ENG'
@@ -457,9 +509,10 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                     array_agg(name_id) as name_id_array,
                     array_agg(name_type) as name_type_array,
                     array_agg(language) as language_code_array,
-                    array_agg(poi_name) as name_array,
+                    array_agg(poi_name2) as name2_array,
                     array_agg(phoneme_lang) as phonetic_language_array,
-                    array_agg(phoneme) as phoneme_array
+                    array_agg(phoneme) as phoneme_array,
+                    array_agg(poi_name) as name_array
                 from 
                     (
                         select * from temp_highway_building_name_all_language
@@ -479,6 +532,13 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                                                                                                             asso_rec[4],
                                                                                                             asso_rec[5], 
                                                                                                             asso_rec[6])
+            
+            phoneme_array = asso_rec[6]
+            poi_name_array = asso_rec[7]
+            poi_name2_array = asso_rec[4]
+            
+            json_name = self.add_text_name(json_name, poi_name_array, poi_name2_array, phoneme_array)
+            
             temp_file_obj.write('%d\t%s\n' % (int(poi_id), json_name))
         
         temp_file_obj.seek(0)
@@ -487,7 +547,25 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         common.cache_file.close(temp_file_obj,True)
         self.CreateIndex2('temp_highway_building_json_name_poi_id_idx') 
  
+    def add_text_name(self, json_name, poi_name_array, poi_name2_array, phoneme_array): 
         
+        if poi_name_array == poi_name2_array:
+            return json_name
+        json_name_new = json.loads(json_name)
+        json_name1 = copy.deepcopy(json_name_new)
+        index = 0           
+        for onename in json_name1 :
+            if phoneme_array[index] in ['',None] :
+                onename_new = copy.deepcopy(onename)
+                textname = onename_new[0]
+                textname['tts_type'] = 'text'
+                textname['val'] = poi_name_array[index]
+                json_name_new[index].append(textname)
+            index += 1
+        json_name = json.dumps(json_name_new, ensure_ascii=False, encoding='utf8', sort_keys=True)
+        return json_name
+        
+          
     def _make_temp_towardname_highway_building(self):
  
  

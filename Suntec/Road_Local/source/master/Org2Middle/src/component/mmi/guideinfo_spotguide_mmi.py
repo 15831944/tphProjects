@@ -4,14 +4,11 @@ Created on 2012-4-27
 
 @author: zhangliang
 '''
-import os
-import struct
-import shutil
 
+import common
 from component.default import link_graph
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-sp_splitter = '_signpost_'
 roadType2SpotguideTypeMap = {0:1, 1:1, 2:4,
                              3:4, 4:4, 5:4,
                              6:4, 7:4, 8:4,
@@ -48,12 +45,8 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
 
     def _Do(self):
         self._generate_temp_info_of_junction_links()
-        self._generate_spotguide_tbl()
+        self._generate_spotguide_tbl(common.common_func.GetPath('care_about_sar'))
         comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
-           
-        #self.composeBackground("C:\\My\\20150410_mmi_pic\\Pattern_resized", "C:\\My\\20150410_mmi_pic\\Pattern_background")
-        #self.composeSignpost("C:\\My\\20150410_mmi_pic\\Pattern_background", "C:\\My\\20150410_mmi_pic\\Pattern_signpost")
-        #self.makeJunctionResultTable("C:\\My\\20150410_mmi_pic\\Pattern_signpost", "C:\\My\\20150410_mmi_pic\\illust_pic")
 
     def _generate_temp_info_of_junction_links(self):
         sqlcmd = '''
@@ -117,9 +110,9 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         return 0
 
     # bCareAboutSignpost: 有的时候式样要求不考虑是否存在sar的情况，通过此参数设置。
-    # False：此时即使可以找到sar图片，也不进行合成，不处理sar。
-    # True：  此时才考虑是否存在sar图片并合并。
-    def _generate_spotguide_tbl(self, bCareAboutSignpost=True):
+    # 'false'：此时即使可以找到sar图片，也不进行合成，不处理sar。
+    # 'true'：  此时才考虑是否存在sar图片并合并。
+    def _generate_spotguide_tbl(self, careAboutSignpost='true'):
         # 此时每条记录对应的road_lyr数应为2，一张白天图一张黑夜图。
         sqlcmd = '''
             SELECT a.inlinkid, b.road_type as inlink_roadtype, a.outlinkid, array_agg(road_lyr), 
@@ -147,21 +140,19 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
             passlinkcnt = 0
             
             isExistSar = False
-            road_name = ''
-            if bCareAboutSignpost and (None not in sign_lyrs):
+            pattern_name = ''
+            if (careAboutSignpost.lower()=='true') and (None not in sign_lyrs):
                 
                 if(self._check_time_stamp_with_signpost(road_lyrs, sign_lyrs, arrows, times) == False):
                     continue
-                # 此处新的pattern名命名规范：
-                # 中间添加signpost分隔符，后跟sar图片名字。
-                # 制作插图数据时存在sar的插图的命名必须遵循此规则。
-                # 删去".1.png"字段, 下同
-                road_name = road_lyrs[0][:-6:1] + sp_splitter + sign_lyrs[0][:-6:1]
-                isExistSar = True # 此时存在SAR，设置is_exist_sar字段为True。
+                pattern_name = sign_lyrs[0][:-6:1] # 存在sar，pattern图名在制作资源时实际使用的是signpost名。
+                isExistSar = True # 存在sar。
             else:
                 if(self._check_time_stamp_no_signpost(road_lyrs, arrows, times) == False):
                     continue
-                road_name = road_lyrs[0][:-6:1] 
+                pattern_name = road_lyrs[0][:-6:1] # 不存在sar，pattern图名在制作资源时实际使用的是road图片名。
+                isExistSar = False # 不存在sar。
+                
             nodeid = self._getnode_between_links(inlink, outlink)
             if not nodeid:
                 # inlink与outlink不相连，查找中间link列表
@@ -186,7 +177,7 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
                                     %s, %s, %s, %s, %s, %s,
                                     %s, %s);
                             ''', (g_id, nodeid, inlink, outlink, passlink, passlinkcnt,
-                                  direction, 0, 0, 0, road_name, arrow_name, 
+                                  direction, 0, 0, 0, pattern_name, arrow_name, 
                                   spotguideType, isExistSar))
             g_id = g_id + 1
             
@@ -296,197 +287,3 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
         else:
             self.log.error('not normal stuation!!!.')
         return pass_link, pass_link_cnt, node_id
-
-    # 合并背景图
-    # 名字未发生任何改变
-    def composeBackground(self, srcDir, destDir):
-        self.log.info('''start to compose road and background pictures''')
-        if(os.path.isdir(srcDir) == False):
-            self.log.warning('''source directory not exist: %s''' % srcDir)
-            return
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        shutil.copytree(srcDir, destDir)
-        
-        rows = self.get_batch_data("SELECT distinct road_lyr, sky_lyr FROM org_jv_location")
-        totalCount = 0 # 仅为了输出log
-        succeedCount = 0 # 仅为了输出log
-        failedCount = 0 # 仅为了输出log
-        for row in rows:
-            totalCount += 1
-            road_ = row[0] # road图字段
-            sky_ = row[1] # 背景图字段            
-            roadPicPath = os.path.join(srcDir, road_)
-            if(os.path.isfile(roadPicPath) == False):
-                self.log.warning('''can't find road picture: %s'''  % road_)
-                failedCount += 1
-                continue
-            
-            skyPicPath = os.path.join(srcDir, sky_)
-            if(os.path.isfile(skyPicPath) == False):
-                self.log.warning('''can't find background picture: %s''' % sky_)
-                failedCount += 1
-                continue
-            
-            # 合并背景图，以road图名字命名
-            outputPic = os.path.join(destDir, road_)
-            cmd = "composite.exe -gravity north %s %s %s" % (roadPicPath, skyPicPath, outputPic)
-            os.system(cmd)
-            succeedCount += 1
-        self.log.info('''composing road and background pictures ended. total: %d, succeed: %d, failed: %d''' %
-                      (totalCount, succeedCount, failedCount))
-              
-    # 合并signpost图
-    # 有signpost的会生成一个新文件，命名如下：
-    # JV_11.02.001.1.png， 与 JV_11.03.003.1.png 合并为 JV_11.02.001.1_JV_11.03.003.1.png
-    # 箭头图和其他保持不变 
-    # 20150428：新添要求，birdview图片不合并signpost图，只有driverview图片合并signpost图。
-    # 20150428：目前mmi图片没有birdview与driverview的区别，
-    def composeSignpost(self, srcDir, destDir):
-        self.log.info('''start to compose road and signpost pictures''')
-        if(os.path.isdir(srcDir) == False):
-            self.log.error('''source directory not exist: %s''' % srcDir)
-            return
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        shutil.copytree(srcDir, destDir)
-
-        rows = self.get_batch_data("SELECT distinct sign_lyr, road_lyr FROM org_jv_location WHERE sign_lyr is not null")
-        totalCount = 0 # 仅为了输出log
-        succeedCount = 0 # 仅为了输出log
-        failedCount = 0 # 仅为了输出log
-        for row in rows:
-            totalCount += 1
-            road_ = row[1] # road图字段
-            sign_ = row[0] # signpost图字段            
-            roadPicPath = os.path.join(srcDir, road_)
-            if(os.path.isfile(roadPicPath) == False):
-                self.log.warning('''can't find road picture: %s''' % road_)
-                failedCount += 1
-                continue
-                
-            signPicPath = os.path.join(srcDir, sign_)
-            if(os.path.isfile(signPicPath) == False):
-                self.log.warning('''can't find road picture: %s''' % sign_)
-                failedCount += 1
-                continue
-            
-            # 合并signpost图,以 road名+sign名 命名并输出到destDir
-            # 删掉road的".1.png"
-            outputPic = road_[:-4:1] + sp_splitter + sign_
-            outputPic = os.path.join(destDir, outputPic)
-            cmd = "composite.exe -gravity north %s %s %s" % (signPicPath, roadPicPath, outputPic)
-            os.system(cmd)
-            succeedCount += 1
-        self.log.info('''composing road and signpost pictures ended.total: %d, succeed: %d, failed: %d''' % 
-                      (totalCount, succeedCount, failedCount))
-        
-    def makeJunctionResultTable(self, srcDir, destDir):
-        if os.path.isdir(srcDir) == False:
-            return
-        if(os.path.exists(destDir) == True):
-            shutil.rmtree(destDir)
-        os.mkdir(destDir)
-        
-        rows = self.get_batch_data('''SELECT distinct patternno FROM spotguide_tbl;''')
-        self.log.info('''start to generate roads' .dat file.''')
-        totalCount = 0 # 仅为了输出log
-        succeedCount = 0 # 仅为了输出log
-        failedCount = 0 # 仅为了输出log
-        for row in rows:
-            totalCount += 1
-            parttenno = row[0]
-            # day and night illust
-            destFile = os.path.join(destDir, parttenno + '.dat')
-            if  os.path.isfile(destFile) == False:
-                dayPicPath = ''
-                nightPicPath = ''
-                parttennoSplit = parttenno.split(sp_splitter)
-                if(len(parttennoSplit) == 1): # 没有signpost
-                    dayPicPath = os.path.join(srcDir, parttenno + ".1.png")
-                    nightPicPath = os.path.join(srcDir, parttenno + ".2.png")
-                elif(len(parttennoSplit) >= 1):
-                    roadPart = parttennoSplit[0]
-                    signPart = parttennoSplit[1]
-                    dayPicPath = os.path.join(srcDir, "%s.1%s%s.1.png" % (roadPart, sp_splitter, signPart))
-                    nightPicPath = os.path.join(srcDir, "%s.2%s%s.2.png" % (roadPart, sp_splitter, signPart))
-                else:
-                    self.log.error('''error road name from spotguide_tbl: %s''' % parttenno)
-                    failedCount += 1
-                    continue
-                
-                if(os.path.isfile(dayPicPath) == False):
-                    self.log.warning('''cannot find day picture: %s''' % dayPicPath)
-                    failedCount += 1
-                    continue
-                if(os.path.isfile(nightPicPath) == False):
-                    self.log.warning('''cannot find night picture: %s''' % nightPicPath)
-                    failedCount += 1
-                    continue
-                
-                dayFis = open(dayPicPath, 'rb')
-                nightFis = open(nightPicPath, 'rb')
-                dayPicLen = os.path.getsize(dayPicPath)
-                nightPicLen = os.path.getsize(nightPicPath)
-                headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
-                                           dayPicLen, 2, 22 + dayPicLen, \
-                                           nightPicLen)
-                resultBuffer = headerBuffer + dayFis.read() \
-                                        + nightFis.read()
-                dayFis.close()
-                nightFis.close()
-                
-                fos = open(destFile, 'wb')
-                fos.write(resultBuffer)
-                fos.close()
-                succeedCount += 1
-        self.log.info('''generating .dat file ended. total: %d, succeed: %d, failed: %d''' % 
-                      (totalCount, succeedCount, failedCount))
-        
-        # ARROW PIC BUILD
-        rows = self.get_batch_data('''SELECT distinct arrowno FROM spotguide_tbl;''')
-        self.log.info('''start to generate arrows' .dat file.''')
-        totalCount = 0 # 仅为了输出log
-        succeedCount = 0 # 仅为了输出log
-        failedCount = 0 # 仅为了输出log
-        for row in rows:
-            totalCount += 1
-            arrowno = row[0]
-            arrowFile = os.path.join(destDir, arrowno + '.dat')
-            if os.path.isfile(arrowFile) == False:
-                dayArrowPath = os.path.join(srcDir, arrowno + '.1.png')
-                nightArrowPath = os.path.join(srcDir, arrowno + '.2.png')
-                if(os.path.isfile(dayArrowPath) == False):
-                    self.log.warning('''cannot find day arrow picture: %s''' % dayArrowPath)
-                    failedCount += 1
-                    continue
-                if(os.path.isfile(dayPicPath) == False):
-                    self.log.warning('''cannot find night arrow picture: %s''' % nightArrowPath)
-                    failedCount += 1
-                    continue
-                
-                dayArrowFis = open(dayArrowPath, 'rb')
-                nightArrowFis = open(nightArrowPath, 'rb')
-                dayArrowLen = os.path.getsize(dayArrowPath)
-                nightArrowLen = os.path.getsize(nightArrowPath)
-                a_headerBuffer = struct.pack("<HHbiibii", 0xFEFE, 2, 1, 22, \
-                                           dayArrowLen, 2, 22 + dayArrowLen, \
-                                           nightArrowLen)
-                a_resultBuffer = a_headerBuffer + dayArrowFis.read() \
-                                        + nightArrowFis.read()
-                dayArrowFis.close()
-                nightArrowFis.close()
-                
-                a_fos = open(arrowFile, 'wb')
-                a_fos.write(a_resultBuffer)
-                a_fos.close()
-                succeedCount += 1
-        self.log.info('''generating .dat file ended. total: %d, succeed: %d, failed: %d''' % 
-                      (totalCount, succeedCount, failedCount))
-
-
-
-
-
-
-

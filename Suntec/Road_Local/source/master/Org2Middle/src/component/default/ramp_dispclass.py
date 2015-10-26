@@ -8,6 +8,45 @@ Created on 2012-8-17
 import component.component_base
 import common.common_func
 import common.search_road
+import networkx as nx
+import time
+
+class CGraph(nx.DiGraph):
+    
+    def all_simple_paths_in_digraph(self):
+        
+        b_list= list(nx.weakly_connected_component_subgraphs(self))
+
+        paths=[]
+
+        for b in b_list:
+            #print b.nodes()
+            
+            start_node_list = list(filter(lambda x:b.in_degree(x)==0,b.nodes()))+list(filter(lambda x:b.in_degree(x)==1 and b.out_degree(x)==1 and b.predecessors(x)==b.successors(x),b.nodes()))
+            end_node_list = list(filter(lambda x:b.out_degree(x)==0,b.nodes()))+list(filter(lambda x:b.in_degree(x)==1 and b.out_degree(x)==1 and b.predecessors(x)==b.successors(x),b.nodes()))
+            
+            for start_node in start_node_list:
+                for end_node in end_node_list:
+                    for path in nx.all_simple_paths(self, start_node, end_node):
+                        paths.append(path)
+                        #if 11271347 in b.nodes():
+                        #    print path 
+                    
+        return paths
+                        
+    
+    def get_linkid_of_path(self, path, link_id='link_id'):
+        'nodeid×ª³Élinkid'
+        linkid_list = list()
+        for u, v in zip(path[0:-1], path[1:]):
+            linkid = self.get_edge_data(u, v).get(link_id)
+            linkid_list.append(str(linkid))
+        return linkid_list
+    
+    def all_simple_paths_in_digraph_link(self):
+        
+        return map(lambda x:self.get_linkid_of_path(x,'link_id' ),self.all_simple_paths_in_digraph())
+
 
 class comp_ramp_dispclass(component.component_base.comp_base):
     '''
@@ -40,19 +79,11 @@ class comp_ramp_dispclass(component.component_base.comp_base):
     def _Do(self):
         
         self._UpdateRampDisplayClass()
+        
         return 0
-
-    def _insertinto_tmptable(self,link_list,disp_class):
-        sqlcmd_insert='''
-            insert into temp_ramp_update_dispclass
-                    values(%d,%d)
-                '''
-        for link_id in link_list:
-            self.pg.execute(sqlcmd_insert%( link_id,disp_class))
-        self.pg.commit()
     
     def _updatedipclass(self):
-        
+         
         sqlcmd='''
                 update link_tbl a
                 set display_class=b.max
@@ -66,50 +97,66 @@ class comp_ramp_dispclass(component.component_base.comp_base):
                 '''
         self.pg.execute(sqlcmd)
         self.pg.commit()
+        #print time.localtime()
         
     def _UpdateRampDisplayClass(self):
         
-        self.log.info('Updating Disp Class of Ramp Start.')
-        self.search_road=common.search_road.search_road(link_id=None,dir=0,onewayflg=True,thrucondition=' link_type=5',pg=self.pg)
-        sqlcmd_se= '''
-                select link_id
-                from link_tbl a
-                left join temp_ramp_update_dispclass b
-                using(link_id)
-                where link_type = 5 and b.link_id is null
-                limit 1
-                '''
-        while True:
-
-            self.pg.execute(sqlcmd_se)
-            link_id_list=self.pg.fetchall2()
-
-            if not link_id_list:
-                break
-
-            self.search_road.start_link_id=link_id_list[0][0]
-            self.search_road.init_path()
-            self.search_road.search()
-            results=self.search_road.return_paths()
-            
-            if not results:
-                continue
-
-            sqlcmd=''' select display_class from link_tbl where link_id=%d'''
-
-            for result in results:
-
-                self.pg.execute(sqlcmd%(result['path'][-1]))
-                last_disp_class=self.pg.fetchall2()[0][0]
-                result['disp_class']=last_disp_class
-                
-            result_1=filter(lambda x:x['dir']==1, results)
-            result_2=filter(lambda x:x['dir']==2, results)
-
-            for x in result_1:
-                for y in result_2:
-                    self._insertinto_tmptable(set(x['path'][:-1])|set(y['path'][:-1]),min([x['disp_class'],y['disp_class']]))
-
-        self._updatedipclass()
+        self.log.info('start to update ramp display class')
+        #print time.localtime()
         
-        self.log.info('Updating Disp Class of Ramp End.')
+        g=CGraph()
+        sqlcmd='''
+                select link_id,s_node,e_node,one_way_code from link_tbl where link_type=5
+                and one_way_code<>4
+                '''
+        self.pg.execute2(sqlcmd)
+        results=self.pg.fetchall2()
+        
+        for result in results:
+    
+            link_id=result[0]
+            s_node=result[1]
+            e_node=result[2]
+            one_way_code=result[3]
+            if one_way_code in (1,2):
+                g.add_edge(s_node,e_node,attr_dict={'link_id':link_id})
+            if one_way_code in (1,3):
+                g.add_edge(e_node,s_node,attr_dict={'link_id':link_id})
+        
+        paths_node=g.all_simple_paths_in_digraph()
+        paths_link=map(lambda x:g.get_linkid_of_path(x,'link_id' ),paths_node)
+        
+        sqlcmd_start='''
+                select display_class from link_tbl where link_type<>5
+                and ( s_node=%d and one_way_code in (1,3) or e_node=%d and one_way_code in (1,2) )
+                        '''
+        sqlcmd_end='''
+                select display_class from link_tbl where link_type<>5
+                and ( s_node=%d and one_way_code in (1,2) or e_node=%d and one_way_code in (1,3) )
+                        '''
+        sqlcmd_insert='''
+                insert into temp_ramp_update_dispclass
+                values(%d,%d)
+                        '''
+        
+        
+        for idx in range(len(paths_node)):
+            
+            path_node=paths_node[idx]
+            path_link=paths_link[idx]
+            
+            display_class_start=set(x[0] for x in self.pg.get_batch_data2(sqlcmd_start%(path_node[0],path_node[0])))
+            display_class_end=set(x[0] for x in self.pg.get_batch_data2(sqlcmd_end%(path_node[-1],path_node[-1])))
+            
+            if not (display_class_start and display_class_end):
+                continue
+            display_class_set=display_class_start|display_class_end
+        
+            min_display_class = min(display_class_set)
+            
+            for link_id in path_link:
+                self.pg.execute2(sqlcmd_insert%(int(link_id),min_display_class))
+        
+        self.pg.commit2()
+        
+        self._updatedipclass()

@@ -139,6 +139,103 @@ CREATE TABLE temp_condition_regulation_tbl
 );
 
 --------------------------------------------------------------------------------------------------------
+-- Lane
+
+CREATE TABLE temp_lane_guide_nav_strand
+(
+  lane_nav_strand_id integer NOT NULL,
+  seq_num integer NOT NULL,
+  condition_id integer NOT NULL,
+  lane_id bigint NOT NULL,
+  node_id integer,
+  link_id integer
+);
+
+CREATE TABLE temp_lane_guide_nav
+(
+  lane_nav_strand_id integer,
+  condition_id integer,
+  lane_id bigint,
+  node_id integer,
+  inlink_id integer,
+  outlink_id integer,
+  passcount integer,
+  passlid character varying(512)
+);
+
+CREATE TABLE temp_lane_guide
+(
+  lane_nav_strand_id integer,
+  condition_id integer,
+  lane_id bigint,
+  node_id integer,
+  inlink_id integer,
+  outlink_id integer,
+  passcount integer,
+  passlid character varying(512),
+  lane_number integer,
+  lane_type bigint,
+  lane_travel_direction character(1),
+  direction_category integer,
+  lane_forming_ending integer,
+  physical_num_lanes integer,
+  bus_access_id integer
+);
+
+CREATE TABLE temp_lane_guide_distinct
+(
+  inlink_id integer,
+  node_id integer,
+  outlink_id integer,
+  passcount integer,
+  passlid character varying(512),
+  lane_number integer,
+  lane_travel_direction character(1),
+  direction_category integer,
+  physical_num_lanes integer,
+  bus_access_id integer
+);
+
+CREATE TABLE temp_lane_tbl
+(
+  nodeid bigint,
+  inlinkid bigint,
+  outlinkid bigint,
+  passlid character varying(1024),
+  passlink_cnt smallint,
+  lanenum smallint,
+  laneinfo character varying(17),
+  arrowinfo smallint,
+  lanenuml smallint,
+  lanenumr smallint,
+  buslaneinfo character varying(17)
+);
+
+
+CREATE TABLE temp_lane
+(
+  inlink_id integer,
+  node_id integer,
+  outlink_id integer,
+  passcount integer,
+  passlid character varying(512),
+  lane_number integer,
+  lane_travel_direction character(1),
+  direction_category integer,
+  physical_num_lanes integer,
+  lanenuml integer, 
+  lanenumr integer,
+  bus_access_id integer
+);
+
+CREATE TABLE temp_additional_lanenum_lr
+(
+  link_id integer,
+  direction character varying(1),
+  lanenuml integer,
+  lanenumr integer
+);
+
 -- link
 create table temp_link_through_traffic 
 as 
@@ -850,6 +947,30 @@ CREATE TABLE rdb_admin_order1
   country_id integer,
   order1_name character varying(100)
 ); SELECT AddGeometryColumn('public','rdb_admin_order1','the_geom','4326','MULTIPOLYGON',2);
+---------------------------------------------------------------------------------------------
+
+create table mid_temp_road_name_1
+(
+  gid     serial not null primary key,
+  link_id bigint not null,
+  road_link_id bigint,
+  road_name_id bigint,
+  left_address_range_id bigint,
+  right_address_range_id bigint,
+  address_type integer,
+  is_exit_name character(1),
+  explicatable character(1),
+  is_junction_name character(1),
+  is_name_on_roadsign character(1),
+  is_postal_name character(1),
+  is_stale_name character(1),
+  is_vanity_name character(1),
+  is_scenic_name character(1),
+  route_type integer,
+  street_type character varying(30),
+  language_code character varying(3),
+  street_name character varying(100)
+);
 
 ----------------------------------------------------------------------------------------------------------
 -- temp 900913
@@ -1563,7 +1684,7 @@ create table temp_poi_category
     gen2       int          not null,
     gen3       int          not null,
     level      smallint     not null,
-    name       varchar(128) not null,
+    name       varchar(128) ,
     genre_type varchar,
     org_code   bigint,
     sub        integer,

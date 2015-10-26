@@ -61,8 +61,13 @@ class rdb_tile(ItemBase):
         
         self.log.info('dispatch node id by feature_key...')
         sqlcmd = """
-                    insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
-                    select b.node_id, a.node_id, b.tile_id, b.seq_num
+                    drop table if exists temp_newid_candidate;
+                    create temp table temp_newid_candidate
+                    as
+                    select  a.node_id as mid_node_id, 
+                            b.node_id as rdb_node_id, 
+                            b.tile_id, 
+                            b.seq_num
                     from node_tbl as a
                     left join id_fund_node as b
                     on a.feature_key = b.feature_key and a.tile_id = b.tile_id
@@ -72,16 +77,112 @@ class rdb_tile(ItemBase):
                         (c.park_node_id is null or (c.park_node_id is not null and 
                         (((b.node_id::bit(32))::integer > (1<<23) and c.park_node_type = 0) or 
                         ((b.node_id::bit(32))::integer < (1<<23) and c.park_node_type in (1,2,3)))));
+                    
+                    create index temp_newid_candidate_mid_node_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (mid_node_id);
+                    
+                    create index temp_newid_candidate_rdb_node_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (rdb_node_id);
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select mid_node_id
+                        from temp_newid_candidate
+                        group by mid_node_id having count(*) > 1
+                    ) as b
+                    where a.mid_node_id = b.mid_node_id;
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select rdb_node_id
+                        from temp_newid_candidate
+                        group by rdb_node_id having count(*) > 1
+                    ) as b
+                    where a.rdb_node_id = b.rdb_node_id;
+                    
+                    insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
+                    select rdb_node_id, mid_node_id, tile_id, seq_num
+                    from temp_newid_candidate;
                 """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('rdb_tile_node_tile_node_id_idx')
         self.CreateIndex2('rdb_tile_node_old_node_id_idx')
         
+        self.log.info('dispatch node id by feature_key and geometry...')
+        sqlcmd = """
+                    drop table if exists temp_newid_candidate;
+                    create temp table temp_newid_candidate
+                    as
+                    select  a.node_id as mid_node_id, 
+                            c.node_id as rdb_node_id, 
+                            c.tile_id, 
+                            c.seq_num
+                    from node_tbl as a
+                    left join rdb_tile_node as b
+                    on a.node_id = b.old_node_id
+                    left join id_fund_node as c
+                    on (a.feature_key = c.feature_key) and st_equals(a.the_geom, c.the_geom) and a.tile_id = c.tile_id
+                    left join rdb_tile_node as d
+                    on c.node_id = d.tile_node_id
+                    left join park_node_tbl as e
+                    on a.node_id = e.park_node_id
+                    where b.tile_node_id is null and c.node_id is not null and d.tile_node_id is null
+                        and (e.park_node_id is null or (e.park_node_id is not null and 
+                        (((c.node_id::bit(32))::integer > (1<<23) and e.park_node_type = 0) or 
+                        ((c.node_id::bit(32))::integer < (1<<23) and e.park_node_type in (1,2,3)))));
+                    
+                    create index temp_newid_candidate_mid_node_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (mid_node_id);
+                    
+                    create index temp_newid_candidate_rdb_node_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (rdb_node_id);
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select mid_node_id
+                        from temp_newid_candidate
+                        group by mid_node_id having count(*) > 1
+                    ) as b
+                    where a.mid_node_id = b.mid_node_id;
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select rdb_node_id
+                        from temp_newid_candidate
+                        group by rdb_node_id having count(*) > 1
+                    ) as b
+                    where a.rdb_node_id = b.rdb_node_id;
+                    
+                    insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
+                    select rdb_node_id, mid_node_id, tile_id, seq_num
+                    from temp_newid_candidate
+                    ;
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
         self.log.info('dispatch node id by geometry...')
         sqlcmd = """
-                    insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
-                    select c.node_id, a.node_id, c.tile_id, c.seq_num
+                    drop table if exists temp_newid_candidate;
+                    create temp table temp_newid_candidate
+                    as
+                    select  a.node_id as mid_node_id, 
+                            c.node_id as rdb_node_id, 
+                            c.tile_id, 
+                            c.seq_num
                     from node_tbl as a
                     left join rdb_tile_node as b
                     on a.node_id = b.old_node_id
@@ -90,17 +191,82 @@ class rdb_tile(ItemBase):
                     left join rdb_tile_node as d
                     on c.node_id = d.tile_node_id
                     left join park_node_tbl as e
-                    on a.node_id = e.park_node_id                   
+                    on a.node_id = e.park_node_id
                     where b.tile_node_id is null and c.node_id is not null and d.tile_node_id is null
                         and (e.park_node_id is null or (e.park_node_id is not null and 
                         (((c.node_id::bit(32))::integer > (1<<23) and e.park_node_type = 0) or 
                         ((c.node_id::bit(32))::integer < (1<<23) and e.park_node_type in (1,2,3)))));
+                    
+                    create index temp_newid_candidate_mid_node_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (mid_node_id);
+                    
+                    create index temp_newid_candidate_rdb_node_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (rdb_node_id);
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select mid_node_id
+                        from temp_newid_candidate
+                        group by mid_node_id having count(*) > 1
+                    ) as b
+                    where a.mid_node_id = b.mid_node_id;
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select rdb_node_id
+                        from temp_newid_candidate
+                        group by rdb_node_id having count(*) > 1
+                    ) as b
+                    where a.rdb_node_id = b.rdb_node_id;
+                    
+                    insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
+                    select rdb_node_id, mid_node_id, tile_id, seq_num
+                    from temp_newid_candidate;
                 """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
         self.log.info('dispatch node id for the left nodes...')
         sqlcmd = """
+                drop table if exists temp_id_fund_tile_max_node_id;
+                create temp table temp_id_fund_tile_max_node_id
+                as
+                select tile_id, count(*) as max_node_id
+                from id_fund_node
+                where (node_id::bit(32))::integer < (1<<23)
+                group by tile_id;
+                
+                create index temp_id_fund_tile_max_node_id_tile_id_idx
+                    on temp_id_fund_tile_max_node_id
+                    using btree
+                    (tile_id);
+    
+                drop table if exists temp_dispatch_tile_node_array;
+                create temp table temp_dispatch_tile_node_array
+                as
+                select tile_id, array_agg(node_id) as node_array, count(node_id) as node_count
+                from
+                (
+                    select a.tile_id, a.node_id
+                    from node_tbl as a
+                    left join rdb_tile_node as b
+                    on a.node_id = b.old_node_id
+                    where b.tile_node_id is null and (a.kind is null or a.kind not in('100'))
+                    order by a.tile_id, a.node_id
+                )as c
+                group by tile_id;
+                
+                create index temp_dispatch_tile_node_array_tile_id_idx
+                    on temp_dispatch_tile_node_array
+                    using btree
+                    (tile_id);
+                
                 insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
                 select  ((tile_id::bigint << 32) | (begin_node_id + seq_num)) as tile_node_id, 
                         node_array[seq_num] as old_node_id, 
@@ -111,27 +277,8 @@ class rdb_tile(ItemBase):
                     select  ta.tile_id, node_array, node_count, 
                             (case when tm.max_node_id is null then 0 else tm.max_node_id end) as begin_node_id,
                             generate_series(1, node_count) as seq_num
-                    from
-                    (
-                        select tile_id, array_agg(node_id) as node_array, count(node_id) as node_count
-                        from
-                        (
-                            select a.tile_id, a.node_id
-                            from node_tbl as a
-                            left join rdb_tile_node as b
-                            on a.node_id = b.old_node_id
-                            where b.tile_node_id is null and (a.kind is null or a.kind not in('100'))
-                            order by a.tile_id, a.node_id
-                        )as c
-                        group by tile_id
-                    )as ta
-                    left join
-                    (
-                        select tile_id, count(*) as max_node_id
-                        from id_fund_node
-                        where (node_id::bit(32))::integer < (1<<23)
-                        group by tile_id
-                    )as tm
+                    from temp_dispatch_tile_node_array as ta
+                    left join temp_id_fund_tile_max_node_id as tm
                     on ta.tile_id = tm.tile_id
                 )as t
                 ;
@@ -141,6 +288,39 @@ class rdb_tile(ItemBase):
         
         #park node
         sqlcmd = """
+                drop table if exists temp_id_fund_tile_max_node_id;
+                create temp table temp_id_fund_tile_max_node_id
+                as
+                select tile_id, count(*) as max_node_id
+                from id_fund_node
+                where (node_id::bit(32))::integer >= (1<<23)
+                group by tile_id;
+                
+                create index temp_id_fund_tile_max_node_id_tile_id_idx
+                    on temp_id_fund_tile_max_node_id
+                    using btree
+                    (tile_id);
+    
+                drop table if exists temp_dispatch_tile_node_array;
+                create temp table temp_dispatch_tile_node_array
+                as
+                select tile_id, array_agg(node_id) as node_array, count(node_id) as node_count
+                from
+                (
+                    select a.tile_id, a.node_id
+                    from node_tbl as a
+                    left join rdb_tile_node as b
+                    on a.node_id = b.old_node_id
+                    where b.tile_node_id is null and a.kind = '100'
+                    order by a.tile_id, a.node_id
+                )as c
+                group by tile_id;
+                
+                create index temp_dispatch_tile_node_array_tile_id_idx
+                    on temp_dispatch_tile_node_array
+                    using btree
+                    (tile_id);
+                
                 insert into rdb_tile_node(tile_node_id, old_node_id, tile_id, seq_num)
                 select  ((tile_id::bigint << 32) | (begin_node_id + seq_num)) as tile_node_id, 
                         node_array[seq_num] as old_node_id, 
@@ -151,27 +331,8 @@ class rdb_tile(ItemBase):
                     select  ta.tile_id, node_array, node_count, 
                             (case when tm.max_node_id is null then 1<<23 else tm.max_node_id end) as begin_node_id,
                             generate_series(1, node_count) as seq_num
-                    from
-                    (
-                        select tile_id, array_agg(node_id) as node_array, count(node_id) as node_count
-                        from
-                        (
-                            select a.tile_id, a.node_id
-                            from node_tbl as a
-                            left join rdb_tile_node as b
-                            on a.node_id = b.old_node_id
-                            where b.tile_node_id is null and a.kind = '100'
-                            order by a.tile_id, a.node_id
-                        )as c
-                        group by tile_id
-                    )as ta
-                    left join
-                    (
-                        select tile_id, count(*) as max_node_id
-                        from id_fund_node
-                        where (node_id::bit(32))::integer >= (1<<23)
-                        group by tile_id
-                    )as tm
+                    from temp_dispatch_tile_node_array as ta
+                    left join temp_id_fund_tile_max_node_id as tm
                     on ta.tile_id = tm.tile_id
                 )as t
                 ;
@@ -198,26 +359,125 @@ class rdb_tile(ItemBase):
         
         self.log.info('dispatch link id by feature_key...')
         sqlcmd = """
-                    insert into rdb_tile_link(tile_link_id, old_link_id, tile_id, seq_num)
-                    select b.link_id, a.link_id, b.tile_id, b.seq_num
+                    drop table if exists temp_newid_candidate;
+                    create temp table temp_newid_candidate
+                    as
+                    select  a.link_id as mid_link_id, 
+                            b.link_id as rdb_link_id, 
+                            b.tile_id, 
+                            b.seq_num
                     from link_tbl as a
                     left join id_fund_link as b
                     on a.feature_key = b.feature_key and a.tile_id = b.tile_id
                     left join park_link_tbl as c
                     on a.link_id = c.park_link_id
                     where b.link_id is not null and (c.park_link_id is null or
-                        (c.park_link_id is not null and (b.link_id::bit(32))::integer > (1<<23) ))
-                    ;
+                        (c.park_link_id is not null and (b.link_id::bit(32))::integer > (1<<23) ));
+                    
+                    create index temp_newid_candidate_mid_link_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (mid_link_id);
+                    
+                    create index temp_newid_candidate_rdb_link_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (rdb_link_id);
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select mid_link_id
+                        from temp_newid_candidate
+                        group by mid_link_id having count(*) > 1
+                    ) as b
+                    where a.mid_link_id = b.mid_link_id;
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select rdb_link_id
+                        from temp_newid_candidate
+                        group by rdb_link_id having count(*) > 1
+                    ) as b
+                    where a.rdb_link_id = b.rdb_link_id;
+                    
+                    insert into rdb_tile_link(tile_link_id, old_link_id, tile_id, seq_num)
+                    select rdb_link_id, mid_link_id, tile_id, seq_num
+                    from temp_newid_candidate;
                 """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.CreateIndex2('rdb_tile_link_tile_link_id_idx')
         self.CreateIndex2('rdb_tile_link_old_link_id_idx')
         
+        self.log.info('dispatch link id by feature_key and geometry...')
+        sqlcmd = """
+                    drop table if exists temp_newid_candidate;
+                    create temp table temp_newid_candidate
+                    as
+                    select  a.link_id as mid_link_id, 
+                            c.link_id as rdb_link_id, 
+                            c.tile_id, 
+                            c.seq_num
+                    from link_tbl as a
+                    left join rdb_tile_link as b
+                    on a.link_id = b.old_link_id
+                    left join id_fund_link as c
+                    on (a.feature_key = c.feature_key) and st_equals(a.the_geom, c.the_geom) and a.tile_id = c.tile_id
+                    left join rdb_tile_link as d
+                    on c.link_id = d.tile_link_id
+                    left join park_link_tbl as e
+                    on a.link_id = e.park_link_id
+                    where b.tile_link_id is null and c.link_id is not null and d.tile_link_id is null
+                        and (e.park_link_id is null or
+                            (e.park_link_id is not null and (c.link_id::bit(32))::integer > (1<<23) ));
+                    
+                    create index temp_newid_candidate_mid_link_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (mid_link_id);
+                    
+                    create index temp_newid_candidate_rdb_link_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (rdb_link_id);
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select mid_link_id
+                        from temp_newid_candidate
+                        group by mid_link_id having count(*) > 1
+                    ) as b
+                    where a.mid_link_id = b.mid_link_id;
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select rdb_link_id
+                        from temp_newid_candidate
+                        group by rdb_link_id having count(*) > 1
+                    ) as b
+                    where a.rdb_link_id = b.rdb_link_id;
+                    
+                    insert into rdb_tile_link(tile_link_id, old_link_id, tile_id, seq_num)
+                    select rdb_link_id, mid_link_id, tile_id, seq_num
+                    from temp_newid_candidate
+                    ;
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
         self.log.info('dispatch link id by geometry...')
         sqlcmd = """
-                    insert into rdb_tile_link(tile_link_id, old_link_id, tile_id, seq_num)
-                    select c.link_id, a.link_id, c.tile_id, c.seq_num
+                    drop table if exists temp_newid_candidate;
+                    create temp table temp_newid_candidate
+                    as
+                    select  a.link_id as mid_link_id, 
+                            c.link_id as rdb_link_id, 
+                            c.tile_id, 
+                            c.seq_num
                     from link_tbl as a
                     left join rdb_tile_link as b
                     on a.link_id = b.old_link_id
@@ -229,8 +489,39 @@ class rdb_tile(ItemBase):
                     on a.link_id = e.park_link_id
                     where b.tile_link_id is null and c.link_id is not null and d.tile_link_id is null
                         and (e.park_link_id is null or
-                            (e.park_link_id is not null and (c.link_id::bit(32))::integer > (1<<23) ))
-                    ;
+                            (e.park_link_id is not null and (c.link_id::bit(32))::integer > (1<<23) ));
+                    
+                    create index temp_newid_candidate_mid_link_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (mid_link_id);
+                    
+                    create index temp_newid_candidate_rdb_link_id_idx_idx
+                        on temp_newid_candidate
+                        using btree
+                        (rdb_link_id);
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select mid_link_id
+                        from temp_newid_candidate
+                        group by mid_link_id having count(*) > 1
+                    ) as b
+                    where a.mid_link_id = b.mid_link_id;
+                    
+                    delete from temp_newid_candidate as a
+                    using
+                    (
+                        select rdb_link_id
+                        from temp_newid_candidate
+                        group by rdb_link_id having count(*) > 1
+                    ) as b
+                    where a.rdb_link_id = b.rdb_link_id;
+                    
+                    insert into rdb_tile_link(tile_link_id, old_link_id, tile_id, seq_num)
+                    select rdb_link_id, mid_link_id, tile_id, seq_num
+                    from temp_newid_candidate;
                 """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()

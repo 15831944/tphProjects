@@ -22,7 +22,7 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
     def _Do(self):
 #        self._loadBrandIcon()
         self._loadPOICategory()
-        self._loadCategoryPriority1()
+        self._loadCategoryPriority()
         self._make_poi_category_mapping()
         self._findLogmark()
         self._makePOIName()
@@ -131,7 +131,7 @@ class comp_guideinfo_building_zenrin(component.default.guideinfo_building.comp_g
                                 'CHT'::varchar as language,
                                 1 as name_id,
                                 'office_name'::varchar as name_type,
-                                'PYM'::varchar as phoneme_lang,
+                                'BPM'::varchar as phoneme_lang,
                                 a.offi_name_py_pym as phoneme,
                                 a.the_geom
                         from org_poi as a   

@@ -107,7 +107,7 @@ class comp_link_ni(component.component_base.comp_base):
                         case when kind like '%0f' or kind like '%0f|%' then 1
                             else 0
                         end as tunnel,
-                        case when road_cond = '0' then 1 else 0 end as paved,
+                        case when road_cond = '0' then 0 else 1 end as paved,
                         ownership::smallint as ownership,
                         case when kind like '%02' or kind like '%02|%' then 1
                             else 0

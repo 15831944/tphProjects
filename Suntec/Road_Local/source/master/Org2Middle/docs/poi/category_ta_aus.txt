@@ -22,12 +22,12 @@
 21;N;1;20;0;1;Fast Food;;0;0;0;ENG;
 22;N;1;20;1;2;All Fast Food;0;0;0;0;ENG;
 23;Y;1;20;2;2;Burger King;;7315;7315145;Burger King;ENG;
-24;Y;1;20;3;2;Domino's Pizza;;7315;7315145;Domino's Pizza;ENG;
+24;Y;1;20;3;2;Domino's Pizza;;7315;7315145;Domino's Pizza;ENG;Domino's Pizza
 25;Y;1;20;4;2;Hungry Jack's;;7315;7315145;Hungry Jack's;ENG;
 26;Y;1;20;5;2;KFC;;7315;7315145;KFC;ENG;
 27;Y;1;20;6;2;McDonald's;;7315;7315145;McDonald's;ENG;
-28;Y;1;20;7;2;Nando's;;7315;7315145;Nando's;ENG;
-29;Y;1;20;8;2;Oporto;;7315;7315145;Oporto;ENG;
+28;Y;1;20;7;2;Nando's;;7315;7315145;Nando's;ENG;Nando's
+29;Y;1;20;8;2;Oporto;;7315;7315145;Oporto;ENG;Oporto
 30;Y;1;20;9;2;Pizza Hut;;7315;7315145;Pizza Hut;ENG;
 31;Y;1;20;10;2;Red Rooster;;7315;7315145;Red Rooster;ENG;
 32;Y;1;20;11;2;SUBWAY;;7315;7315145;SUBWAY;ENG;
@@ -55,27 +55,27 @@
 53;N;2;7;0;1;Petrol Station;;0;0;0;ENG;
 54;N;2;7;1;2;All Petrol Station;0;0;0;0;ENG;
 55;Y;2;7;2;2;Woolworths;;7311;0;Woolworths;ENG;
-56;Y;2;7;3;2;7-Eleven;;7311;0;7-Eleven;ENG;
+56;Y;2;7;3;2;7-Eleven;;7311;0;7-Eleven;ENG;7-Eleven
 57;Y;2;7;4;2;Ampol;;7311;0;Ampol;ENG;
-58;Y;2;7;5;2;BP;;7311;0;BP;ENG;
-59;Y;2;7;6;2;Caltex;;7311;0;Caltex;ENG;
+58;Y;2;7;5;2;BP;;7311;0;BP;ENG;BP
+59;Y;2;7;6;2;Caltex;;7311;0;Caltex;ENG;Caltex
 60;Y;2;7;7;2;Challenge;;7311;0;Challenge;ENG;
-61;Y;2;7;8;2;Coles Express;;7311;0;Coles Express;ENG;
-62;Y;2;7;9;2;Freedom Fuels;;7311;0;Freedom Fuels;ENG;
+61;Y;2;7;8;2;Coles Express;;7311;0;Coles Express;ENG;Coles Express
+62;Y;2;7;9;2;Freedom Fuels;;7311;0;Freedom Fuels;ENG;Freedom Fuels
 63;Y;2;7;10;2;Gasoline Alley Services;;7311;0;Gasoline Alley Services;ENG;
-64;Y;2;7;11;2;Gull;;7311;0;Gull;ENG;
+64;Y;2;7;11;2;Gull;;7311;0;Gull;ENG;Gull
 65;Y;2;7;12;2;Liberty;;7311;0;Liberty;ENG;
-66;Y;2;7;13;2;Matilda Fuels;;7311;0;Matilda Fuels;ENG;
-67;Y;2;7;14;2;Metro Petroleum;;7311;0;Metro Petroleum;ENG;
-68;Y;2;7;15;2;Mobil;;7311;0;Mobil;ENG;
-69;Y;2;7;16;2;Neumann Petroleum;;7311;0;Neumann Petroleum;ENG;
-70;Y;2;7;17;2;Shell;;7311;0;Shell;ENG;
-71;Y;2;7;18;2;United Petroleum;;7311;0;United Petroleum;ENG;
-72;Y;2;7;19;2;Z;;7311;0;Z;ENG;
+66;Y;2;7;13;2;Matilda Fuels;;7311;0;Matilda Fuels;ENG;Matilda Fuels
+67;Y;2;7;14;2;Metro Petroleum;;7311;0;Metro Petroleum;ENG;Metro Petroleum
+68;Y;2;7;15;2;Mobil;;7311;0;Mobil;ENG;Mobil
+69;Y;2;7;16;2;Neumann Petroleum;;7311;0;Neumann Petroleum;ENG;Neumann Petroleum
+70;Y;2;7;17;2;Shell;;7311;0;Shell;ENG;Shell
+71;Y;2;7;18;2;United Petroleum;;7311;0;United Petroleum;ENG;United Petroleum
+72;Y;2;7;19;2;Z;;7311;0;Z;ENG;Z
 73;N;2;7;20;2;Unspecified;;7311;0;0;ENG;
 74;N;2;8;0;1;Rent-A-Car Facility;;0;0;0;ENG;
 75;N;2;8;1;2;All Rent-A-Car Facility;0;0;0;0;ENG;
-76;Y;2;8;2;2;Avis;;7312;0;Avis;ENG;
+76;Y;2;8;2;2;Avis;;7312;0;Avis;ENG;Avis
 77;Y;2;8;3;2;Budget;;7312;0;Budget;ENG;
 78;Y;2;8;4;2;Europcar;;7312;0;Europcar;ENG;
 79;Y;2;8;5;2;Hertz;;7312;0;Hertz;ENG;
@@ -138,11 +138,11 @@
 132;N;4;3;1;2;All Camping Ground;0;0;0;0;ENG;
 133;Y;4;3;2;2;BIG4;;7360;0;BIG4;ENG;
 134;Y;4;3;3;2;Caravan Industry Assoc. WA;;7360;0;Caravan Industry Assoc. WA;ENG;
-135;Y;4;3;4;2;Family Parks;;7360;0;Family Parks;ENG;
-136;Y;4;3;5;2;Holiday Parks Association of New Zealand;;7360;0;Holiday Parks Association of New Zealand;ENG;
-137;Y;4;3;6;2;SA Caravan Parks Assoc.;;7360;0;SA Caravan Parks Assoc.;ENG;
+135;Y;4;3;4;2;Family Parks;;7360;0;Family Parks;ENG;Family Parks
+136;Y;4;3;5;2;Holiday Parks Association of New Zealand;;7360;0;Holiday Parks Association of New Zealand;ENG;Holiday Parks Association of New Zealand
+137;Y;4;3;6;2;SA Caravan Parks Assoc.;;7360;0;SA Caravan Parks Assoc.;ENG;SA Caravan Parks Assoc.
 138;Y;4;3;7;2;TOP 10 Holiday Park;;7360;0;TOP 10 Holiday Park;ENG;
-139;Y;4;3;8;2;Top Tourist Parks;;7360;0;Top Tourist Parks;ENG;
+139;Y;4;3;8;2;Top Tourist Parks;;7360;0;Top Tourist Parks;ENG;Top Tourist Parks
 140;Y;4;3;9;2;Victorian Caravan Parks Association;;7360;0;Victorian Caravan Parks Association;ENG;
 141;N;4;3;10;2;Unspecified;;7360;0;0;ENG;
 142;N;4;4;0;1;Hotel/Motel;;7314;0;0;ENG;
@@ -370,24 +370,24 @@
 356;N;7;6;0;1;Pharmacy;;7326;0;0;ENG;
 357;N;7;7;0;1;Bank;;0;0;0;ENG;
 358;N;7;7;1;2;All Bank;0;0;0;0;ENG;
-359;Y;7;7;2;2;ANZ;;7328;0;ANZ;ENG;
+359;Y;7;7;2;2;ANZ;;7328;0;ANZ;ENG;ANZ
 360;Y;7;7;3;2;ASB;;7328;0;ASB;ENG;
 361;Y;7;7;4;2;Bank of Melbourne;;7328;0;Bank of Melbourne;ENG;
 362;Y;7;7;5;2;Bank of Queensland;;7328;0;Bank of Queensland;ENG;
-363;Y;7;7;6;2;Bank of South Australia;;7328;0;Bank of South Australia;ENG;
-364;Y;7;7;7;2;Bankwest;;7328;0;Bankwest;ENG;
-365;Y;7;7;8;2;Bendigo Bank;;7328;0;Bendigo Bank;ENG;
+363;Y;7;7;6;2;Bank of South Australia;;7328;0;Bank of South Australia;ENG;Bank of South Australia
+364;Y;7;7;7;2;Bankwest;;7328;0;Bankwest;ENG;Bankwest
+365;Y;7;7;8;2;Bendigo Bank;;7328;0;Bendigo Bank;ENG;Bendigo Bank
 366;Y;7;7;9;2;BNZ;;7328;0;BNZ;ENG;
-367;Y;7;7;10;2;Commonwealth Bank of Australia;;7328;0;Commonwealth Bank of Australia;ENG;
-368;Y;7;7;11;2;Heritage Bank;;7328;0;Heritage Bank;ENG;
+367;Y;7;7;10;2;Commonwealth Bank of Australia;;7328;0;Commonwealth Bank of Australia;ENG;Commonwealth Bank of Australia
+368;Y;7;7;11;2;Heritage Bank;;7328;0;Heritage Bank;ENG;Heritage Bank
 369;Y;7;7;12;2;Kiwibank;;7328;0;Kiwibank;ENG;
-370;Y;7;7;13;2;National Australia Bank;;7328;0;National Australia Bank;ENG;
-371;Y;7;7;14;2;Newcastle Permanent Building Society;;7328;0;Newcastle Permanent Building Society;ENG;
+370;Y;7;7;13;2;National Australia Bank;;7328;0;National Australia Bank;ENG;National Australia Bank
+371;Y;7;7;14;2;Newcastle Permanent Building Society;;7328;0;Newcastle Permanent Building Society;ENG;Newcastle Permanent Building Society
 372;Y;7;7;15;2;Rabobank;;7328;0;Rabobank;ENG;
-373;Y;7;7;16;2;St George;;7328;0;St George;ENG;
-374;Y;7;7;17;2;Suncorp;;7328;0;Suncorp;ENG;
-375;Y;7;7;18;2;Westpac;;7328;0;Westpac;ENG;
-376;Y;7;7;19;2;Widebay;;7328;0;Widebay;ENG;
+373;Y;7;7;16;2;St George;;7328;0;St George;ENG;St George
+374;Y;7;7;17;2;Suncorp;;7328;0;Suncorp;ENG;Suncorp
+375;Y;7;7;18;2;Westpac;;7328;0;Westpac;ENG;Westpac
+376;Y;7;7;19;2;Widebay;;7328;0;Widebay;ENG;Widebay
 377;N;7;7;20;2;Unspecified;;7328;0;0;ENG;
 378;N;7;8;0;1;Community Center;;7363;0;0;ENG;
 379;N;7;9;0;1;Embassy;;7365;0;0;ENG;
@@ -413,22 +413,22 @@
 395;N;7;12;0;1;Fire Station;;7392;0;0;ENG;
 396;N;7;13;0;1;ATM;;0;0;0;ENG;
 397;N;7;13;1;2;All ATM;0;0;0;0;ENG;
-398;Y;7;13;2;2;ANZ;;7397;0;ANZ;ENG;
+398;Y;7;13;2;2;ANZ;;7397;0;ANZ;ENG;ANZ
 399;Y;7;13;3;2;ASB;;7397;0;ASB;ENG;
 400;Y;7;13;4;2;Bank of Melbourne;;7397;0;Bank of Melbourne;ENG;
-401;Y;7;13;5;2;Bank of South Australia;;7397;0;Bank of South Australia;ENG;
-402;Y;7;13;6;2;Bankwest;;7397;0;Bankwest;ENG;
-403;Y;7;13;7;2;Bendigo Bank;;7397;0;Bendigo Bank;ENG;
+401;Y;7;13;5;2;Bank of South Australia;;7397;0;Bank of South Australia;ENG;Bank of South Australia
+402;Y;7;13;6;2;Bankwest;;7397;0;Bankwest;ENG;Bankwest
+403;Y;7;13;7;2;Bendigo Bank;;7397;0;Bendigo Bank;ENG;Bendigo Bank
 404;Y;7;13;8;2;BNZ;;7397;0;BNZ;ENG;
-405;Y;7;13;9;2;Commonwealth Bank of Australia;;7397;0;Commonwealth Bank of Australia;ENG;
-406;Y;7;13;10;2;Heritage Bank;;7397;0;Heritage Bank;ENG;
+405;Y;7;13;9;2;Commonwealth Bank of Australia;;7397;0;Commonwealth Bank of Australia;ENG;Commonwealth Bank of Australia
+406;Y;7;13;10;2;Heritage Bank;;7397;0;Heritage Bank;ENG;Heritage Bank
 407;Y;7;13;11;2;Kiwibank;;7397;0;Kiwibank;ENG;
-408;Y;7;13;12;2;National Australia Bank;;7397;0;National Australia Bank;ENG;
-409;Y;7;13;13;2;Newcastle Permanent Building Society;;7397;0;Newcastle Permanent Building Society;ENG;
-410;Y;7;13;14;2;rediATM;;7397;0;rediATM;ENG;
-411;Y;7;13;15;2;St George;;7397;0;St George;ENG;
-412;Y;7;13;16;2;Westpac;;7397;0;Westpac;ENG;
-413;Y;7;13;17;2;Widebay;;7397;0;Widebay;ENG;
+408;Y;7;13;12;2;National Australia Bank;;7397;0;National Australia Bank;ENG;National Australia Bank
+409;Y;7;13;13;2;Newcastle Permanent Building Society;;7397;0;Newcastle Permanent Building Society;ENG;Newcastle Permanent Building Society
+410;Y;7;13;14;2;rediATM;;7397;0;rediATM;ENG;rediATM
+411;Y;7;13;15;2;St George;;7397;0;St George;ENG;St George
+412;Y;7;13;16;2;Westpac;;7397;0;Westpac;ENG;Westpac
+413;Y;7;13;17;2;Widebay;;7397;0;Widebay;ENG;Widebay
 414;N;7;13;18;2;Unspecified;;7397;0;0;ENG;
 415;N;7;14;0;1;Stock Exchange;;9160;9160002;0;ENG;
 416;N;7;15;0;1;Currency Exchange;;9160;9160004;0;ENG;

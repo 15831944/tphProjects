@@ -207,7 +207,7 @@ class comp_link_rdf(component.component_base.comp_base):
             pass_code, pass_code_condition, road_name, road_number, name_type,
             ownership, car_only, slope_code, slope_angle, disobey_flag, 
             up_down_distinguish, access, extend_flag, etc_only_flag, ipd, urban,
-            erp, rodizio, soi, the_geom
+            erp, rodizio, soi, the_geom, feature_string, feature_key
         ) 
         SELECT    link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, toll, 
                   speed_class, length, function_class, lane_dir
@@ -244,6 +244,8 @@ class comp_link_rdf(component.component_base.comp_base):
                   road_name, road_number, name_type, ownership, car_only, slope_code, 
                   slope_angle, disobey_flag, up_down_distinguish, access, extend_flag, 
                   etc_only_flag, ipd, urban, erp, rodizio, soi, the_geom                                 
+                , a.link_id::varchar as feature_string
+                , md5(a.link_id::varchar) as feature_key
         from (                
                 select   a.link_id as link_id                          -- link_id
                    , a.iso_country_code as iso_country_code            --iso_country_code

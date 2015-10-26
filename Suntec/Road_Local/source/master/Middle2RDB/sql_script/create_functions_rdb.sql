@@ -2851,7 +2851,7 @@ BEGIN
 		)as a
 		left join temp_region_merge_link_walked as b
 		on a.link_id = b.link_id
-		where b.link_id is null
+		where b.link_id is null and (a.nextnode != static_node)
 		into rec2;
 		
 		if	FOUND
@@ -2864,8 +2864,8 @@ BEGIN
 			and	not (rec.road_type is distinct from rec2.road_type)
 			and	not (rec.pdm_flag is distinct from rec2.pdm_flag)
 			and	not (rec.path_extra_info is distinct from rec2.path_extra_info)
-			and not (rec.road_name is distinct from rec2.road_name)
-			and not (rec.road_number is distinct from rec2.road_number)
+--			and not (rec.road_name is distinct from rec2.road_name)
+--			and not (rec.road_number is distinct from rec2.road_number)
 --			and	(
 --					not (rec.road_name is distinct from rec2.road_name)
 --					or 
@@ -3485,14 +3485,13 @@ DECLARE
 	target_tile_y int;
 	target_tile_id int;
 BEGIN
-	tile14_y := base14_tile_id & 16383;
 	tile14_x := (base14_tile_id >> 14) & 16383;
+	tile14_y := base14_tile_id & 16383;
 	
-	target_tile_x := cast (floor(cast(tile14_x as numeric) / ( power(2, 14 - target_z_level))) as int);
-	target_tile_y := cast (floor(cast(tile14_y as numeric) / ( power(2, 14 - target_z_level))) as int);
+	target_tile_x := tile14_x >> (14 - target_z_level);
+	target_tile_y := tile14_y >> (14 - target_z_level);
 	
-	target_tile_id := (target_tile_x << 14) | target_tile_y;
-	target_tile_id := (target_z_level << 28) | target_tile_id;
+	target_tile_id := (target_z_level << 28) | (target_tile_x << 14) | target_tile_y;
 	
 	return target_tile_id;
 END;
@@ -3520,6 +3519,29 @@ BEGIN
 	end if;
 	
 	target_tile_id := (target_z_level << 28) | target_tile_id;
+	
+	return target_tile_id;
+END;
+$$;
+
+create or replace function get_meshid_by_zlevel(base14_tile_id int, target_z_level int, tile_offset int)
+	returns bigint
+	LANGUAGE plpgsql
+AS $$ 
+DECLARE
+	tile14_x int;
+	tile14_y int;
+	target_tile_x int;
+	target_tile_y int;
+	target_tile_id int;
+BEGIN
+	tile14_x := (base14_tile_id >> 14) & 16383;
+	tile14_y := base14_tile_id & 16383;
+	
+	target_tile_x := (tile14_x + tile_offset) >> (14 - target_z_level);
+	target_tile_y := (tile14_y + tile_offset) >> (14 - target_z_level);
+	
+	target_tile_id := (target_z_level << 28) | (target_tile_x << 14) | target_tile_y;
 	
 	return target_tile_id;
 END;

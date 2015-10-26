@@ -1,16 +1,18 @@
-﻿# config file of project
-db1=host='172.26.179.190' dbname='17cy_ARG_RDF_2014Q4_CI' user='postgres' password='pset123456'
-db2=host='172.26.179.190' dbname='17cy_ARG_RDF_2014Q4_CI' user='postgres' password='pset123456'
+﻿﻿# config file of project
+db1=host='172.26.179.190' dbname='AUS_SENSID_201503_org' user='postgres' password='pset123456'
+db2=host='172.26.179.190' dbname='AUS_SENSID_201503_org' user='postgres' password='pset123456'
 language_table=..\docs\language.xls
 sql_script=.\sql_script\
 run_mode=debug
 
 # proj_name=axf/jdb/jpn/mmi/msm/nostra/rdf/ta/ni/zenrin/...
 # proj_country=chn/jpn/ind/mys/tha/na/sgp/hkg/twn/...
-proj_name=rdf
-proj_country=arg
+proj_name=ta
+proj_country=hkg
 park_flag=false
 safetyzone_flag=false
 accident_flag=false
 safetyalert_flag=false
 default_language=
+
+support_same_language_one_record=True

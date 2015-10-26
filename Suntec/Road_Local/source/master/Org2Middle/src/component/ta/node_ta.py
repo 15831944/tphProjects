@@ -65,7 +65,9 @@ class comp_node_ta(component.component_base.comp_base):
             
         sqlcmd = """
                 insert into node_tbl (
-                    node_id, kind, light_flag, toll_flag, stopsign_flag, bifurcation_flag, mainnodeid, node_lid, node_name, the_geom )
+                    node_id, kind, light_flag, toll_flag, stopsign_flag, bifurcation_flag, 
+                    mainnodeid, node_lid, node_name, the_geom, feature_string, feature_key 
+                    )
                 select 
                     a.id, 
                     mid_cnv_node_kind(jncttyp) as kind,
@@ -80,9 +82,11 @@ class comp_node_ta(component.component_base.comp_base):
                         else 0
                     end as bifurcation_flag,
                     0 as mainnodeid, 
-                    array_to_string(b.lid, '|') as node_lid, 
+                    b.lid as node_lid, 
                     null as node_name, 
-                    geom
+                    geom,
+                    b.lid::varchar as feature_string,
+                    md5(b.lid::varchar) as feature_key
                 from temp_jc as a
                 left outer join temp_node_lid as b
                 on a.id = b.node_id
@@ -123,7 +127,7 @@ class comp_node_ta(component.component_base.comp_base):
         sqlcmd = """
             insert into temp_node_lid(node_id, lid)
             (
-                select a.id,  b.lid || c.lid 
+                select a.id,  array_to_string(b.lid || c.lid, '|')
                   from temp_jc as a
                   LEFT JOIN temp_node_lid_ref as b
                   ON a.id = b.node_id
@@ -201,9 +205,14 @@ class node_child_thread(threading.Thread):
             insert into temp_node_lid_ref(node_id, lid)
             (
                 select f_jnctid, array_agg(id) 
-                  from org_nw
-                  where frc != -1
-                  group by f_jnctid
+                from
+                (
+                    select f_jnctid, id
+                    from org_nw
+                    where frc != -1
+                    order by f_jnctid, id
+                )as t
+                group by f_jnctid
             );
         """
         
@@ -220,9 +229,14 @@ class node_child_thread(threading.Thread):
             insert into temp_node_lid_nonref(node_id, lid)
             (
                 select t_jnctid, array_agg(id) 
-                  from org_nw
-                  where frc != -1
-                  group by t_jnctid
+                from
+                (
+                    select t_jnctid, id
+                    from org_nw
+                    where frc != -1
+                    order by t_jnctid, id
+                )as t
+                group by t_jnctid
             );
         """
         

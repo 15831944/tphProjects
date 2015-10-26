@@ -255,7 +255,7 @@ CREATE TABLE rdb_link
 CREATE TABLE rdb_name
 (
   name_id integer NOT NULL,
-  name    character varying(8192)
+  name    character varying(16384)
 );
 
 CREATE TABLE rdb_link_abs
@@ -1437,6 +1437,10 @@ as
 			select pattern_id as pic_id, node_id_t as pic_tile_id, type from rdb_guideinfo_spotguidepoint
 			union
 			select arrow_id as pic_id, node_id_t as pic_tile_id, type from rdb_guideinfo_spotguidepoint
+			union
+			select pattern_id as pic_id, node_id_t as pic_tile_id, 999 from rdb_guideinfo_signpost
+			union
+			select arrow_id as pic_id, node_id_t as pic_tile_id, 999 from rdb_guideinfo_signpost
 		) as a
 	) as b
 	where b.pic_id <> 0
@@ -2164,4 +2168,12 @@ CREATE TABLE rdb_forecast_time
   time_id integer,
   time_slot smallint,
   time smallint
+);
+
+CREATE TABLE rdb_highway_service_category_mapping
+(
+  field_name   character varying(1024),
+  service      character varying(1024),
+  service_id   bigint,
+  category_id  bigint
 );

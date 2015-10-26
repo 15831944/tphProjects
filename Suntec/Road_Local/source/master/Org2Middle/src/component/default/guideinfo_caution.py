@@ -5,10 +5,13 @@ Created on 2012-2-23
 @author: sunyifeng
 '''
 
+
+
 import io
 import os
-
 import component.component_base
+
+
 
 class comp_guideinfo_caution(component.component_base.comp_base):
     
@@ -19,8 +22,9 @@ class comp_guideinfo_caution(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'Guideinfo Caution') 
         
     def _DoCreateTable(self):
+        'åˆ›å»ºè¡¨.'  
         
-        self.CreateTable2('caution_tbl')  
+        self.CreateTable2('caution_tbl')
         
         return 0
     
@@ -30,29 +34,46 @@ class comp_guideinfo_caution(component.component_base.comp_base):
     
     def _Do(self):
         
-        return 0
-    
-    def _GetOutLinkSeq(self):
+        self._make_caution_from_origin()
         
-        # Õë¶ÔÍÑ³ölinkÎª¿Õ»òÕßÍÑ³ölinkÊÇinner linkµÄÇéĞÎ£¬ĞèÒª¼ÆËã»ñÈ¡¶ÔÓ¦µÄÍÑ³ölinkĞòÁĞ
-        # 1¡¢Èô»úÄÜ×é¶ÔÍÑ³ölinkÃ»ÓĞÈÎºÎÒªÇó£¬ÒÔÏÂº¯Êı¾ù¿ÉÆÁ±Î
-        # 2¡¢Èô»úÄÜ×é½öÒªÇóÍÑ³ölink²»ÄÜÎª¿Õ£¬2/3º¯Êı¿ÉÆÁ±Î
-        # 3¡¢Èô»úÄÜ×éÒªÇóÍÑ³ölink²»Îª¿Õ¶øÇÒÍÑ³ölink²»ÄÜÎªinner link£¬ÒÔÏÂº¯Êı¾ù²»¿ÉÆÁ±Î
-        
-        self.__GetCautionRouteInfo()
-        self.__GetExtendLnkLst()
-        self.__UpdateCautionRouteInfo()
-        self.__UpdateCautionlinktbl()
+        # ä¸æœºèƒ½ç»„ç¡®è®¤ï¼Œcautionå¯¹åº”çš„è„±å‡ºlinkå¯ä»¥ä¸ºç©ºï¼Œå› æ­¤å¯¹è„±å‡ºlinkä¸åšç‰¹æ®Šå¤„ç†ï¼Œä¸‹é¢å±è”½
+        #self._alter_caution_outlinkinfo()
         
         return 0
     
-    def __GetCautionRouteInfo(self):
+    def _DoCreateIndex(self):
+        'åˆ›å»ºç›¸å…³è¡¨ç´¢å¼•.'
+        
+        return 0
+    
+    def _make_caution_from_origin(self):
+        
+        # ä»ä¸åŒåè®®å¯¹åº”çš„åŸå§‹è¡¨å•ä¸­æŠ½å–cautionä¿¡æ¯
+        # æŠ½å–çš„cautionå¯¹åº”çš„è·¯å¾„ä¿¡æ¯å¯èƒ½ä¸å®Œå–„ï¼Œå°†æ ¹æ®æœºèƒ½ç»„è¦æ±‚è¿›è¡Œå®Œå–„
+        
+        return 0
+    
+    def _alter_caution_outlinkinfo(self):
+        
+        # é’ˆå¯¹è„±å‡ºlinkä¸ºç©ºæˆ–è€…è„±å‡ºlinkæ˜¯inner linkçš„æƒ…å½¢ï¼Œéœ€è¦è®¡ç®—è·å–å¯¹åº”çš„è„±å‡ºlinkåºåˆ—
+        # 1ã€è‹¥æœºèƒ½ç»„å¯¹è„±å‡ºlinkæ²¡æœ‰ä»»ä½•è¦æ±‚ï¼Œä»¥ä¸‹å‡½æ•°å‡å¯å±è”½
+        # 2ã€è‹¥æœºèƒ½ç»„ä»…è¦æ±‚è„±å‡ºlinkä¸èƒ½ä¸ºç©ºï¼Œ2/3å‡½æ•°å¯å±è”½
+        # 3ã€è‹¥æœºèƒ½ç»„è¦æ±‚è„±å‡ºlinkä¸ä¸ºç©ºè€Œä¸”è„±å‡ºlinkä¸èƒ½ä¸ºinner linkï¼Œä»¥ä¸‹å‡½æ•°å‡ä¸å¯å±è”½
+        
+        self._make_caution_routeinfo()
+        self._update_caution_outlinkinfo()
+        self._update_caution_routeinfo()
+        self._update_caution_tbl_again()
+        
+        return 0    
+    
+    def _make_caution_routeinfo(self):
         
         self.log.info('Now it is creating temp_caution_off_link_tbl...')
         
-        # ´´½¨±íµ¥temp_caution_routeinfo_tbl¼ÇÂ¼caution¶ÔÓ¦µÄÂ·¾¶ĞÅÏ¢£¬×÷³É£º
-        # 1¡¢ÈôÍÑ³ölinkÎª¿Õ£¬»ñÈ¡ÆäÖ±½ÓÍÑ³ölink£¬×÷³ÉÂ·¾¶ĞÅÏ¢
-        # 2¡¢ÈôÍÑ³ölink²»Îª¿Õ£¬×÷³ÉÂ·¾¶ĞÅÏ¢
+        # åˆ›å»ºè¡¨å•temp_caution_routeinfo_tblè®°å½•cautionå¯¹åº”çš„è·¯å¾„ä¿¡æ¯ï¼Œä½œæˆï¼š
+        # 1ã€è‹¥è„±å‡ºlinkä¸ºç©ºï¼Œè·å–å…¶ç›´æ¥è„±å‡ºlinkï¼Œä½œæˆè·¯å¾„ä¿¡æ¯
+        # 2ã€è‹¥è„±å‡ºlinkä¸ä¸ºç©ºï¼Œä½œæˆè·¯å¾„ä¿¡æ¯
         
         self.CreateFunction2('mid_get_pass_node')
         self.CreateFunction2('mid_get_nxt_node')
@@ -95,14 +116,15 @@ class comp_guideinfo_caution(component.component_base.comp_base):
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('Now it is creating temp_caution_off_link_tbl end')
-        return
+        
+        return 0
     
-    def __GetExtendLnkLst(self):
+    def _update_caution_outlinkinfo(self):
         
         self.log.info('Now it is creating temp_caution_extend_link_tbl...')
         
-        # ×÷³É±íµ¥temp_caution_extend_link_tbl¼ÇÂ¼ÒªÀ©Õ¹µÄÂ·¾¶£¨¼´ÍÑ³ölinkÎªinner link£©ĞÅÏ¢
-        # ÍÑ³ölinkÀ©Õ¹Ô­Òò£º»úÄÜÏŞ¶¨ÍÑ³ölink²»ÄÜÎªinner link
+        # ä½œæˆè¡¨å•temp_caution_extend_link_tblè®°å½•è¦æ‰©å±•çš„è·¯å¾„ï¼ˆå³è„±å‡ºlinkä¸ºinner linkï¼‰ä¿¡æ¯
+        # è„±å‡ºlinkæ‰©å±•åŸå› ï¼šæœºèƒ½é™å®šè„±å‡ºlinkä¸èƒ½ä¸ºinner link
         
         sqlcmd = '''
                     drop table if exists temp_caution_extend_link_tbl;
@@ -122,14 +144,14 @@ class comp_guideinfo_caution(component.component_base.comp_base):
         
         self.pg.do_big_insert2(sqlcmd)
         
-        # º¯Êımid_get_inner_link_count»ñÈ¡±íµ¥temp_caution_extend_link_tblÖĞÍÑ³ölinkÊÇinner linkµÄ¼ÇÂ¼¸öÊı
-        # º¯Êımid_out_link_extend¶ÔÍÑ³ölinkÊÇinner linkµÄÇé¿ö½øĞĞlinkÀ©Õ¹
+        # å‡½æ•°mid_get_inner_link_countè·å–è¡¨å•temp_caution_extend_link_tblä¸­è„±å‡ºlinkæ˜¯inner linkçš„è®°å½•ä¸ªæ•°
+        # å‡½æ•°mid_out_link_extendå¯¹è„±å‡ºlinkæ˜¯inner linkçš„æƒ…å†µè¿›è¡Œlinkæ‰©å±•
         
         self.CreateFunction2('mid_get_inner_link_count')
         self.CreateFunction2('mid_out_link_extend')
         
-        # ¶ÔÍÑ³ölinkÊÇinner linkµÄÇéĞÎ£¬ĞèÒª½øĞĞÀ©Õ¹
-        # À©Õ¹ÖÕÖ¹Ìõ¼şÊÇÍÑ³ölink²»Îªinner link
+        # å¯¹è„±å‡ºlinkæ˜¯inner linkçš„æƒ…å½¢ï¼Œéœ€è¦è¿›è¡Œæ‰©å±•
+        # æ‰©å±•ç»ˆæ­¢æ¡ä»¶æ˜¯è„±å‡ºlinkä¸ä¸ºinner link
         
         sqlcmd = '''
                     select mid_out_link_extend();
@@ -138,18 +160,20 @@ class comp_guideinfo_caution(component.component_base.comp_base):
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('Now it is creating temp_caution_extend_link_tbl end')
-        return 
+        
+        return 0
     
-    def __UpdateCautionRouteInfo(self):
+    def _update_caution_routeinfo(self):
         
         self.log.info('Now it is updating temp_caution_routeinfo_tbl...')
         
-        # ´´½¨temp_caution_routeinfo_tbl_bak±£´æcautionµÄÍêÕûÂ·¾¶ĞÅÏ¢£¨¸ÃÂ·¾¶ĞÅÏ¢ÖĞÖĞ°üº¬µÄÍÑ³ölink²»Îªinner link£©
-        # Ê¹ÓÃ×óÁ¬½Ó¾ÍÊÇ°ÑÂ·¾¶ËùÓĞµÄ¿ÉÄÜĞÔ¶¼°üº¬ÁË
-        # ÔÙ´Î¸üĞÂ±íµ¥temp_caution_routeinfo_tbl±£´æcautionÍêÕûµÄÂ·¾¶ĞÅÏ¢£¬ÕâÑùµÄÄ¿µÄ£º
-        # 1¡¢¸üĞÂ±íµ¥temp_caution_routeinfo_tblÖĞcaution¶ÔÓ¦µÄÂ·¾¶ĞÅÏ¢£¬±£Ö¤caution¶ÔÓ¦µÄÍÑ³ölink²»Îªinner link
-        # 2¡¢±íµ¥temp_caution_routeinfo_tbl×÷Îª¶ÔÍâµÄ±íµ¥£¬Èô»úÄÜ×é²»ÒªÇóÍÑ³ölinkµÄÖÖ±ğ£¬Î´¸üĞÂÖ®Ç°µÄtemp_caution_routeinfo_tbl \
-        #   ¼´¿ÉÂú×ãÌõ¼ş£»Èô»úÄÜ×éÒªÇóÍÑ³ölink²»ÄÜÎªinner link£¬Ôò¸üĞÂºóµÄtemp_caution_routeinfo_tblÂú×ãÒªÇó
+        # åˆ›å»ºtemp_caution_routeinfo_tbl_bakä¿å­˜cautionçš„å®Œæ•´è·¯å¾„ä¿¡æ¯ï¼ˆè¯¥è·¯å¾„ä¿¡æ¯ä¸­ä¸­åŒ…å«çš„è„±å‡ºlinkä¸ä¸ºinner linkï¼‰
+        # ä½¿ç”¨å·¦è¿æ¥å°±æ˜¯æŠŠè·¯å¾„æ‰€æœ‰çš„å¯èƒ½æ€§éƒ½åŒ…å«äº†
+        # å†æ¬¡æ›´æ–°è¡¨å•temp_caution_routeinfo_tblä¿å­˜cautionå®Œæ•´çš„è·¯å¾„ä¿¡æ¯ï¼Œè¿™æ ·çš„ç›®çš„ï¼š
+        # 1ã€æ›´æ–°è¡¨å•temp_caution_routeinfo_tblä¸­cautionå¯¹åº”çš„è·¯å¾„ä¿¡æ¯ï¼Œä¿è¯cautionå¯¹åº”çš„è„±å‡ºlinkä¸ä¸ºinner link
+        # 2ã€è¡¨å•temp_caution_routeinfo_tblä½œä¸ºå¯¹å¤–çš„è¡¨å•ï¼Œè‹¥æœºèƒ½ç»„ä¸è¦æ±‚è„±å‡ºlinkçš„ç§åˆ«ï¼Œæœªæ›´æ–°ä¹‹å‰çš„temp_caution_routeinfo_tbl \
+        #   å³å¯æ»¡è¶³æ¡ä»¶ï¼›è‹¥æœºèƒ½ç»„è¦æ±‚è„±å‡ºlinkä¸èƒ½ä¸ºinner linkï¼Œåˆ™æ›´æ–°åçš„temp_caution_routeinfo_tblæ»¡è¶³è¦æ±‚
+        
         sqlcmd = '''
                     drop table if exists temp_caution_routeinfo_tbl_bak;
                     create table temp_caution_routeinfo_tbl_bak
@@ -182,19 +206,20 @@ class comp_guideinfo_caution(component.component_base.comp_base):
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('Now it is updating temp_caution_routeinfo_tbl end')
-        return
+        
+        return 0
     
-    def __UpdateCautionlinktbl(self):
+    def _update_caution_tbl_again(self):
         
         self.log.info('Now it is updating caution_tbl...')
         
-        # Çå¿Õ±íµ¥caution_tblÊı¾İ
-        # ÖØĞÂ´´½¨±íµ¥caution_tbl£¬¼´¿ÉÇå¿Õ±íµ¥Êı¾İ
+        # å†æ¬¡æ›´æ–°è¡¨å•caution_tblæ•°æ®
+        # ç”±äºå¯¹cautionå¯¹åº”çš„è·¯å¾„ä¿¡æ¯æœ‰æ›´æ–°ï¼Œéœ€è¦å¯¹åŸæœ‰caution_tblè¿›è¡Œå†æ¬¡æ›´æ–°ï¼ˆå°†åŸæœ‰caution_tblè¡¨å•åˆ é™¤ï¼Œé‡æ–°æ’å…¥æ›´æ–°åçš„cautionä¿¡æ¯ï¼‰
         
         self.CreateTable2('caution_tbl')
         
-        # ±íµ¥temp_caution_routeinfo_tbl±£´æµÄÊÇcautionµÄÂ·¾¶ĞÅÏ¢£¨°üº¬½øÈëlink£¬ ¾­¹ılinkÒÔ¼°ÍÑ³ölink£©
-        # cautionµÄÂ·¾¶ĞÅÏ¢ÖĞ£¬µÚÒ»Ìõlink¼´Îª½øÈëlink£¬×îºóÒ»Ìõlink¼´ÎªÍÑ³ölink£¬ÖĞ¼äµÄlinkÁĞ¼´Îª¾­¹ılink
+        # è¡¨å•temp_caution_routeinfo_tblä¿å­˜çš„æ˜¯cautionçš„è·¯å¾„ä¿¡æ¯ï¼ˆåŒ…å«è¿›å…¥linkï¼Œ ç»è¿‡linkä»¥åŠè„±å‡ºlinkï¼‰
+        # cautionçš„è·¯å¾„ä¿¡æ¯ä¸­ï¼Œç¬¬ä¸€æ¡linkå³ä¸ºè¿›å…¥linkï¼Œæœ€åä¸€æ¡linkå³ä¸ºè„±å‡ºlinkï¼Œä¸­é—´çš„linkåˆ—å³ä¸ºç»è¿‡link
         
         sqlcmd = '''
                     insert into caution_tbl(inlinkid, nodeid, outlinkid, passlid, passlink_cnt,
@@ -205,7 +230,8 @@ class comp_guideinfo_caution(component.component_base.comp_base):
                         end)::varchar as passlid,
                         (array_upper(routelnklst, 1)-2)::smallint as passlink_cnt,
                         data_kind, voice_id, strTTS, image_id
-                    from temp_caution_routeinfo_tbl;
+                    from temp_caution_routeinfo_tbl
+                    order by inlinkid, nodeid, outlinkid, data_kind;
                     
                     analyze caution_tbl;
                 '''
@@ -213,4 +239,5 @@ class comp_guideinfo_caution(component.component_base.comp_base):
         self.pg.do_big_insert2(sqlcmd)
         
         self.log.info('Now it is updating caution_tbl...')
-        return
+        
+        return 0

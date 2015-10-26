@@ -6,6 +6,7 @@ Created on 2011-12-22
 '''
 
 import platform.TestCase
+from common.ConfigReader import CConfigReader
 import json
 
 #LinkID唯一性
@@ -83,11 +84,13 @@ class CCheckLinkIDContinous(platform.TestCase.CTestCase):
                             select link_id_t, link_array, generate_series(1,tile_link_count) as seq_nm
                             from
                             (
-                                select link_id_t, count(*) as tile_link_count, array_agg(link_id) as link_array
+                                select link_id_t, count(*) as tile_link_count, array_agg((a.link_id & ((1::bigint << 32) - 1))) as link_array
                                 from
                                 (
-                                    select link_id_t, common_main_link_attri, link_id
-                                    from rdb_link_client
+                                    select a.link_id_t, b.common_main_link_attri, a.link_id
+                                    from rdb_link a
+                                    left join rdb_link_with_all_attri_view b
+                                    on a.link_id = b.link_id
                                     order by link_id_t, common_main_link_attri, link_id
                                 )as a
                                 group by link_id_t
@@ -335,26 +338,6 @@ class CCheckRoadTypeValid_HKG(platform.TestCase.CTestCase):
             """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)
-
-class CCheckRoadTypeValid_RDF(platform.TestCase.CTestCase):
-    def _do(self):
-                    
-            sqlcmd = """
-                   select count(a.road_type)
-                    from
-                        (select unnest(ARRAY[0,2,3,4,6,8,10,12,14]) as road_type) as a
-                    left join
-                        (select distinct road_type from rdb_link) as b
-                    on a.road_type = b.road_type
-                    where b.road_type is null;
-                """
-
-            self.pg.execute(sqlcmd)
-            row = self.pg.fetchone()
-            if row:
-                if row[0] == 0:
-                    return True
-            return False
                         
 class CCheckRoadTypeValid_MMI(platform.TestCase.CTestCase):
     def _do(self):
@@ -1939,8 +1922,87 @@ class CCheckNameUnique(platform.TestCase.CTestCase):
             group by road_name having count(*) > 1
         ) as a
         ''' 
-        return (self.pg.getOnlyQueryResult(sqlcmd) == 0) 
+        return (self.pg.getOnlyQueryResult(sqlcmd) == 0)
+    
+class CCheckrdb_link_name_language(platform.TestCase.CTestCase):
+    '''检查name_id和name是否唯一对应'''
+    def _do(self):
+        Flag = True
+        pg_config = CConfigReader.instance()      
+        sqlcmd_country = """
+                        select distinct road_name
+                        from rdb_link
+                        where iso_country_code = '[country]'
+                             and road_name is not null;
+                        """
+        
+        sqlcmd = '''
+               select distinct iso_country_code
+               from rdb_link;
+               '''
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            language_code_list = pg_config.getcountry_language_code(row[0])
+            sqlcmd_temp = sqlcmd_country.replace('[country]', row[0])
+            self.pg.execute(sqlcmd_temp)
+            lines = self.pg.fetchall()
+            for line in lines:
+                shield = json.loads(line[0], encoding='utf8')
+                for shield_temp1 in shield:
+                    for shield_temp2 in shield_temp1:
+                        if shield_temp2['lang'] in language_code_list:
+                            continue
+                        else:
+                            Flag = False
+                            self.logger.error("name=%s error! country language = %s,country = %s",line[0],language_code_list,row[0])
+     
+        return Flag
+    
+class CCheckrdb_link_number_shield(platform.TestCase.CTestCase):
+    '''检查name_id和name是否唯一对应'''
+    def _do(self):
+        Flag = True       
+        pg_config = CConfigReader.instance()        
+        sqlcmd_country = """
+                        select distinct road_number
+                        from rdb_link
+                        where iso_country_code = '[country]'
+                             and road_number is not null;
+                        """
+        
+        sqlcmd = '''
+               select distinct iso_country_code
+               from rdb_link;
+               '''
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            shield_list = pg_config.getShield_id_list(row[0])
+            sqlcmd_temp = sqlcmd_country.replace('[country]', row[0])
+            self.pg.execute(sqlcmd_temp)
+            lines = self.pg.fetchall()
+            for line in lines:
+                shield = json.loads(line[0].replace('\t', '\\t'), encoding='utf8')
+                for shield_temp1 in shield:
+                    for shield_temp2 in shield_temp1:
+                        if shield_temp2['tts_type'] == 'not_tts':
+                            shield_split = shield_temp2['val'].split('\t')
+                            if str(shield_split[0]) in shield_list:
+                                continue
+                            else:
+                                self.logger.error("shield=%s error!country shield = %s,country = %s",line, shield_list, row[0])
+                                Flag = False
+     
+        return Flag 
            
-           
-           
-             
+class CCheckLinkCircle(platform.TestCase.CTestCase):
+    '''检查link是否自身构成环'''
+    def _do(self):
+        sqlcmd = """
+                SELECT count(link_id)
+                  FROM rdb_link
+                  where start_node_id = end_node_id;
+        """
+        rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_cnt == 0)         
