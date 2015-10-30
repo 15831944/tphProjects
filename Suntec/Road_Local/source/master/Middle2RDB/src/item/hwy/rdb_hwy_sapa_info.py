@@ -27,28 +27,28 @@ HWY_HOT_SPRINGS = 'Hwy hot springs'
 NAP_REST_AREA = 'Nap rest area'
 RESTAURANT = 'Restaurant'
 GAS_STATION = 'Gas station'
-FIELD_NAME_DICT = {DOG_RUN: ('dog_run', 0),
-                   HWY_OASIS: ('hwy_oasis', 1),
-                   PUBLIC_TEL: ('public_telephone', 2),
-                   VENDING_MACHINE: ('vending_machine', 3),
-                   HANDICAPPED_TEL: ('handicapped_telephone', 4),
-                   HANDICAPPED_TOILET: ('handicapped_toilet', 5),
-                   INFORMATION: ('information', 6),
-                   SNACK_CORNER: ('snack_corner', 7),
-                   NURSING_ROOM: ('nursing_room', 8),
-                   LAUNDERETTE: ('launderette', 9),
-                   COIN_SHOWER: ('coin_shower', 10),
-                   TOILET: ('toilet', 11),
-                   REST_AREA: ('rest_area', 12),
-                   SHOPPING_CORNER: ('shopping_corner', 13),
-                   FAX_SERVICE: ('fax_service', 14),
-                   POST_BOX: ('postbox', 15),
-                   HWY_INFOR_TERMINAL: ('hwy_infor_terminal', 16),
-                   ATM: ('atm', 17),
-                   HWY_HOT_SPRINGS: ('hwy_hot_springs', 18),
-                   NAP_REST_AREA: ('nap_rest_area', 19),
-                   RESTAURANT: ('restaurant', 20),
-                   GAS_STATION: ('gas_station', 21)
+FIELD_NAME_DICT = {DOG_RUN: ('dog_run', 1),
+                   HWY_OASIS: ('hwy_oasis', 2),
+                   PUBLIC_TEL: ('public_telephone', 3),
+                   VENDING_MACHINE: ('vending_machine', 4),
+                   HANDICAPPED_TEL: ('handicapped_telephone', 5),
+                   HANDICAPPED_TOILET: ('handicapped_toilet', 6),
+                   INFORMATION: ('information', 7),
+                   SNACK_CORNER: ('snack_corner', 8),
+                   NURSING_ROOM: ('nursing_room', 9),
+                   LAUNDERETTE: ('launderette', 10),
+                   COIN_SHOWER: ('coin_shower', 11),
+                   TOILET: ('toilet', 12),
+                   REST_AREA: ('rest_area', 13),
+                   SHOPPING_CORNER: ('shopping_corner', 14),
+                   FAX_SERVICE: ('fax_service', 15),
+                   POST_BOX: ('postbox', 16),
+                   HWY_INFOR_TERMINAL: ('hwy_infor_terminal', 17),
+                   ATM: ('atm', 18),
+                   HWY_HOT_SPRINGS: ('hwy_hot_springs', 19),
+                   NAP_REST_AREA: ('nap_rest_area', 20),
+                   RESTAURANT: ('restaurant', 21),
+                   GAS_STATION: ('gas_station', 22)
                    }
 
 
@@ -143,12 +143,15 @@ class rdb_highway_sapa_info(ItemBase):
         if self.pg.IsExistTable('hwy_service_category_mapping') != True:
             return 0
         sqlcmd = '''
-            select service, category_id
+            select service, category_id, add_cat_id
             from hwy_service_category_mapping
-            where category_id is not null
+            where category_id is not null or
+                  add_cat_id is not null
         '''
         for row in self.pg.get_batch_data2(sqlcmd):
-            service,  category_id = row
+            service, category_id, add_cat_id = row
+            if not category_id:
+                category_id = add_cat_id
             field_name, service_id = FIELD_NAME_DICT.get(service)
             if not field_name:
                 self.log.error('no field name, service= %s'

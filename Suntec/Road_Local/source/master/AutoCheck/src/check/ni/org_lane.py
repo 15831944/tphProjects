@@ -133,23 +133,5 @@ class CCheckLanenum(platform.TestCase.CTestCase):
                  '''
         return self.pg.getOnlyQueryResult(sqlcmd)==0
     
-class CCheckInlinkPasslinkOutlink(platform.TestCase.CTestCase):
-    def _do(self):
-        try:
-            self.pg.CreateFunction_ByName('ni_check_lane_linkrow')
-            self.pg.callproc('ni_check_lane_linkrow')
-            return True
-        except:
-            self.logger.exception('fail to check...')
-            return False
-        return True
-
-class CCheckInlinkNodeidLanenum(platform.TestCase.CTestCase):
-    def _do(self):
-        sqlcmd='''
-                select count(*) from
-                (
-                    select nodeid,inlinkid from lane_tbl group by nodeid,inlinkid having count(distinct(lanenum))>1
-                ) a
-                '''
-        return self.pg.getOnlyQueryResult(sqlcmd)==0
+'''class CCheckInlinkPasslinkOutlink(platform.TestCase.CTestCase):
+    def _do(self):'''

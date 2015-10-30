@@ -51,7 +51,8 @@ class comp_link_zenrin(component.component_base.comp_base):
                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, 
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
-                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, the_geom
+                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, 
+                feature_string, feature_key, the_geom
                 )
         select link_id, iso_country_code, s_node, e_node, display_class, link_type, road_type, 
                 toll, speed_class, length, function_class, lane_dir, 
@@ -59,7 +60,8 @@ class comp_link_zenrin(component.component_base.comp_base):
                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, 
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
-                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, the_geom_4326
+                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, 
+                feature_string, feature_key, the_geom_4326
         from
         (
             select a.link_id,
@@ -121,6 +123,8 @@ class comp_link_zenrin(component.component_base.comp_base):
             0 as extend_flag,
             0 as etc_only_flag,
             0 as urban,
+            array_to_string(ARRAY[a.meshcode, a.linkno::varchar],',') as feature_string,
+            md5(array_to_string(ARRAY[a.meshcode, a.linkno::varchar],',')) as feature_key,
             st_geometryn(a.the_geom_4326,1) as the_geom_4326
             from (
                 select gid, meshcode, elcode, linkno, snodeno, enodeno, 

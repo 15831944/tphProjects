@@ -34,11 +34,11 @@ class HwyNodeAddInfo(component.component_base.comp_base):
     Node附加情报
     '''
 
-    def __init__(self):
+    def __init__(self, ItemName='HwyNodeAddInfo'):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'HwyNodeAddInfo')
+        component.component_base.comp_base.__init__(self, ItemName)
 
     def _Do(self):
         # 料金所的附加情报

@@ -61,7 +61,8 @@ class comp_node_ni(component.component_base.comp_base):
         self.log.info('make node_tbl...')
         sqlcmd='''
                 insert into node_Tbl
-                (node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,mainnodeid,node_lid,node_name,z_level,the_geom)
+                (node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,mainnodeid,node_lid,
+                node_name,z_level,feature_string,feature_key,the_geom)
                
                 select a.id::bigint, a.kind, a.light_flag::smallint,
                     case when d.nodeid is not null then 1 else 0 end as stopsign_flag,
@@ -71,6 +72,8 @@ class comp_node_ni(component.component_base.comp_base):
                     case when g.id is null then a.node_lid else array_to_string(string_to_array(a.node_lid,'|')||string_to_array(g.node_lid,'|'),'|') end,
                     null as node_name,
                     case when o.node_id is null then 0 else o.z_level end as z_level,
+                    a.id::varchar as feature_string, 
+                    md5(a.id::varchar) as feature_key, 
                     a.the_geom
                 from org_n a 
                 left join

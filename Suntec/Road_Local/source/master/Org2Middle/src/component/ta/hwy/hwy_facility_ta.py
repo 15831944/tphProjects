@@ -56,8 +56,15 @@ class HwyFacilityTa(HwyFacilityRDF):
         '''SAPA对应的Rest Area POI情报。'''
         self.log.info('Start Make SAPA Info.')
         self.CreateTable2('mid_temp_hwy_sapa_info')
+        prev_road_code, prev_road_seq = None, None
         for data in self._get_rest_area_info():
             road_code, road_seq, poi_id, feattyp, name, updown = data
+            # SAPA有些路径经过SAPA POI, 有些没有经过时, 过滤掉没有经过SAPA POI的情
+            if(prev_road_code == road_code and
+               prev_road_seq == road_seq and
+               not poi_id):
+                continue
+            prev_road_code, prev_road_seq = road_code, road_seq
             if feattyp:
                 facil_cls = SAPA_TYPE_DICT.get(feattyp)
                 if not facil_cls:
@@ -71,53 +78,98 @@ class HwyFacilityTa(HwyFacilityRDF):
                                   updown)
         self.pg.commit1()
         self._update_sapa_facilcls()
-        self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_road_seq_idx')
+        self.CreateIndex2('mid_temp_hwy_sapa_info_road_code_'
+                          'road_seq_updown_c_idx')
         self.log.info('End Make SAPA Info.')
+
 
     def _make_hwy_store(self):
         '''店铺情报'''
         self.log.info('Start Make Facility Stores.')
         self.CreateTable2('hwy_store')
         sqlcmd = """
-        INSERT INTO hwy_store(road_code, road_seq, updown_c,
-                              store_cat_id, sub_cat, store_chain_id,
-                              chain_name)
-        (
-        SELECT DISTINCT road_code, road_seq, 1 as updown_c,
-               feattyp as cat_id, subcat, '' as store_chain_id,
-               brandname
+         SELECT distinct road_code, road_seq, updown_c,
+                         c.feattyp as cat_id, subcat, '' as store_chain_id,
+                         brandname, array_agg(distance)as distance, f.per_code
+           FROM mid_temp_hwy_sapa_link as a
+           LEFT JOIN org_mnpoi_pi as c
+           ON a.poi_id = c.id
+           LEFT JOIN mid_temp_hwy_sapa_name as e
+           ON c.id = e.poi_id
+           LEFT JOIN temp_poi_category_mapping as f
+           ON a.poi_id = f.org_id1
+           WHERE feattyp not in (7358, 7395)
+                 --  7358: Truck Stop; 7395: Rest Area
+                and brandname <> '' and brandname is not null
+           group by road_code, road_seq, updown_c, c.feattyp,
+                 subcat, store_chain_id, brandname, f.per_code
+           ORDER BY road_code, road_seq,
+                    distance, store_chain_id
+        """
+        self.pg.connect1()
+        for row in self.pg.get_batch_data2(sqlcmd):
+            (road_code, road_seq, updown_c, cat_id,
+             subcat, chain_id, chain_name, distance, percode) = row
+            service_kind = self._get_service_kind(int(percode))
+            if service_kind == '' or service_kind is None:
+                continue
+            distance = min(distance)
+            self._insert_into_store_info((road_code, road_seq, updown_c,
+                                          cat_id, subcat, chain_id, chain_name,
+                                          distance, service_kind))
+        self.pg.commit1()
+        self.log.info('End Make Facility Stores.')
+
+    def _get_sapa_link(self):
+        sqlcmd = '''
+        SELECT DISTINCT b.road_code, b.road_seq, b.updown_c,
+               b.node_id, b.first_node_id, c.poi_id,
+               array_agg(b.link_id), b.link_lid, b.node_lid
           FROM (
-            SELECT road_code, road_seq, facilcls_c,
+            SELECT a.road_code, a.road_seq, a.updown_c, link_lid, node_lid,
+                   a.node_id as node_id, first_node.node_id as first_node_id,
                    regexp_split_to_table(link_lid, E'\\,+')::bigint as link_id
               FROM mid_temp_hwy_ic_path as a
+              LEFT JOIN temp_hwy_sapa_first_node as first_node
+                ON a.road_code = first_node.road_code and
+                   a.road_seq = first_node.road_seq and
+                   a.updown_c = first_node.updown_c
               where facilcls_c in (1, 2) and   -- 1: sa, 2: pa
-                    link_lid <> '' and link_lid is not null
+                    link_lid <> '' and
+                    link_lid is not null and
+                    inout_c = 2
           ) as b
           LEFT JOIN mid_temp_poi_link as c
           ON b.link_id = c.link_id
           LEFT JOIN org_mnpoi_pi as d
           ON c.poi_id = d.id
-          LEFT JOIN mid_temp_hwy_sapa_name as e
-          ON c.poi_id = e.poi_id
-          WHERE feattyp not in (7358, 7395) -- 7358:Truck Stop; 7395: Rest Area
-                and brandname <> '' and brandname is not null
+          WHERE feattyp not in (7358, 7395) --7358: Truck Stop; 7395: Rest Area
+          GROUP BY b.road_code, b.road_seq, b.updown_c,
+                   b.node_id, b.first_node_id, c.poi_id,
+                   b.link_lid, b.node_lid
           ORDER BY road_code, road_seq
-        );
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.log.info('End Make Facility Stores.')
+        '''
+        return self.get_batch_data(sqlcmd)
+
+
+    def _insert_into_store_info(self, parm):
+        sqlcmd = '''
+        INSERT INTO hwy_store(road_code, road_seq, updown_c,
+                              store_cat_id, sub_cat, store_chain_id,
+                              chain_name, priority, service_kind)
+        VALUES(%s, %s, %s, %s,
+               %s, %s, %s, %s,
+               %s)
+        '''
+        self.pg.execute1(sqlcmd, parm)
+
+    def _update_undefined_dict(self):
+        return 0
 
     def _make_hwy_service(self):
         '''服务情报'''
         self.CreateTable2('hwy_service')
         self.pg.connect1()
-        (self.restaurant_dict, self.gas_station_dict,
-         self.rest_area_dict, self.shopping_corner_dict,
-         self.post_box_dict, self.info_dict,
-         self.toilet_dict, self.atm_dict,
-         self.undefined_dict) = self.poi_cate.get_all_service_dict()
-#         self.undefined_dict.update(TA_SERVICE_UNSPECIFED_DICT)
         for data in self._get_store_info():
             road_code, road_seq, updwon, category_id_list = data[0:4]
             service_types = self._get_service_types(category_id_list)
@@ -177,7 +229,7 @@ class HwyFacilityTa(HwyFacilityRDF):
           LEFT JOIN mid_temp_hwy_sapa_name as e
           ON c.poi_id = e.poi_id
           WHERE feattyp in (7358, 7395) --  7358: Truck Stop; 7395: Rest Area
-          ORDER BY road_code, road_seq
+          ORDER BY road_code, road_seq, c.poi_id
         """
         return self.get_batch_data(sqlcmd)
 

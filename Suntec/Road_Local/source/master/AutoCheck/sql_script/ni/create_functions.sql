@@ -27,7 +27,7 @@ BEGIN
 				select 	m.table_name, m.gid, m.node_array, 
 						m.link_id, seq_num, n.direction as one_way, 
 						(case when s.adjoin_nid != '0' and s.id > s.adjoin_nid then s.adjoin_nid else s.id end) as snodeid, 
-						(case when e.adjoin_nid != '0' and e.id > s.adjoin_nid then e.adjoin_nid else e.id end) as enodeid
+						(case when e.adjoin_nid != '0' and e.id > e.adjoin_nid then e.adjoin_nid else e.id end) as enodeid
 				from
 				(
 					select table_name, gid, node_array, link_array[seq_num] as link_id, seq_num
@@ -472,74 +472,5 @@ BEGIN
 	END LOOP;
 
 	return 1;
-END;
-$$;
-
-
-CREATE OR REPLACE FUNCTION ni_check_lane_linkrow()
-	RETURNS smallint
-	LANGUAGE plpgsql volatile
-AS $$
-DECLARE
-	rec record;
-	node_bef varchar[];
-	node_aft varchar[];
-	gid_now  integer;
-BEGIN
-	for gid_now in
-		select gid from org_ln 
-	loop
-		for rec in 
-			select idx,case when b.id is null then array[snodeid] else array[b.id,b.adjoin_nid] end as snode_arr,
-			case when c.id is null then array[enodeid] else array[c.id,c.adjoin_nid] end as enode_arr,direction from
-			(
-				select a.*,b.snodeid,b.enodeid,b.direction from
-				(
-					select link_arr[idx] as link_id,idx from
-					(
-						select link_arr,generate_series(1,array_upper(link_arr,1)) as idx
-						from
-						(
-							select array[inlinkid::text]||string_to_array(passlid,'|')||string_to_array(passlid2,'|')||array[outlinkid::text] as link_arr
-							from org_ln 
-							where gid=gid_now
-						) a
-					) a
-				) a
-				join org_r b
-				on a.link_id=b.id 
-			) a
-			left join org_n b
-			on a.snodeid=b.id and b.kind like '%1f00%'
-			left join org_n c
-			on a.enodeid=c.id and c.kind like '%1f00%'
-			order by idx
-		loop
-			raise info 'gid=%',gid_now;
-			if rec.idx<>1 then
-				if rec.direction in ('0','1') then
-					node_aft=rec.snode_arr||rec.enode_arr;
-				elsif rec.direction='2' then
-					node_aft=rec.snode_arr;
-				elsif rec.direction='3' then
-					node_aft=rec.enode_arr;
-				end if;
-				
-				if not (node_bef && node_aft) then
-					raise exception '%,%',gid_now,rec.idx;
-				end if;
-			end if;
-				
-			if rec.direction in ('0','1') then
-				node_bef=rec.snode_arr||rec.enode_arr;
-			elsif rec.direction='2' then
-				node_bef=rec.enode_arr;
-			elsif rec.direction='3' then
-				node_bef=rec.snode_arr;
-			end if;
-		end loop;
-				
-	end loop;
-	RETURN 1;
 END;
 $$;

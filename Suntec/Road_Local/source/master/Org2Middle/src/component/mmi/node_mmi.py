@@ -40,7 +40,7 @@ class comp_node_mmi(component.component_base.comp_base):
            
         sqlcmd = """
                 insert into node_tbl (node_id, kind, light_flag, toll_flag, bifurcation_flag, 
-                    mainnodeid, node_lid, node_name, the_geom )
+                    mainnodeid, node_lid, node_name, feature_string, feature_key, the_geom )
                 select
                      jc.id, 
                      CASE when jncttyp = 3 then '1301' else null END as kind,
@@ -52,6 +52,8 @@ class comp_node_mmi(component.component_base.comp_base):
                      0       as mainnodeid, 
                      nl.node_lid, 
                      null    as node_name, 
+                     jc.id::varchar as feature_string, 
+                     md5(jc.id::varchar) as feature_key, 
                      ST_GeometryN(jc.the_geom,1) as the_geom
                 from (
                          select distinct id, feattyp, jncttyp, the_geom

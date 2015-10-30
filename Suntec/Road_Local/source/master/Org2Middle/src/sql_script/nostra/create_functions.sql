@@ -752,8 +752,81 @@ BEGIN
 	return rtn_link_list;
 END;
 $$;
-/*
-CREATE OR REPLACE FUNCTION mid_findpasslinkbybothnodes(startnode integer, endnode integer)
+
+CREATE OR REPLACE FUNCTION update_temp_regulation_patch_node_tbl_nostra()
+	RETURNS boolean
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	z_level_list_len bigint;
+	geom_list_len bigint;
+	idx bigint;
+	deata double precision;
+	node_list bigint[];
+	geom_list geometry[];
+	node_list_len bigint;
+	res_node_list bigint[];
+	distance_list double precision[];
+BEGIN
+	FOR rec IN 
+		SELECT string_to_array(str_geom, ',')::geometry[] as the_geom_list,
+			string_to_array(str_z, ',')::integer[] as z_list, regulation_type, car_type, 
+			start_year, start_month, start_day, start_hour, start_minute, 
+			end_year, end_month, end_day, end_hour, end_minute
+		FROM temp_regulation_patch_tbl
+	LOOP
+		geom_list_len := array_upper(rec.the_geom_list, 1);
+		z_level_list_len := array_upper(rec.z_list, 1);
+		idx := 1;
+		deata := 0.03;
+
+		IF geom_list_len != z_level_list_len THEN
+			raise EXCEPTION '% the_geom list length error: not equal to % z_level list length', rec.the_geom_list, rec.z_level_list;
+		END IF;
+		
+		WHILE idx <= geom_list_len LOOP
+			SELECT array_agg(node_id), array_agg(the_geom), array_agg(node_distance) into node_list, geom_list, distance_list
+			FROM (
+				SELECT node_id, the_geom, ST_Distance_Sphere(the_geom, (rec.the_geom_list)[idx]) as node_distance, 1 as id
+				FROM temp_topo_node
+				WHERE z = (rec.z_list)[idx] and ST_Distance_Sphere(the_geom, (rec.the_geom_list)[idx]) <= deata
+				ORDER BY node_distance
+			) a
+			GROUP BY id;
+			--raise info 'deata: %s', deata;
+			IF node_list is null THEN
+				deata := deata + 0.2;
+				
+				IF deata >= 10.0 THEN
+					raise EXCEPTION 'the_geom: %s z_level: %s can not bound to node', (rec.the_geom_list)[idx], (rec.z_level_list)[idx];
+				ELSE
+					continue;
+				END IF;
+			ELSE
+				--raise info '%s', node_list;
+				--raise info '%s', geom_list;
+				--raise info '%s', distance_list;
+				IF idx = 1 THEN
+					res_node_list := Array[node_list[1]];
+				ELSE
+					res_node_list := array_append(res_node_list, node_list[1]);
+				END IF;
+
+				idx := idx + 1;
+				deata := 0.03;
+			END IF;
+		END LOOP;
+		
+		insert into temp_regulation_patch_node_tbl(node_list, regulation_type, car_type, start_year, start_month, start_day, start_hour, start_minute, end_year, end_month, end_day, end_hour, end_minute)
+		values(res_node_list, rec.regulation_type, rec.car_type, rec.start_year, rec.start_month, rec.start_day, rec.start_hour, rec.start_minute, rec.end_year, rec.end_month, rec.end_day, rec.end_hour, rec.end_minute);
+	END LOOP;
+
+	return true;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION findpasslinkbybothnodes_nostra(startnode bigint, endnode bigint, threshould_steps integer)
   RETURNS character varying
 LANGUAGE plpgsql volatile
 AS $$
@@ -782,134 +855,116 @@ BEGIN
 	tmpLastNodeArray	:= ARRAY[nStartNode];
 	tmpLastLinkArray	:= ARRAY[nFromLink];
 	-- search
-        WHILE tmpPathIndex <= tmpPathCount LOOP
-                --raise INFO 'tmpPathArray = %', tmpPathArray[tmpPathIndex];
-                -----stop if tmpPath has been more than layer given
-                if array_upper(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\,+'),1) < 5 then
-                        if tmpLastNodeArray[tmpPathIndex] = nEndNode then
-                                rstPathCount	:= rstPathCount + 1;
-                                rstPath		:= cast(tmpPathArray[tmpPathIndex] as varchar);
-                                rstPath		:= replace(rstPath, '(2)', '');
-                                rstPath		:= replace(rstPath, '(3)', '');
-                                rstPathStr	:=  rstPath;
-                                exit;
-                                
-                        else
-                                for rec in 
-                                        select e.nextroad,e.dir,e.nextnode
-                                                from
-                                                (
-                                                        SELECT c.routeid as nextroad,'(2)' as dir,c.end_node_id as nextnode
-                                                        FROM (
-                                                                SELECT a.routeid, start_node_id, end_node_id,oneway
-                                                                FROM temp_topo_link as a
-                                                                left join org_l_tran as b
-                                                                on a.routeid = b.routeid
-                                                        ) as c
-                                                        where c.start_node_id = tmpLastNodeArray[tmpPathIndex] and (oneway = 'FT' or oneway is null)
-
-                                                        union
-
-                                                        SELECT c.routeid as nextroad,'(3)' as dir,c.start_node_id as nextnode
-                                                        FROM (
-                                                                SELECT a.routeid, start_node_id, end_node_id,oneway
-                                                                FROM temp_topo_link as a
-                                                                left join org_l_tran as b
-                                                                on a.routeid = b.routeid
-                                                        ) as c
-                                                        where c.end_node_id = tmpLastNodeArray[tmpPathIndex] and (oneway = 'TF' or oneway is null)
-                                                ) as e
-                                loop
-                                        
-                                        if 		not (rec.nextroad in (nFromLink, tmpLastLinkArray[tmpPathIndex]))
-                                                and	not ((rec.nextroad||rec.dir) = ANY(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\,+')))
-                                        then
-                                                tmpPathCount		:= tmpPathCount + 1;
-                                                tmpPathArray		:= array_append(tmpPathArray, cast(tmpPathArray[tmpPathIndex]||','||rec.nextroad||rec.dir as varchar));
-                                                tmpLastNodeArray	:= array_append(tmpLastNodeArray, cast(rec.nextnode as bigint));
-                                                tmpLastLinkArray	:= array_append(tmpLastLinkArray, cast(rec.nextroad as bigint));
-                                        end if;
-                                        
-                                end loop;
-                        end if;
-                else
-                        return null;
-                end if;
-                tmpPathIndex := tmpPathIndex + 1;
-        END LOOP;
-        if array_upper(regexp_split_to_array(rstPathStr,E'\\,+'),1) > 1 then
-                return substring(rstPathStr,4);
-        else
-                return null;
-        end if;
+	WHILE tmpPathIndex <= tmpPathCount LOOP
+		IF array_upper(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\,+'),1) < threshould_steps THEN
+			IF tmpLastNodeArray[tmpPathIndex] = nEndNode THEN
+				rstPathCount	:= rstPathCount + 1;
+				rstPath		:= cast(tmpPathArray[tmpPathIndex] as varchar);
+				rstPath		:= replace(rstPath, '(2)', '');
+				rstPath		:= replace(rstPath, '(3)', '');
+				rstPathStr	:=  rstPath;
+				exit;
+			ELSE
+				FOR rec IN
+					SELECT e.nextroad, e.dir, e.nextnode 
+					FROM (
+						SELECT c.routeid as nextroad,'(2)' as dir,c.end_node_id as nextnode 
+						FROM (
+							SELECT a.routeid, start_node_id, end_node_id,oneway
+							FROM temp_topo_link a
+							LEFT JOIN org_l_tran b
+								ON a.routeid = b.routeid
+						) c
+						WHERE c.start_node_id = tmpLastNodeArray[tmpPathIndex] and (oneway = 'FT' or oneway is null)
+						
+						union
+						
+						SELECT c.routeid as nextroad,'(3)' as dir,c.start_node_id as nextnode
+						FROM (
+							SELECT a.routeid, start_node_id, end_node_id,oneway
+							FROM temp_topo_link a
+							LEFT JOIN org_l_tran b
+								ON a.routeid = b.routeid
+						) c
+						WHERE c.end_node_id = tmpLastNodeArray[tmpPathIndex] and (oneway = 'TF' or oneway is null)
+					) e
+				LOOP
+					IF not (rec.nextroad in (nFromLink, tmpLastLinkArray[tmpPathIndex])) and not ((rec.nextroad||rec.dir) = ANY(regexp_split_to_array(tmpPathArray[tmpPathIndex], E'\\,+'))) THEN
+						tmpPathCount		:= tmpPathCount + 1;
+						tmpPathArray		:= array_append(tmpPathArray, cast(tmpPathArray[tmpPathIndex]||','||rec.nextroad||rec.dir as varchar));
+						tmpLastNodeArray	:= array_append(tmpLastNodeArray, cast(rec.nextnode as bigint));
+						tmpLastLinkArray	:= array_append(tmpLastLinkArray, cast(rec.nextroad as bigint));
+					END IF;
+				END LOOP;
+			END IF;
+		ELSE
+			return NULL;
+		END IF;
+		tmpPathIndex := tmpPathIndex + 1;
+	END LOOP;
+	
+	if array_upper(regexp_split_to_array(rstPathStr,E'\\,+'),1) > 1 THEN
+		return substring(rstPathStr,4);
+	ELSE
+		return NULL;
+	END IF;
 END;
 $$;
-*/
-CREATE OR REPLACE FUNCTION mid_getnode_by_goem()
-	RETURNS bigint
+
+CREATE OR REPLACE FUNCTION update_temp_regulation_patch_link_tbl_nostra( )
+	RETURNS boolean
 	LANGUAGE plpgsql volatile
 AS $$
 DECLARE
-	rec       record;
-	i         integer;
-	nodelist  bigint[];
-	goemlist  geometry[];
-	nodes_len integer;
-	deata     double precision;
-	num       integer;
-	temp_len  double precision;
-	res_nodelist  bigint[];
-BEGIN
-	for rec in
-		SELECT gid, guide_type, 
-                        array[node1_geom, node2_geom, node3_geom,node4_geom, node5_geom] as nodes,
-                        array[z1,z2,z3,z4,z5] as levels
-                FROM old_force_guide_patch
-	loop
-                i = 1;
-                deata = 0.03;
-                while i <= 5 and (rec.nodes)[i] is not null loop
-                        select array_agg(node_id),array_agg(the_geom)
-                        into nodelist,goemlist
-                        from(
-                                SELECT node_id, x, y, z, the_geom,1 as id
-                                FROM temp_topo_node
-                                where z = (rec.levels)[i] and ST_Distance(the_geom,(rec.nodes)[i],true) <= deata
-                        )as a
-                        group by id;
-                        if nodelist is null then
-                                deata = deata + 0.2;
-                                continue;
-                        else
-                                nodes_len = array_upper(nodelist,1);
-                                num = 1;
-                                if nodes_len > 1 then
-                                        num = nodes_len;
-                                        temp_len = ST_Distance(goemlist[nodes_len],(rec.nodes)[i],true);
-                                        nodes_len = nodes_len - 1;
-                                        while nodes_len >= 1 loop
-                                                if ST_Distance(goemlist[nodes_len],(rec.nodes)[i],true) < temp_len then
-                                                        num = nodes_len;
-                                                end if;
-                                                nodes_len = nodes_len - 1;
-                                        end loop;
-                                end if;
-                                if i = 1 then
-                                        res_nodelist = Array[nodelist[num]];
-                                else
-                                        res_nodelist = array_append(res_nodelist,nodelist[num]);
-                                end if;
-                                i = i + 1;
-                        end if;
-                        
-                end loop;
-                while i <= 5 loop
-                        res_nodelist = array_append(res_nodelist,null);
-                        i = i + 1;
-                end loop;
-		INSERT INTO new_force_guide_patch(guide_type, node1, node2, node3, node4, node5)
-                VALUES (rec.guide_type, res_nodelist[1], res_nodelist[2], res_nodelist[3], res_nodelist[4], res_nodelist[5]);
-	end loop;
-	RETURN 1;
+	rec record;
+	node_list_len bigint;
+	node_idx bigint;
+	in_node bigint;
+	out_node bigint;
+	res_string character varying;
+	temp_link_array bigint[];
+	res_link_array bigint[];
+	res_link_array_len bigint;
+BEGIN	
+	FOR rec IN 
+		SELECT *
+		FROM temp_regulation_patch_node_tbl
+	LOOP
+		node_idx := 1;
+		node_list_len := array_upper(rec.node_list, 1);
+		IF node_list_len < 2 THEN
+			raise EXCEPTION 'temp_regulation_patch_node_tbl node_id_list % length error', rec.node_id_list;
+		END IF;
+
+		WHILE node_idx <= (node_list_len - 1) LOOP
+			in_node := (rec.node_list)[node_idx];
+			out_node := (rec.node_list)[node_idx + 1];
+			res_string := findpasslinkbybothnodes_nostra(in_node, out_node, 30);
+			--raise info '%s', res_string;
+			IF res_string is null THEN
+				raise EXCEPTION 'in_node % out_node % can not calc path', in_node, out_node;
+			END IF;
+			
+			temp_link_array := string_to_array(res_string, ',');
+			IF node_idx = 1 THEN
+				res_link_array := Array[temp_link_array[array_upper(temp_link_array, 1)]];
+			ELSE
+				res_link_array := array_cat(res_link_array, temp_link_array);
+			END IF;
+			--raise info '%', temp_link_array;
+			--raise info '%', res_link_array;
+			node_idx := node_idx + 1;
+		END LOOP;
+		
+		res_link_array_len := array_upper(res_link_array, 1);
+		IF res_link_array_len >= 2 THEN
+			insert into temp_regulation_patch_link_tbl(link_list, node_id, regulation_type, car_type, start_year, start_month, start_day, start_hour, start_minute, end_year, end_month, end_day, end_hour, end_minute)
+		values(res_link_array, rec.node_list[2], rec.regulation_type, rec.car_type, rec.start_year, rec.start_month, rec.start_day, rec.start_hour, rec.start_minute, rec.end_year, rec.end_month, rec.end_day, rec.end_hour, rec.end_minute);
+		ELSE
+			raise EXCEPTION 'node list % convert to link list % error', rec.node_id_list, res_link_array;
+		END IF;
+	END LOOP;
+
+	return true;
 END;
 $$;

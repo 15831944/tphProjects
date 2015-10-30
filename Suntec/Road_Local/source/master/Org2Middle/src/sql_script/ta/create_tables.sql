@@ -100,7 +100,7 @@ CREATE TABLE temp_dir_pos
 CREATE TABLE temp_node_lid
 (
   node_id double precision NOT NULL,
-  lid double precision[],
+  lid varchar,
   CONSTRAINT temp_node_lid_pkey PRIMARY KEY (node_id)
 );
 
@@ -570,9 +570,9 @@ CREATE TABLE temp_admin_order8
 CREATE TABLE temp_adminid_newandold
 (
 	gid serial not null primary key,
-  ID_old bigint,
-  New_ID integer,
-  level smallint
+  id_old double precision,
+  level smallint,
+  id_new integer
 );
 
 create table temp_admin_timedom_mapping

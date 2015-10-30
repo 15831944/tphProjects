@@ -5,6 +5,7 @@ Created on 2015-7-13
 @author: PC_ZH
 '''
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
+# from component.zenrin.hwy.hwy_poi_category import HwyPoiCategroyZenrin
 # import json
 import common
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
@@ -48,8 +49,14 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         self.org_facil_dict = {}  # (org_facil_id, facil_cls): road_seq
         self.org_node_dict = {}  # (node, facil_cls):facility_id
 
+    def _make_sapa_link(self):
+        return 0
+
     def _make_hwy_store(self):
         #台湾没有店铺情报
+        self.log.info('Start Make Facility Stores.')
+        self.CreateTable2('hwy_store')
+        self.log.info('End Make Facility Stores.')
         return 0
 
     def _make_sapa_info(self):
@@ -143,7 +150,7 @@ class HwyFacilityZenrin(HwyFacilityRDF):
                            columns=('road_code', 'road_seq', 'facilcls_c',
                                     'inout_c', 'updown_c', 'node_id',
                                      'to_node_id', 'node_lid', 'link_lid',
-                                     'path_type'
+                                     'path_type', 'facil_name'
                                     ),
                            )
         self.pg.commit2()

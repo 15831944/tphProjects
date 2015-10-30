@@ -1824,7 +1824,8 @@ CREATE TABLE rdb_highway_store_info
   seq_nm          smallint not null,
   tile_id         integer not null,
   tile_index      smallint not null,
-  store_name      character varying
+  store_name      character varying,
+  service_id      smallint not null default 0
 );
 
 -----------------------------------------------------------------------------
@@ -1951,6 +1952,9 @@ CREATE TABLE rdb_highway_node_add_info
   facility_num     SMALLINT not null,
   up_down          SMALLINT not null,
   facility_id      integer not null,
+  dir              integer not null,
+  dir_s_node       bigint not null,
+  dir_e_node       bigint not null,
   seq_num          SMALLINT not null,
   etc_antenna      SMALLINT not null,
   enter            SMALLINT not null,
@@ -2174,6 +2178,6 @@ CREATE TABLE rdb_highway_service_category_mapping
 (
   field_name   character varying(1024),
   service      character varying(1024),
-  service_id   bigint,
+  service_id   bigint NOT NULL primary key,
   category_id  bigint
 );

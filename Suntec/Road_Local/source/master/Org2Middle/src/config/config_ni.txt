@@ -2,7 +2,8 @@
 # proj_ni
 temp_sql_path=.\cache\temp_sql\
 text_filter={'NI_CHN':"HKG:[CHT,ENG]||MAC:[CHT,POR]||DEFAULT:[CHI,ENG]"}
-POI_Code=..\docs\poi\category_ni_chn.txt
+POI_category_code=..\docs\poi\category_code_ni_chn.txt
+POI_category_name=..\docs\poi\category_name_ni_chn.txt
 brand_icon=..\docs\poi\brand_icon_list_ni.txt
 #admin_pic=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\NI\caution\admin_pic.txt
 #admin_wav=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\NI\caution\admin_wav.txt

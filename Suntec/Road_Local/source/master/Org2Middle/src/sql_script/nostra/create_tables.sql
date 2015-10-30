@@ -169,26 +169,6 @@ CREATE TABLE temp_park_link
   park_oneway smallint
 );SELECT AddGeometryColumn('public', 'temp_park_link', 'the_geom', 4326, 'LINESTRING', 2);
 
-CREATE TABLE temp_patch_force_guide_tbl
-(
-  objectid integer,
-  fromlinkid bigint,
-  tolinkid bigint,
-  midcount bigint,
-  midlinkid character varying(254),
-  guidetype integer,
-  nodeid    integer
-);
-CREATE TABLE new_force_guide_patch
-(
-  gid serial NOT NULL,
-  guide_type smallint,
-  node1 bigint,
-  node2 bigint,
-  node3 bigint,
-  node4 bigint,
-  node5 bigint
-);
 CREATE TABLE update_junctionview_tbl
 (
   gid serial NOT NULL,

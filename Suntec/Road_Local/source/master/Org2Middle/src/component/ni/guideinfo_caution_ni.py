@@ -176,7 +176,7 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
         # 以下data_kind机能需求外，不作成
         # 1(カーブ), 3(合流分岐), 4(県境), 8(反向弯路（右）), 15(窄桥), 27(村庄), 29(路面不平), 31(有人看守铁路道口), 
         # 36(注意危险), 40(连续下坡), 41(文字性警示标牌（现场为文字提示，且无法归类到国标危险信息标牌中）), 
-        # 46(减速让行), 47(隧道开灯), 48(潮汐车道), 49(路面高凸), 50(路面低洼)
+        # 46(减速让行), 47(隧道开灯), 48(潮汐车道), 49(路面高凸), 50(路面低洼), 51(交通意外黑点)
         
         self.CreateIndex2('org_trfcsign_type_idx')
         
@@ -197,7 +197,7 @@ class comp_guideinfo_caution_ni(component.default.guideinfo_caution.comp_guidein
                         ON type::integer = c.trfcsign_type
                     LEFT JOIN temp_trfcsign_type_data_kind f
                         ON type::integer = f.trfcsign_type
-                    WHERE f.data_kind NOT IN (1, 3, 4, 8, 15, 27, 29, 31, 36, 40, 41, 46, 47, 48, 49, 50)
+                    WHERE f.data_kind NOT IN (1, 3, 4, 8, 15, 27, 29, 31, 36, 40, 41, 46, 47, 48, 49, 50, 51)
                     ORDER BY type, inlinkid, nodeid
                 ) d
                 LEFT JOIN link_tbl e

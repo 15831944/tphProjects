@@ -261,15 +261,16 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     select  pd.id,  
                             pd.langcode as language_code,
                             pd.name,
+                            pd.nametype as nametyp,
                             COALESCE(pt.lanphonset, null) as phonetic_language_code, 
                             COALESCE(pt.transcription,null) as phonetic_string 
                     from
                     (
-                        SELECT  e.id, f.ptid, f.langcode, f.name
+                        SELECT  e.id, f.ptid, f.langcode, f.name, e.nametype
                         FROM
                         (
                             SELECT  d.nameitemid, c.featdsetid, c.featsectid, 
-                                    c.featlayerid,  c.id
+                                    c.featlayerid,  c.id, d.nametype
                             FROM                  
                             (
                                 select  b.featdsetid, b.featsectid, b.featlayerid, 
@@ -304,15 +305,16 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     select  pd.id,  
                             pd.langcode as language_code,
                             pd.name,
+                            pd.nametype as nametyp,
                             COALESCE(pt.lanphonset, null) as phonetic_language_code, 
                             COALESCE(pt.transcription,null) as phonetic_string                     
                     from
                     (
-                        SELECT  e.id, f.ptid, f.langcode, f.name
+                        SELECT  e.id, f.ptid, f.langcode, f.name, e.nametype
                         FROM
                         (
                             SELECT  d.nameitemid, c.featdsetid, c.featsectid, 
-                                    c.featlayerid,  c.id
+                                    c.featlayerid,  c.id, d.nametype
                             FROM                  
                             (
                                 select  b.featdsetid, b.featsectid, b.featlayerid, 
@@ -345,7 +347,8 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     
                     select  a.id, 
                             b.namelc as language_code,
-                            b.name, 
+                            b.name,
+                            b.nametyp, 
                             null as phonetic_language_code, 
                             null as phonetic_string 
                     from temp_mn_logmark as a
@@ -358,7 +361,8 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
                     
                      select  a.id, 
                             b.namelc as language_code,
-                            b.name, 
+                            b.name,
+                            b.nametyp, 
                             null as phonetic_language_code, 
                             null as phonetic_string 
                     from temp_mnpoi_logmark as a
@@ -371,28 +375,42 @@ class comp_guideinfo_building_ta(component.default.guideinfo_building.comp_guide
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         
-        sqlcmd = '''
-                select  id,
-                        array_agg(1::integer) as name_id_array,
-                        array_agg('office_name'::varchar) as name_type_array,
-                        array_agg(language_code) as language_code_array,
-                        array_agg(name) as name_array,
-                        array_agg(phonetic_language_code) as phonetic_language_code_array,
-                        array_agg(phonetic_string) as phonetic_string_array
-                from 
-                (  
+        sqlcmd = ''' 
+            select  id,
+                    array_agg(1::integer) as name_id_array,
+                    array_agg('office_name'::varchar) as name_type_array,
+                    array_agg(language_code) as language_code_array,
+                    array_agg(name) as name_array,
+                    array_agg(phonetic_language_code) as phonetic_language_code_array,
+                    array_agg(phonetic_string) as phonetic_string_array
+            from
+            (                 
+                
+                select  id, language_code, phonetic_language_code,
+                        (array_agg(name))[1] as name,
+                        (array_agg(phonetic_string))[1] as phonetic_string
+                from
+                (                       
                     select  id,
                             (case when language_code in ('UND') then 'ENG' else language_code end) as language_code,
                             name,
-                            (case when phonetic_language_code in ('UND') then 'ENG' else phonetic_language_code end) as phonetic_language_code,
+                            (case when nametyp = 'ON' then 1
+                                  when nametyp = 'AN' then 2
+                                  when nametyp = 'BN' then 3
+                                  when nametyp = '1Q' then 4
+                                  when nametyp = '8Y' then 5
+                                  when nametyp = 'AI' then 6
+                                  else 7 end ) as nametype,
+                            (case when phonetic_language_code in ('UND') then 'ENG' 
+                                  else phonetic_language_code end) as phonetic_language_code,
                             phonetic_string
                     from temp_poi_name_all_language
-                    --where namelc <> 'ENU'
-                    order by id, language_code, name, phonetic_language_code, phonetic_string
-                )as a
-                group by id
-                order by id
-
+                    order by id, language_code, nametype,name, phonetic_language_code, phonetic_string   
+                ) as a
+                group by id, language_code, phonetic_language_code
+            ) as b
+            group by id
+            order by id
         '''
         asso_recs = self.pg.get_batch_data2(sqlcmd)
         

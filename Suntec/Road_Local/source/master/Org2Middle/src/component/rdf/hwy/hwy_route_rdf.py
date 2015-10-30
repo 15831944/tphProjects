@@ -1305,6 +1305,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         """
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+        self.CreateIndex2('hwy_link_road_code_info_link_id_idx')
         self.CreateIndex2('hwy_link_road_code_info_the_geom_idx')
 
     # ========================================================================

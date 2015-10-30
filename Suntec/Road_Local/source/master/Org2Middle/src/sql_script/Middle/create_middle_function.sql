@@ -4273,7 +4273,7 @@ BEGIN
 			into  temp_link, snode, enode, direction;
 			if slink = link then
 				direction = dir;
-			end if;
+			--end if;
 			if direction = 4 then
 				exit;
 			end if;
@@ -4284,7 +4284,7 @@ BEGIN
 			end if;
 			--if slink = link then
 			--	direction = dir;
-			--end if; 
+			end if; 
 			for rec in 
 				select link_id,link_type
 				from link_tbl as a
@@ -4367,7 +4367,7 @@ DECLARE
 	temp_node	  	bigint;
 	snode		    	bigint;
 	enode		    	bigint;
-	direction	 	integer;
+	direction	 	  integer;
 	path_length  		bigint;
 	highway_length 		bigint;
 	length        		bigint;
@@ -4461,5 +4461,88 @@ END;
 $$;
 
 
-
+CREATE OR REPLACE FUNCTION mid_change_sapa(max_num integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+BEGIN
+	for rec in
+		select link_id, one_way_code
+		from temp_highway_sapa_link	
+	loop
+		if rec.one_way_code = 1 then
+			perform mid_find_sapa_links_rev2(rec.link_id::bigint, max_num, 2);
+			perform mid_find_sapa_links_rev2(rec.link_id::bigint, max_num, 3);
 			
+		end if;
+
+		if rec.one_way_code in (2,3) then
+			perform mid_find_sapa_links_rev2(rec.link_id::bigint, max_num, rec.one_way_code);
+			
+		end if;
+	end loop;
+	
+	
+	RETURN 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_convert_regulation_from_patch()
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	cur_regulation_id integer;
+	link_index integer;
+	link_len integer;
+BEGIN
+	-- regulation_id
+	select (case when max(regulation_id) is null then 0 else max(regulation_id) end)
+	from regulation_relation_tbl
+	into cur_regulation_id;
+	
+
+    FOR rec IN
+		SELECT a.link_list, a.node_id, a.regulation_type, b.cond_id
+		FROM temp_regulation_patch_link_tbl a
+		LEFT JOIN condition_regulation_tbl b
+			ON b.day_of_week = 0 and
+				b.exclude_date = 0 and 
+				a.car_type = b.car_type and 
+				a.start_year = b.start_year and
+				a.start_month = b.start_month and
+				a.start_day = b.start_day and
+				a.start_hour = b.start_hour and
+				a.start_minute = b.start_minute and
+				a.end_year = b.end_year and
+				a.end_month = b.end_month and
+				a.end_day = b.end_day and
+				a.end_hour = b.end_hour and
+				a.end_minute = b.end_minute
+    LOOP
+		cur_regulation_id := cur_regulation_id + 1;
+		
+		link_len := array_upper(rec.link_list, 1);
+		for link_index in 1..link_len loop
+			if link_index = 1 then
+				insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+					values(cur_regulation_id, rec.link_list[link_index], null::bigint, link_index::smallint);
+				insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+					values(cur_regulation_id, null::bigint, rec.node_id, (link_index+1)::smallint);
+			else
+				insert into regulation_item_tbl(regulation_id, linkid, nodeid, seq_num)
+					values(cur_regulation_id, rec.link_list[link_index], null::bigint, (link_index+1)::smallint);
+			end if;
+			
+			link_index := link_index + 1;
+		end loop;
+		
+		insert into regulation_relation_tbl(regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id)
+			values(cur_regulation_id, rec.node_id, rec.link_list[1], rec.link_list[link_len], rec.regulation_type, rec.cond_id);
+    END LOOP;
+    return 1;
+END;
+$$;

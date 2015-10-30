@@ -38,80 +38,82 @@ class CCheckAllInlinkOutlinkPasslidConnected(platform.TestCase.CTestCase):
     # 确认每组inlinkid，outlinkid都相连
     def _do(self):
         
-        # 创建一张临时表为org_r的子集，里面仅列出了所有与spotguide有关的link信息。
+        # 创建临时表temp_spotguide_bl，里面仅列出所有与spotguide有关的link信息。
         # 优化：建立临时表，查询link两端节点时使用，提高查询速度
         sqlcmd = '''
-                drop table if exists temp_spotguide_bl;
-                
-                select *
-                into temp_spotguide_bl
-                from org_r
-                where id in (select inlinkid from org_br as il)
-                   or id in (select outlinkid from org_br as ol);
-                
-                drop index if exists temp_spotguide_bl_id_idx;
-                create index temp_spotguide_bl_id_idx
-                on temp_spotguide_bl
-                using btree
-                (id);
-                ''' 
+drop table if exists temp_mesh_border_nodes;
+select *
+into temp_mesh_border_nodes
+from org_n where id<>adjoin_nid and adjoin_nid<>'0';
+
+drop index if exists temp_mesh_border_nodes_id_idx;
+create index temp_mesh_border_nodes_id_idx
+on temp_mesh_border_nodes
+using btree
+(id);
+
+drop table if exists temp_spotguide_org_data_check;
+select a.linkid, 
+    case when c.id is null then b.snodeid
+    when c.id<c.adjoin_nid then c.id
+    else c.adjoin_nid end as snodeid,
+    case when d.id is null then b.enodeid
+    when d.id<d.adjoin_nid then d.id
+    else d.adjoin_nid end as enodeid
+into temp_spotguide_org_data_check
+from 
+(   select inlinkid as linkid from org_br
+    union
+    select outlinkid as linkid from org_br
+    union
+    select unnest(string_to_array(passlid, '|')) as linkid from org_br where passlid<>''
+    union 
+    select unnest(string_to_array(passlid2, '|')) as linkid from org_br where passlid2<>''
+) as a
+left join org_r as b
+on a.linkid=b.id
+left join temp_mesh_border_nodes as c
+on b.snodeid=c.id
+left join temp_mesh_border_nodes as d
+on b.enodeid=d.id;
+
+drop index if exists temp_spotguide_org_data_check_linkid_idx;
+create index temp_spotguide_org_data_check_linkid_idx
+on temp_spotguide_org_data_check
+using btree
+(linkid);
+''' 
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
         
-        
-        rows = self.pg.get_batch_data('''select nodeid, inlinkid, outlinkid, passlid, passlid2 from org_br''')
+        sqlcmd = '''
+                    select nodeid, inlinkid, outlinkid, 
+                            case when passlid2<>'' then passlid||'|'||passlid2
+                            else passlid end as passlid 
+                    from org_br;
+                '''
+        rows = self.pg.get_batch_data(sqlcmd)
         for row in rows:
             #nodeid = row[0]
             inlinkid = row[1]
             outlinkid = row[2]
             passlid = row[3]
-            passlid2 = row[4]
             
-            # inlinkid和outlinkid连接，ok
-            if self._GetNodeBetweenLinks(inlinkid, outlinkid, "temp_spotguide_bl") is not None:
-                continue
-            # inlink和outlink不连接，尝试passlid是否将它们连到一起
-            else:
-                linkList = []
-                if len(passlid) > 0:
-                    passlidSplit = passlid.split('|')
-                    for passlidStr in passlidSplit:
-                        linkList.append(int(passlidStr))
-                if len(passlid2) > 0:
-                    passlidSplit = passlid2.split('|')
-                    for passlidStr in passlidSplit:
-                        linkList.append(int(passlidStr))
+            linkList = [inlinkid, outlinkid]
+            if passlid<>'':
+                linkList[1:0] = passlid.split('|')
                 
-                # inlink和outlink不相连且passlid为空，返错
-                if len(linkList) == 0:
+            for i in range(0, len(linkList)-1):
+                if self._GetNodeBetweenLinks(linkList[i], linkList[i+1], "temp_spotguide_org_data_check") is None:
                     return False
-                
-                # 先测inlink与passlid[0]  
-                if self._GetNodeBetweenLinks(inlinkid, linkList[0], "temp_spotguide_bl") is None:
-                    return False
-                # 再测passlid[-1]与outlink 
-                if self._GetNodeBetweenLinks(outlinkid, linkList[-1], "temp_spotguide_bl") is None:
-                    return False
-                
-                # 再测passlid每项之间
-                bOk = True
-                if len(linkList) >= 2:
-                    for i in (0, len(linkList)-2):
-                        if self._GetNodeBetweenLinks(linkList[i], linkList[i+1], "temp_spotguide_bl") is None:
-                            bOk = False
-                            break
-                if bOk is False:
-                    return False
-
         return True
     
-    # 通过查询link与node的信息确定两条link是否相交，默认使用org_r表
+    # 通过查询link与node的信息确定两条link是否相交。
     # 如果相交，返回连接点，否则返回空
-    # 通过查询优化过后的小表可以提高速度。
-    def _GetNodeBetweenLinks(self, linkid1, linkid2, tempLinkTbl="org_r"):
+    def _GetNodeBetweenLinks(self, linkid1, linkid2, tempLinkTbl):
         node_sqlcmd = '''
-                        SELECT snode_id, enode_id FROM %s WHERE id='%s';
+                        SELECT snodeid, enodeid FROM %s WHERE linkid='%s';
                     '''
         self.pg.execute(node_sqlcmd % (tempLinkTbl, linkid1))
         inres_row = self.pg.fetchone()

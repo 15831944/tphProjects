@@ -38,3 +38,6 @@ class HwyFacilityMmi(HwyFacilityRDF):
           ORDER BY road_code, road_seq
         """
         return self.get_batch_data(sqlcmd)
+
+    def _get_sapa_link(self):
+        return None

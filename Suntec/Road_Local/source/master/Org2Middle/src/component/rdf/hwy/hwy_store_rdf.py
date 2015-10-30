@@ -34,7 +34,8 @@ class HwyStoreRDF(HwyStore):
                                        goldenweek, newyear, yearend,
                                        bonfestival, sunday, saturday,
                                        friday, thursday, wednesday,
-                                       tuesday, monday, seq_nm
+                                       tuesday, monday, seq_nm,
+                                       priority, service_kind
                                        )
         (
         SELECT distinct ic_no, 0 as bis_time_flag, 0 as bis_time_num,
@@ -43,7 +44,8 @@ class HwyStoreRDF(HwyStore):
                0 as goldenweek, 0 as newyear, 0 as yearend,
                0 as bonfestival,0 as sunday, 0 as saturday,
                0 as friday, 0 as thursday, 0 as wednesday,
-               0 as tuesday, 0 as monday, 1 as seq_nm
+               0 as tuesday, 0 as monday, 1 as seq_nm,
+               a.priority, a.service_kind
           FROM hwy_store as a
           LEFT JOIN mid_hwy_ic_no as b
           ON a.road_code = b.road_code and
@@ -59,8 +61,10 @@ class HwyStoreRDF(HwyStore):
               (a.chain_name = c.chain_name and
                a.chain_name <> '' and
                a.store_chain_id is NULL))
-          WHERE u_code IS NOT NULL
-          ORDER BY ic_no, store_kind
+          WHERE u_code IS NOT NULL and
+                a.service_kind is not null
+          --ORDER BY ic_no, store_kind
+          order by ic_no, service_kind, priority, store_kind
         );
         """
         self.pg.execute2(sqlcmd)

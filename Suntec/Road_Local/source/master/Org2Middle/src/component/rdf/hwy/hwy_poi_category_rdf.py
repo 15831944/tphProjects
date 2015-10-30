@@ -31,10 +31,11 @@ class HwyPoiCategory(component.component_base.comp_base):
     def _insert_service_category_mapping(self, para):
         sqlcmd = '''
         INSERT INTO hwy_service_category_mapping(service,
-                                                  genre,
-                                                  service_name,
-                                                  category_id)
-        VALUES(%s, %s, %s, %s)
+                                                 genre,
+                                                 service_name,
+                                                 category_id,
+                                                 add_cat_id)
+        VALUES(%s, %s, %s, %s, %s)
         '''
         self.pg.execute2(sqlcmd, para)
 
@@ -84,21 +85,40 @@ class HwyPoiCategory(component.component_base.comp_base):
                     service = row_data[0].strip()
                     genre = row_data[1].strip()
                     service_name = row_data[2].strip()
+                    add_cat_id = row_data[3]
+                    if not add_cat_id:
+                        add_cat_id = None
+                    else:
+                        add_cat_id = int(add_cat_id)
                     category_id = self._get_category_id(service_name, genre)
                     if not category_id:
                         if not service_name:
                             self.log.warning('No category id of service_name '
                                              '= %s' % service)
                         else:
-                            self.log.error('No category id of service '
+                            self.log.error('No category id of service'
                                            '= %s' % service_name)
                     self._insert_service_category_mapping((service,
                                                            genre,
                                                            service_name,
-                                                           category_id))
+                                                           category_id,
+                                                           add_cat_id))
             self.pg.commit2()
         else:
             self.log.error('Dose not indicate poi_category_path.')
+
+    def _get_configured_service(self):
+        #  获取已经配置过的service种别
+        service_list = list()
+        sqlcmd = '''
+        select service
+        from hwy_service_category_mapping
+        where service is not null
+        '''
+        for row in self.pg.get_batch_data2(sqlcmd):
+            service = row[0]
+            service_list.append(service)
+        return service_list
 
     def get_all_service_dict(self):
         restaurant_dict = dict()
@@ -141,6 +161,33 @@ class HwyPoiCategory(component.component_base.comp_base):
             else:
                 if code not in undefined_dict.keys():
                     undefined_dict[code] = service
+        #  check configured service is matched
+        service_list = self._get_configured_service()
+        for service in service_list:
+            if service == HWY_SR_RESTAURANT:
+                if not restaurant_dict:
+                    self.log.error('service no matched:restaurant')
+            elif service == HWY_SR_GAS_STATION:
+                if not gas_station_dict:
+                    self.log.error('service no matched:gas_station')
+            elif service == HWY_SR_REST_AREA:
+                if not gas_station_dict:
+                    self.log.error('service no matched:rest_area')
+            elif service == HWY_SR_SHOPPING_CORNER:
+                if not gas_station_dict:
+                    self.log.error('service no matched:shopping_corner')
+            elif service == HWY_SR_POST_BOX:
+                if not gas_station_dict:
+                    self.log.error('service no matched:post_box')
+            elif service == HWY_SR_INFO:
+                if not gas_station_dict:
+                    self.log.error('service no matched:info')
+            elif service == HWY_SR_TOILET:
+                if not gas_station_dict:
+                    self.log.error('service no matched:toilet')
+            elif service == HWY_SR_ATM:
+                if not gas_station_dict:
+                    self.log.error('service no matched:atm')
         return (restaurant_dict, gas_station_dict,
                 rest_area_dict, shopping_corner_dict,
                 post_box_dict, info_dict, toilet_dict,
@@ -153,7 +200,7 @@ class HwyPoiCategory(component.component_base.comp_base):
                 select service, category_id, genre, gen1, gen2
                 from hwy_service_category_mapping as m
                 left join temp_poi_category as p
-                on m.service_name = p.name
+                on m.category_id = p.per_code
                 where genre = '1st genre'
                 )as a
         right join temp_poi_category as b
@@ -166,7 +213,7 @@ class HwyPoiCategory(component.component_base.comp_base):
                 select service, category_id, genre, gen1, gen2
                 from hwy_service_category_mapping as m
                 left join temp_poi_category as p
-                on m.service_name = p.name
+                on m.category_id = p.per_code
                 where genre = '2nd genre'
              )as c
         right join temp_poi_category as d

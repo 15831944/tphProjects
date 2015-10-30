@@ -98,7 +98,7 @@ class HwyGraphZenrin(HwyGraphNi):
                 continue
             elif child == visited[1]:
                 path = visited + [child]
-                if self._is_sapa_path(temp_path, road_code,
+                if self.is_sapa_path(temp_path, road_code,
                                       code_field, reverse):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
@@ -124,13 +124,13 @@ class HwyGraphZenrin(HwyGraphNi):
                             yield temp_path[1:], HWY_IC_TYPE_UTURN
                         else:
                             yield temp_path[1:], HWY_IC_TYPE_JCT
-                    if self._is_sapa_path(temp_path, road_code,
+                    if self.is_sapa_path(temp_path, road_code,
                                           code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                 elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                             code_field, reverse):
-                    if self._is_sapa_path(temp_path, road_code,
+                    if self.is_sapa_path(temp_path, road_code,
                                           code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True

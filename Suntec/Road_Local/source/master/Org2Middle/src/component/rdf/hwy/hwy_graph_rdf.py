@@ -45,6 +45,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_NONE
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 HWY_EXIT_POI_NAME = 'exit_poi_name'
+HWY_ENTER_POI_NAME = 'enter_poi_name'
 HWY_EXIT_NAME = "exit_name"  # 出口名称/出口番号
 HWY_JUNCTION_NAME = "juntion_name"
 HWY_TOLL_FLAG = "toll_flag"
@@ -131,7 +132,8 @@ class HwyGraphRDF(HwyGraph):
         return self[u][v].get(field)
 
     def get_node_name(self, node):
-        return self[node].get(HWY_NODE_NAME)
+        data = self.node[node]
+        return data.get(HWY_NODE_NAME)
 
     def get_main_path_by_similar(self, u, v):
         '''取得本线道路片段路径从开关、分歧、合流到结尾，分歧、合流之间的段路径。(本线)'''
@@ -601,6 +603,10 @@ class HwyGraphRDF(HwyGraph):
         data = self.node[node_id]
         return data.get(HWY_EXIT_POI_NAME)
 
+    def get_enter_poi_name(self, node_id):
+        data = self.node[node_id]
+        return data.get(HWY_ENTER_POI_NAME)
+
     def get_exit_name(self, node_id):
         data = self.node[node_id]
         return data.get(HWY_EXIT_NAME)
@@ -904,7 +910,7 @@ class HwyGraphRDF(HwyGraph):
             return True
         return False
 
-    def _is_sapa_path(self, path, road_code, code_field, reverse):
+    def is_sapa_path(self, path, road_code, code_field, reverse):
         if not reverse:  # 正
             temp_path = path
         else:  # 逆
@@ -999,7 +1005,7 @@ class HwyGraphRDF(HwyGraph):
                 continue
             elif child == visited[1]:
                 path = visited + [child]
-                if self._is_sapa_path(temp_path, road_code,
+                if self.is_sapa_path(temp_path, road_code,
                                       code_field, reverse):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
@@ -1035,14 +1041,14 @@ class HwyGraphRDF(HwyGraph):
                             yield temp_path[1:], HWY_IC_TYPE_UTURN
                         else:
                             yield temp_path[1:], HWY_IC_TYPE_JCT
-                    if self._is_sapa_path(temp_path, road_code,
+                    if self.is_sapa_path(temp_path, road_code,
                                           code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                 elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                             code_field, reverse):
                     if self.get_tollgate_num(temp_path) < MAX_TOLLGATE_NUM:
-                        if self._is_sapa_path(temp_path, road_code,
+                        if self.is_sapa_path(temp_path, road_code,
                                               code_field, reverse):
                             yield temp_path[1:], HWY_IC_TYPE_PA
                             exist_sapa_facil = True
@@ -1093,7 +1099,7 @@ class HwyGraphRDF(HwyGraph):
                     yield path, HWY_IC_TYPE_PA
             if not exist_sapa_facil:
                 self.log.warning('Exist SAPA Link, but no SAPA Facility.'
-                                  'u=%s,v=%s' % (u, v))
+                                 'u=%s,v=%s' % (u, v))
                 # raise nx.NetworkXError('Exist SAPA Link, but no SAPA Facility.'
                 #                         'u=%s,v=%s' % (u, v))
 

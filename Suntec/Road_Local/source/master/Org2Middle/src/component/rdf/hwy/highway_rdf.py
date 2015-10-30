@@ -38,6 +38,9 @@ from component.rdf.hwy.hwy_service_info_rdf import HwyServiceInfoRDF
 from component.rdf.hwy.hwy_store_rdf import HwyStoreRDF
 from component.rdf.hwy.hwy_adjust_link_type_rdf import HwyAdjustLinkType
 from common.common_func import getProjCountry
+from component.jdb.hwy.hwy_def import IC_TYPE_TRUE
+from component.rdf.hwy.hwy_node_addinfo_rdf import HwyNodeAddInfoRDF
+from component.rdf.hwy.hwy_tollgate_rdf import HwyTollgateRDF
 
 
 class HighwayRDF(Highway):
@@ -61,6 +64,8 @@ class HighwayRDF(Highway):
         self.service_info = None
         self.store = None
         self.adjust_link = None
+        self.node_addinfo = None
+        self.hwy_toll = None
 
     def initialize(self):
         self.data_mng = HwyDataMngRDF.instance()
@@ -84,6 +89,9 @@ class HighwayRDF(Highway):
         self.service_info = HwyServiceInfoRDF()
         self.store = HwyStoreRDF()
         self.adjust_link = HwyAdjustLinkType()
+        self.node_addinfo = HwyNodeAddInfoRDF(self.data_mng,
+                                              'HwyNodeAddInfoRDF')
+        self.hwy_toll = None  # HwyTollgateRDF()
 
     def _Do(self):
         self.initialize()
@@ -112,8 +120,20 @@ class HighwayRDF(Highway):
         if self.data_mng:
             # 加载高速road_code
             self.data_mng.load_hwy_road_code()
+            self.data_mng.load_hwy_ic_link()
+            self.data_mng.load_junction_name()
+            self.data_mng.load_hwy_inout_link()
+            self.data_mng.load_hwy_regulation()
+            self.data_mng.load_signpost()
+            # Temp
+            self.data_mng.load_exit_name()
+            self.data_mng.load_tollgate()
+            self.data_mng.load_exit_poi_name()
         # 制作高速线路及设施(原始设施情报)
         self._make_hwy_facil()
+        # 收费站情报
+        if self.hwy_toll:
+            self.hwy_toll.Make()
         # ## 道路情报
         self._make_road_no()  # 道路番号
         self._make_road_info()  # 道路情报
@@ -127,11 +147,10 @@ class HighwayRDF(Highway):
             self.hwy_mapping.Make()
         # 设施情报
         if self.data_mng:
-            self.data_mng.load_hwy_ic_link()  # Temp
             self._make_ic_info()
         # 附加情报(最终)
-#         node_addinfo = HwyNodeAddInfo()
-#         node_addinfo.Make()
+        if self.node_addinfo:
+            self.node_addinfo.Make()
         # 服务情报(For SAPA)
         if self.service_info:
             self.service_info.Make()
@@ -151,13 +170,6 @@ class HighwayRDF(Highway):
         # ########################################
         # temp
         if self.hwy_facil:
-            self.data_mng.load_hwy_ic_link()
-            self.data_mng.load_exit_name()
-            self.data_mng.load_junction_name()
-            self.data_mng.load_tollgate()
-            self.data_mng.load_hwy_inout_link()
-            self.data_mng.load_hwy_regulation()
-            self.data_mng.load_signpost()
             # ########################################
             self.hwy_facil.Make()
 
@@ -466,6 +478,7 @@ class HighwayRDF(Highway):
         self.CreateTable2('highway_path_point')
         self.CreateTable2('highway_conn_info')
         self.CreateTable2('highway_toll_info')
+        self.CreateTable2('mid_hwy_node_add_info')
         # self.CreateTable2('mid_hwy_node_add_info')
         for ic_no, facility_id, facil_list in self.data_mng.get_ic_list():
             if facility_id != HWY_INVALID_FACIL_ID_17CY:  # 非边界点
@@ -617,3 +630,79 @@ class HighwayRDF(Highway):
                                       conn.conn_ic_name)
                              )
         # self.pg.commit1()
+
+    def _insert_toll_info(self, ic_info):
+        '''料金情报。'''
+        sqlcmd = """
+        INSERT INTO highway_toll_info(
+                    ic_no, conn_ic_no,
+                    toll_class, class_name,
+                    up_down, facility_id,
+                    tollgate_count, etc_antenna,
+                    enter, exit,
+                    jct, sa_pa,
+                    gate, unopen,
+                    dummy, non_ticket_gate,
+                    check_gate, single_gate,
+                    cal_gate, ticket_gate,
+                    nest, uturn,
+                    not_guide, normal_toll,
+                    etc_toll, etc_section,
+                    node_id, road_code,
+                    road_seq, "name",
+                    dummy_toll_node)
+          values(%s, %s, %s, %s, %s, %s,
+                 %s, %s, %s, %s, %s, %s,
+                 %s, %s, %s, %s, %s, %s,
+                 %s, %s, %s, %s, %s, %s,
+                 %s, %s, %s, %s, %s, %s,
+                 %s);
+        """
+        for toll in ic_info.get_all_toll_info():
+            toll_type = toll.toll_type
+            param = (toll.ic_no, toll.conn_ic_no,
+                     toll.toll_class, toll.class_name,
+                     toll.updown, toll.facility_id,
+                     toll.tollgate_count, toll_type.etc_antenna,
+                     toll_type.enter, toll_type.exit,
+                     toll_type.jct, toll_type.sa_pa,
+                     toll_type.gate, toll_type.unopen,
+                     toll_type.dummy_facil, toll_type.non_ticket_gate,
+                     toll_type.check_gate, toll_type.single_gate,
+                     toll_type.cal_gate, toll_type.ticket_gate,
+                     toll_type.nest, toll_type.uturn,
+                     toll_type.not_guide, toll_type.normal_toll,
+                     toll_type.etc_toll, toll_type.etc_section,
+                     toll.node_id, toll.road_code,
+                     toll.road_seq, toll.name_kanji,
+                     toll.dummy_toll_node
+                     )
+            self.pg.execute1(sqlcmd, param)
+
+    def _insert_temp_add_info(self, ic_info, toll_flag=IC_TYPE_TRUE):
+        '''临时附加情报'''
+        sqlcmd = """
+        INSERT INTO mid_hwy_node_add_info(ic_no, updown,
+                                          facility_id, facilcls,
+                                          in_out, link_lid,
+                                          node_lid, add_node_id,
+                                          add_link_id, pos_type,
+                                          pos_type_name, name_kanji,
+                                          name_yomi, toll_flag,
+                                          dir_s_node, dir_e_node
+                                         )
+          VALUES(%s, %s, %s, %s,
+                 %s, %s, %s, %s,
+                 %s, %s, %s, %s,
+                 %s, %s, %s, %s)
+        """
+        for add_info in ic_info.get_add_info():
+            param = (ic_info.ic_no, ic_info.updown,
+                     ic_info.facility_id, add_info.get('facilcls'),
+                     add_info.get('in_out'), add_info.get('link_lid'),
+                     add_info.get('node_lid'), add_info.get('add_node'),
+                     add_info.get('add_link'), add_info.get('pos_type'),
+                     add_info.get('pos_type_name'), ic_info.name,
+                     ic_info.name_yomi, toll_flag,
+                     add_info.get('dir_s_node'), add_info.get('dir_e_node'))
+            self.pg.execute1(sqlcmd, param)

@@ -4,9 +4,9 @@ Created on 2012-02-23
 @author: sunyifeng
 '''
 
-import component.component_base
+import component.default.admin
 
-class comp_admin_rdf(component.component_base.comp_base):
+class comp_admin_rdf(component.default.admin.comp_admin):
     '''
     classdocs
     '''
@@ -14,311 +14,64 @@ class comp_admin_rdf(component.component_base.comp_base):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Admin')
+        component.default.admin.comp_admin.__init__(self)
 
     def _DoCreateTable(self):
-        self.CreateTable2('rdb_admin_country')
-        self.CreateTable2('rdb_admin_order1')
-        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
 
         return 0
 
     def _Do(self):
-        self.__do_BRA_URY_admin()
-        self.__do_country_city()
-        self.__do_admin_zone()
-#        self.__update_admin_for_hkgAndtwn()
+        self.__makeAdminZone()
         self.__do_admin_time()
+        self.do_admin_time_order()
+        self.__alter_admin_for_specially()
+        self.make_geom_for_order()
         self.__do_admin_order0_iso_country_mapping()
+        self.CreateOrder1()
         return 0
-    def __do_BRA_URY_admin(self):       
+    
+    def __makeAdminZone(self):       
+        self.log.info('Now create mid_admin_zone...')
+        self.CreateIndex2('rdf_country_country_id_idx')
         self.CreateIndex2('rdf_admin_hierarchy_admin_place_id_idx')
         self.CreateIndex2('rdf_carto_named_place_id_idx')
         self.CreateIndex2('rdf_carto_face_carto_id_idx')
         self.CreateIndex2('temp_wkt_face_face_id_idx')
-        self.log.info('Now create temp_order1_virtual...') 
-        #create virtual order1 where order1 is null
-        sqlcmd = '''
-                drop table if exists temp_order1_virtual;
-                create table temp_order1_virtual
-                as
-                (
-                    select a.country_id, a.virtual_id, st_multi (st_union(e.the_geom)) as the_geom
-                    from
-                    (
-                        select country_id, (max_id + idx + 1000000) as virtual_id
-                        from
-                        (
-                            select country_id, row_number() over (order by country_id) as idx
-                            from
-                            (
-                                select distinct a.country_id
-                                from rdf_admin_hierarchy as a
-                                inner join rdf_country as h
-                                on a.country_id = h.country_id
-                                where order1_id is null and admin_order = 8
-                            )temp
-                        )a
-                        left join 
-                        (
-                            select max(admin_place_id) as max_id
-                            from rdf_admin_hierarchy
-                        )b
-                        on TRUE
-                    )a
-                    left join rdf_admin_hierarchy as b
-                    on a.country_id = b.country_id
-                    left join rdf_carto as c
-                    on b.admin_place_id = c.named_place_id
-                    left join rdf_carto_face as d
-                    on c.carto_id = d.carto_id
-                    left join temp_wkt_face as e
-                    on d.face_id = e.face_id
-                    group by a.country_id, a.virtual_id
-                );
-                '''
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.CreateIndex2('temp_order1_virtual_country_id_idx')
+        self.CreateIndex2('mid_temp_feature_name_feature_id_idx')
         
-        self.log.info('Now create temp_order1_null...')
-        #create table temp_order1_null where order1_id is null
-        #if country is BRA,order2 to order1,
-        sqlcmd = '''
-                drop table if exists temp_order1_null;
-                create table temp_order1_null
-                as
-                (
-                    select a.admin_place_id, 
-                           a.admin_order, 
-                           a.country_id, 
-                           b.virtual_id as order1_id, 
-                           null::bigint as order2_id, 
-                           a.order8_id, 
-                           builtup_id
-                    from rdf_admin_hierarchy as a
-                    left join temp_order1_virtual as b
-                    on a.country_id = b.country_id
+        self.CreateTable2('mid_admin_zone')
+        sqlcmd = """
+                    INSERT INTO mid_admin_zone (ad_code, ad_order, order0_id,
+                                                order1_id, order2_id, order8_id,
+                                                ad_name, the_geom)
+                    SELECT a.admin_place_id AS ad_code, a.admin_order AS ad_order,
+                           a.country_id AS order0_id, a.order1_id AS order1_id,
+                           a.order2_id AS order2_id, a.order8_id AS order8_id,
+                           b.feature_name AS ad_name,
+                           st_multi (st_union (e.the_geom)) as the_geom
+                    FROM rdf_admin_hierarchy as a    
+                    LEFT OUTER JOIN mid_temp_feature_name AS b
+                    ON a.admin_place_id = b.feature_id
+    
+                    LEFT JOIN rdf_carto AS c
+                    ON a.admin_place_id = c.named_place_id
+                    LEFT JOIN rdf_carto_face AS d
+                    ON c.carto_id = d.carto_id
+                    LEFT JOIN temp_wkt_face AS e
+                    ON d.face_id = e.face_id
                     inner join rdf_country as h
                     on a.country_id = h.country_id
-                    where order1_id is null and admin_order = 8
-                    
-                    union
-
-                    select admin_place_id, 
-                           (case when admin_order = 2 then 1 else 8 end) as admin_order, 
-                           country_id, 
-                           order2_id as order1_id, 
-                           null::bigint as order2_id, 
-                           (case when admin_order = 2 then null else order8_id end) as order8_id, 
-                           builtup_id
-                    from rdf_admin_hierarchy
-                    where iso_country_code = 'BRA' and admin_order in (2, 8)                    
-                    
-                );        
-                '''
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        self.CreateIndex2('temp_order1_null_admin_place_id_idx')
-        self.CreateIndex2('temp_order1_null_admin_order_idx')
-        self.CreateIndex2('temp_order1_null_order1_id_idx')
-        self.CreateIndex2('temp_order1_null_order8_id_idx')
-        
-        
-    def __do_country_city(self):
-        self.CreateIndex2('rdf_country_country_id_idx')
-        self.CreateIndex2('rdf_feature_names_feature_id_idx')
-        self.CreateIndex2('rdf_feature_name_name_id_idx')
-                        
-        sqlcmd = """
-                INSERT INTO rdb_admin_country(country_id, iso_country_code,
-                            country_name, the_geom)
-                SELECT e.country_id, e.iso_country_code, g.name,
-                       st_multi (st_union(c.the_geom)) as the_geom
-                FROM rdf_carto as a
-                inner join rdf_carto_face as b
-                on a.carto_id = b.carto_id
-                inner join temp_wkt_face as c
-                on b.face_id = c.face_id
-                inner join rdf_admin_hierarchy as e
-                on a.named_place_id = e.admin_place_id
-                inner join rdf_feature_names as f
-                on e.country_id = f.feature_id
-                inner join rdf_feature_name as g
-                on f.name_id = g.name_id
-                inner join rdf_country as h
-                on e.country_id = h.country_id and
-                   g.language_code = h.language_code
-                where f.name_type = 'B'
-                group by e.country_id, e.iso_country_code, g.name;
-                """
-
-        self.log.info('Now it is inserting to rdb_admin_country...')
-        if self.pg.execute2(sqlcmd) == -1:
-            return -1
-        else:
-            self.pg.commit2()
-            self.log.info('Inserting rdb_admin_country succeeded')
-
-        self.log.info('Now it is inserting to rdb_admin_order1...')
-        #bra order2 -> order1
-        sqlcmd = """
-                INSERT INTO rdb_admin_order1(order1_id, country_id,
-                                             order1_name, the_geom)
-                SELECT e.order1_id, e.country_id, g.name,
-                       st_multi (st_union(c.the_geom)) as the_geom
-                FROM rdf_carto as a
-                inner join rdf_carto_face as b
-                on a.carto_id = b.carto_id
-                inner join temp_wkt_face as c
-                on b.face_id = c.face_id
-                inner join rdf_admin_hierarchy as e
-                on a.named_place_id = e.admin_place_id
-                inner join rdf_feature_names as f
-                on e.order1_id = f.feature_id
-                inner join rdf_feature_name as g
-                on f.name_id = g.name_id
-                inner join rdf_country as h
-                on e.country_id = h.country_id and
-                   g.language_code = h.language_code
-                where e.order1_id is not null and f.name_type = 'B' and e.iso_country_code <> 'BRA'
-                group by e.order1_id, e.country_id, g.name
-                
-                union
-                
-                SELECT e.order2_id, e.country_id, g.name,
-                       st_multi (st_union(c.the_geom)) as the_geom
-                FROM rdf_carto as a
-                inner join rdf_carto_face as b
-                on a.carto_id = b.carto_id
-                inner join temp_wkt_face as c
-                on b.face_id = c.face_id
-                inner join rdf_admin_hierarchy as e
-                on a.named_place_id = e.admin_place_id
-                inner join rdf_feature_names as f
-                on e.order2_id = f.feature_id
-                inner join rdf_feature_name as g
-                on f.name_id = g.name_id
-                inner join rdf_country as h
-                on e.country_id = h.country_id and
-                   g.language_code = h.language_code
-                where e.order2_id is not null and f.name_type = 'B' and e.iso_country_code = 'BRA'
-                group by e.order2_id, e.country_id, g.name;
-                
-                """
-
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-
-#        sqlcmd = """
-#                INSERT INTO rdb_admin_order1(order1_id, country_id,
-#                                             order1_name, the_geom)
-#                SELECT e.order8_id, e.country_id, g.name,
-#                       st_multi (st_union(c.the_geom)) as the_geom
-#                FROM rdf_carto as a
-#                inner join rdf_carto_face as b
-#                on a.carto_id = b.carto_id
-#                inner join temp_wkt_face as c
-#                on b.face_id = c.face_id
-#                inner join rdf_admin_hierarchy as e
-#                on a.named_place_id = e.admin_place_id
-#                inner join rdf_feature_names as f
-#                on e.order8_id = f.feature_id
-#                inner join rdf_feature_name as g
-#                on f.name_id = g.name_id
-#                inner join rdf_country as h
-#                on e.country_id = h.country_id and
-#                   g.language_code = h.language_code
-#                where e.order1_id is null and f.name_type = 'B'
-#                group by e.order8_id, e.country_id, g.name;
-#                """
-#        self.pg.execute2(sqlcmd)
-#        self.pg.commit2()
-
-        sqlcmd = """
-                INSERT INTO rdb_admin_order1(order1_id, country_id,
-                                             order1_name, the_geom)
-                select virtual_id, country_id, null::varchar, the_geom
-                from temp_order1_virtual 
-                """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-
-        self.log.info('Inserting rdb_admin_order1 succeeded')
-
-    def __do_admin_zone(self):
-        '''
-        make mid_admin_zone
-        @author: xuwenbo
-        @date: 2014-01-13
-        '''   
-        self.CreateTable2('mid_admin_zone')
-
-        self.CreateIndex2('mid_temp_feature_name_feature_id_idx')
-
-        #insert information into mid_admin_zone
-        sqlcmd = """
-                INSERT INTO mid_admin_zone (ad_code, ad_order, order0_id,
-                                            order1_id, order2_id, order8_id,
-                                            ad_name, the_geom)
-                SELECT a.admin_place_id AS ad_code, a.admin_order AS ad_order,
-                       a.country_id AS order0_id, a.order1_id AS order1_id,
-                       a.order2_id AS order2_id, a.order8_id AS order8_id,
-                       b.feature_name AS ad_name,
-                       st_multi (st_union (e.the_geom)) as the_geom
-                FROM 
-                (
-                    select a.admin_place_id, a.admin_order, a.country_id, a.order1_id, 
-                        a.order2_id, a.order8_id, a.builtup_id
-                    from rdf_admin_hierarchy as a
-                    left join temp_order1_null as b
-                    on a.admin_place_id = b.admin_place_id
-                    where b.admin_place_id is null and (a.iso_country_code <> 'BRA' or 
-                                (a.iso_country_code = 'BRA' and a.admin_order <> 1))
-                    
-                    union
-                    
-                    select * from temp_order1_null
-                     
-                )a
-
-                LEFT OUTER JOIN mid_temp_feature_name AS b
-                ON a.admin_place_id = b.feature_id
-
-                LEFT JOIN rdf_carto AS c
-                ON a.admin_place_id = c.named_place_id
-                LEFT JOIN rdf_carto_face AS d
-                ON c.carto_id = d.carto_id
-                LEFT JOIN temp_wkt_face AS e
-                ON d.face_id = e.face_id
-                inner join rdf_country as h
-                on a.country_id = h.country_id
-
-                WHERE a.admin_order in (0, 1, 2, 8)
-                GROUP BY ad_code, ad_order, order0_id, order1_id, order2_id,
-                         order8_id, ad_name
-                ORDER BY ad_code;
+    
+                    WHERE a.admin_order in (0, 1, 2, 8)
+                    GROUP BY ad_code, ad_order, order0_id, order1_id, order2_id,
+                             order8_id, ad_name
+                    ORDER BY ad_code;
                 """
 
         self.log.info('Now it is inserting to mid_admin_zone...')
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
-        sqlcmd = '''
-                INSERT INTO mid_admin_zone (ad_code, ad_order, order0_id,
-                                            order1_id, order2_id, order8_id,
-                                            ad_name, the_geom)
-                select virtual_id as ad_code, 1::smallint, country_id as order0_id, 
-                    virtual_id as order1_id, null::bigint as order2_id, null::bigint as order8_id,
-                    null::varchar as ad_name, the_geom
-                from temp_order1_virtual;
-                '''
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        self.log.info('Inserting mid_admin_zone succeeded')
-
         self.CreateIndex2('mid_admin_zone_ad_code_idx')
         self.CreateIndex2('mid_admin_zone_ad_order_idx')
         self.CreateIndex2('mid_admin_zone_order0_id_idx')
@@ -326,116 +79,118 @@ class comp_admin_rdf(component.component_base.comp_base):
         self.CreateIndex2('mid_admin_zone_order2_id_idx')
         self.CreateIndex2('mid_admin_zone_order8_id_idx')
         
-        self.__add_HKGMAC_admin()
-            
+    def __alter_admin_for_specially(self):       
+        self.log.info('Now alter admin for specially...')
+        #HKGMAC admin
+        self.__alter_HKGMAC()
+        #BRA admin
+        self.__alter_BRA()
+        #SGP admin
+        self.__alter_SGP()
         
-        #special area: in SGP, order9 is set to order8
-        if self.pg.IsExistTable('sgp_builtup_region'):
-            self.log.info('Set SGP order9 to order8...')
-            sqlcmd = """
+    def __jude_country(self, country_str):
+        sqlcmd = '''
+                select count(*)
+                from rdf_country
+                where iso_country_code = '%s';
+                '''%country_str
+                
+        self.pg.execute2(sqlcmd)
+        if (self.pg.fetchone2())[0] > 0:
+            return True
+        else:
+            return False
+                
+    def __alter_SGP(self):
+        self.log.info('alter sgp admin begin...')
+        
+        if self.__jude_country('SGP'):        
+            #special area: in SGP, order9 is set to order8
+            if self.pg.IsExistTable('sgp_builtup_region'):
+                sqlcmd = """
+                        --create table
+                        drop table if exists temp_order8_SGP;
+                        create table temp_order8_SGP
+                        as
+                        (
+                            select a.ad_code, a.ad_name, a.time_zone, a.summer_time_id
+                            from mid_admin_zone as a
+                            join rdf_admin_hierarchy as b
+                            on a.ad_code = b.admin_place_id and 
+                               b.iso_country_code = 'SGP' and 
+                               b.admin_order = 8
+                        );
+                        
+                        --delete from mid_admin_zone
+                        delete from mid_admin_zone
+                        where ad_code in
+                        (
+                            select admin_place_id
+                            from rdf_admin_hierarchy
+                            where iso_country_code = 'SGP' and admin_order = 8
+                        );
+                        
+                        --insert into new order8
+                        INSERT INTO mid_admin_zone (ad_code, ad_order, order0_id,
+                                                    order1_id, order2_id, order8_id,
+                                                    ad_name, time_zone, summer_time_id, the_geom)
+                        SELECT  a.admin_place_id AS ad_code,
+                                8 AS ad_order,
+                                a.country_id AS order0_id,
+                                a.order1_id AS order1_id,
+                                a.order2_id AS order2_id,
+                                a.admin_place_id AS order8_id,
+                                e.feature_name AS ad_name,
+                                sgp_order8.time_zone,
+                                sgp_order8.summer_time_id,
+                                st_multi (st_union(d.the_geom)) as the_geom
+                        FROM rdf_admin_hierarchy AS a
+                        left join rdf_feature_names as b
+                        on a.admin_place_id = b.feature_id
+                        left join rdf_feature_name as c
+                        on b.name_id = c.name_id
+                        left join sgp_builtup_region as d
+                        on c.name = d.name
+                        LEFT OUTER JOIN mid_temp_feature_name AS e
+                        ON a.admin_place_id = e.feature_id
+                        left join temp_order8_SGP as sgp_order8
+                        on TRUE
+                        WHERE a.iso_country_code = 'SGP' and a.admin_order = 9 and d.the_geom is not null
+                        GROUP BY a.admin_place_id, a.country_id, a.order1_id, a.order2_id, e.feature_name, sgp_order8.time_zone, sgp_order8.summer_time_id
+                        ORDER BY ad_code;
+                        """
+                self.pg.execute2(sqlcmd)
+                self.pg.commit2()
+            else:
+                self.log.error('sgp_builtup_region is not exit!')
+           
+    def __alter_BRA(self):
+        self.log.info('alter bra admin begin...')
+        
+        if self.__jude_country('BRA'):
+            #delete order1
+            sqlcmd = '''
                     delete from mid_admin_zone
-                    where ad_code in
-                    (
+                    where ad_code in (
                         select admin_place_id
                         from rdf_admin_hierarchy
-                        where iso_country_code = 'SGP' and admin_order = 8
+                        where admin_order = 1 and iso_country_code = 'BRA'
                     );
-                    
-                    INSERT INTO mid_admin_zone (ad_code, ad_order, order0_id,
-                                                order1_id, order2_id, order8_id,
-                                                ad_name, the_geom)
-                    SELECT  a.admin_place_id AS ad_code,
-                            8 AS ad_order,
-                            a.country_id AS order0_id,
-                            a.order1_id AS order1_id,
-                            a.order2_id AS order2_id,
-                            a.admin_place_id AS order8_id,
-                            e.feature_name AS ad_name,
-                            st_multi (st_union(d.the_geom)) as the_geom
-                    FROM rdf_admin_hierarchy AS a
-                    left join rdf_feature_names as b
-                      on a.admin_place_id = b.feature_id
-                    left join rdf_feature_name as c
-                      on b.name_id = c.name_id
-                    left join sgp_builtup_region as d
-                      on c.name = d.name
-                    LEFT OUTER JOIN mid_temp_feature_name AS e
-                      ON a.admin_place_id = e.feature_id
-                    WHERE a.iso_country_code = 'SGP' and a.admin_order = 9 and d.the_geom is not null
-                    GROUP BY ad_code, ad_order, order0_id, order1_id, order2_id, order8_id, ad_name
-                    ORDER BY ad_code;
-                    """
+                    '''
             self.pg.execute2(sqlcmd)
             self.pg.commit2()
-            self.log.info('Set SGP order9 to order8 end.')
-
-        #update geometry ad_order = 2 and the_geom is null
-        sqlcmd = """
-                UPDATE mid_admin_zone AS a SET the_geom = b.the_geom
-                FROM
-                (
-                    SELECT a.ad_code,
-                           st_multi (st_union (b.the_geom)) AS the_geom
-                    FROM mid_admin_zone AS a
-                    INNER JOIN mid_admin_zone AS b
-                    ON a.ad_order = 2 AND a.the_geom IS NULL AND b.ad_order = 8
-                       AND b.order2_id = a.ad_code
-                    GROUP by a.ad_code
-                ) as b
-                WHERE a.ad_code = b.ad_code
-                """
-
-        self.log.info('Now it is updating mid_admin_zone ad_order = 2...')
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.log.info('updating mid_admin_zone ad_order = 2 succeeded')
-
-        #update geometry if ad_order = 1 and the_geom is null
-        sqlcmd = """
-                UPDATE mid_admin_zone AS a SET the_geom = b.the_geom
-                FROM
-                (
-                    SELECT a.ad_code,
-                           st_multi (st_union (b.the_geom)) AS the_geom
-                    FROM mid_admin_zone AS a
-                    INNER JOIN mid_admin_zone AS b
-                    ON a.ad_order = 1 AND a.the_geom IS NULL AND b.ad_order = 8
-                       AND b.order1_id = a.ad_code
-                    GROUP by a.ad_code
-                ) as b
-                WHERE a.ad_code = b.ad_code
-                """
-
-        self.log.info('Now it is updating mid_admin_zone ad_order = 1...')
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.log.info('updating mid_admin_zone ad_order = 1 succeeded')
-
-        #update geometry if ad_order = 0 and the_geom is null
-        sqlcmd = """
-                UPDATE mid_admin_zone AS a SET the_geom = b.the_geom
-                FROM
-                (
-                    SELECT a.ad_code,
-                           st_multi (st_union (b.the_geom)) AS the_geom
-                    FROM mid_admin_zone AS a
-                    INNER JOIN mid_admin_zone AS b
-                    ON a.ad_order = 0 AND a.the_geom IS NULL AND b.ad_order = 1
-                       AND b.order0_id = a.ad_code
-                    GROUP by a.ad_code
-                ) as b
-                WHERE a.ad_code = b.ad_code
-                """
-
-        self.log.info('Now it is updating mid_admin_zone ad_order = 0...')
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        self.log.info('updating mid_admin_zone ad_order = 0 succeeded')
-
-        self.CreateIndex2('mid_admin_zone_the_geom_idx')
-
-        self.log.info('making mid_admin_zone OK.')
-        return 0
+            
+            #update order2 order8
+            sqlcmd = '''
+                    update mid_admin_zone as a
+                    set order1_id = NULL
+                    from rdf_admin_hierarchy as b
+                    where a.ad_code = b.admin_place_id and b.iso_country_code = 'BRA'
+                     and  a.ad_order in (2, 8) and b.admin_place_id is not null;
+                    
+                    '''
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
     
     def __do_admin_time(self):
         self.log.info('making admin time...')
@@ -471,111 +226,17 @@ class comp_admin_rdf(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
-        # do admin's time_zone for BRA
-        sqlcmd = """
-            update mid_admin_zone as a 
-            set time_zone = b.time_zone
-            from
-            (
-                select  a.order2_id as ad_code,
-                        (a.time_zone::smallint + 120) as time_zone
-                from
-                (
-                    select a.admin_place_id, time_zone, dst_id,b.order2_id
-                    from rdf_admin_place as a
-                    join rdf_admin_hierarchy as b
-                    on a.admin_place_id = b.order1_id 
-                       and b.iso_country_code = 'BRA' and b.admin_order = 2
-                    where time_zone is not null                 
-                )as a
-            )as b
-            where a.ad_code = b.ad_code and a.time_zone is null;
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        # do admin's summer_time for BRA
-        sqlcmd = """
-            update mid_admin_zone as a 
-            set  summer_time_id = b.summer_time_id
-            from
-            (
-                select  a.order2_id as ad_code,
-                        b.summer_time_id
-                from
-                (
-                    select a.admin_place_id, time_zone, dst_id,b.order2_id
-                    from rdf_admin_place as a
-                    join rdf_admin_hierarchy as b
-                    on a.admin_place_id = b.order1_id 
-                       and b.iso_country_code = 'BRA' and b.admin_order = 2
-                    where dst_id is not null                    
-                )as a
-                left join temp_admin_dst_mapping as b
-                on a.dst_id = b.dst_id
-            )as b
-            where a.ad_code = b.ad_code and a.summer_time_id is null;
-        """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()        
-        
-        
-        # update admin's time_zone & summer_time
-        sqlcmd = """
-            update mid_admin_zone as a 
-            set [time_attr] = b.[time_attr]
-            from
-            (
-                select ad_code, [time_attr]
-                from mid_admin_zone
-                where ad_order = 0 and [time_attr] is not null
-            )as b
-            where a.ad_order = 1 and a.[time_attr] is null and a.order0_id = b.ad_code;
-            ;
-            
-            update mid_admin_zone as a 
-            set [time_attr] = b.[time_attr]
-            from
-            (
-                select ad_code, [time_attr]
-                from mid_admin_zone
-                where ad_order = 1 and [time_attr] is not null
-            )as b
-            where a.ad_order = 2 and a.[time_attr] is null and a.order1_id = b.ad_code;
-            ;
-            
-            update mid_admin_zone as a 
-            set [time_attr] = b.[time_attr]
-            from
-            (
-                select ad_code, [time_attr]
-                from mid_admin_zone
-                where ad_order in (1,2) and [time_attr] is not null
-            )as b
-            where  a.ad_order = 8 and a.[time_attr] is null 
-                   and 
-                   (
-                       (a.order2_id = b.ad_code)
-                       or
-                       (a.order2_id is null and a.order1_id = b.ad_code)
-                   )
-            ;
-        """
-        for time_attr in ['time_zone', 'summer_time_id']:
-            self.pg.execute2(sqlcmd.replace('[time_attr]', time_attr))
-            self.pg.commit2()
-        
         self.log.info('making admin time OK.')
     
     def __do_admin_order0_iso_country_mapping(self):
         self.log.info('start to make order0 and iso_country mapping')
         
+        self.CreateTable2('rdb_admin_order0_iso_country_mapping')
         sqlcmd = """
                 INSERT INTO rdb_admin_order0_iso_country_mapping(order0_id, iso_country_code)
                 (
-                    SELECT admin_place_id, iso_country_code
-                    FROM rdf_admin_hierarchy
-                    WHERE admin_order = 0
+                    SELECT country_id, iso_country_code
+                    FROM rdf_country
                 );
                 """
         if self.pg.execute2(sqlcmd) == -1:
@@ -585,167 +246,98 @@ class comp_admin_rdf(component.component_base.comp_base):
 
         self.log.info('end to make order0 and iso_country mapping')
         return 0
-    def __update_admin_for_hkgAndtwn(self):
-        self.log.info('start alter mid_admin_zone for hkg and twn.')
-           
-        sqlcmd = '''
-            select distinct iso_country_code,country_id
-            from rdf_admin_hierarchy;
-            '''
-        self.pg.execute2(sqlcmd)
-        phlist = self.pg.fetchall2()
-        
-        for ph in phlist:
-            #
-            if ph[0] == 'HKG':
-                sqlcmd = '''
-                        update mid_admin_zone
-                        set ad_name = replace(replace(ad_name,'Hong Kong','Hong Kong Island'),'香港','香港島')
-                        where ad_name like '%香港%' and ad_order = 2 and ad_name not like '%香港島%'
-                        '''
-                self.pg.execute2(sqlcmd)
-                self.pg.commit2()
-             
-            sqlcmd = '''
-                    select count(*)
-                    from mid_admin_zone
-                    where order0_id = %s and ad_order = 1;
-                '''
-            self.pg.execute2(sqlcmd,(ph[1],))
-            order1_num = self.pg.fetchone2()[0]
-            if order1_num == 0 :
-                sqlcmd = '''
-                    select max(ad_code)
-                    from mid_admin_zone
-                    where order0_id = %s;
-                    '''
-                self.pg.execute2(sqlcmd,(ph[1],))
-                max_ad_code = self.pg.fetchone2()[0] + 1
-                
-                sqlcmd = '''
-                        insert into mid_admin_zone(ad_code, ad_order, order0_id,
-                                            order1_id, order2_id, order8_id,
-                                            ad_name, the_geom)
-                        (
-                            select %s,1,a.order0_id,%s,a.order2_id,a.order8_id,null,
-                                    st_multi (st_union (b.the_geom)) as the_geom
-                            from mid_admin_zone as a
-                            left join mid_admin_zone as b
-                            on a.order0_id = b.order0_id and b.ad_order = 8
-                            where a.order0_id = %s and a.ad_order = 0
-                            group by a.order0_id,a.order2_id,a.order8_id
-                        );
-                    '''
-                self.pg.execute2(sqlcmd,(max_ad_code,max_ad_code,ph[1]))
-                self.pg.commit2()
-                
-                sqlcmd = '''
-                        update mid_admin_zone
-                        set order1_id = %s
-                        where ad_order in (2,8) and order0_id = %s;
-                    '''
-                self.pg.execute2(sqlcmd,(max_ad_code,ph[1]))
-                self.pg.commit2()
-                
-                sqlcmd = '''
-                        update mid_admin_zone as a
-                        set the_geom = b.the_geom
-                        from mid_admin_zone as b
-                        where b.ad_order = 1 and b.order0_id = a.order0_id and a.ad_order = 0 and a.order0_id = %s;
-                    '''
-                self.pg.execute2(sqlcmd,(ph[1],))
-                self.pg.commit2()
-                
-                 
-        self.log.info('end alter mid_admin_zone for hkg and twn.')
-        return 0
     
-    def __add_HKGMAC_admin(self):
+    def __alter_HKGMAC(self):
         self.log.info('start get HKG_MAC order08')
-        #判断是否含有香港澳门
-        sqlcmd = """
-                select distinct iso_country_code, country_id
-                from rdf_admin_hierarchy;
-                """
-        country_list = list([row[0],row[1]] for row in self.get_batch_data(sqlcmd))
-        for country in country_list:
-            if country[0] == 'HKG' or country[0] == 'MAC' :
-                #原有的8级做成1级
-                sqlcmd = """
-                        DROP TABLE if exists temp_order01_hkgmac;
-                        CREATE TABLE temp_order01_hkgmac
-                        as
-                        (
-                          select ad_code, ad_order, order0_id, order1_id, order2_id, 
-                               order8_id, ad_name, the_geom
-                          from mid_admin_zone
-                          where ad_order = 8 and order0_id = %s
-                        );
-                                                
-                        delete from mid_admin_zone
-                        where ad_order in (1,8) and order0_id = %s;
-                        
-                        insert into mid_admin_zone(ad_code, ad_order, order0_id,
-                                            order1_id, order2_id, order8_id,
-                                            ad_name, the_geom)
-                        select ad_code, 1 as ad_order, order0_id, order8_id as order1_id, 
-                            null as order2_id, null as order8_id, ad_name, the_geom
-                        from temp_order01_hkgmac;
-                        """
-                        
-                self.pg.execute2(sqlcmd, (country[1], country[1]))
-                self.pg.commit2()
-                
-                #创建形点信息,创建link关联表单
-                sqlcmd = """
-                        DROP TABLE if exists temp_admin_builtup;
-                        CREATE TABLE temp_admin_builtup
-                        as
-                        (
-                            SELECT distinct c.face_id, c.the_geom
-                            FROM rdf_carto as a
-                            left join rdf_carto_face as b
-                            on a.carto_id = b.carto_id
-                            left join temp_wkt_face as c
-                            on b.face_id = c.face_id
-                            where feature_type = 908003 -- Cartographic Settlement Boundary
-                        );
-                        
-                        DROP TABLE if exists temp_link_admin;
-                        CREATE TABLE temp_link_admin
-                        as
-                        (
-                            SELECT left_admin_place_id as admin_id, (array_agg(the_geom))[1] as the_geom
-                            FROM temp_rdf_nav_link
-                            where left_admin_place_id = right_admin_place_id and iso_country_code = %s
-                            group by left_admin_place_id
-                        );
-                        """
-                self.pg.execute2(sqlcmd, (country[0],))
-                self.pg.commit2()
-                
-                #
-                sqlcmd = """
-                        insert into mid_admin_zone(ad_code, ad_order, order0_id,
-                                            order1_id, order2_id, order8_id,
-                                            ad_name, the_geom)
-                        select a.admin_id, 8 as ad_order, d.country_id, d.order8_id as order1_id, null,
-                            a.admin_id, c.feature_name AS ad_name, st_multi(a.the_geom)
-                        from 
-                        (
-                            select b.admin_id, a.the_geom
-                            from temp_admin_builtup as a
-                            left join temp_link_admin as b
-                            on ST_Contains(a.the_geom, b.the_geom)
-                            where b.admin_id is not null
-                        )a
-                        left join mid_temp_feature_name as c
-                        on a.admin_id = c.feature_id
-                        left join rdf_admin_hierarchy as d
-                        on a.admin_id = d.admin_place_id
-                        where d.iso_country_code = %s and d.admin_place_id is not null;
-                        """
-                self.pg.execute2(sqlcmd,(country[0],))
-                self.pg.commit2()
+        
+        if self.__jude_country('HKG') or self.__jude_country('MAC'):
+            #判断是否含有香港澳门
+            sqlcmd = """
+                    select distinct iso_country_code, country_id
+                    from rdf_country;
+                    """
+            country_list = list([row[0],row[1]] for row in self.get_batch_data(sqlcmd))
+            for country in country_list:
+                if country[0] == 'HKG' or country[0] == 'MAC' :
+                    #原有的8级做成1级
+                    sqlcmd = """
+                            DROP TABLE if exists temp_order01_hkgmac;
+                            CREATE TABLE temp_order01_hkgmac
+                            as
+                            (
+                              select ad_code, ad_order, order0_id, order1_id, order2_id, 
+                                   order8_id, ad_name, time_zone, summer_time_id, the_geom
+                              from mid_admin_zone
+                              where ad_order = 8 and order0_id = %s
+                            );
+                                                    
+                            delete from mid_admin_zone
+                            where ad_order in (1,8) and order0_id = %s;
+                            
+                            insert into mid_admin_zone(ad_code, ad_order, order0_id,
+                                                order1_id, order2_id, order8_id,
+                                                ad_name, time_zone, summer_time_id, the_geom)
+                            select ad_code, 1 as ad_order, order0_id, order8_id as order1_id, 
+                                   null as order2_id, null as order8_id, 
+                                   ad_name, time_zone, summer_time_id, the_geom
+                            from temp_order01_hkgmac;
+                            """
+                            
+                    self.pg.execute2(sqlcmd, (country[1], country[1]))
+                    self.pg.commit2()
+                    
+                    #创建形点信息,创建link关联表单
+                    sqlcmd = """
+                            DROP TABLE if exists temp_admin_builtup;
+                            CREATE TABLE temp_admin_builtup
+                            as
+                            (
+                                SELECT distinct c.face_id, c.the_geom
+                                FROM rdf_carto as a
+                                left join rdf_carto_face as b
+                                on a.carto_id = b.carto_id
+                                left join temp_wkt_face as c
+                                on b.face_id = c.face_id
+                                where feature_type = 908003 -- Cartographic Settlement Boundary
+                            );
+                            
+                            DROP TABLE if exists temp_link_admin;
+                            CREATE TABLE temp_link_admin
+                            as
+                            (
+                                SELECT left_admin_place_id as admin_id, (array_agg(the_geom))[1] as the_geom
+                                FROM temp_rdf_nav_link
+                                where left_admin_place_id = right_admin_place_id and iso_country_code = %s
+                                group by left_admin_place_id
+                            );
+                            """
+                    self.pg.execute2(sqlcmd, (country[0],))
+                    self.pg.commit2()
+                    
+                    #
+                    sqlcmd = """
+                            insert into mid_admin_zone(ad_code, ad_order, order0_id,
+                                                order1_id, order2_id, order8_id,
+                                                ad_name, time_zone, summer_time_id, the_geom)
+                            select a.admin_id, 8 as ad_order, d.country_id, d.order8_id as order1_id, null,
+                                a.admin_id, c.feature_name AS ad_name, time_zone, summer_time_id, st_multi(a.the_geom)
+                            from 
+                            (
+                                select b.admin_id, a.the_geom
+                                from temp_admin_builtup as a
+                                left join temp_link_admin as b
+                                on ST_Contains(a.the_geom, b.the_geom)
+                                where b.admin_id is not null
+                            )a
+                            left join mid_temp_feature_name as c
+                            on a.admin_id = c.feature_id
+                            left join rdf_admin_hierarchy as d
+                            on a.admin_id = d.admin_place_id
+                            left join temp_order01_hkgmac as e
+                            on d.order8_id = e.ad_code
+                            where d.iso_country_code = %s and d.admin_place_id is not null;
+                            """
+                    self.pg.execute2(sqlcmd,(country[0],))
+                    self.pg.commit2()
                         
     

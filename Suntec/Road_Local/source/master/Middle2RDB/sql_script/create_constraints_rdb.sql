@@ -1403,7 +1403,7 @@ CREATE INDEX rdb_highway_node_add_info_link_geom_idx
   (link_geom);
 
 --------------------------------------------------------
-CREATE UNIQUE INDEX rdb_highway_node_add_info_link_id_idx
+CREATE INDEX rdb_highway_node_add_info_link_id_idx
   ON rdb_highway_node_add_info
   USING btree
   (link_id);

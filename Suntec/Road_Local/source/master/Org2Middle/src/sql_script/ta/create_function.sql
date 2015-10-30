@@ -1862,7 +1862,7 @@ BEGIN
     	return 8;
     ELSEIF pj = 2 THEN
     	return 9;
-    ELSEIF fow = 12 THEN
+    ELSEIF (fow = 12 or fow = 6 or fow = 7) THEN
     	return 7;
     ELSEIF fow = 4 THEN
     	return 0;

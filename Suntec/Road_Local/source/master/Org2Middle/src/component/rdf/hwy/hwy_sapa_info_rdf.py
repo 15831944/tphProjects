@@ -25,6 +25,7 @@ class HwySapaInfoRDF(comp_base):
         self.CreateTable2('mid_temp_poi_link')
         self.CreateTable2('mid_temp_sapa_store_info')
         self.CreateTable2('hwy_chain_name')
+        self.CreateTable2('mid_temp_poi_closest_link')
         return 0
 
     def _DoCreateFunction(self):
@@ -32,7 +33,6 @@ class HwySapaInfoRDF(comp_base):
 
     def _DoCreateIndex(self):
         self.CreateIndex2('mid_temp_sapa_store_info_poi_id_idx')
-        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
         self.CreateIndex2('mid_temp_hwy_sapa_name_poi_id_idx')
         return 0
 
@@ -44,6 +44,8 @@ class HwySapaInfoRDF(comp_base):
         self._group_poi_trans_name()
         # POI关联link
         self._make_hwy_poi_link()
+        # POI最近的link(由于切割，Entry link可能有多条)
+        self._make_hwy_poi_closest_link()
         # 道路名称
         self._make_hwy_sapa_name()
         self._make_hwy_sapa_store_info()
@@ -233,19 +235,64 @@ class HwySapaInfoRDF(comp_base):
         INSERT INTO mid_temp_poi_link(poi_id, link_id)
         (
         SELECT distinct rest.poi_id, m.link_id
-          FROM rdf_poi_rest_area AS rest
+          --FROM rdf_poi_rest_area as rest
+          FROM rdf_poi as rest
           LEFT JOIN rdf_poi_address as poi_address
           ON  poi_address.poi_id = rest.poi_id
           LEFT JOIN rdf_location AS location
           ON location.location_id = poi_address.location_id
           LEFT JOIN mid_link_mapping as m
           ON m.org_link_id = location.link_id
+          WHERE m.link_id is not null
           ORDER BY rest.poi_id
         );
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
+        self.CreateIndex2('mid_temp_poi_link_link_id_idx')
         return
+
+    def _make_hwy_poi_closest_link(self):
+        '''求POI最近link及距离'''
+        self.log.info('Make Poi closest link.')
+        # s_length: POI在link的ClosestPoint 到link起点的距离
+        # e_length: POI在link的ClosestPoint 到link终点的距离
+        # 注：原数据如果本来就有多条Entry link，为被过滤掉
+        sqlcmd = """
+        INSERT INTO mid_temp_poi_closest_link(poi_id, link_id, dist,
+                                              s_length, e_length)
+        (
+        SELECT poi_id, link_id, dist,
+               length *  point as s_length,
+               length * (1 - point) as e_length
+          FROM (
+              SELECT poi_id,
+                     (array_agg(link_id))[1] as link_id,  -- closed link
+                 (array_agg(dist))[1] as dist,
+                 (array_agg(length))[1] as length,
+                 (array_agg(point))[1] as point
+              FROM (
+                SELECT a.poi_id, a.link_id,
+                       ST_Distance(c.the_geom, link_tbl.the_geom) as dist,
+                       length,
+                       ST_Line_Locate_Point(link_tbl.the_geom,
+                                            c.the_geom) as point
+                  FROM mid_temp_poi_link as a
+                  LEFT JOIN rdf_poi_address as b
+                  ON a.poi_id = b.poi_id
+                  LEFT JOIN temp_wkt_location as c
+                  ON b.location_id = c.location_id
+                  LEFT JOIN link_tbl
+                  ON a.link_id = link_tbl.link_id
+                  ORDER BY a.poi_id, dist, a.link_id
+              ) AS d
+              GROUP BY poi_id
+          ) as c
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
 
     def _make_hwy_sapa_store_info(self):
         ''''''
@@ -265,6 +312,7 @@ class HwySapaInfoRDF(comp_base):
             ON child.child_poi_id = rdf_poi.poi_id
            LEFT JOIN rdf_poi_subcategory as sub
             ON child.child_poi_id = sub.poi_id
+           WHERE chain_type::int = 1 -- 1:chain_id  2:family chain_id
            ORDER BY rest.poi_id, child_poi_id, chain_id, cat_id
         );
         '''

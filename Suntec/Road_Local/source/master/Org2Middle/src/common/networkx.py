@@ -235,7 +235,7 @@ class CLinkCost:
     ]
     
     @staticmethod
-    def getCost(link_length, road_type, toll, width, one_way, in_angle, out_angle):
+    def getCost(link_length, road_type, toll, one_way, width, in_angle, out_angle):
         if toll != 1:
             toll = 0
         

@@ -4,18 +4,22 @@ Created on 2013-12-5
 
 @author: liuxinxing
 '''
-import component.component_base
 
-class comp_regulation_nostra(component.component_base.comp_base):
+
+
+import component.default.regulation
+
+class comp_regulation_nostra(component.default.regulation.com_regulation):
     def __init__(self):
         '''
         Constructor
         '''
-        component.component_base.comp_base.__init__(self, 'Regulation')
+        component.default.regulation.com_regulation.__init__(self)
     
     def _Do(self):
         self.__convert_condition_table()
         self.__convert_regulation()
+        self._deal_temp_patch_regulation_tbl()
         return 0
     
     def __convert_condition_table(self):
@@ -23,8 +27,7 @@ class comp_regulation_nostra(component.component_base.comp_base):
         
         self.CreateTable2('temp_condition_regulation_tbl')
         self.CreateIndex2('temp_condition_regulation_tbl_day_time_idx')
-        
-        self.CreateTable2('condition_regulation_tbl')
+
         self.CreateFunction2('mid_convert_weekflag')
         sqlcmd = """
                 insert into condition_regulation_tbl
@@ -63,10 +66,6 @@ class comp_regulation_nostra(component.component_base.comp_base):
         self.log.info('Begin converting regulation...')
         
         #
-        self.CreateTable2('regulation_relation_tbl')
-        self.CreateTable2('regulation_item_tbl')
-        
-        #
         self.CreateFunction2('mid_get_connect_node')
         self.CreateFunction2('mid_convert_regulation')
         
@@ -86,4 +85,26 @@ class comp_regulation_nostra(component.component_base.comp_base):
         
         self.log.info('Check regulation end.')
         return 0
+    
+    def _update_temp_regulation_patch_node_tbl(self):
         
+        self.log.info('Begin converting regulation patch geometry to node...')
+        
+        self.CreateFunction2('update_temp_regulation_patch_node_tbl_nostra')
+        self.pg.callproc('update_temp_regulation_patch_node_tbl_nostra')
+        self.pg.commit2()
+        
+        self.log.info('End converting regulation patch geometry to node.')
+        return 0
+    
+    def _update_temp_regulation_patch_link_tbl(self):
+        
+        self.log.info('Begin converting regulation patch node to link...')
+        
+        self.CreateFunction2('findpasslinkbybothnodes_nostra')
+        self.CreateFunction2('update_temp_regulation_patch_link_tbl_nostra')
+        self.pg.callproc('update_temp_regulation_patch_link_tbl_nostra')
+        self.pg.commit2()
+        
+        self.log.info('End converting regulation patch node to link.')
+        return 0

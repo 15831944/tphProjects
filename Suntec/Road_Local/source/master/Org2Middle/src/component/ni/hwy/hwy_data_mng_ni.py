@@ -4,11 +4,47 @@ Created on 2015-4-29
 
 @author: hcz
 '''
+import json
 from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_EXIT_POI_NAME
+from component.rdf.hwy.hwy_graph_rdf import HWY_ENTER_POI_NAME
 from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
 from component.ni.hwy.hwy_graphy_ni import HwyGraphNi
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
+from common.database import BATCH_SIZE
+from component.rdf.hwy.hwy_graph_rdf import HWY_TILE_ID
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
+from component.rdf.hwy.hwy_graph_rdf import HWY_DISP_CLASS
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
+
+
+def get_road_name(json_name):
+    road_names = []
+    if not json_name:
+        return road_names
+    for names in json.loads(json_name):
+        one_name = []
+        for name_dict in names:
+            if name_dict.get("tts_type") == "not_tts":
+                one_name.append(name_dict)
+        road_names.append(one_name)
+    return road_names
+
+
+def get_road_number(json_number):
+    road_numbers = []
+    if not json_number:
+        return road_numbers.append('')
+    for numbers in json.loads(json_number.replace('\t', '\\t')):
+        one_num = list()
+        for num_dict in numbers:
+            if num_dict.get("tts_type") == "not_tts":
+                one_num.append(num_dict)
+        road_numbers.append(one_num)
+    return road_numbers
 
 
 class HwyDataMngNi(HwyDataMngRDF):
@@ -103,7 +139,7 @@ class HwyDataMngNi(HwyDataMngRDF):
 
     def load_exit_poi_name(self):
         '''加载HWY exit POI Name.'''
-        self.log.warning('Start Loading Exist POI Name.')
+        self.log.warning('Start Loading Exit POI Name.')
         if not self.pg.IsExistTable('mid_temp_hwy_exit_enter_poi_name_ni'):
             self.log.warning('No Table mid_temp_hwy_exit_enter_poi_name_ni.')
             return
@@ -128,6 +164,38 @@ class HwyDataMngNi(HwyDataMngRDF):
             str_name = ','.join(temp_names)
             str_name = '[' + str_name + ']'
             data = {HWY_EXIT_POI_NAME: str_name}
+            if node_id in self._graph:
+                self._graph.add_node(node_id, data)
+        self.log.warning('End Loading Exit POI Name.')
+        # 加载HWY Enter POI Name
+        self.load_enter_poi_name()
+
+    def load_enter_poi_name(self):
+        '''加载HWY Enter POI Name.'''
+        self.log.warning('Start Loading Enter POI Name.')
+        if not self.pg.IsExistTable('mid_temp_hwy_exit_enter_poi_name_ni'):
+            self.log.warning('No Table mid_temp_hwy_exit_enter_poi_name_ni.')
+            return
+        sqlcmd = """
+        SELECT node_id, array_agg(name) as names
+          FROM (
+                SELECT node_id, name
+                  FROM mid_temp_hwy_exit_enter_poi_name_ni as a
+                  where kind = 'enter'
+                  order by node_id, poi_id
+          ) AS a
+          group by node_id;
+        """
+        for enter_info in self.get_batch_data(sqlcmd):
+            node_id, names = enter_info
+            temp_names = []
+            temp_names.append(names[0][1:-1])  # 去掉头尾的[]
+            for name in names[1:]:
+                if name[1:-1] not in temp_names:
+                    temp_names.append(name[1:-1])
+            str_name = ','.join(temp_names)
+            str_name = '[' + str_name + ']'
+            data = {HWY_ENTER_POI_NAME: str_name}
             if node_id in self._graph:
                 self._graph.add_node(node_id, data)
         self.log.warning('End Loading Exist POI Name.')
@@ -155,6 +223,28 @@ class HwyDataMngNi(HwyDataMngRDF):
 
     def _make_hwy_inout_of_inner_link(self):
         return 0
+
+    def _get_link_attr(self, sqlcmd):
+        for link_info in self.pg.get_batch_data2(sqlcmd, BATCH_SIZE):
+            link_id = link_info[0]
+            s_node = link_info[1]
+            e_node = link_info[2]
+            one_way = link_info[3]
+            s_angle = link_info[8]
+            e_angle = link_info[9]
+            link_attr = {}
+            link_attr[HWY_LINK_TYPE] = link_info[4]
+            link_attr[HWY_ROAD_TYPE] = link_info[5]
+            link_attr[HWY_DISP_CLASS] = link_info[6]
+            link_attr["toll"] = link_info[7]
+            # link_attr["fazm"] = link_info[8]
+            # link_attr["tazm"] = link_info[9]
+            link_attr[HWY_TILE_ID] = link_info[10]
+            link_attr[HWY_LINK_LENGTH] = link_info[11]
+            link_attr[HWY_ROAD_NAMES] = get_road_name(link_info[12])
+            # link_attr[HWY_1ST_ROAD_NAME] = get_first_road_name(link_info[12])
+            link_attr[HWY_ROAD_NUMS] = get_road_number(link_info[13])
+            yield link_id, s_node, e_node, one_way, s_angle, e_angle, link_attr
 
     def get_cycle_route_start_end(self):
         CYCLE_ROUTE_START_END = [(356871, ),  # 中国(14)

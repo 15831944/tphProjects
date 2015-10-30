@@ -85,7 +85,7 @@ class CCheckOrg_Trfcsign_type(platform.TestCase.CTestCase):
         sqlcmd = """
                     select count(type)
                     from org_trfcsign
-                    where type::bigint < 1 or type::bigint > 47
+                    where type::bigint < 1 or type::bigint > 48
                  """
         count_rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (count_rec == 0)

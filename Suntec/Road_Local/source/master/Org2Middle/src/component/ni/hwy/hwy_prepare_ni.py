@@ -12,11 +12,11 @@ class HwyPrepareNi(HwyPrepareRDF):
     Hwy Prepare (TomTom)
     '''
 
-    def __init__(self):
+    def __init__(self, itemname='HwyPrepareNi'):
         '''
         Constructor
         '''
-        HwyPrepareRDF.__init__(self, itemname='HwyPrepareNi')
+        HwyPrepareRDF.__init__(self, itemname)
 
     def _DoCreateTable(self):
         return 0

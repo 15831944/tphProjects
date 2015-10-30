@@ -1554,8 +1554,10 @@ CREATE TABLE highway_node_add_info
   ---------------------------------------------
   facility_num     SMALLINT not null,
   up_down          SMALLINT not null,
-  facility_id      SMALLINT not null,
+  facility_id      INTEGER not null,
   seq_num          SMALLINT not null DEFAULT 0,
+  dir_s_node       BIGINT not null,
+  dir_e_node       BIGINT not null,
   etc_antenna      SMALLINT not null DEFAULT 0,
   enter            SMALLINT not null DEFAULT 0,
   exit             SMALLINT not null DEFAULT 0,
@@ -1676,7 +1678,7 @@ CREATE TABLE highway_toll_info
   toll_class       smallint not null,
   class_name       character varying(5),
   up_down          SMALLINT not null,
-  facility_id	   SMALLINT not null,
+  facility_id	   INTEGER not null,
   tollgate_count   smallint not null,
   etc_antenna      smallint not null,
   enter            smallint not null,
@@ -1700,8 +1702,49 @@ CREATE TABLE highway_toll_info
   node_id          bigint not null,
   road_code        integer not null,
   road_seq         integer not null,
-  name             character varying(132),
+  name             character varying(4096),
   dummy_toll_node  bigint
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_node_add_info
+(
+  ic_no          integer,              -- NULL, when it is no toll facility
+  updown         integer not null,
+  facility_id    integer not null,
+  facilcls       smallint not null,
+  in_out         smallint not null,
+  link_lid       character varying(2048),
+  node_lid       character varying(2048),
+  add_node_id    bigint NOT NULL,
+  add_link_id    bigint not null,
+  dir_s_node     bigint not null,
+  dir_e_node     bigint not null,
+  name_kanji     character varying(4096),
+  name_yomi      character varying(4096),
+  pos_type       integer not null,
+  pos_type_name  character varying(32),
+  toll_flag      smallint not null     -- 1: toll, 0: No Toll
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_node_add_info_merged
+(
+  ic_no          integer,              -- NULL, when it is no toll facility
+  updown         integer not null,
+  facility_id    integer not null,
+  facilcls       smallint not null,
+  in_out         smallint not null,
+  link_lid       character varying(2048),
+  node_lid       character varying(2048),
+  add_node_id    bigint NOT NULL,
+  add_link_id    bigint not null,
+  dir_s_node     bigint not null,
+  dir_e_node     bigint not null,
+  facil_name     character varying(4096),
+  pos_type       integer not null,
+  pos_type_name  character varying(32),
+  toll_flag      smallint not null     -- 1: toll, 0: No Toll
 );
 
 ------------------------------------------------------------------------
@@ -1730,7 +1773,9 @@ create table highway_store_info
   Tuesday         smallint not null,
   Monday          smallint not null,
   seq_nm          smallint not null,
-  store_name      character varying
+  store_name      character varying,
+  priority        double precision,
+  service_kind    character varying
 );
 
 ------------------------------------------------------------------------
@@ -2334,7 +2379,8 @@ CREATE TABLE mid_temp_hwy_ic_path
    to_node_id     bigint not null,
    node_lid       character varying,
    link_lid       character varying,
-   path_type      character varying
+   path_type      character varying,
+   facil_name     character varying
 );
 
 ------------------------------------------------------------------------
@@ -2411,6 +2457,14 @@ CREATE TABLE mid_temp_hwy_service_road_path2
    link_lid        character varying not null,
    road_code       integer not null,
    updown_c        integer NOT NULL
+);
+
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_service_road_path_del
+(
+gid        integer not null primary key,
+node_lid   character varying
 );
 
 ------------------------------------------------------------------------
@@ -2533,6 +2587,17 @@ CREATE TABLE mid_temp_poi_link
 
 ------------------------------------------------------------------------
 --
+CREATE TABLE mid_temp_poi_closest_link
+(
+  poi_id        bigint not null primary key,
+  link_id       bigint not null,
+  dist          double precision not null,
+  s_length      double precision not null,
+  e_length      double precision not null
+);
+
+------------------------------------------------------------------------
+--
 CREATE TABLE mid_temp_sapa_store_info
 (
   poi_id             bigint not null,   -- SAPA poi id
@@ -2562,7 +2627,9 @@ CREATE TABLE hwy_store
   store_cat_id      character varying(4) DEFAULT '' NOT NULL,  -- '': No category
   sub_cat           character varying(8) DEFAULT '' NOT NULL,  -- '': No sub category
   store_chain_id    character varying(13) DEFAULT '' NOT NULL, -- '': No chain id
-  chain_name        character varying(254) DEFAULT ''
+  chain_name        character varying(254) DEFAULT '',
+  priority          double precision,
+  service_kind      character varying
 );
 
 ------------------------------------------------------------------------
@@ -2655,6 +2722,20 @@ CREATE TABLE mid_temp_hwy_sapa_info
  updown_c      integer not null,
  poi_id        bigint,
  sapa_name     CHARACTER VARYING(4096)
+);
+
+------------------------------------------------------------------------
+CREATE TABLE hwy_facil_position
+(
+  road_code      INTEGER NOT NULL,
+  road_seq       INTEGER NOT NULL,
+  updown_c       INTEGER NOT NULL,
+  facilcls_c     INTEGER,
+  inout_c        INTEGER,
+  tollcls_c      INTEGER,
+  facil_name     character varying,
+  link_id        bigint,
+  node_id        bigint
 );
 
 --------------------------------------------------------------------------------------------------------
@@ -2760,12 +2841,14 @@ as
 	select * from link_tbl
 );
 
+------------------------------------------------------------------------
 create table hwy_service_category_mapping
 (
    service        character varying(1024),
    genre          character varying(1024),
    service_name   character varying(1024),
-   category_id    bigint
+   category_id    bigint,
+   add_cat_id     integer
 );
 
 create table temp_jct_link_paths
@@ -2780,4 +2863,149 @@ create table temp_jct_change_to_ic
 (
 links bigint[],
 link_type  smallint
+);
+
+create table temp_sapa_link
+(
+gid           serial,
+link_array    bigint[]
+);
+
+CREATE TABLE hwy_tollgate
+(
+  road_code      integer not null,
+  road_seq       integer not null,
+  updown_c       integer not null,
+  facilcls_c     integer not null,
+  inout_c        integer,
+  node_id        bigint not null,
+  link_id        bigint not null, -- out link of tollgate
+  tollcls_c      integer,
+  facil_name     character varying(1024),
+  toll_name_flg  integer default(0),  -- 1: tollgate node name, 0: facililty name
+  path_type      character varying(10)
+);SELECT AddGeometryColumn('','hwy_tollgate','the_geom','4326','POINT',2)
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_ic_tollgate
+(
+  road_code    integer not null,
+  road_seq     integer not null,
+  updown_c     integer not null,
+  facilcls_c   integer not null,
+  inout_c      integer,
+  prev_link_id bigint,
+  node_id      bigint not null,
+  link_id      bigint not null, -- out link of toll
+  tollcls_c    integer,
+  facil_name   character varying(1024),
+  path_type    character varying(10)
+);SELECT AddGeometryColumn('','mid_temp_hwy_ic_tollgate','the_geom','4326','POINT',2)
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_ic_path_expand_node
+(
+  road_code     integer not null,
+  road_seq      integer not null,
+  facilcls_c    integer not null,
+  inout_c       integer not null,
+  node_id       bigint not null,
+  pass_node_id  bigint not null,
+  path_type     character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_ic_path_expand_link
+(
+  road_code      integer NOT NULL,
+  road_seq       integer NOT NULL,
+  facilcls_c     integer NOT NULL,
+  inout_c        integer NOT NULL,
+  node_id        bigint NOT NULL,
+  pass_link_id   bigint NOT NULL,
+  path_type      character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_inout_join_node
+(
+  node_id   bigint not null primary key
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_sapa_link
+(
+ gid           serial not null primary key,
+ road_code     integer not null,
+ road_seq      integer not null,
+ updown_c      integer not null,
+ link_ids      bigint[],
+ link_lid      character varying,
+ poi_id        bigint,
+ distance      double precision
+);
+
+------------------------------------------------------------------------
+CREATE TABLE temp_hwy_sapa_first_node
+(
+  road_code     integer,
+  road_seq      integer,
+  updown_c      integer,
+  node_id       bigint
+);
+
+CREATE TABLE temp_regulation_patch_tbl
+(
+ gid serial not null primary key,
+ str_geom varchar not null,
+ str_z varchar not null,
+ regulation_type integer,
+ car_type integer,
+ start_year integer,
+ start_month integer,
+ start_day integer,
+ start_hour integer,
+ start_minute integer,
+ end_year integer,
+ end_month integer,
+ end_day integer,
+ end_hour integer,
+ end_minute integer
+);
+
+CREATE TABLE temp_regulation_patch_node_tbl
+(
+ gid serial not null primary key,
+ node_list bigint[],
+ regulation_type integer,
+ car_type integer,
+ start_year integer,
+ start_month integer,
+ start_day integer,
+ start_hour integer,
+ start_minute integer,
+ end_year integer,
+ end_month integer,
+ end_day integer,
+ end_hour integer,
+ end_minute integer
+);
+
+CREATE TABLE temp_regulation_patch_link_tbl
+(
+ gid serial not null primary key,
+ link_list bigint[],
+ node_id bigint,
+ regulation_type integer,
+ car_type integer,
+ start_year integer,
+ start_month integer,
+ start_day integer,
+ start_hour integer,
+ start_minute integer,
+ end_year integer,
+ end_month integer,
+ end_day integer,
+ end_hour integer,
+ end_minute integer
 );

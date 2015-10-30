@@ -37,10 +37,11 @@ class rdb_hwy_node_add_info(ItemBase):
                     cal_gate, ticket_gate, nest,
                     uturn, not_guide, normal_toll,
                     etc_toll, etc_section, "name",
-                    tile_id, node_geom, link_geom)
+                    tile_id, node_geom, link_geom,
+                    dir, dir_s_node, dir_e_node)
         (
-        SELECT tile_link_id, tile_node_id,
-               rdb_get_start_end_flag(link_id, node_id),
+        SELECT tile_link_id, c.tile_node_id,
+               rdb_get_start_end_flag(a.link_id, node_id),
                toll_flag, no_toll_money, facility_num,
                up_down, facility_id, a.seq_num,
                etc_antenna, enter, exit,
@@ -48,14 +49,26 @@ class rdb_hwy_node_add_info(ItemBase):
                un_open, dummy, toll_type_num,
                non_ticket_gate, check_gate, single_gate,
                cal_gate, ticket_gate, nest,
-               uturn, not_guide, normal_toll,
+               a.uturn, not_guide, normal_toll,
                etc_toll, etc_section, "name",
-               a.tile_id, node_geom, link_geom
+               a.tile_id, node_geom, link_geom,
+               (case
+               when dir_s_node = d.s_node and dir_e_node = d.e_node then 0 --正
+               when dir_s_node = d.e_node and dir_e_node = d.s_node then 1 --逆
+               else NULL end) as dir,
+               e.tile_node_id as dir_s_node,
+               f.tile_node_id as dir_e_node
           FROM highway_node_add_info as a
           LEFT JOIN rdb_tile_link as b
           ON a.link_id = b.old_link_id
           left join rdb_tile_node as c
           ON a.node_id = c.old_node_id
+          LEFT JOIN link_tbl as d
+          ON a.link_id = d.link_id
+          left join rdb_tile_node as e
+          ON a.dir_s_node = e.old_node_id
+          left join rdb_tile_node as f
+          ON a.dir_e_node = f.old_node_id
           order by a.tile_id, tile_link_id, a.seq_num
         );
         """

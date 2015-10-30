@@ -34,7 +34,10 @@ from component.rdf.hwy.hwy_graph_rdf import HwyGraphRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_REGULATION
 from component.rdf.hwy.hwy_path_graph_rdf import HwyPathGraphRDF
 from component.jdb.hwy.hwy_data_mng import HwyFacilInfo
-from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY
+from component.jdb.hwy.hwy_data_mng import TollFacilInfo
+from component.rdf.hwy.hwy_def_rdf import HWY_INVALID_FACIL_ID_17CY, HWY_FALSE
+from component.jdb.hwy.hwy_node_addinfo import HwyTollType
+from component.rdf.hwy.hwy_node_addinfo_rdf import AddInfoDataRDF
 NODE_TOLL_FLAG = 1  # 收费站
 
 
@@ -101,6 +104,10 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.__ic_list = []
         self._graph = None
         self._path_graph = None
+        self.__link_fwd_bwd_dict = {}  # link的前方设施/后方设施
+        self.__toll_facil_dict = {}
+        self._sapa_postion_dict = {}
+        self._add_link_dict = {}
 
     def initialize(self):
         self._graph = HwyGraphRDF()  # 高速link图
@@ -585,16 +592,17 @@ class HwyDataMngRDF(component.component_base.comp_base):
     def load_tollgate(self):
         '''加载收费站'''
         sqlcmd = """
-        SELECT node_id, node_name
+        SELECT distinct node_id, toward_name
           FROM node_tbl
-          where toll_flag = %s;
+          LEFT JOIN towardname_tbl
+          ON node_tbl.node_id = towardname_tbl.nodeid and
+             guideattr = 7 and namekind = 2
+          where toll_flag = 1;
         """
-        params = (NODE_TOLL_FLAG,)
-        for node_id, node_name in self.get_batch_data(sqlcmd, params):
-            if node_id in self._graph:
-                data = {HWY_TOLL_FLAG: NODE_TOLL_FLAG,
-                        HWY_NODE_NAME: node_name}
-                self._graph.add_node(node_id, data)
+        for node_id, node_name in self.get_batch_data(sqlcmd):
+            data = {HWY_TOLL_FLAG: NODE_TOLL_FLAG,
+                    HWY_NODE_NAME: node_name}
+            self._graph.add_node(node_id, data)
 
     def load_org_facil_id(self):
         '''加载元设施id'''
@@ -1171,8 +1179,220 @@ class HwyDataMngRDF(component.component_base.comp_base):
         row = self.pg.fetchone()
         return row[0]
 
+    def is_sapa_pos_node(self, nodeid):
+        '''判断nodeid是不是SAPA设施所在点'''
+        return False
+        if not self.__sapa_dict:
+            self.__load_sapa_postion()
+        if nodeid in self.__sapa_dict:
+            return True
+        else:
+            return False
+
+    def is_in_hwy_mapping(self, link_id):
+        if not self.__link_fwd_bwd_dict:
+            self._load_link_fwd_bwd_facil()
+        if link_id in self.__link_fwd_bwd_dict:
+            return True
+        return False
+
+    def get_link_fwd_bwd_facil(self, link_id):
+        '''取得link的前后设施情报。'''
+        if not self.__link_fwd_bwd_dict:
+            self._load_link_fwd_bwd_facil()
+        bwd_fwd_facil = self.__link_fwd_bwd_dict.get(link_id)
+        if bwd_fwd_facil:
+            bwd_list = bwd_fwd_facil[0]
+            fwd_list = bwd_fwd_facil[1]
+            return bwd_list, fwd_list
+        else:
+            return [], []
+
+    def _load_link_fwd_bwd_facil(self):
+        sqlcmd = """
+        select a.link_id,
+               array_agg(bwd_node_id) as bwd_node_ids,
+               array_agg(bwd_ic_no) as bwd_ic_nos,
+               array_agg(bwd_facility_id) as bwd_facility_ids,
+               array_agg(fwd_node_id) as fwd_node_ids,
+               array_agg(fwd_ic_no) as fwd_ic_nos,
+               array_agg(bwd_facility_id) as fwd_facility_ids,
+               array_agg(path_type) as path_types,
+               link_type
+          from mid_temp_hwy_ic_link_mapping as a
+          LEFT JOIN link_tbl
+          ON a.link_id = link_tbl.link_id
+          group by a.link_id, link_type
+        """
+        self.pg.execute2(sqlcmd)
+        data = self.pg.fetchall2()
+        for info in data:
+            link_id = info[0]
+            bwd_node_ids, bwd_ic_nos, bwd_facility_ids = info[1:4]
+            fwd_node_ids, fwd_ic_nos, fwd_facility_ids = info[4:7]
+            path_types, link_type = info[7:9]
+            # 后方设施及料金
+            bwd_list = []
+            fwd_list = []
+            for (bwd_node_id, bwd_ic_no, bwd_facility_id,
+                 fwd_node_id, fwd_ic_no, fwd_facility_id, path_type) in \
+                zip(bwd_node_ids, bwd_ic_nos, bwd_facility_ids,
+                    fwd_node_ids, fwd_ic_nos, fwd_facility_ids, path_types):
+                bwd = {'node_id': bwd_node_id,
+                       'ic_no': bwd_ic_no,
+                       'facility_id': bwd_facility_id,
+                       'path_type': path_type}
+                if bwd not in bwd_list:
+                    bwd_list.append(bwd)
+                fwd = {'node_id': fwd_node_id,
+                       'ic_no': fwd_ic_no,
+                       'facility_id': fwd_facility_id,
+                       'path_type': path_type}
+                if fwd not in fwd_list:
+                    fwd_list.append(fwd)
+            self.__link_fwd_bwd_dict[link_id] = [bwd_list, fwd_list, link_type]
+
     def load_signpost(self):
         return
+
+    def get_toll_facil_by_link(self, link_id):
+        if not self.__toll_facil_dict:
+            self._load_toll_facil()
+        return self.__toll_facil_dict[link_id]
+
+    def _load_toll_facil(self):
+        '''加载料金信息。'''
+        self.log.info('Start Load Toll Facil Info.')
+        sqlcmd = """
+        SELECT link_id,
+               array_agg(node_id) as node_ids,
+               array_agg(road_code) as road_codes,
+               array_agg(road_seq) as road_seq,
+               array_agg(updown_c) as updown_cs,
+               array_agg(inout_c) as inout_cs,
+               array_agg(facilcls_c) as facilcls_cs,
+               array_agg(facil_name) as facil_names
+          FROM hwy_tollgate
+          GROUP BY link_id;
+        """
+        self.pg.execute2(sqlcmd)
+        data = self.pg.fetchall2()
+        for info in data:
+            link_id = info[0]
+            node_ids = info[1]
+            if set(node_ids) > 1:
+                self.log.error('Num of Node > 1. toll_node=%s' % node_ids)
+            node_id = node_ids[0]
+            toll_info_list = []
+            for (roadcode, roadpoint, updown,
+                 inout, facilcls, toll_name) in zip(*info[2:]):
+                toll_info = TollFacilInfoRDF(roadcode, roadpoint, facilcls,
+                                             updown, node_id, inout,
+                                             toll_name)
+                toll_info_list.append(toll_info)
+            self.__toll_facil_dict[link_id] = toll_info_list
+        self.log.info('End Load Toll Facil Info.')
+
+    def get_sapa_postion(self, road_code, road_seq, updown):
+        if not self._sapa_postion_dict:
+            self._load_sapa_poi_link()
+        key = road_code, road_seq, updown
+        position = self._sapa_postion_dict.get(key)
+        if position:
+            node_id, link_id = position
+            return node_id, link_id
+        else:
+            return None, None
+
+    def _load_sapa_poi_link(self):
+        sqlcmd = """
+        SELECT road_code, road_seq, updown_c,
+               node_id, link_id
+          FROM hwy_facil_position
+          ORDER BY road_code, road_seq, updown_c;
+        """
+        for (road_code, road_seq, updown_c, node_id,
+             link_id) in self.get_batch_data(sqlcmd):
+            key = road_code, road_seq, updown_c
+            self._sapa_postion_dict[key] = (node_id, link_id)
+
+    def is_add_info_link(self, link_id):
+        # if not self._add_link_dict:
+        #    self.load_add_info_link()
+        if link_id in self._add_link_dict:
+            return True
+        return False
+
+    def load_add_info_link(self):
+        sqlcmd = """
+        select distinct add_link_id
+          from mid_hwy_node_add_info;
+        """
+        for row in self.get_batch_data(sqlcmd):
+            add_link_id = row[0]
+            self._add_link_dict[add_link_id] = None
+
+    def _get_add_info_by_link(self, link_id):
+        sqlcmd = """
+        SELECT link_id, node_id, toll_flag,  -- [0:3]
+               no_toll_money, facility_num, up_down, -- [3:6]
+               facility_id, seq_num, dir_s_node, dir_e_node,  -- [3:10]
+               etc_antenna, enter, exit, jct, -- [10:14]
+               sapa, gate, un_open, dummy,  -- [14:18]
+               toll_type_num, non_ticket_gate, check_gate,single_gate,--[18:22]
+               cal_gate, ticket_gate, nest, uturn, -- [22:26]
+               not_guide, normal_toll, etc_toll, etc_section, -- [26:30]
+               name, tile_id, no_toll_flag  -- [30:33]
+          FROM highway_node_add_info
+          where link_id = %s
+        """
+        self.pg.execute2(sqlcmd, (link_id,))
+        add_info_list = []
+        for row in self.pg.fetchall2():
+            add_link_id, add_node_id, toll_flag= row[0:3]
+            no_toll_money, facility_num, up_down = row[3:6]
+            facility_id, seq_num, dir_s_node, dir_e_node = row[6:10]
+            toll_type = HwyTollType()
+            (toll_type.etc_antenna, toll_type.enter,
+             toll_type.exit, toll_type.jct,
+             toll_type.sa_pa, toll_type.gate,
+             toll_type.unopen, toll_type.dummy_facil,
+             toll_type_num, toll_type.non_ticket_gate,
+             toll_type.check_gate, toll_type.single_gate,
+             toll_type.cal_gate, toll_type.ticket_gate,
+             toll_type.nest, toll_type.uturn,
+             toll_type.not_guide, toll_type.normal_toll,
+             toll_type.etc_toll, toll_type.etc_section) = row[10:30]
+            facil_name, tile_id, no_toll_flag = row[30:33]
+            add_info = AddInfoDataRDF(add_link_id, add_node_id,
+                                      toll_flag, no_toll_money,
+                                      facility_num, up_down,
+                                      facility_id, facil_name,
+                                      seq_num, toll_type_num,
+                                      toll_type, tile_id,
+                                      dir_s_node, dir_e_node,
+                                      no_toll_flag)
+            add_info_list.append(add_info)
+        return add_info_list
+
+
+# =============================================================================
+# TollFacilInfo(料金信息)
+# =============================================================================
+class TollFacilInfoRDF(TollFacilInfo):
+    def __init__(self, roadcode, roadpoint, facilcls,
+                 updown, nodeid, inout,
+                 facil_name, link_list):
+        '''
+        Constructor
+        '''
+        TollFacilInfo.__init__(self, roadcode, roadpoint, facilcls,
+                               updown, nodeid, inout,
+                               facil_name, name_yomi=None, tollclass=HWY_FALSE,
+                               dummytoll=HWY_FALSE, tollfunc_c=HWY_FALSE,
+                               guide_f=HWY_FALSE, tollgate_lane=HWY_FALSE,
+                               dummyfacil=HWY_FALSE
+                               )
 
 # 加洲
 California_BOX = """ WHERE the_geom && ST_SetSRID(ST_MakeBox2D(ST_Point(-119.040,34.586),

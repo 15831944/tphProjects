@@ -37,7 +37,8 @@ class comp_node_zenrin(component.component_base.comp_base):
         
         sqlcmd='''
             insert into node_Tbl
-            (node_id,light_flag,stopsign_flag,toll_flag,bifurcation_flag,node_lid,z_level,the_geom,org_boundary_flag)
+            (node_id,light_flag,stopsign_flag,toll_flag,bifurcation_flag,node_lid,z_level,
+            the_geom, feature_string, feature_key, org_boundary_flag)
             select a.node_id,
                     case when b.meshcode is null then 0 else 1 end as light_flag,
                     0 as stopsign_flag,
@@ -45,6 +46,8 @@ class comp_node_zenrin(component.component_base.comp_base):
                     case when d.meshcode is null then 0 else 1 end as bifurcation_flag,
                     array_to_string(e.linkid_arr,'|') as node_lid,
                     0 as z_level,a.the_geom_4326 ,
+                    array_to_string(ARRAY[a.meshcode, a.nodeno::varchar],',') as feature_string,
+                    md5(array_to_string(ARRAY[a.meshcode, a.nodeno::varchar],',')) as feature_key,
                     case when crosskind=3 then 1 else 0 end as org_boundary_flag
             from
             (

@@ -210,7 +210,7 @@ class CCheckCrVPeriod(platform.TestCase.CTestCase):
                 from org_cr
                 where vperiod != '' 
                       and 
-                      vperiod not similar to '\\[\\(h(\\d)*(m(\\d)*)*\\)\\(h(\\d)*(m(\\d)*)*\\)\\](\\*\\((t(\\d)*)*\\))*'
+                      vperiod not similar to '(\\[\\((y(\\d)*)*M(\\d)*(d(\\d)*)*\\)\\((y(\\d)*)*M(\\d)*(d(\\d)*)*\\)\\])*((\\*)*\\[\\(h(\\d)*(m(\\d)*)*\\)\\(h(\\d)*(m(\\d)*)*\\)\\](\\*\\((t(\\d)*)*\\))*)*'
                 """
         #sqlcmd = sqlcmd.replace('\\', '\\\\')
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)

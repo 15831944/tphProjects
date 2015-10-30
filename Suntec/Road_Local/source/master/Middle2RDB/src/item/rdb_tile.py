@@ -644,8 +644,45 @@ class rdb_tile(ItemBase):
         self.CreateTable2('id_fund_node')
         self.CreateTable2('id_fund_link')
         
-        if common.rdb_common.GetPath('get_id_fund_batch'):
-            os.system(common.rdb_common.GetPath('get_id_fund_batch'))
+        # try to get id_fund from base_db...
+        if common.rdb_common.GetPara('base_db'):
+            # get paras of pg_dump and pg_restore
+            base_db_para = common.rdb_common.GetPara('base_db')
+            src_host = self.__analyzeDBParas(base_db_para).get('host')
+            src_dbname = self.__analyzeDBParas(base_db_para).get('dbname')
+            
+            current_db_para = common.rdb_common.GetPara('db1')
+            dst_host = self.__analyzeDBParas(current_db_para).get('host')
+            dst_dbname = self.__analyzeDBParas(current_db_para).get('dbname')
+            
+            cache_path = os.path.abspath(common.rdb_common.GetPath('cache'))
+            backup_file = os.path.join(cache_path, '%s_id_fund.backup' % src_dbname)
+            
+            paras = {
+                     'set src_host=': src_host,
+                     'set src_dbname=': src_dbname,
+                     'set dst_host=': dst_host,
+                     'set dst_dbname=': dst_dbname,
+                     'set backup_file=': backup_file,
+                     }
+            
+            # write batch file of pg_dump and pg_restore
+            get_id_fund_sample = os.path.join(cache_path, 'get_id_fund.bat.sample')
+            get_id_fund_batch = os.path.join(cache_path, 'get_id_fund.bat')
+            all_cmd = open(get_id_fund_sample).readlines()
+            file = open(get_id_fund_batch, 'w')
+            for cmd in all_cmd:
+                for (para_name, para_value) in paras.items():
+                    if cmd.find(para_name) == 0:
+                        cmd = ''.join([para_name, para_value, os.linesep])
+                        break
+                file.write(cmd)
+            file.close()
+            
+            # execute batch file of pg_dump and pg_restore
+            execute_result = os.system(get_id_fund_batch)
+            if execute_result != 0:
+                raise Exception, 'fail to get id_fund from %s.%s...' % (src_host,src_dbname)
         
         self.CreateIndex2('id_fund_node_node_id_idx')
         self.CreateIndex2('id_fund_node_tile_id_idx')
@@ -658,6 +695,15 @@ class rdb_tile(ItemBase):
         self.CreateIndex2('id_fund_link_the_geom_idx')
         
         self.log.info("Getting id fund end.")
+    
+    def __analyzeDBParas(self, db_para_string):
+        paras = {}
+        for one_para_string in db_para_string.split(' '):
+            one_para = one_para_string.split('=')
+            para_name = one_para[0]
+            para_value = one_para[1].strip("'")
+            paras[para_name] = para_value
+        return paras
     
     def __updateIDFund(self):
         self.log.info("Updating id fund...")

@@ -4,6 +4,7 @@ Created on 2015-3-3
 
 @author: hcz
 '''
+from common import cache_file
 from component.jdb.hwy.hwy_graph import MIN_CUT_OFF
 from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
@@ -58,6 +59,7 @@ class HwyMappingRDF(HwyMapping):
     def _make_main_link_mapping(self):
         '''本线link的Mapping'''
         self.log.info('Start Making Main Link Mapping.')
+        file_obj = cache_file.open('temp_highway_mapping_main')  # 创建临时文件
         self.pg.connect1()
         for road_code, updown, path in self.data_mng.get_road_code_path():
             bwd_ic_nos = []  # 后方(车流方向)
@@ -107,15 +109,17 @@ class HwyMappingRDF(HwyMapping):
                         road_maps.append(link_map)
                     section_maps = []
             if not fwd_ic_no:  # 最后一段线路有没有前方设施
-                self.log.error('No Forward IC. road_code=%s' % road_code)
-            self._insert_mapping(road_maps)  # 保存整条线路的Link的Mapping情报
-        self.pg.commit1()
+                self.log.error('Main_road: No Forward IC. road_code=%s'
+                               % road_code)
+            self._insert_mapping(road_maps, file_obj)  # 保存整条线路的Link的Mapping情报
+        self._store_hwy_mapping(file_obj)
         self.CreateIndex2('highway_mapping_link_id_idx')
         self.log.info('End Making Main Link Mapping.')
 
     def _make_ic_link_mapping(self):
         '''IC(SAPA, JCT, IC) Link的mapping'''
         self.log.info('Start Make IC Link Mapping.')
+        file_obj = cache_file.open('temp_highway_mapping_ic')  # 创建临时文件
         # 做成每条IC Link的每个前后设施。
         self._make_ic_link_temp_mapping()
         self.pg.connect1()
@@ -178,7 +182,8 @@ class HwyMappingRDF(HwyMapping):
                                               fwd_ic, bwd_ic,
                                               'IC', tile_id)
                     link_maps.append(link_map)
-            self._insert_mapping(link_maps)
+            self._insert_mapping(link_maps, file_obj)
+        self._store_hwy_mapping(file_obj)
         self.pg.commit1()
         self.log.info('End Make IC Link Mapping.')
 
@@ -216,7 +221,7 @@ class HwyMappingRDF(HwyMapping):
         # SAPA > JCT > IC; 另外, 同等级时, 父 > 子
         ic_list, facils = self._get_facils(node_id, ic_nos)
         if not facils:
-            print node_id
+            self.log.warning('No Facility. node=%s' % node_id)
         max_facil = facils[0]
         # 取得等级最高的一个设施及ic_no
         for facil in facils[1:]:
@@ -248,9 +253,9 @@ class HwyMappingRDF(HwyMapping):
                         parent = self._get_parent_facil(max_facil, facil)
                         if parent:
                             max_facil = parent
-#                         else:
-#                             self.log.warning('No Parent. link=%s,node=%s'
-#                                              % (self.link_id, node_id))
+                        else:
+                            self.log.warning('No Parent. link=%s,node=%s'
+                                             % (self.link_id, node_id))
             elif facil.facilcls in (HWY_IC_TYPE_RAMP, HWY_IC_TYPE_IC):
                 if (max_facil.facilcls in (HWY_IC_TYPE_SA, HWY_IC_TYPE_PA,
                                            HWY_IC_TYPE_JCT)):
@@ -259,19 +264,14 @@ class HwyMappingRDF(HwyMapping):
                     if max_facil.facilcls == facil.facilcls:
                         # 取得二者中的父设施
                         parent = self._get_parent_facil(max_facil, facil)
-#                         max_ic = ic_list[facils.index(max_facil)]
-#                         temp_ic = ic_list[facils.index(facil)]
-#                         if (max_facil.inout == INOUT_TYPE_OUT and
-#                             max_ic < temp_ic):
-#                             print max_ic, temp_ic
-#                         if (max_facil.inout == INOUT_TYPE_IN and
-#                             max_ic > temp_ic):
-#                             print max_ic, temp_ic
                         if parent:
                             max_facil = parent
                         else:
-                            self.log.warning('No Parent. link=%s,node=%s'
-                                             % (self.link_id, node_id))
+                            # 取二者中，设施号较小的。
+                            max_facil = self._get_small_facil(max_facil,
+                                                              facil)
+                            # self.log.warning('No Parent facil. link=%s,node=%s'
+                            #                  % (self.link_id, node_id))
                     else:
                         self.log.error('IC Type: link=%s, node=%s,'
                                        'facilcls=%s, facilcls=%s'
@@ -364,7 +364,31 @@ class HwyMappingRDF(HwyMapping):
 
     def _get_parent_facil(self, facil_1, facil_2):
         '''判断二者谁是父设施，并返回。如果都不是，返回None。'''
-        return None
+        hwy_data = self.data_mng
+        parents = hwy_data.get_parent_facil(facil_1.road_code,
+                                            facil_1.road_point,
+                                            facil_1.updown,
+                                            facil_1.node_id)
+        if not parents:
+            parents = hwy_data.get_parent_facil(facil_2.road_code,
+                                                facil_2.road_point,
+                                                facil_2.updown,
+                                                facil_2.node_id)
+            if not parents:
+                return None
+        parent = parents[0]
+        if facil_2.road_point == parent.road_point:
+            return facil_2
+        elif facil_1.road_point == parent.road_point:
+            return facil_1
+        else:
+            return None
+
+    def _get_small_facil(self, facil_1, facil_2):
+        if facil_1.road_point < facil_2.road_point:
+            return facil_1
+        else:
+            facil_2
 
     def _get_ic_link_fb_ic(self, bwd_ic_nos, fwd_ic_nos):
         '''取得前后设施'''
@@ -448,7 +472,7 @@ class HwyMappingRDF(HwyMapping):
         return True
         sqlcmd = '''
         SELECT count(link_id)
-          FROM mid_hwy_ic_link_temp_mapping
+          FROM mid_temp_hwy_ic_link_mapping
           where link_id not in (
                 SELECT link_id
                   FROM highway_mapping)
@@ -465,19 +489,22 @@ class HwyMappingRDF(HwyMapping):
         self.CreateTable2('mid_temp_hwy_ic_link_mapping')
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_link_mapping(
-                    bwd_node_id, bwd_ic_no, fwd_node_id,
-                    fwd_ic_no, link_id, path_type)
+                    bwd_node_id, bwd_ic_no, bwd_facility_id,
+                    fwd_node_id, fwd_ic_no, fwd_facility_id,
+                    link_id, path_type)
         (
-        SELECT distinct bwd_node_id, bwd_ic_no,
-               fwd_node_id, fwd_ic_no,
+        SELECT distinct bwd_node_id, bwd_ic_no, bwd_facility_id,
+               fwd_node_id, fwd_ic_no, fwd_facility_id,
                unnest(regexp_split_to_array(link_lid, E'\\,+')
                      )::bigint as link_id,
-               'IC' as path_type
+               path_type
           FROM (
-            -- SAPA/JCT OUT
+            -- SAPA OUT/JCT OUT/ALL Uturn
             SELECT a.node_id as bwd_node_id, bwd.ic_no as bwd_ic_no,
                    to_node_id as fwd_node_id, fwd.ic_no as fwd_ic_no,
-                   link_lid
+                   bwd.facility_id as bwd_facility_id,
+                   fwd.facility_id as fwd_facility_id,
+                   link_lid, path_type
               FROM mid_temp_hwy_ic_path as a
               LEFT JOIN mid_hwy_ic_no as bwd  -- Get Backward IC NO
               ON a.road_code = bwd.road_code and
@@ -489,14 +516,18 @@ class HwyMappingRDF(HwyMapping):
               ON a.facilcls_c = fwd.facilclass_c and
                  fwd.inout_c = 1 and  -- IN
                  a.to_node_id = fwd.node_id
-              WHERE a.facilcls_c in (1, 2, 3) and a.inout_c = 2 -- SAPA/JCT OUT
+              WHERE (a.facilcls_c in (1, 2, 3) or
+                     a.facilcls_c <> 10 and path_type = 'UTURN')
+                    and a.inout_c = 2 -- SAPA/JCT OUT
                     and link_lid <> '' and link_lid is not null
             UNION
             ---------------------------------------------------------------
             -- IC/Ramp OUT
             SELECT a.node_id as bwd_node_id, bwd.ic_no as bwd_ic_no,
                    NULL::bigint as fwd_node_id, NULL::bigint as fwd_ic_no,
-                   link_lid
+                   bwd.facility_id as bwd_facility_id,
+                   NULL::bigint as fwd_facility_id,
+                   link_lid, path_type
               FROM mid_temp_hwy_ic_path as a
               LEFT JOIN mid_hwy_ic_no as bwd  -- Get Backward IC NO
               ON a.road_code = bwd.road_code and
@@ -505,13 +536,16 @@ class HwyMappingRDF(HwyMapping):
                  a.inout_c = bwd.inout_c and
                  a.node_id = bwd.node_id
               WHERE a.facilcls_c in (5, 7) and a.inout_c = 2  -- IC/Ramp OUT
+                    and path_type <> 'UTURN'
                     and link_lid <> '' and link_lid is not null
             UNION
             ---------------------------------------------------------------
             -- IC/Ramp IN, (IN's Path is reverse.)
             SELECT NULL::bigint as bwd_node_id, NULL::bigint as bwd_ic_no,
                    a.node_id as fwd_node_id, fwd.ic_no as fwd_ic_no,
-                   link_lid
+                   NULL::bigint bwd_facility_id,
+                   fwd.facility_id as fwd_facility_id,
+                   link_lid, path_type
               FROM mid_temp_hwy_ic_path as a
               LEFT JOIN mid_hwy_ic_no as fwd  -- Get Backward IC NO
               ON a.road_code = fwd.road_code and
@@ -520,6 +554,7 @@ class HwyMappingRDF(HwyMapping):
                  a.inout_c = fwd.inout_c and
                  a.node_id = fwd.node_id
               WHERE a.facilcls_c in (5, 7) and a.inout_c = 1  -- IC/Ramp IN
+                    and path_type <> 'UTURN'
                     and link_lid <> '' and link_lid is not null
           ) as c
           ORDER BY link_id
@@ -601,7 +636,7 @@ class HwyMappingRDF(HwyMapping):
                     bwd_ic = self._get_service_road_bwd_ic_no(node_id,
                                                               road_code)
                     if not bwd_ic:
-                        self.log.error('No Backward IC. node_id=%s' % node_id)
+                        self.log.error('Service_road:No Backward IC. node_id=%s' % node_id)
                         continue
                     bwd_ic_nos = [bwd_ic]
                     ic_info = self.data_mng.get_ic(bwd_ic)
@@ -612,7 +647,8 @@ class HwyMappingRDF(HwyMapping):
                     fwd_ic = self._get_service_road_fwd_ic_no(to_node_id,
                                                               road_code)
                     if not fwd_ic:
-                        self.log.error('No forward IC. node_id=%s' % node_id)
+                        self.log.error('Service_road: No forward IC.'
+                                       ' node_id=%s' % node_id)
                         continue
                     fwd_ic_nos = [fwd_ic]
                     ic_info = self.data_mng.get_ic(fwd_ic)
@@ -714,7 +750,7 @@ class HwyMappingRDF(HwyMapping):
             fwd_ic = self.data_mng.get_main_link_fb_facil(link_id,
                                                           False)
             if not fwd_ic:
-                self.log.error('No Forward IC No. link_id=%s.'
+                self.log.error('service_road: No Forward IC NO. link_id=%s.'
                                % link_id)
             else:
                 return fwd_ic
@@ -834,3 +870,37 @@ class HwyMappingRDF(HwyMapping):
         INSERT INTO highway_not_hwy_model_link(link_id) VALUES(%s);
         """
         self.pg.execute1(sqlcmd, (link_id,))
+
+    def _insert_mapping(self, link_maps, file_obj):
+        if not file_obj:
+            self.log.error('file_obj is none.')
+            return
+        for link_map in link_maps:
+            if not link_map.link_id:
+                print link_map.forward_ic_no, link_map.backward_ic_no
+                continue
+            params = (link_map.road_kind,
+                      link_map.ic_count,
+                      link_map.road_no,
+                      link_map.display_class,
+                      link_map.link_id,
+                      link_map.forward_ic_no,
+                      link_map.backward_ic_no,
+                      link_map.path_type,
+                      link_map.tile_id)
+            file_obj.write('%d\t%d\t%d\t%d\t%d\t'
+                           '%d\t%d\t%s\t%d\n' % params)
+
+    def _store_hwy_mapping(self, file_obj):
+        # ## 把名称导入数据库
+        if file_obj:
+            file_obj.seek(0)
+            self.pg.copy_from2(file_obj, 'highway_mapping',
+                               columns=['road_kind', 'ic_count',
+                                        'road_no', 'display_class',
+                                        'link_id', 'forward_ic_no',
+                                        'backward_ic_no', 'path_type',
+                                        'tile_id'])
+            self.pg.commit2()
+            cache_file.close(file_obj, True)
+            file_obj = None

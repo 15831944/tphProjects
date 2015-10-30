@@ -77,6 +77,8 @@ class comp_link_mmi(component.component_base.comp_base):
                     access, 
                     extend_flag, 
                     etc_only_flag, 
+                    feature_string, 
+                    feature_key, 
                     the_geom
                     ) 
                 select 
@@ -107,6 +109,8 @@ class comp_link_mmi(component.component_base.comp_base):
                         null as access, 
                         1 as extend_flag, 
                         0 as etc_only_flag, 
+                        feature_string,
+                        feature_key,
                         the_geom
                   from 
                   (
@@ -137,6 +141,8 @@ class comp_link_mmi(component.component_base.comp_base):
                         n.name     as road_name,                          -- road_name
                         s.shield   as road_number,                        -- road_number
                         ST_Length_Spheroid(a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length,
+                        a.id::varchar as feature_string,
+                        md5(a.id::varchar) as feature_key,
                         ST_LineMerge(a.the_geom) as the_geom
                    from org_city_nw_gc_polyline             as a
               left join org_city_nw_gc_extended_polyline    as e

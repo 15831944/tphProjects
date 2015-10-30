@@ -27,7 +27,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
         return 0
     
     def _Do(self):
-        self._loadPOICategory()
+        self._loadPOICategory_ni()
         return 0
     
     def _loadBrandIcon(self):                            
@@ -51,7 +51,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
         self.log.info('make temp_poi_category...')
         category_file_path = common.config.CConfig.instance().getPara('POI_Code')
         if category_file_path:
-            self.log.info('make temp_poi_category...')
+#            self.log.info('make temp_poi_category...')
             self.CreateTable2('temp_poi_category')
             for line in open(category_file_path):
                 line = line.strip()
@@ -72,8 +72,50 @@ class comp_guideinfo_building(component.component_base.comp_base):
                          '''  % string
     
                 self.pg.execute(sqlcmd, fields)
-            self.pg.commit()                                      
+            self.pg.commit() 
+            
+                                                 
+    def _loadPOICategory_ni(self):
+        self.log.info('make temp_poi_category...')
+        category_file_code_path = common.config.CConfig.instance().getPara('POI_category_code')
+        category_file_name_path = common.config.CConfig.instance().getPara('POI_category_name')
         
+        self.log.info('make temp_poi_category_code...')
+        self.__loadCategory_code_name(category_file_code_path,'code')
+        
+        self.log.info('make temp_poi_category_name...')
+        self.__loadCategory_code_name(category_file_name_path,'name')
+
+            
+            
+    def __loadCategory_code_name(self,category_file_path,types):
+        
+        if category_file_path:
+            table_name = 'temp_poi_category_' + types
+            self.CreateTable2(table_name)
+            for line in open(category_file_path):
+                line = line.strip()
+                if line[0] == '#':
+                    continue
+    
+                fields = line.split(';')
+                
+                lens = len(fields)
+                
+                for i in range(lens):
+                    if fields[i] in ('','null') :
+                        fields[i]= None
+                
+                string = '%s,'*(lens-1)+'%s'
+                sqlcmd = '''
+                          insert into  %s  values(%s);
+                         '''  % (table_name,string)
+    
+                self.pg.execute(sqlcmd, fields)  
+            self.pg.commit() 
+        
+        
+              
   
     def _loadCategoryPriority(self):
         self.log.info('make temp_category_priority...')

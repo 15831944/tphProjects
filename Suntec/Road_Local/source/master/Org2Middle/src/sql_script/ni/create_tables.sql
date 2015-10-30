@@ -90,6 +90,37 @@ create table temp_poi_category
   name  varchar
 );
 
+
+create table temp_poi_category_code
+(
+  gen1 integer NOT NULL,
+  gen2 integer NOT NULL,
+  gen3 integer NOT NULL,
+  level smallint NOT NULL,
+  genre_is_brand character(1),
+  importance smallint,
+  genre_type varchar,
+  org_code1 character varying(28),
+  org_code2 character varying(28),
+  chaincode character varying(28),
+  per_code integer NOT NULL 
+
+);
+
+
+create table temp_poi_category_name
+(
+  per_code  integer NOT NULL,
+  name_id   integer,
+  nametype  varchar,
+  name_lang varchar,
+  name      varchar,
+  tr_lang   varchar,
+  tr_name   varchar,
+  phoneme_id  integer
+);
+
+
 create table temp_brand_icon
 (
     brandname    varchar(128) not null default ''
@@ -308,4 +339,27 @@ id bigint,
 namekind integer,
 guideattr integer,
 towardname varchar
+);
+
+------------------------------------------------------------------------
+CREATE TABLE ni_temp_poi_category
+(
+  per_code      bigint not null,
+  is_brand      character varying,
+  gen1          integer,
+  gen2          integer,
+  gen3          integer,
+  level         smallint,
+  name          character varying,
+  genre_type    character varying,
+  org_code1     character varying,
+  org_code2     character varying,
+  chaincode     character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_exit_name_ni
+(
+  junction_id   bigint not null primary key,
+  name          character varying
 );

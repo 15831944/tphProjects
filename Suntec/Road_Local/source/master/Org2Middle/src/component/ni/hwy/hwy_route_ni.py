@@ -4,12 +4,20 @@ Created on 2015-7-8
 
 @author: road
 '''
+import json
 from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF_HKG
 from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_2000M
 from component.rdf.hwy.hwy_def_rdf import ROUTE_DISTANCE_2500M
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_CONN_TYPE_NONE
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_CONN_TYPE_S
 from component.rdf.hwy.hwy_def_rdf import HWY_PATH_CONN_TYPE_SE
+from component.default.multi_lang_name import NAME_TYPE_OFFICIAL
+from component.default.multi_lang_name import NAME_TYPE_ROUTE_NUM
+from component.default.multi_lang_name import NAME_TYPE_SHIELD
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_LENGTH
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
+from component.rdf.hwy.hwy_def_rdf import HWY_NAME_SPLIT
 
 
 class HwyRouteNi(HwyRouteRDF_HKG):
@@ -115,3 +123,102 @@ class HwyRouteNi(HwyRouteRDF_HKG):
             if self.G.get_org_facil_id(node):
                 return True
         return False
+
+    def _add_path_name(self, path_name_dict, names,
+                       name_types=[NAME_TYPE_OFFICIAL]):
+        if not names:
+            return
+        for name_info in names:
+            one_name = list()
+            for name_dict in name_info:
+                name_type = name_dict.get("type")
+                if name_type in name_types:
+                    one_name.append(name_dict)
+            if not one_name:
+                continue
+            key = json.dumps(one_name, ensure_ascii=False,
+                             encoding='utf8', sort_keys=True)
+            if key in path_name_dict:
+                path_name_dict[key] += 1
+            else:
+                path_name_dict[key] = 1
+
+    def _get_max_count_names(self, path_name_dict):
+        if not path_name_dict:
+            return []
+        names = []
+        max_cnt = 0
+        name_items = path_name_dict.items()
+        # 按名称出现次数排序
+        name_items.sort(cmp=lambda x, y: cmp(x[-1], y[-1]), reverse=True)
+        for name, cnt in name_items:
+            if cnt >= max_cnt:
+                name_list = json.loads(name, encoding='utf8')
+                names.append(name_list)
+                max_cnt = cnt
+            else:
+                break
+        # 按名称语种
+#         names.sort(cmp=lambda x, y: cmp(x[0].get('lang'), y[0].get('lang')),
+#                    reverse=True)
+        return names
+
+    def _get_max_count_nums(self, path_num_dict):
+        nums = self._get_max_count_names(path_num_dict)
+        for num_list in nums:
+            # 去掉shield
+            for num in num_list:
+                num['val'] = num.get('val').split('\t')[-1]
+        return nums
+
+    def _get_sort_name(self, path_name):
+        '''取得排序用名称'''
+        names = []
+        if not path_name:
+            return None
+        for name_dict_list in path_name:
+            for name_dict in name_dict_list:
+                name = name_dict.get('val')
+                if name and name not in names:
+                    names.append(name)
+                break  # 不要翻译
+
+        if names:
+            return HWY_NAME_SPLIT.join(names)
+        else:
+            return None
+
+    def _get_path_attr(self, G, path):
+        '''取得属性(长度、番号、名称)'''
+        path_length = 0
+        path_name = {}
+        path_number = {}
+        for u, v in zip(path[0:-1], path[1:]):
+            data = G[u][v]
+            link_length = data.get(HWY_LINK_LENGTH)
+            numbers = data.get(HWY_ROAD_NUMS)
+            names = data.get(HWY_ROAD_NAMES)
+            self._add_path_name(path_name, names, [NAME_TYPE_OFFICIAL])
+            if not path_name:
+                self._add_path_name(path_name, names, [NAME_TYPE_ROUTE_NUM])
+            self._add_path_name(path_number, numbers, [NAME_TYPE_SHIELD])
+            if link_length:
+                path_length += link_length
+            else:
+                self.log.error('No Length. edge=(%s, %s)' % (u, v))
+                return None
+        rst_names = self._get_max_count_names(path_name)
+        rst_nums = self._get_max_count_nums(path_number)
+        if rst_names:
+            json_name = json.dumps(rst_names, ensure_ascii=False,
+                                   encoding='utf8', sort_keys=True)
+        else:
+            json_name = None
+        if rst_nums:
+            json_num = json.dumps(rst_nums, ensure_ascii=False,
+                                  encoding='utf8', sort_keys=True)
+        else:
+            json_num = None
+        sort_name = self._get_sort_name(rst_names)
+        sort_num = self._get_sort_name(rst_nums)
+        return path_length, json_name, json_num, sort_name, sort_num

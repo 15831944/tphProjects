@@ -1490,3 +1490,86 @@ BEGIN
 	return True;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION find_isolated_road_network_from_tbl(isolated_tbl varchar)
+  RETURNS bigint 
+  LANGUAGE plpgsql
+  AS $$ 
+DECLARE
+	island_id    bigint;
+	nWalkedLink  bigint;
+	curs1        refcursor;
+	curs2        refcursor;
+	rec1         record;
+	rec2         record;
+	listNode     bigint[];
+	nIndex       bigint;
+	nCurNodeID   bigint;
+	nNextLink    bigint;
+	nNextNode    bigint;
+BEGIN
+	island_id	:= 0;
+	
+	While True LOOP
+		-- find a node as the start point of a new island
+		SELECT s_node
+		FROM temp_links_to_search
+		LIMIT 1
+		INTO nCurNodeID;
+		
+		IF not FOUND THEN 
+			exit;
+		ELSE
+			island_id	:= island_id + 1;
+		END IF;
+		
+		-- walk around current island
+		nWalkedLink      := 0;
+		nIndex           := 1;
+		listNode[nIndex] := nCurNodeID;
+		WHILE nIndex > 0 LOOP
+			nCurNodeID    := listNode[nIndex];
+			nIndex        := nIndex - 1;
+			--RAISE INFO '%, %, %', nCurNodeID, island_id, nWalkedLink;
+	
+			open curs1 for 
+				SELECT link_id as nextlink, e_node as nextnode
+				FROM temp_base_link_tbl
+				WHERE (s_node = nCurNodeID and one_way in (1,2,3))
+
+				UNION
+
+				SELECT link_id as nextlink, s_node as nextnode
+				FROM temp_base_link_tbl
+				WHERE (e_node = nCurNodeID and one_way in (1,2,3))
+			;
+	
+			FETCH curs1 INTO rec1;
+			WHILE rec1 is not null LOOP
+				nNextLink    := rec1.nextlink;
+				nNextNode    := rec1.nextnode;
+	
+				open curs2 for
+					execute 'SELECT link_id FROM ' || isolated_tbl || ' WHERE link_id = ' || nNextLink
+				;
+				FETCH curs2 INTO rec2;
+				IF rec2 is null THEN
+					nWalkedLink    := nWalkedLink + 1;
+	
+					nIndex        := nIndex + 1;
+					listNode[nIndex]:= nNextNode;
+
+					EXECUTE 'INSERT INTO ' ||isolated_tbl|| '(link_id, island_id) VALUES (' || nNextLink || ', ' || island_id || ')';
+					DELETE FROM temp_links_to_search WHERE link_id = nNextLink;
+					
+				END IF;
+				CLOSE curs2;
+				FETCH curs1 INTO rec1;
+			END LOOP;
+			CLOSE curs1;
+		END LOOP;
+	END LOOP;
+    
+    return island_id;
+END;
+$$;

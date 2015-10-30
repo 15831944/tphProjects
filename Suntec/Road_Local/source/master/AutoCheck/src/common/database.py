@@ -541,6 +541,23 @@ class CDB(object):
             
         return 1
     
+    def GetRegionLayers(self):   
+        # Get layer number. 
+        sqlcmd = """
+            select ltrim(rtrim(tablename,'_tbl'),'rdb_region_link_layer')
+            from pg_tables 
+            where tablename like 'rdb_region_link_layer%_tbl'
+            order by tablename;
+        """
+        self.execute(sqlcmd)
+        rows = self.fetchall()
+        
+        layer_list = []
+        for row in rows:
+            layer_list.append(row[0])
+  
+        return layer_list
+    
 class child_thread(threading.Thread):
 
     def __init__(self, sqlcmd, i, number = 150000):

@@ -53,7 +53,8 @@ class comp_link_ni(component.component_base.comp_base):
                 speed_limit_s2e, speed_limit_e2s, speed_source_s2e, speed_source_e2s, 
                 width_s2e,  width_e2s, one_way_code, one_way_condition, pass_code, pass_code_condition, 
                 road_name, road_number, name_type, ownership, car_only, slope_code, slope_angle, 
-                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, the_geom
+                disobey_flag, up_down_distinguish, access, extend_flag, etc_only_flag, urban, 
+                feature_string, feature_key, the_geom
             )
               select 
                     link_id, 
@@ -83,7 +84,10 @@ class comp_link_ni(component.component_base.comp_base):
                         else 0 
                     end as extend_flag, 
                     0 as etc_only_flag, 
-                    urban, the_geom
+                    urban, 
+                    feature_string, 
+                    feature_key, 
+                    the_geom
               from 
               (
                   select  
@@ -125,6 +129,8 @@ class comp_link_ni(component.component_base.comp_base):
                             a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)' 
                         ) as length,
                         folder,
+                        a.id::varchar as feature_string,
+                        md5(a.id::varchar) as feature_key,
                         ST_LineMerge( a.the_geom ) as the_geom
                   from org_r a
                   left join temp_link_name n

@@ -219,7 +219,40 @@ class CCheckRTIC(platform.TestCase.CTestCase):
                 """
         reg_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (reg_count == 0)  
-    
+
+class CCheckRTIC_linkdir(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            SELECT count(*)
+              FROM org_rtic_link 
+              where flag_u != '0' and dir_u = '0' 
+              or flag_d != '0' and dir_d = '0';
+                """
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0)  
+
+class CCheckRTIC_kind(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            SELECT count(*)
+              FROM org_rtic_link 
+              where flag_u != '0' and kind_u = '0' 
+              or flag_d != '0' and kind_d = '0';
+                """
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0) 
+
+class CCheckRTIC_middle(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+            SELECT count(*)
+              FROM org_rtic_link 
+              where flag_u != '0' and middle_u = '0' 
+              or flag_d != '0' and middle_d = '0';
+                """
+        reg_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (reg_count == 0) 
+                
 class CCheckSPEED(platform.TestCase.CTestCase):
     def _do(self):
         sqlcmd = """

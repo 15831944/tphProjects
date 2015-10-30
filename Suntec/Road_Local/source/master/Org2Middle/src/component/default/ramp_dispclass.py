@@ -22,15 +22,16 @@ class CGraph(nx.DiGraph):
         for b in b_list:
             #print b.nodes()
             
-            start_node_list = list(filter(lambda x:b.in_degree(x)==0,b.nodes()))+list(filter(lambda x:b.in_degree(x)==1 and b.out_degree(x)==1 and b.predecessors(x)==b.successors(x),b.nodes()))
-            end_node_list = list(filter(lambda x:b.out_degree(x)==0,b.nodes()))+list(filter(lambda x:b.in_degree(x)==1 and b.out_degree(x)==1 and b.predecessors(x)==b.successors(x),b.nodes()))
+            start_node_list = set(filter(lambda x:b.in_degree(x)==0,b.nodes()))|set(filter(lambda x:b.in_degree(x)==1 and b.out_degree(x)==1 and b.predecessors(x)==b.successors(x),b.nodes()))|set(filter(lambda x:b.in_degree(x)+b.out_degree(x)>2,b.nodes()))
+            end_node_list = set(filter(lambda x:b.out_degree(x)==0,b.nodes()))|set(filter(lambda x:b.in_degree(x)==1 and b.out_degree(x)==1 and b.predecessors(x)==b.successors(x),b.nodes()))|set(filter(lambda x:b.in_degree(x)+b.out_degree(x)>2,b.nodes()))
             
             for start_node in start_node_list:
                 for end_node in end_node_list:
-                    for path in nx.all_simple_paths(self, start_node, end_node):
-                        paths.append(path)
-                        #if 11271347 in b.nodes():
-                        #    print path 
+                    if start_node<>end_node:
+                        for path in nx.all_simple_paths(self, start_node, end_node):
+                            paths.append(path)
+                            #if 11271347 in b.nodes():
+                            #    print path 
                     
         return paths
                         
@@ -78,6 +79,7 @@ class comp_ramp_dispclass(component.component_base.comp_base):
     
     def _Do(self):
         
+        
         self._UpdateRampDisplayClass()
         
         return 0
@@ -102,18 +104,19 @@ class comp_ramp_dispclass(component.component_base.comp_base):
     def _UpdateRampDisplayClass(self):
         
         self.log.info('start to update ramp display class')
+        #self.log.info('ccc')
         #print time.localtime()
         
         g=CGraph()
         sqlcmd='''
                 select link_id,s_node,e_node,one_way_code from link_tbl where link_type=5
-                and one_way_code<>4
+                --and one_way_code<>4
                 '''
         self.pg.execute2(sqlcmd)
         results=self.pg.fetchall2()
         
         for result in results:
-    
+            #print 1
             link_id=result[0]
             s_node=result[1]
             e_node=result[2]
@@ -125,7 +128,7 @@ class comp_ramp_dispclass(component.component_base.comp_base):
         
         paths_node=g.all_simple_paths_in_digraph()
         paths_link=map(lambda x:g.get_linkid_of_path(x,'link_id' ),paths_node)
-        
+        #self.log.info('ccc')
         sqlcmd_start='''
                 select display_class from link_tbl where link_type<>5
                 and ( s_node=%d and one_way_code in (1,3) or e_node=%d and one_way_code in (1,2) )
@@ -141,21 +144,35 @@ class comp_ramp_dispclass(component.component_base.comp_base):
         
         
         for idx in range(len(paths_node)):
-            
+            #self.log.info('111')
             path_node=paths_node[idx]
             path_link=paths_link[idx]
+            #self.log.info('111')
+            try:
+                start_disp_class = max(set(x[0] for x in self.pg.get_batch_data2(sqlcmd_start%(path_node[0],path_node[0]))))
+            except:
+                start_disp_class = None
             
-            display_class_start=set(x[0] for x in self.pg.get_batch_data2(sqlcmd_start%(path_node[0],path_node[0])))
-            display_class_end=set(x[0] for x in self.pg.get_batch_data2(sqlcmd_end%(path_node[-1],path_node[-1])))
+            try:
+                end_disp_class = max(set(x[0] for x in self.pg.get_batch_data2(sqlcmd_end%(path_node[-1],path_node[-1]))))
+            except:
+                end_disp_class = None
             
-            if not (display_class_start and display_class_end):
+            '''if not (display_class_start and display_class_end):
                 continue
-            display_class_set=display_class_start|display_class_end
-        
-            min_display_class = min(display_class_set)
+            display_class_set=display_class_start|display_class_end'''
+            if start_disp_class and end_disp_class:
+                min_display_class = min([start_disp_class,end_disp_class])
+            elif start_disp_class == None:
+                min_display_class = end_disp_class
+            elif end_disp_class == None:
+                min_display_class = start_disp_class
+            elif not start_disp_class and not end_disp_class:
+                min_display_class = None
             
-            for link_id in path_link:
-                self.pg.execute2(sqlcmd_insert%(int(link_id),min_display_class))
+            if min_display_class:
+                for link_id in path_link:
+                    self.pg.execute2(sqlcmd_insert%(int(link_id),min_display_class))
         
         self.pg.commit2()
         

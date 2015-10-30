@@ -219,14 +219,17 @@ class Stratify(object):
             i += 1
         return kind_code_list
 
+def GetPara(name):
+    return common.config.CConfig.instance().getPara(name)
+
 def GetPath(name):
     return common.config.CConfig.instance().getPara(name)
 
 def getProjName():
-    return GetPath('proj_name')
+    return GetPara('proj_name')
 
 def getProjCountry():
-    return GetPath('proj_country')
+    return GetPara('proj_country')
 
 def getItem(proj_mapping):
     import common.config

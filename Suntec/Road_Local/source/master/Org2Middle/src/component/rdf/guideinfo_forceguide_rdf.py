@@ -4,13 +4,10 @@ Created on 2015-4-27
 
 @author: liushengqiang
 '''
-import os
-import component
-import psycopg2
+
+
 
 import component.default.guideinfo_forceguide
-from common.common_func import GetPath
-
 
 class comp_guideinfo_forceguide_rdf(component.default.guideinfo_forceguide.com_guideinfo_forceguide):
     def __init__(self):

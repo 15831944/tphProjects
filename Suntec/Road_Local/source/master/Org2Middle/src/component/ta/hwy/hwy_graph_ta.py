@@ -242,7 +242,7 @@ class HwyGraphTa(HwyGraphRDF):
                 continue
             elif child == visited[1]:
                 path = visited + [child]
-                if self._is_sapa_path(temp_path, road_code,
+                if self.is_sapa_path(temp_path, road_code,
                                       code_field, reverse):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
@@ -266,13 +266,13 @@ class HwyGraphTa(HwyGraphRDF):
                             yield temp_path[1:], HWY_IC_TYPE_UTURN
                         else:
                             yield temp_path[1:], HWY_IC_TYPE_JCT
-                    if self._is_sapa_path(temp_path, road_code,
+                    if self.is_sapa_path(temp_path, road_code,
                                           code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                 elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                             code_field, reverse):
-                    if self._is_sapa_path(temp_path, road_code,
+                    if self.is_sapa_path(temp_path, road_code,
                                           code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
@@ -323,20 +323,20 @@ class HwyGraphTa(HwyGraphRDF):
                 self.log.warning('Exist SAPA Link, but no SAPA Facility.'
                                  'u=%s,v=%s' % (u, v))
 
-    def exist_ic_link(self, path, reverse=False):
-        '''Ramp/JCT/SAPA Link'''
-        if len(path) < 2:
-            return False
-        if reverse:
-            path = path[::-1]
-        for u, v in zip(path[:-1], path[1:]):
-            if self.has_edge(v, u):  # 双向
-                continue
-            data = self[u][v]
-            link_type = data.get(HWY_LINK_TYPE)
-            if link_type in (HWY_LINK_TYPE_RAMP,
-                             HWY_LINK_TYPE_JCT,
-                             # HWY_LINK_TYPE_SAPA,
-                             ):
-                return True
-        return False
+#     def exist_ic_link(self, path, reverse=False):
+#         '''Ramp/JCT/SAPA Link'''
+#         if len(path) < 2:
+#             return False
+#         if reverse:
+#             path = path[::-1]
+#         for u, v in zip(path[:-1], path[1:]):
+#             if self.has_edge(v, u):  # 双向
+#                 continue
+#             data = self[u][v]
+#             link_type = data.get(HWY_LINK_TYPE)
+#             if link_type in (HWY_LINK_TYPE_RAMP,
+#                              HWY_LINK_TYPE_JCT,
+#                              # HWY_LINK_TYPE_SAPA,
+#                              ):
+#                 return True
+#         return False

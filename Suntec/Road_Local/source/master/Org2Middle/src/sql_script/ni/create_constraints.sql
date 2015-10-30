@@ -194,6 +194,18 @@ CREATE INDEX org_poi_linkid_idx2
   ((linkid::bigint));
 
 -----------------------------------------------------
+CREATE INDEX org_poi_poi_id_idx2
+  ON org_poi
+  USING btree
+  ((poi_id::bigint), kind);
+
+-----------------------------------------------------
+CREATE INDEX org_pname_featid_nametype_idx1
+  ON org_pname
+  USING btree
+  ((featid::bigint), nametype);
+
+-----------------------------------------------------
 CREATE INDEX org_n_the_geom_idx
   ON org_n
   USING gist

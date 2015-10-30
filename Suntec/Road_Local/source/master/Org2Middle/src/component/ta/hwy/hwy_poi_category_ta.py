@@ -19,7 +19,7 @@ class HwyPoiCategoryTa(HwyPoiCategory):
                 select service, category_id, genre, gen1, gen2
                 from hwy_service_category_mapping as m
                 left join temp_poi_category as p
-                on m.service_name = p.name
+                on m.category_id = p.per_code
                 where genre = '1st genre'
                 )as a
         right join temp_poi_category as b
@@ -32,7 +32,7 @@ class HwyPoiCategoryTa(HwyPoiCategory):
                 select service, category_id, genre, gen1, gen2
                 from hwy_service_category_mapping as m
                 left join temp_poi_category as p
-                on m.service_name = p.name
+                on m.category_id = p.per_code
                 where genre = '2nd genre'
              )as c
         right join temp_poi_category as d

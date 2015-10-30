@@ -19,6 +19,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_UTURN
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_VIRTUAl_JCT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_SERVICE_ROAD
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
+from component.jdb.hwy.hwy_graph import MAX_CUT_OFF_CHN
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
 from component.jdb.hwy.hwy_graph import MIN_CUT_OFF_CHN
 from component.rdf.hwy.hwy_def_rdf import ANGLE_35
@@ -68,11 +69,13 @@ class HwyGraphNi(HwyGraphRDF):
             if(road_type not in HWY_ROAD_TYPE_HWY and
                link_type != HWY_LINK_TYPE_SAPA):
                 return True
-            else:  # HWY
-                if self.has_edge(temp_v, temp_u):  # 双向道路
-                    # Main Link
-                    if link_type in (HWY_LINK_TYPE_MAIN1, HWY_LINK_TYPE_MAIN2):
-                        return True
+            # SAPA内部link_type=1,one_way=1的link, 所以不判断高速本线双向
+            # else:  # HWY
+            #    if self.has_edge(temp_v, temp_u):  # 双向道路
+            #        # Main Link
+            #        if link_type in (HWY_LINK_TYPE_MAIN1,
+            #                         HWY_LINK_TYPE_MAIN2):
+            #            return True
         return False
 
     def _get_not_main_link(self, node, code_field,
@@ -107,7 +110,7 @@ class HwyGraphNi(HwyGraphRDF):
 
     def _all_facil_path(self, u, v, road_code,
                         code_field=HWY_ROAD_CODE,
-                        reverse=False, cutoff=MAX_CUT_OFF):
+                        reverse=False, cutoff=MAX_CUT_OFF_CHN):
         MAX_COUNT = 2
         MAX_TOLLGATE_NUM = 2
         sapa_link = False
@@ -154,66 +157,65 @@ class HwyGraphNi(HwyGraphRDF):
                     both_sapa_cnt -= 1
                 stack.pop()
                 visited.pop()
-            elif(len(visited) >= 2 and child == visited[-2] and  # 折返
-                 not self._is_cuted_road_end(visited[-1])):  # 不是断头路的最后一个点
-                # 即不是断头路的最后一个点, 不能折返
-                continue
-            elif node_cnt > MAX_COUNT:
-                continue
-            elif(node_cnt > 1 and
-                 self._is_link_repeat(temp_path[:-2], u, v) and
-                 set._has_other_path(u, v, reverse)):
-                continue
-            elif not self.check_regulation(temp_path, reverse):
-                continue
-            elif child == visited[1]:
-                path = visited + [child]
-                if self._is_sapa_path(temp_path, road_code,
-                                      code_field, reverse):
-                    yield path[1:], HWY_IC_TYPE_PA
-                    exist_sapa_facil = True
-                continue
-            elif self.get_tollgate_num(temp_path) > MAX_TOLLGATE_NUM:
-                continue
             elif len(visited) <= cutoff2:
-                # 取得link
-                if reverse:  # 逆
-                    out_edge = (child, visited[-1])
-                else:  # 顺
-                    out_edge = (visited[-1], child)
-                # 本线和SAPA link直接相连
-                if(len(visited) == 2 and
-                   self.is_sapa_link(out_edge[0], out_edge[1])):
-                    # not self.has_edge(out_edge[1], out_edge[0])):
-                    sapa_link = True
-                if self.is_jct(temp_path, road_code, code_field, reverse):
-                    for uturn_info in self.get_uturns(temp_path, road_code,
-                                                      code_field, reverse):
-                        uturn_flg = uturn_info[-1]
-                        if uturn_flg:
-                            yield temp_path[1:], HWY_IC_TYPE_UTURN
-                        else:
-                            yield temp_path[1:], HWY_IC_TYPE_JCT
-                    if self._is_sapa_path(temp_path, road_code,
-                                          code_field, reverse):
+                if(len(visited) >= 2 and child == visited[-2] and  # 折返
+                   not self._is_cuted_road_end(visited[-1])):  # 不是断头路的最后一个点
+                    # 即不是断头路的最后一个点, 不能折返
+                    continue
+                elif node_cnt > MAX_COUNT:
+                    continue
+                elif(node_cnt > 1 and
+                     self._is_link_repeat(temp_path[:-2], u, v) and
+                     set._has_other_path(u, v, reverse)):
+                    continue
+                elif not self.check_regulation(temp_path, reverse):
+                    continue
+                elif self.get_tollgate_num(temp_path) > MAX_TOLLGATE_NUM:
+                    continue
+                if child == visited[1]:
+                    if self.is_sapa_path(temp_path, road_code,
+                                         code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
-                elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
-                                            code_field, reverse):
-                    if self._is_sapa_path(temp_path, road_code,
-                                          code_field, reverse):
-                        yield temp_path[1:], HWY_IC_TYPE_PA
-                        exist_sapa_facil = True
-                    else:
-                        # print temp_path[1:]
-                        # 辅路、类辅路设施
-                        yield temp_path[1:], HWY_IC_TYPE_SERVICE_ROAD
-                        continue
-                # 和一般道交汇
-                if self.is_hwy_inout(temp_path, reverse):
-                    yield temp_path[1:], HWY_IC_TYPE_IC
-                    curr_inout_flag = True
+                    continue
                 if len(visited) < cutoff2:
+                    # 取得link
+                    if reverse:  # 逆
+                        out_edge = (child, visited[-1])
+                    else:  # 顺
+                        out_edge = (visited[-1], child)
+                    # 本线和SAPA link直接相连
+                    if(len(visited) == 2 and
+                       self.is_sapa_link(out_edge[0], out_edge[1])):
+                        # not self.has_edge(out_edge[1], out_edge[0])):
+                        sapa_link = True
+                    if self.is_jct(temp_path, road_code, code_field, reverse):
+                        for uturn_info in self.get_uturns(temp_path, road_code,
+                                                          code_field, reverse):
+                            uturn_flg = uturn_info[-1]
+                            if uturn_flg:
+                                yield temp_path[1:], HWY_IC_TYPE_UTURN
+                            else:
+                                yield temp_path[1:], HWY_IC_TYPE_JCT
+#                             if self._is_sapa_path(temp_path, road_code,
+#                                                   code_field, reverse):
+#                                 yield temp_path[1:], HWY_IC_TYPE_PA
+#                                 exist_sapa_facil = True
+                    elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
+                                                code_field, reverse):
+                        if self.is_sapa_path(temp_path, road_code,
+                                             code_field, reverse):
+                            yield temp_path[1:], HWY_IC_TYPE_PA
+                            exist_sapa_facil = True
+                        else:
+                            # print temp_path[1:]
+                            # 辅路、类辅路设施
+                            yield temp_path[1:], HWY_IC_TYPE_SERVICE_ROAD
+                            continue
+                    # 和一般道交汇
+                    if self.is_hwy_inout(temp_path, reverse):
+                        yield temp_path[1:], HWY_IC_TYPE_IC
+                    curr_inout_flag = True
                     if self.is_virtual_jct(child, road_code,
                                            code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_VIRTUAl_JCT
@@ -320,4 +322,8 @@ class HwyGraphNi(HwyGraphRDF):
         # 小于30度/大于330度
         if angle < ANGLE_35 or angle > ANGLE_360 - ANGLE_35:
             return True
+        return False
+
+    def _is_hov(self, data):
+        '''HOV道路'''
         return False

@@ -165,7 +165,9 @@ class comp_link_ta(component.component_base.comp_base):
                         etc_only_flag, 
                         ipd,
                         urban,
-                        the_geom
+                        the_geom,
+                        feature_string,
+                        feature_key
                     from 
                     (
                     select  

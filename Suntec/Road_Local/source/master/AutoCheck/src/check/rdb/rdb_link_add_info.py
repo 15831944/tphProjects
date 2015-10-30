@@ -466,15 +466,15 @@ class CCheckPaved(platform.TestCase.CTestCase):
             select (
                         select count(*)
                         from rdb_link_add_info
-                        where (path_extra_info & 1) = 0 
+                        where (path_extra_info & 1) = 1 
             )::float/
             (
-                select count(1) from rdb_link_add_info
+                select count(gid) from rdb_link
             ) 
             
                  """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
-        return (rec_cnt > 0.8)
+        return (rec_cnt < 0.8)
     
 class CCheckPavedTA(platform.TestCase.CTestCase):
     def _do(self):

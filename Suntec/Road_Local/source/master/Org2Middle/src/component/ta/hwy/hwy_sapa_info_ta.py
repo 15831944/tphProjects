@@ -35,8 +35,6 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         return 0
 
     def _DoCreateIndex(self):
-        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
-        self.CreateIndex2('mid_temp_poi_link_link_id_idx')
         return 0
 
     def _make_hwy_poi_link(self):
@@ -57,8 +55,46 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         '''
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
+        self.CreateIndex2('mid_temp_poi_link_poi_id_idx')
+        self.CreateIndex2('mid_temp_poi_link_link_id_idx')
         self.log.info('End mid_temp_poi_link')
         return 0
+
+    def _make_hwy_poi_closest_link(self):
+        self.log.info('Make Poi closest link.')
+        sqlcmd = """
+        INSERT INTO mid_temp_poi_closest_link(
+                                             poi_id, link_id, dist,
+                                             s_length, e_length)
+        (
+        SELECT poi_id, link_id, dist,
+               length *  point as s_length,
+               length * (1 - point) as e_length
+          FROM (
+              SELECT poi_id,
+                     (array_agg(link_id))[1] as link_id,  -- closed link
+                 (array_agg(dist))[1] as dist,
+                 (array_agg(length))[1] as length,
+                 (array_agg(point))[1] as point
+              FROM (
+                SELECT a.poi_id, a.link_id,
+                       ST_Distance(b.the_geom, link_tbl.the_geom) as dist,
+                       length,
+                       ST_Line_Locate_Point(link_tbl.the_geom,
+                                            b.the_geom) as point
+                  FROM mid_temp_poi_link as a
+                  LEFT JOIN org_mnpoi_pi as b
+                  ON a.poi_id = b.id::bigint
+                  LEFT JOIN link_tbl
+                  ON a.link_id = link_tbl.link_id
+                  ORDER BY a.poi_id, dist, a.link_id
+              ) AS d
+              GROUP BY poi_id
+          ) as c
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
 
     def _make_hwy_sapa_store_info(self):
         return 0

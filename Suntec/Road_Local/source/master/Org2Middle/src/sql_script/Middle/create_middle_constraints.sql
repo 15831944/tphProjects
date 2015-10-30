@@ -803,12 +803,12 @@ CREATE UNIQUE INDEX park_node_tbl_bak_merge_park_node_id_idx
   (park_node_id);
 
 -------------------------------------------------
-CREATE UNIQUE INDEX highway_node_add_info_node_id_link_id_idx
+CREATE INDEX highway_node_add_info_node_id_link_id_idx
   ON highway_node_add_info
   USING btree
   (node_id, link_id);
 -------------------------------------------------
-CREATE UNIQUE INDEX highway_node_add_info_link_id_idx
+CREATE INDEX highway_node_add_info_link_id_idx
   ON highway_node_add_info
   USING btree
   (link_id);
@@ -904,7 +904,11 @@ CREATE INDEX hwy_link_road_code_info_the_geom_idx
   ON hwy_link_road_code_info
   USING gist
   (the_geom);
-
+------------------------------------------------------------------------
+CREATE INDEX hwy_link_road_code_info_link_id_idx
+  ON hwy_link_road_code_info
+  USING btree
+  (link_id);
 ------------------------------------------------------------------------
 CREATE INDEX hwy_node_the_geom_idx
   ON hwy_node
@@ -1009,10 +1013,10 @@ CREATE INDEX hook_turn_tbl_nodeid_idx
   (nodeid);
 
 --------------------------------------------------------------
-CREATE INDEX mid_temp_hwy_sapa_info_road_code_road_seq_idx
+CREATE INDEX mid_temp_hwy_sapa_info_road_code_road_seq_updown_c_idx
   ON mid_temp_hwy_sapa_info
   USING btree
-  (road_code, road_seq);
+  (road_code, road_seq, updown_c);
 
 ------------------------------------------------------------------------  
 CREATE INDEX hwy_same_info_road_code_road_seq_updown_c_node_id_idx
@@ -1093,3 +1097,46 @@ CREATE INDEX temp_highway_sapa_link_e_node_idx
   on temp_highway_sapa_link
   using btree
   (e_node);
+
+------------------------------------------------------------------------
+CREATE INDEX mid_temp_hwy_main_path_attr_the_geom_idx
+  ON mid_temp_hwy_main_path_attr
+  USING gist
+  (the_geom);
+
+------------------------------------------------------------------------
+CREATE INDEX mid_temp_hwy_parallel_path_path_id_idx
+  ON mid_temp_hwy_parallel_path
+  USING btree
+  (path_id);
+
+------------------------------------------------------------------------
+CREATE INDEX hwy_tollgate_node_id_idx
+  ON hwy_tollgate
+  USING btree
+  (node_id);
+
+------------------------------------------------------------------------
+CREATE INDEX hwy_tollgate_the_geom_idx
+  ON hwy_tollgate
+  USING gist
+  (the_geom);
+
+------------------------------------------------------------------------
+CREATE INDEX mid_temp_hwy_ic_path_expand_node_node_id_idx
+  ON mid_temp_hwy_ic_path_expand_node
+  USING btree
+  (node_id);
+
+------------------------------------------------------------------------
+CREATE INDEX mid_temp_hwy_ic_path_expand_node_pass_link_id_idx
+  ON mid_temp_hwy_ic_path_expand_node
+  USING btree
+  (pass_node_id);
+
+
+------------------------------------------------------------------------
+CREATE INDEX mid_temp_hwy_ic_path_expand_link_pass_link_id_idx
+  ON mid_temp_hwy_ic_path_expand_link
+  USING btree
+  (pass_link_id);

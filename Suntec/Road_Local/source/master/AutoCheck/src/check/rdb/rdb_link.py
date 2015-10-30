@@ -2005,4 +2005,27 @@ class CCheckLinkCircle(platform.TestCase.CTestCase):
                   where start_node_id = end_node_id;
         """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
-        return (rec_cnt == 0)         
+        return (rec_cnt == 0)  
+
+class CCheckSapaLink_by_highway(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        sqlcmd = '''
+                select count(*) from mid_temp_sapa_path_link
+                where link_type = 5
+        '''  
+        rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec == 0)
+
+    
+class CCheckJctLink_by_highway(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        sqlcmd = '''
+                select count(*) from mid_temp_jct_path_link
+                where link_type = 5
+        '''  
+        rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec == 0)    
+    
+             

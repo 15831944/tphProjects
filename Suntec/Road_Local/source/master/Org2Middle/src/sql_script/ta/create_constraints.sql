@@ -282,6 +282,16 @@ CREATE INDEX temp_adminid_newandold_id_old_idx
   ON temp_adminid_newandold
   USING btree
   (id_old);
+  
+CREATE INDEX temp_adminid_newandold_id_new_idx
+  ON temp_adminid_newandold
+  USING btree
+  (id_new);
+  
+CREATE INDEX temp_adminid_newandold_level_idx
+  ON temp_adminid_newandold
+  USING btree
+  (level);
 -------------------------------------------------------------
 CREATE INDEX scpoint_ext_featid_idx
   ON scpoint_ext
@@ -368,3 +378,69 @@ CREATE INDEX	temp_poi_category_mapping_org_id1_org_id2_idx
   ON temp_poi_category_mapping
   USING btree
   (org_id1,org_id2);
+  
+-----------------------------------------------
+CREATE INDEX org_a0_id_idx
+	ON org_a0
+	USING btree
+	(id);
+CREATE INDEX org_a0_order00_idx
+	ON org_a0
+	USING btree
+	(order00);
+	
+CREATE INDEX org_a1_id_idx
+	ON org_a1
+	USING btree
+	(id);
+CREATE INDEX org_a1_order00_idx
+	ON org_a1
+	USING btree
+	(order00);
+CREATE INDEX org_a1_order01_idx
+	ON org_a1
+	USING btree
+	(order01);
+
+CREATE INDEX org_a7_id_idx
+	ON org_a7
+	USING btree
+	(id);
+CREATE INDEX org_a7_order00_idx
+	ON org_a7
+	USING btree
+	(order00);
+CREATE INDEX org_a7_order01_idx
+	ON org_a7
+	USING btree
+	(order01);
+CREATE INDEX org_a7_order07_idx
+	ON org_a7
+	USING btree
+	(order07);
+	
+CREATE INDEX org_a8_id_idx
+	ON org_a8
+	USING btree
+	(id);
+CREATE INDEX org_a8_order00_idx
+	ON org_a8
+	USING btree
+	(order00);
+CREATE INDEX org_a8_order01_idx
+	ON org_a8
+	USING btree
+	(order01);
+CREATE INDEX org_a8_order07_idx
+	ON org_a8
+	USING btree
+	(order07);	
+CREATE INDEX org_a8_order08_idx
+	ON org_a8
+	USING btree
+	(order08);
+CREATE INDEX mid_temp_admin_name_admin_id_idx
+	ON mid_temp_admin_name
+	USING btree
+	(admin_id);			
+-----------------------------------------------
