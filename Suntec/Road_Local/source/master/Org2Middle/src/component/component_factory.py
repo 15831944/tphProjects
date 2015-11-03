@@ -495,6 +495,9 @@ class comp_factory_ta(comp_factory):
             if common.common_func.JudgementCountry('AUS'):
                 from component.ta import guideinfo_spotguide_sensis
                 return guideinfo_spotguide_sensis.comp_guideinfo_spotguide_sensis()
+            elif common.common_func.JudgementCountry('saf'):
+                from component.ta import guideinfo_spotguide_saf
+                return guideinfo_spotguide_saf.comp_guideinfo_spotguide_saf()
             else:
                 from component.ta import guideinfo_spotguide_ta
                 return guideinfo_spotguide_ta.comp_guideinfo_spotguide_ta()
