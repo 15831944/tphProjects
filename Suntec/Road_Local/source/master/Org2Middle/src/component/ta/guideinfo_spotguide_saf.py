@@ -32,43 +32,22 @@ class LatLonPoint(object):
     def __init__(self, latitude, longitude):   
         self.m_Latitude = latitude;     
         self.m_Longitude = longitude;
-        self.m_RadLa = latitude * math.pi/180.0
-        self.m_RadLo = longitude * math.pi/180.0
-        self.Ec = Rj + (Rc - Rj) * (90.-self.m_Latitude) / 90.0
-        self.Ed = self.Ec * math.cos(self.m_RadLa)
         
-    # 求相对本点angle方向上距离为distance的点的经纬度。
-    # angle：相对本点的方位
-    # distance：相对本点的距离
-    def getLatLon(self, angle, distance):
-        dx = distance*1000 * math.sin(angle * math.pi /180.0)
-        dy = distance*1000 * math.cos(angle * math.pi /180.0)      
-        lon = (dx/self.Ed + self.m_RadLo) * 180.0/math.pi
-        lat = (dy/self.Ec + self.m_RadLa) * 180.0/math.pi
-        return LatLonPoint(lon, lat)
-     
-     
-    # 求方位角，一、二象限为0~180°，四、三象限为-0~-180°。
-    # todo: 求距离，单位：米
-    # latitude：目标点的纬度
-    # longitude：目标点的经度
-    def getAngle(self, latitude, longitude):
-        B = LatLonPoint(latitude, longitude)
-        dx = (B.m_RadLo - self.m_RadLo) * self.Ed;
-        dy = (B.m_RadLa - self.m_RadLa) * self.Ec;
-        angle = math.atan(abs(dx/dy))*180.0/math.pi;
+    def getPointByAngleDistance(self, angle, distance):
         
-        # 判断象限
-        deltaLat = B.m_Latitude - self.m_Latitude;
-        deltaLon = B.m_Longitude - self.m_Longitude;
-        if (deltaLon>=0 and deltaLat>0): # 第一象限
-            return angle
-        elif(deltaLon<0 and deltaLat>=0): # 第二象限
-            return angle
-        elif(deltaLon<=0 and deltaLat<0): # 第三象限
-            return -angle
-        elif(deltaLon>0 and deltaLat<=0): # 第四象限
-            return -angle
+        return
+     
+    def getAngleByLatLon(self, latitude, longitude):
+        return
+    
+    def getAngleByPoint(self, latLonPoint2):
+        return 
+    
+    def getDistanceByLatLon(self, latitude, longitude):
+        return
+    
+    def getDistanceByPoint(self, latLonPoint2):
+        return
         
 class link_object(object):
     def __init__(self, linkid, sNodeid, eNodeid, the_geom_text, name):
@@ -89,7 +68,9 @@ class link_object(object):
         the_geom_text = the_geom_text.replace("""))""", "")
         geomTextSplit = the_geom_text.split(',')
         for oneGeomText in geomTextSplit:
-            pointlist.append(LatLonPoint(oneGeomText.split(' ')[0]), LatLonPoint(oneGeomText.split(' ')[1]))
+            lat = float(oneGeomText.split(' ')[0])
+            lon = float(oneGeomText.split(' ')[1])
+            pointlist.append(LatLonPoint(lat, lon))
         return pointlist
         
 
@@ -188,13 +169,21 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         nodeid = self.getConnectedNodeid(errMsg, inlinkObj, outlinkObj)
         if errMsg[0] <> '':
             return None, None
+                
+        inlinkTrafficAngle = self.getTrafficDirAngleToEast(errMsg, inlinkObj, nodeid, 'to_this_node')
+        if errMsg[0] <> '':
+            return None, None
+        
+        outlinkTrafficAngle = self.getTrafficDirAngleToEast(errMsg, outlinkObj, nodeid, 'from_this_node')
+        if errMsg[0] <> '':
+            return None, None
         
         sqlcmd1 =   """
-                    select id, f_jnctid, t_jnctid, the_geom, name
+                    select id, f_jnctid, t_jnctid, st_astext(the_geom), name
                     from org_nw 
                     where f_jnctid=%.0f and (oneway is null or oneway='TF')
                     union
-                    select id, f_jnctid, t_jnctid, the_geom, name
+                    select id, f_jnctid, t_jnctid, st_astext(the_geom), name
                     from org_nw 
                     where t_jnctid=%.0f and (oneway is null or oneway='FT')
                     """
@@ -207,27 +196,19 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
             linkid = row[0]
             sNodeid = row[1]
             eNodeid = row[2]
-            the_geom = row[3]
+            the_geom_text = row[3]
             name = row[4]
             if linkid == inlinkObj.linkid or linkid == outlinkObj.linkid:
                 continue
             else:
-                restOutlinkList.append(link_object(linkid, sNodeid, eNodeid, the_geom, name))
-                
-        inlinkTrafficAngle = self.getTrafficAngleToEast(errMsg, inlinkObj, nodeid, 'to_this_node')
-        if errMsg[0] <> '':
-            return None, None
-        
-        outlinkTrafficAngle = self.getTrafficAngleToEast(errMsg, outlinkObj, nodeid, 'from_this_node')
-        if errMsg[0] <> '':
-            return None, None
+                restOutlinkList.append(link_object(linkid, sNodeid, eNodeid, the_geom_text, name))
         
         patternPic = None
         arrowPic = None
         # 二分歧路口，需进一步判断左分叉、右分叉、Y型分叉。
         if len(restOutlinkList) == 1: 
-            restOutlinkTrafficAngle = self.getTrafficAngleToEast(errMsg, restOutlinkList[0], 
-                                                                 nodeid, 'from_this_node')
+            restOutlinkTrafficAngle = self.getTrafficDirAngleToEast(errMsg, restOutlinkList[0], 
+                                                                    nodeid, 'from_this_node')
             if errMsg[0] <> '':
                 return None, None
             
@@ -309,9 +290,9 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         # 三分歧路口              
         elif len(restOutlinkList) == 2:
             patternPic = str_road_3_forked
-            restOutlinkTrafficAngle1 = self.getTrafficAngleToEast(errMsg, restOutlinkList[0], 
+            restOutlinkTrafficAngle1 = self.getTrafficDirAngleToEast(errMsg, restOutlinkList[0], 
                                                                   nodeid, 'from_this_node')
-            restOutlinkTrafficAngle2 = self.getTrafficAngleToEast(errMsg, restOutlinkList[1], 
+            restOutlinkTrafficAngle2 = self.getTrafficDirAngleToEast(errMsg, restOutlinkList[1], 
                                                                   nodeid, 'from_this_node')
             
             position1, angle1 = self.getPositionOf2Angle(outlinkTrafficAngle, restOutlinkTrafficAngle1)
@@ -338,24 +319,42 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
     # linkObj: 当前link信息
     # nodeid: 当前link的端点
     # trafficDir: 沿当前link流向此点/沿当前link从此点流出，必须等于'to_this_node'或'from_this_node'。
-    def getTrafficAngleToEast(self, errMsg, linkObj, nodeid, trafficDir='to_this_node'):
+    def getTrafficDirAngleToEast(self, errMsg, linkObj, nodeid, trafficDir='to_this_node'):
         if trafficDir<>'to_this_node' and trafficDir<>'from_this_node':
             errMsg[0] = """invalid argument trafficDir: %s""" % trafficDir
             return None
         
         if nodeid == linkObj.sNodeid:
-            lat1 = 0
-            lon1 = 0
-            lat2 = 0
-            lon2 = 0
-            return LatLonPoint(lat1, lon1).getAngle(lat2, lon2)
+            point1 = linkObj.pointlist[0]
+            point2 = None
+            for i in range(1, len(linkObj.pointlist)):
+                if point1.getDistanceByPoint(linkObj.pointlist[i]) > 100:
+                    point2 = linkObj.pointlist[i]
+                    break
+            if point2 == None:
+                errMsg[0] = """length of the_geom does not exceed 100m."""
+                return None
+            
+            if trafficDir == 'to_this_node':
+                return point1.getAngleByPoint(point2)
+            else: # trafficDir == 'from_this_node'
+                return point2.getAngleByPoint(point1)
             
         elif nodeid == linkObj.eNodeid:
-            lat1 = 0
-            lon1 = 0
-            lat2 = 0
-            lon2 = 0
-            return LatLonPoint(lat1, lon1).getAngle(lat2, lon2)
+            point1 = linkObj.pointlist[-1]
+            point2 = None
+            for i in range(len(linkObj.pointlist)-2, -1, -1):
+                if point1.getDistanceByPoint(linkObj.pointlist[i]) > 100:
+                    point2 = linkObj.pointlist[i]
+                    break
+            if point2 == None:
+                errMsg[0] = """length of the_geom does not exceed 100m."""
+                return None
+            
+            if trafficDir == 'to_this_node':
+                return point1.getAngleByPoint(point2)
+            else: # trafficDir == 'from_this_node'
+                return point2.getAngleByPoint(point1)
         
         else:
             errMsg[0] = """nodeid is not the link's endpoint.\n""" +\
