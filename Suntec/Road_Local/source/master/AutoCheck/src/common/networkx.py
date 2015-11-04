@@ -65,7 +65,8 @@ class CGraph:
             else:
                 arrive_nodes[cur_node] = True
             
-            adjlink_list = self._getAdjLinkList(cur_node, link_tbl, link_laneinfo_tbl)
+            #adjlink_list = self._getAdjLinkList(cur_node, link_tbl, link_laneinfo_tbl)
+            adjlink_list = self._getAdjLinkList(cur_node)
             for adjlink in adjlink_list:
                 # not one-link-uturn
                 if adjlink.link_id == last_link:
@@ -175,6 +176,209 @@ class CGraph_PG(CGraph):
         
         return self.__pg.get_batch_data(sqlcmd)
 
+class CGraph_Memory(CGraph):
+    
+    def __init__(self, link_tbl = 'rdb_link', link_laneinfo_tbl = 'rdb_linklane_info', delete_road_type = '(7, 8, 9, 14)'):
+        
+        import common.database
+        self.pg = common.database.CDB()
+        self.pg.connect()
+        
+        self.links = {}
+        self.nodes = {}
+        self._prepareData(link_tbl, link_laneinfo_tbl, delete_road_type)
+    
+    def __del__(self):
+        
+        import gc
+        del self.links
+        del self.nodes
+        self.pg.close()
+        gc.collect()
+        
+    def _prepareData(self, link_tbl = 'rdb_link', link_laneinfo_tbl = 'rdb_linklane_info', delete_road_type = '(7, 8, 9, 14)'):
+        
+        # init links & nodes
+        sqlcmd = """
+                SELECT  a.link_id,
+                        a.road_type,
+                        a.toll,
+                        a.link_length,
+                        a.one_way,
+                        a.start_node_id,
+                        a.end_node_id,
+                        a.fazm_path as fazm,
+                        a.tazm_path as tazm,
+                        b.ops_width,
+                        b.neg_width
+                FROM %s a
+                LEFT JOIN %s b
+                    ON a.lane_id = b.lane_id
+                WHERE b.lane_id IS NOT NULL and road_type not in %s
+                """ % (str(link_tbl), str(link_laneinfo_tbl), str(delete_road_type))
+        
+        link_recs = self.pg.get_batch_data(sqlcmd)
+        for link_rec in link_recs:
+            objLink = CLink(link_rec)
+            self.links[objLink.link_id] = objLink
+            
+            if not self.nodes.has_key(objLink.start_node_id):
+                self.nodes[objLink.start_node_id] = [objLink]
+            else:
+                self.nodes[objLink.start_node_id].append(objLink)
+                
+            if not self.nodes.has_key(objLink.end_node_id):
+                self.nodes[objLink.end_node_id] = [objLink]
+            else:
+                self.nodes[objLink.end_node_id].append(objLink)
+    
+    def _getAdjLinkList(self, node_id):
+        adjlinks = self.nodes.get(node_id)
+        if not adjlinks:
+            adjlinks = []
+        return adjlinks
+    
+    def searchShortestPaths(self, from_node, to_node, distance = 10000.0, cost_scope=1.05):
+        # stack init
+        paths = []                  # efftive path [(cur_distance, path),]
+        arrive_nodes = {}           # arrive nodes
+        touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_distance, cur_node, in_angle, last_node, last_link, path)
+        
+        # search init
+        max_distance = distance * 2.0
+        touch_nodes.push((0, 0, from_node, None, None, 0, []))
+        
+        # search
+        #print 'search dock to region at node_id = %s...' % str(node_id)
+        while not touch_nodes.isempty():
+            (cur_cost, cur_distance, cur_node, in_angle, last_node, last_link, path) = touch_nodes.pop()
+            #print cur_node, last_link, path
+            
+            if (to_node == cur_node):
+                paths.append((cur_distance,path))
+                if max_distance > cur_distance * 1.1:
+                    max_distance = cur_distance * 1.1
+                continue
+            
+            #print 'search node', (cost, node_id, path)
+            if arrive_nodes.has_key(cur_node):
+                if cur_cost > arrive_nodes[cur_node] * cost_scope:
+                    continue
+            else:
+                arrive_nodes[cur_node] = cur_cost
+            
+            adjlink_list = self._getAdjLinkList(cur_node)
+            for adjlink in adjlink_list:
+                # not one-link-uturn
+                if adjlink.link_id == last_link:
+                    continue
+                
+                # judge direction of traffic flow
+                if (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
+                    pass
+                elif (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
+                    pass
+                else:
+                    continue
+                
+                # judge next node walked or not
+                if adjlink.start_node_id == cur_node:
+                    next_node = adjlink.end_node_id
+                    cur_out_angle = adjlink.fazm
+                    next_in_angle = adjlink.tazm
+                    next_witdh = adjlink.ops_width
+                else:
+                    next_node = adjlink.start_node_id
+                    cur_out_angle = adjlink.tazm
+                    next_in_angle = adjlink.fazm
+                    next_witdh = adjlink.neg_width
+                
+                # touch
+                next_path = copy.deepcopy(path)
+                next_path.append(adjlink.link_id)
+                next_distance = cur_distance + adjlink.link_length
+                adj_cost = CLinkCost.getCost(adjlink.link_length, adjlink.road_type, 
+                                             adjlink.toll, adjlink.one_way, 
+                                             next_witdh, in_angle, cur_out_angle)
+                next_cost = cur_cost + adj_cost
+                #print 'touch', adjnode, adjcost
+                if next_distance < max_distance:
+                    touch_nodes.push((next_cost, next_distance, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
+        else:
+            return paths
+            
+    def searchDijkstraPaths(self, from_node, to_node, max_buffer=5000, max_path_num=6, cost_scope=1.05):
+        # stack init
+        paths = []                  # efftive path [path,]
+        arrive_nodes = {}           # arrive nodes
+        touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_node, in_angle, last_node, last_link, path)
+        
+        # search init
+        touch_nodes.push((0, from_node, None, None, 0, []))
+        
+        # search
+        #print 'search dock to region at node_id = %s...' % str(node_id)
+        while not touch_nodes.isempty():
+            #print 'from_node = %s, to_node = %s' % (str(from_node), str(to_node))
+            #print 'touch_nodes.length() =', touch_nodes.length()
+            if touch_nodes.length() > max_buffer:
+                break
+            
+            (cur_cost, cur_node, in_angle, last_node, last_link, path) = touch_nodes.pop()
+            #print cur_node, last_link, path
+            
+            if (to_node == cur_node):
+                paths.append(path)
+                if len(paths) >= max_path_num:
+                    break
+                else:
+                    continue
+            
+            #print 'search node', (cost, node_id, path)
+            if arrive_nodes.has_key(cur_node):
+                if cur_cost > arrive_nodes[cur_node] * cost_scope:
+                    continue
+            else:
+                arrive_nodes[cur_node] = cur_cost
+            
+            adjlink_list = self._getAdjLinkList(cur_node)
+            for adjlink in adjlink_list:
+                # not one-link-uturn
+                if adjlink.link_id == last_link:
+                    continue
+                
+                # judge direction of traffic flow
+                if (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
+                    pass
+                elif (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
+                    pass
+                else:
+                    continue
+                
+                # judge next node walked or not
+                if adjlink.start_node_id == cur_node:
+                    next_node = adjlink.end_node_id
+                    cur_out_angle = adjlink.fazm
+                    next_in_angle = adjlink.tazm
+                    next_witdh = adjlink.ops_width
+                else:
+                    next_node = adjlink.start_node_id
+                    cur_out_angle = adjlink.tazm
+                    next_in_angle = adjlink.fazm
+                    next_witdh = adjlink.neg_width
+                
+                # touch
+                next_path = copy.copy(path)
+                next_path.append(adjlink.link_id)
+                adj_cost = CLinkCost.getCost(adjlink.link_length, adjlink.road_type, 
+                                             adjlink.toll, adjlink.one_way, 
+                                             next_witdh, in_angle, cur_out_angle)
+                next_cost = cur_cost + adj_cost
+                #print 'touch', adjnode, adjcost
+                touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
+        
+        return paths
+                
 class CHeap:
     def __init__(self):
         self.data = []
@@ -190,6 +394,9 @@ class CHeap:
             return False
         else:
             return True
+    
+    def length(self):
+        return len(self.data)
 
 class CLink:
     def __init__(self, link_rec):

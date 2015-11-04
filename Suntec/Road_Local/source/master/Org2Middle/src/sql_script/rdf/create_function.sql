@@ -4483,22 +4483,13 @@ BEGIN
 
 	    -- forceguide at least 2 link and 1 node, and first node in node_array must be not null
             if (link_count >= 2) and (node_count >= 1 and rec.node_array[1] is not null) then
-                insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, node_geom, inlink_geom, outlink_geom)
-                select 
-                    rec.node_array[1] as nodeid,
-                    rec.link_array[1] as inlinkid,
-                    rec.link_array[link_count] as outlinkid,
-                    (case when link_count-2 = 0 then null else array_to_string(rec.link_array[2:link_count-1], '|') end)::varchar as passlid,
-                    (link_count-2)::smallint as passlink_cnt,
-                    a.the_geom as node_geom,
-                    b.the_geom as inlink_geom,
-                    c.the_geom as outlink_geom
-                from 
-                    node_tbl a, link_tbl b, link_tbl c
-                where 
-                    a.node_id = rec.node_array[1] and
-                    b.link_id = rec.link_array[1] and
-                    c.link_id = rec.link_array[link_count];
+				if link_count = 2 then
+					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, guide_type)
+					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, null, link_count-2, 0);
+				elseif link_count > 2 then
+					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, guide_type)
+					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, array_to_string(rec.link_array[2:link_count-1], '|'), link_count-2, 0);
+				end if;
             else 
                 raise INFO 'rec = %', rec;
             end if;

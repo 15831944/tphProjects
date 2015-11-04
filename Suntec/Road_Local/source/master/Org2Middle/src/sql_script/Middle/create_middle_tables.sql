@@ -2762,28 +2762,12 @@ as
 );
 
 ------------------------------------------------------------------------
-CREATE TABLE temp_force_guide_patch_node_tbl
-(
- id serial not null primary key,
- guide_type bigint not null,
- node_id_list bigint[]
-); 
-
-------------------------------------------------------------------------
-CREATE TABLE temp_force_guide_patch_link_tbl
-(
- objectid bigint not null,
- guide_type bigint not null,
- link_id_list bigint[]
-); 
-
-------------------------------------------------------------------------
 CREATE TABLE temp_force_guide_patch_tbl
 (
  gid serial not null primary key,
  guide_type bigint not null,
- geom_text character varying(16384),
- z_text character varying(16384)
+ str_geom varchar not null,
+ str_z varchar not null
 ); 
 
 CREATE TABLE temp_org_category_priority
@@ -2798,7 +2782,7 @@ create table temp_single_roundabout
 	link_id bigint,
 	s_node bigint,
 	e_node bigint
-);select addgeometrycolumn('temp_single_roundabout','the_geom',4326,'LINESTRING',2);
+);select addgeometrycolumn('','temp_single_roundabout','the_geom','4326','LINESTRING',2);
 
 create table temp_roundabout
 as
@@ -2815,7 +2799,7 @@ create table temp_roundabout_for_searchramp
 	link_id       	bigint,
 	s_node        	bigint,
 	e_node        	bigint
-);select addgeometrycolumn('temp_roundabout_for_searchramp','the_geom',4326,'LINESTRING',2);
+);select addgeometrycolumn('','temp_roundabout_for_searchramp','the_geom','4326','LINESTRING',2);
 
 create table temp_roundabout_road_type
 (
@@ -2970,42 +2954,42 @@ CREATE TABLE temp_regulation_patch_tbl
  end_month integer,
  end_day integer,
  end_hour integer,
- end_minute integer
+ end_minute integer,
+ day_of_week integer,
+ exclude_date smallint
 );
 
-CREATE TABLE temp_regulation_patch_node_tbl
+CREATE TABLE mid_temp_patch_node_tbl
 (
- gid serial not null primary key,
- node_list bigint[],
- regulation_type integer,
- car_type integer,
- start_year integer,
- start_month integer,
- start_day integer,
- start_hour integer,
- start_minute integer,
- end_year integer,
- end_month integer,
- end_day integer,
- end_hour integer,
- end_minute integer
+ gid integer not null,
+ node_id_list bigint[],
+ single_link_flag boolean default false
 );
 
-CREATE TABLE temp_regulation_patch_link_tbl
+CREATE TABLE mid_temp_patch_link_tbl
 (
- gid serial not null primary key,
- link_list bigint[],
- node_id bigint,
- regulation_type integer,
- car_type integer,
- start_year integer,
- start_month integer,
- start_day integer,
- start_hour integer,
- start_minute integer,
- end_year integer,
- end_month integer,
- end_day integer,
- end_hour integer,
- end_minute integer
+ gid integer not null,
+ first_node_id bigint,
+ link_id_list bigint[]
 );
+
+CREATE TABLE mid_temp_force_guide_tbl
+(
+  gid serial primary key,
+  nodeid bigint,
+  inlinkid bigint,
+  outlinkid bigint,
+  passlid character varying(1024),
+  passlink_cnt smallint,
+  guide_type smallint
+);
+
+create table temp_suspect_jct_paths_link
+(
+link_path bigint[]
+);
+
+create table temp_jct_paths_link
+(
+link_path bigint[]
+); 

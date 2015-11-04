@@ -186,27 +186,49 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
         '''
         return self.get_batch_data(sqlcmd)
 
+    def _check_temp_poi_category(self):
+        '''check temp_poi_category'''
+        sqlcmd = '''
+        select count(*)
+        from (
+            select distinct chaincode, org_code1, array_agg(per_code)
+            from ni_temp_poi_category
+            where chaincode <>'' and chaincode is not null
+            group by chaincode, org_code1
+            having count(per_code) > 1
+        )as a
+        '''
+        self.pg.execute2(sqlcmd)
+        row = self.pg.fetchone2()
+        if row and row[0] == 0:
+            return True
+        return False
+
     def _make_hwy_store_name(self):
         '''Store or Chain Name'''
         self.CreateTable2('hwy_chain_name')
+        if not self._check_temp_poi_category():
+            self.log.error('table temp_poi_category error')
         sqlcmd = """
         INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
                                    chain_id, chain_name, language_code)
         (
         SELECT per_code as u_code, a.kind, '' as subcat,
-               a.chaincode, '' as chain_name, 'CHI' as language_code
+               a.chaincode, b.name as chain_name, 'CHI' as language_code
           FROM org_poi as a
           LEFT JOIN ni_temp_poi_category as b
           ON a.chaincode = b.chaincode and a.kind = b.org_code1
-          where a.chaincode <> '' and per_code is not null
+          where a.chaincode <> '' and a.chaincode is not null and
+                per_code is not null
 
         union
          SELECT distinct per_code as u_code, a.kind, '' as subcat,
-               a.chaincode, '' as chain_name, 'CHI' as language_code
+               a.chaincode, b.name as chain_name, 'CHI' as language_code
           FROM org_poi as a
           LEFT JOIN ni_temp_poi_category as b
           ON a.chaincode = b.chaincode and a.kind = b.org_code2
-          where a.chaincode <> '' and per_code is not null
+          where a.chaincode <> '' and a.chaincode is not null and
+                per_code is not null
         );
         """
         self.pg.execute2(sqlcmd)

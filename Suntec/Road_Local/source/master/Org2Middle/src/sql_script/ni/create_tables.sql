@@ -1,15 +1,3 @@
-
---------------------------------------------------------------------------------------------------------
-CREATE TABLE mid_temp_force_guide_tbl
-(
-  gid serial primary key,
-  nodeid bigint,
-  inlinkid bigint,
-  outlinkid bigint,
-  passlid character varying(1024),
-  passlink_cnt smallint
-); SELECT AddGeometryColumn('','mid_temp_force_guide_tbl','node_geom','4326','POINT',2); SELECT AddGeometryColumn('','mid_temp_force_guide_tbl','inlink_geom','4326','LINESTRING',2); SELECT AddGeometryColumn('','mid_temp_force_guide_tbl','outlink_geom','4326','LINESTRING',2);
-
 --------------------------------------------------------------------------------------------------------
 CREATE TABLE temp_trfcsign_type_wavid
 (
@@ -362,4 +350,23 @@ CREATE TABLE mid_temp_hwy_exit_name_ni
 (
   junction_id   bigint not null primary key,
   name          character varying
+);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_path_name_ni
+(
+  path_id       bigint not null primary key,
+  name          character varying
+);
+
+create table temp_hw_json_name
+(
+nodeid bigint,
+inlinkid bigint,
+outlinkid bigint,
+attr varchar,
+passlid varchar,
+passlink_cnt integer,
+json_name varchar
+
 );

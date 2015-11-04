@@ -386,6 +386,11 @@ create table temp_region_links_sa_ramp
 	link_id	bigint
 );
 
+create table temp_region_links_important_ramp
+(
+	link_id	bigint
+);
+
 create table temp_region_links_sa_path
 (
 	fnode		bigint,

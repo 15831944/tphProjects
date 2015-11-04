@@ -135,7 +135,8 @@ class rdb_highway_store_info(ItemBase):
           ON store.ic_no = ic.ic_no
           LEFT JOIN rdb_highway_service_category_mapping as m
           ON store.service_kind = m.service
-          order by store.ic_no, m.service_id, store.priority, store_kind
+          order by tile_id, store.ic_no, m.service_id,
+                   store.priority, store_kind
         """
         return self.pg.get_batch_data2(sqlcmd)
 

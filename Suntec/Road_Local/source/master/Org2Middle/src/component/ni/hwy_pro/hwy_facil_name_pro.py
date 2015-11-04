@@ -4,19 +4,20 @@ Created on 2015-10-26
 
 @author: PC_ZH
 '''
-import json
+from common import cache_file
 from component.rdf.multi_lang_name_rdf import MultiLangNameRDF
 from component.rdf.hwy.hwy_exit_name_rdf import HwyExitNameRDF
-from common import cache_file
-LANG_CODE_DICT = {'1': 'CHI',
-                  '2': 'CHT',
-                  '3': 'ENG'}
+LANG_CODE_DICT = {1: 'CHI',  # 中文简单体
+                  2: 'CHT',  # 中文简繁体
+                  3: 'ENG',  # 英文
+                  }
 
 
-class HwyExitNameNI(HwyExitNameRDF):
-    ''' inherit HwyExitNameRDF'''
+class HwyFacilNameNiPro(HwyExitNameRDF):
+    '''设施名称'''
+
     def __init__(self):
-        HwyExitNameRDF.__init__(self, item_name='HwyExitNameMMI')
+        HwyExitNameRDF.__init__(self, item_name='HwyFacilNameNiPro')
 
     def _DoCreateTable(self):
         self.CreateTable2('mid_temp_hwy_exit_name_ni')
@@ -26,10 +27,13 @@ class HwyExitNameNI(HwyExitNameRDF):
         return 0
 
     def _DoCreateIndex(self):
-#         self.CreateIndex2('mid_temp_hwy_exit_name_link_id_idx')
         return 0
 
-    def _make_hwy_exit_name(self):
+    def _Do(self):
+        self._make_hwy_facil_name()
+
+    def _make_hwy_facil_name(self):
+        self.log.info('start make hwy exit name')
         temp_file_obj = cache_file.open('link_name')
         multi_name_obj = None
         alter_name_obj = None
@@ -48,36 +52,45 @@ class HwyExitNameNI(HwyExitNameRDF):
                 one_names = zip(language, name)
                 one_names.sort(cmp=lambda x, y: cmp(x[0], y[0]), reverse=False)
                 if int(seq_nm) == 1:
-                    for one_name_info in one_names:
-                        (lang, name) = one_name_info
-                        lang = LANG_CODE_DICT[lang]
-                        if lang in ('CHI', 'CHT'):
+                    for index in xrange(0, len(one_names)):
+                        (org_lang, name) = one_names[index]
+                        lang = LANG_CODE_DICT.get(int(org_lang))
+                        if not lang:
+                            self.log.error('Unknown language code.')
+                            continue
+                        if index == 0:
+                            if lang not in ('CHI', 'CHT'):
+                                self.log.error('no CHI or CHT name')
+                                break
                             multi_name_obj = MultiLangNameRDF(lang, name)
                         else:
-                            if not multi_name_obj:
-                                break
                             multi_name_obj = self.set_trans_name(multi_name_obj,
+                                                                 None,
+                                                                 name,
+                                                                 lang,
+                                                                 None,  # phone
+                                                                 None   # lang
+                                                                 )
+                else:
+                    for index in xrange(0, len(one_names)):
+                        (org_lang, name) = one_names[index]
+                        lang = LANG_CODE_DICT.get(int(org_lang))
+                        if not lang:
+                            self.log.error('Unknown language_code=%s.'
+                                           % org_lang)
+                            continue
+                        if index == 0:
+                            if lang not in ('CHI', 'CHT'):
+                                self.log.error('no CHI or CHT name')
+                                break
+                            alter_name_obj = MultiLangNameRDF(lang, name)
+                        else:
+                            alter_name_obj = self.set_trans_name(alter_name_obj,
                                                                  None,
                                                                  name,
                                                                  lang,
                                                                  None,  # phonetic
                                                                  None   # lang_code
-                                                                 )
-                else:
-                    for one_name_info in one_names:
-                        (lang, name) = one_name_info
-                        lang = LANG_CODE_DICT[lang]
-                        if lang in ('CHI', 'CHT'):
-                            alter_name_obj = MultiLangNameRDF(lang, name)
-                        else:
-                            if not alter_name_obj:
-                                break
-                            alter_name_obj = self.set_trans_name(multi_name_obj,
-                                                                 None,
-                                                                 name,
-                                                                 lang,
-                                                                 None,  # phonetic
-                                                                 None  # lang_code
                                                                  )
                     multi_name_obj.add_alter(alter_name_obj)
             if multi_name_obj:
@@ -94,7 +107,7 @@ class HwyExitNameNI(HwyExitNameRDF):
         self.pg.commit2()
 
         cache_file.close(temp_file_obj, True)
-        self.log.info('End Make Link Name.')
+        self.log.info('end make hwy exit name')
         return 0
 
     def _store_name_to_temp_file(self, file_obj, featid, json_name):
@@ -111,11 +124,12 @@ class HwyExitNameNI(HwyExitNameRDF):
                array_agg(names)
         from(
             selecT featid, seq_nm,
-                   array_to_string(array_agg(language),'|')as language,
-                   array_to_string(array_agg(name),'|') as names
+                   array_to_string(array_agg(language), '|')as language,
+                   array_to_string(array_agg(name), '|') as names
             from
             (
-                   select featid::bigint, seq_nm::bigint, language, name
+                   select featid::bigint, seq_nm::bigint,
+                          language::bigint, name
                    from org_hw_fname
                    order by featid::bigint, seq_nm::bigint,
                             language::bigint

@@ -602,8 +602,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
                 shopping_corner, postbox, atm,
                 restaurant, toilet)
 
-
-    def  _get_sapa_link(self):
+    def _get_sapa_link(self):
         sqlcmd = '''
         SELECT DISTINCT b.road_code, b.road_seq, b.updown_c,
                b.node_id, b.first_node_id, c.poi_id,

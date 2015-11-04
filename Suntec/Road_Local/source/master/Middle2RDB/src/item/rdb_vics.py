@@ -2635,7 +2635,7 @@ class rdb_traffic_ni(rdb_traffic):
         rdb_log.log(self.ItemName, 'creating sequence for RTIC link -----start ', 'info')       
 
         # Add nodes to original traffic links.  
-        self.CreateIndex2('org_rtic_linkid_idx')
+        self.CreateIndex2('org_rtic_incar_linkid_idx')
         sqlcmd = """
             drop table if exists temp_rtic_link_temp cascade;
             create table temp_rtic_link_temp as 
@@ -2644,12 +2644,12 @@ class rdb_traffic_ni(rdb_traffic):
             from (
                 SELECT mapid as meshcode, linkid
                     , kind_u as kind, dir_u as linkdir, middle_u as rticid 
-                FROM org_rtic where flag_u <> '0'
+                FROM org_rtic_incar where flag_u <> '0'
                 and folder not in ('aomen', 'xianggang')
                 union
                 SELECT mapid as meshcode, linkid
                     , kind_d as kind, dir_d as linkdir, middle_d as rticid
-                FROM org_rtic where flag_d <> '0'
+                FROM org_rtic_incar where flag_d <> '0'
                 and folder not in ('aomen', 'xianggang')
             ) a
             left join org_r b
@@ -2724,7 +2724,7 @@ class rdb_traffic_ni(rdb_traffic):
                 where group_id > 0
                 union
                 select distinct mapid as meshcode,kind_u as kind,middle_u as rticid 
-                from org_rtic where kind_d = kind_u and middle_d = middle_u
+                from org_rtic_incar where kind_d = kind_u and middle_d = middle_u
             ) b
             where a.meshcode = b.meshcode and a.kind = b.kind and a.rticid = b.rticid; 
             

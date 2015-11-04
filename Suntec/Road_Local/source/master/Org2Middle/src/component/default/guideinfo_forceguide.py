@@ -1,19 +1,21 @@
 # -*- coding: UTF8 -*-
 '''
-Created on 2012-11-9
+Created on 2015-11-2
 
-@author: hongchenzai
+@author: lsq
 '''
 
-import component.component_base
-from common.common_func import GetPath
+
+
 import os
 import common.cache_file
+from common.common_func import GetPath
+import component.component_base
+
 
 class com_guideinfo_forceguide(component.component_base.comp_base):
     '''强制诱导的Base Class
     '''
-
 
     def __init__(self):
         '''
@@ -34,11 +36,23 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         
     def _Do(self):
         
+        self._make_forceguide_from_patch()
+        self._make_forceguide_from_origin()
+        
         return 0
     
-    def _deal_temp_patch_force_guide_tbl(self):
+    def _make_forceguide_from_origin(self):
         
-        self.log.info('Now it is dealing temp_patch_force_guide_tbl.csv...')
+        # 因数据协议不同，其提供的force guide元数据也不同
+        # 针对上述不同，各数据协议单独处理，在此不作统一处理
+        
+        return 0
+    
+    def _make_forceguide_from_patch(self):
+        
+        self.log.info('Begin making force guide from patch file...')
+        
+        # force guide补丁采用统一的格式存储，其对应的处理逻辑如下所示
         
         # 根据配置文件信息制作force guide数据
         # force guide配置信息以node形式给出，配置文件数据组织形式：
@@ -46,15 +60,16 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         # 2、第一个字段force guide种别
         # 3、后面每2个字段一组 第一个记录node经纬度（geometry），第二个对应node对应的z level
         if self.import_patch() == -1:
+            self.log.warning('End with can not find force guide patch file!!!')
             return -1
         
         self._update_temp_force_guide_patch_node_tbl()
         self._update_temp_force_guide_patch_link_tbl()
-        self._make_force_guide_tbl()
+        self._update_force_guide_tbl_by_patch_data()
         
-        self.log.info('dealing temp_patch_force_guide_tbl.csv succeeded')
+        self.log.info('End making force guide from patch file.')
         return 0
-    
+        
     def import_patch(self): 
         
         # 作成表单temp_force_guide_patch_tbl记录force guide配置信息，作成：
@@ -64,7 +79,7 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
         recIdx = 0
         if forceguide_patch_full_path:
             if os.path.exists(forceguide_patch_full_path):
-                self.log.info('Now it is importing force_guide_patch...')
+                self.log.info('Begin importing force_guide_patch...')
                 self.CreateTable2('temp_force_guide_patch_tbl')
                 temp_file_obj = common.cache_file.open('temp_force_guide_patch_tbl')
                 f_force_guide_patch = open(forceguide_patch_full_path, 'r') 
@@ -100,113 +115,166 @@ class com_guideinfo_forceguide(component.component_base.comp_base):
                 common.cache_file.close(temp_file_obj,True)
                 f_force_guide_patch.close()
                 
-                if -1 == self._check_org_mid_num(forceguide_patch_full_path):
-                    return -1
-                
-                self.log.info('importing force_guide_patch succeeded')
+                self.log.info('End importing force_guide_patch.')
                 return 0
 
         return -1
     
     def _update_temp_force_guide_patch_node_tbl(self):
         
-        self.log.info('Now it is updating temp_force_guide_patch_node_tbl...')
+        self.log.info('Begin converting force guide patch geometry to node...')
         
         # 作成表单temp_force_guide_patch_node_tbl记录force guide关联的node信息。作成：
         # 将表单temp_force_guide_patch_tbl中提供的node经纬度信息转换为对应的node id
         # 1、从node_tbl中收录指定经纬度方圆10米内所有node
         # 2、选取距离最近且在指定z level的node
-        self.CreateTable2('temp_force_guide_patch_node_tbl')
+        sqlcmd = """
+                DROP TABLE IF EXISTS temp_patch_node_tbl;
+                CREATE TABLE temp_patch_node_tbl
+                AS (
+                    SELECT gid, 
+                        string_to_array(str_geom, '|')::geometry[] as the_geom_list, 
+                        string_to_array(str_z, '|')::smallint[] as z_level_list
+                    FROM temp_force_guide_patch_tbl
+                );
+            """
         
-        self.CreateFunction2('mid_update_temp_force_guide_patch_node_tbl')
-        self.pg.callproc('mid_update_temp_force_guide_patch_node_tbl')
+        self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
-        self.log.info('updating temp_force_guide_patch_node_tbl succeeded')
+        self.CreateTable2('mid_temp_patch_node_tbl')
+        self.CreateFunction2('mid_update_temp_patch_node_tbl')
+        self.pg.callproc('mid_update_temp_patch_node_tbl')
+        self.pg.commit2()
+        
+        self.log.info('End converting force guide patch geometry to node.')
         return 0
     
     def _update_temp_force_guide_patch_link_tbl(self):
         
-        self.log.info('Now it is updating temp_force_guide_patch_link_tbl...')
+        self.log.info('Begin converting force guide patch node to link...')
         
         # 作成表单temp_force_guide_patch_link_tbl记录force guide关联的link信息，作成：
         # 1、从temp_force_guide_patch_node_tbl中取一条记录中任意相邻两点算路，得到一段路径
         # 2、将一条记录的所有node算路所获路径连在一起，即为当前force guide对应的link
-        self.CreateTable2('temp_force_guide_patch_link_tbl')
-        
+        self.CreateTable2('mid_temp_patch_link_tbl')
         self.CreateFunction2('mid_findpasslinkbybothnodes')
-        self.CreateFunction2('mid_update_temp_force_guide_patch_link_tbl')
-        self.pg.callproc('mid_update_temp_force_guide_patch_link_tbl')
+        self.CreateFunction2('mid_update_temp_patch_link_tbl')
+        self.pg.callproc('mid_update_temp_patch_link_tbl')
         self.pg.commit2()
         
-        self.CreateIndex2('temp_force_guide_patch_link_tbl_objectid')
-        
-        self.log.info('updating temp_force_guide_patch_link_tbl succeeded')
+        self.log.info('End converting force guide patch node to link.')
         return 0
     
-    def _make_force_guide_tbl(self):
+    def _update_force_guide_tbl_by_patch_data(self):
         
-        self.log.info('Now it is making force_guide_tbl...')
+        self.log.info('Begin updating force guide table by patch data...')
         
         # 更新表单force_guide_tbl
         # 根据force guide关联的link信息（表单temp_force_guide_patch_link_tbl）计算引导点、位置信息等
-        self.CreateFunction2('mid_get_connectnode_by_links')
-        self.CreateFunction2('mid_get_position_type_by_links')
+        sqlcmd = """
+                DROP TABLE IF EXISTS mid_temp_patch_link_tbl_bak;
+                CREATE TABLE mid_temp_patch_link_tbl_bak
+                AS (
+                    SELECT *
+                    FROM mid_temp_patch_link_tbl
+                );
+            """
         
-        sqlcmd = '''
-            drop sequence if exists temp_force_guide_tbl_seq;
-            create sequence temp_force_guide_tbl_seq;
-            select setval('temp_force_guide_tbl_seq', cast(max_id as bigint))
-            from
-            (
-                select max(force_guide_id) as max_id
-                from force_guide_tbl
-            )as a;
-        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        self.CreateTable2('mid_temp_patch_link_tbl')
+        self.CreateFunction2('mid_update_force_guide_temp_patch_link_tbl')
+        self.pg.callproc('mid_update_force_guide_temp_patch_link_tbl')
+        self.pg.commit2()
+        
+        sqlcmd = """
+                DROP SEQUENCE IF EXISTS temp_link_forceguide_seq;
+                CREATE SEQUENCE temp_link_forceguide_seq;
+                SELECT setval('temp_link_forceguide_seq', cast(max_id as bigint))
+                FROM
+                (
+                    SELECT max(force_guide_id) as max_id
+                    FROM force_guide_tbl
+                ) a;
+            """
+        
         self.pg.execute2(sqlcmd)
         self.pg.commit2() 
         
+        self.CreateFunction2('mid_get_position_type_by_links')
+        
         sqlcmd = """
-                insert into force_guide_tbl (
+                INSERT INTO force_guide_tbl(
                     force_guide_id, nodeid, inlinkid, outlinkid,
                     passlid, passlink_cnt, guide_type, position_type
                 )
-                select nextval('temp_force_guide_tbl_seq') as force_guide_id,
-                    mid_get_connectnode_by_links(inlinkid, secondlink) as nodeid,
-                    inlinkid, outlinkid, passlid, passlink_cnt, guide_type,
+                SELECT nextval('temp_link_forceguide_seq') as force_guide_id,
+                    nodeid, inlinkid, outlinkid, passlid, passlink_cnt, guide_type, 
                     mid_get_position_type_by_links(inlinkid, outlinkid) as position_type
-                from (
-                    select link_id_list[1] as inlinkid, link_id_list[2] as secondlink,
-                        link_id_list[array_upper(link_id_list, 1)] as outlinkid, 
-                        case when array_upper(link_id_list, 1) - 2 = 0 then null else array_to_string(link_id_list[2:array_upper(link_id_list, 1)-1], '|') end as passlid,
-                        array_upper(link_id_list, 1) - 2 as passlink_cnt, a.guide_type
-                    from temp_force_guide_patch_node_tbl a
-                    left join temp_force_guide_patch_link_tbl b
-                        on a.id = b.objectid
-                    where b.objectid is not null
-                ) c
+                FROM (
+                    SELECT c.node_id_list[2] as nodeid, b.link_id_list[1] as inlinkid,
+                        b.link_id_list[array_upper(b.link_id_list, 1)] as outlinkid,
+                        (case when array_upper(b.link_id_list, 1) = 2 then null else array_to_string(b.link_id_list[2:array_upper(b.link_id_list, 1)-1], '|') end)::varchar as passlid,
+                        (array_upper(b.link_id_list, 1) - 2)::smallint as passlink_cnt,
+                        d.guide_type
+                    FROM mid_temp_patch_link_tbl b
+                    LEFT JOIN mid_temp_patch_node_tbl c
+                        ON b.gid = c.gid
+                    LEFT JOIN temp_force_guide_patch_tbl d
+                        ON b.gid = d.gid
+                ) a
             """
-            
-        self.pg.do_big_insert2(sqlcmd)
         
-        self.log.info('making force_guide_tbl succeeded')
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2() 
+         
+        self.log.info('End updating force guide table by patch data.')
         return 0
     
-    def _check_org_mid_num(self, filename):
-        self.log.info('Now it is checking temp_force_guide_patch_tbl...')
+    def _update_force_guide_tbl_by_origin_data(self):
         
-        # 验证导入数据个数的正确性
+        self.log.info('Begin updating force guide table by origin data...')
+        
         sqlcmd = """
-                SELECT count(*)
-                from temp_force_guide_patch_tbl
+                DROP SEQUENCE IF EXISTS temp_link_forceguide_seq;
+                CREATE SEQUENCE temp_link_forceguide_seq;
+                SELECT setval('temp_link_forceguide_seq', cast(max_id as bigint))
+                FROM
+                (
+                    select max(force_guide_id) as max_id
+                    from force_guide_tbl
+                ) a;
             """
-            
+        
         self.pg.execute2(sqlcmd)
-        row = self.pg.fetchone2()
+        self.pg.commit2()  
         
-        if row[0] != len(open(filename, 'r').readlines()):
-            self.log.error("num of org_file is not match with num of id_tbl!!!")
-            return -1
+        sqlcmd = """
+                INSERT INTO force_guide_tbl (
+                    force_guide_id, nodeid, inlinkid, outlinkid, passlid,
+                    passlink_cnt, guide_type, position_type
+                )
+                SELECT nextval('temp_link_forceguide_seq') as force_guide_id,
+                    nodeid, inlinkid, outlinkid, passlid, passlink_cnt,
+                    guide_type, 0 as position_type
+                FROM (
+                    SELECT distinct a.nodeid, a.inlinkid, a.outlinkid, a.passlid, a.passlink_cnt, a.guide_type
+                    FROM mid_temp_force_guide_tbl a 
+                    LEFT JOIN force_guide_tbl b
+                        ON 
+                            b.nodeid = a.nodeid and
+                            b.inlinkid = a.inlinkid and
+                            b.outlinkid = a.outlinkid and
+                            not(b.passlid is distinct from a.passlid) and
+                            b.passlink_cnt = a.passlink_cnt
+                    WHERE b.gid IS NULL
+                ) c;
+            """
         
-        self.log.info('checking temp_force_guide_patch_tbl succeeded')
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()  
+        
+        self.log.info('End updating force guide table by origin data.') 
         return 0

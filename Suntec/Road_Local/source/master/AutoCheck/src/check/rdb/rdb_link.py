@@ -2028,4 +2028,34 @@ class CCheckJctLink_by_highway(platform.TestCase.CTestCase):
         rec = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec == 0)    
     
-             
+class CCheckDisplayclass(platform.TestCase.CTestCase):
+    
+    def _do(self):
+        sqlcmd = '''
+                select link_id,start_node_id,end_node_id,b.link_num,c.link_num,display_class
+                from rdb_link a 
+                join rdb_node b
+                on a.start_node_id = b.node_id
+                join rdb_node c
+                on a.end_node_id = c.node_id
+                where link_type=5 
+                '''
+        self.pg.execute(sqlcmd)
+        results = self.pg.fetchall()
+        sqlcmd_1='''
+            select display_class 
+            from rdb_link where link_id <> %d and link_type = 5
+                and %d in (start_node_id,end_node_id)
+                '''
+        for result in results:
+            if result[3]==2:
+                display_class = self.pg.getOnlyQueryResult(sqlcmd_1%(result[0],result[1]))
+                if display_class :
+                    if display_class<>result[5]:
+                        return False
+            if result[4]==2:
+                display_class = self.pg.getOnlyQueryResult(sqlcmd_1%(result[0],result[2]))
+                if display_class :
+                    if display_class<>result[5]:
+                        return False
+        return True

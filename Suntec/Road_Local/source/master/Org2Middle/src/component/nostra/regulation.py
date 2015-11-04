@@ -7,19 +7,28 @@ Created on 2013-12-5
 
 
 
-import component.default.regulation
+import component.component_base
 
-class comp_regulation_nostra(component.default.regulation.com_regulation):
+class comp_regulation_nostra(component.component_base.comp_base):
     def __init__(self):
         '''
         Constructor
         '''
-        component.default.regulation.com_regulation.__init__(self)
+        component.component_base.comp_base.__init__(self, 'Regulation')
+    
+    def _DoCreateTable(self):
+        
+        self.CreateTable2('condition_regulation_tbl')
+        self.CreateTable2('regulation_relation_tbl')
+        self.CreateTable2('regulation_item_tbl')
+        
+        return 0
     
     def _Do(self):
+        
         self.__convert_condition_table()
         self.__convert_regulation()
-        self._deal_temp_patch_regulation_tbl()
+        
         return 0
     
     def __convert_condition_table(self):
@@ -84,27 +93,4 @@ class comp_regulation_nostra(component.default.regulation.com_regulation):
         self.pg.callproc('mid_check_regulation_condition')
         
         self.log.info('Check regulation end.')
-        return 0
-    
-    def _update_temp_regulation_patch_node_tbl(self):
-        
-        self.log.info('Begin converting regulation patch geometry to node...')
-        
-        self.CreateFunction2('update_temp_regulation_patch_node_tbl_nostra')
-        self.pg.callproc('update_temp_regulation_patch_node_tbl_nostra')
-        self.pg.commit2()
-        
-        self.log.info('End converting regulation patch geometry to node.')
-        return 0
-    
-    def _update_temp_regulation_patch_link_tbl(self):
-        
-        self.log.info('Begin converting regulation patch node to link...')
-        
-        self.CreateFunction2('findpasslinkbybothnodes_nostra')
-        self.CreateFunction2('update_temp_regulation_patch_link_tbl_nostra')
-        self.pg.callproc('update_temp_regulation_patch_link_tbl_nostra')
-        self.pg.commit2()
-        
-        self.log.info('End converting regulation patch node to link.')
         return 0

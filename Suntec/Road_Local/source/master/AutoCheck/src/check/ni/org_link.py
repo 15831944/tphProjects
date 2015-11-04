@@ -173,10 +173,15 @@ class CCheckUnthrucrid(platform.TestCase.CTestCase):
     
     def _do(self):
         sqlcmd = '''
-            select count(1) from org_r a 
+            select count(*) from org_r a 
             left join org_cr b 
             on a.unthrucrid=b.crid 
-            where a.unthrucrid<>'' and ( a.through<>'0' or b.crid is null)
+            where a.unthrucrid <> '' 
+            and (
+                (a.through <> '0' and b.crid is null)
+                or 
+                (a.through = '0' and b.crid is not null)
+            );
                  '''
         return self.pg.getOnlyQueryResult(sqlcmd)==0
     

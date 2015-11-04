@@ -61,6 +61,10 @@ class proj_nostra_module(subproj.proj_base.proj_base_module):
 
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
+            
+            # Regulation_patch
+            self.AddComponent(self.comp_factory.CreateOneComponent('Regulation_patch'))
+            
             #park
             self.AddComponent(self.comp_factory.CreateOneComponent('park'))
 

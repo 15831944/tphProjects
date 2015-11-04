@@ -103,9 +103,15 @@ class comp_admin(component.component_base.comp_base):
             (
                 select ad_code, [time_attr]
                 from mid_admin_zone
-                where ad_order = 1 and [time_attr] is not null
+                where ad_order in (0, 1) and [time_attr] is not null
             )as b
-            where a.ad_order = 2 and a.[time_attr] is null and a.order1_id = b.ad_code;
+            where   a.ad_order = 2 and a.[time_attr] is null 
+                    and 
+                    (
+                        (a.order1_id = b.ad_code)
+                        or 
+                        (a.order1_id is null and a.order0_id = b.ad_code)
+                    )
             ;
             
             update mid_admin_zone as a 
@@ -114,7 +120,7 @@ class comp_admin(component.component_base.comp_base):
             (
                 select ad_code, [time_attr]
                 from mid_admin_zone
-                where ad_order in (1,2) and [time_attr] is not null
+                where ad_order in (0,1,2) and [time_attr] is not null
             )as b
             where  a.ad_order = 8 and a.[time_attr] is null 
                    and 
@@ -122,6 +128,8 @@ class comp_admin(component.component_base.comp_base):
                        (a.order2_id = b.ad_code)
                        or
                        (a.order2_id is null and a.order1_id = b.ad_code)
+                       or
+                       (a.order2_id is null and a.order1_id is null and a.order0_id = b.ad_code)
                    )
             ;
         """
@@ -179,7 +187,7 @@ class comp_admin(component.component_base.comp_base):
                         from(
                             select order0_id, ad_code
                             from mid_admin_zone
-                            where order0_id = %d and ad_order = 8
+                            where order0_id = %d and ad_order = 1
                         )b
                         where a.ad_order = 8 and a.order0_id = b.order0_id;
                         """%row[0]

@@ -66,24 +66,30 @@ class comp_admin_ta(component.default.admin.comp_admin):
                     
                     union
                     
-                    select id, order00, 1 as level, ROW_NUMBER()OVER (partition by order00 order by order00, id) as num
-                    from org_a1
-                    where order00 not like '$%' and name <> 'Outer World'
-                    group by level, order00, id
+                    select a.id, a.order00, 1 as level, ROW_NUMBER()OVER (partition by a.order00 order by a.order00, a.id) as num
+                    from org_a1 as a
+                    left join org_a0 as b
+                    on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
+                    where b.order00 is not null
+                    group by level, a.order00, a.id
                     
                     union
                     
-                    select id, order00, 2 as level, ROW_NUMBER()OVER (partition by order00 order by order00, id) as num
-                    from org_a7
-                    where order00 not like '$%' and name <> 'Outer World'
-                    group by level, order00, id
+                    select a.id, a.order00, 2 as level, ROW_NUMBER()OVER (partition by a.order00 order by a.order00, a.id) as num
+                    from org_a7 as a
+                    left join org_a0 as b
+                    on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
+                    where b.order00 is not null
+                    group by level, a.order00, a.id
                     
                     union
                     
-                    select id, order00, 4 as level, ROW_NUMBER()OVER (partition by order00 order by order00, id) as num
-                    from org_a8
-                    where order00 not like '$%' and name <> 'Outer World'
-                    group by level, order00, id
+                    select a.id, a.order00, 4 as level, ROW_NUMBER()OVER (partition by a.order00 order by a.order00, a.id) as num
+                    from org_a8 as a
+                    left join org_a0 as b
+                    on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
+                    where b.order00 is not null
+                    group by level, a.order00, a.id
                     order by level, order00, id
                 )temp;
                 '''
@@ -158,7 +164,8 @@ class comp_admin_ta(component.default.admin.comp_admin):
                 on a.id_old::bigint = c.admin_id
                 
                 left join org_a1 as d
-                on b.order01 = d.order01 and b.order00 = d.order00
+                on b.order01 is not distinct from d.order01 
+                    and b.order00 = d.order00
                 left join temp_adminid_newandold as e
                 on d.id = e.id_old and e.level = 1
                                
@@ -187,13 +194,15 @@ class comp_admin_ta(component.default.admin.comp_admin):
                 on a.id_old::bigint = c.admin_id
                 
                 left join org_a7 as d
-                on b.order07 = d.order07 and b.order01 = d.order01 
-                    and b.order00 = d.order00
+                on b.order07 is not distinct from d.order07 
+                  and b.order01 is not distinct from d.order01 
+                  and b.order00 = d.order00
                 left join temp_adminid_newandold as e
                 on d.id = e.id_old and e.level = 2
                   
                 left join org_a1 as d_1
-                on b.order01 = d_1.order01 and b.order00 = d_1.order00
+                on b.order01 is not distinct from d_1.order01 
+                  and b.order00 = d_1.order00
                 left join temp_adminid_newandold as e_1
                 on d_1.id = e_1.id_old and e_1.level = 1
                              

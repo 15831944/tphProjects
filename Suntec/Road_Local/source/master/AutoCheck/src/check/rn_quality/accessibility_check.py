@@ -14,6 +14,7 @@ import copy
 
 distance_limit = {
                   ('rdf', 'hkg') : {'4' : 10000.0, '6' : 50000.0},
+                  ('zenrin', 'twn') : {'4' : 10000.0, '6' : 100000.0},
                   ('default') : {'4' : 10000.0, '6' : 50000.0}
                   }
 
@@ -23,13 +24,121 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
         
         # 验证Region各层道路连通性
         region_layer_list = self.pg.GetRegionLayers()
+        
+        self._check_region_layer_road_network_accessibility(region_layer_list)
+        self._check_region_level14_road_network_accessibility(region_layer_list)
+        
         for layer_no in region_layer_list:
-            self._check_region_layer_road_network_accessibility(layer_no)
+            if layer_no == '4':
+                continue
+            self._update_the_geom_in_path_tbl(layer_no)
+        
+        # region层可达性验证完毕后，可能存在不可达的情况，为分析不可达的原因，还需对上述不可达点在14层路网验证其可达性
+        # 若Region层不可达点在14层路网可达，需要改善路网分层算法；否则，无需改善
         
         return True
+    
+    def _check_region_layer_road_network_accessibility(self, region_layer_list):
         
-    def _check_region_layer_road_network_accessibility(self, layer_no = '4'):
+        # region层道路网可达性验证---
+        # region层可达性验证仅使用region层路网，不涉及其他层路网数据，可达性验证失败的留待后续处理
+        for layer_no in region_layer_list:
+            if layer_no == '4':
+                continue
+            self._check_one_region_layer_road_network_accessibility(layer_no)
         
+        return True
+    
+    def _check_region_level14_road_network_accessibility(self, region_layer_list):
+        
+        # 针对region层可达性验证失败的案例
+        # 针对region层可达性验证失败原因有两种：1、本身不可达； 2、道路分层导致region层缺失某些道路
+        # 为分析其原因，需要对失败案例做进一步分析，即使用失败案例在level 14验证其可达性
+        # 若level 14层可达，则是由于路网分层导致道路缺失，进而导致region某些点不可达；反之，其自身不可达
+        graph = common.networkx.CGraph_Memory()
+        for layer_no in region_layer_list:
+            if layer_no == '4':
+                continue
+            self._check_level14_road_network_accessibility(graph, layer_no)
+            
+        return True
+            
+    def _check_level14_road_network_accessibility(self, graph_object, layer_no = '4'):
+        
+        sqlcmd = """
+                SELECT max(path_id)
+                FROM temp_region_accessibility_path_layer%s_tbl
+            """ % (str(layer_no))
+        
+        cur_max_path_id = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                SELECT a.gid, b.node_id_14 as search_s_node, c.node_id_14 as search_e_node, ST_Distance_Sphere(d.the_geom, e.the_geom) as distance
+                FROM temp_region_accessibility_layer%s_tbl a
+                LEFT JOIN rdb_region_layer%s_node_mapping b
+                    ON a.search_s_node = b.region_node_id
+                LEFT JOIN rdb_region_layer%s_node_mapping c
+                    ON a.search_e_node = c.region_node_id
+                LEFT JOIN rdb_region_node_layer%s_tbl d
+                    ON a.search_s_node = d.node_id
+                LEFT JOIN rdb_region_node_layer%s_tbl e
+                    ON a.search_e_node = e.node_id
+                WHERE a.improving is null
+            """ % (str(layer_no), str(layer_no), str(layer_no), str(layer_no), str(layer_no))
+        
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        
+        insert_sqlcmd1 = """
+                UPDATE temp_region_accessibility_layer%s_tbl a
+                SET path_14_id = %s, improving = %s
+                WHERE a.gid = %s
+            """
+        
+        insert_sqlcmd2 = """
+                INSERT INTO temp_region_accessibility_path_layer%s_tbl (
+                    path_id, seq_num, link_id
+                )
+                VALUES (%s, %s, %s)
+            """
+        
+        path_id = cur_max_path_id # 标记path id
+        row_cnt = len(rows) # 记录总数，显示进度用
+        row_idx = 0 # 记录索引，标记当前进度
+        for row in rows:
+            rec_gid = row[0]
+            search_s_node = row[1]
+            search_e_node = row[2]
+            distance = row[3]
+            row_idx = row_idx + 1
+            self.logger.info('layer_no: ' + str(layer_no) + '---dealing ' + str(row_idx) + ' / ' + str(row_cnt))
+            path_exist = False # 标记路径是否存在
+            
+            try:
+                paths = graph_object.searchShortestPaths(search_s_node, search_e_node, distance)
+                if not paths:
+                    self.pg.execute(insert_sqlcmd1, (int(layer_no), None, False, rec_gid))
+                else:
+                    path_exist = True
+                    for (cur_distance, path) in paths:
+                        path_id = path_id + 1
+                        seq_num = 0
+                        for x in path:
+                            self.pg.execute(insert_sqlcmd2, (int(layer_no), path_id, seq_num, x))
+                            seq_num = seq_num + 1
+                                
+                        self.pg.execute(insert_sqlcmd1, (int(layer_no), path_id, True, rec_gid))
+                        #self.logger.error('layer_no: ' + str(layer_no) + '---From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' can be reached !!!')
+            except:
+                self.logger.error('layer_no: ' + str(layer_no) + '---exception happened From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' route calculation !!!')
+                raise
+        
+        self.pg.commit()   
+        return True
+        
+    def _check_one_region_layer_road_network_accessibility(self, layer_no = '4'):
+        
+        # 该步仅验证Region层的可达性，若Region层不可达，记为不可达，后期处理
         # 创建表单temp_region_accessibility_layerX_tbl记录region层任意两Node间的可达性
         # Region层Node的选择因协议、仕向地、间距有所不同
         # 包括如下信息：起始Node、终止Node、region层路径id（可为空）、level 14路径id（可为空）、是否需要改善标记（True：需要改善 / False：不需要改善）
@@ -44,6 +153,7 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
                     gid serial primary key,
                     search_s_node bigint not null,
                     search_e_node bigint not null,
+                    distance double precision,
                     region_path_id bigint,
                     path_14_id bigint,
                     improving boolean
@@ -65,9 +175,9 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
         
         insert_sqlcmd1 = """
                 INSERT INTO temp_region_accessibility_layer%s_tbl (
-                    search_s_node, search_e_node, region_path_id, path_14_id, improving
+                    search_s_node, search_e_node, distance, region_path_id, path_14_id, improving
                 )
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
         
         insert_sqlcmd2 = """
@@ -76,66 +186,71 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
                 )
                 VALUES (%s, %s, %s)
             """
-        
-        graph = common.networkx.CGraph_PG()
-        
+            
+        region_link_tbl = """rdb_region_link_layer%s_tbl""" % (str(layer_no))
+        region_link_laneinfo_tbl = """rdb_region_link_lane_info_layer%s_tbl""" % (str(layer_no))
         distance_limit = self._get_distance_limit(layer_no)
-        self._prepare_route_calc_data(layer_no)
+        
+        self._prepare_route_calc_data(layer_no, distance_limit)
+        
+        graph = common.networkx.CGraph_Memory(region_link_tbl, region_link_laneinfo_tbl)
         
         sqlcmd = """
-                SELECT search_inlink, search_start_node, search_outlink, search_end_node, distance 
+                SELECT search_start_node, search_end_node, distance, search_inlink_list, search_outlink_list 
                 FROM temp_region_route_link_layer%s_tbl
+                ORDER BY distance
             """ % (str(layer_no))
         
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchall()
         
-        region_link_tbl = """rdb_region_link_layer%s_tbl""" % str(layer_no)
-        region_link_lane_info_tbl = """rdb_region_link_lane_info_layer%s_tbl""" % str(layer_no)
-        path_id = 0
+        path_id = 0 # 标记path id
+        row_cnt = len(rows) # 记录总数，显示进度用
+        row_idx = 0 # 记录索引，标记当前进度
         for row in rows:
-            path_exist = False
             
-            try:
-                paths = graph.searchShortestPaths(row[0], row[2], row[1], row[3], row[4], region_link_tbl, region_link_lane_info_tbl)
-                if not paths:
-                    pass
-                else:
-                    path_exist = True 
-                    for (cur_distance, path) in paths:
-                        path_id = path_id + 1
-                        seq_num = 0
-                        for x in path:
-                            self.pg.execute(insert_sqlcmd2, (int(layer_no), path_id, seq_num, x))
-                            seq_num = seq_num + 1
-                        
-                        self.pg.execute(insert_sqlcmd1, (int(layer_no), row[1], row[3], path_id, None, False))
-                        self.logger.error('layer_no: ' + str(layer_no) + '---From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' can be reached !!!')
-                    continue
-            except:
-                continue
+            path_exist = False # 标记路径是否存在
+            row_idx = row_idx + 1
+            
+            self.logger.info('layer_no: ' + str(layer_no) + '---dealing ' + str(row_idx) + ' / ' + str(row_cnt))
+            
+            search_start_node = row[0]
+            search_end_node = row[1]
+            distance = row[2]
+            search_inlink_list = row[3]
+            search_outlink_list = row[4]
+            linklist_len = len(search_inlink_list)
+            
+            for i in range(0, linklist_len):
+                search_inlink = search_inlink_list[i]
+                search_outlink = search_outlink_list[i]
+                
+                try:
+                    #paths = graph.searchShortestPaths(search_inlink, search_outlink, search_start_node, search_end_node, distance, region_link_tbl, region_link_laneinfo_tbl)
+                    paths = graph.searchShortestPaths(search_start_node, search_end_node, distance)
+                    if not paths:
+                        continue
+                    else:
+                        path_exist = True
+                        for (cur_distance, path) in paths:
+                            path_id = path_id + 1
+                            seq_num = 0
+                            for x in path:
+                                self.pg.execute(insert_sqlcmd2, (int(layer_no), path_id, seq_num, x))
+                                seq_num = seq_num + 1
+                                
+                            self.pg.execute(insert_sqlcmd1, (int(layer_no), search_start_node, search_end_node, cur_distance, path_id, None, False))
+                            break
+                            #self.logger.error('layer_no: ' + str(layer_no) + '---From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' can be reached !!!')
+                        break
+                except:
+                    self.logger.error('layer_no: ' + str(layer_no) + '---exception happened From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' route calculation !!!')
+                    raise
             
             if path_exist == False:
-                # search path in level14. if exists the path, region network must be improved
-                (path_exist, paths) = self._check_level14_road_network_accessibility(row[1], row[3])
-                if False == path_exist:
-                    self.pg.execute(insert_sqlcmd1, (int(layer_no), row[1], row[3], None, None, False))
-                    self.logger.error('layer_no: ' + str(layer_no) + '---From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' can not be reached !!!')
-                else: 
-                    for (cur_distance, path) in paths:
-                        path_id = path_id + 1
-                        seq_num = 0
-                        for x in path:
-                            self.pg.execute(insert_sqlcmd2, (int(layer_no), path_id, seq_num, x))
-                            seq_num = seq_num + 1
-                            
-                        self.pg.execute(insert_sqlcmd1, (int(layer_no), row[1], row[3], None, path_id, True))                
-                    self.logger.error('layer_no: ' + str(layer_no) + '---From Node ' + str(row[1]) + ' To Node ' + str(row[3]) + ' region path need be improved !!!')
-                    
+                self.pg.execute(insert_sqlcmd1, (int(layer_no), search_start_node, search_end_node, None, None, None, None))
+                        
         self.pg.commit()
-        
-        # 更新路径表中的形点信息
-        self._update_the_geom_in_path_tbl(layer_no)
         
         return True
     
@@ -162,12 +277,12 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
                   (link_id);
                   
                 UPDATE temp_region_accessibility_path_layer%s_tbl a
-                SET a.the_geom = b.the_geom
+                SET the_geom = b.the_geom
                 FROM rdb_region_link_layer%s_tbl b
                 WHERE a.link_id = b.link_id;
                 
                 UPDATE temp_region_accessibility_path_layer%s_tbl a
-                SET a.the_geom = b.the_geom
+                SET the_geom = b.the_geom
                 FROM rdb_link b
                 WHERE a.link_id = b.link_id;
             """ % (str(layer_no), str(layer_no), str(layer_no), str(layer_no), str(layer_no), str(layer_no))
@@ -177,10 +292,10 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
             
         return True
     
-    def _check_level14_road_network_accessibility(self, s_node = None, e_node = None):
+    def _check_level14_road_network_accessibility1(self, s_node = None, e_node = None):
         
         sqlcmd = """
-                SELECT search_inlink, search_start_node, search_outlink, search_end_node, distance 
+                SELECT search_start_node, search_end_node, distance, search_inlink_list, search_outlink_list 
                 FROM temp_route_link_tbl
                 WHERE old_f_node = %s and old_t_node = %s
             """ % (str(s_node), str(e_node))
@@ -191,15 +306,24 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
         graph = common.networkx.CGraph_PG()
         
         for row in rows:
-            try:
-                paths = graph.searchShortestPaths(row[0], row[2], row[1], row[3], row[4])
+            search_start_node = row[0]
+            search_end_node = row[1]
+            distance = row[2]
+            search_inlink_list = row[3]
+            search_outlink_list = row[4]
+            linklist_len = len(search_inlink_list)
+            for i in range(0, linklist_len):
+                search_inlink = search_inlink_list[i]
+                search_outlink = search_outlink_list[i]
                 
-                if not paths:
+                try:
+                    paths = graph.searchShortestPaths(search_inlink, search_outlink, search_start_node, search_end_node, distance)
+                    if not paths:
+                        continue
+                    else:
+                        return (True, paths)
+                except:
                     continue
-                else:
-                    return (True, paths)
-            except:
-                continue
             
         return (False, [])
     
@@ -219,8 +343,14 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
         
         # 根据不同仕向地layer作成情况的不同，算路选择点的获取方式也会不同
         area = common.ConfigReader.CConfigReader.instance().getCountryName()
-        if area.upper() in ('HKG'):
+        if area.lower() in ('hkg'):
             self._select_road_termination_node_in_tile2(layer_no)
+        elif area.lower() in ('twn'):
+            if layer_no == '4':
+                self._select_single_max_degree_node_in_tile(layer_no)
+            else:
+                self._select_max_degree_nodes_in_tile(layer_no)
+                self._select_road_termination_node_in_tile2(layer_no)
         else:
             pass
         
@@ -229,40 +359,12 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
                 DROP TABLE IF EXISTS temp_region_route_link_layer%s_tbl;
                 CREATE TABLE temp_region_route_link_layer%s_tbl
                 AS (
-                    SELECT d.link_id as search_inlink, c.f_node as search_start_node, 
-                        e.link_id as search_outlink, c.t_node as search_end_node, distance
+                    SELECT search_start_node, search_end_node, distance,
+                        array_agg(search_inlink) as search_inlink_list,
+                        array_agg(search_outlink) as search_outlink_list
                     FROM (
-                        SELECT a.node_id as f_node, b.node_id as t_node,
-                            ST_Distance_Sphere(a.the_geom, b.the_geom) as distance
-                        FROM temp_region_selectd_node_layer%s_tbl a
-                        LEFT JOIN temp_region_selectd_node_layer%s_tbl b
-                            ON a.node_id != b.node_id
-                        WHERE ST_Distance_Sphere(a.the_geom, b.the_geom) > %s
-                    ) c
-                    LEFT JOIN rdb_region_link_layer%s_tbl d
-                        ON (c.f_node = d.start_node_id and d.one_way in (1, 3)) or 
-                            (c.f_node = d.end_node_id and d.one_way in (1, 2))
-                    LEFT JOIN rdb_region_link_layer%s_tbl e
-                        ON (c.t_node = e.start_node_id and e.one_way in (1, 2)) or 
-                            (c.t_node = e.end_node_id and e.one_way in (1, 3))
-                    where d.link_id is not null and e.link_id is not null
-                );
-            """ % (str(layer_no), str(layer_no), str(layer_no), str(layer_no), 
-                   str(distance_limit), str(layer_no), str(layer_no))
-        
-        self.pg.execute(sqlcmd)
-        self.pg.commit()
-
-        sqlcmd = """
-                DROP TABLE IF EXISTS temp_route_link_tbl;
-                CREATE TABLE temp_route_link_tbl
-                AS (
-                    SELECT g.link_id as search_inlink, f.f_node as search_start_node, 
-                        h.link_id as search_outlink, f.t_node as search_end_node, 
-                        old_f_node, old_t_node, f.distance
-                    FROM (
-                        SELECT c.f_node as old_f_node, d.node_id_14 as f_node, 
-                            c.t_node as old_t_node, e.node_id_14 as t_node, c.distance
+                        SELECT d.link_id as search_inlink, c.f_node as search_start_node, 
+                            e.link_id as search_outlink, c.t_node as search_end_node, distance
                         FROM (
                             SELECT a.node_id as f_node, b.node_id as t_node,
                                 ST_Distance_Sphere(a.the_geom, b.the_geom) as distance
@@ -271,72 +373,60 @@ class CCheckAccessibility(platform.TestCase.CTestCase):
                                 ON a.node_id != b.node_id
                             WHERE ST_Distance_Sphere(a.the_geom, b.the_geom) > %s
                         ) c
-                        LEFT JOIN rdb_region_layer%s_node_mapping d
-                            on c.f_node = d.region_node_id
-                        LEFT JOIN rdb_region_layer%s_node_mapping e
-                            on c.t_node = e.region_node_id
+                        LEFT JOIN rdb_region_link_layer%s_tbl d
+                            ON (c.f_node = d.start_node_id and d.one_way in (1, 3)) or 
+                                (c.f_node = d.end_node_id and d.one_way in (1, 2))
+                        LEFT JOIN rdb_region_link_layer%s_tbl e
+                            ON (c.t_node = e.start_node_id and e.one_way in (1, 2)) or 
+                                (c.t_node = e.end_node_id and e.one_way in (1, 3))
+                        WHERE d.link_id is not null and e.link_id is not null
+                        ORDER BY c.f_node, c.t_node, distance
                     ) f
-                    LEFT JOIN rdb_link g
-                        ON (f.f_node = g.start_node_id and g.one_way in (1, 3)) or 
-                            (f.f_node = g.end_node_id and g.one_way in (1, 2))
-                    LEFT JOIN rdb_link h
-                        ON (f.t_node = h.start_node_id and h.one_way in (1, 2)) or 
-                            (f.t_node = h.end_node_id and h.one_way in (1, 3))
-                    WHERE g.link_id is not null and 
-                        h.link_id is not null and 
-                        g.road_type not in %s and 
-                        h.road_type not in %s
+                    GROUP BY search_start_node, search_end_node, distance
                 );
-                
-                DROP INDEX IF EXISTS temp_route_link_tbl_old_f_node_old_t_node_idx;
-                CREATE INDEX temp_route_link_tbl_old_f_node_old_t_node_idx
-                  ON temp_route_link_tbl
-                  USING btree
-                  (old_f_node, old_t_node);
-            """ % (str(layer_no), str(layer_no), str(distance_limit), str(layer_no), 
-                   str(layer_no), str(delete_road_type), str(delete_road_type))
+            """ % (str(layer_no), str(layer_no), str(layer_no), str(layer_no), 
+                   str(distance_limit), str(layer_no), str(layer_no))
         
         self.pg.execute(sqlcmd)
         self.pg.commit()
     
-    def _select_max_degree_nodes_in_tile(self, region_selected_node_tbl, region_node_tbl):
+    def _select_max_degree_nodes_in_tile(self, layer_no = '4'):
         
         # 获取一个Tile内度最大的所有Node
         sqlcmd = """
-                INSERT INTO %s
-                SELECT a.node_id, the_geom
-                FROM %s a
-                LEFT JOIN (
+                INSERT INTO temp_region_selectd_node_layer%s_tbl
+                SELECT b.node_id, b.the_geom
+                FROM (
                     SELECT node_id_t, max(link_num) as max_link_num
-                    FROM %s
+                    FROM rdb_region_node_layer%s_tbl
                     GROUP BY node_id_t
-                ) b
+                ) a
+                LEFT JOIN rdb_region_node_layer%s_tbl b
                     ON a.node_id_t = b.node_id_t
-                WHERE a.link_num = b.max_link_num
-                ORDER BY a.node_id_t
-            """ % (str(region_selected_node_tbl), str(region_node_tbl), str(region_node_tbl))
+                WHERE a.max_link_num = b.link_num
+            """ % (str(layer_no), str(layer_no), str(layer_no))
         
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
-    def _select_single_max_degree_node_in_tile(self, region_selected_node_tbl, region_node_tbl):
+    def _select_single_max_degree_node_in_tile(self, layer_no = '4'):
         
         # 获取一个Tile内度最大的任意一个Node
         sqlcmd = """
-                INSERT INTO %s
+                INSERT INTO temp_region_selectd_node_layer%s_tbl
                 SELECT c.node_id, c.the_geom
                 FROM (
                     SELECT node_id_t, array_agg(node_id) as node_list
                     FROM (
                         SELECT node_id_t, node_id
-                        FROM %s
+                        FROM rdb_region_node_layer%s_tbl
                         ORDER BY node_id_t, link_num DESC
                     ) a
                     GROUP BY node_id_t
                 ) b
-                LEFT JOIN %s c
+                LEFT JOIN rdb_region_node_layer%s_tbl c
                     ON node_list[1] = c.node_id
-            """ % (str(region_selected_node_tbl), str(region_node_tbl), str(region_node_tbl))
+            """ % (str(layer_no), str(layer_no), str(layer_no))
         
         self.pg.execute(sqlcmd)
         self.pg.commit()

@@ -69,6 +69,8 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         self._ConvertRampRoadTypeFC()
         
         self.__Update_ic_jct_linktype()
+        ##修正jct 作成
+        self.__update_jct_link_revise()
         
         # 更新link_tbl中Ramp的RoadType和FC
         self._UpdateRampRoadTypeFC()
@@ -85,11 +87,11 @@ class comp_ramp_roadtype(component.component_base.comp_base):
     def __Update_ic_jct_linktype(self):
         self.log.info('Updating link_type of ic/jct links...')
         sqlcmd = '''
-            update link_tbl as a
-            set link_type = e.link_type_new
-            from 
+            drop table if exists temp_link_type_modify_test;
+            create table temp_link_type_modify_test
+            as
             (
-                select link_id,link_type_new
+                select link_id,link_type_new,link_type
                 from
                 (
                     select b.link_id, min(new_link_type) as link_type_new ,c.link_type
@@ -99,8 +101,13 @@ class comp_ramp_roadtype(component.component_base.comp_base):
                     group by b.link_id,c.link_type
                 ) as d
                 where d.link_type not in (0,7) and d.link_type <> d.link_type_new
-            ) as e
-            where a.link_id = e.link_id
+            );
+            
+            
+            update link_tbl as a
+            set link_type = e.link_type_new
+            from temp_link_type_modify_test as e
+            where a.link_id = e.link_id;
             
          '''
         self.pg.execute2(sqlcmd)
@@ -131,11 +138,12 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         self.pg.commit2()
         
         sqlcmd = '''
-            update link_tbl as a
-            set link_type = e.new_link_type
-            from
+        
+            drop table if exists temp_jct_link_modify_test;
+            create table temp_jct_link_modify_test
+            as
             (
-                select c.link_id, c.new_link_type, d.link_type
+                select c.link_id, c.new_link_type
                 from
                 (
                     select b.link_id, min(b.link_type) as new_link_type
@@ -149,15 +157,92 @@ class comp_ramp_roadtype(component.component_base.comp_base):
                 join link_tbl as d
                 on d.link_id = c.link_id
                 where c.new_link_type <> d.link_type
-            ) as e
-            where a.link_id = e.link_id
+            
+            );
+            
+            
+            update link_tbl as a
+            set link_type = e.new_link_type
+            from temp_jct_link_modify_test as e
+            where a.link_id = e.link_id;
         '''
         
         self.pg.execute2(sqlcmd)
         self.pg.commit2() 
         
+    def __update_jct_link_revise(self):
+        self.log.info('update jct link for the special case...')
+        self.CreateFunction2('mid_highway_connect')
+        self.CreateFunction2('mid_find_jct_link_paths') 
+        self.CreateFunction2('mid_find_suspect_jct_link')
+        self.CreateFunction2('mid_jct_link_paths_filter')
+        self.CreateTable2('temp_suspect_jct_paths_link')
+        self.CreateTable2('temp_jct_paths_link')
+         
+        sqlcmd = '''
+            select mid_find_suspect_jct_link(8)
+        ''' 
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         
-    
+        sqlcmd = '''
+            select mid_jct_link_paths_filter(k.node_s, k.link_path, k.node1,k.node2)
+            from
+            (
+                select distinct  c.link_path,
+                    ( case  when d.s_node in (e.s_node,e.e_node) then d.s_node
+                        when d.e_node in (e.s_node,e.e_node) then d.e_node end) as node_s,
+                    f.s_node as node1, 
+                    f.e_node as node2
+                from
+                (
+                    select  b.link_path,
+                        b.link_path[1]::bigint as s_link,
+                        b.link_path[array_length(b.link_path,1)]::bigint as e_link
+                    from temp_suspect_jct_paths_link as b
+                    
+                ) as c
+                left join link_tbl as d
+                on d.link_id = c.s_link
+                join
+                ( 
+                  select * from link_tbl 
+                  where link_type in (1,2) and road_type in (0,1)
+                ) as e
+                on d.s_node in (e.s_node,e.e_node) or d.e_node in (e.s_node,e.e_node)
+                left join link_tbl as f
+                on f.link_id = c.e_link
+                --order by c.link_path
+            )  as k
+
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = '''
+            drop table if exists temp_revise_jct_link;
+            create table temp_revise_jct_link
+            as
+            (
+                select b.link_id 
+                from
+                (
+                    select distinct  unnest(a.link_path)::bigint as link_id 
+                    from temp_jct_paths_link as a
+                ) as b
+                left join link_tbl as c
+                on b.link_id = c.link_id
+                where c.link_type = 5
+            );  
+            
+            update link_tbl as a
+            set link_type = 3
+            from temp_revise_jct_link as b
+            where a.link_id = b.link_id
+            
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()  
          
         
     def _findproperroundabout(self):

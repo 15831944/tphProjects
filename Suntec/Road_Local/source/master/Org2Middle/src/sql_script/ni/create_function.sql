@@ -53,11 +53,11 @@ BEGIN
 			
 			if node_count = 1 and (rec.node_array)[1] is not null then
 				if link_count = 2 then
-					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt)
-					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, null, link_count-2);
+					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, guide_type)
+					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, null, link_count-2, 0);
 				elseif link_count > 2 then
-					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt)
-					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, array_to_string(rec.link_array[2:link_count-1], '|'), link_count-2);
+					insert into mid_temp_force_guide_tbl (nodeid, inlinkid, outlinkid, passlid, passlink_cnt, guide_type)
+					values(rec.node_array[1]::bigint, rec.link_array[1]::bigint, rec.link_array[link_count]::bigint, array_to_string(rec.link_array[2:link_count-1], '|'), link_count-2, 0);
 				end if;
 			end if;
         end loop;
@@ -214,7 +214,7 @@ CREATE OR REPLACE FUNCTION mid_get_passlinkcount_ni(passlid character varying)
   LANGUAGE plpgsql
   AS $$ 
 BEGIN
-	if passlid='' then
+	if passlid='' or passlid is null then
 		return 0;
 	end if;
     return length(passlid)-length(replace(passlid,'|',''))+1;

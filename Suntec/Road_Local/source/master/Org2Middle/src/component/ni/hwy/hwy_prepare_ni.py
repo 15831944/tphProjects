@@ -27,6 +27,7 @@ class HwyPrepareNi(HwyPrepareRDF):
     def _Do(self):
         # self._make_hwy_exit_poi()
         self._make_all_hwy_Node()
+        self._make_hwy_node_15sum()
         return 0
 
     def _make_all_hwy_Node(self):
@@ -49,3 +50,21 @@ class HwyPrepareNi(HwyPrepareRDF):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         return 0
+
+    def _make_hwy_node_15sum(self):
+        if self.pg.IsExistTable('org_hw_junction'):
+            sqlcmd = """
+            INSERT INTO mid_all_highway_node(node_id)
+            (
+            SELECT nodeid
+              from (
+                    SELECT distinct nodeid::bigint
+                      FROM org_hw_junction
+              ) as a
+              LEFT JOIN mid_all_highway_node AS b
+              ON a.nodeid = b.node_id
+              where b.node_id is null
+            );
+            """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()

@@ -18,6 +18,8 @@ from component.ni.hwy_pro.hwy_facility_pro import HwyFacilityNiPro
 from component.ni.hwy_pro.hwy_ic_info_pro import HwyICInfoNIPro
 from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryOutInfoRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryInInfoRDF
+from component.ni.hwy_pro.hwy_line_name_pro import HwyLineNameNiPro
+from component.ni.hwy_pro.hwy_facil_name_pro import HwyFacilNameNiPro
 
 
 class HighwayNiPro(HighwayRDF):
@@ -33,9 +35,8 @@ class HighwayNiPro(HighwayRDF):
 
     def initialize(self):
         self.link_id_mapping = HwyLinkMappingNiPro()
-        self.hwy_exit_poi = None
-        self.hwy_exit = None
-        self.sapa_info = None
+        self.hwy_facil_name = HwyFacilNameNiPro()
+        self.hwy_line_name = HwyLineNameNiPro()
         self.data_mng = HwyDataMngNiPro.instance()
         if self.data_mng:
             self.data_mng.initialize()
@@ -54,15 +55,27 @@ class HighwayNiPro(HighwayRDF):
         from component.default.dictionary import comp_dictionary
         dictionary = comp_dictionary()
         dictionary.set_language_code()
+        # ## 原link id ==> Middle link id
         if self.link_id_mapping:
             self.link_id_mapping.Make()  # ORG Link_id ==> Middle Link_id
             del self.link_id_mapping
             self.link_id_mapping = None
+        # ## 设施名称
+        if self.hwy_facil_name:
+            self.hwy_facil_name.Make()
+            del self.hwy_facil_name
+            self.hwy_facil_name = None
+        # ## 高速线路名称
+        if self.hwy_line_name:
+            self.hwy_line_name.Make()
+            del self.hwy_line_name
+            self.hwy_line_name = None
         if self.data_mng:
             self.data_mng.Make()
             # load Highway Main Link.
             self.data_mng.load_hwy_main_link()
             self.data_mng.load_hwy_ic_link()
+            self.data_mng.load_first_ics_link()
             self.data_mng.load_hwy_path_id()
         else:
             self.log.error('Higway Data Manager is None.')

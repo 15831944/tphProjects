@@ -73,7 +73,7 @@ class rdb_region(ItemBase):
     def _makeRegionLevel4(self):
         self._makeOriginalRegionOnLevel4()
         self._createTempRegion("temp_region_orglink_level4", "temp_region_orgnode_level4")
-        self._deleteSALink()
+        self._deleteSALink(4)
         self._deleteIsolatedLink()
         self._mergeRegionLink(4)
         self._makeTargetRegionDataLevel4()
@@ -81,7 +81,7 @@ class rdb_region(ItemBase):
     def _makeRegionLevel6(self):
         self._makeOriginalRegionOnLevel6()
         self._createTempRegion("temp_region_orglink_level6", "temp_region_orgnode_level6")
-        self._deleteSALink()
+        self._deleteSALink(6)
         self._deleteUTurnLink()
         self._deleteIsolatedIC()
         self._deleteIsolatedLink()
@@ -297,7 +297,7 @@ class rdb_region(ItemBase):
         
         rdb_log.log('Region', 'Make original region level6 end.', 'info')
     
-    def _deleteIsolatedIC(self):
+    def _deleteIsolatedIC_backup(self):
         rdb_log.log('Region', 'Delete isolated IC from original region links...', 'info')
         
         self.CreateTable2('temp_region_delete_ic')
@@ -333,6 +333,11 @@ class rdb_region(ItemBase):
         self.pg.commit2()
         
         rdb_log.log('Region', 'Delete isolated IC from original region links end.', 'info')
+    
+    def _deleteIsolatedIC(self):
+        self.log.info('Delete isolated ic links...')
+        rdb_link_network='temp_region_links'
+        self._deleteUnnecessaryRamp(ramp='ic', rdb_link_network=rdb_link_network)
     
     def _deleteIsolatedLink(self):
         rdb_log.log('Region', 'Delete isolated link from original region links...', 'info')
@@ -471,74 +476,109 @@ class rdb_region(ItemBase):
         
         rdb_log.log('Region', 'Delete sa link from original region links end.', 'info')
     
-    def _deleteSALink(self):
-        # drop sa link in region, except sa_ramp(sa link connnects ramp and highway)
-        self.log.info('Delete sa link from original region links...')
+    def _deleteSALink(self, layer):
+        self.log.info('Delete unnecessary SAPA links...')
+        if layer == 4:
+            rdb_link_network='rdb_link'
+        else:
+            rdb_link_network='temp_region_links'
+        self._deleteUnnecessaryRamp(ramp='sapa', rdb_link_network=rdb_link_network)
+    
+    def _deleteUnnecessaryRamp(self, ramp='sapa', rdb_link_network='rdb_link'):
+        # drop unnecessary ramp(sapa/ic) link in region, 
+        # only keep important ramp(which connect different highways, or in-out highways in layer 4.)
+        import rdb_region_algorithm
+        graph = rdb_region_algorithm.CGraph_PG()
+        graph.prepareData(rdb_link=rdb_link_network)
         
-        # find import sapa links
-        import_sapa_links = set()
-        sqlcmd = """
-                -- for all entry point of sapa area
-                select distinct a.node_id
-                from
-                (
-                    select start_node_id as node_id
-                    from temp_region_links
-                    where link_type = 7 and one_way in (1,2)
-                    union
-                    select end_node_id as node_id
-                    from temp_region_links
-                    where link_type = 7 and one_way in (1,3)
-                )as a
-                inner join temp_region_links as b
-                on     b.link_type in (1,2,3,5)
-                    and 
+        if ramp == 'sapa':
+            link_types = [7]
+            is_legal_path=graph._is_legal_path_of_sa
+            is_leaf=graph._is_leaf_of_sa
+            is_illegal_path=graph._is_legal_path_of_no_sa
+        else:#if ramp == 'ic':
+            link_types = [5]
+            is_legal_path=graph._is_legal_path_of_ramp
+            is_leaf=graph._is_leaf_of_ramp
+            is_illegal_path=graph._is_legal_path_of_no_ramp
+        try:
+            # find important ramp links
+            important_ramp_links = set()
+            sqlcmd = """
+                    -- for all entry point of sapa area
+                    select distinct a.node_id
+                    from
                     (
-                    (a.node_id = b.start_node_id and b.one_way in (1,3))
-                    or 
-                    (a.node_id = b.end_node_id and b.one_way in (1,2))
-                    )
-                """
-        sapa_node_list = self.pg.get_batch_data2(sqlcmd)
-        for sapa_node_rec in sapa_node_list:
-            root_node = sapa_node_rec[0]
-            import rdb_region_algorithm
-            graph = rdb_region_algorithm.CGraph_PG()
-            graph.prepareData()
-            all_paths = graph.searchMinSpanningTree(root_node, 
-                                                   is_legal_path=graph._is_legal_path_of_sapa,
-                                                   is_leaf=graph._is_leaf_of_sapa,
-                                                   log=self.log)
-            for paths in all_paths:
-                for path in paths:
-                    import_sapa_links.update(path)
+                        select start_node_id as node_id
+                        from temp_region_links
+                        where link_type = ANY(ARRAY[link_types]) and one_way in (1,2)
+                        union
+                        select end_node_id as node_id
+                        from temp_region_links
+                        where link_type = ANY(ARRAY[link_types]) and one_way in (1,3)
+                    )as a
+                    inner join [rdb_link] as b
+                    on  (not (b.link_type = ANY(ARRAY[link_types])))
+                        and 
+                        (
+                        (a.node_id = b.start_node_id and b.one_way in (1,3))
+                        or 
+                        (a.node_id = b.end_node_id and b.one_way in (1,2))
+                        )
+                    """
+            sqlcmd = sqlcmd.replace('[rdb_link]', rdb_link_network)
+            sqlcmd = sqlcmd.replace('[link_types]', str(link_types))
+            ramp_node_list = self.pg.get_batch_data2(sqlcmd)
+            for sapa_node_rec in ramp_node_list:
+                root_node = sapa_node_rec[0]
+                #print 'root_node =', root_node
+                all_paths = graph.searchMinSpanningTree(root_node, forward=True,
+                                                       is_legal_path=is_legal_path,
+                                                       is_leaf=is_leaf,
+                                                       get_link_cost=rdb_region_algorithm.CLinkCost.getCost2,
+                                                       max_single_path_num=1,
+                                                       log=self.log)
+                for (to_node,paths) in all_paths.items():
+                    for (cost,path) in paths:
+                        #print '        to_node =', to_node, '    cost =', cost
+                        if graph.searchDijkstraPaths(root_node, to_node, forward=True,
+                                                     is_legal_path=is_illegal_path,
+                                                     max_cost=cost*1.1,
+                                                     max_path_num=1,
+                                                     get_link_cost=rdb_region_algorithm.CLinkCost.getCost2
+                                                     ):
+                            continue
+                        else:
+                            important_ramp_links.update(path)
+        finally:
             graph.clearData()
         
-        self.CreateTable2('temp_region_links_sa_ramp')
+        self.CreateTable2('temp_region_links_important_ramp')
         import common.cache_file
-        temp_file = common.cache_file.open('temp_region_links_sa_ramp')
-        for linkid in import_sapa_links:
+        temp_file = common.cache_file.open('temp_region_links_important_ramp')
+        for linkid in important_ramp_links:
             temp_file.write('%s\n' % str(linkid))
         temp_file.seek(0)
-        self.pg.copy_from2(temp_file, 'temp_region_links_sa_ramp')
+        self.pg.copy_from2(temp_file, 'temp_region_links_important_ramp')
         self.pg.commit2()
         common.cache_file.close(temp_file,True)
-        self.CreateIndex2('temp_region_links_sa_ramp_link_id_idx')
+        self.CreateIndex2('temp_region_links_important_ramp_link_id_idx')
         
-        # delete ordinary sa link
+        # delete ordinary ramp link
         sqlcmd = """
                 delete from temp_region_links as a
                 using 
                 (
                     select a.link_id
                     from temp_region_links as a
-                    left join temp_region_links_sa_ramp as b
+                    left join temp_region_links_important_ramp as b
                     on a.link_id = b.link_id
-                    where (a.link_type = 7) and b.link_id is null
+                    where (a.link_type = ANY(ARRAY[link_types])) and b.link_id is null
                 )as b
                 where a.link_id = b.link_id and a.region_level >= a.max_level;
                 analyze temp_region_links;
                 """
+        sqlcmd = sqlcmd.replace('[link_types]', str(link_types))
         self.pg.execute(sqlcmd)
         self.pg.commit2()
         
@@ -605,7 +645,7 @@ class rdb_region(ItemBase):
     def _mergeRegionLink(self, layer):
         # input table:    "temp_region_links", "temp_region_nodes"
         # output table:   "temp_region_merge_links", "temp_region_merge_nodes", "temp_region_merge_regulation"
-        self._prepareSuspectLinkNode()
+        self._prepareSuspectLinkNode(layer)
         self._searchLinkrow(layer)
         self._mergeLinkrow()
         self._dispatchNewID()
@@ -648,11 +688,32 @@ class rdb_region(ItemBase):
         
         rdb_log.log('Region', 'Create temp region layer end.', 'info')
     
-    def _prepareSuspectLinkNode(self):
+    def _prepareSuspectLinkNode(self, layer):
         rdb_log.log('Region', 'Prepare suspect of merging link and node...', 'info')
         
         self.CreateTable2('temp_region_merge_node_keep')
         self.CreateTable2('temp_region_merge_link_keep')
+        if layer == 6 and rdb_common.getProjName().lower() == 'ni':
+            sqlcmd = """
+                    drop table if exists temp_region_merge_node_keep2;
+                    alter table temp_region_merge_node_keep rename to temp_region_merge_node_keep2;
+                    create table temp_region_merge_node_keep
+                    as
+                    select node_id
+                    from temp_region_merge_node_keep2
+                    union
+                    select node_id
+                    from
+                    (
+                        select a.node_id, b.link_id
+                        from rdb_node as a
+                        inner join temp_hierarchy_links_layer4 as b
+                        on a.node_id in (b.start_node_id, end_node_id) and b.link_type not in (4,8,9)
+                    )as t
+                    group by node_id having count(*) > 2;
+                    """
+            self.pg.execute2(sqlcmd)
+            self.pg.commit2()
         
         self.CreateIndex2('temp_region_merge_node_keep_node_id_idx')
         self.CreateIndex2('temp_region_merge_link_keep_link_id_idx')
@@ -1481,8 +1542,48 @@ class rdb_region_axf_china(rdb_region):
         rdb_log.log('Region', 'Make original region level6 end.', 'info')
 
 class rdb_region_ni_china(rdb_region_axf_china):
+    def _hierarchy(self):
+        import rdb_region_algorithm
+        objHierarchy = rdb_region_algorithm.CHierarchy()
+        
+        objHierarchy.make(org_link_table='rdb_link',
+                          org_link_filter='one_way != 0 and road_type not in (7,8,9,14)',
+                          target_link_table='temp_hierarchy_links_layer3',
+                          base_level=12,
+                          max_level=14,
+                          mesh_road_limit=600)
+        
+        objHierarchy.make(org_link_table='temp_hierarchy_links_layer3',
+                          org_link_filter='true',
+                          target_link_table='temp_hierarchy_links_layer4',
+                          base_level=9,
+                          max_level=11,
+                          mesh_road_limit=800,
+                          overwrap=-1)
+        
+#        objHierarchy.make(org_link_table='temp_hierarchy_links_layer4',
+#                          org_link_filter='true',
+#                          target_link_table='temp_hierarchy_links_layer6',
+#                          base_level=6,
+#                          max_level=8,
+#                          mesh_road_limit=1000,
+#                          overwrap=-1)
+#        
+#        objHierarchy.make(org_link_table='temp_hierarchy_links_layer6',
+#                          org_link_filter='true',
+#                          target_link_table='temp_hierarchy_links_layer8',
+#                          base_level=4,
+#                          max_level=6,
+#                          mesh_road_limit=1200,
+#                          overwrap=-1)
+    
     def _makeOriginalRegionOnLevel4(self):
-        rdb_region._makeOriginalRegionOnLevel4(self, 10, [1,2,3,4])
+        rdb_region._makeOriginalRegionOnLevelX(self,
+                                               layer=4,
+                                               level=10,
+                                               rdb_link='rdb_link', 
+                                               attr_filter={'function_code':[1,2,3]},
+                                               additional_links='temp_hierarchy_links_layer4')
     
 class rdb_region_ta_europe(rdb_region):
     def _makeOriginalRegionOnLevel4(self):
@@ -1750,7 +1851,7 @@ class rdb_region_three_layers(rdb_region):
     def _makeRegionLevel8(self):
         self._makeOriginalRegionOnLevel8()
         self._createTempRegion("temp_region_orglink_level8", "temp_region_orgnode_level8")
-        self._deleteSALink()
+        self._deleteSALink(8)
         self._deleteUTurnLink()
         self._deleteIsolatedIC()
         self._deleteIsolatedLink()
@@ -1911,21 +2012,23 @@ class rdb_region_ta_aus(rdb_region_three_layers):
                           org_link_filter='one_way != 0 and road_type not in (7,8,9,14)',
                           target_link_table='temp_hierarchy_links_layer3', 
                           base_level=12,
+                          max_level=14,
                           mesh_road_limit=600)
         
         objHierarchy.make(org_link_table='temp_hierarchy_links_layer3', 
                           org_link_filter='one_way != 0 and road_type not in (7,8,9,14)',
                           target_link_table='temp_hierarchy_links_layer4', 
-                          base_level=12,
-                          mesh_road_limit=600,
-                          tile_offset=0,
-                          boundary_node_filter=True)
+                          base_level=9,
+                          max_level=11,
+                          mesh_road_limit=800,
+                          overwrap=-1)
         
         objHierarchy.make(org_link_table='rdb_link', 
                           org_link_filter='function_code in (1,2,3)',
                           target_link_table='temp_hierarchy_links_layer6', 
-                          base_level=10,
-                          mesh_road_limit=600)
+                          base_level=8,
+                          max_level=10,
+                          mesh_road_limit=1000)
     
     def _makeOriginalRegionOnLevel4(self):
         rdb_region._makeOriginalRegionOnLevelX(self, 

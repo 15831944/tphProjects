@@ -1078,24 +1078,11 @@ BEGIN
 		       folder
 		from(
 			SELECT gid, link_id, 
-				replace(rstr6,' ','') as rstr6, 
-				replace(rstr7,' ','') as rstr7, 
-				replace(rstr8,' ','') as rstr8, 
-				replace(spath6,' ','') as spath6, 
-				replace(spath7,' ','') as spath7, 
-				replace(spath8,' ','') as spath8, 
-				replace(slyr6_1,' ','') as slyr6_1, 
-				replace(slyr6_2,' ','') as slyr6_2, 
-				replace(slyr6_3,' ','') as slyr6_3, 
-				replace(slyr6_4,' ','') as slyr6_4, 
-				replace(slyr7_1,' ','') as slyr7_1, 
-				replace(slyr7_2,' ','') as slyr7_2, 
-				replace(slyr7_3,' ','') as slyr7_3, 
-				replace(slyr7_4,' ','') as slyr7_4, 
-				replace(slyr8_1,' ','') as slyr8_1, 
-				replace(slyr8_2,' ','') as slyr8_2, 
-				replace(slyr8_3,' ','') as slyr8_3, 
-				replace(slyr8_4,' ','') as slyr8_4, 
+				replace(rstr6,' ','') as rstr6, replace(rstr7,' ','') as rstr7, replace(rstr8,' ','') as rstr8, 
+				replace(spath6,' ','') as spath6, replace(spath7,' ','') as spath7, replace(spath8,' ','') as spath8, 
+				replace(slyr6_1,' ','') as slyr6_1, replace(slyr6_2,' ','') as slyr6_2, replace(slyr6_3,' ','') as slyr6_3, replace(slyr6_4,' ','') as slyr6_4, 
+				replace(slyr7_1,' ','') as slyr7_1, replace(slyr7_2,' ','') as slyr7_2, replace(slyr7_3,' ','') as slyr7_3, replace(slyr7_4,' ','') as slyr7_4, 
+				replace(slyr8_1,' ','') as slyr8_1, replace(slyr8_2,' ','') as slyr8_2, replace(slyr8_3,' ','') as slyr8_3, replace(slyr8_4,' ','') as slyr8_4, 
 				folder
 			FROM org_processed_line
 			where rstr6 is not null

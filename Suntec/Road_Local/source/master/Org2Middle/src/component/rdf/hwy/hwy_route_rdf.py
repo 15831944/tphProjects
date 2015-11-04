@@ -156,7 +156,7 @@ class HwyRouteRDF(component.component_base.comp_base):
         linkids = G.get_linkids(path)
         seq_nm = 0
         path_len = len(path)
-        if seq_nm > LAST_SEQ_NUM:
+        if path_len > LAST_SEQ_NUM:
             self.log.error('Seq_nm is more than 9999. node=%s' % path[-1])
             return
         for seq_nm in range(0, path_len):
@@ -285,6 +285,7 @@ class HwyRouteRDF(component.component_base.comp_base):
 
     def _make_side_path(self):
         '''计算辅路'''
+        self.log.info('Make Side Path.')
         side_path, main_path, path_node_list = self._get_side_path()
         # 更新图内侧道的link_type
         self._update_link_type(path_node_list, HWY_LINK_TYPE_SIDE)
@@ -299,6 +300,10 @@ class HwyRouteRDF(component.component_base.comp_base):
         for path_id, node_list in main_path.iteritems():
             s_node = node_list[0]
             e_node = node_list[-1]
+            if not path_G.has_edge(s_node, e_node):
+                self.log.warning('Edge(%s, %s) has been merged.'
+                                 % (s_node, e_node))
+                continue
             new_path = path_G.merge_path_by_similir(s_node, e_node)
             # new_path = self._recal_main_path(path_G, s_node, e_node)
             if not new_path or len(new_path) <= 2:  # 路径没有变化
@@ -402,7 +407,10 @@ class HwyRouteRDF(component.component_base.comp_base):
     def _is_same_direction(self, path1, path2):
         '''首尾相交的两条路径是同向的'''
         if is_cycle_path(path2):  # 环
-            self.log.error('Path2 is cycle.')
+            if path2.index(path1[0]) < path2.index(path1[-1]):
+                return True
+            else:
+                self.log.error('Path2 is cycle.')
         else:  # 非环
             if path2.index(path1[0]) < path2.index(path1[-1]):
                 return True

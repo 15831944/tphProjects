@@ -257,7 +257,13 @@ class CGraph:
         else:
             return paths
     
-    def searchDijkstraPaths(self, from_node, to_node, max_buffer=5000, max_path_num=6, cost_scope=1.05):
+    def searchDijkstraPaths(self,
+                            from_node, to_node, forward=True,
+                            is_legal_path='self._is_legal_path',
+                            max_buffer=5000, max_path_num=2,
+                            cost_scope=1.05, max_cost=None,
+                            get_link_cost='CLinkCost.getCost',
+                            log=None):
         # stack init
         paths = []                  # efftive path [path,]
         arrive_nodes = {}           # arrive nodes
@@ -292,17 +298,14 @@ class CGraph:
                 arrive_nodes[cur_node] = cur_cost
             
             adjlink_list = self._getAdjLinkList(cur_node)
+            adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
             for adjlink in adjlink_list:
                 # not one-link-uturn
                 if adjlink.link_id == last_link:
                     continue
                 
-                # judge direction of traffic flow
-                if (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
-                    pass
-                elif (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
-                    pass
-                else:
+                # check if walk this link
+                if not is_legal_path(adjlink):
                     continue
                 
                 # judge next node walked or not
@@ -320,12 +323,14 @@ class CGraph:
                 # touch
                 next_path = copy.copy(path)
                 next_path.append(adjlink.link_id)
-                adj_cost = CLinkCost.getCost(adjlink.link_length, adjlink.road_type, 
-                                             adjlink.toll, adjlink.one_way, 
-                                             next_witdh, in_angle, cur_out_angle)
+                adj_cost = get_link_cost(adjlink.link_length, adjlink.road_type, 
+                                         adjlink.toll, adjlink.one_way, 
+                                         next_witdh, in_angle, cur_out_angle)
                 next_cost = cur_cost + adj_cost
                 #print 'touch', adjnode, adjcost
-                touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
+                
+                if max_cost is None or next_cost <= max_cost:
+                    touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
         
         return paths
     
@@ -333,13 +338,14 @@ class CGraph:
     # and set to_node_list as the leaves of min-spanning-tree,
     # then return all paths from the root to every leaf.
     def searchMinSpanningTree(self, 
-                              from_node, forward=True, to_node_list=None,
+                              from_node, to_node_list=None, forward=True, 
                               is_legal_path='self._is_legal_path', is_leaf='self._is_leaf',
+                              max_cost=None, get_link_cost='CLinkCost.getCost',
                               max_buffer=5000, cost_scope=1.05,
                               max_single_path_num=2, max_all_path_num=None,
                               log=None):
         # stack init
-        paths = {}                  # efftive path {to_node:[path,]}
+        paths = {}                  # efftive path {to_node:[(cost,path),]}
         arrive_nodes = {}           # arrive nodes {(arrive_node:[cost,path_num])}
         touch_nodes = CHeap()       # touch_nodes, (cur_cost, cur_node, in_angle, last_node, last_link, path)
         
@@ -361,16 +367,16 @@ class CGraph:
             #print cur_node, last_link, path
             
             # check if cur_node is a leaf
-            if is_leaf(cur_node, leaves=to_node_list) and (cur_node != from_node):
+            if is_leaf(cur_node, leaves=to_node_list, forward=forward) and (cur_node != from_node):
                 # add to paths of root-2-leaf
                 this_paths = paths.get(cur_node)
                 if not this_paths:
-                    this_paths = [path]
+                    this_paths = [(cur_cost,path)]
                     paths[cur_node] = this_paths
                     all_path_num += 1
                 else:
                     if len(this_paths) < max_single_path_num:
-                        this_paths.append(path)
+                        this_paths.append((cur_cost,path))
                         all_path_num += 1
                 
                 #if log:
@@ -395,6 +401,7 @@ class CGraph:
             
             # touch adj links
             adjlink_list = self._getAdjLinkList(cur_node)
+            adjlink_list = self._traffic_flow_filter(cur_node, adjlink_list, forward)
             for adjlink in adjlink_list:
                 # not one-link-uturn
                 if adjlink.link_id == last_link:
@@ -402,14 +409,6 @@ class CGraph:
                 
                 # check if walk this link
                 if not is_legal_path(adjlink):
-                    continue
-                
-                # judge direction of traffic flow
-                if (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
-                    pass
-                elif (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
-                    pass
-                else:
                     continue
                 
                 # judge next node walked or not
@@ -427,39 +426,83 @@ class CGraph:
                 # touch
                 next_path = copy.copy(path)
                 next_path.append(adjlink.link_id)
-                adj_cost = CLinkCost.getCost(adjlink.link_length, adjlink.road_type, 
-                                             adjlink.toll, adjlink.one_way, 
-                                             next_witdh, in_angle, cur_out_angle)
+                adj_cost = get_link_cost(adjlink.link_length, adjlink.road_type, 
+                                         adjlink.toll, adjlink.one_way, 
+                                         next_witdh, in_angle, cur_out_angle)
                 next_cost = cur_cost + adj_cost
                 #print 'touch', adjnode, adjcost
-                touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
+                
+                if max_cost is None or next_cost <= max_cost:
+                    touch_nodes.push((next_cost, next_node, next_in_angle, cur_node, adjlink.link_id, next_path))
         
-        return paths.values()
+        return paths
+    
+    def _traffic_flow_filter(self, cur_node, adjlink_list, forward=True):
+        legal_adjlink_list = []
+        
+        for adjlink in adjlink_list:
+            # judge direction of traffic flow
+            if forward and (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,2):
+                pass
+            elif forward and (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,3):
+                pass
+            elif not forward and (adjlink.start_node_id == cur_node) and adjlink.one_way in (1,3):
+                pass
+            elif not forward and (adjlink.end_node_id == cur_node) and adjlink.one_way in (1,2):
+                pass
+            else:
+                continue
+            
+            legal_adjlink_list.append(adjlink)
+        
+        return legal_adjlink_list
     
     def _is_legal_path(self, adjlink):
         return True
     
-    def _is_legal_path_of_sapa(self, adjlink):
-        return (adjlink.link_type == 7)
+    def _is_legal_path_of_sa(self, adjlink):
+        return (adjlink.link_type in (7,))
     
-    def _is_leaf(self, nodeid, leaves=None):
+    def _is_legal_path_of_ramp(self, adjlink):
+        return (adjlink.link_type in (5,))
+    
+    def _is_legal_path_of_no_sa(self, adjlink):
+        return not (adjlink.link_type in (7,))
+    
+    def _is_legal_path_of_no_ramp(self, adjlink):
+        return not (adjlink.link_type in (5,))
+    
+    def _is_leaf(self, nodeid, leaves=None, forward=True):
         return False
     
-    def _is_leaf_of_region_mesh(self, nodeid, leaves=None):
+    def _is_leaf_of_region_mesh(self, nodeid, leaves=None, forward=True):
         return (leaves is not None and nodeid in leaves)
     
-    def _is_leaf_of_sapa(self, nodeid, leaves=None):
+    def _is_leaf_of_sa(self, nodeid, leaves=None, forward=True):
         adjlink_list = self._getAdjLinkList(nodeid)
+        adjlink_list = self._traffic_flow_filter(nodeid, adjlink_list, forward)
         for adjlink in adjlink_list:
-            if adjlink.link_type in (1,2,3,5):
+            if not (adjlink.link_type in (7,)):
                 return True
+        
+        return False
+    
+    def _is_leaf_of_ramp(self, nodeid, leaves=None, forward=True):
+        adjlink_list = self._getAdjLinkList(nodeid)
+        adjlink_list = self._traffic_flow_filter(nodeid, adjlink_list, forward)
+        for adjlink in adjlink_list:
+            if not (adjlink.link_type in (5,)):
+                return True
+        
         return False
 
 class CGraph_PG(CGraph):
     def __init__(self):
         pass
     
-    def prepareData(self):
+    def prepareData(self,
+                    rdb_link='rdb_link'):
+        self.rdb_link = rdb_link
         import common.rdb_database
         self.pg = common.rdb_database.rdb_pg()
         self.pg.connect2()
@@ -482,11 +525,13 @@ class CGraph_PG(CGraph):
                         (tazm + 32768) * 360.0 / 65536.0,
                         ops_width,
                         neg_width
-                from rdb_link as a
+                from [rdb_link] as a
                 left join rdb_linklane_info as b
                 on a.lane_id = b.lane_id
-                where %s in (a.start_node_id, a.end_node_id)
-                """ % (str(node_id))
+                where [node_id] in (a.start_node_id, a.end_node_id)
+                """
+        sqlcmd = sqlcmd.replace('[rdb_link]', self.rdb_link)
+        sqlcmd = sqlcmd.replace('[node_id]', str(node_id))
         self.pg.execute(sqlcmd)
         link_recs = self.pg.fetchall2()
         adjlinks = []
@@ -515,6 +560,24 @@ class CGraph_PG(CGraph):
         return result[0] > 0
 
 class CGraph_Memory(CGraph):
+    auto_overlap = {
+                    16:0,
+                    15:0,
+                    14:2,
+                    13:4,
+                    12:8,
+                    11:12,
+                    10:16,
+                    9:32,
+                    8:64,
+                    7:128,
+                    6:256,
+                    5:512,
+                    4:1024,
+                    3:2048,
+                    2:4096,
+                    1:8192,
+                    }
     def __init__(self):
         self.links = {}
         self.nodes = {}
@@ -524,7 +587,8 @@ class CGraph_Memory(CGraph):
                     meshid,
                     rdb_link='rdb_link',
                     rdb_node_boundary='rdb_node_boundary',
-                    use_mesh_overwrap=False):
+                    use_mesh_overwrap=0                     # the number of tile16 in overwrap
+                    ):
         self.meshid = meshid
         self.rdb_link = rdb_link
         self.rdb_node_boundary = rdb_node_boundary
@@ -598,10 +662,17 @@ class CGraph_Memory(CGraph):
         tz = (self.meshid >> 32) & 127
         tx = (self.meshid >> 16) & 65535
         ty = self.meshid & 65535
-        tx_16_min = ((tx << (16 - tz)) - 1)# - 1
-        tx_16_max = ((tx + 1) << (16 - tz))# + 1
-        ty_16_min = ((ty << (16 - tz)) - 1)# - 1
-        ty_16_max = ((ty + 1) << (16 - tz))# + 1
+        
+        if self.use_mesh_overwrap < 0:
+            #overlap_t16 = 18 - tz
+            overlap_t16 = self.auto_overlap.get(tz)
+        else:
+            overlap_t16 = self.use_mesh_overwrap
+        
+        tx_16_min = (tx << (16 - tz)) - overlap_t16
+        tx_16_max = (((tx + 1) << (16 - tz)) - 1) + overlap_t16
+        ty_16_min = (ty << (16 - tz)) - overlap_t16
+        ty_16_max = (((ty + 1) << (16 - tz)) - 1) + overlap_t16
         
         # init links & nodes
         sqlcmd = """
@@ -754,10 +825,11 @@ class CGraph_Memory(CGraph):
                                                        to_node_list=group_to_nodes,
                                                        is_legal_path=self._is_legal_path,
                                                        is_leaf=self._is_leaf_of_region_mesh,
-                                                       max_buffer=len(self.nodes)*3, 
+                                                       max_buffer=len(self.nodes)*4,
+                                                       get_link_cost=CLinkCost.getCost,
                                                        log=log)
-                for paths in all_paths:
-                    for path in paths:
+                for paths in all_paths.values():
+                    for (cost,path) in paths:
                         trunk_links.update(path)
         return trunk_links
     
@@ -1014,6 +1086,10 @@ class CLinkCost:
         
         return cost
     
+    @staticmethod
+    def getCost2(link_length, road_type, toll, one_way, width, in_angle, out_angle):
+        return link_length
+    
 class CHierarchy:
     def __init__(self):
         import common.log
@@ -1033,16 +1109,17 @@ class CHierarchy:
              max_level=14,
              mesh_road_limit=1000,
              tile_offset=0,
-             boundary_node_filter=False
+             overwrap=0
              ):
         self.org_link_table = org_link_table
         self.org_link_filter = org_link_filter
         self.target_link_table = target_link_table
+        self.overwrap = overwrap
         
-        self.log.info('making %s(base_level=%s,mesh_road_limit=%s)...' 
-                      % (target_link_table,str(base_level),str(mesh_road_limit)))
+        self.log.info('making %s(base_level=%s,max_level=%s,overwrap=%s)...' 
+                      % (target_link_table,str(base_level),str(max_level),str(overwrap)))
         self._splitDataIntoMeshs(base_level, max_level, mesh_road_limit, tile_offset)
-        if boundary_node_filter:
+        if overwrap:
             #self._searchImportantNodes()
             self._multiSearchImportantNodes()
         #self._searchTrunkInMeshs()
@@ -1267,7 +1344,8 @@ class CHierarchy:
                     """
             self.pg.execute2(sqlcmd)
             self.pg.commit2()
-            
+        
+        if True:
             sqlcmd = """
                     select count(distinct(meshid))
                     from temp_hierarchy_mesh_links;
@@ -1285,7 +1363,7 @@ class CHierarchy:
             self._searchTrunkRoadInMesh(meshid, nIndex, nCount, 
                                         rdb_link='temp_hierarchy_mesh_links',
                                         rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
-                                        use_mesh_overwrap=True, 
+                                        use_mesh_overwrap=self.overwrap, 
                                         target_table='temp_hierarchy_important_links')
         
         self.pg.CreateIndex2('temp_hierarchy_important_links_link_id_idx')
@@ -1304,7 +1382,7 @@ class CHierarchy:
                                                        exception_event,
                                                        rdb_link='temp_hierarchy_mesh_links',
                                                        rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
-                                                       use_mesh_overwrap=True,
+                                                       use_mesh_overwrap=self.overwrap,
                                                        target_table='temp_hierarchy_important_links',
                                                        log=None)
             objThread.daemon = True
@@ -1449,6 +1527,11 @@ class CHierarchy:
                     on [rdb_region_links]
                     using btree
                     (start_node_id);
+                
+                create index [rdb_region_links]_end_node_id_idx
+                    on [rdb_region_links]
+                    using btree
+                    (end_node_id);
                 """
         sqlcmd = sqlcmd.replace('[rdb_region_links]', self.target_link_table)
         self.pg.execute2(sqlcmd)
@@ -1504,7 +1587,7 @@ class CProcess_SearchTrunkRoadInMesh(multiprocessing.Process):
                  exp_event, 
                  rdb_link='temp_hierarchy_mesh_links', 
                  rdb_node_boundary='temp_hierarchy_mesh_boundary_nodes',
-                 use_mesh_overwrap=False,
+                 use_mesh_overwrap=0,
                  target_table='temp_hierarchy_important_links', 
                  log=None):
         multiprocessing.Process.__init__(self)

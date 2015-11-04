@@ -29,6 +29,7 @@ class comp_node_ni(component.component_base.comp_base):
     def _Do(self):
         self._makeAdjNodeMapping()
         self._makeNodeZLevel()
+        self._makeTrafficLight()
         self._makeNodeTable()
         return 0
     
@@ -76,6 +77,8 @@ class comp_node_ni(component.component_base.comp_base):
                     md5(a.id::varchar) as feature_key, 
                     a.the_geom
                 from org_n a 
+                left join temp_node_trafficlight trflight
+                on a.id = trflight.id
                 left join
                 (
                     select distinct id as nodeid from org_c
@@ -158,3 +161,58 @@ class comp_node_ni(component.component_base.comp_base):
         
         self.log.info('updating temp_node_z_level_tbl succeeded')
         return 0
+    
+    def _makeTrafficLight(self):
+        self.log.info('Now it is making traffic light...')
+        
+        sqlcmd = """
+            --- suspected traffic light nodes.
+            drop table if exists temp_node_trafficlight_suspect;
+            create table temp_node_trafficlight_suspect as
+            SELECT id,the_geom
+            FROM org_n where light_flag = '1'  
+            union all
+            select a.id,b.the_geom 
+            from (
+                select mainnodeid,unnest(string_to_array(subnodeid,'|')) as id
+                from (
+                    select mainnodeid
+                        ,case when subnodeid2 != '' then subnodeid || '|' || subnodeid2 
+                            else subnodeid
+                        end as subnodeid
+                    from org_n
+                    where light_flag = '1' and cross_flag = '3'
+                ) nodes
+            ) a
+            left join org_n b
+            on a.id::character varying = b.id;
+
+            CREATE INDEX temp_node_trafficlight_suspect_id_idx
+              ON temp_node_trafficlight_suspect
+              USING btree
+              (id);
+            
+            --- suspected traffic nodes which have at least one in-link, and this link is not an inner link.
+            --- make these nodes as traffic light nodes.
+            drop table if exists temp_node_trafficlight;
+            create table temp_node_trafficlight as
+            select distinct a.* 
+            from temp_node_trafficlight_suspect a
+            left join org_r b
+            on (
+                (a.id = b.snodeid and b.direction in ('0','1','3'))
+                or 
+                (a.id = b.enodeid and b.direction in ('0','1','2'))
+            )
+            where b.id is not null and
+            (b.kind not like '%04' and b.kind not like '%04|%');
+
+            CREATE INDEX temp_node_trafficlight_id_idx
+              ON temp_node_trafficlight
+              USING btree
+              (id);            
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+               
+        return 0    

@@ -142,6 +142,8 @@ class CCheckAdminNameValid (platform.TestCase.CTestCase):
                 rdf_adminname = row[0]
                 if rdf_adminname == 'TWN':
                     name_null_num = name_null_num - 1
+                if rdf_adminname == 'URY':
+                    name_null_num = name_null_num - 1
 
         return   name_null_num == 0
 
@@ -168,9 +170,7 @@ class CCheckTileAdminGeomArea(platform.TestCase.CTestCase):
                      """
             sum_area = self.pg.getOnlyQueryResult(sqlcmd)
             diff_per = abs(sum_area - twn_area) / twn_area
-            return (diff_per <= 0.02)
-        
-        return True
+            return (diff_per <= 0.05)
     
 class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
     '''
@@ -188,27 +188,27 @@ class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
         for row in rows:    
             TA_adminname = row[0]
             if TA_adminname == 'MOZ':
-                idnArea = 799400            
+                idnArea = 799400 * 1000000            
             elif TA_adminname == 'NAM':
-                idnArea = 824269
+                idnArea = 824269 * 1000000
             elif TA_adminname == 'LSO':
-                idnArea = 30344
+                idnArea = 30344 * 1000000
             elif TA_adminname == 'ZWE':
-                idnArea = 390000.0587
+                idnArea = 390000.0587 * 1000000
             elif TA_adminname == 'SWZ':
-                idnArea = 17363
+                idnArea = 17363 * 1000000
             elif TA_adminname == 'BWA':
-                idnArea = 581730
+                idnArea = 581730 * 1000000
             elif TA_adminname == 'ZAF':
-                idnArea = 1221037        
+                idnArea = 1221037 * 1000000        
             elif TA_adminname == 'ZMB':
-                idnArea = 750000
+                idnArea = 750000 * 1000000
             elif TA_adminname == 'VNM':
-                idnArea = 330631
+                idnArea = 330631 * 1000000
             elif TA_adminname == 'AUS':
-                idnArea = 7703874
+                idnArea = 7703874 * 1000000
             elif TA_adminname == 'NZL':
-                idnArea = 267499                                      
+                idnArea = 267499 * 1000000                                     
             else:
                 return False
                                 
@@ -228,9 +228,11 @@ class CCheckTileAdminGeomArea_TA(platform.TestCase.CTestCase):
                      """
             
             sqlcmd = sqlcmd.replace('[replace_name]', TA_adminname)
-            self.pg.execute(sqlcmd)
             
-            if abs(self.pg.fetchone()[0] / 1000000 - idnArea) > 10000:
+            sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+            diff_per = abs(sum_area - idnArea) / idnArea
+            
+            if diff_per > 0.05:
                 return False
         
         return  True
@@ -241,20 +243,21 @@ class CCheckTileAdminGeomArea_CHINA(platform.TestCase.CTestCase):
     '''
     def _do(self):
         
-        idnArea = 9571717            
+        idnArea = 9571717 * 1000000          
         sqlcmd = """
                  SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
                  FROM rdb_tile_admin_zone WHERE ad_code <> -1;
                  """
-        self.pg.execute(sqlcmd)
-        return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
+        sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+        diff_per = abs(sum_area - idnArea) / idnArea
+        
+        return (diff_per <= 0.05)
             
 class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
     '''
     only check idn's area for test
     '''
     def _do(self):
-        idnArea = 1904569
         sqlcmd = '''
                 select distinct iso_country_code
                 from rdf_country;
@@ -264,65 +267,65 @@ class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
         for row in rows:    
             rdf_adminname = row[0]
             if rdf_adminname == 'SGP':
-                idnArea = 718.3            
+                idnArea = 718.3 * 1000000                
             elif rdf_adminname == 'THA':
-                idnArea = 513120
+                idnArea = 513120 * 1000000    
             elif rdf_adminname == 'IDN':
-                idnArea = 1904569
+                idnArea = 1904569 * 1000000    
             elif rdf_adminname == 'BRN':
-                idnArea = 5765
+                idnArea = 5765 * 1000000    
             elif rdf_adminname == 'MYS':
-                idnArea = 330257
+                idnArea = 330257 * 1000000    
             elif rdf_adminname == 'PHL':
-                idnArea = 299700
+                idnArea = 299700 * 1000000    
             elif rdf_adminname == 'VNM':
-                idnArea = 329556        
+                idnArea = 329556 * 1000000            
             elif rdf_adminname == 'USA':
-                idnArea = 9932990
+                idnArea = 9932990 * 1000000    
             elif rdf_adminname == 'HKG':
-                idnArea = 1261
+                idnArea = 2755 * 1000000    
             elif rdf_adminname == 'MAC':
-                idnArea = 29
+                idnArea = 62 * 1000000    
             elif rdf_adminname == 'TWN':
-                idnArea = 36664
+                idnArea = 36664 * 1000000    
             elif rdf_adminname == 'BHR':
-                idnArea = 775
+                idnArea = 775 * 1000000    
             elif rdf_adminname == 'OMN':
-                idnArea = 309168
+                idnArea = 309168 * 1000000    
             elif rdf_adminname == 'JOR':
-                idnArea = 89277
+                idnArea = 89277 * 1000000    
             elif rdf_adminname == 'KWT':
-                idnArea = 17332
+                idnArea = 17332 * 1000000    
             elif rdf_adminname == 'QAT':
-                idnArea = 11615
+                idnArea = 11615 * 1000000    
             elif rdf_adminname == 'LBN':
-                idnArea = 10219
+                idnArea = 10219 * 1000000    
             elif rdf_adminname == 'SAU':
-                idnArea = 1928884
+                idnArea = 1928884 * 1000000    
             elif rdf_adminname == 'ARE':
-                idnArea = 71504
+                idnArea = 71504 * 1000000    
             elif rdf_adminname == 'ZAF':
-                idnArea = 1221182
+                idnArea = 1221182 * 1000000    
             elif rdf_adminname == 'LSO':
-                idnArea = 30576
+                idnArea = 30576 * 1000000    
             elif rdf_adminname == 'NAM':
-                idnArea = 826115
+                idnArea = 826115 * 1000000    
             elif rdf_adminname == 'SWZ':
-                idnArea = 17396
+                idnArea = 17396 * 1000000    
             elif rdf_adminname == 'BWA':
-                idnArea = 579564
+                idnArea = 579564 * 1000000    
             elif rdf_adminname == 'BRA':
-                idnArea = 8547404
+                idnArea = 8547404 * 1000000    
             elif rdf_adminname == 'ARG':
-                idnArea = 2793791  
+                idnArea = 2793791 * 1000000     
             elif rdf_adminname == 'URY':
-                idnArea = 193509                
+                idnArea = 193509 * 1000000                    
             elif rdf_adminname == 'PRY':
-                idnArea = 406800 
+                idnArea = 406800 * 1000000     
             elif rdf_adminname == 'CRI':
-                idnArea = 51100
+                idnArea = 51100 * 1000000    
             elif rdf_adminname == 'PAN':
-                idnArea = 75517 
+                idnArea = 75517 * 1000000     
                          
             else:
                 return False
@@ -334,11 +337,13 @@ class CCheckTileAdminGeomArea_RDF(platform.TestCase.CTestCase):
                       SELECT admin_place_id FROM rdf_admin_hierarchy
                       where iso_country_code = '[replace_name]');
                      """
-            
+                             
             sqlcmd = sqlcmd.replace('[replace_name]', rdf_adminname)
-            self.pg.execute(sqlcmd)
             
-            if abs(self.pg.fetchone()[0] / 1000000 - idnArea) > 10000:
+            sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+            diff_per = abs(sum_area - idnArea) / idnArea
+            
+            if diff_per > 0.05:
                 return False
         
         return  True
@@ -348,44 +353,49 @@ class CCheckTileAdminGeomArea_MMI(platform.TestCase.CTestCase):
     only check idn's area for test
     '''
     def _do(self):
-        idnArea = 3279831
+        idnArea = 3279831 * 1000000    
 
         sqlcmd = """
                  SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
                  FROM rdb_tile_admin_zone WHERE ad_code <> -1;
                  """
-        self.pg.execute(sqlcmd)
-
-        return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
+        sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+        diff_per = abs(sum_area - idnArea) / idnArea
+        
+        return (diff_per <= 0.05)
+    
 class CCheckTileAdminGeomArea_jdb(platform.TestCase.CTestCase):
     '''
     only check idn's area for test
     '''
     def _do(self):
-        idnArea = 498600
+        idnArea = 498600 * 1000000    
+
 
         sqlcmd = """
                  SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
                  FROM rdb_tile_admin_zone WHERE ad_code <> -1;
                  """
-        self.pg.execute(sqlcmd)
-
-        return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
+        sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+        diff_per = abs(sum_area - idnArea) / idnArea
+        
+        return (diff_per <= 0.05)
     
 class CCheckTileAdminGeomArea_msm(platform.TestCase.CTestCase):
     '''
     only check idn's area for test
     '''
     def _do(self):
-        idnArea = 462797
+        idnArea = 462797 * 1000000  
 
         sqlcmd = """
                  SELECT sum (st_area (st_geogfromwkb (the_geom), FALSE))
                  FROM rdb_tile_admin_zone WHERE ad_code <> -1;
                  """
-        self.pg.execute(sqlcmd)
-
-        return   abs(self.pg.fetchone()[0] / 1000000 - idnArea) < 10000
+        sum_area = self.pg.getOnlyQueryResult(sqlcmd)
+        diff_per = abs(sum_area - idnArea) / idnArea
+        
+        return (diff_per <= 0.05)
 
 class CCheckAdminTimeZone(platform.TestCase.CTestCase):
     def _do(self):

@@ -414,6 +414,11 @@ CREATE INDEX temp_region_links_sa_ramp_link_id_idx
 	using btree
 	(link_id);
 
+CREATE INDEX temp_region_links_important_ramp_link_id_idx
+	on temp_region_links_important_ramp
+	using btree
+	(link_id);
+
 CREATE INDEX temp_region_orglink_level6_bak_delete_ic_link_id_idx
 	on temp_region_orglink_level6_bak_delete_ic
 	using btree
@@ -884,8 +889,8 @@ CREATE INDEX rdf_link_rtic_mapid_idx
   USING btree
   (mapid);
   
-CREATE INDEX org_rtic_linkid_idx
-	on org_rtic
+CREATE INDEX org_rtic_incar_linkid_idx
+	on org_rtic_incar
 	using btree
 	(linkid);
 

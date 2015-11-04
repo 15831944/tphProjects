@@ -141,6 +141,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         return 0
 
     def _make_main_links(self):
+        self.log.info('Make main links.')
         self.pg.CreateTable2_ByName('mid_temp_hwy_main_link')
         sqlcmd = """
         INSERT INTO mid_temp_hwy_main_link(
@@ -162,6 +163,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.CreateIndex2('mid_temp_hwy_main_link_the_geom_idx')
 
     def _make_ic_links(self):
+        self.log.info('Make ICs links.')
         self.pg.CreateTable2_ByName('mid_temp_hwy_ic_link')
         sqlcmd = """
         INSERT INTO mid_temp_hwy_ic_link(

@@ -495,7 +495,7 @@ class comp_factory_ta(comp_factory):
             if common.common_func.JudgementCountry('AUS'):
                 from component.ta import guideinfo_spotguide_sensis
                 return guideinfo_spotguide_sensis.comp_guideinfo_spotguide_sensis()
-            elif common.common_func.JudgementCountry('saf'):
+            elif common.common_func.JudgementCountry('saf8'):
                 from component.ta import guideinfo_spotguide_saf
                 return guideinfo_spotguide_saf.comp_guideinfo_spotguide_saf()
             else:
@@ -601,6 +601,11 @@ class comp_factory_jdb(comp_factory):
         if comp_name == 'Regulation':
             from component.jdb import regulation
             return regulation.comp_regulation_jdb()
+            pass
+        
+        if comp_name == 'Regulation_patch':
+            import component.default.regulation_patch
+            return component.default.regulation_patch.comp_regulation_patch()
             pass
 
         if comp_name == 'Guideinfo_SignPost':
@@ -758,6 +763,12 @@ class comp_factory_nostra(comp_factory):
             from component.nostra import regulation
             return regulation.comp_regulation_nostra()
             pass
+        
+        if comp_name == 'Regulation_patch':
+            import component.default.regulation_patch
+            return component.default.regulation_patch.comp_regulation_patch()
+            pass
+        
         if comp_name == 'Admin':
             from component.nostra import admin
             return admin.comp_admin_nostra()

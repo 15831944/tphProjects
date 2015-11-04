@@ -1622,6 +1622,25 @@ class HwyGraphRDF(HwyGraph):
                 return True
         return False
 
+    def get_next_links_for_path(self, path, reverse=False):
+        node = path[-1]
+        next_nodes = []
+        if reverse:  # 逆
+            edges_iter = self.in_edges_iter(node, False)
+        else:  # 顺
+            edges_iter = self.out_edges_iter(node, False)
+        for temp_u, temp_v in edges_iter:
+            if reverse:  # 逆
+                next_node = temp_u
+            else:
+                next_node = temp_v
+            if path[-2] == temp_v:  # 折返了
+                continue
+            temp_path = path + [next_node]
+            if not self.check_regulation(temp_path, reverse):
+                continue
+            next_nodes.append(next_node)
+        return next_nodes
 
 # =============================================================================
 #

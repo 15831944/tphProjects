@@ -4,6 +4,9 @@ Created on 2012-3-27
 
 @author: liuxinxing
 '''
+
+
+
 import component.component_base
 
 class comp_regulation_jdb(component.component_base.comp_base):
@@ -14,21 +17,25 @@ class comp_regulation_jdb(component.component_base.comp_base):
         component.component_base.comp_base.__init__(self, 'Regulation')
     
     def _DoCreateTable(self):
-        self.CreateTable2('temp_condition_regulation_tbl')
+        
         self.CreateTable2('condition_regulation_tbl')
         self.CreateTable2('regulation_relation_tbl')
         self.CreateTable2('regulation_item_tbl')
         
+        return 0
+    
     def _Do(self):
         self.__convert_condition_table()
         self.__convert_regulation_from_trn()
         self.__convert_regulation_from_owc()
         self.__convert_regulation_from_npc()
+        
         return 0
     
     def __convert_condition_table(self):
         self.log.info('Begin convert condition_regulation_tbl...')
         
+        self.CreateTable2('temp_condition_regulation_tbl')
         self.CreateFunction2('mid_convert_weekflag')
         self.CreateFunction2('mid_convert_condition_regulation_table')
         
@@ -86,4 +93,3 @@ class comp_regulation_jdb(component.component_base.comp_base):
         
         self.log.info('Check regulation end.')
         return 0
-        

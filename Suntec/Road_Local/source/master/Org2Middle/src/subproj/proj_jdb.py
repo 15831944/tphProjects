@@ -67,6 +67,9 @@ class proj_jdb_module(subproj.proj_base.proj_base_module):
             # Node
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             
+            # Regulation_patch
+            self.AddComponent(self.comp_factory.CreateOneComponent('Regulation_patch'))
+            
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_SpotGuide'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_building'))

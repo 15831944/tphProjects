@@ -25,8 +25,8 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         
         
     def _Do(self):
-        
-        self._make_highway_building_name()
+        self.CreateTable2('temp_towardname_tbl')
+        self.__make_hw_towardname()
         self._make_signpost_uc_name()
         self._make_towardname_tbl()
      
@@ -372,7 +372,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         
         
 
-    def _make_highway_building_name(self):
+    def _make_highway_building_name_bak(self):
         
         self._make_poi_inlink()
         self._make_highway_building_json_name()
@@ -570,7 +570,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
  
  
         self.log.info('make temp_towardname_poi_tbl...')
-        self.CreateTable2('temp_towardname_tbl')
+#        self.CreateTable2('temp_towardname_tbl')
         
         sqlcmd = '''
                 insert into temp_towardname_tbl( nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr, namekind, toward_name )                
@@ -607,5 +607,284 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
         self.pg.execute(sqlcmd)
         self.pg.commit2()
 
- 
- 
+
+    ###利用highway专用数据重新作成
+    
+    def __make_hw_towardname(self):
+        self.__make_highway_name_all_language()
+        self.__make_hw_passlink()
+        self.__make_hw_json_name()
+        self.__make_temp_hw_towardname()
+        
+    
+    def __make_highway_name_all_language(self):
+        self.log.info('make highway_name_all_language...')
+        self.CreateFunction2('mid_convertstring')
+        sqlcmd = '''
+            drop table if exists temp_highway_name_all_language;
+            create table temp_highway_name_all_language
+            as
+            (
+                select id, nodeid, inlinkid, outlinkid, attr,
+                --seq_nm,
+                array_agg(name_id) as name_id_array,
+                array_agg(name_type) as name_type_array,  
+                array_agg(language) as language_array,
+                array_agg(mid_convertstring(name,1)) as name_array,
+                array_agg(phoneme_lang) as phoneme_lang_array,
+                array_agg(phoneme) as phoneme_array
+                from 
+                (
+                  select a.id, a.nodeid, a.inlinkid, a.outlinkid, a.attr, b.name, b.seq_nm,
+                          --- b.language,
+                          (case when b.language = '1'  then  'CHI'
+                                               when b.language = '2'  then  'CHT'
+                                               when b.language = '3'  then  'ENG'
+                                               when b.language = '4'  then  'POR' end) as language, 
+                         b.language as name_id,
+                         'office_name'::varchar as name_type,
+                  --c.name as phoneme,
+                  (case when c.name like '%|%'  then split_part(c.name,'|',1)
+                    else c.name end) as phoneme, 
+                    
+                  ( case when c.phontype = '1' then 'PYM'
+                         when c.phontype = '3' then 'PYT'
+                         else c.phontype end ) as phoneme_lang
+                  from org_hw_junction as a
+                  --left 
+                  join org_hw_fname as b
+                  on a.id = b.featid
+                  left join org_fname_phon as c
+                  on b.featid = c.featid and b.nametype = c.nametype and b.seq_nm = c.seq_nm 
+                  where a.attr in ('1','2','8') and c.phontype is distinct from '2'
+                  order by a.id, b.seq_nm, b.language::integer
+                
+                ) as d
+                group by id, nodeid, inlinkid, outlinkid,attr
+                --,seq_nm
+        
+            )
+            
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        sqlcmd = '''
+            delete from temp_highway_name_all_language as a
+            where inlinkid in 
+            (
+                select  inlinkid
+                from temp_highway_name_all_language as a
+                left join link_tbl as b
+                on a.inlinkid::bigint = b.link_id
+                where b.one_way_code = '4'
+            );
+            
+            delete from temp_highway_name_all_language as a
+            where outlinkid in 
+            (
+                select  outlinkid
+                from temp_highway_name_all_language as a
+                left join link_tbl as b
+                on a.outlinkid::bigint = b.link_id
+                where b.one_way_code = '4'
+            );  
+        
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+    
+    def __make_hw_passlink(self):
+        self.CreateFunction2('mid_findpasslinkbybothnodes')
+        self.CreateFunction2('mid_get_passlinkcount_ni')
+        sqlcmd = '''
+            drop table if exists temp_hw_passlink;
+            create table temp_hw_passlink
+            as
+            (
+                select d.id,d.passlid,mid_get_passlinkcount_ni(d.passlid) as passlink_cnt
+                from
+                (
+                    select c.id, mid_findpasslinkbybothnodes(c.snode::bigint, c.enode) as passlid
+                    from
+                    (
+                        select distinct a.id, a.nodeid as snode, a.outlinkid,
+                            (case when b.one_way_code in (1,2) then b.s_node
+                                  when b.one_way_code in (3) then b.e_node end ) as enode
+                        from temp_highway_name_all_language as a 
+                        left join link_tbl as b
+                        on a.outlinkid::bigint = b.link_id
+                    ) as c
+                ) as d
+            )
+        
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+
+    def __make_toll_station_name_all_language(self):
+        self.log.info('make toll_station_name_all_language...')
+        
+        sqlcmd = '''
+            drop table if exists temp_poi_toll;
+            create table temp_poi_toll
+            as
+            (
+                SELECT a.poi_id, a.kind, a.linkid, c.node_id
+                FROM org_poi as a
+                left join link_tbl as b 
+                on b.link_id = a.linkid::bigint
+                left join node_tbl as c
+                on c.toll_flag = 1 and c.node_id in (b.s_node,b.e_node)
+                where b.link_type in (1,2) and b.road_type in (0,1) and a.kind in ('8401')
+            )
+        
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+    
+        sqlcmd = '''
+            drop table if exists temp_toll_station_name_all_language;
+            create table temp_toll_station_name_all_language
+            as
+            (
+                select  poi_id, node_id as nodeid, inlinkid, outlinkid, attr,
+                        array_agg(name_id) as name_id_array,
+                        array_agg(name_type) as name_type_array, 
+                        array_agg(language) as language_array,
+                        array_agg(mid_convertstring(name,1)) as name_array, 
+                        array_agg(phoneme_lang) as phoneme_lang_array,
+                        array_agg(phoneme) as phoneme_array
+                from
+                (
+                    select  a.poi_id, a.node_id, d.link_id as inlinkid, null::bigint as outlinkid, '7'::varchar as attr, b.name,
+                            --- b.language,
+                            (case when b.language = '1'  then  'CHI'
+                                  when b.language = '2'  then  'CHT'
+                                  when b.language = '3'  then  'ENG'
+                                  when b.language = '4'  then  'POR' end)::varchar as language, 
+                            b.language as name_id,
+                            'office_name'::varchar as name_type,
+                            --c.name as phoneme,
+                            (case when c.name like '%|%'  then split_part(c.name,'|',1)
+                                     else c.name end) as phoneme,
+                                      
+                            ( case  when c.phontype = '1' then 'PYM'
+                                    when c.phontype = '3' then 'PYT'
+                                    else c.phontype end ) as phoneme_lang
+                    from temp_poi_toll as a
+                    join org_pname as b
+                    on b.featid = a.poi_id and b.nametype = '9' and b.seq_nm = '1'
+                    left join org_pname_phon as c
+                    on c.featid= b.featid and c.seq_nm = b.seq_nm and c.phontype is distinct from '2'
+                    join link_tbl as d
+                    on (  ( a.node_id = d.e_node and d.one_way_code = 2
+                            or
+                            a.node_id = d.s_node and d.one_way_code = 3
+                          )
+                         and d.road_type in (0,1)
+                       ) 
+                    order by a.poi_id::bigint, b.language::integer  
+                ) as e
+                
+                group by poi_id, node_id, inlinkid, outlinkid, attr
+           ) 
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def __make_hw_json_name(self):
+        self.CreateTable2('temp_hw_json_name')   
+        sqlcmd = '''
+            select  nodeid::varchar, inlinkid::varchar, '0' as outlinkid, attr,
+                    '0' as passlid,
+                    0 as passlink_cnt,
+                    name_id_array,
+                    name_type_array,
+                    language_array, 
+                    name_array,
+                    phoneme_lang_array, 
+                    phoneme_array
+            from temp_toll_station_name_all_language
+            
+            union
+            
+            select  nodeid, inlinkid, outlinkid, attr, 
+                    ( case when b.passlid is null then '0'
+                            else b.passlid end ) as passlid,                            
+                    b.passlink_cnt,
+                    name_id_array, 
+                    name_type_array, 
+                    language_array, 
+                    name_array,
+                    phoneme_lang_array, 
+                    phoneme_array
+            from temp_highway_name_all_language as a
+            left join temp_hw_passlink as b
+            on a.id = b.id
+            
+        '''
+        if not component.default.multi_lang_name.MultiLangName.is_initialized():
+            component.default.multi_lang_name.MultiLangName.initialize()
+            
+        recs = self.pg.get_batch_data2(sqlcmd)
+        temp_file_obj = common.cache_file.open('hw_json_name')
+        for rec in recs:
+            nodeid          = rec[0]
+            inlinkid        = rec[1]
+            outlinkid       = rec[2]
+            attr            = rec[3]
+            passlid         = rec[4]
+            passlink_cnt    = rec[5]
+            json_name = component.default.multi_lang_name.MultiLangName.name_array_2_json_string_multi_phon(rec[6], 
+                                                                                                            rec[7],
+                                                                                                            rec[8], 
+                                                                                                            rec[9],
+                                                                                                            rec[10],
+                                                                                                            rec[11])
+            temp_file_obj.write('%s\t%s\t%s\t%s\t%s\t%d\t%s\n' % (nodeid,inlinkid,outlinkid,attr,passlid,passlink_cnt,json_name))
+        
+        temp_file_obj.seek(0)
+        self.pg.copy_from2(temp_file_obj, 'temp_hw_json_name')
+        self.pg.commit2()
+        common.cache_file.close(temp_file_obj,True)
+                
+    def __make_temp_hw_towardname(self):
+        self.log.info('make temp_hw_towardname...')
+
+        sqlcmd = '''
+            insert into temp_towardname_tbl( nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, 
+                                            guideattr, namekind, toward_name ) 
+            ( 
+            select  a.nodeid, a.inlinkid, 
+                    ( case when a.outlinkid = '0' then null
+                           else a.outlinkid end ) as outlinkid,
+                    ( case when a.passlid = '0' then null
+                           else a.passlid end ) as passlid,
+                    a.passlink_cnt,
+                    0 as direction,
+                    2 as guideattr, 
+                    (case when a.attr = '1' then 5
+                          when a.attr = '2' then 4
+                          when a.attr = '7' then 7
+                          when a.attr = '8' then 1 end ) as namekind, 
+                    a.json_name
+            from temp_hw_json_name as a
+            order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind, json_name
+            )
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()
+        
+
+                
+    
+    
+    
+    
+    
+    
+    
+    
+    
