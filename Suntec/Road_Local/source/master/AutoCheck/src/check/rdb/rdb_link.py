@@ -1933,7 +1933,8 @@ class CCheckrdb_link_name_language(platform.TestCase.CTestCase):
                         select distinct road_name
                         from rdb_link
                         where iso_country_code = '[country]'
-                             and road_name is not null;
+                             and road_name is not null
+                             and road_type <> 10;
                         """
         
         sqlcmd = '''
@@ -1968,7 +1969,8 @@ class CCheckrdb_link_number_shield(platform.TestCase.CTestCase):
                         select distinct road_number
                         from rdb_link
                         where iso_country_code = '[country]'
-                             and road_number is not null;
+                             and road_number is not null
+                             and road_type <> 10;
                         """
         
         sqlcmd = '''

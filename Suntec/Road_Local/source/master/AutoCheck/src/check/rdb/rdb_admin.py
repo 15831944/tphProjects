@@ -29,6 +29,7 @@ class CCheckAdminCodeCount(platform.TestCase.CTestCase):
         
         pro_name = common.ConfigReader.CConfigReader.instance()
         strpro_name = pro_name.getProjName()
+        strcountry_name = pro_name.getCountryName()
         
         if strpro_name.lower() == 'rdf' :
             sqlcmd = '''
@@ -39,10 +40,6 @@ class CCheckAdminCodeCount(platform.TestCase.CTestCase):
         
             for row in rows:    
                 rdf_adminname = row[0]
-#                if rdf_adminname == 'MYS':
-#                    rdbTileAdminCount = rdbTileAdminCount + 2
-#                elif rdf_adminname == 'HKG':
-#                    rdbTileAdminCount = rdbTileAdminCount + 1
                 if rdf_adminname == 'VNM':
                     rdbTileAdminCount = rdbTileAdminCount + 1
                 elif rdf_adminname == 'PHL':
@@ -51,6 +48,10 @@ class CCheckAdminCodeCount(platform.TestCase.CTestCase):
                     rdbTileAdminCount = rdbTileAdminCount + 2
                 elif rdf_adminname == 'PAN':
                     rdbTileAdminCount = rdbTileAdminCount + 1
+                    
+        elif strpro_name.lower() == 'ni' and  strcountry_name.lower() == 'chn':
+            
+            return (rdbAdminCount == rdbTileAdminCount) | (rdbAdminCount == rdbTileAdminCount + 5)
  
         return rdbAdminCount == rdbTileAdminCount
 

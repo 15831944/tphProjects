@@ -5,24 +5,25 @@ Created on 2015-10-29
 '''
 
 import math
+import common
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
 # 
-str_arrow_3_forked_left = 'Arrow_3-forked_Left.png'
-str_arrow_3_forked_middle = 'Arrow_3-forked_Middle.png'
-str_arrow_3_forked_right = 'Arrow_3-forked_Right.png'
-str_arrow_branch_l_left = 'Arrow_Branch_L_Left.png'
-str_arrow_branch_l_straight = 'Arrow_Branch_L_Straight.png'
-str_arrow_branch_r_right = 'Arrow_Branch_R_Right.png'
-str_arrow_branch_r_straight = 'Arrow_Branch_R_Straight.png'
-str_arrow_fork_left = 'Arrow_Fork_Left.png'
-str_arrow_fork_right = 'Arrow_Fork_Right.png'
-str_road_3_forked = 'Road_3-forked.png'
-str_road_branch_left = 'Road_Branch_Left.png'
-str_road_branch_right = 'Road_Branch_Right.png'
-str_road_fork = 'Road_Fork.png'
+str_arrow_3_forked_left = 'Arrow_3-forked_Left'
+str_arrow_3_forked_middle = 'Arrow_3-forked_Middle'
+str_arrow_3_forked_right = 'Arrow_3-forked_Right'
+str_arrow_branch_l_left = 'Arrow_Branch_L_Left'
+str_arrow_branch_l_straight = 'Arrow_Branch_L_Straight'
+str_arrow_branch_r_right = 'Arrow_Branch_R_Right'
+str_arrow_branch_r_straight = 'Arrow_Branch_R_Straight'
+str_arrow_fork_left = 'Arrow_Fork_Left'
+str_arrow_fork_right = 'Arrow_Fork_Right'
+str_road_3_forked = 'Road_3-forked'
+str_road_branch_left = 'Road_Branch_Left'
+str_road_branch_right = 'Road_Branch_Right'
+str_road_fork = 'Road_Fork'
 
-# 此类用于换算两点的经纬度与方位、距离
+# 功能类，此类用于换算两点的经纬度与方位、距离
 A_WGS84 = 6378137.0
 E2_WGS84 = 6.69437999013e-3
 class LatLonPoint(object):
@@ -61,9 +62,7 @@ class LatLonPoint(object):
                                     math.cos(radLat1)*math.cos(radLat2)*math.pow(math.sin(b/2),2)))
         s = s * A_WGS84;
         s = round(s * 10000) / 10000;
-        return s;
-
-        return
+        return s
     
     def getDistanceByPoint(self, latLonPoint2):
         return self.getDistanceByLatLon(latLonPoint2.latitude, latLonPoint2.longitude)
@@ -124,34 +123,45 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         return 0
 
     def _Do(self):
-        sqlcmd = """select id, array_agg(seqnr) as seqnr_list,
-                        array_agg(trpelid) as trpelid_list, 
-                        array_agg(f_jnctid) as f_jnctid_list,
-                        array_agg(t_jnctid) as t_jnctid_list,
-                        array_agg(st_astext(the_geom)) as the_geom_text_list,
-                        array_agg(name) as name_list
+        self._GenerateNaviLinkFromSignpost()
+        self._GenerateNaviLinkFromBifurcation()
+        self._GenerateSpotguide()
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
+        return 0
+    
+    def _GenerateNaviLinkFromSignpost(self):
+        sqlcmd = """drop table if exists temp_spotguide_nav_link_from_signpost;
+					select b.id as signpost_id,
+					        array_agg(seqnr) as seqnr_list,
+					        array_agg(trpelid) as trpelid_list, 
+	                        array_agg(f_jnctid) as f_jnctid_list,
+	                        array_agg(t_jnctid) as t_jnctid_list,
+	                        array_agg(st_astext(the_geom)) as the_geom_text_list,
+	                        array_agg(name) as name_list
+	                into temp_spotguide_nav_link_from_signpost
                     from 
                     (
-                        select b.*, c.f_jnctid, c.t_jnctid, c.the_geom, c.name
+                        select b.id, b.trpelid, c.f_jnctid, c.t_jnctid, c.the_geom, c.name
                         from 
                         (
-                        select distinct a.id
-                        from 
-                        org_sp as a
-                        left join org_nw as b
-                        on a.trpelid=b.id
-                        where (mid_cnv_road_type(b.freeway,
-                                b.frc,
-                                b.ft,
-                                b.fow,
-                                b.privaterd,
-                                b.backrd,
-                                b.procstat,
-                                b.carriage,
-                                b.nthrutraf,
-                                b.sliprd,
-                                b.stubble) = 0)
-                        order by a.id
+	                        select distinct a.id
+	                        from 
+	                        org_sp as a
+	                        left join org_nw as b
+	                        on a.trpelid=b.id
+	                        where (mid_cnv_road_type(b.freeway,
+	                                b.frc,
+	                                b.ft,
+	                                b.fow,
+	                                b.privaterd,
+	                                b.backrd,
+	                                b.procstat,
+	                                b.carriage,
+	                                b.nthrutraf,
+	                                b.sliprd,
+	                                b.stubble) = 0)
+	                        order by a.id
                         )as a
                         left join org_sp as b
                         on a.id=b.id
@@ -161,6 +171,18 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                     ) as t
                     group by id"""
                     
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+    def _GenerateNaviLinkFromBifurcation(self):
+        
+        return 0
+    
+    def _GenerateSpotguide(self):
+        sqlcmd = """select trpelid_list, f_jnctid_list, t_jnctid_list,
+                            the_geom_text_list, name_list
+                    from temp_spotguide_nav_link_from_signpost
+                """
         self.pg.execute2(sqlcmd)
         rows = self.pg.fetchall2()
         for row in rows:
@@ -198,7 +220,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                  0, 0, 0, patternPic, arrowPic, 1, False))
         self.pg.commit2()
         return 0
-
+    
     # 求pattern图 名字与arrow图名字。
     def getPatternAndArrow(self, errMsg, inlinkObj, outlinkObj):
         nodeid = self.getConnectedNodeid(errMsg, inlinkObj, outlinkObj)
@@ -216,7 +238,11 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         sqlcmd1 = """
                     select distinct id, f_jnctid, t_jnctid, st_astext(the_geom), name
                     from org_nw 
-                    where f_jnctid=%.0f or t_jnctid=%.0f
+                    where f_jnctid=%.0f and (oneway<>'FT' or oneway is null)
+                    union 
+                    select distinct id, f_jnctid, t_jnctid, st_astext(the_geom), name
+                    from org_nw 
+                    where t_jnctid=%.0f and (oneway<>'TF' or oneway is null)
                     """
         sqlcmd = sqlcmd1 % (nodeid, nodeid)
         self.pg.execute2(sqlcmd)
@@ -244,7 +270,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                 return None, None
             
             # 若inlink与outlink道路名相同，判断为直行
-            if inlinkObj.name == outlinkObj.name:
+            if inlinkObj.name == outlinkObj.name and inlinkObj.name <> restOutlinkList[0].name:
                 position, angle = self.getPositionOf2Angle(restOutlinkTrafficAngle, outlinkTrafficAngle)
                 # 另一流出link在outlink左边
                 if position == DIR_LEFT_SIDE:
@@ -256,7 +282,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                     arrowPic = str_arrow_branch_r_straight
 
             # 若inlink与另一流出link的道路名相同，判断为转弯
-            elif inlinkObj.name == restOutlinkList[0].name:
+            elif inlinkObj.name <> outlinkObj.name and inlinkObj.name == restOutlinkList[0].name:
                 position, angle = self.getPositionOf2Angle(outlinkTrafficAngle, restOutlinkTrafficAngle)
                 # outlink在另一流出link左边
                 if position == DIR_LEFT_SIDE:
@@ -270,10 +296,10 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
             # 无法从道路名获取更多信息，仅根据角度计算。
             else:
                 outlinkDir, outlinkAngle = self.getPositionOf2Angle(outlinkTrafficAngle, inlinkTrafficAngle)
-                position2, angle2 = self.getPositionOf2Angle(restOutlinkTrafficAngle, inlinkTrafficAngle)
+                restOutlinkDir, angle2 = self.getPositionOf2Angle(restOutlinkTrafficAngle, inlinkTrafficAngle)
                 
                 # 两流出link都向左
-                if outlinkDir == DIR_LEFT_SIDE and position2 == DIR_LEFT_SIDE:
+                if outlinkDir == DIR_LEFT_SIDE and restOutlinkDir == DIR_LEFT_SIDE:
                     patternPic = str_road_branch_left
                     if outlinkAngle > angle2:
                         arrowPic = str_arrow_branch_l_left
@@ -281,7 +307,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                         arrowPic = str_arrow_branch_l_straight
 
                 # 两流出link都向右
-                elif outlinkDir == DIR_RIGHT_SIDE and position2 == DIR_RIGHT_SIDE:
+                elif outlinkDir == DIR_RIGHT_SIDE and restOutlinkDir == DIR_RIGHT_SIDE:
                     patternPic = str_road_branch_right
                     if outlinkAngle > angle2:
                         arrowPic = str_arrow_branch_r_right
@@ -289,7 +315,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                         arrowPic = str_arrow_branch_r_straight
                 
                 # outlink向左，另一流出link向右
-                elif outlinkDir == DIR_LEFT_SIDE and position2 == DIR_RIGHT_SIDE:
+                elif outlinkDir == DIR_LEFT_SIDE and restOutlinkDir == DIR_RIGHT_SIDE:
                     if outlinkAngle > 10 and angle2 > 10:
                         patternPic = str_road_fork
                         arrowPic = str_arrow_fork_left
@@ -364,12 +390,12 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
             point1 = linkObj.pointlist[0]
             point2 = None
             for i in range(1, len(linkObj.pointlist)):
-                if point1.getDistanceByPoint(linkObj.pointlist[i]) > 100:
+                if point1.getDistanceByPoint(linkObj.pointlist[i]) > 5:
                     point2 = linkObj.pointlist[i]
                     break
+            # 没有任何一个形状点与sNodeid的距离大于5米，则使用eNodeid为point2
             if point2 == None:
-                errMsg[0] = """length of the_geom does not exceed 100m."""
-                return None
+                point2 = linkObj.pointlist[-1]
             
             if trafficDir == 'to_this_node':
                 return point2.getAngleByPoint(point1)
@@ -380,13 +406,12 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
             point1 = linkObj.pointlist[-1]
             point2 = None
             for i in range(len(linkObj.pointlist) - 2, -1, -1):
-                distance = point1.getDistanceByPoint(linkObj.pointlist[i])
-                if distance > 10:
+                if point1.getDistanceByPoint(linkObj.pointlist[i]) > 5:
                     point2 = linkObj.pointlist[i]
                     break
+            # 没有任何一个形状点与eNodeid的距离大于5米，则使用sNodeid为point2
             if point2 == None:
-                errMsg[0] = """length of the_geom does not exceed 10m."""
-                return None
+                point2 = linkObj.pointlist[0]
             
             if trafficDir == 'to_this_node':
                 return point2.getAngleByPoint(point1)

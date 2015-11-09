@@ -61,7 +61,8 @@ class comp_guideinfo_spotguide_rdf(comp_guideinfo_spotguide):
         else:
             self.log.error('not so data source!!!')
 
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         return 0
 
     def _makeJV_CHN(self):

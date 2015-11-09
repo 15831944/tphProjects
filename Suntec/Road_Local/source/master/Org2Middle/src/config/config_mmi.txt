@@ -8,6 +8,7 @@ POI_Code=..\docs\poi\category_mmi_ind.txt
 brand_icon=..\docs\poi\brand_icon_list_mmi.txt
 category_priority=..\docs\poi\category_priority_mmi.xls
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\IND\MMI\14Q4\illust
+toll_station_illust=Toll-Gate_Booth
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_ind.xls
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

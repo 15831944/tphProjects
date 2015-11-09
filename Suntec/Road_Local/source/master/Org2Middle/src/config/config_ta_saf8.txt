@@ -9,6 +9,7 @@ safetyalert_flag=false
 ta_jv_sidefile=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Africa\SAF8\TOMTOM\1503\illust
 ta_phoneme_sidefile=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Africa\SAF8\TOMTOM\1503\phoneme
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Africa\SAF8\TOMTOM\1503\illust
+toll_station_illust=Toll-Gate_Booth
 POI_Code=..\docs\poi\category_ta_saf8.txt
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_saf.xls
 #pointlist=..\..\SourceData\axf\pictures

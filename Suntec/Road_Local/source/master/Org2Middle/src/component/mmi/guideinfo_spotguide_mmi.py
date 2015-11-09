@@ -46,7 +46,9 @@ class comp_guideinfo_spotguide_mmi(comp_guideinfo_spotguide):
     def _Do(self):
         self._generate_temp_info_of_junction_links()
         self._generate_spotguide_tbl(common.common_func.GetPath('care_about_sar'))
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
+        
 
     def _generate_temp_info_of_junction_links(self):
         sqlcmd = '''

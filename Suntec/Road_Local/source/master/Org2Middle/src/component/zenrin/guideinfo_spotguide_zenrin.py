@@ -6,15 +6,15 @@ Created on 2015-6-26
 '''
 
 
+import common
+from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
-import component.default.guideinfo_spotguide
-
-class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp_guideinfo_spotguide):
+class comp_guideinfo_spotguide_zenrin(comp_guideinfo_spotguide):
     def __init__(self):
         '''
         Constructor
         '''
-        component.default.guideinfo_spotguide.comp_guideinfo_spotguide.__init__(self)
+        comp_guideinfo_spotguide.__init__(self)
     
     def _DoCreateTable(self):
         
@@ -36,8 +36,9 @@ class comp_guideinfo_spotguide_zenrin(component.default.guideinfo_spotguide.comp
         self.__make_temp_spotguide_tbl2()
         self.__make_spotguide_tbl()
         
-        component.default.guideinfo_spotguide.\
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
+        
         
         return 0
     

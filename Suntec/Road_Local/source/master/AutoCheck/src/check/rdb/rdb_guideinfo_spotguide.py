@@ -145,8 +145,7 @@ class CCheckGuideSpotguidePasslinkCnt_special(platform.TestCase.CTestCase):
 
         sqlcmd = """
             SELECT count(*)
-            FROM spotguide_tbl
-            where patternno <> 'toll_station_image';
+            FROM spotguide_tbl;
         """
         self.pg.execute(sqlcmd)
         row2 = self.pg.fetchone()

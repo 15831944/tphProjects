@@ -8,6 +8,7 @@ import os
 import struct
 import psycopg2
 import logging
+from common import common_func
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
 
@@ -31,7 +32,8 @@ class comp_guideinfo_spotguide_nostra(comp_guideinfo_spotguide):
         self.add_junctionPicName()
         self.makeJunctionViewInfo()
         self.setDefualtValue()
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         return 0
 
     def update_junctionview_handler(self):

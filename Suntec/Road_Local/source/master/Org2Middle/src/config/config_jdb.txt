@@ -3,6 +3,7 @@
 #proj_name=jdb
 #proj_country=hkg
 #illust=..\..\SourceData\JP\2012A\pictures
+toll_station_illust=Toll-Gate_Booth
 admin_wav=..\..\..\..\SourceData\JP\admin_wav.txt
 #highway=..\..\..\..\SourceData\JP\2013Spring\highway
 #sf_highway=..\..\..\..\SourceData\JP\2013Spring\kensaku

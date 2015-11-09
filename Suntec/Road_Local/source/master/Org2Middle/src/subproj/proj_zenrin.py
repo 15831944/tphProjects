@@ -35,7 +35,7 @@ class proj_zenrin_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Regulation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
-            self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
+            #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_DisplayClass'))
             

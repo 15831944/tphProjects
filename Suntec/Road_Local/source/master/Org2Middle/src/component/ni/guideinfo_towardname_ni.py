@@ -864,11 +864,11 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
                            else a.passlid end ) as passlid,
                     a.passlink_cnt,
                     0 as direction,
-                    2 as guideattr, 
                     (case when a.attr = '1' then 5
                           when a.attr = '2' then 4
                           when a.attr = '7' then 7
-                          when a.attr = '8' then 1 end ) as namekind, 
+                          when a.attr = '8' then 1 end ) as guideattr,
+                    2 as namekind,  
                     a.json_name
             from temp_hw_json_name as a
             order by nodeid, inlinkid, outlinkid, passlid, passlink_cnt, direction, guideattr ,namekind, json_name

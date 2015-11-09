@@ -11,6 +11,7 @@ forceguide_patch_full_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource
 all_sign_as_real_file_name=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\MEA8\Here\14Q4\illust\all_sar_files_name.csv
 POI_Code=..\docs\poi\category_rdf_me8.txt
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\MEA8\Here\14Q4\illust\pic
+toll_station_illust=Toll-Gate_Booth
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_mea.xls
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

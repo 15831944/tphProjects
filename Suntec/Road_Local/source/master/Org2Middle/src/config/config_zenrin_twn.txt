@@ -1,6 +1,7 @@
 #################################################################
 # proj_ni
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\TWN\Zenrin\14Q4\illust
+toll_station_illust=Toll-Gate_ETC
 text_filter={'ZENRIN_TWN':"DEFAULT:[CHT,BPM]"}
 POI_Code=..\docs\poi\category_zenrin_twn.txt
 brand_icon=..\docs\poi\brand_icon_list_zenrin.txt

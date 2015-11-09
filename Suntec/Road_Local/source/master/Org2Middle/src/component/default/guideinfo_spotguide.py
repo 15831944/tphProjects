@@ -7,7 +7,6 @@ Created on 2012-6-3
 
 import component.component_base
 
-tollStationImageName = 'toll_station_image' # 此图由机能组指定。
 class comp_guideinfo_spotguide(component.component_base.comp_base):
     '''illust
     '''
@@ -27,7 +26,7 @@ class comp_guideinfo_spotguide(component.component_base.comp_base):
         return 0
     
     # 将加油站作成spotguide点填充到中间表spotguide_tbl表中
-    def _GenerateSpotguideTblForTollStation(self):
+    def _GenerateSpotguideTblForTollStation(self, tollStationIllustName):
         # 从node_tbl搜刮出toll_flag=1的点。
         # 一些仕向地提供了toll station数据及元数据图片，这些数据在o2m的时候已被做到spotguide_tbl表中。
         # 为防止与这些toll station点重复，这里使用spotguide_tbl对搜出的toll_station列表进行了过滤。
@@ -42,8 +41,7 @@ class comp_guideinfo_spotguide(component.component_base.comp_base):
                 on a.node_id=c.e_node
                 left join spotguide_tbl as d
                 on a.node_id=d.nodeid
-                where a.toll_flag=1 and d.type<>12
-                and d.nodeid is null
+                where a.toll_flag=1 and (d.nodeid is null or d.type<>12)
                 group by a.node_id
           """
           
@@ -102,7 +100,7 @@ class comp_guideinfo_spotguide(component.component_base.comp_base):
                 for oneOutLink in outLinkList:
                     if oneInLink != oneOutLink:
                         if self.pg.execute2(spotguide_tbl_insert_str%\
-                                            (node_id, oneInLink, oneOutLink, tollStationImageName)) == -1:
+                                            (node_id, oneInLink, oneOutLink, tollStationIllustName)) == -1:
                             return -1
         
         self.pg.commit2()

@@ -68,9 +68,9 @@ class comp_ramp_roadtype(component.component_base.comp_base):
         # 调整Ramp的road_type和FC
         self._ConvertRampRoadTypeFC()
         
-        self.__Update_ic_jct_linktype()
-        ##修正jct 作成
-        self.__update_jct_link_revise()
+#        self.__Update_ic_jct_linktype()
+#        ##修正jct 作成
+#        self.__update_jct_link_revise()
         
         # 更新link_tbl中Ramp的RoadType和FC
         self._UpdateRampRoadTypeFC()

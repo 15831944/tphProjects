@@ -8,6 +8,7 @@ import os
 import struct
 import psycopg2
 import string
+import common
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 
 
@@ -28,7 +29,9 @@ class comp_guideinfo_spotguide_msm(comp_guideinfo_spotguide):
         self._orglink_to_midlink_spotguide()
         self._get_passlink_dir_spotguide()
         self._make_spotguide_tbl()
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
+        
         return 0
     
     def _create_temp_spotguide_info(self):

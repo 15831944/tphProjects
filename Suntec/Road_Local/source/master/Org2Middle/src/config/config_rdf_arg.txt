@@ -13,6 +13,7 @@ sign_as_real_path=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_SouthA
 POI_Code=..\docs\poi\category_rdf.txt
 all_sign_as_real_file_name=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_SouthAmerica\ARG\HERE\14Q4\illust\all_sar_files_name.csv
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_SouthAmerica\ARG\HERE\14Q4\illust\pic
+toll_station_illust=Toll-Gate_Booth
 #pointlist=
 POI_Code=..\docs\poi\category_rdf_arg.txt
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_arg.xls

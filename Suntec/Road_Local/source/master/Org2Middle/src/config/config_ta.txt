@@ -5,6 +5,7 @@
 #ta_jv_sidefile=\\172.26.179.195\share\ORG_DATA\Sensis\Sensis_201503\aus_jv_link_org
 #ta_phoneme_sidefile=\\172.26.179.195\share\ORG_DATA\tomtom_data\sea2013_12\txt\mnvmlhp\
 all_sign_as_real_file_name=
+toll_station_illust=Toll-Gate_Booth
 #POI_Code=..\docs\poi\category_sensis.txt
 category_priority=..\docs\poi\category_priority_sensis.xls
 brand_icon=..\docs\poi\brand_icon_list_sensis.txt

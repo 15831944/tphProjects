@@ -13,6 +13,7 @@ strInterestCountryList=HKG
 default_language=CHT
 POI_Code=..\docs\poi\category_rdf_hkgmac.txt
 illust=\\192.168.8.14\Private\Data_Authoring\DB_ExtendSource\1_Asia\HKGMAC\Here\2014Q4\illust
+toll_station_illust=Toll-Gate_Booth
 hwy_poi_category=..\docs\poi\hwy\hwy_poi_category_hkg.xls
 #pointlist=..\..\SourceData\axf\pictures
 #################################################################

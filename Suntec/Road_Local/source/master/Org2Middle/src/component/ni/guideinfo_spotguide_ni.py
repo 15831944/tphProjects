@@ -38,7 +38,8 @@ class comp_guideinfo_spotguide_ni(comp_guideinfo_spotguide):
         self._GenerateSpotguideTblFromBr()
         self._GenerateSpotguideTblFromDm()
         self._GenerateSpotguideTblFromTollPattern()
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common_func.GetPath('toll_station_illust')
+        #comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         self.log.info("ni generate spotguide_tbl end.")
         return 0
 
