@@ -402,7 +402,7 @@ class CCheckOnewayValid(platform.TestCase.CTestCase):
                         ) c
                         on a.id = c.id
                     ) d 
-                    where oneway1::float/all_cnt::float < 0.8 
+                    where oneway1::float/all_cnt::float < 0.7 
                     or oneway4::float/all_cnt::float > 0.05;
                                      
                 """
@@ -812,7 +812,7 @@ class CCheckTollValid(platform.TestCase.CTestCase):
             row = self.pg.fetchone()
 
             if row:
-                if row[0] <> 0 and float(row[0]) / float (row[1]) < 0.01:
+                if row[0] <> 0 and float(row[0]) / float (row[1]) < 0.03:
                     return True
             return False   
     

@@ -130,7 +130,7 @@ class rdb_hwy_ic_info(ItemBase):
 
     def _create_ic_info_view(self):
         sqlcmd = '''
-        CREATE OR REPLACE VIEW rdb_highwya_ic_info_view
+        CREATE OR REPLACE VIEW rdb_highway_ic_info_view
         AS
         (
             select ic_no ,up_down,facility_id,'JCT' as ic_type

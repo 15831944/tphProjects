@@ -67,7 +67,7 @@ class CCheckName_kind_ni(platform.TestCase.CTestCase):
                 select * from rdb_guideinfo_towardname
                 where name_attr in (1,4,5,7)
             ) as a
-            where a.name_kind <> 2             
+            where a.name_kind not in (0,2)           
         '''
         
         return self.pg.getOnlyQueryResult(sqlcmd) == 0
@@ -98,7 +98,7 @@ class CCheckInlink_ni(platform.TestCase.CTestCase):
                 select * from
                 (
                     select * from rdb_guideinfo_towardname
-                    where name_attr in (1,4,5,7)
+                    where name_attr in (1,4,5,7) and name_kind = 2
                 ) as a
                 left join rdb_link as b
                 on a.in_link_id = b.link_id 
@@ -139,7 +139,7 @@ class CCheckName_attr2_ni(platform.TestCase.CTestCase):
                 select * from rdb_guideinfo_towardname
                 where name_kind <> 2
             ) as a
-            where a.name_attr <> 0          
+            where a.name_attr not in (0,1)        
         '''
         
         return self.pg.getOnlyQueryResult(sqlcmd) == 0 

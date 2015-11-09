@@ -67,6 +67,7 @@ class rdb_highway_sapa_info(ItemBase):
         self._MakeIllust()
         # SAPA服务标志位
         self._MakeServiceInfo()
+        self._create_service_info_view()
         self._MakeServiceCategory()
         return 0
 
@@ -125,6 +126,60 @@ class rdb_highway_sapa_info(ItemBase):
         self.pg.commit2()
         self.CreateIndex2('rdb_highway_service_info_ic_no_idx')
         return 0
+
+    def _create_service_info_view(self):
+        sqlcmd = '''
+        CREATE VIEW rdb_highway_service_info_view
+        AS(
+           select ic_no, 'gas_station' as service_typ
+           from rdb_highway_service_info
+           where gas_station = 1
+
+           union
+
+           select ic_no, 'restaurant' as service_typ
+           from rdb_highway_service_info
+           where restaurant = 1
+
+           union
+
+           select ic_no, 'shopping_corner' as service_typ
+           from rdb_highway_service_info
+           where shopping_corner = 1
+
+           union
+
+           select ic_no, 'atm' as service_typ
+           from rdb_highway_service_info
+           where atm = 1
+
+           union
+
+           select ic_no, 'postbox' as service_typ
+           from rdb_highway_service_info
+           where postbox = 1
+
+           union
+
+           select ic_no, 'information' as service_typ
+           from rdb_highway_service_info
+           where information = 1
+
+           union
+
+           select ic_no, 'toilet' as service_typ
+           from rdb_highway_service_info
+           where toilet = 1
+
+           union
+
+           select ic_no, 'rest area' as service_typ
+           from rdb_highway_service_info
+           where rest_area = 1
+        )
+        '''
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
 
     def _insert_into_service_cate_mapping(self, pram):
         sqlcmd = '''

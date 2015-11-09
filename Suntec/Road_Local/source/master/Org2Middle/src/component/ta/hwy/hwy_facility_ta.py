@@ -28,6 +28,8 @@ from component.ta.hwy.hwy_data_mng_ta import SP_EXIT_NUMBER
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_TYPE
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
 from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_UTURN
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_JCT
+from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_SAPA
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
 from component.ta.hwy.hwy_poi_category_ta import HwyPoiCategoryTa
 MAX_SP_NAME_NUM = 4  # 方面名称的最大数
@@ -539,6 +541,21 @@ class HwyFacilityTa(HwyFacilityRDF):
             if node_lid[node_cnt] != path[node_cnt]:
                 return False
         return True
+
+    def _filter_JCT_UTurn(self, pathes, curr_path, inout,
+                          path_type, join_node):
+        if path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN):
+            if self._is_straight(curr_path, inout, join_node):
+                if self._is_only_one_path(curr_path, inout, join_node):
+                    return False
+            return True
+        else:
+            return False
+
+    def _get_filter_path_types(self):
+        # TA(南非、澳洲): JCT, UTurn要都进行过滤，SAPA不用过滤
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        return path_types
 
 
 # ==============================================================================

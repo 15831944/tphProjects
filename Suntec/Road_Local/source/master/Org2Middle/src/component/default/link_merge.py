@@ -238,6 +238,17 @@ class comp_link_merge(component.component_base.comp_base):
         self.CreateIndex2('node_tbl_the_geom_idx')
         
         self.log.info('Updating link and node end.')
+        
+        
+        sqlcmd = """
+                drop table if exists link_tbl_bak_for_linktype_test;
+                create table link_tbl_bak_for_linktype_test
+                as 
+                select *
+                from link_tbl;
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
     
     def __updateReletedTables(self):
         self.log.info('Update related tables...')

@@ -312,7 +312,8 @@ class HwySapaInfoRDF(comp_base):
             ON child.child_poi_id = rdf_poi.poi_id
            LEFT JOIN rdf_poi_subcategory as sub
             ON child.child_poi_id = sub.poi_id
-           WHERE chain_type::int = 1 -- 1:chain_id  2:family chain_id
+           -- 1:chain_id  2:family chain_id
+           WHERE chain_type is null or chain_type::int = 1
            ORDER BY rest.poi_id, child_poi_id, chain_id, cat_id
         );
         '''

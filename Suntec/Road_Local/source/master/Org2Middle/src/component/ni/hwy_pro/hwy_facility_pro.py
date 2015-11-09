@@ -294,7 +294,7 @@ class HwyFacilityNiPro(HwyFacilityRDF):
         """
         return self.get_batch_data(sqlcmd)
 
-    def _filter_JCT_UTurn(self):
+    def _filter_JCT_UTurn_SAPA(self):
         '''过滤假JCT/UTurn/SAPA:下了高速、到了出口又转弯回来的径路'''
         self.log.info('Start Filtering JCT/UTurn Path.')
         self.pg.connect1()

@@ -1016,12 +1016,18 @@ class comp_link_split(component.component_base.comp_base):
                                 mainnodeid, node_lid, node_name, feature_string, feature_key, z_level, the_geom
                         from
                         (
-                            select  a.node_id, kind, light_flag, stopsign_flag, toll_flag, bifurcation_flag, org_boundary_flag, 
+                            select  a.node_id, kind, light_flag, stopsign_flag, 
+                                    case when c.node_id is not null then 1
+                                        else a.toll_flag
+                                    end as toll_flag, 
+                                    bifurcation_flag, org_boundary_flag, 
                                     tile_boundary_flag, mainnodeid, node_lid, node_name, feature_string, feature_key, z_level,
                                     (case when b.node_id is not null then b.the_geom else a.the_geom end) as the_geom
                             from (select * from node_tbl_bak_splitting where gid >= %d and gid <= %d) as a
                             left join temp_split_move_node as b
                             on a.node_id = b.node_id
+                            left join temp_tollgate c
+                            on a.node_id = c.node_id
                         )as t
                     );
                 """

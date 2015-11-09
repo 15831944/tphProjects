@@ -498,7 +498,7 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         self.pg.execute1(sqlcmd, (road_code, updown_c, road_seq, facil_name))
         return 0
 
-    def _filter_JCT_UTurn(self):
+    def _filter_JCT_UTurn_SAPA(self):
         '''过滤假JCT/UTurn:下了高速又转弯回来的径路'''
         pass
 

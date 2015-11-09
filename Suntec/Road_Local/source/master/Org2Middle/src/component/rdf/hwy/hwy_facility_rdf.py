@@ -11,6 +11,7 @@ from component.rdf.hwy.hwy_graph_rdf import is_cycle_path
 from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_CODE
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_IN
 from component.rdf.hwy.hwy_def_rdf import HWY_INOUT_TYPE_OUT
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
@@ -36,6 +37,7 @@ from component.rdf.hwy.hwy_poi_category_rdf import HWY_SR_ATM
 from component.jdb.hwy.hwy_graph import get_simple_cycle
 from component.rdf.hwy.hwy_def_rdf import ANGLE_30
 from component.rdf.hwy.hwy_def_rdf import ANGLE_45
+from component.rdf.hwy.hwy_def_rdf import ANGLE_60
 from component.rdf.hwy.hwy_def_rdf import ANGLE_135
 from component.rdf.hwy.hwy_def_rdf import ANGLE_180
 from component.rdf.hwy.hwy_def_rdf import ANGLE_360
@@ -91,8 +93,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self._make_ic_path()
         self._expand_ics_path_node()  # 把设施路径点展开
         self._make_inout_join_node()
-        # 过滤假JCT/UTurn:下了高速又转弯回来的径路
-        self._filter_JCT_UTurn()
+        # 过滤假JCT/UTurn/SAPA:下了高速又转弯回来的径路
+        self._filter_JCT_UTurn_SAPA()
         # 过滤SAPA: 其实只是JCT
         self._filter_sapa()
         # 过滤双向SAPA: SAPA Link是双向的，SAPA出口同时也是入口，SAPA的入口同时也是出口
@@ -1408,7 +1410,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             join_node_set = join_node_set.union(join_nodes)
         self._store_inout_join_node(join_node_set)
 
-    def _filter_JCT_UTurn(self):
+    def _filter_JCT_UTurn_SAPA(self):
         '''过滤假JCT/UTurn/SAPA:下了高速、到了出口又转弯回来的径路'''
         self.log.info('Start Filtering JCT/UTurn Path.')
         self.pg.connect1()
@@ -1422,45 +1424,65 @@ class HwyFacilityRDF(component.component_base.comp_base):
                          for n_lid in node_lids]
             for gid, node_lid in zip(gid_array, node_lids):
                 if join_node in node_lid[1:-1]:  # 忽略头尾, 因为头尾在高速本线上
-                    s_node, e_node = node_lid[0], node_lid[-1]
+                    e_node = node_lid[-1]
                     # 所有SAPA路径都经过该汇合点
                     if(path_type == HWY_PATH_TYPE_SAPA and
                        self._all_path_pass_join_node(node_lids, join_node,
                                                      e_node) and
-                       not self._pass_inout(node_lid, inout, join_node)
-                       ):
+                       not self._pass_inout(node_lid, inout, join_node)):
                         continue
-                    if(path_type in (HWY_PATH_TYPE_JCT,
-                                     HWY_PATH_TYPE_UTURN) and
-                       self._is_straight(node_lid, inout, join_node)):
-                        if self._is_only_one_path(node_lid, inout, join_node):
+                    # JCT/UTurn
+                    if path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN):
+                        if not self._filter_JCT_UTurn(node_lids, node_lid,
+                                                      inout, path_type,
+                                                      join_node):
                             continue
-                        # JCT:路径唯一 or 最短路径
-                        if path_type == HWY_PATH_TYPE_JCT:
-                            same_flg = False
-                            if self._get_path_num(node_lids,
-                                                  s_node, e_node) == 1:
-                                # 两个点，在同一条高上
-                                same_flg = self._on_same_road_code(s_node,
-                                                                   e_node)
-                                if not same_flg:
-                                    continue
-                                else:
-                                    del_pathes.add(gid)
-                                    continue
-                            if self._is_shortest_path(node_lids,
-                                                      node_lid, inout):
-                                # 两个点，在同一条高上
-                                same_flg = self._on_same_road_code(s_node,
-                                                                   e_node)
-                                if not same_flg:
-                                    continue
                     del_pathes.add(gid)
         ic_pathes = self._get_filter_ic_by_join_node()
         del_pathes = del_pathes.union(ic_pathes)
         # 删除错误的JCT/UTurn/SAPA
         self._store_del_jct_uturn(del_pathes)
         self.log.info('End Filtering JCT/UTurn Path.')
+
+    def _filter_JCT_UTurn(self, pathes, curr_path, inout,
+                          path_type, join_node):
+        # JCT/UTurn
+        if(path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN)):
+            # 往返：在某条link上来来回回(正向==>逆向, 逆向==>正向)
+            if self._is_back_and_forth(curr_path):
+                return True
+            # 对某条link来说这是唯一路径
+            if self._is_only_one_path(curr_path, inout, join_node):
+                # 角度>120度
+                if self._is_straight(curr_path, inout,
+                                     join_node, ANGLE_60):
+                    return False
+                else:  # 角度<= 120度
+                    return True
+            else:
+                # 角度<=150度
+                if not self._is_straight(curr_path, inout,
+                                         join_node, ANGLE_30):
+                    return True
+            same_flg = False
+            f_node, t_node = curr_path[0], curr_path[-1]
+            if self._get_path_num(pathes, f_node, t_node) == 1:
+                # 两个点，在同一条高上
+                same_flg = self._on_same_road_code(f_node, t_node)
+                if not same_flg:
+                    return False
+                else:
+                    return True
+            if self._is_shortest_path(pathes, curr_path, inout):
+                if self._exist_main_path(pathes, curr_path, inout, join_node):
+                    return True
+                # 两个点，在同一条高上
+                same_flg = self._on_same_road_code(f_node, t_node)
+                if not same_flg:
+                    return False
+            return True
+        else:
+            return False
 
     def _pass_inout(self, node_lid, inout, join_node):
         # ## 和一般道的交点
@@ -1513,6 +1535,18 @@ class HwyFacilityRDF(component.component_base.comp_base):
             return True
         return False
 
+    def _is_back_and_forth(self, path):
+        '''往返：在某条link上来来回回(正向==>逆向, 逆向==>正向).'''
+        link_list = zip(path[:-1], path[1:])
+        link_cnt = 0
+        while link_cnt < len(link_list) - 1:
+            curr = link_list[link_cnt]
+            curr = curr[::-1]  # reverse
+            link_cnt += 1
+            if curr in link_list[link_cnt:]:
+                return True
+        return False
+
     def _is_only_one_path(self, path, inout, join_node):
         count = path[1:-1].count(join_node)
         start_idx = 1
@@ -1559,7 +1593,23 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 return False
         return True
 
-    def _is_straight(self, node_lid, inout, join_node):
+    def _exist_main_path(self, node_lids, curr_path, inout, join_node):
+        for node_lid in node_lids:
+            if join_node not in node_lid:
+                if inout == HWY_INOUT_TYPE_IN:
+                    node_lid = node_lid[::-1]
+                main_path_flg = True
+                for u, v in zip(node_lid[:-1], node_lid[1:]):
+                    data = self.G[u][v]
+                    link_type = data.get(HWY_LINK_TYPE)
+                    if link_type not in HWY_LINK_TYPE_MAIN:
+                        main_path_flg = False
+                        break
+                if main_path_flg:
+                    return True
+        return False
+
+    def _is_straight(self, node_lid, inout, join_node, deviation=ANGLE_30):
         # ## 和一般道的交点
         count = node_lid.count(join_node)
         start_idx = 0
@@ -1581,8 +1631,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
                 out_edge = (join_node, next_node)
             angle = self.G.get_angle(in_edge, out_edge)
             # 170度到190度
-            if not (angle > (ANGLE_180 - ANGLE_30) and
-                    angle < (ANGLE_180 + ANGLE_30)):
+            if not (angle > (ANGLE_180 - deviation) and
+                    angle < (ANGLE_180 + deviation)):
                 return False
         return True
 
@@ -1731,7 +1781,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             SELECT array_agg(gid) as gids, road_code, road_seq, path_type,
                    node_id, inout_c, array_agg(node_lid) as node_lids
               FROM mid_temp_hwy_ic_path
-              WHERE  path_type in ('JCT', 'UTURN', 'SAPA')
+              WHERE  path_type in (path_type_list)
               group by road_code, road_seq, node_id, inout_c, path_type
           ) as c
           ON b.road_code = c.road_code and
@@ -1739,7 +1789,17 @@ class HwyFacilityRDF(component.component_base.comp_base):
              b.node_id = c.node_id and
              b.inout_c = c.inout_c;
         """
-        return self.get_batch_data(sqlcmd, batch_size=1024)
+        # 取得要过滤的路径种别: ['JCT', 'UTURN', 'SAPA']
+        path_types = self._get_filter_path_types()
+        str_path_types = "'" + "','".join(path_types) + "'"
+        sqlcmd = sqlcmd.replace('path_type_list', str_path_types)
+        return self.get_batch_data(sqlcmd, (str_path_types,))
+
+    def _get_filter_path_types(self):
+        # Here: JCT, UTurn, SAPA都进行过滤
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN,
+                      HWY_PATH_TYPE_SAPA]
+        return path_types
 
     def _get_overlay_node(self, f_node_lids, t_node_lids, s_idx=1):
         '''重叠点'''
@@ -2659,6 +2719,139 @@ class HwyFacilityRDFMea(HwyFacilityRDF):
         self.CreateTable2('hwy_store')
         self.log.info('End Make Facility Stores.')
 
+    def _get_filter_path_types(self):
+        # 中东: JCT, UTurn进行过滤，但不对SAPA过滤
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        return path_types
+
+
+# ===============================================================================
+# HwyFacilityRDFAse:东南亚
+# ===============================================================================
+class HwyFacilityRDFAse(HwyFacilityRDF):
+    '''生成设施情报(东南亚)
+    '''
+
+    def __init__(self, data_mng, ItemName='HwyFacilityRDFAse'):
+        '''
+        Constructor
+        '''
+        HwyFacilityRDF.__init__(self, data_mng, ItemName)
+
+    def _get_filter_path_types(self):
+        # 东南亚: JCT, UTurn进行过滤，但不对SAPA过滤
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        return path_types
+
+
+# ===============================================================================
+# HwyFacilityRDFBra:巴西
+# ===============================================================================
+class HwyFacilityRDFBra(HwyFacilityRDF):
+    '''生成设施情报(东南亚)
+    '''
+
+    def __init__(self, data_mng, ItemName='HwyFacilityRDFBra'):
+        '''
+        Constructor
+        '''
+        HwyFacilityRDF.__init__(self, data_mng, ItemName)
+
+    def _get_filter_path_types(self):
+        # 东南亚: JCT, UTurn进行过滤，但不对SAPA过滤
+        path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
+        return path_types
+
+    def _filter_JCT_UTurn(self, pathes, curr_path, inout,
+                          path_type, join_node):
+        # JCT/UTurn
+        if(path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN)):
+            # 往返：在某条link上来来回回(正向==>逆向, 逆向==>正向)
+            if self._is_back_and_forth(curr_path):
+                return True
+            # 对某条link来说这是唯一路径
+            if self._is_only_one_path(curr_path, inout, join_node):
+                # 角度>120度
+                if self._is_straight(curr_path, inout,
+                                     join_node, ANGLE_60):
+                    return False
+                else:  # 角度<= 120度
+                    return True
+            else:
+                # 角度<=150度
+                if not self._is_straight(curr_path, inout,
+                                         join_node, ANGLE_30):
+                    return True
+            if path_type == HWY_PATH_TYPE_UTURN:
+                return True
+            same_flg = False
+            f_node, t_node = curr_path[0], curr_path[-1]
+            if self._get_path_num(pathes, f_node, t_node) == 1:
+                # 两个点，在同一条高上
+                same_flg = self._on_same_road_code(f_node, t_node)
+                if not same_flg:
+                    return False
+                else:
+                    return True
+            if self._is_shortest_path(pathes, curr_path, inout):
+                if self._exist_main_path(pathes, curr_path, inout, join_node):
+                    return True
+                # 两个点，在同一条高上
+                same_flg = self._on_same_road_code(f_node, t_node)
+                if not same_flg:
+                    return False
+            return True
+        else:
+            return False
+
+
+# ===============================================================================
+# HwyFacilityRDFArg:阿根廷
+# ===============================================================================
+class HwyFacilityRDFArg(HwyFacilityRDF):
+    '''生成设施情报(东南亚)
+    '''
+
+    def __init__(self, data_mng, ItemName='HwyFacilityRDFArg'):
+        '''
+        Constructor
+        '''
+        HwyFacilityRDF.__init__(self, data_mng, ItemName)
+
+    def _filter_JCT_UTurn(self, pathes, curr_path, inout,
+                          path_type, join_node):
+        # JCT/UTurn
+        if(path_type in (HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN)):
+            # 往返：在某条link上来来回回(正向==>逆向, 逆向==>正向)
+            if self._is_back_and_forth(curr_path):
+                return True
+            # 对某条link来说这是唯一路径
+            if self._is_only_one_path(curr_path, inout, join_node):
+                # 角度>120度
+                if self._is_straight(curr_path, inout,
+                                     join_node, ANGLE_60):
+                    return False
+                else:  # 角度<= 120度
+                    return True
+            else:
+                # 角度<=150度
+                if not self._is_straight(curr_path, inout,
+                                         join_node, ANGLE_30):
+                    return True
+            if path_type == HWY_PATH_TYPE_UTURN:
+                return True
+            same_flg = False
+            f_node, t_node = curr_path[0], curr_path[-1]
+            if self._get_path_num(pathes, f_node, t_node) == 1:
+                # 两个点，在同一条高上
+                same_flg = self._on_same_road_code(f_node, t_node)
+                if not same_flg:
+                    return False
+                else:
+                    return True
+            return True
+        else:
+            return False
 # ==============================================================================
 # 服务情报对应表
 # ==============================================================================

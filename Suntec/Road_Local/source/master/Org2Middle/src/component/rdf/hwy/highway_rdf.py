@@ -25,6 +25,9 @@ from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF
 from component.rdf.hwy.hwy_route_rdf import HwyRouteRDF_HKG
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFMea
+from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFAse
+from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFBra
+from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDFArg
 from component.rdf.hwy.hwy_mapping_rdf import HwyMappingRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyICInfoRDF
 from component.rdf.hwy.hwy_ic_info_rdf import HwyBoundaryOutInfoRDF
@@ -75,10 +78,19 @@ class HighwayRDF(Highway):
                        "BRA",  # 巴西
                        ):
             self.hwy_route = HwyRouteRDF_HKG(self.data_mng)
+        elif country in ("MEA", "MEA8", "ARG"):
+            self.hwy_route = HwyRouteRDF(self.data_mng)
         else:
+            self.log.error('Unkown country=%s.' % country)
             self.hwy_route = HwyRouteRDF(self.data_mng)
         if country in ("MEA", "MEA8"):
             self.hwy_facil = HwyFacilityRDFMea(self.data_mng)
+        elif country in ("ASE",):
+            self.hwy_facil = HwyFacilityRDFAse(self.data_mng)
+        elif country in ("BRA", "BRA5"):
+            self.hwy_facil = HwyFacilityRDFBra(self.data_mng)
+        elif country in ("ARG"):
+            self.hwy_facil = HwyFacilityRDFArg(self.data_mng)
         else:
             self.hwy_facil = HwyFacilityRDF(self.data_mng)
         self.hwy_mapping = HwyMappingRDF(self)

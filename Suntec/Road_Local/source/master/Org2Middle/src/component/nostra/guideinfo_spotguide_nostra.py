@@ -231,7 +231,12 @@ class comp_picture(object):
 
     def setArrow(self, arrow):
         self.arrow = arrow
-
+        
+    def getArrowPosition(self):
+        return self.position
+    
+    def setArrowPosition(self, position):
+        self.position = position
 
 class GeneratorPicBinary(object):
 
@@ -242,8 +247,10 @@ class GeneratorPicBinary(object):
         self.pgcur2 = self.conn.cursor()
 
     def selectData(self):
-        self.pgcur2.execute('''SELECT gid,day_pic,night_pic,
-                        arrowimg FROM org_junctionview''')
+        self.pgcur2.execute('''select a.gid,day_pic,night_pic,arrowimg, b.arrow_pos
+                                from org_junctionview as a
+                                left join temp_illust_left_right_pos as b
+                                on a.arrowimg = b.arrow_name''')
         rows = self.pgcur2.fetchall()
         pics = []
         for row in rows:
@@ -252,6 +259,7 @@ class GeneratorPicBinary(object):
             pic.setDayName(row[1])
             pic.setNightName(row[2])
             pic.setArrow(row[3])
+            pic.setArrowPosition(row[4])
             pics.append(pic)
         return pics
 
@@ -264,10 +272,13 @@ class GeneratorPicBinary(object):
             if os.path.isdir(picDirPath):
                 dayPicPath = os.path.join(picDirPath, "Main_Day.jpg")
                 nightPicPath = os.path.join(picDirPath, "Main_Night.jpg")
-                arrowPathFile = os.path.join(picDirPath, pic.getArrow() + ".png")
+                #arrowPathFile = os.path.join(picDirPath, pic.getArrow() + ".png")
+                arrow_eng_PathFile = os.path.join(picDirPath, pic.getArrow()+"_"+ pic.getArrowPosition()+"_en" + ".png")
+                arrow_th_PathFile = os.path.join(picDirPath, pic.getArrow()+"_"+ pic.getArrowPosition()+"_th" + ".png")
                 if os.path.isfile(dayPicPath) == False or\
                     os.path.isfile(nightPicPath) == False or\
-                    os.path.isfile(arrowPathFile) == False:
+                    os.path.isfile(arrow_eng_PathFile) == False or\
+                    os.path.isfile(arrow_th_PathFile) == False:
                     noexsit_pics.append(pic)
                     logging.error('%s not day or night or arrow pic source', pic.getDayName())
         for pic in pictures:
@@ -279,7 +290,9 @@ class GeneratorPicBinary(object):
             if os.path.isdir(picDirPath):
                 dayPicPath = os.path.join(picDirPath, "Main_Day.jpg")
                 nightPicPath = os.path.join(picDirPath, "Main_Night.jpg")
-                arrowPathFile = os.path.join(picDirPath, pic.getArrow() + ".png")
+#               arrowPathFile = os.path.join(picDirPath, pic.getArrow() + ".png")
+                arrow_eng_PathFile = os.path.join(picDirPath, pic.getArrow()+"_"+ pic.getArrowPosition()+"_en" + ".png")
+                arrow_th_PathFile = os.path.join(picDirPath, pic.getArrow()+"_"+ pic.getArrowPosition()+"_th" + ".png")
                 # day and nigth illust
                 if  os.path.isfile(destFile) == False:
                     dayFis = open(dayPicPath, 'rb')
@@ -298,16 +311,24 @@ class GeneratorPicBinary(object):
                     fos.write(resultBuffer)
                     fos.close()
                 if os.path.isfile(arrowFile) == False:
-                    arrowFis = open(arrowPathFile, 'rb')
+                    arrowEngFis = open(arrow_eng_PathFile, 'rb')
+                    arrowThFis = open(arrow_th_PathFile, 'rb')
                     fos = open(arrowFile, 'wb')
-                    arrowPicLen = os.path.getsize(arrowPathFile)
-                    headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, arrowPicLen)
-                    resultBuffer = headerBuffer + arrowFis.read()
-                    arrowFis.close()
+                    arrow_eng_PicLen = os.path.getsize(arrow_eng_PathFile)
+                    arrow_th_PicLen = os.path.getsize(arrow_th_PathFile)
+#                    headerBuffer = struct.pack("<hhbii", 0xFEFE, 1, 0, 13, arrowPicLen)
+                    headerBuffer = struct.pack("<hhbiibii", 0xFEFE, 2, 16, 22, \
+                                               arrow_eng_PicLen, 32, 22 + arrow_eng_PicLen, \
+                                               arrow_th_PicLen)
+                    resultBuffer = headerBuffer + arrowEngFis.read() + arrowThFis.read()
+                    arrowEngFis.close()
+                    arrowThFis.close()
                     fos.write(resultBuffer)
                     fos.close()
 
 if __name__ == '__main__':
+    print "programme start!"
     test = GeneratorPicBinary()
     test.makeJunctionResultTable("C:\\dir", "C:\\g_pic\\v_3")
+    print "programme end!"
     pass

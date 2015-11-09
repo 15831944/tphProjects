@@ -118,11 +118,11 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         return 0
 
     def _DoCreateFunction(self):
-        self.CreateIndex2('nw_f_jnctid_idx')
-        self.CreateIndex2('nw_t_jnctid_idx')
         return 0
 
     def _Do(self):
+        self.CreateIndex2('nw_f_jnctid_idx')
+        self.CreateIndex2('nw_t_jnctid_idx')
         self._GenerateNaviLinkFromSignpost()
         self._GenerateNaviLinkFromBifurcation()
         self._GenerateSpotguide()
@@ -131,66 +131,245 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         return 0
     
     def _GenerateNaviLinkFromSignpost(self):
-        sqlcmd = """drop table if exists temp_spotguide_nav_link_from_signpost;
-					select b.id as signpost_id,
-					        array_agg(seqnr) as seqnr_list,
-					        array_agg(trpelid) as trpelid_list, 
-	                        array_agg(f_jnctid) as f_jnctid_list,
-	                        array_agg(t_jnctid) as t_jnctid_list,
-	                        array_agg(st_astext(the_geom)) as the_geom_text_list,
-	                        array_agg(name) as name_list
-	                into temp_spotguide_nav_link_from_signpost
-                    from 
-                    (
-                        select b.id, b.trpelid, c.f_jnctid, c.t_jnctid, c.the_geom, c.name
-                        from 
-                        (
-	                        select distinct a.id
-	                        from 
-	                        org_sp as a
-	                        left join org_nw as b
-	                        on a.trpelid=b.id
-	                        where (mid_cnv_road_type(b.freeway,
-	                                b.frc,
-	                                b.ft,
-	                                b.fow,
-	                                b.privaterd,
-	                                b.backrd,
-	                                b.procstat,
-	                                b.carriage,
-	                                b.nthrutraf,
-	                                b.sliprd,
-	                                b.stubble) = 0)
-	                        order by a.id
-                        )as a
-                        left join org_sp as b
-                        on a.id=b.id
-                        left join org_nw as c
-                        on b.trpelid=c.id
-                        order by b.id, b.seqnr
-                    ) as t
-                    group by id"""
+        sqlcmd = """
+drop table if exists temp_spotguide_nav_link_from_signpost;
+select id as signpost_id,
+    array_agg(seqnr) as seqnr_list,
+    array_agg(trpelid) as trpelid_list, 
+    array_agg(f_jnctid) as f_jnctid_list,
+    array_agg(t_jnctid) as t_jnctid_list,
+    array_agg(st_astext(the_geom)) as the_geom_text_list,
+    array_agg(name) as name_list
+into temp_spotguide_nav_link_from_signpost
+from 
+(
+    select d.id, d.seqnr, d.trpelid, e.f_jnctid, e.t_jnctid, e.the_geom, e.name
+    from 
+    (
+        select distinct a.id
+        from 
+        org_sp as a
+        left join org_nw as b
+        on a.trpelid=b.id
+        where (mid_cnv_road_type(b.freeway,
+        b.frc,
+        b.ft,
+        b.fow,
+        b.privaterd,
+        b.backrd,
+        b.procstat,
+        b.carriage,
+        b.nthrutraf,
+        b.sliprd,
+        b.stubble) = 0)
+        order by a.id
+    )as c
+    left join org_sp as d
+    on c.id=d.id
+    left join org_nw as e
+    on d.trpelid=e.id
+    order by d.id, d.seqnr
+) as t
+group by id;"""
                     
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
     def _GenerateNaviLinkFromBifurcation(self):
-        
+        sqlcmd = """
+drop table if exists temp_spotguide_nav_link_from_bifurcation;
+select * 
+into temp_spotguide_nav_link_from_bifurcation
+from
+(
+select a.id as nodeid, 
+    array[b.id, c.id] as trpelid_list, 
+    array[b.f_jnctid, c.f_jnctid] as f_jnctid_list,
+    array[b.t_jnctid, c.t_jnctid] as t_jnctid_list,
+    array[st_astext(b.the_geom), st_astext(c.the_geom)] as the_geom_text_list,
+    array[b.name, c.name] as name_list
+from
+org_jc as a
+left join org_nw as b
+on a.id=b.f_jnctid
+left join org_nw as c
+on a.id=c.f_jnctid
+where a.jncttyp=2 
+    and b.id<>c.id
+    and (b.oneway='TF' or b.oneway is null)
+    and (c.oneway='FT' or c.oneway is null)
+    and (mid_cnv_road_type(b.freeway,
+        b.frc,
+        b.ft,
+        b.fow,
+        b.privaterd,
+        b.backrd,
+        b.procstat,
+        b.carriage,
+        b.nthrutraf,
+        b.sliprd,
+        b.stubble) = 0
+    or
+    mid_cnv_road_type(c.freeway,
+        c.frc,
+        c.ft,
+        c.fow,
+        c.privaterd,
+        c.backrd,
+        c.procstat,
+        c.carriage,
+        c.nthrutraf,
+        c.sliprd,
+        c.stubble) = 0)
+union
+select a.id as nodeid, 
+    array[b.id, c.id] as trpelid_list, 
+    array[b.f_jnctid, c.f_jnctid] as f_jnctid_list,
+    array[b.t_jnctid, c.t_jnctid] as t_jnctid_list,
+    array[st_astext(b.the_geom), st_astext(c.the_geom)] as the_geom_text_list,
+    array[b.name, c.name] as name_list
+from
+org_jc as a
+left join org_nw as b
+on a.id=b.f_jnctid
+left join org_nw as c
+on a.id=c.t_jnctid
+where a.jncttyp=2 
+    and b.id<>c.id
+    and (b.oneway='TF' or b.oneway is null)
+    and (c.oneway='TF' or c.oneway is null)
+    and (mid_cnv_road_type(b.freeway,
+        b.frc,
+        b.ft,
+        b.fow,
+        b.privaterd,
+        b.backrd,
+        b.procstat,
+        b.carriage,
+        b.nthrutraf,
+        b.sliprd,
+        b.stubble) = 0
+    or
+    mid_cnv_road_type(c.freeway,
+        c.frc,
+        c.ft,
+        c.fow,
+        c.privaterd,
+        c.backrd,
+        c.procstat,
+        c.carriage,
+        c.nthrutraf,
+        c.sliprd,
+        c.stubble) = 0)
+union
+select a.id as nodeid, 
+    array[b.id, c.id] as trpelid_list, 
+    array[b.f_jnctid, c.f_jnctid] as f_jnctid_list,
+    array[b.t_jnctid, c.t_jnctid] as t_jnctid_list,
+    array[st_astext(b.the_geom), st_astext(c.the_geom)] as the_geom_text_list,
+    array[b.name, c.name] as name_list
+from
+org_jc as a
+left join org_nw as b
+on a.id=b.t_jnctid
+left join org_nw as c
+on a.id=c.f_jnctid
+where a.jncttyp=2 
+    and b.id<>c.id
+    and (b.oneway='FT' or b.oneway is null)
+    and (c.oneway='FT' or c.oneway is null)
+    and (mid_cnv_road_type(b.freeway,
+        b.frc,
+        b.ft,
+        b.fow,
+        b.privaterd,
+        b.backrd,
+        b.procstat,
+        b.carriage,
+        b.nthrutraf,
+        b.sliprd,
+        b.stubble) = 0
+    or
+    mid_cnv_road_type(c.freeway,
+        c.frc,
+        c.ft,
+        c.fow,
+        c.privaterd,
+        c.backrd,
+        c.procstat,
+        c.carriage,
+        c.nthrutraf,
+        c.sliprd,
+        c.stubble) = 0)
+union
+select a.id as nodeid, 
+    array[b.id, c.id] as trpelid_list, 
+    array[b.f_jnctid, c.f_jnctid] as f_jnctid_list,
+    array[b.t_jnctid, c.t_jnctid] as t_jnctid_list,
+    array[st_astext(b.the_geom), st_astext(c.the_geom)] as the_geom_text_list,
+    array[b.name, c.name] as name_list
+from
+org_jc as a
+left join org_nw as b
+on a.id=b.t_jnctid
+left join org_nw as c
+on a.id=c.t_jnctid
+where a.jncttyp=2 
+    and b.id<>c.id
+    and (b.oneway='FT' or b.oneway is null)
+    and (c.oneway='TF' or c.oneway is null)
+    and (mid_cnv_road_type(b.freeway,
+        b.frc,
+        b.ft,
+        b.fow,
+        b.privaterd,
+        b.backrd,
+        b.procstat,
+        b.carriage,
+        b.nthrutraf,
+        b.sliprd,
+        b.stubble) = 0
+    or
+    mid_cnv_road_type(c.freeway,
+        c.frc,
+        c.ft,
+        c.fow,
+        c.privaterd,
+        c.backrd,
+        c.procstat,
+        c.carriage,
+        c.nthrutraf,
+        c.sliprd,
+        c.stubble) = 0)
+) as t;
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
         return 0
     
     def _GenerateSpotguide(self):
-        sqlcmd = """select trpelid_list, f_jnctid_list, t_jnctid_list,
-                            the_geom_text_list, name_list
-                    from temp_spotguide_nav_link_from_signpost
+        sqlcmd = """
+select trpelid_list, f_jnctid_list, t_jnctid_list,
+    the_geom_text_list, name_list
+from temp_spotguide_nav_link_from_signpost
+union 
+select a.trpelid_list, a.f_jnctid_list, a.t_jnctid_list,
+    a.the_geom_text_list, a.name_list
+from 
+temp_spotguide_nav_link_from_bifurcation as a
+left join temp_spotguide_nav_link_from_signpost as b
+on (a.trpelid_list[1]=b.trpelid_list[1] 
+and a.trpelid_list[2]=b.trpelid_list[2])
+where b.trpelid_list is null;
                 """
         self.pg.execute2(sqlcmd)
         rows = self.pg.fetchall2()
         for row in rows:
-            trpelid_list = row[2]
-            f_jnctid_list = row[3]
-            t_jnctid_list = row[4]
-            the_geom_text_list = row[5]
-            name_list = row[6]
+            trpelid_list = row[0]
+            f_jnctid_list = row[1]
+            t_jnctid_list = row[2]
+            the_geom_text_list = row[3]
+            name_list = row[4]
             errMsg = ['']            
             inlinkObj = link_object(trpelid_list[0], f_jnctid_list[0], t_jnctid_list[0],
                                     the_geom_text_list[0], name_list[0])
@@ -238,11 +417,11 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         sqlcmd1 = """
                     select distinct id, f_jnctid, t_jnctid, st_astext(the_geom), name
                     from org_nw 
-                    where f_jnctid=%.0f and (oneway<>'FT' or oneway is null)
+                    where f_jnctid=%.0f and (oneway='FT' or oneway is null)
                     union 
                     select distinct id, f_jnctid, t_jnctid, st_astext(the_geom), name
                     from org_nw 
-                    where t_jnctid=%.0f and (oneway<>'TF' or oneway is null)
+                    where t_jnctid=%.0f and (oneway='TF' or oneway is null)
                     """
         sqlcmd = sqlcmd1 % (nodeid, nodeid)
         self.pg.execute2(sqlcmd)
@@ -327,7 +506,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                         arrowPic = str_arrow_fork_left
                     else:  # outlinkAngle<=10 and angle2>10:
                         patternPic = str_road_branch_right
-                        patternPic = str_arrow_branch_r_straight
+                        arrowPic = str_arrow_branch_r_straight
                 
                 # outlink向右，另一流出link向左
                 else:  # outlinkDir==DIR_RIGHT_SIDE and position2==DIR_LEFT_SIDE
@@ -342,7 +521,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
                         arrowPic = str_arrow_fork_right
                     else:  # outlinkAngle<=10 and angle2>10:
                         patternPic = str_road_branch_left
-                        patternPic = str_arrow_branch_l_straight
+                        arrowPic = str_arrow_branch_l_straight
         
         # 三分歧路口              
         elif len(restOutlinkList) == 2:
