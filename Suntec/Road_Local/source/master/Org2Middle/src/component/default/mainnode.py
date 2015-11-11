@@ -87,42 +87,8 @@ class comp_mainnode(component.component_base.comp_base):
         self.CreateTable2('temp_mainnode_update_regulation')
         self.CreateIndex2('temp_mainnode_update_regulation_old_regulation_id_idx')
         
-        sqlcmd = """
-                insert into regulation_relation_tbl
-                            (regulation_id, nodeid, inlinkid, outlinkid, condtype, cond_id, gatetype, slope)
-                select a.new_regulation_id, b.nodeid, b.inlinkid, b.outlinkid, b.condtype, b.cond_id, b.gatetype, b.slope
-                from temp_mainnode_update_regulation as a
-                left join regulation_relation_tbl as b
-                on a.old_regulation_id = b.regulation_id
-                order by a.new_regulation_id
-                ;
-                """
-        self.pg.execute2(sqlcmd)
-        self.pg.commit2()
-        
-        sqlcmd = """
-                insert into regulation_item_tbl
-                            (regulation_id, linkid, nodeid, seq_num)
-                select  new_regulation_id, 
-                        (
-                        case 
-                        when seq_num = 1 then new_link_array[seq_num]
-                        when seq_num = 2 then null
-                        else new_link_array[seq_num-1]
-                        end
-                        ) as linkid,
-                        (case when seq_num = 2 then nodeid else null end) as nodeid,
-                        seq_num
-                from
-                (
-                    select  new_regulation_id, new_link_array, nodeid, 
-                            generate_series(1,array_upper(new_link_array,1)+1) as seq_num
-                    from temp_mainnode_update_regulation
-                )as t
-                order by new_regulation_id, seq_num
-                ;
-                """
-        self.pg.execute2(sqlcmd)
+        self.CreateFunction2('mid_convert_mainnode_regulation_linkrow')
+        self.pg.callproc('mid_convert_mainnode_regulation_linkrow')
         self.pg.commit2()
         
         self.log.info('Searching and updating regulation end.')

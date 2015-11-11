@@ -14,7 +14,7 @@ class HwyRouteNiPro(HwyRouteRDF_HKG):
     classdocs
     '''
 
-    def __init__(self, data_mng, ItemName='HwyRoutePro'):
+    def __init__(self, data_mng, ItemName='HwyRouteNiPro'):
         HwyRouteRDF_HKG.__init__(self, data_mng, ItemName=ItemName)
 
     def _Do(self):
@@ -108,7 +108,7 @@ class HwyRouteNiPro(HwyRouteRDF_HKG):
                        (case
                     when accesstype = 2 then b.road_type
                     when accesstype = 1 then c.road_type
-                    when b.road_type is not null then b.road_type 
+                    when b.road_type is not null then b.road_type
                     else c.road_type end) as road_type
                 FROM mid_hwy_org_hw_junction_mid_linkid as a
                 LEFT JOIN link_tbl as b

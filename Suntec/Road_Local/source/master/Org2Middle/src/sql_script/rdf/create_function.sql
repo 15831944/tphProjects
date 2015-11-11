@@ -1350,6 +1350,8 @@ DECLARE
 	cur_regulation_id integer;
 	nIndex integer;
 	nCount integer;
+	exist_regulation_id integer;
+	exist_linkids varchar;
 BEGIN
 	-- regulation_id
 	select (case when max(regulation_id) is null then 0 else max(regulation_id) end)
@@ -1357,7 +1359,7 @@ BEGIN
 	into cur_regulation_id;
     
     FOR rec IN
-    	select	a.linkid_array, a.node_id
+    	select	a.linkid_array, a.linkid_array::varchar as linkids, a.node_id
     	from
     	(
     		-- mainnode uturn
@@ -1383,6 +1385,30 @@ BEGIN
     	where b.regulation_id is null
     
     LOOP
+		-- avoid redundancy regulation
+		SELECT regulation_id INTO exist_regulation_id
+		FROM regulation_relation_tbl
+		WHERE nodeid IS NOT DISTINCT FROM rec.node_id and 
+			inlinkid IS NOT DISTINCT FROM rec.linkid_array[1] and
+			outlinkid IS NOT DISTINCT FROM rec.linkid_array[array_upper(rec.linkid_array,1)] and
+			condtype = 1 and 
+			cond_id IS NULL;
+		
+		IF FOUND THEN
+			SELECT array_agg(linkid)::varchar INTO exist_linkids
+			FROM (
+				SELECT *
+				FROM regulation_item_tbl
+				WHERE regulation_id = exist_regulation_id and seq_num != 2
+				ORDER BY regulation_id, seq_num
+			) a
+			GROUP BY regulation_id;
+			
+			IF exist_linkids IS NOT DISTINCT FROM rec.linkids THEN
+				continue;
+			END IF;
+		END IF;
+		
 		-- current regulation id
     	cur_regulation_id := cur_regulation_id + 1;
 		

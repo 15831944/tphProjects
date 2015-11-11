@@ -6,12 +6,12 @@ Created on 2015-10-26
 '''
 from component.rdf.hwy.hwy_data_mng_rdf import HwyDataMngRDF
 from component.rdf.hwy.hwy_graph_rdf import HWY_PATH_ID
-from component.ni.hwy.hwy_data_mng_ni import HwyDataMngNi
 from component.jdb.hwy.hwy_graph import ONE_WAY_POSITIVE
 from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
 from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.ni.hwy_pro.hwy_graph_pro import HwyGraphNiPro
 from component.ni.hwy_pro.hwy_graph_pro import HWY_FIRST_ICS_LINK
+
 
 class HwyDataMngNiPro(HwyDataMngRDF):
     '''

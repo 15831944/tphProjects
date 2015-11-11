@@ -339,8 +339,7 @@ as
 					(
 						SELECT condition_id  
 						FROM rdf_condition_toll 
-						where structure_type_fixed_fee = 'N' 
-								and structure_type_obtain_ticket = 'N' 
+						where  structure_type_obtain_ticket = 'N' 
 								and structure_type_pay_ticket = 'N' 
 								and structure_type_electronic = 'Y'
 					) 
@@ -1675,6 +1674,40 @@ create table temp_poi_category1
     tr_name    varchar(128) not null default ''
 );
 
+
+create table temp_poi_category_code
+(
+    per_code   bigint       not null,
+    is_brand   varchar,
+    gen1       int          not null,
+    gen2       int          not null,
+    gen3       int          not null,
+    level      smallint     not null,
+    --name       varchar(128) ,
+    genre_type varchar,
+    org_code   bigint,
+    sub        integer,
+    chain      bigint,
+    cuisine    integer,
+    building   integer,    
+    three       bigint,
+    --lang        varchar,
+    filename    varchar
+);
+
+
+create table temp_poi_category_name
+(
+  per_code  integer NOT NULL,
+  name_id   integer,
+  nametype  varchar,
+  name_lang varchar,
+  name      varchar,
+  tr_lang   varchar,
+  tr_name   varchar,
+  ph_flag   varchar,
+  phoneme_id  integer
+);
 
 create table temp_poi_category
 (

@@ -370,3 +370,22 @@ passlink_cnt integer,
 json_name varchar
 
 );
+
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_org_hw_junction_mid_linkid
+(
+  gid           serial NOT NULL primary key,
+  mapid         bigint NOT NULL,
+  id            bigint NOT NULL,
+  nodeid        bigint NOT NULL,
+  inlinkid      bigint,
+  outlinkid     bigint,
+  accesstype    INTEGER,
+  attr          INTEGER,
+  dis_betw      float,
+  seq_nm        INTEGER,
+  hw_pid        INTEGER,
+  estab_item    character varying(254),
+  wkt_geom      text,
+  folder        character varying
+); SELECT AddGeometryColumn('', 'mid_hwy_org_hw_junction_mid_linkid', 'the_geom', '4326', 'POINT', 2);

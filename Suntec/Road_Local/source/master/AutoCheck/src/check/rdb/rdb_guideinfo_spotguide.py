@@ -261,14 +261,15 @@ class CCheckGuideSpotguideIllustDayNightFlag(platform.TestCase.CTestCase):
                 rdb_guideinfo_spotguidepoint as a
                 left join rdb_guideinfo_pic_blob_bytea as b
                 on a.pattern_id=b.gid
+                where a.type<>12
                 limit 10;
                '''
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchall()
         for row in rows:
             dayNightFlagList = self._parseDayNightFlag(row[0])
-            for oneDayNightFlat in dayNightFlagList:
-                if oneDayNightFlat == 0: # pattern_id对应的图片中存在某张图片没有标识白天黑夜。
+            for oneDayNightFlag in dayNightFlagList:
+                if oneDayNightFlag == 0 or oneDayNightFlag == 2: # 这些仕向地只应有一张白天图。
                     return False
         return True
 

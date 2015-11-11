@@ -706,7 +706,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
             # SAPA有些路径经过SAPA POI, 有些没有经过时, 过滤掉没有经过SAPA POI的情
             if(prev_road_code == road_code and
                prev_road_seq == road_seq and
-               not poi_id):
+               (not poi_id or not rest_area_type)):
                 continue
             prev_road_code, prev_road_seq = road_code, road_seq
             facil_cls = self._get_sapa_type(rest_area_type)
@@ -795,7 +795,7 @@ class HwyFacilityRDF(component.component_base.comp_base):
         self.pg.commit2()
 
     def _get_rest_area_info(self):
-        '''取得服'''
+        '''取得服务区种别'''
         sqlcmd = """
         SELECT DISTINCT road_code, road_seq, c.poi_id,
                         rest_area_type, name, updown_c
@@ -812,7 +812,8 @@ class HwyFacilityRDF(component.component_base.comp_base):
           ON c.poi_id = d.poi_id
           LEFT JOIN rdf_poi_rest_area as e
           ON c.poi_id = e.poi_id
-          ORDER BY road_code, road_seq, c.poi_id
+          WHERE not (c.poi_id is not null and e.poi_id is null)
+          ORDER BY road_code, road_seq, rest_area_type, c.poi_id
         """
         return self.get_batch_data(sqlcmd)
 
@@ -2782,7 +2783,7 @@ class HwyFacilityRDFBra(HwyFacilityRDF):
                 if not self._is_straight(curr_path, inout,
                                          join_node, ANGLE_30):
                     return True
-            if path_type == HWY_PATH_TYPE_UTURN:
+            if path_type == HWY_PATH_TYPE_UTURN:  # 巴西特别处理
                 return True
             same_flg = False
             f_node, t_node = curr_path[0], curr_path[-1]

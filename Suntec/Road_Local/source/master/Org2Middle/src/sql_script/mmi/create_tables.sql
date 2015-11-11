@@ -280,6 +280,33 @@ create table temp_poi_category
     filename        varchar
 );
 
+create table temp_poi_category_code
+(
+    per_code        bigint       not null,
+    genre_is_brand  varchar,
+    gen1            int             not null,
+    gen2            int             not null,
+    gen3            int             not null,
+    level           smallint        not null,
+    genre_type      varchar,
+    org_code        varchar(6),
+    brand_name      varchar,
+    filename        varchar
+);
+
+create table temp_poi_category_name
+(
+  per_code  integer NOT NULL,
+  name_id   integer,
+  nametype  varchar,
+  name_lang varchar,
+  name      varchar,
+  tr_lang   varchar,
+  tr_name   varchar,
+  ph_flag   varchar,
+  phoneme_id  integer
+);
+
 create table temp_brand_icon
 (
     brandname    varchar(128) not null default ''

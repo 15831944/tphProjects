@@ -27,7 +27,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
         return 0
     
     def _Do(self):
-        self._loadPOICategory_ni()
+        self._loadPOICategory_new()
         return 0
     
     def _loadBrandIcon(self):                            
@@ -75,7 +75,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
             self.pg.commit() 
             
                                                  
-    def _loadPOICategory_ni(self):
+    def _loadPOICategory_new(self):
         self.log.info('make temp_poi_category...')
         category_file_code_path = common.config.CConfig.instance().getPara('POI_category_code')
         category_file_name_path = common.config.CConfig.instance().getPara('POI_category_name')
@@ -85,6 +85,7 @@ class comp_guideinfo_building(component.component_base.comp_base):
         
         self.log.info('make temp_poi_category_name...')
         self.__loadCategory_code_name(category_file_name_path,'name')
+        self.__make_temp_poi_category()
 
             
             
@@ -113,8 +114,40 @@ class comp_guideinfo_building(component.component_base.comp_base):
     
                 self.pg.execute(sqlcmd, fields)  
             self.pg.commit() 
-        
-        
+    
+    def __make_temp_poi_category(self):
+        sqlcmd = '''
+        drop table if exists temp_poi_category;
+        create table temp_poi_category
+        as
+        (
+            select distinct a.*, b.name_lang, b.name
+            from temp_poi_category_code as a
+            left join 
+            (
+                select c.per_code,(array_agg(c.name_lang))[1] as name_lang, (array_agg(c.name))[1] as name
+                from
+                (
+                    select distinct * from
+                    (
+                        select    per_code, name_lang,name 
+                        from temp_poi_category_name
+                        order by per_code,name_lang = 'ENG',
+                         name_lang = 'UKE', 
+                         name_lang = 'CHI',
+                         name_lang = 'CHT',
+                         name_lang
+                    ) k
+                
+                ) as  c
+                group by c.per_code
+            ) as b
+            on a.per_code = b.per_code    
+        ) 
+           
+        '''
+        self.pg.execute(sqlcmd)
+        self.pg.commit2()        
               
   
     def _loadCategoryPriority(self):

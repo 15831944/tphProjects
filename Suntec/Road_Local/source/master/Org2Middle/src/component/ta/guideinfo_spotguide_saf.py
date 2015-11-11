@@ -130,6 +130,7 @@ class comp_guideinfo_spotguide_saf(comp_guideinfo_spotguide):
         comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         return 0
     
+    # 从org_sp表获取高速相关signpost的link序列。
     def _GenerateNaviLinkFromSignpost(self):
         sqlcmd = """
 drop table if exists temp_spotguide_nav_link_from_signpost;
@@ -174,7 +175,8 @@ group by id;"""
                     
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
-        
+    
+    # 从org_jc表生成高速相关bifurcation点的link序列。  
     def _GenerateNaviLinkFromBifurcation(self):
         sqlcmd = """
 drop table if exists temp_spotguide_nav_link_from_bifurcation;
@@ -347,6 +349,11 @@ where a.jncttyp=2
         self.pg.commit2()
         return 0
     
+    # 前面已生成两个link序列表：
+    # temp_spotguide_nav_link_from_signpost
+    # temp_spotguide_nav_link_from_bifurcation
+    # 从以上两个link序列表中生成spotguide的相关数据。
+    # 当产生重复时，优先使用signpost获取的数据。
     def _GenerateSpotguide(self):
         sqlcmd = """
 select trpelid_list, f_jnctid_list, t_jnctid_list,

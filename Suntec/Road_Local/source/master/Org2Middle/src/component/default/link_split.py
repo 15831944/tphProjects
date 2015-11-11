@@ -6,6 +6,7 @@ Created on 2012-8-17
 '''
 import component.component_base
 import common.common_func
+from component.default import guideinfo_spotguide
 
 class comp_link_split(component.component_base.comp_base):
     '''
@@ -40,6 +41,8 @@ class comp_link_split(component.component_base.comp_base):
         self.__update_park_node()
         self.__updateSafetyAlert()
         self.__updateStopSign()
+        
+        self.__updateGuideForTollGate()
         
         if common.common_func.GetProjName().lower() == 'rdf':
             self.__update_height()     
@@ -1214,7 +1217,19 @@ class comp_link_split(component.component_base.comp_base):
                 self.__getLinkETCTollGate()
             
         self.log.info('splitting links by tollgates end.')
-                    
+
+    def __updateGuideForTollGate(self):
+
+        self.log.info('updating spotguide for tollgate begin...')
+
+        proj_name = common.common_func.GetPath('proj_name')
+        tollIllustName = common.common_func.GetPath('toll_station_illust')   
+             
+        # For tollgate spotguide.
+        if proj_name.lower() == 'ta':
+            comp_guideinfo_spotguide_tollgate = guideinfo_spotguide.comp_guideinfo_spotguide()
+            comp_guideinfo_spotguide_tollgate._GenerateSpotguideTblForTollStation(tollIllustName)
+                                
     def __splitLinkByTollGateDetail(self):
 
         self.CreateIndex2('org_mn_pi_feattyp_idx')

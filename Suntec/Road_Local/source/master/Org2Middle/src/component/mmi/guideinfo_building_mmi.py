@@ -24,7 +24,7 @@ class comp_guideinfo_building_mmi(component.default.guideinfo_building.comp_guid
     def _Do(self):
         
         self._loadBrandIcon()
-        self._loadPOICategory()
+        self._loadPOICategory_new()
         self._loadCategoryPriority()
         self._make_poi_category_mapping()
         self._findLogmark()

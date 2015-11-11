@@ -217,3 +217,18 @@ class CCheckBoundryRegulationISO(platform.TestCase.CTestCase):
                 """
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+
+class CCheckLinkRegulationIsSame(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                SELECT count(*)
+                FROM (
+                    SELECT array_agg(record_no) as record_list
+                    FROM rdb_link_regulation
+                    GROUP BY regulation_id, regulation_type, is_seasonal, first_link_id, first_link_id_t, 
+                        last_link_id, last_link_dir, last_link_id_t, link_num, key_string having count(*) > 1
+                ) a
+            """
+        
+        rec_count = self.pg.getOnlyQueryResult(sqlcmd)
+        return (rec_count == 0)

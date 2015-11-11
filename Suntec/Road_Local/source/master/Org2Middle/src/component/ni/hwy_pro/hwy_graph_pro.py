@@ -6,7 +6,6 @@ Created on 2015-10-23
 '''
 from component.rdf.hwy.hwy_graph_rdf import HWY_PATH_ID
 import networkx as nx
-from component.ni.hwy.hwy_graphy_ni import HwyGraphNi
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_PA
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_IC
 from component.rdf.hwy.hwy_def_rdf import HWY_IC_TYPE_JCT
@@ -44,16 +43,29 @@ class HwyGraphNiPro(HwyGraphRDF):
         for u, v in zip(nodes[:-1], nodes[1:]):
             if u == v:
                 continue
-            if u in (6923775, 6910778):
-                pass
             # u_out与v_in的路径
-            temp_pathes = list(self._all_main_pathes(u, v, path_id,
-                                                     code_field))
-            if temp_pathes:
-                if len(temp_pathes) == 1:
+            pathes = list(self._all_main_pathes(u, v, path_id,
+                                                code_field))
+            if pathes:
+                temp_pathes = []
+                if len(pathes) > 1:
+                    for temp_path in pathes:
+                        u, v = temp_path[0], temp_path[1]
+                        data = self[u][v]
+                        temp_path_id = data.get(code_field)
+                        if path_id == temp_path_id:
+                            temp_pathes.append(temp_path)
+                else:
+                    temp_pathes = pathes
+                if not temp_pathes:
+                    self.log.error('No Path. path_id=%s u=%s, v=%s'
+                                   % (path_id, u, v))
+                    return []
+                elif len(temp_pathes) == 1:
                     path += temp_pathes[0][1:]
                 else:
-                    self.log.error('Path > 1. u=%s, v=%s' % (u, v))
+                    self.log.error('Path > 1. path_id=%s, u=%s, v=%s'
+                                   % (path_id, u, v))
             else:
                 self.log.error('No Path. path_id=%s u=%s, v=%s'
                                % (path_id, u, v))
@@ -73,14 +85,19 @@ class HwyGraphNiPro(HwyGraphRDF):
                 visited.pop()
                 stack.pop()
                 continue
+            if child in visited[1:]:
+                continue
+            if self.has_edge(child, visited[-1]):  # 双向
+                continue
             # Path Id不同
             data = self[visited[-1]][child]
             temp_path_id = data.get(code_field)
-            if temp_path_id and temp_path_id != path_id:
-                continue
-            if(temp_path_id != path_id and
-               self._is_first_ics_link(visited[-1], child)):
-                continue
+            if temp_path_id:
+                if temp_path_id != path_id:
+                    continue
+            else:
+                if self._is_first_ics_link(visited[-1], child):
+                    continue
             if child == target:
                 yield visited + [child]
             else:

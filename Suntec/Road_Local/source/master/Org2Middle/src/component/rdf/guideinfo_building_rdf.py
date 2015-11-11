@@ -23,8 +23,14 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
         component.default.guideinfo_building.comp_guideinfo_building.__init__(self)
         
     def _Do(self):
-              
-        self._loadPOICategory()
+        proj_name = common.common_func.GetProjName()
+        proj_country = common.common_func.getProjCountry()
+          
+        if proj_name.lower() == 'rdf' and  proj_country.lower() in ['arg','bra','hkg','mea']:
+            self._loadPOICategory_new()
+        else:
+            self._loadPOICategory()
+
         self._loadCategoryPriority()
         self._makeTempPoi()
         self._findLogmark()
@@ -34,8 +40,8 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
         
  
         return 0
-
-      
+     
+          
     def _findLogmark(self):
         # find poi with logmark
         self.log.info('make temp_poi_logmark...')
@@ -48,7 +54,7 @@ class comp_guideinfo_building_rdf(component.default.guideinfo_building.comp_guid
             left join temp_poi_category as tpc
             on tpc.org_code = a.cat_id and tpc.chain = a.chain 
                and tpc.sub = a.sub and tpc.cuisine = a.cuisine and tpc.building = a.building
-            where tpc.filename <> '' and tpc.filename <> 'M'
+            where tpc.filename is not null and tpc.filename <> ''
         
             union
         

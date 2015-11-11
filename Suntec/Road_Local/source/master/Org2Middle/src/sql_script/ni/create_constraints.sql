@@ -352,3 +352,15 @@ CREATE INDEX  temp_general_sp_name_id_idx
   on  temp_general_sp_name
   using btree
   ((id::bigint));
+
+-----------------------------------------------------
+CREATE UNIQUE INDEX mid_hwy_org_hw_junction_mid_linkid_id_idx
+  ON mid_hwy_org_hw_junction_mid_linkid
+  USING btree
+  (id);
+
+-----------------------------------------------------
+CREATE INDEX mid_hwy_org_hw_junction_mid_linkid_the_geom_idx
+  ON mid_hwy_org_hw_junction_mid_linkid
+  USING gist
+  (the_geom);

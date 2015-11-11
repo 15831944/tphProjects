@@ -4131,17 +4131,29 @@ AS $$
 DECLARE
 	flag1 integer;
 	flag2 integer;
+	flag3 integer;
 BEGIN
 
-	select mid_highway_connect(node, path, node_s, node_e,1) into flag1;
-	select mid_highway_connect(node, path, node_s, node_e,2) into flag2;
-	if flag1 = 1 or flag2 = 1 then
-		insert into temp_jct_change_to_ic(links,link_type)
-			values(path,5);
-	else
-		insert into temp_jct_change_to_ic(links,link_type)
-			values(path,3);
-	end if;
+  --raise info 'calc the jct angle';
+  select mid_filter_the_large_angle_jct(path,120) into flag3;
+
+
+	if flag3 = 1 then
+      raise info 'the jct angle have problem';
+      insert into temp_jct_change_to_ic(links,link_type)
+          values(path,5);
+  else
+       raise info 'the jct angle is ok';
+      select mid_highway_connect(node, path, node_s, node_e,1) into flag1;
+      select mid_highway_connect(node, path, node_s, node_e,2) into flag2;
+      if flag1 = 1 or flag2 = 1 then
+        insert into temp_jct_change_to_ic(links,link_type)
+          values(path,5);
+      else
+        insert into temp_jct_change_to_ic(links,link_type)
+          values(path,3);
+      end if;
+   end if;
 	return 0;
 
 END;
@@ -4377,7 +4389,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_highway_connect(node bigint,path bigint[],node_s bigint, node_e bigint,dir integer)
+CREATE OR REPLACE FUNCTION mid_highway_connect_bak(node bigint,path bigint[],node_s bigint, node_e bigint,dir integer)
 	RETURNS integer
 	LANGUAGE plpgsql volatile
 AS $$
@@ -4394,11 +4406,12 @@ DECLARE
 	highway_length 		bigint;
 	length        		bigint;
 	geom          		geometry;
+	path_count       integer;
 BEGIN
   path_length := 0;
   highway_length := 0;
   for rec in 
-      select distinct the_geom from link_tbl as a
+      select distinct the_geom from link_tbl_bak_for_linktype_test_bak as a
       where a.link_id = any(path)
   loop
       if rec.the_geom is not null then
@@ -4407,9 +4420,12 @@ BEGIN
       end if;
   end loop;
   
-  
+  path_count := array_length(path,1);
+  if path_count > 1 and (node = node_s or node = node_e) then
+      return 1;
+  end if;
 	select link_id 
-	from link_tbl as a
+	from link_tbl_bak_for_linktype_test_bak as a
 	where node in (a.s_node,a.e_node) and a.link_type in (1,2) and a.road_type in (0,1) limit 1
 	into slink;
 
@@ -4419,7 +4435,7 @@ BEGIN
 		slink := link_array[i];
 		raise info 'link = %',slink;
 		select  s_node, e_node, one_way_code,the_geom
-		from link_tbl as a
+		from link_tbl_bak_for_linktype_test_bak as a
 		where a.link_id = slink  into   snode, enode, direction, geom;
 		select ST_Length_Spheroid(geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')::bigint  into length;
 		if direction = 4 then
@@ -4437,21 +4453,21 @@ BEGIN
 		else
 			for rec in 
 				  select  link_id
-				  from link_tbl as a
+				  from link_tbl_bak_for_linktype_test_bak as a
 				  where (	  
 					   (
-					    ( a.s_node = enode and a.one_way_code = 2 )
+					    ( a.s_node = enode and a.one_way_code in (1,2) )
 					      or
-					    ( a.e_node = enode and a.one_way_code = 3 )
+					    ( a.e_node = enode and a.one_way_code in (1,3) )
 					   ) 
 					   and dir = 1
 					   
 					   or 
 					   
 					   (
-					    ( a.e_node = snode and a.one_way_code = 2 )
+					    ( a.e_node = snode and a.one_way_code in (1,2) )
 					      or
-					    ( a.s_node = snode and a.one_way_code = 3 )
+					    ( a.s_node = snode and a.one_way_code in (1,3) )
 					   ) 
 					   and dir = 2
 					    
@@ -4461,6 +4477,7 @@ BEGIN
 					and a.road_type in (0,1) and a.link_type in (1,2)
 			loop
 				  if rec.link_id is not null then
+              raise info 'rec.link_id = %',rec.link_id;
               if rec.link_id = any(link_array) then
                 continue;
               else
@@ -4485,111 +4502,6 @@ BEGIN
 END;
 $$;
 				
-CREATE OR REPLACE FUNCTION mid_highway_connect_bak(node bigint,path bigint[],node_s bigint, node_e bigint,dir integer)
-	RETURNS integer
-	LANGUAGE plpgsql volatile
-AS $$
-DECLARE
-	rec 		    	record;
-	slink 		   	bigint;
-	link_array 		bigint[];
-	i 		      	integer;
-	temp_node	  	bigint;
-	snode		    	bigint;
-	enode		    	bigint;
-	direction	 	  integer;
-	path_length  		bigint;
-	highway_length 		bigint;
-	length        		bigint;
-	geom          		geometry;
-BEGIN
-  path_length := 0;
-  highway_length := 0;
-  for rec in 
-      select distinct the_geom from link_tbl as a
-      where a.link_id = any(path)
-  loop
-      if rec.the_geom is not null then
-          select ST_Length_Spheroid(rec.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')::bigint  into length;
-          path_length := path_length + length;
-      end if;
-  end loop;
-  
-  
-	select link_id 
-	from link_tbl as a
-	where node in (a.s_node,a.e_node) and a.link_type in (1,2) and a.road_type in (0,1) limit 1
-	into slink;
-
-	link_array := array_append(link_array,slink);
-	i := 1;
-	while highway_length < path_length loop
-		slink := link_array[i];
-		raise info 'link = %',slink;
-		select  s_node, e_node, one_way_code,the_geom
-		from link_tbl as a
-		where a.link_id = slink  into   snode, enode, direction, geom;
-		select ST_Length_Spheroid(geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')::bigint  into length;
-		if direction = 4 then
-			exit;
-		end if;
-		
-		if direction = 3 then
-			temp_node = snode;
-			snode = enode;
-			enode = temp_node;
-		end if;
-		
-		if node_s in (snode,enode) or node_e in (snode,enode) then
-			return 1;       
-		else
-			for rec in 
-				  select  link_id
-				  from link_tbl as a
-				  where (	  
-					   (
-					    ( a.s_node = enode and a.one_way_code = 2 )
-					      or
-					    ( a.e_node = enode and a.one_way_code = 3 )
-					   ) 
-					   and dir = 1
-					   
-					   or 
-					   
-					   (
-					    ( a.e_node = snode and a.one_way_code = 2 )
-					      or
-					    ( a.s_node = snode and a.one_way_code = 3 )
-					   ) 
-					   and dir = 2
-					    
-					    
-					)
-					  
-					and a.road_type in (0,1) and a.link_type in (1,2)
-			loop
-				  if rec.link_id is not null then
-				    if rec.link_id = any(link_array) then
-				      continue;
-				    else
-				      link_array := array_append(link_array,rec.link_id);
-				    end if;
-				  end if;
-          
-			end loop;
-		        	
-		end if;
-		
-		highway_length := highway_length + length;
-
-	i := i + 1;
-		
-	end loop;
-	
-	return 0;
-END;
-$$;
-
 
 CREATE OR REPLACE FUNCTION mid_change_sapa(max_num integer)
 	RETURNS smallint
@@ -4947,7 +4859,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION  mid_find_jct_link_paths(link bigint, dir integer,len integer)
+CREATE OR REPLACE FUNCTION  mid_find_jct_link_paths_bak(link bigint, dir integer,len integer)
 	RETURNS smallint
         LANGUAGE plpgsql
 	AS $$
@@ -5094,12 +5006,12 @@ BEGIN
         select distinct a.link_id
         from
         (
-          select * from link_tbl
+          select * from link_tbl_bak_for_linktype_test_bak
           where link_type = 5
         ) as a
         join
         ( 
-          select * from link_tbl 
+          select * from link_tbl_bak_for_linktype_test_bak 
           where link_type in (1,2) and road_type in (0,1)
         ) as b
         on a.s_node in (b.s_node,b.e_node) or a.e_node in (b.s_node,b.e_node)
@@ -5119,14 +5031,708 @@ AS $$
 DECLARE
 	flag1 integer;
 	flag2 integer;
+	flag3 integer;
+BEGIN
+    select mid_filter_the_large_angle_jct(path,120) into flag3;
+    if flag3 = 0 then
+      raise info 'the jct path angle is ok';
+      select mid_highway_connect(node, path, node_s, node_e,1) into flag1;
+      select mid_highway_connect(node, path, node_s, node_e,2) into flag2;
+      if flag1 <> 1 and flag2 <> 1 then
+        raise info 'the jct path is not connect to the same highway';
+        insert into temp_jct_paths_link(link_path)
+          values(path);
+       end if;
+    end if;
+	return 0;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION  mid_find_jct_link_paths(link bigint, dir integer,len integer)
+	RETURNS smallint
+        LANGUAGE plpgsql
+	AS $$
+	DECLARE 
+		rec record;
+		link_array bigint[];
+		temp_link bigint;
+		snode  bigint;
+		enode  bigint;
+		temp_node bigint;
+		direction integer;
+		link_type1 integer;
+		road_type1 integer;
+		flag  smallint;
+		link_path_array varchar[];
+		i integer;
+		slink bigint;
+		length integer;	
+		sapa_count integer;
+		sapa_link_array bigint[];	
+               		
+BEGIN
+    link_path_array := array_append(link_path_array,link::varchar);
+    i := 1;
+    flag := 0;
+    while i <= array_length(link_path_array,1) loop
+        link_array := string_to_array(link_path_array[i],'|');
+        sapa_count := 0;
+        for rec in 
+            select distinct link_id,link_type from link_tbl_bak_for_linktype_test_bak as a
+            where a.link_id = any(link_array)
+        loop
+            if rec.link_type = 7 then
+                sapa_count := sapa_count + 1;
+            end if;
+        end loop;
+        raise info 'sapa count = %',sapa_count;
+        if sapa_count > len then
+            i := i + 1;
+            continue;
+        end if;
+        raise info 'link_path_array =  %', link_path_array[i];
+        slink := (link_array[array_upper(link_array,1)])::bigint;	
+        select link_type,road_type,link_id, s_node, e_node, one_way_code
+        from link_tbl_bak_for_linktype_test_bak as a
+        where a.link_id = slink  into  link_type1, road_type1, temp_link, snode, enode, direction;
+        if direction = 4 then
+           exit;
+        end if;
+        if direction = 3 then
+          temp_node = snode;
+          snode = enode;
+          enode = temp_node;
+        end if;
+
+        if link_type1 in (1,2) and road_type1 in (0,1) or link_type1 = 3  then
+              for rec in 
+                  select distinct link_type from link_tbl_bak_for_linktype_test_bak as a
+                  where a.link_id = any(link_array)
+              loop
+                  if rec.link_type = 7 then
+                      flag = 1;
+                  end if;	
+              end loop;
+              if flag = 1 and link_type1 in (1,2) then
+                  insert into temp_suspect_jct_paths_link(link_path) 
+                        --values(link_path_array[i]);
+                        values((string_to_array(link_path_array[i],'|'))::bigint[] );	
+              end if;
+          
+              if flag = 1 and link_type1 = 3 then
+                    insert into temp_jct_paths_link(link_path) 
+                          --values(link_path_array[i]);
+                          values((string_to_array(link_path_array[i],'|'))::bigint[] );
+              end if;
+		
+        else	 
+              for rec in 
+                  select  link_id,link_type
+                  from link_tbl_bak_for_linktype_test_bak as a
+                  where (	  ( (a.s_node in (snode,enode) and a.one_way_code in(1,2))
+                              or
+                                 (a.e_node in (snode,enode) and a.one_way_code in(1,3))
+                               )
+                              and 
+                              direction = 1 and dir = 1
+                              
+                          or
+                            ( (a.e_node in (snode,enode) and a.one_way_code in(1,2))
+                              or
+                                 (a.s_node in (snode,enode) and a.one_way_code in(1,3))
+                               )
+                              and 
+                              direction = 1 and dir = 2
+
+                          or
+                              (
+                                (a.s_node = enode  and a.one_way_code in(1,2))
+                               or 
+                                (a.e_node = enode  and a.one_way_code in (1,3))
+                              )
+                              and
+                              direction <> 1 and dir = 1
+                              
+                          or
+                              (
+                                (a.e_node = snode  and a.one_way_code in(1,2))
+                               or 
+                                (a.s_node = snode  and a.one_way_code in (1,3))
+                              )
+                              and
+                              direction <> 1 and dir = 2
+                        )
+                        and 
+                       ( a.link_type in (3,5,7) or (a.link_type in (1,2) and a.road_type in (0,1)))
+	
+              loop
+                  if rec.link_id is not null then
+                      if rec.link_type = 7 then
+                        if rec.link_id = any(sapa_link_array) then
+                          continue;
+                        else
+                          sapa_link_array := array_append(sapa_link_array,rec.link_id);	
+                        end if;
+                      end if;
+			
+                      if rec.link_id = any(link_array) then
+                            continue;
+                      else
+                            link_path_array := array_append(link_path_array,(link_path_array[i] || '|' || (rec.link_id::varchar))::varchar);
+                      end if;
+                 else
+                      insert into temp_suspect_jct_paths_link(link_path) 
+                            values((string_to_array(link_path_array[i],'|'))::bigint[] );	
+                end if;
+             end loop;
+	
+       end if;
+		
+    i := i + 1;
+				
+    end loop;
+  return 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_calc_jct_steering_angle(slink bigint, elink bigint, join_node bigint)
+	RETURNS double precision
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec record;
+	angle1 double precision;
+	angle2 double precision;
+	result double precision;
+
+BEGIN
+	for rec in
+		select ( case when a.e_node = join_node then mid_cal_zm(a.the_geom,-1)
+                    when a.s_node = join_node then mid_cal_zm(a.the_geom,1) 
+                    else 70000 end) as angle
+		from link_tbl_bak_for_linktype_test_bak as a
+		where link_id = slink
+	loop
+		if rec.angle is not null then
+			angle1 = rec.angle/65536.0 * 360 ;
+		else 
+			raise info 'error happened !!!';
+		end if;
+	end loop;
+
+	for rec in
+		select ( case when a.e_node = join_node then mid_cal_zm(a.the_geom,-1)
+                    when a.s_node = join_node then mid_cal_zm(a.the_geom,1) 
+                    else 70000 end) as angle
+		from link_tbl_bak_for_linktype_test_bak as a
+		where link_id = elink
+	loop
+		if rec.angle is not null then
+			angle2 = rec.angle/65536.0 * 360 ;
+		else 
+			raise info 'error happened !!!';
+		end if;
+	end loop;
+	
+	if angle1 > 360 or angle2 > 360 then
+      return 180 ;
+	else
+      result := angle2 - angle1;
+      
+      if result > 180 then
+          result := 360 - result;
+      end if;
+      
+      if result < -180 then
+          result := 360 + result;
+      end if;
+      
+      return abs(result);
+   end if;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_filter_the_large_angle_jct(path bigint[],angle double precision)
+	RETURNS integer
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	i integer;
+	link bigint;
+	rec record;
+	steering_angle double precision;
+	join_node_array bigint[];
+
+BEGIN
+	i = 1;
+	while i <= array_length(path,1)
+	loop
+		link := path[i];
+		for rec in 
+			select distinct b.link_id, c.link_id as other_link,
+				(case when b.s_node in (c.s_node,c.e_node) then b.s_node
+				      when b.e_node in (c.s_node,c.e_node) then b.e_node end ) as join_node
+			from
+			(
+				select * from link_tbl_bak_for_linktype_test_bak as a
+				where link_id = link  and a.link_type <> 7
+			) as b
+			left join link_tbl_bak_for_linktype_test_bak as c
+			on b.s_node in (c.s_node,c.e_node) or b.e_node in (c.s_node,c.e_node)
+			where (not (c.link_id = any(path)) )
+			      and c.one_way_code <> 4
+			      and  not ( c.link_type in (1,2) and c.road_type in (0,1) )
+		loop
+
+			if rec.other_link is not null then
+          if (not rec.join_node = any(join_node_array) ) or array_length(join_node_array,1) is null then
+              join_node_array := array_append(join_node_array,rec.join_node);
+            
+              select mid_calc_jct_steering_angle(path[i], path[i+1], rec.join_node) into steering_angle;
+              raise info 'join_node_array = %',join_node_array;
+              raise info 'link1 = %',path[i];
+              raise info 'link2 = %',path[i+1];
+              raise info 'join_node = %',rec.join_node;
+              raise info 'the angle = %', steering_angle;
+              if steering_angle < angle then
+                raise info 'steering angle has problem';
+                return 1;
+              end if;
+           end if;
+			end if;
+
+		end loop;
+		
+	i := i + 1;
+
+	end loop;
+  raise info 'steering angle is ok';
+	return 0;
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION mid_find_ic_surround_by_jct(link bigint, dir integer)
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec 			record;
+	ic_path_array 		varchar[];
+	i 			integer;
+	link_type1 		smallint;
+	temp_link 		bigint;
+	snode 			bigint;
+	enode 			bigint;
+	temp_node 		bigint;
+	direction 		integer;
+	link_array		bigint[];
+	slink			bigint;
+	len			integer;
+	j			integer;
+	temp_ic_path_array	bigint[];
+	flag			integer;
+	
+	
 BEGIN
 
-	select mid_highway_connect(node, path, node_s, node_e,1) into flag1;
-	select mid_highway_connect(node, path, node_s, node_e,2) into flag2;
-	if flag1 <> 1 and flag2 <> 1 then
-		insert into temp_jct_paths_link(link_path)
-			values(path);
-	end if;
+	i := 1;
+	ic_path_array := array_append(ic_path_array,link::varchar);
+	flag := 0;
+	while i <= array_length(ic_path_array,1) loop
+		link_array := string_to_array(ic_path_array[i],'|');
+		slink := (link_array[array_upper(link_array,1)])::bigint; 
+
+		select link_type,link_id, s_node, e_node, one_way_code
+		from link_tbl_bak_for_linktype_test_bak as a
+		where a.link_id = slink  into  link_type1, temp_link, snode, enode, direction;
+		if direction = 4 then
+		   continue;
+		end if;
+
+		if direction = 1 and slink = link then
+			direction = dir;
+		end if;
+		
+		if direction = 3 then
+		  temp_node = snode;
+		  snode = enode;
+		  enode = temp_node;
+		end if;
+
+		if link_type1  = 3  then
+			len := array_length(link_array,1);
+			if len > 2 then
+				raise info 'insert into----';
+				insert into temp_ic_surround_by_jct_link(links)
+					values(link_array);
+			end if;
+			
+			if len = 2 then
+				raise info 'the path only two links';
+				for rec in 
+					select distinct a.link_id, b.link_id as l_link, c.link_id as r_link
+					from link_tbl_bak_for_linktype_test_bak as a
+					left join 
+					(
+						select * from link_tbl_bak_for_linktype_test_bak
+						where link_type = 3
+					) as b
+					on a.s_node in (b.s_node, b.e_node)
+					left join 
+					(
+						select * from link_tbl_bak_for_linktype_test_bak
+						where link_type = 3
+					) as c
+					on a.e_node in (c.s_node, c.e_node)
+					where a.link_id = link_array[1]
+				loop
+					if rec.l_link is not null and rec.r_link is not null then
+						insert into temp_ic_surround_by_jct_link(links)
+							values(link_array);
+					end if;
+				end loop;
+
+			end if;		
+		
+		else
+			temp_ic_path_array := (array[])::bigint[];
+		      for rec in 
+			  select  distinct link_id, link_type
+			  from link_tbl_bak_for_linktype_test_bak as a
+			  where (     ( (a.s_node in (snode,enode) and a.one_way_code in(1,2))
+				      or
+					 (a.e_node in (snode,enode) and a.one_way_code in(1,3))
+				       )
+				      and 
+				      direction = 1 
+				      
+				  or
+				      (
+					(a.s_node = enode  and a.one_way_code in(1,2))
+				       or 
+					(a.e_node = enode  and a.one_way_code in (1,3))
+				      )
+				      and
+				      direction <> 1 
+				)
+				--and a.link_type in (3,5) 
+		      loop
+			  if rec.link_id is not null then
+				if rec.link_type not in (3,5) then
+					raise info 'the ic path connect to general raod';
+					flag := 1;
+					exit;
+				end if;
+				
+			      if rec.link_id = any(link_array) then
+				    continue;
+			      else
+				    temp_ic_path_array := array_append(temp_ic_path_array,rec.link_id);
+				    
+			      end if;	
+			  end if;
+		     end loop;
+
+		     len := array_length(temp_ic_path_array,1);
+		     if flag = 0 and len is not null then
+			for j in 1..len loop
+				ic_path_array := array_append(ic_path_array,(ic_path_array[i] || '|' || ((temp_ic_path_array[j])::varchar))::varchar);	
+
+			end loop;
+		     end if;
+
+		end if;
+		
+	i := i + 1;
+	flag := 0;			
+	end loop;
+  return 0;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION mid_find_ic_surround_by_jct_exec()
+	RETURNS smallint
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec 			record;	
+BEGIN
+
+	for rec in 
+		select distinct b.link_id, b.one_way_code
+		from
+		(
+			select * from link_tbl_bak_for_linktype_test_bak as a
+			where a.link_type = 5
+		) as b
+		join 
+		(
+			select * from link_tbl_bak_for_linktype_test_bak as a
+			where a.link_type = 3
+		) as c
+		on b.s_node in (c.s_node,c.e_node) and b.one_way_code in (1,2)
+		or  b.e_node in (c.s_node,c.e_node) and b.one_way_code in (1,3)
+	loop
+		if rec is not null then
+			if rec.one_way_code = 1 then
+				perform mid_find_ic_surround_by_jct(rec.link_id, 2);
+				perform mid_find_ic_surround_by_jct(rec.link_id, 3);
+			end if;
+			if rec.one_way_code in (2,3) then
+				perform mid_find_ic_surround_by_jct(rec.link_id, rec.one_way_code);
+			end if;
+
+		end if;
+
+	end loop;
+
+	return 0;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION mid_convert_mainnode_regulation_linkrow()
+    RETURNS smallint
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec record;
+	cur_regulation_id integer;
+	nIndex integer;
+	nCount integer;
+	exist_regulation_id integer[];
+	exist_regulation_id_len integer;
+	exist_regulation_id_idx integer;
+	exist_linkids varchar;
+	exist_linkids_flag boolean;
+BEGIN
+	-- regulation_id
+	SELECT (case when max(regulation_id) is null then 0 else max(regulation_id) end)
+	FROM regulation_relation_tbl
+	INTO cur_regulation_id;
+	
+	FOR rec IN 
+		SELECT a.new_regulation_id, a.new_link_array, a.new_link_array::varchar as linkids, b.nodeid, b.inlinkid, b.outlinkid, b.condtype, b.cond_id
+		FROM temp_mainnode_update_regulation a
+		LEFT JOIN regulation_relation_tbl b
+			ON a.old_regulation_id = b.regulation_id
+		ORDER BY a.new_regulation_id
+	LOOP
+		-- avoid redundancy regulation
+		exist_linkids_flag := false;
+		SELECT array_agg(regulation_id) INTO exist_regulation_id
+		FROM regulation_relation_tbl
+		WHERE nodeid IS NOT DISTINCT FROM rec.nodeid and 
+			inlinkid IS NOT DISTINCT FROM rec.inlinkid and
+			outlinkid IS NOT DISTINCT FROM rec.outlinkid and
+			condtype IS NOT DISTINCT FROM rec.condtype and 
+			cond_id IS NOT DISTINCT FROM rec.cond_id;
+		
+		IF FOUND THEN
+			exist_regulation_id_len := array_upper(exist_regulation_id, 1);
+			FOR exist_regulation_id_idx IN 1..exist_regulation_id_len LOOP
+				SELECT array_agg(linkid)::varchar INTO exist_linkids
+				FROM (
+					SELECT *
+					FROM regulation_item_tbl
+					WHERE regulation_id = exist_regulation_id[exist_regulation_id_idx] and seq_num != 2
+					ORDER BY regulation_id, seq_num
+				) a
+				GROUP BY regulation_id;
+				
+				IF exist_linkids IS NOT DISTINCT FROM rec.linkids THEN
+					exist_linkids_flag := true;
+					exit;
+				END IF;
+			END LOOP;
+			
+			IF exist_linkids_flag = true THEN
+				continue;
+			END IF;
+		END IF;
+		
+		-- current regulation id
+    	cur_regulation_id := cur_regulation_id + 1;
+		
+		-- insert into regulation_item_tbl
+		nCount := array_upper(rec.new_link_array, 1);
+		nIndex := 1;
+		WHILE nIndex <= nCount LOOP
+			IF nIndex = 1 THEN
+	    		INSERT INTO regulation_item_tbl("regulation_id", "linkid", "nodeid", "seq_num")
+	    			VALUES	(cur_regulation_id, rec.new_link_array[nIndex], null, nIndex);
+	    		INSERT INTO regulation_item_tbl("regulation_id", "linkid", "nodeid", "seq_num")
+	    			VALUES	(cur_regulation_id, null, rec.nodeid, nIndex+1);
+	    	ELSE
+	    		INSERT INTO regulation_item_tbl("regulation_id", "linkid", "nodeid", "seq_num")
+	    			VALUES	(cur_regulation_id, rec.new_link_array[nIndex], null, nIndex+1);
+	    	END IF;
+			nIndex := nIndex + 1;
+		END LOOP;
+		
+		-- insert into regulation_relation_tbl
+    	INSERT INTO regulation_relation_tbl("regulation_id", "nodeid", "inlinkid", "outlinkid", "condtype", "cond_id")
+    				VALUES	(cur_regulation_id, rec.nodeid, rec.inlinkid, rec.outlinkid, rec.condtype, rec.cond_id);
+	END LOOP;
+	
+    return 1;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION mid_highway_connect(node bigint,path bigint[],node_s bigint, node_e bigint,dir integer)
+	RETURNS integer
+	LANGUAGE plpgsql volatile
+AS $$
+DECLARE
+	rec 		    	record;
+	slink 		   	bigint;
+	link_array 		bigint[];
+	i 		      	integer;
+	temp_node	  	bigint;
+	snode		    	bigint;
+	enode		    	bigint;
+	direction	 	  integer;
+	path_length  		bigint;
+	highway_length 		bigint;
+	length        		bigint;
+	geom          		geometry;
+	path_count       	integer;
+	highway_path_array	varchar[];
+	flag			integer;
+BEGIN
+	flag := 0;
+  path_length := 0;
+  highway_length := 0;
+  for rec in 
+      select distinct the_geom from link_tbl_bak_for_linktype_test_bak as a
+      where a.link_id = any(path)
+  loop
+      if rec.the_geom is not null then
+          select ST_Length_Spheroid(rec.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')::bigint  into length;
+          path_length := path_length + length;
+      end if;
+  end loop;
+  
+  path_count := array_length(path,1);
+  if path_count > 1 and (node = node_s or node = node_e) then
+      return 1;
+  end if;
+  
+	select link_id 
+	from link_tbl_bak_for_linktype_test_bak as a
+	where node in (a.s_node,a.e_node) and a.link_type in (1,2) and a.road_type in (0,1) limit 1
+	into slink;
+
+	highway_path_array := array_append(highway_path_array,slink::varchar);
+	
+	i := 1;
+	while i <= array_length(highway_path_array,1) loop
+		raise info 'paths = %',highway_path_array[i];
+		link_array := string_to_array(highway_path_array[i],'|');
+
+		highway_length := 0;
+		for rec in 
+			select distinct the_geom from link_tbl_bak_for_linktype_test_bak as a
+			where a.link_id = any(link_array) and a.link_id <> (highway_path_array[1])::bigint
+		loop
+			if rec.the_geom is not null then
+				select ST_Length_Spheroid(rec.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)')::bigint  into length;
+				highway_length := highway_length + length;
+			end if;
+		end loop;
+		
+		if highway_length > path_length then
+			flag := flag + 1;
+			
+		end if;
+
+		if flag > 5 then
+			exit;
+		end if;
+		slink := (link_array[array_upper(link_array,1)])::bigint;
+		--raise info 'link = %',slink;
+		select  s_node, e_node, one_way_code
+		from link_tbl_bak_for_linktype_test_bak as a
+		where a.link_id = slink  into   snode, enode, direction;
+		
+		if direction = 4 then
+			exit;
+		end if;
+		
+		if direction = 3 then
+			temp_node = snode;
+			snode = enode;
+			enode = temp_node;
+		end if;
+		
+		if (node_s in (snode,enode) and node <> node_s )  or  (node_e in (snode,enode) and node <> node_e ) then   
+			return 1;       
+		else
+			for rec in 
+				  select  link_id
+				  from link_tbl_bak_for_linktype_test_bak as a
+				  where (	  
+						( (a.s_node in (snode,enode) and a.one_way_code in(1,2))
+						or
+						 (a.e_node in (snode,enode) and a.one_way_code in(1,3))
+						)
+						and 
+						direction = 1 and dir = 1
+					      
+						or
+						( (a.e_node in (snode,enode) and a.one_way_code in(1,2))
+						or
+						 (a.s_node in (snode,enode) and a.one_way_code in(1,3))
+						)
+						and 
+						direction = 1 and dir = 2
+
+						or
+					      (
+						(a.s_node = enode  and a.one_way_code in(1,2))
+					       or 
+						(a.e_node = enode  and a.one_way_code in (1,3))
+					      )
+					      and
+					      direction <> 1 and dir = 1
+					      
+						or
+					      (
+						(a.e_node = snode  and a.one_way_code in(1,2))
+					       or 
+						(a.s_node = snode  and a.one_way_code in (1,3))
+					      )
+					      and
+					      direction <> 1 and dir = 2   
+					    
+					)
+					  
+					and a.road_type in (0,1) and a.link_type in (1,2)
+			loop
+				if rec.link_id is not null then
+					raise info 'rec.link_id = %',rec.link_id;
+					if rec.link_id = any(link_array) then
+						continue;
+					else
+				highway_path_array := array_append(highway_path_array,(highway_path_array[i] || '|' || (rec.link_id::varchar))::varchar);
+					end if;
+				  else
+					return 0;
+				  end if;
+          
+			end loop;
+		        	
+		end if;
+	i := i + 1;
+		
+	end loop;
 	return 0;
 
 END;
