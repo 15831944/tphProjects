@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 from qgis.gui import QgsMapTool, QgsMapToolIdentify
-from qgis.core import QgsMapLayer, QgsFeature
+from qgis.core import QgsMapLayer, QgsFeature, QgsPoint
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QCursor, QMessageBox
-from SpotguideShowImageDlg import SpotguideShowImageDlg
+from NostraIllustShowImageDlg import NostraIllustShowImageDlg
 
-
-class SpotguideMapTool(QgsMapTool):
-    
+class NostraIllustMapTool(QgsMapTool):
     def __init__(self, canvas):
-        
         super(QgsMapTool, self).__init__(canvas)
         self.mCanvas = canvas
         self.mCursor = QCursor(Qt.ArrowCursor)
         self.mDragging = False
-        
+
     def activate(self):
         self.mCanvas.setCursor(self.mCursor)
 
@@ -30,7 +27,8 @@ class SpotguideMapTool(QgsMapTool):
             self.mDragging = True
             self.mCanvas.panAction(mouseEvent);
         return
-
+    
+    # Select the nearest node, then show its information.
     def canvasReleaseEvent(self, mouseEvent): 
         theLayer = self.mCanvas.currentLayer()
         if theLayer is None:
@@ -52,14 +50,16 @@ class SpotguideMapTool(QgsMapTool):
                 self.mCanvas.setCenter(center)
                 self.mCanvas.refresh()
         else: # select the features
-            self.removeAllSelection()
+            theLayer.removeSelection()
             featureList = []
             featureIdList = []
             for oneResult in resultList:
                 featureList.append(oneResult.mFeature)
                 featureIdList.append(oneResult.mFeature.id())
             theLayer.select(featureIdList)
-            dlg = SpotguideShowImageDlg(theLayer, featureList)
+            dlg = NostraIllustShowImageDlg(self.mCanvas, theLayer, featureList)
+            
+            dlg.show()
             result = dlg.exec_()
             if result:
                 pass
@@ -67,11 +67,6 @@ class SpotguideMapTool(QgsMapTool):
                 pass
             return
 
-    def removeAllSelection(self):
-        layerList = self.mCanvas.layers()
-        for oneLayer in layerList:
-            oneLayer.removeSelection()
-        return
 
 
 

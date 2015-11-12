@@ -5,6 +5,7 @@ import resources
 from GenerateNewLayerDlg import GenerateNewLayerDlg
 from SpotguideMapTool import SpotguideMapTool
 from LaneMapTool import LaneMapTool
+from NostraIllustMapTool import NostraIllustMapTool
 
 class RdbViewer:
     def __init__(self, iface):
@@ -16,7 +17,7 @@ class RdbViewer:
         self.toolbar.setObjectName(u'RdbViewerToolbar')
 
     def initGui(self):
-        icon_path = ':/icons/GenearteNewLayer.png' 
+        icon_path = ':/icons/NewLayerIcon.png' 
         actionGenerateLayer = QAction(QIcon(icon_path), u"Generate Layer", None)
         actionGenerateLayer.triggered.connect(self.generateLayer)
         actionGenerateLayer.setStatusTip(None)
@@ -27,7 +28,7 @@ class RdbViewer:
         self.actions.append(actionGenerateLayer)
 
 
-        icon_path = ':/icons/SpotguideShowImage.png' 
+        icon_path = ':/icons/SpotguideIcon.png' 
         actionShowSpotguide = QAction(QIcon(icon_path), u"Show Spotguide", None)
         actionShowSpotguide.triggered.connect(self.showSpotguide)
         actionShowSpotguide.setStatusTip(None)
@@ -40,7 +41,7 @@ class RdbViewer:
         self.spotguideMapTool = SpotguideMapTool(self.iface.mapCanvas())
         self.spotguideMapTool.setAction(actionShowSpotguide)
 
-        icon_path = ':/icons/LaneShowImage.png' 
+        icon_path = ':/icons/LaneIcon.png' 
         actionShowLane = QAction(QIcon(icon_path), u"Show Lane", None)
         actionShowLane.triggered.connect(self.showLane)
         actionShowLane.setStatusTip(None)
@@ -52,6 +53,19 @@ class RdbViewer:
         self.actions.append(actionShowLane)
         self.laneMapTool = LaneMapTool(self.iface.mapCanvas())
         self.laneMapTool.setAction(actionShowLane)
+
+        icon_path = ':/icons/NostraIcon.png' 
+        actionShowNostraIllust = QAction(QIcon(icon_path), u"Nostra Illust", None)
+        actionShowNostraIllust.triggered.connect(self.showNostraIllust)
+        actionShowNostraIllust.setStatusTip(None)
+        actionShowNostraIllust.setWhatsThis(None)
+        self.toolbar.addAction(actionShowNostraIllust)
+        self.iface.addPluginToMenu(self.menu, actionShowNostraIllust)
+        actionShowNostraIllust.setEnabled(True)
+        actionShowNostraIllust.setCheckable(True)
+        self.actions.append(actionShowNostraIllust)
+        self.nostraIllustMapTool = NostraIllustMapTool(self.iface.mapCanvas())
+        self.nostraIllustMapTool.setAction(actionShowLane)
         return
 
     def unload(self):
@@ -76,6 +90,10 @@ class RdbViewer:
     def showLane(self):
         # activate our lane tool
         self.iface.mapCanvas().setMapTool(self.laneMapTool)
+        return
+
+    def showNostraIllust(self):
+        self.iface.mapCanvas().setMapTool(self.nostraIllustMapTool)
         return
 
     

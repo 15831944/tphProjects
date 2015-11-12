@@ -11,8 +11,6 @@ from qgis.core import QgsDataSourceURI
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'LaneShowImageDlgDesign.ui'))
 
-arrowBasePath = r"""C:\Users\hexin\.qgis2\python\plugins\RdbViewer\arrows"""
-
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
     def __init__(self, theLayer, selectedFeatureList, parent=None):
         if(len(selectedFeatureList) == 0):
@@ -44,37 +42,37 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         # 
         self.arrowImagesMap_highlight = {
-            2**0 : os.path.join(arrowBasePath, "1.png"),
-            2**1 : os.path.join(arrowBasePath, "2.png"),
-            2**2 : os.path.join(arrowBasePath, "4.png"),
-            2**3 : os.path.join(arrowBasePath, "8.png"),
-            2**4 : os.path.join(arrowBasePath, "16.png"),
-            2**5 : os.path.join(arrowBasePath, "32.png"),
-            2**6 : os.path.join(arrowBasePath, "64.png"),
-            2**7 : os.path.join(arrowBasePath, "128.png"),
-            2**8 : os.path.join(arrowBasePath, "256.png"),
-            2**9 : os.path.join(arrowBasePath, "512.png"),
-            2**10 : os.path.join(arrowBasePath, "1024.png"),
-            2**11 : os.path.join(arrowBasePath, "2048.png"),
-            2**12 : os.path.join(arrowBasePath, "4096.png"),
-            2**13 : os.path.join(arrowBasePath, "8192.png")            
+            2**0 : ":/icons/1.png",
+            2**1 : ":/icons/2.png",
+            2**2 : ":/icons/4.png",
+            2**3 : ":/icons/8.png",
+            2**4 : ":/icons/16.png",
+            2**5 : ":/icons/32.png",
+            2**6 : ":/icons/64.png",
+            2**7 : ":/icons/128.png",
+            2**8 : ":/icons/256.png",
+            2**9 : ":/icons/512.png",
+            2**10 : ":/icons/1024.png",
+            2**11 : ":/icons/2048.png",
+            2**12 : ":/icons/4096.png",
+            2**13 : ":/icons/8192.png"            
             }
 
         self.arrowImagesMap_gray = {
-            2**0 : os.path.join(arrowBasePath, "1_gray.png"),
-            2**1 : os.path.join(arrowBasePath, "2_gray.png"),
-            2**2 : os.path.join(arrowBasePath, "4_gray.png"),
-            2**3 : os.path.join(arrowBasePath, "8_gray.png"),
-            2**4 : os.path.join(arrowBasePath, "16_gray.png"),
-            2**5 : os.path.join(arrowBasePath, "32_gray.png"),
-            2**6 : os.path.join(arrowBasePath, "64_gray.png"),
-            2**7 : os.path.join(arrowBasePath, "128_gray.png"),
-            2**8 : os.path.join(arrowBasePath, "256_gray.png"),
-            2**9 : os.path.join(arrowBasePath, "512_gray.png"),
-            2**10 : os.path.join(arrowBasePath, "1024_gray.png"),
-            2**11 : os.path.join(arrowBasePath, "2048_gray.png"),
-            2**12 : os.path.join(arrowBasePath, "4096_gray.png"),
-            2**13 : os.path.join(arrowBasePath, "8192_gray.png")            
+            2**0 : ":/icons/1_gray.png",
+            2**1 : ":/icons/2_gray.png",
+            2**2 : ":/icons/4_gray.png",
+            2**3 : ":/icons/8_gray.png",
+            2**4 : ":/icons/16_gray.png",
+            2**5 : ":/icons/32_gray.png",
+            2**6 : ":/icons/64_gray.png",
+            2**7 : ":/icons/128_gray.png",
+            2**8 : ":/icons/256_gray.png",
+            2**9 : ":/icons/512_gray.png",
+            2**10 : ":/icons/1024_gray.png",
+            2**11 : ":/icons/2048_gray.png",
+            2**12 : ":/icons/4096_gray.png",
+            2**13 : ":/icons/8192_gray.png"          
             }
 
         for oneFeature in self.mFeatureList:
@@ -194,7 +192,10 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
         attrList = theFeature.attributes()
         strFeatureInfo = "field count: %d\n" % len(fieldList)
         for oneField, oneAttr in zip(fieldList, attrList):
-            strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
+            if isinstance(oneAttr, float):
+                strFeatureInfo += "%s: %.0f\n" % (oneField.name(), oneAttr)
+            else:
+                strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
     def drawLaneHighlight(self, totalLaneCount, whichLane, arrowInfo):

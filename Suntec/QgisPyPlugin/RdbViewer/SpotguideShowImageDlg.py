@@ -31,7 +31,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         # then show the first feature's information only.
         if self.comboBoxSelectLink.count() <= 0:
             errMsg = '''Selected feature is not a rdb spotguide feature.'''
-            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg)
+            #QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg)
             self.comboBoxSelectLink.setEnabled(False)
             theFeature = self.mFeatureList[0]
             strFeatureInfo = self.getFeatureInfoString(theFeature)
@@ -53,7 +53,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         errMsg = ['']
         pattern_dat, arrow_dat = self.getSpotguidePictures(errMsg, self.mTheLayer, theFeature)
         if errMsg[0] != '':
-            QMessageBox.information(self, "Show Spotguide", errMsg[0])
+            #QMessageBox.information(self, "Show Spotguide", errMsg[0])
             return
         
         scene = QGraphicsScene()
@@ -105,7 +105,10 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         attrList = theFeature.attributes()
         strFeatureInfo = "field count: %d\n" % len(fieldList)
         for oneField, oneAttr in zip(fieldList, attrList):
-            strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
+            if isinstance(oneAttr, float):
+                strFeatureInfo += "%s: %.0f\n" % (oneField.name(), oneAttr)
+            else:
+                strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
     
     def comboBoxSelectLinkChanged(self, txt):

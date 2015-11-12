@@ -7,6 +7,7 @@ from qgis.core import QgsVectorLayer, QgsMapLayerRegistry, QgsDataSourceURI
 FeatureTypeList = \
 [
     """spotguide""",
+    """signpost""",
     """lane"""
 ]
 
@@ -61,15 +62,16 @@ class GenerateNewLayerDlg(QtGui.QDialog, FORM_CLASS):
             QMessageBox.information(self, "Generate New Layer", errMsg[0])
             return
         sqlcmd = ''
-
-        if featureType == """spotguide""":
+        
+        if featureType == FeatureTypeList[0]: # spotguide
             sqlcmd = \
 """
 drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, b.data as pattern_dat, c.data as arrow_dat, d.the_geom as the_geom
+    select a.*, b.data as pattern_dat, c.data as arrow_dat, 
+           st_union(array[d.the_geom, e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_spotguidepoint as a
     left join rdb_guideinfo_pic_blob_bytea as b
@@ -77,22 +79,53 @@ as
     left join rdb_guideinfo_pic_blob_bytea as c
     on a.arrow_id=c.gid
     left join rdb_node as d
-    on a.node_id=d.node_id);""" % (newLayerName, newLayerName)
-        elif  featureType == """lane""":
+    on a.node_id=d.node_id
+    left join rdb_link as e
+    on a.in_link_id=e.link_id
+    left join rdb_link as f
+    on a.out_link_id=f.link_id);""" % (newLayerName, newLayerName)
+        elif featureType == FeatureTypeList[1]: # signpost
             sqlcmd = \
 """
 drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, b.the_geom
+    select a.*, b.data as pattern_dat, c.data as arrow_dat, 
+           st_union(array[d.the_geom, e.the_geom, f.the_geom]) as the_geom
+    from 
+    rdb_guideinfo_signpost as a
+    left join rdb_guideinfo_pic_blob_bytea as b
+    on a.pattern_id=b.gid
+    left join rdb_guideinfo_pic_blob_bytea as c
+    on a.arrow_id=c.gid
+    left join rdb_node as d
+    on a.node_id=d.node_id
+    left join rdb_link as e
+    on a.in_link_id=e.link_id
+    left join rdb_link as f
+    on a.out_link_id=f.link_id);""" % (newLayerName, newLayerName)
+        elif  featureType == FeatureTypeList[2]: # lane
+            sqlcmd = \
+"""
+drop table if exists %s;
+create table %s 
+as 
+(
+    select a.*, st_union(array[b.the_geom, c.the_geom, d.the_geom]) as the_geom
     from
     rdb_guideinfo_lane as a
     left join rdb_node as b
-    on a.node_id=b.node_id);""" % (newLayerName, newLayerName)
+    on a.node_id=b.node_id
+    left join rdb_link as c
+    on a.in_link_id=c.link_id
+    left join rdb_link as d
+    on a.out_link_id=d.link_id);""" % (newLayerName, newLayerName)
         else:
             QMessageBox.information(self, "Generate New Layer", "error:\nnot spotguide or lane.")
             return
+
+        #-------------------------------------------------------------------------------------------------------
         try:
             conn = psycopg2.connect('''host='%s' dbname='%s' user='%s' password='%s' ''' %\
                 (host, dbname, user, password))
@@ -130,9 +163,11 @@ as
         return
     def comboBoxSelectFeatureChanged(self):
         featureType = self.comboBoxSelectFeature.currentText()
-        if featureType == """spotguide""":
+        if featureType == FeatureTypeList[0]:
             self.lineEditNewLayerName.setText("""temp_spotguide_nodes""")
-        elif featureType == """lane""":
+        elif featureType == FeatureTypeList[1]:
+            self.lineEditNewLayerName.setText("""temp_signpost_nodes""")
+        elif featureType == FeatureTypeList[2]:
             self.lineEditNewLayerName.setText("""temp_lane_nodes""")
         return
 
