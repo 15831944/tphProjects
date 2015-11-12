@@ -134,7 +134,14 @@ class comp_node_ta(component.component_base.comp_base):
                   LEFT JOIN temp_node_lid_nonref as c
                   ON a.id = c.node_id
             );
-        """
+            
+            create index temp_node_lid_node_id_idx
+                on temp_node_lid
+                using btree
+                (node_id);
+            
+            analyze temp_node_lid;
+            """
         
         if self.pg.execute2(sqlcmd) == -1:
             return -1

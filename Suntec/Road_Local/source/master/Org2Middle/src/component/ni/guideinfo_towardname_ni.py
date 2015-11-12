@@ -612,6 +612,7 @@ class comp_guideinfo_towardname_ni(component.component_base.comp_base):
     
     def __make_hw_towardname(self):
         self.__make_highway_name_all_language()
+        self.__make_toll_station_name_all_language()
         self.__make_hw_passlink()
         self.__make_hw_json_name()
         self.__make_temp_hw_towardname()

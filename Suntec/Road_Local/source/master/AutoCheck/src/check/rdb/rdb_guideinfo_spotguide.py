@@ -257,17 +257,21 @@ class CCheckGuideSpotguideIllustDayNightFlag(platform.TestCase.CTestCase):
     # 找出所有rdb_guideinfo_spotguidepoint表中pattern_id对应的二进制文件，检查它们的白天黑夜bit位。
     def _do(self):
         sqlcmd='''
-                select b.data from 
-                rdb_guideinfo_spotguidepoint as a
-                left join rdb_guideinfo_pic_blob_bytea as b
-                on a.pattern_id=b.gid
-                where a.type<>12
-                limit 10;
+select a.type, b.gid, b.data from
+(
+    select type, array_agg(distinct pattern_id) as pattern_id_list
+    from rdb_guideinfo_spotguidepoint
+    where type<>12
+    group by type
+) as a
+left join 
+rdb_guideinfo_pic_blob_bytea as b
+on a.pattern_id_list[1]=b.gid or a.pattern_id_list[array_upper(a.pattern_id_list, 1)]=b.gid;
                '''
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchall()
         for row in rows:
-            dayNightFlagList = self._parseDayNightFlag(row[0])
+            dayNightFlagList = self._parseDayNightFlag(row[2])
             for oneDayNightFlag in dayNightFlagList:
                 if oneDayNightFlag == 0 or oneDayNightFlag == 2: # 这些仕向地只应有一张白天图。
                     return False

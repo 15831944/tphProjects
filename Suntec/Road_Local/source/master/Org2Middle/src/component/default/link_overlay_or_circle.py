@@ -338,10 +338,12 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
         sqlcmd = """
                 insert into node_tbl(
                     node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,
-                    org_boundary_flag,tile_boundary_flag,mainnodeid,node_lid,node_name,the_geom)
+                    org_boundary_flag,tile_boundary_flag,mainnodeid,node_lid,
+                    node_name,feature_string,feature_key,the_geom)
                 select node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,
                     org_boundary_flag,tile_boundary_flag,mainnodeid,
-                    array_to_string(array_agg(conne_link),'|') as node_lid,node_name,the_geom
+                    array_to_string(array_agg(conne_link),'|') as node_lid,
+                    node_name,feature_string,feature_key,the_geom
                 from (
                     select  a.node_id,
                         a.kind,
@@ -354,19 +356,21 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                         a.mainnodeid,
                         case when b.aid is not null then b.bid else a.conne_link end as conne_link,
                         a.node_name,
+                        a.feature_string,
+                        a.feature_key,
                         a.the_geom
                     from (
                             select node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,
                             org_boundary_flag,tile_boundary_flag,mainnodeid,
                             cast(unnest(string_to_array(node_lid,'|')) as bigint) as conne_link,
-                            node_name,the_geom
+                            node_name,feature_string,feature_key,the_geom
                             from node_tbl_bak_dupli_dealing
                      ) a
                     left join temp_dupli_link b
                     on a.conne_link = b.aid
                 ) c
                 group by node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,
-                org_boundary_flag,tile_boundary_flag,mainnodeid,node_name,the_geom;
+                org_boundary_flag,tile_boundary_flag,mainnodeid,node_name,feature_string,feature_key,the_geom;
            """
 
         self.pg.execute2(sqlcmd)
@@ -718,7 +722,7 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                         one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number,
                         name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish,
                         access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi,
-                        display_class, fazm, tazm, the_geom
+                        display_class, fazm, tazm, feature_string, feature_key, the_geom
                     )
                     (
                         select  b.link_id, a.iso_country_code, b.tile_id, b.s_node, b.e_node, link_type, road_type, toll, speed_class, ST_Length_Spheroid(b.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length,
@@ -727,7 +731,7 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                                 one_way_code, one_way_condition, pass_code, pass_code_condition, road_name, road_number,
                                 name_type, ownership, car_only, slope_code, slope_angle, disobey_flag, up_down_distinguish,
                                 access, extend_flag, etc_only_flag, bypass_flag, matching_flag, highcost_flag, ipd, urban, erp, rodizio, soi,
-                                display_class, mid_cal_zm(b.the_geom, 1) as fazm, mid_cal_zm(b.the_geom, -1) as tazm,
+                                display_class, mid_cal_zm(b.the_geom, 1) as fazm, mid_cal_zm(b.the_geom, -1) as tazm, feature_string, feature_key,
                                 b.the_geom as the_geom
                         from link_tbl as a
                         inner join temp_circle_link_new_seq_link as b
@@ -752,17 +756,20 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
 
         sqlcmd = """
             insert into node_tbl (node_id, kind, light_flag,stopsign_flag, toll_flag, bifurcation_flag,
-                mainnodeid, node_lid, node_name, the_geom )
+                mainnodeid, node_lid, node_name, feature_string, feature_key, the_geom )
             select node_id,null as kind,null as light_flag,null as stopsign_flag,
                 null as toll_flag,null as bifurcation_flag,0 as mainnodeid,
-                array_to_string(array_agg(link_id),'|'), null as node_name,the_geom 
+                array_to_string(array_agg(link_id),'|'), null as node_name, 
+                old_link_id::varchar as feature_string,
+                md5(old_link_id::varchar) as feature_key,
+                the_geom 
             from (
-                select e_node as node_id,link_id  as link_id, e_geom as the_geom
+                select e_node as node_id,link_id, old_link_id, e_geom as the_geom
                     from temp_circle_link_new_seq_link where sub_index = 1
                 union
-                select s_node as node_id,link_id  as link_id, e_geom as the_geom
+                select s_node as node_id,link_id, old_link_id, e_geom as the_geom
                     from temp_circle_link_new_seq_link where sub_index = 2
-            ) a group by node_id,the_geom;
+            ) a group by node_id, old_link_id, the_geom;
            """
 
         self.pg.execute2(sqlcmd)

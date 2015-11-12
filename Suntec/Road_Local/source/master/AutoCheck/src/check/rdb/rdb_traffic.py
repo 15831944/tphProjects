@@ -115,6 +115,7 @@ class CCheckLocationTable_name(platform.TestCase.CTestCase):
                 """
             datas = self.pg.get_batch_data(sqlcmd) 
     
+            count_all = 0
             count_road = 0
             count_first = 0
             
@@ -127,6 +128,7 @@ class CCheckLocationTable_name(platform.TestCase.CTestCase):
     
                     val_road = one_name_info_road.get('val')
                     
+                    count_all += 1
                     if val_road is None or val_road == '':
                             count_road = count_road + 1
     #                        self.logger.error("roadname: null")
@@ -141,8 +143,8 @@ class CCheckLocationTable_name(platform.TestCase.CTestCase):
                             count_first = count_first + 1
     #                        self.logger.error("firstname: null")
     #                        return 0
-     
-            if count_road > 100 or count_first > 100:
+
+            if (count_road * 1.0)/count_all > 0.05 or (count_first* 1.0/count_all) > 0.05:
                 self.logger.error("too much: roadname is null or firstname is null. roadname is null:%d, firstname is null:%d" % (count_road,count_first))
                 return 0
             
