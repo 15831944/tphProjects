@@ -1511,9 +1511,7 @@ BEGIN
 	
     FOR rec IN
     
-		select	array_condid,
-				linkid_array,
-				jnctid
+		select DISTINCT array_condid, linkid_array, jnctid
 		from
 		(
     		select condition_id, jnctid, array_agg(cond_id) as array_condid

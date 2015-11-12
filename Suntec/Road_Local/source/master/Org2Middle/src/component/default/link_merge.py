@@ -22,7 +22,8 @@ class comp_link_merge(component.component_base.comp_base):
         self.__searchLinkrow()
         self.__mergeLinkrow()
         self.__updateLinkNode()
-        self.__updateReletedTables()
+        self.__updateGuideTables()
+        self.__updateRegulation()
         self.__update_park_merge()
         self.__update_height()
         self.__updateStopSign()
@@ -250,9 +251,7 @@ class comp_link_merge(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
     
-    def __updateReletedTables(self):
-        self.log.info('Update related tables...')
-        
+    def __updateGuideTables(self):
         # update guide information
         self.log.info('Update guide information start ...')
         
@@ -289,7 +288,7 @@ class comp_link_merge(component.component_base.comp_base):
                                 -- construct passlinks
                                 select  gid,  
                                     case when passlink_cnt = 0 then ARRAY[inlinkid, outlinkid]
-                                    else ARRAY[inlinkid] || cast(regexp_split_to_array(passlid, E'\\\\|+') as bigint[]) || ARRAY[outlinkid]
+                                    else ARRAY[inlinkid] || cast(string_to_array(passlid, '|') as bigint[]) || ARRAY[outlinkid]
                                     end as all_links, 
                                     (passlink_cnt + 2 ) as all_links_cnt
                                 from [the_guide_tbl]
@@ -364,9 +363,97 @@ class comp_link_merge(component.component_base.comp_base):
             self.pg.commit2()
             
         self.log.info('Update guide information end ...')
-        
-        self.log.info('Update related tables end.')
         return 0
+    
+    def __updateRegulation(self):
+        self.log.info('updating regulation...')
+        
+        #
+        self.CreateTable2('regulation_relation_tbl_bak_merge')
+        self.CreateIndex2('regulation_relation_tbl_bak_merge_regulation_id_idx')
+        self.CreateTable2('regulation_item_tbl_bak_merge')
+        self.CreateIndex2('regulation_item_tbl_bak_merge_regulation_id_idx')
+        self.CreateIndex2('regulation_item_tbl_bak_merge_linkid_idx')
+        
+        #
+        self.CreateTable2('temp_merge_update_linkrow_regulation')
+        self.CreateIndex2('temp_merge_update_linkrow_regulation_regulation_id_idx')
+        
+        self.CreateTable2('regulation_relation_tbl')
+        self.CreateFunction2('mid_construct_substitude_link_array')
+        sqlcmd = """
+                    insert into regulation_relation_tbl
+                                (regulation_id, nodeid, inlinkid, outlinkid, condtype, is_seasonal, cond_id, gatetype, slope)
+                    (
+                        select a.regulation_id, a.nodeid, a.inlinkid, a.outlinkid, condtype, is_seasonal, cond_id, gatetype, slope
+                        from regulation_relation_tbl_bak_merge as a
+                        left join temp_merge_update_linkrow_regulation as b
+                        on a.regulation_id = b.regulation_id
+                        where b.regulation_id is null
+                    );
+                    
+                    insert into regulation_relation_tbl
+                                (regulation_id, nodeid, inlinkid, outlinkid, condtype, is_seasonal, cond_id, gatetype, slope)
+                    (
+                        select a.regulation_id, a.nodeid, b.inlinkid, b.outlinkid, condtype, is_seasonal, cond_id, gatetype, slope
+                        from regulation_relation_tbl_bak_merge as a
+                        inner join temp_merge_update_linkrow_regulation as b
+                        on a.regulation_id = b.regulation_id
+                    );
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        self.CreateTable2('regulation_item_tbl')
+        sqlcmd = """
+                    insert into regulation_item_tbl
+                                (regulation_id, linkid, nodeid, seq_num)
+                    (
+                        select a.regulation_id, a.linkid, a.nodeid, a.seq_num
+                        from regulation_item_tbl_bak_merge as a
+                        left join temp_merge_update_linkrow_regulation as b
+                        on a.regulation_id = b.regulation_id
+                        where b.regulation_id is null
+                        order by a.regulation_id, a.seq_num
+                    );
+                    
+                    insert into regulation_item_tbl
+                                (regulation_id, linkid, nodeid, seq_num)
+                    (
+                        select  regulation_id, 
+                                (
+                                case 
+                                when seq_num = 1 then link_array[1]
+                                when seq_num = 2 then null
+                                else link_array[seq_num - 1]
+                                end
+                                )as linkid,
+                                (
+                                case
+                                when seq_num = 2 then nodeid
+                                else null
+                                end
+                                )as nodeid,
+                                seq_num
+                        from
+                        (
+                            select regulation_id, nodeid, link_array, generate_series(1,seq_count) as seq_num
+                            from
+                            (
+                                select  a.regulation_id, b.nodeid, b.link_array, 
+                                        (case when b.link_num = 1 then 1 else link_num + 1 end) as seq_count
+                                from (select * from regulation_item_tbl_bak_merge where seq_num = 1) as a
+                                inner join temp_merge_update_linkrow_regulation as b
+                                on a.regulation_id = b.regulation_id
+                            )as c
+                        )as d
+                        order by regulation_id, seq_num
+                    );
+                """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        
+        self.log.info('updating regulation end.')
     
     def __update_park_merge(self):
         self.log.info('start update park for merge')

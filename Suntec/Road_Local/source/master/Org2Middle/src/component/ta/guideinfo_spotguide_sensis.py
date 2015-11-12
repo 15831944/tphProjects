@@ -5,6 +5,8 @@ Created on 2012-9-17
 @author: zhangliang
 '''
 
+import common.common_func
+
 from component.default.guideinfo_spotguide import comp_guideinfo_spotguide
 jv_map = {0:'left',
           1:'straight',
@@ -109,7 +111,8 @@ class comp_guideinfo_spotguide_sensis(comp_guideinfo_spotguide):
         self.pg.execute(sqlcmd)
         self.pg.commit()
         
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         return 0
 
     def _extend_jv_records(self):

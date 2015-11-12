@@ -451,6 +451,46 @@ as
 		union
 		select node_id
 		from temp_region_node_upgrade
+		
+		-- regulation node of turn restriction
+		union
+		select  distinct 
+				case 
+				when snode_array[1] in (snode_array[2], enode_array[2]) then snode_array[1]
+				else enode_array[1]
+				end
+		from
+		(
+			select	record_no,
+					array_agg(start_node_id) as snode_array,
+					array_agg(end_node_id) as enode_array
+			from
+			(
+				select	a.record_no, a.seq,
+						(case when b.link_id is not null then b.link_id else 0 end) as link_id,
+						b.start_node_id, 
+						b.end_node_id
+				from
+				(
+					select	record_no, link_array, generate_series(1, link_num) as seq
+					from
+					(
+						select	record_no, link_num, 
+								string_to_array(key_string, ',')::bigint[] as link_array
+						from rdb_link_regulation
+						where	(link_num > 1)
+								and
+								not (link_num = 2 and first_link_id = last_link_id)
+					)as a
+				)as a
+				left join temp_region_links as b
+				on a.link_array[a.seq] = b.link_id
+				order by a.record_no, a.seq
+			)as m
+			group by record_no
+			having not (0 = ANY(array_agg(link_id)))
+		)as n
+		
 	)as t
 );
 
@@ -507,7 +547,7 @@ as
 					where link_num = 2 and last_link_id = first_link_id
 				)as b
 				on a.record_no = b.record_no
-				where b.record_no is null
+				where a.link_num = 1 and b.record_no is null
 			)as t1
 		)as t2
 	)as t3
@@ -950,23 +990,39 @@ as
 create table temp_region_merge_regulation
 as
 (
-	select	record_no, regulation_id, regulation_type, is_seasonal, first_link_id, first_link_id_t, 
-			last_link_id, last_link_dir, last_link_id_t, link_num, array_to_string(link_array, ',') as key_string
+	select	record_no, regulation_id, regulation_type, is_seasonal, link_num, 
+			link_array[1] as first_link_id, 
+			tile_array[1] as first_link_id_t, 
+			link_array[link_num] as last_link_id, 
+			tile_array[link_num] as last_link_id_t, 
+			(
+			case 
+			when linkdir_array[link_num] then last_link_dir 
+			when last_link_dir = 0 then 0
+			when last_link_dir = 1 then 2
+			when last_link_dir = 2 then 1
+			end
+			) as last_link_dir, 
+			array_to_string(rdb_region_map_linkrow(old_link_array, link_array), ',') as key_string
 	from
 	(
-		select	record_no, regulation_id, regulation_type, is_seasonal, first_link_id, first_link_id_t, 
-				last_link_id, last_link_dir, last_link_id_t, link_num, array_agg(link_id) as link_array
+		select	record_no, regulation_id, regulation_type, is_seasonal, last_link_dir, link_num, 
+				array_agg(old_link_id) as old_link_array,
+				array_agg(link_id) as link_array,
+				array_agg(region_tile_id) as tile_array,
+				array_agg(link_dir) as linkdir_array
 		from
 		(
-			select	record_no, regulation_id, regulation_type, is_seasonal, 
-					first_link_id, first_link_id_t, last_link_id, last_link_dir, last_link_id_t, 
-					link_num, link_index, link_id
+			select	record_no, regulation_id, regulation_type, is_seasonal, last_link_dir,
+					link_num, link_index, old_link_id, region_tile_id, link_id, link_dir
 			from
 			(
-				select	record_no, regulation_id, regulation_type, is_seasonal, 
-						c.link_id as first_link_id, c.region_tile_id as first_link_id_t, 
-						d.link_id as last_link_id, last_link_dir, d.region_tile_id as last_link_id_t, 
-						link_num, link_index, (case when b.link_id is null then 0 else b.link_id end) as link_id
+				select	record_no, regulation_id, regulation_type, is_seasonal, last_link_dir,
+						a.link_num, link_index, 
+						a.link_id as old_link_id, 
+						c.region_tile_id,
+						(case when c.link_id is null then 0 else c.link_id end) as link_id,
+						(case when b.link_dir is null then True else b.link_dir end) as link_dir
 				from
 				(
 					select	record_no, regulation_id, regulation_type, is_seasonal, 
@@ -976,7 +1032,7 @@ as
 					(
 						select 	record_no, regulation_id, regulation_type, is_seasonal, link_num, 
 								first_link_id, first_link_id_t, last_link_id, last_link_dir, last_link_id_t, 
-					       		cast(regexp_split_to_array(key_string, E'\\,+') as bigint[]) as link_array,
+					       		cast(string_to_array(key_string, ',') as bigint[]) as link_array,
 					       		generate_series(1,link_num) as link_index
 						from 
 						(
@@ -993,18 +1049,14 @@ as
 						where a.regulation_id = 0 or b.keep_regulation_id is not null
 					)as t
 				)as a
-				left join temp_region_merge_linkid_mapping as b
-				on a.link_id = b.old_link_id
+				left join temp_region_merge_link_mapping as b
+				on a.link_id = b.link_id
 				left join temp_region_merge_linkid_mapping as c
-				on a.first_link_id = c.old_link_id
-				left join temp_region_merge_linkid_mapping as d
-				on a.last_link_id = d.old_link_id
+				on a.link_id = c.old_link_id or b.proxy_link_id = c.old_link_id
 			)as a
-			order by record_no, regulation_id, regulation_type, is_seasonal, first_link_id, first_link_id_t, 
-					 last_link_id, last_link_dir, last_link_id_t, link_num, link_index
+			order by record_no, regulation_id, regulation_type, is_seasonal, last_link_dir, link_num, link_index
 		)as b
-		group by record_no, regulation_id, regulation_type, is_seasonal, first_link_id, first_link_id_t, 
-				 last_link_id, last_link_dir, last_link_id_t, link_num
+		group by record_no, regulation_id, regulation_type, is_seasonal, last_link_dir, link_num
 	)as c
 	where not (0 = ANY(link_array))
 );

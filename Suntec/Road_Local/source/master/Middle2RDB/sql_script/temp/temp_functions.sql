@@ -1009,3 +1009,40 @@ BEGIN
 	return target_tile_id;
 END;
 $$;
+
+create or replace function rdb_region_map_linkrow(old_link_array bigint[], new_link_array bigint[])
+RETURNS bigint[]
+LANGUAGE plpgsql
+AS $$ 
+DECLARE
+	new_overlay_link_array bigint[];
+	old_link_cnt int;
+	nindex int;
+	current_old_link_id bigint;
+	current_new_link_id bigint;
+BEGIN
+	current_old_link_id := 0;
+	current_new_link_id := 0;
+	
+	old_link_cnt := array_upper(old_link_array,1);
+	
+	if old_link_cnt <= 2 then 
+		return new_link_array;
+	end if;
+
+	for nindex in 1..old_link_cnt loop
+		if current_new_link_id <> new_link_array[nindex] then
+			new_overlay_link_array = array_append(new_overlay_link_array, new_link_array[nindex]);
+		else
+			if old_link_array[nindex] = current_old_link_id then
+				new_overlay_link_array = array_append(new_overlay_link_array, new_link_array[nindex]);
+			end if;
+		end if;
+		
+		current_old_link_id := old_link_array[nindex];
+		current_new_link_id := new_link_array[nindex];
+	end loop;
+	
+	return new_overlay_link_array;
+END;
+$$;

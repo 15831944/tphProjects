@@ -792,6 +792,7 @@ class rdb_region(ItemBase):
         self.__dispatchAbsLinkID()
         
         #
+        self.CreateFunction2('rdb_region_map_linkrow')
         self.CreateTable2('temp_region_merge_links')
         self.CreateTable2('temp_region_merge_nodes')
         self.CreateTable2('temp_region_merge_regulation')

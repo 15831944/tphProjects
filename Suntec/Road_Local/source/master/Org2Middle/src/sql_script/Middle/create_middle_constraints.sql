@@ -572,6 +572,26 @@ CREATE INDEX node_tbl_bak_splitting_node_id_idx
   USING btree
   (node_id);
 
+CREATE INDEX regulation_relation_tbl_bak_merge_regulation_id_idx
+  ON regulation_relation_tbl_bak_merge
+  USING btree
+  (regulation_id);
+
+CREATE INDEX regulation_item_tbl_bak_merge_regulation_id_idx
+  ON regulation_item_tbl_bak_merge
+  USING btree
+  (regulation_id);
+
+CREATE INDEX regulation_item_tbl_bak_merge_linkid_idx
+  ON regulation_item_tbl_bak_merge
+  USING btree
+  (linkid);
+
+CREATE INDEX temp_merge_update_linkrow_regulation_regulation_id_idx
+  ON temp_merge_update_linkrow_regulation
+  USING btree
+  (regulation_id);
+
 CREATE INDEX temp_move_shortlink_link_id_idx
   ON temp_move_shortlink
   USING btree

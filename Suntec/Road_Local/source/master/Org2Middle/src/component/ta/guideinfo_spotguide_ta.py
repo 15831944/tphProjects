@@ -72,7 +72,8 @@ class comp_guideinfo_spotguide_ta(comp_guideinfo_spotguide):
                 self.__Importjv2db()
                 self.__MakeMiddleSpotGuide()
 
-        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self)
+        tollIllustName = common.common_func.GetPath('toll_station_illust')
+        comp_guideinfo_spotguide._GenerateSpotguideTblForTollStation(self, tollIllustName)
         return 0
 
     def __MakeMiddleSpotGuide(self):

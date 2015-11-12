@@ -443,6 +443,10 @@ as
 	select s_node from link_tbl where erp in (1,2)
 	union
 	select e_node from link_tbl where erp in (1,3)
+	union
+	select nodeid
+	from regulation_item_tbl
+	where nodeid is not null
 );
 
 create table temp_merge_link_keep
@@ -451,8 +455,9 @@ as
 	select distinct link_id
 	from
 	(
-		select linkid as link_id
-		from regulation_item_tbl
+		select inlinkid as link_id
+		from regulation_relation_tbl
+		where outlinkid is null
 		
 		union
 		
@@ -1119,6 +1124,70 @@ as
 	select * from node_tbl
 );
 
+-- backup table for merging link
+CREATE TABLE regulation_relation_tbl_bak_merge
+as
+(
+	select * from regulation_relation_tbl
+);
+
+CREATE TABLE regulation_item_tbl_bak_merge
+as
+(
+	select * from regulation_item_tbl
+);
+
+create table temp_merge_update_linkrow_regulation
+as
+(
+	select  regulation_id, 
+			nodeid, 
+			link_array[1] as inlinkid, 
+			(case when link_num = 1 then null else link_array[link_num] end) as outlinkid, 
+			link_num, 
+			link_array
+	from
+	(
+		select  regulation_id, nodeid, link_array, array_upper(link_array, 1) as link_num
+		from
+		(
+			select  regulation_id, nodeid, 
+					mid_construct_substitude_link_array(old_link_array, new_link_array) as link_array
+			from
+			(
+				select 	regulation_id, 
+						nodeid,
+						array_agg(old_link_id) as old_link_array,
+						array_agg(new_link_id) as new_link_array
+				from
+				(
+					select 	a.regulation_id, b.nodeid, c.seq_num, 
+							c.linkid as old_link_id,
+							(case when d.link_id is not null then d.link_id else c.linkid end) as new_link_id 
+					from
+					(
+						select distinct a.regulation_id
+						from regulation_item_tbl_bak_merge as a
+						inner join temp_merge_link_mapping as b
+						on a.linkid = b.merge_link_id
+					)as a
+					inner join 
+					(
+						select distinct regulation_id, nodeid
+						from regulation_relation_tbl_bak_merge
+					)as b
+					on a.regulation_id = b.regulation_id
+					inner join regulation_item_tbl_bak_merge as c
+					on a.regulation_id = c.regulation_id and c.seq_num != 2
+					left join temp_merge_link_mapping as d
+					on c.linkid = d.merge_link_id
+					order by c.regulation_id, b.nodeid, c.seq_num
+				)as a
+				group by regulation_id, nodeid
+			)as b
+		)as c
+	)as d
+);
 
 create table temp_move_shortlink
 as

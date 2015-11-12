@@ -5535,7 +5535,7 @@ BEGIN
 			condtype IS NOT DISTINCT FROM rec.condtype and 
 			cond_id IS NOT DISTINCT FROM rec.cond_id;
 		
-		IF FOUND THEN
+		IF FOUND and (exist_regulation_id IS NOT NULL) THEN
 			exist_regulation_id_len := array_upper(exist_regulation_id, 1);
 			FOR exist_regulation_id_idx IN 1..exist_regulation_id_len LOOP
 				SELECT array_agg(linkid)::varchar INTO exist_linkids
