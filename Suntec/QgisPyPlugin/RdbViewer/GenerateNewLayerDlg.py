@@ -70,7 +70,8 @@ drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, b.data as pattern_dat, c.data as arrow_dat, 
+    select a.*, b.image_id as pattern_name, b.data as pattern_dat, 
+           c.image_id as arrow_name, c.data as arrow_dat, 
            st_union(array[d.the_geom, e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_spotguidepoint as a
@@ -91,7 +92,8 @@ drop table if exists %s;
 create table %s 
 as 
 (
-    select a.*, b.data as pattern_dat, c.data as arrow_dat, 
+    select a.*, b.image_id as pattern_name, b.data as pattern_dat, 
+           c.image_id as arrow_name, c.data as arrow_dat, 
            st_union(array[d.the_geom, e.the_geom, f.the_geom]) as the_geom
     from 
     rdb_guideinfo_signpost as a

@@ -16,7 +16,7 @@
   <widget class="QSplitter" name="splitter">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>490</x>
      <y>470</y>
      <width>161</width>
      <height>31</height>
@@ -50,7 +50,7 @@
      <x>430</x>
      <y>40</y>
      <width>221</width>
-     <height>411</height>
+     <height>391</height>
     </rect>
    </property>
    <property name="readOnly">
@@ -63,6 +63,42 @@
      <x>430</x>
      <y>10</y>
      <width>221</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonNext">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>440</y>
+     <width>61</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Next</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButtonPrev">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>440</y>
+     <width>61</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Prev</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="spinBoxFeatureIndex">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>440</y>
+     <width>81</width>
      <height>22</height>
     </rect>
    </property>

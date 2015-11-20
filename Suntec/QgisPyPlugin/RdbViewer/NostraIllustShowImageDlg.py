@@ -17,12 +17,12 @@ class NostraIllustShowImageDlg(QtGui.QDialog, FORM_CLASS):
             return
         super(NostraIllustShowImageDlg, self).__init__(parent)
         self.setupUi(self)
-        self.mCanvas = theCanvas
+        self.mTheCanvas = theCanvas
         self.mTheLayer = theLayer
-        self.mFeatureList = selectedFeatureList
-        self.mFeatureIds = self.mTheLayer.allFeatureIds()
+        self.mSelectedFeatureList = selectedFeatureList
+        self.mAllFeatureIds = self.mTheLayer.allFeatureIds()
 
-        for oneFeature in self.mFeatureList:
+        for oneFeature in self.mSelectedFeatureList:
             fieldList = oneFeature.fields()
             attrList = oneFeature.attributes()
             for oneField, oneAttr in zip(fieldList, attrList):
@@ -35,22 +35,22 @@ class NostraIllustShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         self.connect(self.pushButtonNext, 
                      QtCore.SIGNAL('clicked()'), 
-                     self.pushButonNextClicked)
+                     self.onPushButtonNext)
 
         self.connect(self.pushButtonShow, 
                      QtCore.SIGNAL('clicked()'), 
-                     self.pushButonShowClicked)
+                     self.onPushButtonShow)
 
         self.comboBoxSelectArc2.setFocus()
-        self.showFeatureDetail(self.mFeatureList[0])
-        self.spinBoxCurId.setMaximum(len(self.mFeatureIds)-1)
+        self.showFeatureDetail(self.mSelectedFeatureList[0])
+        self.spinBoxCurId.setMaximum(len(self.mAllFeatureIds)-1)
         self.spinBoxCurId.setMinimum(0)
         self.spinBoxCurId.setValue(0)
         return
 
     def comboBoxSelectLinkChanged(self, txt):
         inti = self.comboBoxSelectArc2.currentIndex()
-        theFeature = self.mFeatureList[inti]
+        theFeature = self.mSelectedFeatureList[inti]
         self.showFeatureDetail(theFeature)
         return
 
@@ -78,7 +78,7 @@ class NostraIllustShowImageDlg(QtGui.QDialog, FORM_CLASS):
 
         # update the feature info textbox
         strFeatureInfo = self.getFeatureInfoString(theFeature)
-        self.textEditFeatureInfo.setText('feature count: %s\n%s' % (len(self.mFeatureList), strFeatureInfo))
+        self.textEditFeatureInfo.setText('feature count: %s\n%s' % (len(self.mSelectedFeatureList), strFeatureInfo))
         return
 
     def getFeatureInfoString(self, theFeature):
@@ -92,24 +92,24 @@ class NostraIllustShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
-    def pushButonNextClicked(self):
+    def onPushButtonNext(self):
         self.spinBoxCurId.setValue(self.spinBoxCurId.value()+1)
-        nextFeatureId = self.mFeatureIds[self.spinBoxCurId.value()]
+        nextFeatureId = self.mAllFeatureIds[self.spinBoxCurId.value()]
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(nextFeatureId)
         theFeature = self.mTheLayer.selectedFeatures()[0]
         self.showFeatureDetail(theFeature)
-        center = self.mCanvas.zoomToSelected(self.mTheLayer)
-        self.mCanvas.refresh()
+        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+        self.mTheCanvas.refresh()
         return
 
-    def pushButonShowClicked(self):
-        theFeatureId = self.mFeatureIds[self.spinBoxCurId.value()]
+    def onPushButtonShow(self):
+        theFeatureId = self.mAllFeatureIds[self.spinBoxCurId.value()]
         self.mTheLayer.removeSelection()
         self.mTheLayer.select(theFeatureId)
         theFeature = self.mTheLayer.selectedFeatures()[0]
         self.showFeatureDetail(theFeature)
-        center = self.mCanvas.zoomToSelected(self.mTheLayer)
-        self.mCanvas.refresh()
+        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+        self.mTheCanvas.refresh()
         return
     

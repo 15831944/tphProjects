@@ -6,50 +6,62 @@ from MyDatParser import MyDatParser
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap, QGraphicsPixmapItem, QPainter, QPen, QColor
 from PyQt4.QtCore import QRectF
-from qgis.core import QgsDataSourceURI
+from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'SpotguideShowImageDlgDesign.ui'))
 
 class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
-    def __init__(self, theLayer, selectedFeatureList, parent=None):
-        if(len(selectedFeatureList) == 0):
-            QMessageBox.information(self, "Show Spotguide", """No feature selected.""")
-            return
+
+    def __init__(self, theCanvas, theLayer, parent=None):
         super(SpotguideShowImageDlg, self).__init__(parent)
         self.setupUi(self)
+        self.mTheCanvas = theCanvas
         self.mTheLayer = theLayer
-        self.mFeatureList = selectedFeatureList
-        for oneFeature in self.mFeatureList:
-            fieldList = oneFeature.fields()
-            attrList = oneFeature.attributes()
-            for oneField, oneAttr in zip(fieldList, attrList):
-                if(oneField.name() == 'out_link_id'):
-                    self.comboBoxSelectLink.addItem(str(oneAttr))
+        self.mAllFeatureIds = []
 
-        # no feature has a 'out_link_id'
-        # then show the first feature's information only.
-        if self.comboBoxSelectLink.count() <= 0:
-            errMsg = '''Selected feature is not a rdb spotguide feature.'''
-            #QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg)
-            self.comboBoxSelectLink.setEnabled(False)
-            theFeature = self.mFeatureList[0]
-            strFeatureInfo = self.getFeatureInfoString(theFeature)
-            self.textEditFeatureInfo.setText(strFeatureInfo)
-            return
+        featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
+        inti = 0
+        theFeature = QgsFeature()
+        while(featureIter.nextFeature(theFeature) and inti<512):
+            inti += 1
+            self.mAllFeatureIds.append(theFeature.id())
+        self.spinBoxFeatureIndex.setValue(1)
+        self.spinBoxFeatureIndex.setMinimum(1)
+        self.spinBoxFeatureIndex.setMaximum(inti)
 
-        self.selectFeatureByComboIdx(0)
+        errMsg = ['']
+        self.initComboBoxSelectLink()
+
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         self.comboBoxSelectLink.setFocus()
 
-        self.connect(self.comboBoxSelectLink, 
-                     QtCore.SIGNAL('activated(QString)'), 
-                     self.comboBoxSelectLinkChanged)
+        self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
+        self.pushButtonNext.clicked.connect(self.onPushButtonNext)
+        self.connect(self.comboBoxSelectLink, QtCore.SIGNAL('activated(QString)'), self.comboBoxSelectLinkChanged)
 
-    def selectFeatureByComboIdx(self, comboIdx):
-        theFeature = self.mFeatureList[comboIdx]
+
+    def disableAllControls(self):
+        self.pushButtonPrev.setEnabled(False)
+        self.pushButtonPrev.setEnabled(False)
+        self.comboBoxSelectLink.setEnabled(False)
+        self.textEditFeatureInfo.setEnabled(False)
+        return
+
+    def initComboBoxSelectLink(self):
+        while(self.comboBoxSelectLink.count() > 0):
+            self.comboBoxSelectLink.removeItem(0)
+        for oneFeature in self.mTheLayer.selectedFeatures():
+            if self.isSpotguideFeature(oneFeature):
+                self.comboBoxSelectLink.addItem("%.0f" % oneFeature.attribute('out_link_id'))
+
+
+    def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
         self.textEditFeatureInfo.setText(strFeatureInfo)
-        
+        if self.isSpotguideFeature(theFeature) == False:
+            return
+
         errMsg = ['']
         pattern_dat, arrow_dat = self.getSpotguidePictures(errMsg, self.mTheLayer, theFeature)
         if errMsg[0] != '':
@@ -110,12 +122,7 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
             else:
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
-    
-    def comboBoxSelectLinkChanged(self, txt):
-        inti = self.comboBoxSelectLink.currentIndex()
-        self.selectFeatureByComboIdx(inti)
-        return
-    
+
     # make sure errMsg is a 'string array' which has at least one element.
     def removeAllLayersWithSpecName(self, errMsg, specLayerName):
         layerList = QgsMapLayerRegistry.instance().mapLayersByName(specLayerName)
@@ -161,5 +168,67 @@ where %s
         except Exception, ex:
             errMsg[0] = ex.message
             return None, None
+
+    def comboBoxSelectLinkChanged(self, txt):
+        errMsg = ['']
+        inti = self.comboBoxSelectLink.currentIndex()
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[inti])
+        return
+
+    def onPushButtonPrev(self):
+        self.spinBoxFeatureIndex.setValue(self.spinBoxFeatureIndex.value()-1)
+        prevFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
+        self.mTheLayer.removeSelection()
+        self.mTheLayer.select(prevFeatureId)
+        self.initComboBoxSelectLink()
+
+        errMsg = ['']
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        self.comboBoxSelectLink.setFocus()
+        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+        self.mTheCanvas.refresh()
+        return
+
+    def onPushButtonNext(self):
+        self.spinBoxFeatureIndex.setValue(self.spinBoxFeatureIndex.value()+1)
+        nextFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
+        self.mTheLayer.removeSelection()
+        self.mTheLayer.select(nextFeatureId)
+        self.initComboBoxSelectLink()
+
+        errMsg = ['']
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        self.comboBoxSelectLink.setFocus()
+        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+        self.mTheCanvas.refresh()
+        return
+
+    def isSpotguideFeature(self, theFeature):
+        try:
+            gid = theFeature.attribute('gid')
+            in_link_id = theFeature.attribute('in_link_id')
+            in_link_id_t = theFeature.attribute('in_link_id_t')
+            node_id = theFeature.attribute('node_id')
+            node_id_t = theFeature.attribute('node_id_t')
+            out_link_id = theFeature.attribute('out_link_id')
+            out_link_id_t = theFeature.attribute('out_link_id_t')
+            type = theFeature.attribute('type')
+            passlink_count = theFeature.attribute('passlink_count')
+            pattern_id = theFeature.attribute('pattern_id')
+            arrow_id = theFeature.attribute('arrow_id')
+            is_exist_sar = theFeature.attribute('is_exist_sar')
+            order_id = theFeature.attribute('order_id')
+            pattern_name = theFeature.attribute('pattern_name')
+            arrow_name = theFeature.attribute('arrow_name')
+        except KeyError, kErr:
+            return False
+        except Exception, ex:
+            return False
+        return True
+
+
+
+
+
 
 

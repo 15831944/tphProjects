@@ -53,13 +53,12 @@ class SpotguideMapTool(QgsMapTool):
                 self.mCanvas.refresh()
         else: # select the features
             self.removeAllSelection()
-            featureList = []
             featureIdList = []
             for oneResult in resultList:
-                featureList.append(oneResult.mFeature)
                 featureIdList.append(oneResult.mFeature.id())
             theLayer.select(featureIdList)
-            dlg = SpotguideShowImageDlg(theLayer, featureList)
+            dlg = SpotguideShowImageDlg(self.mCanvas, theLayer)
+            dlg.show()
             result = dlg.exec_()
             if result:
                 pass
