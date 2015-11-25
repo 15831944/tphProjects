@@ -208,10 +208,10 @@ void CDialogSingleDatView::OnDropFiles(HDROP hDropInfo)
         {
             GetDlgItem(IDC_BTN_NEXTDAT)->EnableWindow(TRUE);
         }
-        return;
     }
     DragFinish(hDropInfo);
     CDialog::OnDropFiles(hDropInfo);
+    return;
 }
 
 void CDialogSingleDatView::SetCurShowPic(short iIdx)
@@ -248,7 +248,23 @@ void CDialogSingleDatView::LoadBmpFromDatDataByIndex(short iIdx)
             pTemp = NULL;
             return;
         }
-
+        // this dat file contains a pointlist, now show it all the same.
+        if(m_datParser.HasPointlist())
+        {
+            std::vector<short> vecCoor = 
+                m_datParser.GetPointCoordinateListByIndex(iErr, m_datParser.GetPointlistIndex());
+            for(size_t i=0; i<vecCoor.size(); i+=2)
+            {
+                short oneX = vecCoor[i];
+                short oneY = vecCoor[i+1];
+                m_pGdiplusBitmap->SetPixel(oneX, oneY, Gdiplus::Color::Gray);
+                m_pGdiplusBitmap->SetPixel(oneX+1, oneY, Gdiplus::Color::Gray);
+                m_pGdiplusBitmap->SetPixel(oneX, oneY+1, Gdiplus::Color::Gray);
+                m_pGdiplusBitmap->SetPixel(oneX-1, oneY, Gdiplus::Color::Gray);
+                m_pGdiplusBitmap->SetPixel(oneX, oneY-1, Gdiplus::Color::Gray);
+            }
+            Invalidate();
+        }
         GetDlgItem(IDC_BTN_RESETSIZE)->EnableWindow(TRUE);
         Invalidate();
     }
