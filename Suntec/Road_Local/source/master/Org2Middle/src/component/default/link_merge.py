@@ -453,6 +453,12 @@ class comp_link_merge(component.component_base.comp_base):
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         
+        self.CreateIndex2('regulation_item_tbl_regulation_id_idx')
+        self.CreateIndex2('regulation_item_tbl_linkid_idx')
+        self.CreateIndex2('regulation_relation_tbl_regulation_id_idx')
+        self.CreateIndex2('regulation_relation_tbl_condtype_idx')
+        self.CreateIndex2('regulation_relation_tbl_cond_id_idx')
+        
         self.log.info('updating regulation end.')
     
     def __update_park_merge(self):

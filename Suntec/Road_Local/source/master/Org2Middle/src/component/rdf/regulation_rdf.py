@@ -284,7 +284,6 @@ class comp_regulation_rdf(component.component_base.comp_base):
         # 后续该信息会补充到link_tbl的字段extend_flag中
         
         self.CreateIndex2('regulation_relation_tbl_inlinkid_idx')
-        self.CreateIndex2('regulation_relation_tbl_outlinkid_idx')
         self.CreateTable2('temp_link_regulation_pdm_flag')
         self.CreateIndex2('temp_link_regulation_pdm_flag_link_id_idx')
         self.pg.commit2()

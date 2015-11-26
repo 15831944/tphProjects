@@ -443,4 +443,13 @@ CREATE INDEX mid_temp_admin_name_admin_id_idx
 	ON mid_temp_admin_name
 	USING btree
 	(admin_id);			
------------------------------------------------
+-------------------------------------------------------
+CREATE INDEX mid_temp_hwy_ic_out_nearby_poi_the_geom_idx
+  ON mid_temp_hwy_ic_out_nearby_poi
+  USING gist
+  (the_geom);
+-------------------------------------------------------
+CREATE INDEX mid_temp_hwy_ic_out_nearby_poi_poi_id_idx
+  ON mid_temp_hwy_ic_out_nearby_poi
+  USING btree
+  (poi_id);

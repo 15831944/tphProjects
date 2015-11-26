@@ -21,3 +21,4 @@ version=1
 illust_binary=
 
 support_same_language_one_record=True
+support_rtic_id_unify=False

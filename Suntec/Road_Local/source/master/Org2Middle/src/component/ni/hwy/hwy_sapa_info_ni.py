@@ -228,7 +228,7 @@ class HwySaPaInfoNi(HwyExitEnterNameNi):
           LEFT JOIN ni_temp_poi_category as b
           ON a.chaincode = b.chaincode and a.kind = b.org_code2
           where a.chaincode <> '' and a.chaincode is not null and
-                per_code is not null
+                per_code is not null and is_brand = 'Y'
         );
         """
         self.pg.execute2(sqlcmd)

@@ -94,7 +94,7 @@ class comp_link_ni(component.component_base.comp_base):
                         a.id::bigint as link_id,
                         (case when b.new_node_id is null then a.snodeid else b.new_node_id end)::bigint as s_node, 
                         (case when c.new_node_id is null then a.enodeid else c.new_node_id end)::bigint as e_node, 
-                        ni_cnv_disp_class( kind, vehcl_type ) as display_class,
+                        ni_cnv_disp_class( kind, vehcl_type, width ) as display_class,
                         ni_cnv_link_type ( kind ) as link_type, 
                         ni_cnv_road_type ( kind, through, unthrucrid, vehcl_type, ownership ) as road_type,
                         funcclass::smallint as function_class,

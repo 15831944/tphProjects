@@ -142,7 +142,8 @@ class comp_guideinfo_building(component.component_base.comp_base):
                 ) as  c
                 group by c.per_code
             ) as b
-            on a.per_code = b.per_code    
+            on a.per_code = b.per_code 
+            order by a.per_code   
         ) 
            
         '''

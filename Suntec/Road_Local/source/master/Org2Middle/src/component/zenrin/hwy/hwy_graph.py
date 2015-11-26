@@ -26,7 +26,6 @@ from component.rdf.hwy.hwy_graph_rdf import HWY_UPDOWN_CODE
 from component.jdb.hwy.hwy_graph import MAX_CUT_OFF
 from component.jdb.hwy.hwy_graph import MIN_CUT_OFF_CHN
 from component.rdf.hwy.hwy_def_rdf import SIMILAR_DEGREE_NONE
-HWY_UPDOWN = "updown"
 
 
 class HwyGraphZenrin(HwyGraphNi):
@@ -99,7 +98,7 @@ class HwyGraphZenrin(HwyGraphNi):
             elif child == visited[1]:
                 path = visited + [child]
                 if self.is_sapa_path(temp_path, road_code,
-                                      code_field, reverse):
+                                     code_field, reverse):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
                 continue
@@ -125,13 +124,13 @@ class HwyGraphZenrin(HwyGraphNi):
                         else:
                             yield temp_path[1:], HWY_IC_TYPE_JCT
                     if self.is_sapa_path(temp_path, road_code,
-                                          code_field, reverse):
+                                         code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                 elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                             code_field, reverse):
                     if self.is_sapa_path(temp_path, road_code,
-                                          code_field, reverse):
+                                         code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                     else:
@@ -248,8 +247,8 @@ class HwyGraphZenrin(HwyGraphNi):
             return False
         data1 = self[in_edge[0]][in_edge[1]]
         data2 = self[out_edge[0]][out_edge[1]]
-        if (data1.get(HWY_ROAD_CODE) == data2.get(HWY_ROAD_CODE) and
-            data1.get(HWY_UPDOWN) != data2.get(HWY_UPDOWN)):
+        if(data1.get(HWY_ROAD_CODE) == data2.get(HWY_ROAD_CODE) and
+           data1.get(HWY_UPDOWN_CODE) != data2.get(HWY_UPDOWN_CODE)):
             return True
         else:
             return False

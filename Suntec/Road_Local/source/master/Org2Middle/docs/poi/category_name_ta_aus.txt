@@ -1,0 +1,440 @@
+#genre_id;name_id;name_type;name_lang;name;tr_lang;tr_name;ph_flag;phoneme_id
+32;362;ON;AUE;SUBWAY;;;;32
+152;339;ON;AUE;Scenic/panoramic views/lookouts;;;;152
+260;365;ON;AUE;Swimming pools;;;;260
+418;8;ON;AUE;All Agriculture Businesses;;;;418
+361;309;ON;AUE;Preschools;;;;361
+224;102;ON;AUE;Cameras & Photography;;;;224
+59;101;ON;AUE;Caltex;;;;59
+253;36;ON;AUE;All sports & fitness centres;;;;253
+14;358;ON;AUE;Steak houses;;;;14
+135;104;ON;AUE;Caravan Industry Assoc. WA;;;;135
+378;68;ON;AUE;Bank of South Australia;;;;378
+64;194;ON;AUE;Gull;;;;64
+129;331;ON;AUE;Rest Camps;;;;129
+257;291;ON;AUE;Other sports & fitness centres;;;;257
+303;142;ON;AUE;Dance studios & schools;;;;303
+424;96;ON;AUE;Business parks;;;;424
+236;62;ON;AUE;Bags & Leatherwear;;;;236
+277;72;ON;AUE;Basketball courts;;;;277
+327;182;ON;AUE;General hospitals;;;;327
+138;336;ON;AUE;SA Caravan Parks Assoc.;;;;138
+70;344;ON;AUE;Shell;;;;70
+141;422;ON;AUE;Victorian Caravan Parks Association;;;;141
+101;9;ON;AUE;All airports;;;;101
+76;61;ON;AUE;Avis;;;;76
+197;207;ON;AUE;Home improvement & hardware shops;;;;197
+338;64;ON;AUE;Bank of Melbourne;;;;338
+266;356;ON;AUE;Stadiums;;;;266
+270;137;ON;AUE;Cricket grounds;;;;270
+254;404;ON;AUE;Unspecified;;;;254
+27;250;ON;AUE;McDonald's;;;;27
+133;14;ON;AUE;All campsites;;;;133
+84;109;ON;AUE;Car Wash;;;;84
+413;122;ON;AUE;Club & association meeting spaces;;;;413
+8;226;ON;AUE;Italian food;;;;8
+177;172;ON;AUE;Food Markets;;;;177
+53;298;ON;AUE;Petrol stations;;;;53
+207;242;ON;AUE;Lighting shops;;;;207
+108;292;ON;AUE;Other transport stops;;;;108
+322;128;ON;AUE;Communities;;;;322
+301;26;ON;AUE;All leisure centres;;;;301
+390;431;ON;AUE;Widebay;;;;390
+6;191;ON;AUE;Grills;;;;6
+433;251;ON;AUE;Media facilities;;;;433
+299;406;ON;AUE;Unspecified;;;;299
+276;268;ON;AUE;Motor sport facilities;;;;276
+196;383;ON;AUE;Travel agents;;;;196
+157;263;ON;AUE;Monuments;;;;157
+20;58;ON;AUE;Australian food;;;;20
+352;428;ON;AUE;Westpac;;;;352
+56;1;ON;AUE;7-Eleven;;;;56
+273;271;ON;AUE;Multi-purpose grounds;;;;273
+200;286;ON;AUE;Office equipment shops;;;;200
+208;295;ON;AUE;Painting & decorating shops;;;;208
+163;376;ON;AUE;Towers;;;;163
+191;112;ON;AUE;CD/Video Rental Stores;;;;191
+437;225;ON;AUE;Industrial buildings;;;;437
+113;243;ON;AUE;Long distance coach bus stops;;;;113
+143;216;ON;AUE;Hotels;;;;143
+3;81;ON;AUE;Bistros;;;;3
+115;374;ON;AUE;Tourism;;;;115
+278;279;ON;AUE;Netball courts;;;;278
+292;167;ON;AUE;Fishing/Hunting Areas;;;;292
+114;397;ON;AUE;Unspecified;;;;114
+58;91;ON;AUE;BP;;;;58
+313;157;ON;AUE;Entertainment facilities;;;;313
+271;349;ON;AUE;Soccer grounds;;;;271
+309;146;ON;AUE;Discos/nightclubs;;;;309
+405;39;ON;AUE;Ambulance Units;;;;405
+412;415;ON;AUE;Unspecified;;;;412
+44;88;ON;AUE;Bodyshops;;;;44
+435;130;ON;AUE;Companies;;;;435
+332;308;ON;AUE;Post Offices;;;;332
+19;95;ON;AUE;Burgers;;;;19
+36;60;ON;AUE;Automobile facilities;;;;36
+162;386;ON;AUE;Tunnels;;;;162
+201;107;ON;AUE;Carpet/floor covering shops;;;;201
+110;97;ON;AUE;Bus stations;;;;110
+353;430;ON;AUE;Widebay;;;;353
+275;173;ON;AUE;Football grounds;;;;275
+285;233;ON;AUE;Lakeshores;;;;285
+187;174;ON;AUE;Footwear & Shoe Repairs;;;;187
+34;100;ON;AUE;Café/Pubs;;;;34
+307;150;ON;AUE;Drinking establishments;;;;307
+212;196;ON;AUE;Hardware shops;;;;212
+333;300;ON;AUE;Pharmacies;;;;333
+174;63;ON;AUE;Bakers;;;;174
+387;324;ON;AUE;rediATM;;;;387
+111;367;ON;AUE;Taxi ranks;;;;111
+118;270;ON;AUE;Mountain Bikes;;;;118
+436;124;ON;AUE;Commercial buildings;;;;436
+109;32;ON;AUE;All public transport stops;;;;109
+186;35;ON;AUE;All services;;;;186
+396;144;ON;AUE;Dentists;;;;396
+93;381;ON;AUE;Transportations;;;;93
+74;108;ON;AUE;Car Rental Facilities;;;;74
+402;252;ON;AUE;Medical service facilities;;;;402
+304;338;ON;AUE;Saunas & massage;;;;304
+355;129;ON;AUE;Community Centers;;;;355
+394;136;ON;AUE;Courthouses;;;;394
+248;236;ON;AUE;Leisure;;;;248
+78;158;ON;AUE;Europcar;;;;78
+320;409;ON;AUE;Unspecified;;;;320
+234;204;ON;AUE;Hobbies;;;;234
+28;274;ON;AUE;Nando's;;;;28
+185;343;ON;AUE;Services;;;;185
+380;78;ON;AUE;Bendigo Bank;;;;380
+4;118;ON;AUE;Chinese food;;;;4
+57;40;ON;AUE;Ampol;;;;57
+356;156;ON;AUE;Embassies;;;;356
+286;255;ON;AUE;Memorials;;;;286
+48;337;ON;AUE;Sale & installation of car accessories;;;;48
+326;23;ON;AUE;All hospitals/polyclinics;;;;326
+294;347;ON;AUE;Ski resorts;;;;294
+300;237;ON;AUE;Leisure Centres;;;;300
+243;342;ON;AUE;Security Products;;;;243
+188;152;ON;AUE;Dry Cleaners;;;;188
+21;163;ON;AUE;Fast food;;;;21
+334;69;ON;AUE;Banks;;;;334
+399;166;ON;AUE;First aid services;;;;399
+317;10;ON;AUE;All aquariums & zoological gardens;;;;317
+221;436;ON;AUE;Women's Wear;;;;221
+223;134;ON;AUE;Convenience Stores;;;;223
+325;212;ON;AUE;Hospital/polyclinic;;;;325
+215;20;ON;AUE;All ﻿goods;;;;215
+153;222;ON;AUE;Important tourist attractions;;;;153
+227;185;ON;AUE;Gifts, Cards, Novelties & Souvenirs;;;;227
+41;155;ON;AUE;Electric vehicle charging stations;;;;41
+91;418;ON;AUE;Van dealers;;;;91
+67;257;ON;AUE;Metro Petroleum;;;;67
+381;84;ON;AUE;BNZ;;;;381
+121;210;ON;AUE;Horse Riding;;;;121
+137;205;ON;AUE;Holiday Parks Association of New Zealand;;;;137
+126;424;ON;AUE;Villas;;;;126
+404;82;ON;AUE;Blood banks;;;;404
+397;421;ON;AUE;Veterinarians;;;;397
+77;93;ON;AUE;Budget;;;;77
+383;198;ON;AUE;Heritage Bank;;;;383
+154;25;ON;AUE;All important tourist attractions;;;;154
+249;2;ON;AUE;Adventure sports venues;;;;249
+343;83;ON;AUE;BNZ;;;;343
+147;214;ON;AUE;Hostels;;;;147
+244;419;ON;AUE;Variety Stores;;;;244
+422;162;ON;AUE;Farms;;;;422
+168;345;ON;AUE;Shopping;;;;168
+181;435;ON;AUE;Wine & Spirits;;;;181
+351;363;ON;AUE;Suncorp;;;;351
+238;332;ON;AUE;Retail Outlets;;;;238
+65;240;ON;AUE;Liberty;;;;65
+151;375;ON;AUE;Tourist information offices;;;;151
+362;310;ON;AUE;Primary schools;;;;362
+359;30;ON;AUE;All Primary/Secondary Schools;;;;359
+125;135;ON;AUE;Cottages;;;;125
+377;65;ON;AUE;Bank of Melbourne;;;;377
+216;89;ON;AUE;Book Shops;;;;216
+88;265;ON;AUE;Motorcycle dealers;;;;88
+160;305;ON;AUE;Planetariums;;;;160
+17;427;ON;AUE;Western & continental food;;;;17
+315;188;ON;AUE;Golf courses;;;;315
+102;313;ON;AUE;Public authorities;;;;102
+130;46;ON;AUE;Apartments;;;;130
+419;416;ON;AUE;Unspecified;;;;419
+16;423;ON;AUE;Vietnamese food;;;;16
+297;301;ON;AUE;Picnic areas;;;;297
+281;297;ON;AUE;Parks & Recreation Areas;;;;281
+339;66;ON;AUE;Bank of Queensland;;;;339
+375;45;ON;AUE;ANZ;;;;375
+293;160;ON;AUE;Fairgrounds;;;;293
+370;151;ON;AUE;Driving schools;;;;370
+158;277;ON;AUE;Natural attractions;;;;158
+263;120;ON;AUE;Cinemas;;;;263
+267;37;ON;AUE;All stadiums;;;;267
+431;245;ON;AUE;Manufacturing facilities;;;;431
+31;325;ON;AUE;Red Rooster;;;;31
+145;76;ON;AUE;Bed & Breakfast/Guest Houses;;;;145
+72;438;ON;AUE;Z;;;;72
+305;348;ON;AUE;Snooker, pool & billiard;;;;305
+328;351;ON;AUE;Specialty Hospitals;;;;328
+12;302;ON;AUE;Pizza;;;;12
+52;392;ON;AUE;Unspecified;;;;52
+132;103;ON;AUE;Campsites;;;;132
+425;121;ON;AUE;City Centres;;;;425
+134;80;ON;AUE;BIG4;;;;134
+374;11;ON;AUE;All ATMs;;;;374
+25;219;ON;AUE;Hungry Jack's;;;;25
+415;113;ON;AUE;Cemeteries;;;;415
+29;287;ON;AUE;Oporto;;;;29
+330;410;ON;AUE;Unspecified;;;;330
+71;388;ON;AUE;United Petroleum;;;;71
+22;17;ON;AUE;All Fast Food;;;;22
+127;114;ON;AUE;Chalets;;;;127
+49;387;ON;AUE;Tyre Services;;;;49
+321;50;ON;AUE;Arboreta & botanical gardens;;;;321
+128;99;ON;AUE;Cabins & Lodges;;;;128
+288;322;ON;AUE;Recreation areas;;;;288
+92;395;ON;AUE;Unspecified;;;;92
+75;15;ON;AUE;All Car Rental Facilities;;;;75
+7;223;ON;AUE;Indian food;;;;7
+354;411;ON;AUE;Unspecified;;;;354
+81;394;ON;AUE;Unspecified;;;;81
+241;79;ON;AUE;Betting Station;;;;241
+247;403;ON;AUE;Unspecified;;;;247
+116;294;ON;AUE;Outdoor Trails;;;;116
+218;117;ON;AUE;Children's Wear;;;;218
+420;211;ON;AUE;Horticulture businesses;;;;420
+-1;153;ON;AUE;Dummy;;;;
+159;285;ON;AUE;Observatories;;;;159
+434;307;ON;AUE;Port/Warehouse Facilities;;;;434
+139;372;ON;AUE;TOP 9 Holiday Parks;;;;139
+280;221;ON;AUE;Ice skating rinks;;;;280
+82;224;ON;AUE;Indoor car parks;;;;82
+427;382;ON;AUE;Transport Authorities/Vehicle Registrations;;;;427
+165;249;ON;AUE;Mausoleums/Graves;;;;165
+214;189;ON;AUE;Goods;;;;214
+46;183;ON;AUE;General vehicle repair & servicing;;;;46
+54;29;ON;AUE;All petrol stations;;;;54
+410;316;ON;AUE;Public toilets;;;;410
+198;22;ON;AUE;All home improvement & hardware shops;;;;198
+331;306;ON;AUE;Police stations;;;;331
+55;437;ON;AUE;Woolworths;;;;55
+318;439;ON;AUE;Zoological gardens;;;;318
+287;296;ON;AUE;Parks;;;;287
+150;401;ON;AUE;Unspecified;;;;150
+2;34;ON;AUE;All restaurants;;;;2
+237;273;ON;AUE;Musical Instruments;;;;237
+401;414;ON;AUE;Unspecified;;;;401
+411;334;ON;AUE;Roadside assistance companies;;;;411
+282;28;ON;AUE;All parks & recreation areas;;;;282
+357;190;ON;AUE;Government Offices;;;;357
+312;408;ON;AUE;Unspecified;;;;312
+242;262;ON;AUE;Mobile Phone Shop;;;;242
+184;346;ON;AUE;Shopping centres;;;;184
+18;55;ON;AUE;Asian (other) food;;;;18
+366;234;ON;AUE;Language schools;;;;366
+403;253;ON;AUE;Medical supervision facilities;;;;403
+107;385;ON;AUE;Truck stops;;;;107
+409;315;ON;AUE;Public phones;;;;409
+178;193;ON;AUE;Grocery Stores;;;;178
+261;425;ON;AUE;Water sports;;;;261
+94;164;ON;AUE;Ferry terminals;;;;94
+329;213;ON;AUE;Hospitals for women & children;;;;329
+233;75;ON;AUE;Beauty Supplies;;;;233
+96;33;ON;AUE;All railway stations;;;;96
+324;138;ON;AUE;Cultural Centres;;;;324
+95;318;ON;AUE;Railway stations;;;;95
+131;399;ON;AUE;Unspecified;;;;131
+43;38;ON;AUE;All vehicle repair facilities;;;;43
+219;184;ON;AUE;General Wear;;;;219
+371;412;ON;AUE;Unspecified;;;;371
+60;115;ON;AUE;Challenge;;;;60
+373;57;ON;AUE;ATMs;;;;373
+210;179;ON;AUE;Furniture/home furnishing shops;;;;210
+204;178;ON;AUE;Furniture & fittings shops;;;;204
+61;123;ON;AUE;Coles Express;;;;61
+365;366;ON;AUE;TAFE/colleges;;;;365
+340;67;ON;AUE;Bank of South Australia;;;;340
+175;98;ON;AUE;Butchers;;;;175
+372;165;ON;AUE;Fire stations;;;;372
+384;232;ON;AUE;Kiwibank;;;;384
+213;187;ON;AUE;Glass & window shops;;;;213
+290;432;ON;AUE;Wilderness areas;;;;290
+225;131;ON;AUE;Computers & Computer Supplies;;;;225
+319;48;ON;AUE;Aquariums & Marine Parks;;;;319
+393;139;ON;AUE;Currency exchanges;;;;393
+15;369;ON;AUE;Thai food;;;;15
+264;246;ON;AUE;Marinas;;;;264
+205;180;ON;AUE;Garden centre & service shops;;;;205
+423;267;ON;AUE;Motoring Organisation Offices;;;;423
+341;70;ON;AUE;Bankwest;;;;341
+117;27;ON;AUE;All Outdoor Trails;;;;117
+155;402;ON;AUE;Unspecified;;;;155
+50;266;ON;AUE;Motorcycle repair facilities;;;;50
+342;77;ON;AUE;Bendigo Bank;;;;342
+385;276;ON;AUE;National Australia Bank;;;;385
+235;323;ON;AUE;Recycling Shop;;;;235
+179;192;ON;AUE;Grocers;;;;179
+229;283;ON;AUE;Newsagencies & Tabacconists;;;;229
+239;299;ON;AUE;Pet Supplies;;;;239
+368;52;ON;AUE;Art schools;;;;368
+176;168;ON;AUE;Fishmongers;;;;176
+364;389;ON;AUE;Universities;;;;364
+408;31;ON;AUE;All public amenities;;;;408
+388;360;ON;AUE;St George;;;;388
+360;116;ON;AUE;Child care facilities;;;;360
+40;378;ON;AUE;Toyota repair facilities;;;;40
+347;275;ON;AUE;National Australia Bank;;;;347
+69;280;ON;AUE;Neumann Petroleum;;;;69
+104;6;ON;AUE;Airline access;;;;104
+39;239;ON;AUE;Lexus repair facilities;;;;39
+308;16;ON;AUE;All drinking establishments;;;;308
+10;254;ON;AUE;Mediterranean food;;;;10
+217;111;ON;AUE;CD's, DVD's & Videos;;;;217
+231;379;ON;AUE;Toys & Games;;;;231
+348;281;ON;AUE;Newcastle Permanent Building Society;;;;348
+144;24;ON;AUE;All hotels/motels;;;;144
+170;171;ON;AUE;Food;;;;170
+97;319;ON;AUE;Railway stations;;;;97
+124;21;ON;AUE;All Holiday Rental;;;;124
+47;326;ON;AUE;Repair shops for other vehicles;;;;47
+268;405;ON;AUE;Unspecified;;;;268
+11;259;ON;AUE;Mexican food;;;;11
+169;145;ON;AUE;Department stores;;;;169
+80;371;ON;AUE;Thrifty;;;;80
+183;220;ON;AUE;Ice Cream Parlor;;;;183
+142;400;ON;AUE;Unspecified;;;;142
+345;197;ON;AUE;Heritage Bank;;;;345
+256;209;ON;AUE;Horse riding;;;;256
+9;227;ON;AUE;Japanese food;;;;9
+156;94;ON;AUE;Buildings;;;;156
+245;119;ON;AUE;Christmas/Holiday Stores;;;;245
+171;19;ON;AUE;All Food;;;;171
+172;247;ON;AUE;Markets;;;;172
+376;54;ON;AUE;ASB;;;;376
+120;201;ON;AUE;Hiking;;;;120
+336;44;ON;AUE;ANZ;;;;336
+90;321;ON;AUE;Recreational vehicles dealers;;;;90
+406;241;ON;AUE;Libraries;;;;406
+369;350;ON;AUE;Special needs schools;;;;369
+295;278;ON;AUE;Natural attractions;;;;295
+122;398;ON;AUE;Unspecified;;;;122
+182;143;ON;AUE;Delicatessen;;;;182
+100;7;ON;AUE;Airports;;;;100
+146;217;ON;AUE;Hotels;;;;146
+389;429;ON;AUE;Westpac;;;;389
+323;328;ON;AUE;Residential accommodations;;;;323
+119;3;ON;AUE;Adventure Vehicles;;;;119
+211;186;ON;AUE;Glassware/ceramic shops;;;;211
+246;86;ON;AUE;Boating Equipment & Accessories;;;;246
+180;289;ON;AUE;Other Food Shops;;;;180
+302;90;ON;AUE;Bowling alleys;;;;302
+400;18;ON;AUE;All first aid services;;;;400
+83;293;ON;AUE;Outdoor car parks;;;;83
+123;206;ON;AUE;Holiday Rental;;;;123
+232;43;ON;AUE;Antique/Art;;;;232
+392;361;ON;AUE;Stock exchanges;;;;392
+37;238;ON;AUE;Lexus dealerships;;;;37
+99;258;ON;AUE;Metro stations;;;;99
+33;390;ON;AUE;Unspecified;;;;33
+367;352;ON;AUE;Sport schools;;;;367
+335;13;ON;AUE;All banks;;;;335
+38;377;ON;AUE;Toyota dealerships;;;;38
+228;228;ON;AUE;Jewellery, Clocks & Watches;;;;228
+13;340;ON;AUE;Seafood;;;;13
+259;368;ON;AUE;Tennis courts;;;;259
+306;407;ON;AUE;Unspecified;;;;306
+30;303;ON;AUE;Pizza Hut;;;;30
+265;434;ON;AUE;Wineries;;;;265
+314;41;ON;AUE;Amusement parks;;;;314
+272;208;ON;AUE;Horse racing;;;;272
+136;161;ON;AUE;Family Parks;;;;136
+87;105;ON;AUE;Car dealers;;;;87
+206;230;ON;AUE;Kitchen & bathroom shops;;;;206
+106;269;ON;AUE;Motorway rest areas;;;;106
+86;12;ON;AUE;All automobile dealers;;;;86
+279;73;ON;AUE;Beaches;;;;279
+190;288;ON;AUE;Opticians;;;;190
+167;357;ON;AUE;Statues;;;;167
+310;215;ON;AUE;Hotel pub;;;;310
+398;159;ON;AUE;Exhibition & Convention Centres;;;;398
+416;290;ON;AUE;Others;;;;416
+193;42;ON;AUE;Animal Services;;;;193
+252;354;ON;AUE;Sports & fitness centres;;;;252
+24;149;ON;AUE;Domino's Pizza;;;;24
+337;53;ON;AUE;ASB;;;;337
+199;133;ON;AUE;Consumer electronics shops;;;;199
+85;59;ON;AUE;Automobile dealers;;;;85
+417;4;ON;AUE;Agriculture businesses;;;;417
+149;264;ON;AUE;Motels;;;;149
+349;317;ON;AUE;Rabobank;;;;349
+429;426;ON;AUE;Welfare Organisations;;;;429
+220;256;ON;AUE;Men's Wear;;;;220
+363;200;ON;AUE;High Schools;;;;363
+202;140;ON;AUE;Curtains/textile shops;;;;202
+258;355;ON;AUE;Squash courts;;;;258
+430;311;ON;AUE;Prisons/correctional facilities;;;;430
+203;147;ON;AUE;DIY centres;;;;203
+66;248;ON;AUE;Matilda Fuels;;;;66
+194;74;ON;AUE;Beauty Salons;;;;194
+438;260;ON;AUE;Military facilities;;;;438
+1;330;ON;AUE;Restaurant;;;;1
+192;235;ON;AUE;Laundry;;;;192
+45;106;ON;AUE;Car glass replacement shops;;;;45
+209;132;ON;AUE;Construction material & equipment shops;;;;209
+89;85;ON;AUE;Boat dealers;;;;89
+428;284;ON;AUE;Non-Governmental Organisations;;;;428
+161;141;ON;AUE;Dams;;;;161
+358;154;ON;AUE;Education facilities;;;;358
+26;229;ON;AUE;KFC;;;;26
+346;231;ON;AUE;Kiwibank;;;;346
+391;413;ON;AUE;Unspecified;;;;391
+68;261;ON;AUE;Mobil;;;;68
+62;176;ON;AUE;Freedom Fuels;;;;62
+255;169;ON;AUE;Fitness Clubs & Centres;;;;255
+251;370;ON;AUE;Theatres;;;;251
+426;314;ON;AUE;Public infrastructure facilities;;;;426
+98;417;ON;AUE;Urban railway stations;;;;98
+63;181;ON;AUE;Gasoline Alley Services;;;;63
+148;329;ON;AUE;Resort hotels;;;;148
+311;433;ON;AUE;Wine bars;;;;311
+5;177;ON;AUE;French food;;;;5
+51;384;ON;AUE;Truck repair facilities;;;;51
+140;373;ON;AUE;Top Tourist Parks;;;;140
+395;148;ON;AUE;Doctors;;;;395
+407;312;ON;AUE;Public amenities;;;;407
+195;320;ON;AUE;Real estate agents;;;;195
+240;244;ON;AUE;Lottery Shop;;;;240
+386;282;ON;AUE;Newcastle Permanent Building Society;;;;386
+291;175;ON;AUE;Forest areas;;;;291
+344;126;ON;AUE;Commonwealth Bank of Australia;;;;344
+379;71;ON;AUE;Bankwest;;;;379
+79;199;ON;AUE;Hertz;;;;79
+73;393;ON;AUE;Unspecified;;;;73
+230;353;ON;AUE;Sports Equipment & Clothing;;;;230
+164;92;ON;AUE;Bridges;;;;164
+166;51;ON;AUE;Arches;;;;166
+42;420;ON;AUE;Vehicle repair facilities;;;;42
+298;333;ON;AUE;River scenic areas;;;;298
+189;195;ON;AUE;Hairdressers & Barbers;;;;189
+350;359;ON;AUE;St George;;;;350
+226;170;ON;AUE;Florists;;;;226
+316;49;ON;AUE;Aquariums & zoological gardens;;;;316
+421;125;ON;AUE;Commercial wholesalers;;;;421
+112;380;ON;AUE;Tram stops;;;;112
+262;110;ON;AUE;Casinos;;;;262
+382;127;ON;AUE;Commonwealth Bank of Australia;;;;382
+173;364;ON;AUE;Supermarkets;;;;173
+250;272;ON;AUE;Museums;;;;250
+432;327;ON;AUE;Research companies;;;;432
+289;341;ON;AUE;Seashores;;;;289
+23;218;ON;AUE;Hungry Jack's;;;;23
+269;56;ON;AUE;Athletic grounds;;;;269
+296;87;ON;AUE;Boat launching ramps;;;;296
+414;304;ON;AUE;Places of worship;;;;414
+284;202;ON;AUE;Historical parks;;;;284
+105;396;ON;AUE;Unspecified;;;;105
+35;391;ON;AUE;Unspecified;;;;35
+274;335;ON;AUE;Rugby grounds;;;;274
+103;5;ON;AUE;Airfields;;;;103
+222;47;ON;AUE;Apparel: Other;;;;222
+283;203;ON;AUE;Historic sites;;;;283

@@ -535,6 +535,7 @@ class rdb_region(ItemBase):
                 all_paths = graph.searchMinSpanningTree(root_node, forward=True,
                                                        is_legal_path=is_legal_path,
                                                        is_leaf=is_leaf,
+                                                       stop_at_leaf=False,
                                                        get_link_cost=rdb_region_algorithm.CLinkCost.getCost2,
                                                        max_single_path_num=1,
                                                        log=self.log)

@@ -133,10 +133,19 @@ class comp_factory(object):
         if comp_name == 'stopsign':
             from component.default import stopsign
             return stopsign.comp_stopsign()
-        
+
         if comp_name == 'Update_sapa_link':
             from component.default import update_sapa_link
             return update_sapa_link.comp_update_sapa_link()
+        
+        if comp_name == 'Detele_redundance_regulation':
+            from component.default import delete_redundance_regulation
+            return delete_redundance_regulation.comp_detele_redundance_regulation()
+
+        if comp_name == 'Update_link_type':
+            from component.default import update_link_type_sapa_jct
+            return update_link_type_sapa_jct.comp_update_link_type_sapa_jct()
+
             
         return None
 
@@ -1056,5 +1065,9 @@ class comp_factory_zenrin(comp_factory):
         if comp_name == 'Name_filter_and_sort':
             from component.default import rdb_name
             return rdb_name.rdb_name_language_order()
+        
+        if comp_name == 'deletedummylink':
+            from component.zenrin import deletedummylink
+            return deletedummylink.deletedummylink_zenrin()
 
         return comp_factory.CreateOneComponent(self, comp_name)

@@ -2181,3 +2181,10 @@ CREATE TABLE rdb_highway_service_category_mapping
   service_id   bigint NOT NULL primary key,
   category_id  bigint
 );
+
+create table rtic_id_fund_link
+(
+	link_id_64		bigint,
+	link_id_32		integer,
+	version			character varying
+);

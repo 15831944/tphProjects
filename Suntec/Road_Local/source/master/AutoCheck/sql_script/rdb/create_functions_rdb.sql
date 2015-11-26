@@ -1573,3 +1573,67 @@ BEGIN
     return island_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION rdb_check_linkrow_connectivity_by_traffic_flow()
+  RETURNS smallint
+  LANGUAGE plpgsql
+AS $$
+DECLARE
+	rec		       record;
+	link_loop      integer;
+	search_node    bigint;
+BEGIN
+	FOR rec in 
+		SELECT record_no, link_num, array_agg(link_id) as link_array, array_agg(start_node_id) as s_node_array, array_agg(end_node_id) as e_node_array, array_agg(one_way) as one_way_array
+		FROM (
+			SELECT record_no, link_num, b.link_id, seq_num, start_node_id, end_node_id, one_way
+			FROM (
+				SELECT record_no, link_num, unnest(link_array) as link_id, generate_series(1, link_num) as seq_num
+				FROM (
+					SELECT record_no, link_num, string_to_array(key_string, ',')::bigint[] as link_array
+					FROM rdb_link_regulation
+				) a
+				ORDER BY record_no, seq_num
+			) b
+			LEFT JOIN rdb_link c
+				ON b.link_id = c.link_id
+		) d
+		GROUP BY record_no, link_num
+		ORDER BY record_no
+	LOOP
+		--raise info 'rec = %', rec;
+		IF rec.link_num = 1 THEN
+			IF rec.one_way_array[1] = 0 THEN
+				raise EXCEPTION 'regulation linkrow traffic flow error, record_no = %', rec.record_no;
+			END IF;
+			
+			continue;
+		END IF;
+		
+		IF rec.s_node_array[1] in (rec.s_node_array[2], rec.e_node_array[2]) THEN
+			search_node := rec.s_node_array[1];
+		ELSE
+			search_node := rec.e_node_array[1];
+		END IF;
+
+		--raise info 'search_node = %', search_node;
+		IF (search_node = rec.s_node_array[1] and rec.one_way_array[1] not in (1, 3)) or (search_node = rec.e_node_array[1] and rec.one_way_array[1] not in (1, 2)) THEN
+			raise EXCEPTION 'regulation linkrow traffic flow error, record_no = %', rec.record_no;
+		END IF;
+		
+		FOR link_loop IN 2..rec.link_num LOOP
+			IF (search_node = rec.s_node_array[link_loop] and rec.one_way_array[link_loop] not in (1, 2)) or (search_node = rec.e_node_array[link_loop] and rec.one_way_array[link_loop] not in (1, 3)) THEN
+				raise EXCEPTION 'regulation linkrow traffic flow error, record_no = %', rec.record_no;
+			END IF;
+			
+			IF search_node = rec.s_node_array[link_loop] THEN
+				search_node := rec.e_node_array[link_loop];
+			ELSE
+				search_node := rec.s_node_array[link_loop];
+			END IF;
+		END LOOP;
+	END LOOP;
+	
+	return 1;
+END;
+$$;

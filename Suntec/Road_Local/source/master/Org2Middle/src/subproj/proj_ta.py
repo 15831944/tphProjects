@@ -79,6 +79,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_redundance_regulation'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))

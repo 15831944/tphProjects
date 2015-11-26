@@ -112,6 +112,8 @@ DECLARE
 	line_merge    geometry;
 	num int;
 	i int;
+	j int;
+	pointnum int;
 	p0 geometry;
 	p1 geometry;
 	angle_turn smallint;
@@ -158,15 +160,27 @@ BEGIN
 	line_merge=line_geom_arr[1];
 
 	for i in 2..num loop
-		line_merge=st_linemerge(st_collect(line_merge,line_geom_arr[i]));
+		if st_equals(st_endpoint(line_merge),st_startpoint(line_geom_arr[i])) then
+			pointnum=st_npoints(line_geom_arr[i]);
+			for j in 2..pointnum loop
+				line_merge=st_addpoint(line_merge,st_pointn(line_geom_arr[i],j));
+			end loop;
+		else
+			pointnum=st_npoints(line_geom_arr[i]);
+			for j in 2..pointnum loop
+				line_merge=st_addpoint(line_merge,st_pointn(line_geom_arr[i],pointnum+1-j));
+			end loop;
+		end if;
 	end loop;
 	
 	angle_turn=mid_get_line_turn(line_merge);
 	
 	if not st_equals(st_startpoint(line_merge),p0) then
             angle_turn=-angle_turn;
+            --raise info '1';
         end if;
 
+	--raise info '%',angle_turn;
 	--raise info '%',st_astext(line_merge);
 	--return angle_turn;
 	if angle_turn<45 then
@@ -225,7 +239,7 @@ $$;
 -------------------------------------------------------------------------------------------------------------
 -- link
 -------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION ni_cnv_disp_class( kind varchar, vehcl_type varchar )
+CREATE OR REPLACE FUNCTION ni_cnv_disp_class( kind varchar, vehcl_type varchar, width varchar )
   RETURNS smallint
   LANGUAGE plpgsql VOLATILE
   AS $$
@@ -246,9 +260,15 @@ BEGIN
 		when kind like '02%' or kind like '%|02%' then 9 
 		when kind like '03%' or kind like '%|03%' then 8 
 		when kind like '04%' or kind like '%|04%' then 7 
-		when kind like '06%' or kind like '%|06%' then 6 
-		when kind like '08%' or kind like '%|08%' then 5 
-		when kind like '09%' or kind like '%|09%' then 18 
+		when (kind like '06%' or kind like '%|06%')
+			or 
+			(
+				(kind like '%05' or kind like '%05|%' or kind like '%0b' or kind like '%0b|%')
+				and (kind like '08%' or kind like '%|08%' or kind like '09%' or kind like '%|09%')
+			)
+			then 6 --- narrow street which is ramp should be given a display class - general road.
+		when (kind like '08%' or kind like '%|08%') and width in ('15','30') then 5 
+		when (kind like '09%' or kind like '%|09%') and width in ('15','30') then 18 
 		else 4
 	end;
 

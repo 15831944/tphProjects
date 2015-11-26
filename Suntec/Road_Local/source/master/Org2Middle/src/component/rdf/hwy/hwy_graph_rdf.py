@@ -116,7 +116,7 @@ class HwyGraphRDF(HwyGraph):
         return self[u][v][HWY_ROAD_CODE]
 
     def _get_road_updown(self, u, v):
-        return self[u][v][HWY_UPDOWN_CODE]
+        return self[u][v].get(HWY_UPDOWN_CODE)
 
     def get_ref(self, u, v):
         return self[u][v]["reference"]
@@ -671,7 +671,8 @@ class HwyGraphRDF(HwyGraph):
             raise nx.NetworkXError('Multi In Main Links. node=%s ' % node)
         return types
 
-    def get_all_facil(self, node, road_code, code_field=HWY_ROAD_CODE):
+    def get_all_facil(self, node, road_code, code_field=HWY_ROAD_CODE,
+                      cutoff=MAX_CUT_OFF):
         '''
            road_num: road_code指定字段对应的值
                 while road_code='road_code', 是road_code值。
@@ -688,7 +689,8 @@ class HwyGraphRDF(HwyGraph):
             out_node = out_nodes[0]
             for path, facilcls in self._all_facil_path(node, out_node,
                                                        road_code, code_field,
-                                                       reverse=True):
+                                                       reverse=True,
+                                                       cutoff=cutoff):
                 if facilcls != HWY_IC_TYPE_VIRTUAl_JCT:
                     all_facils.append((facilcls, HWY_INOUT_TYPE_IN, path))
         if len(out_nodes) > 1:
@@ -700,7 +702,8 @@ class HwyGraphRDF(HwyGraph):
             in_node = in_nodes[0]
             for path, facilcls in self._all_facil_path(in_node, node,
                                                        road_code, code_field,
-                                                       reverse=False):
+                                                       reverse=False,
+                                                       cutoff=cutoff):
                 if facilcls != HWY_IC_TYPE_VIRTUAl_JCT:
                     all_facils.append((facilcls, HWY_INOUT_TYPE_OUT, path))
         if len(in_nodes) > 1:
@@ -800,7 +803,16 @@ class HwyGraphRDF(HwyGraph):
             edges_iter = self.out_edges_iter(path[-1], True)
         for u, v, data in edges_iter:
             temp_route_code = data.get(code_field)
-            if temp_route_code and temp_route_code != road_code:
+            if reverse:  # 逆
+                f_link = (path[1], path[0])
+                t_link = (u, path[-1])
+            else:
+                f_link = (path[0], path[1])
+                t_link = (path[-1], v)
+            if(temp_route_code and
+               (temp_route_code != road_code or
+                not self.is_same_updown(f_link, t_link))
+               ):
                 if reverse:  # 逆
                     temp_path = path + [u]
                 else:  # 顺
@@ -888,10 +900,27 @@ class HwyGraphRDF(HwyGraph):
         nodes = self.get_main_link(path[-1], road_code, code_field,
                                    same_code=True, reverse=reverse)
         for node in nodes:
+            if reverse:  # 逆
+                f_link = path[1], path[0]
+                t_link = node, path[-1]
+            else:  # 顺
+                f_link = path[0], path[1]
+                t_link = path[-1], node
+            if not self.is_same_updown(f_link, t_link):
+                continue
             if self.check_regulation(path + [node], reverse):
                 return True
             else:  # 路被规制
                 continue
+        return False
+
+    def is_same_updown(self, f_link, t_link):
+        f_u, f_v = f_link
+        t_u, t_v = t_link
+        f_updown = self._get_road_updown(f_u, f_v)
+        t_updown = self._get_road_updown(t_u, t_v)
+        if f_updown == t_updown:  # 注两都是空，也返回True
+            return True
         return False
 
     def exist_sapa_link(self, node, reverse):
@@ -1006,7 +1035,7 @@ class HwyGraphRDF(HwyGraph):
             elif child == visited[1]:
                 path = visited + [child]
                 if self.is_sapa_path(temp_path, road_code,
-                                      code_field, reverse):
+                                     code_field, reverse):
                     yield path[1:], HWY_IC_TYPE_PA
                     exist_sapa_facil = True
                 continue
@@ -1042,14 +1071,14 @@ class HwyGraphRDF(HwyGraph):
                         else:
                             yield temp_path[1:], HWY_IC_TYPE_JCT
                     if self.is_sapa_path(temp_path, road_code,
-                                          code_field, reverse):
+                                         code_field, reverse):
                         yield temp_path[1:], HWY_IC_TYPE_PA
                         exist_sapa_facil = True
                 elif self.is_same_road_code(temp_path, road_code,  # 回到当前线路
                                             code_field, reverse):
                     if self.get_tollgate_num(temp_path) < MAX_TOLLGATE_NUM:
                         if self.is_sapa_path(temp_path, road_code,
-                                              code_field, reverse):
+                                             code_field, reverse):
                             yield temp_path[1:], HWY_IC_TYPE_PA
                             exist_sapa_facil = True
                         else:
@@ -1641,6 +1670,16 @@ class HwyGraphRDF(HwyGraph):
                 continue
             next_nodes.append(next_node)
         return next_nodes
+
+    def is_cycle(self, nbunch):
+        sub = self.subgraph(nbunch)
+        for cycle in nx.simple_cycles(sub):
+            if set(cycle) == set(nbunch):
+                del sub
+                return True
+        del sub
+        return False
+
 
 # =============================================================================
 #

@@ -34,14 +34,13 @@ def get_case_id(project_id,plan_name,json_path):
 
 def commit_test_result(project_id,tap_path , case_id_result):
     url =  'http://192.168.8.137:5000/create_results_for_execution/'
-    case_id_dict  = "just for this variable name"
-    exec "case_id_dict = %s"%case_id_result
-    
+    case_id_dict = json.loads(case_id_result)
     build_id = case_id_dict["build_id"]
     case_list = case_id_dict["case_list"]
     case_dict = {}
     for item in case_list:
-        case_dict[item.split(" : ")[1]] = item.split(" : ")[0]
+        for k in item:
+            case_dict[item[k].encode("utf-8")] = k
     
     tp = TAP_Processor()
   
@@ -54,7 +53,7 @@ def commit_test_result(project_id,tap_path , case_id_result):
     
     result_list = []
     for (k,v) in test_result_dict.items():
-        if(case_dict.has_key(k)):
+        if(case_dict.has_key(str(k))):
             result_list.append(case_dict[k]+":"+v)
           
     send_dict = {}
@@ -80,9 +79,11 @@ def make_parse(parser):
  
 def main(args):
     _do(args.project_id, args.plan_name,args.json_path, args.tap_path)
- 
-     
+  
+      
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     make_parse(parser)
     main(parser.parse_args())
+
+

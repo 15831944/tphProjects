@@ -96,7 +96,7 @@ class rdb_forecast_aus(ItemBase):
         self.CreateIndex2('temp_forecast_link_org_link_id_idx')
         self.CreateIndex2('temp_forecast_link_org_profile_flag_idx')
                 
-        # Create time slot table on a 15-min circle.
+        # Create time slot table on a X-min circle.
         self.CreateTable2('temp_forecast_time_org')
         self.CreateIndex2('temp_forecast_time_org_profile_id_idx1')
         self.CreateIndex2('temp_forecast_time_org_time_slot_idx1')

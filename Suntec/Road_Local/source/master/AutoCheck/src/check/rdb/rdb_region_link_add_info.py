@@ -409,7 +409,7 @@ class CCheckRegion4WD(CCheckRegionAddInfoBase):
                 select region_link_id, region_4wd_flag, array_agg(four_wd_flag) as four_wd_flag_array
                   from (
                     SELECT region_link_id, region_4wd_flag::smallint,
-                           link_id_14[seq_num], ((link_add_info2 >> 4) & 1) as four_wd_flag
+                           link_id_14[seq_num], ((path_extra_info >> 4) & 1) as four_wd_flag
                       from (
                         SELECT link_id as region_link_id, 
                                ((path_extra_info >> 6) & 1) as region_4wd_flag,
@@ -419,7 +419,7 @@ class CCheckRegion4WD(CCheckRegionAddInfoBase):
                           left join rdb_region_layer[X]_link_mapping
                           on link_id = region_link_id
                       ) as a
-                      left join rdb_link_add_info2
+                      left join rdb_link_add_info
                       on link_id_14[seq_num] = link_id
                       where link_id is not null
                   ) as b

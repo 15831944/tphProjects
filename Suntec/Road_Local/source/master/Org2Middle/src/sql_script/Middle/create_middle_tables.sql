@@ -1499,17 +1499,6 @@ as
 	where link_array is distinct from inner_link_array
 );
 
-create table temp_mainnode_update_regulation
-as
-(
-	select 	(row_number() over (order by regulation_id, inner_link_array) + max_regulation_id) as new_regulation_id, 
-			a.regulation_id as old_regulation_id,
-			a.nodeid,
-			a.inner_link_array as new_link_array
-	from temp_mainnode_regulation_new_linkrow as a, 
-	(select max(regulation_id) as max_regulation_id from regulation_item_tbl) as b
-);
-
 CREATE TABLE language_tbl
 (
   language_id    smallint NOT NULL,
@@ -2537,6 +2526,13 @@ node_lid   character varying
 );
 
 ------------------------------------------------------------------------
+CREATE TABLE mid_temp_hwy_jct_service_road_del
+(
+gid        integer not null primary key,
+node_lid   character varying
+);
+
+------------------------------------------------------------------------
 --
 CREATE TABLE hwy_same_info
 (
@@ -2731,6 +2727,42 @@ CREATE TABLE hwy_service
   restaurant        INTEGER NOT NULL,
   toilet            INTEGER NOT NULL
 );
+
+------------------------------------------------------------------------
+--
+CREATE TABLE hwy_ic_service
+(
+  gid               serial not null primary key,
+  road_code         INTEGER NOT NULL,
+  road_seq          INTEGER NOT NULL,
+  updown_c          INTEGER NOT NULL,
+  node_id           bigint NOT NULL,
+  gas_station       INTEGER NOT NULL,
+  information       INTEGER NOT NULL,
+  rest_area         INTEGER NOT NULL,
+  shopping_corner   INTEGER NOT NULL,
+  postbox           INTEGER NOT NULL,
+  atm               INTEGER NOT NULL,
+  restaurant        INTEGER NOT NULL,
+  toilet            INTEGER NOT NULL
+);
+
+------------------------------------------------------------------------
+--
+CREATE TABLE hwy_ic_store
+(
+  gid               serial not null primary key,
+  road_code         INTEGER NOT NULL,
+  road_seq          INTEGER NOT NULL,
+  updown_c          INTEGER NOT NULL,
+  node_id           bigint NOT NULL,
+  store_cat_id      character varying(4) DEFAULT '' NOT NULL,  -- '': No category
+  sub_cat           character varying(8) DEFAULT '' NOT NULL,  -- '': No sub category
+  store_chain_id    character varying(13) DEFAULT '' NOT NULL, -- '': No chain id
+  chain_name        character varying(254) DEFAULT '',
+  priority          double precision,
+  service_kind      character varying
+);
 ------------------------------------------------------------------------
 CREATE TABLE hook_turn_tbl
 (
@@ -2908,7 +2940,8 @@ create table temp_jct_link_paths
 (
 snode bigint,
 path  bigint[],
-elink bigint
+elink bigint,
+direction integer
 );
 
 
@@ -2972,6 +3005,7 @@ CREATE TABLE mid_temp_hwy_ic_path_expand_link
 (
   road_code      integer NOT NULL,
   road_seq       integer NOT NULL,
+  updown_c       integer NOT NULL,
   facilcls_c     integer NOT NULL,
   inout_c        integer NOT NULL,
   node_id        bigint NOT NULL,
@@ -3055,10 +3089,36 @@ CREATE TABLE mid_temp_force_guide_tbl
 
 create table temp_suspect_jct_paths_link
 (
-link_path bigint[]
+link_path bigint[],
+direction integer
 );
 
 create table temp_jct_paths_link
 (
 link_path bigint[]
 ); 
+
+create table temp_ic_surround_by_jct_link
+(
+links bigint[]
+
+);
+
+create table temp_ic_surround_by_sapa_link
+(
+links bigint[]
+
+);
+
+create table temp_poi_category_name
+(
+  per_code  integer NOT NULL,
+  name_id   integer,
+  nametype  varchar,
+  name_lang varchar,
+  name      varchar,
+  tr_lang   varchar,
+  tr_name   varchar,
+  ph_flag   varchar,
+  phoneme_id  integer
+);

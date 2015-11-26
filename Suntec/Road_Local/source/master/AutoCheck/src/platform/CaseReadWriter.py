@@ -246,7 +246,17 @@ class CCaseInfo(object):
         return False
     
     def get_combin_keys(self):
-        return str(self.getMajorItem()) + '::' + str(self.get(u'仕向地')) + '::'  + str(self.get(u'Check代码'))
+        str_temp = self.get(u'数据名')
+        if not str_temp:
+            str_temp = ''
+            
+        if type(str_temp) is str:
+            str_temp = str_temp.replace('\n', ' ')
+        elif type(str_temp) is unicode:
+            str_temp = str_temp.encode('utf-8').replace('\n', ' ')
+    
+
+        return str_temp + "::" + str(self.get(u'Check代码'))
                 
     def getCheckCode(self):
         return self.get(u'Check代码')

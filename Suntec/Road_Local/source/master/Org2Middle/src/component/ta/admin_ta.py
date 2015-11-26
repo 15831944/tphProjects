@@ -279,6 +279,9 @@ class comp_admin_ta(component.default.admin.comp_admin):
         
         if self.__jude_country('VNM'):       
             sqlcmd = '''
+                    delete from mid_admin_zone
+                    where ad_order = 8;
+                    
                     update mid_admin_zone as a
                     set ad_order = 8, order8_id = a.order2_id, order2_id = null
                     where ad_order = 2 and order0_id in (

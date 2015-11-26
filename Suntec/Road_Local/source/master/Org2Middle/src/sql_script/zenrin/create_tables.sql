@@ -353,3 +353,48 @@ as
 	where array_upper(string_to_array(path,'|'),1) > 2
 	order by id
 );
+
+create table temp_link_dummy_walked
+(
+    meshcode varchar,
+    linkno   integer
+);
+
+create table temp_dummy_link
+(
+    meshcode varchar,
+    linkno integer,
+    snodeno integer,
+    enodeno integer,
+    oneway  integer,
+    elcode  varchar,
+    the_geom geometry
+);
+
+create table temp_dummy_node 
+as
+(
+    select distinct meshcode,snodeno as nodeno
+    from temp_dummy_link
+    union
+    select distinct meshcode,enodeno as nodeno
+    from temp_dummy_link
+);
+
+create table mid_dummy_reg
+(
+	reg_id int,
+	link_id bigint,
+	seq smallint
+);
+
+create table mid_dummy_todelete
+(
+	meshcode varchar(10),
+	linkno   int
+);
+
+create table org_notin_gid
+(
+	gid integer
+);

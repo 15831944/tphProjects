@@ -41,6 +41,9 @@ class analyze_config_comp():
         self._rdb_ip_pw = u'pset123456'
         self._rdb_ip = db_rdb
         self._datastat_country = ''
+        self._release_ip = ''
+        self._release_db = ''
+        self._check_dest_path = ''
 
     def init_path(self):
         #get dbver
@@ -54,6 +57,17 @@ class analyze_config_comp():
             self.log.info("org_ip = %s, org_db = %s",self._org_ip,self._org_db)
         except:
             return -1
+        
+        temp_str = str(self._project + ',' + self._company + ',' + self._country + ',' + self._binformat).lower()
+        last_release_all = self.__Getconfig(temp_str, os.path.join(CONFIG_ROOT_PATH, "last_db.txt"))
+        try:         
+            last_release_temp = last_release_all.split(",")
+            self._release_ip = last_release_temp[0]
+            self._release_db = last_release_temp[1]
+            self.log.info("release_ip = %s, release_db = %s",self._release_ip,self._release_db)
+        except:
+            return -1
+        
         
         self._codepath = os.path.dirname(os.getcwd())  
         #get dbname file
@@ -95,6 +109,11 @@ class analyze_config_comp():
         self._org_image = os.path.join(path_temp,"image")
         if not os.path.exists(self._org_image):
             os.makedirs(self._org_image)
+            
+        self._check_dest_path = os.path.join(path_temp,"check_route") 
+        if not os.path.exists(self._check_dest_path):
+            os.makedirs(self._check_dest_path)
+                        
         self._id_fund_backup = os.path.join(path_temp,self._last_db_name + "_id_fund.backup")
                                         
         return 0
@@ -263,6 +282,8 @@ class analyze_config_comp():
     def __copy_run_config(self):
         if self.__alter_run_config_file(os.path.join(CONFIG_ROOT_PATH, "convert_db.bat")) == -1:
             return -1
+#        if self.__alter_run_config_file(os.path.join(CONFIG_ROOT_PATH, "autocheck.bat")) == -1:
+#            return -1        
         if self.__alter_run_config_file(os.path.join(CONFIG_ROOT_PATH, "DataStat.bat")) == -1:
             return -1
         if self.__alter_run_config_file(os.path.join(CONFIG_ROOT_PATH, "AutoArrange.bat")) == -1:
@@ -319,6 +340,8 @@ class analyze_config_comp():
             return -1
         if self.__alter_code_config_file(os.path.join(self._codepath,"Middle2RDB\\src\\DataBasePath.txt")) == -1:
             return -1
+#        if self.__alter_code_config_file(os.path.join(self._codepath,"AutoCheck\\src\\config.ini")) == -1:
+#            return -1        
       
         return 0
     
@@ -339,10 +362,16 @@ class analyze_config_comp():
                     list_temp.append("db1=host=\'" + self._db_ip + "\' dbname=\'" + self._dbname_str + pg_key)
                 elif line.find("db2=host=") == 0:
                     list_temp.append("db2=host=\'" + self._db_ip + "\' dbname=\'" + self._dbname_str + pg_key) 
+                elif line.find("db=host=") == 0:
+                    list_temp.append("db=host=\'" + self._db_ip + "\' dbname=\'" + self._dbname_str + pg_key) 
                 elif line.find("proj_name=") == 0:
                     list_temp.append("proj_name=" + self._company_proj + "\n")
                 elif line.find("proj_country=") == 0:
                     list_temp.append("proj_country=" + self._tran_country + "\n")
+                elif line.find("country_name=") == 0:
+                    list_temp.append("country_name=" + self._tran_country + "\n")
+                elif line.find("json_path=") == 0:
+                    list_temp.append("json_path=" + self._check_dest_path + "\n")                                       
                 elif line.find("version=") == 0:
                     list_temp.append("version=" + self._dbversion_num + "\n")                
                 elif line.find("illust_binary=") == 0:
@@ -491,10 +520,10 @@ class analyze_config_comp():
                 elif line.find("db1=host=") == 0:
                     list_temp.append("db1=host=\'" + self._db_ip + "\' dbname=\'" + self._dbname_str + pg_key)
                 elif line.find("db2=host=") == 0 or line.find("#db2=host=") == 0:
-                    if len(self._last_db_ip) > 0 and len(self._last_db_name) > 0:
-                        list_temp.append("db2=host=\'" + self._last_db_ip + "\' dbname=\'" + self._last_db_name + pg_key)
+                    if len(self._release_ip) > 0 and len(self._release_db) > 0:
+                        list_temp.append("db2=host=\'" + self._release_ip + "\' dbname=\'" + self._release_db + pg_key)
                     else:
-                        list_temp.append("#db2=host=\'" + self._last_db_ip + "\' dbname=\'" + self._last_db_name + pg_key)
+                        list_temp.append("#db2=host=\'" + self._release_ip + "\' dbname=\'" + self._release_db + pg_key)
                         
                 elif line.find("configPath=") == 0:
                     if self._binformat == 'F16':
@@ -683,7 +712,7 @@ class analyze_config_comp():
         finally:
             file_object.close()
             
-        return DBver
+        return DBver   
     
     def __GetOrgDir(self):
         if self._company == '' or self._country == '' or DATA_ROOT_PATH is None:

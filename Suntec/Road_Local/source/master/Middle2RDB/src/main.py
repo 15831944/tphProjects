@@ -50,6 +50,7 @@ from item import rdb_slope
 from item import rdb_guideinfo_hook_turn
 from item import rdb_version
 from item import rdb_name
+from item import rdb_rtic_id_unify
 
 from item_client import rdb_link_client
 from item_client import rdb_node_client
@@ -73,7 +74,6 @@ from item_client import rdb_admin_client
 from item_client import rdb_guideinfo_forceguide_client
 from item_client import rdb_guideinfo_hook_turn_client
 import rdb_thread
-
 
 def main():
     rdb_log.init()
@@ -156,7 +156,8 @@ def main():
                     rdb_hwy.rdb_highway(),
                     rdb_version.rdb_version(),
     				rdb_guideinfo_pic_blob_bytea.rdb_guideinfo_pic_binary(),
-                    rdb_name.rdb_name_language_order()
+                    rdb_name.rdb_name_language_order(),
+                    rdb_rtic_id_unify.rdb_rtic_id_unify()
                     ]
     
         # 当本前继续往下做其他component

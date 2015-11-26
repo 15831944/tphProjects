@@ -21,7 +21,7 @@ from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_SAPA
 from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_RAMP
 from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
 from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_SAPA
-from component.jdb.hwy.hwy_graph import get_simple_cycle
+from component.jdb.hwy.hwy_graph import get_simple_cycle, MAX_CUT_OFF_CHN
 from component.rdf.hwy.hwy_def_rdf import ANGLE_45
 from component.rdf.hwy.hwy_def_rdf import ANGLE_100
 from component.rdf.hwy.hwy_def_rdf import ANGLE_360
@@ -43,6 +43,7 @@ class HwyFacilityNi(HwyFacilityRDF):
         '''
         HwyFacilityRDF.__init__(self, data_mng, ItemName)
         self.poi_cate = HwyPoiCategoryNi()
+        self.cut_off = MAX_CUT_OFF_CHN
 
     def _update_undefined_dict(self):
         self.undefined_dict.update(SERVICE_UNDEFINED_DICT)

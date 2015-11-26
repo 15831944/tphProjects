@@ -99,9 +99,9 @@ class HwyAdjustLinkType(component.component_base.comp_base):
 
     def _get_service_road_path_link(self):
         '''UTURN: 主要是IC出入口的UTurn'''
-        self.CreateTable2('mid_temp_ic_turn_path_link')
+        self.CreateTable2('mid_temp_sevice_road_path_link')
         sqlcmd = """
-        INSERT INTO mid_temp_ic_turn_path_link(link_id, link_type)
+        INSERT INTO mid_temp_sevice_road_path_link(link_id, link_type)
         (
         SELECT distinct a.link_id, link_type
           FROM mid_temp_hwy_ic_link_mapping AS a

@@ -339,7 +339,7 @@ class CGraph:
     # then return all paths from the root to every leaf.
     def searchMinSpanningTree(self, 
                               from_node, to_node_list=None, forward=True, 
-                              is_legal_path='self._is_legal_path', is_leaf='self._is_leaf',
+                              is_legal_path='self._is_legal_path', is_leaf='self._is_leaf', stop_at_leaf=True,
                               max_cost=None, get_link_cost='CLinkCost.getCost',
                               max_buffer=5000, cost_scope=1.05,
                               max_single_path_num=2, max_all_path_num=None,
@@ -386,7 +386,8 @@ class CGraph:
                 if max_all_path_num is not None and all_path_num >= max_all_path_num:
                     break
                 else:
-                    continue
+                    if stop_at_leaf:
+                        continue
             
             # check if cur_node had been accessed
             arrive_memory = arrive_nodes.get(cur_node)

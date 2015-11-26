@@ -642,7 +642,8 @@ class rdb_tile(ItemBase):
         self.log.info("Getting id fund...")
         
         self.CreateTable2('id_fund_node')
-        self.CreateTable2('id_fund_link')
+        self.CreateTable2('id_fund_link')  
+        self.CreateTable2('rtic_id_fund_link')     
         
         # try to get id_fund from base_db...
         if common.rdb_common.GetPara('base_db'):

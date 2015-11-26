@@ -84,10 +84,9 @@ class HwyFacilityTa(HwyFacilityRDF):
                           'road_seq_updown_c_idx')
         self.log.info('End Make SAPA Info.')
 
-
     def _make_hwy_store(self):
         '''店铺情报'''
-        self.log.info('Start Make Facility Stores.')
+        self.log.info('Start Make SAPA Facility Stores.')
         self.CreateTable2('hwy_store')
         sqlcmd = """
          SELECT distinct road_code, road_seq, updown_c,
@@ -112,8 +111,16 @@ class HwyFacilityTa(HwyFacilityRDF):
         for row in self.pg.get_batch_data2(sqlcmd):
             (road_code, road_seq, updown_c, cat_id,
              subcat, chain_id, chain_name, distance, percode) = row
+            if not percode:
+                self.log.error('No CategoryID for store. cat_id=%s, subcat=%s,'
+                               ' chain_id=%s, chain_name=%s' %
+                               (cat_id, subcat, chain_id, chain_name))
+                continue
             service_kind = self._get_service_kind(int(percode))
-            if service_kind == '' or service_kind is None:
+            if not service_kind:
+                # self.log.error('No service_kind. cat_id=%s, subcat=%s,'
+                #                'chain_id=%s, chain_name=%s' %
+                #                (cat_id, subcat, chain_id, chain_name))
                 continue
             distance = min(distance)
             self._insert_into_store_info((road_code, road_seq, updown_c,
@@ -153,7 +160,6 @@ class HwyFacilityTa(HwyFacilityRDF):
         '''
         return self.get_batch_data(sqlcmd)
 
-
     def _insert_into_store_info(self, parm):
         sqlcmd = '''
         INSERT INTO hwy_store(road_code, road_seq, updown_c,
@@ -166,10 +172,12 @@ class HwyFacilityTa(HwyFacilityRDF):
         self.pg.execute1(sqlcmd, parm)
 
     def _update_undefined_dict(self):
+        self.undefined_dict.update(TA_SERVICE_UNSPECIFED_DICT)
         return 0
 
     def _make_hwy_service(self):
         '''服务情报'''
+        self.log.info('Start make SAPA Service Info.')
         self.CreateTable2('hwy_service')
         self.pg.connect1()
         for data in self._get_store_info():
@@ -181,6 +189,7 @@ class HwyFacilityTa(HwyFacilityRDF):
             self._store_service_info(road_code, road_seq,
                                      updwon, service_types)
         self.pg.commit1()
+        self.log.info('End make SAPA Service Info.')
 
     def _get_service_types(self, category_id_list):
         gas_station, information, rest_area = HWY_FALSE, HWY_FALSE, HWY_FALSE
@@ -557,6 +566,215 @@ class HwyFacilityTa(HwyFacilityRDF):
         path_types = [HWY_PATH_TYPE_JCT, HWY_PATH_TYPE_UTURN]
         return path_types
 
+    def _make_ic_out_nearby_poi(self):
+        '''IC出口附近POI'''
+        self.log.info('Make IC out nearby POI.')
+        self.CreateTable2('mid_temp_hwy_ic_out_nearby_poi')
+        # 取出口周边2.5Km内的POI
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_ic_out_nearby_poi(
+                                        road_code, road_seq, updown_c,
+                                        node_id, poi_id, cat_id,
+                                        subcat, name, brandname,
+                                        distance, the_geom)
+        (
+        SELECT road_code, road_seq, updown_c,
+               node_id, id AS poi_id, feattyp AS cat_id,
+               subcat, name, brandname,
+               ST_Distance(ST_GeographyFromText(ST_asewkt(a.the_geom)),
+                           ST_GeographyFromText(ST_asewkt(b.the_geom))) dist,
+               b.the_geom
+          FROM (
+            SELECT road_code, road_seq, updown_c, node_id, the_geom
+              FROM hwy_node
+              WHERE facilcls_c = 5 and inout_c = 2  -- IC Out
+          ) AS a
+          INNER JOIN org_mnpoi_pi as b
+          ON ST_Dwithin(a.the_geom, b.the_geom, 0.022) -- 0.022: about 2.45km
+          WHERE feattyp not in (9920, 7230) and  -- 7230: 交叉点POI
+                -- 8099002: Mountain Peak
+                not (b.subcat = 8099002 and b.cltrpelid is null)
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+        self.CreateIndex2('mid_temp_hwy_ic_out_nearby_poi_poi_id_idx')
+        # 删除高速路/SAPA上的POI
+        self._del_hwy_road_poi()
+        # 添加出口路径上的POI
+        self._add_ic_out_path_poi()
+        self.CreateIndex2('mid_temp_hwy_ic_out_nearby_poi_the_geom_idx')
+
+    def _del_hwy_road_poi(self):
+        '''删除高速路/SAPA上的POI'''
+        sqlcmd = """
+        DELETE FROM mid_temp_hwy_ic_out_nearby_poi as a
+          using (
+              SELECT b.poi_id, road_type
+                FROM mid_temp_poi_link AS b
+                LEFT JOIN link_tbl as c
+                ON b.link_id = c.link_id
+                where road_type = 0 or link_type in (7)
+           ) as d
+           where a.poi_id = d.poi_id
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _add_ic_out_path_poi(self):
+        '''出口路径上的 POI: 距离填0, 使之较周边其他POI的优先级别更高'''
+        sqlcmd = """
+        INSERT INTO mid_temp_hwy_ic_out_nearby_poi(
+                                                road_code, road_seq, updown_c,
+                                                node_id, poi_id, cat_id,
+                                                subcat, name, brandname,
+                                                distance, the_geom)
+        (
+        SELECT distinct road_code, road_seq, updown_c,
+               a.node_id, poi_id, feattyp AS cat_id,
+               subcat, name, brandname,
+               0 as distance, the_geom
+          FROM (
+            SELECT distinct road_code, road_seq, updown_c,
+                            node_id, pass_link_id
+              from mid_temp_hwy_ic_path_expand_link
+              where facilcls_c = 5 and inout_c = 2
+          ) as a
+          INNER JOIN mid_temp_poi_link AS b
+          ON pass_link_id = b.link_id
+          LEFT JOIN org_mnpoi_pi as c
+          ON b.poi_id = c.id
+          WHERE feattyp not in (9920, 7230) and  -- 7230: 交叉点POI
+                -- 8099002: Mountain Peak
+                not (subcat = 8099002 and c.cltrpelid is null)
+          ORDER BY road_code, updown_c, road_seq, node_id, poi_id
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _make_ic_out_service(self):
+        '''IC出口服务情报'''
+        self.log.info('Make IC out service info.')
+        self.CreateTable2('hwy_ic_service')
+        self.pg.connect1()
+        for data in self._get_ic_out_service_info():
+            road_code, road_seq, updwon, node_id, category_id_list = data[0:5]
+            service_types = self._get_service_types(category_id_list)
+            # 服务标志都为HWY_FALSE时，不收录
+            if set(service_types) == set([HWY_FALSE]):
+                continue
+            self._store_ic_service_info(road_code, road_seq,
+                                        updwon, node_id, service_types)
+        self.pg.commit1()
+        pass
+
+    def _make_ic_out_store(self):
+        '''IC出口店铺情报'''
+        self.log.info('Make IC out Store info.')
+        self.CreateTable2('hwy_ic_store')
+        for row in self._get_ic_out_store_info():
+            (road_code, road_seq, updown_c, node_id, cat_id,
+             subcat, chain_id, chain_name, distance, percode) = row
+            if not percode:
+                self.log.error('No CategoryID for store. cat_id=%s, subcat=%s,'
+                               ' chain_id=%s, chain_name=%s' %
+                               (cat_id, subcat, chain_id, chain_name))
+                continue
+            service_kind = self._get_service_kind(int(percode))
+            if not service_kind:
+                continue
+            self._store_ic_store_info((road_code, road_seq, updown_c, node_id,
+                                       cat_id, subcat, chain_id, chain_name,
+                                       distance, service_kind))
+        self.pg.commit1()
+
+    def _get_ic_out_service_info(self):
+        sqlcmd = """
+        SELECT road_code, road_seq, updown_c, node_id,
+               array_agg(per_code) as category_id_list
+        FROM (
+            SELECT DISTINCT road_code, road_seq, updown_c,
+                    node_id, service_name, c.per_code
+              FROM mid_temp_hwy_ic_out_nearby_poi as a
+              LEFT JOIN temp_poi_category_mapping as b
+              ON a.poi_id = b.org_id1
+              INNER JOIN (
+                select service_name, category_id, per_code
+                from(
+                    select service_name, category_id, genre, gen1, gen2
+                    from hwy_service_category_mapping as m
+                    left join temp_poi_category as p
+                    on m.category_id = p.per_code
+                    where genre = '1st genre'
+                    )as a
+                inner join temp_poi_category as b
+                on a.gen1 = b.gen1
+                union
+                select service_name, category_id, per_code
+                from (
+                    select service_name, category_id, genre, gen1, gen2
+                    from hwy_service_category_mapping as m
+                    left join temp_poi_category as p
+                    on m.category_id = p.per_code
+                    where genre = '2nd genre'
+                     )as c
+                inner join temp_poi_category as d
+                on c.gen1 = d.gen1 and c.gen2 = d.gen2
+                -- ORDER BY category_id
+              ) as c
+              ON b.per_code = c.per_code
+              ORDER BY road_code, road_seq, updown_c, node_id,
+                       service_name, per_code
+          ) as d
+          GROUP BY road_code, road_seq, updown_c, node_id;
+        """
+        return self.get_batch_data(sqlcmd)
+
+    def _get_ic_out_store_info(self):
+        sqlcmd = """
+        SELECT  road_code, road_seq, updown_c,
+                node_id, a.cat_id, subcat, '' as store_chain_id,
+                brandname, min(distance) as distance, per_code
+           FROM mid_temp_hwy_ic_out_nearby_poi as a
+           LEFT JOIN temp_poi_category_mapping as b
+           ON a.poi_id = b.org_id1
+           WHERE a.cat_id not in (7358, 7395)
+             --  7358: Truck Stop; 7395: Rest Area
+             and brandname <> '' and brandname is not null
+           group by road_code, road_seq, updown_c, node_id,
+                    a.cat_id, subcat, brandname, per_code
+           ORDER BY road_code, road_seq, node_id, distance, store_chain_id
+        """
+        return self.get_batch_data(sqlcmd)
+
+    def _store_ic_service_info(self, road_code, road_seq,
+                               updwon, node_id, service_types):
+        sqlcmd = """
+        INSERT INTO hwy_ic_service(road_code, road_seq, updown_c,
+                                   node_id, gas_station, information,
+                                   rest_area, shopping_corner, postbox,
+                                   atm, restaurant, toilet)
+          VALUES (%s, %s, %s,
+                  %s, %s, %s,
+                  %s, %s, %s,
+                  %s, %s, %s);
+        """
+        params = (road_code, road_seq, updwon, node_id) + service_types
+        self.pg.execute1(sqlcmd, params)
+
+    def _store_ic_store_info(self, parm):
+        ''''''
+        sqlcmd = '''
+        INSERT INTO hwy_ic_store(road_code, road_seq, updown_c, node_id,
+                                 store_cat_id, sub_cat, store_chain_id,
+                                 chain_name, priority, service_kind)
+        VALUES(%s, %s, %s, %s,
+               %s, %s, %s,
+               %s, %s, %s)
+        '''
+        self.pg.execute1(sqlcmd, parm)
+
 
 # ==============================================================================
 # HwyFacilityTaSaf
@@ -581,51 +799,18 @@ class HwyFacilityTaSaf(HwyFacilityTa):
         # 即没有SignPost情报时，IC设施名称为空。
         return None
 
-# ==============================================================================
-# 服务情报对应表
-# ==============================================================================
-# キャッシュコーナー/ATM
-SERVICE_ATM_DICT = {(7397, 0): None,  # Cash Dispenser
-                    }
-# ガソリンスタンド/Gas station
-SERVICE_GAS_DICT = {(7311, 0): None,  # Gas station
-                    }
-# 仮眠休憩所/rest_area
-SERVICE_REST_AREA_DICT = {(7314, 7314006): None  # Hotel/Motel
-                          }
-# レストラン/Restaurant
-SERVICE_RESTAURANT_DICT = {(9376, 9376002): None,  # Café
-                           (9376, 9376006): None,  # Coffee Shop
-                           (7315, 7315001): None,  # Restaurant
-                           (7315, 7315015): None,  # Restaurant: Fast Food
-                           (7315, 7315036): None,  # Restaurant: Pizza
-                           (7315, 7315045): None,  # Steak House
-                           (7315, 7315072): None,  # Brazilian
-                           (7315, 7315145): None,  # Restaurant: Take away
-                           (7315, 7315149): None,  # Yogurt/Juice Bar
-                           }
-# ショッピングコーナー/Shopping Corner
-SERVICE_SHOPPING_DICT = {(7373, 0): None,  # Shopping Center
-                         (9361, 9361001): None,  # Shop
-                         (9361, 9361006): None,  # Clothing & Accessories: General
-                         (9361, 9361009): None,  # Convenience Stores
-                         (9361, 9361018): None,  # Food & Drinks: Bakers
-                         (9361, 9361019): None,  # Food & Drinks: Butchers
-                         (9361, 9361024): None,  # Food & Drinks: Other
-                         (9361, 9361025): None,  # Food & Drinks: Wine&Spirits
-                         (9361, 9361031): None,  # Furniture & Fittings
-                         (9361, 9361049): None,  # Antique/Art
-                         (9361, 9361060): None,  # Delicatessen(熟食)
-                         }
-# 郵便ポスト/post_box
-SERVICE_POSTBOX_DICT = {(7324, 7324003): None,  # Shop: Local
-                        }
-# インフォメーション
-SERVICE_INFORMATION_DICT = {(7316, 0): None,  # Tourist Information Office
-                            }
-# Toilet
-SERVICE_TOILET_DICT = {(9932, 9932005): None,  # Toilet
-                       }
+    def _make_ic_out_nearby_poi(self):
+        '''# IC出口附近POI'''
+        pass
+
+    def _make_ic_out_service(self):
+        '''IC出口服务情报'''
+        self.CreateTable2('hwy_ic_service')
+
+    def _make_ic_out_store(self):
+        '''IC出口店铺情报'''
+        self.CreateTable2('hwy_ic_store')
+
 # 未定义服务种别
 TA_SERVICE_UNSPECIFED_DICT = {
                               (7301, 7301002): None,  # Traffic Control Department
@@ -633,34 +818,7 @@ TA_SERVICE_UNSPECIFED_DICT = {
                               (7315, 7315149): None,  # Yogurt/Juice Bar
                               (7332, 7332005): None,  # Supermarkets & Hypermarkets
                               (7383, 7383005): None,  # Airfield
+                              (8099, 8099027): None,
                               (9155, 9155002): None,  # Car Wash
                               (9376, 9376006): None,  # Coffee Shop
                               }
-
-
-# SERVICE_UNDEFINED_DICT = {(7301, 7301002): None,  # Traffic Control Department
-#                           (7304, 7304006): None,  # Apartment
-#                           # Important Tourist(Unspecified)
-#                           (7322, 7322004): None,  # Police Station(Order1 Area)
-#                           (7332, 7332005): None,  # Supermarkets & Hypermarkets
-#                           (7376, 7376001): None,
-#                           (7376, 7376003): None,  # Important Tourist(Monument)
-#                           (7380, 7380003): None,  # Railway Station(National)
-#                           (7383, 7383005): None,  # Airfield
-#                           (8099, 8099001): None,  # Geographic Feature
-#                           (8099, 8099016): None,  # Geographic: Bay
-#                           (8099, 8099020): None,  # Geographic: Cape
-#                           (8099, 8099027): None,  # Geographic: Locale
-#                           (9155, 9155002): None,  # Car Wash
-#                           (9352, 9352002): None,  # Company: Service
-#                           (9352, 9352011): None,  # Company: Manufacturing
-#                           (9352, 9352022): None,  # Company: Tax Services
-#                           (9352, 9352032): None,  # Company: Construction
-#                           (9362, 9362033): None,  # Picnic Area
-#                           (9362, 9362030): None,  # Natural Attraction
-#                           (9932, 9932004): None,  # Public Call Box
-#                           (9373, 9373002): None,  # General Practitioner
-#                           (9932, 9932006): None,  # Road Rescue
-#                           (9942, 9942002): None,  # Bus Stop
-#                           (9942, 9942005): None,  # Coach Stop
-#                           }

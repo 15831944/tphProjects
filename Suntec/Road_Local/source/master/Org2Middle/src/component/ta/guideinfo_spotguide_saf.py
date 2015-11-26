@@ -352,8 +352,8 @@ where a.jncttyp=2
     # 前面已生成两个link序列表：
     # temp_spotguide_nav_link_from_signpost
     # temp_spotguide_nav_link_from_bifurcation
-    # 从以上两个link序列表中生成spotguide的相关数据。
-    # 当产生重复时，优先使用signpost获取的数据。
+    # 从以上两个link序列表取合集，当产生重复时，优先使用signpost获取的数据。
+    # 根据此合集生成spotguide的相关数据。
     def _GenerateSpotguide(self):
         sqlcmd = """
 select trpelid_list, f_jnctid_list, t_jnctid_list,

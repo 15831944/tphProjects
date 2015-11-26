@@ -177,7 +177,62 @@ class CCheckRTICLinkGeom(platform.TestCase.CTestCase):
             
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0) 
-     
+
+class CCheckRTICRecNum(platform.TestCase.CTestCase):
+
+    def _do(self):
+        
+        sqlcmd_org = """
+            select count(*) from (
+                select distinct meshcode,kind,rticid from temp_rtic_link_temp
+            ) a;
+            """           
+        rec_cnt_org = self.pg.getOnlyQueryResult(sqlcmd_org)
+        
+        sqlcmd_rdb = """
+            select count(*) from (
+                select distinct area_code,extra_flag,infra_id from rdb_trf_org2rdb
+            ) a;
+            """            
+        rec_cnt_rdb = self.pg.getOnlyQueryResult(sqlcmd_rdb)        
+        
+        return (rec_cnt_org - rec_cnt_rdb) * 1.0 /  rec_cnt_org < 0.005
+    
+class CCheckRTICLength_NI(platform.TestCase.CTestCase):
+
+    def _do(self):
+        
+        sqlcmd_org = """
+            with temp_rtic_link_all_length as
+            (
+                SELECT ST_Length_Spheroid( b.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)' 
+                       ) as link_length
+                FROM (
+                    select distinct linkid from org_rtic_incar 
+                ) a
+                left join org_r b
+                on a.linkid = b.id
+            )
+            select sum(link_length) from temp_rtic_link_all_length;
+            """ 
+        rec_cnt_org = self.pg.getOnlyQueryResult(sqlcmd_org)
+        
+        sqlcmd_rdb = """
+            with temp_rtic_link_all_length as
+            (
+                SELECT b.link_length
+                FROM (
+                    select distinct rdb_link_id from rdb_trf_org2rdb 
+                ) a
+                left join rdb_link b
+                on a.rdb_link_id = b.link_id
+            )
+            select sum(link_length) from temp_rtic_link_all_length; 
+            """ 
+        rec_cnt_rdb = self.pg.getOnlyQueryResult(sqlcmd_rdb)        
+        
+        return (rec_cnt_org - rec_cnt_rdb) * 1.0 / rec_cnt_org < 0.005   
+                 
 class CCheckSequenceAndCount(platform.TestCase.CTestCase):
 
     def _do(self):

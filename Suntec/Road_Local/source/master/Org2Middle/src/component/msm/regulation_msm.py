@@ -34,12 +34,9 @@ class comp_regulation_msm(component.component_base.comp_base):
         return 0
     
     def _DoCreateIndex(self):
-        self.CreateIndex2('regulation_relation_tbl_gid_idx')
         self.CreateIndex2('regulation_relation_tbl_regulation_id_idx')
         self.CreateIndex2('regulation_relation_tbl_inlinkid_idx')
-        self.CreateIndex2('regulation_relation_tbl_outlinkid_idx')
-        self.CreateIndex2('regulation_item_tbl_regulation_id')
-        self.CreateIndex2('condition_regulation_tbl_cond_id')
+        self.CreateIndex2('regulation_item_tbl_regulation_id_idx')
         return 0
     
     def __prepare_link(self):

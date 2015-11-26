@@ -502,6 +502,9 @@ class HwyFacilityZenrin(HwyFacilityRDF):
         '''过滤假JCT/UTurn:下了高速又转弯回来的径路'''
         pass
 
+    def _convert_service_road_2_jct(self):
+        pass
+
     def _make_hwy_service(self):
         self.log.info('make hwy service')
         self.CreateTable2('hwy_service')

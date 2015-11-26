@@ -232,3 +232,37 @@ class CCheckLinkRegulationIsSame(platform.TestCase.CTestCase):
         
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_count == 0)
+
+class CCheckLastLinkDir2(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                select count(a.regulation_id)
+                from rdb_link_regulation as a
+                left join rdb_link as b
+                on a.last_link_id = b.link_id
+                where (a.last_link_dir = 1 and b.one_way in (3,0))
+                   or (a.last_link_dir = 2 and b.one_way in (2,0))
+                   or (a.regulation_type = 0 and a.last_link_dir = 0 and b.one_way not in (1, 2, 3))
+                """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckLastLinkDir_LinkNum_rel(platform.TestCase.CTestCase):
+    def _do(self):
+        sqlcmd = """
+                select count(*)
+                from rdb_link_regulation
+                where last_link_dir = 0 and link_num > 1
+                """
+        count_rec = self.pg.getOnlyQueryResult(sqlcmd)
+        return (count_rec == 0)
+
+class CCheckLinkrowTrafficFlow(platform.TestCase.CTestCase):
+    def _do(self):
+        try:
+            self.pg.CreateFunction_ByName('rdb_check_linkrow_connectivity_by_traffic_flow')
+            self.pg.callproc('rdb_check_linkrow_connectivity_by_traffic_flow')
+            return True
+        except:
+            self.logger.exception('fail to check...')
+            return False

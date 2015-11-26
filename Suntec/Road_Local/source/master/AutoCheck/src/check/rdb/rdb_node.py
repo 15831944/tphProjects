@@ -323,7 +323,7 @@ class CCheckTrafficLight(platform.TestCase.CTestCase):
             select 
             (select count(*) from rdb_node where ((extend_flag >> 9) & 1) = 1) as count_trf
             ,(select count(*) from rdb_node) as count_all
-        ) a where (count_trf * 1.0) / count_all  > 0.03
+        ) a where (count_trf * 1.0) / count_all  > 0.05
                  """
         rec_cnt = self.pg.getOnlyQueryResult(sqlcmd)
         return (rec_cnt == 0)

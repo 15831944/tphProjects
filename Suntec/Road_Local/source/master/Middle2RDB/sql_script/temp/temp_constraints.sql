@@ -924,3 +924,13 @@ CREATE INDEX temp_hierarchy_trunk_links_link_id_idx
 	using btree
 	(link_id);
 	
+CREATE INDEX rtic_id_fund_link_idx
+	on rtic_id_fund_link
+	using btree
+	(link_id_64);
+	
+CREATE INDEX rdb_rtic_id_matching_link_id_64_idx
+	on rdb_rtic_id_matching
+	using btree
+	(link_id_64);
+	

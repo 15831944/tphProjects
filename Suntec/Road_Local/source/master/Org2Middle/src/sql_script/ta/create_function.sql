@@ -1792,17 +1792,18 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION mid_cnv_road_type(
-freeway smallint,
-frc smallint,
-ft smallint,
-fow smallint,
-privaterd smallint,
-backrd smallint,
-procstat smallint,
-carriage character varying,
-nthrutraf smallint,
-sliprd smallint,
-stubble smallint
+	freeway smallint,
+	frc smallint,
+	ft smallint,
+	fow smallint,
+	privaterd smallint,
+	backrd smallint,
+	procstat smallint,
+	carriage character varying,
+	nthrutraf smallint,
+	sliprd smallint,
+	stubble smallint,
+	proj_country varchar
 )
 RETURNS smallint
 LANGUAGE plpgsql
@@ -1827,7 +1828,8 @@ BEGIN
     	return 13;
     ELSEIF privaterd != 0 THEN
         return 7;
-    ELSEIF freeway = 1 or fow = 1 THEN
+    ELSEIF (proj_country = 'aus' and fow = 1) 
+		or (proj_country != 'aus' and (freeway = 1 or fow = 1)) THEN
 	    return 0;
     ELSEIF frc in (0, 1, 2) THEN
         return 2;
@@ -2074,32 +2076,34 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION mid_cnv_disp_class(freeway smallint, frc smallint, feattyp smallint, fow smallint ,roughrd smallint)
+CREATE OR REPLACE FUNCTION mid_cnv_disp_class(freeway smallint, frc smallint, feattyp smallint, fow smallint ,roughrd smallint, rdcond smallint, proj_country varchar)
   RETURNS smallint
   LANGUAGE plpgsql AS
 $$
 BEGIN
-    IF feattyp in (4130) THEN
-        return 14;   --100;
-    ELSEIF roughrd = 1 THEN   -- 4-wheel drive
-        return 19;         
-    ELSEIF  freeway = 1 or fow = 1 THEN   -- Free Way
-		return 12;
-    ELSEIF frc in (0, 1) THEN   -- HighWay
-        return 9; 
-    ELSEIF frc = 2 THEN   
-        return 8; 
-    ELSEIF frc = 3 THEN 
-    	return 7;
-    ELSEIF frc = 4 THEN 
-        return 6;  
-    ELSEIF frc = 5 THEN 
-        return 5;		
-    ELSEIF frc in (6,7) THEN 
-        return 4;
-    END IF;
-    
-    return 3;   -- Other
+	IF proj_country = 'aus' and rdcond in (2,3) THEN
+		return 21;    --unpaved road
+	ELSEIF feattyp in (4130) THEN
+		return 14;    --ferry;
+	ELSEIF roughrd = 1 THEN   
+		return 19;    -- 4-wheel drive
+	ELSEIF  freeway = 1 or fow = 1 THEN 
+		return 12;    -- Free Way
+	ELSEIF frc in (0, 1) THEN   
+		return 9;    -- HighWay
+	ELSEIF frc = 2 THEN   
+		return 8;    -- province road
+	ELSEIF frc = 3 THEN 
+		return 7;    -- primary road
+	ELSEIF frc = 4 THEN 
+		return 6;    -- secondary road
+	ELSEIF frc = 5 THEN 
+		return 5;    -- local road    
+	ELSEIF frc in (6,7) THEN 
+		return 4;    -- residential road
+	END IF;
+	
+	return 3;   -- Other
 END;
 $$;
 

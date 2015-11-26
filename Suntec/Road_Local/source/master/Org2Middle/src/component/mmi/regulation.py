@@ -82,7 +82,6 @@ class comp_regulation_mmi(component.component_base.comp_base):
         self.log.info('Begin deleting dummy regulation...')
         
         self.CreateIndex2('regulation_relation_tbl_regulation_id_idx')
-        self.CreateIndex2('regulation_relation_tbl_gid_idx')
         
         # backup
         sqlcmd = """

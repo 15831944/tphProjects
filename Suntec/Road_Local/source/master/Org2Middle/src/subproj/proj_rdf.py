@@ -69,12 +69,14 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway_Prepare'))
             
             self.AddComponent(self.comp_factory.CreateOneComponent('Name_filter_and_sort'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Detele_redundance_regulation'))
             # link_split
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Split'))
             # link_merge
             self.AddComponent(self.comp_factory.CreateOneComponent('Link_Merge'))
 
             self.AddComponent(self.comp_factory.CreateOneComponent('MainNode'))
+            
             # highway
             self.AddComponent(self.comp_factory.CreateOneComponent('Highway'))
             pass

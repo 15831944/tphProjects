@@ -26,6 +26,7 @@ ONEWAY_B = 1
 INNERLINK_MAX_LEN = 1000
 ARROWDIC = {"straight" : 1,"left_straight" : 1,"right_back" : 8,"left_back":32,"right_forward":2,"left_forward":128,"right":4,"left":64}
 
+# 此类用于更新lane_tbl表中箭头信息为空的记录。
 class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base):
     '''诱导车线箭头优化(日本版)
     '''
@@ -37,26 +38,25 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
 
         component.component_base.comp_base.__init__(self, "arrow_optimize")
 
-    def _get_original_data(self):
+    def getLaneWithEmptyArrow(self):
         '''从数据库中选取箭头方向为空记录'''
         sql_cmd = '''
             SELECT gid, nodeid, inlinkid, outlinkid, passlid, passlink_cnt
             FROM lane_tbl
             where arrowinfo is null;
         '''
-        # arrowinfo is null  and inlinkid = 1069635199776032219
         self.pg.execute2(sql_cmd)
         org_data_list = self.pg.fetchall2()
         return org_data_list
 
     def _Do(self):
         self.CreateTable2("test_lane_tbl")
-        org_data_list = self._get_original_data()
+        org_data_list = self.getLaneWithEmptyArrow()
         metadata_list = self._get_metadata_list(org_data_list)
         for metadata_map in metadata_list:
             for (gid, metadata) in metadata_map.items():
                 basic_arrow = self._get_basic_angle(metadata)
-                forceguide_res = self.forceguide_filter(metadata, basic_arrow)
+                forceguide_res = self.getTrafficAngleFromForceguide(metadata, basic_arrow)
                 #如果有强制诱导但是没有方向
                 if forceguide_res[0]:
                     if forceguide_res[1] <> "disangle":
@@ -156,8 +156,10 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
                 WHERE gid=%s;
             ''',(rec[1],rec[0]))
         self.pg.commit2()
-        return 
-    def forceguide_filter(self,metadata,basic_arrow):
+        return
+    
+    # 从forceguide获取转向角度。
+    def getTrafficAngleFromForceguide(self,metadata,basic_arrow):
         links = metadata.get_links()
         inlink = links[0]
         outlink = links[1]
@@ -173,7 +175,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
         if len(row) == 1:
             guide_type = row[0]
             if guide_type == 1:
-                if self._check_hwy_road(inlink):
+                if self.isHighWay(inlink):
                     basic_arrow = "straight"
                     return [True, basic_arrow]
                 else:
@@ -212,7 +214,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
         rel_p2 = basic_arrow
         if linknum <= 2:
             return [False, basic_arrow]
-        if not self._check_hwy_road(links[0]) and not self._check_hwy_road(links[1]):
+        if not self.isHighWay(links[0]) and not self.isHighWay(links[1]):
             return [False, basic_arrow]
         linkcnt = 0
         while linkcnt < linknum:
@@ -824,7 +826,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
             else:
                 return "left_straight"
 
-    def _check_hwy_road(self, linkid):
+    def isHighWay(self, linkid):
         '''如果是收费link，就是hwy，否则不是'''
         sql_cmd = '''
             SELECT toll
@@ -902,8 +904,8 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
         inlink = metadata.get_inlink()
         links = metadata.get_links()
         enter_flag = False
-        if self._check_hwy_road(links[inlink]) \
-            or not self._check_hwy_road(links[outlink]):
+        if self.isHighWay(links[inlink]) \
+            or not self.isHighWay(links[outlink]):
             return [False, basic_arrow]
 
         if self.get_roadtype(links[inlink]) > URBAN_HIGHWAY_FLAG \
@@ -937,7 +939,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
         if self.get_linktype(links[inlink]) in (MAIN_LINK1_FLAG,MAIN_LINK2_FLAG,SAPA_LINK_FLAG):
             if self.get_linktype(links[outlink]) == RAMP_LINK_FLAG:
                 if self.get_roadtype(links[inlink]) == self.get_roadtype(links[outlink])\
-                    and self._check_hwy_road(links[inlink]) and self._check_hwy_road(links[outlink]):
+                    and self.isHighWay(links[inlink]) and self.isHighWay(links[outlink]):
                     basic_arrow = "straight"
                     if linknum >= 3:
                         link_cnt = 0
@@ -949,7 +951,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
                                 link_cnt = link_cnt + 1
                                 continue
                             abs_link_angle = abs(angles[link_cnt])
-                            if abs_link_angle > 75 and not self._check_hwy_road(links[link_cnt]):
+                            if abs_link_angle > 75 and not self.isHighWay(links[link_cnt]):
                                 link_cnt = link_cnt + 1
                                 continue
                             if angles[link_cnt] > angles[outlink]:
@@ -1052,7 +1054,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
             # pathlink is ramp
             if self.get_linktype(links[1]) == RAMP_LINK_FLAG:
                 if self.get_roadtype(links[0]) == self.get_roadtype(links[1]) \
-                    and not self._check_hwy_road(links[1]) and not self._check_hwy_road(links[0]):
+                    and not self.isHighWay(links[1]) and not self.isHighWay(links[0]):
                     link_cnt = 0
                     relcnt = 0
                     while link_cnt < link_num:
@@ -1120,13 +1122,13 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
         link_cnt = 0
         if self.get_linktype(links[0]) == RAMP_LINK_FLAG:
             if self.get_linktype(links[1]) == RAMP_LINK_FLAG:
-                if self._check_hwy_road(links[0]) and self._check_hwy_road(links[1]):
+                if self.isHighWay(links[0]) and self.isHighWay(links[1]):
                     while link_cnt < linknum:
                         if link_cnt in (0,1):
                             link_cnt = link_cnt + 1
                             continue
                         #skip not hwy and sapa link
-                        if self.get_linktype(links[link_cnt]) == SAPA_LINK_FLAG or not self._check_hwy_road(links[link_cnt]):
+                        if self.get_linktype(links[link_cnt]) == SAPA_LINK_FLAG or not self.isHighWay(links[link_cnt]):
                             link_cnt = link_cnt + 1
                             continue
                         #skip not triffic link
@@ -1184,7 +1186,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
                     return [False, basic_arrow]
         elif self.get_linktype(links[1]) == RAMP_LINK_FLAG:
             if self.get_roadtype(links[0]) == self.get_roadtype(links[1]) and \
-                self._check_hwy_road(links[0]) and self._check_hwy_road(links[1]):
+                self.isHighWay(links[0]) and self.isHighWay(links[1]):
                 while link_cnt < linknum:
                     if link_cnt in (0,1):
                         link_cnt = link_cnt + 1
@@ -1208,7 +1210,7 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
                 pass
         else:
             if self.get_roadtype(links[0]) == self.get_roadtype(links[1]) and \
-                 self._check_hwy_road(links[0]) and self._check_hwy_road(links[1]):
+                 self.isHighWay(links[0]) and self.isHighWay(links[1]):
                 while link_cnt < linknum:
                     if link_cnt in (0,1):
                         link_cnt = link_cnt + 1
@@ -1248,16 +1250,17 @@ class comp_guideinfo_lane_arrow_optimize_jdb(component.component_base.comp_base)
         
 class metadata_item(object):
     def __init__(self):
-        linknum = 0
-        angles = []
-        links = []
-        inlink = 0
-        outlink = 0
-        jumpnum = 0
-        linkdirs = []
-        onewaycodes = []
-        alonglink = -1
-        same_name_link = []
+        self.linknum = 0
+        self.angles = []
+        self.links = []
+        self.inlink = 0
+        self.outlink = 0
+        self.jumpnum = 0
+        self.linkdirs = []
+        self.onewaycodes = []
+        self.alonglink = -1
+        self.same_name_link = []
+        
     def set_same_name_link(self,same_name_link):
         self.same_name_link = same_name_link
         

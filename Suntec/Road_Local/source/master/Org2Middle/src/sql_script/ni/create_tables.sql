@@ -105,6 +105,7 @@ create table temp_poi_category_name
   name      varchar,
   tr_lang   varchar,
   tr_name   varchar,
+  ph_flag   varchar,
   phoneme_id  integer
 );
 

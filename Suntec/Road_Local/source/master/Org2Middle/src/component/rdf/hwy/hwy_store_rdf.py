@@ -21,12 +21,14 @@ class HwyStoreRDF(HwyStore):
         self.CreateTable2('highway_store_info')
         self.CreateTable2('highway_store_picture')
         self.CreateTable2('highway_store_name')
-        self._make_store_info()
+        self._make_store_info()  # SAPA店铺
+        self._make_ic_store_info()  # IC出口店铺
         self._make_store_picture()
         self._make_store_name()
         self._check_store_kind()
 
     def _make_store_info(self):
+        self.log.info('Make SAPA Store Info.')
         sqlcmd = """
         INSERT INTO highway_store_info(ic_no, bis_time_flag, bis_time_num,
                                        store_kind, open_hour, open_min,
@@ -63,7 +65,51 @@ class HwyStoreRDF(HwyStore):
                a.store_chain_id is NULL))
           WHERE u_code IS NOT NULL and
                 a.service_kind is not null
-          --ORDER BY ic_no, store_kind
+          order by ic_no, service_kind, priority, store_kind
+        );
+        """
+        self.pg.execute2(sqlcmd)
+        self.pg.commit2()
+
+    def _make_ic_store_info(self):
+        self.log.info('Make IC Store Info.')
+        sqlcmd = """
+        INSERT INTO highway_store_info(ic_no, bis_time_flag, bis_time_num,
+                                       store_kind, open_hour, open_min,
+                                       close_hour, close_min, holiday,
+                                       goldenweek, newyear, yearend,
+                                       bonfestival, sunday, saturday,
+                                       friday, thursday, wednesday,
+                                       tuesday, monday, seq_nm,
+                                       priority, service_kind
+                                       )
+        (
+        SELECT distinct ic_no, 0 as bis_time_flag, 0 as bis_time_num,
+               u_code as store_kind, 0 as open_hour, 0 as open_min,
+               0 as close_hour, 0 as close_min, 0 as holiday,
+               0 as goldenweek, 0 as newyear, 0 as yearend,
+               0 as bonfestival,0 as sunday, 0 as saturday,
+               0 as friday, 0 as thursday, 0 as wednesday,
+               0 as tuesday, 0 as monday, 1 as seq_nm,
+               a.priority, a.service_kind
+          FROM hwy_ic_store as a
+          LEFT JOIN mid_hwy_ic_no as b
+          ON a.road_code = b.road_code and
+             a.road_seq = b.road_seq and
+             a.updown_c = b.updown and
+             a.node_id = b.node_id
+          LEFT JOIN hwy_chain_name as c
+          ON a.store_cat_id = c.cat_id and
+             a.sub_cat = c.sub_cat and
+             ((a.store_chain_id = c.chain_id and
+              (a.chain_name = c.chain_name or
+               a.chain_name = '' or
+               a.chain_name is NULL)) or
+              (a.chain_name = c.chain_name and
+               a.chain_name <> '' and
+               a.store_chain_id is NULL))
+          WHERE u_code IS not NULL and
+                a.service_kind is not null
           order by ic_no, service_kind, priority, store_kind
         );
         """
@@ -123,7 +169,13 @@ class HwyStoreRDF(HwyStore):
     def _check_store_kind(self):
         sqlcmd = """
         SELECT distinct a.store_chain_id, a.chain_name, chain_names
-          FROM hwy_store as a
+          FROM (
+            SELECT store_cat_id, sub_cat, store_chain_id, chain_name
+              FROM hwy_store
+            UNION
+            SELECT store_cat_id, sub_cat, store_chain_id, chain_name
+              FROM hwy_ic_store
+          ) as a
           LEFT JOIN (
             SELECT u_code, cat_id, sub_cat,
                    chain_id, array_agg(chain_name) as chain_names

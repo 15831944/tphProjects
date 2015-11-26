@@ -47,7 +47,7 @@ class HwySapaInfoTa(HwySapaInfoRDF):
           FROM org_mnpoi_pi AS poi
           LEFT JOIN mid_link_mapping AS m
           ON poi.cltrpelid = m.org_link_id
-          WHERE poi.feattyp not in (7230, 9920) and
+          WHERE poi.feattyp not in (7230, 9920) and  -- 7230: 交叉点POI
                 -- 8099002: Mountain Peak
                 not (subcat = 8099002 and poi.cltrpelid is null)
           ORDER BY poi.id
@@ -107,17 +107,20 @@ class HwySapaInfoTa(HwySapaInfoRDF):
         INSERT INTO hwy_chain_name(u_code, cat_id, sub_cat,
                                    chain_id, chain_name, language_code)
         (
-        SELECT distinct per_code, a.feattyp as cat, a.subcat,
+        SELECT distinct b.per_code, a.feattyp as cat, a.subcat,
                         '' as store_chain_id, a.brandname, lancd
           FROM (
             SELECT distinct id, feattyp, subcat,
                     brandname, lancd
               FROM org_mnpoi_pi
-              WHERE brandname is not null and  brandname <> ''
+              WHERE brandname is not null and brandname <> ''
           ) AS a
-          LEFT JOIN temp_poi_category_mapping as b
+          INNER JOIN temp_poi_category_mapping as b
           ON a.id = b.org_id1
-          WHERE per_code IS NOT NULL
+          INNER JOIN temp_poi_category AS c
+          ON b.per_code = c.per_code and is_brand = 'Y'
+          WHERE b.per_code IS NOT NULL
+          order by per_code
         );
         """
         self.pg.execute2(slqcmd)

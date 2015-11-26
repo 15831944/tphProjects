@@ -339,7 +339,8 @@ class HwySapaInfoRDF(comp_base):
               ON a.chain_id::bigint = b.chain_id
               INNER JOIN temp_poi_category as cat
               ON b.chain_id = cat.chain and
-                 a.cat_id::bigint = cat.org_code
+                 a.cat_id::bigint = cat.org_code and
+                 is_brand = 'Y'
         ) AS c
         ORDER BY chain_id,
                  language_code = 'ENG' DESC, -- English first

@@ -1158,6 +1158,21 @@ create table temp_poi_category1
   logmark character varying(1)
  );
 
+create table temp_poi_category_code
+(
+  per_code   bigint       not null,
+  is_brand   varchar,
+  gen1       int          not null,
+  gen2       int          not null,
+  gen3       int          not null,
+  level      smallint     not null,
+  genre_type varchar,
+  org_code   bigint,
+  sub_category        integer,
+  brand_name varchar,
+  filename varchar
+);
+
 create table temp_poi_category
 (
   per_code   bigint       not null,
@@ -1166,7 +1181,7 @@ create table temp_poi_category
   gen2       int          not null,
   gen3       int          not null,
   level      smallint     not null,
-  name       varchar(128) not null,
+  name        varchar,
   genre_type varchar,
   org_code   bigint,
   sub_category        integer,
@@ -1225,6 +1240,23 @@ CREATE TABLE mid_temp_hwy_exit_name_ta
   is_junction_name   character(1),
   name               character varying(4096)
 );
+
+------------------------------------------------------------------------
+--
+CREATE TABLE mid_temp_hwy_ic_out_nearby_poi
+(
+  gid            serial not null primary key,
+  road_code      integer not null,
+  road_seq       integer not null,
+  updown_c       integer not null,
+  node_id        bigint not null,
+  poi_id         bigint not null,
+  cat_id         smallint not null,
+  subcat         integer,
+  name           character varying(240),
+  brandname      character varying(75),
+  distance       float
+); SELECT AddGeometryColumn('','mid_temp_hwy_ic_out_nearby_poi','the_geom','4326','POINT',2);
 
 -------------------------------------------------------------------------------------------------
 -- iso country code

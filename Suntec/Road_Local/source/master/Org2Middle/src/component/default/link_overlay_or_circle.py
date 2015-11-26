@@ -526,21 +526,20 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
         self.CreateTable2('spotguide_tbl')
 
         sqlcmd = """
-            insert into spotguide_tbl(id,nodeid,inlinkid,outlinkid,passlid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type)
-            select id,nodeid,inlinkid,outlinkid,array_to_string(array_agg(passlink),'|') as passlid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type from (
+            insert into spotguide_tbl(nodeid,inlinkid,outlinkid,passlid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type)
+            select nodeid,inlinkid,outlinkid,array_to_string(array_agg(passlink),'|') as passlid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type from (
                 select * from (
-                    select  a.id,
-                            a.nodeid,
+                    select  a.nodeid,
                             case when b.aid is not null then b.bid else a.inlinkid end as inlinkid,
                             case when c.aid is not null then c.bid else a.outlinkid end as outlinkid,
                             case when d.aid is not null then d.bid else a.passlink end as passlink,
                             a.passlink_cnt,a.link_index,a.direction,a.guideattr,a.namekind,a.guideclass,a.patternno,a.arrowno,a.type
                         from (
-                            select id,nodeid,inlinkid,outlinkid,case when link_array is not null then  cast(unnest(link_array) as bigint) else null end as passlink,
+                            select nodeid,inlinkid,outlinkid,case when link_array is not null then  cast(unnest(link_array) as bigint) else null end as passlink,
                                 passlink_cnt,case when link_array is not null then generate_series(1, passlink_cnt) else 1 end as link_index,direction,guideattr,namekind,guideclass,patternno,arrowno,type
                             from (
 
-                                select id,nodeid,inlinkid,outlinkid,case when passlid <> '' and passlid is not null then string_to_array(passlid,'|') else null end as link_array,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type
+                                select nodeid,inlinkid,outlinkid,case when passlid <> '' and passlid is not null then string_to_array(passlid,'|') else null end as link_array,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type
                                 from spotguide_tbl_bak_dupli_dealing
                                 ) a
                               ) a
@@ -550,8 +549,8 @@ class comp_link_dupli_or_circle(component.component_base.comp_base):
                     on a.outlinkid = c.aid
                     left join temp_dupli_link d
                     on a.passlink = d.aid
-                ) a order by id,nodeid,inlinkid,outlinkid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type,link_index
-            ) a group by id,nodeid,inlinkid,outlinkid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type;
+                ) a order by nodeid,inlinkid,outlinkid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type,link_index
+            ) a group by nodeid,inlinkid,outlinkid,passlink_cnt,direction,guideattr,namekind,guideclass,patternno,arrowno,type;
             """
 
         self.pg.execute2(sqlcmd)

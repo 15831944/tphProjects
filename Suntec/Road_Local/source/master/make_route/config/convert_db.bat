@@ -18,6 +18,12 @@ cd %basedir%\Middle2RDB\src
 python main.py
 echo "middle2rdb end."
 )
+cd /d %basedir%
+git config --local user.email "zhaojie@pset.suntec.net"
+git config --local user.name "zj281224"
+rm  log.txt
+git log -1 >>log.txt
+
 exit /B %ERRORLEVEL%
 
 exit /B 0

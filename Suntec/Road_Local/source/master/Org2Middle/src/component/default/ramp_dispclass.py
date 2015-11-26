@@ -91,7 +91,7 @@ class comp_ramp_dispclass(component.component_base.comp_base):
          
         sqlcmd='''
                 update link_tbl a
-                set display_class=b.max
+                set display_class=case when ( b.max=5 or b.max=18 ) then 6 else b.max end
                 from 
                 (
                     select link_id,max(display_class) from 
@@ -146,6 +146,14 @@ class comp_ramp_dispclass(component.component_base.comp_base):
         g.suspectnodes=self._suspectnodes
         paths_node=g.all_simple_paths_in_digraph()
         paths_link=map(lambda x:g.get_linkid_of_path(x,'link_id' ),paths_node)
+        sqlcmd_start_hwy='''
+                    select count(1) from link_tbl where link_type in (1,2) and road_type in (0,1)
+                    and ( s_node=%d and one_way_code in (1,3) or e_node=%d and one_way_code in (1,2)) 
+                        '''
+        sqlcmd_end_hwy='''
+                    select count(1) from link_tbl where link_type in (1,2) and road_type in (0,1)
+                    and ( s_node=%d and one_way_code in (1,2) or e_node=%d and one_way_code in (1,3) )
+                        '''
         sqlcmd_start='''
                 select display_class from link_tbl where link_type<>5
                 and ( s_node=%d and one_way_code in (1,3) or e_node=%d and one_way_code in (1,2) )
@@ -163,7 +171,13 @@ class comp_ramp_dispclass(component.component_base.comp_base):
         for idx in range(len(paths_node)):
             path_node=paths_node[idx]
             path_link=paths_link[idx]
-              
+            self.pg.execute2((sqlcmd_start_hwy%(path_node[0],path_node[0])))
+            start_hwy_count=self.pg.fetchall2()[0][0]
+            self.pg.execute2((sqlcmd_end_hwy%(path_node[-1],path_node[-1])))
+            end_hwy_count=self.pg.fetchall2()[0][0]
+            if start_hwy_count>0 and end_hwy_count>0:
+                #print path_link,start_hwy_count,end_hwy_count
+                continue
             try:
                 start_disp_class = max(set(x[0] for x in self.pg.get_batch_data2(sqlcmd_start%(path_node[0],path_node[0]))))
             except:

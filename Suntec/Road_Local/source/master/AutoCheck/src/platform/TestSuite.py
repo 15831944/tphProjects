@@ -43,7 +43,7 @@ class CTestSuite:
                     self.logger.exception("invalid autocheck caseinfo, (id=%d, logic=%s)" % (caseid, check_logic_class))
             else:
                 if caseinfo.getCheckCode():                  
-                    self.no_run_cases.append([TAP_SKIP, self.strSuiteName + '::' + caseinfo.get_combin_keys()])
+                    self.no_run_cases.append([TAP_SKIP, self.strSuiteName + "::" + caseinfo.get_combin_keys()])
     
     def getActiveCase(self):
         for caseID in self.cases.keys():

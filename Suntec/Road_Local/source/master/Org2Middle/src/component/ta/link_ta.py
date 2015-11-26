@@ -66,8 +66,7 @@ class comp_link_ta(component.component_base.comp_base):
         self.CreateIndex2('temp_link_neg_cond_speed_id_idx')
         self.CreateIndex2('temp_mid_iso_country_code_idx')
 
-        if common.common_func.getProjCountry().lower() == 'aus':
-            self._createFuncForSensis()
+        self.proj_country = common.common_func.getProjCountry().lower()
         
         sqlcmd = """
                 insert into temp_mid_iso_country_code (
@@ -175,9 +174,9 @@ class comp_link_ta(component.component_base.comp_base):
                         t.iso_country_code as iso_country_code,
                         a.f_jnctid as s_node, 
                         a.t_jnctid as e_node, 
-                        mid_cnv_disp_class(a.freeway, a.frc,a.feattyp, a.fow, a.roughrd) as display_class,
+                        mid_cnv_disp_class(a.freeway, a.frc,a.feattyp, a.fow, a.roughrd, a.rdcond, '%X') as display_class,
                         mid_cnv_link_type(a.fow, a.ramp, a.pj, a.sliprd, a.frc) as link_type, 
-                        mid_cnv_road_type(freeway, frc, ft, fow, privaterd, backrd, procstat, carriage, nthrutraf, sliprd, stubble) as road_type, 
+                        mid_cnv_road_type(freeway, frc, ft, fow, privaterd, backrd, procstat, carriage, nthrutraf, sliprd, stubble, '%X') as road_type, 
                         case when tollrd is not null then 1 else 2 end as toll,
                         speedcat as speed_class,
                         ST_Length_Spheroid(a.the_geom,'SPHEROID("WGS_84", 6378137, 298.257223563)') as length, 
@@ -240,70 +239,10 @@ class comp_link_ta(component.component_base.comp_base):
             """
         
         self.log.info('Now it is inserting to link_tbl...')
+        sqlcmd = sqlcmd.replace('%X', self.proj_country)
         self.pg.execute2(sqlcmd)
         self.pg.commit2()
         self.log.info('Inserting link succeeded')   
             
         return 0
-        
-    def _createFuncForSensis(self):
 
-        sqlcmd = """
-            CREATE OR REPLACE FUNCTION mid_cnv_road_type(
-                freeway smallint,
-                frc smallint,
-                ft smallint,
-                fow smallint,
-                privaterd smallint,
-                backrd smallint,
-                procstat smallint,
-                carriage character varying,
-                nthrutraf smallint,
-                sliprd smallint,
-                stubble smallint
-            )
-            RETURNS smallint
-            LANGUAGE plpgsql
-            AS
-            $$
-            
-            BEGIN
-            
-                IF ft = 1 THEN 
-                    return 10;
-                ELSEIF ft = 2 THEN
-                    return 11;
-                ELSEIF procstat in (8,9) or stubble = 1 or backrd in (1, 2, 3, 4) THEN
-                    return 9;
-                ELSEIF fow in (14, 15, 18, 19) THEN
-                    return 8;
-                ELSEIF nthrutraf = 1 THEN
-                    return 14;
-                ELSEIF fow = 20 THEN
-                    return 12;
-                ELSEIF carriage = '1' THEN
-                    return 13;
-                ELSEIF privaterd != 0 THEN
-                    return 7;
-                ELSEIF fow = 1 THEN
-                    return 0;
-                ELSEIF frc in (0, 1, 2) THEN
-                    return 2;
-                ELSEIF frc = 3 THEN 
-                    return 3;
-                ELSEIF frc in (4, 5) THEN
-                    return 4;
-                ---ELSEIF sliprd = 1 THEN
-                ---    return 5;         -- when the frc is higher, we don't set it to frontage road
-                ELSEIF frc in (6,7) THEN
-                    return 6;
-                ELSE
-                    return 6;
-                END if;
-            END;
-            $$;
-
-        """
-        self.pg.execute(sqlcmd)
-        self.pg.commit2()        
-        

@@ -112,13 +112,17 @@ class CTestCaseManager:
             list_temp = list()
             objSuite = self.suitecontent[suitename]               
             caselist = objSuite.getCaseList()
+            objCase_appear_list = list()
             for objCase in caselist:
+                objCase_appear_list.append(objCase.get_combin_keys())
                 if objCase.isOK():
-                    list_temp.append([TAP_OK,suitename + '::' + objCase.get_combin_keys()])
+                    list_temp.append([TAP_OK, suitename + '::' + objCase.get_combin_keys()])
                 else:
-                    list_temp.append([TAP_NG,suitename + '::' + objCase.get_combin_keys()])
+                    list_temp.append([TAP_NG, suitename + '::' + objCase.get_combin_keys()])
             
-            list_temp = objSuite.getNoRuncase()
+            for case_one in objSuite.getNoRuncase():
+                if case_one[1] not in objCase_appear_list:
+                    list_temp.append(case_one)
             
             if suitename.find("rdb_guide") == 0 :
                 list_guide.extend(list_temp)               

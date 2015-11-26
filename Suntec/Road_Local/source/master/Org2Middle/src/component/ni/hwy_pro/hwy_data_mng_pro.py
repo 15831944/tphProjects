@@ -11,6 +11,7 @@ from component.jdb.hwy.hwy_graph import ONE_WAY_RERVERSE
 from component.jdb.hwy.hwy_graph import ONE_WAY_BOTH
 from component.ni.hwy_pro.hwy_graph_pro import HwyGraphNiPro
 from component.ni.hwy_pro.hwy_graph_pro import HWY_FIRST_ICS_LINK
+from component.rdf.hwy.hwy_graph_rdf import HWY_ORG_FACIL_ID
 
 
 class HwyDataMngNiPro(HwyDataMngRDF):
@@ -171,3 +172,66 @@ class HwyDataMngNiPro(HwyDataMngRDF):
                     self._graph.add_edge(s_node, e_node, data)
                 if self._graph.has_edge(e_node, s_node):
                     self._graph.add_edge(e_node, s_node, data)
+
+    def load_org_facil_id(self):
+        '''加载元设施id'''
+        self.log.info('Start Loading ORG Facility ID.')
+        sqlcmd = """
+        select  distinct node_id, array_agg(road_code)as road_code,
+                array_agg(inout_c)as inout_c,
+                array_agg(in_out_link) as in_out_link,
+                array_agg(facilcls_c) as facilcls_c,
+                array_agg(name) as name,
+                array_agg(facility_id) as facility_id
+        from(
+            select distinct hw_pid::bigint as road_code, 1 as updown_c,
+                   seq_nm::bigint, id::bigint as facility_id,
+                   accesstype::bigint as inout_c, attr::bigint as facilcls_c,
+                   nodeid::bigint as node_id, estab_item as cat_ids, b.name,
+                   case
+                     when accesstype::bigint = 1 then inlinkid::bigint
+                     when accesstype::bigint = 2 then outlinkid::bigint
+                     else 0
+                   end as in_out_link
+            from mid_hwy_org_hw_junction_mid_linkid as a
+            left join
+            ( select featid::bigint,
+                     array_to_string(array_agg(name),'|') as name
+              from org_hw_fname
+              group by featid
+            ) as b
+            on a.id = b.featid::bigint
+            order by hw_pid::bigint, seq_nm::bigint
+        )as mm
+        group by node_id
+        """
+        self.pg.connect2()
+        for row in self.get_batch_data(sqlcmd):
+            (node, road_codes, inout_cs, in_out_links,
+             facilcls_cs, facil_names, facility_ids) = row
+            facil_info_list = zip(road_codes, facilcls_cs, inout_cs,
+                                  in_out_links, facil_names, facility_ids)
+#             facil_dict = dict()
+#             facil_name_dict = dict()
+#             for facil_info in facil_info_list:
+#                 (road_code, inout_c, inout_link, facilcls_c,
+#                  facil_name, facility_id) = facil_info
+#                 facil_key = (road_code, facilcls_c, inout_c, inout_link)
+#                 facil_name_key = (road_code, facilcls_c, inout_c)
+#                 f_name = facil_name
+#                 f_id = facility_id
+#                 if facil_key in facil_dict.keys():
+#                     self.log.error('more than one facil key.node=%s' % node)
+#                     continue
+#                 else:
+#                     if (facil_name_key in facil_name_dict.keys() and
+#                         facil_name_dict[facil_name_key] != f_name):
+#                         self.log.error('more than one facil name=%s' % node)
+#                         continue
+#                     else:
+#                         facil_name_dict[facil_name_key] = f_name
+#                     facil_dict[facil_key] = f_id
+            data = {HWY_ORG_FACIL_ID: facil_info_list}
+            if node in self._graph:
+                self._graph.add_node(node, data)
+        self.log.info('End Loading ORG Facility ID.')

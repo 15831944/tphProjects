@@ -59,51 +59,10 @@ class run_route_com():
         if self._rec_msg_list[NAME_ACTION].lower() == 'build_data' :
             return self.build_run()
         elif self._rec_msg_list[NAME_ACTION].lower() == 'check_data' :
-            return self.autocheck_run(num)
+            return -1
         else:
             return self.getSendmsg("NG")
-    def autocheck_run(self, num):
-        
-        caseid_list = self._rec_msg_list[NAME_CASE_ID]
-        
-        finish_temp = 'N'
-        if num == (len(caseid_list) - 1) :
-            self._run_end = True
-            finish_temp = 'Y'
-            
-        autocheck_list = dict()
-        autocheck_list[caseid_list[num]] = None
-        
-        pg_check = analyze_autocheck.analyze_autocheck_comp(self._rec_msg_list[NAME_COUNTRY], 
-                                                            self._rec_msg_list[NAME_COMPANY],
-                                                            self._rec_msg_list[NAME_ROUTE_DBIP],
-                                                            self._rec_msg_list[NAME_ROUTE_DBNAME],
-                                                            self._dest_path)
-        try: 
-            if pg_check.init_path() == -1:
-                self._log_pg.error("make %s path is error!", self._rec_msg_list[NAME_ACTION])
-                return self.getSendmsg("NG", check_result = autocheck_list, strFinish = finish_temp)
-            
-            if pg_check.set_autocheck() == -1:
-                self._log_pg.error("make %s autocheck is error!", self._rec_msg_list[NAME_ACTION])
-                return self.getSendmsg("NG", check_result = autocheck_list, strFinish = finish_temp)
 
-            if not os.system(os.path.join(pg_check.getdestpath(),"autocheck.bat")) == 0:
-                self._log_pg.error("autocheck.bat error")
-                return self.getSendmsg("NG", check_result = autocheck_list, strFinish = finish_temp)
-
-            if pg_check.copy_result_code() == -1:
-                self._log_pg.error("copy code to idata error!")
-                return self.getSendmsg("NG", check_result = autocheck_list, strFinish = finish_temp)                
-                
-#            autocheck_list = json.load(file(os.path.join(pg_check.get_destjsonpath(), str(caseid_list[num]))))
-            return self.getSendmsg("OK", check_result = autocheck_list, strFinish = finish_temp)
-        except Exception,e:
-            print Exception,":",e
-            self._log_pg.exception("make %s is error!", self._rec_msg_list[NAME_ACTION])
-            return self.getSendmsg("NG", check_result = autocheck_list, strFinish = finish_temp)         
-            
-    
     def build_run(self):
               
         pg_build = analyze_config.analyze_config_comp(self._rec_msg_list[NAME_PROJECT],

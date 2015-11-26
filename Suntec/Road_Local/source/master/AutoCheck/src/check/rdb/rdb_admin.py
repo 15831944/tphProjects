@@ -653,3 +653,297 @@ class CCheckAdmin_order8_time_zone(platform.TestCase.CTestCase):
         rec_count = self.pg.getOnlyQueryResult(sqlcmd)
         
         return  (rec_count == 0)
+    
+class CCheckAdmin_num_compare_org(platform.TestCase.CTestCase):
+    def _do(self):
+        pro_name = common.ConfigReader.CConfigReader.instance()
+        strcompany = pro_name.getProjName()         
+        self.sqlcmd_no_name = """
+                    select num2::double precision /num1::double precision
+                    from
+                    (
+                        select count(*) as num1
+                        from rdb_admin_zone
+                        where ad_order = [order] and ad_name is not null
+                    )a
+                    left join
+                    (
+                        select count(*) as num2
+                        from rdb_admin_zone
+                        where ad_order = [order] and ad_name is null                    
+                    )b
+                    on TRUE;
+                """
+        no_name_proportion = self.pg.getOnlyQueryResult(self.sqlcmd_no_name.replace('[order]', '8'))
+        if no_name_proportion > 0.01:
+            return False
+        
+        self.sqlcmd_rdb = """
+                    select count(*)
+                    from rdb_admin_zone
+                    where ad_order = [order] and ad_name is not null;
+                    """
+        self.rdb_0 = self.pg.getOnlyQueryResult(self.sqlcmd_rdb.replace('[order]', '0'))
+        self.rdb_1 = self.pg.getOnlyQueryResult(self.sqlcmd_rdb.replace('[order]', '1'))
+        self.rdb_2 = self.pg.getOnlyQueryResult(self.sqlcmd_rdb.replace('[order]', '2'))
+        self.rdb_8 = self.pg.getOnlyQueryResult(self.sqlcmd_rdb.replace('[order]', '8'))
+        
+        if strcompany.lower() == 'rdf':
+            self.compare_admin_rdf() 
+        elif strcompany.lower() == 'mmi':
+            self.compare_admin_mmi()
+        elif strcompany.lower() == 'ta':
+            self.compare_admin_ta()
+        elif strcompany.lower() == 'ni':
+            self.compare_admin_ni()
+        elif strcompany.lower() == 'zenrin':
+            self.compare_admin_zenrin()  
+        else:
+            return False                    
+        
+        return (self.org_0 == self.rdb_0) & (self.org_1 == self.rdb_1) & \
+               (self.org_2 == self.rdb_2) & (self.org_8 == self.rdb_8)
+    
+    def compare_admin_rdf(self):
+        slqcmd = """
+                    SELECT count(distinct a.admin_place_id)
+                    FROM rdf_admin_hierarchy as a
+                    inner join rdf_country as h
+                    on a.country_id = h.country_id
+                    WHERE a.admin_order = [order];
+                """
+        self.org_0 = self.pg.getOnlyQueryResult(slqcmd.replace('[order]', '0'))
+        self.org_1 = self.pg.getOnlyQueryResult(slqcmd.replace('[order]', '1'))
+        self.org_2 = self.pg.getOnlyQueryResult(slqcmd.replace('[order]', '2'))
+        self.org_8 = self.pg.getOnlyQueryResult(slqcmd.replace('[order]', '8'))
+        
+        slqcmd_order = """
+                SELECT count(distinct a.admin_place_id)
+                FROM rdf_admin_hierarchy as a
+                inner join rdf_country as h
+                on a.country_id = h.country_id
+                WHERE a.admin_order = %d and h.iso_country_code = '%s';
+                """
+                
+                        
+        sqlcmd = """
+                select distinct iso_country_code
+                from rdf_country;
+                """
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            if row[0].lower() in ('hkg', 'mac'):
+                num_1 = self.pg.getOnlyQueryResult(slqcmd_order%(1, row[0]))
+                num_8 = self.pg.getOnlyQueryResult(slqcmd_order%(8, row[0]))
+                
+                sqlcmd_temp = """
+                        DROP TABLE if exists temp_admin_builtup;
+                        CREATE TABLE temp_admin_builtup
+                        as
+                        (
+                            SELECT distinct c.face_id, c.the_geom
+                            FROM rdf_carto as a
+                            left join rdf_carto_face as b
+                            on a.carto_id = b.carto_id
+                            left join temp_wkt_face as c
+                            on b.face_id = c.face_id
+                            where feature_type = 908003 -- Cartographic Settlement Boundary
+                        );
+                        
+                        DROP TABLE if exists temp_link_admin;
+                        CREATE TABLE temp_link_admin
+                        as
+                        (
+                            SELECT left_admin_place_id as admin_id, (array_agg(the_geom))[1] as the_geom
+                            FROM temp_rdf_nav_link
+                            where left_admin_place_id = right_admin_place_id and iso_country_code = '%s'
+                            group by left_admin_place_id
+                        );
+                        """
+                self.pg.execute(sqlcmd_temp, (row[0],))
+                self.pg.commit()
+                    
+                sqlcmd_temp = """
+                                select count(*)
+                                from temp_admin_builtup as a
+                                left join temp_link_admin as b
+                                on ST_Contains(a.the_geom, b.the_geom)
+                                where b.admin_id is not null
+                            """
+                num_8_temp = self.pg.getOnlyQueryResult(sqlcmd_temp)
+                
+                self.org_1 = self.org_1 - num_1 + num_8
+                self.org_8 = self.org_8 - num_8 + num_8_temp
+            elif row[0].lower() == 'bra':
+                num_1 = self.pg.getOnlyQueryResult(slqcmd_order%(1, row[0]))
+                num_2 = self.pg.getOnlyQueryResult(slqcmd_order%(2, row[0]))
+                self.org_1 = self.org_1 - num_1 + num_2
+                self.org_2 -= num_2     
+            elif row[0].lower() == 'sgp':
+                num_8 = self.pg.getOnlyQueryResult(slqcmd_order%(8, row[0]))
+                sqlcmd_temp = """
+                            select count(*)
+                            from
+                            (
+                                SELECT  a.admin_place_id AS ad_code,
+                                        8 AS ad_order,
+                                        a.country_id AS order0_id,
+                                        a.order1_id AS order1_id,
+                                        a.order2_id AS order2_id,
+                                        a.admin_place_id AS order8_id,
+                                        e.feature_name AS ad_name,
+                                        sgp_order8.time_zone,
+                                        sgp_order8.summer_time_id
+                                FROM rdf_admin_hierarchy AS a
+                                left join rdf_feature_names as b
+                                on a.admin_place_id = b.feature_id
+                                left join rdf_feature_name as c
+                                on b.name_id = c.name_id
+                                left join sgp_builtup_region as d
+                                on c.name = d.name
+                                LEFT OUTER JOIN mid_temp_feature_name AS e
+                                ON a.admin_place_id = e.feature_id
+                                left join temp_order8_SGP as sgp_order8
+                                on TRUE
+                                WHERE a.iso_country_code = '%s' and a.admin_order = 9 and d.the_geom is not null
+                                GROUP BY a.admin_place_id, a.country_id, a.order1_id, a.order2_id, 
+                                    e.feature_name, sgp_order8.time_zone, sgp_order8.summer_time_id
+                            )temp
+                            """%row[0]
+                num_8_temp = self.pg.getOnlyQueryResult(sqlcmd_temp)
+                self.org_8 = self.org_8 - num_8 + num_8_temp
+
+    def compare_admin_mmi(self):
+        sqlcmd = """
+                SELECT count(distinct name)
+                FROM org_area
+                where kind = 10;
+                """
+        self.org_0 = self.pg.getOnlyQueryResult(sqlcmd)
+        sqlcmd = """
+                SELECT count(*)
+                FROM org_state_region;
+                """
+        
+        self.org_1 = self.pg.getOnlyQueryResult(sqlcmd)
+        self.org_2 = 0
+        sqlcmd = """
+                SELECT count(*)
+                FROM org_district_region;
+                """
+        self.org_8 = self.pg.getOnlyQueryResult(sqlcmd)
+
+    def compare_admin_ta(self):
+        sqlcmd = """
+                select count(distinct order00)
+                from org_a0
+                where order00 not like '$%' and name <> 'Outer World'
+                """ 
+        self.org_0 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                    select count(distinct a.order01)
+                    from org_a1 as a
+                    left join org_a0 as b
+                    on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
+                    where b.order00 is not null
+                """ 
+        self.org_1 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                    select count(distinct a.order07)
+                    from org_a7 as a
+                    left join org_a0 as b
+                    on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
+                    where b.order00 is not null;
+                """ 
+        self.org_2 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                    select count(distinct order08)
+                    from org_a8 as a
+                    left join org_a0 as b
+                    on a.order00 = b.order00 and b.order00 not like '$%' and b.name <> 'Outer World'
+                    where b.order00 is not null;
+                """ 
+        self.org_8 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                select distinct order00
+                from org_a0
+                where order00 not like '$%' and name <> 'Outer World';
+                """
+        self.pg.execute(sqlcmd)
+        rows = self.pg.fetchall()
+        for row in rows:
+            if row[0].lower() == 'vnm':       
+                sqlcmd = """
+                        select count(distinct order07)
+                        from org_a7
+                        where order00 = '%s';
+                        """ %row[0]
+                num_order2 = self.pg.getOnlyQueryResult(sqlcmd)
+                sqlcmd = """
+                        select count(distinct order08)
+                        from org_a8
+                        where order00 = '%s';
+                        """ %row[0]
+                num_order8 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+                self.org_8 = self.org_8 - num_order8 + num_order2
+                self.org_2 -= num_order2
+            elif row[0].lower() == 'aus' or row[0].lower() == 'nzl':
+                sqlcmd = """
+                        select count(distinct order07)
+                        from org_a7
+                        where order00 = '%s';
+                        """ %row[0]
+                num_order2 = self.pg.getOnlyQueryResult(sqlcmd)
+                self.org_2 -= num_order2
+
+    def compare_admin_ni(self):
+        self.org_0 = 1
+        
+        sqlcmd = """
+                    select count(distinct proadcode)
+                    from org_admin;
+                """
+        self.org_1 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                    select count(distinct cityadcode)
+                    from org_admin;
+                """
+        self.org_2 = self.pg.getOnlyQueryResult(sqlcmd)
+        
+        sqlcmd = """
+                select count(*)
+                from temp_admin_municipalities;
+                """
+        temp_order2 = self.pg.getOnlyQueryResult(sqlcmd)
+        self.org_2 -= temp_order2
+        
+        sqlcmd = """
+                    select count(distinct admincode)
+                    from org_admin;
+                """
+        self.org_8 = self.pg.getOnlyQueryResult(sqlcmd)
+    
+    def compare_admin_zenrin(self):
+        self.org_0 = 0
+        self.org_2 = 0
+        
+        sqlcmd = """
+                select count(*)
+                from
+                (
+                   select distinct b.name1, b.name2
+                   FROM org_p_area_administration as a
+                   left join org_attribute_name as b
+                   on a.meshcode = b.meshcode and a.attrnmno = b.attrnmno
+                   where a.elcode in (%s)
+                )temp
+                """
+        self.org_1 = self.pg.getOnlyQueryResult(sqlcmd%"'550000', '570000'")
+        self.org_8 = self.pg.getOnlyQueryResult(sqlcmd%"'560000', '580000'")

@@ -491,12 +491,6 @@ CREATE INDEX temp_split_newlink_the_geom_idx
   USING gist
   (the_geom);
 
-
-CREATE INDEX regulation_relation_tbl_gid_idx
-  ON regulation_relation_tbl
-  USING btree
-  (gid);
-
 CREATE INDEX regulation_relation_tbl_regulation_id_idx
   ON regulation_relation_tbl
   USING btree
@@ -511,16 +505,26 @@ CREATE INDEX regulation_relation_tbl_outlinkid_idx
   ON regulation_relation_tbl
   USING btree
   (outlinkid);
+
+CREATE INDEX regulation_relation_tbl_cond_id_idx
+  ON regulation_relation_tbl
+  USING btree
+  (cond_id);
+
+CREATE INDEX regulation_relation_tbl_condtype_idx
+  ON regulation_relation_tbl
+  USING btree
+  (condtype);
   
-CREATE INDEX regulation_item_tbl_regulation_id
+CREATE INDEX regulation_item_tbl_regulation_id_idx
   ON regulation_item_tbl
   USING btree
   (regulation_id);
-  
-CREATE INDEX condition_regulation_tbl_cond_id
-  ON condition_regulation_tbl
+
+CREATE INDEX regulation_item_tbl_linkid_idx
+  ON regulation_item_tbl
   USING btree
-  (cond_id);
+  (linkid);
 
 CREATE INDEX regulation_relation_tbl_bak_splitting_regulation_id_idx
   ON regulation_relation_tbl_bak_splitting
@@ -707,17 +711,6 @@ CREATE INDEX temp_mainnode_subnode_subnode_idx
   ON temp_mainnode_subnode
   USING btree
   (subnode);
-
-CREATE INDEX temp_mainnode_regulation_new_linkrow_regulation_id_idx
-  ON temp_mainnode_regulation_new_linkrow
-  USING btree
-  (regulation_id);
-
-
-CREATE INDEX temp_mainnode_update_regulation_old_regulation_id_idx
-  ON temp_mainnode_update_regulation
-  USING btree
-  (old_regulation_id);
 
 CREATE INDEX regulation_relation_tbl_bak_mainnode_regulation_id_idx
   ON regulation_relation_tbl_bak_mainnode

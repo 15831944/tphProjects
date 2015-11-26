@@ -65,7 +65,8 @@ class comp_node_ni(component.component_base.comp_base):
                 (node_id,kind,light_flag,stopsign_flag,toll_flag,bifurcation_flag,mainnodeid,node_lid,
                 node_name,z_level,feature_string,feature_key,the_geom)
                
-                select a.id::bigint, a.kind, a.light_flag::smallint,
+                select a.id::bigint, a.kind, 
+                    case when trflight.id is not null then 1 else 0 end as light_flag,
                     case when d.nodeid is not null then 1 else 0 end as stopsign_flag,
                     case when b.nodeid is not null then 1 else 0 end as toll_flag,
                     case when c.nodeid is not null then 1 else 0 end as bifurcation_flag ,
