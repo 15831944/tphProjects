@@ -33,6 +33,10 @@ from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_SAPA
 from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_UTURN
 from component.rdf.hwy.hwy_data_mng_rdf import TollFacilInfoRDF
 from component.rdf.hwy.hwy_toll_info_rdf import HwyTollInfoRDF
+from component.rdf.hwy.hwy_graph_rdf import HWY_LINK_TYPE
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NAMES
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
+from component.rdf.hwy.hwy_def_rdf import HWY_LINK_TYPE_MAIN
 
 
 # ==============================================================================
@@ -52,6 +56,109 @@ class HwyICInfoRDF(HwyICInfo):
         self.data_mng = data_mng
         self.log = common.log.common_log.instance().logger(item_name)
         self.main_in_node = None  # 本线进入node
+
+    def set_ic_info(self):
+        HwyICInfo.set_ic_info(self)
+        self._set_jct_dummy_flg()
+
+    def _set_jct_dummy_flg(self):
+        '''17Cy专用'''
+        # 点JCT和类点JCT
+        node_jct_flg = self._get_node_jct_dummy_flg()
+        if node_jct_flg:
+            self.dummy = HWY_TRUE
+        else:
+            # 辅路 和主路的汇合
+            side_flg = self._get_side_jct_dummy_flg()
+            if side_flg:
+                self.dummy = HWY_TRUE
+
+    def _get_side_jct_dummy_flg(self):
+        '''辅路 和主路的汇合'''
+        return False
+
+    def _get_node_jct_dummy_flg(self):
+        '''点JCT和类点JCT'''
+        # 一条高速的末端与另一条头端直接或间接相连，
+        # 且该末端没有其他方向的分歧，那么末端JCT做成Dummy JCT
+        if(not self.first_facil.facilcls == HWY_IC_TYPE_JCT or
+           not self.first_facil.inout == HWY_INOUT_TYPE_OUT):
+            return False
+        node_id = self.first_facil.node_id
+        road_code = self.first_facil.road_code
+        updown = self.first_facil.updown
+        # 线路的末端
+        if not self.data_mng.is_road_end_node(road_code, updown, node_id):
+            return False
+        # 接续道路多条
+        road_codes = self._get_conn_road()
+        if len(road_codes) > 1:
+            return False
+        # 接续node是接续道路的起点
+        for conn_info in self.conn_infos:
+            t_road_code = conn_info.t_facil.road_code
+            t_updown = conn_info.t_facil.updown
+            t_node = conn_info.t_facil.node_id
+            if self.data_mng.is_road_start_node(t_road_code, t_updown, t_node):
+                # 接续link是本线link
+                if self._conn_link_is_main_link(t_node):
+                    return True
+                else:
+                    # 两条线路的名称相同
+                    line_name = self.data_mng.get_line_name(road_code)
+                    conn_line_name = self.data_mng.get_line_name(t_road_code)
+                    if line_name == conn_line_name:
+                        # 且接续link的名称不为空
+                        if self._conn_link_exist_name(t_node):
+                            self.log.info('Conn link exist name. node=%s'
+                                          % node_id)
+                            return True
+                        else:
+                            self.log.warning('No name of Conn Link . node=%s'
+                                             % node_id)
+                    else:
+                        self.log.info('Diff name. node=%s' % node_id)
+        return False
+
+    def _get_conn_road(self):
+        road_codes = set()
+        for conn_info in self.conn_infos:
+            road_codes.add(conn_info.t_facil.road_code)
+        return road_codes
+
+    def _conn_link_is_main_link(self, t_node):
+        '''接续link都是本线link'''
+        G = self.data_mng.get_graph()
+        for path_info in self.out_path_infos:
+            node_lid = path_info[0]
+            if node_lid[-1] == t_node:
+                main_flg = True
+                for u, v in zip(node_lid[:-1], node_lid[1:]):
+                    data = G[u][v]
+                    link_type = data.get(HWY_LINK_TYPE)
+                    if link_type not in HWY_LINK_TYPE_MAIN:
+                        main_flg = False
+                        break
+                if main_flg:
+                    return True
+        return False
+
+    def _conn_link_exist_name(self, t_node):
+        G = self.data_mng.get_graph()
+        for path_info in self.out_path_infos:
+            node_lid = path_info[0]
+            if node_lid[-1] == t_node:
+                exist_name_flg = True
+                for u, v in zip(node_lid[:-1], node_lid[1:]):
+                    data = G[u][v]
+                    names = data.get(HWY_ROAD_NAMES)
+                    nums = data.get(HWY_ROAD_NUMS)
+                    if not names and not nums:
+                        exist_name_flg = False
+                        break
+                if exist_name_flg:
+                    return True
+        return False
 
     def _set_distance(self):
         G = self.data_mng.get_graph()

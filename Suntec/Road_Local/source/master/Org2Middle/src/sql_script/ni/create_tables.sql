@@ -68,7 +68,7 @@ create table temp_poi_category
   gen2 integer NOT NULL,
   gen3 integer NOT NULL,
   level smallint NOT NULL,
-  genre_is_brand character(1),
+  is_brand varchar,
   importance smallint,
   genre_type varchar,
   org_code1 character varying(28),
@@ -85,7 +85,7 @@ create table temp_poi_category_code
   gen2 integer NOT NULL,
   gen3 integer NOT NULL,
   level smallint NOT NULL,
-  genre_is_brand character(1),
+  is_brand character(1),
   importance smallint,
   genre_type varchar,
   org_code1 character varying(28),
@@ -390,3 +390,14 @@ CREATE TABLE mid_hwy_org_hw_junction_mid_linkid
   wkt_geom      text,
   folder        character varying
 ); SELECT AddGeometryColumn('', 'mid_hwy_org_hw_junction_mid_linkid', 'the_geom', '4326', 'POINT', 2);
+
+------------------------------------------------------------------------
+CREATE TABLE mid_hwy_del_path_for_cycle
+(
+  gid           serial NOT NULL primary key,
+  road_code     integer NOT NULL,
+  updown        integer NOT NULL DEFAULT 1,
+  node_id       bigint NOT NULL,
+  link_id       bigint,
+  seq_nm        integer NOT NULL
+); SELECT AddGeometryColumn('','mid_hwy_del_path_for_cycle','the_geom','4326','LINESTRING',2);

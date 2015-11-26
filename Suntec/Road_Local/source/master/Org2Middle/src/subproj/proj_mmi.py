@@ -40,6 +40,7 @@ class proj_mmi_module(subproj.proj_base.proj_base_module):
             self.AddComponent(self.comp_factory.CreateOneComponent('Node'))
             #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
             #park
             self.AddComponent(self.comp_factory.CreateOneComponent('park'))
             self.AddComponent(self.comp_factory.CreateOneComponent('height'))

@@ -32,6 +32,8 @@ from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_JCT
 from component.rdf.hwy.hwy_facility_rdf import HWY_PATH_TYPE_SAPA
 from component.rdf.hwy.hwy_facility_rdf import HwyFacilityRDF
 from component.ta.hwy.hwy_poi_category_ta import HwyPoiCategoryTa
+from component.rdf.hwy.hwy_graph_rdf import HWY_ROAD_NUMS
+from copy import deepcopy
 MAX_SP_NAME_NUM = 4  # 方面名称的最大数
 ROAD_SEQ_MARGIN = 10
 SAPA_TYPE_DICT = {7358: HWY_IC_TYPE_PA,  # Truck Stop
@@ -422,24 +424,32 @@ class HwyFacilityTa(HwyFacilityRDF):
                     if fst_road_type in HWY_ROAD_TYPE_HWY:
                         road_type = data.get(HWY_ROAD_TYPE)
                         road_names = data.get(HWY_ROAD_NAMES)
+                        road_shields = data.get(HWY_ROAD_NUMS)
                         if HWY_ROAD_NAMES:
-                            main_normal_links[u, v] = (road_type, road_names)
+                            main_normal_links[u, v] = (road_type, road_names,
+                                                       road_shields)
                 if fst_link not in main_first_links:
                     road_names = fst_data.get(HWY_ROAD_NAMES)
+                    road_shields = data.get(HWY_ROAD_NUMS)
                     if HWY_ROAD_NAMES:
                         main_first_links[fst_link] = (fst_road_type,
-                                                      road_names)
+                                                      road_names,
+                                                      road_shields)
             else:
                 if (u, v) not in exit_normal_links:
                     road_type = data.get(HWY_ROAD_TYPE)
                     road_names = data.get(HWY_ROAD_NAMES)
+                    road_shields = data.get(HWY_ROAD_NUMS)
                     if road_names:
-                        exit_normal_links[u, v] = (road_type, road_names)
+                        exit_normal_links[u, v] = (road_type, road_names,
+                                                   road_shields)
                 if fst_link not in exit_first_links:
                     road_names = fst_data.get(HWY_ROAD_NAMES)
+                    road_shields = fst_data.get(HWY_ROAD_NUMS)
                     if HWY_ROAD_NAMES:
                         exit_first_links[fst_link] = (fst_road_type,
-                                                      road_names)
+                                                      road_names,
+                                                      road_shields)
         if exit_normal_links:  # 出口一般道名称
             normal_links = exit_normal_links
         elif exit_first_links:  # 出口一般道没有名称时，出口方向的第一条名称
@@ -448,7 +458,7 @@ class HwyFacilityTa(HwyFacilityRDF):
             normal_links = main_normal_links
         else:  # # 本线出口第一条link名称
             normal_links = main_first_links
-        json_name = self._get_link_names(normal_links)
+        json_name = self._get_link_names_2(normal_links)
         if json_name:
             return json_name
         if not json_name:
@@ -463,6 +473,44 @@ class HwyFacilityTa(HwyFacilityRDF):
                     break
             if exit_ramp:
                 self.log.warning('No Next Street Name. node=%s' % path[1])
+        return None
+
+    def _get_link_names_2(self, normal_link_names):
+        '''道路番号 + 道路名称'''
+        # 按道路种别排序
+        sorted_values = sorted(normal_link_names.values(),
+                               cmp=lambda x, y: cmp(x[0], y[0]))
+        # 求road_type等级最高的道路名称
+        prev_road_type = 16
+        rst_route_nums = []
+        rst_road_names = []
+        for (road_type, road_names, road_shields) in sorted_values:
+            if(road_type > prev_road_type and
+               (rst_route_nums or rst_road_names)):
+                break
+            prev_road_type = road_type
+            if road_shields:
+                for shield_dict in road_shields:
+                    shield_dict = deepcopy(shield_dict)
+                    shield_num = shield_dict.get("val")  # shield_id + \t + num
+                    num = (shield_num.split('\t'))[1]
+                    shield_dict["val"] = num
+                    shield_dict["type"] = "route_num"
+                    if shield_dict not in rst_route_nums:
+                        rst_route_nums.append(shield_dict)
+            temp_road_name = None
+            if road_names:
+                for name_dict in road_names:
+                    if name_dict.get("type") != "route_num":  # 不是道路番号
+                        if not temp_road_name:  # 只取第一个官名
+                            temp_road_name = name_dict
+            if temp_road_name and temp_road_name not in rst_road_names:
+                rst_road_names.append(temp_road_name)
+        # 道路番号 + 道路名称
+        num_names = rst_route_nums + rst_road_names
+        if num_names:
+            json = MultiLangName.json_format_dump2([num_names])
+            return json
         return None
 
     def _get_link_names(self, normal_link_names):

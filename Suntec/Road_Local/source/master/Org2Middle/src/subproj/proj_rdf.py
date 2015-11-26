@@ -42,6 +42,8 @@ class proj_rdf_module(subproj.proj_base.proj_base_module):
             #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             # Ramp RoadType
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
+            
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
             # Node Height
             self.AddComponent(self.comp_factory.CreateOneComponent('Node_Height'))            
             #park

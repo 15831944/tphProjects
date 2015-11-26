@@ -909,7 +909,7 @@ class HwyDataMngRDF(component.component_base.comp_base):
         for row in self.pg.fetchall2():
             road_no = row[0]
             road_code = row[1]
-            self._road_no_dict[road_no] = road_code
+            self._road_no_dict[road_code] = road_no
 
     def get_ic_nos_by_node(self, node, road_code):
         sqlcmd = """
@@ -1165,6 +1165,22 @@ class HwyDataMngRDF(component.component_base.comp_base):
         self.pg.execute1(sqlcmd, (road_code,))
         row = self.pg.fetchone()
         return row[0]
+
+    def get_line_name(self, road_code):
+        sqlcmd = """
+        select road_name, road_number
+          from road_code_info
+          where road_code = %s
+        """
+        self.pg.execute1(sqlcmd, (road_code,))
+        row = self.pg.fetchone()
+        road_name, road_number = row[0:2]
+        if road_name:
+            return road_name
+        elif road_number:
+            return road_number
+        else:
+            return None
 
     def get_path_by_pathid(self, path_id, updown):
         sqlcmd = """

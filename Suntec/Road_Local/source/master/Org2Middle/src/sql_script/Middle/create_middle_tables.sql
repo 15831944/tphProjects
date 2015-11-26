@@ -3122,3 +3122,8 @@ create table temp_poi_category_name
   ph_flag   varchar,
   phoneme_id  integer
 );
+
+create table temp_jct_path_both_end_same
+(path bigint[],
+link_type smallint
+);

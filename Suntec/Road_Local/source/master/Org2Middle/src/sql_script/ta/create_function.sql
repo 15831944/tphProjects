@@ -2081,12 +2081,12 @@ CREATE OR REPLACE FUNCTION mid_cnv_disp_class(freeway smallint, frc smallint, fe
   LANGUAGE plpgsql AS
 $$
 BEGIN
-	IF proj_country = 'aus' and rdcond in (2,3) THEN
-		return 21;    --unpaved road
-	ELSEIF feattyp in (4130) THEN
+	IF feattyp in (4130) THEN
 		return 14;    --ferry;
 	ELSEIF roughrd = 1 THEN   
-		return 19;    -- 4-wheel drive
+		return 19;    -- 4-wheel drive		
+	ELSEIF proj_country = 'aus' and rdcond in (2,3) THEN
+		return 21;    --unpaved road
 	ELSEIF  freeway = 1 or fow = 1 THEN 
 		return 12;    -- Free Way
 	ELSEIF frc in (0, 1) THEN   

@@ -42,7 +42,7 @@ class proj_ta_module(subproj.proj_base.proj_base_module):
             #self.AddComponent(self.comp_factory.CreateOneComponent('Update_sapa_link'))
             # Ramp
             self.AddComponent(self.comp_factory.CreateOneComponent('Ramp_RoadTypeFC'))
-
+            self.AddComponent(self.comp_factory.CreateOneComponent('Update_link_type'))
             # GuideInfo
             self.AddComponent(self.comp_factory.CreateOneComponent('CrossName'))
             self.AddComponent(self.comp_factory.CreateOneComponent('Guideinfo_Lane'))
