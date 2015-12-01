@@ -7,11 +7,9 @@ def main(srcDir):
     oFStreamArrow = open(os.path.join(os.getcwd() , "all_in_arrow.csv"), "w")
     for curDir,dirNames,fileNames in os.walk(srcDir):
         for oneFile in fileNames:
-            if os.path.splitext(oneFile)[1].lower() == '.png' and curDir.find('pattern') != -1:
-                oFStreamPattern.write(curDir + ',' + oneFile + '\n')
-            if os.path.splitext(oneFile)[1].lower() == '.png' and curDir.find('arrow') != -1:
-                oFStreamArrow.write(curDir + ',' + oneFile + '\n')
+            if os.path.splitext(oneFile)[1].lower() == '.png':
+                print """'%s',""" % os.path.splitext(oneFile)[0]
     return
 
 if __name__ == '__main__':
-    main(r'C:\My\20150504-0507_ni_spotguide\17CY Sample data\data\GraphAndVoice')
+    main(r'C:\Users\hexin\Desktop\111')

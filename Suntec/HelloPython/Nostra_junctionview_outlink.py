@@ -79,7 +79,7 @@ class NostraJunctionViewFix(object):
                  org_junctionview as a
                  left join org_l_tran as b
                  on a.arc1=b.routeid
-                 where b.fw=9 and length(inlink_geom)>46
+                 where b.fw=9 and length(inlink_geom)<46
                  """
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchall()

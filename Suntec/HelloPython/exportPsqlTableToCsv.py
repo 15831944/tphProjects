@@ -89,7 +89,7 @@ class PsqlTablesExporter(object):
          
 if __name__ == '__main__':
     dbIP = '''192.168.10.20'''
-    dbNameList = ['AP_NOSTRA_201530_ORG']
+    dbNameList = ['C_NIMIF_15SUM_0082_0003']
     userName = '''postgres'''
     password = '''pset123456'''
     for dbName in dbNameList:
