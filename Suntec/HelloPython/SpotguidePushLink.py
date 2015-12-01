@@ -151,7 +151,6 @@ class link_object_base(object):
                         """linkObject: %s, nodeid: %s""" % (self.toString(), nodeid)
             return None
 
-
     # 求angleA对与angleB的位置和角度
     # 返回1：angleA在angleB的左/右
     # 返回2：angleA在angleB的左/右的角度，取值范围为0~180
@@ -168,6 +167,25 @@ class link_object_base(object):
         
         if -180 <= angleA - angleB and angleA - angleB < 0:
             return DIR_RIGHT_SIDE, -(angleA - angleB)
+        
+    # 获取车辆沿此条link序列行进时最终的交通流变化方向。
+    @staticmethod
+    def getTrafficAngleByLinkList(errMsg, linkList):
+        resultAngle = 0
+        for i in range(0, len(linkList)-1):
+            nodeid = linkList[i].getConnectedNodeidWith(errMsg, linkList[i+1])
+            trafficAngle1 = linkList[i].getTrafficDirAngleToEast(errMsg, nodeid, 'to_this_node')
+            trafficAngle2 = linkList[i+1].getTrafficDirAngleToEast(errMsg, nodeid, 'from_this_node')
+            position, angle = link_object_base.getPositionAndAngleOfA2B(trafficAngle2, trafficAngle1)
+            if position == DIR_LEFT_SIDE:
+                resultAngle += angle
+            else:
+                resultAngle -= angle
+        
+        if resultAngle>=0:
+            return DIR_LEFT_SIDE, resultAngle
+        else:
+            return DIR_RIGHT_SIDE, -resultAngle
 
 class link_object_lane(link_object_base):
     def __init__(self, errMsg, link_id, s_node, e_node, the_geom_text, link_type):
@@ -191,7 +209,7 @@ class spotguide_push_link(object):
         return
         
     # 当决策点为非分歧点时，apl不会播报该条诱导数据，该条数据成为冗余数据。
-    # 找出这些点，进行推点或者删除记录。
+    # 找出这些点，进行推link或者删除记录。
     def findOneInOneOutLinks(self):
         sqlcmd = """
 drop table if exists lane_tbl_link_seqnr;
@@ -225,8 +243,8 @@ from
     left join link_tbl as b
     on a.link_id=b.link_id
     order by a.id, a.seqnr
-group by id;
 ) as t
+group by id;
 
 create index lane_tbl_link_list_id_idx
 on lane_tbl_link_list
@@ -234,7 +252,9 @@ using btree
 (id);
 
 select a.id, a.seqnr_list, a.link_id_list, a.s_node_list, 
-    a.e_node_list, a.link_type_list, a.the_geom_text_list
+    a.e_node_list, a.link_type_list, a.the_geom_text_list,
+    b.lanenum, b.laneinfo, b.arrowinfo, b.lanenuml, b.lanenumr,
+    b.buslaneinfo
 from 
 lane_tbl_link_list as a
 left join lane_tbl as b
@@ -244,73 +264,121 @@ on a.id=b.id;
         rows = self.pg.fetchall()
         for row in rows:
             id = row[0]
-            link_list = row[1]
-            seqnr_list = row[2]
+            seqnr_list = row[1]
+            link_list = row[2]
             s_node_list = row[3]
             e_node_list = row[4]
             link_type_list = row[5]
             the_geom_text_list = row[6]
-            name_list = row[7]
+            lanenum = row[7]
+            laneinfo = row[8]
+            arrowinfo = row[9]
+            lanenuml = row[10]
+            lanenumr = row[11]
+            buslaneinfo = row[12]
 
             errMsg = ['']
             linkObjList = []
             for i in range(0, len(link_list)):
                 linkObjList.append(link_object_lane(errMsg, link_list[i], s_node_list[i], e_node_list[i], 
-                                                    link_type_list[i], the_geom_text_list[i]))
+                                                    the_geom_text_list[i], link_type_list[i]))
             bHasFork = self.isLinkListHasFork(errMsg, linkObjList)
             if errMsg[0] <> '':
                 print """error: id: %s, errMsg: %s""" % (id, errMsg[0])
                 continue
             
+            # 整条link序列没有任何分歧路口。
             if bHasFork == False:
                 whichLane = '010'
                 arrowInfo = 64
-                resultList = []
-                self.pushLink(errMsg, resultList, linkObjList, whichLane, arrowInfo)
+                # 将整条link序列向前推进直至第一个分歧路口
+                self.pushLinkUntilFork(errMsg, linkObjList)
+                if errMsg[0] <> '':
+                    print errMsg[0]
+                    continue
+                
+                # 推到分歧路口后，使用分歧路口的前一条link为新的inlink
+                newInlink = linkObjList[-1]
+                nodeid = newInlink.getNonConnectedNodeid(errMsg, linkObjList[-2])
+                if errMsg[0] <> '':
+                    print errMsg[0]
+                    continue
+                
+                # 基于新的inlink，尝试在分歧路口生成所有可能的行车路线
+                possibleLinkLists = []
+                self.findPossibleLinkList(errMsg, possibleLinkLists, newInlink, nodeid)
+                if errMsg[0] <> '':
+                    print errMsg[0]
+                    continue
+                
+                # 过滤可能的行车路线，只有符合箭头信息且原表中不存在相同诱导记录的信息才收录。
+                for onePossibleLinkList in possibleLinkLists:
+                    bLinkListFitsArrowInfo = self.isLinklistFitsArrowInfo(errMsg, onePossibleLinkList, arrowinfo)
+                    if errMsg[0]<>'' or bLinkListFitsArrowInfo==False:
+                        continue
+                    
+                    bExists = self.isGuideinfoLaneExists(errMsg, onePossibleLinkList, laneinfo)
+                    if errMsg[0]<>'' or bExists==True:
+                        continue
+
+                    # 添加新的车线诱导信息。
+                    self.addLaneInfo(onePossibleLinkList, lanenum, laneinfo, 
+                                     arrowinfo, lanenuml, lanenumr, buslaneinfo)
         return
     
-    # 推link
-    def pushLink(self, errMsg, resultList, linkObjList, whichLane, arrowInfo):
+    # 
+    def addLaneInfo(self, linkList, lanenum, laneinfo, arrowinfo, lanenuml, lanenumr, buslaneinfo):
+        
+        return
+    
+    # 生成由此link为流入link，此nodeid为节点的所有可能的行车link序列。
+    # 如果outlink为inner link，则会尝试向后推一次link，解决uturn的情况，如果向后推一次后仍是inner link，则不收录此条link序列。
+    def findPossibleLinkList(self, errMsg, possibleLinkList, inlinkObj, nodeid):
+        outlinkList = self.getOutlinkList(errMsg, nodeid, inlinkObj)
+        if errMsg[0] <> '':
+            errMsg[0] = """Failed when push link step2: """ + errMsg[0]
+            return
+        
+        for oneOutlink in outlinkList:
+            if oneOutlink.link_type <> 3:
+                possibleLinkList.append([inlinkObj, oneOutlink])
+            else:
+                nodeid2 = oneOutlink.getNonConnectedNodeid(errMsg, inlinkObj)
+                outlinkList2 = self.getOutlinkList(errMsg, nodeid2, oneOutlink)
+                for oneOutlink2 in outlinkList2:
+                    if oneOutlink2.link_type <> 3:
+                        possibleLinkList.append([inlinkObj, oneOutlink, oneOutlink2])
+    
+    # 沿着当前交通流，向前推link，直至遇到第一个分歧路口，确定inlink。
+    # linkObjList: 此list会被不断更新，添加新的link直至分叉路口。
+    # 递归结束后，linkObjList[-1]则为新的inlink。
+    def pushLinkUntilFork(self, errMsg, linkObjList):
         nodeid = linkObjList[-1].getNonConnectedNodeid(errMsg, linkObjList[-2])
         if errMsg[0] <> '':
             return
-        
-        newInlink = linkObjList[-1]
-        outlinkList = self.getOutlinkList(errMsg, nodeid, newInlink)
+
+        outlinkList = self.getOutlinkList(errMsg, nodeid, linkObjList[-1])
         if errMsg[0] <> '':
+            errMsg[0] = """Failed when push link step1: """ + errMsg[0]
             return
         
-        if len(outlinkList) == 0:
-            errMsg[0] = """cannot find a valid outlink, push link failed.\n"""
-            errMsg[0] += """inlink: %s and node: %s""" % (newInlink, nodeid)
+        if len(outlinkList) == 0: # 断头路，报错。
+            errMsg[0] = """Failed when push link step1: cannot find a valid outlink.\n"""
+            errMsg[0] += """inlink: %s and node: %s""" % (linkObjList[-1], nodeid)
             return
-        elif len(outlinkList) == 1: # find only one outlink, so keep on pushing the link.
+        elif len(outlinkList) == 1: # outlink数仍是1，继续向前推。
             linkObjList.append(outlinkList[0])
-            self.pushLink(errMsg, resultList, linkObjList, whichLane, arrowInfo)
+            self.pushLinkUntilFork(errMsg, linkObjList)
             return
-        else: # now meet a fork, new inlink is found.
-            inlinkTrafficAngle = newInlink.getTrafficDirAngleToEast(errMsg, nodeid, 'to_this_node')
-            for oneOutlink in outlinkList:
-                if oneOutlink.link_type == 3: # this outlink is a inner link
-                # is there exists an old lane's guide information?
-                bHasOldInfo = self.isGuideinfoLaneExists(errMsg, [newInlink, oneOutlink], whichLane)
-                if errMsg[0] <> '':
-                    return
-                if bHasOldInfo == True:
-                    errMsg[0] = """a lane guideinfo for link list: %s-->%s, on inlink's lane: %s already exists.""" %\
-                    (newInlink.link_id, oneOutlink.link_id, whichLane)
-                    return
-                outlinkTrafficAngle = oneOutlink.getTrafficDirAngleToEast(errMsg, nodeid, 'from_this_node')
-                position, angle = link_object_base.getPositionAndAngleOfA2B(outlinkTrafficAngle, inlinkTrafficAngle)
-                
+        else: # 找到分岔路。
+            return
         return
     
     # 根据交通流变化的角度，判断箭头信息是否符合。
-    def isArrowInfoFitsAngle(self, errMsg, position, angle, arrowInfo):
-        if position<>DIR_LEFT_SIDE and position<>DIR_RIGHT_SIDE:
-            errMsg[0] = """invalid argument 'position': %s""" % position
-            return
+    def isLinklistFitsArrowInfo(self, errMsg, linkList, arrowInfo):
         bestArrowInfo = -1
+        position, angle = link_object_base.getTrafficAngleByLinkList(errMsg, linkList)
+        angle = angle % 360
         if position==DIR_RIGHT_SIDE:
             if angle <= 30:
                 bestArrowInfo = 1 # 1-straight
@@ -321,7 +389,7 @@ on a.id=b.id;
             elif 120<angle and angle<=150:
                 bestArrowInfo = 8 # 8-hard right
             else:
-                
+                bestArrowInfo = 8 # 8-hard right
         else: # position==DIR_LEFT_SIDE:
             if angle <= 30:
                 bestArrowInfo = 1 # 1-straight
@@ -331,11 +399,17 @@ on a.id=b.id;
                 bestArrowInfo = 64 # 64-left
             elif 120<angle and angle<=150:
                 bestArrowInfo = 32 # 8-hard left
-            
+            else:
+                bestArrowInfo = 32 # 8-hard left
         
+        if bestArrowInfo & arrowInfo <> 0:
+            return True
+        else:
+            return False
             
-    
     # 查询lane_tbl表，查询此条link序列在lane_tbl表中是否已存在车线诱导信息。
+    # 必须要inlink的此条车线信息已存在，才符合要求。
+    # 若只存在inlink的其他车线信息，不影响最终判断。
     def isGuideinfoLaneExists(self, errMsg, linkObjList, whichLane):
         inlinkObj = linkObjList[0]
         outlinkObj = linkObjList[-1]
@@ -397,11 +471,11 @@ laneinfo&whichLane<>0;
             return False
           
         for oneLinkObj in connectedLinkList:
-            if oneLinkObj.id == linkObj.id:
+            if oneLinkObj.link_id == linkObj.link_id:
                 continue
             
             oneTrafficAngle = oneLinkObj.getTrafficDirAngleToEast(errMsg, nodeid, 'from_this_node')
-            position, angle = self.getPositionAndAngle(oneTrafficAngle, inlinkTrafficAngle)
+            position, angle = link_object_base.getPositionAndAngleOfA2B(oneTrafficAngle, inlinkTrafficAngle)
             # 假设node点流入该link并且拐角将小于120度
             if angle<120:
                 potentialOutlinkList.append(oneLinkObj)
@@ -418,7 +492,7 @@ laneinfo&whichLane<>0;
         from link_tbl 
         where e_node=%s and one_way_code in (1,3) and link_id<>%s;
         """
-        self.pg.execute(sqlcmd, [nodeid, linkObj.id, nodeid, linkObj.id])
+        self.pg.execute(sqlcmd, [nodeid, linkObj.link_id, nodeid, linkObj.link_id])
         rows = self.pg.fetchall()
         linkList = []
         for row in rows:
@@ -427,7 +501,7 @@ laneinfo&whichLane<>0;
             e_node = row[2]
             link_type = row[3]
             the_geom_text = row[4]
-            linkList.append(link_object_lane(errMsg, link_id, s_node, e_node, link_type, the_geom_text))
+            linkList.append(link_object_lane(errMsg, link_id, s_node, e_node, the_geom_text, link_type))
         return linkList
     
     # 获取连接到此点的link列表。
@@ -446,7 +520,7 @@ laneinfo&whichLane<>0;
             e_node = row[2]
             link_type = row[3]
             the_geom_text = row[4]
-            linkList.append(link_object_lane(errMsg, link_id, s_node, e_node, link_type, the_geom_text))
+            linkList.append(link_object_lane(errMsg, link_id, s_node, e_node, the_geom_text, link_type))
         return linkList
     
 if __name__ == '__main__':
