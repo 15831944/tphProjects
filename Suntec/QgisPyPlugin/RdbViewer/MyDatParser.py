@@ -104,7 +104,7 @@ class MyDatParser(object):
         a = self.mBuff[0]
         b = self.mBuff[1]
         if (a != '\xfe' or b != '\xfe'):
-            errMsg[0] = """Input file: %s\nis not a dat file."""
+            errMsg[0] = """Input file is not a dat file."""
             return
         self.mPicCount = struct.unpack("<H", self.mBuff[2:4])[0]
         for i in range(0, self.mPicCount):

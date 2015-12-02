@@ -51,13 +51,12 @@ class LaneMapTool(QgsMapTool):
                 self.mCanvas.refresh()
         else: # select the features
             theLayer.removeSelection()
-            featureList = []
             featureIdList = []
             for oneResult in resultList:
-                featureList.append(oneResult.mFeature)
                 featureIdList.append(oneResult.mFeature.id())
             theLayer.select(featureIdList)
-            dlg = LaneShowImageDlg(theLayer, featureList)
+            dlg = LaneShowImageDlg(self.mCanvas, theLayer)
+            dlg.show()
             result = dlg.exec_()
             if result:
                 pass

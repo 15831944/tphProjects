@@ -52,14 +52,14 @@ class SpotguideShowImageDlg(QtGui.QDialog, FORM_CLASS):
         while(self.comboBoxSelectLink.count() > 0):
             self.comboBoxSelectLink.removeItem(0)
         for oneFeature in self.mTheLayer.selectedFeatures():
-            if self.isSpotguideFeature(oneFeature):
+            if self.isMyFeature(oneFeature):
                 self.comboBoxSelectLink.addItem("%.0f" % oneFeature.attribute('out_link_id'))
 
 
     def showFeatureDetail(self, errMsg, theFeature):
         strFeatureInfo = self.getFeatureInfoString(theFeature)
         self.textEditFeatureInfo.setText(strFeatureInfo)
-        if self.isSpotguideFeature(theFeature) == False:
+        if self.isMyFeature(theFeature) == False:
             return
 
         errMsg = ['']
@@ -173,6 +173,9 @@ where %s
         errMsg = ['']
         inti = self.comboBoxSelectLink.currentIndex()
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[inti])
+        if errMsg[0] <> '':
+            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
+            return
         return
 
     def onPushButtonPrev(self):
@@ -184,6 +187,9 @@ where %s
 
         errMsg = ['']
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        if errMsg[0] <> '':
+            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
+            return
         self.comboBoxSelectLink.setFocus()
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
@@ -198,12 +204,15 @@ where %s
 
         errMsg = ['']
         self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        if errMsg[0] <> '':
+            QMessageBox.information(self, "Show Spotguide", """error:\n%s"""%errMsg[0])
+            return
         self.comboBoxSelectLink.setFocus()
         center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
         self.mTheCanvas.refresh()
         return
 
-    def isSpotguideFeature(self, theFeature):
+    def isMyFeature(self, theFeature):
         try:
             gid = theFeature.attribute('gid')
             in_link_id = theFeature.attribute('in_link_id')

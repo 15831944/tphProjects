@@ -6,20 +6,18 @@ from MyDatParser import MyDatParser
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QGraphicsScene, QPixmap
 from PyQt4.QtCore import QRectF
-from qgis.core import QgsDataSourceURI
+from qgis.core import QgsDataSourceURI, QgsFeatureRequest, QgsFeature
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                'LaneShowImageDlgDesign.ui'))
 
 class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
-    def __init__(self, theLayer, selectedFeatureList, parent=None):
-        if(len(selectedFeatureList) == 0):
-            QMessageBox.information(self, "Show Lane", """error:\nNo feature selected.""")
-            return
+    def __init__(self, theCanvas, theLayer, parent=None):
         super(LaneShowImageDlg, self).__init__(parent)
         self.setupUi(self)
+        self.mTheCanvas = theCanvas
         self.mTheLayer = theLayer
-        self.mFeatureList = selectedFeatureList
+        self.mAllFeatureIds = []
         # 
         self.graphicViewsMap = {
             0 : self.graphicView_00,
@@ -55,9 +53,10 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             2**10 : ":/icons/1024.png",
             2**11 : ":/icons/2048.png",
             2**12 : ":/icons/4096.png",
-            2**13 : ":/icons/8192.png"            
+            2**13 : ":/icons/8192.png"
             }
 
+        #
         self.arrowImagesMap_gray = {
             2**0 : ":/icons/1_gray.png",
             2**1 : ":/icons/2_gray.png",
@@ -72,121 +71,46 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
             2**10 : ":/icons/1024_gray.png",
             2**11 : ":/icons/2048_gray.png",
             2**12 : ":/icons/4096_gray.png",
-            2**13 : ":/icons/8192_gray.png"          
+            2**13 : ":/icons/8192_gray.png"
             }
 
-        for oneFeature in self.mFeatureList:
-            fieldList = oneFeature.fields()
-            attrList = oneFeature.attributes()
-            for oneField, oneAttr in zip(fieldList, attrList):
-                if(oneField.name() == 'out_link_id'):
-                    self.comboBoxSelectLink.addItem(str(oneAttr))
+        featureIter = self.mTheLayer.getFeatures(QgsFeatureRequest().setFlags(QgsFeatureRequest.NoGeometry))
+        inti = 0
+        theFeature = QgsFeature()
+        while(featureIter.nextFeature(theFeature) and inti<512):
+            inti += 1
+            self.mAllFeatureIds.append(theFeature.id())
+        self.spinBoxFeatureIndex.setValue(1)
+        self.spinBoxFeatureIndex.setMinimum(1)
+        self.spinBoxFeatureIndex.setMaximum(inti)
 
-        # no feature has a 'out_link_id'
-        # then show the first feature's information only.
-        if self.comboBoxSelectLink.count() <= 0:
-            errMsg = """Selected feature is not a rdb lane feature."""
-            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
-            self.comboBoxSelectLink.setEnabled(False)
-            theFeature = self.mFeatureList[0]
-            strFeatureInfo = self.getFeatureInfoString(theFeature)
-            self.textEditFeatureInfo.setText(strFeatureInfo)
-            return
-
-        self.selectFeatureByComboIdx(0)
+        errMsg = ['']
+        self.initComboBoxSelectLink()
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
         self.comboBoxSelectLink.setFocus()
 
-        self.connect(self.comboBoxSelectLink, 
-                     QtCore.SIGNAL('activated(QString)'), 
-                     self.comboBoxSelectLinkChanged)
-    
-    def comboBoxSelectLinkChanged(self, txt):
-        inti = self.comboBoxSelectLink.currentIndex()
-        self.selectFeatureByComboIdx(inti)
-        return
-
-    def selectFeatureByComboIdx(self, comboIdx):
-        theFeature = self.mFeatureList[comboIdx]
-        strFeatureInfo = self.getFeatureInfoString(theFeature)
-        self.textEditFeatureInfo.setText(strFeatureInfo)
+        self.pushButtonPrev.clicked.connect(self.onPushButtonPrev)
+        self.pushButtonNext.clicked.connect(self.onPushButtonNext)
+        self.connect(self.comboBoxSelectLink, QtCore.SIGNAL('activated(QString)'), self.comboBoxSelectLinkChanged)
         
-        try:
-            uri = QgsDataSourceURI(self.mTheLayer.source())
-            conn = psycopg2.connect("""host='%s' dbname='%s' user='%s' password='%s'""" %\
-                (uri.host(), uri.database(), uri.username(), uri.password()))
-            pg = conn.cursor()
 
-            # all these lane's keys must be found
-            # if anyone is not found, a 'KeyError' exception will be thrown.
-            in_link_id = theFeature.attribute('in_link_id')
-            node_id = theFeature.attribute('node_id')
-            out_link_id = theFeature.attribute('out_link_id')
-            passlink_count = theFeature.attribute('passlink_count')
-            lane_num = theFeature.attribute('lane_num')
-            lane_info = theFeature.attribute('lane_info')
-            arrow_info = theFeature.attribute('arrow_info')
-
-            # draw all lanes in this link
-            strFilter = '''in_link_id=%s and node_id=%s''' % (in_link_id, node_id)
-            sqlcmd = """select lane_num, lane_info, arrow_info
-                        from %s
-                        where %s""" % (uri.table(), strFilter)
-            pg.execute(sqlcmd)
-            rows = pg.fetchall()
-            if len(rows) <= 0:
-                errMsg = '''get no lane record.'''
-                QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
-                return
-            totalLaneCount = rows[0][0] # lane count of inlink.
-
-            self.clearAllGraphicViews() # clear all obsolete content in GraphicViews
-            self.hideAllGraphicViews()
-            self.showNeededGraphicViews(totalLaneCount)
-
-            for row in rows:
-                lane_num = row[0] # total lane count in this link
-                lane_info = row[1] # which lane is specified
-                arrow_info = row[2] # arrow catagory
-
-                if lane_num != totalLaneCount:
-                    errMsg = """some lane_count not the same."""
-                    QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
-                    return
-                self.drawLaneGray(lane_num, lane_info, arrow_info)          
-
-            # draw highlighted guide lanes 
-            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s''' %\
-                        (in_link_id, node_id, out_link_id)
-            sqlcmd = """select lane_num, lane_info, arrow_info
-                        from %s
-                        where %s""" % (uri.table(), strFilter)
-            pg.execute(sqlcmd)
-            rows = pg.fetchall()
-            if len(rows) <= 0:
-                errMsg = '''get no lane record.'''
-                QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
-                return
-            totalLaneCount = rows[0][0] # lane count of inlink.
-            for row in rows:
-                lane_num = row[0] # total lane count in this link
-                lane_info = row[1] # which lane is specified
-                arrow_info = row[2] # arrow catagory
-
-                if lane_num != totalLaneCount:
-                    errMsg = """some lane_count not the same."""
-                    QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
-                    return
-                self.drawLaneHighlight(lane_num, lane_info, arrow_info)
-            return 
-        except KeyError, kErr:
-            errMsg = """Selected feature is not a rdb lane feature."""
-            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg)
-            return
-        except Exception, ex:
-            QMessageBox.information(self, "Show Lane", """error:\n%s"""%ex.message)
-            return
+    def disableAllControls(self):
+        self.pushButtonPrev.setEnabled(False)
+        self.pushButtonPrev.setEnabled(False)
+        self.comboBoxSelectLink.setEnabled(False)
+        self.textEditFeatureInfo.setEnabled(False)
         return
-    
+
+    def initComboBoxSelectLink(self):
+        while(self.comboBoxSelectLink.count() > 0):
+            self.comboBoxSelectLink.removeItem(0)
+        selectedFeatures = self.mTheLayer.selectedFeatures()
+        for oneFeature in selectedFeatures:
+            if self.isMyFeature(oneFeature):
+                out_link_id = oneFeature.attribute('out_link_id')
+                strTemp = str(out_link_id)
+                self.comboBoxSelectLink.addItem(strTemp)
+
     def getFeatureInfoString(self, theFeature):
         fieldList = theFeature.fields()
         attrList = theFeature.attributes()
@@ -198,18 +122,157 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 strFeatureInfo += "%s: %s\n" % (oneField.name(), oneAttr)
         return strFeatureInfo
 
-    def drawLaneHighlight(self, totalLaneCount, whichLane, arrowInfo):
-        self.drawLane(totalLaneCount, whichLane, arrowInfo, self.arrowImagesMap_highlight)
+    def comboBoxSelectLinkChanged(self, txt):
+        errMsg = ['']
+        inti = self.comboBoxSelectLink.currentIndex()
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[inti])
+        if errMsg[0] <> '':
+            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg[0])
+            return
         return
 
-    def drawLaneGray(self, totalLaneCount, whichLane, arrowInfo):
-        self.drawLane(totalLaneCount, whichLane, arrowInfo, self.arrowImagesMap_gray)
+    def onPushButtonPrev(self):
+        self.spinBoxFeatureIndex.setValue(self.spinBoxFeatureIndex.value()-1)
+        prevFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
+        self.mTheLayer.removeSelection()
+        self.mTheLayer.select(prevFeatureId)
+        self.initComboBoxSelectLink()
+
+        errMsg = ['']
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        if errMsg[0] <> '':
+            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg[0])
+            return
+        self.comboBoxSelectLink.setFocus()
+        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+        self.mTheCanvas.refresh()
         return
 
-    def drawLane(self, totalLaneCount, whichLane, arrowInfo, arrowImagesMap):
+    def onPushButtonNext(self):
+        self.spinBoxFeatureIndex.setValue(self.spinBoxFeatureIndex.value()+1)
+        nextFeatureId = self.mAllFeatureIds[self.spinBoxFeatureIndex.value()-1]
+        self.mTheLayer.removeSelection()
+        self.mTheLayer.select(nextFeatureId)
+        self.initComboBoxSelectLink()
+
+        errMsg = ['']
+        self.showFeatureDetail(errMsg, self.mTheLayer.selectedFeatures()[0])
+        if errMsg[0] <> '':
+            QMessageBox.information(self, "Show Lane", """error:\n%s"""%errMsg[0])
+            return
+        self.comboBoxSelectLink.setFocus()
+        center = self.mTheCanvas.zoomToSelected(self.mTheLayer)
+        self.mTheCanvas.refresh()
+        return
+
+    def isMyFeature(self, theFeature):
+        # check if this feature is a rdb_guideinfo_lane's instance.
+        try:
+            in_link_id = theFeature.attribute('in_link_id')
+            in_link_id_t = theFeature.attribute('in_link_id_t')
+            node_id = theFeature.attribute('node_id')
+            node_id_t = theFeature.attribute('node_id_t')
+            out_link_id = theFeature.attribute('out_link_id')
+            out_link_id_t = theFeature.attribute('out_link_id_t')
+            type = theFeature.attribute('lane_num')
+            passlink_count = theFeature.attribute('lane_info')
+            pattern_id = theFeature.attribute('arrow_info')
+            arrow_id = theFeature.attribute('lane_num_l')
+            is_exist_sar = theFeature.attribute('lane_num_r')
+            order_id = theFeature.attribute('passlink_count')
+            pattern_name = theFeature.attribute('exclusive')
+            arrow_name = theFeature.attribute('order_id')
+        except KeyError, kErr:
+            return False
+        except Exception, ex:
+            return False
+        return True
+
+    def showFeatureDetail(self, errMsg, theFeature):
+        strFeatureInfo = self.getFeatureInfoString(theFeature)
+        self.textEditFeatureInfo.setText(strFeatureInfo)
+        if self.isMyFeature(theFeature) == False:
+            return
+        
+        try:
+            uri = QgsDataSourceURI(self.mTheLayer.source())
+            conn = psycopg2.connect("""host='%s' dbname='%s' user='%s' password='%s'""" %\
+                (uri.host(), uri.database(), uri.username(), uri.password()))
+            pg = conn.cursor()
+
+            # draw all lanes in this link
+            in_link_id = theFeature.attribute('in_link_id')
+            node_id = theFeature.attribute('node_id')
+            out_link_id = theFeature.attribute('out_link_id')
+            strFilter = '''in_link_id=%s and node_id=%s''' % (in_link_id, node_id)
+            sqlcmd = """select lane_num, lane_info, arrow_info
+                        from %s
+                        where %s""" % (uri.table(), strFilter)
+            pg.execute(sqlcmd)
+            rows = pg.fetchall()
+            if len(rows) <= 0:
+                errMsg[0] = '''get no lane record.'''
+                return
+            totalLaneCount = rows[0][0] # lane count of inlink.
+            self.clearAllGraphicViews() # clear all obsolete content in GraphicViews
+            self.hideAllGraphicViews()
+            self.showNeededGraphicViews(totalLaneCount)
+
+            for row in rows:
+                lane_num = row[0] # total lane count in this link
+                lane_info = row[1] # which lane is specified
+                arrow_info = row[2] # arrow catagory
+
+                if lane_num != totalLaneCount:
+                    errMsg[0] = """some lane_count not the same."""
+                    return
+                self.drawLaneGray(errMsg, lane_num, lane_info, arrow_info)
+                if errMsg[0] <> '':
+                    return
+
+            # draw highlighted guide lanes 
+            strFilter = '''in_link_id=%s and node_id=%s and out_link_id=%s''' %\
+                        (in_link_id, node_id, out_link_id)
+            sqlcmd = """select lane_num, lane_info, arrow_info
+                        from %s
+                        where %s""" % (uri.table(), strFilter)
+            pg.execute(sqlcmd)
+            rows = pg.fetchall()
+            if len(rows) <= 0:
+                errMsg[0] = '''get no lane record.'''
+                return
+            totalLaneCount = rows[0][0] # lane count of inlink.
+            for row in rows:
+                lane_num = row[0] # total lane count in this link
+                lane_info = row[1] # which lane is specified
+                arrow_info = row[2] # arrow catagory
+
+                if lane_num != totalLaneCount:
+                    errMsg[0] = """some lane_count not the same."""
+                    return
+                self.drawLaneHighlight(errMsg, lane_num, lane_info, arrow_info)
+                if errMsg[0] <> '':
+                    return
+            return 
+        except KeyError, kErr:
+            errMsg[0] = """Selected feature is not a rdb lane feature."""
+            return
+        except Exception, ex:
+            errMsg[0] = ex.message
+            return
+        return
+
+    def drawLaneHighlight(self, errMsg, totalLaneCount, whichLane, arrowInfo):
+        self.drawLane(errMsg, totalLaneCount, whichLane, arrowInfo, self.arrowImagesMap_highlight)
+        return
+
+    def drawLaneGray(self, errMsg, totalLaneCount, whichLane, arrowInfo):
+        self.drawLane(errMsg, totalLaneCount, whichLane, arrowInfo, self.arrowImagesMap_gray)
+        return
+
+    def drawLane(self, errMsg, totalLaneCount, whichLane, arrowInfo, arrowImagesMap):
         if whichLane >= 2**(totalLaneCount+1): # specified lane not exist.
-            errMsg = """lane_info is incorrect, total lane count is %s""" % totalLaneCount
-            QMessageBox.information(self, "Show Lane", """error:\n%s""" % errMsg)
+            errMsg[0] = """lane_info is incorrect, total lane count is %s""" % totalLaneCount
             return
 
         pixmapList = []
@@ -218,8 +281,7 @@ class LaneShowImageDlg(QtGui.QDialog, FORM_CLASS):
                 pixmapList.append(QPixmap(oneImagePath))
 
         if len(pixmapList) <= 0:
-            errMsg = "arrow_info is incorrect, cannot find arrow's picture."
-            QMessageBox.information(self, "Show Lane", """error:\n%s""" % errMsg)
+            errMsg[0] = "arrow_info is incorrect, cannot find arrow's picture."
             return
 
         for oneKey, oneGraphicView in self.graphicViewsMap.items():
