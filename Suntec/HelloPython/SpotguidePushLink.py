@@ -1,4 +1,4 @@
-# -*- coding: cp936 -*-
+#encoding=utf-8
 import time
 import math
 import psycopg2   
@@ -9,7 +9,7 @@ DIR_RIGHT_SIDE = 2
 A_WGS84 = 6378137.0
 E2_WGS84 = 6.69437999013e-3
 
-# ¹¦ÄÜÀà£¬´ËÀàÓÃÓÚ»»ËãÁ½µãµÄ¾­Î³¶ÈÓë·½Î»¡¢¾àÀë
+# åŠŸèƒ½ç±»ï¼Œæ­¤ç±»ç”¨äºæ¢ç®—ä¸¤ç‚¹çš„ç»çº¬åº¦ä¸æ–¹ä½ã€è·ç¦»
 class LatLonPoint(object):
     def __init__(self, latitude, longitude):
         self.latitude = latitude * 256 * 3600;    
@@ -82,8 +82,8 @@ class link_object_base(object):
             return None
         return pointlist
     
-    # »ñÈ¡±¾linkÓëlinkObj2Ö®¼äµÄÏàÁ¬node¡£
-    # ÈôlinkObj2Óë±¾link²¢ÎŞÏàÁ¬µã£¬Ôò·µ»Ø¿Õ£¬²¢ÖÃerrMsg¡£
+    # è·å–æœ¬linkä¸linkObj2ä¹‹é—´çš„ç›¸è¿nodeã€‚
+    # è‹¥linkObj2ä¸æœ¬linkå¹¶æ— ç›¸è¿ç‚¹ï¼Œåˆ™è¿”å›ç©ºï¼Œå¹¶ç½®errMsgã€‚
     def getConnectedNodeidWith(self, errMsg, linkObj2):
         if self.s_node == linkObj2.s_node or self.s_node == linkObj2.e_node:
             return self.s_node
@@ -95,8 +95,8 @@ class link_object_base(object):
                         (self.toString(), linkObj2.toString())
             return None
     
-    # »ñÈ¡ÓëlinkObj2µÄÁ¬½ÓnodeÒÔÍâµÄÁíÒ»¸önode¡£
-    # ÈôlinkObj2Óë±¾link²¢ÎŞÏàÁ¬µã£¬Ôò·µ»Ø¿Õ£¬²¢ÖÃerrMsg¡£
+    # è·å–ä¸linkObj2çš„è¿æ¥nodeä»¥å¤–çš„å¦ä¸€ä¸ªnodeã€‚
+    # è‹¥linkObj2ä¸æœ¬linkå¹¶æ— ç›¸è¿ç‚¹ï¼Œåˆ™è¿”å›ç©ºï¼Œå¹¶ç½®errMsgã€‚
     def getNonConnectedNodeid(self, errMsg, linkObj2):
         if self.s_node == linkObj2.s_node or self.s_node == linkObj2.e_node:
             return self.e_node
@@ -108,9 +108,9 @@ class link_object_base(object):
                         (self.toString(), linkObj2.toString())
             return None
     
-    # ÇóÑØ´ËlinkµÄ½»Í¨Á÷ÏòÓëÕı¶«·½ÏòµÄ¼Ğ½Ç¡£
-    # nodeid: ±¾linkµÄÄ³¸ö¶Ëµã
-    # trafficDir: ÑØµ±Ç°linkÁ÷Ïò´Ëµã/ÑØµ±Ç°link´Ó´ËµãÁ÷³ö£¬±ØĞëµÈÓÚ'to_this_node'»ò'from_this_node'¡£
+    # æ±‚æ²¿æ­¤linkçš„äº¤é€šæµå‘ä¸æ­£ä¸œæ–¹å‘çš„å¤¹è§’ã€‚
+    # nodeid: æœ¬linkçš„æŸä¸ªç«¯ç‚¹
+    # trafficDir: æ²¿å½“å‰linkæµå‘æ­¤ç‚¹/æ²¿å½“å‰linkä»æ­¤ç‚¹æµå‡ºï¼Œå¿…é¡»ç­‰äº'to_this_node'æˆ–'from_this_node'ã€‚
     def getTrafficDirAngleToEast(self, errMsg, nodeid, trafficDir='to_this_node'):
         if trafficDir <> 'to_this_node' and trafficDir <> 'from_this_node':
             errMsg[0] = """invalid argument trafficDir: %s""" % trafficDir
@@ -123,7 +123,7 @@ class link_object_base(object):
                 if point1.getDistanceByPoint(self.pointlist[i]) > 5:
                     point2 = self.pointlist[i]
                     break
-            # Ã»ÓĞÈÎºÎÒ»¸öĞÎ×´µãÓës_nodeµÄ¾àÀë´óÓÚ5Ã×£¬ÔòÊ¹ÓÃe_nodeÎªpoint2
+            # æ²¡æœ‰ä»»ä½•ä¸€ä¸ªå½¢çŠ¶ç‚¹ä¸s_nodeçš„è·ç¦»å¤§äº5ç±³ï¼Œåˆ™ä½¿ç”¨e_nodeä¸ºpoint2
             if point2 == None:
                 point2 = self.pointlist[-1]
             
@@ -139,7 +139,7 @@ class link_object_base(object):
                 if point1.getDistanceByPoint(self.pointlist[i]) > 5:
                     point2 = self.pointlist[i]
                     break
-            # Ã»ÓĞÈÎºÎÒ»¸öĞÎ×´µãÓëe_nodeµÄ¾àÀë´óÓÚ5Ã×£¬ÔòÊ¹ÓÃs_nodeÎªpoint2
+            # æ²¡æœ‰ä»»ä½•ä¸€ä¸ªå½¢çŠ¶ç‚¹ä¸e_nodeçš„è·ç¦»å¤§äº5ç±³ï¼Œåˆ™ä½¿ç”¨s_nodeä¸ºpoint2
             if point2 == None:
                 point2 = self.pointlist[0]
             
@@ -153,9 +153,9 @@ class link_object_base(object):
                         """linkObject: %s, nodeid: %s""" % (self.toString(), nodeid)
             return None
 
-    # ÇóangleA¶ÔÓëangleBµÄÎ»ÖÃºÍ½Ç¶È
-    # ·µ»Ø1£ºangleAÔÚangleBµÄ×ó/ÓÒ
-    # ·µ»Ø2£ºangleAÔÚangleBµÄ×ó/ÓÒµÄ½Ç¶È£¬È¡Öµ·¶Î§Îª0~180
+    # æ±‚angleAå¯¹ä¸angleBçš„ä½ç½®å’Œè§’åº¦
+    # è¿”å›1ï¼šangleAåœ¨angleBçš„å·¦/å³
+    # è¿”å›2ï¼šangleAåœ¨angleBçš„å·¦/å³çš„è§’åº¦ï¼Œå–å€¼èŒƒå›´ä¸º0~180
     @staticmethod
     def getPositionAndAngleOfA2B(angleA, angleB):
         if 0 <= angleA - angleB and angleA - angleB < 180:
@@ -170,7 +170,7 @@ class link_object_base(object):
         if -180 <= angleA - angleB and angleA - angleB < 0:
             return DIR_RIGHT_SIDE, -(angleA - angleB)
         
-    # »ñÈ¡³µÁ¾ÑØ´ËÌõlinkĞòÁĞĞĞ½øÊ±×îÖÕµÄ½»Í¨Á÷±ä»¯·½Ïò¡£
+    # è·å–è½¦è¾†æ²¿æ­¤æ¡linkåºåˆ—è¡Œè¿›æ—¶æœ€ç»ˆçš„äº¤é€šæµå˜åŒ–æ–¹å‘ã€‚
     @staticmethod
     def getTrafficAngleByLinkList(errMsg, linkList):
         resultAngle = 0
@@ -212,29 +212,10 @@ class spotguide_push_link(object):
         print time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
         return
         
-    # µ±¾ö²ßµãÎª·Ç·ÖÆçµãÊ±£¬apl²»»á²¥±¨¸ÃÌõÓÕµ¼Êı¾İ£¬¸ÃÌõÊı¾İ³ÉÎªÈßÓàÊı¾İ¡£
-    # ÕÒ³öÕâĞ©µã£¬½øĞĞÍÆlink»òÕßÉ¾³ı¼ÇÂ¼¡£
+    # å½“å†³ç­–ç‚¹ä¸ºéåˆ†æ­§ç‚¹æ—¶ï¼Œaplä¸ä¼šæ’­æŠ¥è¯¥æ¡è¯±å¯¼æ•°æ®ï¼Œè¯¥æ¡æ•°æ®æˆä¸ºå†—ä½™æ•°æ®ã€‚
+    # æ‰¾å‡ºè¿™äº›ç‚¹ï¼Œè¿›è¡Œæ¨linkæˆ–è€…åˆ é™¤è®°å½•ã€‚
     def findOneInOneOutLinks(self):
         sqlcmd = """
---****************************************************************************************
-create or replace function is_lane_info_grouped(laneinfo1 varchar, laneinfo2 varchar)
-returns boolean
-language plpgsql
-as
-$$
-begin
-    if length(laneinfo1) <> length(laneinfo2) then
-        return false;
-    end if;
-
-    for i in 1..length(laneinfo1) loop
-        if substr(laneinfo1, i, 1)='1' and substr(laneinfo2, i, 1)='1' then
-            return false;
-        end if;
-    end loop;
-    return true;
-end;
-$$;
 --****************************************************************************************
 drop table if exists lane_tbl_test;
 select * into lane_tbl_test from lane_tbl;
@@ -259,32 +240,68 @@ on lane_tbl_test
 using btree
 (outlinkid);
 --****************************************************************************************
+-- ç”Ÿæˆlinkåºåˆ—ã€‚
+drop table if exists lane_tbl_link_list;
+select distinct id, array[inlinkid::text] || string_to_array(passlid, '|') || array[outlinkid::text] as link_list
+into lane_tbl_link_list
+from lane_tbl_test;
+
+create index lane_tbl_link_list_id_idx
+on lane_tbl_link_list
+using btree
+(id);
+
+--****************************************************************************************
+-- åˆ†æ‹†linkåºåˆ—ï¼Œä»¥ä¾¿æ±‚æ¯æ¡linkçš„å±æ€§ã€‚
 drop table if exists lane_tbl_link_seqnr;
-select t.id, unnest(t.link_list)::bigint as link_id, 
-       generate_series(1, array_upper(link_list, 1)) as seqnr
+select id, unnest(link_list)::bigint as link_id, generate_series(1, array_upper(link_list, 1)) as seqnr
 into lane_tbl_link_seqnr
 from
-(
-    select distinct id, 
-       array[inlinkid::text] || string_to_array(passlid, '|') || array[outlinkid::text] as link_list
-    from lane_tbl_test
-)as t;
+lane_tbl_link_list;
+
 create index lane_tbl_link_seqnr_link_id_idx
 on lane_tbl_link_seqnr
 using btree
 (link_id);
 --****************************************************************************************
-drop table if exists lane_tbl_link_list;
-select id, array_agg(seqnr) as seqnr_list, 
-    array_agg(link_id) as link_id_list,
-    array_agg(s_node) as s_node_list,
-    array_agg(e_node) as e_node_list,
-    array_agg(link_type) as link_type_list,
-    array_agg(st_astext(the_geom)) as the_geom_text_list
-into lane_tbl_link_list
+-- ç®—å‡ºä¸­é—´nodeåºåˆ—
+create or replace function get_connected_node(s_node1 bigint, e_node1 bigint, s_node2 bigint, e_node2 bigint)
+returns bigint
+language plpgsql
+as
+$$
+begin
+    if s_node1=s_node2 or s_node1=e_node2 then
+        return s_node1;
+    elseif e_node1=s_node2 or e_node1=e_node2 then
+        return e_node1;
+    else
+        return -1;
+    end if;
+end;
+$$;
+
+create or replace function generate_node_array(s_node_list bigint[], e_node_list bigint[])
+returns bigint[]
+language plpgsql
+as
+$$
+declare
+    resultArray bigint[];
+begin
+    for i in 1..array_upper(s_node_list, 1)-1 loop
+        resultArray := resultArray || get_connected_node(s_node_list[i], e_node_list[i], s_node_list[i+1], e_node_list[i+1]);
+    end loop;
+    return resultArray;
+end;
+$$;
+
+drop table if exists lane_tbl_connection_node;
+select id, unnest(generate_node_array(array_agg(s_node), array_agg(e_node))) as connection_node
+into lane_tbl_connection_node
 from
 (
-    select a.id, a.seqnr, b.link_id, b.s_node, b.e_node, b.link_type, b.the_geom
+    select a.id, a.seqnr, b.link_id, b.s_node, b.e_node
     from
     lane_tbl_link_seqnr as a
     left join link_tbl as b
@@ -293,20 +310,56 @@ from
 ) as t
 group by id;
 
-create index lane_tbl_link_list_id_idx
-on lane_tbl_link_list
+create index lane_tbl_connection_node_id_idx
+on lane_tbl_connection_node
 using btree
 (id);
+
+create index lane_tbl_connection_node_connection_node_idx
+on lane_tbl_connection_node
+using btree
+(connection_node);
+
 --****************************************************************************************
-select a.id, a.seqnr_list, a.link_id_list, a.s_node_list, 
-    a.e_node_list, a.link_type_list, a.the_geom_text_list,
-    b.lanenum, b.laneinfo, b.arrowinfo, b.lanenuml, b.lanenumr,
-    b.buslaneinfo, b.exclusive
-from 
-lane_tbl_link_list as a
-left join lane_tbl_test as b
-on a.id=b.id;
+-- æ±‚å‡ºæ¯ä¸ªä¸­é—´nodeçš„è¿æ¥linkæ•°
+drop table if exists lane_tbl_connection_node_linkcount;
+select a.id, a.connection_node, count(b.link_id) as link_count
+into lane_tbl_connection_node_linkcount
+from
+lane_tbl_connection_node as a
+left join link_tbl as b
+on a.connection_node = b.s_node or a.connection_node=b.e_node
+group by a.id, a.connection_node;
+
+create index lane_tbl_connection_node_linkcount_id_idx
+on lane_tbl_connection_node_linkcount
+using btree
+(id);
+
 --****************************************************************************************
+-- ä»…å–æ‰€æœ‰ä¸­é—´nodeçš„è¿æ¥linkæ•°éƒ½å°äºç­‰äº2çš„é¡¹
+select t1.*, t2.lanenum, t2.laneinfo, t2.arrowinfo, t2.lanenuml,
+       t2.lanenumr, t2.buslaneinfo, t2.exclusive
+from
+(
+    select a.id, array_agg(b.link_id) as link_id_list, array_agg(c.s_node) as s_node_list, 
+           array_agg(c.e_node) as e_node_list, array_agg(astext(c.the_geom)) as the_geom_text_list,
+           array_agg(c.link_type) as link_type_list
+    from
+    (
+        select distinct id
+        from lane_tbl_connection_node_linkcount 
+        group by id
+        having not ((array[3,4,5,6,7,8]::bigint[]) && array_agg(link_count))
+    ) as a
+    left join lane_tbl_link_seqnr as b
+    on a.id=b.id
+    left join link_tbl as c
+    on b.link_id=c.link_id
+    group by a.id
+) as t1
+left join lane_tbl as t2
+on t1.id=t2.id
 """
         self.pg.execute(sqlcmd)
         rows = self.pg.fetchall()
@@ -338,28 +391,28 @@ on a.id=b.id;
                 continue
             if bHasFork == True:
                 pass
-            # ÕûÌõlinkĞòÁĞÃ»ÓĞÈÎºÎ·ÖÆçÂ·¿Ú¡£
+            # æ•´æ¡linkåºåˆ—æ²¡æœ‰ä»»ä½•åˆ†æ­§è·¯å£ã€‚
             else:
-                # ½«ÕûÌõlinkĞòÁĞÏòÇ°ÍÆ½øÖ±ÖÁµÚÒ»¸ö·ÖÆçÂ·¿Ú
+                # å°†æ•´æ¡linkåºåˆ—å‘å‰æ¨è¿›ç›´è‡³ç¬¬ä¸€ä¸ªåˆ†æ­§è·¯å£
                 self.pushLinkUntilFork(errMsg, linkObjList)
                 if errMsg[0] <> '':
                     print errMsg[0]
                     continue
                 
-                # ÍÆµ½·ÖÆçÂ·¿Úºó£¬Ê¹ÓÃ·ÖÆçÂ·¿ÚµÄÇ°Ò»ÌõlinkÎªĞÂµÄinlink
+                # æ¨åˆ°åˆ†æ­§è·¯å£åï¼Œä½¿ç”¨åˆ†æ­§è·¯å£çš„å‰ä¸€æ¡linkä¸ºæ–°çš„inlink
                 newInlink = linkObjList[-1]
                 nodeid = newInlink.getNonConnectedNodeid(errMsg, linkObjList[-2])
                 if errMsg[0] <> '':
                     print errMsg[0]
                     continue
                 
-                # »ùÓÚĞÂµÄinlink£¬³¢ÊÔÔÚ·ÖÆçÂ·¿ÚÉú³ÉËùÓĞ¿ÉÄÜµÄĞĞ³µÂ·Ïß
+                # åŸºäºæ–°çš„inlinkï¼Œå°è¯•åœ¨åˆ†æ­§è·¯å£ç”Ÿæˆæ‰€æœ‰å¯èƒ½çš„è¡Œè½¦è·¯çº¿
                 possibleLinkLists = []
                 self.findPossibleLinkList(errMsg, possibleLinkLists, newInlink, nodeid)
                 if errMsg[0] <> '':
                     print errMsg[0]
                 
-                # ¹ıÂË¿ÉÄÜµÄĞĞ³µÂ·Ïß£¬Ö»ÓĞ·ûºÏ¼ıÍ·ĞÅÏ¢ÇÒÔ­±íÖĞ²»´æÔÚÏàÍ¬ÓÕµ¼¼ÇÂ¼µÄĞÅÏ¢²ÅÊÕÂ¼¡£
+                # è¿‡æ»¤å¯èƒ½çš„è¡Œè½¦è·¯çº¿ï¼Œåªæœ‰ç¬¦åˆç®­å¤´ä¿¡æ¯ä¸”åŸè¡¨ä¸­ä¸å­˜åœ¨ç›¸åŒè¯±å¯¼è®°å½•çš„ä¿¡æ¯æ‰æ”¶å½•ã€‚
                 for onePossibleLinkList in possibleLinkLists:
                     strTemp = """(id: %s),(%s),(%s),(""" % (id, laneinfo, arrowinfo)
                     for oneLink in onePossibleLinkList:
@@ -378,7 +431,7 @@ on a.id=b.id;
                         oFStream.write(strTemp+'\n')
                         continue
 
-                    # Ìí¼ÓĞÂµÄ³µÏßÓÕµ¼ĞÅÏ¢¡£
+                    # æ·»åŠ æ–°çš„è½¦çº¿è¯±å¯¼ä¿¡æ¯ã€‚
                     self.addLaneInfo(errMsg, onePossibleLinkList, lanenum, laneinfo,
                                      arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive)
                     strTemp += """(succeed)"""
@@ -389,7 +442,7 @@ on a.id=b.id;
         oFStream.close()
         return
     
-    # ĞÂÔöÒ»Ìõ³µÏßÓÕµ¼ĞÅÏ¢¡£
+    # æ–°å¢ä¸€æ¡è½¦çº¿è¯±å¯¼ä¿¡æ¯ã€‚
     def addLaneInfo(self, errMsg, linkList, lanenum, laneinfo, 
                     arrowinfo, lanenuml, lanenumr, buslaneinfo, exclusive):
         inlinkObj = linkList[0]
@@ -409,8 +462,8 @@ values
         self.conn.commit()
         return
     
-    # »ùÓÚinlinkObjºÍnodeidµÄ¿ÉÄÜµÄĞĞ³µĞòÁĞ¡£
-    # Èç¹ûoutlinkÎªinner link£¬Ôò»á³¢ÊÔÏòºóÍÆlink£¬½â¾öuturnµÈÇé¿ö¡£
+    # åŸºäºinlinkObjå’Œnodeidçš„å¯èƒ½çš„è¡Œè½¦åºåˆ—ã€‚
+    # å¦‚æœoutlinkä¸ºinner linkï¼Œåˆ™ä¼šå°è¯•å‘åæ¨linkï¼Œè§£å†³uturnç­‰æƒ…å†µã€‚
     def findPossibleLinkList(self, errMsg, possibleLinkList, inlinkObj, nodeid=None):
         outlinkList = self.getOutlinkList(errMsg, nodeid, inlinkObj)
         if errMsg[0] <> '':
@@ -418,15 +471,15 @@ values
             return
         
         for oneOutlink in outlinkList:
-            if oneOutlink.link_type == 0: # Óöµ½roundabout£¬´ËoutlinkÅÅ³ı¡£
+            if oneOutlink.link_type == 0: # é‡åˆ°roundaboutï¼Œæ­¤outlinkæ’é™¤ã€‚
                 continue
-            elif oneOutlink.link_type == 4: # inner link£¬ÈÔ¼ÌĞøÏòÇ°Ì½Â·Ö±ÖÁ·Çinner link¡£
+            elif oneOutlink.link_type == 4: # inner linkï¼Œä»ç»§ç»­å‘å‰æ¢è·¯ç›´è‡³éinner linkã€‚
                 self.findPossibleLinkList2(errMsg, possibleLinkList, [inlinkObj, oneOutlink])
-            else: # ·Çinner link£¬ÍÆµã½áÊø£¬ÕÒµ½Ò»Ìõ¿ÉÄÜµÄĞĞ³µÂ·Ïß¡£
+            else: # éinner linkï¼Œæ¨ç‚¹ç»“æŸï¼Œæ‰¾åˆ°ä¸€æ¡å¯èƒ½çš„è¡Œè½¦è·¯çº¿ã€‚
                 possibleLinkList.append([inlinkObj, oneOutlink])
                 
     
-    # findPossibleLinkListµÄÖØÔØ°æ±¾£¬´«ÈëµÄÊÇlinkĞòÁĞ£¬±ãÓÚµİ¹é¡£                  
+    # findPossibleLinkListçš„é‡è½½ç‰ˆæœ¬ï¼Œä¼ å…¥çš„æ˜¯linkåºåˆ—ï¼Œä¾¿äºé€’å½’ã€‚                  
     def findPossibleLinkList2(self, errMsg, possibleLinkList, linkList):
         if len(linkList) > MAX_DEEP:
             return
@@ -439,7 +492,7 @@ values
         nodeidList = self.linkListToNodeList(errMsg, linkList)
         for oneOutlink in outlinkList:
             newEndNode = oneOutlink.getNonConnectedNodeid(errMsg, linkList[-1])
-            # ¼ÓÈë´ËÌõoutlinkºó»áĞÎ³É»·£¬Ìø¹ı¡£
+            # åŠ å…¥æ­¤æ¡outlinkåä¼šå½¢æˆç¯ï¼Œè·³è¿‡ã€‚
             if newEndNode in nodeidList:
                 continue
             
@@ -450,7 +503,7 @@ values
             else:
                 self.findPossibleLinkList2(errMsg, possibleLinkList, tempList)
 
-    # ¸ù¾İlinkĞòÁĞÉú³ÉnodeĞòÁĞ£¬nodeĞòÁĞ³¤¶ÈÓ¦ÎªlinkĞòÁĞ³¤¶È+1
+    # æ ¹æ®linkåºåˆ—ç”Ÿæˆnodeåºåˆ—ï¼Œnodeåºåˆ—é•¿åº¦åº”ä¸ºlinkåºåˆ—é•¿åº¦+1
     def linkListToNodeList(self, errMsg, linkList):
         if len(linkList) == 0:
             return []
@@ -466,9 +519,9 @@ values
                 return None
             return nodeList
 
-    # ÑØ×Åµ±Ç°½»Í¨Á÷£¬ÏòÇ°ÍÆlink£¬Ö±ÖÁÓöµ½µÚÒ»¸ö·ÖÆçÂ·¿Ú£¬È·¶¨inlink¡£
-    # linkObjList: ´Ëlist»á±»²»¶Ï¸üĞÂ£¬Ìí¼ÓĞÂµÄlinkÖ±ÖÁ·Ö²æÂ·¿Ú¡£
-    # µİ¹é½áÊøºó£¬linkObjList[-1]ÔòÎªĞÂµÄinlink¡£
+    # æ²¿ç€å½“å‰äº¤é€šæµï¼Œå‘å‰æ¨linkï¼Œç›´è‡³é‡åˆ°ç¬¬ä¸€ä¸ªåˆ†æ­§è·¯å£ï¼Œç¡®å®šinlinkã€‚
+    # linkObjList: æ­¤listä¼šè¢«ä¸æ–­æ›´æ–°ï¼Œæ·»åŠ æ–°çš„linkç›´è‡³åˆ†å‰è·¯å£ã€‚
+    # é€’å½’ç»“æŸåï¼ŒlinkObjList[-1]åˆ™ä¸ºæ–°çš„inlinkã€‚
     def pushLinkUntilFork(self, errMsg, linkObjList):
         nodeid = linkObjList[-1].getNonConnectedNodeid(errMsg, linkObjList[-2])
         if errMsg[0] <> '':
@@ -480,19 +533,19 @@ values
             errMsg[0] = """Failed when push link step1: """ + errMsg[0]
             return
         
-        if len(outlinkList) == 0:  # ¶ÏÍ·Â·£¬±¨´í¡£
+        if len(outlinkList) == 0:  # æ–­å¤´è·¯ï¼ŒæŠ¥é”™ã€‚
             errMsg[0] = """Failed when push link step1: cannot find a valid outlink.\n"""
             errMsg[0] += """inlink: %s and node: %s""" % (linkObjList[-1].link_id, nodeid)
             return
-        elif len(outlinkList) == 1 and len(connectedLinkList) == 2:  # outlinkÊıÈÔÊÇ1£¬¼ÌĞøÏòÇ°ÍÆ¡£
+        elif len(outlinkList) == 1 and len(connectedLinkList) == 2:  # outlinkæ•°ä»æ˜¯1ï¼Œç»§ç»­å‘å‰æ¨ã€‚
             linkObjList.append(outlinkList[0])
             self.pushLinkUntilFork(errMsg, linkObjList)
             return
-        else:  # ÕÒµ½·Ö²íÂ·¡£
+        else:  # æ‰¾åˆ°åˆ†å²”è·¯ã€‚
             return
         return
     
-    # ¸ù¾İ½»Í¨Á÷±ä»¯µÄ½Ç¶È£¬ÅĞ¶Ï¼ıÍ·ĞÅÏ¢ÊÇ·ñ·ûºÏ¡£
+    # æ ¹æ®äº¤é€šæµå˜åŒ–çš„è§’åº¦ï¼Œåˆ¤æ–­ç®­å¤´ä¿¡æ¯æ˜¯å¦ç¬¦åˆã€‚
     def isLinklistFitsArrowInfo(self, errMsg, linkList, arrowInfo):
         bestArrowInfo = -1
         position, angle = link_object_base.getTrafficAngleByLinkList(errMsg, linkList)
@@ -525,9 +578,9 @@ values
         else:
             return False
             
-    # ²éÑ¯lane_tbl±í£¬²éÑ¯´ËÌõlinkĞòÁĞÔÚlane_tbl±íÖĞÊÇ·ñÒÑ´æÔÚ³µÏßÓÕµ¼ĞÅÏ¢¡£
-    # ±ØĞëÒªinlinkµÄ´ËÌõ³µÏßĞÅÏ¢ÒÑ´æÔÚ£¬²Å·ûºÏÒªÇó¡£
-    # ÈôÖ»´æÔÚinlinkµÄÆäËû³µÏßĞÅÏ¢£¬²»Ó°Ïì×îÖÕÅĞ¶Ï¡£
+    # æŸ¥è¯¢lane_tblè¡¨ï¼ŒæŸ¥è¯¢æ­¤æ¡linkåºåˆ—åœ¨lane_tblè¡¨ä¸­æ˜¯å¦å·²å­˜åœ¨è½¦çº¿è¯±å¯¼ä¿¡æ¯ã€‚
+    # å¿…é¡»è¦inlinkçš„æ­¤æ¡è½¦çº¿ä¿¡æ¯å·²å­˜åœ¨ï¼Œæ‰ç¬¦åˆè¦æ±‚ã€‚
+    # è‹¥åªå­˜åœ¨inlinkçš„å…¶ä»–è½¦çº¿ä¿¡æ¯ï¼Œä¸å½±å“æœ€ç»ˆåˆ¤æ–­ã€‚
     def isGuideinfoLaneExists(self, errMsg, linkObjList, whichLane):
         inlinkObj = linkObjList[0]
         outlinkObj = linkObjList[-1]
@@ -547,7 +600,7 @@ is_lane_info_grouped(laneinfo, '%s')=false;
         rows = self.pg.fetchall()
         return len(rows) > 0
     
-    # Çó´ËÌõlinkĞòÁĞÖĞÊÇ·ñ°üº¬·ÖÆç
+    # æ±‚æ­¤æ¡linkåºåˆ—ä¸­æ˜¯å¦åŒ…å«åˆ†æ­§
     def isLinkListHasFork(self, errMsg, linkObjList):
         for i in range(0, len(linkObjList) - 1):
             inlinkObj = linkObjList[i]
@@ -557,28 +610,28 @@ is_lane_info_grouped(laneinfo, '%s')=false;
                 return False
             
             outlinkList = self.getOutlinkList(errMsg, nodeid, inlinkObj)
-            # ´Ëµã¿ÉÁ÷³öµÄlinkÊı´óÓÚµÈÓÚ2£¬ÅĞ¶¨Îª·ÖÆç£¬´ËÌõÊı¾İÕı³££¬²»ÔÙ¹Ø×¢¡£
+            # æ­¤ç‚¹å¯æµå‡ºçš„linkæ•°å¤§äºç­‰äº2ï¼Œåˆ¤å®šä¸ºåˆ†æ­§ï¼Œæ­¤æ¡æ•°æ®æ­£å¸¸ï¼Œä¸å†å…³æ³¨ã€‚
             if len(outlinkList) >= 2:
                 return True
             
             potentialOutlinkList = self.getPotentialOutlinkList(errMsg, nodeid, inlinkObj)
-            # ´Ëµã¿ÉÄÜµÄÁ÷³ölinkÊı´óÓÚµÈÓÚ2£¬¿ÉÄÜÎª·ÖÆç£¬´ËÌõÊı¾İÕı³££¬²»ÔÙ¹Ø×¢¡£
+            # æ­¤ç‚¹å¯èƒ½çš„æµå‡ºlinkæ•°å¤§äºç­‰äº2ï¼Œå¯èƒ½ä¸ºåˆ†æ­§ï¼Œæ­¤æ¡æ•°æ®æ­£å¸¸ï¼Œä¸å†å…³æ³¨ã€‚
             if len(potentialOutlinkList) >= 2:
                 return True
             
-            # Á¬½Óµ½´ËµãµÄlinkÊı´óÓÚ2£¬´ËÌõÊı¾İÕı³££¬²»ÔÙ¹Ø×¢¡£
+            # è¿æ¥åˆ°æ­¤ç‚¹çš„linkæ•°å¤§äº2ï¼Œæ­¤æ¡æ•°æ®æ­£å¸¸ï¼Œä¸å†å…³æ³¨ã€‚
             connectedOutlinkList = self.getConnectedLinkList(errMsg, nodeid)
             if len(connectedOutlinkList) > 2:
                 return True
         return False
             
             
-    # ¸ù¾İ½»Í¨Á÷£¬Ëã³ö´ËµãµÄoutlinkÊıÁ¿Ğ¡ÓÚ2¡£
-    # Ô­Òò1£ºÔÚlink_tblÖĞ£¬³µÁ¾ÀàĞÍ²»ÊÇĞ¡Æû³µµÈÀàĞÍÊ±¸Ãlink±»±ê¼ÇÎªË«Ïò½ûÖ¹£¬µ¼ÖÂÄ³¸öµãÎóÅĞÎªµ¥½øµ¥³öµã¡£
-    # Ô­Òò2£ºÔÚlink_tblÖĞ£¬Ò»Ğ©ÕıÔÚ½¨ÉèÖĞµÄµÀÂ·±»±ê¼ÇÎªË«Ïò½ûÖ¹£¬Ò²»áµ¼ÖÂÄ³¸öµãßÂÎóÅĞÎªµ¥½øµ¥³öÉõÖÁËãÂ·Ê§°Ü¡£
-    # ĞèÒª½øÒ»²½·ÖÎöµÀÂ·ĞÎÌ¬½øĞĞÅĞ¶Ï¡£
-    # Çó³ö¸ÃµãµÄËùÓĞÏàÁ¬link£¬¼ÙÉè´Ónodeµãµ½ÕâĞ©link¶¼ÄÜÁ÷Í¨¡£
-    # ÈôÄ³ÌõoutlinkµÄ½»Í¨Á÷ÓëinlinkµÄ½»Í¨Á÷²»´óÓÚ120¶È£¬ÔòÈÏÎªÕâÊÇÒ»Ìõ¿ÉÄÜ¿ÉÒÔÍ¨ĞĞµÄµÀÂ·¡£
+    # æ ¹æ®äº¤é€šæµï¼Œç®—å‡ºæ­¤ç‚¹çš„outlinkæ•°é‡å°äº2ã€‚
+    # åŸå› 1ï¼šåœ¨link_tblä¸­ï¼Œè½¦è¾†ç±»å‹ä¸æ˜¯å°æ±½è½¦ç­‰ç±»å‹æ—¶è¯¥linkè¢«æ ‡è®°ä¸ºåŒå‘ç¦æ­¢ï¼Œå¯¼è‡´æŸä¸ªç‚¹è¯¯åˆ¤ä¸ºå•è¿›å•å‡ºç‚¹ã€‚
+    # åŸå› 2ï¼šåœ¨link_tblä¸­ï¼Œä¸€äº›æ­£åœ¨å»ºè®¾ä¸­çš„é“è·¯è¢«æ ‡è®°ä¸ºåŒå‘ç¦æ­¢ï¼Œä¹Ÿä¼šå¯¼è‡´æŸä¸ªç‚¹å‘—è¯¯åˆ¤ä¸ºå•è¿›å•å‡ºç”šè‡³ç®—è·¯å¤±è´¥ã€‚
+    # éœ€è¦è¿›ä¸€æ­¥åˆ†æé“è·¯å½¢æ€è¿›è¡Œåˆ¤æ–­ã€‚
+    # æ±‚å‡ºè¯¥ç‚¹çš„æ‰€æœ‰ç›¸è¿linkï¼Œå‡è®¾ä»nodeç‚¹åˆ°è¿™äº›linkéƒ½èƒ½æµé€šã€‚
+    # è‹¥æŸæ¡outlinkçš„äº¤é€šæµä¸inlinkçš„äº¤é€šæµä¸å¤§äº120åº¦ï¼Œåˆ™è®¤ä¸ºè¿™æ˜¯ä¸€æ¡å¯èƒ½å¯ä»¥é€šè¡Œçš„é“è·¯ã€‚
     def getPotentialOutlinkList(self, errMsg, nodeid, linkObj):
         inlinkTrafficAngle = linkObj.getTrafficDirAngleToEast(errMsg, nodeid, 'to_this_node')
         if errMsg[0] <> '':
@@ -595,12 +648,12 @@ is_lane_info_grouped(laneinfo, '%s')=false;
             
             oneTrafficAngle = oneLinkObj.getTrafficDirAngleToEast(errMsg, nodeid, 'from_this_node')
             position, angle = link_object_base.getPositionAndAngleOfA2B(oneTrafficAngle, inlinkTrafficAngle)
-            # ¼ÙÉènodeµãÁ÷Èë¸Ãlink²¢ÇÒ¹Õ½Ç½«Ğ¡ÓÚ120¶È
+            # å‡è®¾nodeç‚¹æµå…¥è¯¥linkå¹¶ä¸”æ‹è§’å°†å°äº120åº¦
             if angle < 120:
                 potentialOutlinkList.append(oneLinkObj)
         return potentialOutlinkList
     
-    # Çó´ËÒÔinlink_idÎªÁ÷Èëlink£¬nodeidµãµÄoutlinkÁĞ±í¡£
+    # æ±‚æ­¤ä»¥inlink_idä¸ºæµå…¥linkï¼Œnodeidç‚¹çš„outlinkåˆ—è¡¨ã€‚
     def getOutlinkList(self, errMsg, nodeid, linkObj):
         sqlcmd = """
         select link_id, s_node, e_node, link_type, st_astext(the_geom) as the_geom_text_list
@@ -623,7 +676,7 @@ is_lane_info_grouped(laneinfo, '%s')=false;
             linkList.append(link_object_lane(errMsg, link_id, s_node, e_node, the_geom_text, link_type))
         return linkList
     
-    # »ñÈ¡Á¬½Óµ½´ËµãµÄlinkÁĞ±í¡£
+    # è·å–è¿æ¥åˆ°æ­¤ç‚¹çš„linkåˆ—è¡¨ã€‚
     def getConnectedLinkList(self, errMsg, nodeid):
         sqlcmd = """
         select link_id, s_node, e_node, link_type, st_astext(the_geom) as the_geom_text_list
